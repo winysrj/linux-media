@@ -1,109 +1,362 @@
 Return-path: <mchehab@pedra>
-Received: from d1.icnet.pl ([212.160.220.21]:41717 "EHLO d1.icnet.pl"
+Received: from mx1.redhat.com ([209.132.183.28]:5312 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751542Ab0IKB3Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Sep 2010 21:29:24 -0400
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-To: linux-media@vger.kernel.org,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: [PATCH v2 6/6] OMAP1: Amstrad Delta: add camera controlled LEDS trigger
-Date: Sat, 11 Sep 2010 03:28:58 +0200
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tony Lindgren <tony@atomide.com>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	"Discussion of the Amstrad E3 emailer hardware/software"
-	<e3-hacking@earth.li>
-References: <201009110317.54899.jkrzyszt@tis.icnet.pl>
-In-Reply-To: <201009110317.54899.jkrzyszt@tis.icnet.pl>
+	id S1752171Ab0IPFZJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Sep 2010 01:25:09 -0400
+Date: Thu, 16 Sep 2010 01:24:39 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Anders Eriksson <aeriksson@fastmail.fm>,
+	Anssi Hannula <anssi.hannula@iki.fi>
+Subject: [PATCH 4/4] IR/imon: set up mce-only devices w/mce keytable
+Message-ID: <20100916052439.GE23299@redhat.com>
+References: <20100916051932.GA23299@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Message-Id: <201009110329.01171.jkrzyszt@tis.icnet.pl>
+In-Reply-To: <20100916051932.GA23299@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-This patch extends the Amstrad Delta camera support with LEDS trigger that can 
-be used for automatic control of the on-board camera LED. The led turns on 
-automatically on camera device open and turns off on camera device close.
+>From 321eb136b4c933a6a2e6583ccf110c22874c02fe Mon Sep 17 00:00:00 2001
+From: Jarod Wilson <jarod@redhat.com>
+Date: Tue, 14 Sep 2010 23:28:41 -0400
+Subject: [PATCH 4/4] IR/imon: set up mce-only devices w/mce keytable
 
-Created and tested against linux-2.6.36-rc3.
+Currently, they get set up with the pad keytable, which they can't
+actually use at all. Also add another variant of volume scancodes from
+another 0xffdc device, and properly set up the 0x9e 0xffdc device as an
+iMON VFD w/MCE proto IR.
 
-Works on top of patch 5/6, "OMAP1: Amstrad Delta: add support for on-board 
-camera"
+Based on data and a prior patch from Anders Eriksson on the lirc list.
 
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
 ---
-Having no comments received on v1 of this patch, I assume nobody could see any 
-benefit if I implemented this idea at the SoC camera or OMAP1 camera level, 
-so I'm leaveing it as an Amstrad Delta only feature, as it originally was for 
-v1.
+ drivers/media/IR/imon.c |  264 ++++++++++++++++++++++++----------------------
+ 1 files changed, 138 insertions(+), 126 deletions(-)
 
-Thanks,
-Janusz
-
-
-v1->v2 changes:
-- no functional changes,
-- refreshed against linux-2.6.36-rc3.
-
-
- arch/arm/mach-omap1/board-ams-delta.c |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
-
-
-diff -upr linux-2.6.36-rc3.orig/arch/arm/mach-omap1/board-ams-delta.c 
-linux-2.6.36-rc3/arch/arm/mach-omap1/board-ams-delta.c
---- linux-2.6.36-rc3.orig/arch/arm/mach-omap1/board-ams-delta.c	2010-09-10 22:01:24.000000000 +0200
-+++ linux-2.6.36-rc3/arch/arm/mach-omap1/board-ams-delta.c	2010-09-10 22:08:29.000000000 +0200
-@@ -16,6 +16,7 @@
- #include <linux/init.h>
- #include <linux/input.h>
- #include <linux/interrupt.h>
-+#include <linux/leds.h>
- #include <linux/platform_device.h>
- #include <linux/serial_8250.h>
+diff --git a/drivers/media/IR/imon.c b/drivers/media/IR/imon.c
+index 4b73b8e..ef81d38 100644
+--- a/drivers/media/IR/imon.c
++++ b/drivers/media/IR/imon.c
+@@ -292,6 +292,9 @@ static const struct {
+ 	{ 0x000100000000ffeell, KEY_VOLUMEUP },
+ 	{ 0x010000000000ffeell, KEY_VOLUMEDOWN },
+ 	{ 0x000000000100ffeell, KEY_MUTE },
++	/* 0xffdc iMON MCE VFD */
++	{ 0x00010000ffffffeell, KEY_VOLUMEUP },
++	{ 0x01000000ffffffeell, KEY_VOLUMEDOWN },
+ 	/* iMON Knob values */
+ 	{ 0x000100ffffffffeell, KEY_VOLUMEUP },
+ 	{ 0x010000ffffffffeell, KEY_VOLUMEDOWN },
+@@ -1701,11 +1704,128 @@ static void usb_rx_callback_intf1(struct urb *urb)
+ 	usb_submit_urb(ictx->rx_urb_intf1, GFP_ATOMIC);
+ }
  
-@@ -222,11 +223,30 @@ static struct i2c_board_info ams_delta_c
- 	},
- };
- 
-+#ifdef CONFIG_LEDS_TRIGGERS
-+DEFINE_LED_TRIGGER(ams_delta_camera_led_trigger);
-+
-+static int ams_delta_camera_power(struct device *dev, int power)
++/*
++ * The 0x15c2:0xffdc device ID was used for umpteen different imon
++ * devices, and all of them constantly spew interrupts, even when there
++ * is no actual data to report. However, byte 6 of this buffer looks like
++ * its unique across device variants, so we're trying to key off that to
++ * figure out which display type (if any) and what IR protocol the device
++ * actually supports. These devices have their IR protocol hard-coded into
++ * their firmware, they can't be changed on the fly like the newer hardware.
++ */
++static void imon_get_ffdc_type(struct imon_context *ictx)
 +{
-+	/*
-+	 * turn on camera LED
-+	 */
-+	if (power)
-+		led_trigger_event(ams_delta_camera_led_trigger, LED_FULL);
-+	else
-+		led_trigger_event(ams_delta_camera_led_trigger, LED_OFF);
-+	return 0;
-+}
-+#else
-+#define ams_delta_camera_power	NULL
-+#endif
++	u8 ffdc_cfg_byte = ictx->usb_rx_buf[6];
++	u8 detected_display_type = IMON_DISPLAY_TYPE_NONE;
++	u64 allowed_protos = IR_TYPE_OTHER;
 +
- static struct soc_camera_link __initdata ams_delta_iclink = {
- 	.bus_id         = 0,	/* OMAP1 SoC camera bus */
- 	.i2c_adapter_id = 1,
- 	.board_info     = &ams_delta_camera_board_info[0],
- 	.module_name    = "ov6650",
-+	.power		= ams_delta_camera_power,
- };
++	switch (ffdc_cfg_byte) {
++	/* iMON Knob, no display, iMON IR + vol knob */
++	case 0x21:
++		dev_info(ictx->dev, "0xffdc iMON Knob, iMON IR");
++		ictx->display_supported = false;
++		break;
++	/* iMON 2.4G LT (usb stick), no display, iMON RF */
++	case 0x4e:
++		dev_info(ictx->dev, "0xffdc iMON 2.4G LT, iMON RF");
++		ictx->display_supported = false;
++		ictx->rf_device = true;
++		break;
++	/* iMON VFD, no IR (does have vol knob tho) */
++	case 0x35:
++		dev_info(ictx->dev, "0xffdc iMON VFD + knob, no IR");
++		detected_display_type = IMON_DISPLAY_TYPE_VFD;
++		break;
++	/* iMON VFD, iMON IR */
++	case 0x24:
++	case 0x85:
++		dev_info(ictx->dev, "0xffdc iMON VFD, iMON IR");
++		detected_display_type = IMON_DISPLAY_TYPE_VFD;
++		break;
++	/* iMON LCD, MCE IR */
++	case 0x9e:
++		dev_info(ictx->dev, "0xffdc iMON VFD, MCE IR");
++		detected_display_type = IMON_DISPLAY_TYPE_VFD;
++		allowed_protos = IR_TYPE_RC6;
++		break;
++	/* iMON LCD, MCE IR */
++	case 0x9f:
++		dev_info(ictx->dev, "0xffdc iMON LCD, MCE IR");
++		detected_display_type = IMON_DISPLAY_TYPE_LCD;
++		allowed_protos = IR_TYPE_RC6;
++		break;
++	default:
++		dev_info(ictx->dev, "Unknown 0xffdc device, "
++			 "defaulting to VFD and iMON IR");
++		detected_display_type = IMON_DISPLAY_TYPE_VFD;
++		break;
++	}
++
++	printk(KERN_CONT " (id 0x%02x)\n", ffdc_cfg_byte);
++
++	ictx->display_type = detected_display_type;
++	ictx->props->allowed_protos = allowed_protos;
++	ictx->ir_type = allowed_protos;
++}
++
++static void imon_set_display_type(struct imon_context *ictx)
++{
++	u8 configured_display_type = IMON_DISPLAY_TYPE_VFD;
++
++	/*
++	 * Try to auto-detect the type of display if the user hasn't set
++	 * it by hand via the display_type modparam. Default is VFD.
++	 */
++
++	if (display_type == IMON_DISPLAY_TYPE_AUTO) {
++		switch (ictx->product) {
++		case 0xffdc:
++			/* set in imon_get_ffdc_type() */
++			configured_display_type = ictx->display_type;
++			break;
++		case 0x0034:
++		case 0x0035:
++			configured_display_type = IMON_DISPLAY_TYPE_VGA;
++			break;
++		case 0x0038:
++		case 0x0039:
++		case 0x0045:
++			configured_display_type = IMON_DISPLAY_TYPE_LCD;
++			break;
++		case 0x003c:
++		case 0x0041:
++		case 0x0042:
++		case 0x0043:
++			configured_display_type = IMON_DISPLAY_TYPE_NONE;
++			ictx->display_supported = false;
++			break;
++		case 0x0036:
++		case 0x0044:
++		default:
++			configured_display_type = IMON_DISPLAY_TYPE_VFD;
++			break;
++		}
++	} else {
++		configured_display_type = display_type;
++		if (display_type == IMON_DISPLAY_TYPE_NONE)
++			ictx->display_supported = false;
++		else
++			ictx->display_supported = true;
++		dev_info(ictx->dev, "%s: overriding display type to %d via "
++			 "modparam\n", __func__, display_type);
++	}
++
++	ictx->display_type = configured_display_type;
++}
++
+ static struct input_dev *imon_init_rdev(struct imon_context *ictx)
+ {
+ 	struct input_dev *rdev;
+ 	struct ir_dev_props *props;
+ 	int ret;
++	char *ir_codes = NULL;
++	const unsigned char fp_packet[] = { 0x40, 0x00, 0x00, 0x00,
++					    0x00, 0x00, 0x00, 0x88 };
  
- static struct platform_device ams_delta_camera_device = {
-@@ -281,6 +301,10 @@ static void __init ams_delta_init(void)
+ 	rdev = input_allocate_device();
+ 	props = kzalloc(sizeof(*props), GFP_KERNEL);
+@@ -1733,7 +1853,24 @@ static struct input_dev *imon_init_rdev(struct imon_context *ictx)
+ 	props->change_protocol = imon_ir_change_protocol;
+ 	ictx->props = props;
  
- 	omap1_usb_init(&ams_delta_usb_config);
- 	omap1_set_camera_info(&ams_delta_camera_platform_data);
-+#ifdef CONFIG_LEDS_TRIGGERS
-+	led_trigger_register_simple("ams_delta_camera",
-+			&ams_delta_camera_led_trigger);
-+#endif
- 	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
+-	ret = ir_input_register(rdev, RC_MAP_IMON_PAD, props, MOD_NAME);
++	/* Enable front-panel buttons and/or knobs */
++	memcpy(ictx->usb_tx_buf, &fp_packet, sizeof(fp_packet));
++	ret = send_packet(ictx);
++	/* Not fatal, but warn about it */
++	if (ret)
++		dev_info(ictx->dev, "panel buttons/knobs setup failed\n");
++
++	if (ictx->product == 0xffdc)
++		imon_get_ffdc_type(ictx);
++
++	imon_set_display_type(ictx);
++
++	if (ictx->ir_type == IR_TYPE_RC6)
++		ir_codes = RC_MAP_IMON_MCE;
++	else
++		ir_codes = RC_MAP_IMON_PAD;
++
++	ret = ir_input_register(rdev, ir_codes, props, MOD_NAME);
+ 	if (ret < 0) {
+ 		dev_err(ictx->dev, "remote input dev register failed\n");
+ 		goto out;
+@@ -2099,116 +2236,6 @@ rx_urb_alloc_failed:
+ 	return NULL;
+ }
  
- #ifdef CONFIG_AMS_DELTA_FIQ
+-/*
+- * The 0x15c2:0xffdc device ID was used for umpteen different imon
+- * devices, and all of them constantly spew interrupts, even when there
+- * is no actual data to report. However, byte 6 of this buffer looks like
+- * its unique across device variants, so we're trying to key off that to
+- * figure out which display type (if any) and what IR protocol the device
+- * actually supports. These devices have their IR protocol hard-coded into
+- * their firmware, they can't be changed on the fly like the newer hardware.
+- */
+-static void imon_get_ffdc_type(struct imon_context *ictx)
+-{
+-	u8 ffdc_cfg_byte = ictx->usb_rx_buf[6];
+-	u8 detected_display_type = IMON_DISPLAY_TYPE_NONE;
+-	u64 allowed_protos = IR_TYPE_OTHER;
+-
+-	switch (ffdc_cfg_byte) {
+-	/* iMON Knob, no display, iMON IR + vol knob */
+-	case 0x21:
+-		dev_info(ictx->dev, "0xffdc iMON Knob, iMON IR");
+-		ictx->display_supported = false;
+-		break;
+-	/* iMON 2.4G LT (usb stick), no display, iMON RF */
+-	case 0x4e:
+-		dev_info(ictx->dev, "0xffdc iMON 2.4G LT, iMON RF");
+-		ictx->display_supported = false;
+-		ictx->rf_device = true;
+-		break;
+-	/* iMON VFD, no IR (does have vol knob tho) */
+-	case 0x35:
+-		dev_info(ictx->dev, "0xffdc iMON VFD + knob, no IR");
+-		detected_display_type = IMON_DISPLAY_TYPE_VFD;
+-		break;
+-	/* iMON VFD, iMON IR */
+-	case 0x24:
+-	case 0x85:
+-		dev_info(ictx->dev, "0xffdc iMON VFD, iMON IR");
+-		detected_display_type = IMON_DISPLAY_TYPE_VFD;
+-		break;
+-	/* iMON LCD, MCE IR */
+-	case 0x9e:
+-	case 0x9f:
+-		dev_info(ictx->dev, "0xffdc iMON LCD, MCE IR");
+-		detected_display_type = IMON_DISPLAY_TYPE_LCD;
+-		allowed_protos = IR_TYPE_RC6;
+-		break;
+-	default:
+-		dev_info(ictx->dev, "Unknown 0xffdc device, "
+-			 "defaulting to VFD and iMON IR");
+-		detected_display_type = IMON_DISPLAY_TYPE_VFD;
+-		break;
+-	}
+-
+-	printk(KERN_CONT " (id 0x%02x)\n", ffdc_cfg_byte);
+-
+-	ictx->display_type = detected_display_type;
+-	ictx->props->allowed_protos = allowed_protos;
+-	ictx->ir_type = allowed_protos;
+-}
+-
+-static void imon_set_display_type(struct imon_context *ictx,
+-				  struct usb_interface *intf)
+-{
+-	u8 configured_display_type = IMON_DISPLAY_TYPE_VFD;
+-
+-	/*
+-	 * Try to auto-detect the type of display if the user hasn't set
+-	 * it by hand via the display_type modparam. Default is VFD.
+-	 */
+-
+-	if (display_type == IMON_DISPLAY_TYPE_AUTO) {
+-		switch (ictx->product) {
+-		case 0xffdc:
+-			/* set in imon_get_ffdc_type() */
+-			configured_display_type = ictx->display_type;
+-			break;
+-		case 0x0034:
+-		case 0x0035:
+-			configured_display_type = IMON_DISPLAY_TYPE_VGA;
+-			break;
+-		case 0x0038:
+-		case 0x0039:
+-		case 0x0045:
+-			configured_display_type = IMON_DISPLAY_TYPE_LCD;
+-			break;
+-		case 0x003c:
+-		case 0x0041:
+-		case 0x0042:
+-		case 0x0043:
+-			configured_display_type = IMON_DISPLAY_TYPE_NONE;
+-			ictx->display_supported = false;
+-			break;
+-		case 0x0036:
+-		case 0x0044:
+-		default:
+-			configured_display_type = IMON_DISPLAY_TYPE_VFD;
+-			break;
+-		}
+-	} else {
+-		configured_display_type = display_type;
+-		if (display_type == IMON_DISPLAY_TYPE_NONE)
+-			ictx->display_supported = false;
+-		else
+-			ictx->display_supported = true;
+-		dev_info(ictx->dev, "%s: overriding display type to %d via "
+-			 "modparam\n", __func__, display_type);
+-	}
+-
+-	ictx->display_type = configured_display_type;
+-}
+-
+ static void imon_init_display(struct imon_context *ictx,
+ 			      struct usb_interface *intf)
+ {
+@@ -2249,8 +2276,6 @@ static int __devinit imon_probe(struct usb_interface *interface,
+ 	struct imon_context *ictx = NULL;
+ 	struct imon_context *first_if_ctx = NULL;
+ 	u16 vendor, product;
+-	const unsigned char fp_packet[] = { 0x40, 0x00, 0x00, 0x00,
+-					    0x00, 0x00, 0x00, 0x88 };
+ 
+ 	code_length = BUF_CHUNK_SIZE * 8;
+ 
+@@ -2291,19 +2316,6 @@ static int __devinit imon_probe(struct usb_interface *interface,
+ 	usb_set_intfdata(interface, ictx);
+ 
+ 	if (ifnum == 0) {
+-		/* Enable front-panel buttons and/or knobs */
+-		memcpy(ictx->usb_tx_buf, &fp_packet, sizeof(fp_packet));
+-		ret = send_packet(ictx);
+-		/* Not fatal, but warn about it */
+-		if (ret)
+-			dev_info(dev, "failed to enable panel buttons "
+-				 "and/or knobs\n");
+-
+-		if (product == 0xffdc)
+-			imon_get_ffdc_type(ictx);
+-
+-		imon_set_display_type(ictx, interface);
+-
+ 		if (product == 0xffdc && ictx->rf_device) {
+ 			sysfs_err = sysfs_create_group(&interface->dev.kobj,
+ 						       &imon_rf_attribute_group);
+-- 
+1.7.2.2
+
+
+-- 
+Jarod Wilson
+jarod@redhat.com
+
