@@ -1,58 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:42669 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751039Ab0IWJpT (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:63390 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751456Ab0IPHhv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Sep 2010 05:45:19 -0400
-Date: Thu, 23 Sep 2010 11:44:20 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, Janne Grunau <j@jannau.net>,
-	Jarod Wilson <jarod@redhat.com>
-Subject: Re: [GIT PATCHES FOR 2.6.37] Remove v4l2-i2c-drv.h and most of
- i2c-id.h
-Message-ID: <20100923114420.746a605f@endymion.delvare>
-In-Reply-To: <201009230814.43504.hverkuil@xs4all.nl>
-References: <201009152200.27132.hverkuil@xs4all.nl>
-	<4C9AD51D.2010400@redhat.com>
-	<201009230814.43504.hverkuil@xs4all.nl>
+	Thu, 16 Sep 2010 03:37:51 -0400
+Subject: Re: [PATCH v9 3/4] V4L2: WL1273 FM Radio: Controls for the FM
+ radio.
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Reply-To: matti.j.aaltonen@nokia.com
+To: ext Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>
+In-Reply-To: <4C87DF68.7070900@redhat.com>
+References: <1283168302-19111-1-git-send-email-matti.j.aaltonen@nokia.com>
+	 <1283168302-19111-2-git-send-email-matti.j.aaltonen@nokia.com>
+	 <1283168302-19111-3-git-send-email-matti.j.aaltonen@nokia.com>
+	 <1283168302-19111-4-git-send-email-matti.j.aaltonen@nokia.com>
+	 <4C87DF68.7070900@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 16 Sep 2010 10:37:26 +0300
+Message-ID: <1284622646.25428.88.camel@masi.mnp.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
+Hi.
 
-On Thu, 23 Sep 2010 08:14:43 +0200, Hans Verkuil wrote:
-> Jean, I did a grep of who is still including i2c-id.h (excluding media drivers):
+On Wed, 2010-09-08 at 21:09 +0200, ext Mauro Carvalho Chehab wrote:
+> > +static int wl1273_fm_vidioc_s_tuner(struct file *file, void *priv,
+> > +                       struct v4l2_tuner *tuner)
+> > +{
+> > +     struct wl1273_device *radio =
+video_get_drvdata(video_devdata(file));
+> > +     struct wl1273_core *core = radio->core;
+> > +     int r = 0;
+> > +
+> > +     dev_dbg(radio->dev, "%s\n", __func__);
+> > +     dev_dbg(radio->dev, "tuner->index: %d\n", tuner->index);
+> > +     dev_dbg(radio->dev, "tuner->name: %s\n", tuner->name);
+> > +     dev_dbg(radio->dev, "tuner->capability: 0x%04x\n",
+tuner->capability);
+> > +     dev_dbg(radio->dev, "tuner->rxsubchans: 0x%04x\n",
+tuner->rxsubchans);
+> > +     dev_dbg(radio->dev, "tuner->rangelow: %d\n", tuner->rangelow);
+> > +     dev_dbg(radio->dev, "tuner->rangehigh: %d\n",
+tuner->rangehigh);
 > 
-> drivers/gpu/drm/nouveau/nouveau_i2c.h:#include <linux/i2c-id.h>
-> drivers/gpu/drm/radeon/radeon_mode.h:#include <linux/i2c-id.h>
-> drivers/gpu/drm/i915/intel_drv.h:#include <linux/i2c-id.h>
-> drivers/gpu/drm/i915/intel_i2c.c:#include <linux/i2c-id.h>
-> drivers/video/i810/i810.h:#include <linux/i2c-id.h>
-> drivers/video/intelfb/intelfb_i2c.c:#include <linux/i2c-id.h>
-> drivers/video/savage/savagefb.h:#include <linux/i2c-id.h>
-> drivers/video/aty/radeon_i2c.c:#include <linux/i2c-id.h>
-> drivers/i2c/busses/i2c-s3c2410.c:#include <linux/i2c-id.h>
-> drivers/i2c/busses/i2c-pxa.c:#include <linux/i2c-id.h>
-> drivers/i2c/busses/i2c-ibm_iic.c:#include <linux/i2c-id.h>
+> Ranges should be using tuner->rangelow/rangehigh to change band
+limits.
 
-I additionally have drivers/i2c/busses/i2c-nuc900.c.
+I just want to make sure that I understand you correctly. So the idea is
+that with the g_tuner the driver can tell the frequency range that's
+supported by the chip in RX mode, which is 76MHz to 108 MHz. The lowest
+part is in the Japan band and the highest is in the Europe/USA band, the
+middle section can be either...
 
-> AFAIK none of these actually need this include. It's probably a good idea for
-> you to remove together with
+Then the application can choose any sub-range of the above by calling
+s_tuner with any values rangelow > 76MHz and rangehigh < 108MHz? After
+that the driver just deals with the given frequencies by changing the
+band if necessary?
 
-Will do, thanks for suggesting.
+Cheers,
+Matti
 
-> this obsolete I2C_HW_B_RIVA:
-> 
-> drivers/video/riva/rivafb-i2c.c:        chan->adapter.id                = I2C_HW_B_RIVA;
 
-I'll have to wait for your cleanup to hit upstream before I can remove
-that one.
-
--- 
-Jean Delvare
