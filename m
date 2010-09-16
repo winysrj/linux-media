@@ -1,83 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from psmtp12.wxs.nl ([195.121.247.24]:37477 "EHLO psmtp12.wxs.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752234Ab0IQLIC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Sep 2010 07:08:02 -0400
-Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
- by psmtp12.wxs.nl
- (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
- with ESMTP id <0L8W001AF1LCFN@psmtp12.wxs.nl> for linux-media@vger.kernel.org;
- Fri, 17 Sep 2010 13:08:01 +0200 (MEST)
-Date: Fri, 17 Sep 2010 13:08:00 +0200
-From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-Subject: Re: Trouble building v4l-dvb
-In-reply-to: <4C934806.7050503@gmail.com>
-To: Mauro Carvalho Chehab <maurochehab@gmail.com>
-Cc: "Ole W. Saastad" <olewsaa@online.no>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>,
-	linux-media@vger.kernel.org
-Message-id: <4C934C10.2060801@hoogenraad.net>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7BIT
-References: <1284493110.1801.57.camel@sofia> <4C924EB8.9070500@hoogenraad.net>
- <4C93364C.3040606@hoogenraad.net> <4C934806.7050503@gmail.com>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:44781 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753686Ab0IPNbW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Sep 2010 09:31:22 -0400
+Date: Thu, 16 Sep 2010 15:30:28 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Janne Grunau <j@jannau.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [GIT PATCHES FOR 2.6.37] Remove v4l2-i2c-drv.h and most of
+ i2c-id.h
+Message-ID: <20100916153028.424223c4@hyperion.delvare>
+In-Reply-To: <201009152200.27132.hverkuil@xs4all.nl>
+References: <201009152200.27132.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Thanks !
+Hi Hans,
 
-Indeed, the hack so that
-make allyesmod
-not select firedtv would be very helpful.
+On Wed, 15 Sep 2010 22:00:26 +0200, Hans Verkuil wrote:
+> Mauro, Jean, Janne,
+> 
+> This patch series finally retires the hackish v4l2-i2c-drv.h. It served honorably,
+> but now that the hg repository no longer supports kernels <2.6.26 it is time to
+> remove it.
+> 
+> Note that this patch series builds on the vtx-removal patch series.
+> 
+> Several patches at the end remove unused i2c-id.h includes and remove bogus uses
+> of the I2C_HW_ defines (as found in i2c-id.h).
+> 
+> After applying this patch series I get the following if I grep for
+> I2C_HW_ in the kernel sources:
+> 
+> <skip some false positives in drivers/gpu>
+> drivers/staging/lirc/lirc_i2c.c:                if (adap->id == I2C_HW_B_CX2388x)
+> drivers/staging/lirc/lirc_i2c.c:                if (adap->id == I2C_HW_B_CX2388x) {
+> drivers/staging/lirc/lirc_zilog.c:#ifdef I2C_HW_B_HDPVR
+> drivers/staging/lirc/lirc_zilog.c:              if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR) {
+> drivers/staging/lirc/lirc_zilog.c:#ifdef I2C_HW_B_HDPVR
+> drivers/staging/lirc/lirc_zilog.c:      if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR)
+> drivers/video/riva/rivafb-i2c.c:        chan->adapter.id                = I2C_HW_B_RIVA;
+> drivers/media/video/ir-kbd-i2c.c:       if (ir->c->adapter->id == I2C_HW_SAA7134 && ir->c->addr == 0x30)
+> drivers/media/video/ir-kbd-i2c.c:               if (adap->id == I2C_HW_B_CX2388x) {
+> drivers/media/video/saa7134/saa7134-i2c.c:      .id            = I2C_HW_SAA7134,
+> drivers/media/video/cx88/cx88-i2c.c:    core->i2c_adap.id = I2C_HW_B_CX2388x;
+> drivers/media/video/cx88/cx88-vp3054-i2c.c:     vp3054_i2c->adap.id = I2C_HW_B_CX2388x;
+> 
+> Jean, I guess the one in rivafb-i2c.c can just be removed, right?
 
-that way, it is also clear that firedtv will not work on debian-like 
-distros.
+Correct. The last user for that one was the tvaudio driver and
+apparently you just cleaned it up.
 
-Is there a way I cen help with that ?
-I have no experience with Kconfig, so it would be a learning experience 
-for me.
+> Janne, the HDPVR checks in lirc no longer work since hdpvr never sets the
+> adapter ID (nor should it). This lirc code should be checked. I haven't
+> been following the IR changes, but there must be a better way of doing this.
+> 
+> The same is true for the CX2388x and SAA7134 checks. These all relate to the
+> IR subsystem.
+> 
+> Once we fixed these remaining users of the i2c-id.h defines, then Jean can
+> remove that header together with the adapter's 'id' field.
 
-
-Mauro Carvalho Chehab wrote:
-> Em 17-09-2010 06:35, Jan Hoogenraad escreveu:
->> I see that the build now succeeded.
->>
->> Ole: this is something that should have been fixed a long time ago, but isn't.
->> make allyesmod
->> should set only those divers that do actually compile.
->> Unfortunately, the FIREDTV driver has bugs for as long as I remember.
-> 
-> The problem are not related to bugs at firedtv driver, but, instead, due to the fact
-> that the provided firewire drivers and fw-core don't match the drivers that are shipped
-> with the distro kernel. In order words, at Ubuntu (and some other deb-based distros),
-> they're shipping the wrong include files at /lib/modules/`uname -r`/build/. So, there's
-> no way to build and run any module based on that wrong broken headers.
-> 
-> Up to a certain amount, the same happens with -alsa files on Ubuntu: although they
-> will compile [1], as the provided headers at /lib/modules/`uname -r`/build/ are from a different
-> version than the alsa modules provided with Ubuntu, the drivers that depend on -alsa will 
-> generally compile, but they generally won't load (and, if they load, they'll can cause
-> an OOPS and some other random troubles), as the symbol dependency will not match.
-> 
-> While a hack might be added at v4l-dvb -hg tree to make firedtv to compile against a broken
-> header, the firedtv driver will not work anyway.
-> 
-> The only real solution for it is to fix this issue at the distro.
-> 
-> Cheers,
-> Mauro
-> 
-> [1] The v4l-dvb is smart enough to adapt to -alsa API changes that are backported into
-> an older kernel, since it checks for the API symbols that changed, instead of just looking
-> for the kernel version. This works fine with all distros (like Fedora, RHEL, SUSE, OpenSUSE,
-> Mandriva, ...) where the include files for alsa are at the right place:
-> /lib/modules/`uname -r`/build/).
-> 
-
+That would be very great. In all honesty I didn't expect it to happen
+so fast, but if that happens, I'll be very happy! :) Thanks!
 
 -- 
-Jan Hoogenraad
-Hoogenraad Interface Services
-Postbus 2717
-3500 GS Utrecht
+Jean Delvare
