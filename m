@@ -1,36 +1,132 @@
 Return-path: <mchehab@pedra>
-Received: from isilmar-3.linta.de ([188.40.101.200]:42258 "EHLO linta.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751543Ab0I1UiD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Sep 2010 16:38:03 -0400
-Date: Tue, 28 Sep 2010 22:37:54 +0200
-From: Dominik Brodowski <linux@dominikbrodowski.net>
-To: linux-i2c@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [SOLVED] wnv_cs.c: i2c question
-Message-ID: <20100928203754.GA20730@comet.dominikbrodowski.net>
-References: <20100927074549.GA32061@comet.dominikbrodowski.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20100927074549.GA32061@comet.dominikbrodowski.net>
+Received: from psmtp31.wxs.nl ([195.121.247.33]:59927 "EHLO psmtp31.wxs.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752337Ab0IQJfL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Sep 2010 05:35:11 -0400
+Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
+ by psmtp31.wxs.nl
+ (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
+ with ESMTP id <0L8V00HYOXAL5P@psmtp31.wxs.nl> for linux-media@vger.kernel.org;
+ Fri, 17 Sep 2010 11:35:09 +0200 (CEST)
+Date: Fri, 17 Sep 2010 11:35:08 +0200
+From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Subject: Re: Trouble building v4l-dvb
+In-reply-to: <4C924EB8.9070500@hoogenraad.net>
+To: "Ole W. Saastad" <olewsaa@online.no>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>
+Cc: linux-media@vger.kernel.org
+Message-id: <4C93364C.3040606@hoogenraad.net>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7BIT
+References: <1284493110.1801.57.camel@sofia> <4C924EB8.9070500@hoogenraad.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hey,
+I see that the build now succeeded.
 
-> as I recently obtained such a PCMCIA card, I try to revive the wnv_cs driver
-> for Winnov Videum Traveler video cards. First (non-working, but compiling
-> and able to access the EEPROM and to detect the decoder) results may be
-> found at
+Ole: this is something that should have been fixed a long time ago, but 
+isn't.
+make allyesmod
+should set only those divers that do actually compile.
+Unfortunately, the FIREDTV driver has bugs for as long as I remember.
+
+In the 4vl directory, edit .config
+and change the line
+CONFIG_DVB_FIREDTV=m
+into
+CONFIG_DVB_FIREDTV=n
+
+It should compile fine then.
+
+Jan Hoogenraad wrote:
+> Douglas;
 > 
-> http://git.kernel.org/?p=linux/kernel/git/brodo/pcmcia-2.6.git;a=shortlog;h=refs/heads/wnv
+> Could you please check your last putback ?
 > 
-> Now, I got a bit stuck at the i2c level -- do the following access functions
-> look familiar to one of the i2c experts? If so, which algo driver is to be
-> used? Is this an i2c_smbus_, or some very custom interface not worth
-> converting to use the i2c subsystem? Many thanks!
+> the build is broken.
+> 
+> see:
+> http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+> 
+> and the mail
+> [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+> 
+> Yours,
+>         Jan
+> 
+> Ole W. Saastad wrote:
+>> Trouble building v4l-dvb
+>> Asus eee netbook, running EasyPeasy.
+>>
+>> ole@ole-eee:~$ cat /etc/issue
+>> Ubuntu 9.04 \n \l
+>> ole@ole-eee:~$ uname -a
+>> Linux ole-eee 2.6.30.5-ep0 #10 SMP PREEMPT Thu Aug 27 19:45:06 CEST 2009
+>> i686 GNU/Linux
+>>
+>> Rationale for building from source: I have bought a USB TV with mpg4 
+>> support from Sandberg, Mini DVB-T
+>> dongle. I also received an archive with driver routines for this from
+>> Sandberg. These should be copied into the v4l-dvd three and just rebuild
+>> with make.
+>> I have installed the kernel headers:
+>> apt-get install mercurial linux-headers-$(uname -r) build-essential
+>>
+>> Then I have downloaded the v4l-dvb source (assuming this is a stable
+>> release): hg clone http://linuxtv.org/hg/v4l-dvb
+>>
+>>
+>> I wanted to try to build before applying the patch from Sandberg. 
+>> Issuing make yield the following :
+>>
+>> LIRC: Requires at least kernel 2.6.36
+>> IR_LIRC_CODEC: Requires at least kernel 2.6.36
+>> IR_IMON: Requires at least kernel 2.6.36
+>> IR_MCEUSB: Requires at least kernel 2.6.36
+>> VIDEOBUF_DMA_CONTIG: Requires at least kernel 2.6.31
+>> V4L2_MEM2MEM_DEV: Requires at least kernel 2.6.33
+>> and a few more lines....
+>>
+>> Ignoring these and just continuing :
+>>
+>>   CC [M]  /home/ole/work/v4l-dvb/v4l/firedtv-dvb.o
+>>   CC [M]  /home/ole/work/v4l-dvb/v4l/firedtv-fe.o
+>>   CC [M]  /home/ole/work/v4l-dvb/v4l/firedtv-1394.o
+>> /home/ole/work/v4l-dvb/v4l/firedtv-1394.c:22:17: error: dma.h: No such
+>> file or directory
+>> /home/ole/work/v4l-dvb/v4l/firedtv-1394.c:23:21: error: csr1212.h: No
+>> such file or directory
+>> /home/ole/work/v4l-dvb/v4l/firedtv-1394.c:24:23: error: highlevel.h: No
+>> such file or directory
+>> and many many more similar errors.
+>>
+>> After some time the make bails out.
+>>
+>>
+>> I assume this have some connection with the 9.04 being too old.
+>>
+>> Hints ?
+>>
+>>
+>>
+>> Regards,
+>> Ole W. Saastad
+>>
+>>
+>>
+>>
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+> 
+> 
 
-inverting i2c_data and i2c_clock did the trick.
 
-Best,
-	Dominik
+-- 
+Jan Hoogenraad
+Hoogenraad Interface Services
+Postbus 2717
+3500 GS Utrecht
