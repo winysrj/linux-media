@@ -1,58 +1,75 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:55536 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751259Ab0IIOLV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Sep 2010 10:11:21 -0400
-Received: by fxm16 with SMTP id 16so881193fxm.19
-        for <linux-media@vger.kernel.org>; Thu, 09 Sep 2010 07:11:20 -0700 (PDT)
-MIME-Version: 1.0
-From: Gregory Orange <gregory.orange@gmail.com>
-Date: Thu, 9 Sep 2010 22:11:00 +0800
-Message-ID: <AANLkTi=1cucc=LrMEp44xpWs=_f75C7iAgXfkC+r5dPP@mail.gmail.com>
-Subject: Leadtek DTV2000DS remote
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from psmtp12.wxs.nl ([195.121.247.24]:35014 "EHLO psmtp12.wxs.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755148Ab0IQR6y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Sep 2010 13:58:54 -0400
+Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
+ by psmtp12.wxs.nl
+ (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
+ with ESMTP id <0L8W001P4KM5FM@psmtp12.wxs.nl> for linux-media@vger.kernel.org;
+ Fri, 17 Sep 2010 19:58:53 +0200 (MEST)
+Date: Fri, 17 Sep 2010 19:58:52 +0200
+From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Subject: rtl2832 chip driver
+In-reply-to: <1284744791.1670.11.camel@sofia>
+To: "Ole W. Saastad" <olewsaa@online.no>
+Cc: linux-media@vger.kernel.org
+Message-id: <4C93AC5C.1090001@hoogenraad.net>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7BIT
+References: <1284493110.1801.57.camel@sofia> <4C924EB8.9070500@hoogenraad.net>
+ <4C93364C.3040606@hoogenraad.net> <1284744791.1670.11.camel@sofia>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-Hi all, first post.
+Hi Ole:
 
-I have a newly purchased Leadtek DTV2000DS dual tuner card in my
-machine, configured and running in Mythbuntu 10.04 (after installing
-latest v4l-dvb from source). I am having a bit of trouble getting the
-supplied remote control working. Is anyone here able to assist? I
-asked on the LIRC sf.net list and after a bit of back and forth I was
-directed to see if you guys can help me. In particular I wonder if the
-author of dvb_usb_af9015 and af9013 is around - hmm, seems to be Antti
-Palosaari, who seems to be a fairly recent poster. Don't get me wrong
-though - anyone who can assist would be great (:
+Try vlc or keffeins, and see if they have the same audio problem.
+Also: try playing a normal sound mp3 file with them.
+me-tv and rtl2832 havce some problems:
+https://bugs.launchpad.net/ubuntu/+source/me-tv/+bug/478379
 
-I have confirmed that the hardware works - I installed the drivers in
-a Windows boot, and the remote works.
+Thanks for the Sandberg link.
+At:
+http://www.sandberg.it/support/product.aspx?id=133-59
+I found Realtek stuff that looks very familiar to the RTL2831 stuff I 
+put into another HG branch:
+http://linuxtv.org/hg/~jhoogenraad/rtl2831-r2
 
-In terms of driver support I'm not sure exactly what I'm looking for,
-but there is this line in dmesg:
-[   22.263721] input: IR-receiver inside an USB DVB receiver as
-/devices/pci0000:00/0000:00:0e.0/0000:02:0a.2/usb2/2-1/input/input5
+This is again code where the frontend and backend have not been 
+separated. Seems realtek has their branch kind of working, based on 
+their windows approach.
 
-cat /proc/bus/input/devices yields
-I: Bus=0003 Vendor=0413 Product=6a04 Version=0200
-N: Name="IR-receiver inside an USB DVB receiver"
-P: Phys=usb-0000:02:0a.2-1/ir0
-S: Sysfs=/devices/pci0000:00/0000:00:0e.0/0000:02:0a.2/usb2/2-1/input/input5
-U: Uniq=
-H: Handlers=kbd event5
-B: EV=3
-B: KEY=108fc310 2802891 0 0 0 0 118000 200180 4803 e1680 0 100000 ffe
+Antti has set up a new version from scratch at:
+http://linuxtv.org/hg/~anttip/rtl2831u/
 
-So I've been using /dev/input/event5 in my tests. I have tried using
-evtest, mode2, and irw to no avail. I get no indication of any signal
-coming from the remote. Am I missing a kernel driver module? Any
-further advice or specific experience with this device would be
-gratefully welcomed.
 
-Cheers,
-Greg.
+
+Ole W. Saastad wrote:
+> Thanks for all help so far.
+> 
+> I managed to figure out the firetv problem as soon as I discovered
+> the .myconfig file.
+> 
+> Including the drivers from Sandberg, for the rtl2832 chip and adding
+> some lines to Makefile, Kconfig and .myconfig it compiles and install.
+> Modules load and Me-TV starts, quality is poor with the small antenna.
+> 
+> However, there is no audio. Not even for the DAB radio channels.
+> 
+> Maybe this is Me-TV problem?
+> 
+> The version supplied with Easy Peasy Ubuntu 9.10 is old,  0.7.16.
+> 
+> 
+> Regards,
+> Ole W. Saastad
+> 
+
 
 -- 
-Gregory Orange
+Jan Hoogenraad
+Hoogenraad Interface Services
+Postbus 2717
+3500 GS Utrecht
