@@ -1,56 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:39682 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753847Ab0IORqn convert rfc822-to-8bit (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:38830 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753424Ab0IQPI7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Sep 2010 13:46:43 -0400
-Received: by pxi10 with SMTP id 10so133734pxi.19
-        for <linux-media@vger.kernel.org>; Wed, 15 Sep 2010 10:46:43 -0700 (PDT)
+	Fri, 17 Sep 2010 11:08:59 -0400
+Received: by yxp4 with SMTP id 4so763700yxp.19
+        for <linux-media@vger.kernel.org>; Fri, 17 Sep 2010 08:08:58 -0700 (PDT)
+Message-ID: <4C938484.3050606@gmail.com>
+Date: Fri, 17 Sep 2010 12:08:52 -0300
+From: Mauro Carvalho Chehab <maurochehab@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4C90B29A.2040602@s5r6.in-berlin.de>
-References: <AANLkTin53SY_xaed_tRfWRPOFmc65GmGzXrEt15ZyriW@mail.gmail.com>
-	<4C90B29A.2040602@s5r6.in-berlin.de>
-Date: Wed, 15 Sep 2010 19:46:42 +0200
-Message-ID: <AANLkTi=aAKVkSx_dqSKviff48cDR=BhzWc=tnytV6LFd@mail.gmail.com>
-Subject: Re: [PATCH] firedtv driver: support for PSK8 for S2 devices. To watch HD.
-From: Tommy Jonsson <quazzie2@gmail.com>
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: linux-media@vger.kernel.org
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>,
+	"Ole W. Saastad" <olewsaa@online.no>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: Trouble building v4l-dvb
+References: <1284493110.1801.57.camel@sofia>	<4C924EB8.9070500@hoogenraad.net>	<4C93364C.3040606@hoogenraad.net>	<4C934806.7050503@gmail.com>	<4C934C10.2060801@hoogenraad.net>	<4C93800B.8070902@gmail.com> <AANLkTi=bs0qReM=+h-8eH=rx_AJkyUOWnZy4tarMbNbe@mail.gmail.com>
+In-Reply-To: <AANLkTi=bs0qReM=+h-8eH=rx_AJkyUOWnZy4tarMbNbe@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Nice, thanks! I used gmail, never used a mailing-list or dealt with
-patches before.
-Never developed or even looked at the Linux source, so there might be
-some strangeness in the code :]
-I recently fixed a server-box and started using TvHeadend. Noticed
-that the psk8 didn't work,
-so i put the card back in a windows box and sniffed out the difference.
+Em 17-09-2010 12:00, Devin Heitmueller escreveu:
+> On Fri, Sep 17, 2010 at 10:49 AM, Mauro Carvalho Chehab
+> <maurochehab@gmail.com> wrote:
+>> While you're there, the better is to also disable CONFIG_ALSA on Ubuntu, as the drivers
+>> won't work anyway.
+> 
+> Note: while building ALSA modules did fail in some versions for
+> Ubuntu, it has been over a years since I've seen that problem.
+> Blindly disabling ALSA for all Ubuntu users would be a huge regression
+> for users.
 
-On Wed, Sep 15, 2010 at 1:48 PM, Stefan Richter
-<stefanr@s5r6.in-berlin.de> wrote:
-> Tommy Jonsson wrote at linux-media:
->> This is the first i have ever developed for linux, cant really wrap my
->> head around how to submit this..
->> Hope im sending this correctly, diff made with 'hg diff' from latest
->> "hg clone http://linuxtv.org/hg/v4l-dvb"
->>
->> It adds support for tuning with PSK8 modulation, pilot and rolloff
->> with the S2 versions of firedtv.
->>
->> Signed-off-by: Tommy Jonsson <quazzie2@gmail.com>
-> [...]
->
-> Excellent!  This has been on the wishlist of FireDTV/FloppyDTV-S2 owners for
-> quite some time.
->
-> The patch was a little bit mangled by the mail user agent, and there appear to
-> be some whitespace issues in it.  I will have a closer look at it later today
-> and repost the patch so that Mauro can apply it without manual intervention.
-> --
-> Stefan Richter
-> -=====-==-=- =--= -====
-> http://arcgraph.de/sr/
->
+Yeah, blindly disabling it, if some versions work is not the right thing to do.
+
+I'm not an Ubuntu user, so, I'm not sure when it was fixed. Still, from time to time,
+people complain to me about this problem with some Ubuntu versions. The last complains I
+heard were with some netbook versions of Ubuntu-based distros.
+
+If there's a way to check what versions have broken alsa headers, then the checker should
+just disable to the broken ones. Otherwise, the better way seems to just print a warning
+message that ALSA might not be working, but keep it enabled.
+
+Cheers,
+Mauro
