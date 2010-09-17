@@ -1,62 +1,43 @@
 Return-path: <mchehab@pedra>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53816 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752254Ab0IWXXN (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:51449 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754012Ab0IQNck (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Sep 2010 19:23:13 -0400
-Date: Thu, 23 Sep 2010 16:23:10 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Discussion of the Amstrad E3 emailer hardware/software
-	<e3-hacking@earth.li>
-Subject: Re: [RESEND][PATCH v2 2/6] OMAP1: Add support for SoC camera
- interface
-Message-ID: <20100923232309.GV4211@atomide.com>
-References: <201009110317.54899.jkrzyszt@tis.icnet.pl>
- <201009110323.12250.jkrzyszt@tis.icnet.pl>
- <201009110334.03905.jkrzyszt@tis.icnet.pl>
+	Fri, 17 Sep 2010 09:32:40 -0400
+Date: Fri, 17 Sep 2010 09:32:31 -0400
+From: Christoph Hellwig <hch@infradead.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Anton Altaparmakov <aia21@cam.ac.uk>, Jan Kara <jack@suse.cz>,
+	codalist@coda.cs.cmu.edu, autofs@linux.kernel.org,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Christoph Hellwig <hch@infradead.org>,
+	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
+	Trond Myklebust <Trond.Myklebust@netapp.com>,
+	Petr Vandrovec <vandrove@vc.cvut.cz>,
+	Anders Larsen <al@alarsen.net>,
+	Evgeniy Dushistov <dushistov@mail.ru>,
+	Ingo Molnar <mingo@elte.hu>, netdev@vger.kernel.org,
+	Samuel Ortiz <samuel@sortiz.org>,
+	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
+	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	Andrew Hendry <andrew.hendry@gmail.com>
+Subject: Re: Remaining BKL users, what to do
+Message-ID: <20100917133231.GA9411@infradead.org>
+References: <201009161632.59210.arnd@arndb.de>
+ <20100916150459.GA8437@quack.suse.cz>
+ <16843727-8A3D-48FF-9021-E0AD99C23E18@cam.ac.uk>
+ <201009171245.41930.arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <201009110334.03905.jkrzyszt@tis.icnet.pl>
+In-Reply-To: <201009171245.41930.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [100910 18:26]:
-> This patch adds support for SoC camera interface to OMAP1 devices.
-> 
-> Created and tested against linux-2.6.36-rc3 on Amstrad Delta.
-> 
-> For successfull compilation, requires a header file provided by PATCH 1/6 from 
-> this series, "SoC Camera: add driver for OMAP1 camera interface".
+On Fri, Sep 17, 2010 at 12:45:41PM +0200, Arnd Bergmann wrote:
+> ncpfs: replace BKL with lock_super
 
-<snip>
+Err, no.  lock_super is just as much on it's way out as the BKL.  We've
+managed to move it down from the VFS into a few remaining filesystems
+and now need to get rid of those users.  Please don't add any new ones.
 
-> diff -upr linux-2.6.36-rc3.orig/arch/arm/mach-omap1/include/mach/camera.h 
-> linux-2.6.36-rc3/arch/arm/mach-omap1/include/mach/camera.h
-> --- linux-2.6.36-rc3.orig/arch/arm/mach-omap1/include/mach/camera.h	2010-09-03 22:34:03.000000000 +0200
-> +++ linux-2.6.36-rc3/arch/arm/mach-omap1/include/mach/camera.h	2010-09-09 18:42:30.000000000 +0200
-> @@ -0,0 +1,8 @@
-> +#ifndef __ASM_ARCH_CAMERA_H_
-> +#define __ASM_ARCH_CAMERA_H_
-> +
-> +#include <media/omap1_camera.h>
-> +
-> +extern void omap1_set_camera_info(struct omap1_cam_platform_data *);
-> +
-> +#endif /* __ASM_ARCH_CAMERA_H_ */
-
-Care to refresh this patch so it does not include media/omap1_camera.h?
-
-That way things keep building if I merge this one along with the omap
-patches and the drivers/media patches can get merged their via media.
-
-I think you can just move the OMAP1_CAMERA_IOSIZE to the devices.c or
-someplace like that?
-
-Regards,
-
-Tony
