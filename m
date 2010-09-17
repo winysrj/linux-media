@@ -1,206 +1,83 @@
-Return-path: <mchehab@localhost>
-Received: from smtp02.msg.oleane.net ([62.161.4.2]:60297 "EHLO
-	smtp02.msg.oleane.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752550Ab0IBPwn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Sep 2010 11:52:43 -0400
-Message-ID: <4C7FC7F9.5080007@cioinfoindus.fr>
-Date: Thu, 02 Sep 2010 17:51:21 +0200
-From: Laurent Epinat <laurent.epinat@cioinfoindus.fr>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Aguirre Sergio <saaguirre@ti.com>
-CC: linux-media@vger.kernel.org
-Subject: media entities and other stuff (2)
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@pedra>
+Received: from psmtp12.wxs.nl ([195.121.247.24]:37477 "EHLO psmtp12.wxs.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752234Ab0IQLIC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Sep 2010 07:08:02 -0400
+Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
+ by psmtp12.wxs.nl
+ (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
+ with ESMTP id <0L8W001AF1LCFN@psmtp12.wxs.nl> for linux-media@vger.kernel.org;
+ Fri, 17 Sep 2010 13:08:01 +0200 (MEST)
+Date: Fri, 17 Sep 2010 13:08:00 +0200
+From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Subject: Re: Trouble building v4l-dvb
+In-reply-to: <4C934806.7050503@gmail.com>
+To: Mauro Carvalho Chehab <maurochehab@gmail.com>
+Cc: "Ole W. Saastad" <olewsaa@online.no>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>,
+	linux-media@vger.kernel.org
+Message-id: <4C934C10.2060801@hoogenraad.net>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7BIT
+References: <1284493110.1801.57.camel@sofia> <4C924EB8.9070500@hoogenraad.net>
+ <4C93364C.3040606@hoogenraad.net> <4C934806.7050503@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: <mchehab@pedra>
 
-Hello All
+Thanks !
 
-I'm a new on media and camera things.
+Indeed, the hack so that
+make allyesmod
+not select firedtv would be very helpful.
 
-I try to use the isp cam port on omap3550 with media framework
+that way, it is also clear that firedtv will not work on debian-like 
+distros.
 
-we had a tvp5150 connected on isp port through the parallele interface on own custom board.
-I had ported the tvp5150 driver on media framework like im046 and 8et8ek8,
-and I'm quiet lost
-
-questions:
-The node /dev/media0 is used only the parameters ?
-if yes do i need to configure and how to do it (the media-ctl is not easy to used)
-
-and the video frame comes from /dev/video2
-(I try to capture the frame comes from CCDC output) ?
+Is there a way I cen help with that ?
+I have no experience with Kconfig, so it would be a learning experience 
+for me.
 
 
-Il try (tvp5150 -> CCDC in, and try to read CCDC out I not sure about my thinking)
-
-  ./media-ctl -l 16:0'->'5:0[1]
-
-and the  entity 16 changed
-
-- entity 16: tvp5150 3-005d (1 pad, 1 link)
-              type V4L2 subdev subtype Unknown
-         pad0: Output v4l2_subdev_open: Failed to open subdev device node
-
-                 -> 'OMAP3 ISP CCDC':pad0 [ACTIVE]
-
-
-if I'm right
-I can't understand how it works exactly and what appended on the different symptom
-
-The format.pix strcture is empty after called VIDIOC_G_FORMAT ?
-
-If I force the size in the code it's ok for that ioctl
-but I can't swith the stream on,
-
-Unable to start streaming: 32
-
-
-in the isp_video_validate_pipeline() the
-isp_video_remote_subdev() return null ptr
-
-of cause, in media_entity_remote_pad(), it check
-MEDIA_LINK_FLAG_ACTIVE and in my case, is not active,
-
-because, in func isp_register_entities()
-the flag is set to 0 on case ISP_INTERFACE_PARALLEL:
-
-
-I missed something !
-I don't know what can you help me
-
-
-
-here my media topologie
-
-Opening media device /dev/media0
-Enumerating entities
-Found 16 entities
-Enumerating pads and links
-Device topology
-- entity 1: OMAP3 ISP CCP2 (2 pads, 1 link)
-             type V4L2 subdev subtype Unknown
-             device node name /dev/subdev0
-	pad0: Input [unknown 0x0]
-	pad1: Output [unknown 0x0]
-		-> 'OMAP3 ISP CCDC':pad0 []
-
-- entity 2: OMAP3 ISP CCP2 input (1 pad, 1 link)
-             type Node subtype V4L
-             device node name /dev/video0
-	pad0: Output
-		-> 'OMAP3 ISP CCP2':pad0 []
-
-- entity 3: OMAP3 ISP CSI2a (2 pads, 2 links)
-             type V4L2 subdev subtype Unknown
-	pad0: Input v4l2_subdev_open: Failed to open subdev device node
-
-	pad1: Output v4l2_subdev_open: Failed to open subdev device node
-
-		-> 'OMAP3 ISP CSI2a output':pad0 []
-		-> 'OMAP3 ISP CCDC':pad0 []
-
-- entity 4: OMAP3 ISP CSI2a output (1 pad, 0 link)
-             type Node subtype V4L
-             device node name /dev/video1
-	pad0: Input
-
-- entity 5: OMAP3 ISP CCDC (3 pads, 6 links)
-             type V4L2 subdev subtype Unknown
-	pad0: Input v4l2_subdev_open: Failed to open subdev device node
-
-	pad1: Output v4l2_subdev_open: Failed to open subdev device node
-
-		-> 'OMAP3 ISP CCDC output':pad0 []
-		-> 'OMAP3 ISP resizer':pad0 []
-	pad2: Output v4l2_subdev_open: Failed to open subdev device node
-
-		-> 'OMAP3 ISP preview':pad0 []
-		-> 'OMAP3 ISP AEWB':pad0 []
-		-> 'OMAP3 ISP AF':pad0 []
-		-> 'OMAP3 ISP histogram':pad0 []
-
-- entity 6: OMAP3 ISP CCDC output (1 pad, 0 link)
-             type Node subtype V4L
-             device node name /dev/video2
-	pad0: Input
-
-- entity 7: OMAP3 ISP preview (2 pads, 2 links)
-             type V4L2 subdev subtype Unknown
-	pad0: Input v4l2_subdev_open: Failed to open subdev device node
-
-	pad1: Output v4l2_subdev_open: Failed to open subdev device node
-
-		-> 'OMAP3 ISP preview output':pad0 []
-		-> 'OMAP3 ISP resizer':pad0 []
-
-- entity 8: OMAP3 ISP preview input (1 pad, 1 link)
-             type Node subtype V4L
-             device node name /dev/video3
-	pad0: Output
-		-> 'OMAP3 ISP preview':pad0 []
-
-- entity 9: OMAP3 ISP preview output (1 pad, 0 link)
-             type Node subtype V4L
-             device node name /dev/video4
-	pad0: Input
-
-- entity 10: OMAP3 ISP resizer (2 pads, 1 link)
-              type V4L2 subdev subtype Unknown
-	pad0: Input v4l2_subdev_open: Failed to open subdev device node
-
-	pad1: Output v4l2_subdev_open: Failed to open subdev device node
-
-		-> 'OMAP3 ISP resizer output':pad0 []
-
-- entity 11: OMAP3 ISP resizer input (1 pad, 1 link)
-              type Node subtype V4L
-              device node name /dev/video5
-	pad0: Output
-		-> 'OMAP3 ISP resizer':pad0 []
-
-- entity 12: OMAP3 ISP resizer output (1 pad, 0 link)
-              type Node subtype V4L
-              device node name /dev/video6
-	pad0: Input
-
-- entity 13: OMAP3 ISP AEWB (1 pad, 0 link)
-              type V4L2 subdev subtype Unknown
-	pad0: Input v4l2_subdev_open: Failed to open subdev device node
-
-
-- entity 14: OMAP3 ISP AF (1 pad, 0 link)
-              type V4L2 subdev subtype Unknown
-	pad0: Input v4l2_subdev_open: Failed to open subdev device node
-
-
-- entity 15: OMAP3 ISP histogram (1 pad, 0 link)
-              type V4L2 subdev subtype Unknown
-	pad0: Input v4l2_subdev_open: Failed to open subdev device node
-
-
-- entity 16: tvp5150 3-005d (1 pad, 1 link)
-              type V4L2 subdev subtype Unknown
-	pad0: Output v4l2_subdev_open: Failed to open subdev device node
-
-		-> 'OMAP3 ISP CCDC':pad0 []
-
-
-regards
+Mauro Carvalho Chehab wrote:
+> Em 17-09-2010 06:35, Jan Hoogenraad escreveu:
+>> I see that the build now succeeded.
+>>
+>> Ole: this is something that should have been fixed a long time ago, but isn't.
+>> make allyesmod
+>> should set only those divers that do actually compile.
+>> Unfortunately, the FIREDTV driver has bugs for as long as I remember.
+> 
+> The problem are not related to bugs at firedtv driver, but, instead, due to the fact
+> that the provided firewire drivers and fw-core don't match the drivers that are shipped
+> with the distro kernel. In order words, at Ubuntu (and some other deb-based distros),
+> they're shipping the wrong include files at /lib/modules/`uname -r`/build/. So, there's
+> no way to build and run any module based on that wrong broken headers.
+> 
+> Up to a certain amount, the same happens with -alsa files on Ubuntu: although they
+> will compile [1], as the provided headers at /lib/modules/`uname -r`/build/ are from a different
+> version than the alsa modules provided with Ubuntu, the drivers that depend on -alsa will 
+> generally compile, but they generally won't load (and, if they load, they'll can cause
+> an OOPS and some other random troubles), as the symbol dependency will not match.
+> 
+> While a hack might be added at v4l-dvb -hg tree to make firedtv to compile against a broken
+> header, the firedtv driver will not work anyway.
+> 
+> The only real solution for it is to fix this issue at the distro.
+> 
+> Cheers,
+> Mauro
+> 
+> [1] The v4l-dvb is smart enough to adapt to -alsa API changes that are backported into
+> an older kernel, since it checks for the API symbols that changed, instead of just looking
+> for the kernel version. This works fine with all distros (like Fedora, RHEL, SUSE, OpenSUSE,
+> Mandriva, ...) where the include files for alsa are at the right place:
+> /lib/modules/`uname -r`/build/).
+> 
 
 
 -- 
-
-Salutations
-Laurent Epinat -> mailto:laurent.epinat@cioinfoindus.fr
-
-CIO Informatique
-Le millenium
-1, rue de Presse - BP 710
-42950 Saint-Etienne Cedex 9
-
-Tel    33 (0) 477 93 34 32
-Tcopie 33 (0) 477 79 75 55
-WWW : http://www.cioinfoindus.fr/
+Jan Hoogenraad
+Hoogenraad Interface Services
+Postbus 2717
+3500 GS Utrecht
