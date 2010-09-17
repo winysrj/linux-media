@@ -1,66 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:52914 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752042Ab0IHO2L (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Sep 2010 10:28:11 -0400
-Message-ID: <4C879D70.5050600@redhat.com>
-Date: Wed, 08 Sep 2010 11:28:00 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from bombadil.infradead.org ([18.85.46.34]:37645 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751124Ab0IQOC1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Sep 2010 10:02:27 -0400
+Date: Fri, 17 Sep 2010 10:02:19 -0400
+From: Christoph Hellwig <hch@infradead.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Christoph Hellwig <hch@infradead.org>,
+	Anton Altaparmakov <aia21@cam.ac.uk>, Jan Kara <jack@suse.cz>,
+	codalist@coda.cs.cmu.edu, autofs@linux.kernel.org,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
+	Trond Myklebust <Trond.Myklebust@netapp.com>,
+	Petr Vandrovec <vandrove@vc.cvut.cz>,
+	Anders Larsen <al@alarsen.net>,
+	Evgeniy Dushistov <dushistov@mail.ru>,
+	Ingo Molnar <mingo@elte.hu>, netdev@vger.kernel.org,
+	Samuel Ortiz <samuel@sortiz.org>,
+	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
+	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	Andrew Hendry <andrew.hendry@gmail.com>
+Subject: Re: Remaining BKL users, what to do
+Message-ID: <20100917140219.GA9454@infradead.org>
+References: <201009161632.59210.arnd@arndb.de>
+ <201009171245.41930.arnd@arndb.de>
+ <20100917133231.GA9411@infradead.org>
+ <201009171550.49282.arnd@arndb.de>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Stefan Lippers-Hollmann <s.L-H@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] af9015: add USB ID for Terratec Cinergy T Stick RC MKII
-References: <201008251508.51379.s.L-H@gmx.de> <4C752197.5000704@iki.fi>
-In-Reply-To: <4C752197.5000704@iki.fi>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201009171550.49282.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-Em 25-08-2010 10:58, Antti Palosaari escreveu:
-> Heissan Stefan,
+On Fri, Sep 17, 2010 at 03:50:49PM +0200, Arnd Bergmann wrote:
+> On Friday 17 September 2010, Christoph Hellwig wrote:
+> > 
+> > On Fri, Sep 17, 2010 at 12:45:41PM +0200, Arnd Bergmann wrote:
+> > > ncpfs: replace BKL with lock_super
+> > 
+> > Err, no.  lock_super is just as much on it's way out as the BKL.  We've
+> > managed to move it down from the VFS into a few remaining filesystems
+> > and now need to get rid of those users.  Please don't add any new ones.
 > 
-> On 08/25/2010 04:08 PM, Stefan Lippers-Hollmann wrote:
->> Adding the USB ID for my TerraTec Electronic GmbH Cinergy T RC MKII
->> [0ccd:0097] and hooking it up into af9015, on top of your new NXP TDA18218
->> patches, makes it work for me.
-> 
-> Patch is OK, I have just similar patch waiting here...
-> 
-> Acked-by: Antti Palosaari <crope@iki.fi>
-> 
-> I have been waiting Mauro commit for TDA18218 driver which I send about 2 weeks ago. And few others too for the MXL5007T based devices. Mauro when you will commit TDA18218?
+> Ok. I guess that's also a NAK for my the isofs patch I posted yesterday
+> then. Do you have any suggestions for an alternative approach?
 
-I've committed it this week.  Sorry for being late about that. I was very busy
-with some other pending work. 
-
-This patch caused a minor merge conflict. I just fixed it and merged it on my tree.
-
-> 
->> Just the shipped IR remote control doesn't seem to create keycode events
->> yet (tested with different remote=%d parameters), are there any hints to
->> add support for that?
-> 
-> My next plan is to move that remote controller to the new remote core system. 
-> I have done some tests and I can now read out raw remote codes from the device.
-
-That's great news. 
-
-> Before that you can add keymap for that remote. There is many ways to get keycodes; 
-> 1) USB-sniff, 2) dump from Windows driver, 3) read from af9015 memory, 4) use some other IR receiver...
-> 
-> regards
-> Antti
-> 
->> Signed-off-by: Stefan Lippers-Hollmann<s.l-h@gmx.de>
->> ---
->>
->> This depends on the git pull request "NXP TDA18218 silicon tuner driver"
->> from Antti Palosaari<crope@iki.fi>  and does not apply to -stable:
->>   * NXP TDA18218 silicon tuner driver
->>   * af9013: add support for tda18218 silicon tuner
->>   * af9015: add support for tda18218 silicon tuner
-> 
+Just add a per-sb mutex inside the filesystem.  Given that lock_super
+isn't used by the VFS anymore that's actually equivalent.
 
