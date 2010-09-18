@@ -1,49 +1,39 @@
 Return-path: <mchehab@pedra>
-Received: from ebed.etf.cuni.cz ([195.113.5.3]:51023 "EHLO ebed.etf.cuni.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753600Ab0IWMqK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Sep 2010 08:46:10 -0400
-Date: Thu, 23 Sep 2010 12:56:23 +0200
-From: Petr Tomasek <tomasek@etf.cuni.cz>
-To: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
-Subject: Yakumo QuickStick DVB-T doesn't load firmware
-Message-ID: <20100923105623.GA28052@ebed.etf.cuni.cz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:57427 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751887Ab0IRSXU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 18 Sep 2010 14:23:20 -0400
+Received: by qyk36 with SMTP id 36so1728163qyk.19
+        for <linux-media@vger.kernel.org>; Sat, 18 Sep 2010 11:23:19 -0700 (PDT)
+MIME-Version: 1.0
+Date: Sat, 18 Sep 2010 20:23:19 +0200
+Message-ID: <AANLkTinTvXKrWKqukCj9MWw0Me3K5y2yDHMUP4eMpaN3@mail.gmail.com>
+Subject: dvb-c usb device
+From: Bert Haverkamp <bert@bertenselena.net>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Hello all,
 
-Hello!
+Every couple of months I scan this mailing list for the keywords usb
+and dvb-c, hoping that some new device has shown up that is supported
+under Linux.
+My request for information a couple of years ago turned up a few older
+devices that don't work well or are not sold anymore. And a closed
+source device. Neither was really a way to go.
 
-My "Yakumo QuickStick" suddenly stopped to work. It now doesn't load
-the firmware (i.e. it stays "cold"):
+So I would like to check again if any one knows of a device that is
+supported or developments in that direction.
 
-XXX kernel: usb 1-3: new high speed USB device using ehci_hcd and address 10
-XXX kernel: usb 1-3: New USB device found, idVendor=14ee, idProduct=0225
-XXX kernel: usb 1-3: New USB device strings: Mfr=0, Product=0, SerialNumber=0
-XXX dalet kernel: usb 1-3: configuration #1 chosen from 1 choice
+With the announcement of Broadcom on their network driver, one keeps
+hoping that Micronas one day may turn around on their decision wrt a
+drx-k driver.
+It seems most (if not all) dvb-c usb devices out there are depending
+on this one.
 
-(I tried it on two systems, where it worked before. All Firmware files
-are in /lib/firmware).
+Regards,
 
-Is there anything I could do? Can I debug what's going on somehow?
-
-My current kernel:
-
-$ uname -a
-Linux dalet 2.6.32.21-166.fc12.i686.PAE #1 SMP Fri Aug 27 06:33:34 UTC 2010 i686 i686 i386 GNU/Linux
-
--- 
-Petr Tomasek <http://www.etf.cuni.cz/~tomasek>
-Jabber: butrus@jabbim.cz
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-EA 355:001  DU DU DU DU
-EA 355:002  TU TU TU TU
-EA 355:003  NU NU NU NU NU NU NU
-EA 355:004  NA NA NA NA NA
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
+Bert Haverkamp
