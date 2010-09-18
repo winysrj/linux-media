@@ -1,95 +1,114 @@
 Return-path: <mchehab@pedra>
-Received: from bombadil.infradead.org ([18.85.46.34]:36761 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755902Ab0I1SV0 (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1562 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756326Ab0IRTDQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Sep 2010 14:21:26 -0400
-Message-ID: <4CA2321C.1020909@infradead.org>
-Date: Tue, 28 Sep 2010 15:21:16 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-CC: Douglas Schilling Landgraf <dougsland@gmail.com>,
-	"Ole W. Saastad" <olewsaa@online.no>, linux-media@vger.kernel.org
-Subject: Re: updated make_kconfig.pl for Ubuntu
-References: <1284493110.1801.57.camel@sofia> <4C924EB8.9070500@hoogenraad.net> <4C93364C.3040606@hoogenraad.net> <4C934806.7050503@gmail.com> <4C934C10.2060801@hoogenraad.net> <4C93800B.8070902@gmail.com> <4C9F7267.7000707@hoogenraad.net> <4CA018C4.9000507@gmail.com> <4CA0E554.40406@hoogenraad.net> <4CA0ECA9.30208@gmail.com> <4CA10262.6060206@hoogenraad.net> <4CA11E25.5030206@gmail.com> <4CA22A79.9020309@hoogenraad.net>
-In-Reply-To: <4CA22A79.9020309@hoogenraad.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	Sat, 18 Sep 2010 15:03:16 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id o8IJ3Fe6045579
+	for <linux-media@vger.kernel.org>; Sat, 18 Sep 2010 21:03:15 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 18 Sep 2010 21:03:15 +0200 (CEST)
+Message-Id: <201009181903.o8IJ3Fe6045579@smtp-vbr4.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 28-09-2010 14:48, Jan Hoogenraad escreveu:
-> Douglas:
-> 
-> I have an updated make_kconfig.pl for Ububtu on:
-> http://linuxtv.org/hg/~jhoogenraad/rtl2831-r2/file/cb34ee1c29fc/v4l/scripts/make_kconfig.pl
-> 
-> Could you test if make allyesconfig actually keeps FIREDTV enabled on a non-Ubuntu system ?
-> 
-> If so, can you merge this version into the main stream ?
-> 
-> 
-> Mauro:
-> 
-> You are very right. I did not look far enough.
-> 
-> The expanded place where I expect the dma.h file would be (as I
-> /lib/modules/2.6.28-19-generic/build/include/config/ieee1394/dma.h
-> 
-> note that the letters "el" should be removed from your first expression
-> $dmahplace="$kernelsrc/include/config/ieee1394/dma.h";
-> needs to be:
-> $dmahplace="$kernsrc/include/config/ieee1394/dma.h";
-> 
-> Thanks a lot for helping !
-> 
-> 
-> As patch, relative to the diff you sent:
-> 
-> # HG changeset patch
-> # User Jan Hoogenraad <jan-conceptronic@h-i-s.nl>
-> # Date 1285695899 -7200
-> # Node ID 891128e7c3334e41f6c173ee5c01fddbce493b73
-> # Parent  cb34ee1c29fc8891ad3792b3df76031a72e39b9d
-> Location fix
-> 
-> From: Jan Hoogenraad <jan-conceptronic@h-i-s.nl>
-> 
-> Location fix
-> 
-> Priority: normal
-> 
-> Signed-off-by: Jan Hoogenraad <jan-conceptronic@h-i-s.nl>
-> 
-> diff -r cb34ee1c29fc -r 891128e7c333 v4l/scripts/make_kconfig.pl
-> --- a/v4l/scripts/make_kconfig.pl    Mon Sep 27 20:27:20 2010 +0200
-> +++ b/v4l/scripts/make_kconfig.pl    Tue Sep 28 19:44:59 2010 +0200
-> @@ -688,10 +688,7 @@
->  # Check for full kernel sources and print a warning
->  sub dmahcheck()
->  {
-> -    my $dmahplace= "".$kernsrc;
-> -    $dmahplace =~ s-^/lib/modules/--g;
-> -    $dmahplace =~ s-/.*$--g;
-> - $dmahplace="/usr/src/linux-headers-$dmahplace/include/config/ieee1394/dma.h";
-> +    my $dmahplace="$kernsrc/include/config/ieee1394/dma.h";
->      if (! -e $dmahplace) {
->          print <<"EOF2";
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Ok, now it looks correct on my eyes, and it should not hurt compilation
-with make release and with distros that do a good job with their kernel
-packages.
+Results of the daily build of v4l-dvb:
 
-I'll let Douglas review and test, as he is the maintainer.
+date:        Sat Sep 18 19:00:11 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15160:60edc4bd92b7
+git master:       3e6dce76d99b328716b43929b9195adfee1de00c
+git media-master: 991403c594f666a2ed46297c592c60c3b9f4e1e2
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-It would be better if you could send him a diff. you may use hg diff to generate
-it against an older version, in order to merge all your make_kconfig.pl patches,
-or just create a new clone from master and apply it there.
+linux-2.6.32.6-armv5: WARNINGS
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.36-rc2-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35.3-armv5-davinci: WARNINGS
+linux-2.6.36-rc2-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35.3-armv5-ixp: WARNINGS
+linux-2.6.36-rc2-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35.3-armv5-omap2: WARNINGS
+linux-2.6.36-rc2-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-rc2-i686: ERRORS
+linux-2.6.32.6-m32r: WARNINGS
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.36-rc2-m32r: ERRORS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.36-rc2-mips: ERRORS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.36-rc2-powerpc64: ERRORS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-rc2-x86_64: ERRORS
+linux-git-Module.symvers: ERRORS
+linux-git-armv5: ERRORS
+linux-git-armv5-davinci: ERRORS
+linux-git-armv5-ixp: ERRORS
+linux-git-armv5-omap2: ERRORS
+linux-git-i686: ERRORS
+linux-git-m32r: ERRORS
+linux-git-mips: ERRORS
+linux-git-powerpc64: ERRORS
+linux-git-x86_64: ERRORS
+spec: ERRORS
+spec-git: ERRORS
+sparse: ERRORS
 
-A side question: when do you intend to send us the patches for the Realtek
-rtl2831?
+Detailed results are available here:
 
-Cheers,
-Mauro.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L-DVB specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
