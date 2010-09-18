@@ -1,50 +1,70 @@
 Return-path: <mchehab@pedra>
-Received: from mail-out.m-online.net ([212.18.0.10]:55274 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754529Ab0IOVbK (ORCPT
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:60439 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754520Ab0IRL1t convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Sep 2010 17:31:10 -0400
-From: Anatolij Gustschin <agust@denx.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Anatolij Gustschin <agust@denx.de>
-Subject: [PATCH] V4L/DVB: v4l: fsl-viu.c: add slab.h include to fix compile breakage
-Date: Wed, 15 Sep 2010 23:31:09 +0200
-Message-Id: <1284586269-8623-1-git-send-email-agust@denx.de>
+	Sat, 18 Sep 2010 07:27:49 -0400
+Received: by qyk33 with SMTP id 33so3149306qyk.19
+        for <linux-media@vger.kernel.org>; Sat, 18 Sep 2010 04:27:49 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <19604.3118.741829.592934@valen.metzler>
+References: <19593.22297.612764.560375@valen.metzler>
+	<20100914144339.GA9525@linuxtv.org>
+	<19600.3015.410234.367070@valen.metzler>
+	<AANLkTikqJoDLRbU6269HF4UD8QoiNPrjPbcNTfZ9j38u@mail.gmail.com>
+	<19604.3118.741829.592934@valen.metzler>
+Date: Sat, 18 Sep 2010 12:27:48 +0100
+Message-ID: <AANLkTinnHxHMtc+yJHtDYXFyFCdm__HRHU82owz1GQMg@mail.gmail.com>
+Subject: Re: How to handle independent CA devices
+From: James Courtier-Dutton <james.dutton@gmail.com>
+To: rjkm <rjkm@metzlerbros.de>
+Cc: Manu Abraham <abraham.manu@gmail.com>,
+	Johannes Stezenbach <js@linuxtv.org>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-mpc512x kernel configurations without SPI support do not build:
+On 18 September 2010 01:47, rjkm <rjkm@metzlerbros.de> wrote:
+> Manu Abraham writes:
+>
+>  > > You still need a mechanism to decide which tuner gets it. First one
+>  > > which opens its own ca device?
+>  > > Sharing the CI (multi-stream decoding) in such an automatic way
+>  > > would also be complicated.
+>  > > I think I will only add such a feature if there is very high demand
+>  > > and rather look into the separate API solution.
+>  >
+>  >
+>  > It would be advantageous, if we do have just a simple input path,
+>  > where it is not restricted for CA/CI alone. I have some hardware over
+>  > here, where it has a DMA_TO_DEVICE channel (other than for the SG
+>  > table), where it can write a TS to any post-processor connected to it,
+>  > such as a CA/CI device, or even a decoder, for example. In short, it
+>  > could be anything, to put short.
+>  >
+>  > In this case, the device can accept processed stream (muxed TS for
+>  > multi-TP TS) for CA, or a single TS/PS for decode on a decoder. You
+>  > can flip some registers for the device, for it to read from userspace,
+>  > or for that DMA channel to read from the hardware page tables of
+>  > another DMA channel which is coming from the tuner.
+>  >
+>  > Maybe, we just need a simple mechanism/ioctl to select the CA/CI input
+>  > for the stream to the bridge. ie like a MUX: a 1:n select per adapter,
+>  > where the CA/CI device has 1 input and there are 'n' sources.
+>
+>
+> It would be nice to have a more general output device. But I have
+> currently no plans to support something like transparent streaming
+> from one input to the output and back inside the driver.
+>
 
-drivers/media/video/fsl-viu.c: In function 'viu_open':
-drivers/media/video/fsl-viu.c:1248: error: implicit declaration of function 'kzalloc'
-drivers/media/video/fsl-viu.c:1248: warning: assignment makes pointer from integer without a cast
-drivers/media/video/fsl-viu.c: In function 'viu_release':
-drivers/media/video/fsl-viu.c:1335: error: implicit declaration of function 'kfree'
+Could it be handled as a transcode step?
 
-If CONFIG_SPI is enabled, the slab.h will be included in
-linux/spi/spi.h which is included by media/v4l2-common.h
-and the fsl_viu.c driver builds.
-
-Let's incluce linux/slab.h directly to fix the build breakage.
-
-Signed-off-by: Anatolij Gustschin <agust@denx.de>
----
- drivers/media/video/fsl-viu.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/fsl-viu.c b/drivers/media/video/fsl-viu.c
-index 43d208f..0b318be 100644
---- a/drivers/media/video/fsl-viu.c
-+++ b/drivers/media/video/fsl-viu.c
-@@ -22,6 +22,7 @@
- #include <linux/interrupt.h>
- #include <linux/io.h>
- #include <linux/of_platform.h>
-+#include <linux/slab.h>
- #include <linux/version.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-device.h>
--- 
-1.7.0.4
-
+Record the encrypted mux from the DVB card to disk first.
+Then do the decrypt step offline or during playback.
+During playback, you only wish to watch one channel at a time, and the
+CAM will handle that.
+Contra to what people think, most CAMs can decrypt the stream some
+considerably time after the broadcast of the stream.
