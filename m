@@ -1,58 +1,238 @@
-Return-path: <mchehab@localhost.localdomain>
-Received: from smtp.nokia.com ([147.243.1.47]:23861 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751475Ab0IMKvA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Sep 2010 06:51:00 -0400
-Subject: Re: [PATCH v9 0/4] FM Radio driver.
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Reply-To: matti.j.aaltonen@nokia.com
-To: ext Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>,
-	"mchehab@redhat.com" <mchehab@redhat.com>
-In-Reply-To: <201009111410.55149.hverkuil@xs4all.nl>
-References: <1283168302-19111-1-git-send-email-matti.j.aaltonen@nokia.com>
-	 <201009111410.55149.hverkuil@xs4all.nl>
+Return-path: <mchehab@pedra>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:5308 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751874Ab0IRMUb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 18 Sep 2010 08:20:31 -0400
+Subject: Re: HVR 1600 Distortion
+From: Andy Walls <awalls@md.metrocast.net>
+To: Josh Borke <joshborke@gmail.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <AANLkTinddFfzQtaW_gUqi18OSPn437JTFiRa1HKM8Nva@mail.gmail.com>
+References: <AANLkTimt5bs1fNp=+36VLaTy0Kwi1rDPcpUTeN4z+c35@mail.gmail.com>
+	 <1284677325.2056.17.camel@morgan.silverblock.net>
+	 <AANLkTinddFfzQtaW_gUqi18OSPn437JTFiRa1HKM8Nva@mail.gmail.com>
 Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 13 Sep 2010 13:50:31 +0300
-Message-ID: <1284375031.12913.35.camel@masi.mnp.nokia.com>
+Date: Sat, 18 Sep 2010 08:20:34 -0400
+Message-ID: <1284812434.2053.28.camel@morgan.silverblock.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@localhost.localdomain>
+Sender: <mchehab@pedra>
 
-On Sat, 2010-09-11 at 14:10 +0200, ext Hans Verkuil wrote:
-> There are also up to three ways the RDS data can be received/sent: either as
-> RDS blocks, or using controls, or as a completely raw bitstream. The latter is
-> unlikely to be used for RDS output, but a cheap RDS receiver might just do this
-> (and I believe these devices actually exist).
+On Fri, 2010-09-17 at 18:23 -0400, Josh Borke wrote:
+> Thanks for the response!  Replies are in line.
+> 
+> On Thu, Sep 16, 2010 at 6:48 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+> > On Wed, 2010-09-15 at 22:54 -0400, Josh Borke wrote:
+> >> I've recently noticed some distortion coming from my hvr1600 when
+> >> viewing analog channels.  It happens to all analog channels with some
+> >> slightly better than others.  I am running Fedora 12 linux with kernel
+> >> version 2.6.32.21-166.
+> >
+> >
+> >> I know I need to include more information but I'm not sure what to
+> >> include.  Any help would be appreciated.
+> >
+> > 1. Would you say the distortion is something you would possibly
+> > encounter on an analog television set, or does it look "uniquely
+> > digital"?  On systems with a long uptime and lots of usage, MPEG encoder
+> > firmware could wind up in a screwed up state giving weird output image.
+> > Simple solution in this case is to reboot.
+> 
+> I'm not sure if I would classify it as "uniquely digital".  The
+> distortion happens across most of the screen with it being
+> concentrated in the top third.  Additionally shows that include black
+> bars the top black bar is seemingly stretched and the image seems like
+> the colors are over-saturated where they colors are brighter.
+> Rebooting had no effect :(
 
-I thought that the "raw" mode meant reading and writing (uninterpreted)
-RDS blocks. At least that's what the wl1273 chip does and that was what
-I meant. Is there already a way to deal with this case?
+OK.
 
-Anyway the difference between the "completely raw bits" and the "raw"
-blocks is small. And I doubt the usefulness of supporting the
-"completely raw" format.
+> > 2. Have you ensured your cable plant isn't affecting signal integrity?
+> > http://ivtvdriver.org/index.php/Howto:Improve_signal_quality
+> 
+> The cable plant hasn't changed the signal strength or integrity as far
+> as I know.
 
-B.R.
-Matti
+OK.  Keep it in the back of your mind though.
 
-> So I propose to add the following tuner capability flags:
+> > 3. Does this happen with only the RF tuner or only CVBS or only SVideo
+> > or more than one of them?  If the problem is only with RF, then it could
+> > be an incoming signal distortion problem.  Do you have cable or an over
+> > the air antenna for analog RF?
 > 
-> V4L2_TUNER_CAP_RDS_READWRITE	0x0100	Use read()/write()
-> V4L2_TUNER_CAP_RDS_CONTROLS	0x0200	Use RDS controls
+> I only have input for the RF tuner.  I have cable for analog RF.
+
+Please try and test the output of a VCR or DVD play plugged into the
+HVR-1600.  (We don't need sound, just the video.)
+
+This will tell us if the problem happens before the CX23418 chip's
+analog front end (i.e. in the RF and analog tuner) or not.
+
+
+$ v4l2-ctl -d /dev/video0 -n
+(List of possible inputs displayed)
+
+$ v4l2-ctl -d /dev/video0 -i 2
+Video input set to 2 (Composite 1)
+
+# v4l2-ctl -d /dev/video0 -s ntsc-m
+Standard set to 00001000
+
+$ cat /dev/video0 > foo.mpg
+^C
+
+
+> > 4. What does v4l2-ctl --log-status show as your analog tuner?
 > 
-> And this allows us to add a RDS_RAW_READWRITE in the future should we need it.
+> Not sure what you mean so I've included the full output:
+> # v4l2-ctl -d /dev/hvr1600 --log-status
 > 
-> We do need to add these capability flags to the existing RDS drivers (there
-> are only a few, so that's no problem) and we need to document that for RDS
-> capture the READWRITE is the default if neither READWRITE or CONTROLS is set,
-> and that for RDS output the CONTROLS is the default in that case.
+> Status Log:
 > 
-> Comments?
+>    cx18-0: =================  START STATUS CARD #0  =================
+>    cx18-0: Version: 1.2.0  Card: Hauppauge HVR-1600
+>    tveeprom 3-0050: Hauppauge model 74041, rev C6B2, serial# 898361
+>    tveeprom 3-0050: MAC address is 00-0D-FE-0D-B5-39
+>    tveeprom 3-0050: tuner model is TCL M2523_5N_E (idx 112, type 50)
+                                     ^^^^^^^^^^^^^^
+OK.  You have a board with the same tuner as I have.
+
+All I have for an analog RF source is a DTV STB, so a very clean channel
+3 is all I have to try and duplicate the problem.
+
+
+>    tveeprom 3-0050: TV standards NTSC(M) (eeprom 0x08)
+>    tveeprom 3-0050: audio processor is CX23418 (idx 38)
+>    tveeprom 3-0050: decoder processor is CX23418 (idx 31)
+>    tveeprom 3-0050: has no radio, has IR receiver, has IR transmitter
+>    cx18-0 843: Video signal:              present
+>    cx18-0 843: Detected format:           NTSC-M
+>    cx18-0 843: Specified standard:        NTSC-M
+>    cx18-0 843: Specified video input:     Composite 7
+>    cx18-0 843: Specified audioclock freq: 48000 Hz
+>    cx18-0 843: Detected audio mode:       mono
+>    cx18-0 843: Detected audio standard:   BTSC
+>    cx18-0 843: Audio muted:               no
+>    cx18-0 843: Audio microcontroller:     running
+>    cx18-0 843: Configured audio standard: automatic detection
+>    cx18-0 843: Configured audio system:   BTSC
+>    cx18-0 843: Specified audio input:     Tuner (In8)
+>    cx18-0 843: Preferred audio mode:      stereo
+>    cx18-0 gpio-reset-ctrl: GPIO:  direction 0x00003001, value 0x00003001
+>    tuner 4-0061: Tuner mode:      analog TV
+>    tuner 4-0061: Frequency:       175.25 MHz
+                                    ^^^^^^
+This is the freq for both US Broadcast and US Cable channel 7 BTW.
+
+
+>    tuner 4-0061: Standard:        0x0000b000
+>    cs5345 3-004c: Input:  1
+>    cs5345 3-004c: Volume: 0 dB
+>    cx18-0: Video Input: Tuner 1
+>    cx18-0: Audio Input: Tuner 1
+>    cx18-0: GPIO:  direction 0x00003001, value 0x00003001
+>    cx18-0: Tuner: TV
+>    cx18-0: Stream: MPEG-2 Program Stream
+>    cx18-0: VBI Format: Private packet, IVTV format
+>    cx18-0: Video:  720x480, 30 fps
+>    cx18-0: Video:  MPEG-2, 4x3, Variable Bitrate, 6600000, Peak 6600000
+>    cx18-0: Video:  GOP Size 15, 2 B-Frames, GOP Closure
+>    cx18-0: Audio:  48 kHz, MPEG-1/2 Layer II, 384 kbps, Stereo, No
+> Emphasis, No CRC
+>    cx18-0: Spatial Filter:  Manual, Luma 1D Horizontal, Chroma 1D Horizontal, 0
+>    cx18-0: Temporal Filter: Manual, 8
+>    cx18-0: Median Filter:   Off, Luma [0, 255], Chroma [0, 255]
+>    cx18-0: Status flags: 0x00200001
+>    cx18-0: Stream encoder MPEG: status 0x0000, 0% of 2048 KiB (64
+> buffers) in use
+>    cx18-0: Stream encoder YUV: status 0x0000, 0% of 2048 KiB (16 buffers) in use
+>    cx18-0: Stream encoder VBI: status 0x0000, 0% of 1015 KiB (20 buffers) in use
+>    cx18-0: Stream encoder PCM audio: status 0x0000, 0% of 1024 KiB
+> (256 buffers) in use
+>    cx18-0: Read MPEG/VBI: 3507263488/15001920 bytes
+>    cx18-0: ==================  END STATUS CARD #0  ==================
 > 
-> 	Hans
 > 
+> > 5. Do you have a kernel with the new concurrency managed workqueues?
+> > On these kernels 'ps axf' will *not* show kernel threads with names like
+> > [cx18-0-in], [cx18-0-out/0], [cx18-0-out/1].  This is a major kernel
+> > change which could cause some MPEG buffers to be lost or reordered, if
+> > the new workqueue implementation has bugs.
+> >
+> ps axf shows [cx18-0-in], [cx18-0-out/0], [cx18-0-out/1],
+> [cx18-0-out/2], [cx18-0-out/3]
+
+OK.  That eliminates that potential source of problems.
+
+
+> > 6. Have you recently installed new hardware in the subject computer?  Of
+> > most interest are adapter cards with cables coming off of them and cards
+> > very close to the HVR-1600.  EMI can be picked up by the HVR-1600's
+> > board traces that are not shielded.
+> >
+> 
+> Haven't changed any of the hardware in the system.
+
+OK.
+
+> > 7. Does the distortion look like loss of horizontal line sync and happen
+> > only near very bright parts of the image on the left edge?  If it does,
+> > the baseband video signal level is too high.
+> 
+> It does seem to be worse in brighter areas of the screen.  Inserting
+> additional splitters (to reduce the signal strength) has no affect.
+
+OK.  The problem I mentioned is usually for when you have a very good
+picture otherwise.  If the entire image is poor, then this likely isn't
+the cause.
+
+> > 8. Care to post a short image in a paste bin or email a small MPEG to
+> > me?
+> 
+> I've tried using $ ivtv-tune -c 71 -d /dev/hvr1600 followed by $ cat
+> /dev/hvr1600 > /tmp/test.mpg then ctrl+c'ing that after a few seconds
+> but it results in garbage.  Do you have a better method?
+
+So try this:
+
+1. Configure your system so they MythTV backend, or any other
+application that messes with the video card, won't start up on reboot.
+
+2. Shutdown the machine & power-off & power back on.
+
+3. Do these for steps for US Cable
+
+$ v4l2-ctl -d /dev/video0 -i 0
+Video input set to 0 (Tuner 1)
+
+$ ivtv-tune -d /dev/video0 -t us-cable -c 7
+/dev/video0: 175.250 MHz
+
+$ cat /dev/video0 > foo.mpg
+
+
+Note that v4l2-ctl and ivtv-tune default to "/dev/video0", but I see you
+have a "/dev/hvr1600"(?).  In all my examples, I explicitly call out the
+device node as "/dev/video0".  Please replace "/dev/video0" with the
+appropriate device node name on your system.
+
+
+
+
+>   I'll email
+> you that file so you can see it anyway.  Most of my recordings are
+> from using mythtv and the results are at least watchable.
+> > Regards,
+> > Andy
+> >
+
+Received it.  It looks really, really bad: like an untuned channel.
+Please try again with the steps I provided explicitly calling out the
+device node.
+
+Thanks,
+Andy
 
 
