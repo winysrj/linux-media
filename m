@@ -1,114 +1,133 @@
-Return-path: <mchehab@localhost.localdomain>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3224 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751802Ab0ILTEF (ORCPT
+Return-path: <mchehab@pedra>
+Received: from fmmailgate03.web.de ([217.72.192.234]:47272 "EHLO
+	fmmailgate03.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753412Ab0ISMeF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Sep 2010 15:04:05 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id o8CJ416d028607
-	for <linux-media@vger.kernel.org>; Sun, 12 Sep 2010 21:04:02 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 12 Sep 2010 21:04:01 +0200 (CEST)
-Message-Id: <201009121904.o8CJ416d028607@smtp-vbr11.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Sun, 19 Sep 2010 08:34:05 -0400
+Received: from smtp04.web.de  ( [172.20.0.225])
+	by fmmailgate03.web.de (Postfix) with ESMTP id AD038160C5AC3
+	for <linux-media@vger.kernel.org>; Sun, 19 Sep 2010 14:34:03 +0200 (CEST)
+Received: from [88.116.171.138] (helo=[10.10.0.201])
+	by smtp04.web.de with asmtp (WEB.DE 4.110 #24)
+	id 1OxJ5n-0006gE-00
+	for linux-media@vger.kernel.org; Sun, 19 Sep 2010 14:34:03 +0200
+Message-ID: <4C96033C.7080306@web.de>
+Date: Sun, 19 Sep 2010 14:34:04 +0200
+From: Kloana <kloana@web.de>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+Subject: ngene under xen 2.6.32-er Kernel
+Content-Type: multipart/mixed;
+ boundary="------------080109080101070506050006"
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@localhost.localdomain>
+Sender: <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+This is a multi-part message in MIME format.
+--------------080109080101070506050006
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Results of the daily build of v4l-dvb:
+  Hi,
 
-date:        Sun Sep 12 19:00:14 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15147:8a6219311e8b
-git master:       3e6dce76d99b328716b43929b9195adfee1de00c
-git media-master: 991403c594f666a2ed46297c592c60c3b9f4e1e2
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+i testet yesterday to build the latest v4l-driver modules from 
+mercurial. Building under linux-image-2.6.32-5-xen-amd64 is working 
+without any problems. The CineS2 TV-card is hidden via piback.hide and 
+imported to the domU via the pci command in the domU config file.
 
-linux-2.6.32.6-armv5: WARNINGS
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35.3-armv5: WARNINGS
-linux-2.6.36-rc2-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35.3-armv5-davinci: WARNINGS
-linux-2.6.36-rc2-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35.3-armv5-ixp: WARNINGS
-linux-2.6.36-rc2-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35.3-armv5-omap2: WARNINGS
-linux-2.6.36-rc2-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-rc2-i686: ERRORS
-linux-2.6.32.6-m32r: WARNINGS
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35.3-m32r: WARNINGS
-linux-2.6.36-rc2-m32r: ERRORS
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35.3-mips: WARNINGS
-linux-2.6.36-rc2-mips: ERRORS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35.3-powerpc64: WARNINGS
-linux-2.6.36-rc2-powerpc64: ERRORS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-rc2-x86_64: ERRORS
-linux-git-Module.symvers: ERRORS
-linux-git-armv5: ERRORS
-linux-git-armv5-davinci: ERRORS
-linux-git-armv5-ixp: ERRORS
-linux-git-armv5-omap2: ERRORS
-linux-git-i686: ERRORS
-linux-git-m32r: ERRORS
-linux-git-mips: ERRORS
-linux-git-powerpc64: ERRORS
-linux-git-x86_64: ERRORS
-spec: ERRORS
-spec-git: ERRORS
-sparse: ERRORS
+When i boot the domU i always get a traceback.
 
-Detailed results are available here:
+Attached you can find the output of dmesg.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+IRQ 18 is shared with two usb-controllers.
 
-Full logs are available here:
+Sorry i'm not sure if i'm right in this mailinglist, or if i should open 
+a troubleticket at debian kernel side.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+Thanks in advance,
+regards
+Herbert
 
-The V4L-DVB specification failed to build, but the last compiled spec is here:
+--------------080109080101070506050006
+Content-Type: text/plain;
+ name="dmesg cineS2.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="dmesg cineS2.txt"
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+WyAgICAxLjY2NzE3Ml0gdWRldjogc3RhcnRpbmcgdmVyc2lvbiAxNjANClsgICAgMS45ODc2
+MzldIGlucHV0OiBQQyBTcGVha2VyIGFzIC9kZXZpY2VzL3BsYXRmb3JtL3Bjc3Brci9pbnB1
+dC9pbnB1dDENClsgICAgMi4zMDg5MzNdIG5HZW5lIFBDSUUgYnJpZGdlIGRyaXZlciwgQ29w
+eXJpZ2h0IChDKSAyMDA1LTIwMDcgTWljcm9uYXMNClsgICAgMi4zMDkxNTNdIG5nZW5lIDAw
+MDA6MDA6MDAuMDogZW5hYmxpbmcgZGV2aWNlICgwMDAwIC0+IDAwMDIpDQpbICAgIDIuMzA5
+MjY5XSBuZ2VuZSAwMDAwOjAwOjAwLjA6IFhlbiBQQ0kgZW5hYmxpbmcgSVJROiAxOA0KWyAg
+ICAyLjMwOTI4MF0gICBhbGxvYyBpcnFfZGVzYyBmb3IgMTggb24gbm9kZSAwDQpbICAgIDIu
+MzA5MjgzXSAgIGFsbG9jIGtzdGF0X2lycXMgb24gbm9kZSAwDQpbICAgIDIuMzA5MzAzXSBu
+Z2VuZTogRm91bmQgTGludXg0TWVkaWEgY2luZVMyIERWQi1TMiBUd2luIFR1bmVyICh2NSkN
+ClsgICAgMi4zMTAwMDRdIG5nZW5lIDAwMDA6MDA6MDAuMDogc2V0dGluZyBsYXRlbmN5IHRp
+bWVyIHRvIDY0DQpbICAgIDIuMzEwMjkzXSBuZ2VuZTogRGV2aWNlIHZlcnNpb24gMQ0KWyAg
+ICAyLjMxMDMzOV0gbmdlbmUgMDAwMDowMDowMC4wOiBmaXJtd2FyZTogcmVxdWVzdGluZyBu
+Z2VuZV8xNS5mdw0KWyAgICAyLjM0Nzk1Nl0gRXJyb3I6IERyaXZlciAncGNzcGtyJyBpcyBh
+bHJlYWR5IHJlZ2lzdGVyZWQsIGFib3J0aW5nLi4uDQpbICAgIDIuMzczMzU0XSBuZ2VuZTog
+TG9hZGluZyBmaXJtd2FyZSBmaWxlIG5nZW5lXzE1LmZ3Lg0KWyAgICA0LjM4NDEwNl0gbmdl
+bmU6IENvbW1hbmQgdGltZW91dCBjbWQ9MTEgcHJldj0wMg0KWyAgICA0LjM4NDEyNF0gaG9z
+dF90b19uZ2VuZSAoYzAwMCk6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwDQpbICAgIDQuMzg0
+MTM1XSBuZ2VuZV90b19ob3N0IChjMTAwKTogMDAgMDEgMDAgMDAgMDAgMDAgMDAgMDANClsg
+ICAgNC4zODQxNDVdIGRldi0+aG9zdHRvbmdlbmUgKGZmZmY4ODAwMDcyNGEwMDApOiAxMSAw
+MSAwMCBkMCAwMCAwNCAwMCAwMA0KWyAgICA0LjM4NDE1NF0gZGV2LT5uZ2VuZXRvaG9zdCAo
+ZmZmZjg4MDAwNzI0YTEwMCk6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwDQpbICAgIDQuMzg0
+NDUwXSBuZ2VuZTogcHJvYmUgb2YgMDAwMDowMDowMC4wIGZhaWxlZCB3aXRoIGVycm9yIC01
+DQpbICAgIDQuMzg1MTYxXSBCVUc6IHVuYWJsZSB0byBoYW5kbGUga2VybmVsIHBhZ2luZyBy
+ZXF1ZXN0IGF0IGZmZmZjOTAwMDAwOTc3NzANClsgICAgNC4zODUxNzRdIElQOiBbPGZmZmZm
+ZmZmODExM2YxOGE+XSBzeXNmc19vcGVuX2ZpbGUrMHg3Ny8weDJhYQ0KWyAgICA0LjM4NTE4
+Nl0gUEdEIDdjNDIwNjcgUFVEIDdjNDMwNjcgUE1EIDdjNDQwNjcgUFRFIDANClsgICAgNC4z
+ODUxOThdIE9vcHM6IDAwMDAgWyMxXSBTTVAgDQpbICAgIDQuMzg1MjA2XSBsYXN0IHN5c2Zz
+IGZpbGU6IC9zeXMvZGV2aWNlcy9wY2ktMC9wY2kwMDAwOjAwLzAwMDA6MDA6MDAuMC9pMmMt
+MC91ZXZlbnQNClsgICAgNC4zODUyMTRdIENQVSAwIA0KWyAgICA0LjM4NTIxOV0gTW9kdWxl
+cyBsaW5rZWQgaW46IG5nZW5lIHNuZF9wY20gc25kX3RpbWVyIHNuZCBkdmJfY29yZSBzb3Vu
+ZGNvcmUgc25kX3BhZ2VfYWxsb2MgaTJjX2NvcmUgZXZkZXYgcGNzcGtyIGV4dDMgamJkIG1i
+Y2FjaGUgeGVuX25ldGZyb250IHhlbl9ibGtmcm9udA0KWyAgICA0LjM4NTI1NF0gUGlkOiAx
+NTYsIGNvbW06IHVkZXZkIE5vdCB0YWludGVkIDIuNi4zMi01LXhlbi1hbWQ2NCAjMSANClsg
+ICAgNC4zODUyNjFdIFJJUDogZTAzMDpbPGZmZmZmZmZmODExM2YxOGE+XSAgWzxmZmZmZmZm
+ZjgxMTNmMThhPl0gc3lzZnNfb3Blbl9maWxlKzB4NzcvMHgyYWENClsgICAgNC4zODUyNzFd
+IFJTUDogZTAyYjpmZmZmODgwMDA2Yzc3ZDc4ICBFRkxBR1M6IDAwMDEwMjg2DQpbICAgIDQu
+Mzg1Mjc3XSBSQVg6IGZmZmY4ODAwMDcwMTYwYTAgUkJYOiAwMDAwMDAwMGZmZmZmZmVkIFJD
+WDogMDAwMDAwMDAwMDAwMDAwMA0KWyAgICA0LjM4NTI4NV0gUkRYOiAwMDAwMDAwMDAwMDAw
+MDAxIFJTSTogZmZmZjg4MDAwNzhkZjljOCBSREk6IGZmZmY4ODAwMDcwMTYwYTANClsgICAg
+NC4zODUyOTFdIFJCUDogZmZmZjg4MDAwNzc0OGI0MCBSMDg6IGZmZmY4ODAwMDcwMTYwNTQg
+UjA5OiBmZmZmZmZmZjgxNjc2MTUwDQpbICAgIDQuMzg1Mjk4XSBSMTA6IGZmZmY4ODAwMDZj
+NzdlNDggUjExOiBmZmZmZmZmZjgxMTUzM2U1IFIxMjogZmZmZmM5MDAwMDA5Nzc0OA0KWyAg
+ICA0LjM4NTMwNV0gUjEzOiBmZmZmODgwMDA3MDE2MGEwIFIxNDogZmZmZjg4MDAwNzhkZjlj
+OCBSMTU6IGZmZmY4ODAwMDc3NDhiNDANClsgICAgNC4zODUzMTZdIEZTOiAgMDAwMDdmNzY2
+M2I5MDdhMCgwMDAwKSBHUzpmZmZmODgwMDAzMDIzMDAwKDAwMDApIGtubEdTOjAwMDAwMDAw
+MDAwMDAwMDANClsgICAgNC4zODUzMjRdIENTOiAgZTAzMyBEUzogMDAwMCBFUzogMDAwMCBD
+UjA6IDAwMDAwMDAwODAwNTAwM2INClsgICAgNC4zODUzMzBdIENSMjogZmZmZmM5MDAwMDA5
+Nzc3MCBDUjM6IDAwMDAwMDAwMDcxMTIwMDAgQ1I0OiAwMDAwMDAwMDAwMDAyNjIwDQpbICAg
+IDQuMzg1MzM4XSBEUjA6IDAwMDAwMDAwMDAwMDAwMDAgRFIxOiAwMDAwMDAwMDAwMDAwMDAw
+IERSMjogMDAwMDAwMDAwMDAwMDAwMA0KWyAgICA0LjM4NTM0NV0gRFIzOiAwMDAwMDAwMDAw
+MDAwMDAwIERSNjogMDAwMDAwMDBmZmZmMGZmMCBEUjc6IDAwMDAwMDAwMDAwMDA0MDANClsg
+ICAgNC4zODUzNTJdIFByb2Nlc3MgdWRldmQgKHBpZDogMTU2LCB0aHJlYWRpbmZvIGZmZmY4
+ODAwMDZjNzYwMDAsIHRhc2sgZmZmZjg4MDAwN2QzNDcxMCkNClsgICAgNC4zODUzNjBdIFN0
+YWNrOg0KWyAgICA0LjM4NTM2NF0gIDAwMDAwMDAwMDAwMDAwMjQgMDAwMDAwMDAwMDAwMDAw
+MCBmZmZmODgwMDA3NzQ4YjQwIDAwMDAwMDAwMDAwMDAwMDANClsgICAgNC4zODUzNzVdIDww
+PiBmZmZmODgwMDA3OGRmOWM4IDAwMDAwMDAwMDAwMDAwMjQgZmZmZmZmZmY4MTEzZjExMyBm
+ZmZmZmZmZjgxMGVkOTg2DQpbICAgIDQuMzg1Mzg4XSA8MD4gZmZmZjg4MDAwNzQ4NjAwMCBm
+ZmZmODgwMDA2MmZlYjAwIGZmZmY4ODAwMDc4ZDc4NDAgMDAwMDAwMDAwMDAwMDAwMA0KWyAg
+ICA0LjM4NTQwNF0gQ2FsbCBUcmFjZToNClsgICAgNC4zODU0MTBdICBbPGZmZmZmZmZmODEx
+M2YxMTM+XSA/IHN5c2ZzX29wZW5fZmlsZSsweDAvMHgyYWENClsgICAgNC4zODU0MTldICBb
+PGZmZmZmZmZmODEwZWQ5ODY+XSA/IF9fZGVudHJ5X29wZW4rMHgxOWQvMHgyYmYNClsgICAg
+NC4zODU0MjddICBbPGZmZmZmZmZmODEwZjkwZDc+XSA/IGRvX2ZpbHBfb3BlbisweDRlNC8w
+eDk0Yg0KWyAgICA0LjM4NTQzN10gIFs8ZmZmZmZmZmY4MTI1MGI3ZT5dID8gc3lzX3JlY3Zm
+cm9tKzB4YjIvMHgxMWENClsgICAgNC4zODU0NDZdICBbPGZmZmZmZmZmODEwMGVjNWY+XSA/
+IHhlbl9yZXN0b3JlX2ZsX2RpcmVjdF9lbmQrMHgwLzB4MQ0KWyAgICA0LjM4NTQ1NF0gIFs8
+ZmZmZmZmZmY4MTEwMjEwOT5dID8gYWxsb2NfZmQrMHg2Ny8weDEwYw0KWyAgICA0LjM4NTQ2
+MV0gIFs8ZmZmZmZmZmY4MTBlZDcxNz5dID8gZG9fc3lzX29wZW4rMHg1NS8weGZjDQpbICAg
+IDQuMzg1NDY5XSAgWzxmZmZmZmZmZjgxMDExYjQyPl0gPyBzeXN0ZW1fY2FsbF9mYXN0cGF0
+aCsweDE2LzB4MWINClsgICAgNC4zODU0NzVdIENvZGU6IGZmIGYyIGFlIDQ4IGM3IGM3IDUw
+IDYxIDY3IDgxIDQ4IGY3IGQxIDQ4IDg5IGNhIGU4IDQwIDZjIDA1IDAwIDRjIDg5IGVmIGJi
+IGVkIGZmIGZmIGZmIGU4IGYzIDE1IDAwIDAwIDQ4IDg1IGMwIDBmIDg0IDI1IDAyIDAwIDAw
+IDw0OT4gOGIgNDQgMjQgMjggNDggODUgYzAgNzQgMTMgNDggOGIgNjggMDggNDggODUgZWQg
+NzQgMGEgNDEgOGIgDQpbICAgIDQuMzg1NTc2XSBSSVAgIFs8ZmZmZmZmZmY4MTEzZjE4YT5d
+IHN5c2ZzX29wZW5fZmlsZSsweDc3LzB4MmFhDQpbICAgIDQuMzg1NTg0XSAgUlNQIDxmZmZm
+ODgwMDA2Yzc3ZDc4Pg0KWyAgICA0LjM4NTU5MF0gQ1IyOiBmZmZmYzkwMDAwMDk3NzcwDQpb
+ICAgIDQuMzg1NTk2XSAtLS1bIGVuZCB0cmFjZSBlNDI4Y2IyMjc5MzdiMDM4IF0tLS0=
+--------------080109080101070506050006--
