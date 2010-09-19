@@ -1,68 +1,114 @@
-Return-path: <mchehab@gaivota>
-Received: from mailout4.samsung.com ([203.254.224.34]:62505 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750858Ab0IFHOV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Sep 2010 03:14:21 -0400
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8; format=flowed
-Received: from epmmp1 (mailout4.samsung.com [203.254.224.34])
- by mailout4.samsung.com
- (Sun Java(tm) System Messaging Server 7u3-15.01 64bit (built Feb 12 2010))
- with ESMTP id <0L8B006LPDFVUNC0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Mon, 06 Sep 2010 16:14:19 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0L8B000HUDFVD0@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 06 Sep 2010 16:14:19 +0900 (KST)
-Date: Mon, 06 Sep 2010 16:14:19 +0900
-From: Joonyoung Shim <jy0922.shim@samsung.com>
-Subject: Re: [PATCH 8/8] v4l: radio: si470x: fix unneeded free_irq() call
-In-reply-to: <1283756030-28634-9-git-send-email-m.szyprowski@samsung.com>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	p.osciak@samsung.com, s.nawrocki@samsung.com,
-	Tobias Lorenz <tobias.lorenz@gmx.net>,
-	Douglas Schilling Landgraf <dougsland@redhat.com>,
-	Jean Delvare <khali@linux-fr.org>
-Message-id: <4C8494CB.4020007@samsung.com>
-Content-transfer-encoding: 8BIT
-References: <1283756030-28634-1-git-send-email-m.szyprowski@samsung.com>
- <1283756030-28634-9-git-send-email-m.szyprowski@samsung.com>
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2613 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751749Ab0ISTIT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Sep 2010 15:08:19 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id o8JJ8EVU083134
+	for <linux-media@vger.kernel.org>; Sun, 19 Sep 2010 21:08:18 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 19 Sep 2010 21:08:14 +0200 (CEST)
+Message-Id: <201009191908.o8JJ8EVU083134@smtp-vbr4.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On 2010-09-06 오후 3:53, Marek Szyprowski wrote:
-> In case of error during probe() the driver calls free_irq() function
-> on not yet allocated irq. This patches fixes the call sequence in case of
-> the error.
->
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-I sent this fix patch but it didn't go to linux-media ML by certain
-reason. Anyway this is good catch.
+Results of the daily build of v4l-dvb:
 
-Acked-by: Joonyoung Shim <jy0922.shim@samsung.com>
+date:        Sun Sep 19 19:00:14 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15164:1da5fed5c8b2
+git master:       3e6dce76d99b328716b43929b9195adfee1de00c
+git media-master: 991403c594f666a2ed46297c592c60c3b9f4e1e2
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-> Signed-off-by: Marek Szyprowski<m.szyprowski@samsung.com>
-> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
-> CC: Tobias Lorenz<tobias.lorenz@gmx.net>
-> CC: Joonyoung Shim<jy0922.shim@samsung.com>
-> CC: Douglas Schilling Landgraf<dougsland@redhat.com>
-> CC: Jean Delvare<khali@linux-fr.org>
-> ---
->   drivers/media/radio/si470x/radio-si470x-i2c.c |    2 +-
->   1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/media/radio/si470x/radio-si470x-i2c.c b/drivers/media/radio/si470x/radio-si470x-i2c.c
-> index 67a4ec8..4ce541a 100644
-> --- a/drivers/media/radio/si470x/radio-si470x-i2c.c
-> +++ b/drivers/media/radio/si470x/radio-si470x-i2c.c
-> @@ -395,7 +395,7 @@ static int __devinit si470x_i2c_probe(struct i2c_client *client,
->   	radio->registers[POWERCFG] = POWERCFG_ENABLE;
->   	if (si470x_set_register(radio, POWERCFG)<  0) {
->   		retval = -EIO;
-> -		goto err_all;
-> +		goto err_video;
->   	}
->   	msleep(110);
->
+linux-2.6.32.6-armv5: WARNINGS
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.36-rc2-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35.3-armv5-davinci: WARNINGS
+linux-2.6.36-rc2-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35.3-armv5-ixp: WARNINGS
+linux-2.6.36-rc2-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35.3-armv5-omap2: WARNINGS
+linux-2.6.36-rc2-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-rc2-i686: ERRORS
+linux-2.6.32.6-m32r: WARNINGS
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.36-rc2-m32r: ERRORS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.36-rc2-mips: ERRORS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.36-rc2-powerpc64: ERRORS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-rc2-x86_64: ERRORS
+linux-git-Module.symvers: ERRORS
+linux-git-armv5: ERRORS
+linux-git-armv5-davinci: ERRORS
+linux-git-armv5-ixp: ERRORS
+linux-git-armv5-omap2: ERRORS
+linux-git-i686: ERRORS
+linux-git-m32r: ERRORS
+linux-git-mips: ERRORS
+linux-git-powerpc64: ERRORS
+linux-git-x86_64: ERRORS
+spec: ERRORS
+spec-git: ERRORS
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The V4L-DVB specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
