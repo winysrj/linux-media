@@ -1,72 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from mo-p00-ob.rzone.de ([81.169.146.160]:64280 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752400Ab0INX5B (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:48315 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754776Ab0ISPyc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Sep 2010 19:57:01 -0400
-From: rjkm <rjkm@metzlerbros.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Message-ID: <19600.3015.410234.367070@valen.metzler>
-Date: Wed, 15 Sep 2010 01:56:55 +0200
-To: Johannes Stezenbach <js@linuxtv.org>
+	Sun, 19 Sep 2010 11:54:32 -0400
+Date: Sun, 19 Sep 2010 11:54:37 -0400
+Subject: Re: HVR 1600 Distortion
+Message-ID: <7u86hyrdbdphf9wmevbnab4n.1284911677723@email.android.com>
+From: Andy Walls <awalls@md.metrocast.net>
+To: Josh Borke <joshborke@gmail.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
 Cc: linux-media@vger.kernel.org
-Subject: Re: How to handle independent CA devices
-In-Reply-To: <20100914144339.GA9525@linuxtv.org>
-References: <19593.22297.612764.560375@valen.metzler>
-	<20100914144339.GA9525@linuxtv.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Johannes,
+VHJ5IGEgRFRWIFNUQiBvciBWQ1Igd2l0aCBhbiBSRiBvdXQgb24gY2hhbm5lbCAzLiAgWW91ciBj
+YXJkIG1pZ2h0IG5vdCBiZSBiYWQuCgpZb3VyIHNpZ25hbCBsb29rcyBvdmVyZHJpdmVuIGZyb20g
+dGhlIG5ldyBNUEVHIHlvdSBzZW50LiAgSSdsbCBkaXNjdXNzIG1vcmUgd2hlbiBJJ20gbm90IHR5
+cGluZyBvbiBteSBzbWFydHBob25lJ3MgdGlueSBsaXR0bGUga2V5Ym9hcmQuCgpSLApBbmR5CgpK
+b3NoIEJvcmtlIDxqb3NoYm9ya2VAZ21haWwuY29tPiB3cm90ZToKCj5PbiBTYXQsIFNlcCAxOCwg
+MjAxMCBhdCAxMTowNiBQTSwgRGV2aW4gSGVpdG11ZWxsZXIKPjxkaGVpdG11ZWxsZXJAa2VybmVs
+bGFicy5jb20+IHdyb3RlOgo+PiBPbiBTYXQsIFNlcCAxOCwgMjAxMCBhdCA5OjA5IFBNLCBKb3No
+IEJvcmtlIDxqb3NoYm9ya2VAZ21haWwuY29tPiB3cm90ZToKPj4+IEl0IGNvdWxkIGJlIHRoZSB0
+dW5lciBjYXJkLCBpdCBpcyBvdmVyIDIgeWVhcnMgb2xkLi4uV2h5IHdvdWxkIHRoZQo+Pj4gYW5h
+bG9nIHR1bmVyIHN0b3AgZnVuY3Rpb25pbmcgd2hpbGUgdGhlIGRpZ2l0YWwgdHVuZXIgY29udGlu
+dWVzIHRvCj4+PiB3b3JrPyDCoElzIGl0IGJlY2F1c2UgdGhlIGFuYWxvZyBwb3J0aW9uIGdvZXMg
+dGhyb3VnaCBhIGRpZmZlcmVudCBzZXQKPj4+IG9mIGNoaXBzPwo+Pgo+PiBZZXMsIHRoZSBhbmFs
+b2cgcG9ydGlvbiBvZiB0aGUgY2FyZCBoYXMgYSBjb21wbGV0ZWx5IHNlcGFyYXRlIHR1bmVyCj4+
+IGFuZCBkZW1vZHVsYXRvci4KPj4KPj4gRG9uJ3QgZ2V0IG1lIHdyb25nLCBpdCdzIHBvc3NpYmxl
+IHRoYXQgdGhpcyBpcyBhIGRyaXZlciBpc3N1ZSwgYnV0Cj4+IGdpdmVuIEFuZHkgaGFzIHRoZSBl
+eGFjdCBzYW1lIGNhbiB0dW5lciBvbiBoaXMgYm9hcmQgaXQgcHJvYmFibHkgbWFrZXMKPj4gc2Vu
+c2UgZm9yIHlvdSB0byBkbyBhIHNhbml0eSB0ZXN0IG9mIHRoZSBoYXJkd2FyZSBiZWZvcmUgYW55
+IG1vcmUgdGltZQo+PiBpcyBzcGVudCBpbnZlc3RpZ2F0aW5nIHRoZSBzb2Z0d2FyZS4KPj4KPj4g
+Q2hlZXJzLAo+Pgo+PiBEZXZpbgo+Pgo+PiAtLQo+PiBEZXZpbiBKLiBIZWl0bXVlbGxlciAtIEtl
+cm5lbCBMYWJzCj4+IGh0dHA6Ly93d3cua2VybmVsbGFicy5jb20KPj4KPgo+SSBwbHVnZ2VkIGl0
+IGluIHRvIGEgd2luZG93cyBtYWNoaW5lIGFuZCBpdCBoYXMgdGhlIHNhbWUgZWZmZWN0IDooCj5J
+J20gZ29pbmcgdG8gc2F5IHRoZSBjYXJkIGlzIGZ1YmFyIGFuZCBJJ2xsIG5lZWQgdG8gZmluZCBh
+Cj5yZXBsYWNlbWVudC4KPgo+VGhhbmtzIGZvciB0aGUgaGVscCBldmVyeW9uZSEKPgo+LWpvc2gK
+Pi0tCj5UbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJz
+Y3JpYmUgbGludXgtbWVkaWEiIGluCj50aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21v
+QHZnZXIua2VybmVsLm9yZwo+TW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2Vy
+bmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sCg==
 
-
-Johannes Stezenbach writes:
- > > So, I would like to hear your opinions about how to handle such CA devices 
- > > regarding device names/types, the DVB API and user libraries.
- > 
- > it looks like there isn't much interest from DVB developers
- > in that topic...  I'll try...
- > 
- > 
- > IMHO there are three sub topics:
- > 
- > 1. be compatible with existing applications
- >    (I guess this means: feed stream from frontend through CI transparently)
- > 2. create an API which would also work for CI-only
- >    devices like this Hauppauge WinTV-CI USB thingy
- > 3. how to switch between these modes?
- > 
- > This sec0 device is history (unused and deprecated for years), right?
-
-Yes, the former DiSEqC, etc. device. I only use it because it is is
-unused and I do not have to change anything in dvb-core this way.
-But trivial to change it or add ci0.
-
-
- > How about the following:
- > Rename it to ci0.  When ci0 is closed the stream is routed
- > transparently from frontend through CI, if it's opened one needs to
- > read/write the stream from userspace.
-
-
-You still need a mechanism to decide which tuner gets it. First one
-which opens its own ca device?
-Sharing the CI (multi-stream decoding) in such an automatic way 
-would also be complicated.
-I think I will only add such a feature if there is very high demand
-and rather look into the separate API solution.
-
-
- > If you can't get responses here I guess you could talk to
- > vdr or other application developers.  After all they'll have
- > to use the API.
-
-I am in contact with some.
-Just wanted to check what people think about it on this list.
-
-Thanks for your comments.
-
-
--Ralph
