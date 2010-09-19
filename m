@@ -1,53 +1,61 @@
-Return-path: <mchehab@localhost.localdomain>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4049 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752663Ab0IMIIA (ORCPT
+Return-path: <mchehab@pedra>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:41217 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754648Ab0ISPtX convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Sep 2010 04:08:00 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] Illuminators control
-Date: Mon, 13 Sep 2010 10:07:58 +0200
-Cc: "Jean-Francois Moine" <moinejf@free.fr>,
-	linux-media@vger.kernel.org
-References: <20100911110350.02c55173@tele> <201009130908.37133.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201009130908.37133.laurent.pinchart@ideasonboard.com>
+	Sun, 19 Sep 2010 11:49:23 -0400
+Received: by eyb6 with SMTP id 6so1385834eyb.19
+        for <linux-media@vger.kernel.org>; Sun, 19 Sep 2010 08:49:22 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201009131007.58665.hverkuil@xs4all.nl>
+In-Reply-To: <AANLkTinAdXQ0Q9a8Z2ZP91ALh65CHBO2YSRAYVqEPE9f@mail.gmail.com>
+References: <AANLkTimt5bs1fNp=+36VLaTy0Kwi1rDPcpUTeN4z+c35@mail.gmail.com>
+	<1284677325.2056.17.camel@morgan.silverblock.net>
+	<AANLkTinddFfzQtaW_gUqi18OSPn437JTFiRa1HKM8Nva@mail.gmail.com>
+	<1284812434.2053.28.camel@morgan.silverblock.net>
+	<AANLkTi=HzqGW6qLxhTXprNW03LsnGjZ4Cg_PC=Wspv1A@mail.gmail.com>
+	<AANLkTimX0-oLk2j5YTE_WeU1SCz=k2dH6SsjP1PReyuK@mail.gmail.com>
+	<AANLkTimAojFoi2=o=7REycqy9RowYsbZY=oB83Sb-pyV@mail.gmail.com>
+	<AANLkTinAdXQ0Q9a8Z2ZP91ALh65CHBO2YSRAYVqEPE9f@mail.gmail.com>
+Date: Sun, 19 Sep 2010 11:49:22 -0400
+Message-ID: <AANLkTimjUurkOGjeLzukibSBL-ztFT041KUacLzRiEmE@mail.gmail.com>
+Subject: Re: HVR 1600 Distortion
+From: Josh Borke <joshborke@gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@localhost.localdomain>
+Sender: <mchehab@pedra>
 
-On Monday, September 13, 2010 09:08:36 Laurent Pinchart wrote:
-> Hi,
-> 
-> On Saturday 11 September 2010 11:03:50 Jean-Francois Moine wrote:
-> 
-> > @@ -419,6 +421,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum 
-> v4l2_ctrl_type *type,
-> >  	case V4L2_CID_AUDIO_LIMITER_ENABLED:
-> >  	case V4L2_CID_AUDIO_COMPRESSION_ENABLED:
-> >  	case V4L2_CID_PILOT_TONE_ENABLED:
-> > +	case V4L2_CID_ILLUMINATORS_1:
-> > +	case V4L2_CID_ILLUMINATORS_2:
-> >  		*type = V4L2_CTRL_TYPE_BOOLEAN;
-> >  		*min = 0;
-> >  		*max = *step = 1;
-> 
-> I would prefer integer controls for this, as we will need to support dimmable 
-> illuminators.
-> 
-> 
+On Sat, Sep 18, 2010 at 11:06 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> On Sat, Sep 18, 2010 at 9:09 PM, Josh Borke <joshborke@gmail.com> wrote:
+>> It could be the tuner card, it is over 2 years old...Why would the
+>> analog tuner stop functioning while the digital tuner continues to
+>> work?  Is it because the analog portion goes through a different set
+>> of chips?
+>
+> Yes, the analog portion of the card has a completely separate tuner
+> and demodulator.
+>
+> Don't get me wrong, it's possible that this is a driver issue, but
+> given Andy has the exact same can tuner on his board it probably makes
+> sense for you to do a sanity test of the hardware before any more time
+> is spent investigating the software.
+>
+> Cheers,
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
+>
 
-Don't. That should be a separate control. I expect that the brightness is
-something you touch a lot less than the on/of controls. Anyway, I think it
-makes a lot more sense to separate these two functions.
+I plugged it in to a windows machine and it has the same effect :(
+I'm going to say the card is fubar and I'll need to find a
+replacement.
 
-Regards,
+Thanks for the help everyone!
 
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+-josh
