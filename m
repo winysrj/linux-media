@@ -1,96 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:39004 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:40051 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750949Ab0IYGJY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Sep 2010 02:09:24 -0400
-Message-ID: <4C9D9200.60306@redhat.com>
-Date: Sat, 25 Sep 2010 03:09:04 -0300
+	id S1752021Ab0IST0L (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Sep 2010 15:26:11 -0400
+Message-ID: <4C9663C8.2060808@redhat.com>
+Date: Sun, 19 Sep 2010 16:26:00 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Jean Delvare <khali@linux-fr.org>,
-	Janne Grunau <j@jannau.net>, Jarod Wilson <jarod@redhat.com>
-Subject: Re: [GIT PATCHES FOR 2.6.37] Remove v4l2-i2c-drv.h and most of i2c-id.h
-References: <201009152200.27132.hverkuil@xs4all.nl> <4C9AD51D.2010400@redhat.com> <201009230814.43504.hverkuil@xs4all.nl>
-In-Reply-To: <201009230814.43504.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Andy Walls <awalls@md.metrocast.net>
+CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Arnd Bergmann <arnd@arndb.de>
+Subject: Re: RFC: BKL, locking and ioctls
+References: <201009191229.35800.hverkuil@xs4all.nl>	 <4C95F76F.9090103@redhat.com> <1284923146.2079.83.camel@morgan.silverblock.net>
+In-Reply-To: <1284923146.2079.83.camel@morgan.silverblock.net>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 23-09-2010 03:14, Hans Verkuil escreveu:
-> On Thursday, September 23, 2010 06:18:37 Mauro Carvalho Chehab wrote:
->> Em 15-09-2010 17:00, Hans Verkuil escreveu:
->>> Mauro, Jean, Janne,
+Em 19-09-2010 16:05, Andy Walls escreveu:
+> On Sun, 2010-09-19 at 08:43 -0300, Mauro Carvalho Chehab wrote: 
+>> Hi Hans,
 >>
->>> After applying this patch series I get the following if I grep for
->>> I2C_HW_ in the kernel sources:
->>>
->>> <skip some false positives in drivers/gpu>
->>> drivers/staging/lirc/lirc_zilog.c:#ifdef I2C_HW_B_HDPVR
->>> drivers/staging/lirc/lirc_zilog.c:              if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR) {
->>> drivers/staging/lirc/lirc_zilog.c:#ifdef I2C_HW_B_HDPVR
->>> drivers/staging/lirc/lirc_zilog.c:      if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR)
+> 
+>> A per-dev lock may not be good on devices where you have lots of interfaces, and that allows
+>> more than one stream per interface.
 >>
->> Those are with Janne ;)
-> 
-> Since I2C_HW_B_HDPVR is not actually set anywhere and because it's staging, I'd
-> propose that we just ignore this. It's under an #ifdef, so removing i2c-id.h will
-> not affect this code.
-> 
->>> drivers/video/riva/rivafb-i2c.c:        chan->adapter.id                = I2C_HW_B_RIVA;
+>> So, I did a different implementation, implementing the mutex pointer per file handler.
+>> On devices that a simple lock is possible, all you need to do is to use the same locking
+>> for all file handles, but if drivers want a finer control, they can use a per-file handler
+>> lock.
 >>
->> No idea about this one.
-> 
-> This can be removed.
-> 
+>> I'm adding the patches I did at media-tree.git. I've created a separate branch there (devel/bkl):
+>> 	http://git.linuxtv.org/media_tree.git?a=shortlog;h=refs/heads/devel/bkl
 >>
->>> drivers/media/video/ir-kbd-i2c.c:       if (ir->c->adapter->id == I2C_HW_SAA7134 && ir->c->addr == 0x30)
->>> drivers/media/video/saa7134/saa7134-i2c.c:      .id            = I2C_HW_SAA7134,
+>> I've already applied there the other BKL-lock removal patches I've sent before, plus one new
+>> one, fixing a lock unbalance at bttv poll function (changeset 32d1c90c85).
 >>
->> Those are easy: just add the polling interval into the platform_data. If zero,
->> uses the default value. I'll write a patch for it.
-> 
-> Nice!
-> 
->>> drivers/media/video/ir-kbd-i2c.c:               if (adap->id == I2C_HW_B_CX2388x) {
+>> The v4l2 core patches are at:
 >>
->> This is not hard to solve. I' ll write a patch for it.
-> 
-> Nice!
-> 
->>> drivers/staging/lirc/lirc_i2c.c:                if (adap->id == I2C_HW_B_CX2388x)
->>> drivers/staging/lirc/lirc_i2c.c:                if (adap->id == I2C_HW_B_CX2388x) {
->>> drivers/media/video/cx88/cx88-i2c.c:    core->i2c_adap.id = I2C_HW_B_CX2388x;
->>> drivers/media/video/cx88/cx88-vp3054-i2c.c:     vp3054_i2c->adap.id = I2C_HW_B_CX2388x;
+>> http://git.linuxtv.org/media_tree.git?a=commit;h=285267378581fbf852f24f3f99d2e937cd200fd5
+>> http://git.linuxtv.org/media_tree.git?a=commit;h=5f7b2159c87b08d4f0961c233a2d1d1b87c8b38d
 >>
->> We need to solve lirc_i2c.c issues before being able to remove those. As lirc_i2c has
->> the same implementation as ir-kbd-i2c, it is probably easier to just get rid of it,
->> and then remove those two references. Jarod is working on it.
->>
->> While touching it, I'll move PV951 to bttv driver, and move all IR initialization code to 
->> bttv-input and cx88-input on those two drivers. This will make life easier when porting
->> the code to rc-core, as everything that needs to be changed will be at the same file.
+>> The approach I took serializes open, close, ioctl, mmap, read and poll, e. g. all file operations
+>> done by the V4L devices.
+> 
+> Hi Mauro,
+> 
+> I took a look at your changes in the first link.  The approach seems
+> like it serializes too much for one fd, and not enough for multiple fd's
+> opened on the same device node.
 
-The above were already merged.
+Had you look at em28xx and vivi implementation? On both cases, we're using a per-device locking.
+That's completely valid. For vivi, a per-fh would also work fine, but it won't make any difference,
+as the support for multiple streams for vivi got removed. In the care of em28xx, a per-device-node
+lock wouldn't work, since the data that needs to be protected is global for the entire device.
+
+A real per-fd implementation will likely need an additional lock on the driver level, for some
+ioctls. The core shouldn't prevent it.
+
+> for a single fd, ioctl() probably doesn't need to be serialized against
+> read() and poll() at all - at least for drivers that only provide the
+> read I/O method.
 > 
-> So after my pending tvaudio/tda8425 patch goes in and your patches, then the only
-> remaining user of I2C_HW_B_ is lirc_i2c.c, right? Jean will like that :-)
+> read() and poll() on the same device node in most cases can access to
+> shared data structure in kernel using test_bit() and atomic_read().
+> poll() usually just needs to check if a count is  > 0 in some incoming
+> buffer count or incoming byte count somewhere, right?
 
-Patch applied. The remaining places are:
+There are very few drivers that only implements read() method - I think only cx18 and ivtv.
+In the mmap() case, you still need to protect read() x mmap(), read() x open(), and other
+possible race issues. Some of them will even happen on single fd cases, especially if you
+have multiple threads accessing the same fd. Of course, the mutex is more important on multiple-fd
+cases, like the em28xx example.
 
-drivers/media/video/cx88/cx88-i2c.c:      core->i2c_adap.id = I2C_HW_B_CX2388x;
-drivers/media/video/cx88/cx88-vp3054-i2c.c:       vp3054_i2c->adap.id = I2C_HW_B_CX2388x;
-drivers/staging/lirc/lirc_i2c.c:          if (adap->id == I2C_HW_B_CX2388x)
-drivers/staging/lirc/lirc_i2c.c:          if (adap->id == I2C_HW_B_CX2388x) {
-drivers/staging/lirc/lirc_zilog.c:#ifdef I2C_HW_B_HDPVR
-drivers/staging/lirc/lirc_zilog.c:                if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR) {
-drivers/staging/lirc/lirc_zilog.c:#ifdef I2C_HW_B_HDPVR
-drivers/staging/lirc/lirc_zilog.c:        if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR)
-drivers/video/riva/rivafb-i2c.c:  chan->adapter.id                = I2C_HW_B_RIVA;
-
-I'll try to review lirc_i2c. Maybe we can just remove it entirely, and then remove the entries
-on cx88 driver.
+> Multiple opens of the device node (e.g one fd for streaming, one fd for
+> control) is what MythTV does, so the locking on a per fd basis doesn't
+> work there.
 
 Cheers,
-Mauro.
+Mauro
