@@ -1,51 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:54303 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752174Ab0INJvV (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:40779 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754919Ab0ISCnz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Sep 2010 05:51:21 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Kim, HeungJun" <riverful.kim@samsung.com>
-Subject: Re: how can deal with the stream in only on-the-fly-output available HW block??
-Date: Tue, 14 Sep 2010 11:51:19 +0200
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	inki.dae@samsung.com, kyungmin.park@samsung.com
-References: <026801cb53cb$49f09080$ddd1b180$%kim@samsung.com>
-In-Reply-To: <026801cb53cb$49f09080$ddd1b180$%kim@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201009141151.20404.laurent.pinchart@ideasonboard.com>
+	Sat, 18 Sep 2010 22:43:55 -0400
+Date: Sat, 18 Sep 2010 22:44:05 -0400
+Subject: Re: HVR 1600 Distortion
+Message-ID: <imy5um74iwh16kt4x9mw2exj.1284864151261@email.android.com>
+From: Andy Walls <awalls@md.metrocast.net>
+To: Josh Borke <joshborke@gmail.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Kim,
+WWVzIGl0IGRvZXMuICBXaGljaCBpcyBuaWNlIGFjdHVhbGx5OiBjYXB0dXJlIGJvdGggZGlnaXRh
+bCBhbmQgUkYgYW5hbG9nIGF0IHRoZSBzYW1lIHRpbWUuIDopCgpKb3NoIEJvcmtlIDxqb3NoYm9y
+a2VAZ21haWwuY29tPiB3cm90ZToKCj5PbiBTYXQsIFNlcCAxOCwgMjAxMCBhdCA4OjU4IFBNLCBE
+ZXZpbiBIZWl0bXVlbGxlcgo+PGRoZWl0bXVlbGxlckBrZXJuZWxsYWJzLmNvbT4gd3JvdGU6Cj4+
+IE9uIFNhdCwgU2VwIDE4LCAyMDEwIGF0IDg6NDIgUE0sIEpvc2ggQm9ya2UgPGpvc2hib3JrZUBn
+bWFpbC5jb20+IHdyb3RlOgo+Pj4gT24gU2F0LCBTZXAgMTgsIDIwMTAgYXQgODoyMCBBTSwgQW5k
+eSBXYWxscyA8YXdhbGxzQG1kLm1ldHJvY2FzdC5uZXQ+IHdyb3RlOgo+Pj4+IE9uIEZyaSwgMjAx
+MC0wOS0xNyBhdCAxODoyMyAtMDQwMCwgSm9zaCBCb3JrZSB3cm90ZToKPj4+Pj4gVGhhbmtzIGZv
+ciB0aGUgcmVzcG9uc2UhIMKgUmVwbGllcyBhcmUgaW4gbGluZS4KPj4+Pj4KPj4+Pj4gT24gVGh1
+LCBTZXAgMTYsIDIwMTAgYXQgNjo0OCBQTSwgQW5keSBXYWxscyA8YXdhbGxzQG1kLm1ldHJvY2Fz
+dC5uZXQ+IHdyb3RlOgo+Pj4+PiA+IE9uIFdlZCwgMjAxMC0wOS0xNSBhdCAyMjo1NCAtMDQwMCwg
+Sm9zaCBCb3JrZSB3cm90ZToKPj4+Pj4gPj4gSSd2ZSByZWNlbnRseSBub3RpY2VkIHNvbWUgZGlz
+dG9ydGlvbiBjb21pbmcgZnJvbSBteSBodnIxNjAwIHdoZW4KPj4+Pj4gPj4gdmlld2luZyBhbmFs
+b2cgY2hhbm5lbHMuIMKgSXQgaGFwcGVucyB0byBhbGwgYW5hbG9nIGNoYW5uZWxzIHdpdGggc29t
+ZQo+Pj4+PiA+PiBzbGlnaHRseSBiZXR0ZXIgdGhhbiBvdGhlcnMuIMKgSSBhbSBydW5uaW5nIEZl
+ZG9yYSAxMiBsaW51eCB3aXRoIGtlcm5lbAo+Pj4+PiA+PiB2ZXJzaW9uIDIuNi4zMi4yMS0xNjYu
+Cj4+Pj4+ID4KPj4+Pj4gPgo+Pj4+PiA+PiBJIGtub3cgSSBuZWVkIHRvIGluY2x1ZGUgbW9yZSBp
+bmZvcm1hdGlvbiBidXQgSSdtIG5vdCBzdXJlIHdoYXQgdG8KPj4+Pj4gPj4gaW5jbHVkZS4gwqBB
+bnkgaGVscCB3b3VsZCBiZSBhcHByZWNpYXRlZC4KPj4+Pj4gPgo+Pj4+PiA+IDEuIFdvdWxkIHlv
+dSBzYXkgdGhlIGRpc3RvcnRpb24gaXMgc29tZXRoaW5nIHlvdSB3b3VsZCBwb3NzaWJseQo+Pj4+
+PiA+IGVuY291bnRlciBvbiBhbiBhbmFsb2cgdGVsZXZpc2lvbiBzZXQsIG9yIGRvZXMgaXQgbG9v
+ayAidW5pcXVlbHkKPj4+Pj4gPiBkaWdpdGFsIj8gwqBPbiBzeXN0ZW1zIHdpdGggYSBsb25nIHVw
+dGltZSBhbmQgbG90cyBvZiB1c2FnZSwgTVBFRyBlbmNvZGVyCj4+Pj4+ID4gZmlybXdhcmUgY291
+bGQgd2luZCB1cCBpbiBhIHNjcmV3ZWQgdXAgc3RhdGUgZ2l2aW5nIHdlaXJkIG91dHB1dCBpbWFn
+ZS4KPj4+Pj4gPiBTaW1wbGUgc29sdXRpb24gaW4gdGhpcyBjYXNlIGlzIHRvIHJlYm9vdC4KPj4+
+Pj4KPj4+Pj4gSSdtIG5vdCBzdXJlIGlmIEkgd291bGQgY2xhc3NpZnkgaXQgYXMgInVuaXF1ZWx5
+IGRpZ2l0YWwiLiDCoFRoZQo+Pj4+PiBkaXN0b3J0aW9uIGhhcHBlbnMgYWNyb3NzIG1vc3Qgb2Yg
+dGhlIHNjcmVlbiB3aXRoIGl0IGJlaW5nCj4+Pj4+IGNvbmNlbnRyYXRlZCBpbiB0aGUgdG9wIHRo
+aXJkLiDCoEFkZGl0aW9uYWxseSBzaG93cyB0aGF0IGluY2x1ZGUgYmxhY2sKPj4+Pj4gYmFycyB0
+aGUgdG9wIGJsYWNrIGJhciBpcyBzZWVtaW5nbHkgc3RyZXRjaGVkIGFuZCB0aGUgaW1hZ2Ugc2Vl
+bXMgbGlrZQo+Pj4+PiB0aGUgY29sb3JzIGFyZSBvdmVyLXNhdHVyYXRlZCB3aGVyZSB0aGV5IGNv
+bG9ycyBhcmUgYnJpZ2h0ZXIuCj4+Pj4+IFJlYm9vdGluZyBoYWQgbm8gZWZmZWN0IDooCj4+Pj4K
+Pj4+PiBPSy4KPj4+Pgo+Pj4+PiA+IDIuIEhhdmUgeW91IGVuc3VyZWQgeW91ciBjYWJsZSBwbGFu
+dCBpc24ndCBhZmZlY3Rpbmcgc2lnbmFsIGludGVncml0eT8KPj4+Pj4gPiBodHRwOi8vaXZ0dmRy
+aXZlci5vcmcvaW5kZXgucGhwL0hvd3RvOkltcHJvdmVfc2lnbmFsX3F1YWxpdHkKPj4+Pj4KPj4+
+Pj4gVGhlIGNhYmxlIHBsYW50IGhhc24ndCBjaGFuZ2VkIHRoZSBzaWduYWwgc3RyZW5ndGggb3Ig
+aW50ZWdyaXR5IGFzIGZhcgo+Pj4+PiBhcyBJIGtub3cuCj4+Pj4KPj4+PiBPSy4gwqBLZWVwIGl0
+IGluIHRoZSBiYWNrIG9mIHlvdXIgbWluZCB0aG91Z2guCj4+Pj4KPj4+Pj4gPiAzLiBEb2VzIHRo
+aXMgaGFwcGVuIHdpdGggb25seSB0aGUgUkYgdHVuZXIgb3Igb25seSBDVkJTIG9yIG9ubHkgU1Zp
+ZGVvCj4+Pj4+ID4gb3IgbW9yZSB0aGFuIG9uZSBvZiB0aGVtPyDCoElmIHRoZSBwcm9ibGVtIGlz
+IG9ubHkgd2l0aCBSRiwgdGhlbiBpdCBjb3VsZAo+Pj4+PiA+IGJlIGFuIGluY29taW5nIHNpZ25h
+bCBkaXN0b3J0aW9uIHByb2JsZW0uIMKgRG8geW91IGhhdmUgY2FibGUgb3IgYW4gb3Zlcgo+Pj4+
+PiA+IHRoZSBhaXIgYW50ZW5uYSBmb3IgYW5hbG9nIFJGPwo+Pj4+Pgo+Pj4+PiBJIG9ubHkgaGF2
+ZSBpbnB1dCBmb3IgdGhlIFJGIHR1bmVyLiDCoEkgaGF2ZSBjYWJsZSBmb3IgYW5hbG9nIFJGLgo+
+Pj4+Cj4+Pj4gUGxlYXNlIHRyeSBhbmQgdGVzdCB0aGUgb3V0cHV0IG9mIGEgVkNSIG9yIERWRCBw
+bGF5IHBsdWdnZWQgaW50byB0aGUKPj4+PiBIVlItMTYwMC4gwqAoV2UgZG9uJ3QgbmVlZCBzb3Vu
+ZCwganVzdCB0aGUgdmlkZW8uKQo+Pj4+Cj4+Pj4gVGhpcyB3aWxsIHRlbGwgdXMgaWYgdGhlIHBy
+b2JsZW0gaGFwcGVucyBiZWZvcmUgdGhlIENYMjM0MTggY2hpcCdzCj4+Pj4gYW5hbG9nIGZyb250
+IGVuZCAoaS5lLiBpbiB0aGUgUkYgYW5kIGFuYWxvZyB0dW5lcikgb3Igbm90Lgo+Pj4+Cj4+Pj4K
+Pj4+PiAkIHY0bDItY3RsIC1kIC9kZXYvdmlkZW8wIC1uCj4+Pj4gKExpc3Qgb2YgcG9zc2libGUg
+aW5wdXRzIGRpc3BsYXllZCkKPj4+Pgo+Pj4+ICQgdjRsMi1jdGwgLWQgL2Rldi92aWRlbzAgLWkg
+Mgo+Pj4+IFZpZGVvIGlucHV0IHNldCB0byAyIChDb21wb3NpdGUgMSkKPj4+Pgo+Pj4+ICMgdjRs
+Mi1jdGwgLWQgL2Rldi92aWRlbzAgLXMgbnRzYy1tCj4+Pj4gU3RhbmRhcmQgc2V0IHRvIDAwMDAx
+MDAwCj4+Pj4KPj4+PiAkIGNhdCAvZGV2L3ZpZGVvMCA+IGZvby5tcGcKPj4+PiBeQwo+Pj4+Cj4+
+Pgo+Pj4gSSBvbmx5IGhhdmUgUy1WaWRlbyBidXQgZG9pbmcgdGhpcyBwcm9kdWNlZCBhIHBlcmZl
+Y3QgcGljdHVyZS4KPj4KPj4gQmVmb3JlIGRlYnVnZ2luZyBhbnkgZnVydGhlciwgaXQgbWlnaHQg
+bWFrZSBzZW5zZSB0byBpbnN0YWxsIHRoZSB0dW5lcgo+PiBpbnRvIGEgV2luZG93cyBib3ggYW5k
+IG1ha2Ugc3VyZSBpdCdzIG5vdCBqdXN0IGEgaGFyZHdhcmUgZmFpbHVyZSBpbgo+PiB0aGUgY2Fu
+IHR1bmVyLgo+Pgo+PiBEZXZpbgo+Pgo+Pgo+PiAtLQo+PiBEZXZpbiBKLiBIZWl0bXVlbGxlciAt
+IEtlcm5lbCBMYWJzCj4+IGh0dHA6Ly93d3cua2VybmVsbGFicy5jb20KPj4KPgo+SXQgY291bGQg
+YmUgdGhlIHR1bmVyIGNhcmQsIGl0IGlzIG92ZXIgMiB5ZWFycyBvbGQuLi5XaHkgd291bGQgdGhl
+Cj5hbmFsb2cgdHVuZXIgc3RvcCBmdW5jdGlvbmluZyB3aGlsZSB0aGUgZGlnaXRhbCB0dW5lciBj
+b250aW51ZXMgdG8KPndvcms/ICBJcyBpdCBiZWNhdXNlIHRoZSBhbmFsb2cgcG9ydGlvbiBnb2Vz
+IHRocm91Z2ggYSBkaWZmZXJlbnQgc2V0Cj5vZiBjaGlwcz8KPgo+VGhhbmtzLAo+LWpvc2gK
 
-On Tuesday 14 September 2010 07:11:29 Kim, HeungJun wrote:
-
-[snip]
-
-> > You probably need the upcoming media API to be able to correctly deal with
-> > these issues. Check the mailing list for the patches done by Laurent
-> > Pinchart.
-> > 
-> > The current V4L2 API is really not able to handle changes in the internal
-> > video stream topology.
-> 
-> Thanks to Hans. It's very helpful.
-> I'll check Laurent's media topology patches.
-> 
-> Hello, Laurent,
-> 
-> I'm googling and find your patches, so I'm checking with. But, where can I
-> get your patches?? Probably, I would find in this page :
-> http://git.linuxtv.org/, so what's your repository?
-
-Clone http://git.linuxtv.org/pinchartl/media.git and checkout the media-0003-
-subdev-pad branch.
-
--- 
-Regards,
-
-Laurent Pinchart
