@@ -1,46 +1,67 @@
-Return-path: <mchehab@gaivota>
-Received: from kroah.org ([198.145.64.141]:57506 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755406Ab0IFVQh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Sep 2010 17:16:37 -0400
-Date: Mon, 6 Sep 2010 14:10:54 -0700
-From: Greg KH <greg@kroah.com>
-To: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Jonathan Corbet <corbet@lwn.net>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mel Gorman <mel@csn.ul.ie>,
-	Minchan Kim <minchan.kim@gmail.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Russell King <linux@arm.linux.org.uk>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [RFCv5 8/9] mm: vcm: Sample driver added
-Message-ID: <20100906211054.GC5863@kroah.com>
-References: <cover.1283749231.git.mina86@mina86.com> <262a5a5019c1f1a44d5793f7e69776e56f27af06.1283749231.git.mina86@mina86.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <262a5a5019c1f1a44d5793f7e69776e56f27af06.1283749231.git.mina86@mina86.com>
+Return-path: <mchehab@pedra>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:59537 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753512Ab0IST5N (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Sep 2010 15:57:13 -0400
+Subject: Re: RFC: BKL, locking and ioctls
+From: Andy Walls <awalls@md.metrocast.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+In-Reply-To: <201009192138.08412.hverkuil@xs4all.nl>
+References: <fm127xqs7xbmiabppyr1ifai.1284910330767@email.android.com>
+	 <1284921482.2079.57.camel@morgan.silverblock.net>
+	 <4C96600E.8090905@redhat.com>  <201009192138.08412.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 19 Sep 2010 15:57:00 -0400
+Message-ID: <1284926220.2079.105.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Mon, Sep 06, 2010 at 08:33:58AM +0200, Michal Nazarewicz wrote:
-> --- /dev/null
-> +++ b/include/linux/vcm-sample.h
+On Sun, 2010-09-19 at 21:38 +0200, Hans Verkuil wrote:
+> On Sunday, September 19, 2010 21:10:06 Mauro Carvalho Chehab wrote:
+> > Em 19-09-2010 15:38, Andy Walls escreveu:
+> > > On Sun, 2010-09-19 at 18:10 +0200, Hans Verkuil wrote:
+> > >> On Sunday, September 19, 2010 17:38:18 Andy Walls wrote:
 
-Don't put "sample" code in include/linux/ please.  That's just
-cluttering up the place, don't you think?  Especially as no one else
-needs the file there...
+> Requirements I can think of:
+> 
+> 1) The basic capture and output streaming (either read/write or streaming I/O) must
+> perform well. There is no need to go to extreme measures here, since the typical
+> control flow is to prepare a buffer, setup the DMA and then wait for the DMA to
+> finish. So this is not terribly time sensitive and it is perfectly OK to have to
+> wait (within reason) for another ioctl from another thread to finish first.
 
-thanks,
+I'll add a data point to this one.  A sleep in read() can noticeably
+affect application performance.  Last time I had cx18 use a mutex in
+read(), live playback performance was really bad.  The read() call would
+sleep for around 10 ms - not good at normal frame rates.  It was a
+highly(?) contended mutex for the buffer queue between DMA and the
+read() call - bad idea.
 
-greg k-h
+According to conversations on the ksummit2010 mailing list, the 10 ms
+sleep may have been due to the default 100 HZ tick and other reasons.
+Patches from the RT tree may be integrated soon that make mutexes
+(mutices?) much better performers.
+
+Regards,
+Andy
+
+> 2) While capturing/displaying other threads must be able to control the device at the
+> same time and gather status information. This also means that such a thread should
+> not be blocked from controlling the device because a dqbuf ioctl happens to be waiting
+> for the DMA to finish in the main thread.
+> 
+> 3) We must also make sure that the mem-to-mem drivers keep working. That might be a
+> special case that will become more important in the future. These are the only device
+> nodes that can do capture and output streaming at the same time.
+> 
+> Regards,
+> 
+> 	Hans
+
+
+
