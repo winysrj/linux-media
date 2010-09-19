@@ -1,169 +1,124 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:40579 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751799Ab0ILBvZ (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2938 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752132Ab0ISK3i (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Sep 2010 21:51:25 -0400
-Subject: [PATCH 1/3] gspca_cpia1: Add basic v4l2 illuminator controls for
- the Intel Play QX3
-From: Andy Walls <awalls@md.metrocast.net>
+	Sun, 19 Sep 2010 06:29:38 -0400
+Received: from tschai.localnet (186.84-48-119.nextgentel.com [84.48.119.186])
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id o8JATaJs029630
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 19 Sep 2010 12:29:37 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Jean-Francois Moine <moinejf@free.fr>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 11 Sep 2010 21:51:11 -0400
-Message-ID: <1284256271.2030.18.camel@morgan.silverblock.net>
-Mime-Version: 1.0
+Subject: RFC: BKL, locking and ioctls
+Date: Sun, 19 Sep 2010 12:29:35 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201009191229.35800.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-gspca_cpia1: Add basic v4l2 illuminator controls for the Intel Play QX3
+We need to work on getting rid of the BKL, but to do that safely we need a
+simple way to convert the many drivers that do not use unlocked_ioctl.
 
-This patch add basic V4L2 controls for the illuminators on the Intel
-Play QX3 microscope.
+Typically you want to serialize using a mutex. This is trivial to do in the
+driver itself for the normal open/read/write/poll/mmap and release fops.
 
-Signed-off-by: Andy Walls <awalls@md.metrocast.net>
+But for unlocked_ioctl it is a bit harder since we like drivers to use
+video_ioctl2 directly. And you don't want drivers to put mutex_lock/unlock
+calls in every v4l2_ioctl_ops function.
 
-diff -r 6e0befab696a -r d165649ca8a0 linux/drivers/media/video/gspca/cpia1.c
---- a/linux/drivers/media/video/gspca/cpia1.c	Fri Sep 03 00:28:05 2010 -0300
-+++ b/linux/drivers/media/video/gspca/cpia1.c	Sat Sep 11 14:15:26 2010 -0400
-@@ -373,6 +373,10 @@
- static int sd_getfreq(struct gspca_dev *gspca_dev, __s32 *val);
- static int sd_setcomptarget(struct gspca_dev *gspca_dev, __s32 val);
- static int sd_getcomptarget(struct gspca_dev *gspca_dev, __s32 *val);
-+static int sd_setilluminator1(struct gspca_dev *gspca_dev, __s32 val);
-+static int sd_getilluminator1(struct gspca_dev *gspca_dev, __s32 *val);
-+static int sd_setilluminator2(struct gspca_dev *gspca_dev, __s32 val);
-+static int sd_getilluminator2(struct gspca_dev *gspca_dev, __s32 *val);
+One solution is to add a mutex pointer to struct video_device that
+v4l2_unlocked_ioctl can use to do locking:
+
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index 30461cf..44c37e5 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -236,12 +236,18 @@ static long v4l2_unlocked_ioctl(struct file *filp,
+                unsigned int cmd, unsigned long arg)
+ {
+        struct video_device *vdev = video_devdata(filp);
++       int ret;
  
- static const struct ctrl sd_ctrls[] = {
- 	{
-@@ -434,6 +438,34 @@
- 	},
- 	{
- 		{
-+			.id	 = V4L2_CID_ILLUMINATORS_1,
-+			.type    = V4L2_CTRL_TYPE_BOOLEAN,
-+			.name    = "Illuminator 1",
-+			.minimum = 0,
-+			.maximum = 1,
-+			.step    = 1,
-+#define ILLUMINATORS_1_DEF 0
-+			.default_value = ILLUMINATORS_1_DEF,
-+		},
-+		.set = sd_setilluminator1,
-+		.get = sd_getilluminator1,
-+	},
-+	{
-+		{
-+			.id	 = V4L2_CID_ILLUMINATORS_2,
-+			.type    = V4L2_CTRL_TYPE_BOOLEAN,
-+			.name    = "Illuminator 2",
-+			.minimum = 0,
-+			.maximum = 1,
-+			.step    = 1,
-+#define ILLUMINATORS_2_DEF 0
-+			.default_value = ILLUMINATORS_2_DEF,
-+		},
-+		.set = sd_setilluminator2,
-+		.get = sd_getilluminator2,
-+	},
-+	{
-+		{
- #define V4L2_CID_COMP_TARGET V4L2_CID_PRIVATE_BASE
- 			.id	 = V4L2_CID_COMP_TARGET,
- 			.type    = V4L2_CTRL_TYPE_MENU,
-@@ -1059,7 +1091,6 @@
- 			  0, sd->params.streamStartLine, 0, 0);
+        if (!vdev->fops->unlocked_ioctl)
+                return -ENOTTY;
++       if (vdev->ioctl_lock)
++               mutex_lock(vdev->ioctl_lock);
+        /* Allow ioctl to continue even if the device was unregistered.
+           Things like dequeueing buffers might still be useful. */
+-       return vdev->fops->unlocked_ioctl(filp, cmd, arg);
++       ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
++       if (vdev->ioctl_lock)
++               mutex_unlock(vdev->ioctl_lock);
++       return ret;
  }
  
--#if 0 /* Currently unused */ /* keep */
- static int command_setlights(struct gspca_dev *gspca_dev)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
-@@ -1079,7 +1110,6 @@
- 	return do_command(gspca_dev, CPIA_COMMAND_WriteMCPort, 2, 0,
- 			  p1 | p2 | 0xE0, 0);
- }
--#endif
+ #ifdef CONFIG_MMU
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 1efcacb..e1ad38a 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -97,6 +97,8 @@ struct video_device
  
- static int set_flicker(struct gspca_dev *gspca_dev, int on, int apply)
- {
-@@ -1932,6 +1962,72 @@
- 	return 0;
- }
+        /* ioctl callbacks */
+        const struct v4l2_ioctl_ops *ioctl_ops;
++
++       struct mutex *ioctl_lock;
+ };
  
-+static int sd_setilluminator(struct gspca_dev *gspca_dev, __s32 val, int n)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+	int ret;
-+
-+	if (!sd->params.qx3.qx3_detected)
-+		return -EINVAL;
-+
-+	switch (n) {
-+	case 1:
-+		sd->params.qx3.bottomlight = val ? 1 : 0;
-+		break;
-+	case 2:
-+		sd->params.qx3.toplight = val ? 1 : 0;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	ret = command_setlights(gspca_dev);
-+	if (ret && ret != -EINVAL)
-+		ret = -EBUSY;
-+
-+	return ret;
-+}
-+
-+static int sd_setilluminator1(struct gspca_dev *gspca_dev, __s32 val)
-+{
-+	return sd_setilluminator(gspca_dev, val, 1);
-+}
-+
-+static int sd_setilluminator2(struct gspca_dev *gspca_dev, __s32 val)
-+{
-+	return sd_setilluminator(gspca_dev, val, 2);
-+}
-+
-+static int sd_getilluminator(struct gspca_dev *gspca_dev, __s32 *val, int n)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+
-+	if (!sd->params.qx3.qx3_detected)
-+		return -EINVAL;
-+
-+	switch (n) {
-+	case 1:
-+		*val = sd->params.qx3.bottomlight;
-+		break;
-+	case 2:
-+		*val = sd->params.qx3.toplight;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+static int sd_getilluminator1(struct gspca_dev *gspca_dev, __s32 *val)
-+{
-+	return sd_getilluminator(gspca_dev, val, 1);
-+}
-+
-+static int sd_getilluminator2(struct gspca_dev *gspca_dev, __s32 *val)
-+{
-+	return sd_getilluminator(gspca_dev, val, 2);
-+}
-+
- static int sd_querymenu(struct gspca_dev *gspca_dev,
- 			struct v4l2_querymenu *menu)
- {
+ /* dev to video-device */
 
 
+One area where this may run into problems is with videobuf. The videobuf
+subsystem has its own vb_lock, so that will give multiple levels of locking.
+More importantly, videobuf can sleep and you don't want to have the global
+lock preventing access to the device node.
 
+One option is to let videobuf use the same mutex. However, I don't believe
+that is feasible with the current videobuf. Although I hope that this can
+be implemented for vb2.
 
+That leaves one other option: the driver has to unlock the global lock before
+calling videobuf functions and take the lock again afterwards. I think this is
+actually only limited to qbuf and dqbuf so the impact will be small.
+
+Another place where a wait occurs is in v4l2_event_dequeue. But that's part
+of the core, so we can unlock ioctl_lock there and lock it afterwards. No
+driver changes required.
+
+One other thing that I do not like is this:
+
+        /* Allow ioctl to continue even if the device was unregistered.
+           Things like dequeueing buffers might still be useful. */
+        return vdev->fops->unlocked_ioctl(filp, cmd, arg);
+
+I do not believe drivers can do anything useful once the device is unregistered
+except just close the file handle. There are two exceptions to this: poll()
+and VIDIOC_DQEVENT.
+
+Right now drivers have no way of detecting that a disconnect happened. It would
+be easy to add a disconnect event and let the core issue it automatically. The
+only thing needed is that VIDIOC_DQEVENT ioctls are passed on and that poll
+raises an exception. Since all the information regarding events is available in
+the core framework it is easy to do this transparently.
+
+So effectively, once a driver unregistered a device node it will never get
+called again on that device node except for the release call. That is very
+useful for a driver.
+
+And since we can do this in the core, it will also be consistent for all
+drivers.
+
+Comments?
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
