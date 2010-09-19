@@ -1,59 +1,260 @@
-Return-path: <mchehab@localhost>
-Received: from devils.ext.ti.com ([198.47.26.153]:42283 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755573Ab0IBOq2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Sep 2010 10:46:28 -0400
-From: raja_mani@ti.com
-To: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
-	mchehab@infradead.org
-Cc: matti.j.aaltonen@nokia.com, Raja Mani <raja_mani@ti.com>,
-	Pramodh AG <pramodh_ag@ti.com>
-Subject: [RFC/PATCH 6/8] drivers:staging:ti-st: Extend FM TX global data structure.
-Date: Thu,  2 Sep 2010 11:57:58 -0400
-Message-Id: <1283443080-30644-7-git-send-email-raja_mani@ti.com>
-In-Reply-To: <1283443080-30644-6-git-send-email-raja_mani@ti.com>
-References: <1283443080-30644-1-git-send-email-raja_mani@ti.com>
- <1283443080-30644-2-git-send-email-raja_mani@ti.com>
- <1283443080-30644-3-git-send-email-raja_mani@ti.com>
- <1283443080-30644-4-git-send-email-raja_mani@ti.com>
- <1283443080-30644-5-git-send-email-raja_mani@ti.com>
- <1283443080-30644-6-git-send-email-raja_mani@ti.com>
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1692 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754518Ab0ISQKy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Sep 2010 12:10:54 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Andy Walls <awalls@md.metrocast.net>
+Subject: Re: RFC: BKL, locking and ioctls
+Date: Sun, 19 Sep 2010 18:10:34 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+References: <fm127xqs7xbmiabppyr1ifai.1284910330767@email.android.com>
+In-Reply-To: <fm127xqs7xbmiabppyr1ifai.1284910330767@email.android.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201009191810.34189.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: <mchehab@pedra>
 
-From: Raja Mani <raja_mani@ti.com>
+On Sunday, September 19, 2010 17:38:18 Andy Walls wrote:
+> The device node isn't even the right place for drivers that provide multiple device nodes that can possibly access the same underlying data or register sets.
+> 
+> Any core/infrastructure approach is likely doomed in the general case.  It's trying to protect data and registers in a driver it knows nothing about, by protecting the *code paths* that take essentially unknown actions on that data and registers. :{
 
- Add new members in FM TX global data structure (struct fmtx_data)
- to track current Audio mode, Reemphasis and Region setting in TX mode.
+Just to clarify: struct video_device gets a *pointer* to a mutex. The mutex
+itself can be either at the top-level device or associated with the actual
+video device, depending on the requirements of the driver.
 
-Signed-off-by: Raja Mani <raja_mani@ti.com>
-Signed-off-by: Pramodh AG <pramodh_ag@ti.com>
----
- drivers/staging/ti-st/fmdrv.h |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+> Videobuf is the right place to protect videobuf data.
 
-diff --git a/drivers/staging/ti-st/fmdrv.h b/drivers/staging/ti-st/fmdrv.h
-index d560570..f8a4ce3 100644
---- a/drivers/staging/ti-st/fmdrv.h
-+++ b/drivers/staging/ti-st/fmdrv.h
-@@ -173,6 +173,7 @@ struct fm_rx {
- struct tx_rds {
- 	unsigned char text_type;
- 	unsigned char text[25];
-+	unsigned char flag;
- 	unsigned int af_freq;
- };
- /*
-@@ -187,6 +188,9 @@ struct fmtx_data {
- 	unsigned char pwr_lvl;
- 	unsigned char xmit_state;
- 	unsigned char audio_io;
-+	unsigned char region;
-+	unsigned short aud_mode;
-+	unsigned int preemph;
- 	unsigned long tx_frq;
- 	struct tx_rds rds;
- };
+vb_lock is AFAIK there to protect the streaming of data. And that's definitely
+per device node since only one filehandle per device node can do streaming.
+
+Also remember that we are trying to get rid of the BKL, so staying bug-compatible
+is enough for a first version :-)
+
+Regards,
+
+	Hans
+
+> Otherwise the driver really needs to handle protecting things, as it's the only code with full knowledge of the data structures and register blocks in use.
+> 
+> "Protect the data, not the code" -Alan Cox on LKML
+> 
+> R,
+> Andy
+> 
+> 
+> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> 
+> >On Sunday, September 19, 2010 13:43:43 Mauro Carvalho Chehab wrote:
+> >> Hi Hans,
+> >> 
+> >> Em 19-09-2010 07:29, Hans Verkuil escreveu:
+> >> > We need to work on getting rid of the BKL, but to do that safely we need a
+> >> > simple way to convert the many drivers that do not use unlocked_ioctl.
+> >> > 
+> >> > Typically you want to serialize using a mutex. This is trivial to do in the
+> >> > driver itself for the normal open/read/write/poll/mmap and release fops.
+> >> > 
+> >> > But for unlocked_ioctl it is a bit harder since we like drivers to use
+> >> > video_ioctl2 directly. And you don't want drivers to put mutex_lock/unlock
+> >> > calls in every v4l2_ioctl_ops function.
+> >> > 
+> >> > One solution is to add a mutex pointer to struct video_device that
+> >> > v4l2_unlocked_ioctl can use to do locking:
+> >> > 
+> >> > diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+> >> > index 30461cf..44c37e5 100644
+> >> > --- a/drivers/media/video/v4l2-dev.c
+> >> > +++ b/drivers/media/video/v4l2-dev.c
+> >> > @@ -236,12 +236,18 @@ static long v4l2_unlocked_ioctl(struct file *filp,
+> >> >                 unsigned int cmd, unsigned long arg)
+> >> >  {
+> >> >         struct video_device *vdev = video_devdata(filp);
+> >> > +       int ret;
+> >> >  
+> >> >         if (!vdev->fops->unlocked_ioctl)
+> >> >                 return -ENOTTY;
+> >> > +       if (vdev->ioctl_lock)
+> >> > +               mutex_lock(vdev->ioctl_lock);
+> >> >         /* Allow ioctl to continue even if the device was unregistered.
+> >> >            Things like dequeueing buffers might still be useful. */
+> >> > -       return vdev->fops->unlocked_ioctl(filp, cmd, arg);
+> >> > +       ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
+> >> > +       if (vdev->ioctl_lock)
+> >> > +               mutex_unlock(vdev->ioctl_lock);
+> >> > +       return ret;
+> >> >  }
+> >> >  
+> >> >  #ifdef CONFIG_MMU
+> >> > diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+> >> > index 1efcacb..e1ad38a 100644
+> >> > --- a/include/media/v4l2-dev.h
+> >> > +++ b/include/media/v4l2-dev.h
+> >> > @@ -97,6 +97,8 @@ struct video_device
+> >> >  
+> >> >         /* ioctl callbacks */
+> >> >         const struct v4l2_ioctl_ops *ioctl_ops;
+> >> > +
+> >> > +       struct mutex *ioctl_lock;
+> >> >  };
+> >> >  
+> >> >  /* dev to video-device */
+> >> 
+> >> As I comment with you on IRC, I'm working on it during this weekend. 
+> >> 
+> >> A per-dev lock may not be good on devices where you have lots of interfaces, and that allows
+> >> more than one stream per interface.
+> >
+> >My proposal is actually a lock per device node, not per device (although that's
+> >what many simple drivers probably will use).
+> > 
+> >> So, I did a different implementation, implementing the mutex pointer per file handler.
+> >> On devices that a simple lock is possible, all you need to do is to use the same locking
+> >> for all file handles, but if drivers want a finer control, they can use a per-file handler
+> >> lock.
+> >
+> >I am rather unhappy about this. First of all, per-filehandle locks are pretty pointless. If
+> >you need to serialize for a single filehandle (which would only be needed for multithreaded
+> >applications where the threads use the same filehandle), then you definitely need to serialize
+> >between multiple file handles that are open on the same device node.
+> >
+> >The device node is the right place for this IMHO.
+> >
+> >Regarding creating v4l2_fh structs in the core: many simple drivers do not need a v4l2_fh
+> >at all, and the more complex drivers often need to embed it in a larger struct.
+> >
+> >The lookup get_v4l2_fh function also is unnecessary if we do not create these structs and
+> >so is the *really* ugly reinit_v4l2_fh.
+> >
+> >> I'm adding the patches I did at media-tree.git. I've created a separate branch there (devel/bkl):
+> >> 	http://git.linuxtv.org/media_tree.git?a=shortlog;h=refs/heads/devel/bkl
+> >> 
+> >> I've already applied there the other BKL-lock removal patches I've sent before, plus one new
+> >> one, fixing a lock unbalance at bttv poll function (changeset 32d1c90c85).
+> >> 
+> >> The v4l2 core patches are at:
+> >> 
+> >> http://git.linuxtv.org/media_tree.git?a=commit;h=285267378581fbf852f24f3f99d2e937cd200fd5
+> >> http://git.linuxtv.org/media_tree.git?a=commit;h=5f7b2159c87b08d4f0961c233a2d1d1b87c8b38d
+> >> 
+> >> The approach I took serializes open, close, ioctl, mmap, read and poll, e. g. all file operations
+> >> done by the V4L devices.
+> >> 
+> >> > One area where this may run into problems is with videobuf. The videobuf
+> >> > subsystem has its own vb_lock, so that will give multiple levels of locking.
+> >> > More importantly, videobuf can sleep and you don't want to have the global
+> >> > lock preventing access to the device node.
+> >> > 
+> >> > One option is to let videobuf use the same mutex. However, I don't believe
+> >> > that is feasible with the current videobuf. Although I hope that this can
+> >> > be implemented for vb2.
+> >> > 
+> >> > That leaves one other option: the driver has to unlock the global lock before
+> >> > calling videobuf functions and take the lock again afterwards. I think this is
+> >> > actually only limited to qbuf and dqbuf so the impact will be small.
+> >> >
+> >> > Another place where a wait occurs is in v4l2_event_dequeue. But that's part
+> >> > of the core, so we can unlock ioctl_lock there and lock it afterwards. No
+> >> > driver changes required.
+> >> 
+> >> I did a similar patch to videobuf, allowing an optional lock at videobuf:
+> >> 
+> >> http://git.linuxtv.org/media_tree.git?a=commit;h=5f7b2159c87b08d4f0961c233a2d1d1b87c8b38d
+> >> http://git.linuxtv.org/media_tree.git?a=commit;h=d14bb839803b662604de627451fe19daa697d1dc
+> >> 
+> >> As all mutex-dependent videobuf operations happen during the call of one of the fops, there's
+> >> no need of an explicit call inside videobuf.
+> >> 
+> >> In order to test it, I've ported two drivers: vivi and em28xx:
+> >> 
+> >> http://git.linuxtv.org/media_tree.git?a=commit;h=7ddc1b6ef803014f6ed297c391e774d044d72f9d
+> >> http://git.linuxtv.org/media_tree.git?a=commit;h=b59117ed27706bf6059eeabf2698d1d33e2e67d0
+> >> 
+> >> On both cases, the lock seems to be enough. I even removed em28xx while streaming, with 
+> >> mplayer reproducing the stream and with qv4l2 running. I didn't notice a single issue.
+> >> 
+> >> We could need to do some changes there to cover the case where videobuf sleeps, maybe using
+> >> mutex_lock_interruptible at core, in order to allow abort userspace, if the driver fails
+> >> to fill the buffers (tests are needed).
+> >
+> >Regarding the (very courageous!) videobuf patches: I'm impressed. But videobuf must really
+> >release the lock in waiton. Right now no other access can be done while it is waiting. That
+> >is not acceptable. The same issue appears in the VIDIOC_DQEVENT core handler, although it
+> >is easy to solve there.
+> >
+> >For videobuf it might be better to pass a pointer to the serializing mutex as an argument.
+> >Then videobuf can use that to unlock/relock when it has to wait. Not elegant, but hopefully
+> >we can do better in vb2.
+> >
+> >My suggestion would be to use your videobuf patches, but use my idea for the mutex pointer
+> >in struct video_device. Best of both worlds :-)
+> >
+> >> > One other thing that I do not like is this:
+> >> > 
+> >> >         /* Allow ioctl to continue even if the device was unregistered.
+> >> >            Things like dequeueing buffers might still be useful. */
+> >> >         return vdev->fops->unlocked_ioctl(filp, cmd, arg);
+> >> > 
+> >> > I do not believe drivers can do anything useful once the device is unregistered
+> >> > except just close the file handle. There are two exceptions to this: poll()
+> >> > and VIDIOC_DQEVENT.
+> >> > 
+> >> > Right now drivers have no way of detecting that a disconnect happened. It would
+> >> > be easy to add a disconnect event and let the core issue it automatically. The
+> >> > only thing needed is that VIDIOC_DQEVENT ioctls are passed on and that poll
+> >> > raises an exception. Since all the information regarding events is available in
+> >> > the core framework it is easy to do this transparently.
+> >> > 
+> >> > So effectively, once a driver unregistered a device node it will never get
+> >> > called again on that device node except for the release call. That is very
+> >> > useful for a driver.
+> >> > 
+> >> > And since we can do this in the core, it will also be consistent for all
+> >> > drivers.
+> >> 
+> >> I think we should implement a way to detect disconnections. This will allow simplifying the
+> >> code at the drivers. Yet, I don't think that the solution is (only) to create an
+> >> event. Instead, we need to see how this information could be retrieved from the bus.
+> >> As the normal case for disconnections is for USB devices, we basically need to implement
+> >> a callback when a diconnection happens. The USB core knows about that, but I don't know
+> >> if it provides a callback for it.
+> >
+> >Well, USB drivers have a disconnect callback. All V4L2 USB drivers hook into that.
+> >What they are supposed to do is to unregister all video nodes. That sets the 'unregistered'
+> >in the core preventing any further access.
+> >
+> >> If it provides, drivers may just implement the callback,
+> >> calling buffer_release, and saying to V4L2 core that the device is disconnected. V4L2 core
+> >> can then properly handle any new fops to that device, passing to the device just the
+> >> close() events, returning -ENODEV and POLLERR for userspace.
+> >
+> >That basically is what happens right now. Except for passing on the ioctls which is a bad
+> >idea IMHO.
+> >
+> >BTW: one other thing I've worked on today is a global release callback in v4l2_device.
+> >Right now we have proper refcounting for struct video_device, but if a driver has multiple
+> >device nodes, then it can be hard to tell when all of them are properly released and it
+> >is safe to release the full device instance.
+> >
+> >I made a fairly straightforward implementation available here:
+> >
+> >http://git.linuxtv.org/hverkuil/v4l-dvb.git?a=shortlog;h=refs/heads/v4l2core
+> >
+> >Without a global release it is almost impossible to cleanup a driver like usbvision
+> >correctly.
+> >
+> >Regards,
+> >
+> >	Hans
+> >
+> 
+> 
+
 -- 
-1.5.6.3
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
