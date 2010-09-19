@@ -1,131 +1,121 @@
-Return-path: <mchehab@localhost.localdomain>
-Received: from mx1.redhat.com ([209.132.183.28]:9981 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752308Ab0IMLpq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Sep 2010 07:45:46 -0400
-Message-ID: <4C8E0ED2.4010403@redhat.com>
-Date: Mon, 13 Sep 2010 08:45:22 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Return-path: <mchehab@pedra>
+Received: from mailout-de.gmx.net ([213.165.64.22]:52406 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1754637Ab0ISBVS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 18 Sep 2010 21:21:18 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+To: Manu Abraham <abraham.manu@gmail.com>
+Subject: Re: How to handle independent CA devices
+Date: Sun, 19 Sep 2010 03:20:55 +0200
+Cc: rjkm <rjkm@metzlerbros.de>, Johannes Stezenbach <js@linuxtv.org>,
+	linux-media@vger.kernel.org
+References: <19593.22297.612764.560375@valen.metzler> <19604.3118.741829.592934@valen.metzler> <AANLkTimiqHnRzULBY3E=LmWE4oMcD40KzNk8Vn3CPdiB@mail.gmail.com>
+In-Reply-To: <AANLkTimiqHnRzULBY3E=LmWE4oMcD40KzNk8Vn3CPdiB@mail.gmail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Peter Korsgaard <jacmet@sunsite.dk>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Andy Walls <awalls@md.metrocast.net>,
-	eduardo.valentin@nokia.com,
-	ext Eino-Ville Talvala <talvala@stanford.edu>
-Subject: Re: [PATCH] Illuminators and status LED controls
-References: <b7de5li57kosi2uhdxrgxyq9.1283891610189@email.android.com> <4C88C9AA.2060405@redhat.com> <201009130904.19143.laurent.pinchart@ideasonboard.com> <201009131006.06967.hverkuil@xs4all.nl>
-In-Reply-To: <201009131006.06967.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <201009190320.57015@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@localhost.localdomain>
+Sender: <mchehab@pedra>
 
-Em 13-09-2010 05:06, Hans Verkuil escreveu:
-> On Monday, September 13, 2010 09:04:18 Laurent Pinchart wrote:
->> Hi Hans,
->>
->> On Thursday 09 September 2010 13:48:58 Hans de Goede wrote:
->>> On 09/09/2010 03:29 PM, Hans Verkuil wrote:
->>>>> On 09/09/2010 08:55 AM, Peter Korsgaard wrote:
->>>>>> "Hans" == Hans Verkuil<hverkuil@xs4all.nl>   writes:
->>>>>>
->>>>>> I originally was in favor of controlling these through v4l as well, but
->>>>>> people made some good arguments against that. The main one being: why
->>>>>> would you want to show these as a control? What is the end user supposed
->>>>>> to do with them? It makes little sense.
->>
->> Status LEDs reflect in glasses, making annoying color dots on webcam pictures. 
->> That's why Logitech allows to turn the status LED off on its webcams.
+On Saturday 18 September 2010 14:23:29 Manu Abraham wrote:
+> On Sat, Sep 18, 2010 at 6:17 AM, rjkm <rjkm@metzlerbros.de> wrote:
+> > Manu Abraham writes:
+> >
+> >  > > You still need a mechanism to decide which tuner gets it. First one
+> >  > > which opens its own ca device?
+> >  > > Sharing the CI (multi-stream decoding) in such an automatic way
+> >  > > would also be complicated.
+> >  > > I think I will only add such a feature if there is very high demand
+> >  > > and rather look into the separate API solution.
+> >  >
+> >  >
+> >  > It would be advantageous, if we do have just a simple input path,
+> >  > where it is not restricted for CA/CI alone. I have some hardware over
+> >  > here, where it has a DMA_TO_DEVICE channel (other than for the SG
+> >  > table), where it can write a TS to any post-processor connected to it,
+> >  > such as a CA/CI device, or even a decoder, for example. In short, it
+> >  > could be anything, to put short.
+> >  >
+> >  > In this case, the device can accept processed stream (muxed TS for
+> >  > multi-TP TS) for CA, or a single TS/PS for decode on a decoder. You
+> >  > can flip some registers for the device, for it to read from userspace,
+> >  > or for that DMA channel to read from the hardware page tables of
+> >  > another DMA channel which is coming from the tuner.
+> >  >
+> >  > Maybe, we just need a simple mechanism/ioctl to select the CA/CI input
+> >  > for the stream to the bridge. ie like a MUX: a 1:n select per adapter,
+> >  > where the CA/CI device has 1 input and there are 'n' sources.
+> >
+> >
+> > It would be nice to have a more general output device. But I have
+> > currently no plans to support something like transparent streaming
+> > from one input to the output and back inside the driver.
 > 
-> That's a really good argument. I didn't think of that one.
+> 
+> Maybe it wasn't very clear ... (Streaming from one input to the output
+> and back inside the driver what you are implementing is not what I had
+> in mind.)
+> 
+> Currently for any independant CA device what you need is a stream to
+> the bridge where it can route the same to the CI slot.
+> For a generic device capable of doing any other gimmicks also, what
+> you need is an input to the bridge.
+> 
+> So, what I was trying to say is that, let's not limit the input path
+> to CA alone. For explanation sale let's term in as TS_IN
+> 
+> The TS_In interface is a simple interface where an application can
+> just write to the TS_IN interface, which goes to the DVB_ringbuffer
+> and hence to the bridge. I think, this is all what it should do.
+> 
+> We have 3 application uses cases here, based on different hardware types.
+> 
+> 1. Bridge is reading from TS_IN (from a user space application,
+> streams from a single TS) for sending stream to CA, the normal way
+> (All things are fine)
+> 
+> 2. Bridge is reading from TS_IN (from a user space application,
+> streams from multiple TS's) for sending to CA. This is also same as
+> (1) but just that the user space application is writing a "remuxed"
+> stream to TS_IN
+> 
+> 3. Bridge is reading from TS_IN (from a userspace application) The
+> bridge has multiple DMA channels. The bridge driver can load page
+> tables from another channel, whereby the bridge is routing to another
+> interface itself completely. This is a hardware feature, so we don't
+> need to get data manually in software from one interface to the other.
+> 
+> 
+> All this just needs the input path to be generic. An input interface
+> such as TS_IN can feed the stream to an onboard decoder or any other
+> post-processor as described with (3)
+> 
+> Only in the case of (2) the application really needs to do some thing
+> in real life, ie to "Remux". But you can omit out the application to
+> handle (2). Where somebody can implement it any later stage of time,
+> if there's any interest. I guess nGene can do (1) and (2)
+> 
+> So, I wonder whether we should name the interface CA itself, where
+> otherwise it can suit other application use cases as well. In such a
+> case it becomes not limited to CA alone, to put short. Implementing a
+> simple buffering alone (the rest of the necessities with the driver),
+> will make the interface generic.
 
-There's one difference between illuminators and leds and anything else that we use
-currently via CTRL interface: all other controls affects just an internal hardware
-capability that are not visible to the user, nor can cause any kind of damage or 
-annoyance.
+There is already an implementation for some kind of TS input:
+dvb-apps/test/test_dvr_play.c can be used to write a TS stream to the
+decoder of the old full-featured card (ttpci driver) through the dvr
+device. Wouldn't it make sense to use this feature for TS input?
 
-On the other hand, a LED and an illuminator that an application may forget to turn
-off could be very annoying, and may eventually reduce the lifecycle or a device (in
-the case of non-LED illuminators, for example).
+CU
+Oliver
 
-So, a special treatment seems to be required for both cases: if the application that
-changed the LED or illuminator to ON dies or closes, the LED/illuminator should be
-turned off by the driver.
-
-Maybe we could add an internal flag to be consumed by the controls core, and call it
-during release() callback, to be sure that such controls will return to a default state
-(0) when users count reaches zero.
-
-> 
-> I'm happy with a menu control for LEDs, something like:
-> 
-> Auto (default)
-> Off
-> 
-> and possibly:
-> 
-> On
-> Blink
-> 
-> Although I'm not so sure we need/want these last two.
-
-Provided that it will return to Off (or auto) after application shuts down, I don't see
-why not offering such control to userspace. While it may not make sense on desktops,
-turning LEDs on may be interesting on some cases. For example, there are several Android
-applications to turn the webcam "flash" LED on, meant to use the cell phone as an 
-emergency light.
-
-> It should be a control since otherwise v4l2 apps would need to add support for
-> the LED interface just for this, whereas if it is a control it will 'just work'.
-> 
-> I think it is up to the driver whether it wants to implement the LED interface
-> as well.
-
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
->>
->> [snip]
->>
->>>>> Reading this whole thread I have to agree that if we are going to expose
->>>>> camera status LEDs it would be done through the sysfs API. I think this
->>>>> can be done nicely for gspca based drivers (as we can put all the "crud"
->>>>> in the gspca core having to do it only once), but that is a low priority
->>>>> nice to have thingy.
->>>>>
->>>>> This does leave us with the problem of logitech uvc cams where the LED
->>>>> currently is exposed as a v4l2 control.
->>>>
->>>> Is it possible for the uvc driver to detect and use a LED control? That's
->>>> how I would expect this to work, but I know that uvc is a bit of a
->>>> strange beast.
->>>
->>> Unfortunately no, some uvc cameras have "proprietary" controls. The uvc
->>> driver knows nothing about these but offers an API to map these to v4l2
->>> controls (where userspace tells it the v4l2 cid, type, min, max, etc.).
->>>
->>> Currently on logitech cameras the userspace tools if installed will map
->>> the led control to a private v4l2 menu control with the following options:
->>> On
->>> Off
->>> Auto
->>> Blink
->>>
->>> The cameras default to auto, where the led is turned on when video
->>> is being streamed and off when there is no streaming going on.
->>
->> I confirm this. If the UVC LED controls were standard the driver could expose 
->> them through a LED-specific API. As UVC allows devices to implement private 
->> controls, the driver needs to expose all those private controls (both LED and 
->> non-LED) through the same API.
->>
->>
-> 
-
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
