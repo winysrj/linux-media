@@ -1,59 +1,104 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:60544 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752014Ab0ILLyY (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:35741 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753752Ab0ISA67 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Sep 2010 07:54:24 -0400
-Date: Sun, 12 Sep 2010 07:54:27 -0400
-Subject: Re: [PATCH 2/3] gspca_cpia1: Disable illuminator controls if not an
- Intel Play QX3
-Message-ID: <f7u0d4tg00rdmkt8klaqhmdu.1284292467134@email.android.com>
-From: Andy Walls <awalls@md.metrocast.net>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+	Sat, 18 Sep 2010 20:58:59 -0400
+Received: by eyb6 with SMTP id 6so1321551eyb.19
+        for <linux-media@vger.kernel.org>; Sat, 18 Sep 2010 17:58:58 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <AANLkTi=HzqGW6qLxhTXprNW03LsnGjZ4Cg_PC=Wspv1A@mail.gmail.com>
+References: <AANLkTimt5bs1fNp=+36VLaTy0Kwi1rDPcpUTeN4z+c35@mail.gmail.com>
+	<1284677325.2056.17.camel@morgan.silverblock.net>
+	<AANLkTinddFfzQtaW_gUqi18OSPn437JTFiRa1HKM8Nva@mail.gmail.com>
+	<1284812434.2053.28.camel@morgan.silverblock.net>
+	<AANLkTi=HzqGW6qLxhTXprNW03LsnGjZ4Cg_PC=Wspv1A@mail.gmail.com>
+Date: Sat, 18 Sep 2010 20:58:57 -0400
+Message-ID: <AANLkTimX0-oLk2j5YTE_WeU1SCz=k2dH6SsjP1PReyuK@mail.gmail.com>
+Subject: Re: HVR 1600 Distortion
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Josh Borke <joshborke@gmail.com>
+Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-V2VsbCwgSSB3YXMgZ29pbmcgZm9yIGxvd2VyICJ0b3VjaCBsYWJvciIgaW4gdGhlIGZ1dHVyZSwg
-YnV0IHN1cmUgSSBjYW4gY2hhbmdlIGl0LgoKRG8geW91IHdhbnQgaW5kaWNlcyBkZWZpbmVkIGZv
-ciBhbGwgdGhlIGNvbnRyb2xzLCBvciBqdXN0IHRoZSBpbGx1bWluYXRvcnM/CgpSZWdhcmRzLApB
-bmR5CgpIYW5zIGRlIEdvZWRlIDxoZGVnb2VkZUByZWRoYXQuY29tPiB3cm90ZToKCj5IaSwKPgo+
-T24gMDkvMTIvMjAxMCAwMzo1MSBBTSwgQW5keSBXYWxscyB3cm90ZToKPj4gZ3NwY2FfY3BpYTE6
-IERpc2FibGUgaWxsdW1pbmF0b3IgY29udHJvbHMgaWYgbm90IGFuIEludGVsIFBsYXkgUVgzCj4+
-Cj4+IFRoZSBpbGx1bWluYXRvciBjb250cm9scyBzaG91bGQgb25seSBiZSBhdmFpbGFibGUgdG8g
-dGhlIHVzZXIgZm9yIHRoZSBJbnRlbAo+PiBQbGF5IFFYMyBtaWNyb3Njb3BlLgo+Pgo+PiBTaWdu
-ZWQtb2ZmLWJ5OiBBbmR5IFdhbGxzPGF3YWxsc0BtZC5tZXRyb2Nhc3QubmV0Pgo+Pgo+PiBkaWZm
-IC1yIGQxNjU2NDljYThhMCAtciAzMmQ1YzMyM2M1NDEgbGludXgvZHJpdmVycy9tZWRpYS92aWRl
-by9nc3BjYS9jcGlhMS5jCj4+IC0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vZ3NwY2Ev
-Y3BpYTEuYwlTYXQgU2VwIDExIDE0OjE1OjI2IDIwMTAgLTA0MDAKPj4gKysrIGIvbGludXgvZHJp
-dmVycy9tZWRpYS92aWRlby9nc3BjYS9jcGlhMS5jCVNhdCBTZXAgMTEgMjE6MTU6MDMgMjAxMCAt
-MDQwMAo+PiBAQCAtMTc0Myw2ICsxNzQzLDIyIEBACj4+ICAgCWRvX2NvbW1hbmQoZ3NwY2FfZGV2
-LCBDUElBX0NPTU1BTkRfR2V0Q2FtZXJhU3RhdHVzLCAwLCAwLCAwLCAwKTsKPj4gICB9Cj4+Cj4+
-ICtzdGF0aWMgdm9pZCBzZF9kaXNhYmxlX3F4M19jdHJscyhzdHJ1Y3QgZ3NwY2FfZGV2ICpnc3Bj
-YV9kZXYpCj4+ICt7Cj4+ICsJaW50IGksIG47Cj4+ICsJX191MzIgaWQ7Cj4+ICsKPj4gKwluID0g
-QVJSQVlfU0laRShzZF9jdHJscyk7Cj4+ICsJZm9yIChpID0gMDsgaTwgIG47IGkrKykgewo+PiAr
-CQlpZCA9IHNkX2N0cmxzW2ldLnFjdHJsLmlkOwo+PiArCj4+ICsJCWlmIChpZCA9PSBWNEwyX0NJ
-RF9JTExVTUlOQVRPUlNfMSB8fAo+PiArCQkgICAgaWQgPT0gVjRMMl9DSURfSUxMVU1JTkFUT1JT
-XzIpIHsKPj4gKwkJCWdzcGNhX2Rldi0+Y3RybF9kaXMgfD0gKDE8PCAgaSk7Cj4+ICsJCX0KPj4g
-Kwl9Cj4+ICt9Cj4+ICsKPj4gICAvKiB0aGlzIGZ1bmN0aW9uIGlzIGNhbGxlZCBhdCBwcm9iZSBh
-bmQgcmVzdW1lIHRpbWUgKi8KPj4gICBzdGF0aWMgaW50IHNkX2luaXQoc3RydWN0IGdzcGNhX2Rl
-diAqZ3NwY2FfZGV2KQo+PiAgIHsKPgo+SG1tLCB0aGlzIGRldmlhdGVzIGZyb20gaG93IGFsbCBv
-dGhlciBnc3BjYSBzdWJkcml2ZXJzIGRvIHRoaXMsIHRoZXkKPmRlZmluZSBpbmRleGVzIGZvciBj
-dHJscyB0b2dldGhlciB3aXRoIHRoZSBzZF9jdHJscyBpbnRpYWxpemVyIGFuZAo+dGhlbiB1c2Ug
-dGhlc2UsIHNvIGluc3RlYWQgb2YgdGhlIGFib3ZlIGJsdXJiIHRoZXJlIHdvdWxkIGJlCj5hCj4K
-PiNkZWZpbmUgSUxMVU1JTkFUT1JTXzFfSURYIHgKPiNkZWZpbmUgSUxMVU1JTkFUT1JTXzJfSURY
-IHgKPgo+V2hlcmUgdGhlc2UgY3RybHMgZ2V0ICJkZWZpbmVkIiAoc2VlIGZvciBleGFtcGxlIG92
-NTE5LmMpCj4KPkFuZCB0aGVuOgo+Cj4+ICsJaWYgKCFzZC0+cGFyYW1zLnF4My5xeDNfZGV0ZWN0
-ZWQpCj4+ICsJCXNkX2Rpc2FibGVfcXgzX2N0cmxzKGdzcGNhX2Rldik7Cj4+ICsKPgo+V291bGQg
-YmVjb21lOgo+Cj4JaWYgKCFzZC0+cGFyYW1zLnF4My5xeDNfZGV0ZWN0ZWQpCj4JCWdzcGNhX2Rl
-di0+Y3RybF9kaXMgfD0gKDEgPDwgSUxMVU1JTkFUT1JTXzFfSURYKSB8Cj4JCQkJICAgICAgICgx
-IDw8IElMTFVNSU5BVE9SU18yX0lEWCk7Cj4KPkkgdGhpbmsgaXQgd291bGQgYmUgZ29vZCB0byB1
-c2UgdGhlIHNhbWUgY29uc3RydWN0aW9uIGluIHRoZSBjcGlhMQo+ZHJpdmVyIGZvciBjb25zaXN0
-ZW5jeSBiZXR3ZWVuIGFsbCB0aGUgZ3NwY2Egc3ViZHJpdmVycy4KPgo+UmVnYXJkcywKPgo+SGFu
-cwo+Cj4tLQo+VG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVu
-c3Vic2NyaWJlIGxpbnV4LW1lZGlhIiBpbgo+dGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9y
-ZG9tb0B2Z2VyLmtlcm5lbC5vcmcKPk1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2Vy
-Lmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbAo=
+On Sat, Sep 18, 2010 at 8:42 PM, Josh Borke <joshborke@gmail.com> wrote:
+> On Sat, Sep 18, 2010 at 8:20 AM, Andy Walls <awalls@md.metrocast.net> wrote:
+>> On Fri, 2010-09-17 at 18:23 -0400, Josh Borke wrote:
+>>> Thanks for the response!  Replies are in line.
+>>>
+>>> On Thu, Sep 16, 2010 at 6:48 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+>>> > On Wed, 2010-09-15 at 22:54 -0400, Josh Borke wrote:
+>>> >> I've recently noticed some distortion coming from my hvr1600 when
+>>> >> viewing analog channels.  It happens to all analog channels with some
+>>> >> slightly better than others.  I am running Fedora 12 linux with kernel
+>>> >> version 2.6.32.21-166.
+>>> >
+>>> >
+>>> >> I know I need to include more information but I'm not sure what to
+>>> >> include.  Any help would be appreciated.
+>>> >
+>>> > 1. Would you say the distortion is something you would possibly
+>>> > encounter on an analog television set, or does it look "uniquely
+>>> > digital"?  On systems with a long uptime and lots of usage, MPEG encoder
+>>> > firmware could wind up in a screwed up state giving weird output image.
+>>> > Simple solution in this case is to reboot.
+>>>
+>>> I'm not sure if I would classify it as "uniquely digital".  The
+>>> distortion happens across most of the screen with it being
+>>> concentrated in the top third.  Additionally shows that include black
+>>> bars the top black bar is seemingly stretched and the image seems like
+>>> the colors are over-saturated where they colors are brighter.
+>>> Rebooting had no effect :(
+>>
+>> OK.
+>>
+>>> > 2. Have you ensured your cable plant isn't affecting signal integrity?
+>>> > http://ivtvdriver.org/index.php/Howto:Improve_signal_quality
+>>>
+>>> The cable plant hasn't changed the signal strength or integrity as far
+>>> as I know.
+>>
+>> OK.  Keep it in the back of your mind though.
+>>
+>>> > 3. Does this happen with only the RF tuner or only CVBS or only SVideo
+>>> > or more than one of them?  If the problem is only with RF, then it could
+>>> > be an incoming signal distortion problem.  Do you have cable or an over
+>>> > the air antenna for analog RF?
+>>>
+>>> I only have input for the RF tuner.  I have cable for analog RF.
+>>
+>> Please try and test the output of a VCR or DVD play plugged into the
+>> HVR-1600.  (We don't need sound, just the video.)
+>>
+>> This will tell us if the problem happens before the CX23418 chip's
+>> analog front end (i.e. in the RF and analog tuner) or not.
+>>
+>>
+>> $ v4l2-ctl -d /dev/video0 -n
+>> (List of possible inputs displayed)
+>>
+>> $ v4l2-ctl -d /dev/video0 -i 2
+>> Video input set to 2 (Composite 1)
+>>
+>> # v4l2-ctl -d /dev/video0 -s ntsc-m
+>> Standard set to 00001000
+>>
+>> $ cat /dev/video0 > foo.mpg
+>> ^C
+>>
+>
+> I only have S-Video but doing this produced a perfect picture.
 
+Before debugging any further, it might make sense to install the tuner
+into a Windows box and make sure it's not just a hardware failure in
+the can tuner.
+
+Devin
+
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
