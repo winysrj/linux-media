@@ -1,54 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:31039 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754068Ab0IJNkl (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4291 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751790Ab0ISJFT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Sep 2010 09:40:41 -0400
-Subject: Re: [PATCH] Illuminators and status LED controls
-From: Andy Walls <awalls@md.metrocast.net>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Peter Korsgaard <jacmet@sunsite.dk>,
-	eduardo.valentin@nokia.com,
-	ext Eino-Ville Talvala <talvala@stanford.edu>,
-	Hans de Goede <hdegoede@redhat.com>
-In-Reply-To: <20100909080702.1687d29a@tele>
-References: <b7de5li57kosi2uhdxrgxyq9.1283891610189@email.android.com>
-	 <4C86F210.2060605@stanford.edu>
-	 <20100908075903.GE29776@besouro.research.nokia.com>
-	 <1283963858.6372.81.camel@morgan.silverblock.net>
-	 <87fwxkcbat.fsf@macbook.be.48ers.dk>  <20100909080702.1687d29a@tele>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 10 Sep 2010 09:40:11 -0400
-Message-ID: <1284126011.2123.90.camel@morgan.silverblock.net>
-Mime-Version: 1.0
+	Sun, 19 Sep 2010 05:05:19 -0400
+Received: from tschai.localnet (186.84-48-119.nextgentel.com [84.48.119.186])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id o8J95DCa035885
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 19 Sep 2010 11:05:18 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [GIT PATCHES FOR 2.6.37] cpia2: remove v4l1 support from this driver
+Date: Sun, 19 Sep 2010 11:05:07 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201009191105.07723.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-On Thu, 2010-09-09 at 08:07 +0200, Jean-Francois Moine wrote:
-> On Wed, 08 Sep 2010 20:58:18 +0200
+Note that I asked Alan Cox to test this, but I never got a reply.
 
-> Hi,
-> 
-> If I may resume this exchange:
-> 
-> - the (microscope or device dependant) illuminators may be controlled
->   by v4l2,
+	Hans
 
-I agree.
+The following changes since commit 991403c594f666a2ed46297c592c60c3b9f4e1e2:
+  Mauro Carvalho Chehab (1):
+        V4L/DVB: cx231xx: Avoid an OOPS when card is unknown (card=0)
 
+are available in the git repository at:
 
-> - the status LED should be controlled by the LED interface.
+  ssh://linuxtv.org/git/hverkuil/v4l-dvb.git cpia2
 
-I agree.  However, I think it is overkill based on my perception of
-future utilization by end users.
+Hans Verkuil (1):
+      cpia2: remove V4L1 support from this driver.
 
-I recommend ultimately implementing something in the v4l2 infrastructure
-that helps v4l2 drivers expose LEDs via the LED API easily and
-uniformly.  Maybe that can start with a gspca framework implementation,
-which then evolves to the v4l2 infrastructure implementation.
+ drivers/media/video/cpia2/Kconfig      |    2 +-
+ drivers/media/video/cpia2/cpia2.h      |    8 +-
+ drivers/media/video/cpia2/cpia2_core.c |   51 ++---
+ drivers/media/video/cpia2/cpia2_v4l.c  |  332 +++-----------------------------
+ drivers/media/video/cpia2/cpia2dev.h   |    4 +-
+ 5 files changed, 51 insertions(+), 346 deletions(-)
 
-Regards,
-Andy
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
