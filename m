@@ -1,46 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.1.47]:43914 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751294Ab0IOJzd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Sep 2010 05:55:33 -0400
-Subject: Re: [PATCH v9 1/4] V4L2: Add seek spacing and FM RX class.
-From: "Matti J. Aaltonen" <matti.j.aaltonen@Nokia.com>
-Reply-To: matti.j.aaltonen@Nokia.com
-To: ext Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@Nokia.com>
-In-Reply-To: <4C87D782.4030604@redhat.com>
-References: <1283168302-19111-1-git-send-email-matti.j.aaltonen@nokia.com>
-	 <1283168302-19111-2-git-send-email-matti.j.aaltonen@nokia.com>
-	 <4C87D782.4030604@redhat.com>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:43475 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752357Ab0ISUUw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Sep 2010 16:20:52 -0400
+Subject: Re: HVR 1600 Distortion
+From: Andy Walls <awalls@md.metrocast.net>
+To: Josh Borke <joshborke@gmail.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+In-Reply-To: <AANLkTinB+zE67UOaqEGkuHhy0RXYX9Ziyr_smOLcn7w5@mail.gmail.com>
+References: <7u86hyrdbdphf9wmevbnab4n.1284911677723@email.android.com>
+	 <AANLkTinB+zE67UOaqEGkuHhy0RXYX9Ziyr_smOLcn7w5@mail.gmail.com>
 Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 15 Sep 2010 12:54:55 +0300
-Message-ID: <1284544495.25428.64.camel@masi.mnp.nokia.com>
+Date: Sun, 19 Sep 2010 16:20:55 -0400
+Message-ID: <1284927655.2079.115.camel@morgan.silverblock.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello.
+On Sun, 2010-09-19 at 15:10 -0400, Josh Borke wrote:
+> On Sun, Sep 19, 2010 at 11:54 AM, Andy Walls <awalls@md.metrocast.net> wrote:
+> > Try a DTV STB or VCR with an RF out on channel 3.  Your card might not be bad.
+> > Your signal looks overdriven from the new MPEG you sent. 
 
-On Wed, 2010-09-08 at 20:35 +0200, ext Mauro Carvalho Chehab wrote:
+> > R,
+> > Andy
+> >
+> > Josh Borke <joshborke@gmail.com> wrote:
+> >
 
-> > +	case V4L2_CID_FM_BAND:			return "FM Band";
+> >>I plugged it in to a windows machine and it has the same effect :(
+> >>I'm going to say the card is fubar and I'll need to find a
+> >>replacement.
+
 > 
-> There's no need for a FM control, as there's already an ioctl pair that allows get/set the frequency
-> bandwidth: VIDIOC_S_TUNER and VIDIOC_G_TUNER. So, the entire patch here seems uneeded/unwanted.
+> I tried with the output from a SNES (most convenient thing) and it
+> comes out with the same distortion :(
 
-Yes I agree, we can manage without having BAND support, but it isn't
-completely covered by VIDIOC_S_TUNER and VIDIOC_G_TUNER. Actually it
-would have had the biggest effect on the HW seek operation. For example
-without V4L2_CID_FM_BAND using wl1273  FM radio, which supports two
-bands, you need to do two seeks and band switch for every HW_SEEK IOCTL
-and those seeks are kind of slow operations to begin with. You have
-probably taken this into consideration but I wanted point this out
-anyway... Could the seek struct have a band indicator?
+Yeah, the analog tuner assembly is dying or part of the analog front end
+of the CX23418 is bad.
 
-B.R.
-Matti
+You can still use the card for ATSC/QAM digital TV and analog base band
+(CVBS and S-Video) capture.
+
+Regards,
+Andy
+
+> Thanks,
+> -josh
 
 
