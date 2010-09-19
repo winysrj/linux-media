@@ -1,33 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from cavan.codon.org.uk ([93.93.128.6]:60902 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754568Ab0IPSxZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Sep 2010 14:53:25 -0400
-Date: Thu, 16 Sep 2010 19:53:18 +0100
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-To: Greg KH <greg@kroah.com>
-Cc: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-	linux-usb@vger.kernel.org
-Subject: Re: [PATCH] uvc: Enable USB autosuspend by default on uvcvideo
-Message-ID: <20100916185317.GA19955@srcf.ucam.org>
-References: <1284660004-28158-1-git-send-email-mjg@redhat.com> <20100916184530.GB8803@kroah.com>
+Received: from mx1.redhat.com ([209.132.183.28]:13142 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751461Ab0ISFem (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Sep 2010 01:34:42 -0400
+Message-ID: <4C959EB1.2050608@redhat.com>
+Date: Sun, 19 Sep 2010 02:25:05 -0300
+From: Douglas Schilling Landgraf <dougsland@redhat.com>
+Reply-To: dougsland@redhat.com
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20100916184530.GB8803@kroah.com>
+To: David Ellingsworth <david@identd.dyndns.org>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH -hg] Warn user that driver is backported and might not
+ work as expected
+References: <4C938158.9020604@redhat.com> <AANLkTinEXUcQ-iTucDArju+daudTgAHoBTCBdproK7se@mail.gmail.com>
+In-Reply-To: <AANLkTinEXUcQ-iTucDArju+daudTgAHoBTCBdproK7se@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Sep 16, 2010 at 11:45:30AM -0700, Greg KH wrote:
-> On Thu, Sep 16, 2010 at 02:00:04PM -0400, Matthew Garrett wrote:
-> > We've been doing this for a while in Fedora without any complaints.
+Hi,
+
+David Ellingsworth wrote:
+> <snip>
+>> --- a/v4l/scripts/make_kconfig.pl       Sun Jun 27 17:17:06 2010 -0300
+>> +++ b/v4l/scripts/make_kconfig.pl       Fri Sep 17 11:49:02 2010 -0300
+>> @@ -671,4 +671,13 @@
+>>
+>>  EOF2
+>>        }
+>> +print << "EOF3";
+>> +WARNING: This is the V4L/DVB backport tree, with experimental drivers
+>> +        backported to run on legacy kernels from the development tree at:
+>> +               http://git.linuxtv.org/media-tree.git.
+>> +        It is generally safe to use it for testing a new driver or
+>> +        feature, but its usage on production environments is risky.
+>> +        Don't use it at production. You've being warned.
 > 
-> No complaints probably, but does it actually do anything?  Last time I
-> measured, it didn't, but that was in the .31 kernel days.
+> The last line should read: "Don't use it in production. You've been warned."
+> 
 
-It's necessary if you want to be able to do runtime PCI power management 
-on the HCD.
+Fixed thanks!
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Cheers
+Douglas
