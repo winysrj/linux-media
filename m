@@ -1,44 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:39422 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755645Ab0IHQ37 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Sep 2010 12:29:59 -0400
-Message-ID: <4C87BA04.7030908@redhat.com>
-Date: Wed, 08 Sep 2010 13:29:56 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:41786 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754434Ab0ISVMn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Sep 2010 17:12:43 -0400
+Received: by eyb6 with SMTP id 6so1418429eyb.19
+        for <linux-media@vger.kernel.org>; Sun, 19 Sep 2010 14:12:41 -0700 (PDT)
 MIME-Version: 1.0
-To: Anton Blanchard <anton@samba.org>
-CC: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
+In-Reply-To: <1284927655.2079.115.camel@morgan.silverblock.net>
+References: <7u86hyrdbdphf9wmevbnab4n.1284911677723@email.android.com>
+	<AANLkTinB+zE67UOaqEGkuHhy0RXYX9Ziyr_smOLcn7w5@mail.gmail.com>
+	<1284927655.2079.115.camel@morgan.silverblock.net>
+Date: Sun, 19 Sep 2010 17:12:41 -0400
+Message-ID: <AANLkTinuhG3dymLgFfEtN_rq=nONw2zszNVeahuYqUx0@mail.gmail.com>
+Subject: Re: HVR 1600 Distortion
+From: Josh Borke <joshborke@gmail.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
 	linux-media@vger.kernel.org
-Subject: Re: IR code autorepeat issue?
-References: <20100829064036.GB22853@kryten> <4C7A8056.4070901@infradead.org>
-In-Reply-To: <4C7A8056.4070901@infradead.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-Em 29-08-2010 12:44, Mauro Carvalho Chehab escreveu:
-> Em 29-08-2010 03:40, Anton Blanchard escreveu:
+On Sun, Sep 19, 2010 at 4:20 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+> On Sun, 2010-09-19 at 15:10 -0400, Josh Borke wrote:
+>> On Sun, Sep 19, 2010 at 11:54 AM, Andy Walls <awalls@md.metrocast.net> wrote:
+>> > Try a DTV STB or VCR with an RF out on channel 3.  Your card might not be bad.
+>> > Your signal looks overdriven from the new MPEG you sent.
+>
+>> > R,
+>> > Andy
+>> >
+>> > Josh Borke <joshborke@gmail.com> wrote:
+>> >
+>
+>> >>I plugged it in to a windows machine and it has the same effect :(
+>> >>I'm going to say the card is fubar and I'll need to find a
+>> >>replacement.
+>
 >>
->> I'm seeing double IR events on 2.6.36-rc2 and a DViCO FusionHDTV DVB-T Dual
->> Express.
-> There's one issue on touching on this constant: it is currently just one global 
-> timeout value that will be used by all protocols. This timeout should be enough to
-> retrieve and proccess the repeat key event on all protocols, and on all devices, or 
-> we'll need to do a per-protocol (and eventually per device) timeout init. From 
-> http://www.sbprojects.com/knowledge/ir/ir.htm, we see that NEC prococol uses 110 ms
-> for repeat code, and we need some aditional time to wake up the decoding task. I'd
-> say that anything lower than 150-180ms would risk to not decode repeat events with
-> NEC.
-> 
-> I got exactly the same problem when adding RC CORE support at the dib0700 driver. At
-> that driver, there's an additional time of sending/receiving URB's from USB. So, we
-> probably need a higher timeout. Even so, I tried to reduce the timeout to 200ms or 150ms 
-> (not sure), but it didn't work. So, I ended by just patching the dibcom driver to do 
-> dev->rep[REP_DELAY] = 500:
+>> I tried with the output from a SNES (most convenient thing) and it
+>> comes out with the same distortion :(
+>
+> Yeah, the analog tuner assembly is dying or part of the analog front end
+> of the CX23418 is bad.
+>
+> You can still use the card for ATSC/QAM digital TV and analog base band
+> (CVBS and S-Video) capture.
+>
+> Regards,
+> Andy
+>
+>> Thanks,
+>> -josh
+>
+>
+>
 
-Ok, just sent a patch adding it to rc-core, and removing from dib0700 driver.
+Thanks for all your help, it's really appreciated.
 
-Cheers,
-Mauro.
+-josh
