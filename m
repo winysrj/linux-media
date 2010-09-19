@@ -1,52 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from cantor.suse.de ([195.135.220.2]:56172 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752837Ab0IHJsw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Sep 2010 05:48:52 -0400
-Date: Wed, 8 Sep 2010 11:48:50 +0200 (CEST)
-From: Jiri Kosina <jkosina@suse.cz>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Input <linux-input@vger.kernel.org>,
-	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	David Hardeman <david@hardeman.nu>,
-	Ville Syrjala <syrjala@sci.fi>
-Subject: Re: [PATCH 0/6] Large scancode handling
-In-Reply-To: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
-Message-ID: <alpine.LNX.2.00.1009081147540.26813@pobox.suse.cz>
-References: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:46554 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755049Ab0ISTF4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Sep 2010 15:05:56 -0400
+Subject: Re: RFC: BKL, locking and ioctls
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Arnd Bergmann <arnd@arndb.de>
+In-Reply-To: <4C95F76F.9090103@redhat.com>
+References: <201009191229.35800.hverkuil@xs4all.nl>
+	 <4C95F76F.9090103@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 19 Sep 2010 15:05:46 -0400
+Message-ID: <1284923146.2079.83.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-On Wed, 8 Sep 2010, Dmitry Torokhov wrote:
-
-> Hi Mauro,
+On Sun, 2010-09-19 at 08:43 -0300, Mauro Carvalho Chehab wrote: 
+> Hi Hans,
 > 
-> I guess I better get off my behind and commit the changes to support large
-> scancodes, or they will not make to 2.6.37 either... There isn't much
-> changes, except I followed David's suggestion and changed boolean index
-> field into u8 flags field. Still, please glance it over once again and
-> shout if you see something you do not like.
+
+> A per-dev lock may not be good on devices where you have lots of interfaces, and that allows
+> more than one stream per interface.
 > 
-> Jiri, how do you want to handle the changes to HID? I could either push
-> them through my tree together with the first patch or you can push through
-> yours once the first change hits mainline.
+> So, I did a different implementation, implementing the mutex pointer per file handler.
+> On devices that a simple lock is possible, all you need to do is to use the same locking
+> for all file handles, but if drivers want a finer control, they can use a per-file handler
+> lock.
+> 
+> I'm adding the patches I did at media-tree.git. I've created a separate branch there (devel/bkl):
+> 	http://git.linuxtv.org/media_tree.git?a=shortlog;h=refs/heads/devel/bkl
+> 
+> I've already applied there the other BKL-lock removal patches I've sent before, plus one new
+> one, fixing a lock unbalance at bttv poll function (changeset 32d1c90c85).
+> 
+> The v4l2 core patches are at:
+> 
+> http://git.linuxtv.org/media_tree.git?a=commit;h=285267378581fbf852f24f3f99d2e937cd200fd5
+> http://git.linuxtv.org/media_tree.git?a=commit;h=5f7b2159c87b08d4f0961c233a2d1d1b87c8b38d
+> 
+> The approach I took serializes open, close, ioctl, mmap, read and poll, e. g. all file operations
+> done by the V4L devices.
 
-I think that there will unlikely be any conflict in .37 merge window in 
-this area (and if there were, I'll sort it out).
+Hi Mauro,
 
-So please add
+I took a look at your changes in the first link.  The approach seems
+like it serializes too much for one fd, and not enough for multiple fd's
+opened on the same device node.
 
-	Acked-by: Jiri Kosina <jkosina@suse.cz>
+for a single fd, ioctl() probably doesn't need to be serialized against
+read() and poll() at all - at least for drivers that only provide the
+read I/O method.
 
-to the hid-input.c bits and feel free to take it through your tree, if it 
-is convenient for you.
+read() and poll() on the same device node in most cases can access to
+shared data structure in kernel using test_bit() and atomic_read().
+poll() usually just needs to check if a count is  > 0 in some incoming
+buffer count or incoming byte count somewhere, right?
 
-Thanks,
 
--- 
-Jiri Kosina
-SUSE Labs, Novell Inc.
+Multiple opens of the device node (e.g one fd for streaming, one fd for
+control) is what MythTV does, so the locking on a per fd basis doesn't
+work there.
+
+
+Regards,
+Andy
+
+
