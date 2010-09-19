@@ -1,94 +1,76 @@
-Return-path: <mchehab@localhost>
-Received: from perceval.irobotique.be ([92.243.18.41]:47069 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754752Ab0IAOFK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Sep 2010 10:05:10 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC/PATCH v4 07/11] media: Entities, pads and links enumeration
-Date: Wed, 1 Sep 2010 16:05:10 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com> <1282318153-18885-8-git-send-email-laurent.pinchart@ideasonboard.com> <201008281302.22703.hverkuil@xs4all.nl>
-In-Reply-To: <201008281302.22703.hverkuil@xs4all.nl>
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2497 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753501Ab0ISTqP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Sep 2010 15:46:15 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: RFC: BKL, locking and ioctls
+Date: Sun, 19 Sep 2010 21:45:52 +0200
+Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org,
+	Arnd Bergmann <arnd@arndb.de>
+References: <fm127xqs7xbmiabppyr1ifai.1284910330767@email.android.com> <4C96600E.8090905@redhat.com> <201009192138.08412.hverkuil@xs4all.nl>
+In-Reply-To: <201009192138.08412.hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-15"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201009011605.12172.laurent.pinchart@ideasonboard.com>
+Message-Id: <201009192145.52914.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: <mchehab@pedra>
 
-Hi Hans,
-
-On Saturday 28 August 2010 13:02:22 Hans Verkuil wrote:
-> On Friday, August 20, 2010 17:29:09 Laurent Pinchart wrote:
-
-[snip]
-
-> > diff --git a/Documentation/media-framework.txt
-> > b/Documentation/media-framework.txt index 66f7f6c..74a137d 100644
-> > --- a/Documentation/media-framework.txt
-> > +++ b/Documentation/media-framework.txt
-
-[snip]
-
-> > +The media_entity_desc structure is defined as
-> > +
-> > +- struct media_entity_desc
-> > +
-> > +__u32	id		Entity id, set by the application. When the id is
-> > +			or'ed with MEDIA_ENTITY_ID_FLAG_NEXT, the driver
-> > +			clears the flag and returns the first entity with a
-> > +			larger id.
-> > +char	name[32]	Entity name. UTF-8 NULL-terminated string.
+On Sunday, September 19, 2010 21:38:08 Hans Verkuil wrote:
+> On Sunday, September 19, 2010 21:10:06 Mauro Carvalho Chehab wrote:
+> > Em 19-09-2010 15:38, Andy Walls escreveu:
+> > > On Sun, 2010-09-19 at 18:10 +0200, Hans Verkuil wrote:
+> > >> On Sunday, September 19, 2010 17:38:18 Andy Walls wrote:
+> > >>> The device node isn't even the right place for drivers that provide
+> > >> multiple device nodes that can possibly access the same underlying
+> > >> data or register sets.
+> > >>>
+> > >>> Any core/infrastructure approach is likely doomed in the general
+> > >> case.  It's trying to protect data and registers in a driver it knows
+> > >> nothing about, by protecting the *code paths* that take essentially
+> > >> unknown actions on that data and registers. :{
+> > >>
+> > >> Just to clarify: struct video_device gets a *pointer* to a mutex. The mutex
+> > >> itself can be either at the top-level device or associated with the actual
+> > >> video device, depending on the requirements of the driver.
+> > > 
+> > > OK.  Or the mutex can be NULL, where the driver does everything for
+> > > itself.
+> > 
+> > Yes. If you don't like it, or have a better idea, you can just pass NULL
+> > and do whatever you want on your driver.
+> > > 
+> > > Locking at the device node level for ioctl()'s is better than the
+> > > v4l2_fh proposal, which serializes too much in some contexts and not
+> > > enough for others.
+> > 
+> > The per-fh allows fine graining when needed. As it is a pointer, you can opt
+> > to have per-device or per-fh locks (or even per-driver lock).
+> > Open/close/mmap/read/poll need to be serialized anyway, as they generally
+> > touch at the same data that you need to protect on ioctl.
+> > 
+> > By having a global locking schema like that, it is better to over-protect than
+> > to leave some race conditions.
 > 
-> Why UTF-8 instead of ASCII?
+> That makes no sense. It is overly fine-grained locking schemes that lead to
+> race conditions. Overly course-grained schemes can lead to performance issues.
+> The problem is finding the right balance. Which to me is at the device node
+> level. AFAIK there is not a single driver that does locking at the file handle
+> level. It's either at the top level or at the device node level (usually through
+> videobuf's vb_lock).
 
-Because vendor-specific names could include non-ASCII characters (same reason 
-for the model name in the media_device structure, if we decice to make the 
-model name ASCII I'll make the entity name ASCII as well).
+BTW, something I just thought of: every V4L driver has by definition a video_device
+struct. But there are still drivers that don't have the top-level v4l2_device struct
+and many that do not have the v4l2_fh struct. So struct video_device is also the
+place of the least impact on drivers.
 
-[snip]
-
-> > +struct media_entity_desc {
-> > +	__u32 id;
-> > +	char name[32];
-> > +	__u32 type;
-> > +	__u32 revision;
-> > +	__u32 flags;
-> > +	__u32 group_id;
-> > +	__u16 pads;
-> > +	__u16 links;
-> > +
-> > +	__u32 reserved[4];
-> > +
-> > +	union {
-> > +		/* Node specifications */
-> > +		struct {
-> > +			__u32 major;
-> > +			__u32 minor;
-> > +		} v4l;
-> > +		struct {
-> > +			__u32 major;
-> > +			__u32 minor;
-> > +		} fb;
-> > +		int alsa;
-> > +		int dvb;
-> > +
-> > +		/* Sub-device specifications */
-> > +		/* Nothing needed yet */
-> > +		__u8 raw[64];
-> > +	};
-> > +};
-> 
-> Should this be a packed struct?
-
-Why ? :-) Packed struct are most useful when they need to match hardware 
-structures or network protocols. Packing a structure can generate unaligned 
-fields, which are bad performance-wise.
-
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
