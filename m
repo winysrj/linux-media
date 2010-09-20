@@ -1,133 +1,425 @@
 Return-path: <mchehab@pedra>
-Received: from fmmailgate03.web.de ([217.72.192.234]:47272 "EHLO
-	fmmailgate03.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753412Ab0ISMeF (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:65524 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750934Ab0ITGG6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Sep 2010 08:34:05 -0400
-Received: from smtp04.web.de  ( [172.20.0.225])
-	by fmmailgate03.web.de (Postfix) with ESMTP id AD038160C5AC3
-	for <linux-media@vger.kernel.org>; Sun, 19 Sep 2010 14:34:03 +0200 (CEST)
-Received: from [88.116.171.138] (helo=[10.10.0.201])
-	by smtp04.web.de with asmtp (WEB.DE 4.110 #24)
-	id 1OxJ5n-0006gE-00
-	for linux-media@vger.kernel.org; Sun, 19 Sep 2010 14:34:03 +0200
-Message-ID: <4C96033C.7080306@web.de>
-Date: Sun, 19 Sep 2010 14:34:04 +0200
-From: Kloana <kloana@web.de>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: ngene under xen 2.6.32-er Kernel
-Content-Type: multipart/mixed;
- boundary="------------080109080101070506050006"
+	Mon, 20 Sep 2010 02:06:58 -0400
+Received: by eyb6 with SMTP id 6so1469828eyb.19
+        for <linux-media@vger.kernel.org>; Sun, 19 Sep 2010 23:06:56 -0700 (PDT)
+Date: Mon, 20 Sep 2010 16:07:15 -0400
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Felipe Sanches <juca@members.fsf.org>,
+	Stefan Ringel <stefan.ringel@arcor.de>,
+	Bee Hock Goh <beehock@gmail.com>,
+	Luis Henrique Fagundes <lhfagundes@hacklab.com.br>
+Subject: [PATCH v2] tm6000+audio
+Message-ID: <20100920160715.7594ee2e@glory.local>
+In-Reply-To: <4C767302.7070506@redhat.com>
+References: <20100622180521.614eb85d@glory.loctelecom.ru>
+ <4C20D91F.500@redhat.com>
+ <4C212A90.7070707@arcor.de>
+ <4C213257.6060101@redhat.com>
+ <4C222561.4040605@arcor.de>
+ <4C224753.2090109@redhat.com>
+ <4C225A5C.7050103@arcor.de>
+ <20100716161623.2f3314df@glory.loctelecom.ru>
+ <4C4C4DCA.1050505@redhat.com>
+ <20100728113158.0f1495c0@glory.loctelecom.ru>
+ <4C4FD659.9050309@arcor.de>
+ <20100729140936.5bddd275@glory.loctelecom.ru>
+ <4C51ADB5.7010906@redhat.com>
+ <20100731122428.4ee569b4@glory.loctelecom.ru>
+ <4C53A837.3070700@redhat.com>
+ <20100825043746.225a352a@glory.local>
+ <4C7543DA.1070307@redhat.com>
+ <AANLkTimr3=1QHzX3BzUVyo6uqLdCKt8SS9sDtHfZtHGZ@mail.gmail.com>
+ <4C767302.7070506@redhat.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/HjZDTZDiaeveb.JZhwzEgLt"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This is a multi-part message in MIME format.
---------------080109080101070506050006
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+--MP_/HjZDTZDiaeveb.JZhwzEgLt
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-  Hi,
+Hi 
 
-i testet yesterday to build the latest v4l-driver modules from 
-mercurial. Building under linux-image-2.6.32-5-xen-amd64 is working 
-without any problems. The CineS2 TV-card is hidden via piback.hide and 
-imported to the domU via the pci command in the domU config file.
+I rework my last patch for audio and now audio works well. This patch can be submited to GIT tree
+Quality of audio now is good for SECAM-DK. For other standard I set some value from datasheet need some tests.
 
-When i boot the domU i always get a traceback.
+1. Fix pcm buffer overflow
+2. Rework pcm buffer fill method
+3. Swap bytes in audio stream
+4. Change some registers value for TM6010
+5. Change pcm buffer size
 
-Attached you can find the output of dmesg.
+diff --git a/drivers/staging/tm6000/tm6000-alsa.c b/drivers/staging/tm6000/tm6000-alsa.c
+index 087137d..a99101f 100644
+--- a/drivers/staging/tm6000/tm6000-alsa.c
++++ b/drivers/staging/tm6000/tm6000-alsa.c
+@@ -160,15 +160,15 @@ static struct snd_pcm_hardware snd_tm6000_digital_hw = {
+ 		SNDRV_PCM_INFO_MMAP_VALID,
+ 	.formats = SNDRV_PCM_FMTBIT_S16_LE,
+ 
+-	.rates =		SNDRV_PCM_RATE_48000,
++	.rates =		SNDRV_PCM_RATE_CONTINUOUS,
+ 	.rate_min =		48000,
+ 	.rate_max =		48000,
+ 	.channels_min = 2,
+ 	.channels_max = 2,
+-	.period_bytes_min = 62720,
+-	.period_bytes_max = 62720,
++	.period_bytes_min = 64,
++	.period_bytes_max = 12544,
+ 	.periods_min = 1,
+-	.periods_max = 1024,
++	.periods_max = 98,
+ 	.buffer_bytes_max = 62720 * 8,
+ };
+ 
+@@ -211,38 +211,64 @@ static int tm6000_fillbuf(struct tm6000_core *core, char *buf, int size)
+ 	struct snd_pcm_runtime *runtime;
+ 	int period_elapsed = 0;
+ 	unsigned int stride, buf_pos;
++	int length;
+ 
+-	if (!size || !substream)
++	if (!size || !substream) {
++		dprintk(1, "substream was NULL\n");
+ 		return -EINVAL;
++	}
+ 
+ 	runtime = substream->runtime;
+-	if (!runtime || !runtime->dma_area)
++	if (!runtime || !runtime->dma_area) {
++		dprintk(1, "runtime was NULL\n");
+ 		return -EINVAL;
++	}
+ 
+ 	buf_pos = chip->buf_pos;
+ 	stride = runtime->frame_bits >> 3;
+ 
++	if (stride == 0) {
++		dprintk(1, "stride is zero\n");
++		return -EINVAL;
++	}
++
++	length = size / stride;
++	if (length == 0) {
++		dprintk(1, "%s: length was zero\n", __func__);
++		return -EINVAL;
++	}
++
+ 	dprintk(1, "Copying %d bytes at %p[%d] - buf size=%d x %d\n", size,
+ 		runtime->dma_area, buf_pos,
+ 		(unsigned int)runtime->buffer_size, stride);
+ 
+-	if (buf_pos + size >= runtime->buffer_size * stride) {
+-		unsigned int cnt = runtime->buffer_size * stride - buf_pos;
+-		memcpy(runtime->dma_area + buf_pos, buf, cnt);
+-		memcpy(runtime->dma_area, buf + cnt, size - cnt);
++	if (buf_pos + length >= runtime->buffer_size) {
++		unsigned int cnt = runtime->buffer_size - buf_pos;
++		memcpy(runtime->dma_area + buf_pos * stride, buf, cnt * stride);
++		memcpy(runtime->dma_area, buf + cnt * stride,
++			length * stride - cnt * stride);
+ 	} else
+-		memcpy(runtime->dma_area + buf_pos, buf, size);
++		memcpy(runtime->dma_area + buf_pos * stride, buf,
++			length * stride);
+ 
+-	chip->buf_pos += size;
+-	if (chip->buf_pos >= runtime->buffer_size * stride)
+-		chip->buf_pos -= runtime->buffer_size * stride;
++#ifndef NO_PCM_LOCK
++       snd_pcm_stream_lock(substream);
++#endif
+ 
+-	chip->period_pos += size;
++	chip->buf_pos += length;
++	if (chip->buf_pos >= runtime->buffer_size)
++		chip->buf_pos -= runtime->buffer_size;
++
++	chip->period_pos += length;
+ 	if (chip->period_pos >= runtime->period_size) {
+ 		chip->period_pos -= runtime->period_size;
+ 		period_elapsed = 1;
+ 	}
+ 
++#ifndef NO_PCM_LOCK
++       snd_pcm_stream_unlock(substream);
++#endif
++
+ 	if (period_elapsed)
+ 		snd_pcm_period_elapsed(substream);
+ 
+diff --git a/drivers/staging/tm6000/tm6000-core.c b/drivers/staging/tm6000/tm6000-core.c
+index cded411..57cb69e 100644
+--- a/drivers/staging/tm6000/tm6000-core.c
++++ b/drivers/staging/tm6000/tm6000-core.c
+@@ -256,7 +256,6 @@ int tm6000_init_analog_mode(struct tm6000_core *dev)
+ 		tm6000_set_reg(dev, TM6010_REQ08_R02_A_FIX_GAIN_CTRL, 0x04);
+ 		tm6000_set_reg(dev, TM6010_REQ08_R03_A_AUTO_GAIN_CTRL, 0x00);
+ 		tm6000_set_reg(dev, TM6010_REQ08_R04_A_SIF_AMP_CTRL, 0xa0);
+-		tm6000_set_reg(dev, TM6010_REQ08_R05_A_STANDARD_MOD, 0x05);
+ 		tm6000_set_reg(dev, TM6010_REQ08_R06_A_SOUND_MOD, 0x06);
+ 		tm6000_set_reg(dev, TM6010_REQ08_R07_A_LEFT_VOL, 0x00);
+ 		tm6000_set_reg(dev, TM6010_REQ08_R08_A_RIGHT_VOL, 0x00);
+diff --git a/drivers/staging/tm6000/tm6000-stds.c b/drivers/staging/tm6000/tm6000-stds.c
+index 6bf4a73..f6aa753 100644
+--- a/drivers/staging/tm6000/tm6000-stds.c
++++ b/drivers/staging/tm6000/tm6000-stds.c
+@@ -96,6 +96,7 @@ static struct tm6000_std_tv_settings tv_stds[] = {
+ 
+ 			{TM6010_REQ07_R04_LUMA_HAGC_CONTROL, 0xdc},
+ 			{TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07},
++			{TM6010_REQ08_R05_A_STANDARD_MOD, 0x21}, /* FIXME */
+ 			{TM6010_REQ07_R3F_RESET, 0x00},
+ 			{0, 0, 0},
+ 		},
+@@ -154,6 +155,7 @@ static struct tm6000_std_tv_settings tv_stds[] = {
+ 
+ 			{TM6010_REQ07_R04_LUMA_HAGC_CONTROL, 0xdc},
+ 			{TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07},
++			{TM6010_REQ08_R05_A_STANDARD_MOD, 0x21}, /* FIXME */
+ 			{TM6010_REQ07_R3F_RESET, 0x00},
+ 			{0, 0, 0},
+ 		},
+@@ -212,6 +214,7 @@ static struct tm6000_std_tv_settings tv_stds[] = {
+ 
+ 			{TM6010_REQ07_R04_LUMA_HAGC_CONTROL, 0xdc},
+ 			{TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07},
++			{TM6010_REQ08_R05_A_STANDARD_MOD, 0x76}, /* FIXME */
+ 			{TM6010_REQ07_R3F_RESET, 0x00},
+ 			{0, 0, 0},
+ 		},
+@@ -269,6 +272,7 @@ static struct tm6000_std_tv_settings tv_stds[] = {
+ 			{TM6010_REQ07_R83_CHROMA_LOCK_CONFIG, 0xFF},
+ 
+ 			{TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07},
++			{TM6010_REQ08_R05_A_STANDARD_MOD, 0x79},
+ 			{TM6010_REQ07_R3F_RESET, 0x00},
+ 			{0, 0, 0},
+ 		},
+@@ -327,6 +331,7 @@ static struct tm6000_std_tv_settings tv_stds[] = {
+ 
+ 			{TM6010_REQ07_R04_LUMA_HAGC_CONTROL, 0xdd},
+ 			{TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07},
++			{TM6010_REQ08_R05_A_STANDARD_MOD, 0x22}, /* FIXME */
+ 			{TM6010_REQ07_R3F_RESET, 0x00},
+ 			{0, 0, 0},
+ 		},
+diff --git a/drivers/staging/tm6000/tm6000-video.c b/drivers/staging/tm6000/tm6000-video.c
+index ce0a089..da26340 100644
+--- a/drivers/staging/tm6000/tm6000-video.c
++++ b/drivers/staging/tm6000/tm6000-video.c
+@@ -304,6 +304,14 @@ static int copy_streams(u8 *data, unsigned long len,
+ 					memcpy (&voutp[pos], ptr, cpysize);
+ 				break;
+ 			case TM6000_URB_MSG_AUDIO:
++				/* Need some code to copy audio buffer */
++				if (dev->fourcc == V4L2_PIX_FMT_YUYV) {
++					/* Swap word bytes */
++					int i;
++
++					for (i = 0; i < cpysize; i += 2)
++						swab16s((u16 *)(ptr + i));
++				}
+ 				tm6000_call_fillbuf(dev, TM6000_AUDIO, ptr, cpysize);
+ 				break;
+ 			case TM6000_URB_MSG_VBI:
 
-IRQ 18 is shared with two usb-controllers.
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
 
-Sorry i'm not sure if i'm right in this mailinglist, or if i should open 
-a troubleticket at debian kernel side.
 
-Thanks in advance,
-regards
-Herbert
+With my best regards, Dmitry.
 
---------------080109080101070506050006
-Content-Type: text/plain;
- name="dmesg cineS2.txt"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="dmesg cineS2.txt"
 
-WyAgICAxLjY2NzE3Ml0gdWRldjogc3RhcnRpbmcgdmVyc2lvbiAxNjANClsgICAgMS45ODc2
-MzldIGlucHV0OiBQQyBTcGVha2VyIGFzIC9kZXZpY2VzL3BsYXRmb3JtL3Bjc3Brci9pbnB1
-dC9pbnB1dDENClsgICAgMi4zMDg5MzNdIG5HZW5lIFBDSUUgYnJpZGdlIGRyaXZlciwgQ29w
-eXJpZ2h0IChDKSAyMDA1LTIwMDcgTWljcm9uYXMNClsgICAgMi4zMDkxNTNdIG5nZW5lIDAw
-MDA6MDA6MDAuMDogZW5hYmxpbmcgZGV2aWNlICgwMDAwIC0+IDAwMDIpDQpbICAgIDIuMzA5
-MjY5XSBuZ2VuZSAwMDAwOjAwOjAwLjA6IFhlbiBQQ0kgZW5hYmxpbmcgSVJROiAxOA0KWyAg
-ICAyLjMwOTI4MF0gICBhbGxvYyBpcnFfZGVzYyBmb3IgMTggb24gbm9kZSAwDQpbICAgIDIu
-MzA5MjgzXSAgIGFsbG9jIGtzdGF0X2lycXMgb24gbm9kZSAwDQpbICAgIDIuMzA5MzAzXSBu
-Z2VuZTogRm91bmQgTGludXg0TWVkaWEgY2luZVMyIERWQi1TMiBUd2luIFR1bmVyICh2NSkN
-ClsgICAgMi4zMTAwMDRdIG5nZW5lIDAwMDA6MDA6MDAuMDogc2V0dGluZyBsYXRlbmN5IHRp
-bWVyIHRvIDY0DQpbICAgIDIuMzEwMjkzXSBuZ2VuZTogRGV2aWNlIHZlcnNpb24gMQ0KWyAg
-ICAyLjMxMDMzOV0gbmdlbmUgMDAwMDowMDowMC4wOiBmaXJtd2FyZTogcmVxdWVzdGluZyBu
-Z2VuZV8xNS5mdw0KWyAgICAyLjM0Nzk1Nl0gRXJyb3I6IERyaXZlciAncGNzcGtyJyBpcyBh
-bHJlYWR5IHJlZ2lzdGVyZWQsIGFib3J0aW5nLi4uDQpbICAgIDIuMzczMzU0XSBuZ2VuZTog
-TG9hZGluZyBmaXJtd2FyZSBmaWxlIG5nZW5lXzE1LmZ3Lg0KWyAgICA0LjM4NDEwNl0gbmdl
-bmU6IENvbW1hbmQgdGltZW91dCBjbWQ9MTEgcHJldj0wMg0KWyAgICA0LjM4NDEyNF0gaG9z
-dF90b19uZ2VuZSAoYzAwMCk6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwDQpbICAgIDQuMzg0
-MTM1XSBuZ2VuZV90b19ob3N0IChjMTAwKTogMDAgMDEgMDAgMDAgMDAgMDAgMDAgMDANClsg
-ICAgNC4zODQxNDVdIGRldi0+aG9zdHRvbmdlbmUgKGZmZmY4ODAwMDcyNGEwMDApOiAxMSAw
-MSAwMCBkMCAwMCAwNCAwMCAwMA0KWyAgICA0LjM4NDE1NF0gZGV2LT5uZ2VuZXRvaG9zdCAo
-ZmZmZjg4MDAwNzI0YTEwMCk6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwDQpbICAgIDQuMzg0
-NDUwXSBuZ2VuZTogcHJvYmUgb2YgMDAwMDowMDowMC4wIGZhaWxlZCB3aXRoIGVycm9yIC01
-DQpbICAgIDQuMzg1MTYxXSBCVUc6IHVuYWJsZSB0byBoYW5kbGUga2VybmVsIHBhZ2luZyBy
-ZXF1ZXN0IGF0IGZmZmZjOTAwMDAwOTc3NzANClsgICAgNC4zODUxNzRdIElQOiBbPGZmZmZm
-ZmZmODExM2YxOGE+XSBzeXNmc19vcGVuX2ZpbGUrMHg3Ny8weDJhYQ0KWyAgICA0LjM4NTE4
-Nl0gUEdEIDdjNDIwNjcgUFVEIDdjNDMwNjcgUE1EIDdjNDQwNjcgUFRFIDANClsgICAgNC4z
-ODUxOThdIE9vcHM6IDAwMDAgWyMxXSBTTVAgDQpbICAgIDQuMzg1MjA2XSBsYXN0IHN5c2Zz
-IGZpbGU6IC9zeXMvZGV2aWNlcy9wY2ktMC9wY2kwMDAwOjAwLzAwMDA6MDA6MDAuMC9pMmMt
-MC91ZXZlbnQNClsgICAgNC4zODUyMTRdIENQVSAwIA0KWyAgICA0LjM4NTIxOV0gTW9kdWxl
-cyBsaW5rZWQgaW46IG5nZW5lIHNuZF9wY20gc25kX3RpbWVyIHNuZCBkdmJfY29yZSBzb3Vu
-ZGNvcmUgc25kX3BhZ2VfYWxsb2MgaTJjX2NvcmUgZXZkZXYgcGNzcGtyIGV4dDMgamJkIG1i
-Y2FjaGUgeGVuX25ldGZyb250IHhlbl9ibGtmcm9udA0KWyAgICA0LjM4NTI1NF0gUGlkOiAx
-NTYsIGNvbW06IHVkZXZkIE5vdCB0YWludGVkIDIuNi4zMi01LXhlbi1hbWQ2NCAjMSANClsg
-ICAgNC4zODUyNjFdIFJJUDogZTAzMDpbPGZmZmZmZmZmODExM2YxOGE+XSAgWzxmZmZmZmZm
-ZjgxMTNmMThhPl0gc3lzZnNfb3Blbl9maWxlKzB4NzcvMHgyYWENClsgICAgNC4zODUyNzFd
-IFJTUDogZTAyYjpmZmZmODgwMDA2Yzc3ZDc4ICBFRkxBR1M6IDAwMDEwMjg2DQpbICAgIDQu
-Mzg1Mjc3XSBSQVg6IGZmZmY4ODAwMDcwMTYwYTAgUkJYOiAwMDAwMDAwMGZmZmZmZmVkIFJD
-WDogMDAwMDAwMDAwMDAwMDAwMA0KWyAgICA0LjM4NTI4NV0gUkRYOiAwMDAwMDAwMDAwMDAw
-MDAxIFJTSTogZmZmZjg4MDAwNzhkZjljOCBSREk6IGZmZmY4ODAwMDcwMTYwYTANClsgICAg
-NC4zODUyOTFdIFJCUDogZmZmZjg4MDAwNzc0OGI0MCBSMDg6IGZmZmY4ODAwMDcwMTYwNTQg
-UjA5OiBmZmZmZmZmZjgxNjc2MTUwDQpbICAgIDQuMzg1Mjk4XSBSMTA6IGZmZmY4ODAwMDZj
-NzdlNDggUjExOiBmZmZmZmZmZjgxMTUzM2U1IFIxMjogZmZmZmM5MDAwMDA5Nzc0OA0KWyAg
-ICA0LjM4NTMwNV0gUjEzOiBmZmZmODgwMDA3MDE2MGEwIFIxNDogZmZmZjg4MDAwNzhkZjlj
-OCBSMTU6IGZmZmY4ODAwMDc3NDhiNDANClsgICAgNC4zODUzMTZdIEZTOiAgMDAwMDdmNzY2
-M2I5MDdhMCgwMDAwKSBHUzpmZmZmODgwMDAzMDIzMDAwKDAwMDApIGtubEdTOjAwMDAwMDAw
-MDAwMDAwMDANClsgICAgNC4zODUzMjRdIENTOiAgZTAzMyBEUzogMDAwMCBFUzogMDAwMCBD
-UjA6IDAwMDAwMDAwODAwNTAwM2INClsgICAgNC4zODUzMzBdIENSMjogZmZmZmM5MDAwMDA5
-Nzc3MCBDUjM6IDAwMDAwMDAwMDcxMTIwMDAgQ1I0OiAwMDAwMDAwMDAwMDAyNjIwDQpbICAg
-IDQuMzg1MzM4XSBEUjA6IDAwMDAwMDAwMDAwMDAwMDAgRFIxOiAwMDAwMDAwMDAwMDAwMDAw
-IERSMjogMDAwMDAwMDAwMDAwMDAwMA0KWyAgICA0LjM4NTM0NV0gRFIzOiAwMDAwMDAwMDAw
-MDAwMDAwIERSNjogMDAwMDAwMDBmZmZmMGZmMCBEUjc6IDAwMDAwMDAwMDAwMDA0MDANClsg
-ICAgNC4zODUzNTJdIFByb2Nlc3MgdWRldmQgKHBpZDogMTU2LCB0aHJlYWRpbmZvIGZmZmY4
-ODAwMDZjNzYwMDAsIHRhc2sgZmZmZjg4MDAwN2QzNDcxMCkNClsgICAgNC4zODUzNjBdIFN0
-YWNrOg0KWyAgICA0LjM4NTM2NF0gIDAwMDAwMDAwMDAwMDAwMjQgMDAwMDAwMDAwMDAwMDAw
-MCBmZmZmODgwMDA3NzQ4YjQwIDAwMDAwMDAwMDAwMDAwMDANClsgICAgNC4zODUzNzVdIDww
-PiBmZmZmODgwMDA3OGRmOWM4IDAwMDAwMDAwMDAwMDAwMjQgZmZmZmZmZmY4MTEzZjExMyBm
-ZmZmZmZmZjgxMGVkOTg2DQpbICAgIDQuMzg1Mzg4XSA8MD4gZmZmZjg4MDAwNzQ4NjAwMCBm
-ZmZmODgwMDA2MmZlYjAwIGZmZmY4ODAwMDc4ZDc4NDAgMDAwMDAwMDAwMDAwMDAwMA0KWyAg
-ICA0LjM4NTQwNF0gQ2FsbCBUcmFjZToNClsgICAgNC4zODU0MTBdICBbPGZmZmZmZmZmODEx
-M2YxMTM+XSA/IHN5c2ZzX29wZW5fZmlsZSsweDAvMHgyYWENClsgICAgNC4zODU0MTldICBb
-PGZmZmZmZmZmODEwZWQ5ODY+XSA/IF9fZGVudHJ5X29wZW4rMHgxOWQvMHgyYmYNClsgICAg
-NC4zODU0MjddICBbPGZmZmZmZmZmODEwZjkwZDc+XSA/IGRvX2ZpbHBfb3BlbisweDRlNC8w
-eDk0Yg0KWyAgICA0LjM4NTQzN10gIFs8ZmZmZmZmZmY4MTI1MGI3ZT5dID8gc3lzX3JlY3Zm
-cm9tKzB4YjIvMHgxMWENClsgICAgNC4zODU0NDZdICBbPGZmZmZmZmZmODEwMGVjNWY+XSA/
-IHhlbl9yZXN0b3JlX2ZsX2RpcmVjdF9lbmQrMHgwLzB4MQ0KWyAgICA0LjM4NTQ1NF0gIFs8
-ZmZmZmZmZmY4MTEwMjEwOT5dID8gYWxsb2NfZmQrMHg2Ny8weDEwYw0KWyAgICA0LjM4NTQ2
-MV0gIFs8ZmZmZmZmZmY4MTBlZDcxNz5dID8gZG9fc3lzX29wZW4rMHg1NS8weGZjDQpbICAg
-IDQuMzg1NDY5XSAgWzxmZmZmZmZmZjgxMDExYjQyPl0gPyBzeXN0ZW1fY2FsbF9mYXN0cGF0
-aCsweDE2LzB4MWINClsgICAgNC4zODU0NzVdIENvZGU6IGZmIGYyIGFlIDQ4IGM3IGM3IDUw
-IDYxIDY3IDgxIDQ4IGY3IGQxIDQ4IDg5IGNhIGU4IDQwIDZjIDA1IDAwIDRjIDg5IGVmIGJi
-IGVkIGZmIGZmIGZmIGU4IGYzIDE1IDAwIDAwIDQ4IDg1IGMwIDBmIDg0IDI1IDAyIDAwIDAw
-IDw0OT4gOGIgNDQgMjQgMjggNDggODUgYzAgNzQgMTMgNDggOGIgNjggMDggNDggODUgZWQg
-NzQgMGEgNDEgOGIgDQpbICAgIDQuMzg1NTc2XSBSSVAgIFs8ZmZmZmZmZmY4MTEzZjE4YT5d
-IHN5c2ZzX29wZW5fZmlsZSsweDc3LzB4MmFhDQpbICAgIDQuMzg1NTg0XSAgUlNQIDxmZmZm
-ODgwMDA2Yzc3ZDc4Pg0KWyAgICA0LjM4NTU5MF0gQ1IyOiBmZmZmYzkwMDAwMDk3NzcwDQpb
-ICAgIDQuMzg1NTk2XSAtLS1bIGVuZCB0cmFjZSBlNDI4Y2IyMjc5MzdiMDM4IF0tLS0=
---------------080109080101070506050006--
+--MP_/HjZDTZDiaeveb.JZhwzEgLt
+Content-Type: text/x-patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=tm6000_audio.patch
+
+diff --git a/drivers/staging/tm6000/tm6000-alsa.c b/drivers/staging/tm6000/tm6000-alsa.c
+index 087137d..a99101f 100644
+--- a/drivers/staging/tm6000/tm6000-alsa.c
++++ b/drivers/staging/tm6000/tm6000-alsa.c
+@@ -160,15 +160,15 @@ static struct snd_pcm_hardware snd_tm6000_digital_hw = {
+ 		SNDRV_PCM_INFO_MMAP_VALID,
+ 	.formats = SNDRV_PCM_FMTBIT_S16_LE,
+ 
+-	.rates =		SNDRV_PCM_RATE_48000,
++	.rates =		SNDRV_PCM_RATE_CONTINUOUS,
+ 	.rate_min =		48000,
+ 	.rate_max =		48000,
+ 	.channels_min = 2,
+ 	.channels_max = 2,
+-	.period_bytes_min = 62720,
+-	.period_bytes_max = 62720,
++	.period_bytes_min = 64,
++	.period_bytes_max = 12544,
+ 	.periods_min = 1,
+-	.periods_max = 1024,
++	.periods_max = 98,
+ 	.buffer_bytes_max = 62720 * 8,
+ };
+ 
+@@ -211,38 +211,64 @@ static int tm6000_fillbuf(struct tm6000_core *core, char *buf, int size)
+ 	struct snd_pcm_runtime *runtime;
+ 	int period_elapsed = 0;
+ 	unsigned int stride, buf_pos;
++	int length;
+ 
+-	if (!size || !substream)
++	if (!size || !substream) {
++		dprintk(1, "substream was NULL\n");
+ 		return -EINVAL;
++	}
+ 
+ 	runtime = substream->runtime;
+-	if (!runtime || !runtime->dma_area)
++	if (!runtime || !runtime->dma_area) {
++		dprintk(1, "runtime was NULL\n");
+ 		return -EINVAL;
++	}
+ 
+ 	buf_pos = chip->buf_pos;
+ 	stride = runtime->frame_bits >> 3;
+ 
++	if (stride == 0) {
++		dprintk(1, "stride is zero\n");
++		return -EINVAL;
++	}
++
++	length = size / stride;
++	if (length == 0) {
++		dprintk(1, "%s: length was zero\n", __func__);
++		return -EINVAL;
++	}
++
+ 	dprintk(1, "Copying %d bytes at %p[%d] - buf size=%d x %d\n", size,
+ 		runtime->dma_area, buf_pos,
+ 		(unsigned int)runtime->buffer_size, stride);
+ 
+-	if (buf_pos + size >= runtime->buffer_size * stride) {
+-		unsigned int cnt = runtime->buffer_size * stride - buf_pos;
+-		memcpy(runtime->dma_area + buf_pos, buf, cnt);
+-		memcpy(runtime->dma_area, buf + cnt, size - cnt);
++	if (buf_pos + length >= runtime->buffer_size) {
++		unsigned int cnt = runtime->buffer_size - buf_pos;
++		memcpy(runtime->dma_area + buf_pos * stride, buf, cnt * stride);
++		memcpy(runtime->dma_area, buf + cnt * stride,
++			length * stride - cnt * stride);
+ 	} else
+-		memcpy(runtime->dma_area + buf_pos, buf, size);
++		memcpy(runtime->dma_area + buf_pos * stride, buf,
++			length * stride);
+ 
+-	chip->buf_pos += size;
+-	if (chip->buf_pos >= runtime->buffer_size * stride)
+-		chip->buf_pos -= runtime->buffer_size * stride;
++#ifndef NO_PCM_LOCK
++       snd_pcm_stream_lock(substream);
++#endif
+ 
+-	chip->period_pos += size;
++	chip->buf_pos += length;
++	if (chip->buf_pos >= runtime->buffer_size)
++		chip->buf_pos -= runtime->buffer_size;
++
++	chip->period_pos += length;
+ 	if (chip->period_pos >= runtime->period_size) {
+ 		chip->period_pos -= runtime->period_size;
+ 		period_elapsed = 1;
+ 	}
+ 
++#ifndef NO_PCM_LOCK
++       snd_pcm_stream_unlock(substream);
++#endif
++
+ 	if (period_elapsed)
+ 		snd_pcm_period_elapsed(substream);
+ 
+diff --git a/drivers/staging/tm6000/tm6000-core.c b/drivers/staging/tm6000/tm6000-core.c
+index cded411..57cb69e 100644
+--- a/drivers/staging/tm6000/tm6000-core.c
++++ b/drivers/staging/tm6000/tm6000-core.c
+@@ -256,7 +256,6 @@ int tm6000_init_analog_mode(struct tm6000_core *dev)
+ 		tm6000_set_reg(dev, TM6010_REQ08_R02_A_FIX_GAIN_CTRL, 0x04);
+ 		tm6000_set_reg(dev, TM6010_REQ08_R03_A_AUTO_GAIN_CTRL, 0x00);
+ 		tm6000_set_reg(dev, TM6010_REQ08_R04_A_SIF_AMP_CTRL, 0xa0);
+-		tm6000_set_reg(dev, TM6010_REQ08_R05_A_STANDARD_MOD, 0x05);
+ 		tm6000_set_reg(dev, TM6010_REQ08_R06_A_SOUND_MOD, 0x06);
+ 		tm6000_set_reg(dev, TM6010_REQ08_R07_A_LEFT_VOL, 0x00);
+ 		tm6000_set_reg(dev, TM6010_REQ08_R08_A_RIGHT_VOL, 0x00);
+diff --git a/drivers/staging/tm6000/tm6000-stds.c b/drivers/staging/tm6000/tm6000-stds.c
+index 6bf4a73..f6aa753 100644
+--- a/drivers/staging/tm6000/tm6000-stds.c
++++ b/drivers/staging/tm6000/tm6000-stds.c
+@@ -96,6 +96,7 @@ static struct tm6000_std_tv_settings tv_stds[] = {
+ 
+ 			{TM6010_REQ07_R04_LUMA_HAGC_CONTROL, 0xdc},
+ 			{TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07},
++			{TM6010_REQ08_R05_A_STANDARD_MOD, 0x21}, /* FIXME */
+ 			{TM6010_REQ07_R3F_RESET, 0x00},
+ 			{0, 0, 0},
+ 		},
+@@ -154,6 +155,7 @@ static struct tm6000_std_tv_settings tv_stds[] = {
+ 
+ 			{TM6010_REQ07_R04_LUMA_HAGC_CONTROL, 0xdc},
+ 			{TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07},
++			{TM6010_REQ08_R05_A_STANDARD_MOD, 0x21}, /* FIXME */
+ 			{TM6010_REQ07_R3F_RESET, 0x00},
+ 			{0, 0, 0},
+ 		},
+@@ -212,6 +214,7 @@ static struct tm6000_std_tv_settings tv_stds[] = {
+ 
+ 			{TM6010_REQ07_R04_LUMA_HAGC_CONTROL, 0xdc},
+ 			{TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07},
++			{TM6010_REQ08_R05_A_STANDARD_MOD, 0x76}, /* FIXME */
+ 			{TM6010_REQ07_R3F_RESET, 0x00},
+ 			{0, 0, 0},
+ 		},
+@@ -269,6 +272,7 @@ static struct tm6000_std_tv_settings tv_stds[] = {
+ 			{TM6010_REQ07_R83_CHROMA_LOCK_CONFIG, 0xFF},
+ 
+ 			{TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07},
++			{TM6010_REQ08_R05_A_STANDARD_MOD, 0x79},
+ 			{TM6010_REQ07_R3F_RESET, 0x00},
+ 			{0, 0, 0},
+ 		},
+@@ -327,6 +331,7 @@ static struct tm6000_std_tv_settings tv_stds[] = {
+ 
+ 			{TM6010_REQ07_R04_LUMA_HAGC_CONTROL, 0xdd},
+ 			{TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07},
++			{TM6010_REQ08_R05_A_STANDARD_MOD, 0x22}, /* FIXME */
+ 			{TM6010_REQ07_R3F_RESET, 0x00},
+ 			{0, 0, 0},
+ 		},
+diff --git a/drivers/staging/tm6000/tm6000-video.c b/drivers/staging/tm6000/tm6000-video.c
+index ce0a089..da26340 100644
+--- a/drivers/staging/tm6000/tm6000-video.c
++++ b/drivers/staging/tm6000/tm6000-video.c
+@@ -304,6 +304,14 @@ static int copy_streams(u8 *data, unsigned long len,
+ 					memcpy (&voutp[pos], ptr, cpysize);
+ 				break;
+ 			case TM6000_URB_MSG_AUDIO:
++				/* Need some code to copy audio buffer */
++				if (dev->fourcc == V4L2_PIX_FMT_YUYV) {
++					/* Swap word bytes */
++					int i;
++
++					for (i = 0; i < cpysize; i += 2)
++						swab16s((u16 *)(ptr + i));
++				}
+ 				tm6000_call_fillbuf(dev, TM6000_AUDIO, ptr, cpysize);
+ 				break;
+ 			case TM6000_URB_MSG_VBI:
+
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+
+--MP_/HjZDTZDiaeveb.JZhwzEgLt--
