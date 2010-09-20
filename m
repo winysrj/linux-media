@@ -1,90 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:4537 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752866Ab0IVVRL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Sep 2010 17:17:11 -0400
-Message-ID: <4C9A7254.8010604@redhat.com>
-Date: Wed, 22 Sep 2010 18:17:08 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
+Received: from perceval.irobotique.be ([92.243.18.41]:60214 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757004Ab0ITRIv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Sep 2010 13:08:51 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: [GIT PATCHES FOR 2.6.37] V4L documentation fixes
-References: <201009150923.50132.hverkuil@xs4all.nl> <4C9A5C0B.3040506@redhat.com> <201009222206.11694.hverkuil@xs4all.nl>
-In-Reply-To: <201009222206.11694.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: Control framework bug
+Date: Mon, 20 Sep 2010 19:08:44 +0200
+Cc: linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201009201908.45274.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 22-09-2010 17:06, Hans Verkuil escreveu:
-> On Wednesday, September 22, 2010 21:42:03 Mauro Carvalho Chehab wrote:
->> Em 15-09-2010 04:23, Hans Verkuil escreveu:
->>> The following changes since commit 57fef3eb74a04716a8dd18af0ac510ec4f71bc05:
->>>   Richard Zidlicky (1):
->>>         V4L/DVB: dvb: fix smscore_getbuffer() logic
->>>
->>> are available in the git repository at:
->>>
->>>   ssh://linuxtv.org/git/hverkuil/v4l-dvb.git misc2
->>>
->>> Hans Verkuil (6):
->>>       V4L Doc: removed duplicate link
->>
->> This doesn't seem right. the entry for V4L2-PIX-FMT-BGR666 seems to be duplicated.
->> We should remove the duplication, instead of just dropping the ID.
-> 
-> No, this patch is correct. This section really duplicates the formats due to
-> confusion about the byte order in memory. But only one of these format tables
-> should have a valid ID.
-> 
-> See table 2.4 and 2.5 here:
-> 
-> http://www.xs4all.nl/~hverkuil/spec/media.html#packed-rgb
-> 
-> As you can see here there is no BGR666 entry in either table since the docbook
-> generation has been failing on this docbook error for some time now.
-> 
->>
->>>       V4L Doc: fix DocBook syntax errors.
->>>       V4L Doc: document V4L2_CAP_RDS_OUTPUT capability.
->>>       V4L Doc: correct the documentation for VIDIOC_QUERYMENU.
->>
->> Applied, thanks.
->>
->>>       V4L Doc: rewrite the Device Naming section
->>
->> The new text is incomplete, as it assumes only the old non-dynamic device node
->> creation. Also, some distros actually create /dev/v4l, as recommended. IMHO, we
->> need to improve this section, proposing a better way to name devices. This may
->> be an interesting theme for this year's LPC.
-> 
-> No, the major is still 81 and the minors are still between 0 and 255. But the minor
-> ranges are gone (unless you turn that on explicitly). So this text is really correct
-> and way more understandable than the old text.
+Hi Hans,
 
-Hmm... are the V4L core artificially limiting minor range to be between 0 and 255?
+A code excerpt is better than a long story, so here it is (from 
+drivers/media/video/v4l2-device.c).
 
+> int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+>                                                 struct v4l2_subdev *sd)
+> {
+>         int err;
 > 
->>
->>>       V4L Doc: clarify the V4L spec.
->>
->> This is a mix of several changes on the same patch. I want to do comments about it,
->> but no time right now to write an email about that. It is a way harder to comment
->> Docbook changes than patches, as the diff output is not user-friendly.
->> I'll postpone this patch for a better analysis.
-> 
-> No problem.
-> 
-> Regards,
-> 
-> 	Hans
->  
->> I don't want to postpone the DocBook correction patches due to that, so I'm applying
->> the patches I'm ok.
->>
->> Cheers,
->> Mauro
->>
-> 
+>         /* Check for valid input */
+>         if (v4l2_dev == NULL || sd == NULL || !sd->name[0])
+>                 return -EINVAL;
+>         /* Warn if we apparently re-register a subdev */
+>         WARN_ON(sd->v4l2_dev != NULL);
+>         if (!try_module_get(sd->owner))
+>                 return -ENODEV;
+>         /* This just returns 0 if either of the two args is NULL */
+>         err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd-
+>ctrl_handler);
+>         if (err)
 
+A call to module_put() is needed here. That one is easy to fix.
+
+>                 return err;
+>         sd->v4l2_dev = v4l2_dev;
+>         spin_lock(&v4l2_dev->lock);
+>         list_add_tail(&sd->list, &v4l2_dev->subdevs);
+>         spin_unlock(&v4l2_dev->lock);
+
+The subdev device node patches add a device node registration call here, and 
+the call might fail. How do I cleanup the v4l2_ctrl_add_handler() call ? There 
+doesn't seem to be any v4l2_ctrl_remove_handler() function. The same problem 
+exists in v4l2_device_unregister_subdev(), you're not cleaning up the control 
+framework there.
+
+>         return 0;
+> }
+> EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
+
+-- 
+Regards,
+
+Laurent Pinchart
