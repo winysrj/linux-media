@@ -1,104 +1,114 @@
-Return-path: <mchehab@localhost>
-Received: from mx1.redhat.com ([209.132.183.28]:7940 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753848Ab0IEIN5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Sep 2010 04:13:57 -0400
-Message-ID: <4C83528F.3070705@redhat.com>
-Date: Sun, 05 Sep 2010 10:19:27 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Peter Korsgaard <jacmet@sunsite.dk>
-CC: Jean-Francois Moine <moinejf@free.fr>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] LED control
-References: <20100904131048.6ca207d1@tele> <4C834D46.5030801@redhat.com> <87sk1oty46.fsf@macbook.be.48ers.dk>
-In-Reply-To: <87sk1oty46.fsf@macbook.be.48ers.dk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4693 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752371Ab0ITTH4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Sep 2010 15:07:56 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o8KJ7p6G034454
+	for <linux-media@vger.kernel.org>; Mon, 20 Sep 2010 21:07:55 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 20 Sep 2010 21:07:51 +0200 (CEST)
+Message-Id: <201009201907.o8KJ7p6G034454@smtp-vbr7.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: <mchehab@pedra>
 
-Hi,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-On 09/05/2010 10:04 AM, Peter Korsgaard wrote:
->>>>>> "Hans" == Hans de Goede<hdegoede@redhat.com>  writes:
->
-> Hi,
->
->   >>  +	<entry><constant>V4L2_CID_LEDS</constant></entry>
->   >>  +	<entry>integer</entry>
->   >>  +	<entry>Switch on or off the LED(s) or illuminator(s) of the device.
->   >>  +	    The control type and values depend on the driver and may be either
->   >>  +	    a single boolean (0: off, 1:on) or the index in a menu type.</entry>
->   >>  +	</row>
->
->   Hans>  I think that using one control for both status leds (which is
->   Hans>  what we are usually talking about) and illuminator(s) is a bad
->   Hans>  idea. I'm fine with standardizing these, but can we please have 2
->   Hans>  CID's one for status lights and one for the led. Esp, as I can
->   Hans>  easily see us supporting a microscope in the future where the
->   Hans>  microscope itself or other devices with the same bridge will have
->   Hans>  a status led, so then we will need 2 separate controls anyways.
->
-> Why does this need to go through the v4l2 api and not just use the
-> standard LED (sysfs) api in the first place?
->
+Results of the daily build of v4l-dvb:
 
-Quoting from the reply by Jean-Francois Moine to a patch adding illuminator control
-support to the cpia1 driver where this proposal is a result of:
+date:        Mon Sep 20 19:00:10 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15164:1da5fed5c8b2
+git master:       3e6dce76d99b328716b43929b9195adfee1de00c
+git media-master: 991403c594f666a2ed46297c592c60c3b9f4e1e2
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-###
+linux-2.6.32.6-armv5: WARNINGS
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.36-rc2-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35.3-armv5-davinci: WARNINGS
+linux-2.6.36-rc2-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35.3-armv5-ixp: WARNINGS
+linux-2.6.36-rc2-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35.3-armv5-omap2: WARNINGS
+linux-2.6.36-rc2-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-rc2-i686: ERRORS
+linux-2.6.32.6-m32r: WARNINGS
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.36-rc2-m32r: ERRORS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.36-rc2-mips: ERRORS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.36-rc2-powerpc64: ERRORS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-rc2-x86_64: ERRORS
+linux-git-Module.symvers: ERRORS
+linux-git-armv5: ERRORS
+linux-git-armv5-davinci: ERRORS
+linux-git-armv5-ixp: ERRORS
+linux-git-armv5-omap2: ERRORS
+linux-git-i686: ERRORS
+linux-git-m32r: ERRORS
+linux-git-mips: ERRORS
+linux-git-powerpc64: ERRORS
+linux-git-x86_64: ERRORS
+spec: ERRORS
+spec-git: ERRORS
+sparse: ERRORS
 
-As many gspca users are waiting for a light/LED/illuminator/lamp
-control, I tried to define a standard one in March 2009:
-http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/3095
+Detailed results are available here:
 
-A second, but more restrictive, attempt was done by Németh Márton in
-February 2010:
-http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/16705
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-The main objection to that proposals was that the sysfs LED interface
-should be used instead:
-http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/3114
+Full logs are available here:
 
-A patch in this way was done by Németh Márton in February 2010:
-http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/16670
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-but it was rather complex, and there was no consensus
-http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/17111
+The V4L-DVB specification failed to build, but the last compiled spec is here:
 
-###
-
-So using the sysfs interface for this is non trivial. Most cameras don't offer
-any hardware dimming / blinking features, but we do want to do an auto setting
-where the led goes on when streaming and goes off again when not streaming.
-So the sysfs interface is not a good match to what we need.
-
-A more important argument IMHO however is that the LED control is just one element
-of many things one can control on  (some) webcams, things like focus, pan and tilt
-for the more fancy ones also come into play. Not to mention contrast, brightness
-etc. settings. Currently we have one central API for this which is the v4l2 ctrl
-API, and we have several apps which dynamically build up a UI for this depending
-on the ctrls advertised by the device. Adding a LED ctrl to the v4l2 API will
-make this automatically show up in these apps and give the user one central place
-to control everything related to the camera. Where as using the led sysfs API would
-mean that the led control will basically stay invisible to the end user unless we
-start patching all apps to also use support this API, requiring all v4l2 apps
-to grow code to support a whole new api just to turn on / off a led does not
-seem like a good idea to me.
-
-Regards,
-
-Hans
-
-
-
-
-
-
-
-
-
-
-
-
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
