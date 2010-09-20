@@ -1,73 +1,114 @@
 Return-path: <mchehab@pedra>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:44781 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753686Ab0IPNbW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Sep 2010 09:31:22 -0400
-Date: Thu, 16 Sep 2010 15:30:28 +0200
-From: Jean Delvare <khali@linux-fr.org>
+Received: from mx1.redhat.com ([209.132.183.28]:10115 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754403Ab0ITCrN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Sep 2010 22:47:13 -0400
+Message-ID: <4C96CB28.2000705@redhat.com>
+Date: Sun, 19 Sep 2010 23:47:04 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Janne Grunau <j@jannau.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [GIT PATCHES FOR 2.6.37] Remove v4l2-i2c-drv.h and most of
- i2c-id.h
-Message-ID: <20100916153028.424223c4@hyperion.delvare>
-In-Reply-To: <201009152200.27132.hverkuil@xs4all.nl>
-References: <201009152200.27132.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+CC: linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+Subject: Re: RFC: BKL, locking and ioctls
+References: <201009191229.35800.hverkuil@xs4all.nl> <201009192106.47601.hverkuil@xs4all.nl> <4C967082.3040405@redhat.com> <201009192310.04435.hverkuil@xs4all.nl>
+In-Reply-To: <201009192310.04435.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
+Em 19-09-2010 18:10, Hans Verkuil escreveu:
+> On Sunday, September 19, 2010 22:20:18 Mauro Carvalho Chehab wrote:
+>> Em 19-09-2010 16:06, Hans Verkuil escreveu:
+>>> On Sunday, September 19, 2010 20:29:58 Mauro Carvalho Chehab wrote:
+>>>> Em 19-09-2010 11:58, Hans Verkuil escreveu:
+>>>>> On Sunday, September 19, 2010 13:43:43 Mauro Carvalho Chehab wrote:
+>>>>
+>>> Multiple stream per device node: if you are talking about allowing e.g. both VBI streaming
+>>> and video streaming from one device node, then that is indeed allowed by the current spec.
+>>> Few drivers support this though, and it is a really bad idea. During the Helsinki meeting we
+>>> agreed to remove this from the spec (point 10a in the mini summit report).
+>>
+>> I'm talking about read(), overlay and mmap(). The spec says, at "Multiple Opens" [1]:
+>> 	"When a device supports multiple functions like capturing and overlay simultaneously,
+>> 	 multiple opens allow concurrent use of the device by forked processes or specialized applications."
+>>
+>> [1] http://linuxtv.org/downloads/v4l-dvb-apis/ch01.html#id2717880
+>>
+>> So, it is allowed by the spec. What is forbidden is to have some copy logic in kernel to duplicate data.
+> 
+> There is no streaming involved with overlays, is there? It is all handled in the driver and
+> userspace just tells the driver where the window is. I may be wrong, I'm much more familiar
+> with output overlays (OSD). Are overlays actually still working anywhere these days?
 
-On Wed, 15 Sep 2010 22:00:26 +0200, Hans Verkuil wrote:
-> Mauro, Jean, Janne,
-> 
-> This patch series finally retires the hackish v4l2-i2c-drv.h. It served honorably,
-> but now that the hg repository no longer supports kernels <2.6.26 it is time to
-> remove it.
-> 
-> Note that this patch series builds on the vtx-removal patch series.
-> 
-> Several patches at the end remove unused i2c-id.h includes and remove bogus uses
-> of the I2C_HW_ defines (as found in i2c-id.h).
-> 
-> After applying this patch series I get the following if I grep for
-> I2C_HW_ in the kernel sources:
-> 
-> <skip some false positives in drivers/gpu>
-> drivers/staging/lirc/lirc_i2c.c:                if (adap->id == I2C_HW_B_CX2388x)
-> drivers/staging/lirc/lirc_i2c.c:                if (adap->id == I2C_HW_B_CX2388x) {
-> drivers/staging/lirc/lirc_zilog.c:#ifdef I2C_HW_B_HDPVR
-> drivers/staging/lirc/lirc_zilog.c:              if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR) {
-> drivers/staging/lirc/lirc_zilog.c:#ifdef I2C_HW_B_HDPVR
-> drivers/staging/lirc/lirc_zilog.c:      if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR)
-> drivers/video/riva/rivafb-i2c.c:        chan->adapter.id                = I2C_HW_B_RIVA;
-> drivers/media/video/ir-kbd-i2c.c:       if (ir->c->adapter->id == I2C_HW_SAA7134 && ir->c->addr == 0x30)
-> drivers/media/video/ir-kbd-i2c.c:               if (adap->id == I2C_HW_B_CX2388x) {
-> drivers/media/video/saa7134/saa7134-i2c.c:      .id            = I2C_HW_SAA7134,
-> drivers/media/video/cx88/cx88-i2c.c:    core->i2c_adap.id = I2C_HW_B_CX2388x;
-> drivers/media/video/cx88/cx88-vp3054-i2c.c:     vp3054_i2c->adap.id = I2C_HW_B_CX2388x;
-> 
-> Jean, I guess the one in rivafb-i2c.c can just be removed, right?
+It depends on what you call streaming. On overlay mode, there's a PCI2PCI transfer stream, from video 
+capture memory into the video adapter memory. It is still a stream, even though it is not "visible"
+after started.
 
-Correct. The last user for that one was the tvaudio driver and
-apparently you just cleaned it up.
-
-> Janne, the HDPVR checks in lirc no longer work since hdpvr never sets the
-> adapter ID (nor should it). This lirc code should be checked. I haven't
-> been following the IR changes, but there must be a better way of doing this.
+>> Besides that, not all device drivers will work with all applications or provide the complete set of
+>> functionalities. For example, there are only three drivers (ivtv, cx18 and pvrusb2), as far as I remember, 
+>> that only implements read() method. By using your logic that "only a few drivers allow feature X", maybe
+>> we should deprecate read() as well ;)
 > 
-> The same is true for the CX2388x and SAA7134 checks. These all relate to the
-> IR subsystem.
+> There's nothing wrong with read. But reading while streaming at the same time from the same source,
+> that's another matter. 
+
+You may not like its implementation, but it is currently in use, and there's nothing at spec
+forbidding it.
+
+> And I'm hoping that vb2 will make it possible to implement streaming in
+> ivtv and cx18.
+
+Ok. That's another reason why we should lock poll/read.
+
+> <snip>
 > 
-> Once we fixed these remaining users of the i2c-id.h defines, then Jean can
-> remove that header together with the adapter's 'id' field.
+>>>> The problem with the current implementation of v4l2_fh() is that there's no way for the core
+>>>> to get per-fh info.
+>>>
+>>> You mean how to get from a struct file to a v4l2_fh? That should be done through
+>>> filp->private_data, but since many driver still put other things there, that is not
+>>> really usable at the moment without changing all those drivers first.
+>>
+>> It should be drivers decision to put whatever they want on a "priv_data". If you want to have
+>> core data, then you need to use embeed for the core, but keeping priv_data for private driver's
+>> internal usage. That's the standard way used on Linux. You're doing just the reverse ;)
+> 
+> I don't follow your reasoning here.
 
-That would be very great. In all honesty I didn't expect it to happen
-so fast, but if that happens, I'll be very happy! :) Thanks!
+What kernel does, in general, is to use a "class inheritance" by embeding one struct into another.
+This is used mainly on the core structs. For drivers, it provides void *priv data for internal driver-only
+usage.
 
--- 
-Jean Delvare
+The way you're wanting to do with v4l2_fh is just the reverse: use priv_data for core usage, and embed 
+struct for the drivers.
+
+>>> This actually will work correctly. When a device node is registered in cx88, it is already
+>>> hooked into the v4l2_device of the core struct. This was needed to handle the i2c subdevs
+>>> in the right place: the cx88 core struct. So refcounting will also be done in the core struct.
+>>
+>> No. Look at the actual code. For example, this is what cx88-mpeg does:
+>>
+>> struct cx8802_dev *dev = pci_get_drvdata(pci_dev);
+>>
+>> cx88 core is at dev->core.
+>>
+>> The same happens with cx88-video, using struct cx8800:
+>>
+>> struct cx8800_dev *dev = pci_get_drvdata(pci_dev);
+>>
+>> cx88 core is also at dev->core.
+>>
+>> This device is implemented using multiple PCI devices, one for each function. Function 0 (video) and Function 2
+>> (used for TS devices, like mpeg encoders) can be used independently, but there are some data that are concurrent.
+>> So, drivers will likely need to use two locks, one for the core and one for the function.
+> 
+> I was talking about refcounting in cx88 using my patch, not locking. Locking in
+> cx88 will almost certainly need two locks.
+
+Depending on the way the cx88 core lock will be implemented, you may need to unlock it before release.
+
+I just arguing that it needs to take more care/review at cx88, in order to avoid having a dead lock there.
+
+Cheers,
+Mauro
