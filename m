@@ -1,82 +1,81 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:42586 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751259Ab0IIOOq (ORCPT
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:4445 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750868Ab0ITR4t (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Sep 2010 10:14:46 -0400
-Date: Thu, 09 Sep 2010 10:14:35 -0400
-Subject: Re: [PATCH] Illuminators and status LED controls
-Message-ID: <6m1o3xccxcun8vmp72v9wxwk.1284041675305@email.android.com>
-From: Andy Walls <awalls@md.metrocast.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans de Goede <hdegoede@redhat.com>
-Cc: Jean-Francois Moine <moinejf@free.fr>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+	Mon, 20 Sep 2010 13:56:49 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: Control framework bug
+Date: Mon, 20 Sep 2010 19:56:43 +0200
+Cc: linux-media@vger.kernel.org
+References: <201009201908.45274.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201009201908.45274.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201009201956.44002.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-SSdtIG9mIHRoZSBtaW5kIHRoYXQgaW5kZXBlbmRlbnQgYm9vbGVhbiBpbGx1bWluYXRvciBjb250
-cm9scyBhcmUgT2suICBJIHRoaW5rIHRoYXQgc2NhbGVzIGJldHRlci4gIE5vdCB0aGF0IEkgY291
-bGQgaW1hZ2luZSBtYW55IGluIHVzZSBmb3IgMSBjYW1lcmEgYW55d2F5LCBidXQgc29tZSBtYXkg
-YmUgY29sb3JzIG90aGVyIHRoYW4gd2hpdGUuCgpJbGx1bWluYXRvcjAgc2hvdWxkIGFsd2F5cyBj
-b3JyZXNwb25kIHRvIHRoZSBtb3N0IGNvbW1vbiBkZWZhdWx0IGFwcGxpY2F0aW9uIG9mIHRoZSBk
-ZXZpY2UuCgpJIHJlYWxseSBqdXN0IHdhbnQgdGhlbSB0byBzaG93IHVwIGluIGFuIGFwcC4gIChN
-YXliZSBJJ2xsIHdyaXRlIGEgTXl0aE1pY3Jvc2NvcGUgcGx1Z2luIHNvIEkgY2FuIHByZXZpZXcg
-dGhlIHN1YmplY3QgaWxsdW1pbmF0aW9uIHNldHRpbmdzIGFuZCB0aGVuIHVzZSBNeXRoVFYgc2No
-ZWR1bGluZyB0byB0dXJuIG9uIHRoZSBsaWdodHMgZXZlcnkgZmV3IGhvdXJzIGFuZCByZWNvcmQg
-YSBmZXcgZnJhbWVzIG9mIGJyZWFkIG1vbGQgZ3Jvd2luZy4uLikKClJlZ2FyZHMsCkFuZHkKCkhh
-bnMgVmVya3VpbCA8aHZlcmt1aWxAeHM0YWxsLm5sPiB3cm90ZToKCj4KPj4gSGksCj4+Cj4+IE9u
-IDA5LzA5LzIwMTAgMDg6NTUgQU0sIEhhbnMgVmVya3VpbCB3cm90ZToKPj4+IE9uIFR1ZXNkYXks
-IFNlcHRlbWJlciAwNywgMjAxMCAyMzoxNDoxMCBIYW5zIGRlIEdvZWRlIHdyb3RlOgo+Pgo+PiA8
-c25pcD4KPj4KPj4+PiBIb3cgYWJvdXQgYSBjb21wcm9taXNlLCB3ZSBhZGQgYSBzZXQgb2Ygc3Rh
-bmRhcmQgZGVmaW5lcyBmb3IgbWVudQo+Pj4+IGluZGV4IG1lYW5pbmdzLCB3aXRoIGEgbm90ZSB0
-aGF0IHRoZXNlIGFyZSBwcmVzZW50IGFzIGEgd2F5IHRvCj4+Pj4gc3RhbmRhcmRpemUKPj4+PiB0
-aGluZ3MgYmV0d2VlbiBkcml2ZXJzLCBidXQgdGhhdCBzb21lIGRyaXZlcnMgbWF5IGRldmlhdGUg
-YW5kIHRoYXQKPj4+PiBhcHBzIHNob3VsZCBhbHdheXMgdXNlIFZJRElPQ19RVUVSWU1FTlUgPwo+
-Pj4KPj4+IExldCdzIHVzZSBib29sZWFuIGZvciB0aGVzZSBpbGx1bWluYXRvciBjb250cm9scyBp
-bnN0ZWFkLiBQcm9ibGVtIHNvbHZlZAo+Pj4gOi0pCj4+Cj4+IEVybSwgbm8uIElmIHlvdSB0YWtl
-IGEgbG9vayBhdCB0aGUgY3VycmVudCBxeDUgbWljcm9zY29wZSBzdXBwb3J0IGNvZGUgaW4KPj4g
-dGhlCj4+IGNwaWEyIGRyaXZlciBpdCBjdXJyZW50bHkgaXMgYSBtZW51IHdpdGggdGhlIGZvbGxv
-d2luZyBwb3NzaWJsZSB2YWx1ZXM6Cj4+IE9mZgo+PiBUb3AKPj4gQm90dG9tCj4+IEJvdGgKPj4K
-Pj4gU28gbm93IGxldHMgc2F5IHdlIGNyZWF0ZSBzdGFuZGFyZCBjb250cm9scyBmb3IgaWxsdW1p
-bmF0b3JzIGFuZCBtYWtlIHRoZW0KPj4gYm9vbGVhbnMgYW5kIHVzZSAyIGJvb2xlYW5zLiBBbmQg
-dGhlbiBtb2RpZnkgdGhlIGNwaWEyIGRyaXZlciB0byBmb2xsb3cKPj4gdGhlCj4+IG5ldyBzdGFu
-ZGFyZC4KPj4KPj4gVGhlIHVzZXIgYmVoYXZpb3IgdGhlbiBnb2VzIGZyb206Cj4+IC0gdXNlciB0
-aGluZ3MgbGV0cyBzd2l0Y2ggZnJvbSB0b3AgdG8gYm90dG9tIGxpZ2h0aW5nCj4+IC0gZ28gdG8g
-Y29udHJvbAo+PiAtIGNsaWNrIG1lbnUgZHJvcHMgZG93biBzZWxlY3QgdG9wIC8gYm90dG9tCj4+
-IC0+IGVhc3kKPj4KPj4gVG86Cj4+IC0gdXNlciB0aGluZ3MgbGV0cyBzd2l0Y2ggZnJvbSB0b3Ag
-dG8gYm90dG9tIGxpZ2h0aW5nCj4+IC0gZ28gdG8gY29udHJvbAo+PiAtIGhldWggMiBjaGVja2Jv
-eGVzID8KPj4gLSBjbGljayBvbmUgY2hlY2sgYm94IG9mZgo+PiAtIGNsb2NrIG90aGVyIGNoZWNr
-IGJveCBvbgo+PiAtPiBub3QgZWFzeQo+Cj5TbyB0d28gY2xpY2tzIGluIHRoZSBjYXNlIG9mIGEg
-bWVudSBhbmQgdHdvIGluIHRoZSBjYXNlIG9mIGEgY2hlY2tib3guCj5QZXJzb25hbGx5IEkgZG9u
-J3Qgc2VlIHRoaXMgYXMgYSBiaWcgZGVhbC4gQnV0IGl0IHdpbGwgYmUgZ29vZCB0byBnZXQKPm90
-aGVyIHBlb3BsZSdzIG9waW5pb24gb24gdGhpcy4KPgo+Pgo+PiBJZiBJIHdlcmUgYSB1c2VyIEkg
-d291bGQgY2FsbCB0aGlzIGNoYW5nZSBhIHJlZ3Jlc3Npb24sIGFuZCBhcyBzdWNoIEkgZmluZAo+
-PiB0aGUgYm9vbGVhbiBwcm9wb3NhbCB1bmFjY2VwdGFibGUuIE1heWJlIHdlIHNob3VsZCBjYWxs
-IHRoZSBjb250cm9sCj4+IFY0TDJfQ0lEX01JQ1JPU0NPUEVfSUxMVU1JTkFUT1IKPj4KPj4gVG8g
-bWFrZSBpdCBtb3JlIGNsZWFyIHRoYXQgdGhlIG1lbnUgdmFyaWFudCBvZiB0aGlzIGlzIG1lYW50
-IGZvcgo+PiBtaWNyb3Njb3BlcyAod2hpY2ggdHlwaWNhbGx5IGhhdmUgZWl0aGVyIG9ubHkgYSBi
-b3R0b20gaWxsdW1pbmF0b3IKPj4gb3IgYm90aCBhIGJvdHRvbSBhbmQgYSB0b3Agb25lKS4gQW5k
-IGlmIHdlIHRoZW4gZXZlciBuZWVkIHRvIHN1cHBvcnQKPj4gc29tZSBvdGhlciBraW5kIG9mIGls
-bHVtaW5hdG9yIHdlIGNhbiBhZGQgYSBzZXBhcmF0ZSBjaWQgZm9yIHRoYXQvCj4+Cj4+IE90aGVy
-d2lzZSBJIHRoaW5rIGl0IG1pZ2h0IGJlIGJlc3QgdG8ganVzdCBrZWVwIHRoaXMgYXMgYSBwcml2
-YXRlIGNvbnRyb2wuCj4KPlY0TDJfQ0lEX01JQ1JPU0NPUEVfSUxMVU1JTkFUT1IgbWlnaHQgYmUg
-YW4gb3B0aW9uLCBidXQgdGhlbiB0aGUgcXVlc3Rpb24KPmlzIHdoZXRoZXIgdGhlIHRvcC9ib3R0
-b20gaWxsdW1pbmF0b3IgY29tYmluYXRpb24gaXMgc3RhbmRhcmQgZm9yIGFsbCAob3IKPmF0IGxl
-YXN0IHRoZSBtYWpvcml0eSkgb2YgbWljcm9zY29wZXMuIElmIHRoYXQgaXMgaW5kZWVkIHRoZSBj
-YXNlLCB0aGVuIHdlCj5jYW4gY29uc2lkZXIgdGhpcy4gQWx0aG91Z2ggSSBzdGlsbCB0aGluayB0
-aGF0IGNoZWNrYm94ZXMgd29yayBqdXN0IGFzCj53ZWxsLgo+Cj5CdXQgaWYgdGhpcyBhcnJhbmdl
-bWVudCBhbmQgbnVtYmVyIG9mIGlsbHVtaW5hdG9ycyBpcyBzcGVjaWZpYyB0byB0aGlzCj5yYW5n
-ZSBvZiBtaWNyb3Njb3BlcywgdGhlbiBhIHByaXZhdGUgY29udHJvbCBpcyBhbiBvcHRpb24uCj4K
-PkFuIG90aGVyIG9wdGlvbiBpcyB0byBoYXZlIElMTFVNSU5BVE9SX1RPUCBhbmQgLi4uX0JPVFRP
-TSBib29sZWFuCj5jb250cm9scy4gVGhhdCB3YXkgYXQgbGVhc3QgdGhlIG5hbWUgcHJlc2VudGVk
-IHRvIHRoZSB1c2VyIG1ha2VzIHNlbnNlIChpZgo+dGhlIHVzZXIgY2FuIHJlYWQgZW5nbGlzaCBv
-ZiBjb3Vyc2UsIGJ1dCB0aGF0J3MgYSBkaXNjdXNzaW9uIGZvciBhbm90aGVyIC0KPnZlcnkgcmFp
-bnkgLSBkYXkpLgo+Cj5SZWdhcmRzLAo+Cj4gICAgICAgIEhhbnMKPgo+LS0gCj5IYW5zIFZlcmt1
-aWwgLSB2aWRlbzRsaW51eCBkZXZlbG9wZXIgLSBzcG9uc29yZWQgYnkgVEFOREJFUkcsIHBhcnQg
-b2YgQ2lzY28KPgo+LS0KPlRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBs
-aW5lICJ1bnN1YnNjcmliZSBsaW51eC1tZWRpYSIgaW4KPnRoZSBib2R5IG9mIGEgbWVzc2FnZSB0
-byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnCj5Nb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRw
-Oi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwK
+On Monday, September 20, 2010 19:08:44 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> A code excerpt is better than a long story, so here it is (from 
+> drivers/media/video/v4l2-device.c).
+> 
+> > int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+> >                                                 struct v4l2_subdev *sd)
+> > {
+> >         int err;
+> > 
+> >         /* Check for valid input */
+> >         if (v4l2_dev == NULL || sd == NULL || !sd->name[0])
+> >                 return -EINVAL;
+> >         /* Warn if we apparently re-register a subdev */
+> >         WARN_ON(sd->v4l2_dev != NULL);
+> >         if (!try_module_get(sd->owner))
+> >                 return -ENODEV;
+> >         /* This just returns 0 if either of the two args is NULL */
+> >         err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd-
+> >ctrl_handler);
+> >         if (err)
+> 
+> A call to module_put() is needed here. That one is easy to fix.
 
+Oops. Good catch.
+
+> 
+> >                 return err;
+> >         sd->v4l2_dev = v4l2_dev;
+> >         spin_lock(&v4l2_dev->lock);
+> >         list_add_tail(&sd->list, &v4l2_dev->subdevs);
+> >         spin_unlock(&v4l2_dev->lock);
+> 
+> The subdev device node patches add a device node registration call here, and 
+> the call might fail. How do I cleanup the v4l2_ctrl_add_handler() call ? There 
+> doesn't seem to be any v4l2_ctrl_remove_handler() function. The same problem 
+> exists in v4l2_device_unregister_subdev(), you're not cleaning up the control 
+> framework there.
+
+That's not a bug, there really isn't a counterpart to v4l2_ctrl_add_handler.
+In case of an error during subdev registration the driver should just call
+v4l2_ctrl_handler_free() which will free everything.
+
+I do agree though that it is probably cleaner if I do add a remove_handler
+type function.
+
+Regards,
+
+	Hans
+
+> 
+> >         return 0;
+> > }
+> > EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
+> 
+> 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
