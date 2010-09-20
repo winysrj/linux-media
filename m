@@ -1,43 +1,52 @@
-Return-path: <mchehab@localhost.localdomain>
-Received: from perceval.irobotique.be ([92.243.18.41]:50060 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751434Ab0IMHHz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Sep 2010 03:07:55 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Jean-Francois Moine" <moinejf@free.fr>
-Subject: Re: [PATCH] Illuminators control
-Date: Mon, 13 Sep 2010 09:08:36 +0200
-Cc: linux-media@vger.kernel.org
-References: <20100911110350.02c55173@tele>
-In-Reply-To: <20100911110350.02c55173@tele>
+Return-path: <mchehab@pedra>
+Received: from ozlabs.org ([203.10.76.45]:36730 "EHLO ozlabs.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752208Ab0ITW7l (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Sep 2010 18:59:41 -0400
+Date: Tue, 21 Sep 2010 08:55:27 +1000
+From: Anton Blanchard <anton@samba.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
+	linux-media@vger.kernel.org
+Subject: Re: IR code autorepeat issue?
+Message-ID: <20100920225527.GK25306@kryten>
+References: <20100829064036.GB22853@kryten>
+ <4C7A8056.4070901@infradead.org>
+ <4C87BA04.7030908@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201009130908.37133.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4C87BA04.7030908@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@localhost.localdomain>
+Sender: <mchehab@pedra>
+
 
 Hi,
 
-On Saturday 11 September 2010 11:03:50 Jean-Francois Moine wrote:
+> > > I'm seeing double IR events on 2.6.36-rc2 and a DViCO FusionHDTV DVB-T
+> > > Dual Express.
+> >
+> > There's one issue on touching on this constant: it is currently just one
+> > global timeout value that will be used by all protocols. This timeout
+> > should be enough to retrieve and proccess the repeat key event on all
+> > protocols, and on all devices, or we'll need to do a per-protocol (and
+> > eventually per device) timeout init. From
+> > http://www.sbprojects.com/knowledge/ir/ir.htm, we see that NEC prococol
+> > uses 110 ms for repeat code, and we need some aditional time to wake up the
+> > decoding task. I'd say that anything lower than 150-180ms would risk to not
+> > decode repeat events with NEC.
+> > 
+> > I got exactly the same problem when adding RC CORE support at the dib0700
+> > driver. At that driver, there's an additional time of sending/receiving
+> > URB's from USB. So, we probably need a higher timeout. Even so, I tried to
+> > reduce the timeout to 200ms or 150ms (not sure), but it didn't work. So, I
+> > ended by just patching the dibcom driver to do dev->rep[REP_DELAY] = 500:
+> 
+> Ok, just sent a patch adding it to rc-core, and removing from dib0700 driver.
 
-> @@ -419,6 +421,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum 
-v4l2_ctrl_type *type,
->  	case V4L2_CID_AUDIO_LIMITER_ENABLED:
->  	case V4L2_CID_AUDIO_COMPRESSION_ENABLED:
->  	case V4L2_CID_PILOT_TONE_ENABLED:
-> +	case V4L2_CID_ILLUMINATORS_1:
-> +	case V4L2_CID_ILLUMINATORS_2:
->  		*type = V4L2_CTRL_TYPE_BOOLEAN;
->  		*min = 0;
->  		*max = *step = 1;
+Thanks, tested and confirmed to work!
 
-I would prefer integer controls for this, as we will need to support dimmable 
-illuminators.
+I originally hit this on Ubuntu Maverick. Would you be OK if I submit it for
+backport to 2.6.35 stable?
 
--- 
-Regards,
-
-Laurent Pinchart
+Anton
