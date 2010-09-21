@@ -1,168 +1,146 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2971 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751931Ab0IWF4t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Sep 2010 01:56:49 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [GIT PATCHES FOR 2.6.37] Remove v4l2-i2c-drv.h and most of i2c-id.h
-Date: Thu, 23 Sep 2010 07:56:16 +0200
-Cc: linux-media@vger.kernel.org, Jean Delvare <khali@linux-fr.org>,
-	Janne Grunau <j@jannau.net>
-References: <201009152200.27132.hverkuil@xs4all.nl> <4C9A7FF5.60701@redhat.com>
-In-Reply-To: <4C9A7FF5.60701@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:31319 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754417Ab0IUNlG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Sep 2010 09:41:06 -0400
+Message-ID: <4C98B5E3.9010008@redhat.com>
+Date: Tue, 21 Sep 2010 10:40:51 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCHES] First version of the V4L2 core locking patches
+References: <201009202337.01948.hverkuil@xs4all.nl>
+In-Reply-To: <201009202337.01948.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201009230756.16910.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thursday, September 23, 2010 00:15:17 Mauro Carvalho Chehab wrote:
-> Em 15-09-2010 17:00, Hans Verkuil escreveu:
-> > Mauro, Jean, Janne,
-> > 
-> > This patch series finally retires the hackish v4l2-i2c-drv.h. It served honorably,
-> > but now that the hg repository no longer supports kernels <2.6.26 it is time to
-> > remove it.
-> > 
-> > Note that this patch series builds on the vtx-removal patch series.
-> > 
-> > Several patches at the end remove unused i2c-id.h includes and remove bogus uses
-> > of the I2C_HW_ defines (as found in i2c-id.h).
-> > 
-> > After applying this patch series I get the following if I grep for
-> > I2C_HW_ in the kernel sources:
-> > 
-> > <skip some false positives in drivers/gpu>
-> > drivers/staging/lirc/lirc_i2c.c:                if (adap->id == I2C_HW_B_CX2388x)
-> > drivers/staging/lirc/lirc_i2c.c:                if (adap->id == I2C_HW_B_CX2388x) {
-> > drivers/staging/lirc/lirc_zilog.c:#ifdef I2C_HW_B_HDPVR
-> > drivers/staging/lirc/lirc_zilog.c:              if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR) {
-> > drivers/staging/lirc/lirc_zilog.c:#ifdef I2C_HW_B_HDPVR
-> > drivers/staging/lirc/lirc_zilog.c:      if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR)
-> > drivers/video/riva/rivafb-i2c.c:        chan->adapter.id                = I2C_HW_B_RIVA;
-> > drivers/media/video/ir-kbd-i2c.c:       if (ir->c->adapter->id == I2C_HW_SAA7134 && ir->c->addr == 0x30)
-> > drivers/media/video/ir-kbd-i2c.c:               if (adap->id == I2C_HW_B_CX2388x) {
-> > drivers/media/video/saa7134/saa7134-i2c.c:      .id            = I2C_HW_SAA7134,
-> > drivers/media/video/cx88/cx88-i2c.c:    core->i2c_adap.id = I2C_HW_B_CX2388x;
-> > drivers/media/video/cx88/cx88-vp3054-i2c.c:     vp3054_i2c->adap.id = I2C_HW_B_CX2388x;
-> > 
-> > Jean, I guess the one in rivafb-i2c.c can just be removed, right?
-> > 
-> > Janne, the HDPVR checks in lirc no longer work since hdpvr never sets the
-> > adapter ID (nor should it). This lirc code should be checked. I haven't
-> > been following the IR changes, but there must be a better way of doing this.
-> > 
-> > The same is true for the CX2388x and SAA7134 checks. These all relate to the
-> > IR subsystem.
-> > 
-> > Once we fixed these remaining users of the i2c-id.h defines, then Jean can
-> > remove that header together with the adapter's 'id' field.
-> > 
-> > Regards,
-> > 
-> > 	Hans
-> > 
-> > The following changes since commit 991403c594f666a2ed46297c592c60c3b9f4e1e2:
-> >   Mauro Carvalho Chehab (1):
-> >         V4L/DVB: cx231xx: Avoid an OOPS when card is unknown (card=0)
-> > 
-> > are available in the git repository at:
-> > 
-> >   ssh://linuxtv.org/git/hverkuil/v4l-dvb.git i2c
-> > 
-> ...
-> >       tvaudio: remove obsolete tda8425 initialization
-> ...
+Em 20-09-2010 18:37, Hans Verkuil escreveu:
+> Hi all,
 > 
-> This patch is incomplete. It removes the initialization, but it forgets to remove other references.
-> This is what grep says about tda8425:
+> I've made a first version of the core locking patches available here:
+> 
+> http://git.linuxtv.org/hverkuil/v4l-dvb.git?a=shortlog;h=refs/heads/test
+> 
+> I'm actually surprised how trivial the patches are. Which makes me wonder if
+> I am overlooking something, it feels too easy.
+> 
+> One thing I did not yet have time to analyze fully is if it is really OK to
+> unlock/relock the vdev_lock in videobuf_waiton. I hope it is, because without
+> this another thread will find it impossible to access the video node while it
+> is in waiton.
+> 
+> Currently I've only tested with vivi. I hope to be able to spend more time
+> this week for a more thorough analysis and converting a few more drivers to
+> this.
+> 
+> In the meantime, please feel free to shoot at this code!
 
-Huh? It's just the initialization function that is bogus. I'm not removing the tda8425
-from tvaudio. If you look at that function you'll see that it has some special code
-when used with an out-of-tree riva TV driver that hasn't been maintained since 6 years
-and no longer works with tvaudio after all the i2c core probing changes. So it's just
-dead code now.
+Hi Hans,
 
-Regards,
+This patch will likely break most drivers:
+	http://git.linuxtv.org/hverkuil/v4l-dvb.git?a=commitdiff;h=d1ca35f3e69d909a958eb1cf8c75dd1c0bb2a98c
 
-	Hans
+In the case of events and videobuf_waiton, it doesn't seem to be safe to just
+unlock when waiting for an event.
 
-> drivers/media/video/Kconfig:		   tea6320, tea6420, tda8425, ta8874z.
-> drivers/media/video/tda7432.c: * Which was based on tda8425.c by Greg Alexander (c) 1998
-> drivers/media/video/tda9875.c: * Which was based on tda8425.c by Greg Alexander (c) 1998
-> drivers/media/video/tvaudio.c:/* audio chip descriptions - defines+functions for tda8425                */
-> drivers/media/video/tvaudio.c:#define TDA8425_VL         0x00  /* volume left */
-> drivers/media/video/tvaudio.c:#define TDA8425_VR         0x01  /* volume right */
-> drivers/media/video/tvaudio.c:#define TDA8425_BA         0x02  /* bass */
-> drivers/media/video/tvaudio.c:#define TDA8425_TR         0x03  /* treble */
-> drivers/media/video/tvaudio.c:#define TDA8425_S1         0x08  /* switch functions */
-> drivers/media/video/tvaudio.c:#define TDA8425_S1_OFF     0xEE  /* audio off (mute on) */
-> drivers/media/video/tvaudio.c:#define TDA8425_S1_CH1     0xCE  /* audio channel 1 (mute off) - "linear stereo" mode */
-> drivers/media/video/tvaudio.c:#define TDA8425_S1_CH2     0xCF  /* audio channel 2 (mute off) - "linear stereo" mode */
-> drivers/media/video/tvaudio.c:#define TDA8425_S1_MU      0x20  /* mute bit */
-> drivers/media/video/tvaudio.c:#define TDA8425_S1_STEREO  0x18  /* stereo bits */
-> drivers/media/video/tvaudio.c:#define TDA8425_S1_STEREO_SPATIAL 0x18 /* spatial stereo */
-> drivers/media/video/tvaudio.c:#define TDA8425_S1_STEREO_LINEAR  0x08 /* linear stereo */
-> drivers/media/video/tvaudio.c:#define TDA8425_S1_STEREO_PSEUDO  0x10 /* pseudo stereo */
-> drivers/media/video/tvaudio.c:#define TDA8425_S1_STEREO_MONO    0x00 /* forced mono */
-> drivers/media/video/tvaudio.c:#define TDA8425_S1_ML      0x06        /* language selector */
-> drivers/media/video/tvaudio.c:#define TDA8425_S1_ML_SOUND_A 0x02     /* sound a */
-> drivers/media/video/tvaudio.c:#define TDA8425_S1_ML_SOUND_B 0x04     /* sound b */
-> drivers/media/video/tvaudio.c:#define TDA8425_S1_ML_STEREO  0x06     /* stereo */
-> drivers/media/video/tvaudio.c:#define TDA8425_S1_IS      0x01        /* channel selector */
-> drivers/media/video/tvaudio.c:static int tda8425_shift10(int val) { return (val >> 10) | 0xc0; }
-> drivers/media/video/tvaudio.c:static int tda8425_shift12(int val) { return (val >> 12) | 0xf0; }
-> drivers/media/video/tvaudio.c:static int tda8425_initialize(struct CHIPSTATE *chip)
-> drivers/media/video/tvaudio.c:	int inputmap[4] = { /* tuner	*/ TDA8425_S1_CH2, /* radio  */ TDA8425_S1_CH1,
-> drivers/media/video/tvaudio.c:			    /* extern	*/ TDA8425_S1_CH1, /* intern */ TDA8425_S1_OFF};
-> drivers/media/video/tvaudio.c:static void tda8425_setmode(struct CHIPSTATE *chip, int mode)
-> drivers/media/video/tvaudio.c:	int s1 = chip->shadow.bytes[TDA8425_S1+1] & 0xe1;
-> drivers/media/video/tvaudio.c:		s1 |= TDA8425_S1_ML_SOUND_A;
-> drivers/media/video/tvaudio.c:		s1 |= TDA8425_S1_STEREO_PSEUDO;
-> drivers/media/video/tvaudio.c:		s1 |= TDA8425_S1_ML_SOUND_B;
-> drivers/media/video/tvaudio.c:		s1 |= TDA8425_S1_STEREO_PSEUDO;
-> drivers/media/video/tvaudio.c:		s1 |= TDA8425_S1_ML_STEREO;
-> drivers/media/video/tvaudio.c:			s1 |= TDA8425_S1_STEREO_MONO;
-> drivers/media/video/tvaudio.c:			s1 |= TDA8425_S1_STEREO_SPATIAL;
-> drivers/media/video/tvaudio.c:	chip_write(chip,TDA8425_S1,s1);
-> drivers/media/video/tvaudio.c:static int tda8425  = 1;
-> drivers/media/video/tvaudio.c:module_param(tda8425, int, 0444);
-> drivers/media/video/tvaudio.c:		.name       = "tda8425",
-> drivers/media/video/tvaudio.c:		.insmodopt  = &tda8425,
-> drivers/media/video/tvaudio.c:		.addr_lo    = I2C_ADDR_TDA8425 >> 1,
-> drivers/media/video/tvaudio.c:		.addr_hi    = I2C_ADDR_TDA8425 >> 1,
-> drivers/media/video/tvaudio.c:		.leftreg    = TDA8425_VL,
-> drivers/media/video/tvaudio.c:		.rightreg   = TDA8425_VR,
-> drivers/media/video/tvaudio.c:		.bassreg    = TDA8425_BA,
-> drivers/media/video/tvaudio.c:		.treblereg  = TDA8425_TR,
-> drivers/media/video/tvaudio.c:		.initialize = tda8425_initialize,
-> drivers/media/video/tvaudio.c:		.volfunc    = tda8425_shift10,
-> drivers/media/video/tvaudio.c:		.bassfunc   = tda8425_shift12,
-> drivers/media/video/tvaudio.c:		.treblefunc = tda8425_shift12,
-> drivers/media/video/tvaudio.c:		.setmode    = tda8425_setmode,
-> drivers/media/video/tvaudio.c:		.inputreg   = TDA8425_S1,
-> drivers/media/video/tvaudio.c:		.inputmap   = { TDA8425_S1_CH1, TDA8425_S1_CH1, TDA8425_S1_CH1 },
-> drivers/media/video/tvaudio.c:		.inputmute  = TDA8425_S1_OFF,
-> 
-> I didn't actually saw what you left behind on tvaudio (as it might eventually be used
-> by some other part of the code), but keeping it mentioned in Kconfig is not ok ;)
-> 
-> The rest of the series seem ok.
-> 
-> Applied, thanks!
-> 
-> Cheers,
-> Mauro
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+For example, in the case of videobuf_waiton, the code for it is:
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+#define WAITON_CONDITION (vb->state != VIDEOBUF_ACTIVE &&\
+				vb->state != VIDEOBUF_QUEUED)
+int videobuf_waiton(struct videobuf_buffer *vb, int non_blocking, int intr)
+{
+	MAGIC_CHECK(vb->magic, MAGIC_BUFFER);
+
+	if (non_blocking) {
+		if (WAITON_CONDITION)
+			return 0;
+		else
+			return -EAGAIN;
+	}
+
+	if (intr)
+		return wait_event_interruptible(vb->done, WAITON_CONDITION);
+	else
+		wait_event(vb->done, WAITON_CONDITION);
+
+	return 0;
+}
+
+When called internally, it have the vb mutex_locked, while, when called externally, it
+doesn't.
+
+By looking on other parts where vb->done is protected, like on videobuf_queue_cancel:
+
+	spin_lock_irqsave(q->irqlock, flags);
+	for (i = 0; i < VIDEO_MAX_FRAME; i++) {
+		if (NULL == q->bufs[i])
+			continue;
+		if (q->bufs[i]->state == VIDEOBUF_QUEUED) {
+			list_del(&q->bufs[i]->queue);
+			q->bufs[i]->state = VIDEOBUF_ERROR;
+			wake_up_all(&q->bufs[i]->done);
+		}
+	}
+	spin_unlock_irqrestore(q->irqlock, flags);
+
+It is clear that vb state is protected by a spinlock, and not by a mutex. Using a mutex
+there makes no sense at all. Instead of touching a mutex, callers of this function should
+be reviewed to not call a mutex.
+
+So, the better approach for videobuf_waiton would be to protect it with a
+spinlock.
+
+Also, your patches assume that no driver will touch at vdev lock before calling videobuf_waiton().
+This seems to be a risky assumption. So, the better would be to define it as:
+
+static int is_state_active_or_queued(struct videobuf_buffer *vb, struct videobuf_queue *q, )
+{
+	bool rc;
+
+	spin_lock_irqsave(q->irqlock, flags);
+	rc = (vb->state != VIDEOBUF_ACTIVE) && (vb->state != VIDEOBUF_QUEUED));
+	spin_unlock_irqrestore(q->irqlock, flags);
+
+	return rc;
+};
+
+int videobuf_waiton(struct videobuf_queue *q, struct videobuf_buffer *vb, int non_blocking, int intr)
+{
+	rc = 0;
+ 	bool is_vdev_locked;
+	MAGIC_CHECK(vb->magic, MAGIC_BUFFER);
+
+	/*
+	 * If there's nothing to wait, just return		
+	 */
+	if (is_state_active_or_queued(vb, q))
+		return 0;
+
+	if (non_blocking)
+		return -EAGAIN;
+
+	/*
+	 * Need to sleep in order to wait for videobufs to complete.
+	 * It is not a good idea to sleep while waiting for an event with the dev lock hold,
+	 * as it will block any other access to the device. Just unlock it while waiting,
+	 * locking it again at the end.
+	 */
+
+ 	is_vdev_locked = (q->vdev_lock && mutex_is_locked(q->vdev_lock)) ? true : false;
+	if (is_vdev_locked)
+		mutex_unlock(q->vdev_lock);
+	if (intr)
+		return wait_event_interruptible(vb->done, is_state_active_or_queued(vb, q));
+	else
+		wait_event(vb->done, is_state_active_or_queued(vb, q));
+	if (is_vdev_locked)
+		mutex_lock(q->vdev_lock);
+
+	return 0;
+}
+
+Cheers,
+Mauro
