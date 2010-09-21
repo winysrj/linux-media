@@ -1,144 +1,114 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1928 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757216Ab0IZRox (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4833 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751749Ab0IUTIF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Sep 2010 13:44:53 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC/PATCH 2/9] v4l: Group media bus pixel codes by types and sort them alphabetically
-Date: Sun, 26 Sep 2010 19:44:38 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com, g.liakhovetski@gmx.de
-References: <1285517612-20230-1-git-send-email-laurent.pinchart@ideasonboard.com> <201009261929.54066.hverkuil@xs4all.nl> <201009261934.50895.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201009261934.50895.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201009261944.38685.hverkuil@xs4all.nl>
+	Tue, 21 Sep 2010 15:08:05 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id o8LJ7xlX069070
+	for <linux-media@vger.kernel.org>; Tue, 21 Sep 2010 21:08:03 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 21 Sep 2010 21:07:59 +0200 (CEST)
+Message-Id: <201009211908.o8LJ7xlX069070@smtp-vbr11.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sunday, September 26, 2010 19:34:49 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Sunday 26 September 2010 19:29:53 Hans Verkuil wrote:
-> > On Sunday, September 26, 2010 18:13:25 Laurent Pinchart wrote:
-> > > Adding new pixel codes at the end of the enumeration will soon create a
-> > > mess, so sort the pixel codes by type and then sort them alphabetically.
-> > > 
-> > > As the codes are part of the kernel ABI their value can't change when a
-> > > new code is inserted in the enumeration, so they are given an explicit
-> > > numerical value. When inserting a new pixel code developers must use and
-> > > update the V4L2_MBUS_FMT_LAST value.
-> > > 
-> > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > ---
-> > > 
-> > >  include/linux/v4l2-mediabus.h |   54
-> > >  ++++++++++++++++++++++++---------------- 1 files changed, 32
-> > >  insertions(+), 22 deletions(-)
-> > > 
-> > > diff --git a/include/linux/v4l2-mediabus.h
-> > > b/include/linux/v4l2-mediabus.h index 127512a..bc637a5 100644
-> > > --- a/include/linux/v4l2-mediabus.h
-> > > +++ b/include/linux/v4l2-mediabus.h
-> > > @@ -24,31 +24,41 @@
-> > > 
-> > >   * transferred first, "BE" means that the most significant bits are
-> > >   transferred * first, and "PADHI" and "PADLO" define which bits - low
-> > >   or high, in the * incomplete high byte, are filled with padding bits.
-> > > 
-> > > + *
-> > > + * The pixel codes are grouped by types and (mostly) sorted
-> > > alphabetically. As + * their value can't change when a new pixel code is
-> > > inserted in the + * enumeration, they are explicitly given a numerical
-> > > value. When inserting a + * new pixel code use and update the
-> > > V4L2_MBUS_FMT_LAST value.
-> > > 
-> > >   */
-> > >  
-> > >  enum v4l2_mbus_pixelcode {
-> > >  
-> > >  	V4L2_MBUS_FMT_FIXED = 1,
-> > > 
-> > > -	V4L2_MBUS_FMT_YUYV8_2X8,
-> > > -	V4L2_MBUS_FMT_YVYU8_2X8,
-> > > -	V4L2_MBUS_FMT_UYVY8_2X8,
-> > > -	V4L2_MBUS_FMT_VYUY8_2X8,
-> > > -	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
-> > > -	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
-> > > -	V4L2_MBUS_FMT_RGB565_2X8_LE,
-> > > -	V4L2_MBUS_FMT_RGB565_2X8_BE,
-> > > -	V4L2_MBUS_FMT_SBGGR8_1X8,
-> > > -	V4L2_MBUS_FMT_SBGGR10_1X10,
-> > > -	V4L2_MBUS_FMT_GREY8_1X8,
-> > > -	V4L2_MBUS_FMT_Y10_1X10,
-> > > -	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
-> > > -	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
-> > > -	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
-> > > -	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
-> > > -	V4L2_MBUS_FMT_SGRBG8_1X8,
-> > > -	V4L2_MBUS_FMT_SBGGR12_1X12,
-> > > -	V4L2_MBUS_FMT_YUYV8_1_5X8,
-> > > -	V4L2_MBUS_FMT_YVYU8_1_5X8,
-> > > -	V4L2_MBUS_FMT_UYVY8_1_5X8,
-> > > -	V4L2_MBUS_FMT_VYUY8_1_5X8,
-> > > +	/* RGB */
-> > > +	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE = 7,
-> > > +	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE = 6,
-> > > +	V4L2_MBUS_FMT_RGB565_2X8_BE = 9,
-> > > +	V4L2_MBUS_FMT_RGB565_2X8_LE = 8,
-> > > +	/* YUV (including grey) */
-> > > +	V4L2_MBUS_FMT_GREY8_1X8 = 12,
-> > > +	V4L2_MBUS_FMT_Y10_1X10 = 13,
-> > > +	V4L2_MBUS_FMT_YUYV8_1_5X8 = 20,
-> > > +	V4L2_MBUS_FMT_YVYU8_1_5X8 = 21,
-> > > +	V4L2_MBUS_FMT_UYVY8_1_5X8 = 22,
-> > > +	V4L2_MBUS_FMT_VYUY8_1_5X8 = 23,
-> > > +	V4L2_MBUS_FMT_YUYV8_2X8 = 2,
-> > > +	V4L2_MBUS_FMT_UYVY8_2X8 = 4,
-> > > +	V4L2_MBUS_FMT_YVYU8_2X8 = 3,
-> > > +	V4L2_MBUS_FMT_VYUY8_2X8 = 5,
-> > > +	/* Bayer */
-> > > +	V4L2_MBUS_FMT_SBGGR8_1X8 = 10,
-> > > +	V4L2_MBUS_FMT_SBGGR10_1X10 = 11,
-> > > +	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE = 16,
-> > > +	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE = 14,
-> > > +	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE = 17,
-> > > +	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE = 15,
-> > > +	V4L2_MBUS_FMT_SBGGR12_1X12 = 19,
-> > > +	V4L2_MBUS_FMT_SGRBG8_1X8 = 18,
-> > 
-> > Why on earth would you want to keep the original values? It was internal
-> > only, so no need to stick to the old values.
-> 
-> Good point :-)
-> 
-> > Just let RGB start at 1000, YUV at 2000 and Bayer at 3000 or something like
-> > that.
-> > 
-> > > +	/* Last - Update this when adding a new pixel code */
-> > > +	V4L2_MBUS_FMT_LAST = 24,
-> > 
-> > Why would you need this?
-> 
-> We've discussed this in the past. Keeping holes won't help, as we will have to 
-> insert formats in places where we won't have holes sooner or later. We agreed 
-> that it was better to keep the list organized by format, as that's easier to 
-> read. V4L2_MBUS_FMT_LAST is thus a shortcut to avoid searching for the highest 
-> format when adding a new one. As the constant itself isn't really needed, we 
-> can keep the highest allocated format code in a comment instead.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-I would definitely make it a comment. Actually, a counter should be kept per
-section. It might actually be useful in the future if you can do something like:
+Results of the daily build of v4l-dvb:
 
-	if ((mbus_fmt & MBUS_FMT_TYPE_MASK) == MBUS_FMT_TYPE_YUV)
+date:        Tue Sep 21 19:00:11 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15164:1da5fed5c8b2
+git master:       3e6dce76d99b328716b43929b9195adfee1de00c
+git media-master: 991403c594f666a2ed46297c592c60c3b9f4e1e2
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-Regards,
+linux-2.6.32.6-armv5: WARNINGS
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.36-rc2-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35.3-armv5-davinci: WARNINGS
+linux-2.6.36-rc2-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35.3-armv5-ixp: WARNINGS
+linux-2.6.36-rc2-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35.3-armv5-omap2: WARNINGS
+linux-2.6.36-rc2-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-rc2-i686: ERRORS
+linux-2.6.32.6-m32r: WARNINGS
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.36-rc2-m32r: ERRORS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.36-rc2-mips: ERRORS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.36-rc2-powerpc64: ERRORS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-rc2-x86_64: ERRORS
+linux-git-Module.symvers: ERRORS
+linux-git-armv5: ERRORS
+linux-git-armv5-davinci: ERRORS
+linux-git-armv5-ixp: ERRORS
+linux-git-armv5-omap2: ERRORS
+linux-git-i686: ERRORS
+linux-git-m32r: ERRORS
+linux-git-mips: ERRORS
+linux-git-powerpc64: ERRORS
+linux-git-x86_64: ERRORS
+spec: ERRORS
+spec-git: ERRORS
+sparse: ERRORS
 
-	Hans
+Detailed results are available here:
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L-DVB specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
