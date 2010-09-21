@@ -1,104 +1,86 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:52238 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751506Ab0I3EiS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Sep 2010 00:38:18 -0400
-Message-ID: <4CA41431.1000304@redhat.com>
-Date: Thu, 30 Sep 2010 01:38:09 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Randy Dunlap <randy.dunlap@oracle.com>
-CC: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-media@vger.kernel.org, linux-next@vger.kernel.org,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: linux-next: Tree for September 29 (media & IR build errors)
-References: <20100929143604.3d870ddf.sfr@canb.auug.org.au> <20100929083128.4efc3f0d.randy.dunlap@oracle.com>
-In-Reply-To: <20100929083128.4efc3f0d.randy.dunlap@oracle.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-in-14.arcor-online.net ([151.189.21.54]:57740 "EHLO
+	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750795Ab0IUX1Y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Sep 2010 19:27:24 -0400
+Subject: Re: [linux-dvb] Asus MyCinema P7131 Dual support
+From: hermann pitton <hermann-pitton@arcor.de>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+In-Reply-To: <AANLkTikf0hp8nXzovvdn0j_80Dcirr1a-EMH9sDDGEoX@mail.gmail.com>
+References: <AANLkTikf0hp8nXzovvdn0j_80Dcirr1a-EMH9sDDGEoX@mail.gmail.com>
+Content-Type: text/plain
+Date: Wed, 22 Sep 2010 01:13:00 +0200
+Message-Id: <1285110780.5561.18.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 29-09-2010 12:31, Randy Dunlap escreveu:
-> On Wed, 29 Sep 2010 14:36:04 +1000 Stephen Rothwell wrote:
+Hi Dejan,
+
+Am Dienstag, den 21.09.2010, 10:07 +0200 schrieb Dejan Rodiger:
+> Hi,
 > 
->> Hi all,
->>
->> Changes since 20100928:
+> I am using Ubuntu linux 10.10 with the latest kernel 2.6.35-22-generic
+> on x86_64. I have installed nonfree firmware which should support this
+> card, but to be sure, can somebody confirm that my TV card is
+> supported in Analog or DVB mode?
+> 
+> sudo lspci -vnn
+> 01:06.0 Multimedia controller [0480]: Philips Semiconductors
+> SAA7131/SAA7133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d1)
+>         Subsystem: ASUSTeK Computer Inc. My Cinema-P7131 Hybrid
+> [1043:4876]
+>         Flags: bus master, medium devsel, latency 32, IRQ 18
+>         Memory at fdeff000 (32-bit, non-prefetchable) [size=2K]
+>         Capabilities: [40] Power Management version 2
+>         Kernel driver in use: saa7134
+>         Kernel modules: saa7134
+> 
+> It says Hybrid, but I put the following in
+> the /etc/modprobe.d/saa7134.conf
+> options saa7134 card=78 tuner=54
 > 
 > 
-> ERROR: "ir_keydown" [drivers/media/video/ir-kbd-i2c.ko] undefined!
-> ERROR: "__ir_input_register" [drivers/media/video/ir-kbd-i2c.ko] undefined!
-> ERROR: "get_rc_map" [drivers/media/video/ir-kbd-i2c.ko] undefined!
-> ERROR: "ir_input_unregister" [drivers/media/video/ir-kbd-i2c.ko] undefined!
-> ERROR: "get_rc_map" [drivers/media/video/cx88/cx88xx.ko] undefined!
-> ERROR: "ir_repeat" [drivers/media/video/cx88/cx88xx.ko] undefined!
-> ERROR: "ir_input_unregister" [drivers/media/video/cx88/cx88xx.ko] undefined!
-> ERROR: "ir_keydown" [drivers/media/video/cx88/cx88xx.ko] undefined!
-> ERROR: "__ir_input_register" [drivers/media/video/cx88/cx88xx.ko] undefined!
-> ERROR: "get_rc_map" [drivers/media/video/bt8xx/bttv.ko] undefined!
-> ERROR: "ir_input_unregister" [drivers/media/video/bt8xx/bttv.ko] undefined!
-> ERROR: "__ir_input_register" [drivers/media/video/bt8xx/bttv.ko] undefined!
-> ERROR: "ir_core_debug" [drivers/media/IR/ir-common.ko] undefined!
-> ERROR: "ir_g_keycode_from_table" [drivers/media/IR/ir-common.ko] undefined!
+> Thanks
+> -- 
+> Dejan Rodiger
+> S: callto://drodiger
 
-Randy,
+don't have time to follow this closely anymore.
 
-Thanks for the test.
+But forcing it to card=78 is plain wrong. It has an early additional LNA
+in confirmed config = 2 status.
 
-With Sept, 29 + my linux-next tree (that weren't merged on yesterday's build,
-I didn't notice the above errors). I suspect that the fixes were already on my
-tree.
+Your card should be auto detected and previously always was, based on
+what we have in saa7134-cards.c and further for it. (saa7134-dvb and
+related tuner/demod stuff)
 
-I noticed, however, two Kconfig errors on staging (for go7007 and cx25821), related
-to IR_CORE changes:
+	}, {
+		.vendor       = PCI_VENDOR_ID_PHILIPS,
+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+		.subvendor    = 0x1043,
+		.subdevice    = 0x4876,
+		.driver_data  = SAA7134_BOARD_ASUSTeK_P7131_HYBRID_LNA,
+	},{
 
-warning: (VIDEO_GO7007 && STAGING && !STAGING_EXCLUDE_BUILD && VIDEO_DEV && PCI && I2C && INPUT && BKL && SND || VIDEO_CX25821 && STAGING && !STAGING_EXCLUDE_BUILD && DVB_CORE && VIDEO_DEV && PCI && I2C && INPUT && BKL) selects VIDEO_IR which has unmet direct dependencies (IR_CORE)
-warning: (VIDEO_CX25821 && STAGING && !STAGING_EXCLUDE_BUILD && DVB_CORE && VIDEO_DEV && PCI && I2C && INPUT && BKL) selects VIDEO_IR which has unmet direct dependencies (IR_CORE)
+I remember for sure, that this card was fully functional for all use
+cases and it was not easy to get it there. I don't have it.
 
-I'm adding the enclosed patch to my linux-next tree in order to fix this trouble.
-On a test after the patch on my tree, your randconfig applied well over my tree.
-So, I'm pushing it to my tree at kernel.org.
+Please provide the "dmesg" for failing auto detection without forcing
+some card = number as a starting point.
+
+I for sure want to see this board fully functional again.
 
 Cheers,
-Mauro
+Hermann
 
----
 
-commit 9c1eba02d90134fdfa4140b594b2367e90df1dbf
-Author: Mauro Carvalho Chehab <mchehab@redhat.com>
-Date:   Thu Sep 30 00:56:08 2010 -0300
 
-    V4L/DVB: Fix Kconfig dependencies for VIDEO_IR
-    
-    warning: (VIDEO_GO7007 && STAGING && !STAGING_EXCLUDE_BUILD && VIDEO_DEV && PCI && I2C && INPUT && BKL && SND || VIDEO_CX25821 && STAGING && !STAGING_EXCLUDE_BUILD && DVB_CORE && VIDEO_DEV && PCI && I2C && INPUT && BKL) selects VIDEO_IR which has unmet direct dependencies (IR_CORE)
-    warning: (VIDEO_CX25821 && STAGING && !STAGING_EXCLUDE_BUILD && DVB_CORE && VIDEO_DEV && PCI && I2C && INPUT && BKL) selects VIDEO_IR which has unmet direct dependencies (IR_CORE)
-    
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-diff --git a/drivers/staging/cx25821/Kconfig b/drivers/staging/cx25821/Kconfig
-index df7756a..a766d0b 100644
---- a/drivers/staging/cx25821/Kconfig
-+++ b/drivers/staging/cx25821/Kconfig
-@@ -4,7 +4,7 @@ config VIDEO_CX25821
- 	select I2C_ALGOBIT
- 	select VIDEO_BTCX
- 	select VIDEO_TVEEPROM
--	select VIDEO_IR
-+	depends on VIDEO_IR
- 	select VIDEOBUF_DVB
- 	select VIDEOBUF_DMA_SG
- 	select VIDEO_CX25840
-diff --git a/drivers/staging/go7007/Kconfig b/drivers/staging/go7007/Kconfig
-index e47f683..b816a60 100644
---- a/drivers/staging/go7007/Kconfig
-+++ b/drivers/staging/go7007/Kconfig
-@@ -3,7 +3,7 @@ config VIDEO_GO7007
- 	depends on VIDEO_DEV && PCI && I2C && INPUT
- 	depends on SND
- 	select VIDEOBUF_DMA_SG
--	select VIDEO_IR
-+	depends on VIDEO_IR
- 	select VIDEO_TUNER
- 	select VIDEO_TVEEPROM
- 	select SND_PCM
+
+
+
+
