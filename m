@@ -1,39 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:57427 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751887Ab0IRSXU (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:60065 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752683Ab0IUTFy convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Sep 2010 14:23:20 -0400
-Received: by qyk36 with SMTP id 36so1728163qyk.19
-        for <linux-media@vger.kernel.org>; Sat, 18 Sep 2010 11:23:19 -0700 (PDT)
+	Tue, 21 Sep 2010 15:05:54 -0400
+Received: by fxm3 with SMTP id 3so1684086fxm.19
+        for <linux-media@vger.kernel.org>; Tue, 21 Sep 2010 12:05:53 -0700 (PDT)
 MIME-Version: 1.0
-Date: Sat, 18 Sep 2010 20:23:19 +0200
-Message-ID: <AANLkTinTvXKrWKqukCj9MWw0Me3K5y2yDHMUP4eMpaN3@mail.gmail.com>
-Subject: dvb-c usb device
-From: Bert Haverkamp <bert@bertenselena.net>
+In-Reply-To: <AANLkTikWL10Tjb1BnmESGKvq1edZJXoe60pEdJUzMsLx@mail.gmail.com>
+References: <AANLkTi=TjOKMRQk1spGFVnt1ycu48eZudiWh-hc0a8vp@mail.gmail.com> <AANLkTikWL10Tjb1BnmESGKvq1edZJXoe60pEdJUzMsLx@mail.gmail.com>
+From: Daniel Moraes <daniel.b.moraes@gmail.com>
+Date: Tue, 21 Sep 2010 16:05:33 -0300
+Message-ID: <AANLkTimRw9=K5D51iejuVv2Duphu0tqCt8_nH2X2eOyL@mail.gmail.com>
+Subject: Webcam Driver Bug while using two Multilaser Cameras simultaneously
 To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello all,
+I'm using Ubuntu 10.04 and I need to get images from two Multilaser
+Cameras simultaneously. First I tried to do that using OpenCV, but I
+got an error. So, I entered the OpenCV Mailing List to report that and
+I discovered that's a driver problem. To ensure that, I used mplayer
+to get imagens from the both cameras and I got the following error
+(again):
 
-Every couple of months I scan this mailing list for the keywords usb
-and dvb-c, hoping that some new device has shown up that is supported
-under Linux.
-My request for information a couple of years ago turned up a few older
-devices that don't work well or are not sold anymore. And a closed
-source device. Neither was really a way to go.
+> v4l2: ioctl streamon failed: No space left on device
 
-So I would like to check again if any one knows of a device that is
-supported or developments in that direction.
+The cameras model is Multilaser WC0440.
 
-With the announcement of Broadcom on their network driver, one keeps
-hoping that Micronas one day may turn around on their decision wrt a
-drx-k driver.
-It seems most (if not all) dvb-c usb devices out there are depending
-on this one.
+This problem only happens when I try to capture images from two
+IDENTICAL cameras simultaneously. I have three cameras here, two
+Multilaser Cameras and one HP Camera, from my laptop. I have no
+problem to capture images from my HP Camera and one of the Multilaser
+Cameras simultaneously, but when I try to capture from the both
+Multilaser Cameras simultaneously, i got that error.
 
-Regards,
+I think that the problem may be something related to the generic
+driver. When I use the Multilaser Cameras, they use the same driver.
+That's not happen with the HP Camera, which uses another driver.
+Someone knows a solution for that?
 
-Bert Haverkamp
+Att,
+ Daniel Bastos Moraes
+ Graduando em Ciência da Computação - Universidade Tiradentes
+ +55 79 88455531
