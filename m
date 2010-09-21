@@ -1,23 +1,20 @@
 Return-path: <mchehab@pedra>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <post@dietmar-nowack.de>) id 1OySvQ-000551-Tc
-	for linux-dvb@linuxtv.org; Wed, 22 Sep 2010 19:16:09 +0200
-Received: from dd6814.kasserver.com ([85.13.131.124])
+	(envelope-from <dejan.rodiger@gmail.com>) id 1Oxxso-0007mE-Ra
+	for linux-dvb@linuxtv.org; Tue, 21 Sep 2010 10:07:23 +0200
+Received: from mail-vw0-f54.google.com ([209.85.212.54])
 	by mail.tu-berlin.de (exim-4.69/mailfrontend-b) with esmtp
 	for <linux-dvb@linuxtv.org>
-	id 1OySvQ-000644-7x; Wed, 22 Sep 2010 19:16:08 +0200
-Received: from [192.168.1.201]
-	(HSI-KBW-078-042-213-043.hsi3.kabel-badenwuerttemberg.de
-	[78.42.213.43])
-	by dd6814.kasserver.com (Postfix) with ESMTP id C5D5F180C9135
-	for <linux-dvb@linuxtv.org>; Wed, 22 Sep 2010 19:16:07 +0200 (CEST)
-From: Dietmar Nowack <post@dietmar-nowack.de>
+	id 1Oxxso-0004Ik-7Q; Tue, 21 Sep 2010 10:07:22 +0200
+Received: by vws2 with SMTP id 2so3739545vws.41
+	for <linux-dvb@linuxtv.org>; Tue, 21 Sep 2010 01:07:20 -0700 (PDT)
+MIME-Version: 1.0
+From: Dejan Rodiger <dejan.rodiger@gmail.com>
+Date: Tue, 21 Sep 2010 10:07:00 +0200
+Message-ID: <AANLkTikf0hp8nXzovvdn0j_80Dcirr1a-EMH9sDDGEoX@mail.gmail.com>
 To: linux-dvb@linuxtv.org
-Date: Wed, 22 Sep 2010 19:16:07 +0200
-Message-ID: <1285175767.1817.13.camel@dicomputer>
-Mime-Version: 1.0
-Subject: [linux-dvb] SAA7146-based card- tunes, but no multiplex
+Subject: [linux-dvb] Asus MyCinema P7131 Dual support
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -26,96 +23,82 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============2045163188=="
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 Sender: <mchehab@pedra>
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all,
-I have an (old) SAA7146-based DVB device- a Technotrend/Hauppauge WinTV
-DVB-S rev1.3 SE, if the autodetection is to be trusted. It is recognized
-without error (apparently), the firmware file resides in the appropriate
-folder and is loaded correctly, and nothing in the logs points to an
-error. However, while the device tunes and acquires a lock, no video
-data can be captured. 
+--===============2045163188==
+Content-Type: multipart/alternative; boundary=0016e68ee000a505300490c084ae
 
-Here's what I think are the relevant messages from the kernel:
+--0016e68ee000a505300490c084ae
+Content-Type: text/plain; charset=UTF-8
 
+Hi,
 
-[   19.620310] DVB: registering new adapter (Technotrend/Hauppauge WinTV
-DVB-S rev1.3 SE)
-[   19.661939] adapter has MAC addr = 00:d0:5c:00:00:b3
-[   19.670459] dvb 0000:05:00.0: firmware: requesting
-av7110/bootcode.bin
-[   19.906050] dvb-ttpci: gpioirq unknown type=0 len=0
-[   19.920105] dvb-ttpci: info @ card 0: firm f0240009, rtsl b0250018,
-vid 00000000, app 80002622
-[   19.920107] dvb-ttpci: firmware @ card 0 supports CI link layer
-interface
-[   20.096224] dvb-ttpci: adac type set to 0 @ card 0
-[   20.101859] saa7146_vv: saa7146 (0): registered device video0 [v4l2]
-[   20.101882] saa7146_vv: saa7146 (0): registered device vbi0 [v4l2]
-[   20.289732] ves1x93: Detected ves1893a rev2
-[   20.289737] DVB: registering adapter 0 frontend 0 (VLSI VES1x93
-DVB-S)...
-[   20.289865] input: DVB on-card IR receiver
-as /devices/pci0000:00/0000:00:1e.0/0000:05:00.0/input/input6
-[   20.289900] dvb-ttpci: found av7110-0.
+I am using Ubuntu linux 10.10 with the latest kernel 2.6.35-22-generic on
+x86_64. I have installed nonfree firmware which should support this card,
+but to be sure, can somebody confirm that my TV card is supported in Analog
+or DVB mode?
+
+sudo lspci -vnn
+01:06.0 Multimedia controller [0480]: Philips Semiconductors
+SAA7131/SAA7133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d1)
+        Subsystem: ASUSTeK Computer Inc. My Cinema-P7131 *Hybrid*[1043:4876]
+        Flags: bus master, medium devsel, latency 32, IRQ 18
+        Memory at fdeff000 (32-bit, non-prefetchable) [size=2K]
+        Capabilities: [40] Power Management version 2
+        Kernel driver in use: saa7134
+        Kernel modules: saa7134
+
+It says Hybrid, but I put the following in the /etc/modprobe.d/saa7134.conf
+options saa7134 card=78 tuner=54
 
 
+Thanks
+-- 
+Dejan Rodiger
+S: callto://drodiger
 
-A tuning attempt using dvbtune yields:
+--0016e68ee000a505300490c084ae
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
->dvbtune -f 12551000 -p v -s 22000
-Using DVB card "VLSI VES1x93 DVB-S"
-tuning DVB-S to L-Band:134513994, Pol:V Srate=22000000, 22kHz=off
-polling....
-Getting frontend event
-FE_STATUS:
-polling....
-Getting frontend event
-FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI
-FE_HAS_SYNC
-Event:  Frequency: 12551859
-        SymbolRate: 22000000
-        FEC_inner:  5
+Hi,<br><br>I am using Ubuntu linux 10.10 with the latest kernel 2.6.35-22-g=
+eneric on x86_64. I have installed nonfree firmware which should support th=
+is card, but to be sure, can somebody confirm that my TV card is supported =
+in Analog or DVB mode?<br>
 
-Bit error rate: 0
-Signal strength: 43433
-SNR: 57054
-FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI
-FE_HAS_SYNC
+<br>sudo lspci -vnn<br>01:06.0 Multimedia controller [0480]: Philips Semico=
+nductors SAA7131/SAA7133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d=
+1)<br>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 Subsystem: ASUSTeK Compute=
+r Inc. My Cinema-P7131 <b><u>Hybrid</u></b> [1043:4876]<br>
 
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 Flags: bus master, medium devsel=
+, latency 32, IRQ 18<br>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 Memory a=
+t fdeff000 (32-bit, non-prefetchable) [size=3D2K]<br>=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0 Capabilities: [40] Power Management version 2<br>=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 Kernel driver in use: saa7134<br>
 
-
-This is the output I get from 'scan' (dvbscan)
-
-scanning /usr/share/dvb/dvb-s/Astra-19.2E
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 12551500 V 22000000 5
->>> tune to: 12551:v:0:22000
-DVB-S IF freq is 1951500
-WARNING: filter timeout pid 0x0011
-WARNING: filter timeout pid 0x0000
-WARNING: filter timeout pid 0x0010
-dumping lists (0 services)
-Done.
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 Kernel modules: saa7134<br><br>I=
+t says Hybrid, but I put the following in the /etc/modprobe.d/saa7134.conf<=
+br>options saa7134 card=3D78 tuner=3D54<br><br><br>Thanks<br clear=3D"all">=
+-- <br>Dejan Rodiger<br>S: callto://drodiger<br>
 
 
 
-Using a different card, I can tune, scan using the same command and
-receive a TS, so reception problems can be ruled out. 
+--0016e68ee000a505300490c084ae--
 
-Any suggestions how to proceed to resolve the issue or what further data
-to provide to that end would be highly appreciated.
 
-Best regards
-Dietmar
-
+--===============2045163188==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============2045163188==--
