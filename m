@@ -1,64 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from graze.net ([71.162.143.10]:38704 "HELO graze.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754853Ab0IMUHh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Sep 2010 16:07:37 -0400
-Received: from graze.net (localhost.localdomain [127.0.0.1])
-	by graze.net (8.13.1/8.13.1) with ESMTP id o8DK7ZTR010861
-	for <linux-media@vger.kernel.org>; Mon, 13 Sep 2010 16:07:35 -0400
-Date: Mon, 13 Sep 2010 16:07:34 -0400
-From: "Brian C. Huffman" <bhuffman@graze.net>
-To: linux-media@vger.kernel.org
-Message-ID: <30870750.411284408454843.JavaMail.root@graze.net>
-Subject: bt878 irq PABORT
+Received: from smtp1.infomaniak.ch ([84.16.68.89]:53368 "EHLO
+	smtp1.infomaniak.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753463Ab0IUIn4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Sep 2010 04:43:56 -0400
+Received: from ams-thkernen-8714.cisco.com (64-103-25-233.cisco.com [64.103.25.233])
+	(authenticated bits=0)
+	by smtp1.infomaniak.ch (8.14.2/8.14.2) with ESMTP id o8L8hqa8001431
+	(version=TLSv1/SSLv3 cipher=AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 21 Sep 2010 10:43:54 +0200
+Message-ID: <4C987048.2000101@deckpoint.ch>
+Date: Tue, 21 Sep 2010 10:43:52 +0200
+From: Thomas Kernen <tkernen@deckpoint.ch>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+To: linux-media@vger.kernel.org
+Subject: Re: Hauppauge WinTV-NOVA-T-500 support
+References: <4C85F654.3020505@deckpoint.ch>
+In-Reply-To: <4C85F654.3020505@deckpoint.ch>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-I have a DVICO Fusion 5 Lite DVB card and after switching to a new 
-motherboard, I'm getting the following errors in my messages along with 
-corrupted a/v output:
 
-bt878(0): irq PABORT risc_pc=35660000
-<...on and on...>
+So I've tested a WinTV-NOVA-T-500 model 283 (SL-283-V2.0-GER) which 
+according to the wiki isn't suppose to work:
+http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-NOVA-T-500
 
-Here's the snippit of the config from messages:
-Sep 12 20:02:28 baavo kernel: bttv: Bt8xx card found (0).
-Sep 12 20:02:28 baavo kernel: ivtv: End initialization
-Sep 12 20:02:28 baavo kernel: bttv 0000:08:03.0: enabling device (0000 -> 0002)
-Sep 12 20:02:28 baavo kernel: bttv 0000:08:03.0: PCI INT A -> GSI 19 (level, low) -> IRQ 19
-Sep 12 20:02:28 baavo kernel: bttv0: Bt878 (rev 17) at 0000:08:03.0, irq: 19, latency: 32, mmio: 0xe8001000
-Sep 12 20:02:28 baavo kernel: bttv0: detected: DViCO FusionHDTV 5 Lite [card=135], PCI subsystem ID is 18ac:d500
-Sep 12 20:02:28 baavo kernel: bttv0: using: DViCO FusionHDTV 5 Lite [card=135,autodetected]
-Sep 12 20:02:28 baavo kernel: IRQ 19/bttv0: IRQF_DISABLED is not guaranteed on shared IRQs
-Sep 12 20:02:28 baavo kernel: bttv0: tuner type=64
-Sep 12 20:02:28 baavo kernel: bttv0: audio absent, no audio device found!
-Sep 12 20:02:28 baavo kernel: tuner 3-0043: chip found @ 0x86 (bt878 #0 [sw])
-Sep 12 20:02:28 baavo kernel: tda9887 3-0043: creating new instance
-Sep 12 20:02:28 baavo kernel: tda9887 3-0043: tda988[5/6/7] found
-Sep 12 20:02:28 baavo kernel: tuner 3-0061: chip found @ 0xc2 (bt878 #0 [sw])
-Sep 12 20:02:28 baavo kernel: tuner-simple 3-0061: creating new instance
-Sep 12 20:02:28 baavo kernel: tuner-simple 3-0061: type set to 64 (LG TDVS-H06xF)
-Sep 12 20:02:28 baavo kernel: bttv0: registered device video2
-Sep 12 20:02:28 baavo kernel: bttv0: registered device vbi0
-Sep 12 20:02:28 baavo kernel: bttv0: add subdevice "dvb0"
-Sep 12 20:02:28 baavo kernel: ICE1712 0000:08:00.0: enabling device (0000 -> 0001)
-Sep 12 20:02:28 baavo kernel: ICE1712 0000:08:00.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
-Sep 12 20:02:28 baavo kernel: bt878: AUDIO driver version 0.0.0 loaded
-Sep 12 20:02:28 baavo kernel: bt878: Bt878 AUDIO function found (0).
-Sep 12 20:02:28 baavo kernel: bt878 0000:08:03.1: enabling device (0000 -> 0002)
-Sep 12 20:02:28 baavo kernel: bt878 0000:08:03.1: PCI INT A -> GSI 19 (level, low) -> IRQ 19
-Sep 12 20:02:28 baavo kernel: bt878_probe: card id=[0xd50018ac],[ DViCO FusionHDTV 5 Lite ] has DVB functions.
-Sep 12 20:02:28 baavo kernel: bt878(0): Bt878 (rev 17) at 08:03.1, irq: 19, latency: 32, memory: 0xe8000000
-Sep 12 20:02:28 baavo kernel: IRQ 19/bt878: IRQF_DISABLED is not guaranteed on shared IRQs
-Sep 12 20:02:28 baavo kernel: DVB: registering new adapter (bttv0)
-Sep 12 20:02:28 baavo kernel: tuner-simple 3-0061: attaching existing instance
-Sep 12 20:02:28 baavo kernel: tuner-simple 3-0061: type set to 64 (LG TDVS-H06xF)
-Sep 12 20:02:28 baavo kernel: DVB: registering adapter 0 frontend 0 (LG Electronics LGDT3303 VSB/QAM Frontend)...
+Anyhow, the revision I own, (WinTV-NOVA-T-500, 99101 LF, Rev D8B5) I 
+seem to have no issues with support, no errors on loading the modules or 
+tuning to the different DVB-T tuners. I'll go ahead and update the Wiki 
+page to add a note that this revision actually does work and that the 
+blanket statement claiming all model 283 are not supported.
 
-Any help / thoughts are appreciated.
+Regards,
+Thomas
 
-Thanks,
-Brian
+On 9/7/10 10:22 AM, Thomas Kernen wrote:
+>
+> Hello,
+>
+> According to the wiki entry for the Hauppauge WinTV-NOVA-T-500 hardware:
+> http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-NOVA-T-500
+>
+> Models 289 and 287 are supported (ie: the UK sold cards), but model 283
+> sold in Germany, Switzerland and maybe some other countries isn't.
+>
+> Is this still an accurate statement or has this situation evolved but
+> hasn't been updated in the wiki entry?
+>
+> Regards,
+> Thomas
+> --
