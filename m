@@ -1,103 +1,90 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1687 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752169Ab0IINi0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Sep 2010 09:38:26 -0400
-Message-ID: <ed5d9db2e3f0e35b69130b1b6148135b.squirrel@webmail.xs4all.nl>
-In-Reply-To: <4C88C1DA.1070606@redhat.com>
-References: <20100906201105.4029d7e7@tele>
-    <201009071730.33642.hverkuil@xs4all.nl> <4C86AB22.7020206@redhat.com>
-    <201009090855.53072.hverkuil@xs4all.nl> <4C88C1DA.1070606@redhat.com>
-Date: Thu, 9 Sep 2010 15:38:12 +0200
-Subject: Re: [PATCH] Illuminators and status LED controls
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Hans de Goede" <hdegoede@redhat.com>
-Cc: "Jean-Francois Moine" <moinejf@free.fr>,
-	linux-media@vger.kernel.org
+Received: from mx1.redhat.com ([209.132.183.28]:4537 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752866Ab0IVVRL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Sep 2010 17:17:11 -0400
+Message-ID: <4C9A7254.8010604@redhat.com>
+Date: Wed, 22 Sep 2010 18:17:08 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: [GIT PATCHES FOR 2.6.37] V4L documentation fixes
+References: <201009150923.50132.hverkuil@xs4all.nl> <4C9A5C0B.3040506@redhat.com> <201009222206.11694.hverkuil@xs4all.nl>
+In-Reply-To: <201009222206.11694.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-
-> Hi,
->
-> On 09/09/2010 08:55 AM, Hans Verkuil wrote:
->> On Tuesday, September 07, 2010 23:14:10 Hans de Goede wrote:
->
-> <snip>
->
->>> How about a compromise, we add a set of standard defines for menu
->>> index meanings, with a note that these are present as a way to
->>> standardize
->>> things between drivers, but that some drivers may deviate and that
->>> apps should always use VIDIOC_QUERYMENU ?
+Em 22-09-2010 17:06, Hans Verkuil escreveu:
+> On Wednesday, September 22, 2010 21:42:03 Mauro Carvalho Chehab wrote:
+>> Em 15-09-2010 04:23, Hans Verkuil escreveu:
+>>> The following changes since commit 57fef3eb74a04716a8dd18af0ac510ec4f71bc05:
+>>>   Richard Zidlicky (1):
+>>>         V4L/DVB: dvb: fix smscore_getbuffer() logic
+>>>
+>>> are available in the git repository at:
+>>>
+>>>   ssh://linuxtv.org/git/hverkuil/v4l-dvb.git misc2
+>>>
+>>> Hans Verkuil (6):
+>>>       V4L Doc: removed duplicate link
 >>
->> Let's use boolean for these illuminator controls instead. Problem solved
->> :-)
->
-> Erm, no. If you take a look at the current qx5 microscope support code in
-> the
-> cpia2 driver it currently is a menu with the following possible values:
-> Off
-> Top
-> Bottom
-> Both
->
-> So now lets say we create standard controls for illuminators and make them
-> booleans and use 2 booleans. And then modify the cpia2 driver to follow
-> the
-> new standard.
->
-> The user behavior then goes from:
-> - user things lets switch from top to bottom lighting
-> - go to control
-> - click menu drops down select top / bottom
-> -> easy
->
-> To:
-> - user things lets switch from top to bottom lighting
-> - go to control
-> - heuh 2 checkboxes ?
-> - click one check box off
-> - clock other check box on
-> -> not easy
+>> This doesn't seem right. the entry for V4L2-PIX-FMT-BGR666 seems to be duplicated.
+>> We should remove the duplication, instead of just dropping the ID.
+> 
+> No, this patch is correct. This section really duplicates the formats due to
+> confusion about the byte order in memory. But only one of these format tables
+> should have a valid ID.
+> 
+> See table 2.4 and 2.5 here:
+> 
+> http://www.xs4all.nl/~hverkuil/spec/media.html#packed-rgb
+> 
+> As you can see here there is no BGR666 entry in either table since the docbook
+> generation has been failing on this docbook error for some time now.
+> 
+>>
+>>>       V4L Doc: fix DocBook syntax errors.
+>>>       V4L Doc: document V4L2_CAP_RDS_OUTPUT capability.
+>>>       V4L Doc: correct the documentation for VIDIOC_QUERYMENU.
+>>
+>> Applied, thanks.
+>>
+>>>       V4L Doc: rewrite the Device Naming section
+>>
+>> The new text is incomplete, as it assumes only the old non-dynamic device node
+>> creation. Also, some distros actually create /dev/v4l, as recommended. IMHO, we
+>> need to improve this section, proposing a better way to name devices. This may
+>> be an interesting theme for this year's LPC.
+> 
+> No, the major is still 81 and the minors are still between 0 and 255. But the minor
+> ranges are gone (unless you turn that on explicitly). So this text is really correct
+> and way more understandable than the old text.
 
-So two clicks in the case of a menu and two in the case of a checkbox.
-Personally I don't see this as a big deal. But it will be good to get
-other people's opinion on this.
+Hmm... are the V4L core artificially limiting minor range to be between 0 and 255?
 
->
-> If I were a user I would call this change a regression, and as such I find
-> the boolean proposal unacceptable. Maybe we should call the control
-> V4L2_CID_MICROSCOPE_ILLUMINATOR
->
-> To make it more clear that the menu variant of this is meant for
-> microscopes (which typically have either only a bottom illuminator
-> or both a bottom and a top one). And if we then ever need to support
-> some other kind of illuminator we can add a separate cid for that/
->
-> Otherwise I think it might be best to just keep this as a private control.
-
-V4L2_CID_MICROSCOPE_ILLUMINATOR might be an option, but then the question
-is whether the top/bottom illuminator combination is standard for all (or
-at least the majority) of microscopes. If that is indeed the case, then we
-can consider this. Although I still think that checkboxes work just as
-well.
-
-But if this arrangement and number of illuminators is specific to this
-range of microscopes, then a private control is an option.
-
-An other option is to have ILLUMINATOR_TOP and ..._BOTTOM boolean
-controls. That way at least the name presented to the user makes sense (if
-the user can read english of course, but that's a discussion for another -
-very rainy - day).
-
-Regards,
-
-        Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+> 
+>>
+>>>       V4L Doc: clarify the V4L spec.
+>>
+>> This is a mix of several changes on the same patch. I want to do comments about it,
+>> but no time right now to write an email about that. It is a way harder to comment
+>> Docbook changes than patches, as the diff output is not user-friendly.
+>> I'll postpone this patch for a better analysis.
+> 
+> No problem.
+> 
+> Regards,
+> 
+> 	Hans
+>  
+>> I don't want to postpone the DocBook correction patches due to that, so I'm applying
+>> the patches I'm ok.
+>>
+>> Cheers,
+>> Mauro
+>>
+> 
 
