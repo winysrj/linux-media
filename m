@@ -1,47 +1,1036 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:59890 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754059Ab0I1KFM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Sep 2010 06:05:12 -0400
-Received: by wyb28 with SMTP id 28so4774697wyb.19
-        for <linux-media@vger.kernel.org>; Tue, 28 Sep 2010 03:05:11 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <ADF13DA15EB3FE4FBA487CCC7BEFDF3604CAE3BABC@bssrvexch01.BS.local>
-References: <ADF13DA15EB3FE4FBA487CCC7BEFDF3604CAE3BABC@bssrvexch01.BS.local>
-Date: Tue, 28 Sep 2010 19:05:10 +0900
-Message-ID: <AANLkTi=wMWjiY2eNR9wSkWxjKX6d_Awm4J1v57tUDB=s@mail.gmail.com>
-Subject: Re: RFC: Introduction of M2M capability and buffer types
-From: Kyungmin Park <kmpark@infradead.org>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	pawel@osciak.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from comal.ext.ti.com ([198.47.26.152]:33500 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754217Ab0IVKjK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Sep 2010 06:39:10 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o8MAd9Oo031662
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 22 Sep 2010 05:39:09 -0500
+From: x0130808@ti.com
+To: linux-media@vger.kernel.org
+Cc: Raja Mani <raja_mani@ti.com>, Pramodh AG <pramodh_ag@ti.com>,
+	Manjunatha Halli <x0130808@ti.com>
+Subject: [RFC/PATCH 2/9] drivers:staging:ti-st: Sources for FM RX
+Date: Wed, 22 Sep 2010 07:49:55 -0400
+Message-Id: <1285156202-28569-3-git-send-email-x0130808@ti.com>
+In-Reply-To: <1285156202-28569-2-git-send-email-x0130808@ti.com>
+References: <1285156202-28569-1-git-send-email-x0130808@ti.com>
+ <1285156202-28569-2-git-send-email-x0130808@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Any comments?
+From: Raja Mani <raja_mani@ti.com>
 
-On Tue, Sep 14, 2010 at 11:29 PM, Kamil Debski <k.debski@samsung.com> wrote:
-> Hello,
->
-> Mem2mem devices currently use V4L2_CAP_VIDEO_CAPTURE and V4L2_CAP_VIDEO_OUTPUT capabilities. One might expect that a capture device is a camera and an output device can display images. If I remember correct our discussion during the Helsinki v4l2 summit, Hans de Goede has pointed that such devices are listed in applications and can confuse users. The user expects a camera and he has to choose from a long list of devices.
->
-> The solution to this would be the introduction of two new capability V4L2_CAP_VIDEO_M2M. Such devices would not be listed when user is expected to choose which webcam or TV tuner device to use.
->
-> Another thing about m2m devices is the naming of buffers: V4L2_BUF_TYPE_VIDEO_CAPTURE means the destination buffer and V4L2_BUF_TYPE_VIDEO_OUTPUT means source. This indeed is confusing, so I think the introduction of two new buffer types is justified. I would recommend V4L2_BUF_TYPE_M2M_SOURCE and V4L2_BUF_TYPE_M2M_DESTINATION to clearly state what is the buffer's purpose.
->
-> I would be grateful for your comments to this RFC.
->
-> Best wishes,
-> --
-> Kamil Debski
-> Linux Platform Group
-> Samsung Poland R&D Center
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+This has implementation for FM RX functionality.
+It communicates with FM V4l2 module and FM common module.
+
+Signed-off-by: Raja Mani <raja_mani@ti.com>
+Signed-off-by: Pramodh AG <pramodh_ag@ti.com>
+Signed-off-by: Manjunatha Halli <x0130808@ti.com>
+---
+ drivers/staging/ti-st/fmdrv_rx.c |  927 ++++++++++++++++++++++++++++++++++++++
+ drivers/staging/ti-st/fmdrv_rx.h |   57 +++
+ 2 files changed, 984 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/staging/ti-st/fmdrv_rx.c
+ create mode 100644 drivers/staging/ti-st/fmdrv_rx.h
+
+diff --git a/drivers/staging/ti-st/fmdrv_rx.c b/drivers/staging/ti-st/fmdrv_rx.c
+new file mode 100644
+index 0000000..c5cd033
+--- /dev/null
++++ b/drivers/staging/ti-st/fmdrv_rx.c
+@@ -0,0 +1,927 @@
++/*
++ *  FM Driver for Connectivity chip of Texas Instruments.
++ *  This sub-module of FM driver implements FM RX functionality.
++ *
++ *  Copyright (C) 2010 Texas Instruments
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License version 2 as
++ *  published by the Free Software Foundation.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ */
++
++#include "fmdrv.h"
++#include "fmdrv_common.h"
++#include "fmdrv_rx.h"
++
++void fm_rx_reset_rds_cache(struct fmdrv_ops *fmdev)
++{
++	fmdev->rx.rds.flag = FM_RDS_DISABLE;
++	fmdev->rx.rds.last_block_index = 0;
++	fmdev->rx.rds.wr_index = 0;
++	fmdev->rx.rds.rd_index = 0;
++
++	if (fmdev->rx.af_mode == FM_RX_RDS_AF_SWITCH_MODE_ON)
++		fmdev->irq_info.mask |= FM_LEV_EVENT;
++
++}
++
++void fm_rx_reset_curr_station_info(struct fmdrv_ops *fmdev)
++{
++	fmdev->rx.cur_station_info.picode = FM_NO_PI_CODE;
++	fmdev->rx.cur_station_info.no_of_items_in_afcache = 0;
++	fmdev->rx.cur_station_info.af_list_max = 0;
++}
++
++int fm_rx_set_frequency(struct fmdrv_ops *fmdev, unsigned int freq_to_set)
++{
++	unsigned long timeleft;
++	unsigned short payload, curr_frq, frq_index;
++	unsigned int curr_frq_in_khz;
++	int ret, resp_len;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX) {
++		ret = -EPERM;
++		goto exit;
++	}
++
++	if (freq_to_set < fmdev->rx.region.bottom_frequency ||
++		freq_to_set > fmdev->rx.region.top_frequency) {
++		pr_err("(fmdrv): Invalid frequency %d\n", freq_to_set);
++		ret = -EINVAL;
++		goto exit;
++	}
++	/* Set audio enable */
++	FM_STORE_LE16_TO_BE16(payload, FM_RX_FM_AUDIO_ENABLE_I2S_AND_ANALOG);
++	ret = fmc_send_cmd(fmdev, AUDIO_ENABLE_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set RX audio enable path - %d\n",
++			ret);
++		return ret;
++	}
++
++	/* Set hilo to automatic selection */
++	FM_STORE_LE16_TO_BE16(payload, FM_RX_IFFREQ_HILO_AUTOMATIC);
++	ret = fmc_send_cmd(fmdev, HILO_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set HILO to automatic selection "
++			"- %d\n", ret);
++		return ret;
++	}
++
++	/* Calculate frequency index to write */
++	frq_index = (freq_to_set - fmdev->rx.region.bottom_frequency) /
++		fmdev->rx.region.channel_spacing;
++
++	/* Set frequency index */
++	FM_STORE_LE16_TO_BE16(payload, frq_index);
++	ret = fmc_send_cmd(fmdev, FREQ_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set frequency index - %d\n", ret);
++		return ret;
++	}
++
++	/* Read flags - just to clear any pending interrupts if we had */
++	ret = fmc_send_cmd(fmdev, FLAG_GET, NULL, 2,
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to read interrupt flag - %d\n", ret);
++		return ret;
++	}
++
++	/* Enable FR, BL interrupts */
++	fmdev->irq_info.mask |= (FM_FR_EVENT | FM_BL_EVENT);
++	FM_STORE_LE16_TO_BE16(payload, fmdev->irq_info.mask);
++	ret = fmc_send_cmd(fmdev, INT_MASK_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set interrupt mask - %d\n", ret);
++		return ret;
++	}
++
++	/* Start tune */
++	FM_STORE_LE16_TO_BE16(payload, FM_TUNER_PRESET_MODE);
++	ret = fmc_send_cmd(fmdev, TUNER_MODE_SET, &payload, sizeof(payload),
++			       &fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to start tune operation - %d\n", ret);
++		return ret;
++	}
++
++	/* Wait for tune ended interrupt */
++	init_completion(&fmdev->maintask_completion);
++	timeleft = wait_for_completion_timeout(&fmdev->maintask_completion,
++					       FM_DRV_TX_TIMEOUT);
++	if (!timeleft) {
++		pr_err("(fmdrv): Timeout(%d sec),didn't get tune ended int\n",
++			   jiffies_to_msecs(FM_DRV_TX_TIMEOUT) / 1000);
++		ret = -ETIMEDOUT;
++		goto exit;
++	}
++
++	/* Read freq back to confirm */
++	ret = fmc_send_cmd(fmdev, FREQ_GET, NULL, 2,
++		&fmdev->maintask_completion, &curr_frq, &resp_len);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to read current frequency - %d\n",
++			ret);
++		return ret;
++	}
++
++	curr_frq = FM_BE16_TO_LE16(curr_frq);
++	curr_frq_in_khz = (fmdev->rx.region.bottom_frequency
++		+ ((unsigned int)curr_frq * fmdev->rx.region.channel_spacing));
++
++	/* Re-enable default FM interrupts */
++	fmdev->irq_info.mask &= ~(FM_FR_EVENT | FM_BL_EVENT);
++	FM_STORE_LE16_TO_BE16(payload, fmdev->irq_info.mask);
++	ret = fmc_send_cmd(fmdev, INT_MASK_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set interrupt mask - %d\n", ret);
++		return ret;
++	}
++
++	if (curr_frq_in_khz != freq_to_set) {
++		pr_err("(fmdrv): Current chip frequency(%d) is not matching"
++			   " with requested frequency(%d)\n", curr_frq_in_khz,
++			   freq_to_set);
++		ret = -EAGAIN;
++		goto exit;
++	}
++
++	/* Update local cache  */
++	fmdev->rx.curr_freq = curr_frq_in_khz;
++
++	/* Reset RDS cache and current station pointers */
++	fm_rx_reset_rds_cache(fmdev);
++	fm_rx_reset_curr_station_info(fmdev);
++
++	/* Do we need to reset anything else? */
++exit:
++	return ret;
++}
++
++int fm_rx_seek(struct fmdrv_ops *fmdev, unsigned int seek_upward,
++			unsigned int wrap_around)
++{
++	int resp_len;
++	unsigned short curr_frq, next_frq, last_frq;
++	unsigned short payload, int_reason;
++	char offset;
++	unsigned long timeleft;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX) {
++		ret = -EPERM;
++		goto exit;
++	}
++
++	/* Read the current frequency from chip */
++	ret = fmc_send_cmd(fmdev, FREQ_GET, NULL, sizeof(curr_frq),
++			&fmdev->maintask_completion, &curr_frq, &resp_len);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to read current frequency - %d\n",
++			ret);
++		return ret;
++	}
++
++	curr_frq = FM_BE16_TO_LE16(curr_frq);
++
++	last_frq =
++	(fmdev->rx.region.top_frequency - fmdev->rx.region.bottom_frequency)
++	/ fmdev->rx.region.channel_spacing;
++
++	/* Check the offset in order to be aligned to the 100KHz steps */
++	offset = curr_frq % 2;
++
++	next_frq = seek_upward ? curr_frq + 2 /* Seek Up */ :
++	    curr_frq - 2 /* Seek Down */ ;
++
++	/*
++	 * Add or subtract offset (0/1) in order to stay aligned to the 100KHz
++	 * steps.
++	 */
++	if ((short)next_frq < 0)
++		next_frq = last_frq - offset;
++	else if (next_frq > last_frq)
++		next_frq = 0 + offset;
++
++	/* Set calculated next frequency to perform seek */
++	FM_STORE_LE16_TO_BE16(payload, next_frq);
++	ret = fmc_send_cmd(fmdev, FREQ_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set new frequency - %d\n", ret);
++		return ret;
++	}
++
++	/* Set search direction (0:Seek Down, 1:Seek Up) */
++	FM_STORE_LE16_TO_BE16(payload, (seek_upward ? FM_SEARCH_DIRECTION_UP :
++					FM_SEARCH_DIRECTION_DOWN));
++	ret = fmc_send_cmd(fmdev, SEARCH_DIR_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set seek direction - %d\n", ret);
++		return ret;
++	}
++
++	/* Read flags - just to clear any pending interrupts if we had */
++	ret = fmc_send_cmd(fmdev, FLAG_GET, NULL, 2,
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to read interrupt flag - %d\n", ret);
++		return ret;
++	}
++
++	/* Enable FR, BL interrupts */
++	fmdev->irq_info.mask |= (FM_FR_EVENT | FM_BL_EVENT);
++	FM_STORE_LE16_TO_BE16(payload, fmdev->irq_info.mask);
++	ret = fmc_send_cmd(fmdev, INT_MASK_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set interrupt mask - %d\n", ret);
++		return ret;
++	}
++
++	/* Start seek */
++	FM_STORE_LE16_TO_BE16(payload, FM_TUNER_AUTONOMOUS_SEARCH_MODE);
++	ret = fmc_send_cmd(fmdev, TUNER_MODE_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to start seek operation - %d\n", ret);
++		return ret;
++	}
++
++	/* Wait for tune ended/band limit reached interrupt */
++	init_completion(&fmdev->maintask_completion);
++	timeleft = wait_for_completion_timeout(&fmdev->maintask_completion,
++					       FM_DRV_RX_SEEK_TIMEOUT);
++	if (!timeleft) {
++		pr_err("(fmdrv): Timeout(%d sec),didn't get tune ended int\n",
++			   jiffies_to_msecs(FM_DRV_RX_SEEK_TIMEOUT) / 1000);
++		ret = -ETIMEDOUT;
++		goto exit;
++	}
++	int_reason = fmdev->irq_info.flag & 0x3;
++
++	/* Re-enable default FM interrupts */
++	fmdev->irq_info.mask &= ~(FM_FR_EVENT | FM_BL_EVENT);
++	FM_STORE_LE16_TO_BE16(payload, fmdev->irq_info.mask);
++	ret = fmc_send_cmd(fmdev, INT_MASK_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set interrupt mask - %d\n", ret);
++		return ret;
++	}
++
++	/* Read freq to know where operation tune operation stopped */
++	ret = fmc_send_cmd(fmdev, FREQ_GET, NULL, 2,
++		&fmdev->maintask_completion, &curr_frq, &resp_len);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to read current frequency - %d\n",
++			ret);
++		return ret;
++	}
++
++	curr_frq = FM_BE16_TO_LE16(curr_frq);
++	fmdev->rx.curr_freq = (fmdev->rx.region.bottom_frequency +
++			       ((unsigned int)curr_frq *
++				fmdev->rx.region.channel_spacing));
++
++	/* Reset RDS cache and current station pointers */
++	fm_rx_reset_rds_cache(fmdev);
++	fm_rx_reset_curr_station_info(fmdev);
++
++	/* Return error if band limit is reached */
++	if (int_reason & FM_BL_EVENT) {
++		pr_debug("(fmdrv): band limit reached\n");
++		ret = -EAGAIN;
++	}
++exit:
++	return ret;
++}
++
++int fm_rx_set_volume(struct fmdrv_ops *fmdev, unsigned short vol_to_set)
++{
++	unsigned short payload;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (vol_to_set > FM_RX_VOLUME_MAX) {
++		pr_err("(fmdrv): Volume is not within(%d-%d) range\n",
++			   FM_RX_VOLUME_MIN, FM_RX_VOLUME_MAX);
++		return -EINVAL;
++	}
++	vol_to_set *= FM_RX_VOLUME_GAIN_STEP;
++
++	FM_STORE_LE16_TO_BE16(payload, vol_to_set);
++	ret = fmc_send_cmd(fmdev, VOLUME_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set RX volume level - %d\n", ret);
++		return ret;
++	}
++
++	fmdev->rx.curr_volume = vol_to_set;
++	return ret;
++}
++
++/* Get volume */
++int fm_rx_get_volume(struct fmdrv_ops *fmdev, unsigned short *curr_vol)
++{
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (curr_vol == NULL) {
++		pr_err("(fmdrv): Invalid memory\n");
++		return -ENOMEM;
++	}
++	*curr_vol = fmdev->rx.curr_volume / FM_RX_VOLUME_GAIN_STEP;
++	return 0;
++}
++
++/* To get current band's bottom and top frequency */
++int fm_rx_get_currband_lowhigh_freq(struct fmdrv_ops *fmdev,
++					unsigned int *bottom_frequency,
++					unsigned int *top_frequency)
++{
++	if (bottom_frequency != NULL)
++		*bottom_frequency = fmdev->rx.region.bottom_frequency;
++
++	if (top_frequency != NULL)
++		*top_frequency = fmdev->rx.region.top_frequency;
++
++	return 0;
++}
++
++/* Returns current band index (0-Europe/US; 1-Japan) */
++void fm_rx_get_region(struct fmdrv_ops *fmdev, unsigned char *region)
++{
++	*region = fmdev->rx.region.region_index;
++}
++
++/* Sets band (0-Europe/US; 1-Japan) */
++int fm_rx_set_region(struct fmdrv_ops *fmdev,
++			unsigned char region_to_set)
++{
++	unsigned short payload;
++	unsigned int new_frq;
++	int ret = -EPERM;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		goto exit;
++
++	if (region_to_set != FM_BAND_EUROPE_US &&
++	    region_to_set != FM_BAND_JAPAN) {
++		pr_err("(fmdrv): Invalid band\n");
++		ret = -EINVAL;
++		goto exit;
++	}
++	if (fmdev->rx.region.region_index == region_to_set) {
++		pr_err("(fmdrv): Requested band is already configured\n");
++		goto exit;
++	}
++	/* Send cmd to set the band  */
++	FM_STORE_LE16_TO_BE16(payload, (unsigned short)region_to_set);
++	ret = fmc_send_cmd(fmdev, RX_BAND_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set FM RX band - %d\n", ret);
++		return ret;
++	}
++
++	fmc_update_region_info(fmdev, region_to_set);
++
++	/* Check whether current RX frequency is within band boundary */
++	if (fmdev->curr_fmmode == FM_MODE_RX) {
++		new_frq = 0;
++		if (fmdev->rx.curr_freq < fmdev->rx.region.bottom_frequency)
++			new_frq = fmdev->rx.region.bottom_frequency;
++		else if (fmdev->rx.curr_freq > fmdev->rx.region.top_frequency)
++			new_frq = fmdev->rx.region.top_frequency;
++
++		if (new_frq) {
++			pr_debug("(fmdrv): "
++			     "Current freq is not within band limit boundary,"
++			     "switching to %d KHz\n", new_frq);
++			/*
++			 * Current RX frequency is not within boundary. So,
++			 * update it.
++			 */
++			ret = fm_rx_set_frequency(fmdev, new_frq);
++		}
++	}
++exit:
++	return ret;
++}
++
++/* Reads current mute mode (Mute Off/On/Attenuate)*/
++int fm_rx_get_mute_mode(struct fmdrv_ops *fmdev,
++			unsigned char *curr_mute_mode)
++{
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (curr_mute_mode == NULL) {
++		pr_err("(fmdrv): Invalid memory\n");
++		return -ENOMEM;
++	}
++	*curr_mute_mode = fmdev->rx.curr_mute_mode;
++	return 0;
++}
++
++static int __fm_config_rx_mute_reg(struct fmdrv_ops *fmdev)
++{
++	unsigned short payload, muteval;
++	int ret;
++
++	muteval = 0;
++	switch (fmdev->rx.curr_mute_mode) {
++	case FM_MUTE_ON:
++		muteval = FM_RX_MUTE_AC_MUTE_MODE;
++		break;
++	case FM_MUTE_OFF:
++		muteval = FM_RX_MUTE_UNMUTE_MODE;
++		break;
++	case FM_MUTE_ATTENUATE:
++		muteval = FM_RX_MUTE_SOFT_MUTE_FORCE_MODE;
++		break;
++	}
++	if (fmdev->rx.curr_rf_depend_mute == FM_RX_RF_DEPENDENT_MUTE_ON)
++		muteval |= FM_RX_MUTE_RF_DEP_MODE;
++	else
++		muteval &= ~FM_RX_MUTE_RF_DEP_MODE;
++
++	FM_STORE_LE16_TO_BE16(payload, muteval);
++	ret = fmc_send_cmd(fmdev, MUTE_STATUS_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set RX mute state - %d\n", ret);
++		return ret;
++	}
++	return 0;
++}
++
++/* Configures mute mode (Mute Off/On/Attenuate) */
++int fm_rx_set_mute_mode(struct fmdrv_ops *fmdev,
++			unsigned char mute_mode_toset)
++{
++	unsigned char org_state;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (fmdev->rx.curr_mute_mode == mute_mode_toset)
++		return 0;
++
++	org_state = fmdev->rx.curr_mute_mode;
++	fmdev->rx.curr_mute_mode = mute_mode_toset;
++
++	ret = __fm_config_rx_mute_reg(fmdev);
++	if (ret < 0) {
++		fmdev->rx.curr_mute_mode = org_state;
++		return ret;
++	}
++	return 0;
++}
++
++/* Gets RF dependent soft mute mode enable/disable status */
++int fm_rx_get_rfdepend_softmute(struct fmdrv_ops *fmdev,
++				unsigned char *curr_mute_mode)
++{
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++
++	if (curr_mute_mode == NULL) {
++		pr_err("(fmdrv): Invalid memory\n");
++		return -ENOMEM;
++	}
++	*curr_mute_mode = fmdev->rx.curr_rf_depend_mute;
++	return 0;
++}
++
++/* Sets RF dependent soft mute mode */
++int fm_rx_set_rfdepend_softmute(struct fmdrv_ops *fmdev,
++				unsigned char rfdepend_mute)
++{
++	unsigned char org_state;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++
++	if (rfdepend_mute != FM_RX_RF_DEPENDENT_MUTE_ON &&
++	    rfdepend_mute != FM_RX_RF_DEPENDENT_MUTE_OFF) {
++		pr_err("(fmdrv): Invalid RF dependent soft mute\n");
++		return -EINVAL;
++	}
++	if (fmdev->rx.curr_rf_depend_mute == rfdepend_mute)
++		return 0;
++
++	org_state = fmdev->rx.curr_rf_depend_mute;
++	fmdev->rx.curr_rf_depend_mute = rfdepend_mute;
++
++	ret = __fm_config_rx_mute_reg(fmdev);
++	if (ret < 0) {
++		fmdev->rx.curr_rf_depend_mute = org_state;
++		return ret;
++	}
++	return 0;
++}
++
++/* Returns the signal strength level of current channel */
++int fm_rx_get_rssi_level(struct fmdrv_ops *fmdev,
++				unsigned short *rssilvl)
++{
++	unsigned short curr_rssi_lel;
++	int resp_len;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (rssilvl == NULL) {
++		pr_err("(fmdrv): Invalid memory\n");
++		return -ENOMEM;
++	}
++	/* Read current RSSI level */
++	ret = fmc_send_cmd(fmdev, RSSI_LVL_GET, NULL, 2,
++		&fmdev->maintask_completion, &curr_rssi_lel, &resp_len);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to get RSSI level - %d\n", ret);
++		return ret;
++	}
++
++	*rssilvl = FM_BE16_TO_LE16(curr_rssi_lel);
++
++	return 0;
++}
++
++/*
++ * Sets the signal strength level that once reached
++ * will stop the auto search process
++ */
++int fm_rx_set_rssi_threshold(struct fmdrv_ops *fmdev,
++				short rssi_lvl_toset)
++{
++	unsigned short payload;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (rssi_lvl_toset < FM_RX_RSSI_THRESHOLD_MIN ||
++	    rssi_lvl_toset > FM_RX_RSSI_THRESHOLD_MAX) {
++		pr_err("(fmdrv): Invalid RSSI threshold level\n");
++		return -EINVAL;
++	}
++	FM_STORE_LE16_TO_BE16(payload, (unsigned short)rssi_lvl_toset);
++	ret = fmc_send_cmd(fmdev, SEARCH_LVL_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set RSSI level - %d\n", ret);
++		return ret;
++	}
++
++	fmdev->rx.curr_rssi_threshold = rssi_lvl_toset;
++	return 0;
++}
++
++/* Returns current RX RSSI threshold value */
++int fm_rx_get_rssi_threshold(struct fmdrv_ops *fmdev, short *curr_rssi_lvl)
++{
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (curr_rssi_lvl == NULL) {
++		pr_err("(fmdrv): Invalid memory\n");
++		return -ENOMEM;
++	}
++	*curr_rssi_lvl = fmdev->rx.curr_rssi_threshold;
++	return 0;
++}
++
++/* Sets RX stereo/mono modes */
++int fm_rx_set_stereo_mono(struct fmdrv_ops *fmdev, unsigned short mode)
++{
++	unsigned short payload;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (mode != FM_STEREO_MODE && mode != FM_MONO_MODE) {
++		pr_err("(fmdrv): Invalid mode\n");
++		return -EINVAL;
++	}
++	/* Set stereo/mono mode */
++	FM_STORE_LE16_TO_BE16(payload, (unsigned short)mode);
++	ret = fmc_send_cmd(fmdev, MOST_MODE_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set RX stereo/mono mode - %d\n",
++			ret);
++		return ret;
++	}
++
++	/* Set stereo blending mode */
++	FM_STORE_LE16_TO_BE16(payload, FM_STEREO_SOFT_BLEND);
++	ret = fmc_send_cmd(fmdev, MOST_BLEND_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set RX stereo blend - %d\n", ret);
++		return ret;
++	}
++
++	return 0;
++}
++
++/* Gets current RX stereo/mono mode */
++int fm_rx_get_stereo_mono(struct fmdrv_ops *fmdev, unsigned short *mode)
++{
++	unsigned short curr_mode;
++	int ret, resp_len;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (mode == NULL) {
++		pr_err("(fmdrv): Invalid memory\n");
++		return -ENOMEM;
++	}
++	ret = fmc_send_cmd(fmdev, MOST_MODE_GET, NULL, 2,
++			&fmdev->maintask_completion, &curr_mode, &resp_len);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to get stereo/mono mode - %d\n", ret);
++		return ret;
++	}
++
++	*mode = FM_BE16_TO_LE16(curr_mode);
++	return 0;
++}
++
++/* Choose RX de-emphasis filter mode (50us/75us) */
++int fm_rx_set_deemphasis_mode(struct fmdrv_ops *fmdev, unsigned short mode)
++{
++	unsigned short payload;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (mode != FM_RX_EMPHASIS_FILTER_50_USEC &&
++	    mode != FM_RX_EMPHASIS_FILTER_75_USEC) {
++		pr_err("(fmdrv): Invalid rx de-emphasis mode\n");
++		return -EINVAL;
++	}
++	FM_STORE_LE16_TO_BE16(payload, mode);
++	ret = fmc_send_cmd(fmdev, DEMPH_MODE_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set RX deemphasis filter value - "
++			"%d\n", ret);
++		return ret;
++	}
++
++	return 0;
++}
++
++/* Gets current RX de-emphasis filter mode */
++int fm_rx_get_deemphasis_mode(struct fmdrv_ops *fmdev,
++				unsigned short *curr_deemphasis_mode)
++{
++	unsigned short curr_mode;
++	int ret, resp_len;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (curr_deemphasis_mode == NULL) {
++		pr_err("(fmdrv): Invalid memory\n");
++		return -ENOMEM;
++	}
++	ret = fmc_send_cmd(fmdev, DEMPH_MODE_GET, NULL, 2,
++			&fmdev->maintask_completion, &curr_mode, &resp_len);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to get RX deemphasis filter value - "
++			"%d\n", ret);
++		return ret;
++	}
++
++	*curr_deemphasis_mode = FM_BE16_TO_LE16(curr_mode);
++	return 0;
++}
++
++/* Enable/Disable RX RDS */
++int fm_rx_set_rds_mode(struct fmdrv_ops *fmdev, unsigned char rds_en_dis)
++{
++	unsigned short payload;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (rds_en_dis != FM_RDS_ENABLE && rds_en_dis != FM_RDS_DISABLE) {
++		pr_err("(fmdrv): Invalid rds option\n");
++		return -EINVAL;
++	}
++	if (rds_en_dis == FM_RDS_ENABLE
++	    && fmdev->rx.rds.flag == FM_RDS_DISABLE) {
++		/* Turn on RX RDS */
++		/* Turn on RDS circuit */
++		FM_STORE_LE16_TO_BE16(payload,
++				      FM_RX_POWET_SET_FM_AND_RDS_BLK_ON);
++		ret = fmc_send_cmd(fmdev, POWER_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++		if (ret < 0) {
++			pr_err("(fmdrv): Failed to enable RX RDS - %d\n", ret);
++			return ret;
++		}
++
++		/* Clear and reset RDS FIFO */
++		FM_STORE_LE16_TO_BE16(payload, FM_RX_RDS_FLUSH_FIFO);
++		ret = fmc_send_cmd(fmdev, RDS_CNTRL_SET, &payload,
++		sizeof(payload), &fmdev->maintask_completion, NULL, NULL);
++		if (ret < 0) {
++			pr_err("(fmdrv): Failed to flush RX RDS fifo - %d\n",
++				ret);
++			return ret;
++		}
++
++		/* Read flags - just to clear any pending interrupts. */
++		ret = fmc_send_cmd(fmdev, FLAG_GET, NULL, 2,
++				&fmdev->maintask_completion, NULL, NULL);
++		if (ret < 0) {
++			pr_err("(fmdrv): Failed to read interrupt flag - %d\n",
++				ret);
++			return ret;
++		}
++
++		/* Set RDS FIFO threshold value */
++		FM_STORE_LE16_TO_BE16(payload, FM_RX_RDS_FIFO_THRESHOLD);
++		ret = fmc_send_cmd(fmdev, RDS_MEM_SET, &payload,
++		sizeof(payload), &fmdev->maintask_completion, NULL, NULL);
++		if (ret < 0) {
++			pr_err("(fmdrv): Failed to set RX RDS fifo threshold -"
++				" %d\n", ret);
++			return ret;
++		}
++
++		/* Enable RDS interrupt */
++		fmdev->irq_info.mask |= FM_RDS_EVENT;
++		FM_STORE_LE16_TO_BE16(payload, fmdev->irq_info.mask);
++		ret = fmc_send_cmd(fmdev, INT_MASK_SET, &payload,
++		sizeof(payload), &fmdev->maintask_completion, NULL, NULL);
++		if (ret < 0) {
++			pr_err("(fmdrv): Failed to set interrupt mask- %d\n",
++				ret);
++			return ret;
++		}
++
++		/* Update our local flag */
++		fmdev->rx.rds.flag = FM_RDS_ENABLE;
++	} else if (rds_en_dis == FM_RDS_DISABLE
++		   && fmdev->rx.rds.flag == FM_RDS_ENABLE) {
++		/* Turn off RX RDS */
++		/* Turn off RDS circuit */
++		FM_STORE_LE16_TO_BE16(payload, FM_RX_POWER_SET_FM_ON_RDS_OFF);
++		ret = fmc_send_cmd(fmdev, POWER_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++		if (ret < 0) {
++			pr_err("(fmdrv): Failed to disable RX RDS - %d\n",
++				ret);
++			return ret;
++		}
++
++		/* Reset RDS pointers */
++		fmdev->rx.rds.last_block_index = 0;
++		fmdev->rx.rds.wr_index = 0;
++		fmdev->rx.rds.rd_index = 0;
++		fm_rx_reset_curr_station_info(fmdev);
++
++		/* Update RDS local cache */
++		fmdev->irq_info.mask &= ~(FM_RDS_EVENT);
++		fmdev->rx.rds.flag = FM_RDS_DISABLE;
++	}
++	return 0;
++}
++
++/* Returns current RX RDS enable/disable status */
++int fm_rx_get_rds_mode(struct fmdrv_ops *fmdev,
++			unsigned char *curr_rds_en_dis)
++{
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (curr_rds_en_dis == NULL) {
++		pr_err("(fmdrv): Invalid memory\n");
++		return -ENOMEM;
++	}
++	*curr_rds_en_dis = fmdev->rx.rds.flag;
++	return 0;
++}
++
++/* Sets RDS operation mode (RDS/RDBS) */
++int fm_rx_set_rds_system(struct fmdrv_ops *fmdev, unsigned char rds_mode)
++{
++	unsigned short payload;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (rds_mode != FM_RDS_SYSTEM_RDS && rds_mode != FM_RDS_SYSTEM_RBDS) {
++		pr_err("(fmdrv): Invalid rds mode\n");
++		return -EINVAL;
++	}
++	/* Set RDS operation mode */
++	FM_STORE_LE16_TO_BE16(payload, (unsigned short)rds_mode);
++	ret = fmc_send_cmd(fmdev, RDS_SYSTEM_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set RX RDS system - %d\n", ret);
++		return ret;
++	}
++
++	fmdev->rx.rds_mode = rds_mode;
++	return 0;
++}
++
++/* Returns current RDS operation mode */
++int fm_rx_get_rds_system(struct fmdrv_ops *fmdev,
++				unsigned char *rds_mode)
++{
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (rds_mode == NULL) {
++		pr_err("(fmdrv): Invalid memory\n");
++		return -ENOMEM;
++	}
++	*rds_mode = fmdev->rx.rds_mode;
++	return 0;
++}
++
++/* Configures Alternate Frequency switch mode */
++int fm_rx_set_af_switch(struct fmdrv_ops *fmdev, unsigned char af_mode)
++{
++	unsigned short payload;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (af_mode != FM_RX_RDS_AF_SWITCH_MODE_ON &&
++	    af_mode != FM_RX_RDS_AF_SWITCH_MODE_OFF) {
++		pr_err("(fmdrv): Invalid af mode\n");
++		return -EINVAL;
++	}
++	/* Enable/disable low RSSI interrupt based on af_mode */
++	if (af_mode == FM_RX_RDS_AF_SWITCH_MODE_ON)
++		fmdev->irq_info.mask |= FM_LEV_EVENT;
++	else
++		fmdev->irq_info.mask &= ~FM_LEV_EVENT;
++
++	FM_STORE_LE16_TO_BE16(payload, fmdev->irq_info.mask);
++	ret = fmc_send_cmd(fmdev, INT_MASK_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set interrupt mask - %d\n", ret);
++		return ret;
++	}
++
++	fmdev->rx.af_mode = af_mode;
++	return 0;
++}
++
++/* Returns Alternate Frequency switch status */
++int fm_rx_get_af_switch(struct fmdrv_ops *fmdev, unsigned char *af_mode)
++{
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (af_mode == NULL) {
++		pr_err("(fmdrv): Invalid memory\n");
++		return -ENOMEM;
++	}
++	*af_mode = fmdev->rx.af_mode;
++	return 0;
++}
+diff --git a/drivers/staging/ti-st/fmdrv_rx.h b/drivers/staging/ti-st/fmdrv_rx.h
+new file mode 100644
+index 0000000..e78c20c
+--- /dev/null
++++ b/drivers/staging/ti-st/fmdrv_rx.h
+@@ -0,0 +1,57 @@
++/*
++ *  FM Driver for Connectivity chip of Texas Instruments.
++ *  FM RX module header.
++ *
++ *  Copyright (C) 2010 Texas Instruments
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License version 2 as
++ *  published by the Free Software Foundation.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ */
++
++#ifndef _FMDRV_RX_H
++#define _FMDRV_RX_H
++
++int fm_rx_set_frequency(struct fmdrv_ops*, unsigned int);
++int fm_rx_set_mute_mode(struct fmdrv_ops*, unsigned char);
++int fm_rx_set_stereo_mono(struct fmdrv_ops*, unsigned short);
++int fm_rx_set_rds_mode(struct fmdrv_ops*, unsigned char);
++int fm_rx_set_rds_system(struct fmdrv_ops *, unsigned char);
++int fm_rx_set_volume(struct fmdrv_ops*, unsigned short);
++int fm_rx_set_rssi_threshold(struct fmdrv_ops*, short);
++int fm_rx_set_region(struct fmdrv_ops*, unsigned char);
++int fm_rx_set_rfdepend_softmute(struct fmdrv_ops *, unsigned char);
++int fm_rx_set_deemphasis_mode(struct fmdrv_ops *, unsigned short);
++int fm_rx_set_af_switch(struct fmdrv_ops *, unsigned char);
++
++void fm_rx_reset_rds_cache(struct fmdrv_ops *);
++void fm_rx_reset_curr_station_info(struct fmdrv_ops *);
++
++int fm_rx_seek(struct fmdrv_ops*, unsigned int, unsigned int);
++
++int fm_rx_get_rds_mode(struct fmdrv_ops*, unsigned char*);
++int fm_rx_get_rds_system(struct fmdrv_ops *, unsigned char*);
++int fm_rx_get_mute_mode(struct fmdrv_ops*, unsigned char*);
++int fm_rx_get_volume(struct fmdrv_ops*, unsigned short*);
++int fm_rx_get_currband_lowhigh_freq(struct fmdrv_ops*,
++					unsigned int*, unsigned int*);
++int fm_rx_get_stereo_mono(struct fmdrv_ops *, unsigned short*);
++int fm_rx_get_rssi_level(struct fmdrv_ops *, unsigned short*);
++int fm_rx_get_rssi_threshold(struct fmdrv_ops *, short*);
++int fm_rx_get_rfdepend_softmute(struct fmdrv_ops *, unsigned char*);
++int fm_rx_get_deemphasis_mode(struct fmdrv_ops *, unsigned short*);
++int fm_rx_get_af_switch(struct fmdrv_ops *, unsigned char *);
++void fm_rx_get_region(struct fmdrv_ops*, unsigned char*);
++
++#endif
++
+-- 
+1.5.6.3
+
