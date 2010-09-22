@@ -1,407 +1,267 @@
 Return-path: <mchehab@pedra>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:58892 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758025Ab0IHHmE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Sep 2010 03:42:04 -0400
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: [PATCH 4/6] Input: winbond-cir - switch to using new keycode interface
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Input <linux-input@vger.kernel.org>,
-	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	David Hardeman <david@hardeman.nu>,
-	Jiri Kosina <jkosina@suse.cz>, Ville Syrjala <syrjala@sci.fi>
-Date: Wed, 08 Sep 2010 00:42:00 -0700
-Message-ID: <20100908074200.32365.98120.stgit@hammer.corenet.prv>
-In-Reply-To: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
-References: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
+Received: from d1.icnet.pl ([212.160.220.21]:35927 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752187Ab0IVSXi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Sep 2010 14:23:38 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v2 3/6] SoC Camera: add driver for OV6650 sensor
+Date: Wed, 22 Sep 2010 20:23:12 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"Discussion of the Amstrad E3 emailer hardware/software"
+	<e3-hacking@earth.li>
+References: <201009110317.54899.jkrzyszt@tis.icnet.pl> <201009110325.08504.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1009221006270.32562@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1009221006270.32562@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <201009222023.13696.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-Switch the code to use new style of getkeycode and setkeycode
-methods to allow retrieving and setting keycodes not only by
-their scancodes but also by index.
+Wednesday 22 September 2010 11:12:46 Guennadi Liakhovetski napisał(a):
+> Ok, just a couple more comments, all looking quite good so far, if we get
+> a new version soon enough, we still might manage it for 2.6.37
+>
+> On Sat, 11 Sep 2010, Janusz Krzysztofik wrote:
+>
+> [snip]
+>
+> > +/* write a register */
+> > +static int ov6650_reg_write(struct i2c_client *client, u8 reg, u8 val)
+> > +{
+> > +	int ret;
+> > +	unsigned char data[2] = { reg, val };
+> > +	struct i2c_msg msg = {
+> > +		.addr	= client->addr,
+> > +		.flags	= 0,
+> > +		.len	= 2,
+> > +		.buf	= data,
+> > +	};
+> > +
+> > +	ret = i2c_transfer(client->adapter, &msg, 1);
+> > +	msleep_interruptible(1);
+>
+> Why do you want _interruptible here? Firstly it's just 1ms, secondly -
+> why?...
 
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
----
+My bad. I didn't verified what a real difference between msleep() and 
+msleep_interruptible() is, only found that msleep_interruptible(1) makes 
+checkpatch.pl more happy than msleep(1), sorry.
 
- drivers/input/misc/winbond-cir.c |  248 +++++++++++++++++++++++++-------------
- 1 files changed, 163 insertions(+), 85 deletions(-)
+What I can be sure is that a short delay is required here, otherwise the 
+driver doesn't work correctly. To prevent the checkpatch.pl from complying 
+against msleep(1), I think I could just replace it with msleep(20). What do 
+you think?
 
-diff --git a/drivers/input/misc/winbond-cir.c b/drivers/input/misc/winbond-cir.c
-index 64f1de7..6a69067 100644
---- a/drivers/input/misc/winbond-cir.c
-+++ b/drivers/input/misc/winbond-cir.c
-@@ -172,7 +172,6 @@ enum wbcir_protocol {
- #define WBCIR_MAX_IDLE_BYTES       10
- 
- static DEFINE_SPINLOCK(wbcir_lock);
--static DEFINE_RWLOCK(keytable_lock);
- 
- struct wbcir_key {
- 	u32 scancode;
-@@ -184,7 +183,7 @@ struct wbcir_keyentry {
- 	struct list_head list;
- };
- 
--static struct wbcir_key rc6_def_keymap[] = {
-+static const struct wbcir_key rc6_def_keymap[] = {
- 	{ 0x800F0400, KEY_NUMERIC_0		},
- 	{ 0x800F0401, KEY_NUMERIC_1		},
- 	{ 0x800F0402, KEY_NUMERIC_2		},
-@@ -365,88 +364,152 @@ wbcir_to_rc6cells(u8 val)
-  *
-  *****************************************************************************/
- 
--static unsigned int
--wbcir_do_getkeycode(struct wbcir_data *data, u32 scancode)
-+static struct wbcir_keyentry *
-+wbcir_keyentry_by_scancode(struct wbcir_data *data, u32 scancode)
- {
- 	struct wbcir_keyentry *keyentry;
--	unsigned int keycode = KEY_RESERVED;
--	unsigned long flags;
- 
--	read_lock_irqsave(&keytable_lock, flags);
-+	list_for_each_entry(keyentry, &data->keytable, list)
-+		if (keyentry->key.scancode == scancode)
-+			return keyentry;
-+
-+	return NULL;
-+}
-+
-+static struct wbcir_keyentry *
-+wbcir_keyentry_by_index(struct wbcir_data *data, unsigned int index)
-+{
-+	struct wbcir_keyentry *keyentry;
-+	unsigned int cur_idx = 0;
-+
-+	list_for_each_entry(keyentry, &data->keytable, list)
-+		if (cur_idx++ == index)
-+			return keyentry;
-+
-+	return NULL;
-+}
-+
-+static struct wbcir_keyentry *
-+wbcir_lookup_keyentry(struct wbcir_data *data,
-+		      const struct input_keymap_entry *ke)
-+{
-+	struct wbcir_keyentry *keyentry;
-+	unsigned int scancode;
-+
-+	if (ke->flags & INPUT_KEYMAP_BY_INDEX)
-+		keyentry = wbcir_keyentry_by_index(data, ke->index);
-+	else if (input_scancode_to_scalar(ke, &scancode) == 0)
-+		keyentry = wbcir_keyentry_by_scancode(data, scancode);
-+	else
-+		keyentry = NULL;
-+
-+	return keyentry;
-+
-+}
-+
-+static unsigned int
-+wbcir_keyentry_get_index(struct wbcir_data *data,
-+			 const struct wbcir_keyentry *keyentry)
-+{
-+	struct wbcir_keyentry *k;
-+	int idx = 0;
- 
--	list_for_each_entry(keyentry, &data->keytable, list) {
--		if (keyentry->key.scancode == scancode) {
--			keycode = keyentry->key.keycode;
-+	list_for_each_entry(k, &data->keytable, list) {
-+		if (k == keyentry)
- 			break;
--		}
-+		idx++;
- 	}
- 
--	read_unlock_irqrestore(&keytable_lock, flags);
--	return keycode;
-+	return idx;
- }
- 
- static int
--wbcir_getkeycode(struct input_dev *dev,
--		 unsigned int scancode, unsigned int *keycode)
-+wbcir_getkeycode(struct input_dev *dev, struct input_keymap_entry *ke)
- {
- 	struct wbcir_data *data = input_get_drvdata(dev);
-+	const struct wbcir_keyentry *keyentry;
-+
-+	keyentry = wbcir_lookup_keyentry(data, ke);
-+	if (keyentry) {
-+		ke->keycode = keyentry->key.keycode;
-+		if (!(ke->flags & INPUT_KEYMAP_BY_INDEX))
-+			ke->index = wbcir_keyentry_get_index(data, keyentry);
-+		ke->len = sizeof(keyentry->key.scancode);
-+		memcpy(ke->scancode, &keyentry->key.scancode,
-+			sizeof(keyentry->key.scancode));
-+
-+		return 0;
-+	}
- 
--	*keycode = wbcir_do_getkeycode(data, scancode);
--	return 0;
-+	return -EINVAL;
- }
- 
- static int
- wbcir_setkeycode(struct input_dev *dev,
--		 unsigned int scancode, unsigned int keycode)
-+		 const struct input_keymap_entry *ke,
-+		 unsigned int *old_keycode)
- {
- 	struct wbcir_data *data = input_get_drvdata(dev);
- 	struct wbcir_keyentry *keyentry;
--	struct wbcir_keyentry *new_keyentry;
--	unsigned long flags;
--	unsigned int old_keycode = KEY_RESERVED;
--
--	new_keyentry = kmalloc(sizeof(*new_keyentry), GFP_KERNEL);
--	if (!new_keyentry)
--		return -ENOMEM;
-+	unsigned int scancode;
- 
--	write_lock_irqsave(&keytable_lock, flags);
-+	*old_keycode = KEY_RESERVED;
- 
--	list_for_each_entry(keyentry, &data->keytable, list) {
--		if (keyentry->key.scancode != scancode)
--			continue;
-+	if (input_scancode_to_scalar(ke, &scancode))
-+		return -EINVAL;
- 
--		old_keycode = keyentry->key.keycode;
--		keyentry->key.keycode = keycode;
-+	keyentry = wbcir_lookup_keyentry(data, ke);
-+	if (keyentry) {
-+		*old_keycode = keyentry->key.keycode;
-+		clear_bit(*old_keycode, dev->keybit);
-+	} else {
-+		if (ke->flags & INPUT_KEYMAP_BY_INDEX)
-+			return -EINVAL;
- 
--		if (keyentry->key.keycode == KEY_RESERVED) {
--			list_del(&keyentry->list);
--			kfree(keyentry);
--		}
-+		keyentry = kmalloc(sizeof(*keyentry), GFP_ATOMIC);
-+		if (!keyentry)
-+			return -ENOMEM;
- 
--		break;
-+		list_add_tail(&keyentry->list, &data->keytable);
- 	}
- 
--	set_bit(keycode, dev->keybit);
-+	keyentry->key.keycode = ke->keycode;
-+	keyentry->key.scancode = scancode;
- 
--	if (old_keycode == KEY_RESERVED) {
--		new_keyentry->key.scancode = scancode;
--		new_keyentry->key.keycode = keycode;
--		list_add(&new_keyentry->list, &data->keytable);
-+	if (keyentry->key.keycode == KEY_RESERVED) {
-+		list_del(&keyentry->list);
-+		kfree(keyentry);
- 	} else {
--		kfree(new_keyentry);
--		clear_bit(old_keycode, dev->keybit);
-+		set_bit(ke->keycode, dev->keybit);
- 		list_for_each_entry(keyentry, &data->keytable, list) {
--			if (keyentry->key.keycode == old_keycode) {
--				set_bit(old_keycode, dev->keybit);
-+			if (keyentry->key.keycode == *old_keycode) {
-+				set_bit(*old_keycode, dev->keybit);
- 				break;
- 			}
- 		}
- 	}
- 
--	write_unlock_irqrestore(&keytable_lock, flags);
- 	return 0;
- }
- 
-+static unsigned int
-+wbcir_fetch_keycode(struct wbcir_data *data, u32 scancode)
-+{
-+	struct input_dev *input = data->input_dev;
-+	const struct wbcir_keyentry *keyentry;
-+	unsigned int keycode;
-+	unsigned long flags;
-+
-+	/* Take event lock to prevent race with setkeycode */
-+	spin_lock_irqsave(&input->event_lock, flags);
-+
-+	keyentry = wbcir_keyentry_by_scancode(data, scancode);
-+	keycode = keyentry ? keyentry->key.keycode : KEY_RESERVED;
-+
-+	spin_unlock_irqrestore(&input->event_lock, flags);
-+	return keycode;
-+}
-+
- /*
-  * Timer function to report keyup event some time after keydown is
-  * reported by the ISR.
-@@ -503,7 +566,7 @@ wbcir_keydown(struct wbcir_data *data, u32 scancode, u8 toggle)
- 	input_event(data->input_dev, EV_MSC, MSC_SCAN, (int)scancode);
- 
- 	/* Do we know this scancode? */
--	keycode = wbcir_do_getkeycode(data, scancode);
-+	keycode = wbcir_fetch_keycode(data, scancode);
- 	if (keycode == KEY_RESERVED)
- 		goto set_timer;
- 
-@@ -1247,7 +1310,7 @@ wbcir_init_hw(struct wbcir_data *data)
- 
- 	/*
- 	 * Clear IR LED, set SP3 clock to 24Mhz
--	 * set SP3_IRRX_SW to binary 01, helpfully not documented
-+	;* set SP3_IRRX_SW to binary 01, helpfully not documented
- 	 */
- 	outb(0x10, data->ebase + WBCIR_REG_ECEIR_CTS);
- 
-@@ -1339,6 +1402,41 @@ wbcir_resume(struct pnp_dev *device)
- 	return 0;
- }
- 
-+static void
-+wbcir_free_keymap(struct wbcir_data *data)
-+{
-+	struct wbcir_keyentry *key, *next;
-+
-+	list_for_each_entry_safe(key, next, &data->keytable, list) {
-+		list_del(&key->list);
-+		kfree(key);
-+	}
-+}
-+
-+static int
-+wbcir_load_keymap(struct wbcir_data *data,
-+		  const struct wbcir_key *keymap, unsigned int keymap_size)
-+{
-+	struct wbcir_keyentry *keyentry;
-+	int i;
-+
-+	for (i = 0; i < keymap_size; i++) {
-+		if (keymap[i].keycode != KEY_RESERVED) {
-+			keyentry = kmalloc(sizeof(*keyentry), GFP_KERNEL);
-+			if (!keyentry) {
-+				wbcir_free_keymap(data);
-+				return -ENOMEM;
-+			}
-+
-+			keyentry->key.keycode = keymap[i].keycode;
-+			keyentry->key.scancode = keymap[i].scancode;
-+			list_add_tail(&keyentry->list, &data->keytable);
-+		}
-+	}
-+
-+	return 0;
-+}
-+
- static int __devinit
- wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
- {
-@@ -1359,6 +1457,10 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
- 		goto exit;
- 	}
- 
-+	data->last_scancode = INVALID_SCANCODE;
-+	INIT_LIST_HEAD(&data->keytable);
-+	setup_timer(&data->timer_keyup, wbcir_keyup, (unsigned long)data);
-+
- 	pnp_set_drvdata(device, data);
- 
- 	data->ebase = pnp_port_start(device, 0);
-@@ -1439,50 +1541,31 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
- 	data->input_dev->id.vendor  = PCI_VENDOR_ID_WINBOND;
- 	data->input_dev->id.product = WBCIR_ID_FAMILY;
- 	data->input_dev->id.version = WBCIR_ID_CHIP;
--	data->input_dev->getkeycode = wbcir_getkeycode;
--	data->input_dev->setkeycode = wbcir_setkeycode;
-+	data->input_dev->getkeycode_new = wbcir_getkeycode;
-+	data->input_dev->setkeycode_new = wbcir_setkeycode;
- 	input_set_capability(data->input_dev, EV_MSC, MSC_SCAN);
- 	input_set_drvdata(data->input_dev, data);
- 
--	err = input_register_device(data->input_dev);
--	if (err)
--		goto exit_free_input;
--
--	data->last_scancode = INVALID_SCANCODE;
--	INIT_LIST_HEAD(&data->keytable);
--	setup_timer(&data->timer_keyup, wbcir_keyup, (unsigned long)data);
--
- 	/* Load default keymaps */
- 	if (protocol == IR_PROTOCOL_RC6) {
--		int i;
--		for (i = 0; i < ARRAY_SIZE(rc6_def_keymap); i++) {
--			err = wbcir_setkeycode(data->input_dev,
--					       (int)rc6_def_keymap[i].scancode,
--					       (int)rc6_def_keymap[i].keycode);
--			if (err)
--				goto exit_unregister_keys;
--		}
-+		err = wbcir_load_keymap(data, rc6_def_keymap,
-+					ARRAY_SIZE(rc6_def_keymap));
-+		if (err)
-+			goto exit_free_input;
- 	}
- 
-+	err = input_register_device(data->input_dev);
-+	if (err)
-+		goto exit_free_keymap;
-+
- 	device_init_wakeup(&device->dev, 1);
- 
- 	wbcir_init_hw(data);
- 
- 	return 0;
- 
--exit_unregister_keys:
--	if (!list_empty(&data->keytable)) {
--		struct wbcir_keyentry *key;
--		struct wbcir_keyentry *keytmp;
--
--		list_for_each_entry_safe(key, keytmp, &data->keytable, list) {
--			list_del(&key->list);
--			kfree(key);
--		}
--	}
--	input_unregister_device(data->input_dev);
--	/* Can't call input_free_device on an unregistered device */
--	data->input_dev = NULL;
-+exit_free_keymap:
-+	wbcir_free_keymap(data);
- exit_free_input:
- 	input_free_device(data->input_dev);
- exit_unregister_led:
-@@ -1510,8 +1593,6 @@ static void __devexit
- wbcir_remove(struct pnp_dev *device)
- {
- 	struct wbcir_data *data = pnp_get_drvdata(device);
--	struct wbcir_keyentry *key;
--	struct wbcir_keyentry *keytmp;
- 
- 	/* Disable interrupts */
- 	wbcir_select_bank(data, WBCIR_BANK_0);
-@@ -1544,10 +1625,7 @@ wbcir_remove(struct pnp_dev *device)
- 	release_region(data->ebase, EHFUNC_IOMEM_LEN);
- 	release_region(data->sbase, SP_IOMEM_LEN);
- 
--	list_for_each_entry_safe(key, keytmp, &data->keytable, list) {
--		list_del(&key->list);
--		kfree(key);
--	}
-+	wbcir_free_keymap(data);
- 
- 	kfree(data);
- 
+> > +
+> > +	if (ret < 0) {
+> > +		dev_err(&client->dev, "Failed writing register 0x%02x!\n", reg);
+> > +		return ret;
+> > +	}
+> > +	return 0;
+> > +}
+>
+> ...
+>
+> > +/* set the format we will capture in */
+> > +static int ov6650_s_fmt(struct v4l2_subdev *sd,
+> > +			struct v4l2_mbus_framefmt *mf)
+> > +{
+> > +	struct i2c_client *client = sd->priv;
+> > +	struct soc_camera_device *icd	= client->dev.platform_data;
+> > +	struct soc_camera_sense *sense = icd->sense;
+> > +	struct ov6650 *priv = to_ov6650(client);
+> > +	enum v4l2_mbus_pixelcode code = mf->code;
+> > +	unsigned long pclk;
+> > +	u8 coma_set = 0, coma_mask = 0, coml_set = 0, coml_mask = 0;
+> > +	u8 clkrc, clkrc_div;
+> > +	int ret;
+> > +
+> > +	/* select color matrix configuration for given color encoding */
+> > +	switch (code) {
+> > +	case V4L2_MBUS_FMT_GREY8_1X8:
+> > +		dev_dbg(&client->dev, "pixel format GREY8_1X8\n");
+> > +		coma_set |= COMA_BW;
+> > +		coma_mask |= COMA_RGB | COMA_WORD_SWAP | COMA_BYTE_SWAP;
+> > +		break;
+> > +	case V4L2_MBUS_FMT_YUYV8_2X8:
+> > +		dev_dbg(&client->dev, "pixel format YUYV8_2X8_LE\n");
+> > +		coma_set |= COMA_WORD_SWAP;
+> > +		coma_mask |= COMA_RGB | COMA_BW | COMA_BYTE_SWAP;
+> > +		break;
+> > +	case V4L2_MBUS_FMT_YVYU8_2X8:
+> > +		dev_dbg(&client->dev, "pixel format YVYU8_2X8_LE (untested)\n");
+> > +		coma_mask |= COMA_RGB | COMA_BW | COMA_WORD_SWAP |
+> > +				COMA_BYTE_SWAP;
+> > +		break;
+> > +	case V4L2_MBUS_FMT_UYVY8_2X8:
+> > +		dev_dbg(&client->dev, "pixel format YUYV8_2X8_BE\n");
+> > +		if (mf->width == W_CIF) {
+> > +			coma_set |= COMA_BYTE_SWAP | COMA_WORD_SWAP;
+> > +			coma_mask |= COMA_RGB | COMA_BW;
+> > +		} else {
+> > +			coma_set |= COMA_BYTE_SWAP;
+> > +			coma_mask |= COMA_RGB | COMA_BW | COMA_WORD_SWAP;
+> > +		}
+> > +		break;
+> > +	case V4L2_MBUS_FMT_VYUY8_2X8:
+> > +		dev_dbg(&client->dev, "pixel format YVYU8_2X8_BE (untested)\n");
+> > +		if (mf->width == W_CIF) {
+> > +			coma_set |= COMA_BYTE_SWAP;
+> > +			coma_mask |= COMA_RGB | COMA_BW | COMA_WORD_SWAP;
+> > +		} else {
+> > +			coma_set |= COMA_BYTE_SWAP | COMA_WORD_SWAP;
+> > +			coma_mask |= COMA_RGB | COMA_BW;
+> > +		}
+> > +		break;
+> > +	case V4L2_MBUS_FMT_SBGGR8_1X8:
+> > +		dev_dbg(&client->dev, "pixel format SBGGR8_1X8 (untested)\n");
+> > +		coma_set |= COMA_RAW_RGB | COMA_RGB;
+> > +		coma_mask |= COMA_BW | COMA_BYTE_SWAP | COMA_WORD_SWAP;
+> > +		break;
+> > +	default:
+> > +		dev_err(&client->dev, "Pixel format not handled: 0x%x\n", code);
+> > +		return -EINVAL;
+> > +	}
+> > +	priv->code = code;
+> > +
+> > +	if ((code == V4L2_MBUS_FMT_GREY8_1X8) ||
+> > +			(code == V4L2_MBUS_FMT_SBGGR8_1X8)) {
+>
+> Superfluous parenthesis
+
+Will be dropped.
+
+> > +		coml_mask |= COML_ONE_CHANNEL;
+> > +		priv->pclk_max = 4000000;
+> > +	} else {
+> > +		coml_set |= COML_ONE_CHANNEL;
+> > +		priv->pclk_max = 8000000;
+> > +	}
+>
+> coml_mask and coml_set are only set here and only used once below, so,
+> dropping initialisation to 0 in variable definitions and just doing
+>
+> +	if (code == V4L2_MBUS_FMT_GREY8_1X8 ||
+> +			code == V4L2_MBUS_FMT_SBGGR8_1X8) {
+> +		coml_mask = COML_ONE_CHANNEL;
+> +		coml_set = 0;
+> +		priv->pclk_max = 4000000;
+> +	} else {
+> +		coml_mask = 0;
+> +		coml_set = COML_ONE_CHANNEL;
+> +		priv->pclk_max = 8000000;
+> +	}
+>
+> would work too.
+
+OK, I'll use your prefered pattern.
+
+> > +
+> > +	if (code == V4L2_MBUS_FMT_SBGGR8_1X8)
+> > +		priv->colorspace = V4L2_COLORSPACE_SRGB;
+> > +	else
+> > +		priv->colorspace = V4L2_COLORSPACE_JPEG;
+> > +
+> > +	/*
+> > +	 * Select register configuration for given resolution.
+> > +	 * To be replaced with a common function that does it, once available.
+> > +	 */
+> > +	ov6650_res_roundup(&mf->width, &mf->height);
+> > +
+> > +	switch (mf->width) {
+> > +	case W_QCIF:
+> > +		dev_dbg(&client->dev, "resolution QCIF\n");
+> > +		priv->qcif = 1;
+> > +		coma_set |= COMA_QCIF;
+> > +		priv->pclk_max /= 2;
+> > +		break;
+> > +	case W_CIF:
+> > +		dev_dbg(&client->dev, "resolution CIF\n");
+> > +		priv->qcif = 0;
+> > +		coma_mask |= COMA_QCIF;
+> > +		break;
+> > +	default:
+> > +		dev_err(&client->dev, "unspported resolution!\n");
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	priv->rect.left	  = DEF_HSTRT << !priv->qcif;
+> > +	priv->rect.top	  = DEF_VSTRT << !priv->qcif;
+> > +	priv->rect.width  = mf->width;
+> > +	priv->rect.height = mf->height;
+>
+> Sorry, don't understand. The sensor can do both - cropping per HSTRT,
+> HSTOP, VSTRT and VSTOP and scaling per COMA_CIF / COMA_QCIF, right? 
+
+Right.
+
+> But 
+> which of them is stored in your priv->rect? Is this the input window
+> (cropping) or the output one (scaling)? 
+
+I'm not sure how I can follow your input/output concept here.
+Default (reset) values of HSTRT, HSTOP, VSTRT and VSTOP registers are the same 
+for both CIF and QCIF, giving a 176x144 picture area in both cases. Than, 
+when in CIF (reset default) mode, which actual size is double of that 
+(352x288), I scale them by 2 when converting to priv->rect elements.
+
+> You overwrite it in .s_fmt and 
+> .s_crop...
+
+I added the priv->rect to be returned by g_crop() instead of recalculating it 
+from the register values. Then, I think I have to overwrite it on every 
+geometry change, whether s_crop or s_fmt caused. Am I missing something?
+
+> > +
+> > +	if (priv->timeperframe.numerator && priv->timeperframe.denominator)
+> > +		pclk = priv->pclk_max * priv->timeperframe.denominator /
+> > +				(FRAME_RATE_MAX * priv->timeperframe.numerator);
+> > +	else
+> > +		pclk = priv->pclk_max;
+> > +
+> > +	if (sense) {
+> > +		if (sense->master_clock == 8000000) {
+> > +			dev_dbg(&client->dev, "8MHz input clock\n");
+> > +			clkrc = CLKRC_6MHz;
+> > +		} else if (sense->master_clock == 12000000) {
+> > +			dev_dbg(&client->dev, "12MHz input clock\n");
+> > +			clkrc = CLKRC_12MHz;
+> > +		} else if (sense->master_clock == 16000000) {
+> > +			dev_dbg(&client->dev, "16MHz input clock\n");
+> > +			clkrc = CLKRC_16MHz;
+> > +		} else if (sense->master_clock == 24000000) {
+> > +			dev_dbg(&client->dev, "24MHz input clock\n");
+> > +			clkrc = CLKRC_24MHz;
+> > +		} else {
+> > +			dev_err(&client->dev,
+> > +				"unspported input clock, check platform data\n");
+> > +			return -EINVAL;
+> > +		}
+> > +		priv->pclk_limit = sense->pixel_clock_max;
+> > +		if (priv->pclk_limit && (priv->pclk_limit < pclk))
+>
+> Don't think the compiler would complain without the internal parenthesis
+> here?
+
+OK, I'll drop them.
+
+Thanks,
+Janusz
+
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 
