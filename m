@@ -1,110 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:36447 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1754394Ab0IWQKe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Sep 2010 12:10:34 -0400
-Date: Thu, 23 Sep 2010 18:10:44 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Tony Lindgren <tony@atomide.com>,
-	Discussion of the Amstrad E3 emailer hardware/software
-	<e3-hacking@earth.li>
-Subject: Re: [PATCH v2 1/6] SoC Camera: add driver for OMAP1 camera interface
-In-Reply-To: <201009231651.36589.jkrzyszt@tis.icnet.pl>
-Message-ID: <Pine.LNX.4.64.1009231806190.23561@axis700.grange>
-References: <201009110317.54899.jkrzyszt@tis.icnet.pl>
- <201009222013.58035.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1009231514000.23561@axis700.grange>
- <201009231651.36589.jkrzyszt@tis.icnet.pl>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42804 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754244Ab0IVKjK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Sep 2010 06:39:10 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o8MAdAia010384
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 22 Sep 2010 05:39:10 -0500
+From: x0130808@ti.com
+To: linux-media@vger.kernel.org
+Cc: Raja Mani <raja_mani@ti.com>, Pramodh AG <pramodh_ag@ti.com>,
+	Manjunatha Halli <x0130808@ti.com>
+Subject: [RFC/PATCH 6/9] drivers:media:video: Adding new CIDs for FM RX ctls
+Date: Wed, 22 Sep 2010 07:49:59 -0400
+Message-Id: <1285156202-28569-7-git-send-email-x0130808@ti.com>
+In-Reply-To: <1285156202-28569-6-git-send-email-x0130808@ti.com>
+References: <1285156202-28569-1-git-send-email-x0130808@ti.com>
+ <1285156202-28569-2-git-send-email-x0130808@ti.com>
+ <1285156202-28569-3-git-send-email-x0130808@ti.com>
+ <1285156202-28569-4-git-send-email-x0130808@ti.com>
+ <1285156202-28569-5-git-send-email-x0130808@ti.com>
+ <1285156202-28569-6-git-send-email-x0130808@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, 23 Sep 2010, Janusz Krzysztofik wrote:
+From: Raja Mani <raja_mani@ti.com>
 
-> Thursday 23 September 2010 15:33:54 Guennadi Liakhovetski napisał(a):
-> > On Wed, 22 Sep 2010, Janusz Krzysztofik wrote:
-> > > Wednesday 22 September 2010 01:23:22 Guennadi Liakhovetski napisał(a):
-> > > > On Sat, 11 Sep 2010, Janusz Krzysztofik wrote:
-> > > > > +
-> > > > > +	vb = &buf->vb;
-> > > > > +	if (waitqueue_active(&vb->done)) {
-> > > > > +		if (!pcdev->ready && result != VIDEOBUF_ERROR)
-> > > > > +			/*
-> > > > > +			 * No next buffer has been entered into the DMA
-> > > > > +			 * programming register set on time, so best we can do
-> > > > > +			 * is stopping the capture before last DMA block,
-> > > > > +			 * whether our CONTIG mode whole buffer or its last
-> > > > > +			 * sgbuf in SG mode, gets overwritten by next frame.
-> > > > > +			 */
-> > > >
-> > > > Hm, why do you think it's a good idea? This specific buffer completed
-> > > > successfully, but you want to fail it just because the next buffer is
-> > > > missing? Any specific reason for this?
-> > >
-> > > Maybe my comment is not clear enough, but the below suspend_capture()
-> > > doesn't indicate any failure on a frame just captured. It only prevents
-> > > the frame from being overwritten by the already autoreinitialized DMA
-> > > engine, pointing back to the same buffer once again.
-> > >
-> > > > Besides, you seem to also be
-> > > > considering the possibility of your ->ready == NULL, but the queue
-> > > > non-empty, in which case you just take the next buffer from the queue
-> > > > and continue with it. Why error out in this case?
-> > >
-> > > pcdev->ready == NULL means no buffer was available when it was time to
-> > > put it into the DMA programming register set.
-> >
-> > But how? Buffers are added onto the list in omap1_videobuf_queue() under
-> > spin_lock_irqsave(); and there you also check ->ready and fill it in. 
-> 
-> Guennadi,
-> Yes, but only if pcdev->active is NULL, ie. both DMA and FIFO are idle, never 
-> if active:
-> 
-> +	list_add_tail(&vb->queue, &pcdev->capture);
-> +	vb->state = VIDEOBUF_QUEUED;
-> +
-> +	if (pcdev->active)
-> +		return;
-> 
-> Since the transfer of the DMA programming register set content to the DMA 
-> working register set is done automatically by the DMA hardware, this can 
-> pretty well happen while I keep the lock here, so I can't be sure if it's not 
-> too late for entering new data into the programming register set. Then, I 
-> decided that this operation should be done only just after the DMA interrupt 
-> occured, ie. the current DMA programming register set content has just been 
-> used and can be overwriten.
-> 
-> I'll emphasize the above return; with a comment.
+Add support for the following new Control IDs (CID)
+   V4L2_CID_RSSI_THRESHOLD - RSSI Threshold
+   V4L2_CID_TUNE_AF        - Alternative Frequency
 
-Ok
-
-> > In 
-> > your completion you set ->ready = NULL, but then also call
-> > prepare_next_vb() to get the next buffer from the list - if there are any,
-> > so, how can it be NULL with a non-empty list?
-> 
-> It happens after the above mentioned prepare_next_vb() gets nothing from an 
-> empty queue, so nothing is entered into the DMA programming register set, 
-> only the last, just activated, buffer is processed, then 
-> omap1_videobuf_queue() puts a new buffer into the queue while the active 
-> buffer is still filled in, and finally the DMA ISR is called on this last 
-> active buffer completion.
-> 
-> I hope this helps.
-
-Let's assume it does:) You seem to really understand how this is working 
-and even be willing to document the driver, thus making it possibly the 
-best documented soc-camera related piece of software;)
-
-Thanks
-Guennadi
+Signed-off-by: Raja Mani <raja_mani@ti.com>
+Signed-off-by: Pramodh AG <pramodh_ag@ti.com>
+Signed-off-by: Manjunatha Halli <x0130808@ti.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/v4l2-common.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
+index 4e53b0b..5a8e528 100644
+--- a/drivers/media/video/v4l2-common.c
++++ b/drivers/media/video/v4l2-common.c
+@@ -520,6 +520,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_TUNE_PREEMPHASIS:	return "Pre-emphasis settings";
+ 	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
+ 	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
++	case V4L2_CID_RSSI_THRESHOLD:	return "RSSI Threshold";
++	case V4L2_CID_TUNE_AF:		return "Alternative Frequency";
+ 
+ 	default:
+ 		return NULL;
+@@ -585,6 +587,8 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
+ 	case V4L2_CID_EXPOSURE_AUTO:
+ 	case V4L2_CID_COLORFX:
+ 	case V4L2_CID_TUNE_PREEMPHASIS:
++	case V4L2_CID_RSSI_THRESHOLD:
++	case V4L2_CID_TUNE_AF:
+ 		qctrl->type = V4L2_CTRL_TYPE_MENU;
+ 		step = 1;
+ 		break;
+-- 
+1.5.6.3
+
