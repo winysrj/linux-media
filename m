@@ -1,142 +1,298 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:17831 "EHLO mx1.redhat.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:33501 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753234Ab0INWLa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Sep 2010 18:11:30 -0400
-Message-ID: <4C8FF30B.2080900@redhat.com>
-Date: Tue, 14 Sep 2010 19:11:23 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: =?UTF-8?B?UGF3ZcWCIEt1xbpuaWFy?= <pawel@kuzniar.com.pl>
-CC: linux-media@vger.kernel.org
-Subject: Re: Videomed Videosmart VX-3001
-References: <AANLkTinSB_ChWLnR=hQ6jAuRtgeLm0dze6f4mTy5buNt@mail.gmail.com>
-In-Reply-To: <AANLkTinSB_ChWLnR=hQ6jAuRtgeLm0dze6f4mTy5buNt@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	id S1754240Ab0IVKjK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Sep 2010 06:39:10 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o8MAdAe7031667
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 22 Sep 2010 05:39:10 -0500
+From: x0130808@ti.com
+To: linux-media@vger.kernel.org
+Cc: Raja Mani <raja_mani@ti.com>, Pramodh AG <pramodh_ag@ti.com>,
+	Manjunatha Halli <x0130808@ti.com>
+Subject: [RFC/PATCH 5/9] drivers:staging:ti-st: Sources for FM common header
+Date: Wed, 22 Sep 2010 07:49:58 -0400
+Message-Id: <1285156202-28569-6-git-send-email-x0130808@ti.com>
+In-Reply-To: <1285156202-28569-5-git-send-email-x0130808@ti.com>
+References: <1285156202-28569-1-git-send-email-x0130808@ti.com>
+ <1285156202-28569-2-git-send-email-x0130808@ti.com>
+ <1285156202-28569-3-git-send-email-x0130808@ti.com>
+ <1285156202-28569-4-git-send-email-x0130808@ti.com>
+ <1285156202-28569-5-git-send-email-x0130808@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 14-09-2010 13:19, Paweł Kuźniar escreveu:
-> I've just got my hands on Videosmart VX-3001 medical video-grabber. It
-> seems it has some common hardware under the hood, but I only managed
-> to get dark-green screen in Cheese.  I include some of my specs,
-> dmesg and lsub. Being completely green in driver development I'd like
-> to get some help in figuring out  how to make it work.
+From: Raja Mani <raja_mani@ti.com>
 
-Ok, yet another em28xx webcam ;)
+These are common headers used in FM submodules (FM V4L2, FM common, FM Rx,
+and FM TX).
 
-> 
-> [  177.200295] usb 1-3: new high speed USB device using ehci_hcd and address 4
-> [  177.492308] Linux video capture interface: v2.00
-> [  177.493907] IR NEC protocol handler initialized
-> [  177.499529] IR RC5(x) protocol handler initialized
-> [  177.564668] IR RC6 protocol handler initialized
-> [  177.570875] em28xx: New device @ 480 Mbps (eb1a:2861, interface 0, class 0)
-> [  177.571060] em28xx #0: chip ID is em2860
-> [  177.618639] IR JVC protocol handler initialized
-> [  177.621594] IR Sony protocol handler initialized
-> [  177.667519] lirc_dev: IR Remote Control driver registered, major 250
-> [  177.669829] IR LIRC bridge handler initialized
-> [  177.741359] em28xx #0: i2c eeprom 00: 00 00 00 00 00 00 00 00 00 00
-> 00 00 00 00 00 00
-> [  177.741386] em28xx #0: i2c eeprom 10: 00 00 00 00 00 00 00 00 00 00
-> 00 00 00 00 00 00
-> [  177.741409] em28xx #0: i2c eeprom 20: 00 00 00 00 00 00 00 00 00 00
-> 00 00 00 00 00 00
-> [  177.741431] em28xx #0: i2c eeprom 30: 00 00 00 00 00 00 00 00 00 00
-> 00 00 00 00 00 00
-> [  177.741453] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00
-> 00 00 00 00 00 00
-> [  177.741476] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00
-> 00 00 00 00 00 00
-> [  177.741498] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00
-> 00 00 00 00 00 00
-> [  177.741520] em28xx #0: i2c eeprom 70: 00 00 00 00 00 00 00 00 00 00
-> 00 00 00 00 00 00
-> [  177.741542] em28xx #0: i2c eeprom 80: 00 00 00 00 00 00 00 00 00 00
-> 00 00 00 00 00 00
-> [  177.741564] em28xx #0: i2c eeprom 90: 00 00 00 00 00 00 00 00 00 00
-> 00 00 00 00 00 00
-> [  177.741586] em28xx #0: i2c eeprom a0: 00 00 00 00 00 00 00 00 00 00
-> 00 00 00 00 00 00
-> [  177.741608] em28xx #0: i2c eeprom b0: 00 00 00 00 00 00 00 00 00 00
-> 00 00 00 00 00 00
-> [  177.741630] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00
-> 00 00 00 00 00 00
-> [  177.741652] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00
-> 00 00 00 00 00 00
-> [  177.741674] em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00
-> 00 00 00 00 00 00
-> [  177.741696] em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00
-> 00 00 00 00 00 00
-> [  177.741719] em28xx #0: EEPROM ID= 0x00000000, EEPROM hash = 0x00000000
-> [  177.741724] em28xx #0: EEPROM info:
+Signed-off-by: Raja Mani <raja_mani@ti.com>
+Signed-off-by: Pramodh AG <pramodh_ag@ti.com>
+Signed-off-by: Manjunatha Halli <x0130808@ti.com>
+---
+ drivers/staging/ti-st/fm.h    |   13 +++
+ drivers/staging/ti-st/fmdrv.h |  230 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 243 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/staging/ti-st/fm.h
+ create mode 100644 drivers/staging/ti-st/fmdrv.h
 
-Something got wrong at I2C. It is just returning zero for everything.
+diff --git a/drivers/staging/ti-st/fm.h b/drivers/staging/ti-st/fm.h
+new file mode 100644
+index 0000000..be41453
+--- /dev/null
++++ b/drivers/staging/ti-st/fm.h
+@@ -0,0 +1,13 @@
++struct fm_event_hdr {
++	unsigned char plen;
++} __attribute__ ((packed));
++
++#define FM_MAX_FRAME_SIZE 0xFF	/* TODO: */
++#define FM_EVENT_HDR_SIZE 1	/* size of fm_event_hdr */
++#define ST_FM_CH8_PKT 0x8
++
++/* gps stuff */
++struct gps_event_hdr {
++unsigned char opcode;
++unsigned short plen;
++} __attribute__ ((packed));
+diff --git a/drivers/staging/ti-st/fmdrv.h b/drivers/staging/ti-st/fmdrv.h
+new file mode 100644
+index 0000000..4ca368d
+--- /dev/null
++++ b/drivers/staging/ti-st/fmdrv.h
+@@ -0,0 +1,230 @@
++/*
++ *  FM Driver for Connectivity chip of Texas Instruments.
++ *
++ *  Common header for all FM driver sub-modules.
++ *
++ *  Copyright (C) 2009 Texas Instruments
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License version 2 as
++ *  published by the Free Software Foundation.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ */
++
++#ifndef _FM_DRV_H
++#define _FM_DRV_H
++
++#include <linux/skbuff.h>
++#include <linux/interrupt.h>
++#include <sound/core.h>
++#include <sound/initval.h>
++#include <linux/timer.h>
++#include <linux/version.h>
++
++#define FM_DRV_VERSION            "0.01"
++/* Should match with FM_DRV_VERSION */
++#define FM_DRV_RADIO_VERSION      KERNEL_VERSION(0, 0, 1)
++#define FM_DRV_NAME               "ti_fmdrv"
++#define FM_DRV_CARD_SHORT_NAME    "TI FM Radio"
++#define FM_DRV_CARD_LONG_NAME     "Texas Instruments FM Radio"
++
++/* Flag info */
++#define FM_INTTASK_RUNNING            0
++#define FM_INTTASK_SCHEDULE_PENDING   1
++#define FM_FIRMWARE_DW_INPROGRESS     2
++#define FM_CORE_READY                 3
++#define FM_CORE_TRANSPORT_READY       4
++#define FM_AF_SWITCH_INPROGRESS	      5
++#define FM_CORE_TX_XMITING	      6
++
++#define FM_DRV_TX_TIMEOUT      (5*HZ)	/* 5 seconds */
++#define FM_DRV_RX_SEEK_TIMEOUT (20*HZ)	/* 20 seconds */
++
++#define NO_OF_ENTRIES_IN_ARRAY(array) (sizeof(array) / sizeof(array[0]))
++
++enum {
++	FM_MODE_OFF,
++	FM_MODE_TX,
++	FM_MODE_RX,
++	FM_MODE_ENTRY_MAX
++};
++
++#define FM_RX_RDS_INFO_FIELD_MAX	8	/* 4 Group * 2 Bytes */
++
++/* RX RDS data format */
++struct fm_rdsdata_format {
++	union {
++		struct {
++			unsigned char rdsbuff[FM_RX_RDS_INFO_FIELD_MAX];
++		} groupdatabuff;
++		struct {
++			unsigned short pidata;
++			unsigned char block_b_byte1;
++			unsigned char block_b_byte2;
++			unsigned char block_c_byte1;
++			unsigned char block_c_byte2;
++			unsigned char block_d_byte1;
++			unsigned char block_d_byte2;
++		} groupgeneral;
++		struct {
++			unsigned short pidata;
++			unsigned char block_b_byte1;
++			unsigned char block_b_byte2;
++			unsigned char firstaf;
++			unsigned char secondaf;
++			unsigned char firstpsbyte;
++			unsigned char secondpsbyte;
++		} group0A;
++
++		struct {
++			unsigned short pidata;
++			unsigned char block_b_byte1;
++			unsigned char block_b_byte2;
++			unsigned short pidata2;
++			unsigned char firstpsbyte;
++			unsigned char secondpsbyte;
++		} group0B;
++	} rdsdata;
++};
++
++/* FM region (Europe/US, Japan) info */
++struct region_info {
++	unsigned int channel_spacing;
++	unsigned int bottom_frequency;
++	unsigned int top_frequency;
++	unsigned char region_index;
++};
++
++typedef void (*int_handler_prototype) (void *);
++
++/* FM Interrupt processing related info */
++struct fm_irq {
++	unsigned char stage_index;
++	unsigned short flag;	/* FM interrupt flag */
++	unsigned short mask;	/* FM interrupt mask */
++	/* Interrupt process timeout handler */
++	struct timer_list int_timeout_timer;
++	unsigned char irq_service_timeout_retry;
++	int_handler_prototype *fm_int_handlers;
++};
++
++/* RDS info */
++struct fm_rds {
++	unsigned char flag;	/* RX RDS on/off status */
++	unsigned char last_block_index;	/* Last received RDS block */
++
++	/* RDS buffer */
++	wait_queue_head_t read_queue;
++	unsigned int buf_size;	/* Size is always multiple of 3 */
++	unsigned int wr_index;
++	unsigned int rd_index;
++	unsigned char *buffer;
++};
++
++#define FM_RDS_MAX_AF_LIST		25
++
++/*
++ * Current RX channel Alternate Frequency cache.
++ * This info is used to switch to other freq (AF)
++ * when current channel signal strengh is below RSSI threshold.
++ */
++struct tuned_station_info {
++	unsigned short picode;
++	unsigned int af_cache[FM_RDS_MAX_AF_LIST];
++	unsigned char no_of_items_in_afcache;
++	unsigned char af_list_max;
++};
++
++/* FM RX mode info */
++struct fm_rx {
++	struct region_info region;	/* Current selected band */
++	unsigned int curr_freq;	/* Current RX frquency */
++	unsigned char curr_mute_mode;	/* Current mute mode */
++	/* RF dependent soft mute mode */
++	unsigned char curr_rf_depend_mute;
++	unsigned short curr_volume;	/* Current volume level */
++	short curr_rssi_threshold;	/* Current RSSI threshold level */
++	/* Holds the index of the current AF jump */
++	unsigned char cur_afjump_index;
++	/* Will hold the frequency before the jump */
++	unsigned int freq_before_jump;
++	unsigned char rds_mode;	/* RDS operation mode (RDS/RDBS) */
++	unsigned char af_mode;	/* Alternate frequency on/off */
++	struct tuned_station_info cur_station_info;
++	struct fm_rds rds;
++};
++
++/*
++ * FM TX RDS data
++ *
++ * @ text_type: is the text following PS or RT
++ * @ text: radio text string which could either be PS or RT
++ * @ af_freq: alternate frequency for Tx
++ * TODO: to be declared in application
++ */
++struct tx_rds {
++	unsigned char text_type;
++	unsigned char text[25];
++	unsigned char flag;
++	unsigned int af_freq;
++};
++/*
++ * FM TX global data
++ *
++ * @ pwr_lvl: Power Level of the Transmission from mixer control
++ * @ xmit_state: Transmission state = Updated locally upon Start/Stop
++ * @ audio_io: i2S/Analog
++ * @ tx_frq: Transmission frequency
++ */
++struct fmtx_data {
++	unsigned char pwr_lvl;
++	unsigned char xmit_state;
++	unsigned char audio_io;
++	unsigned char region;
++	unsigned short aud_mode;
++	unsigned int preemph;
++	unsigned long tx_frq;
++	struct tx_rds rds;
++};
++
++/* FM driver operation structure */
++struct fmdrv_ops {
++	struct video_device *radio_dev;	/* V4L2 video device pointer */
++	struct snd_card *card;	/* Card which holds FM mixer controls */
++	unsigned short asci_id;
++	spinlock_t rds_buff_lock; /* To protect access to RDS buffer */
++	spinlock_t resp_skb_lock; /* To protect access to received SKB */
++
++	long flag;		/*  FM driver state machine info */
++	char streg_cbdata; /* status of ST registration */
++
++	struct sk_buff_head rx_q;	/* RX queue */
++	struct tasklet_struct rx_task;	/* RX Tasklet */
++
++	struct sk_buff_head tx_q;	/* TX queue */
++	struct tasklet_struct tx_task;	/* TX Tasklet */
++	unsigned long last_tx_jiffies;	/* Timestamp of last pkt sent */
++	atomic_t tx_cnt;	/* Number of packets can send at a time */
++
++	struct sk_buff *response_skb;	/* Response from the chip */
++	/* Main task completion handler */
++	struct completion maintask_completion;
++	/* Opcode of last command sent to the chip */
++	unsigned char last_sent_pkt_opcode;
++	/* Handler used for wakeup when response packet is received */
++	struct completion *response_completion;
++	struct fm_irq irq_info;
++	unsigned char curr_fmmode; /* Current FM chip mode (TX, RX, OFF) */
++	struct fm_rx rx;	/* FM receiver info */
++	struct fmtx_data tx_data;
++};
++#endif
+-- 
+1.5.6.3
 
-> [  177.741728] em28xx #0:       No audio on board.
-> [  177.741732] em28xx #0:       500mA max power
-> [  177.741737] em28xx #0:       Table at 0x00, strings=0x0000, 0x0000, 0x0000
-> [  177.763662] Unknown Micron Sensor 0x0000
-
-There's no sensor 0x0000.
-
-> [  177.763672] em28xx #0: Identified as Unknown EM2750/28xx video
-> grabber (card=1)
-> [  177.764416] em28xx #0: found i2c device @ 0x0 [???]
-> [  177.765167] em28xx #0: found i2c device @ 0x2 [???]
-> [  177.765912] em28xx #0: found i2c device @ 0x4 [???]
-...
-> [  177.818696] em28xx #0: found i2c device @ 0xfe [???]
-
-See? It is returning zero for everything at the I2C bus.
-
-> [  180.220449] 4:2:1: endpoint lacks sample rate attribute bit, cannot set.
-> [  180.220561] 4:2:2: endpoint lacks sample rate attribute bit, cannot set.
-> [  180.220684] 4:2:3: endpoint lacks sample rate attribute bit, cannot set.
-> [  180.220808] 4:2:4: endpoint lacks sample rate attribute bit, cannot set.
-> [  180.220936] 4:2:5: endpoint lacks sample rate attribute bit, cannot set.
-> [  180.224764] usbcore: registered new interface driver snd-usb-audio
-> [  180.311098] 4:2:2: endpoint lacks sample rate attribute bit, cannot set.
-> [  180.313775] 4:2:2: endpoint lacks sample rate attribute bit, cannot set.
-
-This also doesn't sound good.
-
-There are a few frequencies that could be used for I2C:
-
-#define EM28XX_I2C_FREQ_1_5_MHZ		0x03 /* bus frequency (bits [1-0]) */
-#define EM28XX_I2C_FREQ_25_KHZ		0x02
-#define EM28XX_I2C_FREQ_400_KHZ		0x01
-#define EM28XX_I2C_FREQ_100_KHZ		0x00
-
-In general, most hardware accept up to 100 kHz, but there are a few devices where this 
-needs to be reduced to 25 kHz in order to work. We never found one em28xx-based hardware 
-needing to reduce I2C speed, but it seems that you got one ;)
-
-Eventually, this might also be caused by a device responding badly to i2c scan.
-
-
-Please try the enclosed patch, forcing the driver to use card=1, by adding:
-	option em28xx card=1
-
-at /etc/modprobe (or the similar modprobe config on your distro).
-
-This patch should reduce the bus speed to 25 kHz, hopefully giving us more information
-about your device.
-
-Cheers,
-Mauro
-
-diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
-index ffbe544..0213536 100644
---- a/drivers/media/video/em28xx/em28xx-cards.c
-+++ b/drivers/media/video/em28xx/em28xx-cards.c
-@@ -278,6 +278,7 @@ struct em28xx_board em28xx_boards[] = {
- 		.tda9887_conf = TDA9887_PRESENT,
- 		.decoder      = EM28XX_SAA711X,
- 		.tuner_type   = TUNER_ABSENT,
-+		.i2c_speed	= EM28XX_I2C_FREQ_25_KHZ,
- 		.input        = { {
- 			.type     = EM28XX_VMUX_COMPOSITE1,
- 			.vmux     = SAA7115_COMPOSITE0,
