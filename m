@@ -1,128 +1,80 @@
 Return-path: <mchehab@pedra>
-Received: from d1.icnet.pl ([212.160.220.21]:42548 "EHLO d1.icnet.pl"
+Received: from mx1.redhat.com ([209.132.183.28]:26301 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750916Ab0IKBeb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Sep 2010 21:34:31 -0400
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: [RESEND][PATCH v2 2/6] OMAP1: Add support for SoC camera interface
-Date: Sat, 11 Sep 2010 03:34:02 +0200
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tony Lindgren <tony@atomide.com>,
-	"Discussion of the Amstrad E3 emailer hardware/software"
-	<e3-hacking@earth.li>
-References: <201009110317.54899.jkrzyszt@tis.icnet.pl> <201009110323.12250.jkrzyszt@tis.icnet.pl>
-In-Reply-To: <201009110323.12250.jkrzyszt@tis.icnet.pl>
+	id S1754476Ab0IVTDP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Sep 2010 15:03:15 -0400
+Message-ID: <4C9A52D8.1090402@redhat.com>
+Date: Wed, 22 Sep 2010 16:02:48 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: Antti Palosaari <crope@iki.fi>
+CC: Stefan Lippers-Hollmann <s.l-h@gmx.de>,
+	linux-media@vger.kernel.org, TerraTux <terratux@terratec.de>,
+	Patrick Boettcher <patrick.boettcher@desy.de>
+Subject: Re: [GIT PULL FOR 2.6.37] new AF9015 devices
+References: <4C894DB8.8080908@iki.fi>
+In-Reply-To: <4C894DB8.8080908@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201009110334.03905.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-This patch adds support for SoC camera interface to OMAP1 devices.
+Em 09-09-2010 18:12, Antti Palosaari escreveu:
+> Moikka Mauro!
+> This patch series adds support for TerraTec Cinergy T Stick Dual RC and TerraTec Cinergy T Stick RC. Also MxL5007T devices with ref. design IDs should be working. Cinergy T Stick remote is most likely not working since it seems to use different remote as Cinergy T Dual... Stefan could you test and ensure T Stick is working?
+> 
+> and thanks to TerraTec!
+> 
+> t. Antti
+> 
+> 
+> The following changes since commit c9889354c6d36d6278ed851c74ace02d72efdd59:
+> 
+>   V4L/DVB: rc-core: increase repeat time (2010-09-08 13:04:40 -0300)
+> 
+> are available in the git repository at:
+>   git://linuxtv.org/anttip/media_tree.git af9015
+> 
+> Antti Palosaari (6):
+>       af9015: simple comment update
 
-Created and tested against linux-2.6.36-rc3 on Amstrad Delta.
+Hmm... dvb-usb.h defines it as:
+	struct dvb_usb_device_description devices[12];
 
-For successfull compilation, requires a header file provided by PATCH 1/6 from 
-this series, "SoC Camera: add driver for OMAP1 camera interface".
+It took me some time to find the current limit ;)
 
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
----
-Resend because of wrapped lines, sorry.
-Janusz
+IMO, instead of just comment it as: 
+	.num_device_descs = 9, /* check max from dvb-usb.h */
 
+The better would be to add a definition at dvb-usb.h header for the max limit, and properly pointing it
+on your drivers, like:
 
-v1->v2 changes:
-- no functional changes,
-- refreshed against linux-2.6.36-rc3
+on dvb-usb.h:
 
+	#define MAX_DEVICES_PER_DEV_PROPS	12
+...
+	struct dvb_usb_device_description devices[MAX_DEVICES_PER_DEV_PROPS];
 
- arch/arm/mach-omap1/devices.c             |   43 ++++++++++++++++++++++++++++++
- arch/arm/mach-omap1/include/mach/camera.h |    8 +++++
- 2 files changed, 51 insertions(+)
+on af9015 (and others):
+	.num_device_descs = 9, /* max is MAX_DEVICES_PER_DEV_PROPS as defined on dvb-usb.h */
 
+I'll apply this patch to avoid breaking your series, but please provide me a fix.
 
-diff -upr linux-2.6.36-rc3.orig/arch/arm/mach-omap1/devices.c linux-2.6.36-rc3/arch/arm/mach-omap1/devices.c
---- linux-2.6.36-rc3.orig/arch/arm/mach-omap1/devices.c	2010-09-03 22:29:00.000000000 +0200
-+++ linux-2.6.36-rc3/arch/arm/mach-omap1/devices.c	2010-09-09 18:42:30.000000000 +0200
-@@ -15,6 +15,7 @@
- #include <linux/platform_device.h>
- #include <linux/io.h>
- #include <linux/spi/spi.h>
-+#include <linux/dma-mapping.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach/map.h>
-@@ -25,6 +26,7 @@
- #include <mach/gpio.h>
- #include <plat/mmc.h>
- #include <plat/omap7xx.h>
-+#include <mach/camera.h>
- 
- /*-------------------------------------------------------------------------*/
- 
-@@ -191,6 +193,47 @@ static inline void omap_init_spi100k(voi
- }
- #endif
- 
-+
-+#define OMAP1_CAMERA_BASE	0xfffb6800
-+
-+static struct resource omap1_camera_resources[] = {
-+	[0] = {
-+		.start	= OMAP1_CAMERA_BASE,
-+		.end	= OMAP1_CAMERA_BASE + OMAP1_CAMERA_IOSIZE - 1,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	[1] = {
-+		.start	= INT_CAMERA,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+};
-+
-+static u64 omap1_camera_dma_mask = DMA_BIT_MASK(32);
-+
-+static struct platform_device omap1_camera_device = {
-+	.name		= "omap1-camera",
-+	.id		= 0, /* This is used to put cameras on this interface */
-+	.dev		= {
-+		.dma_mask		= &omap1_camera_dma_mask,
-+		.coherent_dma_mask	= DMA_BIT_MASK(32),
-+	},
-+	.num_resources	= ARRAY_SIZE(omap1_camera_resources),
-+	.resource	= omap1_camera_resources,
-+};
-+
-+void __init omap1_set_camera_info(struct omap1_cam_platform_data *info)
-+{
-+	struct platform_device *dev = &omap1_camera_device;
-+	int ret;
-+
-+	dev->dev.platform_data = info;
-+
-+	ret = platform_device_register(dev);
-+	if (ret)
-+		dev_err(&dev->dev, "unable to register device: %d\n", ret);
-+}
-+
-+
- /*-------------------------------------------------------------------------*/
- 
- static inline void omap_init_sti(void) {}
-diff -upr linux-2.6.36-rc3.orig/arch/arm/mach-omap1/include/mach/camera.h 
-linux-2.6.36-rc3/arch/arm/mach-omap1/include/mach/camera.h
---- linux-2.6.36-rc3.orig/arch/arm/mach-omap1/include/mach/camera.h	2010-09-03 22:34:03.000000000 +0200
-+++ linux-2.6.36-rc3/arch/arm/mach-omap1/include/mach/camera.h	2010-09-09 18:42:30.000000000 +0200
-@@ -0,0 +1,8 @@
-+#ifndef __ASM_ARCH_CAMERA_H_
-+#define __ASM_ARCH_CAMERA_H_
-+
-+#include <media/omap1_camera.h>
-+
-+extern void omap1_set_camera_info(struct omap1_cam_platform_data *);
-+
-+#endif /* __ASM_ARCH_CAMERA_H_ */
+>       af9015: fix bug introduced by commit 490ade7e3f4474f626a8f5d778ead4e599b94fbcas
+>       af9013: add support for MaxLinear MxL5007T tuner
+>       af9015: add support for TerraTec Cinergy T Stick Dual RC
+>       af9015: add remote support for TerraTec Cinergy T Stick Dual RC
+>       af9015: map TerraTec Cinergy T Stick Dual RC remote to device ID
+> 
+>  drivers/media/dvb/dvb-usb/Kconfig         |    1 +
+>  drivers/media/dvb/dvb-usb/af9015.c        |   50 +++++++++++++----------
+>  drivers/media/dvb/dvb-usb/af9015.h        |   63 +++++++++++++++++++++++++++++
+>  drivers/media/dvb/dvb-usb/dvb-usb-ids.h   |    1 +
+>  drivers/media/dvb/frontends/af9013.c      |    1 +
+>  drivers/media/dvb/frontends/af9013.h      |    1 +
+>  drivers/media/dvb/frontends/af9013_priv.h |    5 +-
+>  7 files changed, 99 insertions(+), 23 deletions(-)
+> 
+> 
+Cheers,
+Mauro
