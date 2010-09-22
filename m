@@ -1,52 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4771 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751153Ab0IOHXw (ORCPT
+Received: from qmta06.emeryville.ca.mail.comcast.net ([76.96.30.56]:37841 "EHLO
+	qmta06.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753326Ab0IVLL0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Sep 2010 03:23:52 -0400
-Received: from tschai.localnet (186.84-48-119.nextgentel.com [84.48.119.186])
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id o8F7No1T070828
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 15 Sep 2010 09:23:51 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 2.6.37] V4L documentation fixes
-Date: Wed, 15 Sep 2010 09:23:50 +0200
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201009150923.50132.hverkuil@xs4all.nl>
+	Wed, 22 Sep 2010 07:11:26 -0400
+From: Brian Rogers <brian@xyzw.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Brian Rogers <brian@xyzw.org>
+Subject: [PATCH] ir-core: Fix null dereferences in the protocols sysfs interface
+Date: Wed, 22 Sep 2010 04:06:43 -0700
+Message-Id: <1285153603-1527-1-git-send-email-brian@xyzw.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The following changes since commit 57fef3eb74a04716a8dd18af0ac510ec4f71bc05:
-  Richard Zidlicky (1):
-        V4L/DVB: dvb: fix smscore_getbuffer() logic
+For some cards, ir_dev->props and ir_dev->raw are both NULL. These cards are
+using built-in IR decoding instead of raw, and can't easily be made to switch
+protocols.
 
-are available in the git repository at:
+So upon reading /sys/class/rc/rc?/protocols on such a card, return 'builtin' as
+the supported and enabled protocol. Return -EINVAL on any attempts to change
+the protocol. And most important of all, don't crash.
 
-  ssh://linuxtv.org/git/hverkuil/v4l-dvb.git misc2
+Signed-off-by: Brian Rogers <brian@xyzw.org>
+Acked-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/IR/ir-sysfs.c |   17 +++++++++++------
+ 1 files changed, 11 insertions(+), 6 deletions(-)
 
-Hans Verkuil (6):
-      V4L Doc: removed duplicate link
-      V4L Doc: fix DocBook syntax errors.
-      V4L Doc: document V4L2_CAP_RDS_OUTPUT capability.
-      V4L Doc: clarify the V4L spec.
-      V4L Doc: correct the documentation for VIDIOC_QUERYMENU.
-      V4L Doc: rewrite the Device Naming section
-
- Documentation/DocBook/v4l/common.xml               |  197 +++++---------------
- Documentation/DocBook/v4l/controls.xml             |    3 -
- Documentation/DocBook/v4l/pixfmt-packed-rgb.xml    |    2 +-
- Documentation/DocBook/v4l/pixfmt.xml               |    4 +-
- Documentation/DocBook/v4l/vidioc-g-dv-preset.xml   |    3 +-
- Documentation/DocBook/v4l/vidioc-g-dv-timings.xml  |    3 +-
- .../DocBook/v4l/vidioc-query-dv-preset.xml         |    2 +-
- Documentation/DocBook/v4l/vidioc-querycap.xml      |    7 +-
- Documentation/DocBook/v4l/vidioc-queryctrl.xml     |   18 ++-
- 9 files changed, 73 insertions(+), 166 deletions(-)
+diff --git a/drivers/media/IR/ir-sysfs.c b/drivers/media/IR/ir-sysfs.c
+index 96dafc4..46d4246 100644
+--- a/drivers/media/IR/ir-sysfs.c
++++ b/drivers/media/IR/ir-sysfs.c
+@@ -67,13 +67,14 @@ static ssize_t show_protocols(struct device *d,
+ 	char *tmp = buf;
+ 	int i;
+ 
+-	if (ir_dev->props->driver_type == RC_DRIVER_SCANCODE) {
++	if (ir_dev->props && ir_dev->props->driver_type == RC_DRIVER_SCANCODE) {
+ 		enabled = ir_dev->rc_tab.ir_type;
+ 		allowed = ir_dev->props->allowed_protos;
+-	} else {
++	} else if (ir_dev->raw) {
+ 		enabled = ir_dev->raw->enabled_protocols;
+ 		allowed = ir_raw_get_allowed_protocols();
+-	}
++	} else
++		return sprintf(tmp, "[builtin]\n");
+ 
+ 	IR_dprintk(1, "allowed - 0x%llx, enabled - 0x%llx\n",
+ 		   (long long)allowed,
+@@ -121,10 +122,14 @@ static ssize_t store_protocols(struct device *d,
+ 	int rc, i, count = 0;
+ 	unsigned long flags;
+ 
+-	if (ir_dev->props->driver_type == RC_DRIVER_SCANCODE)
++	if (ir_dev->props && ir_dev->props->driver_type == RC_DRIVER_SCANCODE)
+ 		type = ir_dev->rc_tab.ir_type;
+-	else
++	else if (ir_dev->raw)
+ 		type = ir_dev->raw->enabled_protocols;
++	else {
++		IR_dprintk(1, "Protocol switching not supported\n");
++		return -EINVAL;
++	}
+ 
+ 	while ((tmp = strsep((char **) &data, " \n")) != NULL) {
+ 		if (!*tmp)
+@@ -185,7 +190,7 @@ static ssize_t store_protocols(struct device *d,
+ 		}
+ 	}
+ 
+-	if (ir_dev->props->driver_type == RC_DRIVER_SCANCODE) {
++	if (ir_dev->props && ir_dev->props->driver_type == RC_DRIVER_SCANCODE) {
+ 		spin_lock_irqsave(&ir_dev->rc_tab.lock, flags);
+ 		ir_dev->rc_tab.ir_type = type;
+ 		spin_unlock_irqrestore(&ir_dev->rc_tab.lock, flags);
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+1.7.1
+
