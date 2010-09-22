@@ -1,210 +1,169 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:63114 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754475Ab0ISPiZ (ORCPT
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:44180 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753969Ab0IVLVK convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Sep 2010 11:38:25 -0400
-Date: Sun, 19 Sep 2010 11:38:18 -0400
-Subject: Re: RFC: BKL, locking and ioctls
-Message-ID: <fm127xqs7xbmiabppyr1ifai.1284910330767@email.android.com>
-From: Andy Walls <awalls@md.metrocast.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+	Wed, 22 Sep 2010 07:21:10 -0400
+Received: by gxk9 with SMTP id 9so102034gxk.19
+        for <linux-media@vger.kernel.org>; Wed, 22 Sep 2010 04:21:09 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1285110780.5561.18.camel@pc07.localdom.local>
+References: <AANLkTikf0hp8nXzovvdn0j_80Dcirr1a-EMH9sDDGEoX@mail.gmail.com> <1285110780.5561.18.camel@pc07.localdom.local>
+From: Dejan Rodiger <dejan.rodiger@gmail.com>
+Date: Wed, 22 Sep 2010 13:20:48 +0200
+Message-ID: <AANLkTinm=P-VoSLgMEKTh6QNMPBKhKM1AibM-eBerkrW@mail.gmail.com>
+Subject: Re: [linux-dvb] Asus MyCinema P7131 Dual support
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-VGhlIGRldmljZSBub2RlIGlzbid0IGV2ZW4gdGhlIHJpZ2h0IHBsYWNlIGZvciBkcml2ZXJzIHRo
-YXQgcHJvdmlkZSBtdWx0aXBsZSBkZXZpY2Ugbm9kZXMgdGhhdCBjYW4gcG9zc2libHkgYWNjZXNz
-IHRoZSBzYW1lIHVuZGVybHlpbmcgZGF0YSBvciByZWdpc3RlciBzZXRzLgoKQW55IGNvcmUvaW5m
-cmFzdHJ1Y3R1cmUgYXBwcm9hY2ggaXMgbGlrZWx5IGRvb21lZCBpbiB0aGUgZ2VuZXJhbCBjYXNl
-LiAgSXQncyB0cnlpbmcgdG8gcHJvdGVjdCBkYXRhIGFuZCByZWdpc3RlcnMgaW4gYSBkcml2ZXIg
-aXQga25vd3Mgbm90aGluZyBhYm91dCwgYnkgcHJvdGVjdGluZyB0aGUgKmNvZGUgcGF0aHMqIHRo
-YXQgdGFrZSBlc3NlbnRpYWxseSB1bmtub3duIGFjdGlvbnMgb24gdGhhdCBkYXRhIGFuZCByZWdp
-c3RlcnMuIDp7CgpWaWRlb2J1ZiBpcyB0aGUgcmlnaHQgcGxhY2UgdG8gcHJvdGVjdCB2aWRlb2J1
-ZiBkYXRhLgpPdGhlcndpc2UgdGhlIGRyaXZlciByZWFsbHkgbmVlZHMgdG8gaGFuZGxlIHByb3Rl
-Y3RpbmcgdGhpbmdzLCBhcyBpdCdzIHRoZSBvbmx5IGNvZGUgd2l0aCBmdWxsIGtub3dsZWRnZSBv
-ZiB0aGUgZGF0YSBzdHJ1Y3R1cmVzIGFuZCByZWdpc3RlciBibG9ja3MgaW4gdXNlLgoKIlByb3Rl
-Y3QgdGhlIGRhdGEsIG5vdCB0aGUgY29kZSIgLUFsYW4gQ294IG9uIExLTUwKClIsCkFuZHkKCgpI
-YW5zIFZlcmt1aWwgPGh2ZXJrdWlsQHhzNGFsbC5ubD4gd3JvdGU6Cgo+T24gU3VuZGF5LCBTZXB0
-ZW1iZXIgMTksIDIwMTAgMTM6NDM6NDMgTWF1cm8gQ2FydmFsaG8gQ2hlaGFiIHdyb3RlOgo+PiBI
-aSBIYW5zLAo+PiAKPj4gRW0gMTktMDktMjAxMCAwNzoyOSwgSGFucyBWZXJrdWlsIGVzY3JldmV1
-Ogo+PiA+IFdlIG5lZWQgdG8gd29yayBvbiBnZXR0aW5nIHJpZCBvZiB0aGUgQktMLCBidXQgdG8g
-ZG8gdGhhdCBzYWZlbHkgd2UgbmVlZCBhCj4+ID4gc2ltcGxlIHdheSB0byBjb252ZXJ0IHRoZSBt
-YW55IGRyaXZlcnMgdGhhdCBkbyBub3QgdXNlIHVubG9ja2VkX2lvY3RsLgo+PiA+IAo+PiA+IFR5
-cGljYWxseSB5b3Ugd2FudCB0byBzZXJpYWxpemUgdXNpbmcgYSBtdXRleC4gVGhpcyBpcyB0cml2
-aWFsIHRvIGRvIGluIHRoZQo+PiA+IGRyaXZlciBpdHNlbGYgZm9yIHRoZSBub3JtYWwgb3Blbi9y
-ZWFkL3dyaXRlL3BvbGwvbW1hcCBhbmQgcmVsZWFzZSBmb3BzLgo+PiA+IAo+PiA+IEJ1dCBmb3Ig
-dW5sb2NrZWRfaW9jdGwgaXQgaXMgYSBiaXQgaGFyZGVyIHNpbmNlIHdlIGxpa2UgZHJpdmVycyB0
-byB1c2UKPj4gPiB2aWRlb19pb2N0bDIgZGlyZWN0bHkuIEFuZCB5b3UgZG9uJ3Qgd2FudCBkcml2
-ZXJzIHRvIHB1dCBtdXRleF9sb2NrL3VubG9jawo+PiA+IGNhbGxzIGluIGV2ZXJ5IHY0bDJfaW9j
-dGxfb3BzIGZ1bmN0aW9uLgo+PiA+IAo+PiA+IE9uZSBzb2x1dGlvbiBpcyB0byBhZGQgYSBtdXRl
-eCBwb2ludGVyIHRvIHN0cnVjdCB2aWRlb19kZXZpY2UgdGhhdAo+PiA+IHY0bDJfdW5sb2NrZWRf
-aW9jdGwgY2FuIHVzZSB0byBkbyBsb2NraW5nOgo+PiA+IAo+PiA+IGRpZmYgLS1naXQgYS9kcml2
-ZXJzL21lZGlhL3ZpZGVvL3Y0bDItZGV2LmMgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL3Y0bDItZGV2
-LmMKPj4gPiBpbmRleCAzMDQ2MWNmLi40NGMzN2U1IDEwMDY0NAo+PiA+IC0tLSBhL2RyaXZlcnMv
-bWVkaWEvdmlkZW8vdjRsMi1kZXYuYwo+PiA+ICsrKyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vdjRs
-Mi1kZXYuYwo+PiA+IEBAIC0yMzYsMTIgKzIzNiwxOCBAQCBzdGF0aWMgbG9uZyB2NGwyX3VubG9j
-a2VkX2lvY3RsKHN0cnVjdCBmaWxlICpmaWxwLAo+PiA+ICAgICAgICAgICAgICAgICB1bnNpZ25l
-ZCBpbnQgY21kLCB1bnNpZ25lZCBsb25nIGFyZykKPj4gPiAgewo+PiA+ICAgICAgICAgc3RydWN0
-IHZpZGVvX2RldmljZSAqdmRldiA9IHZpZGVvX2RldmRhdGEoZmlscCk7Cj4+ID4gKyAgICAgICBp
-bnQgcmV0Owo+PiA+ICAKPj4gPiAgICAgICAgIGlmICghdmRldi0+Zm9wcy0+dW5sb2NrZWRfaW9j
-dGwpCj4+ID4gICAgICAgICAgICAgICAgIHJldHVybiAtRU5PVFRZOwo+PiA+ICsgICAgICAgaWYg
-KHZkZXYtPmlvY3RsX2xvY2spCj4+ID4gKyAgICAgICAgICAgICAgIG11dGV4X2xvY2sodmRldi0+
-aW9jdGxfbG9jayk7Cj4+ID4gICAgICAgICAvKiBBbGxvdyBpb2N0bCB0byBjb250aW51ZSBldmVu
-IGlmIHRoZSBkZXZpY2Ugd2FzIHVucmVnaXN0ZXJlZC4KPj4gPiAgICAgICAgICAgIFRoaW5ncyBs
-aWtlIGRlcXVldWVpbmcgYnVmZmVycyBtaWdodCBzdGlsbCBiZSB1c2VmdWwuICovCj4+ID4gLSAg
-ICAgICByZXR1cm4gdmRldi0+Zm9wcy0+dW5sb2NrZWRfaW9jdGwoZmlscCwgY21kLCBhcmcpOwo+
-PiA+ICsgICAgICAgcmV0ID0gdmRldi0+Zm9wcy0+dW5sb2NrZWRfaW9jdGwoZmlscCwgY21kLCBh
-cmcpOwo+PiA+ICsgICAgICAgaWYgKHZkZXYtPmlvY3RsX2xvY2spCj4+ID4gKyAgICAgICAgICAg
-ICAgIG11dGV4X3VubG9jayh2ZGV2LT5pb2N0bF9sb2NrKTsKPj4gPiArICAgICAgIHJldHVybiBy
-ZXQ7Cj4+ID4gIH0KPj4gPiAgCj4+ID4gICNpZmRlZiBDT05GSUdfTU1VCj4+ID4gZGlmZiAtLWdp
-dCBhL2luY2x1ZGUvbWVkaWEvdjRsMi1kZXYuaCBiL2luY2x1ZGUvbWVkaWEvdjRsMi1kZXYuaAo+
-PiA+IGluZGV4IDFlZmNhY2IuLmUxYWQzOGEgMTAwNjQ0Cj4+ID4gLS0tIGEvaW5jbHVkZS9tZWRp
-YS92NGwyLWRldi5oCj4+ID4gKysrIGIvaW5jbHVkZS9tZWRpYS92NGwyLWRldi5oCj4+ID4gQEAg
-LTk3LDYgKzk3LDggQEAgc3RydWN0IHZpZGVvX2RldmljZQo+PiA+ICAKPj4gPiAgICAgICAgIC8q
-IGlvY3RsIGNhbGxiYWNrcyAqLwo+PiA+ICAgICAgICAgY29uc3Qgc3RydWN0IHY0bDJfaW9jdGxf
-b3BzICppb2N0bF9vcHM7Cj4+ID4gKwo+PiA+ICsgICAgICAgc3RydWN0IG11dGV4ICppb2N0bF9s
-b2NrOwo+PiA+ICB9Owo+PiA+ICAKPj4gPiAgLyogZGV2IHRvIHZpZGVvLWRldmljZSAqLwo+PiAK
-Pj4gQXMgSSBjb21tZW50IHdpdGggeW91IG9uIElSQywgSSdtIHdvcmtpbmcgb24gaXQgZHVyaW5n
-IHRoaXMgd2Vla2VuZC4gCj4+IAo+PiBBIHBlci1kZXYgbG9jayBtYXkgbm90IGJlIGdvb2Qgb24g
-ZGV2aWNlcyB3aGVyZSB5b3UgaGF2ZSBsb3RzIG9mIGludGVyZmFjZXMsIGFuZCB0aGF0IGFsbG93
-cwo+PiBtb3JlIHRoYW4gb25lIHN0cmVhbSBwZXIgaW50ZXJmYWNlLgo+Cj5NeSBwcm9wb3NhbCBp
-cyBhY3R1YWxseSBhIGxvY2sgcGVyIGRldmljZSBub2RlLCBub3QgcGVyIGRldmljZSAoYWx0aG91
-Z2ggdGhhdCdzCj53aGF0IG1hbnkgc2ltcGxlIGRyaXZlcnMgcHJvYmFibHkgd2lsbCB1c2UpLgo+
-IAo+PiBTbywgSSBkaWQgYSBkaWZmZXJlbnQgaW1wbGVtZW50YXRpb24sIGltcGxlbWVudGluZyB0
-aGUgbXV0ZXggcG9pbnRlciBwZXIgZmlsZSBoYW5kbGVyLgo+PiBPbiBkZXZpY2VzIHRoYXQgYSBz
-aW1wbGUgbG9jayBpcyBwb3NzaWJsZSwgYWxsIHlvdSBuZWVkIHRvIGRvIGlzIHRvIHVzZSB0aGUg
-c2FtZSBsb2NraW5nCj4+IGZvciBhbGwgZmlsZSBoYW5kbGVzLCBidXQgaWYgZHJpdmVycyB3YW50
-IGEgZmluZXIgY29udHJvbCwgdGhleSBjYW4gdXNlIGEgcGVyLWZpbGUgaGFuZGxlcgo+PiBsb2Nr
-Lgo+Cj5JIGFtIHJhdGhlciB1bmhhcHB5IGFib3V0IHRoaXMuIEZpcnN0IG9mIGFsbCwgcGVyLWZp
-bGVoYW5kbGUgbG9ja3MgYXJlIHByZXR0eSBwb2ludGxlc3MuIElmCj55b3UgbmVlZCB0byBzZXJp
-YWxpemUgZm9yIGEgc2luZ2xlIGZpbGVoYW5kbGUgKHdoaWNoIHdvdWxkIG9ubHkgYmUgbmVlZGVk
-IGZvciBtdWx0aXRocmVhZGVkCj5hcHBsaWNhdGlvbnMgd2hlcmUgdGhlIHRocmVhZHMgdXNlIHRo
-ZSBzYW1lIGZpbGVoYW5kbGUpLCB0aGVuIHlvdSBkZWZpbml0ZWx5IG5lZWQgdG8gc2VyaWFsaXpl
-Cj5iZXR3ZWVuIG11bHRpcGxlIGZpbGUgaGFuZGxlcyB0aGF0IGFyZSBvcGVuIG9uIHRoZSBzYW1l
-IGRldmljZSBub2RlLgo+Cj5UaGUgZGV2aWNlIG5vZGUgaXMgdGhlIHJpZ2h0IHBsYWNlIGZvciB0
-aGlzIElNSE8uCj4KPlJlZ2FyZGluZyBjcmVhdGluZyB2NGwyX2ZoIHN0cnVjdHMgaW4gdGhlIGNv
-cmU6IG1hbnkgc2ltcGxlIGRyaXZlcnMgZG8gbm90IG5lZWQgYSB2NGwyX2ZoCj5hdCBhbGwsIGFu
-ZCB0aGUgbW9yZSBjb21wbGV4IGRyaXZlcnMgb2Z0ZW4gbmVlZCB0byBlbWJlZCBpdCBpbiBhIGxh
-cmdlciBzdHJ1Y3QuCj4KPlRoZSBsb29rdXAgZ2V0X3Y0bDJfZmggZnVuY3Rpb24gYWxzbyBpcyB1
-bm5lY2Vzc2FyeSBpZiB3ZSBkbyBub3QgY3JlYXRlIHRoZXNlIHN0cnVjdHMgYW5kCj5zbyBpcyB0
-aGUgKnJlYWxseSogdWdseSByZWluaXRfdjRsMl9maC4KPgo+PiBJJ20gYWRkaW5nIHRoZSBwYXRj
-aGVzIEkgZGlkIGF0IG1lZGlhLXRyZWUuZ2l0LiBJJ3ZlIGNyZWF0ZWQgYSBzZXBhcmF0ZSBicmFu
-Y2ggdGhlcmUgKGRldmVsL2JrbCk6Cj4+IAlodHRwOi8vZ2l0LmxpbnV4dHYub3JnL21lZGlhX3Ry
-ZWUuZ2l0P2E9c2hvcnRsb2c7aD1yZWZzL2hlYWRzL2RldmVsL2JrbAo+PiAKPj4gSSd2ZSBhbHJl
-YWR5IGFwcGxpZWQgdGhlcmUgdGhlIG90aGVyIEJLTC1sb2NrIHJlbW92YWwgcGF0Y2hlcyBJJ3Zl
-IHNlbnQgYmVmb3JlLCBwbHVzIG9uZSBuZXcKPj4gb25lLCBmaXhpbmcgYSBsb2NrIHVuYmFsYW5j
-ZSBhdCBidHR2IHBvbGwgZnVuY3Rpb24gKGNoYW5nZXNldCAzMmQxYzkwYzg1KS4KPj4gCj4+IFRo
-ZSB2NGwyIGNvcmUgcGF0Y2hlcyBhcmUgYXQ6Cj4+IAo+PiBodHRwOi8vZ2l0LmxpbnV4dHYub3Jn
-L21lZGlhX3RyZWUuZ2l0P2E9Y29tbWl0O2g9Mjg1MjY3Mzc4NTgxZmJmODUyZjI0ZjNmOTlkMmU5
-MzdjZDIwMGZkNQo+PiBodHRwOi8vZ2l0LmxpbnV4dHYub3JnL21lZGlhX3RyZWUuZ2l0P2E9Y29t
-bWl0O2g9NWY3YjIxNTljODdiMDhkNGYwOTYxYzIzM2EyZDFkMWI4N2M4YjM4ZAo+PiAKPj4gVGhl
-IGFwcHJvYWNoIEkgdG9vayBzZXJpYWxpemVzIG9wZW4sIGNsb3NlLCBpb2N0bCwgbW1hcCwgcmVh
-ZCBhbmQgcG9sbCwgZS4gZy4gYWxsIGZpbGUgb3BlcmF0aW9ucwo+PiBkb25lIGJ5IHRoZSBWNEwg
-ZGV2aWNlcy4KPj4gCj4+ID4gT25lIGFyZWEgd2hlcmUgdGhpcyBtYXkgcnVuIGludG8gcHJvYmxl
-bXMgaXMgd2l0aCB2aWRlb2J1Zi4gVGhlIHZpZGVvYnVmCj4+ID4gc3Vic3lzdGVtIGhhcyBpdHMg
-b3duIHZiX2xvY2ssIHNvIHRoYXQgd2lsbCBnaXZlIG11bHRpcGxlIGxldmVscyBvZiBsb2NraW5n
-Lgo+PiA+IE1vcmUgaW1wb3J0YW50bHksIHZpZGVvYnVmIGNhbiBzbGVlcCBhbmQgeW91IGRvbid0
-IHdhbnQgdG8gaGF2ZSB0aGUgZ2xvYmFsCj4+ID4gbG9jayBwcmV2ZW50aW5nIGFjY2VzcyB0byB0
-aGUgZGV2aWNlIG5vZGUuCj4+ID4gCj4+ID4gT25lIG9wdGlvbiBpcyB0byBsZXQgdmlkZW9idWYg
-dXNlIHRoZSBzYW1lIG11dGV4LiBIb3dldmVyLCBJIGRvbid0IGJlbGlldmUKPj4gPiB0aGF0IGlz
-IGZlYXNpYmxlIHdpdGggdGhlIGN1cnJlbnQgdmlkZW9idWYuIEFsdGhvdWdoIEkgaG9wZSB0aGF0
-IHRoaXMgY2FuCj4+ID4gYmUgaW1wbGVtZW50ZWQgZm9yIHZiMi4KPj4gPiAKPj4gPiBUaGF0IGxl
-YXZlcyBvbmUgb3RoZXIgb3B0aW9uOiB0aGUgZHJpdmVyIGhhcyB0byB1bmxvY2sgdGhlIGdsb2Jh
-bCBsb2NrIGJlZm9yZQo+PiA+IGNhbGxpbmcgdmlkZW9idWYgZnVuY3Rpb25zIGFuZCB0YWtlIHRo
-ZSBsb2NrIGFnYWluIGFmdGVyd2FyZHMuIEkgdGhpbmsgdGhpcyBpcwo+PiA+IGFjdHVhbGx5IG9u
-bHkgbGltaXRlZCB0byBxYnVmIGFuZCBkcWJ1ZiBzbyB0aGUgaW1wYWN0IHdpbGwgYmUgc21hbGwu
-Cj4+ID4KPj4gPiBBbm90aGVyIHBsYWNlIHdoZXJlIGEgd2FpdCBvY2N1cnMgaXMgaW4gdjRsMl9l
-dmVudF9kZXF1ZXVlLiBCdXQgdGhhdCdzIHBhcnQKPj4gPiBvZiB0aGUgY29yZSwgc28gd2UgY2Fu
-IHVubG9jayBpb2N0bF9sb2NrIHRoZXJlIGFuZCBsb2NrIGl0IGFmdGVyd2FyZHMuIE5vCj4+ID4g
-ZHJpdmVyIGNoYW5nZXMgcmVxdWlyZWQuCj4+IAo+PiBJIGRpZCBhIHNpbWlsYXIgcGF0Y2ggdG8g
-dmlkZW9idWYsIGFsbG93aW5nIGFuIG9wdGlvbmFsIGxvY2sgYXQgdmlkZW9idWY6Cj4+IAo+PiBo
-dHRwOi8vZ2l0LmxpbnV4dHYub3JnL21lZGlhX3RyZWUuZ2l0P2E9Y29tbWl0O2g9NWY3YjIxNTlj
-ODdiMDhkNGYwOTYxYzIzM2EyZDFkMWI4N2M4YjM4ZAo+PiBodHRwOi8vZ2l0LmxpbnV4dHYub3Jn
-L21lZGlhX3RyZWUuZ2l0P2E9Y29tbWl0O2g9ZDE0YmI4Mzk4MDNiNjYyNjA0ZGU2Mjc0NTFmZTE5
-ZGFhNjk3ZDFkYwo+PiAKPj4gQXMgYWxsIG11dGV4LWRlcGVuZGVudCB2aWRlb2J1ZiBvcGVyYXRp
-b25zIGhhcHBlbiBkdXJpbmcgdGhlIGNhbGwgb2Ygb25lIG9mIHRoZSBmb3BzLCB0aGVyZSdzCj4+
-IG5vIG5lZWQgb2YgYW4gZXhwbGljaXQgY2FsbCBpbnNpZGUgdmlkZW9idWYuCj4+IAo+PiBJbiBv
-cmRlciB0byB0ZXN0IGl0LCBJJ3ZlIHBvcnRlZCB0d28gZHJpdmVyczogdml2aSBhbmQgZW0yOHh4
-Ogo+PiAKPj4gaHR0cDovL2dpdC5saW51eHR2Lm9yZy9tZWRpYV90cmVlLmdpdD9hPWNvbW1pdDto
-PTdkZGMxYjZlZjgwMzAxNGY2ZWQyOTdjMzkxZTc3NGQwNDRkNzJmOWQKPj4gaHR0cDovL2dpdC5s
-aW51eHR2Lm9yZy9tZWRpYV90cmVlLmdpdD9hPWNvbW1pdDtoPWI1OTExN2VkMjc3MDZiZjYwNTll
-ZWFiZjI2OThkMWQzM2UyZTY3ZDAKPj4gCj4+IE9uIGJvdGggY2FzZXMsIHRoZSBsb2NrIHNlZW1z
-IHRvIGJlIGVub3VnaC4gSSBldmVuIHJlbW92ZWQgZW0yOHh4IHdoaWxlIHN0cmVhbWluZywgd2l0
-aCAKPj4gbXBsYXllciByZXByb2R1Y2luZyB0aGUgc3RyZWFtIGFuZCB3aXRoIHF2NGwyIHJ1bm5p
-bmcuIEkgZGlkbid0IG5vdGljZSBhIHNpbmdsZSBpc3N1ZS4KPj4gCj4+IFdlIGNvdWxkIG5lZWQg
-dG8gZG8gc29tZSBjaGFuZ2VzIHRoZXJlIHRvIGNvdmVyIHRoZSBjYXNlIHdoZXJlIHZpZGVvYnVm
-IHNsZWVwcywgbWF5YmUgdXNpbmcKPj4gbXV0ZXhfbG9ja19pbnRlcnJ1cHRpYmxlIGF0IGNvcmUs
-IGluIG9yZGVyIHRvIGFsbG93IGFib3J0IHVzZXJzcGFjZSwgaWYgdGhlIGRyaXZlciBmYWlscwo+
-PiB0byBmaWxsIHRoZSBidWZmZXJzICh0ZXN0cyBhcmUgbmVlZGVkKS4KPgo+UmVnYXJkaW5nIHRo
-ZSAodmVyeSBjb3VyYWdlb3VzISkgdmlkZW9idWYgcGF0Y2hlczogSSdtIGltcHJlc3NlZC4gQnV0
-IHZpZGVvYnVmIG11c3QgcmVhbGx5Cj5yZWxlYXNlIHRoZSBsb2NrIGluIHdhaXRvbi4gUmlnaHQg
-bm93IG5vIG90aGVyIGFjY2VzcyBjYW4gYmUgZG9uZSB3aGlsZSBpdCBpcyB3YWl0aW5nLiBUaGF0
-Cj5pcyBub3QgYWNjZXB0YWJsZS4gVGhlIHNhbWUgaXNzdWUgYXBwZWFycyBpbiB0aGUgVklESU9D
-X0RRRVZFTlQgY29yZSBoYW5kbGVyLCBhbHRob3VnaCBpdAo+aXMgZWFzeSB0byBzb2x2ZSB0aGVy
-ZS4KPgo+Rm9yIHZpZGVvYnVmIGl0IG1pZ2h0IGJlIGJldHRlciB0byBwYXNzIGEgcG9pbnRlciB0
-byB0aGUgc2VyaWFsaXppbmcgbXV0ZXggYXMgYW4gYXJndW1lbnQuCj5UaGVuIHZpZGVvYnVmIGNh
-biB1c2UgdGhhdCB0byB1bmxvY2svcmVsb2NrIHdoZW4gaXQgaGFzIHRvIHdhaXQuIE5vdCBlbGVn
-YW50LCBidXQgaG9wZWZ1bGx5Cj53ZSBjYW4gZG8gYmV0dGVyIGluIHZiMi4KPgo+TXkgc3VnZ2Vz
-dGlvbiB3b3VsZCBiZSB0byB1c2UgeW91ciB2aWRlb2J1ZiBwYXRjaGVzLCBidXQgdXNlIG15IGlk
-ZWEgZm9yIHRoZSBtdXRleCBwb2ludGVyCj5pbiBzdHJ1Y3QgdmlkZW9fZGV2aWNlLiBCZXN0IG9m
-IGJvdGggd29ybGRzIDotKQo+Cj4+ID4gT25lIG90aGVyIHRoaW5nIHRoYXQgSSBkbyBub3QgbGlr
-ZSBpcyB0aGlzOgo+PiA+IAo+PiA+ICAgICAgICAgLyogQWxsb3cgaW9jdGwgdG8gY29udGludWUg
-ZXZlbiBpZiB0aGUgZGV2aWNlIHdhcyB1bnJlZ2lzdGVyZWQuCj4+ID4gICAgICAgICAgICBUaGlu
-Z3MgbGlrZSBkZXF1ZXVlaW5nIGJ1ZmZlcnMgbWlnaHQgc3RpbGwgYmUgdXNlZnVsLiAqLwo+PiA+
-ICAgICAgICAgcmV0dXJuIHZkZXYtPmZvcHMtPnVubG9ja2VkX2lvY3RsKGZpbHAsIGNtZCwgYXJn
-KTsKPj4gPiAKPj4gPiBJIGRvIG5vdCBiZWxpZXZlIGRyaXZlcnMgY2FuIGRvIGFueXRoaW5nIHVz
-ZWZ1bCBvbmNlIHRoZSBkZXZpY2UgaXMgdW5yZWdpc3RlcmVkCj4+ID4gZXhjZXB0IGp1c3QgY2xv
-c2UgdGhlIGZpbGUgaGFuZGxlLiBUaGVyZSBhcmUgdHdvIGV4Y2VwdGlvbnMgdG8gdGhpczogcG9s
-bCgpCj4+ID4gYW5kIFZJRElPQ19EUUVWRU5ULgo+PiA+IAo+PiA+IFJpZ2h0IG5vdyBkcml2ZXJz
-IGhhdmUgbm8gd2F5IG9mIGRldGVjdGluZyB0aGF0IGEgZGlzY29ubmVjdCBoYXBwZW5lZC4gSXQg
-d291bGQKPj4gPiBiZSBlYXN5IHRvIGFkZCBhIGRpc2Nvbm5lY3QgZXZlbnQgYW5kIGxldCB0aGUg
-Y29yZSBpc3N1ZSBpdCBhdXRvbWF0aWNhbGx5LiBUaGUKPj4gPiBvbmx5IHRoaW5nIG5lZWRlZCBp
-cyB0aGF0IFZJRElPQ19EUUVWRU5UIGlvY3RscyBhcmUgcGFzc2VkIG9uIGFuZCB0aGF0IHBvbGwK
-Pj4gPiByYWlzZXMgYW4gZXhjZXB0aW9uLiBTaW5jZSBhbGwgdGhlIGluZm9ybWF0aW9uIHJlZ2Fy
-ZGluZyBldmVudHMgaXMgYXZhaWxhYmxlIGluCj4+ID4gdGhlIGNvcmUgZnJhbWV3b3JrIGl0IGlz
-IGVhc3kgdG8gZG8gdGhpcyB0cmFuc3BhcmVudGx5Lgo+PiA+IAo+PiA+IFNvIGVmZmVjdGl2ZWx5
-LCBvbmNlIGEgZHJpdmVyIHVucmVnaXN0ZXJlZCBhIGRldmljZSBub2RlIGl0IHdpbGwgbmV2ZXIg
-Z2V0Cj4+ID4gY2FsbGVkIGFnYWluIG9uIHRoYXQgZGV2aWNlIG5vZGUgZXhjZXB0IGZvciB0aGUg
-cmVsZWFzZSBjYWxsLiBUaGF0IGlzIHZlcnkKPj4gPiB1c2VmdWwgZm9yIGEgZHJpdmVyLgo+PiA+
-IAo+PiA+IEFuZCBzaW5jZSB3ZSBjYW4gZG8gdGhpcyBpbiB0aGUgY29yZSwgaXQgd2lsbCBhbHNv
-IGJlIGNvbnNpc3RlbnQgZm9yIGFsbAo+PiA+IGRyaXZlcnMuCj4+IAo+PiBJIHRoaW5rIHdlIHNo
-b3VsZCBpbXBsZW1lbnQgYSB3YXkgdG8gZGV0ZWN0IGRpc2Nvbm5lY3Rpb25zLiBUaGlzIHdpbGwg
-YWxsb3cgc2ltcGxpZnlpbmcgdGhlCj4+IGNvZGUgYXQgdGhlIGRyaXZlcnMuIFlldCwgSSBkb24n
-dCB0aGluayB0aGF0IHRoZSBzb2x1dGlvbiBpcyAob25seSkgdG8gY3JlYXRlIGFuCj4+IGV2ZW50
-LiBJbnN0ZWFkLCB3ZSBuZWVkIHRvIHNlZSBob3cgdGhpcyBpbmZvcm1hdGlvbiBjb3VsZCBiZSBy
-ZXRyaWV2ZWQgZnJvbSB0aGUgYnVzLgo+PiBBcyB0aGUgbm9ybWFsIGNhc2UgZm9yIGRpc2Nvbm5l
-Y3Rpb25zIGlzIGZvciBVU0IgZGV2aWNlcywgd2UgYmFzaWNhbGx5IG5lZWQgdG8gaW1wbGVtZW50
-Cj4+IGEgY2FsbGJhY2sgd2hlbiBhIGRpY29ubmVjdGlvbiBoYXBwZW5zLiBUaGUgVVNCIGNvcmUg
-a25vd3MgYWJvdXQgdGhhdCwgYnV0IEkgZG9uJ3Qga25vdwo+PiBpZiBpdCBwcm92aWRlcyBhIGNh
-bGxiYWNrIGZvciBpdC4KPgo+V2VsbCwgVVNCIGRyaXZlcnMgaGF2ZSBhIGRpc2Nvbm5lY3QgY2Fs
-bGJhY2suIEFsbCBWNEwyIFVTQiBkcml2ZXJzIGhvb2sgaW50byB0aGF0Lgo+V2hhdCB0aGV5IGFy
-ZSBzdXBwb3NlZCB0byBkbyBpcyB0byB1bnJlZ2lzdGVyIGFsbCB2aWRlbyBub2Rlcy4gVGhhdCBz
-ZXRzIHRoZSAndW5yZWdpc3RlcmVkJwo+aW4gdGhlIGNvcmUgcHJldmVudGluZyBhbnkgZnVydGhl
-ciBhY2Nlc3MuCj4KPj4gSWYgaXQgcHJvdmlkZXMsIGRyaXZlcnMgbWF5IGp1c3QgaW1wbGVtZW50
-IHRoZSBjYWxsYmFjaywKPj4gY2FsbGluZyBidWZmZXJfcmVsZWFzZSwgYW5kIHNheWluZyB0byBW
-NEwyIGNvcmUgdGhhdCB0aGUgZGV2aWNlIGlzIGRpc2Nvbm5lY3RlZC4gVjRMMiBjb3JlCj4+IGNh
-biB0aGVuIHByb3Blcmx5IGhhbmRsZSBhbnkgbmV3IGZvcHMgdG8gdGhhdCBkZXZpY2UsIHBhc3Np
-bmcgdG8gdGhlIGRldmljZSBqdXN0IHRoZQo+PiBjbG9zZSgpIGV2ZW50cywgcmV0dXJuaW5nIC1F
-Tk9ERVYgYW5kIFBPTExFUlIgZm9yIHVzZXJzcGFjZS4KPgo+VGhhdCBiYXNpY2FsbHkgaXMgd2hh
-dCBoYXBwZW5zIHJpZ2h0IG5vdy4gRXhjZXB0IGZvciBwYXNzaW5nIG9uIHRoZSBpb2N0bHMgd2hp
-Y2ggaXMgYSBiYWQKPmlkZWEgSU1ITy4KPgo+QlRXOiBvbmUgb3RoZXIgdGhpbmcgSSd2ZSB3b3Jr
-ZWQgb24gdG9kYXkgaXMgYSBnbG9iYWwgcmVsZWFzZSBjYWxsYmFjayBpbiB2NGwyX2RldmljZS4K
-PlJpZ2h0IG5vdyB3ZSBoYXZlIHByb3BlciByZWZjb3VudGluZyBmb3Igc3RydWN0IHZpZGVvX2Rl
-dmljZSwgYnV0IGlmIGEgZHJpdmVyIGhhcyBtdWx0aXBsZQo+ZGV2aWNlIG5vZGVzLCB0aGVuIGl0
-IGNhbiBiZSBoYXJkIHRvIHRlbGwgd2hlbiBhbGwgb2YgdGhlbSBhcmUgcHJvcGVybHkgcmVsZWFz
-ZWQgYW5kIGl0Cj5pcyBzYWZlIHRvIHJlbGVhc2UgdGhlIGZ1bGwgZGV2aWNlIGluc3RhbmNlLgo+
-Cj5JIG1hZGUgYSBmYWlybHkgc3RyYWlnaHRmb3J3YXJkIGltcGxlbWVudGF0aW9uIGF2YWlsYWJs
-ZSBoZXJlOgo+Cj5odHRwOi8vZ2l0LmxpbnV4dHYub3JnL2h2ZXJrdWlsL3Y0bC1kdmIuZ2l0P2E9
-c2hvcnRsb2c7aD1yZWZzL2hlYWRzL3Y0bDJjb3JlCj4KPldpdGhvdXQgYSBnbG9iYWwgcmVsZWFz
-ZSBpdCBpcyBhbG1vc3QgaW1wb3NzaWJsZSB0byBjbGVhbnVwIGEgZHJpdmVyIGxpa2UgdXNidmlz
-aW9uCj5jb3JyZWN0bHkuCj4KPlJlZ2FyZHMsCj4KPglIYW5zCj4KPi0tIAo+SGFucyBWZXJrdWls
-IC0gdmlkZW80bGludXggZGV2ZWxvcGVyIC0gc3BvbnNvcmVkIGJ5IFRBTkRCRVJHLCBwYXJ0IG9m
-IENpc2NvCj4tLQo+VG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUg
-InVuc3Vic2NyaWJlIGxpbnV4LW1lZGlhIiBpbgo+dGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1h
-am9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcKPk1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92
-Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbAo=
+Hi Herman,
 
+here is dmesg output without forcing card=78.
+As I see it uses card=112, autodetected
+
+[   16.043345] IR RC6 protocol handler initialized
+[   16.173473] IR JVC protocol handler initialized
+[   16.236641] IR Sony protocol handler initialized
+[   16.433187] lirc_dev: IR Remote Control driver registered, major 250
+[   16.572705] IR LIRC bridge handler initialized
+[   16.894983] Linux video capture interface: v2.00
+[   16.957585] saa7130/34: v4l2 driver version 0.2.16 loaded
+[   16.958300] ACPI: PCI Interrupt Link [APC3] enabled at IRQ 18
+[   16.958306]   alloc irq_desc for 18 on node 0
+[   16.958309]   alloc kstat_irqs on node 0
+[   16.958320] saa7134 0000:01:06.0: PCI INT A -> Link[APC3] -> GSI 18
+(level, low) -> IRQ 18
+[   16.958327] saa7133[0]: found at 0000:01:06.0, rev: 209, irq: 18,
+latency: 32, mmio: 0xfdeff000
+[   16.958334] saa7133[0]: subsystem: 1043:4876, board: ASUSTeK P7131
+Hybrid [card=112,autodetected]
+[   16.958378] saa7133[0]: board init: gpio is 0
+[   17.010075] Registered IR keymap rc-asus-pc39
+[   17.010197] input: saa7134 IR (ASUSTeK P7131 Hybri as
+/devices/pci0000:00/0000:00:09.0/0000:01:06.0/rc/rc0/input4
+[   17.010268] rc0: saa7134 IR (ASUSTeK P7131 Hybri as
+/devices/pci0000:00/0000:00:09.0/0000:01:06.0/rc/rc0
+[   17.190477] saa7133[0]: i2c eeprom 00: 43 10 76 48 54 20 1c 00 43
+43 a9 1c 55 d2 b2 92
+[   17.190490] saa7133[0]: i2c eeprom 10: ff ff ff 0f ff 20 ff ff ff
+ff ff ff ff ff ff ff
+[   17.190502] saa7133[0]: i2c eeprom 20: 01 40 01 02 03 01 01 03 08
+ff 00 d5 ff ff ff ff
+[   17.190513] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   17.190524] saa7133[0]: i2c eeprom 40: ff 21 00 c2 96 10 03 32 55
+50 ff ff ff ff ff ff
+[   17.190534] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   17.190545] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   17.190556] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   17.190566] saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   17.190577] saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   17.190587] saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   17.190598] saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   17.190609] saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   17.190620] saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   17.190630] saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   17.190641] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+
+[   17.610120] tuner 2-004b: chip found @ 0x96 (saa7133[0])
+
+[   17.780037] tda829x 2-004b: setting tuner address to 61
+[   17.940020] tda829x 2-004b: type set to tda8290+75a
+
+[   24.000114] saa7133[0]: registered device video0 [v4l2]
+[   24.000150] saa7133[0]: registered device vbi0
+[   24.000182] saa7133[0]: registered device radio0
+[   24.027730] saa7134 ALSA driver for DMA sound loaded
+[   24.027770] saa7133[0]/alsa: saa7133[0] at 0xfdeff000 irq 18
+registered as card -2
+
+[   25.900159] DVB: registering new adapter (saa7133[0])
+[   25.900165] DVB: registering adapter 0 frontend 0 (Philips
+TDA10046H DVB-T)...
+
+[   26.710050] tda1004x: setting up plls for 48MHz sampling clock
+[   27.710043] tda1004x: found firmware revision 29 -- ok
+
+
+--
+Dejan Rodiger
+M: +385917829076
+S: callto://drodiger
+
+
+
+On Wed, Sep 22, 2010 at 01:13, hermann pitton <hermann-pitton@arcor.de> wrote:
+> Hi Dejan,
+>
+> Am Dienstag, den 21.09.2010, 10:07 +0200 schrieb Dejan Rodiger:
+>> Hi,
+>>
+>> I am using Ubuntu linux 10.10 with the latest kernel 2.6.35-22-generic
+>> on x86_64. I have installed nonfree firmware which should support this
+>> card, but to be sure, can somebody confirm that my TV card is
+>> supported in Analog or DVB mode?
+>>
+>> sudo lspci -vnn
+>> 01:06.0 Multimedia controller [0480]: Philips Semiconductors
+>> SAA7131/SAA7133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d1)
+>>         Subsystem: ASUSTeK Computer Inc. My Cinema-P7131 Hybrid
+>> [1043:4876]
+>>         Flags: bus master, medium devsel, latency 32, IRQ 18
+>>         Memory at fdeff000 (32-bit, non-prefetchable) [size=2K]
+>>         Capabilities: [40] Power Management version 2
+>>         Kernel driver in use: saa7134
+>>         Kernel modules: saa7134
+>>
+>> It says Hybrid, but I put the following in
+>> the /etc/modprobe.d/saa7134.conf
+>> options saa7134 card=78 tuner=54
+>>
+>>
+>> Thanks
+>> --
+>> Dejan Rodiger
+>> S: callto://drodiger
+>
+> don't have time to follow this closely anymore.
+>
+> But forcing it to card=78 is plain wrong. It has an early additional LNA
+> in confirmed config = 2 status.
+>
+> Your card should be auto detected and previously always was, based on
+> what we have in saa7134-cards.c and further for it. (saa7134-dvb and
+> related tuner/demod stuff)
+>
+>        }, {
+>                .vendor       = PCI_VENDOR_ID_PHILIPS,
+>                .device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+>                .subvendor    = 0x1043,
+>                .subdevice    = 0x4876,
+>                .driver_data  = SAA7134_BOARD_ASUSTeK_P7131_HYBRID_LNA,
+>        },{
+>
+> I remember for sure, that this card was fully functional for all use
+> cases and it was not easy to get it there. I don't have it.
+>
+> Please provide the "dmesg" for failing auto detection without forcing
+> some card = number as a starting point.
+>
+> I for sure want to see this board fully functional again.
+>
+> Cheers,
+> Hermann
+>
