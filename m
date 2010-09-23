@@ -1,57 +1,114 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:1065 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757894Ab0I1SrT convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3022 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755813Ab0IWTLg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Sep 2010 14:47:19 -0400
-Date: Tue, 28 Sep 2010 15:46:53 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Srinivasa.Deevi@conexant.com, Palash.Bandyopadhyay@conexant.com,
-	dheitmueller@kernellabs.com,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 01/10] V4L/DVB: cx231xx: remove a printk warning at -avcore
- and at -417
-Message-ID: <20100928154653.785c1f3f@pedra>
-In-Reply-To: <cover.1285699057.git.mchehab@redhat.com>
-References: <cover.1285699057.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Thu, 23 Sep 2010 15:11:36 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id o8NJBZ4Q027276
+	for <linux-media@vger.kernel.org>; Thu, 23 Sep 2010 21:11:35 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 23 Sep 2010 21:11:35 +0200 (CEST)
+Message-Id: <201009231911.o8NJBZ4Q027276@smtp-vbr5.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-drivers/media/video/cx231xx/cx231xx-avcore.c:1608: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘long unsigned int’
-drivers/media/video/cx231xx/cx231xx-417.c:1047: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘size_t’
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Results of the daily build of v4l-dvb:
 
-diff --git a/drivers/media/video/cx231xx/cx231xx-417.c b/drivers/media/video/cx231xx/cx231xx-417.c
-index 402e109..ddaa437 100644
---- a/drivers/media/video/cx231xx/cx231xx-417.c
-+++ b/drivers/media/video/cx231xx/cx231xx-417.c
-@@ -1044,7 +1044,7 @@ static int cx231xx_load_firmware(struct cx231xx *dev)
- 	/* transfer to the chip */
- 	dprintk(2, "Loading firmware to GPIO...\n");
- 	p_fw_data = (u32 *)firmware->data;
--	dprintk(2, "firmware->size=%d\n", firmware->size);
-+	dprintk(2, "firmware->size=%zd\n", firmware->size);
- 	for (transfer_size = 0; transfer_size < firmware->size;
- 		 transfer_size += 4) {
- 		fw_data = *p_fw_data;
-diff --git a/drivers/media/video/cx231xx/cx231xx-avcore.c b/drivers/media/video/cx231xx/cx231xx-avcore.c
-index b4eda90..ab9fbf8 100644
---- a/drivers/media/video/cx231xx/cx231xx-avcore.c
-+++ b/drivers/media/video/cx231xx/cx231xx-avcore.c
-@@ -1605,7 +1605,7 @@ void cx231xx_set_DIF_bandpass(struct cx231xx *dev, u32 if_freq,
- 	if_freq = 16000000;
-     }
- 
--    cx231xx_info("Enter IF=%d\n",
-+    cx231xx_info("Enter IF=%zd\n",
- 		 sizeof(Dif_set_array)/sizeof(struct dif_settings));
-     for (i = 0; i < sizeof(Dif_set_array)/sizeof(struct dif_settings); i++) {
- 	if (Dif_set_array[i].if_freq == if_freq) {
--- 
-1.7.1
+date:        Thu Sep 23 19:00:19 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15164:1da5fed5c8b2
+git master:       3e6dce76d99b328716b43929b9195adfee1de00c
+git media-master: 48f1bba604f1a5a312368bad822d2c03198a3ec3
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
+linux-2.6.32.6-armv5: WARNINGS
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.36-rc2-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35.3-armv5-davinci: WARNINGS
+linux-2.6.36-rc2-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35.3-armv5-ixp: WARNINGS
+linux-2.6.36-rc2-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35.3-armv5-omap2: WARNINGS
+linux-2.6.36-rc2-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-rc2-i686: ERRORS
+linux-2.6.32.6-m32r: WARNINGS
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.36-rc2-m32r: ERRORS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.36-rc2-mips: ERRORS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.36-rc2-powerpc64: ERRORS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-rc2-x86_64: ERRORS
+linux-git-Module.symvers: ERRORS
+linux-git-armv5: ERRORS
+linux-git-armv5-davinci: ERRORS
+linux-git-armv5-ixp: ERRORS
+linux-git-armv5-omap2: ERRORS
+linux-git-i686: ERRORS
+linux-git-m32r: ERRORS
+linux-git-mips: ERRORS
+linux-git-powerpc64: ERRORS
+linux-git-x86_64: ERRORS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
