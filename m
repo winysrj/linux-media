@@ -1,73 +1,200 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:26217 "EHLO mx1.redhat.com"
+Received: from d1.icnet.pl ([212.160.220.21]:35073 "EHLO d1.icnet.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752710Ab0I2R25 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Sep 2010 13:28:57 -0400
-Message-ID: <4CA37755.5060608@redhat.com>
-Date: Wed, 29 Sep 2010 14:28:53 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1753547Ab0IWW7P convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Sep 2010 18:59:15 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v2 3/6] SoC Camera: add driver for OV6650 sensor
+Date: Fri, 24 Sep 2010 00:45:23 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"Discussion of the Amstrad E3 emailer hardware/software"
+	<e3-hacking@earth.li>
+References: <201009110317.54899.jkrzyszt@tis.icnet.pl> <201009222023.13696.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1009231549340.23561@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1009231549340.23561@axis700.grange>
 MIME-Version: 1.0
-To: Giorgio <mywing81@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: ASUS My Cinema-P7131 Hybrid (saa7134) and slow IR
-References: <AANLkTik4NpV5C=Ct_8u=awZ-tthDC=ORJj8u1DHTNu+q@mail.gmail.com>
-In-Reply-To: <AANLkTik4NpV5C=Ct_8u=awZ-tthDC=ORJj8u1DHTNu+q@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <201009240045.24669.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 29-09-2010 14:06, Giorgio escreveu:
-> Hello,
-> 
-> I have an Asus P7131 Hybrid card, and it works like a charm with
-> Ubuntu 8.04 and stock kernel 2.6.24. But, after upgrading my system to
-> Ubuntu 10.04 x86-64, I noticed that the remote control was quite slow
-> to respond. Sometimes the keypresses aren't recognized, and you have
-> to keep pressing the same button two or three times until it works.
-> The remote feels slow, not very responsive.
-> So, to investigate the issue, I loaded the ir-common module with
-> debug=1 and looked at the logs. They report lots of "ir-common:
-> spurious timer_end". The funny thing is, I have tried the Ubuntu 10.04
-> i386 livecd (with the same kernel) and the problem is not present
-> there.
+Thursday 23 September 2010 18:06:15 Guennadi Liakhovetski napisał(a):
+> On Wed, 22 Sep 2010, Janusz Krzysztofik wrote:
+> > Wednesday 22 September 2010 11:12:46 Guennadi Liakhovetski napisaÅ(a):
+> > > Ok, just a couple more comments, all looking quite good so far, if we
+> > > get a new version soon enough, we still might manage it for 2.6.37
+> > >
+> > > On Sat, 11 Sep 2010, Janusz Krzysztofik wrote:
+> > >
+> > > [snip]
+> > >
+> > > > +/* write a register */
+> > > > +static int ov6650_reg_write(struct i2c_client *client, u8 reg, u8
+> > > > val) +{
+> > > > +	int ret;
+> > > > +	unsigned char data[2] = { reg, val };
+> > > > +	struct i2c_msg msg = {
+> > > > +		.addr	= client->addr,
+> > > > +		.flags	= 0,
+> > > > +		.len	= 2,
+> > > > +		.buf	= data,
+> > > > +	};
+> > > > +
+> > > > +	ret = i2c_transfer(client->adapter, &msg, 1);
+> > > > +	msleep_interruptible(1);
+> > >
+> > > Why do you want _interruptible here? Firstly it's just 1ms, secondly -
+> > > why?...
+> >
+> > My bad. I didn't verified what a real difference between msleep() and
+> > msleep_interruptible() is, only found that msleep_interruptible(1) makes
+> > checkpatch.pl more happy than msleep(1), sorry.
+> >
+> > What I can be sure is that a short delay is required here, otherwise the
+> > driver doesn't work correctly. To prevent the checkpatch.pl from
+> > complying against msleep(1), I think I could just replace it with
+> > msleep(20). What do you think?
+>
+> oh, no, don't think replacing msleep(1) with msleep(20) just to silence a
+> compiler warning is a god idea...;) Well, use a udelay(1000). Or maybe
+> try, whether a udelay(100) suffices too.
 
-> Sep 27 15:48:59 holden-desktop kernel: [  256.770031] ir-common: spurious timer_end
-> Sep 27 15:48:59 holden-desktop kernel: [  256.880030] ir-common: spurious timer_end
+OK. Thanks for the hints.
 
-It is using the old RC support. This support will be removed soon, so, the
-better is to convert it to use the new IR core, and fix a bug there, if is
-there any.
+> > > > +	priv->rect.left	  = DEF_HSTRT << !priv->qcif;
+> > > > +	priv->rect.top	  = DEF_VSTRT << !priv->qcif;
+> > > > +	priv->rect.width  = mf->width;
+> > > > +	priv->rect.height = mf->height;
+> > >
+> > > Sorry, don't understand. The sensor can do both - cropping per HSTRT,
+> > > HSTOP, VSTRT and VSTOP and scaling per COMA_CIF / COMA_QCIF, right?
+> >
+> > Right.
+> >
+> > > But
+> > > which of them is stored in your priv->rect? Is this the input window
+> > > (cropping) or the output one (scaling)?
+> >
+> > I'm not sure how I can follow your input/output concept here.
+> > Default (reset) values of HSTRT, HSTOP, VSTRT and VSTOP registers are the
+> > same for both CIF and QCIF, giving a 176x144 picture area in both cases.
+> > Than, when in CIF (reset default) mode, which actual size is double of
+> > that (352x288), I scale them by 2 when converting to priv->rect elements.
+> >
+> > > You overwrite it in .s_fmt and
+> > > .s_crop...
+> >
+> > I added the priv->rect to be returned by g_crop() instead of
+> > recalculating it from the register values. Then, I think I have to
+> > overwrite it on every geometry change, whether s_crop or s_fmt caused. Am
+> > I missing something?
+>
+> If I understand your sensor correctly, HSTRT etc. registers configure
+> pretty much any (input) sensor window, 
 
-Please apply the attached patch (it is against my -git tree, but it will probably
-apply fine if you have a new kernel).
+Let's say, not exceeding CIF geometry (352x288).
 
-You should notice that the RC_MAP_ASUS_PC39 table is not ready for the new IR
-infrastructure. So, you'll need to enable ir-core debug, and check what scancodes are
-detected there. Probably, all we need is to add the RC5 address to all codes at the table.
+> whereas COMA and COML select 
+> whether to scale it to a CIF or to a QCIF output. 
 
-Cheers,
-Mauro
+I think the answer is: not exactly. AFAICT, the COMA_QCIF bit selects whether 
+to scale it down by 2 (QCIF selection) or not (CIF selection).
 
----
-saa7134: port Asus P7131 Hybrid to use the new rc-core
+> So, these are two 
+> different things. Hence your ->rect can hold only one of the two - the
+> sensor window or the output image. Since output image has only two options
+> - CIF or QCIF, you don't need to store it in rect, you already have
+> priv->qcif.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+With the above reservation - yes, I could use priv->qcif to scale priv->rect 
+down by 2 or not in g_fmt.
 
-diff --git a/drivers/media/video/saa7134/saa7134-input.c b/drivers/media/video/saa7134/saa7134-input.c
-index 52a1ee5..1bb813e 100644
---- a/drivers/media/video/saa7134/saa7134-input.c
-+++ b/drivers/media/video/saa7134/saa7134-input.c
-@@ -772,8 +772,10 @@ int saa7134_input_init1(struct saa7134_dev *dev)
- 	case SAA7134_BOARD_ASUSTeK_P7131_HYBRID_LNA:
- 	case SAA7134_BOARD_ASUSTeK_P7131_ANALOG:
- 		ir_codes     = RC_MAP_ASUS_PC39;
--		mask_keydown = 0x0040000;
--		rc5_gpio = 1;
-+		mask_keydown = 0x0040000;	/* Enable GPIO18 line on both edges */
-+		mask_keyup   = 0x0040000;
-+		mask_keycode = 0xffff;
-+		raw_decode   = 1;
- 		break;
- 	case SAA7134_BOARD_ENCORE_ENLTV:
- 	case SAA7134_BOARD_ENCORE_ENLTV_FM:
+> Oh, and one more thing - didn't notice before: in your cropcap you do
+>
+> +	int shift = !priv->qcif;
+> ...
+> +	a->bounds.left			= DEF_HSTRT << shift;
+> +	a->bounds.top			= DEF_VSTRT << shift;
+> +	a->bounds.width			= W_QCIF << shift;
+> +	a->bounds.height		= H_QCIF << shift;
+>
+> Don't think this is right. cropcap shouldn't depend on any dynamic
+> (configured by S_FMT) setting, it contains absolute limits of your
+> hardware. I know I might have produced a couple of bad examples in the
+> past - before I eventually settled with this definition... So, I think,
+> it's best to put the full sensor resolution in cropcap.
+
+OK.
+
+> ...and, please, replace
+>
+> +		priv->qcif = 1;
+> with
+> +		priv->qcif = true;
+> and
+> +		priv->qcif = 0;
+> with
+> +		priv->qcif = false;
+> in ov6650_s_fmt().
+
+Sure.
+
+> But I think your driver might have a problem with its cropping / scaling
+> handling. Let's see if I understand it right:
+>
+> 1. as cropcap you currently return QCIF or CIF, depending on the last
+> S_FMT, 
+
+Yes.
+
+BTW, my S_FMT always calls ov6650_reset(), which resets the current crop to 
+defaults. This behaviour doesn't follow the requirement of this operation 
+being done only once, when the driver is first loaded, but not later. Should 
+I restore the last crop after every reset? If yes, what is the purpose of 
+defrect if applied only at driver first load?
+
+> but let's say, you fix it to always return CIF. 
+
+OK.
+
+> 2. in your s_fmt you accept only two output sizes: CIF or QCIF, that's ok,
+> if that's all you can configure with your driver.
+
+Not any longer :). I'm able to configure using current crop geometry only, 
+either unscaled or scaled down by 2. I'm not able to configure neither exact 
+CIF nor QCIF if my current crop window doesn't match, unless I'm allowed to 
+change the crop from here.
+
+> 3. in s_crop you accept anything with left + width <= HSTOP and top +
+> height <= VSTOP. This I don't understand. Your HSTOP and VSTOP are fixed
+> values, based on QCIF plus some offsets. So, you would accept widths up to
+> "a little larger than QCIF width" and similar heights. 
+
+Do you mean I should also verify if (rect->left >= DEF_HSTRT) and (rect->top 
+>= DEF_VSTRT)? I should probably.
+
+> Then, without 
+> changing COMA and COML you assume, that the output size changed equally,
+> because that's what you return in g_fmt.
+
+I think I've verified, to the extent possible using v4l2-dbg, that it works 
+like this. If I change the input height by overwriting VSTOP with a slightly 
+higher value, the output seems to change proportionally and starts rolling 
+down, since the host is not updated to handle the so changed frame size.
+
+> Anyway, I think, there is some misunderstanding of the v4l2 cropping and
+> scaling procedures. Please, have a look here:
+> http://v4l2spec.bytesex.org/spec/x1904.htm. Do you agree, that what your
+> driver is implementing doesn't reflect that correctly?;)
+
+Yes, I do. And I think that that the reason of this misunderstanding is my 
+sensor just not matching the v4l2 model with its limited, probably uncommon 
+scaling capability, or me still not being able to map the sensor to the v4l2 
+model correctly. What do you think?
+
+Thanks,
+Janusz
