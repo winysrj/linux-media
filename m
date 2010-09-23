@@ -1,124 +1,181 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:52020 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753863Ab0ISVCp (ORCPT
+Received: from d1.icnet.pl ([212.160.220.21]:51466 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750985Ab0IWOwO convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Sep 2010 17:02:45 -0400
-Subject: Re: RFC: BKL, locking and ioctls
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Arnd Bergmann <arnd@arndb.de>
-In-Reply-To: <4C967082.3040405@redhat.com>
-References: <201009191229.35800.hverkuil@xs4all.nl>
-	 <201009191658.11346.hverkuil@xs4all.nl> <4C9656A6.80303@redhat.com>
-	 <201009192106.47601.hverkuil@xs4all.nl>  <4C967082.3040405@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 19 Sep 2010 17:02:31 -0400
-Message-ID: <1284930151.2079.156.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Thu, 23 Sep 2010 10:52:14 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v2 1/6] SoC Camera: add driver for OMAP1 camera interface
+Date: Thu, 23 Sep 2010 16:51:35 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	"Discussion of the Amstrad E3 emailer hardware/software"
+	<e3-hacking@earth.li>
+References: <201009110317.54899.jkrzyszt@tis.icnet.pl> <201009222013.58035.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1009231514000.23561@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1009231514000.23561@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <201009231651.36589.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, 2010-09-19 at 17:20 -0300, Mauro Carvalho Chehab wrote:
-> Em 19-09-2010 16:06, Hans Verkuil escreveu:
-> > On Sunday, September 19, 2010 20:29:58 Mauro Carvalho Chehab wrote:
-> >> Em 19-09-2010 11:58, Hans Verkuil escreveu:
-> >>> On Sunday, September 19, 2010 13:43:43 Mauro Carvalho Chehab wrote:
-> >>
-> >>>> A per-dev lock may not be good on devices where you have lots of interfaces, and that allows
-> >>>> more than one stream per interface.
-> >>>
-> >>> My proposal is actually a lock per device node, not per device (although that's
-> >>> what many simple drivers probably will use).
-> >>
-> >> Yes, that's what I meant. However, V4L2 API allows multiple opens and multiple streams per
-> >> device node (and this is actually in use by several drivers).
-> > 
-> > Just to be clear: multiple opens is a V4L2 requirement. Some older drivers had exclusive
-> > access, but those are gradually fixed.
-> > 
-> > Multiple stream per device node: if you are talking about allowing e.g. both VBI streaming
-> > and video streaming from one device node, then that is indeed allowed by the current spec.
-> > Few drivers support this though, and it is a really bad idea. During the Helsinki meeting we
-> > agreed to remove this from the spec (point 10a in the mini summit report).
-> 
-> I'm talking about read(), overlay and mmap(). The spec says, at "Multiple Opens" [1]:
-> 	"When a device supports multiple functions like capturing and overlay simultaneously,
-> 	 multiple opens allow concurrent use of the device by forked processes or specialized applications."
-> 
-> [1] http://linuxtv.org/downloads/v4l-dvb-apis/ch01.html#id2717880
-> 
-> So, it is allowed by the spec. What is forbidden is to have some copy logic in kernel to duplicate data.
-> 
-> > 
-> >>>> So, I did a different implementation, implementing the mutex pointer per file handler.
-> >>>> On devices that a simple lock is possible, all you need to do is to use the same locking
-> >>>> for all file handles, but if drivers want a finer control, they can use a per-file handler
-> >>>> lock.
-> >>>
-> >>> I am rather unhappy about this. First of all, per-filehandle locks are pretty pointless. If
-> >>> you need to serialize for a single filehandle (which would only be needed for multithreaded
-> >>> applications where the threads use the same filehandle), then you definitely need to serialize
-> >>> between multiple file handles that are open on the same device node.
-> >>
-> >> On multithread apps, they'll share the same file handle, so, there's no issue. Some applications
-> >> like xawtv and xdtv allows recording a video by starting another proccess that will use the read() 
-> >> interface for one stream, while the other stream is using mmap() (or overlay) will have two different
-> >> file handlers, one for each app. That's said, a driver using per-fh locks will likely need to
-> >> have an additional lock for global resources. I didn't start porting cx88 driver, but I suspect
-> >> that it will need to use it.
-> > 
-> > That read/mmap construct was discussed as well in Helsinki (also point 10a). I quote from the report:
-> > 
-> > "Mixed read() and mmap() streaming. Allow or disallow? bttv allows it, which is against the spec since
-> > it only has one buffer queue so a read() will steal a frame. No conclusion was reached. Everyone thought
-> > it was very ugly but some apps apparently use this. Even though few drivers actually support this functionality."
-> > 
-> > Applications must be able to work without this 'feature' since so few drivers allow this. And it
-> > is against the spec as well. Perhaps we should try to remove this 'feature' and see if the apps
-> > still work. If they do, then kill it. It's truly horrible. And it is definitely not a reason to
-> > choose a overly complex locking scheme just so that some old apps can do a read and dqbuf at the
-> > same time.
-> 
-> xawtv will stop working in record mode. It is one of the applications we added on our list that
-> we should use as reference.
-> 
-> I'm not against patching it to implement a different logic for record. Patches are welcome.
-> 
-> Considering that, currently, very few applications allow recording (I think only xawtv/xdtv, both using
-> ffmpeg or mencoder for record) and mythtv are the only ones, I don't think we should remove it, without
-> having it implemented on more places.
+Thursday 23 September 2010 15:33:54 Guennadi Liakhovetski napisał(a):
+> On Wed, 22 Sep 2010, Janusz Krzysztofik wrote:
+> > Wednesday 22 September 2010 01:23:22 Guennadi Liakhovetski napisał(a):
+> > > On Sat, 11 Sep 2010, Janusz Krzysztofik wrote:
+> > > > +
+> > > > +	vb = &buf->vb;
+> > > > +	if (waitqueue_active(&vb->done)) {
+> > > > +		if (!pcdev->ready && result != VIDEOBUF_ERROR)
+> > > > +			/*
+> > > > +			 * No next buffer has been entered into the DMA
+> > > > +			 * programming register set on time, so best we can do
+> > > > +			 * is stopping the capture before last DMA block,
+> > > > +			 * whether our CONTIG mode whole buffer or its last
+> > > > +			 * sgbuf in SG mode, gets overwritten by next frame.
+> > > > +			 */
+> > >
+> > > Hm, why do you think it's a good idea? This specific buffer completed
+> > > successfully, but you want to fail it just because the next buffer is
+> > > missing? Any specific reason for this?
+> >
+> > Maybe my comment is not clear enough, but the below suspend_capture()
+> > doesn't indicate any failure on a frame just captured. It only prevents
+> > the frame from being overwritten by the already autoreinitialized DMA
+> > engine, pointing back to the same buffer once again.
+> >
+> > > Besides, you seem to also be
+> > > considering the possibility of your ->ready == NULL, but the queue
+> > > non-empty, in which case you just take the next buffer from the queue
+> > > and continue with it. Why error out in this case?
+> >
+> > pcdev->ready == NULL means no buffer was available when it was time to
+> > put it into the DMA programming register set.
+>
+> But how? Buffers are added onto the list in omap1_videobuf_queue() under
+> spin_lock_irqsave(); and there you also check ->ready and fill it in. 
 
-For non-MPEG v4l2 devices
-mythtv-0.21/libs/libmythtv/NuppelVideoRecorder.cpp::DoV4L2() looks like
-it only uses VIDIOC_QBUF and VIDIOC_DQBUF for video frames - no read()s.
-It appears to use read() for VBI data on a different file descriptor.
-(em28xx VBI appears to be implemented via videobuf in the em28xx
-driver.)
+Guennadi,
+Yes, but only if pcdev->active is NULL, ie. both DMA and FIFO are idle, never 
+if active:
 
-For the MPEG class of devices (ivtv/cx18),
-mythtv-0.21/libs/libmythtv/mpegrecoder.cpp only uses read().
++	list_add_tail(&vb->queue, &pcdev->capture);
++	vb->state = VIDEOBUF_QUEUED;
++
++	if (pcdev->active)
++		return;
 
+Since the transfer of the DMA programming register set content to the DMA 
+working register set is done automatically by the DMA hardware, this can 
+pretty well happen while I keep the lock here, so I can't be sure if it's not 
+too late for entering new data into the programming register set. Then, I 
+decided that this operation should be done only just after the DMA interrupt 
+occured, ie. the current DMA programming register set content has just been 
+used and can be overwriten.
 
+I'll emphasize the above return; with a comment.
 
-> Besides that, not all device drivers will work with all applications or provide the complete set of
-> functionalities. For example, there are only three drivers (ivtv, cx18 and pvrusb2), as far as I remember, 
-> that only implements read() method. By using your logic that "only a few drivers allow feature X", maybe
-> we should deprecate read() as well ;)
+> In 
+> your completion you set ->ready = NULL, but then also call
+> prepare_next_vb() to get the next buffer from the list - if there are any,
+> so, how can it be NULL with a non-empty list?
 
-Hans,
+It happens after the above mentioned prepare_next_vb() gets nothing from an 
+empty queue, so nothing is entered into the DMA programming register set, 
+only the last, just activated, buffer is processed, then 
+omap1_videobuf_queue() puts a new buffer into the queue while the active 
+buffer is still filled in, and finally the DMA ISR is called on this last 
+active buffer completion.
 
-On an somewhat related note, but off-topic: what is the proper way to
-implement VIDIOC_QUERYCAP for a driver that implements read()
-on /dev/video0 (MPEG) and mmap() streaming on /dev/video32 (YUV)?
+I hope this helps.
 
-I'm assuming the right way is for VIDIOC_QUERYCAP to return different
-caps based on which device node was queried.
+> > As a result, a next DMA transfer has
+> > just been autoreinitialized with the same buffer parameters as before. To
+> > protect the buffer from being overwriten unintentionally, we have to stop
+> > the DMA transfer as soon as possible, hopefully before the sensor starts
+> > sending out next frame data.
+> >
+> > If a new buffer has been queued meanwhile, best we can do is stopping
+> > everything, programming the DMA with the new buffer, and setting up for a
+> > new transfer hardware auto startup on nearest frame start, be it the next
+> > one if we are lucky enough, or one after the next if we are too slow.
+> >
+> > > And even if also the queue
+> > > is empty - still not sure, why.
+> >
+> > I hope the above explanation clarifies why.
+> >
+> > I'll try to rework the above comment to be more clear, OK? Any hints?
+> >
+> > > > linux-2.6.36-rc3.orig/include/media/omap1_camera.h	2010-09-03
+> > > > 22:34:02.000000000 +0200 +++
+> > > > linux-2.6.36-rc3/include/media/omap1_camera.h	2010-09-08
+> > > > 23:41:12.000000000 +0200 @@ -0,0 +1,35 @@
+> > > > +/*
+> > > > + * Header for V4L2 SoC Camera driver for OMAP1 Camera Interface
+> > > > + *
+> > > > + * Copyright (C) 2010, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> > > > + *
+> > > > + * This program is free software; you can redistribute it and/or
+> > > > modify + * it under the terms of the GNU General Public License
+> > > > version 2 as + * published by the Free Software Foundation.
+> > > > + */
+> > > > +
+> > > > +#ifndef __MEDIA_OMAP1_CAMERA_H_
+> > > > +#define __MEDIA_OMAP1_CAMERA_H_
+> > > > +
+> > > > +#include <linux/bitops.h>
+> > > > +
+> > > > +#define OMAP1_CAMERA_IOSIZE		0x1c
+> > > > +
+> > > > +enum omap1_cam_vb_mode {
+> > > > +	CONTIG = 0,
+> > > > +	SG,
+> > > > +};
+> > >
+> > > See above - are these needed here?
+> > >
+> > > > +
+> > > > +#define OMAP1_CAMERA_MIN_BUF_COUNT(x)	((x) == CONTIG ? 3 : 2)
+> > >
+> > > ditto
+> >
+> > I moved them both over to the header file because I was using the
+> > OMAP1_CAMERA_MIN_BUF_COUNT(CONTIG) macro once from the platform code in
+> > order to calculate the buffer size when calling the then NAKed
+> > dma_preallocate_coherent_memory(). Now I could put them back into the
+> > driver code, but if we ever get back to the concept of preallocating a
+> > contignuos piece of memory from the platform init code, we might need
+> > them back here, so maybe I should rather keep them, only rename the two
+> > enum values using a distinct name space. What do you think is better for
+> > now?
+>
+> Yeah, up to you, I'd say, but if you decide to keep them in the header,
+> please, use a namespace.
 
-Regards,
-Andy
+OK, I'll use a namespace then.
 
+> I'm satisfied with your answers to the rest of my questions / comments:)
+
+Glad to hear :)
+
+Thanks,
+Janusz
+
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
