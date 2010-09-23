@@ -1,358 +1,342 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:36174 "EHLO
+Received: from perceval.irobotique.be ([92.243.18.41]:42707 "EHLO
 	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757504Ab0IZQNa (ORCPT
+	with ESMTP id S1754634Ab0IWLfR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Sep 2010 12:13:30 -0400
+	Thu, 23 Sep 2010 07:35:17 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com, g.liakhovetski@gmx.de
-Subject: [RFC/PATCH 9/9] v4l: v4l2_subdev userspace crop API
-Date: Sun, 26 Sep 2010 18:13:32 +0200
-Message-Id: <1285517612-20230-10-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1285517612-20230-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1285517612-20230-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v5 05/12] media: Reference count and power handling
+Date: Thu, 23 Sep 2010 13:34:49 +0200
+Message-Id: <1285241696-16826-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1285241696-16826-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1285241696-16826-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Antti Koskipaa <antti.koskipaa@nokia.com>
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 
-This patch adds the VIDIOC_SUBDEV_S_CROP and G_CROP ioctls to the
-userland API. CROPCAP is not implemented because it's redundant.
+Basically these are the interface functions:
 
-Signed-off-by: Antti Koskipaa <antti.koskipaa@nokia.com>
+media_entity_get() - acquire entity
+media_entity_put() - release entity
+
+	If the entity is of node type, the power change is distributed to
+	all connected entities. For non-nodes it only affects that very
+	node. A mutex is used to serialise access to the entity graph.
+
+In the background there's a depth-first search algorithm that traverses the
+active links in the graph. All these functions parse the graph to implement
+whatever they're to do.
+
+The module counters are increased/decreased in media_entity_get/put to
+prevent module unloading when an entity is referenced.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
 ---
- Documentation/DocBook/media-entities.tmpl          |    4 +
- Documentation/DocBook/v4l/dev-subdev.xml           |   33 +++++
- Documentation/DocBook/v4l/v4l2.xml                 |    1 +
- Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml |  143 ++++++++++++++++++++
- drivers/media/video/v4l2-subdev.c                  |   26 ++++
- include/linux/v4l2-subdev.h                        |   15 ++
- include/media/v4l2-subdev.h                        |    4 +
- 7 files changed, 226 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml
+ Documentation/media-framework.txt |   37 +++++++++
+ drivers/media/media-device.c      |    1 +
+ drivers/media/media-entity.c      |  146 +++++++++++++++++++++++++++++++++++++
+ include/media/media-device.h      |    4 +
+ include/media/media-entity.h      |   15 ++++
+ 5 files changed, 203 insertions(+), 0 deletions(-)
 
-diff --git a/Documentation/DocBook/media-entities.tmpl b/Documentation/DocBook/media-entities.tmpl
-index 71cdc75..f2b0930 100644
---- a/Documentation/DocBook/media-entities.tmpl
-+++ b/Documentation/DocBook/media-entities.tmpl
-@@ -88,8 +88,10 @@
- <!ENTITY VIDIOC-S-TUNER "<link linkend='vidioc-g-tuner'><constant>VIDIOC_S_TUNER</constant></link>">
- <!ENTITY VIDIOC-SUBDEV-ENUM-FRAME-SIZE "<link linkend='vidioc-subdev-enum-frame-size'><constant>VIDIOC_SUBDEV_ENUM_FRAME_SIZE</constant></link>">
- <!ENTITY VIDIOC-SUBDEV-ENUM-MBUS-CODE "<link linkend='vidioc-subdev-enum-mbus-code'><constant>VIDIOC_SUBDEV_ENUM_MBUS_CODE</constant></link>">
-+<!ENTITY VIDIOC-SUBDEV-G-CROP "<link linkend='vidioc-subdev-g-crop'><constant>VIDIOC_SUBDEV_G_CROP</constant></link>">
- <!ENTITY VIDIOC-SUBDEV-G-FMT "<link linkend='vidioc-subdev-g-fmt'><constant>VIDIOC_SUBDEV_G_FMT</constant></link>">
- <!ENTITY VIDIOC-SUBDEV-G-FRAME-INTERVAL "<link linkend='vidioc-subdev-g-frame-interval'><constant>VIDIOC_SUBDEV_G_FRAME_INTERVAL</constant></link>">
-+<!ENTITY VIDIOC-SUBDEV-S-CROP "<link linkend='vidioc-subdev-g-crop'><constant>VIDIOC_SUBDEV_S_CROP</constant></link>">
- <!ENTITY VIDIOC-SUBDEV-S-FMT "<link linkend='vidioc-subdev-g-fmt'><constant>VIDIOC_SUBDEV_S_FMT</constant></link>">
- <!ENTITY VIDIOC-SUBDEV-S-FRAME-INTERVAL "<link linkend='vidioc-subdev-g-frame-interval'><constant>VIDIOC_SUBDEV_S_FRAME_INTERVAL</constant></link>">
- <!ENTITY VIDIOC-TRY-ENCODER-CMD "<link linkend='vidioc-encoder-cmd'><constant>VIDIOC_TRY_ENCODER_CMD</constant></link>">
-@@ -195,6 +197,7 @@
- <!ENTITY v4l2-subdev-frame-interval "struct&nbsp;<link linkend='v4l2-subdev-frame-interval'>v4l2_subdev_frame_interval</link>">
- <!ENTITY v4l2-subdev-frame-interval-enum "struct&nbsp;<link linkend='v4l2-subdev-frame-interval-enum'>v4l2_subdev_frame_interval_enum</link>">
- <!ENTITY v4l2-subdev-frame-size-enum "struct&nbsp;<link linkend='v4l2-subdev-frame-size-enum'>v4l2_subdev_frame_size_enum</link>">
-+<!ENTITY v4l2-subdev-crop "struct&nbsp;<link linkend='v4l2-subdev-crop'>v4l2_subdev_crop</link>">
- <!ENTITY v4l2-subdev-format "struct&nbsp;<link linkend='v4l2-subdev-format'>v4l2_subdev_format</link>">
- <!ENTITY v4l2-subdev-mbus-code-enum "struct&nbsp;<link linkend='v4l2-subdev-mbus-code-enum'>v4l2_subdev_mbus_code_enum</link>">
- <!ENTITY v4l2-standard "struct&nbsp;<link linkend='v4l2-standard'>v4l2_standard</link>">
-@@ -330,6 +333,7 @@
- <!ENTITY sub-subdev-enum-frame-size SYSTEM "v4l/vidioc-subdev-enum-frame-size.xml">
- <!ENTITY sub-subdev-enum-mbus-code SYSTEM "v4l/vidioc-subdev-enum-mbus-code.xml">
- <!ENTITY sub-subdev-formats SYSTEM "v4l/subdev-formats.xml">
-+<!ENTITY sub-subdev-g-crop SYSTEM "v4l/vidioc-subdev-g-crop.xml">
- <!ENTITY sub-subdev-g-fmt SYSTEM "v4l/vidioc-subdev-g-fmt.xml">
- <!ENTITY sub-subdev-g-frame-interval SYSTEM "v4l/vidioc-subdev-g-frame-interval.xml">
- <!ENTITY sub-capture-c SYSTEM "v4l/capture.c.xml">
-diff --git a/Documentation/DocBook/v4l/dev-subdev.xml b/Documentation/DocBook/v4l/dev-subdev.xml
-index 9a691f7..c57c62f 100644
---- a/Documentation/DocBook/v4l/dev-subdev.xml
-+++ b/Documentation/DocBook/v4l/dev-subdev.xml
-@@ -262,6 +262,39 @@
-       </para>
-     </section>
+diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
+index 27a38a1..9fdbc50 100644
+--- a/Documentation/media-framework.txt
++++ b/Documentation/media-framework.txt
+@@ -257,3 +257,40 @@ When the graph traversal is complete the function will return NULL.
+ Graph traversal can be interrupted at any moment. No cleanup function call is
+ required and the graph structure can be freed normally.
  
-+    <section>
-+      <title>Cropping and scaling</title>
 +
-+      <para>Many sub-devices support cropping frames on their input or output
-+      pads (or possible even on both). Cropping is used to select the area of
-+      interest in an image, typically on a video sensor or video decoder. It can
-+      also be used as part of digital zoom implementations to select the area of
-+      the image that will be scaled up.</para>
++Reference counting and power handling
++-------------------------------------
 +
-+      <para>Crop settings are defined by a crop rectangle and represented in a
-+      &v4l2-rect; by the coordinates of the top left corner and the rectangle
-+      size. Both the coordinates and sizes are expressed in pixels.</para>
++Before accessing type-specific entities operations (such as the V4L2
++sub-device operations), drivers must acquire a reference to the entity. This
++ensures that the entity will be powered on and ready to accept requests.
++Similarly, after being done with an entity, drivers must release the
++reference.
 +
-+      <para>The crop rectangle is retrieved and set using the
-+      &VIDIOC-SUBDEV-G-CROP; and &VIDIOC-SUBDEV-S-CROP; ioctls. Like for pad
-+      formats, drivers store probe and active crop rectangles. The format
-+      negotiation mechanism applies to crop settings as well.</para>
++	media_entity_get(struct media_entity *entity)
 +
-+      <para>On input pads, cropping is applied relatively to the current pad
-+      format. The pad format represents the image size as received by the
-+      sub-device from the previous block in the pipeline, and the crop rectangle
-+      represents the sub-image that will be transmitted further inside the
-+      sub-device for processing. The crop rectangle be entirely containted
-+      inside the input image size.</para>
++The function will increase the entity reference count. If the entity is a node
++(MEDIA_ENTITY_TYPE_NODE type), the reference count of all entities it is
++connected to, both directly or indirectly, through active links is increased.
++This ensures that the whole media pipeline will be ready to process
 +
-+      <para>Input crop rectangle are reset to their default value when the input
-+      image format is modified. Drivers should use the input image size as the
-+      crop rectangle default value, but hardware requirements may prevent this.
-+      </para>
++Acquiring a reference to an entity increases the media device module reference
++count to prevent module unloading when an entity is being used.
 +
-+      <para>Cropping behaviour on output pads is not defined.</para>
++media_entity_get will return a pointer to the entity if successful, or NULL
++otherwise.
 +
-+    </section>
-   </section>
++	media_entity_put(struct media_entity *entity)
++
++The function will decrease the entity reference count and, for node entities,
++like media_entity_get, the reference count of all connected entities. Calling
++media_entity_put with a NULL argument is valid and will return immediately.
++
++When the first reference to an entity is acquired, or the last reference
++released, the entity's set_power operation is called. Entity drivers must
++implement the operation if they need to perform any power management task,
++such as turning powers or clocks on or off. If no power management is
++required, drivers don't need to provide a set_power operation. The operation
++is allowed to fail when turning power on, in which case the media_entity_get
++function will return NULL.
++
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index eeb002e..c309d3c 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -71,6 +71,7 @@ int __must_check media_device_register(struct media_device *mdev)
+ 	mdev->entity_id = 1;
+ 	INIT_LIST_HEAD(&mdev->entities);
+ 	spin_lock_init(&mdev->lock);
++	mutex_init(&mdev->graph_mutex);
  
-   &sub-subdev-formats;
-diff --git a/Documentation/DocBook/v4l/v4l2.xml b/Documentation/DocBook/v4l/v4l2.xml
-index 7806562..c0fe94b 100644
---- a/Documentation/DocBook/v4l/v4l2.xml
-+++ b/Documentation/DocBook/v4l/v4l2.xml
-@@ -473,6 +473,7 @@ and discussions on the V4L mailing list.</revremark>
-     &sub-subdev-enum-frame-interval;
-     &sub-subdev-enum-frame-size;
-     &sub-subdev-enum-mbus-code;
-+    &sub-subdev-g-crop;
-     &sub-subdev-g-fmt;
-     &sub-subdev-g-frame-interval;
-     &sub-subscribe-event;
-diff --git a/Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml b/Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml
-new file mode 100644
-index 0000000..1f5d3e6
---- /dev/null
-+++ b/Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml
-@@ -0,0 +1,143 @@
-+<refentry id="vidioc-subdev-g-crop">
-+  <refmeta>
-+    <refentrytitle>ioctl VIDIOC_SUBDEV_G_CROP, VIDIOC_SUBDEV_S_CROP</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>VIDIOC_SUBDEV_G_CROP</refname>
-+    <refname>VIDIOC_SUBDEV_S_CROP</refname>
-+    <refpurpose>Get or set the crop rectangle on a subdev pad</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>struct v4l2_subdev_crop *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>const struct v4l2_subdev_crop *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>&fd;</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>VIDIOC_SUBDEV_G_CROP, VIDIOC_SUBDEV_S_CROP</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>To retrieve the current crop rectangle applications set the
-+    <structfield>pad</structfield> field of a &v4l2-subdev-crop; to the
-+    desired pad number as reported by the media API and the
-+    <structfield>which</structfield> field to
-+    <constant>V4L2_SUBDEV_FORMAT_ACTIVE</constant>. They then call the
-+    <constant>VIDIOC_SUBDEV_G_CROP</constant> ioctl with a pointer to this
-+    structure. The driver fills the members of the <structfield>rect</structfield>
-+    field or returns &EINVAL; if the input arguments are invalid, or if cropping
-+    is not supported on the given pad.</para>
-+
-+    <para>To change the current crop rectangle applications set both the
-+    <structfield>pad</structfield> and <structfield>which</structfield> fields
-+    and all members of the <structfield>rect</structfield> field. They then call
-+    the <constant>VIDIOC_SUBDEV_S_CROP</constant> ioctl with a pointer to this
-+    structure. The driver verifies the requested crop rectangle, adjusts it
-+    based on the hardware capabilities and configures the device. Upon return
-+    the &v4l2-subdev-crop; contains the current format as would be returned
-+    by a <constant>VIDIOC_SUBDEV_G_CROP</constant> call.</para>
-+
-+    <para>Applications can probe the device capabilities by setting the
-+    <structfield>which</structfield> to
-+    <constant>V4L2_SUBDEV_FORMAT_PROBE</constant>. When set, probe crop
-+    rectangles are not applied to the device by the driver, but are mangled
-+    exactly as active crop rectangles and stored in the sub-device file handle.
-+    Two applications probing the same sub-device would thus not interact with
-+    each other.</para>
-+
-+    <para>Drivers must not return an error solely because the requested crop
-+    rectangle doesn't match the device capabilities. They must instead modify
-+    the rectangle to match what the hardware can provide. The modified format
-+    should be as close as possible to the original request.</para>
-+
-+    <table pgwide="1" frame="none" id="v4l2-subdev-crop">
-+      <title>struct <structname>v4l2_subdev_crop</structname></title>
-+      <tgroup cols="3">
-+        &cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>pad</structfield></entry>
-+	    <entry>Pad number as reported by the media framework.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>which</structfield></entry>
-+	    <entry>Crop rectangle to get or set, from
-+	    &v4l2-subdev-format-whence;.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>&v4l2-rect;</entry>
-+	    <entry><structfield>rect</structfield></entry>
-+	    <entry>Crop rectangle boundaries, in pixels.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+  </refsect1>
-+
-+  <refsect1>
-+    &return-value;
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><errorcode>EBUSY</errorcode></term>
-+	<listitem>
-+	  <para>The crop rectangle can't be changed because the pad is currently
-+	  busy. This can be caused, for instance, by an active video stream on
-+	  the pad. The ioctl must not be retried without performing another
-+	  action to fix the problem first. Only returned by
-+	  <constant>VIDIOC_SUBDEV_S_CROP</constant></para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>EINVAL</errorcode></term>
-+	<listitem>
-+	  <para>The &v4l2-subdev-crop; <structfield>pad</structfield>
-+	  references a non-existing pad, the <structfield>which</structfield>
-+	  field references a non-existing format, or cropping is not supported
-+	  on the given subdev pad.</para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+</refentry>
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index 9895b7c..8e146ce 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -199,6 +199,32 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 					format->which);
- 	}
- 
-+	case VIDIOC_SUBDEV_G_CROP: {
-+		struct v4l2_subdev_crop *crop = arg;
-+
-+		if (crop->which != V4L2_SUBDEV_FORMAT_PROBE &&
-+		    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+			return -EINVAL;
-+
-+		if (crop->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(sd, pad, get_crop, subdev_fh, crop);
-+	}
-+
-+	case VIDIOC_SUBDEV_S_CROP: {
-+		struct v4l2_subdev_crop *crop = arg;
-+
-+		if (crop->which != V4L2_SUBDEV_FORMAT_PROBE &&
-+		    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+			return -EINVAL;
-+
-+		if (crop->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(sd, pad, set_crop, subdev_fh, crop);
-+	}
-+
- 	case VIDIOC_SUBDEV_ENUM_MBUS_CODE: {
- 		struct v4l2_subdev_mbus_code_enum *code = arg;
- 
-diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
-index eb9a6a2..2165340 100644
---- a/include/linux/v4l2-subdev.h
-+++ b/include/linux/v4l2-subdev.h
-@@ -51,6 +51,19 @@ struct v4l2_subdev_format {
- };
+ 	/* Register the device node. */
+ 	mdev->devnode.fops = &media_device_fops;
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 401c396..a1c8312 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -21,6 +21,7 @@
+ #include <linux/module.h>
+ #include <linux/slab.h>
+ #include <media/media-entity.h>
++#include <media/media-device.h>
  
  /**
-+ * struct v4l2_subdev_crop - Pad-level crop settings
-+ * @which: format type (from enum v4l2_subdev_format_whence)
-+ * @pad: pad number, as reported by the media API
-+ * @rect: pad crop rectangle boundaries
-+ */
-+struct v4l2_subdev_crop {
-+	__u32 which;
-+	__u32 pad;
-+	struct v4l2_rect rect;
-+	__u32 reserved[10];
-+};
-+
-+/**
-  * struct v4l2_subdev_mbus_code_enum - Media bus format enumeration
-  * @pad: pad number, as reported by the media API
-  * @index: format index during enumeration
-@@ -122,5 +135,7 @@ struct v4l2_subdev_frame_interval_enum {
- 			_IOWR('V', 74, struct v4l2_subdev_frame_size_enum)
- #define VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL \
- 			_IOWR('V', 75, struct v4l2_subdev_frame_interval_enum)
-+#define VIDIOC_SUBDEV_G_CROP	_IOWR('V', 59, struct v4l2_subdev_crop)
-+#define VIDIOC_SUBDEV_S_CROP	_IOWR('V', 60, struct v4l2_subdev_crop)
+  * media_entity_init - Initialize a media entity
+@@ -194,6 +195,151 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
+ EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
  
- #endif
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index bb6aaeb..3b947ed 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -439,6 +439,10 @@ struct v4l2_subdev_pad_ops {
- 	int (*set_fmt)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 		       unsigned int pad, struct v4l2_mbus_framefmt *fmt,
- 		       enum v4l2_subdev_format_whence which);
-+	int (*set_crop)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-+		       struct v4l2_subdev_crop *crop);
-+	int (*get_crop)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-+		       struct v4l2_subdev_crop *crop);
+ /* -----------------------------------------------------------------------------
++ * Power state handling
++ */
++
++/* Apply use count to an entity. */
++static void media_entity_use_apply_one(struct media_entity *entity, int change)
++{
++	entity->use_count += change;
++	WARN_ON(entity->use_count < 0);
++}
++
++/*
++ * Apply use count change to an entity and change power state based on
++ * new use count.
++ */
++static int media_entity_power_apply_one(struct media_entity *entity, int change)
++{
++	int ret;
++
++	if (entity->use_count == 0 && change > 0 &&
++	    entity->ops && entity->ops->set_power) {
++		ret = entity->ops->set_power(entity, 1);
++		if (ret)
++			return ret;
++	}
++
++	media_entity_use_apply_one(entity, change);
++
++	if (entity->use_count == 0 && change < 0 &&
++	    entity->ops && entity->ops->set_power)
++		entity->ops->set_power(entity, 0);
++
++	return 0;
++}
++
++/*
++ * Apply power change to all connected entities. This ignores the
++ * nodes.
++ */
++static int media_entity_power_apply(struct media_entity *entity, int change)
++{
++	struct media_entity_graph graph;
++	struct media_entity *first = entity;
++	int ret = 0;
++
++	if (!change)
++		return 0;
++
++	media_entity_graph_walk_start(&graph, entity);
++
++	while (!ret && (entity = media_entity_graph_walk_next(&graph)))
++		if (media_entity_type(entity) != MEDIA_ENTITY_TYPE_NODE)
++			ret = media_entity_power_apply_one(entity, change);
++
++	if (!ret)
++		return 0;
++
++	media_entity_graph_walk_start(&graph, first);
++
++	while ((first = media_entity_graph_walk_next(&graph))
++	       && first != entity)
++		if (media_entity_type(first) != MEDIA_ENTITY_TYPE_NODE)
++			media_entity_power_apply_one(first, -change);
++
++	return ret;
++}
++
++/*
++ * Apply use count change to graph and change power state of entities
++ * accordingly.
++ */
++static int media_entity_node_power_change(struct media_entity *entity,
++					  int change)
++{
++	/* Apply use count to node. */
++	media_entity_use_apply_one(entity, change);
++
++	/* Apply power change to connected non-nodes. */
++	return media_entity_power_apply(entity, change);
++}
++
++/*
++ * Node entity use changes are reflected on power state of all
++ * connected (directly or indirectly) entities whereas non-node entity
++ * use count changes are limited to that very entity.
++ */
++static int media_entity_use_change(struct media_entity *entity, int change)
++{
++	if (media_entity_type(entity) == MEDIA_ENTITY_TYPE_NODE)
++		return media_entity_node_power_change(entity, change);
++	else
++		return media_entity_power_apply_one(entity, change);
++}
++
++static struct media_entity *__media_entity_get(struct media_entity *entity)
++{
++	if (media_entity_use_change(entity, 1))
++		return NULL;
++
++	return entity;
++}
++
++static void __media_entity_put(struct media_entity *entity)
++{
++	media_entity_use_change(entity, -1);
++}
++
++/* user open()s media entity */
++struct media_entity *media_entity_get(struct media_entity *entity)
++{
++	struct media_entity *e;
++
++	if (entity == NULL)
++		return NULL;
++
++	if (entity->parent->dev &&
++	    !try_module_get(entity->parent->dev->driver->owner))
++		return NULL;
++
++	mutex_lock(&entity->parent->graph_mutex);
++	e = __media_entity_get(entity);
++	mutex_unlock(&entity->parent->graph_mutex);
++
++	if (e == NULL && entity->parent->dev)
++		module_put(entity->parent->dev->driver->owner);
++
++	return e;
++}
++EXPORT_SYMBOL_GPL(media_entity_get);
++
++/* user release()s media entity */
++void media_entity_put(struct media_entity *entity)
++{
++	if (entity == NULL)
++		return;
++
++	mutex_lock(&entity->parent->graph_mutex);
++	__media_entity_put(entity);
++	mutex_unlock(&entity->parent->graph_mutex);
++
++	if (entity->parent->dev)
++		module_put(entity->parent->dev->driver->owner);
++}
++EXPORT_SYMBOL_GPL(media_entity_put);
++
++/* -----------------------------------------------------------------------------
+  * Links management
+  */
+ 
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index f1b7eec..e4ab092 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -23,6 +23,7 @@
+ 
+ #include <linux/device.h>
+ #include <linux/list.h>
++#include <linux/mutex.h>
+ #include <linux/spinlock.h>
+ 
+ #include <media/media-devnode.h>
+@@ -40,6 +41,7 @@
+  * @entity_id:	ID of the next entity to be registered
+  * @entities:	List of registered entities
+  * @lock:	Entities list lock
++ * @graph_mutex: Entities graph operation lock
+  *
+  * This structure represents an abstract high-level media device. It allows easy
+  * access to entities and provides basic media device-level support. The
+@@ -67,6 +69,8 @@ struct media_device {
+ 
+ 	/* Protects the entities list */
+ 	spinlock_t lock;
++	/* Serializes graph operations. */
++	struct mutex graph_mutex;
  };
  
- struct v4l2_subdev_ops {
+ int __must_check media_device_register(struct media_device *mdev);
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 3a7c74d..edcafeb 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -39,6 +39,10 @@ struct media_pad {
+ 	unsigned long flags;		/* Pad flags (MEDIA_PAD_FLAG_*) */
+ };
+ 
++struct media_entity_operations {
++	int (*set_power)(struct media_entity *entity, int power);
++};
++
+ struct media_entity {
+ 	struct list_head list;
+ 	struct media_device *parent;	/* Media device this entity belongs to*/
+@@ -59,6 +63,10 @@ struct media_entity {
+ 	struct media_pad *pads;		/* Pads array (num_pads elements) */
+ 	struct media_link *links;	/* Links array (max_links elements)*/
+ 
++	const struct media_entity_operations *ops;	/* Entity operations */
++
++	int use_count;			/* Use count for the entity. */
++
+ 	union {
+ 		/* Node specifications */
+ 		struct {
+@@ -103,9 +111,16 @@ void media_entity_cleanup(struct media_entity *entity);
+ int media_entity_create_link(struct media_entity *source, u16 source_pad,
+ 		struct media_entity *sink, u16 sink_pad, u32 flags);
+ 
++struct media_entity *media_entity_get(struct media_entity *entity);
++void media_entity_put(struct media_entity *entity);
++
+ void media_entity_graph_walk_start(struct media_entity_graph *graph,
+ 		struct media_entity *entity);
+ struct media_entity *
+ media_entity_graph_walk_next(struct media_entity_graph *graph);
+ 
++#define media_entity_call(entity, operation, args...)			\
++	(((entity)->ops && (entity)->ops->operation) ?			\
++	 (entity)->ops->operation((entity) , ##args) : -ENOIOCTLCMD)
++
+ #endif
 -- 
 1.7.2.2
 
