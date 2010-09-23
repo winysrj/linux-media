@@ -1,45 +1,91 @@
-Return-path: <mchehab@localhost>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:45711 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754889Ab0IBU4L (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Sep 2010 16:56:11 -0400
-Date: Thu, 2 Sep 2010 22:56:07 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: [PATCH 6/7] IR: extend ir_raw_event and do refactoring
-Message-ID: <20100902205607.GB3886@hardeman.nu>
-References: <1283158348-7429-1-git-send-email-maximlevitsky@gmail.com>
- <1283158348-7429-7-git-send-email-maximlevitsky@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1283158348-7429-7-git-send-email-maximlevitsky@gmail.com>
+Return-path: <mchehab@pedra>
+Received: from perceval.irobotique.be ([92.243.18.41]:42701 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752832Ab0IWLfN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Sep 2010 07:35:13 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v5 00/12] Media controller (core and V4L2)
+Date: Thu, 23 Sep 2010 13:34:44 +0200
+Message-Id: <1285241696-16826-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: <mchehab@pedra>
 
-On Mon, Aug 30, 2010 at 11:52:26AM +0300, Maxim Levitsky wrote:
-> Add new event types for timeout & carrier report
-> Move timeout handling from ir_raw_event_store_with_filter to
-> ir-lirc-codec, where it is really needed.
+Hi everybody,
 
-Yes, but it still might make more sense to keep the timeout handling in 
-ir_raw_event_store_with_filter so that all decoders get the same data 
-from rc-core?
+Fifth version of the media controller core and V4L2 patches. All comments so
+far have hopefully been incorporated.
 
-> Now lirc bridge ensures proper gap handling.
-> Extend lirc bridge for carrier & timeout reports
-> 
-> Note: all new ir_raw_event variables now should be initialized
-> like that:
-> struct ir_raw_event ev = ir_new_event;
+Compared to the previous version, the main difference is the userspace API
+documentation that has been converted to DocBook. The patches have also been
+rebased on top of 2.6.36-rc4, and a new entity locking and pipeline management
+patch has been added.
 
-Wouldn't DEFINE_RAW_EVENT(ev); be more in line with the kernel coding 
-style? (cf. DEFINE_MUTEX, DEFINE_SPINLOCK, etc).
+Laurent Pinchart (10):
+  media: Media device node support
+  media: Media device
+  media: Entities, pads and links
+  media: Media device information query
+  media: Entities, pads and links enumeration
+  media: Links setup
+  media: Entity locking and pipeline management
+  v4l: Add a media_device pointer to the v4l2_device structure
+  v4l: Make video_device inherit from media_entity
+  v4l: Make v4l2_subdev inherit from media_entity
+
+Sakari Ailus (2):
+  media: Entity graph traversal
+  media: Reference count and power handling
+
+ Documentation/DocBook/media-entities.tmpl          |   24 +
+ Documentation/DocBook/media.tmpl                   |    3 +
+ Documentation/DocBook/v4l/media-controller.xml     |   60 ++
+ Documentation/DocBook/v4l/media-func-close.xml     |   59 ++
+ Documentation/DocBook/v4l/media-func-ioctl.xml     |  116 ++++
+ Documentation/DocBook/v4l/media-func-open.xml      |   94 +++
+ .../DocBook/v4l/media-ioc-device-info.xml          |  133 ++++
+ .../DocBook/v4l/media-ioc-enum-entities.xml        |  287 +++++++++
+ Documentation/DocBook/v4l/media-ioc-enum-links.xml |  202 ++++++
+ Documentation/DocBook/v4l/media-ioc-setup-link.xml |   90 +++
+ Documentation/media-framework.txt                  |  380 +++++++++++
+ Documentation/video4linux/v4l2-framework.txt       |   72 ++-
+ drivers/media/Makefile                             |    8 +-
+ drivers/media/media-device.c                       |  377 +++++++++++
+ drivers/media/media-devnode.c                      |  310 +++++++++
+ drivers/media/media-entity.c                       |  678 ++++++++++++++++++++
+ drivers/media/video/v4l2-dev.c                     |   35 +-
+ drivers/media/video/v4l2-device.c                  |   43 +-
+ drivers/media/video/v4l2-subdev.c                  |   30 +-
+ include/linux/Kbuild                               |    1 +
+ include/linux/media.h                              |  105 +++
+ include/media/media-device.h                       |   90 +++
+ include/media/media-devnode.h                      |   78 +++
+ include/media/media-entity.h                       |  122 ++++
+ include/media/v4l2-dev.h                           |    6 +
+ include/media/v4l2-device.h                        |    2 +
+ include/media/v4l2-subdev.h                        |    7 +
+ 27 files changed, 3391 insertions(+), 21 deletions(-)
+ create mode 100644 Documentation/DocBook/v4l/media-controller.xml
+ create mode 100644 Documentation/DocBook/v4l/media-func-close.xml
+ create mode 100644 Documentation/DocBook/v4l/media-func-ioctl.xml
+ create mode 100644 Documentation/DocBook/v4l/media-func-open.xml
+ create mode 100644 Documentation/DocBook/v4l/media-ioc-device-info.xml
+ create mode 100644 Documentation/DocBook/v4l/media-ioc-enum-entities.xml
+ create mode 100644 Documentation/DocBook/v4l/media-ioc-enum-links.xml
+ create mode 100644 Documentation/DocBook/v4l/media-ioc-setup-link.xml
+ create mode 100644 Documentation/media-framework.txt
+ create mode 100644 drivers/media/media-device.c
+ create mode 100644 drivers/media/media-devnode.c
+ create mode 100644 drivers/media/media-entity.c
+ create mode 100644 include/linux/media.h
+ create mode 100644 include/media/media-device.h
+ create mode 100644 include/media/media-devnode.h
+ create mode 100644 include/media/media-entity.h
 
 -- 
-David Härdeman
+Regards,
+
+Laurent Pinchart
+
