@@ -1,103 +1,156 @@
 Return-path: <mchehab@pedra>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:56255 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751225Ab0IGVvn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Sep 2010 17:51:43 -0400
-Subject: [PATCH 0/5] rc-core: ir-core to rc-core conversion (v2)
-To: mchehab@infradead.org
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org, jarod@redhat.com
-Date: Tue, 07 Sep 2010 23:51:38 +0200
-Message-ID: <20100907214943.30935.29895.stgit@localhost.localdomain>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:46110 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753504Ab0IWJCW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Sep 2010 05:02:22 -0400
+Received: by gxk9 with SMTP id 9so466329gxk.19
+        for <linux-media@vger.kernel.org>; Thu, 23 Sep 2010 02:02:21 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <201009230747.55283.hverkuil@xs4all.nl>
+References: <201009150923.50132.hverkuil@xs4all.nl> <201009222206.11694.hverkuil@xs4all.nl>
+ <4C9A7254.8010604@redhat.com> <201009230747.55283.hverkuil@xs4all.nl>
+From: Paulo Assis <pj.assis@gmail.com>
+Date: Thu, 23 Sep 2010 10:02:01 +0100
+Message-ID: <AANLkTi=68xj-0W3gzSz0-Vf69_LMdQGw_Vwt_OEz_660@mail.gmail.com>
+Subject: Re: [GIT PATCHES FOR 2.6.37] V4L documentation fixes
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-This is my current patch queue, the main change is to make struct rc_dev
-the primary interface for rc drivers and to abstract away the fact that
-there's an input device lurking in there somewhere. The first three
-patches in the set are preparations for the change.
+Hi,
+Since we are talking about V4L documentation, I would like to remind
+of the timestamps subject since this is a recurrent issue.
+The current spec refers to gettimeofday return value for the buffer
+timestamps and as already discussed in previous posts, gettimeofday,
+introduces a lot of issues, using ktime (monotonic) instead seems a
+much better approach.
+Uvcvideo and gspca already use it, but since the documentation has not
+been changed yet, it can cause some confusion between developers.
 
-I've also converted winbond-cir over to rc-core.
+NOTE: I see this topic is intended for discussion in the LPC:
+http://www.linuxtv.org/news.php?entry=2010-06-22.mchehab
+So I'm not sure if this should be put on hold until then.
 
-Given the changes, these patches touch every single driver. Obviously I
-haven't tested them all due to a lack of hardware (I have made sure that
-all drivers compile without any warnings and I have tested the end result
-on mceusb and winbond-cir hardware).
+As a side note:
+ if you need a similar timestamp to the one returned by ktime in user
+space, you can get it with:
 
-v2: rebased to take recent streamzap driver changes into account
+static struct timespec ts;
+clock_gettime(CLOCK_MONOTONIC, &ts);
 
----
+A conversion between timespec and timeval is needed but that is easy
+enough, for both drivers and user space.
 
-David HÃ¤rdeman (5):
-      rc-code: merge and rename ir-core
-      rc-core: remove remaining users of the ir-functions keyhandlers
-      imon: split mouse events to a separate input dev
-      rc-core: make struct rc_dev the primary interface for rc drivers
-      rc-core: convert winbond-cir
+Best Regards
+Paulo
 
 
- drivers/input/misc/Kconfig                  |   18 
- drivers/input/misc/Makefile                 |    1 
- drivers/input/misc/winbond-cir.c            | 1608 ---------------------------
- drivers/media/IR/Kconfig                    |   17 
- drivers/media/IR/Makefile                   |    4 
- drivers/media/IR/ene_ir.c                   |  121 +-
- drivers/media/IR/ene_ir.h                   |    3 
- drivers/media/IR/imon.c                     |  267 +++-
- drivers/media/IR/ir-core-priv.h             |   26 
- drivers/media/IR/ir-functions.c             |   98 --
- drivers/media/IR/ir-jvc-decoder.c           |   13 
- drivers/media/IR/ir-keytable.c              |  565 ---------
- drivers/media/IR/ir-lirc-codec.c            |  111 +-
- drivers/media/IR/ir-nec-decoder.c           |   15 
- drivers/media/IR/ir-raw-event.c             |  379 ------
- drivers/media/IR/ir-rc5-decoder.c           |   13 
- drivers/media/IR/ir-rc5-sz-decoder.c        |   13 
- drivers/media/IR/ir-rc6-decoder.c           |   17 
- drivers/media/IR/ir-sony-decoder.c          |   11 
- drivers/media/IR/ir-sysfs.c                 |  341 ------
- drivers/media/IR/mceusb.c                   |   93 +-
- drivers/media/IR/rc-core.c                  | 1317 ++++++++++++++++++++++
- drivers/media/IR/rc-map.c                   |  107 --
- drivers/media/IR/streamzap.c                |   68 -
- drivers/media/IR/winbond-cir.c              |  934 ++++++++++++++++
- drivers/media/dvb/dm1105/dm1105.c           |   40 -
- drivers/media/dvb/dvb-usb/dib0700.h         |    2 
- drivers/media/dvb/dvb-usb/dib0700_core.c    |   11 
- drivers/media/dvb/dvb-usb/dib0700_devices.c |  116 +-
- drivers/media/dvb/dvb-usb/dvb-usb-remote.c  |   78 +
- drivers/media/dvb/dvb-usb/dvb-usb.h         |   12 
- drivers/media/dvb/mantis/mantis_common.h    |    4 
- drivers/media/dvb/mantis/mantis_input.c     |   74 +
- drivers/media/dvb/siano/smscoreapi.c        |    2 
- drivers/media/dvb/siano/smsir.c             |   52 -
- drivers/media/dvb/siano/smsir.h             |    3 
- drivers/media/dvb/ttpci/budget-ci.c         |   49 -
- drivers/media/video/bt8xx/bttv-input.c      |   68 -
- drivers/media/video/bt8xx/bttvp.h           |    1 
- drivers/media/video/cx18/cx18-i2c.c         |    1 
- drivers/media/video/cx23885/cx23885-input.c |   64 +
- drivers/media/video/cx23885/cx23885.h       |    3 
- drivers/media/video/cx88/cx88-input.c       |   86 +
- drivers/media/video/em28xx/em28xx-input.c   |   72 +
- drivers/media/video/ir-kbd-i2c.c            |   39 -
- drivers/media/video/ivtv/ivtv-i2c.c         |    3 
- drivers/media/video/saa7134/saa7134-input.c |  122 +-
- drivers/staging/tm6000/tm6000-input.c       |   97 +-
- include/media/ir-common.h                   |   33 -
- include/media/ir-core.h                     |  193 +--
- include/media/ir-kbd-i2c.h                  |    6 
- 51 files changed, 3175 insertions(+), 4216 deletions(-)
- delete mode 100644 drivers/input/misc/winbond-cir.c
- delete mode 100644 drivers/media/IR/ir-keytable.c
- delete mode 100644 drivers/media/IR/ir-raw-event.c
- delete mode 100644 drivers/media/IR/ir-sysfs.c
- create mode 100644 drivers/media/IR/rc-core.c
- delete mode 100644 drivers/media/IR/rc-map.c
- create mode 100644 drivers/media/IR/winbond-cir.c
 
--- 
-David HÃ¤rdeman
+2010/9/23 Hans Verkuil <hverkuil@xs4all.nl>:
+> On Wednesday, September 22, 2010 23:17:08 Mauro Carvalho Chehab wrote:
+>> Em 22-09-2010 17:06, Hans Verkuil escreveu:
+>> > On Wednesday, September 22, 2010 21:42:03 Mauro Carvalho Chehab wrote:
+>> >> Em 15-09-2010 04:23, Hans Verkuil escreveu:
+>> >>> The following changes since commit 57fef3eb74a04716a8dd18af0ac510ec4f71bc05:
+>> >>>   Richard Zidlicky (1):
+>> >>>         V4L/DVB: dvb: fix smscore_getbuffer() logic
+>> >>>
+>> >>> are available in the git repository at:
+>> >>>
+>> >>>   ssh://linuxtv.org/git/hverkuil/v4l-dvb.git misc2
+>> >>>
+>> >>> Hans Verkuil (6):
+>> >>>       V4L Doc: removed duplicate link
+>> >>
+>> >> This doesn't seem right. the entry for V4L2-PIX-FMT-BGR666 seems to be duplicated.
+>> >> We should remove the duplication, instead of just dropping the ID.
+>> >
+>> > No, this patch is correct. This section really duplicates the formats due to
+>> > confusion about the byte order in memory. But only one of these format tables
+>> > should have a valid ID.
+>> >
+>> > See table 2.4 and 2.5 here:
+>> >
+>> > http://www.xs4all.nl/~hverkuil/spec/media.html#packed-rgb
+>> >
+>> > As you can see here there is no BGR666 entry in either table since the docbook
+>> > generation has been failing on this docbook error for some time now.
+>> >
+>> >>
+>> >>>       V4L Doc: fix DocBook syntax errors.
+>> >>>       V4L Doc: document V4L2_CAP_RDS_OUTPUT capability.
+>> >>>       V4L Doc: correct the documentation for VIDIOC_QUERYMENU.
+>> >>
+>> >> Applied, thanks.
+>> >>
+>> >>>       V4L Doc: rewrite the Device Naming section
+>> >>
+>> >> The new text is incomplete, as it assumes only the old non-dynamic device node
+>> >> creation. Also, some distros actually create /dev/v4l, as recommended. IMHO, we
+>> >> need to improve this section, proposing a better way to name devices. This may
+>> >> be an interesting theme for this year's LPC.
+>> >
+>> > No, the major is still 81 and the minors are still between 0 and 255. But the minor
+>> > ranges are gone (unless you turn that on explicitly). So this text is really correct
+>> > and way more understandable than the old text.
+>>
+>> Hmm... are the V4L core artificially limiting minor range to be between 0 and 255?
+>
+> Well, we do need to keep a mapping between minor and video_device (the video_device
+> array in v4l2-dev.c) so we do need a maximum number of devices. Increasing this number
+> is a matter of just increasing the VIDEO_NUM_DEVICES macro.
+>
+> Since we no longer split up the 256 minors into ranges for each video type (video,
+> vbi, radio) we make full use of all minors. Nothing I've seen comes even close to
+> filling up all those minors.
+>
+> That said, when we add support for the subdev device nodes we should probably at the
+> same time double the number of reserved minors. Just in case.
+>
+> Regards,
+>
+>        Hans
+>
+>>
+>> >
+>> >>
+>> >>>       V4L Doc: clarify the V4L spec.
+>> >>
+>> >> This is a mix of several changes on the same patch. I want to do comments about it,
+>> >> but no time right now to write an email about that. It is a way harder to comment
+>> >> Docbook changes than patches, as the diff output is not user-friendly.
+>> >> I'll postpone this patch for a better analysis.
+>> >
+>> > No problem.
+>> >
+>> > Regards,
+>> >
+>> >     Hans
+>> >
+>> >> I don't want to postpone the DocBook correction patches due to that, so I'm applying
+>> >> the patches I'm ok.
+>> >>
+>> >> Cheers,
+>> >> Mauro
+>> >>
+>> >
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+>
+> --
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
