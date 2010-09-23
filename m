@@ -1,76 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([192.100.105.134]:53922 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755377Ab0IPPli (ORCPT
+Received: from zone0.gcu-squad.org ([212.85.147.21]:42669 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751039Ab0IWJpT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Sep 2010 11:41:38 -0400
-Message-ID: <4C92397D.9040707@maxwell.research.nokia.com>
-Date: Thu, 16 Sep 2010 18:36:29 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: [RFC/PATCH v4 07/11] media: Entities, pads and links enumeration
-References: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com> <201009011605.12172.laurent.pinchart@ideasonboard.com> <201009061851.59844.hverkuil@xs4all.nl> <201009161120.27327.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201009161120.27327.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 23 Sep 2010 05:45:19 -0400
+Date: Thu, 23 Sep 2010 11:44:20 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, Janne Grunau <j@jannau.net>,
+	Jarod Wilson <jarod@redhat.com>
+Subject: Re: [GIT PATCHES FOR 2.6.37] Remove v4l2-i2c-drv.h and most of
+ i2c-id.h
+Message-ID: <20100923114420.746a605f@endymion.delvare>
+In-Reply-To: <201009230814.43504.hverkuil@xs4all.nl>
+References: <201009152200.27132.hverkuil@xs4all.nl>
+	<4C9AD51D.2010400@redhat.com>
+	<201009230814.43504.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Laurent and Hans,
+Hi Hans,
 
-Laurent Pinchart wrote:
-> Hi Hans,
+On Thu, 23 Sep 2010 08:14:43 +0200, Hans Verkuil wrote:
+> Jean, I did a grep of who is still including i2c-id.h (excluding media drivers):
 > 
-> On Monday 06 September 2010 18:51:59 Hans Verkuil wrote:
->> On Wednesday, September 01, 2010 16:05:10 Laurent Pinchart wrote:
->>> On Saturday 28 August 2010 13:02:22 Hans Verkuil wrote:
->>>> On Friday, August 20, 2010 17:29:09 Laurent Pinchart wrote:
+> drivers/gpu/drm/nouveau/nouveau_i2c.h:#include <linux/i2c-id.h>
+> drivers/gpu/drm/radeon/radeon_mode.h:#include <linux/i2c-id.h>
+> drivers/gpu/drm/i915/intel_drv.h:#include <linux/i2c-id.h>
+> drivers/gpu/drm/i915/intel_i2c.c:#include <linux/i2c-id.h>
+> drivers/video/i810/i810.h:#include <linux/i2c-id.h>
+> drivers/video/intelfb/intelfb_i2c.c:#include <linux/i2c-id.h>
+> drivers/video/savage/savagefb.h:#include <linux/i2c-id.h>
+> drivers/video/aty/radeon_i2c.c:#include <linux/i2c-id.h>
+> drivers/i2c/busses/i2c-s3c2410.c:#include <linux/i2c-id.h>
+> drivers/i2c/busses/i2c-pxa.c:#include <linux/i2c-id.h>
+> drivers/i2c/busses/i2c-ibm_iic.c:#include <linux/i2c-id.h>
 
-...
+I additionally have drivers/i2c/busses/i2c-nuc900.c.
 
->>>>> +};
->>>>
->>>> Should this be a packed struct?
->>>
->>> Why ? :-) Packed struct are most useful when they need to match hardware
->>> structures or network protocols. Packing a structure can generate
->>> unaligned fields, which are bad performance-wise.
->>
->> I'm thinking about preventing a compat32 mess as we have for v4l.
->>
->> It is my understanding that the only way to prevent different struct sizes
->> between 32 and 64 bit is to use packed.
+> AFAIK none of these actually need this include. It's probably a good idea for
+> you to remove together with
+
+Will do, thanks for suggesting.
+
+> this obsolete I2C_HW_B_RIVA:
 > 
-> I don't think that's correct. Different struct sizes between 32bit and 64bit 
-> are caused by variable-size fields, such as 'long' (32bit on 32bit 
-> architectures, 64bit on 64bit architectures). I might be wrong though.
+> drivers/video/riva/rivafb-i2c.c:        chan->adapter.id                = I2C_HW_B_RIVA;
 
-As far as I understand that's another reason for the structures not
-being exactly the same. Alignment of different data types in structures
-depends on ABI. I don't know the exact rules for all the architectures
-Linux supports if there are cases where the alignment would be different
-for 32-bit and 64-bit and smaller than the data type. On ARM there have
-been different alignments depending on ABI (EABI vs. GNU ABI) which is
-now practically history though.
-
-I couldn't find a better reference than this:
-
-<URL:http://developers.sun.com/solaris/articles/about_amd64_abi.html>
-
-64-bit integers are aligned differently on 32-bit and 64-bit x86 but the
-alignment is still smaller or equal to the size of the data type.
-
-I'd also pack them to be sure. The structures should be constructed so
-that the alignment is sane even if they are packed. In that case there's
-no harm done by packing. It just prevents a failure (32-bit vs. 64-bit)
-if there's a problem with the definition.
-
-Just my 2 cents worth. :)
-
-Regards,
+I'll have to wait for your cleanup to hit upstream before I can remove
+that one.
 
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+Jean Delvare
