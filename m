@@ -1,57 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from mga11.intel.com ([192.55.52.93]:4704 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751708Ab0IMNjb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Sep 2010 09:39:31 -0400
-Date: Mon, 13 Sep 2010 15:39:52 +0200
-From: Samuel Ortiz <sameo@linux.intel.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Richard =?iso-8859-1?Q?R=F6jfors?=
-	<richard.rojfors@pelagicore.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [RESEND][PATCH 0/2] media, mfd: Add timberdale video-in driver
-Message-ID: <20100913133951.GD2555@sortiz-mobl>
-References: <1283428572.23309.24.camel@debian>
- <4C87E67E.2040807@redhat.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53816 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752254Ab0IWXXN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Sep 2010 19:23:13 -0400
+Date: Thu, 23 Sep 2010 16:23:10 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Discussion of the Amstrad E3 emailer hardware/software
+	<e3-hacking@earth.li>
+Subject: Re: [RESEND][PATCH v2 2/6] OMAP1: Add support for SoC camera
+ interface
+Message-ID: <20100923232309.GV4211@atomide.com>
+References: <201009110317.54899.jkrzyszt@tis.icnet.pl>
+ <201009110323.12250.jkrzyszt@tis.icnet.pl>
+ <201009110334.03905.jkrzyszt@tis.icnet.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <4C87E67E.2040807@redhat.com>
+In-Reply-To: <201009110334.03905.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
-
-On Wed, Sep 08, 2010 at 04:39:42PM -0300, Mauro Carvalho Chehab wrote:
-> Em 02-09-2010 08:56, Richard Röjfors escreveu:
-> > To follow are two patches.
-> > 
-> > The first adds the timberdale video-in driver to the media tree.
-> > 
-> > The second adds it to the timberdale MFD driver.
-> > 
-> > Samuel and Mauro hope you can support and solve the potential merge
-> > issue between your two trees.
+* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [100910 18:26]:
+> This patch adds support for SoC camera interface to OMAP1 devices.
 > 
-> If the conflicts are trivial, I can handle when merging upstream.
-Since the mfd part of this patchset has a build time dependency on the media
-part, would you mind pushing both patches upstream through your tree ?
-I'll ACK the mfd part.
-
-Cheers,
-Samuel.
-
-
-> > 
-> > Thanks
-> > --Richard
-> > 
+> Created and tested against linux-2.6.36-rc3 on Amstrad Delta.
 > 
+> For successfull compilation, requires a header file provided by PATCH 1/6 from 
+> this series, "SoC Camera: add driver for OMAP1 camera interface".
 
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+<snip>
+
+> diff -upr linux-2.6.36-rc3.orig/arch/arm/mach-omap1/include/mach/camera.h 
+> linux-2.6.36-rc3/arch/arm/mach-omap1/include/mach/camera.h
+> --- linux-2.6.36-rc3.orig/arch/arm/mach-omap1/include/mach/camera.h	2010-09-03 22:34:03.000000000 +0200
+> +++ linux-2.6.36-rc3/arch/arm/mach-omap1/include/mach/camera.h	2010-09-09 18:42:30.000000000 +0200
+> @@ -0,0 +1,8 @@
+> +#ifndef __ASM_ARCH_CAMERA_H_
+> +#define __ASM_ARCH_CAMERA_H_
+> +
+> +#include <media/omap1_camera.h>
+> +
+> +extern void omap1_set_camera_info(struct omap1_cam_platform_data *);
+> +
+> +#endif /* __ASM_ARCH_CAMERA_H_ */
+
+Care to refresh this patch so it does not include media/omap1_camera.h?
+
+That way things keep building if I merge this one along with the omap
+patches and the drivers/media patches can get merged their via media.
+
+I think you can just move the OMAP1_CAMERA_IOSIZE to the devices.c or
+someplace like that?
+
+Regards,
+
+Tony
