@@ -1,45 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:16984 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752836Ab0INO3F (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Sep 2010 10:29:05 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Received: from eu_spt2 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0L8Q00AD3QWGA160@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 14 Sep 2010 15:29:04 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L8Q002Q3QWGZ7@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 14 Sep 2010 15:29:04 +0100 (BST)
-Received: from bssrvexch01.BS.local (bssrvexch01.bs.local [106.116.38.52])
-	by linux.samsung.com (Postfix) with ESMTP id 87BFA27005F	for
- <linux-media@vger.kernel.org>; Tue, 14 Sep 2010 16:25:38 +0200 (CEST)
-Date: Tue, 14 Sep 2010 16:29:02 +0200
-From: Kamil Debski <k.debski@samsung.com>
-Subject: RFC: Introduction of M2M capability and buffer types
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Message-id: <ADF13DA15EB3FE4FBA487CCC7BEFDF3604CAE3BABC@bssrvexch01.BS.local>
-Content-language: en-US
+Received: from mx1.redhat.com ([209.132.183.28]:12895 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750709Ab0IWES5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Sep 2010 00:18:57 -0400
+Message-ID: <4C9AD51D.2010400@redhat.com>
+Date: Thu, 23 Sep 2010 01:18:37 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, Jean Delvare <khali@linux-fr.org>,
+	Janne Grunau <j@jannau.net>, Jarod Wilson <jarod@redhat.com>
+Subject: Re: [GIT PATCHES FOR 2.6.37] Remove v4l2-i2c-drv.h and most of i2c-id.h
+References: <201009152200.27132.hverkuil@xs4all.nl>
+In-Reply-To: <201009152200.27132.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+Em 15-09-2010 17:00, Hans Verkuil escreveu:
+> Mauro, Jean, Janne,
 
-Mem2mem devices currently use V4L2_CAP_VIDEO_CAPTURE and V4L2_CAP_VIDEO_OUTPUT capabilities. One might expect that a capture device is a camera and an output device can display images. If I remember correct our discussion during the Helsinki v4l2 summit, Hans de Goede has pointed that such devices are listed in applications and can confuse users. The user expects a camera and he has to choose from a long list of devices. 
+> After applying this patch series I get the following if I grep for
+> I2C_HW_ in the kernel sources:
+> 
+> <skip some false positives in drivers/gpu>
+> drivers/staging/lirc/lirc_zilog.c:#ifdef I2C_HW_B_HDPVR
+> drivers/staging/lirc/lirc_zilog.c:              if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR) {
+> drivers/staging/lirc/lirc_zilog.c:#ifdef I2C_HW_B_HDPVR
+> drivers/staging/lirc/lirc_zilog.c:      if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR)
 
-The solution to this would be the introduction of two new capability V4L2_CAP_VIDEO_M2M. Such devices would not be listed when user is expected to choose which webcam or TV tuner device to use.
+Those are with Janne ;)
 
-Another thing about m2m devices is the naming of buffers: V4L2_BUF_TYPE_VIDEO_CAPTURE means the destination buffer and V4L2_BUF_TYPE_VIDEO_OUTPUT means source. This indeed is confusing, so I think the introduction of two new buffer types is justified. I would recommend V4L2_BUF_TYPE_M2M_SOURCE and V4L2_BUF_TYPE_M2M_DESTINATION to clearly state what is the buffer's purpose.
+> drivers/video/riva/rivafb-i2c.c:        chan->adapter.id                = I2C_HW_B_RIVA;
 
-I would be grateful for your comments to this RFC.
+No idea about this one.
 
-Best wishes,
---
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
+> drivers/media/video/ir-kbd-i2c.c:       if (ir->c->adapter->id == I2C_HW_SAA7134 && ir->c->addr == 0x30)
+> drivers/media/video/saa7134/saa7134-i2c.c:      .id            = I2C_HW_SAA7134,
 
+Those are easy: just add the polling interval into the platform_data. If zero,
+uses the default value. I'll write a patch for it.
+
+> drivers/media/video/ir-kbd-i2c.c:               if (adap->id == I2C_HW_B_CX2388x) {
+
+This is not hard to solve. I' ll write a patch for it.
+
+> drivers/staging/lirc/lirc_i2c.c:                if (adap->id == I2C_HW_B_CX2388x)
+> drivers/staging/lirc/lirc_i2c.c:                if (adap->id == I2C_HW_B_CX2388x) {
+> drivers/media/video/cx88/cx88-i2c.c:    core->i2c_adap.id = I2C_HW_B_CX2388x;
+> drivers/media/video/cx88/cx88-vp3054-i2c.c:     vp3054_i2c->adap.id = I2C_HW_B_CX2388x;
+
+We need to solve lirc_i2c.c issues before being able to remove those. As lirc_i2c has
+the same implementation as ir-kbd-i2c, it is probably easier to just get rid of it,
+and then remove those two references. Jarod is working on it.
+
+While touching it, I'll move PV951 to bttv driver, and move all IR initialization code to 
+bttv-input and cx88-input on those two drivers. This will make life easier when porting
+the code to rc-core, as everything that needs to be changed will be at the same file.
+
+Cheers,
+Mauro
