@@ -1,126 +1,128 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.5])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o8S8v8s7023887
-	for <video4linux-list@redhat.com>; Tue, 28 Sep 2010 04:57:08 -0400
-Received: from mail-iw0-f174.google.com (mail-iw0-f174.google.com
-	[209.85.214.174])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o8S8uvtC022193
-	for <video4linux-list@redhat.com>; Tue, 28 Sep 2010 04:56:57 -0400
-Received: by iwn5 with SMTP id 5so7277329iwn.33
-	for <video4linux-list@redhat.com>; Tue, 28 Sep 2010 01:56:57 -0700 (PDT)
+Received: from mail.tu-berlin.de ([130.149.7.33])
+	by www.linuxtv.org with esmtp (Exim 4.69)
+	(envelope-from <linuxtv@nzbaxters.com>) id 1Oyfez-0002mR-8r
+	for linux-dvb@linuxtv.org; Thu, 23 Sep 2010 08:52:02 +0200
+Received: from auth-1.ukservers.net ([217.10.138.154])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-a) with esmtp
+	for <linux-dvb@linuxtv.org>
+	id 1Oyfey-0001ZU-B5; Thu, 23 Sep 2010 08:52:00 +0200
+Received: from wlgl04017 (203-97-171-185.cable.telstraclear.net
+	[203.97.171.185])
+	by auth-1.ukservers.net (Postfix smtp) with SMTP id 597463589F1
+	for <linux-dvb@linuxtv.org>; Thu, 23 Sep 2010 07:51:52 +0100 (BST)
+Message-ID: <1537BE75D4274CAF8A375A44B7F1B2E2@telstraclear.tclad>
+From: "Simon Baxter" <linuxtv@nzbaxters.com>
+To: <linux-dvb@linuxtv.org>
+References: <25861669.1285195582100.JavaMail.ngmail@webmail18.arcor-online.net>
+Date: Thu, 23 Sep 2010 18:51:46 +1200
 MIME-Version: 1.0
-In-Reply-To: <AANLkTinXEzRhO3Y_qzq4MOBCtuJeXBXwLZ=T9-QAqPga@mail.gmail.com>
-References: <AANLkTim6+hHaZqZNJHsQigEsy6c-mB83CKB2Dz6FmwzK@mail.gmail.com>
-	<AANLkTimYj-W2QPK6BZdkzCaQkyoWVsGuC1EX8w3Oo9MV@mail.gmail.com>
-	<AANLkTinXEzRhO3Y_qzq4MOBCtuJeXBXwLZ=T9-QAqPga@mail.gmail.com>
-Date: Tue, 28 Sep 2010 14:26:56 +0530
-Message-ID: <AANLkTimzZkhr4Jyab-QaXHzgd2_MRHgdKGFYUNEiYOkw@mail.gmail.com>
-Subject: Re: TV Tuner Japan
-From: Archis Bhave <archis.bhave@gmail.com>
-To: Pike <pikewb@gmail.com>
-Cc: video4linux-list@redhat.com
-List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
+Subject: [linux-dvb] dm1105 scan but won't tune? (anyone have one of these
+	working?)
+Reply-To: linux-media@vger.kernel.org
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
 Content-Transfer-Encoding: 7bit
-Errors-To: video4linux-list-bounces@redhat.com
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 Sender: <mchehab@pedra>
-List-ID: <video4linux-list@redhat.com>
+List-ID: <linux-dvb@linuxtv.org>
 
-Pike
+Hi.  I've got a new dm1105 dvb-s card which I can't get to work.  I can scan 
+and get transponders etc, but can't tune or get a front end lock.
 
+I see there's been some work on this - does anyone have one of these dvb-s 
+cards working?
 
- Which Linux are you using? Debian? Trying out older kernels (2.16 is really
-old, the current running tree is 2.6.xx) is usually a bad idea for media
-devices like TV-cards. Of course I am no Linux Guru, but it has been my
-experience, that there is more chance of media devices working with newer
-kernel releases.
+I've just pulled the latest from 
+http://mercurial.intuxication.org/hg/s2-liplianin
 
-And if you have no grudges against Ubuntu or problems regarding its use,
-switching to Ubuntu would also be a nice idea from point of view of ease of
-use. Personally I'm using Fedora 12 with Gadmei UTV330+ on USB at home and a
-cheap PCI card with similar chipsets at office.
+I can scan and get info:
+./scan dvb-s/OptusB1-NZ -l 11300 -x 0
+scanning dvb-s/OptusB1-NZ
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+initial transponder 12456000 H 22500000 9
+>>> tune to: 12456:h:0:22500
+DVB-S IF freq is 1156000
+<snip>
+0x0000 0x0781: pmt_pid 0x010b TV Works -- C4 (running)
+<snip>
+C4:12456:h:0:22500:513:651:1921
 
-Archis
+But I can't get a lock on szap:
+./szap -c channels-conf/dvb-s/OptusD1E160 C4
+reading channels from file 'channels-conf/dvb-s/OptusD1E160'
+zapping to 2 'C4':
+sat 0, frequency = 12456 MHz H, symbolrate 22500000, vpid = 0x0201, apid = 
+0x028b sid = 0x0781
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+status 03 | signal 9ae2 | snr 7170 | ber 0000ff07 | unc fffffffe |
+status 03 | signal 9c2a | snr 719a | ber 0000ff05 | unc fffffffe |
+status 03 | signal 9b07 | snr 71d9 | ber 0000ff05 | unc fffffffe |
+status 03 | signal 9ace | snr 7200 | ber 0000ff05 | unc fffffffe |
 
-On Tue, Sep 28, 2010 at 1:48 PM, Pike <pikewb@gmail.com> wrote:
-
-> Thank you Archis,
->
-> I'm not sure about the courtesy with a mailing list, so I included v4l in
-> this mail.
->
-> Thank you for the quick reply!
-> I picked up a monster TV HDP2 gold the other day at the pc shop, and then I
-> tried to compile a linux kernel 2.16.1.1 with a patch from bytesex.org ..
-> it failed (since I'm so new to linux) , but if what you're saying is right,
-> then I don't need a patched kernel anyway. Other incarnations of the HDP
-> have all been on the saa7115 chipset I think.
->
-> Regardless, the monster HDP2 is not showing up in my system at all... not
-> with a lspci, lsusb, dmesg or anything... it's like a phantom piece of
-> machinery. As far as I know, if the system can't find it, then the odds of
-> me being able to use it are about 0 right?
->
-> Thanks for the help anyway!
-> Pike
->
->
-> On Tue, Sep 28, 2010 at 2:46 PM, Archis Bhave <archis.bhave@gmail.com>wrote:
->
->> Pike
->>
->> Though some more inputs would be required (USB TV-Tuner, or PCI etc.) you
->> should be able to get a TV tuner like UTV330+ from Gadmei (USB TV Tuner)
->> working out of the box on almost all Linux distributions. I have tested it
->> on Fedora 12 and Ubuntu 10.0x.
->>
->> It is usually a question of V4L driver being available for the TV tuner.
->> Almost any card based on EM2860 and SAA7115 should work properly.
->> Hope this helps.
->>
->> Sincerely
->>
->>
->> On Sun, Sep 26, 2010 at 12:17 PM, Pike <pikewb@gmail.com> wrote:
->>
->>> I don't really know how to search the archives, but I'm browsing them
->>> currently. In the meantime, I thought I'd ask if anyone has set-up a home
->>> theatre PC in Japan recently and knows what TV tuner cards are supported
->>> by
->>> MythTV?
->>>
->>> cheers
->>> --
->>> video4linux-list mailing list
->>> Unsubscribe mailto:video4linux-list-request@redhat.com
->>> ?subject=unsubscribe
->>> https://www.redhat.com/mailman/listinfo/video4linux-list
->>>
->>
->>
->>
->> --
->> Mr. Archis A. Bhave
->> [Design Engineer]
->> [IDG Product Development]
->>
->
->
+Or in VDR -
+Sep 23 13:49:45 localhost vdr: [2105] frontend 0/0 timed out while tuning to 
+channel 1, tp 112456
+Sep 23 13:50:06 localhost vdr: [2105] frontend 0/0 timed out while tuning to 
+channel 16, tp 112483
+Sep 23 13:50:26 localhost vdr: [2105] frontend 0/0 timed out while tuning to 
+channel 1, tp 112456
 
 
--- 
-Mr. Archis A. Bhave
-[Design Engineer]
-[IDG Product Development]
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+Although dvbtune says:
+./dvbtune -f 1245600 -s 22500 -p h -m -tone 0 -x
+Using DVB card "ST STV0299 DVB-S"
+tuning DVB-S to L-Band:3, Pol:H Srate=22500000, 22kHz=off
+polling....
+Getting frontend event
+FE_STATUS:
+polling....
+Getting frontend event
+FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER
+polling....
+Getting frontend event
+FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI 
+FE_HAS_SYNC
+Event:  Frequency: 10995803
+        SymbolRate: 22500000
+        FEC_inner:  3
+
+Bit error rate: 65285
+Signal strength: 53063
+SNR: 48522
+FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI 
+FE_HAS_SYNC
+<?xml version="1.0" encoding="iso-8859-1"?>
+<satellite>
+<descriptor tag="0x01" 
+data="4b59204469676974616c20536174656c6c697465205456f3ae000100a9f042413303eb0103ed0103f10103f401040201041101043801043d01044501044c02046002046102046202232983238d8a23f18426ad" 
+text="KY.Digital.Satellite.TV.......BA3...................8.....E..L.....a..b............" 
+/>
+Nothing to read from fd_nit
+Scanning 12407000V 30000000
+Using DVB card "ST STV0299 DVB-S"
+tuning DVB-S to L-Band:774218352, Pol:V Srate=30000000, 22kHz=off
+polling....
+Getting frontend event
+FE_STATUS:
+polling....
+Getting frontend event
+FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER
+polling....
+polling....
+
+
+Any suggestions? 
+
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
