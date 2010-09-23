@@ -1,63 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([192.100.122.233]:53913 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754039Ab0I1NIv (ORCPT
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61508 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753407Ab0IWX0U (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Sep 2010 09:08:51 -0400
-Message-ID: <4CA1E8D7.2010805@maxwell.research.nokia.com>
-Date: Tue, 28 Sep 2010 16:08:39 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+	Thu, 23 Sep 2010 19:26:20 -0400
+Date: Thu, 23 Sep 2010 16:26:17 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Discussion of the Amstrad E3 emailer hardware/software
+	<e3-hacking@earth.li>
+Subject: Re: [PATCH v2 5/6] OMAP1: Amstrad Delta: add support for camera
+Message-ID: <20100923232617.GW4211@atomide.com>
+References: <201009110317.54899.jkrzyszt@tis.icnet.pl>
+ <201009110327.31407.jkrzyszt@tis.icnet.pl>
+ <20100923231415.GU4211@atomide.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, g.liakhovetski@gmx.de
-Subject: Re: [RFC/PATCH 7/9] v4l: v4l2_subdev userspace format API
-References: <1285517612-20230-1-git-send-email-laurent.pinchart@ideasonboard.com>    <1285517612-20230-8-git-send-email-laurent.pinchart@ideasonboard.com>    <201009262025.20852.hverkuil@xs4all.nl>    <201009281350.23233.laurent.pinchart@ideasonboard.com> <3c895d38527af5e6b5acdd783ff8dacb.squirrel@webmail.xs4all.nl>
-In-Reply-To: <3c895d38527af5e6b5acdd783ff8dacb.squirrel@webmail.xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20100923231415.GU4211@atomide.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
-
-Hans Verkuil wrote:
->>>> +
->>>> +#define VIDIOC_SUBDEV_G_FMT	_IOWR('V',  4, struct v4l2_subdev_format)
->>>> +#define VIDIOC_SUBDEV_S_FMT	_IOWR('V',  5, struct v4l2_subdev_format)
->>>> +#define VIDIOC_SUBDEV_ENUM_MBUS_CODE \
->>>> +			_IOWR('V',  2, struct v4l2_subdev_mbus_code_enum)
->>>> +#define VIDIOC_SUBDEV_ENUM_FRAME_SIZE \
->>>> +			_IOWR('V', 74, struct v4l2_subdev_frame_size_enum)
->>>
->>> The ioctl numbering is a bit scary. We want to be able to reuse V4L2
->>> ioctls
->>> with subdevs where appropriate. But then we need to enumerate the subdev
->>> ioctls using a different character to avoid potential conflicts. E.g.
->>> 'S'
->>> instead of 'V'.
->>
->> There's little chance the ioctl values will conflict, as they encode the
->> structure size. However, it could still happen. That's why I've reused the
->> VIDIOC_G_FMT, VIDIOC_S_FMT, VIDIOC_ENUM_FMT and VIDIOC_ENUM_FRAMESIZES
->> ioctl
->> numbers for those new ioctls, as they replace the V4L2 ioctls for
->> sub-devices.
->> We can also use another prefix, but there's a limited supply of them.
+* Tony Lindgren <tony@atomide.com> [100923 16:06]:
+> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [100910 18:20]:
+> > This patch adds configuration data and initialization code required for camera 
+> > support to the Amstrad Delta board.
+> > 
+> > Three devices are declared: SoC camera, OMAP1 camera interface and OV6650 
+> > sensor.
+> > 
+> > Default 12MHz clock has been selected for driving the sensor. Pixel clock has 
+> > been limited to get reasonable frame rates, not exceeding the board 
+> > capabilities. Since both devices (interface and sensor) support both pixel 
+> > clock polarities, decision on polarity selection has been left to drivers.
+> > Interface GPIO line has been found not functional, thus not configured.
+> > 
+> > Created and tested against linux-2.6.36-rc3.
+> > 
+> > Works on top of previous patches from the series, at least 1/6, 2/6 and 3/6.
 > 
-> Hmm, perhaps we can use 'v'. That's currently in use by V4L1, but that's
-> on the way out. I'm not sure what is wisdom here. Mauro should take a look
-> at this, I think.
+> Queuing these last two patches of the series (5/6 and 6/6) for the upcoming
+> merge window.
 
-Similar V4L2 ioctls exists but they still are part of a different API.
-So I'd go with 'S' (or something else non-'V') unless the ioctl is
-exactly the same as in V4L2. And allocate numbers starting from 0 if
-possible.
+BTW, these still depend on updated 2/6 to make compile happy.
 
-But I agree, let's wait Mauro's opinion...
-
-Regards,
-
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+Tony
