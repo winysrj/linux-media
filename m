@@ -1,58 +1,80 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:49001 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754405Ab0I0NC5 (ORCPT
+Received: from d1.icnet.pl ([212.160.220.21]:40914 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752747Ab0IWXpP convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Sep 2010 09:02:57 -0400
-Received: by bwz11 with SMTP id 11so3242997bwz.19
-        for <linux-media@vger.kernel.org>; Mon, 27 Sep 2010 06:02:56 -0700 (PDT)
-From: Ruslan Pisarev <ruslanpisarev@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: ruslan@rpisarev.org.ua
-Subject: [PATCH 03/13] Staging: cx25821: fix comments and space coding style issue in cx25821-audio.h
-Date: Mon, 27 Sep 2010 16:02:44 +0300
-Message-Id: <1285592564-32202-1-git-send-email-ruslan@rpisarev.org.ua>
-In-Reply-To: <y>
-References: <y>
+	Thu, 23 Sep 2010 19:45:15 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RESEND][PATCH v2 2/6] OMAP1: Add support for SoC camera interface
+Date: Fri, 24 Sep 2010 01:44:45 +0200
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"Discussion of the Amstrad E3 emailer hardware/software"
+	<e3-hacking@earth.li>
+References: <201009110317.54899.jkrzyszt@tis.icnet.pl> <201009110334.03905.jkrzyszt@tis.icnet.pl> <20100923232309.GV4211@atomide.com>
+In-Reply-To: <20100923232309.GV4211@atomide.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <201009240144.47422.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This is a patch to the cx25821-audio.h file that fixed up a comments
-and space Errors found by the checkpatch.pl tools.
+Friday 24 September 2010 01:23:10 Tony Lindgren napisał(a):
+> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [100910 18:26]:
+> > This patch adds support for SoC camera interface to OMAP1 devices.
+> >
+> > Created and tested against linux-2.6.36-rc3 on Amstrad Delta.
+> >
+> > For successfull compilation, requires a header file provided by PATCH 1/6
+> > from this series, "SoC Camera: add driver for OMAP1 camera interface".
+>
+> <snip>
+>
+> > diff -upr linux-2.6.36-rc3.orig/arch/arm/mach-omap1/include/mach/camera.h
+> > linux-2.6.36-rc3/arch/arm/mach-omap1/include/mach/camera.h
+> > ---
+> > linux-2.6.36-rc3.orig/arch/arm/mach-omap1/include/mach/camera.h	2010-09-0
+> >3 22:34:03.000000000 +0200 +++
+> > linux-2.6.36-rc3/arch/arm/mach-omap1/include/mach/camera.h	2010-09-09
+> > 18:42:30.000000000 +0200 @@ -0,0 +1,8 @@
+> > +#ifndef __ASM_ARCH_CAMERA_H_
+> > +#define __ASM_ARCH_CAMERA_H_
+> > +
+> > +#include <media/omap1_camera.h>
+> > +
+> > +extern void omap1_set_camera_info(struct omap1_cam_platform_data *);
+> > +
+> > +#endif /* __ASM_ARCH_CAMERA_H_ */
+>
+> Care to refresh this patch so it does not include media/omap1_camera.h?
+>
+> That way things keep building if I merge this one along with the omap
+> patches and the drivers/media patches can get merged their via media.
+>
+> I think you can just move the OMAP1_CAMERA_IOSIZE to the devices.c or
+> someplace like that?
 
-Signed-off-by: Ruslan Pisarev <ruslan@rpisarev.org.ua>
----
- drivers/staging/cx25821/cx25821-audio.h |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+Tony,
+Not exactly. I use the OMAP1_CAMERA_IOSIZE inside the driver when reserving 
+space for register cache.
 
-diff --git a/drivers/staging/cx25821/cx25821-audio.h b/drivers/staging/cx25821/cx25821-audio.h
-index 434b2a3..a702a0d 100644
---- a/drivers/staging/cx25821/cx25821-audio.h
-+++ b/drivers/staging/cx25821/cx25821-audio.h
-@@ -31,18 +31,18 @@
- #define NUMBER_OF_PROGRAMS  8
- 
- /*
--  Max size of the RISC program for a buffer. - worst case is 2 writes per line
--  Space is also added for the 4 no-op instructions added on the end.
--*/
-+ * Max size of the RISC program for a buffer. - worst case is 2 writes per line
-+ * Space is also added for the 4 no-op instructions added on the end.
-+ */
- #ifndef USE_RISC_NOOP
- #define MAX_BUFFER_PROGRAM_SIZE     \
--    (2*LINES_PER_BUFFER*RISC_WRITE_INSTRUCTION_SIZE + RISC_WRITECR_INSTRUCTION_SIZE*4)
-+	(2*LINES_PER_BUFFER*RISC_WRITE_INSTRUCTION_SIZE + RISC_WRITECR_INSTRUCTION_SIZE*4)
- #endif
- 
- /* MAE 12 July 2005 Try to use NOOP RISC instruction instead */
- #ifdef USE_RISC_NOOP
- #define MAX_BUFFER_PROGRAM_SIZE     \
--    (2*LINES_PER_BUFFER*RISC_WRITE_INSTRUCTION_SIZE + RISC_NOOP_INSTRUCTION_SIZE*4)
-+	(2*LINES_PER_BUFFER*RISC_WRITE_INSTRUCTION_SIZE + RISC_NOOP_INSTRUCTION_SIZE*4)
- #endif
- 
- /* Sizes of various instructions in bytes.  Used when adding instructions. */
--- 
-1.7.0.4
+I think that I could just duplicate its definition in the devices.c for now, 
+than clean things up with a folloup patch when both parts already get merged. 
+Would this be acceptable?
 
+Thanks,
+Janusz
+
+>
+> Regards,
+>
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
