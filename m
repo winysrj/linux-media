@@ -1,310 +1,125 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:44382 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752085Ab0IOURF (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:42704 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752832Ab0IWLfU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Sep 2010 16:17:05 -0400
-Received: by eyb6 with SMTP id 6so357562eyb.19
-        for <linux-media@vger.kernel.org>; Wed, 15 Sep 2010 13:17:02 -0700 (PDT)
-Message-ID: <4C91299B.70609@osciak.com>
-Date: Wed, 15 Sep 2010 22:16:27 +0200
-From: Pawel Osciak <pawel@osciak.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	m.szyprowski@samsung.com, t.fujak@samsung.com
-Subject: Re: [PATCH v1 1/7] v4l: add videobuf2 Video for Linux 2 driver framework
-References: <1284023988-23351-1-git-send-email-p.osciak@samsung.com> <1284023988-23351-2-git-send-email-p.osciak@samsung.com> <4C891989.3010302@redhat.com>
-In-Reply-To: <4C891989.3010302@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Thu, 23 Sep 2010 07:35:20 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v5 10/12] v4l: Add a media_device pointer to the v4l2_device structure
+Date: Thu, 23 Sep 2010 13:34:54 +0200
+Message-Id: <1285241696-16826-11-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1285241696-16826-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1285241696-16826-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello Mauro,
+The pointer will later be used to register/unregister media entities
+when registering/unregistering a v4l2_subdev or a video_device.
 
-Thank you for the review. Please see my responses inline.
-Please also note that my e-mail address has changed.
+With the introduction of media devices, device drivers need to store a
+pointer to a driver-specific structure in the device's drvdata.
+v4l2_device can't claim ownership of the drvdata anymore.
 
-On 09/09/2010 07:29 PM, Mauro Carvalho Chehab wrote:
-> Em 09-09-2010 06:19, Pawel Osciak escreveu:
->> Videobuf2 is a Video for Linux 2 API-compatible driver framework for
->> multimedia devices. It acts as an intermediate layer between userspace
->> applications and device drivers. It also provides low-level, modular
->> memory management functions for drivers.
->>
->> Videobuf2 eases driver development, reduces drivers' code size and
-aids in
->> proper and consistent implementation of V4L2 API in drivers.
->>
->> Videobuf2 memory management backend is fully modular. This allows custom
->> memory management routines for devices and platforms with non-standard
->> memory management requirements to be plugged in, without changing the
->> high-level buffer management functions and API.
->>
->> The framework provides:
->> - implementations of streaming I/O V4L2 ioctls and file operations
->> - high-level video buffer, video queue and state management functions
->> - video buffer memory allocation and management
->>
->> Signed-off-by: Pawel Osciak<p.osciak@samsung.com>
->> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
->> ---
->>   drivers/media/video/Kconfig          |    3 +
->>   drivers/media/video/Makefile         |    2 +
->>   drivers/media/video/videobuf2-core.c | 1457++++++++++++++++++++++++++++++++++
->>   include/media/videobuf2-core.h       |  337 ++++++++
->>   4 files changed, 1799 insertions(+), 0 deletions(-)
->>   create mode 100644 drivers/media/video/videobuf2-core.c
->>   create mode 100644 include/media/videobuf2-core.h
->>
+To maintain compatibility with drivers that rely on v4l2_device storing
+a pointer to itself in the device's drvdata, v4l2_device_register() will
+keep doing so if the drvdata is NULL.
 
-(snip)
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/video4linux/v4l2-framework.txt |   17 ++++++++++++-----
+ drivers/media/video/v4l2-device.c            |   13 +++++++------
+ include/media/v4l2-device.h                  |    2 ++
+ 3 files changed, 21 insertions(+), 11 deletions(-)
 
->> +/**
->> + * __vb2_wait_for_done_vb() - wait for a buffer to become available
->> + * for dequeuing
->> + *
->> + * Will sleep if required for nonblocking == false.
->> + */
->> +static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
->> +{
->> +	int retval = 0;
->> +
->> +checks:
->> +	if (!q->streaming) {
->> +		dprintk(1, "Streaming off, will not wait for buffers\n");
->> +		retval = -EINVAL;
->> +		goto end;
->> +	}
->> +
->> +	/*
->> +	 * Buffers may be added to vb_done_list without holding the vb_lock,
->> +	 * but removal is performed only while holding both vb_lock and the
->> +	 * vb_done_lock spinlock. Thus we can be sure that as long as we hold
->> +	 * vb_lock, the list will remain not empty if this check succeeds.
->> +	 */
->> +	if (list_empty(&q->done_list)) {
->> +		if (nonblocking) {
->> +			dprintk(1, "Nonblocking and no buffers to dequeue, "
->> +					"will not wait\n");
->> +			retval = -EAGAIN;
->> +			goto end;
->> +		}
->> +
->> +		/*
->> +		 * We are streaming and nonblocking, wait for another buffer to
->> +		 * become ready or for streamoff. vb_lock is released to allow
->> +		 * streamoff or qbuf to be called while waiting.
->> +		 */
->> +		mutex_unlock(&q->vb_lock);
->
-> There's no mutex_lock before this call inside this function... It doesn't
-> seem to be a good idea to call it with a mutex locked, and having aunlock/lock
-> inside the fuction. The better would be to call it with mutexunlocked and let it
-> lock/unlock where needed.
->
-
-Hm, this might be tricky... I am pretty sure we have to hold the vb_lock for the
-duration of dqbuf, so I cannot call it without holding the vb_lock. Would you
-prefer to put that whole code into dqbuf? Sorry, I am not sure I understood you
-correctly here...
-
->> +		/*
->> +		 * Although the mutex is released here, we will be reevaluating
->> +		 * both conditions again after reacquiring it.
->> +		 */
->> +		dprintk(3, "Will sleep waiting for buffers\n");
->> +		retval = wait_event_interruptible(q->done_wq,
->> +				!list_empty(&q->done_list) || !q->streaming);
->
-> I think you could have a race condition here, as you're checking forlist_empty
-> without a lock. The better approach would be to do something like:
->
-> static int vb2_is_videobuf_empty(struct vb2_queue *q)
-> {
-> 	int is_empty;
-> 		
-> 	mutex_lock(&q->vb_lock);
->
-> 	is_empty = list_empty(&q->done_list);
->
-> 	mutex_unlock(&q->vb_lock);
->
-> 	return is_empty;
-> }
->
-> static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
-> {
-> 	...
-> 	retval = wait_event_interruptible(q->done_wq,vb2_is_videobuf_empty(q) || !q->streaming);
-> 	...
-> }
->
-> This way, you'll always have the mutex locked when checking for listempty.
->
-> Btw, shouldn't it be using, instead a spinlock?
->
-
-There are two locks to be considered here:
-- vb_lock - main mutex protecting most of the calls
-- done_lock - a spinlock protecting done_list
-
-Both vb_lock and done_lock have to be held to remove items from the
-done_list, but only done_lock has to be held to add items to the
-done_list.
-
-After we check the done_list and find it non-empty, it will
-stay that way as long as we hold vb_lock. It is possible that
-new buffers will be added to it during that time, but this is not a
-problem, since we will acquire the done_lock spinlock before removing
-anything from the list.
-
-I am indeed checking for list_empty without holding vb_lock, but this is
-only a preliminary check. After wait_event_interruptible returns 0, I
-jump back to checks:, acquire vb_lock and recheck for list_empty while
-holding it. If the list is still non-empty by this second check, I
-can return from the function still holding the vb_lock (so nothing can
-be taken off the done_list in the meantime).
-
-I am not sure if you solution would change things here... Since
-vb2_is_videobuf_empty() you proposed releases vb_lock before returning
-(and it is of course how it should be), we still have to jump back,
-reacquire vb_lock and recheck. We cannot release vb_lock after verifying
-that the list is nonempty until we remove the buffer from the done_list,
-to make sure it stays nonempty.
-
-Or maybe I am missing something here?
-
-> To avoid needing to have a lock also for q->streaming, the betterwould be to define
-> it as atomic_t.
->
-
-Right, this is a good idea.
-
->> +		mutex_lock(&q->vb_lock);
->> +
->> +		if (retval)
->> +			goto end;
->> +
->> +		goto checks;
->> +	}
->> +
->> +end:
->> +	return retval;
->> +}
->> +
->> +/**
->> + * __vb2_get_done_vb() - get a buffer ready for dequeuing
->> + *
->> + * Will sleep if required for nonblocking == false.
->> + */
->> +static int __vb2_get_done_vb(struct vb2_queue *q, struct vb2_buffer**vb,
->> +				int nonblocking)
->> +{
->> +	unsigned long flags;
->> +	int ret = 0;
->> +
->> +	/*
->> +	 * Wait for at least one buffer to become available on the done_list.
->> +	 */
->> +	ret = __vb2_wait_for_done_vb(q, nonblocking);
->> +	if (ret)
->> +		goto end;
->> +
->> +	/*
->> +	 * vb_lock has been held since we last verified that done_list is
->> +	 * not empty, so no need for another list_empty(done_list) check.
->> +	 */
->> +	spin_lock_irqsave(&q->done_lock, flags);
->> +	*vb = list_first_entry(&q->done_list, struct vb2_buffer, done_entry);
->> +	list_del(&(*vb)->done_entry);
->> +	spin_unlock_irqrestore(&q->done_lock, flags);
->> +
->> +end:
->> +	return ret;
->> +}
->> +
->> +
->> +/**
->> + * vb2_dqbuf() - Dequeue a buffer to the userspace
->> + * @q:		videobuf2 queue
->> + * @b:		buffer structure passed from userspace to vidioc_dqbuf handler
->> + *		in driver
->> + * @nonblocking: if true, this call will not sleep waiting for abuffer if no
->> + *		 buffers ready for dequeuing are present. Normally the driver
->> + *		 would be passing (file->f_flags&  O_NONBLOCK) here
->> + *
->> + * Should be called from vidioc_dqbuf ioctl handler of a driver.
->> + * This function:
->> + * 1) verifies the passed buffer,
->> + * 2) calls buf_finish callback in the driver (if provided), in which
->> + *    driver can perform any additional operations that may berequired before
->> + *    returning the buffer to userspace, such as cache sync,
->> + * 3) the buffer struct members are filled with relevantinformation for
->> + *    the userspace.
->> + *
->> + * The return values from this function are intended to be directlyreturned
->> + * from vidioc_dqbuf handler in driver.
->> + */
->> +int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, boolnonblocking)
->> +{
->> +	struct vb2_buffer *vb = NULL;
->> +	int ret;
->> +
->> +	mutex_lock(&q->vb_lock);
->> +
->> +	if (b->type != q->type) {
->> +		dprintk(1, "dqbuf: invalid buffer type\n");
->> +		ret = -EINVAL;
->> +		goto done;
->> +	}
->> +
->> +	ret = __vb2_get_done_vb(q,&vb, nonblocking);
->> +	if (ret<  0) {
->> +		dprintk(1, "dqbuf: error getting next done buffer\n");
->> +		goto done;
->> +	}
->> +
->> +	if (q->ops->buf_finish) {
->> +		ret = q->ops->buf_finish(vb);
->> +		if (ret) {
->> +			dprintk(1, "dqbuf: buffer finish failed\n");
->> +			goto done;
->> +		}
->> +	}
->> +
->> +	switch (vb->state) {
->> +	case VB2_BUF_STATE_DONE:
->> +		dprintk(3, "dqbuf: Returning done buffer\n");
->> +		break;
->> +	case VB2_BUF_STATE_ERROR:
->> +		dprintk(3, "dqbuf: Returning done buffer with errors\n");
->> +		break;
->> +	default:
->> +		dprintk(1, "dqbuf: Invalid buffer state\n");
->> +		ret = -EINVAL;
->> +		goto done;
->> +	}
->> +
->> +	/* Fill buffer information for the userspace */
->> +	__fill_v4l2_buffer(vb, b);
->> +	/* Remove from videobuf queue */
->> +	list_del(&vb->queued_entry);
->> +
->> +	dprintk(1, "dqbuf of buffer %d, with state %d\n",
->> +			vb->v4l2_buf.index, vb->state);
->> +
->> +	vb->state = VB2_BUF_STATE_DEQUEUED;
->> +
->> +done:
->> +	mutex_unlock(&q->vb_lock);
->> +	return ret;
->> +}
->> +EXPORT_SYMBOL_GPL(vb2_dqbuf);
->> +
-
-
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index 89bd881..8a3f14e 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -83,11 +83,17 @@ You must register the device instance:
+ 
+ 	v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev);
+ 
+-Registration will initialize the v4l2_device struct and link dev->driver_data
+-to v4l2_dev. If v4l2_dev->name is empty then it will be set to a value derived
+-from dev (driver name followed by the bus_id, to be precise). If you set it
+-up before calling v4l2_device_register then it will be untouched. If dev is
+-NULL, then you *must* setup v4l2_dev->name before calling v4l2_device_register.
++Registration will initialize the v4l2_device struct. If the dev->driver_data
++field is NULL, it will be linked to v4l2_dev. Drivers that use the media
++device framework in addition to the V4L2 framework need to set
++dev->driver_data manually to point to the driver-specific device structure
++that embed the struct v4l2_device instance. This is achieved by a
++dev_set_drvdata() call before registering the V4L2 device instance.
++
++If v4l2_dev->name is empty then it will be set to a value derived from dev
++(driver name followed by the bus_id, to be precise). If you set it up before
++calling v4l2_device_register then it will be untouched. If dev is NULL, then
++you *must* setup v4l2_dev->name before calling v4l2_device_register.
+ 
+ You can use v4l2_device_set_name() to set the name based on a driver name and
+ a driver-global atomic_t instance. This will generate names like ivtv0, ivtv1,
+@@ -108,6 +114,7 @@ You unregister with:
+ 
+ 	v4l2_device_unregister(struct v4l2_device *v4l2_dev);
+ 
++If the dev->driver_data field points to v4l2_dev, it will be reset to NULL.
+ Unregistering will also automatically unregister all subdevs from the device.
+ 
+ If you have a hotpluggable device (e.g. a USB device), then when a disconnect
+diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
+index 318e911..8447466 100644
+--- a/drivers/media/video/v4l2-device.c
++++ b/drivers/media/video/v4l2-device.c
+@@ -46,9 +46,8 @@ int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
+ 	if (!v4l2_dev->name[0])
+ 		snprintf(v4l2_dev->name, sizeof(v4l2_dev->name), "%s %s",
+ 			dev->driver->name, dev_name(dev));
+-	if (dev_get_drvdata(dev))
+-		v4l2_warn(v4l2_dev, "Non-NULL drvdata on register\n");
+-	dev_set_drvdata(dev, v4l2_dev);
++	if (!dev_get_drvdata(dev))
++		dev_set_drvdata(dev, v4l2_dev);
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_register);
+@@ -71,10 +70,12 @@ EXPORT_SYMBOL_GPL(v4l2_device_set_name);
+ 
+ void v4l2_device_disconnect(struct v4l2_device *v4l2_dev)
+ {
+-	if (v4l2_dev->dev) {
++	if (v4l2_dev->dev == NULL)
++		return;
++
++	if (dev_get_drvdata(v4l2_dev->dev) == v4l2_dev)
+ 		dev_set_drvdata(v4l2_dev->dev, NULL);
+-		v4l2_dev->dev = NULL;
+-	}
++	v4l2_dev->dev = NULL;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_disconnect);
+ 
+diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
+index 8bcbd7a..a4b27e8 100644
+--- a/include/media/v4l2-device.h
++++ b/include/media/v4l2-device.h
+@@ -21,6 +21,7 @@
+ #ifndef _V4L2_DEVICE_H
+ #define _V4L2_DEVICE_H
+ 
++#include <media/media-device.h>
+ #include <media/v4l2-subdev.h>
+ 
+ /* Each instance of a V4L2 device should create the v4l2_device struct,
+@@ -39,6 +40,7 @@ struct v4l2_device {
+ 	   Note: dev might be NULL if there is no parent device
+ 	   as is the case with e.g. ISA devices. */
+ 	struct device *dev;
++	struct media_device *mdev;
+ 	/* used to keep track of the registered subdevs */
+ 	struct list_head subdevs;
+ 	/* lock this struct; can be used by the driver as well if this
 -- 
-Best regards,
-Pawel Osciak
+1.7.2.2
+
