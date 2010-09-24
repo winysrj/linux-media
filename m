@@ -1,75 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:46032 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755279Ab0IHQQO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Sep 2010 12:16:14 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o88GGEwX029949
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 8 Sep 2010 12:16:14 -0400
-Received: from [10.11.11.235] (vpn-11-235.rdu.redhat.com [10.11.11.235])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o88GGBNa002755
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 8 Sep 2010 12:16:13 -0400
-Message-ID: <4C87B6D0.8000509@redhat.com>
-Date: Wed, 08 Sep 2010 13:16:16 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] V4L/DVB: rc-core: increase repeat time
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from queueout02-winn.ispmail.ntl.com ([81.103.221.56]:63822 "EHLO
+	queueout02-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757297Ab0IXS2Y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Sep 2010 14:28:24 -0400
+From: Daniel Drake <dsd@laptop.org>
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org
+Cc: corbet@lwn.net
+Subject: [PATCH 2/4] ov7670: implement VIDIOC_ENUM_FRAMEINTERVALS
+Message-Id: <20100924171729.351469D401C@zog.reactivated.net>
+Date: Fri, 24 Sep 2010 18:17:29 +0100 (BST)
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-As reported by Anton Blanchard <anton@samba.org>, double IR events on
-2.6.36-rc2 and a DViCO FusionHDTV DVB-T Dual Express are happening:
+From: Jonathan Corbet <corbet@lwn.net>
 
-[ 1351.032084] ir_keydown: i2c IR (FusionHDTV): key down event, key 0x0067, scancode 0x0051
-[ 1351.281284] ir_keyup: keyup key 0x0067
+Inquiring minds (and gstreamer) want to know.
 
-ie one key down event and one key up event 250ms later.
+Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+Signed-off-by: Daniel Drake <dsd@laptop.org>
+---
+ drivers/media/video/ov7670.c |   21 ++++++++++++++++++---
+ 1 files changed, 18 insertions(+), 3 deletions(-)
 
-So, we need to increase the repeat timeout, to avoid this bug to hit.
-
-As we're doing it at core, this fix is not needed anymore at dib0700 driver.
-
-Thanks-to: Anton Blanchard <anton@samba.org>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
-index 7e82a9d..d00ef19 100644
---- a/drivers/media/IR/ir-keytable.c
-+++ b/drivers/media/IR/ir-keytable.c
-@@ -510,6 +510,13 @@ int __ir_input_register(struct input_dev *input_dev,
- 		   (ir_dev->props && ir_dev->props->driver_type == RC_DRIVER_IR_RAW) ?
- 			" in raw mode" : "");
+diff --git a/drivers/media/video/ov7670.c b/drivers/media/video/ov7670.c
+index 91c886a..f551f63 100644
+--- a/drivers/media/video/ov7670.c
++++ b/drivers/media/video/ov7670.c
+@@ -896,14 +896,28 @@ static int ov7670_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
+ }
  
-+	/*
-+	 * Default delay of 250ms is too short for some protocols, expecially
-+	 * since the timeout is currently set to 250ms. Increase it to 500ms,
-+	 * to avoid wrong repetition of the keycodes.
-+	 */
-+	input_dev->rep[REP_DELAY] = 500;
-+
- 	return 0;
  
- out_event:
-diff --git a/drivers/media/dvb/dvb-usb/dib0700_core.c b/drivers/media/dvb/dvb-usb/dib0700_core.c
-index fe81834..48397f1 100644
---- a/drivers/media/dvb/dvb-usb/dib0700_core.c
-+++ b/drivers/media/dvb/dvb-usb/dib0700_core.c
-@@ -673,9 +673,6 @@ static int dib0700_probe(struct usb_interface *intf,
- 			else
- 				dev->props.rc.core.bulk_mode = false;
- 
--			/* Need a higher delay, to avoid wrong repeat */
--			dev->rc_input_dev->rep[REP_DELAY] = 500;
 -
- 			dib0700_rc_setup(dev);
+ /*
+- * Code for dealing with controls.
++ * Frame intervals.  Since frame rates are controlled with the clock
++ * divider, we can only do 30/n for integer n values.  So no continuous
++ * or stepwise options.  Here we just pick a handful of logical values.
+  */
  
- 			return 0;
++static int ov7670_frame_rates[] = { 30, 15, 10, 5, 1 };
+ 
++static int ov7670_enum_frameintervals(struct v4l2_subdev *sd,
++		struct v4l2_frmivalenum *interval)
++{
++	if (interval->index >= ARRAY_SIZE(ov7670_frame_rates))
++		return -EINVAL;
++	interval->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++	interval->discrete.numerator = 1;
++	interval->discrete.denominator = ov7670_frame_rates[interval->index];
++	return 0;
++}
+ 
+-
++/*
++ * Code for dealing with controls.
++ */
+ 
+ static int ov7670_store_cmatrix(struct v4l2_subdev *sd,
+ 		int matrix[CMATRIX_LEN])
+@@ -1447,6 +1461,7 @@ static const struct v4l2_subdev_video_ops ov7670_video_ops = {
+ 	.s_fmt = ov7670_s_fmt,
+ 	.s_parm = ov7670_s_parm,
+ 	.g_parm = ov7670_g_parm,
++	.enum_frameintervals = ov7670_enum_frameintervals,
+ };
+ 
+ static const struct v4l2_subdev_ops ov7670_ops = {
 -- 
-1.7.1
+1.7.2.2
 
