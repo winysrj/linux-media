@@ -1,73 +1,108 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:7369 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754712Ab0IJCBv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Sep 2010 22:01:51 -0400
-Date: Thu, 9 Sep 2010 22:01:29 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	lirc-list@lists.sourceforge.net,
-	David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/8 V5] Many fixes for in-kernel decoding and for the ENE
- driver
-Message-ID: <20100910020129.GA26845@redhat.com>
-References: <1283808373-27876-1-git-send-email-maximlevitsky@gmail.com>
- <4C8805FA.3060102@infradead.org>
- <20100908224227.GL22323@redhat.com>
- <AANLkTikBVSYpD_+qomCad-OvXg6CRam4b01wSBV-pNw8@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <AANLkTikBVSYpD_+qomCad-OvXg6CRam4b01wSBV-pNw8@mail.gmail.com>
+Received: from perceval.irobotique.be ([92.243.18.41]:60404 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932308Ab0IXOOk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Sep 2010 10:14:40 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Jean Delvare <khali@linux-fr.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pete Eberlein <pete@sensoray.com>,
+	Mike Isely <isely@pobox.com>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Vaibhav Hiremath <hvaibhav@ti.com>,
+	Muralidharan Karicheri <mkaricheri@gmail.com>
+Subject: [PATCH 05/16] go7007: Don't use module names to load I2C modules
+Date: Fri, 24 Sep 2010 16:14:03 +0200
+Message-Id: <1285337654-5044-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1285337654-5044-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1285337654-5044-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-On Thu, Sep 09, 2010 at 12:34:27AM -0400, Jarod Wilson wrote:
-...
-> >> For now, I've applied patches 3, 4 and 5, as it is nice to have Jarod's review also.
-> >
-> > I've finally got them all applied atop current media_tree staging/v2.6.37,
-> > though none of the streamzap bits in patch 7 are applicable any longer.
-> > Will try to get through looking and commenting (and testing) of the rest
-> > of them tonight.
-> 
-> Also had to make a minor addition to the rc5-sz decoder (same change
-> as in the other decoders). Almost have all the requisite test kernels
-> for David's, Maxim's and Dmitry's patchsets built and installed, wish
-> my laptop was faster... Probably would have been faster to use a lab
-> box and copy data over. Oh well. So functional testing to hopefully
-> commence tomorrow morning.
+With the v4l2_i2c_new_subdev* functions now supporting loading modules
+based on modaliases, replace the hardcoded module name passed to those
+functions by NULL.
 
-Wuff. None of the three builds is at all stable on my laptop, but I can't
-actually point the finger at any of the three patchsets, since I'm getting
-spontaneous lockups doing nothing at all before even plugging in a
-receiver. I did however get occasional periods of a non-panicking (not
-starting X seems to help a lot). Initial results:
+All corresponding I2C modules have been checked, and all of them include
+a module aliases table with names corresponding to what the go7007
+driver uses.
 
-Dmitry's patchset:
-- all good for imon, streamzap and mceusb
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/staging/go7007/go7007-driver.c |   43 ++-----------------------------
+ 1 files changed, 3 insertions(+), 40 deletions(-)
 
-David's patchset:
-- all good for mceusb, as expected, since David has mce hardware himself,
-  did not try the others yet
-
-Maxim's patchset:
-- all good for mceusb and imon
-- streamzap decoding fails miserably. I have an inkling why, but will need
-  to get a stable testing platform before I can really properly dig into
-  it.
-
-Still working on that stable testing platform, which is "backport current
-ir-core to the latest Fedora 14 kernel", which is 2.6.35.4-based and
-rock-solid on this machine. After that, will start applying patchsets.
-
-(I have yet to really look at the lockups, they look like random memory
-corruption though).
-
+diff --git a/drivers/staging/go7007/go7007-driver.c b/drivers/staging/go7007/go7007-driver.c
+index 372a7c6..0a1d925 100644
+--- a/drivers/staging/go7007/go7007-driver.c
++++ b/drivers/staging/go7007/go7007-driver.c
+@@ -194,51 +194,15 @@ int go7007_reset_encoder(struct go7007 *go)
+  * Attempt to instantiate an I2C client by ID, probably loading a module.
+  */
+ static int init_i2c_module(struct i2c_adapter *adapter, const char *type,
+-			   int id, int addr)
++			   int addr)
+ {
+ 	struct go7007 *go = i2c_get_adapdata(adapter);
+ 	struct v4l2_device *v4l2_dev = &go->v4l2_dev;
+-	char *modname;
+ 
+-	switch (id) {
+-	case I2C_DRIVERID_WIS_SAA7115:
+-		modname = "wis-saa7115";
+-		break;
+-	case I2C_DRIVERID_WIS_SAA7113:
+-		modname = "wis-saa7113";
+-		break;
+-	case I2C_DRIVERID_WIS_UDA1342:
+-		modname = "wis-uda1342";
+-		break;
+-	case I2C_DRIVERID_WIS_SONY_TUNER:
+-		modname = "wis-sony-tuner";
+-		break;
+-	case I2C_DRIVERID_WIS_TW9903:
+-		modname = "wis-tw9903";
+-		break;
+-	case I2C_DRIVERID_WIS_TW2804:
+-		modname = "wis-tw2804";
+-		break;
+-	case I2C_DRIVERID_WIS_OV7640:
+-		modname = "wis-ov7640";
+-		break;
+-	case I2C_DRIVERID_S2250:
+-		modname = "s2250";
+-		break;
+-	default:
+-		modname = NULL;
+-		break;
+-	}
+-
+-	if (v4l2_i2c_new_subdev(v4l2_dev, adapter, modname, type, addr, NULL))
++	if (v4l2_i2c_new_subdev(v4l2_dev, adapter, NULL, type, addr, NULL))
+ 		return 0;
+ 
+-	if (modname != NULL)
+-		printk(KERN_INFO
+-			"go7007: probing for module %s failed\n", modname);
+-	else
+-		printk(KERN_INFO
+-			"go7007: sensor %u seems to be unsupported!\n", id);
++	printk(KERN_INFO "go7007: probing for module i2c:%s failed\n", type);
+ 	return -1;
+ }
+ 
+@@ -277,7 +241,6 @@ int go7007_register_encoder(struct go7007 *go)
+ 		for (i = 0; i < go->board_info->num_i2c_devs; ++i)
+ 			init_i2c_module(&go->i2c_adapter,
+ 					go->board_info->i2c_devs[i].type,
+-					go->board_info->i2c_devs[i].id,
+ 					go->board_info->i2c_devs[i].addr);
+ 		if (go->board_id == GO7007_BOARDID_ADLINK_MPG24)
+ 			i2c_clients_command(&go->i2c_adapter,
 -- 
-Jarod Wilson
-jarod@redhat.com
+1.7.2.2
 
