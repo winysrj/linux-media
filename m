@@ -1,110 +1,153 @@
 Return-path: <mchehab@pedra>
-Received: from banach.math.auburn.edu ([131.204.45.3]:37669 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752867Ab0IMQqJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Sep 2010 12:46:09 -0400
-Date: Mon, 13 Sep 2010 12:17:48 -0500 (CDT)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+Received: from mailout-de.gmx.net ([213.165.64.23]:36002 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1757455Ab0IXTAk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Sep 2010 15:00:40 -0400
+Date: Fri, 24 Sep 2010 21:00:57 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: "Wang, Wen W" <wen.w.wang@intel.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Zhang, Xiaolin" <xiaolin.zhang@intel.com>,
-	"Huang, Kai" <kai.huang@intel.com>,
-	"Hu, Gang A" <gang.a.hu@intel.com>
-Subject: Re: Linux V4L2 support dual stream video capture device
-In-Reply-To: <201009130838.56888.laurent.pinchart@ideasonboard.com>
-Message-ID: <alpine.LNX.2.00.1009131142000.22384@banach.math.auburn.edu>
-References: <D5AB6E638E5A3E4B8F4406B113A5A19A1E55D29F@shsmsx501.ccr.corp.intel.com> <201009130838.56888.laurent.pinchart@ideasonboard.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Jean Delvare <khali@linux-fr.org>,
+	Pete Eberlein <pete@sensoray.com>,
+	Mike Isely <isely@pobox.com>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Vaibhav Hiremath <hvaibhav@ti.com>,
+	Muralidharan Karicheri <mkaricheri@gmail.com>
+Subject: Re: [PATCH 00/16] Use modaliases to load I2C modules - please review
+In-Reply-To: <1285337654-5044-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1009242057570.18077@axis700.grange>
+References: <1285337654-5044-1-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Hi Laurent
 
+On Fri, 24 Sep 2010, Laurent Pinchart wrote:
 
-On Mon, 13 Sep 2010, Laurent Pinchart wrote:
-
-> Hi Wen,
+> Hi everybody,
 > 
-> On Friday 07 May 2010 20:20:38 Wang, Wen W wrote:
-> > Hi all,
-> > 
-> > I'm wondering if V4L2 framework supports dual stream video capture device
-> > that transfer a preview stream and a regular stream (still capture or
-> > video capture) at the same time.
-> > 
-> > We are developing a device driver with such capability. Our proposal to do
-> > this in V4L2 framework is to have two device nodes, one as primary node
-> > for still/video capture and one for preview.
+> Here's a bunch of patches (on top of staging/v2.6.37) that remove the
+> module_name argument to the v4l2_i2c_new_subdev* functions.
+
+Something seems to be wrong with them. On arch/arm/mach-mx3/mach-pcm037.c 
+without your patches both mt9mt031 and mt9v022 drivers attempt to load 
+(only one sensor attached, so, the second one fails probing, but stays 
+loaded, of course), with your patches only one driver loads. As I told 
+you, I'm leaving early tomorrow, so, unfortunately I cannot investigate 
+this further now, please, see if you find the problem, I'll be back on 
+Monday 04.10.
+
+Thanks
+Guennadi
+
 > 
-> If the device supports multiple simultaneous video streams, multiple video 
-> nodes is the way to go.
+> The module name is used by those functions to load the module corresponding
+> to the I2C sub-device being instanciated. As the I2C modules now support
+> modalias (and have been for quite some time), the module name isn't necessary
+> anymore.
 > 
-> > The primary still/video capture device node is used for device
-> > configuration which can be compatible with open sourced applications. This
-> > will ensure the normal V4L2 application can run without code modification.
-> > Device node for preview will only accept preview buffer related
-> > operations. Buffer synchronization for still/video capture and preview
-> > will be done internally in the driver.
+> The first patch adds the ability to load I2C modules based on modaliases when
+> the module name passed to the v4l_i2c_new_subdev* functions is NULL. This is
+> never the case with the in-tree drivers, so there shouldn't be any regression.
 > 
-> I suspect that the preview device node will need to support more than the 
-> buffer-related operations, as you probably want applications to configure the 
-> preview video stream format and size.
+> The 14 next patches modify all drivers that call those functions to pass a NULL
+> module name. Patch 2/16 touches all the drivers that hardcode the module name
+> directly when calling the function, and the remaining 13 patches do the same
+> for driver that fetch the module name from platform data or from other sources
+> (such as static tables). I've checked all I2C modules used by the drivers
+> modified in those patches to make sure they have a proper module devices table.
 > 
-> > This is our initial idea about the dual stream support in V4L2. Your
-> > comments will be appreciated!
+> The last patch finally removes the module_name argument, as all callers now
+> pass a NULL value.
 > 
-> You should use the media controller framework. This will allow applications to 
-> configure all sizes in the pipeline, including the frame sizes for the two 
-> video nodes.
+> The code has obviously not been tested, as I lack the necessary hardware. I've
+> tested the V4L2 core changes with the OMAP3 ISP driver. All x86 drivers have
+> been compile-tested.
+> 
+> Laurent Pinchart (16):
+>   v4l: Load I2C modules based on modalias
+>   v4l: Remove hardcoded module names passed to v4l2_i2c_new_subdev*
+>   go7007: Add MODULE_DEVICE_TABLE to the go7007 I2C modules
+>   go7007: Fix the TW2804 I2C type name
+>   go7007: Don't use module names to load I2C modules
+>   zoran: Don't use module names to load I2C modules
+>   pvrusb2: Don't use module names to load I2C modules
+>   sh_vou: Don't use module names to load I2C modules
+>   radio-si4713: Don't use module names to load I2C modules
+>   soc_camera: Don't use module names to load I2C modules
+>   vpfe_capture: Don't use module names to load I2C modules
+>   vpif_display: Don't use module names to load I2C modules
+>   vpif_capture: Don't use module names to load I2C modules
+>   ivtv: Don't use module names to load I2C modules
+>   cx18: Don't use module names to load I2C modules
+>   v4l: Remove module_name argument to the v4l2_i2c_new_subdev*
+>     functions
+> 
+>  arch/arm/mach-mx3/mach-pcm037.c               |    2 -
+>  arch/arm/mach-mx3/mx31moboard-marxbot.c       |    1 -
+>  arch/arm/mach-mx3/mx31moboard-smartbot.c      |    1 -
+>  arch/arm/mach-pxa/em-x270.c                   |    1 -
+>  arch/arm/mach-pxa/ezx.c                       |    2 -
+>  arch/arm/mach-pxa/mioa701.c                   |    1 -
+>  arch/arm/mach-pxa/pcm990-baseboard.c          |    2 -
+>  arch/sh/boards/mach-ap325rxa/setup.c          |    1 -
+>  arch/sh/boards/mach-ecovec24/setup.c          |    4 --
+>  arch/sh/boards/mach-kfr2r09/setup.c           |    1 -
+>  arch/sh/boards/mach-migor/setup.c             |    2 -
+>  arch/sh/boards/mach-se/7724/setup.c           |    1 -
+>  drivers/media/radio/radio-si4713.c            |    2 +-
+>  drivers/media/video/au0828/au0828-cards.c     |    4 +-
+>  drivers/media/video/bt8xx/bttv-cards.c        |   22 +++++-----
+>  drivers/media/video/cafe_ccic.c               |    2 +-
+>  drivers/media/video/cx18/cx18-i2c.c           |   22 ++---------
+>  drivers/media/video/cx231xx/cx231xx-cards.c   |    4 +-
+>  drivers/media/video/cx23885/cx23885-cards.c   |    2 +-
+>  drivers/media/video/cx23885/cx23885-video.c   |    4 +-
+>  drivers/media/video/cx88/cx88-cards.c         |    9 ++--
+>  drivers/media/video/cx88/cx88-video.c         |    7 +--
+>  drivers/media/video/davinci/vpfe_capture.c    |    1 -
+>  drivers/media/video/davinci/vpif_capture.c    |    1 -
+>  drivers/media/video/davinci/vpif_display.c    |    2 +-
+>  drivers/media/video/em28xx/em28xx-cards.c     |   18 ++++----
+>  drivers/media/video/fsl-viu.c                 |    2 +-
+>  drivers/media/video/ivtv/ivtv-i2c.c           |   50 +++++--------------------
+>  drivers/media/video/mxb.c                     |   12 +++---
+>  drivers/media/video/pvrusb2/pvrusb2-hdw.c     |   13 +-----
+>  drivers/media/video/saa7134/saa7134-cards.c   |    8 ++--
+>  drivers/media/video/saa7134/saa7134-core.c    |    4 +-
+>  drivers/media/video/sh_vou.c                  |    2 +-
+>  drivers/media/video/soc_camera.c              |    2 +-
+>  drivers/media/video/usbvision/usbvision-i2c.c |    6 +-
+>  drivers/media/video/v4l2-common.c             |   13 ++----
+>  drivers/media/video/vino.c                    |    4 +-
+>  drivers/media/video/zoran/zoran.h             |    2 -
+>  drivers/media/video/zoran/zoran_card.c        |   24 +----------
+>  drivers/staging/go7007/go7007-driver.c        |   43 +--------------------
+>  drivers/staging/go7007/go7007-usb.c           |    2 +-
+>  drivers/staging/go7007/wis-ov7640.c           |    1 +
+>  drivers/staging/go7007/wis-saa7113.c          |    1 +
+>  drivers/staging/go7007/wis-saa7115.c          |    1 +
+>  drivers/staging/go7007/wis-sony-tuner.c       |    1 +
+>  drivers/staging/go7007/wis-tw2804.c           |    1 +
+>  drivers/staging/go7007/wis-tw9903.c           |    1 +
+>  drivers/staging/go7007/wis-uda1342.c          |    1 +
+>  drivers/staging/tm6000/tm6000-cards.c         |    4 +-
+>  include/media/sh_vou.h                        |    1 -
+>  include/media/v4l2-common.h                   |   16 +++-----
+>  51 files changed, 100 insertions(+), 234 deletions(-)
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+> 
 
-Hi, Wen,
-
-You have hit upon an old and rather vexing problem. It affects many 
-devices, not just your prospective one. The problem is that still mode is 
-supported in Linux for a lot of cameras through userspace tools, namely 
-libgphoto2 which uses libusb to interface with the device. But if the same 
-device can also do video streaming then the streaming has to be supported 
-through a kernel module. Thus until now it is not possible to do both of 
-these smoothly and simultaneously.
-
-As I have written both the kernel support and the libgphoto2 support for 
-several dual-mode cameras, I am looking into the related problems, along 
-with Hans de Goede. But right now I am dealing instead with a rather 
-severe illness of a family member. So there is not much coding going on 
-over here.
-
-What I think that both of us (Hans and I) agree on is that the kernel 
-modules for the affected devices have to be rewritten in order to allow 
-the opening and closing of the different modes of the devices, and 
-(perhaps) the userspace support has to take that into account as well. 
-There might also have to be some additions to libv4l2 in order to make it 
-"aware" of such devices. We have not gotten very far with this project. 
-Hans is quite busy, and so am I (see above).
-
-In spite of my present preoccupation, however, I would be very curious 
-about any details of your envisioned camera. For example:
-
-Does it use the isochronous mode for streaming and the bulk mode for 
-stills? Or not?
-
-In still mode, is it some kind of standard device, such as Mass Storage or 
-PTP? Or will it use a proprietary or device-specific protocol? If so, 
-it will clearly require a libgphoto2 driver.
-
-In video mode, will it use a proprietary or device-specific protocol, or 
-will it be a standard USB video class device? If it is proprietary, then 
-it will presumably need its own module, and if standard then in any 
-event we have to figure out how to make the two different modes to 
-coexist.
-
-If either of the still mode or the streaming video mode will use a 
-proprietary protocol and especially if some unknown data compression 
-algorithm is going to be in use, then clearly it is possible to get the 
-support going much earlier if information is provided.
-
-Hoping that this will help you and thanking you for any additional 
-information about the new camera.
-
-Theodore Kilgore
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
