@@ -1,85 +1,144 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:34745 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752566Ab0IUF4G (ORCPT
+Received: from d1.icnet.pl ([212.160.220.21]:33306 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751391Ab0IXLhA convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Sep 2010 01:56:06 -0400
-Received: by ewy23 with SMTP id 23so1816130ewy.19
-        for <linux-media@vger.kernel.org>; Mon, 20 Sep 2010 22:56:04 -0700 (PDT)
-Date: Tue, 21 Sep 2010 15:56:26 -0400
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
+	Fri, 24 Sep 2010 07:37:00 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v2 3/6] SoC Camera: add driver for OV6650 sensor
+Date: Fri, 24 Sep 2010 13:36:33 +0200
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Felipe Sanches <juca@members.fsf.org>,
-	Stefan Ringel <stefan.ringel@arcor.de>,
-	Bee Hock Goh <beehock@gmail.com>,
-	Luis Henrique Fagundes <lhfagundes@hacklab.com.br>
-Subject: Re: [PATCH v2] tm6000+audio
-Message-ID: <20100921155626.65a31f29@glory.local>
-In-Reply-To: <4C9820E3.3050508@redhat.com>
-References: <20100622180521.614eb85d@glory.loctelecom.ru>
-	<4C20D91F.500@redhat.com>
-	<4C212A90.7070707@arcor.de>
-	<4C213257.6060101@redhat.com>
-	<4C222561.4040605@arcor.de>
-	<4C224753.2090109@redhat.com>
-	<4C225A5C.7050103@arcor.de>
-	<20100716161623.2f3314df@glory.loctelecom.ru>
-	<4C4C4DCA.1050505@redhat.com>
-	<20100728113158.0f1495c0@glory.loctelecom.ru>
-	<4C4FD659.9050309@arcor.de>
-	<20100729140936.5bddd275@glory.loctelecom.ru>
-	<4C51ADB5.7010906@redhat.com>
-	<20100731122428.4ee569b4@glory.loctelecom.ru>
-	<4C53A837.3070700@redhat.com>
-	<20100825043746.225a352a@glory.local>
-	<4C7543DA.1070307@redhat.com>
-	<AANLkTimr3=1QHzX3BzUVyo6uqLdCKt8SS9sDtHfZtHGZ@mail.gmail.com>
-	<4C767302.7070506@redhat.com>
-	<20100920160715.7594ee2e@glory.local>
-	<4C9820E3.3050508@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	"Discussion of the Amstrad E3 emailer hardware/software"
+	<e3-hacking@earth.li>
+References: <201009110317.54899.jkrzyszt@tis.icnet.pl> <201009240045.24669.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1009240811280.14966@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1009240811280.14966@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <201009241336.34277.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro
+Friday 24 September 2010 08:52:32 Guennadi Liakhovetski napisał(a):
+> On Fri, 24 Sep 2010, Janusz Krzysztofik wrote:
+> > Thursday 23 September 2010 18:06:15 Guennadi Liakhovetski napisał(a):
+> > > On Wed, 22 Sep 2010, Janusz Krzysztofik wrote:
+> > > > Wednesday 22 September 2010 11:12:46 Guennadi Liakhovetski napisaÅ
+(a):
+> > > > > On Sat, 11 Sep 2010, Janusz Krzysztofik wrote:
 
-> Hi Dmitri,
-> Em 20-09-2010 17:07, Dmitri Belimov escreveu:
-> > Hi 
-> > 
-> > I rework my last patch for audio and now audio works well. This
-> > patch can be submited to GIT tree Quality of audio now is good for
-> > SECAM-DK. For other standard I set some value from datasheet need
-> > some tests.
-> > 
-> > 1. Fix pcm buffer overflow
-> > 2. Rework pcm buffer fill method
-> > 3. Swap bytes in audio stream
-> > 4. Change some registers value for TM6010
-> > 5. Change pcm buffer size
-> 
-> One small compilation fix for your patch:
-> 
-> diff --git a/drivers/staging/tm6000/tm6000-stds.c
-> b/drivers/staging/tm6000/tm6000-stds.c index 6bf4a73..fe22f42 100644
-> --- a/drivers/staging/tm6000/tm6000-stds.c
-> +++ b/drivers/staging/tm6000/tm6000-stds.c
-> @@ -32,7 +32,7 @@ struct tm6000_std_tv_settings {
->  	v4l2_std_id id;
->  	struct tm6000_reg_settings sif[12];
->  	struct tm6000_reg_settings nosif[12];
-> -	struct tm6000_reg_settings common[25];
-> +	struct tm6000_reg_settings common[26];
->  };
->  
+...
+> > > whereas COMA and COML select
+> > > whether to scale it to a CIF or to a QCIF output.
+> >
+> > I think the answer is: not exactly. AFAICT, the COMA_QCIF bit selects
+> > whether to scale it down by 2 (QCIF selection) or not (CIF selection).
+>
+> Ah! Ok, that it would be better to select different names for those bits.
 
-Ooops :)
+I was trying to keep all names more or less consistent with the wording used 
+in the sensor documentation (which doesn't follow the v4l2 specification 
+unfortunately :). In this case we have:
 
-> I'll do some tests on it.
+COMA  Common Control A
+	...
+	Bit[5]: Output format – resolution
+		0: CIF (352 x 288)
+		1: QCIF (176 x 144)
 
-Ok
+So I could rename it to something like COMA_OUTFMT or COMA_RESOLUTION. Which 
+one sounds better for you?
 
-With my best regards, Dmitry.
+...
+> > > But I think your driver might have a problem with its cropping /
+> > > scaling handling. Let's see if I understand it right:
+> > >
+> > > 1. as cropcap you currently return QCIF or CIF, depending on the last
+> > > S_FMT,
+> >
+> > Yes.
+> >
+> > BTW, my S_FMT always calls ov6650_reset(), which resets the current crop
+> > to defaults.
+>
+> Oh, does it mean all registers are reset to their defaults? That'd be not
+> good - no v4l(2) ioctl, AFAIK, should affect parameters, not directly
+> related to it. Even closing and reopening the video device node shouldn't
+> reset values. So, maybe you should drop that reset completely.
+
+Shouldn't I rather move it over into the ov6650_video_probe()?
+
+...
+> > > 2. in your s_fmt you accept only two output sizes: CIF or QCIF, that's
+> > > ok, if that's all you can configure with your driver.
+> >
+> > Not any longer :). I'm able to configure using current crop geometry
+> > only, either unscaled or scaled down by 2. I'm not able to configure
+> > neither exact CIF nor QCIF if my current crop window doesn't match,
+> > unless I'm allowed to change the crop from here.
+>
+> Hm, but in your s_fmt you do:
+>
+> +	switch (mf->width) {
+> +	case W_QCIF:
+> +		dev_dbg(&client->dev, "resolution QCIF\n");
+> +		priv->qcif = 1;
+> +		coma_set |= COMA_QCIF;
+> +		priv->pclk_max /= 2;
+> +		break;
+> +	case W_CIF:
+> +		dev_dbg(&client->dev, "resolution CIF\n");
+> +		priv->qcif = 0;
+> +		coma_mask |= COMA_QCIF;
+> +		break;
+> +	default:
+> +		dev_err(&client->dev, "unspported resolution!\n");
+> +		return -EINVAL;
+> +	}
+>
+> So, you accept only CIF or QCIF as your output window. Or do you mean a v3
+> by your "not any longer?" 
+
+Exactly!
+
+> And yes, you are allowed to change your input 
+> sensor window, if that lets you configure your output format more
+> precisely. And v.v. The rule is - the most recent command wins.
+
+I see.
+
+...
+> No, there's nothing wrong with your sensor:) So, what I would do is:
+>
+> 1. in your struct ov6650:
+>
+> +	struct v4l2_rect	rect;		/* sensor cropping window */
+> +	bool			half_scale;	/* scale down output by 2 */
+>
+> 2. in s_crop verify left, width, top, height, program them into the chip
+> and store in ->rect
+>
+> 3. in g_crop just return values from ->rect
+>
+> 4. in s_fmt you have to select an input rectangle, that would allow you to
+> possibly exactly configure the requested output format. Say, if you have a
+> 320x240 cropping configured and you get an s_fmt request for 120x90. You
+> can either set your input rectangle to 240x180 and scale it down by 2, or
+> set the rectangle directly to 120x90. Obviously, it's better to use
+> 240x180 and scale down, because that's closer to the current cropping of
+> 320x240. So, in s_fmt you select a new input rectangle _closest_ to the
+> currently configured one, that would allow you to configure the correct
+> output format. Then you set your ->rect with the new values and your
+> ->half_scale
+>
+> 5. in g_fmt you return ->rect scaled with ->half_scale
+>
+> Makes sense?
+
+Absolutely. Hope to submit v3 soon.
+
+Thanks,
+Janusz
