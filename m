@@ -1,60 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:5514 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751568Ab0IHOKd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Sep 2010 10:10:33 -0400
-Date: Wed, 8 Sep 2010 10:10:24 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/5] rc-code: merge and rename ir-core
-Message-ID: <20100908141024.GA22323@redhat.com>
-References: <20100907214943.30935.29895.stgit@localhost.localdomain>
- <20100907215143.30935.71857.stgit@localhost.localdomain>
- <4C8792B2.2010809@infradead.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <4C8792B2.2010809@infradead.org>
+Received: from perceval.irobotique.be ([92.243.18.41]:60404 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932317Ab0IXOOm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Sep 2010 10:14:42 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Jean Delvare <khali@linux-fr.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pete Eberlein <pete@sensoray.com>,
+	Mike Isely <isely@pobox.com>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Vaibhav Hiremath <hvaibhav@ti.com>,
+	Muralidharan Karicheri <mkaricheri@gmail.com>
+Subject: [PATCH 11/16] vpfe_capture: Don't use module names to load I2C modules
+Date: Fri, 24 Sep 2010 16:14:09 +0200
+Message-Id: <1285337654-5044-12-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1285337654-5044-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1285337654-5044-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-On Wed, Sep 08, 2010 at 10:42:10AM -0300, Mauro Carvalho Chehab wrote:
-> Em 07-09-2010 18:51, David Härdeman escreveu:
-> > This patch merges the files which makes up ir-core and renames the
-> > resulting module to rc-core. IMHO this makes it much easier to hack
-> > on the core module since all code is in one file.
-> > 
-> > This also allows some simplification of ir-core-priv.h as fewer internal
-> > functions need to be exposed.
-> 
-> I'm not sure about this patch. Big files tend to be harder to maintain,
-> as it takes more time to find the right functions inside it. Also, IMO, 
-> it makes sense to keep the raw-event code on a separate file.
+With the v4l2_i2c_new_subdev* functions now supporting loading modules
+based on modaliases, don't use the module names hardcoded in platform
+data by passing a NULL module name to those functions.
 
-There's definitely a balance to be struck between file size and file
-count. Having all the relevant code in one file definitely has its
-advantage in that its easier to jump around from function to function and
-trace code paths taken, but I can see the argument for isolating the raw
-event handling code a bit too, especially if its going to be further
-expanded, which I believe is likely the case. So I guess I'm on the
-fence here. :)
+All corresponding I2C modules have been checked, and all of them include
+a module aliases table with names corresponding to what the vpfe_capture
+platform data uses.
 
-> Anyway, if we apply this patch right now, it will cause merge conflicts with
-> the input tree, due to the get/setkeycodebig patches, and with some other
-> patches that are pending merge/review. The better is to apply such patch
-> just after the release of 2.6.37-rc1, after having all those conflicts
-> solved.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/davinci/vpfe_capture.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-The imon patch that moves mouse/panel/knob input to its own input device
-should be possible to take in advance of everything else, more or less,
-though I need to finish actually testing it out (and should probably make
-some further imon fixes for issues listed in a kernel.org bugzilla, the
-number of which escapes me at the moment).
-
+diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
+index b391125..5d90fb0 100644
+--- a/drivers/media/video/davinci/vpfe_capture.c
++++ b/drivers/media/video/davinci/vpfe_capture.c
+@@ -1986,7 +1986,7 @@ static __init int vpfe_probe(struct platform_device *pdev)
+ 		vpfe_dev->sd[i] =
+ 			v4l2_i2c_new_subdev_board(&vpfe_dev->v4l2_dev,
+ 						  i2c_adap,
+-						  sdinfo->name,
++						  NULL,
+ 						  &sdinfo->board_info,
+ 						  NULL);
+ 		if (vpfe_dev->sd[i]) {
 -- 
-Jarod Wilson
-jarod@redhat.com
+1.7.2.2
 
