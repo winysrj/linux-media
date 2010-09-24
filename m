@@ -1,99 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:54188 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752573Ab0ISM3N (ORCPT
+Received: from d1.icnet.pl ([212.160.220.21]:52393 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752690Ab0IXLJL convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Sep 2010 08:29:13 -0400
-Received: by bwz11 with SMTP id 11so3730621bwz.19
-        for <linux-media@vger.kernel.org>; Sun, 19 Sep 2010 05:29:11 -0700 (PDT)
+	Fri, 24 Sep 2010 07:09:11 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v2 5/6] OMAP1: Amstrad Delta: add support for camera
+Date: Fri, 24 Sep 2010 13:08:38 +0200
+Cc: Tony Lindgren <tony@atomide.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Discussion of the Amstrad E3 emailer hardware/software"
+	<e3-hacking@earth.li>
+References: <201009110317.54899.jkrzyszt@tis.icnet.pl> <20100924004936.GZ4211@atomide.com> <Pine.LNX.4.64.1009240854470.14966@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1009240854470.14966@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <4C954C51.8080801@iki.fi>
-References: <AANLkTinTvXKrWKqukCj9MWw0Me3K5y2yDHMUP4eMpaN3@mail.gmail.com>
-	<4C954C51.8080801@iki.fi>
-Date: Sun, 19 Sep 2010 14:29:11 +0200
-Message-ID: <AANLkTi=+XOMAPgQz46egRCm0eHATSBo3vO5EjKJ_SrA4@mail.gmail.com>
-Subject: Re: dvb-c usb device
-From: Markus Rechberger <mrechberger@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Bert Haverkamp <bert@bertenselena.net>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Disposition: inline
+Message-Id: <201009241308.39948.jkrzyszt@tis.icnet.pl>
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, Sep 19, 2010 at 1:33 AM, Antti Palosaari <crope@iki.fi> wrote:
-> On 09/18/2010 09:23 PM, Bert Haverkamp wrote:
->>
->> Every couple of months I scan this mailing list for the keywords usb
->> and dvb-c, hoping that some new device has shown up that is supported
->
-> Currently there is Anysee E30C Plus and Technotrend CT-3650. About
-> Technotrend I am not 100% sure, but I have seen patch for adding DVB-C
-> support for that device. There is many DRX-K devices, but no drivers yet.
-> Also there is TDA10024 based "Reddo" available in Finland, but I haven't
-> looked it. Thus only reliable one is Anysee.
->
+Friday 24 September 2010 08:57:06 Guennadi Liakhovetski napisał(a):
+> On Thu, 23 Sep 2010, Tony Lindgren wrote:
+> > * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [100923 16:52]:
+> > > Friday 24 September 2010 01:26:17 Tony Lindgren napisał(a):
+> > > > * Tony Lindgren <tony@atomide.com> [100923 16:06]:
+> > > > > * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [100910 18:20]:
+> > > > > > This patch adds configuration data and initialization code
+> > > > > > required for camera support to the Amstrad Delta board.
+> > > > > >
+> > > > > > Three devices are declared: SoC camera, OMAP1 camera interface
+> > > > > > and OV6650 sensor.
+> > > > > >
+> > > > > > Default 12MHz clock has been selected for driving the sensor.
+> > > > > > Pixel clock has been limited to get reasonable frame rates, not
+> > > > > > exceeding the board capabilities. Since both devices (interface
+> > > > > > and sensor) support both pixel clock polarities, decision on
+> > > > > > polarity selection has been left to drivers. Interface GPIO line
+> > > > > > has been found not functional, thus not configured.
+> > > > > >
+> > > > > > Created and tested against linux-2.6.36-rc3.
+> > > > > >
+> > > > > > Works on top of previous patches from the series, at least 1/6,
+> > > > > > 2/6 and 3/6.
+> > > > >
+> > > > > Queuing these last two patches of the series (5/6 and 6/6) for the
+> > > > > upcoming merge window.
+> > > >
+> > > > BTW, these still depend on updated 2/6 to make compile happy.
+> > >
+> > > Not so simple: still depends on struct omap1_cam_platform_data
+> > > definition from <media/omap1_camera.h>, included from <mach/camera.h>.
+> > > Are you ready to accept another temporary workaround?
+> >
+> > Heh I guess so. Or do you want to queue everything via linux-media?
 
-the biggest problem with Linux and DVB-C is getting HDTV work.
+AFAIK we can expect my arch/arm/mach-omap1/devices.c changes already resulting 
+in a confilct with some ASoC OMAP related changes going via the sound tree, 
+so the 2/6 should be better queued via the OMAP tree for Tony to keep control 
+over it, with the rest of the seriers going either way.
 
-1. Nearly no distribution comes with codecs (and those who come are
-doing it in a not legal way - there are some)
-2. Compiling fails for the masses (we've got exactly 3 opensource
-requests within 1 year).
-3. graphiccard drivers are a mess (NVidia is doing the best job in
-getting their graphiccards work).
+> Yes, we often have to select via which tree to go, then the maintainer of
+> the other tree just acks the patches. Sometimes we push them via different
+> trees and try to enforce a specific merge order...
 
-We've been in contact with Trident for more than a year now they even
-visited our customers
-in order to help to improve the DVB-C quality of their solution.
+What about
 
-The main problem lies with earning revenue.
-If the chip manufacturer releases opensource drivers, all the product
-manufacturers will release the same which basically
-means there's no advantage for anyone anymore and this finally will
-lead to a pricefighting situation.
-The price will go down enough that it doesn't make any sense anymore
-to sell the product - definitely go down
-enough to not spend any money in R&D for software.
-What can a product manufacturer do to improve this? nothing.
-And ultimately it will go back to the chip manufacturer because it's
-not worth for several companies to sell those products.
++ void omap1_set_camera_info(struct omap1_cam_platform_data *);
 
-We can just pick an example, Terratec. They used to offer Linux
-drivers. Finally they laid off all their software engineers.
-There's a company starting with P. which is now with a company which
-starts with H. offering 500 EUR/half year for Linux
-drivers.
+put temporarily into to the arch/arm/mach-omap1/board-ams-delta.c instead of 
+including <mach/camera.h>, that could be replaced with <media/omap1_camera.h> 
+then? May sound better than redefining struct omap1_cam_platform_data there, 
+and should be safe to push everything except 2/6 via the media tree.
 
-Since it's possible to drive those ICs from userspace the failure lies
-in the structure of this entire linux multimedia project,
-not being flexible enough for product manufacturers that's why we
-redeveloped everything and see it works.
-Those people who are into Linux use to scream loud but use to forget
-about the average people who are relevant for
-Manufacturers.
+Then, replace the above hack back with #include <mach/camera.h> as a fix after 
+both are merged.
 
-I would recommend a situation where mainly the bridge datatransfer is
-in kernelspace configurable from userspace (we also
-have a kernel opensource bridge driver especially for embedded systems).
-The advantage of this is
-
-a. tuner configuration can be added in a flexible way from userspace
-at any time, providing backward compatibility to
-older kernels
-b. compiling drivers is no option for normal endusers.
-c. improved stability, since all the complex code is in userspace, the
-tuner/demod/etc configuration does not depend
-on speed either.
-d. bigger userbase, better testing since everyone at any time should
-be able to use the latest chipconfiguration package
-from userspace.
-e. manufacturers would have an easier possibility to provide support
-for their devices.
-
-sure this way is new but that's the way we went during the last 2
-years and we pretty much succeeded in the linux
-area with that. After all it's only about providing good multimedia
-support to the enduser.
-
-Best Regards,
-Markus
+Thanks,
+Janusz
