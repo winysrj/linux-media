@@ -1,67 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:59537 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753512Ab0IST5N (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:60392 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932298Ab0IXOOh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Sep 2010 15:57:13 -0400
-Subject: Re: RFC: BKL, locking and ioctls
-From: Andy Walls <awalls@md.metrocast.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
-In-Reply-To: <201009192138.08412.hverkuil@xs4all.nl>
-References: <fm127xqs7xbmiabppyr1ifai.1284910330767@email.android.com>
-	 <1284921482.2079.57.camel@morgan.silverblock.net>
-	 <4C96600E.8090905@redhat.com>  <201009192138.08412.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 19 Sep 2010 15:57:00 -0400
-Message-ID: <1284926220.2079.105.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 24 Sep 2010 10:14:37 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Jean Delvare <khali@linux-fr.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pete Eberlein <pete@sensoray.com>,
+	Mike Isely <isely@pobox.com>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Vaibhav Hiremath <hvaibhav@ti.com>,
+	Muralidharan Karicheri <mkaricheri@gmail.com>
+Subject: [PATCH 01/16] v4l: Load I2C modules based on modalias
+Date: Fri, 24 Sep 2010 16:13:59 +0200
+Message-Id: <1285337654-5044-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1285337654-5044-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1285337654-5044-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, 2010-09-19 at 21:38 +0200, Hans Verkuil wrote:
-> On Sunday, September 19, 2010 21:10:06 Mauro Carvalho Chehab wrote:
-> > Em 19-09-2010 15:38, Andy Walls escreveu:
-> > > On Sun, 2010-09-19 at 18:10 +0200, Hans Verkuil wrote:
-> > >> On Sunday, September 19, 2010 17:38:18 Andy Walls wrote:
+When creating a new sub-device, The V4L I2C subdev API has historically
+required drivers to pass the name of the module that implements support
+for the I2C device.
 
-> Requirements I can think of:
-> 
-> 1) The basic capture and output streaming (either read/write or streaming I/O) must
-> perform well. There is no need to go to extreme measures here, since the typical
-> control flow is to prepare a buffer, setup the DMA and then wait for the DMA to
-> finish. So this is not terribly time sensitive and it is perfectly OK to have to
-> wait (within reason) for another ioctl from another thread to finish first.
+I2C modules can be loaded based on modaliases instead of the module
+name. As the I2C device type name is already available to the
+v4l2_i2c_new_subdev* functions, make the module name argument optional
+and create a modalias based on the type name when no module name is
+provided.
 
-I'll add a data point to this one.  A sleep in read() can noticeably
-affect application performance.  Last time I had cx18 use a mutex in
-read(), live playback performance was really bad.  The read() call would
-sleep for around 10 ms - not good at normal frame rates.  It was a
-highly(?) contended mutex for the buffer queue between DMA and the
-read() call - bad idea.
+All in-tree drivers call those functions with a non-NULL module name
+argument, this change is thus harmless.
 
-According to conversations on the ksummit2010 mailing list, the 10 ms
-sleep may have been due to the default 100 HZ tick and other reasons.
-Patches from the RT tree may be integrated soon that make mutexes
-(mutices?) much better performers.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/v4l2-common.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Regards,
-Andy
-
-> 2) While capturing/displaying other threads must be able to control the device at the
-> same time and gather status information. This also means that such a thread should
-> not be blocked from controlling the device because a dqbuf ioctl happens to be waiting
-> for the DMA to finish in the main thread.
-> 
-> 3) We must also make sure that the mem-to-mem drivers keep working. That might be a
-> special case that will become more important in the future. These are the only device
-> nodes that can do capture and output streaming at the same time.
-> 
-> Regards,
-> 
-> 	Hans
-
-
+diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
+index 3ce7c64..120b4ac 100644
+--- a/drivers/media/video/v4l2-common.c
++++ b/drivers/media/video/v4l2-common.c
+@@ -378,6 +378,8 @@ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
+ 
+ 	if (module_name)
+ 		request_module(module_name);
++	else
++		request_module(I2C_MODULE_PREFIX "%s", info->type);
+ 
+ 	/* Create the i2c client */
+ 	if (info->addr == 0 && probe_addrs)
+-- 
+1.7.2.2
 
