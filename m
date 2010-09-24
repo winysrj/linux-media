@@ -1,57 +1,125 @@
-Return-path: <mchehab@localhost.localdomain>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:45451 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754168Ab0IMCdS (ORCPT
+Return-path: <mchehab@pedra>
+Received: from perceval.irobotique.be ([92.243.18.41]:60405 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932303Ab0IXOOi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Sep 2010 22:33:18 -0400
-Received: by gxk23 with SMTP id 23so1872663gxk.19
-        for <linux-media@vger.kernel.org>; Sun, 12 Sep 2010 19:33:17 -0700 (PDT)
-MIME-Version: 1.0
-Date: Mon, 13 Sep 2010 10:33:17 +0800
-Message-ID: <AANLkTinCGA0FdV-p3JufhpOZCNu8XN0=7nDSCbwXpg1Q@mail.gmail.com>
-Subject: [PATCH] V4L/DVB: gspca - sonixj: Add webcam 0c45:612b
-From: Alexander Goncharov <alexzandersss@gmail.com>
-To: moinejf@free.fr
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com
-Content-Type: multipart/mixed; boundary=0016e68fc6113ddab404901aeb85
+	Fri, 24 Sep 2010 10:14:38 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Jean Delvare <khali@linux-fr.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pete Eberlein <pete@sensoray.com>,
+	Mike Isely <isely@pobox.com>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Vaibhav Hiremath <hvaibhav@ti.com>,
+	Muralidharan Karicheri <mkaricheri@gmail.com>
+Subject: [PATCH 03/16] go7007: Add MODULE_DEVICE_TABLE to the go7007 I2C modules
+Date: Fri, 24 Sep 2010 16:14:01 +0200
+Message-Id: <1285337654-5044-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1285337654-5044-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1285337654-5044-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@localhost.localdomain>
+Sender: <mchehab@pedra>
 
---0016e68fc6113ddab404901aeb85
-Content-Type: text/plain; charset=UTF-8
+The device table is required to load modules based on modaliases.
 
-Hi!
-Add support webcam speedlink reflect2.
-Patch attached
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/staging/go7007/wis-ov7640.c     |    1 +
+ drivers/staging/go7007/wis-saa7113.c    |    1 +
+ drivers/staging/go7007/wis-saa7115.c    |    1 +
+ drivers/staging/go7007/wis-sony-tuner.c |    1 +
+ drivers/staging/go7007/wis-tw2804.c     |    1 +
+ drivers/staging/go7007/wis-tw9903.c     |    1 +
+ drivers/staging/go7007/wis-uda1342.c    |    1 +
+ 7 files changed, 7 insertions(+), 0 deletions(-)
 
-Signed-off-by: Alexander Goncharov <alexzandersss@gmail.com>
+diff --git a/drivers/staging/go7007/wis-ov7640.c b/drivers/staging/go7007/wis-ov7640.c
+index 4f0cbdd..6bc9470 100644
+--- a/drivers/staging/go7007/wis-ov7640.c
++++ b/drivers/staging/go7007/wis-ov7640.c
+@@ -81,6 +81,7 @@ static const struct i2c_device_id wis_ov7640_id[] = {
+ 	{ "wis_ov7640", 0 },
+ 	{ }
+ };
++MODULE_DEVICE_TABLE(i2c, wis_ov7640_id);
+ 
+ static struct i2c_driver wis_ov7640_driver = {
+ 	.driver = {
+diff --git a/drivers/staging/go7007/wis-saa7113.c b/drivers/staging/go7007/wis-saa7113.c
+index 72f5c1f..05e0e10 100644
+--- a/drivers/staging/go7007/wis-saa7113.c
++++ b/drivers/staging/go7007/wis-saa7113.c
+@@ -308,6 +308,7 @@ static const struct i2c_device_id wis_saa7113_id[] = {
+ 	{ "wis_saa7113", 0 },
+ 	{ }
+ };
++MODULE_DEVICE_TABLE(i2c, wis_saa7113_id);
+ 
+ static struct i2c_driver wis_saa7113_driver = {
+ 	.driver = {
+diff --git a/drivers/staging/go7007/wis-saa7115.c b/drivers/staging/go7007/wis-saa7115.c
+index cd950b6..46cff59 100644
+--- a/drivers/staging/go7007/wis-saa7115.c
++++ b/drivers/staging/go7007/wis-saa7115.c
+@@ -441,6 +441,7 @@ static const struct i2c_device_id wis_saa7115_id[] = {
+ 	{ "wis_saa7115", 0 },
+ 	{ }
+ };
++MODULE_DEVICE_TABLE(i2c, wis_saa7115_id);
+ 
+ static struct i2c_driver wis_saa7115_driver = {
+ 	.driver = {
+diff --git a/drivers/staging/go7007/wis-sony-tuner.c b/drivers/staging/go7007/wis-sony-tuner.c
+index 981c9b3..8f1b7d4 100644
+--- a/drivers/staging/go7007/wis-sony-tuner.c
++++ b/drivers/staging/go7007/wis-sony-tuner.c
+@@ -692,6 +692,7 @@ static const struct i2c_device_id wis_sony_tuner_id[] = {
+ 	{ "wis_sony_tuner", 0 },
+ 	{ }
+ };
++MODULE_DEVICE_TABLE(i2c, wis_sony_tuner_id);
+ 
+ static struct i2c_driver wis_sony_tuner_driver = {
+ 	.driver = {
+diff --git a/drivers/staging/go7007/wis-tw2804.c b/drivers/staging/go7007/wis-tw2804.c
+index ee28a99..5b218c5 100644
+--- a/drivers/staging/go7007/wis-tw2804.c
++++ b/drivers/staging/go7007/wis-tw2804.c
+@@ -331,6 +331,7 @@ static const struct i2c_device_id wis_tw2804_id[] = {
+ 	{ "wis_tw2804", 0 },
+ 	{ }
+ };
++MODULE_DEVICE_TABLE(i2c, wis_tw2804_id);
+ 
+ static struct i2c_driver wis_tw2804_driver = {
+ 	.driver = {
+diff --git a/drivers/staging/go7007/wis-tw9903.c b/drivers/staging/go7007/wis-tw9903.c
+index 80d4726..9230f4a 100644
+--- a/drivers/staging/go7007/wis-tw9903.c
++++ b/drivers/staging/go7007/wis-tw9903.c
+@@ -313,6 +313,7 @@ static const struct i2c_device_id wis_tw9903_id[] = {
+ 	{ "wis_tw9903", 0 },
+ 	{ }
+ };
++MODULE_DEVICE_TABLE(i2c, wis_tw9903_id);
+ 
+ static struct i2c_driver wis_tw9903_driver = {
+ 	.driver = {
+diff --git a/drivers/staging/go7007/wis-uda1342.c b/drivers/staging/go7007/wis-uda1342.c
+index 5c4eb49..0127be2 100644
+--- a/drivers/staging/go7007/wis-uda1342.c
++++ b/drivers/staging/go7007/wis-uda1342.c
+@@ -86,6 +86,7 @@ static const struct i2c_device_id wis_uda1342_id[] = {
+ 	{ "wis_uda1342", 0 },
+ 	{ }
+ };
++MODULE_DEVICE_TABLE(i2c, wis_uda1342_id);
+ 
+ static struct i2c_driver wis_uda1342_driver = {
+ 	.driver = {
+-- 
+1.7.2.2
 
---0016e68fc6113ddab404901aeb85
-Content-Type: text/x-patch; charset=US-ASCII; name="speedlink.patch"
-Content-Disposition: attachment; filename="speedlink.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_ge0pyx650
-
-LS0tIGEvRG9jdW1lbnRhdGlvbi92aWRlbzRsaW51eC9nc3BjYS50eHQgICAgICAgMjAxMC0wOS0x
-MyAwNzowNzozNy4wMDAwMDAwMDAgKzA4MDAKKysrIGIvRG9jdW1lbnRhdGlvbi92aWRlbzRsaW51
-eC9nc3BjYS50eHQgICAgICAgMjAxMC0wOS0xMyAxMDoyNToyMy4wMTc4NzUwMjggKzA4MDAKQEAg
-LTMwOCw2ICszMDgsNyBAQCBzb25peGogICAgICAgICAgICAgIDBjNDU6NjEwYyAgICAgICBQQyBD
-YW1lcmEgKFNOOUMxMjgpCiBzb25peGogICAgICAgICAwYzQ1OjYxMGUgICAgICAgUEMgQ2FtZXJh
-IChTTjlDMTI4KQogc29uaXhqICAgICAgICAgMGM0NTo2MTI4ICAgICAgIE1pY3JvZGlhL1Nvbml4
-IFNOUDMyNQogc29uaXhqICAgICAgICAgMGM0NTo2MTJhICAgICAgIEF2YW50IENhbWVyYQorc29u
-aXhqICAgICAgICAgMGM0NTo2MTJiICAgICAgIFNwZWVkLUxpbmsgUkVGTEVDVDIKIHNvbml4aiAg
-ICAgICAgIDBjNDU6NjEyYyAgICAgICBUeXBob29uIFJhc3kgQ2FtIDEuM01QaXgKIHNvbml4aiAg
-ICAgICAgIDBjNDU6NjEzMCAgICAgICBTb25peCBQY2NhbQogc29uaXhqICAgICAgICAgMGM0NTo2
-MTM4ICAgICAgIFNuOWMxMjAgTW80MDAwCi0tLSBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vZ3NwY2Ev
-c29uaXhqLmMgICAgICAgIDIwMTAtMDktMTMgMDc6MDc6MzcuMDAwMDAwMDAwICswODAwCisrKyBi
-L2RyaXZlcnMvbWVkaWEvdmlkZW8vZ3NwY2Evc29uaXhqLmMgICAgICAgIDIwMTAtMDktMTMgMTA6
-MjQ6MjkuMzgxODc5OTM1ICswODAwCkBAIC0zMDMxLDYgKzMwMzEsNyBAQCBzdGF0aWMgY29uc3Qg
-X19kZXZpbml0ZGF0YSBzdHJ1Y3QgdXNiX2RlCiAgICAgICAge1VTQl9ERVZJQ0UoMHgwYzQ1LCAw
-eDYxMjgpLCBCUyhTTjlDMTIwLCBPTTY4MDIpfSwgICAgICAvKnNuOWMzMjU/Ki8KIC8qYnc2MDAu
-aW5mOiovCiAgICAgICAge1VTQl9ERVZJQ0UoMHgwYzQ1LCAweDYxMmEpLCBCUyhTTjlDMTIwLCBP
-Vjc2NDgpfSwgICAgICAvKnNuOWMzMjU/Ki8KKyAgICAgICB7VVNCX0RFVklDRSgweDBjNDUsIDB4
-NjEyYiksIEJTKFNOOUMxMTAsIEFEQ00xNzAwKX0sCiAgICAgICAge1VTQl9ERVZJQ0UoMHgwYzQ1
-LCAweDYxMmMpLCBCUyhTTjlDMTEwLCBNTzQwMDApfSwKICAgICAgICB7VVNCX0RFVklDRSgweDBj
-NDUsIDB4NjEyZSksIEJTKFNOOUMxMTAsIE9WNzYzMCl9LAogLyogICAgIHtVU0JfREVWSUNFKDB4
-MGM0NSwgMHg2MTJmKSwgQlMoU045QzExMCwgSUNNMTA1Qyl9LCAqLw==
---0016e68fc6113ddab404901aeb85--
