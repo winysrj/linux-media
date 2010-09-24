@@ -1,76 +1,90 @@
-Return-path: <mchehab@localhost.localdomain>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4912 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754969Ab0IMLch (ORCPT
+Return-path: <mchehab@pedra>
+Received: from mgw-sa02.nokia.com ([147.243.1.48]:56196 "EHLO
+	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752767Ab0IXL4J (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Sep 2010 07:32:37 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: matti.j.aaltonen@nokia.com
-Subject: Re: [PATCH v9 0/4] FM Radio driver.
-Date: Mon, 13 Sep 2010 13:32:15 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>,
-	"mchehab@redhat.com" <mchehab@redhat.com>
-References: <1283168302-19111-1-git-send-email-matti.j.aaltonen@nokia.com> <201009111410.55149.hverkuil@xs4all.nl> <1284375031.12913.35.camel@masi.mnp.nokia.com>
-In-Reply-To: <1284375031.12913.35.camel@masi.mnp.nokia.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201009131332.15287.hverkuil@xs4all.nl>
+	Fri, 24 Sep 2010 07:56:09 -0400
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	eduardo.valentin@nokia.com, mchehab@redhat.com
+Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: [PATCH v10 4/4] Documentation: v4l: Add hw_seek spacing and two TUNER_RDS_CAP flags.
+Date: Fri, 24 Sep 2010 14:55:32 +0300
+Message-Id: <1285329332-4380-5-git-send-email-matti.j.aaltonen@nokia.com>
+In-Reply-To: <1285329332-4380-4-git-send-email-matti.j.aaltonen@nokia.com>
+References: <1285329332-4380-1-git-send-email-matti.j.aaltonen@nokia.com>
+ <1285329332-4380-2-git-send-email-matti.j.aaltonen@nokia.com>
+ <1285329332-4380-3-git-send-email-matti.j.aaltonen@nokia.com>
+ <1285329332-4380-4-git-send-email-matti.j.aaltonen@nokia.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@localhost.localdomain>
+Sender: <mchehab@pedra>
 
-On Monday, September 13, 2010 12:50:31 Matti J. Aaltonen wrote:
-> On Sat, 2010-09-11 at 14:10 +0200, ext Hans Verkuil wrote:
-> > There are also up to three ways the RDS data can be received/sent: either as
-> > RDS blocks, or using controls, or as a completely raw bitstream. The latter is
-> > unlikely to be used for RDS output, but a cheap RDS receiver might just do this
-> > (and I believe these devices actually exist).
-> 
-> I thought that the "raw" mode meant reading and writing (uninterpreted)
-> RDS blocks. At least that's what the wl1273 chip does and that was what
-> I meant. Is there already a way to deal with this case?
+Add a couple of words about the spacing field in the HW seek struct,
+also a few words about the new RDS tuner capability flags
+V4L2_TUNER_CAP_RDS_BLOCK-IO and V4L2_TUNER_CAP_RDS_CONTROLS.
 
-I had to dig into the linux-media archives, but I found one chip (the cx2388x)
-that produces a 38 kHz 16 bit RDS data stream that needs to be demodulated in
-software. That's really raw :-) But I'm not aware of any board based on this
-chipset that actually uses this.
+Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
+---
+ Documentation/DocBook/v4l/dev-rds.xml              |   10 +++++++++-
+ .../DocBook/v4l/vidioc-s-hw-freq-seek.xml          |   10 ++++++++--
+ 2 files changed, 17 insertions(+), 3 deletions(-)
 
-> Anyway the difference between the "completely raw bits" and the "raw"
-> blocks is small. And I doubt the usefulness of supporting the
-> "completely raw" format.
-
-I don't intend to support it now. But we need to realize that it exists and
-we have to plan for it.
-
-Regards,
-
-	Hans
-
-> 
-> B.R.
-> Matti
-> 
-> > So I propose to add the following tuner capability flags:
-> > 
-> > V4L2_TUNER_CAP_RDS_READWRITE	0x0100	Use read()/write()
-> > V4L2_TUNER_CAP_RDS_CONTROLS	0x0200	Use RDS controls
-> > 
-> > And this allows us to add a RDS_RAW_READWRITE in the future should we need it.
-> > 
-> > We do need to add these capability flags to the existing RDS drivers (there
-> > are only a few, so that's no problem) and we need to document that for RDS
-> > capture the READWRITE is the default if neither READWRITE or CONTROLS is set,
-> > and that for RDS output the CONTROLS is the default in that case.
-> > 
-> > Comments?
-> > 
-> > 	Hans
-> > 
-> 
-> 
-> 
-
+diff --git a/Documentation/DocBook/v4l/dev-rds.xml b/Documentation/DocBook/v4l/dev-rds.xml
+index 0869d70..e7be392 100644
+--- a/Documentation/DocBook/v4l/dev-rds.xml
++++ b/Documentation/DocBook/v4l/dev-rds.xml
+@@ -28,6 +28,10 @@ returned by the &VIDIOC-QUERYCAP; ioctl.
+ Any tuner that supports RDS will set the
+ <constant>V4L2_TUNER_CAP_RDS</constant> flag in the <structfield>capability</structfield>
+ field of &v4l2-tuner;.
++If the driver only passes RDS blocks without interpreting the data
++the <constant>V4L2_TUNER_SUB_RDS_BLOCK_IO</constant> flag has to be set. If the
++tuner is capable of handling RDS entities like program identication codes and radio
++text the flag <constant>V4L2_TUNER_SUB_RDS_CONTROLS</constant> should be set.
+ Whether an RDS signal is present can be detected by looking at
+ the <structfield>rxsubchans</structfield> field of &v4l2-tuner;: the
+ <constant>V4L2_TUNER_SUB_RDS</constant> will be set if RDS data was detected.</para>
+@@ -40,7 +44,11 @@ Any modulator that supports RDS will set the
+ <constant>V4L2_TUNER_CAP_RDS</constant> flag in the <structfield>capability</structfield>
+ field of &v4l2-modulator;.
+ In order to enable the RDS transmission one must set the <constant>V4L2_TUNER_SUB_RDS</constant>
+-bit in the <structfield>txsubchans</structfield> field of &v4l2-modulator;.</para>
++bit in the <structfield>txsubchans</structfield> field of &v4l2-modulator;.
++If the driver only passes RDS blocks without interpreting the data
++the <constant>V4L2_TUNER_SUB_RDS_BLOCK_IO</constant> flag has to be set. If the
++tuner is capable of handling RDS entities like program identication codes and radio
++text the flag <constant>V4L2_TUNER_SUB_RDS_CONTROLS</constant> should be set.</para>
+ 
+   </section>
+ 
+diff --git a/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml b/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
+index 14b3ec7..c30dcc4 100644
+--- a/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
++++ b/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
+@@ -51,7 +51,8 @@
+ 
+     <para>Start a hardware frequency seek from the current frequency.
+ To do this applications initialize the <structfield>tuner</structfield>,
+-<structfield>type</structfield>, <structfield>seek_upward</structfield> and
++<structfield>type</structfield>, <structfield>seek_upward</structfield>,
++<structfield>spacing</structfield> and
+ <structfield>wrap_around</structfield> fields, and zero out the
+ <structfield>reserved</structfield> array of a &v4l2-hw-freq-seek; and
+ call the <constant>VIDIOC_S_HW_FREQ_SEEK</constant> ioctl with a pointer
+@@ -89,7 +90,12 @@ field and the &v4l2-tuner; <structfield>index</structfield> field.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+-	    <entry><structfield>reserved</structfield>[8]</entry>
++	    <entry><structfield>spacing</structfield></entry>
++	    <entry>If non-zero, defines the hardware seek resolution in Hz. The driver selects the nearest value that is supported by the device. If spacing is zero a reasonable default value is used.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[7]</entry>
+ 	    <entry>Reserved for future extensions. Drivers and
+ 	    applications must set the array to zero.</entry>
+ 	  </row>
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+1.6.1.3
+
