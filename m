@@ -1,154 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:49160 "EHLO mx1.redhat.com"
+Received: from smtp5-g21.free.fr ([212.27.42.5]:56261 "EHLO smtp5-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756079Ab0I1Sv3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Sep 2010 14:51:29 -0400
-Date: Tue, 28 Sep 2010 15:46:57 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Srinivasa.Deevi@conexant.com, Palash.Bandyopadhyay@conexant.com,
-	dheitmueller@kernellabs.com,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 05/10] V4L/DVB: cx231xx: properly use the right tuner i2c
- address
-Message-ID: <20100928154657.33ef83ab@pedra>
-In-Reply-To: <cover.1285699057.git.mchehab@redhat.com>
-References: <cover.1285699057.git.mchehab@redhat.com>
+	id S1754454Ab0IYJRn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Sep 2010 05:17:43 -0400
+Received: from tele (unknown [82.245.201.222])
+	by smtp5-g21.free.fr (Postfix) with ESMTP id 7AD8DD48154
+	for <linux-media@vger.kernel.org>; Sat, 25 Sep 2010 11:17:37 +0200 (CEST)
+Date: Sat, 25 Sep 2010 11:18:05 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: linux-media@vger.kernel.org
+Subject: [GIT PATCHES FOR 2.6.37] gspca for_2.6.37
+Message-ID: <20100925111805.3d093ce7@tele>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The driver has a field to indicate what bus is used by tuner and
-by demod. However, this field were never used. On Pixelview,
-it uses I2C 2 for tuner, instead of I2C 1.
+The following changes since commit
+dace3857de7a16b83ae7d4e13c94de8e4b267d2a:
 
-	drivers/media/video/cx231xx/cx231xx-cards.c
+  V4L/DVB: tvaudio: remove obsolete tda8425 initialization (2010-09-24 19:20:20 -0300)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+are available in the git repository at:
+  git://linuxtv.org/jfrancois/gspca.git for_2.6.37
 
-diff --git a/drivers/media/video/cx231xx/cx231xx-cards.c b/drivers/media/video/cx231xx/cx231xx-cards.c
-index b516068..8e088db 100644
---- a/drivers/media/video/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/video/cx231xx/cx231xx-cards.c
-@@ -569,7 +569,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
- 	/* Initialize the tuner */
- 	if (dev->board.tuner_type != TUNER_ABSENT) {
- 		dev->sd_tuner = v4l2_i2c_new_subdev(&dev->v4l2_dev,
--						    &dev->i2c_bus[1].i2c_adap,
-+						    &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
- 						    "tuner", "tuner",
- 						    dev->tuner_addr, NULL);
- 		if (dev->sd_tuner == NULL)
-diff --git a/drivers/media/video/cx231xx/cx231xx-dvb.c b/drivers/media/video/cx231xx/cx231xx-dvb.c
-index 879eacb..4efd3d3 100644
---- a/drivers/media/video/cx231xx/cx231xx-dvb.c
-+++ b/drivers/media/video/cx231xx/cx231xx-dvb.c
-@@ -347,7 +347,7 @@ static int attach_xc5000(u8 addr, struct cx231xx *dev)
- 	struct xc5000_config cfg;
- 
- 	memset(&cfg, 0, sizeof(cfg));
--	cfg.i2c_adap = &dev->i2c_bus[1].i2c_adap;
-+	cfg.i2c_adap = &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap;
- 	cfg.i2c_addr = addr;
- 
- 	if (!dev->dvb->frontend) {
-@@ -573,7 +573,7 @@ static int dvb_init(struct cx231xx *dev)
- 
- 		dev->dvb->frontend = dvb_attach(s5h1432_attach,
- 					&dvico_s5h1432_config,
--					&dev->i2c_bus[2].i2c_adap);
-+					&dev->i2c_bus[dev->board.demod_i2c_master].i2c_adap);
- 
- 		if (dev->dvb->frontend == NULL) {
- 			printk(DRIVER_NAME
-@@ -586,7 +586,7 @@ static int dvb_init(struct cx231xx *dev)
- 		dvb->frontend->callback = cx231xx_tuner_callback;
- 
- 		if (!dvb_attach(xc5000_attach, dev->dvb->frontend,
--			       &dev->i2c_bus[1].i2c_adap,
-+			       &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
- 			       &cnxt_rde250_tunerconfig)) {
- 			result = -EINVAL;
- 			goto out_free;
-@@ -598,7 +598,7 @@ static int dvb_init(struct cx231xx *dev)
- 
- 		dev->dvb->frontend = dvb_attach(s5h1411_attach,
- 					       &xc5000_s5h1411_config,
--					       &dev->i2c_bus[2].i2c_adap);
-+					       &dev->i2c_bus[dev->board.demod_i2c_master].i2c_adap);
- 
- 		if (dev->dvb->frontend == NULL) {
- 			printk(DRIVER_NAME
-@@ -611,7 +611,7 @@ static int dvb_init(struct cx231xx *dev)
- 		dvb->frontend->callback = cx231xx_tuner_callback;
- 
- 		if (!dvb_attach(xc5000_attach, dev->dvb->frontend,
--			       &dev->i2c_bus[1].i2c_adap,
-+			       &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
- 			       &cnxt_rdu250_tunerconfig)) {
- 			result = -EINVAL;
- 			goto out_free;
-@@ -621,7 +621,7 @@ static int dvb_init(struct cx231xx *dev)
- 
- 		dev->dvb->frontend = dvb_attach(s5h1432_attach,
- 					&dvico_s5h1432_config,
--					&dev->i2c_bus[2].i2c_adap);
-+					&dev->i2c_bus[dev->board.demod_i2c_master].i2c_adap);
- 
- 		if (dev->dvb->frontend == NULL) {
- 			printk(DRIVER_NAME
-@@ -634,7 +634,7 @@ static int dvb_init(struct cx231xx *dev)
- 		dvb->frontend->callback = cx231xx_tuner_callback;
- 
- 		if (!dvb_attach(tda18271_attach, dev->dvb->frontend,
--			       0x60, &dev->i2c_bus[1].i2c_adap,
-+			       0x60, &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
- 			       &cnxt_rde253s_tunerconfig)) {
- 			result = -EINVAL;
- 			goto out_free;
-@@ -644,7 +644,7 @@ static int dvb_init(struct cx231xx *dev)
- 
- 		dev->dvb->frontend = dvb_attach(s5h1411_attach,
- 					       &tda18271_s5h1411_config,
--					       &dev->i2c_bus[2].i2c_adap);
-+					       &dev->i2c_bus[dev->board.demod_i2c_master].i2c_adap);
- 
- 		if (dev->dvb->frontend == NULL) {
- 			printk(DRIVER_NAME
-@@ -657,7 +657,7 @@ static int dvb_init(struct cx231xx *dev)
- 		dvb->frontend->callback = cx231xx_tuner_callback;
- 
- 		if (!dvb_attach(tda18271_attach, dev->dvb->frontend,
--			       0x60, &dev->i2c_bus[1].i2c_adap,
-+			       0x60, &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
- 			       &cnxt_rde253s_tunerconfig)) {
- 			result = -EINVAL;
- 			goto out_free;
-@@ -666,11 +666,11 @@ static int dvb_init(struct cx231xx *dev)
- 	case CX231XX_BOARD_HAUPPAUGE_EXETER:
- 
- 		printk(KERN_INFO "%s: looking for tuner / demod on i2c bus: %d\n",
--		       __func__, i2c_adapter_id(&dev->i2c_bus[1].i2c_adap));
-+		       __func__, i2c_adapter_id(&dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap));
- 
- 		dev->dvb->frontend = dvb_attach(lgdt3305_attach,
- 						&hcw_lgdt3305_config,
--						&dev->i2c_bus[1].i2c_adap);
-+						&dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap);
- 
- 		if (dev->dvb->frontend == NULL) {
- 			printk(DRIVER_NAME
-@@ -683,7 +683,7 @@ static int dvb_init(struct cx231xx *dev)
- 		dvb->frontend->callback = cx231xx_tuner_callback;
- 
- 		dvb_attach(tda18271_attach, dev->dvb->frontend,
--			   0x60, &dev->i2c_bus[1].i2c_adap,
-+			   0x60, &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
- 			   &hcw_tda18271_config);
- 		break;
- 
+Jean-François Moine (6):
+      gspca - benq: Display error messages when gspca debug disabled.
+      gspca - benq: Remove useless module load/unload messages.
+      gspca - cpia1: Fix compilation warning when gspca debug disabled.
+      gspca - many subdrivers: Handle INPUT as a module.
+      gspca - spca505: Remove the eeprom write commands of NxUltra.
+      gspca - sonixj: Propagate USB errors to higher level.
+
+ drivers/media/video/gspca/benq.c            |   20 ++----
+ drivers/media/video/gspca/cpia1.c           |    2 +
+ drivers/media/video/gspca/konica.c          |    8 ++-
+ drivers/media/video/gspca/ov519.c           |    6 +-
+ drivers/media/video/gspca/pac207.c          |    6 +-
+ drivers/media/video/gspca/pac7302.c         |    6 +-
+ drivers/media/video/gspca/pac7311.c         |    6 +-
+ drivers/media/video/gspca/sn9c20x.c         |    6 +-
+ drivers/media/video/gspca/sonixb.c          |    6 +-
+ drivers/media/video/gspca/sonixj.c          |   91 +++++++++++++++++++++------
+ drivers/media/video/gspca/spca505.c         |    4 -
+ drivers/media/video/gspca/spca561.c         |    8 ++-
+ drivers/media/video/gspca/stv06xx/stv06xx.c |    6 +-
+ drivers/media/video/gspca/zc3xx.c           |    6 +-
+ 14 files changed, 119 insertions(+), 62 deletions(-)
+
 -- 
-1.7.1
-
-
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
