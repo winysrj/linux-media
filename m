@@ -1,62 +1,113 @@
-Return-path: <mchehab@localhost>
-Received: from mx1.redhat.com ([209.132.183.28]:41127 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751804Ab0IEITJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Sep 2010 04:19:09 -0400
-Message-ID: <4C8353D3.3050708@redhat.com>
-Date: Sun, 05 Sep 2010 10:24:51 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] gspca_cpia1: Add lamp control for Intel Play QX3 microscope
-References: <1283476182.17527.4.camel@morgan.silverblock.net>
-In-Reply-To: <1283476182.17527.4.camel@morgan.silverblock.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:3423 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752356Ab0IYTMD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Sep 2010 15:12:03 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr18.xs4all.nl (8.13.8/8.13.8) with ESMTP id o8PJBlBv019394
+	for <linux-media@vger.kernel.org>; Sat, 25 Sep 2010 21:12:01 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 25 Sep 2010 21:11:47 +0200 (CEST)
+Message-Id: <201009251912.o8PJBlBv019394@smtp-vbr18.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: <mchehab@pedra>
 
-Hi,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-p.s. (forgot to mention this in my previous mail)
+Results of the daily build of v4l-dvb:
 
-On 09/03/2010 03:09 AM, Andy Walls wrote:
+date:        Sat Sep 25 19:00:16 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15164:1da5fed5c8b2
+git master:       3e6dce76d99b328716b43929b9195adfee1de00c
+git media-master: dace3857de7a16b83ae7d4e13c94de8e4b267d2a
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-<snip>
+linux-2.6.32.6-armv5: WARNINGS
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.36-rc2-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35.3-armv5-davinci: WARNINGS
+linux-2.6.36-rc2-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35.3-armv5-ixp: WARNINGS
+linux-2.6.36-rc2-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35.3-armv5-omap2: WARNINGS
+linux-2.6.36-rc2-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-rc2-i686: ERRORS
+linux-2.6.32.6-m32r: WARNINGS
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.36-rc2-m32r: ERRORS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.36-rc2-mips: ERRORS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.36-rc2-powerpc64: ERRORS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-rc2-x86_64: ERRORS
+linux-git-Module.symvers: ERRORS
+linux-git-armv5: ERRORS
+linux-git-armv5-davinci: ERRORS
+linux-git-armv5-ixp: ERRORS
+linux-git-armv5-omap2: ERRORS
+linux-git-i686: ERRORS
+linux-git-m32r: ERRORS
+linux-git-mips: ERRORS
+linux-git-powerpc64: ERRORS
+linux-git-x86_64: ERRORS
+spec-git: OK
+sparse: ERRORS
 
-> @@ -447,6 +449,20 @@
->   		.set = sd_setcomptarget,
->   		.get = sd_getcomptarget,
->   	},
-> +	{
-> +		{
-> +#define V4L2_CID_LAMPS (V4L2_CID_PRIVATE_BASE+1)
-> +			.id	 = V4L2_CID_LAMPS,
-> +			.type    = V4L2_CTRL_TYPE_MENU,
-> +			.name    = "Lamps",
-> +			.minimum = 0,
-> +			.maximum = 3,
-> +			.step    = 1,
-> +			.default_value = 0,
-> +		},
-> +		.set = sd_setlamps,
-> +		.get = sd_getlamps,
-> +	},
->   };
->
->   static const struct v4l2_pix_format mode[] = {
+Detailed results are available here:
 
-We only want this control to be available on the qx3 and not on
-all cpia1 devices, so you need to add something like the following to
-sd_config:
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-	if (!(id->idVendor == 0x0813 && id->idProduct == 0x0001))
-		gspca_dev->ctrl_dis = 1 << LAMPS_IDX;
+Full logs are available here:
 
-Where LAMPS_IDX is a define giving the index of V4L2_CID_LAMPS in the
-sd_ctrls array, see the ov519 gspca driver for example.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-Regards,
+The V4L-DVB specification from this daily build is here:
 
-Hans
+http://www.xs4all.nl/~hverkuil/spec/media.html
