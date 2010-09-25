@@ -1,57 +1,96 @@
 Return-path: <mchehab@pedra>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:61117 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750873Ab0IHPgO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Sep 2010 11:36:14 -0400
-Date: Wed, 8 Sep 2010 08:36:09 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Jiri Kosina <jkosina@suse.cz>
-Cc: Jarod Wilson <jarod@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Input <linux-input@vger.kernel.org>,
-	linux-media@vger.kernel.org,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	David Hardeman <david@hardeman.nu>,
-	Ville Syrjala <syrjala@sci.fi>
-Subject: Re: [PATCH 0/6] Large scancode handling
-Message-ID: <20100908153608.GB4190@core.coreip.homeip.net>
-References: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
- <alpine.LNX.2.00.1009081147540.26813@pobox.suse.cz>
- <20100908142418.GC22323@redhat.com>
- <4C87A87A.4060102@redhat.com>
- <20100908152234.GE22323@redhat.com>
- <alpine.LNX.2.00.1009081723400.26813@pobox.suse.cz>
+Received: from mx1.redhat.com ([209.132.183.28]:39004 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750949Ab0IYGJY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Sep 2010 02:09:24 -0400
+Message-ID: <4C9D9200.60306@redhat.com>
+Date: Sat, 25 Sep 2010 03:09:04 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <alpine.LNX.2.00.1009081723400.26813@pobox.suse.cz>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, Jean Delvare <khali@linux-fr.org>,
+	Janne Grunau <j@jannau.net>, Jarod Wilson <jarod@redhat.com>
+Subject: Re: [GIT PATCHES FOR 2.6.37] Remove v4l2-i2c-drv.h and most of i2c-id.h
+References: <201009152200.27132.hverkuil@xs4all.nl> <4C9AD51D.2010400@redhat.com> <201009230814.43504.hverkuil@xs4all.nl>
+In-Reply-To: <201009230814.43504.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-On Wed, Sep 08, 2010 at 05:25:13PM +0200, Jiri Kosina wrote:
-> On Wed, 8 Sep 2010, Jarod Wilson wrote:
+Em 23-09-2010 03:14, Hans Verkuil escreveu:
+> On Thursday, September 23, 2010 06:18:37 Mauro Carvalho Chehab wrote:
+>> Em 15-09-2010 17:00, Hans Verkuil escreveu:
+>>> Mauro, Jean, Janne,
+>>
+>>> After applying this patch series I get the following if I grep for
+>>> I2C_HW_ in the kernel sources:
+>>>
+>>> <skip some false positives in drivers/gpu>
+>>> drivers/staging/lirc/lirc_zilog.c:#ifdef I2C_HW_B_HDPVR
+>>> drivers/staging/lirc/lirc_zilog.c:              if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR) {
+>>> drivers/staging/lirc/lirc_zilog.c:#ifdef I2C_HW_B_HDPVR
+>>> drivers/staging/lirc/lirc_zilog.c:      if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR)
+>>
+>> Those are with Janne ;)
 > 
-> > > > It'll conflict a little bith with the tivo slide patch I posted yesterday,
-> > > > but mostly just minor context changes. I can redo that patch on top of
-> > > > these changes if that's preferred.
-> > > 
-> > > I can handle those context changes when merging the patches at linux-next and
-> > > when merging upstream. We just need to sync in a way that Dmitry send his patch
-> > > series before mine when sending them to Linus, and I'll take care of fixing the
-> > > merge conflicts.
-> > 
-> > Ah, the specific conflicts I was referring here are confined to
-> > drivers/hid/hid-input.c, and I sent the patch thinking it would go in via
-> > the hid tree. It *is* for a remote, but its a pure HID device in this
-> > case.
+> Since I2C_HW_B_HDPVR is not actually set anywhere and because it's staging, I'd
+> propose that we just ignore this. It's under an #ifdef, so removing i2c-id.h will
+> not affect this code.
 > 
-> Umm, what patch are you talking about please? I don't seem to have 
-> anything from you in my queue.
+>>> drivers/video/riva/rivafb-i2c.c:        chan->adapter.id                = I2C_HW_B_RIVA;
+>>
+>> No idea about this one.
 > 
+> This can be removed.
+> 
+>>
+>>> drivers/media/video/ir-kbd-i2c.c:       if (ir->c->adapter->id == I2C_HW_SAA7134 && ir->c->addr == 0x30)
+>>> drivers/media/video/saa7134/saa7134-i2c.c:      .id            = I2C_HW_SAA7134,
+>>
+>> Those are easy: just add the polling interval into the platform_data. If zero,
+>> uses the default value. I'll write a patch for it.
+> 
+> Nice!
+> 
+>>> drivers/media/video/ir-kbd-i2c.c:               if (adap->id == I2C_HW_B_CX2388x) {
+>>
+>> This is not hard to solve. I' ll write a patch for it.
+> 
+> Nice!
+> 
+>>> drivers/staging/lirc/lirc_i2c.c:                if (adap->id == I2C_HW_B_CX2388x)
+>>> drivers/staging/lirc/lirc_i2c.c:                if (adap->id == I2C_HW_B_CX2388x) {
+>>> drivers/media/video/cx88/cx88-i2c.c:    core->i2c_adap.id = I2C_HW_B_CX2388x;
+>>> drivers/media/video/cx88/cx88-vp3054-i2c.c:     vp3054_i2c->adap.id = I2C_HW_B_CX2388x;
+>>
+>> We need to solve lirc_i2c.c issues before being able to remove those. As lirc_i2c has
+>> the same implementation as ir-kbd-i2c, it is probably easier to just get rid of it,
+>> and then remove those two references. Jarod is working on it.
+>>
+>> While touching it, I'll move PV951 to bttv driver, and move all IR initialization code to 
+>> bttv-input and cx88-input on those two drivers. This will make life easier when porting
+>> the code to rc-core, as everything that needs to be changed will be at the same file.
 
-Depending on the extent of the patch in question I could take it through
-my tree as well to avoid too much interdependencies between trees at
-merge window time...
+The above were already merged.
+> 
+> So after my pending tvaudio/tda8425 patch goes in and your patches, then the only
+> remaining user of I2C_HW_B_ is lirc_i2c.c, right? Jean will like that :-)
 
--- 
-Dmitry
+Patch applied. The remaining places are:
+
+drivers/media/video/cx88/cx88-i2c.c:      core->i2c_adap.id = I2C_HW_B_CX2388x;
+drivers/media/video/cx88/cx88-vp3054-i2c.c:       vp3054_i2c->adap.id = I2C_HW_B_CX2388x;
+drivers/staging/lirc/lirc_i2c.c:          if (adap->id == I2C_HW_B_CX2388x)
+drivers/staging/lirc/lirc_i2c.c:          if (adap->id == I2C_HW_B_CX2388x) {
+drivers/staging/lirc/lirc_zilog.c:#ifdef I2C_HW_B_HDPVR
+drivers/staging/lirc/lirc_zilog.c:                if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR) {
+drivers/staging/lirc/lirc_zilog.c:#ifdef I2C_HW_B_HDPVR
+drivers/staging/lirc/lirc_zilog.c:        if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR)
+drivers/video/riva/rivafb-i2c.c:  chan->adapter.id                = I2C_HW_B_RIVA;
+
+I'll try to review lirc_i2c. Maybe we can just remove it entirely, and then remove the entries
+on cx88 driver.
+
+Cheers,
+Mauro.
