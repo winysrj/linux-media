@@ -1,48 +1,101 @@
-Return-path: <mchehab@localhost>
-Received: from tichy.grunau.be ([85.131.189.73]:35423 "EHLO tichy.grunau.be"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754300Ab0IDRf2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 4 Sep 2010 13:35:28 -0400
-Date: Sat, 4 Sep 2010 19:29:59 +0200
-From: Janne Grunau <j@jannau.net>
-To: James MacLaren <jm.maclaren@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: PATCH to hdpvr-video.c solves DMA allocation problems on arm
- processsors.
-Message-ID: <20100904172959.GC13521@aniel.lan>
-References: <AANLkTim=Gy=hdePJBiA0M_+nvR9Netc2KXPdJCK8ZZi4@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <AANLkTim=Gy=hdePJBiA0M_+nvR9Netc2KXPdJCK8ZZi4@mail.gmail.com>
+Return-path: <mchehab@pedra>
+Received: from perceval.irobotique.be ([92.243.18.41]:36174 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755160Ab0IZQN0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Sep 2010 12:13:26 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com, g.liakhovetski@gmx.de
+Subject: [RFC/PATCH 2/9] v4l: Group media bus pixel codes by types and sort them alphabetically
+Date: Sun, 26 Sep 2010 18:13:25 +0200
+Message-Id: <1285517612-20230-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1285517612-20230-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1285517612-20230-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: <mchehab@pedra>
 
-On Fri, Sep 03, 2010 at 11:19:00AM -0500, James MacLaren wrote:
-> I needed to patch hdpvr-video.c to capture on my dockstar arm
-> processor.  I see that this patch has been noted on a number of other
-> usb drivers on this list.
-> 
-> diff -Naur hdpvr-video.c hdpvr-video-jmm.c
-> 
-> --- hdpvr-video.c       2010-08-29 09:28:57.126133063 -0500
-> +++ hdpvr-video-jmm.c   2010-09-03 08:41:37.854129338 -0500
-> @@ -157,6 +157,7 @@
-> 
->                                   mem, dev->bulk_in_size,
->                                   hdpvr_read_bulk_callback, buf);
-> 
-> +                buf->urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
-> // added JMM
->                 buf->status = BUFSTAT_AVAILABLE;
->                 list_add_tail(&buf->buff_list, &dev->free_buff_list);
->         }
-> 
-> 
-> Hopefully this patch can be applied.
+Adding new pixel codes at the end of the enumeration will soon create a
+mess, so sort the pixel codes by type and then sort them alphabetically.
 
-yes, it can and should. Please resend the patch without the '// added JMM'
-comment and your sign-off
+As the codes are part of the kernel ABI their value can't change when a
+new code is inserted in the enumeration, so they are given an explicit
+numerical value. When inserting a new pixel code developers must use and
+update the V4L2_MBUS_FMT_LAST value.
 
-Janne
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/linux/v4l2-mediabus.h |   54 ++++++++++++++++++++++++----------------
+ 1 files changed, 32 insertions(+), 22 deletions(-)
+
+diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+index 127512a..bc637a5 100644
+--- a/include/linux/v4l2-mediabus.h
++++ b/include/linux/v4l2-mediabus.h
+@@ -24,31 +24,41 @@
+  * transferred first, "BE" means that the most significant bits are transferred
+  * first, and "PADHI" and "PADLO" define which bits - low or high, in the
+  * incomplete high byte, are filled with padding bits.
++ *
++ * The pixel codes are grouped by types and (mostly) sorted alphabetically. As
++ * their value can't change when a new pixel code is inserted in the
++ * enumeration, they are explicitly given a numerical value. When inserting a
++ * new pixel code use and update the V4L2_MBUS_FMT_LAST value.
+  */
+ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_FIXED = 1,
+-	V4L2_MBUS_FMT_YUYV8_2X8,
+-	V4L2_MBUS_FMT_YVYU8_2X8,
+-	V4L2_MBUS_FMT_UYVY8_2X8,
+-	V4L2_MBUS_FMT_VYUY8_2X8,
+-	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
+-	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
+-	V4L2_MBUS_FMT_RGB565_2X8_LE,
+-	V4L2_MBUS_FMT_RGB565_2X8_BE,
+-	V4L2_MBUS_FMT_SBGGR8_1X8,
+-	V4L2_MBUS_FMT_SBGGR10_1X10,
+-	V4L2_MBUS_FMT_GREY8_1X8,
+-	V4L2_MBUS_FMT_Y10_1X10,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
+-	V4L2_MBUS_FMT_SGRBG8_1X8,
+-	V4L2_MBUS_FMT_SBGGR12_1X12,
+-	V4L2_MBUS_FMT_YUYV8_1_5X8,
+-	V4L2_MBUS_FMT_YVYU8_1_5X8,
+-	V4L2_MBUS_FMT_UYVY8_1_5X8,
+-	V4L2_MBUS_FMT_VYUY8_1_5X8,
++	/* RGB */
++	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE = 7,
++	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE = 6,
++	V4L2_MBUS_FMT_RGB565_2X8_BE = 9,
++	V4L2_MBUS_FMT_RGB565_2X8_LE = 8,
++	/* YUV (including grey) */
++	V4L2_MBUS_FMT_GREY8_1X8 = 12,
++	V4L2_MBUS_FMT_Y10_1X10 = 13,
++	V4L2_MBUS_FMT_YUYV8_1_5X8 = 20,
++	V4L2_MBUS_FMT_YVYU8_1_5X8 = 21,
++	V4L2_MBUS_FMT_UYVY8_1_5X8 = 22,
++	V4L2_MBUS_FMT_VYUY8_1_5X8 = 23,
++	V4L2_MBUS_FMT_YUYV8_2X8 = 2,
++	V4L2_MBUS_FMT_UYVY8_2X8 = 4,
++	V4L2_MBUS_FMT_YVYU8_2X8 = 3,
++	V4L2_MBUS_FMT_VYUY8_2X8 = 5,
++	/* Bayer */
++	V4L2_MBUS_FMT_SBGGR8_1X8 = 10,
++	V4L2_MBUS_FMT_SBGGR10_1X10 = 11,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE = 16,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE = 14,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE = 17,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE = 15,
++	V4L2_MBUS_FMT_SBGGR12_1X12 = 19,
++	V4L2_MBUS_FMT_SGRBG8_1X8 = 18,
++	/* Last - Update this when adding a new pixel code */
++	V4L2_MBUS_FMT_LAST = 24,
+ };
+ 
+ /**
+-- 
+1.7.2.2
+
