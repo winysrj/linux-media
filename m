@@ -1,62 +1,113 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:63141 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752657Ab0IIT0T (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Sep 2010 15:26:19 -0400
-Received: by wyf22 with SMTP id 22so1777313wyf.19
-        for <linux-media@vger.kernel.org>; Thu, 09 Sep 2010 12:26:18 -0700 (PDT)
-From: Peter Korsgaard <jacmet@sunsite.dk>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Cc: "Andy Walls" <awalls@md.metrocast.net>,
-	"Hans de Goede" <hdegoede@redhat.com>,
-	"Jean-Francois Moine" <moinejf@free.fr>,
-	"linux-media\@vger.kernel.org" <linux-media@vger.kernel.org>,
-	eduardo.valentin@nokia.com,
-	"ext Eino-Ville Talvala" <talvala@stanford.edu>
-Subject: Re: [PATCH] Illuminators and status LED controls
-References: <y1el0c4vecj8x6uk04ypatvd.1284039765001@email.android.com>
-	<275b6fc10404e9bda012060f49cdf2f3.squirrel@webmail.xs4all.nl>
-Date: Thu, 09 Sep 2010 21:26:10 +0200
-In-Reply-To: <275b6fc10404e9bda012060f49cdf2f3.squirrel@webmail.xs4all.nl>
-	(Hans Verkuil's message of "Thu, 9 Sep 2010 16:17:40 +0200")
-Message-ID: <87vd6ebtwt.fsf@macbook.be.48ers.dk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2281 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757090Ab0IZTLZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Sep 2010 15:11:25 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id o8QJBNPr098864
+	for <linux-media@vger.kernel.org>; Sun, 26 Sep 2010 21:11:24 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 26 Sep 2010 21:11:23 +0200 (CEST)
+Message-Id: <201009261911.o8QJBNPr098864@smtp-vbr5.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
->>>>> "Hans" == Hans Verkuil <hverkuil@xs4all.nl> writes:
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Hi,
+Results of the daily build of v4l-dvb:
 
- Hans> But I feel I am missing something: who is supposed to use these LEDs?
- Hans> Turning LEDs in e.g. webcams on or off is a job for the driver, never for
- Hans> a userspace application.
+date:        Sun Sep 26 19:00:10 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15164:1da5fed5c8b2
+git master:       3e6dce76d99b328716b43929b9195adfee1de00c
+git media-master: dace3857de7a16b83ae7d4e13c94de8e4b267d2a
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-Agreed - By default, the driver should just turn on the LED when the
-device is active and off again when it is not.
+linux-2.6.32.6-armv5: WARNINGS
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.36-rc2-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35.3-armv5-davinci: WARNINGS
+linux-2.6.36-rc2-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35.3-armv5-ixp: WARNINGS
+linux-2.6.36-rc2-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35.3-armv5-omap2: WARNINGS
+linux-2.6.36-rc2-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-rc2-i686: ERRORS
+linux-2.6.32.6-m32r: WARNINGS
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.36-rc2-m32r: ERRORS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.36-rc2-mips: ERRORS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.36-rc2-powerpc64: ERRORS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-rc2-x86_64: ERRORS
+linux-git-Module.symvers: ERRORS
+linux-git-armv5: ERRORS
+linux-git-armv5-davinci: ERRORS
+linux-git-armv5-ixp: ERRORS
+linux-git-armv5-omap2: ERRORS
+linux-git-i686: ERRORS
+linux-git-m32r: ERRORS
+linux-git-mips: ERRORS
+linux-git-powerpc64: ERRORS
+linux-git-x86_64: ERRORS
+spec-git: OK
+sparse: ERRORS
 
- Hans> For that matter, if the driver handles the LEDs,
- Hans> can we still expose the API to userspace? Wouldn't those two interfere
- Hans> with one another? I know nothing about the LED interface in sysfs, but I
- Hans> can imagine that will be a problem.
+Detailed results are available here:
 
-Yes, you expose the LED using the LED class, and add a LED trigger per
-video device (named something like "videoX-active"). Furthermore you set
-the default trigger for that LED to be videoX-active.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-So the logic of how to turn on/off the LED is seperated from the policy
-about WHEN it should be turned on/off.
+Full logs are available here:
 
- >> Sysfs entry ownership, unix permissions, and ACL permissions consistency
- >> with /dev/videoN will be the immediate usability problem for end users in
- >> any case.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
- Hans> Again, why would end users or application need or want to manipulate such
- Hans> LEDs in any case?
+The V4L-DVB specification from this daily build is here:
 
-In most cases they don't - Not using the LED sysfs or v4l. But if they
-do, then they CAN.
-
--- 
-Bye, Peter Korsgaard
+http://www.xs4all.nl/~hverkuil/spec/media.html
