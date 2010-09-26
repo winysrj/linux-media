@@ -1,73 +1,65 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:39498 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753989Ab0IMSC1 (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:14392 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757554Ab0IZMRg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Sep 2010 14:02:27 -0400
-Received: by fxm16 with SMTP id 16so3311582fxm.19
-        for <linux-media@vger.kernel.org>; Mon, 13 Sep 2010 11:02:26 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4C835BC7.5000209@redhat.com>
-References: <4C3070A4.6040702@redhat.com>
-	<AANLkTinXb=TeSGO_6Mr6jhzaUOUZ3yZL5+oAP2GP0GG5@mail.gmail.com>
-	<4C792BE1.6090001@redhat.com>
-	<AANLkTik8jg1K_54dJ5nsnCydJzpwRNt-BzctwA1Spgq8@mail.gmail.com>
-	<4C835BC7.5000209@redhat.com>
-Date: Mon, 13 Sep 2010 14:02:25 -0400
-Message-ID: <AANLkTi=Mw-G=rCjVkpoCCpphs-pp6Yt8hakGWaFPsVC+@mail.gmail.com>
-Subject: Re: ibmcam (xrilink_cit) and konica webcam driver porting to gspca update
-From: David Ellingsworth <david@identd.dyndns.org>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Jonathan Isom <jeisom@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Patryk Biela <patryk.biela@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Sun, 26 Sep 2010 08:17:36 -0400
+Date: Sun, 26 Sep 2010 08:17:48 -0400
+Subject: Re: [RFC PATCH] Rename video_device et al to v4l2_devnode
+Message-ID: <5uc4nct73y9lci6f4qdee1ma.1285503468755@email.android.com>
+From: Andy Walls <awalls@md.metrocast.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, Sep 5, 2010 at 4:58 AM, Hans de Goede <hdegoede@redhat.com> wrote:
-> Hi,
->
-> On 08/31/2010 11:43 PM, David Ellingsworth wrote:
->>
->> Hans,
->>
->> I haven't had any success with this driver as of yet. My camera is
->> shown here: http://www.amazon.com/IBM-Net-Camera-Pro-camera/dp/B0009MH25U
->> The part number listed on the bottom is 22P5086. It's also labeled as
->> being an IBM Net Camera Pro.
->
-> Ah ok, so you have the same one as I have, that model was never supported
-> by the old ibmcam driver, so I take it you never had it working with the
-> old ibmcam driver ?
->
->> When I plug the camera in, it is detected
->>
->> by the driver but it does not seem to function in this mode. Every
->> attempt to obtain video from it using qv4l2 results in a black or
->> green image.
->>
->> If I use the ibm_netcam_pro module option
->
-> Given that is the same camera as I have using the ibm_netcam_pro module
-> option is definitely the right thing to do.
->
-> I noticed in your lsusb -v output that you're doing this from within vmware?
+U291bmRzIGdvb2QgdG8gbWUuCgpJJ20gbm90IHRvIHN1cmUgd2h5IHlvdSBldmVuIGJvdGhlcmVk
+IHdpdGggdGhlIGJhY2t3YXJkIGNvbXBhdCBvbiB0aGUgbmFtZXMuICBJIHRoaW5rIGl0IGNhbiBv
+bmx5IGxlYWQgdG8gdHJvdWJsZTsgYnV0IGl0IGRvZXMgbWFrZSBtZXJnaW5nIG91dCBzdGFuZGlu
+ZyBwYXRjaHNldHMgZWFzaWVyIEkgZ3Vlc3MuCgpJIGhhdmVuJ3QgbG9va2VkIGF0IHRoZSBwYXRj
+aHNldCwgYXJlIHRoZXJlIGFueSBvdGhlciB1c2VycyBvdXRzaWRlIHRoZSBkcml2ZXJzL21lZGlh
+IHRyZWU/CgpSLApBbmR5IAoKSGFucyBWZXJrdWlsIDxodmVya3VpbEB4czRhbGwubmw+IHdyb3Rl
+OgoKPk1vc3Qgb2YgdGhlIHY0bDIgZnJhbWV3b3JrIGhhcyBwcmVmaXhlcyB0aGF0IHN0YXJ0IHdp
+dGggdjRsMl8gZXhjZXB0IGZvcgo+c3RydWN0IHZpZGVvX2RldmljZSBpbiB2NGwyLWRldi5jLiBU
+aGlzIG5hbWUgaXMgYmVjb21pbmcgdmVyeSBjb25mdXNpbmcgc2luY2UKPml0IGNsb3NlbHkgcmVz
+ZW1ibGVzIHN0cnVjdCB2NGwyX2RldmljZS4gU2luY2UgdmlkZW9fZGV2aWNlIHJlYWxseSByZXBy
+ZXNlbnRzCj5hIHY0bDIgZGV2aWNlIG5vZGUgSSBwcm9wb3NlIHRvIHJlbmFtZSBpdCB0byB2NGwy
+X2Rldm5vZGUgYW5kIHJlbmFtZSB0aGUKPnY0bDItZGV2LltjaF0gdG8gdjRsMi1kZXZub2RlLltj
+aF0uCj4gCj5UbyBtYWtlIHRoZSB0cmFuc2l0aW9uIGVhc2llciBJIGNyZWF0ZWQgYSB2NGwyLWRl
+di5oIHRoYXQgaW5jbHVkZXMgdGhlIG5ldwo+djRsMi1kZXZub2RlLmggYW5kICNkZWZpbmVzIHRo
+ZSBvbGQgbmFtZXMgdG8gdGhlIG5ldyBuYW1lcy4KPiAKPkkgYWxzbyB1cGRhdGVkIHRoZSBkb2N1
+bWVudGF0aW9uIHRvIHJlZmxlY3QgdGhlIG5ldyBoZWFkZXIgYW5kIG5hbWluZyBjb252ZW50aW9u
+Lgo+Cj5UaGUgcGF0Y2hlcyBhcmUgaGVyZToKPgo+aHR0cDovL2dpdC5saW51eHR2Lm9yZy9odmVy
+a3VpbC92NGwtZHZiLmdpdD9hPXNob3J0bG9nO2g9cmVmcy9oZWFkcy92NGwyLWRldm5vZGUKPgo+
+SGFucyBWZXJrdWlsICgxOCk6Cj4gICAgICB2NGwyLWRldm5vZGU6IHJlbmFtZWQgZnJvbSB2NGwy
+LWRldgo+ICAgICAgdmlkZW9kZXYyLmg6IHVwZGF0ZSBjb21tZW50Cj4gICAgICB2NGwyIGNvcmU6
+IHVzZSB2NGwyLWRldm5vZGUuaCBpbnN0ZWFkIG9mIHY0bDItZGV2LmgKPiAgICAgIHY0bDI6IHJl
+bmFtZSB0b192aWRlb19kZXZpY2UgdG8gdjRsMl9kZXZub2RlX2Zyb21fZGV2aWNlCj4gICAgICB2
+NGwyOiByZW5hbWUgdmlkZW9fZGV2aWNlX2FsbG9jIHRvIHY0bDJfZGV2bm9kZV9hbGxvYwo+ICAg
+ICAgdjRsMjogcmVuYW1lIHZpZGVvX2RldmljZV9yZWxlYXNlX2VtcHR5IHRvIHY0bDJfZGV2bm9k
+ZV9yZWxlYXNlX2VtcHR5Cj4gICAgICB2NGwyOiByZW5hbWUgdmlkZW9fZGV2aWNlX3JlbGVhc2Ug
+dG8gdjRsMl9kZXZub2RlX3JlbGVhc2UKPiAgICAgIHY0bDI6IHJlbmFtZSB2aWRlb19kZXZpY2Vf
+bm9kZV9uYW1lIHRvIHY0bDJfZGV2bm9kZV9uYW1lCj4gICAgICB2NGwyOiByZW5hbWUgdmlkZW9f
+cmVnaXN0ZXJfZGV2aWNlIHRvIHY0bDJfZGV2bm9kZV9yZWdpc3Rlcgo+ICAgICAgdjRsMjogcmVu
+YW1lIHZpZGVvX3VucmVnaXN0ZXJfZGV2aWNlIHRvIHY0bDJfZGV2bm9kZV91bnJlZ2lzdGVyCj4g
+ICAgICB2NGwyOiByZW5hbWUgdmlkZW9faXNfcmVnaXN0ZXJlZCB0byB2NGwyX2Rldm5vZGVfaXNf
+cmVnaXN0ZXJlZAo+ICAgICAgdjRsMjogcmVuYW1lIHZpZGVvX2dldC9zZXRfZHJ2ZGF0YSB0byB2
+NGwyX2Rldm5vZGVfZ2V0L3NldF9kcnZkYXRhCj4gICAgICB2NGwyOiByZW5hbWUgdmlkZW9fZGV2
+ZGF0YSB0byB2NGwyX2Rldm5vZGVfZnJvbV9maWxlCj4gICAgICB2NGwyOiByZW5hbWUgdmlkZW9f
+ZHJ2ZGF0YSB0byB2NGwyX2RydmRhdGFfZnJvbV9maWxlCj4gICAgICB2NGwyOiByZW5hbWUgdmlk
+ZW9fZGV2aWNlIHRvIHY0bDJfZGV2bm9kZQo+ICAgICAgdGVhNTc1eDogY29udmVydCB0byB2NGwy
+LWRldm5vZGUuaAo+ICAgICAgdjRsMjogaW5jbHVkZSB2NGwyLWRldm5vZGUuaCBpbnN0ZWFkIG9m
+IHY0bDItZGV2LmgKPiAgICAgIHY0bDI6IGlzc3VlIHdhcm5pbmcgaWYgdjRsMi1kZXYuaCBpcyBp
+bmNsdWRlZAo+Cj5BZnRlciBjb252ZXJ0aW5nIGFsbCBkcml2ZXJzIEkgYWRkZWQgYSB3YXJuaW5n
+IHRvIHY0bDItZGV2Lmggd2hlbiBpdCBpcyB1c2VkLgo+VGhpcyBoZWFkZXIgY2FuIGJlIHJlbW92
+ZWQgY29tcGxldGVseSBhZnRlciB0aGlzIHNlcmllcyBoYXMgYmVlbiBtZXJnZWQgaW4gdGhlCj5t
+YWlubGluZSAyLjYuMzcga2VybmVsLgo+Cj5JdCdzIGFsbCBwcmV0dHkgdHJpdmlhbCBidXQgSSB0
+aGluayB0aGUgbmV3IG5hbWVzIGFyZSBtdWNoIG1vcmUgdW5kZXJzdGFuZGFibGUKPmFuZCBmaXQg
+d2VsbCB3aXRoaW4gdGhlIHY0bDIgZnJhbWV3b3JrIEFQSS4KPgo+Q29tbWVudHM/Cj4KPglIYW5z
+Cj4KPi0tIAo+SGFucyBWZXJrdWlsIC0gdmlkZW80bGludXggZGV2ZWxvcGVyIC0gc3BvbnNvcmVk
+IGJ5IFRBTkRCRVJHLCBwYXJ0IG9mIENpc2NvCj4tLQo+VG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlz
+IGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LW1lZGlhIiBpbgo+dGhlIGJv
+ZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcKPk1vcmUgbWFqb3Jk
+b21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbAo=
 
-Correct I was using vmware workstation's usb pass through to test the camera.
-
->
-> I think that is the cause of things not working. This camera will not
-> even work when connected through a real hub, let alone through a
-> virtual one. The only way this camera works for me is when it is
-> connected to a usb port directly on the motherboard, running Linux
-> directly on the hardware, can you please try that ?
-
-Unfortunately, I'm unable to test with real hardware at the moment. My
-laptop, which has Linux installed on it is currently out of commission
-until I can find time to repair it's power adapter. Once I get it
-fixed, I'll try to retest and we'll go from there.
-
-Regards,
-
-David Ellingsworth
