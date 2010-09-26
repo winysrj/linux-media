@@ -1,62 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:41232 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754053Ab0IKRdq (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:36175 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757322Ab0IZQN0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Sep 2010 13:33:46 -0400
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Joe Perches <joe@perches.com>,
-	Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: [PATCHv2 1/2] dvb: mantis: use '%pM' format to print MAC address
-Date: Sat, 11 Sep 2010 20:33:27 +0300
-Message-Id: <0ffd3b30fbaa2168656dd17fbdb290cf2e0a867e.1284226281.git.andy.shevchenko@gmail.com>
+	Sun, 26 Sep 2010 12:13:26 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com, g.liakhovetski@gmx.de
+Subject: [RFC/PATCH 3/9] v4l: Add 8-bit YUYV on 16-bit bus and SGRBG10 media bus pixel codes
+Date: Sun, 26 Sep 2010 18:13:26 +0200
+Message-Id: <1285517612-20230-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1285517612-20230-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1285517612-20230-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-Signed-off-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Add the following media bus format code definitions:
+
+- V4L2_MBUS_FMT_SGRBG10_1X10 for 10-bit GRBG Bayer
+- V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 for 10-bit DPCM compressed GRBG Bayer
+- V4L2_MBUS_FMT_YUYV16_1X16 for 8-bit YUYV on 16-bit bus
+- V4L2_MBUS_FMT_UYVY16_1X16 for 8-bit UYVY on 16-bit bus
+- V4L2_MBUS_FMT_YVYU16_1X16 for 8-bit YVYU on 16-bit bus
+- V4L2_MBUS_FMT_VYUY16_1X16 for 8-bit VYUY on 16-bit bus
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/dvb/mantis/mantis_core.c |    5 +----
- drivers/media/dvb/mantis/mantis_ioc.c  |    9 +--------
- 2 files changed, 2 insertions(+), 12 deletions(-)
+ include/linux/v4l2-mediabus.h |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/dvb/mantis/mantis_core.c b/drivers/media/dvb/mantis/mantis_core.c
-index 8113b23..22524a8 100644
---- a/drivers/media/dvb/mantis/mantis_core.c
-+++ b/drivers/media/dvb/mantis/mantis_core.c
-@@ -91,10 +91,7 @@ static int get_mac_address(struct mantis_pci *mantis)
- 		return err;
- 	}
- 	dprintk(verbose, MANTIS_ERROR, 0,
--		"    MAC Address=[%02x:%02x:%02x:%02x:%02x:%02x]\n",
--		mantis->mac_address[0], mantis->mac_address[1],
--		mantis->mac_address[2],	mantis->mac_address[3],
--		mantis->mac_address[4], mantis->mac_address[5]);
-+		"    MAC Address=[%pM]\n", mantis->mac_address);
+diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+index bc637a5..9096ef0 100644
+--- a/include/linux/v4l2-mediabus.h
++++ b/include/linux/v4l2-mediabus.h
+@@ -48,6 +48,10 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_UYVY8_2X8 = 4,
+ 	V4L2_MBUS_FMT_YVYU8_2X8 = 3,
+ 	V4L2_MBUS_FMT_VYUY8_2X8 = 5,
++	V4L2_MBUS_FMT_YUYV8_1X16 = 24,
++	V4L2_MBUS_FMT_UYVY8_1X16 = 25,
++	V4L2_MBUS_FMT_YVYU8_1X16 = 26,
++	V4L2_MBUS_FMT_VYUY8_1X16 = 27,
+ 	/* Bayer */
+ 	V4L2_MBUS_FMT_SBGGR8_1X8 = 10,
+ 	V4L2_MBUS_FMT_SBGGR10_1X10 = 11,
+@@ -57,8 +61,10 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE = 15,
+ 	V4L2_MBUS_FMT_SBGGR12_1X12 = 19,
+ 	V4L2_MBUS_FMT_SGRBG8_1X8 = 18,
++	V4L2_MBUS_FMT_SGRBG10_1X10 = 28,
++	V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 = 29,
+ 	/* Last - Update this when adding a new pixel code */
+-	V4L2_MBUS_FMT_LAST = 24,
++	V4L2_MBUS_FMT_LAST = 30,
+ };
  
- 	return 0;
- }
-diff --git a/drivers/media/dvb/mantis/mantis_ioc.c b/drivers/media/dvb/mantis/mantis_ioc.c
-index de148de..fe31cfb 100644
---- a/drivers/media/dvb/mantis/mantis_ioc.c
-+++ b/drivers/media/dvb/mantis/mantis_ioc.c
-@@ -68,14 +68,7 @@ int mantis_get_mac(struct mantis_pci *mantis)
- 		return err;
- 	}
- 
--	dprintk(MANTIS_ERROR, 0,
--		"    MAC Address=[%02x:%02x:%02x:%02x:%02x:%02x]\n",
--		mac_addr[0],
--		mac_addr[1],
--		mac_addr[2],
--		mac_addr[3],
--		mac_addr[4],
--		mac_addr[5]);
-+	dprintk(MANTIS_ERROR, 0, "    MAC Address=[%pM]\n", mac_addr);
- 
- 	return 0;
- }
+ /**
 -- 
 1.7.2.2
 
