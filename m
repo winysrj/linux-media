@@ -1,236 +1,115 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:26814 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750793Ab0IWEeK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Sep 2010 00:34:10 -0400
-Received: from int-mx03.intmail.prod.int.phx2.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.16])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o8N4Y94E013481
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 23 Sep 2010 00:34:09 -0400
-Received: from pedra (vpn-239-203.phx2.redhat.com [10.3.239.203])
-	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o8N4X3me018821
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 23 Sep 2010 00:34:08 -0400
-Date: Thu, 23 Sep 2010 01:32:55 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/3] V4L/DVB: Remove the usage of I2C_HW_B_CX2388x on
- ir-kbd-i2c.c
-Message-ID: <20100923013255.1de2651a@pedra>
-In-Reply-To: <cover.1285215968.git.mchehab@redhat.com>
-References: <cover.1285215968.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from perceval.irobotique.be ([92.243.18.41]:33820 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759623Ab0I0QFs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Sep 2010 12:05:48 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [RFC/PATCH 1/9] v4l: Move the media/v4l2-mediabus.h header to include/linux
+Date: Mon, 27 Sep 2010 18:05:55 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1285517612-20230-1-git-send-email-laurent.pinchart@ideasonboard.com> <1285517612-20230-2-git-send-email-laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1009270959100.16377@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1009270959100.16377@axis700.grange>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Message-Id: <201009271805.56330.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Move the cx88 specific initialization for Hauppauge XVR remotes
-into cx88-input, removing the need for test it inside ir-kbd-i2c.
+Hi Guennadi,
 
-The reference at cx88 for this symbol, at:
+Thanks for the review.
 
-drivers/media/video/cx88/cx88-i2c.c:    core->i2c_adap.id = I2C_HW_B_CX2388x;
-drivers/media/video/cx88/cx88-vp3054-i2c.c:     vp3054_i2c->adap.id = I2C_HW_B_CX2388x;
+On Monday 27 September 2010 10:20:57 Guennadi Liakhovetski wrote:
+> On Sun, 26 Sep 2010, Laurent Pinchart wrote:
+> > The header defines the v4l2_mbus_framefmt structure which will be used
+> > by the V4L2 subdevs userspace API.
+> > 
+> > Change the type of the v4l2_mbus_framefmt::code field to __u32, as enum
+> > sizes can differ between different ABIs on the same architectures.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >  include/linux/Kbuild          |    1 +
+> >  include/linux/v4l2-mediabus.h |   70
+> >  +++++++++++++++++++++++++++++++++++++++++ include/media/soc_mediabus.h 
+> >  |    3 +-
+> >  include/media/v4l2-mediabus.h |   53 +------------------------------
+> 
+> Hm, yeah... I guess, you have to move them to make available to the
+> user-space...
 
-Can't be removed yet, since lirc-i2c still uses it.
+Yes, that's why.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> >  4 files changed, 73 insertions(+), 54 deletions(-)
+> >  create mode 100644 include/linux/v4l2-mediabus.h
+> > 
+> > diff --git a/include/linux/Kbuild b/include/linux/Kbuild
+> > index f836ee4..38127c2 100644
+> > --- a/include/linux/Kbuild
+> > +++ b/include/linux/Kbuild
+> > @@ -369,6 +369,7 @@ header-y += unistd.h
+> > 
+> >  header-y += usbdevice_fs.h
+> >  header-y += utime.h
+> >  header-y += utsname.h
+> > 
+> > +header-y += v4l2-mediabus.h
+> > 
+> >  header-y += veth.h
+> >  header-y += vhost.h
+> >  header-y += videodev.h
+> > 
+> > diff --git a/include/linux/v4l2-mediabus.h
+> > b/include/linux/v4l2-mediabus.h new file mode 100644
+> > index 0000000..127512a
+> > --- /dev/null
+> > +++ b/include/linux/v4l2-mediabus.h
+> > @@ -0,0 +1,70 @@
+> > +/*
+> > + * Media Bus API header
+> > + *
+> > + * Copyright (C) 2009, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > + *
+> > + * This program is free software; you can redistribute it and/or modify
+> > + * it under the terms of the GNU General Public License version 2 as
+> > + * published by the Free Software Foundation.
+> > + */
+> > +
+> > +#ifndef __LINUX_V4L2_MEDIABUS_H
+> > +#define __LINUX_V4L2_MEDIABUS_H
+> > +
+> > +#include <linux/types.h>
+> > +#include <linux/videodev2.h>
+> > +
+> > +/*
+> > + * These pixel codes uniquely identify data formats on the media bus.
+> > Mostly + * they correspond to similarly named V4L2_PIX_FMT_* formats,
+> > format 0 is + * reserved, V4L2_MBUS_FMT_FIXED shall be used by
+> > host-client pairs, where the + * data format is fixed. Additionally,
+> > "2X8" means that one pixel is transferred + * in two 8-bit samples, "BE"
+> > or "LE" specify in which order those samples are + * transferred over
+> > the bus: "LE" means that the least significant bits are + * transferred
+> > first, "BE" means that the most significant bits are transferred + *
+> > first, and "PADHI" and "PADLO" define which bits - low or high, in the +
+> > * incomplete high byte, are filled with padding bits.
+> > + */
+> > +enum v4l2_mbus_pixelcode {
+> 
+> If you now do not want to use this enum in the API, maybe better make it
+> unnamed and switch all users to __u32 for consistency? I'm not sure this
+> would be an advantage, just something to maybe think about...
 
-diff --git a/drivers/media/video/cx88/cx88-i2c.c b/drivers/media/video/cx88/cx88-i2c.c
-index b897f86..f53836b 100644
---- a/drivers/media/video/cx88/cx88-i2c.c
-+++ b/drivers/media/video/cx88/cx88-i2c.c
-@@ -183,41 +183,3 @@ int cx88_i2c_init(struct cx88_core *core, struct pci_dev *pci)
- 
- 	return core->i2c_rc;
- }
--
--void cx88_i2c_init_ir(struct cx88_core *core)
--{
--	/* Instantiate the IR receiver device, if present */
--	if (0 == core->i2c_rc) {
--		struct i2c_board_info info;
--		const unsigned short addr_list[] = {
--			0x18, 0x6b, 0x71,
--			I2C_CLIENT_END
--		};
--		const unsigned short *addrp;
--
--		memset(&info, 0, sizeof(struct i2c_board_info));
--		strlcpy(info.type, "ir_video", I2C_NAME_SIZE);
--		/*
--		 * We can't call i2c_new_probed_device() because it uses
--		 * quick writes for probing and at least some R receiver
--		 * devices only reply to reads.
--		 */
--		for (addrp = addr_list; *addrp != I2C_CLIENT_END; addrp++) {
--			if (i2c_smbus_xfer(&core->i2c_adap, *addrp, 0,
--					   I2C_SMBUS_READ, 0,
--					   I2C_SMBUS_QUICK, NULL) >= 0) {
--				info.addr = *addrp;
--				i2c_new_device(&core->i2c_adap, &info);
--				break;
--			}
--		}
--	}
--}
--
--/* ----------------------------------------------------------------------- */
--
--/*
-- * Local variables:
-- * c-basic-offset: 8
-- * End:
-- */
-diff --git a/drivers/media/video/cx88/cx88-input.c b/drivers/media/video/cx88/cx88-input.c
-index eccc5e4..d52ce0e 100644
---- a/drivers/media/video/cx88/cx88-input.c
-+++ b/drivers/media/video/cx88/cx88-input.c
-@@ -609,13 +609,54 @@ void cx88_ir_irq(struct cx88_core *core)
- 	return;
- }
- 
-+
-+void cx88_i2c_init_ir(struct cx88_core *core)
-+{
-+	struct i2c_board_info info;
-+	const unsigned short addr_list[] = {
-+		0x18, 0x6b, 0x71,
-+		I2C_CLIENT_END
-+	};
-+	const unsigned short *addrp;
-+	/* Instantiate the IR receiver device, if present */
-+	if (0 != core->i2c_rc)
-+		return;
-+
-+	memset(&info, 0, sizeof(struct i2c_board_info));
-+	strlcpy(info.type, "ir_video", I2C_NAME_SIZE);
-+
-+	/*
-+	 * We can't call i2c_new_probed_device() because it uses
-+	 * quick writes for probing and at least some RC receiver
-+	 * devices only reply to reads.
-+	 * Also, Hauppauge XVR needs to be specified, as address 0x71
-+	 * conflicts with another remote type used with saa7134
-+	 */
-+	for (addrp = addr_list; *addrp != I2C_CLIENT_END; addrp++) {
-+		info.platform_data = NULL;
-+		memset(&core->init_data, 0, sizeof(core->init_data));
-+
-+		if (*addrp == 0x71) {
-+			/* Hauppauge XVR */
-+			core->init_data.name = "cx88 Hauppauge XVR remote";
-+			core->init_data.ir_codes = RC_MAP_HAUPPAUGE_NEW;
-+			core->init_data.type = IR_TYPE_RC5;
-+			core->init_data.internal_get_key_func = IR_KBD_GET_KEY_HAUP_XVR;
-+
-+			info.platform_data = &core->init_data;
-+		}
-+		if (i2c_smbus_xfer(&core->i2c_adap, *addrp, 0,
-+					I2C_SMBUS_READ, 0,
-+					I2C_SMBUS_QUICK, NULL) >= 0) {
-+			info.addr = *addrp;
-+			i2c_new_device(&core->i2c_adap, &info);
-+			break;
-+		}
-+	}
-+}
-+
- /* ---------------------------------------------------------------------- */
- 
- MODULE_AUTHOR("Gerd Knorr, Pavel Machek, Chris Pascoe");
- MODULE_DESCRIPTION("input driver for cx88 GPIO-based IR remote controls");
- MODULE_LICENSE("GPL");
--/*
-- * Local variables:
-- * c-basic-offset: 8
-- * End:
-- */
-diff --git a/drivers/media/video/cx88/cx88.h b/drivers/media/video/cx88/cx88.h
-index bda9e3e..127118f 100644
---- a/drivers/media/video/cx88/cx88.h
-+++ b/drivers/media/video/cx88/cx88.h
-@@ -31,9 +31,8 @@
- #include <media/videobuf-dma-sg.h>
- #include <media/v4l2-chip-ident.h>
- #include <media/cx2341x.h>
--#if defined(CONFIG_VIDEO_CX88_DVB) || defined(CONFIG_VIDEO_CX88_DVB_MODULE)
- #include <media/videobuf-dvb.h>
--#endif
-+#include <media/ir-kbd-i2c.h>
- 
- #include "btcx-risc.h"
- #include "cx88-reg.h"
-@@ -377,6 +376,9 @@ struct cx88_core {
- 	/* IR remote control state */
- 	struct cx88_IR             *ir;
- 
-+	/* I2C remote data */
-+	struct IR_i2c_init_data    init_data;
-+
- 	struct mutex               lock;
- 	/* various v4l controls */
- 	u32                        freq;
-@@ -650,7 +652,6 @@ extern const struct videobuf_queue_ops cx8800_vbi_qops;
- /* cx88-i2c.c                                                  */
- 
- extern int cx88_i2c_init(struct cx88_core *core, struct pci_dev *pci);
--extern void cx88_i2c_init_ir(struct cx88_core *core);
- 
- 
- /* ----------------------------------------------------------- */
-@@ -688,6 +689,7 @@ int cx88_ir_fini(struct cx88_core *core);
- void cx88_ir_irq(struct cx88_core *core);
- int cx88_ir_start(struct cx88_core *core);
- void cx88_ir_stop(struct cx88_core *core);
-+extern void cx88_i2c_init_ir(struct cx88_core *core);
- 
- /* ----------------------------------------------------------- */
- /* cx88-mpeg.c                                                 */
-@@ -707,10 +709,3 @@ int cx88_set_freq (struct cx88_core  *core,struct v4l2_frequency *f);
- int cx88_get_control(struct cx88_core *core, struct v4l2_control *ctl);
- int cx88_set_control(struct cx88_core *core, struct v4l2_control *ctl);
- int cx88_video_mux(struct cx88_core *core, unsigned int input);
--
--/*
-- * Local variables:
-- * c-basic-offset: 8
-- * End:
-- * kate: eol "unix"; indent-width 3; remove-trailing-space on; replace-trailing-space-save on; tab-width 8; replace-tabs off; space-indent off; mixed-indent off
-- */
-diff --git a/drivers/media/video/ir-kbd-i2c.c b/drivers/media/video/ir-kbd-i2c.c
-index 02fbd08..91b2c88 100644
---- a/drivers/media/video/ir-kbd-i2c.c
-+++ b/drivers/media/video/ir-kbd-i2c.c
-@@ -325,25 +325,6 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		ir_type     = IR_TYPE_RC5;
- 		ir_codes    = RC_MAP_FUSIONHDTV_MCE;
- 		break;
--	case 0x0b:
--	case 0x47:
--	case 0x71:
--		if (adap->id == I2C_HW_B_CX2388x) {
--			/* Handled by cx88-input */
--			name = "CX2388x remote";
--			ir_type     = IR_TYPE_RC5;
--			ir->get_key = get_key_haup_xvr;
--			if (hauppauge == 1) {
--				ir_codes    = RC_MAP_HAUPPAUGE_NEW;
--			} else {
--				ir_codes    = RC_MAP_RC5_TV;
--			}
--		} else {
--			/* Handled by saa7134-input */
--			name        = "SAA713x remote";
--			ir_type     = IR_TYPE_OTHER;
--		}
--		break;
- 	case 0x40:
- 		name        = "AVerMedia Cardbus remote";
- 		ir->get_key = get_key_avermedia_cardbus;
+I think it makes sense to keep the enumeration type for type checking reasons 
+(both in kernel space and user space). Unfortunately it can't be used in the 
+kernel <-> user API because of ABI incompatibilities.
+
 -- 
-1.7.1
+Regards,
 
-
+Laurent Pinchart
