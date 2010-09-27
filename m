@@ -1,111 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from web55402.mail.re4.yahoo.com ([206.190.58.196]:39216 "HELO
-	web55402.mail.re4.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752780Ab0IVNw5 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Sep 2010 09:52:57 -0400
-Message-ID: <102147.29196.qm@web55402.mail.re4.yahoo.com>
-References: <397375.74162.qm@web55403.mail.re4.yahoo.com> <AANLkTikvMqZyrBWsdo5iGuGES9q4wjj2TJW2HZS5cOtV@mail.gmail.com> <4C910AF7.9050605@pec.homeip.net>
-Date: Wed, 22 Sep 2010 06:52:51 -0700 (PDT)
-From: Suchita Gupta <suchitagupta@yahoo.com>
-Subject: Re: Fw: [linux-dvb] DSM-CC question
-To: Peter Evertz <leo2@pec.homeip.net>,
-	Simon Liddicott <simon@liddicott.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <4C910AF7.9050605@pec.homeip.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:51039 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751502Ab0I0NGu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Sep 2010 09:06:50 -0400
+Received: by bwz11 with SMTP id 11so3246776bwz.19
+        for <linux-media@vger.kernel.org>; Mon, 27 Sep 2010 06:06:49 -0700 (PDT)
+From: Ruslan Pisarev <ruslanpisarev@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: ruslan@rpisarev.org.ua
+Subject: [PATCH 10/13] Staging: cx25821: fix tabs and space coding style issue in cx25821-video-upstream-ch2.h
+Date: Mon, 27 Sep 2010 16:06:38 +0300
+Message-Id: <1285592798-32694-1-git-send-email-ruslan@rpisarev.org.ua>
+In-Reply-To: <y>
+References: <y>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi All,
+This is a patch to the cx25821-video-upstream-ch2.h file that fixed up
+a space errors found by the checkpatch.pl tools.
 
-Thanks to everyone for their help.
-I am able to build a tree from DSMCC carousel.
+Signed-off-by: Ruslan Pisarev <ruslan@rpisarev.org.ua>
+---
+ .../staging/cx25821/cx25821-video-upstream-ch2.h   |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
-I have done only file, dir and srg messages at the time being as I don't 
-understand the usage of stream and stream event messages at the moment.
-Can anyone please explain these to me and how can they be assembled. 
+diff --git a/drivers/staging/cx25821/cx25821-video-upstream-ch2.h b/drivers/staging/cx25821/cx25821-video-upstream-ch2.h
+index 6234063..029e830 100644
+--- a/drivers/staging/cx25821/cx25821-video-upstream-ch2.h
++++ b/drivers/staging/cx25821/cx25821-video-upstream-ch2.h
+@@ -88,14 +88,14 @@
+ #endif
+ 
+ #ifndef USE_RISC_NOOP_VIDEO
+-#define PAL_US_VID_PROG_SIZE      ((PAL_FIELD_HEIGHT + 1) * 3 * DWORD_SIZE + RISC_WRITECR_INSTRUCTION_SIZE )
+-#define PAL_RISC_BUF_SIZE         ( 2 * (RISC_SYNC_INSTRUCTION_SIZE + PAL_US_VID_PROG_SIZE) )
++#define PAL_US_VID_PROG_SIZE      ((PAL_FIELD_HEIGHT + 1) * 3 * DWORD_SIZE + RISC_WRITECR_INSTRUCTION_SIZE)
++#define PAL_RISC_BUF_SIZE         (2 * (RISC_SYNC_INSTRUCTION_SIZE + PAL_US_VID_PROG_SIZE))
+ #define PAL_VID_PROG_SIZE         ((PAL_FIELD_HEIGHT*2) * 3 * DWORD_SIZE + 2*RISC_SYNC_INSTRUCTION_SIZE + \
+-				    RISC_WRITECR_INSTRUCTION_SIZE + JUMP_INSTRUCTION_SIZE )
+-#define ODD_FLD_PAL_PROG_SIZE     ((PAL_FIELD_HEIGHT) * 3 * DWORD_SIZE + RISC_SYNC_INSTRUCTION_SIZE + RISC_WRITECR_INSTRUCTION_SIZE )
+-#define ODD_FLD_NTSC_PROG_SIZE    ((NTSC_ODD_FLD_LINES) * 3 * DWORD_SIZE + RISC_SYNC_INSTRUCTION_SIZE + RISC_WRITECR_INSTRUCTION_SIZE )
++				    RISC_WRITECR_INSTRUCTION_SIZE + JUMP_INSTRUCTION_SIZE)
++#define ODD_FLD_PAL_PROG_SIZE     ((PAL_FIELD_HEIGHT) * 3 * DWORD_SIZE + RISC_SYNC_INSTRUCTION_SIZE + RISC_WRITECR_INSTRUCTION_SIZE)
++#define ODD_FLD_NTSC_PROG_SIZE    ((NTSC_ODD_FLD_LINES) * 3 * DWORD_SIZE + RISC_SYNC_INSTRUCTION_SIZE + RISC_WRITECR_INSTRUCTION_SIZE)
+ #define NTSC_US_VID_PROG_SIZE     ((NTSC_ODD_FLD_LINES + 1) * 3 * DWORD_SIZE + RISC_WRITECR_INSTRUCTION_SIZE + JUMP_INSTRUCTION_SIZE)
+-#define NTSC_RISC_BUF_SIZE        (2 * (RISC_SYNC_INSTRUCTION_SIZE + NTSC_US_VID_PROG_SIZE) )
++#define NTSC_RISC_BUF_SIZE        (2 * (RISC_SYNC_INSTRUCTION_SIZE + NTSC_US_VID_PROG_SIZE))
+ #define FRAME1_VID_PROG_SIZE      ((NTSC_ODD_FLD_LINES + NTSC_FIELD_HEIGHT) * 3 * DWORD_SIZE + 2*RISC_SYNC_INSTRUCTION_SIZE + \
+-				    RISC_WRITECR_INSTRUCTION_SIZE + JUMP_INSTRUCTION_SIZE )
++				    RISC_WRITECR_INSTRUCTION_SIZE + JUMP_INSTRUCTION_SIZE)
+ #endif
+-- 
+1.7.0.4
 
-Thanks,
-rs
-
-
------ Original Message ----
-From: Peter Evertz <leo2@pec.homeip.net>
-To: Simon Liddicott <simon@liddicott.com>
-Cc: Suchita Gupta <suchitagupta@yahoo.com>; linux-media@vger.kernel.org
-Sent: Wed, 15 September, 2010 19:05:43
-Subject: Re: Fw: [linux-dvb] DSM-CC question
-
-Or take a look at "mhp" or "dsmcc" plugins for vdr. Both not activ 
-projects, but both have a dsmcc implementation.
-
-Are you working on a "hbbtv" solution ?
-
-Simon Liddicott schrieb:
-> Have you had a look at the code for redbutton?
->
-> http://redbutton.sourceforge.net/
->
-> Si
->
-> On 14 September 2010 21:32, Suchita Gupta <suchitagupta@yahoo.com> wrote:
->  
->> Hi,
->>
->> First of all, I am new to this list, so I am not sire if this is right place 
->>for
->>
->> this question.
->> If not, please forgive me and point me to right list.
->>
->> I am writing a DSMCC decoding implementation to persist it to local 
->filesystem.
->> I am unable to understand few thiings related to "srg"
->>
->> I know, it represents the top level directory. But how do I get the name of 
->>this
->>
->> directory?
->> I can extract the names of subdirs and files using name components but where 
->is
->> the name of top level directory?
->>
->> Also, as far as I understand it, I can't start writing to the local 
-filesystem
->> until I have acquired the whole carousel.
->>
->> Can, anyone please provide me some guidance.
->>
->> Thanks in Advance,
->> rs
->>
->>
->>
->>
->> _______________________________________________
->> linux-dvb users mailing list
->> For V4L/DVB development, please use instead linux-media@vger.kernel.org
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>
->>
->>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>    
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
-
-      
