@@ -1,41 +1,105 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:36202 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754331Ab0IJAlB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Sep 2010 20:41:01 -0400
-Subject: Re: [PATCH 5/8] IR: extend MCE keymap.
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: lirc-list@lists.sourceforge.net,
-	David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	mchehab@infradead.org, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org
-In-Reply-To: <AANLkTi=EFZys7NnxixmQL3hqqGfin_VOV7XAWCm0BkwT@mail.gmail.com>
-References: <1283808373-27876-1-git-send-email-maximlevitsky@gmail.com>
-	 <1283808373-27876-6-git-send-email-maximlevitsky@gmail.com>
-	 <AANLkTi=EFZys7NnxixmQL3hqqGfin_VOV7XAWCm0BkwT@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 10 Sep 2010 03:40:54 +0300
-Message-ID: <1284079254.4828.6.camel@maxim-laptop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from perceval.irobotique.be ([92.243.18.41]:33251 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756329Ab0I0MZg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Sep 2010 08:25:36 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH 5/6] omap3: Export omap3isp platform device structure
+Date: Mon, 27 Sep 2010 14:25:41 +0200
+Message-Id: <1285590342-5199-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1285590342-5199-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1285590342-5199-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-On Wed, 2010-09-08 at 10:47 -0400, Jarod Wilson wrote: 
-> On Mon, Sep 6, 2010 at 5:26 PM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
-> > These keys are found on remote bundled with
-> > Toshiba Qosmio F50-10q.
-> >
-> > Found and tested by, Sami R <maesesami@gmail.com>
-> >
-> > Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
-> > ---
-> >  drivers/media/IR/keymaps/rc-rc6-mce.c |    3 +++
-> >  1 files changed, 3 insertions(+), 0 deletions(-)
+From: Stanimir Varbanov <svarbanov@mm-sol.com>
 
-Tommorow I will resend that patch with even more scancodes.
+The omap3isp platform device requires platform data. As the data can be
+provided by a kernel module, the device can't be registered during arch
+initialization.
 
-Best regards,
-Maxim Levitsky
+Remove the omap3isp platform device registration from
+omap_init_camera(), and export the platform device structure to let
+board code register/unregister it.
+
+Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ arch/arm/mach-omap2/devices.c |   18 ++++++++++++++++--
+ arch/arm/mach-omap2/devices.h |   17 +++++++++++++++++
+ 2 files changed, 33 insertions(+), 2 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/devices.h
+
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index ade8db0..f9bc507 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -31,6 +31,8 @@
+ 
+ #include "mux.h"
+ 
++#include "devices.h"
++
+ #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
+ 
+ static struct resource cam_resources[] = {
+@@ -141,16 +143,28 @@ static struct resource omap3isp_resources[] = {
+ 	}
+ };
+ 
+-static struct platform_device omap3isp_device = {
++static void omap3isp_release(struct device *dev)
++{
++	/* Zero the device structure to avoid re-initialization complaints from
++	 * kobject when the device will be re-registered.
++	 */
++	memset(dev, 0, sizeof(*dev));
++	dev->release = omap3isp_release;
++}
++
++struct platform_device omap3isp_device = {
+ 	.name		= "omap3isp",
+ 	.id		= -1,
+ 	.num_resources	= ARRAY_SIZE(omap3isp_resources),
+ 	.resource	= omap3isp_resources,
++	.dev = {
++		.release	= omap3isp_release,
++	},
+ };
++EXPORT_SYMBOL_GPL(omap3isp_device);
+ 
+ static inline void omap_init_camera(void)
+ {
+-	platform_device_register(&omap3isp_device);
+ }
+ #else
+ static inline void omap_init_camera(void)
+diff --git a/arch/arm/mach-omap2/devices.h b/arch/arm/mach-omap2/devices.h
+new file mode 100644
+index 0000000..f312d49
+--- /dev/null
++++ b/arch/arm/mach-omap2/devices.h
+@@ -0,0 +1,17 @@
++/*
++ * arch/arm/mach-omap2/devices.h
++ *
++ * OMAP2 platform device setup/initialization
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#ifndef __ARCH_ARM_MACH_OMAP_DEVICES_H
++#define __ARCH_ARM_MACH_OMAP_DEVICES_H
++
++extern struct platform_device omap3isp_device;
++
++#endif
+-- 
+1.7.2.2
 
