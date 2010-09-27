@@ -1,149 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:59087 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:64778 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751620Ab0IPBCM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Sep 2010 21:02:12 -0400
-Date: Wed, 15 Sep 2010 21:56:40 -0300
+	id S1757904Ab0I0DBA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Sep 2010 23:01:00 -0400
+Message-ID: <4CA008E6.2000501@redhat.com>
+Date: Mon, 27 Sep 2010 00:00:54 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 6/8] V4L/DVB: cx88: Remove BKL
-Message-ID: <20100915215640.4767fc72@pedra>
-In-Reply-To: <cover.1284597566.git.mchehab@redhat.com>
-References: <cover.1284597566.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+To: Daniel Moraes <daniel.b.moraes@gmail.com>
+CC: linux-media@vger.kernel.org,
+	Fernando Henrique <fernandohbc@gmail.com>
+Subject: Re: Webcam Driver Bug while using two Multilaser Cameras simultaneously
+References: <AANLkTi=TjOKMRQk1spGFVnt1ycu48eZudiWh-hc0a8vp@mail.gmail.com> <AANLkTikWL10Tjb1BnmESGKvq1edZJXoe60pEdJUzMsLx@mail.gmail.com> <AANLkTimRw9=K5D51iejuVv2Duphu0tqCt8_nH2X2eOyL@mail.gmail.com> <4C990C08.9050504@redhat.com> <AANLkTinO4Wm0vHYv2nDP25bar-ASSvgGgO_7ONF-MNmh@mail.gmail.com> <4C9CA90A.50204@redhat.com> <AANLkTi=ArE-em7wBXAne2Lnr0CoVW6oG_o=gkFvRBUgT@mail.gmail.com>
+In-Reply-To: <AANLkTi=ArE-em7wBXAne2Lnr0CoVW6oG_o=gkFvRBUgT@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Em 26-09-2010 21:29, Daniel Moraes escreveu:
+> Mauro,
+> 
+> first of all I would like to thank you. By using the commands that you
+> told me, I was able to find the problem. Now I need to find a
+> solution.
+> 
+> Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 003 Device 005: ID 04fc:2001 Sunplus Technology Co., Ltd
+> Bus 003 Device 004: ID 04fc:2001 Sunplus Technology Co., Ltd
+> Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 002 Device 002: ID 04f2:b015 Chicony Electronics Co., Ltd VGA
+> 24fps UVC Webcam
+> Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+> Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+> 
+> As I showed above, I have 4 USB buses here (two usb 2.0 and two usb
+> 1.1). However, all three external USB ports from my notebook seem to
+> use the same USB bus (Bus 003) and the HP Webcam the Bus 002.
+> 
+> When I turn one of the Multilaser cameras on, in one port, the Bus 003
+> stream uses 80% of the limit. When I turn the another camera on, in a
+> different port, it doesn't work because it uses the same USB bus.
+> 
+> Is there a way to change the USB bus from any of my external usb ports?
 
-diff --git a/drivers/media/video/cx88/cx88-blackbird.c b/drivers/media/video/cx88/cx88-blackbird.c
-index e46e1ce..ec32995 100644
---- a/drivers/media/video/cx88/cx88-blackbird.c
-+++ b/drivers/media/video/cx88/cx88-blackbird.c
-@@ -1057,7 +1057,7 @@ static int mpeg_open(struct file *file)
- 
- 	dprintk( 1, "%s\n", __func__);
- 
--	lock_kernel();
-+	mutex_lock(&dev->core->lock);
- 
- 	/* Make sure we can acquire the hardware */
- 	drv = cx8802_get_driver(dev, CX88_MPEG_BLACKBIRD);
-@@ -1065,7 +1065,7 @@ static int mpeg_open(struct file *file)
- 		err = drv->request_acquire(drv);
- 		if(err != 0) {
- 			dprintk(1,"%s: Unable to acquire hardware, %d\n", __func__, err);
--			unlock_kernel();
-+			mutex_unlock(&dev->core->lock);;
- 			return err;
- 		}
- 	}
-@@ -1073,7 +1073,7 @@ static int mpeg_open(struct file *file)
- 	if (!atomic_read(&dev->core->mpeg_users) && blackbird_initialize_codec(dev) < 0) {
- 		if (drv)
- 			drv->request_release(drv);
--		unlock_kernel();
-+		mutex_unlock(&dev->core->lock);
- 		return -EINVAL;
- 	}
- 	dprintk(1, "open dev=%s\n", video_device_node_name(vdev));
-@@ -1083,7 +1083,7 @@ static int mpeg_open(struct file *file)
- 	if (NULL == fh) {
- 		if (drv)
- 			drv->request_release(drv);
--		unlock_kernel();
-+		mutex_unlock(&dev->core->lock);
- 		return -ENOMEM;
- 	}
- 	file->private_data = fh;
-@@ -1099,10 +1099,9 @@ static int mpeg_open(struct file *file)
- 	/* FIXME: locking against other video device */
- 	cx88_set_scale(dev->core, dev->width, dev->height,
- 			fh->mpegq.field);
--	unlock_kernel();
- 
- 	atomic_inc(&dev->core->mpeg_users);
--
-+	mutex_unlock(&dev->core->lock);
- 	return 0;
- }
- 
-@@ -1120,8 +1119,11 @@ static int mpeg_release(struct file *file)
- 	videobuf_stop(&fh->mpegq);
- 
- 	videobuf_mmap_free(&fh->mpegq);
-+
-+	mutex_lock(&dev->core->lock);
- 	file->private_data = NULL;
- 	kfree(fh);
-+	mutex_unlock(&dev->core->lock);
- 
- 	/* Make sure we release the hardware */
- 	drv = cx8802_get_driver(dev, CX88_MPEG_BLACKBIRD);
-diff --git a/drivers/media/video/cx88/cx88-video.c b/drivers/media/video/cx88/cx88-video.c
-index 0fab65c..381398d 100644
---- a/drivers/media/video/cx88/cx88-video.c
-+++ b/drivers/media/video/cx88/cx88-video.c
-@@ -769,19 +769,14 @@ static int video_open(struct file *file)
- 		break;
- 	}
- 
--	lock_kernel();
--
--	core = dev->core;
--
- 	dprintk(1, "open dev=%s radio=%d type=%s\n",
- 		video_device_node_name(vdev), radio, v4l2_type_names[type]);
- 
- 	/* allocate + initialize per filehandle data */
- 	fh = kzalloc(sizeof(*fh),GFP_KERNEL);
--	if (NULL == fh) {
--		unlock_kernel();
-+	if (unlikely(!fh))
- 		return -ENOMEM;
--	}
-+
- 	file->private_data = fh;
- 	fh->dev      = dev;
- 	fh->radio    = radio;
-@@ -790,6 +785,9 @@ static int video_open(struct file *file)
- 	fh->height   = 240;
- 	fh->fmt      = format_by_fourcc(V4L2_PIX_FMT_BGR24);
- 
-+	mutex_lock(&core->lock);
-+	core = dev->core;
-+
- 	videobuf_queue_sg_init(&fh->vidq, &cx8800_video_qops,
- 			    &dev->pci->dev, &dev->slock,
- 			    V4L2_BUF_TYPE_VIDEO_CAPTURE,
-@@ -826,9 +824,9 @@ static int video_open(struct file *file)
- 		}
- 		call_all(core, tuner, s_radio);
- 	}
--	unlock_kernel();
- 
- 	atomic_inc(&core->users);
-+	mutex_unlock(&core->lock);
- 
- 	return 0;
- }
-@@ -920,10 +918,11 @@ static int video_release(struct file *file)
- 
- 	videobuf_mmap_free(&fh->vidq);
- 	videobuf_mmap_free(&fh->vbiq);
-+
-+	mutex_lock(&dev->core->lock);
- 	file->private_data = NULL;
- 	kfree(fh);
- 
--	mutex_lock(&dev->core->lock);
- 	if(atomic_dec_and_test(&dev->core->users))
- 		call_all(dev->core, core, s_power, 0);
- 	mutex_unlock(&dev->core->lock);
--- 
-1.7.1
+In general, you can't. They're hardwired. You'll need to buy an extra 
+USB adapter. There are a few PCMCIA ones, like:
 
+http://www.byterunner.com/byterunner/category=PCMCIA+USB+and+Firewire+Cards
+http://shopping.uol.com.br/pcmcia-usb.html?nortrk=1&url=/index.html&lout=47,49&psid=1#rmcl
 
+There are also some models for Express Card bus. Just be sure to buy one
+that will work with your notebook (if you're in doubt, you may see 
+http://en.wikipedia.org/wiki/ExpressCard).
+
+> 
+> Att,
+>  Daniel Bastos Moraes
+>  Graduando em Ciência da Computação - Universidade Tiradentes
+>  +55 79 88455531
