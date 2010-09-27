@@ -1,401 +1,253 @@
-Return-path: <mchehab@localhost>
-Received: from bear.ext.ti.com ([192.94.94.41]:38829 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755602Ab0IBOqc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Sep 2010 10:46:32 -0400
-From: raja_mani@ti.com
-To: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
-	mchehab@infradead.org
-Cc: matti.j.aaltonen@nokia.com, Raja Mani <raja_mani@ti.com>,
-	Pramodh AG <pramodh_ag@ti.com>
-Subject: [RFC/PATCH 7/8] drivers:staging:ti-st: Link FM TX module API with FM V4L2 module
-Date: Thu,  2 Sep 2010 11:57:59 -0400
-Message-Id: <1283443080-30644-8-git-send-email-raja_mani@ti.com>
-In-Reply-To: <1283443080-30644-7-git-send-email-raja_mani@ti.com>
-References: <1283443080-30644-1-git-send-email-raja_mani@ti.com>
- <1283443080-30644-2-git-send-email-raja_mani@ti.com>
- <1283443080-30644-3-git-send-email-raja_mani@ti.com>
- <1283443080-30644-4-git-send-email-raja_mani@ti.com>
- <1283443080-30644-5-git-send-email-raja_mani@ti.com>
- <1283443080-30644-6-git-send-email-raja_mani@ti.com>
- <1283443080-30644-7-git-send-email-raja_mani@ti.com>
+Return-path: <mchehab@pedra>
+Received: from isilmar-3.linta.de ([188.40.101.200]:51946 "EHLO linta.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755201Ab0I0Hp7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Sep 2010 03:45:59 -0400
+Date: Mon, 27 Sep 2010 09:45:49 +0200
+From: Dominik Brodowski <linux@dominikbrodowski.net>
+To: linux-i2c@vger.kernel.org, linux-media@vger.kernel.org
+Subject: wnv_cs.c: i2c question
+Message-ID: <20100927074549.GA32061@comet.dominikbrodowski.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: <mchehab@pedra>
 
-From: Raja Mani <raja_mani@ti.com>
+Hey,
 
- Add FM TX API calls in FM V4L2 module which will internally link to V4L2
- subsystem. It includes ,
+as I recently obtained such a PCMCIA card, I try to revive the wnv_cs driver
+for Winnov Videum Traveler video cards. First (non-working, but compiling
+and able to access the EEPROM and to detect the decoder) results may be
+found at
 
- 1) Support for set/get modulator attributes and extended control.
- 2) fm_v4l2_vidioc_s_ctrl ()
-     + added support for V4L2_CID_TUNE_POWER_LEVEL,
-       V4L2_CID_TUNE_PREEMPHASIS, V4L2_CID_FM_BAND,
-       V4L2_CID_TUNE_ANTENNA_CAPACITOR
- 3) fm_v4l2_vidioc_g_ctrl ()
-     + added support for V4L2_CID_TUNE_PREEMPHASIS, V4L2_CID_FM_BAND
+http://git.kernel.org/?p=linux/kernel/git/brodo/pcmcia-2.6.git;a=shortlog;h=refs/heads/wnv
 
-Signed-off-by: Raja Mani <raja_mani@ti.com>
-Signed-off-by: Pramodh AG <pramodh_ag@ti.com>
----
- drivers/staging/ti-st/fmdrv_v4l2.c |  243 ++++++++++++++++++++++++++++++++---
- 1 files changed, 222 insertions(+), 21 deletions(-)
+Now, I got a bit stuck at the i2c level -- do the following access functions
+look familiar to one of the i2c experts? If so, which algo driver is to be
+used? Is this an i2c_smbus_, or some very custom interface not worth
+converting to use the i2c subsystem? Many thanks!
 
-diff --git a/drivers/staging/ti-st/fmdrv_v4l2.c b/drivers/staging/ti-st/fmdrv_v4l2.c
-index c546a0f..d76344e 100644
---- a/drivers/staging/ti-st/fmdrv_v4l2.c
-+++ b/drivers/staging/ti-st/fmdrv_v4l2.c
-@@ -30,8 +30,7 @@
- #include "fmdrv_v4l2.h"
- #include "fmdrv_common.h"
- #include "fmdrv_rx.h"
--/* TODO: Enable when FM TX is supported */
--/* #include "fmdrv_tx.h" */
-+#include "fmdrv_tx.h"
- 
- #ifndef DEBUG
- #ifdef pr_info
-@@ -134,9 +133,8 @@ static ssize_t fm_v4l2_fops_write(struct file *file, const char __user * buf,
- 		   ret, rds.text_type, rds.text, rds.af_freq);
- 
- 	fmdev = video_drvdata(file);
--	/* TODO: Enable when FM TX is supported */
--	/* fm_tx_set_radio_text(fmdev, rds.text, rds.text_type); */
--	/* fm_tx_set_af(fmdev, rds.af_freq); */
-+	fm_tx_set_radio_text(fmdev, rds.text, rds.text_type);
-+	fm_tx_set_af(fmdev, rds.af_freq);
- 
- 	return 0;
- }
-@@ -257,6 +255,9 @@ static int fm_v4l2_vidioc_g_ctrl(struct file *file, void *priv,
- 	int ret = -EINVAL;
- 	unsigned short curr_vol;
- 	unsigned char curr_mute_mode;
-+	unsigned char region;
-+	unsigned char afreq;
-+	short threshold;
- 	struct fmdrv_ops *fmdev;
- 
- 	fmdev = video_drvdata(file);
-@@ -274,16 +275,48 @@ static int fm_v4l2_vidioc_g_ctrl(struct file *file, void *priv,
- 			goto exit;
- 		ctrl->value = curr_vol;
- 		break;
-+	case V4L2_CID_FM_BAND:
-+		if (fmdev->curr_fmmode != FM_MODE_RX)
-+			break;
-+		ret = fm_rx_get_region(fmdev, &region);
-+		if (ret < 0)
-+			break;
-+		if (region == FM_BAND_EUROPE_US)
-+			ctrl->value = V4L2_FM_BAND_OTHER;
-+		else
-+			ctrl->value = V4L2_FM_BAND_JAPAN;
-+		break;
-+	case V4L2_CID_RSSI_THRESHOLD:
-+		ret = fm_rx_get_rssi_threshold(fmdev, &threshold);
-+		if (ret == 0)
-+			ctrl->value = threshold;
-+		break;
-+	case V4L2_CID_TUNE_AF:
-+		ret = fm_rx_get_af_switch(fmdev, &afreq);
-+		if (ret == 0)
-+			ctrl->value = afreq;
-+		break;
-+	case V4L2_CID_TUNE_PREEMPHASIS:
-+		ctrl->value = fmdev->tx_data.preemph;
-+		break;
- 	}
- 
- exit:
- 	return ret;
- }
- 
-+/* Change the value of specified control.
-+ * V4L2_CID_TUNE_POWER_LEVEL: Application will specify power level value in
-+ * units of dB/uV, whereas range and step are specific to FM chip. For TI's WL
-+ * chips, convert application specified power level value to chip specific
-+ * value by substracting it with 122. Refer to TI FM data sheet for details.
-+ */
- static int fm_v4l2_vidioc_s_ctrl(struct file *file, void *priv,
- 					struct v4l2_control *ctrl)
- {
- 	int ret = -EINVAL;
-+	unsigned int emph_filter;
-+	unsigned char region;
- 	struct fmdrv_ops *fmdev;
- 
- 	fmdev = video_drvdata(file);
-@@ -291,17 +324,61 @@ static int fm_v4l2_vidioc_s_ctrl(struct file *file, void *priv,
- 	switch (ctrl->id) {
- 	case V4L2_CID_AUDIO_MUTE:	/* set mute */
- 		ret = fmc_set_mute_mode(fmdev, (unsigned char)ctrl->value);
--		if (ret < 0)
--			goto exit;
- 		break;
- 	case V4L2_CID_AUDIO_VOLUME:	/* set volume */
- 		ret = fm_rx_set_volume(fmdev, (unsigned short)ctrl->value);
--		if (ret < 0)
--			goto exit;
-+		break;
-+	case V4L2_CID_TUNE_POWER_LEVEL: /* set TX power level - ext control */
-+		if (ctrl->value >= FM_PWR_LVL_LOW &&
-+				ctrl->value <= FM_PWR_LVL_HIGH) {
-+			ctrl->value = FM_PWR_LVL_HIGH - ctrl->value;
-+			ret = fm_tx_set_pwr_lvl(fmdev,
-+					(unsigned char)ctrl->value);
-+		} else
-+			ret = -ERANGE;
-+		break;
-+	case V4L2_CID_FM_BAND:
-+		if (ctrl->value < V4L2_FM_BAND_OTHER ||
-+				ctrl->value > V4L2_FM_BAND_JAPAN) {
-+			ret = -ERANGE;
-+			break;
-+		}
-+		if (ctrl->value == V4L2_FM_BAND_OTHER)
-+			region = FM_BAND_EUROPE_US;
-+		else
-+			region = FM_BAND_JAPAN;
-+		ret = fmc_set_region(fmdev, region);
-+		break;
-+	case V4L2_CID_RSSI_THRESHOLD:
-+		ret = fm_rx_set_rssi_threshold(fmdev, (short)ctrl->value);
-+		break;
-+	case V4L2_CID_TUNE_AF:
-+		ret = fm_rx_set_af_switch(fmdev, (unsigned char)ctrl->value);
-+		break;
-+	case V4L2_CID_TUNE_PREEMPHASIS:
-+		if (ctrl->value < V4L2_PREEMPHASIS_DISABLED ||
-+			ctrl->value > V4L2_PREEMPHASIS_75_uS) {
-+			ret = -EINVAL;
-+			break;
-+		}
-+		if (ctrl->value == V4L2_PREEMPHASIS_DISABLED)
-+			emph_filter = FM_TX_PREEMPH_OFF;
-+		else if (ctrl->value == V4L2_PREEMPHASIS_50_uS)
-+			emph_filter = FM_TX_PREEMPH_50US;
-+		else
-+			emph_filter = FM_TX_PREEMPH_75US;
-+		ret = fm_tx_set_preemph_filter(fmdev, emph_filter);
-+		break;
-+	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
-+		if (ctrl->value == FM_TX_ANT_IMP_50 ||
-+			ctrl->value == FM_TX_ANT_IMP_200 ||
-+				ctrl->value == FM_TX_ANT_IMP_500)
-+			ret = fm_tx_set_ant_imp(fmdev, ctrl->value);
-+		else
-+			ret = -EINVAL;
- 		break;
- 	}
- 
--exit:
- 	return ret;
- }
- 
-@@ -324,7 +401,7 @@ static int fm_v4l2_vidioc_s_audio(struct file *file, void *priv,
- 	return 0;
- }
- 
--/* Get tuner attributes. If current mode is NOT RX, set to RX */
-+/* Get tuner attributes. If current mode is NOT RX, return error */
- static int fm_v4l2_vidioc_g_tuner(struct file *file, void *priv,
- 					struct v4l2_tuner *tuner)
- {
-@@ -340,12 +417,8 @@ static int fm_v4l2_vidioc_g_tuner(struct file *file, void *priv,
- 
- 	fmdev = video_drvdata(file);
- 	if (fmdev->curr_fmmode != FM_MODE_RX) {
--		ret = fmc_set_mode(fmdev, FM_MODE_RX);
--		if (ret < 0) {
--			pr_err("(fmdrv): Failed to set RX mode; unable to " \
--					"read tuner attributes\n");
--			goto exit;
--		}
-+		ret = -EPERM;
-+		goto exit;
- 	}
- 
- 	ret = fm_rx_get_currband_lowhigh_freq(fmdev, &bottom_frequency,
-@@ -364,11 +437,12 @@ static int fm_v4l2_vidioc_g_tuner(struct file *file, void *priv,
- 	strcpy(tuner->name, "FM");
- 	tuner->type = V4L2_TUNER_RADIO;
- 	/* Store rangelow and rangehigh freq in unit of 62.5 KHz */
--	tuner->rangelow = (bottom_frequency * 10000) / 625;
--	tuner->rangehigh = (top_frequency * 10000) / 625;
-+	tuner->rangelow = bottom_frequency * 16;
-+	tuner->rangehigh = top_frequency * 16;
- 	tuner->rxsubchans = V4L2_TUNER_SUB_MONO | V4L2_TUNER_SUB_STEREO |
- 	((fmdev->rx.rds.flag == FM_RDS_ENABLE) ? V4L2_TUNER_SUB_RDS : 0);
--	tuner->capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS;
-+	tuner->capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS |
-+			    V4L2_TUNER_CAP_LOW;
- 	tuner->audmode = (stereo_mono_mode ?
- 			  V4L2_TUNER_MODE_MONO : V4L2_TUNER_MODE_STEREO);
- 
-@@ -440,6 +514,8 @@ static int fm_v4l2_vidioc_g_frequency(struct file *file, void *priv,
- 	ret = fmc_get_frequency(fmdev, &freq->frequency);
- 	if (ret < 0)
- 		return ret;
-+
-+	freq->frequency *= 16; /* unit of 62.5 */
- 	return 0;
- }
- 
-@@ -451,6 +527,13 @@ static int fm_v4l2_vidioc_s_frequency(struct file *file, void *priv,
- 	struct fmdrv_ops *fmdev;
- 
- 	fmdev = video_drvdata(file);
-+
-+	/*
-+	* As per V4L2 specifications user sends the frequency
-+	* in units of 62.5.
-+	*/
-+	freq->frequency = (unsigned int)(freq->frequency / 16);
-+
- 	ret = fmc_set_frequency(fmdev, freq->frequency);
- 	if (ret < 0)
- 		return ret;
-@@ -482,6 +565,120 @@ exit:
- 	return ret;
- }
- 
-+static int fm_v4l2_vidioc_g_ext_ctrls(struct file *file, void *priv,
-+					struct v4l2_ext_controls *ext_ctrls)
-+{
-+	int index;
-+	int ret = -EINVAL;
-+	struct v4l2_control ctrl;
-+
-+	if (V4L2_CTRL_CLASS_FM_TX == ext_ctrls->ctrl_class) {
-+		for (index = 0; index < ext_ctrls->count; index++) {
-+			ctrl.id = ext_ctrls->controls[index].id;
-+			ctrl.value = ext_ctrls->controls[index].value;
-+			ret = fm_v4l2_vidioc_g_ctrl(file, priv, &ctrl);
-+			if (ret < 0) {
-+				ext_ctrls->error_idx = index;
-+				break;
-+			}
-+			ext_ctrls->controls[index].value = ctrl.value;
-+		}
-+	}
-+	return ret;
-+}
-+
-+static int fm_v4l2_vidioc_s_ext_ctrls(struct file *file, void *priv,
-+					struct v4l2_ext_controls *ext_ctrls)
-+{
-+	int index;
-+	int ret = -EINVAL;
-+	struct v4l2_control ctrl;
-+
-+	if (V4L2_CTRL_CLASS_FM_TX == ext_ctrls->ctrl_class) {
-+		for (index = 0; index < ext_ctrls->count; index++) {
-+			ctrl.id = ext_ctrls->controls[index].id;
-+			ctrl.value = ext_ctrls->controls[index].value;
-+			ret = fm_v4l2_vidioc_s_ctrl(file, priv, &ctrl);
-+			if (ret < 0) {
-+				ext_ctrls->error_idx = index;
-+				break;
-+			}
-+			ext_ctrls->controls[index].value = ctrl.value;
-+		}
-+	}
-+	return ret;
-+}
-+
-+/* Get modulator attributes. If mode is not TX, return no attributes. */
-+static int fm_v4l2_vidioc_g_modulator(struct file *file, void *priv,
-+					struct v4l2_modulator *mod)
-+{
-+	int ret = -EPERM;
-+	struct fmdrv_ops *fmdev;
-+
-+	if (mod->index != 0) {
-+		ret = -EINVAL;
-+		goto exit;
-+	}
-+
-+	fmdev = video_drvdata(file);
-+	if (fmdev->curr_fmmode != FM_MODE_TX)
-+		goto exit;
-+
-+	mod->txsubchans = ((fmdev->tx_data.aud_mode == FM_STEREO_MODE) ?
-+	V4L2_TUNER_SUB_STEREO : V4L2_TUNER_SUB_MONO) |
-+	((fmdev->tx_data.rds.flag == FM_RDS_ENABLE) ? V4L2_TUNER_SUB_RDS : 0);
-+
-+	mod->capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS;
-+	ret = 0;
-+exit:
-+	return ret;
-+}
-+
-+/* Set modulator attributes. If mode is not TX, set to TX. */
-+static int fm_v4l2_vidioc_s_modulator(struct file *file, void *priv,
-+					struct v4l2_modulator *mod)
-+{
-+	unsigned char rds_mode;
-+	unsigned short aud_mode;
-+	int ret;
-+	struct fmdrv_ops *fmdev;
-+
-+	if (mod->index != 0) {
-+		ret = -EINVAL;
-+		goto exit;
-+	}
-+
-+	fmdev = video_drvdata(file);
-+	if (fmdev->curr_fmmode != FM_MODE_TX) {
-+		ret = fmc_set_mode(fmdev, FM_MODE_TX);
-+		if (ret != 0) {
-+			pr_err("(fmdrv): Failed to set TX mode; unable to " \
-+					"set modulator attributes\n");
-+			goto exit;
-+		}
-+	}
-+
-+	aud_mode = (mod->txsubchans & V4L2_TUNER_SUB_STEREO) ?
-+			FM_STEREO_MODE : FM_MONO_MODE;
-+	rds_mode = (mod->txsubchans & V4L2_TUNER_SUB_RDS) ?
-+			FM_RDS_ENABLE : FM_RDS_DISABLE;
-+
-+	ret = fm_tx_set_stereo_mono(fmdev, aud_mode);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Failed to set mono/stereo mode for TX\n");
-+		goto exit;
-+	}
-+
-+	ret = fm_tx_set_rds_mode(fmdev, rds_mode);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Failed to set rds mode for TX\n");
-+		goto exit;
-+	}
-+exit:
-+	return ret;
-+}
-+
- static const struct v4l2_file_operations fm_drv_fops = {
- 	.owner = THIS_MODULE,
- 	.read = fm_v4l2_fops_read,
-@@ -497,13 +694,17 @@ static const struct v4l2_ioctl_ops fm_drv_ioctl_ops = {
- 	.vidioc_queryctrl = fm_v4l2_vidioc_queryctrl,
- 	.vidioc_g_ctrl = fm_v4l2_vidioc_g_ctrl,
- 	.vidioc_s_ctrl = fm_v4l2_vidioc_s_ctrl,
-+	.vidioc_g_ext_ctrls = fm_v4l2_vidioc_g_ext_ctrls,
-+	.vidioc_s_ext_ctrls = fm_v4l2_vidioc_s_ext_ctrls,
- 	.vidioc_g_audio = fm_v4l2_vidioc_g_audio,
- 	.vidioc_s_audio = fm_v4l2_vidioc_s_audio,
- 	.vidioc_g_tuner = fm_v4l2_vidioc_g_tuner,
- 	.vidioc_s_tuner = fm_v4l2_vidioc_s_tuner,
- 	.vidioc_g_frequency = fm_v4l2_vidioc_g_frequency,
- 	.vidioc_s_frequency = fm_v4l2_vidioc_s_frequency,
--	.vidioc_s_hw_freq_seek = fm_v4l2_vidioc_s_hw_freq_seek
-+	.vidioc_s_hw_freq_seek = fm_v4l2_vidioc_s_hw_freq_seek,
-+	.vidioc_g_modulator = fm_v4l2_vidioc_g_modulator,
-+	.vidioc_s_modulator = fm_v4l2_vidioc_s_modulator
- };
- 
- /* V4L2 RADIO device parent structure */
--- 
-1.5.6.3
+Best,
+	Dominik
+
+PS: The i2c addresses used in this driver are > 0x7f (e.g. 0xa0, 0x8e, 0x48,
+	0x4a, 0x34, 0xa8, 0x68)
+
+
+/*
+ *	  2
+ *	I   C   B U S   I N T E R F A C E
+ *
+ */
+
+static __u16
+in_ctl(struct videum_device *dev)
+{	return wavi_readreg(dev, WAVI_CTL);
+}
+static void
+out_ctl(struct videum_device *dev)
+{	wavi_writereg(dev, WAVI_CTL, dev->ctl);
+}
+static void
+i2c_delay(void)
+{	udelay(2);
+}
+static void
+i2c_clock(struct videum_device *dev, int c)
+{	int	t = 1000;
+	if (c) dev->ctl |= WAVI_I2CBIT; else dev->ctl &= ~WAVI_I2CBIT;
+	out_ctl(dev);
+	if (!c) while (--t && (in_ctl(dev) & WAVI_I2CBIT));
+}
+static void
+i2c_data(struct videum_device *dev, int d)
+{	if (d) dev->ctl |= WAVI_IMDBIT; else dev->ctl &= ~WAVI_IMDBIT;
+	out_ctl(dev);
+}
+/* BUG: I2C bit read routines, polarity */
+
+static void
+i2c_start(struct videum_device *dev)
+{	dev->ctl &= ~(WAVI_I2CBIT | WAVI_IMDBIT);
+	out_ctl(dev);		i2c_delay();
+	i2c_data(dev, 1);	i2c_delay();
+	i2c_clock(dev, 0);	i2c_delay();
+}
+
+static int
+i2c_get_ack(struct videum_device *dev)
+{
+	i2c_clock(dev, 1);	i2c_delay();
+	i2c_data(dev, 0);	i2c_delay();
+	i2c_clock(dev, 0);	i2c_delay();
+	i2c_delay();
+	return in_ctl(dev) & WAVI_IMDBIT;
+}
+
+static void
+i2c_send_ack(struct videum_device *dev)
+{
+	i2c_clock(dev, 1);	i2c_delay();
+	i2c_data(dev, 1);	i2c_delay();
+	i2c_clock(dev, 0);	i2c_delay();
+}
+
+static void
+i2c_send_nak(struct videum_device *dev)
+{
+	i2c_clock(dev, 1);	i2c_delay();
+	i2c_data(dev, 0);	i2c_delay();
+	i2c_clock(dev, 0);	i2c_delay();
+}
+
+static void
+i2c_end(struct videum_device *dev)
+{
+	i2c_clock(dev, 1);	i2c_delay();
+	i2c_data(dev, 1);	i2c_delay();
+	i2c_clock(dev, 0);	i2c_delay();
+	i2c_data(dev, 0);	i2c_delay();
+}
+
+static void
+i2c_vpxrestart(struct videum_device *dev)
+{
+	i2c_clock(dev, 1);	i2c_delay();
+	i2c_data(dev, 0);	i2c_delay();
+	i2c_clock(dev, 0);	i2c_delay();
+}
+
+static void
+i2c_out8(struct videum_device *dev,
+	 int	ndata)
+{
+	int	i;
+	
+	ndata = ~ndata;
+	for (i = 0; i < 8; ++i)
+	{
+		i2c_clock(dev, 1);		i2c_delay();
+		i2c_data(dev, ndata & 128);	i2c_delay();
+		i2c_clock(dev, 0);		i2c_delay();
+		ndata <<= 1;
+	}
+}
+
+static int
+i2c_in8(struct videum_device *dev)
+{
+	int	i;
+	int	ndata = ~0;
+
+	dev->ctl &= ~WAVI_IMDBIT;// Don't write to h/w now
+	for (i = 0; i < 8; ++i)
+	{
+		i2c_clock(dev, 1);	i2c_delay();
+		i2c_clock(dev, 0);	i2c_delay();
+		ndata = (in_ctl(dev) & 1) | (ndata << 1);
+	}
+	return ~ndata;
+}
+
+static void
+i2c_get_ready(struct videum_device *dev)
+{/*	Prepare I2C bus for operation	*/
+	dev->ctl = in_ctl(dev);	/* initialize the CTL register shadow */
+	i2c_end(dev);	/* idle the I2C bus */
+}
+
+static int
+i2c_error(struct videum_device *dev)
+{
+	i2c_end(dev);
+	return -1;
+}
+
+// Returns -1 on error.
+static int i2c_read_reg_byte(struct videum_device *dev, int addr, int reg)
+{	int	ndata;
+
+	i2c_start(dev);
+	i2c_out8(dev, addr);
+	if (!i2c_get_ack(dev))
+		return i2c_error(dev);/* no ACK from device */
+	i2c_out8(dev, reg);
+	i2c_get_ack(dev); /* assume it succeeds if the first one succeeded */
+	if (addr == 0x86 || addr == 0x8E)/* ITT VPX is a little different  */
+		i2c_vpxrestart(dev);
+	else
+		i2c_end(dev);
+	i2c_start(dev);
+	i2c_out8(dev, addr | 1);
+	if (!i2c_get_ack(dev))
+		return i2c_error(dev);
+	ndata = i2c_in8(dev);
+	if (addr == 0x86 || addr == 0x8E)/* ITT VPX is a little different  */
+		i2c_send_nak(dev);
+	i2c_end(dev);
+	return ndata;
+}
+
+static int /* -1 on error */
+i2c_write_reg_byte(struct videum_device *dev, 
+		   int addr, int reg, int ndata)
+{
+	i2c_start(dev);
+	i2c_out8(dev, addr);
+	if (!i2c_get_ack(dev))
+		return i2c_error(dev);/* no ACK from device */
+	i2c_out8(dev, reg);
+	i2c_get_ack(dev);
+	i2c_out8(dev, ndata);
+	i2c_get_ack(dev);
+	i2c_end(dev);
+	return 0;
+}
+
+static int /* -1 on error */
+i2c_read_reg_word(struct videum_device *dev, 
+		  int addr, int reg)
+{
+	int	ndata;
+	
+	i2c_start(dev);
+	i2c_out8(dev, addr);
+	if (!i2c_get_ack(dev))
+		return i2c_error(dev);/* no ACK from device */
+	i2c_out8(dev, reg);
+	i2c_get_ack(dev); /* assume it succeeds if the first one succeeded */
+	if (addr == 0x86 || addr == 0x8E)/* ITT VPX is a little different  */
+		i2c_vpxrestart(dev);
+	else
+		i2c_end(dev);
+	i2c_start(dev);
+	i2c_out8(dev, addr | 1);
+	if (!i2c_get_ack(dev))
+		return i2c_error(dev);
+	ndata = i2c_in8(dev) << 8;
+	i2c_send_ack(dev);
+	ndata |= i2c_in8(dev);
+	i2c_send_nak(dev);
+	i2c_end(dev);
+	return ndata;
+}
+
+static int /* -1 on error */
+i2c_write_reg_word(struct videum_device *dev, 
+		   int addr, int reg, int ndata)
+{
+	i2c_start(dev);
+	i2c_out8(dev, addr);
+	if (!i2c_get_ack(dev))
+		return i2c_error(dev);/* no ACK from device */
+	i2c_out8(dev, reg);
+	i2c_get_ack(dev);
+	i2c_out8(dev, ndata >> 8);
+	i2c_get_ack(dev);
+	i2c_out8(dev, ndata & 0xFF);
+	i2c_get_ack(dev);
+	i2c_end(dev);
+	return 0;
+}
 
