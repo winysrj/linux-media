@@ -1,74 +1,146 @@
-Return-path: <mchehab@localhost>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:45439 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753193Ab0IEQUY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Sep 2010 12:20:24 -0400
-MIME-Version: 1.0
-In-Reply-To: <AANLkTimYS+EqyGm=Bur4De3HDg+spNHLHejp0QJTcft_@mail.gmail.com>
-References: <AANLkTimXP-3OkoNCjTgrQmo29F0t-TmA9p4utAG2M3Qp@mail.gmail.com>
-	<AANLkTim_HujYzL5SyotRb7w6-ZTc3_BtO=+YhCpnSzBT@mail.gmail.com>
-	<AANLkTimpDh36-edV9UkRyn-9Z0o1o7T4wFZFBVQje1Y9@mail.gmail.com>
-	<AANLkTimYS+EqyGm=Bur4De3HDg+spNHLHejp0QJTcft_@mail.gmail.com>
-Date: Sun, 5 Sep 2010 12:20:23 -0400
-Message-ID: <AANLkTimi_Wbb414yxEfz57tjd0BkN9_oUhPLJLKzyc8a@mail.gmail.com>
-Subject: Re: some question about
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: loody <miloody@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-usb@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Return-path: <mchehab@pedra>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:51039 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759117Ab0I0NH6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Sep 2010 09:07:58 -0400
+Received: by mail-bw0-f46.google.com with SMTP id 11so3246776bwz.19
+        for <linux-media@vger.kernel.org>; Mon, 27 Sep 2010 06:07:58 -0700 (PDT)
+From: Ruslan Pisarev <ruslanpisarev@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: ruslan@rpisarev.org.ua
+Subject: [PATCH 13/13] Staging: cx25821: fix tabs and space coding style issue in cx25821.h
+Date: Mon, 27 Sep 2010 16:07:46 +0300
+Message-Id: <1285592866-475-1-git-send-email-ruslan@rpisarev.org.ua>
+In-Reply-To: <y>
+References: <y>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: <mchehab@pedra>
 
-On Sun, Sep 5, 2010 at 12:06 PM, loody <miloody@gmail.com> wrote:
-> hi:
->
-> 2010/9/5 Devin Heitmueller <dheitmueller@kernellabs.com>:
->> On Sun, Sep 5, 2010 at 11:48 AM, Devin Heitmueller
->> <dheitmueller@kernellabs.com> wrote:
->>> On Sun, Sep 5, 2010 at 11:36 AM, loody <miloody@gmail.com> wrote:
->>>> WinTV-HVR-1950 high performance USB TV tuner
->>>> WinTV-HVR-950Q for laptop and notebooks
->>>
->>> Both these devices are supported under Linux, and in fact are unlikely
->>> to work properly with only Full Speed USB.  At least the 950q
->>> definitely requires High speed (I put a check in there to specifically
->>> not load the driver otherwise).
->>
->> I perhaps misread your original email.  While the 950q does present
->> itself as a USB audio class device, the 1950 does not.  It only
->> provides MPEG encoded output (containing both the audio and video),
->> and is not a USB audio class device.
->>
->> So while both these devices will work under Linux on a high speed
->> interface, if you specifically require the device to identify itself
->> as a USB audio class device, only the 950q does this.
->>
->> Devin
-> would you mind to send me the device descriptors for me?
-> I want to check whether the input/output unit and audio/video format
-> does meet the spec.
-> BTW, will the device support mp3 output?
-> since the spec define mp3 as one of input/output format.
-> that means if I put the raw data of mp3 to that device, it should
-> play/record well.
+This is a patch to the cx25821.h file that fixed
+up a tabs and space error and warnings found by the checkpatch.pl tools.
 
-The device descriptors can be found here:
+Signed-off-by: Ruslan Pisarev <ruslan@rpisarev.org.ua>
+---
+ drivers/staging/cx25821/cx25821.h |   51 ++++++++++++++++++-------------------
+ 1 files changed, 25 insertions(+), 26 deletions(-)
 
-http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-950Q#Identification
-
-The device does not support MP3 output (virtually no devices do as far
-as I know).  It only provides raw 16-bit two channel PCM.
-
-The video format would not be in the spec you mentioned.  It does work
-as a standard V4L2 device though, providing raw YUYV video frames.
-
-Perhaps if I better understood your intended application, I might be
-able to give better advice.
-
-Devin
-
+diff --git a/drivers/staging/cx25821/cx25821.h b/drivers/staging/cx25821/cx25821.h
+index 1b628f6..c940001 100644
+--- a/drivers/staging/cx25821/cx25821.h
++++ b/drivers/staging/cx25821/cx25821.h
+@@ -91,10 +91,10 @@
+ 
+ /* Currently supported by the driver */
+ #define CX25821_NORMS (\
+-    V4L2_STD_NTSC_M |  V4L2_STD_NTSC_M_JP | V4L2_STD_NTSC_M_KR | \
+-    V4L2_STD_PAL_BG |  V4L2_STD_PAL_DK    |  V4L2_STD_PAL_I    | \
+-    V4L2_STD_PAL_M  |  V4L2_STD_PAL_N     |  V4L2_STD_PAL_H    | \
+-    V4L2_STD_PAL_Nc )
++	V4L2_STD_NTSC_M |  V4L2_STD_NTSC_M_JP | V4L2_STD_NTSC_M_KR | \
++	V4L2_STD_PAL_BG |  V4L2_STD_PAL_DK    |  V4L2_STD_PAL_I    | \
++	V4L2_STD_PAL_M  |  V4L2_STD_PAL_N     |  V4L2_STD_PAL_H    | \
++	V4L2_STD_PAL_Nc)
+ 
+ #define CX25821_BOARD_CONEXANT_ATHENA10 1
+ #define MAX_VID_CHANNEL_NUM     12
+@@ -139,7 +139,7 @@ struct cx25821_fh {
+ 	/* video capture */
+ 	struct cx25821_fmt *fmt;
+ 	unsigned int width, height;
+-    int channel_id;
++	int channel_id;
+ 
+ 	/* vbi capture */
+ 	struct videobuf_queue vidq;
+@@ -238,26 +238,25 @@ struct cx25821_data {
+ };
+ 
+ struct cx25821_channel {
+-       struct v4l2_prio_state prio;
++	struct v4l2_prio_state prio;
+ 
+-       int ctl_bright;
+-       int ctl_contrast;
+-       int ctl_hue;
+-       int ctl_saturation;
++	int ctl_bright;
++	int ctl_contrast;
++	int ctl_hue;
++	int ctl_saturation;
++	struct cx25821_data timeout_data;
+ 
+-       struct cx25821_data timeout_data;
++	struct video_device *video_dev;
++	struct cx25821_dmaqueue vidq;
+ 
+-       struct video_device *video_dev;
+-       struct cx25821_dmaqueue vidq;
++	struct sram_channel *sram_channels;
+ 
+-       struct sram_channel *sram_channels;
+-
+-       struct mutex lock;
+-       int resources;
++	struct mutex lock;
++	int resources;
+ 
+-       int pixel_formats;
+-       int use_cif_resolution;
+-       int cif_width;
++	int pixel_formats;
++	int use_cif_resolution;
++	int cif_width;
+ };
+ 
+ struct cx25821_dev {
+@@ -283,7 +282,7 @@ struct cx25821_dev {
+ 	int nr;
+ 	struct mutex lock;
+ 
+-    struct cx25821_channel channels[MAX_VID_CHANNEL_NUM];
++	struct cx25821_channel channels[MAX_VID_CHANNEL_NUM];
+ 
+ 	/* board details */
+ 	unsigned int board;
+@@ -311,7 +310,7 @@ struct cx25821_dev {
+ 	int _audio_lines_count;
+ 	int _audioframe_count;
+ 	int _audio_upstream_channel_select;
+-       int _last_index_irq;    /* The last interrupt index processed. */
++	int _last_index_irq;    /* The last interrupt index processed. */
+ 
+ 	__le32 *_risc_audio_jmp_addr;
+ 	__le32 *_risc_virt_start_addr;
+@@ -443,7 +442,7 @@ static inline struct cx25821_dev *get_cx25821(struct v4l2_device *v4l2_dev)
+ }
+ 
+ #define cx25821_call_all(dev, o, f, args...) \
+-    v4l2_device_call_all(&dev->v4l2_dev, 0, o, f, ##args)
++	v4l2_device_call_all(&dev->v4l2_dev, 0, o, f, ##args)
+ 
+ extern struct list_head cx25821_devlist;
+ extern struct cx25821_board cx25821_boards[];
+@@ -491,7 +490,7 @@ struct sram_channel {
+ 	u32 fld_aud_fifo_en;
+ 	u32 fld_aud_risc_en;
+ 
+-       /* For Upstream Video */
++	/* For Upstream Video */
+ 	u32 vid_fmt_ctl;
+ 	u32 vid_active_ctl1;
+ 	u32 vid_active_ctl2;
+@@ -511,8 +510,8 @@ extern struct sram_channel cx25821_sram_channels[];
+ #define cx_write(reg, value)     writel((value), dev->lmmio + ((reg)>>2))
+ 
+ #define cx_andor(reg, mask, value) \
+-  writel((readl(dev->lmmio+((reg)>>2)) & ~(mask)) |\
+-  ((value) & (mask)), dev->lmmio+((reg)>>2))
++	writel((readl(dev->lmmio+((reg)>>2)) & ~(mask)) |\
++	((value) & (mask)), dev->lmmio+((reg)>>2))
+ 
+ #define cx_set(reg, bit)          cx_andor((reg), (bit), (bit))
+ #define cx_clear(reg, bit)        cx_andor((reg), (bit), 0)
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.0.4
+
