@@ -1,541 +1,236 @@
 Return-path: <mchehab@pedra>
-Received: from comal.ext.ti.com ([198.47.26.152]:33499 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753889Ab0IVKjK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Sep 2010 06:39:10 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o8MAd9nW031661
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 22 Sep 2010 05:39:09 -0500
-From: x0130808@ti.com
-To: linux-media@vger.kernel.org
-Cc: Raja Mani <raja_mani@ti.com>, Pramodh AG <pramodh_ag@ti.com>,
-	Manjunatha Halli <x0130808@ti.com>
-Subject: [RFC/PATCH 3/9] drivers:staging:ti-st: Sources for FM TX
-Date: Wed, 22 Sep 2010 07:49:56 -0400
-Message-Id: <1285156202-28569-4-git-send-email-x0130808@ti.com>
-In-Reply-To: <1285156202-28569-3-git-send-email-x0130808@ti.com>
-References: <1285156202-28569-1-git-send-email-x0130808@ti.com>
- <1285156202-28569-2-git-send-email-x0130808@ti.com>
- <1285156202-28569-3-git-send-email-x0130808@ti.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:44601 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754486Ab0I0AaR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Sep 2010 20:30:17 -0400
+Received: by fxm3 with SMTP id 3so1530369fxm.19
+        for <linux-media@vger.kernel.org>; Sun, 26 Sep 2010 17:30:15 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4C9CA90A.50204@redhat.com>
+References: <AANLkTi=TjOKMRQk1spGFVnt1ycu48eZudiWh-hc0a8vp@mail.gmail.com>
+ <AANLkTikWL10Tjb1BnmESGKvq1edZJXoe60pEdJUzMsLx@mail.gmail.com>
+ <AANLkTimRw9=K5D51iejuVv2Duphu0tqCt8_nH2X2eOyL@mail.gmail.com>
+ <4C990C08.9050504@redhat.com> <AANLkTinO4Wm0vHYv2nDP25bar-ASSvgGgO_7ONF-MNmh@mail.gmail.com>
+ <4C9CA90A.50204@redhat.com>
+From: Daniel Moraes <daniel.b.moraes@gmail.com>
+Date: Sun, 26 Sep 2010 21:29:55 -0300
+Message-ID: <AANLkTi=ArE-em7wBXAne2Lnr0CoVW6oG_o=gkFvRBUgT@mail.gmail.com>
+Subject: Re: Webcam Driver Bug while using two Multilaser Cameras simultaneously
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org,
+	Fernando Henrique <fernandohbc@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Raja Mani <raja_mani@ti.com>
+Mauro,
 
-This has implementation for FM TX functionality.
-It communicates with FM V4l2 module and FM common module.
+first of all I would like to thank you. By using the commands that you
+told me, I was able to find the problem. Now I need to find a
+solution.
 
-Signed-off-by: Raja Mani <raja_mani@ti.com>
-Signed-off-by: Pramodh AG <pramodh_ag@ti.com>
-Signed-off-by: Manjunatha Halli <x0130808@ti.com>
----
- drivers/staging/ti-st/fmdrv_tx.c |  451 ++++++++++++++++++++++++++++++++++++++
- drivers/staging/ti-st/fmdrv_tx.h |   37 +++
- 2 files changed, 488 insertions(+), 0 deletions(-)
- create mode 100644 drivers/staging/ti-st/fmdrv_tx.c
- create mode 100644 drivers/staging/ti-st/fmdrv_tx.h
+Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 003 Device 005: ID 04fc:2001 Sunplus Technology Co., Ltd
+Bus 003 Device 004: ID 04fc:2001 Sunplus Technology Co., Ltd
+Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 002 Device 002: ID 04f2:b015 Chicony Electronics Co., Ltd VGA
+24fps UVC Webcam
+Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
 
-diff --git a/drivers/staging/ti-st/fmdrv_tx.c b/drivers/staging/ti-st/fmdrv_tx.c
-new file mode 100644
-index 0000000..2c9f004
---- /dev/null
-+++ b/drivers/staging/ti-st/fmdrv_tx.c
-@@ -0,0 +1,451 @@
-+/*
-+ *  FM Driver for Connectivity chip of Texas Instruments.
-+ *  This sub-module of FM driver implements FM TX functionality.
-+ *
-+ *  Copyright (C) 2010 Texas Instruments
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2 as
-+ *  published by the Free Software Foundation.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ *
-+ */
-+
-+#include <linux/delay.h>
-+#include "fmdrv.h"
-+#include "fmdrv_common.h"
-+#include "fmdrv_tx.h"
-+
-+int fm_tx_set_stereo_mono(struct fmdrv_ops *fmdev, unsigned short mode)
-+{
-+	unsigned short payload;
-+	int ret = 0;
-+
-+	if (fmdev->curr_fmmode != FM_MODE_TX)
-+		return -EPERM;
-+
-+	if (fmdev->tx_data.aud_mode == mode)
-+		return ret;
-+
-+	pr_debug("stereo mode: %d\n", mode);
-+
-+	/* Set Stereo/Mono mode */
-+	FM_STORE_LE16_TO_BE16(payload, (1 - mode));
-+	ret = fmc_send_cmd(fmdev, MONO_SET, &payload, sizeof(payload),
-+				&fmdev->maintask_completion, NULL, NULL);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Failed to set TX stereo/mono mode - %d\n",
-+			ret);
-+		return ret;
-+	}
-+
-+	fmdev->tx_data.aud_mode = mode;
-+	return ret;
-+}
-+
-+static int __set_rds_text(struct fmdrv_ops *fmdev, unsigned char *rds_text)
-+{
-+	unsigned short payload;
-+	int ret;
-+
-+	ret = fmc_send_cmd(fmdev, RDS_DATA_SET, rds_text, strlen(rds_text),
-+				&fmdev->maintask_completion, NULL, NULL);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Failed to set TX RDS data - %d\n", ret);
-+		return ret;
-+	}
-+
-+	/* Scroll mode */
-+	FM_STORE_LE16_TO_BE16(payload, (unsigned short)0x1);
-+	ret = fmc_send_cmd(fmdev, DISPLAY_MODE_SET, &payload, sizeof(payload),
-+				&fmdev->maintask_completion, NULL, NULL);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Failed to set RDS display mode - %d\n", ret);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static int __set_rds_data_mode(struct fmdrv_ops *fmdev, unsigned char mode)
-+{
-+	unsigned short payload;
-+	int ret;
-+
-+	/* Setting unique PI TODO: how unique? */
-+	FM_STORE_LE16_TO_BE16(payload, (unsigned short)0xcafe);
-+	ret = fmc_send_cmd(fmdev, PI_SET, &payload, sizeof(payload),
-+				&fmdev->maintask_completion, NULL, NULL);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Failed to set PI - %d\n", ret);
-+		return ret;
-+	}
-+
-+	/* Set decoder id */
-+	FM_STORE_LE16_TO_BE16(payload, (unsigned short)0xa);
-+	ret = fmc_send_cmd(fmdev, DI_SET, &payload, sizeof(payload),
-+				&fmdev->maintask_completion, NULL, NULL);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Failed to set DI - %d\n", ret);
-+		return ret;
-+	}
-+
-+	/* TODO: RDS_MODE_GET? */
-+	return 0;
-+}
-+
-+static int __set_rds_len(struct fmdrv_ops *fmdev, unsigned char type,
-+				unsigned short len)
-+{
-+	unsigned short payload;
-+	int ret;
-+
-+	len |= type << 8;
-+	FM_STORE_LE16_TO_BE16(payload, len);
-+	ret = fmc_send_cmd(fmdev, LENGTH_SET, &payload, sizeof(payload),
-+				&fmdev->maintask_completion, NULL, NULL);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Failed to set RDS data length - %d\n", ret);
-+		return ret;
-+	}
-+
-+	/* TODO: LENGTH_GET? */
-+	return 0;
-+}
-+
-+int fm_tx_set_rds_mode(struct fmdrv_ops *fmdev, unsigned char rds_en_dis)
-+{
-+	unsigned short payload;
-+	int ret;
-+	unsigned char rds_text[] = "Zoom2\n";
-+
-+	if (fmdev->curr_fmmode != FM_MODE_TX)
-+		return -EPERM;
-+
-+	pr_debug("rds_en_dis:%d(E:%d, D:%d)\n", rds_en_dis,
-+		   FM_RDS_ENABLE, FM_RDS_DISABLE);
-+
-+	if (rds_en_dis == FM_RDS_ENABLE) {
-+		/* Set RDS length */
-+		__set_rds_len(fmdev, 0, strlen(rds_text));
-+		/* Set RDS text */
-+		__set_rds_text(fmdev, rds_text);
-+		/* Set RDS mode */
-+		__set_rds_data_mode(fmdev, 0x0);
-+	}
-+
-+	/* Send command to enable RDS */
-+	if (rds_en_dis == FM_RDS_ENABLE)
-+		FM_STORE_LE16_TO_BE16(payload, 0x01);
-+	else
-+		FM_STORE_LE16_TO_BE16(payload, 0x00);
-+
-+	ret = fmc_send_cmd(fmdev, RDS_DATA_ENB, &payload, sizeof(payload),
-+				&fmdev->maintask_completion, NULL, NULL);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Failed to set TX RDS state - %d\n", ret);
-+		return ret;
-+	}
-+
-+	if (rds_en_dis == FM_RDS_ENABLE) {
-+		/* Set RDS length */
-+		__set_rds_len(fmdev, 0, strlen(rds_text));
-+		/* Set RDS text */
-+		__set_rds_text(fmdev, rds_text);
-+	}
-+	fmdev->tx_data.rds.flag = rds_en_dis;
-+
-+	return 0;
-+}
-+
-+int fm_tx_set_radio_text(struct fmdrv_ops *fmdev,
-+				unsigned char *rds_text,
-+				unsigned char rds_type)
-+{
-+	unsigned short payload;
-+	int ret;
-+
-+	if (fmdev->curr_fmmode != FM_MODE_TX)
-+		return -EPERM;
-+
-+	fm_tx_set_rds_mode(fmdev, 0);
-+	/* Set RDS length */
-+	__set_rds_len(fmdev, rds_type, strlen(rds_text));
-+	/* Set RDS text */
-+	__set_rds_text(fmdev, rds_text);
-+	/* Set RDS mode */
-+	__set_rds_data_mode(fmdev, 0x0);
-+
-+	FM_STORE_LE16_TO_BE16(payload, 1);
-+	ret = fmc_send_cmd(fmdev, RDS_DATA_ENB, &payload, sizeof(payload),
-+				&fmdev->maintask_completion, NULL, NULL);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Failed to enable TX RDS data - %d\n", ret);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+int fm_tx_set_af(struct fmdrv_ops *fmdev, unsigned int af)
-+{
-+	unsigned short payload;
-+	int ret;
-+
-+	if (fmdev->curr_fmmode != FM_MODE_TX)
-+		return -EPERM;
-+	pr_debug("AF: %d\n", af);
-+
-+	af = (af - 87500) / 100;
-+	FM_STORE_LE16_TO_BE16(payload, (unsigned short)af);
-+	ret = fmc_send_cmd(fmdev, TA_SET, &payload, sizeof(payload),
-+				&fmdev->maintask_completion, NULL, NULL);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Failed to set TX AF - %d\n", ret);
-+		return ret;
-+	}
-+	return 0;
-+}
-+
-+int fm_tx_set_region(struct fmdrv_ops *fmdev,
-+				unsigned char region_to_set)
-+{
-+	unsigned short payload;
-+	int ret;
-+
-+	if (region_to_set != FM_BAND_EUROPE_US &&
-+	    region_to_set != FM_BAND_JAPAN) {
-+		pr_err("Invalid band\n");
-+		return -EINVAL;
-+	}
-+
-+	/* Send command to set the band */
-+	FM_STORE_LE16_TO_BE16(payload, (unsigned short)region_to_set);
-+	ret = fmc_send_cmd(fmdev, TX_BAND_SET, &payload, sizeof(payload),
-+				&fmdev->maintask_completion, NULL, NULL);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Failed to set TX band - %d\n", ret);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+int fm_tx_set_mute_mode(struct fmdrv_ops *fmdev,
-+				unsigned char mute_mode_toset)
-+{
-+	unsigned short payload;
-+	int ret;
-+
-+	if (fmdev->curr_fmmode != FM_MODE_TX)
-+		return -EPERM;
-+	pr_debug("tx: mute mode %d\n", mute_mode_toset);
-+
-+	FM_STORE_LE16_TO_BE16(payload, mute_mode_toset);
-+	ret = fmc_send_cmd(fmdev, MUTE, &payload, sizeof(payload),
-+				&fmdev->maintask_completion, NULL, NULL);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Failed to TX mute mode - %d\n", ret);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+/* Set TX Audio I/O */
-+static int __set_audio_io(struct fmdrv_ops *fmdev)
-+{
-+	struct fmtx_data *tx = &fmdev->tx_data;
-+	unsigned short payload;
-+	int ret;
-+
-+	/* Set Audio I/O Enable */
-+	FM_STORE_LE16_TO_BE16(payload, tx->audio_io);
-+	ret = fmc_send_cmd(fmdev, AUDIO_IO_SET, &payload, sizeof(payload),
-+				&fmdev->maintask_completion, NULL, NULL);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Failed to enable TX audio I/O - %d\n", ret);
-+		return ret;
-+	}
-+
-+	/* TODO: is audio set? */
-+	return 0;
-+}
-+
-+/* Start TX Transmission */
-+static int __enable_xmit(struct fmdrv_ops *fmdev, unsigned char new_xmit_state)
-+{
-+	struct fmtx_data *tx = &fmdev->tx_data;
-+	unsigned short payload;
-+	unsigned long timeleft;
-+	int ret;
-+
-+	/* Enable POWER_ENB interrupts */
-+	FM_STORE_LE16_TO_BE16(payload, FM_POW_ENB_EVENT);
-+	ret = fmc_send_cmd(fmdev, INT_MASK_SET, &payload, sizeof(payload),
-+				&fmdev->maintask_completion, NULL, NULL);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Failed to set interrupt mask - %d\n", ret);
-+		return ret;
-+	}
-+
-+	/* Set Power Enable */
-+	FM_STORE_LE16_TO_BE16(payload, new_xmit_state);
-+	ret = fmc_send_cmd(fmdev, POWER_ENB_SET, &payload, sizeof(payload),
-+				&fmdev->maintask_completion, NULL, NULL);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Failed to enable transmission - %d\n", ret);
-+		return ret;
-+	}
-+
-+	/* Wait for Power Enabled */
-+	init_completion(&fmdev->maintask_completion);
-+	timeleft = wait_for_completion_timeout(&fmdev->maintask_completion,
-+					       FM_DRV_TX_TIMEOUT);
-+	if (!timeleft) {
-+		pr_err("Timeout(%d sec),didn't get tune ended interrupt\n",
-+			   jiffies_to_msecs(FM_DRV_TX_TIMEOUT) / 1000);
-+		return -ETIMEDOUT;
-+	}
-+
-+	set_bit(FM_CORE_TX_XMITING, &fmdev->flag);
-+	tx->xmit_state = new_xmit_state;
-+
-+	return 0;
-+}
-+
-+/* Set TX power level */
-+int fm_tx_set_pwr_lvl(struct fmdrv_ops *fmdev, unsigned char new_pwr_lvl)
-+{
-+	unsigned short payload;
-+	struct fmtx_data *tx = &fmdev->tx_data;
-+	int ret;
-+
-+	if (fmdev->curr_fmmode != FM_MODE_TX)
-+		return -EPERM;
-+	pr_debug("tx: pwr_level_to_set %ld\n", (long int)new_pwr_lvl);
-+
-+	/* If the core isn't ready update global variable */
-+	if (!test_bit(FM_CORE_READY, &fmdev->flag)) {
-+		tx->pwr_lvl = new_pwr_lvl;
-+		return 0;
-+	}
-+
-+	/* Set power level */
-+	FM_STORE_LE16_TO_BE16(payload, new_pwr_lvl);
-+	ret = fmc_send_cmd(fmdev, POWER_LEL_SET, &payload, sizeof(payload),
-+				&fmdev->maintask_completion, NULL, NULL);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Failed to set TX power level - %d\n", ret);
-+		return ret;
-+	}
-+
-+	/* TODO: is the power level set? */
-+	tx->pwr_lvl = new_pwr_lvl;
-+
-+	return 0;
-+}
-+
-+/*
-+ * Sets FM TX pre-emphasis filter value (OFF, 50us, or 75us)
-+ * Convert V4L2 specified filter values to chip specific filter values.
-+ */
-+int fm_tx_set_preemph_filter(struct fmdrv_ops *fmdev, unsigned int filter)
-+{
-+	struct fmtx_data *tx = &fmdev->tx_data;
-+	unsigned short payload;
-+	int ret;
-+
-+	if (fmdev->curr_fmmode != FM_MODE_TX)
-+		return -EPERM;
-+
-+	FM_STORE_LE16_TO_BE16(payload, filter);
-+	ret = fmc_send_cmd(fmdev, PREMPH_SET, &payload, sizeof(payload),
-+				&fmdev->maintask_completion, NULL, NULL);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Failed to set TX preemphasis filter value -"
-+			" %d\n", ret);
-+		return ret;
-+	}
-+
-+	tx->preemph = filter;
-+	return ret;
-+}
-+
-+/* Sets FM TX antenna impedance value */
-+int fm_tx_set_ant_imp(struct fmdrv_ops *fmdev, unsigned char imp)
-+{
-+	unsigned short payload;
-+	int ret;
-+
-+	if (fmdev->curr_fmmode != FM_MODE_TX)
-+		return -EPERM;
-+
-+	FM_STORE_LE16_TO_BE16(payload, imp);
-+	ret = fmc_send_cmd(fmdev, IMP_SET, &payload, sizeof(payload),
-+				&fmdev->maintask_completion, NULL, NULL);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Failed to set TX antenna impedance value -"
-+			" %d\n", ret);
-+		return ret;
-+	}
-+
-+	return ret;
-+}
-+
-+/* Set TX Frequency */
-+int fm_tx_set_frequency(struct fmdrv_ops *fmdev, unsigned int freq_to_set)
-+{
-+	struct fmtx_data *tx = &fmdev->tx_data;
-+	unsigned short payload, chanl_index;
-+	int ret;
-+
-+	if (test_bit(FM_CORE_TX_XMITING, &fmdev->flag)) {
-+		__enable_xmit(fmdev, 0);
-+		clear_bit(FM_CORE_TX_XMITING, &fmdev->flag);
-+	}
-+
-+	/* Enable FR, BL interrupts */
-+	FM_STORE_LE16_TO_BE16(payload, (FM_FR_EVENT | FM_BL_EVENT));
-+	ret = fmc_send_cmd(fmdev, INT_MASK_SET, &payload, sizeof(payload),
-+				&fmdev->maintask_completion, NULL, NULL);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Failed to set interrupt mask %d\n", ret);
-+		return ret;
-+	}
-+
-+	tx->tx_frq = (unsigned long)freq_to_set;
-+	pr_debug("tx: freq_to_set %ld\n", (long int)tx->tx_frq);
-+
-+	chanl_index = freq_to_set / 10;
-+	/* Set current tuner channel */
-+	FM_STORE_LE16_TO_BE16(payload, chanl_index);
-+	ret = fmc_send_cmd(fmdev, CHANL_SET, &payload, sizeof(payload),
-+				&fmdev->maintask_completion, NULL, NULL);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Failed to set tunner channel %d\n", ret);
-+		return ret;
-+	}
-+
-+	fm_tx_set_pwr_lvl(fmdev, tx->pwr_lvl);
-+	fm_tx_set_preemph_filter(fmdev, tx->preemph);
-+
-+	tx->audio_io = 0x01;	/* I2S */
-+	__set_audio_io(fmdev);
-+
-+	__enable_xmit(fmdev, 0x01);	/* Enable transmission */
-+
-+	tx->aud_mode = FM_STEREO_MODE;
-+	tx->rds.flag = FM_RDS_DISABLE;
-+
-+	return 0;
-+}
-+
-diff --git a/drivers/staging/ti-st/fmdrv_tx.h b/drivers/staging/ti-st/fmdrv_tx.h
-new file mode 100644
-index 0000000..f61dace
---- /dev/null
-+++ b/drivers/staging/ti-st/fmdrv_tx.h
-@@ -0,0 +1,37 @@
-+/*
-+ *  FM Driver for Connectivity chip of Texas Instruments.
-+ *  FM TX module header.
-+ *
-+ *  Copyright (C) 2010 Texas Instruments
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2 as
-+ *  published by the Free Software Foundation.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ *
-+ */
-+
-+#ifndef _FMDRV_TX_H
-+#define _FMDRV_TX_H
-+
-+int fm_tx_set_frequency(struct fmdrv_ops*, unsigned int);
-+int fm_tx_set_pwr_lvl(struct fmdrv_ops*, unsigned char);
-+int fm_tx_set_region(struct fmdrv_ops*, unsigned char);
-+int fm_tx_set_mute_mode(struct fmdrv_ops*, unsigned char);
-+int fm_tx_set_stereo_mono(struct fmdrv_ops*, unsigned short);
-+int fm_tx_set_rds_mode(struct fmdrv_ops*, unsigned char);
-+int fm_tx_set_radio_text(struct fmdrv_ops*, unsigned char*, unsigned char);
-+int fm_tx_set_af(struct fmdrv_ops*, unsigned int);
-+int fm_tx_set_preemph_filter(struct fmdrv_ops*, unsigned int);
-+int fm_tx_set_ant_imp(struct fmdrv_ops*, unsigned char);
-+
-+#endif
-+
--- 
-1.5.6.3
+As I showed above, I have 4 USB buses here (two usb 2.0 and two usb
+1.1). However, all three external USB ports from my notebook seem to
+use the same USB bus (Bus 003) and the HP Webcam the Bus 002.
 
+When I turn one of the Multilaser cameras on, in one port, the Bus 003
+stream uses 80% of the limit. When I turn the another camera on, in a
+different port, it doesn't work because it uses the same USB bus.
+
+Is there a way to change the USB bus from any of my external usb ports?
+
+Att,
+ Daniel Bastos Moraes
+ Graduando em Ciência da Computação - Universidade Tiradentes
+ +55 79 88455531
+
+
+On Fri, Sep 24, 2010 at 10:35 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+>
+> Em 23-09-2010 23:19, Daniel Moraes escreveu:
+> > Hi Mauro,
+> >
+> > thanks a lot for your help. I would only take a few more questions.
+> >
+> >    1. A computer can have more than one USB Bus? As far as I know the USB Bus is unique.
+>
+> Yes, it can have as many bus as designed by the manufacturer. You can also add other buses
+> by buying USB adapter cards.
+>
+> >    2. Whereas HP webcam uses the same USB Bus but has a more compressed stream, is there a way to compress or reduce the stream of a webcam that uses a generic driver like the HP Webcam does with your drive?
+>
+> It will depend on the chipset used by the cameras, the screen resolution, and the number of frames per sec.
+>
+> >    3. Is there a way to check the amount of bandwich in an USB Bus?
+>
+> Yes. you can watch /proc/bus/usb/devices. It will provide not only the information about each connected
+> device on your usb bus, but also the speed used.
+>
+> For example, a quick test here:
+>
+> $ lsusb
+> Bus 008 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+> Bus 007 Device 003: ID 2040:4200 Hauppauge
+> Bus 007 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+> Bus 006 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 005 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 001 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+>
+> This machine has 2 USB 2.0 buses (bus 7 and bus 8), with an WinTV USB2 device
+> connected at bus 7, reading a stream at 640x480x30fps:
+>
+> cat /proc/bus/usb/devices showed (I removed the info for the USB 1.1 buses):
+>
+> T:  Bus=08 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=480 MxCh= 6
+> B:  Alloc=  0/800 us ( 0%), #Int=  0, #Iso=  0
+> D:  Ver= 2.00 Cls=09(hub  ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1
+> P:  Vendor=1d6b ProdID=0002 Rev= 2.06
+> S:  Manufacturer=Linux 2.6.35+ ehci_hcd
+> S:  Product=EHCI Host Controller
+> S:  SerialNumber=0000:00:1d.7
+> C:* #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=  0mA
+> I:* If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
+> E:  Ad=81(I) Atr=03(Int.) MxPS=   4 Ivl=256ms
+>
+> T:  Bus=07 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=480 MxCh= 6
+> B:  Alloc=408/800 us (51%), #Int=  0, #Iso=  5
+> D:  Ver= 2.00 Cls=09(hub  ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1
+> P:  Vendor=1d6b ProdID=0002 Rev= 2.06
+> S:  Manufacturer=Linux 2.6.35+ ehci_hcd
+> S:  Product=EHCI Host Controller
+> S:  SerialNumber=0000:00:1a.7
+> C:* #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=  0mA
+> I:* If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
+> E:  Ad=81(I) Atr=03(Int.) MxPS=   4 Ivl=256ms
+>
+> T:  Bus=07 Lev=01 Prnt=01 Port=05 Cnt=01 Dev#=  3 Spd=480 MxCh= 0
+> D:  Ver= 2.00 Cls=00(>ifc ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1
+> P:  Vendor=2040 ProdID=4200 Rev= 1.00
+> S:  Product=WinTV USB2
+> S:  SerialNumber=0002819348
+> C:* #Ifs= 3 Cfg#= 1 Atr=80 MxPwr=500mA
+> I:  If#= 0 Alt= 0 #EPs= 3 Cls=ff(vend.) Sub=00 Prot=ff Driver=em28xx
+> E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=128ms
+> E:  Ad=82(I) Atr=01(Isoc) MxPS=   0 Ivl=125us
+> E:  Ad=84(I) Atr=02(Bulk) MxPS= 512 Ivl=0ms
+> I:  If#= 0 Alt= 1 #EPs= 3 Cls=ff(vend.) Sub=00 Prot=ff Driver=em28xx
+> E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=128ms
+> E:  Ad=82(I) Atr=01(Isoc) MxPS=1024 Ivl=125us
+> E:  Ad=84(I) Atr=02(Bulk) MxPS= 512 Ivl=0ms
+> I:  If#= 0 Alt= 2 #EPs= 3 Cls=ff(vend.) Sub=00 Prot=ff Driver=em28xx
+> E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=128ms
+> E:  Ad=82(I) Atr=01(Isoc) MxPS=1448 Ivl=125us
+> E:  Ad=84(I) Atr=02(Bulk) MxPS= 512 Ivl=0ms
+> I:  If#= 0 Alt= 3 #EPs= 3 Cls=ff(vend.) Sub=00 Prot=ff Driver=em28xx
+> E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=128ms
+> E:  Ad=82(I) Atr=01(Isoc) MxPS=2048 Ivl=125us
+> E:  Ad=84(I) Atr=02(Bulk) MxPS= 512 Ivl=0ms
+> I:  If#= 0 Alt= 4 #EPs= 3 Cls=ff(vend.) Sub=00 Prot=ff Driver=em28xx
+> E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=128ms
+> E:  Ad=82(I) Atr=01(Isoc) MxPS=2304 Ivl=125us
+> E:  Ad=84(I) Atr=02(Bulk) MxPS= 512 Ivl=0ms
+> I:* If#= 0 Alt= 5 #EPs= 3 Cls=ff(vend.) Sub=00 Prot=ff Driver=em28xx
+> E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=128ms
+> E:  Ad=82(I) Atr=01(Isoc) MxPS=2580 Ivl=125us
+> E:  Ad=84(I) Atr=02(Bulk) MxPS= 512 Ivl=0ms
+> I:  If#= 0 Alt= 6 #EPs= 3 Cls=ff(vend.) Sub=00 Prot=ff Driver=em28xx
+> E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=128ms
+> E:  Ad=82(I) Atr=01(Isoc) MxPS=2892 Ivl=125us
+> E:  Ad=84(I) Atr=02(Bulk) MxPS= 512 Ivl=0ms
+> I:  If#= 0 Alt= 7 #EPs= 3 Cls=ff(vend.) Sub=00 Prot=ff Driver=em28xx
+> E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=128ms
+> E:  Ad=82(I) Atr=01(Isoc) MxPS=3072 Ivl=125us
+> E:  Ad=84(I) Atr=02(Bulk) MxPS= 512 Ivl=0ms
+> I:* If#= 1 Alt= 0 #EPs= 0 Cls=01(audio) Sub=01 Prot=00 Driver=snd-usb-audio
+> I:* If#= 2 Alt= 0 #EPs= 0 Cls=01(audio) Sub=02 Prot=00 Driver=snd-usb-audio
+> I:  If#= 2 Alt= 1 #EPs= 1 Cls=01(audio) Sub=02 Prot=00 Driver=snd-usb-audio
+> E:  Ad=83(I) Atr=01(Isoc) MxPS=  20 Ivl=125us
+>
+>
+> The bandwidth is per bus. In this case, bus 7 shows:
+>        B:  Alloc=408/800 us (51%), #Int=  0, #Iso=  5
+>
+> Eg: the stream is using 51% of the USB for just one single stream. If I want to plug another
+> device, I'll need to use bus 8, as it is free:
+>        B:  Alloc=  0/800 us ( 0%), #Int=  0, #Iso=  0
+>
+> If I try to use bus 7 for another HVR-950 using the same resolution, it will return
+> the error you got (-ENOSPC), as otherwise, it would be using more than 800 slots, of an
+> USB bus that can provide only 800 ISOC slots, according with USB 2.0 specs.
+>
+>
+> Cheers,
+> Mauro
+> >
+> > Att,
+> >  Daniel Bastos Moraes
+> >
+> >
+> >
+> > On Tue, Sep 21, 2010 at 4:48 PM, Mauro Carvalho Chehab <mchehab@redhat.com <mailto:mchehab@redhat.com>> wrote:
+> >
+> >     Hi Daniel,
+> >
+> >     Em 21-09-2010 16:05, Daniel Moraes escreveu:
+> >     > I'm using Ubuntu 10.04 and I need to get images from two Multilaser
+> >     > Cameras simultaneously. First I tried to do that using OpenCV, but I
+> >     > got an error. So, I entered the OpenCV Mailing List to report that and
+> >     > I discovered that's a driver problem. To ensure that, I used mplayer
+> >     > to get imagens from the both cameras and I got the following error
+> >     > (again):
+> >     >
+> >     >> v4l2: ioctl streamon failed: No space left on device
+> >
+> >     This is not a driver issue, but a limit imposed by USB specs. This
+> >     error code is returned by USB core when you try to use more than 100% of
+> >     the available bandwidth for an USB isoc stream.
+> >
+> >     The amount of bandwidth basically depends on what type of compression
+> >     is provided by your webcams.
+> >
+> >     You'll need to plug the other webcam on a separate USB bus.
+> >     >
+> >     > The cameras model is Multilaser WC0440.
+> >     >
+> >     > This problem only happens when I try to capture images from two
+> >     > IDENTICAL cameras simultaneously. I have three cameras here, two
+> >     > Multilaser Cameras and one HP Camera, from my laptop. I have no
+> >     > problem to capture images from my HP Camera and one of the Multilaser
+> >     > Cameras simultaneously, but when I try to capture from the both
+> >     > Multilaser Cameras simultaneously, i got that error.
+> >     >
+> >     > I think that the problem may be something related to the generic
+> >     > driver. When I use the Multilaser Cameras, they use the same driver.
+> >     > That's not happen with the HP Camera, which uses another driver.
+> >
+> >     Probably, the HP Camera is connected internally into a different USB bus,
+> >     or provide a more compressed stream.
+> >
+> >     > Someone knows a solution for that?
+> >     >
+> >     > Att,
+> >     >  Daniel Bastos Moraes
+> >     >  Graduando em Ciência da Computação - Universidade Tiradentes
+> >     >  +55 79 88455531
+> >     > --
+> >     > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> >     > the body of a message to majordomo@vger.kernel.org <mailto:majordomo@vger.kernel.org>
+> >     > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> >
+>
