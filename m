@@ -1,138 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:26443 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753926Ab0I2SK3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Sep 2010 14:10:29 -0400
-Received: from int-mx03.intmail.prod.int.phx2.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.16])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o8TIASTr010984
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 29 Sep 2010 14:10:29 -0400
-Received: from [10.3.224.84] (vpn-224-84.phx2.redhat.com [10.3.224.84])
-	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o8THrnwg015087
-	for <linux-media@vger.kernel.org>; Wed, 29 Sep 2010 13:53:50 -0400
-Message-ID: <4CA37D2C.1040608@redhat.com>
-Date: Wed, 29 Sep 2010 14:53:48 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] V4L/DVB: saa7134: split RC code into a different module
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:44137 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752067Ab0I0NBz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Sep 2010 09:01:55 -0400
+Received: by bwz11 with SMTP id 11so3241947bwz.19
+        for <linux-media@vger.kernel.org>; Mon, 27 Sep 2010 06:01:54 -0700 (PDT)
+From: Ruslan Pisarev <ruslanpisarev@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: ruslan@rpisarev.org.ua
+Subject: [PATCH 02/13] Staging: cx25821: fix braces and space coding style issue in cx25821-audio-upstream.c This is a patch to the cx25821-audio-upstream.c file that fixed up a brace and space Errors found by the checkpatch.pl tools.
+Date: Mon, 27 Sep 2010 16:01:36 +0300
+Message-Id: <1285592496-32121-1-git-send-email-ruslan@rpisarev.org.ua>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This allows the removal of CONFIG_INPUT from saa7134, and
-helps to create a better Kconfig dependency hierarchy.
+Signed-off-by: Ruslan Pisarev <ruslan@rpisarev.org.ua>
+---
+ drivers/staging/cx25821/cx25821-audio-upstream.c |   13 ++++++-------
+ 1 files changed, 6 insertions(+), 7 deletions(-)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/video/saa7134/Kconfig b/drivers/media/video/saa7134/Kconfig
-index fda005e..892b0b1 100644
---- a/drivers/media/video/saa7134/Kconfig
-+++ b/drivers/media/video/saa7134/Kconfig
-@@ -1,8 +1,7 @@
- config VIDEO_SAA7134
- 	tristate "Philips SAA7134 support"
--	depends on VIDEO_DEV && PCI && I2C && INPUT
-+	depends on VIDEO_DEV && PCI && I2C
- 	select VIDEOBUF_DMA_SG
--	depends on VIDEO_IR
- 	select VIDEO_TUNER
- 	select VIDEO_TVEEPROM
- 	select CRC32
-@@ -25,6 +24,17 @@ config VIDEO_SAA7134_ALSA
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called saa7134-alsa.
+diff --git a/drivers/staging/cx25821/cx25821-audio-upstream.c b/drivers/staging/cx25821/cx25821-audio-upstream.c
+index cdff49f..6f32006 100644
+--- a/drivers/staging/cx25821/cx25821-audio-upstream.c
++++ b/drivers/staging/cx25821/cx25821-audio-upstream.c
+@@ -40,8 +40,8 @@ MODULE_AUTHOR("Hiep Huynh <hiep.huynh@conexant.com>");
+ MODULE_LICENSE("GPL");
  
-+config VIDEO_SAA7134_RC
-+	tristate "Philips SAA7134 Remote Controller support"
-+	depends on VIDEO_IR
-+	depends on VIDEO_SAA7134
-+	default y
-+	---help---
-+	  Enables Remote Controller support for saa7134.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called saa7134-rc.
-+
- config VIDEO_SAA7134_DVB
- 	tristate "DVB/ATSC Support for saa7134 based TV cards"
- 	depends on VIDEO_SAA7134 && DVB_CORE
-diff --git a/drivers/media/video/saa7134/Makefile b/drivers/media/video/saa7134/Makefile
-index 604158a..5624468 100644
---- a/drivers/media/video/saa7134/Makefile
-+++ b/drivers/media/video/saa7134/Makefile
-@@ -1,7 +1,9 @@
+ static int _intr_msk =
+-    FLD_AUD_SRC_RISCI1 | FLD_AUD_SRC_OF | FLD_AUD_SRC_SYNC |
+-    FLD_AUD_SRC_OPC_ERR;
++	FLD_AUD_SRC_RISCI1 | FLD_AUD_SRC_OF | FLD_AUD_SRC_SYNC |
++	FLD_AUD_SRC_OPC_ERR;
  
- saa7134-objs :=	saa7134-cards.o saa7134-core.o saa7134-i2c.o	\
- 		saa7134-ts.o saa7134-tvaudio.o saa7134-vbi.o    \
--		saa7134-video.o saa7134-input.o
-+		saa7134-video.o
-+
-+saa7134-rc-objs := saa7134-input.o
+ int cx25821_sram_channel_setup_upstream_audio(struct cx25821_dev *dev,
+ 					      struct sram_channel *ch,
+@@ -506,7 +506,7 @@ int cx25821_audio_upstream_irq(struct cx25821_dev *dev, int chan_num,
+ {
+ 	int i = 0;
+ 	u32 int_msk_tmp;
+-       struct sram_channel *channel = dev->channels[chan_num].sram_channels;
++	struct sram_channel *channel = dev->channels[chan_num].sram_channels;
+ 	dma_addr_t risc_phys_jump_addr;
+ 	__le32 *rp;
  
- obj-$(CONFIG_VIDEO_SAA7134) +=  saa6752hs.o saa7134.o saa7134-empress.o
+@@ -608,7 +608,7 @@ static irqreturn_t cx25821_upstream_irq_audio(int irq, void *dev_id)
+ 	if (!dev)
+ 		return -1;
  
-@@ -9,6 +11,8 @@ obj-$(CONFIG_VIDEO_SAA7134_ALSA) += saa7134-alsa.o
+-       sram_ch = dev->channels[dev->_audio_upstream_channel_select].
++	sram_ch = dev->channels[dev->_audio_upstream_channel_select].
+ 				       sram_channels;
  
- obj-$(CONFIG_VIDEO_SAA7134_DVB) += saa7134-dvb.o
+ 	msk_stat = cx_read(sram_ch->int_mstat);
+@@ -733,7 +733,7 @@ int cx25821_audio_upstream_init(struct cx25821_dev *dev, int channel_select)
+ 	}
  
-+obj-$(CONFIG_VIDEO_SAA7134_RC) += saa7134-rc.o
-+
- EXTRA_CFLAGS += -Idrivers/media/video
- EXTRA_CFLAGS += -Idrivers/media/common/tuners
- EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
-diff --git a/drivers/media/video/saa7134/saa7134-input.c b/drivers/media/video/saa7134/saa7134-input.c
-index 3a0ea56..a6ac462 100644
---- a/drivers/media/video/saa7134/saa7134-input.c
-+++ b/drivers/media/video/saa7134/saa7134-input.c
-@@ -28,7 +28,7 @@
- #include "saa7134-reg.h"
- #include "saa7134.h"
+ 	dev->_audio_upstream_channel_select = channel_select;
+-       sram_ch = dev->channels[channel_select].sram_channels;
++	sram_ch = dev->channels[channel_select].sram_channels;
  
--#define MODULE_NAME "saa7134"
-+#define MODULE_NAME "saa7134-rc"
+ 	/* Work queue */
+ 	INIT_WORK(&dev->_audio_work_entry, cx25821_audioups_handler);
+@@ -764,9 +764,8 @@ int cx25821_audio_upstream_init(struct cx25821_dev *dev, int channel_select)
+ 		       str_length + 1);
  
- static unsigned int disable_ir;
- module_param(disable_ir, int, 0444);
-@@ -1211,3 +1211,6 @@ static int saa7134_nec_irq(struct saa7134_dev *dev)
- 
- 	return 1;
- }
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@redhat.com>");
-diff --git a/drivers/media/video/saa7134/saa7134.h b/drivers/media/video/saa7134/saa7134.h
-index c040a18..99f122b 100644
---- a/drivers/media/video/saa7134/saa7134.h
-+++ b/drivers/media/video/saa7134/saa7134.h
-@@ -810,16 +810,18 @@ void saa7134_irq_oss_done(struct saa7134_dev *dev, unsigned long status);
- /* ----------------------------------------------------------- */
- /* saa7134-input.c                                             */
- 
-+#if defined(CONFIG_VIDEO_SAA7134_RC) || (defined(CONFIG_VIDEO_SAA7134_RC_MODULE) && defined(MODULE))
- int  saa7134_input_init1(struct saa7134_dev *dev);
- void saa7134_input_fini(struct saa7134_dev *dev);
- void saa7134_input_irq(struct saa7134_dev *dev);
- void saa7134_probe_i2c_ir(struct saa7134_dev *dev);
- int saa7134_ir_start(struct saa7134_dev *dev);
- void saa7134_ir_stop(struct saa7134_dev *dev);
--
--
--/*
-- * Local variables:
-- * c-basic-offset: 8
-- * End:
-- */
-+#else
-+#define saa7134_input_init1(dev)	(0)
-+#define saa7134_input_fini(dev)		(0)
-+#define saa7134_input_irq(dev)		(0)
-+#define saa7134_probe_i2c_ir(dev)	(0)
-+#define saa7134_ir_start(dev)		(0)
-+#define saa7134_ir_stop(dev)		(0)
-+#endif
+ 		/* Default if filename is empty string */
+-		if (strcmp(dev->input_audiofilename, "") == 0) {
++		if (strcmp(dev->input_audiofilename, "") == 0)
+ 			dev->_audiofilename = "/root/audioGOOD.wav";
+-		}
+ 	} else {
+ 		str_length = strlen(_defaultAudioName);
+ 		dev->_audiofilename = kmalloc(str_length + 1, GFP_KERNEL);
 -- 
-1.7.1
+1.7.0.4
 
