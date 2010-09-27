@@ -1,105 +1,104 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:52852 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751943Ab0INMZo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Sep 2010 08:25:44 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFC/PATCH v4 00/11] Media controller (core and V4L2)
-Date: Tue, 14 Sep 2010 14:25:27 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com> <4C883BEF.5020504@redhat.com>
-In-Reply-To: <4C883BEF.5020504@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201009141425.28000.laurent.pinchart@ideasonboard.com>
+Received: from psmtp04.wxs.nl ([195.121.247.13]:64113 "EHLO psmtp04.wxs.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933271Ab0I0Sle (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Sep 2010 14:41:34 -0400
+Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
+ by psmtp04.wxs.nl
+ (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
+ with ESMTP id <0L9F00BTD591PV@psmtp04.wxs.nl> for linux-media@vger.kernel.org;
+ Mon, 27 Sep 2010 20:41:26 +0200 (MEST)
+Date: Mon, 27 Sep 2010 20:41:24 +0200
+From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Subject: updated make_kconfig.pl for Ubuntu
+In-reply-to: <4CA018C4.9000507@gmail.com>
+To: Mauro Carvalho Chehab <maurochehab@gmail.com>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>
+Cc: "Ole W. Saastad" <olewsaa@online.no>, linux-media@vger.kernel.org
+Message-id: <4CA0E554.40406@hoogenraad.net>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7BIT
+References: <1284493110.1801.57.camel@sofia> <4C924EB8.9070500@hoogenraad.net>
+ <4C93364C.3040606@hoogenraad.net> <4C934806.7050503@gmail.com>
+ <4C934C10.2060801@hoogenraad.net> <4C93800B.8070902@gmail.com>
+ <4C9F7267.7000707@hoogenraad.net> <4CA018C4.9000507@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+I have updated launchpad bug
 
-On Thursday 09 September 2010 03:44:15 Mauro Carvalho Chehab wrote:
-> Em 20-08-2010 12:29, Laurent Pinchart escreveu:
-> > Hi everybody,
-> > 
-> > Here's the fourth version of the media controller patches. All comments
-> > received so far have hopefully been incorporated.
-> > 
-> > Compared to the previous version, the patches have been rebased on top of
-> > 2.6.35 and a MEDIA_IOC_DEVICE_INFO ioctl has been added.
-> > 
-> > I won't submit a rebased version of the V4L2 API additions and OMAP3 ISP
-> > patches right now. I will first clean up (and document) the V4L2 API
-> > additions patches, and I will submit them as a proper RFC instead of
-> > sample code.
-> 
-> Hi Laurent,
-> 
-> Sorry for a late review on the media controller API. I got flooded by
-> patches and other work since the merge window.
+https://bugs.launchpad.net/ubuntu/+source/linux-kernel-headers/+bug/134222
 
-No worries. I was on holidays last week anyway.
+I also created an updated make_kconfig.pl
 
-> Anyway, just finished my review, and sent a per-patch comment for most
-> patches.
+http://linuxtv.org/hg/~jhoogenraad/rtl2831-r2/file/cb34ee1c29fc/v4l/scripts/make_kconfig.pl
 
-Thanks.
+Unfortunately, I forgot to commit changes to the main archive the first 
+time. I do not know how to make a patch file for this one file, without 
+have all other changes in the two commits as well.
+I cannot find a hg export command to make a patch for this one file 
+between versions spanning two commits.
 
-> One general comment about it: the userspace API should be documented via
-> DocBook, to be consistent with V4L2 and DVB API specs.
+Douglas: can you help ?
 
-I feared so :-) I'll work on it.
+Mauro Carvalho Chehab wrote:
+> Em 26-09-2010 13:18, Jan Hoogenraad escreveu:
+>> On
+>> Linux 2.6.28-19-generic
+>> the problem is tackled already:
+>> DVB_FIREDTV_IEEE1394: Requires at least kernel 2.6.30
+>>
+>> On newer linux versions (I have tried Linux 2.6.32-24-generic) the problem is NOT that the modules dma is not present, it is just that the required header files are not present in
+>> /usr/include
+>>
+>> Another location mighte have been:
+>> ls -l /usr/src/linux-headers-2.6.28-19-generic/include/config/ieee1394
+>
+> This is the right place is whatever pointed on your kernel source alias, like:
+>
+> $ ls -la /lib/modules/2.6.35+/source
+> lrwxrwxrwx. 1 root root 23 Set 26 21:51 /lib/modules/2.6.35+/source ->  /home/v4l/v4l/patchwork
+>
+>
+>>
+>> but that only contains:
+>> -rw-r--r-- 1 root root    0 2010-09-16 18:25 dv1394.h
+>> drwxr-xr-x 3 root root 4096 2010-06-15 20:12 eth1394
+>> -rw-r--r-- 1 root root    0 2010-09-16 18:25 eth1394.h
+>> -rw-r--r-- 1 root root    0 2010-09-16 18:25 ohci1394.h
+>> -rw-r--r-- 1 root root    0 2010-09-16 18:25 pcilynx.h
+>> -rw-r--r-- 1 root root    0 2010-09-16 18:25 rawio.h
+>> -rw-r--r-- 1 root root    0 2010-09-16 18:25 sbp2.h
+>> -rw-r--r-- 1 root root    0 2010-09-16 18:25 video1394.h
+>>
+>> Can you indicate where following files  should be located ?
+>> dma.h
+>> csr1212.h
+>> highlevel.h
+>
+> All of them are at the same place:
+>
+> /lib/modules/2.6.35+/source/drivers/ieee1394/dma.h
+> /lib/modules/2.6.35+/source/drivers/ieee1394/csr1212.h
+> /lib/modules/2.6.35+/source/drivers/ieee1394/highlevel.h
+>
+>>
+>> In that case checking if the dma.h file is present might be the best way forward.
+>>
+>> I'll also file an ubuntu bug once I know what is missing where.
+>> I could not find an entry in launchpad on this issue yet.
+>
+> This is probably the best thing. A check for dma.h may also work. If you want,
+> do a patch for it and submit to Douglas.
+>
+> Cheers,
+> Mauro
+>
 
-> It should also be clear at the API specs there that not all media drivers
-> will implement the media controller API,
-
-I agree.
-
-> as its main focus is to allow better control of SoC devices, where there are
-> needs to control some intrinsic characteristics of parts of the devices,
-> complementing the V4L2 spec.
-
-Some consumer devices (ivtv for instance) will also benefit from the media 
-controller, the API is not specific to SoC devices only.
-
-> This means that it is needed to add some comments at the kernelspace API
-> doc, saying that the drivers implementing the media controller API are
-> required to work properly even when userspace is not using the media
-> controller API;
-
-That's another issue. Drivers should make a best effort to allow pure V4L2 
-applications to work with a subset of the video device nodes, but they will 
-only offer a subset of the hardware capabilities. For SoC devices it's even 
-worse, it might be way too difficult to implement support for pure V4L2 
-applications in the kernel driver(s). In that case a device-specific libv4l 
-plugin will configure the driver using the media controller API for pure V4L2 
-applications.
-
-> This also means that it is needed to add some comments at the userspace API
-> doc, saying that userspace applications should not assume that media
-> drivers will implement the media controller API.
-
-Agreed. Many V4L2 drivers will not implement the media controller API.
-
-> So, userspace applications implementing the media controller and V4L2 API's
-> are required to work properly if the device doesn't present a media
-> controler API interface.
-
-Applications can require support for the media controller API, but they should 
-only do so for specific cases (for instance applications tied to specific SoC 
-hardware, or graphical user interfaces on top of the media controller API 
-similar to qv4l2).
-
-> It should also say that no driver should just implement the media controller
-> API.
-
-I haven't thought about that, as it would be pretty useless :-)
 
 -- 
-Regards,
-
-Laurent Pinchart
+Jan Hoogenraad
+Hoogenraad Interface Services
+Postbus 2717
+3500 GS Utrecht
