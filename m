@@ -1,104 +1,105 @@
 Return-path: <mchehab@pedra>
-Received: from psmtp04.wxs.nl ([195.121.247.13]:64113 "EHLO psmtp04.wxs.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933271Ab0I0Sle (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Sep 2010 14:41:34 -0400
-Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
- by psmtp04.wxs.nl
- (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
- with ESMTP id <0L9F00BTD591PV@psmtp04.wxs.nl> for linux-media@vger.kernel.org;
- Mon, 27 Sep 2010 20:41:26 +0200 (MEST)
-Date: Mon, 27 Sep 2010 20:41:24 +0200
-From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-Subject: updated make_kconfig.pl for Ubuntu
-In-reply-to: <4CA018C4.9000507@gmail.com>
-To: Mauro Carvalho Chehab <maurochehab@gmail.com>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>
-Cc: "Ole W. Saastad" <olewsaa@online.no>, linux-media@vger.kernel.org
-Message-id: <4CA0E554.40406@hoogenraad.net>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7BIT
-References: <1284493110.1801.57.camel@sofia> <4C924EB8.9070500@hoogenraad.net>
- <4C93364C.3040606@hoogenraad.net> <4C934806.7050503@gmail.com>
- <4C934C10.2060801@hoogenraad.net> <4C93800B.8070902@gmail.com>
- <4C9F7267.7000707@hoogenraad.net> <4CA018C4.9000507@gmail.com>
+Received: from perceval.irobotique.be ([92.243.18.41]:33252 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759048Ab0I0MZf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Sep 2010 08:25:35 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH 3/6] V4L/DVB: v4l: Add a v4l2_subdev host private data field
+Date: Mon, 27 Sep 2010 14:25:39 +0200
+Message-Id: <1285590342-5199-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1285590342-5199-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1285590342-5199-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-I have updated launchpad bug
+The existing priv field stores subdev private data owned by the subdev
+driver. Host (bridge) drivers might need to store per-subdev
+host-specific data, such as a pointer to platform data.
 
-https://bugs.launchpad.net/ubuntu/+source/linux-kernel-headers/+bug/134222
+Add a v4l2_subdev host_priv field to store host-specific data, and
+rename the existing priv field to dev_priv.
 
-I also created an updated make_kconfig.pl
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ Documentation/video4linux/v4l2-framework.txt |    5 +++++
+ drivers/media/video/v4l2-subdev.c            |    3 ++-
+ include/media/v4l2-subdev.h                  |   17 ++++++++++++++---
+ 3 files changed, 21 insertions(+), 4 deletions(-)
 
-http://linuxtv.org/hg/~jhoogenraad/rtl2831-r2/file/cb34ee1c29fc/v4l/scripts/make_kconfig.pl
-
-Unfortunately, I forgot to commit changes to the main archive the first 
-time. I do not know how to make a patch file for this one file, without 
-have all other changes in the two commits as well.
-I cannot find a hg export command to make a patch for this one file 
-between versions spanning two commits.
-
-Douglas: can you help ?
-
-Mauro Carvalho Chehab wrote:
-> Em 26-09-2010 13:18, Jan Hoogenraad escreveu:
->> On
->> Linux 2.6.28-19-generic
->> the problem is tackled already:
->> DVB_FIREDTV_IEEE1394: Requires at least kernel 2.6.30
->>
->> On newer linux versions (I have tried Linux 2.6.32-24-generic) the problem is NOT that the modules dma is not present, it is just that the required header files are not present in
->> /usr/include
->>
->> Another location mighte have been:
->> ls -l /usr/src/linux-headers-2.6.28-19-generic/include/config/ieee1394
->
-> This is the right place is whatever pointed on your kernel source alias, like:
->
-> $ ls -la /lib/modules/2.6.35+/source
-> lrwxrwxrwx. 1 root root 23 Set 26 21:51 /lib/modules/2.6.35+/source ->  /home/v4l/v4l/patchwork
->
->
->>
->> but that only contains:
->> -rw-r--r-- 1 root root    0 2010-09-16 18:25 dv1394.h
->> drwxr-xr-x 3 root root 4096 2010-06-15 20:12 eth1394
->> -rw-r--r-- 1 root root    0 2010-09-16 18:25 eth1394.h
->> -rw-r--r-- 1 root root    0 2010-09-16 18:25 ohci1394.h
->> -rw-r--r-- 1 root root    0 2010-09-16 18:25 pcilynx.h
->> -rw-r--r-- 1 root root    0 2010-09-16 18:25 rawio.h
->> -rw-r--r-- 1 root root    0 2010-09-16 18:25 sbp2.h
->> -rw-r--r-- 1 root root    0 2010-09-16 18:25 video1394.h
->>
->> Can you indicate where following files  should be located ?
->> dma.h
->> csr1212.h
->> highlevel.h
->
-> All of them are at the same place:
->
-> /lib/modules/2.6.35+/source/drivers/ieee1394/dma.h
-> /lib/modules/2.6.35+/source/drivers/ieee1394/csr1212.h
-> /lib/modules/2.6.35+/source/drivers/ieee1394/highlevel.h
->
->>
->> In that case checking if the dma.h file is present might be the best way forward.
->>
->> I'll also file an ubuntu bug once I know what is missing where.
->> I could not find an entry in launchpad on this issue yet.
->
-> This is probably the best thing. A check for dma.h may also work. If you want,
-> do a patch for it and submit to Douglas.
->
-> Cheers,
-> Mauro
->
-
-
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index 21bb837..9127a28 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -206,6 +206,11 @@ You also need a way to go from the low-level struct to v4l2_subdev. For the
+ common i2c_client struct the i2c_set_clientdata() call is used to store a
+ v4l2_subdev pointer, for other busses you may have to use other methods.
+ 
++Bridges might also need to store per-subdev private data, such as a pointer to
++bridge-specific per-subdev private data. The v4l2_subdev structure provides
++host private data for that purpose that can be accessed with
++v4l2_get_subdev_hostdata() and v4l2_set_subdev_hostdata().
++
+ From the bridge driver perspective you load the sub-device module and somehow
+ obtain the v4l2_subdev pointer. For i2c devices this is easy: you call
+ i2c_get_clientdata(). For other busses something similar needs to be done.
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index ecbdaca..497eea4 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -308,7 +308,8 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+ 	sd->flags = 0;
+ 	sd->name[0] = '\0';
+ 	sd->grp_id = 0;
+-	sd->priv = NULL;
++	sd->dev_priv = NULL;
++	sd->host_priv = NULL;
+ 	sd->initialized = 1;
+ 	sd->entity.name = sd->name;
+ 	sd->entity.type = MEDIA_ENTITY_TYPE_SUBDEV;
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 3b947ed..8c25f10 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -485,7 +485,8 @@ struct v4l2_subdev {
+ 	/* can be used to group similar subdevs, value is driver-specific */
+ 	u32 grp_id;
+ 	/* pointer to private data */
+-	void *priv;
++	void *dev_priv;
++	void *host_priv;
+ 	/* subdev device node */
+ 	struct video_device devnode;
+ 	unsigned int initialized;
+@@ -526,12 +527,22 @@ extern const struct v4l2_file_operations v4l2_subdev_fops;
+ 
+ static inline void v4l2_set_subdevdata(struct v4l2_subdev *sd, void *p)
+ {
+-	sd->priv = p;
++	sd->dev_priv = p;
+ }
+ 
+ static inline void *v4l2_get_subdevdata(const struct v4l2_subdev *sd)
+ {
+-	return sd->priv;
++	return sd->dev_priv;
++}
++
++static inline void v4l2_set_subdev_hostdata(struct v4l2_subdev *sd, void *p)
++{
++	sd->host_priv = p;
++}
++
++static inline void *v4l2_get_subdev_hostdata(const struct v4l2_subdev *sd)
++{
++	return sd->host_priv;
+ }
+ 
+ void v4l2_subdev_init(struct v4l2_subdev *sd,
 -- 
-Jan Hoogenraad
-Hoogenraad Interface Services
-Postbus 2717
-3500 GS Utrecht
+1.7.2.2
+
