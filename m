@@ -1,65 +1,112 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.1.47]:40583 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750920Ab0IMP14 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Sep 2010 11:27:56 -0400
-Message-ID: <4C8E42F8.1080201@maxwell.research.nokia.com>
-Date: Mon, 13 Sep 2010 18:27:52 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-MIME-Version: 1.0
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Ivan Ivanov <iivanov@mm-sol.com>
-Subject: Re: [Query] Is there a spec to request video sensor information?
-References: <A24693684029E5489D1D202277BE894472336FC3@dlee02.ent.ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE894472336FC3@dlee02.ent.ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from perceval.irobotique.be ([92.243.18.41]:33252 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756613Ab0I0MZg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Sep 2010 08:25:36 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH 4/6] ARM: OMAP3: Update Camera ISP definitions for OMAP3630
+Date: Mon, 27 Sep 2010 14:25:40 +0200
+Message-Id: <1285590342-5199-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1285590342-5199-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1285590342-5199-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Aguirre, Sergio wrote:
-> Hi,
+From: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
 
-Hi Sergio,
+Add new/changed base address definitions and resources for
+OMAP3630 ISP.
 
-> I was wondering if there exists a current standard way to query a
-> Imaging sensor driver for knowing things like the signal vert/horz blanking time.
-> 
-> In an old TI custom driver, we used to have a private IOCTL in the sensor
-> Driver we interfaced with the omap3 ISP, which was basically reporting:
-> 
-> - Active resolution (Actual image size)
-> - Full resolution (Above size + dummy pixel columns/rows representing blanking times)
-> 
-> However I resist to keep importing that custom interface, since I think its
-> Something that could be already part of an standard API.
+The OMAP3430 CSI2PHY block is same as the OMAP3630 CSIPHY2
+block. But the later name is chosen as it gives more symmetry
+to the names.
 
-The N900 sensor drivers currently use private controls for this purpose.
-That is an issue which should be resolved. I agree there should be a
-uniform, standard way to access this information.
-
-What we currently have is this, not in upstream:
-
+Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
+Signed-off-by: Vimarsh Zutshi <vimarsh.zutshi@nokia.com>
 ---
-/* SMIA-type sensor information */
-#define V4L2_CID_MODE_CLASS_BASE                (V4L2_CTRL_CLASS_MODE |
-0x900)
-#define V4L2_CID_MODE_CLASS                     (V4L2_CTRL_CLASS_MODE | 1)
-#define V4L2_CID_MODE_FRAME_WIDTH               (V4L2_CID_MODE_CLASS_BASE+1)
-#define V4L2_CID_MODE_FRAME_HEIGHT              (V4L2_CID_MODE_CLASS_BASE+2)
-#define V4L2_CID_MODE_VISIBLE_WIDTH             (V4L2_CID_MODE_CLASS_BASE+3)
-#define V4L2_CID_MODE_VISIBLE_HEIGHT            (V4L2_CID_MODE_CLASS_BASE+4)
-#define V4L2_CID_MODE_PIXELCLOCK                (V4L2_CID_MODE_CLASS_BASE+5)
-#define V4L2_CID_MODE_SENSITIVITY               (V4L2_CID_MODE_CLASS_BASE+6)
----
+ arch/arm/mach-omap2/devices.c              |   28 ++++++++++++++++++++++++----
+ arch/arm/plat-omap/include/plat/omap34xx.h |   16 ++++++++++++----
+ 2 files changed, 36 insertions(+), 8 deletions(-)
 
-The pixel clock is read-only but some of the others should likely be
-changeable.
-
-Regards,
-
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 2dbb265..ade8db0 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -106,13 +106,33 @@ static struct resource omap3isp_resources[] = {
+ 		.flags		= IORESOURCE_MEM,
+ 	},
+ 	{
+-		.start		= OMAP3430_ISP_CSI2A_BASE,
+-		.end		= OMAP3430_ISP_CSI2A_END,
++		.start		= OMAP3430_ISP_CSI2A_REGS1_BASE,
++		.end		= OMAP3430_ISP_CSI2A_REGS1_END,
+ 		.flags		= IORESOURCE_MEM,
+ 	},
+ 	{
+-		.start		= OMAP3430_ISP_CSI2PHY_BASE,
+-		.end		= OMAP3430_ISP_CSI2PHY_END,
++		.start		= OMAP3430_ISP_CSIPHY2_BASE,
++		.end		= OMAP3430_ISP_CSIPHY2_END,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP3630_ISP_CSI2A_REGS2_BASE,
++		.end		= OMAP3630_ISP_CSI2A_REGS2_END,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP3630_ISP_CSI2C_REGS1_BASE,
++		.end		= OMAP3630_ISP_CSI2C_REGS1_END,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP3630_ISP_CSIPHY1_BASE,
++		.end		= OMAP3630_ISP_CSIPHY1_END,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP3630_ISP_CSI2C_REGS2_BASE,
++		.end		= OMAP3630_ISP_CSI2C_REGS2_END,
+ 		.flags		= IORESOURCE_MEM,
+ 	},
+ 	{
+diff --git a/arch/arm/plat-omap/include/plat/omap34xx.h b/arch/arm/plat-omap/include/plat/omap34xx.h
+index 98fc8b4..b9e8588 100644
+--- a/arch/arm/plat-omap/include/plat/omap34xx.h
++++ b/arch/arm/plat-omap/include/plat/omap34xx.h
+@@ -56,8 +56,12 @@
+ #define OMAP3430_ISP_RESZ_BASE		(OMAP3430_ISP_BASE + 0x1000)
+ #define OMAP3430_ISP_SBL_BASE		(OMAP3430_ISP_BASE + 0x1200)
+ #define OMAP3430_ISP_MMU_BASE		(OMAP3430_ISP_BASE + 0x1400)
+-#define OMAP3430_ISP_CSI2A_BASE		(OMAP3430_ISP_BASE + 0x1800)
+-#define OMAP3430_ISP_CSI2PHY_BASE	(OMAP3430_ISP_BASE + 0x1970)
++#define OMAP3430_ISP_CSI2A_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1800)
++#define OMAP3430_ISP_CSIPHY2_BASE	(OMAP3430_ISP_BASE + 0x1970)
++#define OMAP3630_ISP_CSI2A_REGS2_BASE	(OMAP3430_ISP_BASE + 0x19C0)
++#define OMAP3630_ISP_CSI2C_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1C00)
++#define OMAP3630_ISP_CSIPHY1_BASE	(OMAP3430_ISP_BASE + 0x1D70)
++#define OMAP3630_ISP_CSI2C_REGS2_BASE	(OMAP3430_ISP_BASE + 0x1DC0)
+ 
+ #define OMAP3430_ISP_END		(OMAP3430_ISP_BASE         + 0x06F)
+ #define OMAP3430_ISP_CBUFF_END		(OMAP3430_ISP_CBUFF_BASE   + 0x077)
+@@ -69,8 +73,12 @@
+ #define OMAP3430_ISP_RESZ_END		(OMAP3430_ISP_RESZ_BASE    + 0x0AB)
+ #define OMAP3430_ISP_SBL_END		(OMAP3430_ISP_SBL_BASE     + 0x0FB)
+ #define OMAP3430_ISP_MMU_END		(OMAP3430_ISP_MMU_BASE     + 0x06F)
+-#define OMAP3430_ISP_CSI2A_END		(OMAP3430_ISP_CSI2A_BASE   + 0x16F)
+-#define OMAP3430_ISP_CSI2PHY_END	(OMAP3430_ISP_CSI2PHY_BASE + 0x007)
++#define OMAP3430_ISP_CSI2A_REGS1_END	(OMAP3430_ISP_CSI2A_REGS1_BASE + 0x16F)
++#define OMAP3430_ISP_CSIPHY2_END	(OMAP3430_ISP_CSIPHY2_BASE + 0x00B)
++#define OMAP3630_ISP_CSI2A_REGS2_END	(OMAP3630_ISP_CSI2A_REGS2_BASE + 0x3F)
++#define OMAP3630_ISP_CSI2C_REGS1_END	(OMAP3630_ISP_CSI2C_REGS1_BASE + 0x16F)
++#define OMAP3630_ISP_CSIPHY1_END	(OMAP3630_ISP_CSIPHY1_BASE + 0x00B)
++#define OMAP3630_ISP_CSI2C_REGS2_END	(OMAP3630_ISP_CSI2C_REGS2_BASE + 0x3F)
+ 
+ #define OMAP34XX_HSUSB_OTG_BASE	(L4_34XX_BASE + 0xAB000)
+ #define OMAP34XX_USBTLL_BASE	(L4_34XX_BASE + 0x62000)
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+1.7.2.2
+
