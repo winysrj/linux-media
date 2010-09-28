@@ -1,59 +1,88 @@
 Return-path: <mchehab@pedra>
-Received: from bombadil.infradead.org ([18.85.46.34]:42631 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756080Ab0IHVyA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Sep 2010 17:54:00 -0400
-Message-ID: <4C8805FA.3060102@infradead.org>
-Date: Wed, 08 Sep 2010 18:54:02 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4649 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751221Ab0I1LML (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Sep 2010 07:12:11 -0400
+Message-ID: <f2f80506fee89bd174661947a5a6016f.squirrel@webmail.xs4all.nl>
+In-Reply-To: <AANLkTi=wMWjiY2eNR9wSkWxjKX6d_Awm4J1v57tUDB=s@mail.gmail.com>
+References: <ADF13DA15EB3FE4FBA487CCC7BEFDF3604CAE3BABC@bssrvexch01.BS.local>
+    <AANLkTi=wMWjiY2eNR9wSkWxjKX6d_Awm4J1v57tUDB=s@mail.gmail.com>
+Date: Tue, 28 Sep 2010 13:12:00 +0200
+Subject: Re: RFC: Introduction of M2M capability and buffer types
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Kyungmin Park" <kmpark@infradead.org>
+Cc: "Kamil Debski" <k.debski@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	pawel@osciak.com
 MIME-Version: 1.0
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-CC: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
-	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/8 V5] Many fixes for in-kernel decoding and for the
- ENE driver
-References: <1283808373-27876-1-git-send-email-maximlevitsky@gmail.com>
-In-Reply-To: <1283808373-27876-1-git-send-email-maximlevitsky@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-Em 06-09-2010 18:26, Maxim Levitsky escreveu:
-> Hi,
-> 
-> Here is full overview of my patches:
-> 
-> Patch #1 fixes races in ir thread.
-> It fixes the case when ktherad_stop waits forever for the thread.
-> This happens on module unload and therefore it never finishes.
-> Sorry for introducing this bug.
-> 
-> Patch #2, fixes a crash on my module load.
-> It happens because ir core initializes the input device a bit early,
-> therefore it could be accessed while still not set up.
-> 
-> Patch #3 fixes a small typo in lirc code that makes it impossible to use tx duty cycle setting.
-> 
-> Patch #4 fixes a problem seen on my system that results in stuck down forever key.
-> 
-> Patch #5 adds few keys to MCE keymap that were found on laptop of an user I tested this driver with
-> 
-> Patch #6, is a combined update ti my driver. It contains lot of refactoring thanks to docs I have now,
-> and lot of fixes, and supports latest version of firmware (and I have 4 users asking for that)
-> It is quite huge, but it would be a tedios job to break it up. This can't introduce regressions
-> because the ene_ir was never released. In addition to that it was tested by me and another two users.
-> 
-> Patch #7 the really only patch that touches drivers I don't have does touch the ir-core.
-> It is quite small, and it adds a proper solution to dilema about what to do with huge space between keypresses.
-> Now this space is just truncated by the driver with timeout flag.
-> The lirc codec then ensures that right sample is send to the lircd.
-> Please review and test it.
-> 
-> Patch #8 is very simple. It just builds on top of patch #7 and adds carrier reports to ene driver.
 
-For now, I've applied patches 3, 4 and 5, as it is nice to have Jarod's review also.
+> Any comments?
 
-Cheers,
-Mauro
+No, other than what has been discussed on irc:
+
+- Add a new V4L2_CAP_VIDEO_M2M capability instead of ORing CAPTURE and
+OUTPUT.
+- Don't add aliases, just document better if needed.
+- The spec has to change so that M2M devices do not need buffers to be
+queued before calling STREAMON. It's an exception to the rule.
+
+I hope I got this right, it's from memory :-)
+
+Regards,
+
+        Hans
+
+>
+> On Tue, Sep 14, 2010 at 11:29 PM, Kamil Debski <k.debski@samsung.com>
+> wrote:
+>> Hello,
+>>
+>> Mem2mem devices currently use V4L2_CAP_VIDEO_CAPTURE and
+>> V4L2_CAP_VIDEO_OUTPUT capabilities. One might expect that a capture
+>> device is a camera and an output device can display images. If I
+>> remember correct our discussion during the Helsinki v4l2 summit, Hans de
+>> Goede has pointed that such devices are listed in applications and can
+>> confuse users. The user expects a camera and he has to choose from a
+>> long list of devices.
+>>
+>> The solution to this would be the introduction of two new capability
+>> V4L2_CAP_VIDEO_M2M. Such devices would not be listed when user is
+>> expected to choose which webcam or TV tuner device to use.
+>>
+>> Another thing about m2m devices is the naming of buffers:
+>> V4L2_BUF_TYPE_VIDEO_CAPTURE means the destination buffer and
+>> V4L2_BUF_TYPE_VIDEO_OUTPUT means source. This indeed is confusing, so I
+>> think the introduction of two new buffer types is justified. I would
+>> recommend V4L2_BUF_TYPE_M2M_SOURCE and V4L2_BUF_TYPE_M2M_DESTINATION to
+>> clearly state what is the buffer's purpose.
+>>
+>> I would be grateful for your comments to this RFC.
+>>
+>> Best wishes,
+>> --
+>> Kamil Debski
+>> Linux Platform Group
+>> Samsung Poland R&D Center
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>> in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+
