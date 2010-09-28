@@ -1,39 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:39984 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751799Ab0ILBvW (ORCPT
+Received: from mx1.redhat.com ([209.132.183.28]:1065 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757894Ab0I1SrT convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Sep 2010 21:51:22 -0400
-Subject: [PATCH 0/3] gpsca_cpia1: Intel Play QX3 microscope illuminator
- controls
-From: Andy Walls <awalls@md.metrocast.net>
-To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Jean-Francois Moine <moinejf@free.fr>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 11 Sep 2010 21:51:05 -0400
-Message-ID: <1284256265.2030.17.camel@morgan.silverblock.net>
+	Tue, 28 Sep 2010 14:47:19 -0400
+Date: Tue, 28 Sep 2010 15:46:53 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Srinivasa.Deevi@conexant.com, Palash.Bandyopadhyay@conexant.com,
+	dheitmueller@kernellabs.com,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 01/10] V4L/DVB: cx231xx: remove a printk warning at -avcore
+ and at -417
+Message-ID: <20100928154653.785c1f3f@pedra>
+In-Reply-To: <cover.1285699057.git.mchehab@redhat.com>
+References: <cover.1285699057.git.mchehab@redhat.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-The following 3 patches implement v4l2 illuminator controls for the
-Intel Play QX3 microscope.  These patches depend on Jean-Francois
-Moine's patch that adds V4L2_CID_ILLUMINATORS_[12] to the standard v4l2
-controls.
+drivers/media/video/cx231xx/cx231xx-avcore.c:1608: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘long unsigned int’
+drivers/media/video/cx231xx/cx231xx-417.c:1047: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘size_t’
 
-These patches do not attempt to turn off the illuminators at module
-unload or at suspend time as I could not easily test suspend at the
-moment.  These patches will restore the state of the illumination at
-resume time and will ensure the illuminators are off at module load.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Thanks go to Hans de Goede for pointing out problems win the initial
-patch and suggested solutions.
+diff --git a/drivers/media/video/cx231xx/cx231xx-417.c b/drivers/media/video/cx231xx/cx231xx-417.c
+index 402e109..ddaa437 100644
+--- a/drivers/media/video/cx231xx/cx231xx-417.c
++++ b/drivers/media/video/cx231xx/cx231xx-417.c
+@@ -1044,7 +1044,7 @@ static int cx231xx_load_firmware(struct cx231xx *dev)
+ 	/* transfer to the chip */
+ 	dprintk(2, "Loading firmware to GPIO...\n");
+ 	p_fw_data = (u32 *)firmware->data;
+-	dprintk(2, "firmware->size=%d\n", firmware->size);
++	dprintk(2, "firmware->size=%zd\n", firmware->size);
+ 	for (transfer_size = 0; transfer_size < firmware->size;
+ 		 transfer_size += 4) {
+ 		fw_data = *p_fw_data;
+diff --git a/drivers/media/video/cx231xx/cx231xx-avcore.c b/drivers/media/video/cx231xx/cx231xx-avcore.c
+index b4eda90..ab9fbf8 100644
+--- a/drivers/media/video/cx231xx/cx231xx-avcore.c
++++ b/drivers/media/video/cx231xx/cx231xx-avcore.c
+@@ -1605,7 +1605,7 @@ void cx231xx_set_DIF_bandpass(struct cx231xx *dev, u32 if_freq,
+ 	if_freq = 16000000;
+     }
+ 
+-    cx231xx_info("Enter IF=%d\n",
++    cx231xx_info("Enter IF=%zd\n",
+ 		 sizeof(Dif_set_array)/sizeof(struct dif_settings));
+     for (i = 0; i < sizeof(Dif_set_array)/sizeof(struct dif_settings); i++) {
+ 	if (Dif_set_array[i].if_freq == if_freq) {
+-- 
+1.7.1
 
-Thanks go to Jean-Francois Moine for working to get Illuminator controls
-in place as standard V4L2 controls.
-
-Regards,
-Andy 
 
