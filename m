@@ -1,49 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from tex.lwn.net ([70.33.254.29]:51758 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755164Ab0IYOAY convert rfc822-to-8bit (ORCPT
+Received: from smtp.nokia.com ([192.100.122.233]:53913 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754039Ab0I1NIv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Sep 2010 10:00:24 -0400
-Date: Sat, 25 Sep 2010 08:01:34 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Daniel Drake <dsd@laptop.org>
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/4] cafe_ccic: Fix hang in command write processing
-Message-ID: <20100925080134.0ee58da8@tpl.lwn.net>
-In-Reply-To: <20100924171717.B3A969D401B@zog.reactivated.net>
-References: <20100924171717.B3A969D401B@zog.reactivated.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+	Tue, 28 Sep 2010 09:08:51 -0400
+Message-ID: <4CA1E8D7.2010805@maxwell.research.nokia.com>
+Date: Tue, 28 Sep 2010 16:08:39 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, g.liakhovetski@gmx.de
+Subject: Re: [RFC/PATCH 7/9] v4l: v4l2_subdev userspace format API
+References: <1285517612-20230-1-git-send-email-laurent.pinchart@ideasonboard.com>    <1285517612-20230-8-git-send-email-laurent.pinchart@ideasonboard.com>    <201009262025.20852.hverkuil@xs4all.nl>    <201009281350.23233.laurent.pinchart@ideasonboard.com> <3c895d38527af5e6b5acdd783ff8dacb.squirrel@webmail.xs4all.nl>
+In-Reply-To: <3c895d38527af5e6b5acdd783ff8dacb.squirrel@webmail.xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, 24 Sep 2010 18:17:17 +0100 (BST)
-Daniel Drake <dsd@laptop.org> wrote:
+Hi,
 
-> This patch, which basically reverts 6d77444ac, fixes an occasional
-> on-boot or on-capture hang on the XO-1 laptop.
+Hans Verkuil wrote:
+>>>> +
+>>>> +#define VIDIOC_SUBDEV_G_FMT	_IOWR('V',  4, struct v4l2_subdev_format)
+>>>> +#define VIDIOC_SUBDEV_S_FMT	_IOWR('V',  5, struct v4l2_subdev_format)
+>>>> +#define VIDIOC_SUBDEV_ENUM_MBUS_CODE \
+>>>> +			_IOWR('V',  2, struct v4l2_subdev_mbus_code_enum)
+>>>> +#define VIDIOC_SUBDEV_ENUM_FRAME_SIZE \
+>>>> +			_IOWR('V', 74, struct v4l2_subdev_frame_size_enum)
+>>>
+>>> The ioctl numbering is a bit scary. We want to be able to reuse V4L2
+>>> ioctls
+>>> with subdevs where appropriate. But then we need to enumerate the subdev
+>>> ioctls using a different character to avoid potential conflicts. E.g.
+>>> 'S'
+>>> instead of 'V'.
+>>
+>> There's little chance the ioctl values will conflict, as they encode the
+>> structure size. However, it could still happen. That's why I've reused the
+>> VIDIOC_G_FMT, VIDIOC_S_FMT, VIDIOC_ENUM_FMT and VIDIOC_ENUM_FRAMESIZES
+>> ioctl
+>> numbers for those new ioctls, as they replace the V4L2 ioctls for
+>> sub-devices.
+>> We can also use another prefix, but there's a limited supply of them.
 > 
-> It seems like the cafe hardware is flakier than we thought and that in
-> some cases, the commands get executed but are never reported as completed
-> (even if we substantially increase the delays before reading registers).
-> 
-> Reintroduce the 1-second CAFE_SMBUS_TIMEOUT to catch and avoid this
-> strange hardware bug.
+> Hmm, perhaps we can use 'v'. That's currently in use by V4L1, but that's
+> on the way out. I'm not sure what is wisdom here. Mauro should take a look
+> at this, I think.
 
->From a *quick* airport-lounge look, these all look OK, though the first
-one is a little sad.
+Similar V4L2 ioctls exists but they still are part of a different API.
+So I'd go with 'S' (or something else non-'V') unless the ioctl is
+exactly the same as in V4L2. And allocate numbers starting from 0 if
+possible.
 
-I think that a lot of problems come from trying to speak SMBUS to the
-sensor - it doesn't actually do that very well.  With the via-camera
-driver, life got a lot better when I went to straight i2c
-transactions.  Doing that with the cafe controller will be a little bit
-trickier, probably requiring the implementation of a simple bit-banging
-i2c driver.  It's probably worth a try, though, when somebody gets a
-chance.
+But I agree, let's wait Mauro's opinion...
 
-Meanwhile, feel free to toss my Acked-by onto this set.
+Regards,
 
-Thanks,
-
-jon
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
