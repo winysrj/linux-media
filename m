@@ -1,54 +1,284 @@
 Return-path: <mchehab@pedra>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:50688 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755268Ab0IHVmY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Sep 2010 17:42:24 -0400
-Date: Wed, 8 Sep 2010 23:42:13 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org, jarod@redhat.com
-Subject: Re: [PATCH 1/5] rc-code: merge and rename ir-core
-Message-ID: <20100908214213.GD13938@hardeman.nu>
-References: <20100907214943.30935.29895.stgit@localhost.localdomain>
- <20100907215143.30935.71857.stgit@localhost.localdomain>
- <4C8792B2.2010809@infradead.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <4C8792B2.2010809@infradead.org>
+Received: from mx1.redhat.com ([209.132.183.28]:34773 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756111Ab0I1Su0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Sep 2010 14:50:26 -0400
+Date: Tue, 28 Sep 2010 15:46:56 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Srinivasa.Deevi@conexant.com, Palash.Bandyopadhyay@conexant.com,
+	dheitmueller@kernellabs.com,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 04/10] V4L/DVB: cx231xx: properly implement URB control
+ messages log
+Message-ID: <20100928154656.2a4548d8@pedra>
+In-Reply-To: <cover.1285699057.git.mchehab@redhat.com>
+References: <cover.1285699057.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-On Wed, Sep 08, 2010 at 10:42:10AM -0300, Mauro Carvalho Chehab wrote:
-> Em 07-09-2010 18:51, David Härdeman escreveu:
-> > This patch merges the files which makes up ir-core and renames the
-> > resulting module to rc-core. IMHO this makes it much easier to hack
-> > on the core module since all code is in one file.
-> > 
-> > This also allows some simplification of ir-core-priv.h as fewer internal
-> > functions need to be exposed.
-> 
-> I'm not sure about this patch. Big files tend to be harder to maintain,
-> as it takes more time to find the right functions inside it. Also, IMO, 
-> it makes sense to keep the raw-event code on a separate file.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-I don't find "big" files difficult (note: we're talking about 1300 lines 
-here).  Rather the opposite, no hesitation about which files a given 
-function originates from and all related code in one nice file. evdev.c 
-and input.c are good precedents. But of course, it all boils down to a 
-matter of personal taste.
-
-> Anyway, if we apply this patch right now, it will cause merge conflicts with
-> the input tree, due to the get/setkeycodebig patches, and with some other
-> patches that are pending merge/review. The better is to apply such patch
-> just after the release of 2.6.37-rc1, after having all those conflicts
-> solved.
-
-I agree that the big scancode patches from the input tree should go 
-first. I keep updating my patchset as the media_tree (staging/v2.6.37 
-branch) changes so I have no problem sending an updated patchset at a 
-suitable time in the future.
-
+diff --git a/drivers/media/video/cx231xx/cx231xx-core.c b/drivers/media/video/cx231xx/cx231xx-core.c
+index 5406ff2..983b120 100644
+--- a/drivers/media/video/cx231xx/cx231xx-core.c
++++ b/drivers/media/video/cx231xx/cx231xx-core.c
+@@ -47,11 +47,6 @@ static unsigned int reg_debug;
+ module_param(reg_debug, int, 0644);
+ MODULE_PARM_DESC(reg_debug, "enable debug messages [URB reg]");
+ 
+-#define cx231xx_regdbg(fmt, arg...) do {\
+-	if (reg_debug) \
+-		printk(KERN_INFO "%s %s :"fmt, \
+-			 dev->name, __func__ , ##arg); } while (0)
+-
+ static int alt = CX231XX_PINOUT;
+ module_param(alt, int, 0644);
+ MODULE_PARM_DESC(alt, "alternate setting to use for video endpoint");
+@@ -240,6 +235,66 @@ int cx231xx_send_usb_command(struct cx231xx_i2c *i2c_bus,
+ EXPORT_SYMBOL_GPL(cx231xx_send_usb_command);
+ 
+ /*
++ * Sends/Receives URB control messages, assuring to use a kalloced buffer
++ * for all operations (dev->urb_buf), to avoid using stacked buffers, as
++ * they aren't safe for usage with USB, due to DMA restrictions.
++ * Also implements the debug code for control URB's.
++ */
++static int __usb_control_msg(struct cx231xx *dev, unsigned int pipe,
++	__u8 request, __u8 requesttype, __u16 value, __u16 index,
++	void *data, __u16 size, int timeout)
++{
++	int rc, i;
++
++	if (reg_debug) {
++		printk(KERN_DEBUG "%s: (pipe 0x%08x): "
++				"%s:  %02x %02x %02x %02x %02x %02x %02x %02x ",
++				dev->name,
++				pipe,
++				(requesttype & USB_DIR_IN) ? "IN" : "OUT",
++				requesttype,
++				request,
++				value & 0xff, value >> 8,
++				index & 0xff, index >> 8,
++				size & 0xff, size >> 8);
++		if (!(requesttype & USB_DIR_IN)) {
++			printk(KERN_CONT ">>>");
++			for (i = 0; i < size; i++)
++				printk(KERN_CONT " %02x",
++				       ((unsigned char *)data)[i]);
++		}
++	}
++
++	/* Do the real call to usb_control_msg */
++	mutex_lock(&dev->ctrl_urb_lock);
++	if (!(requesttype & USB_DIR_IN) && size)
++		memcpy(dev->urb_buf, data, size);
++	rc = usb_control_msg(dev->udev, pipe, request, requesttype, value,
++			     index, dev->urb_buf, size, timeout);
++	if ((requesttype & USB_DIR_IN) && size)
++		memcpy(data, dev->urb_buf, size);
++	mutex_unlock(&dev->ctrl_urb_lock);
++
++	if (reg_debug) {
++		if (unlikely(rc < 0)) {
++			printk(KERN_CONT "FAILED!\n");
++			return rc;
++		}
++
++		if ((requesttype & USB_DIR_IN)) {
++			printk(KERN_CONT "<<<");
++			for (i = 0; i < size; i++)
++				printk(KERN_CONT " %02x",
++				       ((unsigned char *)data)[i]);
++		}
++		printk(KERN_CONT "\n");
++	}
++
++	return rc;
++}
++
++
++/*
+  * cx231xx_read_ctrl_reg()
+  * reads data from the usb device specifying bRequest and wValue
+  */
+@@ -276,39 +331,9 @@ int cx231xx_read_ctrl_reg(struct cx231xx *dev, u8 req, u16 reg,
+ 	if (val == 0xFF)
+ 		return -EINVAL;
+ 
+-	if (reg_debug) {
+-		cx231xx_isocdbg("(pipe 0x%08x): "
+-				"IN:  %02x %02x %02x %02x %02x %02x %02x %02x ",
+-				pipe,
+-				USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+-				req, 0, val,
+-				reg & 0xff, reg >> 8, len & 0xff, len >> 8);
+-	}
+-
+-	mutex_lock(&dev->ctrl_urb_lock);
+-	ret = usb_control_msg(dev->udev, pipe, req,
++	ret = __usb_control_msg(dev, pipe, req,
+ 			      USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+-			      val, reg, dev->urb_buf, len, HZ);
+-	if (ret < 0) {
+-		cx231xx_isocdbg(" failed!\n");
+-		mutex_unlock(&dev->ctrl_urb_lock);
+-		return ret;
+-	}
+-
+-	if (len)
+-		memcpy(buf, dev->urb_buf, len);
+-
+-	mutex_unlock(&dev->ctrl_urb_lock);
+-
+-	if (reg_debug) {
+-		int byte;
+-
+-		cx231xx_isocdbg("<<<");
+-		for (byte = 0; byte < len; byte++)
+-			cx231xx_isocdbg(" %02x", (unsigned char)buf[byte]);
+-		cx231xx_isocdbg("\n");
+-	}
+-
++			      val, reg, buf, len, HZ);
+ 	return ret;
+ }
+ 
+@@ -331,28 +356,10 @@ int cx231xx_send_vendor_cmd(struct cx231xx *dev,
+ 	else
+ 		pipe = usb_sndctrlpipe(dev->udev, 0);
+ 
+-	if (reg_debug) {
+-		int byte;
+-
+-		cx231xx_isocdbg("(pipe 0x%08x): "
+-				"OUT: %02x %02x %02x %04x %04x %04x >>>",
+-				pipe,
+-				ven_req->
+-				direction | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+-				ven_req->bRequest, 0, ven_req->wValue,
+-				ven_req->wIndex, ven_req->wLength);
+-
+-		for (byte = 0; byte < ven_req->wLength; byte++)
+-			cx231xx_isocdbg(" %02x",
+-					(unsigned char)ven_req->pBuff[byte]);
+-		cx231xx_isocdbg("\n");
+-	}
+-
+-
+-/*
+-If the cx23102 read more than 4 bytes with i2c bus,
+-need chop to 4 byte per request
+-*/
++	/*
++	 * If the cx23102 read more than 4 bytes with i2c bus,
++	 * need chop to 4 byte per request
++	 */
+ 	if ((ven_req->wLength > 4) && ((ven_req->bRequest == 0x4) ||
+ 					(ven_req->bRequest == 0x5) ||
+ 					(ven_req->bRequest == 0x6))) {
+@@ -362,71 +369,39 @@ need chop to 4 byte per request
+ 
+ 		unsend_size = ven_req->wLength;
+ 
+-		mutex_lock(&dev->ctrl_urb_lock);
+-		/* the first package*/
++		/* the first package */
+ 		ven_req->wValue = ven_req->wValue & 0xFFFB;
+ 		ven_req->wValue = (ven_req->wValue & 0xFFBD) | 0x2;
+-		/*printk(KERN_INFO " !!!!! 0x%x 0x%x 0x%x 0x%x \n",
+-			ven_req->bRequest,
+-			ven_req->direction | USB_TYPE_VENDOR |
+-			USB_RECIP_DEVICE,ven_req->wValue,ven_req->wIndex);*/
+-		ret = usb_control_msg(dev->udev, pipe, ven_req->bRequest,
+-			ven_req->
+-			direction | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
++		ret = __usb_control_msg(dev, pipe, ven_req->bRequest,
++			ven_req->direction | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+ 			ven_req->wValue, ven_req->wIndex, pdata,
+ 			0x0004, HZ);
+ 		unsend_size = unsend_size - 4;
+-		mutex_unlock(&dev->ctrl_urb_lock);
+ 
+-		/* the middle package*/
++		/* the middle package */
+ 		ven_req->wValue = (ven_req->wValue & 0xFFBD) | 0x42;
+ 		while (unsend_size - 4 > 0) {
+ 			pdata = pdata + 4;
+-			/*printk(KERN_INFO " !!!!! 0x%x 0x%x 0x%x 0x%x \n",
++			ret = __usb_control_msg(dev, pipe,
+ 				ven_req->bRequest,
+-				ven_req->direction | USB_TYPE_VENDOR |
+-				USB_RECIP_DEVICE,
+-				ven_req->wValue,ven_req->wIndex);*/
+-			mutex_lock(&dev->ctrl_urb_lock);
+-			ret = usb_control_msg(dev->udev, pipe,
+-				 ven_req->bRequest,
+-				ven_req->
+-				direction | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
++				ven_req->direction | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+ 				ven_req->wValue, ven_req->wIndex, pdata,
+ 				0x0004, HZ);
+-			mutex_unlock(&dev->ctrl_urb_lock);
+ 			unsend_size = unsend_size - 4;
+ 		}
+ 
+-
+-		/* the last package*/
++		/* the last package */
+ 		ven_req->wValue = (ven_req->wValue & 0xFFBD) | 0x40;
+ 		pdata = pdata + 4;
+-		/*printk(KERN_INFO " !!!!! 0x%x 0x%x 0x%x 0x%x \n",
+-			ven_req->bRequest,
+-			ven_req->direction | USB_TYPE_VENDOR |
+-			USB_RECIP_DEVICE,ven_req->wValue,ven_req->wIndex);*/
+-		mutex_lock(&dev->ctrl_urb_lock);
+-		ret = usb_control_msg(dev->udev, pipe, ven_req->bRequest,
+-			ven_req->
+-			direction | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
++		ret = __usb_control_msg(dev, pipe, ven_req->bRequest,
++			ven_req->direction | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+ 			ven_req->wValue, ven_req->wIndex, pdata,
+ 			unsend_size, HZ);
+-		mutex_unlock(&dev->ctrl_urb_lock);
+-		/*printk(KERN_INFO " @@@@@ temp_buffer[0]=0x%x 0x%x 0x%x 0x%x
+-			  0x%x 0x%x\n",ven_req->pBuff[0],ven_req->pBuff[1],
+-			ven_req->pBuff[2], ven_req->pBuff[3],ven_req->pBuff[4],
+-			ven_req->pBuff[5]);*/
+-
+ 	} else {
+-		mutex_lock(&dev->ctrl_urb_lock);
+-		ret = usb_control_msg(dev->udev, pipe, ven_req->bRequest,
+-				ven_req->
+-				direction | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
++		ret = __usb_control_msg(dev, pipe, ven_req->bRequest,
++				ven_req->direction | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+ 				ven_req->wValue, ven_req->wIndex,
+-				 ven_req->pBuff, ven_req->wLength, HZ);
+-		mutex_unlock(&dev->ctrl_urb_lock);
+-
++				ven_req->pBuff, ven_req->wLength, HZ);
+ 	}
+ 
+ 	return ret;
+@@ -484,12 +459,9 @@ int cx231xx_write_ctrl_reg(struct cx231xx *dev, u8 req, u16 reg, char *buf,
+ 		cx231xx_isocdbg("\n");
+ 	}
+ 
+-	mutex_lock(&dev->ctrl_urb_lock);
+-	memcpy(dev->urb_buf, buf, len);
+-	ret = usb_control_msg(dev->udev, pipe, req,
++	ret = __usb_control_msg(dev, pipe, req,
+ 			      USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+-			      val, reg, dev->urb_buf, len, HZ);
+-	mutex_unlock(&dev->ctrl_urb_lock);
++			      val, reg, buf, len, HZ);
+ 
+ 	return ret;
+ }
 -- 
-David Härdeman
+1.7.1
+
+
