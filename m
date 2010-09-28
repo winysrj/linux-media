@@ -1,114 +1,149 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2613 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751749Ab0ISTIT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Sep 2010 15:08:19 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id o8JJ8EVU083134
-	for <linux-media@vger.kernel.org>; Sun, 19 Sep 2010 21:08:18 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 19 Sep 2010 21:08:14 +0200 (CEST)
-Message-Id: <201009191908.o8JJ8EVU083134@smtp-vbr4.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+Received: from mx1.redhat.com ([209.132.183.28]:6642 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754456Ab0I1Syh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Sep 2010 14:54:37 -0400
+Date: Tue, 28 Sep 2010 15:46:59 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Srinivasa.Deevi@conexant.com, Palash.Bandyopadhyay@conexant.com,
+	dheitmueller@kernellabs.com,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 08/10] V4L/DVB: tda18271: allow restricting max out to 4
+ bytes
+Message-ID: <20100928154659.0e7e4147@pedra>
+In-Reply-To: <cover.1285699057.git.mchehab@redhat.com>
+References: <cover.1285699057.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+By default, tda18271 tries to optimize I2C bus by updating all registers
+at the same time. Unfortunately, some devices doesn't support it.
 
-Results of the daily build of v4l-dvb:
+The current logic has a problem when small_i2c is equal to 8, since there
+are some transfers using 11 + 1 bytes.
 
-date:        Sun Sep 19 19:00:14 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15164:1da5fed5c8b2
-git master:       3e6dce76d99b328716b43929b9195adfee1de00c
-git media-master: 991403c594f666a2ed46297c592c60c3b9f4e1e2
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Fix the problem by enforcing the max size at the right place, and allows
+reducing it to max = 3 + 1.
 
-linux-2.6.32.6-armv5: WARNINGS
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35.3-armv5: WARNINGS
-linux-2.6.36-rc2-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35.3-armv5-davinci: WARNINGS
-linux-2.6.36-rc2-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35.3-armv5-ixp: WARNINGS
-linux-2.6.36-rc2-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35.3-armv5-omap2: WARNINGS
-linux-2.6.36-rc2-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-rc2-i686: ERRORS
-linux-2.6.32.6-m32r: WARNINGS
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35.3-m32r: WARNINGS
-linux-2.6.36-rc2-m32r: ERRORS
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35.3-mips: WARNINGS
-linux-2.6.36-rc2-mips: ERRORS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35.3-powerpc64: WARNINGS
-linux-2.6.36-rc2-powerpc64: ERRORS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-rc2-x86_64: ERRORS
-linux-git-Module.symvers: ERRORS
-linux-git-armv5: ERRORS
-linux-git-armv5-davinci: ERRORS
-linux-git-armv5-ixp: ERRORS
-linux-git-armv5-omap2: ERRORS
-linux-git-i686: ERRORS
-linux-git-m32r: ERRORS
-linux-git-mips: ERRORS
-linux-git-powerpc64: ERRORS
-linux-git-x86_64: ERRORS
-spec: ERRORS
-spec-git: ERRORS
-sparse: ERRORS
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Detailed results are available here:
+diff --git a/drivers/media/common/tuners/tda18271-common.c b/drivers/media/common/tuners/tda18271-common.c
+index e1f6782..195b30e 100644
+--- a/drivers/media/common/tuners/tda18271-common.c
++++ b/drivers/media/common/tuners/tda18271-common.c
+@@ -193,20 +193,46 @@ int tda18271_write_regs(struct dvb_frontend *fe, int idx, int len)
+ 	unsigned char *regs = priv->tda18271_regs;
+ 	unsigned char buf[TDA18271_NUM_REGS + 1];
+ 	struct i2c_msg msg = { .addr = priv->i2c_props.addr, .flags = 0,
+-			       .buf = buf, .len = len + 1 };
+-	int i, ret;
++			       .buf = buf };
++	int i, ret = 1, max;
+ 
+ 	BUG_ON((len == 0) || (idx + len > sizeof(buf)));
+ 
+-	buf[0] = idx;
+-	for (i = 1; i <= len; i++)
+-		buf[i] = regs[idx - 1 + i];
++
++	switch (priv->small_i2c) {
++	case TDA18271_03_BYTE_CHUNK_INIT:
++		max = 3;
++		break;
++	case TDA18271_08_BYTE_CHUNK_INIT:
++		max = 8;
++		break;
++	case TDA18271_16_BYTE_CHUNK_INIT:
++		max = 16;
++		break;
++	case TDA18271_39_BYTE_CHUNK_INIT:
++	default:
++		max = 39;
++	}
+ 
+ 	tda18271_i2c_gate_ctrl(fe, 1);
++	while (len) {
++		if (max > len)
++			max = len;
+ 
+-	/* write registers */
+-	ret = i2c_transfer(priv->i2c_props.adap, &msg, 1);
++		buf[0] = idx;
++		for (i = 1; i <= max; i++)
++			buf[i] = regs[idx - 1 + i];
+ 
++		msg.len = max + 1;
++
++		/* write registers */
++		ret = i2c_transfer(priv->i2c_props.adap, &msg, 1);
++		if (ret != 1)
++			break;
++
++		idx += max;
++		len -= max;
++	}
+ 	tda18271_i2c_gate_ctrl(fe, 0);
+ 
+ 	if (ret != 1)
+@@ -326,24 +352,7 @@ int tda18271_init_regs(struct dvb_frontend *fe)
+ 	regs[R_EB22] = 0x48;
+ 	regs[R_EB23] = 0xb0;
+ 
+-	switch (priv->small_i2c) {
+-	case TDA18271_08_BYTE_CHUNK_INIT:
+-		tda18271_write_regs(fe, 0x00, 0x08);
+-		tda18271_write_regs(fe, 0x08, 0x08);
+-		tda18271_write_regs(fe, 0x10, 0x08);
+-		tda18271_write_regs(fe, 0x18, 0x08);
+-		tda18271_write_regs(fe, 0x20, 0x07);
+-		break;
+-	case TDA18271_16_BYTE_CHUNK_INIT:
+-		tda18271_write_regs(fe, 0x00, 0x10);
+-		tda18271_write_regs(fe, 0x10, 0x10);
+-		tda18271_write_regs(fe, 0x20, 0x07);
+-		break;
+-	case TDA18271_39_BYTE_CHUNK_INIT:
+-	default:
+-		tda18271_write_regs(fe, 0x00, TDA18271_NUM_REGS);
+-		break;
+-	}
++	tda18271_write_regs(fe, 0x00, TDA18271_NUM_REGS);
+ 
+ 	/* setup agc1 gain */
+ 	regs[R_EB17] = 0x00;
+diff --git a/drivers/media/common/tuners/tda18271.h b/drivers/media/common/tuners/tda18271.h
+index d7fcc36..3abb221 100644
+--- a/drivers/media/common/tuners/tda18271.h
++++ b/drivers/media/common/tuners/tda18271.h
+@@ -80,8 +80,9 @@ enum tda18271_output_options {
+ 
+ enum tda18271_small_i2c {
+ 	TDA18271_39_BYTE_CHUNK_INIT = 0,
+-	TDA18271_16_BYTE_CHUNK_INIT = 1,
+-	TDA18271_08_BYTE_CHUNK_INIT = 2,
++	TDA18271_16_BYTE_CHUNK_INIT = 16,
++	TDA18271_08_BYTE_CHUNK_INIT = 8,
++	TDA18271_03_BYTE_CHUNK_INIT = 3,
+ };
+ 
+ struct tda18271_config {
+diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
+index fa406b9..1a047c5 100644
+--- a/drivers/media/video/tuner-core.c
++++ b/drivers/media/video/tuner-core.c
+@@ -428,7 +428,7 @@ static void set_type(struct i2c_client *c, unsigned int type,
+ 	{
+ 		struct tda18271_config cfg = {
+ 			.config = t->config,
+-			.small_i2c = TDA18271_08_BYTE_CHUNK_INIT,
++			.small_i2c = TDA18271_03_BYTE_CHUNK_INIT,
+ 		};
+ 
+ 		if (!dvb_attach(tda18271_attach, &t->fe, t->i2c->addr,
+-- 
+1.7.1
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The V4L-DVB specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
