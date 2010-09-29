@@ -1,64 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:35359 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751405Ab0IHQ4Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Sep 2010 12:56:16 -0400
-Date: Wed, 8 Sep 2010 09:56:07 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Jarod Wilson <jarod@redhat.com>
-Cc: Jiri Kosina <jkosina@suse.cz>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Input <linux-input@vger.kernel.org>,
-	linux-media@vger.kernel.org,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	David Hardeman <david@hardeman.nu>,
-	Ville Syrjala <syrjala@sci.fi>
-Subject: Re: [PATCH 0/6] Large scancode handling
-Message-ID: <20100908165607.GA5424@core.coreip.homeip.net>
-References: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
- <alpine.LNX.2.00.1009081147540.26813@pobox.suse.cz>
- <20100908142418.GC22323@redhat.com>
- <4C87A87A.4060102@redhat.com>
- <20100908152234.GE22323@redhat.com>
- <alpine.LNX.2.00.1009081723400.26813@pobox.suse.cz>
- <20100908160908.GF22323@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20100908160908.GF22323@redhat.com>
+Received: from smtp.nokia.com ([192.100.122.233]:36875 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755576Ab0I2MlW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Sep 2010 08:41:22 -0400
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+To: linux-media@vger.kernel.org, mchehab@redhat.com,
+	hverkuil@xs4all.nl, eduardo.valentin@nokia.com
+Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: [PATCH v11 0/4] WL1273 FM Radio driver.
+Date: Wed, 29 Sep 2010 15:40:35 +0300
+Message-Id: <1285764039-5767-1-git-send-email-matti.j.aaltonen@nokia.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-On Wed, Sep 08, 2010 at 12:09:08PM -0400, Jarod Wilson wrote:
-> On Wed, Sep 08, 2010 at 05:25:13PM +0200, Jiri Kosina wrote:
-> > On Wed, 8 Sep 2010, Jarod Wilson wrote:
-> > 
-> > > > > It'll conflict a little bith with the tivo slide patch I posted yesterday,
-> > > > > but mostly just minor context changes. I can redo that patch on top of
-> > > > > these changes if that's preferred.
-> > > > 
-> > > > I can handle those context changes when merging the patches at linux-next and
-> > > > when merging upstream. We just need to sync in a way that Dmitry send his patch
-> > > > series before mine when sending them to Linus, and I'll take care of fixing the
-> > > > merge conflicts.
-> > > 
-> > > Ah, the specific conflicts I was referring here are confined to
-> > > drivers/hid/hid-input.c, and I sent the patch thinking it would go in via
-> > > the hid tree. It *is* for a remote, but its a pure HID device in this
-> > > case.
-> > 
-> > Umm, what patch are you talking about please? I don't seem to have 
-> > anything from you in my queue.
-> 
-> Gah. I suck. Forgot to cc you on it.
-> 
-> http://www.spinics.net/lists/linux-input/msg11007.html
-> 
-> Can resend and/or bounce you a copy if need be.
-> 
+Hello again!
 
-Hmm, I do not see anything in there that would conflict with my
-changes...
+I've only received one comment from Hans (thank you) and I'm still
+expecting to get comments also from Mauro. But I'm sending 
+the eleventh version anyway to keep the wheels rolling so to speak...
 
--- 
-Dmitry
+Hans wrote:
+>> +             V4L2_CAP_RDS_OUTPUT | V4L2_TUNER_CAP_RDS_BLOCK_IO;
+>> +
+>> +     return 0;
+>> +}
+>
+> V4L2_TUNER_CAP_RDS_BLOCK_IO is a tuner/modulator capability! Not a
+> querycap capability! It's added at the wrong place.
+
+Moved the BLOCK_IO flag to g_tuner and g_modulator.
+
+I also made a small fix to driver/media/radio/Kconfig so that the driver
+can actually be built without the digital audio codec.
+
+And in addition removed a reference to FM radio bands from the mfd file.
+
+B.R.
+Matti
+
+Matti J. Aaltonen (4):
+  V4L2: Add seek spacing and RDS CAP bits.
+  MFD: WL1273 FM Radio: MFD driver for the FM radio.
+  V4L2: WL1273 FM Radio: Controls for the FM radio.
+  Documentation: v4l: Add hw_seek spacing and two TUNER_RDS_CAP flags.
+
+ Documentation/DocBook/v4l/dev-rds.xml              |   10 +-
+ .../DocBook/v4l/vidioc-s-hw-freq-seek.xml          |   10 +-
+ drivers/media/radio/Kconfig                        |   16 +
+ drivers/media/radio/Makefile                       |    1 +
+ drivers/media/radio/radio-wl1273.c                 | 1859 ++++++++++++++++++++
+ drivers/mfd/Kconfig                                |    5 +
+ drivers/mfd/Makefile                               |    2 +
+ drivers/mfd/wl1273-core.c                          |  583 ++++++
+ include/linux/mfd/wl1273-core.h                    |  320 ++++
+ include/linux/videodev2.h                          |    5 +-
+ 10 files changed, 2807 insertions(+), 4 deletions(-)
+ create mode 100644 drivers/media/radio/radio-wl1273.c
+ create mode 100644 drivers/mfd/wl1273-core.c
+ create mode 100644 include/linux/mfd/wl1273-core.h
+
