@@ -1,124 +1,166 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2938 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752132Ab0ISK3i (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Sep 2010 06:29:38 -0400
-Received: from tschai.localnet (186.84-48-119.nextgentel.com [84.48.119.186])
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id o8JATaJs029630
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 19 Sep 2010 12:29:37 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: RFC: BKL, locking and ioctls
-Date: Sun, 19 Sep 2010 12:29:35 +0200
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201009191229.35800.hverkuil@xs4all.nl>
+Received: from psmtp30.wxs.nl ([195.121.247.32]:51565 "EHLO psmtp30.wxs.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751497Ab0I2WIz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Sep 2010 18:08:55 -0400
+Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
+ by psmtp30.wxs.nl
+ (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
+ with ESMTP id <0L9J00MQB46TVP@psmtp30.wxs.nl> for linux-media@vger.kernel.org;
+ Thu, 30 Sep 2010 00:08:54 +0200 (MEST)
+Date: Thu, 30 Sep 2010 00:08:52 +0200
+From: Jan Hoogenraad <jan-verisign@hoogenraad.net>
+Subject: Several linux-release dependent fixes (new and old)
+In-reply-to: <201009291911.o8TJBNCr042424@smtp-vbr13.xs4all.nl>
+To: Douglas Schilling Landgraf <dougsland@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Message-id: <4CA3B8F4.60300@hoogenraad.net>
+MIME-version: 1.0
+Content-type: multipart/mixed; boundary="Boundary_(ID_Vg22WM+pY9etOjiNFwTx7A)"
+References: <201009291911.o8TJBNCr042424@smtp-vbr13.xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-We need to work on getting rid of the BKL, but to do that safely we need a
-simple way to convert the many drivers that do not use unlocked_ioctl.
+This is a multi-part message in MIME format.
 
-Typically you want to serialize using a mutex. This is trivial to do in the
-driver itself for the normal open/read/write/poll/mmap and release fops.
+--Boundary_(ID_Vg22WM+pY9etOjiNFwTx7A)
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
 
-But for unlocked_ioctl it is a bit harder since we like drivers to use
-video_ioctl2 directly. And you don't want drivers to put mutex_lock/unlock
-calls in every v4l2_ioctl_ops function.
+Douglas:
 
-One solution is to add a mutex pointer to struct video_device that
-v4l2_unlocked_ioctl can use to do locking:
+Based on the logs from Hans' builds, I have prepared some updates.
+Some of these might lead to undesired behavior of v4l on older or newer 
+releases.
+All of these should reduce the number of warnings or errors in the logs 
+below.
 
-diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-index 30461cf..44c37e5 100644
---- a/drivers/media/video/v4l2-dev.c
-+++ b/drivers/media/video/v4l2-dev.c
-@@ -236,12 +236,18 @@ static long v4l2_unlocked_ioctl(struct file *filp,
-                unsigned int cmd, unsigned long arg)
- {
-        struct video_device *vdev = video_devdata(filp);
-+       int ret;
- 
-        if (!vdev->fops->unlocked_ioctl)
-                return -ENOTTY;
-+       if (vdev->ioctl_lock)
-+               mutex_lock(vdev->ioctl_lock);
-        /* Allow ioctl to continue even if the device was unregistered.
-           Things like dequeueing buffers might still be useful. */
--       return vdev->fops->unlocked_ioctl(filp, cmd, arg);
-+       ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
-+       if (vdev->ioctl_lock)
-+               mutex_unlock(vdev->ioctl_lock);
-+       return ret;
- }
- 
- #ifdef CONFIG_MMU
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index 1efcacb..e1ad38a 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -97,6 +97,8 @@ struct video_device
- 
-        /* ioctl callbacks */
-        const struct v4l2_ioctl_ops *ioctl_ops;
-+
-+       struct mutex *ioctl_lock;
- };
- 
- /* dev to video-device */
+Could you promote these changes to the git archive as well, if applicable ?
+
+http://linuxtv.org/hg/~jhoogenraad/ubuntu-firedtv/rev/199ff5830453
+
+Hans Verkuil wrote:
+> This message is generated daily by a cron job that builds v4l-dvb for
+> the kernels and architectures in the list below.
+>
+> Results of the daily build of v4l-dvb:
+>
+> date:        Wed Sep 29 19:00:10 CEST 2010
+> path:        http://www.linuxtv.org/hg/v4l-dvb
+> changeset:   15164:1da5fed5c8b2
+> git master:       3e6dce76d99b328716b43929b9195adfee1de00c
+> git media-master: dace3857de7a16b83ae7d4e13c94de8e4b267d2a
+> gcc version:      i686-linux-gcc (GCC) 4.4.3
+> host hardware:    x86_64
+> host os:          2.6.32.5
+>
+> linux-2.6.32.6-armv5: WARNINGS
+> linux-2.6.33-armv5: OK
+> linux-2.6.34-armv5: WARNINGS
+> linux-2.6.35.3-armv5: WARNINGS
+> linux-2.6.36-rc2-armv5: ERRORS
+> linux-2.6.32.6-armv5-davinci: WARNINGS
+> linux-2.6.33-armv5-davinci: WARNINGS
+> linux-2.6.34-armv5-davinci: WARNINGS
+> linux-2.6.35.3-armv5-davinci: WARNINGS
+> linux-2.6.36-rc2-armv5-davinci: ERRORS
+> linux-2.6.32.6-armv5-ixp: WARNINGS
+> linux-2.6.33-armv5-ixp: WARNINGS
+> linux-2.6.34-armv5-ixp: WARNINGS
+> linux-2.6.35.3-armv5-ixp: WARNINGS
+> linux-2.6.36-rc2-armv5-ixp: ERRORS
+> linux-2.6.32.6-armv5-omap2: WARNINGS
+> linux-2.6.33-armv5-omap2: WARNINGS
+> linux-2.6.34-armv5-omap2: WARNINGS
+> linux-2.6.35.3-armv5-omap2: WARNINGS
+> linux-2.6.36-rc2-armv5-omap2: ERRORS
+> linux-2.6.26.8-i686: WARNINGS
+> linux-2.6.27.44-i686: WARNINGS
+> linux-2.6.28.10-i686: WARNINGS
+> linux-2.6.29.1-i686: WARNINGS
+> linux-2.6.30.10-i686: WARNINGS
+> linux-2.6.31.12-i686: WARNINGS
+> linux-2.6.32.6-i686: WARNINGS
+> linux-2.6.33-i686: WARNINGS
+> linux-2.6.34-i686: WARNINGS
+> linux-2.6.35.3-i686: WARNINGS
+> linux-2.6.36-rc2-i686: ERRORS
+> linux-2.6.32.6-m32r: WARNINGS
+> linux-2.6.33-m32r: OK
+> linux-2.6.34-m32r: WARNINGS
+> linux-2.6.35.3-m32r: WARNINGS
+> linux-2.6.36-rc2-m32r: ERRORS
+> linux-2.6.32.6-mips: WARNINGS
+> linux-2.6.33-mips: WARNINGS
+> linux-2.6.34-mips: WARNINGS
+> linux-2.6.35.3-mips: WARNINGS
+> linux-2.6.36-rc2-mips: ERRORS
+> linux-2.6.32.6-powerpc64: WARNINGS
+> linux-2.6.33-powerpc64: WARNINGS
+> linux-2.6.34-powerpc64: WARNINGS
+> linux-2.6.35.3-powerpc64: WARNINGS
+> linux-2.6.36-rc2-powerpc64: ERRORS
+> linux-2.6.26.8-x86_64: WARNINGS
+> linux-2.6.27.44-x86_64: WARNINGS
+> linux-2.6.28.10-x86_64: WARNINGS
+> linux-2.6.29.1-x86_64: WARNINGS
+> linux-2.6.30.10-x86_64: WARNINGS
+> linux-2.6.31.12-x86_64: WARNINGS
+> linux-2.6.32.6-x86_64: WARNINGS
+> linux-2.6.33-x86_64: WARNINGS
+> linux-2.6.34-x86_64: WARNINGS
+> linux-2.6.35.3-x86_64: WARNINGS
+> linux-2.6.36-rc2-x86_64: ERRORS
+> linux-git-Module.symvers: ERRORS
+> linux-git-armv5: ERRORS
+> linux-git-armv5-davinci: ERRORS
+> linux-git-armv5-ixp: ERRORS
+> linux-git-armv5-omap2: ERRORS
+> linux-git-i686: ERRORS
+> linux-git-m32r: ERRORS
+> linux-git-mips: ERRORS
+> linux-git-powerpc64: ERRORS
+> linux-git-x86_64: ERRORS
+> spec-git: OK
+> sparse: ERRORS
+>
+> Detailed results are available here:
+>
+> http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+>
+> Full logs are available here:
+>
+> http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+>
+> The V4L-DVB specification from this daily build is here:
+>
+> http://www.xs4all.nl/~hverkuil/spec/media.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
 
-One area where this may run into problems is with videobuf. The videobuf
-subsystem has its own vb_lock, so that will give multiple levels of locking.
-More importantly, videobuf can sleep and you don't want to have the global
-lock preventing access to the device node.
+--Boundary_(ID_Vg22WM+pY9etOjiNFwTx7A)
+Content-type: text/x-vcard; charset=utf-8; name=jan-verisign.vcf
+Content-transfer-encoding: 7BIT
+Content-disposition: attachment; filename=jan-verisign.vcf
 
-One option is to let videobuf use the same mutex. However, I don't believe
-that is feasible with the current videobuf. Although I hope that this can
-be implemented for vb2.
+begin:vcard
+fn:Jan Hoogenraad
+n:Hoogenraad;Jan
+org:Hoogenraad Interface Services
+adr;quoted-printable;dom:;;Postbus 2717;Utrecht;;-- =
+	=0D=0A=
+	Jan Hoogenraad=0D=0A=
+	Hoogenraad Interface Services=0D=0A=
+	Postbus 2717=0D=0A=
+	3500 GS
+email;internet:jan-verisign@hoogenraad.net
+x-mozilla-html:FALSE
+version:2.1
+end:vcard
 
-That leaves one other option: the driver has to unlock the global lock before
-calling videobuf functions and take the lock again afterwards. I think this is
-actually only limited to qbuf and dqbuf so the impact will be small.
 
-Another place where a wait occurs is in v4l2_event_dequeue. But that's part
-of the core, so we can unlock ioctl_lock there and lock it afterwards. No
-driver changes required.
-
-One other thing that I do not like is this:
-
-        /* Allow ioctl to continue even if the device was unregistered.
-           Things like dequeueing buffers might still be useful. */
-        return vdev->fops->unlocked_ioctl(filp, cmd, arg);
-
-I do not believe drivers can do anything useful once the device is unregistered
-except just close the file handle. There are two exceptions to this: poll()
-and VIDIOC_DQEVENT.
-
-Right now drivers have no way of detecting that a disconnect happened. It would
-be easy to add a disconnect event and let the core issue it automatically. The
-only thing needed is that VIDIOC_DQEVENT ioctls are passed on and that poll
-raises an exception. Since all the information regarding events is available in
-the core framework it is easy to do this transparently.
-
-So effectively, once a driver unregistered a device node it will never get
-called again on that device node except for the release call. That is very
-useful for a driver.
-
-And since we can do this in the core, it will also be consistent for all
-drivers.
-
-Comments?
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+--Boundary_(ID_Vg22WM+pY9etOjiNFwTx7A)--
