@@ -1,136 +1,72 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:45098 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757177Ab0IZReo (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:52321 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751600Ab0I2KXy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Sep 2010 13:34:44 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC/PATCH 2/9] v4l: Group media bus pixel codes by types and sort them alphabetically
-Date: Sun, 26 Sep 2010 19:34:49 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com, g.liakhovetski@gmx.de
-References: <1285517612-20230-1-git-send-email-laurent.pinchart@ideasonboard.com> <1285517612-20230-3-git-send-email-laurent.pinchart@ideasonboard.com> <201009261929.54066.hverkuil@xs4all.nl>
-In-Reply-To: <201009261929.54066.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201009261934.50895.laurent.pinchart@ideasonboard.com>
+	Wed, 29 Sep 2010 06:23:54 -0400
+Date: Wed, 29 Sep 2010 12:23:44 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2] Add support for camera capture in s5p-fimc driver
+To: linux-media@vger.kernel.org, linux-arm-kernel@lists.infraded.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com
+Message-id: <1285755828-7815-1-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
+Hi all,
 
-On Sunday 26 September 2010 19:29:53 Hans Verkuil wrote:
-> On Sunday, September 26, 2010 18:13:25 Laurent Pinchart wrote:
-> > Adding new pixel codes at the end of the enumeration will soon create a
-> > mess, so sort the pixel codes by type and then sort them alphabetically.
-> > 
-> > As the codes are part of the kernel ABI their value can't change when a
-> > new code is inserted in the enumeration, so they are given an explicit
-> > numerical value. When inserting a new pixel code developers must use and
-> > update the V4L2_MBUS_FMT_LAST value.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  include/linux/v4l2-mediabus.h |   54
-> >  ++++++++++++++++++++++++---------------- 1 files changed, 32
-> >  insertions(+), 22 deletions(-)
-> > 
-> > diff --git a/include/linux/v4l2-mediabus.h
-> > b/include/linux/v4l2-mediabus.h index 127512a..bc637a5 100644
-> > --- a/include/linux/v4l2-mediabus.h
-> > +++ b/include/linux/v4l2-mediabus.h
-> > @@ -24,31 +24,41 @@
-> > 
-> >   * transferred first, "BE" means that the most significant bits are
-> >   transferred * first, and "PADHI" and "PADLO" define which bits - low
-> >   or high, in the * incomplete high byte, are filled with padding bits.
-> > 
-> > + *
-> > + * The pixel codes are grouped by types and (mostly) sorted
-> > alphabetically. As + * their value can't change when a new pixel code is
-> > inserted in the + * enumeration, they are explicitly given a numerical
-> > value. When inserting a + * new pixel code use and update the
-> > V4L2_MBUS_FMT_LAST value.
-> > 
-> >   */
-> >  
-> >  enum v4l2_mbus_pixelcode {
-> >  
-> >  	V4L2_MBUS_FMT_FIXED = 1,
-> > 
-> > -	V4L2_MBUS_FMT_YUYV8_2X8,
-> > -	V4L2_MBUS_FMT_YVYU8_2X8,
-> > -	V4L2_MBUS_FMT_UYVY8_2X8,
-> > -	V4L2_MBUS_FMT_VYUY8_2X8,
-> > -	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
-> > -	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
-> > -	V4L2_MBUS_FMT_RGB565_2X8_LE,
-> > -	V4L2_MBUS_FMT_RGB565_2X8_BE,
-> > -	V4L2_MBUS_FMT_SBGGR8_1X8,
-> > -	V4L2_MBUS_FMT_SBGGR10_1X10,
-> > -	V4L2_MBUS_FMT_GREY8_1X8,
-> > -	V4L2_MBUS_FMT_Y10_1X10,
-> > -	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
-> > -	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
-> > -	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
-> > -	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
-> > -	V4L2_MBUS_FMT_SGRBG8_1X8,
-> > -	V4L2_MBUS_FMT_SBGGR12_1X12,
-> > -	V4L2_MBUS_FMT_YUYV8_1_5X8,
-> > -	V4L2_MBUS_FMT_YVYU8_1_5X8,
-> > -	V4L2_MBUS_FMT_UYVY8_1_5X8,
-> > -	V4L2_MBUS_FMT_VYUY8_1_5X8,
-> > +	/* RGB */
-> > +	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE = 7,
-> > +	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE = 6,
-> > +	V4L2_MBUS_FMT_RGB565_2X8_BE = 9,
-> > +	V4L2_MBUS_FMT_RGB565_2X8_LE = 8,
-> > +	/* YUV (including grey) */
-> > +	V4L2_MBUS_FMT_GREY8_1X8 = 12,
-> > +	V4L2_MBUS_FMT_Y10_1X10 = 13,
-> > +	V4L2_MBUS_FMT_YUYV8_1_5X8 = 20,
-> > +	V4L2_MBUS_FMT_YVYU8_1_5X8 = 21,
-> > +	V4L2_MBUS_FMT_UYVY8_1_5X8 = 22,
-> > +	V4L2_MBUS_FMT_VYUY8_1_5X8 = 23,
-> > +	V4L2_MBUS_FMT_YUYV8_2X8 = 2,
-> > +	V4L2_MBUS_FMT_UYVY8_2X8 = 4,
-> > +	V4L2_MBUS_FMT_YVYU8_2X8 = 3,
-> > +	V4L2_MBUS_FMT_VYUY8_2X8 = 5,
-> > +	/* Bayer */
-> > +	V4L2_MBUS_FMT_SBGGR8_1X8 = 10,
-> > +	V4L2_MBUS_FMT_SBGGR10_1X10 = 11,
-> > +	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE = 16,
-> > +	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE = 14,
-> > +	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE = 17,
-> > +	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE = 15,
-> > +	V4L2_MBUS_FMT_SBGGR12_1X12 = 19,
-> > +	V4L2_MBUS_FMT_SGRBG8_1X8 = 18,
-> 
-> Why on earth would you want to keep the original values? It was internal
-> only, so no need to stick to the old values.
+The following is a second version of patches adding camera capture 
+capability to the s5p-fimc driver, ready for review. The driver 
+uses videobuf however it is meant as a first step to vb2 based 
+implementation.
 
-Good point :-)
+The host interface driver has been tested on Samsung Aquila and GONI
+boards (S5PC110) with SR030PC30 (VGA) and NOON010PC30 (CIF) image sensors.
+I am working on common driver for these image sensors so the patches
+providing support for them might be available soon.
 
-> Just let RGB start at 1000, YUV at 2000 and Bayer at 3000 or something like
-> that.
-> 
-> > +	/* Last - Update this when adding a new pixel code */
-> > +	V4L2_MBUS_FMT_LAST = 24,
-> 
-> Why would you need this?
 
-We've discussed this in the past. Keeping holes won't help, as we will have to 
-insert formats in places where we won't have holes sooner or later. We agreed 
-that it was better to keep the list organized by format, as that's easier to 
-read. V4L2_MBUS_FMT_LAST is thus a shortcut to avoid searching for the highest 
-format when adding a new one. As the constant itself isn't really needed, we 
-can keep the highest allocated format code in a comment instead.
+Changes since v1:
 
--- 
+- entirely removed plat-samsung/include/plat/fimc.h header so there is no
+ platform code dependency
+
+- improved s/try_fmt ioctl and introduced more common ioctl handlers
+ (enum/try/g_fmt, g_crop, cropcap) rather than having them separate 
+ for mem2mem and capture node
+
+- register definition changes merged with previous commit   
+ [3/8] v4l: s5p-fimc: Register definition cleanup
+
+
+The patch series contains:
+
+[PATCH v2 1/4] V4L/DVB: s5p-fimc: Register definition cleanup
+[PATCH v2 2/4] V4L/DVB: s5p-fimc: M2M driver cleanup and minor improvements
+[PATCH v2 3/4] V4L/DVB: s5p-fimc: Do not lock both capture and output buffer queue in s_fmt
+[PATCH v2 4/4] V4L/DVB: s5p-fimc: Add camera capture support
+
+It has been prepared in assumption that the following patches,
+posted by Marek Szyprowski, were applied:
+
+v4l: s5p-fimc: Fix 3-planar formats handling and pixel
+offset error on S5PV210 SoCs
+v4l: s5p-fimc: Fix return value on probe() failure
+
+For easier review the commits will be also available in few hours
+in git repository at:
+
+http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/heads/v4l/s5p-fimc-capture-for-2.6.37
+
 Regards,
+Sylwester
 
-Laurent Pinchart
+--
+Sylwester Nawrocki
+Linux Platform Group
+Samsung Poland R&D Center
