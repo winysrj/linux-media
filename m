@@ -1,64 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:43215 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751300Ab0IIIUc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Sep 2010 04:20:32 -0400
-Received: by fxm16 with SMTP id 16so709176fxm.19
-        for <linux-media@vger.kernel.org>; Thu, 09 Sep 2010 01:20:30 -0700 (PDT)
-Subject: Re: [PATCH 1/5] rc-code: merge and rename ir-core
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Jarod Wilson <jarod@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-In-Reply-To: <20100908211217.GA13938@hardeman.nu>
-References: <dciu6r836199wbxqd3ppo8xr.1283957431820@email.android.com>
-	 <20100908211217.GA13938@hardeman.nu>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 09 Sep 2010 11:20:23 +0300
-Message-ID: <1284020423.8362.2.camel@maxim-laptop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mx1.redhat.com ([209.132.183.28]:26217 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752710Ab0I2R25 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Sep 2010 13:28:57 -0400
+Message-ID: <4CA37755.5060608@redhat.com>
+Date: Wed, 29 Sep 2010 14:28:53 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Giorgio <mywing81@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: ASUS My Cinema-P7131 Hybrid (saa7134) and slow IR
+References: <AANLkTik4NpV5C=Ct_8u=awZ-tthDC=ORJj8u1DHTNu+q@mail.gmail.com>
+In-Reply-To: <AANLkTik4NpV5C=Ct_8u=awZ-tthDC=ORJj8u1DHTNu+q@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-On Wed, 2010-09-08 at 23:12 +0200, David Härdeman wrote: 
-> On Wed, Sep 08, 2010 at 11:10:40AM -0400, Andy Walls wrote:
-> > Tag files and a decent editor are all one needs for full code 
-> > navigation.  The kernel makefile already has a tags target to make the 
-> > tags file.  
+Em 29-09-2010 14:06, Giorgio escreveu:
+> Hello,
 > 
-> If you like to use tags, it won't be affected by many or few files so 
-> it's not an argument for either approach. 
-> 
-> > Smaller files make for better logical isolation of functions,limiting 
-> > visibilty/scope, 
-> 
-> Limiting visibility so that you'll have to add explicit declarations to 
-> ir-core-priv.h for inter-file function calls and functions that would 
-> otherwise be unnecessary (ir_raw_get_allowed_protocols() for example) 
-> doesn't sound like an advantage to me.
-> 
-> > and faster compilation of a file (but maybe at the expense of link 
-> > time).  
-> 
-> *sigh* compile times on my laptop:
-> 
-> rc-core.o		0.558s
-> 
-> ir-functions.o		0.321s
-> ir-sysfs.o		0.251s
-> ir-raw-event.o		0.397s
-> rc-map.o		0.265s
+> I have an Asus P7131 Hybrid card, and it works like a charm with
+> Ubuntu 8.04 and stock kernel 2.6.24. But, after upgrading my system to
+> Ubuntu 10.04 x86-64, I noticed that the remote control was quite slow
+> to respond. Sometimes the keypresses aren't recognized, and you have
+> to keep pressing the same button two or three times until it works.
+> The remote feels slow, not very responsive.
+> So, to investigate the issue, I loaded the ir-common module with
+> debug=1 and looked at the logs. They report lots of "ir-common:
+> spurious timer_end". The funny thing is, I have tried the Ubuntu 10.04
+> i386 livecd (with the same kernel) and the problem is not present
+> there.
 
-I personally don't care much about this.
-I use Kscope all the time :-)
+> Sep 27 15:48:59 holden-desktop kernel: [  256.770031] ir-common: spurious timer_end
+> Sep 27 15:48:59 holden-desktop kernel: [  256.880030] ir-common: spurious timer_end
 
-However I do care and like very much this patchset because I also would
-like to have a per remote input device, and this is first step towards
-it.
+It is using the old RC support. This support will be removed soon, so, the
+better is to convert it to use the new IR core, and fix a bug there, if is
+there any.
 
-Best regards,
-Maxim Levitsky
+Please apply the attached patch (it is against my -git tree, but it will probably
+apply fine if you have a new kernel).
 
+You should notice that the RC_MAP_ASUS_PC39 table is not ready for the new IR
+infrastructure. So, you'll need to enable ir-core debug, and check what scancodes are
+detected there. Probably, all we need is to add the RC5 address to all codes at the table.
+
+Cheers,
+Mauro
+
+---
+saa7134: port Asus P7131 Hybrid to use the new rc-core
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/video/saa7134/saa7134-input.c b/drivers/media/video/saa7134/saa7134-input.c
+index 52a1ee5..1bb813e 100644
+--- a/drivers/media/video/saa7134/saa7134-input.c
++++ b/drivers/media/video/saa7134/saa7134-input.c
+@@ -772,8 +772,10 @@ int saa7134_input_init1(struct saa7134_dev *dev)
+ 	case SAA7134_BOARD_ASUSTeK_P7131_HYBRID_LNA:
+ 	case SAA7134_BOARD_ASUSTeK_P7131_ANALOG:
+ 		ir_codes     = RC_MAP_ASUS_PC39;
+-		mask_keydown = 0x0040000;
+-		rc5_gpio = 1;
++		mask_keydown = 0x0040000;	/* Enable GPIO18 line on both edges */
++		mask_keyup   = 0x0040000;
++		mask_keycode = 0xffff;
++		raw_decode   = 1;
+ 		break;
+ 	case SAA7134_BOARD_ENCORE_ENLTV:
+ 	case SAA7134_BOARD_ENCORE_ENLTV_FM:
