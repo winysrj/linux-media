@@ -1,68 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.samsung.com ([203.254.224.25]:35543 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755057Ab0IMMOH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Sep 2010 08:14:07 -0400
-Received: from epmmp1 (mailout2.samsung.com [203.254.224.25])
- by mailout2.samsung.com
- (Sun Java(tm) System Messaging Server 7u3-15.01 64bit (built Feb 12 2010))
- with ESMTP id <0L8O00416PZGQ840@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 13 Sep 2010 21:14:04 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0L8O003X6PZGVD@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 13 Sep 2010 21:14:04 +0900 (KST)
-Date: Mon, 13 Sep 2010 21:14:04 +0900
-From: "Kim, HeungJun" <riverful.kim@samsung.com>
-Subject: how can deal with the stream in only on-the-fly-output available HW
- block??
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Message-id: <023401cb533d$2819c8c0$784d5a40$%kim@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: ko
-Content-transfer-encoding: 7BIT
+Received: from mx1.redhat.com ([209.132.183.28]:27324 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754299Ab0I3LzY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Sep 2010 07:55:24 -0400
+Message-ID: <4CA47AA9.8040403@redhat.com>
+Date: Thu, 30 Sep 2010 08:55:21 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: [GIT PATCHES FOR 2.6.37] Move V4L2 locking into the core framework
+References: <201009261425.00146.hverkuil@xs4all.nl>
+In-Reply-To: <201009261425.00146.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi all,
- 
-What if some SoC's specific HW block supports only on-the-fly mode for
-stream output??
-In this case, what is the suitable buf_type??
-I'm faced with such problem.
- 
-As explanation for my situation briefly, the processor I deal with now has 3
-Multimedia H/W blocks, and the problem-one in the 3 blocks do the work for
-sensor-interfacing and pre-processing.
-It supports CCD or CMOS for input, and DMA or On-The-Fly for output.
-Exactly, it has two cases - DMA mode using memory bus & On-The-Fly mode
-connected with any other multimedia blocks.
-Also, it use only one format "Bayer RGB" in case of mode the DMA and
-On-The-Fly mode both.
- 
-So, when the device operates in the On-The-Fly mode, is it alright the
-driver's current type is  V4L2_BUF_TYPE_VIDEO_CAPTURE? or something else?
-or if setting buf_type is wrong itself, what v4l2 API flow is right for
-driver or userspace??
+Em 26-09-2010 09:25, Hans Verkuil escreveu:
+> Hi Mauro,
+> 
+> These are the locking patches. It's based on my previous test tree, but with
+> more testing with em28xx and radio-mr800 and some small tweaks relating to
+> disconnect handling and video_is_registered().
+> 
+> I also removed the unused get_unmapped_area file op and I am now blocking
+> any further (unlocked_)ioctl calls after the device node is unregistered.
+> The only things an application can do legally after a disconnect is unmap()
+> and close().
+> 
+> This patch series also contains a small em28xx fix that I found while testing
+> the em28xx BKL removal patch.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> The following changes since commit dace3857de7a16b83ae7d4e13c94de8e4b267d2a:
+>   Hans Verkuil (1):
+>         V4L/DVB: tvaudio: remove obsolete tda8425 initialization
+> 
+> are available in the git repository at:
+> 
+>   ssh://linuxtv.org/git/hverkuil/v4l-dvb.git bkl
 
-the v4l2 buf_type enumeratinos is defined here, but I have no idea about
-suitable enum value in this case, also except for any other under enums too.
+Applied, thanks.
 
-V4L2_BUF_TYPE_VIDEO_CAPTURE        = 1,
-V4L2_BUF_TYPE_VIDEO_OUTPUT         = 2,
-V4L2_BUF_TYPE_VIDEO_OVERLAY        = 3,
-V4L2_BUF_TYPE_VBI_CAPTURE          = 4,
-V4L2_BUF_TYPE_VBI_OUTPUT           = 5,
-V4L2_BUF_TYPE_SLICED_VBI_CAPTURE   = 6,
-V4L2_BUF_TYPE_SLICED_VBI_OUTPUT    = 7,
-V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY = 8,
-V4L2_BUF_TYPE_PRIVATE              = 0x80,
+> Hans Verkuil (10):
+>       v4l2-dev: after a disconnect any ioctl call will be blocked.
+>       v4l2-dev: remove get_unmapped_area
+>       v4l2: add core serialization lock.
+>       videobuf: prepare to make locking optional in videobuf
+>       videobuf: add ext_lock argument to the queue init functions
+>       videobuf: add queue argument to videobuf_waiton()
 
-I'll thanks for any idea or answer.
- 
-Regards,
-HeungJun, Kim
+You forgot two to add the extra parameter on two drivers that uses vmalloc,
+noticed when I tried to compile it for i386 arch. I've already added them.
 
+Could you please double check if everything is compiling fine on the other archs?
 
+Thanks,
+Mauro
