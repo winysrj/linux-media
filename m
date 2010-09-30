@@ -1,58 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from mo-p00-ob.rzone.de ([81.169.146.161]:25378 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753157Ab0IRArp (ORCPT
+Received: from brigitte.telenet-ops.be ([195.130.137.66]:38794 "EHLO
+	brigitte.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756501Ab0I3UAK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Sep 2010 20:47:45 -0400
-From: rjkm <rjkm@metzlerbros.de>
+	Thu, 30 Sep 2010 16:00:10 -0400
+Date: Thu, 30 Sep 2010 21:55:07 +0200 (CEST)
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@redhat.com>
+cc: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Kernel Development <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH] lirc: Make struct file_operations pointer const
+Message-ID: <alpine.DEB.2.00.1009302153210.2434@ayla.of.borg>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Message-ID: <19604.3118.741829.592934@valen.metzler>
-Date: Sat, 18 Sep 2010 02:47:42 +0200
-To: Manu Abraham <abraham.manu@gmail.com>
-Cc: Johannes Stezenbach <js@linuxtv.org>, linux-media@vger.kernel.org
-Subject: Re: How to handle independent CA devices
-In-Reply-To: <AANLkTikqJoDLRbU6269HF4UD8QoiNPrjPbcNTfZ9j38u@mail.gmail.com>
-References: <19593.22297.612764.560375@valen.metzler>
-	<20100914144339.GA9525@linuxtv.org>
-	<19600.3015.410234.367070@valen.metzler>
-	<AANLkTikqJoDLRbU6269HF4UD8QoiNPrjPbcNTfZ9j38u@mail.gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Manu Abraham writes:
+struct file_operations was made const in the drivers, but not in struct
+lirc_driver:
 
- > > You still need a mechanism to decide which tuner gets it. First one
- > > which opens its own ca device?
- > > Sharing the CI (multi-stream decoding) in such an automatic way
- > > would also be complicated.
- > > I think I will only add such a feature if there is very high demand
- > > and rather look into the separate API solution.
- > 
- > 
- > It would be advantageous, if we do have just a simple input path,
- > where it is not restricted for CA/CI alone. I have some hardware over
- > here, where it has a DMA_TO_DEVICE channel (other than for the SG
- > table), where it can write a TS to any post-processor connected to it,
- > such as a CA/CI device, or even a decoder, for example. In short, it
- > could be anything, to put short.
- > 
- > In this case, the device can accept processed stream (muxed TS for
- > multi-TP TS) for CA, or a single TS/PS for decode on a decoder. You
- > can flip some registers for the device, for it to read from userspace,
- > or for that DMA channel to read from the hardware page tables of
- > another DMA channel which is coming from the tuner.
- > 
- > Maybe, we just need a simple mechanism/ioctl to select the CA/CI input
- > for the stream to the bridge. ie like a MUX: a 1:n select per adapter,
- > where the CA/CI device has 1 input and there are 'n' sources.
+drivers/staging/lirc/lirc_it87.c:365: warning: initialization discards qualifiers from pointer target type
+drivers/staging/lirc/lirc_parallel.c:571: warning: initialization discards qualifiers from pointer target type
+drivers/staging/lirc/lirc_serial.c:1073: warning: initialization discards qualifiers from pointer target type
+drivers/staging/lirc/lirc_sir.c:482: warning: initialization discards qualifiers from pointer target type
+drivers/staging/lirc/lirc_zilog.c:1284: warning: assignment discards qualifiers from pointer target type
 
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+---
+ include/media/lirc_dev.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-It would be nice to have a more general output device. But I have
-currently no plans to support something like transparent streaming 
-from one input to the output and back inside the driver.
+diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
+index b1f6066..71a896e 100644
+--- a/include/media/lirc_dev.h
++++ b/include/media/lirc_dev.h
+@@ -139,7 +139,7 @@ struct lirc_driver {
+ 	struct lirc_buffer *rbuf;
+ 	int (*set_use_inc) (void *data);
+ 	void (*set_use_dec) (void *data);
+-	struct file_operations *fops;
++	const struct file_operations *fops;
+ 	struct device *dev;
+ 	struct module *owner;
+ };
+-- 
+1.7.0.4
 
+Gr{oetje,eeting}s,
 
+						Geert
 
--Ralph
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+							    -- Linus Torvalds
