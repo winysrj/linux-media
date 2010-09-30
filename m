@@ -1,70 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:43806 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755002Ab0I3TQV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Sep 2010 15:16:21 -0400
-Message-ID: <4CA4E1FF.8090700@redhat.com>
-Date: Thu, 30 Sep 2010 16:16:15 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:40092 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932076Ab0I3TDJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Sep 2010 15:03:09 -0400
+Received: by bwz11 with SMTP id 11so1658026bwz.19
+        for <linux-media@vger.kernel.org>; Thu, 30 Sep 2010 12:03:08 -0700 (PDT)
 MIME-Version: 1.0
-To: Michael Krufky <mkrufky@kernellabs.com>
-CC: Srinivasa.Deevi@conexant.com, Palash.Bandyopadhyay@conexant.com,
+In-Reply-To: <20100928154700.59362453@pedra>
+References: <cover.1285699057.git.mchehab@redhat.com>
+	<20100928154700.59362453@pedra>
+Date: Thu, 30 Sep 2010 15:03:07 -0400
+Message-ID: <AANLkTi=8xbFTz5edMjJRXGD7UD6j4jzyOJibgZomKCCB@mail.gmail.com>
+Subject: Re: [PATCH 09/10] V4L/DVB: tda18271: Add debug message with frequency divisor
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Srinivasa.Deevi@conexant.com, Palash.Bandyopadhyay@conexant.com,
 	dheitmueller@kernellabs.com,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 03/10] V4L/DVB: tda18271: Add some hint about what tda18217
- reg ID returned
-References: <cover.1285699057.git.mchehab@redhat.com>	<20100928154655.183af4b3@pedra> <AANLkTindJwXKPpHgT=fN8NdNGstQHqGh+=FHu6xwYG3b@mail.gmail.com>
-In-Reply-To: <AANLkTindJwXKPpHgT=fN8NdNGstQHqGh+=FHu6xwYG3b@mail.gmail.com>
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@kernellabs.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 30-09-2010 15:57, Michael Krufky escreveu:
-> On Tue, Sep 28, 2010 at 2:46 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> Instead of doing:
->>
->> [   82.581639] tda18271 4-0060: creating new instance
->> [   82.588411] Unknown device detected @ 4-0060, device not supported.
->> [   82.594695] tda18271_attach: [4-0060|M] error -22 on line 1272
->> [   82.600530] tda18271 4-0060: destroying instance
->>
->> Print:
->> [  468.740392] Unknown device (0) detected @ 4-0060, device not supported.
->>
->> for the error message, to help detecting what's going wrong with the
->> device.
->>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>
->> diff --git a/drivers/media/common/tuners/tda18271-fe.c b/drivers/media/common/tuners/tda18271-fe.c
->> index 7955e49..77e3642 100644
->> --- a/drivers/media/common/tuners/tda18271-fe.c
->> +++ b/drivers/media/common/tuners/tda18271-fe.c
->> @@ -1177,7 +1177,7 @@ static int tda18271_get_id(struct dvb_frontend *fe)
->>                break;
->>        }
->>
->> -       tda_info("%s detected @ %d-%04x%s\n", name,
->> +       tda_info("%s (%i) detected @ %d-%04x%s\n", name, regs[R_ID] & 0x7f,
->>                 i2c_adapter_id(priv->i2c_props.adap),
->>                 priv->i2c_props.addr,
->>                 (0 == ret) ? "" : ", device not supported.");
-> 
-> A patch like this is fine for testing, but I see no reason for merging
-> this into the kernel.  Can you provide an explaination as per why this
-> would be useful?  In general, if you see, "Unknown device detected @
-> X-00YY, device not supported." then it means that this is not a
-> tda182x1.
+On Tue, Sep 28, 2010 at 2:47 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>
+> diff --git a/drivers/media/common/tuners/tda18271-common.c b/drivers/media/common/tuners/tda18271-common.c
+> index 195b30e..7ba3ba3 100644
+> --- a/drivers/media/common/tuners/tda18271-common.c
+> +++ b/drivers/media/common/tuners/tda18271-common.c
+> @@ -549,6 +549,13 @@ int tda18271_calc_main_pll(struct dvb_frontend *fe, u32 freq)
+>        regs[R_MD1]   = 0x7f & (div >> 16);
+>        regs[R_MD2]   = 0xff & (div >> 8);
+>        regs[R_MD3]   = 0xff & div;
+> +
+> +       if (tda18271_debug & DBG_REG) {
+> +               tda_reg("MAIN_DIV_BYTE_1    = 0x%02x\n", 0xff & regs[R_MD1]);
+> +               tda_reg("MAIN_DIV_BYTE_2    = 0x%02x\n", 0xff & regs[R_MD2]);
+> +               tda_reg("MAIN_DIV_BYTE_3    = 0x%02x\n", 0xff & regs[R_MD3]);
+> +       }
+> +
+>  fail:
+>        return ret;
+>  }
 
-cx231xx have 4 I2C buses. The device I'm working with have the tuner at the wrong chip.
-As it doesn't support 0 byte transactions, if you try to read from the wrong i2c, it will
-just return 0 to all read requests.
 
-So, this kind of message can be very useful if someone sends us a report about a new device.
-The changes are small and are printed only in the case of errors, where people will likely
-try to reach the developers. So, I think it is a good idea to have it mainstream.
+I would actually prefer NOT to merge this - it is redundant.  When
+DBG_REG is enabled, the driver will dump the contents of all
+registers, including MD1, MD2 and MD3.  With this patch applied, it
+would dump this data twice.  I do not believe this is useful at all.
 
-Cheers,
-Mauro
+Regards,
+
+Mike Krufky
