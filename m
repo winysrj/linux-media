@@ -1,139 +1,121 @@
 Return-path: <mchehab@pedra>
-Received: from psmtp13.wxs.nl ([195.121.247.25]:42381 "EHLO psmtp13.wxs.nl"
+Received: from mx1.redhat.com ([209.132.183.28]:2509 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750923Ab0I1T6N (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Sep 2010 15:58:13 -0400
-Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
- by psmtp13.wxs.nl
- (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
- with ESMTP id <0L9H00MMJ3GV4X@psmtp13.wxs.nl> for linux-media@vger.kernel.org;
- Tue, 28 Sep 2010 21:58:08 +0200 (MEST)
-Date: Tue, 28 Sep 2010 21:58:04 +0200
-From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-Subject: Re: updated make_kconfig.pl for Ubuntu
-In-reply-to: <4CA2321C.1020909@infradead.org>
-To: Douglas Schilling Landgraf <dougsland@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Message-id: <4CA248CC.4040404@hoogenraad.net>
-MIME-version: 1.0
-Content-type: multipart/mixed; boundary="Boundary_(ID_BB0Km7EFjLrnl5cuNGil+w)"
-References: <1284493110.1801.57.camel@sofia> <4C924EB8.9070500@hoogenraad.net>
- <4C93364C.3040606@hoogenraad.net> <4C934806.7050503@gmail.com>
- <4C934C10.2060801@hoogenraad.net> <4C93800B.8070902@gmail.com>
- <4C9F7267.7000707@hoogenraad.net> <4CA018C4.9000507@gmail.com>
- <4CA0E554.40406@hoogenraad.net> <4CA0ECA9.30208@gmail.com>
- <4CA10262.6060206@hoogenraad.net> <4CA11E25.5030206@gmail.com>
- <4CA22A79.9020309@hoogenraad.net> <4CA2321C.1020909@infradead.org>
+	id S1756339Ab0I3TsV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Sep 2010 15:48:21 -0400
+Message-ID: <4CA4E97F.2@redhat.com>
+Date: Thu, 30 Sep 2010 16:48:15 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Michael Krufky <mkrufky@kernellabs.com>
+CC: Srinivasa.Deevi@conexant.com, Palash.Bandyopadhyay@conexant.com,
+	dheitmueller@kernellabs.com,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 08/10] V4L/DVB: tda18271: allow restricting max out to
+ 4 bytes
+References: <cover.1285699057.git.mchehab@redhat.com>	<20100928154659.0e7e4147@pedra>	<AANLkTik_3MSjyqokvam28g5ohhCP=bb=_uzyzK0iM8Et@mail.gmail.com>	<4CA4E115.2080607@redhat.com> <AANLkTinRy4Dd54=RhBhewrSSOLHyRXLVpXJwehTeX2ih@mail.gmail.com>
+In-Reply-To: <AANLkTinRy4Dd54=RhBhewrSSOLHyRXLVpXJwehTeX2ih@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This is a multi-part message in MIME format.
-
---Boundary_(ID_BB0Km7EFjLrnl5cuNGil+w)
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7BIT
-
-Douglas:
-
-Can you push the updated make_kconfig.pl ?
-
-It is in its own HG tree on:
-http://linuxtv.org/hg/~jhoogenraad/ubuntu-firedtv/
-
-Mauro Carvalho Chehab wrote:
-> Em 28-09-2010 14:48, Jan Hoogenraad escreveu:
->> Douglas:
+Em 30-09-2010 16:18, Michael Krufky escreveu:
+> On Thu, Sep 30, 2010 at 3:12 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> Hi Michael,
 >>
->> I have an updated make_kconfig.pl for Ububtu on:
->> http://linuxtv.org/hg/~jhoogenraad/rtl2831-r2/file/cb34ee1c29fc/v4l/scripts/make_kconfig.pl
+>> Em 30-09-2010 15:52, Michael Krufky escreveu:
+>>> On Tue, Sep 28, 2010 at 2:46 PM, Mauro Carvalho Chehab
+>>> <mchehab@redhat.com> wrote:
+>>>> By default, tda18271 tries to optimize I2C bus by updating all registers
+>>>> at the same time. Unfortunately, some devices doesn't support it.
+>>>>
+>>>> The current logic has a problem when small_i2c is equal to 8, since there
+>>>> are some transfers using 11 + 1 bytes.
+>>>>
+>>>> Fix the problem by enforcing the max size at the right place, and allows
+>>>> reducing it to max = 3 + 1.
+>>>>
+>>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>>
+>>> This looks to me as if it is working around a problem on the i2c
+>>> master.  I believe that a fix like this really belongs in the i2c
+>>> master driver, it should be able to break the i2c transactions down
+>>> into transactions that the i2c master can handle.
+>>>
+>>> I wouldn't want to merge this without a better explanation of why it
+>>> is necessary in the tda18271 driver.  It seems to be a band-aid to
+>>> cover up a problem in the i2c master device driver code.
 >>
->> Could you test if make allyesconfig actually keeps FIREDTV enabled on a non-Ubuntu system ?
+>> In the specific case of cx231xx the hardware don't support any I2C transactions
+>> with more than 4 bytes. It is common to find this kind of limit on other types
+>> of hardware as well.
 >>
->> If so, can you merge this version into the main stream ?
+>> In the specific case of tda18271, the workaround for tda18271 is already there:
 >>
->
-> Ok, now it looks correct on my eyes, and it should not hurt compilation
-> with make release and with distros that do a good job with their kernel
-> packages.
->
-> I'll let Douglas review and test, as he is the maintainer.
->
-> It would be better if you could send him a diff. you may use hg diff to generate
-> it against an older version, in order to merge all your make_kconfig.pl patches,
-> or just create a new clone from master and apply it there.
->
-> A side question: when do you intend to send us the patches for the Realtek
-> rtl2831?
->
-> Cheers,
-> Mauro.
->
+>> enum tda18271_small_i2c {
+>>        TDA18271_39_BYTE_CHUNK_INIT = 0,
+>>        TDA18271_16_BYTE_CHUNK_INIT = 1,
+>>        TDA18271_08_BYTE_CHUNK_INIT = 2,
+>> };
+>> (from upstream tda18271.h header)
+>>
+>> Yet, it is currently broken. In thesis, if you use small_i2c, it should limit the
+>> transactions size to a certain value, but, if you try to limit to 8, you'll still
+>> see some transactions with size=11, since the code that honors small_i2c only works
+>> for the initial dump of the 39 registers, as there are some cases where writes to
+>> EP3 registers are done with:
+>>        tda18271_write_regs(fe, R_EP3, 11);
+>>
+>> and the current code for tda18271_write_regs don't check it.
+>>
+>> So, if there's a code there that allows limiting small_i2c:
+>>        1) this code should work for all transactions, not only to the initial init;
+>>        2) if there is such code, why not allow specifying a max size of 4 bytes?
+>>
+>> Another aspect is that doing such kind or restriction at the i2c adapter would require
+>> a very ugly logic, as some devices like tda18271 have only 8 bits registers per i2c address,
+>> and a write (or read) with length > 1 byte update/read the next consecutive registers,
+>> while other devices like xc3028 have one single I2C address for multi-byte operations like
+>> updating the firmware.
+>>
+>> If this logic would be moved into the bridge drivers, they would need to have some ugly
+>> tests, checking for each specific i2c sub-driver at their core drivers.
+> 
+> Hmm... If you don't mind, would you allow me to think about this a
+> bit, and run some tests of my own?
+> 
+> I have already seen the tda18271 work properly on the cx231xx with 8
+> byte transactions, the issue that I saw was actually a 12-byte
+> transaction limit, so the 11 byte transfer didn't cause a problem.
+> I'd like to test this again myself using the cx231xx device that I
+> have on hand.
 
+Maybe the cx231xx have different limits per I2C bus. The device I'm currently
+handling uses I2C channel 2 (instead of channel 1) for the tuner. The only
+device on this bus is tda18271. The original driver uses just one byte for every
+transactions. On my tests, _all_ I2C transactions to i2c channel #2 with 
+wLength > 4 bytes fail.
 
--- 
-Jan Hoogenraad
-Hoogenraad Interface Services
-Postbus 2717
-3500 GS Utrecht
+So, I'm pretty confident that it won't support more than 4 bytes of payload. 
 
---Boundary_(ID_BB0Km7EFjLrnl5cuNGil+w)
-Content-type: text/x-patch; name=ubuntu.patch
-Content-transfer-encoding: 7BIT
-Content-disposition: attachment; filename=ubuntu.patch
+> However, this transaction in particular:
+> 
+> tda18271_write_regs(fe, R_EP3, 11);
+> 
+> ...is not supposed to be broken down to smaller transaction -- this
+> particular transaction is supposed to be a one shot change to all 11
+> regs at once.  Straying from this could result in unpredictable
+> behavior.
 
-# HG changeset patch
-# User Jan Hoogenraad <jan-conceptronic@h-i-s.nl>
-# Date 1285703652 -7200
-# Node ID c8e14191e48d98a19405c9f899abca30cd89bc18
-# Parent  1da5fed5c8b2c626180b1a0983fe1c960b999525
-Disable FIREDTV for debian/ubuntu distributions with bad header files
+Well, if the device doesn't support large transactions, what other options do
+we have?
 
-From: Jan Hoogenraad <jan-conceptronic@h-i-s.nl>
+> I'd just like to review some other options and retest this before we
+> merge.  Is that okay with you?
 
-Disable FIREDTV for debian/ubuntu distributions with problems in header files
+Yeah, sure.
 
-Priority: normal
-
-Signed-off-by: Jan Hoogenraad <jan-conceptronic@h-i-s.nl>
-
-diff -r 1da5fed5c8b2 -r c8e14191e48d v4l/scripts/make_kconfig.pl
---- a/v4l/scripts/make_kconfig.pl	Sun Sep 19 02:23:09 2010 -0300
-+++ b/v4l/scripts/make_kconfig.pl	Tue Sep 28 21:54:12 2010 +0200
-@@ -597,6 +597,9 @@
- disable_config('STAGING_BROKEN');
- $intopt { "DVB_MAX_ADAPTERS" } = 8;
- 
-+#check broken Ubuntu headers
-+dmahcheck();
-+
- # Check dependencies
- my %newconfig = checkdeps();
- 
-@@ -681,3 +684,24 @@
- EOF3
- 	sleep 5;
- }
-+
-+# Check for full kernel sources and print a warning
-+sub dmahcheck()
-+{
-+	my $dmahplace="$kernsrc/include/config/ieee1394/dma.h";
-+	if (! -e $dmahplace) {
-+		print <<"EOF2";
-+
-+***WARNING:*** File $dmahplace not present.
-+This problem is at least present on Ubuntu systems:
-+https://bugs.launchpad.net/ubuntu/+source/linux-kernel-headers/+bug/134222
-+
-+Therefore disabling FIREDTV driver.
-+
-+EOF2
-+
-+	disable_config('DVB_FIREDTV');
-+
-+	}
-+	sleep 5;
-+}
-
---Boundary_(ID_BB0Km7EFjLrnl5cuNGil+w)--
+Cheers,
+Mauro.
