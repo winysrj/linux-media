@@ -1,64 +1,137 @@
-Return-path: <mchehab@localhost.localdomain>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:46460 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753792Ab0ILVdi (ORCPT
+Return-path: <mchehab@pedra>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:37744 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756090Ab0I3VDv convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Sep 2010 17:33:38 -0400
-Subject: Re: [GIT PATCHES FOR 2.6.37] Remove V4L1 support from the pwc
- driver
-From: Andy Walls <awalls@md.metrocast.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
-In-Reply-To: <1284326939.2394.29.camel@localhost>
-References: <201009122226.11970.hverkuil@xs4all.nl>
-	 <1284325962.2394.24.camel@localhost>  <1284326939.2394.29.camel@localhost>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 12 Sep 2010 17:34:34 -0400
-Message-ID: <1284327274.2394.33.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Thu, 30 Sep 2010 17:03:51 -0400
+Received: by gye5 with SMTP id 5so840071gye.19
+        for <linux-media@vger.kernel.org>; Thu, 30 Sep 2010 14:03:50 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4CA4F261.3040506@redhat.com>
+References: <cover.1285699057.git.mchehab@redhat.com>
+	<20100928154655.183af4b3@pedra>
+	<AANLkTindJwXKPpHgT=fN8NdNGstQHqGh+=FHu6xwYG3b@mail.gmail.com>
+	<4CA4E1FF.8090700@redhat.com>
+	<AANLkTikkL_wDGEEdivfrV1dWbiyUHNXC4NpHjnn3-vJv@mail.gmail.com>
+	<4CA4F261.3040506@redhat.com>
+Date: Thu, 30 Sep 2010 17:03:48 -0400
+Message-ID: <AANLkTi=J4Pijs7rADTxOs3DmP7Kc-+AQF1R664LGraBL@mail.gmail.com>
+Subject: Re: [PATCH 03/10] V4L/DVB: tda18271: Add some hint about what
+ tda18217 reg ID returned
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Srinivasa.Deevi@conexant.com, Palash.Bandyopadhyay@conexant.com,
+	dheitmueller@kernellabs.com,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@localhost.localdomain>
+Sender: <mchehab@pedra>
 
-On Sun, 2010-09-12 at 17:28 -0400, Andy Walls wrote:
-> On Sun, 2010-09-12 at 17:12 -0400, Andy Walls wrote:
-> > On Sun, 2010-09-12 at 22:26 +0200, Hans Verkuil wrote:
-> > 
-> > > And other news on the V4L1 front:
-> > 
-> > > I'm waiting for test results on the cpia2 driver. If it works, then the V4L1
-> > > support can be removed from that driver as well.
-> > 
+On Thu, Sep 30, 2010 at 4:26 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Em 30-09-2010 16:27, Michael Krufky escreveu:
+>> Mauro,
+>>
+>> I think that's a reasonable explanation.  Would you be open to
+>> reworking the patch such that the register contents only show up if
+>> the device is not recognized?  (when ret < 0) . In the case where the
+>> device is correctly identified (ret == 0), I'd rather preserve the
+>> original successful detection message, and not see the ID register
+>> contents.
+>
+> Patch enclosed.
+>
+> ---
+>
+> [PATCH] V4L/DVB: tda18271: Add some hint about what tda18217 reg ID returned
+>
+> Instead of doing:
+>
+> [   82.581639] tda18271 4-0060: creating new instance
+> [   82.588411] Unknown device detected @ 4-0060, device not supported.
+> [   82.594695] tda18271_attach: [4-0060|M] error -22 on line 1272
+> [   82.600530] tda18271 4-0060: destroying instance
+>
+> Print:
+> [  468.740392] Unknown device (0) detected @ 4-0060, device not supported.
+>
+> for the error message, to help detecting what's going wrong with the
+> device.
+>
+> This helps to detect when the driver is using the wrong I2C bus (or have
+> the i2g gate switch pointing to the wrong place), on devices like cx231xx
+> that just return 0 on reads to a non-existent i2c device.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>
+> diff --git a/drivers/media/common/tuners/tda18271-fe.c b/drivers/media/common/tuners/tda18271-fe.c
+> index 7955e49..3db8727 100644
+> --- a/drivers/media/common/tuners/tda18271-fe.c
+> +++ b/drivers/media/common/tuners/tda18271-fe.c
+> @@ -1156,7 +1156,6 @@ static int tda18271_get_id(struct dvb_frontend *fe)
+>        struct tda18271_priv *priv = fe->tuner_priv;
+>        unsigned char *regs = priv->tda18271_regs;
+>        char *name;
+> -       int ret = 0;
+>
+>        mutex_lock(&priv->lock);
+>        tda18271_read_regs(fe);
+> @@ -1172,17 +1171,18 @@ static int tda18271_get_id(struct dvb_frontend *fe)
+>                priv->id = TDA18271HDC2;
+>                break;
+>        default:
+> -               name = "Unknown device";
+> -               ret = -EINVAL;
+> -               break;
+> +               tda_info("Unknown device (%i) detected @ %d-%04x, device not supported.\n",
+> +                        regs[R_ID],
+> +                        i2c_adapter_id(priv->i2c_props.adap),
+> +                        priv->i2c_props.addr);
+> +               return -EINVAL;
+>        }
+>
+> -       tda_info("%s detected @ %d-%04x%s\n", name,
+> +       tda_info("%s detected @ %d-%04x\n", name,
+>                 i2c_adapter_id(priv->i2c_props.adap),
+> -                priv->i2c_props.addr,
+> -                (0 == ret) ? "" : ", device not supported.");
+> +                priv->i2c_props.addr);
+>
+> -       return ret;
+> +       return 0;
+>  }
+>
+>  static int tda18271_setup_configuration(struct dvb_frontend *fe,
+>
+>
+
+This looks good to me, although you could concatenate these lines together:
 
 
-> In the cpia2 driver:
-> 
->        /* CPIA2 extension to Video4Linux API */
->         case CPIA2_IOC_SET_GPIO:
->                 retval = ioctl_set_gpio(arg, cam);
->                 break;
-> 
-> Yuck.
-
-And another gem in the cpia2 driver, this V4L2 control:
+> +               tda_info("Unknown device (%i) detected @ %d-%04x, device not supported.\n",
+> +                        regs[R_ID],
+> +                        i2c_adapter_id(priv->i2c_props.adap),
+> +                        priv->i2c_props.addr);
+> +               return -EINVAL;
 
 
-        {
-                .id            = CPIA2_CID_GPIO,
-                .type          = V4L2_CTRL_TYPE_INTEGER,
-                .name          = "GPIO",
-                .minimum       = 0,
-                .maximum       = 255,
-                .step          = 1,
-                .default_value = 0,
-        },
+to be more like this:
 
-Give me a GUI with a slider for that control, and I'm sure I can fry a
-camera.
 
-That should be removed.
+> +               tda_info("Unknown device (%i) detected @ %d-%04x, device not supported.\n",
+> +                        regs[R_ID], i2c_adapter_id(priv->i2c_props.adap), priv->i2c_props.addr);
+> +               return -EINVAL;
+
+
+...that is, if it fits within an 80-char line.
+
+Anyway,
+
+Reviewed-by: Michael Krufky <mkrufky@kernellabs.com>
+
+Thank you.
 
 Regards,
-Andy
 
-
+Mike Krufky
