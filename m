@@ -1,90 +1,113 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:37096 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755353Ab0IVTta (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Sep 2010 15:49:30 -0400
-Message-ID: <4C9A5DC4.2000102@redhat.com>
-Date: Wed, 22 Sep 2010 16:49:24 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org,
-	Mats Randgaard <mats.randgaard@tandberg.com>
-Subject: Re: [GIT PATCHES FOR 2.6.37] davinci & videobuf fixes
-References: <201009071123.25174.hverkuil@xs4all.nl> <4C9A4D47.3080605@redhat.com> <201009222049.07597.hverkuil@xs4all.nl>
-In-Reply-To: <201009222049.07597.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2627 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753157Ab0I3TL0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Sep 2010 15:11:26 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id o8UJBO98021721
+	for <linux-media@vger.kernel.org>; Thu, 30 Sep 2010 21:11:24 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 30 Sep 2010 21:11:24 +0200 (CEST)
+Message-Id: <201009301911.o8UJBO98021721@smtp-vbr12.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 22-09-2010 15:49, Hans Verkuil escreveu:
-> On Wednesday, September 22, 2010 20:39:03 Mauro Carvalho Chehab wrote:
->> Em 07-09-2010 06:23, Hans Verkuil escreveu:
->>> Hi Mauro,
->>>
->>> The following changes since commit 50b9d21ae2ac1b85be46f1ee5aa1b5e588622361:
->>>   Jarod Wilson (1):
->>>         V4L/DVB: mceusb: add two new ASUS device IDs
->>>
->>> are available in the git repository at:
->>>
->>>   ssh://linuxtv.org/git/hverkuil/v4l-dvb.git for-2.6.37
->>>
->>> Hans Verkuil (1):
->>>       videobuf-dma-sg: set correct size in last sg element
->>
->> Ok.
->>>
->>> Mats Randgaard (5):
->>>       videobuf-core.c: Replaced BUG_ON with WARN_ON
->>
->> Why? Please provide a description to allow us to understand why this change makes sense.
->> Is there any condition where this would be acceptable?
-> 
-> Does it indicate a driver bug? Yes. But it's not a harmful driver bug, i.e. it
-> will not cause a crash later. So BUG_ON is way overkill. WARN_ON is sufficient.
-> 
-> A bug in the davinci driver actually triggered this BUG_ON for us. Since it's
-> a BUG_ON you are forced to reboot for no good reason. Note that we are working
-> on fixing the davinci bug as well.
-> 
-> AFAIK BUG_ON is meant for fatal errors, i.e. continuing will cause crashes later.
-> That's not at all the case here.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Ok, please include this description on the patch. I'm fine with it. I was afraid that
-this could be the default behavior for the davinci driver. The better is to put
-this patch in the same series where you'll be also correcting the davinci bug.
+Results of the daily build of v4l-dvb:
 
-> 
-> Regards,
-> 
-> 	Hans
-> 
->>>       vpif_cap/disp: Removed section mismatch warning
->>>       vpif_cap/disp: Replaced kmalloc with kzalloc
->>> 	vpif_cap: don't ignore return code of videobuf_poll_stream()
->>
->> The better would be to provide some description for all patches, but, in this
->> specific case, they're trivial.
->>
->> Applied, thanks.
->>
->>>       vpif_cap/disp: Fixed strlcpy NULL pointer bug
->>
->> Hmm... this one doesn't make sense to me. Instead, you should be sure that
->> config->card_name (or cap->card) is always filled.
->>
->> Ok, I've applied 4 of the 6 patches (I've included the patch of the last email
->> on the above).
->>
->> Please, provide a better solution for the strlcpy NULL pointer bug, properly
->> filling the config struct in all cases.
->>
->> Cheers,
->> Mauro
->>
-> 
+date:        Thu Sep 30 19:00:05 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15164:1da5fed5c8b2
+git master:       3e6dce76d99b328716b43929b9195adfee1de00c
+git media-master: e847bbbf9273533c15c6e8aab204ba62c238cf42
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-Cheers,
-Mauro
+linux-2.6.32.6-armv5: WARNINGS
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.36-rc2-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35.3-armv5-davinci: WARNINGS
+linux-2.6.36-rc2-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35.3-armv5-ixp: WARNINGS
+linux-2.6.36-rc2-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35.3-armv5-omap2: WARNINGS
+linux-2.6.36-rc2-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-rc2-i686: ERRORS
+linux-2.6.32.6-m32r: WARNINGS
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.36-rc2-m32r: ERRORS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.36-rc2-mips: ERRORS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.36-rc2-powerpc64: ERRORS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-rc2-x86_64: ERRORS
+linux-git-Module.symvers: ERRORS
+linux-git-armv5: ERRORS
+linux-git-armv5-davinci: ERRORS
+linux-git-armv5-ixp: ERRORS
+linux-git-armv5-omap2: ERRORS
+linux-git-i686: ERRORS
+linux-git-m32r: ERRORS
+linux-git-mips: ERRORS
+linux-git-powerpc64: ERRORS
+linux-git-x86_64: ERRORS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
