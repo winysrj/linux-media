@@ -1,61 +1,32 @@
-Return-path: <mchehab@localhost>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:33036 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754458Ab0IBVVD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Sep 2010 17:21:03 -0400
-Subject: Re: [PATCH 6/7] IR: extend ir_raw_event and do refactoring
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-In-Reply-To: <20100902205607.GB3886@hardeman.nu>
-References: <1283158348-7429-1-git-send-email-maximlevitsky@gmail.com>
-	 <1283158348-7429-7-git-send-email-maximlevitsky@gmail.com>
-	 <20100902205607.GB3886@hardeman.nu>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 03 Sep 2010 00:20:54 +0300
-Message-ID: <1283462454.3306.15.camel@maxim-laptop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Return-path: <mchehab@pedra>
+Received: from qmta09.emeryville.ca.mail.comcast.net ([76.96.30.96]:36985 "EHLO
+	qmta09.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751603Ab0I3J4E (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Sep 2010 05:56:04 -0400
+Message-ID: <4CA45EB0.30002@xyzw.org>
+Date: Thu, 30 Sep 2010 02:56:00 -0700
+From: Brian Rogers <brian@xyzw.org>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [GIT PULL for 2.6.36] V4L/DVB fixes
+References: <4CA10545.4010204@redhat.com> <AANLkTikYyEPAHq5rYzzckExTSFFCAj_DUqAZEvoeU0WD@mail.gmail.com> <4CA13893.8050409@redhat.com>
+In-Reply-To: <4CA13893.8050409@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: <mchehab@pedra>
 
-On Thu, 2010-09-02 at 22:56 +0200, David Härdeman wrote: 
-> On Mon, Aug 30, 2010 at 11:52:26AM +0300, Maxim Levitsky wrote:
-> > Add new event types for timeout & carrier report
-> > Move timeout handling from ir_raw_event_store_with_filter to
-> > ir-lirc-codec, where it is really needed.
-> 
-> Yes, but it still might make more sense to keep the timeout handling in 
-> ir_raw_event_store_with_filter so that all decoders get the same data 
-> from rc-core?
-I don't want any timeouts in rc-core. There is just an IR packet that
-starts optionally with a reset and ends with a timeout bit.
-I have also nothing against renaming reset/timeout to start/stop.
+  On 09/27/2010 05:36 PM, Mauro Carvalho Chehab wrote:
+> I'll clean up the mess and prepare a new pull request in the next days.
 
-rc-core really shouldn't care about consistent pulse/space ordering.
-Its lirc that needs it.
+Can you look at including "ir-core: Fix null dereferences in the 
+protocols sysfs interface"? I never got a response to that, and it's a 
+regression fix for 2.6.36.
 
-Also in the future I think I should make the
-ir_raw_event_store_with_filter the default submit function for all
-drivers, and then I could drop that silly '_with_filter" thing
-(Couldn't think for a better name for this function...)
-
-> 
-> > Now lirc bridge ensures proper gap handling.
-> > Extend lirc bridge for carrier & timeout reports
-> > 
-> > Note: all new ir_raw_event variables now should be initialized
-> > like that:
-> > struct ir_raw_event ev = ir_new_event;
-> 
-> Wouldn't DEFINE_RAW_EVENT(ev); be more in line with the kernel coding 
-> style? (cf. DEFINE_MUTEX, DEFINE_SPINLOCK, etc).
-Of course, nothing against that.
-
-
-Best regards,
-Maxim Levitsky
+https://patchwork.kernel.org/patch/199002/
 
