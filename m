@@ -1,91 +1,93 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:5215 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754345Ab0IJPNW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Sep 2010 11:13:22 -0400
-Message-ID: <4C8A4B1C.8010002@redhat.com>
-Date: Fri, 10 Sep 2010 12:13:32 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mailout-de.gmx.net ([213.165.64.22]:45184 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1751150Ab0I3WT5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Sep 2010 18:19:57 -0400
+Date: Fri, 1 Oct 2010 00:19:53 +0200
+From: Richard Atterer <atterer@debian.org>
+To: linux-media@vger.kernel.org
+Subject: bttv: No analogue sound output by TV card
+Message-ID: <20100930221953.GA7062@arbonne.lan>
 MIME-Version: 1.0
-To: Jean Delvare <khali@linux-fr.org>
-CC: LMML <linux-media@vger.kernel.org>,
-	Steven Toth <stoth@kernellabs.com>
-Subject: Re: [PATCH 1/5] cx22702: Clean up register access functions
-References: <20100910151943.103f7423@hyperion.delvare> <20100910152700.69edd554@hyperion.delvare>
-In-Reply-To: <20100910152700.69edd554@hyperion.delvare>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-Em 10-09-2010 10:27, Jean Delvare escreveu:
-> * Avoid temporary variables.
-> * Optimize success paths.
-> * Make error messages consistently verbose.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Cc: Steven Toth <stoth@kernellabs.com>
-> ---
->  drivers/media/dvb/frontends/cx22702.c |   23 +++++++++++++----------
->  1 file changed, 13 insertions(+), 10 deletions(-)
-> 
-> --- linux-2.6.32-rc5.orig/drivers/media/dvb/frontends/cx22702.c	2009-10-16 09:47:14.000000000 +0200
-> +++ linux-2.6.32-rc5/drivers/media/dvb/frontends/cx22702.c	2009-10-16 09:47:45.000000000 +0200
-> @@ -92,33 +92,36 @@ static int cx22702_writereg(struct cx227
->  
->  	ret = i2c_transfer(state->i2c, &msg, 1);
->  
-> -	if (ret != 1)
-> +	if (ret != 1) {
+[Please CC me, I'm not on the list.]
 
-As a suggestion, if you want to optimize success paths, you should use unlikely() for error
-checks. This tells gcc to optimize the code to avoid cache cleanups for the likely condition:
+Hi,
 
-	if (unlikely(ret != 1)) {
+after switching from 2.6.34 to 2.6.36-rc5, the sound on my old Hauppauge 
+analogue TV card has stopped working. Audio out from the TV card is 
+connected to line-in of my motherboard (Gigabyte EG45M-DS2H) using the 
+short cable that came with the TV card. Other audio sources (e.g. MP3 
+player) are audible when connected to line-in. The TV picture is fine.
 
->  		printk(KERN_ERR
->  			"%s: error (reg == 0x%02x, val == 0x%02x, ret == %i)\n",
->  			__func__, reg, data, ret);
-> +		return -1;
-> +	}
->  
-> -	return (ret != 1) ? -1 : 0;
-> +	return 0;
->  }
->  
->  static u8 cx22702_readreg(struct cx22702_state *state, u8 reg)
->  {
->  	int ret;
-> -	u8 b0[] = { reg };
-> -	u8 b1[] = { 0 };
-> +	u8 data;
->  
->  	struct i2c_msg msg[] = {
->  		{ .addr = state->config->demod_address, .flags = 0,
-> -			.buf = b0, .len = 1 },
-> +			.buf = &reg, .len = 1 },
->  		{ .addr = state->config->demod_address, .flags = I2C_M_RD,
-> -			.buf = b1, .len = 1 } };
-> +			.buf = &data, .len = 1 } };
->  
->  	ret = i2c_transfer(state->i2c, msg, 2);
->  
-> -	if (ret != 2)
-> -		printk(KERN_ERR "%s: readreg error (ret == %i)\n",
-> -			__func__, ret);
-> +	if (ret != 2) {
+The log messages look really similar for the two kernels.
 
-Same comment applies here.
+2.6.34 works:
+kernel: bttv: driver version 0.9.18 loaded
+kernel: bttv: using 8 buffers with 2080k (520 pages) each for capture
+kernel: bttv: Bt8xx card found (0).
+kernel: bttv0: Bt878 (rev 17) at 0000:03:01.0, irq: 19, latency: 32, mmio: 0xe3600000
+kernel: bttv0: detected: Hauppauge WinTV [card=10], PCI subsystem ID is 0070:13eb
+kernel: bttv0: using: Hauppauge (bt878) [card=10,autodetected]
+kernel: IRQ 19/bttv0: IRQF_DISABLED is not guaranteed on shared IRQs
+kernel: bttv0: gpio: en=00000000, out=00000000 in=00ffffdb [init]
+kernel: bttv0: Hauppauge/Voodoo msp34xx: reset line init [5]
+kernel: tveeprom 1-0050: Hauppauge model 44354, rev D147, serial# 1234567
+kernel: tveeprom 1-0050: tuner model is LG TP18PSB01D (idx 47, type 28)
+kernel: tveeprom 1-0050: TV standards PAL(B/G) (eeprom 0x04)
+kernel: tveeprom 1-0050: audio processor is MSP3415 (idx 6)
+kernel: tveeprom 1-0050: has radio
+kernel: bttv0: Hauppauge eeprom indicates model#44354
+kernel: bttv0: tuner type=28
+kernel: msp3400 1-0040: MSP3415D-B3 found @ 0x80 (bt878 #0 [sw])
+kernel: msp3400 1-0040: msp3400 supports nicam, mode is autodetect
+kernel: tuner 1-0061: chip found @ 0xc2 (bt878 #0 [sw])
+kernel: tuner-simple 1-0061: creating new instance
+kernel: tuner-simple 1-0061: type set to 28 (LG PAL_BG+FM (TPI8PSB01D))
+kernel: bttv0: registered device video0
+kernel: bttv0: registered device vbi0
+kernel: bttv0: registered device radio0
+kernel: bttv0: PLL: 28636363 => 35468950 .
+kernel: bttv0: PLL: 28636363 => 35468950 . ok
+kernel:  ok
 
-> +		printk(KERN_ERR "%s: error (reg == 0x%02x, ret == %i)\n",
-> +			__func__, reg, ret);
-> +		return 0;
-> +	}
->  
-> -	return b1[0];
-> +	return data;
->  }
->  
->  static int cx22702_set_inversion(struct cx22702_state *state, int inversion)
-> 
+2.6.36-rc5 does not work:
+kernel: bttv: driver version 0.9.18 loaded
+kernel: bttv: using 8 buffers with 2080k (520 pages) each for capture
+kernel: bttv: Bt8xx card found (0).
+kernel: bttv0: Bt878 (rev 17) at 0000:03:01.0, irq: 19, latency: 32, mmio: 0xe3600000
+kernel: bttv0: detected: Hauppauge WinTV [card=10], PCI subsystem ID is 0070:13eb
+kernel: bttv0: using: Hauppauge (bt878) [card=10,autodetected]
+kernel: bttv0: gpio: en=00000000, out=00000000 in=00ffffdb [init]
+kernel: bttv0: Hauppauge/Voodoo msp34xx: reset line init [5]
+kernel: tveeprom 1-0050: Hauppauge model 44354, rev D147, serial# 1234567
+kernel: tveeprom 1-0050: tuner model is LG TP18PSB01D (idx 47, type 28)
+kernel: tveeprom 1-0050: TV standards PAL(B/G) (eeprom 0x04)
+kernel: tveeprom 1-0050: audio processor is MSP3415 (idx 6)
+kernel: tveeprom 1-0050: has radio
+kernel: bttv0: Hauppauge eeprom indicates model#44354
+kernel: bttv0: tuner type=28
+kernel: msp3400 1-0040: MSP3415D-B3 found @ 0x80 (bt878 #0 [sw])
+kernel: msp3400 1-0040: msp3400 supports nicam, mode is autodetect
+kernel: tuner 1-0061: chip found @ 0xc2 (bt878 #0 [sw])
+kernel: tuner-simple 1-0061: creating new instance
+kernel: tuner-simple 1-0061: type set to 28 (LG PAL_BG+FM (TPI8PSB01D))
+kernel: bttv0: registered device video0
+kernel: bttv0: registered device vbi0
+kernel: bttv0: registered device radio0
+kernel: bttv0: PLL: 28636363 => 35468950 . ok
+
+The only real change is that the IRQF_DISABLED warning is gone.
+
+Cheers,
+  Richard
+
+-- 
+  __   ,
+  | ) /|  Richard Atterer
+  | \/ |  http://atterer.org
 
