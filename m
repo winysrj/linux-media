@@ -1,60 +1,73 @@
-Return-path: <mchehab@localhost.localdomain>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1243 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751838Ab0IMKVt (ORCPT
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1627 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751982Ab0I3M3b (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Sep 2010 06:21:49 -0400
-Received: from tschai.localnet (186.84-48-119.nextgentel.com [84.48.119.186])
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id o8DALlWQ084110
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 13 Sep 2010 12:21:48 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
+	Thu, 30 Sep 2010 08:29:31 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: Re: [GIT PATCHES FOR 2.6.37] Documentation fixes & updates
-Date: Mon, 13 Sep 2010 12:21:48 +0200
-References: <201009111711.05528.hverkuil@xs4all.nl>
-In-Reply-To: <201009111711.05528.hverkuil@xs4all.nl>
+Subject: Re: [git:v4l-dvb/v2.6.37] V4L/DVB: V4L2: add a generic function to find the nearest discrete format to the required one
+Date: Thu, 30 Sep 2010 14:29:10 +0200
+References: <E1P1Hj6-0007m4-4n@www.linuxtv.org>
+In-Reply-To: <E1P1Hj6-0007m4-4n@www.linuxtv.org>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201009131221.48509.hverkuil@xs4all.nl>
+Message-Id: <201009301429.10897.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@localhost.localdomain>
+Sender: <mchehab@pedra>
 
-On Saturday, September 11, 2010 17:11:05 Hans Verkuil wrote:
-> The following changes since commit 57fef3eb74a04716a8dd18af0ac510ec4f71bc05:
->   Richard Zidlicky (1):
->         V4L/DVB: dvb: fix smscore_getbuffer() logic
+On Thursday, September 30, 2010 13:50:00 Mauro Carvalho Chehab wrote:
+> This is an automatic generated email to let you know that the following patch were queued at the 
+> http://git.linuxtv.org/media-tree.git tree:
 > 
-> are available in the git repository at:
+> Subject: V4L/DVB: V4L2: add a generic function to find the nearest discrete format to the required one
+> Author:  Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Date:    Fri Aug 27 13:41:44 2010 -0300
 > 
->   ssh://linuxtv.org/git/hverkuil/v4l-dvb.git misc1
+> Many video drivers implement a fixed set of frame formats and thus face a task
+> of finding the best match for a user-requested format. Implementing this in a
+> generic function has also an advantage, that different drivers with similar
+> supported format sets will select the same format for the user, which improves
+> consistency across drivers.
 > 
-> Hans Verkuil (5):
->       V4L Doc: removed duplicate link
->       V4L Doc: fix DocBook syntax errors.
->       V4L Doc: document V4L2_CAP_RDS_OUTPUT capability.
->       V4L Doc: clarify the V4L spec.
->       V4L Doc: correct the documentation for VIDIOC_QUERYMENU.
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 > 
->  Documentation/DocBook/v4l/common.xml               |   93 +++++--------------
->  Documentation/DocBook/v4l/controls.xml             |    3 -
->  Documentation/DocBook/v4l/pixfmt-packed-rgb.xml    |    2 +-
->  Documentation/DocBook/v4l/pixfmt.xml               |    4 +-
->  Documentation/DocBook/v4l/vidioc-g-dv-preset.xml   |    3 +-
->  Documentation/DocBook/v4l/vidioc-g-dv-timings.xml  |    3 +-
->  .../DocBook/v4l/vidioc-query-dv-preset.xml         |    2 +-
->  Documentation/DocBook/v4l/vidioc-querycap.xml      |    7 ++-
->  Documentation/DocBook/v4l/vidioc-queryctrl.xml     |   18 +++--
->  9 files changed, 49 insertions(+), 86 deletions(-)
-> 
-> 
+>  drivers/media/video/v4l2-common.c |   24 ++++++++++++++++++++++++
+>  include/linux/videodev2.h         |    8 ++++++++
+>  2 files changed, 32 insertions(+), 0 deletions(-)
 
-Disregard this pull request. I'm preparing a new one with Andy's suggestions
-included and more doc fixes relating to the control framework.
+<snip>
+
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index b06479f..957d5b0 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -397,6 +397,14 @@ struct v4l2_frmsize_discrete {
+>  	__u32			height;		/* Frame height [pixel] */
+>  };
+>  
+> +struct v4l2_discrete_probe {
+> +	const struct v4l2_frmsize_discrete	*sizes;
+> +	int					num_sizes;
+> +};
+> +
+> +struct v4l2_frmsize_discrete *v4l2_find_nearest_format(struct v4l2_discrete_probe *probe,
+> +						       s32 width, s32 height);
+> +
+>  struct v4l2_frmsize_stepwise {
+>  	__u32			min_width;	/* Minimum frame width [pixel] */
+>  	__u32			max_width;	/* Maximum frame width [pixel] */
+
+??? What is this doing in videodev2.h? This belongs in v4l2-common.h!
+Both the return pointer and the probe pointer can be const as well.
+
+I'll make a patch for this since I've forgotten to adjust several videobuf_queue_*_init
+functions as well in my bkl patch :-(
 
 Regards,
 
