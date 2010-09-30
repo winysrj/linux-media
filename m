@@ -1,81 +1,121 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4750 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751475Ab0IKMLQ (ORCPT
+Received: from mail-in-13.arcor-online.net ([151.189.21.53]:55111 "EHLO
+	mail-in-13.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753652Ab0I3D6h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Sep 2010 08:11:16 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Subject: Re: [PATCH v9 0/4] FM Radio driver.
-Date: Sat, 11 Sep 2010 14:10:55 +0200
-Cc: linux-media@vger.kernel.org, eduardo.valentin@nokia.com,
-	mchehab@redhat.com
-References: <1283168302-19111-1-git-send-email-matti.j.aaltonen@nokia.com>
-In-Reply-To: <1283168302-19111-1-git-send-email-matti.j.aaltonen@nokia.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+	Wed, 29 Sep 2010 23:58:37 -0400
+Subject: Re: [GIT PULL for 2.6.36] V4L/DVB fixes
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+In-Reply-To: <4CA3FF3B.50004@redhat.com>
+References: <4CA10545.4010204@redhat.com>
+	 <AANLkTikYyEPAHq5rYzzckExTSFFCAj_DUqAZEvoeU0WD@mail.gmail.com>
+	 <1285808690.4880.18.camel@pc07.localdom.local>  <4CA3FF3B.50004@redhat.com>
+Content-Type: text/plain
+Date: Thu, 30 Sep 2010 05:50:39 +0200
+Message-Id: <1285818639.6459.19.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201009111410.55149.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-On Monday, August 30, 2010 13:38:18 Matti J. Aaltonen wrote:
-> Hi again,
-> 
-> and thanks for the comments.
-> I've left the audio codec out of this patch set.
-> 
-> Hans wrote:
-> > > In principle yes, but we haven't yet decided to implement those now, at
-> > > the moment the RDS interpretation is left completely to user space
-> > > applications.
+
+Am Donnerstag, den 30.09.2010, 00:08 -0300 schrieb Mauro Carvalho
+Chehab:
+> Em 29-09-2010 22:04, hermann pitton escreveu:
 > > 
-> > Matti, is it even possible to use the current FM TX RDS API for this chip?
-> > That API expects that the chip can generate the correct RDS packets based on
-> > high-level data. If the chip can only handle 'raw' RDS packets (requiring a
-> > userspace RDS encoder), then that API will never work.
+> > Linus,
 > > 
-> > But if this chip can indeed handle raw RDS only, then we need to add some
-> > capability flags to signal that to userspace.
+> > Am Montag, den 27.09.2010, 17:02 -0700 schrieb Linus Torvalds:
+> >> On Mon, Sep 27, 2010 at 1:57 PM, Mauro Carvalho Chehab
+> >> <mchehab@redhat.com> wrote:
+> >>> The following changes since commit 32163f4b2cef28a5aab8b226ffecfc6379a53786:
+> >>>
+> >>>  alpha: fix usp value in multithreaded coredumps (2010-09-25 14:38:13 -0700)
+> >>>
+> >>> are available in the git repository at:
+> >>>  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
+> >>
+> >> I get
+> >>
+> >>   scripts/kconfig/conf --oldconfig arch/x86/Kconfig
+> >>   drivers/media/Kconfig:146: 'endif' in different file than 'if'
+> >>   drivers/media/IR/Kconfig:15: location of the 'if'
+> >>   drivers/Kconfig:114: unexpected 'endmenu' within if block
+> >>   drivers/Kconfig:1: missing end statement for this entry
+> >>   make[1]: *** [oldconfig] Error 1
+> >>   make: *** [oldconfig] Error 2
+> >>
+> >> with this. And it seems to be due to a totally broken commit at the
+> >> very beginning of the series by a commit called "Kconfig fixes"
+> >> (Hah!), that clearly has not been tested at all.
+> >>
+> >> The commit sequence was also done today, apparently immediately before
+> >> sending me the pull request. Which sure as hell explains the "clearly
+> >> not tested at all" situation.
+> >>
+> >> Don't do this. You are now officially on my shit-list for sending me
+> >> total crap.
+> >>
+> >> How effing hard can it be to understand: you don't send me stuff that
+> >> hasn't been tested. It needs to be in -next for SEVERAL DAYS, and you
+> >> don't rebase it or take it from some random quilt series just before
+> >> sending it to me.
+> >>
+> >> That's true _especially_ during the -rc series. But it's damn well
+> >> true at any other time too.
+> >>
+> >> I'm angry. I expect at least some _minimal_ amount of competence from
+> >> people I pull from. This was not it. Get your ^&#! act together!
+> >>
+> >>                                    Linus
+> > 
+> > you should not be such rude.
+> > 
+> > You have never been in any hardware details on v4l and dvb.
+> > 
+> > After Gerd Knorr did quit, out of reasons, you noticed there is some
+> > noise on v4l and dvb, but you never had to fix much on your own in the
+> > last eight years.
+> > 
+> > Shouting around and blaming others always was enough ...
+> > 
+> > I agree, a rc-1 should be at least compile tested.
+> > 
+> > Any idea, why this goes away?
 > 
-> It is possible to use the current FM TX RDS API, the chip supports at least
-> most of it. I just haven't implemented the support into the driver yet,
-> for a multiple of reasons. I'm planning of adding that in the relatively 
-> near future.
+> Hermann,
 > 
-> Anyhow, I've now added a way of telling that only raw RDS is supported.
-> Can we use one bit it the capability field for that?
+> That's OK. I did crap. Linus is right. I'll send him the patches again
+> after having the same tree branch being tested for a few days at linux-next, 
+> without any bad results.
+> 
+> Cheers,
+> Mauro.
 
-No, I don't think that is the right place. I've been thinking about this and
-I realized that the V4L2_TUNER_CAP_ bits are the best place to put this (these
-capability defines are reused by the modulator as well).
+Mauro,
 
-It is a bit unfortunate that I didn't think about it some more when the RDS
-output API was made because the current V4L2_TUNER_CAP_RDS bit is now used for
-two different RDS formats: for capture it means the read() interface with a
-stream of v4l2_rds_data blocks and for output it means using the RDS controls.
+hopefully, a few days on linux-next can replace all what we had in the
+past, causing sometimes years of delay ...
 
-There are also up to three ways the RDS data can be received/sent: either as
-RDS blocks, or using controls, or as a completely raw bitstream. The latter is
-unlikely to be used for RDS output, but a cheap RDS receiver might just do this
-(and I believe these devices actually exist).
+What to say ?
 
-So I propose to add the following tuner capability flags:
+OK, if you say we are fine with it now, it is up to you.
 
-V4L2_TUNER_CAP_RDS_READWRITE	0x0100	Use read()/write()
-V4L2_TUNER_CAP_RDS_CONTROLS	0x0200	Use RDS controls
+So, the whole mistake was, that Linus did not start kicking asses harder
+earlier?
 
-And this allows us to add a RDS_RAW_READWRITE in the future should we need it.
+What a total crap!
 
-We do need to add these capability flags to the existing RDS drivers (there
-are only a few, so that's no problem) and we need to document that for RDS
-capture the READWRITE is the default if neither READWRITE or CONTROLS is set,
-and that for RDS output the CONTROLS is the default in that case.
+Cheers,
+Hermann
 
-Comments?
 
-	Hans
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+
+
+
