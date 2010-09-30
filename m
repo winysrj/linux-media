@@ -1,137 +1,135 @@
 Return-path: <mchehab@pedra>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:48746 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754438Ab0IOSFL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Sep 2010 14:05:11 -0400
-Received: by pxi10 with SMTP id 10so140388pxi.19
-        for <linux-media@vger.kernel.org>; Wed, 15 Sep 2010 11:05:10 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:59196 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756068Ab0I3VtA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Sep 2010 17:49:00 -0400
+Message-ID: <4CA505C9.1040400@iki.fi>
+Date: Fri, 01 Oct 2010 00:48:57 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <4C90B4FB.2050401@s5r6.in-berlin.de>
-References: <AANLkTin53SY_xaed_tRfWRPOFmc65GmGzXrEt15ZyriW@mail.gmail.com>
-	<4C90B4FB.2050401@s5r6.in-berlin.de>
-Date: Wed, 15 Sep 2010 20:05:10 +0200
-Message-ID: <AANLkTikQLd1_thyADU8AMjOATFQoZaJfko3Sn-qtNgQR@mail.gmail.com>
-Subject: Re: [PATCH] firedtv driver: support for PSK8 for S2 devices. To watch HD.
-From: Tommy Jonsson <quazzie2@gmail.com>
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: "Yann E. MORIN" <yann.morin.1998@anciens.enib.fr>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	eric.valette@free.fr
+Subject: Re: [PATCH] v4l/dvb: add support for AVerMedia AVerTV Red HD+ (A850T)
+References: <1285795123-11046-1-git-send-email-yann.morin.1998@anciens.enib.fr> <201009301956.50154.yann.morin.1998@anciens.enib.fr> <4CA4F640.7030206@iki.fi> <201009302309.58546.yann.morin.1998@anciens.enib.fr>
+In-Reply-To: <201009302309.58546.yann.morin.1998@anciens.enib.fr>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Oh, read the first question a bit wrong, yeah i have missed the
-default case for 14 & 15.
-Should probably be AUTO/35 & AUTO/OFF.
+Moi Yann
 
-On Wed, Sep 15, 2010 at 1:58 PM, Stefan Richter
-<stefanr@s5r6.in-berlin.de> wrote:
-> Tommy Jonsson wrote:
->> --- a/linux/drivers/media/dvb/firewire/firedtv-avc.c  Fri Sep 03
->> 00:28:05 2010 -0300
->> +++ b/linux/drivers/media/dvb/firewire/firedtv-avc.c  Sun Sep 12
->> 06:52:02 2010 +0200
-> [...]
->> @@ -368,10 +369,30 @@
->>               c->operand[12] = 0;
->>
->>       if (fdtv->type == FIREDTV_DVB_S2) {
->> -             c->operand[13] = 0x1;
->> -             c->operand[14] = 0xff;
->> -             c->operand[15] = 0xff;
->> -
->> +             if (fe->dtv_property_cache.delivery_system == SYS_DVBS2) {
->> +                     switch (fe->dtv_property_cache.modulation) {
->> +                     case QAM_16:            c->operand[13] = 0x1; break;
->> +                     case QPSK:              c->operand[13] = 0x2; break;
->> +                     case PSK_8:             c->operand[13] = 0x3; break;
->> +                     default:                c->operand[13] = 0x2; break;
->> +                     }
->> +                     switch (fe->dtv_property_cache.rolloff) {
->> +                     case ROLLOFF_AUTO:      c->operand[14] = 0x2; break;
->> +                     case ROLLOFF_35:        c->operand[14] = 0x2; break;
->> +                     case ROLLOFF_20:        c->operand[14] = 0x0; break;
->> +                     case ROLLOFF_25:        c->operand[14] = 0x1; break;
->> +                     /* case ROLLOFF_NONE:   c->operand[14] = 0xff; break; */
->> +                     }
->> +                     switch (fe->dtv_property_cache.pilot) {
->> +                     case PILOT_AUTO:        c->operand[15] = 0x0; break;
->> +                     case PILOT_OFF:         c->operand[15] = 0x0; break;
->> +                     case PILOT_ON:          c->operand[15] = 0x1; break;
->> +                     }
->> +             } else {
->> +                     c->operand[13] = 0x1;  /* auto modulation */
->> +                     c->operand[14] = 0xff; /* disable rolloff */
->> +                     c->operand[15] = 0xff; /* disable pilot */
->> +             }
->>               return 16;
+On 10/01/2010 12:09 AM, Yann E. MORIN wrote:
+> Antti, All,
 >
-> Is it correct that there is no default: case for operand[14] and [15]?
+> On Thursday 30 September 2010 22:42:40 Antti Palosaari wrote:
+>> On 09/30/2010 08:56 PM, Yann E. MORIN wrote:
+>>> OK. The number of supported devices is already 9 in all sections, so I guess
+>>> I'll have to add a new entry in the af9015_properties array, before I can
+>>> add a new device, right?
+>> Actually you are using too old code as base. You should take latest GIT
+>> media tree and 2.6.37 branch.
 >
->>       } else {
->>               return 13;
->> @@ -548,7 +569,7 @@
->>       return 17 + add_pid_filter(fdtv, &c->operand[17]);
->>  }
->>
->> -int avc_tuner_dsd(struct firedtv *fdtv,
->> +int avc_tuner_dsd(struct dvb_frontend *fe, struct firedtv *fdtv,
->>                 struct dvb_frontend_parameters *params)
->>  {
->>       struct avc_command_frame *c = (void *)fdtv->avc_data;
+> I'm using the latest tree from:
+>    git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
 >
-> The frontend can be accessed via fdtv->fe also.  (I can change this together
-> with the whitespace things if you agree.)
+> Is that OK?
+
+No, it is too old. Correct tree is staging/v2.6.37 at:
+http://git.linuxtv.org/media_tree.git
+
+>> IIRC max is currently 12 devices per entry.
 >
->> @@ -561,7 +582,7 @@
->>
->>       switch (fdtv->type) {
->>       case FIREDTV_DVB_S:
->> -     case FIREDTV_DVB_S2: pos = avc_tuner_tuneqpsk(fdtv, params); break;
->> +     case FIREDTV_DVB_S2: pos = avc_tuner_tuneqpsk(fe, fdtv, params); break;
->>       case FIREDTV_DVB_C: pos = avc_tuner_dsd_dvb_c(fdtv, params); break;
->>       case FIREDTV_DVB_T: pos = avc_tuner_dsd_dvb_t(fdtv, params); break;
->>       default:
->> diff -r 6e0befab696a linux/drivers/media/dvb/firewire/firedtv-fe.c
->> --- a/linux/drivers/media/dvb/firewire/firedtv-fe.c   Fri Sep 03
->> 00:28:05 2010 -0300
->> +++ b/linux/drivers/media/dvb/firewire/firedtv-fe.c   Sun Sep 12
->> 06:52:02 2010 +0200
-> [...]
->> @@ -155,6 +156,17 @@
->>       return -EOPNOTSUPP;
->>  }
->>
->> +static int fdtv_get_property(struct dvb_frontend *fe,
->> +                             struct dtv_property *tvp)
->> +{
->> +     return 0;
->> +}
->> +static int fdtv_set_property(struct dvb_frontend *fe,
->> +                             struct dtv_property *tvp)
->> +{
->> +     return 0;
->> +}
->> +
->>  void fdtv_frontend_init(struct firedtv *fdtv)
->>  {
->>       struct dvb_frontend_ops *ops = &fdtv->fe.ops;
->> @@ -166,6 +178,9 @@
->>       ops->set_frontend               = fdtv_set_frontend;
->>       ops->get_frontend               = fdtv_get_frontend;
->>
->> +     ops->get_property               = fdtv_get_property;
->> +     ops->set_property               = fdtv_set_property;
->> +
->>       ops->read_status                = fdtv_read_status;
->>       ops->read_ber                   = fdtv_read_ber;
->>       ops->read_signal_strength       = fdtv_read_signal_strength;
-> [...]
+> Yes, the array in the struct has 12 entries, but the comments in the
+> af9015 code said: "/* max 9 */". So I stuck to the comment.
+
+That`s since count is increased after comment. I have changed it already.
+
+> I would make use of the entries left. The af9015_properties is an array
+> with currently 3 entries. Each entries currently all have 9 device
+> description. Do you prefer that I add the new description:
+> - in the first entry,
+> - just below the existing A850, (my pick)
+> - or in the last entry?
+
+Add it to the first free slot find. It was TerraTec Cinergy T Dual RC I 
+added lastly. If there is free space put it just behind that, otherwise 
+to the first free slot in next entry. This entry/dev count really sucks 
+a little bit, it should be fixed if possible... but as now we left it.
+
+> And to answer your previous question:
+>> Are you sure it does also have such bad eeprom content? Is that really
+>> needed? What it happens without this hack?
 >
-> (Hmm, note to self:  Can't DVB core provide empty default methods?)
-> --
-> Stefan Richter
-> -=====-==-=- =--= -====
-> http://arcgraph.de/sr/
+> Yes, I just tried without the hack and it breaks. With the hack, it works.
+> I can provide the failing dmesg output if needed (see working one below).
+
+OK, then hack is needed.
+
+>>> And what is the intrinsic difference between adding a new device section,
+>>> compared to adding a new PID to an existing device (just curious) ?
+>> Not much more than a little bit different device name. Technically you
+>> can add all IDs to one device, but I feel better to add new entry per
+>> device. If device name is same but only ID is different it typically
+>> means different hw revision and in that case I would like to put those
+>> same for same entry. In that case device is also a little bit different
+>> - at least case colour.
 >
+> OK, got it. I'm afraid the A850T is just a A850 re-branded for the french
+> market. Here is the relevant dmesg output when I plug the stick (with my
+> changes applied on a 2.6.35.6):
+>
+> [12547.002398] usb 3-3.1: new high speed USB device using ehci_hcd and address 9
+> [12547.090226] usb 3-3.1: New USB device found, idVendor=07ca, idProduct=850b
+> [12547.090228] usb 3-3.1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+> [12547.090230] usb 3-3.1: Product: A850 DVBT
+> [12547.090231] usb 3-3.1: Manufacturer: AVerMedia
+> [12547.090232] usb 3-3.1: SerialNumber: 302970601989000
+> [12547.093558] input: AVerMedia A850 DVBT as /class/input/input14
+> [12547.093603] generic-usb 0003:07CA:850B.000A: input,hidraw6: USB HID v1.01 Keyboard [AVerMedia A850 DVBT] on usb-0000:07:02.2-3.1/input1
+> [12547.488128] dvb-usb: found a 'AverMedia AVerTV Red HD+' in cold state, will try to load a firmware
+> [12547.492200] dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
+> [12547.563986] dvb-usb: found a 'AverMedia AVerTV Red HD+' in warm state.
+> [12547.564032] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+> [12547.564372] DVB: registering new adapter (AverMedia AVerTV Red HD+)
+> [12547.572230] af9013: firmware version:5.1.0
+> [12547.576731] DVB: registering adapter 0 frontend 0 (Afatech AF9013 DVB-T)...
+> [12547.581615] MXL5005S: Attached at address 0xc6
+> [12547.581653] input: IR-receiver inside an USB DVB receiver as /class/input/input15
+> [12547.581656] dvb-usb: schedule remote query interval to 150 msecs.
+> [12547.581658] dvb-usb: AverMedia AVerTV Red HD+ successfully initialized and connected.
+> [12547.678851] usbcore: registered new interface driver dvb_usb_af9015
+>
+> See the part that reads:
+>    input: AVerMedia A850 DVBT as /class/input/input14
+>           ^^^^^^^^^^^^^^^^^^^
+>
+> This is no kernel message, and (I guess) it comes as the ID string from the
+> device. It also appears on a machine where I have no DVB support.
+
+Yes, it comes from eeprom, also lsusb should show it (lsusb -vvd usb-id)
+
+> So I believe the patch is OK in the state, unless you really want a new
+> device description, instead of adding to the existing A850 ( yes, granted,
+> it's not the same color ;-] ). What is your final word? ;-)
+
+Hmm, now I like it when it is identified as AverMedia AVerTV Red HD+.
+>
+> Anyway, before you get action and push this patch, Eric helped in the testing
+> so far. Maybe he'll want to add his tested-by?
+>
+> Thank you very much for your comments and guidance!
+>
+> Regards,
+> Yann E. MORIN.
+>
+
+If you can make patch against latest 2.6.37 pointed I it will be OK. 
+Also possible remote could be nice... 2.6.37 af9015 have totally 
+different remote implementation.
+
+thanks,
+Antti
+-- 
+http://palosaari.fi/
