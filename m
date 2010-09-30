@@ -1,150 +1,79 @@
 Return-path: <mchehab@pedra>
-Received: from d1.icnet.pl ([212.160.220.21]:37449 "EHLO d1.icnet.pl"
+Received: from smtp28.orange.fr ([80.12.242.100]:30588 "EHLO smtp28.orange.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754544Ab0I0BDe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Sep 2010 21:03:34 -0400
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: [PATCH v3] OMAP1: Add support for SoC camera interface
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tony Lindgren <tony@atomide.com>,
-	"Discussion of the Amstrad E3 emailer hardware/software"
-	<e3-hacking@earth.li>
-Content-Disposition: inline
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+	id S1751610Ab0I3R4w (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Sep 2010 13:56:52 -0400
+From: "Yann E. MORIN" <yann.morin.1998@anciens.enib.fr>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: [PATCH] v4l/dvb: add support for AVerMedia AVerTV Red HD+ (A850T)
+Date: Thu, 30 Sep 2010 19:56:49 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <1285795123-11046-1-git-send-email-yann.morin.1998@anciens.enib.fr> <1285795123-11046-2-git-send-email-yann.morin.1998@anciens.enib.fr> <4CA45AFC.2080807@iki.fi>
+In-Reply-To: <4CA45AFC.2080807@iki.fi>
 MIME-Version: 1.0
-Date: Mon, 27 Sep 2010 03:02:27 +0200
-Message-Id: <201009270302.28655.jkrzyszt@tis.icnet.pl>
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201009301956.50154.yann.morin.1998@anciens.enib.fr>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch adds a definition of the OMAP1 camera interface platform device, 
-and a function that allows for providing a board specific platform data. 
-The device will be used with the upcoming OMAP1 SoC camera interface driver.
+Antti, All,
 
-Created and tested against linux-2.6.36-rc5 on Amstrad Delta.
+On Thursday 30 September 2010 11:40:12 Antti Palosaari wrote:
+> >   	/* AverMedia AVerTV Volar Black HD (A850) device have bad EEPROM
+> > -	   content :-( Override some wrong values here. */
+> > +	   content :-( Override some wrong values here. Ditto for the
+> > +	   AVerTV Red HD+ (A850T) device. */
+> >   	if (le16_to_cpu(udev->descriptor.idVendor) == USB_VID_AVERMEDIA&&
+> > -	    le16_to_cpu(udev->descriptor.idProduct) == USB_PID_AVERMEDIA_A850) {
+> > +	    ((le16_to_cpu(udev->descriptor.idProduct) == USB_PID_AVERMEDIA_A850) ||
+> > +	     (le16_to_cpu(udev->descriptor.idProduct) == USB_PID_AVERMEDIA_A850T))) {
+> >   		deb_info("%s: AverMedia A850: overriding config\n", __func__);
+> >   		/* disable dual mode */
+> >   		af9015_config.dual_mode = 0;
+> Are you sure it does also have such bad eeprom content? Is that really 
+> needed? What it happens without this hack?
 
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
----
+Well, not really sure. The fact is that it works with the kludge, and that
+the device is very similar to the A850. On the Ubuntu forums, they simply
+suggested replacing the A850 Product ID 0x850a with the A850T PID 0x850b
+to make it work. And indeed it does work flawlessly so far.
 
-Tony,
-I hope this now satisfies your requirements.
+Disabling dual mode when it is working, is better that enabling it when it
+is not working. I tried to be conservative in this case.
 
-I resubmit only this updated patch, not the other two, Amstrad Delta specific, 
-which you have alredy applied. Those are still valid (work for me), only the 
-not yet merged include/media/omap1_camera.h header file is required for 
-successfull compilation of board-ams-delta.c. I hope this is not a problem.
+I'll be doing some testing without the kludge later tonight, or at worst
+during the WE. Unfortunately, the current v4l git tree BUGs in the USB
+sub-system on my machine (even without my changes).
 
-I'll submit the driver for Guennadi to push it via the media tree soon.
+> >   				.name = "AverMedia AVerTV Volar Black HD " \
+> > -					"(A850)",
+> > -				.cold_ids = {&af9015_usb_table[20], NULL},
+> > +					"(A850) / AVerTV Volar Red HD+ (A850T)",
+> > +				.cold_ids = {&af9015_usb_table[20],
+> > +					&af9015_usb_table[33], NULL},
+> Add new entry for that device (and leave A850 as untouched).
 
+OK. The number of supported devices is already 9 in all sections, so I guess
+I'll have to add a new entry in the af9015_properties array, before I can
+add a new device, right?
 
-v2->v3 changes:
+And what is the intrinsic difference between adding a new device section,
+compared to adding a new PID to an existing device (just curious) ?
 
-requested or inspired by Tony Lindgren (thanks!):
-- don't #include <mach/camera.h> into devices.c in order to allow for 
-  successfull compilation while the camera.h still includes a not yet merged 
-  <media/omap1_camera.h>,
-- move the OMAP1_CAMERA_IOSIZE macro defintion from camera.h to devices.c,
-- to remove any remaining <mach/camera.h> or <media/omap1_camera.h> 
-  dependencies from devices.c, replace the struct omap1_cam_platform_data * 
-  argument type with a void *, and provide an inline wrapper function in 
-  camera.h that converts back from void * to struct omap1_cam_platform_data *,
+Thanks for the review. :-)
 
-suggested by Guennadi Liakhovetski (thanks!):
-- try groupping headers according to their location and keeping them sorted 
-  alphabeticaly,
-- drop "extern" qualifier from fuction declaration,
+Regards,
+Yann E. MORIN.
 
-
-v1->v2 changes:
-- no functional changes,
-- refreshed against linux-2.6.36-rc3
-
-
- arch/arm/mach-omap1/devices.c             |   43 ++++++++++++++++++++++++++++++
- arch/arm/mach-omap1/include/mach/camera.h |   13 +++++++++
- 2 files changed, 56 insertions(+)
-
-
-diff -upr linux-2.6.36-rc5.orig/arch/arm/mach-omap1/devices.c linux-2.6.36-rc5/arch/arm/mach-omap1/devices.c
---- linux-2.6.36-rc5.orig/arch/arm/mach-omap1/devices.c	2010-09-24 15:34:27.000000000 +0200
-+++ linux-2.6.36-rc5/arch/arm/mach-omap1/devices.c	2010-09-25 03:47:55.000000000 +0200
-@@ -9,6 +9,7 @@
-  * (at your option) any later version.
-  */
- 
-+#include <linux/dma-mapping.h>
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/init.h>
-@@ -191,6 +192,48 @@ static inline void omap_init_spi100k(voi
- }
- #endif
- 
-+
-+#define OMAP1_CAMERA_BASE	0xfffb6800
-+#define OMAP1_CAMERA_IOSIZE	0x1c
-+
-+static struct resource omap1_camera_resources[] = {
-+	[0] = {
-+		.start	= OMAP1_CAMERA_BASE,
-+		.end	= OMAP1_CAMERA_BASE + OMAP1_CAMERA_IOSIZE - 1,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	[1] = {
-+		.start	= INT_CAMERA,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+};
-+
-+static u64 omap1_camera_dma_mask = DMA_BIT_MASK(32);
-+
-+static struct platform_device omap1_camera_device = {
-+	.name		= "omap1-camera",
-+	.id		= 0, /* This is used to put cameras on this interface */
-+	.dev		= {
-+		.dma_mask		= &omap1_camera_dma_mask,
-+		.coherent_dma_mask	= DMA_BIT_MASK(32),
-+	},
-+	.num_resources	= ARRAY_SIZE(omap1_camera_resources),
-+	.resource	= omap1_camera_resources,
-+};
-+
-+void __init omap1_camera_init(void *info)
-+{
-+	struct platform_device *dev = &omap1_camera_device;
-+	int ret;
-+
-+	dev->dev.platform_data = info;
-+
-+	ret = platform_device_register(dev);
-+	if (ret)
-+		dev_err(&dev->dev, "unable to register device: %d\n", ret);
-+}
-+
-+
- /*-------------------------------------------------------------------------*/
- 
- static inline void omap_init_sti(void) {}
-diff -upr linux-2.6.36-rc5.orig/arch/arm/mach-omap1/include/mach/camera.h linux-2.6.36-rc5/arch/arm/mach-omap1/include/mach/camera.h
---- linux-2.6.36-rc5.orig/arch/arm/mach-omap1/include/mach/camera.h	2010-09-24 15:39:07.000000000 +0200
-+++ linux-2.6.36-rc5/arch/arm/mach-omap1/include/mach/camera.h	2010-09-25 03:19:12.000000000 +0200
-@@ -0,0 +1,13 @@
-+#ifndef __ASM_ARCH_CAMERA_H_
-+#define __ASM_ARCH_CAMERA_H_
-+
-+#include <media/omap1_camera.h>
-+
-+void omap1_camera_init(void *);
-+
-+static inline void omap1_set_camera_info(struct omap1_cam_platform_data *info)
-+{
-+	omap1_camera_init(info);
-+}
-+
-+#endif /* __ASM_ARCH_CAMERA_H_ */
+-- 
+.-----------------.--------------------.------------------.--------------------.
+|  Yann E. MORIN  | Real-Time Embedded | /"\ ASCII RIBBON | Erics' conspiracy: |
+| +33 662 376 056 | Software  Designer | \ / CAMPAIGN     |  ___               |
+| +33 223 225 172 `------------.-------:  X  AGAINST      |  \e/  There is no  |
+| http://ymorin.is-a-geek.org/ | _/*\_ | / \ HTML MAIL    |   v   conspiracy.  |
+'------------------------------^-------^------------------^--------------------'
 
 
