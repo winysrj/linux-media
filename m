@@ -1,108 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:57355 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753708Ab0IPXFs (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:37742 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755968Ab0I3Sw1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Sep 2010 19:05:48 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [RFC/PATCH v4 07/11] media: Entities, pads and links enumeration
-Date: Fri, 17 Sep 2010 01:05:50 +0200
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-References: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com> <201009161120.27327.laurent.pinchart@ideasonboard.com> <4C92397D.9040707@maxwell.research.nokia.com>
-In-Reply-To: <4C92397D.9040707@maxwell.research.nokia.com>
+	Thu, 30 Sep 2010 14:52:27 -0400
+Received: by bwz11 with SMTP id 11so1648345bwz.19
+        for <linux-media@vger.kernel.org>; Thu, 30 Sep 2010 11:52:25 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201009170105.51045.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <20100928154659.0e7e4147@pedra>
+References: <cover.1285699057.git.mchehab@redhat.com>
+	<20100928154659.0e7e4147@pedra>
+Date: Thu, 30 Sep 2010 14:52:25 -0400
+Message-ID: <AANLkTik_3MSjyqokvam28g5ohhCP=bb=_uzyzK0iM8Et@mail.gmail.com>
+Subject: Re: [PATCH 08/10] V4L/DVB: tda18271: allow restricting max out to 4 bytes
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Srinivasa.Deevi@conexant.com, Palash.Bandyopadhyay@conexant.com,
+	dheitmueller@kernellabs.com,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@kernellabs.com>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Sakari,
+On Tue, Sep 28, 2010 at 2:46 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> By default, tda18271 tries to optimize I2C bus by updating all registers
+> at the same time. Unfortunately, some devices doesn't support it.
+>
+> The current logic has a problem when small_i2c is equal to 8, since there
+> are some transfers using 11 + 1 bytes.
+>
+> Fix the problem by enforcing the max size at the right place, and allows
+> reducing it to max = 3 + 1.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-On Thursday 16 September 2010 17:36:29 Sakari Ailus wrote:
-> Laurent Pinchart wrote:
-> > On Monday 06 September 2010 18:51:59 Hans Verkuil wrote:
-> >> On Wednesday, September 01, 2010 16:05:10 Laurent Pinchart wrote:
-> >>> On Saturday 28 August 2010 13:02:22 Hans Verkuil wrote:
-> >>>> On Friday, August 20, 2010 17:29:09 Laurent Pinchart wrote:
-> ...
-> 
-> >>>>> +};
-> >>>> 
-> >>>> Should this be a packed struct?
-> >>> 
-> >>> Why ? :-) Packed struct are most useful when they need to match
-> >>> hardware structures or network protocols. Packing a structure can
-> >>> generate unaligned fields, which are bad performance-wise.
-> >> 
-> >> I'm thinking about preventing a compat32 mess as we have for v4l.
-> >> 
-> >> It is my understanding that the only way to prevent different struct
-> >> sizes between 32 and 64 bit is to use packed.
-> > 
-> > I don't think that's correct. Different struct sizes between 32bit and
-> > 64bit are caused by variable-size fields, such as 'long' (32bit on 32bit
-> > architectures, 64bit on 64bit architectures). I might be wrong though.
-> 
-> As far as I understand that's another reason for the structures not
-> being exactly the same. Alignment of different data types in structures
-> depends on ABI. I don't know the exact rules for all the architectures
-> Linux supports if there are cases where the alignment would be different
-> for 32-bit and 64-bit and smaller than the data type. On ARM there have
-> been different alignments depending on ABI (EABI vs. GNU ABI) which is
-> now practically history though.
-> 
-> I couldn't find a better reference than this:
-> 
-> <URL:http://developers.sun.com/solaris/articles/about_amd64_abi.html>
-> 
-> 64-bit integers are aligned differently on 32-bit and 64-bit x86 but the
-> alignment is still smaller or equal to the size of the data type.
+This looks to me as if it is working around a problem on the i2c
+master.  I believe that a fix like this really belongs in the i2c
+master driver, it should be able to break the i2c transactions down
+into transactions that the i2c master can handle.
 
-Thanks for the link.
+I wouldn't want to merge this without a better explanation of why it
+is necessary in the tda18271 driver.  It seems to be a band-aid to
+cover up a problem in the i2c master device driver code.
 
-> I'd also pack them to be sure. The structures should be constructed so
-> that the alignment is sane even if they are packed. In that case there's
-> no harm done by packing. It just prevents a failure (32-bit vs. 64-bit)
-> if there's a problem with the definition.
-
-Even if the structures were packed we would have a problem with 
-media_user_links. The pads and links pointers will be 4-bytes long on 32-bit 
-and 8-bytes long on 64-bit. There's no way around that. I could pad the 
-structure to a fixed size with
-
-struct media_links_enum {
-        __u32 entity;
-        /* Should have enough room for pads elements */
-        struct media_pad_desc __user *pads;
-        __u8 __pad1[8 - sizeof(void *)];
-        /* Should have enough room for links elements */
-        struct media_link_desc __user *links;
-        __u8 __pad2[8 - sizeof(void *)];
-        __u32 reserved[4];
-};
-
-or with
-
-struct media_links_enum {
-        __u32 entity;
-        union {
-                struct {
-                        /* Should have enough room for pads elements */
-                        struct media_pad_desc __user *pads;
-                        /* Should have enough room for links elements */
-                        struct media_link_desc __user *links;
-                };
-                __u32 __pad[4];
-        };
-        __u32 reserved[4];
-};
-
-Is there any other way ?
-
--- 
 Regards,
 
-Laurent Pinchart
+Mike Krufky
