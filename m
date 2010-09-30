@@ -1,47 +1,97 @@
-Return-path: <mchehab@localhost>
-Received: from comal.ext.ti.com ([198.47.26.152]:36640 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755582Ab0IBOqc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Sep 2010 10:46:32 -0400
-From: raja_mani@ti.com
-To: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
-	mchehab@infradead.org
-Cc: matti.j.aaltonen@nokia.com, Raja Mani <raja_mani@ti.com>
-Subject: [RFC/PATCH 8/8] drivers:staging:ti-st: Include FM TX module in Makefile
-Date: Thu,  2 Sep 2010 11:58:00 -0400
-Message-Id: <1283443080-30644-9-git-send-email-raja_mani@ti.com>
-In-Reply-To: <1283443080-30644-8-git-send-email-raja_mani@ti.com>
-References: <1283443080-30644-1-git-send-email-raja_mani@ti.com>
- <1283443080-30644-2-git-send-email-raja_mani@ti.com>
- <1283443080-30644-3-git-send-email-raja_mani@ti.com>
- <1283443080-30644-4-git-send-email-raja_mani@ti.com>
- <1283443080-30644-5-git-send-email-raja_mani@ti.com>
- <1283443080-30644-6-git-send-email-raja_mani@ti.com>
- <1283443080-30644-7-git-send-email-raja_mani@ti.com>
- <1283443080-30644-8-git-send-email-raja_mani@ti.com>
+Return-path: <mchehab@pedra>
+Received: from mail-in-08.arcor-online.net ([151.189.21.48]:48734 "EHLO
+	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751373Ab0I3BMY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Sep 2010 21:12:24 -0400
+Subject: Re: [GIT PULL for 2.6.36] V4L/DVB fixes
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+In-Reply-To: <AANLkTikYyEPAHq5rYzzckExTSFFCAj_DUqAZEvoeU0WD@mail.gmail.com>
+References: <4CA10545.4010204@redhat.com>
+	 <AANLkTikYyEPAHq5rYzzckExTSFFCAj_DUqAZEvoeU0WD@mail.gmail.com>
+Content-Type: text/plain
+Date: Thu, 30 Sep 2010 03:04:50 +0200
+Message-Id: <1285808690.4880.18.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: <mchehab@pedra>
 
-From: Raja Mani <raja_mani@ti.com>
 
- Update Makefile to include FM TX module (fmdrv_tx) for
- the compilation.
+Linus,
 
-Signed-off-by: Raja Mani <raja_mani@ti.com>
----
- drivers/staging/ti-st/Makefile |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Am Montag, den 27.09.2010, 17:02 -0700 schrieb Linus Torvalds:
+> On Mon, Sep 27, 2010 at 1:57 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+> > The following changes since commit 32163f4b2cef28a5aab8b226ffecfc6379a53786:
+> >
+> >  alpha: fix usp value in multithreaded coredumps (2010-09-25 14:38:13 -0700)
+> >
+> > are available in the git repository at:
+> >  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
+> 
+> I get
+> 
+>   scripts/kconfig/conf --oldconfig arch/x86/Kconfig
+>   drivers/media/Kconfig:146: 'endif' in different file than 'if'
+>   drivers/media/IR/Kconfig:15: location of the 'if'
+>   drivers/Kconfig:114: unexpected 'endmenu' within if block
+>   drivers/Kconfig:1: missing end statement for this entry
+>   make[1]: *** [oldconfig] Error 1
+>   make: *** [oldconfig] Error 2
+> 
+> with this. And it seems to be due to a totally broken commit at the
+> very beginning of the series by a commit called "Kconfig fixes"
+> (Hah!), that clearly has not been tested at all.
+> 
+> The commit sequence was also done today, apparently immediately before
+> sending me the pull request. Which sure as hell explains the "clearly
+> not tested at all" situation.
+> 
+> Don't do this. You are now officially on my shit-list for sending me
+> total crap.
+> 
+> How effing hard can it be to understand: you don't send me stuff that
+> hasn't been tested. It needs to be in -next for SEVERAL DAYS, and you
+> don't rebase it or take it from some random quilt series just before
+> sending it to me.
+> 
+> That's true _especially_ during the -rc series. But it's damn well
+> true at any other time too.
+> 
+> I'm angry. I expect at least some _minimal_ amount of competence from
+> people I pull from. This was not it. Get your ^&#! act together!
+> 
+>                                    Linus
 
-diff --git a/drivers/staging/ti-st/Makefile b/drivers/staging/ti-st/Makefile
-index e6af3f1..bd29c83 100644
---- a/drivers/staging/ti-st/Makefile
-+++ b/drivers/staging/ti-st/Makefile
-@@ -6,4 +6,4 @@ obj-$(CONFIG_TI_ST) 		+= st_drv.o
- st_drv-objs			:= st_core.o st_kim.o st_ll.o
- obj-$(CONFIG_ST_BT) 		+= bt_drv.o
- obj-$(CONFIG_ST_FM) 		+= fm_drv.o
--fm_drv-objs     		:= fmdrv_common.o fmdrv_rx.o fmdrv_v4l2.o
-+fm_drv-objs     		:= fmdrv_common.o fmdrv_rx.o fmdrv_tx.o fmdrv_v4l2.o
--- 
-1.5.6.3
+you should not be such rude.
+
+You have never been in any hardware details on v4l and dvb.
+
+After Gerd Knorr did quit, out of reasons, you noticed there is some
+noise on v4l and dvb, but you never had to fix much on your own in the
+last eight years.
+
+Shouting around and blaming others always was enough ...
+
+I agree, a rc-1 should be at least compile tested.
+
+Any idea, why this goes away?
+
+Cheers,
+Hermann
+
+
+
+
+
+
+
+
+
 
