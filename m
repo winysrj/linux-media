@@ -1,92 +1,104 @@
 Return-path: <mchehab@pedra>
-Received: from queueout02-winn.ispmail.ntl.com ([81.103.221.56]:63822 "EHLO
-	queueout02-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757335Ab0IXS2X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Sep 2010 14:28:23 -0400
-From: Daniel Drake <dsd@laptop.org>
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org
-Cc: corbet@lwn.net
-Subject: [PATCH 1/4] cafe_ccic: Fix hang in command write processing
-Message-Id: <20100924171717.B3A969D401B@zog.reactivated.net>
-Date: Fri, 24 Sep 2010 18:17:17 +0100 (BST)
+Received: from mx1.redhat.com ([209.132.183.28]:52238 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751506Ab0I3EiS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Sep 2010 00:38:18 -0400
+Message-ID: <4CA41431.1000304@redhat.com>
+Date: Thu, 30 Sep 2010 01:38:09 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Randy Dunlap <randy.dunlap@oracle.com>
+CC: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-media@vger.kernel.org, linux-next@vger.kernel.org,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: linux-next: Tree for September 29 (media & IR build errors)
+References: <20100929143604.3d870ddf.sfr@canb.auug.org.au> <20100929083128.4efc3f0d.randy.dunlap@oracle.com>
+In-Reply-To: <20100929083128.4efc3f0d.randy.dunlap@oracle.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch, which basically reverts 6d77444ac, fixes an occasional
-on-boot or on-capture hang on the XO-1 laptop.
+Em 29-09-2010 12:31, Randy Dunlap escreveu:
+> On Wed, 29 Sep 2010 14:36:04 +1000 Stephen Rothwell wrote:
+> 
+>> Hi all,
+>>
+>> Changes since 20100928:
+> 
+> 
+> ERROR: "ir_keydown" [drivers/media/video/ir-kbd-i2c.ko] undefined!
+> ERROR: "__ir_input_register" [drivers/media/video/ir-kbd-i2c.ko] undefined!
+> ERROR: "get_rc_map" [drivers/media/video/ir-kbd-i2c.ko] undefined!
+> ERROR: "ir_input_unregister" [drivers/media/video/ir-kbd-i2c.ko] undefined!
+> ERROR: "get_rc_map" [drivers/media/video/cx88/cx88xx.ko] undefined!
+> ERROR: "ir_repeat" [drivers/media/video/cx88/cx88xx.ko] undefined!
+> ERROR: "ir_input_unregister" [drivers/media/video/cx88/cx88xx.ko] undefined!
+> ERROR: "ir_keydown" [drivers/media/video/cx88/cx88xx.ko] undefined!
+> ERROR: "__ir_input_register" [drivers/media/video/cx88/cx88xx.ko] undefined!
+> ERROR: "get_rc_map" [drivers/media/video/bt8xx/bttv.ko] undefined!
+> ERROR: "ir_input_unregister" [drivers/media/video/bt8xx/bttv.ko] undefined!
+> ERROR: "__ir_input_register" [drivers/media/video/bt8xx/bttv.ko] undefined!
+> ERROR: "ir_core_debug" [drivers/media/IR/ir-common.ko] undefined!
+> ERROR: "ir_g_keycode_from_table" [drivers/media/IR/ir-common.ko] undefined!
 
-It seems like the cafe hardware is flakier than we thought and that in
-some cases, the commands get executed but are never reported as completed
-(even if we substantially increase the delays before reading registers).
+Randy,
 
-Reintroduce the 1-second CAFE_SMBUS_TIMEOUT to catch and avoid this
-strange hardware bug.
+Thanks for the test.
 
-Signed-off-by: Daniel Drake <dsd@laptop.org>
+With Sept, 29 + my linux-next tree (that weren't merged on yesterday's build,
+I didn't notice the above errors). I suspect that the fixes were already on my
+tree.
+
+I noticed, however, two Kconfig errors on staging (for go7007 and cx25821), related
+to IR_CORE changes:
+
+warning: (VIDEO_GO7007 && STAGING && !STAGING_EXCLUDE_BUILD && VIDEO_DEV && PCI && I2C && INPUT && BKL && SND || VIDEO_CX25821 && STAGING && !STAGING_EXCLUDE_BUILD && DVB_CORE && VIDEO_DEV && PCI && I2C && INPUT && BKL) selects VIDEO_IR which has unmet direct dependencies (IR_CORE)
+warning: (VIDEO_CX25821 && STAGING && !STAGING_EXCLUDE_BUILD && DVB_CORE && VIDEO_DEV && PCI && I2C && INPUT && BKL) selects VIDEO_IR which has unmet direct dependencies (IR_CORE)
+
+I'm adding the enclosed patch to my linux-next tree in order to fix this trouble.
+On a test after the patch on my tree, your randconfig applied well over my tree.
+So, I'm pushing it to my tree at kernel.org.
+
+Cheers,
+Mauro
+
 ---
- drivers/media/video/cafe_ccic.c |   36 +++++++++++++++++-------------------
- 1 files changed, 17 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/media/video/cafe_ccic.c b/drivers/media/video/cafe_ccic.c
-index be35e69..8ddd2b6 100644
---- a/drivers/media/video/cafe_ccic.c
-+++ b/drivers/media/video/cafe_ccic.c
-@@ -319,7 +319,6 @@ static int cafe_smbus_write_data(struct cafe_camera *cam,
- {
- 	unsigned int rval;
- 	unsigned long flags;
--	DEFINE_WAIT(the_wait);
- 
- 	spin_lock_irqsave(&cam->dev_lock, flags);
- 	rval = TWSIC0_EN | ((addr << TWSIC0_SID_SHIFT) & TWSIC0_SID);
-@@ -334,28 +333,27 @@ static int cafe_smbus_write_data(struct cafe_camera *cam,
- 	cafe_reg_write(cam, REG_TWSIC1, rval);
- 	spin_unlock_irqrestore(&cam->dev_lock, flags);
- 
-+	/* Unfortunately, reading TWSIC1 too soon after sending a command
-+	 * causes the device to die.
-+	 * Use a busy-wait because we often send a large quantity of small
-+	 * commands at-once; using msleep() would cause a lot of context
-+	 * switches which take longer than 2ms, resulting in a noticable
-+	 * boot-time and capture-start delays.
-+	 */
-+	mdelay(2);
-+
- 	/*
--	 * Time to wait for the write to complete.  THIS IS A RACY
--	 * WAY TO DO IT, but the sad fact is that reading the TWSIC1
--	 * register too quickly after starting the operation sends
--	 * the device into a place that may be kinder and better, but
--	 * which is absolutely useless for controlling the sensor.  In
--	 * practice we have plenty of time to get into our sleep state
--	 * before the interrupt hits, and the worst case is that we
--	 * time out and then see that things completed, so this seems
--	 * the best way for now.
-+	 * Another sad fact is that sometimes, commands silently complete but
-+	 * cafe_smbus_write_done() never becomes aware of this.
-+	 * This happens at random and appears to possible occur with any
-+	 * command.
-+	 * We don't understand why this is. We work around this issue
-+	 * with the timeout in the wait below, assuming that all commands
-+	 * complete within the timeout.
- 	 */
--	do {
--		prepare_to_wait(&cam->smbus_wait, &the_wait,
--				TASK_UNINTERRUPTIBLE);
--		schedule_timeout(1); /* even 1 jiffy is too long */
--		finish_wait(&cam->smbus_wait, &the_wait);
--	} while (!cafe_smbus_write_done(cam));
--
--#ifdef IF_THE_CAFE_HARDWARE_WORKED_RIGHT
- 	wait_event_timeout(cam->smbus_wait, cafe_smbus_write_done(cam),
- 			CAFE_SMBUS_TIMEOUT);
--#endif
-+
- 	spin_lock_irqsave(&cam->dev_lock, flags);
- 	rval = cafe_reg_read(cam, REG_TWSIC1);
- 	spin_unlock_irqrestore(&cam->dev_lock, flags);
--- 
-1.7.2.2
+commit 9c1eba02d90134fdfa4140b594b2367e90df1dbf
+Author: Mauro Carvalho Chehab <mchehab@redhat.com>
+Date:   Thu Sep 30 00:56:08 2010 -0300
 
+    V4L/DVB: Fix Kconfig dependencies for VIDEO_IR
+    
+    warning: (VIDEO_GO7007 && STAGING && !STAGING_EXCLUDE_BUILD && VIDEO_DEV && PCI && I2C && INPUT && BKL && SND || VIDEO_CX25821 && STAGING && !STAGING_EXCLUDE_BUILD && DVB_CORE && VIDEO_DEV && PCI && I2C && INPUT && BKL) selects VIDEO_IR which has unmet direct dependencies (IR_CORE)
+    warning: (VIDEO_CX25821 && STAGING && !STAGING_EXCLUDE_BUILD && DVB_CORE && VIDEO_DEV && PCI && I2C && INPUT && BKL) selects VIDEO_IR which has unmet direct dependencies (IR_CORE)
+    
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/staging/cx25821/Kconfig b/drivers/staging/cx25821/Kconfig
+index df7756a..a766d0b 100644
+--- a/drivers/staging/cx25821/Kconfig
++++ b/drivers/staging/cx25821/Kconfig
+@@ -4,7 +4,7 @@ config VIDEO_CX25821
+ 	select I2C_ALGOBIT
+ 	select VIDEO_BTCX
+ 	select VIDEO_TVEEPROM
+-	select VIDEO_IR
++	depends on VIDEO_IR
+ 	select VIDEOBUF_DVB
+ 	select VIDEOBUF_DMA_SG
+ 	select VIDEO_CX25840
+diff --git a/drivers/staging/go7007/Kconfig b/drivers/staging/go7007/Kconfig
+index e47f683..b816a60 100644
+--- a/drivers/staging/go7007/Kconfig
++++ b/drivers/staging/go7007/Kconfig
+@@ -3,7 +3,7 @@ config VIDEO_GO7007
+ 	depends on VIDEO_DEV && PCI && I2C && INPUT
+ 	depends on SND
+ 	select VIDEOBUF_DMA_SG
+-	select VIDEO_IR
++	depends on VIDEO_IR
+ 	select VIDEO_TUNER
+ 	select VIDEO_TVEEPROM
+ 	select SND_PCM
