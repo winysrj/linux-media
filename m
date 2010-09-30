@@ -1,53 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:64373 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753242Ab0ICQMA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Sep 2010 12:12:00 -0400
-Received: by yxp4 with SMTP id 4so772346yxp.19
-        for <linux-media@vger.kernel.org>; Fri, 03 Sep 2010 09:12:00 -0700 (PDT)
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1520 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754538Ab0I3Mev (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Sep 2010 08:34:51 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [GIT PATCHES FOR 2.6.37] Fix videobuf_queue*init and move v4l2_find_nearest_format to v4l2-common.h
+Date: Thu, 30 Sep 2010 14:34:27 +0200
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <1283529713.12583.84.camel@morgan.silverblock.net>
-References: <AANLkTi=SY9xWCjp_0q6US7XN6XYoTWnGHA2=6EfjuWK-@mail.gmail.com>
-	<AANLkTikg79zui71Xz8r-Lg3zut0jkSk-BGEpBpXfWz5Y@mail.gmail.com>
-	<AANLkTimc2TTQQogO8Q6ih6Bv3j_oOcVMux3cg-CJPGsw@mail.gmail.com>
-	<AANLkTim_mU7ayxjeE2HQz57UsPqHU46dPC3Ys600RJAD@mail.gmail.com>
-	<1283529713.12583.84.camel@morgan.silverblock.net>
-Date: Fri, 3 Sep 2010 12:12:00 -0400
-Message-ID: <AANLkTimvC6811Pb-sxTVSod-p2U+Cmy5QUenKRn9ceYX@mail.gmail.com>
-Subject: Re: Gigabyte 8300
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Dagur Ammendrup <dagurp@gmail.com>,
-	Joel Wiramu Pauling <joel@aenertia.net>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201009301434.27534.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-On Fri, Sep 3, 2010 at 12:01 PM, Andy Walls <awalls@md.metrocast.net> wrote:
-> On Fri, 2010-09-03 at 10:55 +0000, Dagur Ammendrup wrote:
->> I tried it on a windows machine where it's identified as "Conextant
->> Polaris Video Capture"  or
->> "oem17.inf:Conexant.NTx86:POLARIS.DVBTX.x86:6.113.1125.1210:usb\vid_1b80&pid_d416&mi_01"
->> if that tells you anything.
->
->
-> Polaris refers to the series of CX2310[012] chips IIRC.
->
-> Support would need changes to the cx231xx driver, and possibly changes
-> to the cx25480 module, depending on how far the board differs from
-> Conexant reference designs.
+Mauro,
 
-I've been working with Conexant on this, and have their current tree here:
+Feel free to kick my ass next time I present a patch with compile errors like that.
+I clearly did not do a careful grep on the sources, although I'd have sworn up and
+down that I did :-(
 
-https://www.kernellabs.com/hg/~dheitmueller/polaris4/
+Regards,
 
-So if you feel the urge to do any new device support, I would suggest
-using this as a starting point.
+	Hans
 
-Devin
+The following changes since commit 5e26d8407d390b48cc7a4cf1af7bbd4a679308ff:
+  Guennadi Liakhovetski (1):
+        V4L/DVB: soc-camera: allow only one video queue per device
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/hverkuil/v4l-dvb.git bkl2
+
+Hans Verkuil (2):
+      V4L/DVB: videobuf: add ext_lock argument to the queue init functions (part 2)
+      v4l2-common: Move v4l2_find_nearest_format from videodev2.h to v4l2-common.h
+
+ drivers/media/video/davinci/vpfe_capture.c |    2 +-
+ drivers/media/video/davinci/vpif_capture.c |    3 ++-
+ drivers/media/video/davinci/vpif_display.c |    3 ++-
+ drivers/media/video/fsl-viu.c              |    2 +-
+ drivers/media/video/mx1_camera.c           |    2 +-
+ drivers/media/video/mx2_camera.c           |    2 +-
+ drivers/media/video/mx3_camera.c           |    3 ++-
+ drivers/media/video/omap/omap_vout.c       |    2 +-
+ drivers/media/video/omap24xxcam.c          |    2 +-
+ drivers/media/video/pxa_camera.c           |    2 +-
+ drivers/media/video/s5p-fimc/fimc-core.c   |    2 +-
+ drivers/media/video/sh_mobile_ceu_camera.c |    2 +-
+ drivers/media/video/sh_vou.c               |    3 ++-
+ drivers/media/video/v4l2-common.c          |    7 ++++---
+ include/linux/videodev2.h                  |    8 --------
+ include/media/v4l2-common.h                |   10 ++++++++++
+ 16 files changed, 31 insertions(+), 24 deletions(-)
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
