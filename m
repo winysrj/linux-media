@@ -1,165 +1,77 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:29354 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753519Ab0JMLJ2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Oct 2010 07:09:28 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Wed, 13 Oct 2010 13:09:18 +0200
-From: Kamil Debski <k.debski@samsung.com>
-Subject: [PATCH 2/4] MFC: Add MFC 5.1 driver to plat-s5p
-In-reply-to: <1286968160-10629-1-git-send-email-k.debski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	kyungmin.park@samsung.com, k.debski@samsung.com,
-	jaeryul.oh@samsung.com, kgene.kim@samsung.com
-Message-id: <1286968160-10629-3-git-send-email-k.debski@samsung.com>
-References: <1286968160-10629-1-git-send-email-k.debski@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:19486 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751193Ab0JAFqe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Oct 2010 01:46:34 -0400
+Message-ID: <4CA575AC.5090901@redhat.com>
+Date: Fri, 01 Oct 2010 02:46:20 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Michael Krufky <mkrufky@kernellabs.com>
+CC: Antti Palosaari <crope@iki.fi>, Srinivasa.Deevi@conexant.com,
+	Palash.Bandyopadhyay@conexant.com, dheitmueller@kernellabs.com,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 08/10] V4L/DVB: tda18271: allow restricting max out to
+ 4 bytes
+References: <cover.1285699057.git.mchehab@redhat.com>	<20100928154659.0e7e4147@pedra>	<AANLkTik_3MSjyqokvam28g5ohhCP=bb=_uzyzK0iM8Et@mail.gmail.com>	<4CA5088B.1060604@iki.fi> <AANLkTinGk2bHCrrC2b=ZiTynh9Vh4LjLCju4ke-mCSzz@mail.gmail.com>
+In-Reply-To: <AANLkTinGk2bHCrrC2b=ZiTynh9Vh4LjLCju4ke-mCSzz@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add platform support for Multi Format Codec 5.1 is a module available
-on S5PC110 and S5PC210 Samsung SoCs. Hardware is capable of handling
-a range of video codecs and this driver provides V4L2 interface for
-video decoding.
+Em 30-09-2010 19:07, Michael Krufky escreveu:
+> On Thu, Sep 30, 2010 at 6:00 PM, Antti Palosaari <crope@iki.fi> wrote:
+>> On 09/30/2010 09:52 PM, Michael Krufky wrote:
+>>>
+>>> On Tue, Sep 28, 2010 at 2:46 PM, Mauro Carvalho Chehab
+>>> <mchehab@redhat.com>  wrote:
+>>>>
+>>>> By default, tda18271 tries to optimize I2C bus by updating all registers
+>>>> at the same time. Unfortunately, some devices doesn't support it.
+>>>>
+>>>> The current logic has a problem when small_i2c is equal to 8, since there
+>>>> are some transfers using 11 + 1 bytes.
+>>>>
+>>>> Fix the problem by enforcing the max size at the right place, and allows
+>>>> reducing it to max = 3 + 1.
+>>>>
+>>>> Signed-off-by: Mauro Carvalho Chehab<mchehab@redhat.com>
+>>>
+>>> This looks to me as if it is working around a problem on the i2c
+>>> master.  I believe that a fix like this really belongs in the i2c
+>>> master driver, it should be able to break the i2c transactions down
+>>> into transactions that the i2c master can handle.
+>>>
+>>> I wouldn't want to merge this without a better explanation of why it
+>>> is necessary in the tda18271 driver.  It seems to be a band-aid to
+>>> cover up a problem in the i2c master device driver code.
+>>
+>> Yes it is I2C provider limitation, but I think almost all I2C adapters have
+>> some limit. I suggest to set param for each tuner and demod driver which
+>> splits reads and writes to len adapter can handle. I did that for tda18218
+>> write.
+>>
+>> But there is one major point you don't see. It is not simple to add this
+>> splitting limit to the provider. Provider does not have knowledge which is
+>> meaning of bytes it transfers to the bus. Without knowledge it breaks
+>> functionality surely in some point. There is commonly seen 1, 2 and 4 byte
+>> register address and same for register values. Also some chips like to send
+>> data as register-value pairs.
+> 
+> Yes, I understand.  We will likely merge Mauro's patch, I just want to
+> test it on my own hardware first, and I'd like to verify the cx231xx
+> i2c xfer limit issue that Mauro is reporting.  I'll try to get back to
+> this early next week, or hopefully over this weekend.
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- arch/arm/mach-s5pv210/clock.c             |    6 ++++
- arch/arm/mach-s5pv210/include/mach/map.h  |    4 +++
- arch/arm/plat-s5p/Kconfig                 |    5 ++++
- arch/arm/plat-s5p/Makefile                |    1 +
- arch/arm/plat-s5p/dev-mfc5.c              |   37 +++++++++++++++++++++++++++++
- arch/arm/plat-samsung/include/plat/devs.h |    2 +
- 6 files changed, 55 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/plat-s5p/dev-mfc5.c
+Feel free to test. Just remember that all Hauppauge devices at Devin's polaris4
+tree uses I2C Channel #1. This seems to be the default on all Conexant SDK also. 
+The device I'm working with has the tuner at channel #2, and the ISDB-T demod
+at channel #1. So, the limits may differ.
 
-diff --git a/arch/arm/mach-s5pv210/clock.c b/arch/arm/mach-s5pv210/clock.c
-index d562670..0717a07 100644
---- a/arch/arm/mach-s5pv210/clock.c
-+++ b/arch/arm/mach-s5pv210/clock.c
-@@ -294,6 +294,12 @@ static struct clk init_clocks_disable[] = {
- 		.enable		= s5pv210_clk_ip0_ctrl,
- 		.ctrlbit	= (1 << 26),
- 	}, {
-+		.name		= "mfc",
-+		.id		= -1,
-+		.parent		= &clk_pclk_psys.clk,
-+		.enable		= s5pv210_clk_ip0_ctrl,
-+		.ctrlbit	= (1 << 16),
-+	}, {
- 		.name		= "otg",
- 		.id		= -1,
- 		.parent		= &clk_hclk_psys.clk,
-diff --git a/arch/arm/mach-s5pv210/include/mach/map.h b/arch/arm/mach-s5pv210/include/mach/map.h
-index 586652f..9960d50 100644
---- a/arch/arm/mach-s5pv210/include/mach/map.h
-+++ b/arch/arm/mach-s5pv210/include/mach/map.h
-@@ -104,6 +104,9 @@
- #define S5PV210_PA_DMC0		(0xF0000000)
- #define S5PV210_PA_DMC1		(0xF1400000)
- 
-+/* MFC */
-+#define S5PV210_PA_MFC		(0xF1700000)
-+
- /* compatibiltiy defines. */
- #define S3C_PA_UART		S5PV210_PA_UART
- #define S3C_PA_HSMMC0		S5PV210_PA_HSMMC(0)
-@@ -120,6 +123,7 @@
- #define S5P_PA_FIMC0		S5PV210_PA_FIMC0
- #define S5P_PA_FIMC1		S5PV210_PA_FIMC1
- #define S5P_PA_FIMC2		S5PV210_PA_FIMC2
-+#define S5P_PA_MFC		S5PV210_PA_MFC
- 
- #define SAMSUNG_PA_ADC		S5PV210_PA_ADC
- #define SAMSUNG_PA_CFCON	S5PV210_PA_CFCON
-diff --git a/arch/arm/plat-s5p/Kconfig b/arch/arm/plat-s5p/Kconfig
-index 65dbfa8..a1918fc 100644
---- a/arch/arm/plat-s5p/Kconfig
-+++ b/arch/arm/plat-s5p/Kconfig
-@@ -5,6 +5,11 @@
- #
- # Licensed under GPLv2
- 
-+config S5P_DEV_MFC
-+	bool
-+	help
-+	  Compile in platform device definitions for MFC 
-+	  
- config PLAT_S5P
- 	bool
- 	depends on (ARCH_S5P64X0 || ARCH_S5P6442 || ARCH_S5PC100 || ARCH_S5PV210 || ARCH_S5PV310)
-diff --git a/arch/arm/plat-s5p/Makefile b/arch/arm/plat-s5p/Makefile
-index de65238..d1d1ea9 100644
---- a/arch/arm/plat-s5p/Makefile
-+++ b/arch/arm/plat-s5p/Makefile
-@@ -23,6 +23,7 @@ obj-$(CONFIG_PM)		+= pm.o
- obj-$(CONFIG_PM)		+= irq-pm.o
- 
- # devices
-+obj-$(CONFIG_S5P_DEV_MFC)	+= dev-mfc5.o
- 
- obj-$(CONFIG_S5P_DEV_FIMC0)	+= dev-fimc0.o
- obj-$(CONFIG_S5P_DEV_FIMC1)	+= dev-fimc1.o
-diff --git a/arch/arm/plat-s5p/dev-mfc5.c b/arch/arm/plat-s5p/dev-mfc5.c
-new file mode 100644
-index 0000000..c06ea97
---- /dev/null
-+++ b/arch/arm/plat-s5p/dev-mfc5.c
-@@ -0,0 +1,37 @@
-+/* Base S3C64XX mfc resource and device definitions */
-+
-+
-+#include <linux/kernel.h>
-+#include <linux/interrupt.h>
-+#include <linux/platform_device.h>
-+#include <linux/ioport.h>
-+
-+#include <mach/map.h>
-+#include <plat/map-base.h>
-+#include <plat/devs.h>
-+#include <plat/irqs.h>
-+
-+/* MFC controller */
-+static struct resource s5p_mfc_resource[] = {
-+	[0] = {
-+		.start  = S5P_PA_MFC,
-+		.end    = S5P_PA_MFC + SZ_64K - 1,
-+		.flags  = IORESOURCE_MEM,
-+	},
-+	[1] = {
-+		.start  = IRQ_MFC,
-+		.end    = IRQ_MFC,
-+		.flags  = IORESOURCE_IRQ,
-+	}
-+};
-+
-+struct platform_device s5p_device_mfc5 = {
-+	.name          = "s5p-mfc5",
-+	.id            = -1,
-+	.num_resources = ARRAY_SIZE(s5p_mfc_resource),
-+	.resource      = s5p_mfc_resource,
-+};
-+
-+EXPORT_SYMBOL(s5p_device_mfc5);
-+
-+
-diff --git a/arch/arm/plat-samsung/include/plat/devs.h b/arch/arm/plat-samsung/include/plat/devs.h
-index 71bcc0f..39948de 100644
---- a/arch/arm/plat-samsung/include/plat/devs.h
-+++ b/arch/arm/plat-samsung/include/plat/devs.h
-@@ -118,6 +118,8 @@ extern struct platform_device s5p_device_fimc0;
- extern struct platform_device s5p_device_fimc1;
- extern struct platform_device s5p_device_fimc2;
- 
-+extern struct platform_device s5p_device_mfc5;
-+
- /* s3c2440 specific devices */
- 
- #ifdef CONFIG_CPU_S3C2440
--- 
-1.6.3.3
+On my device, everything seem to work fine with max size = 4 
+(both analog and digital modes).
+
+Cheers,
+Mauro
 
