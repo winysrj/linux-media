@@ -1,46 +1,131 @@
 Return-path: <mchehab@pedra>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:58625 "EHLO smtp5-g21.free.fr"
+Received: from mx1.redhat.com ([209.132.183.28]:61626 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751720Ab0JUHSu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Oct 2010 03:18:50 -0400
-Received: from tele (unknown [82.245.201.222])
-	by smtp5-g21.free.fr (Postfix) with ESMTP id 26C9DD4810C
-	for <linux-media@vger.kernel.org>; Thu, 21 Oct 2010 09:18:43 +0200 (CEST)
-Date: Thu, 21 Oct 2010 09:19:46 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 2.6.36] gspca for_2.6.36
-Message-ID: <20101021091946.7e13a5e0@tele>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	id S1751208Ab0JAFrP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Oct 2010 01:47:15 -0400
+Message-ID: <4CA575DD.3050606@redhat.com>
+Date: Fri, 01 Oct 2010 02:47:09 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Michael Krufky <mkrufky@kernellabs.com>
+CC: Srinivasa.Deevi@conexant.com, Palash.Bandyopadhyay@conexant.com,
+	dheitmueller@kernellabs.com,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 03/10] V4L/DVB: tda18271: Add some hint about what tda18217
+ reg ID returned
+References: <cover.1285699057.git.mchehab@redhat.com>	<20100928154655.183af4b3@pedra>	<AANLkTindJwXKPpHgT=fN8NdNGstQHqGh+=FHu6xwYG3b@mail.gmail.com>	<4CA4E1FF.8090700@redhat.com>	<AANLkTikkL_wDGEEdivfrV1dWbiyUHNXC4NpHjnn3-vJv@mail.gmail.com>	<4CA4F261.3040506@redhat.com> <AANLkTi=J4Pijs7rADTxOs3DmP7Kc-+AQF1R664LGraBL@mail.gmail.com>
+In-Reply-To: <AANLkTi=J4Pijs7rADTxOs3DmP7Kc-+AQF1R664LGraBL@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+Em 30-09-2010 18:03, Michael Krufky escreveu:
+> On Thu, Sep 30, 2010 at 4:26 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> Em 30-09-2010 16:27, Michael Krufky escreveu:
+>>> Mauro,
+>>>
+>>> I think that's a reasonable explanation.  Would you be open to
+>>> reworking the patch such that the register contents only show up if
+>>> the device is not recognized?  (when ret < 0) . In the case where the
+>>> device is correctly identified (ret == 0), I'd rather preserve the
+>>> original successful detection message, and not see the ID register
+>>> contents.
+>>
+>> Patch enclosed.
+>>
+>> ---
+>>
+>> [PATCH] V4L/DVB: tda18271: Add some hint about what tda18217 reg ID returned
+>>
+>> Instead of doing:
+>>
+>> [   82.581639] tda18271 4-0060: creating new instance
+>> [   82.588411] Unknown device detected @ 4-0060, device not supported.
+>> [   82.594695] tda18271_attach: [4-0060|M] error -22 on line 1272
+>> [   82.600530] tda18271 4-0060: destroying instance
+>>
+>> Print:
+>> [  468.740392] Unknown device (0) detected @ 4-0060, device not supported.
+>>
+>> for the error message, to help detecting what's going wrong with the
+>> device.
+>>
+>> This helps to detect when the driver is using the wrong I2C bus (or have
+>> the i2g gate switch pointing to the wrong place), on devices like cx231xx
+>> that just return 0 on reads to a non-existent i2c device.
+>>
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>
+>> diff --git a/drivers/media/common/tuners/tda18271-fe.c b/drivers/media/common/tuners/tda18271-fe.c
+>> index 7955e49..3db8727 100644
+>> --- a/drivers/media/common/tuners/tda18271-fe.c
+>> +++ b/drivers/media/common/tuners/tda18271-fe.c
+>> @@ -1156,7 +1156,6 @@ static int tda18271_get_id(struct dvb_frontend *fe)
+>>        struct tda18271_priv *priv = fe->tuner_priv;
+>>        unsigned char *regs = priv->tda18271_regs;
+>>        char *name;
+>> -       int ret = 0;
+>>
+>>        mutex_lock(&priv->lock);
+>>        tda18271_read_regs(fe);
+>> @@ -1172,17 +1171,18 @@ static int tda18271_get_id(struct dvb_frontend *fe)
+>>                priv->id = TDA18271HDC2;
+>>                break;
+>>        default:
+>> -               name = "Unknown device";
+>> -               ret = -EINVAL;
+>> -               break;
+>> +               tda_info("Unknown device (%i) detected @ %d-%04x, device not supported.\n",
+>> +                        regs[R_ID],
+>> +                        i2c_adapter_id(priv->i2c_props.adap),
+>> +                        priv->i2c_props.addr);
+>> +               return -EINVAL;
+>>        }
+>>
+>> -       tda_info("%s detected @ %d-%04x%s\n", name,
+>> +       tda_info("%s detected @ %d-%04x\n", name,
+>>                 i2c_adapter_id(priv->i2c_props.adap),
+>> -                priv->i2c_props.addr,
+>> -                (0 == ret) ? "" : ", device not supported.");
+>> +                priv->i2c_props.addr);
+>>
+>> -       return ret;
+>> +       return 0;
+>>  }
+>>
+>>  static int tda18271_setup_configuration(struct dvb_frontend *fe,
+>>
+>>
+> 
+> This looks good to me, although you could concatenate these lines together:
+> 
+> 
+>> +               tda_info("Unknown device (%i) detected @ %d-%04x, device not supported.\n",
+>> +                        regs[R_ID],
+>> +                        i2c_adapter_id(priv->i2c_props.adap),
+>> +                        priv->i2c_props.addr);
+>> +               return -EINVAL;
+> 
+> 
+> to be more like this:
+> 
+> 
+>> +               tda_info("Unknown device (%i) detected @ %d-%04x, device not supported.\n",
+>> +                        regs[R_ID], i2c_adapter_id(priv->i2c_props.adap), priv->i2c_props.addr);
+>> +               return -EINVAL;
+> 
+> 
+> ...that is, if it fits within an 80-char line.
 
-I added two fixes of an other regression. They should go to 2.6.36.
+All parameters after the format string don't fit on 80 cols. I did a small optimization on that.
+> 
+> Anyway,
+> 
+> Reviewed-by: Michael Krufky <mkrufky@kernellabs.com>
 
-The following changes since commit
-d65728875a85ac7c8b7d6eb8d51425bacc188980:
+Thanks, committed.
 
-  V4L/DVB: v4l: radio: si470x: fix unneeded free_irq() call (2010-09-30 07:35:12 -0300)
-
-are available in the git repository at:
-  git://linuxtv.org/jfrancois/gspca.git for_2.6.36
-
-Jean-François Moine (3):
-      gspca - main: Fix a regression with the PS3 Eye webcam
-      gspca - sonixj: Fix a regression of sensors hv7131r and mi0360
-      gspca - sonixj: Fix a regression with sensor hv7131r
-
- drivers/media/video/gspca/gspca.c  |    4 ++--
- drivers/media/video/gspca/sonixj.c |    6 ++----
- 2 files changed, 4 insertions(+), 6 deletions(-)
-
-Cheers.
-
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Cheers,
+Mauro.
