@@ -1,85 +1,112 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.samsung.com ([203.254.224.33]:56424 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754895Ab0JYKNm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Oct 2010 06:13:42 -0400
-Received: from epmmp1 (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Sun Java(tm) System Messaging Server 7u3-15.01 64bit (built Feb 12 2010))
- with ESMTP id <0LAU00MCCCESEU40@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Mon, 25 Oct 2010 19:13:40 +0900 (KST)
-Received: from AMDC159 ([106.116.37.153])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LAU00JXFCEP2I@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 25 Oct 2010 19:13:40 +0900 (KST)
-Date: Mon, 25 Oct 2010 12:13:36 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH 1/7] v4l: add videobuf2 Video for Linux 2 driver framework
-In-reply-to: <AANLkTinaYuwHci++fDRB7c1Lzbcew2Hzzect=GZqOpEL@mail.gmail.com>
-To: 'Pawel Osciak' <pawel@osciak.com>
-Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com
-Message-id: <019301cb742d$4ba0c990$e2e25cb0$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=iso-8859-2
-Content-language: pl
-Content-transfer-encoding: 8BIT
-References: <1287556873-23179-1-git-send-email-m.szyprowski@samsung.com>
- <1287556873-23179-2-git-send-email-m.szyprowski@samsung.com>
- <AANLkTinaYuwHci++fDRB7c1Lzbcew2Hzzect=GZqOpEL@mail.gmail.com>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2935 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750974Ab0JATZc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Oct 2010 15:25:32 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id o91JPKoH025891
+	for <linux-media@vger.kernel.org>; Fri, 1 Oct 2010 21:25:31 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 1 Oct 2010 21:25:20 +0200 (CEST)
+Message-Id: <201010011925.o91JPKoH025891@smtp-vbr6.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-On Monday, October 25, 2010 2:17 AM Pawel Osciak wrote:
+Results of the daily build of v4l-dvb:
 
-> On Tue, Oct 19, 2010 at 23:41, Marek Szyprowski
-> <m.szyprowski@samsung.com> wrote:
-> > From: Pawel Osciak <p.osciak@samsung.com>
-> 
-> > +/**
-> > + * __vb2_queue_cancel() - cancel and stop (pause) streaming
-> > + *
-> > + * Removes all queued buffers from driver's queue and all buffers queued by
-> > + * userspace from videobuf's queue. Returns to state after reqbufs.
-> > + */
-> > +static void __vb2_queue_cancel(struct vb2_queue *q)
-> > +{
-> > +       /*
-> > +        * Tell driver to stop all dma transactions and release all queued
-> > +        * buffers
-> > +        */
-> 
-> Just being picky, but those doesn't neccesarily are "dma" transactions.
+date:        Fri Oct  1 19:00:22 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15164:1da5fed5c8b2
+git master:       3e6dce76d99b328716b43929b9195adfee1de00c
+git media-master: 66d5510677e3155f3f7042f6b9fc51d3a4d08678
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-Ok, I will change this comment.
+linux-2.6.32.6-armv5: WARNINGS
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.36-rc2-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35.3-armv5-davinci: WARNINGS
+linux-2.6.36-rc2-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35.3-armv5-ixp: WARNINGS
+linux-2.6.36-rc2-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35.3-armv5-omap2: WARNINGS
+linux-2.6.36-rc2-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-rc2-i686: ERRORS
+linux-2.6.32.6-m32r: WARNINGS
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.36-rc2-m32r: ERRORS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.36-rc2-mips: ERRORS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.36-rc2-powerpc64: ERRORS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-rc2-x86_64: ERRORS
+linux-git-Module.symvers: ERRORS
+linux-git-armv5: ERRORS
+linux-git-armv5-davinci: ERRORS
+linux-git-armv5-ixp: ERRORS
+linux-git-armv5-omap2: ERRORS
+linux-git-i686: WARNINGS
+linux-git-m32r: WARNINGS
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-> 
-> > +       if (q->streaming && q->ops->stop_streaming)
-> > +               q->ops->stop_streaming(q);
-> > +       q->streaming = 0;
-> > +
-> > +       /*
-> > +        * Remove all buffers from videobuf's list...
-> > +        */
-> > +       INIT_LIST_HEAD(&q->queued_list);
-> > +       /*
-> > +        * ...and done list; userspace will not receive any buffers it
-> > +        * has not already dequeued before initiating cancel.
-> > +        */
-> > +       INIT_LIST_HEAD(&q->done_list);
-> > +       wake_up_all(&q->done_wq);
-> 
-> Any reason for replacing wake_up_interruptible_all with wake_up_all?
+Detailed results are available here:
 
-IMHO there is no reason to limit it to wake_up_interruptible_all. 
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-Initially I thought that the driver MIGHT want to implement stop_streaming()
-on top of this wait_queue, but later I abandoned this idea...
+Full logs are available here:
 
-Best regards
---
-Marek Szyprowski
-Samsung Poland R&D Center
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
