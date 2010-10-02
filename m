@@ -1,39 +1,128 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:50834 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755550Ab0JIPkc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Oct 2010 11:40:32 -0400
-Received: by ewy20 with SMTP id 20so71855ewy.19
-        for <linux-media@vger.kernel.org>; Sat, 09 Oct 2010 08:40:31 -0700 (PDT)
+Received: from d1.icnet.pl ([212.160.220.21]:58944 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753532Ab0JBMpm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Oct 2010 08:45:42 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v3] SoC Camera: add driver for OMAP1 camera interface
+Date: Sat, 2 Oct 2010 14:45:12 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	"Discussion of the Amstrad E3 emailer hardware/software"
+	<e3-hacking@earth.li>
+References: <201009301335.51643.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1010020803200.14599@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1010020803200.14599@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <4CB088DA.60508@redhat.com>
-References: <4CB088DA.60508@redhat.com>
-Date: Sat, 9 Oct 2010 11:40:31 -0400
-Message-ID: <AANLkTi=gH10h5L1jpbWMUDBWbuVWRfEqVgPpzSazvMYs@mail.gmail.com>
-Subject: Re: V4L/DVB: cx231xx: Colibri carrier offset was wrong for PAL/M
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: "linux-me >> Linux Media Mailing List" <linux-media@vger.kernel.org>,
-	Sri Deevi <Srinivasa.Deevi@conexant.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <201010021445.14567.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, Oct 9, 2010 at 11:23 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> cx231xx: Colibri carrier offset was wrong for PAL/M
+Saturday 02 October 2010 08:07:28 Guennadi Liakhovetski napisał(a):
+> Same with this one - let's take it as is and address a couple of clean-ups
+> later.
+
+Guennadi,
+Thanks for taking them both.
+
+BTW, what are your intentions about the last patch from my series still left 
+not commented, "SoC Camera: add support for g_parm / s_parm operations",
+http://www.spinics.net/lists/linux-media/msg22887.html ?
+
+> On Thu, 30 Sep 2010, Janusz Krzysztofik wrote:
+> > +static void omap1_videobuf_queue(struct videobuf_queue *vq,
+> > +						struct videobuf_buffer *vb)
+> > +{
+> > +	struct soc_camera_device *icd = vq->priv_data;
+> > +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> > +	struct omap1_cam_dev *pcdev = ici->priv;
+> > +	struct omap1_cam_buf *buf;
+> > +	u32 mode;
+> > +
+> > +	list_add_tail(&vb->queue, &pcdev->capture);
+> > +	vb->state = VIDEOBUF_QUEUED;
+> > +
+> > +	if (pcdev->active) {
+> > +		/*
+> > +		 * Capture in progress, so don't touch pcdev->ready even if
+> > +		 * empty. Since the transfer of the DMA programming register set
+> > +		 * content to the DMA working register set is done automatically
+> > +		 * by the DMA hardware, this can pretty well happen while we
+> > +		 * are keeping the lock here. Levae fetching it from the queue
 >
-> The carrier offset check at cx231xx is incomplete. I got here one concrete case
-> where it is broken: if PAL/M is used (and this is the default for Pixelview SBTVD),
-> the routine will return zero, and the device will be programmed incorrectly,
-> producing a bad image. A workaround were to change to NTSC and back to PAL/M,
-> but the better is to just fix the code ;)
+> "Leave"
 
-Thanks for spotting this.  I've been focusing entirely on NTSC, so any
-such fixes for other standards are very welcome.
+Yes, sorry.
 
-Devin
+> > +		 * to be done when a next DMA interrupt occures instead.
+> > +		 */
+> > +		return;
+> > +	}
+>
+> superfluous braces
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+I was instructed once to do a reverse in a patch against ASoC subtree (see 
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg14863.html), but 
+TBH, I can't find a clear enough requirement specified in the 
+Documentation/CodingStyle, so I probably change my habits, at least for you 
+subtree ;).
+
+> > +static void videobuf_done(struct omap1_cam_dev *pcdev,
+> > +		enum videobuf_state result)
+> > +{
+> > +	struct omap1_cam_buf *buf = pcdev->active;
+> > +	struct videobuf_buffer *vb;
+> > +	struct device *dev = pcdev->icd->dev.parent;
+> > +
+> > +	if (WARN_ON(!buf)) {
+> > +		suspend_capture(pcdev);
+> > +		disable_capture(pcdev);
+> > +		return;
+> > +	}
+> > +
+> > +	if (result == VIDEOBUF_ERROR)
+> > +		suspend_capture(pcdev);
+> > +
+> > +	vb = &buf->vb;
+> > +	if (waitqueue_active(&vb->done)) {
+> > +		if (!pcdev->ready && result != VIDEOBUF_ERROR) {
+> > +			/*
+> > +			 * No next buffer has been entered into the DMA
+> > +			 * programming register set on time (could be done only
+> > +			 * while the previous DMA interurpt was processed, not
+> > +			 * later), so the last DMA block, be it a whole buffer
+> > +			 * if in CONTIG or its last sgbuf if in SG mode, is
+> > +			 * about to be reused by the just autoreinitialized DMA
+> > +			 * engine, and overwritten with next frame data. Best we
+> > +			 * can do is stopping the capture as soon as possible,
+> > +			 * hopefully before the next frame start.
+> > +			 */
+> > +			suspend_capture(pcdev);
+> > +		}
+>
+> superfluous braces
+
+ditto.
+
+I'll address the issues when ready with my forementioned corner case fixes.
+
+Thanks,
+Janusz
+
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
