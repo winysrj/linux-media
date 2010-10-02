@@ -1,49 +1,36 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:53456 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757518Ab0JYTbp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Oct 2010 15:31:45 -0400
-Received: by iwn10 with SMTP id 10so1178409iwn.19
-        for <linux-media@vger.kernel.org>; Mon, 25 Oct 2010 12:31:45 -0700 (PDT)
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:43035 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752093Ab0JBLih (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Oct 2010 07:38:37 -0400
+Received: by eyb6 with SMTP id 6so1477979eyb.19
+        for <linux-media@vger.kernel.org>; Sat, 02 Oct 2010 04:38:36 -0700 (PDT)
 MIME-Version: 1.0
-Date: Mon, 25 Oct 2010 17:31:44 -0200
-Message-ID: <AANLkTi=WiJWHaXEyeo9Fccwe8oy+N9XmJdRZi3QLPH7H@mail.gmail.com>
-Subject: [ANNOUNCE] mercurial backport tree is needing a new maintainer
-From: Douglas Schilling Landgraf <dougsland@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Date: Sat, 2 Oct 2010 12:38:34 +0100
+Message-ID: <AANLkTikPJ4pLR8R-HG599ESCdRiFzdmVrNKAAV2EnKdM@mail.gmail.com>
+Subject: pending ov7670/cafe_ccic patches
+From: Daniel Drake <dsd@laptop.org>
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+Hi Mauro,
 
-       I am just writing to officially say that I cannot maintain the
-hg backport tree anymore.
-Sorry for this, I *really* tried to help here, but, since I know some
-people still like to use it I prefer
-write this email. Unfortunately due my current activities I cannot
-give attention which this task requires.
+Just a quick reminder about 4 pending cafe_ccic/ov7670 patches, all
+acked by Jon Corbet:
 
-Also, if I could say something here for the next person which will
-take care about it.
+http://www.spinics.net/lists/linux-media/msg23371.html
+http://www.spinics.net/lists/linux-media/msg23373.html
+http://www.spinics.net/lists/linux-media/msg23372.html
+http://www.spinics.net/lists/linux-media/msg23369.html
 
-        - Doing backport manually from 200 to 400 backports doesn't work
-        - Making a script to do it, also not good approach since it
-will break because of our macros.
+The patches were made against linus master so don't account for
+changes that have happened since then (such as the mbus stuff).
+However the patches are all still valid without modification and git's
+default merge algo applies them just fine. Let me know if you'd like
+me to resend them anyway based on your latest tree.
 
-The best opition here to my eyes, is tar the current -git tree and
-make a directory with the backports
-(Mauro's new build system).
-
-This will save a lot of time:
-
-        - no need to backport the current patches coming
-        - will keep the tree updated
-        - Minize the backport job.
-
-I will keep around, helping the group with what I can.
-
-Cheers
-Douglas
+cheers
+Daniel
