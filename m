@@ -1,53 +1,110 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:48875 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932114Ab0JFI7m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Oct 2010 04:59:42 -0400
-Received: from localhost.localdomain (unknown [91.178.188.185])
-	by perceval.irobotique.be (Postfix) with ESMTPSA id C009B35FEA
-	for <linux-media@vger.kernel.org>; Wed,  6 Oct 2010 08:59:39 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:43405 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753300Ab0JBPTc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Oct 2010 11:19:32 -0400
+Received: by wwj40 with SMTP id 40so2509914wwj.1
+        for <linux-media@vger.kernel.org>; Sat, 02 Oct 2010 08:19:31 -0700 (PDT)
+Message-ID: <4CA74D80.7000707@gmail.com>
+Date: Sat, 02 Oct 2010 17:19:28 +0200
+From: thomas schorpp <thomas.schorpp@googlemail.com>
+Reply-To: thomas.schorpp@gmail.com
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: [PATCH 07/14] uvcvideo: Set bandwidth to at least 1024 with the FIX_BANDWIDTH quirk
-Date: Wed,  6 Oct 2010 10:59:45 +0200
-Message-Id: <1286355592-13603-8-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1286355592-13603-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1286355592-13603-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: Re: dvb-c: TT C-1501: tda827x.c: Cannot hold lock at 746 MHz
+References: <4CA74509.6000404@gmail.com>
+In-Reply-To: <4CA74509.6000404@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The bandwidth estimate computed with the FIX_BANDIWDTH quirk is too low
-for many cameras. Don't use maximum packet sizes lower than 1024 bytes
-to try and work around the problem. According to measurements done on
-two different camera models, the value is high enough to get most
-resolutions working while not preventing two simultaneous VGA streams at
-15 fps.
+Am 02.10.2010 16:43, schrieb thomas schorpp:
+> Hello,
+>
+> Klaas patch is not complete:
+> http://article.gmane.org/gmane.linux.drivers.dvb/47571
+>
+> I found a hole at 746MHz with 2.6.34.0 kernel and DE provider kabelbw.de,
+> Picture fragments and audio bursts only:
+>
+> Oct 2 15:53:03 tom1 vdr: [16380] receiver on device 1 thread ended (pid=16268, tid=16380)
+> Oct 2 15:53:03 tom1 kernel: tda827x: tda827xa_set_params:
+> Oct 2 15:53:03 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
+> Oct 2 15:53:03 tom1 kernel: tda827x: tda8275a AGC2 gain is: 4
+> Oct 2 15:53:04 tom1 vdr: [16462] setting audio track to 1 (0)
+> Oct 2 15:53:04 tom1 kernel: tda827x: tda827xa_set_params:
+> Oct 2 15:53:04 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
+> Oct 2 15:53:04 tom1 kernel: tda827x: tda8275a AGC2 gain is: 5
+> Oct 2 15:53:04 tom1 vdr: [16279] frontend 0 lost lock on channel 496, tp 746
+> Oct 2 15:53:04 tom1 vdr: [16279] frontend 0 regained lock on channel 496, tp 746
+> Oct 2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params:
+> Oct 2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
+> Oct 2 15:53:05 tom1 kernel: tda827x: tda8275a AGC2 gain is: 4
+> Oct 2 15:53:05 tom1 vdr: [16279] frontend 0 lost lock on channel 496, tp 746
+> Oct 2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params:
+> Oct 2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
+> Oct 2 15:53:05 tom1 kernel: tda827x: tda8275a AGC2 gain is: 4
+> Oct 2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params:
+> Oct 2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
+> Oct 2 15:53:05 tom1 kernel: tda827x: tda8275a AGC2 gain is: 5
+> Oct 2 15:53:06 tom1 vdr: [16279] frontend 0 regained lock on channel 496, tp 746
+> Oct 2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params:
+> Oct 2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
+> Oct 2 15:53:06 tom1 kernel: tda827x: tda8275a AGC2 gain is: 5
+> Oct 2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params:
+> Oct 2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
+> Oct 2 15:53:06 tom1 kernel: tda827x: tda8275a AGC2 gain is: 5
+> Oct 2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params:
+> Oct 2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
+> Oct 2 15:53:06 tom1 kernel: tda827x: tda8275a AGC2 gain is: 4
+> Oct 2 15:53:06 tom1 vdr: [16268] switching to channel 494
+>
+> cycle: 78 d_time: 0.004 s Sig: 51657 SNR: 43690 BER: 1728 UBLK: 55 Stat: 0x00 []
+> cycle: 79 d_time: 0.004 s Sig: 52428 SNR: 60395 BER: 1728 UBLK: 57 Stat: 0x03 [SIG CARR ]
+> cycle: 80 d_time: 0.004 s Sig: 50886 SNR: 46517 BER: 1728 UBLK: 95 Stat: 0x00 []
+> cycle: 81 d_time: 0.007 s Sig: 52428 SNR: 44461 BER: 1728 UBLK: 54 Stat: 0x03 [SIG CARR ]
+> cycle: 82 d_time: 0.003 s Sig: 51657 SNR: 61423 BER: 1728 UBLK: 5 Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
+> cycle: 83 d_time: 0.237 s Sig: 40092 SNR: 47288 BER: 1048575 UBLK: 66 Stat: 0x00 []
+> cycle: 84 d_time: 0.005 s Sig: 56283 SNR: 45232 BER: 1728 UBLK: 113 Stat: 0x00 []
+> cycle: 85 d_time: 0.006 s Sig: 53199 SNR: 46774 BER: 1728 UBLK: 136 Stat: 0x00 []
+> cycle: 86 d_time: 0.008 s Sig: 50115 SNR: 44975 BER: 1728 UBLK: 55 Stat: 0x00 []
+> cycle: 87 d_time: 0.004 s Sig: 53199 SNR: 53970 BER: 1728 UBLK: 287 Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
+> cycle: 88 d_time: 0.020 s Sig: 50886 SNR: 61166 BER: 1728 UBLK: 62 Stat: 0x03 [SIG CARR ]
+>
+> Current parameters:
+> Frequency: 746000.000 kHz
+> Inversion: ON
+> Symbol rate: 6.900000 MSym/s
+> FEC: none
+> Modulation: QAM 64
+>
+> Card is just bought newly:
+>
+> 00:06.0 0480: 1131:7146 (rev 01)
+> Subsystem: 13c2:101a
+> Flags: bus master, medium devsel, latency 32, IRQ 17
+> Memory at fbeffc00 (32-bit, non-prefetchable) [size=512]
+> Kernel driver in use: budget_ci dvb
+>
+> Other (tested favourite) channels are tuned in fine.
+>
+> No network problems for this transponder reported in cable provider's support forums.
+>
+> Anyone got the chips datasheet or a hint what to tweak in the tda827xa_dvbc[] for this frequency?
+>
+> { .lomax = 802000000, .svco = 2, .spd = 0, .scr = 2, .sbs = 4, .gc3 = 1}, ?
+>
+> thx,
+> Y
+> tom
+>
+>
+>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/uvc/uvc_video.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+Hm, this gets complicated, tuning is fine at 722+754MHz but not on 746MHz,
+this is within the same control segment
 
-diff --git a/drivers/media/video/uvc/uvc_video.c b/drivers/media/video/uvc/uvc_video.c
-index ee5e233..5a2022c 100644
---- a/drivers/media/video/uvc/uvc_video.c
-+++ b/drivers/media/video/uvc/uvc_video.c
-@@ -138,6 +138,15 @@ static void uvc_fixup_video_ctrl(struct uvc_streaming *stream,
- 			bandwidth /= 8;
- 		bandwidth += 12;
- 
-+		/* The bandwidth estimate is too low for many cameras. Don't use
-+		 * maximum packet sizes lower than 1024 bytes to try and work
-+		 * around the problem. According to measurements done on two
-+		 * different camera models, the value is high enough to get most
-+		 * resolutions working while not preventing two simultaneous
-+		 * VGA streams at 15 fps.
-+		 */
-+		bandwidth = max_t(u32, bandwidth, 1024);
-+
- 		ctrl->dwMaxPayloadTransferSize = bandwidth;
- 	}
- }
--- 
-1.7.2.2
+	{ .lomax = 720000000, .svco = 2, .spd = 0, .scr = 1, .sbs = 4, .gc3 = 1},
+	{ .lomax = 802000000, .svco = 2, .spd = 0, .scr = 2, .sbs = 4, .gc3 = 1},
 
