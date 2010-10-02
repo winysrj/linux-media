@@ -1,131 +1,195 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:61626 "EHLO mx1.redhat.com"
+Received: from d1.icnet.pl ([212.160.220.21]:48368 "EHLO d1.icnet.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751208Ab0JAFrP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Oct 2010 01:47:15 -0400
-Message-ID: <4CA575DD.3050606@redhat.com>
-Date: Fri, 01 Oct 2010 02:47:09 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1755312Ab0JBLtb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Oct 2010 07:49:31 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v3 3/6] SoC Camera: add driver for OV6650 sensor
+Date: Sat, 2 Oct 2010 13:48:33 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"Discussion of the Amstrad E3 emailer hardware/software"
+	<e3-hacking@earth.li>
+References: <201009270514.01865.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1010020538500.14599@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1010020538500.14599@axis700.grange>
 MIME-Version: 1.0
-To: Michael Krufky <mkrufky@kernellabs.com>
-CC: Srinivasa.Deevi@conexant.com, Palash.Bandyopadhyay@conexant.com,
-	dheitmueller@kernellabs.com,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 03/10] V4L/DVB: tda18271: Add some hint about what tda18217
- reg ID returned
-References: <cover.1285699057.git.mchehab@redhat.com>	<20100928154655.183af4b3@pedra>	<AANLkTindJwXKPpHgT=fN8NdNGstQHqGh+=FHu6xwYG3b@mail.gmail.com>	<4CA4E1FF.8090700@redhat.com>	<AANLkTikkL_wDGEEdivfrV1dWbiyUHNXC4NpHjnn3-vJv@mail.gmail.com>	<4CA4F261.3040506@redhat.com> <AANLkTi=J4Pijs7rADTxOs3DmP7Kc-+AQF1R664LGraBL@mail.gmail.com>
-In-Reply-To: <AANLkTi=J4Pijs7rADTxOs3DmP7Kc-+AQF1R664LGraBL@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <201010021348.34560.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 30-09-2010 18:03, Michael Krufky escreveu:
-> On Thu, Sep 30, 2010 at 4:26 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> Em 30-09-2010 16:27, Michael Krufky escreveu:
->>> Mauro,
->>>
->>> I think that's a reasonable explanation.  Would you be open to
->>> reworking the patch such that the register contents only show up if
->>> the device is not recognized?  (when ret < 0) . In the case where the
->>> device is correctly identified (ret == 0), I'd rather preserve the
->>> original successful detection message, and not see the ID register
->>> contents.
->>
->> Patch enclosed.
->>
->> ---
->>
->> [PATCH] V4L/DVB: tda18271: Add some hint about what tda18217 reg ID returned
->>
->> Instead of doing:
->>
->> [   82.581639] tda18271 4-0060: creating new instance
->> [   82.588411] Unknown device detected @ 4-0060, device not supported.
->> [   82.594695] tda18271_attach: [4-0060|M] error -22 on line 1272
->> [   82.600530] tda18271 4-0060: destroying instance
->>
->> Print:
->> [  468.740392] Unknown device (0) detected @ 4-0060, device not supported.
->>
->> for the error message, to help detecting what's going wrong with the
->> device.
->>
->> This helps to detect when the driver is using the wrong I2C bus (or have
->> the i2g gate switch pointing to the wrong place), on devices like cx231xx
->> that just return 0 on reads to a non-existent i2c device.
->>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>
->> diff --git a/drivers/media/common/tuners/tda18271-fe.c b/drivers/media/common/tuners/tda18271-fe.c
->> index 7955e49..3db8727 100644
->> --- a/drivers/media/common/tuners/tda18271-fe.c
->> +++ b/drivers/media/common/tuners/tda18271-fe.c
->> @@ -1156,7 +1156,6 @@ static int tda18271_get_id(struct dvb_frontend *fe)
->>        struct tda18271_priv *priv = fe->tuner_priv;
->>        unsigned char *regs = priv->tda18271_regs;
->>        char *name;
->> -       int ret = 0;
->>
->>        mutex_lock(&priv->lock);
->>        tda18271_read_regs(fe);
->> @@ -1172,17 +1171,18 @@ static int tda18271_get_id(struct dvb_frontend *fe)
->>                priv->id = TDA18271HDC2;
->>                break;
->>        default:
->> -               name = "Unknown device";
->> -               ret = -EINVAL;
->> -               break;
->> +               tda_info("Unknown device (%i) detected @ %d-%04x, device not supported.\n",
->> +                        regs[R_ID],
->> +                        i2c_adapter_id(priv->i2c_props.adap),
->> +                        priv->i2c_props.addr);
->> +               return -EINVAL;
->>        }
->>
->> -       tda_info("%s detected @ %d-%04x%s\n", name,
->> +       tda_info("%s detected @ %d-%04x\n", name,
->>                 i2c_adapter_id(priv->i2c_props.adap),
->> -                priv->i2c_props.addr,
->> -                (0 == ret) ? "" : ", device not supported.");
->> +                priv->i2c_props.addr);
->>
->> -       return ret;
->> +       return 0;
->>  }
->>
->>  static int tda18271_setup_configuration(struct dvb_frontend *fe,
->>
->>
-> 
-> This looks good to me, although you could concatenate these lines together:
-> 
-> 
->> +               tda_info("Unknown device (%i) detected @ %d-%04x, device not supported.\n",
->> +                        regs[R_ID],
->> +                        i2c_adapter_id(priv->i2c_props.adap),
->> +                        priv->i2c_props.addr);
->> +               return -EINVAL;
-> 
-> 
-> to be more like this:
-> 
-> 
->> +               tda_info("Unknown device (%i) detected @ %d-%04x, device not supported.\n",
->> +                        regs[R_ID], i2c_adapter_id(priv->i2c_props.adap), priv->i2c_props.addr);
->> +               return -EINVAL;
-> 
-> 
-> ...that is, if it fits within an 80-char line.
+Saturday 02 October 2010 07:47:47 Guennadi Liakhovetski napisał(a):
+> Ok, let's take this one, but, please, address the below couple of minor
+> issues in an incremental patch.
+>
+> On Mon, 27 Sep 2010, Janusz Krzysztofik wrote:
+> > +/* write a register */
+> > +static int ov6650_reg_write(struct i2c_client *client, u8 reg, u8 val)
+> > +{
+> > +	int ret;
+> > +	unsigned char data[2] = { reg, val };
+> > +	struct i2c_msg msg = {
+> > +		.addr	= client->addr,
+> > +		.flags	= 0,
+> > +		.len	= 2,
+> > +		.buf	= data,
+> > +	};
+> > +
+> > +	ret = i2c_transfer(client->adapter, &msg, 1);
+> > +	usleep_range(100, 1000);
+>
+> So, 100us are enough? Then I'd just go with udelay(100).
 
-All parameters after the format string don't fit on 80 cols. I did a small optimization on that.
-> 
-> Anyway,
-> 
-> Reviewed-by: Michael Krufky <mkrufky@kernellabs.com>
+Guennadi,
+I already tried with udelay(100), as you had suggested before, and it worked, 
+but then checkpatch.pl --sctirct told me:
 
-Thanks, committed.
+"CHECK: usleep_range is preferred over udelay; see 
+Documentation/timers/timers-howto.txt
++       udelay(100);"
 
-Cheers,
-Mauro.
+So, I had read Documentation/timers/timers-howto.txt again and switched to 
+usleep_range, as it suggested.
+
+Please confirm if you still prefere udelay(100) over usleep_range(), and I'll 
+change it back.
+
+> > static bool is_unscaled_ok(int width, int height, struct v4l2_rect *rect)
+> > +{
+> > +	return (width > rect->width >> 1 || height > rect->height >> 1);
+> > +}
+>
+> Ok, just one more pair of brackets to remove;)
+
+OK.
+
+> > +
+> > +static u8 to_clkrc(struct v4l2_fract *timeperframe,
+> > +		unsigned long pclk_limit, unsigned long pclk_max)
+> > +{
+> > +	unsigned long pclk;
+> > +
+> > +	if (timeperframe->numerator && timeperframe->denominator)
+> > +		pclk = pclk_max * timeperframe->denominator /
+> > +				(FRAME_RATE_MAX * timeperframe->numerator);
+> > +	else
+> > +		pclk = pclk_max;
+> > +
+> > +	if (pclk_limit && pclk_limit < pclk)
+> > +		pclk = pclk_limit;
+> > +
+> > +	return (pclk_max - 1) / pclk;
+> > +}
+> > +
+> > +/* set the format we will capture in */
+> > +static int ov6650_s_fmt(struct v4l2_subdev *sd, struct
+> > v4l2_mbus_framefmt *mf) +{
+> > +	struct i2c_client *client = sd->priv;
+> > +	struct soc_camera_device *icd = client->dev.platform_data;
+> > +	struct soc_camera_sense *sense = icd->sense;
+> > +	struct ov6650 *priv = to_ov6650(client);
+> > +	bool half_scale = !is_unscaled_ok(mf->width, mf->height, &priv->rect);
+> > +	struct v4l2_crop a = {
+> > +		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
+> > +		.c = {
+> > +			.left	= priv->rect.left + (priv->rect.width >> 1) -
+> > +					(mf->width >> (1 - half_scale)),
+> > +			.top	= priv->rect.top + (priv->rect.height >> 1) -
+> > +					(mf->height >> (1 - half_scale)),
+> > +			.width	= mf->width << half_scale,
+> > +			.height	= mf->height << half_scale,
+> > +		},
+> > +	};
+>
+> Hm, this seems wrong to me... You calculate left and top to preserve the
+> center, right? 
+
+Exactly.
+
+> This is good, but: if output is unscaled, you want 
+>
+> 	.left = priv->rect.left + (priv->rect.width - mf->width) / 2;
+
+	== priv->rect.left +  priv->rect.width  / 2  -   mf->width        /  2
+	== priv->rect.left + (priv->rect.width >> 1) - ( mf->width       >>  1)
+	== priv->rect.left + (priv->rect.width >> 1) - ( mf->width       >> (1 - 0))
+>
+> in this case half_scale = 0 and the above is correct. Now, is the output
+> is scaled, you want
+>
+> 	.left = priv->rect.left + (priv->rect.width - mf->width * 2) / 2;
+
+	== priv->rect.left +  priv->rect.width  / 2  -   mf->width  * 2   /  2
+	== priv->rect.left + (priv->rect.width >> 1) - ((mf->width << 1) >>  1)
+	== priv->rect.left + (priv->rect.width >> 1) - ( mf->width       >> (1 - 1))
+
+> which is not, what you have above. Am I missing anything?
+
+One of us must be ;).
+
+> > +	case V4L2_MBUS_FMT_UYVY8_2X8:
+> > +		dev_dbg(&client->dev, "pixel format YUYV8_2X8_BE\n");
+> > +		if (half_scale) {
+> > +			coma_mask |= COMA_RGB | COMA_BW | COMA_WORD_SWAP;
+> > +			coma_set |= COMA_BYTE_SWAP;
+> > +		} else {
+> > +			coma_mask |= COMA_RGB | COMA_BW;
+> > +			coma_set |= COMA_BYTE_SWAP | COMA_WORD_SWAP;
+> > +		}
+> > +		break;
+> > +	case V4L2_MBUS_FMT_VYUY8_2X8:
+> > +		dev_dbg(&client->dev, "pixel format YVYU8_2X8_BE (untested)\n");
+> > +		if (half_scale) {
+> > +			coma_mask |= COMA_RGB | COMA_BW;
+> > +			coma_set |= COMA_BYTE_SWAP | COMA_WORD_SWAP;
+> > +		} else {
+> > +			coma_mask |= COMA_RGB | COMA_BW | COMA_WORD_SWAP;
+> > +			coma_set |= COMA_BYTE_SWAP;
+> > +		}
+> > +		break;
+>
+> ...since there anyway will be an incremental patch . what does
+> word-swapping have to do with scaling?...
+
+A hardware (firmware) bug perhaps? All I can say is that I had found out it 
+worked like this for me before, and I've just ensured it still does.
+
+> > +	case V4L2_MBUS_FMT_SBGGR8_1X8:
+> > +		dev_dbg(&client->dev, "pixel format SBGGR8_1X8 (untested)\n");
+> > +		coma_mask |= COMA_BW | COMA_BYTE_SWAP | COMA_WORD_SWAP;
+> > +		coma_set |= COMA_RAW_RGB | COMA_RGB;
+> > +		break;
+> > +	case 0:
+> > +		break;
+>
+> 0 is defined as reserved... What for do you need it here?
+
+This I have mentioned in my v2 -> v3 changes list:
+
+> - add support for geometry only change to s_fmt, 
+
+I've tried to follow a pattern copied from mt9v022.c:
+
++        case 0:
++		/* No format change, only geometry */
++		break;
+
+but now I see I've missed the comment unfortunately. Please specify if you 
+prefere to have it dropped or documented.
+
+Thanks,
+Janusz
+
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
