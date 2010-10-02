@@ -1,116 +1,100 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4277 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753790Ab0JUGvw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Oct 2010 02:51:52 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Jonathan Corbet <corbet@lwn.net>
-Subject: Re: ext_lock (was viafb camera controller driver)
-Date: Thu, 21 Oct 2010 08:51:22 +0200
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Daniel Drake <dsd@laptop.org>
-References: <20101010162313.5caa137f@bike.lwn.net> <201010190854.40419.hverkuil@xs4all.nl> <20101020132342.35a2c401@bike.lwn.net>
-In-Reply-To: <20101020132342.35a2c401@bike.lwn.net>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:49678 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755566Ab0JBOn0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Oct 2010 10:43:26 -0400
+Received: by wyb28 with SMTP id 28so3774300wyb.19
+        for <linux-media@vger.kernel.org>; Sat, 02 Oct 2010 07:43:24 -0700 (PDT)
+Message-ID: <4CA74509.6000404@gmail.com>
+Date: Sat, 02 Oct 2010 16:43:21 +0200
+From: thomas schorpp <thomas.schorpp@googlemail.com>
+Reply-To: thomas.schorpp@gmail.com
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: linux-media@vger.kernel.org
+Subject: dvb-c: TT C-1501: tda827x.c: Cannot hold lock at 746 MHz
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201010210851.22252.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wednesday, October 20, 2010 21:23:42 Jonathan Corbet wrote:
-> On Tue, 19 Oct 2010 08:54:40 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> 
-> > We are working on removing the BKL. As part of that effort it is now possible
-> > for drivers to pass a serialization mutex to the v4l core (a mutex pointer was
-> > added to struct video_device). If the core sees that mutex then the core will
-> > serialize all open/ioctl/read/write/etc. file ops. So all file ops will in that
-> > case be called with that mutex held. Which is fine, but if the driver has to do
-> > a blocking wait, then you need to unlock the mutex first and lock it again
-> > afterwards. And since videobuf does a blocking wait it needs to know about that
-> > mutex.
-> 
-> So videobuf is expecting that you're passing this special device mutex
-> in particular?  In that case, why not just use it directly?
+Hello,
 
-The problem is that videobuf has to cater for two possible scenarios regarding
-external locks: either it is the core lock which can be obtained through struct
-video_device, or it is a driver-owned lock. In both cases videobuf has to unlock
-before the wait.
+Klaas patch is not complete:
+http://article.gmane.org/gmane.linux.drivers.dvb/47571
 
-So I can't just give it a pointer to video_device.
+I found a hole at 746MHz with 2.6.34.0 kernel and DE provider kabelbw.de,
+Picture fragments and audio bursts only:
 
-For the next kernel cycle we should start the work to convert drivers to
-unlocked_ioctl and the core lock or a private lock. Hopefully that will give us
-a better idea of how this can be improved.
+Oct  2 15:53:03 tom1 vdr: [16380] receiver on device 1 thread ended (pid=16268, tid=16380)
+Oct  2 15:53:03 tom1 kernel: tda827x: tda827xa_set_params:
+Oct  2 15:53:03 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
+Oct  2 15:53:03 tom1 kernel: tda827x: tda8275a AGC2 gain is: 4
+Oct  2 15:53:04 tom1 vdr: [16462] setting audio track to 1 (0)
+Oct  2 15:53:04 tom1 kernel: tda827x: tda827xa_set_params:
+Oct  2 15:53:04 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
+Oct  2 15:53:04 tom1 kernel: tda827x: tda8275a AGC2 gain is: 5
+Oct  2 15:53:04 tom1 vdr: [16279] frontend 0 lost lock on channel 496, tp 746
+Oct  2 15:53:04 tom1 vdr: [16279] frontend 0 regained lock on channel 496, tp 746
+Oct  2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params:
+Oct  2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
+Oct  2 15:53:05 tom1 kernel: tda827x: tda8275a AGC2 gain is: 4
+Oct  2 15:53:05 tom1 vdr: [16279] frontend 0 lost lock on channel 496, tp 746
+Oct  2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params:
+Oct  2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
+Oct  2 15:53:05 tom1 kernel: tda827x: tda8275a AGC2 gain is: 4
+Oct  2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params:
+Oct  2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
+Oct  2 15:53:05 tom1 kernel: tda827x: tda8275a AGC2 gain is: 5
+Oct  2 15:53:06 tom1 vdr: [16279] frontend 0 regained lock on channel 496, tp 746
+Oct  2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params:
+Oct  2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
+Oct  2 15:53:06 tom1 kernel: tda827x: tda8275a AGC2 gain is: 5
+Oct  2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params:
+Oct  2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
+Oct  2 15:53:06 tom1 kernel: tda827x: tda8275a AGC2 gain is: 5
+Oct  2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params:
+Oct  2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
+Oct  2 15:53:06 tom1 kernel: tda827x: tda8275a AGC2 gain is: 4
+Oct  2 15:53:06 tom1 vdr: [16268] switching to channel 494
 
-> Having a
-> separate pointer to (what looks like) a distinct lock seems like a way
-> to cause fatal confusion.  Given the tightness of the rules here (you
-> *must* know that this "ext_lock" has been grabbed by the v4l core in the
-> current call chain or you cannot possibly unlock it safely), I don't
-> get why you wouldn't use the lock directly.
-> 
-> I would be inclined to go even further and emit a warning if the mutex
-> is *not* locked.  It seems that the rules would require it, no?  If
-> mutex debugging is turned on, you could even check if the current task
-> is the locker, would would be even better.
+cycle: 78  d_time: 0.004 s  Sig: 51657  SNR: 43690  BER: 1728  UBLK: 55  Stat: 0x00 []
+cycle: 79  d_time: 0.004 s  Sig: 52428  SNR: 60395  BER: 1728  UBLK: 57  Stat: 0x03 [SIG CARR ]
+cycle: 80  d_time: 0.004 s  Sig: 50886  SNR: 46517  BER: 1728  UBLK: 95  Stat: 0x00 []
+cycle: 81  d_time: 0.007 s  Sig: 52428  SNR: 44461  BER: 1728  UBLK: 54  Stat: 0x03 [SIG CARR ]
+cycle: 82  d_time: 0.003 s  Sig: 51657  SNR: 61423  BER: 1728  UBLK: 5  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
+cycle: 83  d_time: 0.237 s  Sig: 40092  SNR: 47288  BER: 1048575  UBLK: 66  Stat: 0x00 []
+cycle: 84  d_time: 0.005 s  Sig: 56283  SNR: 45232  BER: 1728  UBLK: 113  Stat: 0x00 []
+cycle: 85  d_time: 0.006 s  Sig: 53199  SNR: 46774  BER: 1728  UBLK: 136  Stat: 0x00 []
+cycle: 86  d_time: 0.008 s  Sig: 50115  SNR: 44975  BER: 1728  UBLK: 55  Stat: 0x00 []
+cycle: 87  d_time: 0.004 s  Sig: 53199  SNR: 53970  BER: 1728  UBLK: 287  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
+cycle: 88  d_time: 0.020 s  Sig: 50886  SNR: 61166  BER: 1728  UBLK: 62  Stat: 0x03 [SIG CARR ]
 
-I agree with this. Mauro, I propose this change:
+Current parameters:
+     Frequency:  746000.000 kHz
+     Inversion:  ON
+     Symbol rate:  6.900000 MSym/s
+     FEC:  none
+     Modulation:  QAM 64
 
-BUG_ON(q->ext_lock && !mutex_is_locked(q->ext_lock));
+Card is just bought newly:
 
-if (q->ext_lock)
-	mutex_unlock(q->ext_lock);
-...
-if (q->ext_lock)
-	mutex_lock(q->ext_lock);
+00:06.0 0480: 1131:7146 (rev 01)
+	Subsystem: 13c2:101a
+	Flags: bus master, medium devsel, latency 32, IRQ 17
+	Memory at fbeffc00 (32-bit, non-prefetchable) [size=512]
+	Kernel driver in use: budget_ci dvb
 
-It makes no sense to provide an external lock and not having it locked here.
+Other (tested favourite) channels are tuned in fine.
 
-> In general, put me in the "leery of central locking" camp.  If you
-> don't understand locking, you're going to mess things up somewhere
-> along the way.  And, as soon as you get into hardware with interrupts,
-> it seems like you have to deal with your own locking for access to the
-> hardware regardless...
+No network problems for this transponder reported in cable provider's support forums.
 
-Do you want to tackle the task of fixing all the old BKL drivers? That is
-still the primary motivation for doing this, you know. I really don't
-fancy putting manual locking in those drivers and auditing them all.
+Anyone got the chips datasheet or a hint what to tweak in the tda827xa_dvbc[] for this frequency?
 
-BTW, I want to add another reason why core-assisted locking is a good idea
-for many drivers: the chances of hitting a race condition if the locking
-isn't quite right are exceedingly low for v4l drivers. In general there is
-just a single application that opens the device, streams and closes it again.
-It is very rare for, say two apps to open the device at almost the same time,
-or one closing it and another opening it. Or for two apps calling an ioctl at
-the same time.
+{ .lomax = 802000000, .svco = 2, .spd = 0, .scr = 2, .sbs = 4, .gc3 = 1}, ?
 
-So things may seem to work just dandy, even though a driver contains more
-races than you can shake a stick at.
+thx,
+Y
+tom
 
-Given the fact that a considerable amount of work went into verifying that the
-v4l2 core does locking right (and I'm talking not just about the new core locking
-feature, but also about the locks protecting internal core data structures), and
-that it usually took several tries to get it right, I am not at all confident
-that the same wouldn't happen on a much larger scale in all the drivers. Particularly
-if it is a hot-pluggable driver.
 
-Anyway, driver developers are completely free to choose either core-assisted
-locking or manual locking. But for the BKL conversion core-assisted locking is
-the only way if we want to have any hope of finishing that conversion in a
-reasonable amount of time and with a reasonable degree of confidence in the
-correctness of the locking.
 
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
