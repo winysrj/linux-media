@@ -1,71 +1,97 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:31310 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757785Ab0J2Nyq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Oct 2010 09:54:46 -0400
-Message-ID: <4CCAD21A.9040100@redhat.com>
-Date: Fri, 29 Oct 2010 11:54:34 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mailout-de.gmx.net ([213.165.64.23]:60953 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1751327Ab0JBGHV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 2 Oct 2010 02:07:21 -0400
+Date: Sat, 2 Oct 2010 08:07:28 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Discussion of the Amstrad E3 emailer hardware/software
+	<e3-hacking@earth.li>
+Subject: Re: [PATCH v3] SoC Camera: add driver for OMAP1 camera interface
+In-Reply-To: <201009301335.51643.jkrzyszt@tis.icnet.pl>
+Message-ID: <Pine.LNX.4.64.1010020803200.14599@axis700.grange>
+References: <201009301335.51643.jkrzyszt@tis.icnet.pl>
 MIME-Version: 1.0
-To: Jarkko Nikula <jhnikula@gmail.com>
-CC: linux-media@vger.kernel.org, linuxtv-commits@linuxtv.org,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [git:v4l-dvb/v2.6.37] [media] radio-si4713: Add regulator framework
- support
-References: <E1P7ZwW-0003bq-Uv@www.linuxtv.org> <20101029092935.b6dd7693.jhnikula@gmail.com>
-In-Reply-To: <20101029092935.b6dd7693.jhnikula@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 29-10-2010 04:29, Jarkko Nikula escreveu:
-> Hi
-> 
-> On Sun, 17 Oct 2010 22:34:32 +0200
-> Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> 
->> This is an automatic generated email to let you know that the following patch were queued at the 
->> http://git.linuxtv.org/media_tree.git tree:
->>
->> Subject: [media] radio-si4713: Add regulator framework support
->> Author:  Jarkko Nikula <jhnikula@gmail.com>
->> Date:    Tue Sep 21 05:49:43 2010 -0300
->>
->> Convert the driver to use regulator framework instead of set_power callback.
->> This with gpio_reset platform data provide cleaner way to manage chip VIO,
->> VDD and reset signal inside the driver.
->>
->> Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
->> Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>
->>  drivers/media/radio/si4713-i2c.c |   74 ++++++++++++++++++++++++++++++++------
->>  drivers/media/radio/si4713-i2c.h |    5 ++-
->>  2 files changed, 67 insertions(+), 12 deletions(-)
->>
->> ---
->>
->> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=d455b639c1fb09f8ea888371fb6e04b490e115fb
->>
-> Was this patch lost somewhere? I don't see it in mainline for 2.6.37
-> but e.g. 85c55ef is there.
-> 
-> 
+Same with this one - let's take it as is and address a couple of clean-ups 
+later.
 
-I had to remove it from my queue, as the patch broke compilation:
+On Thu, 30 Sep 2010, Janusz Krzysztofik wrote:
 
-	http://git.linuxtv.org/media_tree.git?a=commit;h=350df81ebaccc651fa4dfad27738db958e067ded
+> +static void omap1_videobuf_queue(struct videobuf_queue *vq,
+> +						struct videobuf_buffer *vb)
+> +{
+> +	struct soc_camera_device *icd = vq->priv_data;
+> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> +	struct omap1_cam_dev *pcdev = ici->priv;
+> +	struct omap1_cam_buf *buf;
+> +	u32 mode;
+> +
+> +	list_add_tail(&vb->queue, &pcdev->capture);
+> +	vb->state = VIDEOBUF_QUEUED;
+> +
+> +	if (pcdev->active) {
+> +		/*
+> +		 * Capture in progress, so don't touch pcdev->ready even if
+> +		 * empty. Since the transfer of the DMA programming register set
+> +		 * content to the DMA working register set is done automatically
+> +		 * by the DMA hardware, this can pretty well happen while we
+> +		 * are keeping the lock here. Levae fetching it from the queue
 
-What's the sense of adding a patch that breaks a driver?
+"Leave"
 
-Even assuming that you would later send a patch fixing it, there are still some problems:
+> +		 * to be done when a next DMA interrupt occures instead.
+> +		 */
+> +		return;
+> +	}
 
-1) A latter patch will break git bisect;
-2) A broken driver means that I can't test anymore if there are any other problems on other
-   drivers.
+superfluous braces
 
-So, please test your patches against breakages, before sending them to me.
+> +static void videobuf_done(struct omap1_cam_dev *pcdev,
+> +		enum videobuf_state result)
+> +{
+> +	struct omap1_cam_buf *buf = pcdev->active;
+> +	struct videobuf_buffer *vb;
+> +	struct device *dev = pcdev->icd->dev.parent;
+> +
+> +	if (WARN_ON(!buf)) {
+> +		suspend_capture(pcdev);
+> +		disable_capture(pcdev);
+> +		return;
+> +	}
+> +
+> +	if (result == VIDEOBUF_ERROR)
+> +		suspend_capture(pcdev);
+> +
+> +	vb = &buf->vb;
+> +	if (waitqueue_active(&vb->done)) {
+> +		if (!pcdev->ready && result != VIDEOBUF_ERROR) {
+> +			/*
+> +			 * No next buffer has been entered into the DMA
+> +			 * programming register set on time (could be done only
+> +			 * while the previous DMA interurpt was processed, not
+> +			 * later), so the last DMA block, be it a whole buffer
+> +			 * if in CONTIG or its last sgbuf if in SG mode, is
+> +			 * about to be reused by the just autoreinitialized DMA
+> +			 * engine, and overwritten with next frame data. Best we
+> +			 * can do is stopping the capture as soon as possible,
+> +			 * hopefully before the next frame start.
+> +			 */
+> +			suspend_capture(pcdev);
+> +		}
 
-Thanks,
-Mauro
+superfluous braces
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
