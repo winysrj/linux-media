@@ -1,74 +1,116 @@
 Return-path: <mchehab@pedra>
-Received: from bear.ext.ti.com ([192.94.94.41]:51234 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750944Ab0JTNZe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Oct 2010 09:25:34 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Hal Moroff <halm90@gmail.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Wed, 20 Oct 2010 18:55:28 +0530
-Subject: RE: soc_camera device
-Message-ID: <19F8576C6E063C45BE387C64729E739404AA4E7B96@dbde02.ent.ti.com>
-References: <AANLkTin4w=0sheXsfsPve7ivjrdUO-+9mHCCbwCkW=cP@mail.gmail.com>
- <AANLkTinw9xUPRv=gXM6KtnXEdtdMbz_TJKKV+ojm6+C0@mail.gmail.com>
-In-Reply-To: <AANLkTinw9xUPRv=gXM6KtnXEdtdMbz_TJKKV+ojm6+C0@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:50099 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750941Ab0JBQyv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Oct 2010 12:54:51 -0400
+Received: by wyb28 with SMTP id 28so3831424wyb.19
+        for <linux-media@vger.kernel.org>; Sat, 02 Oct 2010 09:54:50 -0700 (PDT)
+Message-ID: <4CA763D6.4050005@gmail.com>
+Date: Sat, 02 Oct 2010 18:54:46 +0200
+From: thomas schorpp <thomas.schorpp@googlemail.com>
+Reply-To: thomas.schorpp@gmail.com
 MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: dvb-c: TT C-1501: tda827x.c: Cannot hold lock at 746 MHz
+References: <4CA74509.6000404@gmail.com> <4CA74D80.7000707@gmail.com>
+In-Reply-To: <4CA74D80.7000707@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Am 02.10.2010 17:19, schrieb thomas schorpp:
+> Am 02.10.2010 16:43, schrieb thomas schorpp:
+>> Hello,
+>>
+>> Klaas patch is not complete:
+>> http://article.gmane.org/gmane.linux.drivers.dvb/47571
+>>
+>> I found a hole at 746MHz with 2.6.34.0 kernel and DE provider kabelbw.de,
+>> Picture fragments and audio bursts only:
+>>
+>> Oct 2 15:53:03 tom1 vdr: [16380] receiver on device 1 thread ended (pid=16268, tid=16380)
+>> Oct 2 15:53:03 tom1 kernel: tda827x: tda827xa_set_params:
+>> Oct 2 15:53:03 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
+>> Oct 2 15:53:03 tom1 kernel: tda827x: tda8275a AGC2 gain is: 4
+>> Oct 2 15:53:04 tom1 vdr: [16462] setting audio track to 1 (0)
+>> Oct 2 15:53:04 tom1 kernel: tda827x: tda827xa_set_params:
+>> Oct 2 15:53:04 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
+>> Oct 2 15:53:04 tom1 kernel: tda827x: tda8275a AGC2 gain is: 5
+>> Oct 2 15:53:04 tom1 vdr: [16279] frontend 0 lost lock on channel 496, tp 746
+>> Oct 2 15:53:04 tom1 vdr: [16279] frontend 0 regained lock on channel 496, tp 746
+>> Oct 2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params:
+>> Oct 2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
+>> Oct 2 15:53:05 tom1 kernel: tda827x: tda8275a AGC2 gain is: 4
+>> Oct 2 15:53:05 tom1 vdr: [16279] frontend 0 lost lock on channel 496, tp 746
+>> Oct 2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params:
+>> Oct 2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
+>> Oct 2 15:53:05 tom1 kernel: tda827x: tda8275a AGC2 gain is: 4
+>> Oct 2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params:
+>> Oct 2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
+>> Oct 2 15:53:05 tom1 kernel: tda827x: tda8275a AGC2 gain is: 5
+>> Oct 2 15:53:06 tom1 vdr: [16279] frontend 0 regained lock on channel 496, tp 746
+>> Oct 2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params:
+>> Oct 2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
+>> Oct 2 15:53:06 tom1 kernel: tda827x: tda8275a AGC2 gain is: 5
+>> Oct 2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params:
+>> Oct 2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
+>> Oct 2 15:53:06 tom1 kernel: tda827x: tda8275a AGC2 gain is: 5
+>> Oct 2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params:
+>> Oct 2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
+>> Oct 2 15:53:06 tom1 kernel: tda827x: tda8275a AGC2 gain is: 4
+>> Oct 2 15:53:06 tom1 vdr: [16268] switching to channel 494
+>>
+>> cycle: 78 d_time: 0.004 s Sig: 51657 SNR: 43690 BER: 1728 UBLK: 55 Stat: 0x00 []
+>> cycle: 79 d_time: 0.004 s Sig: 52428 SNR: 60395 BER: 1728 UBLK: 57 Stat: 0x03 [SIG CARR ]
+>> cycle: 80 d_time: 0.004 s Sig: 50886 SNR: 46517 BER: 1728 UBLK: 95 Stat: 0x00 []
+>> cycle: 81 d_time: 0.007 s Sig: 52428 SNR: 44461 BER: 1728 UBLK: 54 Stat: 0x03 [SIG CARR ]
+>> cycle: 82 d_time: 0.003 s Sig: 51657 SNR: 61423 BER: 1728 UBLK: 5 Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
+>> cycle: 83 d_time: 0.237 s Sig: 40092 SNR: 47288 BER: 1048575 UBLK: 66 Stat: 0x00 []
+>> cycle: 84 d_time: 0.005 s Sig: 56283 SNR: 45232 BER: 1728 UBLK: 113 Stat: 0x00 []
+>> cycle: 85 d_time: 0.006 s Sig: 53199 SNR: 46774 BER: 1728 UBLK: 136 Stat: 0x00 []
+>> cycle: 86 d_time: 0.008 s Sig: 50115 SNR: 44975 BER: 1728 UBLK: 55 Stat: 0x00 []
+>> cycle: 87 d_time: 0.004 s Sig: 53199 SNR: 53970 BER: 1728 UBLK: 287 Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
+>> cycle: 88 d_time: 0.020 s Sig: 50886 SNR: 61166 BER: 1728 UBLK: 62 Stat: 0x03 [SIG CARR ]
+>>
+>> Current parameters:
+>> Frequency: 746000.000 kHz
+>> Inversion: ON
+>> Symbol rate: 6.900000 MSym/s
+>> FEC: none
+>> Modulation: QAM 64
+>>
+>> Card is just bought newly:
+>>
+>> 00:06.0 0480: 1131:7146 (rev 01)
+>> Subsystem: 13c2:101a
+>> Flags: bus master, medium devsel, latency 32, IRQ 17
+>> Memory at fbeffc00 (32-bit, non-prefetchable) [size=512]
+>> Kernel driver in use: budget_ci dvb
+>>
+>> Other (tested favourite) channels are tuned in fine.
+>>
+>> No network problems for this transponder reported in cable provider's support forums.
+>>
+>> Anyone got the chips datasheet or a hint what to tweak in the tda827xa_dvbc[] for this frequency?
+>>
+>> { .lomax = 802000000, .svco = 2, .spd = 0, .scr = 2, .sbs = 4, .gc3 = 1}, ?
+>>
+>> thx,
+>> Y
+>> tom
+>>
+>>
+>>
+>
+> Hm, this gets complicated, tuning is fine at 722+754MHz but not on 746MHz,
+> this is within the same control segment
+>
+> { .lomax = 720000000, .svco = 2, .spd = 0, .scr = 1, .sbs = 4, .gc3 = 1},
+> { .lomax = 802000000, .svco = 2, .spd = 0, .scr = 2, .sbs = 4, .gc3 = 1},
+>
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Hal Moroff
-> Sent: Wednesday, October 20, 2010 3:29 AM
-> To: linux-media@vger.kernel.org
-> Subject: soc_camera device
-> 
-> I'm pretty new to Linux video drivers (I do have experience with
-> drivers in general) and am trying to get my head
-> around the driver models.  Sorry if this is too basic a question for this
-> forum.
-> 
-> I have an OMAP 3530 running Arago Linux (2.6.32 at the moment),
-[Hiremath, Vaibhav] Are you using OMAP3EVM? Then we already have basic support for Aptima sensor MT9T111 available at 
+Tweaking those parameters doesn't change anything.
 
-http://arago-project.org/git/people/vaibhav/ti-psp-omap-video.git?p=people/vaibhav/ti-psp-omap-video.git;a=shortlog;h=refs/heads/omap3cam-mc-devel
+Fixed. Bad IEC Connectors. Avoid Philips coaxial cable products or TT Tuner connectors :-/
 
-Thanks,
-Vaibhav
-
-
-> and
-> I'm trying to capture images from an Aptina
-> sensor for which there does not seem to be a driver.
-> 
-> There seem to be soc_camera, soc_camera-int, v4l2, omap34xxcam drivers
-> at the very least.  I'm pretty confused
-> over these and how they do or don't work with V4L2 and/or each other.
-> 
-> It seems that some of the driver models are deprecated (but still in
-> use), and that soc_camera is current.  Or is it?
-> 
-> 2 things in particular at the moment are giving me a hard time:
->   1. I can't seem to load soc_camera.ko ... I keep getting the error:
->       soc_camera: exports duplicate symbol soc_camera_host_unregister
-> (owned by kernel)
->       I can't seem to resolve this, nor can I find the issue described
-> in any online forum (and so
->       I suspect it's my problem).
-> 
->   2. There are drivers for the Aptina MT9V022 and the MT9M001 (among
-> others).  Both of these
->       are sensors, and not SOC, and yet both of these rely on the
-> soc_camera module.  I'm willing
->       to create the driver for my Aptina sensor, and the easiest way
-> is generally to look at a known
->       driver as a template, however I can't figure out which to look at.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
