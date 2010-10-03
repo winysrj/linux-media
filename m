@@ -1,59 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:57381 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754672Ab0J2G2X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Oct 2010 02:28:23 -0400
-Received: by ewy7 with SMTP id 7so2078071ewy.19
-        for <linux-media@vger.kernel.org>; Thu, 28 Oct 2010 23:28:22 -0700 (PDT)
-Date: Fri, 29 Oct 2010 09:29:35 +0300
-From: Jarkko Nikula <jhnikula@gmail.com>
+Received: from fb1.tech.numericable.fr ([82.216.111.51]:54929 "EHLO
+	fb1.tech.numericable.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752532Ab0JCKBN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Oct 2010 06:01:13 -0400
+Received: from smtp6.tech.numericable.fr (smtp6.nc.sdv.fr [10.0.0.83])
+	by fb1.tech.numericable.fr (Postfix) with ESMTP id 7F2859FCCD
+	for <linux-media@vger.kernel.org>; Sun,  3 Oct 2010 11:55:06 +0200 (CEST)
+Received: from [192.168.2.1] (abo-159-1-69.bdx.modulonet.fr [85.69.1.159])
+	by smtp6.tech.numericable.fr (Postfix) with ESMTP id 86D2B144016
+	for <linux-media@vger.kernel.org>; Sun,  3 Oct 2010 11:53:48 +0200 (CEST)
+Message-ID: <4CA852B1.1040207@libertysurf.fr>
+Date: Sun, 03 Oct 2010 11:53:53 +0200
+From: Catimimi <catimimi@libertysurf.fr>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linuxtv-commits@linuxtv.org,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [git:v4l-dvb/v2.6.37] [media] radio-si4713: Add regulator
- framework support
-Message-Id: <20101029092935.b6dd7693.jhnikula@gmail.com>
-In-Reply-To: <E1P7ZwW-0003bq-Uv@www.linuxtv.org>
-References: <E1P7ZwW-0003bq-Uv@www.linuxtv.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Subject: Terratec Cinergy Hybrid T USB XS FR is no longer working
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi
+  Hi,
 
-On Sun, 17 Oct 2010 22:34:32 +0200
-Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+I upgraded my opensuse kernel to version 2.6.31.14-0.1 and compiled v4l-dvd downloaded from Mercurial and
+now my device Terratec Cinergy Hybrid T USB XS FR doesn't work.
 
-> This is an automatic generated email to let you know that the following patch were queued at the 
-> http://git.linuxtv.org/media_tree.git tree:
-> 
-> Subject: [media] radio-si4713: Add regulator framework support
-> Author:  Jarkko Nikula <jhnikula@gmail.com>
-> Date:    Tue Sep 21 05:49:43 2010 -0300
-> 
-> Convert the driver to use regulator framework instead of set_power callback.
-> This with gpio_reset platform data provide cleaner way to manage chip VIO,
-> VDD and reset signal inside the driver.
-> 
-> Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
-> Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
->  drivers/media/radio/si4713-i2c.c |   74 ++++++++++++++++++++++++++++++++------
->  drivers/media/radio/si4713-i2c.h |    5 ++-
->  2 files changed, 67 insertions(+), 12 deletions(-)
-> 
-> ---
-> 
-> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=d455b639c1fb09f8ea888371fb6e04b490e115fb
-> 
-Was this patch lost somewhere? I don't see it in mainline for 2.6.37
-but e.g. 85c55ef is there.
+Here is my dmesg :
 
+[  845.348066] usb 2-3: new high speed USB device using ehci_hcd and address 4
+[  845.490641] usb 2-3: New USB device found, idVendor=0ccd, idProduct=004c
+[  845.490659] usb 2-3: New USB device strings: Mfr=2, Product=1, SerialNumber=0
+[  845.490671] usb 2-3: Product: Cinergy Hybrid T USB XS FR
+[  845.490681] usb 2-3: Manufacturer: TerraTec Electronic GmbH
+[  845.490850] usb 2-3: configuration #1 chosen from 1 choice
+[  845.515209] v4l2_common: disagrees about version of symbol v4l2_device_register_subdev
+[  845.515221] v4l2_common: Unknown symbol v4l2_device_register_subdev
+[  845.515342] v4l2_common: disagrees about version of symbol v4l2_device_unregister_subdev
+[  845.515350] v4l2_common: Unknown symbol v4l2_device_unregister_subdev
+[  845.584812] v4l2_common: disagrees about version of symbol v4l2_device_register_subdev
+[  845.584825] v4l2_common: Unknown symbol v4l2_device_register_subdev
+[  845.584946] v4l2_common: disagrees about version of symbol v4l2_device_unregister_subdev
+[  845.584954] v4l2_common: Unknown symbol v4l2_device_unregister_subdev
+[  845.690309] v4l2_common: disagrees about version of symbol v4l2_device_register_subdev
+[  845.690328] v4l2_common: Unknown symbol v4l2_device_register_subdev
+[  845.690524] v4l2_common: disagrees about version of symbol v4l2_device_unregister_subdev
+[  845.690537] v4l2_common: Unknown symbol v4l2_device_unregister_subdev
+[  845.706641] usbcore: registered new interface driver snd-usb-audio
 
--- 
-Jarkko
+What can I do in order to solve the problem.
+
+Thanks in advance.
+Regards.
+Michel.
+
