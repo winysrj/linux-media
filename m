@@ -1,43 +1,115 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:34779 "EHLO
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:61349 "EHLO
 	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753524Ab0JEPP5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 11:15:57 -0400
-Received: by ewy23 with SMTP id 23so2515588ewy.19
-        for <linux-media@vger.kernel.org>; Tue, 05 Oct 2010 08:15:56 -0700 (PDT)
-MIME-Version: 1.0
-From: Stefan Krastanov <krastanov.stefan@gmail.com>
-Date: Tue, 5 Oct 2010 17:15:36 +0200
-Message-ID: <AANLkTindEhdWzvh_f+2Yps--JSyTw3uz0nWUnjxDLYQN@mail.gmail.com>
-Subject: exposure bug in gspca for webcam with SN9C201 + MI0360/MT9V011 or MI0360SOC/MT9V111
+	with ESMTP id S1754656Ab0JCWf4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Oct 2010 18:35:56 -0400
+Received: by ewy23 with SMTP id 23so1663605ewy.19
+        for <linux-media@vger.kernel.org>; Sun, 03 Oct 2010 15:35:55 -0700 (PDT)
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Subject: [GIT PATCHES FOR 2.6.37]  Support for NetUP Dual DVB-T/C CI RF card
+From: "Igor M. Liplianin" <liplianin@me.by>
+Date: Mon, 4 Oct 2010 01:35:59 +0300
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201010040135.59454.liplianin@me.by>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+Patches to support for NetUP Dual DVB-T/C-CI RF from NetUP Inc. 
+	http://linuxtv.org/wiki/index.php/NetUP_Dual_DVB_T_C_CI_RF
 
-The v4l2 controls for my cam give the interval 0-6000 for exposure,
-but anything over 4000 gives black screen.
+Features:
 
-The automatic exposure control (software, the cam has no hardware exp
-control) starts as usual at something low, if there is not enough
-light the exp control pumps up the exposure a little - just as it
-should be, but the when exposure gets over 4000 the screen gets black
-and exp control pumps it all the way to 6000 (which is black as well).
+PCI-e x1  
+Supports two DVB-T/DVB-C transponders simultaneously
+Supports two analog audio/video channels simultaneously
+Independent descrambling of two transponders
+Hardware PID filtering
 
-The workaround is to start v4l2ucp, to turn off auto exposure, then
-set exposure to 3999. But that is still a bit dark, so I set the gain
-at 6 or 8 and that gives video of good quality.
+Components:
 
-The driver at http://groups.google.com/group/microdia worked well. The
-problems started when I switched to gspca (the driver at that google
-group was merged in gspca).
+Conexant CX23885 
+STM STV0367 low-power and ultra-compact combo DVB-T/C single-chip receiver
+Xceive XC5000 silicon TV tuner
+Altera FPGA for Common Interafce
 
-I have some experience with C, but have never done any serious source
-diving. Can someone guide me trough. Maybe a personal exchange of
-mails will be better suited until a patch is ready.
+The following changes since commit c8dd732fd119ce6d562d5fa82a10bbe75a376575:
 
-Cheers
-Stefan Krastanov
+  V4L/DVB: gspca - sonixj: Have 0c45:6130 handled by sonixj instead of sn9c102 (2010-10-01 
+18:14:35 -0300)
+
+are available in the git repository at:
+  http://udev.netup.ru/git/v4l-dvb.git netup-for-media-tree
+
+Abylay Ospan (6):
+      cx23885: Altera FPGA CI interface reworked.
+      stv0367: change default value for AGC register.
+      stv0367: implement uncorrected blocks counter.
+      cx23885, cimax2.c: Fix case of two CAM insertion irq.
+      Fix CI code for NetUP Dual  DVB-T/C CI RF card
+      Force xc5000 firmware loading for NetUP Dual  DVB-T/C CI RF card
+
+Igor M. Liplianin (14):
+      Altera FPGA firmware download module.
+      Altera FPGA based CI driver module.
+      Support for stv0367 multi-standard demodulator.
+      xc5000: add support for DVB-C tuning.
+      Initial commit to support NetUP Dual DVB-T/C CI RF card.
+      cx23885: implement tuner_bus parameter for cx23885_board structure.
+      cx23885: implement num_fds_portb, num_fds_portc parameters for cx23885_board structure.
+      stv0367: Fix potential divide error
+      cx23885: remove duplicate set interrupt mask
+      stv0367: coding style corrections
+      cx25840: Fix subdev registration and typo in cx25840-core.c
+      cx23885: 0xe becomes 0xc again for NetUP Dual DVB-S2
+      cx23885: disable MSI for NetUP cards, otherwise CI is not working
+      cx23885, altera-ci: enable all PID's less than 0x20 in hardware PID filter.
+
+ drivers/media/common/tuners/xc5000.c        |   18 +
+ drivers/media/dvb/frontends/Kconfig         |    7 +
+ drivers/media/dvb/frontends/Makefile        |    1 +
+ drivers/media/dvb/frontends/stv0367.c       | 3419 +++++++++++++++++++++++++
+ drivers/media/dvb/frontends/stv0367.h       |   62 +
+ drivers/media/dvb/frontends/stv0367_priv.h  |  211 ++
+ drivers/media/dvb/frontends/stv0367_regs.h  | 3614 +++++++++++++++++++++++++++
+ drivers/media/video/cx23885/Kconfig         |   12 +-
+ drivers/media/video/cx23885/Makefile        |    1 +
+ drivers/media/video/cx23885/altera-ci.c     |  841 +++++++
+ drivers/media/video/cx23885/altera-ci.h     |  102 +
+ drivers/media/video/cx23885/cimax2.c        |   24 +-
+ drivers/media/video/cx23885/cx23885-cards.c |  116 +-
+ drivers/media/video/cx23885/cx23885-core.c  |   35 +-
+ drivers/media/video/cx23885/cx23885-dvb.c   |  175 ++-
+ drivers/media/video/cx23885/cx23885-reg.h   |    1 +
+ drivers/media/video/cx23885/cx23885-video.c |    7 +-
+ drivers/media/video/cx23885/cx23885.h       |    7 +-
+ drivers/media/video/cx25840/cx25840-core.c  |    4 +-
+ drivers/misc/Kconfig                        |    1 +
+ drivers/misc/Makefile                       |    1 +
+ drivers/misc/stapl-altera/Kconfig           |    8 +
+ drivers/misc/stapl-altera/Makefile          |    3 +
+ drivers/misc/stapl-altera/altera.c          | 2739 ++++++++++++++++++++
+ drivers/misc/stapl-altera/jbicomp.c         |  163 ++
+ drivers/misc/stapl-altera/jbiexprt.h        |   94 +
+ drivers/misc/stapl-altera/jbijtag.c         | 1038 ++++++++
+ drivers/misc/stapl-altera/jbijtag.h         |   83 +
+ drivers/misc/stapl-altera/jbistub.c         |   70 +
+ include/misc/altera.h                       |   49 +
+ 30 files changed, 12872 insertions(+), 34 deletions(-)
+ create mode 100644 drivers/media/dvb/frontends/stv0367.c
+ create mode 100644 drivers/media/dvb/frontends/stv0367.h
+ create mode 100644 drivers/media/dvb/frontends/stv0367_priv.h
+ create mode 100644 drivers/media/dvb/frontends/stv0367_regs.h
+ create mode 100644 drivers/media/video/cx23885/altera-ci.c
+ create mode 100644 drivers/media/video/cx23885/altera-ci.h
+ create mode 100644 drivers/misc/stapl-altera/Kconfig
+ create mode 100644 drivers/misc/stapl-altera/Makefile
+ create mode 100644 drivers/misc/stapl-altera/altera.c
+ create mode 100644 drivers/misc/stapl-altera/jbicomp.c
+ create mode 100644 drivers/misc/stapl-altera/jbiexprt.h
+ create mode 100644 drivers/misc/stapl-altera/jbijtag.c
+ create mode 100644 drivers/misc/stapl-altera/jbijtag.h
+ create mode 100644 drivers/misc/stapl-altera/jbistub.c
+ create mode 100644 include/misc/altera.h
