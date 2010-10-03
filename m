@@ -1,55 +1,42 @@
 Return-path: <mchehab@pedra>
-Received: from fb1.tech.numericable.fr ([82.216.111.51]:54929 "EHLO
-	fb1.tech.numericable.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752532Ab0JCKBN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Oct 2010 06:01:13 -0400
-Received: from smtp6.tech.numericable.fr (smtp6.nc.sdv.fr [10.0.0.83])
-	by fb1.tech.numericable.fr (Postfix) with ESMTP id 7F2859FCCD
-	for <linux-media@vger.kernel.org>; Sun,  3 Oct 2010 11:55:06 +0200 (CEST)
-Received: from [192.168.2.1] (abo-159-1-69.bdx.modulonet.fr [85.69.1.159])
-	by smtp6.tech.numericable.fr (Postfix) with ESMTP id 86D2B144016
-	for <linux-media@vger.kernel.org>; Sun,  3 Oct 2010 11:53:48 +0200 (CEST)
-Message-ID: <4CA852B1.1040207@libertysurf.fr>
-Date: Sun, 03 Oct 2010 11:53:53 +0200
-From: Catimimi <catimimi@libertysurf.fr>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:36310 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751046Ab0JCMqf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Oct 2010 08:46:35 -0400
+Received: by wyb28 with SMTP id 28so4172276wyb.19
+        for <linux-media@vger.kernel.org>; Sun, 03 Oct 2010 05:46:34 -0700 (PDT)
 MIME-Version: 1.0
+From: Stefan Krastanov <krastanov.stefan@gmail.com>
+Date: Sun, 3 Oct 2010 14:46:14 +0200
+Message-ID: <AANLkTin6VqiowKzto163J7Z58m00iwPg_oZ2wwgCgENm@mail.gmail.com>
+Subject: 
 To: linux-media@vger.kernel.org
-Subject: Terratec Cinergy Hybrid T USB XS FR is no longer working
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-  Hi,
+Hello,
 
-I upgraded my opensuse kernel to version 2.6.31.14-0.1 and compiled v4l-dvd downloaded from Mercurial and
-now my device Terratec Cinergy Hybrid T USB XS FR doesn't work.
+The v4l2 controls for my cam give the interval 0-6000 for exposure,
+but anything over 4000 gives black screen.
 
-Here is my dmesg :
+The automatic exposure control (software, the cam has no hardware exp
+control) starts as usual at something low, if there is not enough
+light the exp control pumps up the exposure a little - just as it
+should be, but the when exposure gets over 4000 the screen gets black
+and exp control pumps it all the way to 6000 (which is black as well).
 
-[  845.348066] usb 2-3: new high speed USB device using ehci_hcd and address 4
-[  845.490641] usb 2-3: New USB device found, idVendor=0ccd, idProduct=004c
-[  845.490659] usb 2-3: New USB device strings: Mfr=2, Product=1, SerialNumber=0
-[  845.490671] usb 2-3: Product: Cinergy Hybrid T USB XS FR
-[  845.490681] usb 2-3: Manufacturer: TerraTec Electronic GmbH
-[  845.490850] usb 2-3: configuration #1 chosen from 1 choice
-[  845.515209] v4l2_common: disagrees about version of symbol v4l2_device_register_subdev
-[  845.515221] v4l2_common: Unknown symbol v4l2_device_register_subdev
-[  845.515342] v4l2_common: disagrees about version of symbol v4l2_device_unregister_subdev
-[  845.515350] v4l2_common: Unknown symbol v4l2_device_unregister_subdev
-[  845.584812] v4l2_common: disagrees about version of symbol v4l2_device_register_subdev
-[  845.584825] v4l2_common: Unknown symbol v4l2_device_register_subdev
-[  845.584946] v4l2_common: disagrees about version of symbol v4l2_device_unregister_subdev
-[  845.584954] v4l2_common: Unknown symbol v4l2_device_unregister_subdev
-[  845.690309] v4l2_common: disagrees about version of symbol v4l2_device_register_subdev
-[  845.690328] v4l2_common: Unknown symbol v4l2_device_register_subdev
-[  845.690524] v4l2_common: disagrees about version of symbol v4l2_device_unregister_subdev
-[  845.690537] v4l2_common: Unknown symbol v4l2_device_unregister_subdev
-[  845.706641] usbcore: registered new interface driver snd-usb-audio
+The workaround is to start v4l2ucp, to turn off auto exposure, then
+set exposure to 3999. But that is still a bit dark, so I set the gain
+at 6 or 8 and that gives video of good quality.
 
-What can I do in order to solve the problem.
+The driver at http://groups.google.com/group/microdia worked well. The
+problems started when I switched to gspca (the driver at that google
+group was merged in gspca).
 
-Thanks in advance.
-Regards.
-Michel.
+I have some experience with C, but have never done any serious source
+diving. Can someone guide me trough. Maybe a personal exchange of
+mails will be better suited until a patch is ready.
 
+Cheers
+Stefan Krastanov
