@@ -1,74 +1,102 @@
 Return-path: <mchehab@pedra>
-Received: from comal.ext.ti.com ([198.47.26.152]:51986 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757440Ab0JFOOi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Oct 2010 10:14:38 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "Taneja, Archit" <archit@ti.com>
-CC: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Wed, 6 Oct 2010 19:44:33 +0530
-Subject: RE: [PATCH v2 0/2] V4L/DVB: OMAP_VOUT: Allow omap_vout to build
- without VRFB
-Message-ID: <19F8576C6E063C45BE387C64729E739404AA21CDF5@dbde02.ent.ti.com>
-References: <1285571807-23210-1-git-send-email-archit@ti.com>
-In-Reply-To: <1285571807-23210-1-git-send-email-archit@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2728 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754616Ab0JCTJk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Oct 2010 15:09:40 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o93J9Z85012807
+	for <linux-media@vger.kernel.org>; Sun, 3 Oct 2010 21:09:39 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 3 Oct 2010 21:09:35 +0200 (CEST)
+Message-Id: <201010031909.o93J9Z85012807@smtp-vbr7.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> -----Original Message-----
-> From: Taneja, Archit
-> Sent: Monday, September 27, 2010 12:47 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org; linux-media@vger.kernel.org; Taneja,
-> Archit
-> Subject: [PATCH v2 0/2] V4L/DVB: OMAP_VOUT: Allow omap_vout to build
-> without VRFB
-> 
-> This lets omap_vout driver build and run without VRFB. It works along the
-> lines of the following patch series:
-> 
-> OMAP: DSS2: OMAPFB: Allow FB_OMAP2 to build without VRFB
-> https://patchwork.kernel.org/patch/105371/
-> 
-> Since VRFB is tightly coupled with the omap_vout driver, a handful of vrfb
-> specific functions have been defined and placed in omap_vout_vrfb.c
-> 
-> A variable rotation_type is introduced in omapvideo_info like the way in
-> omapfb_info, this allows to call vrfb specific functions only if the
-> rotation
-> type is vrfb. When the rotation_type is set to SDMA, the S_CTRL ioctl
-> prevents
-> the user setting a non zero rotation value.
-> 
-[Hiremath, Vaibhav] Lets make one stand here,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-I think this series still doesn't support DMA based rotation, unlike Fbdev driver so I would say lets clearly state that we are not supporting sDMA based rotation here. So I don't see any reason why we need 
+Results of the daily build of v4l-dvb:
 
-> Archit Taneja (2):
->   V4L/DVB: OMAP_VOUT: Create a seperate vrfb functions library
->   V4L/DVB: OMAP_VOUT: Use rotation_type to choose between vrfb and
->     sdram buffers
-> 
->  drivers/media/video/omap/Kconfig          |    1 -
->  drivers/media/video/omap/Makefile         |    1 +
->  drivers/media/video/omap/omap_vout.c      |  480 ++++++------------------
-> -----
->  drivers/media/video/omap/omap_vout_vrfb.c |  417
-> +++++++++++++++++++++++++
->  drivers/media/video/omap/omap_vout_vrfb.h |   40 +++
->  drivers/media/video/omap/omap_voutdef.h   |   26 ++
->  6 files changed, 571 insertions(+), 394 deletions(-)
->  create mode 100644 drivers/media/video/omap/omap_vout_vrfb.c
->  create mode 100644 drivers/media/video/omap/omap_vout_vrfb.h
-> --
-> Version 2:
->  - Don't try to enable SDRAM rotation , return an error if non zero
-> rotation
->    is attempted when rotation_type is set to SDMA rotation.
-> Version 1:
->    http://www.mail-archive.com/linux-media@vger.kernel.org/msg21937.html
+date:        Sun Oct  3 19:00:13 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15164:1da5fed5c8b2
+git master:       3e6dce76d99b328716b43929b9195adfee1de00c
+git media-master: c8dd732fd119ce6d562d5fa82a10bbe75a376575
+gcc version:      i686-linux-gcc (GCC) 4.5.1
+host hardware:    x86_64
+host os:          2.6.32.5
+
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: WARNINGS
+linux-git-mips: WARNINGS
+linux-git-powerpc64: WARNINGS
+linux-git-x86_64: WARNINGS
+linux-2.6.32.6-armv5: WARNINGS
+linux-2.6.33-armv5: WARNINGS
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.32.6-armv5-davinci: ERRORS
+linux-2.6.33-armv5-davinci: ERRORS
+linux-2.6.34-armv5-davinci: ERRORS
+linux-2.6.35.3-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: ERRORS
+linux-2.6.33-armv5-ixp: ERRORS
+linux-2.6.34-armv5-ixp: ERRORS
+linux-2.6.35.3-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: ERRORS
+linux-2.6.33-armv5-omap2: ERRORS
+linux-2.6.34-armv5-omap2: ERRORS
+linux-2.6.35.3-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.32.6-m32r: WARNINGS
+linux-2.6.33-m32r: WARNINGS
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
