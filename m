@@ -1,281 +1,197 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:60753 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751327Ab0JBFyA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Oct 2010 01:54:00 -0400
-Received: by wwj40 with SMTP id 40so2226405wwj.1
-        for <linux-media@vger.kernel.org>; Fri, 01 Oct 2010 22:53:58 -0700 (PDT)
-Date: Sat, 2 Oct 2010 07:53:55 +0200
-From: Davor Emard <davoremard@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] Compro videmate T750f for 2.6.35.7
-Message-ID: <20101002055354.GB12113@emard.lan>
+Received: from mailout-de.gmx.net ([213.165.64.22]:57960 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1752396Ab0JCCjh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Oct 2010 22:39:37 -0400
+Date: Sun, 3 Oct 2010 04:39:39 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Discussion of the Amstrad E3 emailer hardware/software
+	<e3-hacking@earth.li>
+Subject: Re: [PATCH v3 3/6] SoC Camera: add driver for OV6650 sensor
+In-Reply-To: <201010021348.34560.jkrzyszt@tis.icnet.pl>
+Message-ID: <Pine.LNX.4.64.1010030414400.15920@axis700.grange>
+References: <201009270514.01865.jkrzyszt@tis.icnet.pl>
+ <Pine.LNX.4.64.1010020538500.14599@axis700.grange> <201010021348.34560.jkrzyszt@tis.icnet.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-HI
+On Sat, 2 Oct 2010, Janusz Krzysztofik wrote:
 
-This is my update for compro videomate t750f v19 for kernel 2.6.35.7
-which has separated IR remote in a file.
+> Saturday 02 October 2010 07:47:47 Guennadi Liakhovetski napisał(a):
+> > Ok, let's take this one, but, please, address the below couple of minor
+> > issues in an incremental patch.
+> >
+> > On Mon, 27 Sep 2010, Janusz Krzysztofik wrote:
+> > > +/* write a register */
+> > > +static int ov6650_reg_write(struct i2c_client *client, u8 reg, u8 val)
+> > > +{
+> > > +	int ret;
+> > > +	unsigned char data[2] = { reg, val };
+> > > +	struct i2c_msg msg = {
+> > > +		.addr	= client->addr,
+> > > +		.flags	= 0,
+> > > +		.len	= 2,
+> > > +		.buf	= data,
+> > > +	};
+> > > +
+> > > +	ret = i2c_transfer(client->adapter, &msg, 1);
+> > > +	usleep_range(100, 1000);
+> >
+> > So, 100us are enough? Then I'd just go with udelay(100).
+> 
+> Guennadi,
+> I already tried with udelay(100), as you had suggested before, and it worked, 
+> but then checkpatch.pl --sctirct told me:
+> 
+> "CHECK: usleep_range is preferred over udelay; see 
+> Documentation/timers/timers-howto.txt
+> +       udelay(100);"
+> 
+> So, I had read Documentation/timers/timers-howto.txt again and switched to 
+> usleep_range, as it suggested.
+> 
+> Please confirm if you still prefere udelay(100) over usleep_range(), and I'll 
+> change it back.
 
-There seem to be different types of this card which I don't know
-how to distinguish. This patch works for my card but may not work
-for other types.
+No, no, that's ok then...
 
-Best regards, Davor
+> > > static bool is_unscaled_ok(int width, int height, struct v4l2_rect *rect)
+> > > +{
+> > > +	return (width > rect->width >> 1 || height > rect->height >> 1);
+> > > +}
+> >
+> > Ok, just one more pair of brackets to remove;)
+> 
+> OK.
+> 
+> > > +
+> > > +static u8 to_clkrc(struct v4l2_fract *timeperframe,
+> > > +		unsigned long pclk_limit, unsigned long pclk_max)
+> > > +{
+> > > +	unsigned long pclk;
+> > > +
+> > > +	if (timeperframe->numerator && timeperframe->denominator)
+> > > +		pclk = pclk_max * timeperframe->denominator /
+> > > +				(FRAME_RATE_MAX * timeperframe->numerator);
+> > > +	else
+> > > +		pclk = pclk_max;
+> > > +
+> > > +	if (pclk_limit && pclk_limit < pclk)
+> > > +		pclk = pclk_limit;
+> > > +
+> > > +	return (pclk_max - 1) / pclk;
+> > > +}
+> > > +
+> > > +/* set the format we will capture in */
+> > > +static int ov6650_s_fmt(struct v4l2_subdev *sd, struct
+> > > v4l2_mbus_framefmt *mf) +{
+> > > +	struct i2c_client *client = sd->priv;
+> > > +	struct soc_camera_device *icd = client->dev.platform_data;
+> > > +	struct soc_camera_sense *sense = icd->sense;
+> > > +	struct ov6650 *priv = to_ov6650(client);
+> > > +	bool half_scale = !is_unscaled_ok(mf->width, mf->height, &priv->rect);
+> > > +	struct v4l2_crop a = {
+> > > +		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
+> > > +		.c = {
+> > > +			.left	= priv->rect.left + (priv->rect.width >> 1) -
+> > > +					(mf->width >> (1 - half_scale)),
+> > > +			.top	= priv->rect.top + (priv->rect.height >> 1) -
+> > > +					(mf->height >> (1 - half_scale)),
+> > > +			.width	= mf->width << half_scale,
+> > > +			.height	= mf->height << half_scale,
+> > > +		},
+> > > +	};
+> >
+> > Hm, this seems wrong to me... You calculate left and top to preserve the
+> > center, right? 
+> 
+> Exactly.
+> 
+> > This is good, but: if output is unscaled, you want 
+> >
+> > 	.left = priv->rect.left + (priv->rect.width - mf->width) / 2;
+> 
+> 	== priv->rect.left +  priv->rect.width  / 2  -   mf->width        /  2
+> 	== priv->rect.left + (priv->rect.width >> 1) - ( mf->width       >>  1)
+> 	== priv->rect.left + (priv->rect.width >> 1) - ( mf->width       >> (1 - 0))
+> >
+> > in this case half_scale = 0 and the above is correct. Now, is the output
+> > is scaled, you want
+> >
+> > 	.left = priv->rect.left + (priv->rect.width - mf->width * 2) / 2;
+> 
+> 	== priv->rect.left +  priv->rect.width  / 2  -   mf->width  * 2   /  2
+> 	== priv->rect.left + (priv->rect.width >> 1) - ((mf->width << 1) >>  1)
+> 	== priv->rect.left + (priv->rect.width >> 1) - ( mf->width       >> (1 - 1))
+> 
+> > which is not, what you have above. Am I missing anything?
+> 
+> One of us must be ;).
 
---- linux-2.6.35.7/drivers/media/video/saa7134/saa7134-input.c.orig	2010-09-29 03:09:08.000000000 +0200
-+++ linux-2.6.35.7/drivers/media/video/saa7134/saa7134-input.c	2010-10-02 05:45:01.467990234 +0200
-@@ -816,6 +816,11 @@ int saa7134_input_init1(struct saa7134_d
- 		mask_keycode = 0x003f00;
- 		mask_keydown = 0x040000;
- 		break;
-+	case SAA7134_BOARD_VIDEOMATE_T750:
-+		ir_codes     = RC_MAP_VIDEOMATE_T750;
-+		mask_keycode = 0x003f00;
-+		mask_keyup   = 0x040000;
-+		break;
- 	case SAA7134_BOARD_LEADTEK_WINFAST_DTV1000S:
- 		ir_codes     = RC_MAP_WINFAST;
- 		mask_keycode = 0x5f00;
---- linux-2.6.35.7/drivers/media/video/saa7134/saa7134-cards.c.orig	2010-09-29 03:09:08.000000000 +0200
-+++ linux-2.6.35.7/drivers/media/video/saa7134/saa7134-cards.c	2010-10-02 05:43:50.639315788 +0200
-@@ -4915,12 +4915,14 @@ struct saa7134_board saa7134_boards[] =
- 	},
- 	[SAA7134_BOARD_VIDEOMATE_T750] = {
- 		/* John Newbigin <jn@it.swin.edu.au> */
-+		/* Emard 2010-05-10 v18 <davoremard@gmail.com> */
- 		.name           = "Compro VideoMate T750",
- 		.audio_clock    = 0x00187de7,
- 		.tuner_type     = TUNER_XC2028,
- 		.radio_type     = UNSET,
--		.tuner_addr	= ADDR_UNSET,
-+		.tuner_addr	= 0x61,
- 		.radio_addr	= ADDR_UNSET,
-+		.mpeg           = SAA7134_MPEG_DVB,
- 		.inputs = {{
- 			.name   = name_tv,
- 			.vmux   = 3,
-@@ -6722,6 +6724,11 @@ static int saa7134_xc2028_callback(struc
- 			msleep(10);
- 			saa7134_set_gpio(dev, 18, 1);
- 		break;
-+		case SAA7134_BOARD_VIDEOMATE_T750:
-+			saa7134_set_gpio(dev, 20, 0);
-+			msleep(10);
-+			saa7134_set_gpio(dev, 20, 1);
-+		break;
- 		}
- 	return 0;
- 	}
-@@ -7142,6 +7149,11 @@ int saa7134_board_init1(struct saa7134_d
- 		saa7134_set_gpio(dev, 1, 1);
- 		dev->has_remote = SAA7134_REMOTE_GPIO;
- 		break;
-+	case SAA7134_BOARD_VIDEOMATE_T750:
-+		dev->has_remote = SAA7134_REMOTE_GPIO;
-+		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x00008000, 0x00008000);
-+		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x00008000, 0x00008000);
-+		break;
- 	}
- 	return 0;
- }
---- linux-2.6.35.7/drivers/media/video/saa7134/saa7134-dvb.c.orig	2010-09-29 03:09:08.000000000 +0200
-+++ linux-2.6.35.7/drivers/media/video/saa7134/saa7134-dvb.c	2010-10-02 05:43:50.639315788 +0200
-@@ -54,6 +54,7 @@
- #include "tda8290.h"
- 
- #include "zl10353.h"
-+#include "qt1010.h"
- 
- #include "zl10036.h"
- #include "zl10039.h"
-@@ -885,6 +886,17 @@ static struct zl10353_config behold_x7_c
- 	.disable_i2c_gate_ctrl = 1,
- };
- 
-+static struct zl10353_config videomate_t750_zl10353_config = {
-+	.demod_address  = 0x0f,
-+	.no_tuner = 1,
-+	.parallel_ts = 1,
-+};
-+
-+static struct qt1010_config videomate_t750_qt1010_config = {
-+	.i2c_address = 0x62
-+};
-+
-+
- /* ==================================================================
-  * tda10086 based DVB-S cards, helper functions
-  */
-@@ -1564,6 +1576,21 @@ static int dvb_init(struct saa7134_dev *
- 					__func__);
- 
- 		break;
-+	case SAA7134_BOARD_VIDEOMATE_T750:
-+		printk("Compro VideoMate T750 DVB setup\n");
-+		fe0->dvb.frontend = dvb_attach(zl10353_attach,
-+						&videomate_t750_zl10353_config,
-+						&dev->i2c_adap);
-+		if (fe0->dvb.frontend != NULL) {
-+			// if there is a gate function then the i2c bus breaks.....!
-+			fe0->dvb.frontend->ops.i2c_gate_ctrl = 0;
-+			if (dvb_attach(qt1010_attach,
-+					fe0->dvb.frontend,
-+					&dev->i2c_adap,
-+					&videomate_t750_qt1010_config) == NULL)
-+				wprintk("error attaching QT1010\n");
-+		}
-+		break;
- 	case SAA7134_BOARD_ZOLID_HYBRID_PCI:
- 		fe0->dvb.frontend = dvb_attach(tda10048_attach,
- 					       &zolid_tda10048_config,
---- linux-2.6.35.7/drivers/media/IR/keymaps/Makefile.orig	2010-09-29 03:09:08.000000000 +0200
-+++ linux-2.6.35.7/drivers/media/IR/keymaps/Makefile	2010-10-01 21:32:01.207530164 +0200
-@@ -63,6 +63,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t
- 			rc-tevii-nec.o \
- 			rc-tt-1500.o \
- 			rc-videomate-s350.o \
-+			rc-videomate-t750.o \
- 			rc-videomate-tv-pvr.o \
- 			rc-winfast.o \
- 			rc-winfast-usbii-deluxe.o
---- linux-2.6.35.7/drivers/media/IR/keymaps/rc-videomate-t750.c.orig	1970-01-01 01:00:00.000000000 +0100
-+++ linux-2.6.35.7/drivers/media/IR/keymaps/rc-videomate-t750.c	2010-10-02 05:49:23.664275732 +0200
-@@ -0,0 +1,123 @@
-+/* videomate-s350.h - Keytable for videomate_s350 Remote Controller
-+ *
-+ * keymap imported from ir-keymaps.c
-+ *
-+ * Copyright (c) 2010 by Mauro Carvalho Chehab <mchehab@redhat.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <media/rc-map.h>
-+
-+/*
-+Compro videomate vista T750F remote
-+-----------------------------------
-+Emard 2010-05-09 <davoremard@gmail.com>
-+                                            POWER
-+VIDEO           RADIO       AUDIO          CAMERA 
-+PVR             EPG         TV      DVD  SUBTITLE
-+
-+                      UP
-+                 LEFT OK RIGHT
-+                     DOWN
-+
-+BACK                 MENU                    INFO
-+
-+VOLUMEUP                                CHANNELUP
-+                     MUTE
-+VOLUMEDOWN                            CHANNELDOWN
-+
-+RECORD                                       STOP
-+REWIND               PLAY             FASTFORWARD
-+PREVIOUSSONG       PLAYPAUSE             NEXTSONG
-+
-+NUMERIC_1          NUMERIC_2         NUMERIC_3
-+NUMERIC_4          NUMERIC_5         NUMERIC_6
-+NUMERIC_7          NUMERIC_8         NUMERIC_9
-+NUMERIC_STAR       NUMERIC_0         NUMERIC_POUND
-+
-+CLEAR                ZOOM                 ENTER
-+
-+RED      GREEN      YELLOW     BLUE        TEXT
-+*/
-+static struct ir_scancode videomate_t750[] = {
-+	{ 0x01, KEY_POWER},
-+	{ 0x31, KEY_VIDEO},
-+	{ 0x33, KEY_RADIO},
-+	{ 0x2f, KEY_AUDIO},
-+	{ 0x30, KEY_CAMERA}, /* pictures */
-+	{ 0x2d, KEY_PVR},    /* Recordings */
-+	{   23, KEY_EPG},
-+	{   44, KEY_TV},
-+	{   43, KEY_DVD},
-+	{ 0x32, KEY_SUBTITLE},
-+	{   17, KEY_UP},
-+	{   19, KEY_LEFT},
-+	{   21, KEY_OK},
-+	{   20, KEY_RIGHT},
-+	{   18, KEY_DOWN},
-+	{   22, KEY_BACK},
-+	{ 0x02, KEY_MENU},
-+	{ 0x04, KEY_INFO},
-+	{ 0x05, KEY_VOLUMEUP},
-+	{ 0x06, KEY_VOLUMEDOWN},
-+	{ 0x03, KEY_MUTE},
-+	{ 0x07, KEY_CHANNELUP},
-+	{ 0x08, KEY_CHANNELDOWN},
-+	{ 0x0c, KEY_RECORD},
-+	{ 0x0e, KEY_STOP},
-+	{ 0x0a, KEY_REWIND},
-+	{ 0x0b, KEY_PLAY},
-+	{ 0x09, KEY_FASTFORWARD},
-+	{ 0x10, KEY_PREVIOUSSONG},
-+	{ 0x0d, KEY_PLAYPAUSE},
-+	{ 0x0f, KEY_NEXTSONG},
-+	{   30, KEY_NUMERIC_1},
-+	{ 0x1f, KEY_NUMERIC_2},
-+	{ 0x20, KEY_NUMERIC_3},
-+	{ 0x21, KEY_NUMERIC_4},
-+	{ 0x22, KEY_NUMERIC_5},
-+	{ 0x23, KEY_NUMERIC_6},
-+	{ 0x24, KEY_NUMERIC_7},
-+	{ 0x25, KEY_NUMERIC_8},
-+	{ 0x26, KEY_NUMERIC_9},
-+	{ 0x2a, KEY_NUMERIC_STAR},
-+	{   29, KEY_NUMERIC_0},
-+	{   41, KEY_NUMERIC_POUND},
-+	{   39, KEY_CLEAR},
-+	{ 0x34, KEY_ZOOM},
-+	{ 0x28, KEY_ENTER},
-+	{   25, KEY_RED},
-+	{   26, KEY_GREEN},
-+	{   27, KEY_YELLOW},
-+	{   28, KEY_BLUE},
-+	{   24, KEY_TEXT},
-+};
-+
-+static struct rc_keymap videomate_t750_map = {
-+	.map = {
-+		.scan    = videomate_t750,
-+		.size    = ARRAY_SIZE(videomate_t750),
-+		.ir_type = IR_TYPE_UNKNOWN,	/* Legacy IR type */
-+		.name    = RC_MAP_VIDEOMATE_T750,
-+	}
-+};
-+
-+static int __init init_rc_map_videomate_t750(void)
-+{
-+	return ir_register_map(&videomate_t750_map);
-+}
-+
-+static void __exit exit_rc_map_videomate_t750(void)
-+{
-+	ir_unregister_map(&videomate_t750_map);
-+}
-+
-+module_init(init_rc_map_videomate_t750)
-+module_exit(exit_rc_map_videomate_t750)
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Davor Emard <davoremard@gmail.com>");
---- linux-2.6.35.7/include/media/rc-map.h.orig	2010-10-01 21:30:52.156604735 +0200
-+++ linux-2.6.35.7/include/media/rc-map.h	2010-10-01 21:31:13.515998577 +0200
-@@ -113,6 +113,7 @@ void rc_map_init(void);
- #define RC_MAP_TEVII_NEC                 "rc-tevii-nec"
- #define RC_MAP_TT_1500                   "rc-tt-1500"
- #define RC_MAP_VIDEOMATE_S350            "rc-videomate-s350"
-+#define RC_MAP_VIDEOMATE_T750            "rc-videomate-t750"
- #define RC_MAP_VIDEOMATE_TV_PVR          "rc-videomate-tv-pvr"
- #define RC_MAP_WINFAST                   "rc-winfast"
- #define RC_MAP_WINFAST_USBII_DELUXE      "rc-winfast-usbii-deluxe"
+Ok, good, then it's me:)
+
+> > > +	case V4L2_MBUS_FMT_UYVY8_2X8:
+> > > +		dev_dbg(&client->dev, "pixel format YUYV8_2X8_BE\n");
+> > > +		if (half_scale) {
+> > > +			coma_mask |= COMA_RGB | COMA_BW | COMA_WORD_SWAP;
+> > > +			coma_set |= COMA_BYTE_SWAP;
+> > > +		} else {
+> > > +			coma_mask |= COMA_RGB | COMA_BW;
+> > > +			coma_set |= COMA_BYTE_SWAP | COMA_WORD_SWAP;
+> > > +		}
+> > > +		break;
+> > > +	case V4L2_MBUS_FMT_VYUY8_2X8:
+> > > +		dev_dbg(&client->dev, "pixel format YVYU8_2X8_BE (untested)\n");
+> > > +		if (half_scale) {
+> > > +			coma_mask |= COMA_RGB | COMA_BW;
+> > > +			coma_set |= COMA_BYTE_SWAP | COMA_WORD_SWAP;
+> > > +		} else {
+> > > +			coma_mask |= COMA_RGB | COMA_BW | COMA_WORD_SWAP;
+> > > +			coma_set |= COMA_BYTE_SWAP;
+> > > +		}
+> > > +		break;
+> >
+> > ...since there anyway will be an incremental patch . what does
+> > word-swapping have to do with scaling?...
+> 
+> A hardware (firmware) bug perhaps? All I can say is that I had found out it 
+> worked like this for me before, and I've just ensured it still does.
+> 
+> > > +	case V4L2_MBUS_FMT_SBGGR8_1X8:
+> > > +		dev_dbg(&client->dev, "pixel format SBGGR8_1X8 (untested)\n");
+> > > +		coma_mask |= COMA_BW | COMA_BYTE_SWAP | COMA_WORD_SWAP;
+> > > +		coma_set |= COMA_RAW_RGB | COMA_RGB;
+> > > +		break;
+> > > +	case 0:
+> > > +		break;
+> >
+> > 0 is defined as reserved... What for do you need it here?
+> 
+> This I have mentioned in my v2 -> v3 changes list:
+> 
+> > - add support for geometry only change to s_fmt, 
+> 
+> I've tried to follow a pattern copied from mt9v022.c:
+> 
+> +        case 0:
+> +		/* No format change, only geometry */
+> +		break;
+> 
+> but now I see I've missed the comment unfortunately. Please specify if you 
+> prefere to have it dropped or documented.
+
+Well, what you're actually missing here is this:
+
+http://git.linuxtv.org/media_tree.git?a=commitdiff;h=4222226680cc25e48dc264f4de2dd81e55fd3580
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
