@@ -1,122 +1,175 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:29354 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753149Ab0JMLJ1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Oct 2010 07:09:27 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Wed, 13 Oct 2010 13:09:17 +0200
-From: Kamil Debski <k.debski@samsung.com>
-Subject: [PATCH 1/4] MFC: Changes in include/linux/videodev2.h for MFC 5.1 codec
-In-reply-to: <1286968160-10629-1-git-send-email-k.debski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	kyungmin.park@samsung.com, k.debski@samsung.com,
-	jaeryul.oh@samsung.com, kgene.kim@samsung.com
-Message-id: <1286968160-10629-2-git-send-email-k.debski@samsung.com>
-References: <1286968160-10629-1-git-send-email-k.debski@samsung.com>
+Received: from einhorn.in-berlin.de ([192.109.42.8]:44700 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755256Ab0JDS0k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Oct 2010 14:26:40 -0400
+Date: Mon, 4 Oct 2010 20:25:05 +0200 (CEST)
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: [PATCH update] V4L/DVB: firedtv: support for PSK8 for S2 devices. To
+ watch HD.
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: Tommy Jonsson <quazzie2@gmail.com>, linux-media@vger.kernel.org,
+	linux1394-devel@lists.sourceforge.net
+In-Reply-To: <AANLkTikQLd1_thyADU8AMjOATFQoZaJfko3Sn-qtNgQR@mail.gmail.com>
+Message-ID: <tkrat.85246f2f7084d010@s5r6.in-berlin.de>
+References: <AANLkTin53SY_xaed_tRfWRPOFmc65GmGzXrEt15ZyriW@mail.gmail.com>
+ <4C90B4FB.2050401@s5r6.in-berlin.de>
+ <AANLkTikQLd1_thyADU8AMjOATFQoZaJfko3Sn-qtNgQR@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; CHARSET=us-ascii
+Content-Disposition: INLINE
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add fourcc values for compressed video stream formats and
-V4L2_CTRL_CLASS_CODEC. Also adds controls used by MFC driver.
+Date: Sun, 12 Sep 2010 21:03:45 +0200
+From: Tommy Jonsson <quazzie2@gmail.com>
 
+This is the first i have ever developed for linux, cant really wrap my
+head around how to submit this..
+Hope im sending this correctly, diff made with 'hg diff' from latest
+"hg clone http://linuxtv.org/hg/v4l-dvb"
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+It adds support for tuning with PSK8 modulation, pilot and rolloff
+with the S2 versions of firedtv.
+
+Signed-off-by: Tommy Jonsson <quazzie2@gmail.com>
+Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de> (trivial simplification)
 ---
- include/linux/videodev2.h |   48 +++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 48 insertions(+), 0 deletions(-)
+Update: resend with whitespace preserved, fe pointer does not have to be
+put into function parameter lists, copyright notice removed (authorship
+of smaller changes like this is tracked in the git changelog)
 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index dd3d93d..2614a62 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -349,6 +349,14 @@ struct v4l2_pix_format {
- /* three non-contiguous planes -- Y, Cb, Cr */
- #define V4L2_PIX_FMT_YUV420M v4l2_fourcc('Y', 'M', '1', '2') /* 12  YUV420 planar */
+ drivers/media/dvb/firewire/firedtv-avc.c |   30 +++++++++++++++++--
+ drivers/media/dvb/firewire/firedtv-fe.c  |   36 ++++++++++++++++++++++-
+ 2 files changed, 60 insertions(+), 6 deletions(-)
+
+Index: b/drivers/media/dvb/firewire/firedtv-avc.c
+===================================================================
+--- a/drivers/media/dvb/firewire/firedtv-avc.c
++++ b/drivers/media/dvb/firewire/firedtv-avc.c
+@@ -24,6 +24,8 @@
+ #include <linux/wait.h>
+ #include <linux/workqueue.h>
  
-+/* two non contiguous planes -- one Y, one Cr + Cb interleaved  */
-+#define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
-+/* 12  Y/CbCr 4:2:0 64x32 macroblocks */
-+#define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2')
++#include <dvb_frontend.h>
 +
-+/* three non contiguous planes -- Y, Cb, Cr */
-+#define V4L2_PIX_FMT_YUV420M v4l2_fourcc('Y', 'M', '1', '2') /* 12  YUV420 planar */
-+
- /* Bayer formats - see http://www.siliconimaging.com/RGB%20Bayer.htm */
- #define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B', 'A', '8', '1') /*  8  BGBG.. GRGR.. */
- #define V4L2_PIX_FMT_SGBRG8  v4l2_fourcc('G', 'B', 'R', 'G') /*  8  GBGB.. RGRG.. */
-@@ -372,6 +380,21 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /* 1394          */
- #define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-1/2/4    */
+ #include "firedtv.h"
  
-+
-+#define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H264    */
-+#define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /* H263    */
-+#define V4L2_PIX_FMT_MPEG12   v4l2_fourcc('M', 'P', '1', '2') /* MPEG-1/2  */
-+#define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /* MPEG-4  */
-+#define V4L2_PIX_FMT_DIVX     v4l2_fourcc('D', 'I', 'V', 'X') /* DivX  */
-+#define V4L2_PIX_FMT_DIVX3    v4l2_fourcc('D', 'I', 'V', '3') /* DivX 3.11  */
-+#define V4L2_PIX_FMT_DIVX4    v4l2_fourcc('D', 'I', 'V', '4') /* DivX 4.12  */
-+#define V4L2_PIX_FMT_DIVX500    v4l2_fourcc('D', 'X', '5', '2') /* DivX 5.00 - 5.02  */
-+#define V4L2_PIX_FMT_DIVX503    v4l2_fourcc('D', 'X', '5', '3') /* DivX 5.03 - x  */
-+#define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /* Xvid */
-+#define V4L2_PIX_FMT_VC1      v4l2_fourcc('V', 'C', '1', 'A') /* VC-1 */
-+#define V4L2_PIX_FMT_VC1_RCV      v4l2_fourcc('V', 'C', '1', 'R') /* VC-1 RCV */
-+
-+
- /*  Vendor-specific formats   */
- #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
- #define V4L2_PIX_FMT_WNVA     v4l2_fourcc('W', 'N', 'V', 'A') /* Winnov hw compress */
-@@ -980,6 +1003,7 @@ struct v4l2_output {
- #define V4L2_OUTPUT_TYPE_ANALOG			2
- #define V4L2_OUTPUT_TYPE_ANALOGVGAOVERLAY	3
+ #define FCP_COMMAND_REGISTER		0xfffff0000b00ULL
+@@ -368,10 +370,30 @@ static int avc_tuner_tuneqpsk(struct fir
+ 		c->operand[12] = 0;
  
-+
- /* capabilities flags */
- #define V4L2_OUT_CAP_PRESETS		0x00000001 /* Supports S_DV_PRESET */
- #define V4L2_OUT_CAP_CUSTOM_TIMINGS	0x00000002 /* Supports S_DV_TIMINGS */
-@@ -1017,6 +1041,7 @@ struct v4l2_ext_controls {
- #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
- #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
- #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
-+#define V4L2_CTRL_CLASS_CODEC 0x009c0000	/* Codec control class */
+ 	if (fdtv->type == FIREDTV_DVB_S2) {
+-		c->operand[13] = 0x1;
+-		c->operand[14] = 0xff;
+-		c->operand[15] = 0xff;
+-
++ 		if (fdtv->fe.dtv_property_cache.delivery_system == SYS_DVBS2) {
++			switch (fdtv->fe.dtv_property_cache.modulation) {
++			case QAM_16:		c->operand[13] = 0x1; break;
++			case QPSK:		c->operand[13] = 0x2; break;
++			case PSK_8:		c->operand[13] = 0x3; break;
++			default:		c->operand[13] = 0x2; break;
++			}
++ 			switch (fdtv->fe.dtv_property_cache.rolloff) {
++			case ROLLOFF_AUTO:	c->operand[14] = 0x2; break;
++			case ROLLOFF_35:	c->operand[14] = 0x2; break;
++			case ROLLOFF_20:	c->operand[14] = 0x0; break;
++			case ROLLOFF_25:	c->operand[14] = 0x1; break;
++			/* case ROLLOFF_NONE:	c->operand[14] = 0xff; break; */
++			}
++			switch (fdtv->fe.dtv_property_cache.pilot) {
++			case PILOT_AUTO:	c->operand[15] = 0x0; break;
++			case PILOT_OFF:		c->operand[15] = 0x0; break;
++			case PILOT_ON:		c->operand[15] = 0x1; break;
++			}
++		} else {
++			c->operand[13] = 0x1;  /* auto modulation */
++			c->operand[14] = 0xff; /* disable rolloff */
++			c->operand[15] = 0xff; /* disable pilot */
++		}
+ 		return 16;
+ 	} else {
+ 		return 13;
+Index: b/drivers/media/dvb/firewire/firedtv-fe.c
+===================================================================
+--- a/drivers/media/dvb/firewire/firedtv-fe.c
++++ b/drivers/media/dvb/firewire/firedtv-fe.c
+@@ -155,6 +155,16 @@ static int fdtv_get_frontend(struct dvb_
+ 	return -EOPNOTSUPP;
+ }
  
- #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
- #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-@@ -1347,6 +1372,29 @@ enum v4l2_mpeg_cx2341x_video_median_filter_type {
- #define V4L2_CID_MPEG_CX2341X_VIDEO_CHROMA_MEDIAN_FILTER_TOP 	(V4L2_CID_MPEG_CX2341X_BASE+10)
- #define V4L2_CID_MPEG_CX2341X_STREAM_INSERT_NAV_PACKETS 	(V4L2_CID_MPEG_CX2341X_BASE+11)
++static int fdtv_get_property(struct dvb_frontend *fe, struct dtv_property *tvp)
++{
++	return 0;
++}
++
++static int fdtv_set_property(struct dvb_frontend *fe, struct dtv_property *tvp)
++{
++	return 0;
++}
++
+ void fdtv_frontend_init(struct firedtv *fdtv)
+ {
+ 	struct dvb_frontend_ops *ops = &fdtv->fe.ops;
+@@ -166,6 +176,9 @@ void fdtv_frontend_init(struct firedtv *
+ 	ops->set_frontend		= fdtv_set_frontend;
+ 	ops->get_frontend		= fdtv_get_frontend;
  
-+/* For codecs */
++	ops->get_property		= fdtv_get_property;
++	ops->set_property		= fdtv_set_property;
 +
-+#define V4L2_CID_CODEC_BASE 			(V4L2_CTRL_CLASS_CODEC | 0x900)
-+#define V4L2_CID_CODEC_CLASS 			(V4L2_CTRL_CLASS_CODEC | 1)
+ 	ops->read_status		= fdtv_read_status;
+ 	ops->read_ber			= fdtv_read_ber;
+ 	ops->read_signal_strength	= fdtv_read_signal_strength;
+@@ -179,7 +192,6 @@ void fdtv_frontend_init(struct firedtv *
+ 
+ 	switch (fdtv->type) {
+ 	case FIREDTV_DVB_S:
+-	case FIREDTV_DVB_S2:
+ 		fi->type		= FE_QPSK;
+ 
+ 		fi->frequency_min	= 950000;
+@@ -188,7 +200,7 @@ void fdtv_frontend_init(struct firedtv *
+ 		fi->symbol_rate_min	= 1000000;
+ 		fi->symbol_rate_max	= 40000000;
+ 
+-		fi->caps 		= FE_CAN_INVERSION_AUTO	|
++		fi->caps		= FE_CAN_INVERSION_AUTO |
+ 					  FE_CAN_FEC_1_2	|
+ 					  FE_CAN_FEC_2_3	|
+ 					  FE_CAN_FEC_3_4	|
+@@ -198,6 +210,26 @@ void fdtv_frontend_init(struct firedtv *
+ 					  FE_CAN_QPSK;
+ 		break;
+ 
++	case FIREDTV_DVB_S2:
++		fi->type		= FE_QPSK;
 +
-+/* For both decoding and encoding */
++		fi->frequency_min	= 950000;
++		fi->frequency_max	= 2150000;
++		fi->frequency_stepsize	= 125;
++		fi->symbol_rate_min	= 1000000;
++		fi->symbol_rate_max	= 40000000;
 +
-+/* For encoding */
-+#define V4L2_CID_CODEC_LOOP_FILTER_H264		(V4L2_CID_CODEC_BASE + 9)
-+enum v4l2_cid_codec_loop_filter_h264 {
-+	V4L2_CID_CODEC_LOOP_FILTER_H264_ENABLE = 0,
-+	V4L2_CID_CODEC_LOOP_FILTER_H264_DISABLE = 1,
-+	V4L2_CID_CODEC_LOOP_FILTER_H264_DISABLE_AT_BOUNDARY = 2,
-+};
++		fi->caps		= FE_CAN_INVERSION_AUTO |
++					  FE_CAN_FEC_1_2        |
++					  FE_CAN_FEC_2_3        |
++					  FE_CAN_FEC_3_4        |
++					  FE_CAN_FEC_5_6        |
++					  FE_CAN_FEC_7_8        |
++					  FE_CAN_FEC_AUTO       |
++					  FE_CAN_QPSK           |
++					  FE_CAN_2G_MODULATION;
++		break;
 +
-+/* For decoding */
-+
-+#define V4L2_CID_CODEC_LOOP_FILTER_MPEG4_ENABLE	(V4L2_CID_CODEC_BASE + 110)
-+#define V4L2_CID_CODEC_DISPLAY_DELAY		(V4L2_CID_CODEC_BASE + 137)
-+#define V4L2_CID_CODEC_REQ_NUM_BUFS		(V4L2_CID_CODEC_BASE + 140)
-+#define V4L2_CID_CODEC_SLICE_INTERFACE		(V4L2_CID_CODEC_BASE + 141)
-+#define V4L2_CID_CODEC_PACKED_PB		(V4L2_CID_CODEC_BASE + 142)
-+
- /*  Camera class control IDs */
- #define V4L2_CID_CAMERA_CLASS_BASE 	(V4L2_CTRL_CLASS_CAMERA | 0x900)
- #define V4L2_CID_CAMERA_CLASS 		(V4L2_CTRL_CLASS_CAMERA | 1)
+ 	case FIREDTV_DVB_C:
+ 		fi->type		= FE_QAM;
+ 
+
+
 -- 
-1.6.3.3
+Stefan Richter
+-=====-==-=- =-=- --=--
+http://arcgraph.de/sr/
 
