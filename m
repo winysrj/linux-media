@@ -1,149 +1,263 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:37507 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758542Ab0JSNEt convert rfc822-to-8bit (ORCPT
+Received: from mail-in-10.arcor-online.net ([151.189.21.50]:45539 "EHLO
+	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751573Ab0JDBAf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Oct 2010 09:04:49 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] viafb camera controller driver
-Date: Tue, 19 Oct 2010 15:05:03 +0200
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Daniel Drake <dsd@laptop.org>
-References: <20101010162313.5caa137f@bike.lwn.net> <201010190952.46938.laurent.pinchart@ideasonboard.com> <4CBD76F3.5060609@infradead.org>
-In-Reply-To: <4CBD76F3.5060609@infradead.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="windows-1252"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201010191505.04436.laurent.pinchart@ideasonboard.com>
+	Sun, 3 Oct 2010 21:00:35 -0400
+Subject: Re: [linux-dvb] Asus MyCinema P7131 Dual support
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Dejan Rodiger <dejan.rodiger@gmail.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <AANLkTimdpehorJb+YrDuRgL7vSbF9Bn5iQS_g5TqF35F@mail.gmail.com>
+References: <25861669.1285195582100.JavaMail.ngmail@webmail18.arcor-online.net>
+	 <AANLkTimdpehorJb+YrDuRgL7vSbF9Bn5iQS_g5TqF35F@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Date: Mon, 04 Oct 2010 02:49:26 +0200
+Message-Id: <1286153366.3131.40.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+Hi Dejan,
 
-On Tuesday 19 October 2010 12:46:11 Mauro Carvalho Chehab wrote:
-> Em 19-10-2010 05:52, Laurent Pinchart escreveu:
-> > On Tuesday 19 October 2010 08:54:40 Hans Verkuil wrote:
-> >> On Tuesday, October 19, 2010 05:20:17 Jonathan Corbet wrote:
-> >>> On Sat, 16 Oct 2010 10:44:56 -0300 Mauro Carvalho Chehab wrote:
-> >>>> drivers/media/video/via-camera.c: In function ‘viacam_open’:
-> >>>> drivers/media/video/via-camera.c:651: error: too few arguments to
-> >>>> function ‘videobuf_queue_sg_init’
-> >>>> 
-> >>>> The fix for this one is trivial:
-> >>>> drivers/media/video/via-camera.c:651: error: too few arguments to
-> >>>> function ‘videobuf_queue_sg_init’
-> >>>> 
-> >>>> Just add an extra NULL parameter to the function.
-> >>> 
-> >>> So I'm looking into this stuff.  The extra NULL parameter is a struct
-> >>> 
-> >>> mutex, which seems to be used in one place in videobuf_waiton():
-> >>> 	is_ext_locked = q->ext_lock && mutex_is_locked(q->ext_lock);
-> >>> 	
-> >>> 	/* Release vdev lock to prevent this wait from blocking outside access
-> >>> 	to
-> >>> 	
-> >>> 	   the device. */
-> >>> 	
-> >>> 	if (is_ext_locked)
-> >>> 	
-> >>> 		mutex_unlock(q->ext_lock);
-> >>> 
-> >>> I'd be most curious to know what the reasoning behind this code is; to
-> >>> my uneducated eye, it looks like a real hack.  How does this function
-> >>> know who locked ext_lock?  Can it really just unlock it safely?  It
-> >>> seems to me that this is a sign of locking issues which should really
-> >>> be dealt with elsewhere, but, as I said, I'm uneducated, and the
-> >>> changelogs don't help me much.  Can somebody educate me?
-> >> 
-> >> We are working on removing the BKL. As part of that effort it is now
-> >> possible for drivers to pass a serialization mutex to the v4l core (a
-> >> mutex pointer was added to struct video_device). If the core sees that
-> >> mutex then the core will serialize all open/ioctl/read/write/etc. file
-> >> ops. So all file ops will in that case be called with that mutex held.
-> >> Which is fine, but if the driver has to do a blocking wait, then you
-> >> need to unlock the mutex first and lock it again afterwards. And since
-> >> videobuf does a blocking wait it needs to know about that mutex.
-> >> 
-> >> Right now we are in the middle of the transition from BKL to using core
-> >> locks (and some drivers will do their own locking completely). During
-> >> this transition period we have drivers that provide an external lock
-> >> and drivers still relying on the BKL in which case videobuf needs to
-> >> handle its own locking. Hopefully in 1-2 kernel cycles we will have
-> >> abolished the BKL and we can remove the videobuf internal lock and use
-> >> the external mutex only.
-> >> 
-> >> So yes, it is a bit of a hack but there is actually a plan behind it :-)
-> > 
-> > I still believe drivers should be encouraged to handle locking on their
-> > own. These new "big v4l lock" (one per device) should be used only to
-> > remove the BKL in existing drivers. It's a hack that we should work on
-> > getting rid of.
+Am Montag, den 04.10.2010, 01:48 +0200 schrieb Dejan Rodiger:
+> Hi Hermann,
 > 
-> It is not a "big lock": it doesn't stop other CPU's, doesn't affect other
-> hardware, not even another V4L device. Basically, what this new lock does
-> is to serialize access to the hardware and to the hardware-mirrored data.
+> I finally found the time to wire analog antena and I checked it with
+> my TV if it is working correctly.
+> Since I am using local cable provider which didn't upgrade their
+> system in 10 years and they are still broadcast in analog, I had a
+> problem off finding channel list, so in the end I tried tvtime-scanner
+> and it found about 58 channels. But, out of this 58 most of them were
+> not good (no signal). I was able to finetune few programs. My main
+> programs (local Croatian TV stations) were not found. Maybe I need to
+> finetune every found station.
 
-The lock serializes all ioctls. That's much more than protecting access to 
-data (both in system memory and in the hardware).
+that doesn't sound good. The card should just work.
 
-> On several cases, if you serialize open, close, ioctl, read, write and
-> mmap, the hardware will be serialized.
+Anyone else still out there with the same?
+
+Or are we finally destroyed by so called "compile fixes" and linux
+"next" stuff ?
+
+> I also tried zapping which crashed my X.
+
+Yeah, goes on since years, but has still good vbi :)
+
+dunno, if Michael has further plans on that.
+
+> I am also lost in setting mythtv. I set analog tunner on /dev/video0.
+> But I think I have a problem of setting the channel list for my local
+> cable provider. Is it possible to scan whole list or something. If you
+> have any reading recommendation to set this, I would be helpfull
 > 
-> Of course, this doesn't cover 100% of the cases where a lock is needed. So,
-> if the driver have more fun things like kthreads, alsa, dvb, IR polling,
-> etc, the driver will need to lock on other places as well.
+> Thanks
+> --
+> Dejan Rodiger
+> S: callto://drodiger
+
+For DVB-T try "kaffeine" or low level tools. Allow full delay for tuning
+and locking.
+
+If that fails, and no other well known other hardware restrictions are
+in place, we have some broken code.
+
+I do have a triple Asus 3in1 OEM with the same LNA config as that first
+hybrid board has.
+
+If really broken, not noticed yet here, but also not used since long, we
+can meet on some same code base and track it down.
+
+Cheers,
+Hermann
+
+
 > 
-> A typical V4L driver has lots of functions that need locking: open, close,
-> read, write, mmap and almost all ioctl (depending on the driver, just a
-> very few set of enum ioctl's could eventually not need an ioctl). What we
-> found is that:
 > 
-> 	1) several developers didn't do the right thing since the beginning;
-
-That's not a valid reason to push new drivers for a very coarse grain locking 
-scheme. Developers must not get told to be stupid and don't care about locks 
-just because other developers got it wrong in the past. If people don't get 
-locking right we need to educate them, not encourage them to understand even 
-less of it.
-
-> 	2) as time goes by, locks got bit roted.
-> 	3) some drivers were needing to touch on several locks (videobuf, their
-> internal priv locks, etc), sometimes generating cases where a dead lock
-> would be possible.
 > 
-> On the tests we did so far, the v4l-core assisted lock helped to solve some
-> locking issues on the very few drivers that were ported. Also, it caused a
-> regression on a driver where the lock were working ;)
-> 
-> There are basically several opinions about this new schema: some that think
-> that this is the right thing to do, others think that think that this is
-> the wrong thing or that this is acceptable only as a transition for
-> BKL-free drivers.
+> On Thu, Sep 23, 2010 at 00:46,  <hermann-pitton@arcor.de> wrote:
+> >
+> >
+> > Hi Dejan,
+> >
+> > ----- Original Nachricht ----
+> > Von:     Dejan Rodiger <dejan.rodiger@gmail.com>
+> > An:      hermann pitton <hermann-pitton@arcor.de>
+> > Datum:   22.09.2010 13:20
+> > Betreff: Re: [linux-dvb] Asus MyCinema P7131 Dual support
+> >
+> >> Hi Herman,
+> >>
+> >> here is dmesg output without forcing card=78.
+> >> As I see it uses card=112, autodetected
+> >>
+> >> [   16.043345] IR RC6 protocol handler initialized
+> >> [   16.173473] IR JVC protocol handler initialized
+> >> [   16.236641] IR Sony protocol handler initialized
+> >> [   16.433187] lirc_dev: IR Remote Control driver registered, major 250
+> >> [   16.572705] IR LIRC bridge handler initialized
+> >> [   16.894983] Linux video capture interface: v2.00
+> >> [   16.957585] saa7130/34: v4l2 driver version 0.2.16 loaded
+> >> [   16.958300] ACPI: PCI Interrupt Link [APC3] enabled at IRQ 18
+> >> [   16.958306]   alloc irq_desc for 18 on node 0
+> >> [   16.958309]   alloc kstat_irqs on node 0
+> >> [   16.958320] saa7134 0000:01:06.0: PCI INT A -> Link[APC3] -> GSI 18
+> >> (level, low) -> IRQ 18
+> >> [   16.958327] saa7133[0]: found at 0000:01:06.0, rev: 209, irq: 18,
+> >> latency: 32, mmio: 0xfdeff000
+> >> [   16.958334] saa7133[0]: subsystem: 1043:4876, board: ASUSTeK P7131
+> >> Hybrid [card=112,autodetected]
+> >> [   16.958378] saa7133[0]: board init: gpio is 0
+> >> [   17.010075] Registered IR keymap rc-asus-pc39
+> >> [   17.010197] input: saa7134 IR (ASUSTeK P7131 Hybri as
+> >> /devices/pci0000:00/0000:00:09.0/0000:01:06.0/rc/rc0/input4
+> >> [   17.010268] rc0: saa7134 IR (ASUSTeK P7131 Hybri as
+> >> /devices/pci0000:00/0000:00:09.0/0000:01:06.0/rc/rc0
+> >> [   17.190477] saa7133[0]: i2c eeprom 00: 43 10 76 48 54 20 1c 00 43
+> >> 43 a9 1c 55 d2 b2 92
+> >> [   17.190490] saa7133[0]: i2c eeprom 10: ff ff ff 0f ff 20 ff ff ff
+> >> ff ff ff ff ff ff ff
+> >> [   17.190502] saa7133[0]: i2c eeprom 20: 01 40 01 02 03 01 01 03 08
+> >> ff 00 d5 ff ff ff ff
+> >> [   17.190513] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff
+> >> ff ff ff ff ff ff ff
+> >> [   17.190524] saa7133[0]: i2c eeprom 40: ff 21 00 c2 96 10 03 32 55
+> >> 50 ff ff ff ff ff ff
+> >> [   17.190534] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff
+> >> ff ff ff ff ff ff ff
+> >> [   17.190545] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff
+> >> ff ff ff ff ff ff ff
+> >> [   17.190556] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff
+> >> ff ff ff ff ff ff ff
+> >> [   17.190566] saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff
+> >> ff ff ff ff ff ff ff
+> >> [   17.190577] saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff
+> >> ff ff ff ff ff ff ff
+> >> [   17.190587] saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff
+> >> ff ff ff ff ff ff ff
+> >> [   17.190598] saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff
+> >> ff ff ff ff ff ff ff
+> >> [   17.190609] saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff
+> >> ff ff ff ff ff ff ff
+> >> [   17.190620] saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff
+> >> ff ff ff ff ff ff ff
+> >> [   17.190630] saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff
+> >> ff ff ff ff ff ff ff
+> >> [   17.190641] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff
+> >> ff ff ff ff ff ff ff
+> >>
+> >> [   17.610120] tuner 2-004b: chip found @ 0x96 (saa7133[0])
+> >>
+> >> [   17.780037] tda829x 2-004b: setting tuner address to 61
+> >> [   17.940020] tda829x 2-004b: type set to tda8290+75a
+> >>
+> >> [   24.000114] saa7133[0]: registered device video0 [v4l2]
+> >> [   24.000150] saa7133[0]: registered device vbi0
+> >> [   24.000182] saa7133[0]: registered device radio0
+> >> [   24.027730] saa7134 ALSA driver for DMA sound loaded
+> >> [   24.027770] saa7133[0]/alsa: saa7133[0] at 0xfdeff000 irq 18
+> >> registered as card -2
+> >>
+> >> [   25.900159] DVB: registering new adapter (saa7133[0])
+> >> [   25.900165] DVB: registering adapter 0 frontend 0 (Philips
+> >> TDA10046H DVB-T)...
+> >>
+> >> [   26.710050] tda1004x: setting up plls for 48MHz sampling clock
+> >> [   27.710043] tda1004x: found firmware revision 29 -- ok
+> >>
+> >>
+> >> --
+> >> Dejan Rodiger
+> >> M: +385917829076
+> >> S: callto://drodiger
+> >>
+> >
+> > all looks fine now.
+> >
+> > With auto detection you should have correct LNA support for analog tuning and DVB-T.
+> >
+> > You need to connect the DVB-T signal to the FM/RF antenna input and the analog TV signal
+> > to the cable RF input..
+> >
+> > If you plug in the remote receiver, gpio 0x040000 will switch to high.
+> >
+> > Does this help any further?
+> >
+> > What went wrong previously, making you think you might have to force for example card = 78 ?
+> >
+> > I can revive almost all of the Asus cards on the saa713x driver if needed.
+> >
+> > Have fun, hopefully.
+> >
+> > Cheers,
+> > Hermann
+> >
+> >
+> >>
+> >> On Wed, Sep 22, 2010 at 01:13, hermann pitton <hermann-pitton@arcor.de>
+> >> wrote:
+> >> > Hi Dejan,
+> >> >
+> >> > Am Dienstag, den 21.09.2010, 10:07 +0200 schrieb Dejan Rodiger:
+> >> >> Hi,
+> >> >>
+> >> >> I am using Ubuntu linux 10.10 with the latest kernel 2.6.35-22-generic
+> >> >> on x86_64. I have installed nonfree firmware which should support this
+> >> >> card, but to be sure, can somebody confirm that my TV card is
+> >> >> supported in Analog or DVB mode?
+> >> >>
+> >> >> sudo lspci -vnn
+> >> >> 01:06.0 Multimedia controller [0480]: Philips Semiconductors
+> >> >> SAA7131/SAA7133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d1)
+> >> >>         Subsystem: ASUSTeK Computer Inc. My Cinema-P7131 Hybrid
+> >> >> [1043:4876]
+> >> >>         Flags: bus master, medium devsel, latency 32, IRQ 18
+> >> >>         Memory at fdeff000 (32-bit, non-prefetchable) [size=2K]
+> >> >>         Capabilities: [40] Power Management version 2
+> >> >>         Kernel driver in use: saa7134
+> >> >>         Kernel modules: saa7134
+> >> >>
+> >> >> It says Hybrid, but I put the following in
+> >> >> the /etc/modprobe.d/saa7134.conf
+> >> >> options saa7134 card=78 tuner=54
+> >> >>
+> >> >>
+> >> >> Thanks
+> >> >> --
+> >> >> Dejan Rodiger
+> >> >> S: callto://drodiger
+> >> >
+> >> > don't have time to follow this closely anymore.
+> >> >
+> >> > But forcing it to card=78 is plain wrong. It has an early additional LNA
+> >> > in confirmed config = 2 status.
+> >> >
+> >> > Your card should be auto detected and previously always was, based on
+> >> > what we have in saa7134-cards.c and further for it. (saa7134-dvb and
+> >> > related tuner/demod stuff)
+> >> >
+> >> >        }, {
+> >> >                .vendor       = PCI_VENDOR_ID_PHILIPS,
+> >> >                .device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+> >> >                .subvendor    = 0x1043,
+> >> >                .subdevice    = 0x4876,
+> >> >                .driver_data  = SAA7134_BOARD_ASUSTeK_P7131_HYBRID_LNA,
+> >> >        },{
+> >> >
+> >> > I remember for sure, that this card was fully functional for all use
+> >> > cases and it was not easy to get it there. I don't have it.
+> >> >
+> >> > Please provide the "dmesg" for failing auto detection without forcing
+> >> > some card = number as a starting point.
+> >> >
+> >> > I for sure want to see this board fully functional again.
+> >> >
+> >> > Cheers,
+> >> > Hermann
+> >> >
+> >
+> >
+> > Heute erleben, was morgen Trend wird - das kann man auf der IFA in Berlin. Oder auf arcor.de: Wir stellen Ihnen die wichtigsten News, Trends und Gadgets der IFA vor. NatÃ¼rlich mit dabei: das brandneue IPTV-Angebot von Vodafone! Alles rund um die Internationale Funkausstellung in Berlin finden Sie hier: http://www.arcor.de/rd/footer.ifa2010
+> >
 
-Indeed, and I belong to the second group.
-
-> IMO, I think that both ways are acceptable: a core-assisted
-> "hardware-access lock" helps to avoid having lots of lock/unlock code at
-> the driver, making drivers cleaner and easier to review, and reducing the
-> risk of lock degradation with time. On the other hand, some drivers may
-> require more complex locking schemas, like, for example, devices that
-> support several simultaneous independent video streams may have some
-> common parts used by all streams that need to be serialized, and other
-> parts that can (and should) not be serialized. So, a core-assisted locking
-> for some cases may cause unneeded long waits.
-
-A coarse core lock is acceptable in a transition phase to get rid of the BKL 
-because we don't have the necessary resources to do it right and right now. 
-Our goal should be to get rid of it in the long term as well (although we will 
-probably never complete this task, as not all drivers have a wide users and 
-developers base). New drivers must thus implement proper locking.
-
--- 
-Regards,
-
-Laurent Pinchart
