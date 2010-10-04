@@ -1,45 +1,43 @@
 Return-path: <mchehab@pedra>
-Received: from relay.greenbeardlabs.com ([208.77.148.74]:38683 "EHLO
-	relay.greenbeardlabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755997Ab0JSRSO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Oct 2010 13:18:14 -0400
-Received: from relay.greenbeardlabs.com (relay.greenbeard.com [127.0.0.1])
-	by relay.greenbeardlabs.com (8.13.8/8.13.8) with ESMTP id o9J9oT7O018265
-	for <linux-media@vger.kernel.org>; Tue, 19 Oct 2010 04:50:30 -0500
-To: linux-media@vger.kernel.org
-Subject: Let Us Build Your Website!
-Date: Tue, 19 Oct 2010 04:50:29 -0500
-From: Greenbeard Labs <noreply@greenbeardlabs.com>
-Message-ID: <8be9eb5c9209d680a29a71b2473d4c94@relay.greenbeardlabs.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:48303 "EHLO
+	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750803Ab0JDBSZ convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 Oct 2010 21:18:25 -0400
+From: Ben Hutchings <ben@decadent.org.uk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Randy Dunlap <randy.dunlap@oracle.com>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Date: Mon, 04 Oct 2010 02:18:11 +0100
+Message-ID: <1286155091.3916.194.camel@localhost>
+Mime-Version: 1.0
+Subject: [PATCH] vivi: Don't depend on FONTS
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-We’ll build a custom website for you that you can easily manage
-yourself. Whether you want a blog, company website, online store, or
-something more unique, we can help. Our prices are as low as $100 per
-page.
+CONFIG_FONTS has nothing to do with whether find_font() is defined.
 
-We can also help you generate more business by increasing your
-exposure on search engines, social media sites, and across the web.
-
-Visit www.greenbeardlabs.com to learn more!
-
-
-
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
-If you would like to remove your email address from our mailing list, paste
-the following link into your browser:
-http://relay.greenbeardlabs.com/lists/?p=unsubscribe&uid=7428e3fd98a316d43e5052ce017da421.
+ drivers/media/video/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Greenbeard Labs is a unit of Greenbeard Inc. This message is produced and
-distributed by Greenbeard Inc, 3016 Selma, Dallas, TX 75234.
-
-
---
-Powered by PHPlist, www.phplist.com --
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index f6e4d04..7528d50 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -539,7 +539,7 @@ config VIDEO_VIU
+ config VIDEO_VIVI
+ 	tristate "Virtual Video Driver"
+ 	depends on VIDEO_DEV && VIDEO_V4L2 && !SPARC32 && !SPARC64
+-	depends on (FRAMEBUFFER_CONSOLE || STI_CONSOLE) && FONTS
++	depends on FRAMEBUFFER_CONSOLE || STI_CONSOLE
+ 	select FONT_8x16
+ 	select VIDEOBUF_VMALLOC
+ 	default n
+-- 
+1.7.1
 
 
