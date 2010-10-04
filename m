@@ -1,47 +1,86 @@
 Return-path: <mchehab@pedra>
-Received: from mta8.brinkster.com ([65.182.109.77]:44878 "EHLO
-	mta8.brinkster.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752802Ab0JSQTh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Oct 2010 12:19:37 -0400
-Date: Tue, 19 Oct 2010 09:10:00 -0700 (MST)
-From: "Mr. Kevin Brown" <feedback@isketchfz.com>
-Reply-To: "Mr. Kevin Brown" <mr.kevinbrown55@yahoo.com>
-Message-ID: <20368679.133263.1287504600974.JavaMail.root@mail4a.brinkster.com>
-Subject: =?utf-8?Q?=C4=8Cesk=C3=A1_republika?=
+Received: from c2bthomr09.btconnect.com ([213.123.20.127]:40215 "EHLO
+	mail.btconnect.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751573Ab0JDAWq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Oct 2010 20:22:46 -0400
+From: sibu xolo <sibxol@btconnect.com>
+To: linux-media@vger.kernel.org
+Subject: udev-161 dvbT kernel-2.6.35.5
+Date: Mon, 4 Oct 2010 01:16:35 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-To: undisclosed-recipients:;
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201010040116.35961.sibxol@btconnect.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Dobrý den, příteli, 
-Já jsem pan Kevin Brown manažer Účetnictví / Audit ministerstva NatWest banky Harlsden, North West London, Anglie. Kontaktoval jsem si, co se týká podnikání návrh, který bude mít obrovský přínos pro nás oba a méně privilegované ty. Být manažerem účetního / auditu Greater London Krajský úřad jsem zjistil, součet £ 15,000,000.00 GBP (patnáct milionů britských liber šterlinků) na účtu, které patří k jednomu z našich zahraničních zákazníků Pozdní Pan Moises Saba Masrího. On byl židovský obchodní magnát z Mexika, který zemřel v zřícení vrtulníku na začátku letošního roku. 
+Greetings,  
 
-Pan Saba byl 47-roky-starý, když obě jeho manželky, jeho jediný syn Avraham (Albert) a jeho dcera-v-právo zemřel v zřícení vrtulníku. 
+I am attempting to set up DVBT on a computer with these:
 
-Můžete získat více informací, pokud jde o pád a smrt našeho pozdě zákazníka pana Mojžíše Saba na adresu webových stránkách níže: 
+--------cpu:  amd64 2 cores, gpu nvidia gforce  nouveau drm
+--------o/s cblfslinux 64-bit kernel-2.6.35.5 udev-161  kde-4.4.5 
+--------dvb device  Hauppauge wintvNovaT DVBT usb2
 
-http://www.ynetnews.com/articles/0,7340,L-3832556,00.html 
-
-Volba Vás kontaktovat vzbudil z geografické povahy, kde žijete, zejména vzhledem k citlivosti na transakce a důvěrnost zde. Nyní náš bankovní bylo čekání na některý z příbuzných přijde-až k tvrzení, dědictví fondu, ale bohužel veškeré úsilí má být neplatné. Já osobně jsem byl neúspěšný při rozmisťování příbuzným ani nejbližším příbuzným pana Saba. Na tomto jde, mám usilovat o váš souhlas k vám jako další příbuzný / bude příjemce na zemřelého tak, že výtěžek z tohoto účtu oceněn na ₤ 15 milionů britských librách být vyplacena na vás. 
-
-To bude vyplacena, nebo sdílená v těchto procent 60% pro mě a 40% na vás. Mám zajištěné veškeré nezbytné právní dokumenty, které mohou být použity k zálohování toto tvrzení se chystáme dělat. Vše, co potřebujete, je nahrát vaše jména na dokumenty a legalizovat u britského Nejvyššího soudu za účelem prokázání vás oprávněný příjemce. Všechny Žádám nyní je vaše upřímná Co-operace, důvěrnosti a důvěry k tomu, aby nás vidět tuto transakci prostřednictvím. Já vám zaručit 100% úspěšnost a že tato obchodní transakce budou provedeny v rámci působnosti práva a také chránit vás z jakéhokoli porušení smlouvy. 
-
-Uveďte, prosím, mi následující, jak jsme 7 pracovních dní spustíme ji projít: 
-1. Vaše celé jméno 
-2. Telefonní číslo 
-3. Kontaktní adresa 
-4. Věk 
-5. Pohlaví 
-6. Povolání 
-
-S prošla metodický vyhledávání, rozhodl jsem se Vás kontaktovat doufat, že vás najdou tento návrh zajímavý. Prosím o Vaše potvrzení této zprávy a naznačuje váš zájem budu vám poskytne bližší informace je. 
-Váš souhlas s tímto e-mailu a obchodní návrh bude vysoce ocenil. 
-S pozdravem, 
+I have  the foollowing in /lib/firmware
 
 
-Pan Kevin Brown 
+dvb-usb-dib0700-01.fw       
+dvb-usb-dib0700-1.20.fw 
 
-... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... 
+
+#############  my udev rule looks like so:-
+
+KERNEL="dvb*",
+PROGRAM="/etc/udev/scripts/dvb.sh %k",  
+ATTRS{serial}=="123456789a",
+ATTRS{product}=="Nova-T Stick",
+GROUP="video", 
+MODE="0660",
+SYMLINK+="Nova-T-usb2"
+
+###### the machine dwells a litle   on booting
+###### lsmod yoelds:-
+
+root [ ~teeveey ]# lsmod
+Module                  Size  Used by
+snd_hda_codec_realtek   294785  1 
+dvb_usb_dib0700        77625  0 
+dib7000p               15705  1 dvb_usb_dib0700
+dib0090                12297  1 dvb_usb_dib0700
+dib7000m               12868  1 dvb_usb_dib0700
+dib0070                 7510  1 dvb_usb_dib0700
+dvb_usb                16683  1 dvb_usb_dib0700
+dib8000                23992  1 dvb_usb_dib0700
+dvb_core               87312  3 dib7000p,dvb_usb,dib8000
+dib3000mc              11061  1 dvb_usb_dib0700
+dibx000_common          3213  4 dib7000p,dib7000m,dib8000,dib3000mc
+nouveau               387642  2 
+ttm                    53985  1 nouveau
+drm_kms_helper         25234  1 nouveau
+snd_hda_intel          24006  3 
+snd_hda_codec          82672  2 snd_hda_codec_realtek,snd_hda_intel
+pcspkr                  1854  0 
+ohci_hcd               33354  0 
+cfbcopyarea             3037  1 nouveau
+cfbimgblt               2205  1 nouveau
+cfbfillrect             3113  1 nouveau
+snd_hwdep               6048  1 snd_hda_codec
+root [ ~teeveey ]# 
+
+
+
+#############  but ls   for /dev/dvb*  yields nought like so:-
+
+root [ ~teeveey ]# ls -l  /dev/dvb*
+ls: cannot access /dev/dvb*: No such file or directory
+root [ ~teeveey ]# 
+
+I used the said device successfully  in a build wih 2,6.28.8/udev-113 last 
+year  but it appears   the setup for DVB on linux has changed recently.  
+Accordingly guidance on where I am gping wrong would be much appreciated.
+
+Yours sincerely
+
+sibuXolo
