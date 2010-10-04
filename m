@@ -1,71 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:34660 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757186Ab0JUC5j (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Oct 2010 22:57:39 -0400
-Message-ID: <4CBFAC1A.90306@infradead.org>
-Date: Thu, 21 Oct 2010 00:57:30 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:38052 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755689Ab0JDT2T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Oct 2010 15:28:19 -0400
+Date: Mon, 4 Oct 2010 21:28:01 +0200
+From: Dan Carpenter <error27@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Herton Ronaldo Krzesinski <herton@mandriva.com.br>,
+	Sean Young <sean@mess.org>, linux-media@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [patch] V4L/DVB: saa7134: add test after for loop
+Message-ID: <20101004192801.GG5692@bicker>
 MIME-Version: 1.0
-To: Jonathan Corbet <corbet@lwn.net>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Daniel Drake <dsd@laptop.org>
-Subject: Re: ext_lock (was viafb camera controller driver)
-References: <20101010162313.5caa137f@bike.lwn.net>	<4CB9AC58.5020301@infradead.org>	<20101018212017.7c53789e@bike.lwn.net>	<201010190854.40419.hverkuil@xs4all.nl> <20101020132342.35a2c401@bike.lwn.net>
-In-Reply-To: <20101020132342.35a2c401@bike.lwn.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 20-10-2010 17:23, Jonathan Corbet escreveu:
-> On Tue, 19 Oct 2010 08:54:40 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> 
->> We are working on removing the BKL. As part of that effort it is now possible
->> for drivers to pass a serialization mutex to the v4l core (a mutex pointer was
->> added to struct video_device). If the core sees that mutex then the core will
->> serialize all open/ioctl/read/write/etc. file ops. So all file ops will in that
->> case be called with that mutex held. Which is fine, but if the driver has to do
->> a blocking wait, then you need to unlock the mutex first and lock it again
->> afterwards. And since videobuf does a blocking wait it needs to know about that
->> mutex.
-> 
-> So videobuf is expecting that you're passing this special device mutex
-> in particular?  In that case, why not just use it directly?  Having a
-> separate pointer to (what looks like) a distinct lock seems like a way
-> to cause fatal confusion.  Given the tightness of the rules here (you
-> *must* know that this "ext_lock" has been grabbed by the v4l core in the
-> current call chain or you cannot possibly unlock it safely), I don't
-> get why you wouldn't use the lock directly.
-> 
-> I would be inclined to go even further and emit a warning if the mutex
-> is *not* locked.  It seems that the rules would require it, no?  If
-> mutex debugging is turned on, you could even check if the current task
-> is the locker, would would be even better.
+Add a check after the for loops to see if we found what we were looking
+for or if we reached the end of the list.
 
-Yeah, a definitive solution would be to directly use the lock at videobuf. However,
-people are re-writing videobuf (the new version is called videobuf2), in order
-to fix some know issues on it.
+Signed-off-by: Dan Carpenter <error27@gmail.com>
 
-Probably, it is better to wait for the new vb2, test it, and better integrate
-its locking schema.
-
-> In general, put me in the "leery of central locking" camp.  If you
-> don't understand locking, you're going to mess things up somewhere
-> along the way.  And, as soon as you get into hardware with interrupts,
-> it seems like you have to deal with your own locking for access to the
-> hardware regardless...
-
-Yeah, if developers don't understand lock, a mess will happen, but this
-doesn't matter if the developer is using a central or a driver-priv lock.
-
-With a core-assisted lock, driver code is cleaner, and, hopefully, will be
-easier to analyze the lock "exceptions", as the common case (hardware access
-via file operations) will already be covered.
-
-Cheers,
-Mauro.
+diff --git a/drivers/media/video/saa7134/saa7134-video.c b/drivers/media/video/saa7134/saa7134-video.c
+index 45f0ac8..24c3a78 100644
+--- a/drivers/media/video/saa7134/saa7134-video.c
++++ b/drivers/media/video/saa7134/saa7134-video.c
+@@ -1871,9 +1871,12 @@ int saa7134_s_std_internal(struct saa7134_dev *dev, struct saa7134_fh *fh, v4l2_
+ 			else
+ 				fixup = V4L2_STD_SECAM;
+ 		}
+-		for (i = 0; i < TVNORMS; i++)
++		for (i = 0; i < TVNORMS; i++) {
+ 			if (fixup == tvnorms[i].id)
+ 				break;
++		}
++		if (i == TVNORMS)
++			return -EINVAL;
+ 	}
+ 
+ 	*id = tvnorms[i].id;
+@@ -1997,9 +2000,12 @@ static int saa7134_g_tuner(struct file *file, void *priv,
+ 	if (0 != t->index)
+ 		return -EINVAL;
+ 	memset(t, 0, sizeof(*t));
+-	for (n = 0; n < SAA7134_INPUT_MAX; n++)
++	for (n = 0; n < SAA7134_INPUT_MAX; n++) {
+ 		if (card_in(dev, n).tv)
+ 			break;
++	}
++	if (n == SAA7134_INPUT_MAX)
++		return -EINVAL;
+ 	if (NULL != card_in(dev, n).name) {
+ 		strcpy(t->name, "Television");
+ 		t->type = V4L2_TUNER_ANALOG_TV;
