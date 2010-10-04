@@ -1,49 +1,173 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:47854 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755768Ab0JUTYi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Oct 2010 15:24:38 -0400
-Date: Thu, 21 Oct 2010 21:24:24 +0200
-From: Dan Carpenter <error27@gmail.com>
+Received: from einhorn.in-berlin.de ([192.109.42.8]:44707 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932178Ab0JDSaV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Oct 2010 14:30:21 -0400
+Date: Mon, 4 Oct 2010 20:29:24 +0200 (CEST)
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: [PATCH update2] V4L/DVB: firedtv: support for PSK8 for S2 devices. To
+ watch HD.
 To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch 3/3] V4L/DVB: s5p-fimc: dubious one-bit signed bitfields
-Message-ID: <20101021192424.GL5985@bicker>
+cc: Tommy Jonsson <quazzie2@gmail.com>, linux-media@vger.kernel.org,
+	linux1394-devel@lists.sourceforge.net
+In-Reply-To: <tkrat.85246f2f7084d010@s5r6.in-berlin.de>
+Message-ID: <tkrat.bc9b826db6ce1b36@s5r6.in-berlin.de>
+References: <AANLkTin53SY_xaed_tRfWRPOFmc65GmGzXrEt15ZyriW@mail.gmail.com>
+ <4C90B4FB.2050401@s5r6.in-berlin.de>
+ <AANLkTikQLd1_thyADU8AMjOATFQoZaJfko3Sn-qtNgQR@mail.gmail.com>
+ <tkrat.85246f2f7084d010@s5r6.in-berlin.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: TEXT/PLAIN; CHARSET=us-ascii
+Content-Disposition: INLINE
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-These are signed so instead of being 1 and 0 as intended they are -1 and
-0.  It doesn't cause a bug in the current code but Sparse warns about it:
+Date: Sun, 12 Sep 2010 21:03:45 +0200
+From: Tommy Jonsson <quazzie2@gmail.com>
 
-drivers/media/video/s5p-fimc/fimc-core.h:226:28:
-	error: dubious one-bit signed bitfield
+This is the first i have ever developed for linux, cant really wrap my
+head around how to submit this..
+Hope im sending this correctly, diff made with 'hg diff' from latest
+"hg clone http://linuxtv.org/hg/v4l-dvb"
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
+It adds support for tuning with PSK8 modulation, pilot and rolloff
+with the S2 versions of firedtv.
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index e3a7c6a..7665a3f 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -222,10 +223,10 @@ struct fimc_effect {
-  * @real_height:	source pixel (height - offset)
-  */
- struct fimc_scaler {
--	int	scaleup_h:1;
--	int	scaleup_v:1;
--	int	copy_mode:1;
--	int	enabled:1;
-+	unsigned int	scaleup_h:1;
-+	unsigned int	caleup_v:1;
-+	unsigned int	copy_mode:1;
-+	unsigned int	enabled:1;
- 	u32	hfactor;
- 	u32	vfactor;
- 	u32	pre_hratio;
+Signed-off-by: Tommy Jonsson <quazzie2@gmail.com>
+Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de> (trivial simplification)
+---
+Sorry, missed two space-before-tab.
+
+ drivers/media/dvb/firewire/firedtv-avc.c |   30 +++++++++++++++++--
+ drivers/media/dvb/firewire/firedtv-fe.c  |   36 ++++++++++++++++++++++-
+ 2 files changed, 60 insertions(+), 6 deletions(-)
+
+Index: b/drivers/media/dvb/firewire/firedtv-avc.c
+===================================================================
+--- a/drivers/media/dvb/firewire/firedtv-avc.c
++++ b/drivers/media/dvb/firewire/firedtv-avc.c
+@@ -24,6 +24,8 @@
+ #include <linux/wait.h>
+ #include <linux/workqueue.h>
+ 
++#include <dvb_frontend.h>
++
+ #include "firedtv.h"
+ 
+ #define FCP_COMMAND_REGISTER		0xfffff0000b00ULL
+@@ -368,10 +370,30 @@ static int avc_tuner_tuneqpsk(struct fir
+ 		c->operand[12] = 0;
+ 
+ 	if (fdtv->type == FIREDTV_DVB_S2) {
+-		c->operand[13] = 0x1;
+-		c->operand[14] = 0xff;
+-		c->operand[15] = 0xff;
+-
++		if (fdtv->fe.dtv_property_cache.delivery_system == SYS_DVBS2) {
++			switch (fdtv->fe.dtv_property_cache.modulation) {
++			case QAM_16:		c->operand[13] = 0x1; break;
++			case QPSK:		c->operand[13] = 0x2; break;
++			case PSK_8:		c->operand[13] = 0x3; break;
++			default:		c->operand[13] = 0x2; break;
++			}
++			switch (fdtv->fe.dtv_property_cache.rolloff) {
++			case ROLLOFF_AUTO:	c->operand[14] = 0x2; break;
++			case ROLLOFF_35:	c->operand[14] = 0x2; break;
++			case ROLLOFF_20:	c->operand[14] = 0x0; break;
++			case ROLLOFF_25:	c->operand[14] = 0x1; break;
++			/* case ROLLOFF_NONE:	c->operand[14] = 0xff; break; */
++			}
++			switch (fdtv->fe.dtv_property_cache.pilot) {
++			case PILOT_AUTO:	c->operand[15] = 0x0; break;
++			case PILOT_OFF:		c->operand[15] = 0x0; break;
++			case PILOT_ON:		c->operand[15] = 0x1; break;
++			}
++		} else {
++			c->operand[13] = 0x1;  /* auto modulation */
++			c->operand[14] = 0xff; /* disable rolloff */
++			c->operand[15] = 0xff; /* disable pilot */
++		}
+ 		return 16;
+ 	} else {
+ 		return 13;
+Index: b/drivers/media/dvb/firewire/firedtv-fe.c
+===================================================================
+--- a/drivers/media/dvb/firewire/firedtv-fe.c
++++ b/drivers/media/dvb/firewire/firedtv-fe.c
+@@ -155,6 +155,16 @@ static int fdtv_get_frontend(struct dvb_
+ 	return -EOPNOTSUPP;
+ }
+ 
++static int fdtv_get_property(struct dvb_frontend *fe, struct dtv_property *tvp)
++{
++	return 0;
++}
++
++static int fdtv_set_property(struct dvb_frontend *fe, struct dtv_property *tvp)
++{
++	return 0;
++}
++
+ void fdtv_frontend_init(struct firedtv *fdtv)
+ {
+ 	struct dvb_frontend_ops *ops = &fdtv->fe.ops;
+@@ -166,6 +176,9 @@ void fdtv_frontend_init(struct firedtv *
+ 	ops->set_frontend		= fdtv_set_frontend;
+ 	ops->get_frontend		= fdtv_get_frontend;
+ 
++	ops->get_property		= fdtv_get_property;
++	ops->set_property		= fdtv_set_property;
++
+ 	ops->read_status		= fdtv_read_status;
+ 	ops->read_ber			= fdtv_read_ber;
+ 	ops->read_signal_strength	= fdtv_read_signal_strength;
+@@ -179,7 +192,6 @@ void fdtv_frontend_init(struct firedtv *
+ 
+ 	switch (fdtv->type) {
+ 	case FIREDTV_DVB_S:
+-	case FIREDTV_DVB_S2:
+ 		fi->type		= FE_QPSK;
+ 
+ 		fi->frequency_min	= 950000;
+@@ -188,7 +200,7 @@ void fdtv_frontend_init(struct firedtv *
+ 		fi->symbol_rate_min	= 1000000;
+ 		fi->symbol_rate_max	= 40000000;
+ 
+-		fi->caps 		= FE_CAN_INVERSION_AUTO	|
++		fi->caps		= FE_CAN_INVERSION_AUTO |
+ 					  FE_CAN_FEC_1_2	|
+ 					  FE_CAN_FEC_2_3	|
+ 					  FE_CAN_FEC_3_4	|
+@@ -198,6 +210,26 @@ void fdtv_frontend_init(struct firedtv *
+ 					  FE_CAN_QPSK;
+ 		break;
+ 
++	case FIREDTV_DVB_S2:
++		fi->type		= FE_QPSK;
++
++		fi->frequency_min	= 950000;
++		fi->frequency_max	= 2150000;
++		fi->frequency_stepsize	= 125;
++		fi->symbol_rate_min	= 1000000;
++		fi->symbol_rate_max	= 40000000;
++
++		fi->caps		= FE_CAN_INVERSION_AUTO |
++					  FE_CAN_FEC_1_2        |
++					  FE_CAN_FEC_2_3        |
++					  FE_CAN_FEC_3_4        |
++					  FE_CAN_FEC_5_6        |
++					  FE_CAN_FEC_7_8        |
++					  FE_CAN_FEC_AUTO       |
++					  FE_CAN_QPSK           |
++					  FE_CAN_2G_MODULATION;
++		break;
++
+ 	case FIREDTV_DVB_C:
+ 		fi->type		= FE_QAM;
+ 
+
+-- 
+Stefan Richter
+-=====-==-=- =-=- --=--
+http://arcgraph.de/sr/
+
