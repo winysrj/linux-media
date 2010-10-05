@@ -1,92 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from auth-1.ukservers.net ([217.10.138.154]:43367 "EHLO
-	auth-1.ukservers.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751547Ab0JLWI4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Oct 2010 18:08:56 -0400
-Message-ID: <DAB476FE34F842CE88B2D2387D4239EF@telstraclear.tclad>
-From: "Simon Baxter" <linuxtv@nzbaxters.com>
-To: "Simon Baxter" <linuxtv@nzbaxters.com>,
-	<linux-media@vger.kernel.org>, <linux-dvb@linuxtv.org>
-References: <4EF44B7309644C7BBF72C458CF8C4F43@telstraclear.tclad> <075927E995BF46F0AAC3D433821C7D9F@telstraclear.tclad>
-Subject: Re: dm1105 scan but won't tune? [RESOLVED]
-Date: Wed, 13 Oct 2010 11:08:51 +1300
+Received: from smtp.nokia.com ([192.100.105.134]:21959 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757169Ab0JEWbW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 18:31:22 -0400
+Message-ID: <4CABA72C.3070509@maxwell.research.nokia.com>
+Date: Wed, 06 Oct 2010 01:31:08 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=response
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH/RFC v3 01/11] v4l: Move the media/v4l2-mediabus.h header
+ to include/linux
+References: <1286288714-16506-1-git-send-email-laurent.pinchart@ideasonboard.com> <1286288714-16506-2-git-send-email-laurent.pinchart@ideasonboard.com> <4CAB39AB.2070806@maxwell.research.nokia.com> <Pine.LNX.4.64.1010051728360.31708@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1010051728360.31708@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> OK, progress (idiot error?)
->
-> My problem was OptusB1 requires a 45 degree skew on the LNB on the dish 
-> itself.
->
-> So now I can do an szap as follows:
-> TV3:12456:h:0:22500:512:650:1920
->
-> ./szap -l 11300 -c channels-conf/dvb-s/OptusD1E160 TV3
-> reading channels from file 'channels-conf/dvb-s/OptusD1E160'
-> zapping to 1 'TV3':
-> sat 0, frequency = 12456 MHz H, symbolrate 22500000, vpid = 0x0200, apid = 
-> 0x028a sid = 0x0780
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> status 1f | signal cd82 | snr be5c | ber 0000ff00 | unc fffffffe | 
-> FE_HAS_LOCK
-> status 1f | signal cd07 | snr be9e | ber 00000000 | unc fffffffe | 
-> FE_HAS_LOCK
-> status 1f | signal cd07 | snr be4a | ber 00000000 | unc fffffffe | 
-> FE_HAS_LOCK
->
->
-> New problem though - I can now no longer scan with the LNB skewed!!
-> S 12456000 V 22500000 AUTO
-> S 12456000 H 22500000 AUTO
->
-> ./scan dvb-s/OptusB1-NZ -l 11300
-> scanning dvb-s/OptusB1-NZ
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> initial transponder 12456000 V 22500000 9
-> initial transponder 12456000 H 22500000 9
->>>> tune to: 12456:v:0:22500
-> DVB-S IF freq is 1156000
-> WARNING: >>> tuning failed!!!
->>>> tune to: 12456:v:0:22500 (tuning failed)
-> DVB-S IF freq is 1156000
-> WARNING: >>> tuning failed!!!
->>>> tune to: 12456:h:0:22500
-> DVB-S IF freq is 1156000
-> WARNING: >>> tuning failed!!!
->>>> tune to: 12456:h:0:22500 (tuning failed)
-> DVB-S IF freq is 1156000
-> WARNING: >>> tuning failed!!!
-> ERROR: initial tuning failed
-> dumping lists (0 services)
-> Done.
->
-> Any ideas?
+Hi Guennadi!
 
-Things to note when you install your own satellite dish and card:
-1) Make sure you understand the LNB requirements for your satellite.  I 
-needed to skew mine on the dish by 45 degrees - wasted a lot of time getting 
-odd results from a vertically mounted LNB
-2) Understand your LNB specs.  Mine had a 11300Mhz LSOF, which needed 
-allowance for when szapping, scanning and in VDR
+Guennadi Liakhovetski wrote:
+> On Tue, 5 Oct 2010, Sakari Ailus wrote:
+...
+>>> +/**
+>>> + * struct v4l2_mbus_framefmt - frame format on the media bus
+>>> + * @width:	frame width
+>>> + * @height:	frame height
+>>> + * @code:	data format code
+>>> + * @field:	used interlacing type
+>>> + * @colorspace:	colorspace of the data
+>>> + */
+>>> +struct v4l2_mbus_framefmt {
+>>> +	__u32				width;
+>>> +	__u32				height;
+>>> +	__u32				code;
+>>> +	enum v4l2_field			field;
+>>> +	enum v4l2_colorspace		colorspace;
+>>> +};
+>>
+>> I think this struct would benefit from some reserved fields since it's
+>> part of the user space interface.
+> 
+> IIUC, this struct is not going to be used in ioctl()s, that's what struct 
+> v4l2_subdev_mbus_code_enum is for. But in this case - why don't we make 
 
-My system:
-Fedora 13 on a dual core intel platform.
-combination of DVB-C (TT-1501 and TT-2300), PVR-500 and DVB-S (dm1105 based 
-and TT-1401) cards
-Used on New Zealand cable TV, Freeview TV and Sky TV
+Oh, you're right. My mistake.
 
-my most recent fixes:
-Use the '-r' switch in szap, to set the front end up for TS recording.
-Use the '-l 11300' in szap to configure for the LNB
-Use diseqc.conf file and "setup>LNB>DiSeqc ON" in VDR to set the LNB 
-settings
-
-
-
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
