@@ -1,34 +1,102 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:36378 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756787Ab0JISkx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Oct 2010 14:40:53 -0400
-Received: by ewy20 with SMTP id 20so106011ewy.19
-        for <linux-media@vger.kernel.org>; Sat, 09 Oct 2010 11:40:51 -0700 (PDT)
-MIME-Version: 1.0
-Date: Sat, 9 Oct 2010 14:40:50 -0400
-Message-ID: <AANLkTi=tc_4ZAk20fEamcFQ-VDFkt4tBwFH+uGv9Fw62@mail.gmail.com>
-Subject: [PULL] http://www.kernellabs.com/hg/~dheitmueller/v4l-dvb-950q-final
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4499 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751226Ab0JETJo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 15:09:44 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id o95J9htL010825
+	for <linux-media@vger.kernel.org>; Tue, 5 Oct 2010 21:09:43 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 5 Oct 2010 21:09:43 +0200 (CEST)
+Message-Id: <201010051909.o95J9htL010825@smtp-vbr6.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Please pull from the following for some basic fixes related to
-applications such as tvtime hanging when no video is present, as well
-as some quality improvements for analog.
+Results of the daily build of v4l-dvb:
 
-http://www.kernellabs.com/hg/~dheitmueller/v4l-dvb-950q-final
+date:        Tue Oct  5 19:00:17 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15164:1da5fed5c8b2
+git master:       3e6dce76d99b328716b43929b9195adfee1de00c
+git media-master: c8dd732fd119ce6d562d5fa82a10bbe75a376575
+gcc version:      i686-linux-gcc (GCC) 4.5.1
+host hardware:    x86_64
+host os:          2.6.32.5
 
-Please let me know if there are any questions/problems.
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: WARNINGS
+linux-git-mips: WARNINGS
+linux-git-powerpc64: WARNINGS
+linux-git-x86_64: WARNINGS
+linux-2.6.32.6-armv5: WARNINGS
+linux-2.6.33-armv5: WARNINGS
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.32.6-armv5-davinci: ERRORS
+linux-2.6.33-armv5-davinci: ERRORS
+linux-2.6.34-armv5-davinci: ERRORS
+linux-2.6.35.3-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: ERRORS
+linux-2.6.33-armv5-ixp: ERRORS
+linux-2.6.34-armv5-ixp: ERRORS
+linux-2.6.35.3-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: ERRORS
+linux-2.6.33-armv5-omap2: ERRORS
+linux-2.6.34-armv5-omap2: ERRORS
+linux-2.6.35.3-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.32.6-m32r: WARNINGS
+linux-2.6.33-m32r: WARNINGS
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-Thanks,
+Detailed results are available here:
 
-Devin
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
