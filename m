@@ -1,99 +1,98 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4912 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755658Ab0JRNiX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Oct 2010 09:38:23 -0400
-Message-ID: <4093b50ea14297e7efa7bfbc56dda0a3.squirrel@webmail.xs4all.nl>
-In-Reply-To: <AANLkTikmKf5uZ=QFYMQ8x_tQ4Mws3pJ61oXsr6Rt=ifx@mail.gmail.com>
-References: <49e7400bcbcc4412b77216bb061db1b57cb3b882.1287318143.git.hverkuil@xs4all.nl>
-    <AANLkTikmKf5uZ=QFYMQ8x_tQ4Mws3pJ61oXsr6Rt=ifx@mail.gmail.com>
-Date: Mon, 18 Oct 2010 15:38:19 +0200
-Subject: Re: [RFC PATCH] radio-mr800: locking fixes
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "David Ellingsworth" <david@identd.dyndns.org>
-Cc: linux-media@vger.kernel.org
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:54415 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752441Ab0JEW1l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 18:27:41 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+In-Reply-To: <20101005192435.GA17798@haskell.muteddisk.com>
+References: <1285534847-31463-1-git-send-email-mfm@muteddisk.com>
+	<20101005142906.GA20059@merkur.ravnborg.org>
+	<20101005192435.GA17798@haskell.muteddisk.com>
+Date: Tue, 5 Oct 2010 18:27:40 -0400
+Message-ID: <AANLkTik4Ezpj939za2PMWOqOxjXnbdXjvtbXR6Tau2zr@mail.gmail.com>
+Subject: Re: [RFC PATCH] media: consolidation of -I flags
+From: T Dent <tdent48227@gmail.com>
+To: Sam Ravnborg <sam@ravnborg.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Michal Marek <mmarek@suse.cz>, linux-media@vger.kernel.org,
+	linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-
-> On Sun, Oct 17, 2010 at 8:26 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> - serialize the suspend and resume functions using the global lock.
->> - do not call usb_autopm_put_interface after a disconnect.
->> - fix a race when disconnecting the device.
+On 10/5/10, Sam Ravnborg <sam@ravnborg.org> wrote:
+> On Sun, Sep 26, 2010 at 02:00:47PM -0700, matt mooney wrote:
+>> I have been doing cleanup of makefiles, namely replacing the older style
+>> compilation flag variables with the newer style. While doing this, I
+>> noticed that the majority of drivers in the media subsystem seem to rely
+>> on a few core header files:
 >>
->> Reported-by: David Ellingsworth <david@identd.dyndns.org>
->> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
->> ---
->>  drivers/media/radio/radio-mr800.c |   17 ++++++++++++++---
->>  1 files changed, 14 insertions(+), 3 deletions(-)
+>> 	-Idrivers/media/video
+>> 	-Idrivers/media/common/tuners
+>> 	-Idrivers/media/dvb/dvb-core
+>> 	-Idrivers/media/dvb/frontends
 >>
->> diff --git a/drivers/media/radio/radio-mr800.c
->> b/drivers/media/radio/radio-mr800.c
->> index 2f56b26..b540e80 100644
->> --- a/drivers/media/radio/radio-mr800.c
->> +++ b/drivers/media/radio/radio-mr800.c
->> @@ -284,9 +284,13 @@ static void usb_amradio_disconnect(struct
->> usb_interface *intf)
->>        struct amradio_device *radio =
->> to_amradio_dev(usb_get_intfdata(intf));
+>> This patch removes them from the individual makefiles and puts them in
+>> the main makefile under media.
+> Using subdir-ccflags-y has one drawback you need to be aware of.
+> The variable is _not_ picked up if you build individual drivers like
+> this:
+>
+>
+>      make drivers/media/dvb/b2c2/
+>
+> So with this patch applied it is no longer possible to do so.
+> It is better to accept the duplication rather than breaking
+> the build of individual drivers.
+>
 >>
->>        mutex_lock(&radio->lock);
->> +       /* increase the device node's refcount */
->> +       get_device(&radio->videodev.dev);
->>        v4l2_device_disconnect(&radio->v4l2_dev);
->> -       mutex_unlock(&radio->lock);
->>        video_unregister_device(&radio->videodev);
->> +       mutex_unlock(&radio->lock);
->> +       /* decrease the device node's refcount, allowing it to be
->> released */
->> +       put_device(&radio->videodev.dev);
->>  }
+>> If neither idea is considered beneficial, I will go ahead and replace
+>> the older variables with the newer ones as is.
 >
-> Hans, I understand the use of get/put_device here.. but can you
-> explain to me what issue you are trying to solve?
-> video_unregister_device does not have to be synchronized with anything
-> else. Thus, it is perfectly safe to call video_unregister_device while
-> not holding the device lock. Your prior implementation here was
-> correct.
-
-This the original sequence:
-
-       mutex_lock(&radio->lock);
-       v4l2_device_disconnect(&radio->v4l2_dev);
-       mutex_unlock(&radio->lock);
-       video_unregister_device(&radio->videodev);
-
-The problem with this is that userspace can call open or ioctl after the
-unlock and before the device node is marked unregistered by
-video_unregister_device.
-
-Once you disconnect you want to block all access (except the release call).
-What my patch does is to move the video_unregister_device call inside the
-lock, but then I have to guard against the release being called before the
-unlock by increasing the refcount.
-
-I have ideas to improve on this as this gets hairy when you have multiple
-device nodes, but I wait with that until the next kernel cycle.
-
-Regards,
-
-         Hans
-
+> This is the right approach.
 >
-> Regards,
+> You could consider to do a more general cleanup:
+> 1) replace EXTRA_CFLAGS with ccflags-y (the one you suggest)
+> 2) replace use of <module>-objs with <module>-y
+> 3) break continued lines into several assignments
+
+I have a question when you say this do you mean change something like this:
+
+r8187se-objs :=
+
+to
+
+r8187se-y :=
+
+If so, I could start working on that in the staging directory.
+
+>    People very often uses '\' to break long lines, where a
+>    simple += would be much more readable.
+>    But this topic may be personal - I never uses "\" in my .c code unless in
+> macros,
+>    and I have applied the same rule for Makefiles.
+>    An ugly example is drivers/media/Makefile
+> 4) In general use ":=" instead of "=".
+>    Add using "+=" as first assignment is OK - but it just looks plain wrong
+> 5) some files has a mixture of spaces/tabs (are red in my vim)
+>    dvb-core/Makefile is one such example
+> 6) remove useless stuff
+>    siano/Makefile has some strange assignments to EXTRA_CFLAGS
+> 7) Likely a few more items to look after...
 >
-> David Ellingsworth
+> This is more work - but then you finish a Makefile rather than doing a
+> simple
+> conversion.
+>
+> 	Sam
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 >
 
+Thanks,
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
-
+Tracey D
