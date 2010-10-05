@@ -1,66 +1,43 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:6981 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755276Ab0JWBjl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Oct 2010 21:39:41 -0400
-Message-ID: <4CC23CD7.1000907@redhat.com>
-Date: Fri, 22 Oct 2010 23:39:35 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:34779 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753524Ab0JEPP5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 11:15:57 -0400
+Received: by ewy23 with SMTP id 23so2515588ewy.19
+        for <linux-media@vger.kernel.org>; Tue, 05 Oct 2010 08:15:56 -0700 (PDT)
 MIME-Version: 1.0
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-CC: Jarod Wilson <jarod@wilsonet.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFC]  ir-rc5-decoder: don't wait for the end space to
- produce a code
-References: <4CBF2477.9020008@redhat.com>	 <0C5A1128-33E7-4331-98EB-D36C1005F51F@wilsonet.com>	 <4CC04671.6000608@redhat.com> <1287797114.4948.2.camel@maxim-laptop>
-In-Reply-To: <1287797114.4948.2.camel@maxim-laptop>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Stefan Krastanov <krastanov.stefan@gmail.com>
+Date: Tue, 5 Oct 2010 17:15:36 +0200
+Message-ID: <AANLkTindEhdWzvh_f+2Yps--JSyTw3uz0nWUnjxDLYQN@mail.gmail.com>
+Subject: exposure bug in gspca for webcam with SN9C201 + MI0360/MT9V011 or MI0360SOC/MT9V111
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 22-10-2010 23:25, Maxim Levitsky escreveu:
-> On Thu, 2010-10-21 at 11:56 -0200, Mauro Carvalho Chehab wrote:
->> Em 21-10-2010 11:46, Jarod Wilson escreveu:
->>> On Oct 20, 2010, at 1:18 PM, Mauro Carvalho Chehab wrote:
->>>
->>>> The RC5 decoding is complete at a BIT_END state. there's no reason
->>>> to wait for the next space to produce a code.
->>>
->>> Well, if I'm reading things correctly here, I think the only true functional difference made to the decoder here was to skip the if
->>> (ev.pulse) break; check in STATE_FINISHED, no? In other words, this looks like it was purely an issue with the receiver data parsing,
->>> which was ending on a pulse instead of a space. I can make this guess in greater confidence having seen another patch somewhere that
->>> implements a different buffer parsing routine for the polaris devices though... ;)
->>
->> This patch doesn't solve the Polaris issue ;)
->>
->> While I made it in the hope that it would fix Polaris (it ended by not solving), I still think it can be kept, as
->> it speeds up a little bit the RC-5 output, by not waiting for the last space.
->>
->> I'll be forwarding soon the polaris decoder fixes patch, and another mceusb patch I did,
->> improving data decode on debug mode.
->>
->>> The mceusb portion of the patch is probably a worthwhile micro-optimization of its ir processing routine though -- 
->>> don't call ir_raw_event_handle if there's no event to handle. Lemme just go ahead and merge that part via my staging tree, 
->>> if you don't mind. (I've got a dozen or so IR patches that have been queueing up, planning on another pull req relatively soon).
->>>
->>
->> Oh! I didn't notice that this went into the patch... for sure it doesn't belong here.
->> Yes, it is just a cleanup for mceusb. Feel free to split it, adding a proper description for it
->> and preserving my SOB.
-> 
-> No need in this patch.
-> My patch resolves the issue genericly by making the driver send the
-> timeout message at the end of the data among the current length of the
-> space (which will continue to grow).
-> 
-> Just make mceusb send the timeout sample.
+Hello,
 
+The v4l2 controls for my cam give the interval 0-6000 for exposure,
+but anything over 4000 gives black screen.
 
-Hmm... now, a RC6(0) remote is also being decoded as a RC5 remote. Could this be due to
-your patches?
+The automatic exposure control (software, the cam has no hardware exp
+control) starts as usual at something low, if there is not enough
+light the exp control pumps up the exposure a little - just as it
+should be, but the when exposure gets over 4000 the screen gets black
+and exp control pumps it all the way to 6000 (which is black as well).
 
-Not handling the entire state machine could cause troubles with some decoders.
+The workaround is to start v4l2ucp, to turn off auto exposure, then
+set exposure to 3999. But that is still a bit dark, so I set the gain
+at 6 or 8 and that gives video of good quality.
 
-Cheers,
-Mauro
+The driver at http://groups.google.com/group/microdia worked well. The
+problems started when I switched to gspca (the driver at that google
+group was merged in gspca).
+
+I have some experience with C, but have never done any serious source
+diving. Can someone guide me trough. Maybe a personal exchange of
+mails will be better suited until a patch is ready.
+
+Cheers
+Stefan Krastanov
