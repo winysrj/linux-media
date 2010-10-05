@@ -1,78 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:43421 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755222Ab0JRQGM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Oct 2010 12:06:12 -0400
-Received: by pxi16 with SMTP id 16so178712pxi.19
-        for <linux-media@vger.kernel.org>; Mon, 18 Oct 2010 09:06:11 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <aa9cebfeb2bfad9ef7f6ee67a188bf98.squirrel@webmail.xs4all.nl>
-References: <49e7400bcbcc4412b77216bb061db1b57cb3b882.1287318143.git.hverkuil@xs4all.nl>
-	<201010171452.17454.hverkuil@xs4all.nl>
-	<AANLkTikPugSRT-t=5bKSLjk3eDmeYh5NYUui=uks35vy@mail.gmail.com>
-	<aa9cebfeb2bfad9ef7f6ee67a188bf98.squirrel@webmail.xs4all.nl>
-Date: Mon, 18 Oct 2010 12:06:05 -0400
-Message-ID: <AANLkTin_4tRP6SPu3kiXYT93mkwdPAXYXo7M=6SKobj2@mail.gmail.com>
-Subject: Re: [RFC PATCH] radio-mr800: locking fixes
-From: David Ellingsworth <david@identd.dyndns.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from perceval.irobotique.be ([92.243.18.41]:55203 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752532Ab0JENMs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 09:12:48 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v2 07/10] v4l: v4l2_subdev pad-level operations
+Date: Tue,  5 Oct 2010 15:12:53 +0200
+Message-Id: <1286284376-12217-8-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1286284376-12217-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1286284376-12217-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Oct 18, 2010 at 9:20 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
->> On Sun, Oct 17, 2010 at 8:52 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>> On Sunday, October 17, 2010 14:26:18 Hans Verkuil wrote:
->>>> - serialize the suspend and resume functions using the global lock.
->>>> - do not call usb_autopm_put_interface after a disconnect.
->>>> - fix a race when disconnecting the device.
->>>
->>> Regarding autosuspend: something seems to work since the
->>> power/runtime_status
->>> attribute goes from 'suspended' to 'active' whenever the radio handle is
->>> open.
->>> But the suspend and resume functions are never called. I can't figure
->>> out
->>> why not. I don't see anything strange.
->>>
->>> The whole autopm stuff is highly suspect anyway on a device like this
->>> since
->>> it is perfectly reasonable to just set a frequency and exit. The audio
->>> is
->>> just going to the line-in anyway. In other words: not having the device
->>> node
->>> open does not mean that the device is idle and can be suspended.
->>>
->>> My proposal would be to rip out the whole autosuspend business from this
->>> driver. I've no idea why it is here at all.
->>>
->>> Regards,
->>>
->>>        Hans
->>
->> Hans, I highly agree with that analysis. The original author put that
->> code in. But like you, I'm not sure if it was ever really valid. Since
->> I didn't have anything to test with, I left it untouched.
->>
->> Regards,
->>
->> David Ellingsworth
->>
->>
->
-> OK, then I'll make a new patch that just rips out autosuspend support.
+Add a v4l2_subdev_pad_ops structure for the operations that need to be
+performed at the pad level such as format-related operations.
 
-I thought about this a little more. I think this driver could benefit
-from auto-suspend, but it's current implementation is indeed flawed.
-The calls to usb_autopm_put/get_interface could occur whenever the
-device is muted/unmuted respectively after the device has been
-initialized. Thus, the suspend should not happen while the device is
-in use per se, but could occur after it's been muted.
+Pad format-related operations use v4l2_mbus_framefmt instead of
+v4l2_format.
 
-Regards,
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/media/v4l2-subdev.h |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-David Ellingsworth
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 961ac4a..9a1e759 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -42,6 +42,7 @@ struct v4l2_ctrl_handler;
+ struct v4l2_event_subscription;
+ struct v4l2_fh;
+ struct v4l2_subdev;
++struct v4l2_subdev_fh;
+ struct tuner_setup;
+ 
+ /* decode_vbi_line */
+@@ -418,6 +419,9 @@ struct v4l2_subdev_ir_ops {
+ 				struct v4l2_subdev_ir_parameters *params);
+ };
+ 
++struct v4l2_subdev_pad_ops {
++};
++
+ struct v4l2_subdev_ops {
+ 	const struct v4l2_subdev_core_ops	*core;
+ 	const struct v4l2_subdev_tuner_ops	*tuner;
+@@ -426,6 +430,7 @@ struct v4l2_subdev_ops {
+ 	const struct v4l2_subdev_vbi_ops	*vbi;
+ 	const struct v4l2_subdev_ir_ops		*ir;
+ 	const struct v4l2_subdev_sensor_ops	*sensor;
++	const struct v4l2_subdev_pad_ops	*pad;
+ };
+ 
+ #define V4L2_SUBDEV_NAME_SIZE 32
+-- 
+1.7.2.2
+
