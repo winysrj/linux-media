@@ -1,49 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from tex.lwn.net ([70.33.254.29]:34611 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754281Ab0JKPau (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Oct 2010 11:30:50 -0400
-Date: Mon, 11 Oct 2010 09:30:48 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Daniel Drake <dsd@laptop.org>
-Subject: Re: [PATCH] viafb camera controller driver
-Message-ID: <20101011093048.432ea83a@bike.lwn.net>
-In-Reply-To: <201010111418.56274.laurent.pinchart@ideasonboard.com>
-References: <20101010162313.5caa137f@bike.lwn.net>
-	<201010111418.56274.laurent.pinchart@ideasonboard.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from perceval.irobotique.be ([92.243.18.41]:56757 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753656Ab0JEOZG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 10:25:06 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [PATCH/RFC v3 07/11] v4l: v4l2_subdev pad-level operations
+Date: Tue,  5 Oct 2010 16:25:10 +0200
+Message-Id: <1286288714-16506-8-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1286288714-16506-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1286288714-16506-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 11 Oct 2010 14:18:55 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
+Add a v4l2_subdev_pad_ops structure for the operations that need to be
+performed at the pad level such as format-related operations.
 
-> > +static __devexit int viacam_remove(struct platform_device *pdev)
-> > +{
-> > +	struct via_camera *cam = via_cam_info;  
-> 
-> And use it here.
-> 
-> Just call platform_set_drvdata(pdev, cam) in viacam_probe to store the struct 
-> via_camera pointer in the platform device, and platform_get_drvdata(pdev) here 
-> to retrieve it.
+Pad format-related operations use v4l2_mbus_framefmt instead of
+v4l2_format.
 
-Yes, I know...but the fix isn't quite that simple because the platform
-data is already used elsewhere.  What's needed is some sort of "viafb
-subdevice instance" structure which can keep all of the pointers
-together.  My plan is to do that, but it will require via-core changes
-and I just don't have time for that right now.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/media/v4l2-subdev.h |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-Can I get away with this (it will cause no real-world trouble) with a
-promise of a fix in the next month or two?  I have some other via-core
-stuff (suspend/resume in particular) that I need to do anyway.
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index f4d489a..7b00ab9 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -42,6 +42,7 @@ struct v4l2_ctrl_handler;
+ struct v4l2_event_subscription;
+ struct v4l2_fh;
+ struct v4l2_subdev;
++struct v4l2_subdev_fh;
+ struct tuner_setup;
+ 
+ /* decode_vbi_line */
+@@ -418,6 +419,9 @@ struct v4l2_subdev_ir_ops {
+ 				struct v4l2_subdev_ir_parameters *params);
+ };
+ 
++struct v4l2_subdev_pad_ops {
++};
++
+ struct v4l2_subdev_ops {
+ 	const struct v4l2_subdev_core_ops	*core;
+ 	const struct v4l2_subdev_tuner_ops	*tuner;
+@@ -426,6 +430,7 @@ struct v4l2_subdev_ops {
+ 	const struct v4l2_subdev_vbi_ops	*vbi;
+ 	const struct v4l2_subdev_ir_ops		*ir;
+ 	const struct v4l2_subdev_sensor_ops	*sensor;
++	const struct v4l2_subdev_pad_ops	*pad;
+ };
+ 
+ #define V4L2_SUBDEV_NAME_SIZE 32
+-- 
+1.7.2.2
 
-Thanks,
-
-jon
