@@ -1,84 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:46290 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1751118Ab0JBIDr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 2 Oct 2010 04:03:47 -0400
-Date: Sat, 2 Oct 2010 10:03:55 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Michael Grzeschik <mgr@pengutronix.de>
-cc: Robert Jarzmik <robert.jarzmik@free.fr>,
-	Michael Grzeschik <m.grzeschik@pengutronix.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Philipp Wiesner <p.wiesner@phytec.de>
-Subject: Re: [PATCH v2 10/11] mt9m111: rewrite set_pixfmt
-In-Reply-To: <Pine.LNX.4.64.1009042234400.24729@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1010021003190.14599@axis700.grange>
-References: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
- <1280833069-26993-11-git-send-email-m.grzeschik@pengutronix.de>
- <Pine.LNX.4.64.1008271335200.28043@axis700.grange> <871v9hmdoz.fsf@free.fr>
- <20100831074605.GC15967@pengutronix.de> <Pine.LNX.4.64.1009042234400.24729@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:35702 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752811Ab0JEBsI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Oct 2010 21:48:08 -0400
+Received: by eyb6 with SMTP id 6so2319588eyb.19
+        for <linux-media@vger.kernel.org>; Mon, 04 Oct 2010 18:48:07 -0700 (PDT)
+Date: Tue, 5 Oct 2010 11:48:46 -0400
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Felipe Sanches <juca@members.fsf.org>,
+	Stefan Ringel <stefan.ringel@arcor.de>,
+	Bee Hock Goh <beehock@gmail.com>,
+	Luis Henrique Fagundes <lhfagundes@hacklab.com.br>
+Subject: tm6000 and new TV card
+Message-ID: <20101005114846.63e59337@glory.local>
+In-Reply-To: <4CA08F20.1020905@redhat.com>
+References: <20100622180521.614eb85d@glory.loctelecom.ru>
+	<4C20D91F.500@redhat.com>
+	<4C212A90.7070707@arcor.de>
+	<4C213257.6060101@redhat.com>
+	<4C222561.4040605@arcor.de>
+	<4C224753.2090109@redhat.com>
+	<4C225A5C.7050103@arcor.de>
+	<20100716161623.2f3314df@glory.loctelecom.ru>
+	<4C4C4DCA.1050505@redhat.com>
+	<20100728113158.0f1495c0@glory.loctelecom.ru>
+	<4C4FD659.9050309@arcor.de>
+	<20100729140936.5bddd275@glory.loctelecom.ru>
+	<4C51ADB5.7010906@redhat.com>
+	<20100731122428.4ee569b4@glory.loctelecom.ru>
+	<4C53A837.3070700@redhat.com>
+	<20100825043746.225a352a@glory.local>
+	<4C7543DA.1070307@redhat.com>
+	<AANLkTimr3=1QHzX3BzUVyo6uqLdCKt8SS9sDtHfZtHGZ@mail.gmail.com>
+	<4C767302.7070506@redhat.com>
+	<20100920160715.7594ee2e@glory.local>
+	<4C99177F.9060100@redhat.com>
+	<20100923124524.73a28b0c@glory.local>
+	<4C9ADEF6.4040809@redhat.com>
+	<20100927134904.0ee9ca5b@glory.local>
+	<4CA08F20.1020905@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Michael, any insight?
+Hi 
 
-Thanks
-Guennadi
+Some times a go I received mail from Yogesh S <yogaishrs@gmail.com>.
+He has TV card based on the tm5600 chip. His card is http://www.zebronics.net/Usb_tvtuners.asp
+and has USB ID as (vid:6000,pid:0001). This IDs already captured by 10MOONS_UT821 TV card.
+Who has the 10MOONS_UT821 TV card and can make some photos inside??
 
-On Sat, 4 Sep 2010, Guennadi Liakhovetski wrote:
+If this cards is different how we can add support zebronics TV tuner?
 
-> On Tue, 31 Aug 2010, Michael Grzeschik wrote:
-> 
-> > Hi Robert and Guennadi
-> > 
-> > On Sun, Aug 29, 2010 at 09:17:00PM +0200, Robert Jarzmik wrote:
-> > > Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
-> > > 
-> > > > Robert, I'll need your ack / tested by on this one too. It actually 
-> > > > changes behaviour, for example, it sets MT9M111_OUTFMT_FLIP_BAYER_ROW in 
-> > > > the OUTPUT_FORMAT_CTRL register for the V4L2_MBUS_FMT_SBGGR8_1X8 8 bit 
-> > > > Bayer format. Maybe other things too - please have a look.
-> > > 
-> > > For the YUV and RGB formats, tested and acked.
-> > > For the bayer, I don't use it. With row switch, that gives back:
-> > > byte offset: 0 1 2 3
-> > >              B G B G
-> > >              G R G R
-> > > 
-> > > Without the switch:
-> > > byte offset: 0 1 2 3
-> > >              G R G R
-> > >              B G B G
-> > > 
-> > > I would have expected the second version (ie. without the switch, ie. the
-> > > original version of mt9m111 driver) to be correct, but I might be wrong. Maybe
-> > > Michael can enlighten me here.
-> > Yes this seems odd, i normaly expect the first line to be BGBG.
-> > I will search for the cause and reply a little later, perhaps end of
-> > the week, since i am also short on time at this moment.
-> 
-> Ok, _if_ you have to redo this patch, maybe you could also merge
-> 
-> [PATCH 04/11] mt9m111: added new bit offset defines
-> [PATCH 08/11] mt9m111: added reg_mask function
-> 
-> into it, otherwise their purpose is unclear.
-> 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+With my best regards, Dmitry.
