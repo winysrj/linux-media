@@ -1,99 +1,134 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3889 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755615Ab0JRNiS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Oct 2010 09:38:18 -0400
-Message-ID: <9e7c8ba580484bbc3066089ece9c08a3.squirrel@webmail.xs4all.nl>
-In-Reply-To: <AANLkTikmKf5uZ=QFYMQ8x_tQ4Mws3pJ61oXsr6Rt=ifx@mail.gmail.com>
-References: <49e7400bcbcc4412b77216bb061db1b57cb3b882.1287318143.git.hverkuil@xs4all.nl>
-    <AANLkTikmKf5uZ=QFYMQ8x_tQ4Mws3pJ61oXsr6Rt=ifx@mail.gmail.com>
-Date: Mon, 18 Oct 2010 15:38:14 +0200
-Subject: Re: [RFC PATCH] radio-mr800: locking fixes
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "David Ellingsworth" <david@identd.dyndns.org>
-Cc: linux-media@vger.kernel.org
+Received: from bear.ext.ti.com ([192.94.94.41]:50767 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755246Ab0JEQJy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 12:09:54 -0400
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "sakari.ailus@maxwell.research.nokia.com"
+	<sakari.ailus@maxwell.research.nokia.com>
+Date: Tue, 5 Oct 2010 11:09:45 -0500
+Subject: RE: [RFC/PATCH v2 5/6] omap3: Export omap3isp platform device
+ structure
+Message-ID: <A24693684029E5489D1D202277BE894472B4F82F@dlee02.ent.ti.com>
+References: <1286284734-12292-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1286284734-12292-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1286284734-12292-6-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Hi Laurent,
 
-> On Sun, Oct 17, 2010 at 8:26 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> - serialize the suspend and resume functions using the global lock.
->> - do not call usb_autopm_put_interface after a disconnect.
->> - fix a race when disconnecting the device.
->>
->> Reported-by: David Ellingsworth <david@identd.dyndns.org>
->> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
->> ---
->>  drivers/media/radio/radio-mr800.c |   17 ++++++++++++++---
->>  1 files changed, 14 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/media/radio/radio-mr800.c
->> b/drivers/media/radio/radio-mr800.c
->> index 2f56b26..b540e80 100644
->> --- a/drivers/media/radio/radio-mr800.c
->> +++ b/drivers/media/radio/radio-mr800.c
->> @@ -284,9 +284,13 @@ static void usb_amradio_disconnect(struct
->> usb_interface *intf)
->>        struct amradio_device *radio =
->> to_amradio_dev(usb_get_intfdata(intf));
->>
->>        mutex_lock(&radio->lock);
->> +       /* increase the device node's refcount */
->> +       get_device(&radio->videodev.dev);
->>        v4l2_device_disconnect(&radio->v4l2_dev);
->> -       mutex_unlock(&radio->lock);
->>        video_unregister_device(&radio->videodev);
->> +       mutex_unlock(&radio->lock);
->> +       /* decrease the device node's refcount, allowing it to be
->> released */
->> +       put_device(&radio->videodev.dev);
->>  }
->
-> Hans, I understand the use of get/put_device here.. but can you
-> explain to me what issue you are trying to solve?
-> video_unregister_device does not have to be synchronized with anything
-> else. Thus, it is perfectly safe to call video_unregister_device while
-> not holding the device lock. Your prior implementation here was
-> correct.
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Laurent Pinchart
+> Sent: Tuesday, October 05, 2010 8:19 AM
+> To: linux-media@vger.kernel.org
+> Cc: sakari.ailus@maxwell.research.nokia.com
+> Subject: [RFC/PATCH v2 5/6] omap3: Export omap3isp platform device
+> structure
+> 
+> From: Stanimir Varbanov <svarbanov@mm-sol.com>
+> 
+> The omap3isp platform device requires platform data. As the data can be
+> provided by a kernel module, the device can't be registered during arch
+> initialization.
+> 
+> Remove the omap3isp platform device registration from
+> omap_init_camera(), and export the platform device structure to let
+> board code register/unregister it.
+> 
 
-This the original sequence:
-
-       mutex_lock(&radio->lock);
-       v4l2_device_disconnect(&radio->v4l2_dev);
-       mutex_unlock(&radio->lock);
-       video_unregister_device(&radio->videodev);
-
-The problem with this is that userspace can call open or ioctl after the
-unlock and before the device node is marked unregistered by
-video_unregister_device.
-
-Once you disconnect you want to block all access (except the release call).
-What my patch does is to move the video_unregister_device call inside the
-lock, but then I have to guard against the release being called before the
-unlock by increasing the refcount.
-
-I have ideas to improve on this as this gets hairy when you have multiple
-device nodes, but I wait with that until the next kernel cycle.
+This patch needs to go through linux-omap ML.
 
 Regards,
+Sergio
 
-         Hans
-
->
-> Regards,
->
-> David Ellingsworth
+> Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  arch/arm/mach-omap2/devices.c |   18 ++++++++++++++++--
+>  arch/arm/mach-omap2/devices.h |   17 +++++++++++++++++
+>  2 files changed, 33 insertions(+), 2 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/devices.h
+> 
+> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> index ade8db0..f9bc507 100644
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -31,6 +31,8 @@
+> 
+>  #include "mux.h"
+> 
+> +#include "devices.h"
+> +
+>  #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
+> 
+>  static struct resource cam_resources[] = {
+> @@ -141,16 +143,28 @@ static struct resource omap3isp_resources[] = {
+>  	}
+>  };
+> 
+> -static struct platform_device omap3isp_device = {
+> +static void omap3isp_release(struct device *dev)
+> +{
+> +	/* Zero the device structure to avoid re-initialization complaints
+> from
+> +	 * kobject when the device will be re-registered.
+> +	 */
+> +	memset(dev, 0, sizeof(*dev));
+> +	dev->release = omap3isp_release;
+> +}
+> +
+> +struct platform_device omap3isp_device = {
+>  	.name		= "omap3isp",
+>  	.id		= -1,
+>  	.num_resources	= ARRAY_SIZE(omap3isp_resources),
+>  	.resource	= omap3isp_resources,
+> +	.dev = {
+> +		.release	= omap3isp_release,
+> +	},
+>  };
+> +EXPORT_SYMBOL_GPL(omap3isp_device);
+> 
+>  static inline void omap_init_camera(void)
+>  {
+> -	platform_device_register(&omap3isp_device);
+>  }
+>  #else
+>  static inline void omap_init_camera(void)
+> diff --git a/arch/arm/mach-omap2/devices.h b/arch/arm/mach-omap2/devices.h
+> new file mode 100644
+> index 0000000..f312d49
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/devices.h
+> @@ -0,0 +1,17 @@
+> +/*
+> + * arch/arm/mach-omap2/devices.h
+> + *
+> + * OMAP2 platform device setup/initialization
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + */
+> +
+> +#ifndef __ARCH_ARM_MACH_OMAP_DEVICES_H
+> +#define __ARCH_ARM_MACH_OMAP_DEVICES_H
+> +
+> +extern struct platform_device omap3isp_device;
+> +
+> +#endif
+> --
+> 1.7.2.2
+> 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
-
