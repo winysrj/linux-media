@@ -1,63 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:54845 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757403Ab0JQQ3l (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Oct 2010 12:29:41 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o9HGTe6k002035
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 17 Oct 2010 12:29:40 -0400
-Received: from [10.3.225.152] (vpn-225-152.phx2.redhat.com [10.3.225.152])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o9HGTdub002055
-	for <linux-media@vger.kernel.org>; Sun, 17 Oct 2010 12:29:40 -0400
-Message-ID: <4CBB2470.50405@redhat.com>
-Date: Sun, 17 Oct 2010 14:29:36 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [ANNOUNCE] new experimental building system
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from perceval.irobotique.be ([92.243.18.41]:56757 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753639Ab0JEOZF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 10:25:05 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [PATCH/RFC v3 05/11] v4l: Add remaining RAW10 patterns w DPCM pixel code variants
+Date: Tue,  5 Oct 2010 16:25:08 +0200
+Message-Id: <1286288714-16506-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1286288714-16506-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1286288714-16506-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-I received some comments from some developers that wanted to test their drivers
-with the latest -stable kernel. After thinking for a while, I decided to do
-a small test, packaging the current build system into a separate tree, without
-any drivers, and providing a way to allow using it with the latest driver.
+This adds following formats:
+- V4L2_MBUS_FMT_SRGGB10_1X10
+- V4L2_MBUS_FMT_SGBRG10_1X10
+- V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8
+- V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8
+- V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8
 
-I added it at:
-	http://git.linuxtv.org/mchehab/new_build.git
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/linux/v4l2-mediabus.h |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
 
-The current version is very raw, but people are free to send patches to improve it.
+diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+index 8987d4b..2bc28dc 100644
+--- a/include/linux/v4l2-mediabus.h
++++ b/include/linux/v4l2-mediabus.h
+@@ -59,16 +59,21 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_YUYV8_1X16 = 0x200d,
+ 	V4L2_MBUS_FMT_YVYU8_1X16 = 0x200e,
+ 
+-	/* Bayer - next is 0x300b */
++	/* Bayer - next is 0x3010 */
+ 	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
+ 	V4L2_MBUS_FMT_SGRBG8_1X8 = 0x3002,
++	V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8 = 0x300b,
++	V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8 = 0x300c,
+ 	V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 = 0x3009,
++	V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8 = 0x300d,
+ 	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE = 0x3003,
+ 	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE = 0x3004,
+ 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE = 0x3005,
+ 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE = 0x3006,
+ 	V4L2_MBUS_FMT_SBGGR10_1X10 = 0x3007,
++	V4L2_MBUS_FMT_SGBRG10_1X10 = 0x300e,
+ 	V4L2_MBUS_FMT_SGRBG10_1X10 = 0x300a,
++	V4L2_MBUS_FMT_SRGGB10_1X10 = 0x300f,
+ 	V4L2_MBUS_FMT_SBGGR12_1X12 = 0x3008,
+ };
+ 
+-- 
+1.7.2.2
 
-Usage:
-
-git clone git://linuxtv.org/mchehab/new_build.git
-cd new_build/linux
-make tar DIR=<some dir with media -git tree>
-make untar
-cd ..
-
-After that, it will work like the old -hg build system.
-
-Notes:
-
-1) There's not much compat stuff here. So, it will likely not work with
-   legacy kernels. It will probably be fine to use it with the latest stable
-   kernel, although I tested it only with 2.6.36-rc7.
-
-2) For now, this is just an experience. I don't intend to maintain any
-   out-of-tree building system, due to my lack of time for it. If this interests
-   someone, feel free to candidate to maintain it.
-
-3) It shouldn't be hard to support legacy kernels. All that it is needed is
-   to have patches adding backports that don't fit at compat.h, and let the
-   building system to apply them, depending on the kernel version.
-
-If someone manifests interests on maintaining it, we probably may have some
-script at linuxtv.org, generating daily tarballs with the latest drivers, to
-be used by this build system.
-
-Cheers,
-Mauro
