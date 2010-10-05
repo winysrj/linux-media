@@ -1,41 +1,29 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:53208 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755906Ab0J0M2y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Oct 2010 08:28:54 -0400
+Received: from mailout-de.gmx.net ([213.165.64.22]:56611 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1754854Ab0JEJxb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 Oct 2010 05:53:31 -0400
+Received: from lyakh (helo=localhost)
+	by axis700.grange with local-esmtp (Exim 4.63)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1P34DN-0007vn-BK
+	for linux-media@vger.kernel.org; Tue, 05 Oct 2010 11:53:41 +0200
+Date: Tue, 5 Oct 2010 11:53:41 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 0/2] V4L: add an IMX074 sensor driver
+Message-ID: <Pine.LNX.4.64.1010041801060.5668@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <1288180057-19656-1-git-send-email-jslaby@suse.cz>
-References: <1288180057-19656-1-git-send-email-jslaby@suse.cz>
-Date: Wed, 27 Oct 2010 08:28:51 -0400
-Message-ID: <AANLkTimEwyt-BdR9C8Vni-bsp4tbQ-Zs6A1CeMamapzz@mail.gmail.com>
-Subject: Re: [PATCH 1/4] V4L: cx231xx, fix lock imbalance
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Jiri Slaby <jslaby@suse.cz>
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, jirislaby@gmail.com,
-	Devin Heitmueller <dheitmueller@hauppauge.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Oct 27, 2010 at 7:47 AM, Jiri Slaby <jslaby@suse.cz> wrote:
-> Stanse found that there is mutex_lock in a fail path of
-> cx231xx_i2c_xfer instead of mutex_unlock (i.e. double lock + leaving a
-> function in locked state). So fix that.
->
-> Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Cc: Devin Heitmueller <dheitmueller@hauppauge.com>
+The first patch just adds a chip ID, the second one the actual driver. To 
+be pushed for 2.6.37, unless objections appear.
 
-This was already reported and a patch was submitted by Dan Carpenter
-on October 21.  See mail on that day with subject line:  "[patch]
-V4L/DVB: cx231xx: fix double lock typo".
-
-Cheers,
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
