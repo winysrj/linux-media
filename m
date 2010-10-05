@@ -1,46 +1,40 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:53960 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755019Ab0JNTbW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Oct 2010 15:31:22 -0400
-Date: Thu, 14 Oct 2010 15:30:48 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
-	David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	mchehab@infradead.org, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [2/8] IR: make sure we register the input device when it is safe
- to do so.
-Message-ID: <20101014193048.GA4244@redhat.com>
-References: <1283808373-27876-3-git-send-email-maximlevitsky@gmail.com>
+Received: from mailout-de.gmx.net ([213.165.64.22]:43544 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1756907Ab0JEJxe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 Oct 2010 05:53:34 -0400
+Received: from lyakh (helo=localhost)
+	by axis700.grange with local-esmtp (Exim 4.63)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1P34DR-0007vq-Po
+	for linux-media@vger.kernel.org; Tue, 05 Oct 2010 11:53:45 +0200
+Date: Tue, 5 Oct 2010 11:53:45 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 1/2] V4L: add IMX074 sensor chip ID
+In-Reply-To: <Pine.LNX.4.64.1010041801060.5668@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1010051145090.28567@axis700.grange>
+References: <Pine.LNX.4.64.1010041801060.5668@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1283808373-27876-3-git-send-email-maximlevitsky@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Sep 06, 2010 at 09:26:07PM -0000, Maxim Levitsky wrote:
-> As soon as input device is registered, it might be accessed (and it is)
-> This can trigger a hardware interrupt that can access
-> not yet initialized ir->raw, (by sending a sample)
-> 
-> This can be reproduced by holding down a remote button and reloading the module.
-> And this always crashes the systems where hardware decides to send an interrupt
-> right at the moment it is enabled.
-> 
-> Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+Chip identification register contains the value 0x74.
 
-Another one I thought I'd acked, but I don't see the ack in patchwork, so
-it may have been from an earlier/superseded version...
-
-Finally got my head wrapped around this one too, and I do see the
-problem, and this fix looks good to me.
-
-Acked-by: Jarod Wilson <jarod@redhat.com>
-
--- 
-Jarod Wilson
-jarod@redhat.com
-
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
+index 1c612b4..aeb4ff9 100644
+--- a/include/media/v4l2-chip-ident.h
++++ b/include/media/v4l2-chip-ident.h
+@@ -38,6 +38,9 @@ enum {
+ 	/* module tvaudio: reserved range 50-99 */
+ 	V4L2_IDENT_TVAUDIO = 50,	/* A tvaudio chip, unknown which it is exactly */
+ 
++	/* Sony IMX074 */
++	V4L2_IDENT_IMX074 = 74,
++
+ 	/* module saa7110: just ident 100 */
+ 	V4L2_IDENT_SAA7110 = 100,
+ 
