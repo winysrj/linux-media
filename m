@@ -1,48 +1,122 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:41970 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753610Ab0JXUO6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Oct 2010 16:14:58 -0400
-Received: by eye27 with SMTP id 27so3530219eye.19
-        for <linux-media@vger.kernel.org>; Sun, 24 Oct 2010 13:14:57 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201010242150.55591.laurent.pinchart@ideasonboard.com>
-References: <1283756030-28634-1-git-send-email-m.szyprowski@samsung.com>
-	<4CC229BC.90000@redhat.com>
-	<AANLkTin_puofnGcxyLbcLCqE8TbX0CUbtHRd-o+CBQt2@mail.gmail.com>
-	<201010242150.55591.laurent.pinchart@ideasonboard.com>
-Date: Sun, 24 Oct 2010 16:14:56 -0400
-Message-ID: <AANLkTimgLwYh5k9RJN_nsqMptWeBw95zOisOUzKkJHvt@mail.gmail.com>
-Subject: Re: [PATCH 7/8] v4l: Add EBUSY error description for VIDIOC_STREAMON
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Pawel Osciak <pawel@osciak.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	p.osciak@samsung.com, s.nawrocki@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from perceval.irobotique.be ([92.243.18.41]:55203 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752237Ab0JENMr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 09:12:47 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v2 02/10] v4l: Rename V4L2_MBUS_FMT_GREY8_1X8 to V4L2_MBUS_FMT_Y8_1X8
+Date: Tue,  5 Oct 2010 15:12:48 +0200
+Message-Id: <1286284376-12217-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1286284376-12217-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1286284376-12217-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, Oct 24, 2010 at 3:50 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> I think the patch makes sense. As you mention many drivers already implement
-> this behaviour, so this mostly clarifies the API. Calling VIDIOC_STREAMON on
-> an already streaming file handle isn't something applications should do in the
-> first place anyway.
+For consistency with the V4L2_MBUS_FMT_Y10_1X10 format.
 
-I don't disagree with this behavior in principle, but Pawel should
-really try this out with some of the common applications to ensure it
-doesn't cause breakage (e.g. tvtime, xawtv, mythtv).
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/mt9m001.c        |    2 +-
+ drivers/media/video/mt9v022.c        |    4 ++--
+ drivers/media/video/sh_mobile_csi2.c |    6 +++---
+ drivers/media/video/soc_mediabus.c   |    2 +-
+ include/linux/v4l2-mediabus.h        |    2 +-
+ 5 files changed, 8 insertions(+), 8 deletions(-)
 
-Despite the fact that some drivers already do this, that doesn't mean
-that those drivers are necessarily the ones commonly used with these
-applications.
-
-Devin
-
+diff --git a/drivers/media/video/mt9m001.c b/drivers/media/video/mt9m001.c
+index 79f096d..c6adc41 100644
+--- a/drivers/media/video/mt9m001.c
++++ b/drivers/media/video/mt9m001.c
+@@ -79,7 +79,7 @@ static const struct mt9m001_datafmt mt9m001_colour_fmts[] = {
+ static const struct mt9m001_datafmt mt9m001_monochrome_fmts[] = {
+ 	/* Order important - see above */
+ 	{V4L2_MBUS_FMT_Y10_1X10, V4L2_COLORSPACE_JPEG},
+-	{V4L2_MBUS_FMT_GREY8_1X8, V4L2_COLORSPACE_JPEG},
++	{V4L2_MBUS_FMT_Y8_1X8, V4L2_COLORSPACE_JPEG},
+ };
+ 
+ struct mt9m001 {
+diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
+index e7cd23c..196c291 100644
+--- a/drivers/media/video/mt9v022.c
++++ b/drivers/media/video/mt9v022.c
+@@ -95,7 +95,7 @@ static const struct mt9v022_datafmt mt9v022_colour_fmts[] = {
+ static const struct mt9v022_datafmt mt9v022_monochrome_fmts[] = {
+ 	/* Order important - see above */
+ 	{V4L2_MBUS_FMT_Y10_1X10, V4L2_COLORSPACE_JPEG},
+-	{V4L2_MBUS_FMT_GREY8_1X8, V4L2_COLORSPACE_JPEG},
++	{V4L2_MBUS_FMT_Y8_1X8, V4L2_COLORSPACE_JPEG},
+ };
+ 
+ struct mt9v022 {
+@@ -392,7 +392,7 @@ static int mt9v022_s_fmt(struct v4l2_subdev *sd,
+ 	 * icd->try_fmt(), datawidth is from our supported format list
+ 	 */
+ 	switch (mf->code) {
+-	case V4L2_MBUS_FMT_GREY8_1X8:
++	case V4L2_MBUS_FMT_Y8_1X8:
+ 	case V4L2_MBUS_FMT_Y10_1X10:
+ 		if (mt9v022->model != V4L2_IDENT_MT9V022IX7ATM)
+ 			return -EINVAL;
+diff --git a/drivers/media/video/sh_mobile_csi2.c b/drivers/media/video/sh_mobile_csi2.c
+index 84a6468..dd1b81b 100644
+--- a/drivers/media/video/sh_mobile_csi2.c
++++ b/drivers/media/video/sh_mobile_csi2.c
+@@ -56,7 +56,7 @@ static int sh_csi2_try_fmt(struct v4l2_subdev *sd,
+ 		switch (mf->code) {
+ 		case V4L2_MBUS_FMT_UYVY8_2X8:		/* YUV422 */
+ 		case V4L2_MBUS_FMT_YUYV8_1_5X8:		/* YUV420 */
+-		case V4L2_MBUS_FMT_GREY8_1X8:		/* RAW8 */
++		case V4L2_MBUS_FMT_Y8_1X8:		/* RAW8 */
+ 		case V4L2_MBUS_FMT_SBGGR8_1X8:
+ 		case V4L2_MBUS_FMT_SGRBG8_1X8:
+ 			break;
+@@ -67,7 +67,7 @@ static int sh_csi2_try_fmt(struct v4l2_subdev *sd,
+ 		break;
+ 	case SH_CSI2I:
+ 		switch (mf->code) {
+-		case V4L2_MBUS_FMT_GREY8_1X8:		/* RAW8 */
++		case V4L2_MBUS_FMT_Y8_1X8:		/* RAW8 */
+ 		case V4L2_MBUS_FMT_SBGGR8_1X8:
+ 		case V4L2_MBUS_FMT_SGRBG8_1X8:
+ 		case V4L2_MBUS_FMT_SBGGR10_1X10:	/* RAW10 */
+@@ -111,7 +111,7 @@ static int sh_csi2_s_fmt(struct v4l2_subdev *sd,
+ 	case V4L2_MBUS_FMT_RGB565_2X8_BE:
+ 		tmp |= 0x22;	/* RGB565 */
+ 		break;
+-	case V4L2_MBUS_FMT_GREY8_1X8:
++	case V4L2_MBUS_FMT_Y8_1X8:
+ 	case V4L2_MBUS_FMT_SBGGR8_1X8:
+ 	case V4L2_MBUS_FMT_SGRBG8_1X8:
+ 		tmp |= 0x2a;	/* RAW8 */
+diff --git a/drivers/media/video/soc_mediabus.c b/drivers/media/video/soc_mediabus.c
+index 9139121..d9c297d 100644
+--- a/drivers/media/video/soc_mediabus.c
++++ b/drivers/media/video/soc_mediabus.c
+@@ -88,7 +88,7 @@ static const struct soc_mbus_pixelfmt mbus_fmt[] = {
+ 		.packing		= SOC_MBUS_PACKING_EXTEND16,
+ 		.order			= SOC_MBUS_ORDER_LE,
+ 	},
+-	[MBUS_IDX(GREY8_1X8)] = {
++	[MBUS_IDX(Y8_1X8)] = {
+ 		.fourcc			= V4L2_PIX_FMT_GREY,
+ 		.name			= "Grey",
+ 		.bits_per_sample	= 8,
+diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+index 127512a..75c2d55 100644
+--- a/include/linux/v4l2-mediabus.h
++++ b/include/linux/v4l2-mediabus.h
+@@ -37,7 +37,7 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_RGB565_2X8_BE,
+ 	V4L2_MBUS_FMT_SBGGR8_1X8,
+ 	V4L2_MBUS_FMT_SBGGR10_1X10,
+-	V4L2_MBUS_FMT_GREY8_1X8,
++	V4L2_MBUS_FMT_Y8_1X8,
+ 	V4L2_MBUS_FMT_Y10_1X10,
+ 	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
+ 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.2.2
+
