@@ -1,35 +1,123 @@
 Return-path: <mchehab@pedra>
-Received: from p-mail1.rd.francetelecom.com ([195.101.245.15]:34219 "EHLO
-	p-mail1.rd.francetelecom.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756716Ab0JAPFq (ORCPT
+Received: from qmta02.emeryville.ca.mail.comcast.net ([76.96.30.24]:42495 "EHLO
+	qmta02.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756452Ab0JEX4B (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Oct 2010 11:05:46 -0400
-Message-ID: <4CA5F8C8.6020205@Free.fr>
-Date: Fri, 01 Oct 2010 17:05:44 +0200
-From: Eric Valette <Eric.Valette@Free.fr>
-Reply-To: Eric.Valette@Free.fr
+	Tue, 5 Oct 2010 19:56:01 -0400
+Date: Tue, 5 Oct 2010 16:53:55 -0700
+From: matt mooney <mfm@muteddisk.com>
+To: T Dent <tdent48227@gmail.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Michal Marek <mmarek@suse.cz>, linux-media@vger.kernel.org,
+	linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: Re: [RFC PATCH] media: consolidation of -I flags
+Message-ID: <20101005235355.GB18586@haskell.muteddisk.com>
+References: <1285534847-31463-1-git-send-email-mfm@muteddisk.com>
+ <20101005142906.GA20059@merkur.ravnborg.org>
+ <20101005192435.GA17798@haskell.muteddisk.com>
+ <AANLkTik4Ezpj939za2PMWOqOxjXnbdXjvtbXR6Tau2zr@mail.gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Antti Palosaari <crope@iki.fi>,
-	"Yann E. MORIN" <yann.morin.1998@anciens.enib.fr>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] v4l/dvb: add support for AVerMedia AVerTV Red HD+ (A850T)
-References: <1285795123-11046-1-git-send-email-yann.morin.1998@anciens.enib.fr> <201009301956.50154.yann.morin.1998@anciens.enib.fr> <4CA4F640.7030206@iki.fi> <201009302309.58546.yann.morin.1998@anciens.enib.fr> <4CA505C9.1040400@iki.fi> <4CA5963C.3070202@Free.fr> <4CA5CCBE.7010201@redhat.com> <4CA5CED7.2090203@Free.fr> <4CA5F5DE.7070209@redhat.com>
-In-Reply-To: <4CA5F5DE.7070209@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <AANLkTik4Ezpj939za2PMWOqOxjXnbdXjvtbXR6Tau2zr@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 10/01/2010 04:53 PM, Mauro Carvalho Chehab wrote:
+On 18:27 Tue 05 Oct     , T Dent wrote:
+> On 10/5/10, Sam Ravnborg <sam@ravnborg.org> wrote:
+> > On Sun, Sep 26, 2010 at 02:00:47PM -0700, matt mooney wrote:
+> >> I have been doing cleanup of makefiles, namely replacing the older style
+> >> compilation flag variables with the newer style. While doing this, I
+> >> noticed that the majority of drivers in the media subsystem seem to rely
+> >> on a few core header files:
+> >>
+> >> 	-Idrivers/media/video
+> >> 	-Idrivers/media/common/tuners
+> >> 	-Idrivers/media/dvb/dvb-core
+> >> 	-Idrivers/media/dvb/frontends
+> >>
+> >> This patch removes them from the individual makefiles and puts them in
+> >> the main makefile under media.
+> > Using subdir-ccflags-y has one drawback you need to be aware of.
+> > The variable is _not_ picked up if you build individual drivers like
+> > this:
+> >
+> >
+> >      make drivers/media/dvb/b2c2/
+> >
+> > So with this patch applied it is no longer possible to do so.
+> > It is better to accept the duplication rather than breaking
+> > the build of individual drivers.
+> >
+> >>
+> >> If neither idea is considered beneficial, I will go ahead and replace
+> >> the older variables with the newer ones as is.
+> >
+> > This is the right approach.
+> >
+> > You could consider to do a more general cleanup:
+> > 1) replace EXTRA_CFLAGS with ccflags-y (the one you suggest)
+> > 2) replace use of <module>-objs with <module>-y
+> > 3) break continued lines into several assignments
+> 
+> I have a question when you say this do you mean change something like this:
+> 
+> r8187se-objs :=
+> 
+> to
+> 
+> r8187se-y :=
 
-> If you're talking about http://linuxtv.org/repo/, I just updated it.
+Yes, that is what is meant, but remember to change conditional inclusions to the
+kbuild idiom.
 
-Thanks. If you find some extra time look at <http://linuxtv.org/hg/> 
-(points to incorrect git tree) and <http://git.linuxtv.org/> that should 
-have the same explantion as repo on top maybe.
+> If so, I could start working on that in the staging directory.
 
-Again thanks for the hard work. And have a nice week-end.
+That's cool; the staging makefiles need extra attention though, so you really
+need to go through and make sure you understand what is and isn't needed. And
+check to see what drivers are on their way out so that you don't waste your
+time.
 
--- eric
+Now, I do have some of these queued up for other parts of the kernel, so please
+let me know before you start sending in patches for other parts that I have
+already worked on.
 
+Thanks,
+mfm
+
+> >    People very often uses '\' to break long lines, where a
+> >    simple += would be much more readable.
+> >    But this topic may be personal - I never uses "\" in my .c code unless in
+> > macros,
+> >    and I have applied the same rule for Makefiles.
+> >    An ugly example is drivers/media/Makefile
+> > 4) In general use ":=" instead of "=".
+> >    Add using "+=" as first assignment is OK - but it just looks plain wrong
+> > 5) some files has a mixture of spaces/tabs (are red in my vim)
+> >    dvb-core/Makefile is one such example
+> > 6) remove useless stuff
+> >    siano/Makefile has some strange assignments to EXTRA_CFLAGS
+> > 7) Likely a few more items to look after...
+> >
+> > This is more work - but then you finish a Makefile rather than doing a
+> > simple
+> > conversion.
+> >
+> > 	Sam
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > Please read the FAQ at  http://www.tux.org/lkml/
+> >
+> 
+> Thanks,
+> 
+> Tracey D
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kbuild" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
