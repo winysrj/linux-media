@@ -1,81 +1,96 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:5534 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757050Ab0JXR5A (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Oct 2010 13:57:00 -0400
-Message-ID: <4CC4735D.9040705@redhat.com>
-Date: Sun, 24 Oct 2010 15:56:45 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from qmta06.emeryville.ca.mail.comcast.net ([76.96.30.56]:59181 "EHLO
+	qmta06.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756593Ab0JEXqd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 Oct 2010 19:46:33 -0400
+Date: Tue, 5 Oct 2010 16:44:25 -0700
+From: matt mooney <mfm@muteddisk.com>
+To: Sam Ravnborg <sam@ravnborg.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Michal Marek <mmarek@suse.cz>, linux-media@vger.kernel.org,
+	linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: Re: [RFC PATCH] media: consolidation of -I flags
+Message-ID: <20101005234425.GA18586@haskell.muteddisk.com>
+References: <1285534847-31463-1-git-send-email-mfm@muteddisk.com>
+ <20101005142906.GA20059@merkur.ravnborg.org>
+ <20101005192435.GA17798@haskell.muteddisk.com>
 MIME-Version: 1.0
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Jarod Wilson <jarod@redhat.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	LIRC Users <lirc-list@lists.sourceforge.net>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: V4L/DVB miniconf at Linux Plumbers 2010
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20101005192435.GA17798@haskell.muteddisk.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+On 12:24 Tue 05 Oct     , matt mooney wrote:
+> On 16:29 Tue 05 Oct     , Sam Ravnborg wrote:
+> > On Sun, Sep 26, 2010 at 02:00:47PM -0700, matt mooney wrote:
+> > > I have been doing cleanup of makefiles, namely replacing the older style
+> > > compilation flag variables with the newer style. While doing this, I
+> > > noticed that the majority of drivers in the media subsystem seem to rely
+> > > on a few core header files:
+> > > 
+> > > 	-Idrivers/media/video
+> > > 	-Idrivers/media/common/tuners
+> > > 	-Idrivers/media/dvb/dvb-core
+> > > 	-Idrivers/media/dvb/frontends
+> > > 
+> > > This patch removes them from the individual makefiles and puts them in
+> > > the main makefile under media.
+> > Using subdir-ccflags-y has one drawback you need to be aware of.
+> > The variable is _not_ picked up if you build individual drivers like
+> > this:
+> > 
+> > 
+> >      make drivers/media/dvb/b2c2/
+> > 
+> > So with this patch applied it is no longer possible to do so.
+> > It is better to accept the duplication rather than breaking
+> > the build of individual drivers.
+> 
+> Ah, I was not aware of that, and I forgot to test for that case.
+> 
+> > > 
+> > > If neither idea is considered beneficial, I will go ahead and replace
+> > > the older variables with the newer ones as is.
+> > 
+> > This is the right approach.
+> > 
+> > You could consider to do a more general cleanup:
+> > 1) replace EXTRA_CFLAGS with ccflags-y (the one you suggest)
+> > 2) replace use of <module>-objs with <module>-y
+> > 3) break continued lines into several assignments
+> >    People very often uses '\' to break long lines, where a
+> >    simple += would be much more readable.
+> >    But this topic may be personal - I never uses "\" in my .c code unless in macros,
+> >    and I have applied the same rule for Makefiles.
+> >    An ugly example is drivers/media/Makefile
+> > 4) In general use ":=" instead of "=".
+> >    Add using "+=" as first assignment is OK - but it just looks plain wrong
+> > 5) some files has a mixture of spaces/tabs (are red in my vim)
+> >    dvb-core/Makefile is one such example
+> > 6) remove useless stuff
+> >    siano/Makefile has some strange assignments to EXTRA_CFLAGS
+> > 7) Likely a few more items to look after...
+> > 
+> > This is more work - but then you finish a Makefile rather than doing a simple
+> > conversion.
+> 
+> I agree with all your points above; however, I was unsure of whether a wholesale
+> cleanup would be welcomed because I would then end up touching numerous lines
+> (and in some cases, possibly all lines). I did notice, though, the need for
+> quite a bit of cleanup like you have mentioned, and I have a few patches queued
+> up that make a second pass on some files changing <module>-objs to
+> <module>-y. You know better than I do, so if you feel I should cleanup the whole
+> file in one patch, then that is what I will do although this will take some
+> time.
+> 
+> Is the use of <module>-objs deprecated? Some people might wonder why I am
+> changing that when they are not building a multisource object.
 
-I've updated the themes that will be discussed during this year's LPC conference.
-They're available at:
+I just realized I stated that wrong. I meant when they are not using a
+conditional inclusion of sources.
 
-	http://wiki.linuxplumbersconf.org/2010:media_infrastructure
-
-The media track is scheduled to happen on Friday, November 5, 2010 at 1:30 – 4:00pm.
-
-Jarod/Vaibhav/Marek,
-
-Please review. I've reserved 35 mins for presentations/discussions for each theme,
-leaving 60 mins for other random discussions we may have at the end of the panel.
-Please let me know if this is enough. Feel free to update the wiki with more information
-that you may judge pertinent.
-
-I hope to meet you all there!
-
-
-Cheers,
-Mauro
-
----
-As the wiki page with the schedule may be later updated, for the records, the current 
-contents is:
-
-
-Several changes are happening at the Media Infrastructure in kernel, including:
-
-    *  New Remote Controller subsystem;
-    *  Events handling;
-    *  Videobuf changes;
-    *  …
-
-Those changes will be discussed on the tracks bellow:
-
-1) Multimedia Linux Remote Controllers – Jarod Wilson – 35 mins
-
-A discussion about the state of video remote control integration in the linux kernel and userspace, focusing on Remote Control improvements.
-
-Should include the following sub-themes:
-
-    * IR remotes
-    * Bluetooth remotes
-    * RF4CE (802.15.4) remotes
-    * Coordination of all types of remotes into a coherent framework
-    * Pin coupling to radio remotes
-    * Missing 802.15.4 networking infrastructure
-    * X11 integration
-
-2) Videobuf2 – the new Video for Linux driver framework – Marek Szyprowski – 35 mins
-
-An effort to write a new framework to replace video buffering handling, called videobuf2 is currently underway. It will be more modular, have additional features and better support for new devices and platforms (including embedded).
-
-3) Embedded Video devices: Can Linux handle such comples video Sub-System – Vaibhav Hiremath – 35 mins
-
-This will be an open discussion, suggestions from other community experts, where we will discuss on few latest Embedded devices as an case-study.
-
-4) Media infrastructure – Mauro Carvalho Chehab – 60 mins
-
-This will discuss V4L/DVB/IR current issues and the next steps to improve the subsystem
+Thanks,
+mfm
