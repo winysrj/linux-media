@@ -1,55 +1,111 @@
 Return-path: <mchehab@pedra>
-Received: from mailgate.plextek.co.uk ([62.254.222.163]:24004 "EHLO
-	mailgate.plextek.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751627Ab0J1KWn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Oct 2010 06:22:43 -0400
-Content-class: urn:content-classes:message
-MIME-Version: 1.0
-Subject: Changing frame size on the fly in SOC module
-Date: Thu, 28 Oct 2010 11:12:53 +0100
-Message-ID: <8C9A6B7580601F4FBDC0ED4C1D6A9B1D02AF331B@plextek3.plextek.lan>
-From: "Adam Sutton" <aps@plextek.co.uk>
-To: <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from perceval.irobotique.be ([92.243.18.41]:60207 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752451Ab0JENSq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 09:18:46 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v2 4/6] ARM: OMAP3: Update Camera ISP definitions for OMAP3630
+Date: Tue,  5 Oct 2010 15:18:53 +0200
+Message-Id: <1286284734-12292-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1286284734-12292-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1286284734-12292-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+From: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
 
-Sometime ago I developed an SOC based camera driver for my platform
-(ov7675 on iMX25), for the most part it seems to be working well however
-at the time I couldn't manage to change the frame size on the fly
-(without closing / re-opening the device).
+Add new/changed base address definitions and resources for
+OMAP3630 ISP.
 
-The current problem I have is that my application needs to display a
-320x240 preview image on screen, but to capture a static image at
-640x480. I can do this as long as I close the device in between,
-unfortunately for power consumption reasons the camera device is put
-into a low power state whenever the device is released. This means that
-the image capture takes approx 1.5s (the requirement I have to meet is
-1s).
+The OMAP3430 CSI2PHY block is same as the OMAP3630 CSIPHY2
+block. But the later name is chosen as it gives more symmetry
+to the names.
 
-Now I could cheat and simply subsample (in software) the 640x480 image,
-but that puts additional burden on an already overworked MCU.
+Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
+Signed-off-by: Vimarsh Zutshi <vimarsh.zutshi@nokia.com>
+---
+ arch/arm/mach-omap2/devices.c              |   28 ++++++++++++++++++++++++----
+ arch/arm/plat-omap/include/plat/omap34xx.h |   16 ++++++++++++----
+ 2 files changed, 36 insertions(+), 8 deletions(-)
 
-Having been through the soc_camera and videobuf code and as far as I can
-tell this inability to change the frame size without closing the camera
-device appears to be a design decision.
-
-What I'm really after is confirmation one way of the other. If it's not,
-what is the correct process to achieve the frame change without closing
-the device. And if it is, does anybody have any suggestions of possible
-workarounds?
-
-Thanks
-Adam
-
-
-Plextek Limited
-Registered Address: London Road, Great Chesterford, Essex, CB10 1NY, UK Company Registration No. 2305889
-VAT Registration No. GB 918 4425 15
-Tel: +44 1799 533 200. Fax: +44 1799 533 201 Web:http://www.plextek.com 
-Electronics Design and Consultancy
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 2dbb265..ade8db0 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -106,13 +106,33 @@ static struct resource omap3isp_resources[] = {
+ 		.flags		= IORESOURCE_MEM,
+ 	},
+ 	{
+-		.start		= OMAP3430_ISP_CSI2A_BASE,
+-		.end		= OMAP3430_ISP_CSI2A_END,
++		.start		= OMAP3430_ISP_CSI2A_REGS1_BASE,
++		.end		= OMAP3430_ISP_CSI2A_REGS1_END,
+ 		.flags		= IORESOURCE_MEM,
+ 	},
+ 	{
+-		.start		= OMAP3430_ISP_CSI2PHY_BASE,
+-		.end		= OMAP3430_ISP_CSI2PHY_END,
++		.start		= OMAP3430_ISP_CSIPHY2_BASE,
++		.end		= OMAP3430_ISP_CSIPHY2_END,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP3630_ISP_CSI2A_REGS2_BASE,
++		.end		= OMAP3630_ISP_CSI2A_REGS2_END,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP3630_ISP_CSI2C_REGS1_BASE,
++		.end		= OMAP3630_ISP_CSI2C_REGS1_END,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP3630_ISP_CSIPHY1_BASE,
++		.end		= OMAP3630_ISP_CSIPHY1_END,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP3630_ISP_CSI2C_REGS2_BASE,
++		.end		= OMAP3630_ISP_CSI2C_REGS2_END,
+ 		.flags		= IORESOURCE_MEM,
+ 	},
+ 	{
+diff --git a/arch/arm/plat-omap/include/plat/omap34xx.h b/arch/arm/plat-omap/include/plat/omap34xx.h
+index 98fc8b4..b9e8588 100644
+--- a/arch/arm/plat-omap/include/plat/omap34xx.h
++++ b/arch/arm/plat-omap/include/plat/omap34xx.h
+@@ -56,8 +56,12 @@
+ #define OMAP3430_ISP_RESZ_BASE		(OMAP3430_ISP_BASE + 0x1000)
+ #define OMAP3430_ISP_SBL_BASE		(OMAP3430_ISP_BASE + 0x1200)
+ #define OMAP3430_ISP_MMU_BASE		(OMAP3430_ISP_BASE + 0x1400)
+-#define OMAP3430_ISP_CSI2A_BASE		(OMAP3430_ISP_BASE + 0x1800)
+-#define OMAP3430_ISP_CSI2PHY_BASE	(OMAP3430_ISP_BASE + 0x1970)
++#define OMAP3430_ISP_CSI2A_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1800)
++#define OMAP3430_ISP_CSIPHY2_BASE	(OMAP3430_ISP_BASE + 0x1970)
++#define OMAP3630_ISP_CSI2A_REGS2_BASE	(OMAP3430_ISP_BASE + 0x19C0)
++#define OMAP3630_ISP_CSI2C_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1C00)
++#define OMAP3630_ISP_CSIPHY1_BASE	(OMAP3430_ISP_BASE + 0x1D70)
++#define OMAP3630_ISP_CSI2C_REGS2_BASE	(OMAP3430_ISP_BASE + 0x1DC0)
+ 
+ #define OMAP3430_ISP_END		(OMAP3430_ISP_BASE         + 0x06F)
+ #define OMAP3430_ISP_CBUFF_END		(OMAP3430_ISP_CBUFF_BASE   + 0x077)
+@@ -69,8 +73,12 @@
+ #define OMAP3430_ISP_RESZ_END		(OMAP3430_ISP_RESZ_BASE    + 0x0AB)
+ #define OMAP3430_ISP_SBL_END		(OMAP3430_ISP_SBL_BASE     + 0x0FB)
+ #define OMAP3430_ISP_MMU_END		(OMAP3430_ISP_MMU_BASE     + 0x06F)
+-#define OMAP3430_ISP_CSI2A_END		(OMAP3430_ISP_CSI2A_BASE   + 0x16F)
+-#define OMAP3430_ISP_CSI2PHY_END	(OMAP3430_ISP_CSI2PHY_BASE + 0x007)
++#define OMAP3430_ISP_CSI2A_REGS1_END	(OMAP3430_ISP_CSI2A_REGS1_BASE + 0x16F)
++#define OMAP3430_ISP_CSIPHY2_END	(OMAP3430_ISP_CSIPHY2_BASE + 0x00B)
++#define OMAP3630_ISP_CSI2A_REGS2_END	(OMAP3630_ISP_CSI2A_REGS2_BASE + 0x3F)
++#define OMAP3630_ISP_CSI2C_REGS1_END	(OMAP3630_ISP_CSI2C_REGS1_BASE + 0x16F)
++#define OMAP3630_ISP_CSIPHY1_END	(OMAP3630_ISP_CSIPHY1_BASE + 0x00B)
++#define OMAP3630_ISP_CSI2C_REGS2_END	(OMAP3630_ISP_CSI2C_REGS2_BASE + 0x3F)
+ 
+ #define OMAP34XX_HSUSB_OTG_BASE	(L4_34XX_BASE + 0xAB000)
+ #define OMAP34XX_USBTLL_BASE	(L4_34XX_BASE + 0x62000)
+-- 
+1.7.2.2
 
