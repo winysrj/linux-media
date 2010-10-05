@@ -1,79 +1,200 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:54431 "EHLO
+Received: from perceval.irobotique.be ([92.243.18.41]:55202 "EHLO
 	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754364Ab0JWL1L (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Oct 2010 07:27:11 -0400
+	with ESMTP id S1752237Ab0JENMp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 09:12:45 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <maurochehab@gmail.com>
-Subject: Re: [GIT PATCHES FOR 2.6.37] Use modaliases to load I2C modules
-Date: Sat, 23 Oct 2010 13:27:25 +0200
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Jean Delvare <khali@linux-fr.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pete Eberlein <pete@sensoray.com>,
-	Mike Isely <isely@pobox.com>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Vaibhav Hiremath <hvaibhav@ti.com>,
-	Muralidharan Karicheri <mkaricheri@gmail.com>
-References: <201010061045.02832.laurent.pinchart@ideasonboard.com> <4CC225F9.5030603@gmail.com>
-In-Reply-To: <4CC225F9.5030603@gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201010231327.25916.laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v2 01/10] v4l: Move the media/v4l2-mediabus.h header to include/linux
+Date: Tue,  5 Oct 2010 15:12:47 +0200
+Message-Id: <1286284376-12217-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1286284376-12217-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1286284376-12217-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+The header defines the v4l2_mbus_framefmt structure which will be used
+by the V4L2 subdevs userspace API.
 
-On Saturday 23 October 2010 02:02:01 Mauro Carvalho Chehab wrote:
-> Em 06-10-2010 05:45, Laurent Pinchart escreveu:
-> > The following changes since commit 
-c8dd732fd119ce6d562d5fa82a10bbe75a376575:
-> >   V4L/DVB: gspca - sonixj: Have 0c45:6130 handled by sonixj instead of
-> >   sn9c102 (2010-10-01 18:14:35 -0300)
-> > 
-> > are available in the git repository at:
-> >   git://linuxtv.org/pinchartl/uvcvideo.git i2c-module-name
-> > 
-> > The patches have been posted to the list, and acked for pvrusb2,
-> > soc-camera and sh_vou.
-> > 
-> > Laurent Pinchart (16):
-> >       v4l: Load I2C modules based on modalias
-> >       v4l: Remove hardcoded module names passed to v4l2_i2c_new_subdev*
-> >       go7007: Add MODULE_DEVICE_TABLE to the go7007 I2C modules
-> >       go7007: Fix the TW2804 I2C type name
-> >       go7007: Don't use module names to load I2C modules
-> >       zoran: Don't use module names to load I2C modules
-> >       pvrusb2: Don't use module names to load I2C modules
-> >       sh_vou: Don't use module names to load I2C modules
-> >       radio-si4713: Don't use module names to load I2C modules
-> >       soc_camera: Don't use module names to load I2C modules
-> >       vpfe_capture: Don't use module names to load I2C modules
-> >       vpif_display: Don't use module names to load I2C modules
-> >       vpif_capture: Don't use module names to load I2C modules
-> >       ivtv: Don't use module names to load I2C modules
-> >       cx18: Don't use module names to load I2C modules
-> >       v4l: Remove module_name argument to the v4l2_i2c_new_subdev*
-> >       functions
-> 
-> To avoid the risk of break something, I've applied all patches from your
-> series, but the last one. This way, we shouldn't have any regression, and
-> kABI shouldn't break. So, if someone send a patch late (and there were
-> some new driver additions committed after your patch), it won't break
-> compilation for the new drivers.
-> 
-> Please rebase the last patch and send it to me again at the end of the -rc1
-> merge window.
+Change the type of the v4l2_mbus_framefmt::code field to __u32, as enum
+sizes can differ between different ABIs on the same architectures.
 
-OK. By end of the -rc1 merge window, do you mean right before it closes or 
-right after it has closed ? If the former, when will that be ?
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/linux/Kbuild          |    1 +
+ include/linux/v4l2-mediabus.h |   70 +++++++++++++++++++++++++++++++++++++++++
+ include/media/soc_mediabus.h  |    3 +-
+ include/media/v4l2-mediabus.h |   53 +------------------------------
+ 4 files changed, 73 insertions(+), 54 deletions(-)
+ create mode 100644 include/linux/v4l2-mediabus.h
 
+diff --git a/include/linux/Kbuild b/include/linux/Kbuild
+index f836ee4..38127c2 100644
+--- a/include/linux/Kbuild
++++ b/include/linux/Kbuild
+@@ -369,6 +369,7 @@ header-y += unistd.h
+ header-y += usbdevice_fs.h
+ header-y += utime.h
+ header-y += utsname.h
++header-y += v4l2-mediabus.h
+ header-y += veth.h
+ header-y += vhost.h
+ header-y += videodev.h
+diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+new file mode 100644
+index 0000000..127512a
+--- /dev/null
++++ b/include/linux/v4l2-mediabus.h
+@@ -0,0 +1,70 @@
++/*
++ * Media Bus API header
++ *
++ * Copyright (C) 2009, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef __LINUX_V4L2_MEDIABUS_H
++#define __LINUX_V4L2_MEDIABUS_H
++
++#include <linux/types.h>
++#include <linux/videodev2.h>
++
++/*
++ * These pixel codes uniquely identify data formats on the media bus. Mostly
++ * they correspond to similarly named V4L2_PIX_FMT_* formats, format 0 is
++ * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client pairs, where the
++ * data format is fixed. Additionally, "2X8" means that one pixel is transferred
++ * in two 8-bit samples, "BE" or "LE" specify in which order those samples are
++ * transferred over the bus: "LE" means that the least significant bits are
++ * transferred first, "BE" means that the most significant bits are transferred
++ * first, and "PADHI" and "PADLO" define which bits - low or high, in the
++ * incomplete high byte, are filled with padding bits.
++ */
++enum v4l2_mbus_pixelcode {
++	V4L2_MBUS_FMT_FIXED = 1,
++	V4L2_MBUS_FMT_YUYV8_2X8,
++	V4L2_MBUS_FMT_YVYU8_2X8,
++	V4L2_MBUS_FMT_UYVY8_2X8,
++	V4L2_MBUS_FMT_VYUY8_2X8,
++	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
++	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
++	V4L2_MBUS_FMT_RGB565_2X8_LE,
++	V4L2_MBUS_FMT_RGB565_2X8_BE,
++	V4L2_MBUS_FMT_SBGGR8_1X8,
++	V4L2_MBUS_FMT_SBGGR10_1X10,
++	V4L2_MBUS_FMT_GREY8_1X8,
++	V4L2_MBUS_FMT_Y10_1X10,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
++	V4L2_MBUS_FMT_SGRBG8_1X8,
++	V4L2_MBUS_FMT_SBGGR12_1X12,
++	V4L2_MBUS_FMT_YUYV8_1_5X8,
++	V4L2_MBUS_FMT_YVYU8_1_5X8,
++	V4L2_MBUS_FMT_UYVY8_1_5X8,
++	V4L2_MBUS_FMT_VYUY8_1_5X8,
++};
++
++/**
++ * struct v4l2_mbus_framefmt - frame format on the media bus
++ * @width:	frame width
++ * @height:	frame height
++ * @code:	data format code
++ * @field:	used interlacing type
++ * @colorspace:	colorspace of the data
++ */
++struct v4l2_mbus_framefmt {
++	__u32				width;
++	__u32				height;
++	__u32				code;
++	enum v4l2_field			field;
++	enum v4l2_colorspace		colorspace;
++};
++
++#endif
+diff --git a/include/media/soc_mediabus.h b/include/media/soc_mediabus.h
+index 037cd7b..6243147 100644
+--- a/include/media/soc_mediabus.h
++++ b/include/media/soc_mediabus.h
+@@ -12,8 +12,7 @@
+ #define SOC_MEDIABUS_H
+ 
+ #include <linux/videodev2.h>
+-
+-#include <media/v4l2-mediabus.h>
++#include <linux/v4l2-mediabus.h>
+ 
+ /**
+  * enum soc_mbus_packing - data packing types on the media-bus
+diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+index f0cf2e7..971c7fa 100644
+--- a/include/media/v4l2-mediabus.h
++++ b/include/media/v4l2-mediabus.h
+@@ -11,58 +11,7 @@
+ #ifndef V4L2_MEDIABUS_H
+ #define V4L2_MEDIABUS_H
+ 
+-/*
+- * These pixel codes uniquely identify data formats on the media bus. Mostly
+- * they correspond to similarly named V4L2_PIX_FMT_* formats, format 0 is
+- * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client pairs, where the
+- * data format is fixed. Additionally, "2X8" means that one pixel is transferred
+- * in two 8-bit samples, "BE" or "LE" specify in which order those samples are
+- * transferred over the bus: "LE" means that the least significant bits are
+- * transferred first, "BE" means that the most significant bits are transferred
+- * first, and "PADHI" and "PADLO" define which bits - low or high, in the
+- * incomplete high byte, are filled with padding bits.
+- */
+-enum v4l2_mbus_pixelcode {
+-	V4L2_MBUS_FMT_FIXED = 1,
+-	V4L2_MBUS_FMT_YUYV8_2X8,
+-	V4L2_MBUS_FMT_YVYU8_2X8,
+-	V4L2_MBUS_FMT_UYVY8_2X8,
+-	V4L2_MBUS_FMT_VYUY8_2X8,
+-	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
+-	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
+-	V4L2_MBUS_FMT_RGB565_2X8_LE,
+-	V4L2_MBUS_FMT_RGB565_2X8_BE,
+-	V4L2_MBUS_FMT_SBGGR8_1X8,
+-	V4L2_MBUS_FMT_SBGGR10_1X10,
+-	V4L2_MBUS_FMT_GREY8_1X8,
+-	V4L2_MBUS_FMT_Y10_1X10,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
+-	V4L2_MBUS_FMT_SGRBG8_1X8,
+-	V4L2_MBUS_FMT_SBGGR12_1X12,
+-	V4L2_MBUS_FMT_YUYV8_1_5X8,
+-	V4L2_MBUS_FMT_YVYU8_1_5X8,
+-	V4L2_MBUS_FMT_UYVY8_1_5X8,
+-	V4L2_MBUS_FMT_VYUY8_1_5X8,
+-};
+-
+-/**
+- * struct v4l2_mbus_framefmt - frame format on the media bus
+- * @width:	frame width
+- * @height:	frame height
+- * @code:	data format code
+- * @field:	used interlacing type
+- * @colorspace:	colorspace of the data
+- */
+-struct v4l2_mbus_framefmt {
+-	__u32				width;
+-	__u32				height;
+-	enum v4l2_mbus_pixelcode	code;
+-	enum v4l2_field			field;
+-	enum v4l2_colorspace		colorspace;
+-};
++#include <linux/v4l2-mediabus.h>
+ 
+ static inline void v4l2_fill_pix_format(struct v4l2_pix_format *pix_fmt,
+ 				const struct v4l2_mbus_framefmt *mbus_fmt)
 -- 
-Regards,
+1.7.2.2
 
-Laurent Pinchart
