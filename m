@@ -1,52 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:44011 "EHLO mx1.redhat.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:51986 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753293Ab0J0Rw0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Oct 2010 13:52:26 -0400
-Message-ID: <4CC866C9.2010803@redhat.com>
-Date: Wed, 27 Oct 2010 15:52:09 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1757440Ab0JFOOi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Oct 2010 10:14:38 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "Taneja, Archit" <archit@ti.com>
+CC: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 6 Oct 2010 19:44:33 +0530
+Subject: RE: [PATCH v2 0/2] V4L/DVB: OMAP_VOUT: Allow omap_vout to build
+ without VRFB
+Message-ID: <19F8576C6E063C45BE387C64729E739404AA21CDF5@dbde02.ent.ti.com>
+References: <1285571807-23210-1-git-send-email-archit@ti.com>
+In-Reply-To: <1285571807-23210-1-git-send-email-archit@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Linus Torvalds <torvalds@linux-foundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [GIT PULL for 2.6.37-rc1] V4L/DVB updates
-References: <4CC8380D.3040802@redhat.com> <4CC863D6.7010404@redhat.com>
-In-Reply-To: <4CC863D6.7010404@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 27-10-2010 15:39, Hans de Goede escreveu:
-> Hi,
+> -----Original Message-----
+> From: Taneja, Archit
+> Sent: Monday, September 27, 2010 12:47 PM
+> To: Hiremath, Vaibhav
+> Cc: linux-omap@vger.kernel.org; linux-media@vger.kernel.org; Taneja,
+> Archit
+> Subject: [PATCH v2 0/2] V4L/DVB: OMAP_VOUT: Allow omap_vout to build
+> without VRFB
 > 
-> On 10/27/2010 04:32 PM, Mauro Carvalho Chehab wrote:
->> Linus,
->>
->> Please pull from
->>     ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
->>
+> This lets omap_vout driver build and run without VRFB. It works along the
+> lines of the following patch series:
 > 
-> <snip snip>
+> OMAP: DSS2: OMAPFB: Allow FB_OMAP2 to build without VRFB
+> https://patchwork.kernel.org/patch/105371/
 > 
-> I see that you did not include the changes from my pull request send today,
-> understandably so, but I wonder if these could still get into 2.6.37 for say
-> rc2 ?
->
-> All of them are bug fixes except for the xirlink_cit button support which
-> makes changes to a driver new this cycle, so no chance for causing regressions
-> there.
+> Since VRFB is tightly coupled with the omap_vout driver, a handful of vrfb
+> specific functions have been defined and placed in omap_vout_vrfb.c
+> 
+> A variable rotation_type is introduced in omapvideo_info like the way in
+> omapfb_info, this allows to call vrfb specific functions only if the
+> rotation
+> type is vrfb. When the rotation_type is set to SDMA, the S_CTRL ioctl
+> prevents
+> the user setting a non zero rotation value.
+> 
+[Hiremath, Vaibhav] Lets make one stand here,
 
-Before posting patches upstream, I send them to Linux-next in order to be tested there 
-for a while, before sending pull requests upstream. So, yes, patches sent me recently
-will need to wait for the next series of patches.
+I think this series still doesn't support DMA based rotation, unlike Fbdev driver so I would say lets clearly state that we are not supporting sDMA based rotation here. So I don't see any reason why we need 
 
-I can't tell you in advance if I'll merge them for rc2, as I didn't review them yet,
-and I'll be travelling abroad next week for LPC/KS, but bug fixes need to be addressed 
-and merged in time for 2.6.37.
-
-Cheers,
-Mauro.
+> Archit Taneja (2):
+>   V4L/DVB: OMAP_VOUT: Create a seperate vrfb functions library
+>   V4L/DVB: OMAP_VOUT: Use rotation_type to choose between vrfb and
+>     sdram buffers
+> 
+>  drivers/media/video/omap/Kconfig          |    1 -
+>  drivers/media/video/omap/Makefile         |    1 +
+>  drivers/media/video/omap/omap_vout.c      |  480 ++++++------------------
+> -----
+>  drivers/media/video/omap/omap_vout_vrfb.c |  417
+> +++++++++++++++++++++++++
+>  drivers/media/video/omap/omap_vout_vrfb.h |   40 +++
+>  drivers/media/video/omap/omap_voutdef.h   |   26 ++
+>  6 files changed, 571 insertions(+), 394 deletions(-)
+>  create mode 100644 drivers/media/video/omap/omap_vout_vrfb.c
+>  create mode 100644 drivers/media/video/omap/omap_vout_vrfb.h
+> --
+> Version 2:
+>  - Don't try to enable SDRAM rotation , return an error if non zero
+> rotation
+>    is attempted when rotation_type is set to SDMA rotation.
+> Version 1:
+>    http://www.mail-archive.com/linux-media@vger.kernel.org/msg21937.html
