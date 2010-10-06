@@ -1,107 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:40896 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759189Ab0JYR2a (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Oct 2010 13:28:30 -0400
-Message-ID: <4CC5BE39.70206@redhat.com>
-Date: Mon, 25 Oct 2010 15:28:25 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from pqueueb.post.tele.dk ([193.162.153.10]:37391 "EHLO
+	pqueueb.post.tele.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751979Ab0JFFOx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Oct 2010 01:14:53 -0400
+Date: Wed, 6 Oct 2010 06:52:55 +0200
+From: Sam Ravnborg <sam@ravnborg.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Michal Marek <mmarek@suse.cz>, linux-media@vger.kernel.org,
+	linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: Re: [RFC PATCH] media: consolidation of -I flags
+Message-ID: <20101006045255.GA24870@merkur.ravnborg.org>
+References: <1285534847-31463-1-git-send-email-mfm@muteddisk.com> <20101005142906.GA20059@merkur.ravnborg.org> <20101005192435.GA17798@haskell.muteddisk.com>
 MIME-Version: 1.0
-To: Florian Klink <flokli@flokli.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: em28xx: Terratec Grabby no sound
-References: <f9fc4355b0c721744c6522a720ee2df7@flokli.de>
-In-Reply-To: <f9fc4355b0c721744c6522a720ee2df7@flokli.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20101005192435.GA17798@haskell.muteddisk.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 25-10-2010 15:24, Florian Klink escreveu:
-> Hi,
 > 
-> I recently bought a Terratec Grabby. The device has a S-Video and 3 Cinch
-> cables (sound left, sound right, video). I want to record some video
-> cassettes with it. (with a cinch-scart adapter).
+> Ah, I was not aware of that, and I forgot to test for that case.
 > 
-> I checked the signal, there is audio and video on it.
+> > > 
+> > > If neither idea is considered beneficial, I will go ahead and replace
+> > > the older variables with the newer ones as is.
+> > 
+> > This is the right approach.
+> > 
+> > You could consider to do a more general cleanup:
+> > 1) replace EXTRA_CFLAGS with ccflags-y (the one you suggest)
+> > 2) replace use of <module>-objs with <module>-y
+> > 3) break continued lines into several assignments
+> >    People very often uses '\' to break long lines, where a
+> >    simple += would be much more readable.
+> >    But this topic may be personal - I never uses "\" in my .c code unless in macros,
+> >    and I have applied the same rule for Makefiles.
+> >    An ugly example is drivers/media/Makefile
+> > 4) In general use ":=" instead of "=".
+> >    Add using "+=" as first assignment is OK - but it just looks plain wrong
+> > 5) some files has a mixture of spaces/tabs (are red in my vim)
+> >    dvb-core/Makefile is one such example
+> > 6) remove useless stuff
+> >    siano/Makefile has some strange assignments to EXTRA_CFLAGS
+> > 7) Likely a few more items to look after...
+> > 
+> > This is more work - but then you finish a Makefile rather than doing a simple
+> > conversion.
 > 
-> When I try to "play" the capture device with e.g. mplayer, I see "no
-> sound", even with various options.
-> 
-> I can hear sound only by doing "arecord -D hw:2,0 -r 32000 -c 2 -f S16_LE |
-> aplay -", but as soon as mplayer is starting, I can't hear anything
-> anymore.
-> 
-> ...which means that using alsa as the sound device with mplayer doesn't
-> work either.
-> 
-> Am I missing something?
+> I agree with all your points above; however, I was unsure of whether a wholesale
+> cleanup would be welcomed because I would then end up touching numerous lines
+> (and in some cases, possibly all lines).
+The Makefiles are all very simple - so touching all lines in a files
+is not a big deal here. But then you would have to batch your changes
+in smaller parts touching only a few Makefiles/one Makefile per patch.
 
-Maybe the amux is wrong. The only way to know for sure is to check the used GPIO's,
-via a USB snoop dump. Please take a look at linuxtv.org Wiki (search for usbsnoop).
-After getting the dump, please parse it and send me.
+> Is the use of <module>-objs deprecated? Some people might wonder why I am
+> changing that when they are not building a multisource object.
+I always recommends the <module>-y notation.
+Because this version has the flexibility to use the kbuild way
+of dealing with conditional modules.
 
-> 
-> I checked the source code, Terratec Grabby support was introduced with
-> 4557af9c5338605c85fe54f5ebba3d4b14a60ab8:
-> 
-> -----------------------------------------
-> diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
-> index 7cb93fb..b4c78f2 100644
-> --- a/drivers/media/video/em28xx/em28xx-cards.c
-> +++ b/drivers/media/video/em28xx/em28xx-cards.c
-> @@ -1347,6 +1347,22 @@ struct em28xx_board em28xx_boards[] = {
->              .amux     = EM28XX_AMUX_VIDEO,
->          } },
->      },
-> +    [EM2860_BOARD_TERRATEC_GRABBY] = {
-> +        .name            = "Terratec Grabby",
-> +        .vchannels       = 2,
-> +        .tuner_type      = TUNER_ABSENT,
-> +        .decoder         = EM28XX_SAA711X,
-> +        .xclk            = EM28XX_XCLK_FREQUENCY_12MHZ,
-> +        .input           = { {
-> +            .type     = EM28XX_VMUX_COMPOSITE1,
-> +            .vmux     = SAA7115_COMPOSITE0,
-> +            .amux     = EM28XX_AMUX_VIDEO2,
-> +        }, {
-> +            .type     = EM28XX_VMUX_SVIDEO,
-> +            .vmux     = SAA7115_SVIDEO3,
-> +            .amux     = EM28XX_AMUX_VIDEO2,
-> +        } },
-> +    },
->  };
->  const unsigned int em28xx_bcount = ARRAY_SIZE(em28xx_boards);
-> 
-> @@ -1410,6 +1426,8 @@ struct usb_device_id em28xx_id_table[] = {
->              .driver_info = EM2870_BOARD_TERRATEC_XS },
->      { USB_DEVICE(0x0ccd, 0x0047),
->              .driver_info = EM2880_BOARD_TERRATEC_PRODIGY_XS },
-> +    { USB_DEVICE(0x0ccd, 0x0096),
-> +            .driver_info = EM2860_BOARD_TERRATEC_GRABBY },
->      { USB_DEVICE(0x185b, 0x2870),
->              .driver_info = EM2870_BOARD_COMPRO_VIDEOMATE },
->      { USB_DEVICE(0x185b, 0x2041),
-> diff --git a/drivers/media/video/em28xx/em28xx.h b/drivers/media/video/em28xx/em28xx.h
-> index e801f78..fa2fb41 100644
-> --- a/drivers/media/video/em28xx/em28xx.h
-> +++ b/drivers/media/video/em28xx/em28xx.h
-> @@ -103,6 +103,7 @@
->  #define EM2860_BOARD_EASYCAP                      64
->  #define EM2820_BOARD_IODATA_GVMVP_SZ          65
->  #define EM2880_BOARD_EMPIRE_DUAL_TV          66
-> +#define EM2860_BOARD_TERRATEC_GRABBY          67
-> 
->  /* Limits minimum and default number of buffers */
->  #define EM28XX_MIN_BUF 4
-> -----------------------------------------
-> 
-> Is there maybe a wrong amux set? Which one could it be?
-> Is sound-usb-audio somehow conflicting with em28xx module?
-> 
-> I hope you have an idea what is wrong here!
-> 
-> Florian Klink
-> 
+I see no reason to do such change alaone - but as part of other minor
+cleanups it would be natural to change to the <module>-y idiom.
 
+
+All the comments above is valid for staging too. There we should
+try to do general cleanup on the Makefile rather than a lot of small
+edits.
+But sometimes the MAkefiles contains so much legacy that this will be more
+than one patch..
+
+	Sam
