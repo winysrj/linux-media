@@ -1,113 +1,140 @@
 Return-path: <mchehab@pedra>
-Received: from tur.go2.pl ([193.17.41.50]:34327 "EHLO tur.go2.pl"
+Received: from bear.ext.ti.com ([192.94.94.41]:34605 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755326Ab0JYR7y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Oct 2010 13:59:54 -0400
-Received: from moh1-ve1.go2.pl (moh1-ve3.go2.pl [193.17.41.134])
-	by tur.go2.pl (o2.pl Mailer 2.0.1) with ESMTP id 47867230C65
-	for <linux-media@vger.kernel.org>; Mon, 25 Oct 2010 19:59:53 +0200 (CEST)
-Received: from moh1-ve1.go2.pl (unknown [10.0.0.134])
-	by moh1-ve1.go2.pl (Postfix) with ESMTP id B4860570213
-	for <linux-media@vger.kernel.org>; Mon, 25 Oct 2010 19:59:10 +0200 (CEST)
-Received: from unknown (unknown [10.0.0.42])
-	by moh1-ve1.go2.pl (Postfix) with SMTP
-	for <linux-media@vger.kernel.org>; Mon, 25 Oct 2010 19:59:10 +0200 (CEST)
-Message-ID: <4CC5C568.4090809@o2.pl>
-Date: Mon, 25 Oct 2010 19:59:04 +0200
-From: Maciej Szmigiero <mhej@o2.pl>
+	id S1755179Ab0JFJTc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Oct 2010 05:19:32 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "sakari.ailus@maxwell.research.nokia.com"
+	<sakari.ailus@maxwell.research.nokia.com>
+Date: Wed, 6 Oct 2010 14:49:21 +0530
+Subject: RE: [PATCH/RFC v3 03/11] v4l: Group media bus pixel codes by types
+ and sort them alphabetically
+Message-ID: <19F8576C6E063C45BE387C64729E739404AA21CCB1@dbde02.ent.ti.com>
+References: <1286288714-16506-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1286288714-16506-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1286288714-16506-4-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [V4L][SAA7134] fix tda9887 detection on cold and eeprom read corruption
- on warm Medion 7134
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-[V4L][SAA7134] fix tda9887 detection on cold and eeprom read corruption on warm Medion 7134
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Laurent Pinchart
+> Sent: Tuesday, October 05, 2010 7:55 PM
+> To: linux-media@vger.kernel.org
+> Cc: sakari.ailus@maxwell.research.nokia.com
+> Subject: [PATCH/RFC v3 03/11] v4l: Group media bus pixel codes by types
+> and sort them alphabetically
+> 
+> Adding new pixel codes at the end of the enumeration will soon create a
+> mess, so group the pixel codes by type and sort them by bus_width, bits
+> per component, samples per pixel and order of subsamples.
+> 
+> As the codes are part of the kernel ABI their value can't change when a
+> new code is inserted in the enumeration, so they are given an explicit
+> numerical value. When inserting a new pixel code developers must use and
+> update the next free value.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  include/linux/v4l2-mediabus.h |   61 +++++++++++++++++++++++++-----------
+> ----
+>  1 files changed, 38 insertions(+), 23 deletions(-)
+> 
+> diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+> index 75c2d55..53c81f2 100644
+> --- a/include/linux/v4l2-mediabus.h
+> +++ b/include/linux/v4l2-mediabus.h
+> @@ -24,31 +24,46 @@
+>   * transferred first, "BE" means that the most significant bits are
+> transferred
+>   * first, and "PADHI" and "PADLO" define which bits - low or high, in the
+>   * incomplete high byte, are filled with padding bits.
+> + *
+> + * The pixel codes are grouped by type, bus_width, bits per component,
+> samples
+> + * per pixel and order of subsamples. Numerical values are sorted using
+> generic
+> + * numerical sort order (8 thus comes before 10).
+> + *
+> + * As their value can't change when a new pixel code is inserted in the
+> + * enumeration, the pixel codes are explicitly given a numerical value.
+> The next
+> + * free values for each category are listed below, update them when
+> inserting
+> + * new pixel codes.
+>   */
+>  enum v4l2_mbus_pixelcode {
+> -	V4L2_MBUS_FMT_FIXED = 1,
+> -	V4L2_MBUS_FMT_YUYV8_2X8,
+> -	V4L2_MBUS_FMT_YVYU8_2X8,
+> -	V4L2_MBUS_FMT_UYVY8_2X8,
+> -	V4L2_MBUS_FMT_VYUY8_2X8,
+> -	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
+> -	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
+> -	V4L2_MBUS_FMT_RGB565_2X8_LE,
+> -	V4L2_MBUS_FMT_RGB565_2X8_BE,
+> -	V4L2_MBUS_FMT_SBGGR8_1X8,
+> -	V4L2_MBUS_FMT_SBGGR10_1X10,
+> -	V4L2_MBUS_FMT_Y8_1X8,
+> -	V4L2_MBUS_FMT_Y10_1X10,
+> -	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
+> -	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
+> -	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
+> -	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
+> -	V4L2_MBUS_FMT_SGRBG8_1X8,
+> -	V4L2_MBUS_FMT_SBGGR12_1X12,
+> -	V4L2_MBUS_FMT_YUYV8_1_5X8,
+> -	V4L2_MBUS_FMT_YVYU8_1_5X8,
+> -	V4L2_MBUS_FMT_UYVY8_1_5X8,
+> -	V4L2_MBUS_FMT_VYUY8_1_5X8,
+> +	V4L2_MBUS_FMT_FIXED = 0x0001,
+> +
+> +	/* RGB - next is 0x1005 */
+[Hiremath, Vaibhav] Don't you think adding "next is 0x" is not required? Also while adding to this list someone has to modify here too.
 
-When Medion 7134 analog+DVB-T card is cold (after powerup) the tda9887 analog demodulator
-won't show on i2c bus.
-This results in no signal on analog TV. After loading driver for second time
-eeprom (required for tuner autodetection) read is corrupted, but tda9987 is detected
-properly and analog TV works when tuner model is forced.
+Same applies to all such places.
 
-Fix tda9887 problem by moving its detect code after tuner setup which unhides it.
-The eeprom read issue is fixed by opening i2c gate in DVB-T demodulator.
-
-Tested on Medion 7134 and also tested for reference on Typhoon Cardbus Hybrid
-(which also uses saa7134 driver).
-
-Signed-off-by: Maciej Szmigiero <mhej@o2.pl>
-
---- a/drivers/media/video/saa7134/saa7134-cards.c	2010-08-02 00:11:14.000000000 +0200
-+++ b/drivers/media/video/saa7134/saa7134-cards.c	2010-10-25 19:19:08.000000000 +0200
-@@ -7249,12 +7249,37 @@
- 		break;
- 	case SAA7134_BOARD_MD7134:
- 	{
--		u8 subaddr;
-+		u8 subaddr, dmdregval;
- 		u8 data[3];
- 		int ret, tuner_t;
-+		struct i2c_msg i2cgatemsg_r[] = { {.addr = 0x08, .flags = 0,
-+						.buf = &subaddr, .len = 1},
-+						{.addr = 0x08,
-+							.flags = I2C_M_RD,
-+						.buf = &dmdregval, .len = 1} };
-+		struct i2c_msg i2cgatemsg_w[] = { {.addr = 0x08, .flags = 0,
-+						.buf = data, .len = 2} };
- 		struct i2c_msg msg[] = {{.addr=0x50, .flags=0, .buf=&subaddr, .len = 1},
- 					{.addr=0x50, .flags=I2C_M_RD, .buf=data, .len = 3}};
- 
-+		/* open i2c gate in DVB-T demod */
-+		/* so eeprom read won't be corrupted */
-+		subaddr = 0x7;
-+		ret = i2c_transfer(&dev->i2c_adap, i2cgatemsg_r, 2);
-+		if ((ret == 2) && (dmdregval & 0x2)) {
-+			printk(KERN_NOTICE "%s DVB-T demod i2c gate was left"
-+						    " closed\n", dev->name);
-+			printk(KERN_NOTICE "%s previous informational"
-+					    " EEPROM read might have been"
-+					    " corrupted\n", dev->name);
-+
-+			data[0] = 0x7;
-+			data[1] = (dmdregval & ~0x2);
-+			if (i2c_transfer(&dev->i2c_adap, i2cgatemsg_w, 1) != 1)
-+				printk(KERN_ERR "early i2c gate"
-+						" open failure\n");
-+		}
-+
- 		subaddr= 0x14;
- 		tuner_t = 0;
- 
-@@ -7522,10 +7547,6 @@
- 			v4l2_i2c_new_subdev(&dev->v4l2_dev,
- 				&dev->i2c_adap, "tuner", "tuner",
- 				dev->radio_addr, NULL);
--		if (has_demod)
--			v4l2_i2c_new_subdev(&dev->v4l2_dev,
--				&dev->i2c_adap, "tuner", "tuner",
--				0, v4l2_i2c_tuner_addrs(ADDRS_DEMOD));
- 		if (dev->tuner_addr == ADDR_UNSET) {
- 			enum v4l2_i2c_tuner_type type =
- 				has_demod ? ADDRS_TV_WITH_DEMOD : ADDRS_TV;
-@@ -7542,6 +7563,15 @@
- 
- 	saa7134_tuner_setup(dev);
- 
-+	/* some cards (Medion 7134 for example) needs tuner to be setup */
-+	/* before tda9887 shows itself on i2c bus */
-+	if ((TUNER_ABSENT != dev->tuner_type)
-+			&& (dev->tda9887_conf & TDA9887_PRESENT)) {
-+		v4l2_i2c_new_subdev(&dev->v4l2_dev,
-+			&dev->i2c_adap, "tuner", "tuner",
-+			0, v4l2_i2c_tuner_addrs(ADDRS_DEMOD));
-+	}
-+
- 	switch (dev->board) {
- 	case SAA7134_BOARD_BEHOLD_COLUMBUS_TVFM:
- 	case SAA7134_BOARD_AVERMEDIA_CARDBUS_501:
-
-
+Thanks,
+Vaibhav
+> +	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE = 0x1001,
+> +	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE = 0x1002,
+> +	V4L2_MBUS_FMT_RGB565_2X8_BE = 0x1003,
+> +	V4L2_MBUS_FMT_RGB565_2X8_LE = 0x1004,
+> +
+> +	/* YUV (including grey) - next is 0x200b */
+> +	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
+> +	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
+> +	V4L2_MBUS_FMT_VYUY8_1_5X8 = 0x2003,
+> +	V4L2_MBUS_FMT_YUYV8_1_5X8 = 0x2004,
+> +	V4L2_MBUS_FMT_YVYU8_1_5X8 = 0x2005,
+> +	V4L2_MBUS_FMT_UYVY8_2X8 = 0x2006,
+> +	V4L2_MBUS_FMT_VYUY8_2X8 = 0x2007,
+> +	V4L2_MBUS_FMT_YUYV8_2X8 = 0x2008,
+> +	V4L2_MBUS_FMT_YVYU8_2X8 = 0x2009,
+> +	V4L2_MBUS_FMT_Y10_1X10 = 0x200a,
+> +
+> +	/* Bayer - next is 0x3009 */
+> +	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
+> +	V4L2_MBUS_FMT_SGRBG8_1X8 = 0x3002,
+> +	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE = 0x3003,
+> +	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE = 0x3004,
+> +	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE = 0x3005,
+> +	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE = 0x3006,
+> +	V4L2_MBUS_FMT_SBGGR10_1X10 = 0x3007,
+> +	V4L2_MBUS_FMT_SBGGR12_1X12 = 0x3008,
+>  };
+> 
+>  /**
+> --
+> 1.7.2.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
