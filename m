@@ -1,173 +1,102 @@
 Return-path: <mchehab@pedra>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:44707 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932178Ab0JDSaV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Oct 2010 14:30:21 -0400
-Date: Mon, 4 Oct 2010 20:29:24 +0200 (CEST)
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Subject: [PATCH update2] V4L/DVB: firedtv: support for PSK8 for S2 devices. To
- watch HD.
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Tommy Jonsson <quazzie2@gmail.com>, linux-media@vger.kernel.org,
-	linux1394-devel@lists.sourceforge.net
-In-Reply-To: <tkrat.85246f2f7084d010@s5r6.in-berlin.de>
-Message-ID: <tkrat.bc9b826db6ce1b36@s5r6.in-berlin.de>
-References: <AANLkTin53SY_xaed_tRfWRPOFmc65GmGzXrEt15ZyriW@mail.gmail.com>
- <4C90B4FB.2050401@s5r6.in-berlin.de>
- <AANLkTikQLd1_thyADU8AMjOATFQoZaJfko3Sn-qtNgQR@mail.gmail.com>
- <tkrat.85246f2f7084d010@s5r6.in-berlin.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=us-ascii
-Content-Disposition: INLINE
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2713 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932998Ab0JFTJv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Oct 2010 15:09:51 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id o96J9odu029135
+	for <linux-media@vger.kernel.org>; Wed, 6 Oct 2010 21:09:50 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 6 Oct 2010 21:09:50 +0200 (CEST)
+Message-Id: <201010061909.o96J9odu029135@smtp-vbr12.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Date: Sun, 12 Sep 2010 21:03:45 +0200
-From: Tommy Jonsson <quazzie2@gmail.com>
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-This is the first i have ever developed for linux, cant really wrap my
-head around how to submit this..
-Hope im sending this correctly, diff made with 'hg diff' from latest
-"hg clone http://linuxtv.org/hg/v4l-dvb"
+Results of the daily build of v4l-dvb:
 
-It adds support for tuning with PSK8 modulation, pilot and rolloff
-with the S2 versions of firedtv.
+date:        Wed Oct  6 19:00:18 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15164:1da5fed5c8b2
+git master:       3e6dce76d99b328716b43929b9195adfee1de00c
+git media-master: c8dd732fd119ce6d562d5fa82a10bbe75a376575
+gcc version:      i686-linux-gcc (GCC) 4.5.1
+host hardware:    x86_64
+host os:          2.6.32.5
 
-Signed-off-by: Tommy Jonsson <quazzie2@gmail.com>
-Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de> (trivial simplification)
----
-Sorry, missed two space-before-tab.
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: WARNINGS
+linux-git-mips: WARNINGS
+linux-git-powerpc64: WARNINGS
+linux-git-x86_64: WARNINGS
+linux-2.6.32.6-armv5: WARNINGS
+linux-2.6.33-armv5: WARNINGS
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.32.6-armv5-davinci: ERRORS
+linux-2.6.33-armv5-davinci: ERRORS
+linux-2.6.34-armv5-davinci: ERRORS
+linux-2.6.35.3-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: ERRORS
+linux-2.6.33-armv5-ixp: ERRORS
+linux-2.6.34-armv5-ixp: ERRORS
+linux-2.6.35.3-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: ERRORS
+linux-2.6.33-armv5-omap2: ERRORS
+linux-2.6.34-armv5-omap2: ERRORS
+linux-2.6.35.3-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.32.6-m32r: WARNINGS
+linux-2.6.33-m32r: WARNINGS
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
- drivers/media/dvb/firewire/firedtv-avc.c |   30 +++++++++++++++++--
- drivers/media/dvb/firewire/firedtv-fe.c  |   36 ++++++++++++++++++++++-
- 2 files changed, 60 insertions(+), 6 deletions(-)
+Detailed results are available here:
 
-Index: b/drivers/media/dvb/firewire/firedtv-avc.c
-===================================================================
---- a/drivers/media/dvb/firewire/firedtv-avc.c
-+++ b/drivers/media/dvb/firewire/firedtv-avc.c
-@@ -24,6 +24,8 @@
- #include <linux/wait.h>
- #include <linux/workqueue.h>
- 
-+#include <dvb_frontend.h>
-+
- #include "firedtv.h"
- 
- #define FCP_COMMAND_REGISTER		0xfffff0000b00ULL
-@@ -368,10 +370,30 @@ static int avc_tuner_tuneqpsk(struct fir
- 		c->operand[12] = 0;
- 
- 	if (fdtv->type == FIREDTV_DVB_S2) {
--		c->operand[13] = 0x1;
--		c->operand[14] = 0xff;
--		c->operand[15] = 0xff;
--
-+		if (fdtv->fe.dtv_property_cache.delivery_system == SYS_DVBS2) {
-+			switch (fdtv->fe.dtv_property_cache.modulation) {
-+			case QAM_16:		c->operand[13] = 0x1; break;
-+			case QPSK:		c->operand[13] = 0x2; break;
-+			case PSK_8:		c->operand[13] = 0x3; break;
-+			default:		c->operand[13] = 0x2; break;
-+			}
-+			switch (fdtv->fe.dtv_property_cache.rolloff) {
-+			case ROLLOFF_AUTO:	c->operand[14] = 0x2; break;
-+			case ROLLOFF_35:	c->operand[14] = 0x2; break;
-+			case ROLLOFF_20:	c->operand[14] = 0x0; break;
-+			case ROLLOFF_25:	c->operand[14] = 0x1; break;
-+			/* case ROLLOFF_NONE:	c->operand[14] = 0xff; break; */
-+			}
-+			switch (fdtv->fe.dtv_property_cache.pilot) {
-+			case PILOT_AUTO:	c->operand[15] = 0x0; break;
-+			case PILOT_OFF:		c->operand[15] = 0x0; break;
-+			case PILOT_ON:		c->operand[15] = 0x1; break;
-+			}
-+		} else {
-+			c->operand[13] = 0x1;  /* auto modulation */
-+			c->operand[14] = 0xff; /* disable rolloff */
-+			c->operand[15] = 0xff; /* disable pilot */
-+		}
- 		return 16;
- 	} else {
- 		return 13;
-Index: b/drivers/media/dvb/firewire/firedtv-fe.c
-===================================================================
---- a/drivers/media/dvb/firewire/firedtv-fe.c
-+++ b/drivers/media/dvb/firewire/firedtv-fe.c
-@@ -155,6 +155,16 @@ static int fdtv_get_frontend(struct dvb_
- 	return -EOPNOTSUPP;
- }
- 
-+static int fdtv_get_property(struct dvb_frontend *fe, struct dtv_property *tvp)
-+{
-+	return 0;
-+}
-+
-+static int fdtv_set_property(struct dvb_frontend *fe, struct dtv_property *tvp)
-+{
-+	return 0;
-+}
-+
- void fdtv_frontend_init(struct firedtv *fdtv)
- {
- 	struct dvb_frontend_ops *ops = &fdtv->fe.ops;
-@@ -166,6 +176,9 @@ void fdtv_frontend_init(struct firedtv *
- 	ops->set_frontend		= fdtv_set_frontend;
- 	ops->get_frontend		= fdtv_get_frontend;
- 
-+	ops->get_property		= fdtv_get_property;
-+	ops->set_property		= fdtv_set_property;
-+
- 	ops->read_status		= fdtv_read_status;
- 	ops->read_ber			= fdtv_read_ber;
- 	ops->read_signal_strength	= fdtv_read_signal_strength;
-@@ -179,7 +192,6 @@ void fdtv_frontend_init(struct firedtv *
- 
- 	switch (fdtv->type) {
- 	case FIREDTV_DVB_S:
--	case FIREDTV_DVB_S2:
- 		fi->type		= FE_QPSK;
- 
- 		fi->frequency_min	= 950000;
-@@ -188,7 +200,7 @@ void fdtv_frontend_init(struct firedtv *
- 		fi->symbol_rate_min	= 1000000;
- 		fi->symbol_rate_max	= 40000000;
- 
--		fi->caps 		= FE_CAN_INVERSION_AUTO	|
-+		fi->caps		= FE_CAN_INVERSION_AUTO |
- 					  FE_CAN_FEC_1_2	|
- 					  FE_CAN_FEC_2_3	|
- 					  FE_CAN_FEC_3_4	|
-@@ -198,6 +210,26 @@ void fdtv_frontend_init(struct firedtv *
- 					  FE_CAN_QPSK;
- 		break;
- 
-+	case FIREDTV_DVB_S2:
-+		fi->type		= FE_QPSK;
-+
-+		fi->frequency_min	= 950000;
-+		fi->frequency_max	= 2150000;
-+		fi->frequency_stepsize	= 125;
-+		fi->symbol_rate_min	= 1000000;
-+		fi->symbol_rate_max	= 40000000;
-+
-+		fi->caps		= FE_CAN_INVERSION_AUTO |
-+					  FE_CAN_FEC_1_2        |
-+					  FE_CAN_FEC_2_3        |
-+					  FE_CAN_FEC_3_4        |
-+					  FE_CAN_FEC_5_6        |
-+					  FE_CAN_FEC_7_8        |
-+					  FE_CAN_FEC_AUTO       |
-+					  FE_CAN_QPSK           |
-+					  FE_CAN_2G_MODULATION;
-+		break;
-+
- 	case FIREDTV_DVB_C:
- 		fi->type		= FE_QAM;
- 
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
--- 
-Stefan Richter
--=====-==-=- =-=- --=--
-http://arcgraph.de/sr/
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
