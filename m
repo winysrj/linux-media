@@ -1,91 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from devils.ext.ti.com ([198.47.26.153]:55223 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750997Ab0JSEKD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Oct 2010 00:10:03 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o9J49xQg022282
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 18 Oct 2010 23:10:02 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o9J49wu4016643
-	for <linux-media@vger.kernel.org>; Tue, 19 Oct 2010 09:39:59 +0530 (IST)
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "Nilofer, Samreen" <samreen@ti.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 19 Oct 2010 09:39:57 +0530
-Subject: RE: [PATCH 1/1] OMAP3: V4L2: Kconfig changes to enable V4L2 options
- on OMAP3
-Message-ID: <19F8576C6E063C45BE387C64729E739404AA4E760C@dbde02.ent.ti.com>
-References: <1287374534-10722-1-git-send-email-samreen@ti.com>
-In-Reply-To: <1287374534-10722-1-git-send-email-samreen@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from perceval.irobotique.be ([92.243.18.41]:43132 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751175Ab0JFKM5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Oct 2010 06:12:57 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: Re: [PATCH/RFC v3 03/11] v4l: Group media bus pixel codes by types and sort them alphabetically
+Date: Wed, 6 Oct 2010 12:13:10 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"sakari.ailus@maxwell.research.nokia.com"
+	<sakari.ailus@maxwell.research.nokia.com>
+References: <1286288714-16506-1-git-send-email-laurent.pinchart@ideasonboard.com> <1286288714-16506-4-git-send-email-laurent.pinchart@ideasonboard.com> <19F8576C6E063C45BE387C64729E739404AA21CCB1@dbde02.ent.ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404AA21CCB1@dbde02.ent.ti.com>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201010061213.11331.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> -----Original Message-----
-> From: Nilofer, Samreen
-> Sent: Monday, October 18, 2010 9:32 AM
-> To: Hiremath, Vaibhav
-> Cc: linux-media@vger.kernel.org; Nilofer, Samreen
-> Subject: [PATCH 1/1] OMAP3: V4L2: Kconfig changes to enable V4L2 options
-> on OMAP3
-> 
-> The defconfig options for V4L2 are taken in the respective Kconfig
-> to enable V4L2 by default on OMAP3 platforms
-> 
-> Signed-off-by: Samreen <samreen@ti.com>
-> ---
->  drivers/media/Kconfig            |    2 ++
->  drivers/media/video/omap/Kconfig |    2 +-
->  2 files changed, 3 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-> index a28541b..2592d88 100644
-> --- a/drivers/media/Kconfig
-> +++ b/drivers/media/Kconfig
-> @@ -5,6 +5,7 @@
->  menuconfig MEDIA_SUPPORT
->  	tristate "Multimedia support"
->  	depends on HAS_IOMEM
-> +	default y if ARCH_OMAP2 || ARCH_OMAP3
-[Hiremath, Vaibhav] I am quite not sure whether this is right approach to do this, I think adding dependency of ARCH_ here will pollute the file.
+Hi Vaibhav,
 
-Why not add this definition to omap2plus_defconfig, which is common defconfig file for all OMAP architecture.
+On Wednesday 06 October 2010 11:19:21 Hiremath, Vaibhav wrote:
+> On Tuesday, October 05, 2010 7:55 PM Laurent Pinchart wrote:
+> > 
+> > Adding new pixel codes at the end of the enumeration will soon create a
+> > mess, so group the pixel codes by type and sort them by bus_width, bits
+> > per component, samples per pixel and order of subsamples.
+> > 
+> > As the codes are part of the kernel ABI their value can't change when a
+> > new code is inserted in the enumeration, so they are given an explicit
+> > numerical value. When inserting a new pixel code developers must use and
+> > update the next free value.
+> > 
+[snip]
 
-Thanks,
-Vaibhav
-
->  	help
->  	  If you want to use Video for Linux, DVB for Linux, or DAB
-> adapters,
->  	  enable this option and other options below.
-> @@ -19,6 +20,7 @@ comment "Multimedia core support"
+> > +	V4L2_MBUS_FMT_FIXED = 0x0001,
+> > +
+> > +	/* RGB - next is 0x1005 */
 > 
->  config VIDEO_DEV
->  	tristate "Video For Linux"
-> +	default y if ARCH_OMAP2 || ARCH_OMAP3
->  	---help---
->  	  V4L core support for video capture and overlay devices, webcams
-> and
->  	  AM/FM radio cards.
-> diff --git a/drivers/media/video/omap/Kconfig
-> b/drivers/media/video/omap/Kconfig
-> index e63233f..f3e33c3 100644
-> --- a/drivers/media/video/omap/Kconfig
-> +++ b/drivers/media/video/omap/Kconfig
-> @@ -6,6 +6,6 @@ config VIDEO_OMAP2_VOUT
->  	select OMAP2_DSS
->  	select OMAP2_VRAM
->  	select OMAP2_VRFB
-> -	default n
-> +	default y
->  	---help---
->  	  V4L2 Display driver support for OMAP2/3 based boards.
-> --
-> 1.5.6.3
+> Don't you think adding "next is 0x" is not required?
+> Also while adding to this list someone has to modify here too.
+> 
+> Same applies to all such places.
 
+The idea is that formats will be ordered by name. When adding new formats, the 
+numerical values will then become out of order. Keeping a comment with the 
+next format value will avoid having to search through the enum for the last 
+used value.
+
+> > +	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE = 0x1001,
+> > +	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE = 0x1002,
+> > +	V4L2_MBUS_FMT_RGB565_2X8_BE = 0x1003,
+> > +	V4L2_MBUS_FMT_RGB565_2X8_LE = 0x1004,
+> > +
+> > +	/* YUV (including grey) - next is 0x200b */
+> > +	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
+> > +	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
+> > +	V4L2_MBUS_FMT_VYUY8_1_5X8 = 0x2003,
+> > +	V4L2_MBUS_FMT_YUYV8_1_5X8 = 0x2004,
+> > +	V4L2_MBUS_FMT_YVYU8_1_5X8 = 0x2005,
+> > +	V4L2_MBUS_FMT_UYVY8_2X8 = 0x2006,
+> > +	V4L2_MBUS_FMT_VYUY8_2X8 = 0x2007,
+> > +	V4L2_MBUS_FMT_YUYV8_2X8 = 0x2008,
+> > +	V4L2_MBUS_FMT_YVYU8_2X8 = 0x2009,
+> > +	V4L2_MBUS_FMT_Y10_1X10 = 0x200a,
+> > +
+> > +	/* Bayer - next is 0x3009 */
+> > +	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
+> > +	V4L2_MBUS_FMT_SGRBG8_1X8 = 0x3002,
+> > +	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE = 0x3003,
+> > +	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE = 0x3004,
+> > +	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE = 0x3005,
+> > +	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE = 0x3006,
+> > +	V4L2_MBUS_FMT_SBGGR10_1X10 = 0x3007,
+> > +	V4L2_MBUS_FMT_SBGGR12_1X12 = 0x3008,
+
+-- 
+Regards,
+
+Laurent Pinchart
