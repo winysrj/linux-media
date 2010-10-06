@@ -1,110 +1,157 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:64150 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756153Ab0JOPQW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Oct 2010 11:16:22 -0400
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: lirc-list@lists.sourceforge.net
-Cc: Jarod Wilson <jarod@wilsonet.com>,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-	mchehab@infradead.org, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: [PATCH 6/7] IR: ene_ir: add support for carrier reports
-Date: Fri, 15 Oct 2010 17:07:52 +0200
-Message-Id: <1287155273-16171-7-git-send-email-maximlevitsky@gmail.com>
-In-Reply-To: <1287155273-16171-1-git-send-email-maximlevitsky@gmail.com>
-References: <1287155273-16171-1-git-send-email-maximlevitsky@gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:35613 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759073Ab0JFOWB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Oct 2010 10:22:01 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"sakari.ailus@maxwell.research.nokia.com"
+	<sakari.ailus@maxwell.research.nokia.com>
+Date: Wed, 6 Oct 2010 19:51:48 +0530
+Subject: RE: [RFC/PATCH v2 0/6] OMAP3 ISP driver
+Message-ID: <19F8576C6E063C45BE387C64729E739404AA21CDFB@dbde02.ent.ti.com>
+References: <1286284734-12292-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <19F8576C6E063C45BE387C64729E739404AA21CCD4@dbde02.ent.ti.com>
+ <201010061616.35863.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201010061616.35863.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
----
- drivers/media/IR/ene_ir.c |   37 +++++++++++++++++++++++++++++--------
- 1 files changed, 29 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/IR/ene_ir.c b/drivers/media/IR/ene_ir.c
-index 8639621..1962652 100644
---- a/drivers/media/IR/ene_ir.c
-+++ b/drivers/media/IR/ene_ir.c
-@@ -193,10 +193,11 @@ static int ene_hw_detect(struct ene_device *dev)
- /* Sense current received carrier */
- void ene_rx_sense_carrier(struct ene_device *dev)
- {
-+	DEFINE_IR_RAW_EVENT(ev);
-+
-+	int carrier, duty_cycle;
- 	int period = ene_read_reg(dev, ENE_CIRCAR_PRD);
- 	int hperiod = ene_read_reg(dev, ENE_CIRCAR_HPRD);
--	int carrier, duty_cycle;
--
- 
- 	if (!(period & ENE_CIRCAR_PRD_VALID))
- 		return;
-@@ -209,13 +210,16 @@ void ene_rx_sense_carrier(struct ene_device *dev)
- 	dbg("RX: hardware carrier period = %02x", period);
- 	dbg("RX: hardware carrier pulse period = %02x", hperiod);
- 
--
- 	carrier = 2000000 / period;
- 	duty_cycle = (hperiod * 100) / period;
- 	dbg("RX: sensed carrier = %d Hz, duty cycle %d%%",
--							carrier, duty_cycle);
--
--	/* TODO: Send carrier & duty cycle to IR layer */
-+						carrier, duty_cycle);
-+	if (dev->carrier_detect_enabled) {
-+		ev.carrier_report = true;
-+		ev.carrier = carrier;
-+		ev.duty_cycle = duty_cycle;
-+		ir_raw_event_store(dev->idev, &ev);
-+	}
- }
- 
- /* this enables/disables the CIR RX engine */
-@@ -724,7 +728,7 @@ static irqreturn_t ene_isr(int irq, void *data)
- 
- 	dbg_verbose("RX interrupt");
- 
--	if (dev->carrier_detect_enabled || debug)
-+	if (dev->hw_learning_and_tx_capable)
- 		ene_rx_sense_carrier(dev);
- 
- 	/* On hardware that don't support extra buffer we need to trust
-@@ -897,6 +901,23 @@ static int ene_set_learning_mode(void *data, int enable)
- 	return 0;
- }
- 
-+static int ene_set_carrier_report(void *data, int enable)
-+{
-+	struct ene_device *dev = (struct ene_device *)data;
-+	unsigned long flags;
-+
-+	if (enable == dev->carrier_detect_enabled)
-+		return 0;
-+
-+	spin_lock_irqsave(&dev->hw_lock, flags);
-+	dev->carrier_detect_enabled = enable;
-+	ene_rx_disable(dev);
-+	ene_rx_setup(dev);
-+	ene_rx_enable(dev);
-+	spin_unlock_irqrestore(&dev->hw_lock, flags);
-+	return 0;
-+}
-+
- /* outside interface: enable or disable idle mode */
- static void ene_rx_set_idle(void *data, bool idle)
- {
-@@ -1029,7 +1050,7 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
- 		ir_props->s_tx_mask = ene_set_tx_mask;
- 		ir_props->s_tx_carrier = ene_set_tx_carrier;
- 		ir_props->s_tx_duty_cycle = ene_set_tx_duty_cycle;
--		/* ir_props->s_carrier_report = ene_set_carrier_report; */
-+		ir_props->s_carrier_report = ene_set_carrier_report;
- 	}
- 
- 	ene_setup_hw_buffer(dev);
--- 
-1.7.1
+> -----Original Message-----
+> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> Sent: Wednesday, October 06, 2010 7:47 PM
+> To: Hiremath, Vaibhav
+> Cc: linux-media@vger.kernel.org; sakari.ailus@maxwell.research.nokia.com
+> Subject: Re: [RFC/PATCH v2 0/6] OMAP3 ISP driver
+> 
+> Hi Vaibhav,
+> 
+> On Wednesday 06 October 2010 11:56:23 Hiremath, Vaibhav wrote:
+> > On Tuesday, October 05, 2010 6:49 PM Laurent Pinchart wrote:
+> > >
+> > > Hi everybody,
+> > >
+> > > Here's the second version of the OMAP3 ISP driver, rebased on top of
+> the
+> > > latest media controller and sub-device API patches.
+> > >
+> > > As with the previous version, the V4L/DVB patches come from the
+> upstream
+> > > staging/v2.6.37 branch and won't be needed anymore when the driver
+> will
+> > > be rebased on top of 2.6.36.
+> > >
+> > > Patch 6/6 (the driver itself) is too big for vger, even in compressed
+> > > form. You can find it at
+> > > http://git.linuxtv.org/pinchartl/media.git?h=refs/heads/media-0004-
+> > > omap3isp (sorry for the inconvenience). I'll try splitting up the
+> patch in
+> > > the next version for easier review.
+> 
+> [snip]
+> 
+> > Hi Laurent,
+> >
+> > I have some specific comment on this patch series, especially from
+> > re-usability point of view.
+> >
+> > I have made this comment earlier as well during Helsinki conference, I
+> am
+> > not quite sure whether you remember this or not.
+> 
+> Yes I do. I haven't had time to take that into account yet to, as most of
+> my
+> time was spent consolidating this patch series to get the driver ready for
+> submission.
+> 
+> > Let me introduce some SoC's here,
+> >
+> > OMAP3530/OMAP3730/OMAP3430/OMAP3630 -
+> > ------------------------------------
+> > I am pretty sure that your patch addresses all the requirement and is
+> being
+> > tested for this SoC family. Infact I am also working on this along side
+> to
+> > validate it and add some feature support on top of other platforms, like
+> > OMAP3EVM, Beagle, BeagleXM, etc..
+> 
+> That's right, that's the chip family I'm working with. The driver has been
+> tested (to various degrees) on the 3430, 3530 and 3630. I'm not aware of
+> anyone using it on the 3730 (but there could be silent users).
+> 
+> > So I do not have any specific comments here,
+[Hiremath, Vaibhav] You can consider me into this. We are using AM/DM3730 which is exactly same as OMAP3630.
 
+Thanks,
+Vaibhav
+
+> >
+> > AM3517 -
+> > --------
+> > AM3517 is another SoC, inheriting most of the IP's/modules from OMAP3,
+> but
+> > in case of Capture module it only uses CCDC front end module of the ISP.
+> > Another difference is the output data pins become 16-bit in this case,
+> > since it doesn't have any support for bridge/lane-shifter.
+> >
+> > I would want to re-use CCDC sub-device driver here, have you thought of
+> > this?
+> 
+> I've had a look at the AM3517 datasheet. The CCDC looks similar indeed
+> (registers have identical addresses, that's a good start), but there's a
+> major
+> difference regarding memory management, as the AM3517 has no IOMMU. An
+> alternative isp_video implementation would be needed. This isn't an easy
+> task,
+> but it's worth looking at how code could be reused.
+> 
+> > DM6446 (Davinci & Family)
+> > -------------------------
+> > Specifically I am will take DM6446 SoC here (which is near to OMAP),
+> since
+> > it has almost same building blocks inside ISP, except all serial (MIPI
+> > CSI) interfaces.
+> >
+> > Also here I would want to re-use almost all the components like, CCDC,
+> > Resizer, Previewer, etc... Also DM355 (OR 365 I don't remember
+> correctly)
+> > but one of them support 2 instance of resizer module.
+> 
+> Once again a bit difference is the lack of IOMMU. The rest looks pretty
+> similar indeed.
+> 
+> > Here it might be easy to tweak the code in order to re-use but in case
+> of
+> > AM3517 I am not sure how do we want to handle this.
+> 
+> Do you think we should start with the AM3517 or the DM6446 ? While the
+> DM6446
+> ISP is closer to the OMAP3 ISP, it's also more complex, so more code will
+> need
+> to be verified and modified.
+> 
+> > The intent is not to block this patch series, but to give some food to
+> our
+> > brains and have healthy discussion here. We could add all this support
+> on
+> > top of it, I am ok with this.
+> 
+> That's good, because I wasn't going to hold the OMAP3 ISP driver until it
+> can
+> support all other TI chips :-)
+> 
+> > I am also reviewing the patch series and comments are following this
+> > post...
+> 
+> Thanks.
+> 
+> --
+> Regards,
+> 
+> Laurent Pinchart
