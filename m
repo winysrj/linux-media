@@ -1,103 +1,65 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2667 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932530Ab0JQTEn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Oct 2010 15:04:43 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id o9HJ4gUB086289
-	for <linux-media@vger.kernel.org>; Sun, 17 Oct 2010 21:04:42 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 17 Oct 2010 21:04:42 +0200 (CEST)
-Message-Id: <201010171904.o9HJ4gUB086289@smtp-vbr12.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+Received: from perceval.irobotique.be ([92.243.18.41]:47595 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750952Ab0JFKSl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Oct 2010 06:18:41 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: Re: [PATCH/RFC v3 04/11] v4l: Add 8-bit YUYV on 16-bit bus and SGRBG10 media bus pixel codes
+Date: Wed, 6 Oct 2010 12:18:55 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"sakari.ailus@maxwell.research.nokia.com"
+	<sakari.ailus@maxwell.research.nokia.com>
+References: <1286288714-16506-1-git-send-email-laurent.pinchart@ideasonboard.com> <1286288714-16506-5-git-send-email-laurent.pinchart@ideasonboard.com> <19F8576C6E063C45BE387C64729E739404AA21CCB2@dbde02.ent.ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404AA21CCB2@dbde02.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201010061218.56330.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi Vaibhav,
 
-Results of the daily build of v4l-dvb:
+On Wednesday 06 October 2010 11:19:25 Hiremath, Vaibhav wrote:
+> On Tuesday, October 05, 2010 7:55 PM Laurent Pinchart wrote:
+> > 
+> > Add the following media bus format code definitions:
+> > 
+> > - V4L2_MBUS_FMT_SGRBG10_1X10 for 10-bit GRBG Bayer
+> > - V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 for 10-bit DPCM compressed GRBG Bayer
+> > - V4L2_MBUS_FMT_YUYV16_1X16 for 8-bit YUYV on 16-bit bus
+> > - V4L2_MBUS_FMT_UYVY16_1X16 for 8-bit UYVY on 16-bit bus
+> > - V4L2_MBUS_FMT_YVYU16_1X16 for 8-bit YVYU on 16-bit bus
+> > - V4L2_MBUS_FMT_VYUY16_1X16 for 8-bit VYUY on 16-bit bus
 
-date:        Sun Oct 17 19:00:11 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15164:1da5fed5c8b2
-git master:       3e6dce76d99b328716b43929b9195adfee1de00c
-git media-master: 1c8c51f7413ec522c7b729c8ebc5ce815fb7d4a8
-gcc version:      i686-linux-gcc (GCC) 4.5.1
-host hardware:    x86_64
-host os:          2.6.32.5
+The commit message should list V4L2_MBUS_FMT_*8_1X16 instead of 
+V4L2_MBUS_FMT_*16_1X16, my bad.
+> 
+> Laurent I may be wrong here, but I think above definition is confusing -
+> 
+> For me the above definition actually means, 16bits are coming on the bus
+> for every cycle.
 
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: WARNINGS
-linux-git-mips: WARNINGS
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-linux-2.6.32.6-armv5: WARNINGS
-linux-2.6.33-armv5: WARNINGS
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35.3-armv5: WARNINGS
-linux-2.6.32.6-armv5-davinci: ERRORS
-linux-2.6.33-armv5-davinci: ERRORS
-linux-2.6.34-armv5-davinci: ERRORS
-linux-2.6.35.3-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: ERRORS
-linux-2.6.33-armv5-ixp: ERRORS
-linux-2.6.34-armv5-ixp: ERRORS
-linux-2.6.35.3-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: ERRORS
-linux-2.6.33-armv5-omap2: ERRORS
-linux-2.6.34-armv5-omap2: ERRORS
-linux-2.6.35.3-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.32.6-m32r: WARNINGS
-linux-2.6.33-m32r: WARNINGS
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35.3-m32r: WARNINGS
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35.3-mips: WARNINGS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35.3-powerpc64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-spec-git: OK
-sparse: ERRORS
+That's correct.
 
-Detailed results are available here:
+> If you are referring to OMAP3 interface here then 8->16 bit conversion
+> happens inside ISP-bridge, the interface from sensor-to-CCDC is still 8
+> bit (Technically it is 10, but we are using lane shifter to get 8 bits)
+> and I believe sensor is also sending one component for every cycle (either
+> UYVY or YUYV).
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+That's correct as well.
 
-Full logs are available here:
+> And I believe the bridge driver is not exported to user application so we
+> should be using MBUS_FMT_UYVY8_2x8 and family.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+The V4L2_MBUS_FMT_*8_1X16 formats are used for the preview -> resizer link, 
+not the sensor -> CCDC link. For the later the V4L2_MBUS_FMT_*8_2X8 are used 
+instead.
 
-The V4L-DVB specification from this daily build is here:
+-- 
+Regards,
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Laurent Pinchart
