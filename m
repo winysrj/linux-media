@@ -1,195 +1,114 @@
 Return-path: <mchehab@pedra>
-Received: from d1.icnet.pl ([212.160.220.21]:48368 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755312Ab0JBLtb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Oct 2010 07:49:31 -0400
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v3 3/6] SoC Camera: add driver for OV6650 sensor
-Date: Sat, 2 Oct 2010 13:48:33 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"Discussion of the Amstrad E3 emailer hardware/software"
-	<e3-hacking@earth.li>
-References: <201009270514.01865.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1010020538500.14599@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1010020538500.14599@axis700.grange>
+Received: from perceval.irobotique.be ([92.243.18.41]:60281 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752873Ab0JFIov (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Oct 2010 04:44:51 -0400
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Jean Delvare <khali@linux-fr.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pete Eberlein <pete@sensoray.com>,
+	Mike Isely <isely@pobox.com>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Vaibhav Hiremath <hvaibhav@ti.com>,
+	Muralidharan Karicheri <mkaricheri@gmail.com>
+Subject: [GIT PATCHES FOR 2.6.37] Use modaliases to load I2C modules
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date: Wed, 6 Oct 2010 10:45:01 +0200
 MIME-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <201010021348.34560.jkrzyszt@tis.icnet.pl>
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201010061045.02832.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Saturday 02 October 2010 07:47:47 Guennadi Liakhovetski napisał(a):
-> Ok, let's take this one, but, please, address the below couple of minor
-> issues in an incremental patch.
->
-> On Mon, 27 Sep 2010, Janusz Krzysztofik wrote:
-> > +/* write a register */
-> > +static int ov6650_reg_write(struct i2c_client *client, u8 reg, u8 val)
-> > +{
-> > +	int ret;
-> > +	unsigned char data[2] = { reg, val };
-> > +	struct i2c_msg msg = {
-> > +		.addr	= client->addr,
-> > +		.flags	= 0,
-> > +		.len	= 2,
-> > +		.buf	= data,
-> > +	};
-> > +
-> > +	ret = i2c_transfer(client->adapter, &msg, 1);
-> > +	usleep_range(100, 1000);
->
-> So, 100us are enough? Then I'd just go with udelay(100).
+Hi Mauro,
 
-Guennadi,
-I already tried with udelay(100), as you had suggested before, and it worked, 
-but then checkpatch.pl --sctirct told me:
+The following changes since commit c8dd732fd119ce6d562d5fa82a10bbe75a376575:
 
-"CHECK: usleep_range is preferred over udelay; see 
-Documentation/timers/timers-howto.txt
-+       udelay(100);"
+  V4L/DVB: gspca - sonixj: Have 0c45:6130 handled by sonixj instead of sn9c102
+  (2010-10-01 18:14:35 -0300)
 
-So, I had read Documentation/timers/timers-howto.txt again and switched to 
-usleep_range, as it suggested.
+are available in the git repository at:
+  git://linuxtv.org/pinchartl/uvcvideo.git i2c-module-name
 
-Please confirm if you still prefere udelay(100) over usleep_range(), and I'll 
-change it back.
+The patches have been posted to the list, and acked for pvrusb2, soc-camera
+and sh_vou.
 
-> > static bool is_unscaled_ok(int width, int height, struct v4l2_rect *rect)
-> > +{
-> > +	return (width > rect->width >> 1 || height > rect->height >> 1);
-> > +}
->
-> Ok, just one more pair of brackets to remove;)
+Laurent Pinchart (16):
+      v4l: Load I2C modules based on modalias
+      v4l: Remove hardcoded module names passed to v4l2_i2c_new_subdev*
+      go7007: Add MODULE_DEVICE_TABLE to the go7007 I2C modules
+      go7007: Fix the TW2804 I2C type name
+      go7007: Don't use module names to load I2C modules
+      zoran: Don't use module names to load I2C modules
+      pvrusb2: Don't use module names to load I2C modules
+      sh_vou: Don't use module names to load I2C modules
+      radio-si4713: Don't use module names to load I2C modules
+      soc_camera: Don't use module names to load I2C modules
+      vpfe_capture: Don't use module names to load I2C modules
+      vpif_display: Don't use module names to load I2C modules
+      vpif_capture: Don't use module names to load I2C modules
+      ivtv: Don't use module names to load I2C modules
+      cx18: Don't use module names to load I2C modules
+      v4l: Remove module_name argument to the v4l2_i2c_new_subdev* functions
 
-OK.
+ arch/arm/mach-mx3/mach-pcm037.c               |    2 -
+ arch/arm/mach-mx3/mx31moboard-marxbot.c       |    1 -
+ arch/arm/mach-mx3/mx31moboard-smartbot.c      |    1 -
+ arch/arm/mach-pxa/em-x270.c                   |    1 -
+ arch/arm/mach-pxa/ezx.c                       |    2 -
+ arch/arm/mach-pxa/mioa701.c                   |    1 -
+ arch/arm/mach-pxa/pcm990-baseboard.c          |    2 -
+ arch/sh/boards/mach-ap325rxa/setup.c          |    1 -
+ arch/sh/boards/mach-ecovec24/setup.c          |    4 --
+ arch/sh/boards/mach-kfr2r09/setup.c           |    1 -
+ arch/sh/boards/mach-migor/setup.c             |    2 -
+ arch/sh/boards/mach-se/7724/setup.c           |    1 -
+ drivers/media/radio/radio-si4713.c            |    2 +-
+ drivers/media/video/au0828/au0828-cards.c     |    4 +-
+ drivers/media/video/bt8xx/bttv-cards.c        |   22 +++++-----
+ drivers/media/video/cafe_ccic.c               |    2 +-
+ drivers/media/video/cx18/cx18-i2c.c           |   23 ++---------
+ drivers/media/video/cx231xx/cx231xx-cards.c   |    4 +-
+ drivers/media/video/cx23885/cx23885-cards.c   |    2 +-
+ drivers/media/video/cx23885/cx23885-video.c   |    4 +-
+ drivers/media/video/cx88/cx88-cards.c         |    9 ++--
+ drivers/media/video/cx88/cx88-video.c         |    7 +--
+ drivers/media/video/davinci/vpfe_capture.c    |    1 -
+ drivers/media/video/davinci/vpif_capture.c    |    1 -
+ drivers/media/video/davinci/vpif_display.c    |    2 +-
+ drivers/media/video/em28xx/em28xx-cards.c     |   18 ++++----
+ drivers/media/video/fsl-viu.c                 |    2 +-
+ drivers/media/video/ivtv/ivtv-i2c.c           |   50 +++++--------------------
+ drivers/media/video/mxb.c                     |   12 +++---
+ drivers/media/video/pvrusb2/pvrusb2-hdw.c     |   13 +-----
+ drivers/media/video/saa7134/saa7134-cards.c   |    8 ++--
+ drivers/media/video/saa7134/saa7134-core.c    |    4 +-
+ drivers/media/video/sh_vou.c                  |    2 +-
+ drivers/media/video/soc_camera.c              |    2 +-
+ drivers/media/video/usbvision/usbvision-i2c.c |    6 +-
+ drivers/media/video/v4l2-common.c             |   13 ++----
+ drivers/media/video/vino.c                    |    4 +-
+ drivers/media/video/zoran/zoran.h             |    2 -
+ drivers/media/video/zoran/zoran_card.c        |   24 +----------
+ drivers/staging/go7007/go7007-driver.c        |   43 +--------------------
+ drivers/staging/go7007/go7007-usb.c           |    2 +-
+ drivers/staging/go7007/wis-ov7640.c           |    1 +
+ drivers/staging/go7007/wis-saa7113.c          |    1 +
+ drivers/staging/go7007/wis-saa7115.c          |    1 +
+ drivers/staging/go7007/wis-sony-tuner.c       |    1 +
+ drivers/staging/go7007/wis-tw2804.c           |    1 +
+ drivers/staging/go7007/wis-tw9903.c           |    1 +
+ drivers/staging/go7007/wis-uda1342.c          |    1 +
+ drivers/staging/tm6000/tm6000-cards.c         |    4 +-
+ include/media/sh_vou.h                        |    1 -
+ include/media/v4l2-common.h                   |   16 +++-----
+ 51 files changed, 101 insertions(+), 234 deletions(-)
 
-> > +
-> > +static u8 to_clkrc(struct v4l2_fract *timeperframe,
-> > +		unsigned long pclk_limit, unsigned long pclk_max)
-> > +{
-> > +	unsigned long pclk;
-> > +
-> > +	if (timeperframe->numerator && timeperframe->denominator)
-> > +		pclk = pclk_max * timeperframe->denominator /
-> > +				(FRAME_RATE_MAX * timeperframe->numerator);
-> > +	else
-> > +		pclk = pclk_max;
-> > +
-> > +	if (pclk_limit && pclk_limit < pclk)
-> > +		pclk = pclk_limit;
-> > +
-> > +	return (pclk_max - 1) / pclk;
-> > +}
-> > +
-> > +/* set the format we will capture in */
-> > +static int ov6650_s_fmt(struct v4l2_subdev *sd, struct
-> > v4l2_mbus_framefmt *mf) +{
-> > +	struct i2c_client *client = sd->priv;
-> > +	struct soc_camera_device *icd = client->dev.platform_data;
-> > +	struct soc_camera_sense *sense = icd->sense;
-> > +	struct ov6650 *priv = to_ov6650(client);
-> > +	bool half_scale = !is_unscaled_ok(mf->width, mf->height, &priv->rect);
-> > +	struct v4l2_crop a = {
-> > +		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
-> > +		.c = {
-> > +			.left	= priv->rect.left + (priv->rect.width >> 1) -
-> > +					(mf->width >> (1 - half_scale)),
-> > +			.top	= priv->rect.top + (priv->rect.height >> 1) -
-> > +					(mf->height >> (1 - half_scale)),
-> > +			.width	= mf->width << half_scale,
-> > +			.height	= mf->height << half_scale,
-> > +		},
-> > +	};
->
-> Hm, this seems wrong to me... You calculate left and top to preserve the
-> center, right? 
+-- 
+Regards,
 
-Exactly.
-
-> This is good, but: if output is unscaled, you want 
->
-> 	.left = priv->rect.left + (priv->rect.width - mf->width) / 2;
-
-	== priv->rect.left +  priv->rect.width  / 2  -   mf->width        /  2
-	== priv->rect.left + (priv->rect.width >> 1) - ( mf->width       >>  1)
-	== priv->rect.left + (priv->rect.width >> 1) - ( mf->width       >> (1 - 0))
->
-> in this case half_scale = 0 and the above is correct. Now, is the output
-> is scaled, you want
->
-> 	.left = priv->rect.left + (priv->rect.width - mf->width * 2) / 2;
-
-	== priv->rect.left +  priv->rect.width  / 2  -   mf->width  * 2   /  2
-	== priv->rect.left + (priv->rect.width >> 1) - ((mf->width << 1) >>  1)
-	== priv->rect.left + (priv->rect.width >> 1) - ( mf->width       >> (1 - 1))
-
-> which is not, what you have above. Am I missing anything?
-
-One of us must be ;).
-
-> > +	case V4L2_MBUS_FMT_UYVY8_2X8:
-> > +		dev_dbg(&client->dev, "pixel format YUYV8_2X8_BE\n");
-> > +		if (half_scale) {
-> > +			coma_mask |= COMA_RGB | COMA_BW | COMA_WORD_SWAP;
-> > +			coma_set |= COMA_BYTE_SWAP;
-> > +		} else {
-> > +			coma_mask |= COMA_RGB | COMA_BW;
-> > +			coma_set |= COMA_BYTE_SWAP | COMA_WORD_SWAP;
-> > +		}
-> > +		break;
-> > +	case V4L2_MBUS_FMT_VYUY8_2X8:
-> > +		dev_dbg(&client->dev, "pixel format YVYU8_2X8_BE (untested)\n");
-> > +		if (half_scale) {
-> > +			coma_mask |= COMA_RGB | COMA_BW;
-> > +			coma_set |= COMA_BYTE_SWAP | COMA_WORD_SWAP;
-> > +		} else {
-> > +			coma_mask |= COMA_RGB | COMA_BW | COMA_WORD_SWAP;
-> > +			coma_set |= COMA_BYTE_SWAP;
-> > +		}
-> > +		break;
->
-> ...since there anyway will be an incremental patch . what does
-> word-swapping have to do with scaling?...
-
-A hardware (firmware) bug perhaps? All I can say is that I had found out it 
-worked like this for me before, and I've just ensured it still does.
-
-> > +	case V4L2_MBUS_FMT_SBGGR8_1X8:
-> > +		dev_dbg(&client->dev, "pixel format SBGGR8_1X8 (untested)\n");
-> > +		coma_mask |= COMA_BW | COMA_BYTE_SWAP | COMA_WORD_SWAP;
-> > +		coma_set |= COMA_RAW_RGB | COMA_RGB;
-> > +		break;
-> > +	case 0:
-> > +		break;
->
-> 0 is defined as reserved... What for do you need it here?
-
-This I have mentioned in my v2 -> v3 changes list:
-
-> - add support for geometry only change to s_fmt, 
-
-I've tried to follow a pattern copied from mt9v022.c:
-
-+        case 0:
-+		/* No format change, only geometry */
-+		break;
-
-but now I see I've missed the comment unfortunately. Please specify if you 
-prefere to have it dropped or documented.
-
-Thanks,
-Janusz
-
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Laurent Pinchart
