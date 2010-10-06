@@ -1,184 +1,424 @@
 Return-path: <mchehab@pedra>
-Received: from rtp-iport-2.cisco.com ([64.102.122.149]:13541 "EHLO
-	rtp-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932418Ab0J1Gqi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Oct 2010 02:46:38 -0400
-From: mats.randgaard@tandberg.com
-To: hvaibhav@ti.com, mkaricheri@gmail.com
-Cc: hans.verkuil@tandberg.com, linux-media@vger.kernel.org,
-	Mats Randgaard <mats.randgaard@tandberg.com>
-Subject: [RFCv2/PATCH 5/5] vpif_cap/disp: Cleanup, improved comments
-Date: Thu, 28 Oct 2010 08:46:23 +0200
-Message-Id: <1288248383-12557-6-git-send-email-mats.randgaard@tandberg.com>
-In-Reply-To: <1288248383-12557-1-git-send-email-mats.randgaard@tandberg.com>
-References: <1288248383-12557-1-git-send-email-mats.randgaard@tandberg.com>
+Received: from perceval.irobotique.be ([92.243.18.41]:48875 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932148Ab0JFI7q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Oct 2010 04:59:46 -0400
+Received: from localhost.localdomain (unknown [91.178.188.185])
+	by perceval.irobotique.be (Postfix) with ESMTPSA id 88AE2361D7
+	for <linux-media@vger.kernel.org>; Wed,  6 Oct 2010 08:59:40 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 11/14] uvcvideo: Embed uvc_control_info inside struct uvc_control
+Date: Wed,  6 Oct 2010 10:59:49 +0200
+Message-Id: <1286355592-13603-12-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1286355592-13603-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1286355592-13603-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Mats Randgaard <mats.randgaard@tandberg.com>
+Now that control information structures are not shared between control
+instances, embed a uvc_control_info instance inside the uvc_control
+structure instead of storing a pointer.
 
-Signed-off-by: Mats Randgaard <mats.randgaard@tandberg.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@tandberg.com>
-Acked-by: Murali Karicheri <mkaricheri@gmail.com>
-Acked-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/video/davinci/vpif.h         |   13 ++++++-------
- drivers/media/video/davinci/vpif_capture.c |   13 ++++++-------
- drivers/media/video/davinci/vpif_display.c |   23 ++++++++++++++++++++---
- 3 files changed, 32 insertions(+), 17 deletions(-)
+ drivers/media/video/uvc/uvc_ctrl.c |  130 +++++++++++++++++-------------------
+ drivers/media/video/uvc/uvcvideo.h |   11 ++--
+ 2 files changed, 68 insertions(+), 73 deletions(-)
 
-diff --git a/drivers/media/video/davinci/vpif.h b/drivers/media/video/davinci/vpif.h
-index b121683..aea7487 100644
---- a/drivers/media/video/davinci/vpif.h
-+++ b/drivers/media/video/davinci/vpif.h
-@@ -577,11 +577,10 @@ struct vpif_channel_config_params {
- 	char name[VPIF_MAX_NAME];	/* Name of the mode */
- 	u16 width;			/* Indicates width of the image */
- 	u16 height;			/* Indicates height of the image */
--	u8 frm_fmt;			/* Indicates whether this is interlaced
--					 * or progressive format */
--	u8 ycmux_mode;			/* Indicates whether this mode requires
--					 * single or two channels */
--	u16 eav2sav;			/* length of sav 2 eav */
-+	u8 frm_fmt;			/* Interlaced (0) or progressive (1) */
-+	u8 ycmux_mode;			/* This mode requires one (0) or two (1)
-+					   channels */
-+	u16 eav2sav;			/* length of eav 2 sav */
- 	u16 sav2eav;			/* length of sav 2 eav */
- 	u16 l1, l3, l5, l7, l9, l11;	/* Other parameter configurations */
- 	u16 vsize;			/* Vertical size of the image */
-@@ -589,8 +588,8 @@ struct vpif_channel_config_params {
- 					 * is in BT or in CCD/CMOS */
- 	u8  vbi_supported;		/* Indicates whether this mode
- 					 * supports capturing vbi or not */
--	u8 hd_sd;
--	v4l2_std_id stdid;
-+	u8 hd_sd;			/* HDTV (1) or SDTV (0) format */
-+	v4l2_std_id stdid;		/* SDTV format */
- 	u32 dv_preset;			/* HDTV format */
- };
+diff --git a/drivers/media/video/uvc/uvc_ctrl.c b/drivers/media/video/uvc/uvc_ctrl.c
+index 531a3e1..97a2395 100644
+--- a/drivers/media/video/uvc/uvc_ctrl.c
++++ b/drivers/media/video/uvc/uvc_ctrl.c
+@@ -643,7 +643,7 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
  
-diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
-index 0635b10..c8c574f 100644
---- a/drivers/media/video/davinci/vpif_capture.c
-+++ b/drivers/media/video/davinci/vpif_capture.c
-@@ -329,7 +329,7 @@ static void vpif_schedule_next_buffer(struct common_obj *common)
-  * @dev_id: dev_id ptr
-  *
-  * It changes status of the captured buffer, takes next buffer from the queue
-- * and sets its address in VPIF  registers
-+ * and sets its address in VPIF registers
-  */
- static irqreturn_t vpif_channel_isr(int irq, void *dev_id)
+ static inline __u8 *uvc_ctrl_data(struct uvc_control *ctrl, int id)
  {
-@@ -422,14 +422,12 @@ static int vpif_update_std_info(struct channel_obj *ch)
- 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
- 	struct vpif_params *vpifparams = &ch->vpifparams;
- 	const struct vpif_channel_config_params *config;
--	struct vpif_channel_config_params *std_info;
-+	struct vpif_channel_config_params *std_info = &vpifparams->std_info;
- 	struct video_obj *vid_ch = &ch->video;
- 	int index;
- 
- 	vpif_dbg(2, debug, "vpif_update_std_info\n");
- 
--	std_info = &vpifparams->std_info;
--
- 	for (index = 0; index < vpif_ch_params_count; index++) {
- 		config = &ch_params[index];
- 		if (config->hd_sd == 0) {
-@@ -458,6 +456,7 @@ static int vpif_update_std_info(struct channel_obj *ch)
- 	common->fmt.fmt.pix.bytesperline = std_info->width;
- 	vpifparams->video_params.hpitch = std_info->width;
- 	vpifparams->video_params.storage_mode = std_info->frm_fmt;
-+
- 	return 0;
+-	return ctrl->uvc_data + id * ctrl->info->size;
++	return ctrl->uvc_data + id * ctrl->info.size;
  }
  
-@@ -1691,7 +1690,7 @@ static int vpif_s_fmt_vid_cap(struct file *file, void *priv,
- 	struct v4l2_pix_format *pixfmt;
+ static inline int uvc_test_bit(const __u8 *data, int bit)
+@@ -766,10 +766,10 @@ static void __uvc_find_control(struct uvc_entity *entity, __u32 v4l2_id,
+ 
+ 	for (i = 0; i < entity->ncontrols; ++i) {
+ 		ctrl = &entity->controls[i];
+-		if (ctrl->info == NULL)
++		if (!ctrl->initialized)
+ 			continue;
+ 
+-		list_for_each_entry(map, &ctrl->info->mappings, list) {
++		list_for_each_entry(map, &ctrl->info.mappings, list) {
+ 			if ((map->id == v4l2_id) && !next) {
+ 				*control = ctrl;
+ 				*mapping = map;
+@@ -816,36 +816,36 @@ static int uvc_ctrl_populate_cache(struct uvc_video_chain *chain,
+ {
+ 	int ret;
+ 
+-	if (ctrl->info->flags & UVC_CONTROL_GET_DEF) {
++	if (ctrl->info.flags & UVC_CONTROL_GET_DEF) {
+ 		ret = uvc_query_ctrl(chain->dev, UVC_GET_DEF, ctrl->entity->id,
+-				     chain->dev->intfnum, ctrl->info->selector,
++				     chain->dev->intfnum, ctrl->info.selector,
+ 				     uvc_ctrl_data(ctrl, UVC_CTRL_DATA_DEF),
+-				     ctrl->info->size);
++				     ctrl->info.size);
+ 		if (ret < 0)
+ 			return ret;
+ 	}
+ 
+-	if (ctrl->info->flags & UVC_CONTROL_GET_MIN) {
++	if (ctrl->info.flags & UVC_CONTROL_GET_MIN) {
+ 		ret = uvc_query_ctrl(chain->dev, UVC_GET_MIN, ctrl->entity->id,
+-				     chain->dev->intfnum, ctrl->info->selector,
++				     chain->dev->intfnum, ctrl->info.selector,
+ 				     uvc_ctrl_data(ctrl, UVC_CTRL_DATA_MIN),
+-				     ctrl->info->size);
++				     ctrl->info.size);
+ 		if (ret < 0)
+ 			return ret;
+ 	}
+-	if (ctrl->info->flags & UVC_CONTROL_GET_MAX) {
++	if (ctrl->info.flags & UVC_CONTROL_GET_MAX) {
+ 		ret = uvc_query_ctrl(chain->dev, UVC_GET_MAX, ctrl->entity->id,
+-				     chain->dev->intfnum, ctrl->info->selector,
++				     chain->dev->intfnum, ctrl->info.selector,
+ 				     uvc_ctrl_data(ctrl, UVC_CTRL_DATA_MAX),
+-				     ctrl->info->size);
++				     ctrl->info.size);
+ 		if (ret < 0)
+ 			return ret;
+ 	}
+-	if (ctrl->info->flags & UVC_CONTROL_GET_RES) {
++	if (ctrl->info.flags & UVC_CONTROL_GET_RES) {
+ 		ret = uvc_query_ctrl(chain->dev, UVC_GET_RES, ctrl->entity->id,
+-				     chain->dev->intfnum, ctrl->info->selector,
++				     chain->dev->intfnum, ctrl->info.selector,
+ 				     uvc_ctrl_data(ctrl, UVC_CTRL_DATA_RES),
+-				     ctrl->info->size);
++				     ctrl->info.size);
+ 		if (ret < 0)
+ 			return ret;
+ 	}
+@@ -873,9 +873,9 @@ int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
+ 	strlcpy(v4l2_ctrl->name, mapping->name, sizeof v4l2_ctrl->name);
+ 	v4l2_ctrl->flags = 0;
+ 
+-	if (!(ctrl->info->flags & UVC_CONTROL_GET_CUR))
++	if (!(ctrl->info.flags & UVC_CONTROL_GET_CUR))
+ 		v4l2_ctrl->flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
+-	if (!(ctrl->info->flags & UVC_CONTROL_SET_CUR))
++	if (!(ctrl->info.flags & UVC_CONTROL_SET_CUR))
+ 		v4l2_ctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+ 
+ 	if (!ctrl->cached) {
+@@ -884,7 +884,7 @@ int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
+ 			return ret;
+ 	}
+ 
+-	if (ctrl->info->flags & UVC_CONTROL_GET_DEF) {
++	if (ctrl->info.flags & UVC_CONTROL_GET_DEF) {
+ 		v4l2_ctrl->default_value = mapping->get(mapping, UVC_GET_DEF,
+ 				uvc_ctrl_data(ctrl, UVC_CTRL_DATA_DEF));
+ 	}
+@@ -921,15 +921,15 @@ int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
+ 		break;
+ 	}
+ 
+-	if (ctrl->info->flags & UVC_CONTROL_GET_MIN)
++	if (ctrl->info.flags & UVC_CONTROL_GET_MIN)
+ 		v4l2_ctrl->minimum = mapping->get(mapping, UVC_GET_MIN,
+ 				     uvc_ctrl_data(ctrl, UVC_CTRL_DATA_MIN));
+ 
+-	if (ctrl->info->flags & UVC_CONTROL_GET_MAX)
++	if (ctrl->info.flags & UVC_CONTROL_GET_MAX)
+ 		v4l2_ctrl->maximum = mapping->get(mapping, UVC_GET_MAX,
+ 				     uvc_ctrl_data(ctrl, UVC_CTRL_DATA_MAX));
+ 
+-	if (ctrl->info->flags & UVC_CONTROL_GET_RES)
++	if (ctrl->info.flags & UVC_CONTROL_GET_RES)
+ 		v4l2_ctrl->step = mapping->get(mapping, UVC_GET_RES,
+ 				  uvc_ctrl_data(ctrl, UVC_CTRL_DATA_RES));
+ 
+@@ -978,14 +978,14 @@ static int uvc_ctrl_commit_entity(struct uvc_device *dev,
+ 
+ 	for (i = 0; i < entity->ncontrols; ++i) {
+ 		ctrl = &entity->controls[i];
+-		if (ctrl->info == NULL)
++		if (!ctrl->initialized)
+ 			continue;
+ 
+ 		/* Reset the loaded flag for auto-update controls that were
+ 		 * marked as loaded in uvc_ctrl_get/uvc_ctrl_set to prevent
+ 		 * uvc_ctrl_get from using the cached value.
+ 		 */
+-		if (ctrl->info->flags & UVC_CONTROL_AUTO_UPDATE)
++		if (ctrl->info.flags & UVC_CONTROL_AUTO_UPDATE)
+ 			ctrl->loaded = 0;
+ 
+ 		if (!ctrl->dirty)
+@@ -993,16 +993,16 @@ static int uvc_ctrl_commit_entity(struct uvc_device *dev,
+ 
+ 		if (!rollback)
+ 			ret = uvc_query_ctrl(dev, UVC_SET_CUR, ctrl->entity->id,
+-				dev->intfnum, ctrl->info->selector,
++				dev->intfnum, ctrl->info.selector,
+ 				uvc_ctrl_data(ctrl, UVC_CTRL_DATA_CURRENT),
+-				ctrl->info->size);
++				ctrl->info.size);
+ 		else
+ 			ret = 0;
+ 
+ 		if (rollback || ret < 0)
+ 			memcpy(uvc_ctrl_data(ctrl, UVC_CTRL_DATA_CURRENT),
+ 			       uvc_ctrl_data(ctrl, UVC_CTRL_DATA_BACKUP),
+-			       ctrl->info->size);
++			       ctrl->info.size);
+ 
+ 		ctrl->dirty = 0;
+ 
+@@ -1040,14 +1040,14 @@ int uvc_ctrl_get(struct uvc_video_chain *chain,
+ 	int ret;
+ 
+ 	ctrl = uvc_find_control(chain, xctrl->id, &mapping);
+-	if (ctrl == NULL || (ctrl->info->flags & UVC_CONTROL_GET_CUR) == 0)
++	if (ctrl == NULL || (ctrl->info.flags & UVC_CONTROL_GET_CUR) == 0)
+ 		return -EINVAL;
+ 
+ 	if (!ctrl->loaded) {
+ 		ret = uvc_query_ctrl(chain->dev, UVC_GET_CUR, ctrl->entity->id,
+-				chain->dev->intfnum, ctrl->info->selector,
++				chain->dev->intfnum, ctrl->info.selector,
+ 				uvc_ctrl_data(ctrl, UVC_CTRL_DATA_CURRENT),
+-				ctrl->info->size);
++				ctrl->info.size);
+ 		if (ret < 0)
+ 			return ret;
+ 
+@@ -1082,7 +1082,7 @@ int uvc_ctrl_set(struct uvc_video_chain *chain,
+ 	int ret;
+ 
+ 	ctrl = uvc_find_control(chain, xctrl->id, &mapping);
+-	if (ctrl == NULL || (ctrl->info->flags & UVC_CONTROL_SET_CUR) == 0)
++	if (ctrl == NULL || (ctrl->info.flags & UVC_CONTROL_SET_CUR) == 0)
+ 		return -EINVAL;
+ 
+ 	/* Clamp out of range values. */
+@@ -1128,16 +1128,16 @@ int uvc_ctrl_set(struct uvc_video_chain *chain,
+ 	 * needs to be loaded from the device to perform the read-modify-write
+ 	 * operation.
+ 	 */
+-	if (!ctrl->loaded && (ctrl->info->size * 8) != mapping->size) {
+-		if ((ctrl->info->flags & UVC_CONTROL_GET_CUR) == 0) {
++	if (!ctrl->loaded && (ctrl->info.size * 8) != mapping->size) {
++		if ((ctrl->info.flags & UVC_CONTROL_GET_CUR) == 0) {
+ 			memset(uvc_ctrl_data(ctrl, UVC_CTRL_DATA_CURRENT),
+-				0, ctrl->info->size);
++				0, ctrl->info.size);
+ 		} else {
+ 			ret = uvc_query_ctrl(chain->dev, UVC_GET_CUR,
+ 				ctrl->entity->id, chain->dev->intfnum,
+-				ctrl->info->selector,
++				ctrl->info.selector,
+ 				uvc_ctrl_data(ctrl, UVC_CTRL_DATA_CURRENT),
+-				ctrl->info->size);
++				ctrl->info.size);
+ 			if (ret < 0)
+ 				return ret;
+ 		}
+@@ -1149,7 +1149,7 @@ int uvc_ctrl_set(struct uvc_video_chain *chain,
+ 	if (!ctrl->dirty) {
+ 		memcpy(uvc_ctrl_data(ctrl, UVC_CTRL_DATA_BACKUP),
+ 		       uvc_ctrl_data(ctrl, UVC_CTRL_DATA_CURRENT),
+-		       ctrl->info->size);
++		       ctrl->info.size);
+ 	}
+ 
+ 	mapping->set(mapping, value,
+@@ -1189,10 +1189,10 @@ int uvc_xu_ctrl_query(struct uvc_video_chain *chain,
+ 	/* Find the control. */
+ 	for (i = 0; i < entity->ncontrols; ++i) {
+ 		ctrl = &entity->controls[i];
+-		if (ctrl->info == NULL)
++		if (!ctrl->initialized)
+ 			continue;
+ 
+-		if (ctrl->info->selector == xctrl->selector) {
++		if (ctrl->info.selector == xctrl->selector) {
+ 			found = 1;
+ 			break;
+ 		}
+@@ -1205,11 +1205,11 @@ int uvc_xu_ctrl_query(struct uvc_video_chain *chain,
+ 	}
+ 
+ 	/* Validate control data size. */
+-	if (ctrl->info->size != xctrl->size)
++	if (ctrl->info.size != xctrl->size)
+ 		return -EINVAL;
+ 
+-	if ((set && !(ctrl->info->flags & UVC_CONTROL_SET_CUR)) ||
+-	    (!set && !(ctrl->info->flags & UVC_CONTROL_GET_CUR)))
++	if ((set && !(ctrl->info.flags & UVC_CONTROL_SET_CUR)) ||
++	    (!set && !(ctrl->info.flags & UVC_CONTROL_GET_CUR)))
+ 		return -EINVAL;
+ 
+ 	if (mutex_lock_interruptible(&chain->ctrl_mutex))
+@@ -1272,13 +1272,13 @@ int uvc_ctrl_resume_device(struct uvc_device *dev)
+ 		for (i = 0; i < entity->ncontrols; ++i) {
+ 			ctrl = &entity->controls[i];
+ 
+-			if (ctrl->info == NULL || !ctrl->modified ||
+-			    (ctrl->info->flags & UVC_CONTROL_RESTORE) == 0)
++			if (!ctrl->initialized || !ctrl->modified ||
++			    (ctrl->info.flags & UVC_CONTROL_RESTORE) == 0)
+ 				continue;
+ 
+ 			printk(KERN_INFO "restoring control %pUl/%u/%u\n",
+-				ctrl->info->entity, ctrl->info->index,
+-				ctrl->info->selector);
++				ctrl->info.entity, ctrl->info.index,
++				ctrl->info.selector);
+ 			ctrl->dirty = 1;
+ 		}
+ 
+@@ -1361,31 +1361,26 @@ static int uvc_ctrl_add_info(struct uvc_device *dev, struct uvc_control *ctrl,
+ {
  	int ret = 0;
  
--	vpif_dbg(2, debug, "VIDIOC_S_FMT\n");
-+	vpif_dbg(2, debug, "%s\n", __func__);
+-	/* Clone the control info struct for this device's instance */
+-	ctrl->info = kmemdup(info, sizeof(*info), GFP_KERNEL);
+-	if (ctrl->info == NULL) {
+-		ret = -ENOMEM;
+-		goto done;
+-	}
+-	INIT_LIST_HEAD(&ctrl->info->mappings);
++	memcpy(&ctrl->info, info, sizeof(*info));
++	INIT_LIST_HEAD(&ctrl->info.mappings);
  
- 	/* If streaming is started, return error */
- 	if (common->started) {
-@@ -2333,9 +2332,9 @@ static __init int vpif_probe(struct platform_device *pdev)
- 		if (vpif_obj.sd[i])
- 			vpif_obj.sd[i]->grp_id = 1 << i;
+ 	/* Allocate an array to save control values (cur, def, max, etc.) */
+-	ctrl->uvc_data = kzalloc(ctrl->info->size * UVC_CTRL_DATA_LAST + 1,
++	ctrl->uvc_data = kzalloc(ctrl->info.size * UVC_CTRL_DATA_LAST + 1,
+ 				 GFP_KERNEL);
+ 	if (ctrl->uvc_data == NULL) {
+ 		ret = -ENOMEM;
+ 		goto done;
  	}
--	v4l2_info(&vpif_obj.v4l2_dev, "DM646x VPIF Capture driver"
--		  " initialized\n");
  
-+	v4l2_info(&vpif_obj.v4l2_dev,
-+			"DM646x VPIF capture driver initialized\n");
- 	return 0;
- 
- probe_subdev_out:
-diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
-index 12bfcb9..bb7583d 100644
---- a/drivers/media/video/davinci/vpif_display.c
-+++ b/drivers/media/video/davinci/vpif_display.c
-@@ -363,6 +363,13 @@ static irqreturn_t vpif_channel_isr(int irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
- 
-+/**
-+ * vpif_get_std_info() - update standard related info
-+ * @ch: ptr to channel object
-+ *
-+ * For a given standard selected by application, update values
-+ * in the device data structures
-+ */
- static int vpif_get_std_info(struct channel_obj *ch)
- {
- 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
-@@ -566,7 +573,10 @@ static void vpif_config_addr(struct channel_obj *ch, int muxmode)
- static int vpif_mmap(struct file *filep, struct vm_area_struct *vma)
- {
- 	struct vpif_fh *fh = filep->private_data;
--	struct common_obj *common = &fh->channel->common[VPIF_VIDEO_INDEX];
-+	struct channel_obj *ch = fh->channel;
-+	struct common_obj *common = &(ch->common[VPIF_VIDEO_INDEX]);
++	ctrl->initialized = 1;
 +
-+	vpif_dbg(2, debug, "vpif_mmap\n");
+ 	uvc_trace(UVC_TRACE_CONTROL, "Added control %pUl/%u to device %s "
+-		"entity %u\n", ctrl->info->entity, ctrl->info->selector,
++		"entity %u\n", ctrl->info.entity, ctrl->info.selector,
+ 		dev->udev->devpath, ctrl->entity->id);
  
- 	return videobuf_mmap_mapper(&common->buffer_queue, vma);
+ done:
+-	if (ret < 0) {
++	if (ret < 0)
+ 		kfree(ctrl->uvc_data);
+-		kfree(ctrl->info);
+-	}
+ 	return ret;
  }
-@@ -678,7 +688,12 @@ static int vpif_release(struct file *filep)
+ 
+@@ -1418,11 +1413,11 @@ static int __uvc_ctrl_add_mapping(struct uvc_device *dev,
+ 	if (map->set == NULL)
+ 		map->set = uvc_set_le_value;
+ 
+-	map->ctrl = ctrl->info;
+-	list_add_tail(&map->list, &ctrl->info->mappings);
++	map->ctrl = &ctrl->info;
++	list_add_tail(&map->list, &ctrl->info.mappings);
+ 	uvc_trace(UVC_TRACE_CONTROL,
+ 		"Adding mapping '%s' to control %pUl/%u.\n",
+-		map->name, ctrl->info->entity, ctrl->info->selector);
++		map->name, ctrl->info.entity, ctrl->info.selector);
+ 
+ 	return 0;
  }
+@@ -1453,8 +1448,8 @@ int uvc_ctrl_add_mapping(struct uvc_video_chain *chain,
  
- /* functions implementing ioctls */
--
-+/**
-+ * vpif_querycap() - QUERYCAP handler
-+ * @file: file ptr
-+ * @priv: file handle
-+ * @cap: ptr to v4l2_capability structure
-+ */
- static int vpif_querycap(struct file *file, void  *priv,
- 				struct v4l2_capability *cap)
- {
-@@ -1088,7 +1103,7 @@ static int vpif_streamon(struct file *file, void *priv,
- 	if (ret < 0)
- 		return ret;
+ 		for (i = 0; i < entity->ncontrols; ++i) {
+ 			ctrl = &entity->controls[i];
+-			if (ctrl->info != NULL &&
+-			    ctrl->info->selector == mapping->selector) {
++			if (ctrl->initialized &&
++			    ctrl->info.selector == mapping->selector) {
+ 				found = 1;
+ 				break;
+ 			}
+@@ -1469,7 +1464,7 @@ int uvc_ctrl_add_mapping(struct uvc_video_chain *chain,
+ 	if (mutex_lock_interruptible(&chain->ctrl_mutex))
+ 		return -ERESTARTSYS;
  
--	/* Call videobuf_streamon to start streaming  in videobuf */
-+	/* Call videobuf_streamon to start streaming in videobuf */
- 	ret = videobuf_streamon(&common->buffer_queue);
- 	if (ret < 0) {
- 		vpif_err("videobuf_streamon\n");
-@@ -1853,6 +1868,8 @@ static __init int vpif_probe(struct platform_device *pdev)
- 			vpif_obj.sd[i]->grp_id = 1 << i;
+-	list_for_each_entry(map, &ctrl->info->mappings, list) {
++	list_for_each_entry(map, &ctrl->info.mappings, list) {
+ 		if (mapping->id == map->id) {
+ 			uvc_trace(UVC_TRACE_CONTROL, "Can't add mapping '%s', "
+ 				"control id 0x%08x already exists.\n",
+@@ -1601,12 +1596,12 @@ static void uvc_ctrl_init_ctrl(struct uvc_device *dev, struct uvc_control *ctrl)
+ 		 }
  	}
  
-+	v4l2_info(&vpif_obj.v4l2_dev,
-+			"DM646x VPIF display driver initialized\n");
- 	return 0;
+-	if (ctrl->info == NULL)
++	if (!ctrl->initialized)
+ 		return;
  
- probe_subdev_out:
+ 	for (; mapping < mend; ++mapping) {
+ 		if (uvc_entity_match_guid(ctrl->entity, mapping->entity) &&
+-		    ctrl->info->selector == mapping->selector)
++		    ctrl->info.selector == mapping->selector)
+ 			__uvc_ctrl_add_mapping(dev, ctrl, mapping);
+ 	}
+ }
+@@ -1676,7 +1671,7 @@ static void uvc_ctrl_cleanup_mappings(struct uvc_device *dev,
+ {
+ 	struct uvc_control_mapping *mapping, *nm;
+ 
+-	list_for_each_entry_safe(mapping, nm, &ctrl->info->mappings, list) {
++	list_for_each_entry_safe(mapping, nm, &ctrl->info.mappings, list) {
+ 		list_del(&mapping->list);
+ 		kfree(mapping->menu_info);
+ 		kfree(mapping);
+@@ -1693,12 +1688,11 @@ void uvc_ctrl_cleanup_device(struct uvc_device *dev)
+ 		for (i = 0; i < entity->ncontrols; ++i) {
+ 			struct uvc_control *ctrl = &entity->controls[i];
+ 
+-			if (ctrl->info == NULL)
++			if (!ctrl->initialized)
+ 				continue;
+ 
+ 			uvc_ctrl_cleanup_mappings(dev, ctrl);
+ 			kfree(ctrl->uvc_data);
+-			kfree(ctrl->info);
+ 		}
+ 
+ 		kfree(entity->controls);
+diff --git a/drivers/media/video/uvc/uvcvideo.h b/drivers/media/video/uvc/uvcvideo.h
+index 39e9e36..7d67d95 100644
+--- a/drivers/media/video/uvc/uvcvideo.h
++++ b/drivers/media/video/uvc/uvcvideo.h
+@@ -236,14 +236,15 @@ struct uvc_control_mapping {
+ 
+ struct uvc_control {
+ 	struct uvc_entity *entity;
+-	struct uvc_control_info *info;
++	struct uvc_control_info info;
+ 
+ 	__u8 index;	/* Used to match the uvc_control entry with a
+ 			   uvc_control_info. */
+-	__u8 dirty : 1,
+-	     loaded : 1,
+-	     modified : 1,
+-	     cached : 1;
++	__u8 dirty:1,
++	     loaded:1,
++	     modified:1,
++	     cached:1,
++	     initialized:1;
+ 
+ 	__u8 *uvc_data;
+ };
 -- 
-1.7.1
+1.7.2.2
 
