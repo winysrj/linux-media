@@ -1,243 +1,159 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:29534 "EHLO mx1.redhat.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57050 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760396Ab0JITEe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Oct 2010 15:04:34 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o99J4YL8009355
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 9 Oct 2010 15:04:34 -0400
-Received: from [10.3.225.91] (vpn-225-91.phx2.redhat.com [10.3.225.91])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o99J4WEa010403
-	for <linux-media@vger.kernel.org>; Sat, 9 Oct 2010 15:04:32 -0400
-Message-ID: <4CB0BCBE.6040400@redhat.com>
-Date: Sat, 09 Oct 2010 16:04:30 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1751216Ab0JFJ5m convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Oct 2010 05:57:42 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "Aguirre, Sergio" <saaguirre@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "sakari.ailus@maxwell.research.nokia.com"
+	<sakari.ailus@maxwell.research.nokia.com>
+Date: Wed, 6 Oct 2010 15:27:32 +0530
+Subject: RE: [RFC/PATCH v2 5/6] omap3: Export omap3isp platform device
+ structure
+Message-ID: <19F8576C6E063C45BE387C64729E739404AA21CCD6@dbde02.ent.ti.com>
+References: <1286284734-12292-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1286284734-12292-6-git-send-email-laurent.pinchart@ideasonboard.com>
+ <A24693684029E5489D1D202277BE894472B4F82F@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE894472B4F82F@dlee02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] V4L/DVB: em28xx-audio: fix some locking issues
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Those locking issues affect tvtime, causing a kernel oops/panic, due to
-a race condition.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Aguirre, Sergio
+> Sent: Tuesday, October 05, 2010 9:40 PM
+> To: Laurent Pinchart; linux-media@vger.kernel.org
+> Cc: sakari.ailus@maxwell.research.nokia.com
+> Subject: RE: [RFC/PATCH v2 5/6] omap3: Export omap3isp platform device
+> structure
+> 
+> Hi Laurent,
+> 
+> > -----Original Message-----
+> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> > owner@vger.kernel.org] On Behalf Of Laurent Pinchart
+> > Sent: Tuesday, October 05, 2010 8:19 AM
+> > To: linux-media@vger.kernel.org
+> > Cc: sakari.ailus@maxwell.research.nokia.com
+> > Subject: [RFC/PATCH v2 5/6] omap3: Export omap3isp platform device
+> > structure
+> >
+> > From: Stanimir Varbanov <svarbanov@mm-sol.com>
+> >
+> > The omap3isp platform device requires platform data. As the data can be
+> > provided by a kernel module, the device can't be registered during arch
+> > initialization.
+> >
+> > Remove the omap3isp platform device registration from
+> > omap_init_camera(), and export the platform device structure to let
+> > board code register/unregister it.
+> >
+> 
+> This patch needs to go through linux-omap ML.
 
-diff --git a/drivers/media/video/em28xx/em28xx-audio.c b/drivers/media/video/em28xx/em28xx-audio.c
-index e182abf..3c48a72 100644
---- a/drivers/media/video/em28xx/em28xx-audio.c
-+++ b/drivers/media/video/em28xx/em28xx-audio.c
-@@ -102,6 +102,9 @@ static void em28xx_audio_isocirq(struct urb *urb)
- 		break;
- 	}
- 
-+	if (atomic_read(&dev->stream_started) == 0)
-+		return;
-+
- 	if (dev->adev.capture_pcm_substream) {
- 		substream = dev->adev.capture_pcm_substream;
- 		runtime = substream->runtime;
-@@ -217,31 +220,6 @@ static int em28xx_init_audio_isoc(struct em28xx *dev)
- 	return 0;
- }
- 
--static int em28xx_cmd(struct em28xx *dev, int cmd, int arg)
--{
--	dprintk("%s transfer\n", (dev->adev.capture_stream == STREAM_ON) ?
--				 "stop" : "start");
--
--	switch (cmd) {
--	case EM28XX_CAPTURE_STREAM_EN:
--		if (dev->adev.capture_stream == STREAM_OFF &&
--		    arg == EM28XX_START_AUDIO) {
--			dev->adev.capture_stream = STREAM_ON;
--			em28xx_init_audio_isoc(dev);
--		} else if (dev->adev.capture_stream == STREAM_ON &&
--			   arg == EM28XX_STOP_AUDIO) {
--			dev->adev.capture_stream = STREAM_OFF;
--			em28xx_deinit_isoc_audio(dev);
--		} else {
--			em28xx_errdev("An underrun very likely occurred. "
--					"Ignoring it.\n");
--		}
--		return 0;
--	default:
--		return -EINVAL;
--	}
--}
--
- static int snd_pcm_alloc_vmalloc_buffer(struct snd_pcm_substream *subs,
- 					size_t size)
- {
-@@ -303,7 +281,6 @@ static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
- 	dev->mute = 0;
- 	mutex_lock(&dev->lock);
- 	ret = em28xx_audio_analog_set(dev);
--	mutex_unlock(&dev->lock);
- 	if (ret < 0)
- 		goto err;
- 
-@@ -311,11 +288,10 @@ static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
- 	if (dev->alt == 0 && dev->adev.users == 0) {
- 		int errCode;
- 		dev->alt = 7;
--		errCode = usb_set_interface(dev->udev, 0, 7);
- 		dprintk("changing alternate number to 7\n");
-+		errCode = usb_set_interface(dev->udev, 0, 7);
- 	}
- 
--	mutex_lock(&dev->lock);
- 	dev->adev.users++;
- 	mutex_unlock(&dev->lock);
- 
-@@ -325,6 +301,8 @@ static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
- 
- 	return 0;
- err:
-+	mutex_unlock(&dev->lock);
-+
- 	em28xx_err("Error while configuring em28xx mixer\n");
- 	return ret;
- }
-@@ -338,6 +316,11 @@ static int snd_em28xx_pcm_close(struct snd_pcm_substream *substream)
- 	dev->mute = 1;
- 	mutex_lock(&dev->lock);
- 	dev->adev.users--;
-+	if (atomic_read(&dev->stream_started) > 0) {
-+		atomic_set(&dev->stream_started, 0);
-+		schedule_work(&dev->wq_trigger);
-+	}
-+
- 	em28xx_audio_analog_set(dev);
- 	if (substream->runtime->dma_area) {
- 		dprintk("freeing\n");
-@@ -375,8 +358,10 @@ static int snd_em28xx_hw_capture_free(struct snd_pcm_substream *substream)
- 
- 	dprintk("Stop capture, if needed\n");
- 
--	if (dev->adev.capture_stream == STREAM_ON)
--		em28xx_cmd(dev, EM28XX_CAPTURE_STREAM_EN, EM28XX_STOP_AUDIO);
-+	if (atomic_read(&dev->stream_started) > 0) {
-+		atomic_set(&dev->stream_started, 0);
-+		schedule_work(&dev->wq_trigger);
-+	}
- 
- 	return 0;
- }
-@@ -391,31 +376,37 @@ static int snd_em28xx_prepare(struct snd_pcm_substream *substream)
- 	return 0;
- }
- 
-+static void audio_trigger(struct work_struct *work)
-+{
-+	struct em28xx *dev = container_of(work, struct em28xx, wq_trigger);
-+
-+	if (atomic_read(&dev->stream_started)) {
-+		dprintk("starting capture");
-+		em28xx_init_audio_isoc(dev);
-+	} else {
-+		dprintk("stopping capture");
-+		em28xx_deinit_isoc_audio(dev);
-+	}
-+}
-+
- static int snd_em28xx_capture_trigger(struct snd_pcm_substream *substream,
- 				      int cmd)
- {
- 	struct em28xx *dev = snd_pcm_substream_chip(substream);
- 	int retval;
- 
--	dprintk("Should %s capture\n", (cmd == SNDRV_PCM_TRIGGER_START) ?
--				       "start" : "stop");
--
--	spin_lock(&dev->adev.slock);
- 	switch (cmd) {
- 	case SNDRV_PCM_TRIGGER_START:
--		em28xx_cmd(dev, EM28XX_CAPTURE_STREAM_EN, EM28XX_START_AUDIO);
--		retval = 0;
-+		atomic_set(&dev->stream_started, 1);
- 		break;
- 	case SNDRV_PCM_TRIGGER_STOP:
--		em28xx_cmd(dev, EM28XX_CAPTURE_STREAM_EN, EM28XX_STOP_AUDIO);
--		retval = 0;
-+		atomic_set(&dev->stream_started, 1);
- 		break;
- 	default:
- 		retval = -EINVAL;
- 	}
--
--	spin_unlock(&dev->adev.slock);
--	return retval;
-+	schedule_work(&dev->wq_trigger);
-+	return 0;
- }
- 
- static snd_pcm_uframes_t snd_em28xx_capture_pointer(struct snd_pcm_substream
-@@ -495,6 +486,8 @@ static int em28xx_audio_init(struct em28xx *dev)
- 	strcpy(card->shortname, "Em28xx Audio");
- 	strcpy(card->longname, "Empia Em28xx Audio");
- 
-+	INIT_WORK(&dev->wq_trigger, audio_trigger);
-+
- 	err = snd_card_register(card);
- 	if (err < 0) {
- 		snd_card_free(card);
-diff --git a/drivers/media/video/em28xx/em28xx.h b/drivers/media/video/em28xx/em28xx.h
-index 1c61a6b..adb20eb 100644
---- a/drivers/media/video/em28xx/em28xx.h
-+++ b/drivers/media/video/em28xx/em28xx.h
-@@ -25,12 +25,13 @@
- #ifndef _EM28XX_H
- #define _EM28XX_H
- 
-+#include <linux/workqueue.h>
-+#include <linux/i2c.h>
-+#include <linux/mutex.h>
- #include <linux/videodev2.h>
-+
- #include <media/videobuf-vmalloc.h>
- #include <media/v4l2-device.h>
--
--#include <linux/i2c.h>
--#include <linux/mutex.h>
- #include <media/ir-kbd-i2c.h>
- #include <media/ir-core.h>
- #if defined(CONFIG_VIDEO_EM28XX_DVB) || defined(CONFIG_VIDEO_EM28XX_DVB_MODULE)
-@@ -184,11 +185,6 @@ enum em28xx_mode {
- 	EM28XX_DIGITAL_MODE,
- };
- 
--enum em28xx_stream_state {
--	STREAM_OFF,
--	STREAM_INTERRUPT,
--	STREAM_ON,
--};
- 
- struct em28xx;
- 
-@@ -463,7 +459,6 @@ struct em28xx_audio {
- 	struct snd_card            *sndcard;
- 
- 	int users;
--	enum em28xx_stream_state capture_stream;
- 	spinlock_t slock;
- };
- 
-@@ -505,6 +500,10 @@ struct em28xx {
- 	unsigned int has_audio_class:1;
- 	unsigned int has_alsa_audio:1;
- 
-+	/* Controls audio streaming */
-+	struct work_struct wq_trigger;              /* Trigger to start/stop audio for alsa module */
-+	 atomic_t       stream_started;      /* stream should be running if true */
-+
- 	struct em28xx_fmt *format;
- 
- 	struct em28xx_IR *ir;
--- 
-1.7.1
+[Hiremath, Vaibhav] Yes that's correct, all arch/arm/mach-omap2 and arch/arm/plat-omap/ changes supposed to get reviewed from linux-omap mailing list.
 
+Thanks,
+Vaibhav
+
+> 
+> Regards,
+> Sergio
+> 
+> > Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> >  arch/arm/mach-omap2/devices.c |   18 ++++++++++++++++--
+> >  arch/arm/mach-omap2/devices.h |   17 +++++++++++++++++
+> >  2 files changed, 33 insertions(+), 2 deletions(-)
+> >  create mode 100644 arch/arm/mach-omap2/devices.h
+> >
+> > diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-
+> omap2/devices.c
+> > index ade8db0..f9bc507 100644
+> > --- a/arch/arm/mach-omap2/devices.c
+> > +++ b/arch/arm/mach-omap2/devices.c
+> > @@ -31,6 +31,8 @@
+> >
+> >  #include "mux.h"
+> >
+> > +#include "devices.h"
+> > +
+> >  #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
+> >
+> >  static struct resource cam_resources[] = {
+> > @@ -141,16 +143,28 @@ static struct resource omap3isp_resources[] = {
+> >  	}
+> >  };
+> >
+> > -static struct platform_device omap3isp_device = {
+> > +static void omap3isp_release(struct device *dev)
+> > +{
+> > +	/* Zero the device structure to avoid re-initialization complaints
+> > from
+> > +	 * kobject when the device will be re-registered.
+> > +	 */
+> > +	memset(dev, 0, sizeof(*dev));
+> > +	dev->release = omap3isp_release;
+> > +}
+> > +
+> > +struct platform_device omap3isp_device = {
+> >  	.name		= "omap3isp",
+> >  	.id		= -1,
+> >  	.num_resources	= ARRAY_SIZE(omap3isp_resources),
+> >  	.resource	= omap3isp_resources,
+> > +	.dev = {
+> > +		.release	= omap3isp_release,
+> > +	},
+> >  };
+> > +EXPORT_SYMBOL_GPL(omap3isp_device);
+> >
+> >  static inline void omap_init_camera(void)
+> >  {
+> > -	platform_device_register(&omap3isp_device);
+> >  }
+> >  #else
+> >  static inline void omap_init_camera(void)
+> > diff --git a/arch/arm/mach-omap2/devices.h b/arch/arm/mach-
+> omap2/devices.h
+> > new file mode 100644
+> > index 0000000..f312d49
+> > --- /dev/null
+> > +++ b/arch/arm/mach-omap2/devices.h
+> > @@ -0,0 +1,17 @@
+> > +/*
+> > + * arch/arm/mach-omap2/devices.h
+> > + *
+> > + * OMAP2 platform device setup/initialization
+> > + *
+> > + * This program is free software; you can redistribute it and/or modify
+> > + * it under the terms of the GNU General Public License as published by
+> > + * the Free Software Foundation; either version 2 of the License, or
+> > + * (at your option) any later version.
+> > + */
+> > +
+> > +#ifndef __ARCH_ARM_MACH_OMAP_DEVICES_H
+> > +#define __ARCH_ARM_MACH_OMAP_DEVICES_H
+> > +
+> > +extern struct platform_device omap3isp_device;
+> > +
+> > +#endif
+> > --
+> > 1.7.2.2
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media"
+> in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
