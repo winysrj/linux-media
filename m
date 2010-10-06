@@ -1,50 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:55466 "EHLO
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:58886 "EHLO
 	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753715Ab0JIMdW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Oct 2010 08:33:22 -0400
-Received: by ewy20 with SMTP id 20so34618ewy.19
-        for <linux-media@vger.kernel.org>; Sat, 09 Oct 2010 05:33:21 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.00.1010082229160.15379@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1010082229160.15379@utopia.booyaka.com>
-Date: Sat, 9 Oct 2010 08:33:20 -0400
-Message-ID: <AANLkTinhS=GOV=1uR6H=9_=S-nyirdm6Z7HF6N5wKw2T@mail.gmail.com>
-Subject: Re: [PATCH] V4L/DVB: tvp5150: COMPOSITE0 input should not
- force-enable TV mode
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Paul Walmsley <paul@booyaka.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	mchehab@infradead.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	with ESMTP id S1755307Ab0JFFwT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Oct 2010 01:52:19 -0400
+Received: by ewy23 with SMTP id 23so2732129ewy.19
+        for <linux-media@vger.kernel.org>; Tue, 05 Oct 2010 22:52:18 -0700 (PDT)
+Date: Wed, 6 Oct 2010 15:52:56 -0400
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Stefan Ringel <stefan.ringel@arcor.de>,
+	Bee Hock Goh <beehock@gmail.com>
+Subject: xc5000 and switch RF input
+Message-ID: <20101006155256.11ec6d6d@glory.local>
+In-Reply-To: <AANLkTinctdXC5lmzXSkgwjwfIwAH3BNFCWeWMnK3Xi5-@mail.gmail.com>
+References: <20100518173011.5d9c7f2c@glory.loctelecom.ru>
+	<AANLkTilL60q2PrBGagobWK99dV9OMKldxLiKZafn1oYb@mail.gmail.com>
+	<20100525114939.067404eb@glory.loctelecom.ru>
+	<4C32044C.3060007@redhat.com>
+	<AANLkTinctdXC5lmzXSkgwjwfIwAH3BNFCWeWMnK3Xi5-@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, Oct 9, 2010 at 12:31 AM, Paul Walmsley <paul@booyaka.com> wrote:
->
-> When digitizing composite video from a analog videotape source using the
-> TVP5150's first composite input channel, the captured stream exhibits
-> tearing and synchronization problems[1].
->
-> It turns out that commit c0477ad9feca01bd8eff95d7482c33753d05c700 caused
-> "TV mode" (as opposed to "VCR mode" or "auto-detect") to be forcibly
-> enabled for both composite inputs.  According to the chip
-> documentation[2], "TV mode" disables a "chrominance trap" input filter,
-> which appears to be necessary for high-quality video capture from an
-> analog videotape source.  [ Commit
-> c7c0b34c27bbf0671807e902fbfea6270c8f138d subsequently restricted the
-> problem to the first composite input, apparently inadvertently. ]
+Hi
 
-FYI:  This isn't a newly discovered issue:
+Our TV card Behold X7 has two different RF input. This RF inputs can switch between
+different RF sources. 
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg13869.html
+ANT 1 for analog and digital TV
+ANT 2 for FM radio
 
-Cheers,
+The switch controlled by zl10353.
 
-Devin
+How to I can control this switch?
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+I found 2 way
+
+1. 
+Use tuner callback to saa1734. add some params like XC5000_TUNER_SET/XC5000_TUNER_SET_TV to the xc5000.h
+call tuner callback from xc5000_set_analog_params with new params about switching.
+In this case inside saa7134 need know about zl10353 and configuration. I don't understand how to do.
+The structure saa7134_dev hasn't pointer to the structure dvb_frontend. 
+Or use hardcoded i2c_addr and params.
+
+2.
+Direct call switch the switcher from the tuner code. In this case need know TV card type. I think it is not so good idea.
+
+With my best regards, Dmitry.
