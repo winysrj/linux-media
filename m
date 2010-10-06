@@ -1,40 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from tex.lwn.net ([70.33.254.29]:37342 "EHLO vena.lwn.net"
+Received: from smtp204.alice.it ([82.57.200.100]:59627 "EHLO smtp204.alice.it"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753507Ab0JRNZx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Oct 2010 09:25:53 -0400
-Date: Mon, 18 Oct 2010 07:25:51 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Daniel Drake <dsd@laptop.org>
-Subject: Re: [PATCH] viafb camera controller driver
-Message-ID: <20101018072551.75fcda5c@bike.lwn.net>
-In-Reply-To: <4CB9AC58.5020301@infradead.org>
-References: <20101010162313.5caa137f@bike.lwn.net>
-	<4CB9AC58.5020301@infradead.org>
+	id S932584Ab0JFOxq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Oct 2010 10:53:46 -0400
+Date: Wed, 6 Oct 2010 16:53:37 +0200
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: linux-media@vger.kernel.org
+Subject: Re: gspca, audio and ov534: regression.
+Message-Id: <20101006165337.9c60bb95.ospite@studenti.unina.it>
+In-Reply-To: <20101006160441.6ee9583d.ospite@studenti.unina.it>
+References: <20101006123321.baade0a4.ospite@studenti.unina.it>
+	<20101006134855.43879d74@tele>
+	<20101006160441.6ee9583d.ospite@studenti.unina.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Wed__6_Oct_2010_16_53_37_+0200_QcrLXZIaupjoYMhs"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, 16 Oct 2010 10:44:56 -0300
-Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+--Signature=_Wed__6_Oct_2010_16_53_37_+0200_QcrLXZIaupjoYMhs
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Hmm... do you need BKL? Otherwise, you should be using, instead, .unlocked_ioctl.
+On Wed, 6 Oct 2010 16:04:41 +0200
+Antonio Ospite <ospite@studenti.unina.it> wrote:
 
-No, that was just silly.
+> On Wed, 6 Oct 2010 13:48:55 +0200
+> Jean-Francois Moine <moinejf@free.fr> wrote:
+>=20
+> > On Wed, 6 Oct 2010 12:33:21 +0200
+> > Antonio Ospite <ospite@studenti.unina.it> wrote:
+> >=20
+> > > with 2.6.36-rc6 I can't use the ov534 gspca subdriver (with PS3 eye)
+> > > anymore, when I try to capture video in dmesg I get:
+> > > gspca: no transfer endpoint found
+> > >=20
+> > > If I revert commit 35680ba I can make video capture work again but I
+> > > still don't get the audio device in pulseaudio, it shows up in
+> > > alsamixer but if I try to select it, on the console I get:
+> > > cannot load mixer controls: Invalid argument
+> > >=20
+[...]
+> > About audio stream, I do not see how it can have been broken.
+> >
+>=20
+> PS3 Eye audio is working with linux-2.6.33.7 it is broken in
+> linux-2.6.35.7 already, I'll try to further narrow down the interval.
+> Ah, alsamixer doesn't work even when the device is OK in pulseaudio...
+>=20
 
-> Btw, the driver build is broken:
+I was wrong, the audio part works even in 2.6.36-rc6 but _only_ when
+the webcam is plugged in from boot, could this have to do with the order
+gspca and snd-usb-audio are loaded?
 
-And that, it seems, indicates that I'm making my patch against the
-wrong tree.  I'll try to fix that up in the next day or so, sorry for
-the trouble.
+Regards,
+   Antonio
 
-Thanks,
+--=20
+Antonio Ospite
+http://ao2.it
 
-jon
+PGP public key ID: 0x4553B001
 
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+
+--Signature=_Wed__6_Oct_2010_16_53_37_+0200_QcrLXZIaupjoYMhs
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAkysjXEACgkQ5xr2akVTsAEJCwCgraG+1CVt/Y8NCrnBnldYOnNQ
+nf4AniteBSBAGSlEKrqs7hWslJvQumuO
+=Rov8
+-----END PGP SIGNATURE-----
+
+--Signature=_Wed__6_Oct_2010_16_53_37_+0200_QcrLXZIaupjoYMhs--
