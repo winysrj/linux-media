@@ -1,140 +1,80 @@
 Return-path: <mchehab@pedra>
-Received: from bear.ext.ti.com ([192.94.94.41]:34605 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755179Ab0JFJTc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Oct 2010 05:19:32 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "sakari.ailus@maxwell.research.nokia.com"
-	<sakari.ailus@maxwell.research.nokia.com>
-Date: Wed, 6 Oct 2010 14:49:21 +0530
-Subject: RE: [PATCH/RFC v3 03/11] v4l: Group media bus pixel codes by types
- and sort them alphabetically
-Message-ID: <19F8576C6E063C45BE387C64729E739404AA21CCB1@dbde02.ent.ti.com>
-References: <1286288714-16506-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1286288714-16506-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1286288714-16506-4-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from perceval.irobotique.be ([92.243.18.41]:48874 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754363Ab0JFI7k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Oct 2010 04:59:40 -0400
+Received: from localhost.localdomain (unknown [91.178.188.185])
+	by perceval.irobotique.be (Postfix) with ESMTPSA id C43F935D63
+	for <linux-media@vger.kernel.org>; Wed,  6 Oct 2010 08:59:38 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 02/14] uvcvideo: Restrict frame rates for Chicony CNF7129 webcam
+Date: Wed,  6 Oct 2010 10:59:40 +0200
+Message-Id: <1286355592-13603-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1286355592-13603-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1286355592-13603-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Laurent Pinchart
-> Sent: Tuesday, October 05, 2010 7:55 PM
-> To: linux-media@vger.kernel.org
-> Cc: sakari.ailus@maxwell.research.nokia.com
-> Subject: [PATCH/RFC v3 03/11] v4l: Group media bus pixel codes by types
-> and sort them alphabetically
-> 
-> Adding new pixel codes at the end of the enumeration will soon create a
-> mess, so group the pixel codes by type and sort them by bus_width, bits
-> per component, samples per pixel and order of subsamples.
-> 
-> As the codes are part of the kernel ABI their value can't change when a
-> new code is inserted in the enumeration, so they are given an explicit
-> numerical value. When inserting a new pixel code developers must use and
-> update the next free value.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  include/linux/v4l2-mediabus.h |   61 +++++++++++++++++++++++++-----------
-> ----
->  1 files changed, 38 insertions(+), 23 deletions(-)
-> 
-> diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-> index 75c2d55..53c81f2 100644
-> --- a/include/linux/v4l2-mediabus.h
-> +++ b/include/linux/v4l2-mediabus.h
-> @@ -24,31 +24,46 @@
->   * transferred first, "BE" means that the most significant bits are
-> transferred
->   * first, and "PADHI" and "PADLO" define which bits - low or high, in the
->   * incomplete high byte, are filled with padding bits.
-> + *
-> + * The pixel codes are grouped by type, bus_width, bits per component,
-> samples
-> + * per pixel and order of subsamples. Numerical values are sorted using
-> generic
-> + * numerical sort order (8 thus comes before 10).
-> + *
-> + * As their value can't change when a new pixel code is inserted in the
-> + * enumeration, the pixel codes are explicitly given a numerical value.
-> The next
-> + * free values for each category are listed below, update them when
-> inserting
-> + * new pixel codes.
->   */
->  enum v4l2_mbus_pixelcode {
-> -	V4L2_MBUS_FMT_FIXED = 1,
-> -	V4L2_MBUS_FMT_YUYV8_2X8,
-> -	V4L2_MBUS_FMT_YVYU8_2X8,
-> -	V4L2_MBUS_FMT_UYVY8_2X8,
-> -	V4L2_MBUS_FMT_VYUY8_2X8,
-> -	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
-> -	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
-> -	V4L2_MBUS_FMT_RGB565_2X8_LE,
-> -	V4L2_MBUS_FMT_RGB565_2X8_BE,
-> -	V4L2_MBUS_FMT_SBGGR8_1X8,
-> -	V4L2_MBUS_FMT_SBGGR10_1X10,
-> -	V4L2_MBUS_FMT_Y8_1X8,
-> -	V4L2_MBUS_FMT_Y10_1X10,
-> -	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
-> -	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
-> -	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
-> -	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
-> -	V4L2_MBUS_FMT_SGRBG8_1X8,
-> -	V4L2_MBUS_FMT_SBGGR12_1X12,
-> -	V4L2_MBUS_FMT_YUYV8_1_5X8,
-> -	V4L2_MBUS_FMT_YVYU8_1_5X8,
-> -	V4L2_MBUS_FMT_UYVY8_1_5X8,
-> -	V4L2_MBUS_FMT_VYUY8_1_5X8,
-> +	V4L2_MBUS_FMT_FIXED = 0x0001,
-> +
-> +	/* RGB - next is 0x1005 */
-[Hiremath, Vaibhav] Don't you think adding "next is 0x" is not required? Also while adding to this list someone has to modify here too.
+At all frame rates except 30fps and 5fps the camera produces very dark
+pictures. Auto-exposure is probably disabled by the camera at all frame
+rates except 30fps, making them pretty unusable.
 
-Same applies to all such places.
+Work around the problem by introducing a new RESTRICT_FRAME_RATE quirk
+that disables all the frame rates except the default one.
 
-Thanks,
-Vaibhav
-> +	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE = 0x1001,
-> +	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE = 0x1002,
-> +	V4L2_MBUS_FMT_RGB565_2X8_BE = 0x1003,
-> +	V4L2_MBUS_FMT_RGB565_2X8_LE = 0x1004,
-> +
-> +	/* YUV (including grey) - next is 0x200b */
-> +	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
-> +	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
-> +	V4L2_MBUS_FMT_VYUY8_1_5X8 = 0x2003,
-> +	V4L2_MBUS_FMT_YUYV8_1_5X8 = 0x2004,
-> +	V4L2_MBUS_FMT_YVYU8_1_5X8 = 0x2005,
-> +	V4L2_MBUS_FMT_UYVY8_2X8 = 0x2006,
-> +	V4L2_MBUS_FMT_VYUY8_2X8 = 0x2007,
-> +	V4L2_MBUS_FMT_YUYV8_2X8 = 0x2008,
-> +	V4L2_MBUS_FMT_YVYU8_2X8 = 0x2009,
-> +	V4L2_MBUS_FMT_Y10_1X10 = 0x200a,
-> +
-> +	/* Bayer - next is 0x3009 */
-> +	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
-> +	V4L2_MBUS_FMT_SGRBG8_1X8 = 0x3002,
-> +	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE = 0x3003,
-> +	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE = 0x3004,
-> +	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE = 0x3005,
-> +	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE = 0x3006,
-> +	V4L2_MBUS_FMT_SBGGR10_1X10 = 0x3007,
-> +	V4L2_MBUS_FMT_SBGGR12_1X12 = 0x3008,
->  };
-> 
->  /**
-> --
-> 1.7.2.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Cc: stable.org
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/uvc/uvc_driver.c |   15 +++++++++++++++
+ drivers/media/video/uvc/uvcvideo.h   |    1 +
+ 2 files changed, 16 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/video/uvc/uvc_driver.c b/drivers/media/video/uvc/uvc_driver.c
+index a4bdbac..93d78f6 100644
+--- a/drivers/media/video/uvc/uvc_driver.c
++++ b/drivers/media/video/uvc/uvc_driver.c
+@@ -486,6 +486,12 @@ static int uvc_parse_format(struct uvc_device *dev,
+ 			    max(frame->dwFrameInterval[0],
+ 				frame->dwDefaultFrameInterval));
+ 
++		if (dev->quirks & UVC_QUIRK_RESTRICT_FRAME_RATE) {
++			frame->bFrameIntervalType = 1;
++			frame->dwFrameInterval[0] =
++				frame->dwDefaultFrameInterval;
++		}
++
+ 		uvc_trace(UVC_TRACE_DESCR, "- %ux%u (%u.%u fps)\n",
+ 			frame->wWidth, frame->wHeight,
+ 			10000000/frame->dwDefaultFrameInterval,
+@@ -2027,6 +2033,15 @@ static struct usb_device_id uvc_ids[] = {
+ 	  .bInterfaceClass	= USB_CLASS_VENDOR_SPEC,
+ 	  .bInterfaceSubClass	= 1,
+ 	  .bInterfaceProtocol	= 0 },
++	/* Chicony CNF7129 (Asus EEE 100HE) */
++	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
++				| USB_DEVICE_ID_MATCH_INT_INFO,
++	  .idVendor		= 0x04f2,
++	  .idProduct		= 0xb071,
++	  .bInterfaceClass	= USB_CLASS_VIDEO,
++	  .bInterfaceSubClass	= 1,
++	  .bInterfaceProtocol	= 0,
++	  .driver_info		= UVC_QUIRK_RESTRICT_FRAME_RATE },
+ 	/* Alcor Micro AU3820 (Future Boy PC USB Webcam) */
+ 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+ 				| USB_DEVICE_ID_MATCH_INT_INFO,
+diff --git a/drivers/media/video/uvc/uvcvideo.h b/drivers/media/video/uvc/uvcvideo.h
+index bdacf3b..892e0e5 100644
+--- a/drivers/media/video/uvc/uvcvideo.h
++++ b/drivers/media/video/uvc/uvcvideo.h
+@@ -182,6 +182,7 @@ struct uvc_xu_control {
+ #define UVC_QUIRK_IGNORE_SELECTOR_UNIT	0x00000020
+ #define UVC_QUIRK_FIX_BANDWIDTH		0x00000080
+ #define UVC_QUIRK_PROBE_DEF		0x00000100
++#define UVC_QUIRK_RESTRICT_FRAME_RATE	0x00000200
+ 
+ /* Format flags */
+ #define UVC_FMT_FLAG_COMPRESSED		0x00000001
+-- 
+1.7.2.2
+
