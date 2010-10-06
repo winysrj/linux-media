@@ -1,71 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:19318 "EHLO mx1.redhat.com"
+Received: from smtp5-g21.free.fr ([212.27.42.5]:44494 "EHLO smtp5-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754837Ab0JNRy4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Oct 2010 13:54:56 -0400
-Message-ID: <4CB743EC.90708@redhat.com>
-Date: Thu, 14 Oct 2010 14:54:52 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: "Igor M. Liplianin" <liplianin@me.by>
-CC: linux-media@vger.kernel.org
-Subject: Re: [GIT PATCHES FOR 2.6.37]  Support for NetUP Dual DVB-T/C CI RF
- card
-References: <201010040135.59454.liplianin@me.by> <4CB74279.1070103@redhat.com>
-In-Reply-To: <4CB74279.1070103@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1754278Ab0JFSfN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Oct 2010 14:35:13 -0400
+Date: Wed, 6 Oct 2010 20:35:53 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Antonio Ospite <ospite@studenti.unina.it>
+Cc: linux-media@vger.kernel.org
+Subject: Re: gspca, audio and ov534: regression.
+Message-ID: <20101006203553.22edfeb7@tele>
+In-Reply-To: <20101006160441.6ee9583d.ospite@studenti.unina.it>
+References: <20101006123321.baade0a4.ospite@studenti.unina.it>
+	<20101006134855.43879d74@tele>
+	<20101006160441.6ee9583d.ospite@studenti.unina.it>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 14-10-2010 14:48, Mauro Carvalho Chehab escreveu:
-> Em 03-10-2010 19:35, Igor M. Liplianin escreveu:
->> Patches to support for NetUP Dual DVB-T/C-CI RF from NetUP Inc. 
->> 	http://linuxtv.org/wiki/index.php/NetUP_Dual_DVB_T_C_CI_RF
->>
->> Features:
->>
->> PCI-e x1  
->> Supports two DVB-T/DVB-C transponders simultaneously
->> Supports two analog audio/video channels simultaneously
->> Independent descrambling of two transponders
->> Hardware PID filtering
->>
->> Components:
->>
->> Conexant CX23885 
->> STM STV0367 low-power and ultra-compact combo DVB-T/C single-chip receiver
->> Xceive XC5000 silicon TV tuner
->> Altera FPGA for Common Interafce
->>
->> The following changes since commit c8dd732fd119ce6d562d5fa82a10bbe75a376575:
->>
->>   V4L/DVB: gspca - sonixj: Have 0c45:6130 handled by sonixj instead of sn9c102 (2010-10-01 
->> 18:14:35 -0300)
->>
->> are available in the git repository at:
->>   http://udev.netup.ru/git/v4l-dvb.git netup-for-media-tree
+On Wed, 6 Oct 2010 16:04:41 +0200
+Antonio Ospite <ospite@studenti.unina.it> wrote:
+
+> Thanks, the following change fixes it, was this what you had in mind?
 > 
-> Hmm... it is not working... perhaps you forgot to run git update-server-info.
+> diff --git a/drivers/media/video/gspca/gspca.c
+> b/drivers/media/video/gspca/gspca.c index b984610..30e0b32 100644
+> --- a/drivers/media/video/gspca/gspca.c
+> +++ b/drivers/media/video/gspca/gspca.c
+> @@ -651,7 +651,7 @@ static struct usb_host_endpoint *get_ep(struct
+> gspca_dev *gspca_dev) : USB_ENDPOINT_XFER_ISOC;
+>         i = gspca_dev->alt;                     /* previous alt
+> setting */ if (gspca_dev->cam.reverse_alts) {
+> -               if (gspca_dev->audio)
+> +               if (gspca_dev->audio && !gspca_dev->cam.bulk)
+>                         i++;
+>                 while (++i < gspca_dev->nbalt) {
+>                         ep = alt_xfer(&intf->altsetting[i], xfer);
+> @@ -659,7 +659,7 @@ static struct usb_host_endpoint *get_ep(struct
+> gspca_dev *gspca_dev) break;
+>                 }
+>         } else {
+> -               if (gspca_dev->audio)
+> +               if (gspca_dev->audio && !gspca_dev->cam.bulk)
+>                         i--;
+>                 while (--i >= 0) {
+>                         ep = alt_xfer(&intf->altsetting[i], xfer);
 
-It worked. It just took a very long time to update...
+Yes, but, after thought, as there is only one alternate setting, the
+tests could be:
+	if (gspca_dev->audio && i < gspca_dev->nbalt - 1)
+and
+	if (gspca_dev->audio && i > 0)
 
->>  drivers/misc/Kconfig                        |    1 +
->>  drivers/misc/Makefile                       |    1 +
->>  drivers/misc/stapl-altera/Kconfig           |    8 +
->>  drivers/misc/stapl-altera/Makefile          |    3 +
->>  drivers/misc/stapl-altera/altera.c          | 2739 ++++++++++++++++++++
->>  drivers/misc/stapl-altera/jbicomp.c         |  163 ++
->>  drivers/misc/stapl-altera/jbiexprt.h        |   94 +
->>  drivers/misc/stapl-altera/jbijtag.c         | 1038 ++++++++
->>  drivers/misc/stapl-altera/jbijtag.h         |   83 +
->>  drivers/misc/stapl-altera/jbistub.c         |   70 +
->>  include/misc/altera.h                       |   49 +
-> 
-> Hmm... that's new for me... a driver at misc?
+This should work also for isochronous transfers.
 
-Hmm... a FPGA programming driver... Is it needed to for the DVB device to work, or it
-is used only when programming the device at the manufacturer?
+regards.
 
-Cheers,
-Mauro.
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
