@@ -1,362 +1,121 @@
 Return-path: <mchehab@pedra>
-Received: from relay02.digicable.hu ([92.249.128.188]:57929 "EHLO
-	relay02.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754717Ab0JQOpK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Oct 2010 10:45:10 -0400
-Message-ID: <4CBB0BEF.1050005@freemail.hu>
-Date: Sun, 17 Oct 2010 16:45:03 +0200
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:60867 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751283Ab0JFMZZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Oct 2010 08:25:25 -0400
+Received: by wwj40 with SMTP id 40so7033134wwj.1
+        for <linux-media@vger.kernel.org>; Wed, 06 Oct 2010 05:25:24 -0700 (PDT)
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC] gspca_sonixj: handle return values from USB subsystem
+In-Reply-To: <AANLkTim0HrykiHrB1U18yZ3njqCeDNtXavu-tJc2EDjV@mail.gmail.com>
+References: <25861669.1285195582100.JavaMail.ngmail@webmail18.arcor-online.net>
+	<AANLkTimdpehorJb+YrDuRgL7vSbF9Bn5iQS_g5TqF35F@mail.gmail.com>
+	<4CA9FCB0.40502@gmail.com>
+	<AANLkTim0HrykiHrB1U18yZ3njqCeDNtXavu-tJc2EDjV@mail.gmail.com>
+Date: Wed, 6 Oct 2010 14:25:22 +0200
+Message-ID: <AANLkTim2a0zGzFP=e0ShJfaovJXjWw5S6M-TAUUB2pht@mail.gmail.com>
+Subject: Re: [linux-dvb] Asus MyCinema P7131 Dual support
+From: Giorgio <mywing81@gmail.com>
+To: Dejan Rodiger <dejan.rodiger@gmail.com>
+Cc: hermann-pitton@arcor.de, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Márton Németh <nm127@freemail.hu>
+2010/10/6 Dejan Rodiger <dejan.rodiger@gmail.com>:
+> Hi Giorgio,
+>
+>>
+>> Dejan,
+>>
+>> I have the exact same card:
+>>
+>> # sudo lpci -vnn
+>> 02:07.0 Multimedia controller [0480]: Philips Semiconductors SAA7131/SAA7133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d1)
+>>        Subsystem: ASUSTeK Computer Inc. Device [1043:4876]
+>>        Flags: bus master, medium devsel, latency 64, IRQ 20
+>>        Memory at fbfff800 (32-bit, non-prefetchable) [size=2K]
+>>        Capabilities: [40] Power Management version 2
+>>        Kernel driver in use: saa7134
+>>        Kernel modules: saa7134
+>>
+>> and I can confirm you that it's autodetected and works very well (both the
+>> analog and the digital part) on 2.6.35.
+>> 2.6.32 has a problem with dvb-t reception, but I have reported it and hopefully
+>> it will be fixed soon upstream: http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/23604
+>>
+>> If you want to test the analog part, install MPlayer and run the following command:
+>>
+>> mplayer tv:// -tv driver=v4l2:device=/dev/video0:norm=PAL:input=0:chanlist=europe-west
+>
+> This is working OK. I have also experimented more with tvtime and both
+> versions work, but I have to do little more fine tuning and then I
+> have better picture. So I will probably have to manually find exact
+> stations frequencies and enter them in mythtv. But I first have to
+> figure how and where to enter them.
+>
+>
+>> and then press 'k' or 'h' to select previous/next channel (after you switch
+>> channel, wait some seconds until the card tunes, for some channels I need
+>> 5 seconds here, for others about 1 second). Now, with some patience, explore
+>> all the channels and you should be able to find your local tv stations.
+>> Also, you might need to adjust mplayer options, like norm= or chanlist=
+>> (you could try chanlist=europe-east).
+>>
+>> The command line above doesn't grab audio though, so you won't hear a thing.
+>> If you want to hear the audio you need to make sure saa7134-alsa is loaded
+>> and run something like:
+>>
+>> mplayer tv:// -tv driver=v4l2:device=/dev/video0:norm=PAL:input=0:alsa:adevice=hw.1,0:amode=1:immediatemode=0:chanlist=europe-west
+>
+> saa7134-alsa is loaded automatically, but I am unable to get any sound
+> from mplayer or tvtime. I see on google, that I am not the only one.
+> I have also noticed that about 8-10% of the frames are lost.
 
-The usb_control_msg() may return error at any time so it is necessary to handle
-it. The error handling mechanism is taken from the pac7302.
+Hmm...things you can try:
+1) Tell pulseaudio not to use the saa7134-alsa soundcard (click on
+sound preferences (top panel, on the right, near the clock) and
+disable saa7134 soundcard).
+2) Run "cat /proc/asound/card" or "arecord -l" and make sure you're
+using the right device on the MPlayer command line (the
+"adevice=hw.1,0" part).
+3) Add "audiorate=32000" like this:
+mplayer tv:// -tv
+driver=v4l2:device=/dev/video0:norm=PAL:input=0:alsa:adevice=hw.1,0:amode=1:audiorate=32000:immediatemode=0:chanlist=europe-west
+4) See if MPlayer reports any error with alsa/audio.
 
-The resulting driver was tested with hama AC-150 webcam (USB ID 0c45:6142).
+Lastly, I think tvtime only works with a patch audio cable (which is
+cable that connects the tv-card "audio out" to the soundcard "line
+in"). So you can try to start tvtime and then run:
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
----
-diff -upr d/drivers/media/video/gspca/sonixj.c e/drivers/media/video/gspca/sonixj.c
---- d/drivers/media/video/gspca/sonixj.c	2010-10-17 12:28:41.000000000 +0200
-+++ e/drivers/media/video/gspca/sonixj.c	2010-10-17 16:28:38.000000000 +0200
-@@ -1359,29 +1359,45 @@ static const u8 (*sensor_init[])[8] = {
- static void reg_r(struct gspca_dev *gspca_dev,
- 		  u16 value, int len)
- {
-+	int ret;
-+
- #ifdef GSPCA_DEBUG
- 	if (len > USB_BUF_SZ) {
- 		err("reg_r: buffer overflow");
- 		return;
- 	}
- #endif
--	usb_control_msg(gspca_dev->dev,
-+	if (gspca_dev->usb_err < 0)
-+		return;
-+	ret = usb_control_msg(gspca_dev->dev,
- 			usb_rcvctrlpipe(gspca_dev->dev, 0),
- 			0,
- 			USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
- 			value, 0,
- 			gspca_dev->usb_buf, len,
- 			500);
--	PDEBUG(D_USBI, "reg_r [%02x] -> %02x", value, gspca_dev->usb_buf[0]);
-+	if (ret < 0) {
-+		PDEBUG(D_ERR, "reg_r(): "
-+			"Failed to read %i registers from to 0x%x, error %i",
-+			len, value, ret);
-+		gspca_dev->usb_err = ret;
-+	} else {
-+		PDEBUG(D_USBI, "reg_r [%02x] -> %02x",
-+			value, gspca_dev->usb_buf[0]);
-+	}
- }
+arecord -D hw:1,0 -r 32000 -c 2 -f S16_LE | aplay -
 
- static void reg_w1(struct gspca_dev *gspca_dev,
- 		   u16 value,
- 		   u8 data)
- {
-+	int ret;
-+
-+	if (gspca_dev->usb_err < 0)
-+		return;
- 	PDEBUG(D_USBO, "reg_w1 [%04x] = %02x", value, data);
- 	gspca_dev->usb_buf[0] = data;
--	usb_control_msg(gspca_dev->dev,
-+	ret = usb_control_msg(gspca_dev->dev,
- 			usb_sndctrlpipe(gspca_dev->dev, 0),
- 			0x08,
- 			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
-@@ -1389,12 +1405,22 @@ static void reg_w1(struct gspca_dev *gsp
- 			0,
- 			gspca_dev->usb_buf, 1,
- 			500);
-+	if (ret < 0) {
-+		PDEBUG(D_ERR, "reg_w1(): "
-+			"Failed to write register to 0x%x, error %i",
-+			value, ret);
-+		gspca_dev->usb_err = ret;
-+	}
- }
- static void reg_w(struct gspca_dev *gspca_dev,
- 			  u16 value,
- 			  const u8 *buffer,
- 			  int len)
- {
-+	int ret;
-+
-+	if (gspca_dev->usb_err < 0)
-+		return;
- 	PDEBUG(D_USBO, "reg_w [%04x] = %02x %02x ..",
- 		value, buffer[0], buffer[1]);
- #ifdef GSPCA_DEBUG
-@@ -1404,20 +1430,29 @@ static void reg_w(struct gspca_dev *gspc
- 	}
- #endif
- 	memcpy(gspca_dev->usb_buf, buffer, len);
--	usb_control_msg(gspca_dev->dev,
-+	ret = usb_control_msg(gspca_dev->dev,
- 			usb_sndctrlpipe(gspca_dev->dev, 0),
- 			0x08,
- 			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
- 			value, 0,
- 			gspca_dev->usb_buf, len,
- 			500);
-+	if (ret < 0) {
-+		PDEBUG(D_ERR, "reg_w(): "
-+			"Failed to write %i registers to 0x%x, error %i",
-+			len, value, ret);
-+		gspca_dev->usb_err = ret;
-+	}
- }
+this way you record from the saa7134 audio device and play it back to
+your speakers.
 
- /* I2C write 1 byte */
- static void i2c_w1(struct gspca_dev *gspca_dev, u8 reg, u8 val)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
-+	int ret;
+>
+>> (make sure you select the right alsa device in adevice=)
+>>
+>> The wiki has a good page about MPlayer:
+>>
+>> http://www.linuxtv.org/wiki/index.php/MPlayer
+>>
+>> and of course the MPlayer man page explain all the options too.
+>>
+>> These pages are also useful (but some things might be a bit outdated):
+>>
+>> http://www.linuxtv.org/wiki/index.php/ASUS_My_Cinema-P7131_Hybrid
+>> http://www.linuxtv.org/wiki/index.php/Saa7134-alsa
+>>
+>> I hope this can help you and others reading this ML.
+>>
+>> Regards,
+>> Giorgio Vazzana
+>>
+>>> Thanks
+>>> --
+>>> Dejan Rodiger
+>
 
-+	if (gspca_dev->usb_err < 0)
-+		return;
- 	PDEBUG(D_USBO, "i2c_w1 [%02x] = %02x", reg, val);
- 	switch (sd->sensor) {
- 	case SENSOR_ADCM1700:
-@@ -1436,7 +1471,7 @@ static void i2c_w1(struct gspca_dev *gsp
- 	gspca_dev->usb_buf[5] = 0;
- 	gspca_dev->usb_buf[6] = 0;
- 	gspca_dev->usb_buf[7] = 0x10;
--	usb_control_msg(gspca_dev->dev,
-+	ret = usb_control_msg(gspca_dev->dev,
- 			usb_sndctrlpipe(gspca_dev->dev, 0),
- 			0x08,
- 			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
-@@ -1444,22 +1479,37 @@ static void i2c_w1(struct gspca_dev *gsp
- 			0,
- 			gspca_dev->usb_buf, 8,
- 			500);
-+	if (ret < 0) {
-+		PDEBUG(D_ERR, "i2c_w1(): Failed to write "
-+			"I2C register 0x%x, value 0x%X, error %i",
-+			reg, val, ret);
-+		gspca_dev->usb_err = ret;
-+	}
- }
-
- /* I2C write 8 bytes */
- static void i2c_w8(struct gspca_dev *gspca_dev,
- 		   const u8 *buffer)
- {
-+	int ret;
-+
-+	if (gspca_dev->usb_err < 0)
-+		return;
- 	PDEBUG(D_USBO, "i2c_w8 [%02x] = %02x ..",
- 		buffer[2], buffer[3]);
- 	memcpy(gspca_dev->usb_buf, buffer, 8);
--	usb_control_msg(gspca_dev->dev,
-+	ret = usb_control_msg(gspca_dev->dev,
- 			usb_sndctrlpipe(gspca_dev->dev, 0),
- 			0x08,
- 			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
- 			0x08, 0,		/* value, index */
- 			gspca_dev->usb_buf, 8,
- 			500);
-+	if (ret < 0) {
-+		PDEBUG(D_ERR, "i2c_w8(): Failed to write "
-+			"I2C registers, error %i", ret);
-+		gspca_dev->usb_err = ret;
-+	}
- 	msleep(2);
- }
-
-@@ -1915,7 +1965,7 @@ static int sd_init(struct gspca_dev *gsp
-
- 	gspca_dev->ctrl_dis = ctrl_dis[sd->sensor];
-
--	return 0;
-+	return gspca_dev->usb_err;
- }
-
- static u32 setexposure(struct gspca_dev *gspca_dev,
-@@ -2289,6 +2339,7 @@ static void setjpegqual(struct gspca_dev
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
- 	int i, sc;
-+	int ret;
-
- 	if (sd->jpegqual < 50)
- 		sc = 5000 / sd->jpegqual;
-@@ -2300,23 +2351,35 @@ static void setjpegqual(struct gspca_dev
- 	for (i = 0; i < 64; i++)
- 		gspca_dev->usb_buf[i] =
- 			(jpeg_head[JPEG_QT0_OFFSET + i] * sc + 50) / 100;
--	usb_control_msg(gspca_dev->dev,
-+	ret = usb_control_msg(gspca_dev->dev,
- 			usb_sndctrlpipe(gspca_dev->dev, 0),
- 			0x08,
- 			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
- 			0x0100, 0,
- 			gspca_dev->usb_buf, 64,
- 			500);
-+	if (ret < 0) {
-+		PDEBUG(D_ERR, "setjpegqual(): Failed to set JPEG quality, "
-+			"error %i", ret);
-+		gspca_dev->usb_err = ret;
-+		return;
-+	}
- 	for (i = 0; i < 64; i++)
- 		gspca_dev->usb_buf[i] =
- 			(jpeg_head[JPEG_QT1_OFFSET + i] * sc + 50) / 100;
--	usb_control_msg(gspca_dev->dev,
-+	ret = usb_control_msg(gspca_dev->dev,
- 			usb_sndctrlpipe(gspca_dev->dev, 0),
- 			0x08,
- 			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
- 			0x0140, 0,
- 			gspca_dev->usb_buf, 64,
- 			500);
-+	if (ret < 0) {
-+		PDEBUG(D_ERR, "setjpegqual(): Failed to set JPEG quality, "
-+			"error %i", ret);
-+		gspca_dev->usb_err = ret;
-+		return;
-+	}
-
- 	sd->reg18 ^= 0x40;
- 	reg_w1(gspca_dev, 0x18, sd->reg18);
-@@ -2591,7 +2654,7 @@ static int sd_start(struct gspca_dev *gs
- 	setcolors(gspca_dev);
- 	setautogain(gspca_dev);
- 	setfreq(gspca_dev);
--	return 0;
-+	return gspca_dev->usb_err;
- }
-
- static void sd_stopN(struct gspca_dev *gspca_dev)
-@@ -2754,7 +2817,7 @@ static int sd_setbrightness(struct gspca
- 	sd->brightness = val;
- 	if (gspca_dev->streaming)
- 		setbrightness(gspca_dev);
--	return 0;
-+	return gspca_dev->usb_err;
- }
-
- static int sd_getbrightness(struct gspca_dev *gspca_dev, __s32 *val)
-@@ -2772,7 +2835,7 @@ static int sd_setcontrast(struct gspca_d
- 	sd->contrast = val;
- 	if (gspca_dev->streaming)
- 		setcontrast(gspca_dev);
--	return 0;
-+	return gspca_dev->usb_err;
- }
-
- static int sd_getcontrast(struct gspca_dev *gspca_dev, __s32 *val)
-@@ -2790,7 +2853,7 @@ static int sd_setcolors(struct gspca_dev
- 	sd->colors = val;
- 	if (gspca_dev->streaming)
- 		setcolors(gspca_dev);
--	return 0;
-+	return gspca_dev->usb_err;
- }
-
- static int sd_getcolors(struct gspca_dev *gspca_dev, __s32 *val)
-@@ -2808,7 +2871,7 @@ static int sd_setblue_balance(struct gsp
- 	sd->blue = val;
- 	if (gspca_dev->streaming)
- 		setredblue(gspca_dev);
--	return 0;
-+	return gspca_dev->usb_err;
- }
-
- static int sd_getblue_balance(struct gspca_dev *gspca_dev, __s32 *val)
-@@ -2826,7 +2889,7 @@ static int sd_setred_balance(struct gspc
- 	sd->red = val;
- 	if (gspca_dev->streaming)
- 		setredblue(gspca_dev);
--	return 0;
-+	return gspca_dev->usb_err;
- }
-
- static int sd_getred_balance(struct gspca_dev *gspca_dev, __s32 *val)
-@@ -2844,7 +2907,7 @@ static int sd_setgamma(struct gspca_dev
- 	sd->gamma = val;
- 	if (gspca_dev->streaming)
- 		setgamma(gspca_dev);
--	return 0;
-+	return gspca_dev->usb_err;
- }
-
- static int sd_getgamma(struct gspca_dev *gspca_dev, __s32 *val)
-@@ -2862,7 +2925,7 @@ static int sd_setautogain(struct gspca_d
- 	sd->autogain = val;
- 	if (gspca_dev->streaming)
- 		setautogain(gspca_dev);
--	return 0;
-+	return gspca_dev->usb_err;
- }
-
- static int sd_getautogain(struct gspca_dev *gspca_dev, __s32 *val)
-@@ -2880,7 +2943,7 @@ static int sd_setsharpness(struct gspca_
- 	sd->sharpness = val;
- 	if (gspca_dev->streaming)
- 		setsharpness(sd);
--	return 0;
-+	return gspca_dev->usb_err;
- }
-
- static int sd_getsharpness(struct gspca_dev *gspca_dev, __s32 *val)
-@@ -2898,7 +2961,7 @@ static int sd_setvflip(struct gspca_dev
- 	sd->vflip = val;
- 	if (gspca_dev->streaming)
- 		sethvflip(sd);
--	return 0;
-+	return gspca_dev->usb_err;
- }
-
- static int sd_getvflip(struct gspca_dev *gspca_dev, __s32 *val)
-@@ -2916,7 +2979,7 @@ static int sd_sethflip(struct gspca_dev
- 	sd->hflip = val;
- 	if (gspca_dev->streaming)
- 		sethvflip(sd);
--	return 0;
-+	return gspca_dev->usb_err;
- }
-
- static int sd_gethflip(struct gspca_dev *gspca_dev, __s32 *val)
-@@ -2934,7 +2997,7 @@ static int sd_setinfrared(struct gspca_d
- 	sd->infrared = val;
- 	if (gspca_dev->streaming)
- 		setinfrared(sd);
--	return 0;
-+	return gspca_dev->usb_err;
- }
-
- static int sd_getinfrared(struct gspca_dev *gspca_dev, __s32 *val)
-@@ -2952,7 +3015,7 @@ static int sd_setfreq(struct gspca_dev *
- 	sd->freq = val;
- 	if (gspca_dev->streaming)
- 		setfreq(gspca_dev);
--	return 0;
-+	return gspca_dev->usb_err;
- }
-
- static int sd_getfreq(struct gspca_dev *gspca_dev, __s32 *val)
-@@ -2976,7 +3039,7 @@ static int sd_set_jcomp(struct gspca_dev
- 		sd->quality = jcomp->quality;
- 	if (gspca_dev->streaming)
- 		jpeg_set_qual(sd->jpeg_hdr, sd->quality);
--	return 0;
-+	return gspca_dev->usb_err;
- }
-
- static int sd_get_jcomp(struct gspca_dev *gspca_dev,
+Cheers,
+Giorgio Vazzana
