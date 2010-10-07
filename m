@@ -1,40 +1,41 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:17292 "EHLO
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:30301 "EHLO
 	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754178Ab0JHIux (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Oct 2010 04:50:53 -0400
-Date: Fri, 08 Oct 2010 10:50:34 +0200
+	with ESMTP id S1754366Ab0JGOoL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Oct 2010 10:44:11 -0400
+Date: Thu, 07 Oct 2010 16:44:00 +0200
 From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 2/5 v4] V4L/DVB: s5p-fimc: mem2mem driver refactoring and
- cleanup
-In-reply-to: <1286527837-4980-1-git-send-email-s.nawrocki@samsung.com>
+Subject: [PATCH 2/4 v3] V4L/DVB: s5p-fimc: M2M driver cleanup and minor
+ improvements
+In-reply-to: <1286462642-28211-1-git-send-email-s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
 	linux-samsung-soc@vger.kernel.org
 Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
 	s.nawrocki@samsung.com
-Message-id: <1286527837-4980-3-git-send-email-s.nawrocki@samsung.com>
+Message-id: <1286462642-28211-3-git-send-email-s.nawrocki@samsung.com>
 MIME-version: 1.0
 Content-type: TEXT/PLAIN
 Content-transfer-encoding: 7BIT
-References: <1286527837-4980-1-git-send-email-s.nawrocki@samsung.com>
+References: <1286462642-28211-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Register access functions refactored for camera capture interface
-control. Removed the workqueue since it was only useful for FIFO
-output mode which is not supported at this time.
-Fixed errors on module unload. Comments and whitespace cleanup.
+Fixed errors on module unload, comments and whitespace cleanup.
+Removed workqueue since it was only useful for FIFO output mode
+which is not supported at this time.
+Fixed 90/270 deg rotation errors (driver performing 270 deg rotation
+instead of 90 in some conditions).
 
 Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
  drivers/media/video/s5p-fimc/fimc-core.c |  151 +++++++++++-------------------
  drivers/media/video/s5p-fimc/fimc-core.h |  132 ++++++++++++++------------
- drivers/media/video/s5p-fimc/fimc-reg.c  |   43 ++++-----
- 3 files changed, 148 insertions(+), 178 deletions(-)
+ drivers/media/video/s5p-fimc/fimc-reg.c  |  125 ++++++++++++-------------
+ 3 files changed, 188 insertions(+), 220 deletions(-)
 
 diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index c56029e..fccab13 100644
+index 6961c55..fe46aea 100644
 --- a/drivers/media/video/s5p-fimc/fimc-core.c
 +++ b/drivers/media/video/s5p-fimc/fimc-core.c
 @@ -117,7 +117,7 @@ static struct fimc_fmt fimc_formats[] = {
@@ -296,7 +297,7 @@ index c56029e..fccab13 100644
 -		fimc->m2m.v4l2_dev.dev,
 +		&fimc->pdev->dev,
  		&fimc->irqlock, type, V4L2_FIELD_NONE,
- 		sizeof(struct fimc_vid_buffer), priv, NULL);
+ 		sizeof(struct fimc_vid_buffer), priv);
  }
 @@ -1159,13 +1140,12 @@ static int fimc_m2m_open(struct file *file)
  
@@ -716,10 +717,10 @@ index 6b3e0cd..5aeb3ef 100644
  
  #endif /* FIMC_CORE_H_ */
 diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
-index 70f29c5..94e98d4 100644
+index 70f29c5..2eb898e 100644
 --- a/drivers/media/video/s5p-fimc/fimc-reg.c
 +++ b/drivers/media/video/s5p-fimc/fimc-reg.c
-@@ -29,7 +29,7 @@ void fimc_hw_reset(struct fimc_dev *dev)
+@@ -29,49 +29,11 @@ void fimc_hw_reset(struct fimc_dev *dev)
  	cfg = readl(dev->regs + S5P_CIGCTRL);
  	cfg |= (S5P_CIGCTRL_SWRST | S5P_CIGCTRL_IRQ_LEVEL);
  	writel(cfg, dev->regs + S5P_CIGCTRL);
@@ -728,7 +729,107 @@ index 70f29c5..94e98d4 100644
  
  	cfg = readl(dev->regs + S5P_CIGCTRL);
  	cfg &= ~S5P_CIGCTRL_SWRST;
-@@ -247,21 +247,20 @@ void fimc_hw_en_lastirq(struct fimc_dev *dev, int enable)
+ 	writel(cfg, dev->regs + S5P_CIGCTRL);
+-
+-}
+-
+-void fimc_hw_set_rotation(struct fimc_ctx *ctx)
+-{
+-	u32 cfg, flip;
+-	struct fimc_dev *dev = ctx->fimc_dev;
+-
+-	cfg = readl(dev->regs + S5P_CITRGFMT);
+-	cfg &= ~(S5P_CITRGFMT_INROT90 | S5P_CITRGFMT_OUTROT90);
+-
+-	flip = readl(dev->regs + S5P_MSCTRL);
+-	flip &= ~S5P_MSCTRL_FLIP_MASK;
+-
+-	/*
+-	 * The input and output rotator cannot work simultaneously.
+-	 * Use the output rotator in output DMA mode or the input rotator
+-	 * in direct fifo output mode.
+-	 */
+-	if (ctx->rotation == 90 || ctx->rotation == 270) {
+-		if (ctx->out_path == FIMC_LCDFIFO) {
+-			cfg |= S5P_CITRGFMT_INROT90;
+-			if (ctx->rotation == 270)
+-				flip |= S5P_MSCTRL_FLIP_180;
+-		} else {
+-			cfg |= S5P_CITRGFMT_OUTROT90;
+-			if (ctx->rotation == 270)
+-				cfg |= S5P_CITRGFMT_FLIP_180;
+-		}
+-	} else if (ctx->rotation == 180) {
+-		if (ctx->out_path == FIMC_LCDFIFO)
+-			flip |= S5P_MSCTRL_FLIP_180;
+-		else
+-			cfg |= S5P_CITRGFMT_FLIP_180;
+-	}
+-	if (ctx->rotation == 180 || ctx->rotation == 270)
+-		writel(flip, dev->regs + S5P_MSCTRL);
+-	writel(cfg, dev->regs + S5P_CITRGFMT);
+ }
+ 
+ static u32 fimc_hw_get_in_flip(u32 ctx_flip)
+@@ -114,6 +76,46 @@ static u32 fimc_hw_get_target_flip(u32 ctx_flip)
+ 	return flip;
+ }
+ 
++void fimc_hw_set_rotation(struct fimc_ctx *ctx)
++{
++	u32 cfg, flip;
++	struct fimc_dev *dev = ctx->fimc_dev;
++
++	cfg = readl(dev->regs + S5P_CITRGFMT);
++	cfg &= ~(S5P_CITRGFMT_INROT90 | S5P_CITRGFMT_OUTROT90 |
++		  S5P_CITRGFMT_FLIP_180);
++
++	flip = readl(dev->regs + S5P_MSCTRL);
++	flip &= ~S5P_MSCTRL_FLIP_MASK;
++
++	/*
++	 * The input and output rotator cannot work simultaneously.
++	 * Use the output rotator in output DMA mode or the input rotator
++	 * in direct fifo output mode.
++	 */
++	if (ctx->rotation == 90 || ctx->rotation == 270) {
++		if (ctx->out_path == FIMC_LCDFIFO) {
++			cfg |= S5P_CITRGFMT_INROT90;
++			if (ctx->rotation == 270)
++				flip |= S5P_MSCTRL_FLIP_180;
++		} else {
++			cfg |= S5P_CITRGFMT_OUTROT90;
++			if (ctx->rotation == 270)
++				cfg |= S5P_CITRGFMT_FLIP_180;
++		}
++	} else if (ctx->rotation == 180) {
++		if (ctx->out_path == FIMC_LCDFIFO)
++			flip |= S5P_MSCTRL_FLIP_180;
++		else
++			cfg |= S5P_CITRGFMT_FLIP_180;
++	}
++	if (ctx->rotation == 180 || ctx->rotation == 270)
++		writel(flip, dev->regs + S5P_MSCTRL);
++
++	cfg |= fimc_hw_get_target_flip(ctx->flip);
++	writel(cfg, dev->regs + S5P_CITRGFMT);
++}
++
+ void fimc_hw_set_target_format(struct fimc_ctx *ctx)
+ {
+ 	u32 cfg;
+@@ -152,10 +154,6 @@ void fimc_hw_set_target_format(struct fimc_ctx *ctx)
+ 	cfg |= S5P_CITRGFMT_HSIZE(frame->width);
+ 	cfg |= S5P_CITRGFMT_VSIZE(frame->height);
+ 
+-	if (ctx->rotation == 0) {
+-		cfg &= ~S5P_CITRGFMT_FLIP_MASK;
+-		cfg |= fimc_hw_get_target_flip(ctx->flip);
+-	}
+ 	writel(cfg, dev->regs + S5P_CITRGFMT);
+ 
+ 	cfg = readl(dev->regs + S5P_CITAREA) & ~S5P_CITAREA_MASK;
+@@ -247,21 +245,20 @@ void fimc_hw_en_lastirq(struct fimc_dev *dev, int enable)
  	spin_unlock_irqrestore(&dev->slock, flags);
  }
  
@@ -754,7 +855,7 @@ index 70f29c5..94e98d4 100644
  	cfg |= S5P_CISCPREDST_HEIGHT(sc->pre_dst_height);
  	writel(cfg, dev->regs + S5P_CISCPREDST);
  }
-@@ -274,6 +273,8 @@ void fimc_hw_set_scaler(struct fimc_ctx *ctx)
+@@ -274,6 +271,8 @@ void fimc_hw_set_scaler(struct fimc_ctx *ctx)
  	struct fimc_frame *dst_frame = &ctx->d_frame;
  	u32 cfg = 0;
  
@@ -763,7 +864,7 @@ index 70f29c5..94e98d4 100644
  	if (!(ctx->flags & FIMC_COLOR_RANGE_NARROW))
  		cfg |= (S5P_CISCCTRL_CSCR2Y_WIDE | S5P_CISCCTRL_CSCY2R_WIDE);
  
-@@ -364,7 +365,7 @@ static void fimc_hw_set_in_dma_size(struct fimc_ctx *ctx)
+@@ -364,7 +363,7 @@ static void fimc_hw_set_in_dma_size(struct fimc_ctx *ctx)
  	u32 cfg_r = 0;
  
  	if (FIMC_LCDFIFO == ctx->out_path)
@@ -772,7 +873,7 @@ index 70f29c5..94e98d4 100644
  
  	cfg_o |= S5P_ORIG_SIZE_HOR(frame->f_width);
  	cfg_o |= S5P_ORIG_SIZE_VER(frame->f_height);
-@@ -380,27 +381,25 @@ void fimc_hw_set_in_dma(struct fimc_ctx *ctx)
+@@ -380,27 +379,25 @@ void fimc_hw_set_in_dma(struct fimc_ctx *ctx)
  	struct fimc_dev *dev = ctx->fimc_dev;
  	struct fimc_frame *frame = &ctx->s_frame;
  	struct fimc_dma_offset *offset = &frame->dma_offset;
@@ -805,7 +906,7 @@ index 70f29c5..94e98d4 100644
  	fimc_hw_en_autoload(dev, ctx->out_path == FIMC_LCDFIFO);
  
  	/* Set the input DMA to process single frame only. */
-@@ -501,9 +500,7 @@ void fimc_hw_set_output_path(struct fimc_ctx *ctx)
+@@ -501,9 +498,7 @@ void fimc_hw_set_output_path(struct fimc_ctx *ctx)
  
  void fimc_hw_set_input_addr(struct fimc_dev *dev, struct fimc_addr *paddr)
  {
@@ -816,7 +917,7 @@ index 70f29c5..94e98d4 100644
  	cfg |= S5P_CIREAL_ISIZE_ADDR_CH_DIS;
  	writel(cfg, dev->regs + S5P_CIREAL_ISIZE);
  
-@@ -515,13 +512,15 @@ void fimc_hw_set_input_addr(struct fimc_dev *dev, struct fimc_addr *paddr)
+@@ -515,13 +510,15 @@ void fimc_hw_set_input_addr(struct fimc_dev *dev, struct fimc_addr *paddr)
  	writel(cfg, dev->regs + S5P_CIREAL_ISIZE);
  }
  
