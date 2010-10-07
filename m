@@ -1,60 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:41287 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756608Ab0JOUCr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Oct 2010 16:02:47 -0400
-Date: Fri, 15 Oct 2010 16:02:12 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
-	David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	mchehab@infradead.org, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/5] IR: ene_ir: few bugfixes
-Message-ID: <20101015200212.GK9658@redhat.com>
-References: <1287158799-21486-1-git-send-email-maximlevitsky@gmail.com>
- <1287158799-21486-4-git-send-email-maximlevitsky@gmail.com>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:38565 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751317Ab0JGWEt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Oct 2010 18:04:49 -0400
+Received: by ewy23 with SMTP id 23so238936ewy.19
+        for <linux-media@vger.kernel.org>; Thu, 07 Oct 2010 15:04:47 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1287158799-21486-4-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <4CAE4020.4000209@redhat.com>
+References: <cover.1285699057.git.mchehab@redhat.com>
+	<20100928154653.785c1f3f@pedra>
+	<4CAE4020.4000209@redhat.com>
+Date: Thu, 7 Oct 2010 18:04:47 -0400
+Message-ID: <AANLkTimVNUo1UkZQabHnQYZ+=LQGHUhGbaU9Fcot65EE@mail.gmail.com>
+Subject: Re: [PATCH 01/10] V4L/DVB: cx231xx: remove a printk warning at
+ -avcore and at -417
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Srinivasa.Deevi@conexant.com, Palash.Bandyopadhyay@conexant.com,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, Oct 15, 2010 at 06:06:37PM +0200, Maxim Levitsky wrote:
-> This is a result of last round of debug with
-> Sami R <maesesami@gmail.com>.
-> 
-> Thank you Sami very much!
-> 
-> The biggest bug I fixed is that,
-> I was clobbering the CIRCFG register after it is setup
-> That wasn't a good idea really
-> 
-> And some small refactoring, etc.
-> 
-> Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
-> ---
->  drivers/media/IR/ene_ir.c |   43 ++++++++++++++++++++-----------------------
->  1 files changed, 20 insertions(+), 23 deletions(-)
-> 
-> diff --git a/drivers/media/IR/ene_ir.c b/drivers/media/IR/ene_ir.c
-> index dc32509..8639621 100644
-> --- a/drivers/media/IR/ene_ir.c
-> +++ b/drivers/media/IR/ene_ir.c
-...
-> @@ -282,6 +287,7 @@ static void ene_rx_setup(struct ene_device *dev)
->  		ene_set_reg_mask(dev, ENE_CIRCFG, ENE_CIRCFG_CARR_DEMOD);
->  
->  		/* Enable carrier detection */
-> +		ene_write_reg(dev, ENE_CIRCAR_PULS, 0x63);
+On Thu, Oct 7, 2010 at 5:48 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Em 28-09-2010 15:46, Mauro Carvalho Chehab escreveu:
+>> drivers/media/video/cx231xx/cx231xx-avcore.c:1608: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘long unsigned int’
+>> drivers/media/video/cx231xx/cx231xx-417.c:1047: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘size_t’
+>>
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>
+> OK, I just updated my tree with the patches that Mkrufky acked.
+> It basically contains the same patches from my previous post, plus
+> the patches that Palash sent, and Devin/Mkrufky patches from polaris4
+> tree, rebased over the top of kernel v2.6.36-rc7 (this makes easier
+> for me to test and to merge).
+>
+> The patches are at:
+>        http://git.linuxtv.org/mchehab/cx231xx.git
+>
+> Sri already sent his ack for the first series of the patches.
+>
+> The tree contains two extra patches:
+>
+> 1) a cx231xx large CodingStyle fix patch:
+>        http://git.linuxtv.org/mchehab/cx231xx.git?a=commit;h=eacd1a7749ae45d1f2f5782c013b863ff480746d
+>
+> It basically solves the issues that checkpatch.pl complained on this series of patches;
+>
+> 2) a cx231xx-417 gcc warning fix:
+>        http://git.linuxtv.org/mchehab/cx231xx.git?a=commit;h=ca3a6a8c2a4819702e93b9612c4a6d90474ea9b5
+>
+> Devin,
+>
+> Would it be ok for you if I merge them on my main tree? They're needed for one
+> board I'm working with (a Pixelview SBTVD Hybrid - that supports both analog
+> and full-seg ISDB-T).
 
-Looks sane, though I'd prefer to see symbolic bit names or some such thing
-here instead of 0x63. Not something to hold up the patch though.
+Yeah, I've got additional fixes which aren't on that tree yet, but I
+don't see any reason why what's there cannot be merged.
 
-Acked-by: Jarod Wilson <jarod@redhat.com>
+It would be helpful if you could get Douglas to merge both sets of
+patches (mine and yours) to the hg backport tree as well, so I can
+continue development without requiring the bleeding edge kernel (all
+the work going on is for an embedded target which is running a
+relatively old kernel).
+
+I've got another couple dozen patches and I'm willing to continue
+pushing this stuff upstream, but you need to meet me halfway here by
+not making the bleeding edge kernel a requirement for this work.
+
+Devin
 
 -- 
-Jarod Wilson
-jarod@redhat.com
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
