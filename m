@@ -1,109 +1,214 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4798 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755074Ab0JKPkc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Oct 2010 11:40:32 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: David Ellingsworth <david@identd.dyndns.org>
-Subject: Re: [GIT PATCHES FOR 2.6.37] Move V4L2 locking into the core framework
-Date: Mon, 11 Oct 2010 17:40:14 +0200
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-References: <201009261425.00146.hverkuil@xs4all.nl> <AANLkTimWCHHP5MOnXpXpoRyfxRd5jj6=0DHpj7uoVS2E@mail.gmail.com>
-In-Reply-To: <AANLkTimWCHHP5MOnXpXpoRyfxRd5jj6=0DHpj7uoVS2E@mail.gmail.com>
+Received: from auth-1.ukservers.net ([217.10.138.154]:41260 "EHLO
+	auth-1.ukservers.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759020Ab0JGBwf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Oct 2010 21:52:35 -0400
+Message-ID: <075927E995BF46F0AAC3D433821C7D9F@telstraclear.tclad>
+From: "Simon Baxter" <linuxtv@nzbaxters.com>
+To: <linux-media@vger.kernel.org>, <linux-dvb@linuxtv.org>
+References: <4EF44B7309644C7BBF72C458CF8C4F43@telstraclear.tclad>
+Subject: Re: dm1105 scan but won't tune? [PROGRESS]
+Date: Thu, 7 Oct 2010 14:52:20 +1300
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201010111740.14658.hverkuil@xs4all.nl>
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=response
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sunday, October 10, 2010 19:33:48 David Ellingsworth wrote:
-> Hans,
+OK, progress (idiot error?)
+
+My problem was OptusB1 requires a 45 degree skew on the LNB on the dish 
+itself.
+
+So now I can do an szap as follows:
+TV3:12456:h:0:22500:512:650:1920
+
+./szap -l 11300 -c channels-conf/dvb-s/OptusD1E160 TV3
+reading channels from file 'channels-conf/dvb-s/OptusD1E160'
+zapping to 1 'TV3':
+sat 0, frequency = 12456 MHz H, symbolrate 22500000, vpid = 0x0200, apid = 
+0x028a sid = 0x0780
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+status 1f | signal cd82 | snr be5c | ber 0000ff00 | unc fffffffe | 
+FE_HAS_LOCK
+status 1f | signal cd07 | snr be9e | ber 00000000 | unc fffffffe | 
+FE_HAS_LOCK
+status 1f | signal cd07 | snr be4a | ber 00000000 | unc fffffffe | 
+FE_HAS_LOCK
+
+
+New problem though - I can now no longer scan with the LNB skewed!!
+S 12456000 V 22500000 AUTO
+S 12456000 H 22500000 AUTO
+
+./scan dvb-s/OptusB1-NZ -l 11300
+scanning dvb-s/OptusB1-NZ
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+initial transponder 12456000 V 22500000 9
+initial transponder 12456000 H 22500000 9
+>>> tune to: 12456:v:0:22500
+DVB-S IF freq is 1156000
+WARNING: >>> tuning failed!!!
+>>> tune to: 12456:v:0:22500 (tuning failed)
+DVB-S IF freq is 1156000
+WARNING: >>> tuning failed!!!
+>>> tune to: 12456:h:0:22500
+DVB-S IF freq is 1156000
+WARNING: >>> tuning failed!!!
+>>> tune to: 12456:h:0:22500 (tuning failed)
+DVB-S IF freq is 1156000
+WARNING: >>> tuning failed!!!
+ERROR: initial tuning failed
+dumping lists (0 services)
+Done.
+
+Any ideas?
+----- Original Message ----- 
+From: "Simon Baxter" <linuxtv@nzbaxters.com>
+To: <linux-media@vger.kernel.org>
+Sent: Sunday, September 26, 2010 9:48 AM
+Subject: dm1105 scan but won't tune? (anyone have one of these working?)
+
+
+>>> Simon Baxter аабаб:
+>>> Hi. I've got a new dm1105 dvb-s card which I can't get to work. I can
+>>> scan and get transponders etc, but can't tune or get a front end lock.
+>>
+>>> I see there's been some work on this - does anyone have one of these
+>>> dvb-s cards working?
+>>
+>>> I've just pulled the latest from
+>>> http://mercurial.intuxication.org/hg/s2-liplianin
+>>
+>>> I can scan and get info:
+>>> ./scan dvb-s/OptusB1-NZ -l 11300 -x 0
+>>> scanning dvb-s/OptusB1-NZ
+>>> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+>>> initial transponder 12456000 H 22500000 9
+>>>>>> tune to: 12456:h:0:22500
+>>> DVB-S IF freq is 1156000
+>>> <snip>
+>>> 0x0000 0x0781: pmt_pid 0x010b TV Works -- C4 (running)
+>>> <snip>
+>>> C4:12456:h:0:22500:513:651:1921
+>>
+>>> But I can't get a lock on szap:
+>>> ./szap -c channels-conf/dvb-s/OptusD1E160 C4
+>>> reading channels from file 'channels-conf/dvb-s/OptusD1E160'
+>>> zapping to 2 'C4':
+>>> sat 0, frequency = 12456 MHz H, symbolrate 22500000, vpid = 0x0201,
+>>> apid = 0x028b sid = 0x0781
+>>> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+>>> status 03 | signal 9ae2 | snr 7170 | ber 0000ff07 | unc fffffffe |
+>>> status 03 | signal 9c2a | snr 719a | ber 0000ff05 | unc fffffffe |
+>>> status 03 | signal 9b07 | snr 71d9 | ber 0000ff05 | unc fffffffe |
+>>> status 03 | signal 9ace | snr 7200 | ber 0000ff05 | unc fffffffe |
+>>
+>>> Or in VDR -
+>>> Sep 23 13:49:45 localhost vdr: [2105] frontend 0/0 timed out while
+>>> tuning to channel 1, tp 112456
+>>> Sep 23 13:50:06 localhost vdr: [2105] frontend 0/0 timed out while
+>>> tuning to channel 16, tp 112483
+>>> Sep 23 13:50:26 localhost vdr: [2105] frontend 0/0 timed out while
+>>> tuning to channel 1, tp 112456
+>>
+>>
+>>> Although dvbtune says:
+>>> ./dvbtune -f 1245600 -s 22500 -p h -m -tone 0 -x
+>>> Using DVB card "ST STV0299 DVB-S"
+>>> tuning DVB-S to L-Band:3, Pol:H Srate=22500000, 22kHz=off
+>>> polling....
+>>> Getting frontend event
+>>> FE_STATUS:
+>>> polling....
+>>> Getting frontend event
+>>> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER
+>>> polling....
+>>> Getting frontend event
+>>> FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI
+>>> FE_HAS_SYNC
+>>> Event: Frequency: 10995803
+>>> SymbolRate: 22500000
+>>> FEC_inner: 3
+>>
+>>> Bit error rate: 65285
+>>> Signal strength: 53063
+>>> SNR: 48522
+>>> FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI
+>>> FE_HAS_SYNC
+>>> <?xml version="1.0" encoding="iso-8859-1"?>
+>>> <satellite>
+>>> <descriptor tag="0x01"
+>>> data="4b59204469676974616c20536174656c6c697465205456f3ae000100a9f042413303eb0103ed0103f10103f401040201041101043801043d01044501044c02046002046102046202232983238d8a23f18426ad"
+>>> text="KY.Digital.Satellite.TV.......BA3...................8.....E..L.....a..b............"
+>>> />
+>>> Nothing to read from fd_nit
+>>> Scanning 12407000V 30000000
+>>> Using DVB card "ST STV0299 DVB-S"
+>>> tuning DVB-S to L-Band:774218352, Pol:V Srate=30000000, 22kHz=off
+>>> polling....
+>>> Getting frontend event
+>>> FE_STATUS:
+>>> polling....
+>>> Getting frontend event
+>>> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER
+>>> polling....
+>>> polling....
+>>
+>>
+>>> Any suggestions?
+>>
+>>> _______________________________________________
+>>> linux-dvb users mailing list
+>>> For V4L/DVB development, please use instead linux-media@xxxxxxxxxxxxxxx
+>>> linux-dvb@xxxxxxxxxxx
+>>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>
+>> Hi,
+>>
+>> Please, try set parameter card=<number>> at dm1105 module loading.
+>>
+>> Best reagrds,
+>> Vladimir Monchenko.
+>
+> I've tried:
+> modprobe dm1105 card=1
+> modprobe dm1105 card=2
+> modprobe dm1105 card=3
+> modprobe dm1105 card=4
+> modprobe dm1105 card=5
+> modprobe dm1105 card=6
+>
+> but still can't tune the front end.  Any ideas?
+>
+> lspci -vvv has:
+> 01:06.0 Ethernet controller: Device 195d:1105 (rev 10)
+>        Subsystem: Device 195d:1105
+>        Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- 
+> Stepping- SERR- FastB2B- DisINTx-
+>        Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- 
+> <TAbort- <MAbort- >SERR- <PERR- INTx-
+>        Latency: 64 (4000ns min, 8000ns max), Cache Line Size: 4 bytes
+>        Interrupt: pin A routed to IRQ 16
+>        Region 0: I/O ports at bc00 [size=256]
+>        Kernel driver in use: dm1105
+>        Kernel modules: dm1105
+>
+> lsmod:
+> rc_dm1105_nec           1199  0
+> dm1105                  9896  0
+> dvb_core               86607  2 dm1105,stv0299
+> ir_core                13013  8 
+> rc_dm1105_nec,dm1105,ir_sony_decoder,ir_jvc_decoder,ir_rc6_decoder,ir_rc5_decoder,ir_nec_decoder
+> i2c_core               24507  7 
+> dm1105,ds3000,cx24116,dvb_pll,stv0299,nvidia,i2c_nforce2
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> On Sun, Sep 26, 2010 at 8:25 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > Hi Mauro,
-> >
-> > These are the locking patches. It's based on my previous test tree, but with
-> > more testing with em28xx and radio-mr800 and some small tweaks relating to
-> > disconnect handling and video_is_registered().
-> >
-> > I also removed the unused get_unmapped_area file op and I am now blocking
-> > any further (unlocked_)ioctl calls after the device node is unregistered.
-> > The only things an application can do legally after a disconnect is unmap()
-> > and close().
-> >
-> > This patch series also contains a small em28xx fix that I found while testing
-> > the em28xx BKL removal patch.
-> >
-> > Regards,
-> >
-> >        Hans
-> >
-> > The following changes since commit dace3857de7a16b83ae7d4e13c94de8e4b267d2a:
-> >  Hans Verkuil (1):
-> >        V4L/DVB: tvaudio: remove obsolete tda8425 initialization
-> >
-> > are available in the git repository at:
-> >
-> >  ssh://linuxtv.org/git/hverkuil/v4l-dvb.git bkl
-> >
-> > Hans Verkuil (10):
-> >      v4l2-dev: after a disconnect any ioctl call will be blocked.
-> >      v4l2-dev: remove get_unmapped_area
-> >      v4l2: add core serialization lock.
-> >      videobuf: prepare to make locking optional in videobuf
-> >      videobuf: add ext_lock argument to the queue init functions
-> >      videobuf: add queue argument to videobuf_waiton()
-> >      vivi: remove BKL.
-> >      em28xx: remove BKL.
-> >      em28xx: the default std was not passed on to the subdevs
-> >      radio-mr800: remove BKL
-> 
-> Did you even test these patches?
 
-Yes, I did test. And it works for me. But you are correct in that it shouldn't
-work since the struct will indeed be freed. I'll fix this and post a patch.
-
-I'm not sure why it works fine when I test it.
-
-There is a problem as well with unlocking before unregistering the device in
-that it leaves a race condition where another app can open the device again
-before it is registered. I have to think about that some more.
-
-> The last one in the series clearly
-> breaks radio-mr800 and the commit message does not describe the
-> changes made. radio-mr800 has been BKL independent for quite some
-> time. Hans, you of all people should know that calling
-> video_unregister_device could result in the driver specific structure
-> being freed.
-
-Jeez, relax. I'm human (really!).
-
-> The mutex must therefore be unlocked _before_ calling
-> video_unregister_device. Otherwise you're passing freed memory to
-> mutex_unlock in usb_amradio_disconnect.
-> 
-> If each patch had been properly posted to the list, others might have
-> caught issues like this earlier. Posting a link to a repository is no
-> substitute for this process.
-> 
-> Mauro, you should be ashamed for accepting a series that obviously has issues.
-
-Hardly obvious, and definitely not his fault.
-
-Regards,
-
-	Hans
-
-> 
-> Regards,
-> 
-> David Ellingsworth
-> 
-> 
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
