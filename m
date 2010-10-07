@@ -1,131 +1,105 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:52263 "EHLO
+Received: from casper.infradead.org ([85.118.1.10]:50568 "EHLO
 	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751894Ab0JTMsz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Oct 2010 08:48:55 -0400
-Message-ID: <4CBEE52E.3070704@infradead.org>
-Date: Wed, 20 Oct 2010 10:48:46 -0200
+	with ESMTP id S1751800Ab0JGVBi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Oct 2010 17:01:38 -0400
+Message-ID: <4CAE3517.6000904@infradead.org>
+Date: Thu, 07 Oct 2010 18:01:11 -0300
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Jonathan Corbet <corbet@lwn.net>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Florian Tobias Schandinat <florianschandinat@gmx.de>,
-	Daniel Drake <dsd@laptop.org>
-Subject: Re: [PATCH] V4L/DVB: Add the via framebuffer camera controller  driver
-References: <20101019183211.6af74f57@bike.lwn.net>    <201010200907.35954.hverkuil@xs4all.nl>    <4CBEDE92.6070800@infradead.org> <98c230e3e395b0bff3cc6e83eb20813c.squirrel@webmail.xs4all.nl>
-In-Reply-To: <98c230e3e395b0bff3cc6e83eb20813c.squirrel@webmail.xs4all.nl>
+To: Richard Atterer <atterer@debian.org>
+CC: linux-media@vger.kernel.org
+Subject: Re: bttv: No analogue sound output by TV card
+References: <20100930221953.GA7062@arbonne.lan> <20101007205540.GA3640@arbonne.lan>
+In-Reply-To: <20101007205540.GA3640@arbonne.lan>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 20-10-2010 10:40, Hans Verkuil escreveu:
+Em 07-10-2010 17:55, Richard Atterer escreveu:
+> Hello,
 > 
->> Em 20-10-2010 05:07, Hans Verkuil escreveu:
->>> On Wednesday, October 20, 2010 02:32:11 Jonathan Corbet wrote:
->>>> OK, here's a new version of the patch, done against the V4L tree.  Now
->>>> with 100% fewer compiler errors!  It took a while to figure out the API
->>>> changes, and I'm not convinced I like them all - the controller driver
->>>> didn't used to have to worry about format details, but now it does -
->>>> but so it goes.
->>>
->>> I'm afraid that that change is a sign of V4L growing up and being used
->>> in
->>> much more demanding environments like the omap3. While the pixel format
->>> and
->>> media bus format have a trivial mapping in this controller driver,
->>> things
->>> become a lot more complicated if the same sensor driver were to be used
->>> in
->>> e.g. the omap3 SoC.
->>>
->>> The sensor driver does not know what the video will look like in memory.
->>> It
->>> just passes the video data over a physical bus to some other device.
->>> That
->>> other device is what usually determines how the video data it receives
->>> over
->>> the bus is DMA-ed into memory. Simple devices just copy the video data
->>> almost
->>> directly to memory, but more complex devices can do colorspace
->>> transformations,
->>> dword swapping, 4:2:2 to 4:2:0 conversions, scaling, etc., etc.
->>>
->>> So what finally arrives in memory may look completely different from
->>> what the
->>> sensor supplies.
->>>
->>> The consequence of supporting these more complex devices is that it also
->>> makes simple device drivers a bit more complex.
->>
->> Hans,
->>
->> The kABI changes should not cause troubles for driver developers.
->>
->> I actually tried to look how to fix the conflicts, and it is not trivial
->> to convert
->> a driver to mbus (well, I'd say that there are 50% of chance of getting
->> the wrong
->> values, as just inspecting the source code, it is impossible to know if
->> the bus
->> is LE or BE).
->>
->> In a matter of fact, we're using the "MBUS" format to do two different
->> things:
->> a) configure the FOURCC image format;
->> b) configure the type of mbus.
->>
->> While all drivers need to do (a), just a few need to do (b), as, for most
->> cases,
->> the bridge driver just accepts one fixed format.
->>
->> I can't imagine how a driver like gspca, where most of the work is done
->> via reverse
->> engineering could be converted correctly, as I doubt that developers have
->> any glue
->> about the endianness used on all webcams (or any other parameter for the
->> streaming
->> bus between the sensor and the bridge).
->>
->> So, while I understand that this is needed for complex devices used on
->> embedded,
->> the kABI changes should not cause troubles for other developers,
->> otherwise, they
->> may just put some "fake" values to workaround the kABI "pedantic"
->> requirements,
->> causing future problems when someone would try to use it with those more
->> complex
->> devices or do some other workarounds.
->>
->> I suspect that we'll need to do some cleanups on it, as, on all drivers
->> but soc_camera
->> and omap3 (and maybe a few other hardware), just passing the fourcc format
->> is enough.
+> my problem is still present in 2.6.36-rc7, the log output is unchanged from 
+> rc5.
 > 
-> Actually such a fake value exists: V4L2_MBUS_FIXED. This is used by most
-> if not all non-sensor subdevices. They tend to have only a single format,
-> so there is no need to complicate matters. Sensors however often have
-> multiple bus formats so you need to set it up correctly. Even though a
-> sensor may at the moment only be used by a 'simple' bridge driver, that
-> doesn't mean that someone can't hook the same sensor up to an omap3 or
-> something like that.
-
-The V4L2_MBUS_FIXED applies only if the sensor supports just one fourcc format.
-This limits its usage.
-
-> Sensor drivers should handle this right from the very beginning. And it is
-> really not that difficult.
+> All the best,
+>   Richard
 > 
-> Regarding gspca: reversed engineered drivers typically do not use
-> subdevices. (actually gspca doesn't use subdevs at all). So the problem
-> doesn't exist. The whole concept of a reversed engineered sensor
-> sub-device driver makes no sense.
+> On Fri, Oct 01, 2010 at 12:19:53AM +0200, Richard Atterer wrote:
+>> [Please CC me, I'm not on the list.]
+>>
+>> Hi,
+>>
+>> after switching from 2.6.34 to 2.6.36-rc5, the sound on my old Hauppauge 
+>> analogue TV card has stopped working. Audio out from the TV card is 
+>> connected to line-in of my motherboard (Gigabyte EG45M-DS2H) using the 
+>> short cable that came with the TV card. Other audio sources (e.g. MP3 
+>> player) are audible when connected to line-in. The TV picture is fine.
+>>
+>> The log messages look really similar for the two kernels.
+>>
+>> 2.6.34 works:
+>> kernel: bttv: driver version 0.9.18 loaded
+>> kernel: bttv: using 8 buffers with 2080k (520 pages) each for capture
+>> kernel: bttv: Bt8xx card found (0).
+>> kernel: bttv0: Bt878 (rev 17) at 0000:03:01.0, irq: 19, latency: 32, mmio: 0xe3600000
+>> kernel: bttv0: detected: Hauppauge WinTV [card=10], PCI subsystem ID is 0070:13eb
+>> kernel: bttv0: using: Hauppauge (bt878) [card=10,autodetected]
+>> kernel: IRQ 19/bttv0: IRQF_DISABLED is not guaranteed on shared IRQs
+>> kernel: bttv0: gpio: en=00000000, out=00000000 in=00ffffdb [init]
+>> kernel: bttv0: Hauppauge/Voodoo msp34xx: reset line init [5]
+>> kernel: tveeprom 1-0050: Hauppauge model 44354, rev D147, serial# 1234567
+>> kernel: tveeprom 1-0050: tuner model is LG TP18PSB01D (idx 47, type 28)
+>> kernel: tveeprom 1-0050: TV standards PAL(B/G) (eeprom 0x04)
+>> kernel: tveeprom 1-0050: audio processor is MSP3415 (idx 6)
+>> kernel: tveeprom 1-0050: has radio
+>> kernel: bttv0: Hauppauge eeprom indicates model#44354
+>> kernel: bttv0: tuner type=28
+>> kernel: msp3400 1-0040: MSP3415D-B3 found @ 0x80 (bt878 #0 [sw])
+>> kernel: msp3400 1-0040: msp3400 supports nicam, mode is autodetect
+>> kernel: tuner 1-0061: chip found @ 0xc2 (bt878 #0 [sw])
+>> kernel: tuner-simple 1-0061: creating new instance
+>> kernel: tuner-simple 1-0061: type set to 28 (LG PAL_BG+FM (TPI8PSB01D))
+>> kernel: bttv0: registered device video0
+>> kernel: bttv0: registered device vbi0
+>> kernel: bttv0: registered device radio0
+>> kernel: bttv0: PLL: 28636363 => 35468950 .
+>> kernel: bttv0: PLL: 28636363 => 35468950 . ok
+>> kernel:  ok
+>>
+>> 2.6.36-rc5 does not work:
+>> kernel: bttv: driver version 0.9.18 loaded
+>> kernel: bttv: using 8 buffers with 2080k (520 pages) each for capture
+>> kernel: bttv: Bt8xx card found (0).
+>> kernel: bttv0: Bt878 (rev 17) at 0000:03:01.0, irq: 19, latency: 32, mmio: 0xe3600000
+>> kernel: bttv0: detected: Hauppauge WinTV [card=10], PCI subsystem ID is 0070:13eb
+>> kernel: bttv0: using: Hauppauge (bt878) [card=10,autodetected]
+>> kernel: bttv0: gpio: en=00000000, out=00000000 in=00ffffdb [init]
+>> kernel: bttv0: Hauppauge/Voodoo msp34xx: reset line init [5]
+>> kernel: tveeprom 1-0050: Hauppauge model 44354, rev D147, serial# 1234567
+>> kernel: tveeprom 1-0050: tuner model is LG TP18PSB01D (idx 47, type 28)
+>> kernel: tveeprom 1-0050: TV standards PAL(B/G) (eeprom 0x04)
+>> kernel: tveeprom 1-0050: audio processor is MSP3415 (idx 6)
+>> kernel: tveeprom 1-0050: has radio
+>> kernel: bttv0: Hauppauge eeprom indicates model#44354
+>> kernel: bttv0: tuner type=28
+>> kernel: msp3400 1-0040: MSP3415D-B3 found @ 0x80 (bt878 #0 [sw])
+>> kernel: msp3400 1-0040: msp3400 supports nicam, mode is autodetect
+>> kernel: tuner 1-0061: chip found @ 0xc2 (bt878 #0 [sw])
+>> kernel: tuner-simple 1-0061: creating new instance
+>> kernel: tuner-simple 1-0061: type set to 28 (LG PAL_BG+FM (TPI8PSB01D))
+>> kernel: bttv0: registered device video0
+>> kernel: bttv0: registered device vbi0
+>> kernel: bttv0: registered device radio0
+>> kernel: bttv0: PLL: 28636363 => 35468950 . ok
+>>
+>> The only real change is that the IRQF_DISABLED warning is gone.
+> 
 
-I don't agree. I think that gspca driver should be converted to use
-sensor drivers, instead of reinventing the wheel for each new webcam.
+I can't remember of any functional changes at sound stuff that might cause such trouble.
 
-Cheers,
-Mauro.
+The better would be if you could bisect what patch broke it and point it to us.
+
+Thanks,
+Mauro
