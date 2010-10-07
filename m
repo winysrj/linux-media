@@ -1,51 +1,27 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:44369 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761851Ab0J2UJk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Oct 2010 16:09:40 -0400
-Date: Fri, 29 Oct 2010 16:09:37 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 0/2] Apple remote support
-Message-ID: <20101029200937.GG21604@redhat.com>
-References: <20101029031131.GE17238@redhat.com>
- <20101029031530.GH17238@redhat.com>
- <4CCAD01A.3090106@redhat.com>
- <20101029151141.GA21604@redhat.com>
- <20101029191711.GA12136@hardeman.nu>
- <20101029192733.GE21604@redhat.com>
- <20101029195918.GA12501@hardeman.nu>
+Received: from mailout-de.gmx.net ([213.165.64.23]:52240 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1753695Ab0JGJZQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Oct 2010 05:25:16 -0400
+Content-Type: text/plain; charset="utf-8"
+Date: Thu, 07 Oct 2010 11:25:12 +0200
+From: "Matthias Weber" <matthiaz.weber@gmx.de>
+Message-ID: <20101007092512.196710@gmx.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+Subject: Re: [v4l/dvb] identification/ fixed registration order of DVB cards
+To: linux-media@vger.kernel.org
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20101029195918.GA12501@hardeman.nu>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, Oct 29, 2010 at 09:59:18PM +0200, David Härdeman wrote:
-> On Fri, Oct 29, 2010 at 03:27:33PM -0400, Jarod Wilson wrote:
-> > On Fri, Oct 29, 2010 at 09:17:11PM +0200, David Härdeman wrote:
-> > > On Fri, Oct 29, 2010 at 11:11:41AM -0400, Jarod Wilson wrote:
-> > > > So the Apple remotes do something funky... One of the four bytes is a
-> > > > remote identifier byte, which is used for pairing the remote to a specific
-> > > > device, and you can change the ID byte by simply holding down buttons on
-> > > > the remote.
-> > > 
-> > > How many different ID's are possible to set on the remote?
-> > 
-> > 256, apparently.
-> 
-> Does the remote pick one for you at random?
+Ok, this was a typo.
 
-Looks like its randomly set at the factory, then holding a particular key
-combo on the remote for 5 seconds, you can cycle to another one. Not sure
-if "another one" means "increment by one" or "randomly pick another one"
-yet though.
+# Create a symlink /dev/dvb/adapter100 pointing to dvb card with PCI bus id 04:00.0
+SUBSYSTEM=="dvb", KERNEL=="0000:04:00.0", PROGRAM="/bin/sh -c 'K=%k; K=$${K#dvb}; printf dvb/adapter100/%%s $${K#*.}'", SYMLINK+="%c"
 
+It works for creating a SYMLINK, so adapter0 and adapter1 still exist. Is there a way for "replacing"? Sorry, I am not very familiar with linux yet.
+
+Cheers
 -- 
-Jarod Wilson
-jarod@redhat.com
-
+GMX DSL Doppel-Flat ab 19,99 &euro;/mtl.! Jetzt auch mit 
+gratis Notebook-Flat! http://portal.gmx.net/de/go/dsl
