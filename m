@@ -1,45 +1,39 @@
 Return-path: <mchehab@pedra>
-Received: from sh.osrg.net ([192.16.179.4]:44905 "EHLO sh.osrg.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753580Ab0JNHRS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Oct 2010 03:17:18 -0400
-Date: Thu, 14 Oct 2010 16:16:52 +0900
-To: mitov@issp.bas.bg, kamezawa.hiroyu@jp.fujitsu.com
-Cc: fujita.tomonori@lab.ntt.co.jp, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, g.liakhovetski@gmx.de
-Subject: Re: [RFC][PATCH] add
- dma_reserve_coherent_memory()/dma_free_reserved_memory() API
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-In-Reply-To: <201010131942.57639.mitov@issp.bas.bg>
-References: <20101010230323B.fujita.tomonori@lab.ntt.co.jp>
-	<20101013170457.c5c5d2e1.kamezawa.hiroyu@jp.fujitsu.com>
-	<201010131942.57639.mitov@issp.bas.bg>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Message-Id: <20101014161204I.fujita.tomonori@lab.ntt.co.jp>
+Received: from mailout-de.gmx.net ([213.165.64.23]:40604 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1752999Ab0JGJEr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Oct 2010 05:04:47 -0400
+Content-Type: text/plain; charset="utf-8"
+Date: Thu, 07 Oct 2010 11:04:43 +0200
+From: "Matthias Weber" <matthiaz.weber@gmx.de>
+Message-ID: <20101007090443.54550@gmx.net>
+MIME-Version: 1.0
+Subject: Re: [v4l/dvb] identification/ fixed registration order of DVB cards
+To: linux-media@vger.kernel.org
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 13 Oct 2010 19:42:56 +0300
-Marin Mitov <mitov@issp.bas.bg> wrote:
+>Can't this be forced using udev rules?
 
-> > > KAMEZAWA posted a patch to improve the generic page allocator to
-> > > allocate physically contiguous memory. He said that he can push it
-> > > into mainline.
-> > > 
-> > I said I do make an effort ;)
-> > New one here.
-> > 
-> > http://lkml.org/lkml/2010/10/12/421
+udev seems to be a good way. I tried several different configurations.. my last one (file called '50-dvb_cards.rules'):
 
-Kamezawa, Thanks a lot!!
+# Create a symlink /dev/dvb/adapter104 pointing to dvb card with PCI bus id 04:00.0
+SUBSYSTEM=="dvb", KERNEL=="0000:04:00.0", PROGRAM="/bin/sh -c 'K=%k; K=$${K#dvb}; printf dvb/adapter104/%%s $${K#*.}'", SYMLINK+="%c"
 
+# Create a symlink /dev/dvb/adapter106 pointing to dvb card with PCI bus id 04:02.0
+SUBSYSTEM=="dvb", KERNEL=="0000:04:02.0", PROGRAM="/bin/sh -c 'K=%k; K=$${K#dvb}; printf dvb/adapter106/%%s $${K#*.}'", SYMLINK+="%c"
 
-> I like the patch. The possibility to allocate a contiguous chunk of memory
-> (or few of them) is what I need. The next step wilfl be to get a dma handle 
-> (for dma transfers to/from) and then mmap them to user space.
+BUS and ID combinations I saw on different other webpages seem to be out of date. Not sure what I am doing wrong as there still is only /dev/dvb/adapter0 and /dev/dvb/adapter1.
 
-Let's help him to push this patch to upstream first. The next step is
-a different issue (and the dma stuff isn't even a problem; we can
-handle it with the current API).
+I also tried to get my usbstick running with
+BUS=="usb", SYSFS{idVendor}=="058f", SYMLINK=+"usbstick"
+but this didn't work also.
+
+Any help appreciated. Thanks!
+
+Cheers
+Matthias
+-- 
+GMX DSL Doppel-Flat ab 19,99 &euro;/mtl.! Jetzt auch mit 
+gratis Notebook-Flat! http://portal.gmx.net/de/go/dsl
