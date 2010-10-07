@@ -1,62 +1,155 @@
 Return-path: <mchehab@pedra>
-Received: from tex.lwn.net ([70.33.254.29]:34577 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754593Ab0JUR1Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Oct 2010 13:27:16 -0400
-Date: Thu, 21 Oct 2010 11:27:14 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Daniel Drake <dsd@laptop.org>
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] ov7670: allow configuration of image size, clock
- speed, and I/O method
-Message-ID: <20101021112714.4c56b1d2@bike.lwn.net>
-In-Reply-To: <20101019212405.85C279D401B@zog.reactivated.net>
-References: <20101019212405.85C279D401B@zog.reactivated.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from mailout-de.gmx.net ([213.165.64.23]:55151 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1751562Ab0JGSPr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Oct 2010 14:15:47 -0400
+Date: Thu, 7 Oct 2010 20:15:55 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Bastian Hecht <hechtb@googlemail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: RE: OMAP 3530 camera ISP forks and new media framework
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404AA21D15A@dbde02.ent.ti.com>
+Message-ID: <Pine.LNX.4.64.1010072012280.15141@axis700.grange>
+References: <AANLkTimyR117ZiHq8GFz4YW5tBtW3k82NzGVZqKoVTbY@mail.gmail.com>
+ <4CADA7ED.5020604@maxwell.research.nokia.com> <201010071527.41438.laurent.pinchart@ideasonboard.com>
+ <19F8576C6E063C45BE387C64729E739404AA21D15A@dbde02.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 19 Oct 2010 22:24:05 +0100 (BST)
-Daniel Drake <dsd@laptop.org> wrote:
+On Thu, 7 Oct 2010, Hiremath, Vaibhav wrote:
 
-> These parameters need to be configurable based on the host system.
-> They can now be communicated through the s_config call.
 > 
-> The old CONFIG_OLPC_XO_1 selector was not correct; this kind of
-> arrangement wouldn't allow for a universal kernel that would work on both
-> laptops.
+> > -----Original Message-----
+> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> > owner@vger.kernel.org] On Behalf Of Laurent Pinchart
+> > Sent: Thursday, October 07, 2010 6:58 PM
+> > To: Sakari Ailus
+> > Cc: Bastian Hecht; Linux Media Mailing List
+> > Subject: Re: OMAP 3530 camera ISP forks and new media framework
+> > 
+> > Hi Bastian,
+> > 
+> > On Thursday 07 October 2010 12:58:53 Sakari Ailus wrote:
+> > > Bastian Hecht wrote:
+> > >
+> > > > I want to write a sensor driver for the mt9p031 (not mt9t031) camera
+> > > > chip and start getting confused about the different kernel forks and
+
+There is already an mt9t031 v4l2-subdev / soc-camera driver, so, if 
+mt9t031 and mt9p031 are indeed similar enough, I think, the right way is 
+to join efforts to port soc-camera over to the new "pad-level" API and 
+re-use the driver.
+
+Thanks
+Guennadi
+
+> > > > architectural changes that happen in V4L2.
+> > > > A similar problem was discussed in this mailing list at
+> > > > http://www.mail-archive.com/linux-media@vger.kernel.org/msg19084.html.
+> > > >
+> > > > Currently I don't know which branch to follow. Either
+> > > > http://gitorious.org/omap3camera from Sakari Ailus or the branch
+> > > > media-0004-omap3isp at http://git.linuxtv.org/pinchartl/media.git from
+> > > > Laurent Pinchart. Both have an folder drivers/media/video/isp and are
+> > > > written for the new media controller architecture if I am right.
+> > >
+> > > Take Laurent's branch it has all the current patches in it. My gitorious
+> > > tree isn't updated anymore. (I just had forgotten to add a note, it's
+> > > there now.)
+> > >
+> > > > I see in http://gitorious.org/omap3camera/camera-firmware that there
+> > > > is already an empty placeholder for the mt9t031.
+> > > > The README of the camera-firmware repository states: "makemodes.pl is
+> > > > a perl script which converts sensor register lists from FIXME into C
+> > > > code. dcc-pulautin is a Makefile (mostly) that converts sensor
+> > > > register lists as C code into binaries understandable to sensor
+> > > > drivers. The end result is a binary with sensor driver name, sensor
+> > > > version and bin suffix, for example et8ek8-0002.bin."
+> > > >
+> > > > So I think the goal is to provide a script framework for camera
+> > > > systems. You just script some register tables and it creates a binary
+> > > > that can be read by a sensor driver made for that framework. If the a
+> > > > camera bridge driver for your chip exists, you are done. Am I right?
+> > > > Are drivers/media/video/et8ek8.c and
+> > > > drivers/staging/dream/camera/mt9p012_* such drivers?
+> > >
+> > > et8ek8 and smia-sensor currently use the camera-firmware binaries. The
+> > > long term goal is to move more things to the sensor driver itself.
+> > > Register lists related to a set of sensor settings are not an ideal way
+> > > to handle sensor related settings since they could be controlled the
+> > > driver instead.
+> > 
+> > To be compatible with the OMAP3 ISP driver, sensor drivers need to provide
+> > a
+> > v4l2_subdev interface and implement the pad-level operations (see the
+> > media-0003-subdev-pad branch in the repository).
+> > 
+> > I've written such a driver for the MT9T001. I've pushed it to the media-
+> > mt9t001 branch on http://git.linuxtv.org/pinchartl/media.git. Please note
+> > that
+> > the driver is based on a previous version of the subdev pad-level
+> > operations
+> > API, so it won't compile out of the box.
+> > 
 > 
-> Certain parts of the probe routine had to be moved later (into s_config),
-> because we can't do any I/O until we know which I/O method has been
-> selected through this mechanism.
+> 
+> Just to add ontop of this, you can find couple of more sensor (MT9V113 & MT9T111) sub-dev driver at 
+> 
+> http://arago-project.org/git/people/vaibhav/ti-psp-omap-video.git?p=people/vaibhav/ti-psp-omap-video.git;a=shortlog;h=refs/heads/omap3cam-mc-devel
+> 
+> 
+> Also I have already ported these sensor drivers to latest sub-dev pad level operations but have not tested and pushed to the Repository which I will do by this weekend.
+> 
+> Thanks,
+> Vaibhav
+> 
+> > As Sakari stated, the camera-firmware system shouldn't be used by new
+> > drivers.
+> > The driver should instead compute the register values directly from the
+> > information supplied by userspace (through the v4l2_subdev API) such as
+> > the
+> > frame size and the crop rectangle. Binary lists of register address/value
+> > pairs are definitely not the way to go.
+> > 
+> > > > So do you think it is the right way to go to use your ISP driver,
+> > > > adapt drivers/staging/dream/camera/mt9p012_* to suit my mt9p031 and
+> > > > write a register list and create a camera firmware for that sensor
+> > > > driver with makemodes?
+> > >
+> > > I would go with drivers/media/video/et8ek8.c in Laurent's tree instead
+> > > if you want to write a sensor driver to be used with the OMAP 3 ISP
+> > > driver. Register lists are not that nice but the v4l2_subdev interface
+> > > in that one is one of the good parts you get with that.
+> > 
+> > Start with the MT9T001 driver, that will be easier.
+> > 
+> > > I'd also advice against using camera-firmware if you don't necessarily
+> > > need that kind of functionality.
+> > 
+> > I'd very strongly advice against it as well. Try to forget it even exists,
+> > it
+> > was a development mistake :-)
+> > 
+> > > > I am still quite confused... if I get something wrong, please give me
+> > > > some hints.
+> > >
+> > > I hope this helped. :-)
+> > >
+> > > If you have any further questions feel free to ask.
+> > 
+> > Ditto :-)
+> > 
+> > --
+> > Regards,
+> > 
+> > Laurent Pinchart
 
-OK, I've had a look at this.  I'm OK with it to go in as it is, but,
-for the record, I'll note that I would have done it a bit differently.
-
-There are three different things (minimum size, clock speed, I/O
-method) being dealt with here; it might have been nice to separate them
-out.  Yes, they're all part of the s_config() call, I know...
-
-I dislike deferring the probe of the sensor, it strikes me as something
-that could create timing problems.  Maybe I'm overly nervous about
-this and it's not really a problem.
-
-My biggest issue, though, is this: SMBUS I/O is actually never the
-right thing to do with the ov7670.  This isn't something I knew when I
-wrote the Cafe driver (suffice to say the ov7670 seems to hold more
-than its share of mysteries and surprises).  What I *should* have done
-- and what should be done now - is to forget the built-in Cafe SMBUS
-mode and do a straight bit-banging i2c driver.  As I recall, the Cafe
-controller does provide that level of access for those who want it.
-
-That's a bigger fix, of course.  I have it on my list, but my list is,
-well, you know.  So I won't try to hold up this patch, which works
-around my initial screwup, on the promise of a proper fix one of these
-days.  Sometime when I have a few hours I will take a crack at it,
-though.
-
-Thanks,
-
-jon
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
