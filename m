@@ -1,197 +1,144 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:57960 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1752396Ab0JCCjh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Oct 2010 22:39:37 -0400
-Date: Sun, 3 Oct 2010 04:39:39 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Discussion of the Amstrad E3 emailer hardware/software
-	<e3-hacking@earth.li>
-Subject: Re: [PATCH v3 3/6] SoC Camera: add driver for OV6650 sensor
-In-Reply-To: <201010021348.34560.jkrzyszt@tis.icnet.pl>
-Message-ID: <Pine.LNX.4.64.1010030414400.15920@axis700.grange>
-References: <201009270514.01865.jkrzyszt@tis.icnet.pl>
- <Pine.LNX.4.64.1010020538500.14599@axis700.grange> <201010021348.34560.jkrzyszt@tis.icnet.pl>
+Received: from mx1.redhat.com ([209.132.183.28]:49990 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932093Ab0JGA2b (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Oct 2010 20:28:31 -0400
+Message-ID: <4CAD1424.4000403@redhat.com>
+Date: Wed, 06 Oct 2010 21:28:20 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: 8BIT
+To: Dmitri Belimov <d.belimov@gmail.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Stefan Ringel <stefan.ringel@arcor.de>,
+	Bee Hock Goh <beehock@gmail.com>,
+	Michael Krufky <mkrufky@kernellabs.com>
+Subject: Re: [RFC] Resource reservation for frontend - Was: Re: xc5000 and
+ switch RF input
+References: <20100518173011.5d9c7f2c@glory.loctelecom.ru>	<AANLkTilL60q2PrBGagobWK99dV9OMKldxLiKZafn1oYb@mail.gmail.com>	<20100525114939.067404eb@glory.loctelecom.ru>	<4C32044C.3060007@redhat.com>	<AANLkTinctdXC5lmzXSkgwjwfIwAH3BNFCWeWMnK3Xi5-@mail.gmail.com>	<20101006155256.11ec6d6d@glory.local>	<4CAC6E45.5030005@redhat.com> <20101007090058.3fe0043a@glory.local>
+In-Reply-To: <20101007090058.3fe0043a@glory.local>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, 2 Oct 2010, Janusz Krzysztofik wrote:
+Em 07-10-2010 10:00, Dmitri Belimov escreveu:
+> Hi
+> 
+>> Em 06-10-2010 16:52, Dmitri Belimov escreveu:
+>>> Hi
+>>>
+>>> Our TV card Behold X7 has two different RF input. This RF inputs
+>>> can switch between different RF sources. 
+>>>
+>>> ANT 1 for analog and digital TV
+>>> ANT 2 for FM radio
+>>>
+>>> The switch controlled by zl10353.
+>>>
+>>> How to I can control this switch?
+>>>
+>>> I found 2 way
+>>>
+>>> 1. 
+>>> Use tuner callback to saa1734. add some params like
+>>> XC5000_TUNER_SET/XC5000_TUNER_SET_TV to the xc5000.h call tuner
+>>> callback from xc5000_set_analog_params with new params about
+>>> switching. In this case inside saa7134 need know about zl10353 and
+>>> configuration. I don't understand how to do. The structure
+>>> saa7134_dev hasn't pointer to the structure dvb_frontend. Or use
+>>> hardcoded i2c_addr and params.
+>>>
+>>> 2.
+>>> Direct call switch the switcher from the tuner code. In this case
+>>> need know TV card type. I think it is not so good idea.
+>>
+>> The issues between FM and TV mode is only a small part of a big
+>> problem that we're currently facing: drivers that support multiple
+>> types of streams, like radio, analog TV and digital TV need a way to
+>> avoid conflicts between different parts of the driver, and between a
+>> DVB and a V4L call.
+>>
+>> The long-term solution seems to implement a tuner/frontend resource
+>> reservation routine. This will solve other problems as well, like
+>> having both analog and digital parts of the driver trying to access
+>> the same resource at the same time.
+>>
+>> While implementing both analog and ISDB-T support for a saa7134-based
+>> board, I got one issue where analog tuner were trying to do RF
+>> callibration while the DVB demod were initialized. As the access to
+>> the demod requires one I2C gate setup and the access to the tuner
+>> requires another setup, both operations failed.
+>>
+>> We had similar problems in em28xx and cx231xx. Both were partially
+>> solved with a lock, but still if the user tries to open both DVB and
+>> V4L interfaces, it will likely have problems.
+>>
+>> So, we really need to implement some type of resource locking that
+>> will properly setup I2C gates, RF gates, etc, depending on the type
+>> of resource currently in use.
+>>
+>> Basically, the idea would be to implement something like:
+>>
+>> enum frontend_resource {
+>> 	ANALOG_TV_TUNER,
+>> 	DIGITAL_TV_TUNER,
+>> 	FM_TUNER,
+>> 	ANALOG_DEMOD,
+>> 	DIGITAL_DEMOD,
+>> };
+>>
+>> And add a new callback at struct dvb_frontend_ops():
+>>
+>> 	int (*set_resource)(struct dvb_frontend* fe, enum
+>> frontend_resource, bool reserve);
+>>
+>> Those callbacks may replace i2c_gate_ctrl().
+>>
+>> With those changes, when a driver needs to access, for example, a
+>> tuner at a dvb part of the driver, it would do:
+>>
+>> fe->ops.set_resource(fe, DIGITAL_TV_TUNER, true);
+>> /* All i2c transactions and other operations needed at tuner */
+>> fe->ops.set_resource(fe, DIGITAL_TV_TUNER, false);
+>>
+>> In other words, it will basically replace the current occurrences of
+>> i2c_gate_ctrl(), providing a clearer indication that the I2C change
+>> needed are to enable the access to the tuner.
+>>
+>> The fun begins if other parts of the driver try to do different
+>> things on resources that may be shared. They can now say that they
+>> want to access the demod with:
+>>
+>> fe->ops.set_resource(fe, DIGITAL_DEMOD, true);
+>>
+>> So, demods operations will be protected by:
+>>
+>> fe->ops.set_resource(fe, DIGITAL_DEMOD, true);
+>> 	/* All i2c transactions and other operations applied on demod
+>> */ fe->ops.set_resource(fe, DIGITAL_DEMOD, false);
+>>
+>> It is up to driver callback to handle this call. If both
+>> DIGITAL_DEMOD and DIGITAL_TV_TUNER are at the same i2c bus (e.g.
+>> there's no i2c gate), and if there's no risk for one I2C access to
+>> affect the other, the callback can just return 0. Otherwise, it may
+>> return -EBUSY and let the caller wait for the resource to be freed
+>> with: wake_up(fe->ops.set_resource(fe, DIGITAL_DEMOD, true) == 0); or
+>> 	wake_up_interruptible(fe->ops.set_resource(fe, DIGITAL_DEMOD,
+>> true) == 0);
+>>
+>> This way, when the resource is freed, the digital demod logic may
+>> happen.
+>>
+>> Comments?
+> 
+> What about hardware encoders? May be need switch between some TV and encoders.
+> Switch input source, output bus and other.
 
-> Saturday 02 October 2010 07:47:47 Guennadi Liakhovetski napisał(a):
-> > Ok, let's take this one, but, please, address the below couple of minor
-> > issues in an incremental patch.
-> >
-> > On Mon, 27 Sep 2010, Janusz Krzysztofik wrote:
-> > > +/* write a register */
-> > > +static int ov6650_reg_write(struct i2c_client *client, u8 reg, u8 val)
-> > > +{
-> > > +	int ret;
-> > > +	unsigned char data[2] = { reg, val };
-> > > +	struct i2c_msg msg = {
-> > > +		.addr	= client->addr,
-> > > +		.flags	= 0,
-> > > +		.len	= 2,
-> > > +		.buf	= data,
-> > > +	};
-> > > +
-> > > +	ret = i2c_transfer(client->adapter, &msg, 1);
-> > > +	usleep_range(100, 1000);
-> >
-> > So, 100us are enough? Then I'd just go with udelay(100).
-> 
-> Guennadi,
-> I already tried with udelay(100), as you had suggested before, and it worked, 
-> but then checkpatch.pl --sctirct told me:
-> 
-> "CHECK: usleep_range is preferred over udelay; see 
-> Documentation/timers/timers-howto.txt
-> +       udelay(100);"
-> 
-> So, I had read Documentation/timers/timers-howto.txt again and switched to 
-> usleep_range, as it suggested.
-> 
-> Please confirm if you still prefere udelay(100) over usleep_range(), and I'll 
-> change it back.
+Yeah, we may need to add encoders here, and other stuff like IR and CA modules.
 
-No, no, that's ok then...
+an approach like that is easy to extend, as new issues that may require
+resource reservation is added. 
 
-> > > static bool is_unscaled_ok(int width, int height, struct v4l2_rect *rect)
-> > > +{
-> > > +	return (width > rect->width >> 1 || height > rect->height >> 1);
-> > > +}
-> >
-> > Ok, just one more pair of brackets to remove;)
-> 
-> OK.
-> 
-> > > +
-> > > +static u8 to_clkrc(struct v4l2_fract *timeperframe,
-> > > +		unsigned long pclk_limit, unsigned long pclk_max)
-> > > +{
-> > > +	unsigned long pclk;
-> > > +
-> > > +	if (timeperframe->numerator && timeperframe->denominator)
-> > > +		pclk = pclk_max * timeperframe->denominator /
-> > > +				(FRAME_RATE_MAX * timeperframe->numerator);
-> > > +	else
-> > > +		pclk = pclk_max;
-> > > +
-> > > +	if (pclk_limit && pclk_limit < pclk)
-> > > +		pclk = pclk_limit;
-> > > +
-> > > +	return (pclk_max - 1) / pclk;
-> > > +}
-> > > +
-> > > +/* set the format we will capture in */
-> > > +static int ov6650_s_fmt(struct v4l2_subdev *sd, struct
-> > > v4l2_mbus_framefmt *mf) +{
-> > > +	struct i2c_client *client = sd->priv;
-> > > +	struct soc_camera_device *icd = client->dev.platform_data;
-> > > +	struct soc_camera_sense *sense = icd->sense;
-> > > +	struct ov6650 *priv = to_ov6650(client);
-> > > +	bool half_scale = !is_unscaled_ok(mf->width, mf->height, &priv->rect);
-> > > +	struct v4l2_crop a = {
-> > > +		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
-> > > +		.c = {
-> > > +			.left	= priv->rect.left + (priv->rect.width >> 1) -
-> > > +					(mf->width >> (1 - half_scale)),
-> > > +			.top	= priv->rect.top + (priv->rect.height >> 1) -
-> > > +					(mf->height >> (1 - half_scale)),
-> > > +			.width	= mf->width << half_scale,
-> > > +			.height	= mf->height << half_scale,
-> > > +		},
-> > > +	};
-> >
-> > Hm, this seems wrong to me... You calculate left and top to preserve the
-> > center, right? 
-> 
-> Exactly.
-> 
-> > This is good, but: if output is unscaled, you want 
-> >
-> > 	.left = priv->rect.left + (priv->rect.width - mf->width) / 2;
-> 
-> 	== priv->rect.left +  priv->rect.width  / 2  -   mf->width        /  2
-> 	== priv->rect.left + (priv->rect.width >> 1) - ( mf->width       >>  1)
-> 	== priv->rect.left + (priv->rect.width >> 1) - ( mf->width       >> (1 - 0))
-> >
-> > in this case half_scale = 0 and the above is correct. Now, is the output
-> > is scaled, you want
-> >
-> > 	.left = priv->rect.left + (priv->rect.width - mf->width * 2) / 2;
-> 
-> 	== priv->rect.left +  priv->rect.width  / 2  -   mf->width  * 2   /  2
-> 	== priv->rect.left + (priv->rect.width >> 1) - ((mf->width << 1) >>  1)
-> 	== priv->rect.left + (priv->rect.width >> 1) - ( mf->width       >> (1 - 1))
-> 
-> > which is not, what you have above. Am I missing anything?
-> 
-> One of us must be ;).
-
-Ok, good, then it's me:)
-
-> > > +	case V4L2_MBUS_FMT_UYVY8_2X8:
-> > > +		dev_dbg(&client->dev, "pixel format YUYV8_2X8_BE\n");
-> > > +		if (half_scale) {
-> > > +			coma_mask |= COMA_RGB | COMA_BW | COMA_WORD_SWAP;
-> > > +			coma_set |= COMA_BYTE_SWAP;
-> > > +		} else {
-> > > +			coma_mask |= COMA_RGB | COMA_BW;
-> > > +			coma_set |= COMA_BYTE_SWAP | COMA_WORD_SWAP;
-> > > +		}
-> > > +		break;
-> > > +	case V4L2_MBUS_FMT_VYUY8_2X8:
-> > > +		dev_dbg(&client->dev, "pixel format YVYU8_2X8_BE (untested)\n");
-> > > +		if (half_scale) {
-> > > +			coma_mask |= COMA_RGB | COMA_BW;
-> > > +			coma_set |= COMA_BYTE_SWAP | COMA_WORD_SWAP;
-> > > +		} else {
-> > > +			coma_mask |= COMA_RGB | COMA_BW | COMA_WORD_SWAP;
-> > > +			coma_set |= COMA_BYTE_SWAP;
-> > > +		}
-> > > +		break;
-> >
-> > ...since there anyway will be an incremental patch . what does
-> > word-swapping have to do with scaling?...
-> 
-> A hardware (firmware) bug perhaps? All I can say is that I had found out it 
-> worked like this for me before, and I've just ensured it still does.
-> 
-> > > +	case V4L2_MBUS_FMT_SBGGR8_1X8:
-> > > +		dev_dbg(&client->dev, "pixel format SBGGR8_1X8 (untested)\n");
-> > > +		coma_mask |= COMA_BW | COMA_BYTE_SWAP | COMA_WORD_SWAP;
-> > > +		coma_set |= COMA_RAW_RGB | COMA_RGB;
-> > > +		break;
-> > > +	case 0:
-> > > +		break;
-> >
-> > 0 is defined as reserved... What for do you need it here?
-> 
-> This I have mentioned in my v2 -> v3 changes list:
-> 
-> > - add support for geometry only change to s_fmt, 
-> 
-> I've tried to follow a pattern copied from mt9v022.c:
-> 
-> +        case 0:
-> +		/* No format change, only geometry */
-> +		break;
-> 
-> but now I see I've missed the comment unfortunately. Please specify if you 
-> prefere to have it dropped or documented.
-
-Well, what you're actually missing here is this:
-
-http://git.linuxtv.org/media_tree.git?a=commitdiff;h=4222226680cc25e48dc264f4de2dd81e55fd3580
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Cheers,
+Mauro
