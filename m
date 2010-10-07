@@ -1,43 +1,88 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:3580 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755222Ab0JRPvt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Oct 2010 11:51:49 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: David Ellingsworth <david@identd.dyndns.org>
-Subject: Re: [RFC PATCH] radio-mr800: locking fixes
-Date: Mon, 18 Oct 2010 17:51:39 +0200
-Cc: linux-media@vger.kernel.org
-References: <49e7400bcbcc4412b77216bb061db1b57cb3b882.1287318143.git.hverkuil@xs4all.nl> <AANLkTikdgWXsmGE1KPC3KbLc37T_=G3Aa8RaVhL1PsAN@mail.gmail.com> <AANLkTi=S4o+V0YSbkySEpVOCMFx5JJC-TB5QzYN0B=Qx@mail.gmail.com>
-In-Reply-To: <AANLkTi=S4o+V0YSbkySEpVOCMFx5JJC-TB5QzYN0B=Qx@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201010181751.39859.hverkuil@xs4all.nl>
+Received: from smtp.nokia.com ([192.100.105.134]:54535 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754100Ab0JGNQl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Oct 2010 09:16:41 -0400
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+To: linux-media@vger.kernel.org, mchehab@redhat.com,
+	hverkuil@xs4all.nl, eduardo.valentin@nokia.com
+Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: [PATCH v12 3/3] Documentation: v4l: Add hw_seek spacing and two TUNER_RDS_CAP flags.
+Date: Thu,  7 Oct 2010 16:16:13 +0300
+Message-Id: <1286457373-1742-4-git-send-email-matti.j.aaltonen@nokia.com>
+In-Reply-To: <1286457373-1742-3-git-send-email-matti.j.aaltonen@nokia.com>
+References: <1286457373-1742-1-git-send-email-matti.j.aaltonen@nokia.com>
+ <1286457373-1742-2-git-send-email-matti.j.aaltonen@nokia.com>
+ <1286457373-1742-3-git-send-email-matti.j.aaltonen@nokia.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Monday, October 18, 2010 16:55:40 David Ellingsworth wrote:
-> OK, I see how this fixes it now.. You added the video_is_registered
-> check inside v4l2_open after acquiring the device lock. So while it
-> fixes that race it's rather ugly and very difficult to follow. In this
-> case, the original code provided an easier to follow sequence. If
-> possible it would be nice if v4l2_open and v4l2_unlocked_ioctl relied
-> on the device being connected rather than registered. Then this would
-> have been a non-issue and it would be much easier to follow.
+Add a couple of words about the spacing field in the HW seek struct,
+also a few words about the new RDS tuner capability flags
+V4L2_TUNER_CAP_RDS_BLOCK-IO and V4L2_TUNER_CAP_RDS_CONTROLS.
 
-I agree that it isn't the prettiest code. My goal is to improve the v4l
-core to make such cases easier to handle. But I'm waiting for the next
-kernel cycle before I continue with this.
+Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
+---
+ Documentation/DocBook/v4l/dev-rds.xml              |   10 +++++++++-
+ .../DocBook/v4l/vidioc-s-hw-freq-seek.xml          |   10 ++++++++--
+ 2 files changed, 17 insertions(+), 3 deletions(-)
 
-Working on this driver definitely helped give me a better understanding of
-what is involved.
-
-Regards,
-
-	Hans
-
+diff --git a/Documentation/DocBook/v4l/dev-rds.xml b/Documentation/DocBook/v4l/dev-rds.xml
+index 0869d70..e7be392 100644
+--- a/Documentation/DocBook/v4l/dev-rds.xml
++++ b/Documentation/DocBook/v4l/dev-rds.xml
+@@ -28,6 +28,10 @@ returned by the &VIDIOC-QUERYCAP; ioctl.
+ Any tuner that supports RDS will set the
+ <constant>V4L2_TUNER_CAP_RDS</constant> flag in the <structfield>capability</structfield>
+ field of &v4l2-tuner;.
++If the driver only passes RDS blocks without interpreting the data
++the <constant>V4L2_TUNER_SUB_RDS_BLOCK_IO</constant> flag has to be set. If the
++tuner is capable of handling RDS entities like program identication codes and radio
++text the flag <constant>V4L2_TUNER_SUB_RDS_CONTROLS</constant> should be set.
+ Whether an RDS signal is present can be detected by looking at
+ the <structfield>rxsubchans</structfield> field of &v4l2-tuner;: the
+ <constant>V4L2_TUNER_SUB_RDS</constant> will be set if RDS data was detected.</para>
+@@ -40,7 +44,11 @@ Any modulator that supports RDS will set the
+ <constant>V4L2_TUNER_CAP_RDS</constant> flag in the <structfield>capability</structfield>
+ field of &v4l2-modulator;.
+ In order to enable the RDS transmission one must set the <constant>V4L2_TUNER_SUB_RDS</constant>
+-bit in the <structfield>txsubchans</structfield> field of &v4l2-modulator;.</para>
++bit in the <structfield>txsubchans</structfield> field of &v4l2-modulator;.
++If the driver only passes RDS blocks without interpreting the data
++the <constant>V4L2_TUNER_SUB_RDS_BLOCK_IO</constant> flag has to be set. If the
++tuner is capable of handling RDS entities like program identication codes and radio
++text the flag <constant>V4L2_TUNER_SUB_RDS_CONTROLS</constant> should be set.</para>
+ 
+   </section>
+ 
+diff --git a/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml b/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
+index 14b3ec7..c30dcc4 100644
+--- a/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
++++ b/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
+@@ -51,7 +51,8 @@
+ 
+     <para>Start a hardware frequency seek from the current frequency.
+ To do this applications initialize the <structfield>tuner</structfield>,
+-<structfield>type</structfield>, <structfield>seek_upward</structfield> and
++<structfield>type</structfield>, <structfield>seek_upward</structfield>,
++<structfield>spacing</structfield> and
+ <structfield>wrap_around</structfield> fields, and zero out the
+ <structfield>reserved</structfield> array of a &v4l2-hw-freq-seek; and
+ call the <constant>VIDIOC_S_HW_FREQ_SEEK</constant> ioctl with a pointer
+@@ -89,7 +90,12 @@ field and the &v4l2-tuner; <structfield>index</structfield> field.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+-	    <entry><structfield>reserved</structfield>[8]</entry>
++	    <entry><structfield>spacing</structfield></entry>
++	    <entry>If non-zero, defines the hardware seek resolution in Hz. The driver selects the nearest value that is supported by the device. If spacing is zero a reasonable default value is used.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[7]</entry>
+ 	    <entry>Reserved for future extensions. Drivers and
+ 	    applications must set the array to zero.</entry>
+ 	  </row>
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+1.6.1.3
+
