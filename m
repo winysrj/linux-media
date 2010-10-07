@@ -1,98 +1,144 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:54415 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752441Ab0JEW1l (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 18:27:41 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:37094 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754656Ab0JGNw0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Oct 2010 09:52:26 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+CC: Bastian Hecht <hechtb@googlemail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Date: Thu, 7 Oct 2010 19:22:02 +0530
+Subject: RE: OMAP 3530 camera ISP forks and new media framework
+Message-ID: <19F8576C6E063C45BE387C64729E739404AA21D15A@dbde02.ent.ti.com>
+References: <AANLkTimyR117ZiHq8GFz4YW5tBtW3k82NzGVZqKoVTbY@mail.gmail.com>
+ <4CADA7ED.5020604@maxwell.research.nokia.com>
+ <201010071527.41438.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201010071527.41438.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <20101005192435.GA17798@haskell.muteddisk.com>
-References: <1285534847-31463-1-git-send-email-mfm@muteddisk.com>
-	<20101005142906.GA20059@merkur.ravnborg.org>
-	<20101005192435.GA17798@haskell.muteddisk.com>
-Date: Tue, 5 Oct 2010 18:27:40 -0400
-Message-ID: <AANLkTik4Ezpj939za2PMWOqOxjXnbdXjvtbXR6Tau2zr@mail.gmail.com>
-Subject: Re: [RFC PATCH] media: consolidation of -I flags
-From: T Dent <tdent48227@gmail.com>
-To: Sam Ravnborg <sam@ravnborg.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michal Marek <mmarek@suse.cz>, linux-media@vger.kernel.org,
-	linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 10/5/10, Sam Ravnborg <sam@ravnborg.org> wrote:
-> On Sun, Sep 26, 2010 at 02:00:47PM -0700, matt mooney wrote:
->> I have been doing cleanup of makefiles, namely replacing the older style
->> compilation flag variables with the newer style. While doing this, I
->> noticed that the majority of drivers in the media subsystem seem to rely
->> on a few core header files:
->>
->> 	-Idrivers/media/video
->> 	-Idrivers/media/common/tuners
->> 	-Idrivers/media/dvb/dvb-core
->> 	-Idrivers/media/dvb/frontends
->>
->> This patch removes them from the individual makefiles and puts them in
->> the main makefile under media.
-> Using subdir-ccflags-y has one drawback you need to be aware of.
-> The variable is _not_ picked up if you build individual drivers like
-> this:
->
->
->      make drivers/media/dvb/b2c2/
->
-> So with this patch applied it is no longer possible to do so.
-> It is better to accept the duplication rather than breaking
-> the build of individual drivers.
->
->>
->> If neither idea is considered beneficial, I will go ahead and replace
->> the older variables with the newer ones as is.
->
-> This is the right approach.
->
-> You could consider to do a more general cleanup:
-> 1) replace EXTRA_CFLAGS with ccflags-y (the one you suggest)
-> 2) replace use of <module>-objs with <module>-y
-> 3) break continued lines into several assignments
 
-I have a question when you say this do you mean change something like this:
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Laurent Pinchart
+> Sent: Thursday, October 07, 2010 6:58 PM
+> To: Sakari Ailus
+> Cc: Bastian Hecht; Linux Media Mailing List
+> Subject: Re: OMAP 3530 camera ISP forks and new media framework
+> 
+> Hi Bastian,
+> 
+> On Thursday 07 October 2010 12:58:53 Sakari Ailus wrote:
+> > Bastian Hecht wrote:
+> >
+> > > I want to write a sensor driver for the mt9p031 (not mt9t031) camera
+> > > chip and start getting confused about the different kernel forks and
+> > > architectural changes that happen in V4L2.
+> > > A similar problem was discussed in this mailing list at
+> > > http://www.mail-archive.com/linux-media@vger.kernel.org/msg19084.html.
+> > >
+> > > Currently I don't know which branch to follow. Either
+> > > http://gitorious.org/omap3camera from Sakari Ailus or the branch
+> > > media-0004-omap3isp at http://git.linuxtv.org/pinchartl/media.git from
+> > > Laurent Pinchart. Both have an folder drivers/media/video/isp and are
+> > > written for the new media controller architecture if I am right.
+> >
+> > Take Laurent's branch it has all the current patches in it. My gitorious
+> > tree isn't updated anymore. (I just had forgotten to add a note, it's
+> > there now.)
+> >
+> > > I see in http://gitorious.org/omap3camera/camera-firmware that there
+> > > is already an empty placeholder for the mt9t031.
+> > > The README of the camera-firmware repository states: "makemodes.pl is
+> > > a perl script which converts sensor register lists from FIXME into C
+> > > code. dcc-pulautin is a Makefile (mostly) that converts sensor
+> > > register lists as C code into binaries understandable to sensor
+> > > drivers. The end result is a binary with sensor driver name, sensor
+> > > version and bin suffix, for example et8ek8-0002.bin."
+> > >
+> > > So I think the goal is to provide a script framework for camera
+> > > systems. You just script some register tables and it creates a binary
+> > > that can be read by a sensor driver made for that framework. If the a
+> > > camera bridge driver for your chip exists, you are done. Am I right?
+> > > Are drivers/media/video/et8ek8.c and
+> > > drivers/staging/dream/camera/mt9p012_* such drivers?
+> >
+> > et8ek8 and smia-sensor currently use the camera-firmware binaries. The
+> > long term goal is to move more things to the sensor driver itself.
+> > Register lists related to a set of sensor settings are not an ideal way
+> > to handle sensor related settings since they could be controlled the
+> > driver instead.
+> 
+> To be compatible with the OMAP3 ISP driver, sensor drivers need to provide
+> a
+> v4l2_subdev interface and implement the pad-level operations (see the
+> media-0003-subdev-pad branch in the repository).
+> 
+> I've written such a driver for the MT9T001. I've pushed it to the media-
+> mt9t001 branch on http://git.linuxtv.org/pinchartl/media.git. Please note
+> that
+> the driver is based on a previous version of the subdev pad-level
+> operations
+> API, so it won't compile out of the box.
+> 
 
-r8187se-objs :=
 
-to
+Just to add ontop of this, you can find couple of more sensor (MT9V113 & MT9T111) sub-dev driver at 
 
-r8187se-y :=
+http://arago-project.org/git/people/vaibhav/ti-psp-omap-video.git?p=people/vaibhav/ti-psp-omap-video.git;a=shortlog;h=refs/heads/omap3cam-mc-devel
 
-If so, I could start working on that in the staging directory.
 
->    People very often uses '\' to break long lines, where a
->    simple += would be much more readable.
->    But this topic may be personal - I never uses "\" in my .c code unless in
-> macros,
->    and I have applied the same rule for Makefiles.
->    An ugly example is drivers/media/Makefile
-> 4) In general use ":=" instead of "=".
->    Add using "+=" as first assignment is OK - but it just looks plain wrong
-> 5) some files has a mixture of spaces/tabs (are red in my vim)
->    dvb-core/Makefile is one such example
-> 6) remove useless stuff
->    siano/Makefile has some strange assignments to EXTRA_CFLAGS
-> 7) Likely a few more items to look after...
->
-> This is more work - but then you finish a Makefile rather than doing a
-> simple
-> conversion.
->
-> 	Sam
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
->
+Also I have already ported these sensor drivers to latest sub-dev pad level operations but have not tested and pushed to the Repository which I will do by this weekend.
 
 Thanks,
+Vaibhav
 
-Tracey D
+> As Sakari stated, the camera-firmware system shouldn't be used by new
+> drivers.
+> The driver should instead compute the register values directly from the
+> information supplied by userspace (through the v4l2_subdev API) such as
+> the
+> frame size and the crop rectangle. Binary lists of register address/value
+> pairs are definitely not the way to go.
+> 
+> > > So do you think it is the right way to go to use your ISP driver,
+> > > adapt drivers/staging/dream/camera/mt9p012_* to suit my mt9p031 and
+> > > write a register list and create a camera firmware for that sensor
+> > > driver with makemodes?
+> >
+> > I would go with drivers/media/video/et8ek8.c in Laurent's tree instead
+> > if you want to write a sensor driver to be used with the OMAP 3 ISP
+> > driver. Register lists are not that nice but the v4l2_subdev interface
+> > in that one is one of the good parts you get with that.
+> 
+> Start with the MT9T001 driver, that will be easier.
+> 
+> > I'd also advice against using camera-firmware if you don't necessarily
+> > need that kind of functionality.
+> 
+> I'd very strongly advice against it as well. Try to forget it even exists,
+> it
+> was a development mistake :-)
+> 
+> > > I am still quite confused... if I get something wrong, please give me
+> > > some hints.
+> >
+> > I hope this helped. :-)
+> >
+> > If you have any further questions feel free to ask.
+> 
+> Ditto :-)
+> 
+> --
+> Regards,
+> 
+> Laurent Pinchart
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
