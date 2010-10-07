@@ -1,132 +1,107 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:55412 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755819Ab0JNRsq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Oct 2010 13:48:46 -0400
-Message-ID: <4CB74279.1070103@redhat.com>
-Date: Thu, 14 Oct 2010 14:48:41 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: "Igor M. Liplianin" <liplianin@me.by>
-CC: linux-media@vger.kernel.org
-Subject: Re: [GIT PATCHES FOR 2.6.37]  Support for NetUP Dual DVB-T/C CI RF
- card
-References: <201010040135.59454.liplianin@me.by>
-In-Reply-To: <201010040135.59454.liplianin@me.by>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from gateway14.websitewelcome.com ([69.93.154.35]:34689 "HELO
+	gateway14.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753035Ab0JGQmz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Oct 2010 12:42:55 -0400
+Subject: Re: [PATCH 05/16] go7007: Don't use module names to load I2C
+ modules
+From: Pete Eberlein <pete@sensoray.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <1285337654-5044-6-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1285337654-5044-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	 <1285337654-5044-6-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 07 Oct 2010 09:33:19 -0700
+Message-ID: <1286469199.2477.11.camel@pete-desktop>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 03-10-2010 19:35, Igor M. Liplianin escreveu:
-> Patches to support for NetUP Dual DVB-T/C-CI RF from NetUP Inc. 
-> 	http://linuxtv.org/wiki/index.php/NetUP_Dual_DVB_T_C_CI_RF
-> 
-> Features:
-> 
-> PCI-e x1  
-> Supports two DVB-T/DVB-C transponders simultaneously
-> Supports two analog audio/video channels simultaneously
-> Independent descrambling of two transponders
-> Hardware PID filtering
-> 
-> Components:
-> 
-> Conexant CX23885 
-> STM STV0367 low-power and ultra-compact combo DVB-T/C single-chip receiver
-> Xceive XC5000 silicon TV tuner
-> Altera FPGA for Common Interafce
-> 
-> The following changes since commit c8dd732fd119ce6d562d5fa82a10bbe75a376575:
-> 
->   V4L/DVB: gspca - sonixj: Have 0c45:6130 handled by sonixj instead of sn9c102 (2010-10-01 
-> 18:14:35 -0300)
-> 
-> are available in the git repository at:
->   http://udev.netup.ru/git/v4l-dvb.git netup-for-media-tree
+Acked-by: Pete Eberlein <pete@sensoray.com>
 
-Hmm... it is not working... perhaps you forgot to run git update-server-info.
-
-The better would be to enable git protocol instead.
-
+On Fri, 2010-09-24 at 16:14 +0200, Laurent Pinchart wrote:
+> With the v4l2_i2c_new_subdev* functions now supporting loading modules
+> based on modaliases, replace the hardcoded module name passed to those
+> functions by NULL.
 > 
-> Abylay Ospan (6):
->       cx23885: Altera FPGA CI interface reworked.
->       stv0367: change default value for AGC register.
->       stv0367: implement uncorrected blocks counter.
->       cx23885, cimax2.c: Fix case of two CAM insertion irq.
->       Fix CI code for NetUP Dual  DVB-T/C CI RF card
->       Force xc5000 firmware loading for NetUP Dual  DVB-T/C CI RF card
+> All corresponding I2C modules have been checked, and all of them include
+> a module aliases table with names corresponding to what the go7007
+> driver uses.
 > 
-> Igor M. Liplianin (14):
->       Altera FPGA firmware download module.
->       Altera FPGA based CI driver module.
->       Support for stv0367 multi-standard demodulator.
->       xc5000: add support for DVB-C tuning.
->       Initial commit to support NetUP Dual DVB-T/C CI RF card.
->       cx23885: implement tuner_bus parameter for cx23885_board structure.
->       cx23885: implement num_fds_portb, num_fds_portc parameters for cx23885_board structure.
->       stv0367: Fix potential divide error
->       cx23885: remove duplicate set interrupt mask
->       stv0367: coding style corrections
->       cx25840: Fix subdev registration and typo in cx25840-core.c
->       cx23885: 0xe becomes 0xc again for NetUP Dual DVB-S2
->       cx23885: disable MSI for NetUP cards, otherwise CI is not working
->       cx23885, altera-ci: enable all PID's less than 0x20 in hardware PID filter.
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/staging/go7007/go7007-driver.c |   43 ++-----------------------------
+>  1 files changed, 3 insertions(+), 40 deletions(-)
 > 
->  drivers/media/common/tuners/xc5000.c        |   18 +
->  drivers/media/dvb/frontends/Kconfig         |    7 +
->  drivers/media/dvb/frontends/Makefile        |    1 +
->  drivers/media/dvb/frontends/stv0367.c       | 3419 +++++++++++++++++++++++++
->  drivers/media/dvb/frontends/stv0367.h       |   62 +
->  drivers/media/dvb/frontends/stv0367_priv.h  |  211 ++
->  drivers/media/dvb/frontends/stv0367_regs.h  | 3614 +++++++++++++++++++++++++++
->  drivers/media/video/cx23885/Kconfig         |   12 +-
->  drivers/media/video/cx23885/Makefile        |    1 +
->  drivers/media/video/cx23885/altera-ci.c     |  841 +++++++
->  drivers/media/video/cx23885/altera-ci.h     |  102 +
->  drivers/media/video/cx23885/cimax2.c        |   24 +-
->  drivers/media/video/cx23885/cx23885-cards.c |  116 +-
->  drivers/media/video/cx23885/cx23885-core.c  |   35 +-
->  drivers/media/video/cx23885/cx23885-dvb.c   |  175 ++-
->  drivers/media/video/cx23885/cx23885-reg.h   |    1 +
->  drivers/media/video/cx23885/cx23885-video.c |    7 +-
->  drivers/media/video/cx23885/cx23885.h       |    7 +-
->  drivers/media/video/cx25840/cx25840-core.c  |    4 +-
+> diff --git a/drivers/staging/go7007/go7007-driver.c b/drivers/staging/go7007/go7007-driver.c
+> index 372a7c6..0a1d925 100644
+> --- a/drivers/staging/go7007/go7007-driver.c
+> +++ b/drivers/staging/go7007/go7007-driver.c
+> @@ -194,51 +194,15 @@ int go7007_reset_encoder(struct go7007 *go)
+>   * Attempt to instantiate an I2C client by ID, probably loading a module.
+>   */
+>  static int init_i2c_module(struct i2c_adapter *adapter, const char *type,
+> -			   int id, int addr)
+> +			   int addr)
+>  {
+>  	struct go7007 *go = i2c_get_adapdata(adapter);
+>  	struct v4l2_device *v4l2_dev = &go->v4l2_dev;
+> -	char *modname;
+>  
+> -	switch (id) {
+> -	case I2C_DRIVERID_WIS_SAA7115:
+> -		modname = "wis-saa7115";
+> -		break;
+> -	case I2C_DRIVERID_WIS_SAA7113:
+> -		modname = "wis-saa7113";
+> -		break;
+> -	case I2C_DRIVERID_WIS_UDA1342:
+> -		modname = "wis-uda1342";
+> -		break;
+> -	case I2C_DRIVERID_WIS_SONY_TUNER:
+> -		modname = "wis-sony-tuner";
+> -		break;
+> -	case I2C_DRIVERID_WIS_TW9903:
+> -		modname = "wis-tw9903";
+> -		break;
+> -	case I2C_DRIVERID_WIS_TW2804:
+> -		modname = "wis-tw2804";
+> -		break;
+> -	case I2C_DRIVERID_WIS_OV7640:
+> -		modname = "wis-ov7640";
+> -		break;
+> -	case I2C_DRIVERID_S2250:
+> -		modname = "s2250";
+> -		break;
+> -	default:
+> -		modname = NULL;
+> -		break;
+> -	}
+> -
+> -	if (v4l2_i2c_new_subdev(v4l2_dev, adapter, modname, type, addr, NULL))
+> +	if (v4l2_i2c_new_subdev(v4l2_dev, adapter, NULL, type, addr, NULL))
+>  		return 0;
+>  
+> -	if (modname != NULL)
+> -		printk(KERN_INFO
+> -			"go7007: probing for module %s failed\n", modname);
+> -	else
+> -		printk(KERN_INFO
+> -			"go7007: sensor %u seems to be unsupported!\n", id);
+> +	printk(KERN_INFO "go7007: probing for module i2c:%s failed\n", type);
+>  	return -1;
+>  }
+>  
+> @@ -277,7 +241,6 @@ int go7007_register_encoder(struct go7007 *go)
+>  		for (i = 0; i < go->board_info->num_i2c_devs; ++i)
+>  			init_i2c_module(&go->i2c_adapter,
+>  					go->board_info->i2c_devs[i].type,
+> -					go->board_info->i2c_devs[i].id,
+>  					go->board_info->i2c_devs[i].addr);
+>  		if (go->board_id == GO7007_BOARDID_ADLINK_MPG24)
+>  			i2c_clients_command(&go->i2c_adapter,
 
-
->  drivers/misc/Kconfig                        |    1 +
->  drivers/misc/Makefile                       |    1 +
->  drivers/misc/stapl-altera/Kconfig           |    8 +
->  drivers/misc/stapl-altera/Makefile          |    3 +
->  drivers/misc/stapl-altera/altera.c          | 2739 ++++++++++++++++++++
->  drivers/misc/stapl-altera/jbicomp.c         |  163 ++
->  drivers/misc/stapl-altera/jbiexprt.h        |   94 +
->  drivers/misc/stapl-altera/jbijtag.c         | 1038 ++++++++
->  drivers/misc/stapl-altera/jbijtag.h         |   83 +
->  drivers/misc/stapl-altera/jbistub.c         |   70 +
->  include/misc/altera.h                       |   49 +
-
-Hmm... that's new for me... a driver at misc?
-
->  30 files changed, 12872 insertions(+), 34 deletions(-)
->  create mode 100644 drivers/media/dvb/frontends/stv0367.c
->  create mode 100644 drivers/media/dvb/frontends/stv0367.h
->  create mode 100644 drivers/media/dvb/frontends/stv0367_priv.h
->  create mode 100644 drivers/media/dvb/frontends/stv0367_regs.h
->  create mode 100644 drivers/media/video/cx23885/altera-ci.c
->  create mode 100644 drivers/media/video/cx23885/altera-ci.h
->  create mode 100644 drivers/misc/stapl-altera/Kconfig
->  create mode 100644 drivers/misc/stapl-altera/Makefile
->  create mode 100644 drivers/misc/stapl-altera/altera.c
->  create mode 100644 drivers/misc/stapl-altera/jbicomp.c
->  create mode 100644 drivers/misc/stapl-altera/jbiexprt.h
->  create mode 100644 drivers/misc/stapl-altera/jbijtag.c
->  create mode 100644 drivers/misc/stapl-altera/jbijtag.h
->  create mode 100644 drivers/misc/stapl-altera/jbistub.c
->  create mode 100644 include/misc/altera.h
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
