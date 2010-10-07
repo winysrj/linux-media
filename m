@@ -1,32 +1,88 @@
 Return-path: <mchehab@pedra>
-Received: from mail1.matrix-vision.com ([78.47.19.71]:47937 "EHLO
-	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751796Ab0JZPIP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Oct 2010 11:08:15 -0400
-Message-ID: <4CC6EEDC.20206@matrix-vision.de>
-Date: Tue, 26 Oct 2010 17:08:12 +0200
-From: Michael Jones <michael.jones@matrix-vision.de>
+Received: from smtp.nokia.com ([192.100.105.134]:43287 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752079Ab0JGK7q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Oct 2010 06:59:46 -0400
+Message-ID: <4CADA7ED.5020604@maxwell.research.nokia.com>
+Date: Thu, 07 Oct 2010 13:58:53 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: laurent.pinchart@ideasonboard.com,
-	"sakari.ailus@maxwell.research.nokia.com"
-	<sakari.ailus@maxwell.research.nokia.com>
-Subject: controls, subdevs, and media framework
+To: Bastian Hecht <hechtb@googlemail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: OMAP 3530 camera ISP forks and new media framework
+References: <AANLkTimyR117ZiHq8GFz4YW5tBtW3k82NzGVZqKoVTbY@mail.gmail.com>
+In-Reply-To: <AANLkTimyR117ZiHq8GFz4YW5tBtW3k82NzGVZqKoVTbY@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-I'm trying to understand how the media framework and V4L2 share the responsibility of configuring a video device.  Referring to the ISP code on Laurent's media-0004-omap3isp branch, the video device is now split up into several devices... suppose you have a sensor delivering raw bayer data to the CCDC.  I could get this raw data from the /dev/video2 device (named "OMAP3 ISP CCDC output") or I could get YUV data from the previewer or resizer.  But I would no longer have a single device where I could ENUM_FMT and see that I could get either.  Correct?
+Bastian Hecht wrote:
+> Hello media team,
 
-Having settled on a particular video device, (how) do regular controls (ie. VIDIOC_[S|G]_CTRL) work?  I don't see any support for them in ispvideo.c.  Is it just yet to be implemented?  Or is it expected that the application will access the subdevs individually?
+Hi Bastian,
 
-Basically the same Q for CROPCAP:  isp_video_cropcap passes it on to the last link in the chain, but none of the subdevs in the ISP currently have a cropcap function implemented (yet).  Does this still need to be written?
+> I want to write a sensor driver for the mt9p031 (not mt9t031) camera
+> chip and start getting confused about the different kernel forks and
+> architectural changes that happen in V4L2.
+> A similar problem was discussed in this mailing list at
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg19084.html.
+> 
+> Currently I don't know which branch to follow. Either
+> http://gitorious.org/omap3camera from Sakari Ailus or the branch
+> media-0004-omap3isp at http://git.linuxtv.org/pinchartl/media.git from
+> Laurent Pinchart. Both have an folder drivers/media/video/isp and are
+> written for the new media controller architecture if I am right.
+
+Take Laurent's branch it has all the current patches in it. My gitorious
+tree isn't updated anymore. (I just had forgotten to add a note, it's
+there now.)
+
+> I see in http://gitorious.org/omap3camera/camera-firmware that there
+> is already an empty placeholder for the mt9t031.
+> The README of the camera-firmware repository states: "makemodes.pl is
+> a perl script which converts sensor register lists from FIXME into C
+> code. dcc-pulautin is a Makefile (mostly) that converts sensor
+> register lists as C code into binaries understandable to sensor
+> drivers. The end result is a binary with sensor driver name, sensor
+> version and bin suffix, for example et8ek8-0002.bin."
+> 
+> So I think the goal is to provide a script framework for camera
+> systems. You just script some register tables and it creates a binary
+> that can be read by a sensor driver made for that framework. If the a
+> camera bridge driver for your chip exists, you are done. Am I right?
+> Are drivers/media/video/et8ek8.c and
+> drivers/staging/dream/camera/mt9p012_* such drivers?
+
+et8ek8 and smia-sensor currently use the camera-firmware binaries. The
+long term goal is to move more things to the sensor driver itself.
+Register lists related to a set of sensor settings are not an ideal way
+to handle sensor related settings since they could be controlled the
+driver instead.
+
+> So do you think it is the right way to go to use your ISP driver,
+> adapt drivers/staging/dream/camera/mt9p012_* to suit my mt9p031 and
+> write a register list and create a camera firmware for that sensor
+> driver with makemodes?
+
+I would go with drivers/media/video/et8ek8.c in Laurent's tree instead
+if you want to write a sensor driver to be used with the OMAP 3 ISP
+driver. Register lists are not that nice but the v4l2_subdev interface
+in that one is one of the good parts you get with that.
+
+I'd also advice against using camera-firmware if you don't necessarily
+need that kind of functionality.
+
+> I am still quite confused... if I get something wrong, please give me
+> some hints.
+
+I hope this helped. :-)
+
+If you have any further questions feel free to ask.
+
+Cheers,
 
 -- 
-Michael Jones
-
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
