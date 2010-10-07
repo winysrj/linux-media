@@ -1,56 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:13135 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755435Ab0JSXj6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Oct 2010 19:39:58 -0400
-Date: Tue, 19 Oct 2010 19:39:43 -0400
-Subject: Re: cx23888 board setup
-Message-ID: <qarwkfd9fpwb5mmfv2m8t4vu.1287531545590@email.android.com>
-From: Andy Walls <awalls@md.metrocast.net>
-To: Fred Seward <fred.seward@adiengineering.com>,
-	video4linux-list@redhat.com, stoth@kernellabs.com,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:29135 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752675Ab0JGOoJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Oct 2010 10:44:09 -0400
+Date: Thu, 07 Oct 2010 16:43:58 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v3 0/4] Add support for camera capture in s5p-fimc driver
+To: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com
+Message-id: <1286462642-28211-1-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-RnJlZCwKWW91IHNob3VsZCBzZW5kIG1haWwgdG8gdGhlIGxpbnV4LW1lZGlhIGxpc3Q7IHRoZSB2
-aWRlbzRsaW51eCBsaXN0IGlzIG1vc3RseSBkZWFkLgoKQW5hbG9nIHN1cHBvcnQgaW4gdGhlIGN4
-MjM4ODUgZHJpdmVyIGlzIG5vdCBjb21wbGV0ZS4gIFlvdSBjYW4gY29udGFjdCBTdGV2ZSBUb3Ro
-IGF0IGtlcm5lbGxhYnMsIGlmIHlvdXIgY29tcGFueSBuZWVkcyBzb21ldGhpbmcgaW4gYSBjZXJ0
-YWluIHRpbWVmcmFtZSBhbmQgaXMgd2lsbGluZyB0byBzcG9uc29yIGdldHRpbmcgdGhlIGZ1bmN0
-aW9uYWxpdHkgeW91IG5lZWQuCgpBbHNvIHRoZSBDWDIzODg4IGl0c2VsZiBkb2Vzbid0IGRvIE1Q
-RUcgY29tcHJlc3Npb24uICBZb3UnbGwgbmVlZCBhIGNvbm5lY3RlZCBDWDIzNDE3IChvciBDWDIz
-NDE2KSB0byBkbyB0aGUgY29tcHJlc3Npb24uICAoTWF5YmUgeW91IGhhdmUgdGhhdCwgYnV0IHlv
-dSBkaWRuJ3QgbWVudGlvbiBpdC4pCgpSZWdhcmRzLApBbmR5CgpGcmVkIFNld2FyZCA8ZnJlZC5z
-ZXdhcmRAYWRpZW5naW5lZXJpbmcuY29tPiB3cm90ZToKCj5XZSBoYXZlIGEgY3VzdG9tIHg4NiBi
-b2FyZCB3aXRoOgo+Cj4gICAgLSBBIHNvbGRlcmVkIGRvd24gY3gyMzg4OAo+Cj4gICAgLSBGb3Vy
-IGNvbXBvc2l0ZSBpbnB1dHMgZmVlZGluZyB0aGUgY3gyMzg4OC4gTm8gdHVuZXIuCj4gICAgICBX
-ZSdyZSBvbmx5IGxvb2tpbmcgYXQgdGhlIGZvdXIgY29tcG9zaXRlIGlucHV0cy4KPgo+ICAgIC0g
-RkMxMyB3aXRoIGEgMi42LjMzLjQga2VybmVsLgo+Cj5UaGUgY3gyMzg4NSBkcml2ZXIgbG9hZHMg
-YW5kIEkgZ2V0IC9kZXYvdmlkZW8wIGJ1dCB3aGVuIEkgdHJ5IHRvCj5jYXQgL2Rldi92aWRlbzAg
-SSBnZXQgZGF0YSBidXQgaXQncyBub3QgYW4gbXBlZyBmaWxlLgo+Cj5DYW4gYW55b25lIHBvaW50
-IG1lIHRvIHNvbWUgZG9jdW1lbnRhdGlvbiB3aGljaCB0ZWxscyBob3cgdG8gc2V0Cj51cCB0aGUg
-Y3gyMzg4NV9ib2FyZCBib2FyZCBzdHJ1Y3R1cmUgYW5kIHdoYXQgb3RoZXIKPmluaXRpYWxpemF0
-aW9uIG1pZ2h0IG5lZWQgdG8gYmUgZG9uZT8KPgo+Cj5JbiB0aGUgY3gyMzg4NSBkcml2ZXIgSSBt
-b2RpZmllZCBjeDIzODg1LWNhcmRzLmMgdG8gYWRkIGFuCj5lbnRyeSBmb3Igb3VyIGhhcmR3YXJl
-Lgo+Cj5zdHJ1Y3QgY3gyMzg4NV9ib2FyZCBjeDIzODg1X2JvYXJkc1tdID0gewo+Cj4gICBbQ1gy
-Mzg4NV9CT0FSRF9FQ1VdID0gewo+ICAgICAgIC5uYW1lICAgICAgID0gImN1c3RvbSBib2FyZCIs
-Cj4gICAgICAgLnBvcnRhICAgICAgPSBDWDIzODg1X0FOQUxPR19WSURFTywKPiAgICAgICAucG9y
-dGIgICAgICA9IENYMjM4ODVfTVBFR19FTkNPREVSLAo+ICAgICAgIC5jbGtfZnJlcSAgID0gNTAw
-MDAwMDAsCj4gICAgICAgLmlucHV0ICAgICAgICAgID0ge3sKPiAgICAgICAgICAgLnR5cGUgICA9
-IENYMjM4ODVfVk1VWF9DT01QT1NJVEUxLAo+ICAgICAgICAgICAudm11eCAgID0gMCwKPiAgICAg
-ICB9LCB7Cj4gICAgICAgICAgIC50eXBlICAgPSBDWDIzODg1X1ZNVVhfQ09NUE9TSVRFMiwKPiAg
-ICAgICAgICAgLnZtdXggICA9IDEsCj4gICAgICAgfSwgewo+ICAgICAgICAgICAudHlwZSAgID0g
-Q1gyMzg4NV9WTVVYX0NPTVBPU0lURTMsCj4gICAgICAgICAgIC52bXV4ICAgPSAyLAo+ICAgICAg
-IH0sIHsKPiAgICAgICAgICAgLnR5cGUgICA9IENYMjM4ODVfVk1VWF9DT01QT1NJVEU0LAo+ICAg
-ICAgICAgICAudm11eCAgID0gMywKPiAgICAgICB9IH0sCj4gICB9LAo+Cj5jeDIzODg1X3N1Ymlk
-cwo+Cj4gICB9LCB7Cj4gICAgICAgLnN1YnZlbmRvciA9IDB4MDAwMCwKPiAgICAgICAuc3ViZGV2
-aWNlID0gMHgwMDAwLAo+ICAgICAgIC5jYXJkICAgICAgPSBDWDIzODg1X0JPQVJEX0VDVSwKPiAg
-IH0sIHsKPgo+LS0KPnZpZGVvNGxpbnV4LWxpc3QgbWFpbGluZyBsaXN0Cj5VbnN1YnNjcmliZSBt
-YWlsdG86dmlkZW80bGludXgtbGlzdC1yZXF1ZXN0QHJlZGhhdC5jb20/c3ViamVjdD11bnN1YnNj
-cmliZQo+aHR0cHM6Ly93d3cucmVkaGF0LmNvbS9tYWlsbWFuL2xpc3RpbmZvL3ZpZGVvNGxpbnV4
-LWxpc3QK
+Hi all,
+
+Here is a third version of patches adding camera capture capability
+to the s5p-fimc driver. I didn't receive any comments on v2 but I tracked
+a few issues myself and made little additions. I hope to get these patches
+merged in current form unless any objections appear.
+
+The driver has been tested on Samsung Aquila and GONI boards (S5PC110) 
+with SR030PC30 (VGA) and NOON010PC30 (CIF) image sensors.
+
+Changes since v1:
+- entirely removed plat-samsung/include/plat/fimc.h header so there is no
+ platform code dependency
+
+- improved s/try_fmt ioctl and introduced common ioctl handlers for mem2mem 
+  and capture node where it's reasonable
+
+- register definition changes merged with previous commit   
+ [3/8] v4l: s5p-fimc: Register definition cleanup
+
+Changes since v2:
+	- improved s/g/crop(cap) handling in capture node
+	- added passing of v4l control to the sensor subdevice
+
+The patch series contains:
+
+[PATCH 1/4] V4L/DVB: s5p-fimc: Register definition cleanup
+[PATCH 2/4] V4L/DVB: s5p-fimc: M2M driver cleanup and minor improvements
+[PATCH 3/4] V4L/DVB: s5p-fimc: Do not lock both capture and output buffer queue in s_fmt
+[PATCH 4/4] V4L/DVB: s5p-fimc: Add camera capture support
+
+It has been rebased onto linuxtv/staging-2.6.37 branch at
+git://linuxtv.org/media_tree.git with 2 bugfix patches:
+
+v4l: s5p-fimc: Fix 3-planar formats handling and pixel offset error on S5PV210 SoCs
+v4l: s5p-fimc: Fix return value on probe() failure
+
+also applied.
+
+Cheers,
+Sylwester
+
+--
+Sylwester Nawrocki
+Linux Platform Group
+Samsung Poland R&D Center
+
 
