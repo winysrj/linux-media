@@ -1,91 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:54081 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932382Ab0JLNCT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Oct 2010 09:02:19 -0400
-Received: by iwn7 with SMTP id 7so733523iwn.19
-        for <linux-media@vger.kernel.org>; Tue, 12 Oct 2010 06:02:19 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTiks9qzC6W4iyu2_QWkWeK-cN-pTOS=trGxeRF=6@mail.gmail.com>
-References: <AANLkTimyR117ZiHq8GFz4YW5tBtW3k82NzGVZqKoVTbY@mail.gmail.com>
-	<201010111514.37592.laurent.pinchart@ideasonboard.com>
-	<AANLkTikBWjgNmDdG6dCXQQmcDRBUc4gP7717uqAY3+_J@mail.gmail.com>
-	<201010111707.21537.laurent.pinchart@ideasonboard.com>
-	<AANLkTiks9qzC6W4iyu2_QWkWeK-cN-pTOS=trGxeRF=6@mail.gmail.com>
-Date: Tue, 12 Oct 2010 15:02:16 +0200
-Message-ID: <AANLkTimzU8rR2a0=gTLX8UOxGZaiY0gxx4zTr2VH-iMa@mail.gmail.com>
-Subject: Re: OMAP 3530 camera ISP forks and new media framework
-From: Bastian Hecht <hechtb@googlemail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:40240 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753283Ab0JGMqH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Oct 2010 08:46:07 -0400
+Received: from int-mx03.intmail.prod.int.phx2.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o97Ck7Gb014081
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 7 Oct 2010 08:46:07 -0400
+Received: from pedra (vpn-225-63.phx2.redhat.com [10.3.225.63])
+	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o97Ck4sg028624
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 7 Oct 2010 08:46:06 -0400
+Date: Thu, 7 Oct 2010 09:45:41 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: [PATCH 2/3] V4L/DVB: lirc_igorplugusb: Fix a compilation waring
+Message-ID: <20101007094541.567882bc@pedra>
+In-Reply-To: <f3a134520bf3f816b8f7192426af875603a1434e.1286455481.git.mchehab@redhat.com>
+References: <f3a134520bf3f816b8f7192426af875603a1434e.1286455481.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-2010/10/12 Bastian Hecht <hechtb@googlemail.com>:
-> Hello Laurent,
->
-> 2010/10/11 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
->> Hi Bastian,
->>
->> On Monday 11 October 2010 16:58:35 Bastian Hecht wrote:
->>> 2010/10/11 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
->>> > On Monday 11 October 2010 14:59:15 Bastian Hecht wrote:
->>> >> So... let's see if i got some things right, please let me now if you
->>> >> disagree:
->>> >>
->>> >> - I do want to use the omap34xxcam.c driver as it is for the newest
->>> >> framework and I get most support for it
->>> >
->>> > That's a bad start. With the latest driver, omap34xxcam.c doesn't exist
->>> > anymore :-)
->>>
->>> Nice :S
->>>
->>> I think I take the mt9t001 approach (Sorry Guennadi, I think modifying
->>> your framework is too much for me to start with). So in this driver I
->>> tell the framework that I can do i2c probing, some subdev_core_ops and
->>> some subdev_video_ops. I define these functions that mostly do some
->>> basic i2c communication to the sensor chip. I guess I can handle that
->>> as there are so many examples out there.
->>
->> The best solution would be to add mt9p031 support to the mt9t001 driver. If
->> that's too difficult to start with, you can copy mt9t001 to mt9p031 and modify
->> the driver as needed and merge the two drivers when you will be satisfied with
->> the result.
->>
->
-> OK, now I built the nokia kernel for the omap3-isp and made your
-> mt9t001.c work for it.
-> In mt9t001.c you call i2c_add_driver(&mt9t001_driver);
-> As far I as I figured out the driver core system looks for matches
-> between registered devices in arch/arm/omap/devices.c and appropriate
-> drivers.
-> Is the next step to include a static struct platform_device into
-> devices.c? Or is there a special i2c_device struct that I have to use?
->
-> Thanks so much,
->
-> �Bastian
->
+drivers/staging/lirc/lirc_igorplugusb.c: In function ‘usb_remote_probe’:
+drivers/staging/lirc/lirc_igorplugusb.c:393: warning: format ‘%lu’ expects type ‘long unsigned int’, but argument 3 has type ‘unsigned int’
 
-I now use the board-rx51-camera.c as scaffold and try to integrate my
-camera chip device information.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
->
->>> But where do I stack that on top? On the camera bridge host, but if it
->>> isn't omap34xxcam, which driver can I use? How are they connected?
->>
->> http://gitorious.org/maemo-multimedia/omap3isp-rx51
->>
->> The omap34xxcam.ko and isp-mod.ko modules have been merged into a single
->> omap3-isp.ko module. All the driver code is now in drivers/media/video/isp.
->>
->> --
->> Regards,
->>
->> Laurent Pinchart
->>
->
+diff --git a/drivers/staging/lirc/lirc_igorplugusb.c b/drivers/staging/lirc/lirc_igorplugusb.c
+index bce600e..e680d88 100644
+--- a/drivers/staging/lirc/lirc_igorplugusb.c
++++ b/drivers/staging/lirc/lirc_igorplugusb.c
+@@ -390,7 +390,7 @@ static int usb_remote_probe(struct usb_interface *intf,
+ 	devnum = dev->devnum;
+ 	maxp = usb_maxpacket(dev, pipe, usb_pipeout(pipe));
+ 
+-	dprintk(DRIVER_NAME "[%d]: bytes_in_key=%lu maxp=%d\n",
++	dprintk(DRIVER_NAME "[%d]: bytes_in_key=%zu maxp=%d\n",
+ 		devnum, CODE_LENGTH, maxp);
+ 
+ 
+-- 
+1.7.1
+
+
