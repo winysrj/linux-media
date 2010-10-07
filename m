@@ -1,85 +1,148 @@
 Return-path: <mchehab@pedra>
-Received: from c2beaomr07.btconnect.com ([213.123.26.185]:39527 "EHLO
-	mail.btconnect.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752926Ab0JEVRW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 17:17:22 -0400
-From: sibu xolo <sibxol@btconnect.com>
-To: linux-media@vger.kernel.org
-Subject: Re: udev-161 dvbT kernel-2.6.35.5
-Date: Tue, 5 Oct 2010 22:17:47 +0100
-References: <201010040116.35961.sibxol@btconnect.com> <201010042026.10301.sibxol@btconnect.com>
-In-Reply-To: <201010042026.10301.sibxol@btconnect.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201010052217.48029.sibxol@btconnect.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:26068 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754600Ab0JGOoL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Oct 2010 10:44:11 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Thu, 07 Oct 2010 16:44:01 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 3/4 v3] V4L/DVB: s5p-fimc: Do not lock both capture and output
+ buffer queue in s_fmt
+In-reply-to: <1286462642-28211-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com
+Message-id: <1286462642-28211-4-git-send-email-s.nawrocki@samsung.com>
+References: <1286462642-28211-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Monday 04 October 2010 20:26:10 sibu xolo wrote:
+It is not necessary to lock both capture and output buffer queue while
+setting format for single queue.
 
-> I sent the email above  to the list  a day or so ago and received no
-> response. If I am on the wrong list I would be grateful if someone  aufait
->    inform me of the appropriate list.   Otherwise suggestions   of where I
-> am going wrong would be much apprecuated.
-> 
-> as an update:-
-> I tested  the setup described above  on  a machine with kernel-2.6.31.6 and
-> /dev/dvb/adapter0 is generated
-> 
-> I recall a  while back when DVB  drivers were not in the kernel.   Then
-> they were  integrated within  thus requiring only a kernel compilation.  I
-> came across the somewhat  ubuntified  wiki
-> ( http://www.linuxtv.org/wiki/index.php/Bug_Report )
-> (which seems  to suggest the old method    is now needed..  I would  thus
-> be grateful for some clarity  as per:-
-> 
-> Is  compiling the kernel  as up to 2.6.28.8 and  with prior selection of
-> the appropriate devices under device/drivers/multimedia/video   sufficient
-> or does one  now need  to follow the recipe given by the link above.
-> 
-> sx
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-core.c |   69 +++++++++++++----------------
+ 1 files changed, 31 insertions(+), 38 deletions(-)
 
-
-I have two dvbT devices avermedia-dbvT-usb2 (DEVICE1) and Hauppauge wintv 
-NovatT-usb2(DEVICE2).  I am not a total novice at installing dvb on linux.  I 
-have done so in the past on 
-
---kernels 2.6.17/2.6.19
---kernel-2.6.27/2.6.31
-firmwares in /lib/irmware
-AND Both worked  successfully on the above.
-
-NOW after  the post(s) above  which provided no response,  I fiddled around 
-like so:-
-
--------------------------------------------
------------A) I compiled the kernel  for in-kernel drivers/modern V4L-api/with  
-DEVICE1 in situ. On booting -  I obtained  /dev/dvb/adapter0.  Eureka.
-I then  tried booting with DEVICE2 and  the machine dwelled   then reported 
-that firmware file could not be found.  I  Then rebooted with DEVICE1 only to 
-be met with the same message.  
-I surmised that perhaps I should use the older api  marked depreciated as 
-DECICE{1/2} are ~6 years old.
-
-----------B)So I recompiled the kernel  with both devices attached  selecting 
-v4l- depreciated  and compiled all as modules.  
-After kernel installation   DEVICES{1/2} registered as /dev/dvb/adapter{0/1). 
-Hurray  at last.
-I removed the device did something else and rebooted the machine. with one 
-device. On booting  I obntained the  'cant find firmware error as reported 
-under A).  
-I tried the other device  and onbbtained the same error.
-
-
-
-I would be most grateful if someone on list could explain what is going on 
-please.  I see 'patches' flying  and things looking ever so  busy and 
-complicated  but no one seens inclined to  provide a modicum of guidance if 
-only as a pointer to the appropriate list or if this is the appropriate list. 
-
-In the words of JKGailbraith 'lets hope that  apparent 'complexities' are not 
-devices for avoiding simple truths".
-
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index fe46aea..a83977f 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -743,8 +743,9 @@ static int fimc_m2m_try_fmt(struct file *file, void *priv,
+ static int fimc_m2m_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ {
+ 	struct fimc_ctx *ctx = priv;
+-	struct v4l2_device *v4l2_dev = &ctx->fimc_dev->m2m.v4l2_dev;
+-	struct videobuf_queue *src_vq, *dst_vq;
++	struct fimc_dev *fimc = ctx->fimc_dev;
++	struct v4l2_device *v4l2_dev = &fimc->m2m.v4l2_dev;
++	struct videobuf_queue *vq;
+ 	struct fimc_frame *frame;
+ 	struct v4l2_pix_format *pix;
+ 	unsigned long flags;
+@@ -756,69 +757,61 @@ static int fimc_m2m_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 	if (ret)
+ 		return ret;
+ 
+-	mutex_lock(&ctx->fimc_dev->lock);
++	if (mutex_lock_interruptible(&fimc->lock))
++		return -ERESTARTSYS;
+ 
+-	src_vq = v4l2_m2m_get_src_vq(ctx->m2m_ctx);
+-	dst_vq = v4l2_m2m_get_dst_vq(ctx->m2m_ctx);
++	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
++	mutex_lock(&vq->vb_lock);
+ 
+-	mutex_lock(&src_vq->vb_lock);
+-	mutex_lock(&dst_vq->vb_lock);
++	if (videobuf_queue_is_busy(vq)) {
++		v4l2_err(v4l2_dev, "%s: queue (%d) busy\n", __func__, f->type);
++		ret = -EBUSY;
++		goto sf_out;
++	}
+ 
++	spin_lock_irqsave(&ctx->slock, flags);
+ 	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+-		if (videobuf_queue_is_busy(src_vq)) {
+-			v4l2_err(v4l2_dev, "%s queue busy\n", __func__);
+-			ret = -EBUSY;
+-			goto s_fmt_out;
+-		}
+ 		frame = &ctx->s_frame;
+-		spin_lock_irqsave(&ctx->slock, flags);
+ 		ctx->state |= FIMC_SRC_FMT;
+-		spin_unlock_irqrestore(&ctx->slock, flags);
+-
+ 	} else if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+-		if (videobuf_queue_is_busy(dst_vq)) {
+-			v4l2_err(v4l2_dev, "%s queue busy\n", __func__);
+-			ret = -EBUSY;
+-			goto s_fmt_out;
+-		}
+ 		frame = &ctx->d_frame;
+-		spin_lock_irqsave(&ctx->slock, flags);
+ 		ctx->state |= FIMC_DST_FMT;
+-		spin_unlock_irqrestore(&ctx->slock, flags);
+ 	} else {
++		spin_unlock_irqrestore(&ctx->slock, flags);
+ 		v4l2_err(&ctx->fimc_dev->m2m.v4l2_dev,
+ 			 "Wrong buffer/video queue type (%d)\n", f->type);
+ 		ret = -EINVAL;
+-		goto s_fmt_out;
++		goto sf_out;
+ 	}
++	spin_unlock_irqrestore(&ctx->slock, flags);
+ 
+ 	pix = &f->fmt.pix;
+ 	frame->fmt = find_format(f);
+ 	if (!frame->fmt) {
+ 		ret = -EINVAL;
+-		goto s_fmt_out;
++		goto sf_out;
+ 	}
+ 
+-	frame->f_width = pix->bytesperline * 8 / frame->fmt->depth;
+-	frame->f_height = pix->sizeimage/pix->bytesperline;
+-	frame->width = pix->width;
+-	frame->height = pix->height;
+-	frame->o_width = pix->width;
++	frame->f_width	= pix->bytesperline * 8 / frame->fmt->depth;
++	frame->f_height	= pix->height;
++	frame->width	= pix->width;
++	frame->height	= pix->height;
++	frame->o_width	= pix->width;
+ 	frame->o_height = pix->height;
+-	frame->offs_h = 0;
+-	frame->offs_v = 0;
+-	frame->size = (pix->width * pix->height * frame->fmt->depth) >> 3;
+-	src_vq->field = dst_vq->field = pix->field;
++	frame->offs_h	= 0;
++	frame->offs_v	= 0;
++	frame->size	= (pix->width * pix->height * frame->fmt->depth) >> 3;
++	vq->field	= pix->field;
++
+ 	spin_lock_irqsave(&ctx->slock, flags);
+ 	ctx->state |= FIMC_PARAMS;
+ 	spin_unlock_irqrestore(&ctx->slock, flags);
+ 
+-	dbg("f_width= %d, f_height= %d", frame->f_width, frame->f_height);
++	dbg("f_w: %d, f_h: %d", frame->f_width, frame->f_height);
+ 
+-s_fmt_out:
+-	mutex_unlock(&dst_vq->vb_lock);
+-	mutex_unlock(&src_vq->vb_lock);
+-	mutex_unlock(&ctx->fimc_dev->lock);
++sf_out:
++	mutex_unlock(&vq->vb_lock);
++	mutex_unlock(&fimc->lock);
+ 	return ret;
+ }
+ 
+-- 
+1.7.3.1
 
