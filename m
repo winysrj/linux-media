@@ -1,103 +1,174 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:64391 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751851Ab0J0C2R (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Oct 2010 22:28:17 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o9R2SHSE000517
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 26 Oct 2010 22:28:17 -0400
-Received: from [10.3.227.53] (vpn-227-53.phx2.redhat.com [10.3.227.53])
-	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id o9R2SFCJ002580
-	for <linux-media@vger.kernel.org>; Tue, 26 Oct 2010 22:28:16 -0400
-Message-ID: <4CC78E3E.5010104@redhat.com>
-Date: Wed, 27 Oct 2010 00:28:14 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [ANNOUNCE] new experimental building system
-References: <4CBB2470.50405@redhat.com>
-In-Reply-To: <4CBB2470.50405@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mtaout01-winn.ispmail.ntl.com ([81.103.221.47]:22980 "EHLO
+	mtaout01-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759611Ab0JHVFm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 Oct 2010 17:05:42 -0400
+From: Daniel Drake <dsd@laptop.org>
+To: corbet@lwn.net
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 3/3] ov7670: Support customization of clock speed
+Message-Id: <20101008210433.126649D401B@zog.reactivated.net>
+Date: Fri,  8 Oct 2010 22:04:32 +0100 (BST)
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 17-10-2010 14:29, Mauro Carvalho Chehab escreveu:
-> I received some comments from some developers that wanted to test their drivers
-> with the latest -stable kernel. After thinking for a while, I decided to do
-> a small test, packaging the current build system into a separate tree, without
-> any drivers, and providing a way to allow using it with the latest driver.
-> 
-> I added it at:
-> 	http://git.linuxtv.org/mchehab/new_build.git
-> 
-> The current version is very raw, but people are free to send patches to improve it.
-> 
-> Usage:
-> 
-> git clone git://linuxtv.org/mchehab/new_build.git
-> cd new_build/linux
-> make tar DIR=<some dir with media -git tree>
-> make untar
-> cd ..
-> 
-> After that, it will work like the old -hg build system.
-> 
-> Notes:
-> 
-> 1) There's not much compat stuff here. So, it will likely not work with
->    legacy kernels. It will probably be fine to use it with the latest stable
->    kernel, although I tested it only with 2.6.36-rc7.
-> 
-> 2) For now, this is just an experience. I don't intend to maintain any
->    out-of-tree building system, due to my lack of time for it. If this interests
->    someone, feel free to candidate to maintain it.
-> 
-> 3) It shouldn't be hard to support legacy kernels. All that it is needed is
->    to have patches adding backports that don't fit at compat.h, and let the
->    building system to apply them, depending on the kernel version.
-> 
-> If someone manifests interests on maintaining it, we probably may have some
-> script at linuxtv.org, generating daily tarballs with the latest drivers, to
-> be used by this build system.
+For accurate frame rate limiting, we need to know the speed of the external
+clock wired into the ov7670 chip.
 
-I added several patches today to the new experimental building system, and added
-a script at linuxtv.org to auto-generate a tarball with the latest drivers.
+Add a module parameter so that the user can specify this information.
+And add DMI detection for appropriate clock speeds on the OLPC XO-1 and
+XO-1.5 laptops. If specified, the module parameter wins over whatever we
+might have set through the DMI table.
 
-Basically, with the patches I made, it is compiling fine with the following kernel
-releases (vanilla upstream kernels):
-	linux-2.6.32.24
-	linux-2.6.33.7
-	linux-2.6.34.7
-	linux-2.6.35.7
-	linux-2.6.36
+Based on earlier work by Jonathan Corbet.
 
-(e. g. the latest stable releases from 2.6.32 to 2.6.36).
+Signed-off-by: Daniel Drake <dsd@laptop.org>
+---
+ drivers/media/video/ov7670.c |   71 ++++++++++++++++++++++++++++++++++++-----
+ 1 files changed, 62 insertions(+), 9 deletions(-)
 
-The 2.6.32 backport also compiled fine with the experimental RHEL6 kernel I have on
-my machine.
+diff --git a/drivers/media/video/ov7670.c b/drivers/media/video/ov7670.c
+index 9fffcdd..c4d9ed0 100644
+--- a/drivers/media/video/ov7670.c
++++ b/drivers/media/video/ov7670.c
+@@ -16,6 +16,7 @@
+ #include <linux/i2c.h>
+ #include <linux/delay.h>
+ #include <linux/videodev2.h>
++#include <linux/dmi.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-chip-ident.h>
+ #include <media/v4l2-mediabus.h>
+@@ -30,6 +31,19 @@ module_param(debug, bool, 0644);
+ MODULE_PARM_DESC(debug, "Debug level (0-1)");
+ 
+ /*
++ * What is our fastest frame rate?  It's a function of how the chip
++ * is clocked, and this is an external clock, so we don't know. If we have
++ * a DMI entry describing the platform, use it. If not, assume 30. In both
++ * cases, accept override from a module parameter.
++ */
++static int clock_speed = 30;
++static bool clock_speed_from_param = false;
++static int set_clock_speed_from_param(const char *val, struct kernel_param *kp);
++module_param_call(clock_speed, set_clock_speed_from_param, param_get_int,
++		  &clock_speed, 0440);
++MODULE_PARM_DESC(clock_speed, "External clock speed (Hz)");
++
++/*
+  * Basic window sizes.  These probably belong somewhere more globally
+  * useful.
+  */
+@@ -43,11 +57,6 @@ MODULE_PARM_DESC(debug, "Debug level (0-1)");
+ #define	QCIF_HEIGHT	144
+ 
+ /*
+- * Our nominal (default) frame rate.
+- */
+-#define OV7670_FRAME_RATE 30
+-
+-/*
+  * The 7670 sits on i2c with ID 0x42
+  */
+ #define OV7670_I2C_ADDR 0x42
+@@ -188,6 +197,44 @@ MODULE_PARM_DESC(debug, "Debug level (0-1)");
+ #define REG_HAECC7	0xaa	/* Hist AEC/AGC control 7 */
+ #define REG_BD60MAX	0xab	/* 60hz banding step limit */
+ 
++static int set_clock_speed_from_param(const char *val, struct kernel_param *kp)
++{
++	int ret = param_set_int(val, kp);
++	if (ret == 0)
++		clock_speed_from_param = true;
++	return ret;
++}
++
++static int __init set_clock_speed_from_dmi(const struct dmi_system_id *dmi)
++{
++	if (clock_speed_from_param)
++		return 0; /* module param beats DMI */
++
++	clock_speed = (int) dmi->driver_data;
++	return 0;
++}
++
++static const struct dmi_system_id __initconst dmi_clock_speeds[] = {
++	{
++		.callback = set_clock_speed_from_dmi,
++		.driver_data = (void *) 45,
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "OLPC"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "XO"),
++			DMI_MATCH(DMI_PRODUCT_VERSION, "1"),
++		},
++	},
++	{
++		.callback = set_clock_speed_from_dmi,
++		.driver_data = (void *) 90,
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "OLPC"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "XO"),
++			DMI_MATCH(DMI_PRODUCT_VERSION, "1.5"),
++		},
++	},
++	{ }
++};
+ 
+ /*
+  * Information we maintain about a known sensor.
+@@ -861,7 +908,7 @@ static int ov7670_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
+ 	memset(cp, 0, sizeof(struct v4l2_captureparm));
+ 	cp->capability = V4L2_CAP_TIMEPERFRAME;
+ 	cp->timeperframe.numerator = 1;
+-	cp->timeperframe.denominator = OV7670_FRAME_RATE;
++	cp->timeperframe.denominator = clock_speed;
+ 	if ((info->clkrc & CLK_EXT) == 0 && (info->clkrc & CLK_SCALE) > 1)
+ 		cp->timeperframe.denominator /= (info->clkrc & CLK_SCALE);
+ 	return 0;
+@@ -882,14 +929,14 @@ static int ov7670_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
+ 	if (tpf->numerator == 0 || tpf->denominator == 0)
+ 		div = 1;  /* Reset to full rate */
+ 	else
+-		div = (tpf->numerator*OV7670_FRAME_RATE)/tpf->denominator;
++		div = (tpf->numerator*clock_speed)/tpf->denominator;
+ 	if (div == 0)
+ 		div = 1;
+ 	else if (div > CLK_SCALE)
+ 		div = CLK_SCALE;
+ 	info->clkrc = (info->clkrc & 0x80) | div;
+ 	tpf->numerator = 1;
+-	tpf->denominator = OV7670_FRAME_RATE/div;
++	tpf->denominator = clock_speed/div;
+ 	return ov7670_write(sd, REG_CLKRC, info->clkrc);
+ }
+ 
+@@ -1510,10 +1557,15 @@ static int ov7670_probe(struct i2c_client *client,
+ 	}
+ 	v4l_info(client, "chip found @ 0x%02x (%s)\n",
+ 			client->addr << 1, client->adapter->name);
++	/*
++	 * Make sure the clock speed is rational.
++	 */
++	if (clock_speed < 1 || clock_speed > 100)
++		clock_speed = 30;
+ 
+ 	info->fmt = &ov7670_formats[0];
+ 	info->sat = 128;	/* Review this */
+-	info->clkrc = 1;	/* 30fps */
++	info->clkrc = clock_speed / 30;
+ 
+ 	return 0;
+ }
+@@ -1546,6 +1598,7 @@ static struct i2c_driver ov7670_driver = {
+ 
+ static __init int init_ov7670(void)
+ {
++	dmi_check_system(dmi_clock_speeds);
+ 	return i2c_add_driver(&ov7670_driver);
+ }
+ 
+-- 
+1.7.2.3
 
-WARNING: I just test compilation. There are some random warnings generated with some
-of those kernels that may or may not indicate a problem.
-
-If you want to test the new building system, all you need to do is:
-
-	$ git clone git://linuxtv.org/mchehab/new_build.git
-	$ cd new_build
-	$ ./build.sh
-
-This will download the newest tarball from linuxtv.org, apply the backport patches
-and build it.
-
-After that, you may install the new drivers with:
-	$ make install
-
-The building system is the same as we had on the mercurial tree, but I didn't test the
-other targets (well, except for make release DIR=<dir> - it is also working fine).
-Yet, I think that the other make targets should be working properly.
-
-Patches (and a maintainer) are welcome.
-
-Have fun!
-Mauro.
