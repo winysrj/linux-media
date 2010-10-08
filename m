@@ -1,74 +1,86 @@
 Return-path: <mchehab@pedra>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:42577 "EHLO smtp5-g21.free.fr"
+Received: from mx1.redhat.com ([209.132.183.28]:24042 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752172Ab0JSI5h convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Oct 2010 04:57:37 -0400
-Received: from tele (unknown [82.245.201.222])
-	by smtp5-g21.free.fr (Postfix) with ESMTP id EB33CD48138
-	for <linux-media@vger.kernel.org>; Tue, 19 Oct 2010 10:57:30 +0200 (CEST)
-Date: Tue, 19 Oct 2010 10:58:31 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 2.6.37] gspca for_2.6.37
-Message-ID: <20101019105831.04e2d7e4@tele>
+	id S1750721Ab0JHA07 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Oct 2010 20:26:59 -0400
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o980Qxrd023449
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 7 Oct 2010 20:26:59 -0400
+Received: from pedra (vpn-225-63.phx2.redhat.com [10.3.225.63])
+	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id o980PriR021715
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 7 Oct 2010 20:26:58 -0400
+Date: Thu, 7 Oct 2010 21:25:46 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/2] V4L/DVB: cx231xx: remove some unused functions
+Message-ID: <20101007212546.478c5d5b@pedra>
+In-Reply-To: <cover.1286497447.git.mchehab@redhat.com>
+References: <cover.1286497447.git.mchehab@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The following changes since commit
-350df81ebaccc651fa4dfad27738db958e067ded:
+This file came originally from cx23885 driver. Some functions aren't
+used. Now that they are declared as static, we have those errors:
 
-  Revert changeset d455b639c1fb09f8ea888371fb6e04b490e115fb (2010-10-17 19:32:45 -0200)
+drivers/media/video/cx231xx/cx231xx-417.c:615: warning: ‘mc417_gpio_set’ defined but not used
+drivers/media/video/cx231xx/cx231xx-417.c:625: warning: ‘mc417_gpio_clear’ defined but not used
+drivers/media/video/cx231xx/cx231xx-417.c:635: warning: ‘mc417_gpio_enable’ defined but not used
 
-are available in the git repository at:
-  git://linuxtv.org/jfrancois/gspca.git for_2.6.37
+As they're not used, just remove them. If needed, they can be restored from
+the git logs or from the cx23885 driver.
 
-Jean-François Moine (1):
-      gspca: Fix coding style issues
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Németh Márton (2):
-      gspca - sonixj: Remove magic numbers for delay
-      gspca - sonixj: Add horizontal and vertical flip for po2030n
-
- drivers/media/video/gspca/benq.c                   |    3 +-
- drivers/media/video/gspca/conex.c                  |    6 +-
- drivers/media/video/gspca/etoms.c                  |    4 +-
- drivers/media/video/gspca/gl860/gl860-mi2020.c     |    6 +-
- drivers/media/video/gspca/gspca.c                  |    2 +-
- drivers/media/video/gspca/konica.c                 |    4 +-
- drivers/media/video/gspca/m5602/m5602_mt9m111.c    |   48 ++++----
- drivers/media/video/gspca/m5602/m5602_mt9m111.h    |   14 +--
- drivers/media/video/gspca/m5602/m5602_ov7660.c     |   70 +++++-----
- drivers/media/video/gspca/m5602/m5602_ov7660.h     |    9 +-
- drivers/media/video/gspca/m5602/m5602_ov9650.c     |  102 ++++++++--------
- drivers/media/video/gspca/m5602/m5602_ov9650.h     |   12 +-
- drivers/media/video/gspca/m5602/m5602_po1030.c     |  136 ++++++++++----------
- drivers/media/video/gspca/m5602/m5602_po1030.h     |   13 +-
- drivers/media/video/gspca/m5602/m5602_s5k4aa.c     |   28 ++--
- drivers/media/video/gspca/m5602/m5602_s5k4aa.h     |   14 +--
- drivers/media/video/gspca/m5602/m5602_s5k83a.h     |   12 +-
- drivers/media/video/gspca/ov519.c                  |   18 +--
- drivers/media/video/gspca/pac207.c                 |    2 +-
- drivers/media/video/gspca/pac7302.c                |    3 +-
- drivers/media/video/gspca/pac7311.c                |    3 +-
- drivers/media/video/gspca/sn9c20x.c                |   13 ++-
- drivers/media/video/gspca/sonixb.c                 |    9 +-
- drivers/media/video/gspca/sonixj.c                 |  111 +++++++++++-----
- drivers/media/video/gspca/spca501.c                |    6 +-
- drivers/media/video/gspca/spca508.c                |    3 +-
- drivers/media/video/gspca/stv06xx/stv06xx.h        |    2 +-
- drivers/media/video/gspca/stv06xx/stv06xx_hdcs.c   |   19 ++--
- drivers/media/video/gspca/stv06xx/stv06xx_hdcs.h   |    2 +-
- drivers/media/video/gspca/stv06xx/stv06xx_vv6410.c |    2 +-
- drivers/media/video/gspca/stv06xx/stv06xx_vv6410.h |    4 +-
- drivers/media/video/gspca/sunplus.c                |    9 +-
- drivers/media/video/gspca/w996Xcf.c                |    2 +-
- drivers/media/video/gspca/zc3xx.c                  |   14 +--
- 34 files changed, 359 insertions(+), 346 deletions(-)
-
+diff --git a/drivers/media/video/cx231xx/cx231xx-417.c b/drivers/media/video/cx231xx/cx231xx-417.c
+index 2dbad82..e456b97 100644
+--- a/drivers/media/video/cx231xx/cx231xx-417.c
++++ b/drivers/media/video/cx231xx/cx231xx-417.c
+@@ -612,39 +612,6 @@ static int mc417_memory_read(struct cx231xx *dev, u32 address, u32 *value)
+ 	return ret;
+ }
+ 
+-static void mc417_gpio_set(struct cx231xx *dev, u32 mask)
+-{
+-	u32 val;
+-
+-	/* Set the gpio value */
+-	mc417_register_read(dev, 0x900C, &val);
+-	val |= (mask & 0x000ffff);
+-	mc417_register_write(dev, 0x900C, val);
+-}
+-
+-static void mc417_gpio_clear(struct cx231xx *dev, u32 mask)
+-{
+-	u32 val;
+-
+-	/* Clear the gpio value */
+-	mc417_register_read(dev, 0x900C, &val);
+-	val &= ~(mask & 0x0000ffff);
+-	mc417_register_write(dev, 0x900C, val);
+-}
+-
+-static void mc417_gpio_enable(struct cx231xx *dev, u32 mask, int asoutput)
+-{
+-	u32 val;
+-
+-	/* Enable GPIO direction bits */
+-	mc417_register_read(dev, 0x9020, &val);
+-	if (asoutput)
+-		val |= (mask & 0x0000ffff);
+-	else
+-		val &= ~(mask & 0x0000ffff);
+-
+-	mc417_register_write(dev, 0x9020, val);
+-}
+ /* ------------------------------------------------------------------ */
+ 
+ /* MPEG encoder API */
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+1.7.1
+
