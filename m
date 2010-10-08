@@ -1,37 +1,203 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:48693 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751705Ab0JWAYx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Oct 2010 20:24:53 -0400
-Message-ID: <4CC22B52.7040003@redhat.com>
-Date: Fri, 22 Oct 2010 22:24:50 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: tvbox <tvboxspy@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH][UPDATE for 2.6.37] LME2510(C) DM04/QQBOX USB DVB-S BOXES
-References: <1287258283.494.10.camel@canaries-desktop>
-In-Reply-To: <1287258283.494.10.camel@canaries-desktop>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:16200 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756126Ab0JHIux (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Oct 2010 04:50:53 -0400
+Date: Fri, 08 Oct 2010 10:50:35 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 3/5 v4] V4L/DVB: s5p-fimc: Fix 90/270 deg rotation errors
+In-reply-to: <1286527837-4980-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com
+Message-id: <1286527837-4980-4-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1286527837-4980-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 16-10-2010 16:44, tvbox escreveu:
-> Updated driver for DM04/QQBOX USB DVB-S BOXES to version 1.60
-> 
-> These include
-> -later kill of usb_buffer to avoid kernel crash on hot unplugging.
-> -DiSEqC functions.
-> -LNB Power switch
-> -Faster channel change.
-> -support for LG tuner on LME2510C.
-> -firmware switching for LG tuner.
+Due to errorneous swapping of image dimensions the rotation
+control was not handled properly in subsequent calls.
 
-Please, don't do updates like that, adding several different things into just
-one patch. Instead, send one patch per change.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-core.c |   15 ++---
+ drivers/media/video/s5p-fimc/fimc-reg.c  |  101 +++++++++++++++---------------
+ 2 files changed, 57 insertions(+), 59 deletions(-)
 
-This time, I'll accept it as-is, but please break it into small patches next time.
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index fccab13..27379a6 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -207,8 +207,13 @@ static int fimc_set_scaler_info(struct fimc_ctx *ctx)
+ 	int tx, ty, sx, sy;
+ 	int ret;
+ 
+-	tx = d_frame->width;
+-	ty = d_frame->height;
++	if (ctx->rotation == 90 || ctx->rotation == 270) {
++		ty = d_frame->width;
++		tx = d_frame->height;
++	} else {
++		tx = d_frame->width;
++		ty = d_frame->height;
++	}
+ 	if (tx <= 0 || ty <= 0) {
+ 		v4l2_err(&ctx->fimc_dev->m2m.v4l2_dev,
+ 			"invalid target size: %d x %d", tx, ty);
+@@ -429,12 +434,6 @@ static int fimc_prepare_config(struct fimc_ctx *ctx, u32 flags)
+ 	d_frame = &ctx->d_frame;
+ 
+ 	if (flags & FIMC_PARAMS) {
+-		if ((ctx->out_path == FIMC_DMA) &&
+-			(ctx->rotation == 90 || ctx->rotation == 270)) {
+-			swap(d_frame->f_width, d_frame->f_height);
+-			swap(d_frame->width, d_frame->height);
+-		}
+-
+ 		/* Prepare the DMA offset ratios for scaler. */
+ 		fimc_prepare_dma_offset(ctx, &ctx->s_frame);
+ 		fimc_prepare_dma_offset(ctx, &ctx->d_frame);
+diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
+index 94e98d4..95adc84 100644
+--- a/drivers/media/video/s5p-fimc/fimc-reg.c
++++ b/drivers/media/video/s5p-fimc/fimc-reg.c
+@@ -34,44 +34,6 @@ void fimc_hw_reset(struct fimc_dev *dev)
+ 	cfg = readl(dev->regs + S5P_CIGCTRL);
+ 	cfg &= ~S5P_CIGCTRL_SWRST;
+ 	writel(cfg, dev->regs + S5P_CIGCTRL);
+-
+-}
+-
+-void fimc_hw_set_rotation(struct fimc_ctx *ctx)
+-{
+-	u32 cfg, flip;
+-	struct fimc_dev *dev = ctx->fimc_dev;
+-
+-	cfg = readl(dev->regs + S5P_CITRGFMT);
+-	cfg &= ~(S5P_CITRGFMT_INROT90 | S5P_CITRGFMT_OUTROT90);
+-
+-	flip = readl(dev->regs + S5P_MSCTRL);
+-	flip &= ~S5P_MSCTRL_FLIP_MASK;
+-
+-	/*
+-	 * The input and output rotator cannot work simultaneously.
+-	 * Use the output rotator in output DMA mode or the input rotator
+-	 * in direct fifo output mode.
+-	 */
+-	if (ctx->rotation == 90 || ctx->rotation == 270) {
+-		if (ctx->out_path == FIMC_LCDFIFO) {
+-			cfg |= S5P_CITRGFMT_INROT90;
+-			if (ctx->rotation == 270)
+-				flip |= S5P_MSCTRL_FLIP_180;
+-		} else {
+-			cfg |= S5P_CITRGFMT_OUTROT90;
+-			if (ctx->rotation == 270)
+-				cfg |= S5P_CITRGFMT_FLIP_180;
+-		}
+-	} else if (ctx->rotation == 180) {
+-		if (ctx->out_path == FIMC_LCDFIFO)
+-			flip |= S5P_MSCTRL_FLIP_180;
+-		else
+-			cfg |= S5P_CITRGFMT_FLIP_180;
+-	}
+-	if (ctx->rotation == 180 || ctx->rotation == 270)
+-		writel(flip, dev->regs + S5P_MSCTRL);
+-	writel(cfg, dev->regs + S5P_CITRGFMT);
+ }
+ 
+ static u32 fimc_hw_get_in_flip(u32 ctx_flip)
+@@ -114,6 +76,46 @@ static u32 fimc_hw_get_target_flip(u32 ctx_flip)
+ 	return flip;
+ }
+ 
++void fimc_hw_set_rotation(struct fimc_ctx *ctx)
++{
++	u32 cfg, flip;
++	struct fimc_dev *dev = ctx->fimc_dev;
++
++	cfg = readl(dev->regs + S5P_CITRGFMT);
++	cfg &= ~(S5P_CITRGFMT_INROT90 | S5P_CITRGFMT_OUTROT90 |
++		  S5P_CITRGFMT_FLIP_180);
++
++	flip = readl(dev->regs + S5P_MSCTRL);
++	flip &= ~S5P_MSCTRL_FLIP_MASK;
++
++	/*
++	 * The input and output rotator cannot work simultaneously.
++	 * Use the output rotator in output DMA mode or the input rotator
++	 * in direct fifo output mode.
++	 */
++	if (ctx->rotation == 90 || ctx->rotation == 270) {
++		if (ctx->out_path == FIMC_LCDFIFO) {
++			cfg |= S5P_CITRGFMT_INROT90;
++			if (ctx->rotation == 270)
++				flip |= S5P_MSCTRL_FLIP_180;
++		} else {
++			cfg |= S5P_CITRGFMT_OUTROT90;
++			if (ctx->rotation == 270)
++				cfg |= S5P_CITRGFMT_FLIP_180;
++		}
++	} else if (ctx->rotation == 180) {
++		if (ctx->out_path == FIMC_LCDFIFO)
++			flip |= S5P_MSCTRL_FLIP_180;
++		else
++			cfg |= S5P_CITRGFMT_FLIP_180;
++	}
++	if (ctx->rotation == 180 || ctx->rotation == 270)
++		writel(flip, dev->regs + S5P_MSCTRL);
++
++	cfg |= fimc_hw_get_target_flip(ctx->flip);
++	writel(cfg, dev->regs + S5P_CITRGFMT);
++}
++
+ void fimc_hw_set_target_format(struct fimc_ctx *ctx)
+ {
+ 	u32 cfg;
+@@ -149,13 +151,15 @@ void fimc_hw_set_target_format(struct fimc_ctx *ctx)
+ 		break;
+ 	}
+ 
+-	cfg |= S5P_CITRGFMT_HSIZE(frame->width);
+-	cfg |= S5P_CITRGFMT_VSIZE(frame->height);
++	if (ctx->rotation == 90 || ctx->rotation == 270) {
++		cfg |= S5P_CITRGFMT_HSIZE(frame->height);
++		cfg |= S5P_CITRGFMT_VSIZE(frame->width);
++	} else {
+ 
+-	if (ctx->rotation == 0) {
+-		cfg &= ~S5P_CITRGFMT_FLIP_MASK;
+-		cfg |= fimc_hw_get_target_flip(ctx->flip);
++		cfg |= S5P_CITRGFMT_HSIZE(frame->width);
++		cfg |= S5P_CITRGFMT_VSIZE(frame->height);
+ 	}
++
+ 	writel(cfg, dev->regs + S5P_CITRGFMT);
+ 
+ 	cfg = readl(dev->regs + S5P_CITAREA) & ~S5P_CITAREA_MASK;
+@@ -167,15 +171,10 @@ static void fimc_hw_set_out_dma_size(struct fimc_ctx *ctx)
+ {
+ 	struct fimc_dev *dev = ctx->fimc_dev;
+ 	struct fimc_frame *frame = &ctx->d_frame;
+-	u32 cfg = 0;
++	u32 cfg;
+ 
+-	if (ctx->rotation == 90 || ctx->rotation == 270) {
+-		cfg |= S5P_ORIG_SIZE_HOR(frame->f_height);
+-		cfg |= S5P_ORIG_SIZE_VER(frame->f_width);
+-	} else {
+-		cfg |= S5P_ORIG_SIZE_HOR(frame->f_width);
+-		cfg |= S5P_ORIG_SIZE_VER(frame->f_height);
+-	}
++	cfg = S5P_ORIG_SIZE_HOR(frame->f_width);
++	cfg |= S5P_ORIG_SIZE_VER(frame->f_height);
+ 	writel(cfg, dev->regs + S5P_ORGOSIZE);
+ }
+ 
+-- 
+1.7.3.1
 
-Thanks,
-Mauro.
