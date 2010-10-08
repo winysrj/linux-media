@@ -1,72 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:44855 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:15304 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932219Ab0JLNu3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Oct 2010 09:50:29 -0400
-Received: from int-mx08.intmail.prod.int.phx2.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.21])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o9CDoTLA009682
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 12 Oct 2010 09:50:29 -0400
-Date: Tue, 12 Oct 2010 09:50:28 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org, mchehab@redhat.com
-Subject: Re: [GIT PULL REQUEST] IR patches for 2.6.37-rc1
-Message-ID: <20101012135028.GF4057@redhat.com>
-References: <20101008214407.GI5165@redhat.com>
- <AANLkTimezuonksK=wW1PAkW40oo-KPRMrVdoNxymK69f@mail.gmail.com>
+	id S1756914Ab0JHMii (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 Oct 2010 08:38:38 -0400
+Message-ID: <4CAF10C4.2080701@redhat.com>
+Date: Fri, 08 Oct 2010 09:38:28 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <AANLkTimezuonksK=wW1PAkW40oo-KPRMrVdoNxymK69f@mail.gmail.com>
+To: Jean Delvare <khali@linux-fr.org>
+CC: LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] V4L/DVB: dib0700: Prevent NULL pointer dereference during
+ probe
+References: <20100926162553.660281c6@endymion.delvare> <20101008143251.55fed758@endymion.delvare>
+In-Reply-To: <20101008143251.55fed758@endymion.delvare>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, Oct 09, 2010 at 02:23:15PM -0400, Jarod Wilson wrote:
-> On Fri, Oct 8, 2010 at 5:44 PM, Jarod Wilson <jarod@redhat.com> wrote:
-> > Hey Mauro,
-> >
-> > I've queued up some lirc fixes and a couple of patches that add a new
-> > ir-core driver for the Nuvoton w836x7hg Super I/O integrated CIR
-> > functionality. All but the Kconfig re-sorting patch have been posted to
-> > linux-media for review, but I'm hoping they can all get merged in time for
-> > the 2.6.37-rc1 window, and any additional review feedback can be taken
-> > care of with follow-up patches.
-> >
-> > The following changes since commit b9a1211dff08aa73fc26db66980ec0710a6c7134:
-> >
-> >  V4L/DVB: Staging: cx25821: fix braces and space coding style issues (2010-10-07 15:37:27 -0300)
+Em 08-10-2010 09:32, Jean Delvare escreveu:
+> On Sun, 26 Sep 2010 16:25:53 +0200, Jean Delvare wrote:
+>> Commit 8dc09004978538d211ccc36b5046919489e30a55 assumes that
+>> dev->rc_input_dev is always set. It is, however, NULL if dvb-usb was
+>> loaded with option disable_rc_polling=1.
+>>
+>> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+>> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+>> ---
+>>  drivers/media/dvb/dvb-usb/dib0700_core.c |    3 ++-
+>>  1 file changed, 2 insertions(+), 1 deletion(-)
+>>
+>> --- linux-2.6.36-rc5.orig/drivers/media/dvb/dvb-usb/dib0700_core.c	2010-09-24 17:17:16.000000000 +0200
+>> +++ linux-2.6.36-rc5/drivers/media/dvb/dvb-usb/dib0700_core.c	2010-09-26 15:04:59.000000000 +0200
+>> @@ -674,7 +674,8 @@ static int dib0700_probe(struct usb_inte
+>>  				dev->props.rc.core.bulk_mode = false;
+>>  
+>>  			/* Need a higher delay, to avoid wrong repeat */
+>> -			dev->rc_input_dev->rep[REP_DELAY] = 500;
+>> +			if (dev->rc_input_dev)
+>> +				dev->rc_input_dev->rep[REP_DELAY] = 500;
+>>  
+>>  			dib0700_rc_setup(dev);
+>>  
 > 
-> Minor update to the pull req to fully wire up compat ioctls and fixup
-> some error messages in lirc_dev:
+> The already applied commit 04cab131ce2a267b6777a98d68fbc0cae44d4ba8
+> (V4L/DVB: rc-core: increase repeat time) solves the problem in a
+> different way, so you can ignore my patch above, it is no longer needed.
 > 
-> The following changes since commit 81d64d12e11a3cca995e6c752e4bd2898959ed0a:
-> 
->   V4L/DVB: cx231xx: remove some unused functions (2010-10-07 21:05:52 -0300)
-> 
-> are available in the git repository at:
->   git://git.kernel.org/pub/scm/linux/kernel/git/jarod/linux-2.6-lirc.git staging
+OK.
 
-Just tacked on two minor streamzap patches, including the one from Dan
-Carpenter that fixes an overflow with timeout values. The other streamzap
-patch just makes Dan's patch not create a line > 80 chars, more or less
-(renames STREAMZAP_FOO defines to SZ_FOO).
+Yeah, we needed to move this to IR core, as other drivers were suffering the
+same issue, due to RC core timeouts.
 
-Dan Carpenter (1):
-      [patch -next] V4L/DVB: IR/streamzap: fix usec to nsec conversion
-
-Jarod Wilson (8):
-      IR: add driver for Nuvoton w836x7hg integrated CIR
-      nuvoton-cir: add proper rx fifo overrun handling
-      IR/Kconfig: sort hardware entries alphabetically
-      IR/lirc: further ioctl portability fixups
-      staging/lirc: ioctl portability fixups
-      lirc: wire up .compat_ioctl to main ioctl handler
-      lirc_dev: fixup error messages w/missing newlines
-      IR/streamzap: shorten up some define names for readability
-
-
--- 
-Jarod Wilson
-jarod@redhat.com
+Cheers,
+Mauro
 
