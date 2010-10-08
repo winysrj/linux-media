@@ -1,34 +1,41 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:40320 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932070Ab0JAMny (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Oct 2010 08:43:54 -0400
-Received: by fxm14 with SMTP id 14so530734fxm.19
-        for <linux-media@vger.kernel.org>; Fri, 01 Oct 2010 05:43:53 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:13362 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756835Ab0JHLwt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 Oct 2010 07:52:49 -0400
+Message-ID: <4CAF0602.6050002@redhat.com>
+Date: Fri, 08 Oct 2010 08:52:34 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTikHxgTrBq9+8Gm8eTNzXoWA0Br44dQx0eif91q4@mail.gmail.com>
-References: <1274978356-25836-1-git-send-email-david@identd.dyndns.org>
-	<AANLkTi=QujvRkdSLBMm14ZpOy2GCk8Ow3d87FAAz6GGY@mail.gmail.com>
-	<AANLkTikHxgTrBq9+8Gm8eTNzXoWA0Br44dQx0eif91q4@mail.gmail.com>
-Date: Fri, 1 Oct 2010 08:43:53 -0400
-Message-ID: <AANLkTikqq1xz9VUJezUS4LhizYiJ7FQojjnqreXw7=QV@mail.gmail.com>
-Subject: Re: [PATCH/RFC v2 0/8] dsbr100: driver cleanup and fixes
-From: David Ellingsworth <david@identd.dyndns.org>
-To: Douglas Schilling Landgraf <dougsland@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Alexey Klimov <klimov.linux@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Dmitri Belimov <d.belimov@gmail.com>
+CC: Felipe Sanches <juca@members.fsf.org>,
+	Stefan Ringel <stefan.ringel@arcor.de>,
+	Bee Hock Goh <beehock@gmail.com>,
+	Luis Henrique Fagundes <lhfagundes@hacklab.com.br>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC PATCH] Audio standards on tm6000
+References: <4CAD5A78.3070803@redhat.com> <20101008150301.2e3ceaff@glory.local>
+In-Reply-To: <20101008150301.2e3ceaff@glory.local>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> I will also check your patches soon. I have this old hardware at home.
->
+Em 08-10-2010 16:03, Dmitri Belimov escreveu:
+> Hi Mauro
+> 
+> Not so good. Audio with this patch has bad white noise sometimes and
+> bad quality. I try found better configuration for SECAM-DK.
 
-The sooner the better. These patches have been waiting for review
-since May. I'd rather not have to rebase them and resend them a third
-time.
+Ok. Well, feel free to modify it. I think that this approach may be better,
+especially if we need to add later some sort of code to detect and change
+audio standard for some standards that have more than one audio standard
+associated (we needed do to it on other drivers, in order to work in Russia
+and other Countries that use different variants of the audio standard).
 
-Regards,
+The association between video and audio standard is not complete. For example,
+it misses NTSC-Kr and NTSC-Jp.
 
-David Ellingsworth
+Cheers,
+Mauro.
+
