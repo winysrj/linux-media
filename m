@@ -1,256 +1,187 @@
 Return-path: <mchehab@pedra>
-Received: from rtp-iport-2.cisco.com ([64.102.122.149]:14163 "EHLO
-	rtp-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932435Ab0J1Gqi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Oct 2010 02:46:38 -0400
-From: mats.randgaard@tandberg.com
-To: hvaibhav@ti.com, mkaricheri@gmail.com
-Cc: hans.verkuil@tandberg.com, linux-media@vger.kernel.org,
-	Mats Randgaard <mats.randgaard@tandberg.com>
-Subject: [RFCv2/PATCH 1/5] vpif_cap/disp: Add debug functionality
-Date: Thu, 28 Oct 2010 08:46:19 +0200
-Message-Id: <1288248383-12557-2-git-send-email-mats.randgaard@tandberg.com>
-In-Reply-To: <1288248383-12557-1-git-send-email-mats.randgaard@tandberg.com>
-References: <1288248383-12557-1-git-send-email-mats.randgaard@tandberg.com>
+Received: from mx1.redhat.com ([209.132.183.28]:54547 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750721Ab0JHAZ5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Oct 2010 20:25:57 -0400
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o980Pvr7030221
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 7 Oct 2010 20:25:57 -0400
+Received: from pedra (vpn-225-63.phx2.redhat.com [10.3.225.63])
+	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id o980PriQ021715
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 7 Oct 2010 20:25:56 -0400
+Date: Thu, 7 Oct 2010 21:25:45 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 1/2] V4L/DVB: cx231xx: declare static functions as such
+Message-ID: <20101007212545.64db274f@pedra>
+In-Reply-To: <cover.1286497447.git.mchehab@redhat.com>
+References: <cover.1286497447.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Mats Randgaard <mats.randgaard@tandberg.com>
+drivers/media/video/cx23885/built-in.o: In function `mc417_memory_write':
+/home/v4l/v4l/patchwork/drivers/media/video/cx23885/cx23885-417.c:482: multiple definition of `mc417_memory_write'
+drivers/media/video/cx231xx/built-in.o:/home/v4l/v4l/patchwork/drivers/media/video/cx231xx/cx231xx-417.c:477: first defined here
+drivers/media/video/cx23885/built-in.o: In function `mc417_gpio_set':
+/home/v4l/v4l/patchwork/drivers/media/video/cx23885/cx23885-417.c:636: multiple definition of `mc417_gpio_set'
+drivers/media/video/cx231xx/built-in.o:/home/v4l/v4l/patchwork/drivers/media/video/cx231xx/cx231xx-417.c:615: first defined here
+drivers/media/video/cx23885/built-in.o: In function `mc417_gpio_enable':
+/home/v4l/v4l/patchwork/drivers/media/video/cx23885/cx23885-417.c:656: multiple definition of `mc417_gpio_enable'
+drivers/media/video/cx231xx/built-in.o:/home/v4l/v4l/patchwork/drivers/media/video/cx231xx/cx231xx-417.c:635: first defined here
+drivers/media/video/cx23885/built-in.o: In function `mc417_memory_read':
+/home/v4l/v4l/patchwork/drivers/media/video/cx23885/cx23885-417.c:546: multiple definition of `mc417_memory_read'
+drivers/media/video/cx231xx/built-in.o:/home/v4l/v4l/patchwork/drivers/media/video/cx231xx/cx231xx-417.c:541: first defined here
+drivers/media/video/cx23885/built-in.o: In function `mc417_gpio_clear':
+/home/v4l/v4l/patchwork/drivers/media/video/cx23885/cx23885-417.c:646: multiple definition of `mc417_gpio_clear'
+drivers/media/video/cx231xx/built-in.o:/home/v4l/v4l/patchwork/drivers/media/video/cx231xx/cx231xx-417.c:625: first defined here
+drivers/media/video/cx23885/built-in.o: In function `mc417_register_read':
+/home/v4l/v4l/patchwork/drivers/media/video/cx23885/cx23885-417.c:388: multiple definition of `mc417_register_read'
+drivers/media/video/cx231xx/built-in.o:/home/v4l/v4l/patchwork/drivers/media/video/cx231xx/cx231xx-417.c:401: first defined here
+drivers/media/video/cx23885/built-in.o: In function `mc417_register_write':
+/home/v4l/v4l/patchwork/drivers/media/video/cx23885/cx23885-417.c:324: multiple definition of `mc417_register_write'
+drivers/media/video/cx231xx/built-in.o:/home/v4l/v4l/patchwork/drivers/media/video/cx231xx/cx231xx-417.c:343: first defined here
 
-The following functions are added to the drivers:
-    - vpif_g_chip_ident
-    - vpif_dbg_g_register
-    - vpif_dbg_s_register
-    - vpif_log_status
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Signed-off-by: Mats Randgaard <mats.randgaard@tandberg.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@tandberg.com>
-Acked-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- drivers/media/video/davinci/vpif_capture.c |   83 +++++++++++++++++++++++++++
- drivers/media/video/davinci/vpif_display.c |   86 ++++++++++++++++++++++++++++
- 2 files changed, 169 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
-index 6ac6acd..3b5c98b 100644
---- a/drivers/media/video/davinci/vpif_capture.c
-+++ b/drivers/media/video/davinci/vpif_capture.c
-@@ -37,6 +37,7 @@
- #include <linux/slab.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
-+#include <media/v4l2-chip-ident.h>
+diff --git a/drivers/media/video/cx231xx/cx231xx-417.c b/drivers/media/video/cx231xx/cx231xx-417.c
+index b5b6998..2dbad82 100644
+--- a/drivers/media/video/cx231xx/cx231xx-417.c
++++ b/drivers/media/video/cx231xx/cx231xx-417.c
+@@ -296,7 +296,7 @@ enum cx231xx_mute_video_shift {
  
- #include "vpif_capture.h"
- #include "vpif.h"
-@@ -1807,6 +1808,82 @@ static int vpif_cropcap(struct file *file, void *priv,
+ 
+ #define CX23417_GPIO_MASK 0xFC0003FF
+-int setITVCReg(struct cx231xx *dev, u32 gpio_direction, u32 value)
++static int setITVCReg(struct cx231xx *dev, u32 gpio_direction, u32 value)
+ {
+ 	int status = 0;
+ 	u32 _gpio_direction = 0;
+@@ -307,7 +307,7 @@ int setITVCReg(struct cx231xx *dev, u32 gpio_direction, u32 value)
+ 			 (u8 *)&value, 4, 0, 0);
+ 	return status;
+ }
+-int getITVCReg(struct cx231xx *dev, u32 gpio_direction, u32 *pValue)
++static int getITVCReg(struct cx231xx *dev, u32 gpio_direction, u32 *pValue)
+ {
+ 	int status = 0;
+ 	u32 _gpio_direction = 0;
+@@ -319,7 +319,8 @@ int getITVCReg(struct cx231xx *dev, u32 gpio_direction, u32 *pValue)
+ 		 (u8 *)pValue, 4, 0, 1);
+ 	return status;
+ }
+-int waitForMciComplete(struct cx231xx *dev)
++
++static int waitForMciComplete(struct cx231xx *dev)
+ {
+ 	u32 gpio;
+ 	u32 gpio_driection = 0;
+@@ -339,7 +340,7 @@ int waitForMciComplete(struct cx231xx *dev)
  	return 0;
  }
  
-+/*
-+ * vpif_g_chip_ident() - Identify the chip
-+ * @file: file ptr
-+ * @priv: file handle
-+ * @chip: chip identity
-+ *
-+ * Returns zero or -EINVAL if read operations fails.
-+ */
-+static int vpif_g_chip_ident(struct file *file, void *priv,
-+		struct v4l2_dbg_chip_ident *chip)
-+{
-+	chip->ident = V4L2_IDENT_NONE;
-+	chip->revision = 0;
-+	if (chip->match.type != V4L2_CHIP_MATCH_I2C_DRIVER &&
-+			chip->match.type != V4L2_CHIP_MATCH_I2C_ADDR) {
-+		vpif_dbg(2, debug, "match_type is invalid.\n");
-+		return -EINVAL;
-+	}
-+
-+	return v4l2_device_call_until_err(&vpif_obj.v4l2_dev, 0, core,
-+			g_chip_ident, chip);
-+}
-+
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+/*
-+ * vpif_dbg_g_register() - Read register
-+ * @file: file ptr
-+ * @priv: file handle
-+ * @reg: register to be read
-+ *
-+ * Debugging only
-+ * Returns zero or -EINVAL if read operations fails.
-+ */
-+static int vpif_dbg_g_register(struct file *file, void *priv,
-+		struct v4l2_dbg_register *reg){
-+	struct vpif_fh *fh = priv;
-+	struct channel_obj *ch = fh->channel;
-+
-+	return v4l2_subdev_call(vpif_obj.sd[ch->curr_sd_index], core,
-+			g_register, reg);
-+}
-+
-+/*
-+ * vpif_dbg_s_register() - Write to register
-+ * @file: file ptr
-+ * @priv: file handle
-+ * @reg: register to be modified
-+ *
-+ * Debugging only
-+ * Returns zero or -EINVAL if write operations fails.
-+ */
-+static int vpif_dbg_s_register(struct file *file, void *priv,
-+		struct v4l2_dbg_register *reg){
-+	struct vpif_fh *fh = priv;
-+	struct channel_obj *ch = fh->channel;
-+
-+	return v4l2_subdev_call(vpif_obj.sd[ch->curr_sd_index], core,
-+			s_register, reg);
-+}
-+#endif
-+
-+/*
-+ * vpif_log_status() - Status information
-+ * @file: file ptr
-+ * @priv: file handle
-+ *
-+ * Returns zero.
-+ */
-+static int vpif_log_status(struct file *filep, void *priv)
-+{
-+	/* status for sub devices */
-+	v4l2_device_call_all(&vpif_obj.v4l2_dev, 0, core, log_status);
-+
-+	return 0;
-+}
-+
- /* vpif capture ioctl operations */
- static const struct v4l2_ioctl_ops vpif_ioctl_ops = {
- 	.vidioc_querycap        	= vpif_querycap,
-@@ -1829,6 +1906,12 @@ static const struct v4l2_ioctl_ops vpif_ioctl_ops = {
- 	.vidioc_streamon        	= vpif_streamon,
- 	.vidioc_streamoff       	= vpif_streamoff,
- 	.vidioc_cropcap         	= vpif_cropcap,
-+	.vidioc_g_chip_ident		= vpif_g_chip_ident,
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+	.vidioc_g_register		= vpif_dbg_g_register,
-+	.vidioc_s_register		= vpif_dbg_s_register,
-+#endif
-+	.vidioc_log_status		= vpif_log_status,
- };
- 
- /* vpif file operations */
-diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
-index 685f6a6..57b206c 100644
---- a/drivers/media/video/davinci/vpif_display.c
-+++ b/drivers/media/video/davinci/vpif_display.c
-@@ -38,6 +38,7 @@
- #include <media/adv7343.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
-+#include <media/v4l2-chip-ident.h>
- 
- #include <mach/dm646x.h>
- 
-@@ -1315,6 +1316,85 @@ static int vpif_s_priority(struct file *file, void *priv, enum v4l2_priority p)
- 	return v4l2_prio_change(&ch->prio, &fh->prio, p);
+-int mc417_register_write(struct cx231xx *dev, u16 address, u32 value)
++static int mc417_register_write(struct cx231xx *dev, u16 address, u32 value)
+ {
+ 	u32 temp;
+ 	int status = 0;
+@@ -397,7 +398,7 @@ int mc417_register_write(struct cx231xx *dev, u16 address, u32 value)
+ 	return waitForMciComplete(dev);
  }
  
-+
-+/*
-+ * vpif_g_chip_ident() - Identify the chip
-+ * @file: file ptr
-+ * @priv: file handle
-+ * @chip: chip identity
-+ *
-+ * Returns zero or -EINVAL if read operations fails.
-+ */
-+static int vpif_g_chip_ident(struct file *file, void *priv,
-+		struct v4l2_dbg_chip_ident *chip)
-+{
-+	chip->ident = V4L2_IDENT_NONE;
-+	chip->revision = 0;
-+	if (chip->match.type != V4L2_CHIP_MATCH_I2C_DRIVER &&
-+			chip->match.type != V4L2_CHIP_MATCH_I2C_ADDR) {
-+		vpif_dbg(2, debug, "match_type is invalid.\n");
-+		return -EINVAL;
-+	}
-+
-+	return v4l2_device_call_until_err(&vpif_obj.v4l2_dev, 0, core,
-+			g_chip_ident, chip);
-+}
-+
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+/*
-+ * vpif_dbg_g_register() - Read register
-+ * @file: file ptr
-+ * @priv: file handle
-+ * @reg: register to be read
-+ *
-+ * Debugging only
-+ * Returns zero or -EINVAL if read operations fails.
-+ */
-+static int vpif_dbg_g_register(struct file *file, void *priv,
-+		struct v4l2_dbg_register *reg){
-+	struct vpif_fh *fh = priv;
-+	struct channel_obj *ch = fh->channel;
-+	struct video_obj *vid_ch = &ch->video;
-+
-+	return v4l2_subdev_call(vpif_obj.sd[vid_ch->output_id], core,
-+			g_register, reg);
-+}
-+
-+/*
-+ * vpif_dbg_s_register() - Write to register
-+ * @file: file ptr
-+ * @priv: file handle
-+ * @reg: register to be modified
-+ *
-+ * Debugging only
-+ * Returns zero or -EINVAL if write operations fails.
-+ */
-+static int vpif_dbg_s_register(struct file *file, void *priv,
-+		struct v4l2_dbg_register *reg){
-+	struct vpif_fh *fh = priv;
-+	struct channel_obj *ch = fh->channel;
-+	struct video_obj *vid_ch = &ch->video;
-+
-+	return v4l2_subdev_call(vpif_obj.sd[vid_ch->output_id], core,
-+			s_register, reg);
-+}
-+#endif
-+
-+/*
-+ * vpif_log_status() - Status information
-+ * @file: file ptr
-+ * @priv: file handle
-+ *
-+ * Returns zero.
-+ */
-+static int vpif_log_status(struct file *filep, void *priv)
-+{
-+	/* status for sub devices */
-+	v4l2_device_call_all(&vpif_obj.v4l2_dev, 0, core, log_status);
-+
-+	return 0;
-+}
-+
- /* vpif display ioctl operations */
- static const struct v4l2_ioctl_ops vpif_ioctl_ops = {
- 	.vidioc_querycap        	= vpif_querycap,
-@@ -1336,6 +1416,12 @@ static const struct v4l2_ioctl_ops vpif_ioctl_ops = {
- 	.vidioc_s_output		= vpif_s_output,
- 	.vidioc_g_output		= vpif_g_output,
- 	.vidioc_cropcap         	= vpif_cropcap,
-+	.vidioc_g_chip_ident		= vpif_g_chip_ident,
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+	.vidioc_g_register		= vpif_dbg_g_register,
-+	.vidioc_s_register		= vpif_dbg_s_register,
-+#endif
-+	.vidioc_log_status		= vpif_log_status,
- };
+-int mc417_register_read(struct cx231xx *dev, u16 address, u32 *value)
++static int mc417_register_read(struct cx231xx *dev, u16 address, u32 *value)
+ {
+ 	/*write address byte 0;*/
+ 	u32 temp;
+@@ -473,7 +474,7 @@ int mc417_register_read(struct cx231xx *dev, u16 address, u32 *value)
+ 	return ret;
+ }
  
- static const struct v4l2_file_operations vpif_fops = {
+-int mc417_memory_write(struct cx231xx *dev, u32 address, u32 value)
++static int mc417_memory_write(struct cx231xx *dev, u32 address, u32 value)
+ {
+ 	/*write data byte 0;*/
+ 
+@@ -537,7 +538,7 @@ int mc417_memory_write(struct cx231xx *dev, u32 address, u32 value)
+ 	return 0;
+ }
+ 
+-int mc417_memory_read(struct cx231xx *dev, u32 address, u32 *value)
++static int mc417_memory_read(struct cx231xx *dev, u32 address, u32 *value)
+ {
+ 	u32 temp = 0;
+ 	u32 return_value = 0;
+@@ -611,7 +612,7 @@ int mc417_memory_read(struct cx231xx *dev, u32 address, u32 *value)
+ 	return ret;
+ }
+ 
+-void mc417_gpio_set(struct cx231xx *dev, u32 mask)
++static void mc417_gpio_set(struct cx231xx *dev, u32 mask)
+ {
+ 	u32 val;
+ 
+@@ -621,7 +622,7 @@ void mc417_gpio_set(struct cx231xx *dev, u32 mask)
+ 	mc417_register_write(dev, 0x900C, val);
+ }
+ 
+-void mc417_gpio_clear(struct cx231xx *dev, u32 mask)
++static void mc417_gpio_clear(struct cx231xx *dev, u32 mask)
+ {
+ 	u32 val;
+ 
+@@ -631,7 +632,7 @@ void mc417_gpio_clear(struct cx231xx *dev, u32 mask)
+ 	mc417_register_write(dev, 0x900C, val);
+ }
+ 
+-void mc417_gpio_enable(struct cx231xx *dev, u32 mask, int asoutput)
++static void mc417_gpio_enable(struct cx231xx *dev, u32 mask, int asoutput)
+ {
+ 	u32 val;
+ 
+@@ -873,7 +874,8 @@ static int cx231xx_find_mailbox(struct cx231xx *dev)
+ 	dprintk(3, "Mailbox signature values not found!\n");
+ 	return -1;
+ }
+-void mciWriteMemoryToGPIO(struct cx231xx *dev, u32 address, u32 value,
++
++static void mciWriteMemoryToGPIO(struct cx231xx *dev, u32 address, u32 value,
+ 		u32 *p_fw_image)
+ {
+ 
+@@ -1095,7 +1097,7 @@ static int cx231xx_load_firmware(struct cx231xx *dev)
+ 	return 0;
+ }
+ 
+-void cx231xx_417_check_encoder(struct cx231xx *dev)
++static void cx231xx_417_check_encoder(struct cx231xx *dev)
+ {
+ 	u32 status, seq;
+ 
+@@ -1272,7 +1274,7 @@ static void free_buffer(struct videobuf_queue *vq, struct cx231xx_buffer *buf)
+ 	buf->vb.state = VIDEOBUF_NEEDS_INIT;
+ }
+ 
+-void buffer_copy(struct cx231xx *dev, char *data, int len, struct urb *urb,
++static void buffer_copy(struct cx231xx *dev, char *data, int len, struct urb *urb,
+ 		struct cx231xx_dmaqueue *dma_q)
+ {
+ 		void *vbuf;
+@@ -1334,7 +1336,7 @@ void buffer_copy(struct cx231xx *dev, char *data, int len, struct urb *urb,
+ 	    return;
+ }
+ 
+-void buffer_filled(char *data, int len, struct urb *urb,
++static void buffer_filled(char *data, int len, struct urb *urb,
+ 		struct cx231xx_dmaqueue *dma_q)
+ {
+ 		void *vbuf;
 -- 
 1.7.1
+
 
