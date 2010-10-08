@@ -1,106 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43789 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753035Ab0JOJEn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Oct 2010 05:04:43 -0400
-Date: Fri, 15 Oct 2010 02:05:26 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Valdis.Kletnieks@vt.edu,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: mmotm 2010-10-13 - GSPCA SPCA561 webcam driver broken
-Message-Id: <20101015020526.1819545f.akpm@linux-foundation.org>
-In-Reply-To: <201010151045.45630.hverkuil@xs4all.nl>
-References: <201010140044.o9E0iuR3029069@imap1.linux-foundation.org>
-	<5158.1287086789@localhost>
-	<201010151045.45630.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:59579 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753524Ab0JHAb4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Oct 2010 20:31:56 -0400
+Message-ID: <4CAE6677.3070906@redhat.com>
+Date: Thu, 07 Oct 2010 21:31:51 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Srinivasa.Deevi@conexant.com, Palash.Bandyopadhyay@conexant.com,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 01/10] V4L/DVB: cx231xx: remove a printk warning at -avcore
+ and at -417
+References: <cover.1285699057.git.mchehab@redhat.com>	<20100928154653.785c1f3f@pedra>	<4CAE4020.4000209@redhat.com> <AANLkTimVNUo1UkZQabHnQYZ+=LQGHUhGbaU9Fcot65EE@mail.gmail.com>
+In-Reply-To: <AANLkTimVNUo1UkZQabHnQYZ+=LQGHUhGbaU9Fcot65EE@mail.gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, 15 Oct 2010 10:45:45 +0200 Hans Verkuil <hverkuil@xs4all.nl> wrote:
+Em 07-10-2010 19:04, Devin Heitmueller escreveu:
+> On Thu, Oct 7, 2010 at 5:48 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> Em 28-09-2010 15:46, Mauro Carvalho Chehab escreveu:
+>>> drivers/media/video/cx231xx/cx231xx-avcore.c:1608: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘long unsigned int’
+>>> drivers/media/video/cx231xx/cx231xx-417.c:1047: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘size_t’
+>>>
+>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>
+>> OK, I just updated my tree with the patches that Mkrufky acked.
+>> It basically contains the same patches from my previous post, plus
+>> the patches that Palash sent, and Devin/Mkrufky patches from polaris4
+>> tree, rebased over the top of kernel v2.6.36-rc7 (this makes easier
+>> for me to test and to merge).
+>>
+>> The patches are at:
+>>        http://git.linuxtv.org/mchehab/cx231xx.git
+>>
+>> Sri already sent his ack for the first series of the patches.
+>>
+>> The tree contains two extra patches:
+>>
+>> 1) a cx231xx large CodingStyle fix patch:
+>>        http://git.linuxtv.org/mchehab/cx231xx.git?a=commit;h=eacd1a7749ae45d1f2f5782c013b863ff480746d
+>>
+>> It basically solves the issues that checkpatch.pl complained on this series of patches;
+>>
+>> 2) a cx231xx-417 gcc warning fix:
+>>        http://git.linuxtv.org/mchehab/cx231xx.git?a=commit;h=ca3a6a8c2a4819702e93b9612c4a6d90474ea9b5
+>>
+>> Devin,
+>>
+>> Would it be ok for you if I merge them on my main tree? They're needed for one
+>> board I'm working with (a Pixelview SBTVD Hybrid - that supports both analog
+>> and full-seg ISDB-T).
+> 
+> Yeah, I've got additional fixes which aren't on that tree yet, but I
+> don't see any reason why what's there cannot be merged.
 
-> On Thursday, October 14, 2010 22:06:29 Valdis.Kletnieks@vt.edu wrote:
-> > On Wed, 13 Oct 2010 17:13:25 PDT, akpm@linux-foundation.org said:
-> > > The mm-of-the-moment snapshot 2010-10-13-17-13 has been uploaded to
-> > > 
-> > >    http://userweb.kernel.org/~akpm/mmotm/
-> > 
-> > This broke my webcam.  I bisected it down to this commit, and things
-> > work again after reverting the 2 code lines of change.
-> > 
-> > commit 9e4d79a98ebd857ec729f5fa8f432f35def4d0da
-> > Author: Hans Verkuil <hverkuil@xs4all.nl>
-> > Date:   Sun Sep 26 08:16:56 2010 -0300
-> > 
-> >     V4L/DVB: v4l2-dev: after a disconnect any ioctl call will be blocked
-> >     
-> >     Until now all fops except release and (unlocked_)ioctl returned an error
-> >     after the device node was unregistered. Extend this as well to the ioctl
-> >     fops. There is nothing useful that an application can do here and it
-> >     complicates the driver code unnecessarily.
-> >     
-> >     Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
-> >     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> > 
-> > 
-> > diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-> > index d4a3532..f069c61 100644
-> > --- a/drivers/media/video/v4l2-dev.c
-> > +++ b/drivers/media/video/v4l2-dev.c
-> > @@ -221,8 +221,8 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, 
-> >         struct video_device *vdev = video_devdata(filp);
-> >         int ret;
-> >  
-> > -       /* Allow ioctl to continue even if the device was unregistered.
-> > -          Things like dequeueing buffers might still be useful. */
-> > +       if (!vdev->fops->ioctl)
-> > +               return -ENOTTY;
-> >         if (vdev->fops->unlocked_ioctl) {
-> >                 ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
-> >         } else if (vdev->fops->ioctl) {
-> > 
-> > I suspect this doesn't do what's intended if a driver is using ->unlocked_ioctl
-> > rather than ->ioctl, and it should be reverted - it only saves at most one
-> > if statement.
-> > 
-> > 
-> 
-> I'm not sure what is going on here. It looks like this patch is mangled in your
-> tree since the same patch in the v4l-dvb repository looks like this:
-> 
-> diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c                                                         
-> index 32575a6..26d39c4 100644                                                                                                        
-> --- a/drivers/media/video/v4l2-dev.c                                                                                                 
-> +++ b/drivers/media/video/v4l2-dev.c                                                                                                 
-> @@ -222,8 +222,8 @@ static int v4l2_ioctl(struct inode *inode, struct file *filp,                                                    
->                                                                                                                                      
->         if (!vdev->fops->ioctl)                                                                                                      
->                 return -ENOTTY;                                                                                                      
-> -       /* Allow ioctl to continue even if the device was unregistered.                                                              
-> -          Things like dequeueing buffers might still be useful. */
-> +       if (!video_is_registered(vdev))
-> +               return -ENODEV;
->         return vdev->fops->ioctl(filp, cmd, arg);
->  }
->  
-> @@ -234,8 +234,8 @@ static long v4l2_unlocked_ioctl(struct file *filp,
->  
->         if (!vdev->fops->unlocked_ioctl)
->                 return -ENOTTY;
-> -       /* Allow ioctl to continue even if the device was unregistered.
-> -          Things like dequeueing buffers might still be useful. */
-> +       if (!video_is_registered(vdev))
-> +               return -ENODEV;
->         return vdev->fops->unlocked_ioctl(filp, cmd, arg);
->  }
-> 
-> In your diff there is a mismatch between ioctl and unlocked_ioctl which no doubt
-> is causing all the problems for you.
+Applied, thanks! Thanks to the compilation tests I do here, I discovered some
+duplicated symbols between cx23885 and cx231xx-417. I just fixed the errors.
+Patches were post to the ML and were also applied to the tree, to avoid compilation
+breakages.
 
-The patch which Valdis quoted is what is in linux-next.  I'm not
-at which stage the mangling happened?
+Cheers,
+Mauro.
