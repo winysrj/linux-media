@@ -1,65 +1,30 @@
 Return-path: <mchehab@pedra>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:38489 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753832Ab0JPTSV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Oct 2010 15:18:21 -0400
-Received: by pzk33 with SMTP id 33so274223pzk.19
-        for <linux-media@vger.kernel.org>; Sat, 16 Oct 2010 12:18:20 -0700 (PDT)
-Message-ID: <4CB9FA77.3000501@gmail.com>
-Date: Sat, 16 Oct 2010 12:18:15 -0700
-From: "D. K." <user.vdr@gmail.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:47921 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760036Ab0JIBcN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Oct 2010 21:32:13 -0400
+Received: by iwn6 with SMTP id 6so977337iwn.19
+        for <linux-media@vger.kernel.org>; Fri, 08 Oct 2010 18:32:13 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: alannisota@gmail.com
-Subject: [PATCH] dvb-usb-gp8psk: Fix driver name
-Content-Type: multipart/mixed;
- boundary="------------010307090100040305090605"
+Date: Fri, 8 Oct 2010 22:32:12 -0300
+Message-ID: <AANLkTinAUB7WBst5h9em99AXrO0eotHMegYztr1ihZNo@mail.gmail.com>
+Subject: hg slow commit
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: dougsland@gmail.com, Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This is a multi-part message in MIME format.
---------------010307090100040305090605
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Hello everyone,
 
- This patch updates the name of the dvb-usb-gp8psk driver
-from "Genpix 8psk-to-USB2 DVB-S" to "Genpix DVB-S".
-The old name doesn't reflect newer devices such as the
-Skywalker line which also user this driver.
+        Most of you should asking yourself why the hg commit are very slow.
+Unfortunately, I had a business trip (out of my country) in the last 3
+weeks. Now, I am back
+and I will restart the commits and read all my emails. If you guys
+want to help me or
+have free time to do this, please let me know. Sorry for the inconvenient.
 
-Signed-off-by: Derek Kelly <user.vdr@gmail.com <mailto:user.vdr@gmail.com>>
-
-
---------------010307090100040305090605
-Content-Type: text/plain;
- name="gp8psk-fix_driver_name.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="gp8psk-fix_driver_name.diff"
-
-diff -pruN v4l-dvb.orig/drivers/media/dvb/dvb-usb/gp8psk-fe.c v4l-dvb/drivers/media/dvb/dvb-usb/gp8psk-fe.c
---- v4l-dvb.orig/drivers/media/dvb/dvb-usb/gp8psk-fe.c	2010-10-16 09:10:18.000000000 -0700
-+++ v4l-dvb/drivers/media/dvb/dvb-usb/gp8psk-fe.c	2010-10-16 11:57:57.000000000 -0700
-@@ -334,7 +334,7 @@ success:
- 
- static struct dvb_frontend_ops gp8psk_fe_ops = {
- 	.info = {
--		.name			= "Genpix 8psk-to-USB2 DVB-S",
-+		.name			= "Genpix DVB-S",
- 		.type			= FE_QPSK,
- 		.frequency_min		= 800000,
- 		.frequency_max		= 2250000,
-diff -pruN v4l-dvb.orig/drivers/media/dvb/dvb-usb/gp8psk.c v4l-dvb/drivers/media/dvb/dvb-usb/gp8psk.c
---- v4l-dvb.orig/drivers/media/dvb/dvb-usb/gp8psk.c	2010-10-16 09:10:17.000000000 -0700
-+++ v4l-dvb/drivers/media/dvb/dvb-usb/gp8psk.c	2010-10-16 11:58:36.000000000 -0700
-@@ -306,6 +311,6 @@ module_init(gp8psk_usb_module_init);
- module_exit(gp8psk_usb_module_exit);
- 
- MODULE_AUTHOR("Alan Nisota <alannisota@gamil.com>");
--MODULE_DESCRIPTION("Driver for Genpix 8psk-to-USB2 DVB-S");
-+MODULE_DESCRIPTION("Driver for Genpix DVB-S");
- MODULE_VERSION("1.1");
- MODULE_LICENSE("GPL");
-
---------------010307090100040305090605--
+Cheers
+Douglas
