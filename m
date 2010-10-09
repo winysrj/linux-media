@@ -1,32 +1,39 @@
 Return-path: <mchehab@pedra>
-Received: from tex.lwn.net ([70.33.254.29]:42004 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932797Ab0JHVOX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Oct 2010 17:14:23 -0400
-Date: Fri, 8 Oct 2010 15:14:21 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Daniel Drake <dsd@laptop.org>
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/3] ov7670: Support customization of clock speed
-Message-ID: <20101008151421.6d2b9280@bike.lwn.net>
-In-Reply-To: <20101008210433.126649D401B@zog.reactivated.net>
-References: <20101008210433.126649D401B@zog.reactivated.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:50834 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755550Ab0JIPkc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Oct 2010 11:40:32 -0400
+Received: by ewy20 with SMTP id 20so71855ewy.19
+        for <linux-media@vger.kernel.org>; Sat, 09 Oct 2010 08:40:31 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4CB088DA.60508@redhat.com>
+References: <4CB088DA.60508@redhat.com>
+Date: Sat, 9 Oct 2010 11:40:31 -0400
+Message-ID: <AANLkTi=gH10h5L1jpbWMUDBWbuVWRfEqVgPpzSazvMYs@mail.gmail.com>
+Subject: Re: V4L/DVB: cx231xx: Colibri carrier offset was wrong for PAL/M
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: "linux-me >> Linux Media Mailing List" <linux-media@vger.kernel.org>,
+	Sri Deevi <Srinivasa.Deevi@conexant.com>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri,  8 Oct 2010 22:04:32 +0100 (BST)
-Daniel Drake <dsd@laptop.org> wrote:
+On Sat, Oct 9, 2010 at 11:23 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> cx231xx: Colibri carrier offset was wrong for PAL/M
+>
+> The carrier offset check at cx231xx is incomplete. I got here one concrete case
+> where it is broken: if PAL/M is used (and this is the default for Pixelview SBTVD),
+> the routine will return zero, and the device will be programmed incorrectly,
+> producing a bad image. A workaround were to change to NTSC and back to PAL/M,
+> but the better is to just fix the code ;)
 
-> Add a module parameter so that the user can specify this information.
-> And add DMI detection for appropriate clock speeds on the OLPC XO-1 and
-> XO-1.5 laptops. If specified, the module parameter wins over whatever we
-> might have set through the DMI table.
+Thanks for spotting this.  I've been focusing entirely on NTSC, so any
+such fixes for other standards are very welcome.
 
-This certainly seems better than my hack.
+Devin
 
-Acked-by: Jonathan Corbet <corbet@lwn.net>
-
-jon
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
