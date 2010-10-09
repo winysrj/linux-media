@@ -1,64 +1,41 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:52081 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S932447Ab0J0Vhi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Oct 2010 17:37:38 -0400
-Date: Wed, 27 Oct 2010 23:37:33 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Baruch Siach <baruch@tkos.co.il>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sascha Hauer <kernel@pengutronix.de>
-Subject: Re: [PATCH] mx2_camera: fix pixel clock polarity configuration
-In-Reply-To: <a54ec7e539912fd6009803cffa331b028fdb9a67.1288162873.git.baruch@tkos.co.il>
-Message-ID: <Pine.LNX.4.64.1010272336290.13615@axis700.grange>
-References: <a54ec7e539912fd6009803cffa331b028fdb9a67.1288162873.git.baruch@tkos.co.il>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:63369 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757136Ab0JIUjC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Oct 2010 16:39:02 -0400
+Received: by qwf7 with SMTP id 7so1221795qwf.19
+        for <linux-media@vger.kernel.org>; Sat, 09 Oct 2010 13:39:01 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Date: Sat, 9 Oct 2010 21:39:01 +0100
+Message-ID: <AANLkTim-hnYn-17OanxDFie_vgygo8=0rX=akXoapP4j@mail.gmail.com>
+Subject: Ngene - Terratec Cinergy 2400i
+From: Si Jones <sijones2010@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 27 Oct 2010, Baruch Siach wrote:
+Hi,
 
-> When SOCAM_PCLK_SAMPLE_FALLING, just leave CSICR1_REDGE unset, otherwise we get
-> the inverted behaviour.
+Around Christmas last year I asked about the ngene drivers supporting
+my card, Terratec Cinergy 2400i, this was said would be done but since
+I haven't seen any support as of recently.
 
-Seems logical to me, that if this is true, then you need the inverse:
+I have checked the kernellabs website as they said they were going to
+alter the driver into a main stream one etc but that doesn't seem to
+have any support or indicated that it will be supported.
 
-	if (!(common_flags & SOCAM_PCLK_SAMPLE_FALLING))
-		csicr1 |= CSICR1_INV_PCLK;
+I did manage to alter the open sourced driver to get it to work with
+my card by enabling functions etc that had been commented out but am
+now stuck as I can' upgade my kernel or anything because it will prob
+break the interfaces etc.
 
-Thanks
-Guennadi
+So it would be great if someone could say if my card will be added, am
+willing to test etc, but i dont know enough to be able to patch the
+support in myself otherwise i would gladly do  it!...
 
-> 
-> Signed-off-by: Baruch Siach <baruch@tkos.co.il>
-> ---
->  drivers/media/video/mx2_camera.c |    2 --
->  1 files changed, 0 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-> index 3ea2ec0..02f144f 100644
-> --- a/drivers/media/video/mx2_camera.c
-> +++ b/drivers/media/video/mx2_camera.c
-> @@ -811,8 +811,6 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd,
->  
->  	if (common_flags & SOCAM_PCLK_SAMPLE_RISING)
->  		csicr1 |= CSICR1_REDGE;
-> -	if (common_flags & SOCAM_PCLK_SAMPLE_FALLING)
-> -		csicr1 |= CSICR1_INV_PCLK;
->  	if (common_flags & SOCAM_VSYNC_ACTIVE_HIGH)
->  		csicr1 |= CSICR1_SOF_POL;
->  	if (common_flags & SOCAM_HSYNC_ACTIVE_HIGH)
-> -- 
-> 1.7.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Anyway, any ideas would be great!
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Thanks,
+
+Simon
