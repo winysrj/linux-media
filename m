@@ -1,97 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:37558 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752362Ab0JPCjA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Oct 2010 22:39:00 -0400
-Message-ID: <4CB9103E.6020104@redhat.com>
-Date: Fri, 15 Oct 2010 23:38:54 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from cnxtsmtp1.conexant.com ([198.62.9.252]:37437 "EHLO
+	Cnxtsmtp1.conexant.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754168Ab0JIRSA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Oct 2010 13:18:00 -0400
+Received: from cps (nbwsmx2.bbnet.ad [157.152.183.212]) (using TLSv1 with cipher RC4-MD5 (128/128
+ bits)) (No client certificate requested) by Cnxtsmtp1.conexant.com (Tumbleweed MailGate 3.7.1) with
+ ESMTP id 23C01123A28 for <linux-media@vger.kernel.org>; Sat, 9 Oct 2010 10:00:36 -0700 (PDT)
+From: "Sri Deevi" <Srinivasa.Deevi@conexant.com>
+To: "Devin Heitmueller" <dheitmueller@kernellabs.com>,
+	"Mauro Carvalho Chehab" <mchehab@redhat.com>
+cc: "linux-me >> Linux Media Mailing List" <linux-media@vger.kernel.org>
+Date: Sat, 9 Oct 2010 10:00:01 -0700
+Subject: RE: V4L/DVB: cx231xx: Colibri carrier offset was wrong for PAL/M
+Message-ID: <34B38BE41EDBA046A4AFBB591FA311320247623BB6@NBMBX01.bbnet.ad>
+References: <4CB088DA.60508@redhat.com>,<AANLkTi=gH10h5L1jpbWMUDBWbuVWRfEqVgPpzSazvMYs@mail.gmail.com>
+In-Reply-To: <AANLkTi=gH10h5L1jpbWMUDBWbuVWRfEqVgPpzSazvMYs@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain;
+ charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Catimimi <catimimi@libertysurf.fr>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Terratec Cinergy Hybrid T USB XS FR
-References: <4CAA2BE6.1050302@libertysurf.fr>
-In-Reply-To: <4CAA2BE6.1050302@libertysurf.fr>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 04-10-2010 16:32, Catimimi escreveu:
->  New gpio definitions.
-> XC3028_FE_ZARLINK456 was not loaded.
-> 
-> Signed-off-by: Michel Garnier<catimimi@libertysurf.fr>
-> 
-> ---
-> 
-> diff -Nru v4l-dvb-1da5fed5c8b2-orig/linux/drivers/media/video/em28xx/em28xx-cards.c v4l-dvb-1da5fed5c8b2-new/linux/drivers/media/video/em28xx/em28xx-cards.c
-> --- v4l-dvb-1da5fed5c8b2-orig/linux/drivers/media/video/em28xx/em28xx-cards.c    2010-09-19 07:23:09.000000000 +0200
-> +++ v4l-dvb-1da5fed5c8b2-new/linux/drivers/media/video/em28xx/em28xx-cards.c    2010-10-04 19:05:11.000000000 +0200
-> @@ -200,6 +200,18 @@
->      {    -1,        -1,    -1,        -1},
->  };
-> 
-> +static struct em28xx_reg_seq terratec_cinergy_USB_XS_analog[] = {
-> +    {EM28XX_R08_GPIO,    0x6d,    ~EM_GPIO_4,    10},
-> +    {EM2880_R04_GPO,    0x00,    0xff,        10},
-> +    { -1,            -1,    -1,        -1},
-> +};
-> +
-> +static struct em28xx_reg_seq terratec_cinergy_USB_XS_digital[] = {
-> +    {EM28XX_R08_GPIO,    0x6e,    ~EM_GPIO_4,    10},
-> +    {EM2880_R04_GPO,    0x08,    0xff,        10},
-> +    { -1,            -1,    -1,        -1},
-> +};
-> +
->  /* eb1a:2868 Reddo DVB-C USB TV Box
->     GPIO4 - CU1216L NIM
->     Other GPIOs seems to be don't care. */
-> @@ -824,22 +836,22 @@
->          .tuner_gpio   = default_tuner_gpio,
->          .decoder      = EM28XX_TVP5150,
->          .has_dvb      = 1,
-> -        .dvb_gpio     = default_digital,
-> +        .dvb_gpio     = terratec_cinergy_USB_XS_digital,
->          .input        = { {
->              .type     = EM28XX_VMUX_TELEVISION,
->              .vmux     = TVP5150_COMPOSITE0,
->              .amux     = EM28XX_AMUX_VIDEO,
-> -            .gpio     = default_analog,
-> +            .gpio     = terratec_cinergy_USB_XS_analog,
->          }, {
->              .type     = EM28XX_VMUX_COMPOSITE1,
->              .vmux     = TVP5150_COMPOSITE1,
->              .amux     = EM28XX_AMUX_LINE_IN,
-> -            .gpio     = default_analog,
-> +            .gpio     = terratec_cinergy_USB_XS_analog,
->          }, {
->              .type     = EM28XX_VMUX_SVIDEO,
->              .vmux     = TVP5150_SVIDEO,
->              .amux     = EM28XX_AMUX_LINE_IN,
-> -            .gpio     = default_analog,
-> +            .gpio     = terratec_cinergy_USB_XS_analog,
->          } },
->      },
->      [EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900] = {
-> @@ -2259,6 +2271,7 @@
->          ctl->demod = XC3028_FE_ZARLINK456;
->          break;
->      case EM2880_BOARD_TERRATEC_HYBRID_XS:
-> +    case EM2880_BOARD_TERRATEC_HYBRID_XS_FR:
+Good catch. OK with the fix.
 
-Hmm... do you have a different device, right? Please, don't change the entries
-of the original Hybrid XS, or it will cause a regression for the others. Instead,
-create another entry describing your board.
+Sri
+________________________________________
+From: Devin Heitmueller [dheitmueller@kernellabs.com]
+Sent: Saturday, October 09, 2010 8:40 AM
+To: Mauro Carvalho Chehab
+Cc: linux-me >> Linux Media Mailing List; Sri Deevi
+Subject: Re: V4L/DVB: cx231xx: Colibri carrier offset was wrong for PAL/M
 
-Also, please use tabs for indent. A tab in Linux have 8 spaces, and not four.
+On Sat, Oct 9, 2010 at 11:23 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> cx231xx: Colibri carrier offset was wrong for PAL/M
+>
+> The carrier offset check at cx231xx is incomplete. I got here one concrete case
+> where it is broken: if PAL/M is used (and this is the default for Pixelview SBTVD),
+> the routine will return zero, and the device will be programmed incorrectly,
+> producing a bad image. A workaround were to change to NTSC and back to PAL/M,
+> but the better is to just fix the code ;)
 
->      case EM2881_BOARD_PINNACLE_HYBRID_PRO:
->          ctl->demod = XC3028_FE_ZARLINK456;
->          break;
-> 
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks for spotting this.  I've been focusing entirely on NTSC, so any
+such fixes for other standards are very welcome.
+
+Devin
+
+--
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
+
+Conexant E-mail Firewall (Conexant.Com) made the following annotations
+---------------------------------------------------------------------
+********************** Legal Disclaimer **************************** 
+
+"This email may contain confidential and privileged material for the sole use of the intended recipient. Any unauthorized review, use or distribution by others is strictly prohibited. If you have received the message in error, please advise the sender by reply email and delete the message. Thank you." 
+
+********************************************************************** 
+
+---------------------------------------------------------------------
 
