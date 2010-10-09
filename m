@@ -1,41 +1,75 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:63369 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757136Ab0JIUjC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Oct 2010 16:39:02 -0400
-Received: by qwf7 with SMTP id 7so1221795qwf.19
-        for <linux-media@vger.kernel.org>; Sat, 09 Oct 2010 13:39:01 -0700 (PDT)
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:62441 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756067Ab0JISZ1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Oct 2010 14:25:27 -0400
+Received: by iwn6 with SMTP id 6so1647980iwn.19
+        for <linux-media@vger.kernel.org>; Sat, 09 Oct 2010 11:25:26 -0700 (PDT)
 MIME-Version: 1.0
-Date: Sat, 9 Oct 2010 21:39:01 +0100
-Message-ID: <AANLkTim-hnYn-17OanxDFie_vgygo8=0rX=akXoapP4j@mail.gmail.com>
-Subject: Ngene - Terratec Cinergy 2400i
-From: Si Jones <sijones2010@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>
+In-Reply-To: <20101008214407.GI5165@redhat.com>
+References: <20101008214407.GI5165@redhat.com>
+Date: Sat, 9 Oct 2010 14:23:15 -0400
+Message-ID: <AANLkTimezuonksK=wW1PAkW40oo-KPRMrVdoNxymK69f@mail.gmail.com>
+Subject: Re: [GIT PULL REQUEST] IR patches for 2.6.37-rc1
+From: Jarod Wilson <jarod@wilsonet.com>
+To: Jarod Wilson <jarod@redhat.com>
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+On Fri, Oct 8, 2010 at 5:44 PM, Jarod Wilson <jarod@redhat.com> wrote:
+> Hey Mauro,
+>
+> I've queued up some lirc fixes and a couple of patches that add a new
+> ir-core driver for the Nuvoton w836x7hg Super I/O integrated CIR
+> functionality. All but the Kconfig re-sorting patch have been posted to
+> linux-media for review, but I'm hoping they can all get merged in time for
+> the 2.6.37-rc1 window, and any additional review feedback can be taken
+> care of with follow-up patches.
+>
+> The following changes since commit b9a1211dff08aa73fc26db66980ec0710a6c7134:
+>
+>  V4L/DVB: Staging: cx25821: fix braces and space coding style issues (2010-10-07 15:37:27 -0300)
 
-Around Christmas last year I asked about the ngene drivers supporting
-my card, Terratec Cinergy 2400i, this was said would be done but since
-I haven't seen any support as of recently.
+Minor update to the pull req to fully wire up compat ioctls and fixup
+some error messages in lirc_dev:
 
-I have checked the kernellabs website as they said they were going to
-alter the driver into a main stream one etc but that doesn't seem to
-have any support or indicated that it will be supported.
+The following changes since commit 81d64d12e11a3cca995e6c752e4bd2898959ed0a:
 
-I did manage to alter the open sourced driver to get it to work with
-my card by enabling functions etc that had been commented out but am
-now stuck as I can' upgade my kernel or anything because it will prob
-break the interfaces etc.
+  V4L/DVB: cx231xx: remove some unused functions (2010-10-07 21:05:52 -0300)
 
-So it would be great if someone could say if my card will be added, am
-willing to test etc, but i dont know enough to be able to patch the
-support in myself otherwise i would gladly do  it!...
+are available in the git repository at:
+  git://git.kernel.org/pub/scm/linux/kernel/git/jarod/linux-2.6-lirc.git staging
 
-Anyway, any ideas would be great!
+Jarod Wilson (7):
+      IR: add driver for Nuvoton w836x7hg integrated CIR
+      nuvoton-cir: add proper rx fifo overrun handling
+      IR/Kconfig: sort hardware entries alphabetically
+      IR/lirc: further ioctl portability fixups
+      staging/lirc: ioctl portability fixups
+      lirc: wire up .compat_ioctl to main ioctl handler
+      lirc_dev: fixup error messages w/missing newlines
 
-Thanks,
+ drivers/media/IR/Kconfig             |   27 +-
+ drivers/media/IR/Makefile            |    1 +
+ drivers/media/IR/ir-lirc-codec.c     |   13 +-
+ drivers/media/IR/lirc_dev.c          |   35 +-
+ drivers/media/IR/nuvoton-cir.c       | 1237 ++++++++++++++++++++++++++++++++++
+ drivers/media/IR/nuvoton-cir.h       |  408 +++++++++++
+ drivers/staging/lirc/lirc_it87.c     |   20 +-
+ drivers/staging/lirc/lirc_ite8709.c  |    6 +-
+ drivers/staging/lirc/lirc_parallel.c |   35 +-
+ drivers/staging/lirc/lirc_serial.c   |   24 +-
+ drivers/staging/lirc/lirc_sir.c      |   24 +-
+ drivers/staging/lirc/lirc_zilog.c    |    3 +
+ include/media/lirc_dev.h             |    4 +-
+ 13 files changed, 1759 insertions(+), 78 deletions(-)
+ create mode 100644 drivers/media/IR/nuvoton-cir.c
+ create mode 100644 drivers/media/IR/nuvoton-cir.h
 
-Simon
+
+-- 
+Jarod Wilson
+jarod@wilsonet.com
