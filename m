@@ -1,72 +1,40 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:38243 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758320Ab0JFGX2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Oct 2010 02:23:28 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH/RFC v3 01/11] v4l: Move the media/v4l2-mediabus.h header to include/linux
-Date: Wed, 6 Oct 2010 08:23:34 +0200
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	linux-media@vger.kernel.org
-References: <1286288714-16506-1-git-send-email-laurent.pinchart@ideasonboard.com> <4CAB39AB.2070806@maxwell.research.nokia.com> <Pine.LNX.4.64.1010051728360.31708@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1010051728360.31708@axis700.grange>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:61682 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760140Ab0JICQY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Oct 2010 22:16:24 -0400
+Received: by iwn6 with SMTP id 6so1006162iwn.19
+        for <linux-media@vger.kernel.org>; Fri, 08 Oct 2010 19:16:24 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201010060823.35991.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <AANLkTinAUB7WBst5h9em99AXrO0eotHMegYztr1ihZNo@mail.gmail.com>
+References: <AANLkTinAUB7WBst5h9em99AXrO0eotHMegYztr1ihZNo@mail.gmail.com>
+Date: Fri, 8 Oct 2010 19:16:23 -0700
+Message-ID: <AANLkTi=rR89dXcnXuCahYW26b8EGtvpgS4JrFwK8znq9@mail.gmail.com>
+Subject: Re: hg slow commit
+From: VDR User <user.vdr@gmail.com>
+To: Douglas Schilling Landgraf <dougsland@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Guennadi,
+On Fri, Oct 8, 2010 at 6:32 PM, Douglas Schilling Landgraf
+<dougsland@gmail.com> wrote:
+> Hello everyone,
+>
+>        Most of you should asking yourself why the hg commit are very slow.
+> Unfortunately, I had a business trip (out of my country) in the last 3
+> weeks. Now, I am back
+> and I will restart the commits and read all my emails. If you guys
+> want to help me or
+> have free time to do this, please let me know. Sorry for the inconvenient.
 
-On Tuesday 05 October 2010 17:30:21 Guennadi Liakhovetski wrote:
-> On Tue, 5 Oct 2010, Sakari Ailus wrote:
-> > Laurent Pinchart wrote:
-> > > The header defines the v4l2_mbus_framefmt structure which will be used
-> > > by the V4L2 subdevs userspace API.
-> > > 
-> > > Change the type of the v4l2_mbus_framefmt::code field to __u32, as enum
-> > > sizes can differ between different ABIs on the same architectures.
-> > > 
-> > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Welcome back and thanks for the update.  I was wondering if anything
+ever happened with writing some scripts to ease the pain of all the
+backporting?
 
-[snip]
-
-> > > +/**
-> > > + * struct v4l2_mbus_framefmt - frame format on the media bus
-> > > + * @width:	frame width
-> > > + * @height:	frame height
-> > > + * @code:	data format code
-> > > + * @field:	used interlacing type
-> > > + * @colorspace:	colorspace of the data
-> > > + */
-> > > +struct v4l2_mbus_framefmt {
-> > > +	__u32				width;
-> > > +	__u32				height;
-> > > +	__u32				code;
-> > > +	enum v4l2_field			field;
-> > > +	enum v4l2_colorspace		colorspace;
-> > > +};
-> > 
-> > I think this struct would benefit from some reserved fields since it's
-> > part of the user space interface.
-> 
-> IIUC, this struct is not going to be used in ioctl()s, that's what struct
-> v4l2_subdev_mbus_code_enum is for. But in this case - why don't we make
-> the "code" field above of type "enum v4l2_mbus_pixelcode"?
-
-The v4l2_mbus_framefmt structure isn't used directly as an ioctl argument, but 
-it's embedded in the v4l2_subdev_format structure, used as an ioctl argument, 
-so its size matters.
-
-The v4l2_subdev_format structure has reserved fields right after the 
-v4l2_mbus_framefmt member so there's some room for expansion. As for the 
-enums, I've reused the ones already in use in the V4L2 API, but I can replace 
-them with __u32.
-
--- 
-Regards,
-
-Laurent Pinchart
+Cheers,
+Derek
