@@ -1,47 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:39607 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755038Ab0JUPXV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Oct 2010 11:23:21 -0400
-Received: by gxk3 with SMTP id 3so106956gxk.19
-        for <linux-media@vger.kernel.org>; Thu, 21 Oct 2010 08:23:21 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:20401 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752894Ab0JIPXM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Oct 2010 11:23:12 -0400
+Message-ID: <4CB088DA.60508@redhat.com>
+Date: Sat, 09 Oct 2010 12:23:06 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20101021120746.01ca4ef2@pedra>
-References: <cover.1287669886.git.mchehab@redhat.com>
-	<20101021120746.01ca4ef2@pedra>
-Date: Thu, 21 Oct 2010 11:23:20 -0400
-Message-ID: <AANLkTikT8aLi7uTc6-wGwcJsoL64y7Wv3iLcUetx642R@mail.gmail.com>
-Subject: Re: [PATCH 2/4] [media] ir-raw-event: Fix a stupid error at a printk
-From: Jarod Wilson <jarod@wilsonet.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+To: "linux-me >> Linux Media Mailing List" <linux-media@vger.kernel.org>
+CC: Sri Deevi <Srinivasa.Deevi@conexant.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: V4L/DVB: cx231xx: Colibri carrier offset was wrong for PAL/M
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Oct 21, 2010 at 10:07 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->
-> diff --git a/drivers/media/IR/ir-raw-event.c b/drivers/media/IR/ir-raw-event.c
-> index 0d59ef7..a06a07e 100644
-> --- a/drivers/media/IR/ir-raw-event.c
-> +++ b/drivers/media/IR/ir-raw-event.c
-> @@ -89,7 +89,7 @@ int ir_raw_event_store(struct input_dev *input_dev, struct ir_raw_event *ev)
->        if (!ir->raw)
->                return -EINVAL;
->
-> -       IR_dprintk(2, "sample: (05%dus %s)\n",
-> +       IR_dprintk(2, "sample: (%05dus %s)\n",
->                TO_US(ev->duration), TO_STR(ev->pulse));
->
->        if (kfifo_in(&ir->raw->kfifo, ev, sizeof(*ev)) != sizeof(*ev))
+cx231xx: Colibri carrier offset was wrong for PAL/M
 
+The carrier offset check at cx231xx is incomplete. I got here one concrete case
+where it is broken: if PAL/M is used (and this is the default for Pixelview SBTVD),
+the routine will return zero, and the device will be programmed incorrectly,
+producing a bad image. A workaround were to change to NTSC and back to PAL/M,
+but the better is to just fix the code ;)
 
-Acked-by: Jarod Wilson <jarod@redhat.com>
+PS.: The checks there for other video standards are incomplete. the proper
+solution is to fix the routine in a way that it will always return the proper
+value for any valid V4L2_STD.
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
+Cc: stable@kernel.org    
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/video/cx231xx/cx231xx-avcore.c b/drivers/media/video/cx231xx/cx231xx-avcore.c
+index 0903773..d52955c 100644
+--- a/drivers/media/video/cx231xx/cx231xx-avcore.c
++++ b/drivers/media/video/cx231xx/cx231xx-avcore.c
+@@ -1540,7 +1540,7 @@ u32 cx231xx_Get_Colibri_CarrierOffset(u32 mode, u32 standerd)
+ 
+ 	if (mode == TUNER_MODE_FM_RADIO) {
+ 		colibri_carrier_offset = 1100000;
+-	} else if (standerd & (V4L2_STD_NTSC | V4L2_STD_NTSC_M_JP)) {
++	} else if (standerd & (V4L2_STD_MN | V4L2_STD_NTSC_M_JP)) {
+ 		colibri_carrier_offset = 4832000;  /*4.83MHz	*/
+ 	} else if (standerd & (V4L2_STD_PAL_B | V4L2_STD_PAL_G)) {
+ 		colibri_carrier_offset = 2700000;  /*2.70MHz       */
