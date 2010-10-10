@@ -1,290 +1,118 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:60731 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753930Ab0JYXSy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Oct 2010 19:18:54 -0400
-Message-ID: <4CC61058.7090205@redhat.com>
-Date: Mon, 25 Oct 2010 21:18:48 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:38680 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751974Ab0JJPwr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Oct 2010 11:52:47 -0400
+Received: by iwn6 with SMTP id 6so2343289iwn.19
+        for <linux-media@vger.kernel.org>; Sun, 10 Oct 2010 08:52:47 -0700 (PDT)
 MIME-Version: 1.0
-To: Florian Klink <flokli@flokli.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx: Terratec Grabby no sound
-References: <f9fc4355b0c721744c6522a720ee2df7@flokli.de> <4CC5BE39.70206@redhat.com> <d8211f823d481e2991821b5dfc4e8b84@flokli.de> <4CC5EDC3.3020506@redhat.com> <0346874f2869b186cbe1224baeef5462@flokli.de>
-In-Reply-To: <0346874f2869b186cbe1224baeef5462@flokli.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Date: Sun, 10 Oct 2010 17:52:46 +0200
+Message-ID: <AANLkTik-PXRnbzhF_4hPW2y=2h6Vnht9VsCtsBHcpFHG@mail.gmail.com>
+Subject: s-video input from terratec cinergy 200 gives black frame or out of
+ sync video
+From: Antonio-Blasco Bonito <blasco.bonito@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 25-10-2010 20:06, Florian Klink escreveu:
-> Hi,
-> 
-> I'm not very familiar with mailing lists, sorry!
-> 
-> Patched em28xx-cards.c, but no luck with
-> mplayer -v -tv driver=v4l2:input=0:device=/dev/video1:forceaudio tv://
-> (/dev/video0 is webcam). I'm able to see the video, but still no sound in mplayer
-> 
-> playing the sound with arecord works (i think it goes over the snd-usb-audio module,
-> but don't know why some "mplayer -v -tv driver=v4l2:input=0:device=/dev/video1:alsa:adevice=hw.2,0:forceaudio tv://" magic won't do the job.
-> 
-> And shouldn't the sound go over v4l, too?
+I'm trying to use a Terratec Cinergy 200 usb board to grab analog video.
+I'm using Ubuntu 10.04 and the included em28xx driver
 
-The sound comes from alsa device. Several em28xx types provide standard USB audio. So,
-snd-usb-audio handles it. That's why you need alsa:adevice=hw.2,0:forceaudio at mplayer.
+$ uname -a
+Linux airone 2.6.32-25-generic #44-Ubuntu SMP Fri Sep 17 20:05:27 UTC
+2010 x86_64 GNU/Linux
 
-> 
-> Florian
-> 
-> 
-> 
-> On Mon, 25 Oct 2010 18:51:15 -0200, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
->> Em 25-10-2010 18:24, Florian Klink escreveu:
->>> Hi Mauro,
->>>
->>> thanks for your answer!
->>
->> I'm c/c the mailing list, as this info may be useful for the others.
->> It would be nice to have this added to wiki, but I won't have time for it,
->> unfortunately.
->>>
->>>> Maybe the amux is wrong. The only way to know for sure is to check
->>>> the used GPIO's,
->>>> via a USB snoop dump. Please take a look at linuxtv.org Wiki (search
->>>> for usbsnoop).
->>>> After getting the dump, please parse it and send me.
->>>
->>> I did the usbsnooping and hope I did the parsing right (At least the log
->>> file shrinked from 100MB to some KB, and there are plenty of EM28XX
->>> strings inside ;-))
->>>
->>> You can get it here: http://pastebin.com/SXKfLUny
->>
->> There are a few things that are relevant:
->>
->> First of all, GPIO's. They enable/disable parts of the board:
->>
->> $ grep GPIO /tmp/dump
->> em28xx_write_reg(dev, EM28XX_R08_GPIO, 0xff);
->> em28xx_read_reg(dev, EM28XX_R08_GPIO);        /* read 0xff */
->> em28xx_write_reg(dev, EM28XX_R08_GPIO, 0xfd);
->> em28xx_read_reg(dev, EM28XX_R08_GPIO);        /* read 0xfd */
->> em28xx_write_reg(dev, EM28XX_R08_GPIO, 0xfd);
->> em28xx_read_reg(dev, EM28XX_R08_GPIO);        /* read 0xfd */
->> em28xx_write_reg(dev, EM28XX_R08_GPIO, 0x7d);
->> em28xx_write_reg(dev, EM28XX_R08_GPIO, 0x2a);
->> em28xx_write_reg(dev, EM28XX_R08_GPIO, 0x2a);
->>
->> Currently, they're not touched for this device. Perhaps, we might
->> need to initialize
->> them to 0xfd for capture mode, and 0x2a for sleep mode.
->>
->> In this specific case, maybe it is just safe to keep it as-is, as I
->> suspect that GPIO's
->> are not used on this device. I may be wrong, though. A simple test will tell.
->>
->> The audio entries are related to the ac97 chip.
->>
->> The driver will basically run this code:
->>
->> amux = EM28XX_AMUX_VIDEO2;     /* from Terratec Grabby entry, at
->> em28xx-cards.c */
->>
->> static struct em28xx_vol_table inputs[] = {
->>     { EM28XX_AMUX_VIDEO,     AC97_VIDEO_VOL   },
->>     { EM28XX_AMUX_LINE_IN,    AC97_LINEIN_VOL  },
->>     { EM28XX_AMUX_PHONE,    AC97_PHONE_VOL   },
->>     { EM28XX_AMUX_MIC,    AC97_MIC_VOL     },
->>     { EM28XX_AMUX_CD,    AC97_CD_VOL      },
->>     { EM28XX_AMUX_AUX,    AC97_AUX_VOL     },
->>     { EM28XX_AMUX_PCM_OUT,    AC97_PCM_OUT_VOL },
->>
->> if (amux == inputs[i].mux)
->>             ret = em28xx_write_ac97(dev, inputs[i].reg, 0x0808);        /* Put the
->> volume in 50% */
->>         else
->>             ret = em28xx_write_ac97(dev, inputs[i].reg, 0x8000);        /* Mute the
->> volume */
->>
->> Any mixer entry equal or bigger than 0x8000 is muted.
->>
->>
->> $ grep 97 dump
->> em28xx_read_ac97(dev, AC97_VENDOR_ID1);    /* read 0x0x8384 */
->> em28xx_read_ac97(dev, AC97_VENDOR_ID2);    /* read 0x0x7652 */
->> em28xx_write_ac97(dev, AC97_LINEIN_VOL, 0x0808);
->> em28xx_write_ac97(dev, AC97_VIDEO_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_AUX_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_MIC_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x0000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x0000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x8000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x8000);
->> em28xx_write_ac97(dev, AC97_POWER_DOWN_CTRL, 0x4200);
->> em28xx_write_ac97(dev, AC97_RECORD_SELECT, 0x0505);
->> em28xx_write_ac97(dev, AC97_EXT_AUD_CTRL, 0x0031);
->> em28xx_write_ac97(dev, AC97_PCM_IN_SRATE, 0xbb80);
->> em28xx_write_ac97(dev, AC97_LINEIN_VOL, 0x0808);
->> em28xx_write_ac97(dev, AC97_VIDEO_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_AUX_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_MIC_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x8000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x8000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x8000);
->> em28xx_write_ac97(dev, AC97_LINEIN_VOL, 0x0808);
->> em28xx_write_ac97(dev, AC97_VIDEO_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_AUX_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_MIC_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x0000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x0000);
->> em28xx_write_ac97(dev, AC97_LINEIN_VOL, 0x0808);
->> em28xx_write_ac97(dev, AC97_VIDEO_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_AUX_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_MIC_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x0000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x0000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x8000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x8000);
->> em28xx_write_ac97(dev, AC97_POWER_DOWN_CTRL, 0x4200);
->> em28xx_write_ac97(dev, AC97_RECORD_SELECT, 0x0505);
->> em28xx_write_ac97(dev, AC97_EXT_AUD_CTRL, 0x0031);
->> em28xx_write_ac97(dev, AC97_PCM_IN_SRATE, 0xbb80);
->> em28xx_write_ac97(dev, AC97_LINEIN_VOL, 0x0808);
->> em28xx_write_ac97(dev, AC97_VIDEO_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_AUX_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_MIC_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x8000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x8000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x8000);
->> em28xx_write_ac97(dev, AC97_LINEIN_VOL, 0x0808);
->> em28xx_write_ac97(dev, AC97_VIDEO_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_AUX_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_MIC_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x0000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x0000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x8000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x8000);
->> em28xx_write_ac97(dev, AC97_POWER_DOWN_CTRL, 0x4200);
->> em28xx_write_ac97(dev, AC97_RECORD_SELECT, 0x0505);
->> em28xx_write_ac97(dev, AC97_EXT_AUD_CTRL, 0x0031);
->> em28xx_write_ac97(dev, AC97_PCM_IN_SRATE, 0xbb80);
->> em28xx_write_ac97(dev, AC97_LINEIN_VOL, 0x0808);
->> em28xx_write_ac97(dev, AC97_VIDEO_VOL, 0x9010);
->> em28xx_write_reg(dev, EM28XX_R42_AC97ADDR, 0x16);
->> em28xx_write_ac97(dev, AC97_MIC_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x8000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x8000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x8000);
->> em28xx_write_ac97(dev, AC97_LINEIN_VOL, 0x0808);
->> em28xx_write_ac97(dev, AC97_VIDEO_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_AUX_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_MIC_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x0000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x0000);
->> em28xx_write_ac97(dev, AC97_LINEIN_VOL, 0x0808);
->> em28xx_write_ac97(dev, AC97_VIDEO_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_AUX_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_MIC_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x0000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x0000);
->> em28xx_write_ac97(dev, AC97_LINEIN_VOL, 0x0808);
->> em28xx_write_ac97(dev, AC97_VIDEO_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_AUX_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_MIC_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x0000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x0000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x8000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x8000);
->> em28xx_write_ac97(dev, AC97_POWER_DOWN_CTRL, 0x4200);
->> em28xx_write_ac97(dev, AC97_RECORD_SELECT, 0x0505);
->> em28xx_write_ac97(dev, AC97_EXT_AUD_CTRL, 0x0031);
->> em28xx_write_ac97(dev, AC97_PCM_IN_SRATE, 0xbb80);
->> em28xx_write_ac97(dev, AC97_LINEIN_VOL, 0x0808);
->> em28xx_write_ac97(dev, AC97_VIDEO_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_AUX_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_MIC_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x8000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x8000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x8000);
->> em28xx_write_ac97(dev, AC97_LINEIN_VOL, 0x0808);
->> em28xx_write_ac97(dev, AC97_VIDEO_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_AUX_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_MIC_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x0000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x0000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x8000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x8000);
->> em28xx_write_ac97(dev, AC97_POWER_DOWN_CTRL, 0x4200);
->> em28xx_write_ac97(dev, AC97_RECORD_SELECT, 0x0505);
->> em28xx_write_ac97(dev, AC97_EXT_AUD_CTRL, 0x0031);
->> em28xx_write_ac97(dev, AC97_PCM_IN_SRATE, 0xbb80);
->> em28xx_write_ac97(dev, AC97_LINEIN_VOL, 0x0808);
->> em28xx_write_ac97(dev, AC97_VIDEO_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_AUX_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_MIC_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x8000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x8000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x8000);
->> em28xx_write_ac97(dev, AC97_LINEIN_VOL, 0x0808);
->> em28xx_write_ac97(dev, AC97_VIDEO_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_AUX_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_MIC_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x0000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x0000);
->> em28xx_write_ac97(dev, AC97_LINEIN_VOL, 0x0808);
->> em28xx_write_ac97(dev, AC97_VIDEO_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_AUX_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_MIC_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x0000);
->> em28xx_write_ac97(dev, AC97_RECORD_GAIN, 0x0000);
->> em28xx_write_ac97(dev, AC97_LINEIN_VOL, 0x0808);
->> em28xx_write_ac97(dev, AC97_VIDEO_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_AUX_VOL, 0x9010);
->> em28xx_write_ac97(dev, AC97_MIC_VOL, 0x9010);
->>
->> From the logs, the only mixer line used on this device is:
->>     em28xx_write_ac97(dev, AC97_LINEIN_VOL, 0x0808);
->>
->> So, I think that the correct value, at em28xx-cards.c is:
->>     amux = EM28XX_AMUX_LINE_IN,
->>
->> Ok, could you please test the enclosed patch? Please test it with both
->> Composite and S-Video entries.
->>
->> Cheers,
->> Mauro
->>
->> ---
->>
->> em28xx: fix Terratec Grabby lack of sound
->>
->> Audio mux were pointing to the wrong line entry.
->>
->> Reported-by: Florian Klink <flokli@flokli.de>
->>
->> diff --git a/drivers/media/video/em28xx/em28xx-cards.c
->> b/drivers/media/video/em28xx/em28xx-cards.c
->> index 5485923..afb206b 100644
->> --- a/drivers/media/video/em28xx/em28xx-cards.c
->> +++ b/drivers/media/video/em28xx/em28xx-cards.c
->> @@ -1633,11 +1633,11 @@ struct em28xx_board em28xx_boards[] = {
->>          .input           = { {
->>              .type     = EM28XX_VMUX_COMPOSITE1,
->>              .vmux     = SAA7115_COMPOSITE0,
->> -            .amux     = EM28XX_AMUX_VIDEO2,
->> +            .amux     = EM28XX_AMUX_LINE_IN,
->>          }, {
->>              .type     = EM28XX_VMUX_SVIDEO,
->>              .vmux     = SAA7115_SVIDEO3,
->> -            .amux     = EM28XX_AMUX_VIDEO2,
->> +            .amux     = EM28XX_AMUX_LINE_IN,
->>          } },
->>      },
->>      [EM2860_BOARD_TERRATEC_AV350] = {
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+I get different behaviours whether the board is connected while
+booting or after that.
 
+1- If i connect it to the usb port after booting the board recognition
+fails so I have to force it with "options em28xx card=6"
+Here follows the "dmesg | grep em28xx" output:
+
+[ 5749.157765] em28xx: New device @ 480 Mbps (eb1a:2800, interface 0, class 0)
+[ 5749.158322] em28xx #0: em28xx chip ID = 4
+[ 5749.380045] em28xx #0: board has no eeprom
+[ 5749.500074] em28xx #0: preparing read at i2c address 0x60 failed (error=-19)
+[ 5749.620068] em28xx #0: Identified as Terratec Cinergy 200 USB (card=6)
+[ 5751.210426] em28xx #0: Config register raw data: 0xf6
+[ 5751.210435] em28xx #0: I2S Audio (5 sample rates)
+[ 5751.210439] em28xx #0: No AC97 audio processor
+[ 5751.310058] em28xx #0: v4l2 driver version 0.1.2
+[ 5752.050357] em28xx #0: V4L2 video device registered as /dev/video1
+[ 5752.050454] usbcore: registered new interface driver em28xx
+[ 5752.050467] em28xx driver loaded
+[ 5752.068423] em28xx-audio.c: probing for em28x1 non standard usbaudio
+[ 5752.068436] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+
+Trying to look at the video signal with:
+$ v4lctl -c /dev/video1 setinput s-video
+$ v4lctl -c /dev/video1 show
+norm: PAL-DK
+input: S-Video
+audio mode: mono
+
+$ xawtv -c /dev/video1
+I get nothing... a black frame :-(
+
+2- If I connect to the usb port before booting the board recognition
+works (why?), so I have:
+
+[   15.689540] em28xx: New device @ 480 Mbps (eb1a:2800, interface 0, class 0)
+[   15.689733] em28xx #0: em28xx chip ID = 4
+[   15.830246] em28xx #0: board has no eeprom
+[   15.870730] em28xx #0: Identified as Unknown EM2800 video grabber (card=0)
+[   17.423791] em28xx #0: found i2c device @ 0x4a [saa7113h]
+[   17.860869] em28xx #0: found i2c device @ 0x60 [remote IR sensor]
+[   17.901010] em28xx #0: found i2c device @ 0x62 [???]
+[   17.940885] em28xx #0: found i2c device @ 0x64 [???]
+[   18.630295] em28xx #0: found i2c device @ 0x86 [tda9887]
+[   19.812231] em28xx #0: found i2c device @ 0xc0 [tuner (analog)]
+[   19.850112] em28xx #0: found i2c device @ 0xc2 [tuner (analog)]
+[   21.150095] em28xx #0: Your board has no unique USB ID.
+[   21.150345] em28xx #0: A hint were successfully done, based on i2c
+devicelist hash.
+[   21.150663] em28xx #0: This method is not 100% failproof.
+[   21.150897] em28xx #0: If the board were missdetected, please email
+this log to:
+[   21.151211] em28xx #0: 	V4L Mailing List  <linux-media@vger.kernel.org>
+[   21.151466] em28xx #0: Board detected as Terratec Cinergy 200 USB
+[   21.189182] ir-kbd-i2c: i2c IR (KNC One) detected at
+i2c-1/1-0030/ir0 [em28xx #0]
+[   22.470223] saa7115 1-0025: saa7113 found (1f7113d0e100000) @ 0x4a
+(em28xx #0)
+[   24.180383] tuner 1-0043: chip found @ 0x86 (em28xx #0)
+[   24.410553] tuner 1-0060: chip found @ 0xc0 (em28xx #0)
+[   24.550217] em28xx #0: Config register raw data: 0xf6
+[   24.550223] em28xx #0: I2S Audio (5 sample rates)
+[   24.550227] em28xx #0: No AC97 audio processor
+[   24.810149] em28xx #0: v4l2 driver version 0.1.2
+[   25.550259] em28xx #0: V4L2 video device registered as /dev/video1
+[   25.571390] usbcore: registered new interface driver em28xx
+[   25.571567] em28xx driver loaded
+[   25.597473] em28xx-audio.c: probing for em28x1 non standard usbaudio
+[   25.597481] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+
+In this case with:
+$ v4lctl -c /dev/video1 setinput s-video
+$ v4lctl -c /dev/video1 show
+norm: PAL-DK
+input: S-Video
+audio mode: mono
+bright: 128
+contrast: 64
+color: 64
+hue: 0
+[more options are showed... why?]
+
+$ xawtv -c /dev/video1
+I get an out-of-sync video... better than nothing but not ok :-(
+
+--
+Antonio-Blasco Bonito
+Via Vico Fiaschi 35
+54033 Carrara Avenza MS
+
+tel. 0585-026169
+cell. 340-6199450
