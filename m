@@ -1,67 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:53622 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S932112Ab0JFHXS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Oct 2010 03:23:18 -0400
-Received: from lyakh (helo=localhost)
-	by axis700.grange with local-esmtp (Exim 4.63)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1P3OLV-0002hQ-Gw
-	for linux-media@vger.kernel.org; Wed, 06 Oct 2010 09:23:25 +0200
-Date: Wed, 6 Oct 2010 09:23:25 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] V4L: sh_mobile_ceu_camera: use default .get_parm() and
- .set_parm() operations
-Message-ID: <Pine.LNX.4.64.1010060922490.9687@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:38670 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755949Ab0JJAIw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Oct 2010 20:08:52 -0400
+Received: by wyb28 with SMTP id 28so2083340wyb.19
+        for <linux-media@vger.kernel.org>; Sat, 09 Oct 2010 17:08:51 -0700 (PDT)
+Subject: rtl2831-r2 still not working for Compro VideoMate U80
+From: Ugnius Soraka <spam.ugnius40@gmail.com>
+Reply-To: spam.ugnius40@gmail.com
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 10 Oct 2010 01:07:26 +0100
+Message-ID: <1286669246.3990.44.camel@linux-efue.site>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-No need to duplicate default .get_parm() and .set_parm() operations.
+Hi,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/sh_mobile_ceu_camera.c |   18 ------------------
- 1 files changed, 0 insertions(+), 18 deletions(-)
+I'd like to get in touch with driver developers, is there any way I
+could help make RTL2831U driver work with Compro VideoMate U80. I would
+like to actively participate. My programming skills are well below
+required to write kernel modules, so I know I would be no use there. But
+anything else, testing with VideoMate U80, sending debug logs, I think I
+could do that.
 
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index 0b029bd..fdaadde 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -1789,22 +1789,6 @@ static void sh_mobile_ceu_init_videobuf(struct videobuf_queue *q,
- 				       icd);
- }
- 
--static int sh_mobile_ceu_get_parm(struct soc_camera_device *icd,
--				  struct v4l2_streamparm *parm)
--{
--	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
--
--	return v4l2_subdev_call(sd, video, g_parm, parm);
--}
--
--static int sh_mobile_ceu_set_parm(struct soc_camera_device *icd,
--				  struct v4l2_streamparm *parm)
--{
--	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
--
--	return v4l2_subdev_call(sd, video, s_parm, parm);
--}
--
- static int sh_mobile_ceu_get_ctrl(struct soc_camera_device *icd,
- 				  struct v4l2_control *ctrl)
- {
-@@ -1866,8 +1850,6 @@ static struct soc_camera_host_ops sh_mobile_ceu_host_ops = {
- 	.try_fmt	= sh_mobile_ceu_try_fmt,
- 	.set_ctrl	= sh_mobile_ceu_set_ctrl,
- 	.get_ctrl	= sh_mobile_ceu_get_ctrl,
--	.set_parm	= sh_mobile_ceu_set_parm,
--	.get_parm	= sh_mobile_ceu_get_parm,
- 	.reqbufs	= sh_mobile_ceu_reqbufs,
- 	.poll		= sh_mobile_ceu_poll,
- 	.querycap	= sh_mobile_ceu_querycap,
--- 
-1.7.1
+I've tried http://linuxtv.org/hg/~jhoogenraad/rtl2831-r2 driver, it
+looked promising. U80 device was recognised as VideoMate U90, /dev/dvb
+entries were created. But when scanning it says there's no signal. Debug
+gives TPS_NON_LOCK, Signal NOT Present, rtd2830_soft_reset, etc. (I
+could post message log, if it's any use to somebody).
+U80 has a led which (on windows) shows if TV stick is tuned in and
+working, when scanning on linux it's always on.
+
+I've also tried to compile http://linuxtv.org/hg/~anttip/rtl2831u/ but
+for now it's based on old dvb tree and seems to be incompatible with new
+kernels (mine 2.6.34.7-0.3).
+
+Is anttip driver supposed to be included in kernel, but it looks like
+development is going slow.
+
+Thank you,
+Ugnius
+
+
+
 
