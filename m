@@ -1,35 +1,44 @@
 Return-path: <mchehab@pedra>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:50219 "EHLO smtp3-g21.free.fr"
+Received: from smtp5-g21.free.fr ([212.27.42.5]:60966 "EHLO smtp5-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753467Ab0JSKTO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Oct 2010 06:19:14 -0400
-Received: from [192.168.0.1] (unknown [82.248.234.34])
-	by smtp3-g21.free.fr (Postfix) with ESMTP id 62947A6298
-	for <linux-media@vger.kernel.org>; Tue, 19 Oct 2010 12:19:07 +0200 (CEST)
-Message-ID: <4CBD70B2.2070607@free.fr>
-Date: Tue, 19 Oct 2010 12:19:30 +0200
-From: =?ISO-8859-1?Q?Herv=E9_Cauwelier?= <herve.cauwelier@free.fr>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: support for AF9035 (not tuner)
-References: <4CBBFCBA.2010707@free.fr> <20101018185729.GA8210@minime.bse> <4CBCA407.9080101@free.fr> <20101018203932.GB8210@minime.bse> <4CBD450E.1070907@free.fr>
-In-Reply-To: <4CBD450E.1070907@free.fr>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+	id S1757540Ab0JJKUo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Oct 2010 06:20:44 -0400
+Date: Sun, 10 Oct 2010 12:21:29 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Antonio Ospite <ospite@studenti.unina.it>
+Cc: linux-media@vger.kernel.org
+Subject: Re: gspca, audio and ov534: regression.
+Message-ID: <20101010122129.68f3718a@tele>
+In-Reply-To: <20101010120250.4739ce08.ospite@studenti.unina.it>
+References: <20101006123321.baade0a4.ospite@studenti.unina.it>
+	<20101006134855.43879d74@tele>
+	<20101006160441.6ee9583d.ospite@studenti.unina.it>
+	<20101006203553.22edfeb7@tele>
+	<20101010120250.4739ce08.ospite@studenti.unina.it>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 10/19/10 09:13, Hervé Cauwelier wrote:
-> Do I continue searching for a datasheet?
+On Sun, 10 Oct 2010 12:02:50 +0200
+Antonio Ospite <ospite@studenti.unina.it> wrote:
 
-After a night searching, the only so-called datasheet I find is this 
-commercial presentation:
-http://www.datasheetarchive.com/pdf-datasheets/Datasheets-13/DSA-256708.html
+> JF this change as is does not work for me, if I change the second
+> check to 
+> 	if (gspca_dev->audio && i > 1)
+> 
+> it does, but I don't know if this breaks anything else.
 
-I asked several resellers but those kind enough to reply me sent me the 
-same file.
+Hi Antonio,
 
-I doubt any of you can find enough technical data to understand how to 
-address the chip.
+You are right, this is the way the test must be.
 
-Hervé
+I'll try to have this in the kernel 2.6.36.
+
+Regards.
+
+-- 
+Ken ar c'hentaÃ±	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
