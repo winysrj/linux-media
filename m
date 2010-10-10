@@ -1,111 +1,91 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4184 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751159Ab0JBTPJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Oct 2010 15:15:09 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id o92JF4vl003186
-	for <linux-media@vger.kernel.org>; Sat, 2 Oct 2010 21:15:08 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 2 Oct 2010 21:15:04 +0200 (CEST)
-Message-Id: <201010021915.o92JF4vl003186@smtp-vbr12.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+Received: from mail.issp.bas.bg ([195.96.236.10]:38950 "EHLO mail.issp.bas.bg"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751563Ab0JJSxI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Oct 2010 14:53:08 -0400
+From: Marin Mitov <mitov@issp.bas.bg>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [RFC][PATCH] add dma_reserve_coherent_memory()/dma_free_reserved_memory() API
+Date: Sun, 10 Oct 2010 21:48:36 +0300
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	linux-kernel@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <201008201113.46036.mitov@issp.bas.bg> <201010101736.54199.mitov@issp.bas.bg> <Pine.LNX.4.64.1010102018270.10713@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1010102018270.10713@axis700.grange>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201010102148.42097.mitov@issp.bas.bg>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Sunday, October 10, 2010 09:21:50 pm Guennadi Liakhovetski wrote:
+> On Sun, 10 Oct 2010, Marin Mitov wrote:
+> 
+> > On Sunday, October 10, 2010 05:08:22 pm FUJITA Tomonori wrote:
+> > > On Fri, 20 Aug 2010 14:50:12 +0300
+> > > Marin Mitov <mitov@issp.bas.bg> wrote:
+> > > 
+> > > > On Friday, August 20, 2010 11:35:06 am FUJITA Tomonori wrote:
+> > > > > On Fri, 20 Aug 2010 11:13:45 +0300
+> > > > > Marin Mitov <mitov@issp.bas.bg> wrote:
+> > > > > 
+> > > > > > > > This tric is already used in drivers/staging/dt3155v4l.c
+> > > > > > > > dt3155_alloc_coherent()/dt3155_free_coherent()
+> > > > > > > > 
+> > > > > > > > Here proposed for general use by popular demand from video4linux folks.
+> > > > > > > > Helps for videobuf-dma-contig framework.
+> > > > > > > 
+> > > > > > > What you guys exactly want to do? If you just want to pre-allocate
+> > > > > > > coherent memory for latter usage,
+> > > > > > 
+> > > > > > Yes, just to preallocate not coherent, but rather contiguous memory for latter usage.
+> > > > > > We use coherent memory because it turns out to be contiguous.
+> > > > > 
+> > > > > Hmm, you don't care about coherency? You just need contiguous memory?
+> > > > 
+> > > > Yes. We just need contiguous memory. Coherency is important as far as when dma
+> > > > transfer finishes user land is able to see the new data. Could be done by something like
+> > > > dma_{,un}map_single()
+> > > 
+> > > Anyone is working on this?
+> > 
+> > I am not, sorry.
+> > 
+> > > 
+> > > KAMEZAWA posted a patch to improve the generic page allocator to
+> > > allocate physically contiguous memory. He said that he can push it
+> > > into mainline.
+> > 
+> > I am waiting for the new videobuf2 framework to become part of the kernel.
+> > Then KAMEZAWA's improvements can help.
+> 
+> You probably have seen this related thread: 
+> http://marc.info/?t=128644473600004&r=1&w=2
 
-Results of the daily build of v4l-dvb:
+Thanks.
 
-date:        Sat Oct  2 19:00:05 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15164:1da5fed5c8b2
-git master:       3e6dce76d99b328716b43929b9195adfee1de00c
-git media-master: c8dd732fd119ce6d562d5fa82a10bbe75a376575
-gcc version:      i686-linux-gcc (GCC) 4.5.1
-host hardware:    x86_64
-host os:          2.6.32.5
+Marin Mitov
 
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: WARNINGS
-linux-git-mips: WARNINGS
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-linux-2.6.32.6-armv5: WARNINGS
-linux-2.6.33-armv5: WARNINGS
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35.3-armv5: WARNINGS
-linux-2.6.36-rc2-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: ERRORS
-linux-2.6.33-armv5-davinci: ERRORS
-linux-2.6.34-armv5-davinci: ERRORS
-linux-2.6.35.3-armv5-davinci: ERRORS
-linux-2.6.36-rc2-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: ERRORS
-linux-2.6.33-armv5-ixp: ERRORS
-linux-2.6.34-armv5-ixp: ERRORS
-linux-2.6.35.3-armv5-ixp: ERRORS
-linux-2.6.36-rc2-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: ERRORS
-linux-2.6.33-armv5-omap2: ERRORS
-linux-2.6.34-armv5-omap2: ERRORS
-linux-2.6.35.3-armv5-omap2: ERRORS
-linux-2.6.36-rc2-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-rc2-i686: ERRORS
-linux-2.6.32.6-m32r: WARNINGS
-linux-2.6.33-m32r: WARNINGS
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35.3-m32r: WARNINGS
-linux-2.6.36-rc2-m32r: ERRORS
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35.3-mips: WARNINGS
-linux-2.6.36-rc2-mips: ERRORS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35.3-powerpc64: WARNINGS
-linux-2.6.36-rc2-powerpc64: ERRORS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-rc2-x86_64: ERRORS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> 
+> Thanks
+> Guennadi
+> 
+> > Marin Mitov
+> > 
+> > > 
+> > > The approach enables us to solve this issue without adding any new
+> > > API.
+> > > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> 
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> 
