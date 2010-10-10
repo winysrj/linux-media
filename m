@@ -1,124 +1,86 @@
 Return-path: <mchehab@pedra>
-Received: from gateway04.websitewelcome.com ([69.93.154.2]:58093 "HELO
-	gateway04.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751262Ab0JGQjq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Oct 2010 12:39:46 -0400
-Subject: Re: [PATCH 03/16] go7007: Add MODULE_DEVICE_TABLE to the go7007
- I2C modules
-From: Pete Eberlein <pete@sensoray.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from smtp205.alice.it ([82.57.200.101]:46560 "EHLO smtp205.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754139Ab0JJKC7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Oct 2010 06:02:59 -0400
+Date: Sun, 10 Oct 2010 12:02:50 +0200
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Jean-Francois Moine <moinejf@free.fr>
 Cc: linux-media@vger.kernel.org
-In-Reply-To: <1285337654-5044-4-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1285337654-5044-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	 <1285337654-5044-4-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 07 Oct 2010 09:33:06 -0700
-Message-ID: <1286469186.2477.9.camel@pete-desktop>
+Subject: Re: gspca, audio and ov534: regression.
+Message-Id: <20101010120250.4739ce08.ospite@studenti.unina.it>
+In-Reply-To: <20101006203553.22edfeb7@tele>
+References: <20101006123321.baade0a4.ospite@studenti.unina.it>
+	<20101006134855.43879d74@tele>
+	<20101006160441.6ee9583d.ospite@studenti.unina.it>
+	<20101006203553.22edfeb7@tele>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Sun__10_Oct_2010_12_02_50_+0200_9t5GbswhQOoiD.OJ"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Acked-by: Pete Eberlein <pete@sensoray.com>
+--Signature=_Sun__10_Oct_2010_12_02_50_+0200_9t5GbswhQOoiD.OJ
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, 2010-09-24 at 16:14 +0200, Laurent Pinchart wrote:
-> The device table is required to load modules based on modaliases.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/staging/go7007/wis-ov7640.c     |    1 +
->  drivers/staging/go7007/wis-saa7113.c    |    1 +
->  drivers/staging/go7007/wis-saa7115.c    |    1 +
->  drivers/staging/go7007/wis-sony-tuner.c |    1 +
->  drivers/staging/go7007/wis-tw2804.c     |    1 +
->  drivers/staging/go7007/wis-tw9903.c     |    1 +
->  drivers/staging/go7007/wis-uda1342.c    |    1 +
->  7 files changed, 7 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/staging/go7007/wis-ov7640.c b/drivers/staging/go7007/wis-ov7640.c
-> index 4f0cbdd..6bc9470 100644
-> --- a/drivers/staging/go7007/wis-ov7640.c
-> +++ b/drivers/staging/go7007/wis-ov7640.c
-> @@ -81,6 +81,7 @@ static const struct i2c_device_id wis_ov7640_id[] = {
->  	{ "wis_ov7640", 0 },
->  	{ }
->  };
-> +MODULE_DEVICE_TABLE(i2c, wis_ov7640_id);
->  
->  static struct i2c_driver wis_ov7640_driver = {
->  	.driver = {
-> diff --git a/drivers/staging/go7007/wis-saa7113.c b/drivers/staging/go7007/wis-saa7113.c
-> index 72f5c1f..05e0e10 100644
-> --- a/drivers/staging/go7007/wis-saa7113.c
-> +++ b/drivers/staging/go7007/wis-saa7113.c
-> @@ -308,6 +308,7 @@ static const struct i2c_device_id wis_saa7113_id[] = {
->  	{ "wis_saa7113", 0 },
->  	{ }
->  };
-> +MODULE_DEVICE_TABLE(i2c, wis_saa7113_id);
->  
->  static struct i2c_driver wis_saa7113_driver = {
->  	.driver = {
-> diff --git a/drivers/staging/go7007/wis-saa7115.c b/drivers/staging/go7007/wis-saa7115.c
-> index cd950b6..46cff59 100644
-> --- a/drivers/staging/go7007/wis-saa7115.c
-> +++ b/drivers/staging/go7007/wis-saa7115.c
-> @@ -441,6 +441,7 @@ static const struct i2c_device_id wis_saa7115_id[] = {
->  	{ "wis_saa7115", 0 },
->  	{ }
->  };
-> +MODULE_DEVICE_TABLE(i2c, wis_saa7115_id);
->  
->  static struct i2c_driver wis_saa7115_driver = {
->  	.driver = {
-> diff --git a/drivers/staging/go7007/wis-sony-tuner.c b/drivers/staging/go7007/wis-sony-tuner.c
-> index 981c9b3..8f1b7d4 100644
-> --- a/drivers/staging/go7007/wis-sony-tuner.c
-> +++ b/drivers/staging/go7007/wis-sony-tuner.c
-> @@ -692,6 +692,7 @@ static const struct i2c_device_id wis_sony_tuner_id[] = {
->  	{ "wis_sony_tuner", 0 },
->  	{ }
->  };
-> +MODULE_DEVICE_TABLE(i2c, wis_sony_tuner_id);
->  
->  static struct i2c_driver wis_sony_tuner_driver = {
->  	.driver = {
-> diff --git a/drivers/staging/go7007/wis-tw2804.c b/drivers/staging/go7007/wis-tw2804.c
-> index ee28a99..5b218c5 100644
-> --- a/drivers/staging/go7007/wis-tw2804.c
-> +++ b/drivers/staging/go7007/wis-tw2804.c
-> @@ -331,6 +331,7 @@ static const struct i2c_device_id wis_tw2804_id[] = {
->  	{ "wis_tw2804", 0 },
->  	{ }
->  };
-> +MODULE_DEVICE_TABLE(i2c, wis_tw2804_id);
->  
->  static struct i2c_driver wis_tw2804_driver = {
->  	.driver = {
-> diff --git a/drivers/staging/go7007/wis-tw9903.c b/drivers/staging/go7007/wis-tw9903.c
-> index 80d4726..9230f4a 100644
-> --- a/drivers/staging/go7007/wis-tw9903.c
-> +++ b/drivers/staging/go7007/wis-tw9903.c
-> @@ -313,6 +313,7 @@ static const struct i2c_device_id wis_tw9903_id[] = {
->  	{ "wis_tw9903", 0 },
->  	{ }
->  };
-> +MODULE_DEVICE_TABLE(i2c, wis_tw9903_id);
->  
->  static struct i2c_driver wis_tw9903_driver = {
->  	.driver = {
-> diff --git a/drivers/staging/go7007/wis-uda1342.c b/drivers/staging/go7007/wis-uda1342.c
-> index 5c4eb49..0127be2 100644
-> --- a/drivers/staging/go7007/wis-uda1342.c
-> +++ b/drivers/staging/go7007/wis-uda1342.c
-> @@ -86,6 +86,7 @@ static const struct i2c_device_id wis_uda1342_id[] = {
->  	{ "wis_uda1342", 0 },
->  	{ }
->  };
-> +MODULE_DEVICE_TABLE(i2c, wis_uda1342_id);
->  
->  static struct i2c_driver wis_uda1342_driver = {
->  	.driver = {
+On Wed, 6 Oct 2010 20:35:53 +0200
+Jean-Francois Moine <moinejf@free.fr> wrote:
 
+> On Wed, 6 Oct 2010 16:04:41 +0200
+> Antonio Ospite <ospite@studenti.unina.it> wrote:
+>=20
+> > Thanks, the following change fixes it, was this what you had in mind?
+> >=20
+> > diff --git a/drivers/media/video/gspca/gspca.c
+[...]
+>=20
+> Yes, but, after thought, as there is only one alternate setting, the
+> tests could be:
+> 	if (gspca_dev->audio && i < gspca_dev->nbalt - 1)
+> and
+> 	if (gspca_dev->audio && i > 0)
+>=20
+> This should work also for isochronous transfers.
 
+JF this change as is does not work for me, if I change the second check
+to=20
+	if (gspca_dev->audio && i > 1)
+
+it does, but I don't know if this breaks anything else.
+
+In my case I have:
+
+get_ep: gspca_dev->cam.reverse_alts: 0
+get_ep: gspca_dev->alt: 1
+get_ep: gspca_dev->nbalt: 1
+get_ep: gspca_dev->audio: 1
+get_ep: gspca_dev->cam.bulk: 1
+
+Thanks,
+   Antonio
+
+--=20
+Antonio Ospite
+http://ao2.it
+
+PGP public key ID: 0x4553B001
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+
+--Signature=_Sun__10_Oct_2010_12_02_50_+0200_9t5GbswhQOoiD.OJ
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAkyxj0oACgkQ5xr2akVTsAG0AgCgox/nSeU8eqiqXcqKflpj7eIR
+7KkAoKdb7TMg7juk++uR35EKlRjWIbmj
+=vMrh
+-----END PGP SIGNATURE-----
+
+--Signature=_Sun__10_Oct_2010_12_02_50_+0200_9t5GbswhQOoiD.OJ--
