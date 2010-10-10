@@ -1,219 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3075 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754989Ab0JRNRv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Oct 2010 09:17:51 -0400
-Message-ID: <9c6327556dad0b210e353c11126e2ceb.squirrel@webmail.xs4all.nl>
-In-Reply-To: <1287406657-18859-2-git-send-email-matti.j.aaltonen@nokia.com>
-References: <1287406657-18859-1-git-send-email-matti.j.aaltonen@nokia.com>
-    <1287406657-18859-2-git-send-email-matti.j.aaltonen@nokia.com>
-Date: Mon, 18 Oct 2010 15:17:34 +0200
-Subject: Re: [PATCH v13 1/1] Documentation: v4l: Add hw_seek spacing and
- two TUNER_RDS_CAP flags.
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
-	"Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Received: from mailout-de.gmx.net ([213.165.64.22]:48734 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1754754Ab0JJSVc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Oct 2010 14:21:32 -0400
+Date: Sun, 10 Oct 2010 20:21:50 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Marin Mitov <mitov@issp.bas.bg>
+cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	linux-kernel@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC][PATCH] add dma_reserve_coherent_memory()/dma_free_reserved_memory()
+ API
+In-Reply-To: <201010101736.54199.mitov@issp.bas.bg>
+Message-ID: <Pine.LNX.4.64.1010102018270.10713@axis700.grange>
+References: <201008201113.46036.mitov@issp.bas.bg> <201008201450.12585.mitov@issp.bas.bg>
+ <20101010230323B.fujita.tomonori@lab.ntt.co.jp> <201010101736.54199.mitov@issp.bas.bg>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Just a few very small comments:
+On Sun, 10 Oct 2010, Marin Mitov wrote:
 
-> Add a couple of words about the spacing field in the HW seek struct,
-> also a few words about the new RDS tuner capability flags
-> V4L2_TUNER_CAP_RDS_BLOCK-IO and V4L2_TUNER_CAP_RDS_CONTROLS.
->
-> Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
-> ---
->  Documentation/DocBook/v4l/dev-rds.xml              |   60
-> ++++++++++++++------
->  .../DocBook/v4l/vidioc-s-hw-freq-seek.xml          |   10 +++-
->  2 files changed, 51 insertions(+), 19 deletions(-)
->
-> diff --git a/Documentation/DocBook/v4l/dev-rds.xml
-> b/Documentation/DocBook/v4l/dev-rds.xml
-> index 0869d70..5498753 100644
-> --- a/Documentation/DocBook/v4l/dev-rds.xml
-> +++ b/Documentation/DocBook/v4l/dev-rds.xml
-> @@ -3,15 +3,16 @@
->        <para>The Radio Data System transmits supplementary
->  information in binary format, for example the station name or travel
->  information, on an inaudible audio subcarrier of a radio program. This
-> -interface is aimed at devices capable of receiving and decoding RDS
-> +interface is aimed at devices capable of receiving and/or transmitting
-> RDS
->  information.</para>
->
->        <para>For more information see the core RDS standard <xref
-> linkend="en50067" />
->  and the RBDS standard <xref linkend="nrsc4" />.</para>
->
->        <para>Note that the RBDS standard as is used in the USA is almost
-> identical
-> -to the RDS standard. Any RDS decoder can also handle RBDS. Only some of
-> the fields
-> -have slightly different meanings. See the RBDS standard for more
-> information.</para>
-> +to the RDS standard. Any RDS decoder/encoder can also handle RBDS. Only
-> some of the
-> +fields have slightly different meanings. See the RBDS standard for more
-> +information.</para>
->
->        <para>The RBDS standard also specifies support for MMBS (Modified
-> Mobile Search).
->  This is a proprietary format which seems to be discontinued. The RDS
-> interface does not
-> @@ -21,16 +22,26 @@ be needed, then please contact the linux-media mailing
-> list: &v4l-ml;.</para>
->    <section>
->      <title>Querying Capabilities</title>
->
-> -    <para>Devices supporting the RDS capturing API
-> -set the <constant>V4L2_CAP_RDS_CAPTURE</constant> flag in
-> +    <para>Devices supporting the RDS capturing API set
-> +the <constant>V4L2_CAP_RDS_CAPTURE</constant> flag in
->  the <structfield>capabilities</structfield> field of &v4l2-capability;
-> -returned by the &VIDIOC-QUERYCAP; ioctl.
-> -Any tuner that supports RDS will set the
-> -<constant>V4L2_TUNER_CAP_RDS</constant> flag in the
-> <structfield>capability</structfield>
-> -field of &v4l2-tuner;.
-> -Whether an RDS signal is present can be detected by looking at
-> -the <structfield>rxsubchans</structfield> field of &v4l2-tuner;: the
-> -<constant>V4L2_TUNER_SUB_RDS</constant> will be set if RDS data was
-> detected.</para>
-> +returned by the &VIDIOC-QUERYCAP; ioctl.  Any tuner that supports RDS
-> +will set the <constant>V4L2_TUNER_CAP_RDS</constant> flag in
-> +the <structfield>capability</structfield> field of &v4l2-tuner;.  If
-> +the driver only passes RDS blocks without interpreting the data
-> +the <constant>V4L2_TUNER_SUB_RDS_BLOCK_IO</constant> flag has to be
-> +set, see <link linkend="reading-rds-data">Reading RDS data</link>.
-> +For future use the
-> +flag <constant>V4L2_TUNER_SUB_RDS_CONTROLS</constant> has also been
-> +defined. However, a driver for a radio tuner with this capability does
-> +not yet exist, so if you are planning to write such a driver the best
-> +way to start would probably be by opening a discussion about it on
-> +the linux-media mailing list: &v4l-ml;. </para>
+> On Sunday, October 10, 2010 05:08:22 pm FUJITA Tomonori wrote:
+> > On Fri, 20 Aug 2010 14:50:12 +0300
+> > Marin Mitov <mitov@issp.bas.bg> wrote:
+> > 
+> > > On Friday, August 20, 2010 11:35:06 am FUJITA Tomonori wrote:
+> > > > On Fri, 20 Aug 2010 11:13:45 +0300
+> > > > Marin Mitov <mitov@issp.bas.bg> wrote:
+> > > > 
+> > > > > > > This tric is already used in drivers/staging/dt3155v4l.c
+> > > > > > > dt3155_alloc_coherent()/dt3155_free_coherent()
+> > > > > > > 
+> > > > > > > Here proposed for general use by popular demand from video4linux folks.
+> > > > > > > Helps for videobuf-dma-contig framework.
+> > > > > > 
+> > > > > > What you guys exactly want to do? If you just want to pre-allocate
+> > > > > > coherent memory for latter usage,
+> > > > > 
+> > > > > Yes, just to preallocate not coherent, but rather contiguous memory for latter usage.
+> > > > > We use coherent memory because it turns out to be contiguous.
+> > > > 
+> > > > Hmm, you don't care about coherency? You just need contiguous memory?
+> > > 
+> > > Yes. We just need contiguous memory. Coherency is important as far as when dma
+> > > transfer finishes user land is able to see the new data. Could be done by something like
+> > > dma_{,un}map_single()
+> > 
+> > Anyone is working on this?
+> 
+> I am not, sorry.
+> 
+> > 
+> > KAMEZAWA posted a patch to improve the generic page allocator to
+> > allocate physically contiguous memory. He said that he can push it
+> > into mainline.
+> 
+> I am waiting for the new videobuf2 framework to become part of the kernel.
+> Then KAMEZAWA's improvements can help.
 
-Change to:
+You probably have seen this related thread: 
+http://marc.info/?t=128644473600004&r=1&w=2
 
-not yet exist, so if you are planning to write such a driver you
-should discuss this on the linux-media mailing list: &v4l-ml;.</para>
+Thanks
+Guennadi
 
-> +
-> +    <para> Whether an RDS signal is present can be detected by looking
-> +at the <structfield>rxsubchans</structfield> field of &v4l2-tuner;:
-> +the <constant>V4L2_TUNER_SUB_RDS</constant> will be set if RDS data
-> +was detected.</para>
->
->      <para>Devices supporting the RDS output API
->  set the <constant>V4L2_CAP_RDS_OUTPUT</constant> flag in
-> @@ -40,16 +51,31 @@ Any modulator that supports RDS will set the
->  <constant>V4L2_TUNER_CAP_RDS</constant> flag in the
-> <structfield>capability</structfield>
->  field of &v4l2-modulator;.
->  In order to enable the RDS transmission one must set the
-> <constant>V4L2_TUNER_SUB_RDS</constant>
-> -bit in the <structfield>txsubchans</structfield> field of
-> &v4l2-modulator;.</para>
-> -
-> +bit in the <structfield>txsubchans</structfield> field of
-> &v4l2-modulator;.
-> +If the driver only passes RDS blocks without interpreting the data
-> +the <constant>V4L2_TUNER_SUB_RDS_BLOCK_IO</constant> flag has to be set.
-> If the
-> +tuner is capable of handling RDS entities like program identification
-> codes and radio
-> +text, the flag <constant>V4L2_TUNER_SUB_RDS_CONTROLS</constant> should be
-> set,
-> +see <link linkend="writing-rds-data">Writing RDS data</link> and
-> +<link linkend="fm-tx-controls">FM Transmitter Control
-> Reference</link>.</para>
->    </section>
->
-> -  <section>
-> +  <section  id="reading-rds-data">
->      <title>Reading RDS data</title>
->
->        <para>RDS data can be read from the radio device
-> -with the &func-read; function. The data is packed in groups of three
-> bytes,
-> +with the &func-read; function. The data is packed in groups of three
-> bytes.</para>
-> +  </section>
-> +
-> +  <section  id="writing-rds-data">
-> +    <title>Writing RDS data</title>
-> +
-> +      <para>RDS data can be written to the radio device
-> +with the &func-write; function. The data is packed in groups of three
-> bytes,
->  as follows:</para>
-> +  </section>
-> +
-> +  <section>
->      <table frame="none" pgwide="1" id="v4l2-rds-data">
->        <title>struct
->  <structname>v4l2_rds_data</structname></title>
-> @@ -152,7 +178,7 @@ as follows:</para>
->  	  <row>
->  	    <entry>V4L2_RDS_BLOCK_ERROR</entry>
->  	    <entry>0x80</entry>
-> -	    <entry>An incorrectable error occurred.</entry>
-> +	    <entry>An uncorrectable error occurred.</entry>
-
-In addition to this change we should also specify that BLOCK_INVALID,
-BLOCK_ERROR and BLOCK_CORRECTED are for reading only, not for writing.
-
->  	  </row>
->  	</tbody>
->        </tgroup>
-> diff --git a/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
-> b/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
-> index 14b3ec7..c30dcc4 100644
-> --- a/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
-> +++ b/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
-> @@ -51,7 +51,8 @@
->
->      <para>Start a hardware frequency seek from the current frequency.
->  To do this applications initialize the <structfield>tuner</structfield>,
-> -<structfield>type</structfield>, <structfield>seek_upward</structfield>
-> and
-> +<structfield>type</structfield>, <structfield>seek_upward</structfield>,
-> +<structfield>spacing</structfield> and
->  <structfield>wrap_around</structfield> fields, and zero out the
->  <structfield>reserved</structfield> array of a &v4l2-hw-freq-seek; and
->  call the <constant>VIDIOC_S_HW_FREQ_SEEK</constant> ioctl with a pointer
-> @@ -89,7 +90,12 @@ field and the &v4l2-tuner;
-> <structfield>index</structfield> field.</entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> -	    <entry><structfield>reserved</structfield>[8]</entry>
-> +	    <entry><structfield>spacing</structfield></entry>
-> +	    <entry>If non-zero, defines the hardware seek resolution in Hz. The
-> driver selects the nearest value that is supported by the device. If
-> spacing is zero a reasonable default value is used.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>reserved</structfield>[7]</entry>
->  	    <entry>Reserved for future extensions. Drivers and
->  	    applications must set the array to zero.</entry>
->  	  </row>
+> Marin Mitov
+> 
+> > 
+> > The approach enables us to solve this issue without adding any new
+> > API.
+> > 
 > --
-> 1.6.1.3
->
->
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Regards,
-
-        Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
-
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
