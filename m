@@ -1,73 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:64364 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753873Ab0JVINO (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:38101 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752824Ab0JJRdu convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Oct 2010 04:13:14 -0400
-Date: Fri, 22 Oct 2010 10:13:04 +0200
-From: Dan Carpenter <error27@gmail.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: 'Mauro Carvalho Chehab' <mchehab@infradead.org>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch 3/3] V4L/DVB: s5p-fimc: dubious one-bit signed bitfields
-Message-ID: <20101022081304.GQ5985@bicker>
-References: <20101021192424.GL5985@bicker> <000a01cb71b8$465248f0$d2f6dad0$%nawrocki@samsung.com>
+	Sun, 10 Oct 2010 13:33:50 -0400
+Received: by fxm4 with SMTP id 4so126619fxm.19
+        for <linux-media@vger.kernel.org>; Sun, 10 Oct 2010 10:33:49 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <000a01cb71b8$465248f0$d2f6dad0$%nawrocki@samsung.com>
+In-Reply-To: <201009261425.00146.hverkuil@xs4all.nl>
+References: <201009261425.00146.hverkuil@xs4all.nl>
+Date: Sun, 10 Oct 2010 13:33:48 -0400
+Message-ID: <AANLkTimWCHHP5MOnXpXpoRyfxRd5jj6=0DHpj7uoVS2E@mail.gmail.com>
+Subject: Re: [GIT PATCHES FOR 2.6.37] Move V4L2 locking into the core framework
+From: David Ellingsworth <david@identd.dyndns.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, Oct 22, 2010 at 09:10:57AM +0200, Sylwester Nawrocki wrote:
-> > -----Original Message-----
-> > From: Dan Carpenter [mailto:error27@gmail.com]
-> > Sent: Thursday, October 21, 2010 9:24 PM
-> > To: Mauro Carvalho Chehab
-> > Cc: Kyungmin Park; Sylwester Nawrocki; Pawel Osciak; Marek Szyprowski;
-> > linux-media@vger.kernel.org; kernel-janitors@vger.kernel.org
-> > Subject: [patch 3/3] V4L/DVB: s5p-fimc: dubious one-bit signed
-> > bitfields
-> > 
-> > These are signed so instead of being 1 and 0 as intended they are -1
-> > and
-> > 0.  It doesn't cause a bug in the current code but Sparse warns about
-> > it:
-> > 
-> > drivers/media/video/s5p-fimc/fimc-core.h:226:28:
-> > 	error: dubious one-bit signed bitfield
-> > 
-> > Signed-off-by: Dan Carpenter <error27@gmail.com>
-> > 
-> > diff --git a/drivers/media/video/s5p-fimc/fimc-core.h
-> > b/drivers/media/video/s5p-fimc/fimc-core.h
-> > index e3a7c6a..7665a3f 100644
-> > --- a/drivers/media/video/s5p-fimc/fimc-core.h
-> > +++ b/drivers/media/video/s5p-fimc/fimc-core.h
-> > @@ -222,10 +223,10 @@ struct fimc_effect {
-> >   * @real_height:	source pixel (height - offset)
-> >   */
-> >  struct fimc_scaler {
-> > -	int	scaleup_h:1;
-> > -	int	scaleup_v:1;
-> > -	int	copy_mode:1;
-> > -	int	enabled:1;
-> > +	unsigned int	scaleup_h:1;
-> > +	unsigned int	caleup_v:1;
-> > +	unsigned int	copy_mode:1;
-> > +	unsigned int	enabled:1;
-> >  	u32	hfactor;
-> >  	u32	vfactor;
-> >  	u32	pre_hratio;
-> 
-> In general I agree, however this patch would change scaleup_v:1 
-> to caleup_v, so it cannot be applied in current form.
+Hans,
 
-Crap!  I suck.  Thanks for catching that.
+On Sun, Sep 26, 2010 at 8:25 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Mauro,
+>
+> These are the locking patches. It's based on my previous test tree, but with
+> more testing with em28xx and radio-mr800 and some small tweaks relating to
+> disconnect handling and video_is_registered().
+>
+> I also removed the unused get_unmapped_area file op and I am now blocking
+> any further (unlocked_)ioctl calls after the device node is unregistered.
+> The only things an application can do legally after a disconnect is unmap()
+> and close().
+>
+> This patch series also contains a small em28xx fix that I found while testing
+> the em28xx BKL removal patch.
+>
+> Regards,
+>
+>        Hans
+>
+> The following changes since commit dace3857de7a16b83ae7d4e13c94de8e4b267d2a:
+>  Hans Verkuil (1):
+>        V4L/DVB: tvaudio: remove obsolete tda8425 initialization
+>
+> are available in the git repository at:
+>
+>  ssh://linuxtv.org/git/hverkuil/v4l-dvb.git bkl
+>
+> Hans Verkuil (10):
+>      v4l2-dev: after a disconnect any ioctl call will be blocked.
+>      v4l2-dev: remove get_unmapped_area
+>      v4l2: add core serialization lock.
+>      videobuf: prepare to make locking optional in videobuf
+>      videobuf: add ext_lock argument to the queue init functions
+>      videobuf: add queue argument to videobuf_waiton()
+>      vivi: remove BKL.
+>      em28xx: remove BKL.
+>      em28xx: the default std was not passed on to the subdevs
+>      radio-mr800: remove BKL
 
-regards,
-dan carpenter
+Did you even test these patches? The last one in the series clearly
+breaks radio-mr800 and the commit message does not describe the
+changes made. radio-mr800 has been BKL independent for quite some
+time. Hans, you of all people should know that calling
+video_unregister_device could result in the driver specific structure
+being freed. The mutex must therefore be unlocked _before_ calling
+video_unregister_device. Otherwise you're passing freed memory to
+mutex_unlock in usb_amradio_disconnect.
 
+If each patch had been properly posted to the list, others might have
+caught issues like this earlier. Posting a link to a repository is no
+substitute for this process.
 
+Mauro, you should be ashamed for accepting a series that obviously has issues.
+
+Regards,
+
+David Ellingsworth
