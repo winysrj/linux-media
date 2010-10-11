@@ -1,44 +1,148 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:41868 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1750762Ab0JTNOm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Oct 2010 09:14:42 -0400
-Received: from lyakh (helo=localhost)
-	by axis700.grange with local-esmtp (Exim 4.63)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1P8YVN-000089-8C
-	for linux-media@vger.kernel.org; Wed, 20 Oct 2010 15:14:57 +0200
-Date: Wed, 20 Oct 2010 15:14:57 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] soc-camera: fix static build of the sh_mobile_csi2.c driver
-Message-ID: <Pine.LNX.4.64.1010201513550.29312@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:65331 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755486Ab0JKR0k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Oct 2010 13:26:40 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Mon, 11 Oct 2010 19:26:31 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 4/6 v5] V4L/DVB: s5p-fimc: Do not lock both buffer queues in
+ s_fmt
+In-reply-to: <1286817993-21558-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com
+Message-id: <1286817993-21558-5-git-send-email-s.nawrocki@samsung.com>
+References: <1286817993-21558-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The test for driver->owner != NULL in sh_mobile_ceu_camera.c is unneeded and it
-breaks the static build of sh_mobile_csi2.c. Remove it.
+It is not necessary to lock both capture and output buffer queue while
+setting format for single queue.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/video/sh_mobile_ceu_camera.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/media/video/s5p-fimc/fimc-core.c |   69 +++++++++++++----------------
+ 1 files changed, 31 insertions(+), 38 deletions(-)
 
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index fdaadde..29374a5 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -1968,7 +1968,7 @@ static int __devinit sh_mobile_ceu_probe(struct platform_device *pdev)
- 		 * we complete the completion.
- 		 */
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index 6bddec3..85a7e72 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -742,8 +742,9 @@ static int fimc_m2m_try_fmt(struct file *file, void *priv,
+ static int fimc_m2m_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ {
+ 	struct fimc_ctx *ctx = priv;
+-	struct v4l2_device *v4l2_dev = &ctx->fimc_dev->m2m.v4l2_dev;
+-	struct videobuf_queue *src_vq, *dst_vq;
++	struct fimc_dev *fimc = ctx->fimc_dev;
++	struct v4l2_device *v4l2_dev = &fimc->m2m.v4l2_dev;
++	struct videobuf_queue *vq;
+ 	struct fimc_frame *frame;
+ 	struct v4l2_pix_format *pix;
+ 	unsigned long flags;
+@@ -755,69 +756,61 @@ static int fimc_m2m_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 	if (ret)
+ 		return ret;
  
--		if (!csi2->driver || !csi2->driver->owner) {
-+		if (!csi2->driver) {
- 			complete(&wait.completion);
- 			/* Either too late, or probing failed */
- 			bus_unregister_notifier(&platform_bus_type, &wait.notifier);
+-	mutex_lock(&ctx->fimc_dev->lock);
++	if (mutex_lock_interruptible(&fimc->lock))
++		return -ERESTARTSYS;
+ 
+-	src_vq = v4l2_m2m_get_src_vq(ctx->m2m_ctx);
+-	dst_vq = v4l2_m2m_get_dst_vq(ctx->m2m_ctx);
++	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
++	mutex_lock(&vq->vb_lock);
+ 
+-	mutex_lock(&src_vq->vb_lock);
+-	mutex_lock(&dst_vq->vb_lock);
++	if (videobuf_queue_is_busy(vq)) {
++		v4l2_err(v4l2_dev, "%s: queue (%d) busy\n", __func__, f->type);
++		ret = -EBUSY;
++		goto sf_out;
++	}
+ 
++	spin_lock_irqsave(&ctx->slock, flags);
+ 	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+-		if (videobuf_queue_is_busy(src_vq)) {
+-			v4l2_err(v4l2_dev, "%s queue busy\n", __func__);
+-			ret = -EBUSY;
+-			goto s_fmt_out;
+-		}
+ 		frame = &ctx->s_frame;
+-		spin_lock_irqsave(&ctx->slock, flags);
+ 		ctx->state |= FIMC_SRC_FMT;
+-		spin_unlock_irqrestore(&ctx->slock, flags);
+-
+ 	} else if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+-		if (videobuf_queue_is_busy(dst_vq)) {
+-			v4l2_err(v4l2_dev, "%s queue busy\n", __func__);
+-			ret = -EBUSY;
+-			goto s_fmt_out;
+-		}
+ 		frame = &ctx->d_frame;
+-		spin_lock_irqsave(&ctx->slock, flags);
+ 		ctx->state |= FIMC_DST_FMT;
+-		spin_unlock_irqrestore(&ctx->slock, flags);
+ 	} else {
++		spin_unlock_irqrestore(&ctx->slock, flags);
+ 		v4l2_err(&ctx->fimc_dev->m2m.v4l2_dev,
+ 			 "Wrong buffer/video queue type (%d)\n", f->type);
+ 		ret = -EINVAL;
+-		goto s_fmt_out;
++		goto sf_out;
+ 	}
++	spin_unlock_irqrestore(&ctx->slock, flags);
+ 
+ 	pix = &f->fmt.pix;
+ 	frame->fmt = find_format(f);
+ 	if (!frame->fmt) {
+ 		ret = -EINVAL;
+-		goto s_fmt_out;
++		goto sf_out;
+ 	}
+ 
+-	frame->f_width = pix->bytesperline * 8 / frame->fmt->depth;
+-	frame->f_height = pix->sizeimage/pix->bytesperline;
+-	frame->width = pix->width;
+-	frame->height = pix->height;
+-	frame->o_width = pix->width;
++	frame->f_width	= pix->bytesperline * 8 / frame->fmt->depth;
++	frame->f_height	= pix->height;
++	frame->width	= pix->width;
++	frame->height	= pix->height;
++	frame->o_width	= pix->width;
+ 	frame->o_height = pix->height;
+-	frame->offs_h = 0;
+-	frame->offs_v = 0;
+-	frame->size = (pix->width * pix->height * frame->fmt->depth) >> 3;
+-	src_vq->field = dst_vq->field = pix->field;
++	frame->offs_h	= 0;
++	frame->offs_v	= 0;
++	frame->size	= (pix->width * pix->height * frame->fmt->depth) >> 3;
++	vq->field	= pix->field;
++
+ 	spin_lock_irqsave(&ctx->slock, flags);
+ 	ctx->state |= FIMC_PARAMS;
+ 	spin_unlock_irqrestore(&ctx->slock, flags);
+ 
+-	dbg("f_width= %d, f_height= %d", frame->f_width, frame->f_height);
++	dbg("f_w: %d, f_h: %d", frame->f_width, frame->f_height);
+ 
+-s_fmt_out:
+-	mutex_unlock(&dst_vq->vb_lock);
+-	mutex_unlock(&src_vq->vb_lock);
+-	mutex_unlock(&ctx->fimc_dev->lock);
++sf_out:
++	mutex_unlock(&vq->vb_lock);
++	mutex_unlock(&fimc->lock);
+ 	return ret;
+ }
+ 
 -- 
-1.7.1
+1.7.3.1
 
