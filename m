@@ -1,72 +1,96 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:50316 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1752277Ab0JHHAd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Oct 2010 03:00:33 -0400
-Date: Fri, 8 Oct 2010 09:00:36 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PULL] soc-camera: welcome a new host: OMAP1 and a couple of new
- sensor drivers
-Message-ID: <Pine.LNX.4.64.1010080848550.21992@axis700.grange>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:37169 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755007Ab0JKQN3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Oct 2010 12:13:29 -0400
+Received: by ewy20 with SMTP id 20so661142ewy.19
+        for <linux-media@vger.kernel.org>; Mon, 11 Oct 2010 09:13:28 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <Pine.LNX.4.64.1010111718010.11865@axis700.grange>
+References: <AANLkTimyR117ZiHq8GFz4YW5tBtW3k82NzGVZqKoVTbY@mail.gmail.com>
+	<Pine.LNX.4.64.1010072012280.15141@axis700.grange>
+	<AANLkTinJhywDoZg5F2tvqdW44to-6P4hgNd9Fav9qTv8@mail.gmail.com>
+	<201010111514.37592.laurent.pinchart@ideasonboard.com>
+	<AANLkTikBWjgNmDdG6dCXQQmcDRBUc4gP7717uqAY3+_J@mail.gmail.com>
+	<Pine.LNX.4.64.1010111718010.11865@axis700.grange>
+Date: Mon, 11 Oct 2010 18:13:27 +0200
+Message-ID: <AANLkTi=DpmOum+m_YNrn-ENaAZk9rOi8rZF-fGp-dRf1@mail.gmail.com>
+Subject: Re: OMAP 3530 camera ISP forks and new media framework
+From: Bastian Hecht <hechtb@googlemail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro
+2010/10/11 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> On Mon, 11 Oct 2010, Bastian Hecht wrote:
+>
+>> 2010/10/11 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+>> > Hi Bastian,
+>> >
+>> > On Monday 11 October 2010 14:59:15 Bastian Hecht wrote:
+>> >> So... let's see if i got some things right, please let me now if you
+>> >> disagree:
+>> >>
+>> >> - I do want to use the omap34xxcam.c driver as it is for the newest
+>> >> framework and I get most support for it
+>> >
+>> > That's a bad start. With the latest driver, omap34xxcam.c doesn't exist
+>> > anymore :-)
+>>
+>> Nice :S
+>>
+>> I think I take the mt9t001 approach (Sorry Guennadi, I think modifying
+>> your framework is too much for me to start with).
+>
+> AFAIR, you said, that register sets of mt9t031 and mt9p031 are identical,
+> so, I think, I will be against mainlining a new driver for the "same"
+> hardware for the pad-level ops, duplicating an soc-camera driver. Apart
+> from creating a one-off redundancy, this looks like an extremely negative
+> precedent to me.
+>
+> That said, please, double check your estimate as "identical." If there are
+> differences, say, even in only 10% of registers, it might still be
+> justified to make a new driver. mt9m001 and mt9t031 are also "very
+> similar," still, it appeared to me at that time, that a new driver would
+> be cleaner, than a single driver full of forks or other indirections.
+>
+> Thanks
+> Guennadi
+>
 
-So, as promised, here goes part 2 of 2.6.37 patches for soc-camera and 
-related. There's also going to be one issue with this one to take care of: 
-the last patch will conflict with Laurent's pad-level ops patches, which 
-also move mediabus pixel codes around. But since Laurent's patches are 
-still at the RFC stage, AFAICS, they'll have to be extended slightly:)
+The point is, I will jump around my office for a full day when I get
+out a single picture of my camera PCB. After that I will gladly work
+towards uncluttering the driver duplication. I will see if it fits
+better the mt9t001 or mt9t031 and integrate it in there.
 
-The following changes since commit 81d64d12e11a3cca995e6c752e4bd2898959ed0a:
+Cheers,
 
-  V4L/DVB: cx231xx: remove some unused functions (2010-10-07 21:05:52 -0300)
+ Bastian
 
-are available in the git repository at:
-  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-2.6.37
 
-Guennadi Liakhovetski (3):
-      V4L: add IMX074 sensor chip ID
-      V4L: add an IMX074 sensor soc-camera / v4l2-subdev driver
-      V4L: sh_mobile_ceu_camera: use default .get_parm() and .set_parm() operations
-
-Janusz Krzysztofik (3):
-      SoC Camera: add driver for OMAP1 camera interface
-      SoC Camera: add driver for OV6650 sensor
-      SoC Camera: add support for g_parm / s_parm operations
-
-Michael Grzeschik (1):
-      mt9m111: changed MIN_DARK_COLS to MT9M131 spec count
-
-Sascha Hauer (1):
-      v4l2-mediabus: Add pixelcodes for BGR565 formats
-
- drivers/media/video/Kconfig                |   20 +
- drivers/media/video/Makefile               |    3 +
- drivers/media/video/imx074.c               |  508 +++++++++
- drivers/media/video/mt9m111.c              |    2 +-
- drivers/media/video/omap1_camera.c         | 1702 ++++++++++++++++++++++++++++
- drivers/media/video/ov6650.c               | 1225 ++++++++++++++++++++
- drivers/media/video/sh_mobile_ceu_camera.c |   18 -
- drivers/media/video/soc_camera.c           |   18 +
- include/media/omap1_camera.h               |   35 +
- include/media/v4l2-chip-ident.h            |    4 +
- include/media/v4l2-mediabus.h              |    2 +
- 11 files changed, 3518 insertions(+), 19 deletions(-)
- create mode 100644 drivers/media/video/imx074.c
- create mode 100644 drivers/media/video/omap1_camera.c
- create mode 100644 drivers/media/video/ov6650.c
- create mode 100644 include/media/omap1_camera.h
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+>> So in this driver I
+>> tell the framework that I can do i2c probing, some subdev_core_ops and
+>> some subdev_video_ops. I define these functions that mostly do some
+>> basic i2c communication to the sensor chip. I guess I can handle that
+>> as there are so many examples out there.
+>>
+>> But where do I stack that on top? On the camera bridge host, but if it
+>> isn't omap34xxcam, which driver can I use? How are they connected?
+>>
+>> Thanks,
+>>
+>>  Bastian
+>>
+>
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+>
