@@ -1,111 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:38926 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1751144Ab0JQWDe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Oct 2010 18:03:34 -0400
-Date: Mon, 18 Oct 2010 00:03:30 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-cc: LMML <linux-media@vger.kernel.org>,
-	"Igor M. Liplianin" <liplianin@me.by>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Jarod Wilson <jarod@redhat.com>,
-	Richard Zidlicky <rz@linux-m68k.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Sven Barth <pascaldragon@googlemail.com>,
-	Patrick Boettcher <pboettcher@kernellabs.com>,
-	Henrik Kurelid <henke@kurelid.se>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: Re: Old patches sent via the Mailing list
-In-Reply-To: <4CBB689F.1070100@redhat.com>
-Message-ID: <Pine.LNX.4.64.1010172348520.2757@axis700.grange>
-References: <4CBB689F.1070100@redhat.com>
+Received: from perceval.irobotique.be ([92.243.18.41]:39686 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754669Ab0JKPH1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Oct 2010 11:07:27 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Bastian Hecht <hechtb@googlemail.com>
+Subject: Re: OMAP 3530 camera ISP forks and new media framework
+Date: Mon, 11 Oct 2010 17:07:20 +0200
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <AANLkTimyR117ZiHq8GFz4YW5tBtW3k82NzGVZqKoVTbY@mail.gmail.com> <201010111514.37592.laurent.pinchart@ideasonboard.com> <AANLkTikBWjgNmDdG6dCXQQmcDRBUc4gP7717uqAY3+_J@mail.gmail.com>
+In-Reply-To: <AANLkTikBWjgNmDdG6dCXQQmcDRBUc4gP7717uqAY3+_J@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201010111707.21537.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro
+Hi Bastian,
 
-On Sun, 17 Oct 2010, Mauro Carvalho Chehab wrote:
-
-> 		== Soc_camera waiting for Guennadi Liakhovetski <g.liakhovetski@gmx.de> review == 
+On Monday 11 October 2010 16:58:35 Bastian Hecht wrote:
+> 2010/10/11 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> > On Monday 11 October 2010 14:59:15 Bastian Hecht wrote:
+> >> So... let's see if i got some things right, please let me now if you
+> >> disagree:
+> >> 
+> >> - I do want to use the omap34xxcam.c driver as it is for the newest
+> >> framework and I get most support for it
+> > 
+> > That's a bad start. With the latest driver, omap34xxcam.c doesn't exist
+> > anymore :-)
 > 
-> (Guennadi gave me an update about those patches last time. I'm not sure about the updated status)
+> Nice :S
 > 
-> Jul, 5 2010: soc-camera: module_put() fix                                           http://patchwork.kernel.org/patch/110202  Magnus Damm <damm@opensource.se>
+> I think I take the mt9t001 approach (Sorry Guennadi, I think modifying
+> your framework is too much for me to start with). So in this driver I
+> tell the framework that I can do i2c probing, some subdev_core_ops and
+> some subdev_video_ops. I define these functions that mostly do some
+> basic i2c communication to the sensor chip. I guess I can handle that
+> as there are so many examples out there.
 
-Please, mark as dropped
+The best solution would be to add mt9p031 support to the mt9t001 driver. If 
+that's too difficult to start with, you can copy mt9t001 to mt9p031 and modify 
+the driver as needed and merge the two drivers when you will be satisfied with 
+the result.
 
-> Jul,27 2010: [1/4] mx2_camera: fix a race causing NULL dereference                  http://patchwork.kernel.org/patch/114515  Baruch Siach <baruch@tkos.co.il>
+> But where do I stack that on top? On the camera bridge host, but if it
+> isn't omap34xxcam, which driver can I use? How are they connected?
 
-is upstream 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=5384a12b23160e11ff949a94172051476d308b66
+http://gitorious.org/maemo-multimedia/omap3isp-rx51
 
-> Jul,27 2010: [2/4] mx2_camera: return IRQ_NONE when doing nothing                   http://patchwork.kernel.org/patch/114517  Baruch Siach <baruch@tkos.co.il>
+The omap34xxcam.ko and isp-mod.ko modules have been merged into a single 
+omap3-isp.ko module. All the driver code is now in drivers/media/video/isp.
 
-mark as dropped
+-- 
+Regards,
 
-> Jul,27 2010: [4/4] mx2_camera: implement forced termination of active buffer for mx http://patchwork.kernel.org/patch/114518  Baruch Siach <baruch@tkos.co.il>
-
-is in next 
-http://git.kernel.org/?p=linux/kernel/git/next/linux-next.git;a=commit;h=9cf6ddf5eeedaffd989f9b93df1b7ea8d459786b
-
-> Aug, 3 2010: [2/5] mx2_camera: remove emma limitation for RGB565                    http://patchwork.kernel.org/patch/116703  Michael Grzeschik <m.grzeschik@pengutronix.de>
-
-is in next 
-http://git.kernel.org/?p=linux/kernel/git/next/linux-next.git;a=commit;h=2b262a18b79768a2b7a62ba187f8830802790b9a
-
-> Aug, 3 2010: [3/5] mx2_camera: fix for list bufnum in frame_done_emma               http://patchwork.kernel.org/patch/116705  Michael Grzeschik <m.grzeschik@pengutronix.de>
-
-is upstream 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=cd9ebdbc0541b4e8ee145c81642d68332f79b932
-
-> Aug, 3 2010: [4/5] mx2_camera: add rising edge for pixclock                         http://patchwork.kernel.org/patch/116704  Michael Grzeschik <m.grzeschik@pengutronix.de>
-
-upstream 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=d86097e19cef2f13a29fc37db0dad17b99b6d5f8
-
-> Aug, 3 2010: [5/5] mx2_camera: add informative camera clock frequency printout      http://patchwork.kernel.org/patch/116707  Michael Grzeschik <m.grzeschik@pengutronix.de>
-
-in next 
-http://git.kernel.org/?p=linux/kernel/git/next/linux-next.git;a=commit;h=e7d317b5b210a2f9486faa335e4eff81e5f6210d
-
-> Aug, 3 2010: [04/11] mt9m111: added new bit offset defines                          http://patchwork.kernel.org/patch/116721  Michael Grzeschik <m.grzeschik@pengutronix.de>
-
-waiting an update (possible merge with 08/11 and 10/11 below)
-
-> Aug, 3 2010: [06/11] mt9m111: cropcap and s_crop check if type is VIDEO_CAPTURE     http://patchwork.kernel.org/patch/116726  Michael Grzeschik <m.grzeschik@pengutronix.de>
-
-upstream 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=6b6d33c746ace7bd0dbbdde674d3fb1100ab081d
-
-> Aug, 3 2010: [07/11] mt9m111: added current colorspace at g_fmt                     http://patchwork.kernel.org/patch/116724  Michael Grzeschik <m.grzeschik@pengutronix.de>
-
-upstream 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=01f5a394eac48b74c84434e95e74cd172b0682c3
-
-> Aug, 3 2010: [08/11] mt9m111: added reg_mask function                               http://patchwork.kernel.org/patch/116722  Michael Grzeschik <m.grzeschik@pengutronix.de>
-
-waiting for update (see 04/11 above)
-
-> Aug, 3 2010: [v2,10/11] mt9m111: rewrite set_pixfmt                                 http://patchwork.kernel.org/patch/116728  Michael Grzeschik <m.grzeschik@pengutronix.de>
-
-waiting for update (see 04/11 above)
-
-> Aug, 3 2010: [v2,11/11] mt9m111: make use of testpattern                            http://patchwork.kernel.org/patch/116730  Michael Grzeschik <m.grzeschik@pengutronix.de>
-
-waiting for a new version, using additional inputs to provide test 
-patterns.
-
-Somehow, looks like patches, that I push to you, don't (automatically) get 
-updated in patchwork, is there anything, that I'm doing wrongly, why this 
-is happening?
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Laurent Pinchart
