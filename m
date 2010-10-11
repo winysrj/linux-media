@@ -1,70 +1,109 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:62811 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756110Ab0J0PsW (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4798 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755074Ab0JKPkc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Oct 2010 11:48:22 -0400
+	Mon, 11 Oct 2010 11:40:32 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: David Ellingsworth <david@identd.dyndns.org>
+Subject: Re: [GIT PATCHES FOR 2.6.37] Move V4L2 locking into the core framework
+Date: Mon, 11 Oct 2010 17:40:14 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+References: <201009261425.00146.hverkuil@xs4all.nl> <AANLkTimWCHHP5MOnXpXpoRyfxRd5jj6=0DHpj7uoVS2E@mail.gmail.com>
+In-Reply-To: <AANLkTimWCHHP5MOnXpXpoRyfxRd5jj6=0DHpj7uoVS2E@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4CC84846.6020304@redhat.com>
-References: <4CC8380D.3040802@redhat.com>
-	<4CC84597.4000204@gmail.com>
-	<4CC84846.6020304@redhat.com>
-Date: Wed, 27 Oct 2010 11:48:20 -0400
-Message-ID: <AANLkTim=RfR3Dq0w+ACYjhGTHCSgapdf35wGW8QoZ38n@mail.gmail.com>
-Subject: Re: [GIT PULL for 2.6.37-rc1] V4L/DVB updates
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Michael Krufky <mkrufky@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201010111740.14658.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Oct 27, 2010 at 11:41 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
->> Even though you know this one breaks at least one driver you want it merged?
->
-> We need to fix that issue with af9015, but, without this patch, cx231xx is broken, as it
-> doesn't accept more than 4 bytes per I2C transfer. I tested the patch here with some possible
-> restrictions for I2C size. Also, Mkrufky tested it with other different hardware.
->
-> What I don't understand is that the only change that this patch caused for af9015 is to change
-> the I2C max size that used to be 16. The patch I sent you reverted this behaviour, by using
-> the proper macro value, instead of a magic number, but you reported that this didn't fix your
-> problem.
->
-> So, we need to figure out what af9015 is doing different than the other patches, and add patch
-> the issue with af9015. It shouldn't be hard to fix. I'll keep working with you in order to solve
-> the issue, although I don't have any af90xx hardware here, so, I need your help with the tests.
->
-> Cheers,
-> Mauro.
+On Sunday, October 10, 2010 19:33:48 David Ellingsworth wrote:
+> Hans,
+> 
+> On Sun, Sep 26, 2010 at 8:25 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > Hi Mauro,
+> >
+> > These are the locking patches. It's based on my previous test tree, but with
+> > more testing with em28xx and radio-mr800 and some small tweaks relating to
+> > disconnect handling and video_is_registered().
+> >
+> > I also removed the unused get_unmapped_area file op and I am now blocking
+> > any further (unlocked_)ioctl calls after the device node is unregistered.
+> > The only things an application can do legally after a disconnect is unmap()
+> > and close().
+> >
+> > This patch series also contains a small em28xx fix that I found while testing
+> > the em28xx BKL removal patch.
+> >
+> > Regards,
+> >
+> >        Hans
+> >
+> > The following changes since commit dace3857de7a16b83ae7d4e13c94de8e4b267d2a:
+> >  Hans Verkuil (1):
+> >        V4L/DVB: tvaudio: remove obsolete tda8425 initialization
+> >
+> > are available in the git repository at:
+> >
+> >  ssh://linuxtv.org/git/hverkuil/v4l-dvb.git bkl
+> >
+> > Hans Verkuil (10):
+> >      v4l2-dev: after a disconnect any ioctl call will be blocked.
+> >      v4l2-dev: remove get_unmapped_area
+> >      v4l2: add core serialization lock.
+> >      videobuf: prepare to make locking optional in videobuf
+> >      videobuf: add ext_lock argument to the queue init functions
+> >      videobuf: add queue argument to videobuf_waiton()
+> >      vivi: remove BKL.
+> >      em28xx: remove BKL.
+> >      em28xx: the default std was not passed on to the subdevs
+> >      radio-mr800: remove BKL
+> 
+> Did you even test these patches?
 
-Hi Mauro,
+Yes, I did test. And it works for me. But you are correct in that it shouldn't
+work since the struct will indeed be freed. I'll fix this and post a patch.
 
-Have you looked at the code for how the Conexant guys got the xc5000
-firmware load to work (which uses 64 bytes at a time).  I suspect what
-*really* needs to happen is that needs to be made generic so that the
-stop bit is properly set (which would allow a single i2c transaction
-to span across multiple USB control messages).
+I'm not sure why it works fine when I test it.
 
-Note that the xc5000 hack is actually two changes merged together -
-one uses a GPIO mode in certain cases to handle clock stretching
-properly (which probably has to stay there for now), and the other
-allows for larger i2c transactions.  I am referring to the latter
-change.
+There is a problem as well with unlocking before unregistering the device in
+that it leaves a race condition where another app can open the device again
+before it is registered. I have to think about that some more.
 
-If we fix the cx231xx i2c master, then we can go back to the original
-18271 config, which avoids the risk of regression for other devices.
+> The last one in the series clearly
+> breaks radio-mr800 and the commit message does not describe the
+> changes made. radio-mr800 has been BKL independent for quite some
+> time. Hans, you of all people should know that calling
+> video_unregister_device could result in the driver specific structure
+> being freed.
 
-Adding mkrufky to the CC: on this, since he is the 18271 maintainer.
+Jeez, relax. I'm human (really!).
 
-Devin
+> The mutex must therefore be unlocked _before_ calling
+> video_unregister_device. Otherwise you're passing freed memory to
+> mutex_unlock in usb_amradio_disconnect.
+> 
+> If each patch had been properly posted to the list, others might have
+> caught issues like this earlier. Posting a link to a repository is no
+> substitute for this process.
+> 
+> Mauro, you should be ashamed for accepting a series that obviously has issues.
+
+Hardly obvious, and definitely not his fault.
+
+Regards,
+
+	Hans
+
+> 
+> Regards,
+> 
+> David Ellingsworth
+> 
+> 
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
