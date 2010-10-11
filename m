@@ -1,91 +1,103 @@
 Return-path: <mchehab@pedra>
-Received: from realvnc.com ([146.101.152.142]:52659 "EHLO realvnc.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751031Ab0JTLOF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Oct 2010 07:14:05 -0400
-Received: from localhost ([127.0.0.1] helo=grape.realvnc.ltd)
-	by realvnc.com with esmtp (Exim 4.71)
-	(envelope-from <adrian.taylor@realvnc.com>)
-	id 1P8WKU-0007L7-SQ
-	for linux-media@vger.kernel.org; Wed, 20 Oct 2010 11:55:35 +0100
-Received: from [192.168.0.181] (clove.realvnc.ltd [192.168.0.181])
-	by grape.realvnc.ltd (8.13.7/8.13.7) with ESMTP id o9KAtXM9015797
-	for <linux-media@vger.kernel.org>; Wed, 20 Oct 2010 11:55:33 +0100
-Message-ID: <4CBECAA5.9060804@realvnc.com>
-Date: Wed, 20 Oct 2010 11:55:33 +0100
-From: Adrian Taylor <adrian.taylor@realvnc.com>
-MIME-Version: 1.0
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2987 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753455Ab0JKTEo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Oct 2010 15:04:44 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id o9BJ4hnd071406
+	for <linux-media@vger.kernel.org>; Mon, 11 Oct 2010 21:04:43 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 11 Oct 2010 21:04:43 +0200 (CEST)
+Message-Id: <201010111904.o9BJ4hnd071406@smtp-vbr1.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [PATCH] Support for Elgato Video Capture
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch allows this device successfully to show video, at least from
-its composite input.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-I have no information about the true hardware contents of this device and so
-this patch is based solely on fiddling with things until it worked. The
-chip appears to be em2860, and the closest device with equivalent inputs
-is the Typhoon DVD Maker. Copying the settings for that device appears
-to do the trick. That's what this patch does.
+Results of the daily build of v4l-dvb:
 
-Signed-off-by: Adrian Taylor <adrian.taylor@realvnc.com>
+date:        Mon Oct 11 19:00:04 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15164:1da5fed5c8b2
+git master:       3e6dce76d99b328716b43929b9195adfee1de00c
+git media-master: 9147e3dbca0712a5435cd2ea7c48d39344f904eb
+gcc version:      i686-linux-gcc (GCC) 4.5.1
+host hardware:    x86_64
+host os:          2.6.32.5
 
----
-  drivers/media/video/em28xx/em28xx-cards.c |   16 ++++++++++++++++
-  drivers/media/video/em28xx/em28xx.h       |    1 +
-  2 files changed, 17 insertions(+), 0 deletions(-)
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: WARNINGS
+linux-git-mips: WARNINGS
+linux-git-powerpc64: WARNINGS
+linux-git-x86_64: WARNINGS
+linux-2.6.32.6-armv5: WARNINGS
+linux-2.6.33-armv5: WARNINGS
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.32.6-armv5-davinci: ERRORS
+linux-2.6.33-armv5-davinci: ERRORS
+linux-2.6.34-armv5-davinci: ERRORS
+linux-2.6.35.3-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: ERRORS
+linux-2.6.33-armv5-ixp: ERRORS
+linux-2.6.34-armv5-ixp: ERRORS
+linux-2.6.35.3-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: ERRORS
+linux-2.6.33-armv5-omap2: ERRORS
+linux-2.6.34-armv5-omap2: ERRORS
+linux-2.6.35.3-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.32.6-m32r: WARNINGS
+linux-2.6.33-m32r: WARNINGS
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-diff --git a/drivers/media/video/em28xx/em28xx-cards.c 
-b/drivers/media/video/em28xx/em28xx-cards.c
-index 3a4fd85..5806f62 100644
---- a/drivers/media/video/em28xx/em28xx-cards.c
-+++ b/drivers/media/video/em28xx/em28xx-cards.c
-@@ -1667,6 +1667,20 @@ struct em28xx_board em28xx_boards[] = {
-         .tuner_gpio    = reddo_dvb_c_usb_box,
-         .has_dvb       = 1,
-     },
-+   [EM2860_BOARD_ELGATO_VIDEO_CAPTURE] = {
-+       .name         = "Elgato Video Capture",
-+       .decoder      = EM28XX_SAA711X,
-+       .tuner_type   = TUNER_ABSENT,   /* Capture only device */
-+       .input        = { {
-+           .type  = EM28XX_VMUX_COMPOSITE1,
-+           .vmux  = SAA7115_COMPOSITE0,
-+           .amux  = EM28XX_AMUX_LINE_IN,
-+       }, {
-+           .type  = EM28XX_VMUX_SVIDEO,
-+           .vmux  = SAA7115_SVIDEO3,
-+           .amux  = EM28XX_AMUX_LINE_IN,
-+       } },
-+   },
-  };
-  const unsigned int em28xx_bcount = ARRAY_SIZE(em28xx_boards);
+Detailed results are available here:
 
-@@ -1788,6 +1802,8 @@ struct usb_device_id em28xx_id_table[] = {
-             .driver_info = EM2820_BOARD_IODATA_GVMVP_SZ },
-     { USB_DEVICE(0xeb1a, 0x50a6),
-             .driver_info = EM2860_BOARD_GADMEI_UTV330 },
-+   { USB_DEVICE(0x0fd9, 0x0033),
-+           .driver_info = EM2860_BOARD_ELGATO_VIDEO_CAPTURE},
-     { },
-  };
-  MODULE_DEVICE_TABLE(usb, em28xx_id_table);
-diff --git a/drivers/media/video/em28xx/em28xx.h 
-b/drivers/media/video/em28xx/em28xx.h
-index b252d1b..23733b8 100644
---- a/drivers/media/video/em28xx/em28xx.h
-+++ b/drivers/media/video/em28xx/em28xx.h
-@@ -113,6 +113,7 @@
-  #define EM2870_BOARD_REDDO_DVB_C_USB_BOX          73
-  #define EM2800_BOARD_VC211A              74
-  #define EM2882_BOARD_DIKOM_DK300         75
-+#define EM2860_BOARD_ELGATO_VIDEO_CAPTURE         76
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-  /* Limits minimum and default number of buffers */
-  #define EM28XX_MIN_BUF 4
--- 
-1.7.0.4
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
