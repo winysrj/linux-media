@@ -1,54 +1,87 @@
 Return-path: <mchehab@pedra>
-Received: from tex.lwn.net ([70.33.254.29]:60136 "EHLO vena.lwn.net"
+Received: from mx1.redhat.com ([209.132.183.28]:55603 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757549Ab0JSDUU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Oct 2010 23:20:20 -0400
-Date: Mon, 18 Oct 2010 21:20:17 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Daniel Drake <dsd@laptop.org>
-Subject: Re: [PATCH] viafb camera controller driver
-Message-ID: <20101018212017.7c53789e@bike.lwn.net>
-In-Reply-To: <4CB9AC58.5020301@infradead.org>
-References: <20101010162313.5caa137f@bike.lwn.net>
-	<4CB9AC58.5020301@infradead.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+	id S1756134Ab0JKWG6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Oct 2010 18:06:58 -0400
+Message-ID: <4CB38A7C.5040603@redhat.com>
+Date: Mon, 11 Oct 2010 19:06:52 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Steven Toth <stoth@kernellabs.com>
+CC: linux-media@vger.kernel.org, Gavin Hurlbut <gjhurlbu@gmail.com>
+Subject: Re: [PULL] http://kernellabs.com/hg/~stoth/saa7164-v4l
+References: <AANLkTima57h2Zz23y885AnyzWJOOUNWZxzt4o4gRjaUX@mail.gmail.com> <4CB37BB6.4050307@infradead.org>
+In-Reply-To: <4CB37BB6.4050307@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, 16 Oct 2010 10:44:56 -0300
-Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
-
-> drivers/media/video/via-camera.c: In function ‘viacam_open’:
-> drivers/media/video/via-camera.c:651: error: too few arguments to function ‘videobuf_queue_sg_init’
-
-> The fix for this one is trivial:
-> drivers/media/video/via-camera.c:651: error: too few arguments to function ‘videobuf_queue_sg_init’
+Em 11-10-2010 18:03, Mauro Carvalho Chehab escreveu:
+> Hi stoth,
 > 
-> Just add an extra NULL parameter to the function.
+> Em 31-07-2010 17:42, Steven Toth escreveu:
+>> Mauro,
+>>
+>> Analog Encoder and VBI support in the SAA7164 tree, for the HVR2200
+>> and HVR2250 cards.
+>>
+>> Please pull from http://www.kernellabs.com/hg/~stoth/saa7164-v4l
+>>
+> 
+> As requested on irc, I've pulled from your tree again, and fixed a few things
+> on your patch series (a warning and _lots_ of checkpatch issues).
+> 
+> There are still some compilation breakages in the middle of your patch series.
+> So, I'll fold some patches, in order to avoid the issues.
+> 
+> There are still a few checkpatch issues (I removed all 80-columns warning noise).
+> Could you please double check them?
+> 
+> To make life easier for you, I've created a temp git tree at:
+> 	http://git.linuxtv.org/mchehab/stoth.git
 
-So I'm looking into this stuff.  The extra NULL parameter is a struct
-mutex, which seems to be used in one place in videobuf_waiton():
+Stoth,
 
-	is_ext_locked = q->ext_lock && mutex_is_locked(q->ext_lock);
+I realized that I missed a few patches on my queue. I've applied them also at the
+git tree. There are a few issues on some of them:
 
-	/* Release vdev lock to prevent this wait from blocking outside access to
-	   the device. */
-	if (is_ext_locked)
-		mutex_unlock(q->ext_lock);
+    commit a5209649cb5aa8a706e6ed5ab74378f2f95c64bf
+    Author: Steven Toth <stoth@kernellabs.com>
+    Date:   Wed Oct 6 21:52:22 2010 -0300
 
-I'd be most curious to know what the reasoning behind this code is; to my
-uneducated eye, it looks like a real hack.  How does this function know who
-locked ext_lock?  Can it really just unlock it safely?  It seems to me that
-this is a sign of locking issues which should really be dealt with
-elsewhere, but, as I said, I'm uneducated, and the changelogs don't help me
-much.  Can somebody educate me?
+    V4L/DVB: saa7164: Removed use of the BKL
+
+    Remove usage of the BKL and instead used video_set_drvdata() during
+       open fops.
+    
+    Signed-off-by: Steven Toth <stoth@kernellabs.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+There were some conflicts on this patch. Please verify that the conflict solve
+went ok.
+
+    commit 86ae40b5f3da13c5fd0c70731aac6447c6af4cd8
+    Author: Gavin Hurlbut <gjhurlbu@gmail.com>
+    Date:   Thu Sep 30 18:21:20 2010 -0300
+
+    V4L/DVB: Fix the -E{*} returns in the VBI device as well
+
+    commit f92f45822ce73cfc4bde8d61a75598fb9db35d6b
+    Author: Gavin Hurlbut <gjhurlbu@gmail.com>
+    Date:   Wed Sep 29 15:18:20 2010 -0300
+
+    V4L/DVB: Fix the negative -E{BLAH} returns from fops_read
+
+    commit 25b5ab78a5240c82baa78167e55c8d74a6e0a276
+    Author: Gavin Hurlbut <gjhurlbu@gmail.com>
+    Date:   Mon Sep 27 23:50:43 2010 -0300
+
+    V4L/DVB: Change the second input names to include " 2" to distinguish them
+
+Those three patches are missing your Signed-off-by: and Gavin's Signed-off-by:
+
+Could you please provide it?
 
 Thanks,
-
-jon
+Mauro
