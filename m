@@ -1,107 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4616 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753395Ab0JOIqJ (ORCPT
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:34286 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754320Ab0JKM7R (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Oct 2010 04:46:09 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Valdis.Kletnieks@vt.edu
-Subject: Re: mmotm 2010-10-13 - GSPCA SPCA561 webcam driver broken
-Date: Fri, 15 Oct 2010 10:45:45 +0200
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-References: <201010140044.o9E0iuR3029069@imap1.linux-foundation.org> <5158.1287086789@localhost>
-In-Reply-To: <5158.1287086789@localhost>
+	Mon, 11 Oct 2010 08:59:17 -0400
+Received: by ewy20 with SMTP id 20so555726ewy.19
+        for <linux-media@vger.kernel.org>; Mon, 11 Oct 2010 05:59:16 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201010151045.45630.hverkuil@xs4all.nl>
+In-Reply-To: <Pine.LNX.4.64.1010072012280.15141@axis700.grange>
+References: <AANLkTimyR117ZiHq8GFz4YW5tBtW3k82NzGVZqKoVTbY@mail.gmail.com>
+	<4CADA7ED.5020604@maxwell.research.nokia.com>
+	<201010071527.41438.laurent.pinchart@ideasonboard.com>
+	<19F8576C6E063C45BE387C64729E739404AA21D15A@dbde02.ent.ti.com>
+	<Pine.LNX.4.64.1010072012280.15141@axis700.grange>
+Date: Mon, 11 Oct 2010 14:59:15 +0200
+Message-ID: <AANLkTinJhywDoZg5F2tvqdW44to-6P4hgNd9Fav9qTv8@mail.gmail.com>
+Subject: Re: OMAP 3530 camera ISP forks and new media framework
+From: Bastian Hecht <hechtb@googlemail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thursday, October 14, 2010 22:06:29 Valdis.Kletnieks@vt.edu wrote:
-> On Wed, 13 Oct 2010 17:13:25 PDT, akpm@linux-foundation.org said:
-> > The mm-of-the-moment snapshot 2010-10-13-17-13 has been uploaded to
-> > 
-> >    http://userweb.kernel.org/~akpm/mmotm/
-> 
-> This broke my webcam.  I bisected it down to this commit, and things
-> work again after reverting the 2 code lines of change.
-> 
-> commit 9e4d79a98ebd857ec729f5fa8f432f35def4d0da
-> Author: Hans Verkuil <hverkuil@xs4all.nl>
-> Date:   Sun Sep 26 08:16:56 2010 -0300
-> 
->     V4L/DVB: v4l2-dev: after a disconnect any ioctl call will be blocked
->     
->     Until now all fops except release and (unlocked_)ioctl returned an error
->     after the device node was unregistered. Extend this as well to the ioctl
->     fops. There is nothing useful that an application can do here and it
->     complicates the driver code unnecessarily.
->     
->     Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
->     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> 
-> diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-> index d4a3532..f069c61 100644
-> --- a/drivers/media/video/v4l2-dev.c
-> +++ b/drivers/media/video/v4l2-dev.c
-> @@ -221,8 +221,8 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, 
->         struct video_device *vdev = video_devdata(filp);
->         int ret;
->  
-> -       /* Allow ioctl to continue even if the device was unregistered.
-> -          Things like dequeueing buffers might still be useful. */
-> +       if (!vdev->fops->ioctl)
-> +               return -ENOTTY;
->         if (vdev->fops->unlocked_ioctl) {
->                 ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
->         } else if (vdev->fops->ioctl) {
-> 
-> I suspect this doesn't do what's intended if a driver is using ->unlocked_ioctl
-> rather than ->ioctl, and it should be reverted - it only saves at most one
-> if statement.
-> 
-> 
+So... let's see if i got some things right, please let me now if you disagree:
 
-I'm not sure what is going on here. It looks like this patch is mangled in your
-tree since the same patch in the v4l-dvb repository looks like this:
+- I do want to use the omap34xxcam.c driver as it is for the newest
+framework and I get most support for it
 
-diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c                                                         
-index 32575a6..26d39c4 100644                                                                                                        
---- a/drivers/media/video/v4l2-dev.c                                                                                                 
-+++ b/drivers/media/video/v4l2-dev.c                                                                                                 
-@@ -222,8 +222,8 @@ static int v4l2_ioctl(struct inode *inode, struct file *filp,                                                    
-                                                                                                                                     
-        if (!vdev->fops->ioctl)                                                                                                      
-                return -ENOTTY;                                                                                                      
--       /* Allow ioctl to continue even if the device was unregistered.                                                              
--          Things like dequeueing buffers might still be useful. */
-+       if (!video_is_registered(vdev))
-+               return -ENODEV;
-        return vdev->fops->ioctl(filp, cmd, arg);
- }
- 
-@@ -234,8 +234,8 @@ static long v4l2_unlocked_ioctl(struct file *filp,
- 
-        if (!vdev->fops->unlocked_ioctl)
-                return -ENOTTY;
--       /* Allow ioctl to continue even if the device was unregistered.
--          Things like dequeueing buffers might still be useful. */
-+       if (!video_is_registered(vdev))
-+               return -ENODEV;
-        return vdev->fops->unlocked_ioctl(filp, cmd, arg);
- }
+- The camera sensor driver must implement the v4l2-subdev and the new
+pad-level api. As the register list of mt9t031 and mt9p031 sensors are
+identical, I could copy the subdev-part. But the existing mt9t031
+driver stacks on top of soc_camera. soc_camera creates a v4l2 device.
+omap34xxcam also creates a v4l2 dev. Obviously they are competing
+architectures.
+Guennadi wrote:
+> There is already an mt9t031 v4l2-subdev / soc-camera driver, so, if
+> mt9t031 and mt9p031 are indeed similar enough, I think, the right way is
+> to join efforts to port soc-camera over to the new "pad-level" API and
+> re-use the driver.
+This confuses me a bit now. Guennadi, is your idea to update the
+soc_camera interface for pad-level support and port omap34xxcam to a
+soc_camera_omap34xxcam?
+I don't think I am capable of writing a new host bridge driver, so I
+would prefer touching only the sensor driver part. Or do you think it
+is better to remove the soc_camera dependency and fit the camera
+sensor driver to omap34xxcam directly?
 
-In your diff there is a mismatch between ioctl and unlocked_ioctl which no doubt
-is causing all the problems for you.
+- If I do the later, I take Laurent's approach and look at his MT9T001
+sensor driver for Sakari's omap34xxcam host driver and adapt it for my
+needs. I can look for more subdev pad-level examples in Vaibhav's
+repository.
 
-Regards,
 
-	Hans
+So long, thanks for all your help,
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Bastian
