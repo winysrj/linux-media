@@ -1,58 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:48861 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758835Ab0J1OgY convert rfc822-to-8bit (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:43244 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753509Ab0JKTKd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Oct 2010 10:36:24 -0400
-Received: by pwj3 with SMTP id 3so133286pwj.19
-        for <linux-media@vger.kernel.org>; Thu, 28 Oct 2010 07:36:23 -0700 (PDT)
+	Mon, 11 Oct 2010 15:10:33 -0400
+Message-ID: <4CB3611F.1030108@infradead.org>
+Date: Mon, 11 Oct 2010 16:10:23 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTim+JUKSJyb_YE3de-F16kjsnhja8wR8b9H1mHPm@mail.gmail.com>
-References: <AANLkTinHT_XPZJU9Xq2cScJoUUCfTps4PXFU9S2_fX=Q@mail.gmail.com>
-	<AANLkTim+JUKSJyb_YE3de-F16kjsnhja8wR8b9H1mHPm@mail.gmail.com>
-Date: Thu, 28 Oct 2010 08:36:22 -0600
-Message-ID: <AANLkTinpHPe0jUVcDcNPwZkTReRsAcAq68F3CpEKx8Rb@mail.gmail.com>
-Subject: Re: Kworld usb 2800D audio
-From: Tim Stowell <stowellt@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org
+To: David Ellingsworth <david@identd.dyndns.org>
+CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: [GIT PATCHES FOR 2.6.37] Move V4L2 locking into the core framework
+References: <201009261425.00146.hverkuil@xs4all.nl>	<AANLkTimWCHHP5MOnXpXpoRyfxRd5jj6=0DHpj7uoVS2E@mail.gmail.com>	<201010111740.14658.hverkuil@xs4all.nl> <AANLkTimA-JKRYAxin6cco2VD9-D7rJ+J_JrSEQhYZTb0@mail.gmail.com>
+In-Reply-To: <AANLkTimA-JKRYAxin6cco2VD9-D7rJ+J_JrSEQhYZTb0@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Thanks for the response! That makes sense about the 2.5 mm cable. Not
-to be obstinate or anything but I found this link
-http://video4linux-list.1448896.n2.nabble.com/SUCCESS-KWorld-VS-USB2800D-recognized-as-PointNix-Intra-Oral-Camera-No-Composite-Input-td3069455.html
-where the users claims they were able to get a new capture device that
-didn't require using the 2.5mm cable, although I'm not sure how they
-did it. I guess I'm hoping to not have to buy a sound card for capture
-if at all possible as I'm using an embedded pc that doesn't have any
-sound cards, thanks
+Em 11-10-2010 15:05, David Ellingsworth escreveu:
+> On Mon, Oct 11, 2010 at 11:40 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On Sunday, October 10, 2010 19:33:48 David Ellingsworth wrote:
 
--Tim
-
-On Thu, Oct 28, 2010 at 8:27 AM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> On Thu, Oct 28, 2010 at 10:18 AM, Tim Stowell <stowellt@gmail.com> wrote:
->> Hi,
+>>> Mauro, you should be ashamed for accepting a series that obviously has issues.
 >>
->> I'm able to capture video just fine with my  Kworld usb 2800D usb
->> device and the recent (I've installed the April v4l-dvb em28xx
->> driver), but I can't get any audio. I tried modprobe em28xx-alsa, and
->> the module loads, but alsa can't find any sound cards. Do I need the
->> snd-usb-audio driver? the usb device is based on the em2860 chip. Any
->> help would be greatly appreciated, thanks.
->
-> Hello Tim,
->
-> If I recall, the KWorld 2800D doesn't actually capture audio directly
-> via the USB.  The device has a 2.5mm cable that you are required to
-> connect to our sound card's line-in.
->
-> Devin
->
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
->
+>> Hardly obvious, and definitely not his fault.
+>>
+> 
+> This comment was more general, since Mauro admitted having to make
+> changes to your series to get it to compile under i386 architectures.
+> 
+
+So what? I always test if the tree compiles before sending the thing upstream. My
+compilation is against i686 architecture, as it enables more drivers than other
+architectures.
+
+Rejecting a patch series just because of the lack of a typecast to remove a warning
+on an architecture is not a good reason. I really prefer to apply the series and then
+ask (or make a fix) to one or two lines, than to have to dig the entire patch series 
+again on a rev 2 of the entire patch series. Examining a patch that fixes this issue
+is a way easier than having to review a series of 11 patches.
+
+Cheers,
+Mauro.
