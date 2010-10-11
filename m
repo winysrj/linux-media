@@ -1,42 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:38473 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758130Ab0JUNos (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Oct 2010 09:44:48 -0400
-Message-ID: <4CC043CC.5020809@redhat.com>
-Date: Thu, 21 Oct 2010 11:44:44 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:62006 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754393Ab0JKPyJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Oct 2010 11:54:09 -0400
+Received: by iwn9 with SMTP id 9so37477iwn.19
+        for <linux-media@vger.kernel.org>; Mon, 11 Oct 2010 08:54:09 -0700 (PDT)
 MIME-Version: 1.0
-To: Jarod Wilson <jarod@redhat.com>
-CC: Srinivasa.Deevi@conexant.com,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/3] mceusb: add support for cx231xx-based IR (e. g. Polaris)
-References: <cover.1287442245.git.mchehab@redhat.com> <20101018205257.46cf3e8c@pedra> <20101019175029.GA16942@redhat.com>
-In-Reply-To: <20101019175029.GA16942@redhat.com>
+In-Reply-To: <AANLkTinkYSHB5cLav2jw1snWa=1mYWL2+DmUb4ckgZHT@mail.gmail.com>
+References: <AANLkTinkYSHB5cLav2jw1snWa=1mYWL2+DmUb4ckgZHT@mail.gmail.com>
+Date: Mon, 11 Oct 2010 08:54:08 -0700
+Message-ID: <AANLkTimmDGJaj6BZyS+Kp8xOZQDTPvQqHQ-pkd+WXC2z@mail.gmail.com>
+Subject: Re: [PATCH] gp8psk: fix tuner delay
+From: VDR User <user.vdr@gmail.com>
+To: "mailing list: linux-media" <linux-media@vger.kernel.org>,
+	Alan Nisota <alannisota@gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 19-10-2010 15:50, Jarod Wilson escreveu:
-> On Mon, Oct 18, 2010 at 08:52:57PM -0200, Mauro Carvalho Chehab wrote:
->> For now, it adds support for Conexant EVK and for Pixelview.
->> We should probably find a better way to specify all Conexant
->> Polaris devices, to avoid needing to repeat this setup on
->> both mceusb and cx231xx-cards.
->>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> Looks good to me.
-> 
-> Reviewed-by: Jarod Wilson <jarod@redhat.com>
-> 
-Thanks!
+People are still waiting for this to be applied.  Any reason it hasn't been?
 
-I'll remove the Pixelview ID from it, as it has an extra chip for IR
-decoding, so, we'll likely need to do something else for IR to work on it.
-So, I'm keeping, for now, just the Conexant EVK USB ID. Probably other
-cx231xx non-ISDB-T devices should work via mceusb as well.
-
-Thanks,
-Mauro
+On Tue, Aug 17, 2010 at 10:34 AM, VDR User <user.vdr@gmail.com> wrote:
+> This patches adjusts the tuner delay to be longer in response to
+> several users experiencing tuner timeouts.  This change fixes that
+> problem and allows those users to be able to tune.
+>
+> Signed-off-by: Derek Kelly <user.vdr@gmail.com>
+> ----------
+> --- v4l-dvb.orig/linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c
+> 2010-08-17 09:53:27.000000000 -0700
+> +++ v4l-dvb/linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c 2010-08-17
+> 10:00:28.000000000 -0700
+> @@ -109,7 +109,7 @@ static int gp8psk_fe_read_signal_strengt
+>
+>  static int gp8psk_fe_get_tune_settings(struct dvb_frontend* fe,
+> struct dvb_frontend_tune_settings *tune)
+>  {
+> -       tune->min_delay_ms = 200;
+> +       tune->min_delay_ms = 800;
+>        return 0;
+>  }
+>
