@@ -1,33 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:38558 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754714Ab0JTTnI (ORCPT
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:47802 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754212Ab0JKO6h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Oct 2010 15:43:08 -0400
-Date: Wed, 20 Oct 2010 21:43:04 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Jarod Wilson <jarod@wilsonet.com>, mchehab@infradead.org,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/3] Remaining patches in my queue for IR
-Message-ID: <20101020194304.GB15994@hardeman.nu>
-References: <1287269790-17605-1-git-send-email-maximlevitsky@gmail.com>
+	Mon, 11 Oct 2010 10:58:37 -0400
+Received: by ewy20 with SMTP id 20so615654ewy.19
+        for <linux-media@vger.kernel.org>; Mon, 11 Oct 2010 07:58:35 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1287269790-17605-1-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <201010111514.37592.laurent.pinchart@ideasonboard.com>
+References: <AANLkTimyR117ZiHq8GFz4YW5tBtW3k82NzGVZqKoVTbY@mail.gmail.com>
+	<Pine.LNX.4.64.1010072012280.15141@axis700.grange>
+	<AANLkTinJhywDoZg5F2tvqdW44to-6P4hgNd9Fav9qTv8@mail.gmail.com>
+	<201010111514.37592.laurent.pinchart@ideasonboard.com>
+Date: Mon, 11 Oct 2010 16:58:35 +0200
+Message-ID: <AANLkTikBWjgNmDdG6dCXQQmcDRBUc4gP7717uqAY3+_J@mail.gmail.com>
+Subject: Re: OMAP 3530 camera ISP forks and new media framework
+From: Bastian Hecht <hechtb@googlemail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, Oct 17, 2010 at 12:56:27AM +0200, Maxim Levitsky wrote:
-> This series is rebased on top of media_tree/staging/v2.6.37 only.
-> Really this time, sorry for cheating, last time :-)
+2010/10/11 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> Hi Bastian,
+>
+> On Monday 11 October 2010 14:59:15 Bastian Hecht wrote:
+>> So... let's see if i got some things right, please let me now if you
+>> disagree:
+>>
+>> - I do want to use the omap34xxcam.c driver as it is for the newest
+>> framework and I get most support for it
+>
+> That's a bad start. With the latest driver, omap34xxcam.c doesn't exist
+> anymore :-)
 
-On a related note, Mauro - is the plan still that I should wait for the 
-large scancodes support for the input subsystem to land (somewhere 
-around 2.6.37-rc1 supposedly) and then resend my patchset based on the 
-media_tree/staging/v2.6.37 tree at that point?
+Nice :S
 
--- 
-David Härdeman
+I think I take the mt9t001 approach (Sorry Guennadi, I think modifying
+your framework is too much for me to start with). So in this driver I
+tell the framework that I can do i2c probing, some subdev_core_ops and
+some subdev_video_ops. I define these functions that mostly do some
+basic i2c communication to the sensor chip. I guess I can handle that
+as there are so many examples out there.
+
+But where do I stack that on top? On the camera bridge host, but if it
+isn't omap34xxcam, which driver can I use? How are they connected?
+
+Thanks,
+
+ Bastian
