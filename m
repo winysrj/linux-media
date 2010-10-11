@@ -1,165 +1,134 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:13511 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755074Ab0JKPlW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Oct 2010 11:41:22 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o9BFfLBO002149
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 11 Oct 2010 11:41:21 -0400
-Received: from pedra (vpn-225-124.phx2.redhat.com [10.3.225.124])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o9BFdDOX032640
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 11 Oct 2010 11:41:20 -0400
-Date: Mon, 11 Oct 2010 12:37:17 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/4] V4L/DVB: tm6000-alsa: fix some locking issues
-Message-ID: <20101011123717.1be2d1ae@pedra>
-In-Reply-To: <cover.1286807828.git.mchehab@redhat.com>
-References: <cover.1286807828.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from casper.infradead.org ([85.118.1.10]:33410 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754668Ab0JKQd5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Oct 2010 12:33:57 -0400
+Message-ID: <4CB33C6B.70601@infradead.org>
+Date: Mon, 11 Oct 2010 13:33:47 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	David Ellingsworth <david@identd.dyndns.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [GIT PATCHES FOR 2.6.37] Move V4L2 locking into the core framework
+References: <201009261425.00146.hverkuil@xs4all.nl> <4CB331DD.9030806@infradead.org> <201010111754.07853.hverkuil@xs4all.nl> <201010111823.24360.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201010111823.24360.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Those locking issues affect tvtime, causing a kernel oops/panic, due to
-a race condition.
+Em 11-10-2010 13:23, Laurent Pinchart escreveu:
+> Hi Hans,
+> 
+> On Monday 11 October 2010 17:54:07 Hans Verkuil wrote:
+>> On Monday, October 11, 2010 17:48:45 Mauro Carvalho Chehab wrote:
+>>> Em 11-10-2010 12:40, Hans Verkuil escreveu:
+>>>> On Sunday, October 10, 2010 19:33:48 David Ellingsworth wrote:
+>>>>> Hans,
+>>>>>
+>>>>> On Sun, Sep 26, 2010 at 8:25 AM, Hans Verkuil <hverkuil@xs4all.nl> 
+> wrote:
+>>>>>> Hi Mauro,
+>>>>>>
+>>>>>> These are the locking patches. It's based on my previous test tree,
+>>>>>> but with more testing with em28xx and radio-mr800 and some small
+>>>>>> tweaks relating to disconnect handling and video_is_registered().
+>>>>>>
+>>>>>> I also removed the unused get_unmapped_area file op and I am now
+>>>>>> blocking any further (unlocked_)ioctl calls after the device node is
+>>>>>> unregistered. The only things an application can do legally after a
+>>>>>> disconnect is unmap() and close().
+>>>>>>
+>>>>>> This patch series also contains a small em28xx fix that I found while
+>>>>>> testing the em28xx BKL removal patch.
+>>>>>>
+>>>>>> Regards,
+>>>>>>
+>>>>>>        Hans
+>>>>>>
+>>>>>> The following changes since commit 
+> dace3857de7a16b83ae7d4e13c94de8e4b267d2a:
+>>>>>>  Hans Verkuil (1):
+>>>>>>        V4L/DVB: tvaudio: remove obsolete tda8425 initialization
+>>>>>>
+>>>>>> are available in the git repository at:
+>>>>>>  ssh://linuxtv.org/git/hverkuil/v4l-dvb.git bkl
+>>>>>>
+>>>>>> Hans Verkuil (10):
+>>>>>>      v4l2-dev: after a disconnect any ioctl call will be blocked.
+>>>>>>      v4l2-dev: remove get_unmapped_area
+>>>>>>      v4l2: add core serialization lock.
+>>>>>>      videobuf: prepare to make locking optional in videobuf
+>>>>>>      videobuf: add ext_lock argument to the queue init functions
+>>>>>>      videobuf: add queue argument to videobuf_waiton()
+>>>>>>      vivi: remove BKL.
+>>>>>>      em28xx: remove BKL.
+>>>>>>      em28xx: the default std was not passed on to the subdevs
+>>>>>>      radio-mr800: remove BKL
+>>>>>
+>>>>> Did you even test these patches?
+>>>>
+>>>> Yes, I did test. And it works for me. But you are correct in that it
+>>>> shouldn't work since the struct will indeed be freed. I'll fix this
+>>>> and post a patch.
+>>>>
+>>>> I'm not sure why it works fine when I test it.
+>>>>
+>>>> There is a problem as well with unlocking before unregistering the
+>>>> device in that it leaves a race condition where another app can open
+>>>> the device again before it is registered. I have to think about that
+>>>> some more.
+>>>>
+>>>>> The last one in the series clearly
+>>>>> breaks radio-mr800 and the commit message does not describe the
+>>>>> changes made. radio-mr800 has been BKL independent for quite some
+>>>>> time. Hans, you of all people should know that calling
+>>>>> video_unregister_device could result in the driver specific structure
+>>>>> being freed.
+>>>>
+>>>> Jeez, relax. I'm human (really!).
+>>>>
+>>>>> The mutex must therefore be unlocked _before_ calling
+>>>>> video_unregister_device. Otherwise you're passing freed memory to
+>>>>> mutex_unlock in usb_amradio_disconnect.
+>>>>>
+>>>>> If each patch had been properly posted to the list, others might have
+>>>>> caught issues like this earlier. Posting a link to a repository is no
+>>>>> substitute for this process.
+>>>>>
+>>>>> Mauro, you should be ashamed for accepting a series that obviously has
+>>>>> issues.
+>>>>
+>>>> Hardly obvious, and definitely not his fault.
+>>>
+>>> Hans,
+>>>
+>>> This is a somewhat recurring discussion at #v4l irc nowadays. Next time,
+>>> please send your patch series first to the ML, tagged with [PATCH RFC]
+>>> especially if they touch ondrivers that you're not the maintainer or
+>>> when you weren't able to test.
+>>
+>> So this is the new policy? Post with [PATCH RFC], wait a few days, then
+>> post a git pull request?
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Acks from other maintainers when a patch touches on their files were always part
+of the policy.
+> 
+> That's a new policy under discussion. I think it's worth being discussed a bit 
+> more. http://www.linuxtv.org/irc/v4l/index.php?date=2010-10-01 and 
+> http://www.linuxtv.org/irc/v4l/index.php?date=2010-10-11 if you want to catch 
+> up with the informal discussion.
+> 
+>> Should I also do this for long but mechanical conversions like the
+>> 'video_device' to 'v4l2_devnode'rename patch series? I think posting that
+>> would be spamming the list.
 
-diff --git a/drivers/media/video/cx231xx/cx231xx-cards.c b/drivers/media/video/cx231xx/cx231xx-cards.c
-index c4cfcab..9c3a926 100644
---- a/drivers/media/video/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/video/cx231xx/cx231xx-cards.c
-@@ -462,6 +462,8 @@ struct usb_device_id cx231xx_id_table[] = {
- 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_USBLIVE2},
- 	{USB_DEVICE_VER(USB_VID_PIXELVIEW, USB_PID_PIXELVIEW_SBTVD, 0x4000, 0x4001),
- 	 .driver_info = CX231XX_BOARD_PV_PLAYTV_USB_HYBRID},
-+	{USB_DEVICE(0x1b80, 0xe424),
-+	 .driver_info = CX231XX_BOARD_PV_PLAYTV_USB_HYBRID},
- 	{},
- };
- 
-diff --git a/drivers/staging/tm6000/tm6000-alsa.c b/drivers/staging/tm6000/tm6000-alsa.c
-index a99101f..e379e3e 100644
---- a/drivers/staging/tm6000/tm6000-alsa.c
-+++ b/drivers/staging/tm6000/tm6000-alsa.c
-@@ -201,6 +201,14 @@ _error:
-  */
- static int snd_tm6000_close(struct snd_pcm_substream *substream)
- {
-+	struct snd_tm6000_card *chip = snd_pcm_substream_chip(substream);
-+	struct tm6000_core *core = chip->core;
-+
-+	if (atomic_read(&core->stream_started) > 0) {
-+		atomic_set(&core->stream_started, 0);
-+		schedule_work(&core->wq_trigger);
-+	}
-+
- 	return 0;
- }
- 
-@@ -213,6 +221,9 @@ static int tm6000_fillbuf(struct tm6000_core *core, char *buf, int size)
- 	unsigned int stride, buf_pos;
- 	int length;
- 
-+	if (atomic_read(&core->stream_started) == 0)
-+		return 0;
-+
- 	if (!size || !substream) {
- 		dprintk(1, "substream was NULL\n");
- 		return -EINVAL;
-@@ -298,8 +309,12 @@ static int snd_tm6000_hw_params(struct snd_pcm_substream *substream,
- static int snd_tm6000_hw_free(struct snd_pcm_substream *substream)
- {
- 	struct snd_tm6000_card *chip = snd_pcm_substream_chip(substream);
-+	struct tm6000_core *core = chip->core;
- 
--	_tm6000_stop_audio_dma(chip);
-+	if (atomic_read(&core->stream_started) > 0) {
-+		atomic_set(&core->stream_started, 0);
-+		schedule_work(&core->wq_trigger);
-+	}
- 
- 	return 0;
- }
-@@ -321,30 +336,42 @@ static int snd_tm6000_prepare(struct snd_pcm_substream *substream)
- /*
-  * trigger callback
-  */
-+static void audio_trigger(struct work_struct *work)
-+{
-+	struct tm6000_core *core = container_of(work, struct tm6000_core,
-+						wq_trigger);
-+	struct snd_tm6000_card *chip = core->adev;
-+
-+	if (atomic_read(&core->stream_started)) {
-+		dprintk(1, "starting capture");
-+		_tm6000_start_audio_dma(chip);
-+	} else {
-+		dprintk(1, "stopping capture");
-+		_tm6000_stop_audio_dma(chip);
-+	}
-+}
-+
- static int snd_tm6000_card_trigger(struct snd_pcm_substream *substream, int cmd)
- {
- 	struct snd_tm6000_card *chip = snd_pcm_substream_chip(substream);
--	int err;
--
--	spin_lock(&chip->reg_lock);
-+	struct tm6000_core *core = chip->core;
-+	int err = 0;
- 
- 	switch (cmd) {
- 	case SNDRV_PCM_TRIGGER_START:
--		err = _tm6000_start_audio_dma(chip);
-+		atomic_set(&core->stream_started, 1);
- 		break;
- 	case SNDRV_PCM_TRIGGER_STOP:
--		err = _tm6000_stop_audio_dma(chip);
-+		atomic_set(&core->stream_started, 0);
- 		break;
- 	default:
- 		err = -EINVAL;
- 		break;
- 	}
--
--	spin_unlock(&chip->reg_lock);
-+	schedule_work(&core->wq_trigger);
- 
- 	return err;
- }
--
- /*
-  * pointer callback
-  */
-@@ -437,6 +464,7 @@ int tm6000_audio_init(struct tm6000_core *dev)
- 
- 	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_CAPTURE, &snd_tm6000_pcm_ops);
- 
-+	INIT_WORK(&dev->wq_trigger, audio_trigger);
- 	rc = snd_card_register(card);
- 	if (rc < 0)
- 		goto error;
-diff --git a/drivers/staging/tm6000/tm6000.h b/drivers/staging/tm6000/tm6000.h
-index 1ec1bff..5d9dcab 100644
---- a/drivers/staging/tm6000/tm6000.h
-+++ b/drivers/staging/tm6000/tm6000.h
-@@ -205,6 +205,9 @@ struct tm6000_core {
- 
- 	/* audio support */
- 	struct snd_tm6000_card		*adev;
-+	struct work_struct		wq_trigger;   /* Trigger to start/stop audio for alsa module */
-+	atomic_t			stream_started;  /* stream should be running if true */
-+
- 
- 	struct tm6000_IR		*ir;
- 
--- 
-1.7.1
+In this case, posting the actual patches seem overkill to me. Yet, is a good idea to
+c/c the maintainers for the driver you're touching, to avoid conflicts with their
+merges.
 
-
+Cheers,
+Mauro
