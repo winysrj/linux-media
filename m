@@ -1,52 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:17789 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755906Ab0J0Mbf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Oct 2010 08:31:35 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Lee Jones <lee.jones@canonical.com>,
-	Jean-Francois Moine <moinejf@free.fr>
-Subject: [GIT PATCHES FOR 2.6.37] Various gspca patches
-Date: Wed, 27 Oct 2010 14:35:19 +0200
-Message-Id: <1288182926-25400-1-git-send-email-hdegoede@redhat.com>
+Received: from mailout-de.gmx.net ([213.165.64.22]:39577 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1754835Ab0JKP0Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Oct 2010 11:26:16 -0400
+Date: Mon, 11 Oct 2010 17:26:30 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Bastian Hecht <hechtb@googlemail.com>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: OMAP 3530 camera ISP forks and new media framework
+In-Reply-To: <AANLkTikBWjgNmDdG6dCXQQmcDRBUc4gP7717uqAY3+_J@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1010111718010.11865@axis700.grange>
+References: <AANLkTimyR117ZiHq8GFz4YW5tBtW3k82NzGVZqKoVTbY@mail.gmail.com>
+ <Pine.LNX.4.64.1010072012280.15141@axis700.grange>
+ <AANLkTinJhywDoZg5F2tvqdW44to-6P4hgNd9Fav9qTv8@mail.gmail.com>
+ <201010111514.37592.laurent.pinchart@ideasonboard.com>
+ <AANLkTikBWjgNmDdG6dCXQQmcDRBUc4gP7717uqAY3+_J@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+On Mon, 11 Oct 2010, Bastian Hecht wrote:
 
-Please pull from:
-http://linuxtv.org/hg/~hgoede/ibmcam3
+> 2010/10/11 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> > Hi Bastian,
+> >
+> > On Monday 11 October 2010 14:59:15 Bastian Hecht wrote:
+> >> So... let's see if i got some things right, please let me now if you
+> >> disagree:
+> >>
+> >> - I do want to use the omap34xxcam.c driver as it is for the newest
+> >> framework and I get most support for it
+> >
+> > That's a bad start. With the latest driver, omap34xxcam.c doesn't exist
+> > anymore :-)
+> 
+> Nice :S
+> 
+> I think I take the mt9t001 approach (Sorry Guennadi, I think modifying
+> your framework is too much for me to start with).
 
-Starting at the commit titled:
-gspca: submit interrupt urbs *after* isoc urbs
+AFAIR, you said, that register sets of mt9t031 and mt9p031 are identical, 
+so, I think, I will be against mainlining a new driver for the "same" 
+hardware for the pad-level ops, duplicating an soc-camera driver. Apart 
+from creating a one-off redundancy, this looks like an extremely negative 
+precedent to me.
 
-This pull consists of the following commits:
-gspca: submit interrupt urbs *after* isoc urbs
-gspca: only set gspca->int_urb if submitting it succeeds
-gspca-stv06xx: support bandwidth changing
-gspca_xirlink_cit: various usb bandwidth allocation improvements / fixes
-gspca_xirlink_cit: Frames have a 4 byte footer
-gspca_xirlink_cit: Add support camera button
-gspca_ov519: generate release button event on stream stop if needed
+That said, please, double check your estimate as "identical." If there are 
+differences, say, even in only 10% of registers, it might still be 
+justified to make a new driver. mt9m001 and mt9t031 are also "very 
+similar," still, it appeared to me at that time, that a new driver would 
+be cleaner, than a single driver full of forks or other indirections.
 
-Note that since the hg v4l-dvb tree is a bit out of data, pulling from
-my hg tree won't apply cleanly though. So to make things easier for you
-I'm in the process of switching over to git. This mail will be followed
-by the 7 patches from this pull request in git format-patch format, rebased
-on top of the master branch of your git tree:
-git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-next.git
+Thanks
+Guennadi
 
-The reason I'm not sending a git pull request is because I don't
-have a git tree, and I could not find documentation for creating
-a git tree @ git.linuxtv.org. Can you help me with this?
+> So in this driver I
+> tell the framework that I can do i2c probing, some subdev_core_ops and
+> some subdev_video_ops. I define these functions that mostly do some
+> basic i2c communication to the sensor chip. I guess I can handle that
+> as there are so many examples out there.
+> 
+> But where do I stack that on top? On the camera bridge host, but if it
+> isn't omap34xxcam, which driver can I use? How are they connected?
+> 
+> Thanks,
+> 
+>  Bastian
+> 
 
-Also this wiki page:
-http://linuxtv.org/wiki/index.php/Maintaining_Git_trees
-Points to the obsolete: git://linuxtv.org/v4l-dvb.git
-Repository, please update it.
-
-Thanks & Regards,
-
-Hans
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
