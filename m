@@ -1,87 +1,119 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:50625 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1754181Ab0JNPSc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Oct 2010 11:18:32 -0400
-From: Lukas Ruetz <lukas.ruetz@gmx.at>
-To: linux-media@vger.kernel.org
-Subject: Non-fluent V4L Playback with BTTV-card
-Date: Thu, 14 Oct 2010 17:18:30 +0200
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:40701 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755847Ab0JKTP4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Oct 2010 15:15:56 -0400
+Received: by ewy20 with SMTP id 20so760658ewy.19
+        for <linux-media@vger.kernel.org>; Mon, 11 Oct 2010 12:15:55 -0700 (PDT)
+Subject: [GIT PATCHES FOR 2.6.37]  Support for NetUP Dual DVB-T/C CI RF card
+To: linux-media@vger.kernel.org, Mauro Chehab <mchehab@infradead.org>,
+	Abylai Ospan <aospan@netup.ru>
+From: "Igor M. Liplianin" <liplianin@me.by>
+Cc: "Igor M. Liplianin" <liplianin@me.by>,
+	Steven Toth <stoth@linuxtv.org>
+Date: Mon, 11 Oct 2010 22:15:54 +0300
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="us-ascii"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201010141718.30593.lukas.ruetz@gmx.at>
+Message-Id: <201010112215.54720.liplianin@me.by>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello everyone,
+Patches to support for NetUP Dual DVB-T/C-CI RF from NetUP Inc. 
+	http://linuxtv.org/wiki/index.php/NetUP_Dual_DVB_T_C_CI_RF
 
-I have a Haupauge Impact capture card (bt878) and the problem that the
-playback of the captured PAL-video (no audio) isn't fluent. The video jumps
-every few seconds as if there were frames dropped. It occures (or is only then
-visible) if there is bigger movement in the video. This behaviour is nearly
-the same with mplayer, gstreamer and vlc depending on the output type.
+Features:
 
-First I thought this is maybe a problem of the prop. nvidia driver but there's
-no difference to the nv driver.
+PCI-e x1  
+Supports two DVB-T/DVB-C transponders simultaneously
+Supports two analog audio/video channels simultaneously
+Independent descrambling of two transponders
+Hardware PID filtering
 
-I have tried the kernels 2.6.28, 2.6.32, 2.6.35 (ubuntu 9.04, 10.04, 10.10)
-but it's always the same.
+Components:
 
-The card itself captures with YUV422 - in my tests the players converted to
-I420 or YV12
+Conexant CX23885 
+STM STV0367 low-power and ultra-compact combo DVB-T/C single-chip receiver
+Xceive XC5000 silicon TV tuner
+Altera FPGA for Common Interafce
 
-I use a DVD-player as source to ensure that the video is correct.
+The following changes since commit c8dd732fd119ce6d562d5fa82a10bbe75a376575:
 
-The PC (Quad-Core, 2GB RAM, Nvidia GF 7300) should not have a problem with
-that.
+  V4L/DVB: gspca - sonixj: Have 0c45:6130 handled by sonixj instead of sn9c102 (2010-10-01 
+18:14:35 -0300)
 
-root@test:~# uname -a
-Linux allegra 2.6.35-22-generic-pae #34-Ubuntu SMP Sun Oct 10 11:03:48 UTC 
-2010 i686 GNU/Linux
+are available in the git repository at:
+  http://udev.netup.ru/git/v4l-dvb.git netup-for-media-tree
 
-root@test:~# dmesg |grep -E 'bttv|bt87'
-[   11.291571] bttv: driver version 0.9.18 loaded
-[   11.291574] bttv: using 8 buffers with 2080k (520 pages) each for capture
-[   11.291622] bttv: Bt8xx card found (0).
-[   11.291634] bttv 0000:37:09.0: PCI INT A -> GSI 21 (level, low) -> IRQ 21
-[   11.291642] bttv0: Bt878 (rev 17) at 0000:37:09.0, irq: 21, latency: 32, 
-mmio: 0xf0000000
-[   11.291654] bttv0: detected: Hauppauge WinTV [card=10], PCI subsystem ID is 
-0070:13eb
-[   11.291656] bttv0: using: Hauppauge (bt878) [card=10,autodetected]
-[   11.291678] bttv0: gpio: en=00000000, out=00000000 in=00ffffff [init]
-[   11.294156] bttv0: Hauppauge/Voodoo msp34xx: reset line init [5]
-[   11.326538] tveeprom 0-0050: Hauppauge model 64405, rev C1  , serial# 
-9948853
-[   11.326541] tveeprom 0-0050: tuner model is Unspecified (idx 2, type 4)
-[   11.326542] tveeprom 0-0050: TV standards UNKNOWN (eeprom 0x01)
-[   11.326544] tveeprom 0-0050: audio processor is None (idx 0)
-[   11.326546] tveeprom 0-0050: decoder processor is BT878 (idx 14)
-[   11.326547] tveeprom 0-0050: has no radio
-[   11.326548] bttv0: Hauppauge eeprom indicates model#64405
-[   11.326550] bttv0: tuner absent
-[   11.327184] bttv0: registered device video0
-[   11.327253] bttv0: registered device vbi0
-[   11.327274] bttv0: PLL: 28636363 => 35468950 .
-[   11.360144] Bt87x 0000:37:09.1: PCI INT A -> GSI 21 (level, low) -> IRQ 21
-[   11.360219] bt87x0: Using board 1, analog, digital (rate 32000 Hz)
+Abylay Ospan (6):
+      cx23885: Altera FPGA CI interface reworked.
+      stv0367: change default value for AGC register.
+      stv0367: implement uncorrected blocks counter.
+      cx23885, cimax2.c: Fix case of two CAM insertion irq.
+      Fix CI code for NetUP Dual  DVB-T/C CI RF card
+      Force xc5000 firmware loading for NetUP Dual  DVB-T/C CI RF card
 
+Igor M. Liplianin (14):
+      Altera FPGA firmware download module.
+      Altera FPGA based CI driver module.
+      Support for stv0367 multi-standard demodulator.
+      xc5000: add support for DVB-C tuning.
+      Initial commit to support NetUP Dual DVB-T/C CI RF card.
+      cx23885: implement tuner_bus parameter for cx23885_board structure.
+      cx23885: implement num_fds_portb, num_fds_portc parameters for cx23885_board structure.
+      stv0367: Fix potential divide error
+      cx23885: remove duplicate set interrupt mask
+      stv0367: coding style corrections
+      cx25840: Fix subdev registration and typo in cx25840-core.c
+      cx23885: 0xe becomes 0xc again for NetUP Dual DVB-S2
+      cx23885: disable MSI for NetUP cards, otherwise CI is not working
+      cx23885, altera-ci: enable all PID's less than 0x20 in hardware PID filter.
 
-### video4linux device info [/dev/video0] ###
-general info
-    VIDIOCGCAP
-        name                    : "BT878 video (Hauppauge (bt878))"
-        type                    : 0x2d [CAPTURE,TELETEXT,OVERLAY,CLIPPING]
-        channels                : 4
-        audios                  : 0
-        maxwidth                : 924
-        maxheight               : 576
-        minwidth                : 48
-        minheight               : 32
-
-Any idea what can cause this problem?
-
-thanks,
-Lukas
+ drivers/media/common/tuners/xc5000.c        |   18 +
+ drivers/media/dvb/frontends/Kconfig         |    7 +
+ drivers/media/dvb/frontends/Makefile        |    1 +
+ drivers/media/dvb/frontends/stv0367.c       | 3419 +++++++++++++++++++++++++
+ drivers/media/dvb/frontends/stv0367.h       |   62 +
+ drivers/media/dvb/frontends/stv0367_priv.h  |  211 ++
+ drivers/media/dvb/frontends/stv0367_regs.h  | 3614 +++++++++++++++++++++++++++
+ drivers/media/video/cx23885/Kconfig         |   12 +-
+ drivers/media/video/cx23885/Makefile        |    1 +
+ drivers/media/video/cx23885/altera-ci.c     |  841 +++++++
+ drivers/media/video/cx23885/altera-ci.h     |  102 +
+ drivers/media/video/cx23885/cimax2.c        |   24 +-
+ drivers/media/video/cx23885/cx23885-cards.c |  116 +-
+ drivers/media/video/cx23885/cx23885-core.c  |   35 +-
+ drivers/media/video/cx23885/cx23885-dvb.c   |  175 ++-
+ drivers/media/video/cx23885/cx23885-reg.h   |    1 +
+ drivers/media/video/cx23885/cx23885-video.c |    7 +-
+ drivers/media/video/cx23885/cx23885.h       |    7 +-
+ drivers/media/video/cx25840/cx25840-core.c  |    4 +-
+ drivers/misc/Kconfig                        |    1 +
+ drivers/misc/Makefile                       |    1 +
+ drivers/misc/stapl-altera/Kconfig           |    8 +
+ drivers/misc/stapl-altera/Makefile          |    3 +
+ drivers/misc/stapl-altera/altera.c          | 2739 ++++++++++++++++++++
+ drivers/misc/stapl-altera/jbicomp.c         |  163 ++
+ drivers/misc/stapl-altera/jbiexprt.h        |   94 +
+ drivers/misc/stapl-altera/jbijtag.c         | 1038 ++++++++
+ drivers/misc/stapl-altera/jbijtag.h         |   83 +
+ drivers/misc/stapl-altera/jbistub.c         |   70 +
+ include/misc/altera.h                       |   49 +
+ 30 files changed, 12872 insertions(+), 34 deletions(-)
+ create mode 100644 drivers/media/dvb/frontends/stv0367.c
+ create mode 100644 drivers/media/dvb/frontends/stv0367.h
+ create mode 100644 drivers/media/dvb/frontends/stv0367_priv.h
+ create mode 100644 drivers/media/dvb/frontends/stv0367_regs.h
+ create mode 100644 drivers/media/video/cx23885/altera-ci.c
+ create mode 100644 drivers/media/video/cx23885/altera-ci.h
+ create mode 100644 drivers/misc/stapl-altera/Kconfig
+ create mode 100644 drivers/misc/stapl-altera/Makefile
+ create mode 100644 drivers/misc/stapl-altera/altera.c
+ create mode 100644 drivers/misc/stapl-altera/jbicomp.c
+ create mode 100644 drivers/misc/stapl-altera/jbiexprt.h
+ create mode 100644 drivers/misc/stapl-altera/jbijtag.c
+ create mode 100644 drivers/misc/stapl-altera/jbijtag.h
+ create mode 100644 drivers/misc/stapl-altera/jbistub.c
+ create mode 100644 include/misc/altera.h
