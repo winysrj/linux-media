@@ -1,334 +1,283 @@
 Return-path: <mchehab@pedra>
-Received: from rtp-iport-2.cisco.com ([64.102.122.149]:14163 "EHLO
-	rtp-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756406Ab0J1Gqi (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:29698 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932188Ab0JLM31 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Oct 2010 02:46:38 -0400
-From: mats.randgaard@tandberg.com
-To: hvaibhav@ti.com, mkaricheri@gmail.com
-Cc: hans.verkuil@tandberg.com, linux-media@vger.kernel.org,
-	Mats Randgaard <mats.randgaard@tandberg.com>
-Subject: [RFCv2/PATCH 4/5] vpif_cap/disp: Added support for DV timings
-Date: Thu, 28 Oct 2010 08:46:22 +0200
-Message-Id: <1288248383-12557-5-git-send-email-mats.randgaard@tandberg.com>
-In-Reply-To: <1288248383-12557-1-git-send-email-mats.randgaard@tandberg.com>
-References: <1288248383-12557-1-git-send-email-mats.randgaard@tandberg.com>
+	Tue, 12 Oct 2010 08:29:27 -0400
+Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LA600HARG0YMG@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 12 Oct 2010 13:29:22 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LA6005RLG0X3O@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 12 Oct 2010 13:29:22 +0100 (BST)
+Date: Tue, 12 Oct 2010 14:29:03 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH v2 3/6] v4l: videobuf2: add vmalloc allocator
+In-reply-to: <1286886546-18058-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, p.osciak@samsung.com
+Message-id: <1286886546-18058-4-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1286886546-18058-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Mats Randgaard <mats.randgaard@tandberg.com>
+From: Pawel Osciak <p.osciak@samsung.com>
 
-Added functions to set and get custom DV timings.
+Add an implementation of contiguous virtual memory allocator and handling
+routines for videobuf2, implemented on top of vmalloc()/vfree() calls.
 
-Signed-off-by: Mats Randgaard <mats.randgaard@tandberg.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@tandberg.com>
-Acked-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/media/video/davinci/vpif_capture.c |  119 +++++++++++++++++++++++++++
- drivers/media/video/davinci/vpif_capture.h |    1 +
- drivers/media/video/davinci/vpif_display.c |  120 ++++++++++++++++++++++++++++
- drivers/media/video/davinci/vpif_display.h |    1 +
- 4 files changed, 241 insertions(+), 0 deletions(-)
+ drivers/media/video/Kconfig             |    5 +
+ drivers/media/video/Makefile            |    1 +
+ drivers/media/video/videobuf2-vmalloc.c |  177 +++++++++++++++++++++++++++++++
+ include/media/videobuf2-vmalloc.h       |   16 +++
+ 4 files changed, 199 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/videobuf2-vmalloc.c
+ create mode 100644 include/media/videobuf2-vmalloc.h
 
-diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
-index f713d08..0635b10 100644
---- a/drivers/media/video/davinci/vpif_capture.c
-+++ b/drivers/media/video/davinci/vpif_capture.c
-@@ -1908,6 +1908,123 @@ static int vpif_g_dv_preset(struct file *file, void *priv,
- 	return 0;
- }
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 2acb0f8..83d49a7 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -55,6 +55,11 @@ config VIDEOBUF2_CORE
+ config VIDEOBUF2_MEMOPS
+ 	tristate
  
-+/**
-+ * vpif_s_dv_timings() - S_DV_TIMINGS handler
-+ * @file: file ptr
-+ * @priv: file handle
-+ * @timings: digital video timings
++config VIDEOBUF2_VMALLOC
++	select VIDEOBUF2_CORE
++	select VIDEOBUF2_MEMOPS
++	tristate
++
+ #
+ # Multimedia Video device configuration
+ #
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index 77cc798..18f68fc 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -119,6 +119,7 @@ obj-$(CONFIG_VIDEO_BTCX)  += btcx-risc.o
+ 
+ obj-$(CONFIG_VIDEOBUF2_CORE)		+= videobuf2-core.o
+ obj-$(CONFIG_VIDEOBUF2_MEMOPS)		+= videobuf2-memops.o
++obj-$(CONFIG_VIDEOBUF2_VMALLOC)		+= videobuf2-vmalloc.o
+ 
+ obj-$(CONFIG_V4L2_MEM2MEM_DEV) += v4l2-mem2mem.o
+ 
+diff --git a/drivers/media/video/videobuf2-vmalloc.c b/drivers/media/video/videobuf2-vmalloc.c
+new file mode 100644
+index 0000000..3310900
+--- /dev/null
++++ b/drivers/media/video/videobuf2-vmalloc.c
+@@ -0,0 +1,177 @@
++/*
++ * videobuf2-vmalloc.c - vmalloc memory allocator for videobuf2
++ *
++ * Copyright (C) 2010 Samsung Electronics
++ *
++ * Author: Pawel Osciak <p.osciak@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation.
 + */
-+static int vpif_s_dv_timings(struct file *file, void *priv,
-+		struct v4l2_dv_timings *timings)
++
++#include <linux/module.h>
++#include <linux/mm.h>
++#include <linux/slab.h>
++#include <linux/vmalloc.h>
++
++#include <media/videobuf2-core.h>
++#include <media/videobuf2-memops.h>
++
++struct vb2_vmalloc_conf {
++	struct vb2_alloc_ctx	alloc_ctx;
++};
++
++struct vb2_vmalloc_buf {
++	void			*vaddr;
++	unsigned long		size;
++	unsigned int		refcount;
++};
++
++static void *vb2_vmalloc_alloc(const struct vb2_alloc_ctx *alloc_ctx,
++				unsigned long size)
 +{
-+	struct vpif_fh *fh = priv;
-+	struct channel_obj *ch = fh->channel;
-+	struct vpif_params *vpifparams = &ch->vpifparams;
-+	struct vpif_channel_config_params *std_info = &vpifparams->std_info;
-+	struct video_obj *vid_obj = &ch->video;
-+	struct v4l2_bt_timings *bt = &vid_obj->bt_timings;
++	struct vb2_vmalloc_buf *buf;
++
++	buf = kzalloc(sizeof *buf, GFP_KERNEL);
++	if (!buf)
++		return NULL;
++
++	buf->size = size;
++	buf->vaddr = vmalloc_user(buf->size);
++	if (!buf->vaddr) {
++		printk(KERN_ERR "vmalloc of size %ld failed\n", buf->size);
++		kfree(buf);
++		return NULL;
++	}
++
++	buf->refcount++;
++	printk(KERN_DEBUG "Allocated vmalloc buffer of size %ld at vaddr=%p\n",
++			buf->size, buf->vaddr);
++
++	return buf;
++}
++
++static void vb2_vmalloc_put(void *buf_priv)
++{
++	struct vb2_vmalloc_buf *buf = buf_priv;
++
++	buf->refcount--;
++
++	if (0 == buf->refcount) {
++		printk(KERN_DEBUG "%s: Freeing vmalloc mem at vaddr=%p\n",
++			__func__, buf->vaddr);
++		vfree(buf->vaddr);
++		kfree(buf);
++	}
++}
++
++static void *vb2_vmalloc_vaddr(void *buf_priv)
++{
++	struct vb2_vmalloc_buf *buf = buf_priv;
++
++	BUG_ON(!buf);
++
++	if (!buf->vaddr) {
++		printk(KERN_ERR "Address of an unallocated "
++				"plane requested\n");
++		return NULL;
++	}
++
++	return buf->vaddr;
++}
++
++static unsigned int vb2_vmalloc_num_users(void *buf_priv)
++{
++	struct vb2_vmalloc_buf *buf = buf_priv;
++
++	return buf->refcount;
++}
++
++/* TODO generalize and extract to core as much as possible */
++static void vb2_vmalloc_vm_open(struct vm_area_struct *vma)
++{
++	struct vb2_vmalloc_buf *buf = vma->vm_private_data;
++
++	printk(KERN_DEBUG "%s vmalloc_priv: %p, refcount: %d, "
++			"vma: %08lx-%08lx\n", __func__, buf, buf->refcount,
++			vma->vm_start, vma->vm_end);
++
++	buf->refcount++;
++}
++
++static void vb2_vmalloc_vm_close(struct vm_area_struct *vma)
++{
++	struct vb2_vmalloc_buf *buf = vma->vm_private_data;
++
++	printk(KERN_DEBUG "%s vmalloc_priv: %p, refcount: %d, "
++			"vma: %08lx-%08lx\n", __func__, buf, buf->refcount,
++			vma->vm_start, vma->vm_end);
++
++	vb2_vmalloc_put(buf);
++}
++
++static const struct vm_operations_struct vb2_vmalloc_vm_ops = {
++	.open = vb2_vmalloc_vm_open,
++	.close = vb2_vmalloc_vm_close,
++};
++
++static int vb2_vmalloc_mmap(void *buf_priv, struct vm_area_struct *vma)
++{
++	struct vb2_vmalloc_buf *buf = buf_priv;
 +	int ret;
 +
-+	if (timings->type != V4L2_DV_BT_656_1120) {
-+		vpif_dbg(2, debug, "Timing type not defined\n");
++	if (!buf) {
++		printk(KERN_ERR "No memory to map\n");
 +		return -EINVAL;
 +	}
 +
-+	/* Configure subdevice timings, if any */
-+	ret = v4l2_subdev_call(vpif_obj.sd[ch->curr_sd_index],
-+			video, s_dv_timings, timings);
-+	if (ret == -ENOIOCTLCMD) {
-+		vpif_dbg(2, debug, "Custom DV timings not supported by "
-+				"subdevice\n");
-+		return -EINVAL;
-+	}
-+	if (ret < 0) {
-+		vpif_dbg(2, debug, "Error setting custom DV timings\n");
++	ret = remap_vmalloc_range(vma, buf->vaddr, 0);
++	if (ret) {
++		printk(KERN_ERR "Remapping vmalloc memory, error: %d\n", ret);
 +		return ret;
 +	}
 +
-+	if (!(timings->bt.width && timings->bt.height &&
-+				(timings->bt.hbackporch ||
-+				 timings->bt.hfrontporch ||
-+				 timings->bt.hsync) &&
-+				timings->bt.vfrontporch &&
-+				(timings->bt.vbackporch ||
-+				 timings->bt.vsync))) {
-+		vpif_dbg(2, debug, "Timings for width, height, "
-+				"horizontal back porch, horizontal sync, "
-+				"horizontal front porch, vertical back porch, "
-+				"vertical sync and vertical back porch "
-+				"must be defined\n");
-+		return -EINVAL;
-+	}
++	vma->vm_flags		|= VM_DONTEXPAND | VM_RESERVED;
++	vma->vm_private_data	= buf;
++	vma->vm_ops		= &vb2_vmalloc_vm_ops;
 +
-+	*bt = timings->bt;
-+
-+	/* Configure video port timings */
-+
-+	std_info->eav2sav = bt->hbackporch + bt->hfrontporch +
-+		bt->hsync - 8;
-+	std_info->sav2eav = bt->width;
-+
-+	std_info->l1 = 1;
-+	std_info->l3 = bt->vsync + bt->vbackporch + 1;
-+
-+	if (bt->interlaced) {
-+		if (bt->il_vbackporch || bt->il_vfrontporch || bt->il_vsync) {
-+			std_info->vsize = bt->height * 2 +
-+				bt->vfrontporch + bt->vsync + bt->vbackporch +
-+				bt->il_vfrontporch + bt->il_vsync +
-+				bt->il_vbackporch;
-+			std_info->l5 = std_info->vsize/2 -
-+				(bt->vfrontporch - 1);
-+			std_info->l7 = std_info->vsize/2 + 1;
-+			std_info->l9 = std_info->l7 + bt->il_vsync +
-+				bt->il_vbackporch + 1;
-+			std_info->l11 = std_info->vsize -
-+				(bt->il_vfrontporch - 1);
-+		} else {
-+			vpif_dbg(2, debug, "Required timing values for "
-+					"interlaced BT format missing\n");
-+			return -EINVAL;
-+		}
-+	} else {
-+		std_info->vsize = bt->height + bt->vfrontporch +
-+			bt->vsync + bt->vbackporch;
-+		std_info->l5 = std_info->vsize - (bt->vfrontporch - 1);
-+	}
-+	strncpy(std_info->name, "Custom timings BT656/1120", VPIF_MAX_NAME);
-+	std_info->width = bt->width;
-+	std_info->height = bt->height;
-+	std_info->frm_fmt = bt->interlaced ? 0 : 1;
-+	std_info->ycmux_mode = 0;
-+	std_info->capture_format = 0;
-+	std_info->vbi_supported = 0;
-+	std_info->hd_sd = 1;
-+	std_info->stdid = 0;
-+	std_info->dv_preset = V4L2_DV_INVALID;
++	vb2_vmalloc_vm_open(vma);
 +
 +	return 0;
 +}
 +
-+/**
-+ * vpif_g_dv_timings() - G_DV_TIMINGS handler
-+ * @file: file ptr
-+ * @priv: file handle
-+ * @timings: digital video timings
-+ */
-+static int vpif_g_dv_timings(struct file *file, void *priv,
-+		struct v4l2_dv_timings *timings)
++static const struct vb2_mem_ops vb2_vmalloc_ops = {
++	.alloc		= vb2_vmalloc_alloc,
++	.put		= vb2_vmalloc_put,
++	.vaddr		= vb2_vmalloc_vaddr,
++	.mmap		= vb2_vmalloc_mmap,
++	.num_users	= vb2_vmalloc_num_users,
++};
++
++struct vb2_alloc_ctx *vb2_vmalloc_init(void)
 +{
-+	struct vpif_fh *fh = priv;
-+	struct channel_obj *ch = fh->channel;
-+	struct video_obj *vid_obj = &ch->video;
-+	struct v4l2_bt_timings *bt = &vid_obj->bt_timings;
++	struct vb2_vmalloc_conf *conf;
 +
-+	timings->bt = *bt;
++	conf = kzalloc(sizeof *conf, GFP_KERNEL);
++	if (!conf)
++		return ERR_PTR(-ENOMEM);
 +
-+	return 0;
++	conf->alloc_ctx.mem_ops = &vb2_vmalloc_ops;
++
++	return &conf->alloc_ctx;
 +}
++EXPORT_SYMBOL_GPL(vb2_vmalloc_init);
 +
- /*
-  * vpif_g_chip_ident() - Identify the chip
-  * @file: file ptr
-@@ -2010,6 +2127,8 @@ static const struct v4l2_ioctl_ops vpif_ioctl_ops = {
- 	.vidioc_s_dv_preset             = vpif_s_dv_preset,
- 	.vidioc_g_dv_preset             = vpif_g_dv_preset,
- 	.vidioc_query_dv_preset         = vpif_query_dv_preset,
-+	.vidioc_s_dv_timings            = vpif_s_dv_timings,
-+	.vidioc_g_dv_timings            = vpif_g_dv_timings,
- 	.vidioc_g_chip_ident		= vpif_g_chip_ident,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.vidioc_g_register		= vpif_dbg_g_register,
-diff --git a/drivers/media/video/davinci/vpif_capture.h b/drivers/media/video/davinci/vpif_capture.h
-index 3452a8a..7a4196d 100644
---- a/drivers/media/video/davinci/vpif_capture.h
-+++ b/drivers/media/video/davinci/vpif_capture.h
-@@ -60,6 +60,7 @@ struct video_obj {
- 	/* Currently selected or default standard */
- 	v4l2_std_id stdid;
- 	u32 dv_preset;
-+	struct v4l2_bt_timings bt_timings;
- 	/* This is to track the last input that is passed to application */
- 	u32 input_idx;
- };
-diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
-index 7992ffe..12bfcb9 100644
---- a/drivers/media/video/davinci/vpif_display.c
-+++ b/drivers/media/video/davinci/vpif_display.c
-@@ -1395,6 +1395,124 @@ static int vpif_g_dv_preset(struct file *file, void *priv,
- 
- 	return 0;
- }
-+/**
-+ * vpif_s_dv_timings() - S_DV_TIMINGS handler
-+ * @file: file ptr
-+ * @priv: file handle
-+ * @timings: digital video timings
-+ */
-+static int vpif_s_dv_timings(struct file *file, void *priv,
-+		struct v4l2_dv_timings *timings)
++void vb2_vmalloc_cleanup(struct vb2_alloc_ctx *alloc_ctx)
 +{
-+	struct vpif_fh *fh = priv;
-+	struct channel_obj *ch = fh->channel;
-+	struct vpif_params *vpifparams = &ch->vpifparams;
-+	struct vpif_channel_config_params *std_info = &vpifparams->std_info;
-+	struct video_obj *vid_obj = &ch->video;
-+	struct v4l2_bt_timings *bt = &vid_obj->bt_timings;
-+	struct video_obj *vid_ch = &ch->video;
-+	int ret;
++	struct vb2_vmalloc_conf *conf =
++		container_of(alloc_ctx, struct vb2_vmalloc_conf, alloc_ctx);
 +
-+	if (timings->type != V4L2_DV_BT_656_1120) {
-+		vpif_dbg(2, debug, "Timing type not defined\n");
-+		return -EINVAL;
-+	}
-+
-+	/* Configure subdevice timings, if any */
-+	ret = v4l2_subdev_call(vpif_obj.sd[vid_ch->output_id],
-+			video, s_dv_timings, timings);
-+	if (ret == -ENOIOCTLCMD) {
-+		vpif_dbg(2, debug, "Custom DV timings not supported by "
-+				"subdevice\n");
-+		return -EINVAL;
-+	}
-+	if (ret < 0) {
-+		vpif_dbg(2, debug, "Error setting custom DV timings\n");
-+		return ret;
-+	}
-+
-+	if (!(timings->bt.width && timings->bt.height &&
-+				(timings->bt.hbackporch ||
-+				 timings->bt.hfrontporch ||
-+				 timings->bt.hsync) &&
-+				timings->bt.vfrontporch &&
-+				(timings->bt.vbackporch ||
-+				 timings->bt.vsync))) {
-+		vpif_dbg(2, debug, "Timings for width, height, "
-+				"horizontal back porch, horizontal sync, "
-+				"horizontal front porch, vertical back porch, "
-+				"vertical sync and vertical back porch "
-+				"must be defined\n");
-+		return -EINVAL;
-+	}
-+
-+	*bt = timings->bt;
-+
-+	/* Configure video port timings */
-+
-+	std_info->eav2sav = bt->hbackporch + bt->hfrontporch +
-+		bt->hsync - 8;
-+	std_info->sav2eav = bt->width;
-+
-+	std_info->l1 = 1;
-+	std_info->l3 = bt->vsync + bt->vbackporch + 1;
-+
-+	if (bt->interlaced) {
-+		if (bt->il_vbackporch || bt->il_vfrontporch || bt->il_vsync) {
-+			std_info->vsize = bt->height * 2 +
-+				bt->vfrontporch + bt->vsync + bt->vbackporch +
-+				bt->il_vfrontporch + bt->il_vsync +
-+				bt->il_vbackporch;
-+			std_info->l5 = std_info->vsize/2 -
-+				(bt->vfrontporch - 1);
-+			std_info->l7 = std_info->vsize/2 + 1;
-+			std_info->l9 = std_info->l7 + bt->il_vsync +
-+				bt->il_vbackporch + 1;
-+			std_info->l11 = std_info->vsize -
-+				(bt->il_vfrontporch - 1);
-+		} else {
-+			vpif_dbg(2, debug, "Required timing values for "
-+					"interlaced BT format missing\n");
-+			return -EINVAL;
-+		}
-+	} else {
-+		std_info->vsize = bt->height + bt->vfrontporch +
-+			bt->vsync + bt->vbackporch;
-+		std_info->l5 = std_info->vsize - (bt->vfrontporch - 1);
-+	}
-+	strncpy(std_info->name, "Custom timings BT656/1120",
-+			VPIF_MAX_NAME);
-+	std_info->width = bt->width;
-+	std_info->height = bt->height;
-+	std_info->frm_fmt = bt->interlaced ? 0 : 1;
-+	std_info->ycmux_mode = 0;
-+	std_info->capture_format = 0;
-+	std_info->vbi_supported = 0;
-+	std_info->hd_sd = 1;
-+	std_info->stdid = 0;
-+	std_info->dv_preset = V4L2_DV_INVALID;
-+
-+	return 0;
++	kfree(conf);
 +}
++EXPORT_SYMBOL_GPL(vb2_vmalloc_cleanup);
 +
-+/**
-+ * vpif_g_dv_timings() - G_DV_TIMINGS handler
-+ * @file: file ptr
-+ * @priv: file handle
-+ * @timings: digital video timings
++MODULE_DESCRIPTION("vmalloc memory handling routines for videobuf2");
++MODULE_AUTHOR("Pawel Osciak");
++MODULE_LICENSE("GPL");
+diff --git a/include/media/videobuf2-vmalloc.h b/include/media/videobuf2-vmalloc.h
+new file mode 100644
+index 0000000..7612f9f
+--- /dev/null
++++ b/include/media/videobuf2-vmalloc.h
+@@ -0,0 +1,16 @@
++/*
++ * videobuf2-vmalloc.h - vmalloc memory allocator for videobuf2
++ *
++ * Copyright (C) 2010 Samsung Electronics
++ *
++ * Author: Pawel Osciak <p.osciak@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation.
 + */
-+static int vpif_g_dv_timings(struct file *file, void *priv,
-+		struct v4l2_dv_timings *timings)
-+{
-+	struct vpif_fh *fh = priv;
-+	struct channel_obj *ch = fh->channel;
-+	struct video_obj *vid_obj = &ch->video;
-+	struct v4l2_bt_timings *bt = &vid_obj->bt_timings;
 +
-+	timings->bt = *bt;
++#include <media/videobuf2-core.h>
 +
-+	return 0;
-+}
- 
- /*
-  * vpif_g_chip_ident() - Identify the chip
-@@ -1498,6 +1616,8 @@ static const struct v4l2_ioctl_ops vpif_ioctl_ops = {
- 	.vidioc_enum_dv_presets         = vpif_enum_dv_presets,
- 	.vidioc_s_dv_preset             = vpif_s_dv_preset,
- 	.vidioc_g_dv_preset             = vpif_g_dv_preset,
-+	.vidioc_s_dv_timings            = vpif_s_dv_timings,
-+	.vidioc_g_dv_timings            = vpif_g_dv_timings,
- 	.vidioc_g_chip_ident		= vpif_g_chip_ident,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.vidioc_g_register		= vpif_dbg_g_register,
-diff --git a/drivers/media/video/davinci/vpif_display.h b/drivers/media/video/davinci/vpif_display.h
-index 3d56b3e..b53aaa8 100644
---- a/drivers/media/video/davinci/vpif_display.h
-+++ b/drivers/media/video/davinci/vpif_display.h
-@@ -68,6 +68,7 @@ struct video_obj {
- 	v4l2_std_id stdid;		/* Currently selected or default
- 					 * standard */
- 	u32 dv_preset;
-+	struct v4l2_bt_timings bt_timings;
- 	u32 output_id;			/* Current output id */
- };
- 
++struct vb2_alloc_ctx *vb2_vmalloc_init(void);
++void vb2_vmalloc_cleanup(struct vb2_alloc_ctx *alloc_ctx);
 -- 
-1.7.1
+1.7.1.569.g6f426
 
