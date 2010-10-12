@@ -1,49 +1,88 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:58458 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753780Ab0J0Rwg (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:17595 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756795Ab0JLJwz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Oct 2010 13:52:36 -0400
-MIME-Version: 1.0
-In-Reply-To: <4CC85771.2080307@redhat.com>
-References: <4CC8380D.3040802@redhat.com>
-	<4CC84597.4000204@gmail.com>
-	<4CC84846.6020304@redhat.com>
-	<AANLkTim=RfR3Dq0w+ACYjhGTHCSgapdf35wGW8QoZ38n@mail.gmail.com>
-	<4CC85771.2080307@redhat.com>
-Date: Wed, 27 Oct 2010 13:52:34 -0400
-Message-ID: <AANLkTimS2FwZfruag0rBnbpEQoqTEUSXf14XGpZYQdAO@mail.gmail.com>
-Subject: Re: [GIT PULL for 2.6.37-rc1] V4L/DVB updates
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Michael Krufky <mkrufky@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 12 Oct 2010 05:52:55 -0400
+Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LA600FL38S5RF@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 12 Oct 2010 10:52:53 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LA600D5D8S4QF@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 12 Oct 2010 10:52:52 +0100 (BST)
+Date: Tue, 12 Oct 2010 11:52:52 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [GIT PATCHES FOR 2.6.37]  s5p-fimc camera host interface and SR030PC30
+ sensor drivers
+To: linux-media@vger.kernel.org
+Cc: Kyungmin Park <kyungmin.park@samsung.com>,
+	"Marek Szyprowski/Poland R&D Center-Linux (MSS)/./????"
+	<m.szyprowski@samsung.com>
+Message-id: <4CB42FF4.7060707@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Oct 27, 2010 at 12:46 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> The original code is broken, as it doesn't properly honour a max size of 8.
-> Even if we do some optimization at cx231xx, we still need to fix the tda18271
-> code, as it is trying to use more than 8 bytes on some writes.
->
-> Also, as you noticed, the way cx231xx sends large firmwares to xc5000 is a hack:
-> it requires to identify that the I2C device is a xc5000 and do an special
-> treatment for it.
+Hi Mauro,
 
-Yes, it does currently only get run if it's an xc5000, but I believe
-that code path could be used for *all* devices.  There is no reason
-that it needs to be a hack as that behavior should be the default case
-(presumably Conexant just didn't want to retest against other
-devices).
 
-Devin
+The following changes since commit 9147e3dbca0712a5435cd2ea7c48d39344f904eb
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+V4L/DVB: cx231xx: use core-assisted lock (Sat Oct 9 13:13:35 2010)
+
+are available in the git repository at:
+
+git://git.infradead.org/users/kmpark/linux-2.6-samsung s5p_fimc_vga_for_2.6.37
+
+Sylwester Nawrocki (7):
+cd8ea8a V4L/DVB: Add driver for Siliconfile SR030PC30 VGA camera
+467835b V4L/DVB: s5p-fimc: Add suport for FIMC on S5PC210 SoCs
+ce30889 V4L/DVB: s5p-fimc: Add camera capture support
+bff8eea V4L/DVB: s5p-fimc: Do not lock both buffer queues in s_fmt
+00c222c V4L/DVB: s5p-fimc: Fix 90/270 deg rotation errors
+68028d6 V4L/DVB: s5p-fimc: mem2mem driver refactoring and cleanup
+c03564c V4L/DVB: s5p-fimc: Register definition cleanup
+
+
+drivers/media/video/Kconfig                 |    6 +
+drivers/media/video/Makefile                |    1 +
+drivers/media/video/s5p-fimc/Makefile       |    2 +-
+drivers/media/video/s5p-fimc/fimc-capture.c |  819 +++++++++++++++++++++
+drivers/media/video/s5p-fimc/fimc-core.c    | 1026 +++++++++++++++++----------
+drivers/media/video/s5p-fimc/fimc-core.h    |  377 ++++++++--
+drivers/media/video/s5p-fimc/fimc-reg.c     |  321 ++++++---
+drivers/media/video/s5p-fimc/regs-fimc.h    |   64 +-
+drivers/media/video/sr030pc30.c             |  893 +++++++++++++++++++++++
+include/media/s3c_fimc.h                    |   60 ++
+include/media/sr030pc30.h                   |   21 +
+11 files changed, 2992 insertions(+), 598 deletions(-)
+
+
+All the patches have been posted to linux-media for review and can be found at
+patchwork at:
+https://patchwork.kernel.org/patch/245901/
+https://patchwork.kernel.org/patch/245911/
+https://patchwork.kernel.org/patch/245881/
+https://patchwork.kernel.org/patch/245871/
+https://patchwork.kernel.org/patch/245921/
+https://patchwork.kernel.org/patch/245891/
+https://patchwork.kernel.org/patch/245471/
+
+The two patches added in the above repository
+
+b6eb9a5 v4l: s5p-fimc: Fix 3-planar formats handling and pixel offset error on
+S5PV210 SoCs
+03bda68 v4l: s5p-fimc: Fix return value on probe() failure
+
+are already in 2.6.36.
+
+The patch cd8ea8a V4L/DVB: Add driver for Siliconfile SR030PC30 VGA camera
+has coding style changes in 3 lines comparing to version posted to ML.
+
+
+Regards,
