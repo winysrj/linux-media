@@ -1,49 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:38670 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755949Ab0JJAIw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Oct 2010 20:08:52 -0400
-Received: by wyb28 with SMTP id 28so2083340wyb.19
-        for <linux-media@vger.kernel.org>; Sat, 09 Oct 2010 17:08:51 -0700 (PDT)
-Subject: rtl2831-r2 still not working for Compro VideoMate U80
-From: Ugnius Soraka <spam.ugnius40@gmail.com>
-Reply-To: spam.ugnius40@gmail.com
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 10 Oct 2010 01:07:26 +0100
-Message-ID: <1286669246.3990.44.camel@linux-efue.site>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:60186 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932068Ab0JLMKC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Oct 2010 08:10:02 -0400
+Received: by iwn7 with SMTP id 7so680996iwn.19
+        for <linux-media@vger.kernel.org>; Tue, 12 Oct 2010 05:10:02 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201010111707.21537.laurent.pinchart@ideasonboard.com>
+References: <AANLkTimyR117ZiHq8GFz4YW5tBtW3k82NzGVZqKoVTbY@mail.gmail.com>
+	<201010111514.37592.laurent.pinchart@ideasonboard.com>
+	<AANLkTikBWjgNmDdG6dCXQQmcDRBUc4gP7717uqAY3+_J@mail.gmail.com>
+	<201010111707.21537.laurent.pinchart@ideasonboard.com>
+Date: Tue, 12 Oct 2010 14:10:00 +0200
+Message-ID: <AANLkTiks9qzC6W4iyu2_QWkWeK-cN-pTOS=trGxeRF=6@mail.gmail.com>
+Subject: Re: OMAP 3530 camera ISP forks and new media framework
+From: Bastian Hecht <hechtb@googlemail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+Hello Laurent,
 
-I'd like to get in touch with driver developers, is there any way I
-could help make RTL2831U driver work with Compro VideoMate U80. I would
-like to actively participate. My programming skills are well below
-required to write kernel modules, so I know I would be no use there. But
-anything else, testing with VideoMate U80, sending debug logs, I think I
-could do that.
+2010/10/11 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> Hi Bastian,
+>
+> On Monday 11 October 2010 16:58:35 Bastian Hecht wrote:
+>> 2010/10/11 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+>> > On Monday 11 October 2010 14:59:15 Bastian Hecht wrote:
+>> >> So... let's see if i got some things right, please let me now if you
+>> >> disagree:
+>> >>
+>> >> - I do want to use the omap34xxcam.c driver as it is for the newest
+>> >> framework and I get most support for it
+>> >
+>> > That's a bad start. With the latest driver, omap34xxcam.c doesn't exist
+>> > anymore :-)
+>>
+>> Nice :S
+>>
+>> I think I take the mt9t001 approach (Sorry Guennadi, I think modifying
+>> your framework is too much for me to start with). So in this driver I
+>> tell the framework that I can do i2c probing, some subdev_core_ops and
+>> some subdev_video_ops. I define these functions that mostly do some
+>> basic i2c communication to the sensor chip. I guess I can handle that
+>> as there are so many examples out there.
+>
+> The best solution would be to add mt9p031 support to the mt9t001 driver. If
+> that's too difficult to start with, you can copy mt9t001 to mt9p031 and modify
+> the driver as needed and merge the two drivers when you will be satisfied with
+> the result.
+>
 
-I've tried http://linuxtv.org/hg/~jhoogenraad/rtl2831-r2 driver, it
-looked promising. U80 device was recognised as VideoMate U90, /dev/dvb
-entries were created. But when scanning it says there's no signal. Debug
-gives TPS_NON_LOCK, Signal NOT Present, rtd2830_soft_reset, etc. (I
-could post message log, if it's any use to somebody).
-U80 has a led which (on windows) shows if TV stick is tuned in and
-working, when scanning on linux it's always on.
+OK, now I built the nokia kernel for the omap3-isp and made your
+mt9t001.c work for it.
+In mt9t001.c you call i2c_add_driver(&mt9t001_driver);
+As far I as I figured out the driver core system looks for matches
+between registered devices in arch/arm/omap/devices.c and appropriate
+drivers.
+Is the next step to include a static struct platform_device into
+devices.c? Or is there a special i2c_device struct that I have to use?
 
-I've also tried to compile http://linuxtv.org/hg/~anttip/rtl2831u/ but
-for now it's based on old dvb tree and seems to be incompatible with new
-kernels (mine 2.6.34.7-0.3).
+Thanks so much,
 
-Is anttip driver supposed to be included in kernel, but it looks like
-development is going slow.
-
-Thank you,
-Ugnius
+ Bastian
 
 
 
-
+>> But where do I stack that on top? On the camera bridge host, but if it
+>> isn't omap34xxcam, which driver can I use? How are they connected?
+>
+> http://gitorious.org/maemo-multimedia/omap3isp-rx51
+>
+> The omap34xxcam.ko and isp-mod.ko modules have been merged into a single
+> omap3-isp.ko module. All the driver code is now in drivers/media/video/isp.
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
