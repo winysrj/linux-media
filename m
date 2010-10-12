@@ -1,63 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:38265 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759776Ab0JHVoI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Oct 2010 17:44:08 -0400
-Received: from int-mx08.intmail.prod.int.phx2.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.21])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o98Li8MT020737
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 8 Oct 2010 17:44:08 -0400
-Date: Fri, 8 Oct 2010 17:44:07 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org, mchehab@redhat.com
-Subject: [GIT PULL REQUEST] IR patches for 2.6.37-rc1
-Message-ID: <20101008214407.GI5165@redhat.com>
+Received: from perceval.irobotique.be ([92.243.18.41]:53049 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932282Ab0JLM7K (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Oct 2010 08:59:10 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Bastian Hecht <hechtb@googlemail.com>
+Subject: Re: OMAP 3530 camera ISP forks and new media framework
+Date: Tue, 12 Oct 2010 14:58:55 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <AANLkTimyR117ZiHq8GFz4YW5tBtW3k82NzGVZqKoVTbY@mail.gmail.com> <201010111707.21537.laurent.pinchart@ideasonboard.com> <AANLkTiks9qzC6W4iyu2_QWkWeK-cN-pTOS=trGxeRF=6@mail.gmail.com>
+In-Reply-To: <AANLkTiks9qzC6W4iyu2_QWkWeK-cN-pTOS=trGxeRF=6@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201010121458.57150.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hey Mauro,
+Hi Bastian,
 
-I've queued up some lirc fixes and a couple of patches that add a new
-ir-core driver for the Nuvoton w836x7hg Super I/O integrated CIR
-functionality. All but the Kconfig re-sorting patch have been posted to
-linux-media for review, but I'm hoping they can all get merged in time for
-the 2.6.37-rc1 window, and any additional review feedback can be taken
-care of with follow-up patches.
+On Tuesday 12 October 2010 14:10:00 Bastian Hecht wrote:
+> 2010/10/11 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> > On Monday 11 October 2010 16:58:35 Bastian Hecht wrote:
+> >> 2010/10/11 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> >> > On Monday 11 October 2010 14:59:15 Bastian Hecht wrote:
+> >> >> So... let's see if i got some things right, please let me now if you
+> >> >> disagree:
+> >> >> 
+> >> >> - I do want to use the omap34xxcam.c driver as it is for the newest
+> >> >> framework and I get most support for it
+> >> > 
+> >> > That's a bad start. With the latest driver, omap34xxcam.c doesn't
+> >> > exist anymore :-)
+> >> 
+> >> Nice :S
+> >> 
+> >> I think I take the mt9t001 approach (Sorry Guennadi, I think modifying
+> >> your framework is too much for me to start with). So in this driver I
+> >> tell the framework that I can do i2c probing, some subdev_core_ops and
+> >> some subdev_video_ops. I define these functions that mostly do some
+> >> basic i2c communication to the sensor chip. I guess I can handle that
+> >> as there are so many examples out there.
+> > 
+> > The best solution would be to add mt9p031 support to the mt9t001 driver.
+> > If that's too difficult to start with, you can copy mt9t001 to mt9p031
+> > and modify the driver as needed and merge the two drivers when you will
+> > be satisfied with the result.
+> 
+> OK, now I built the nokia kernel for the omap3-isp and made your
+> mt9t001.c work for it.
+> In mt9t001.c you call i2c_add_driver(&mt9t001_driver);
+> As far I as I figured out the driver core system looks for matches
+> between registered devices in arch/arm/omap/devices.c and appropriate
+> drivers.
 
-The following changes since commit b9a1211dff08aa73fc26db66980ec0710a6c7134:
+The driver core looks for matches between registered drivers and registered 
+devices. Devices are registered in lots of places, arch/arm/omap/devices.c is 
+only one of them. Board-specific devices are registered (or at least declared) 
+in a board file located (for this architecture) in arch/arm/mach-omap2/.
 
-  V4L/DVB: Staging: cx25821: fix braces and space coding style issues (2010-10-07 15:37:27 -0300)
+> Is the next step to include a static struct platform_device into
+> devices.c? Or is there a special i2c_device struct that I have to use?
 
-are available in the git repository at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/jarod/linux-2.6-lirc.git staging
-
-Jarod Wilson (5):
-      IR: add driver for Nuvoton w836x7hg integrated CIR
-      nuvoton-cir: add proper rx fifo overrun handling
-      IR/Kconfig: sort hardware entries alphabetically
-      IR/lirc: further ioctl portability fixups
-      staging/lirc: ioctl portability fixups
-
- drivers/media/IR/Kconfig             |   27 +-
- drivers/media/IR/Makefile            |    1 +
- drivers/media/IR/ir-lirc-codec.c     |   10 +-
- drivers/media/IR/lirc_dev.c          |   14 +-
- drivers/media/IR/nuvoton-cir.c       | 1237 ++++++++++++++++++++++++++++++++++
- drivers/media/IR/nuvoton-cir.h       |  408 +++++++++++
- drivers/staging/lirc/lirc_it87.c     |   17 +-
- drivers/staging/lirc/lirc_ite8709.c  |    6 +-
- drivers/staging/lirc/lirc_parallel.c |   32 +-
- drivers/staging/lirc/lirc_serial.c   |   21 +-
- drivers/staging/lirc/lirc_sir.c      |   21 +-
- include/media/lirc_dev.h             |    4 +-
- 12 files changed, 1727 insertions(+), 71 deletions(-)
- create mode 100644 drivers/media/IR/nuvoton-cir.c
- create mode 100644 drivers/media/IR/nuvoton-cir.h
+The OMAP3 ISP driver requires platform data that contain, among other 
+information, the list of I2C subdevices. Have a look at arch/arm/mach-
+omap2/board-rx51-camera.c.
 
 -- 
-Jarod Wilson
-jarod@redhat.com
+Regards,
 
+Laurent Pinchart
