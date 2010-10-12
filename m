@@ -1,85 +1,136 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:17090 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757796Ab0J1Sww (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Oct 2010 14:52:52 -0400
-Message-ID: <4CC9C67C.8040102@redhat.com>
-Date: Thu, 28 Oct 2010 16:52:44 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:64529 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757811Ab0JLQby convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Oct 2010 12:31:54 -0400
+Received: by ywi6 with SMTP id 6so1115079ywi.19
+        for <linux-media@vger.kernel.org>; Tue, 12 Oct 2010 09:31:53 -0700 (PDT)
 MIME-Version: 1.0
-To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
-References: <201010271905.o9RJ504u021145@smtp-vbr1.xs4all.nl> <4CC94D5A.3090504@redhat.com> <4CC9BA90.2080805@hoogenraad.net>
-In-Reply-To: <4CC9BA90.2080805@hoogenraad.net>
+In-Reply-To: <AANLkTik-PXRnbzhF_4hPW2y=2h6Vnht9VsCtsBHcpFHG@mail.gmail.com>
+References: <AANLkTik-PXRnbzhF_4hPW2y=2h6Vnht9VsCtsBHcpFHG@mail.gmail.com>
+Date: Tue, 12 Oct 2010 18:31:53 +0200
+Message-ID: <AANLkTinqQy-iWrWxwqUZTPc_5qWonFLG9NKphZthutic@mail.gmail.com>
+Subject: Re: s-video input from terratec cinergy 200 gives black frame or out
+ of sync video
+From: Antonio-Blasco Bonito <blasco.bonito@gmail.com>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Jan,
+I got no answer. Why? I thought it was correct to ask my question on
+this list... Did I ask it in a wrong way?
 
-Em 28-10-2010 16:01, Jan Hoogenraad escreveu:
-> Douglas:
-> 
-> First of all thank you for the support you have done so far.
-> 
-> Hans:
-> 
-> Is it possible to build the tar from
-> http://git.linuxtv.org/mchehab/new_build.git
-> automatically each night, just like the way the hg archive was built ?
-> I don't have sufficient processing power to run that.
-> 
-> Mauro:
-> 
-> I'm willing to give the mercurial conversion a shot.
-> I do not know a lot about v4l, but tend to be able to resolve this kind of release-type issues.
-> 
-> The way it seems to me is that first new_build.git should compile for all releases that the hg archive supported.
+2010/10/10 Antonio-Blasco Bonito <blasco.bonito@gmail.com>
+>
+> I'm trying to use a Terratec Cinergy 200 usb board to grab analog video.
+> I'm using Ubuntu 10.04 and the included em28xx driver
+>
+> $ uname -a
+> Linux airone 2.6.32-25-generic #44-Ubuntu SMP Fri Sep 17 20:05:27 UTC
+> 2010 x86_64 GNU/Linux
+>
+> I get different behaviours whether the board is connected while
+> booting or after that.
+>
+> 1- If i connect it to the usb port after booting the board recognition
+> fails so I have to force it with "options em28xx card=6"
+> Here follows the "dmesg | grep em28xx" output:
+>
+> [ 5749.157765] em28xx: New device @ 480 Mbps (eb1a:2800, interface 0, class 0)
+> [ 5749.158322] em28xx #0: em28xx chip ID = 4
+> [ 5749.380045] em28xx #0: board has no eeprom
+> [ 5749.500074] em28xx #0: preparing read at i2c address 0x60 failed (error=-19)
+> [ 5749.620068] em28xx #0: Identified as Terratec Cinergy 200 USB (card=6)
+> [ 5751.210426] em28xx #0: Config register raw data: 0xf6
+> [ 5751.210435] em28xx #0: I2S Audio (5 sample rates)
+> [ 5751.210439] em28xx #0: No AC97 audio processor
+> [ 5751.310058] em28xx #0: v4l2 driver version 0.1.2
+> [ 5752.050357] em28xx #0: V4L2 video device registered as /dev/video1
+> [ 5752.050454] usbcore: registered new interface driver em28xx
+> [ 5752.050467] em28xx driver loaded
+> [ 5752.068423] em28xx-audio.c: probing for em28x1 non standard usbaudio
+> [ 5752.068436] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+>
+> Trying to look at the video signal with:
+> $ v4lctl -c /dev/video1 setinput s-video
+> $ v4lctl -c /dev/video1 show
+> norm: PAL-DK
+> input: S-Video
+> audio mode: mono
+>
+> $ xawtv -c /dev/video1
+> I get nothing... a black frame :-(
+>
+> 2- If I connect to the usb port before booting the board recognition
+> works (why?), so I have:
+>
+> [   15.689540] em28xx: New device @ 480 Mbps (eb1a:2800, interface 0, class 0)
+> [   15.689733] em28xx #0: em28xx chip ID = 4
+> [   15.830246] em28xx #0: board has no eeprom
+> [   15.870730] em28xx #0: Identified as Unknown EM2800 video grabber (card=0)
+> [   17.423791] em28xx #0: found i2c device @ 0x4a [saa7113h]
+> [   17.860869] em28xx #0: found i2c device @ 0x60 [remote IR sensor]
+> [   17.901010] em28xx #0: found i2c device @ 0x62 [???]
+> [   17.940885] em28xx #0: found i2c device @ 0x64 [???]
+> [   18.630295] em28xx #0: found i2c device @ 0x86 [tda9887]
+> [   19.812231] em28xx #0: found i2c device @ 0xc0 [tuner (analog)]
+> [   19.850112] em28xx #0: found i2c device @ 0xc2 [tuner (analog)]
+> [   21.150095] em28xx #0: Your board has no unique USB ID.
+> [   21.150345] em28xx #0: A hint were successfully done, based on i2c
+> devicelist hash.
+> [   21.150663] em28xx #0: This method is not 100% failproof.
+> [   21.150897] em28xx #0: If the board were missdetected, please email
+> this log to:
+> [   21.151211] em28xx #0:       V4L Mailing List  <linux-media@vger.kernel.org>
+> [   21.151466] em28xx #0: Board detected as Terratec Cinergy 200 USB
+> [   21.189182] ir-kbd-i2c: i2c IR (KNC One) detected at
+> i2c-1/1-0030/ir0 [em28xx #0]
+> [   22.470223] saa7115 1-0025: saa7113 found (1f7113d0e100000) @ 0x4a
+> (em28xx #0)
+> [   24.180383] tuner 1-0043: chip found @ 0x86 (em28xx #0)
+> [   24.410553] tuner 1-0060: chip found @ 0xc0 (em28xx #0)
+> [   24.550217] em28xx #0: Config register raw data: 0xf6
+> [   24.550223] em28xx #0: I2S Audio (5 sample rates)
+> [   24.550227] em28xx #0: No AC97 audio processor
+> [   24.810149] em28xx #0: v4l2 driver version 0.1.2
+> [   25.550259] em28xx #0: V4L2 video device registered as /dev/video1
+> [   25.571390] usbcore: registered new interface driver em28xx
+> [   25.571567] em28xx driver loaded
+> [   25.597473] em28xx-audio.c: probing for em28x1 non standard usbaudio
+> [   25.597481] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+>
+> In this case with:
+> $ v4lctl -c /dev/video1 setinput s-video
+> $ v4lctl -c /dev/video1 show
+> norm: PAL-DK
+> input: S-Video
+> audio mode: mono
+> bright: 128
+> contrast: 64
+> color: 64
+> hue: 0
+> [more options are showed... why?]
+>
+> $ xawtv -c /dev/video1
+> I get an out-of-sync video... better than nothing but not ok :-(
+>
+> --
+> Antonio-Blasco Bonito
+> Via Vico Fiaschi 35
+> 54033 Carrara Avenza MS
+>
+> tel. 0585-026169
+> cell. 340-6199450
 
-We still lack a maintainer for the new_build ;) I think we need to have someone
-with time looking on it, before flooding the ML's with breakage reports.
-I did the initial work: the tree is compiling, and I did a basic test with a few
-drivers on v2.6.32, but, unfortunately, I won't have time to maintain it.
-So, someone needs to head it. A few already talked to me about maintaining it
-it in priv, but didn't manifest yet publicly, because they're still analysing it.
-Also, so far, I received only one patch not made by me.
 
-Currently, the new_build tree covers kernel versions from .32 to .36, but, if nobody 
-handles it, the backport patches will break with the time. Probably, some API will
-change on .37, requiring a new backport patch. In the meantime, someone may change 
-one of the backported lines, breaking those patches.
 
-The good news is that there are just a few backport patches to maintain:
-8 patches were enough for 2.6.32 (plus the v4l/compat.h logic).
+--
+Antonio-Blasco Bonito
+Via Vico Fiaschi 35
+54033 Carrara Avenza MS
 
-It is up to the one that takes the maintainership to decide what will be the minimum
-supported version. 
-
-IMHO, 2.6.32 is a good choice, as it has a long-maintained stable version and almost all 
-major distros are using it as basis for their newest version (and anyone 'crazy' enough 
-to use an experimental, pre -rc version, is likely using a brand new distribution ;) ).
-
-> Then I'd like some support from you as to transfer all current HG branches to the git line.
-> In principle, that should be fixed by the maintainers. If the new_build.git complies well, 
-> that should be relatively straightforward.
-> 
-> For me, it would be great if Mauro could transfer these branches automatically at that time to git.
-
-I can't do it, due to several reasons:
-
-1) it would be a huge manual effort;
-2) Trees will require up-port to the latest git version;
-3) some trees are there mostly due to historic reasons;
-4) developers need to rebase their drivers to the latest git, and test on their hardware if the
-   up-port didn't break anything;
-5) developers should be ok on migrating to git;
-
-I sent already a procedure for everybody with an account at linuxtv explaining how to create
-a git tree there. If they have any doubts, it is just a matter of pinging me, in priv.
-
-Cheers,
-Mauro
+tel. 0585-026169
+cell. 340-6199450
