@@ -1,122 +1,94 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:55203 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752237Ab0JENMr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 09:12:47 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v2 02/10] v4l: Rename V4L2_MBUS_FMT_GREY8_1X8 to V4L2_MBUS_FMT_Y8_1X8
-Date: Tue,  5 Oct 2010 15:12:48 +0200
-Message-Id: <1286284376-12217-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1286284376-12217-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1286284376-12217-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from auth-1.ukservers.net ([217.10.138.154]:58664 "EHLO
+	auth-1.ukservers.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751094Ab0JMSMD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Oct 2010 14:12:03 -0400
+Received: from wlgl04017 (203-97-171-185.cable.telstraclear.net [203.97.171.185])
+	by auth-1.ukservers.net (Postfix smtp) with ESMTPA id B1C52358F66
+	for <linux-media@vger.kernel.org>; Wed, 13 Oct 2010 19:12:00 +0100 (BST)
+Message-ID: <DB698966BF69466598B044C73782E1D7@telstraclear.tclad>
+From: "Simon Baxter" <linuxtv@nzbaxters.com>
+To: <linux-media@vger.kernel.org>
+Subject: Re: dm1105 scan but won't tune? [RESOLVED]
+Date: Thu, 14 Oct 2010 07:11:56 +1300
+MIME-Version: 1.0
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-For consistency with the V4L2_MBUS_FMT_Y10_1X10 format.
+> OK, progress (idiot error?)
+>
+> My problem was OptusB1 requires a 45 degree skew on the LNB on the dish
+> itself.
+>
+> So now I can do an szap as follows:
+> TV3:12456:h:0:22500:512:650:1920
+>
+> ./szap -l 11300 -c channels-conf/dvb-s/OptusD1E160 TV3
+> reading channels from file 'channels-conf/dvb-s/OptusD1E160'
+> zapping to 1 'TV3':
+> sat 0, frequency = 12456 MHz H, symbolrate 22500000, vpid = 0x0200, apid =
+> 0x028a sid = 0x0780
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> status 1f | signal cd82 | snr be5c | ber 0000ff00 | unc fffffffe |
+> FE_HAS_LOCK
+> status 1f | signal cd07 | snr be9e | ber 00000000 | unc fffffffe |
+> FE_HAS_LOCK
+> status 1f | signal cd07 | snr be4a | ber 00000000 | unc fffffffe |
+> FE_HAS_LOCK
+>
+>
+> New problem though - I can now no longer scan with the LNB skewed!!
+> S 12456000 V 22500000 AUTO
+> S 12456000 H 22500000 AUTO
+>
+> ./scan dvb-s/OptusB1-NZ -l 11300
+> scanning dvb-s/OptusB1-NZ
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> initial transponder 12456000 V 22500000 9
+> initial transponder 12456000 H 22500000 9
+>>>> tune to: 12456:v:0:22500
+> DVB-S IF freq is 1156000
+> WARNING: >>> tuning failed!!!
+>>>> tune to: 12456:v:0:22500 (tuning failed)
+> DVB-S IF freq is 1156000
+> WARNING: >>> tuning failed!!!
+>>>> tune to: 12456:h:0:22500
+> DVB-S IF freq is 1156000
+> WARNING: >>> tuning failed!!!
+>>>> tune to: 12456:h:0:22500 (tuning failed)
+> DVB-S IF freq is 1156000
+> WARNING: >>> tuning failed!!!
+> ERROR: initial tuning failed
+> dumping lists (0 services)
+> Done.
+>
+> Any ideas?
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/mt9m001.c        |    2 +-
- drivers/media/video/mt9v022.c        |    4 ++--
- drivers/media/video/sh_mobile_csi2.c |    6 +++---
- drivers/media/video/soc_mediabus.c   |    2 +-
- include/linux/v4l2-mediabus.h        |    2 +-
- 5 files changed, 8 insertions(+), 8 deletions(-)
+Things to note when you install your own satellite dish and card:
+1) Make sure you understand the LNB requirements for your satellite.  I
+needed to skew mine on the dish by 45 degrees - wasted a lot of time getting
+odd results from a vertically mounted LNB
+2) Understand your LNB specs.  Mine had a 11300Mhz LSOF, which needed
+allowance for when szapping, scanning and in VDR
 
-diff --git a/drivers/media/video/mt9m001.c b/drivers/media/video/mt9m001.c
-index 79f096d..c6adc41 100644
---- a/drivers/media/video/mt9m001.c
-+++ b/drivers/media/video/mt9m001.c
-@@ -79,7 +79,7 @@ static const struct mt9m001_datafmt mt9m001_colour_fmts[] = {
- static const struct mt9m001_datafmt mt9m001_monochrome_fmts[] = {
- 	/* Order important - see above */
- 	{V4L2_MBUS_FMT_Y10_1X10, V4L2_COLORSPACE_JPEG},
--	{V4L2_MBUS_FMT_GREY8_1X8, V4L2_COLORSPACE_JPEG},
-+	{V4L2_MBUS_FMT_Y8_1X8, V4L2_COLORSPACE_JPEG},
- };
- 
- struct mt9m001 {
-diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
-index e7cd23c..196c291 100644
---- a/drivers/media/video/mt9v022.c
-+++ b/drivers/media/video/mt9v022.c
-@@ -95,7 +95,7 @@ static const struct mt9v022_datafmt mt9v022_colour_fmts[] = {
- static const struct mt9v022_datafmt mt9v022_monochrome_fmts[] = {
- 	/* Order important - see above */
- 	{V4L2_MBUS_FMT_Y10_1X10, V4L2_COLORSPACE_JPEG},
--	{V4L2_MBUS_FMT_GREY8_1X8, V4L2_COLORSPACE_JPEG},
-+	{V4L2_MBUS_FMT_Y8_1X8, V4L2_COLORSPACE_JPEG},
- };
- 
- struct mt9v022 {
-@@ -392,7 +392,7 @@ static int mt9v022_s_fmt(struct v4l2_subdev *sd,
- 	 * icd->try_fmt(), datawidth is from our supported format list
- 	 */
- 	switch (mf->code) {
--	case V4L2_MBUS_FMT_GREY8_1X8:
-+	case V4L2_MBUS_FMT_Y8_1X8:
- 	case V4L2_MBUS_FMT_Y10_1X10:
- 		if (mt9v022->model != V4L2_IDENT_MT9V022IX7ATM)
- 			return -EINVAL;
-diff --git a/drivers/media/video/sh_mobile_csi2.c b/drivers/media/video/sh_mobile_csi2.c
-index 84a6468..dd1b81b 100644
---- a/drivers/media/video/sh_mobile_csi2.c
-+++ b/drivers/media/video/sh_mobile_csi2.c
-@@ -56,7 +56,7 @@ static int sh_csi2_try_fmt(struct v4l2_subdev *sd,
- 		switch (mf->code) {
- 		case V4L2_MBUS_FMT_UYVY8_2X8:		/* YUV422 */
- 		case V4L2_MBUS_FMT_YUYV8_1_5X8:		/* YUV420 */
--		case V4L2_MBUS_FMT_GREY8_1X8:		/* RAW8 */
-+		case V4L2_MBUS_FMT_Y8_1X8:		/* RAW8 */
- 		case V4L2_MBUS_FMT_SBGGR8_1X8:
- 		case V4L2_MBUS_FMT_SGRBG8_1X8:
- 			break;
-@@ -67,7 +67,7 @@ static int sh_csi2_try_fmt(struct v4l2_subdev *sd,
- 		break;
- 	case SH_CSI2I:
- 		switch (mf->code) {
--		case V4L2_MBUS_FMT_GREY8_1X8:		/* RAW8 */
-+		case V4L2_MBUS_FMT_Y8_1X8:		/* RAW8 */
- 		case V4L2_MBUS_FMT_SBGGR8_1X8:
- 		case V4L2_MBUS_FMT_SGRBG8_1X8:
- 		case V4L2_MBUS_FMT_SBGGR10_1X10:	/* RAW10 */
-@@ -111,7 +111,7 @@ static int sh_csi2_s_fmt(struct v4l2_subdev *sd,
- 	case V4L2_MBUS_FMT_RGB565_2X8_BE:
- 		tmp |= 0x22;	/* RGB565 */
- 		break;
--	case V4L2_MBUS_FMT_GREY8_1X8:
-+	case V4L2_MBUS_FMT_Y8_1X8:
- 	case V4L2_MBUS_FMT_SBGGR8_1X8:
- 	case V4L2_MBUS_FMT_SGRBG8_1X8:
- 		tmp |= 0x2a;	/* RAW8 */
-diff --git a/drivers/media/video/soc_mediabus.c b/drivers/media/video/soc_mediabus.c
-index 9139121..d9c297d 100644
---- a/drivers/media/video/soc_mediabus.c
-+++ b/drivers/media/video/soc_mediabus.c
-@@ -88,7 +88,7 @@ static const struct soc_mbus_pixelfmt mbus_fmt[] = {
- 		.packing		= SOC_MBUS_PACKING_EXTEND16,
- 		.order			= SOC_MBUS_ORDER_LE,
- 	},
--	[MBUS_IDX(GREY8_1X8)] = {
-+	[MBUS_IDX(Y8_1X8)] = {
- 		.fourcc			= V4L2_PIX_FMT_GREY,
- 		.name			= "Grey",
- 		.bits_per_sample	= 8,
-diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-index 127512a..75c2d55 100644
---- a/include/linux/v4l2-mediabus.h
-+++ b/include/linux/v4l2-mediabus.h
-@@ -37,7 +37,7 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_RGB565_2X8_BE,
- 	V4L2_MBUS_FMT_SBGGR8_1X8,
- 	V4L2_MBUS_FMT_SBGGR10_1X10,
--	V4L2_MBUS_FMT_GREY8_1X8,
-+	V4L2_MBUS_FMT_Y8_1X8,
- 	V4L2_MBUS_FMT_Y10_1X10,
- 	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
- 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
--- 
-1.7.2.2
+My system:
+Fedora 13 on a dual core intel platform.
+combination of DVB-C (TT-1501 and TT-2300), PVR-500 and DVB-S (dm1105 based
+and TT-1401) cards
+Used on New Zealand cable TV, Freeview TV and Sky TV
+
+my most recent fixes:
+Use the '-r' switch in szap, to set the front end up for TS recording.
+Use the '-l 11300' in szap to configure for the LNB
+Use diseqc.conf file and "setup>LNB>DiSeqc ON" in VDR to set the LNB
+settings
+
+
+
 
