@@ -1,45 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:40954 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752060Ab0JGRnT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Oct 2010 13:43:19 -0400
-Date: Thu, 7 Oct 2010 19:44:01 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Antonio Ospite <ospite@studenti.unina.it>
-Cc: linux-media@vger.kernel.org
-Subject: Re: gspca, audio and ov534: regression.
-Message-ID: <20101007194401.4a327081@tele>
-In-Reply-To: <20101006165337.9c60bb95.ospite@studenti.unina.it>
-References: <20101006123321.baade0a4.ospite@studenti.unina.it>
-	<20101006134855.43879d74@tele>
-	<20101006160441.6ee9583d.ospite@studenti.unina.it>
-	<20101006165337.9c60bb95.ospite@studenti.unina.it>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from einhorn.in-berlin.de ([192.109.42.8]:53582 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752290Ab0JMVh5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Oct 2010 17:37:57 -0400
+Date: Wed, 13 Oct 2010 23:37:39 +0200 (CEST)
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: [git pull] dvb/firewire update
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: linux-media@vger.kernel.org, linux1394-devel@lists.sourceforge.net
+In-Reply-To: <tkrat.bc9b826db6ce1b36@s5r6.in-berlin.de>
+Message-ID: <tkrat.272a442f2d4a2708@s5r6.in-berlin.de>
+References: <AANLkTin53SY_xaed_tRfWRPOFmc65GmGzXrEt15ZyriW@mail.gmail.com>
+ <4C90B4FB.2050401@s5r6.in-berlin.de>
+ <AANLkTikQLd1_thyADU8AMjOATFQoZaJfko3Sn-qtNgQR@mail.gmail.com>
+ <tkrat.85246f2f7084d010@s5r6.in-berlin.de>
+ <tkrat.bc9b826db6ce1b36@s5r6.in-berlin.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; CHARSET=us-ascii
+Content-Disposition: INLINE
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 6 Oct 2010 16:53:37 +0200
-Antonio Ospite <ospite@studenti.unina.it> wrote:
+Hi Mauro,
 
-> > PS3 Eye audio is working with linux-2.6.33.7 it is broken in
-> > linux-2.6.35.7 already, I'll try to further narrow down the
-> > interval. Ah, alsamixer doesn't work even when the device is OK in
-> > pulseaudio... 
-> 
-> I was wrong, the audio part works even in 2.6.36-rc6 but _only_ when
-> the webcam is plugged in from boot, could this have to do with the
-> order gspca and snd-usb-audio are loaded?
+please pull from the firedtv branch at
 
-Hi Antonio,
+    git://git.kernel.org/pub/scm/linux/kernel/git/ieee1394/linux1394-2.6.git firedtv
 
-If you still have a kernel 2.6.33, may you try my test version (tarball
-in my web page)? As it contain only the gspca stuff, this may tell if
-the problem is in gspca or elsewhere in the kernel.
+to receive the following update --- if you don't have it already in your
+patch queue.  It adds a long asked for feature to FireWire sat
+receivers.  Thanks.
 
-Best regards.
+Tommy Jonsson (1):
+      V4L/DVB: firedtv: support for PSK8 for S2 devices. To watch HD.
 
+ drivers/media/dvb/firewire/firedtv-avc.c |   30 +++++++++++++++++++++---
+ drivers/media/dvb/firewire/firedtv-fe.c  |   36 ++++++++++++++++++++++++++++-
+ 2 files changed, 60 insertions(+), 6 deletions(-)
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Stefan Richter
+-=====-==-=- =-=- -==-=
+http://arcgraph.de/sr/
+
