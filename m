@@ -1,320 +1,386 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:29173 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758053Ab0JTGl1 (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:29696 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753195Ab0JMIou (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Oct 2010 02:41:27 -0400
-Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LAK00D2TT8ZO4@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 20 Oct 2010 07:41:23 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LAK005HDT8YLV@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 20 Oct 2010 07:41:23 +0100 (BST)
-Date: Wed, 20 Oct 2010 08:41:10 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 4/7] v4l: videobuf2: add DMA coherent allocator
-In-reply-to: <1287556873-23179-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	Wed, 13 Oct 2010 04:44:50 -0400
+Date: Wed, 13 Oct 2010 10:44:46 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH 5/6 v5] V4L/DVB: s5p-fimc: Add camera capture support
+In-reply-to: <004101cb6a7f$bba53b70$32efb250$%park@samsung.com>
+To: Sewoon Park <seuni.park@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
 	kyungmin.park@samsung.com
-Message-id: <1287556873-23179-5-git-send-email-m.szyprowski@samsung.com>
+Message-id: <4CB5717E.7020004@samsung.com>
 MIME-version: 1.0
-Content-type: TEXT/PLAIN
+Content-type: text/plain; charset=UTF-8
 Content-transfer-encoding: 7BIT
-References: <1287556873-23179-1-git-send-email-m.szyprowski@samsung.com>
+References: <1286817993-21558-1-git-send-email-s.nawrocki@samsung.com>
+ <1286817993-21558-6-git-send-email-s.nawrocki@samsung.com>
+ <004101cb6a7f$bba53b70$32efb250$%park@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Pawel Osciak <p.osciak@samsung.com>
 
-Add an implementation of DMA coherent memory allocator and handling
-routines for videobuf2, implemented on top of dma_alloc_coherent() call.
 
-Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: Pawel Osciak <pawel@osciak.com>
----
- drivers/media/video/Kconfig                  |    5 +
- drivers/media/video/Makefile                 |    1 +
- drivers/media/video/videobuf2-dma-coherent.c |  208 ++++++++++++++++++++++++++
- include/media/videobuf2-dma-coherent.h       |   21 +++
- 4 files changed, 235 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/videobuf2-dma-coherent.c
- create mode 100644 include/media/videobuf2-dma-coherent.h
+On 10/13/2010 04:38 AM, Sewoon Park wrote:
+> Hi~ sylwester
+> 
+> On source code review, they seem to be a good shape.
+> I have two comments on this patch.
+> 
+>> s.nawrocki@samsung.com wrote:
+>>
+>> Add a video device driver per each FIMC entity to support
+>> the camera capture input mode. Video capture node is registered
+>> only if CCD sensor data is provided through driver's platfrom data
+>> and board setup code.
+>>
+>> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> Reviewed-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>> ---
+>>  drivers/media/video/s5p-fimc/Makefile       |    2 +-
+>>  drivers/media/video/s5p-fimc/fimc-capture.c |  819
+>> +++++++++++++++++++++++++++
+>>  drivers/media/video/s5p-fimc/fimc-core.c    |  563 +++++++++++++------
+>>  drivers/media/video/s5p-fimc/fimc-core.h    |  205 +++++++-
+>>  drivers/media/video/s5p-fimc/fimc-reg.c     |  173 +++++-
+>>  include/media/s3c_fimc.h                    |   60 ++
+>>  6 files changed, 1630 insertions(+), 192 deletions(-)
+>>  create mode 100644 drivers/media/video/s5p-fimc/fimc-capture.c
+>>  create mode 100644 include/media/s3c_fimc.h
+>>
+>> diff --git a/drivers/media/video/s5p-fimc/Makefile
+>> b/drivers/media/video/s5p-fimc/Makefile
+>> index 0d9d541..7ea1b14 100644
+>> --- a/drivers/media/video/s5p-fimc/Makefile
+>> +++ b/drivers/media/video/s5p-fimc/Makefile
+>> @@ -1,3 +1,3 @@
+>>
+>>  obj-$(CONFIG_VIDEO_SAMSUNG_S5P_FIMC) := s5p-fimc.o
+>> -s5p-fimc-y := fimc-core.o fimc-reg.o
+>> +s5p-fimc-y := fimc-core.o fimc-reg.o fimc-capture.o
+>> diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c
+>> b/drivers/media/video/s5p-fimc/fimc-capture.c
+>> new file mode 100644
+>> index 0000000..e8f13d3
+>> --- /dev/null
+>> +++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+>> @@ -0,0 +1,819 @@
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 83d49a7..2143112 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -55,6 +55,11 @@ config VIDEOBUF2_CORE
- config VIDEOBUF2_MEMOPS
- 	tristate
- 
-+config VIDEOBUF2_DMA_COHERENT
-+	select VIDEOBUF2_CORE
-+	select VIDEOBUF2_MEMOPS
-+	tristate
-+
- config VIDEOBUF2_VMALLOC
- 	select VIDEOBUF2_CORE
- 	select VIDEOBUF2_MEMOPS
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index 18f68fc..b3ae7d4 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -120,6 +120,7 @@ obj-$(CONFIG_VIDEO_BTCX)  += btcx-risc.o
- obj-$(CONFIG_VIDEOBUF2_CORE)		+= videobuf2-core.o
- obj-$(CONFIG_VIDEOBUF2_MEMOPS)		+= videobuf2-memops.o
- obj-$(CONFIG_VIDEOBUF2_VMALLOC)		+= videobuf2-vmalloc.o
-+obj-$(CONFIG_VIDEOBUF2_DMA_COHERENT)	+= videobuf2-dma_coherent.o
- 
- obj-$(CONFIG_V4L2_MEM2MEM_DEV) += v4l2-mem2mem.o
- 
-diff --git a/drivers/media/video/videobuf2-dma-coherent.c b/drivers/media/video/videobuf2-dma-coherent.c
-new file mode 100644
-index 0000000..761f366
---- /dev/null
-+++ b/drivers/media/video/videobuf2-dma-coherent.c
-@@ -0,0 +1,208 @@
-+/*
-+ * videobuf2-dma-coherent.c - DMA coherent memory allocator for videobuf2
-+ *
-+ * Copyright (C) 2010 Samsung Electronics
-+ *
-+ * Author: Pawel Osciak <p.osciak@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/dma-mapping.h>
-+
-+#include <media/videobuf2-core.h>
-+#include <media/videobuf2-memops.h>
-+
-+struct vb2_dc_conf {
-+	struct vb2_alloc_ctx	alloc_ctx;
-+	struct device		*dev;
-+};
-+
-+struct vb2_dc_buf {
-+	struct vb2_dc_conf	*conf;
-+	void			*vaddr;
-+	dma_addr_t		paddr;
-+	unsigned long		size;
-+	unsigned int		refcount;
-+	struct vm_area_struct	*vma;
-+};
-+
-+struct vb2_alloc_ctx *vb2_dma_coherent_init(struct device *dev)
-+{
-+	struct vb2_dc_conf *conf;
-+
-+	conf = kzalloc(sizeof *conf, GFP_KERNEL);
-+	if (!conf)
-+		return ERR_PTR(-ENOMEM);
-+
-+	conf->dev = dev;
-+
-+	return &conf->alloc_ctx;
-+}
-+EXPORT_SYMBOL_GPL(vb2_dma_coherent_init);
-+
-+void vb2_dma_coherent_cleanup(struct vb2_alloc_ctx *alloc_ctx)
-+{
-+	struct vb2_dc_conf *conf =
-+		container_of(alloc_ctx, struct vb2_dc_conf, alloc_ctx);
-+
-+	kfree(conf);
-+}
-+EXPORT_SYMBOL_GPL(vb2_dma_coherent_cleanup);
-+
-+static void *vb2_dma_coherent_alloc(const struct vb2_alloc_ctx *alloc_ctx,
-+					unsigned long size)
-+{
-+	struct vb2_dc_conf *conf =
-+		container_of(alloc_ctx, struct vb2_dc_conf, alloc_ctx);
-+	struct vb2_dc_buf *buf;
-+
-+	buf = kzalloc(sizeof *buf, GFP_KERNEL);
-+	if (!buf)
-+		return ERR_PTR(-ENOMEM);
-+
-+	buf->vaddr = dma_alloc_coherent(conf->dev, buf->size,
-+					&buf->paddr, GFP_KERNEL);
-+	if (!buf->vaddr) {
-+		dev_err(conf->dev, "dma_alloc_coherent of size %ld failed\n",
-+			buf->size);
-+		kfree(buf);
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	buf->conf = conf;
-+	buf->size = size;
-+
-+	return buf;
-+}
-+
-+static void vb2_dma_coherent_put(void *buf_priv)
-+{
-+	struct vb2_dc_buf *buf = buf_priv;
-+
-+	buf->refcount--;
-+
-+	if (0 == buf->refcount) {
-+		dma_free_coherent(buf->conf->dev, buf->size, buf->vaddr,
-+					buf->paddr);
-+		kfree(buf);
-+	}
-+}
-+
-+static unsigned long vb2_dma_coherent_paddr(void *buf_priv)
-+{
-+	struct vb2_dc_buf *buf = buf_priv;
-+
-+	return buf->paddr;
-+}
-+
-+static unsigned int vb2_dma_coherent_num_users(void *buf_priv)
-+{
-+	struct vb2_dc_buf *buf = buf_priv;
-+
-+	return buf->refcount;
-+}
-+
-+static void vb2_dma_coherent_vm_open(struct vm_area_struct *vma)
-+{
-+	struct vb2_dc_buf *buf = vma->vm_private_data;
-+
-+	printk(KERN_DEBUG "%s cma_priv: %p, refcount: %d, "
-+			"vma: %08lx-%08lx\n", __func__, buf, buf->refcount,
-+			vma->vm_start, vma->vm_end);
-+
-+	buf->refcount++;
-+}
-+
-+static void vb2_dma_coherent_vm_close(struct vm_area_struct *vma)
-+{
-+	struct vb2_dc_buf *buf = vma->vm_private_data;
-+
-+	printk(KERN_DEBUG "%s cma_priv: %p, refcount: %d, "
-+			"vma: %08lx-%08lx\n", __func__, buf, buf->refcount,
-+			vma->vm_start, vma->vm_end);
-+
-+	vb2_dma_coherent_put(buf);
-+}
-+
-+static const struct vm_operations_struct vb2_dma_coherent_vm_ops = {
-+	.open = vb2_dma_coherent_vm_open,
-+	.close = vb2_dma_coherent_vm_close,
-+};
-+
-+static int vb2_dma_coherent_mmap(void *buf_priv, struct vm_area_struct *vma)
-+{
-+	struct vb2_dc_buf *buf = buf_priv;
-+
-+	if (!buf) {
-+		printk(KERN_ERR "No memory to map\n");
-+		return -EINVAL;
-+	}
-+
-+	return vb2_mmap_pfn_range(vma, buf->paddr, buf->size,
-+					&vb2_dma_coherent_vm_ops, buf);
-+}
-+
-+static void *vb2_dma_coherent_get_userptr(unsigned long vaddr,
-+						unsigned long size)
-+{
-+	struct vb2_dc_buf *buf;
-+	unsigned long paddr = 0;
-+	int ret;
-+
-+	buf = kzalloc(sizeof *buf, GFP_KERNEL);
-+	if (!buf)
-+		return ERR_PTR(-ENOMEM);
-+
-+	buf->vma = vb2_get_userptr(vaddr);
-+	if (!buf->vma) {
-+		printk(KERN_ERR "Failed acquiring VMA for vaddr 0x%08lx\n",
-+				vaddr);
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+
-+	ret = vb2_contig_verify_userptr(buf->vma, vaddr, size, &paddr);
-+	if (ret) {
-+		vb2_put_userptr(buf->vma);
-+		goto done;
-+	}
-+
-+	buf->size = size;
-+	buf->paddr = paddr;
-+
-+	return buf;
-+
-+done:
-+	kfree(buf);
-+	return ERR_PTR(ret);
-+}
-+
-+static void vb2_dma_coherent_put_userptr(void *mem_priv)
-+{
-+	struct vb2_dc_buf *buf = mem_priv;
-+
-+	if (!buf)
-+		return;
-+
-+	vb2_put_userptr(buf->vma);
-+	kfree(buf);
-+}
-+
-+const struct vb2_mem_ops vb2_dma_coherent_ops = {
-+	.alloc		= vb2_dma_coherent_alloc,
-+	.put		= vb2_dma_coherent_put,
-+	.paddr		= vb2_dma_coherent_paddr,
-+	.mmap		= vb2_dma_coherent_mmap,
-+	.get_userptr	= vb2_dma_coherent_get_userptr,
-+	.put_userptr	= vb2_dma_coherent_put_userptr,
-+	.num_users	= vb2_dma_coherent_num_users,
-+};
-+
-+MODULE_DESCRIPTION("DMA-coherent memory handling routines for videobuf2");
-+MODULE_AUTHOR("Pawel Osciak");
-+MODULE_LICENSE("GPL");
-+
-diff --git a/include/media/videobuf2-dma-coherent.h b/include/media/videobuf2-dma-coherent.h
-new file mode 100644
-index 0000000..102b1a7
---- /dev/null
-+++ b/include/media/videobuf2-dma-coherent.h
-@@ -0,0 +1,21 @@
-+/*
-+ * videobuf2-dma-coherent.h - DMA coherent memory allocator for videobuf2
-+ *
-+ * Copyright (C) 2010 Samsung Electronics
-+ *
-+ * Author: Pawel Osciak <p.osciak@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation.
-+ */
-+
-+#ifndef _MEDIA_VIDEOBUF2_DMA_COHERENT_H
-+#define _MEDIA_VIDEOBUF2_DMA_COHERENT_H
-+
-+#include <media/videobuf2-core.h>
-+
-+void *vb2_dma_coherent_init(struct device *dev);
-+void vb2_dma_coherent_cleanup(struct vb2_alloc_ctx *alloc_ctx);
-+
-+#endif
+<snip>
+
+>> +
+>> +static int fimc_cap_reqbufs(struct file *file, void *priv,
+>> +			  struct v4l2_requestbuffers *reqbufs)
+>> +{
+>> +	struct fimc_ctx *ctx = priv;
+>> +	struct fimc_dev *fimc = ctx->fimc_dev;
+>> +	struct fimc_vid_cap *cap = &fimc->vid_cap;
+>> +	int ret;
+>> +
+>> +	if (fimc_capture_active(ctx->fimc_dev))
+>> +		return -EBUSY;
+>> +
+>> +	if (mutex_lock_interruptible(&fimc->lock))
+>> +		return -ERESTARTSYS;
+>> +
+>> +	ret = videobuf_reqbufs(&cap->vbq, reqbufs);
+> 
+> As you know, videobuf framework don't handle about reqbufs.count is zero.
+> But, a reqbufs.count value of zero frees all buffers in V4L2 API specification.
+> It is better to handle case by zero.
+
+It's true that the current videobuf is not freeing memory when number of
+buffers passed to REQBUFS is zero, which is the API requirement. I would like
+to avoid any workarounds in the driver for that, it's quite a complex issue
+and I am waiting for videobuf2 to get into kernel with introduction of the
+memory management related improvements.
+
+> 
+>> +	if (!ret)
+>> +		cap->reqbufs_count = reqbufs->count;
+>> +
+>> +	mutex_unlock(&fimc->lock);
+>> +	return ret;
+>> +}
+>> +
+>> +static int fimc_cap_querybuf(struct file *file, void *priv,
+>> +			   struct v4l2_buffer *buf)
+>> +{
+>> +	struct fimc_ctx *ctx = priv;
+>> +	struct fimc_vid_cap *cap = &ctx->fimc_dev->vid_cap;
+>> +
+>> +	if (fimc_capture_active(ctx->fimc_dev))
+>> +		return -EBUSY;
+>> +
+>> +	return videobuf_querybuf(&cap->vbq, buf);
+>> +}
+>> +
+
+<snip>
+
+>> diff --git a/drivers/media/video/s5p-fimc/fimc-core.c
+>> b/drivers/media/video/s5p-fimc/fimc-core.c
+>> index 85a7e72..064e7d5 100644
+>> --- a/drivers/media/video/s5p-fimc/fimc-core.c
+>> +++ b/drivers/media/video/s5p-fimc/fimc-core.c
+>> @@ -1,7 +1,7 @@
+>>  /*
+>>   * S5P camera interface (video postprocessor) driver
+>>   *
+>> - * Copyright (c) 2010 Samsung Electronics
+>> + * Copyright (c) 2010 Samsung Electronics Co., Ltd
+>>   *
+>>   * Sylwester Nawrocki, <s.nawrocki@samsung.com>
+>>   *
+>> @@ -38,85 +38,102 @@ static struct fimc_fmt fimc_formats[] = {
+>>  		.depth	= 16,
+>>  		.color	= S5P_FIMC_RGB565,
+>>  		.buff_cnt = 1,
+>> -		.planes_cnt = 1
+>> +		.planes_cnt = 1,
+>> +		.mbus_code = V4L2_MBUS_FMT_RGB565_2X8_BE,
+>> +		.flags = FMT_FLAGS_M2M,
+>>  	}, {
+>>  		.name	= "BGR666",
+>>  		.fourcc	= V4L2_PIX_FMT_BGR666,
+>>  		.depth	= 32,
+>>  		.color	= S5P_FIMC_RGB666,
+>>  		.buff_cnt = 1,
+>> -		.planes_cnt = 1
+>> +		.planes_cnt = 1,
+>> +		.flags = FMT_FLAGS_M2M,
+>>  	}, {
+>>  		.name = "XRGB-8-8-8-8, 24 bpp",
+>>  		.fourcc	= V4L2_PIX_FMT_RGB24,
+>>  		.depth = 32,
+>>  		.color	= S5P_FIMC_RGB888,
+>>  		.buff_cnt = 1,
+>> -		.planes_cnt = 1
+>> +		.planes_cnt = 1,
+>> +		.flags = FMT_FLAGS_M2M,
+>>  	}, {
+>>  		.name	= "YUV 4:2:2 packed, YCbYCr",
+>>  		.fourcc	= V4L2_PIX_FMT_YUYV,
+>>  		.depth	= 16,
+>>  		.color	= S5P_FIMC_YCBYCR422,
+>>  		.buff_cnt = 1,
+>> -		.planes_cnt = 1
+>> -		}, {
+>> +		.planes_cnt = 1,
+>> +		.mbus_code = V4L2_MBUS_FMT_YUYV8_2X8,
+>> +		.flags = FMT_FLAGS_M2M | FMT_FLAGS_CAM,
+>> +	}, {
+>>  		.name	= "YUV 4:2:2 packed, CbYCrY",
+>>  		.fourcc	= V4L2_PIX_FMT_UYVY,
+>>  		.depth	= 16,
+>>  		.color	= S5P_FIMC_CBYCRY422,
+>>  		.buff_cnt = 1,
+>> -		.planes_cnt = 1
+>> +		.planes_cnt = 1,
+>> +		.mbus_code = V4L2_MBUS_FMT_UYVY8_2X8,
+>> +		.flags = FMT_FLAGS_M2M | FMT_FLAGS_CAM,
+>>  	}, {
+>>  		.name	= "YUV 4:2:2 packed, CrYCbY",
+>>  		.fourcc	= V4L2_PIX_FMT_VYUY,
+>>  		.depth	= 16,
+>>  		.color	= S5P_FIMC_CRYCBY422,
+>>  		.buff_cnt = 1,
+>> -		.planes_cnt = 1
+>> +		.planes_cnt = 1,
+>> +		.mbus_code = V4L2_MBUS_FMT_VYUY8_2X8,
+>> +		.flags = FMT_FLAGS_M2M | FMT_FLAGS_CAM,
+>>  	}, {
+>>  		.name	= "YUV 4:2:2 packed, YCrYCb",
+>>  		.fourcc	= V4L2_PIX_FMT_YVYU,
+>>  		.depth	= 16,
+>>  		.color	= S5P_FIMC_YCRYCB422,
+>>  		.buff_cnt = 1,
+>> -		.planes_cnt = 1
+>> +		.planes_cnt = 1,
+>> +		.mbus_code = V4L2_MBUS_FMT_YVYU8_2X8,
+>> +		.flags = FMT_FLAGS_M2M | FMT_FLAGS_CAM,
+>>  	}, {
+>>  		.name	= "YUV 4:2:2 planar, Y/Cb/Cr",
+>>  		.fourcc	= V4L2_PIX_FMT_YUV422P,
+>>  		.depth	= 12,
+>>  		.color	= S5P_FIMC_YCBCR422,
+>>  		.buff_cnt = 1,
+>> -		.planes_cnt = 3
+>> +		.planes_cnt = 3,
+>> +		.flags = FMT_FLAGS_M2M,
+>>  	}, {
+>>  		.name	= "YUV 4:2:2 planar, Y/CbCr",
+>>  		.fourcc	= V4L2_PIX_FMT_NV16,
+>>  		.depth	= 16,
+>>  		.color	= S5P_FIMC_YCBCR422,
+>>  		.buff_cnt = 1,
+>> -		.planes_cnt = 2
+>> +		.planes_cnt = 2,
+>> +		.flags = FMT_FLAGS_M2M,
+>>  	}, {
+>>  		.name	= "YUV 4:2:2 planar, Y/CrCb",
+>>  		.fourcc	= V4L2_PIX_FMT_NV61,
+>>  		.depth	= 16,
+>>  		.color	= S5P_FIMC_RGB565,
+>>  		.buff_cnt = 1,
+>> -		.planes_cnt = 2
+>> +		.planes_cnt = 2,
+>> +		.flags = FMT_FLAGS_M2M,
+>>  	}, {
+>>  		.name	= "YUV 4:2:0 planar, YCbCr",
+>>  		.fourcc	= V4L2_PIX_FMT_YUV420,
+>>  		.depth	= 12,
+>>  		.color	= S5P_FIMC_YCBCR420,
+>>  		.buff_cnt = 1,
+>> -		.planes_cnt = 3
+>> +		.planes_cnt = 3,
+>> +		.flags = FMT_FLAGS_M2M,
+>>  	}, {
+>>  		.name	= "YUV 4:2:0 planar, Y/CbCr",
+>>  		.fourcc	= V4L2_PIX_FMT_NV12,
+>>  		.depth	= 12,
+>>  		.color	= S5P_FIMC_YCBCR420,
+>>  		.buff_cnt = 1,
+>> -		.planes_cnt = 2
+>> -	}
+>> +		.planes_cnt = 2,
+>> +		.flags = FMT_FLAGS_M2M,
+>> +	},
+>>  };
+> 
+> FIMC h/w also have WriteBack path for input.
+> WriteBack is a feature to write LCD frame buffer data into memory, 
+> for example TV OUT.
+> Your code(in fimc-core.h) already have fimc path for this mode.
+> In case WriteBack input mode, FIMC must have V4L2_PIX_FMT_YUV444 format.
+
+Right, it seems like I missed that color format. But as you likely know
+the writeback feature needs some control interface at the framebuffer driver as
+well. So I would like to add YUV444 format together with that additional
+(v4l2-subdev) interface at the framebuffer driver.
+This would be a good use case for the new Media Controller framework which is
+not yet a part of the kernel and that is also a reason why I am holding on
+with introduction of the writeback support.
+
+Thanks,
+Sylwester
+
+> 
+>>
+>>  static struct v4l2_queryctrl fimc_ctrls[] = {
+>> @@ -156,7 +173,7 @@ static struct v4l2_queryctrl *get_ctrl(int id)
+>>  	return NULL;
+>>  }
+>>
+>> -static int fimc_check_scaler_ratio(struct v4l2_rect *r, struct fimc_frame
+>> *f)
+>> +int fimc_check_scaler_ratio(struct v4l2_rect *r, struct fimc_frame *f)
+>>  {
+>>  	if (r->width > f->width) {
+>>  		if (f->width > (r->width * SCALER_MAX_HRATIO))
+>> @@ -199,7 +216,7 @@ static int fimc_get_scaler_factor(u32 src, u32 tar,
+>> u32 *ratio, u32 *shift)
+>>  	return 0;
+>>  }
+>>
+>> -static int fimc_set_scaler_info(struct fimc_ctx *ctx)
+>> +int fimc_set_scaler_info(struct fimc_ctx *ctx)
+>>  {
+>>  	struct fimc_scaler *sc = &ctx->scaler;
+>>  	struct fimc_frame *s_frame = &ctx->s_frame;
+>> @@ -259,6 +276,51 @@ static int fimc_set_scaler_info(struct fimc_ctx *ctx)
+>>  	return 0;
+>>  }
+>>
+
+<snip>
+
+>> diff --git a/include/media/s3c_fimc.h b/include/media/s3c_fimc.h
+>> new file mode 100644
+>> index 0000000..ca1b673
+>> --- /dev/null
+>> +++ b/include/media/s3c_fimc.h
+>> @@ -0,0 +1,60 @@
+>> +/*
+>> + * Samsung S5P SoC camera interface driver header
+>> + *
+>> + * Copyright (c) 2010 Samsung Electronics Co., Ltd
+>> + * Author: Sylwester Nawrocki, <s.nawrocki@samsung.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + */
+>> +
+>> +#ifndef S3C_FIMC_H_
+>> +#define S3C_FIMC_H_
+>> +
+>> +enum cam_bus_type {
+>> +	FIMC_ITU_601 = 1,
+>> +	FIMC_ITU_656,
+>> +	FIMC_MIPI_CSI2,
+>> +	FIMC_LCD_WB, /* FIFO link from LCD mixer */
+>> +};
+>> +
+>> +#define FIMC_CLK_INV_PCLK	(1 << 0)
+>> +#define FIMC_CLK_INV_VSYNC	(1 << 1)
+>> +#define FIMC_CLK_INV_HREF	(1 << 2)
+>> +#define FIMC_CLK_INV_HSYNC	(1 << 3)
+>> +
+>> +struct i2c_board_info;
+>> +
+>> +/**
+>> + * struct s3c_fimc_isp_info - image sensor information required for host
+>> + *			      interace configuration.
+>> + *
+>> + * @board_info: pointer to I2C subdevice's board info
+>> + * @bus_type: determines bus type, MIPI, ITU-R BT.601 etc.
+>> + * @i2c_bus_num: i2c control bus id the sensor is attached to
+>> + * @mux_id: FIMC camera interface multiplexer index (separate for MIPI
+>> and ITU)
+>> + * @bus_width: camera data bus width in bits
+>> + * @flags: flags defining bus signals polarity inversion (High by default)
+>> + */
+>> +struct s3c_fimc_isp_info {
+>> +	struct i2c_board_info *board_info;
+>> +	enum cam_bus_type bus_type;
+>> +	u16 i2c_bus_num;
+>> +	u16 mux_id;
+>> +	u16 bus_width;
+>> +	u16 flags;
+>> +};
+>> +
+>> +
+>> +#define FIMC_MAX_CAMIF_CLIENTS	2
+>> +
+>> +/**
+>> + * struct s3c_platform_fimc - camera host interface platform data
+>> + *
+>> + * @isp_info: properties of camera sensor required for host interface
+>> setup
+>> + */
+>> +struct s3c_platform_fimc {
+>> +	struct s3c_fimc_isp_info *isp_info[FIMC_MAX_CAMIF_CLIENTS];
+>> +};
+>> +#endif /* S3C_FIMC_H_ */
+>> --
+> 
+> Best regards,
+> Seuni.
+> --
+> Sewoon Park <seuni.park@samsung.com>, Engineer, SW Solution 
+> Development Team, Samsung Electronics Co., Ltd.
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
 -- 
-1.7.1.569.g6f426
-
+Sylwester Nawrocki
+Linux Platform Group
+Samsung Poland R&D Center
