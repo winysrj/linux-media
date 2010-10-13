@@ -1,34 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from gateway03.websitewelcome.com ([67.18.34.23]:46669 "HELO
-	gateway03.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754837Ab0JVHfl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Oct 2010 03:35:41 -0400
-Received: from [74.125.83.46] (port=48153 helo=mail-gw0-f46.google.com)
-	by gator1121.hostgator.com with esmtpsa (TLSv1:RC4-MD5:128)
-	(Exim 4.69)
-	(envelope-from <demiurg@femtolinux.com>)
-	id 1P9C3g-0003V2-EY
-	for linux-media@vger.kernel.org; Fri, 22 Oct 2010 02:29:00 -0500
-Received: by gwj21 with SMTP id 21so813832gwj.19
-        for <linux-media@vger.kernel.org>; Fri, 22 Oct 2010 00:29:00 -0700 (PDT)
+Received: from mail.issp.bas.bg ([195.96.236.10]:54217 "EHLO mail.issp.bas.bg"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750791Ab0JMQnd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Oct 2010 12:43:33 -0400
+From: Marin Mitov <mitov@issp.bas.bg>
+To: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: Re: [RFC][PATCH] add dma_reserve_coherent_memory()/dma_free_reserved_memory() API
+Date: Wed, 13 Oct 2010 19:42:56 +0300
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	g.liakhovetski@gmx.de
+References: <201008201113.46036.mitov@issp.bas.bg> <20101010230323B.fujita.tomonori@lab.ntt.co.jp> <20101013170457.c5c5d2e1.kamezawa.hiroyu@jp.fujitsu.com>
+In-Reply-To: <20101013170457.c5c5d2e1.kamezawa.hiroyu@jp.fujitsu.com>
 MIME-Version: 1.0
-Date: Fri, 22 Oct 2010 09:29:00 +0200
-Message-ID: <AANLkTimVc830OkXo44bnqFpWGw_EnUWBPGYd8KjxDTdu@mail.gmail.com>
-Subject: Wintv-HVR-1120 incorrectly detected
-From: Sasha Sirotkin <demiurg@femtolinux.com>
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201010131942.57639.mitov@issp.bas.bg>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-There are many reports about Wintv-HVR-1120 card not working
-correctly. There are many errors related to dvb-fe-tda10048-1.0.fw
-firmware.
+On Wednesday, October 13, 2010 11:04:57 am KAMEZAWA Hiroyuki wrote:
+> On Sun, 10 Oct 2010 23:08:22 +0900
+> FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp> wrote:
+> 
+> > On Fri, 20 Aug 2010 14:50:12 +0300
+> > Marin Mitov <mitov@issp.bas.bg> wrote:
+> > 
+> > > On Friday, August 20, 2010 11:35:06 am FUJITA Tomonori wrote:
+> > > > On Fri, 20 Aug 2010 11:13:45 +0300
+> > > > Marin Mitov <mitov@issp.bas.bg> wrote:
+> > > > 
+> > > > > > > This tric is already used in drivers/staging/dt3155v4l.c
+> > > > > > > dt3155_alloc_coherent()/dt3155_free_coherent()
+> > > > > > > 
+> > > > > > > Here proposed for general use by popular demand from video4linux folks.
+> > > > > > > Helps for videobuf-dma-contig framework.
+> > > > > > 
+> > > > > > What you guys exactly want to do? If you just want to pre-allocate
+> > > > > > coherent memory for latter usage,
+> > > > > 
+> > > > > Yes, just to preallocate not coherent, but rather contiguous memory for latter usage.
+> > > > > We use coherent memory because it turns out to be contiguous.
+> > > > 
+> > > > Hmm, you don't care about coherency? You just need contiguous memory?
+> > > 
+> > > Yes. We just need contiguous memory. Coherency is important as far as when dma
+> > > transfer finishes user land is able to see the new data. Could be done by something like
+> > > dma_{,un}map_single()
+> > 
+> > Anyone is working on this?
+> > 
+> > KAMEZAWA posted a patch to improve the generic page allocator to
+> > allocate physically contiguous memory. He said that he can push it
+> > into mainline.
+> > 
+> I said I do make an effort ;)
+> New one here.
+> 
+> http://lkml.org/lkml/2010/10/12/421
 
-Some people noticed that in the earlier versions this same card was
-detected differently and the driver was loading a different firmware -
-dvb-fe-tda10046.fw.
+I like the patch. The possibility to allocate a contiguous chunk of memory
+(or few of them) is what I need. The next step will be to get a dma handle 
+(for dma transfers to/from) and then mmap them to user space.
 
-Is there anybody willing to take a look at this issue ? I can help
-with debugging.
+Thanks.
+
+Marin Mitov
+
+> 
+> Thanks,
+> -Kame
+> 
