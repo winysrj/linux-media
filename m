@@ -1,141 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.samsung.com ([203.254.224.34]:27160 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753745Ab0JUK7I convert rfc822-to-8bit (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:29354 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753621Ab0JMLJ3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Oct 2010 06:59:08 -0400
-Date: Thu, 21 Oct 2010 19:59:25 +0900
-From: Jaeryul Oh <jaeryul.oh@samsung.com>
-Subject: RE: [PATCH 3/4] MFC: Add MFC 5.1 V4L2 driver
-In-reply-to: <1286968160-10629-4-git-send-email-k.debski@samsung.com>
-To: 'Kamil Debski' <k.debski@samsung.com>, linux-media@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	kyungmin.park@samsung.com, kgene.kim@samsung.com
-Reply-to: jaeryul.oh@samsung.com
-Message-id: <008101cb710f$08af85c0$1a0e9140$%oh@samsung.com>
+	Wed, 13 Oct 2010 07:09:29 -0400
 MIME-version: 1.0
-Content-type: text/plain; charset=ks_c_5601-1987
-Content-language: ko
-Content-transfer-encoding: 8BIT
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Wed, 13 Oct 2010 13:09:20 +0200
+From: Kamil Debski <k.debski@samsung.com>
+Subject: [PATCH 4/4] s5pc110: Enable MFC 5.1 on Goni
+In-reply-to: <1286968160-10629-1-git-send-email-k.debski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, k.debski@samsung.com,
+	jaeryul.oh@samsung.com, kgene.kim@samsung.com
+Message-id: <1286968160-10629-5-git-send-email-k.debski@samsung.com>
 References: <1286968160-10629-1-git-send-email-k.debski@samsung.com>
- <1286968160-10629-4-git-send-email-k.debski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-I have some opinion about the usage of wait_event_interruptible_timeout()
+Multi Format Codec 5.1 is a module available on S5PC110 and S5PC210
+Samsung SoCs. Hardware is capable of handling a range of video codecs.
 
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ arch/arm/mach-s5pv210/Kconfig     |    1 +
+ arch/arm/mach-s5pv210/mach-goni.c |    1 +
+ 2 files changed, 2 insertions(+), 0 deletions(-)
 
-k.debski@samsung.com wrote:
-[snip]
-
-> +
-> diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_intr.c
-> b/drivers/media/video/s5p-mfc/s5p_mfc_intr.c
-> new file mode 100644
-> index 0000000..543f3fb
-> --- /dev/null
-> +++ b/drivers/media/video/s5p-mfc/s5p_mfc_intr.c
-> @@ -0,0 +1,77 @@
-> +/*
-> + * drivers/media/video/samsung/mfc5/s5p_mfc_intr.c
-> + *
-> + * C file for Samsung MFC (Multi Function Codec - FIMV) driver
-> + * This file contains functions used to wait for command completion.
-> + *
-> + * Kamil Debski, Copyright (c) 2010 Samsung Electronics
-> + * http://www.samsung.com/
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/delay.h>
-> +#include <linux/errno.h>
-> +#include <linux/wait.h>
-> +#include <linux/sched.h>
-> +#include <linux/io.h>
-> +#include "regs-mfc5.h"
-> +#include "s5p_mfc_intr.h"
-> +#include "s5p_mfc_logmsg.h"
-> +#include "s5p_mfc_common.h"
-> +
-> +int s5p_mfc_wait_for_done_dev(struct s5p_mfc_dev *dev, int command)
-> +{
-> +	if (wait_event_interruptible_timeout(dev->queue,
-> +		(dev->int_cond && (dev->int_type == command
-> +		|| dev->int_type == S5P_FIMV_R2H_CMD_DECODE_ERR_RET)),
-> +		msecs_to_jiffies(MFC_INT_TIMEOUT)) == 0) {
-> +		mfc_err("Interrupt (%d dev) timed out.\n", dev->int_type);
-> +		return 1;
-> +	}
-> +	mfc_debug("Finished waiting (dev->queue, %d).\n", dev->int_type);
-> +	if (dev->int_type == S5P_FIMV_R2H_CMD_ERROR_RET)
-> +		return 1;
-> +	return 0;
-> +}
-
-
-You used wait_event_interruptible_timeout() in the driver, but this
-function is 
-considered not only int. by MFC but also int. by some signal. I'm wondering
-whether we have to consider interrupt by signal in the middle of hw
-operation.
-and also I cannot see some operation(handler) in case of wake-up by signal.
-So, why don¡¯t you remove the interruptible function or add some operation
-in case of 
-wake-up by signal. (refer to the other driver in the kernel)
-
-> +
-> +void s5p_mfc_clean_dev_int_flags(struct s5p_mfc_dev *dev)
-> +{
-> +	dev->int_cond = 0;
-> +	dev->int_type = 0;
-> +	dev->int_err = 0;
-> +}
-> +
-> +int s5p_mfc_wait_for_done_ctx(struct s5p_mfc_ctx *ctx,
-> +				    int command, int interrupt)
-> +{
-> +	int ret;
-> +	if (interrupt) {
-> +		ret = wait_event_interruptible_timeout(ctx->queue,
-> +				(ctx->int_cond && (ctx->int_type == command
-> +			|| ctx->int_type ==
-S5P_FIMV_R2H_CMD_DECODE_ERR_RET)),
-> +					msecs_to_jiffies(MFC_INT_TIMEOUT));
-> +	} else {
-> +		ret = wait_event_timeout(ctx->queue,
-> +				(ctx->int_cond && (ctx->int_type == command
-> +			|| ctx->int_type ==
-S5P_FIMV_R2H_CMD_DECODE_ERR_RET)),
-> +					msecs_to_jiffies(MFC_INT_TIMEOUT));
-> +	}
-> +	if (ret == 0) {
-> +		mfc_err("Interrupt (%d ctx) timed out.\n", ctx->int_type);
-> +		return 1;
-> +	}
-> +	mfc_debug("Finished waiting (ctx->queue, %d).\n", ctx->int_type);
-> +	if (ctx->int_type == S5P_FIMV_R2H_CMD_ERROR_RET)
-> +		return 1;
-> +	return 0;
-> +}
-> +
-> +void s5p_mfc_clean_ctx_int_flags(struct s5p_mfc_ctx *ctx)
-> +{
-> +	ctx->int_cond = 0;
-> +	ctx->int_type = 0;
-> +	ctx->int_err = 0;
-> +}
-
-[snip]
-
-> --
-> 1.6.3.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-s5pv210/Kconfig b/arch/arm/mach-s5pv210/Kconfig
+index 862f239..b5e3a39 100644
+--- a/arch/arm/mach-s5pv210/Kconfig
++++ b/arch/arm/mach-s5pv210/Kconfig
+@@ -85,6 +85,7 @@ config MACH_GONI
+ 	select S3C_DEV_I2C1
+ 	select S3C_DEV_I2C2
+ 	select S3C_DEV_USB_HSOTG
++	select S5P_DEV_MFC
+ 	select S5P_DEV_ONENAND
+ 	select SAMSUNG_DEV_KEYPAD
+ 	select S5PV210_SETUP_FB_24BPP
+diff --git a/arch/arm/mach-s5pv210/mach-goni.c b/arch/arm/mach-s5pv210/mach-goni.c
+index 3602d16..cc5cdad 100644
+--- a/arch/arm/mach-s5pv210/mach-goni.c
++++ b/arch/arm/mach-s5pv210/mach-goni.c
+@@ -648,6 +648,7 @@ static struct platform_device *goni_devices[] __initdata = {
+ 	&goni_i2c_gpio_pmic,
+ 	&mmc2_fixed_voltage,
+ 	&goni_device_gpiokeys,
++	&s5p_device_mfc5,
+ 	&s5p_device_fimc0,
+ 	&s5p_device_fimc1,
+ 	&s5p_device_fimc2,
+-- 
+1.6.3.3
 
