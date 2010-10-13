@@ -1,22 +1,22 @@
 Return-path: <mchehab@pedra>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <ricksjunk@charter.net>) id 1P8Q1m-0008FL-O8
-	for linux-dvb@linuxtv.org; Wed, 20 Oct 2010 06:11:51 +0200
-Received: from mta31.charter.net ([216.33.127.82])
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-a) with esmtp
+	(envelope-from <linuxtv@nzbaxters.com>) id 1P65nb-0000mx-40
+	for linux-dvb@linuxtv.org; Wed, 13 Oct 2010 20:11:35 +0200
+Received: from auth-1.ukservers.net ([217.10.138.154])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-d) with esmtp
 	for <linux-dvb@linuxtv.org>
-	id 1P8Q1j-0004Dv-C8; Wed, 20 Oct 2010 06:11:50 +0200
-Received: from imp10 ([10.20.200.15]) by mta31.charter.net
-	(InterMail vM.7.09.02.04 201-2219-117-106-20090629) with ESMTP
-	id <20101020041145.VMLV4190.mta31.charter.net@imp10>
-	for <linux-dvb@linuxtv.org>; Wed, 20 Oct 2010 00:11:45 -0400
-Message-ID: <4CBE6BF8.2000607@charter.net>
-Date: Tue, 19 Oct 2010 23:11:36 -0500
-From: RickCharter <ricksjunk@charter.net>
+	id 1P65nY-000523-0T; Wed, 13 Oct 2010 20:11:32 +0200
+Received: from wlgl04017 (203-97-171-185.cable.telstraclear.net
+	[203.97.171.185])
+	by auth-1.ukservers.net (Postfix smtp) with ESMTPA id C7E8B358F6B
+	for <linux-dvb@linuxtv.org>; Wed, 13 Oct 2010 19:11:30 +0100 (BST)
+Message-ID: <03343A8259204982822E355D4FA87F72@telstraclear.tclad>
+From: "Simon Baxter" <linuxtv@nzbaxters.com>
+To: <linux-dvb@linuxtv.org>
+Date: Thu, 14 Oct 2010 07:11:26 +1300
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] kworld atsc120 tuner problems....
+Subject: Re: [linux-dvb] dm1105 scan but won't tune? [RESOLVED]
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -31,30 +31,76 @@ Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 Sender: <mchehab@pedra>
 List-ID: <linux-dvb@linuxtv.org>
 
-  Starting with the 2.6.35 kernels, my KWorld ATSC120 tuner will not 
-lock on to any channels.  Everything works fine up to 2.6.34.7, but will 
-not work with the newer kernels.  This card uses CX88-dvb, s5h1409, and 
-xc2028/3028 modules, and all modules load without any errors. Firmware 
-loads properly. In my /var/log/messages files, I get:
+> OK, progress (idiot error?)
+>
+> My problem was OptusB1 requires a 45 degree skew on the LNB on the dish
+> itself.
+>
+> So now I can do an szap as follows:
+> TV3:12456:h:0:22500:512:650:1920
+>
+> ./szap -l 11300 -c channels-conf/dvb-s/OptusD1E160 TV3
+> reading channels from file 'channels-conf/dvb-s/OptusD1E160'
+> zapping to 1 'TV3':
+> sat 0, frequency = 12456 MHz H, symbolrate 22500000, vpid = 0x0200, apid =
+> 0x028a sid = 0x0780
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> status 1f | signal cd82 | snr be5c | ber 0000ff00 | unc fffffffe |
+> FE_HAS_LOCK
+> status 1f | signal cd07 | snr be9e | ber 00000000 | unc fffffffe |
+> FE_HAS_LOCK
+> status 1f | signal cd07 | snr be4a | ber 00000000 | unc fffffffe |
+> FE_HAS_LOCK
+>
+>
+> New problem though - I can now no longer scan with the LNB skewed!!
+> S 12456000 V 22500000 AUTO
+> S 12456000 H 22500000 AUTO
+>
+> ./scan dvb-s/OptusB1-NZ -l 11300
+> scanning dvb-s/OptusB1-NZ
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> initial transponder 12456000 V 22500000 9
+> initial transponder 12456000 H 22500000 9
+>>>> tune to: 12456:v:0:22500
+> DVB-S IF freq is 1156000
+> WARNING: >>> tuning failed!!!
+>>>> tune to: 12456:v:0:22500 (tuning failed)
+> DVB-S IF freq is 1156000
+> WARNING: >>> tuning failed!!!
+>>>> tune to: 12456:h:0:22500
+> DVB-S IF freq is 1156000
+> WARNING: >>> tuning failed!!!
+>>>> tune to: 12456:h:0:22500 (tuning failed)
+> DVB-S IF freq is 1156000
+> WARNING: >>> tuning failed!!!
+> ERROR: initial tuning failed
+> dumping lists (0 services)
+> Done.
+>
+> Any ideas?
 
-Oct 19 22:46:03 slackware kernel: cx88[0]: Calling XC2028/3028 callback
-Oct 19 22:46:31 slackware last message repeated 25 times
-Oct 19 22:46:33 slackware kernel: cx88[0]: Calling XC2028/3028 callback
-Oct 19 22:47:04 slackware last message repeated 28 times
-Oct 19 22:48:05 slackware last message repeated 55 times
-Oct 19 22:49:03 slackware last message repeated 39 times
-Oct 19 22:54:58 slackware kernel: cx88[0]: Calling XC2028/3028 callback
-Oct 19 22:55:59 slackware last message repeated 48 times
-Oct 19 22:56:02 slackware last message repeated 3 times
+Things to note when you install your own satellite dish and card:
+1) Make sure you understand the LNB requirements for your satellite.  I
+needed to skew mine on the dish by 45 degrees - wasted a lot of time getting
+odd results from a vertically mounted LNB
+2) Understand your LNB specs.  Mine had a 11300Mhz LSOF, which needed
+allowance for when szapping, scanning and in VDR
 
-Tried to tune a channel in Kaffeine, get: kaffeine(2015) 
-DvbDevice::frontendEvent: tuning failed
+My system:
+Fedora 13 on a dual core intel platform.
+combination of DVB-C (TT-1501 and TT-2300), PVR-500 and DVB-S (dm1105 based
+and TT-1401) cards
+Used on New Zealand cable TV, Freeview TV and Sky TV
 
-Xine and mplayer freeze trying to channel lock, Mythtv cannot lock on 
-any channel.
+my most recent fixes:
+Use the '-r' switch in szap, to set the front end up for TS recording.
+Use the '-l 11300' in szap to configure for the LNB
+Use diseqc.conf file and "setup>LNB>DiSeqc ON" in VDR to set the LNB
+settings
 
-Tried using a rc7 of the 2.36 kernel, get same problem... nothing after 
-2.6.34.7 seems to work!
+
+
 
 _______________________________________________
 linux-dvb users mailing list
