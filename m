@@ -1,42 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:54875 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752379Ab0JPRW6 convert rfc822-to-8bit (ORCPT
+Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:57319 "EHLO
+	fgwmail7.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752943Ab0JMIKV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Oct 2010 13:22:58 -0400
-Received: from tele (unknown [82.245.201.222])
-	by smtp5-g21.free.fr (Postfix) with ESMTP id A5F31D481A5
-	for <linux-media@vger.kernel.org>; Sat, 16 Oct 2010 19:22:52 +0200 (CEST)
-Date: Sat, 16 Oct 2010 19:23:51 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 2.6.37] gspca for_2.6.37
-Message-ID: <20101016192351.3c44a374@tele>
+	Wed, 13 Oct 2010 04:10:21 -0400
+Date: Wed, 13 Oct 2010 17:04:57 +0900
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: mitov@issp.bas.bg, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, g.liakhovetski@gmx.de
+Subject: Re: [RFC][PATCH] add
+ dma_reserve_coherent_memory()/dma_free_reserved_memory() API
+Message-Id: <20101013170457.c5c5d2e1.kamezawa.hiroyu@jp.fujitsu.com>
+In-Reply-To: <20101010230323B.fujita.tomonori@lab.ntt.co.jp>
+References: <201008201113.46036.mitov@issp.bas.bg>
+	<20100820173349E.fujita.tomonori@lab.ntt.co.jp>
+	<201008201450.12585.mitov@issp.bas.bg>
+	<20101010230323B.fujita.tomonori@lab.ntt.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The following changes since commit
-e749edc7e6967f8f92d2c0251c8a3a96524ec327:
+On Sun, 10 Oct 2010 23:08:22 +0900
+FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp> wrote:
 
-  V4L/DVB: IR: ene_ir: few bugfixes (2010-10-16 00:30:12 -0300)
+> On Fri, 20 Aug 2010 14:50:12 +0300
+> Marin Mitov <mitov@issp.bas.bg> wrote:
+> 
+> > On Friday, August 20, 2010 11:35:06 am FUJITA Tomonori wrote:
+> > > On Fri, 20 Aug 2010 11:13:45 +0300
+> > > Marin Mitov <mitov@issp.bas.bg> wrote:
+> > > 
+> > > > > > This tric is already used in drivers/staging/dt3155v4l.c
+> > > > > > dt3155_alloc_coherent()/dt3155_free_coherent()
+> > > > > > 
+> > > > > > Here proposed for general use by popular demand from video4linux folks.
+> > > > > > Helps for videobuf-dma-contig framework.
+> > > > > 
+> > > > > What you guys exactly want to do? If you just want to pre-allocate
+> > > > > coherent memory for latter usage,
+> > > > 
+> > > > Yes, just to preallocate not coherent, but rather contiguous memory for latter usage.
+> > > > We use coherent memory because it turns out to be contiguous.
+> > > 
+> > > Hmm, you don't care about coherency? You just need contiguous memory?
+> > 
+> > Yes. We just need contiguous memory. Coherency is important as far as when dma
+> > transfer finishes user land is able to see the new data. Could be done by something like
+> > dma_{,un}map_single()
+> 
+> Anyone is working on this?
+> 
+> KAMEZAWA posted a patch to improve the generic page allocator to
+> allocate physically contiguous memory. He said that he can push it
+> into mainline.
+> 
+I said I do make an effort ;)
+New one here.
 
-are available in the git repository at:
-  git://linuxtv.org/jfrancois/gspca.git for_2.6.37
+http://lkml.org/lkml/2010/10/12/421
 
-Jean-François Moine (5):
-      gspca - main: Fix a regression with the PS3 Eye webcam
-      gspca - main: Have discontinuous sequence numbers when frames are lost
-      gspca - mars: Use the new video control mechanism.
-      gspca - mars: Propagate USB errors to higher level
-      gspca - mars: Add illuminator controls
+Thanks,
+-Kame
 
- drivers/media/video/gspca/gspca.c |    7 +-
- drivers/media/video/gspca/mars.c  |  316 +++++++++++++++++++------------------
- 2 files changed, 166 insertions(+), 157 deletions(-)
-
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
