@@ -1,45 +1,39 @@
 Return-path: <mchehab@pedra>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:53582 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752290Ab0JMVh5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Oct 2010 17:37:57 -0400
-Date: Wed, 13 Oct 2010 23:37:39 +0200 (CEST)
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Subject: [git pull] dvb/firewire update
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: linux-media@vger.kernel.org, linux1394-devel@lists.sourceforge.net
-In-Reply-To: <tkrat.bc9b826db6ce1b36@s5r6.in-berlin.de>
-Message-ID: <tkrat.272a442f2d4a2708@s5r6.in-berlin.de>
-References: <AANLkTin53SY_xaed_tRfWRPOFmc65GmGzXrEt15ZyriW@mail.gmail.com>
- <4C90B4FB.2050401@s5r6.in-berlin.de>
- <AANLkTikQLd1_thyADU8AMjOATFQoZaJfko3Sn-qtNgQR@mail.gmail.com>
- <tkrat.85246f2f7084d010@s5r6.in-berlin.de>
- <tkrat.bc9b826db6ce1b36@s5r6.in-berlin.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:56885 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753070Ab0JMTKp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Oct 2010 15:10:45 -0400
+Message-ID: <4CB60433.2010105@iki.fi>
+Date: Wed, 13 Oct 2010 22:10:43 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=us-ascii
-Content-Disposition: INLINE
+To: tvbox <tvboxspy@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Support or LME2510(C) DM04/QQBOX USB DVB-S BOXES.
+References: <1283459370.3368.23.camel@canaries-desktop>
+In-Reply-To: <1283459370.3368.23.camel@canaries-desktop>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+On 09/02/2010 11:29 PM, tvbox wrote:
+> DM04/QQBOX DVB-S USB BOX with LME2510C+SHARP:BS2F7HZ7395 or LME2510+LGTDQT-P001F tuner.
 
-please pull from the firedtv branch at
+> +config DVB_USB_LME2510
+> +	tristate "LME DM04/QQBOX DVB-S USB2.0 support"
+> +	depends on DVB_USB
+> +	select DVB_TDA10086 if !DVB_FE_CUSTOMISE
+> +	select DVB_TDA826X if !DVB_FE_CUSTOMISE
+> +	select DVB_STV0288 if !DVB_FE_CUSTOMISE
+> +	select DVB_IX2505V if !DVB_FE_CUSTOMISE
+> +	select IR_CORE
+> +	help
+> +	  Say Y here to support the LME DM04/QQBOX DVB-S USB2.0 .
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/ieee1394/linux1394-2.6.git firedtv
+Just for curious, is IR_CORE and DVB_USB both needed? DVB_USB also 
+depends on IR_CORE ? This was only DVB-USB driver which does that.
 
-to receive the following update --- if you don't have it already in your
-patch queue.  It adds a long asked for feature to FireWire sat
-receivers.  Thanks.
-
-Tommy Jonsson (1):
-      V4L/DVB: firedtv: support for PSK8 for S2 devices. To watch HD.
-
- drivers/media/dvb/firewire/firedtv-avc.c |   30 +++++++++++++++++++++---
- drivers/media/dvb/firewire/firedtv-fe.c  |   36 ++++++++++++++++++++++++++++-
- 2 files changed, 60 insertions(+), 6 deletions(-)
+Antti
 -- 
-Stefan Richter
--=====-==-=- =-=- -==-=
-http://arcgraph.de/sr/
-
+http://palosaari.fi/
