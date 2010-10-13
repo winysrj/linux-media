@@ -1,127 +1,89 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:43475 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750875Ab0JUUG1 convert rfc822-to-8bit (ORCPT
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:44371 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750818Ab0JMAMT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Oct 2010 16:06:27 -0400
-Received: by qwk3 with SMTP id 3so30197qwk.19
-        for <linux-media@vger.kernel.org>; Thu, 21 Oct 2010 13:06:26 -0700 (PDT)
-Subject: Re: [PATCH 4/4] [media] mceusb: Fix parser for Polaris
-Mime-Version: 1.0 (Apple Message framework v1081)
-Content-Type: text/plain; charset=us-ascii
-From: Jarod Wilson <jarod@wilsonet.com>
-In-Reply-To: <20101021120748.47828273@pedra>
-Date: Thu, 21 Oct 2010 16:06:40 -0400
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <21DE3D7F-2805-4A11-AE29-9713FA58F66D@wilsonet.com>
-References: <cover.1287669886.git.mchehab@redhat.com> <20101021120748.47828273@pedra>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
+	Tue, 12 Oct 2010 20:12:19 -0400
+Received: by ewy20 with SMTP id 20so1702446ewy.19
+        for <linux-media@vger.kernel.org>; Tue, 12 Oct 2010 17:12:18 -0700 (PDT)
+Date: Wed, 13 Oct 2010 10:13:02 -0400
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: Stefan Ringel <stefan.ringel@arcor.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Felipe Sanches <juca@members.fsf.org>,
+	Bee Hock Goh <beehock@gmail.com>,
+	Luis Henrique Fagundes <lhfagundes@hacklab.com.br>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC PATCH] Audio standards on tm6000
+Message-ID: <20101013101302.2c6a5ccf@glory.local>
+In-Reply-To: <4CB492D4.1000609@arcor.de>
+References: <4CAD5A78.3070803@redhat.com>
+	<20101008150301.2e3ceaff@glory.local>
+	<4CAF0602.6050002@redhat.com>
+	<20101012142856.2b4ee637@glory.local>
+	<4CB492D4.1000609@arcor.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Oct 21, 2010, at 10:07 AM, Mauro Carvalho Chehab wrote:
+Hi Stefan
 
-> Add a parser for polaris mce. On this device, sometimes, a control
-> data appears together with the IR data, causing problems at the parser.
-> Also, it signalizes the end of a data with a 0x80 value. The normal
-> parser would believe that this is a time with 0x1f size, but cx231xx
-> provides just one byte for it.
 > 
-> I'm not sure if the new parser would work for other devices (probably, it
-> will), but the better is to just write it as a new parser, to avoid breaking
-> support for other supported IR devices.
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+>  
+> Am 12.10.2010 20:28, schrieb Dmitri Belimov:
+> > Hi
+> >
+> >> Em 08-10-2010 16:03, Dmitri Belimov escreveu:
+> >>> Hi Mauro
+> >>>
+> >>> Not so good. Audio with this patch has bad white noise
+> >>> sometimes and bad quality. I try found better configuration for
+> >>> SECAM-DK.
+> >>
+> >> Ok. Well, feel free to modify it. I think that this approach may
+> >> be better, especially if we need to add later some sort of code
+> >> to detect and change audio standard for some standards that have
+> >> more than one audio standard associated (we needed do to it on
+> >> other drivers, in order to work in Russia and other Countries
+> >> that use different variants of the audio standard).
+> >>
+> >> The association between video and audio standard is not complete.
+> >> For example, it misses NTSC-Kr and NTSC-Jp.
+> >
+> > Rework audio. Add SECAM-DK, move SECAM to SECAM-B | SECAM-G. Add
+> > some new audio standards and tricks for future, see
+> > tm6000_set_audio_std For SECAM-DK it works. Try on your standards.
+> >
+> >
+> > Two files in attach. Patch after latest patch from Mauro and full
+> > file tm6000-std.c
+> >
+> >> Cheers, Mauro.
+> >>
+> >
+> > With my best regards, Dmitry.
+> Where is defined "tv_audio_mode"?
 
-After staring at it for a while, I think it would work okay for all 2nd and 3rd-gen mceusb devices, but it would almost certainly break 1st-gen, as it can have distinct IR data packets split across urb -- that's the whole reason for the if rem == 0 check in the existing routine.
+This is concept only for future. I didn't understand how to do it.
+When audio was working use this for set MONO or audio languige channel.
 
-Ultimately though, this routine isn't that much different, and I *think* I see a way to extend the existing routine with some of the code from this one to make it work better for the polaris device.
+With my best regards, Dmitry.
 
-Will still go ahead with some review comments here though.
-
-> diff --git a/drivers/media/IR/mceusb.c b/drivers/media/IR/mceusb.c
-> index 609bf3d..7210760 100644
-> --- a/drivers/media/IR/mceusb.c
-> +++ b/drivers/media/IR/mceusb.c
-> @@ -265,6 +265,7 @@ struct mceusb_dev {
-> 		u32 connected:1;
-> 		u32 tx_mask_inverted:1;
-> 		u32 microsoft_gen1:1;
-> +		u32 is_polaris:1;
-> 		u32 reserved:29;
-
-reserved should be decremented by 1 here if adding another flag.
-
-
-> 	} flags;
+> Stefan Ringel
+> -----BEGIN PGP SIGNATURE-----
+> Version: GnuPG v2.0.12 (MingW32)
+> Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+>  
+> iQEcBAEBAgAGBQJMtJLTAAoJEAWtPFjxMvFGnFAH/Rrk274byzL8IvQd6fjAIl4D
+> izk31/k4CY1Y2EdHvygef4ZQxIGE4PGDaOogWEIBLtlHTx6XHUASpiZ8aJW1z7oF
+> YQk9rtfC3ZChmaGQDBzwLI+EUg9t7TzeQ8BpC11WxiOapyKLXFv0SdMNs2Y0WHOz
+> BNlQkL+9kZ+Hq6nSdJJxOihu+tiwbmvvSd7b/Cz9kdLpSNGr99F+ELbM0g3oU2Ts
+> ue7r3FnvHFnpNlV7Ceiuj7jF5ozeo3jSdWJI3S8ph4Wdi3CkPxTnTQXJAU09JU1k
+> we8+/TdplP+3Rdf206r/SL4RlI5wiZr/jm4IdLcwLOm/9yHthb89qyuW5upvV6k=
+> =LQiB
+> -----END PGP SIGNATURE-----
 > 
-> @@ -697,6 +698,90 @@ static int mceusb_set_tx_carrier(void *priv, u32 carrier)
-> 	return carrier;
-> }
-> 
-> +static void mceusb_parse_polaris(struct mceusb_dev *ir, int buf_len)
-> +{
-> +	struct ir_raw_event rawir;
-> +	int i;
-> +	u8 cmd;
-> +
-> +	while (i < buf_len) {
-
-i is being used uninitialized here.
-
-
-> +		cmd = ir->buf_in[i];
-> +
-> +		/* Discard any non-IR cmd */
-> +
-> +		if ((cmd & 0xe0) >> 5 != 4) {
-
-I'd probably just stick with if ((cmd & 0xe0) != 0x80), or even != MCE_PULSE_BIT, since we have a #define for 0x80 already. (Though its not quite an accurate name in this case).
-
-
-> +			i++;
-> +			if (i >= buf_len)
-> +				return;
-> +
-> +			cmd = ir->buf_in[i];	/* sub cmd */
-> +			i++;
-> +			switch (cmd) {
-> +			case 0x08:
-> +			case 0x14:
-> +			case 0x17:
-> +				i += 1;
-> +				break;
-> +			case 0x11:
-> +				i += 5;
-> +				break;
-> +			case 0x06:
-> +			case 0x81:
-> +			case 0x15:
-> +			case 0x16:
-> +				i += 2;
-> +				break;
-
-#define's for each of these hex values would be good, if we can determine what they actually are.
-
-
-> +		} else if (cmd == 0x80) {
-> +			/*
-> +			 * Special case: timeout event on cx231xx
-> +			 * Is it needed to check if is_polaris?
-> +			 */
-> +			rawir.pulse = 0;
-> +			rawir.duration = IR_MAX_DURATION;
-> +			dev_dbg(ir->dev, "Storing %s with duration %d\n",
-> +				rawir.pulse ? "pulse" : "space",
-> +				rawir.duration);
-> +
-> +			ir_raw_event_store(ir->idev, &rawir);
-
-I think this and the prior hunk are really the only things that need to be grafted into the existing routine to make it behave with this device. Lemme see what I can come up with...
-
-
--- 
-Jarod Wilson
-jarod@wilsonet.com
-
-
-
