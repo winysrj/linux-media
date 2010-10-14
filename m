@@ -1,59 +1,156 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:12222 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757273Ab0JUOMh convert rfc822-to-8bit (ORCPT
+Received: from smtprelay-h21.telenor.se ([195.54.99.196]:46587 "EHLO
+	smtprelay-h21.telenor.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753648Ab0JNQ4c (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Oct 2010 10:12:37 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o9LECbL6013094
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 21 Oct 2010 10:12:37 -0400
-Received: from pedra (vpn-225-164.phx2.redhat.com [10.3.225.164])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o9LE9S5D022469
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 21 Oct 2010 10:12:36 -0400
-Date: Thu, 21 Oct 2010 12:07:45 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/4] [media] cx231xx: Fix compilation breakage if DVB is not
- selected
-Message-ID: <20101021120745.44578b22@pedra>
-In-Reply-To: <cover.1287669886.git.mchehab@redhat.com>
-References: <cover.1287669886.git.mchehab@redhat.com>
+	Thu, 14 Oct 2010 12:56:32 -0400
+Subject: [RESEND][PATCH 2/2 v2] mfd: Add timberdale video-in driver to
+ timberdale
+From: Richard =?ISO-8859-1?Q?R=F6jfors?=
+	<richard.rojfors@pelagicore.com>
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>,
+	Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 14 Oct 2010 18:37:40 +0200
+Message-ID: <1287074260.6322.18.camel@debian>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-In file included from drivers/media/video/cx231xx/cx231xx-audio.c:40:
-drivers/media/video/cx231xx/cx231xx.h:559: error: field ‘frontends’ has incomplete type
-make[4]: ** [drivers/media/video/cx231xx/cx231xx-audio.o] Erro 1
-make[3]: ** [drivers/media/video/cx231xx] Erro 2
-make[2]: ** [drivers/media/video] Erro 2
-make[1]: ** [drivers/media] Erro 2
-make: ** [drivers] Erro 2
+This patch defines platform data for the video-in driver
+and adds it to all configurations of timberdale.
 
-Reported-by: Marcio Araujo Alves <froooozen@gmail.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/video/cx231xx/cx231xx.h b/drivers/media/video/cx231xx/cx231xx.h
-index 9c98886..d067df9 100644
---- a/drivers/media/video/cx231xx/cx231xx.h
-+++ b/drivers/media/video/cx231xx/cx231xx.h
-@@ -35,10 +35,7 @@
- #include <media/videobuf-vmalloc.h>
- #include <media/v4l2-device.h>
- #include <media/ir-core.h>
--#if defined(CONFIG_VIDEO_CX231XX_DVB) || \
--	defined(CONFIG_VIDEO_CX231XX_DVB_MODULE)
- #include <media/videobuf-dvb.h>
--#endif
+Signed-off-by: Richard Röjfors <richard.rojfors@pelagicore.com>
+---
+diff --git a/drivers/mfd/timberdale.c b/drivers/mfd/timberdale.c
+index ac59950..52a651b 100644
+--- a/drivers/mfd/timberdale.c
++++ b/drivers/mfd/timberdale.c
+@@ -40,6 +40,7 @@
+ #include <linux/spi/mc33880.h>
  
- #include "cx231xx-reg.h"
- #include "cx231xx-pcb-cfg.h"
--- 
-1.7.1
-
+ #include <media/timb_radio.h>
++#include <media/timb_video.h>
+ 
+ #include <linux/timb_dma.h>
+ 
+@@ -238,7 +239,24 @@ static const __devinitconst struct resource timberdale_uartlite_resources[] = {
+ 	},
+ };
+ 
+-static const __devinitconst struct resource timberdale_radio_resources[] = {
++static __devinitdata struct i2c_board_info timberdale_adv7180_i2c_board_info = {
++	/* Requires jumper JP9 to be off */
++	I2C_BOARD_INFO("adv7180", 0x42 >> 1),
++	.irq = IRQ_TIMBERDALE_ADV7180
++};
++
++static __devinitdata struct timb_video_platform_data
++	timberdale_video_platform_data = {
++	.dma_channel = DMA_VIDEO_RX,
++	.i2c_adapter = 0,
++	.encoder = {
++		.module_name = "adv7180",
++		.info = &timberdale_adv7180_i2c_board_info
++	}
++};
++
++static const __devinitconst struct resource
++timberdale_radio_resources[] = {
+ 	{
+ 		.start	= RDSOFFSET,
+ 		.end	= RDSEND,
+@@ -272,6 +290,18 @@ static __devinitdata struct timb_radio_platform_data
+ 	}
+ };
+ 
++static const __devinitconst struct resource timberdale_video_resources[] = {
++	{
++		.start	= LOGIWOFFSET,
++		.end	= LOGIWEND,
++		.flags	= IORESOURCE_MEM,
++	},
++	/*
++	note that the "frame buffer" is located in DMA area
++	starting at 0x1200000
++	*/
++};
++
+ static __devinitdata struct timb_dma_platform_data timb_dma_platform_data = {
+ 	.nr_channels = 10,
+ 	.channels = {
+@@ -372,6 +402,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg0[] = {
+ 		.data_size = sizeof(timberdale_gpio_platform_data),
+ 	},
+ 	{
++		.name = "timb-video",
++		.num_resources = ARRAY_SIZE(timberdale_video_resources),
++		.resources = timberdale_video_resources,
++		.platform_data = &timberdale_video_platform_data,
++		.data_size = sizeof(timberdale_video_platform_data),
++	},
++	{
+ 		.name = "timb-radio",
+ 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+ 		.resources = timberdale_radio_resources,
+@@ -430,6 +467,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg1[] = {
+ 		.resources = timberdale_mlogicore_resources,
+ 	},
+ 	{
++		.name = "timb-video",
++		.num_resources = ARRAY_SIZE(timberdale_video_resources),
++		.resources = timberdale_video_resources,
++		.platform_data = &timberdale_video_platform_data,
++		.data_size = sizeof(timberdale_video_platform_data),
++	},
++	{
+ 		.name = "timb-radio",
+ 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+ 		.resources = timberdale_radio_resources,
+@@ -478,6 +522,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg2[] = {
+ 		.data_size = sizeof(timberdale_gpio_platform_data),
+ 	},
+ 	{
++		.name = "timb-video",
++		.num_resources = ARRAY_SIZE(timberdale_video_resources),
++		.resources = timberdale_video_resources,
++		.platform_data = &timberdale_video_platform_data,
++		.data_size = sizeof(timberdale_video_platform_data),
++	},
++	{
+ 		.name = "timb-radio",
+ 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+ 		.resources = timberdale_radio_resources,
+@@ -521,6 +572,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg3[] = {
+ 		.data_size = sizeof(timberdale_gpio_platform_data),
+ 	},
+ 	{
++		.name = "timb-video",
++		.num_resources = ARRAY_SIZE(timberdale_video_resources),
++		.resources = timberdale_video_resources,
++		.platform_data = &timberdale_video_platform_data,
++		.data_size = sizeof(timberdale_video_platform_data),
++	},
++	{
+ 		.name = "timb-radio",
+ 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+ 		.resources = timberdale_radio_resources,
+diff --git a/drivers/mfd/timberdale.h b/drivers/mfd/timberdale.h
+index c11bf6e..4412acd 100644
+--- a/drivers/mfd/timberdale.h
++++ b/drivers/mfd/timberdale.h
+@@ -23,7 +23,7 @@
+ #ifndef MFD_TIMBERDALE_H
+ #define MFD_TIMBERDALE_H
+ 
+-#define DRV_VERSION		"0.2"
++#define DRV_VERSION		"0.3"
+ 
+ /* This driver only support versions >= 3.8 and < 4.0  */
+ #define TIMB_SUPPORTED_MAJOR	3
 
