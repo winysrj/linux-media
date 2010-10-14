@@ -1,73 +1,66 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4702 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932653Ab0JQUOp convert rfc822-to-8bit (ORCPT
+Received: from mail-px0-f174.google.com ([209.85.212.174]:48951 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753913Ab0JNTJ7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Oct 2010 16:14:45 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [git:v4l-dvb/v2.6.37] [media] Add driver for Siliconfile SR030PC30 VGA camera
-Date: Sun, 17 Oct 2010 22:14:15 +0200
-Cc: Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-References: <E1P7Yvq-0001kW-Pf@www.linuxtv.org>
-In-Reply-To: <E1P7Yvq-0001kW-Pf@www.linuxtv.org>
+	Thu, 14 Oct 2010 15:09:59 -0400
+Received: by pxi16 with SMTP id 16so1013292pxi.19
+        for <linux-media@vger.kernel.org>; Thu, 14 Oct 2010 12:09:59 -0700 (PDT)
+Message-ID: <4CB75577.9090109@gmail.com>
+Date: Thu, 14 Oct 2010 12:09:43 -0700
+From: "D. K." <user.vdr@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201010172214.15773.hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+CC: alannisota@gmail.com
+Subject: [PATCH] gp8psk: fix tuner delay
+Content-Type: multipart/mixed;
+ boundary="------------000005000904090908000308"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sunday, October 17, 2010 21:28:29 Mauro Carvalho Chehab wrote:
-> This is an automatic generated email to let you know that the following patch were queued at the 
-> http://git.linuxtv.org/media_tree.git tree:
-> 
-> Subject: [media] Add driver for Siliconfile SR030PC30 VGA camera
-> Author:  Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Date:    Mon Oct 11 13:33:57 2010 -0300
-> 
-> Add an I2C/v4l2-subdev driver for Siliconfile SR030PC30 VGA
-> camera sensor with Image Signal Processor. SR030PC30 is
-> the low resolution camera sensor on Samsung Aquila boards.
-> 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
->  drivers/media/video/Kconfig     |    6 +
->  drivers/media/video/Makefile    |    1 +
->  drivers/media/video/sr030pc30.c |  893 +++++++++++++++++++++++++++++++++++++++
->  include/media/sr030pc30.h       |   21 +
->  4 files changed, 921 insertions(+), 0 deletions(-)
+This is a multi-part message in MIME format.
+--------------000005000904090908000308
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-It fails to compile with this error:
+ This patches adjusts the tuner delay to be longer in response to
+several users experiencing tuner timeouts.  This change fixes that
+problem and allows those users to be able to tune.
 
-drivers/media/video/sr030pc30.c: In function ‘sr030pc30_probe’:
-drivers/media/video/sr030pc30.c:834: error: implicit declaration of function ‘kzalloc’
-drivers/media/video/sr030pc30.c:834: warning: assignment makes pointer from integer without a cast
-drivers/media/video/sr030pc30.c: In function ‘sr030pc30_remove’:
-drivers/media/video/sr030pc30.c:858: error: implicit declaration of function ‘kfree’
+Signed-off-by: Derek Kelly <user.vdr@gmail.com <mailto:user.vdr@gmail.com>>
+----------
+diff -pruN v4l-dvb.orig/linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c v4l-dvb/linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c
+--- v4l-dvb.orig/linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c    2010-08-17 09:53:27.000000000 -0700
++++ v4l-dvb/linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c 2010-08-17 10:00:28.000000000 -0700
+@@ -109,7 +109,7 @@ static int gp8psk_fe_read_signal_strengt
 
-Here is the patch to fix this:
+ static int gp8psk_fe_get_tune_settings(struct dvb_frontend* fe, struct dvb_frontend_tune_settings *tune)
+ {
+-       tune->min_delay_ms = 200;
++       tune->min_delay_ms = 800;
+        return 0;
+ }
 
-diff --git a/drivers/media/video/sr030pc30.c b/drivers/media/video/sr030pc30.c
-index f82e1f3..ec8d875 100644
---- a/drivers/media/video/sr030pc30.c
-+++ b/drivers/media/video/sr030pc30.c
-@@ -18,6 +18,7 @@
+
+
+--------------000005000904090908000308
+Content-Type: text/plain;
+ name="gp8psk-fix_tuner_delay.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="gp8psk-fix_tuner_delay.diff"
+
+diff -pruN v4l-dvb.orig/linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c v4l-dvb/linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c
+--- v4l-dvb.orig/linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c	2010-08-17 09:53:27.000000000 -0700
++++ v4l-dvb/linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c	2010-08-17 10:00:28.000000000 -0700
+@@ -109,7 +109,7 @@ static int gp8psk_fe_read_signal_strengt
  
- #include <linux/i2c.h>
- #include <linux/delay.h>
-+#include <linux/slab.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-subdev.h>
- #include <media/v4l2-mediabus.h>
+ static int gp8psk_fe_get_tune_settings(struct dvb_frontend* fe, struct dvb_frontend_tune_settings *tune)
+ {
+-	tune->min_delay_ms = 200;
++	tune->min_delay_ms = 800;
+ 	return 0;
+ }
+ 
 
-
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+--------------000005000904090908000308--
