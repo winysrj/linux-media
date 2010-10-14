@@ -1,1093 +1,4592 @@
 Return-path: <mchehab@pedra>
-Received: from vs244178.vserver.de ([62.75.244.178]:43011 "EHLO
-	smtp.eikelenboom.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760869Ab0J0KoN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Oct 2010 06:44:13 -0400
-Date: Wed, 27 Oct 2010 12:09:54 +0200
-From: Sander Eikelenboom <linux@eikelenboom.it>
-Message-ID: <452198851.20101027120954@eikelenboom.it>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	<linux-media@vger.kernel.org>
-Subject: [em28xx] BUG: unable to handle kernel paging request at ffff880478a16ff8 IP: [<ffffffff81436cf1>] ir_g_keycode_from_table+0x4d/0xb1
+Received: from mx1.redhat.com ([209.132.183.28]:43626 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753146Ab0JNS7h (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Oct 2010 14:59:37 -0400
+Message-ID: <4CB752FB.3080402@redhat.com>
+Date: Thu, 14 Oct 2010 15:59:07 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="----------AE152343D0EB82F"
+To: "Igor M. Liplianin" <liplianin@me.by>
+CC: linux-media@vger.kernel.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [GIT PATCHES FOR 2.6.37]  Support for NetUP Dual DVB-T/C CI RF
+ card
+References: <201010040135.59454.liplianin@me.by> <4CB747E0.5050308@redhat.com>
+In-Reply-To: <4CB747E0.5050308@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-------------AE152343D0EB82F
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: quoted-printable
+Em 14-10-2010 15:11, Mauro Carvalho Chehab escreveu:
+> Em 03-10-2010 19:35, Igor M. Liplianin escreveu:
+>> Patches to support for NetUP Dual DVB-T/C-CI RF from NetUP Inc. 
+>> 	http://linuxtv.org/wiki/index.php/NetUP_Dual_DVB_T_C_CI_RF
+>>
+>> Features:
+>>
+>> PCI-e x1  
+>> Supports two DVB-T/DVB-C transponders simultaneously
+>> Supports two analog audio/video channels simultaneously
+>> Independent descrambling of two transponders
+>> Hardware PID filtering
+>>
+>> Components:
+>>
+>> Conexant CX23885 
+>> STM STV0367 low-power and ultra-compact combo DVB-T/C single-chip receiver
+>> Xceive XC5000 silicon TV tuner
+>> Altera FPGA for Common Interafce
+>>
+>> The following changes since commit c8dd732fd119ce6d562d5fa82a10bbe75a376575:
+>>
+>>   V4L/DVB: gspca - sonixj: Have 0c45:6130 handled by sonixj instead of sn9c102 (2010-10-01 
+>> 18:14:35 -0300)
+>>
+>> are available in the git repository at:
+>>   http://udev.netup.ru/git/v4l-dvb.git netup-for-media-tree
+>>
+>> Abylay Ospan (6):
+>>       cx23885: Altera FPGA CI interface reworked.
+>>       stv0367: change default value for AGC register.
+>>       stv0367: implement uncorrected blocks counter.
+>>       cx23885, cimax2.c: Fix case of two CAM insertion irq.
+>>       Fix CI code for NetUP Dual  DVB-T/C CI RF card
+>>       Force xc5000 firmware loading for NetUP Dual  DVB-T/C CI RF card
+>>
+>> Igor M. Liplianin (14):
+>>       Altera FPGA firmware download module.
+>>       Altera FPGA based CI driver module.
+>>       Support for stv0367 multi-standard demodulator.
+>>       xc5000: add support for DVB-C tuning.
+>>       Initial commit to support NetUP Dual DVB-T/C CI RF card.
+>>       cx23885: implement tuner_bus parameter for cx23885_board structure.
+>>       cx23885: implement num_fds_portb, num_fds_portc parameters for cx23885_board structure.
+>>       stv0367: Fix potential divide error
+>>       cx23885: remove duplicate set interrupt mask
+>>       stv0367: coding style corrections
+>>       cx25840: Fix subdev registration and typo in cx25840-core.c
+>>       cx23885: 0xe becomes 0xc again for NetUP Dual DVB-S2
+>>       cx23885: disable MSI for NetUP cards, otherwise CI is not working
+>>       cx23885, altera-ci: enable all PID's less than 0x20 in hardware PID filter.
+>>
+>>  drivers/media/common/tuners/xc5000.c        |   18 +
+>>  drivers/media/dvb/frontends/Kconfig         |    7 +
+>>  drivers/media/dvb/frontends/Makefile        |    1 +
+>>  drivers/media/dvb/frontends/stv0367.c       | 3419 +++++++++++++++++++++++++
+>>  drivers/media/dvb/frontends/stv0367.h       |   62 +
+>>  drivers/media/dvb/frontends/stv0367_priv.h  |  211 ++
+>>  drivers/media/dvb/frontends/stv0367_regs.h  | 3614 +++++++++++++++++++++++++++
+>>  drivers/media/video/cx23885/Kconfig         |   12 +-
+>>  drivers/media/video/cx23885/Makefile        |    1 +
+>>  drivers/media/video/cx23885/altera-ci.c     |  841 +++++++
+>>  drivers/media/video/cx23885/altera-ci.h     |  102 +
+>>  drivers/media/video/cx23885/cimax2.c        |   24 +-
+>>  drivers/media/video/cx23885/cx23885-cards.c |  116 +-
+>>  drivers/media/video/cx23885/cx23885-core.c  |   35 +-
+>>  drivers/media/video/cx23885/cx23885-dvb.c   |  175 ++-
+>>  drivers/media/video/cx23885/cx23885-reg.h   |    1 +
+>>  drivers/media/video/cx23885/cx23885-video.c |    7 +-
+>>  drivers/media/video/cx23885/cx23885.h       |    7 +-
+>>  drivers/media/video/cx25840/cx25840-core.c  |    4 +-
+>>  drivers/misc/Kconfig                        |    1 +
+>>  drivers/misc/Makefile                       |    1 +
+>>  drivers/misc/stapl-altera/Kconfig           |    8 +
+>>  drivers/misc/stapl-altera/Makefile          |    3 +
+>>  drivers/misc/stapl-altera/altera.c          | 2739 ++++++++++++++++++++
+>>  drivers/misc/stapl-altera/jbicomp.c         |  163 ++
+>>  drivers/misc/stapl-altera/jbiexprt.h        |   94 +
+>>  drivers/misc/stapl-altera/jbijtag.c         | 1038 ++++++++
+>>  drivers/misc/stapl-altera/jbijtag.h         |   83 +
+>>  drivers/misc/stapl-altera/jbistub.c         |   70 +
+>>  include/misc/altera.h                       |   49 +
+>>  30 files changed, 12872 insertions(+), 34 deletions(-)
+>>  create mode 100644 drivers/media/dvb/frontends/stv0367.c
+>>  create mode 100644 drivers/media/dvb/frontends/stv0367.h
+>>  create mode 100644 drivers/media/dvb/frontends/stv0367_priv.h
+>>  create mode 100644 drivers/media/dvb/frontends/stv0367_regs.h
+>>  create mode 100644 drivers/media/video/cx23885/altera-ci.c
+>>  create mode 100644 drivers/media/video/cx23885/altera-ci.h
+>>  create mode 100644 drivers/misc/stapl-altera/Kconfig
+>>  create mode 100644 drivers/misc/stapl-altera/Makefile
+>>  create mode 100644 drivers/misc/stapl-altera/altera.c
+>>  create mode 100644 drivers/misc/stapl-altera/jbicomp.c
+>>  create mode 100644 drivers/misc/stapl-altera/jbiexprt.h
+>>  create mode 100644 drivers/misc/stapl-altera/jbijtag.c
+>>  create mode 100644 drivers/misc/stapl-altera/jbijtag.h
+>>  create mode 100644 drivers/misc/stapl-altera/jbistub.c
+>>  create mode 100644 include/misc/altera.h
+> 
+> Igor,
+> 
+> I did a quick look at Altera FPGA driver, and at the cx23885 changes for it to work
+> with this device, I think the FPGA driver deserves some discussion at linux-kernel.
+> 
+> As there's a V4L/DVB device that depends on it, it is clear to me that the better is
+> to merge the driver via my tree.
+> 
+> So, I'm basically sending your first patch to the mailing lists for review.
+> 
+> ---
+> 
+> From e1fd36695ae082ae89a3155cabb5a84181ae9df4 Mon Sep 17 00:00:00 2001
+> From: Igor M. Liplianin <liplianin@netup.ru>
+> Date: Mon, 24 May 2010 13:09:23 +0300
+> Subject: Altera FPGA firmware download module.
+> Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+> 
+> It uses STAPL files and programs Altera FPGA through JTAG.
+> Interface to JTAG must be provided from main device module,
+> for example through cx23885 GPIO.
+> 
+> Signed-off-by: Igor M. Liplianin <liplianin@netup.ru>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> ---
+>  drivers/misc/Kconfig                 |    1 +
+>  drivers/misc/Makefile                |    1 +
+>  drivers/misc/stapl-altera/Kconfig    |    8 +
+>  drivers/misc/stapl-altera/Makefile   |    3 +
+>  drivers/misc/stapl-altera/altera.c   | 2739 ++++++++++++++++++++++++++++++++++
+>  drivers/misc/stapl-altera/jbicomp.c  |  163 ++
+>  drivers/misc/stapl-altera/jbiexprt.h |   94 ++
+>  drivers/misc/stapl-altera/jbijtag.c  | 1038 +++++++++++++
+>  drivers/misc/stapl-altera/jbijtag.h  |   83 +
+>  drivers/misc/stapl-altera/jbistub.c  |   70 +
+>  include/misc/altera.h                |   49 +
+>  11 files changed, 4249 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/misc/stapl-altera/Kconfig
+>  create mode 100644 drivers/misc/stapl-altera/Makefile
+>  create mode 100644 drivers/misc/stapl-altera/altera.c
+>  create mode 100644 drivers/misc/stapl-altera/jbicomp.c
+>  create mode 100644 drivers/misc/stapl-altera/jbiexprt.h
+>  create mode 100644 drivers/misc/stapl-altera/jbijtag.c
+>  create mode 100644 drivers/misc/stapl-altera/jbijtag.h
+>  create mode 100644 drivers/misc/stapl-altera/jbistub.c
+>  create mode 100644 include/misc/altera.h
+> 
+> diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+> index 9b089df..3cfc47c 100644
+> --- a/drivers/misc/Kconfig
+> +++ b/drivers/misc/Kconfig
+> @@ -367,5 +367,6 @@ source "drivers/misc/c2port/Kconfig"
+>  source "drivers/misc/eeprom/Kconfig"
+>  source "drivers/misc/cb710/Kconfig"
+>  source "drivers/misc/iwmc3200top/Kconfig"
+> +source "drivers/misc/stapl-altera/Kconfig"
+>  
+>  endif # MISC_DEVICES
+> diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
+> index 67552d6..58e794c 100644
+> --- a/drivers/misc/Makefile
+> +++ b/drivers/misc/Makefile
+> @@ -32,3 +32,4 @@ obj-y				+= eeprom/
+>  obj-y				+= cb710/
+>  obj-$(CONFIG_VMWARE_BALLOON)	+= vmware_balloon.o
+>  obj-$(CONFIG_ARM_CHARLCD)	+= arm-charlcd.o
+> +obj-y				+= stapl-altera/
+> diff --git a/drivers/misc/stapl-altera/Kconfig b/drivers/misc/stapl-altera/Kconfig
+> new file mode 100644
+> index 0000000..19ba4a9
+> --- /dev/null
+> +++ b/drivers/misc/stapl-altera/Kconfig
+> @@ -0,0 +1,8 @@
+> +comment "Altera FPGA firmware download module"
+> +
+> +config STAPL_ALTERA
+> +	tristate "Altera FPGA firmware download module"
+> +	depends on I2C
+> +	default m
+> +	help
+> +	  An Altera FPGA module. Say Y when you want to support this tool.
+> diff --git a/drivers/misc/stapl-altera/Makefile b/drivers/misc/stapl-altera/Makefile
+> new file mode 100644
+> index 0000000..db56178
+> --- /dev/null
+> +++ b/drivers/misc/stapl-altera/Makefile
+> @@ -0,0 +1,3 @@
+> +stapl-altera-objs = jbistub.o jbijtag.o jbicomp.o altera.o
+> +
+> +obj-$(CONFIG_STAPL_ALTERA) += stapl-altera.o
+> diff --git a/drivers/misc/stapl-altera/altera.c b/drivers/misc/stapl-altera/altera.c
+> new file mode 100644
+> index 0000000..9628d9c
+> --- /dev/null
+> +++ b/drivers/misc/stapl-altera/altera.c
+> @@ -0,0 +1,2739 @@
+> +/*
+> + * altera.c
+> + *
+> + * altera FPGA driver
+> + *
+> + * Copyright (C) Altera Corporation 1998-2001
+> + * Copyright (C) 2010 NetUP Inc.
+> + * Copyright (C) 2010 Igor M. Liplianin <liplianin@netup.ru>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> + */
+> +
+> +#include <linux/firmware.h>
+> +#include <linux/slab.h>
+> +#include <misc/altera.h>
+> +#include "jbiexprt.h"
+> +
+> +static int verbose = 1;
+> +module_param(verbose, int, 0644);
+> +MODULE_PARM_DESC(verbose, "enable debugging information");
 
-Hi Mauro,
+Better to call it as "debug".
 
-When plugging in my em28xx based grabber in a USB2.0 port i get this stack =
-trace (complete boot log attached)
-Kernel used: Linus tree commit 12ba8d1e9262ce81a695795410bd9ee5c9407ba1 (pu=
-ll of todays 2.6.37 merge window tree)
+> +
+> +MODULE_DESCRIPTION("altera FPGA kernel module");
+> +MODULE_AUTHOR("Igor M. Liplianin  <liplianin@netup.ru>");
+> +MODULE_LICENSE("GPL");
+> +
+> +#include "jbijtag.h"
+> +
+> +#define JBI_STACK_SIZE 128
+> +
+> +#define JBIC_MESSAGE_LENGTH 1024
+> +
+> +/* This macro checks if a code address is inside the code section */
+> +#define CHECK_PC \
+> +	if ((pc < code_section) || (pc >= debug_section)) { \
+> +		status = JBIC_BOUNDS_ERROR; \
+> +	}
 
-[   43.628015] u 2-4: new high sed USB device usg ehci_hcd and address 2
-[   43.755974] u 2-4: New USB dece found, idVend=3D2304, idProduct208
-[   43.7626] usb 2-4: New USB device stris: Mfr=3D2, Produc1, SerialNumber=
-=3D
-[   43.769828] b 2-4: Product: PCTV USB2 PAL
-[   43.774013usb 2-4: Manufacturer: Pinnacle Systems GmbH
-[   43.779540] em28xx: New device Pinnacle Systems GmbH PCTV USB2 PAL @ 480=
- Mbps (2304:0208, interface 0, class 0)
-[   43.789721] em28xx #0: chip ID is em2820 (or em2710)
-[   43.894981] e8xx #0: i2c eepr 00: 1a eb 67 9504 23 08 02 10 001e 03 98 1=
-e 6a 2e
-[   43.903147] em28xx #0: i2c prom 10:
- 00 00 0 57 6e 00 00 00 8e 00 00 00 07 00 00 00
-[   43.911317] em28xx #0: i2c eeprom 20: 16 00 01 00 00 00 00 00 00 00 00 0=
-0 00 00 00 00
-[   43.919456] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 10 01 00 0=
-0 00 00 00 00
-[   43.927620] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 0=
-0 00 00 00 00
-[   43.935751] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 0=
-0 00 00 00 00
-[   43.943907] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 2e 0=
-3 50 00 69 00
-[   43.952066] em28xx #0: i2c eeprom 70: 6e 00 6e 00 61 00 63 00 6c 00 65 0=
-0 20 00 53 00
-[   43.960227] em28xx #0: i2c eeprom 80: 79 00 73 00 74 00 65 00 6d 00 73 0=
-0 20 00 47 00
-[   43.968385] em28xx #0: i2c eeprom 90: 6d 00 62 00 48 00 00 00 1e 03 50 0=
-0 43 00 54 00
-[   43.976531] em28xx #0: i2c eeprom a0: 56 00 20 00 55 00 53 00 42 00 32 0=
-0 20 00 50 00
-[   43.984687] em28xx #0: i2c eeprom b0: 41 00 4c 00 00 00 06 03 31 00 00 0=
-0 00 00 00 00
-[   43.992834] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 0=
-0 00 00 00 00
-[   44.000990] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 0=
-0 00 00 00 00
-[   44.009143] em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 0=
-0 00 00 00 00
-[   44.017288] em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 07 56 d9 3=
-5 01 ed 0b f8
-[   44.025436] em28xx #0: EEPROM ID=3D 0x9567eb1a, EEPROM hash =3D 0x0fd777=
-40
-[   44.031957] em28xx #0: EEPROM info:
-[   44.035449] em28xx #0:       AC97 audio (5 sample rates)
-[   44.040241] em28xx #0:       500mA max power
-[   44.043996] em28xx #0:       Table at 0x06, strings=3D0x1e98, 0x2e6a, 0x=
-0000
-[   44.051400] Registered IR keymap rc-pinnacle-grey
-[   44.056170] input: i2c IR (i2c IR (EM28XX Pinnacle as /devices/virtual/r=
-c/rc0/input4
-[   44.063962] rc0: i2c IR (i2c IR (EM28XX Pinnacle as /devices/virtual/rc/=
-rc0
-[   44.070928] ir-kbd-i2c: i2c IR (i2c IR (EM28XX Pinnacle detected at i2c-=
-17/17-0047/ir0 [em28xx #0]
-[   44.079894] em28xx #0: Identified as Pinnacle PCTV USB 2 (card=3D3)
-[   44.086509] BUG: unable to handle kernel paging request at ffff880478a16=
-ff8
-[   44.087061] IP: [<ffffffff81436cf1>] ir_g_keycode_from_table+0x4d/0xb1
-[   44.087061] PGD 1c04063 PUD 0=20
-[   44.087061] Oops: 0000 [#1] SMP=20
-[   44.087061] last sysfs file: /sys/devices/virtual/rc/rc0/input4/capabili=
-ties/sw
-[   44.087061] CPU 1=20
-[   44.087061] Modules linked in: [last unloaded: scsi_wait_scan]
-[   44.087061]=20
-[   44.087061] Pid: 494, comm: kworker/1:1 Not tainted 2.6.36+ #2 P5Q-EM DO=
-/System Product Name
-[   44.087061] RIP: 0010:[<ffffffff81436cf1>]  [<ffffffff81436cf1>] ir_g_ke=
-ycode_from_table+0x4d/0xb1
-[   44.087061] RSP: 0000:ffff880079d61da0  EFLAGS: 00010817
-[   44.087061] RAX: 000000007fffffff RBX: ffff880078a72800 RCX: 00000000000=
-00000
-[   44.087061] RDX: 000000007fffffff RSI: 0000000000000282 RDI: 00000000fff=
-fffff
-[   44.157005] RBP: ffff880079d61dc0 R08: ffff880078a17000 R09: 00000000000=
-00029
-[   44.157005] R10: ffff880079d61db0 R11: dead000000200200 R12: ffff880078a=
-729b0
-[   44.157005] R13: 0000000000000000 R14: ffff880078a70c00 R15: ffff88007ca=
-96700
-[   44.157005] FS:  0000000000000000(0000) GS:ffff88007ca80000(0000) knlGS:=
-0000000000000000
-[   44.157005] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-[   44.157005] CR2: ffff880478a16ff8 CR3: 00000000780c3000 CR4: 00000000000=
-406e0
-[   44.157005] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 00000000000=
-00000
-[   44.157005] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 00000000000=
-00400
-[   44.157005] Process kworker/1:1 (pid: 494, threadinfo ffff880079d60000, =
-task ffff88007c3d9650)
-[   44.157005] Stack:
-[   44.157005]  ffff880078a72800 0000000000000000 0000000000000064 ffff8800=
-78a70c00
-[   44.157005] <0> ffff880079d61e10 ffffffff81436f51 ffff880079d61e10 fffff=
-fff81459259
-[   44.157005] <0> 0000000000000000 ffff880078bf1140 ffff880078bf1100 00000=
-00000000064
-[   44.157005] Call Trace:
-[   44.157005]  [<ffffffff81436f51>] ir_keydown+0x34/0x138
-[   44.157005]  [<ffffffff81459259>] ? em28xx_get_key_pinnacle_usb_grey+0x2=
-8/0xa3
-[   44.157005]  [<ffffffff8145cbda>] ir_work+0x99/0xb6
-[   44.157005]  [<ffffffff8105fb52>] process_one_work+0x1d5/0x2d2
-[   44.157005]  [<ffffffff8145cb41>] ? ir_work+0x0/0xb6
-[   44.157005]  [<ffffffff8105ff2d>] worker_thread+0x146/0x277
-[   44.157005]  [<ffffffff8105fde7>] ? worker_thread+0x0/0x277
-[   44.157005]  [<ffffffff810645f7>] kthread+0x81/0x89
-[   44.157005]  [<ffffffff8100bae4>] kernel_thread_helper+0x4/0x10
-[   44.157005]  [<ffffffff81064576>] ? kthread+0x0/0x89
-[   44.157005]  [<ffffffff8100bae0>] ? kernel_thread_helper+0x0/0x10
-[   44.157005] Code: 00 00 48 89 c3 4c 89 e7 e8 a5 5e 20 00 44 8b 8b 94 01 =
-00 00 4c 8b 83 88 01 00 00 48 89 c6 31 c9 41=20
-8d 79 ff 8d 14 0f d1 ea 89 d0 <45> 39 2c c0 73 05 8d 4a 01 eb 0c 77 07 44 3=
-9 ca 72 0b eb 10 8d=20
-[   44.157005] RIP  [<ffffffff81436cf1>] ir_g_keycode_from_table+0x4d/0xb1
-[   44.157005]  RSP <ffff880079d61da0>
-[   44.157005] CR2: ffff880478a16ff8
-[   44.157005] ---[ end trace 2988a93430a1c9ca ]---
-[   44.351618] BUG: unable to handle kernel paging request at fffffffffffff=
-ff8
-[   44.352583] IP: [<ffffffff81064258>] kthread_data+0xb/0x11
-[   44.352583] PGD 1c05067 PUD 1c06067 PMD 0=20
-[   44.352583] Oops: 0000 [#2] SMP=20
-[   44.352583] last sysfs file: /sys/devices/virtual/rc/rc0/input4/capabili=
-ties/sw
-[   44.352583] CPU 1=20
-[   44.352583] Modules linked in: [last unloaded: scsi_wait_scan]
-[   44.352583]=20
-[   44.352583] Pid: 494, comm: kworker/1:1 Tainted: G      D     2.6.36+ #2=
- P5Q-EM DO/System Product Name
-[   44.352583] RIP: 0010:[<ffffffff81064258>]  [<ffffffff81064258>] kthread=
-_data+0xb/0x11
-[   44.352583] RSP: 0000:ffff880079d61908  EFLAGS: 00010096
-[   44.352583] RAX: 0000000000000000 RBX: 0000000000000001 RCX: ffff88007c3=
-d9650
-[   44.352583] RDX: 0000000000000040 RSI: 0000000000000001 RDI: ffff88007c3=
-d9650
-[   44.352583] RBP: ffff880079d61908 R08: ffff88007ca96380 R09: ffff880079d=
-15958
-[   44.352583] R10: dead000000200200 R11: 0000000000000000 R12: ffff880079d=
-61a18
-[   44.352583] R13: ffff88007ca93200 R14: ffff88007c380000 R15: ffff88007c3=
-d98d0
-[   44.352583] FS:  0000000000000000(0000) GS:ffff88007ca80000(0000) knlGS:=
-0000000000000000
-[   44.352583] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-[   44.352583] CR2: fffffffffffffff8 CR3: 0000000001c03000 CR4: 00000000000=
-406e0
-[   44.352583] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 00000000000=
-00000
-[   44.352583] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 00000000000=
-00400
-[   44.352583] Process kworker/1:1 (pid: 494, threadinfo ffff880079d60000, =
-task ffff88007c3d9650)
-[   44.352583] Stack:
-[   44.352583]  ffff880079d61928 ffffffff81061820 ffff88007c3ebba0 ffff8800=
-79d61fd8
-[   44.352583] <0> ffff880079d619e8 ffffffff8163b347 ffff88007ca8fa60 ffff8=
-80079d60010
-[   44.352583] <0> 0000000000013200 ffff880079d61fd8 ffff880079d61fd8 00000=
-00000013200
-[   44.352583] Call Trace:
-[   44.352583]  [<ffffffff81061820>] wq_worker_sleeping+0x10/0x8f
-[   44.352583]  [<ffffffff8163b347>] schedule+0x1c5/0x67a
-[   44.352583]  [<ffffffff810688e6>] ? switch_task_namespaces+0x18/0x4c
-[   44.352583]  [<ffffffff8104df71>] do_exit+0x7dc/0x7ea
-[   44.352583]  [<ffffffff8163e029>] oops_end+0xc7/0xcf
-[   44.352583]  [<ffffffff81032ed3>] no_context+0x1f3/0x202
-[   44.352583]  [<ffffffff810f169a>] ? virt_to_head_page+0x9/0x30
-[   44.352583]  [<ffffffff8103309d>] __bad_area_nosemaphore+0x1bb/0x1e1
-[   44.352583]  [<ffffffff813e3ed2>] ? urb_destroy+0x23/0x27
-[   44.352583]  [<ffffffff811f92b2>] ? kref_put+0x43/0x4f
-[   44.352583]  [<ffffffff813e3c22>] ? usb_free_urb+0x15/0x17
-[   44.352583]  [<ffffffff813e4c8f>] ? usb_start_wait_urb+0x12b/0x13a
-[   44.352583]  [<ffffffff810f2bc1>] ? __kmalloc+0x160/0x16f
-[   44.352583]  [<ffffffff810f169a>] ? virt_to_head_page+0x9/0x30
-[   44.352583]  [<ffffffff810330d1>] bad_area_nosemaphore+0xe/0x10
-[   44.352583]  [<ffffffff8164056d>] do_page_fault+0x238/0x43b
-[   44.352583]  [<ffffffff81457832>] ? em28xx_read_reg_req_len+0x133/0x18e
-[   44.352583]  [<ffffffff814578ab>] ? em28xx_read_reg_req+0x1e/0x28
-[   44.352583]  [<ffffffff8163d415>] page_fault+0x25/0x30
-[   44.352583]  [<ffffffff81436cf1>] ? ir_g_keycode_from_table+0x4d/0xb1
-[   44.352583]  [<ffffffff81436f51>] ir_keydown+0x34/0x138
-[   44.352583]  [<ffffffff81459259>] ? em28xx_get_key_pinnacle_usb_grey+0x2=
-8/0xa3
-[   44.352583]  [<ffffffff8145cbda>] ir_work+0x99/0xb6
-[   44.352583]  [<ffffffff8105fb52>] process_one_work+0x1d5/0x2d2
-[   44.352583]  [<ffffffff8145cb41>] ? ir_work+0x0/0xb6
-[   44.352583]  [<ffffffff8105ff2d>] worker_thread+0x146/0x277
-[   44.352583]  [<ffffffff8105fde7>] ? worker_thread+0x0/0x277
-[   44.352583]  [<ffffffff810645f7>] kthread+0x81/0x89
-[   44.352583]  [<ffffffff8100bae4>] kernel_thread_helper+0x4/0x10
-[   44.352583]  [<ffffffff81064576>] ? kthread+0x0/0x89
-[   44.352583]  [<ffffffff8100bae0>] ? kernel_thread_helper+0x0/0x10
-[   44.352583] Code: 41 5d 41 5e c9 c3 90 55 65 48 8b 04 25 40 cc 00 00 48 =
-8b 80 20 03 00 00 48 89 e5 8b 40 f0 c9 c3 48=20
-8b 87 20 03 00 00 55 48 89 e5 <48> 8b 40 f8 c9 c3 55 48 83 c7 40 48 89 e5 e=
-8 71 9f fd ff c9 c3=20
-[   44.352583] RIP  [<ffffffff81064258>] kthread_data+0xb/0x11
-[   44.352583]  RSP <ffff880079d61908>
-[   44.352583] CR2: fffffffffffffff8
-[   44.352583] ---[ end trace 2988a93430a1c9cb ]---
-[   44.352583] Fixing recursive fault but reboot is needed!
+This is ugly: a macro with 3 hidden arguments... you might define it as:
+
+#define check_pc(pc, code_section, debug_section)	\
++	(((pc < code_section) || (pc >= debug_section)) ? JBIC_BOUNDS_ERROR : 0)
+
+and call it as:
+	status = check_pc(pc, code_section, debug_section);
+
+But I suspect that the better would be do do, instead:
+
+	if ((pc < code_section) || (pc >= debug_section)) 
+		goto jbic_bounds_error;
+	
+on all places you're using it.
+
+> +
+> +#define dprintk(args...) \
+> +	if (verbose) { \
+> +		printk(KERN_DEBUG args); \
+> +	}
+> +
+> +char *error_text[] = {
+> +	/* JBIC_SUCCESS            0 */ "success",
+> +	/* JBIC_OUT_OF_MEMORY      1 */ "out of memory",
+> +	/* JBIC_IO_ERROR           2 */ "file access error",
+> +	/* JAMC_SYNTAX_ERROR       3 */ "syntax error",
+> +	/* JBIC_UNEXPECTED_END     4 */ "unexpected end of file",
+> +	/* JBIC_UNDEFINED_SYMBOL   5 */ "undefined symbol",
+> +	/* JAMC_REDEFINED_SYMBOL   6 */ "redefined symbol",
+> +	/* JBIC_INTEGER_OVERFLOW   7 */ "integer overflow",
+> +	/* JBIC_DIVIDE_BY_ZERO     8 */ "divide by zero",
+> +	/* JBIC_CRC_ERROR          9 */ "CRC mismatch",
+> +	/* JBIC_INTERNAL_ERROR    10 */ "internal error",
+> +	/* JBIC_BOUNDS_ERROR      11 */ "bounds error",
+> +	/* JAMC_TYPE_MISMATCH     12 */ "type mismatch",
+> +	/* JAMC_ASSIGN_TO_CONST   13 */ "assignment to constant",
+> +	/* JAMC_NEXT_UNEXPECTED   14 */ "NEXT unexpected",
+> +	/* JAMC_POP_UNEXPECTED    15 */ "POP unexpected",
+> +	/* JAMC_RETURN_UNEXPECTED 16 */ "RETURN unexpected",
+> +	/* JAMC_ILLEGAL_SYMBOL    17 */ "illegal symbol name",
+> +	/* JBIC_VECTOR_MAP_FAILED 18 */ "vector signal name not found",
+> +	/* JBIC_USER_ABORT        19 */ "execution cancelled",
+> +	/* JBIC_STACK_OVERFLOW    20 */ "stack overflow",
+> +	/* JBIC_ILLEGAL_OPCODE    21 */ "illegal instruction code",
+> +	/* JAMC_PHASE_ERROR       22 */ "phase error",
+> +	/* JAMC_SCOPE_ERROR       23 */ "scope error",
+> +	/* JBIC_ACTION_NOT_FOUND  24 */ "action not found",
+> +};
+
+The better would be to use standard Unix error codes here.
+> +
+> +#define MAX_ERROR_CODE (int)((sizeof(error_text)/sizeof(error_text[0]))+1)
+> +
+> +/* This function checks if enough parameters are available on the stack. */
+> +static int jbi_check_stack(int stack_ptr, int count, int *status)
+> +{
+> +	if (stack_ptr < count) {
+> +		*status = JBIC_STACK_OVERFLOW;
+> +		return 0;
+> +	}
+> +
+> +	return 1;
+> +}
+> +
+> +static int jbi_strlen(char *string)
+> +{
+> +	int len = 0;
+> +
+> +	while (string[len] != '\0')
+> +		++len;
+> +
+> +	return len;
+> +}
+
+Linux has strlen. Don't re-invent the wheel.
+
+> +
+> +static void jbi_ltoa(char *buffer, s32 number)
+> +{
+> +	int index = 0;
+> +	int rev_index = 0;
+> +	char reverse[32];
+> +
+> +	if (number < 0L) {
+> +		buffer[index++] = '-';
+> +		number = 0 - number;
+> +	} else if (number == 0)
+> +		buffer[index++] = '0';
+> +
+> +	while (number != 0) {
+> +		reverse[rev_index++] = (char)((number % 10) + '0');
+> +		number /= 10;
+> +	}
+> +
+> +	while (rev_index > 0)
+> +		buffer[index++] = reverse[--rev_index];
+> +
+> +	buffer[index] = '\0';
+> +}
+> +
+> +static char jbi_toupper(char ch)
+> +{
+> +	return (char)(((ch >= 'a') && (ch <= 'z')) ? (ch + 'A' - 'a') : ch);
+> +}
+> +
+> +static int jbi_stricmp(char *left, char *right)
+> +{
+> +	int result = 0;
+> +	char l, r;
+> +
+> +	do {
+> +		l = jbi_toupper(*left);
+> +		r = jbi_toupper(*right);
+> +		result = l - r;
+> +		++left;
+> +		++right;
+> +	} while ((result == 0) && (l != '\0') && (r != '\0'));
+> +
+> +	return result;
+> +}
+> +
+> +static void jbi_strncpy(char *left, char *right, int count)
+> +{
+> +	char ch;
+> +
+> +	do {
+> +		*left = *right;
+> +		ch = *right;
+> +		++left;
+> +		++right;
+> +		--count;
+> +	} while ((ch != '\0') && (count != 0));
+> +}
+
+Linux has functions for the above. Don't re-invent the wheel.
 
 
+> +
+> +static void jbi_make_dword(u8 *buf, u32 num)
+> +{
+> +	buf[0] = (u8) num;
+> +	buf[1] = (u8)(num >> 8L);
+> +	buf[2] = (u8)(num >> 16L);
+> +	buf[3] = (u8)(num >> 24L);
+> +}
+> +
+> +static u32 jbi_get_dword(u8 *buf)
+> +{
+> +	return
+> +	    (((u32)buf[0]) |
+> +	     (((u32)buf[1]) << 8L) |
+> +	     (((u32)buf[2]) << 16L) |
+> +	     (((u32)buf[3]) << 24L));
+> +}
 
-------------AE152343D0EB82F
-Content-Type: text/plain;
- name="syslog.txt"
-Content-transfer-encoding: base64
-Content-Disposition: attachment;
- filename="syslog.txt"
+Use the proper Linux functions to handle big/little endian.
 
-WyAgICAwLjAwMDAwMF0gSW5pdGlhbGl6aW5nIGNncm91cCBzdWJzeXMgY3B1c2V0DQpbICAg
-IDAuMDAwMDAwXSBJbml0aWFsaXppbmcgY2dyb3VwIHN1YnN5cyBjcHUNClsgICAgMC4wMDAw
-MDBdIExpbnV4IHZlcnNpb24gMi42LjM2KyAocm9vdEB4ZW50ZXN0KSAoZ2NjIHZlcnNpb24g
-NC4zLjIgKERlYmlhbiA0LjMuMi0xLjEpICkgIzIgU01QIFdlZCBPY3QgMjcgMTM6MzI6MDkg
-Qw0KRVNUIDIwMTANClsgICAgMC4wMDAwMDBdIENvbW1hbmQgbGluZTogQk9PVF9JTUFHRT0v
-Ym9vdC92bWxpbnV6LTIuNi4zNisgcm9vdD1VVUlEPWQyMDAxNjBkLWU2MjEtNGNiNC1hNzVk
-LTcwMmE1YWJjNDU0ZSBybyBjb25zb2xlPQ0KdHR5UzAsMTE1MjAwDQpbICAgIDAuMDAwMDAw
-XSBCSU9TLXByb3ZpZGVkIHBoeXNpY2FsIFJBTSBtYXA6DQpbICAgIDAuMDAwMDAwXSAgQklP
-Uy1lODIwOiAwMDAwMDAwMDAwMDAwMDAwIC0gMDAwMDAwMDAwMDA5ZTgwMCAodXNhYmxlKQ0K
-WyAgICAwLjAwMDAwMF0gIEJJT1MtZTgyMDogMDAwMDAwMDAwMDA5ZTgwMCAtIDAwMDAwMDAw
-MDAwYTAwMDAgKHJlc2VydmVkKQ0KWyAgICAwLjAwMDAwMF0gIEJJT1MtZTgyMDogMDAwMDAw
-MDAwMDBlNDAwMCAtIDAwMDAwMDAwMDAxMDAwMDAgKHJlc2VydmVkKQ0KWyAgICAwLjAwMDAw
-MF0gIEJJT1MtZTgyMDogMDAwMDAwMDAwMDEwMDAwMCAtIDAwMDAwMDAwN2NkNzAwMDAgKHVz
-YWJsZSkNClsgICAgMC4wMDAwMDBdICBCSU9TLWU4MjA6IDAwMDAwMDAwN2NkNzAwMDAgLSAw
-MDAwMDAwMDdjZDdlMDAwIChBQ1BJIGRhdGEpDQpbICAgIDAuMDAwMDAwXSAgQklPUy1lODIw
-OiAwMDAwMDAwMDdjZDdlMDAwIC0gMDAwMDAwMDA3Y2RkMDAwMCAoQUNQSSBOVlMpDQpbICAg
-IDAuMDAwMDAwXSAgQklPUy1lODIwOiAwMDAwMDAwMDdjZGQwMDAwIC0gMDAwMDAwMDA3Y2Uw
-MDAwMCAocmVzZXJ2ZWQpDQpbICAgIDAuMDAwMDAwXSAgQklPUy1lODIwOiAwMDAwMDAwMGZl
-ZDAwMDAwIC0gMDAwMDAwMDBmZWQwMTEwMCAocmVzZXJ2ZWQpDQpbICAgIDAuMDAwMDAwXSAg
-QklPUy1lODIwOiAwMDAwMDAwMGZlZDAyMDAwIC0gMDAwMDAwMDBmZWQxNGMwMCAocmVzZXJ2
-ZWQpDQpbICAgIDAuMDAwMDAwXSAgQklPUy1lODIwOiAwMDAwMDAwMGZlZDIwMDAwIC0gMDAw
-MDAwMDBmZWQ0MDAwMCAocmVzZXJ2ZWQpDQpbICAgIDAuMDAwMDAwXSAgQklPUy1lODIwOiAw
-MDAwMDAwMGZlZTAwMDAwIC0gMDAwMDAwMDBmZWUwMTAwMCAocmVzZXJ2ZWQpDQpbICAgIDAu
-MDAwMDAwXSAgQklPUy1lODIwOiAwMDAwMDAwMGZmZTAwMDAwIC0gMDAwMDAwMDEwMDAwMDAw
-MCAocmVzZXJ2ZWQpDQpbICAgIDAuMDAwMDAwXSBOWCAoRXhlY3V0ZSBEaXNhYmxlKSBwcm90
-ZWN0aW9uOiBhY3RpdmUNClsgICAgMC4wMDAwMDBdIERNSSBwcmVzZW50Lg0KWyAgICAwLjAw
-MDAwMF0gTm8gQUdQIGJyaWRnZSBmb3VuZA0KWyAgICAwLjAwMDAwMF0gbGFzdF9wZm4gPSAw
-eDdjZDcwIG1heF9hcmNoX3BmbiA9IDB4NDAwMDAwMDAwDQpbICAgIDAuMDAwMDAwXSB4ODYg
-UEFUIGVuYWJsZWQ6IGNwdSAwLCBvbGQgMHg3MDQwNjAwMDcwNDA2LCBuZXcgMHg3MDEwNjAw
-MDcwMTA2DQpbICAgIDAuMDAwMDAwXSBmb3VuZCBTTVAgTVAtdGFibGUgYXQgW2ZmZmY4ODAw
-MDAwZmY3ODBdIGZmNzgwDQpbICAgIDAuMDAwMDAwXSBTY2FubmluZyAwIGFyZWFzIGZvciBs
-b3cgbWVtb3J5IGNvcnJ1cHRpb24NClsgICAgMC4wMDAwMDBdIGluaXRfbWVtb3J5X21hcHBp
-bmc6IDAwMDAwMDAwMDAwMDAwMDAtMDAwMDAwMDA3Y2Q3MDAwMA0KWyAgICAwLjAwMDAwMF0g
-UkFNRElTSzogMzdjZmUwMDAgLSAzN2ZmMDAwMA0KWyAgICAwLjAwMDAwMF0gQUNQSTogUlNE
-UCAwMDAwMDAwMDAwMGZiMDgwIDAwMDI0ICh2MDIgQUNQSUFNKQ0KWyAgICAwLjAwMDAwMF0g
-QUNQSTogWFNEVCAwMDAwMDAwMDdjZDcwMTAwIDAwMDU0ICh2MDEgQV9NX0lfIE9FTVhTRFQg
-IDA1MDAxMDI1IE1TRlQgMDAwMDAwOTcpDQpbICAgIDAuMDAwMDAwXSBBQ1BJOiBGQUNQIDAw
-MDAwMDAwN2NkNzAyOTAgMDAwRjQgKHYwMyBBX01fSV8gT0VNRkFDUCAgMDUwMDEwMjUgTVNG
-VCAwMDAwMDA5NykNClsgICAgMC4wMDAwMDBdIEFDUEk6IERTRFQgMDAwMDAwMDA3Y2Q3MDQ0
-MCAwODQxRiAodjAxICBBMTA2NSBBMTA2NTAwMCAwMDAwMDAwMCBJTlRMIDIwMDYwMTEzKQ0K
-WyAgICAwLjAwMDAwMF0gQUNQSTogRkFDUyAwMDAwMDAwMDdjZDdlMDAwIDAwMDQwDQpbICAg
-IDAuMDAwMDAwXSBBQ1BJOiBBUElDIDAwMDAwMDAwN2NkNzAzOTAgMDAwNkMgKHYwMSBBX01f
-SV8gT0VNQVBJQyAgMDUwMDEwMjUgTVNGVCAwMDAwMDA5NykNClsgICAgMC4wMDAwMDBdIEFD
-UEk6IE1DRkcgMDAwMDAwMDA3Y2Q3MDQwMCAwMDAzQyAodjAxIEFfTV9JXyBPRU1NQ0ZHICAw
-NTAwMTAyNSBNU0ZUIDAwMDAwMDk3KQ0KWyAgICAwLjAwMDAwMF0gQUNQSTogT0VNQiAwMDAw
-MDAwMDdjZDdlMDQwIDAwMDg5ICh2MDEgQV9NX0lfIEFNSV9PRU0gIDA1MDAxMDI1IE1TRlQg
-MDAwMDAwOTcpDQpbICAgIDAuMDAwMDAwXSBBQ1BJOiBIUEVUIDAwMDAwMDAwN2NkNzg4NjAg
-MDAwMzggKHYwMSBBX01fSV8gT0VNSFBFVCAgMDUwMDEwMjUgTVNGVCAwMDAwMDA5NykNClsg
-ICAgMC4wMDAwMDBdIEFDUEk6IEdTQ0kgMDAwMDAwMDA3Y2Q3ZTBkMCAwMjAyNCAodjAxIEFf
-TV9JXyBHTUNIU0NJICAwNTAwMTAyNSBNU0ZUIDAwMDAwMDk3KQ0KWyAgICAwLjAwMDAwMF0g
-Tm8gTlVNQSBjb25maWd1cmF0aW9uIGZvdW5kDQpbICAgIDAuMDAwMDAwXSBGYWtpbmcgYSBu
-b2RlIGF0IDAwMDAwMDAwMDAwMDAwMDAtMDAwMDAwMDA3Y2Q3MDAwMA0KWyAgICAwLjAwMDAw
-MF0gSW5pdG1lbSBzZXR1cCBub2RlIDAgMDAwMDAwMDAwMDAwMDAwMC0wMDAwMDAwMDdjZDcw
-MDAwDQpbICAgIDAuMDAwMDAwXSAgIE5PREVfREFUQSBbMDAwMDAwMDA3Y2Q2YjAwMCAtIDAw
-MDAwMDAwN2NkNmZmZmZdDQpbICAgIDAuMDAwMDAwXSBab25lIFBGTiByYW5nZXM6DQpbICAg
-IDAuMDAwMDAwXSAgIERNQSAgICAgIDB4MDAwMDAwMTAgLT4gMHgwMDAwMTAwMA0KWyAgICAw
-LjAwMDAwMF0gICBETUEzMiAgICAweDAwMDAxMDAwIC0+IDB4MDAxMDAwMDANClsgICAgMC4w
-MDAwMDBdICAgTm9ybWFsICAgZW1wdHkNClsgICAgMC4wMDAwMDBdIE1vdmFibGUgem9uZSBz
-dGFydCBQRk4gZm9yIGVhY2ggbm9kZQ0KWyAgICAwLjAwMDAwMF0gZWFybHlfbm9kZV9tYXBb
-Ml0gYWN0aXZlIFBGTiByYW5nZXMNClsgICAgMC4wMDAwMDBdICAgICAwOiAweDAwMDAwMDEw
-IC0+IDB4MDAwMDAwOWUNClsgICAgMC4wMDAwMDBdICAgICAwOiAweDAwMDAwMTAwIC0+IDB4
-MDAwN2NkNzANClsgICAgMC4wMDAwMDBdIEFDUEk6IFBNLVRpbWVyIElPIFBvcnQ6IDB4ODA4
-DQpbICAgIDAuMDAwMDAwXSBBQ1BJOiBMQVBJQyAoYWNwaV9pZFsweDAxXSBsYXBpY19pZFsw
-eDAwXSBlbmFibGVkKQ0KWyAgICAwLjAwMDAwMF0gQUNQSTogTEFQSUMgKGFjcGlfaWRbMHgw
-Ml0gbGFwaWNfaWRbMHgwMV0gZW5hYmxlZCkNClsgICAgMC4wMDAwMDBdIEFDUEk6IExBUElD
-IChhY3BpX2lkWzB4MDNdIGxhcGljX2lkWzB4MDJdIGVuYWJsZWQpDQpbICAgIDAuMDAwMDAw
-XSBBQ1BJOiBMQVBJQyAoYWNwaV9pZFsweDA0XSBsYXBpY19pZFsweDAzXSBlbmFibGVkKQ0K
-WyAgICAwLjAwMDAwMF0gQUNQSTogSU9BUElDIChpZFsweDA0XSBhZGRyZXNzWzB4ZmVjMDAw
-MDBdIGdzaV9iYXNlWzBdKQ0KWyAgICAwLjAwMDAwMF0gSU9BUElDWzBdOiBhcGljX2lkIDQs
-IHZlcnNpb24gMzIsIGFkZHJlc3MgMHhmZWMwMDAwMCwgR1NJIDAtMjMNClsgICAgMC4wMDAw
-MDBdIEFDUEk6IElOVF9TUkNfT1ZSIChidXMgMCBidXNfaXJxIDAgZ2xvYmFsX2lycSAyIGRm
-bCBkZmwpDQpbICAgIDAuMDAwMDAwXSBBQ1BJOiBJTlRfU1JDX09WUiAoYnVzIDAgYnVzX2ly
-cSA5IGdsb2JhbF9pcnEgOSBoaWdoIGxldmVsKQ0KWyAgICAwLjAwMDAwMF0gVXNpbmcgQUNQ
-SSAoTUFEVCkgZm9yIFNNUCBjb25maWd1cmF0aW9uIGluZm9ybWF0aW9uDQpbICAgIDAuMDAw
-MDAwXSBBQ1BJOiBIUEVUIGlkOiAweDgwODZhNzAxIGJhc2U6IDB4ZmVkMDAwMDANClsgICAg
-MC4wMDAwMDBdIFNNUDogQWxsb3dpbmcgNCBDUFVzLCAwIGhvdHBsdWcgQ1BVcw0KWyAgICAw
-LjAwMDAwMF0gUE06IFJlZ2lzdGVyZWQgbm9zYXZlIG1lbW9yeTogMDAwMDAwMDAwMDA5ZTAw
-MCAtIDAwMDAwMDAwMDAwOWYwMDANClsgICAgMC4wMDAwMDBdIFBNOiBSZWdpc3RlcmVkIG5v
-c2F2ZSBtZW1vcnk6IDAwMDAwMDAwMDAwOWYwMDAgLSAwMDAwMDAwMDAwMGEwMDAwDQpbICAg
-IDAuMDAwMDAwXSBQTTogUmVnaXN0ZXJlZCBub3NhdmUgbWVtb3J5OiAwMDAwMDAwMDAwMGEw
-MDAwIC0gMDAwMDAwMDAwMDBlNDAwMA0KWyAgICAwLjAwMDAwMF0gUE06IFJlZ2lzdGVyZWQg
-bm9zYXZlIG1lbW9yeTogMDAwMDAwMDAwMDBlNDAwMCAtIDAwMDAwMDAwMDAxMDAwMDANClsg
-ICAgMC4wMDAwMDBdIEFsbG9jYXRpbmcgUENJIHJlc291cmNlcyBzdGFydGluZyBhdCA3Y2Uw
-MDAwMCAoZ2FwOiA3Y2UwMDAwMDo4MWYwMDAwMCkNClsgICAgMC4wMDAwMDBdIEJvb3Rpbmcg
-cGFyYXZpcnR1YWxpemVkIGtlcm5lbCBvbiBiYXJlIGhhcmR3YXJlDQpbICAgIDAuMDAwMDAw
-XSBzZXR1cF9wZXJjcHU6IE5SX0NQVVM6NjQgbnJfY3B1bWFza19iaXRzOjY0IG5yX2NwdV9p
-ZHM6NCBucl9ub2RlX2lkczoxDQpbICAgIDAuMDAwMDAwXSBQRVJDUFU6IEVtYmVkZGVkIDI3
-IHBhZ2VzL2NwdSBAZmZmZjg4MDA3Y2EwMDAwMCBzODE0NzIgcjgxOTIgZDIwOTI4IHU1MjQy
-ODgNClsgICAgMC4wMDAwMDBdIHBjcHUtYWxsb2M6IHM4MTQ3MiByODE5MiBkMjA5MjggdTUy
-NDI4OCBhbGxvYz0xKjIwOTcxNTINClsgICAgMC4wMDAwMDBdIHBjcHUtYWxsb2M6IFswXSAw
-IDEgMiAzIA0KWyAgICAwLjAwMDAwMF0gQnVpbHQgMSB6b25lbGlzdHMgaW4gTm9kZSBvcmRl
-ciwgbW9iaWxpdHkgZ3JvdXBpbmcgb24uICBUb3RhbCBwYWdlczogNTA0MjMyDQpbICAgIDAu
-MDAwMDAwXSBQb2xpY3kgem9uZTogRE1BMzINClsgICAgMC4wMDAwMDBdIEtlcm5lbCBjb21t
-YW5kIGxpbmU6IEJPT1RfSU1BR0U9L2Jvb3Qvdm1saW51ei0yLjYuMzYrIHJvb3Q9VVVJRD1k
-MjAwMTYwZC1lNjIxLTRjYjQtYTc1ZC03MDJhNWFiYzQ1NGUgcm8gYw0Kb25zb2xlPXR0eVMw
-LDExNTIwMA0KWyAgICAwLjAwMDAwMF0gUElEIGhhc2ggdGFibGUgZW50cmllczogNDA5NiAo
-b3JkZXI6IDMsIDMyNzY4IGJ5dGVzKQ0KWyAgICAwLjAwMDAwMF0geHNhdmUveHJzdG9yOiBl
-bmFibGVkIHhzdGF0ZV9idiAweDMsIGNudHh0IHNpemUgMHgyNDANClsgICAgMC4wMDAwMDBd
-IENoZWNraW5nIGFwZXJ0dXJlLi4uDQpbICAgIDAuMDAwMDAwXSBObyBBR1AgYnJpZGdlIGZv
-dW5kDQpbICAgIDAuMDAwMDAwXSBNZW1vcnk6IDE5OTc3NjhrLzIwNDUzNzZrIGF2YWlsYWJs
-ZSAoNjQyNGsga2VybmVsIGNvZGUsIDQ1NmsgYWJzZW50LCA0NzE1MmsgcmVzZXJ2ZWQsIDY4
-MThrIGRhdGEsIDY5NmsgaW4NCml0KQ0KWyAgICAwLjAwMDAwMF0gU0xVQjogR2Vuc2xhYnM9
-MTUsIEhXYWxpZ249NjQsIE9yZGVyPTAtMywgTWluT2JqZWN0cz0wLCBDUFVzPTQsIE5vZGVz
-PTENClsgICAgMC4wMDAwMDBdIEhpZXJhcmNoaWNhbCBSQ1UgaW1wbGVtZW50YXRpb24uDQpb
-ICAgIDAuMDAwMDAwXSAJUkNVLWJhc2VkIGRldGVjdGlvbiBvZiBzdGFsbGVkIENQVXMgaXMg
-ZGlzYWJsZWQuDQpbICAgIDAuMDAwMDAwXSBOUl9JUlFTOjQzNTIgbnJfaXJxczo3MTIgMTYN
-ClsgICAgMC4wMDAwMDBdIEV4dGVuZGVkIENNT1MgeWVhcjogMjAwMA0KWyAgICAwLjAwMDAw
-MF0gQ29uc29sZTogY29sb3VyIFZHQSsgODB4MjUNClsgICAgMC4wMDAwMDBdIGNvbnNvbGUg
-W3R0eVMwXSBlbmFibGVkDQpbICAgIDAuMDAwMDAwXSBGYXN0IFRTQyBjYWxpYnJhdGlvbiB1
-c2luZyBQSVQNClsgICAgMC4wMDAwMDBdIERldGVjdGVkIDI2NjYuMTAxIE1IeiBwcm9jZXNz
-b3IuDQpbICAgIDAuMDAyMDA3XSBDYWxpYnJhdGluZyBkZWxheSBsb29wIChza2lwcGVkKSwg
-dmFsdWUgY2FsY3VsYXRlZCB1c2luZyB0aW1lciBmcmVxdWVuY3kuLiA1MzMyLjIwIEJvZ29N
-SVBTIChscGo9MjY2NjEwMSkNClsgICAgMC4wMDQwMDJdIHBpZF9tYXg6IGRlZmF1bHQ6IDMy
-NzY4IG1pbmltdW06IDMwMQ0KWyAgICAwLjAwNTAxOF0gU2VjdXJpdHkgRnJhbWV3b3JrIGlu
-aXRpYWxpemVkDQpbICAgIDAuMDA2MDA0XSBTRUxpbnV4OiAgSW5pdGlhbGl6aW5nLg0KWyAg
-ICAwLjAwODA5NV0gRGVudHJ5IGNhY2hlIGhhc2ggdGFibGUgZW50cmllczogMjYyMTQ0IChv
-cmRlcjogOSwgMjA5NzE1MiBieXRlcykNClsgICAgMC4wMTAzMTddIElub2RlLWNhY2hlIGhh
-c2ggdGFibGUgZW50cmllczogMTMxMDcyIChvcmRlcjogOCwgMTA0ODU3NiBieXRlcykNClsg
-ICAgMC4wMTE1MDFdIE1vdW50LWNhY2hlIGhhc2ggdGFibGUgZW50cmllczogMjU2DQpbICAg
-IDAuMDEyMTQxXSBJbml0aWFsaXppbmcgY2dyb3VwIHN1YnN5cyBucw0KWyAgICAwLjAxMzAw
-NV0gSW5pdGlhbGl6aW5nIGNncm91cCBzdWJzeXMgY3B1YWNjdA0KWyAgICAwLjAxNTAwNF0g
-SW5pdGlhbGl6aW5nIGNncm91cCBzdWJzeXMgZnJlZXplcg0KWyAgICAwLjAxNjAyNl0gQ1BV
-OiBQaHlzaWNhbCBQcm9jZXNzb3IgSUQ6IDANClsgICAgMC4wMTcwMDJdIENQVTogUHJvY2Vz
-c29yIENvcmUgSUQ6IDANClsgICAgMC4wMTgwMDJdIG1jZTogQ1BVIHN1cHBvcnRzIDYgTUNF
-IGJhbmtzDQpbICAgIDAuMDE5MDA3XSBDUFUwOiBUaGVybWFsIG1vbml0b3JpbmcgZW5hYmxl
-ZCAoVE0yKQ0KWyAgICAwLjAyMDAwM10gdXNpbmcgbXdhaXQgaW4gaWRsZSB0aHJlYWRzLg0K
-WyAgICAwLjAyMTAwMl0gUGVyZm9ybWFuY2UgRXZlbnRzOiBQRUJTIGZtdDArLCBDb3JlMiBl
-dmVudHMsIEludGVsIFBNVSBkcml2ZXIuDQpbICAgIDAuMDI1MDA0XSAuLi4gdmVyc2lvbjog
-ICAgICAgICAgICAgICAgMg0KWyAgICAwLjAyNjAwMV0gLi4uIGJpdCB3aWR0aDogICAgICAg
-ICAgICAgIDQwDQpbICAgIDAuMDI3MDAxXSAuLi4gZ2VuZXJpYyByZWdpc3RlcnM6ICAgICAg
-Mg0KWyAgICAwLjAyODAwMl0gLi4uIHZhbHVlIG1hc2s6ICAgICAgICAgICAgIDAwMDAwMGZm
-ZmZmZmZmZmYNClsgICAgMC4wMjkwMDJdIC4uLiBtYXggcGVyaW9kOiAgICAgICAgICAgICAw
-MDAwMDAwMDdmZmZmZmZmDQpbICAgIDAuMDMwMDAxXSAuLi4gZml4ZWQtcHVycG9zZSBldmVu
-dHM6ICAgMw0KWyAgICAwLjAzMTAwMl0gLi4uIGV2ZW50IG1hc2s6ICAgICAgICAgICAgIDAw
-MDAwMDA3MDAwMDAwMDMNClsgICAgMC4wMzM5MjldIEFDUEk6IENvcmUgcmV2aXNpb24gMjAx
-MDEwMTMNClsgICAgMC4wNDE5MTRdIFNldHRpbmcgQVBJQyByb3V0aW5nIHRvIGZsYXQNClsg
-ICAgMC4wNDMxNDNdIC4uVElNRVI6IHZlY3Rvcj0weDMwIGFwaWMxPTAgcGluMT0yIGFwaWMy
-PS0xIHBpbjI9LTENClsgICAgMC4wNTQxNDFdIENQVTA6IEludGVsKFIpIENvcmUoVE0pMiBR
-dWFkIENQVSAgICBROTQwMCAgQCAyLjY2R0h6IHN0ZXBwaW5nIDBhDQpbICAgIDAuMDU3OTk5
-XSBCb290aW5nIE5vZGUgICAwLCBQcm9jZXNzb3JzICAjMSAjMiAjMyBPay4NClsgICAgMC4y
-NzQwMDZdIEJyb3VnaHQgdXAgNCBDUFVzDQpbICAgIDAuMjc1MDAxXSBUb3RhbCBvZiA0IHBy
-b2Nlc3NvcnMgYWN0aXZhdGVkICgyMTMyOS43OCBCb2dvTUlQUykuDQpbICAgIDAuMjc3MDY3
-XSBrd29ya2VyL3U6MCB1c2VkIGdyZWF0ZXN0IHN0YWNrIGRlcHRoOiA1OTQ0IGJ5dGVzIGxl
-ZnQNClsgICAgMC4yODQwNzVdIFRpbWU6IDExOjU3OjQ3ICBEYXRlOiAxMC8yNy8xMA0KWyAg
-ICAwLjI4NTAzMl0gTkVUOiBSZWdpc3RlcmVkIHByb3RvY29sIGZhbWlseSAxNg0KWyAgICAw
-LjI4NzAxN10gQUNQSTogYnVzIHR5cGUgcGNpIHJlZ2lzdGVyZWQNClsgICAgMC4yODgwMjVd
-IFBDSTogTU1DT05GSUcgZm9yIGRvbWFpbiAwMDAwIFtidXMgMDAtZmZdIGF0IFttZW0gMHhl
-MDAwMDAwMC0weGVmZmZmZmZmXSAoYmFzZSAweGUwMDAwMDAwKQ0KWyAgICAwLjI4OTAwM10g
-UENJOiBub3QgdXNpbmcgTU1DT05GSUcNClsgICAgMC4yOTAwMDFdIFBDSTogVXNpbmcgY29u
-ZmlndXJhdGlvbiB0eXBlIDEgZm9yIGJhc2UgYWNjZXNzDQpbICAgIDAuMzAxMTU3XSBiaW86
-IGNyZWF0ZSBzbGFiIDxiaW8tMD4gYXQgMA0KWyAgICAwLjMwNDcyM10gQUNQSTogRXhlY3V0
-ZWQgMSBibG9ja3Mgb2YgbW9kdWxlLWxldmVsIGV4ZWN1dGFibGUgQU1MIGNvZGUNClsgICAg
-MC4zMTEyNTddIEFDUEk6IEludGVycHJldGVyIGVuYWJsZWQNClsgICAgMC4zMTIwMDJdIEFD
-UEk6IChzdXBwb3J0cyBTMCBTMSBTMyBTNCBTNSkNClsgICAgMC4zMTUwMDNdIEFDUEk6IFVz
-aW5nIElPQVBJQyBmb3IgaW50ZXJydXB0IHJvdXRpbmcNClsgICAgMC4zMTYwMzJdIFBDSTog
-TU1DT05GSUcgZm9yIGRvbWFpbiAwMDAwIFtidXMgMDAtZmZdIGF0IFttZW0gMHhlMDAwMDAw
-MC0weGVmZmZmZmZmXSAoYmFzZSAweGUwMDAwMDAwKQ0KWyAgICAwLjMxODcwNV0gUENJOiBN
-TUNPTkZJRyBhdCBbbWVtIDB4ZTAwMDAwMDAtMHhlZmZmZmZmZl0gcmVzZXJ2ZWQgaW4gQUNQ
-SSBtb3RoZXJib2FyZCByZXNvdXJjZXMNClsgICAgMC4zNDIxMTNdIEFDUEk6IE5vIGRvY2sg
-ZGV2aWNlcyBmb3VuZC4NClsgICAgMC4zNDMwMDNdIFBDSTogVXNpbmcgaG9zdCBicmlkZ2Ug
-d2luZG93cyBmcm9tIEFDUEk7IGlmIG5lY2Vzc2FyeSwgdXNlICJwY2k9bm9jcnMiIGFuZCBy
-ZXBvcnQgYSBidWcNClsgICAgMC4zNDQxMTJdIEFDUEk6IFBDSSBSb290IEJyaWRnZSBbUENJ
-MF0gKGRvbWFpbiAwMDAwIFtidXMgMDAtZmZdKQ0KWyAgICAwLjM0NjAyMF0gcGNpX3Jvb3Qg
-UE5QMEEwODowMDogaG9zdCBicmlkZ2Ugd2luZG93IFtpbyAgMHgwMDAwLTB4MGNmN10NClsg
-ICAgMC4zNDcwMDJdIHBjaV9yb290IFBOUDBBMDg6MDA6IGhvc3QgYnJpZGdlIHdpbmRvdyBb
-aW8gIDB4MGQwMC0weGZmZmZdDQpbICAgIDAuMzQ4MDAxXSBwY2lfcm9vdCBQTlAwQTA4OjAw
-OiBob3N0IGJyaWRnZSB3aW5kb3cgW21lbSAweDAwMGEwMDAwLTB4MDAwYmZmZmZdDQpbICAg
-IDAuMzQ5MDAyXSBwY2lfcm9vdCBQTlAwQTA4OjAwOiBob3N0IGJyaWRnZSB3aW5kb3cgW21l
-bSAweDAwMGQwMDAwLTB4MDAwZGZmZmZdDQpbICAgIDAuMzUwMDAyXSBwY2lfcm9vdCBQTlAw
-QTA4OjAwOiBob3N0IGJyaWRnZSB3aW5kb3cgW21lbSAweDdjZTAwMDAwLTB4ZGZmZmZmZmZd
-DQpbICAgIDAuMzUxMDAyXSBwY2lfcm9vdCBQTlAwQTA4OjAwOiBob3N0IGJyaWRnZSB3aW5k
-b3cgW21lbSAweGYwMDAwMDAwLTB4ZmZmZmZmZmZdDQpbICAgIDAuMzU0MTE1XSBwY2kgMDAw
-MDowMDoxYy4wOiBQQ0kgYnJpZGdlIHRvIFtidXMgMDMtMDNdDQpbICAgIDAuMzU3MDE1XSBw
-Y2kgMDAwMDowMDoxYy4xOiBQQ0kgYnJpZGdlIHRvIFtidXMgMDItMDJdDQpbICAgIDAuMzU4
-MTk1XSBwY2kgMDAwMDowMTowMC4wOiBkaXNhYmxpbmcgQVNQTSBvbiBwcmUtMS4xIFBDSWUg
-ZGV2aWNlLiAgWW91IGNhbiBlbmFibGUgaXQgd2l0aCAncGNpZV9hc3BtPWZvcmNlJw0KWyAg
-ICAwLjM1OTAwOV0gcGNpIDAwMDA6MDA6MWMuNDogUENJIGJyaWRnZSB0byBbYnVzIDAxLTAx
-XQ0KWyAgICAwLjM2MDA2OF0gcGNpIDAwMDA6MDA6MWUuMDogUENJIGJyaWRnZSB0byBbYnVz
-IDA0LTA0XSAoc3VidHJhY3RpdmUgZGVjb2RlKQ0KWyAgICAwLjM3MjQyNl0gQUNQSTogUENJ
-IEludGVycnVwdCBMaW5rIFtMTktBXSAoSVJRcyAzIDQgNSA2IDcgMTAgKjExIDEyIDE0IDE1
-KQ0KWyAgICAwLjM3NjA0Nl0gQUNQSTogUENJIEludGVycnVwdCBMaW5rIFtMTktCXSAoSVJR
-cyAzIDQgNSA2IDcgKjEwIDExIDEyIDE0IDE1KQ0KWyAgICAwLjM4MDMzOF0gQUNQSTogUENJ
-IEludGVycnVwdCBMaW5rIFtMTktDXSAoSVJRcyAzIDQgNSA2IDcgMTAgMTEgMTIgKjE0IDE1
-KQ0KWyAgICAwLjM4NDYxNF0gQUNQSTogUENJIEludGVycnVwdCBMaW5rIFtMTktEXSAoSVJR
-cyAzIDQgNSA2IDcgKjEwIDExIDEyIDE0IDE1KQ0KWyAgICAwLjM4Nzg5NF0gQUNQSTogUENJ
-IEludGVycnVwdCBMaW5rIFtMTktFXSAoSVJRcyAzIDQgNSA2IDcgMTAgMTEgMTIgMTQgKjE1
-KQ0KWyAgICAwLjM5MTA0NF0gQUNQSTogUENJIEludGVycnVwdCBMaW5rIFtMTktGXSAoSVJR
-cyAqMyA0IDUgNiA3IDEwIDExIDEyIDE0IDE1KQ0KWyAgICAwLjM5NTMzN10gQUNQSTogUENJ
-IEludGVycnVwdCBMaW5rIFtMTktHXSAoSVJRcyAzIDQgKjUgNiA3IDEwIDExIDEyIDE0IDE1
-KQ0KWyAgICAwLjM5ODYxNF0gQUNQSTogUENJIEludGVycnVwdCBMaW5rIFtMTktIXSAoSVJR
-cyAzIDQgNSA2ICo3IDEwIDExIDEyIDE0IDE1KQ0KWyAgICAwLjQwMjAyNF0gdmdhYXJiOiBk
-ZXZpY2UgYWRkZWQ6IFBDSTowMDAwOjAwOjAyLjAsZGVjb2Rlcz1pbyttZW0sb3ducz1pbytt
-ZW0sbG9ja3M9bm9uZQ0KWyAgICAwLjQwMzAxMV0gdmdhYXJiOiBsb2FkZWQNClsgICAgMC40
-MDQwNzNdIFNDU0kgc3Vic3lzdGVtIGluaXRpYWxpemVkDQpbICAgIDAuNDA2MDE3XSB1c2Jj
-b3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIHVzYmZzDQpbICAgIDAuNDA3
-MDE2XSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIGh1Yg0KWyAg
-ICAwLjQwODAxMl0gdXNiY29yZTogcmVnaXN0ZXJlZCBuZXcgZGV2aWNlIGRyaXZlciB1c2IN
-ClsgICAgMC40MDkwMTddIEFkdmFuY2VkIExpbnV4IFNvdW5kIEFyY2hpdGVjdHVyZSBEcml2
-ZXIgVmVyc2lvbiAxLjAuMjMuDQpbICAgIDAuNDEwMDAyXSBQQ0k6IFVzaW5nIEFDUEkgZm9y
-IElSUSByb3V0aW5nDQpbICAgIDAuNDEyMTU5XSBjZmc4MDIxMTogQ2FsbGluZyBDUkRBIHRv
-IHVwZGF0ZSB3b3JsZCByZWd1bGF0b3J5IGRvbWFpbg0KWyAgICAwLjQxMzEzN10gTmV0TGFi
-ZWw6IEluaXRpYWxpemluZw0KWyAgICAwLjQxNDAwMV0gTmV0TGFiZWw6ICBkb21haW4gaGFz
-aCBzaXplID0gMTI4DQpbICAgIDAuNDE1MDAwXSBOZXRMYWJlbDogIHByb3RvY29scyA9IFVO
-TEFCRUxFRCBDSVBTT3Y0DQpbICAgIDAuNDE2MDEwXSBOZXRMYWJlbDogIHVubGFiZWxlZCB0
-cmFmZmljIGFsbG93ZWQgYnkgZGVmYXVsdA0KWyAgICAwLjQxNzA2Nl0gSFBFVDogOCB0aW1l
-cnMgaW4gdG90YWwsIDQgdGltZXJzIHdpbGwgYmUgdXNlZCBmb3IgcGVyLWNwdSB0aW1lcg0K
-WyAgICAwLjQxODAwNl0gaHBldDA6IGF0IE1NSU8gMHhmZWQwMDAwMCwgSVJRcyAyLCA4LCA0
-MCwgNDEsIDQyLCA0MywgMCwgMA0KWyAgICAwLjQyMjAwMV0gaHBldDA6IDggY29tcGFyYXRv
-cnMsIDY0LWJpdCAxNC4zMTgxODAgTUh6IGNvdW50ZXINClsgICAgMC43NjIwMDNdIFN3aXRj
-aGluZyB0byBjbG9ja3NvdXJjZSB0c2MNClsgICAgMC43NjY0MTVdIHBucDogUG5QIEFDUEkg
-aW5pdA0KWyAgICAwLjc2OTQ4NV0gQUNQSTogYnVzIHR5cGUgcG5wIHJlZ2lzdGVyZWQNClsg
-ICAgMC43NzYzODRdIHBucDogUG5QIEFDUEk6IGZvdW5kIDE4IGRldmljZXMNClsgICAgMC43
-ODA1NzBdIEFDUEk6IEFDUEkgYnVzIHR5cGUgcG5wIHVucmVnaXN0ZXJlZA0KWyAgICAwLjc4
-NTE5NF0gc3lzdGVtIDAwOjAxOiBbbWVtIDB4ZmVkMTQwMDAtMHhmZWQxOWZmZl0gY291bGQg
-bm90IGJlIHJlc2VydmVkDQpbICAgIDAuNzkyMTUwXSBzeXN0ZW0gMDA6MDE6IFttZW0gMHhm
-ZWQ5MDAwMC0weGZlZDkzZmZmXSBoYXMgYmVlbiByZXNlcnZlZA0KWyAgICAwLjc5ODc2N10g
-c3lzdGVtIDAwOjA3OiBbaW8gIDB4MDI5MC0weDAyOWZdIGhhcyBiZWVuIHJlc2VydmVkDQpb
-ICAgIDAuODA0Njg1XSBzeXN0ZW0gMDA6MDg6IFtpbyAgMHgwNGQwLTB4MDRkMV0gaGFzIGJl
-ZW4gcmVzZXJ2ZWQNClsgICAgMC44MTA2MDRdIHN5c3RlbSAwMDowODogW2lvICAweDA4MDAt
-MHgwODdmXSBoYXMgYmVlbiByZXNlcnZlZA0KWyAgICAwLjgxNjUyMl0gc3lzdGVtIDAwOjA4
-OiBbaW8gIDB4MDUwMC0weDA1N2ZdIGhhcyBiZWVuIHJlc2VydmVkDQpbICAgIDAuODIyNDQz
-XSBzeXN0ZW0gMDA6MDg6IFttZW0gMHhmZWQwODAwMC0weGZlZDA4ZmZmXSBoYXMgYmVlbiBy
-ZXNlcnZlZA0KWyAgICAwLjgyOTA1Nl0gc3lzdGVtIDAwOjA4OiBbbWVtIDB4ZmVkMWMwMDAt
-MHhmZWQxZmZmZl0gaGFzIGJlZW4gcmVzZXJ2ZWQNClsgICAgMC44MzU2NzBdIHN5c3RlbSAw
-MDowODogW21lbSAweGZlZDIwMDAwLTB4ZmVkM2ZmZmZdIGhhcyBiZWVuIHJlc2VydmVkDQpb
-ICAgIDAuODQyMjgzXSBzeXN0ZW0gMDA6MDg6IFttZW0gMHhmZWQ1MDAwMC0weGZlZDhmZmZm
-XSBoYXMgYmVlbiByZXNlcnZlZA0KWyAgICAwLjg0ODg5OF0gc3lzdGVtIDAwOjBiOiBbbWVt
-IDB4ZmZjMDAwMDAtMHhmZmRmZmZmZl0gaGFzIGJlZW4gcmVzZXJ2ZWQNClsgICAgMC44NTU1
-MTFdIHN5c3RlbSAwMDowZDogW21lbSAweGZlYzAwMDAwLTB4ZmVjMDBmZmZdIGNvdWxkIG5v
-dCBiZSByZXNlcnZlZA0KWyAgICAwLjg2MjQ2OV0gc3lzdGVtIDAwOjBkOiBbbWVtIDB4ZmVl
-MDAwMDAtMHhmZWUwMGZmZl0gaGFzIGJlZW4gcmVzZXJ2ZWQNClsgICAgMC44NjkwODVdIHN5
-c3RlbSAwMDoxMDogW21lbSAweGUwMDAwMDAwLTB4ZWZmZmZmZmZdIGhhcyBiZWVuIHJlc2Vy
-dmVkDQpbICAgIDAuODc1Njk4XSBzeXN0ZW0gMDA6MTE6IFttZW0gMHgwMDAwMDAwMC0weDAw
-MDlmZmZmXSBjb3VsZCBub3QgYmUgcmVzZXJ2ZWQNClsgICAgMC44ODI2NTZdIHN5c3RlbSAw
-MDoxMTogW21lbSAweDAwMGMwMDAwLTB4MDAwY2ZmZmZdIGhhcyBiZWVuIHJlc2VydmVkDQpb
-ICAgIDAuODg5MjY5XSBzeXN0ZW0gMDA6MTE6IFttZW0gMHgwMDBlMDAwMC0weDAwMGZmZmZm
-XSBjb3VsZCBub3QgYmUgcmVzZXJ2ZWQNClsgICAgMC44OTYyMzBdIHN5c3RlbSAwMDoxMTog
-W21lbSAweDAwMTAwMDAwLTB4N2NkZmZmZmZdIGNvdWxkIG5vdCBiZSByZXNlcnZlZA0KWyAg
-ICAwLjkwMzE5MF0gc3lzdGVtIDAwOjExOiBbbWVtIDB4ZTAwMDAwMDAtMHhmZmZmZmZmZl0g
-Y291bGQgbm90IGJlIHJlc2VydmVkDQpbICAgIDAuOTE4MTE4XSBwY2kgMDAwMDowMDoxYy4w
-OiBQQ0kgYnJpZGdlIHRvIFtidXMgMDMtMDNdDQpbICAgIDAuOTIzMzQyXSBwY2kgMDAwMDow
-MDoxYy4wOiAgIGJyaWRnZSB3aW5kb3cgW2lvICBkaXNhYmxlZF0NClsgICAgMC45MjkwMDJd
-IHBjaSAwMDAwOjAwOjFjLjA6ICAgYnJpZGdlIHdpbmRvdyBbbWVtIGRpc2FibGVkXQ0KWyAg
-ICAwLjkzNDY2Ml0gcGNpIDAwMDA6MDA6MWMuMDogICBicmlkZ2Ugd2luZG93IFttZW0gMHhm
-ZGYwMDAwMC0weGZkZmZmZmZmIDY0Yml0IHByZWZdDQpbICAgIDAuOTQyNDA0XSBwY2kgMDAw
-MDowMDoxYy4xOiBQQ0kgYnJpZGdlIHRvIFtidXMgMDItMDJdDQpbICAgIDAuOTQ3NjI3XSBw
-Y2kgMDAwMDowMDoxYy4xOiAgIGJyaWRnZSB3aW5kb3cgW2lvICBkaXNhYmxlZF0NClsgICAg
-MC45NTMyODldIHBjaSAwMDAwOjAwOjFjLjE6ICAgYnJpZGdlIHdpbmRvdyBbbWVtIDB4ZmVi
-MDAwMDAtMHhmZWJmZmZmZl0NClsgICAgMC45NjAwNzRdIHBjaSAwMDAwOjAwOjFjLjE6ICAg
-YnJpZGdlIHdpbmRvdyBbbWVtIHByZWYgZGlzYWJsZWRdDQpbICAgIDAuOTY2MTY4XSBwY2kg
-MDAwMDowMDoxYy40OiBQQ0kgYnJpZGdlIHRvIFtidXMgMDEtMDFdDQpbICAgIDAuOTcxMzkz
-XSBwY2kgMDAwMDowMDoxYy40OiAgIGJyaWRnZSB3aW5kb3cgW2lvICAweGUwMDAtMHhlZmZm
-XQ0KWyAgICAwLjk3NzQ4OV0gcGNpIDAwMDA6MDA6MWMuNDogICBicmlkZ2Ugd2luZG93IFtt
-ZW0gMHhmZWEwMDAwMC0weGZlYWZmZmZmXQ0KWyAgICAwLjk4NDI3NF0gcGNpIDAwMDA6MDA6
-MWMuNDogICBicmlkZ2Ugd2luZG93IFttZW0gcHJlZiBkaXNhYmxlZF0NClsgICAgMC45OTAz
-NjldIHBjaSAwMDAwOjAwOjFlLjA6IFBDSSBicmlkZ2UgdG8gW2J1cyAwNC0wNF0NClsgICAg
-MC45OTU1OTNdIHBjaSAwMDAwOjAwOjFlLjA6ICAgYnJpZGdlIHdpbmRvdyBbaW8gIGRpc2Fi
-bGVkXQ0KWyAgICAxLjAwMTI1NF0gcGNpIDAwMDA6MDA6MWUuMDogICBicmlkZ2Ugd2luZG93
-IFttZW0gZGlzYWJsZWRdDQpbICAgIDEuMDA2OTEzXSBwY2kgMDAwMDowMDoxZS4wOiAgIGJy
-aWRnZSB3aW5kb3cgW21lbSBwcmVmIGRpc2FibGVkXQ0KWyAgICAxLjAxMzAyMV0gcGNpIDAw
-MDA6MDA6MWMuMDogUENJIElOVCBBIC0+IEdTSSAxNyAobGV2ZWwsIGxvdykgLT4gSVJRIDE3
-DQpbICAgIDEuMDE5NzI3XSBwY2kgMDAwMDowMDoxYy4xOiBQQ0kgSU5UIEIgLT4gR1NJIDE2
-IChsZXZlbCwgbG93KSAtPiBJUlEgMTYNClsgICAgMS4wMjY0MzNdIHBjaSAwMDAwOjAwOjFj
-LjQ6IFBDSSBJTlQgQSAtPiBHU0kgMTcgKGxldmVsLCBsb3cpIC0+IElSUSAxNw0KWyAgICAx
-LjAzMzIwNF0gTkVUOiBSZWdpc3RlcmVkIHByb3RvY29sIGZhbWlseSAyDQpbICAgIDEuMDM3
-NjQ5XSBJUCByb3V0ZSBjYWNoZSBoYXNoIHRhYmxlIGVudHJpZXM6IDY1NTM2IChvcmRlcjog
-NywgNTI0Mjg4IGJ5dGVzKQ0KWyAgICAxLjA0NTM2OF0gVENQIGVzdGFibGlzaGVkIGhhc2gg
-dGFibGUgZW50cmllczogMjYyMTQ0IChvcmRlcjogMTAsIDQxOTQzMDQgYnl0ZXMpDQpbICAg
-IDEuMDU0NDkyXSBUQ1AgYmluZCBoYXNoIHRhYmxlIGVudHJpZXM6IDY1NTM2IChvcmRlcjog
-OCwgMTA0ODU3NiBieXRlcykNClsgICAgMS4wNjE2OTJdIFRDUDogSGFzaCB0YWJsZXMgY29u
-ZmlndXJlZCAoZXN0YWJsaXNoZWQgMjYyMTQ0IGJpbmQgNjU1MzYpDQpbICAgIDEuMDY4MzA1
-XSBUQ1AgcmVubyByZWdpc3RlcmVkDQpbICAgIDEuMDcxNDU4XSBVRFAgaGFzaCB0YWJsZSBl
-bnRyaWVzOiAxMDI0IChvcmRlcjogMywgMzI3NjggYnl0ZXMpDQpbICAgIDEuMDc3NDc1XSBV
-RFAtTGl0ZSBoYXNoIHRhYmxlIGVudHJpZXM6IDEwMjQgKG9yZGVyOiAzLCAzMjc2OCBieXRl
-cykNClsgICAgMS4wODQwNTNdIE5FVDogUmVnaXN0ZXJlZCBwcm90b2NvbCBmYW1pbHkgMQ0K
-WyAgICAxLjA4ODU0MV0gUlBDOiBSZWdpc3RlcmVkIHVkcCB0cmFuc3BvcnQgbW9kdWxlLg0K
-WyAgICAxLjA5MzI0Ml0gUlBDOiBSZWdpc3RlcmVkIHRjcCB0cmFuc3BvcnQgbW9kdWxlLg0K
-WyAgICAxLjA5Nzk0N10gUlBDOiBSZWdpc3RlcmVkIHRjcCBORlN2NC4xIGJhY2tjaGFubmVs
-IHRyYW5zcG9ydCBtb2R1bGUuDQpbICAgIDEuMTA0ODE3XSBUcnlpbmcgdG8gdW5wYWNrIHJv
-b3RmcyBpbWFnZSBhcyBpbml0cmFtZnMuLi4NClsgICAgMS4xNjEyODNdIEZyZWVpbmcgaW5p
-dHJkIG1lbW9yeTogMzAxNmsgZnJlZWQNClsgICAgMS4xNjg0MjhdIG1pY3JvY29kZTogQ1BV
-MCBzaWc9MHgxMDY3YSwgcGY9MHgxMCwgcmV2aXNpb249MHhhMDcNClsgICAgMS4xNzQ0NDJd
-IG1pY3JvY29kZTogQ1BVMSBzaWc9MHgxMDY3YSwgcGY9MHgxMCwgcmV2aXNpb249MHhhMDcN
-ClsgICAgMS4xODA0NDddIG1pY3JvY29kZTogQ1BVMiBzaWc9MHgxMDY3YSwgcGY9MHgxMCwg
-cmV2aXNpb249MHhhMDcNClsgICAgMS4xODY0NTRdIG1pY3JvY29kZTogQ1BVMyBzaWc9MHgx
-MDY3YSwgcGY9MHgxMCwgcmV2aXNpb249MHhhMDcNClsgICAgMS4xOTI1MDJdIG1pY3JvY29k
-ZTogTWljcm9jb2RlIFVwZGF0ZSBEcml2ZXI6IHYyLjAwIDx0aWdyYW5AYWl2YXppYW4uZnNu
-ZXQuY28udWs+LCBQZXRlciBPcnViYQ0KWyAgICAxLjIwMTI4Ml0gU2Nhbm5pbmcgZm9yIGxv
-dyBtZW1vcnkgY29ycnVwdGlvbiBldmVyeSA2MCBzZWNvbmRzDQpbICAgIDEuMjA3NDQ4XSBh
-dWRpdDogaW5pdGlhbGl6aW5nIG5ldGxpbmsgc29ja2V0IChkaXNhYmxlZCkNClsgICAgMS4y
-MTI4NThdIHR5cGU9MjAwMCBhdWRpdCgxMjg4MTgwNjY3LjIxMToxKTogaW5pdGlhbGl6ZWQN
-ClsgICAgMS4yMjkzMTldIEh1Z2VUTEIgcmVnaXN0ZXJlZCAyIE1CIHBhZ2Ugc2l6ZSwgcHJl
-LWFsbG9jYXRlZCAwIHBhZ2VzDQpbICAgIDEuMjM5MDIwXSBWRlM6IERpc2sgcXVvdGFzIGRx
-dW90XzYuNS4yDQpbICAgIDEuMjQzMDk1XSBEcXVvdC1jYWNoZSBoYXNoIHRhYmxlIGVudHJp
-ZXM6IDUxMiAob3JkZXIgMCwgNDA5NiBieXRlcykNClsgICAgMS4yNTAzMTJdIG1zZ21uaSBo
-YXMgYmVlbiBzZXQgdG8gMzkwNw0KWyAgICAxLjI1NDYzM10gQmxvY2sgbGF5ZXIgU0NTSSBn
-ZW5lcmljIChic2cpIGRyaXZlciB2ZXJzaW9uIDAuNCBsb2FkZWQgKG1ham9yIDI1MykNClsg
-ICAgMS4yNjIwMjRdIGlvIHNjaGVkdWxlciBub29wIHJlZ2lzdGVyZWQNClsgICAgMS4yNjU5
-NTJdIGlvIHNjaGVkdWxlciBkZWFkbGluZSByZWdpc3RlcmVkDQpbICAgIDEuMjcwMjgzXSBp
-byBzY2hlZHVsZXIgY2ZxIHJlZ2lzdGVyZWQgKGRlZmF1bHQpDQpbICAgIDEuMjc1MTk4XSBw
-Y2lfaG90cGx1ZzogUENJIEhvdCBQbHVnIFBDSSBDb3JlIHZlcnNpb246IDAuNQ0KWyAgICAx
-LjI4MTA1Nl0gaW5wdXQ6IFBvd2VyIEJ1dHRvbiBhcyAvZGV2aWNlcy9MTlhTWVNUTTowMC9k
-ZXZpY2U6MDAvUE5QMEMwQzowMC9pbnB1dC9pbnB1dDANClsgICAgMS4yODkyMjZdIEFDUEk6
-IFBvd2VyIEJ1dHRvbiBbUFdSQl0NClsgICAgMS4yOTI5NTRdIGlucHV0OiBQb3dlciBCdXR0
-b24gYXMgL2RldmljZXMvTE5YU1lTVE06MDAvTE5YUFdSQk46MDAvaW5wdXQvaW5wdXQxDQpb
-ICAgIDEuMzAwMzQ1XSBBQ1BJOiBQb3dlciBCdXR0b24gW1BXUkZdDQpbICAgIDEuMzA2NTI0
-XSB4ZW5mczogbm90IHJlZ2lzdGVyaW5nIGZpbGVzeXN0ZW0gb24gbm9uLXhlbiBwbGF0Zm9y
-bQ0KWyAgICAxLjMxMjg3N10gTm9uLXZvbGF0aWxlIG1lbW9yeSBkcml2ZXIgdjEuMw0KWyAg
-ICAxLjMxNzA2NV0gTGludXggYWdwZ2FydCBpbnRlcmZhY2UgdjAuMTAzDQpbICAgIDEuMzIx
-MjYyXSBhZ3BnYXJ0LWludGVsIDAwMDA6MDA6MDAuMDogSW50ZWwgUTQ1L1E0MyBDaGlwc2V0
-DQpbICAgIDEuMzI3MDU1XSBhZ3BnYXJ0LWludGVsIDAwMDA6MDA6MDAuMDogZGV0ZWN0ZWQg
-Z3R0IHNpemU6IDUyNDI4OEsgdG90YWwsIDI2MjE0NEsgbWFwcGFibGUNClsgICAgMS4zMzU5
-OThdIGFncGdhcnQtaW50ZWwgMDAwMDowMDowMC4wOiBkZXRlY3RlZCAzMjc2OEsgc3RvbGVu
-IG1lbW9yeQ0KWyAgICAxLjM0NjU3M10gYWdwZ2FydC1pbnRlbCAwMDAwOjAwOjAwLjA6IEFH
-UCBhcGVydHVyZSBpcyAyNTZNIEAgMHhkMDAwMDAwMA0KWyAgICAxLjM1MzQ3NF0gW2RybV0g
-SW5pdGlhbGl6ZWQgZHJtIDEuMS4wIDIwMDYwODEwDQpbICAgIDEuMzU4MTE1XSBpOTE1IDAw
-MDA6MDA6MDIuMDogUENJIElOVCBBIC0+IEdTSSAxNiAobGV2ZWwsIGxvdykgLT4gSVJRIDE2
-DQpbICAgIDEuMzk1NDQ2XSB2Z2FhcmI6IGRldmljZSBjaGFuZ2VkIGRlY29kZXM6IFBDSTow
-MDAwOjAwOjAyLjAsb2xkZGVjb2Rlcz1pbyttZW0sZGVjb2Rlcz1pbyttZW06b3ducz1pbytt
-ZW0NClsgICAgMS41NzM0ODNdIENvbnNvbGU6IHN3aXRjaGluZyB0byBjb2xvdXIgZnJhbWUg
-YnVmZmVyIGRldmljZSAxMjh4NDgNClsgICAgMS41ODE0MjNdIGZiMDogaW50ZWxkcm1mYiBm
-cmFtZSBidWZmZXIgZGV2aWNlDQpbICAgIDEuNTg1OTU1XSBkcm06IHJlZ2lzdGVyZWQgcGFu
-aWMgbm90aWZpZXINClsgICAgMS41OTAwNTVdIE5vIEFDUEkgdmlkZW8gYnVzIGZvdW5kDQpb
-ICAgIDEuNTkzNjM5XSBbZHJtXSBJbml0aWFsaXplZCBpOTE1IDEuNi4wIDIwMDgwNzMwIGZv
-ciAwMDAwOjAwOjAyLjAgb24gbWlub3IgMA0KWyAgICAxLjYwMDgzNF0gU2VyaWFsOiA4MjUw
-LzE2NTUwIGRyaXZlciwgNCBwb3J0cywgSVJRIHNoYXJpbmcgZW5hYmxlZA0K/1sgICAgMS44
-NzExMTFdIHNlcmlhbDgyNTA6IHR0eVMwIGF0IEkvTyAweDNmOCAoaXJxID0gNCkgaXMgYSAx
-NjU1MEENClsgICAgMS45NjE2NzVdIDAwOjBjOiB0dHlTMCBhdCBJL08gMHgzZjggKGlycSA9
-IDQpIGlzIGEgMTY1NTBBDQpbICAgIDEuOTgyMTgxXSBicmQ6IG1vZHVsZSBsb2FkZWQNClsg
-ICAgMS45ODYyNDJdIGxvb3A6IG1vZHVsZSBsb2FkZWQNClsgICAgMS45ODk3MTBdIGFoY2kg
-MDAwMDowMDoxZi4yOiBQQ0kgSU5UIEIgLT4gR1NJIDIyIChsZXZlbCwgbG93KSAtPiBJUlEg
-MjINClsgICAgMS45OTY1NTFdIGFoY2k6IFNTUyBmbGFnIHNldCwgcGFyYWxsZWwgYnVzIHNj
-YW4gZGlzYWJsZWQNClsgICAgMi4wMDIwNjBdIGFoY2kgMDAwMDowMDoxZi4yOiBBSENJIDAw
-MDEuMDIwMCAzMiBzbG90cyA2IHBvcnRzIDMgR2JwcyAweDNmIGltcGwgU0FUQSBtb2RlDQpb
-ICAgIDIuMDEwMjMzXSBhaGNpIDAwMDA6MDA6MWYuMjogZmxhZ3M6IDY0Yml0IG5jcSBzbnRm
-IHN0YWcgcG0gbGVkIGNsbyBwbXAgcGlvIHNsdW0gcGFydCBlbXMgc3hzIA0KWyAgICAyLjAy
-OTEwMV0gc2NzaTAgOiBhaGNpDQpbICAgIDIuMDMxNzg4XSBzY3NpMSA6IGFoY2kNClsgICAg
-Mi4wMzQ0NThdIHNjc2kyIDogYWhjaQ0KWyAgICAyLjAzNzE0Nl0gc2NzaTMgOiBhaGNpDQpb
-ICAgIDIuMDM5ODEwXSBzY3NpNCA6IGFoY2kNClsgICAgMi4wNDI0NzJdIHNjc2k1IDogYWhj
-aQ0KWyAgICAyLjA0NTIyMV0gYXRhMTogU0FUQSBtYXggVURNQS8xMzMgYWJhciBtMjA0OEAw
-eGZlOGYyMDAwIHBvcnQgMHhmZThmMjEwMCBpcnEgNDUNClsgICAgMi4wNTI2MTVdIGF0YTI6
-IFNBVEEgbWF4IFVETUEvMTMzIGFiYXIgbTIwNDhAMHhmZThmMjAwMCBwb3J0IDB4ZmU4ZjIx
-ODAgaXJxIDQ1DQpbICAgIDIuMDYwMDA5XSBhdGEzOiBTQVRBIG1heCBVRE1BLzEzMyBhYmFy
-IG0yMDQ4QDB4ZmU4ZjIwMDAgcG9ydCAweGZlOGYyMjAwIGlycSA0NQ0KWyAgICAyLjA2NzQw
-Ml0gYXRhNDogU0FUQSBtYXggVURNQS8xMzMgYWJhciBtMjA0OEAweGZlOGYyMDAwIHBvcnQg
-MHhmZThmMjI4MCBpcnEgNDUNClsgICAgMi4wNzQ3OTRdIGF0YTU6IFNBVEEgbWF4IFVETUEv
-MTMzIGFiYXIgbTIwNDhAMHhmZThmMjAwMCBwb3J0IDB4ZmU4ZjIzMDAgaXJxIDQ1DQpbICAg
-IDIuMDgyMTg5XSBhdGE2OiBTQVRBIG1heCBVRE1BLzEzMyBhYmFyIG0yMDQ4QDB4ZmU4ZjIw
-MDAgcG9ydCAweGZlOGYyMzgwIGlycSA0NQ0KWyAgICAyLjA4OTk0N10gZTEwMDA6IEludGVs
-KFIpIFBSTy8xMDAwIE5ldHdvcmsgRHJpdmVyIC0gdmVyc2lvbiA3LjMuMjEtazYtTkFQSQ0K
-WyAgICAyLjA5Njk5M10gZTEwMDA6IENvcHlyaWdodCAoYykgMTk5OS0yMDA2IEludGVsIENv
-cnBvcmF0aW9uLg0KWyAgICAyLjEwMjc4OF0gZTEwMDBlOiBJbnRlbChSKSBQUk8vMTAwMCBO
-ZXR3b3JrIERyaXZlciAtIDEuMi43LWsyDQpbICAgIDIuMTA4NzAxXSBlMTAwMGU6IENvcHly
-aWdodCAoYykgMTk5OSAtIDIwMTAgSW50ZWwgQ29ycG9yYXRpb24uDQpbICAgIDIuMTE0NzIw
-XSBlMTAwMGUgMDAwMDowMDoxOS4wOiBQQ0kgSU5UIEEgLT4gR1NJIDIwIChsZXZlbCwgbG93
-KSAtPiBJUlEgMjANClsgICAgMi4yNzcyMzVdIGUxMDAwZSAwMDAwOjAwOjE5LjA6IGV0aDA6
-IChQQ0kgRXhwcmVzczoyLjVHQi9zOldpZHRoIHgxKSAwMDoyMzo1NDo5YTo0NjplYQ0KWyAg
-ICAyLjI4NTIzNV0gZTEwMDBlIDAwMDA6MDA6MTkuMDogZXRoMDogSW50ZWwoUikgUFJPLzEw
-MDAgTmV0d29yayBDb25uZWN0aW9uDQpbICAgIDIuMjkyMjQxXSBlMTAwMGUgMDAwMDowMDox
-OS4wOiBldGgwOiBNQUM6IDgsIFBIWTogOCwgUEJBIE5vOiBmZmZmZmYtMGZmDQpbICAgIDIu
-Mjk5MDc2XSBJbnRlbChSKSBHaWdhYml0IEV0aGVybmV0IE5ldHdvcmsgRHJpdmVyIC0gdmVy
-c2lvbiAyLjEuMC1rMg0KWyAgICAyLjMwNTY5MF0gQ29weXJpZ2h0IChjKSAyMDA3LTIwMDkg
-SW50ZWwgQ29ycG9yYXRpb24uDQpbICAgIDIuMzEwODc3XSBJbnRlbChSKSBWaXJ0dWFsIEZ1
-bmN0aW9uIE5ldHdvcmsgRHJpdmVyIC0gdmVyc2lvbiAxLjAuMC1rMA0KWyAgICAyLjMxNzQ4
-NF0gQ29weXJpZ2h0IChjKSAyMDA5IEludGVsIENvcnBvcmF0aW9uLg0KWyAgICAyLjMyMjQx
-MV0gam1lOiBKTWljcm9uIEpNQzJYWCBldGhlcm5ldCBkcml2ZXIgdmVyc2lvbiAxLjAuNw0K
-WyAgICAyLjMyODIwNF0gZTEwMDogSW50ZWwoUikgUFJPLzEwMCBOZXR3b3JrIERyaXZlciwg
-My41LjI0LWsyLU5BUEkNClsgICAgMi4zMzQyOTJdIGUxMDA6IENvcHlyaWdodChjKSAxOTk5
-LTIwMDYgSW50ZWwgQ29ycG9yYXRpb24NClsgICAgMi4zMzk5NTRdIG5zODM4MjAuYzogTmF0
-aW9uYWwgU2VtaWNvbmR1Y3RvciBEUDgzODIwIDEwLzEwMC8xMDAwIGRyaXZlci4NClsgICAg
-Mi4zNDY4NzhdIGNuaWM6IEJyb2FkY29tIE5ldFh0cmVtZSBJSSBDTklDIERyaXZlciBjbmlj
-IHYyLjIuNiAoT2N0IDEyLCAyMDEwKQ0KWyAgICAyLjM1NDE3M10gc2t5MjogZHJpdmVyIHZl
-cnNpb24gMS4yOA0KWyAgICAyLjM1ODI5M10gY29uc29sZSBbbmV0Y29uMF0gZW5hYmxlZA0K
-WyAgICAyLjM2MTk1OV0gbmV0Y29uc29sZTogbmV0d29yayBsb2dnaW5nIHN0YXJ0ZWQNClsg
-ICAgMi4zNjY3NTNdIGVoY2lfaGNkOiBVU0IgMi4wICdFbmhhbmNlZCcgSG9zdCBDb250cm9s
-bGVyIChFSENJKSBEcml2ZXINClsgICAgMi4zNzMzMDBdIGVoY2lfaGNkIDAwMDA6MDA6MWEu
-NzogUENJIElOVCBDIC0+IEdTSSAxOCAobGV2ZWwsIGxvdykgLT4gSVJRIDE4DQpbICAgIDIu
-MzgwNDQxXSBlaGNpX2hjZCAwMDAwOjAwOjFhLjc6IEVIQ0kgSG9zdCBDb250cm9sbGVyDQpb
-ICAgIDIuMzg1NzQ3XSBlaGNpX2hjZCAwMDAwOjAwOjFhLjc6IG5ldyBVU0IgYnVzIHJlZ2lz
-dGVyZWQsIGFzc2lnbmVkIGJ1cyBudW1iZXIgMQ0KWyAgICAyLjM5ODAzM10gZWhjaV9oY2Qg
-MDAwMDowMDoxYS43OiBkZWJ1ZyBwb3J0IDENClsgICAgMi40MDY0NzZdIGVoY2lfaGNkIDAw
-MDA6MDA6MWEuNzogaXJxIDE4LCBpbyBtZW0gMHhmZThmOTAwMA0KWyAgICAyLjQyMjAwOV0g
-ZWhjaV9oY2QgMDAwMDowMDoxYS43OiBVU0IgMi4wIHN0YXJ0ZWQsIEVIQ0kgMS4wMA0KWyAg
-ICAyLjQyNzc4OF0gdXNiIHVzYjE6IE5ldyBVU0IgZGV2aWNlIGZvdW5kLCBpZFZlbmRvcj0x
-ZDZiLCBpZFByb2R1Y3Q9MDAwMg0KWyAgICAyLjQzNDU3Nl0gdXNiIHVzYjE6IE5ldyBVU0Ig
-ZGV2aWNlIHN0cmluZ3M6IE1mcj0zLCBQcm9kdWN0PTIsIFNlcmlhbE51bWJlcj0xDQpbICAg
-IDIuNDQxNzk1XSB1c2IgdXNiMTogUHJvZHVjdDogRUhDSSBIb3N0IENvbnRyb2xsZXINClsg
-ICAgMi40NDY2NzRdIHVzYiB1c2IxOiBNYW51ZmFjdHVyZXI6IExpbnV4IDIuNi4zNisgZWhj
-aV9oY2QNClsgICAgMi40NTIxNTRdIHVzYiB1c2IxOiBTZXJpYWxOdW1iZXI6IDAwMDA6MDA6
-MWEuNw0KWyAgICAyLjQ1NjkxNF0gaHViIDEtMDoxLjA6IFVTQiBodWIgZm91bmQNClsgICAg
-Mi40NjA2NjhdIGh1YiAxLTA6MS4wOiA2IHBvcnRzIGRldGVjdGVkDQpbICAgIDIuNDY0NzU1
-XSBlaGNpX2hjZCAwMDAwOjAwOjFkLjc6IFBDSSBJTlQgQSAtPiBHU0kgMjMgKGxldmVsLCBs
-b3cpIC0+IElSUSAyMw0KWyAgICAyLjQ3MTg5OV0gZWhjaV9oY2QgMDAwMDowMDoxZC43OiBF
-SENJIEhvc3QgQ29udHJvbGxlcg0KWyAgICAyLjQ3NzE4N10gZWhjaV9oY2QgMDAwMDowMDox
-ZC43OiBuZXcgVVNCIGJ1cyByZWdpc3RlcmVkLCBhc3NpZ25lZCBidXMgbnVtYmVyIDINClsg
-ICAgMi40ODkwMzRdIGVoY2lfaGNkIDAwMDA6MDA6MWQuNzogZGVidWcgcG9ydCAxDQpbICAg
-IDIuNDk3NDU0XSBlaGNpX2hjZCAwMDAwOjAwOjFkLjc6IGlycSAyMywgaW8gbWVtIDB4ZmU4
-ZjgwMDANClsgICAgMi41MTIwMDldIGVoY2lfaGNkIDAwMDA6MDA6MWQuNzogVVNCIDIuMCBz
-dGFydGVkLCBFSENJIDEuMDANClsgICAgMi41MTc3NjddIHVzYiB1c2IyOiBOZXcgVVNCIGRl
-dmljZSBmb3VuZCwgaWRWZW5kb3I9MWQ2YiwgaWRQcm9kdWN0PTAwMDINClsgICAgMi41MjQ1
-NTJdIHVzYiB1c2IyOiBOZXcgVVNCIGRldmljZSBzdHJpbmdzOiBNZnI9MywgUHJvZHVjdD0y
-LCBTZXJpYWxOdW1iZXI9MQ0KWyAgICAyLjUzMTc3M10gdXNiIHVzYjI6IFByb2R1Y3Q6IEVI
-Q0kgSG9zdCBDb250cm9sbGVyDQpbICAgIDIuNTM2NjUzXSB1c2IgdXNiMjogTWFudWZhY3R1
-cmVyOiBMaW51eCAyLjYuMzYrIGVoY2lfaGNkDQpbICAgIDIuNTQyMTM5XSB1c2IgdXNiMjog
-U2VyaWFsTnVtYmVyOiAwMDAwOjAwOjFkLjcNClsgICAgMi41NDY4OThdIGh1YiAyLTA6MS4w
-OiBVU0IgaHViIGZvdW5kDQpbICAgIDIuNTQ5MDM0XSBhdGExOiBTQVRBIGxpbmsgdXAgMS41
-IEdicHMgKFNTdGF0dXMgMTEzIFNDb250cm9sIDMwMCkNClsgICAgMi41NTY4MzBdIGh1YiAy
-LTA6MS4wOiA2IHBvcnRzIGRldGVjdGVkDQpbICAgIDIuNTU2ODkxXSBhdGExLjAwOiBBVEEt
-NzogV0RDIFdEODAwSkQtNjBNU0ExLCAxMC4wMUUwMSwgbWF4IFVETUEvMTAwDQpbICAgIDIu
-NTU2ODkzXSBhdGExLjAwOiAxNTYzMDE0ODggc2VjdG9ycywgbXVsdGkgMDogTEJBNDggTkNR
-IChkZXB0aCAzMS8zMiksIEFBDQpbICAgIDIuNTU3NDU2XSBhdGExLjAwOiBjb25maWd1cmVk
-IGZvciBVRE1BLzEwMA0KWyAgICAyLjU1NzU2N10gc2NzaSAwOjA6MDowOiBEaXJlY3QtQWNj
-ZXNzICAgICBBVEEgICAgICBXREMgV0Q4MDBKRC02ME1TIDEwLjAgUFE6IDAgQU5TSTogNQ0K
-WyAgICAyLjU1Nzc3Nl0gc2QgMDowOjA6MDogW3NkYV0gMTU2MzAxNDg4IDUxMi1ieXRlIGxv
-Z2ljYWwgYmxvY2tzOiAoODAuMCBHQi83NC41IEdpQikNClsgICAgMi41NTc4MjBdIHNkIDA6
-MDowOjA6IFtzZGFdIFdyaXRlIFByb3RlY3QgaXMgb2ZmDQpbICAgIDIuNTU3ODQwXSBzZCAw
-OjA6MDowOiBbc2RhXSBXcml0ZSBjYWNoZTogZW5hYmxlZCwgcmVhZCBjYWNoZTogZW5hYmxl
-ZCwgZG9lc24ndCBzdXBwb3J0IERQTyBvciBGVUENClsgICAgMi41NTc4ODZdIHNkIDA6MDow
-OjA6IEF0dGFjaGVkIHNjc2kgZ2VuZXJpYyBzZzAgdHlwZSAwDQpbICAgIDIuNTkyODQxXSAg
-c2RhOiBzZGExIHNkYTIgPCBzZGE1ID4NClsgICAgMi42MTcyMzVdIG9oY2lfaGNkOiBVU0Ig
-MS4xICdPcGVuJyBIb3N0IENvbnRyb2xsZXIgKE9IQ0kpIERyaXZlcg0KWyAgICAyLjYxNzM2
-M10gc2QgMDowOjA6MDogW3NkYV0gQXR0YWNoZWQgU0NTSSBkaXNrDQpbICAgIDIuNjI4MDgx
-XSB1aGNpX2hjZDogVVNCIFVuaXZlcnNhbCBIb3N0IENvbnRyb2xsZXIgSW50ZXJmYWNlIGRy
-aXZlcg0KWyAgICAyLjYzNDUxM10gdWhjaV9oY2QgMDAwMDowMDoxYS4wOiBQQ0kgSU5UIEEg
-LT4gR1NJIDE2IChsZXZlbCwgbG93KSAtPiBJUlEgMTYNClsgICAgMi42NDE2NDhdIHVoY2lf
-aGNkIDAwMDA6MDA6MWEuMDogVUhDSSBIb3N0IENvbnRyb2xsZXINClsgICAgMi42NDY5Mzdd
-IHVoY2lfaGNkIDAwMDA6MDA6MWEuMDogbmV3IFVTQiBidXMgcmVnaXN0ZXJlZCwgYXNzaWdu
-ZWQgYnVzIG51bWJlciAzDQpbICAgIDIuNjYwMDA5XSB1aGNpX2hjZCAwMDAwOjAwOjFhLjA6
-IGRldGVjdGVkIDIgcG9ydHMNClsgICAgMi42NjQ5MTRdIHVoY2lfaGNkIDAwMDA6MDA6MWEu
-MDogaXJxIDE2LCBpbyBiYXNlIDB4MDAwMGQ0MDANClsgICAgMi42NzA2OTBdIHVzYiB1c2Iz
-OiBOZXcgVVNCIGRldmljZSBmb3VuZCwgaWRWZW5kb3I9MWQ2YiwgaWRQcm9kdWN0PTAwMDEN
-ClsgICAgMi42Nzc0NzVdIHVzYiB1c2IzOiBOZXcgVVNCIGRldmljZSBzdHJpbmdzOiBNZnI9
-MywgUHJvZHVjdD0yLCBTZXJpYWxOdW1iZXI9MQ0KWyAgICAyLjY4NDY5NF0gdXNiIHVzYjM6
-IFByb2R1Y3Q6IFVIQ0kgSG9zdCBDb250cm9sbGVyDQpbICAgIDIuNjg5NTcyXSB1c2IgdXNi
-MzogTWFudWZhY3R1cmVyOiBMaW51eCAyLjYuMzYrIHVoY2lfaGNkDQpbICAgIDIuNjk1MDUw
-XSB1c2IgdXNiMzogU2VyaWFsTnVtYmVyOiAwMDAwOjAwOjFhLjANClsgICAgMi42OTk3OTld
-IGh1YiAzLTA6MS4wOiBVU0IgaHViIGZvdW5kDQpbICAgIDIuNzAzNTQ5XSBodWIgMy0wOjEu
-MDogMiBwb3J0cyBkZXRlY3RlZA0KWyAgICAyLjcwNzYzMV0gdWhjaV9oY2QgMDAwMDowMDox
-YS4xOiBQQ0kgSU5UIEIgLT4gR1NJIDIxIChsZXZlbCwgbG93KSAtPiBJUlEgMjENClsgICAg
-Mi43MTQ3NjhdIHVoY2lfaGNkIDAwMDA6MDA6MWEuMTogVUhDSSBIb3N0IENvbnRyb2xsZXIN
-ClsgICAgMi43MjAwNzZdIHVoY2lfaGNkIDAwMDA6MDA6MWEuMTogbmV3IFVTQiBidXMgcmVn
-aXN0ZXJlZCwgYXNzaWduZWQgYnVzIG51bWJlciA0DQpbICAgIDIuNzMyMDA4XSB1aGNpX2hj
-ZCAwMDAwOjAwOjFhLjE6IGRldGVjdGVkIDIgcG9ydHMNClsgICAgMi43MzY5MDVdIHVoY2lf
-aGNkIDAwMDA6MDA6MWEuMTogaXJxIDIxLCBpbyBiYXNlIDB4MDAwMGQ0ODANClsgICAgMi43
-NDI2NzNdIHVzYiB1c2I0OiBOZXcgVVNCIGRldmljZSBmb3VuZCwgaWRWZW5kb3I9MWQ2Yiwg
-aWRQcm9kdWN0PTAwMDENClsgICAgMi43NDk0NTldIHVzYiB1c2I0OiBOZXcgVVNCIGRldmlj
-ZSBzdHJpbmdzOiBNZnI9MywgUHJvZHVjdD0yLCBTZXJpYWxOdW1iZXI9MQ0KWyAgICAyLjc1
-NjY3OF0gdXNiIHVzYjQ6IFByb2R1Y3Q6IFVIQ0kgSG9zdCBDb250cm9sbGVyDQpbICAgIDIu
-NzYxNTU3XSB1c2IgdXNiNDogTWFudWZhY3R1cmVyOiBMaW51eCAyLjYuMzYrIHVoY2lfaGNk
-DQpbICAgIDIuNzY3MDQ0XSB1c2IgdXNiNDogU2VyaWFsTnVtYmVyOiAwMDAwOjAwOjFhLjEN
-ClsgICAgMi43NzE4MDJdIGh1YiA0LTA6MS4wOiBVU0IgaHViIGZvdW5kDQpbICAgIDIuNzc1
-NTU4XSBodWIgNC0wOjEuMDogMiBwb3J0cyBkZXRlY3RlZA0KWyAgICAyLjc3OTYyOV0gdWhj
-aV9oY2QgMDAwMDowMDoxYS4yOiBQQ0kgSU5UIEMgLT4gR1NJIDE4IChsZXZlbCwgbG93KSAt
-PiBJUlEgMTgNClsgICAgMi43ODY3NjhdIHVoY2lfaGNkIDAwMDA6MDA6MWEuMjogVUhDSSBI
-b3N0IENvbnRyb2xsZXINClsgICAgMi43OTIwNjZdIHVoY2lfaGNkIDAwMDA6MDA6MWEuMjog
-bmV3IFVTQiBidXMgcmVnaXN0ZXJlZCwgYXNzaWduZWQgYnVzIG51bWJlciA1DQpbICAgIDIu
-ODA0MDA5XSB1aGNpX2hjZCAwMDAwOjAwOjFhLjI6IGRldGVjdGVkIDIgcG9ydHMNClsgICAg
-Mi44MDg5MTRdIHVoY2lfaGNkIDAwMDA6MDA6MWEuMjogaXJxIDE4LCBpbyBiYXNlIDB4MDAw
-MGQ4MDANClsgICAgMi44MTQ3MDJdIHVzYiB1c2I1OiBOZXcgVVNCIGRldmljZSBmb3VuZCwg
-aWRWZW5kb3I9MWQ2YiwgaWRQcm9kdWN0PTAwMDENClsgICAgMi44MjE0ODVdIHVzYiB1c2I1
-OiBOZXcgVVNCIGRldmljZSBzdHJpbmdzOiBNZnI9MywgUHJvZHVjdD0yLCBTZXJpYWxOdW1i
-ZXI9MQ0KWyAgICAyLjgyODcwNV0gdXNiIHVzYjU6IFByb2R1Y3Q6IFVIQ0kgSG9zdCBDb250
-cm9sbGVyDQpbICAgIDIuODMzNTg1XSB1c2IgdXNiNTogTWFudWZhY3R1cmVyOiBMaW51eCAy
-LjYuMzYrIHVoY2lfaGNkDQpbICAgIDIuODM5MDcwXSB1c2IgdXNiNTogU2VyaWFsTnVtYmVy
-OiAwMDAwOjAwOjFhLjINClsgICAgMi44NDM4MjRdIGh1YiA1LTA6MS4wOiBVU0IgaHViIGZv
-dW5kDQpbICAgIDIuODQ3NTc1XSBodWIgNS0wOjEuMDogMiBwb3J0cyBkZXRlY3RlZA0KWyAg
-ICAyLjg1MTY1MV0gdWhjaV9oY2QgMDAwMDowMDoxZC4wOiBQQ0kgSU5UIEEgLT4gR1NJIDIz
-IChsZXZlbCwgbG93KSAtPiBJUlEgMjMNClsgICAgMi44NTg3ODddIHVoY2lfaGNkIDAwMDA6
-MDA6MWQuMDogVUhDSSBIb3N0IENvbnRyb2xsZXINClsgICAgMi44NjIwMjRdIGF0YTI6IFNB
-VEEgbGluayBkb3duIChTU3RhdHVzIDAgU0NvbnRyb2wgMzAwKQ0KWyAgICAyLjg2OTQ2N10g
-dWhjaV9oY2QgMDAwMDowMDoxZC4wOiBuZXcgVVNCIGJ1cyByZWdpc3RlcmVkLCBhc3NpZ25l
-ZCBidXMgbnVtYmVyIDYNClsgICAgMi44ODEwMDldIHVoY2lfaGNkIDAwMDA6MDA6MWQuMDog
-ZGV0ZWN0ZWQgMiBwb3J0cw0KWyAgICAyLjg4NTkwNF0gdWhjaV9oY2QgMDAwMDowMDoxZC4w
-OiBpcnEgMjMsIGlvIGJhc2UgMHgwMDAwY2MwMA0KWyAgICAyLjg5MTY3OF0gdXNiIHVzYjY6
-IE5ldyBVU0IgZGV2aWNlIGZvdW5kLCBpZFZlbmRvcj0xZDZiLCBpZFByb2R1Y3Q9MDAwMQ0K
-WyAgICAyLjg5ODQ2MV0gdXNiIHVzYjY6IE5ldyBVU0IgZGV2aWNlIHN0cmluZ3M6IE1mcj0z
-LCBQcm9kdWN0PTIsIFNlcmlhbE51bWJlcj0xDQpbICAgIDIuOTA1NjgwXSB1c2IgdXNiNjog
-UHJvZHVjdDogVUhDSSBIb3N0IENvbnRyb2xsZXINClsgICAgMi45MTA1NTldIHVzYiB1c2I2
-OiBNYW51ZmFjdHVyZXI6IExpbnV4IDIuNi4zNisgdWhjaV9oY2QNClsgICAgMi45MTYwMzdd
-IHVzYiB1c2I2OiBTZXJpYWxOdW1iZXI6IDAwMDA6MDA6MWQuMA0KWyAgICAyLjkyMDc4OF0g
-aHViIDYtMDoxLjA6IFVTQiBodWIgZm91bmQNClsgICAgMi45MjQ1NDNdIGh1YiA2LTA6MS4w
-OiAyIHBvcnRzIGRldGVjdGVkDQpbICAgIDIuOTI4NjE3XSB1aGNpX2hjZCAwMDAwOjAwOjFk
-LjE6IFBDSSBJTlQgQiAtPiBHU0kgMTkgKGxldmVsLCBsb3cpIC0+IElSUSAxOQ0KWyAgICAy
-LjkzNTc1NF0gdWhjaV9oY2QgMDAwMDowMDoxZC4xOiBVSENJIEhvc3QgQ29udHJvbGxlcg0K
-WyAgICAyLjk0MTA0Nl0gdWhjaV9oY2QgMDAwMDowMDoxZC4xOiBuZXcgVVNCIGJ1cyByZWdp
-c3RlcmVkLCBhc3NpZ25lZCBidXMgbnVtYmVyIDcNClsgICAgMi45NTMwMDhdIHVoY2lfaGNk
-IDAwMDA6MDA6MWQuMTogZGV0ZWN0ZWQgMiBwb3J0cw0KWyAgICAyLjk1NzkzM10gdWhjaV9o
-Y2QgMDAwMDowMDoxZC4xOiBpcnEgMTksIGlvIGJhc2UgMHgwMDAwZDAwMA0KWyAgICAyLjk2
-MzcwNV0gdXNiIHVzYjc6IE5ldyBVU0IgZGV2aWNlIGZvdW5kLCBpZFZlbmRvcj0xZDZiLCBp
-ZFByb2R1Y3Q9MDAwMQ0KWyAgICAyLjk3MDQ5MF0gdXNiIHVzYjc6IE5ldyBVU0IgZGV2aWNl
-IHN0cmluZ3M6IE1mcj0zLCBQcm9kdWN0PTIsIFNlcmlhbE51bWJlcj0xDQpbICAgIDIuOTc3
-NzA2XSB1c2IgdXNiNzogUHJvZHVjdDogVUhDSSBIb3N0IENvbnRyb2xsZXINClsgICAgMi45
-ODI1NzddIHVzYiB1c2I3OiBNYW51ZmFjdHVyZXI6IExpbnV4IDIuNi4zNisgdWhjaV9oY2QN
-ClsgICAgMi45ODgwNTddIHVzYiB1c2I3OiBTZXJpYWxOdW1iZXI6IDAwMDA6MDA6MWQuMQ0K
-WyAgICAyLjk5MjgxNV0gaHViIDctMDoxLjA6IFVTQiBodWIgZm91bmQNClsgICAgMi45OTY1
-NzFdIGh1YiA3LTA6MS4wOiAyIHBvcnRzIGRldGVjdGVkDQpbICAgIDMuMDAwNjQ2XSB1aGNp
-X2hjZCAwMDAwOjAwOjFkLjI6IFBDSSBJTlQgQyAtPiBHU0kgMTggKGxldmVsLCBsb3cpIC0+
-IElSUSAxOA0KWyAgICAzLjAwNzc4Ml0gdWhjaV9oY2QgMDAwMDowMDoxZC4yOiBVSENJIEhv
-c3QgQ29udHJvbGxlcg0KWyAgICAzLjAxMzA2NV0gdWhjaV9oY2QgMDAwMDowMDoxZC4yOiBu
-ZXcgVVNCIGJ1cyByZWdpc3RlcmVkLCBhc3NpZ25lZCBidXMgbnVtYmVyIDgNClsgICAgMy4w
-MjUwMDldIHVoY2lfaGNkIDAwMDA6MDA6MWQuMjogZGV0ZWN0ZWQgMiBwb3J0cw0KWyAgICAz
-LjAyOTkxN10gdWhjaV9oY2QgMDAwMDowMDoxZC4yOiBpcnEgMTgsIGlvIGJhc2UgMHgwMDAw
-ZDA4MA0KWyAgICAzLjAzNTY5OF0gdXNiIHVzYjg6IE5ldyBVU0IgZGV2aWNlIGZvdW5kLCBp
-ZFZlbmRvcj0xZDZiLCBpZFByb2R1Y3Q9MDAwMQ0KWyAgICAzLjA0MjQ4MF0gdXNiIHVzYjg6
-IE5ldyBVU0IgZGV2aWNlIHN0cmluZ3M6IE1mcj0zLCBQcm9kdWN0PTIsIFNlcmlhbE51bWJl
-cj0xDQpbICAgIDMuMDQ5Njk5XSB1c2IgdXNiODogUHJvZHVjdDogVUhDSSBIb3N0IENvbnRy
-b2xsZXINClsgICAgMy4wNTQ1NzFdIHVzYiB1c2I4OiBNYW51ZmFjdHVyZXI6IExpbnV4IDIu
-Ni4zNisgdWhjaV9oY2QNClsgICAgMy4wNjAwNTldIHVzYiB1c2I4OiBTZXJpYWxOdW1iZXI6
-IDAwMDA6MDA6MWQuMg0KWyAgICAzLjA2NDgwOF0gaHViIDgtMDoxLjA6IFVTQiBodWIgZm91
-bmQNClsgICAgMy4wNjg1NjNdIGh1YiA4LTA6MS4wOiAyIHBvcnRzIGRldGVjdGVkDQpbICAg
-IDMuMDcyNjk0XSB4aGNpX2hjZCAwMDAwOjAyOjAwLjA6IFBDSSBJTlQgQSAtPiBHU0kgMTcg
-KGxldmVsLCBsb3cpIC0+IElSUSAxNw0KWyAgICAzLjA3OTgzM10geGhjaV9oY2QgMDAwMDow
-MjowMC4wOiB4SENJIEhvc3QgQ29udHJvbGxlcg0KWyAgICAzLjA4NTEyMl0geGhjaV9oY2Qg
-MDAwMDowMjowMC4wOiBuZXcgVVNCIGJ1cyByZWdpc3RlcmVkLCBhc3NpZ25lZCBidXMgbnVt
-YmVyIDkNClsgICAgMy4wOTcxNDVdIHhoY2lfaGNkIDAwMDA6MDI6MDAuMDogaXJxIDE3LCBp
-byBtZW0gMHhmZWJmZTAwMA0KWyAgICAzLjEwMjk2OV0gdXNiIHVzYjk6IE5vIFN1cGVyU3Bl
-ZWQgZW5kcG9pbnQgY29tcGFuaW9uIGZvciBjb25maWcgMSAgaW50ZXJmYWNlIDAgYWx0c2V0
-dGluZyAwIGVwIDEyOTogdXNpbmcgbWluaW11bSB2DQphbHVlcw0KWyAgICAzLjExNDAwOF0g
-dXNiIHVzYjk6IE5ldyBVU0IgZGV2aWNlIGZvdW5kLCBpZFZlbmRvcj0xZDZiLCBpZFByb2R1
-Y3Q9MDAwMw0KWyAgICAzLjEyMDc5MF0gdXNiIHVzYjk6IE5ldyBVU0IgZGV2aWNlIHN0cmlu
-Z3M6IE1mcj0zLCBQcm9kdWN0PTIsIFNlcmlhbE51bWJlcj0xDQpbICAgIDMuMTI4MDEwXSB1
-c2IgdXNiOTogUHJvZHVjdDogeEhDSSBIb3N0IENvbnRyb2xsZXINClsgICAgMy4xMzI4ODNd
-IHVzYiB1c2I5OiBNYW51ZmFjdHVyZXI6IExpbnV4IDIuNi4zNisgeGhjaV9oY2QNClsgICAg
-My4xMzgzNjldIHVzYiB1c2I5OiBTZXJpYWxOdW1iZXI6IDAwMDA6MDI6MDAuMA0KWyAgICAz
-LjE0MzEzM10gaHViIDktMDoxLjA6IFVTQiBodWIgZm91bmQNClsgICAgMy4xNDY4ODRdIGh1
-YiA5LTA6MS4wOiA0IHBvcnRzIGRldGVjdGVkDQpbICAgIDMuMTUxMDgzXSB1c2Jjb3JlOiBy
-ZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIHVzYmxwDQpbICAgIDMuMTU2NTcwXSBJ
-bml0aWFsaXppbmcgVVNCIE1hc3MgU3RvcmFnZSBkcml2ZXIuLi4NClsgICAgMy4xNjE1MTFd
-IHVzYmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgdXNiLXN0b3JhZ2UN
-ClsgICAgMy4xNjcwMjNdIGF0YTM6IFNBVEEgbGluayBkb3duIChTU3RhdHVzIDAgU0NvbnRy
-b2wgMzAwKQ0KWyAgICAzLjE3MjkxMF0gVVNCIE1hc3MgU3RvcmFnZSBzdXBwb3J0IHJlZ2lz
-dGVyZWQuDQpbICAgIDMuMTc3NjE1XSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZh
-Y2UgZHJpdmVyIGxpYnVzdWFsDQpbICAgIDMuMTg4MTA3XSBQTlA6IFBTLzIgQ29udHJvbGxl
-ciBbUE5QMDMwMzpQUzJLLFBOUDBmMDM6UFMyTV0gYXQgMHg2MCwweDY0IGlycSAxLDEyDQpb
-ICAgIDMuMTk4MjQ0XSBzZXJpbzogaTgwNDIgS0JEIHBvcnQgYXQgMHg2MCwweDY0IGlycSAx
-DQpbICAgIDMuMjAzMjEzXSBzZXJpbzogaTgwNDIgQVVYIHBvcnQgYXQgMHg2MCwweDY0IGly
-cSAxMg0KWyAgICAzLjIwODM3M10gbWljZTogUFMvMiBtb3VzZSBkZXZpY2UgY29tbW9uIGZv
-ciBhbGwgbWljZQ0KWyAgICAzLjIxMzgyOV0gcnRjX2Ntb3MgMDA6MDM6IFJUQyBjYW4gd2Fr
-ZSBmcm9tIFM0DQpbICAgIDMuMjIzMDc2XSBydGNfY21vcyAwMDowMzogcnRjIGNvcmU6IHJl
-Z2lzdGVyZWQgcnRjX2Ntb3MgYXMgcnRjMA0KWyAgICAzLjIyOTE5N10gcnRjMDogYWxhcm1z
-IHVwIHRvIG9uZSBtb250aCwgeTNrLCAxMTQgYnl0ZXMgbnZyYW0sIGhwZXQgaXJxcw0KWyAg
-ICAzLjIzNjA2MV0gaTgwMV9zbWJ1cyAwMDAwOjAwOjFmLjM6IFBDSSBJTlQgQyAtPiBHU0kg
-MTggKGxldmVsLCBsb3cpIC0+IElSUSAxOA0KWyAgICAzLjI0MzM3NF0gQUNQSTogcmVzb3Vy
-Y2UgMDAwMDowMDoxZi4zIFtpbyAgMHgwNDAwLTB4MDQxZl0gY29uZmxpY3RzIHdpdGggQUNQ
-SSByZWdpb24gU01SRyBbaW8gIDB4MDQwMC0weDA0MGYgZGlzYWJsDQplZF0NClsgICAgMy4y
-NTQyNDFdIEFDUEk6IElmIGFuIEFDUEkgZHJpdmVyIGlzIGF2YWlsYWJsZSBmb3IgdGhpcyBk
-ZXZpY2UsIHlvdSBzaG91bGQgdXNlIGl0IGluc3RlYWQgb2YgdGhlIG5hdGl2ZSBkcml2ZXIN
-ClsgICAgMy4yNTQzMTZdIGlucHV0OiBBVCBUcmFuc2xhdGVkIFNldCAyIGtleWJvYXJkIGFz
-IC9kZXZpY2VzL3BsYXRmb3JtL2k4MDQyL3NlcmlvMC9pbnB1dC9pbnB1dDINClsgICAgMy4y
-NzMxMzRdIGxpcmNfZGV2OiBJUiBSZW1vdGUgQ29udHJvbCBkcml2ZXIgcmVnaXN0ZXJlZCwg
-bWFqb3IgMjUwIA0KWyAgICAzLjI3OTU3Nl0gSVIgTkVDIHByb3RvY29sIGhhbmRsZXIgaW5p
-dGlhbGl6ZWQNClsgICAgMy4yODQxMThdIElSIFJDNSh4KSBwcm90b2NvbCBoYW5kbGVyIGlu
-aXRpYWxpemVkDQpbICAgIDMuMjg4OTExXSBJUiBSQzYgcHJvdG9jb2wgaGFuZGxlciBpbml0
-aWFsaXplZA0KWyAgICAzLjI5MzQ0NF0gSVIgSlZDIHByb3RvY29sIGhhbmRsZXIgaW5pdGlh
-bGl6ZWQNClsgICAgMy4yOTc5NzddIElSIFNvbnkgcHJvdG9jb2wgaGFuZGxlciBpbml0aWFs
-aXplZA0KWyAgICAzLjMwMjYwNV0gSVIgTElSQyBicmlkZ2UgaGFuZGxlciBpbml0aWFsaXpl
-ZA0KWyAgICAzLjMwNzA1MV0gTGludXggdmlkZW8gY2FwdHVyZSBpbnRlcmZhY2U6IHYyLjAw
-DQpbICAgIDMuMzExOTYwXSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJp
-dmVyIGVtMjh4eA0KWyAgICAzLjMxNzUzM10gZW0yOHh4IGRyaXZlciBsb2FkZWQNClsgICAg
-My4zMjA3NzNdIEVtMjh4eDogSW5pdGlhbGl6ZWQgKEVtMjh4eCBBdWRpbyBFeHRlbnNpb24p
-IGV4dGVuc2lvbg0KWyAgICAzLjMyNzMwNF0gZGV2aWNlLW1hcHBlcjogaW9jdGw6IDQuMTgu
-MC1pb2N0bCAoMjAxMC0wNi0yOSkgaW5pdGlhbGlzZWQ6IGRtLWRldmVsQHJlZGhhdC5jb20N
-ClsgICAgMy4zMzU4MjNdIGNwdWlkbGU6IHVzaW5nIGdvdmVybm9yIGxhZGRlcg0KWyAgICAz
-LjMzOTkyM10gY3B1aWRsZTogdXNpbmcgZ292ZXJub3IgbWVudQ0KWyAgICAzLjM0NDg0Nl0g
-dXNiY29yZTogcmVnaXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZlciB1c2JoaWQNClsgICAg
-My4zNTA0MjRdIHVzYmhpZDogVVNCIEhJRCBjb3JlIGRyaXZlcg0KbW9kcHJvYmU6IEZBVEFM
-OiBDb3VsZCBub3QgbG9hZCAvbGliL21vZHVsZXMvMi42LjM2Ky9tb2R1bGVzLmRlcDogTm8g
-c3VjaCBmaWxlIG9yIGRpcmVjdG9yeQ0KDQpbICAgIDMuMzY2MTM1XSBtb2Rwcm9iZSB1c2Vk
-IGdyZWF0ZXN0IHN0YWNrIGRlcHRoOiA1NDY0IGJ5dGVzIGxlZnQNClsgICAgMy4zNzIxNjNd
-IEFMU0EgZGV2aWNlIGxpc3Q6DQpbICAgIDMuMzc1MTMxXSAgIE5vIHNvdW5kY2FyZHMgZm91
-bmQuDQpbICAgIDMuMzc4NTgxXSBOZXRmaWx0ZXIgbWVzc2FnZXMgdmlhIE5FVExJTksgdjAu
-MzAuDQpbICAgIDMuMzgzMzA3XSBuZl9jb25udHJhY2sgdmVyc2lvbiAwLjUuMCAoMTYzODQg
-YnVja2V0cywgNjU1MzYgbWF4KQ0KWyAgICAzLjM4OTYwN10gY3RuZXRsaW5rIHYwLjkzOiBy
-ZWdpc3RlcmluZyB3aXRoIG5mbmV0bGluay4NClsgICAgMy4zOTUzMjVdIGlwX3RhYmxlczog
-KEMpIDIwMDAtMjAwNiBOZXRmaWx0ZXIgQ29yZSBUZWFtDQpbICAgIDMuNDAwNjcwXSBUQ1Ag
-Y3ViaWMgcmVnaXN0ZXJlZA0KWyAgICAzLjQwMzg5OF0gSW5pdGlhbGl6aW5nIFhGUk0gbmV0
-bGluayBzb2NrZXQNClsgICAgMy40MDg0MTNdIE5FVDogUmVnaXN0ZXJlZCBwcm90b2NvbCBm
-YW1pbHkgMTANClsgICAgMy40MTM1MTZdIGlwNl90YWJsZXM6IChDKSAyMDAwLTIwMDYgTmV0
-ZmlsdGVyIENvcmUgVGVhbQ0KWyAgICAzLjQxODk1NF0gSVB2NiBvdmVyIElQdjQgdHVubmVs
-aW5nIGRyaXZlcg0KWyAgICAzLjQyMzY0Ml0gTkVUOiBSZWdpc3RlcmVkIHByb3RvY29sIGZh
-bWlseSAxNw0KWyAgICAzLjQyODEwMl0gUmVnaXN0ZXJpbmcgdGhlIGRuc19yZXNvbHZlciBr
-ZXkgdHlwZQ0KWyAgICAzLjQzMzAyMl0gcmVnaXN0ZXJlZCB0YXNrc3RhdHMgdmVyc2lvbiAx
-DQpbICAgIDMuNDM3Mzc0XSAgIE1hZ2ljIG51bWJlcjogMTQ6NjYxOjk4NQ0KWyAgICAzLjQ3
-MjAxNF0gYXRhNDogU0FUQSBsaW5rIGRvd24gKFNTdGF0dXMgMCBTQ29udHJvbCAzMDApDQpb
-ICAgIDMuNDg4MjkwXSBsb2dpcHMycHA6IERldGVjdGVkIHVua25vd24gbG9naXRlY2ggbW91
-c2UgbW9kZWwgNTcNClsgICAgMy43ODIwMTNdIGF0YTU6IFNBVEEgbGluayBkb3duIChTU3Rh
-dHVzIDAgU0NvbnRyb2wgMzAwKQ0KWyAgICAzLjk2MDkwNV0gaW5wdXQ6IEltRXhQUy8yIExv
-Z2l0ZWNoIEV4cGxvcmVyIE1vdXNlIGFzIC9kZXZpY2VzL3BsYXRmb3JtL2k4MDQyL3Nlcmlv
-MS9pbnB1dC9pbnB1dDMNClsgICAgNC4wOTIwMTRdIGF0YTY6IFNBVEEgbGluayBkb3duIChT
-U3RhdHVzIDAgU0NvbnRyb2wgMzAwKQ0KWyAgICA0LjA5NzQzNF0gRnJlZWluZyB1bnVzZWQg
-a2VybmVsIG1lbW9yeTogNjk2ayBmcmVlZA0KWyAgICA0LjEwMjU3NV0gV3JpdGUgcHJvdGVj
-dGluZyB0aGUga2VybmVsIHJlYWQtb25seSBkYXRhOiAxMjI4OGsNClsgICAgNC4xMDg2MjFd
-IEZyZWVpbmcgdW51c2VkIGtlcm5lbCBtZW1vcnk6IDE3NDhrIGZyZWVkDQpbICAgIDQuMTE0
-MjUwXSBGcmVlaW5nIHVudXNlZCBrZXJuZWwgbWVtb3J5OiAxNTIwayBmcmVlZA0KTG9hZGlu
-ZywgcGxlYXNlIHdhaXQuLi4NClsgICAgNC4xMjc4NzFdIGFsbF9nZW5lcmljX2lkZSB1c2Vk
-IGdyZWF0ZXN0IHN0YWNrIGRlcHRoOiA1NDE2IGJ5dGVzIGxlZnQNCkNvdWxkbnQgZ2V0IGEg
-ZmlsZSBkZXNjcmlwdG9yIHJlZmVycmluZyB0byB0aGUgY29uc29sZQ0KS0RHS0JNT0RFOiBC
-YWQgZmlsZSBkZXNjcmlwdG9yDQpsb2Fka2V5czogZXJyb3IgcmVhZGluZyBrZXlib2FyZCBt
-b2RlDQpCZWdpbjogTG9hZGluZyBlc3NlbnRpYWwgZHJpdmVycyBbICAgIDQuMTU0NTk0XSB1
-ZGV2ZCAoMTEzNyk6IC9wcm9jLzExMzcvb29tX2FkaiBpcyBkZXByZWNhdGVkLCBwbGVhc2Ug
-dXNlIC9wcm9jLzExMzcvb28NCm1fc2NvcmVfYWRqIGluc3RlYWQuDQouLi4gZG9uZS4NCkJl
-Z2luOiBSdW5uaW5nIC9zY3JpcHRzL2luaXQtcHJlbW91bnQgLi4uIFsgICAgNC4zNzA1MTZd
-IHZvbF9pZCB1c2VkIGdyZWF0ZXN0IHN0YWNrIGRlcHRoOiA0OTg0IGJ5dGVzIGxlZnQNCmRv
-bmUuDQpCZWdpbjogTW91bnRpbmcgcm9vdCBmaWxlIHN5c3RlbSAuLi4gQmVnaW46IFJ1bm5p
-bmcgL3NjcmlwdHMvbG9jYWwtdG9wIC4uLiBkb25lLg0KQmVnaW46IFJ1bm5pbmcgL3Njcmlw
-dHMvbG9jYWwtWyAgICA0LjU0NDU0OV0gUE06IFN0YXJ0aW5nIG1hbnVhbCByZXN1bWUgZnJv
-bSBkaXNrDQpwcmVtb3VudCAuLi4ga2luaXQ6IG5hbWVfdG9fZGV2X3QoL2Rldi9zZGE1KSA9
-IGRldig4LDUpDQpraW5pdDogdHJ5aW5nIHRvIHJlc3VtZSBmcm9tIC9kZXYvc2RhNQ0Ka2lu
-aXQ6IE5vIHJlc3VtZSBpbWFnZSwgZG9pbmcgbm9ybWFsIGJvb3QuLi4NCnJlc3VtZTogbGli
-Z2NyeXB0IHZlcnNpb246IDEuNC4xDQpkb25lLg0KWyAgICA0LjU4NDU1N10gRVhUMy1mczog
-YmFycmllcnMgbm90IGVuYWJsZWQNClsgICAgNC42MDY4NjhdIGtqb3VybmFsZCBzdGFydGlu
-Zy4gIENvbW1pdCBpbnRlcnZhbCA1IHNlY29uZHMNClsgICAgNC42MDY4OTZdIEVYVDMtZnMg
-KHNkYTEpOiBtb3VudGVkIGZpbGVzeXN0ZW0gd2l0aCB3cml0ZWJhY2sgZGF0YSBtb2RlDQpC
-ZWdpbjogUnVubmluZyAvc2NyaXB0cy9sb2NhbC1ib3R0b20gLi4uIGRvbmUuDQpkb25lLg0K
-QmVnaW46IFJ1bm5pbmcgL3NjcmlwdHMvaW5pdC1ib3R0b20gLi4uIGRvbmUuDQpTRUxpbnV4
-OiAgQ291bGQgbm90IG9wZW4gcG9saWN5IGZpbGUgPD0gL2V0Yy9zZWxpbnV4L3RhcmdldGVk
-L3BvbGljeS9wb2xpY3kuMjQ6ICBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5DQpJTklUOiB2
-ZXJzaW9uIDIuODYgYm9vdGluZw0KWyAgICA1LjMzODIzMV0gc3R0eSB1c2VkIGdyZWF0ZXN0
-IHN0YWNrIGRlcHRoOiAzOTg0IGJ5dGVzIGxlZnQNClN0YXJ0aW5nIHRoZSBob3R1ZyBldmVu
-dHMgZGlzcGF0ZXI6IHVkZXZkWyAgICA1LjkzMTEzMl0gdXZkIHZlcnNpb24gMTI1IHNydGVk
-DQouDQpTeW50aGVzaXppbmcgdGhlbml0aWFsIGhvdHBsdWcgZW50cy4uLmRvbmUuDQpXYWl0
-aW5nIGYgL2RldiB0byBiZSBmdWxseSBwb3B1bGF0ZWQuLi5kb25lLg0KU2V0dGluZyB0aGUg
-c3lzdGVtIGNsb2NrLg0KQWN0aXZhdGluZyBzd2FwLlsgICAgOC4xMzYwNDNdIEFkZGluZyAz
-MjI5MDI4ayBzd2FwIG9uIC9kZXYvc2RhNS4gIFByaW9yaXR5Oi0xIGV4dGVudHM6MSBhY3Jv
-c3M6MzIyOTAyOGsgDQpkb25lLg0KQ2hlY2tpbmcgcm9vdCBmaWxlIHN5c3RlbS4uLmZzY2sg
-MS40MS4zICgxMi1PY3QtMjAwOCkNCi9kZXYvc2RhMTogY2xlYW4sIDU4ODk2MS80Njg1ODI0
-WyAgICA4LjM5NzI1MV0gRVhUMy1mcyAoc2RhMSk6ICBmaWxlcywgMTU5OTM0OTR1c2luZyBp
-bnRlcm5hbCBqb3VybmFsDQovMTg3Mjk3NzQgYmxvY2tzIChjaGVjayBpbiA0IG1vdW50cykN
-CmRvbmUuDQpTZXR0aW5nIHRoZSBzeXN0ZW0gY2xvY2suDQpDbGVhbmluZyB1cCBpZnVwZG93
-bi4uLi4NCkxvYWRpbmcga2VybmVsIG1vZHVsZXMuLi5kb25lLg0KQ2hlY2tpbmcgZmlsZSBz
-eWVtcy4uLmZzY2sgMS40MS4zICgxMi1PY3QtMjAwOCkNCmRvbmUuDQpTZXR0aW5nIGtlcm5l
-bCB2YXJpYWJsZXMgKC9ldGMvc3lzY3RsLmNvbmYpLi4uZG9uZS4NCk1vdW50aW5nIGxvY2Fs
-IGZpbGVzeXN0ZW1zLi4uZG9uZS4NCkFjdGl2YXRpbmcgc3dhcGZpbGUgc3dhcC4uLmRvbmUu
-DQpTZXR0aW5nIHVwIG5ldHdvcmtpbmcuLi4uDQpDb25maWd1cmluZyBuZXR3b3JrIGludGVy
-ZmFjZXMuLi5hZGQgYnJpZGdlIGZhaWxlZDogUGFja2FnZSBub3QgaW5zdGFsbGVkDQpGYWls
-ZWQgdG8gYnJpbmcgdXAgeGVuX2JyaWRnZS4NCmRvbmUuDQpJbml0aWFsaXppbmcgSVAgTWFz
-cXVlcmFkaW5nLi4uZG9uZS4NCkxvYWRpbmcgSVAgTWFzcXVlcmFkZSBrZXJuZWwgbW9kdWxl
-cy4uLmRvbmUuDQpTZXR0aW5nIHNlbnNvcnMgbWl0c1sgICAxMC44NDkzNjddIEFSQ09ORihO
-RVRERVZfVVApZXRoMTogbGluayBpcyBub3JlYWR5DQouDQpTZXR0aW5nIGNvbnNvbGUgcmVl
-biBtb2RlcyBhbmQgZnRzLg0KWyAgIDExLjMxODQzN10gcmMgdXNlZCBncmVhdGVzdCBzdGFj
-ayBkZXB0aDogMzcyOCBieXRlcyBsZWZ0DQpJTklUOiBFbnRlcmluZyBydW5sZXZlbDogMg0K
-U3RhcnRpbmcgZW5oYW5jZWQgc3lzbG9nZDogcnN5c2xvZ2QuDQpTdGFydGluZyBBQ1BJIHNl
-cnZpY2VzLi4uLg0KU3RhcnRpbmcgc3lzdGVtIG1lc3NhZ2UgYnVzOiBkYnVzLg0KU3RhcnRp
-bmcgT3BlbkJTRCBTZWN1cmUgU2hlbGwgc2VydmVyOiBzc2hkWyAgIDEyLjUyMTg2MV0gZTEw
-MDBlOiBldGgxIE5JQyBMaW5rIGlzIFVwIDEwMCBNYnBzIEZ1bGwgRHVwbGV4LCBGbG93IENv
-bnRyb2w6DQogUlgvVFgNClsgICAxMi41MjkzNDhdIGUxMDAwZSAwMDAwOjAwOjE5LjA6IGV0
-aDE6IDEwLzEwMCBzcGVlZDogZGlzYWJsaW5nIFRTTw0KWyAgIDEyLjUzNTgyNV0gQUREUkNP
-TkYoTkVUREVWX0NIQU5HRSk6IGV0aDE6IGxpbmsgYmVjb21lcyByZWFkeQ0KLg0KU3RhcnRp
-bmcgTVRBOiBleGltNC4NCkZBVEFMOiBNb2R1bGUga3ZtX2ludGVsIG5vdCBmb3VuZC4NCk1v
-ZHVsZSBrdm1faW50ZWwgZmFpbGVkIHRvIGxvYWQgZmFpbGVkIQ0KU2V0dGluZyBzeXNmcyB2
-YXJpYWJsZXMuLi4uDQpncmVwOiAvcHJvYy94ZW4vY2FwYWJpbGl0aWVzOiBObyBzdWNoIGZp
-bGUgb3IgZGlyZWN0b3J5DQp4ZW5jb21tb25zIHNob3VsZCBiZSBzdGFydGVkIGZpcnN0Lg0K
-U3RhcnRpbmcgSGFyZHdhcmFic3RyYWN0aW9uIGxheWUgaGFsZFsgICAxNS45ODEzMDJdIEll
-dGgxIE9VVD0gTUFDPTAwMzo1NDo5YTo0NjplYTo0MDE6ODY6ZjQ6Njc6ZDg6MDgwIFNSQz0x
-NzIuMTYuMS4xU1Q9DQoxNzIuMTYuMS4yNTEgTj0zMjggVE9TPTB4MTAgUFJFQz0weDAwIFRU
-TD0xIElEPTAgUFJPVE89VURQIFQ9NjcgRFBUPTY4IExFTj04IA0KLg0KU3RhcnRpbmcgREhD
-UCBzZXJ2ZXI6IGRoY3BkM2NoZWNrIHN5c2xvZyBmb3JpYWdub3N0aWNzLiBmYWlsZWQhDQog
-ZmFpbGVkIQ0KU3RhcnRpbmcgZGVmZXJyZWQgZXhlY3V0aW9uIHNjaGVkdWxlcjogYXRkLg0K
-U3RhcnRpbmcgcGVyaW9kaWMgY29tbWFuZCBzY2hlZHVsZXI6IGNyb25kLg0KWyAgIDQzLjYy
-ODAxNV0gdSAyLTQ6IG5ldyBoaWdoIHNlZCBVU0IgZGV2aWNlIHVzZyBlaGNpX2hjZCBhbmQg
-YWRkcmVzcyAyDQpbICAgNDMuNzU1OTc0XSB1IDItNDogTmV3IFVTQiBkZWNlIGZvdW5kLCBp
-ZFZlbmQ9MjMwNCwgaWRQcm9kdWN0MjA4DQpbICAgNDMuNzYyNl0gdXNiIDItNDogTmV3IFVT
-QiBkZXZpY2Ugc3RyaXM6IE1mcj0yLCBQcm9kdWMxLCBTZXJpYWxOdW1iZXI9ClsgICA0My43
-Njk4MjhdIGIgMi00OiBQcm9kdWN0OiBQQ1RWIFVTQjIgUEFMDQpbICAgNDMuNzc0MDEzdXNi
-IDItNDogTWFudWZhY3R1cmVyOiBQaW5uYWNsZSBTeXN0ZW1zIEdtYkgNClsgICA0My43Nzk1
-NDBdIGVtMjh4eDogTmV3IGRldmljZSBQaW5uYWNsZSBTeXN0ZW1zIEdtYkggUENUViBVU0Iy
-IFBBTCBAIDQ4MCBNYnBzICgyMzA0OjAyMDgsIGludGVyZmFjZSAwLCBjbGFzcyAwKQ0KWyAg
-IDQzLjc4OTcyMV0gZW0yOHh4ICMwOiBjaGlwIElEIGlzIGVtMjgyMCAob3IgZW0yNzEwKQ0K
-WyAgIDQzLjg5NDk4MV0gZTh4eCAjMDogaTJjIGVlcHIgMDA6IDFhIGViIDY3IDk1MDQgMjMg
-MDggMDIgMTAgMDAxZSAwMyA5OCAxZSA2YSAyZQpbICAgNDMuOTAzMTQ3XSBlbTI4eHggIzA6
-IGkyYyBwcm9tIDEwOg0KIDAwIDAwIDAgNTcgNmUgMDAgMDAgMDAgOGUgMDAgMDAgMDAgMDcg
-MDAgMDAgMDANClsgICA0My45MTEzMTddIGVtMjh4eCAjMDogaTJjIGVlcHJvbSAyMDogMTYg
-MDAgMDEgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDANClsgICA0My45
-MTk0NTZdIGVtMjh4eCAjMDogaTJjIGVlcHJvbSAzMDogMDAgMDAgMjAgNDAgMjAgODAgMDIg
-MjAgMTAgMDEgMDAgMDAgMDAgMDAgMDAgMDANClsgICA0My45Mjc2MjBdIGVtMjh4eCAjMDog
-aTJjIGVlcHJvbSA0MDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
-MDAgMDAgMDANClsgICA0My45MzU3NTFdIGVtMjh4eCAjMDogaTJjIGVlcHJvbSA1MDogMDAg
-MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDANClsgICA0My45
-NDM5MDddIGVtMjh4eCAjMDogaTJjIGVlcHJvbSA2MDogMDAgMDAgMDAgMDAgMDAgMDAgMDAg
-MDAgMDAgMDAgMmUgMDMgNTAgMDAgNjkgMDANClsgICA0My45NTIwNjZdIGVtMjh4eCAjMDog
-aTJjIGVlcHJvbSA3MDogNmUgMDAgNmUgMDAgNjEgMDAgNjMgMDAgNmMgMDAgNjUgMDAgMjAg
-MDAgNTMgMDANClsgICA0My45NjAyMjddIGVtMjh4eCAjMDogaTJjIGVlcHJvbSA4MDogNzkg
-MDAgNzMgMDAgNzQgMDAgNjUgMDAgNmQgMDAgNzMgMDAgMjAgMDAgNDcgMDANClsgICA0My45
-NjgzODVdIGVtMjh4eCAjMDogaTJjIGVlcHJvbSA5MDogNmQgMDAgNjIgMDAgNDggMDAgMDAg
-MDAgMWUgMDMgNTAgMDAgNDMgMDAgNTQgMDANClsgICA0My45NzY1MzFdIGVtMjh4eCAjMDog
-aTJjIGVlcHJvbSBhMDogNTYgMDAgMjAgMDAgNTUgMDAgNTMgMDAgNDIgMDAgMzIgMDAgMjAg
-MDAgNTAgMDANClsgICA0My45ODQ2ODddIGVtMjh4eCAjMDogaTJjIGVlcHJvbSBiMDogNDEg
-MDAgNGMgMDAgMDAgMDAgMDYgMDMgMzEgMDAgMDAgMDAgMDAgMDAgMDAgMDANClsgICA0My45
-OTI4MzRdIGVtMjh4eCAjMDogaTJjIGVlcHJvbSBjMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAg
-MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDANClsgICA0NC4wMDA5OTBdIGVtMjh4eCAjMDog
-aTJjIGVlcHJvbSBkMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
-MDAgMDAgMDANClsgICA0NC4wMDkxNDNdIGVtMjh4eCAjMDogaTJjIGVlcHJvbSBlMDogMDAg
-MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDANClsgICA0NC4w
-MTcyODhdIGVtMjh4eCAjMDogaTJjIGVlcHJvbSBmMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAg
-MDAgMDcgNTYgZDkgMzUgMDEgZWQgMGIgZjgNClsgICA0NC4wMjU0MzZdIGVtMjh4eCAjMDog
-RUVQUk9NIElEPSAweDk1NjdlYjFhLCBFRVBST00gaGFzaCA9IDB4MGZkNzc3NDANClsgICA0
-NC4wMzE5NTddIGVtMjh4eCAjMDogRUVQUk9NIGluZm86DQpbICAgNDQuMDM1NDQ5XSBlbTI4
-eHggIzA6CUFDOTcgYXVkaW8gKDUgc2FtcGxlIHJhdGVzKQ0KWyAgIDQ0LjA0MDI0MV0gZW0y
-OHh4ICMwOgk1MDBtQSBtYXggcG93ZXINClsgICA0NC4wNDM5OTZdIGVtMjh4eCAjMDoJVGFi
-bGUgYXQgMHgwNiwgc3RyaW5ncz0weDFlOTgsIDB4MmU2YSwgMHgwMDAwDQpbICAgNDQuMDUx
-NDAwXSBSZWdpc3RlcmVkIElSIGtleW1hcCByYy1waW5uYWNsZS1ncmV5DQpbICAgNDQuMDU2
-MTcwXSBpbnB1dDogaTJjIElSIChpMmMgSVIgKEVNMjhYWCBQaW5uYWNsZSBhcyAvZGV2aWNl
-cy92aXJ0dWFsL3JjL3JjMC9pbnB1dDQNClsgICA0NC4wNjM5NjJdIHJjMDogaTJjIElSIChp
-MmMgSVIgKEVNMjhYWCBQaW5uYWNsZSBhcyAvZGV2aWNlcy92aXJ0dWFsL3JjL3JjMA0KWyAg
-IDQ0LjA3MDkyOF0gaXIta2JkLWkyYzogaTJjIElSIChpMmMgSVIgKEVNMjhYWCBQaW5uYWNs
-ZSBkZXRlY3RlZCBhdCBpMmMtMTcvMTctMDA0Ny9pcjAgW2VtMjh4eCAjMF0NClsgICA0NC4w
-Nzk4OTRdIGVtMjh4eCAjMDogSWRlbnRpZmllZCBhcyBQaW5uYWNsZSBQQ1RWIFVTQiAyIChj
-YXJkPTMpDQpbICAgNDQuMDg2NTA5XSBCVUc6IHVuYWJsZSB0byBoYW5kbGUga2VybmVsIHBh
-Z2luZyByZXF1ZXN0IGF0IGZmZmY4ODA0NzhhMTZmZjgNClsgICA0NC4wODcwNjFdIElQOiBb
-PGZmZmZmZmZmODE0MzZjZjE+XSBpcl9nX2tleWNvZGVfZnJvbV90YWJsZSsweDRkLzB4YjEN
-ClsgICA0NC4wODcwNjFdIFBHRCAxYzA0MDYzIFBVRCAwIA0KWyAgIDQ0LjA4NzA2MV0gT29w
-czogMDAwMCBbIzFdIFNNUCANClsgICA0NC4wODcwNjFdIGxhc3Qgc3lzZnMgZmlsZTogL3N5
-cy9kZXZpY2VzL3ZpcnR1YWwvcmMvcmMwL2lucHV0NC9jYXBhYmlsaXRpZXMvc3cNClsgICA0
-NC4wODcwNjFdIENQVSAxIA0KWyAgIDQ0LjA4NzA2MV0gTW9kdWxlcyBsaW5rZWQgaW46IFts
-YXN0IHVubG9hZGVkOiBzY3NpX3dhaXRfc2Nhbl0NClsgICA0NC4wODcwNjFdIA0KWyAgIDQ0
-LjA4NzA2MV0gUGlkOiA0OTQsIGNvbW06IGt3b3JrZXIvMToxIE5vdCB0YWludGVkIDIuNi4z
-NisgIzIgUDVRLUVNIERPL1N5c3RlbSBQcm9kdWN0IE5hbWUNClsgICA0NC4wODcwNjFdIFJJ
-UDogMDAxMDpbPGZmZmZmZmZmODE0MzZjZjE+XSAgWzxmZmZmZmZmZjgxNDM2Y2YxPl0gaXJf
-Z19rZXljb2RlX2Zyb21fdGFibGUrMHg0ZC8weGIxDQpbICAgNDQuMDg3MDYxXSBSU1A6IDAw
-MDA6ZmZmZjg4MDA3OWQ2MWRhMCAgRUZMQUdTOiAwMDAxMDgxNw0KWyAgIDQ0LjA4NzA2MV0g
-UkFYOiAwMDAwMDAwMDdmZmZmZmZmIFJCWDogZmZmZjg4MDA3OGE3MjgwMCBSQ1g6IDAwMDAw
-MDAwMDAwMDAwMDANClsgICA0NC4wODcwNjFdIFJEWDogMDAwMDAwMDA3ZmZmZmZmZiBSU0k6
-IDAwMDAwMDAwMDAwMDAyODIgUkRJOiAwMDAwMDAwMGZmZmZmZmZmDQpbICAgNDQuMTU3MDA1
-XSBSQlA6IGZmZmY4ODAwNzlkNjFkYzAgUjA4OiBmZmZmODgwMDc4YTE3MDAwIFIwOTogMDAw
-MDAwMDAwMDAwMDAyOQ0KWyAgIDQ0LjE1NzAwNV0gUjEwOiBmZmZmODgwMDc5ZDYxZGIwIFIx
-MTogZGVhZDAwMDAwMDIwMDIwMCBSMTI6IGZmZmY4ODAwNzhhNzI5YjANClsgICA0NC4xNTcw
-MDVdIFIxMzogMDAwMDAwMDAwMDAwMDAwMCBSMTQ6IGZmZmY4ODAwNzhhNzBjMDAgUjE1OiBm
-ZmZmODgwMDdjYTk2NzAwDQpbICAgNDQuMTU3MDA1XSBGUzogIDAwMDAwMDAwMDAwMDAwMDAo
-MDAwMCkgR1M6ZmZmZjg4MDA3Y2E4MDAwMCgwMDAwKSBrbmxHUzowMDAwMDAwMDAwMDAwMDAw
-DQpbICAgNDQuMTU3MDA1XSBDUzogIDAwMTAgRFM6IDAwMDAgRVM6IDAwMDAgQ1IwOiAwMDAw
-MDAwMDgwMDUwMDNiDQpbICAgNDQuMTU3MDA1XSBDUjI6IGZmZmY4ODA0NzhhMTZmZjggQ1Iz
-OiAwMDAwMDAwMDc4MGMzMDAwIENSNDogMDAwMDAwMDAwMDA0MDZlMA0KWyAgIDQ0LjE1NzAw
-NV0gRFIwOiAwMDAwMDAwMDAwMDAwMDAwIERSMTogMDAwMDAwMDAwMDAwMDAwMCBEUjI6IDAw
-MDAwMDAwMDAwMDAwMDANClsgICA0NC4xNTcwMDVdIERSMzogMDAwMDAwMDAwMDAwMDAwMCBE
-UjY6IDAwMDAwMDAwZmZmZjBmZjAgRFI3OiAwMDAwMDAwMDAwMDAwNDAwDQpbICAgNDQuMTU3
-MDA1XSBQcm9jZXNzIGt3b3JrZXIvMToxIChwaWQ6IDQ5NCwgdGhyZWFkaW5mbyBmZmZmODgw
-MDc5ZDYwMDAwLCB0YXNrIGZmZmY4ODAwN2MzZDk2NTApDQpbICAgNDQuMTU3MDA1XSBTdGFj
-azoNClsgICA0NC4xNTcwMDVdICBmZmZmODgwMDc4YTcyODAwIDAwMDAwMDAwMDAwMDAwMDAg
-MDAwMDAwMDAwMDAwMDA2NCBmZmZmODgwMDc4YTcwYzAwDQpbICAgNDQuMTU3MDA1XSA8MD4g
-ZmZmZjg4MDA3OWQ2MWUxMCBmZmZmZmZmZjgxNDM2ZjUxIGZmZmY4ODAwNzlkNjFlMTAgZmZm
-ZmZmZmY4MTQ1OTI1OQ0KWyAgIDQ0LjE1NzAwNV0gPDA+IDAwMDAwMDAwMDAwMDAwMDAgZmZm
-Zjg4MDA3OGJmMTE0MCBmZmZmODgwMDc4YmYxMTAwIDAwMDAwMDAwMDAwMDAwNjQNClsgICA0
-NC4xNTcwMDVdIENhbGwgVHJhY2U6DQpbICAgNDQuMTU3MDA1XSAgWzxmZmZmZmZmZjgxNDM2
-ZjUxPl0gaXJfa2V5ZG93bisweDM0LzB4MTM4DQpbICAgNDQuMTU3MDA1XSAgWzxmZmZmZmZm
-ZjgxNDU5MjU5Pl0gPyBlbTI4eHhfZ2V0X2tleV9waW5uYWNsZV91c2JfZ3JleSsweDI4LzB4
-YTMNClsgICA0NC4xNTcwMDVdICBbPGZmZmZmZmZmODE0NWNiZGE+XSBpcl93b3JrKzB4OTkv
-MHhiNg0KWyAgIDQ0LjE1NzAwNV0gIFs8ZmZmZmZmZmY4MTA1ZmI1Mj5dIHByb2Nlc3Nfb25l
-X3dvcmsrMHgxZDUvMHgyZDINClsgICA0NC4xNTcwMDVdICBbPGZmZmZmZmZmODE0NWNiNDE+
-XSA/IGlyX3dvcmsrMHgwLzB4YjYNClsgICA0NC4xNTcwMDVdICBbPGZmZmZmZmZmODEwNWZm
-MmQ+XSB3b3JrZXJfdGhyZWFkKzB4MTQ2LzB4Mjc3DQpbICAgNDQuMTU3MDA1XSAgWzxmZmZm
-ZmZmZjgxMDVmZGU3Pl0gPyB3b3JrZXJfdGhyZWFkKzB4MC8weDI3Nw0KWyAgIDQ0LjE1NzAw
-NV0gIFs8ZmZmZmZmZmY4MTA2NDVmNz5dIGt0aHJlYWQrMHg4MS8weDg5DQpbICAgNDQuMTU3
-MDA1XSAgWzxmZmZmZmZmZjgxMDBiYWU0Pl0ga2VybmVsX3RocmVhZF9oZWxwZXIrMHg0LzB4
-MTANClsgICA0NC4xNTcwMDVdICBbPGZmZmZmZmZmODEwNjQ1NzY+XSA/IGt0aHJlYWQrMHgw
-LzB4ODkNClsgICA0NC4xNTcwMDVdICBbPGZmZmZmZmZmODEwMGJhZTA+XSA/IGtlcm5lbF90
-aHJlYWRfaGVscGVyKzB4MC8weDEwDQpbICAgNDQuMTU3MDA1XSBDb2RlOiAwMCAwMCA0OCA4
-OSBjMyA0YyA4OSBlNyBlOCBhNSA1ZSAyMCAwMCA0NCA4YiA4YiA5NCAwMSAwMCAwMCA0YyA4
-YiA4MyA4OCAwMSAwMCAwMCA0OCA4OSBjNiAzMSBjOSA0MSANCjhkIDc5IGZmIDhkIDE0IDBm
-IGQxIGVhIDg5IGQwIDw0NT4gMzkgMmMgYzAgNzMgMDUgOGQgNGEgMDEgZWIgMGMgNzcgMDcg
-NDQgMzkgY2EgNzIgMGIgZWIgMTAgOGQgDQpbICAgNDQuMTU3MDA1XSBSSVAgIFs8ZmZmZmZm
-ZmY4MTQzNmNmMT5dIGlyX2dfa2V5Y29kZV9mcm9tX3RhYmxlKzB4NGQvMHhiMQ0KWyAgIDQ0
-LjE1NzAwNV0gIFJTUCA8ZmZmZjg4MDA3OWQ2MWRhMD4NClsgICA0NC4xNTcwMDVdIENSMjog
-ZmZmZjg4MDQ3OGExNmZmOA0KWyAgIDQ0LjE1NzAwNV0gLS0tWyBlbmQgdHJhY2UgMjk4OGE5
-MzQzMGExYzljYSBdLS0tDQpbICAgNDQuMzUxNjE4XSBCVUc6IHVuYWJsZSB0byBoYW5kbGUg
-a2VybmVsIHBhZ2luZyByZXF1ZXN0IGF0IGZmZmZmZmZmZmZmZmZmZjgNClsgICA0NC4zNTI1
-ODNdIElQOiBbPGZmZmZmZmZmODEwNjQyNTg+XSBrdGhyZWFkX2RhdGErMHhiLzB4MTENClsg
-ICA0NC4zNTI1ODNdIFBHRCAxYzA1MDY3IFBVRCAxYzA2MDY3IFBNRCAwIA0KWyAgIDQ0LjM1
-MjU4M10gT29wczogMDAwMCBbIzJdIFNNUCANClsgICA0NC4zNTI1ODNdIGxhc3Qgc3lzZnMg
-ZmlsZTogL3N5cy9kZXZpY2VzL3ZpcnR1YWwvcmMvcmMwL2lucHV0NC9jYXBhYmlsaXRpZXMv
-c3cNClsgICA0NC4zNTI1ODNdIENQVSAxIA0KWyAgIDQ0LjM1MjU4M10gTW9kdWxlcyBsaW5r
-ZWQgaW46IFtsYXN0IHVubG9hZGVkOiBzY3NpX3dhaXRfc2Nhbl0NClsgICA0NC4zNTI1ODNd
-IA0KWyAgIDQ0LjM1MjU4M10gUGlkOiA0OTQsIGNvbW06IGt3b3JrZXIvMToxIFRhaW50ZWQ6
-IEcgICAgICBEICAgICAyLjYuMzYrICMyIFA1US1FTSBETy9TeXN0ZW0gUHJvZHVjdCBOYW1l
-DQpbICAgNDQuMzUyNTgzXSBSSVA6IDAwMTA6WzxmZmZmZmZmZjgxMDY0MjU4Pl0gIFs8ZmZm
-ZmZmZmY4MTA2NDI1OD5dIGt0aHJlYWRfZGF0YSsweGIvMHgxMQ0KWyAgIDQ0LjM1MjU4M10g
-UlNQOiAwMDAwOmZmZmY4ODAwNzlkNjE5MDggIEVGTEFHUzogMDAwMTAwOTYNClsgICA0NC4z
-NTI1ODNdIFJBWDogMDAwMDAwMDAwMDAwMDAwMCBSQlg6IDAwMDAwMDAwMDAwMDAwMDEgUkNY
-OiBmZmZmODgwMDdjM2Q5NjUwDQpbICAgNDQuMzUyNTgzXSBSRFg6IDAwMDAwMDAwMDAwMDAw
-NDAgUlNJOiAwMDAwMDAwMDAwMDAwMDAxIFJESTogZmZmZjg4MDA3YzNkOTY1MA0KWyAgIDQ0
-LjM1MjU4M10gUkJQOiBmZmZmODgwMDc5ZDYxOTA4IFIwODogZmZmZjg4MDA3Y2E5NjM4MCBS
-MDk6IGZmZmY4ODAwNzlkMTU5NTgNClsgICA0NC4zNTI1ODNdIFIxMDogZGVhZDAwMDAwMDIw
-MDIwMCBSMTE6IDAwMDAwMDAwMDAwMDAwMDAgUjEyOiBmZmZmODgwMDc5ZDYxYTE4DQpbICAg
-NDQuMzUyNTgzXSBSMTM6IGZmZmY4ODAwN2NhOTMyMDAgUjE0OiBmZmZmODgwMDdjMzgwMDAw
-IFIxNTogZmZmZjg4MDA3YzNkOThkMA0KWyAgIDQ0LjM1MjU4M10gRlM6ICAwMDAwMDAwMDAw
-MDAwMDAwKDAwMDApIEdTOmZmZmY4ODAwN2NhODAwMDAoMDAwMCkga25sR1M6MDAwMDAwMDAw
-MDAwMDAwMA0KWyAgIDQ0LjM1MjU4M10gQ1M6ICAwMDEwIERTOiAwMDAwIEVTOiAwMDAwIENS
-MDogMDAwMDAwMDA4MDA1MDAzYg0KWyAgIDQ0LjM1MjU4M10gQ1IyOiBmZmZmZmZmZmZmZmZm
-ZmY4IENSMzogMDAwMDAwMDAwMWMwMzAwMCBDUjQ6IDAwMDAwMDAwMDAwNDA2ZTANClsgICA0
-NC4zNTI1ODNdIERSMDogMDAwMDAwMDAwMDAwMDAwMCBEUjE6IDAwMDAwMDAwMDAwMDAwMDAg
-RFIyOiAwMDAwMDAwMDAwMDAwMDAwDQpbICAgNDQuMzUyNTgzXSBEUjM6IDAwMDAwMDAwMDAw
-MDAwMDAgRFI2OiAwMDAwMDAwMGZmZmYwZmYwIERSNzogMDAwMDAwMDAwMDAwMDQwMA0KWyAg
-IDQ0LjM1MjU4M10gUHJvY2VzcyBrd29ya2VyLzE6MSAocGlkOiA0OTQsIHRocmVhZGluZm8g
-ZmZmZjg4MDA3OWQ2MDAwMCwgdGFzayBmZmZmODgwMDdjM2Q5NjUwKQ0KWyAgIDQ0LjM1MjU4
-M10gU3RhY2s6DQpbICAgNDQuMzUyNTgzXSAgZmZmZjg4MDA3OWQ2MTkyOCBmZmZmZmZmZjgx
-MDYxODIwIGZmZmY4ODAwN2MzZWJiYTAgZmZmZjg4MDA3OWQ2MWZkOA0KWyAgIDQ0LjM1MjU4
-M10gPDA+IGZmZmY4ODAwNzlkNjE5ZTggZmZmZmZmZmY4MTYzYjM0NyBmZmZmODgwMDdjYThm
-YTYwIGZmZmY4ODAwNzlkNjAwMTANClsgICA0NC4zNTI1ODNdIDwwPiAwMDAwMDAwMDAwMDEz
-MjAwIGZmZmY4ODAwNzlkNjFmZDggZmZmZjg4MDA3OWQ2MWZkOCAwMDAwMDAwMDAwMDEzMjAw
-DQpbICAgNDQuMzUyNTgzXSBDYWxsIFRyYWNlOg0KWyAgIDQ0LjM1MjU4M10gIFs8ZmZmZmZm
-ZmY4MTA2MTgyMD5dIHdxX3dvcmtlcl9zbGVlcGluZysweDEwLzB4OGYNClsgICA0NC4zNTI1
-ODNdICBbPGZmZmZmZmZmODE2M2IzNDc+XSBzY2hlZHVsZSsweDFjNS8weDY3YQ0KWyAgIDQ0
-LjM1MjU4M10gIFs8ZmZmZmZmZmY4MTA2ODhlNj5dID8gc3dpdGNoX3Rhc2tfbmFtZXNwYWNl
-cysweDE4LzB4NGMNClsgICA0NC4zNTI1ODNdICBbPGZmZmZmZmZmODEwNGRmNzE+XSBkb19l
-eGl0KzB4N2RjLzB4N2VhDQpbICAgNDQuMzUyNTgzXSAgWzxmZmZmZmZmZjgxNjNlMDI5Pl0g
-b29wc19lbmQrMHhjNy8weGNmDQpbICAgNDQuMzUyNTgzXSAgWzxmZmZmZmZmZjgxMDMyZWQz
-Pl0gbm9fY29udGV4dCsweDFmMy8weDIwMg0KWyAgIDQ0LjM1MjU4M10gIFs8ZmZmZmZmZmY4
-MTBmMTY5YT5dID8gdmlydF90b19oZWFkX3BhZ2UrMHg5LzB4MzANClsgICA0NC4zNTI1ODNd
-ICBbPGZmZmZmZmZmODEwMzMwOWQ+XSBfX2JhZF9hcmVhX25vc2VtYXBob3JlKzB4MWJiLzB4
-MWUxDQpbICAgNDQuMzUyNTgzXSAgWzxmZmZmZmZmZjgxM2UzZWQyPl0gPyB1cmJfZGVzdHJv
-eSsweDIzLzB4MjcNClsgICA0NC4zNTI1ODNdICBbPGZmZmZmZmZmODExZjkyYjI+XSA/IGty
-ZWZfcHV0KzB4NDMvMHg0Zg0KWyAgIDQ0LjM1MjU4M10gIFs8ZmZmZmZmZmY4MTNlM2MyMj5d
-ID8gdXNiX2ZyZWVfdXJiKzB4MTUvMHgxNw0KWyAgIDQ0LjM1MjU4M10gIFs8ZmZmZmZmZmY4
-MTNlNGM4Zj5dID8gdXNiX3N0YXJ0X3dhaXRfdXJiKzB4MTJiLzB4MTNhDQpbICAgNDQuMzUy
-NTgzXSAgWzxmZmZmZmZmZjgxMGYyYmMxPl0gPyBfX2ttYWxsb2MrMHgxNjAvMHgxNmYNClsg
-ICA0NC4zNTI1ODNdICBbPGZmZmZmZmZmODEwZjE2OWE+XSA/IHZpcnRfdG9faGVhZF9wYWdl
-KzB4OS8weDMwDQpbICAgNDQuMzUyNTgzXSAgWzxmZmZmZmZmZjgxMDMzMGQxPl0gYmFkX2Fy
-ZWFfbm9zZW1hcGhvcmUrMHhlLzB4MTANClsgICA0NC4zNTI1ODNdICBbPGZmZmZmZmZmODE2
-NDA1NmQ+XSBkb19wYWdlX2ZhdWx0KzB4MjM4LzB4NDNiDQpbICAgNDQuMzUyNTgzXSAgWzxm
-ZmZmZmZmZjgxNDU3ODMyPl0gPyBlbTI4eHhfcmVhZF9yZWdfcmVxX2xlbisweDEzMy8weDE4
-ZQ0KWyAgIDQ0LjM1MjU4M10gIFs8ZmZmZmZmZmY4MTQ1NzhhYj5dID8gZW0yOHh4X3JlYWRf
-cmVnX3JlcSsweDFlLzB4MjgNClsgICA0NC4zNTI1ODNdICBbPGZmZmZmZmZmODE2M2Q0MTU+
-XSBwYWdlX2ZhdWx0KzB4MjUvMHgzMA0KWyAgIDQ0LjM1MjU4M10gIFs8ZmZmZmZmZmY4MTQz
-NmNmMT5dID8gaXJfZ19rZXljb2RlX2Zyb21fdGFibGUrMHg0ZC8weGIxDQpbICAgNDQuMzUy
-NTgzXSAgWzxmZmZmZmZmZjgxNDM2ZjUxPl0gaXJfa2V5ZG93bisweDM0LzB4MTM4DQpbICAg
-NDQuMzUyNTgzXSAgWzxmZmZmZmZmZjgxNDU5MjU5Pl0gPyBlbTI4eHhfZ2V0X2tleV9waW5u
-YWNsZV91c2JfZ3JleSsweDI4LzB4YTMNClsgICA0NC4zNTI1ODNdICBbPGZmZmZmZmZmODE0
-NWNiZGE+XSBpcl93b3JrKzB4OTkvMHhiNg0KWyAgIDQ0LjM1MjU4M10gIFs8ZmZmZmZmZmY4
-MTA1ZmI1Mj5dIHByb2Nlc3Nfb25lX3dvcmsrMHgxZDUvMHgyZDINClsgICA0NC4zNTI1ODNd
-ICBbPGZmZmZmZmZmODE0NWNiNDE+XSA/IGlyX3dvcmsrMHgwLzB4YjYNClsgICA0NC4zNTI1
-ODNdICBbPGZmZmZmZmZmODEwNWZmMmQ+XSB3b3JrZXJfdGhyZWFkKzB4MTQ2LzB4Mjc3DQpb
-ICAgNDQuMzUyNTgzXSAgWzxmZmZmZmZmZjgxMDVmZGU3Pl0gPyB3b3JrZXJfdGhyZWFkKzB4
-MC8weDI3Nw0KWyAgIDQ0LjM1MjU4M10gIFs8ZmZmZmZmZmY4MTA2NDVmNz5dIGt0aHJlYWQr
-MHg4MS8weDg5DQpbICAgNDQuMzUyNTgzXSAgWzxmZmZmZmZmZjgxMDBiYWU0Pl0ga2VybmVs
-X3RocmVhZF9oZWxwZXIrMHg0LzB4MTANClsgICA0NC4zNTI1ODNdICBbPGZmZmZmZmZmODEw
-NjQ1NzY+XSA/IGt0aHJlYWQrMHgwLzB4ODkNClsgICA0NC4zNTI1ODNdICBbPGZmZmZmZmZm
-ODEwMGJhZTA+XSA/IGtlcm5lbF90aHJlYWRfaGVscGVyKzB4MC8weDEwDQpbICAgNDQuMzUy
-NTgzXSBDb2RlOiA0MSA1ZCA0MSA1ZSBjOSBjMyA5MCA1NSA2NSA0OCA4YiAwNCAyNSA0MCBj
-YyAwMCAwMCA0OCA4YiA4MCAyMCAwMyAwMCAwMCA0OCA4OSBlNSA4YiA0MCBmMCBjOSBjMyA0
-OCANCjhiIDg3IDIwIDAzIDAwIDAwIDU1IDQ4IDg5IGU1IDw0OD4gOGIgNDAgZjggYzkgYzMg
-NTUgNDggODMgYzcgNDAgNDggODkgZTUgZTggNzEgOWYgZmQgZmYgYzkgYzMgDQpbICAgNDQu
-MzUyNTgzXSBSSVAgIFs8ZmZmZmZmZmY4MTA2NDI1OD5dIGt0aHJlYWRfZGF0YSsweGIvMHgx
-MQ0KWyAgIDQ0LjM1MjU4M10gIFJTUCA8ZmZmZjg4MDA3OWQ2MTkwOD4NClsgICA0NC4zNTI1
-ODNdIENSMjogZmZmZmZmZmZmZmZmZmZmOA0KWyAgIDQ0LjM1MjU4M10gLS0tWyBlbmQgdHJh
-Y2UgMjk4OGE5MzQzMGExYzljYiBdLS0tDQpbICAgNDQuMzUyNTgzXSBGaXhpbmcgcmVjdXJz
-aXZlIGZhdWx0IGJ1dCByZWJvb3QgaXMgbmVlZGVkIQ0K
-------------AE152343D0EB82F--
+> +
+> +static void jbi_export_integer(char *key, s32 value)
+> +{
+> +	dprintk("Export: key = \"%s\", value = %d\n", key, value);
+> +}
+> +
+> +#define HEX_LINE_CHARS 72
+> +#define HEX_LINE_BITS (HEX_LINE_CHARS * 4)
+> +
+> +static char conv_to_hex(u32 value)
+> +{
+> +	char c;
+> +
+> +	if (value > 9)
+> +		c = (char)(value + ('A' - 10));
+> +	else
+> +		c = (char)(value + '0');
+> +
+> +	return c;
+> +}
+
+There are some Linux functions for this also.
+
+> +
+> +static void jbi_export_boolean_array(char *key, u8 *data, s32 count)
+> +{
+> +	char string[HEX_LINE_CHARS + 1];
+> +	s32 i, offset;
+> +	u32 size, line, lines, linebits, value, j, k;
+> +
+> +	if (count > HEX_LINE_BITS) {
+> +		dprintk("Export: key = \"%s\", %d bits, value = HEX\n",
+> +							key, count);
+> +		lines = (count + (HEX_LINE_BITS - 1)) / HEX_LINE_BITS;
+> +
+> +		for (line = 0; line < lines; ++line) {
+> +			if (line < (lines - 1)) {
+> +				linebits = HEX_LINE_BITS;
+> +				size = HEX_LINE_CHARS;
+> +				offset = count - ((line + 1) * HEX_LINE_BITS);
+> +			} else {
+> +				linebits =
+> +					count - ((lines - 1) * HEX_LINE_BITS);
+> +				size = (linebits + 3) / 4;
+> +				offset = 0L;
+> +			}
+> +
+> +			string[size] = '\0';
+> +			j = size - 1;
+> +			value = 0;
+> +
+> +			for (k = 0; k < linebits; ++k) {
+> +				i = k + offset;
+> +				if (data[i >> 3] & (1 << (i & 7)))
+> +					value |= (1 << (i & 3));
+> +				if ((i & 3) == 3) {
+> +					string[j] = conv_to_hex(value);
+> +					value = 0;
+> +					--j;
+> +				}
+> +			}
+> +			if ((k & 3) > 0)
+> +				string[j] = conv_to_hex(value);
+> +
+> +			dprintk("%s\n", string);
+> +		}
+> +
+> +	} else {
+> +		size = (count + 3) / 4;
+> +		string[size] = '\0';
+> +		j = size - 1;
+> +		value = 0;
+> +
+> +		for (i = 0; i < count; ++i) {
+> +			if (data[i >> 3] & (1 << (i & 7)))
+> +				value |= (1 << (i & 3));
+> +			if ((i & 3) == 3) {
+> +				string[j] = conv_to_hex(value);
+> +				value = 0;
+> +				--j;
+> +			}
+> +		}
+> +		if ((i & 3) > 0)
+> +			string[j] = conv_to_hex(value);
+> +
+> +		dprintk("Export: key = \"%s\", %d bits, value = HEX %s\n",
+> +			key, count, string);
+> +	}
+> +}
+> +
+> +static JBI_RETURN_TYPE jbi_execute(struct altera_config *astate,
+> +				u8 *program,
+> +				s32 program_size,
+> +				s32 *error_address,
+> +				int *exit_code,
+> +				int *format_version)
+> +{
+> +	static char message_buffer[JBIC_MESSAGE_LENGTH + 1];
+> +	static long stack[JBI_STACK_SIZE] = {0L};/*64 bits*/
+> +	JBI_RETURN_TYPE status = JBIC_SUCCESS;
+> +	u32 first_word = 0L;
+> +	u32 action_table = 0L;
+> +	u32 proc_table = 0L;
+> +	u32 string_table = 0L;
+> +	u32 symbol_table = 0L;
+> +	u32 data_section = 0L;
+> +	u32 code_section = 0L;
+> +	u32 debug_section = 0L;
+> +	u32 action_count = 0L;
+> +	u32 proc_count = 0L;
+> +	u32 symbol_count = 0L;
+> +	long *variables = NULL;/*64bits*/
+> +	s32 *variable_size = NULL;
+> +	char *attributes = NULL;
+> +	u8 *proc_attributes = NULL;
+> +	u32 pc;
+> +	u32 opcode_address;
+> +	u32 args[3];
+> +	u32 opcode;
+> +	u32 name_id;
+> +	u8 charbuf[4];
+> +	long long_temp;/*64bits*/
+> +	u32 variable_id;
+> +	u8 *charptr_temp;
+> +	u8 *charptr_temp2;
+> +	long *longptr_temp;
+> +	int version = 0;
+> +	int delta = 0;
+> +	int stack_ptr = 0;
+> +	u32 arg_count;
+> +	int done = 0;
+> +	int bad_opcode = 0;
+> +	u32 count;
+> +	u32 index;
+> +	u32 index2;
+> +	s32 long_count;
+> +	s32 long_index;
+> +	s32 long_index2;
+> +	u32 i;
+> +	u32 j;
+> +	u32 uncompressed_size;
+> +	u32 offset;
+> +	u32 value;
+> +	int current_proc = 0;
+> +	int reverse;
+> +
+> +	char *name;
+> +
+> +	dprintk("%s\n", __func__);
+> +
+> +	/* Read header information */
+> +	if (program_size > 52L) {
+> +		first_word    = GET_DWORD(0);
+
+GET_DWORD here masks the fact that it is reading a dword data, from a variable
+called "program". Please, don't do that. Also, again, what this function actually
+does is to convert a data using a given endiannes.
+As it is defined as:
+
+	#define GET_BYTE(x) (program[x])
+	#define GET_DWORD(x) \
+		(((((u32) GET_BYTE(x)) << 24L) & 0xFF000000L) | \
+		((((u32) GET_BYTE((x)+1)) << 16L) & 0x00FF0000L) | \
+		((((u32) GET_BYTE((x)+2)) << 8L) & 0x0000FF00L) | \
+		(((u32) GET_BYTE((x)+3)) & 0x000000FFL))
+
+you're getting a 32 bits encoded as little endian. So, the Linux way for it would
+be to use, instead:
+
+	get_unaligned_le32(&program[0]);
+
+(the same applies to all cases of GET_BYTE/GET_WORD/GET_DWORD)
+
+
+> +		version = (int)(first_word & 1L);
+> +		*format_version = version + 1;
+> +		delta = version * 8;
+> +
+> +		action_table  = GET_DWORD(4);
+> +		proc_table    = GET_DWORD(8);
+> +		string_table  = GET_DWORD(4 + delta);
+> +		symbol_table  = GET_DWORD(16 + delta);
+> +		data_section  = GET_DWORD(20 + delta);
+> +		code_section  = GET_DWORD(24 + delta);
+> +		debug_section = GET_DWORD(28 + delta);
+> +		action_count  = GET_DWORD(40 + delta);
+> +		proc_count    = GET_DWORD(44 + delta);
+> +		symbol_count  = GET_DWORD(48 + (2 * delta));
+> +	}
+> +
+> +	if ((first_word != 0x4A414D00L) && (first_word != 0x4A414D01L)) {
+> +		done = 1;
+> +		status = JBIC_IO_ERROR;
+> +		goto exit_done;
+> +	}
+> +
+> +	if (symbol_count <= 0)
+> +		goto exit_done;
+> +	/* 64 bits */
+> +	variables = kmalloc((u32)symbol_count * sizeof(long), GFP_KERNEL);
+> +
+> +	if (variables == NULL)
+> +		status = JBIC_OUT_OF_MEMORY;
+
+status = -ENOMEM;
+
+> +
+> +	if (status == JBIC_SUCCESS) {
+> +		variable_size = kmalloc(
+> +			(u32)symbol_count * sizeof(s32), GFP_KERNEL);
+> +
+> +		if (variable_size == NULL)
+> +			status = JBIC_OUT_OF_MEMORY;
+> +	}
+> +
+> +	if (status == JBIC_SUCCESS) {
+> +		attributes = (char *)
+> +				kmalloc((u32)symbol_count, GFP_KERNEL);
+> +
+> +		if (attributes == NULL)
+> +			status = JBIC_OUT_OF_MEMORY;
+> +	}
+> +
+> +	if ((status == JBIC_SUCCESS) && (version > 0)) {
+> +		proc_attributes = (u8 *)
+> +				kmalloc((u32)proc_count, GFP_KERNEL);
+> +
+> +		if (proc_attributes == NULL)
+> +			status = JBIC_OUT_OF_MEMORY;
+> +	}
+
+Same for all above: -ENOMEM.
+
+> +
+> +	if (status != JBIC_SUCCESS)
+> +		goto exit_done;
+> +
+> +	delta = version * 2;
+> +
+> +	for (i = 0; i < (u32)symbol_count; ++i) {
+> +		offset = (u32)
+> +			(symbol_table + ((11 + delta) * i));
+> +
+> +		value = GET_DWORD(offset + 3 + delta);
+> +
+> +		attributes[i] = GET_BYTE(offset);
+> +
+> +		/* use bit 7 of attribute byte to indicate that
+> +		this buffer was dynamically allocated
+> +		and should be freed later */
+> +		attributes[i] &= 0x7f;
+> +
+> +		variable_size[i] = GET_DWORD(offset + 7 + delta);
+> +
+> +		/*
+> +		Attribute bits:
+> +		bit 0: 0 = read-only, 1 = read-write
+> +		bit 1: 0 = not compressed, 1 = compressed
+> +		bit 2: 0 = not initialized, 1 = initialized
+> +		bit 3: 0 = scalar, 1 = array
+> +		bit 4: 0 = Boolean, 1 = integer
+> +		bit 5: 0 = declared variable,
+> +			1 = compiler created temporary variable
+> +		*/
+> +
+> +		if ((attributes[i] & 0x0c) == 0x04)
+> +			/* initialized scalar variable */
+> +			variables[i] = value;
+> +		else if ((attributes[i] & 0x1e) == 0x0e) {
+> +			/* initialized compressed
+> +			Boolean array */
+> +			uncompressed_size = jbi_get_dword(
+> +				&program[data_section + value]);
+> +
+> +			/* allocate a buffer for the
+> +			uncompressed data */
+> +			variables[i] = (long)kmalloc(uncompressed_size,
+> +								GFP_KERNEL);
+> +			dprintk("%s: var=%lx, (s32)var=%x\n", __func__,
+> +					variables[i], (s32)variables[i]);
+> +			if (variables[i] == 0L)
+> +				status = JBIC_OUT_OF_MEMORY;
+> +			else {
+> +				/* set flag so buffer
+> +				will be freed later */
+> +				attributes[i] |= 0x80;
+> +
+> +				/* uncompress the data */
+> +				if (jbi_uncompress(&program[data_section +
+> +									value],
+> +						variable_size[i],
+> +						(u8 *)variables[i],/*64 bits*/
+> +						uncompressed_size,
+> +						version) != uncompressed_size)
+> +					/* decompression failed */
+> +					status = JBIC_IO_ERROR;
+> +				else /*64 bits?*/
+> +					variable_size[i] =
+> +							uncompressed_size * 8L;
+> +
+> +			}
+> +		} else if ((attributes[i] & 0x1e) == 0x0c) {
+> +			/* initialized Boolean array */
+> +			/*64 bits*/
+> +			variables[i] = value + data_section + (long)program;
+> +		} else if ((attributes[i] & 0x1c) == 0x1c) {
+> +			/* initialized integer array */
+> +			variables[i] = value + data_section;
+> +		} else if ((attributes[i] & 0x0c) == 0x08) {
+> +			/* uninitialized array */
+> +
+> +			/* flag attributes so
+> +			that memory is freed */
+> +			attributes[i] |= 0x80;
+> +
+> +			if (variable_size[i] > 0) {
+> +				u32 size;
+> +
+> +				if (attributes[i] & 0x10)
+> +					/* integer array */
+> +					size = (u32)(variable_size[i] *
+> +								sizeof(s32));
+> +				else
+> +					/* Boolean array */
+> +					size = (u32)
+> +						((variable_size[i] + 7L) / 8L);
+> +				/*64 bits*/
+> +				variables[i] = (long)kmalloc(size, GFP_KERNEL);
+> +
+> +				if (variables[i] == 0) {
+> +					status = JBIC_OUT_OF_MEMORY;
+> +				} else {
+> +					/* zero out memory */
+> +					for (j = 0; j < size; ++j)
+> +						/*64 bits*/
+> +						((u8 *)(variables[i]))[j] = 0;
+> +
+> +				}
+> +			} else
+> +				variables[i] = 0;
+> +
+> +		} else
+> +			variables[i] = 0;
+> +
+> +	}
+> +
+> +exit_done:
+> +	if (status != JBIC_SUCCESS)
+> +		done = 1;
+> +
+> +	jbi_init_jtag();
+> +
+> +	pc = code_section;
+> +	message_buffer[0] = '\0';
+> +
+> +	/*
+> +	For JBC version 2, we will execute the procedures corresponding to
+> +	the selected ACTION */
+> +	if (version > 0) {
+> +		if (astate->action == NULL) {
+> +			status = JBIC_ACTION_NOT_FOUND;
+> +			done = 1;
+> +		} else {
+> +			int action_found = 0;
+> +			for (i = 0; (i < action_count) && !action_found; ++i) {
+> +				name_id = GET_DWORD(action_table + (12 * i));
+> +
+> +				name = (char *)&program[string_table + name_id];
+> +
+> +				if (jbi_stricmp(astate->action, name) == 0) {
+> +					action_found = 1;
+> +					current_proc = (int)
+> +							GET_DWORD(action_table +
+> +								(12 * i) + 8);
+> +				}
+> +			}
+> +
+> +			if (!action_found) {
+> +				status = JBIC_ACTION_NOT_FOUND;
+> +				done = 1;
+> +			}
+> +		}
+> +
+> +		if (status == JBIC_SUCCESS) {
+> +			int first_time = 1;
+> +			i = current_proc;
+> +			while ((i != 0) || first_time) {
+> +				first_time = 0;
+> +				/* check procedure attribute byte */
+> +				proc_attributes[i] = (u8)
+> +						(GET_BYTE(proc_table +
+> +								(13 * i) + 8) &
+> +									0x03);
+> +
+> +				/*
+> +				BIT0 - OPTIONAL
+> +				BIT1 - RECOMMENDED
+> +				BIT6 - FORCED OFF
+> +				BIT7 - FORCED ON
+> +				*/
+> +
+> +				i = (u32)GET_DWORD(proc_table + (13 * i) + 4);
+> +			}
+> +
+> +			/*
+> +			Set current_proc to the first procedure to be executed
+> +			*/
+> +			i = current_proc;
+> +			while ((i != 0) &&
+> +				((proc_attributes[i] == 1) ||
+> +				((proc_attributes[i] & 0xc0) == 0x40))) {
+> +				i = (u32)GET_DWORD(proc_table + (13 * i) + 4);
+> +			}
+> +
+> +			if ((i != 0) || ((i == 0) && (current_proc == 0) &&
+> +				((proc_attributes[0] != 1) &&
+> +				((proc_attributes[0] & 0xc0) != 0x40)))) {
+> +				current_proc = i;
+> +				pc = code_section +
+> +					GET_DWORD(proc_table + (13 * i) + 9);
+> +				CHECK_PC;
+
+See my comments above. The code will look cleaner if you use, instead of the
+macro, something like:
+
+	if ((pc < code_section) || (pc >= debug_section)) 
+		goto jbic_bounds_error;
+
+(if you can simply abort the programming due to the error)
+
+or
+
+	if ((pc < code_section) || (pc >= debug_section)) 
+		status = <error code>;
+
+if you really need to program everything even knowing in advance that an error
+happened.
+
+> +			} else
+> +				/* there are no procedures to execute! */
+> +				done = 1;
+> +
+> +		}
+> +	}
+> +
+> +	message_buffer[0] = '\0';
+> +
+> +	while (!done) {
+> +		opcode = (u32)(GET_BYTE(pc) & 0xff);
+> +		opcode_address = pc;
+> +		++pc;
+> +
+> +		if (verbose > 1)
+> +			printk("opcode: %02x\n", opcode);
+> +
+> +		arg_count = (opcode >> 6) & 3;
+> +		for (i = 0; i < arg_count; ++i) {
+> +			args[i] = GET_DWORD(pc);
+> +			pc += 4;
+> +		}
+> +
+> +		switch (opcode) {
+> +		case 0x00: /* NOP  */
+> +			break;
+> +		case 0x01: /* DUP  */
+> +			if (jbi_check_stack(stack_ptr, 1, &status)) {
+> +				stack[stack_ptr] = stack[stack_ptr - 1];
+> +				++stack_ptr;
+> +			}
+> +			break;
+> +		case 0x02: /* SWP  */
+> +			if (jbi_check_stack(stack_ptr, 2, &status)) {
+> +				long_temp = stack[stack_ptr - 2];
+> +				stack[stack_ptr - 2] = stack[stack_ptr - 1];
+> +				stack[stack_ptr - 1] = long_temp;
+> +			}
+> +			break;
+> +		case 0x03: /* ADD  */
+
+
+hmm... the better would be to do:
+
+enum altera_fpga_opcode {
+	OP_NOP = 0,
+	OP_DUP = 1,
+	OP_SWP = 2,
+	OP_ADD = 3,
+	...
+};
+
+switch (obcode) {
+case OP_NOP:
+	/* do something */
+...
+}
+
+The rest of the driver have the same problems as pointed above.
+
+Please fix, and submit a version 2.
+
+Thanks,
+Mauro
+
+> +			if (jbi_check_stack(stack_ptr, 2, &status)) {
+> +				--stack_ptr;
+> +				stack[stack_ptr - 1] += stack[stack_ptr];
+> +			}
+> +			break;
+> +		case 0x04: /* SUB  */
+> +			if (jbi_check_stack(stack_ptr, 2, &status)) {
+> +				--stack_ptr;
+> +				stack[stack_ptr - 1] -= stack[stack_ptr];
+> +			}
+> +			break;
+> +		case 0x05: /* MULT */
+> +			if (jbi_check_stack(stack_ptr, 2, &status)) {
+> +				--stack_ptr;
+> +				stack[stack_ptr - 1] *= stack[stack_ptr];
+> +			}
+> +			break;
+> +		case 0x06: /* DIV  */
+> +			if (jbi_check_stack(stack_ptr, 2, &status)) {
+> +				--stack_ptr;
+> +				stack[stack_ptr - 1] /= stack[stack_ptr];
+> +			}
+> +			break;
+> +		case 0x07: /* MOD  */
+> +			if (jbi_check_stack(stack_ptr, 2, &status)) {
+> +				--stack_ptr;
+> +				stack[stack_ptr - 1] %= stack[stack_ptr];
+> +			}
+> +			break;
+> +		case 0x08: /* SHL  */
+> +			if (jbi_check_stack(stack_ptr, 2, &status)) {
+> +				--stack_ptr;
+> +				stack[stack_ptr - 1] <<= stack[stack_ptr];
+> +			}
+> +			break;
+> +		case 0x09: /* SHR  */
+> +			if (jbi_check_stack(stack_ptr, 2, &status)) {
+> +				--stack_ptr;
+> +				stack[stack_ptr - 1] >>= stack[stack_ptr];
+> +			}
+> +			break;
+> +		case 0x0A: /* NOT  */
+> +			if (jbi_check_stack(stack_ptr, 1, &status))
+> +				stack[stack_ptr - 1] ^= (-1L);
+> +
+> +			break;
+> +		case 0x0B: /* AND  */
+> +			if (jbi_check_stack(stack_ptr, 2, &status)) {
+> +				--stack_ptr;
+> +				stack[stack_ptr - 1] &= stack[stack_ptr];
+> +			}
+> +			break;
+> +		case 0x0C: /* OR   */
+> +			if (jbi_check_stack(stack_ptr, 2, &status)) {
+> +				--stack_ptr;
+> +				stack[stack_ptr - 1] |= stack[stack_ptr];
+> +			}
+> +			break;
+> +		case 0x0D: /* XOR */
+> +			if (jbi_check_stack(stack_ptr, 2, &status)) {
+> +				--stack_ptr;
+> +				stack[stack_ptr - 1] ^= stack[stack_ptr];
+> +			}
+> +			break;
+> +		case 0x0E: /* INV */
+> +			if (!jbi_check_stack(stack_ptr, 1, &status))
+> +				break;
+> +			stack[stack_ptr - 1] = stack[stack_ptr - 1] ? 0L : 1L;
+> +			break;
+> +		case 0x0F: /* GT */
+> +			if (!jbi_check_stack(stack_ptr, 2, &status))
+> +				break;
+> +			--stack_ptr;
+> +			stack[stack_ptr - 1] =
+> +				(stack[stack_ptr - 1] > stack[stack_ptr]) ?
+> +									1L : 0L;
+> +
+> +			break;
+> +		case 0x10: /* LT */
+> +			if (!jbi_check_stack(stack_ptr, 2, &status))
+> +				break;
+> +			--stack_ptr;
+> +			stack[stack_ptr - 1] =
+> +				(stack[stack_ptr - 1] < stack[stack_ptr]) ?
+> +									1L : 0L;
+> +
+> +			break;
+> +		case 0x11: /* RET  */
+> +			if ((version > 0) && (stack_ptr == 0)) {
+> +				/*
+> +				We completed one of the main procedures
+> +				of an ACTION.
+> +				Find the next procedure
+> +				to be executed and jump to it.
+> +				If there are no more procedures, then EXIT.
+> +				*/
+> +				i = (u32)
+> +					GET_DWORD(proc_table +
+> +						(13 * current_proc) + 4);
+> +				while ((i != 0) &&
+> +					((proc_attributes[i] == 1) ||
+> +					((proc_attributes[i] & 0xc0) == 0x40)))
+> +					i = (u32)
+> +						GET_DWORD(proc_table +
+> +								(13 * i) + 4);
+> +
+> +				if (i == 0) {
+> +					/*
+> +					there are no procedures to execute! */
+> +					done = 1;
+> +					*exit_code = 0;	/* success */
+> +				} else {
+> +					current_proc = i;
+> +					pc = code_section +
+> +							GET_DWORD(proc_table +
+> +								(13 * i) + 9);
+> +					CHECK_PC;
+> +				}
+> +
+> +			} else
+> +				if (jbi_check_stack(stack_ptr, 1, &status)) {
+> +					pc = stack[--stack_ptr] + code_section;
+> +					CHECK_PC;
+> +					if (pc == code_section)
+> +						status = JBIC_BOUNDS_ERROR;
+> +
+> +				}
+> +
+> +			break;
+> +		case 0x12: /* CMPS */
+> +			/*
+> +			Array short compare
+> +			...stack 0 is source 1 value
+> +			...stack 1 is source 2 value
+> +			...stack 2 is mask value
+> +			...stack 3 is count
+> +			*/
+> +			if (jbi_check_stack(stack_ptr, 4, &status)) {
+> +				s32 a = stack[--stack_ptr];
+> +				s32 b = stack[--stack_ptr];
+> +				long_temp = stack[--stack_ptr];
+> +				count = (u32)stack[stack_ptr - 1];
+> +
+> +				if ((count < 1) || (count > 32))
+> +					status = JBIC_BOUNDS_ERROR;
+> +				else {
+> +					long_temp &= ((-1L) >> (32 - count));
+> +
+> +					stack[stack_ptr - 1] =
+> +					((a & long_temp) == (b & long_temp))
+> +								? 1L : 0L;
+> +				}
+> +			}
+> +			break;
+> +		case 0x13: /* PINT */
+> +			/*
+> +			PRINT add integer
+> +			...stack 0 is integer value
+> +			*/
+> +			if (!jbi_check_stack(stack_ptr, 1, &status))
+> +				break;
+> +			jbi_ltoa(&message_buffer[jbi_strlen(message_buffer)],
+> +						stack[--stack_ptr]);
+> +			break;
+> +		case 0x14: /* PRNT */
+> +			/* PRINT finish */
+> +			if (verbose)
+> +				printk(message_buffer, "\n");
+> +
+> +			message_buffer[0] = '\0';
+> +			break;
+> +		case 0x15: /* DSS  */
+> +			/*
+> +			DRSCAN short
+> +			...stack 0 is scan data
+> +			...stack 1 is count
+> +			*/
+> +			if (!jbi_check_stack(stack_ptr, 2, &status))
+> +				break;
+> +			long_temp = stack[--stack_ptr];
+> +			count = (u32)stack[--stack_ptr];
+> +			jbi_make_dword(charbuf, long_temp);
+> +			status = jbi_do_drscan(astate, count, charbuf, 0);
+> +			break;
+> +		case 0x16: /* DSSC */
+> +			/*
+> +			DRSCAN short with capture
+> +			...stack 0 is scan data
+> +			...stack 1 is count
+> +			*/
+> +			if (!jbi_check_stack(stack_ptr, 2, &status))
+> +				break;
+> +			long_temp = stack[--stack_ptr];
+> +			count = (u32)stack[stack_ptr - 1];
+> +			jbi_make_dword(charbuf, long_temp);
+> +			status = jbi_swap_dr(astate, count, charbuf,
+> +							0, charbuf, 0);
+> +			stack[stack_ptr - 1] = jbi_get_dword(charbuf);
+> +			break;
+> +		case 0x17: /* ISS  */
+> +			/*
+> +			IRSCAN short
+> +			...stack 0 is scan data
+> +			...stack 1 is count
+> +			*/
+> +			if (!jbi_check_stack(stack_ptr, 2, &status))
+> +				break;
+> +			long_temp = stack[--stack_ptr];
+> +			count = (u32)stack[--stack_ptr];
+> +			jbi_make_dword(charbuf, long_temp);
+> +			status = jbi_do_irscan(astate, count, charbuf, 0);
+> +			break;
+> +		case 0x18: /* ISSC */
+> +			/*
+> +			IRSCAN short with capture
+> +			...stack 0 is scan data
+> +			...stack 1 is count
+> +			*/
+> +			if (!jbi_check_stack(stack_ptr, 2, &status))
+> +				break;
+> +			long_temp = stack[--stack_ptr];
+> +			count = (u32)stack[stack_ptr - 1];
+> +			jbi_make_dword(charbuf, long_temp);
+> +			status = jbi_swap_ir(astate, count, charbuf,
+> +							0, charbuf, 0);
+> +			stack[stack_ptr - 1] = jbi_get_dword(charbuf);
+> +			break;
+> +		case 0x19: /* VSS  */
+> +			/*
+> +			VECTOR short
+> +			...stack 0 is scan data
+> +			...stack 1 is count
+> +			*/
+> +			bad_opcode = 1;
+> +			break;
+> +		case 0x1A: /* VSSC */
+> +			/*
+> +			VECTOR short with capture
+> +			...stack 0 is scan data
+> +			...stack 1 is count
+> +			*/
+> +			bad_opcode = 1;
+> +			break;
+> +		case 0x1B: /* VMPF */
+> +			/* VMAP finish */
+> +			bad_opcode = 1;
+> +			break;
+> +		case 0x1C: /* DPR  */
+> +			if (!jbi_check_stack(stack_ptr, 1, &status))
+> +				break;
+> +			count = (u32)stack[--stack_ptr];
+> +			status = jbi_set_dr_preamble(count, 0, NULL);
+> +			break;
+> +		case 0x1D: /* DPRL */
+> +			/*
+> +			DRPRE with literal data
+> +			...stack 0 is count
+> +			...stack 1 is literal data
+> +			*/
+> +			if (!jbi_check_stack(stack_ptr, 2, &status))
+> +				break;
+> +			count = (u32)stack[--stack_ptr];
+> +			long_temp = stack[--stack_ptr];
+> +			jbi_make_dword(charbuf, long_temp);
+> +			status = jbi_set_dr_preamble(count, 0, charbuf);
+> +			break;
+> +		case 0x1E: /* DPO  */
+> +			/*
+> +			DRPOST
+> +			...stack 0 is count
+> +			*/
+> +			if (jbi_check_stack(stack_ptr, 1, &status)) {
+> +				count = (u32)stack[--stack_ptr];
+> +				status = jbi_set_dr_postamble(count, 0, NULL);
+> +			}
+> +			break;
+> +		case 0x1F: /* DPOL */
+> +			/*
+> +			DRPOST with literal data
+> +			...stack 0 is count
+> +			...stack 1 is literal data
+> +			*/
+> +			if (!jbi_check_stack(stack_ptr, 2, &status))
+> +				break;
+> +			count = (u32)stack[--stack_ptr];
+> +			long_temp = stack[--stack_ptr];
+> +			jbi_make_dword(charbuf, long_temp);
+> +			status = jbi_set_dr_postamble(count, 0, charbuf);
+> +			break;
+> +		case 0x20: /* IPR  */
+> +			if (jbi_check_stack(stack_ptr, 1, &status)) {
+> +				count = (u32)stack[--stack_ptr];
+> +				status = jbi_set_ir_preamble(count, 0, NULL);
+> +			}
+> +			break;
+> +		case 0x21: /* IPRL */
+> +			/*
+> +			IRPRE with literal data
+> +			...stack 0 is count
+> +			...stack 1 is literal data
+> +			*/
+> +			if (jbi_check_stack(stack_ptr, 2, &status)) {
+> +				count = (u32)stack[--stack_ptr];
+> +				long_temp = stack[--stack_ptr];
+> +				jbi_make_dword(charbuf, long_temp);
+> +				status = jbi_set_ir_preamble(count, 0, charbuf);
+> +			}
+> +			break;
+> +		case 0x22: /* IPO  */
+> +			/*
+> +			IRPOST
+> +			...stack 0 is count
+> +			*/
+> +			if (jbi_check_stack(stack_ptr, 1, &status)) {
+> +				count = (u32)stack[--stack_ptr];
+> +				status = jbi_set_ir_postamble(count, 0, NULL);
+> +			}
+> +			break;
+> +		case 0x23: /* IPOL */
+> +			/*
+> +			IRPOST with literal data
+> +			...stack 0 is count
+> +			...stack 1 is literal data
+> +			*/
+> +			if (!jbi_check_stack(stack_ptr, 2, &status))
+> +				break;
+> +			count = (u32)stack[--stack_ptr];
+> +			long_temp = stack[--stack_ptr];
+> +			jbi_make_dword(charbuf, long_temp);
+> +			status = jbi_set_ir_postamble(count, 0, charbuf);
+> +			break;
+> +		case 0x24: /* PCHR */
+> +			if (jbi_check_stack(stack_ptr, 1, &status)) {
+> +				u8 ch;
+> +				count = jbi_strlen(message_buffer);
+> +				ch = (char) stack[--stack_ptr];
+> +				if ((ch < 1) || (ch > 127)) {
+> +					/*
+> +					character code out of range
+> +					instead of flagging an error,
+> +					force the value to 127 */
+> +					ch = 127;
+> +				}
+> +				message_buffer[count] = ch;
+> +				message_buffer[count + 1] = '\0';
+> +			}
+> +			break;
+> +		case 0x25: /* EXIT */
+> +			if (jbi_check_stack(stack_ptr, 1, &status))
+> +				*exit_code = (int) stack[--stack_ptr];
+> +
+> +			done = 1;
+> +			break;
+> +		case 0x26: /* EQU  */
+> +			if (!jbi_check_stack(stack_ptr, 2, &status))
+> +				break;
+> +			--stack_ptr;
+> +			stack[stack_ptr - 1] =
+> +				(stack[stack_ptr - 1] == stack[stack_ptr]) ?
+> +									1L : 0L;
+> +			break;
+> +		case 0x27: /* POPT  */
+> +			if (jbi_check_stack(stack_ptr, 1, &status))
+> +				--stack_ptr;
+> +
+> +			break;
+> +		case 0x28: /* TRST  */
+> +			bad_opcode = 1;
+> +			break;
+> +
+> +		case 0x29: /* FRQ   */
+> +			bad_opcode = 1;
+> +			break;
+> +		case 0x2A: /* FRQU  */
+> +			bad_opcode = 1;
+> +			break;
+> +		case 0x2B: /* PD32  */
+> +			bad_opcode = 1;
+> +			break;
+> +		case 0x2C: /* ABS   */
+> +			if (!jbi_check_stack(stack_ptr, 1, &status))
+> +				break;
+> +			if (stack[stack_ptr - 1] < 0)
+> +				stack[stack_ptr - 1] = 0 - stack[stack_ptr - 1];
+> +
+> +			break;
+> +		case 0x2D: /* BCH0  */
+> +			/*
+> +			Batch operation 0
+> +			SWP
+> +			SWPN 7
+> +			SWP
+> +			SWPN 6
+> +			DUPN 8
+> +			SWPN 2
+> +			SWP
+> +			DUPN 6
+> +			DUPN 6
+> +			*/
+> +
+> +			/* SWP  */
+> +			if (jbi_check_stack(stack_ptr, 2, &status)) {
+> +				long_temp = stack[stack_ptr - 2];
+> +				stack[stack_ptr - 2] = stack[stack_ptr - 1];
+> +				stack[stack_ptr - 1] = long_temp;
+> +			}
+> +
+> +			/* SWPN 7 */
+> +			index = 7 + 1;
+> +			if (jbi_check_stack(stack_ptr, index, &status)) {
+> +				long_temp = stack[stack_ptr - index];
+> +				stack[stack_ptr - index] = stack[stack_ptr - 1];
+> +				stack[stack_ptr - 1] = long_temp;
+> +			}
+> +
+> +			/* SWP  */
+> +			if (jbi_check_stack(stack_ptr, 2, &status)) {
+> +				long_temp = stack[stack_ptr - 2];
+> +				stack[stack_ptr - 2] = stack[stack_ptr - 1];
+> +				stack[stack_ptr - 1] = long_temp;
+> +			}
+> +
+> +			/* SWPN 6 */
+> +			index = 6 + 1;
+> +			if (jbi_check_stack(stack_ptr, index, &status)) {
+> +				long_temp = stack[stack_ptr - index];
+> +				stack[stack_ptr - index] = stack[stack_ptr - 1];
+> +				stack[stack_ptr - 1] = long_temp;
+> +			}
+> +
+> +			/* DUPN 8 */
+> +			index = 8 + 1;
+> +			if (jbi_check_stack(stack_ptr, index, &status)) {
+> +				stack[stack_ptr] = stack[stack_ptr - index];
+> +				++stack_ptr;
+> +			}
+> +
+> +			/* SWPN 2 */
+> +			index = 2 + 1;
+> +			if (jbi_check_stack(stack_ptr, index, &status)) {
+> +				long_temp = stack[stack_ptr - index];
+> +				stack[stack_ptr - index] = stack[stack_ptr - 1];
+> +				stack[stack_ptr - 1] = long_temp;
+> +			}
+> +
+> +			/* SWP  */
+> +			if (jbi_check_stack(stack_ptr, 2, &status)) {
+> +				long_temp = stack[stack_ptr - 2];
+> +				stack[stack_ptr - 2] = stack[stack_ptr - 1];
+> +				stack[stack_ptr - 1] = long_temp;
+> +			}
+> +
+> +			/* DUPN 6 */
+> +			index = 6 + 1;
+> +			if (jbi_check_stack(stack_ptr, index, &status)) {
+> +				stack[stack_ptr] = stack[stack_ptr - index];
+> +				++stack_ptr;
+> +			}
+> +
+> +			/* DUPN 6 */
+> +			index = 6 + 1;
+> +			if (jbi_check_stack(stack_ptr, index, &status)) {
+> +				stack[stack_ptr] = stack[stack_ptr - index];
+> +				++stack_ptr;
+> +			}
+> +			break;
+> +		case 0x2E: /* BCH1  */
+> +			/*
+> +			Batch operation 1
+> +			SWPN 8
+> +			SWP
+> +			SWPN 9
+> +			SWPN 3
+> +			SWP
+> +			SWPN 2
+> +			SWP
+> +			SWPN 7
+> +			SWP
+> +			SWPN 6
+> +			DUPN 5
+> +			DUPN 5
+> +			*/
+> +			bad_opcode = 1;
+> +			break;
+> +		case 0x2F: /* PSH0  */
+> +			stack[stack_ptr++] = 0;
+> +			break;
+> +		case 0x40: /* PSHL */
+> +			stack[stack_ptr++] = (s32) args[0];
+> +			break;
+> +		case 0x41: /* PSHV */
+> +			stack[stack_ptr++] = variables[args[0]];
+> +			break;
+> +		case 0x42: /* JMP  */
+> +			pc = args[0] + code_section;
+> +			CHECK_PC;
+> +			break;
+> +		case 0x43: /* CALL */
+> +			stack[stack_ptr++] = pc;
+> +			pc = args[0] + code_section;
+> +			CHECK_PC;
+> +			break;
+> +		case 0x44: /* NEXT */
+> +			/*
+> +			Process FOR / NEXT loop
+> +			...argument 0 is variable ID
+> +			...stack 0 is step value
+> +			...stack 1 is end value
+> +			...stack 2 is top address
+> +			*/
+> +			if (jbi_check_stack(stack_ptr, 3, &status)) {
+> +				s32 step = stack[stack_ptr - 1];
+> +				s32 end = stack[stack_ptr - 2];
+> +				s32 top = stack[stack_ptr - 3];
+> +				s32 iterator = variables[args[0]];
+> +				int break_out = 0;
+> +
+> +				if (step < 0) {
+> +					if (iterator <= end)
+> +						break_out = 1;
+> +				} else if (iterator >= end)
+> +					break_out = 1;
+> +
+> +				if (break_out) {
+> +					stack_ptr -= 3;
+> +				} else {
+> +					variables[args[0]] = iterator + step;
+> +					pc = top + code_section;
+> +					CHECK_PC;
+> +				}
+> +			}
+> +			break;
+> +		case 0x45: /* PSTR */
+> +			/*
+> +			PRINT add string
+> +			...argument 0 is string ID
+> +			*/
+> +			count = jbi_strlen(message_buffer);
+> +			jbi_strncpy(&message_buffer[count],
+> +				(char *)&program[string_table + args[0]],
+> +				JBIC_MESSAGE_LENGTH - count);
+> +			message_buffer[JBIC_MESSAGE_LENGTH] = '\0';
+> +			break;
+> +		case 0x46: /* VMAP */
+> +			/*
+> +			VMAP add signal name
+> +			...argument 0 is string ID
+> +			*/
+> +			bad_opcode = 1;
+> +			break;
+> +		case 0x47: /* SINT */
+> +			/*
+> +			STATE intermediate state
+> +			...argument 0 is state code
+> +			*/
+> +			status = jbi_goto_jtag_state(astate, (int) args[0]);
+> +			break;
+> +		case 0x48: /* ST   */
+> +			/*
+> +			STATE final state
+> +			...argument 0 is state code
+> +			*/
+> +			status = jbi_goto_jtag_state(astate, (int) args[0]);
+> +			break;
+> +		case 0x49: /* ISTP */
+> +			/*
+> +			IRSTOP state
+> +			...argument 0 is state code
+> +			*/
+> +			status = jbi_set_irstop_state((int) args[0]);
+> +			break;
+> +		case 0x4A: /* DSTP */
+> +			/*
+> +			DRSTOP state
+> +			...argument 0 is state code
+> +			*/
+> +			status = jbi_set_drstop_state((int) args[0]);
+> +			break;
+> +
+> +		case 0x4B: /* SWPN */
+> +			/*
+> +			Exchange top with Nth stack value
+> +			...argument 0 is 0-based stack entry
+> +			to swap with top element
+> +			*/
+> +			index = ((int) args[0]) + 1;
+> +			if (jbi_check_stack(stack_ptr, index, &status)) {
+> +				long_temp = stack[stack_ptr - index];
+> +				stack[stack_ptr - index] = stack[stack_ptr - 1];
+> +				stack[stack_ptr - 1] = long_temp;
+> +			}
+> +			break;
+> +		case 0x4C: /* DUPN */
+> +			/*
+> +			Duplicate Nth stack value
+> +			...argument 0 is 0-based stack entry to duplicate
+> +			*/
+> +			index = ((int) args[0]) + 1;
+> +			if (jbi_check_stack(stack_ptr, index, &status)) {
+> +				stack[stack_ptr] = stack[stack_ptr - index];
+> +				++stack_ptr;
+> +			}
+> +			break;
+> +		case 0x4D: /* POPV */
+> +			/*
+> +			* Pop stack into scalar variable
+> +			...argument 0 is variable ID
+> +			...stack 0 is value
+> +			*/
+> +			if (jbi_check_stack(stack_ptr, 1, &status))
+> +				variables[args[0]] = stack[--stack_ptr];
+> +
+> +			break;
+> +		case 0x4E: /* POPE */
+> +			/*
+> +			Pop stack into integer array element
+> +			...argument 0 is variable ID
+> +			...stack 0 is array index
+> +			...stack 1 is value
+> +			*/
+> +			if (!jbi_check_stack(stack_ptr, 2, &status))
+> +				break;
+> +			variable_id = (u32)args[0];
+> +
+> +			/*
+> +			If variable is read-only,
+> +			convert to writable array */
+> +			if ((version > 0) &&
+> +				((attributes[variable_id] & 0x9c) == 0x1c)) {
+> +				/* Allocate a writable buffer for this array */
+> +				count = (u32)variable_size[variable_id];
+> +				long_temp = variables[variable_id];
+> +				/*64 bits*/
+> +				longptr_temp = (long *)
+> +					kmalloc(count * sizeof(long),
+> +								GFP_KERNEL);
+> +				/*64 bits*/
+> +				variables[variable_id] = (long)longptr_temp;
+> +
+> +				if (variables[variable_id] == 0) {
+> +					status = JBIC_OUT_OF_MEMORY;
+> +					break;
+> +				}
+> +
+> +				/* copy previous contents into buffer */
+> +				for (i = 0; i < count; ++i) {
+> +					/*64 QWORD?*/
+> +					longptr_temp[i] = GET_DWORD(long_temp);
+> +					long_temp += sizeof(long);/*64*/
+> +				}
+> +
+> +				/*
+> +				set bit 7 - buffer was
+> +				dynamically allocated */
+> +				attributes[variable_id] |= 0x80;
+> +
+> +				/* clear bit 2 - variable is writable */
+> +				attributes[variable_id] &= ~0x04;
+> +				attributes[variable_id] |= 0x01;
+> +
+> +			}
+> +
+> +			/* check that variable is a writable integer array */
+> +			if ((attributes[variable_id] & 0x1c) != 0x18)
+> +				status = JBIC_BOUNDS_ERROR;
+> +			else {
+> +				/*64 bits*/
+> +				longptr_temp = (long *)variables[variable_id];
+> +
+> +				/* pop the array index */
+> +				index = (u32)stack[--stack_ptr];
+> +
+> +				/* pop the value and store it into the array */
+> +				longptr_temp[index] = stack[--stack_ptr];
+> +			}
+> +
+> +			break;
+> +		case 0x4F: /* POPA */
+> +			/*
+> +			Pop stack into Boolean array
+> +			...argument 0 is variable ID
+> +			...stack 0 is count
+> +			...stack 1 is array index
+> +			...stack 2 is value
+> +			*/
+> +			if (!jbi_check_stack(stack_ptr, 3, &status))
+> +				break;
+> +			variable_id = (u32)args[0];
+> +
+> +			/*
+> +			If variable is read-only, convert to writable array */
+> +			if ((version > 0) &&
+> +				((attributes[variable_id] & 0x9c) == 0x0c)) {
+> +				/* Allocate a writable buffer for this array */
+> +				long_temp =
+> +					(variable_size[variable_id] + 7L) >> 3L;
+> +				charptr_temp2 = (u8 *)variables[variable_id];
+> +				charptr_temp =
+> +					kmalloc((u32)long_temp, GFP_KERNEL);
+> +				/*64 bits*/
+> +				variables[variable_id] = (long)charptr_temp;
+> +
+> +				if (variables[variable_id] == 0) {
+> +					status = JBIC_OUT_OF_MEMORY;
+> +					break;
+> +				}
+> +
+> +				/* zero the buffer */
+> +				for (long_index = 0L;
+> +					long_index < long_temp;
+> +					++long_index) {
+> +					charptr_temp[long_index] = 0;
+> +				}
+> +
+> +				/* copy previous contents into buffer */
+> +				for (long_index = 0L;
+> +					long_index < variable_size[variable_id];
+> +					++long_index) {
+> +					long_index2 = long_index;
+> +
+> +					if (charptr_temp2[long_index2 >> 3] &
+> +						(1 << (long_index2 & 7))) {
+> +						charptr_temp[long_index >> 3] |=
+> +							(1 << (long_index & 7));
+> +					}
+> +				}
+> +
+> +				/*
+> +				set bit 7 - buffer was dynamically allocated */
+> +				attributes[variable_id] |= 0x80;
+> +
+> +				/* clear bit 2 - variable is writable */
+> +				attributes[variable_id] &= ~0x04;
+> +				attributes[variable_id] |= 0x01;
+> +
+> +			}
+> +
+> +			/*
+> +			check that variable is
+> +			a writable Boolean array */
+> +			if ((attributes[variable_id] & 0x1c) != 0x08) {
+> +				status = JBIC_BOUNDS_ERROR;
+> +				break;
+> +			}
+> +
+> +			charptr_temp = (u8 *)variables[variable_id];
+> +
+> +			/* pop the count (number of bits to copy) */
+> +			long_count = stack[--stack_ptr];
+> +
+> +			/* pop the array index */
+> +			long_index = stack[--stack_ptr];
+> +
+> +			reverse = 0;
+> +
+> +			if (version > 0) {
+> +				/*
+> +				stack 0 = array right index
+> +				stack 1 = array left index */
+> +
+> +				if (long_index > long_count) {
+> +					reverse = 1;
+> +					long_temp = long_count;
+> +					long_count = 1 + long_index -
+> +								long_count;
+> +					long_index = long_temp;
+> +
+> +					/* reverse POPA is not supported */
+> +					status = JBIC_BOUNDS_ERROR;
+> +					break;
+> +				} else
+> +					long_count = 1 + long_count -
+> +								long_index;
+> +
+> +			}
+> +
+> +			/* pop the data */
+> +			long_temp = stack[--stack_ptr];
+> +
+> +			if (long_count < 1) {
+> +				status = JBIC_BOUNDS_ERROR;
+> +				break;
+> +			}
+> +
+> +			for (i = 0; i < (u32)long_count; ++i) {
+> +				if (long_temp & (1L << (s32) i))
+> +					charptr_temp[long_index >> 3L] |=
+> +						(1L << (long_index & 7L));
+> +				else
+> +					charptr_temp[long_index >> 3L] &=
+> +						~(u32)(1L << (long_index & 7L));
+> +
+> +				++long_index;
+> +			}
+> +
+> +			break;
+> +		case 0x50: /* JMPZ */
+> +			/*
+> +			Pop stack and branch if zero
+> +			...argument 0 is address
+> +			...stack 0 is condition value
+> +			*/
+> +			if (jbi_check_stack(stack_ptr, 1, &status)) {
+> +				if (stack[--stack_ptr] == 0) {
+> +					pc = args[0] + code_section;
+> +					CHECK_PC;
+> +				}
+> +			}
+> +			break;
+> +		case 0x51: /* DS   */
+> +		case 0x52: /* IS   */
+> +			/*
+> +			DRSCAN
+> +			IRSCAN
+> +			...argument 0 is scan data variable ID
+> +			...stack 0 is array index
+> +			...stack 1 is count
+> +			*/
+> +			if (!jbi_check_stack(stack_ptr, 2, &status))
+> +				break;
+> +			long_index = stack[--stack_ptr];
+> +			long_count = stack[--stack_ptr];
+> +			reverse = 0;
+> +			if (version > 0) {
+> +				/*
+> +				stack 0 = array right index
+> +				stack 1 = array left index
+> +				stack 2 = count */
+> +				long_temp = long_count;
+> +				long_count = stack[--stack_ptr];
+> +
+> +				if (long_index > long_temp) {
+> +					reverse = 1;
+> +					long_index = long_temp;
+> +				}
+> +			}
+> +
+> +			charptr_temp = (u8 *)variables[args[0]];
+> +
+> +			if (reverse) {
+> +				/*
+> +				allocate a buffer and reverse the data order */
+> +				charptr_temp2 = charptr_temp;
+> +				charptr_temp = kmalloc((long_count >> 3) + 1,
+> +								GFP_KERNEL);
+> +				if (charptr_temp == NULL) {
+> +					status = JBIC_OUT_OF_MEMORY;
+> +					break;
+> +				}
+> +
+> +				long_temp = long_index + long_count - 1;
+> +				long_index2 = 0;
+> +				while (long_index2 < long_count) {
+> +					if (charptr_temp2[long_temp >> 3] &
+> +							(1 << (long_temp & 7)))
+> +						charptr_temp[long_index2 >> 3] |= (1 << (long_index2 & 7));
+> +					else
+> +						charptr_temp[long_index2 >> 3] &= ~(1 << (long_index2 & 7));
+> +
+> +					--long_temp;
+> +					++long_index2;
+> +				}
+> +			}
+> +
+> +			if (opcode == 0x51) /* DS */
+> +				status = jbi_do_drscan(astate, (u32)long_count,
+> +						charptr_temp, (u32)long_index);
+> +			else /* IS */
+> +				status = jbi_do_irscan(astate, (u32)long_count,
+> +						charptr_temp, (u32)long_index);
+> +
+> +			if (reverse && (charptr_temp != NULL))
+> +				kfree(charptr_temp);
+> +
+> +			break;
+> +		case 0x53: /* DPRA */
+> +			/*
+> +			DRPRE with array data
+> +			...argument 0 is variable ID
+> +			...stack 0 is array index
+> +			...stack 1 is count
+> +			*/
+> +			if (!jbi_check_stack(stack_ptr, 2, &status))
+> +				break;
+> +			index = (u32)stack[--stack_ptr];
+> +			count = (u32)stack[--stack_ptr];
+> +
+> +			if (version > 0)
+> +				/*
+> +				stack 0 = array right index
+> +				stack 1 = array left index */
+> +				count = 1 + count - index;
+> +
+> +			charptr_temp = (u8 *)variables[args[0]];
+> +			status = jbi_set_dr_preamble(count, index,
+> +							charptr_temp);
+> +			break;
+> +		case 0x54: /* DPOA */
+> +			/*
+> +			DRPOST with array data
+> +			...argument 0 is variable ID
+> +			...stack 0 is array index
+> +			...stack 1 is count
+> +			*/
+> +			if (!jbi_check_stack(stack_ptr, 2, &status))
+> +				break;
+> +			index = (u32)stack[--stack_ptr];
+> +			count = (u32)stack[--stack_ptr];
+> +
+> +			if (version > 0)
+> +				/*
+> +				stack 0 = array right index
+> +				stack 1 = array left index */
+> +				count = 1 + count - index;
+> +
+> +			charptr_temp = (u8 *)variables[args[0]];
+> +			status = jbi_set_dr_postamble(count, index,
+> +							charptr_temp);
+> +			break;
+> +		case 0x55: /* IPRA */
+> +			/*
+> +			IRPRE with array data
+> +			...argument 0 is variable ID
+> +			...stack 0 is array index
+> +			...stack 1 is count
+> +			*/
+> +			if (!jbi_check_stack(stack_ptr, 2, &status))
+> +				break;
+> +			index = (u32)stack[--stack_ptr];
+> +			count = (u32)stack[--stack_ptr];
+> +
+> +			if (version > 0)
+> +				/*
+> +				stack 0 = array right index
+> +				stack 1 = array left index */
+> +				count = 1 + count - index;
+> +
+> +			charptr_temp = (u8 *)variables[args[0]];
+> +			status = jbi_set_ir_preamble(count, index,
+> +							charptr_temp);
+> +
+> +			break;
+> +		case 0x56: /* IPOA */
+> +			/*
+> +			IRPOST with array data
+> +			...argument 0 is variable ID
+> +			...stack 0 is array index
+> +			...stack 1 is count
+> +			*/
+> +			if (!jbi_check_stack(stack_ptr, 2, &status))
+> +				break;
+> +			index = (u32)stack[--stack_ptr];
+> +			count = (u32)stack[--stack_ptr];
+> +
+> +			if (version > 0)
+> +				/*
+> +				stack 0 = array right index
+> +				stack 1 = array left index */
+> +				count = 1 + count - index;
+> +
+> +			charptr_temp = (u8 *)variables[args[0]];
+> +			status = jbi_set_ir_postamble(count, index,
+> +							charptr_temp);
+> +
+> +			break;
+> +		case 0x57: /* EXPT */
+> +			/*
+> +			EXPORT
+> +			...argument 0 is string ID
+> +			...stack 0 is integer expression
+> +			*/
+> +			if (jbi_check_stack(stack_ptr, 1, &status)) {
+> +				name = (char *)&program[string_table + args[0]];
+> +				long_temp = stack[--stack_ptr];
+> +				jbi_export_integer(name, long_temp);
+> +			}
+> +			break;
+> +		case 0x58: /* PSHE */
+> +			/*
+> +			Push integer array element
+> +			...argument 0 is variable ID
+> +			...stack 0 is array index
+> +			*/
+> +			if (!jbi_check_stack(stack_ptr, 1, &status))
+> +				break;
+> +			variable_id = (u32)args[0];
+> +			index = (u32)stack[stack_ptr - 1];
+> +
+> +			/* check variable type */
+> +			if ((attributes[variable_id] & 0x1f) == 0x19) {
+> +				/* writable integer array */
+> +				longptr_temp = (long *)variables[variable_id];
+> +				stack[stack_ptr - 1] = longptr_temp[index];
+> +			} else if ((attributes[variable_id] & 0x1f) == 0x1c) {
+> +				/* read-only integer array */
+> +				long_temp = variables[variable_id] +
+> +						(sizeof(long) * index);/*64*/
+> +				stack[stack_ptr - 1] = GET_DWORD(long_temp);
+> +			} else
+> +				status = JBIC_BOUNDS_ERROR;
+> +
+> +			break;
+> +		case 0x59: /* PSHA */
+> +			/*
+> +			Push Boolean array
+> +			...argument 0 is variable ID
+> +			...stack 0 is count
+> +			...stack 1 is array index
+> +			*/
+> +			if (!jbi_check_stack(stack_ptr, 2, &status))
+> +				break;
+> +			variable_id = (u32)args[0];
+> +
+> +			/* check that variable is a Boolean array */
+> +			if ((attributes[variable_id] & 0x18) != 0x08) {
+> +				status = JBIC_BOUNDS_ERROR;
+> +				break;
+> +			}
+> +
+> +			charptr_temp = (u8 *)variables[variable_id];
+> +
+> +			/* pop the count (number of bits to copy) */
+> +			count = (u32)stack[--stack_ptr];
+> +
+> +			/* pop the array index */
+> +			index = (u32)stack[stack_ptr - 1];
+> +
+> +			if (version > 0)
+> +				/* stack 0 = array right index */
+> +				/* stack 1 = array left index */
+> +				count = 1 + count - index;
+> +
+> +			if ((count < 1) || (count > 32)) {
+> +				status = JBIC_BOUNDS_ERROR;
+> +				break;
+> +			}
+> +
+> +			long_temp = 0L;
+> +
+> +			for (i = 0; i < count; ++i)
+> +				if (charptr_temp[(i + index) >> 3] &
+> +						(1 << ((i + index) & 7)))
+> +					long_temp |= (1L << i);
+> +
+> +			stack[stack_ptr - 1] = long_temp;
+> +
+> +			break;
+> +		case 0x5A: /* DYNA */
+> +			/*
+> +			Dynamically change size of array
+> +			...argument 0 is variable ID
+> +			...stack 0 is new size
+> +			*/
+> +			if (!jbi_check_stack(stack_ptr, 1, &status))
+> +				break;
+> +			variable_id = (u32)args[0];
+> +			long_temp = stack[--stack_ptr];
+> +
+> +			if (long_temp > variable_size[variable_id]) {
+> +				variable_size[variable_id] = long_temp;
+> +
+> +				if (attributes[variable_id] & 0x10)
+> +					/* allocate integer array */
+> +					long_temp *= sizeof(long);
+> +				else
+> +					/* allocate Boolean array */
+> +					long_temp = (long_temp + 7) >> 3;
+> +
+> +				/*
+> +				If the buffer was previously allocated,
+> +				free it */
+> +				if ((attributes[variable_id] & 0x80) &&
+> +						(variables[variable_id] != 0)) {
+> +					kfree((void *)variables[variable_id]);
+> +					variables[variable_id] = 0;
+> +				}
+> +
+> +				/*
+> +				Allocate a new buffer
+> +				of the requested size */
+> +				/*64 bits*/
+> +				variables[variable_id] = (long)
+> +					kmalloc((u32)long_temp, GFP_KERNEL);
+> +
+> +				if (variables[variable_id] == 0) {
+> +					status = JBIC_OUT_OF_MEMORY;
+> +					break;
+> +				}
+> +
+> +				/*
+> +				Set the attribute bit to indicate that
+> +				this buffer was dynamically allocated and
+> +				should be freed later */
+> +				attributes[variable_id] |= 0x80;
+> +
+> +				/* zero out memory */
+> +				count = (u32)
+> +					((variable_size[variable_id] + 7L) /
+> +									8L);
+> +				charptr_temp = (u8 *)(variables[variable_id]);
+> +				for (index = 0; index < count; ++index)
+> +					charptr_temp[index] = 0;
+> +
+> +			}
+> +
+> +			break;
+> +		case 0x5B: /* EXPR */
+> +			bad_opcode = 1;
+> +			break;
+> +		case 0x5C: /* EXPV */
+> +			/*
+> +			Export Boolean array
+> +			...argument 0 is string ID
+> +			...stack 0 is variable ID
+> +			...stack 1 is array right index
+> +			...stack 2 is array left index
+> +			*/
+> +			if (!jbi_check_stack(stack_ptr, 3, &status))
+> +				break;
+> +			if (version == 0) {
+> +				/* EXPV is not supported in JBC 1.0 */
+> +				bad_opcode = 1;
+> +				break;
+> +			}
+> +			name = (char *)&program[string_table + args[0]];
+> +			variable_id = (u32)stack[--stack_ptr];
+> +			long_index = stack[--stack_ptr];/* right indx */
+> +			long_index2 = stack[--stack_ptr];/* left indx */
+> +
+> +			if (long_index > long_index2) {
+> +				/* reverse indices not supported */
+> +				status = JBIC_BOUNDS_ERROR;
+> +				break;
+> +			}
+> +
+> +			long_count = 1 + long_index2 - long_index;
+> +
+> +			charptr_temp = (u8 *)variables[variable_id];
+> +			charptr_temp2 = NULL;
+> +
+> +			if ((long_index & 7L) != 0) {
+> +				s32 k = long_index;
+> +				charptr_temp2 = kmalloc((u32)
+> +					((long_count + 7L) / 8L), GFP_KERNEL);
+> +				if (charptr_temp2 == NULL) {
+> +					status = JBIC_OUT_OF_MEMORY;
+> +					break;
+> +				}
+> +
+> +				for (i = 0; i < (u32)long_count; ++i) {
+> +					if (charptr_temp[k >> 3] &
+> +							(1 << (k & 7)))
+> +						charptr_temp2[i >> 3] |=
+> +								(1 << (i & 7));
+> +					else
+> +						charptr_temp2[i >> 3] &=
+> +								~(1 << (i & 7));
+> +
+> +					++k;
+> +				}
+> +				charptr_temp = charptr_temp2;
+> +
+> +			} else if (long_index != 0)
+> +				charptr_temp = &charptr_temp[long_index >> 3];
+> +
+> +			jbi_export_boolean_array(name, charptr_temp,
+> +							long_count);
+> +
+> +			/* free allocated buffer */
+> +			if (((long_index & 7L) != 0) && (charptr_temp2 != NULL))
+> +				kfree(charptr_temp2);
+> +
+> +			break;
+> +		case 0x80: { /* COPY */
+> +			/*
+> +			Array copy
+> +			...argument 0 is dest ID
+> +			...argument 1 is source ID
+> +			...stack 0 is count
+> +			...stack 1 is dest index
+> +			...stack 2 is source index
+> +			*/
+> +			s32 copy_count;
+> +			s32 copy_index;
+> +			s32 copy_index2;
+> +			s32 destleft;
+> +			s32 src_count;
+> +			s32 dest_count;
+> +			int src_reverse = 0;
+> +			int dest_reverse = 0;
+> +
+> +			if (!jbi_check_stack(stack_ptr, 3, &status))
+> +				break;
+> +
+> +			copy_count = stack[--stack_ptr];
+> +			copy_index = stack[--stack_ptr];
+> +			copy_index2 = stack[--stack_ptr];
+> +			reverse = 0;
+> +
+> +			if (version > 0) {
+> +				/*
+> +				stack 0 = source right index
+> +				stack 1 = source left index
+> +				stack 2 = destination right index
+> +				stack 3 = destination left index */
+> +				destleft = stack[--stack_ptr];
+> +
+> +				if (copy_count > copy_index) {
+> +					src_reverse = 1;
+> +					reverse = 1;
+> +					src_count = 1 + copy_count - copy_index;
+> +					/* copy_index = source start index */
+> +				} else {
+> +					src_count = 1 + copy_index - copy_count;
+> +					/* source start index */
+> +					copy_index = copy_count;
+> +				}
+> +
+> +				if (copy_index2 > destleft) {
+> +					dest_reverse = 1;
+> +					reverse = !reverse;
+> +					dest_count = 1 + copy_index2 - destleft;
+> +					/* destination start index */
+> +					copy_index2 = destleft;
+> +				} else
+> +					dest_count = 1 + destleft - copy_index2;
+> +					/*
+> +					copy_index2 = destination start index */
+> +
+> +				copy_count = (src_count < dest_count) ?
+> +							src_count : dest_count;
+> +
+> +				if ((src_reverse || dest_reverse) &&
+> +					(src_count != dest_count))
+> +					/*
+> +					If either the source or destination
+> +					is reversed, we can't tolerate
+> +					a length mismatch, because we
+> +					"left justify" the arrays when copying.
+> +					This won't work correctly
+> +					with reversed arrays. */
+> +					status = JBIC_BOUNDS_ERROR;
+> +
+> +			}
+> +
+> +			count = (u32)copy_count;
+> +			index = (u32)copy_index;
+> +			index2 = (u32)copy_index2;
+> +
+> +			/*
+> +			If destination is a read-only array, allocate a buffer
+> +			and convert it to a writable array */
+> +			variable_id = (u32)args[1];
+> +			if ((version > 0) &&
+> +				((attributes[variable_id] & 0x9c) == 0x0c)) {
+> +				/* Allocate a writable buffer for this array */
+> +				long_temp =
+> +					(variable_size[variable_id] + 7L) >> 3L;
+> +				charptr_temp2 = (u8 *)variables[variable_id];
+> +				charptr_temp =
+> +					kmalloc((u32)long_temp, GFP_KERNEL);
+> +				/*64 bits*/
+> +				variables[variable_id] = (long)charptr_temp;
+> +
+> +				if (variables[variable_id] == 0) {
+> +					status = JBIC_OUT_OF_MEMORY;
+> +					break;
+> +				}
+> +
+> +				/* zero the buffer */
+> +				for (long_index = 0L; long_index < long_temp;
+> +								++long_index)
+> +					charptr_temp[long_index] = 0;
+> +
+> +				/* copy previous contents into buffer */
+> +				for (long_index = 0L;
+> +					long_index < variable_size[variable_id];
+> +								++long_index) {
+> +					long_index2 = long_index;
+> +
+> +					if (charptr_temp2[long_index2 >> 3] &
+> +						(1 << (long_index2 & 7)))
+> +						charptr_temp[long_index >> 3] |=
+> +							(1 << (long_index & 7));
+> +
+> +				}
+> +
+> +				/*
+> +				set bit 7 - buffer was dynamically allocated */
+> +				attributes[variable_id] |= 0x80;
+> +
+> +				/* clear bit 2 - variable is writable */
+> +				attributes[variable_id] &= ~0x04;
+> +				attributes[variable_id] |= 0x01;
+> +			}
+> +
+> +			charptr_temp = (u8 *)variables[args[1]];
+> +			charptr_temp2 = (u8 *)variables[args[0]];
+> +
+> +			/* check that destination is a writable Boolean array */
+> +			if ((attributes[args[1]] & 0x1c) != 0x08) {
+> +				status = JBIC_BOUNDS_ERROR;
+> +				break;
+> +			}
+> +
+> +			if (count < 1) {
+> +				status = JBIC_BOUNDS_ERROR;
+> +				break;
+> +			}
+> +
+> +			if (reverse)
+> +				index2 += (count - 1);
+> +
+> +			for (i = 0; i < count; ++i) {
+> +				if (charptr_temp2[index >> 3] &
+> +							(1 << (index & 7)))
+> +					charptr_temp[index2 >> 3] |=
+> +							(1 << (index2 & 7));
+> +				else
+> +					charptr_temp[index2 >> 3] &=
+> +						~(u32)(1 << (index2 & 7));
+> +
+> +				++index;
+> +				if (reverse)
+> +					--index2;
+> +				else
+> +					++index2;
+> +			}
+> +
+> +			break;
+> +		}
+> +		case 0x81: /* REVA */
+> +			/*
+> +			ARRAY COPY reversing bit order
+> +			...argument 0 is dest ID
+> +			...argument 1 is source ID
+> +			...stack 0 is dest index
+> +			...stack 1 is source index
+> +			...stack 2 is count
+> +			*/
+> +			bad_opcode = 1;
+> +			break;
+> +		case 0x82: /* DSC  */
+> +		case 0x83: { /* ISC  */
+> +			/*
+> +			DRSCAN with capture
+> +			IRSCAN with capture
+> +			...argument 0 is scan data variable ID
+> +			...argument 1 is capture variable ID
+> +			...stack 0 is capture index
+> +			...stack 1 is scan data index
+> +			...stack 2 is count
+> +			*/
+> +			s32 scan_right, scan_left;
+> +			s32 capture_count = 0;
+> +			s32 scan_count = 0;
+> +			s32 capture_index;
+> +			s32 scan_index;
+> +
+> +			if (!jbi_check_stack(stack_ptr, 3, &status))
+> +				break;
+> +
+> +			capture_index = stack[--stack_ptr];
+> +			scan_index = stack[--stack_ptr];
+> +
+> +			if (version > 0) {
+> +				/*
+> +				stack 0 = capture right index
+> +				stack 1 = capture left index
+> +				stack 2 = scan right index
+> +				stack 3 = scan left index
+> +				stack 4 = count */
+> +				scan_right = stack[--stack_ptr];
+> +				scan_left = stack[--stack_ptr];
+> +				capture_count = 1 + scan_index - capture_index;
+> +				scan_count = 1 + scan_left - scan_right;
+> +				scan_index = scan_right;
+> +			}
+> +
+> +			long_count = stack[--stack_ptr];
+> +			/*
+> +			If capture array is read-only, allocate a buffer
+> +			and convert it to a writable array */
+> +			variable_id = (u32)args[1];
+> +			if ((version > 0) &&
+> +				((attributes[variable_id] & 0x9c) == 0x0c)) {
+> +				/* Allocate a writable buffer for this array */
+> +				long_temp =
+> +					(variable_size[variable_id] + 7L) >> 3L;
+> +				charptr_temp2 = (u8 *)variables[variable_id];
+> +				charptr_temp =
+> +					kmalloc((u32)long_temp, GFP_KERNEL);
+> +				variables[variable_id] = (long)charptr_temp;
+> +
+> +				if (variables[variable_id] == 0) {
+> +					status = JBIC_OUT_OF_MEMORY;
+> +					break;
+> +				}
+> +
+> +				/* zero the buffer */
+> +				for (long_index = 0L; long_index < long_temp;
+> +								++long_index)
+> +					charptr_temp[long_index] = 0;
+> +
+> +				/* copy previous contents into buffer */
+> +				for (long_index = 0L;
+> +					long_index < variable_size[variable_id];
+> +								++long_index) {
+> +					long_index2 = long_index;
+> +
+> +					if (charptr_temp2[long_index2 >> 3] &
+> +						(1 << (long_index2 & 7)))
+> +						charptr_temp[long_index >> 3] |=
+> +							(1 << (long_index & 7));
+> +
+> +				}
+> +
+> +				/*
+> +				set bit 7 - buffer was
+> +				dynamically allocated */
+> +				attributes[variable_id] |= 0x80;
+> +
+> +				/* clear bit 2 - variable is writable */
+> +				attributes[variable_id] &= ~0x04;
+> +				attributes[variable_id] |= 0x01;
+> +
+> +			}
+> +
+> +			charptr_temp = (u8 *)variables[args[0]];
+> +			charptr_temp2 = (u8 *)variables[args[1]];
+> +
+> +			if ((version > 0) &&
+> +					((long_count > capture_count) ||
+> +					(long_count > scan_count))) {
+> +				status = JBIC_BOUNDS_ERROR;
+> +				break;
+> +			}
+> +
+> +			/*
+> +			check that capture array
+> +			is a writable Boolean array */
+> +			if ((attributes[args[1]] & 0x1c) != 0x08) {
+> +				status = JBIC_BOUNDS_ERROR;
+> +				break;
+> +			}
+> +
+> +			if (status == JBIC_SUCCESS) {
+> +				if (opcode == 0x82) /* DSC */
+> +					status = jbi_swap_dr(astate,
+> +							(u32)long_count,
+> +							charptr_temp,
+> +							(u32)scan_index,
+> +							charptr_temp2,
+> +							(u32)capture_index);
+> +				else /* ISC */
+> +					status = jbi_swap_ir(astate,
+> +							(u32)long_count,
+> +							charptr_temp,
+> +							(u32)scan_index,
+> +							charptr_temp2,
+> +							(u32)capture_index);
+> +
+> +			}
+> +
+> +			break;
+> +		}
+> +		case 0x84: /* WAIT */
+> +			/*
+> +			WAIT
+> +			...argument 0 is wait state
+> +			...argument 1 is end state
+> +			...stack 0 is cycles
+> +			...stack 1 is microseconds
+> +			*/
+> +			if (!jbi_check_stack(stack_ptr, 2, &status))
+> +				break;
+> +			long_temp = stack[--stack_ptr];
+> +
+> +			if (long_temp != 0L)
+> +				status = jbi_do_wait_cycles(astate, long_temp,
+> +								(u32)args[0]);
+> +
+> +			long_temp = stack[--stack_ptr];
+> +
+> +			if ((status == JBIC_SUCCESS) && (long_temp != 0L))
+> +				status = jbi_do_wait_microseconds(astate,
+> +								long_temp,
+> +								(u32)args[0]);
+> +
+> +			if ((status == JBIC_SUCCESS) && (args[1] != args[0]))
+> +				status = jbi_goto_jtag_state(astate,
+> +								(u32)args[1]);
+> +
+> +			if (version > 0) {
+> +				--stack_ptr; /* throw away MAX cycles */
+> +				--stack_ptr; /* throw away MAX microseconds */
+> +			}
+> +			break;
+> +		case 0x85: /* VS   */
+> +			/*
+> +			VECTOR
+> +			...argument 0 is dir data variable ID
+> +			...argument 1 is scan data variable ID
+> +			...stack 0 is dir array index
+> +			...stack 1 is scan array index
+> +			...stack 2 is count
+> +			*/
+> +			bad_opcode = 1;
+> +			break;
+> +		case 0xC0: { /* CMPA */
+> +			/*
+> +			Array compare
+> +			...argument 0 is source 1 ID
+> +			...argument 1 is source 2 ID
+> +			...argument 2 is mask ID
+> +			...stack 0 is source 1 index
+> +			...stack 1 is source 2 index
+> +			...stack 2 is mask index
+> +			...stack 3 is count
+> +			*/
+> +			s32 a, b;
+> +			u8 *source1 = (u8 *)variables[args[0]];
+> +			u8 *source2 = (u8 *)variables[args[1]];
+> +			u8 *mask = (u8 *)variables[args[2]];
+> +			u32 index1;
+> +			u32 index2;
+> +			u32 mask_index;
+> +
+> +			if (!jbi_check_stack(stack_ptr, 4, &status))
+> +				break;
+> +
+> +			index1 = stack[--stack_ptr];
+> +			index2 = stack[--stack_ptr];
+> +			mask_index = stack[--stack_ptr];
+> +			long_count = stack[--stack_ptr];
+> +
+> +			if (version > 0) {
+> +				/*
+> +				stack 0 = source 1 right index
+> +				stack 1 = source 1 left index
+> +				stack 2 = source 2 right index
+> +				stack 3 = source 2 left index
+> +				stack 4 = mask right index
+> +				stack 5 = mask left index */
+> +				s32 mask_right = stack[--stack_ptr];
+> +				s32 mask_left = stack[--stack_ptr];
+> +				/* source 1 count */
+> +				a = 1 + index2 - index1;
+> +				/* source 2 count */
+> +				b = 1 + long_count - mask_index;
+> +				a = (a < b) ? a : b;
+> +				/* mask count */
+> +				b = 1 + mask_left - mask_right;
+> +				a = (a < b) ? a : b;
+> +				/* source 2 start index */
+> +				index2 = mask_index;
+> +				/* mask start index */
+> +				mask_index = mask_right;
+> +				long_count = a;
+> +			}
+> +
+> +			long_temp = 1L;
+> +
+> +			if (long_count < 1)
+> +				status = JBIC_BOUNDS_ERROR;
+> +			else {
+> +				count = (u32)long_count;
+> +
+> +				for (i = 0; i < count; ++i) {
+> +					if (mask[mask_index >> 3] &
+> +						(1 << (mask_index & 7))) {
+> +						a = source1[index1 >> 3] &
+> +							(1 << (index1 & 7))
+> +								? 1 : 0;
+> +						b = source2[index2 >> 3] &
+> +							(1 << (index2 & 7))
+> +								? 1 : 0;
+> +
+> +						if (a != b) /* failure */
+> +							long_temp = 0L;
+> +					}
+> +					++index1;
+> +					++index2;
+> +					++mask_index;
+> +				}
+> +			}
+> +
+> +			stack[stack_ptr++] = long_temp;
+> +
+> +			break;
+> +		}
+> +		case 0xC1: /* VSC  */
+> +			/*
+> +			VECTOR with capture
+> +			...argument 0 is dir data variable ID
+> +			...argument 1 is scan data variable ID
+> +			...argument 2 is capture variable ID
+> +			...stack 0 is capture index
+> +			...stack 1 is scan data index
+> +			...stack 2 is dir data index
+> +			...stack 3 is count
+> +			*/
+> +			bad_opcode = 1;
+> +			break;
+> +		default:
+> +			/* Unrecognized opcode -- ERROR! */
+> +			bad_opcode = 1;
+> +			break;
+> +		}
+> +
+> +		if (bad_opcode)
+> +			status = JBIC_ILLEGAL_OPCODE;
+> +
+> +		if ((stack_ptr < 0) || (stack_ptr >= JBI_STACK_SIZE))
+> +			status = JBIC_STACK_OVERFLOW;
+> +
+> +		if (status != JBIC_SUCCESS) {
+> +			done = 1;
+> +			*error_address = (s32)(opcode_address - code_section);
+> +		}
+> +	}
+> +
+> +	jbi_free_jtag_padding_buffers(astate/*, reset_jtag*/);
+> +
+> +	/* Free all dynamically allocated arrays */
+> +	if ((attributes != NULL) && (variables != NULL)) {
+> +		for (i = 0; i < (u32)symbol_count; ++i) {
+> +			if ((attributes[i] & 0x80) && (variables[i] != 0))
+> +				kfree((void *)variables[i]);
+> +
+> +		}
+> +	}
+> +
+> +	if (variables != NULL)
+> +		kfree(variables);
+> +
+> +	if (variable_size != NULL)
+> +		kfree(variable_size);
+> +
+> +	if (attributes != NULL)
+> +		kfree(attributes);
+> +
+> +	if (proc_attributes != NULL)
+> +		kfree(proc_attributes);
+> +
+> +	return status;
+> +}
+> +
+> +static JBI_RETURN_TYPE jbi_get_note(u8 *program, s32 program_size,
+> +			s32 *offset, char *key, char *value, int length)
+> +/*
+> +Gets key and value of NOTE fields in the JBC file.
+> +Can be called in two modes:  if offset pointer is NULL,
+> +then the function searches for note fields which match
+> +the key string provided.  If offset is not NULL, then
+> +the function finds the next note field of any key,
+> +starting at the offset specified by the offset pointer.
+> +Returns JBIC_SUCCESS for success, else appropriate error code	*/
+> +{
+> +	JBI_RETURN_TYPE status = JBIC_UNEXPECTED_END;
+> +	u32 note_strings = 0L;
+> +	u32 note_table = 0L;
+> +	u32 note_count = 0L;
+> +	u32 first_word = 0L;
+> +	int version = 0;
+> +	int delta = 0;
+> +	char *key_ptr;
+> +	char *value_ptr;
+> +	int i;
+> +
+> +	/* Read header information */
+> +	if (program_size > 52L) {
+> +		first_word    = GET_DWORD(0);
+> +		version = (int)(first_word & 1L);
+> +		delta = version * 8;
+> +
+> +		note_strings  = GET_DWORD(8 + delta);
+> +		note_table    = GET_DWORD(12 + delta);
+> +		note_count    = GET_DWORD(44 + (2 * delta));
+> +	}
+> +
+> +	if ((first_word != 0x4A414D00L) && (first_word != 0x4A414D01L)) {
+> +		status = JBIC_IO_ERROR;
+> +		return status;
+> +	}
+> +
+> +	if (note_count <= 0L)
+> +		return status;
+> +
+> +	if (offset == NULL) {
+> +		/*
+> +		We will search for the first note with a specific key,
+> +		and return only the value */
+> +		for (i = 0; (i < (int)note_count) &&
+> +						(status != JBIC_SUCCESS); ++i) {
+> +			key_ptr = (char *)
+> +					&program[note_strings +
+> +					GET_DWORD(note_table + (8 * i))];
+> +			if ((key != NULL) && (jbi_stricmp(key, key_ptr) == 0)) {
+> +				status = JBIC_SUCCESS;
+> +
+> +				value_ptr = (char *)
+> +					&program[note_strings +
+> +					GET_DWORD(note_table + (8 * i) + 4)];
+> +
+> +				if (value != NULL)
+> +					jbi_strncpy(value, value_ptr, length);
+> +
+> +			}
+> +		}
+> +	} else {
+> +		/*
+> +		We will search for the next note, regardless of the key,
+> +		and return both the value and the key */
+> +
+> +		i = (int)*offset;
+> +
+> +		if ((i >= 0) && (i < (int) note_count)) {
+> +			status = JBIC_SUCCESS;
+> +
+> +			if (key != NULL)
+> +				jbi_strncpy(key,
+> +					(char *)&program[note_strings +
+> +					GET_DWORD(note_table + (8 * i))],
+> +					length);
+> +
+> +			if (value != NULL)
+> +				jbi_strncpy(value,
+> +					(char *)&program[note_strings +
+> +					GET_DWORD(note_table + (8 * i) + 4)],
+> +					length);
+> +
+> +			*offset = i + 1;
+> +		}
+> +	}
+> +
+> +	return status;
+> +}
+> +
+> +static JBI_RETURN_TYPE jbi_check_crc(u8 *program, s32 program_size)
+> +{
+> +	JBI_RETURN_TYPE status = JBIC_SUCCESS;
+> +	u16 local_expected = 0,
+> +	    local_actual = 0,
+> +	    shift_reg = 0xffff;
+> +	int bit, feedback;
+> +	u8 databyte;
+> +	u32 i;
+> +	u32 crc_section = 0L;
+> +	u32 first_word = 0L;
+> +	int version = 0;
+> +	int delta = 0;
+> +
+> +	if (program_size > 52L) {
+> +		first_word  = GET_DWORD(0);
+> +		version = (int)(first_word & 1L);
+> +		delta = version * 8;
+> +
+> +		crc_section = GET_DWORD(32 + delta);
+> +	}
+> +
+> +	if ((first_word != 0x4A414D00L) && (first_word != 0x4A414D01L))
+> +		status = JBIC_IO_ERROR;
+> +
+> +	if (crc_section >= (u32)program_size)
+> +		status = JBIC_IO_ERROR;
+> +
+> +	if (status == JBIC_SUCCESS) {
+> +		local_expected = (u16)GET_WORD(crc_section);
+> +
+> +		for (i = 0; i < crc_section; ++i) {
+> +			databyte = GET_BYTE(i);
+> +			for (bit = 0; bit < 8; bit++) {
+> +				feedback = (databyte ^ shift_reg) & 0x01;
+> +				shift_reg >>= 1;
+> +				if (feedback)
+> +					shift_reg ^= 0x8408;
+> +
+> +				databyte >>= 1;
+> +			}
+> +		}
+> +
+> +		local_actual = (u16)~shift_reg;
+> +
+> +		if (local_expected != local_actual)
+> +			status = JBIC_CRC_ERROR;
+> +
+> +	}
+> +
+> +	if (verbose || (status == JBIC_CRC_ERROR)) {
+> +		switch (status) {
+> +		case JBIC_SUCCESS:
+> +			printk(KERN_INFO "CRC matched: CRC value = %04X\n",
+> +								local_actual);
+> +			break;
+> +		case JBIC_CRC_ERROR:
+> +			printk(KERN_ERR "CRC mismatch: expected %04X, "
+> +				"actual %04X\n", local_expected, local_actual);
+> +			break;
+> +		case JBIC_UNEXPECTED_END:
+> +			printk(KERN_ERR "Expected CRC not found, "
+> +				"actual CRC = %04X\n", local_actual);
+> +			break;
+> +		case JBIC_IO_ERROR:
+> +			printk(KERN_ERR "Error: Format isn't recognized.\n");
+> +			break;
+> +		default:
+> +			printk(KERN_ERR "CRC function returned error code %d\n",
+> +									status);
+> +			break;
+> +		}
+> +	}
+> +
+> +	return status;
+> +}
+> +
+> +static JBI_RETURN_TYPE jbi_get_file_info(u8 *program,
+> +					s32 program_size,
+> +					int *format_version,
+> +					int *action_count,
+> +					int *procedure_count)
+> +{
+> +	JBI_RETURN_TYPE status = JBIC_IO_ERROR;
+> +	u32 first_word = 0;
+> +	int version = 0;
+> +
+> +	if (program_size <= 52L)
+> +		return status;
+> +
+> +	first_word = GET_DWORD(0);
+> +
+> +	if ((first_word == 0x4A414D00L) || (first_word == 0x4A414D01L)) {
+> +		status = JBIC_SUCCESS;
+> +
+> +		version = (int)(first_word & 1L);
+> +		*format_version = version + 1;
+> +
+> +		if (version > 0) {
+> +			*action_count = (int)GET_DWORD(48);
+> +			*procedure_count = (int)GET_DWORD(52);
+> +		}
+> +	}
+> +
+> +	return status;
+> +}
+> +
+> +static JBI_RETURN_TYPE jbi_get_action_info(u8 *program,
+> +					s32 program_size,
+> +					int index,
+> +					char **name,
+> +					char **description,
+> +					struct JBI_PROCINFO **procedure_list)
+> +{
+> +	JBI_RETURN_TYPE status = JBIC_IO_ERROR;
+> +	struct JBI_PROCINFO *procptr = NULL;
+> +	struct JBI_PROCINFO *tmpptr = NULL;
+> +	u32 first_word = 0L;
+> +	u32 action_table = 0L;
+> +	u32 proc_table = 0L;
+> +	u32 string_table = 0L;
+> +	u32 note_strings = 0L;
+> +	u32 action_count = 0L;
+> +	u32 proc_count = 0L;
+> +	u32 act_name_id = 0L;
+> +	u32 act_desc_id = 0L;
+> +	u32 act_proc_id = 0L;
+> +	u32 act_proc_name = 0L;
+> +	u8 act_proc_attribute = 0;
+> +
+> +	if (program_size <= 52L)
+> +		return status;
+> +	/* Read header information */
+> +	first_word = GET_DWORD(0);
+> +
+> +	if (first_word != 0x4A414D01L)
+> +		return status;
+> +
+> +	action_table = GET_DWORD(4);
+> +	proc_table   = GET_DWORD(8);
+> +	string_table = GET_DWORD(12);
+> +	note_strings = GET_DWORD(16);
+> +	action_count = GET_DWORD(48);
+> +	proc_count   = GET_DWORD(52);
+> +
+> +	if (index >= (int)action_count)
+> +		return status;
+> +
+> +	act_name_id = GET_DWORD(action_table + (12 * index));
+> +	act_desc_id = GET_DWORD(action_table + (12 * index) + 4);
+> +	act_proc_id = GET_DWORD(action_table + (12 * index) + 8);
+> +
+> +	*name = (char *)&program[string_table + act_name_id];
+> +
+> +	if (act_desc_id < (note_strings - string_table))
+> +		*description = (char *)&program[string_table + act_desc_id];
+> +
+> +	do {
+> +		act_proc_name = GET_DWORD(proc_table + (13 * act_proc_id));
+> +		act_proc_attribute = (u8)
+> +			(GET_BYTE(proc_table + (13 * act_proc_id) + 8) & 0x03);
+> +
+> +		procptr = (struct JBI_PROCINFO *)
+> +				kmalloc(sizeof(struct JBI_PROCINFO),
+> +								GFP_KERNEL);
+> +
+> +		if (procptr == NULL)
+> +			status = JBIC_OUT_OF_MEMORY;
+> +		else {
+> +			procptr->name = (char *)
+> +					&program[string_table + act_proc_name];
+> +			procptr->attributes = act_proc_attribute;
+> +			procptr->next = NULL;
+> +
+> +			/* add record to end of linked list */
+> +			if (*procedure_list == NULL)
+> +				*procedure_list = procptr;
+> +			else {
+> +				tmpptr = *procedure_list;
+> +				while (tmpptr->next != NULL)
+> +					tmpptr = tmpptr->next;
+> +				tmpptr->next = procptr;
+> +			}
+> +		}
+> +
+> +		act_proc_id = GET_DWORD(proc_table + (13 * act_proc_id) + 4);
+> +	} while ((act_proc_id != 0) && (act_proc_id < proc_count));
+> +
+> +	return status;
+> +}
+> +
+> +int altera_init(struct altera_config *config, const struct firmware *fw)
+> +{
+> +	static struct altera_config *astate;
+> +	static u8 key[33] = {0};
+> +	static u8 value[257] = {0};
+> +	char *action_name = NULL;
+> +	char *description = NULL;
+> +	char *exit_string = NULL;
+> +	struct JBI_PROCINFO *procedure_list = NULL;
+> +	struct JBI_PROCINFO *procptr = NULL;
+> +	JBI_RETURN_TYPE exec_result = JBIC_SUCCESS;
+> +	int exit_code = 0;
+> +	int format_version = 0;
+> +	int action_count = 0;
+> +	int procedure_count = 0;
+> +	int index = 0;
+> +	s32 offset = 0L;
+> +	s32 error_address = 0L;
+> +
+> +	astate = kzalloc(sizeof(struct altera_config), GFP_KERNEL);
+> +	if (!astate)
+> +		return -ENOMEM;
+> +
+> +	memcpy(astate, config, sizeof(struct altera_config));
+> +	if (!astate->jtag_io) {
+> +		printk(KERN_INFO "%s: using byteblaster!\n", __func__);
+> +		astate->jtag_io = netup_jtag_io_lpt;
+> +	}
+> +
+> +	jbi_check_crc((u8 *)fw->data, fw->size);
+> +
+> +	if (verbose) {
+> +		jbi_get_file_info((u8 *)fw->data, fw->size, &format_version,
+> +					&action_count, &procedure_count);
+> +		printk(KERN_INFO "File format is %s ByteCode format\n",
+> +			(format_version == 2) ? "Jam STAPL" :
+> +						"pre-standardized Jam 1.1");
+> +		while (jbi_get_note((u8 *)fw->data, fw->size,
+> +					&offset, key, value, 256) == 0)
+> +			printk(KERN_INFO "NOTE \"%s\" = \"%s\"\n", key, value);
+> +	}
+> +
+> +	if (verbose && (format_version == 2) && (action_count > 0)) {
+> +		printk(KERN_INFO "\nActions available in this file:\n");
+> +		for (index = 0; index < action_count; ++index) {
+> +			jbi_get_action_info((u8 *)fw->data, fw->size,
+> +						index, &action_name,
+> +						&description,
+> +						&procedure_list);
+> +
+> +			if (description == NULL)
+> +				printk(KERN_INFO "%s\n", action_name);
+> +			else
+> +				printk(KERN_INFO "%s \"%s\"\n", action_name,
+> +						description);
+> +
+> +			procptr = procedure_list;
+> +			while (procptr != NULL) {
+> +				if (procptr->attributes != 0)
+> +					printk(KERN_INFO "    %s (%s)\n",
+> +						procptr->name,
+> +						(procptr->attributes == 1) ?
+> +						"optional" : "recommended");
+> +
+> +				procedure_list = procptr->next;
+> +				kfree(procptr);
+> +				procptr = procedure_list;
+> +			}
+> +		}
+> +
+> +		printk(KERN_INFO "\n");
+> +	}
+> +
+> +	exec_result = jbi_execute(astate, (u8 *)fw->data, fw->size,
+> +				&error_address, &exit_code, &format_version);
+> +
+> +	if (exec_result == JBIC_SUCCESS) {
+> +		if (format_version == 2) {
+> +			switch (exit_code) {
+> +			case  0:
+> +				exit_string = "Success";
+> +				break;
+> +			case  1:
+> +				exit_string = "Checking chain failure";
+> +				break;
+> +			case  2:
+> +				exit_string = "Reading IDCODE failure";
+> +				break;
+> +			case  3:
+> +				exit_string = "Reading USERCODE failure";
+> +				break;
+> +			case  4:
+> +				exit_string = "Reading UESCODE failure";
+> +				break;
+> +			case  5:
+> +				exit_string = "Entering ISP failure";
+> +				break;
+> +			case  6:
+> +				exit_string = "Unrecognized device";
+> +				break;
+> +			case  7:
+> +				exit_string = "Device revision is "
+> +						"not supported";
+> +				break;
+> +			case  8:
+> +				exit_string = "Erase failure";
+> +				break;
+> +			case  9:
+> +				exit_string = "Device is not blank";
+> +				break;
+> +			case 10:
+> +				exit_string = "Device programming failure";
+> +				break;
+> +			case 11:
+> +				exit_string = "Device verify failure";
+> +				break;
+> +			case 12:
+> +				exit_string = "Read failure";
+> +				break;
+> +			case 13:
+> +				exit_string = "Calculating checksum failure";
+> +				break;
+> +			case 14:
+> +				exit_string = "Setting security bit failure";
+> +				break;
+> +			case 15:
+> +				exit_string = "Querying security bit failure";
+> +				break;
+> +			case 16:
+> +				exit_string = "Exiting ISP failure";
+> +				break;
+> +			case 17:
+> +				exit_string = "Performing system test failure";
+> +				break;
+> +			default:
+> +				exit_string = "Unknown exit code";
+> +				break;
+> +			}
+> +		} else {
+> +			switch (exit_code) {
+> +			case 0:
+> +				exit_string = "Success";
+> +				break;
+> +			case 1:
+> +				exit_string = "Illegal initialization values";
+> +				break;
+> +			case 2:
+> +				exit_string = "Unrecognized device";
+> +				break;
+> +			case 3:
+> +				exit_string = "Device revision is "
+> +						"not supported";
+> +				break;
+> +			case 4:
+> +				exit_string = "Device programming failure";
+> +				break;
+> +			case 5:
+> +				exit_string = "Device is not blank";
+> +				break;
+> +			case 6:
+> +				exit_string = "Device verify failure";
+> +				break;
+> +			case 7:
+> +				exit_string = "SRAM configuration failure";
+> +				break;
+> +			default:
+> +				exit_string = "Unknown exit code";
+> +				break;
+> +			}
+> +		}
+> +
+> +		printk(KERN_INFO "Exit code = %d... %s\n", exit_code,
+> +							exit_string);
+> +	} else if ((format_version == 2) &&
+> +			(exec_result == JBIC_ACTION_NOT_FOUND)) {
+> +		if ((astate->action == NULL) || (*astate->action == '\0'))
+> +			printk(KERN_ERR "Error: no action specified for "
+> +				"Jam STAPL file.\nProgram terminated.\n");
+> +		else
+> +			printk(KERN_ERR "Error: action \"%s\" is not supported "
+> +				"for this Jam STAPL file.\n"
+> +				"Program terminated.\n",
+> +				astate->action);
+> +
+> +	} else if (exec_result < MAX_ERROR_CODE) {
+> +		printk(KERN_ERR "Error at address %d: %s.\n"
+> +			"Program terminated.\n",
+> +			error_address, error_text[exec_result]);
+> +	} else
+> +		printk(KERN_ERR "Unknown error code %d\n", exec_result);
+> +
+> +	if (astate != NULL) {
+> +		kfree(astate);
+> +		astate = NULL;
+> +	}
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(altera_init);
+> diff --git a/drivers/misc/stapl-altera/jbicomp.c b/drivers/misc/stapl-altera/jbicomp.c
+> new file mode 100644
+> index 0000000..5e09ec7
+> --- /dev/null
+> +++ b/drivers/misc/stapl-altera/jbicomp.c
+> @@ -0,0 +1,163 @@
+> +/*
+> + * jbicomp.c
+> + *
+> + * altera FPGA driver
+> + *
+> + * Copyright (C) Altera Corporation 1998-2001
+> + * Copyright (C) 2010 NetUP Inc.
+> + * Copyright (C) 2010 Igor M. Liplianin <liplianin@netup.ru>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include "jbiexprt.h"
+> +
+> +#define	SHORT_BITS		16
+> +#define	CHAR_BITS		8
+> +#define	DATA_BLOB_LENGTH	3
+> +#define	MATCH_DATA_LENGTH	8192
+> +#define JBI_ACA_REQUEST_SIZE	1024
+> +#define JBI_ACA_BUFFER_SIZE	(MATCH_DATA_LENGTH + JBI_ACA_REQUEST_SIZE)
+> +
+> +u32 jbi_in_length = 0L;
+> +u32 jbi_in_index = 0L;	/* byte index into compressed array */
+> +u32 jbi_bits_avail = CHAR_BITS;
+> +
+> +/*
+> +The following functions implement incremental decompression of Boolean
+> +array data, using a small memory window.
+> +This algorithm works by searching previous bytes in the data that match
+> +the current data. If a match is found, then the offset and length of
+> +the matching data can replace the actual data in the output.
+> +Memory usage is reduced by maintaining a "window" buffer which contains/
+> +the uncompressed data for one 8K page, plus some extra amount specified/
+> +by JBI_ACA_REQUEST_SIZE.  The function jbi_uncompress_page() is used to/
+> +request a subrange of the uncompressed data, starting at a particular
+> +bit position and extending a maximum of JBI_ACA_REQUEST_SIZE bytes. */
+> +
+> +static u32 jbi_bits_required(u32 n)
+> +/*
+> +Calculate the minimum number of bits required to represent n.
+> +Returns number of bits. */
+> +{
+> +	u32 result = SHORT_BITS;
+> +
+> +	if (n == 0)
+> +		result = 1;
+> +	else {
+> +		/* Look for the highest non-zero bit position */
+> +		while ((n & (1 << (SHORT_BITS - 1))) == 0) {
+> +			n <<= 1;
+> +			--result;
+> +		}
+> +	}
+> +
+> +	return result;
+> +}
+> +
+> +static u32 jbi_read_packed(u8 *buffer, u32 bits)
+> +/*
+> +Read the next value from the input array "buffer"
+> +Read only "bits" bits from the array. The amount of
+> +bits that have already been read from "buffer" is
+> +stored internally to this function.
+> +Returns up to 16 bit value or -1 if buffer overrun. */
+> +{
+> +	u32 result = 0;
+> +	u32 shift = 0;
+> +	u32 databyte = 0;
+> +
+> +	while (bits > 0) {
+> +		databyte = buffer[jbi_in_index];
+> +		result |= (((databyte >> (CHAR_BITS - jbi_bits_avail))
+> +			& (0xff >> (CHAR_BITS - jbi_bits_avail))) << shift);
+> +
+> +		if (bits <= jbi_bits_avail) {
+> +			result &= (0xffff >> (SHORT_BITS - (bits + shift)));
+> +			jbi_bits_avail -= bits;
+> +			bits = 0;
+> +		} else {
+> +			++jbi_in_index;
+> +			shift += jbi_bits_avail;
+> +			bits -= jbi_bits_avail;
+> +			jbi_bits_avail = CHAR_BITS;
+> +		}
+> +	}
+> +
+> +	return result;
+> +}
+> +
+> +u32 jbi_uncompress(u8 *in, u32 in_length, u8 *out, u32 out_length, s32 version)
+> +/*
+> +Uncompress data in "in" and write result to "out".
+> +Returns length of uncompressed data or -1 if:
+> +	1) out_length is too small
+> +	2) Internal error in the code
+> +	3) in doesn't contain ACA compressed data. */
+> +{
+> +	u32 i, j, data_length = 0L;
+> +	u32 offset, length;
+> +	u32 match_data_length = MATCH_DATA_LENGTH;
+> +
+> +	if (version > 0)
+> +		--match_data_length;
+> +
+> +	jbi_in_length = in_length;
+> +	jbi_bits_avail = CHAR_BITS;
+> +	jbi_in_index = 0L;
+> +	for (i = 0; i < out_length; ++i)
+> +		out[i] = 0;
+> +
+> +	/* Read number of bytes in data. */
+> +	for (i = 0; i < sizeof(in_length); ++i) {
+> +		data_length = data_length | ((u32)
+> +			jbi_read_packed(in, CHAR_BITS) << (i * CHAR_BITS));
+> +	}
+> +
+> +	if (data_length > out_length) {
+> +		data_length = 0L;
+> +		return data_length;
+> +	}
+> +
+> +	i = 0;
+> +	while (i < data_length) {
+> +		/* A 0 bit indicates literal data. */
+> +		if (jbi_read_packed(in, 1) == 0) {
+> +			for (j = 0; j < DATA_BLOB_LENGTH; ++j) {
+> +				if (i < data_length) {
+> +					out[i] = (u8)jbi_read_packed(in,
+> +								CHAR_BITS);
+> +					i++;
+> +				}
+> +			}
+> +		} else {
+> +			/* A 1 bit indicates offset/length to follow. */
+> +			offset = jbi_read_packed(in, jbi_bits_required((s16)
+> +					(i > match_data_length ?
+> +						match_data_length : i)));
+> +			length = jbi_read_packed(in, CHAR_BITS);
+> +			for (j = 0; j < length; ++j) {
+> +				if (i < data_length) {
+> +					out[i] = out[i - offset];
+> +					i++;
+> +				}
+> +			}
+> +		}
+> +	}
+> +
+> +	return data_length;
+> +}
+> diff --git a/drivers/misc/stapl-altera/jbiexprt.h b/drivers/misc/stapl-altera/jbiexprt.h
+> new file mode 100644
+> index 0000000..351ddf3
+> --- /dev/null
+> +++ b/drivers/misc/stapl-altera/jbiexprt.h
+> @@ -0,0 +1,94 @@
+> +/*
+> + * jbiexprt.h
+> + *
+> + * altera FPGA driver
+> + *
+> + * Copyright (C) Altera Corporation 1998-2001
+> + * Copyright (C) 2010 NetUP Inc.
+> + * Copyright (C) 2010 Igor M. Liplianin <liplianin@netup.ru>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> + */
+> +
+> +#ifndef INC_JBIEXPRT_H
+> +#define INC_JBIEXPRT_H
+> +
+> +/* Return codes from most JBI functions */
+> +
+> +#define JBI_RETURN_TYPE int
+> +
+> +#define JBIC_SUCCESS            0
+> +#define JBIC_OUT_OF_MEMORY      1
+> +#define JBIC_IO_ERROR           2
+> +/* #define JAMC_SYNTAX_ERROR       3 */
+> +#define JBIC_UNEXPECTED_END     4
+> +#define JBIC_UNDEFINED_SYMBOL   5
+> +/* #define JAMC_REDEFINED_SYMBOL   6 */
+> +#define JBIC_INTEGER_OVERFLOW   7
+> +#define JBIC_DIVIDE_BY_ZERO     8
+> +#define JBIC_CRC_ERROR          9
+> +#define JBIC_INTERNAL_ERROR    10
+> +#define JBIC_BOUNDS_ERROR      11
+> +/* #define JAMC_TYPE_MISMATCH     12 */
+> +/* #define JAMC_ASSIGN_TO_CONST   13 */
+> +/* #define JAMC_NEXT_UNEXPECTED   14 */
+> +/* #define JAMC_POP_UNEXPECTED    15 */
+> +/* #define JAMC_RETURN_UNEXPECTED 16 */
+> +/* #define JAMC_ILLEGAL_SYMBOL    17 */
+> +#define JBIC_VECTOR_MAP_FAILED 18
+> +#define JBIC_USER_ABORT        19
+> +#define JBIC_STACK_OVERFLOW    20
+> +#define JBIC_ILLEGAL_OPCODE    21
+> +/* #define JAMC_PHASE_ERROR       22 */
+> +/* #define JAMC_SCOPE_ERROR       23 */
+> +#define JBIC_ACTION_NOT_FOUND  24
+> +
+> +/* Macro Definitions */
+> +
+> +/* #define PROGRAM_PTR u8 *
+> +*/
+> +#define GET_BYTE(x) (program[x])
+> ++
+> +#define GET_WORD(x) \
+> +	(((((u16) GET_BYTE(x)) << 8) & 0xFF00) | \
+> +	(((u16) GET_BYTE((x)+1)) & 0x00FF))
+> +
+> +#define GET_DWORD(x) \
+> +	(((((u32) GET_BYTE(x)) << 24L) & 0xFF000000L) | \
+> +	((((u32) GET_BYTE((x)+1)) << 16L) & 0x00FF0000L) | \
+> +	((((u32) GET_BYTE((x)+2)) << 8L) & 0x0000FF00L) | \
+> +	(((u32) GET_BYTE((x)+3)) & 0x000000FFL))
+> +
+> +/* #define GET_QWORD(x) \
+> +	(((((long)    GET_BYTE(x)) << 56L) & 0xFF00000000000000L) | \
+> +	((((long) GET_BYTE((x)+1)) << 48L) & 0xFF000000000000L) | \
+> +	((((long) GET_BYTE((x)+2)) << 40L) & 0xFF0000000000L) | \
+> +	((((long) GET_BYTE((x)+3)) << 32L) & 0xFF00000000L) | \
+> +	((((long) GET_BYTE((x)+4)) << 24L) & 0xFF000000L) | \
+> +	((((long) GET_BYTE((x)+5)) << 16L) & 0x00FF0000L) | \
+> +	((((long)  GET_BYTE((x)+6)) << 8L) & 0x0000FF00L) | \
+> +	(((long)          GET_BYTE((x)+7)) & 0x000000FFL))
+> +*/
+> +struct JBI_PROCINFO {
+> +	char *name;
+> +	u8 attributes;
+> +	struct JBI_PROCINFO *next;
+> +};
+> +
+> +u32 jbi_uncompress(u8 *in, u32 in_length, u8 *out, u32 out_length, s32 version);
+> +int netup_jtag_io_lpt(void *device, int tms, int tdi, int read_tdo);
+> +
+> +#endif /* INC_JBIEXPRT_H */
+> diff --git a/drivers/misc/stapl-altera/jbijtag.c b/drivers/misc/stapl-altera/jbijtag.c
+> new file mode 100644
+> index 0000000..b7645e5
+> --- /dev/null
+> +++ b/drivers/misc/stapl-altera/jbijtag.c
+> @@ -0,0 +1,1038 @@
+> +/*
+> + * jbijtag.c
+> + *
+> + * altera FPGA driver
+> + *
+> + * Copyright (C) Altera Corporation 1998-2001
+> + * Copyright (C) 2010 NetUP Inc.
+> + * Copyright (C) 2010 Igor M. Liplianin <liplianin@netup.ru>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> + */
+> +
+> +#include <linux/firmware.h>
+> +#include <linux/slab.h>
+> +#include <misc/altera.h>
+> +#include "jbiexprt.h"
+> +#include "jbijtag.h"
+> +
+> +/* maximum JTAG IR and DR lengths (in bits) */
+> +#define JBIC_MAX_JTAG_IR_PREAMBLE   256
+> +#define JBIC_MAX_JTAG_IR_POSTAMBLE  256
+> +#define JBIC_MAX_JTAG_IR_LENGTH     512
+> +#define JBIC_MAX_JTAG_DR_PREAMBLE  1024
+> +#define JBIC_MAX_JTAG_DR_POSTAMBLE 1024
+> +#define JBIC_MAX_JTAG_DR_LENGTH    2048
+> +
+> +#define		jbi_jtag_io(a, b, c)\
+> +			astate->jtag_io(astate->dev, a, b, c);
+> +
+> +#define		jbi_malloc(a)	kzalloc(a, GFP_KERNEL);
+> +
+> +/* Global variable to store the current JTAG state */
+> +enum JBIE_JTAG_STATE jbi_jtag_state = JBI_ILLEGAL_JTAG_STATE;
+> +
+> +/* Store current stop-state for DR and IR scan commands */
+> +enum JBIE_JTAG_STATE jbi_drstop_state = IDLE;
+> +enum JBIE_JTAG_STATE jbi_irstop_state = IDLE;
+> +
+> +/* Store current padding values */
+> +u32 jbi_dr_preamble;
+> +u32 jbi_dr_postamble;
+> +u32 jbi_ir_preamble;
+> +u32 jbi_ir_postamble;
+> +u32 jbi_dr_length;
+> +u32 jbi_ir_length;
+> +u8 *jbi_dr_preamble_data;
+> +u8 *jbi_dr_postamble_data;
+> +u8 *jbi_ir_preamble_data;
+> +u8 *jbi_ir_postamble_data;
+> +u8 *jbi_dr_buffer;
+> +u8 *jbi_ir_buffer;
+> +
+> +/*
+> +This structure shows, for each JTAG state, which state is reached after
+> +a single TCK clock cycle with TMS high or TMS low, respectively.  This
+> +describes all possible state transitions in the JTAG state machine.
+> +*/
+> +struct JBIS_JTAG_MACHINE {
+> +	enum JBIE_JTAG_STATE tms_high;
+> +	enum JBIE_JTAG_STATE tms_low;
+> +} jbi_jtag_state_transitions[] = {
+> +	/* RESET     */	{ RESET,	IDLE },
+> +	/* IDLE      */	{ DRSELECT,	IDLE },
+> +	/* DRSELECT  */	{ IRSELECT,	DRCAPTURE },
+> +	/* DRCAPTURE */	{ DREXIT1,	DRSHIFT },
+> +	/* DRSHIFT   */	{ DREXIT1,	DRSHIFT },
+> +	/* DREXIT1   */	{ DRUPDATE,	DRPAUSE },
+> +	/* DRPAUSE   */	{ DREXIT2,	DRPAUSE },
+> +	/* DREXIT2   */	{ DRUPDATE,	DRSHIFT },
+> +	/* DRUPDATE  */	{ DRSELECT,	IDLE },
+> +	/* IRSELECT  */	{ RESET,	IRCAPTURE },
+> +	/* IRCAPTURE */	{ IREXIT1,	IRSHIFT },
+> +	/* IRSHIFT   */	{ IREXIT1,	IRSHIFT },
+> +	/* IREXIT1   */	{ IRUPDATE,	IRPAUSE },
+> +	/* IRPAUSE   */	{ IREXIT2,	IRPAUSE },
+> +	/* IREXIT2   */	{ IRUPDATE,	IRSHIFT },
+> +	/* IRUPDATE  */	{ DRSELECT,	IDLE }
+> +};
+> +
+> +/*
+> +This table contains the TMS value to be used to take the NEXT STEP on
+> +the path to the desired state.  The array index is the current state,
+> +and the bit position is the desired endstate.  To find out which state
+> +is used as the intermediate state, look up the TMS value in the
+> +jbi_jtag_state_transitions[] table.
+> +*/
+> +u16 jbi_jtag_path_map[16] = {
+> +	/* RST	RTI	SDRS	CDR	SDR	E1DR	PDR	E2DR */
+> +	0x0001,	0xFFFD,	0xFE01,	0xFFE7,	0xFFEF,	0xFF0F,	0xFFBF,	0xFFFF,
+> +	/* UDR	SIRS	CIR	SIR	E1IR	PIR	E2IR	UIR */
+> +	0xFEFD,	0x0001,	0xF3FF,	0xF7FF,	0x87FF,	0xDFFF,	0xFFFF,	0x7FFD
+> +};
+> +
+> +/* Flag bits for jbi_jtag_io() function */
+> +#define TMS_HIGH   1
+> +#define TMS_LOW    0
+> +#define TDI_HIGH   1
+> +#define TDI_LOW    0
+> +#define READ_TDO   1
+> +#define IGNORE_TDO 0
+> +
+> +JBI_RETURN_TYPE jbi_init_jtag()
+> +{
+> +	/* initial JTAG state is unknown */
+> +	jbi_jtag_state = JBI_ILLEGAL_JTAG_STATE;
+> +
+> +	/* initialize global variables to default state */
+> +	jbi_drstop_state = IDLE;
+> +	jbi_irstop_state = IDLE;
+> +	jbi_dr_preamble  = 0;
+> +	jbi_dr_postamble = 0;
+> +	jbi_ir_preamble  = 0;
+> +	jbi_ir_postamble = 0;
+> +	jbi_dr_length    = 0;
+> +	jbi_ir_length    = 0;
+> +
+> +	jbi_dr_preamble_data  = NULL;
+> +	jbi_dr_postamble_data = NULL;
+> +	jbi_ir_preamble_data  = NULL;
+> +	jbi_ir_postamble_data = NULL;
+> +	jbi_dr_buffer	 = NULL;
+> +	jbi_ir_buffer	 = NULL;
+> +
+> +	return JBIC_SUCCESS;
+> +}
+> +
+> +JBI_RETURN_TYPE jbi_set_drstop_state(enum JBIE_JTAG_STATE state)
+> +{
+> +	jbi_drstop_state = state;
+> +
+> +	return JBIC_SUCCESS;
+> +}
+> +
+> +JBI_RETURN_TYPE jbi_set_irstop_state(enum JBIE_JTAG_STATE state)
+> +{
+> +	jbi_irstop_state = state;
+> +
+> +	return JBIC_SUCCESS;
+> +}
+> +
+> +JBI_RETURN_TYPE jbi_set_dr_preamble(u32 count, u32 start_index,
+> +				    u8 *preamble_data)
+> +{
+> +	JBI_RETURN_TYPE status = JBIC_SUCCESS;
+> +	u32 i;
+> +	u32 j;
+> +
+> +	if (count > jbi_dr_preamble) {
+> +		kfree(jbi_dr_preamble_data);
+> +		jbi_dr_preamble_data = (u8 *)jbi_malloc((count + 7) >> 3);
+> +		if (jbi_dr_preamble_data == NULL)
+> +			status = JBIC_OUT_OF_MEMORY;
+> +		else
+> +			jbi_dr_preamble = count;
+> +	} else
+> +		jbi_dr_preamble = count;
+> +
+> +	if (status == JBIC_SUCCESS) {
+> +		for (i = 0; i < count; ++i) {
+> +			j = i + start_index;
+> +
+> +			if (preamble_data == NULL)
+> +				jbi_dr_preamble_data[i >> 3] |= (1 << (i & 7));
+> +			else {
+> +				if (preamble_data[j >> 3] & (1 << (j & 7)))
+> +					jbi_dr_preamble_data[i >> 3] |=
+> +							(1 << (i & 7));
+> +				else
+> +					jbi_dr_preamble_data[i >> 3] &=
+> +							~(u32)(1 << (i & 7));
+> +
+> +			}
+> +		}
+> +	}
+> +
+> +	return status;
+> +}
+> +
+> +JBI_RETURN_TYPE jbi_set_ir_preamble(u32 count, u32 start_index,
+> +							u8 *preamble_data)
+> +{
+> +	JBI_RETURN_TYPE status = JBIC_SUCCESS;
+> +	u32 i;
+> +	u32 j;
+> +
+> +	if (count > jbi_ir_preamble) {
+> +		kfree(jbi_ir_preamble_data);
+> +		jbi_ir_preamble_data = (u8 *)jbi_malloc((count + 7) >> 3);
+> +		if (jbi_ir_preamble_data == NULL)
+> +			status = JBIC_OUT_OF_MEMORY;
+> +		else
+> +			jbi_ir_preamble = count;
+> +
+> +	} else
+> +		jbi_ir_preamble = count;
+> +
+> +	if (status == JBIC_SUCCESS) {
+> +		for (i = 0; i < count; ++i) {
+> +			j = i + start_index;
+> +			if (preamble_data == NULL)
+> +				jbi_ir_preamble_data[i >> 3] |= (1 << (i & 7));
+> +			else {
+> +				if (preamble_data[j >> 3] & (1 << (j & 7)))
+> +					jbi_ir_preamble_data[i >> 3] |=
+> +							(1 << (i & 7));
+> +				else
+> +					jbi_ir_preamble_data[i >> 3] &=
+> +							~(u32)(1 << (i & 7));
+> +
+> +			}
+> +		}
+> +	}
+> +
+> +	return status;
+> +}
+> +
+> +JBI_RETURN_TYPE jbi_set_dr_postamble(u32 count, u32 start_index,
+> +						u8 *postamble_data)
+> +{
+> +	JBI_RETURN_TYPE status = JBIC_SUCCESS;
+> +	u32 i;
+> +	u32 j;
+> +
+> +	if (count > jbi_dr_postamble) {
+> +		kfree(jbi_dr_postamble_data);
+> +		jbi_dr_postamble_data = (u8 *)jbi_malloc((count + 7) >> 3);
+> +
+> +		if (jbi_dr_postamble_data == NULL)
+> +			status = JBIC_OUT_OF_MEMORY;
+> +		else
+> +			jbi_dr_postamble = count;
+> +
+> +	} else
+> +		jbi_dr_postamble = count;
+> +
+> +	if (status == JBIC_SUCCESS) {
+> +		for (i = 0; i < count; ++i) {
+> +			j = i + start_index;
+> +
+> +			if (postamble_data == NULL)
+> +				jbi_dr_postamble_data[i >> 3] |= (1 << (i & 7));
+> +			else {
+> +				if (postamble_data[j >> 3] & (1 << (j & 7)))
+> +					jbi_dr_postamble_data[i >> 3] |=
+> +								(1 << (i & 7));
+> +				else
+> +					jbi_dr_postamble_data[i >> 3] &=
+> +					    ~(u32)(1 << (i & 7));
+> +
+> +			}
+> +		}
+> +	}
+> +
+> +	return status;
+> +}
+> +
+> +JBI_RETURN_TYPE jbi_set_ir_postamble(u32 count, u32 start_index,
+> +						u8 *postamble_data)
+> +{
+> +	JBI_RETURN_TYPE status = JBIC_SUCCESS;
+> +	u32 i;
+> +	u32 j;
+> +
+> +	if (count > jbi_ir_postamble) {
+> +		kfree(jbi_ir_postamble_data);
+> +		jbi_ir_postamble_data = (u8 *)jbi_malloc((count + 7) >> 3);
+> +		if (jbi_ir_postamble_data == NULL)
+> +			status = JBIC_OUT_OF_MEMORY;
+> +		else
+> +			jbi_ir_postamble = count;
+> +
+> +	} else
+> +		jbi_ir_postamble = count;
+> +
+> +	if (status != JBIC_SUCCESS)
+> +		return status;
+> +
+> +	for (i = 0; i < count; ++i) {
+> +		j = i + start_index;
+> +
+> +		if (postamble_data == NULL)
+> +			jbi_ir_postamble_data[i >> 3] |= (1 << (i & 7));
+> +		else {
+> +			if (postamble_data[j >> 3] & (1 << (j & 7)))
+> +				jbi_ir_postamble_data[i >> 3] |= (1 << (i & 7));
+> +			else
+> +				jbi_ir_postamble_data[i >> 3] &=
+> +				    ~(u32)(1 << (i & 7));
+> +
+> +		}
+> +	}
+> +
+> +	return status;
+> +}
+> +
+> +static void jbi_jtag_reset_idle(struct altera_config *astate)
+> +{
+> +	int i;
+> +	/* Go to Test Logic Reset (no matter what the starting state may be) */
+> +	for (i = 0; i < 5; ++i)
+> +		jbi_jtag_io(TMS_HIGH, TDI_LOW, IGNORE_TDO);
+> +
+> +	/* Now step to Run Test / Idle */
+> +	jbi_jtag_io(TMS_LOW, TDI_LOW, IGNORE_TDO);
+> +	jbi_jtag_state = IDLE;
+> +}
+> +
+> +JBI_RETURN_TYPE jbi_goto_jtag_state(struct altera_config *astate,
+> +					enum JBIE_JTAG_STATE state)
+> +{
+> +	int tms;
+> +	int count = 0;
+> +	JBI_RETURN_TYPE status = JBIC_SUCCESS;
+> +
+> +	if (jbi_jtag_state == JBI_ILLEGAL_JTAG_STATE)
+> +		/* initialize JTAG chain to known state */
+> +		jbi_jtag_reset_idle(astate);
+> +
+> +	if (jbi_jtag_state == state) {
+> +		/*
+> +		We are already in the desired state.  If it is a stable state,
+> +		loop here.  Otherwise do nothing (no clock cycles).
+> +		*/
+> +		if ((state == IDLE) || (state == DRSHIFT) ||
+> +			(state == DRPAUSE) || (state == IRSHIFT) ||
+> +				(state == IRPAUSE)) {
+> +			jbi_jtag_io(TMS_LOW, TDI_LOW, IGNORE_TDO);
+> +		} else if (state == RESET)
+> +			jbi_jtag_io(TMS_HIGH, TDI_LOW, IGNORE_TDO);
+> +
+> +	} else {
+> +		while ((jbi_jtag_state != state) && (count < 9)) {
+> +			/* Get TMS value to take a step toward desired state */
+> +			tms = (jbi_jtag_path_map[jbi_jtag_state] & (1 << state))
+> +							? TMS_HIGH : TMS_LOW;
+> +
+> +			/* Take a step */
+> +			jbi_jtag_io(tms, TDI_LOW, IGNORE_TDO);
+> +
+> +			if (tms)
+> +				jbi_jtag_state =
+> +					jbi_jtag_state_transitions[jbi_jtag_state].tms_high;
+> +			else
+> +				jbi_jtag_state =
+> +					jbi_jtag_state_transitions[jbi_jtag_state].tms_low;
+> +
+> +			++count;
+> +		}
+> +	}
+> +
+> +	if (jbi_jtag_state != state)
+> +		status = JBIC_INTERNAL_ERROR;
+> +
+> +	return status;
+> +}
+> +
+> +JBI_RETURN_TYPE jbi_do_wait_cycles(struct altera_config *astate,
+> +					s32 cycles,
+> +					enum JBIE_JTAG_STATE wait_state)
+> +{
+> +	int tms;
+> +	s32 count;
+> +	JBI_RETURN_TYPE status = JBIC_SUCCESS;
+> +
+> +	if (jbi_jtag_state != wait_state)
+> +		status = jbi_goto_jtag_state(astate, wait_state);
+> +
+> +	if (status == JBIC_SUCCESS) {
+> +		/*
+> +		Set TMS high to loop in RESET state
+> +		Set TMS low to loop in any other stable state
+> +		*/
+> +		tms = (wait_state == RESET) ? TMS_HIGH : TMS_LOW;
+> +
+> +		for (count = 0L; count < cycles; count++)
+> +			jbi_jtag_io(tms, TDI_LOW, IGNORE_TDO);
+> +
+> +	}
+> +
+> +	return status;
+> +}
+> +
+> +JBI_RETURN_TYPE jbi_do_wait_microseconds(struct altera_config *astate,
+> +			s32 microseconds, enum JBIE_JTAG_STATE wait_state)
+> +/*
+> +Causes JTAG hardware to sit in the specified stable
+> +state for the specified duration of real time.  If
+> +no JTAG operations have been performed yet, then only
+> +a delay is performed.  This permits the WAIT USECS
+> +statement to be used in VECTOR programs without causing
+> +any JTAG operations.
+> +Returns JBIC_SUCCESS for success, else appropriate error code. */
+> +{
+> +	JBI_RETURN_TYPE status = JBIC_SUCCESS;
+> +
+> +	if ((jbi_jtag_state != JBI_ILLEGAL_JTAG_STATE) &&
+> +	    (jbi_jtag_state != wait_state))
+> +		status = jbi_goto_jtag_state(astate, wait_state);
+> +
+> +	if (status == JBIC_SUCCESS)
+> +		/* Wait for specified time interval */
+> +		udelay(microseconds);
+> +
+> +	return status;
+> +}
+> +
+> +static void jbi_jtag_concatenate_data(u8 *buffer,
+> +				u8 *preamble_data,
+> +				u32 preamble_count,
+> +				u8 *target_data,
+> +				u32 start_index,
+> +				u32 target_count,
+> +				u8 *postamble_data,
+> +				u32 postamble_count)
+> +/*
+> +Copies preamble data, target data, and postamble data
+> +into one buffer for IR or DR scans. */
+> +{
+> +	u32 i, j, k;
+> +
+> +	for (i = 0L; i < preamble_count; ++i) {
+> +		if (preamble_data[i >> 3L] & (1L << (i & 7L)))
+> +			buffer[i >> 3L] |= (1L << (i & 7L));
+> +		else
+> +			buffer[i >> 3L] &= ~(u32)(1L << (i & 7L));
+> +
+> +	}
+> +
+> +	j = start_index;
+> +	k = preamble_count + target_count;
+> +	for (; i < k; ++i, ++j) {
+> +		if (target_data[j >> 3L] & (1L << (j & 7L)))
+> +			buffer[i >> 3L] |= (1L << (i & 7L));
+> +		else
+> +			buffer[i >> 3L] &= ~(u32)(1L << (i & 7L));
+> +
+> +	}
+> +
+> +	j = 0L;
+> +	k = preamble_count + target_count + postamble_count;
+> +	for (; i < k; ++i, ++j) {
+> +		if (postamble_data[j >> 3L] & (1L << (j & 7L)))
+> +			buffer[i >> 3L] |= (1L << (i & 7L));
+> +		else
+> +			buffer[i >> 3L] &= ~(u32)(1L << (i & 7L));
+> +
+> +	}
+> +}
+> +
+> +static int jbi_jtag_drscan(struct altera_config *astate,
+> +			int start_state,
+> +			int count,
+> +			u8 *tdi,
+> +			u8 *tdo)
+> +{
+> +	int i = 0;
+> +	int tdo_bit = 0;
+> +	int status = 1;
+> +
+> +	/* First go to DRSHIFT state */
+> +	switch (start_state) {
+> +	case 0:						/* IDLE */
+> +		jbi_jtag_io(1, 0, 0);	/* DRSELECT */
+> +		jbi_jtag_io(0, 0, 0);	/* DRCAPTURE */
+> +		jbi_jtag_io(0, 0, 0);	/* DRSHIFT */
+> +		break;
+> +
+> +	case 1:						/* DRPAUSE */
+> +		jbi_jtag_io(1, 0, 0);	/* DREXIT2 */
+> +		jbi_jtag_io(1, 0, 0);	/* DRUPDATE */
+> +		jbi_jtag_io(1, 0, 0);	/* DRSELECT */
+> +		jbi_jtag_io(0, 0, 0);	/* DRCAPTURE */
+> +		jbi_jtag_io(0, 0, 0);	/* DRSHIFT */
+> +		break;
+> +
+> +	case 2:						/* IRPAUSE */
+> +		jbi_jtag_io(1, 0, 0);	/* IREXIT2 */
+> +		jbi_jtag_io(1, 0, 0);	/* IRUPDATE */
+> +		jbi_jtag_io(1, 0, 0);	/* DRSELECT */
+> +		jbi_jtag_io(0, 0, 0);	/* DRCAPTURE */
+> +		jbi_jtag_io(0, 0, 0);	/* DRSHIFT */
+> +		break;
+> +
+> +	default:
+> +		status = 0;
+> +	}
+> +
+> +	if (status) {
+> +		/* loop in the SHIFT-DR state */
+> +		for (i = 0; i < count; i++) {
+> +			tdo_bit = jbi_jtag_io(
+> +					(i == count - 1),
+> +					tdi[i >> 3] & (1 << (i & 7)),
+> +					(tdo != NULL));
+> +
+> +			if (tdo != NULL) {
+> +				if (tdo_bit)
+> +					tdo[i >> 3] |= (1 << (i & 7));
+> +				else
+> +					tdo[i >> 3] &= ~(u32)(1 << (i & 7));
+> +
+> +			}
+> +		}
+> +
+> +		jbi_jtag_io(0, 0, 0);	/* DRPAUSE */
+> +	}
+> +
+> +	return status;
+> +}
+> +
+> +static int jbi_jtag_irscan(struct altera_config *astate,
+> +		    int start_state,
+> +		    int count,
+> +		    u8 *tdi,
+> +		    u8 *tdo)
+> +{
+> +	int i = 0;
+> +	int tdo_bit = 0;
+> +	int status = 1;
+> +
+> +	/* First go to IRSHIFT state */
+> +	switch (start_state) {
+> +	case 0:						/* IDLE */
+> +		jbi_jtag_io(1, 0, 0);	/* DRSELECT */
+> +		jbi_jtag_io(1, 0, 0);	/* IRSELECT */
+> +		jbi_jtag_io(0, 0, 0);	/* IRCAPTURE */
+> +		jbi_jtag_io(0, 0, 0);	/* IRSHIFT */
+> +		break;
+> +
+> +	case 1:						/* DRPAUSE */
+> +		jbi_jtag_io(1, 0, 0);	/* DREXIT2 */
+> +		jbi_jtag_io(1, 0, 0);	/* DRUPDATE */
+> +		jbi_jtag_io(1, 0, 0);	/* DRSELECT */
+> +		jbi_jtag_io(1, 0, 0);	/* IRSELECT */
+> +		jbi_jtag_io(0, 0, 0);	/* IRCAPTURE */
+> +		jbi_jtag_io(0, 0, 0);	/* IRSHIFT */
+> +		break;
+> +
+> +	case 2:						/* IRPAUSE */
+> +		jbi_jtag_io(1, 0, 0);	/* IREXIT2 */
+> +		jbi_jtag_io(1, 0, 0);	/* IRUPDATE */
+> +		jbi_jtag_io(1, 0, 0);	/* DRSELECT */
+> +		jbi_jtag_io(1, 0, 0);	/* IRSELECT */
+> +		jbi_jtag_io(0, 0, 0);	/* IRCAPTURE */
+> +		jbi_jtag_io(0, 0, 0);	/* IRSHIFT */
+> +		break;
+> +
+> +	default:
+> +		status = 0;
+> +	}
+> +
+> +	if (status) {
+> +		/* loop in the SHIFT-IR state */
+> +		for (i = 0; i < count; i++) {
+> +			tdo_bit = jbi_jtag_io(
+> +				      (i == count - 1),
+> +				      tdi[i >> 3] & (1 << (i & 7)),
+> +				      (tdo != NULL));
+> +			if (tdo != NULL) {
+> +				if (tdo_bit)
+> +					tdo[i >> 3] |= (1 << (i & 7));
+> +				else
+> +					tdo[i >> 3] &= ~(u32)(1 << (i & 7));
+> +
+> +			}
+> +		}
+> +
+> +		jbi_jtag_io(0, 0, 0);	/* IRPAUSE */
+> +	}
+> +
+> +	return status;
+> +}
+> +
+> +static void jbi_jtag_extract_target_data(u8 *buffer,
+> +				u8 *target_data,
+> +				u32 start_index,
+> +				u32 preamble_count,
+> +				u32 target_count)
+> +/*
+> +Copies target data from scan buffer, filtering out
+> +preamble and postamble data. */
+> +{
+> +	u32 i;
+> +	u32 j;
+> +	u32 k;
+> +
+> +	j = preamble_count;
+> +	k = start_index + target_count;
+> +	for (i = start_index; i < k; ++i, ++j) {
+> +		if (buffer[j >> 3] & (1 << (j & 7)))
+> +			target_data[i >> 3] |= (1 << (i & 7));
+> +		else
+> +			target_data[i >> 3] &= ~(u32)(1 << (i & 7));
+> +
+> +	}
+> +}
+> +
+> +JBI_RETURN_TYPE jbi_do_irscan(struct altera_config *astate,
+> +				u32 count,
+> +				u8 *tdi_data,
+> +				u32 start_index)
+> +/* Shifts data into instruction register */
+> +{
+> +	int start_code = 0;
+> +	u32 alloc_chars = 0;
+> +	u32 shift_count = jbi_ir_preamble + count + jbi_ir_postamble;
+> +	JBI_RETURN_TYPE status = JBIC_SUCCESS;
+> +	enum JBIE_JTAG_STATE start_state = JBI_ILLEGAL_JTAG_STATE;
+> +
+> +	switch (jbi_jtag_state) {
+> +	case JBI_ILLEGAL_JTAG_STATE:
+> +	case RESET:
+> +	case IDLE:
+> +		start_code = 0;
+> +		start_state = IDLE;
+> +		break;
+> +
+> +	case DRSELECT:
+> +	case DRCAPTURE:
+> +	case DRSHIFT:
+> +	case DREXIT1:
+> +	case DRPAUSE:
+> +	case DREXIT2:
+> +	case DRUPDATE:
+> +		start_code = 1;
+> +		start_state = DRPAUSE;
+> +		break;
+> +
+> +	case IRSELECT:
+> +	case IRCAPTURE:
+> +	case IRSHIFT:
+> +	case IREXIT1:
+> +	case IRPAUSE:
+> +	case IREXIT2:
+> +	case IRUPDATE:
+> +		start_code = 2;
+> +		start_state = IRPAUSE;
+> +		break;
+> +
+> +	default:
+> +		status = JBIC_INTERNAL_ERROR;
+> +		break;
+> +	}
+> +
+> +	if (status == JBIC_SUCCESS)
+> +		if (jbi_jtag_state != start_state)
+> +			status = jbi_goto_jtag_state(astate, start_state);
+> +
+> +	if (status == JBIC_SUCCESS) {
+> +		if (shift_count > jbi_ir_length) {
+> +			alloc_chars = (shift_count + 7) >> 3;
+> +			kfree(jbi_ir_buffer);
+> +			jbi_ir_buffer = (u8 *)jbi_malloc(alloc_chars);
+> +			if (jbi_ir_buffer == NULL)
+> +				status = JBIC_OUT_OF_MEMORY;
+> +			else
+> +				jbi_ir_length = alloc_chars * 8;
+> +
+> +		}
+> +	}
+> +
+> +	if (status == JBIC_SUCCESS) {
+> +		/* Copy preamble data, IR data,
+> +		and postamble data into a buffer */
+> +		jbi_jtag_concatenate_data(jbi_ir_buffer,
+> +					jbi_ir_preamble_data,
+> +					jbi_ir_preamble,
+> +					tdi_data,
+> +					start_index,
+> +					count,
+> +					jbi_ir_postamble_data,
+> +					jbi_ir_postamble);
+> +		/* Do the IRSCAN */
+> +		jbi_jtag_irscan(astate,
+> +				start_code,
+> +				shift_count,
+> +				jbi_ir_buffer,
+> +				NULL);
+> +
+> +		/* jbi_jtag_irscan() always ends in IRPAUSE state */
+> +		jbi_jtag_state = IRPAUSE;
+> +	}
+> +
+> +	if (status == JBIC_SUCCESS)
+> +		if (jbi_irstop_state != IRPAUSE)
+> +			status = jbi_goto_jtag_state(astate, jbi_irstop_state);
+> +
+> +
+> +	return status;
+> +}
+> +
+> +JBI_RETURN_TYPE jbi_swap_ir(struct altera_config *astate,
+> +			    u32 count,
+> +			    u8 *in_data,
+> +			    u32 in_index,
+> +			    u8 *out_data,
+> +			    u32 out_index)
+> +/* Shifts data into instruction register, capturing output data */
+> +{
+> +	int start_code = 0;
+> +	u32 alloc_chars = 0;
+> +	u32 shift_count = jbi_ir_preamble + count + jbi_ir_postamble;
+> +	JBI_RETURN_TYPE status = JBIC_SUCCESS;
+> +	enum JBIE_JTAG_STATE start_state = JBI_ILLEGAL_JTAG_STATE;
+> +
+> +	switch (jbi_jtag_state) {
+> +	case JBI_ILLEGAL_JTAG_STATE:
+> +	case RESET:
+> +	case IDLE:
+> +		start_code = 0;
+> +		start_state = IDLE;
+> +		break;
+> +
+> +	case DRSELECT:
+> +	case DRCAPTURE:
+> +	case DRSHIFT:
+> +	case DREXIT1:
+> +	case DRPAUSE:
+> +	case DREXIT2:
+> +	case DRUPDATE:
+> +		start_code = 1;
+> +		start_state = DRPAUSE;
+> +		break;
+> +
+> +	case IRSELECT:
+> +	case IRCAPTURE:
+> +	case IRSHIFT:
+> +	case IREXIT1:
+> +	case IRPAUSE:
+> +	case IREXIT2:
+> +	case IRUPDATE:
+> +		start_code = 2;
+> +		start_state = IRPAUSE;
+> +		break;
+> +
+> +	default:
+> +		status = JBIC_INTERNAL_ERROR;
+> +		break;
+> +	}
+> +
+> +	if (status == JBIC_SUCCESS)
+> +		if (jbi_jtag_state != start_state)
+> +			status = jbi_goto_jtag_state(astate, start_state);
+> +
+> +	if (status == JBIC_SUCCESS) {
+> +		if (shift_count > jbi_ir_length) {
+> +			alloc_chars = (shift_count + 7) >> 3;
+> +			kfree(jbi_ir_buffer);
+> +			jbi_ir_buffer = (u8 *)jbi_malloc(alloc_chars);
+> +			if (jbi_ir_buffer == NULL)
+> +				status = JBIC_OUT_OF_MEMORY;
+> +			else
+> +				jbi_ir_length = alloc_chars * 8;
+> +
+> +		}
+> +	}
+> +
+> +	if (status == JBIC_SUCCESS) {
+> +		/*
+> +		Copy preamble data, IR data,
+> +		and postamble data into a buffer */
+> +		jbi_jtag_concatenate_data(jbi_ir_buffer,
+> +					jbi_ir_preamble_data,
+> +					jbi_ir_preamble,
+> +					in_data,
+> +					in_index,
+> +					count,
+> +					jbi_ir_postamble_data,
+> +					jbi_ir_postamble);
+> +
+> +		/* Do the IRSCAN */
+> +		jbi_jtag_irscan(astate,
+> +				start_code,
+> +				shift_count,
+> +				jbi_ir_buffer,
+> +				jbi_ir_buffer);
+> +
+> +		/* jbi_jtag_irscan() always ends in IRPAUSE state */
+> +		jbi_jtag_state = IRPAUSE;
+> +	}
+> +
+> +	if (status == JBIC_SUCCESS)
+> +		if (jbi_irstop_state != IRPAUSE)
+> +			status = jbi_goto_jtag_state(astate, jbi_irstop_state);
+> +
+> +
+> +	if (status == JBIC_SUCCESS)
+> +		/* Now extract the returned data from the buffer */
+> +		jbi_jtag_extract_target_data(jbi_ir_buffer,
+> +					out_data, out_index,
+> +					jbi_ir_preamble, count);
+> +
+> +	return status;
+> +}
+> +
+> +JBI_RETURN_TYPE jbi_do_drscan(struct altera_config *astate,
+> +				u32 count,
+> +				u8 *tdi_data,
+> +				u32 start_index)
+> +/* Shifts data into data register (ignoring output data) */
+> +{
+> +	int start_code = 0;
+> +	u32 alloc_chars = 0;
+> +	u32 shift_count = jbi_dr_preamble + count + jbi_dr_postamble;
+> +	JBI_RETURN_TYPE status = JBIC_SUCCESS;
+> +	enum JBIE_JTAG_STATE start_state = JBI_ILLEGAL_JTAG_STATE;
+> +
+> +	switch (jbi_jtag_state) {
+> +	case JBI_ILLEGAL_JTAG_STATE:
+> +	case RESET:
+> +	case IDLE:
+> +		start_code = 0;
+> +		start_state = IDLE;
+> +		break;
+> +
+> +	case DRSELECT:
+> +	case DRCAPTURE:
+> +	case DRSHIFT:
+> +	case DREXIT1:
+> +	case DRPAUSE:
+> +	case DREXIT2:
+> +	case DRUPDATE:
+> +		start_code = 1;
+> +		start_state = DRPAUSE;
+> +		break;
+> +
+> +	case IRSELECT:
+> +	case IRCAPTURE:
+> +	case IRSHIFT:
+> +	case IREXIT1:
+> +	case IRPAUSE:
+> +	case IREXIT2:
+> +	case IRUPDATE:
+> +		start_code = 2;
+> +		start_state = IRPAUSE;
+> +		break;
+> +
+> +	default:
+> +		status = JBIC_INTERNAL_ERROR;
+> +		break;
+> +	}
+> +
+> +	if (status == JBIC_SUCCESS)
+> +		if (jbi_jtag_state != start_state)
+> +			status = jbi_goto_jtag_state(astate, start_state);
+> +
+> +	if (status == JBIC_SUCCESS) {
+> +		if (shift_count > jbi_dr_length) {
+> +			alloc_chars = (shift_count + 7) >> 3;
+> +			kfree(jbi_dr_buffer);
+> +			jbi_dr_buffer = (u8 *)jbi_malloc(alloc_chars);
+> +			if (jbi_dr_buffer == NULL)
+> +				status = JBIC_OUT_OF_MEMORY;
+> +			else
+> +				jbi_dr_length = alloc_chars * 8;
+> +
+> +		}
+> +	}
+> +
+> +	if (status == JBIC_SUCCESS) {
+> +		/*
+> +		Copy preamble data, DR data,
+> +		and postamble data into a buffer */
+> +		jbi_jtag_concatenate_data(jbi_dr_buffer,
+> +					jbi_dr_preamble_data,
+> +					jbi_dr_preamble,
+> +					tdi_data,
+> +					start_index,
+> +					count,
+> +					jbi_dr_postamble_data,
+> +					jbi_dr_postamble);
+> +		/* Do the DRSCAN */
+> +		jbi_jtag_drscan(astate, start_code, shift_count,
+> +				jbi_dr_buffer, NULL);
+> +		/* jbi_jtag_drscan() always ends in DRPAUSE state */
+> +		jbi_jtag_state = DRPAUSE;
+> +	}
+> +
+> +	if (status == JBIC_SUCCESS)
+> +		if (jbi_drstop_state != DRPAUSE)
+> +			status = jbi_goto_jtag_state(astate, jbi_drstop_state);
+> +
+> +	return status;
+> +}
+> +
+> +JBI_RETURN_TYPE jbi_swap_dr(struct altera_config *astate, u32 count,
+> +				u8 *in_data, u32 in_index,
+> +				u8 *out_data, u32 out_index)
+> +/* Shifts data into data register, capturing output data */
+> +{
+> +	int start_code = 0;
+> +	u32 alloc_chars = 0;
+> +	u32 shift_count = jbi_dr_preamble + count + jbi_dr_postamble;
+> +	JBI_RETURN_TYPE status = JBIC_SUCCESS;
+> +	enum JBIE_JTAG_STATE start_state = JBI_ILLEGAL_JTAG_STATE;
+> +
+> +	switch (jbi_jtag_state) {
+> +	case JBI_ILLEGAL_JTAG_STATE:
+> +	case RESET:
+> +	case IDLE:
+> +		start_code = 0;
+> +		start_state = IDLE;
+> +		break;
+> +
+> +	case DRSELECT:
+> +	case DRCAPTURE:
+> +	case DRSHIFT:
+> +	case DREXIT1:
+> +	case DRPAUSE:
+> +	case DREXIT2:
+> +	case DRUPDATE:
+> +		start_code = 1;
+> +		start_state = DRPAUSE;
+> +		break;
+> +
+> +	case IRSELECT:
+> +	case IRCAPTURE:
+> +	case IRSHIFT:
+> +	case IREXIT1:
+> +	case IRPAUSE:
+> +	case IREXIT2:
+> +	case IRUPDATE:
+> +		start_code = 2;
+> +		start_state = IRPAUSE;
+> +		break;
+> +
+> +	default:
+> +		status = JBIC_INTERNAL_ERROR;
+> +		break;
+> +	}
+> +
+> +	if (status == JBIC_SUCCESS)
+> +		if (jbi_jtag_state != start_state)
+> +			status = jbi_goto_jtag_state(astate, start_state);
+> +
+> +	if (status == JBIC_SUCCESS) {
+> +		if (shift_count > jbi_dr_length) {
+> +			alloc_chars = (shift_count + 7) >> 3;
+> +			kfree(jbi_dr_buffer);
+> +			jbi_dr_buffer = (u8 *)jbi_malloc(alloc_chars);
+> +
+> +			if (jbi_dr_buffer == NULL)
+> +				status = JBIC_OUT_OF_MEMORY;
+> +			else
+> +				jbi_dr_length = alloc_chars * 8;
+> +
+> +		}
+> +	}
+> +
+> +	if (status == JBIC_SUCCESS) {
+> +		/* Copy preamble data, DR data,
+> +		and postamble data into a buffer */
+> +		jbi_jtag_concatenate_data(jbi_dr_buffer,
+> +				jbi_dr_preamble_data,
+> +				jbi_dr_preamble,
+> +				in_data,
+> +				in_index,
+> +				count,
+> +				jbi_dr_postamble_data,
+> +				jbi_dr_postamble);
+> +
+> +		/* Do the DRSCAN */
+> +		jbi_jtag_drscan(astate,
+> +				start_code,
+> +				shift_count,
+> +				jbi_dr_buffer,
+> +				jbi_dr_buffer);
+> +
+> +		/* jbi_jtag_drscan() always ends in DRPAUSE state */
+> +		jbi_jtag_state = DRPAUSE;
+> +	}
+> +
+> +	if (status == JBIC_SUCCESS)
+> +		if (jbi_drstop_state != DRPAUSE)
+> +			status = jbi_goto_jtag_state(astate, jbi_drstop_state);
+> +
+> +	if (status == JBIC_SUCCESS)
+> +		/* Now extract the returned data from the buffer */
+> +		jbi_jtag_extract_target_data(jbi_dr_buffer,
+> +					out_data,
+> +					out_index,
+> +					jbi_dr_preamble,
+> +					count);
+> +
+> +	return status;
+> +}
+> +
+> +void jbi_free_jtag_padding_buffers(struct altera_config *astate/*,
+> +							int reset_jtag*/)
+> +/* Frees memory allocated for JTAG IR and DR buffers */
+> +{
+> +	/* If the JTAG interface was used, reset it to TLR */
+> +	if (/*reset_jtag && (*/jbi_jtag_state != JBI_ILLEGAL_JTAG_STATE/*)*/)
+> +		jbi_jtag_reset_idle(astate);
+> +
+> +	if (jbi_dr_preamble_data != NULL) {
+> +		kfree(jbi_dr_preamble_data);
+> +		jbi_dr_preamble_data = NULL;
+> +	}
+> +
+> +	if (jbi_dr_postamble_data != NULL) {
+> +		kfree(jbi_dr_postamble_data);
+> +		jbi_dr_postamble_data = NULL;
+> +	}
+> +
+> +	if (jbi_dr_buffer != NULL) {
+> +		kfree(jbi_dr_buffer);
+> +		jbi_dr_buffer = NULL;
+> +	}
+> +
+> +	if (jbi_ir_preamble_data != NULL) {
+> +		kfree(jbi_ir_preamble_data);
+> +		jbi_ir_preamble_data = NULL;
+> +	}
+> +
+> +	if (jbi_ir_postamble_data != NULL) {
+> +		kfree(jbi_ir_postamble_data);
+> +		jbi_ir_postamble_data = NULL;
+> +	}
+> +
+> +	if (jbi_ir_buffer != NULL) {
+> +		kfree(jbi_ir_buffer);
+> +		jbi_ir_buffer = NULL;
+> +	}
+> +}
+> diff --git a/drivers/misc/stapl-altera/jbijtag.h b/drivers/misc/stapl-altera/jbijtag.h
+> new file mode 100644
+> index 0000000..d31f302
+> --- /dev/null
+> +++ b/drivers/misc/stapl-altera/jbijtag.h
+> @@ -0,0 +1,83 @@
+> +/*
+> + * jbijtag.h
+> + *
+> + * altera FPGA driver
+> + *
+> + * Copyright (C) Altera Corporation 1998-2001
+> + * Copyright (C) 2010 NetUP Inc.
+> + * Copyright (C) 2010 Igor M. Liplianin <liplianin@netup.ru>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> + */
+> +
+> +#ifndef INC_JBIJTAG_H
+> +#define INC_JBIJTAG_H
+> +
+> +/* Function Prototypes */
+> +enum JBIE_JTAG_STATE {
+> +	JBI_ILLEGAL_JTAG_STATE = -1,
+> +	RESET = 0,
+> +	IDLE = 1,
+> +	DRSELECT = 2,
+> +	DRCAPTURE = 3,
+> +	DRSHIFT = 4,
+> +	DREXIT1 = 5,
+> +	DRPAUSE = 6,
+> +	DREXIT2 = 7,
+> +	DRUPDATE = 8,
+> +	IRSELECT = 9,
+> +	IRCAPTURE = 10,
+> +	IRSHIFT = 11,
+> +	IREXIT1 = 12,
+> +	IRPAUSE = 13,
+> +	IREXIT2 = 14,
+> +	IRUPDATE = 15
+> +
+> +};
+> +
+> +
+> +JBI_RETURN_TYPE jbi_init_jtag(void);
+> +JBI_RETURN_TYPE jbi_set_drstop_state(enum JBIE_JTAG_STATE state);
+> +JBI_RETURN_TYPE jbi_set_irstop_state(enum JBIE_JTAG_STATE state);
+> +JBI_RETURN_TYPE jbi_set_dr_preamble(u32 count, u32 start_index,
+> +				u8 *preamble_data);
+> +JBI_RETURN_TYPE jbi_set_ir_preamble(u32 count, u32 start_index,
+> +				u8 *preamble_data);
+> +JBI_RETURN_TYPE jbi_set_dr_postamble(u32 count, u32 start_index,
+> +				u8 *postamble_data);
+> +JBI_RETURN_TYPE jbi_set_ir_postamble(u32 count, u32 start_index,
+> +				u8 *postamble_data);
+> +JBI_RETURN_TYPE jbi_goto_jtag_state(struct altera_config *astate,
+> +				enum JBIE_JTAG_STATE state);
+> +JBI_RETURN_TYPE jbi_do_wait_cycles(struct altera_config *astate,
+> +				s32 cycles, enum JBIE_JTAG_STATE wait_state);
+> +JBI_RETURN_TYPE jbi_do_wait_microseconds(struct altera_config *astate,
+> +				s32 microseconds,
+> +				enum JBIE_JTAG_STATE wait_state);
+> +JBI_RETURN_TYPE jbi_do_irscan(struct altera_config *astate, u32 count,
+> +				u8 *tdi_data, u32 start_index);
+> +JBI_RETURN_TYPE jbi_swap_ir(struct altera_config *astate,
+> +				u32 count, u8 *in_data,
+> +				u32 in_index, u8 *out_data,
+> +				u32 out_index);
+> +JBI_RETURN_TYPE jbi_do_drscan(struct altera_config *astate, u32 count,
+> +				u8 *tdi_data, u32 start_index);
+> +JBI_RETURN_TYPE jbi_swap_dr(struct altera_config *astate, u32 count,
+> +				u8 *in_data, u32 in_index,
+> +				u8 *out_data, u32 out_index);
+> +void jbi_free_jtag_padding_buffers(struct altera_config *astate/*,
+> +				int reset_jtag*/);
+> +#endif /* INC_JBIJTAG_H */
+> diff --git a/drivers/misc/stapl-altera/jbistub.c b/drivers/misc/stapl-altera/jbistub.c
+> new file mode 100644
+> index 0000000..9194afe
+> --- /dev/null
+> +++ b/drivers/misc/stapl-altera/jbistub.c
+> @@ -0,0 +1,70 @@
+> +/*
+> + * jbistub.c
+> + *
+> + * altera FPGA driver
+> + *
+> + * Copyright (C) Altera Corporation 1998-2001
+> + * Copyright (C) 2010 NetUP Inc.
+> + * Copyright (C) 2010 Abylay Ospan <aospan@netup.ru>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> + */
+> +
+> +#include <linux/io.h>
+> +#include <linux/kernel.h>
+> +#include "jbiexprt.h"
+> +
+> +int jtag_hardware_initialized;
+> +
+> +static void write_byteblaster(int port, int data)
+> +{
+> +	outb((u8)data, (u16)(port + 0x378));
+> +};
+> +
+> +static int read_byteblaster(int port)
+> +{
+> +	int data = 0;
+> +	data = inb((u16)(port + 0x378));
+> +	return data & 0xff;
+> +};
+> +
+> +int netup_jtag_io_lpt(void *device, int tms, int tdi, int read_tdo)
+> +{
+> +	int data = 0;
+> +	int tdo = 0;
+> +	int initial_lpt_ctrl = 0;
+> +
+> +	if (!jtag_hardware_initialized) {
+> +		initial_lpt_ctrl = read_byteblaster(2);
+> +		write_byteblaster(2, (initial_lpt_ctrl | 0x02) & 0xdf);
+> +		jtag_hardware_initialized = 1;
+> +	}
+> +
+> +	data = ((tdi ? 0x40 : 0) | (tms ? 0x02 : 0));
+> +
+> +	write_byteblaster(0, data);
+> +
+> +	if (read_tdo) {
+> +		tdo = read_byteblaster(1);
+> +		tdo = ((tdo & 0x80) ? 0 : 1);
+> +	}
+> +
+> +	write_byteblaster(0, data | 0x01);
+> +
+> +	write_byteblaster(0, data);
+> +
+> +	return tdo;
+> +}
+> diff --git a/include/misc/altera.h b/include/misc/altera.h
+> new file mode 100644
+> index 0000000..bf6d878
+> --- /dev/null
+> +++ b/include/misc/altera.h
+> @@ -0,0 +1,49 @@
+> +/*
+> + * altera.h
+> + *
+> + * altera FPGA driver
+> + *
+> + * Copyright (C) Altera Corporation 1998-2001
+> + * Copyright (C) 2010 NetUP Inc.
+> + * Copyright (C) 2010 Igor M. Liplianin <liplianin@netup.ru>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> + */
+> +
+> +#ifndef __ALTERA_H
+> +#define __ALTERA_H
+> +
+> +struct altera_config {
+> +	void *dev;
+> +	u8 *action;
+> +	int (*jtag_io) (void *dev, int tms, int tdi, int tdo);
+> +};
+> +
+> +#if defined(CONFIG_STAPL_ALTERA) || \
+> +		(defined(CONFIG_STAPL_ALTERA_MODULE) && defined(MODULE))
+> +
+> +extern int altera_init(struct altera_config *config, const struct firmware *fw);
+> +#else
+> +
+> +static inline int altera_init(struct altera_config *config,
+> +						const struct firmware *fw)
+> +{
+> +	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+> +	return 0;
+> +}
+> +#endif /* CONFIG_STAPL_ALTERA */
+> +
+> +#endif /* __ALTERA_H */
 
