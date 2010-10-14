@@ -1,130 +1,132 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4410 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751142Ab0JEOdK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 10:33:10 -0400
-Message-ID: <bd6a07d3b6f7d69edcedb629dc3a4ae3.squirrel@webmail.xs4all.nl>
-In-Reply-To: <1286288714-16506-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1286288714-16506-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Date: Tue, 5 Oct 2010 16:33:06 +0200
-Subject: Re: [PATCH/RFC v3 00/11] Sub-device pad-level operations
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
+Received: from mx1.redhat.com ([209.132.183.28]:55412 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755819Ab0JNRsq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Oct 2010 13:48:46 -0400
+Message-ID: <4CB74279.1070103@redhat.com>
+Date: Thu, 14 Oct 2010 14:48:41 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: "Igor M. Liplianin" <liplianin@me.by>
+CC: linux-media@vger.kernel.org
+Subject: Re: [GIT PATCHES FOR 2.6.37]  Support for NetUP Dual DVB-T/C CI RF
+ card
+References: <201010040135.59454.liplianin@me.by>
+In-Reply-To: <201010040135.59454.liplianin@me.by>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Em 03-10-2010 19:35, Igor M. Liplianin escreveu:
+> Patches to support for NetUP Dual DVB-T/C-CI RF from NetUP Inc. 
+> 	http://linuxtv.org/wiki/index.php/NetUP_Dual_DVB_T_C_CI_RF
+> 
+> Features:
+> 
+> PCI-e x1  
+> Supports two DVB-T/DVB-C transponders simultaneously
+> Supports two analog audio/video channels simultaneously
+> Independent descrambling of two transponders
+> Hardware PID filtering
+> 
+> Components:
+> 
+> Conexant CX23885 
+> STM STV0367 low-power and ultra-compact combo DVB-T/C single-chip receiver
+> Xceive XC5000 silicon TV tuner
+> Altera FPGA for Common Interafce
+> 
+> The following changes since commit c8dd732fd119ce6d562d5fa82a10bbe75a376575:
+> 
+>   V4L/DVB: gspca - sonixj: Have 0c45:6130 handled by sonixj instead of sn9c102 (2010-10-01 
+> 18:14:35 -0300)
+> 
+> are available in the git repository at:
+>   http://udev.netup.ru/git/v4l-dvb.git netup-for-media-tree
 
-> Hi everybody,
->
-> Here's the third version of the patch set (I'll try not to send more than
-> a
-> few dozens versions a day ;-)).
->
-> Changes compared to the previous version are the media bus pixel codes
-> sort
-> order, documentation images being split to a separate patch for ease of
-> review,
-> and variable renames moved from one patch to another.
+Hmm... it is not working... perhaps you forgot to run git update-server-info.
 
-For this whole series:
+The better would be to enable git protocol instead.
 
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+> 
+> Abylay Ospan (6):
+>       cx23885: Altera FPGA CI interface reworked.
+>       stv0367: change default value for AGC register.
+>       stv0367: implement uncorrected blocks counter.
+>       cx23885, cimax2.c: Fix case of two CAM insertion irq.
+>       Fix CI code for NetUP Dual  DVB-T/C CI RF card
+>       Force xc5000 firmware loading for NetUP Dual  DVB-T/C CI RF card
+> 
+> Igor M. Liplianin (14):
+>       Altera FPGA firmware download module.
+>       Altera FPGA based CI driver module.
+>       Support for stv0367 multi-standard demodulator.
+>       xc5000: add support for DVB-C tuning.
+>       Initial commit to support NetUP Dual DVB-T/C CI RF card.
+>       cx23885: implement tuner_bus parameter for cx23885_board structure.
+>       cx23885: implement num_fds_portb, num_fds_portc parameters for cx23885_board structure.
+>       stv0367: Fix potential divide error
+>       cx23885: remove duplicate set interrupt mask
+>       stv0367: coding style corrections
+>       cx25840: Fix subdev registration and typo in cx25840-core.c
+>       cx23885: 0xe becomes 0xc again for NetUP Dual DVB-S2
+>       cx23885: disable MSI for NetUP cards, otherwise CI is not working
+>       cx23885, altera-ci: enable all PID's less than 0x20 in hardware PID filter.
+> 
+>  drivers/media/common/tuners/xc5000.c        |   18 +
+>  drivers/media/dvb/frontends/Kconfig         |    7 +
+>  drivers/media/dvb/frontends/Makefile        |    1 +
+>  drivers/media/dvb/frontends/stv0367.c       | 3419 +++++++++++++++++++++++++
+>  drivers/media/dvb/frontends/stv0367.h       |   62 +
+>  drivers/media/dvb/frontends/stv0367_priv.h  |  211 ++
+>  drivers/media/dvb/frontends/stv0367_regs.h  | 3614 +++++++++++++++++++++++++++
+>  drivers/media/video/cx23885/Kconfig         |   12 +-
+>  drivers/media/video/cx23885/Makefile        |    1 +
+>  drivers/media/video/cx23885/altera-ci.c     |  841 +++++++
+>  drivers/media/video/cx23885/altera-ci.h     |  102 +
+>  drivers/media/video/cx23885/cimax2.c        |   24 +-
+>  drivers/media/video/cx23885/cx23885-cards.c |  116 +-
+>  drivers/media/video/cx23885/cx23885-core.c  |   35 +-
+>  drivers/media/video/cx23885/cx23885-dvb.c   |  175 ++-
+>  drivers/media/video/cx23885/cx23885-reg.h   |    1 +
+>  drivers/media/video/cx23885/cx23885-video.c |    7 +-
+>  drivers/media/video/cx23885/cx23885.h       |    7 +-
+>  drivers/media/video/cx25840/cx25840-core.c  |    4 +-
 
-Regards,
 
-         Hans
+>  drivers/misc/Kconfig                        |    1 +
+>  drivers/misc/Makefile                       |    1 +
+>  drivers/misc/stapl-altera/Kconfig           |    8 +
+>  drivers/misc/stapl-altera/Makefile          |    3 +
+>  drivers/misc/stapl-altera/altera.c          | 2739 ++++++++++++++++++++
+>  drivers/misc/stapl-altera/jbicomp.c         |  163 ++
+>  drivers/misc/stapl-altera/jbiexprt.h        |   94 +
+>  drivers/misc/stapl-altera/jbijtag.c         | 1038 ++++++++
+>  drivers/misc/stapl-altera/jbijtag.h         |   83 +
+>  drivers/misc/stapl-altera/jbistub.c         |   70 +
+>  include/misc/altera.h                       |   49 +
 
->
-> There's no change to the API or ABI, so I won't repost a new version of
-> the
-> OMAP3 ISP driver.
->
-> Antti Koskipaa (1):
->   v4l: v4l2_subdev userspace crop API
->
-> Laurent Pinchart (9):
->   v4l: Move the media/v4l2-mediabus.h header to include/linux
->   v4l: Rename V4L2_MBUS_FMT_GREY8_1X8 to V4L2_MBUS_FMT_Y8_1X8
->   v4l: Group media bus pixel codes by types and sort them
->     alphabetically
->   v4l: Add 8-bit YUYV on 16-bit bus and SGRBG10 media bus pixel codes
->   v4l: Add remaining RAW10 patterns w DPCM pixel code variants
->   v4l: v4l2_subdev pad-level operations
->   v4l: v4l2_subdev userspace format API - documentation binary files
->   v4l: v4l2_subdev userspace format API
->   v4l: v4l2_subdev userspace frame interval API
->
-> Stanimir Varbanov (1):
->   v4l: Create v4l2 subdev file handle structure
->
->  Documentation/DocBook/Makefile                     |    5 +-
->  Documentation/DocBook/media-entities.tmpl          |   26 +
->  Documentation/DocBook/v4l/bayer.pdf                |  Bin 0 -> 12116
-> bytes
->  Documentation/DocBook/v4l/bayer.png                |  Bin 0 -> 9725 bytes
->  Documentation/DocBook/v4l/dev-subdev.xml           |  307 +++++
->  Documentation/DocBook/v4l/pipeline.pdf             |  Bin 0 -> 20276
-> bytes
->  Documentation/DocBook/v4l/pipeline.png             |  Bin 0 -> 12130
-> bytes
->  Documentation/DocBook/v4l/subdev-formats.xml       | 1294
-> ++++++++++++++++++++
->  Documentation/DocBook/v4l/v4l2.xml                 |    7 +
->  Documentation/DocBook/v4l/vidioc-streamon.xml      |    9 +
->  .../v4l/vidioc-subdev-enum-frame-interval.xml      |  146 +++
->  .../DocBook/v4l/vidioc-subdev-enum-frame-size.xml  |  148 +++
->  .../DocBook/v4l/vidioc-subdev-enum-mbus-code.xml   |  113 ++
->  Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml |  143 +++
->  Documentation/DocBook/v4l/vidioc-subdev-g-fmt.xml  |  168 +++
->  .../DocBook/v4l/vidioc-subdev-g-frame-interval.xml |  135 ++
->  drivers/media/video/mt9m001.c                      |    2 +-
->  drivers/media/video/mt9v022.c                      |    4 +-
->  drivers/media/video/sh_mobile_csi2.c               |    6 +-
->  drivers/media/video/soc_mediabus.c                 |    2 +-
->  drivers/media/video/v4l2-subdev.c                  |  170 +++-
->  include/linux/Kbuild                               |    2 +
->  include/linux/v4l2-mediabus.h                      |   96 ++
->  include/linux/v4l2-subdev.h                        |  141 +++
->  include/media/soc_mediabus.h                       |    3 +-
->  include/media/v4l2-mediabus.h                      |   53 +-
->  include/media/v4l2-subdev.h                        |   51 +
->  27 files changed, 2942 insertions(+), 89 deletions(-)
->  create mode 100644 Documentation/DocBook/v4l/bayer.pdf
->  create mode 100644 Documentation/DocBook/v4l/bayer.png
->  create mode 100644 Documentation/DocBook/v4l/dev-subdev.xml
->  create mode 100644 Documentation/DocBook/v4l/pipeline.pdf
->  create mode 100644 Documentation/DocBook/v4l/pipeline.png
->  create mode 100644 Documentation/DocBook/v4l/subdev-formats.xml
->  create mode 100644
-> Documentation/DocBook/v4l/vidioc-subdev-enum-frame-interval.xml
->  create mode 100644
-> Documentation/DocBook/v4l/vidioc-subdev-enum-frame-size.xml
->  create mode 100644
-> Documentation/DocBook/v4l/vidioc-subdev-enum-mbus-code.xml
->  create mode 100644 Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml
->  create mode 100644 Documentation/DocBook/v4l/vidioc-subdev-g-fmt.xml
->  create mode 100644
-> Documentation/DocBook/v4l/vidioc-subdev-g-frame-interval.xml
->  create mode 100644 include/linux/v4l2-mediabus.h
->  create mode 100644 include/linux/v4l2-subdev.h
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+Hmm... that's new for me... a driver at misc?
+
+>  30 files changed, 12872 insertions(+), 34 deletions(-)
+>  create mode 100644 drivers/media/dvb/frontends/stv0367.c
+>  create mode 100644 drivers/media/dvb/frontends/stv0367.h
+>  create mode 100644 drivers/media/dvb/frontends/stv0367_priv.h
+>  create mode 100644 drivers/media/dvb/frontends/stv0367_regs.h
+>  create mode 100644 drivers/media/video/cx23885/altera-ci.c
+>  create mode 100644 drivers/media/video/cx23885/altera-ci.h
+>  create mode 100644 drivers/misc/stapl-altera/Kconfig
+>  create mode 100644 drivers/misc/stapl-altera/Makefile
+>  create mode 100644 drivers/misc/stapl-altera/altera.c
+>  create mode 100644 drivers/misc/stapl-altera/jbicomp.c
+>  create mode 100644 drivers/misc/stapl-altera/jbiexprt.h
+>  create mode 100644 drivers/misc/stapl-altera/jbijtag.c
+>  create mode 100644 drivers/misc/stapl-altera/jbijtag.h
+>  create mode 100644 drivers/misc/stapl-altera/jbistub.c
+>  create mode 100644 include/misc/altera.h
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
 
