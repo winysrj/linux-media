@@ -1,92 +1,85 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:57345 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756170Ab0JXO13 (ORCPT
+Received: from lennier.cc.vt.edu ([198.82.162.213]:59937 "EHLO
+	lennier.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756004Ab0JNUGw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Oct 2010 10:27:29 -0400
-Received: by mail-ww0-f44.google.com with SMTP id 15so2607723wwe.1
-        for <linux-media@vger.kernel.org>; Sun, 24 Oct 2010 07:27:28 -0700 (PDT)
-From: Albin Kauffmann <albin.kauffmann@gmail.com>
-To: fabio tirapelle <ftirapelle@yahoo.it>,
-	Sasha Sirotkin <demiurg@femtolinux.com>
-Subject: Re: Hauppauge WinTV-HVR-1120 on Unbuntu 10.04
-Date: Sun, 24 Oct 2010 16:27:21 +0200
-Cc: linux-media@vger.kernel.org
-References: <259225.84971.qm@web25402.mail.ukl.yahoo.com> <201010192032.50484.albin.kauffmann@gmail.com> <968618.5175.qm@web25407.mail.ukl.yahoo.com>
-In-Reply-To: <968618.5175.qm@web25407.mail.ukl.yahoo.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+	Thu, 14 Oct 2010 16:06:52 -0400
+To: Andrew Morton <akpm@linux-foundation.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: mmotm 2010-10-13 - GSPCA SPCA561 webcam driver broken
+In-Reply-To: Your message of "Wed, 13 Oct 2010 17:13:25 PDT."
+             <201010140044.o9E0iuR3029069@imap1.linux-foundation.org>
+From: Valdis.Kletnieks@vt.edu
+References: <201010140044.o9E0iuR3029069@imap1.linux-foundation.org>
+Mime-Version: 1.0
+Content-Type: multipart/signed; boundary="==_Exmh_1287086789_5000P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201010241627.22121.albin.kauffmann@gmail.com>
+Date: Thu, 14 Oct 2010 16:06:29 -0400
+Message-ID: <5158.1287086789@localhost>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday 19 October 2010 21:56:51 fabio tirapelle wrote:
-> The WinTV did work correctly with ubuntu 9.10. In Ubuntu 9.10 the
-> package linux-firmware-nonfree didn't include the dvb-fe-tda10048-1.0.fw. I
-> remember that Ubuntu 9.10 used for my card the dvb-fe-tda10046.fw.
+--==_Exmh_1287086789_5000P
+Content-Type: text/plain; charset=us-ascii
+
+On Wed, 13 Oct 2010 17:13:25 PDT, akpm@linux-foundation.org said:
+> The mm-of-the-moment snapshot 2010-10-13-17-13 has been uploaded to
 > 
-> Now, Ubuntu 10.04 loads for my card the dvb-fe-tda10048-1.0.fw
-> Its seems that with the 9.10 version, the card is recognized as
-> WinTV-HVR-1100 or 1110 and now as WinTV-HVR-1120.
+>    http://userweb.kernel.org/~akpm/mmotm/
 
-This is actually strange because the Wiki states that the card is using an 
-"NXP TDA10048 digital demodulator" 
-(http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-1120). Anyway, this may 
-worth the cost to build an old kernel to see if this effectively works well ;)
+This broke my webcam.  I bisected it down to this commit, and things
+work again after reverting the 2 code lines of change.
 
-> I wait until you recompile the kernel  with the v4l. Please tell me if this
-> solves the problem
+commit 9e4d79a98ebd857ec729f5fa8f432f35def4d0da
+Author: Hans Verkuil <hverkuil@xs4all.nl>
+Date:   Sun Sep 26 08:16:56 2010 -0300
 
-I have tried several scenarios :
- - the last 2.6.36 Linux kernel
- - the kernel 2.6.35 with sources from the HG repository 
-(http://linuxtv.org/hg/v4l-dvb/)
- - the media tree git (http://git.linuxtv.org/media_tree.git)
-
-In all situations, I get the same behaviour. After a random number of reboots, 
-the TV (DVB-T) is not working and I get this message displayed in loop in 
-`dmesg`:
-
-tda18271_write_regs: [1-0060|M] ERROR: idx = 0x5, len = 1, i2c_transfer 
-returned: -5
-tda18271_init: [1-0060|M] error -5 on line 830
-tda18271_tune: [1-0060|M] error -5 on line 908
-tda18271_set_params: [1-0060|M] error -5 on line 989
-
-Also, even when the TV is working, I get these error messages in `dmesg:
-
-[...]
-tda829x 1-004b: type set to tda8290
-tda18271 1-0060: attaching existing instance
-DVB: registering new adapter (saa7133[0])
-DVB: registering adapter 0 frontend 0 (NXP TDA10048HN DVB-T)...
-tda10048_firmware_upload: waiting for firmware upload (dvb-fe-
-tda10048-1.0.fw)...
-tda10048_firmware_upload: firmware read 24878 bytes.
-tda10048_firmware_upload: firmware uploading
-tda18271_write_regs: [1-0060|M] ERROR: idx = 0x13, len = 1, i2c_transfer 
-returned: -5
-tda18271_write_regs: [1-0060|M] ERROR: idx = 0x5, len = 1, i2c_transfer 
-returned: -5
-tda18271_set_analog_params: [1-0060|M] error -5 on line 1045
-tda18271_write_regs: [1-0060|M] ERROR: idx = 0x13, len = 1, i2c_transfer 
-returned: -5
-tda10048_firmware_upload: firmware uploaded
-saa7134 ALSA driver for DMA sound loaded
-saa7133[0]/alsa: saa7133[0] at 0xeb200000 irq 20 registered as card -1
-tda18271_read_regs: [1-0060|M] ERROR: i2c_transfer returned: -5
-tda18271_ir_cal_init: [1-0060|M] error -5 on line 811
-tda18271_init: [1-0060|M] error -5 on line 835
-tda18271_tune: [1-0060|M] error -5 on line 908
-tda18271_set_analog_params: [1-0060|M] error -5 on line 1045
+    V4L/DVB: v4l2-dev: after a disconnect any ioctl call will be blocked
+    
+    Until now all fops except release and (unlocked_)ioctl returned an error
+    after the device node was unregistered. Extend this as well to the ioctl
+    fops. There is nothing useful that an application can do here and it
+    complicates the driver code unnecessarily.
+    
+    Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
 
-I may take a look at sources to understand what is happening. So, if someone 
-have an idea, please tell me ;)
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index d4a3532..f069c61 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -221,8 +221,8 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, 
+        struct video_device *vdev = video_devdata(filp);
+        int ret;
+ 
+-       /* Allow ioctl to continue even if the device was unregistered.
+-          Things like dequeueing buffers might still be useful. */
++       if (!vdev->fops->ioctl)
++               return -ENOTTY;
+        if (vdev->fops->unlocked_ioctl) {
+                ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
+        } else if (vdev->fops->ioctl) {
 
-Thanks,
+I suspect this doesn't do what's intended if a driver is using ->unlocked_ioctl
+rather than ->ioctl, and it should be reverted - it only saves at most one
+if statement.
 
--- 
-Albin Kauffmann
+
+--==_Exmh_1287086789_5000P
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+Comment: Exmh version 2.5 07/13/2001
+
+iD8DBQFMt2LFcC3lWbTT17ARAjfuAKDDTUXbTNeuq9on+MoSM7ZCYo0aCACfTeC/
+0Y2ydJe6V1LNdBC0O8LH5Ak=
+=0IAe
+-----END PGP SIGNATURE-----
+
+--==_Exmh_1287086789_5000P--
+
