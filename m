@@ -1,75 +1,97 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:62441 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756067Ab0JISZ1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Oct 2010 14:25:27 -0400
-Received: by iwn6 with SMTP id 6so1647980iwn.19
-        for <linux-media@vger.kernel.org>; Sat, 09 Oct 2010 11:25:26 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20101008214407.GI5165@redhat.com>
-References: <20101008214407.GI5165@redhat.com>
-Date: Sat, 9 Oct 2010 14:23:15 -0400
-Message-ID: <AANLkTimezuonksK=wW1PAkW40oo-KPRMrVdoNxymK69f@mail.gmail.com>
-Subject: Re: [GIT PULL REQUEST] IR patches for 2.6.37-rc1
-From: Jarod Wilson <jarod@wilsonet.com>
-To: Jarod Wilson <jarod@redhat.com>
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail-in-14.arcor-online.net ([151.189.21.54]:41580 "EHLO
+	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754528Ab0JNT1m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Oct 2010 15:27:42 -0400
+Subject: Re: [PATCH] xc5000 and switch RF input
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Dmitri Belimov <d.belimov@gmail.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Stefan Ringel <stefan.ringel@arcor.de>,
+	Bee Hock Goh <beehock@gmail.com>
+In-Reply-To: <20101014121244.17795e5f@glory.local>
+References: <20100518173011.5d9c7f2c@glory.loctelecom.ru>
+	 <AANLkTilL60q2PrBGagobWK99dV9OMKldxLiKZafn1oYb@mail.gmail.com>
+	 <20100525114939.067404eb@glory.loctelecom.ru> <4C32044C.3060007@redhat.com>
+	 <AANLkTinctdXC5lmzXSkgwjwfIwAH3BNFCWeWMnK3Xi5-@mail.gmail.com>
+	 <20101013173010.74ee2827@glory.local>
+	 <AANLkTimuunSAwewBRaq0hg-c11utF=Lj0v3b=1+3k4Ag@mail.gmail.com>
+	 <20101014121244.17795e5f@glory.local>
+Content-Type: text/plain
+Date: Thu, 14 Oct 2010 21:27:22 +0200
+Message-Id: <1287084442.3296.14.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, Oct 8, 2010 at 5:44 PM, Jarod Wilson <jarod@redhat.com> wrote:
-> Hey Mauro,
->
-> I've queued up some lirc fixes and a couple of patches that add a new
-> ir-core driver for the Nuvoton w836x7hg Super I/O integrated CIR
-> functionality. All but the Kconfig re-sorting patch have been posted to
-> linux-media for review, but I'm hoping they can all get merged in time for
-> the 2.6.37-rc1 window, and any additional review feedback can be taken
-> care of with follow-up patches.
->
-> The following changes since commit b9a1211dff08aa73fc26db66980ec0710a6c7134:
->
->  V4L/DVB: Staging: cx25821: fix braces and space coding style issues (2010-10-07 15:37:27 -0300)
 
-Minor update to the pull req to fully wire up compat ioctls and fixup
-some error messages in lirc_dev:
+Am Donnerstag, den 14.10.2010, 12:12 -0400 schrieb Dmitri Belimov:
+> Hi
+> 
+> > On Wed, Oct 13, 2010 at 5:30 PM, Dmitri Belimov <d.belimov@gmail.com>
+> > wrote:
+> > > Hi
+> > >
+> > > Our TV card Behold X7 has two different RF input. This RF inputs
+> > > can switch between different RF sources.
+> > >
+> > > ANT 1 for analog and digital TV
+> > > ANT 2 for FM radio
+> > >
+> > > The switch controlled by zl10353.
+> > >
+> > > I add some defines for the tuner xc5000 and use tuner callback to
+> > > saa7134 part. All works well. But my patch can touch other TV cards
+> > > with xc5000.
+> > >
+> > > Devin can you check my changes on the other TV cards.
+> > >
+> > > With my best regards, Dmitry.
+> > 
+> > Hello Dmitri,
+> > 
+> > I've looked at the patch.  I really don't think this is the right
+> > approach.  The tuner driver should not have any of this logic - it
+> > should be in the bridge driver.  You can also look at Michael Krufky's
+> > frontend override patches, which allow the bridge to intervene when
+> > DVB frontend commands are made (for example, to toggle the antenna
+> > before the tune is performed).
+> 
+> Ok.
+> 
+> > I understand the problem you are trying to solve, but jamming the
+> > logic into the tuner driver really is a bad idea.
+> > 
+> > NACK.
+> > 
+> > Devin
+> > 
+> > -- 
+> > Devin J. Heitmueller - Kernel Labs
+> > http://www.kernellabs.com
+> 
+> Ok.
+> 
+> With my best regards, Dmitry.
+> 
+> --
 
-The following changes since commit 81d64d12e11a3cca995e6c752e4bd2898959ed0a:
+Dmitry,
 
-  V4L/DVB: cx231xx: remove some unused functions (2010-10-07 21:05:52 -0300)
+please adjust your timezone somehow better.
 
-are available in the git repository at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/jarod/linux-2.6-lirc.git staging
+I do read the stuff only in backlash mode currently,
 
-Jarod Wilson (7):
-      IR: add driver for Nuvoton w836x7hg integrated CIR
-      nuvoton-cir: add proper rx fifo overrun handling
-      IR/Kconfig: sort hardware entries alphabetically
-      IR/lirc: further ioctl portability fixups
-      staging/lirc: ioctl portability fixups
-      lirc: wire up .compat_ioctl to main ioctl handler
-      lirc_dev: fixup error messages w/missing newlines
+but it is annoying to have you always in the future and real time
+relations are broken within all the other stuff coming in.
 
- drivers/media/IR/Kconfig             |   27 +-
- drivers/media/IR/Makefile            |    1 +
- drivers/media/IR/ir-lirc-codec.c     |   13 +-
- drivers/media/IR/lirc_dev.c          |   35 +-
- drivers/media/IR/nuvoton-cir.c       | 1237 ++++++++++++++++++++++++++++++++++
- drivers/media/IR/nuvoton-cir.h       |  408 +++++++++++
- drivers/staging/lirc/lirc_it87.c     |   20 +-
- drivers/staging/lirc/lirc_ite8709.c  |    6 +-
- drivers/staging/lirc/lirc_parallel.c |   35 +-
- drivers/staging/lirc/lirc_serial.c   |   24 +-
- drivers/staging/lirc/lirc_sir.c      |   24 +-
- drivers/staging/lirc/lirc_zilog.c    |    3 +
- include/media/lirc_dev.h             |    4 +-
- 13 files changed, 1759 insertions(+), 78 deletions(-)
- create mode 100644 drivers/media/IR/nuvoton-cir.c
- create mode 100644 drivers/media/IR/nuvoton-cir.h
+Cheers,
+Hermann
 
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
+
+
