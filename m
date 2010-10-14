@@ -1,357 +1,118 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:56756 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753693Ab0JEOZP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 10:25:15 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH/RFC v3 11/11] v4l: v4l2_subdev userspace crop API
-Date: Tue,  5 Oct 2010 16:25:14 +0200
-Message-Id: <1286288714-16506-12-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1286288714-16506-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1286288714-16506-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from smtp-roam1.Stanford.EDU ([171.67.219.88]:54230 "EHLO
+	smtp-roam.stanford.edu" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754513Ab0JNFSO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Oct 2010 01:18:14 -0400
+Message-ID: <4CB69289.6080409@stanford.edu>
+Date: Wed, 13 Oct 2010 22:18:01 -0700
+From: Eino-Ville Talvala <talvala@stanford.edu>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sung Hee Park <shpark7@stanford.edu>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: OMAP 3530 camera ISP forks and new media framework
+References: <AANLkTimyR117ZiHq8GFz4YW5tBtW3k82NzGVZqKoVTbY@mail.gmail.com> <AANLkTimzU8rR2a0=gTLX8UOxGZaiY0gxx4zTr2VH-iMa@mail.gmail.com> <4CB62CB5.9000706@stanford.edu> <201010140058.47236.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201010140058.47236.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Antti Koskipaa <antti.koskipaa@nokia.com>
 
-This patch adds the VIDIOC_SUBDEV_S_CROP and G_CROP ioctls to the
-userland API. CROPCAP is not implemented because it's redundant.
+On 10/13/2010 3:58 PM, Laurent Pinchart wrote:
+> Hi Eino-Ville,
+>
+> On Thursday 14 October 2010 00:03:33 Eino-Ville Talvala wrote:
+>>   Hi Laurent, linux-media,
+>>
+>> We've been working on porting our OMAP3 ISP/mt9p031 Frankencamera framework
+>> forward to the current kernel versions (currently, we're using the N900
+>> ISP driver codebase, which is rather old by now). We'd been following
+>> Sakari's omap3camera tree, but as is clear from this discussion, that's a
+>> bad idea now.
+>>
+>> (I'd love to just send out our mt9p031 driver code, but we still haven't
+>> sorted out whether we're free to do so - since we're rewriting it a great
+>> deal anyway, it hasn't been a priority to sort out.)
+>>
+>> I've been handing off dev work on this to the next set of students on the
+>> project, so I haven't been paying much attention to the mailing lists
+>> recently, and I apologize if these questions have had clear answers
+>> already.
+>>
+>> Assuming one has a driver that works fine on the old v4l2_int_framework
+>> back in .28-n900 kernel version - what is the best way forward to move it
+>> to the 'current best option' framework, whatever that's currently
+>> considered to be for the OMAP3 ISP?  And for whatever option that is, is
+>> there a document somewhere describing what needs to hooked up to what to
+>> make that go, or is the best way to just look at the *-rx51 / et8ek8 code
+>> in the right git repository?
+> First of all, you need to get the latest OMAP3 ISP driver sources.
+>
+> The most recent OMAP3 ISP driver for the N900 can be found in the omap3isp-
+> rx51 git tree on gitorious.org (devel branch from
+> http://meego.gitorious.org/maemo-multimedia/omap3isp-rx51). This is the tree
+> used by MeeGo for the OMAP3 ISP camera driver. The driver has been ported to
+> the media controller framework, but the latest changes to the framework are
+> not present in that tree as they break the driver ABI and API. This should be
+> fixed in the future, but I can't give you any time estimate at the moment.
+>
+> The most recent OMAP3 ISP driver and media controller framework can be found
+> in the pinchartl/media git tree on linuxtv.org (media-0004-omap3isp branch
+> from http://git.linuxtv.org/pinchartl/media.git). This is the tree used for
+> upstream submission of the media controller and OMAP3 ISP driver. The OMAP3
+> ISP driver implements the latest media controller API, but the tree doesn't
+> contain RX51 camera support.
+>
+> As I assume you need RX51 camera support (arch/arm/mach-omap2/board-rx51-
+> camera.c, drivers/media/video/et8ek8.c, ...), the easiest solution is to go
+> for the gitorious.org tree. You will need to modify your code later when the
+> OMAP3 ISP driver will hit upstream, but the modifications will be very small
+> (mostly a matter of renaming constants or structure fields).
+>
+> If you want to play with the latest media controller API, you could go for the
+> linuxtv.org tree and port the RX51 camera support from the gitorious.org tree.
+> That shouldn't be difficult, but time is unfortunately a scarce resource.
+>
+> For userspace API documentation, run "make htmldocs" on the linuxtv.org tree
+> to generate HTML documentation, and navigate to
+> Documentation/DocBook/media/media_controller.html and
+> Documentation/DocBook/media/subdev.html.
+>
+> Regarding the v4l2_int framework, your kernel drivers will need to be ported
+> to the V4L2 subdev framework and use pad-level operations. The et8ek8 driver
+> should be a good example. You can also have a look at the mt9t001 driver in
+> the media-mt9t001 branch from the linuxtv.org tree. The subdev pad-level
+> userspace API documentation will also help you understand the in-kernel API.
+>
+> I hope this information will help you. Feel free to contact me if you have
+> further questions.
+>
+Thanks for the reply!
 
-Signed-off-by: Antti Koskipaa <antti.koskipaa@nokia.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/DocBook/media-entities.tmpl          |    4 +
- Documentation/DocBook/v4l/dev-subdev.xml           |   33 +++++
- Documentation/DocBook/v4l/v4l2.xml                 |    1 +
- Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml |  143 ++++++++++++++++++++
- drivers/media/video/v4l2-subdev.c                  |   26 ++++
- include/linux/v4l2-subdev.h                        |   15 ++
- include/media/v4l2-subdev.h                        |    4 +
- 7 files changed, 226 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml
+We're not terribly set on requiring rx51 support right - at least, I'm 
+assuming we couldn't just use the latest codebase for the ISP/et8ek8 
+drivers and get those to compile with the N900's release kernel, and we 
+don't want to ask end users to reflash their phone kernels to use our 
+programs and API.
 
-diff --git a/Documentation/DocBook/media-entities.tmpl b/Documentation/DocBook/media-entities.tmpl
-index 71cdc75..f2b0930 100644
---- a/Documentation/DocBook/media-entities.tmpl
-+++ b/Documentation/DocBook/media-entities.tmpl
-@@ -88,8 +88,10 @@
- <!ENTITY VIDIOC-S-TUNER "<link linkend='vidioc-g-tuner'><constant>VIDIOC_S_TUNER</constant></link>">
- <!ENTITY VIDIOC-SUBDEV-ENUM-FRAME-SIZE "<link linkend='vidioc-subdev-enum-frame-size'><constant>VIDIOC_SUBDEV_ENUM_FRAME_SIZE</constant></link>">
- <!ENTITY VIDIOC-SUBDEV-ENUM-MBUS-CODE "<link linkend='vidioc-subdev-enum-mbus-code'><constant>VIDIOC_SUBDEV_ENUM_MBUS_CODE</constant></link>">
-+<!ENTITY VIDIOC-SUBDEV-G-CROP "<link linkend='vidioc-subdev-g-crop'><constant>VIDIOC_SUBDEV_G_CROP</constant></link>">
- <!ENTITY VIDIOC-SUBDEV-G-FMT "<link linkend='vidioc-subdev-g-fmt'><constant>VIDIOC_SUBDEV_G_FMT</constant></link>">
- <!ENTITY VIDIOC-SUBDEV-G-FRAME-INTERVAL "<link linkend='vidioc-subdev-g-frame-interval'><constant>VIDIOC_SUBDEV_G_FRAME_INTERVAL</constant></link>">
-+<!ENTITY VIDIOC-SUBDEV-S-CROP "<link linkend='vidioc-subdev-g-crop'><constant>VIDIOC_SUBDEV_S_CROP</constant></link>">
- <!ENTITY VIDIOC-SUBDEV-S-FMT "<link linkend='vidioc-subdev-g-fmt'><constant>VIDIOC_SUBDEV_S_FMT</constant></link>">
- <!ENTITY VIDIOC-SUBDEV-S-FRAME-INTERVAL "<link linkend='vidioc-subdev-g-frame-interval'><constant>VIDIOC_SUBDEV_S_FRAME_INTERVAL</constant></link>">
- <!ENTITY VIDIOC-TRY-ENCODER-CMD "<link linkend='vidioc-encoder-cmd'><constant>VIDIOC_TRY_ENCODER_CMD</constant></link>">
-@@ -195,6 +197,7 @@
- <!ENTITY v4l2-subdev-frame-interval "struct&nbsp;<link linkend='v4l2-subdev-frame-interval'>v4l2_subdev_frame_interval</link>">
- <!ENTITY v4l2-subdev-frame-interval-enum "struct&nbsp;<link linkend='v4l2-subdev-frame-interval-enum'>v4l2_subdev_frame_interval_enum</link>">
- <!ENTITY v4l2-subdev-frame-size-enum "struct&nbsp;<link linkend='v4l2-subdev-frame-size-enum'>v4l2_subdev_frame_size_enum</link>">
-+<!ENTITY v4l2-subdev-crop "struct&nbsp;<link linkend='v4l2-subdev-crop'>v4l2_subdev_crop</link>">
- <!ENTITY v4l2-subdev-format "struct&nbsp;<link linkend='v4l2-subdev-format'>v4l2_subdev_format</link>">
- <!ENTITY v4l2-subdev-mbus-code-enum "struct&nbsp;<link linkend='v4l2-subdev-mbus-code-enum'>v4l2_subdev_mbus_code_enum</link>">
- <!ENTITY v4l2-standard "struct&nbsp;<link linkend='v4l2-standard'>v4l2_standard</link>">
-@@ -330,6 +333,7 @@
- <!ENTITY sub-subdev-enum-frame-size SYSTEM "v4l/vidioc-subdev-enum-frame-size.xml">
- <!ENTITY sub-subdev-enum-mbus-code SYSTEM "v4l/vidioc-subdev-enum-mbus-code.xml">
- <!ENTITY sub-subdev-formats SYSTEM "v4l/subdev-formats.xml">
-+<!ENTITY sub-subdev-g-crop SYSTEM "v4l/vidioc-subdev-g-crop.xml">
- <!ENTITY sub-subdev-g-fmt SYSTEM "v4l/vidioc-subdev-g-fmt.xml">
- <!ENTITY sub-subdev-g-frame-interval SYSTEM "v4l/vidioc-subdev-g-frame-interval.xml">
- <!ENTITY sub-capture-c SYSTEM "v4l/capture.c.xml">
-diff --git a/Documentation/DocBook/v4l/dev-subdev.xml b/Documentation/DocBook/v4l/dev-subdev.xml
-index 12fdca4..a8da916 100644
---- a/Documentation/DocBook/v4l/dev-subdev.xml
-+++ b/Documentation/DocBook/v4l/dev-subdev.xml
-@@ -269,6 +269,39 @@
-       </para>
-     </section>
- 
-+    <section>
-+      <title>Cropping and scaling</title>
-+
-+      <para>Many sub-devices support cropping frames on their input or output
-+      pads (or possible even on both). Cropping is used to select the area of
-+      interest in an image, typically on a video sensor or video decoder. It can
-+      also be used as part of digital zoom implementations to select the area of
-+      the image that will be scaled up.</para>
-+
-+      <para>Crop settings are defined by a crop rectangle and represented in a
-+      &v4l2-rect; by the coordinates of the top left corner and the rectangle
-+      size. Both the coordinates and sizes are expressed in pixels.</para>
-+
-+      <para>The crop rectangle is retrieved and set using the
-+      &VIDIOC-SUBDEV-G-CROP; and &VIDIOC-SUBDEV-S-CROP; ioctls. Like for pad
-+      formats, drivers store try and active crop rectangles. The format
-+      negotiation mechanism applies to crop settings as well.</para>
-+
-+      <para>On input pads, cropping is applied relatively to the current pad
-+      format. The pad format represents the image size as received by the
-+      sub-device from the previous block in the pipeline, and the crop rectangle
-+      represents the sub-image that will be transmitted further inside the
-+      sub-device for processing. The crop rectangle be entirely containted
-+      inside the input image size.</para>
-+
-+      <para>Input crop rectangle are reset to their default value when the input
-+      image format is modified. Drivers should use the input image size as the
-+      crop rectangle default value, but hardware requirements may prevent this.
-+      </para>
-+
-+      <para>Cropping behaviour on output pads is not defined.</para>
-+
-+    </section>
-   </section>
- 
-   &sub-subdev-formats;
-diff --git a/Documentation/DocBook/v4l/v4l2.xml b/Documentation/DocBook/v4l/v4l2.xml
-index 7806562..c0fe94b 100644
---- a/Documentation/DocBook/v4l/v4l2.xml
-+++ b/Documentation/DocBook/v4l/v4l2.xml
-@@ -473,6 +473,7 @@ and discussions on the V4L mailing list.</revremark>
-     &sub-subdev-enum-frame-interval;
-     &sub-subdev-enum-frame-size;
-     &sub-subdev-enum-mbus-code;
-+    &sub-subdev-g-crop;
-     &sub-subdev-g-fmt;
-     &sub-subdev-g-frame-interval;
-     &sub-subscribe-event;
-diff --git a/Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml b/Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml
-new file mode 100644
-index 0000000..b71c9a3
---- /dev/null
-+++ b/Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml
-@@ -0,0 +1,143 @@
-+<refentry id="vidioc-subdev-g-crop">
-+  <refmeta>
-+    <refentrytitle>ioctl VIDIOC_SUBDEV_G_CROP, VIDIOC_SUBDEV_S_CROP</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>VIDIOC_SUBDEV_G_CROP</refname>
-+    <refname>VIDIOC_SUBDEV_S_CROP</refname>
-+    <refpurpose>Get or set the crop rectangle on a subdev pad</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>struct v4l2_subdev_crop *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>const struct v4l2_subdev_crop *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>&fd;</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>VIDIOC_SUBDEV_G_CROP, VIDIOC_SUBDEV_S_CROP</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>To retrieve the current crop rectangle applications set the
-+    <structfield>pad</structfield> field of a &v4l2-subdev-crop; to the
-+    desired pad number as reported by the media API and the
-+    <structfield>which</structfield> field to
-+    <constant>V4L2_SUBDEV_FORMAT_ACTIVE</constant>. They then call the
-+    <constant>VIDIOC_SUBDEV_G_CROP</constant> ioctl with a pointer to this
-+    structure. The driver fills the members of the <structfield>rect</structfield>
-+    field or returns &EINVAL; if the input arguments are invalid, or if cropping
-+    is not supported on the given pad.</para>
-+
-+    <para>To change the current crop rectangle applications set both the
-+    <structfield>pad</structfield> and <structfield>which</structfield> fields
-+    and all members of the <structfield>rect</structfield> field. They then call
-+    the <constant>VIDIOC_SUBDEV_S_CROP</constant> ioctl with a pointer to this
-+    structure. The driver verifies the requested crop rectangle, adjusts it
-+    based on the hardware capabilities and configures the device. Upon return
-+    the &v4l2-subdev-crop; contains the current format as would be returned
-+    by a <constant>VIDIOC_SUBDEV_G_CROP</constant> call.</para>
-+
-+    <para>Applications can query the device capabilities by setting the
-+    <structfield>which</structfield> to
-+    <constant>V4L2_SUBDEV_FORMAT_TRY</constant>. When set, 'try' crop
-+    rectangles are not applied to the device by the driver, but are mangled
-+    exactly as active crop rectangles and stored in the sub-device file handle.
-+    Two applications querying the same sub-device would thus not interact with
-+    each other.</para>
-+
-+    <para>Drivers must not return an error solely because the requested crop
-+    rectangle doesn't match the device capabilities. They must instead modify
-+    the rectangle to match what the hardware can provide. The modified format
-+    should be as close as possible to the original request.</para>
-+
-+    <table pgwide="1" frame="none" id="v4l2-subdev-crop">
-+      <title>struct <structname>v4l2_subdev_crop</structname></title>
-+      <tgroup cols="3">
-+        &cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>pad</structfield></entry>
-+	    <entry>Pad number as reported by the media framework.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>which</structfield></entry>
-+	    <entry>Crop rectangle to get or set, from
-+	    &v4l2-subdev-format-whence;.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>&v4l2-rect;</entry>
-+	    <entry><structfield>rect</structfield></entry>
-+	    <entry>Crop rectangle boundaries, in pixels.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+  </refsect1>
-+
-+  <refsect1>
-+    &return-value;
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><errorcode>EBUSY</errorcode></term>
-+	<listitem>
-+	  <para>The crop rectangle can't be changed because the pad is currently
-+	  busy. This can be caused, for instance, by an active video stream on
-+	  the pad. The ioctl must not be retried without performing another
-+	  action to fix the problem first. Only returned by
-+	  <constant>VIDIOC_SUBDEV_S_CROP</constant></para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>EINVAL</errorcode></term>
-+	<listitem>
-+	  <para>The &v4l2-subdev-crop; <structfield>pad</structfield>
-+	  references a non-existing pad, the <structfield>which</structfield>
-+	  field references a non-existing format, or cropping is not supported
-+	  on the given subdev pad.</para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+</refentry>
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index d8de3ae..a98dc3f 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -194,6 +194,32 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		return v4l2_subdev_call(sd, pad, set_fmt, subdev_fh, format);
- 	}
- 
-+	case VIDIOC_SUBDEV_G_CROP: {
-+		struct v4l2_subdev_crop *crop = arg;
-+
-+		if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
-+		    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+			return -EINVAL;
-+
-+		if (crop->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(sd, pad, get_crop, subdev_fh, crop);
-+	}
-+
-+	case VIDIOC_SUBDEV_S_CROP: {
-+		struct v4l2_subdev_crop *crop = arg;
-+
-+		if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
-+		    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+			return -EINVAL;
-+
-+		if (crop->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(sd, pad, set_crop, subdev_fh, crop);
-+	}
-+
- 	case VIDIOC_SUBDEV_ENUM_MBUS_CODE: {
- 		struct v4l2_subdev_mbus_code_enum *code = arg;
- 
-diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
-index 7af0c34..e084200 100644
---- a/include/linux/v4l2-subdev.h
-+++ b/include/linux/v4l2-subdev.h
-@@ -51,6 +51,19 @@ struct v4l2_subdev_format {
- };
- 
- /**
-+ * struct v4l2_subdev_crop - Pad-level crop settings
-+ * @which: format type (from enum v4l2_subdev_format_whence)
-+ * @pad: pad number, as reported by the media API
-+ * @rect: pad crop rectangle boundaries
-+ */
-+struct v4l2_subdev_crop {
-+	__u32 which;
-+	__u32 pad;
-+	struct v4l2_rect rect;
-+	__u32 reserved[10];
-+};
-+
-+/**
-  * struct v4l2_subdev_mbus_code_enum - Media bus format enumeration
-  * @pad: pad number, as reported by the media API
-  * @index: format index during enumeration
-@@ -122,5 +135,7 @@ struct v4l2_subdev_frame_interval_enum {
- 			_IOWR('V', 74, struct v4l2_subdev_frame_size_enum)
- #define VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL \
- 			_IOWR('V', 75, struct v4l2_subdev_frame_interval_enum)
-+#define VIDIOC_SUBDEV_G_CROP	_IOWR('V', 59, struct v4l2_subdev_crop)
-+#define VIDIOC_SUBDEV_S_CROP	_IOWR('V', 60, struct v4l2_subdev_crop)
- 
- #endif
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 65f5482..c1f792e 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -437,6 +437,10 @@ struct v4l2_subdev_pad_ops {
- 		       struct v4l2_subdev_format *format);
- 	int (*set_fmt)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 		       struct v4l2_subdev_format *format);
-+	int (*set_crop)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-+		       struct v4l2_subdev_crop *crop);
-+	int (*get_crop)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-+		       struct v4l2_subdev_crop *crop);
- };
- 
- struct v4l2_subdev_ops {
--- 
-1.7.2.2
+Mostly, I just want to make sure that we try to ensure the fewest number 
+of substantial driver changes in the future, once we've gotten ourselves 
+up to the present. So if one of the two options you listed is the way 
+things will end up, I'd rather go with that and have a bit more work to 
+do if we need to support some other device that looks more like the rx51 
+in the future.
 
+I gather the linux-tv branch is more like how things should end up 
+looking like, once the dust settles for a bit.  So we port our driver 
+over to that, using the mt9t001 driver as an example of how everything 
+should be coded up, that should put us on a track of reasonable stability?
+
+Also, is there a board file that has the needed sensor device 
+registration/power management/etc bits in that tree?
+
+Thanks,
+
+Eino-Ville
