@@ -1,614 +1,139 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:42254 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752267Ab0JHFCZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Oct 2010 01:02:25 -0400
-Received: by ewy23 with SMTP id 23so341482ewy.19
-        for <linux-media@vger.kernel.org>; Thu, 07 Oct 2010 22:02:24 -0700 (PDT)
-Date: Fri, 8 Oct 2010 15:03:01 -0400
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Felipe Sanches <juca@members.fsf.org>,
-	Stefan Ringel <stefan.ringel@arcor.de>,
-	Bee Hock Goh <beehock@gmail.com>,
-	Luis Henrique Fagundes <lhfagundes@hacklab.com.br>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [RFC PATCH] Audio standards on tm6000
-Message-ID: <20101008150301.2e3ceaff@glory.local>
-In-Reply-To: <4CAD5A78.3070803@redhat.com>
-References: <4CAD5A78.3070803@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp-roam1.Stanford.EDU ([171.67.219.88]:34688 "EHLO
+	smtp-roam.stanford.edu" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754588Ab0JNGMo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Oct 2010 02:12:44 -0400
+Received: from smtp-roam.stanford.edu (localhost.localdomain [127.0.0.1])
+	by localhost (Postfix) with SMTP id 195FF37D5F
+	for <linux-media@vger.kernel.org>; Wed, 13 Oct 2010 23:12:44 -0700 (PDT)
+Received: from [192.168.1.102] (adsl-69-107-76-187.dsl.pltn13.pacbell.net [69.107.76.187])
+	(using TLSv1 with cipher AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: talvala)
+	by smtp-roam.stanford.edu (Postfix) with ESMTPSA id 4CA5237D5E
+	for <linux-media@vger.kernel.org>; Wed, 13 Oct 2010 23:12:43 -0700 (PDT)
+Message-ID: <4CB69F54.7080707@stanford.edu>
+Date: Wed, 13 Oct 2010 23:12:36 -0700
+From: Eino-Ville Talvala <talvala@stanford.edu>
+MIME-Version: 1.0
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: The FCam camera control API
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro
+Hi all,
 
-Not so good. Audio with this patch has bad white noise sometimes and
-bad quality. I try found better configuration for SECAM-DK.
+I wanted to talk a bit more about our project here at Stanford, because 
+I thought several people on this list might be interested in it 
+(although I know several of you may already have heard about it).
 
-With my best regards, Dmitry.
+The short version:
+We released a high-level camera control API for the Nokia N900 a few 
+months ago, which allows for precise frame-level control of the sensor 
+and associated devices while running at full sensor frame rate. Instead 
+of treating the imaging pipeline as a box with control knobs on it that 
+sends out a flow of images, it's instead a box that transforms image 
+requests into images, with the requests encapsulating all sensor 
+configuration (including resolution and frame duration) inside them. 
+This makes it very easy to write applications such as an HDR viewfinder, 
+which needs to alternate sensor exposure time every frame.  We've 
+released a sample application for the N900 with features such as full 
+manual camera control, HDR viewfinding/metering, best-of-8 burst mode, 
+and saving raw sensor data as DNGs.  Our co-authors at Nokia have also 
+released an HDR app that does on-device HDR fusion and a low-light 
+photography app that improves image quality for dark scenes.
 
-> Hi Dmitri,
-> 
-> IMO, the better is to remove the audio init from tm6000-core and add
-> a separate per-standard set of tables.
-> 
-> I'm enclosing the patch for it. Please check if this won't break for
-> your device.
-> 
-> On all tests I did here with a tm6010 device (HVR 900H), I was only
-> able to listen to white noise.
-> 
-> I'm suspecting that this device uses XC3028 MTS mode (e. g. uses
-> xc3028 to decode audio, and just inputs the audio stream from some
-> line IN. As the driver is not able yet to handle an audio mux, this
-> may explain why I'm not able to receive any audio at all.
-> 
-> Maybe tm5600 devices may also require (or use) line input entries,
-> instead of I2S.
-> 
-> Could you please check those issues?
-> 
-> PS.: the PAL/M hunk will probably fail, as I likely applied some
-> patches before this one, in order to try to fix it. It should be
-> trivial to solve the conflicts.
-> 
-> ---
-> 
-> tm6000: Implement audio standard tables
-> 
-> Implement separate tables for audio standards, associating them with
-> the video standards.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> diff --git a/drivers/staging/tm6000/tm6000-core.c
-> b/drivers/staging/tm6000/tm6000-core.c index 57cb69e..9cb2901 100644
-> --- a/drivers/staging/tm6000/tm6000-core.c
-> +++ b/drivers/staging/tm6000/tm6000-core.c
-> @@ -200,6 +200,10 @@ int tm6000_init_analog_mode(struct tm6000_core
-> *dev) val &= ~0x40;
->  		tm6000_set_reg(dev,
-> TM6010_REQ07_RC0_ACTIVE_VIDEO_SOURCE, val); 
-> +		tm6000_set_reg(dev,
-> TM6010_REQ08_RF1_AADC_POWER_DOWN, 0xfc); +
-> +#if 0		/* FIXME: VBI is standard-dependent */
-> +
->  		/* Init teletext */
->  		tm6000_set_reg(dev, TM6010_REQ07_R3F_RESET, 0x01);
->  		tm6000_set_reg(dev,
-> TM6010_REQ07_R41_TELETEXT_VBI_CODE1, 0x27); @@ -249,44 +253,7 @@ int
-> tm6000_init_analog_mode(struct tm6000_core *dev) tm6000_set_reg(dev,
-> TM6010_REQ07_R5B_VBI_TELETEXT_DTO0, 0x4c); tm6000_set_reg(dev,
-> TM6010_REQ07_R40_TELETEXT_VBI_CODE0, 0x01); tm6000_set_reg(dev,
-> TM6010_REQ07_R3F_RESET, 0x00); -
-> -
-> -		/* Init audio */
-> -		tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x00);
-> -		tm6000_set_reg(dev,
-> TM6010_REQ08_R02_A_FIX_GAIN_CTRL, 0x04);
-> -		tm6000_set_reg(dev,
-> TM6010_REQ08_R03_A_AUTO_GAIN_CTRL, 0x00);
-> -		tm6000_set_reg(dev, TM6010_REQ08_R04_A_SIF_AMP_CTRL,
-> 0xa0);
-> -		tm6000_set_reg(dev, TM6010_REQ08_R06_A_SOUND_MOD,
-> 0x06);
-> -		tm6000_set_reg(dev, TM6010_REQ08_R07_A_LEFT_VOL,
-> 0x00);
-> -		tm6000_set_reg(dev, TM6010_REQ08_R08_A_RIGHT_VOL,
-> 0x00);
-> -		tm6000_set_reg(dev, TM6010_REQ08_R09_A_MAIN_VOL,
-> 0x08);
-> -		tm6000_set_reg(dev, TM6010_REQ08_R0A_A_I2S_MOD,
-> 0x91);
-> -		tm6000_set_reg(dev, TM6010_REQ08_R0B_A_ASD_THRES1,
-> 0x20);
-> -		tm6000_set_reg(dev, TM6010_REQ08_R0C_A_ASD_THRES2,
-> 0x12);
-> -		tm6000_set_reg(dev, TM6010_REQ08_R0D_A_AMD_THRES,
-> 0x20);
-> -		tm6000_set_reg(dev, TM6010_REQ08_R0E_A_MONO_THRES1,
-> 0xf0);
-> -		tm6000_set_reg(dev, TM6010_REQ08_R0F_A_MONO_THRES2,
-> 0x80);
-> -		tm6000_set_reg(dev, TM6010_REQ08_R10_A_MUTE_THRES1,
-> 0xc0);
-> -		tm6000_set_reg(dev, TM6010_REQ08_R11_A_MUTE_THRES2,
-> 0x80);
-> -		tm6000_set_reg(dev, TM6010_REQ08_R12_A_AGC_U, 0x12);
-> -		tm6000_set_reg(dev, TM6010_REQ08_R13_A_AGC_ERR_T,
-> 0xfe);
-> -		tm6000_set_reg(dev,
-> TM6010_REQ08_R14_A_AGC_GAIN_INIT, 0x20);
-> -		tm6000_set_reg(dev, TM6010_REQ08_R15_A_AGC_STEP_THR,
-> 0x14);
-> -		tm6000_set_reg(dev, TM6010_REQ08_R16_A_AGC_GAIN_MAX,
-> 0xfe);
-> -		tm6000_set_reg(dev, TM6010_REQ08_R17_A_AGC_GAIN_MIN,
-> 0x01);
-> -		tm6000_set_reg(dev, TM6010_REQ08_R18_A_TR_CTRL,
-> 0xa0);
-> -		tm6000_set_reg(dev, TM6010_REQ08_R19_A_FH_2FH_GAIN,
-> 0x32);
-> -		tm6000_set_reg(dev,
-> TM6010_REQ08_R1A_A_NICAM_SER_MAX, 0x64);
-> -		tm6000_set_reg(dev,
-> TM6010_REQ08_R1B_A_NICAM_SER_MIN, 0x20);
-> -		tm6000_set_reg(dev, REQ_08_SET_GET_AVREG_BIT, 0x1c,
-> 0x00);
-> -		tm6000_set_reg(dev, REQ_08_SET_GET_AVREG_BIT, 0x1d,
-> 0x00);
-> -		tm6000_set_reg(dev,
-> TM6010_REQ08_R1E_A_GAIN_DEEMPH_OUT, 0x13);
-> -		tm6000_set_reg(dev,
-> TM6010_REQ08_R1F_A_TEST_INTF_SEL, 0x00);
-> -		tm6000_set_reg(dev, TM6010_REQ08_R20_A_TEST_PIN_SEL,
-> 0x00);
-> -		tm6000_set_reg(dev, TM6010_REQ08_RE4_ADC_IN2_SEL,
-> 0xf3);
-> -		tm6000_set_reg(dev, TM6010_REQ08_R06_A_SOUND_MOD,
-> 0x00);
-> -		tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x80);
-> -
-> +#endif
->  	} else {
->  		/* Enables soft reset */
->  		tm6000_set_reg(dev, TM6010_REQ07_R3F_RESET, 0x01);
-> @@ -360,7 +327,6 @@ int tm6000_init_digital_mode(struct tm6000_core
-> *dev) tm6000_set_reg(dev, TM6010_REQ07_RFE_POWER_DOWN, 0x28);
->  		tm6000_set_reg(dev,
-> TM6010_REQ08_RE2_POWER_DOWN_CTRL1, 0xfc); tm6000_set_reg(dev,
-> TM6010_REQ08_RE6_POWER_DOWN_CTRL2, 0xff);
-> -		tm6000_set_reg(dev,
-> TM6010_REQ08_RF1_AADC_POWER_DOWN, 0xfe); tm6000_read_write_usb(dev,
-> 0xc0, 0x0e, 0x00c2, 0x0008, buf, 2); printk(KERN_INFO"buf %#x %#x\n",
-> buf[0], buf[1]); } else  {
-> diff --git a/drivers/staging/tm6000/tm6000-stds.c
-> b/drivers/staging/tm6000/tm6000-stds.c index 33adf6c..e79a72e 100644
-> --- a/drivers/staging/tm6000/tm6000-stds.c
-> +++ b/drivers/staging/tm6000/tm6000-stds.c
-> @@ -28,8 +28,22 @@ struct tm6000_reg_settings {
->  	unsigned char value;
->  };
->  
-> +enum tm6000_audio_std {
-> +	BG_NICAM,
-> +	BTSC,
-> +	BG_A2,
-> +	DK_NICAM,
-> +	EIAJ,
-> +	FM_RADIO,
-> +	I_NICAM,
-> +	KOREA_A2,
-> +	L_NICAM,
-> +};
-> +
->  struct tm6000_std_tv_settings {
->  	v4l2_std_id id;
-> +	enum tm6000_audio_std audio_default_std;
-> +
->  	struct tm6000_reg_settings sif[12];
->  	struct tm6000_reg_settings nosif[12];
->  	struct tm6000_reg_settings common[26];
-> @@ -37,12 +51,14 @@ struct tm6000_std_tv_settings {
->  
->  struct tm6000_std_settings {
->  	v4l2_std_id id;
-> +	enum tm6000_audio_std audio_default_std;
->  	struct tm6000_reg_settings common[37];
->  };
->  
->  static struct tm6000_std_tv_settings tv_stds[] = {
->  	{
->  		.id = V4L2_STD_PAL_M,
-> +		.audio_default_std = BTSC,
->  		.sif = {
->  			{TM6010_REQ08_RE2_POWER_DOWN_CTRL1, 0xf2},
->  			{TM6010_REQ08_RE3_ADC_IN1_SEL, 0xf8},
-> @@ -96,12 +112,14 @@ static struct tm6000_std_tv_settings tv_stds[] =
-> { 
->  			{TM6010_REQ07_R04_LUMA_HAGC_CONTROL, 0xdc},
->  			{TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07},
-> -			{TM6010_REQ08_R05_A_STANDARD_MOD, 0x22},
-> +
->  			{TM6010_REQ07_R3F_RESET, 0x00},
-> +
->  			{0, 0, 0},
->  		},
->  	}, {
->  		.id = V4L2_STD_PAL_Nc,
-> +		.audio_default_std = BTSC,
->  		.sif = {
->  			{TM6010_REQ08_RE2_POWER_DOWN_CTRL1, 0xf2},
->  			{TM6010_REQ08_RE3_ADC_IN1_SEL, 0xf8},
-> @@ -161,6 +179,7 @@ static struct tm6000_std_tv_settings tv_stds[] = {
->  		},
->  	}, {
->  		.id = V4L2_STD_PAL,
-> +		.audio_default_std = BG_A2,
->  		.sif = {
->  			{TM6010_REQ08_RE2_POWER_DOWN_CTRL1, 0xf2},
->  			{TM6010_REQ08_RE3_ADC_IN1_SEL, 0xf8},
-> @@ -220,6 +239,7 @@ static struct tm6000_std_tv_settings tv_stds[] = {
->  		},
->  	}, {
->  		.id = V4L2_STD_SECAM,
-> +		.audio_default_std = BG_NICAM,
->  		.sif = {
->  			{TM6010_REQ08_RE2_POWER_DOWN_CTRL1, 0xf2},
->  			{TM6010_REQ08_RE3_ADC_IN1_SEL, 0xf8},
-> @@ -278,6 +298,7 @@ static struct tm6000_std_tv_settings tv_stds[] = {
->  		},
->  	}, {
->  		.id = V4L2_STD_NTSC,
-> +		.audio_default_std = BTSC,
->  		.sif = {
->  			{TM6010_REQ08_RE2_POWER_DOWN_CTRL1, 0xf2},
->  			{TM6010_REQ08_RE3_ADC_IN1_SEL, 0xf8},
-> @@ -341,6 +362,7 @@ static struct tm6000_std_tv_settings tv_stds[] = {
->  static struct tm6000_std_settings composite_stds[] = {
->  	{
->  		.id = V4L2_STD_PAL_M,
-> +		.audio_default_std = BTSC,
->  		.common = {
->  			{TM6010_REQ08_RE2_POWER_DOWN_CTRL1, 0xf0},
->  			{TM6010_REQ08_RE3_ADC_IN1_SEL, 0xf4},
-> @@ -383,6 +405,7 @@ static struct tm6000_std_settings
-> composite_stds[] = { },
->  	 }, {
->  		.id = V4L2_STD_PAL_Nc,
-> +		.audio_default_std = BTSC,
->  		.common = {
->  			{TM6010_REQ08_RE2_POWER_DOWN_CTRL1, 0xf0},
->  			{TM6010_REQ08_RE3_ADC_IN1_SEL, 0xf4},
-> @@ -425,6 +448,7 @@ static struct tm6000_std_settings
-> composite_stds[] = { },
->  	}, {
->  		.id = V4L2_STD_PAL,
-> +		.audio_default_std = BG_A2,
->  		.common = {
->  			{TM6010_REQ08_RE2_POWER_DOWN_CTRL1, 0xf0},
->  			{TM6010_REQ08_RE3_ADC_IN1_SEL, 0xf4},
-> @@ -467,6 +491,7 @@ static struct tm6000_std_settings
-> composite_stds[] = { },
->  	 }, {
->  		.id = V4L2_STD_SECAM,
-> +		.audio_default_std = BG_NICAM,
->  		.common = {
->  			{TM6010_REQ08_RE2_POWER_DOWN_CTRL1, 0xf0},
->  			{TM6010_REQ08_RE3_ADC_IN1_SEL, 0xf4},
-> @@ -508,6 +533,7 @@ static struct tm6000_std_settings
-> composite_stds[] = { },
->  	}, {
->  		.id = V4L2_STD_NTSC,
-> +		.audio_default_std = BTSC,
->  		.common = {
->  			{TM6010_REQ08_RE2_POWER_DOWN_CTRL1, 0xf0},
->  			{TM6010_REQ08_RE3_ADC_IN1_SEL, 0xf4},
-> @@ -554,6 +580,7 @@ static struct tm6000_std_settings
-> composite_stds[] = { static struct tm6000_std_settings svideo_stds[]
-> = { {
->  		.id = V4L2_STD_PAL_M,
-> +		.audio_default_std = BTSC,
->  		.common = {
->  			{TM6010_REQ08_RE2_POWER_DOWN_CTRL1, 0xf0},
->  			{TM6010_REQ08_RE3_ADC_IN1_SEL, 0xfc},
-> @@ -596,6 +623,7 @@ static struct tm6000_std_settings svideo_stds[] =
-> { },
->  	}, {
->  		.id = V4L2_STD_PAL_Nc,
-> +		.audio_default_std = BTSC,
->  		.common = {
->  			{TM6010_REQ08_RE2_POWER_DOWN_CTRL1, 0xf0},
->  			{TM6010_REQ08_RE3_ADC_IN1_SEL, 0xfc},
-> @@ -638,6 +666,7 @@ static struct tm6000_std_settings svideo_stds[] =
-> { },
->  	}, {
->  		.id = V4L2_STD_PAL,
-> +		.audio_default_std = BG_A2,
->  		.common = {
->  			{TM6010_REQ08_RE2_POWER_DOWN_CTRL1, 0xf0},
->  			{TM6010_REQ08_RE3_ADC_IN1_SEL, 0xfc},
-> @@ -680,6 +709,7 @@ static struct tm6000_std_settings svideo_stds[] =
-> { },
->  	 }, {
->  		.id = V4L2_STD_SECAM,
-> +		.audio_default_std = BG_NICAM,
->  		.common = {
->  			{TM6010_REQ08_RE2_POWER_DOWN_CTRL1, 0xf0},
->  			{TM6010_REQ08_RE3_ADC_IN1_SEL, 0xfc},
-> @@ -721,6 +751,7 @@ static struct tm6000_std_settings svideo_stds[] =
-> { },
->  	}, {
->  		.id = V4L2_STD_NTSC,
-> +		.audio_default_std = BTSC,
->  		.common = {
->  			{TM6010_REQ08_RE2_POWER_DOWN_CTRL1, 0xf0},
->  			{TM6010_REQ08_RE3_ADC_IN1_SEL, 0xfc},
-> @@ -765,6 +796,136 @@ static struct tm6000_std_settings svideo_stds[]
-> = { },
->  };
->  
-> +
-> +static int tm6000_set_audio_std(struct tm6000_core *dev,
-> +				enum tm6000_audio_std std)
-> +{
-> +	switch (std) {
-> +	case BG_NICAM:
-> +		tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x00);
-> +		tm6000_set_reg(dev,
-> TM6010_REQ08_R02_A_FIX_GAIN_CTRL, 0x11);
-> +		tm6000_set_reg(dev,
-> TM6010_REQ08_R03_A_AUTO_GAIN_CTRL, 0x00);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R05_A_STANDARD_MOD,
-> 0x01);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R06_A_SOUND_MOD,
-> 0x06);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R0A_A_I2S_MOD,
-> 0x91);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R16_A_AGC_GAIN_MAX,
-> 0xfe);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R17_A_AGC_GAIN_MIN,
-> 0x01);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x80);
-> +		break;
-> +	case BTSC:
-> +		tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x00);
-> +		tm6000_set_reg(dev,
-> TM6010_REQ08_R02_A_FIX_GAIN_CTRL, 0x04);
-> +		tm6000_set_reg(dev,
-> TM6010_REQ08_R03_A_AUTO_GAIN_CTRL, 0x00);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R05_A_STANDARD_MOD,
-> 0x02);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R06_A_SOUND_MOD,
-> 0x06);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R09_A_MAIN_VOL,
-> 0x08);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R0A_A_I2S_MOD,
-> 0x91);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R0E_A_MONO_THRES1,
-> 0xf0);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R0F_A_MONO_THRES2,
-> 0x80);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R10_A_MUTE_THRES1,
-> 0xc0);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R11_A_MUTE_THRES2,
-> 0x80);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R16_A_AGC_GAIN_MAX,
-> 0xfe);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R17_A_AGC_GAIN_MIN,
-> 0x01);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x80);
-> +		break;
-> +	case BG_A2:
-> +		tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x00);
-> +		tm6000_set_reg(dev,
-> TM6010_REQ08_R02_A_FIX_GAIN_CTRL, 0x04);
-> +		tm6000_set_reg(dev,
-> TM6010_REQ08_R03_A_AUTO_GAIN_CTRL, 0x00);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R05_A_STANDARD_MOD,
-> 0x05);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R06_A_SOUND_MOD,
-> 0x06);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R09_A_MAIN_VOL,
-> 0x08);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R0A_A_I2S_MOD,
-> 0x91);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R0E_A_MONO_THRES1,
-> 0xf0);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R0F_A_MONO_THRES2,
-> 0x80);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R10_A_MUTE_THRES1,
-> 0xc0);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R11_A_MUTE_THRES2,
-> 0x80);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R16_A_AGC_GAIN_MAX,
-> 0xfe);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R17_A_AGC_GAIN_MIN,
-> 0x01);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x80);
-> +		break;
-> +	case DK_NICAM:
-> +		tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x00);
-> +		tm6000_set_reg(dev,
-> TM6010_REQ08_R02_A_FIX_GAIN_CTRL, 0x04);
-> +		tm6000_set_reg(dev,
-> TM6010_REQ08_R03_A_AUTO_GAIN_CTRL, 0x00);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R05_A_STANDARD_MOD,
-> 0x06);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R06_A_SOUND_MOD,
-> 0x06);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R09_A_MAIN_VOL,
-> 0x08);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R0A_A_I2S_MOD,
-> 0x91);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R0C_A_ASD_THRES2,
-> 0x0a);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R16_A_AGC_GAIN_MAX,
-> 0xfe);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R17_A_AGC_GAIN_MIN,
-> 0x01);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x80);
-> +		break;
-> +	case EIAJ:
-> +		tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x00);
-> +		tm6000_set_reg(dev,
-> TM6010_REQ08_R02_A_FIX_GAIN_CTRL, 0x04);
-> +		tm6000_set_reg(dev,
-> TM6010_REQ08_R03_A_AUTO_GAIN_CTRL, 0x00);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R05_A_STANDARD_MOD,
-> 0x03);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R06_A_SOUND_MOD,
-> 0x06);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R09_A_MAIN_VOL,
-> 0x08);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R0A_A_I2S_MOD,
-> 0x91);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R16_A_AGC_GAIN_MAX,
-> 0xfe);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R17_A_AGC_GAIN_MIN,
-> 0x01);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x80);
-> +		break;
-> +	case FM_RADIO:
-> +		tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x00);
-> +		tm6000_set_reg(dev,
-> TM6010_REQ08_R02_A_FIX_GAIN_CTRL, 0x01);
-> +		tm6000_set_reg(dev,
-> TM6010_REQ08_R03_A_AUTO_GAIN_CTRL, 0x00);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R05_A_STANDARD_MOD,
-> 0x0c);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R06_A_SOUND_MOD,
-> 0x00);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R09_A_MAIN_VOL,
-> 0x10);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R0A_A_I2S_MOD,
-> 0x91);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R16_A_AGC_GAIN_MAX,
-> 0xfe);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R17_A_AGC_GAIN_MIN,
-> 0x01);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x80);
-> +		break;
-> +	case I_NICAM:
-> +		tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x00);
-> +		tm6000_set_reg(dev,
-> TM6010_REQ08_R02_A_FIX_GAIN_CTRL, 0x04);
-> +		tm6000_set_reg(dev,
-> TM6010_REQ08_R03_A_AUTO_GAIN_CTRL, 0x00);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R05_A_STANDARD_MOD,
-> 0x01);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R06_A_SOUND_MOD,
-> 0x06);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R09_A_MAIN_VOL,
-> 0x08);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R0A_A_I2S_MOD,
-> 0x91);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R0C_A_ASD_THRES2,
-> 0x0a);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R16_A_AGC_GAIN_MAX,
-> 0xfe);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R17_A_AGC_GAIN_MIN,
-> 0x01);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x80);
-> +		break;
-> +	case KOREA_A2:
-> +		tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x00);
-> +		tm6000_set_reg(dev,
-> TM6010_REQ08_R02_A_FIX_GAIN_CTRL, 0x04);
-> +		tm6000_set_reg(dev,
-> TM6010_REQ08_R03_A_AUTO_GAIN_CTRL, 0x00);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R05_A_STANDARD_MOD,
-> 0x04);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R06_A_SOUND_MOD,
-> 0x06);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R09_A_MAIN_VOL,
-> 0x08);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R0A_A_I2S_MOD,
-> 0x91);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R0E_A_MONO_THRES1,
-> 0xf0);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R0F_A_MONO_THRES2,
-> 0x80);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R10_A_MUTE_THRES1,
-> 0xc0);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R11_A_MUTE_THRES2,
-> 0xf0);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R16_A_AGC_GAIN_MAX,
-> 0xfe);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R17_A_AGC_GAIN_MIN,
-> 0x01);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x80);
-> +		break;
-> +	case L_NICAM:
-> +		tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x00);
-> +		tm6000_set_reg(dev,
-> TM6010_REQ08_R02_A_FIX_GAIN_CTRL, 0x02);
-> +		tm6000_set_reg(dev,
-> TM6010_REQ08_R03_A_AUTO_GAIN_CTRL, 0x00);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R05_A_STANDARD_MOD,
-> 0x0a);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R06_A_SOUND_MOD,
-> 0x06);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R09_A_MAIN_VOL,
-> 0x08);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R0A_A_I2S_MOD,
-> 0x91);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R16_A_AGC_GAIN_MAX,
-> 0xfe);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R17_A_AGC_GAIN_MIN,
-> 0x01);
-> +		tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x80);
-> +		break;
-> +	}
-> +	return 0;
-> +}
-> +
->  void tm6000_get_std_res(struct tm6000_core *dev)
->  {
->  	/* Currently, those are the only supported resoltions */
-> @@ -825,6 +986,8 @@ static int tm6000_set_tv(struct tm6000_core *dev,
-> int pos) rc = tm6000_load_std(dev, tv_stds[pos].common,
->  			     sizeof(tv_stds[pos].common));
->  
-> +	tm6000_set_audio_std(dev, tv_stds[pos].audio_default_std);
-> +
->  	return rc;
->  }
->  
-> @@ -850,6 +1013,8 @@ int tm6000_set_standard(struct tm6000_core *dev,
-> v4l2_std_id * norm) rc = tm6000_load_std(dev, svideo_stds[i].common,
->  						     sizeof(svideo_stds[i].
->  							    common));
-> +				tm6000_set_audio_std(dev,
-> svideo_stds[i].audio_default_std); +
->  				goto ret;
->  			}
->  		}
-> @@ -861,6 +1026,7 @@ int tm6000_set_standard(struct tm6000_core *dev,
-> v4l2_std_id * norm) composite_stds[i].common,
->  						     sizeof(composite_stds[i].
->  							    common));
-> +				tm6000_set_audio_std(dev,
-> composite_stds[i].audio_default_std); goto ret;
->  			}
->  		}
-> diff --git a/drivers/staging/tm6000/tm6000-video.c
-> b/drivers/staging/tm6000/tm6000-video.c index a45b012..9304158 100644
-> --- a/drivers/staging/tm6000/tm6000-video.c
-> +++ b/drivers/staging/tm6000/tm6000-video.c
-> @@ -1015,7 +1015,8 @@ static int vidioc_s_std (struct file *file,
-> void *priv, v4l2_std_id *norm) struct tm6000_fh   *fh=priv;
->  	struct tm6000_core *dev = fh->dev;
->  
-> -	rc=tm6000_set_standard (dev, norm);
-> +	rc = tm6000_set_standard(dev, norm);
-> +	rc = tm6000_init_analog_mode(dev);
->  
->  	fh->width  = dev->width;
->  	fh->height = dev->height;
-> @@ -1292,9 +1293,10 @@ static int tm6000_open(struct file *file)
->  				"active=%d\n",list_empty(&dev->vidq.active));
->  
->  	/* initialize hardware on analog mode */
-> -	if (dev->mode!=TM6000_MODE_ANALOG) {
-> -		rc=tm6000_init_analog_mode (dev);
-> -		if (rc<0)
-> +//	if (dev->mode!=TM6000_MODE_ANALOG) {
-> +//		rc = tm6000_set_standard(dev, dev->norm);
-> +		rc += tm6000_init_analog_mode(dev);
-> +		if (rc < 0)
->  			return rc;
->  
->  		/* Put all controls at a sane state */
-> @@ -1302,7 +1304,7 @@ static int tm6000_open(struct file *file)
->  			qctl_regs[i] =tm6000_qctrl[i].default_value;
->  
->  		dev->mode=TM6000_MODE_ANALOG;
-> -	}
-> +//	}
->  
->  	videobuf_queue_vmalloc_init(&fh->vb_vidq, &tm6000_video_qops,
->  			NULL, &dev->slock,
+The home page is here:
+http://fcam.garage.maemo.org
+
+The long version:
+Over the last two years or so, the research group I'm part of has been 
+working on building our own fully open digital camera platform, aimed at 
+researchers and hobbyists working in computational photography.  That 
+covers more mundane things like HDR photography or panorama capture, and 
+more out-there things like handshake removal, post-capture refocusable 
+images, and so on.  This has all been in collaboration with Nokia 
+Research Center Palo Alto.
+
+After poking around with existing hardware and APIs, we found all of 
+them to have various limitations from our point of view - there are very 
+few open camera hardware platforms out there, and even if they were, 
+most camera control APIs are not well-suited for computational photography.
+
+Most of the details can be found in our SIGGRAPH 2010 paper, here:
+http://graphics.stanford.edu/papers/fcam/
+
+So, we built our own user-space C++ API on top of V4L2, which runs on 
+both the N900 and our home-built F2 Frankencamera (both use the OMAP3).  
+We call it FCam.
+
+
+What does it do that V4L2 doesn't?
+
+1) Imaging system configuration is done on a per-frame basis - every 
+frame output from the system can have a different set of parameters, 
+deterministically.  This is done by moved sensor/imaging pipeline state 
+out of the device, and into requests that are fed to the device. One 
+image is produced for every request fed into the system, and multiple 
+requests can be in flight at once.  The only blocking call is the one to 
+pop a completed Frame from the input queue.
+
+2) Metadata (the original request, statistics unit output, state of 
+other associated devices like the lens) and the image data is all tied 
+together into a single packaged Frame that's handed back to the user. 
+This makes it trivial to determine what sensor settings were used to 
+capture the image data, so that one can easily write a metering or 
+autofocus routine, for example.
+
+3) Other devices can be synchronized with sensor operation - for 
+example, the flash can be set to fire N ms into the exposure for a 
+request. The application doesn't have to do the synchronization work itself.
+
+Where did we have problems with V4L2?
+
+Mostly everything was fine, but we ran into some problems that are due 
+to V4L2's design as a video streaming API:
+1) Fixed resolution
+2) Fixed frame rate
+We want to swap between viewfinder and full resolution frames as fast as 
+possible (and in the future, between arbitrary resolutions or regions of 
+interest), and if we're capturing an HDR burst, say, we don't want the 
+frame rate to be constrained by the longest required exposure.
+
+Our current implementation works around #2 by adding a custom V4L2 
+control to change frame duration while streaming - this is clearly 
+against the spirit of the V4L2 API, but is essential for our system to 
+work well.  I'd be interested in knowing if there's a better way to deal 
+with this than circumventing the API's promises.
+
+#1 we couldn't do anything about, so if a request has a different 
+resolution/pixel format than the previous request, the runtime has to 
+simply stop V4L2 streaming, reconfigure, and start streaming again.  I 
+don't see this part of V4L2 changing in the future, but hopefully the 
+switching time will be reduced as implementations improve (with the 
+shipping N900 OMA3 ISP driver, this takes about 700 ms).
+
+We're now working on a F3 Frankencamera with a large (24x24 mm) sensor, 
+using the Cypress LUPA-4000 image sensor (The F2 uses the Aptina MT9P031 
+cell phone sensor).  We have an NSF grant to distribute N900s and F2 or 
+F3 Frankencameras to reseachers and classes in the US, to run courses in 
+computational photography and to provide reseachers with a platform to 
+experiment with.
+
+We think we've come up with something that works better than typical 
+application-level still camera APIs, both for writing regular camera 
+applications, and for the more crazy experimental stuff we're interested 
+in.  So we're hoping developers and manufacturers take a look at what 
+we've done, and perhaps the capabilities we'd love to have will become 
+commonplace.
+
+Regards,
+
+Eino-Ville (Eddy) Talvala
+Camera 2.0 Project, Computer Graphics Lab
+Stanford University
+
+
