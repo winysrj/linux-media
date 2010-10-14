@@ -1,380 +1,137 @@
 Return-path: <mchehab@pedra>
-Received: from rtp-iport-2.cisco.com ([64.102.122.149]:50825 "EHLO
-	rtp-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753077Ab0JVHBN (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:32860 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753237Ab0JNXH6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Oct 2010 03:01:13 -0400
-From: mats.randgaard@tandberg.com
-To: hvaibhav@ti.com
-Cc: linux-media@vger.kernel.org, hans.verkuil@tandberg.com,
-	Mats Randgaard <mats.randgaard@tandberg.com>
-Subject: [RFC/PATCH 3/5] vpif_cap/disp: Added support for DV presets
-Date: Fri, 22 Oct 2010 09:00:49 +0200
-Message-Id: <1287730851-18579-4-git-send-email-mats.randgaard@tandberg.com>
-In-Reply-To: <1287730851-18579-1-git-send-email-mats.randgaard@tandberg.com>
-References: <1287730851-18579-1-git-send-email-mats.randgaard@tandberg.com>
+	Thu, 14 Oct 2010 19:07:58 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Eino-Ville Talvala" <talvala@stanford.edu>
+Subject: Re: OMAP 3530 camera ISP forks and new media framework
+Date: Fri, 15 Oct 2010 01:08:01 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sung Hee Park <shpark7@stanford.edu>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+References: <AANLkTimyR117ZiHq8GFz4YW5tBtW3k82NzGVZqKoVTbY@mail.gmail.com> <201010140058.47236.laurent.pinchart@ideasonboard.com> <4CB69289.6080409@stanford.edu>
+In-Reply-To: <4CB69289.6080409@stanford.edu>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201010150108.02426.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Mats Randgaard <mats.randgaard@tandberg.com>
+Hi Eino-Ville,
 
-Added functions to set/get/query/enum DV presets.
+On Thursday 14 October 2010 07:18:01 Eino-Ville Talvala wrote:
+> On 10/13/2010 3:58 PM, Laurent Pinchart wrote:
+> > On Thursday 14 October 2010 00:03:33 Eino-Ville Talvala wrote:
+> >>   Hi Laurent, linux-media,
+> >> 
+> >> We've been working on porting our OMAP3 ISP/mt9p031 Frankencamera
+> >> framework forward to the current kernel versions (currently, we're
+> >> using the N900 ISP driver codebase, which is rather old by now). We'd
+> >> been following Sakari's omap3camera tree, but as is clear from this
+> >> discussion, that's a bad idea now.
+> >> 
+> >> (I'd love to just send out our mt9p031 driver code, but we still haven't
+> >> sorted out whether we're free to do so - since we're rewriting it a
+> >> great deal anyway, it hasn't been a priority to sort out.)
+> >> 
+> >> I've been handing off dev work on this to the next set of students on
+> >> the project, so I haven't been paying much attention to the mailing
+> >> lists recently, and I apologize if these questions have had clear
+> >> answers already.
+> >> 
+> >> Assuming one has a driver that works fine on the old v4l2_int_framework
+> >> back in .28-n900 kernel version - what is the best way forward to move
+> >> it to the 'current best option' framework, whatever that's currently
+> >> considered to be for the OMAP3 ISP?  And for whatever option that is,
+> >> is there a document somewhere describing what needs to hooked up to
+> >> what to make that go, or is the best way to just look at the *-rx51 /
+> >> et8ek8 code in the right git repository?
+> > 
+> > First of all, you need to get the latest OMAP3 ISP driver sources.
+> > 
+> > The most recent OMAP3 ISP driver for the N900 can be found in the
+> > omap3isp- rx51 git tree on gitorious.org (devel branch from
+> > http://meego.gitorious.org/maemo-multimedia/omap3isp-rx51). This is the
+> > tree used by MeeGo for the OMAP3 ISP camera driver. The driver has been
+> > ported to the media controller framework, but the latest changes to the
+> > framework are not present in that tree as they break the driver ABI and
+> > API. This should be fixed in the future, but I can't give you any time
+> > estimate at the moment.
+> > 
+> > The most recent OMAP3 ISP driver and media controller framework can be
+> > found in the pinchartl/media git tree on linuxtv.org
+> > (media-0004-omap3isp branch from
+> > http://git.linuxtv.org/pinchartl/media.git). This is the tree used for
+> > upstream submission of the media controller and OMAP3 ISP driver. The
+> > OMAP3 ISP driver implements the latest media controller API, but the
+> > tree doesn't contain RX51 camera support.
+> > 
+> > As I assume you need RX51 camera support (arch/arm/mach-omap2/board-rx51-
+> > camera.c, drivers/media/video/et8ek8.c, ...), the easiest solution is to
+> > go for the gitorious.org tree. You will need to modify your code later
+> > when the OMAP3 ISP driver will hit upstream, but the modifications will
+> > be very small (mostly a matter of renaming constants or structure
+> > fields).
+> > 
+> > If you want to play with the latest media controller API, you could go
+> > for the linuxtv.org tree and port the RX51 camera support from the
+> > gitorious.org tree. That shouldn't be difficult, but time is
+> > unfortunately a scarce resource.
+> > 
+> > For userspace API documentation, run "make htmldocs" on the linuxtv.org
+> > tree to generate HTML documentation, and navigate to
+> > Documentation/DocBook/media/media_controller.html and
+> > Documentation/DocBook/media/subdev.html.
+> > 
+> > Regarding the v4l2_int framework, your kernel drivers will need to be
+> > ported to the V4L2 subdev framework and use pad-level operations. The
+> > et8ek8 driver should be a good example. You can also have a look at the
+> > mt9t001 driver in the media-mt9t001 branch from the linuxtv.org tree.
+> > The subdev pad-level userspace API documentation will also help you
+> > understand the in-kernel API.
+> > 
+> > I hope this information will help you. Feel free to contact me if you
+> > have further questions.
+> 
+> Thanks for the reply!
 
-Signed-off-by: Mats Randgaard <mats.randgaard@tandberg.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@tandberg.com>
----
- drivers/media/video/davinci/vpif_capture.c |  143 +++++++++++++++++++++++++++-
- drivers/media/video/davinci/vpif_capture.h |    1 +
- drivers/media/video/davinci/vpif_display.c |  119 ++++++++++++++++++++++-
- drivers/media/video/davinci/vpif_display.h |    1 +
- 4 files changed, 255 insertions(+), 9 deletions(-)
+You're welcome.
 
-diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
-index 778af7e..bf1adea 100644
---- a/drivers/media/video/davinci/vpif_capture.c
-+++ b/drivers/media/video/davinci/vpif_capture.c
-@@ -432,9 +432,18 @@ static int vpif_update_std_info(struct channel_obj *ch)
- 
- 	for (index = 0; index < vpif_ch_params_count; index++) {
- 		config = &ch_params[index];
--		if (config->stdid & vid_ch->stdid) {
--			memcpy(std_info, config, sizeof(*config));
--			break;
-+		if (config->hd_sd == 0) {
-+			vpif_dbg(2, debug, "SD format\n");
-+			if (config->stdid & vid_ch->stdid) {
-+				memcpy(std_info, config, sizeof(*config));
-+				break;
-+			}
-+		} else {
-+			vpif_dbg(2, debug, "HD format\n");
-+			if (config->dv_preset == vid_ch->dv_preset) {
-+				memcpy(std_info, config, sizeof(*config));
-+				break;
-+			}
- 		}
- 	}
- 
-@@ -1442,6 +1451,7 @@ static int vpif_s_std(struct file *file, void *priv, v4l2_std_id *std_id)
- 		return -ERESTARTSYS;
- 
- 	ch->video.stdid = *std_id;
-+	ch->video.dv_preset = V4L2_DV_INVALID;
- 
- 	/* Get the information about the standard */
- 	if (vpif_update_std_info(ch)) {
-@@ -1794,6 +1804,129 @@ static int vpif_cropcap(struct file *file, void *priv,
- 	return 0;
- }
- 
-+/**
-+ * vpif_enum_dv_presets() - ENUM_DV_PRESETS handler
-+ * @file: file ptr
-+ * @priv: file handle
-+ * @preset: input preset
-+ */
-+static int vpif_enum_dv_presets(struct file *file, void *priv,
-+		struct v4l2_dv_enum_preset *preset)
-+{
-+	struct vpif_fh *fh = priv;
-+	struct channel_obj *ch = fh->channel;
-+
-+	if (!vpif_obj.sd) {
-+		vpif_dbg(2, debug, "No sub devices registered\n");
-+
-+		if (preset->index >= vpif_ch_params_count)
-+			return -EINVAL;
-+
-+		/* dv-presets only */
-+		if (ch_params[preset->index].hd_sd == 0)
-+			return -EINVAL;
-+
-+		return v4l_fill_dv_preset_info(
-+				ch_params[preset->index].dv_preset, preset);
-+	}
-+
-+	return v4l2_subdev_call(vpif_obj.sd[ch->curr_sd_index],
-+			video, enum_dv_presets, preset);
-+}
-+
-+/**
-+ * vpif_query_dv_presets() - QUERY_DV_PRESET handler
-+ * @file: file ptr
-+ * @priv: file handle
-+ * @preset: input preset
-+ */
-+static int vpif_query_dv_preset(struct file *file, void *priv,
-+		struct v4l2_dv_preset *preset)
-+{
-+	struct vpif_fh *fh = priv;
-+	struct channel_obj *ch = fh->channel;
-+
-+	if (!vpif_obj.sd) {
-+		vpif_dbg(2, debug, "No sub devices registered\n");
-+		return -EINVAL;
-+	}
-+
-+	return v4l2_subdev_call(vpif_obj.sd[ch->curr_sd_index],
-+		       video, query_dv_preset, preset);
-+}
-+/**
-+ * vpif_s_dv_presets() - S_DV_PRESETS handler
-+ * @file: file ptr
-+ * @priv: file handle
-+ * @preset: input preset
-+ */
-+static int vpif_s_dv_preset(struct file *file, void *priv,
-+		struct v4l2_dv_preset *preset)
-+{
-+	struct vpif_fh *fh = priv;
-+	struct channel_obj *ch = fh->channel;
-+	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
-+	int ret = 0;
-+
-+	if (common->started) {
-+		vpif_err("streaming in progress\n");
-+		return -EBUSY;
-+	}
-+
-+	if ((VPIF_CHANNEL0_VIDEO == ch->channel_id) ||
-+	    (VPIF_CHANNEL1_VIDEO == ch->channel_id)) {
-+		if (!fh->initialized) {
-+			vpif_dbg(1, debug, "Channel Busy\n");
-+			return -EBUSY;
-+		}
-+	}
-+
-+	ret = v4l2_prio_check(&ch->prio, fh->prio);
-+	if (ret)
-+		return ret;
-+
-+	fh->initialized = 1;
-+
-+	/* Call encoder subdevice function to set the standard */
-+	if (mutex_lock_interruptible(&common->lock))
-+		return -ERESTARTSYS;
-+
-+	ch->video.dv_preset = preset->preset;
-+	ch->video.stdid = V4L2_STD_UNKNOWN;
-+
-+	/* Get the information about the standard */
-+	if (vpif_update_std_info(ch)) {
-+		ret = -EINVAL;
-+		vpif_err("Error getting the standard info\n");
-+	} else {
-+		/* Configure the default format information */
-+		vpif_config_format(ch);
-+
-+	ret = v4l2_subdev_call(vpif_obj.sd[ch->curr_sd_index],
-+			video, s_dv_preset, preset);
-+	}
-+
-+	mutex_unlock(&common->lock);
-+
-+	return ret;
-+}
-+/**
-+ * vpif_g_dv_presets() - G_DV_PRESETS handler
-+ * @file: file ptr
-+ * @priv: file handle
-+ * @preset: input preset
-+ */
-+static int vpif_g_dv_preset(struct file *file, void *priv,
-+		struct v4l2_dv_preset *preset)
-+{
-+	struct vpif_fh *fh = priv;
-+	struct channel_obj *ch = fh->channel;
-+
-+	preset->preset = ch->video.dv_preset;
-+
-+	return 0;
-+}
-+
- /*
-  * vpif_g_chip_ident() - Identify the chip
-  * @file: file ptr
-@@ -1896,6 +2029,10 @@ static const struct v4l2_ioctl_ops vpif_ioctl_ops = {
- 	.vidioc_streamon        	= vpif_streamon,
- 	.vidioc_streamoff       	= vpif_streamoff,
- 	.vidioc_cropcap         	= vpif_cropcap,
-+	.vidioc_enum_dv_presets         = vpif_enum_dv_presets,
-+	.vidioc_s_dv_preset             = vpif_s_dv_preset,
-+	.vidioc_g_dv_preset             = vpif_g_dv_preset,
-+	.vidioc_query_dv_preset         = vpif_query_dv_preset,
- 	.vidioc_g_chip_ident		= vpif_g_chip_ident,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.vidioc_g_register		= vpif_dbg_g_register,
-diff --git a/drivers/media/video/davinci/vpif_capture.h b/drivers/media/video/davinci/vpif_capture.h
-index 4e12ec8..3452a8a 100644
---- a/drivers/media/video/davinci/vpif_capture.h
-+++ b/drivers/media/video/davinci/vpif_capture.h
-@@ -59,6 +59,7 @@ struct video_obj {
- 	enum v4l2_field buf_field;
- 	/* Currently selected or default standard */
- 	v4l2_std_id stdid;
-+	u32 dv_preset;
- 	/* This is to track the last input that is passed to application */
- 	u32 input_idx;
- };
-diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
-index edfc095..4554971 100644
---- a/drivers/media/video/davinci/vpif_display.c
-+++ b/drivers/media/video/davinci/vpif_display.c
-@@ -373,15 +373,23 @@ static int vpif_get_std_info(struct channel_obj *ch)
- 
- 	int index;
- 
--	std_info->stdid = vid_ch->stdid;
--	if (!std_info->stdid)
--		return -1;
-+	if (!vid_ch->stdid && !vid_ch->dv_preset)
-+		return -EINVAL;
- 
- 	for (index = 0; index < vpif_ch_params_count; index++) {
- 		config = &ch_params[index];
--		if (config->stdid & std_info->stdid) {
--			memcpy(std_info, config, sizeof(*config));
--			break;
-+		if (config->hd_sd == 0) {
-+			vpif_dbg(2, debug, "SD format\n");
-+			if (config->stdid & vid_ch->stdid) {
-+				memcpy(std_info, config, sizeof(*config));
-+				break;
-+			}
-+		} else {
-+			vpif_dbg(2, debug, "HD format\n");
-+			if (config->dv_preset == vid_ch->dv_preset) {
-+				memcpy(std_info, config, sizeof(*config));
-+				break;
-+			}
- 		}
- 	}
- 
-@@ -1305,6 +1313,102 @@ static int vpif_s_priority(struct file *file, void *priv, enum v4l2_priority p)
- 	return v4l2_prio_change(&ch->prio, &fh->prio, p);
- }
- 
-+/**
-+ * vpif_enum_dv_presets() - ENUM_DV_PRESETS handler
-+ * @file: file ptr
-+ * @priv: file handle
-+ * @preset: input preset
-+ */
-+static int vpif_enum_dv_presets(struct file *file, void *priv,
-+		struct v4l2_dv_enum_preset *preset)
-+{
-+	struct vpif_fh *fh = priv;
-+	struct channel_obj *ch = fh->channel;
-+	struct video_obj *vid_ch = &ch->video;
-+
-+	if (!vpif_obj.sd) {
-+		vpif_dbg(2, debug, "No sub devices registered\n");
-+
-+		if (preset->index >= vpif_ch_params_count)
-+			return -EINVAL;
-+
-+		/* dv-presets only */
-+		if (ch_params[preset->index].hd_sd == 0)
-+			return -EINVAL;
-+
-+		return v4l_fill_dv_preset_info(
-+				ch_params[preset->index].dv_preset, preset);
-+	}
-+
-+	return v4l2_subdev_call(vpif_obj.sd[vid_ch->output_id],
-+			video, enum_dv_presets, preset);
-+}
-+
-+/**
-+ * vpif_s_dv_presets() - S_DV_PRESETS handler
-+ * @file: file ptr
-+ * @priv: file handle
-+ * @preset: input preset
-+ */
-+static int vpif_s_dv_preset(struct file *file, void *priv,
-+		struct v4l2_dv_preset *preset)
-+{
-+	struct vpif_fh *fh = priv;
-+	struct channel_obj *ch = fh->channel;
-+	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
-+	struct video_obj *vid_ch = &ch->video;
-+	int ret = 0;
-+
-+	if (common->started) {
-+		vpif_err("streaming in progress\n");
-+		return -EBUSY;
-+	}
-+
-+	ret = v4l2_prio_check(&ch->prio, fh->prio);
-+	if (ret != 0)
-+		return ret;
-+
-+	fh->initialized = 1;
-+
-+	/* Call encoder subdevice function to set the standard */
-+	if (mutex_lock_interruptible(&common->lock))
-+		return -ERESTARTSYS;
-+
-+	ch->video.dv_preset = preset->preset;
-+	ch->video.stdid = V4L2_STD_UNKNOWN;
-+
-+	/* Get the information about the standard */
-+	if (vpif_get_std_info(ch)) {
-+		ret = -EINVAL;
-+		vpif_err("Error getting the standard info\n");
-+	} else {
-+		/* Configure the default format information */
-+		vpif_config_format(ch);
-+
-+		ret = v4l2_subdev_call(vpif_obj.sd[vid_ch->output_id],
-+				video, s_dv_preset, preset);
-+	}
-+
-+	mutex_unlock(&common->lock);
-+
-+	return ret;
-+}
-+/**
-+ * vpif_g_dv_presets() - G_DV_PRESETS handler
-+ * @file: file ptr
-+ * @priv: file handle
-+ * @preset: input preset
-+ */
-+static int vpif_g_dv_preset(struct file *file, void *priv,
-+		struct v4l2_dv_preset *preset)
-+{
-+	struct vpif_fh *fh = priv;
-+	struct channel_obj *ch = fh->channel;
-+
-+	preset->preset = ch->video.dv_preset;
-+
-+	return 0;
-+}
- 
- /*
-  * vpif_g_chip_ident() - Identify the chip
-@@ -1410,6 +1514,9 @@ static const struct v4l2_ioctl_ops vpif_ioctl_ops = {
- 	.vidioc_s_output		= vpif_s_output,
- 	.vidioc_g_output		= vpif_g_output,
- 	.vidioc_cropcap         	= vpif_cropcap,
-+	.vidioc_enum_dv_presets         = vpif_enum_dv_presets,
-+	.vidioc_s_dv_preset             = vpif_s_dv_preset,
-+	.vidioc_g_dv_preset             = vpif_g_dv_preset,
- 	.vidioc_g_chip_ident		= vpif_g_chip_ident,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.vidioc_g_register		= vpif_dbg_g_register,
-diff --git a/drivers/media/video/davinci/vpif_display.h b/drivers/media/video/davinci/vpif_display.h
-index a2a7cd1..3d56b3e 100644
---- a/drivers/media/video/davinci/vpif_display.h
-+++ b/drivers/media/video/davinci/vpif_display.h
-@@ -67,6 +67,7 @@ struct video_obj {
- 					 * most recent displayed frame only */
- 	v4l2_std_id stdid;		/* Currently selected or default
- 					 * standard */
-+	u32 dv_preset;
- 	u32 output_id;			/* Current output id */
- };
- 
+> We're not terribly set on requiring rx51 support right - at least, I'm
+> assuming we couldn't just use the latest codebase for the ISP/et8ek8
+> drivers and get those to compile with the N900's release kernel, and we
+> don't want to ask end users to reflash their phone kernels to use our
+> programs and API.
+
+The V4L core and media controller frameworks could be ported to the N900's 
+release kernel, but I'm not sure it would be worth it. You can use the latest 
+OMAP3 ISP driver on the N900 with MeeGo though.
+
+> Mostly, I just want to make sure that we try to ensure the fewest number
+> of substantial driver changes in the future, once we've gotten ourselves
+> up to the present. So if one of the two options you listed is the way
+> things will end up, I'd rather go with that and have a bit more work to
+> do if we need to support some other device that looks more like the rx51
+> in the future.
+> 
+> I gather the linux-tv branch is more like how things should end up
+> looking like, once the dust settles for a bit.  So we port our driver
+> over to that, using the mt9t001 driver as an example of how everything
+> should be coded up, that should put us on a track of reasonable stability?
+
+That's correct.
+
+> Also, is there a board file that has the needed sensor device
+> registration/power management/etc bits in that tree?
+
+There's the RX51 board code in the gitorious tree. It shouldn't be difficult 
+to adapt it to a parallel sensor.
+
 -- 
-1.7.1
+Regards,
 
+Laurent Pinchart
