@@ -1,55 +1,92 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:47802 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754212Ab0JKO6h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Oct 2010 10:58:37 -0400
-Received: by ewy20 with SMTP id 20so615654ewy.19
-        for <linux-media@vger.kernel.org>; Mon, 11 Oct 2010 07:58:35 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:5630 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755032Ab0JNTFG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Oct 2010 15:05:06 -0400
+Message-ID: <4CB7545B.7010609@redhat.com>
+Date: Thu, 14 Oct 2010 16:04:59 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <201010111514.37592.laurent.pinchart@ideasonboard.com>
-References: <AANLkTimyR117ZiHq8GFz4YW5tBtW3k82NzGVZqKoVTbY@mail.gmail.com>
-	<Pine.LNX.4.64.1010072012280.15141@axis700.grange>
-	<AANLkTinJhywDoZg5F2tvqdW44to-6P4hgNd9Fav9qTv8@mail.gmail.com>
-	<201010111514.37592.laurent.pinchart@ideasonboard.com>
-Date: Mon, 11 Oct 2010 16:58:35 +0200
-Message-ID: <AANLkTikBWjgNmDdG6dCXQQmcDRBUc4gP7717uqAY3+_J@mail.gmail.com>
-Subject: Re: OMAP 3530 camera ISP forks and new media framework
-From: Bastian Hecht <hechtb@googlemail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: "Igor M. Liplianin" <liplianin@me.by>
+CC: linux-media@vger.kernel.org, Abylai Ospan <aospan@netup.ru>
+Subject: Re: [GIT PATCHES FOR 2.6.37]  Support for NetUP Dual DVB-T/C CI RF
+ card
+References: <201010040135.59454.liplianin@me.by> <4CB74279.1070103@redhat.com> <4CB743EC.90708@redhat.com> <201010142158.07974.liplianin@me.by>
+In-Reply-To: <201010142158.07974.liplianin@me.by>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-2010/10/11 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> Hi Bastian,
->
-> On Monday 11 October 2010 14:59:15 Bastian Hecht wrote:
->> So... let's see if i got some things right, please let me now if you
->> disagree:
+Em 14-10-2010 15:58, Igor M. Liplianin escreveu:
+> В сообщении от 14 октября 2010 20:54:52 автор Mauro Carvalho Chehab написал:
+>> Em 14-10-2010 14:48, Mauro Carvalho Chehab escreveu:
+>>> Em 03-10-2010 19:35, Igor M. Liplianin escreveu:
+>>>> Patches to support for NetUP Dual DVB-T/C-CI RF from NetUP Inc.
+>>>>
+>>>> 	http://linuxtv.org/wiki/index.php/NetUP_Dual_DVB_T_C_CI_RF
+>>>>
+>>>> Features:
+>>>>
+>>>> PCI-e x1
+>>>> Supports two DVB-T/DVB-C transponders simultaneously
+>>>> Supports two analog audio/video channels simultaneously
+>>>> Independent descrambling of two transponders
+>>>> Hardware PID filtering
+>>>>
+>>>> Components:
+>>>>
+>>>> Conexant CX23885
+>>>> STM STV0367 low-power and ultra-compact combo DVB-T/C single-chip
+>>>> receiver Xceive XC5000 silicon TV tuner
+>>>> Altera FPGA for Common Interafce
+>>>>
+>>>> The following changes since commit c8dd732fd119ce6d562d5fa82a10bbe75a376575:
+>>>>   V4L/DVB: gspca - sonixj: Have 0c45:6130 handled by sonixj instead of
+>>>>   sn9c102 (2010-10-01
+>>>>
+>>>> 18:14:35 -0300)
+>>>>
+>>>> are available in the git repository at:
+>>>>   http://udev.netup.ru/git/v4l-dvb.git netup-for-media-tree
+>>>
+>>> Hmm... it is not working... perhaps you forgot to run git
+>>> update-server-info.
 >>
->> - I do want to use the omap34xxcam.c driver as it is for the newest
->> framework and I get most support for it
->
-> That's a bad start. With the latest driver, omap34xxcam.c doesn't exist
-> anymore :-)
+>> It worked. It just took a very long time to update...
+>>
+>>>>  drivers/misc/Kconfig                        |    1 +
+>>>>  drivers/misc/Makefile                       |    1 +
+>>>>  drivers/misc/stapl-altera/Kconfig           |    8 +
+>>>>  drivers/misc/stapl-altera/Makefile          |    3 +
+>>>>  drivers/misc/stapl-altera/altera.c          | 2739 ++++++++++++++++++++
+>>>>  drivers/misc/stapl-altera/jbicomp.c         |  163 ++
+>>>>  drivers/misc/stapl-altera/jbiexprt.h        |   94 +
+>>>>  drivers/misc/stapl-altera/jbijtag.c         | 1038 ++++++++
+>>>>  drivers/misc/stapl-altera/jbijtag.h         |   83 +
+>>>>  drivers/misc/stapl-altera/jbistub.c         |   70 +
+>>>>  include/misc/altera.h                       |   49 +
+>>>
+>>> Hmm... that's new for me... a driver at misc?
+>>
+>> Hmm... a FPGA programming driver... Is it needed to for the DVB device to
+>> work, or it is used only when programming the device at the manufacturer?
+> Yes, it needed for DVB device to work. FPGA model used in device has not flash memory. 
+> Then FPGA itself drives CI and hardware PID filter.
 
-Nice :S
+Hmm... interesting design.
 
-I think I take the mt9t001 approach (Sorry Guennadi, I think modifying
-your framework is too much for me to start with). So in this driver I
-tell the framework that I can do i2c probing, some subdev_core_ops and
-some subdev_video_ops. I define these functions that mostly do some
-basic i2c communication to the sensor chip. I guess I can handle that
-as there are so many examples out there.
+> We all realize, that FPGA programming not belongs to DVB only, it is more common.
 
-But where do I stack that on top? On the camera bridge host, but if it
-isn't omap34xxcam, which driver can I use? How are they connected?
+Agreed.
 
-Thanks,
+> So maybe misc is the place. 
 
- Bastian
+Maybe misc is the better place, not really sure. Well, I posted your altera patch to LKML, and
+just sent my review.
+
+Better to continue those discussions on the thread where LKML is c/c, to allow more readers
+to be able to follow the entire discussions.
+
+Cheers,
+Mauro.
