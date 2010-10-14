@@ -1,208 +1,87 @@
 Return-path: <mchehab@pedra>
-Received: from smtp20.orange.fr ([193.252.22.31]:7601 "EHLO smtp20.orange.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753429Ab0JPRmZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Oct 2010 13:42:25 -0400
-Message-ID: <4CB9E3E9.2020106@orange.fr>
-Date: Sat, 16 Oct 2010 19:42:01 +0200
-From: Catimimi <catimimi@orange.fr>
+Received: from mailout-de.gmx.net ([213.165.64.22]:50625 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1754181Ab0JNPSc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Oct 2010 11:18:32 -0400
+From: Lukas Ruetz <lukas.ruetz@gmx.at>
+To: linux-media@vger.kernel.org
+Subject: Non-fluent V4L Playback with BTTV-card
+Date: Thu, 14 Oct 2010 17:18:30 +0200
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Catimimi <catimimi@libertysurf.fr>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] Terratec Cinergy Hybrid T USB XS FR
-References: <4CAA2BE6.1050302@libertysurf.fr> <4CB9103E.6020104@redhat.com>
-In-Reply-To: <4CB9103E.6020104@redhat.com>
-Content-Type: multipart/mixed;
- boundary="------------070506050903020805000103"
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201010141718.30593.lukas.ruetz@gmx.at>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This is a multi-part message in MIME format.
---------------070506050903020805000103
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 8bit
+Hello everyone,
 
-Le 16/10/2010 04:38, Mauro Carvalho Chehab a écrit :
-> Em 04-10-2010 16:32, Catimimi escreveu:
->   
->>  New gpio definitions.
->> XC3028_FE_ZARLINK456 was not loaded.
->>
->> Signed-off-by: Michel Garnier<catimimi@libertysurf.fr>
->>
->> ---
->>
->> diff -Nru v4l-dvb-1da5fed5c8b2-orig/linux/drivers/media/video/em28xx/em28xx-cards.c v4l-dvb-1da5fed5c8b2-new/linux/drivers/media/video/em28xx/em28xx-cards.c
->> --- v4l-dvb-1da5fed5c8b2-orig/linux/drivers/media/video/em28xx/em28xx-cards.c    2010-09-19 07:23:09.000000000 +0200
->> +++ v4l-dvb-1da5fed5c8b2-new/linux/drivers/media/video/em28xx/em28xx-cards.c    2010-10-04 19:05:11.000000000 +0200
->> @@ -200,6 +200,18 @@
->>      {    -1,        -1,    -1,        -1},
->>  };
->>
->> +static struct em28xx_reg_seq terratec_cinergy_USB_XS_analog[] = {
->> +    {EM28XX_R08_GPIO,    0x6d,    ~EM_GPIO_4,    10},
->> +    {EM2880_R04_GPO,    0x00,    0xff,        10},
->> +    { -1,            -1,    -1,        -1},
->> +};
->> +
->> +static struct em28xx_reg_seq terratec_cinergy_USB_XS_digital[] = {
->> +    {EM28XX_R08_GPIO,    0x6e,    ~EM_GPIO_4,    10},
->> +    {EM2880_R04_GPO,    0x08,    0xff,        10},
->> +    { -1,            -1,    -1,        -1},
->> +};
->> +
->>  /* eb1a:2868 Reddo DVB-C USB TV Box
->>     GPIO4 - CU1216L NIM
->>     Other GPIOs seems to be don't care. */
->> @@ -824,22 +836,22 @@
->>          .tuner_gpio   = default_tuner_gpio,
->>          .decoder      = EM28XX_TVP5150,
->>          .has_dvb      = 1,
->> -        .dvb_gpio     = default_digital,
->> +        .dvb_gpio     = terratec_cinergy_USB_XS_digital,
->>          .input        = { {
->>              .type     = EM28XX_VMUX_TELEVISION,
->>              .vmux     = TVP5150_COMPOSITE0,
->>              .amux     = EM28XX_AMUX_VIDEO,
->> -            .gpio     = default_analog,
->> +            .gpio     = terratec_cinergy_USB_XS_analog,
->>          }, {
->>              .type     = EM28XX_VMUX_COMPOSITE1,
->>              .vmux     = TVP5150_COMPOSITE1,
->>              .amux     = EM28XX_AMUX_LINE_IN,
->> -            .gpio     = default_analog,
->> +            .gpio     = terratec_cinergy_USB_XS_analog,
->>          }, {
->>              .type     = EM28XX_VMUX_SVIDEO,
->>              .vmux     = TVP5150_SVIDEO,
->>              .amux     = EM28XX_AMUX_LINE_IN,
->> -            .gpio     = default_analog,
->> +            .gpio     = terratec_cinergy_USB_XS_analog,
->>          } },
->>      },
->>      [EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900] = {
->> @@ -2259,6 +2271,7 @@
->>          ctl->demod = XC3028_FE_ZARLINK456;
->>          break;
->>      case EM2880_BOARD_TERRATEC_HYBRID_XS:
->> +    case EM2880_BOARD_TERRATEC_HYBRID_XS_FR:
->>     
-> Hmm... do you have a different device, right? Please, don't change the entries
-> of the original Hybrid XS, or it will cause a regression for the others. Instead,
-> create another entry describing your board.
->
-> Also, please use tabs for indent. A tab in Linux have 8 spaces, and not four.
->
->   
->>      case EM2881_BOARD_PINNACLE_HYBRID_PRO:
->>          ctl->demod = XC3028_FE_ZARLINK456;
->>          break;
->>
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>     
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-> ,
->   
-Hello
+I have a Haupauge Impact capture card (bt878) and the problem that the
+playback of the captured PAL-video (no audio) isn't fluent. The video jumps
+every few seconds as if there were frames dropped. It occures (or is only then
+visible) if there is bigger movement in the video. This behaviour is nearly
+the same with mplayer, gstreamer and vlc depending on the output type.
 
-I didn't change the entries of original Hybrid XS. I created new entries
-which I use for XS_FR.
-These new entries were necessaries for a good working with 64 bits kernels.
-So there is no regression.
+First I thought this is maybe a problem of the prop. nvidia driver but there's
+no difference to the nv driver.
 
-In order to be clear I renamed the new entries to XS_FR.
+I have tried the kernels 2.6.28, 2.6.32, 2.6.35 (ubuntu 9.04, 10.04, 10.10)
+but it's always the same.
 
-OK for the tabs, the mail agents converted them to spaces, so I include
-a file.
+The card itself captures with YUV422 - in my tests the players converted to
+I420 or YV12
 
-My last proposal is :
+I use a DVD-player as source to ensure that the video is correct.
 
-New gpio definitions
-XC3028_FE_ZARLINK456 was not loaded.
+The PC (Quad-Core, 2GB RAM, Nvidia GF 7300) should not have a problem with
+that.
 
-Signed-off-by: Michel Garnier<catimimi@libertysurfhel
+root@test:~# uname -a
+Linux allegra 2.6.35-22-generic-pae #34-Ubuntu SMP Sun Oct 10 11:03:48 UTC 
+2010 i686 GNU/Linux
 
-Regards
-Michel.
+root@test:~# dmesg |grep -E 'bttv|bt87'
+[   11.291571] bttv: driver version 0.9.18 loaded
+[   11.291574] bttv: using 8 buffers with 2080k (520 pages) each for capture
+[   11.291622] bttv: Bt8xx card found (0).
+[   11.291634] bttv 0000:37:09.0: PCI INT A -> GSI 21 (level, low) -> IRQ 21
+[   11.291642] bttv0: Bt878 (rev 17) at 0000:37:09.0, irq: 21, latency: 32, 
+mmio: 0xf0000000
+[   11.291654] bttv0: detected: Hauppauge WinTV [card=10], PCI subsystem ID is 
+0070:13eb
+[   11.291656] bttv0: using: Hauppauge (bt878) [card=10,autodetected]
+[   11.291678] bttv0: gpio: en=00000000, out=00000000 in=00ffffff [init]
+[   11.294156] bttv0: Hauppauge/Voodoo msp34xx: reset line init [5]
+[   11.326538] tveeprom 0-0050: Hauppauge model 64405, rev C1  , serial# 
+9948853
+[   11.326541] tveeprom 0-0050: tuner model is Unspecified (idx 2, type 4)
+[   11.326542] tveeprom 0-0050: TV standards UNKNOWN (eeprom 0x01)
+[   11.326544] tveeprom 0-0050: audio processor is None (idx 0)
+[   11.326546] tveeprom 0-0050: decoder processor is BT878 (idx 14)
+[   11.326547] tveeprom 0-0050: has no radio
+[   11.326548] bttv0: Hauppauge eeprom indicates model#64405
+[   11.326550] bttv0: tuner absent
+[   11.327184] bttv0: registered device video0
+[   11.327253] bttv0: registered device vbi0
+[   11.327274] bttv0: PLL: 28636363 => 35468950 .
+[   11.360144] Bt87x 0000:37:09.1: PCI INT A -> GSI 21 (level, low) -> IRQ 21
+[   11.360219] bt87x0: Using board 1, analog, digital (rate 32000 Hz)
 
 
+### video4linux device info [/dev/video0] ###
+general info
+    VIDIOCGCAP
+        name                    : "BT878 video (Hauppauge (bt878))"
+        type                    : 0x2d [CAPTURE,TELETEXT,OVERLAY,CLIPPING]
+        channels                : 4
+        audios                  : 0
+        maxwidth                : 924
+        maxheight               : 576
+        minwidth                : 48
+        minheight               : 32
 
+Any idea what can cause this problem?
 
-
-
-
---------------070506050903020805000103
-Content-Type: text/x-patch;
- name="Terratec_cynergy_hybrid_usb_xs_fr2.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="Terratec_cynergy_hybrid_usb_xs_fr2.patch"
-
-diff -ru v4l-dvb-1da5fed5c8b2-old/linux/drivers/media/video/em28xx/em28xx-cards.c v4l-dvb-1da5fed5c8b2-new/linux/drivers/media/video/em28xx/em28xx-cards.c
---- v4l-dvb-1da5fed5c8b2-old/linux/drivers/media/video/em28xx/em28xx-cards.c	2010-03-04 06:49:46.000000000 +0100
-+++ v4l-dvb-1da5fed5c8b2-new/linux/drivers/media/video/em28xx/em28xx-cards.c	2010-03-05 21:16:36.000000000 +0100
-@@ -200,6 +200,18 @@
- 	{	-1,		-1,	-1,		-1},
- };
- 
-+static struct em28xx_reg_seq terratec_cinergy_USB_XS_FR_analog[] = {
-+	{EM28XX_R08_GPIO,	0x6d,	~EM_GPIO_4,	10},
-+	{EM2880_R04_GPO,	0x00,	0xff,		10},
-+	{ -1,			-1,	-1,		-1},
-+};
-+
-+static struct em28xx_reg_seq terratec_cinergy_USB_XS_FR_digital[] = {
-+	{EM28XX_R08_GPIO,	0x6e,	~EM_GPIO_4,	10},
-+	{EM2880_R04_GPO,	0x08,	0xff,		10},
-+	{ -1,			-1,	-1,		-1},
-+};
-+
- /* eb1a:2868 Reddo DVB-C USB TV Box
-    GPIO4 - CU1216L NIM
-    Other GPIOs seems to be don't care. */
-@@ -824,22 +836,22 @@
- 		.tuner_gpio   = default_tuner_gpio,
- 		.decoder      = EM28XX_TVP5150,
- 		.has_dvb      = 1,
--		.dvb_gpio     = default_digital,
-+		.dvb_gpio     = terratec_cinergy_USB_XS_FR_digital,
- 		.input        = { {
- 			.type     = EM28XX_VMUX_TELEVISION,
- 			.vmux     = TVP5150_COMPOSITE0,
- 			.amux     = EM28XX_AMUX_VIDEO,
--			.gpio     = default_analog,
-+			.gpio     = terratec_cinergy_USB_XS_FR_analog,
- 		}, {
- 			.type     = EM28XX_VMUX_COMPOSITE1,
- 			.vmux     = TVP5150_COMPOSITE1,
- 			.amux     = EM28XX_AMUX_LINE_IN,
--			.gpio     = default_analog,
-+			.gpio     = terratec_cinergy_USB_XS_FR_analog,
- 		}, {
- 			.type     = EM28XX_VMUX_SVIDEO,
- 			.vmux     = TVP5150_SVIDEO,
- 			.amux     = EM28XX_AMUX_LINE_IN,
--			.gpio     = default_analog,
-+			.gpio     = terratec_cinergy_USB_XS_FR_analog,
- 		} },
- 	},
- 	[EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900] = {
-@@ -2259,6 +2271,7 @@
- 		ctl->demod = XC3028_FE_ZARLINK456;
- 		break;
- 	case EM2880_BOARD_TERRATEC_HYBRID_XS:
-+	case EM2880_BOARD_TERRATEC_HYBRID_XS_FR:
- 	case EM2881_BOARD_PINNACLE_HYBRID_PRO:
- 		ctl->demod = XC3028_FE_ZARLINK456;
- 		break;
-
---------------070506050903020805000103--
-
-
+thanks,
+Lukas
