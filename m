@@ -1,65 +1,171 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:49980 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750968Ab0JUTay (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:65512 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756580Ab0JOROA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Oct 2010 15:30:54 -0400
-Date: Thu, 21 Oct 2010 21:24:00 +0200
-From: Dan Carpenter <error27@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch 2/3] V4L/DVB: s5p-fimc: make it compile
-Message-ID: <20101021192400.GK5985@bicker>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+	Fri, 15 Oct 2010 13:14:00 -0400
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: lirc-list@lists.sourceforge.net
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	mchehab@infradead.org, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: [PATCH 1/5] IR: extend and sort the MCE keymap
+Date: Fri, 15 Oct 2010 18:06:35 +0200
+Message-Id: <1287158799-21486-2-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <1287158799-21486-1-git-send-email-maximlevitsky@gmail.com>
+References: <1287158799-21486-1-git-send-email-maximlevitsky@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The work_queue was partially removed in f93000ac11: "[media] s5p-fimc:
-mem2mem driver refactoring and cleanup" but this bit was missed.  Also
-we need to include sched.h otherwise the compile fails with:
+Add new keys, found on:
 
-drivers/media/video/s5p-fimc/fimc-core.c:
-	In function ‘fimc_capture_handler’:
-drivers/media/video/s5p-fimc/fimc-core.c:286:
-	error: ‘TASK_NORMAL’ undeclared (first use in this function)
+Toshiba Qosmio F50-10q.
+Toshiba Qosmio X300
+Toshiba A500-141
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
+Also sort the keytable by scancode number as that makes sense
+and alows easily to add new keycodes.
+
+Thanks to:
+Sami R <maesesami@gmail.com>
+Alexander Skiba <ghostlyrics@gmail.com>
+Jordi Pelegrin <pelegrin.jordi@gmail.com>
+
+For reports and testing.
+
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
 ---
-Compile tested only.                                       :P
+ drivers/media/IR/keymaps/rc-rc6-mce.c |   88 +++++++++++++++++----------------
+ 1 files changed, 45 insertions(+), 43 deletions(-)
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index e3a7c6a..1c1437c 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -14,6 +14,7 @@
- /*#define DEBUG*/
+diff --git a/drivers/media/IR/keymaps/rc-rc6-mce.c b/drivers/media/IR/keymaps/rc-rc6-mce.c
+index 39557ad..1b7adab 100644
+--- a/drivers/media/IR/keymaps/rc-rc6-mce.c
++++ b/drivers/media/IR/keymaps/rc-rc6-mce.c
+@@ -12,76 +12,78 @@
+ #include <media/rc-map.h>
  
- #include <linux/types.h>
-+#include <linux/sched.h>
- #include <media/videobuf-core.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-mem2mem.h>
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index 8335045..cf9bc8e 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -1593,12 +1593,6 @@ static int fimc_probe(struct platform_device *pdev)
- 		goto err_clk;
- 	}
+ static struct ir_scancode rc6_mce[] = {
+-	{ 0x800f0415, KEY_REWIND },
+-	{ 0x800f0414, KEY_FASTFORWARD },
+-	{ 0x800f041b, KEY_PREVIOUS },
+-	{ 0x800f041a, KEY_NEXT },
  
--	fimc->work_queue = create_workqueue(dev_name(&fimc->pdev->dev));
--	if (!fimc->work_queue) {
--		ret = -ENOMEM;
--		goto err_irq;
--	}
++	{ 0x800f0400, KEY_NUMERIC_0 },
++	{ 0x800f0401, KEY_NUMERIC_1 },
++	{ 0x800f0402, KEY_NUMERIC_2 },
++	{ 0x800f0403, KEY_NUMERIC_3 },
++	{ 0x800f0404, KEY_NUMERIC_4 },
++	{ 0x800f0405, KEY_NUMERIC_5 },
++	{ 0x800f0406, KEY_NUMERIC_6 },
++	{ 0x800f0407, KEY_NUMERIC_7 },
++	{ 0x800f0408, KEY_NUMERIC_8 },
++	{ 0x800f0409, KEY_NUMERIC_9 },
++
++	{ 0x800f040a, KEY_DELETE },
++	{ 0x800f040b, KEY_ENTER },
++	{ 0x800f040c, KEY_POWER },
++	{ 0x800f040d, KEY_PROG1 }, 		/* Windows MCE button */
++	{ 0x800f040e, KEY_MUTE },
++	{ 0x800f040f, KEY_INFO },
++
++	{ 0x800f0410, KEY_VOLUMEUP },
++	{ 0x800f0411, KEY_VOLUMEDOWN },
++	{ 0x800f0412, KEY_CHANNELUP },
++	{ 0x800f0413, KEY_CHANNELDOWN },
++
++	{ 0x800f0414, KEY_FASTFORWARD },
++	{ 0x800f0415, KEY_REWIND },
+ 	{ 0x800f0416, KEY_PLAY },
++	{ 0x800f0417, KEY_RECORD },
+ 	{ 0x800f0418, KEY_PAUSE },
+ 	{ 0x800f046e, KEY_PLAYPAUSE },
+ 	{ 0x800f0419, KEY_STOP },
+-	{ 0x800f0417, KEY_RECORD },
++	{ 0x800f041a, KEY_NEXT },
++	{ 0x800f041b, KEY_PREVIOUS },
++	{ 0x800f041c, KEY_NUMERIC_POUND },
++	{ 0x800f041d, KEY_NUMERIC_STAR },
+ 
+ 	{ 0x800f041e, KEY_UP },
+ 	{ 0x800f041f, KEY_DOWN },
+ 	{ 0x800f0420, KEY_LEFT },
+ 	{ 0x800f0421, KEY_RIGHT },
+ 
+-	{ 0x800f040b, KEY_ENTER },
+ 	{ 0x800f0422, KEY_OK },
+ 	{ 0x800f0423, KEY_EXIT },
+-	{ 0x800f040a, KEY_DELETE },
++	{ 0x800f0424, KEY_DVD },
++	{ 0x800f0425, KEY_TUNER }, 		/* LiveTV */
++	{ 0x800f0426, KEY_EPG }, 		/* Guide */
++	{ 0x800f0427, KEY_ZOOM }, 		/* Aspect */
+ 
+-	{ 0x800f040e, KEY_MUTE },
+-	{ 0x800f0410, KEY_VOLUMEUP },
+-	{ 0x800f0411, KEY_VOLUMEDOWN },
+-	{ 0x800f0412, KEY_CHANNELUP },
+-	{ 0x800f0413, KEY_CHANNELDOWN },
+ 	{ 0x800f043a, KEY_BRIGHTNESSUP },
+-	{ 0x800f0480, KEY_BRIGHTNESSDOWN },
 -
- 	ret = fimc_register_m2m_device(fimc);
- 	if (ret)
- 		goto err_irq;
+-	{ 0x800f0401, KEY_NUMERIC_1 },
+-	{ 0x800f0402, KEY_NUMERIC_2 },
+-	{ 0x800f0403, KEY_NUMERIC_3 },
+-	{ 0x800f0404, KEY_NUMERIC_4 },
+-	{ 0x800f0405, KEY_NUMERIC_5 },
+-	{ 0x800f0406, KEY_NUMERIC_6 },
+-	{ 0x800f0407, KEY_NUMERIC_7 },
+-	{ 0x800f0408, KEY_NUMERIC_8 },
+-	{ 0x800f0409, KEY_NUMERIC_9 },
+-	{ 0x800f0400, KEY_NUMERIC_0 },
+-
+-	{ 0x800f041d, KEY_NUMERIC_STAR },
+-	{ 0x800f041c, KEY_NUMERIC_POUND },
+ 
+ 	{ 0x800f0446, KEY_TV },
+-	{ 0x800f0447, KEY_AUDIO }, /* My Music */
+-	{ 0x800f0448, KEY_PVR }, /* RecordedTV */
++	{ 0x800f0447, KEY_AUDIO }, 		/* My Music */
++	{ 0x800f0448, KEY_PVR }, 		/* RecordedTV */
+ 	{ 0x800f0449, KEY_CAMERA },
+ 	{ 0x800f044a, KEY_VIDEO },
+-	{ 0x800f0424, KEY_DVD },
+-	{ 0x800f0425, KEY_TUNER }, /* LiveTV */
+-	{ 0x800f0450, KEY_RADIO },
+-
+ 	{ 0x800f044c, KEY_LANGUAGE },
+-	{ 0x800f0427, KEY_ZOOM }, /* Aspect */
++	{ 0x800f044d, KEY_TITLE },
++	{ 0x800f044e, KEY_PRINT }, 	/* Print - HP OEM version of remote */
+ 
++	{ 0x800f0450, KEY_RADIO },
++
++	{ 0x800f045a, KEY_SUBTITLE }, 		/* Caption/Teletext */
+ 	{ 0x800f045b, KEY_RED },
+ 	{ 0x800f045c, KEY_GREEN },
+ 	{ 0x800f045d, KEY_YELLOW },
+ 	{ 0x800f045e, KEY_BLUE },
+ 
+-	{ 0x800f040f, KEY_INFO },
+-	{ 0x800f0426, KEY_EPG }, /* Guide */
+-	{ 0x800f045a, KEY_SUBTITLE }, /* Caption/Teletext */
+-	{ 0x800f044d, KEY_TITLE },
+-
+-       { 0x800f044e, KEY_PRINT }, /* Print - HP OEM version of remote */
+-
+-	{ 0x800f040c, KEY_POWER },
+-	{ 0x800f040d, KEY_PROG1 }, /* Windows MCE button */
++	{ 0x800f046e, KEY_PLAYPAUSE },
++	{ 0x800f046f, KEY_MEDIA }, 	/* Start media application (NEW) */
+ 
++	{ 0x800f0480, KEY_BRIGHTNESSDOWN },
++	{ 0x800f0481, KEY_PLAYPAUSE },
+ };
+ 
+ static struct rc_keymap rc6_mce_map = {
+-- 
+1.7.1
+
