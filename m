@@ -1,108 +1,138 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:58811 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755703Ab0JKSFi convert rfc822-to-8bit (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:65479 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755590Ab0JOQPp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Oct 2010 14:05:38 -0400
-Received: by fxm4 with SMTP id 4so593320fxm.19
-        for <linux-media@vger.kernel.org>; Mon, 11 Oct 2010 11:05:37 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201010111740.14658.hverkuil@xs4all.nl>
-References: <201009261425.00146.hverkuil@xs4all.nl>
-	<AANLkTimWCHHP5MOnXpXpoRyfxRd5jj6=0DHpj7uoVS2E@mail.gmail.com>
-	<201010111740.14658.hverkuil@xs4all.nl>
-Date: Mon, 11 Oct 2010 14:05:37 -0400
-Message-ID: <AANLkTimA-JKRYAxin6cco2VD9-D7rJ+J_JrSEQhYZTb0@mail.gmail.com>
-Subject: Re: [GIT PATCHES FOR 2.6.37] Move V4L2 locking into the core framework
-From: David Ellingsworth <david@identd.dyndns.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Fri, 15 Oct 2010 12:15:45 -0400
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: lirc-list@lists.sourceforge.net
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	mchehab@infradead.org, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: [PATCH 3/5] IR: ene_ir: few bugfixes
+Date: Fri, 15 Oct 2010 18:06:37 +0200
+Message-Id: <1287158799-21486-4-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <1287158799-21486-1-git-send-email-maximlevitsky@gmail.com>
+References: <1287158799-21486-1-git-send-email-maximlevitsky@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Oct 11, 2010 at 11:40 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On Sunday, October 10, 2010 19:33:48 David Ellingsworth wrote:
->> Hans,
->>
->> On Sun, Sep 26, 2010 at 8:25 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> > Hi Mauro,
->> >
->> > These are the locking patches. It's based on my previous test tree, but with
->> > more testing with em28xx and radio-mr800 and some small tweaks relating to
->> > disconnect handling and video_is_registered().
->> >
->> > I also removed the unused get_unmapped_area file op and I am now blocking
->> > any further (unlocked_)ioctl calls after the device node is unregistered.
->> > The only things an application can do legally after a disconnect is unmap()
->> > and close().
->> >
->> > This patch series also contains a small em28xx fix that I found while testing
->> > the em28xx BKL removal patch.
->> >
->> > Regards,
->> >
->> >        Hans
->> >
->> > The following changes since commit dace3857de7a16b83ae7d4e13c94de8e4b267d2a:
->> >  Hans Verkuil (1):
->> >        V4L/DVB: tvaudio: remove obsolete tda8425 initialization
->> >
->> > are available in the git repository at:
->> >
->> >  ssh://linuxtv.org/git/hverkuil/v4l-dvb.git bkl
->> >
->> > Hans Verkuil (10):
->> >      v4l2-dev: after a disconnect any ioctl call will be blocked.
->> >      v4l2-dev: remove get_unmapped_area
->> >      v4l2: add core serialization lock.
->> >      videobuf: prepare to make locking optional in videobuf
->> >      videobuf: add ext_lock argument to the queue init functions
->> >      videobuf: add queue argument to videobuf_waiton()
->> >      vivi: remove BKL.
->> >      em28xx: remove BKL.
->> >      em28xx: the default std was not passed on to the subdevs
->> >      radio-mr800: remove BKL
->>
->> Did you even test these patches?
->
-> Yes, I did test. And it works for me. But you are correct in that it shouldn't
-> work since the struct will indeed be freed. I'll fix this and post a patch.
->
-> I'm not sure why it works fine when I test it.
->
-> There is a problem as well with unlocking before unregistering the device in
-> that it leaves a race condition where another app can open the device again
-> before it is registered. I have to think about that some more.
+This is a result of last round of debug with
+Sami R <maesesami@gmail.com>.
 
-Actually, no this problem did not exist. The previous version of the
-driver cleared the USB device member to indicate that the device had
-been disconnected. During open, if the USB device member was null, it
-aborted with -EIO. If there's a race there now, it's only because you
-introduced it.
+Thank you Sami very much!
 
-One thing I noticed while looking at this driver is that there's a
-call to usb_autopm_put_interface in usb_amradio_close. I'm not sure if
-it's a problem or not, but is it valid to call that after the device
-has been disconnected? I only ask, because it wasn't called in
-previous versions if the driver was disconnected before all handles to
-the device were closed. If it's incorrect to call it within this
-context, then this introduces another bug as well. It seems logical
-that for every get there should be a put, but I don't know in this
-case.
+The biggest bug I fixed is that,
+I was clobbering the CIRCFG register after it is setup
+That wasn't a good idea really
 
->
->>
->> Mauro, you should be ashamed for accepting a series that obviously has issues.
->
-> Hardly obvious, and definitely not his fault.
->
+And some small refactoring, etc.
 
-This comment was more general, since Mauro admitted having to make
-changes to your series to get it to compile under i386 architectures.
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+---
+ drivers/media/IR/ene_ir.c |   43 ++++++++++++++++++++-----------------------
+ 1 files changed, 20 insertions(+), 23 deletions(-)
 
-Regards,
+diff --git a/drivers/media/IR/ene_ir.c b/drivers/media/IR/ene_ir.c
+index dc32509..8639621 100644
+--- a/drivers/media/IR/ene_ir.c
++++ b/drivers/media/IR/ene_ir.c
+@@ -156,11 +156,12 @@ static int ene_hw_detect(struct ene_device *dev)
+ 
+ 	ene_notice("Firmware regs: %02x %02x", fw_reg1, fw_reg2);
+ 
+-	dev->hw_use_gpio_0a = fw_reg2 & ENE_FW2_GP0A;
+-	dev->hw_learning_and_tx_capable = fw_reg2 & ENE_FW2_LEARNING;
+-	dev->hw_extra_buffer = fw_reg1 & ENE_FW1_HAS_EXTRA_BUF;
+-	dev->hw_fan_input = dev->hw_learning_and_tx_capable &&
+-	    (fw_reg2 & ENE_FW2_FAN_INPUT);
++	dev->hw_use_gpio_0a = !!(fw_reg2 & ENE_FW2_GP0A);
++	dev->hw_learning_and_tx_capable = !!(fw_reg2 & ENE_FW2_LEARNING);
++	dev->hw_extra_buffer = !!(fw_reg1 & ENE_FW1_HAS_EXTRA_BUF);
++
++	if (dev->hw_learning_and_tx_capable)
++		dev->hw_fan_input = !!(fw_reg2 & ENE_FW2_FAN_INPUT);
+ 
+ 	ene_notice("Hardware features:");
+ 
+@@ -255,6 +256,8 @@ static void ene_rx_setup(struct ene_device *dev)
+ 					dev->carrier_detect_enabled;
+ 	int sample_period_adjust = 0;
+ 
++	/* This selects RLC input and clears CFG2 settings */
++	ene_write_reg(dev, ENE_CIRCFG2, 0x00);
+ 
+ 	/* set sample period*/
+ 	if (sample_period == ENE_DEFAULT_SAMPLE_PERIOD)
+@@ -268,7 +271,9 @@ static void ene_rx_setup(struct ene_device *dev)
+ 	if (dev->hw_revision < ENE_HW_C)
+ 		goto select_timeout;
+ 
+-	if (learning_mode && dev->hw_learning_and_tx_capable) {
++	if (learning_mode) {
++
++		WARN_ON(!dev->hw_learning_and_tx_capable);
+ 
+ 		/* Enable the opposite of the normal input
+ 		That means that if GPIO40 is normally used, use GPIO0A
+@@ -282,6 +287,7 @@ static void ene_rx_setup(struct ene_device *dev)
+ 		ene_set_reg_mask(dev, ENE_CIRCFG, ENE_CIRCFG_CARR_DEMOD);
+ 
+ 		/* Enable carrier detection */
++		ene_write_reg(dev, ENE_CIRCAR_PULS, 0x63);
+ 		ene_set_clear_reg_mask(dev, ENE_CIRCFG2, ENE_CIRCFG2_CARR_DETECT,
+ 			dev->carrier_detect_enabled || debug);
+ 	} else {
+@@ -343,19 +349,9 @@ static void ene_rx_enable(struct ene_device *dev)
+ 		ene_write_reg(dev, ENE_IRQ, reg_value);
+ 	}
+ 
+-	if (dev->hw_revision >= ENE_HW_C)
+-		ene_write_reg(dev, ENE_CIRCAR_PULS, 0x63);
+-
+-	/* Enable the inputs */
+-	ene_write_reg(dev, ENE_CIRCFG2, 0x00);
+-
+-	if (dev->rx_fan_input_inuse) {
+-		ene_enable_cir_engine(dev, false);
+-		ene_enable_fan_input(dev, true);
+-	} else {
+-		ene_enable_cir_engine(dev, true);
+-		ene_enable_fan_input(dev, false);
+-	}
++	/* Enable inputs */
++	ene_enable_fan_input(dev, dev->rx_fan_input_inuse);
++	ene_enable_cir_engine(dev, !dev->rx_fan_input_inuse);
+ 
+ 	/* ack any pending irqs - just in case */
+ 	ene_irq_status(dev);
+@@ -793,12 +789,10 @@ static void ene_setup_settings(struct ene_device *dev)
+ 	dev->tx_period = 32;
+ 	dev->tx_duty_cycle = 50; /*%*/
+ 	dev->transmitter_mask = 0x03;
+-
+-	dev->learning_enabled =
+-		(learning_mode && dev->hw_learning_and_tx_capable);
++	dev->learning_enabled = learning_mode;
+ 
+ 	/* Set reasonable default timeout */
+-	dev->props->timeout = MS_TO_NS(15000);
++	dev->props->timeout = MS_TO_NS(150000);
+ }
+ 
+ /* outside interface: called on first open*/
+@@ -1015,6 +1009,9 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
+ 		ene_warn("Simulation of TX activated");
+ 	}
+ 
++	if (!dev->hw_learning_and_tx_capable)
++		learning_mode = false;
++
+ 	ir_props->driver_type = RC_DRIVER_IR_RAW;
+ 	ir_props->allowed_protos = IR_TYPE_ALL;
+ 	ir_props->priv = dev;
+-- 
+1.7.1
 
-David Ellingsworth
