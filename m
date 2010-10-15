@@ -1,77 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from lo.gmane.org ([80.91.229.12]:48930 "EHLO lo.gmane.org"
+Received: from mx1.redhat.com ([209.132.183.28]:15066 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753676Ab0JWMBx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Oct 2010 08:01:53 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1P9cnG-000142-4x
-	for linux-media@vger.kernel.org; Sat, 23 Oct 2010 14:01:50 +0200
-Received: from nemi.mork.no ([148.122.252.4])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sat, 23 Oct 2010 14:01:50 +0200
-Received: from bjorn by nemi.mork.no with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sat, 23 Oct 2010 14:01:50 +0200
-To: linux-media@vger.kernel.org
-From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-Subject: linuxtv.org Wiki (was Re: cx23885 module)
-Date: Sat, 23 Oct 2010 14:01:39 +0200
-Message-ID: <878w1pkti4.fsf_-_@nemi.mork.no>
-References: <BLU0-SMTP179D180C75C88F1B693AA73A75A0@phx.gbl>
-	<4CBE0D47.7080201@kernellabs.com>
-	<BLU0-SMTP3076739B1A745CCB3563D3A75C0@phx.gbl>
-	<4CBF57F3.1000008@kernellabs.com>
-	<SNT130-w25B4AAC1A5FC7F00372440A75E0@phx.gbl>
-	<4CC18C47.9070305@kernellabs.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+	id S1756407Ab0JOVAR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Oct 2010 17:00:17 -0400
+Date: Fri, 15 Oct 2010 17:00:02 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
+	David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
+	mchehab@infradead.org, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/5] IR: ene_ir: few bugfixes
+Message-ID: <20101015210002.GP9658@redhat.com>
+References: <1287158799-21486-1-git-send-email-maximlevitsky@gmail.com>
+ <1287158799-21486-4-git-send-email-maximlevitsky@gmail.com>
+ <20101015200212.GK9658@redhat.com>
+ <1287174295.1867.1.camel@MAIN>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1287174295.1867.1.camel@MAIN>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Steven Toth <stoth@kernellabs.com> writes:
-> On 10/22/10 9:02 AM, Daniel Lee Kim wrote:
->
->> One more question, is there a place I can go to learn how to compile just the
->> cx23885.ko module? I am not able to compile only that module and so I have to
->> wait until it compiles all the modules. I apologize as this is my first time
->> tweaking a driver module. I've searched all over the net but have not found
->> anyone who wrote about this. Thanks,
->
-> The wiki at linuxtv.org should contain everything you need for
-> compiling, modifying and submitting patches.
+On Fri, Oct 15, 2010 at 10:24:55PM +0200, Maxim Levitsky wrote:
+> On Fri, 2010-10-15 at 16:02 -0400, Jarod Wilson wrote:
+> > On Fri, Oct 15, 2010 at 06:06:37PM +0200, Maxim Levitsky wrote:
+> > > This is a result of last round of debug with
+> > > Sami R <maesesami@gmail.com>.
+> > > 
+> > > Thank you Sami very much!
+> > > 
+> > > The biggest bug I fixed is that,
+> > > I was clobbering the CIRCFG register after it is setup
+> > > That wasn't a good idea really
+> > > 
+> > > And some small refactoring, etc.
+> > > 
+> > > Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+> > > ---
+> > >  drivers/media/IR/ene_ir.c |   43 ++++++++++++++++++++-----------------------
+> > >  1 files changed, 20 insertions(+), 23 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/IR/ene_ir.c b/drivers/media/IR/ene_ir.c
+> > > index dc32509..8639621 100644
+> > > --- a/drivers/media/IR/ene_ir.c
+> > > +++ b/drivers/media/IR/ene_ir.c
+> > ...
+> > > @@ -282,6 +287,7 @@ static void ene_rx_setup(struct ene_device *dev)
+> > >  		ene_set_reg_mask(dev, ENE_CIRCFG, ENE_CIRCFG_CARR_DEMOD);
+> > >  
+> > >  		/* Enable carrier detection */
+> > > +		ene_write_reg(dev, ENE_CIRCAR_PULS, 0x63);
+> > 
+> > Looks sane, though I'd prefer to see symbolic bit names or some such thing
+> > here instead of 0x63. Not something to hold up the patch though.
+> > 
+> > Acked-by: Jarod Wilson <jarod@redhat.com>
+> > 
+> 63 isn't a bitfileld, but rather two numbers.
+> 3 is number of carrier pulses to skip, and 6 is number of carrier pulses
+> to average.
+> 
+> I have a note about that in header.
 
-It should, but it does not.
+Ah, so you do. Apologies then. Personally, I'd probably document that next
+to the 0x63 as well, just so readers who neglect to go find the register
+define and discover the comment there don't think the same as me. ;)
 
-Following the path from 
-www.linuxtv.org => V4L-DVB Wiki => Developer Section => How to submit patches
-you end up at
-http://www.linuxtv.org/wiki/index.php/Development:_How_to_submit_patches
-which states
-
- 'For V4L-DVB driver modules and/or documentation, patches should be
-  created against the master V4L-DVB mercurial tree; for instructions on
-  obtaining and building these sources, see the "How to Obtain, Build and
-  Install V4L-DVB Device Drivers" article.'
-
-
-and the "How to Obtain, Build and Install V4L-DVB Device Drivers"
-article contains more of the same outdated information, with its
-references to to 2.6.16 backwards compatibility and Mercurial.
-
-For a new developer coming from the outside, this is worse than not
-having any information at all.  Anyone reading this list will know that
-the above quote is plain misleading.  But as a new developer you have no
-way to know whether other information in the same page, or even the
-whole Wiki, is just as misleading.  So you cannot trust any of it.
-Making the Wiki useless.
-
-Never write documentation you do not plan to keep updated. Delete
-outdated documentation if you don't have time/resources to update it.
-Misleading documentation is much, much worse than no documentation.
-
-Bjørn
-
+-- 
+Jarod Wilson
+jarod@redhat.com
 
