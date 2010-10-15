@@ -1,63 +1,107 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:56141 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753247Ab0JSVl1 (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4616 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753395Ab0JOIqJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Oct 2010 17:41:27 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Bastian Hecht <hechtb@googlemail.com>
-Subject: Re: OMAP 3530 ISP driver segfaults
-Date: Tue, 19 Oct 2010 23:41:42 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <AANLkTikq8pmOpGn1N4xbiB2nmsNzrC4wzcD0_HUJpZ1J@mail.gmail.com> <201010151417.38508.laurent.pinchart@ideasonboard.com> <AANLkTi=Lck0P+YS3qX+aTK-g+jPmg3BkhHNoWOVXZcX9@mail.gmail.com>
-In-Reply-To: <AANLkTi=Lck0P+YS3qX+aTK-g+jPmg3BkhHNoWOVXZcX9@mail.gmail.com>
+	Fri, 15 Oct 2010 04:46:09 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Valdis.Kletnieks@vt.edu
+Subject: Re: mmotm 2010-10-13 - GSPCA SPCA561 webcam driver broken
+Date: Fri, 15 Oct 2010 10:45:45 +0200
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+References: <201010140044.o9E0iuR3029069@imap1.linux-foundation.org> <5158.1287086789@localhost>
+In-Reply-To: <5158.1287086789@localhost>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201010192341.42556.laurent.pinchart@ideasonboard.com>
+Message-Id: <201010151045.45630.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Bastian,
-
-On Monday 18 October 2010 10:58:02 Bastian Hecht wrote:
-> 2010/10/15 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> > Hi Bastian,
+On Thursday, October 14, 2010 22:06:29 Valdis.Kletnieks@vt.edu wrote:
+> On Wed, 13 Oct 2010 17:13:25 PDT, akpm@linux-foundation.org said:
+> > The mm-of-the-moment snapshot 2010-10-13-17-13 has been uploaded to
 > > 
-> > On Friday 15 October 2010 13:59:24 Bastian Hecht wrote:
-> >> Hello ISP driver developers,
-> >> 
-> >> after the lastest pull of branch 'devel' of
-> >> git://gitorious.org/maemo-multimedia/omap3isp-rx51 I get a segfault
-> >> when I register my ISP_device.
-> >> The segfault happens in isp.c in line
-> >>      isp->iommu = iommu_get("isp");
-> >> 
-> >> I noticed that with the new kernel the module iommu is loaded
-> >> automatically after booting while it wasn't in before my pull (my old
-> >> pull is about 3 days old).
-> >> Tell me what kind of further info you need. Btw, I run an Igepv2.
-> > 
-> > Can you make sure that both the omap-iommu and iommu2 modules are loaded
-> > before omap3-isp.ko ?
+> >    http://userweb.kernel.org/~akpm/mmotm/
 > 
-> Hello Laurent,
+> This broke my webcam.  I bisected it down to this commit, and things
+> work again after reverting the 2 code lines of change.
 > 
-> that did the trick! Don't get dependencies checked at load time? I mean
-> undefined functions lead to load errors. I just want to learn to be prepared
-> next time. So was it some data structure that gets properly initilized by
-> iommu2 so that insmod cannot see the error?
+> commit 9e4d79a98ebd857ec729f5fa8f432f35def4d0da
+> Author: Hans Verkuil <hverkuil@xs4all.nl>
+> Date:   Sun Sep 26 08:16:56 2010 -0300
+> 
+>     V4L/DVB: v4l2-dev: after a disconnect any ioctl call will be blocked
+>     
+>     Until now all fops except release and (unlocked_)ioctl returned an error
+>     after the device node was unregistered. Extend this as well to the ioctl
+>     fops. There is nothing useful that an application can do here and it
+>     complicates the driver code unnecessarily.
+>     
+>     Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+> 
+> diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+> index d4a3532..f069c61 100644
+> --- a/drivers/media/video/v4l2-dev.c
+> +++ b/drivers/media/video/v4l2-dev.c
+> @@ -221,8 +221,8 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, 
+>         struct video_device *vdev = video_devdata(filp);
+>         int ret;
+>  
+> -       /* Allow ioctl to continue even if the device was unregistered.
+> -          Things like dequeueing buffers might still be useful. */
+> +       if (!vdev->fops->ioctl)
+> +               return -ENOTTY;
+>         if (vdev->fops->unlocked_ioctl) {
+>                 ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
+>         } else if (vdev->fops->ioctl) {
+> 
+> I suspect this doesn't do what's intended if a driver is using ->unlocked_ioctl
+> rather than ->ioctl, and it should be reverted - it only saves at most one
+> if statement.
+> 
+> 
 
-Direct dependencies are handled at load time, but the IOMMU seems to need 
-runtime dependencies as well. I haven't checked what happens in details yet. 
-That's somewhere in my todo list :-)
+I'm not sure what is going on here. It looks like this patch is mangled in your
+tree since the same patch in the v4l-dvb repository looks like this:
 
-> Thanks for enlightenment,
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c                                                         
+index 32575a6..26d39c4 100644                                                                                                        
+--- a/drivers/media/video/v4l2-dev.c                                                                                                 
++++ b/drivers/media/video/v4l2-dev.c                                                                                                 
+@@ -222,8 +222,8 @@ static int v4l2_ioctl(struct inode *inode, struct file *filp,                                                    
+                                                                                                                                     
+        if (!vdev->fops->ioctl)                                                                                                      
+                return -ENOTTY;                                                                                                      
+-       /* Allow ioctl to continue even if the device was unregistered.                                                              
+-          Things like dequeueing buffers might still be useful. */
++       if (!video_is_registered(vdev))
++               return -ENODEV;
+        return vdev->fops->ioctl(filp, cmd, arg);
+ }
+ 
+@@ -234,8 +234,8 @@ static long v4l2_unlocked_ioctl(struct file *filp,
+ 
+        if (!vdev->fops->unlocked_ioctl)
+                return -ENOTTY;
+-       /* Allow ioctl to continue even if the device was unregistered.
+-          Things like dequeueing buffers might still be useful. */
++       if (!video_is_registered(vdev))
++               return -ENODEV;
+        return vdev->fops->unlocked_ioctl(filp, cmd, arg);
+ }
 
-You're welcome.
+In your diff there is a mismatch between ioctl and unlocked_ioctl which no doubt
+is causing all the problems for you.
 
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
