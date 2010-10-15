@@ -1,117 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from hrndva-omtalb.mail.rr.com ([71.74.56.123]:59430 "EHLO
-	hrndva-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753473Ab0JSDdn (ORCPT
+Received: from chybek.jannau.net ([83.169.20.219]:44239 "EHLO
+	chybek.jannau.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755275Ab0JONor (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Oct 2010 23:33:43 -0400
-Subject: Re: [Ksummit-2010-discuss] [v2] Remaining BKL users, what to do
-From: Steven Rostedt <rostedt@goodmis.org>
-To: Dave Airlie <airlied@gmail.com>
-Cc: Greg KH <greg@kroah.com>, codalist@telemann.coda.cs.cmu.edu,
-	autofs@linux.kernel.org, Samuel Ortiz <samuel@sortiz.org>,
-	Jan Kara <jack@suse.cz>,
-	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Jan Harkes <jaharkes@cs.cmu.edu>, netdev@vger.kernel.org,
-	Anders Larsen <al@alarsen.net>, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	Bryan Schumaker <bjschuma@netapp.com>,
-	Christoph Hellwig <hch@infradead.org>,
-	ksummit-2010-discuss@lists.linux-foundation.org,
-	Petr Vandrovec <vandrove@vc.cvut.cz>,
-	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
-	linux-fsdevel@vger.kernel.org,
-	Evgeniy Dushistov <dushistov@mail.ru>,
-	Ingo Molnar <mingo@elte.hu>,
-	Andrew Hendry <andrew.hendry@gmail.com>,
-	linux-media@vger.kernel.org
-In-Reply-To: <AANLkTinv4VFpi=Jkc_5oyFgPbdLRg0ResJx9u9Puhm-7@mail.gmail.com>
-References: <201009161632.59210.arnd@arndb.de>
-	 <201010181742.06678.arnd@arndb.de> <20101018184346.GD27089@kroah.com>
-	 <AANLkTin2KPNNXvwcWphhM-5qexB14FS7M7ezkCCYCZ2H@mail.gmail.com>
-	 <20101019004004.GB28380@kroah.com>
-	 <AANLkTi=ffaihP5-yNYFKAbAbX+XbRgWRXXfCZd4J3KwQ@mail.gmail.com>
-	 <20101019022413.GB30307@kroah.com>
-	 <AANLkTinv4VFpi=Jkc_5oyFgPbdLRg0ResJx9u9Puhm-7@mail.gmail.com>
-Content-Type: text/plain; charset="ISO-8859-15"
-Date: Mon, 18 Oct 2010 23:33:39 -0400
-Message-ID: <1287459219.16971.352.camel@gandalf.stny.rr.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 15 Oct 2010 09:44:47 -0400
+Date: Fri, 15 Oct 2010 15:36:07 +0200
+From: Janne Grunau <j@jannau.net>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org
+Subject: [PULL] hdpvr changes for 2.6.37
+Message-ID: <20101015133607.GA7891@aniel.fritz.box>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 2010-10-19 at 12:45 +1000, Dave Airlie wrote:
-> On Tue, Oct 19, 2010 at 12:24 PM, Greg KH <greg@kroah.com> wrote:
+Hi Mauro,
 
-> > So, there is no need for the i830 driver?  Can it just be removed
-> > because i915 works instead?
-> 
-> No because it provides a different userspace ABI to the i915 driver to
-> a different userspace X driver etc.
-> 
-> like I'm sure the intersection of this driver and reality are getting
-> quite limited, but its still a userspace ABI change and needs to be
-> treated as such. Xorg 6.7 and XFree86 4.3 were the last users of the
-> old driver/API.
+please pull 
 
-Thus, you are saying that this will break for people with older user
-apps and have a newer kernel?
+git://git.jannau.net/linux hdpvr-v2.6.37
 
-> 
-> >> So it really only leaves the problem case of what do distros do if we
-> >> mark things as BROKEN_ON_SMP, since no distro builds UP kernels and
-> >> when you boot the SMP kernels on UP they don't run as SMP so not
-> >> having the driver load on those is a problem. Maybe we just need some
-> >> sort of warn on smp if a smp unfriendly driver is loaded and we
-> >> transition to SMP mode. Though this sounds like either (a) something
-> >> we do now and I don't about it, (b) work.
-> >
-> > So you are saying that just because distros will never build such a
-> > thing, we should keep it building for SMP mode?  Why not prevent it from
-> > being built and if a distro really cares, then they will pony up the
-> > development to fix the driver up?
-> 
-> Distros build the driver now even it it didn't work on SMP it wouldn't
-> matter to the 99% of people who have this hw since it can't suppport
-> SMP except in some corner cases. So not building for SMP is the same
-> as just throwing it out of the kernel since most people don't run
-> kernel.org kernels, and shouldn't have to just to get a driver for
-> some piece of hardware that worked fine up until now.
+for following hdpvr changes.
 
-Ah! Exactly! Thus, those that do not run kernel.org kernels are using a
-distro kernel. Wont these same people use the distro userspace? That is,
-if they have upgraded their kernel, most likely, they also update their
-X interface.
+thanks,
+Janne
 
-> 
-> Look at this from a user who has this hardware pov, it works for them
-> now with a distro kernel, us breaking it isn't going to help that user
-> or make any distro care, its just going to screw over the people who
-> are actually using it.
+Alan Young (4):
+      V4L/DVB: hdpvr: remove unnecessary sleep in hdpvr_config_call
+      V4L/DVB: hdpvr: remove unecessary sleep in buffer drain loop
+      V4L/DVB: hdpvr: print firmware date
+      V4L/DVB: hdpvr: decrease URB timeout to 90ms
 
-But they can use the i915 driver instead, because they are using the
-newer userspace apps.
+James M McLaren (1):
+      V4L/DVB: hdpvr: Add missing URB_NO_TRANSFER_DMA_MAP flag
 
-> 
-> > In other words, if someone really cares, then they will do the work,
-> > otherwise why worry?  Especially as it seems that no one here is going
-> > to do it, right?
-> 
-> Well the thing is doing the work right is a non-trivial task and just
-> dropping support only screws the people using the hardware,
-> it doesn't place any burden on the distro developers to fix it up. If
-> people are really serious about making the BKL go away completely, I
-> think the onus should be on them to fix the drivers not on the users
-> who are using it, like I'm  guessing if this gets broken the bug will
-> end up in Novell or RH bugzilla in a year and nobody will ever see it.
+Janne Grunau (4):
+      V4L/DVB: hdpvr: add two known to work firmware versions
+      V4L/DVB: hdpvr: use AC3 as default audio codec for SPDIF
+      V4L/DVB: hdpvr: fix audio input setting for pre AC3 firmwares
+      V4L/DVB: hdpvr: add usb product id 0x4903
 
-Well the problem comes down to testing it. I don't know of any developer
-that is removing the BKL that actually owns hardware to test out these
-broken drivers. And for the change not being trivial, means that there's
-no way to do in correctly.
-
--- Steve
-
-
-
+ drivers/media/video/hdpvr/hdpvr-control.c |    5 +---
+ drivers/media/video/hdpvr/hdpvr-core.c    |   36 +++++++++++++++++++---------
+ drivers/media/video/hdpvr/hdpvr-video.c   |    5 +--
+ drivers/media/video/hdpvr/hdpvr.h         |    7 ++++-
+ 4 files changed, 32 insertions(+), 21 deletions(-)
