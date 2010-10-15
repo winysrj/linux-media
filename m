@@ -1,19 +1,21 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com (ext-mx08.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.12])
-	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o9IB0Hg0014457
-	for <video4linux-list@redhat.com>; Mon, 18 Oct 2010 07:00:17 -0400
-Received: from mta-blr1.sasken.com (mta-blr1.sasken.com [203.200.200.72])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o9IB04Gh007885
-	for <video4linux-list@redhat.com>; Mon, 18 Oct 2010 07:00:05 -0400
-From: Rohit Vashist <rohit.vashist@sasken.com>
-To: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Date: Mon, 18 Oct 2010 16:30:00 +0530
-Subject: Query regarding V4l2 and VideoBuf buffers
-Message-ID: <6F91E0FFDA542149961F7BDED2D2B94B0FC02A1522@EXGMBX01.sasken.com>
-Content-Language: en-US
+Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.5])
+	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP
+	id o9FJKm8o030474
+	for <video4linux-list@redhat.com>; Fri, 15 Oct 2010 15:20:48 -0400
+Received: from mail-yw0-f46.google.com (mail-yw0-f46.google.com
+	[209.85.213.46])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o9FJKbYH026252
+	for <video4linux-list@redhat.com>; Fri, 15 Oct 2010 15:20:38 -0400
+Received: by ywi6 with SMTP id 6so653425ywi.33
+	for <video4linux-list@redhat.com>; Fri, 15 Oct 2010 12:20:37 -0700 (PDT)
 MIME-Version: 1.0
+Date: Fri, 15 Oct 2010 16:20:36 -0300
+Message-ID: <AANLkTikd11YrucEOQ3ugkMY=GO4fxzAg0THMRJyCR4b5@mail.gmail.com>
+Subject: Camera Configurations
+From: "Marlos C. Machado" <marlos@dcc.ufmg.br>
+To: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,20 +29,28 @@ Errors-To: video4linux-list-bounces@redhat.com
 Sender: <mchehab@pedra>
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Hello,
 
-I am writing a modules where i have allocated a buffer using kmalloc.I need to pass this buffer to be accessed by v4l2_driver.
-I have my own buffer structure in which i embed my meta data.I want that this buffer to be recognised by v4l2_driver.
-Can anyone just tell as to how to corelate this two things?
+I'm developing a game which uses a PSEye (Camera) in Ubuntu. I'm able
+to play what the camera captures in the game but the camera is auto
+adjusting its gain (V4L2_CID_AUTOGAIN). I don't want this behavior. I
+intend to disable AUTOGAIN with v4l2 and get the frames with
+gstreamer.
 
-Thanks a lot
+I've programmed this:
+
+if((ret = query_ioctl(hdevice, currentctrl, &queryctrl)) == 0)
+
+but this fails, meaning that "NEXT_CTRL flag not supported". How can I
+easily disable autogain?
+
+The code I tried to run is in here: http://gitorious.org/cameractls
+
+Thanks in advance.
 
 
--Regards
- Rohit Vashist
-
-SASKEN BUSINESS DISCLAIMER: This message may contain confidential, proprietary or legally privileged information. In case you are not the original intended Recipient of the message, you must not, directly or indirectly, use, disclose, distribute, print, or copy any part of this message and you are requested to delete it and inform the sender. Any views expressed in this message are those of the individual sender unless otherwise stated. Nothing contained in this message shall be construed as an offer or acceptance of any offer by Sasken Communication Technologies Limited ("Sasken") unless sent with that express intent and with due authority of Sasken. Sasken has taken enough precautions to prevent the spread of viruses. However the company accepts no liability for any damage caused by any virus transmitted by this email.
-Read Disclaimer at http://www.sasken.com/extras/mail_disclaimer.html
+-- 
+Marlos Cholodovskis Machado
 
 --
 video4linux-list mailing list
