@@ -1,107 +1,180 @@
 Return-path: <mchehab@pedra>
-Received: from gateway14.websitewelcome.com ([69.93.154.35]:34689 "HELO
-	gateway14.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753035Ab0JGQmz (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3981 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752203Ab0JOKDc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Oct 2010 12:42:55 -0400
-Subject: Re: [PATCH 05/16] go7007: Don't use module names to load I2C
- modules
-From: Pete Eberlein <pete@sensoray.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <1285337654-5044-6-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1285337654-5044-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	 <1285337654-5044-6-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 07 Oct 2010 09:33:19 -0700
-Message-ID: <1286469199.2477.11.camel@pete-desktop>
-Mime-Version: 1.0
+	Fri, 15 Oct 2010 06:03:32 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: mmotm 2010-10-13 - GSPCA SPCA561 webcam driver broken
+Date: Fri, 15 Oct 2010 12:02:31 +0200
+Cc: Valdis.Kletnieks@vt.edu,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+References: <201010140044.o9E0iuR3029069@imap1.linux-foundation.org> <201010151045.45630.hverkuil@xs4all.nl> <20101015020526.1819545f.akpm@linux-foundation.org>
+In-Reply-To: <20101015020526.1819545f.akpm@linux-foundation.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201010151202.31629.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Acked-by: Pete Eberlein <pete@sensoray.com>
-
-On Fri, 2010-09-24 at 16:14 +0200, Laurent Pinchart wrote:
-> With the v4l2_i2c_new_subdev* functions now supporting loading modules
-> based on modaliases, replace the hardcoded module name passed to those
-> functions by NULL.
+On Friday, October 15, 2010 11:05:26 Andrew Morton wrote:
+> On Fri, 15 Oct 2010 10:45:45 +0200 Hans Verkuil <hverkuil@xs4all.nl> wrote:
 > 
-> All corresponding I2C modules have been checked, and all of them include
-> a module aliases table with names corresponding to what the go7007
-> driver uses.
+> > On Thursday, October 14, 2010 22:06:29 Valdis.Kletnieks@vt.edu wrote:
+> > > On Wed, 13 Oct 2010 17:13:25 PDT, akpm@linux-foundation.org said:
+> > > > The mm-of-the-moment snapshot 2010-10-13-17-13 has been uploaded to
+> > > > 
+> > > >    http://userweb.kernel.org/~akpm/mmotm/
+> > > 
+> > > This broke my webcam.  I bisected it down to this commit, and things
+> > > work again after reverting the 2 code lines of change.
+> > > 
+> > > commit 9e4d79a98ebd857ec729f5fa8f432f35def4d0da
+> > > Author: Hans Verkuil <hverkuil@xs4all.nl>
+> > > Date:   Sun Sep 26 08:16:56 2010 -0300
+> > > 
+> > >     V4L/DVB: v4l2-dev: after a disconnect any ioctl call will be blocked
+> > >     
+> > >     Until now all fops except release and (unlocked_)ioctl returned an error
+> > >     after the device node was unregistered. Extend this as well to the ioctl
+> > >     fops. There is nothing useful that an application can do here and it
+> > >     complicates the driver code unnecessarily.
+> > >     
+> > >     Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+> > >     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> > > 
+> > > 
+> > > diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+> > > index d4a3532..f069c61 100644
+> > > --- a/drivers/media/video/v4l2-dev.c
+> > > +++ b/drivers/media/video/v4l2-dev.c
+> > > @@ -221,8 +221,8 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, 
+> > >         struct video_device *vdev = video_devdata(filp);
+> > >         int ret;
+> > >  
+> > > -       /* Allow ioctl to continue even if the device was unregistered.
+> > > -          Things like dequeueing buffers might still be useful. */
+> > > +       if (!vdev->fops->ioctl)
+> > > +               return -ENOTTY;
+> > >         if (vdev->fops->unlocked_ioctl) {
+> > >                 ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
+> > >         } else if (vdev->fops->ioctl) {
+> > > 
+> > > I suspect this doesn't do what's intended if a driver is using ->unlocked_ioctl
+> > > rather than ->ioctl, and it should be reverted - it only saves at most one
+> > > if statement.
+> > > 
+> > > 
+> > 
+> > I'm not sure what is going on here. It looks like this patch is mangled in your
+> > tree since the same patch in the v4l-dvb repository looks like this:
+> > 
+> > diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c                                                         
+> > index 32575a6..26d39c4 100644                                                                                                        
+> > --- a/drivers/media/video/v4l2-dev.c                                                                                                 
+> > +++ b/drivers/media/video/v4l2-dev.c                                                                                                 
+> > @@ -222,8 +222,8 @@ static int v4l2_ioctl(struct inode *inode, struct file *filp,                                                    
+> >                                                                                                                                      
+> >         if (!vdev->fops->ioctl)                                                                                                      
+> >                 return -ENOTTY;                                                                                                      
+> > -       /* Allow ioctl to continue even if the device was unregistered.                                                              
+> > -          Things like dequeueing buffers might still be useful. */
+> > +       if (!video_is_registered(vdev))
+> > +               return -ENODEV;
+> >         return vdev->fops->ioctl(filp, cmd, arg);
+> >  }
+> >  
+> > @@ -234,8 +234,8 @@ static long v4l2_unlocked_ioctl(struct file *filp,
+> >  
+> >         if (!vdev->fops->unlocked_ioctl)
+> >                 return -ENOTTY;
+> > -       /* Allow ioctl to continue even if the device was unregistered.
+> > -          Things like dequeueing buffers might still be useful. */
+> > +       if (!video_is_registered(vdev))
+> > +               return -ENODEV;
+> >         return vdev->fops->unlocked_ioctl(filp, cmd, arg);
+> >  }
+> > 
+> > In your diff there is a mismatch between ioctl and unlocked_ioctl which no doubt
+> > is causing all the problems for you.
 > 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/staging/go7007/go7007-driver.c |   43 ++-----------------------------
->  1 files changed, 3 insertions(+), 40 deletions(-)
+> The patch which Valdis quoted is what is in linux-next.  I'm not
+> at which stage the mangling happened?
 > 
-> diff --git a/drivers/staging/go7007/go7007-driver.c b/drivers/staging/go7007/go7007-driver.c
-> index 372a7c6..0a1d925 100644
-> --- a/drivers/staging/go7007/go7007-driver.c
-> +++ b/drivers/staging/go7007/go7007-driver.c
-> @@ -194,51 +194,15 @@ int go7007_reset_encoder(struct go7007 *go)
->   * Attempt to instantiate an I2C client by ID, probably loading a module.
->   */
->  static int init_i2c_module(struct i2c_adapter *adapter, const char *type,
-> -			   int id, int addr)
-> +			   int addr)
->  {
->  	struct go7007 *go = i2c_get_adapdata(adapter);
->  	struct v4l2_device *v4l2_dev = &go->v4l2_dev;
-> -	char *modname;
->  
-> -	switch (id) {
-> -	case I2C_DRIVERID_WIS_SAA7115:
-> -		modname = "wis-saa7115";
-> -		break;
-> -	case I2C_DRIVERID_WIS_SAA7113:
-> -		modname = "wis-saa7113";
-> -		break;
-> -	case I2C_DRIVERID_WIS_UDA1342:
-> -		modname = "wis-uda1342";
-> -		break;
-> -	case I2C_DRIVERID_WIS_SONY_TUNER:
-> -		modname = "wis-sony-tuner";
-> -		break;
-> -	case I2C_DRIVERID_WIS_TW9903:
-> -		modname = "wis-tw9903";
-> -		break;
-> -	case I2C_DRIVERID_WIS_TW2804:
-> -		modname = "wis-tw2804";
-> -		break;
-> -	case I2C_DRIVERID_WIS_OV7640:
-> -		modname = "wis-ov7640";
-> -		break;
-> -	case I2C_DRIVERID_S2250:
-> -		modname = "s2250";
-> -		break;
-> -	default:
-> -		modname = NULL;
-> -		break;
-> -	}
-> -
-> -	if (v4l2_i2c_new_subdev(v4l2_dev, adapter, modname, type, addr, NULL))
-> +	if (v4l2_i2c_new_subdev(v4l2_dev, adapter, NULL, type, addr, NULL))
->  		return 0;
->  
-> -	if (modname != NULL)
-> -		printk(KERN_INFO
-> -			"go7007: probing for module %s failed\n", modname);
-> -	else
-> -		printk(KERN_INFO
-> -			"go7007: sensor %u seems to be unsupported!\n", id);
-> +	printk(KERN_INFO "go7007: probing for module i2c:%s failed\n", type);
->  	return -1;
->  }
->  
-> @@ -277,7 +241,6 @@ int go7007_register_encoder(struct go7007 *go)
->  		for (i = 0; i < go->board_info->num_i2c_devs; ++i)
->  			init_i2c_module(&go->i2c_adapter,
->  					go->board_info->i2c_devs[i].type,
-> -					go->board_info->i2c_devs[i].id,
->  					go->board_info->i2c_devs[i].addr);
->  		if (go->board_id == GO7007_BOARDID_ADLINK_MPG24)
->  			i2c_clients_command(&go->i2c_adapter,
 
+OK, I see what happened. My original patch:
 
+http://git.linuxtv.org/media_tree.git?a=commitdiff;h=30de1fa062e42a74c54e94c8977d7dcef9a5049f;hp=f39385558f50f0b5b2bc9b47c187b81a8188fb10
+
+clashed with Arnd Bergmann's patch:
+
+http://git.kernel.org/?p=linux/kernel/git/next/linux-next.git;a=commit;h=86a5ef7d777cdd61dfe82379d559dbea069aea3d
+
+Someone tried to resolve the conflict but made a mistake.
+
+The result is this:
+
+static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+{
+	struct video_device *vdev = video_devdata(filp);
+	int ret;
+
+	if (!vdev->fops->ioctl)
+		return -ENOTTY;
+	if (vdev->fops->unlocked_ioctl) {
+		if (vdev->lock)
+			mutex_lock(vdev->lock);
+		ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
+		if (vdev->lock)
+			mutex_unlock(vdev->lock);
+	} else if (vdev->fops->ioctl) {
+		/* TODO: convert all drivers to unlocked_ioctl */
+		lock_kernel();
+		ret = vdev->fops->ioctl(filp, cmd, arg);
+		unlock_kernel();
+	} else
+		ret = -ENOTTY;
+
+	return ret;
+}
+
+But this is wrong.
+
+What it should be is this:
+
+static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+{
+	struct video_device *vdev = video_devdata(filp);
+	int ret = -ENODEV;
+
+	if (vdev->fops->unlocked_ioctl) {
+		if (vdev->lock)
+			mutex_lock(vdev->lock);
+		if (video_is_registered(vdev))
+			ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
+		if (vdev->lock)
+			mutex_unlock(vdev->lock);
+	} else if (vdev->fops->ioctl) {
+		/* TODO: convert all drivers to unlocked_ioctl */
+		lock_kernel();
+		if (video_is_registered(vdev))
+			ret = vdev->fops->ioctl(filp, cmd, arg);
+		unlock_kernel();
+	} else
+		ret = -ENOTTY;
+
+	return ret;
+}
+
+Mauro, is this something for you to fix?
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
