@@ -1,67 +1,195 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:59579 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753524Ab0JHAb4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Oct 2010 20:31:56 -0400
-Message-ID: <4CAE6677.3070906@redhat.com>
-Date: Thu, 07 Oct 2010 21:31:51 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:46093 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754331Ab0JOLfX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Oct 2010 07:35:23 -0400
+Received: by wyb28 with SMTP id 28so541294wyb.19
+        for <linux-media@vger.kernel.org>; Fri, 15 Oct 2010 04:35:22 -0700 (PDT)
+From: =?UTF-8?Q?Ali_G=C3=BCller?= <aliguller@gmail.com>
+To: "'Patrick Boettcher'" <pboettcher@kernellabs.com>
+Cc: "'tvbox'" <tvboxspy@gmail.com>,
+	"'Mauro Carvalho Chehab'" <maurochehab@gmail.com>,
+	"'Antti Palosaari'" <crope@iki.fi>, <linux-media@vger.kernel.org>
+References: <1283459370.3368.23.camel@canaries-desktop> <1287084843.4268.6.camel@canaries-desktop> <00e601cb6c40$78f3c720$6adb5560$@com> <201010151014.46993.pboettcher@kernellabs.com>
+In-Reply-To: <201010151014.46993.pboettcher@kernellabs.com>
+Subject: RE: Skystar USB 2 Driver
+Date: Fri, 15 Oct 2010 14:28:34 +0300
+Message-ID: <00ed01cb6c5c$1c64cbf0$552e63d0$@com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Srinivasa.Deevi@conexant.com, Palash.Bandyopadhyay@conexant.com,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 01/10] V4L/DVB: cx231xx: remove a printk warning at -avcore
- and at -417
-References: <cover.1285699057.git.mchehab@redhat.com>	<20100928154653.785c1f3f@pedra>	<4CAE4020.4000209@redhat.com> <AANLkTimVNUo1UkZQabHnQYZ+=LQGHUhGbaU9Fcot65EE@mail.gmail.com>
-In-Reply-To: <AANLkTimVNUo1UkZQabHnQYZ+=LQGHUhGbaU9Fcot65EE@mail.gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+	charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Content-Language: tr
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 07-10-2010 19:04, Devin Heitmueller escreveu:
-> On Thu, Oct 7, 2010 at 5:48 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> Em 28-09-2010 15:46, Mauro Carvalho Chehab escreveu:
->>> drivers/media/video/cx231xx/cx231xx-avcore.c:1608: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘long unsigned int’
->>> drivers/media/video/cx231xx/cx231xx-417.c:1047: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘size_t’
->>>
->>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>
->> OK, I just updated my tree with the patches that Mkrufky acked.
->> It basically contains the same patches from my previous post, plus
->> the patches that Palash sent, and Devin/Mkrufky patches from polaris4
->> tree, rebased over the top of kernel v2.6.36-rc7 (this makes easier
->> for me to test and to merge).
->>
->> The patches are at:
->>        http://git.linuxtv.org/mchehab/cx231xx.git
->>
->> Sri already sent his ack for the first series of the patches.
->>
->> The tree contains two extra patches:
->>
->> 1) a cx231xx large CodingStyle fix patch:
->>        http://git.linuxtv.org/mchehab/cx231xx.git?a=commit;h=eacd1a7749ae45d1f2f5782c013b863ff480746d
->>
->> It basically solves the issues that checkpatch.pl complained on this series of patches;
->>
->> 2) a cx231xx-417 gcc warning fix:
->>        http://git.linuxtv.org/mchehab/cx231xx.git?a=commit;h=ca3a6a8c2a4819702e93b9612c4a6d90474ea9b5
->>
->> Devin,
->>
->> Would it be ok for you if I merge them on my main tree? They're needed for one
->> board I'm working with (a Pixelview SBTVD Hybrid - that supports both analog
->> and full-seg ISDB-T).
+Hi,
+Thank you for your reply
+
+Here is my device
+http://www.linuxtv.org/wiki/index.php/TechniSat_SkyStar_USB_2
+
+TechniSat SkyStar USB 2
+>From LinuxTVWiki
+Jump to: navigation, search
+Overview
+Output of lsusb -v: 
+
+Bus 002 Device 004: ID 13d0:2282 TechniSat DVB-S Skystar USB 2
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass          255 Vendor Specific Class
+  bDeviceSubClass         0
+  bDeviceProtocol         0
+  bMaxPacketSize0        64
+  idVendor           0x13d0 TechniSat
+  idProduct          0x2282 DVB-S Skystar USB 2
+  bcdDevice            1.01
+  iManufacturer           0
+  iProduct                0
+  iSerial                 0
+  bNumConfigurations      1
+  Configuration Descriptor:
+    bLength                 9
+    bDescriptorType         2
+    wTotalLength           81
+    bNumInterfaces          1
+    bConfigurationValue     1
+    iConfiguration          0
+    bmAttributes         0xc0
+      Self Powered
+    MaxPower              222mA
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       0
+      bNumEndpoints           9
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass      0
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x03  EP 3 OUT
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x84  EP 4 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x8d  EP 13 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x0d  EP 13 OUT
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x8e  EP 14 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x0e  EP 14 OUT
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x8f  EP 15 IN
+        bmAttributes            3
+          Transfer Type            Interrupt
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0004  1x 4 bytes
+        bInterval               1
+cannot read device status, Broken pipe (32)
+
+
+
+-----Original Message-----
+From: linux-media-owner@vger.kernel.org [mailto:linux-media-owner@vger.kernel.org] On Behalf Of Patrick Boettcher
+Sent: Friday, October 15, 2010 11:15 AM
+To: Ali GÃ¼ller
+Cc: 'tvbox'; 'Mauro Carvalho Chehab'; 'Antti Palosaari'; linux-media@vger.kernel.org
+Subject: Re: Skystar USB 2 Driver
+
+On Friday 15 October 2010 10:10:44 Ali GÃ¼ller wrote:
+> Hi,
 > 
-> Yeah, I've got additional fixes which aren't on that tree yet, but I
-> don't see any reason why what's there cannot be merged.
+> I have just participated in this mail group. I wonder if there is a driver
+> for Technisat Skystar USB 2 . Thank you.
 
-Applied, thanks! Thanks to the compilation tests I do here, I discovered some
-duplicated symbols between cx23885 and cx231xx-417. I just fixed the errors.
-Patches were post to the ML and were also applied to the tree, to avoid compilation
-breakages.
+Do you have a link with a picture of  this device or a more precise description? 
 
-Cheers,
-Mauro.
+There is effectively a driver waiting to be merged for a SkyStar USB  DVB-S2, but 
+to find out if it yours, I need more information.
+
+regards,
+
+-- 
+Patrick 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
