@@ -1,11 +1,24 @@
 Return-path: <mchehab@pedra>
-To: <video4linux-list@redhat.com>
-Subject: em28xx: Terratec Grabby no sound
+Received: from mx1.redhat.com (ext-mx02.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.6])
+	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o9F1PvZB006470
+	for <video4linux-list@redhat.com>; Thu, 14 Oct 2010 21:25:57 -0400
+Received: from mail49.e.nsc.no (mail49.e.nsc.no [193.213.115.49])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o9F1PfOI023557
+	for <video4linux-list@redhat.com>; Thu, 14 Oct 2010 21:25:42 -0400
+To: vasaka@gmail.com
+Subject: Re: video loopback device
+References: <20090602220233.GA23136@geppetto>
+	<36c518800907021805v41ba3837n8dbd43fcdc0effcc@mail.gmail.com>
+From: Esben Stien <b0ef@esben-stien.name>
+Date: Fri, 15 Oct 2010 04:19:32 +0200
+In-Reply-To: <36c518800907021805v41ba3837n8dbd43fcdc0effcc@mail.gmail.com>
+	(vasaka@gmail.com's message of "Fri\,
+	3 Jul 2009 04\:05\:34 +0300")
+Message-ID: <8762x48aff.fsf@quasar.esben-stien.name>
 MIME-Version: 1.0
-Date: Sat, 23 Oct 2010 14:58:45 +0200
-From: Florian Klink <flokli@flokli.de>
-Message-ID: <69bdf328b70268bb715583f1e95ac71a@flokli.de>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: video4linux-list Mailing List <video4linux-list@redhat.com>
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -13,96 +26,30 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: video4linux-list-bounces@redhat.com
 Sender: <mchehab@pedra>
 List-ID: <video4linux-list@redhat.com>
 
- Hi,
+vasaka@gmail.com writes:
 
- I recently bought a Terratec Grabby. The device has a S-Video and 3 
- Cinch
- cables (sound left, sound right, video). I want to record some video
- cassettes with it. (with a cinch-scart adapter).
+> I am an author of http://code.google.com/p/v4l2loopback/
 
- I checked the signal, there is audio and video on it.
+Does this work with recent kernels?. It hasn't been touched for over a
+year. Do you intend to maintain this?.
 
- When I try to "play" the capture device with e.g. mplayer, I see "no
- sound", even with various options.
+I find it strange that there aren't more cries for such an
+application. There are so many v4l2 applications and we all want them to
+be gstreamer apps or JACK VIDEO apps, but a bridge to be able to feed
+v4l2 applications from gstreamer is so useful.
 
- I can hear sound only by doing "arecord -D hw:2,0 -r 32000 -c 2 -f 
- S16_LE |
- aplay -", but as soon as mplayer is starting, I can't hear anything
- anymore.
-
- ...which means that using alsa as the sound device with mplayer doesn't
- work either.
-
- Am I missing something?
-
- I checked the source code, Terratec Grabby support was introduced with
- 4557af9c5338605c85fe54f5ebba3d4b14a60ab8:
-
- -----------------------------------------
- diff --git a/drivers/media/video/em28xx/em28xx-cards.c 
- b/drivers/media/video/em28xx/em28xx-cards.c
- index 7cb93fb..b4c78f2 100644
- --- a/drivers/media/video/em28xx/em28xx-cards.c
- +++ b/drivers/media/video/em28xx/em28xx-cards.c
- @@ -1347,6 +1347,22 @@ struct em28xx_board em28xx_boards[] = {
-  			.amux     = EM28XX_AMUX_VIDEO,
-  		} },
-  	},
- +	[EM2860_BOARD_TERRATEC_GRABBY] = {
- +		.name            = "Terratec Grabby",
- +		.vchannels       = 2,
- +		.tuner_type      = TUNER_ABSENT,
- +		.decoder         = EM28XX_SAA711X,
- +		.xclk            = EM28XX_XCLK_FREQUENCY_12MHZ,
- +		.input           = { {
- +			.type     = EM28XX_VMUX_COMPOSITE1,
- +			.vmux     = SAA7115_COMPOSITE0,
- +			.amux     = EM28XX_AMUX_VIDEO2,
- +		}, {
- +			.type     = EM28XX_VMUX_SVIDEO,
- +			.vmux     = SAA7115_SVIDEO3,
- +			.amux     = EM28XX_AMUX_VIDEO2,
- +		} },
- +	},
-  };
-  const unsigned int em28xx_bcount = ARRAY_SIZE(em28xx_boards);
- 
- @@ -1410,6 +1426,8 @@ struct usb_device_id em28xx_id_table[] = {
-  			.driver_info = EM2870_BOARD_TERRATEC_XS },
-  	{ USB_DEVICE(0x0ccd, 0x0047),
-  			.driver_info = EM2880_BOARD_TERRATEC_PRODIGY_XS },
- +	{ USB_DEVICE(0x0ccd, 0x0096),
- +			.driver_info = EM2860_BOARD_TERRATEC_GRABBY },
-  	{ USB_DEVICE(0x185b, 0x2870),
-  			.driver_info = EM2870_BOARD_COMPRO_VIDEOMATE },
-  	{ USB_DEVICE(0x185b, 0x2041),
- diff --git a/drivers/media/video/em28xx/em28xx.h 
- b/drivers/media/video/em28xx/em28xx.h
- index e801f78..fa2fb41 100644
- --- a/drivers/media/video/em28xx/em28xx.h
- +++ b/drivers/media/video/em28xx/em28xx.h
- @@ -103,6 +103,7 @@
-  #define EM2860_BOARD_EASYCAP                      64
-  #define EM2820_BOARD_IODATA_GVMVP_SZ		  65
-  #define EM2880_BOARD_EMPIRE_DUAL_TV		  66
- +#define EM2860_BOARD_TERRATEC_GRABBY		  67
- 
-  /* Limits minimum and default number of buffers */
-  #define EM28XX_MIN_BUF 4
- -----------------------------------------
-
- Is there maybe a wrong amux set? Which one could it be?
- Is sound-usb-audio somehow conflicting with em28xx module?
-
- I hope you have an idea what is wrong here!
-
- Florian Klink
+-- 
+Esben Stien is b0ef@e     s      a             
+         http://www. s     t    n m
+          irc://irc.  b  -  i  .   e/%23contact
+           sip:b0ef@   e     e 
+           jid:b0ef@    n     n
 
 --
 video4linux-list mailing list
