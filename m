@@ -1,614 +1,125 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:50573 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751542Ab0JYANT convert rfc822-to-8bit (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:51842 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756402Ab0JOR6h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Oct 2010 20:13:19 -0400
-Received: by fxm16 with SMTP id 16so2387638fxm.19
-        for <linux-media@vger.kernel.org>; Sun, 24 Oct 2010 17:13:17 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1287556873-23179-6-git-send-email-m.szyprowski@samsung.com>
-References: <1287556873-23179-1-git-send-email-m.szyprowski@samsung.com> <1287556873-23179-6-git-send-email-m.szyprowski@samsung.com>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Sun, 24 Oct 2010 17:12:57 -0700
-Message-ID: <AANLkTinyzJ9B8QCyQo89HBS0-yD09fPNSrSXUEBYJVYA@mail.gmail.com>
-Subject: Re: [PATCH 5/7] v4l: videobuf2: add read() emulator
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Fri, 15 Oct 2010 13:58:37 -0400
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: lirc-list@lists.sourceforge.net
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	mchehab@infradead.org, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: [PATCH 2/7] IR: make sure we register the input device when it is safe to do so.
+Date: Fri, 15 Oct 2010 17:07:48 +0200
+Message-Id: <1287155273-16171-3-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <1287155273-16171-1-git-send-email-maximlevitsky@gmail.com>
+References: <1287155273-16171-1-git-send-email-maximlevitsky@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Marek,
-This is a pretty crafty patch, you've managed to make it nice and
-clean, without adding complexity to streaming code. Nice job. A few of
-my comments below.
+As soon as input device is registered, it might be accessed (and it is)
+This can trigger a hardware interrupt that can access
+not yet initialized ir->raw, (by sending a sample)
 
-On Tue, Oct 19, 2010 at 23:41, Marek Szyprowski
-<m.szyprowski@samsung.com> wrote:
-> Add a generic read() emulator for videobuf2. It uses MMAP memory type
-> buffers and generic vb2 calls: req_bufs, qbuf and dqbuf. Video date is
-> being copied from mmap buffers to userspace with standard copy_to_user()
-> function. To add read() support to the driver, only one additional
-> structure should be provides which defines the default number of buffers
-> used by emulator and detemines the style of read() emulation
-> ('streaming' or 'one shot').
->
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> CC: Pawel Osciak <pawel@osciak.com>
-> ---
->  drivers/media/video/videobuf2-core.c |  322 ++++++++++++++++++++++++++++++++--
->  include/media/videobuf2-core.h       |   21 +++
->  2 files changed, 325 insertions(+), 18 deletions(-)
->
-> diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-> index 4a29c49..ab00246 100644
-> --- a/drivers/media/video/videobuf2-core.c
-> +++ b/drivers/media/video/videobuf2-core.c
-> @@ -471,7 +471,7 @@ static bool __buffers_in_use(struct vb2_queue *q)
->  * The return values from this function are intended to be directly returned
->  * from vidioc_reqbufs handler in driver.
->  */
-> -int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
-> +static int __vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
->  {
->        unsigned int num_buffers, num_planes;
->        int ret = 0;
-> @@ -482,8 +482,6 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
->                return -EINVAL;
->        }
->
-> -       mutex_lock(&q->vb_lock);
-> -
->        if (req->type != q->type) {
->                dprintk(1, "reqbufs: queue type invalid\n");
->                ret = -EINVAL;
-> @@ -567,6 +565,15 @@ end:
->        mutex_unlock(&q->vb_lock);
->        return ret;
->  }
-> +
-> +int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
-> +{
-> +       int ret = 0;
-> +       mutex_lock(&q->vb_lock);
-> +       ret = (q->read_data) ? -EBUSY : __vb2_reqbufs(q, req);
-> +       mutex_unlock(&q->vb_lock);
-> +       return ret;
-> +}
->  EXPORT_SYMBOL_GPL(vb2_reqbufs);
->
->  /**
-> @@ -821,14 +828,11 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
->  * The return values from this function are intended to be directly returned
->  * from vidioc_qbuf handler in driver.
->  */
-> -int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
-> +static int __vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
->  {
->        struct vb2_buffer *vb;
-> -       int ret;
-> -
-> -       mutex_lock(&q->vb_lock);
-> +       int ret = -EINVAL;
->
-> -       ret = -EINVAL;
->        if (b->type != q->type) {
->                dprintk(1, "qbuf: invalid buffer type\n");
->                goto done;
-> @@ -887,6 +891,14 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
->        dprintk(1, "qbuf of buffer %d succeeded\n", vb->v4l2_buf.index);
->        ret = 0;
->  done:
-> +       return ret;
-> +}
-> +
-> +int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
-> +{
-> +       int ret = 0;
-> +       mutex_lock(&q->vb_lock);
-> +       ret = (q->read_data) ? -EBUSY : __vb2_qbuf(q, b);
->        mutex_unlock(&q->vb_lock);
->        return ret;
->  }
-> @@ -996,13 +1008,11 @@ end:
->  * The return values from this function are intended to be directly returned
->  * from vidioc_dqbuf handler in driver.
->  */
-> -int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
-> +static int __vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
->  {
->        struct vb2_buffer *vb = NULL;
->        int ret;
->
-> -       mutex_lock(&q->vb_lock);
-> -
->        if (b->type != q->type) {
->                dprintk(1, "dqbuf: invalid buffer type\n");
->                ret = -EINVAL;
-> @@ -1047,6 +1057,14 @@ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
->        vb->state = VB2_BUF_STATE_DEQUEUED;
->
->  done:
-> +       return ret;
-> +}
-> +
-> +int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
-> +{
-> +       int ret;
-> +       mutex_lock(&q->vb_lock);
-> +       ret = (q->read_data) ? -EBUSY : __vb2_dqbuf(q, b, nonblocking);
->        mutex_unlock(&q->vb_lock);
->        return ret;
->  }
-> @@ -1065,13 +1083,11 @@ EXPORT_SYMBOL_GPL(vb2_dqbuf);
->  * The return values from this function are intended to be directly returned
->  * from vidioc_streamon handler in the driver.
->  */
-> -int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
-> +static int __vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
->  {
->        struct vb2_buffer *vb;
->        int ret = 0;
->
-> -       mutex_lock(&q->vb_lock);
-> -
->        if (type != q->type) {
->                dprintk(1, "streamon: invalid stream type\n");
->                ret = -EINVAL;
-> @@ -1113,6 +1129,14 @@ int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
->
->        dprintk(3, "Streamon successful\n");
->  done:
-> +       return ret;
-> +}
-> +
-> +int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
-> +{
-> +       int ret;
-> +       mutex_lock(&q->vb_lock);
-> +       ret = (q->read_data) ? -EBUSY : __vb2_streamon(q, type);
->        mutex_unlock(&q->vb_lock);
->        return ret;
->  }
-> @@ -1161,12 +1185,10 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
->  * The return values from this function are intended to be directly returned
->  * from vidioc_streamoff handler in the driver
->  */
-> -int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
-> +static int __vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
->  {
->        int ret = 0;
->
-> -       mutex_lock(&q->vb_lock);
-> -
->        if (type != q->type) {
->                dprintk(1, "streamoff: invalid stream type\n");
->                ret = -EINVAL;
-> @@ -1187,6 +1209,14 @@ int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
->
->        dprintk(3, "Streamoff successful\n");
->  end:
-> +       return ret;
-> +}
-> +
-> +int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
-> +{
-> +       int ret;
-> +       mutex_lock(&q->vb_lock);
-> +       ret = (q->read_data) ? -EBUSY : __vb2_streamoff(q, type);
->        mutex_unlock(&q->vb_lock);
->        return ret;
->  }
-> @@ -1311,6 +1341,9 @@ bool vb2_has_consumers(struct vb2_queue *q)
->  }
->  EXPORT_SYMBOL_GPL(vb2_has_consumers);
->
-> +static int __vb2_init_read(struct vb2_queue *q);
-> +static int __vb2_cleanup_read(struct vb2_queue *q);
-> +
->  /**
->  * vb2_poll() - implements poll userspace operation
->  * @q:         videobuf2 queue
-> @@ -1336,6 +1369,15 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
->        mutex_lock(&q->vb_lock);
->
->        /*
-> +        * Start read() emulator if streaming api has not been used yet.
-> +        */
-> +       if (q->num_buffers == 0 && q->read_data == NULL && q->read_ctx) {
-> +               ret = __vb2_init_read(q);
-> +               if (ret)
-> +                       goto end;
-> +       }
-> +
-> +       /*
->         * There is nothing to wait for if no buffers have already been queued.
->         */
->        if (list_empty(&q->queued_list)) {
-> @@ -1378,12 +1420,15 @@ EXPORT_SYMBOL_GPL(vb2_poll);
->  *             the given context will be used for memory allocation on all
->  *             planes and buffers; it is possible to assign different contexts
->  *             per plane, use vb2_set_alloc_ctx() for that
-> + * @read_ctx:  parameters for read() api to be used; can be NULL if no read
-> + *             callback is used
->  * @type:      queue type
->  * @drv_priv:  driver private data, may be NULL; it can be used by driver in
->  *             driver-specific callbacks when issued
->  */
->  int vb2_queue_init(struct vb2_queue *q, const struct vb2_ops *ops,
->                        const struct vb2_alloc_ctx *alloc_ctx,
-> +                       const struct vb2_read_ctx *read_ctx,
->                        enum v4l2_buf_type type, void *drv_priv)
->  {
->        unsigned int i;
-> @@ -1403,6 +1448,7 @@ int vb2_queue_init(struct vb2_queue *q, const struct vb2_ops *ops,
->        for (i = 0; i < VIDEO_MAX_PLANES; ++i)
->                q->alloc_ctx[i] = alloc_ctx;
->
-> +       q->read_ctx = read_ctx;
->        q->type = type;
->        q->drv_priv = drv_priv;
->
-> @@ -1428,6 +1474,7 @@ void vb2_queue_release(struct vb2_queue *q)
->  {
->        mutex_lock(&q->vb_lock);
->
-> +       __vb2_cleanup_read(q);
->        __vb2_queue_cancel(q);
->        __vb2_queue_free(q);
->
-> @@ -1435,6 +1482,245 @@ void vb2_queue_release(struct vb2_queue *q)
->  }
->  EXPORT_SYMBOL_GPL(vb2_queue_release);
->
-> +/**
-> + * struct vb2_read_data - internal structure used by read() emulator
-> + *
-> + * vb2 provides a compatibility layer and emulator of read() calls on top
-> + * of streaming api. For proper operation it required this structure to
-> + * save the driver state between each call of the read function.
-> + */
-> +struct vb2_read_data {
-> +       struct v4l2_requestbuffers req;
-> +       struct v4l2_buffer b;
-> +       void *buff_vaddr[VIDEO_MAX_FRAME];
-> +       unsigned cur_offset;
-> +       unsigned cur_bufsize;
-> +       unsigned read_offset;
-> +       int cur_buffer;
-> +       int buffer_count;
-> +};
-> +
-> +/**
-> + * __vb2_init_read() - initialize read() emulator
-> + * @q:         videobuf2 queue
-> + */
-> +static int __vb2_init_read(struct vb2_queue *q)
-> +{
-> +       struct vb2_read_data *rd;
-> +       int i, ret;
-> +
-> +       if (!q->read_ctx)
-> +               BUG();
-> +
-> +       /*
-> +        * Check if device supports mapping buffers to kernel virtual space
-> +        */
-> +       if (!q->alloc_ctx[0]->mem_ops->vaddr)
-> +               return -EBUSY;
-> +
-> +       /*
-> +        * Check if steaming api has not been already activated.
-> +        */
-> +       if (q->streaming || q->num_buffers > 0)
-> +               return -EBUSY;
-> +
-> +       /*
-> +        * Basic checks done, lets try to set up read emulator
-> +        */
-> +       dprintk(3, "setting up read() emulator\n");
-> +
-> +       q->read_data = kmalloc(sizeof(struct vb2_read_data), GFP_KERNEL);
-> +       if (q->read_data == NULL)
-> +               return -ENOMEM;
-> +
-> +       memset(q->read_data, 0, sizeof(*q->read_data));
+This can be reproduced by holding down a remote button and reloading the module.
+And this always crashes the systems where hardware decides to send an interrupt
+right at the moment it is enabled.
 
-kzalloc() ?
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+Acked-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/IR/ir-core-priv.h |    1 +
+ drivers/media/IR/ir-keytable.c  |    2 ++
+ drivers/media/IR/ir-sysfs.c     |   27 +++++++++++++++++----------
+ 3 files changed, 20 insertions(+), 10 deletions(-)
 
-> +       rd = q->read_data;
-> +
-> +       /*
-> +        * Request buffers and use MMAP type to force driver
-> +        * to allocate buffers by itself.
-> +        */
-> +       rd->req.count = q->read_ctx->num_bufs;
-> +       rd->req.memory = V4L2_MEMORY_MMAP;
-> +       rd->req.type = q->type;
-> +       ret = __vb2_reqbufs(q, &rd->req);
-> +       if (ret)
-> +               goto err_kfree;
-> +
-> +       /*
-> +        * Check if plane_count is correct
-> +        * (multiplane buffers are not supported).
-> +        */
-> +       if (q->bufs[0]->num_planes != 1) {
-> +               rd->req.count = 0;
-> +               ret = -EBUSY;
-> +               goto err_reqbufs;
-> +       }
-> +
-> +       /*
-> +        * Get kernel address of each buffer.
-> +        */
-> +       for (i = 0; i < q->num_buffers; i++)
-> +               rd->buff_vaddr[i] = vb2_plane_vaddr(q->bufs[i], 0);
-> +
-
-Even if the driver provided a vaddr() callback, it may still return a
-NULL. I'd be better to verify that here.
-
-> +       /*
-> +        * Queue all buffers.
-> +        */
-> +       for (i = 0; i < q->num_buffers; i++) {
-> +               memset(&rd->b, 0, sizeof(rd->b));
-> +               rd->b.type = q->type;
-> +               rd->b.memory = q->memory;
-> +               rd->b.index = i;
-> +               ret = __vb2_qbuf(q, &rd->b);
-> +               if (ret)
-> +                       goto err_reqbufs;
-> +       }
-> +
-> +       /*
-> +        * Start streaming.
-> +        */
-> +       ret = __vb2_streamon(q, q->type);
-> +       if (ret)
-> +               goto err_reqbufs;
-> +
-> +       return ret;
-> +
-> +err_reqbufs:
-> +       __vb2_reqbufs(q, &rd->req);
-> +
-> +err_kfree:
-> +       kfree(q->read_data);
-> +       return ret;
-> +}
-> +
-> +/**
-> + * __vb2_cleanup_read() - free resourced used by read() emulator
-> + * @q:         videobuf2 queue
-> + */
-> +static int __vb2_cleanup_read(struct vb2_queue *q)
-> +{
-> +       struct vb2_read_data *rd = q->read_data;
-> +       if (rd) {
-> +               __vb2_streamoff(q, q->type);
-> +               rd->req.count = 0;
-> +               __vb2_reqbufs(q, &rd->req);
-> +               kfree(rd);
-> +               q->read_data = NULL;
-> +               dprintk(3, "read() emulator released\n");
-> +       }
-> +       return 0;
-> +}
-> +
-> +size_t vb2_read(struct vb2_queue *q, char __user *data, size_t count,
-> +               loff_t *ppos, int nonblocking)
-> +{
-> +       struct vb2_read_data *rd;
-> +       int ret;
-> +
-> +       dprintk(3, "read: offset %ld, count %d, %sblocking\n", (long)*ppos,
-> +               count, nonblocking ? "non" : "");
-> +
-> +       if (!data)
-> +               return -EINVAL;
-> +
-> +       mutex_lock(&q->vb_lock);
-> +
-> +       /*
-> +        * Initialize emulator on first read() call.
-> +        */
-> +       if (!q->read_data) {
-> +               ret = __vb2_init_read(q);
-> +               dprintk(3, "read: vb2_init_read result: %d\n", ret);
-> +               if (ret)
-> +                       goto end;
-> +       }
-> +
-> +       rd = q->read_data;
-> +
-> +       /*
-> +        * Current buffer is empty...
-> +        */
-> +       if (rd->cur_offset == 0 && rd->cur_bufsize == 0) {
-> +               /*
-> +                * ... check if this was the last buffer to read.
-> +                */
-> +               if (q->read_ctx->read_once &&
-> +                   rd->buffer_count == q->read_ctx->num_bufs) {
-> +                       ret = __vb2_cleanup_read(q);
-> +                       goto end;
-> +               }
-> +
-> +               /*
-> +                * ... or call vb2_dqbuf to get next buffer with data.
-> +                */
-> +               memset(&rd->b, 0, sizeof(rd->b));
-> +               rd->b.type = q->type;
-> +               rd->b.memory = q->memory;
-> +               rd->b.index = rd->cur_buffer;
-> +               ret = __vb2_dqbuf(q, &rd->b, nonblocking);
-> +               dprintk(5, "read: vb2_dqbuf result: %d\n", ret);
-> +               if (ret)
-> +                       goto end;
-> +               rd->buffer_count += 1;
-> +               rd->cur_bufsize = rd->b.length;
-
-This is tricky. Since you are supporting both non-multiplanar types
-and 1-plane multiplanar, in the latter case this value will be in
-b.m.planes[0]->length instead.
-
-> +       }
-> +
-> +       /*
-> +        * Limit count on last few bytes of the buffer.
-> +        */
-
-This comment is confusing. Maybe something like "If the user requested
-more bytes than we can fit in buffer, reduce that number" would be
-better?
-
-> +       if (count + rd->cur_offset > rd->cur_bufsize) {
-> +               count = rd->cur_bufsize - rd->cur_offset;
-> +               dprintk(5, "reducing read count: %d\n", count);
-> +       }
-> +
-> +       /*
-> +        * Transfer data to userspace.
-> +        */
-> +       dprintk(3, "read: copying %d data from buffer %d (offset %d bytes)\n",
-> +               count, rd->cur_buffer, rd->cur_offset);
-> +       if (copy_to_user(data,
-> +                        rd->buff_vaddr[rd->cur_buffer] + rd->cur_offset,
-> +                        count)) {
-> +               dprintk(3, "read: error copying data\n");
-> +               ret = -EFAULT;
-> +               goto end;
-> +       }
-> +
-> +       /*
-> +        * Update counters.
-> +        */
-> +       rd->cur_offset += count;
-> +       rd->read_offset += count;
-> +       *ppos += count;
-> +
-> +       /*
-> +        * Queue next buffer if required.
-> +        */
-> +       if (rd->cur_offset == rd->cur_bufsize) {
-
-This should actually be rd->cur_offset == rd->b.planes[0].bytesused
-for 1-plane multiplanar and rd->b.bytesused for non-multiplanar. (See
-also my comment about length above). You want to get the size of
-actual video data, which may be smaller than buffer size.
-
-By the way, vb2 internally always stores those values in planes[0],
-even for non-multiplanar types, which makes things more consistent,
-but you are using dqbuf and everything gets moved back to v4l2_buffer
-struct there.
-
-> +               memset(&rd->b, 0, sizeof(rd->b));
-> +               rd->b.type = q->type;
-> +               rd->b.memory = q->memory;
-> +               rd->b.index = rd->cur_buffer;
-> +               ret = __vb2_qbuf(q, &rd->b);
-> +               dprintk(5, "read: vb2_dbuf result: %d\n", ret);
-> +               if (ret)
-> +                       goto end;
-> +               rd->cur_buffer = (rd->cur_buffer + 1) % q->num_buffers;
-> +               rd->cur_offset = 0;
-> +               rd->cur_bufsize = 0;
-> +       }
-> +
-> +       /*
-> +        * Return proper number of bytes read.
-> +        */
-> +       if (ret == 0)
-> +               ret = count;
-> +end:
-> +       mutex_unlock(&q->vb_lock);
-> +       return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(vb2_read);
-> +
->  MODULE_DESCRIPTION("Driver helper framework for Video for Linux 2");
-> -MODULE_AUTHOR("Pawel Osciak");
-> +MODULE_AUTHOR("Pawel Osciak, Marek Szyprowski");
->  MODULE_LICENSE("GPL");
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index 76d0b4e..8c1ce06 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -18,6 +18,7 @@
->  #include <linux/poll.h>
->
->  struct vb2_alloc_ctx;
-> +struct vb2_read_data;
->
->  /**
->  * struct vb2_mem_ops - memory handling/memory allocator operations
-> @@ -210,6 +211,18 @@ struct vb2_ops {
->  };
->
->  /**
-> + * struct vb2_read_ctx - defaults for read() callback emulator
-> + *
-> + * @num_bufs:  number of buffers used by the emulator
-> + * @read_once: determines weather read emulator return EOF after processing
-> + *             @num_bufs or queues buffer again for new data
-> + */
-> +struct vb2_read_ctx {
-> +       int     num_bufs;
-> +       int     read_once;
-> +};
-> +
-> +/**
->  * struct vb2_queue - a videobuf queue
->  *
->  * @type:      current queue type
-> @@ -227,6 +240,8 @@ struct vb2_ops {
->  * @streaming: current streaming state
->  * @userptr_supported: true if queue supports USERPTR types
->  * @mmap_supported: true if queue supports MMAP types
-> + * @read_ctx:  defaults for read() emulator, can be NULL
-> + * @read_data: read() emulator internal data, used only if emulator is active
->  */
->  struct vb2_queue {
->        enum v4l2_buf_type              type;
-> @@ -250,6 +265,9 @@ struct vb2_queue {
->        int                             streaming:1;
->        int                             userptr_supported:1;
->        int                             mmap_supported:1;
-> +
-> +       const struct vb2_read_ctx       *read_ctx;
-> +       struct vb2_read_data            *read_data;
->  };
->
->  void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no);
-> @@ -262,6 +280,7 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req);
->
->  int vb2_queue_init(struct vb2_queue *q, const struct vb2_ops *ops,
->                        const struct vb2_alloc_ctx *alloc_ctx,
-> +                       const struct vb2_read_ctx *read_ctx,
->                        enum v4l2_buf_type type, void *drv_priv);
->  void vb2_queue_release(struct vb2_queue *q);
->
-> @@ -273,6 +292,8 @@ int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type);
->
->  int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma);
->  unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait);
-> +size_t vb2_read(struct vb2_queue *q, char __user *data, size_t count,
-> +               loff_t *ppos, int nonblocking);
->
->  /**
->  * vb2_is_streaming() - return streaming status of the queue
-> --
-> 1.7.1.569.g6f426
->
->
-
-
-
+diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
+index 761e7f4..5d7e08f 100644
+--- a/drivers/media/IR/ir-core-priv.h
++++ b/drivers/media/IR/ir-core-priv.h
+@@ -116,6 +116,7 @@ static inline void decrease_duration(struct ir_raw_event *ev, unsigned duration)
+  * Routines from ir-sysfs.c - Meant to be called only internally inside
+  * ir-core
+  */
++int ir_register_input(struct input_dev *input_dev);
+ 
+ int ir_register_class(struct input_dev *input_dev);
+ void ir_unregister_class(struct input_dev *input_dev);
+diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
+index a3f0af3..1997812 100644
+--- a/drivers/media/IR/ir-keytable.c
++++ b/drivers/media/IR/ir-keytable.c
+@@ -505,6 +505,8 @@ int __ir_input_register(struct input_dev *input_dev,
+ 				goto out_event;
+ 		}
+ 
++	rc = ir_register_input(input_dev);
++
+ 	IR_dprintk(1, "Registered input device on %s for %s remote%s.\n",
+ 		   driver_name, rc_tab->name,
+ 		   (ir_dev->props && ir_dev->props->driver_type == RC_DRIVER_IR_RAW) ?
+diff --git a/drivers/media/IR/ir-sysfs.c b/drivers/media/IR/ir-sysfs.c
+index 46d4246..ada2ec6 100644
+--- a/drivers/media/IR/ir-sysfs.c
++++ b/drivers/media/IR/ir-sysfs.c
+@@ -256,8 +256,6 @@ static struct device_type rc_dev_type = {
+  */
+ int ir_register_class(struct input_dev *input_dev)
+ {
+-	int rc;
+-	const char *path;
+ 	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
+ 	int devno = find_first_zero_bit(&ir_core_dev_number,
+ 					IRRCV_NUM_DEVICES);
+@@ -266,17 +264,28 @@ int ir_register_class(struct input_dev *input_dev)
+ 		return devno;
+ 
+ 	ir_dev->dev.type = &rc_dev_type;
++	ir_dev->devno = devno;
+ 
+ 	ir_dev->dev.class = &ir_input_class;
+ 	ir_dev->dev.parent = input_dev->dev.parent;
++	input_dev->dev.parent = &ir_dev->dev;
+ 	dev_set_name(&ir_dev->dev, "rc%d", devno);
+ 	dev_set_drvdata(&ir_dev->dev, ir_dev);
+-	rc = device_register(&ir_dev->dev);
+-	if (rc)
+-		return rc;
++	return  device_register(&ir_dev->dev);
++};
++
++/**
++ * ir_register_input - registers ir input device with input subsystem
++ * @input_dev:	the struct input_dev descriptor of the device
++ */
++
++int ir_register_input(struct input_dev *input_dev)
++{
++	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
++	int rc;
++	const char *path;
+ 
+ 
+-	input_dev->dev.parent = &ir_dev->dev;
+ 	rc = input_register_device(input_dev);
+ 	if (rc < 0) {
+ 		device_del(&ir_dev->dev);
+@@ -292,11 +301,9 @@ int ir_register_class(struct input_dev *input_dev)
+ 		path ? path : "N/A");
+ 	kfree(path);
+ 
+-	ir_dev->devno = devno;
+-	set_bit(devno, &ir_core_dev_number);
+-
++	set_bit(ir_dev->devno, &ir_core_dev_number);
+ 	return 0;
+-};
++}
+ 
+ /**
+  * ir_unregister_class() - removes the sysfs for sysfs for
 -- 
-Best regards,
-Pawel Osciak
+1.7.1
+
