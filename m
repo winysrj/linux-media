@@ -1,51 +1,40 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:50141 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752356Ab0JWKtb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Oct 2010 06:49:31 -0400
-Message-ID: <4CC2BDB7.1010502@iki.fi>
-Date: Sat, 23 Oct 2010 13:49:27 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:35338 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756166Ab0JOQgt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Oct 2010 12:36:49 -0400
+Received: by gxk6 with SMTP id 6so440217gxk.19
+        for <linux-media@vger.kernel.org>; Fri, 15 Oct 2010 09:36:49 -0700 (PDT)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+In-Reply-To: <4CB3611F.1030108@infradead.org>
+References: <201009261425.00146.hverkuil@xs4all.nl>
+	<AANLkTimWCHHP5MOnXpXpoRyfxRd5jj6=0DHpj7uoVS2E@mail.gmail.com>
+	<201010111740.14658.hverkuil@xs4all.nl>
+	<AANLkTimA-JKRYAxin6cco2VD9-D7rJ+J_JrSEQhYZTb0@mail.gmail.com>
+	<4CB3611F.1030108@infradead.org>
+Date: Fri, 15 Oct 2010 12:36:46 -0400
+Message-ID: <AANLkTikoO4GF2KgikbJ5Mwb2TKB-7zYTjJgiZpcx1moV@mail.gmail.com>
+Subject: Re: [GIT PATCHES FOR 2.6.37] Move V4L2 locking into the core framework
+From: David Ellingsworth <david@identd.dyndns.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
 	linux-media@vger.kernel.org
-CC: Renura Enterprises Pty Ltd <renura@digitalnow.com.au>,
-	Bernard Giannetti <thebernmeister@hotmail.com>
-Subject: [GIT PULL FOR 2.6.37] af9015 new device and remote controller changes
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Moikka Mauro,
+Hans,
 
-PULL following changes to the 2.6.37-RC1.
+I noticed a couple more issues with this series. In your changes to
+radio-mr800, you removed the lock from usb_amradio_suspend and
+usb_amradio_resume without implementing resume/suspend support in the
+v4l2 core. Without resume/suspend support in the v4l2 core, the
+locking within usb_amradio_suspend and usb_amradio_resume must remain
+to prevent races between other open/close/ioctl/read/mmap/etc and the
+resume/suspend cycle. Please revert the changes you made to these two
+functions.
 
-t. Antti
+Regards,
 
-The following changes since commit a348e9110ddb5d494e060d989b35dd1f35359d58:
-
-   [media] cx25840: fix problem with Terratec Grabster AV400 (2010-10-18 
-04:11:44 -0200)
-
-are available in the git repository at:
-   git://linuxtv.org/anttip/media_tree.git af9015
-
-Antti Palosaari (4):
-       af9015: RC fixes and improvements
-       DigitalNow TinyTwin remote controller
-       af9015: map DigitalNow TinyTwin v2 remote
-       af9015: support for DigitalNow TinyTwin v3 [1f4d:9016]
-
-  drivers/media/IR/keymaps/Makefile                 |    1 +
-  drivers/media/IR/keymaps/rc-digitalnow-tinytwin.c |   98 
-+++++++++++++++++++++
-  drivers/media/dvb/dvb-usb/af9015.c                |   88 
-+++++++++----------
-  drivers/media/dvb/dvb-usb/dvb-usb-ids.h           |    2 +
-  include/media/rc-map.h                            |    1 +
-  5 files changed, 142 insertions(+), 48 deletions(-)
-  create mode 100644 drivers/media/IR/keymaps/rc-digitalnow-tinytwin.c
-
--- 
-http://palosaari.fi/
+David Ellingsworth
