@@ -1,45 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from smtp28.orange.fr ([80.12.242.101]:59184 "EHLO smtp28.orange.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751069Ab0JATzt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Oct 2010 15:55:49 -0400
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2827.orange.fr (SMTP Server) with ESMTP id B563B800021C
-	for <linux-media@vger.kernel.org>; Fri,  1 Oct 2010 21:55:47 +0200 (CEST)
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2827.orange.fr (SMTP Server) with ESMTP id A4611800028D
-	for <linux-media@vger.kernel.org>; Fri,  1 Oct 2010 21:55:47 +0200 (CEST)
-Received: from roazhon.bzh.lan (ARennes-256-1-120-172.w90-32.abo.wanadoo.fr [90.32.119.172])
-	by mwinf2827.orange.fr (SMTP Server) with ESMTP id 6A5A7800021C
-	for <linux-media@vger.kernel.org>; Fri,  1 Oct 2010 21:55:47 +0200 (CEST)
-From: "Yann E. MORIN" <yann.morin.1998@anciens.enib.fr>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] v4l/dvb: add support for AVerMedia AVerTV Red HD+ (A850T), v2
-Date: Fri,  1 Oct 2010 21:55:42 +0200
-Message-Id: <1285962943-20312-1-git-send-email-yann.morin.1998@anciens.enib.fr>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:45924 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754292Ab0JOM2C (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Oct 2010 08:28:02 -0400
+Received: by wyb28 with SMTP id 28so585023wyb.19
+        for <linux-media@vger.kernel.org>; Fri, 15 Oct 2010 05:28:01 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4CB73184.8010309@redhat.com>
+References: <4CB73184.8010309@redhat.com>
+Date: Fri, 15 Oct 2010 08:28:00 -0400
+Message-ID: <AANLkTi=MAw6z=XuA=j3JKx0HftKappDxAwig=iqUBu=9@mail.gmail.com>
+Subject: Re: Re: [PULL] http://kernellabs.com/hg/~stoth/saa7164-v4l
+From: Steven Toth <stoth@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux-Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello All!
+Sorry, SOB
 
-This patch adds support for the AverMedia AVerTV Red HD+ (aka A850T)
-DVB-T USB stick, available (exclusively?) on the french market.
+On Thu, Oct 14, 2010 at 12:36 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Hi Steven,
+>
+> I'm still missing your SOB for the three patches from Gavin.
+>
+> Please reply to this thread publicly with your SOB, and I'll add both SOB's on my tree.
+>
+> Thanks,
+> Mauro
 
-Changes since v1:
-- move to its own device description
-- rebase on top staging/v2.6.37 in the media_tree git tree
+Sorry, a mix of travel and time away from email.
 
-checkpatch.pl warns about two lines that are longer than 80 chars,
-but I am not sure how to split them and still keep readable code.
-Suggestions welcome. ;-)
+For all three patches by Gavin:
 
-Note: only the DVB-T reception has been tested, not the remote
-controler part, as I do not use it. It may come later as I may
-eventually need it.
-
-Thanks to Antti for his suggestions and guidance. :-)
+Signed-off-by: Steven Toth <stoth@kernellabs.com>
 
 Regards,
-Yann E. MORIN.
 
+- Steve
 
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
