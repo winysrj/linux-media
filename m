@@ -1,88 +1,106 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:17595 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756795Ab0JLJwz (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43789 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753035Ab0JOJEn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Oct 2010 05:52:55 -0400
-Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LA600FL38S5RF@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 12 Oct 2010 10:52:53 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LA600D5D8S4QF@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 12 Oct 2010 10:52:52 +0100 (BST)
-Date: Tue, 12 Oct 2010 11:52:52 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [GIT PATCHES FOR 2.6.37]  s5p-fimc camera host interface and SR030PC30
- sensor drivers
-To: linux-media@vger.kernel.org
-Cc: Kyungmin Park <kyungmin.park@samsung.com>,
-	"Marek Szyprowski/Poland R&D Center-Linux (MSS)/./????"
-	<m.szyprowski@samsung.com>
-Message-id: <4CB42FF4.7060707@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7BIT
+	Fri, 15 Oct 2010 05:04:43 -0400
+Date: Fri, 15 Oct 2010 02:05:26 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Valdis.Kletnieks@vt.edu,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: mmotm 2010-10-13 - GSPCA SPCA561 webcam driver broken
+Message-Id: <20101015020526.1819545f.akpm@linux-foundation.org>
+In-Reply-To: <201010151045.45630.hverkuil@xs4all.nl>
+References: <201010140044.o9E0iuR3029069@imap1.linux-foundation.org>
+	<5158.1287086789@localhost>
+	<201010151045.45630.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+On Fri, 15 Oct 2010 10:45:45 +0200 Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
+> On Thursday, October 14, 2010 22:06:29 Valdis.Kletnieks@vt.edu wrote:
+> > On Wed, 13 Oct 2010 17:13:25 PDT, akpm@linux-foundation.org said:
+> > > The mm-of-the-moment snapshot 2010-10-13-17-13 has been uploaded to
+> > > 
+> > >    http://userweb.kernel.org/~akpm/mmotm/
+> > 
+> > This broke my webcam.  I bisected it down to this commit, and things
+> > work again after reverting the 2 code lines of change.
+> > 
+> > commit 9e4d79a98ebd857ec729f5fa8f432f35def4d0da
+> > Author: Hans Verkuil <hverkuil@xs4all.nl>
+> > Date:   Sun Sep 26 08:16:56 2010 -0300
+> > 
+> >     V4L/DVB: v4l2-dev: after a disconnect any ioctl call will be blocked
+> >     
+> >     Until now all fops except release and (unlocked_)ioctl returned an error
+> >     after the device node was unregistered. Extend this as well to the ioctl
+> >     fops. There is nothing useful that an application can do here and it
+> >     complicates the driver code unnecessarily.
+> >     
+> >     Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+> >     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> > 
+> > 
+> > diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+> > index d4a3532..f069c61 100644
+> > --- a/drivers/media/video/v4l2-dev.c
+> > +++ b/drivers/media/video/v4l2-dev.c
+> > @@ -221,8 +221,8 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, 
+> >         struct video_device *vdev = video_devdata(filp);
+> >         int ret;
+> >  
+> > -       /* Allow ioctl to continue even if the device was unregistered.
+> > -          Things like dequeueing buffers might still be useful. */
+> > +       if (!vdev->fops->ioctl)
+> > +               return -ENOTTY;
+> >         if (vdev->fops->unlocked_ioctl) {
+> >                 ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
+> >         } else if (vdev->fops->ioctl) {
+> > 
+> > I suspect this doesn't do what's intended if a driver is using ->unlocked_ioctl
+> > rather than ->ioctl, and it should be reverted - it only saves at most one
+> > if statement.
+> > 
+> > 
+> 
+> I'm not sure what is going on here. It looks like this patch is mangled in your
+> tree since the same patch in the v4l-dvb repository looks like this:
+> 
+> diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c                                                         
+> index 32575a6..26d39c4 100644                                                                                                        
+> --- a/drivers/media/video/v4l2-dev.c                                                                                                 
+> +++ b/drivers/media/video/v4l2-dev.c                                                                                                 
+> @@ -222,8 +222,8 @@ static int v4l2_ioctl(struct inode *inode, struct file *filp,                                                    
+>                                                                                                                                      
+>         if (!vdev->fops->ioctl)                                                                                                      
+>                 return -ENOTTY;                                                                                                      
+> -       /* Allow ioctl to continue even if the device was unregistered.                                                              
+> -          Things like dequeueing buffers might still be useful. */
+> +       if (!video_is_registered(vdev))
+> +               return -ENODEV;
+>         return vdev->fops->ioctl(filp, cmd, arg);
+>  }
+>  
+> @@ -234,8 +234,8 @@ static long v4l2_unlocked_ioctl(struct file *filp,
+>  
+>         if (!vdev->fops->unlocked_ioctl)
+>                 return -ENOTTY;
+> -       /* Allow ioctl to continue even if the device was unregistered.
+> -          Things like dequeueing buffers might still be useful. */
+> +       if (!video_is_registered(vdev))
+> +               return -ENODEV;
+>         return vdev->fops->unlocked_ioctl(filp, cmd, arg);
+>  }
+> 
+> In your diff there is a mismatch between ioctl and unlocked_ioctl which no doubt
+> is causing all the problems for you.
 
-The following changes since commit 9147e3dbca0712a5435cd2ea7c48d39344f904eb
-
-V4L/DVB: cx231xx: use core-assisted lock (Sat Oct 9 13:13:35 2010)
-
-are available in the git repository at:
-
-git://git.infradead.org/users/kmpark/linux-2.6-samsung s5p_fimc_vga_for_2.6.37
-
-Sylwester Nawrocki (7):
-cd8ea8a V4L/DVB: Add driver for Siliconfile SR030PC30 VGA camera
-467835b V4L/DVB: s5p-fimc: Add suport for FIMC on S5PC210 SoCs
-ce30889 V4L/DVB: s5p-fimc: Add camera capture support
-bff8eea V4L/DVB: s5p-fimc: Do not lock both buffer queues in s_fmt
-00c222c V4L/DVB: s5p-fimc: Fix 90/270 deg rotation errors
-68028d6 V4L/DVB: s5p-fimc: mem2mem driver refactoring and cleanup
-c03564c V4L/DVB: s5p-fimc: Register definition cleanup
-
-
-drivers/media/video/Kconfig                 |    6 +
-drivers/media/video/Makefile                |    1 +
-drivers/media/video/s5p-fimc/Makefile       |    2 +-
-drivers/media/video/s5p-fimc/fimc-capture.c |  819 +++++++++++++++++++++
-drivers/media/video/s5p-fimc/fimc-core.c    | 1026 +++++++++++++++++----------
-drivers/media/video/s5p-fimc/fimc-core.h    |  377 ++++++++--
-drivers/media/video/s5p-fimc/fimc-reg.c     |  321 ++++++---
-drivers/media/video/s5p-fimc/regs-fimc.h    |   64 +-
-drivers/media/video/sr030pc30.c             |  893 +++++++++++++++++++++++
-include/media/s3c_fimc.h                    |   60 ++
-include/media/sr030pc30.h                   |   21 +
-11 files changed, 2992 insertions(+), 598 deletions(-)
-
-
-All the patches have been posted to linux-media for review and can be found at
-patchwork at:
-https://patchwork.kernel.org/patch/245901/
-https://patchwork.kernel.org/patch/245911/
-https://patchwork.kernel.org/patch/245881/
-https://patchwork.kernel.org/patch/245871/
-https://patchwork.kernel.org/patch/245921/
-https://patchwork.kernel.org/patch/245891/
-https://patchwork.kernel.org/patch/245471/
-
-The two patches added in the above repository
-
-b6eb9a5 v4l: s5p-fimc: Fix 3-planar formats handling and pixel offset error on
-S5PV210 SoCs
-03bda68 v4l: s5p-fimc: Fix return value on probe() failure
-
-are already in 2.6.36.
-
-The patch cd8ea8a V4L/DVB: Add driver for Siliconfile SR030PC30 VGA camera
-has coding style changes in 3 lines comparing to version posted to ML.
-
-
-Regards,
+The patch which Valdis quoted is what is in linux-next.  I'm not
+at which stage the mangling happened?
