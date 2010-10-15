@@ -1,88 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:16393 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753104Ab0JVHZu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Oct 2010 03:25:50 -0400
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Date: Fri, 22 Oct 2010 09:25:47 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: RE: [patch 2/3] V4L/DVB: s5p-fimc: make it compile
-In-reply-to: <20101021192400.GK5985@bicker>
-To: 'Dan Carpenter' <error27@gmail.com>
-Cc: 'Mauro Carvalho Chehab' <mchehab@infradead.org>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Message-id: <000b01cb71ba$58902ad0$09b08070$%nawrocki@samsung.com>
-Content-language: en-us
-Content-transfer-encoding: 8BIT
-References: <20101021192400.GK5985@bicker>
+Received: from mx1.redhat.com ([209.132.183.28]:49773 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932415Ab0JOTso (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Oct 2010 15:48:44 -0400
+Date: Fri, 15 Oct 2010 15:48:28 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
+	David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
+	mchehab@infradead.org, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/5] IR: extend and sort the MCE keymap
+Message-ID: <20101015194828.GJ9658@redhat.com>
+References: <1287158799-21486-1-git-send-email-maximlevitsky@gmail.com>
+ <1287158799-21486-2-git-send-email-maximlevitsky@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1287158799-21486-2-git-send-email-maximlevitsky@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> -----Original Message-----
-> From: Dan Carpenter [mailto:error27@gmail.com]
-> Sent: Thursday, October 21, 2010 9:24 PM
-> To: Mauro Carvalho Chehab
-> Cc: Kyungmin Park; Sylwester Nawrocki; Marek Szyprowski; Pawel Osciak;
-> linux-media@vger.kernel.org; kernel-janitors@vger.kernel.org
-> Subject: [patch 2/3] V4L/DVB: s5p-fimc: make it compile
+On Fri, Oct 15, 2010 at 06:06:35PM +0200, Maxim Levitsky wrote:
+> Add new keys, found on:
 > 
-> The work_queue was partially removed in f93000ac11: "[media] s5p-fimc:
-> mem2mem driver refactoring and cleanup" but this bit was missed.  Also
-> we need to include sched.h otherwise the compile fails with:
+> Toshiba Qosmio F50-10q.
+> Toshiba Qosmio X300
+> Toshiba A500-141
 > 
-> drivers/media/video/s5p-fimc/fimc-core.c:
-> 	In function ‘fimc_capture_handler’:
-> drivers/media/video/s5p-fimc/fimc-core.c:286:
-> 	error: ‘TASK_NORMAL’ undeclared (first use in this function)
+> Also sort the keytable by scancode number as that makes sense
+> and alows easily to add new keycodes.
 > 
-> Signed-off-by: Dan Carpenter <error27@gmail.com>
-> ---
-> Compile tested only.                                       :P
+> Thanks to:
+> Sami R <maesesami@gmail.com>
+> Alexander Skiba <ghostlyrics@gmail.com>
+> Jordi Pelegrin <pelegrin.jordi@gmail.com>
 > 
-> diff --git a/drivers/media/video/s5p-fimc/fimc-core.h
-> b/drivers/media/video/s5p-fimc/fimc-core.h
-> index e3a7c6a..1c1437c 100644
-> --- a/drivers/media/video/s5p-fimc/fimc-core.h
-> +++ b/drivers/media/video/s5p-fimc/fimc-core.h
-> @@ -14,6 +14,7 @@
->  /*#define DEBUG*/
+> For reports and testing.
 > 
->  #include <linux/types.h>
-> +#include <linux/sched.h>
->  #include <media/videobuf-core.h>
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-mem2mem.h>
-> diff --git a/drivers/media/video/s5p-fimc/fimc-core.c
-> b/drivers/media/video/s5p-fimc/fimc-core.c
-> index 8335045..cf9bc8e 100644
-> --- a/drivers/media/video/s5p-fimc/fimc-core.c
-> +++ b/drivers/media/video/s5p-fimc/fimc-core.c
-> @@ -1593,12 +1593,6 @@ static int fimc_probe(struct platform_device
-> *pdev)
->  		goto err_clk;
->  	}
-> 
-> -	fimc->work_queue = create_workqueue(dev_name(&fimc->pdev->dev));
-> -	if (!fimc->work_queue) {
-> -		ret = -ENOMEM;
-> -		goto err_irq;
-> -	}
-> -
+> Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
 
-This code is properly removed in my original patch. But it has been added
-again during a merge conflict solving. Unfortunately I cannot identify the
-merge commit today in linux-next. 
-As for sched.h, it needs a separate patch so I could handle it and add you
-as reported by it is OK.
+Acked-by: Jarod Wilson <jarod@redhat.com>
 
-Regards,
-Sylwester
-
->  	ret = fimc_register_m2m_device(fimc);
->  	if (ret)
->  		goto err_irq;
+-- 
+Jarod Wilson
+jarod@redhat.com
 
