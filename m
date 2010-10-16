@@ -1,46 +1,41 @@
 Return-path: <mchehab@pedra>
-Received: from adelie.canonical.com ([91.189.90.139]:49406 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755938Ab0JROnD (ORCPT
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:63855 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751052Ab0JPPdd convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Oct 2010 10:43:03 -0400
-Subject: Re: [PATCH] v4l-utils: libv4l1: When asked for RGB, return RGB and
- not BGR
-From: Marc Deslauriers <marc.deslauriers@ubuntu.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <4CBC5AC0.0@redhat.com>
-References: <1287405872.6471.23.camel@mdlinux>  <4CBC5AC0.0@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 18 Oct 2010 10:42:56 -0400
-Message-ID: <1287412976.6471.49.camel@mdlinux>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Sat, 16 Oct 2010 11:33:33 -0400
+Received: by iwn35 with SMTP id 35so2074595iwn.19
+        for <linux-media@vger.kernel.org>; Sat, 16 Oct 2010 08:33:28 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4CB9B8CF.1060503@gmail.com>
+References: <4CB753F2.7080009@gmail.com>
+	<4CB9B8CF.1060503@gmail.com>
+Date: Sat, 16 Oct 2010 08:25:41 -0700
+Message-ID: <AANLkTimM9f-nOeH+Kn759dc_md4PQgyB7tkHz0d7hNY3@mail.gmail.com>
+Subject: Re: [PATCH] gp8psk: Add support for the Genpix Skywalker-2
+From: VDR User <user.vdr@gmail.com>
+To: Mauro Carvalho Chehab <maurochehab@gmail.com>
+Cc: linux-media@vger.kernel.org, alannisota@gmail.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 2010-10-18 at 16:33 +0200, Hans de Goede wrote:
-> Hi,
-> 
-> NACK
-> 
-> The byte ordering in v4l1's VIDEO_PALETTE_RGB24 was never really
-> clear, but the kernel v4l1 compatibility ioctl handling has
-> been mapping VIDEO_PALETTE_RGB24 <-> V4L2_PIX_FMT_BGR24
-> for ever and many v4l1 apps actually expect VIDEO_PALETTE_RGB24
-> to be BGR24. The only one I know of to get this wrong is camorama
-> and the solution there is to:
-> 1) not use camorama
-> 2) if you use camorama anyway, fix it, there is a list of patches
->     fixing various issues available here:
-> http://pkgs.fedoraproject.org/gitweb/?p=camorama.git;a=tree
-> 
-> Regards,
-> 
+On Sat, Oct 16, 2010 at 7:38 AM, Mauro Carvalho Chehab
+<maurochehab@gmail.com> wrote:
+> Em 14-10-2010 16:03, D. K. escreveu:
+>>  gp8psk: Add support for the Genpix Skywalker-2 per user requests.
+>>
+>> Patched against v4l-dvb hg ab433502e041 tip.  Should patch fine
+>> against git as well.
+>
+> No, it didn't apply at -git. It seems that the following patch already
+> added Skywalker-2.
 
-I guess you can add sane to the list of apps that actually expect RGB24
-to be RGB24. I was trying to debug why colors were inverted in the sane
-v4l backend when I did this.
+The Skywalker-2 didn't even exist at the time of that patch and I
+don't see any reason why it wouldn't have applied.  Seems very odd it
+patches against hg and not git.  I guess I'll have to download git and
+see what problem there is.  Will get back to you afterwards.
 
-Marc.
-
+Thanks,
+Derek
