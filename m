@@ -1,102 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2188 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756953Ab0JITE3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Oct 2010 15:04:29 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id o99J4OLs084820
-	for <linux-media@vger.kernel.org>; Sat, 9 Oct 2010 21:04:28 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 9 Oct 2010 21:04:24 +0200 (CEST)
-Message-Id: <201010091904.o99J4OLs084820@smtp-vbr15.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+Received: from casper.infradead.org ([85.118.1.10]:43224 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750738Ab0JPE2u (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Oct 2010 00:28:50 -0400
+Message-ID: <4CB929FB.3020609@infradead.org>
+Date: Sat, 16 Oct 2010 01:28:43 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Daniel Drake <dsd@laptop.org>
+CC: Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/3] ov7670: remove QCIF mode
+References: <20101008210412.E85769D401B@zog.reactivated.net>	<20101008151110.127a62fe@bike.lwn.net> <AANLkTi=Lsu0JXgQ5ZGja0w7q6+wzQA1gmpx9b724UH+Z@mail.gmail.com>
+In-Reply-To: <AANLkTi=Lsu0JXgQ5ZGja0w7q6+wzQA1gmpx9b724UH+Z@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Em 08-10-2010 18:15, Daniel Drake escreveu:
+> On 8 October 2010 22:11, Jonathan Corbet <corbet@lwn.net> wrote:
+>> I'm certainly not attached to this mode, but...does it harm anybody if
+>> it's there?
+> 
+> Yes. Applications like gstreamer will pick this resolution if its the
+> closest resolution to the target file resolution. On XO-1 we always
+> pick a low res so gstreamer picks this one. And we end up with a video
+> that only records a miniscule portion of the FOV.
+> 
+> All the other settings of the camera scale the image so that the whole
+> FOV is covered. But this one records at normal resolution, only
+> sending a small center portion of the FOV. The same pixels can be read
+> by recording at full res and then just cutting out the center bit.
 
-Results of the daily build of v4l-dvb:
+Seems an application-specific issue to me. I would accept a patch at cafe-ccic
+limiting the minimum resolution (as it is device-specific), but I agree with
+Jon that limiting it at the sensor is not a good thing to do. 
 
-date:        Sat Oct  9 19:00:05 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15164:1da5fed5c8b2
-git master:       3e6dce76d99b328716b43929b9195adfee1de00c
-git media-master: 81d64d12e11a3cca995e6c752e4bd2898959ed0a
-gcc version:      i686-linux-gcc (GCC) 4.5.1
-host hardware:    x86_64
-host os:          2.6.32.5
+Getting full res means to require higher bandwidths at the bus (and this may be
+a problem if someone wants to have more than one camera, and the bridge is USB).
+Also, it will eat more CPU to downscale.
 
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: WARNINGS
-linux-git-mips: WARNINGS
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-linux-2.6.32.6-armv5: WARNINGS
-linux-2.6.33-armv5: WARNINGS
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35.3-armv5: WARNINGS
-linux-2.6.32.6-armv5-davinci: ERRORS
-linux-2.6.33-armv5-davinci: ERRORS
-linux-2.6.34-armv5-davinci: ERRORS
-linux-2.6.35.3-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: ERRORS
-linux-2.6.33-armv5-ixp: ERRORS
-linux-2.6.34-armv5-ixp: ERRORS
-linux-2.6.35.3-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: ERRORS
-linux-2.6.33-armv5-omap2: ERRORS
-linux-2.6.34-armv5-omap2: ERRORS
-linux-2.6.35.3-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.32.6-m32r: WARNINGS
-linux-2.6.33-m32r: WARNINGS
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35.3-m32r: WARNINGS
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35.3-mips: WARNINGS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35.3-powerpc64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Cheers,
+mauro
