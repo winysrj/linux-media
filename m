@@ -1,69 +1,105 @@
 Return-path: <mchehab@pedra>
-Received: from cnxtsmtp1.conexant.com ([198.62.9.252]:42900 "EHLO
-	Cnxtsmtp1.conexant.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755064Ab0JRXbI convert rfc822-to-8bit (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:33026 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755225Ab0JPNpE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Oct 2010 19:31:08 -0400
-Received: from cps (nbwsmx1.bbnet.ad [157.152.183.211]) (using TLSv1 with cipher RC4-MD5 (128/128
- bits)) (No client certificate requested) by Cnxtsmtp1.conexant.com (Tumbleweed MailGate 3.7.1) with
- ESMTP id 2A45612BEA0 for <linux-media@vger.kernel.org>; Mon, 18 Oct 2010 16:13:14 -0700 (PDT)
-From: "Sri Deevi" <Srinivasa.Deevi@conexant.com>
-To: "'Mauro Carvalho Chehab'" <mchehab@redhat.com>,
-	"jarod@redhat.com" <jarod@redhat.com>,
-	"Linux Media Mailing List" <linux-media@vger.kernel.org>
-Date: Mon, 18 Oct 2010 16:13:15 -0700
-Subject: RE: [PATCH 0/3]  Fix IR support at cx231xx
-Message-ID: <34B38BE41EDBA046A4AFBB591FA3113202486A7AA3@NBMBX01.bbnet.ad>
-References: <20101018205300.23e0da75@pedra>
-In-Reply-To: <20101018205300.23e0da75@pedra>
-Content-Language: en-US
-Content-Type: text/plain;
- charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+	Sat, 16 Oct 2010 09:45:04 -0400
+Message-ID: <4CB9AC58.5020301@infradead.org>
+Date: Sat, 16 Oct 2010 10:44:56 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
+To: Jonathan Corbet <corbet@lwn.net>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Daniel Drake <dsd@laptop.org>
+Subject: Re: [PATCH] viafb camera controller driver
+References: <20101010162313.5caa137f@bike.lwn.net>
+In-Reply-To: <20101010162313.5caa137f@bike.lwn.net>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Mauro,
+Em 10-10-2010 19:23, Jonathan Corbet escreveu:
+> Howdy, all,
+> 
+> Well, that took a whole lot longer than I had hoped...but, attached, is a
+> new version of the viafb camera driver patch, done against 2.6.36-rc7.
+> I've tried to address most of Laurent's comments from back in June; in
+> particular, I have:
+> 
+>  - Gotten rid of the static device structure
+>  - Fixed some locking glitches
+>  - Fixed a bit of device initialization silliness.
+> 
+> One thing I have *not* done is to push locking down into the ov7670
+> driver.  That would be a good thing to do at some point, but playing with
+> that driver was beyond the scope of what I was trying to do here.
+> 
+> This driver will still need some OLPC bits to work properly, but Daniel is
+> working on that.  This version of the driver does work on XO-1.5 systems,
+> modulo some 2.6.36 API changes.
+> 
+> Mauro, any chance of putting this in the queue for 2.6.37?  Yes, I know
+> it's really late, my apologies for that.
+> 
+> Thanks,
+> 
+> jon
+> +static const struct v4l2_file_operations viacam_fops = {
+> +	.owner		= THIS_MODULE,
+> +	.open		= viacam_open,
+> +	.release	= viacam_release,
+> +	.read		= viacam_read,
+> +	.poll		= viacam_poll,
+> +	.mmap		= viacam_mmap,
+> +	.ioctl		= video_ioctl2,
 
-All the patches are OK with me. Also, it does not make sense to write another driver if there is one for MCE IR remote.
+Hmm... do you need BKL? Otherwise, you should be using, instead, .unlocked_ioctl.
 
-Sri
+Btw, the driver build is broken:
 
------Original Message-----
-From: Mauro Carvalho Chehab [mailto:mchehab@redhat.com] 
-Sent: Monday, October 18, 2010 3:53 PM
-To: Sri Deevi; jarod@redhat.com; Linux Media Mailing List
-Subject: [PATCH 0/3] Fix IR support at cx231xx
+drivers/media/video/via-camera.c: In function ‘viacam_configure_sensor’:
+drivers/media/video/via-camera.c:228: error: ‘const struct v4l2_subdev_video_ops’ has no member named ‘s_fmt’
+drivers/media/video/via-camera.c:228: error: ‘const struct v4l2_subdev_video_ops’ has no member named ‘s_fmt’
+drivers/media/video/via-camera.c: In function ‘viacam_open’:
+drivers/media/video/via-camera.c:651: error: too few arguments to function ‘videobuf_queue_sg_init’
+drivers/media/video/via-camera.c: In function ‘viacam_enum_fmt_vid_cap’:
+drivers/media/video/via-camera.c:878: error: ‘const struct v4l2_subdev_video_ops’ has no member named ‘enum_fmt’
+drivers/media/video/via-camera.c:878: error: ‘const struct v4l2_subdev_video_ops’ has no member named ‘enum_fmt’
+drivers/media/video/via-camera.c: In function ‘viacam_try_fmt_vid_cap’:
+drivers/media/video/via-camera.c:921: error: ‘const struct v4l2_subdev_video_ops’ has no member named ‘try_fmt’
+drivers/media/video/via-camera.c:921: error: ‘const struct v4l2_subdev_video_ops’ has no member named ‘try_fmt’
+drivers/media/video/via-camera.c: In function ‘viacam_s_fmt_vid_cap’:
+drivers/media/video/via-camera.c:959: error: ‘const struct v4l2_subdev_video_ops’ has no member named ‘try_fmt’
+drivers/media/video/via-camera.c:959: error: ‘const struct v4l2_subdev_video_ops’ has no member named ‘try_fmt’
 
-cx231xx has a stub for IR handling, but this is incomplete. However, as
-the IR were designed to work with a standard MCE driver on another OS,
-the better is to just drop the cx231xx internal handling, and let the
-mceusb driver take care of the protocol.
+The main responsible for this breakage is this commit: 383e6ad73194814cfc980c302e0173fac11f0ee0
+You may take a look on those commits also:
+	2e2ae382d956aa221c7b4fd897346c1b39f1699d
+	8c26cfe8d5f05ec9f945ea825c7eb28f46d04348
 
-Maybe some adjustments may be needed, to be sure that we're using the right
-generation of the MCE protocol.
+all commits are at staging/v2.6.37 branch on my tree: 
+	http://git.linuxtv.org/media_tree.git
 
-Mauro Carvalho Chehab (3):
-  mceusb: add support for cx231xx-based IR (e. g. Polaris)
-  cx231xx: Only register USB interface 1
-  cx231xx: Remove IR support from the driver
+They removed s_fmt/enum_fmt/try_fmt in favor of a different approach, as sometimes, the format between the
+sensor and the bridge is not exactly the same as seen on userspace.
 
- drivers/media/IR/mceusb.c                   |   20 ++
- drivers/media/video/cx231xx/cx231xx-cards.c |   49 +-----
- drivers/media/video/cx231xx/cx231xx-input.c |  251 ---------------------------
- drivers/media/video/cx231xx/cx231xx.h       |    4 -
- 4 files changed, 28 insertions(+), 296 deletions(-)
- delete mode 100644 drivers/media/video/cx231xx/cx231xx-input.c
+The fix for this one is trivial:
+drivers/media/video/via-camera.c:651: error: too few arguments to function ‘videobuf_queue_sg_init’
 
+Just add an extra NULL parameter to the function.
 
-Conexant E-mail Firewall (Conexant.Com) made the following annotations
----------------------------------------------------------------------
-********************** Legal Disclaimer **************************** 
+-
 
-"This email may contain confidential and privileged material for the sole use of the intended recipient. Any unauthorized review, use or distribution by others is strictly prohibited. If you have received the message in error, please advise the sender by reply email and delete the message. Thank you." 
+Hans,
 
-********************************************************************** 
+You're not playing nice with the others by changing their drivers without their ack, and without even
+c/c them. I'm sure that, if Jon was aware on the changes you did on cafe-ccic and ov7670, he would be
+submitting this driver with the build issues addressed.
 
----------------------------------------------------------------------
+So, please help him to address this issue.
+
+Mauro.
 
