@@ -1,91 +1,110 @@
 Return-path: <mchehab@pedra>
-Received: from qmta09.emeryville.ca.mail.comcast.net ([76.96.30.96]:41473 "EHLO
-	qmta09.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755144Ab0JET0l (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:43564 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756602Ab0JPW4p (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Oct 2010 15:26:41 -0400
-Date: Tue, 5 Oct 2010 12:24:35 -0700
-From: matt mooney <mfm@muteddisk.com>
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michal Marek <mmarek@suse.cz>, linux-media@vger.kernel.org,
-	linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: Re: [RFC PATCH] media: consolidation of -I flags
-Message-ID: <20101005192435.GA17798@haskell.muteddisk.com>
-References: <1285534847-31463-1-git-send-email-mfm@muteddisk.com>
- <20101005142906.GA20059@merkur.ravnborg.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20101005142906.GA20059@merkur.ravnborg.org>
+	Sat, 16 Oct 2010 18:56:45 -0400
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: lirc-list@lists.sourceforge.net
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	mchehab@infradead.org, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: [PATCH 2/3] IR: ene_ir: add support for carrier reports
+Date: Sun, 17 Oct 2010 00:56:29 +0200
+Message-Id: <1287269790-17605-3-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <1287269790-17605-1-git-send-email-maximlevitsky@gmail.com>
+References: <1287269790-17605-1-git-send-email-maximlevitsky@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 16:29 Tue 05 Oct     , Sam Ravnborg wrote:
-> On Sun, Sep 26, 2010 at 02:00:47PM -0700, matt mooney wrote:
-> > I have been doing cleanup of makefiles, namely replacing the older style
-> > compilation flag variables with the newer style. While doing this, I
-> > noticed that the majority of drivers in the media subsystem seem to rely
-> > on a few core header files:
-> > 
-> > 	-Idrivers/media/video
-> > 	-Idrivers/media/common/tuners
-> > 	-Idrivers/media/dvb/dvb-core
-> > 	-Idrivers/media/dvb/frontends
-> > 
-> > This patch removes them from the individual makefiles and puts them in
-> > the main makefile under media.
-> Using subdir-ccflags-y has one drawback you need to be aware of.
-> The variable is _not_ picked up if you build individual drivers like
-> this:
-> 
-> 
->      make drivers/media/dvb/b2c2/
-> 
-> So with this patch applied it is no longer possible to do so.
-> It is better to accept the duplication rather than breaking
-> the build of individual drivers.
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+---
+ drivers/media/IR/ene_ir.c |   37 +++++++++++++++++++++++++++++--------
+ 1 files changed, 29 insertions(+), 8 deletions(-)
 
-Ah, I was not aware of that, and I forgot to test for that case.
+diff --git a/drivers/media/IR/ene_ir.c b/drivers/media/IR/ene_ir.c
+index 8639621..1962652 100644
+--- a/drivers/media/IR/ene_ir.c
++++ b/drivers/media/IR/ene_ir.c
+@@ -193,10 +193,11 @@ static int ene_hw_detect(struct ene_device *dev)
+ /* Sense current received carrier */
+ void ene_rx_sense_carrier(struct ene_device *dev)
+ {
++	DEFINE_IR_RAW_EVENT(ev);
++
++	int carrier, duty_cycle;
+ 	int period = ene_read_reg(dev, ENE_CIRCAR_PRD);
+ 	int hperiod = ene_read_reg(dev, ENE_CIRCAR_HPRD);
+-	int carrier, duty_cycle;
+-
+ 
+ 	if (!(period & ENE_CIRCAR_PRD_VALID))
+ 		return;
+@@ -209,13 +210,16 @@ void ene_rx_sense_carrier(struct ene_device *dev)
+ 	dbg("RX: hardware carrier period = %02x", period);
+ 	dbg("RX: hardware carrier pulse period = %02x", hperiod);
+ 
+-
+ 	carrier = 2000000 / period;
+ 	duty_cycle = (hperiod * 100) / period;
+ 	dbg("RX: sensed carrier = %d Hz, duty cycle %d%%",
+-							carrier, duty_cycle);
+-
+-	/* TODO: Send carrier & duty cycle to IR layer */
++						carrier, duty_cycle);
++	if (dev->carrier_detect_enabled) {
++		ev.carrier_report = true;
++		ev.carrier = carrier;
++		ev.duty_cycle = duty_cycle;
++		ir_raw_event_store(dev->idev, &ev);
++	}
+ }
+ 
+ /* this enables/disables the CIR RX engine */
+@@ -724,7 +728,7 @@ static irqreturn_t ene_isr(int irq, void *data)
+ 
+ 	dbg_verbose("RX interrupt");
+ 
+-	if (dev->carrier_detect_enabled || debug)
++	if (dev->hw_learning_and_tx_capable)
+ 		ene_rx_sense_carrier(dev);
+ 
+ 	/* On hardware that don't support extra buffer we need to trust
+@@ -897,6 +901,23 @@ static int ene_set_learning_mode(void *data, int enable)
+ 	return 0;
+ }
+ 
++static int ene_set_carrier_report(void *data, int enable)
++{
++	struct ene_device *dev = (struct ene_device *)data;
++	unsigned long flags;
++
++	if (enable == dev->carrier_detect_enabled)
++		return 0;
++
++	spin_lock_irqsave(&dev->hw_lock, flags);
++	dev->carrier_detect_enabled = enable;
++	ene_rx_disable(dev);
++	ene_rx_setup(dev);
++	ene_rx_enable(dev);
++	spin_unlock_irqrestore(&dev->hw_lock, flags);
++	return 0;
++}
++
+ /* outside interface: enable or disable idle mode */
+ static void ene_rx_set_idle(void *data, bool idle)
+ {
+@@ -1029,7 +1050,7 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
+ 		ir_props->s_tx_mask = ene_set_tx_mask;
+ 		ir_props->s_tx_carrier = ene_set_tx_carrier;
+ 		ir_props->s_tx_duty_cycle = ene_set_tx_duty_cycle;
+-		/* ir_props->s_carrier_report = ene_set_carrier_report; */
++		ir_props->s_carrier_report = ene_set_carrier_report;
+ 	}
+ 
+ 	ene_setup_hw_buffer(dev);
+-- 
+1.7.1
 
-> > 
-> > If neither idea is considered beneficial, I will go ahead and replace
-> > the older variables with the newer ones as is.
-> 
-> This is the right approach.
-> 
-> You could consider to do a more general cleanup:
-> 1) replace EXTRA_CFLAGS with ccflags-y (the one you suggest)
-> 2) replace use of <module>-objs with <module>-y
-> 3) break continued lines into several assignments
->    People very often uses '\' to break long lines, where a
->    simple += would be much more readable.
->    But this topic may be personal - I never uses "\" in my .c code unless in macros,
->    and I have applied the same rule for Makefiles.
->    An ugly example is drivers/media/Makefile
-> 4) In general use ":=" instead of "=".
->    Add using "+=" as first assignment is OK - but it just looks plain wrong
-> 5) some files has a mixture of spaces/tabs (are red in my vim)
->    dvb-core/Makefile is one such example
-> 6) remove useless stuff
->    siano/Makefile has some strange assignments to EXTRA_CFLAGS
-> 7) Likely a few more items to look after...
-> 
-> This is more work - but then you finish a Makefile rather than doing a simple
-> conversion.
-
-I agree with all your points above; however, I was unsure of whether a wholesale
-cleanup would be welcomed because I would then end up touching numerous lines
-(and in some cases, possibly all lines). I did notice, though, the need for
-quite a bit of cleanup like you have mentioned, and I have a few patches queued
-up that make a second pass on some files changing <module>-objs to
-<module>-y. You know better than I do, so if you feel I should cleanup the whole
-file in one patch, then that is what I will do although this will take some
-time.
-
-Is the use of <module>-objs deprecated? Some people might wonder why I am
-changing that when they are not building a multisource object.
-
-Thanks,
-mfm
