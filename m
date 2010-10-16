@@ -1,74 +1,65 @@
 Return-path: <mchehab@pedra>
-Received: from pqueueb.post.tele.dk ([193.162.153.10]:37391 "EHLO
-	pqueueb.post.tele.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751979Ab0JFFOx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Oct 2010 01:14:53 -0400
-Date: Wed, 6 Oct 2010 06:52:55 +0200
-From: Sam Ravnborg <sam@ravnborg.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michal Marek <mmarek@suse.cz>, linux-media@vger.kernel.org,
-	linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: Re: [RFC PATCH] media: consolidation of -I flags
-Message-ID: <20101006045255.GA24870@merkur.ravnborg.org>
-References: <1285534847-31463-1-git-send-email-mfm@muteddisk.com> <20101005142906.GA20059@merkur.ravnborg.org> <20101005192435.GA17798@haskell.muteddisk.com>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:38489 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753832Ab0JPTSV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Oct 2010 15:18:21 -0400
+Received: by pzk33 with SMTP id 33so274223pzk.19
+        for <linux-media@vger.kernel.org>; Sat, 16 Oct 2010 12:18:20 -0700 (PDT)
+Message-ID: <4CB9FA77.3000501@gmail.com>
+Date: Sat, 16 Oct 2010 12:18:15 -0700
+From: "D. K." <user.vdr@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20101005192435.GA17798@haskell.muteddisk.com>
+To: linux-media@vger.kernel.org
+CC: alannisota@gmail.com
+Subject: [PATCH] dvb-usb-gp8psk: Fix driver name
+Content-Type: multipart/mixed;
+ boundary="------------010307090100040305090605"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> 
-> Ah, I was not aware of that, and I forgot to test for that case.
-> 
-> > > 
-> > > If neither idea is considered beneficial, I will go ahead and replace
-> > > the older variables with the newer ones as is.
-> > 
-> > This is the right approach.
-> > 
-> > You could consider to do a more general cleanup:
-> > 1) replace EXTRA_CFLAGS with ccflags-y (the one you suggest)
-> > 2) replace use of <module>-objs with <module>-y
-> > 3) break continued lines into several assignments
-> >    People very often uses '\' to break long lines, where a
-> >    simple += would be much more readable.
-> >    But this topic may be personal - I never uses "\" in my .c code unless in macros,
-> >    and I have applied the same rule for Makefiles.
-> >    An ugly example is drivers/media/Makefile
-> > 4) In general use ":=" instead of "=".
-> >    Add using "+=" as first assignment is OK - but it just looks plain wrong
-> > 5) some files has a mixture of spaces/tabs (are red in my vim)
-> >    dvb-core/Makefile is one such example
-> > 6) remove useless stuff
-> >    siano/Makefile has some strange assignments to EXTRA_CFLAGS
-> > 7) Likely a few more items to look after...
-> > 
-> > This is more work - but then you finish a Makefile rather than doing a simple
-> > conversion.
-> 
-> I agree with all your points above; however, I was unsure of whether a wholesale
-> cleanup would be welcomed because I would then end up touching numerous lines
-> (and in some cases, possibly all lines).
-The Makefiles are all very simple - so touching all lines in a files
-is not a big deal here. But then you would have to batch your changes
-in smaller parts touching only a few Makefiles/one Makefile per patch.
+This is a multi-part message in MIME format.
+--------------010307090100040305090605
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-> Is the use of <module>-objs deprecated? Some people might wonder why I am
-> changing that when they are not building a multisource object.
-I always recommends the <module>-y notation.
-Because this version has the flexibility to use the kbuild way
-of dealing with conditional modules.
+ This patch updates the name of the dvb-usb-gp8psk driver
+from "Genpix 8psk-to-USB2 DVB-S" to "Genpix DVB-S".
+The old name doesn't reflect newer devices such as the
+Skywalker line which also user this driver.
 
-I see no reason to do such change alaone - but as part of other minor
-cleanups it would be natural to change to the <module>-y idiom.
+Signed-off-by: Derek Kelly <user.vdr@gmail.com <mailto:user.vdr@gmail.com>>
 
 
-All the comments above is valid for staging too. There we should
-try to do general cleanup on the Makefile rather than a lot of small
-edits.
-But sometimes the MAkefiles contains so much legacy that this will be more
-than one patch..
+--------------010307090100040305090605
+Content-Type: text/plain;
+ name="gp8psk-fix_driver_name.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="gp8psk-fix_driver_name.diff"
 
-	Sam
+diff -pruN v4l-dvb.orig/drivers/media/dvb/dvb-usb/gp8psk-fe.c v4l-dvb/drivers/media/dvb/dvb-usb/gp8psk-fe.c
+--- v4l-dvb.orig/drivers/media/dvb/dvb-usb/gp8psk-fe.c	2010-10-16 09:10:18.000000000 -0700
++++ v4l-dvb/drivers/media/dvb/dvb-usb/gp8psk-fe.c	2010-10-16 11:57:57.000000000 -0700
+@@ -334,7 +334,7 @@ success:
+ 
+ static struct dvb_frontend_ops gp8psk_fe_ops = {
+ 	.info = {
+-		.name			= "Genpix 8psk-to-USB2 DVB-S",
++		.name			= "Genpix DVB-S",
+ 		.type			= FE_QPSK,
+ 		.frequency_min		= 800000,
+ 		.frequency_max		= 2250000,
+diff -pruN v4l-dvb.orig/drivers/media/dvb/dvb-usb/gp8psk.c v4l-dvb/drivers/media/dvb/dvb-usb/gp8psk.c
+--- v4l-dvb.orig/drivers/media/dvb/dvb-usb/gp8psk.c	2010-10-16 09:10:17.000000000 -0700
++++ v4l-dvb/drivers/media/dvb/dvb-usb/gp8psk.c	2010-10-16 11:58:36.000000000 -0700
+@@ -306,6 +311,6 @@ module_init(gp8psk_usb_module_init);
+ module_exit(gp8psk_usb_module_exit);
+ 
+ MODULE_AUTHOR("Alan Nisota <alannisota@gamil.com>");
+-MODULE_DESCRIPTION("Driver for Genpix 8psk-to-USB2 DVB-S");
++MODULE_DESCRIPTION("Driver for Genpix DVB-S");
+ MODULE_VERSION("1.1");
+ MODULE_LICENSE("GPL");
+
+--------------010307090100040305090605--
