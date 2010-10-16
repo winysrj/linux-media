@@ -1,100 +1,119 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:49678 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755566Ab0JBOn0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Oct 2010 10:43:26 -0400
-Received: by wyb28 with SMTP id 28so3774300wyb.19
-        for <linux-media@vger.kernel.org>; Sat, 02 Oct 2010 07:43:24 -0700 (PDT)
-Message-ID: <4CA74509.6000404@gmail.com>
-Date: Sat, 02 Oct 2010 16:43:21 +0200
-From: thomas schorpp <thomas.schorpp@googlemail.com>
-Reply-To: thomas.schorpp@gmail.com
+Received: from casper.infradead.org ([85.118.1.10]:55886 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752663Ab0JPDbt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Oct 2010 23:31:49 -0400
+Message-ID: <4CB91C9C.8050908@infradead.org>
+Date: Sat, 16 Oct 2010 00:31:40 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: dvb-c: TT C-1501: tda827x.c: Cannot hold lock at 746 MHz
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+CC: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
+	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 4/5] IR: ene_ir: add support for carrier reports
+References: <1287158799-21486-1-git-send-email-maximlevitsky@gmail.com> <1287158799-21486-5-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <1287158799-21486-5-git-send-email-maximlevitsky@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+Em 15-10-2010 13:06, Maxim Levitsky escreveu:
+> Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+> ---
+>  drivers/media/IR/ene_ir.c |   37 +++++++++++++++++++++++++++++--------
+>  1 files changed, 29 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/media/IR/ene_ir.c b/drivers/media/IR/ene_ir.c
+> index 8639621..1962652 100644
+> --- a/drivers/media/IR/ene_ir.c
+> +++ b/drivers/media/IR/ene_ir.c
+> @@ -193,10 +193,11 @@ static int ene_hw_detect(struct ene_device *dev)
+>  /* Sense current received carrier */
+>  void ene_rx_sense_carrier(struct ene_device *dev)
+>  {
+> +	DEFINE_IR_RAW_EVENT(ev);
+> +
 
-Klaas patch is not complete:
-http://article.gmane.org/gmane.linux.drivers.dvb/47571
+Hmm... shouldn't it be in the patch that adds DEFINE_IR_RAW_EVENT(ev) ?
 
-I found a hole at 746MHz with 2.6.34.0 kernel and DE provider kabelbw.de,
-Picture fragments and audio bursts only:
+This way, it will likely break git bisect.
 
-Oct  2 15:53:03 tom1 vdr: [16380] receiver on device 1 thread ended (pid=16268, tid=16380)
-Oct  2 15:53:03 tom1 kernel: tda827x: tda827xa_set_params:
-Oct  2 15:53:03 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
-Oct  2 15:53:03 tom1 kernel: tda827x: tda8275a AGC2 gain is: 4
-Oct  2 15:53:04 tom1 vdr: [16462] setting audio track to 1 (0)
-Oct  2 15:53:04 tom1 kernel: tda827x: tda827xa_set_params:
-Oct  2 15:53:04 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
-Oct  2 15:53:04 tom1 kernel: tda827x: tda8275a AGC2 gain is: 5
-Oct  2 15:53:04 tom1 vdr: [16279] frontend 0 lost lock on channel 496, tp 746
-Oct  2 15:53:04 tom1 vdr: [16279] frontend 0 regained lock on channel 496, tp 746
-Oct  2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params:
-Oct  2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
-Oct  2 15:53:05 tom1 kernel: tda827x: tda8275a AGC2 gain is: 4
-Oct  2 15:53:05 tom1 vdr: [16279] frontend 0 lost lock on channel 496, tp 746
-Oct  2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params:
-Oct  2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
-Oct  2 15:53:05 tom1 kernel: tda827x: tda8275a AGC2 gain is: 4
-Oct  2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params:
-Oct  2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
-Oct  2 15:53:05 tom1 kernel: tda827x: tda8275a AGC2 gain is: 5
-Oct  2 15:53:06 tom1 vdr: [16279] frontend 0 regained lock on channel 496, tp 746
-Oct  2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params:
-Oct  2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
-Oct  2 15:53:06 tom1 kernel: tda827x: tda8275a AGC2 gain is: 5
-Oct  2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params:
-Oct  2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
-Oct  2 15:53:06 tom1 kernel: tda827x: tda8275a AGC2 gain is: 5
-Oct  2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params:
-Oct  2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
-Oct  2 15:53:06 tom1 kernel: tda827x: tda8275a AGC2 gain is: 4
-Oct  2 15:53:06 tom1 vdr: [16268] switching to channel 494
+Anyway, as patch 2/5 weren't applied, I can't apply this one either.
 
-cycle: 78  d_time: 0.004 s  Sig: 51657  SNR: 43690  BER: 1728  UBLK: 55  Stat: 0x00 []
-cycle: 79  d_time: 0.004 s  Sig: 52428  SNR: 60395  BER: 1728  UBLK: 57  Stat: 0x03 [SIG CARR ]
-cycle: 80  d_time: 0.004 s  Sig: 50886  SNR: 46517  BER: 1728  UBLK: 95  Stat: 0x00 []
-cycle: 81  d_time: 0.007 s  Sig: 52428  SNR: 44461  BER: 1728  UBLK: 54  Stat: 0x03 [SIG CARR ]
-cycle: 82  d_time: 0.003 s  Sig: 51657  SNR: 61423  BER: 1728  UBLK: 5  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 83  d_time: 0.237 s  Sig: 40092  SNR: 47288  BER: 1048575  UBLK: 66  Stat: 0x00 []
-cycle: 84  d_time: 0.005 s  Sig: 56283  SNR: 45232  BER: 1728  UBLK: 113  Stat: 0x00 []
-cycle: 85  d_time: 0.006 s  Sig: 53199  SNR: 46774  BER: 1728  UBLK: 136  Stat: 0x00 []
-cycle: 86  d_time: 0.008 s  Sig: 50115  SNR: 44975  BER: 1728  UBLK: 55  Stat: 0x00 []
-cycle: 87  d_time: 0.004 s  Sig: 53199  SNR: 53970  BER: 1728  UBLK: 287  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 88  d_time: 0.020 s  Sig: 50886  SNR: 61166  BER: 1728  UBLK: 62  Stat: 0x03 [SIG CARR ]
+the other 2 patches were applied.
 
-Current parameters:
-     Frequency:  746000.000 kHz
-     Inversion:  ON
-     Symbol rate:  6.900000 MSym/s
-     FEC:  none
-     Modulation:  QAM 64
-
-Card is just bought newly:
-
-00:06.0 0480: 1131:7146 (rev 01)
-	Subsystem: 13c2:101a
-	Flags: bus master, medium devsel, latency 32, IRQ 17
-	Memory at fbeffc00 (32-bit, non-prefetchable) [size=512]
-	Kernel driver in use: budget_ci dvb
-
-Other (tested favourite) channels are tuned in fine.
-
-No network problems for this transponder reported in cable provider's support forums.
-
-Anyone got the chips datasheet or a hint what to tweak in the tda827xa_dvbc[] for this frequency?
-
-{ .lomax = 802000000, .svco = 2, .spd = 0, .scr = 2, .sbs = 4, .gc3 = 1}, ?
-
-thx,
-Y
-tom
-
-
+> +	int carrier, duty_cycle;
+>  	int period = ene_read_reg(dev, ENE_CIRCAR_PRD);
+>  	int hperiod = ene_read_reg(dev, ENE_CIRCAR_HPRD);
+> -	int carrier, duty_cycle;
+> -
+>  
+>  	if (!(period & ENE_CIRCAR_PRD_VALID))
+>  		return;
+> @@ -209,13 +210,16 @@ void ene_rx_sense_carrier(struct ene_device *dev)
+>  	dbg("RX: hardware carrier period = %02x", period);
+>  	dbg("RX: hardware carrier pulse period = %02x", hperiod);
+>  
+> -
+>  	carrier = 2000000 / period;
+>  	duty_cycle = (hperiod * 100) / period;
+>  	dbg("RX: sensed carrier = %d Hz, duty cycle %d%%",
+> -							carrier, duty_cycle);
+> -
+> -	/* TODO: Send carrier & duty cycle to IR layer */
+> +						carrier, duty_cycle);
+> +	if (dev->carrier_detect_enabled) {
+> +		ev.carrier_report = true;
+> +		ev.carrier = carrier;
+> +		ev.duty_cycle = duty_cycle;
+> +		ir_raw_event_store(dev->idev, &ev);
+> +	}
+>  }
+>  
+>  /* this enables/disables the CIR RX engine */
+> @@ -724,7 +728,7 @@ static irqreturn_t ene_isr(int irq, void *data)
+>  
+>  	dbg_verbose("RX interrupt");
+>  
+> -	if (dev->carrier_detect_enabled || debug)
+> +	if (dev->hw_learning_and_tx_capable)
+>  		ene_rx_sense_carrier(dev);
+>  
+>  	/* On hardware that don't support extra buffer we need to trust
+> @@ -897,6 +901,23 @@ static int ene_set_learning_mode(void *data, int enable)
+>  	return 0;
+>  }
+>  
+> +static int ene_set_carrier_report(void *data, int enable)
+> +{
+> +	struct ene_device *dev = (struct ene_device *)data;
+> +	unsigned long flags;
+> +
+> +	if (enable == dev->carrier_detect_enabled)
+> +		return 0;
+> +
+> +	spin_lock_irqsave(&dev->hw_lock, flags);
+> +	dev->carrier_detect_enabled = enable;
+> +	ene_rx_disable(dev);
+> +	ene_rx_setup(dev);
+> +	ene_rx_enable(dev);
+> +	spin_unlock_irqrestore(&dev->hw_lock, flags);
+> +	return 0;
+> +}
+> +
+>  /* outside interface: enable or disable idle mode */
+>  static void ene_rx_set_idle(void *data, bool idle)
+>  {
+> @@ -1029,7 +1050,7 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
+>  		ir_props->s_tx_mask = ene_set_tx_mask;
+>  		ir_props->s_tx_carrier = ene_set_tx_carrier;
+>  		ir_props->s_tx_duty_cycle = ene_set_tx_duty_cycle;
+> -		/* ir_props->s_carrier_report = ene_set_carrier_report; */
+> +		ir_props->s_carrier_report = ene_set_carrier_report;
+>  	}
+>  
+>  	ene_setup_hw_buffer(dev);
 
