@@ -1,190 +1,132 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:8590 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932653Ab0JQUK5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Oct 2010 16:10:57 -0400
-Message-ID: <4CBB584B.1030905@redhat.com>
-Date: Sun, 17 Oct 2010 18:10:51 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from casper.infradead.org ([85.118.1.10]:56318 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752362Ab0JPCdb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Oct 2010 22:33:31 -0400
+Message-ID: <4CB90EF5.4010004@infradead.org>
+Date: Fri, 15 Oct 2010 23:33:25 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: Davor Emard <davoremard@gmail.com>
+To: Arnd Bergmann <arnd@arndb.de>
 CC: linux-media@vger.kernel.org
-Subject: Re: Avermedia dvb-t hybrid A188
-References: <20100806114248.GA29247@emard.lan> <20100810215718.GB27972@emard.lan>
-In-Reply-To: <20100810215718.GB27972@emard.lan>
+Subject: Re: [PATCH] dabusb: remove the BKL
+References: <201010042132.05292.arnd@arndb.de>
+In-Reply-To: <201010042132.05292.arnd@arndb.de>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 10-08-2010 18:57, Davor Emard escreveu:
-> HI
+Em 04-10-2010 16:32, Arnd Bergmann escreveu:
+> The dabusb device driver is sufficiently serialized using
+> its own mutex, no need for the big kernel lock here
+> in addition.
+>     
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> ---
 > 
-> This is my second attempt on Avermedia A188.
-> The hardware on this card is:
+> Hi Mauro,
 > 
-> 1x Philips SAA7160 pci-e bridge
-> 2x NXP SAA7136 multistandard 10-bit A/V decoder
-> 2x Afatech AF9013S demodulator
-> 2x NXP TDA18271 silicon tuner ic (digital/analog)
+> I just realized that the dabusb driver is not actually a v4l driver,
+> when I did more test builds with allyesconfig and CONFIG_BKL disabled.
 > 
-> I've written af9013 frontend attach code but I'm having
-> problems with loading firmware.
-> 
-> If someone can scan the card on window$ and see what the
-> driver does, are there some gpios that turn on the frontend
-> would be nice (maybe also extract correct firmware)
-> 
-> What I did
-> -----------
-> started from saa716x tree
-> hg clone http://www.jusst.de/hg/saa716x/
-> and added the af9013 frontend.
-> 
-> It compiles fine, loads af9013 module and requests
-> firmware but it won't load
-> 
-> Firmware was downloaded from http://www.otit.fi/~crope/v4l-dvb/af9015/dvb-fe-af9013.fw 
-> Also tried another firmware for af9015 usb sticks
-> 
-> In the code I made a loop to try i2c addresses from 0x00-0x7f
-> for af9013 but so far not found the correct one
+> I've added this patch to my bkl/config queue for now, but if you want to carry
+> it in your tree, I'll drop it from mine.
 
-Hi Emard,
+Sorry for not handling it sooner... I have a large number of patches in my queue...
+I don't have any patch for dabusb on my tree, so, I'm OK if you sent it via your
+tree. So,
 
-I'm not sure why, but there are two drivers for saa716x chips, one out of the tree
-(never submitted upstream), and the otherone that were submited and is already merged 
-at the kernel tree.
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-The patch you've done is for the other driver. So, I can't apply it. If you want
-to base it in the top of the driver found at the kernel tree, at
-drivers/media/video/saa7164/, I can apply it. Otherwise, I will just discard
-your patch. Sorry.
+---
 
-Cheers,
-Mauro.
+PS.: I tried to contact the authors a few weeks ago to double check about this driver.
+I suspect that it were added for some prototype, based on its help message, and the
+links I found about that. So, it could be a good idea to simply move it to staging
+and let it die, as maybe nobody has an actual hardware for it... 
+Well, I got no answer about that so far.
 
 > 
-> The patch avermedia-005.diff
-> ---------
-> diff -pur saa716x.orig/linux/drivers/media/common/saa716x/saa716x_hybrid.c saa716x/linux/drivers/media/common/saa716x/saa716x_hybrid.c
-> --- saa716x.orig/linux/drivers/media/common/saa716x/saa716x_hybrid.c	2010-06-20 13:24:18.000000000 +0200
-> +++ saa716x/linux/drivers/media/common/saa716x/saa716x_hybrid.c	2010-08-10 23:34:42.901211071 +0200
-> @@ -35,6 +35,9 @@
->  #include "zl10353.h"
->  #include "mb86a16.h"
->  #include "tda1004x.h"
-> +#include "af9013.h"
-> +#include "tda18271.h"
-> +
+> diff --git a/drivers/media/video/dabusb.c b/drivers/media/video/dabusb.c
+> index 5b176bd..f3e25e9 100644
+> --- a/drivers/media/video/dabusb.c
+> +++ b/drivers/media/video/dabusb.c
+> @@ -32,7 +32,6 @@
+>  #include <linux/list.h>
+>  #include <linux/vmalloc.h>
+>  #include <linux/slab.h>
+> -#include <linux/smp_lock.h>
+>  #include <linux/init.h>
+>  #include <asm/uaccess.h>
+>  #include <asm/atomic.h>
+> @@ -621,7 +620,6 @@ static int dabusb_open (struct inode *inode, struct file *file)
+>  	if (devnum < DABUSB_MINOR || devnum >= (DABUSB_MINOR + NRDABUSB))
+>  		return -EIO;
 >  
->  unsigned int verbose;
->  module_param(verbose, int, 0644);
-> @@ -540,6 +543,82 @@ static struct saa716x_config saa716x_ave
->  	.i2c_rate		= SAA716x_I2C_RATE_100,
->  };
+> -	lock_kernel();
+>  	s = &dabusb[devnum - DABUSB_MINOR];
 >  
-> +#define SAA716x_MODEL_AVERMEDIA_A188	"Avermedia AVerTV Duo Hybrid PCI-E II A188"
-> +#define SAA716x_DEV_AVERMEDIA_A188	"2x DVB-T + 2x Analaog"
-> +
-> +static int load_config_avera188(struct saa716x_dev *saa716x)
-> +{
-> +	int ret = 0;
-> +	return ret;
-> +}
-> +
-> +/* probably af9013 is used in parallel mode 
-> +** common demod_address are 0x38 and 0x3a
-> +** tuner is nxp tda18271
-> +*/
-> +struct af9013_config avera188_af9013_config = {
-> +		.demod_address = 0x38,
-> +		.output_mode = AF9013_OUTPUT_MODE_PARALLEL,
-> +		.api_version = { 0, 1, 9, 0 },
-> +		.gpio[0] = AF9013_GPIO_HI,
-> +		.gpio[3] = AF9013_GPIO_TUNER_ON,
-> +
-> +/*
-> +		.demod_address = 0x3a,
-> +		.output_mode = AF9013_OUTPUT_MODE_SERIAL,
-> +		.api_version = { 0, 1, 9, 0 },
-> +		.gpio[0] = AF9013_GPIO_TUNER_ON,
-> +		.gpio[1] = AF9013_GPIO_LO,
-> +*/
-> +};
-> +
-> +
-> +static int saa716x_avera188_frontend_attach(struct saa716x_adapter *adapter, int count)
-> +{
-> +	struct saa716x_dev *saa716x = adapter->saa716x;
-> +	struct saa716x_i2c *i2c = &saa716x->i2c[count];
-> +        int i;
-> +        
-> +	if (count  == 0) {
-> +		dprintk(SAA716x_DEBUG, 1, "Adapter (%d) SAA716x frontend Init", count);
-> +		dprintk(SAA716x_DEBUG, 1, "Adapter (%d) Device ID=%02x", count, saa716x->pdev->subsystem_device);
-> +		dprintk(SAA716x_ERROR, 1, "Adapter (%d) Power ON", count);
-> +		saa716x_gpio_write(saa716x, GPIO_14, 1);
-> +		msleep(100);
-> +
-> +		for(i = 0; i < 1; i++)
-> +		{ /* try all addresses in a loop */
-> +		/* avera188_af9013_config.demod_address = i; */
-> +
-> +                printk("Trying af9013 frontend on I2C address 0x%02x", avera188_af9013_config.demod_address);
-> +		adapter->fe = af9013_attach(&avera188_af9013_config, &i2c->i2c_adapter);
-> +		if (adapter->fe == NULL) {
-> +			dprintk(SAA716x_ERROR, 1, "Frontend attach failed");
-> +			/* return -ENODEV; */
-> +		} else {
-> +			dprintk(SAA716x_ERROR, 1, "Done!");
-> +			return 0;
-> +		}
-> +		}
-> +		return -ENODEV;
-> +		
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static struct saa716x_config saa716x_avera188_config = {
-> +	.model_name		= SAA716x_MODEL_AVERMEDIA_A188,
-> +	.dev_type		= SAA716x_DEV_AVERMEDIA_A188,
-> +	.boot_mode		= SAA716x_EXT_BOOT,
-> +	.load_config		= &load_config_avera188,
-> +	.adapters		= 1,
-> +	.frontend_attach	= saa716x_avera188_frontend_attach,
-> +	.irq_handler		= saa716x_hybrid_pci_irq,
-> +	.i2c_rate		= SAA716x_I2C_RATE_100,
-> +};
-> +
-> +
->  static struct pci_device_id saa716x_hybrid_pci_table[] = {
+>  	dbg("dabusb_open");
+> @@ -630,21 +628,17 @@ static int dabusb_open (struct inode *inode, struct file *file)
+>  	while (!s->usbdev || s->opened) {
+>  		mutex_unlock(&s->mutex);
 >  
->  	MAKE_ENTRY(TWINHAN_TECHNOLOGIES, TWINHAN_VP_6090, SAA7162, &saa716x_vp6090_config),
-> @@ -547,6 +626,7 @@ static struct pci_device_id saa716x_hybr
->  	MAKE_ENTRY(NXP_REFERENCE_BOARD, PCI_ANY_ID, SAA7160, &saa716x_nemo_config),
->  	MAKE_ENTRY(AVERMEDIA, AVERMEDIA_HC82, SAA7160, &saa716x_averhc82_config),
->  	MAKE_ENTRY(AVERMEDIA, AVERMEDIA_H788, SAA7160, &saa716x_averh788_config),
-> +	MAKE_ENTRY(AVERMEDIA, AVERMEDIA_A188, SAA7160, &saa716x_avera188_config),
->  	{ }
->  };
->  MODULE_DEVICE_TABLE(pci, saa716x_hybrid_pci_table);
-> Only in saa716x/linux/drivers/media/common/saa716x: saa716x_hybrid.c~
-> diff -pur saa716x.orig/linux/drivers/media/common/saa716x/saa716x_hybrid.h saa716x/linux/drivers/media/common/saa716x/saa716x_hybrid.h
-> --- saa716x.orig/linux/drivers/media/common/saa716x/saa716x_hybrid.h	2010-06-20 13:24:18.000000000 +0200
-> +++ saa716x/linux/drivers/media/common/saa716x/saa716x_hybrid.h	2010-08-10 21:02:40.587592396 +0200
-> @@ -7,5 +7,6 @@
->  #define TWINHAN_VP_6090		0x0027
->  #define AVERMEDIA_HC82		0x2355
->  #define AVERMEDIA_H788		0x1455
-> +#define AVERMEDIA_A188		0x1855
+> -		if (file->f_flags & O_NONBLOCK) {
+> +		if (file->f_flags & O_NONBLOCK)
+>  			return -EBUSY;
+> -		}
+>  		msleep_interruptible(500);
 >  
->  #endif /* __SAA716x_HYBRID_H */
-> Only in saa716x/linux/drivers/media/dvb/frontends: af9013.c~
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -		if (signal_pending (current)) {
+> -			unlock_kernel();
+> +		if (signal_pending (current))
+>  			return -EAGAIN;
+> -		}
+>  		mutex_lock(&s->mutex);
+>  	}
+>  	if (usb_set_interface (s->usbdev, _DABUSB_IF, 1) < 0) {
+>  		mutex_unlock(&s->mutex);
+>  		dev_err(&s->usbdev->dev, "set_interface failed\n");
+> -		unlock_kernel();
+>  		return -EINVAL;
+>  	}
+>  	s->opened = 1;
+> @@ -654,7 +648,6 @@ static int dabusb_open (struct inode *inode, struct file *file)
+>  	file->private_data = s;
+>  
+>  	r = nonseekable_open(inode, file);
+> -	unlock_kernel();
+>  	return r;
+>  }
+>  
+> @@ -689,17 +682,13 @@ static long dabusb_ioctl (struct file *file, unsigned int cmd, unsigned long arg
+>  
+>  	dbg("dabusb_ioctl");
+>  
+> -	lock_kernel();
+> -	if (s->remove_pending) {
+> -		unlock_kernel();
+> +	if (s->remove_pending)
+>  		return -EIO;
+> -	}
+>  
+>  	mutex_lock(&s->mutex);
+>  
+>  	if (!s->usbdev) {
+>  		mutex_unlock(&s->mutex);
+> -		unlock_kernel();
+>  		return -EIO;
+>  	}
+>  
+> @@ -735,7 +724,6 @@ static long dabusb_ioctl (struct file *file, unsigned int cmd, unsigned long arg
+>  		break;
+>  	}
+>  	mutex_unlock(&s->mutex);
+> -	unlock_kernel();
+>  	return ret;
+>  }
+>  
 
