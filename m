@@ -1,155 +1,208 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-gw11.han.skanova.net ([81.236.55.20]:44969 "EHLO
-	smtp-gw11.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755475Ab0JYOqW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Oct 2010 10:46:22 -0400
-Subject: [PATCH 2/2 v3] mfd: Add timberdale video-in driver to timberdale
-From: Richard =?ISO-8859-1?Q?R=F6jfors?=
-	<richard.rojfors@pelagicore.com>
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 25 Oct 2010 16:40:24 +0200
-Message-ID: <1288017624.8517.28.camel@debian>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from smtp20.orange.fr ([193.252.22.31]:7601 "EHLO smtp20.orange.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753429Ab0JPRmZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Oct 2010 13:42:25 -0400
+Message-ID: <4CB9E3E9.2020106@orange.fr>
+Date: Sat, 16 Oct 2010 19:42:01 +0200
+From: Catimimi <catimimi@orange.fr>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Catimimi <catimimi@libertysurf.fr>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] Terratec Cinergy Hybrid T USB XS FR
+References: <4CAA2BE6.1050302@libertysurf.fr> <4CB9103E.6020104@redhat.com>
+In-Reply-To: <4CB9103E.6020104@redhat.com>
+Content-Type: multipart/mixed;
+ boundary="------------070506050903020805000103"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch defines platform data for the video-in driver
-and adds it to all configurations of timberdale.
+This is a multi-part message in MIME format.
+--------------070506050903020805000103
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 
-Signed-off-by: Richard RÃ¶jfors <richard.rojfors@pelagicore.com>
-Acked-by: Samuel Ortiz <sameo@linux.intel.com>
----
-diff --git a/drivers/mfd/timberdale.c b/drivers/mfd/timberdale.c
-index ac59950..52a651b 100644
---- a/drivers/mfd/timberdale.c
-+++ b/drivers/mfd/timberdale.c
-@@ -40,6 +40,7 @@
- #include <linux/spi/mc33880.h>
- 
- #include <media/timb_radio.h>
-+#include <media/timb_video.h>
- 
- #include <linux/timb_dma.h>
- 
-@@ -238,7 +239,24 @@ static const __devinitconst struct resource timberdale_uartlite_resources[] = {
- 	},
+Le 16/10/2010 04:38, Mauro Carvalho Chehab a écrit :
+> Em 04-10-2010 16:32, Catimimi escreveu:
+>   
+>>  New gpio definitions.
+>> XC3028_FE_ZARLINK456 was not loaded.
+>>
+>> Signed-off-by: Michel Garnier<catimimi@libertysurf.fr>
+>>
+>> ---
+>>
+>> diff -Nru v4l-dvb-1da5fed5c8b2-orig/linux/drivers/media/video/em28xx/em28xx-cards.c v4l-dvb-1da5fed5c8b2-new/linux/drivers/media/video/em28xx/em28xx-cards.c
+>> --- v4l-dvb-1da5fed5c8b2-orig/linux/drivers/media/video/em28xx/em28xx-cards.c    2010-09-19 07:23:09.000000000 +0200
+>> +++ v4l-dvb-1da5fed5c8b2-new/linux/drivers/media/video/em28xx/em28xx-cards.c    2010-10-04 19:05:11.000000000 +0200
+>> @@ -200,6 +200,18 @@
+>>      {    -1,        -1,    -1,        -1},
+>>  };
+>>
+>> +static struct em28xx_reg_seq terratec_cinergy_USB_XS_analog[] = {
+>> +    {EM28XX_R08_GPIO,    0x6d,    ~EM_GPIO_4,    10},
+>> +    {EM2880_R04_GPO,    0x00,    0xff,        10},
+>> +    { -1,            -1,    -1,        -1},
+>> +};
+>> +
+>> +static struct em28xx_reg_seq terratec_cinergy_USB_XS_digital[] = {
+>> +    {EM28XX_R08_GPIO,    0x6e,    ~EM_GPIO_4,    10},
+>> +    {EM2880_R04_GPO,    0x08,    0xff,        10},
+>> +    { -1,            -1,    -1,        -1},
+>> +};
+>> +
+>>  /* eb1a:2868 Reddo DVB-C USB TV Box
+>>     GPIO4 - CU1216L NIM
+>>     Other GPIOs seems to be don't care. */
+>> @@ -824,22 +836,22 @@
+>>          .tuner_gpio   = default_tuner_gpio,
+>>          .decoder      = EM28XX_TVP5150,
+>>          .has_dvb      = 1,
+>> -        .dvb_gpio     = default_digital,
+>> +        .dvb_gpio     = terratec_cinergy_USB_XS_digital,
+>>          .input        = { {
+>>              .type     = EM28XX_VMUX_TELEVISION,
+>>              .vmux     = TVP5150_COMPOSITE0,
+>>              .amux     = EM28XX_AMUX_VIDEO,
+>> -            .gpio     = default_analog,
+>> +            .gpio     = terratec_cinergy_USB_XS_analog,
+>>          }, {
+>>              .type     = EM28XX_VMUX_COMPOSITE1,
+>>              .vmux     = TVP5150_COMPOSITE1,
+>>              .amux     = EM28XX_AMUX_LINE_IN,
+>> -            .gpio     = default_analog,
+>> +            .gpio     = terratec_cinergy_USB_XS_analog,
+>>          }, {
+>>              .type     = EM28XX_VMUX_SVIDEO,
+>>              .vmux     = TVP5150_SVIDEO,
+>>              .amux     = EM28XX_AMUX_LINE_IN,
+>> -            .gpio     = default_analog,
+>> +            .gpio     = terratec_cinergy_USB_XS_analog,
+>>          } },
+>>      },
+>>      [EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900] = {
+>> @@ -2259,6 +2271,7 @@
+>>          ctl->demod = XC3028_FE_ZARLINK456;
+>>          break;
+>>      case EM2880_BOARD_TERRATEC_HYBRID_XS:
+>> +    case EM2880_BOARD_TERRATEC_HYBRID_XS_FR:
+>>     
+> Hmm... do you have a different device, right? Please, don't change the entries
+> of the original Hybrid XS, or it will cause a regression for the others. Instead,
+> create another entry describing your board.
+>
+> Also, please use tabs for indent. A tab in Linux have 8 spaces, and not four.
+>
+>   
+>>      case EM2881_BOARD_PINNACLE_HYBRID_PRO:
+>>          ctl->demod = XC3028_FE_ZARLINK456;
+>>          break;
+>>
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>     
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> ,
+>   
+Hello
+
+I didn't change the entries of original Hybrid XS. I created new entries
+which I use for XS_FR.
+These new entries were necessaries for a good working with 64 bits kernels.
+So there is no regression.
+
+In order to be clear I renamed the new entries to XS_FR.
+
+OK for the tabs, the mail agents converted them to spaces, so I include
+a file.
+
+My last proposal is :
+
+New gpio definitions
+XC3028_FE_ZARLINK456 was not loaded.
+
+Signed-off-by: Michel Garnier<catimimi@libertysurfhel
+
+Regards
+Michel.
+
+
+
+
+
+
+
+--------------070506050903020805000103
+Content-Type: text/x-patch;
+ name="Terratec_cynergy_hybrid_usb_xs_fr2.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="Terratec_cynergy_hybrid_usb_xs_fr2.patch"
+
+diff -ru v4l-dvb-1da5fed5c8b2-old/linux/drivers/media/video/em28xx/em28xx-cards.c v4l-dvb-1da5fed5c8b2-new/linux/drivers/media/video/em28xx/em28xx-cards.c
+--- v4l-dvb-1da5fed5c8b2-old/linux/drivers/media/video/em28xx/em28xx-cards.c	2010-03-04 06:49:46.000000000 +0100
++++ v4l-dvb-1da5fed5c8b2-new/linux/drivers/media/video/em28xx/em28xx-cards.c	2010-03-05 21:16:36.000000000 +0100
+@@ -200,6 +200,18 @@
+ 	{	-1,		-1,	-1,		-1},
  };
  
--static const __devinitconst struct resource timberdale_radio_resources[] = {
-+static __devinitdata struct i2c_board_info timberdale_adv7180_i2c_board_info = {
-+	/* Requires jumper JP9 to be off */
-+	I2C_BOARD_INFO("adv7180", 0x42 >> 1),
-+	.irq = IRQ_TIMBERDALE_ADV7180
++static struct em28xx_reg_seq terratec_cinergy_USB_XS_FR_analog[] = {
++	{EM28XX_R08_GPIO,	0x6d,	~EM_GPIO_4,	10},
++	{EM2880_R04_GPO,	0x00,	0xff,		10},
++	{ -1,			-1,	-1,		-1},
 +};
 +
-+static __devinitdata struct timb_video_platform_data
-+	timberdale_video_platform_data = {
-+	.dma_channel = DMA_VIDEO_RX,
-+	.i2c_adapter = 0,
-+	.encoder = {
-+		.module_name = "adv7180",
-+		.info = &timberdale_adv7180_i2c_board_info
-+	}
++static struct em28xx_reg_seq terratec_cinergy_USB_XS_FR_digital[] = {
++	{EM28XX_R08_GPIO,	0x6e,	~EM_GPIO_4,	10},
++	{EM2880_R04_GPO,	0x08,	0xff,		10},
++	{ -1,			-1,	-1,		-1},
 +};
 +
-+static const __devinitconst struct resource
-+timberdale_radio_resources[] = {
- 	{
- 		.start	= RDSOFFSET,
- 		.end	= RDSEND,
-@@ -272,6 +290,18 @@ static __devinitdata struct timb_radio_platform_data
- 	}
- };
- 
-+static const __devinitconst struct resource timberdale_video_resources[] = {
-+	{
-+		.start	= LOGIWOFFSET,
-+		.end	= LOGIWEND,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	/*
-+	note that the "frame buffer" is located in DMA area
-+	starting at 0x1200000
-+	*/
-+};
-+
- static __devinitdata struct timb_dma_platform_data timb_dma_platform_data = {
- 	.nr_channels = 10,
- 	.channels = {
-@@ -372,6 +402,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg0[] = {
- 		.data_size = sizeof(timberdale_gpio_platform_data),
+ /* eb1a:2868 Reddo DVB-C USB TV Box
+    GPIO4 - CU1216L NIM
+    Other GPIOs seems to be don't care. */
+@@ -824,22 +836,22 @@
+ 		.tuner_gpio   = default_tuner_gpio,
+ 		.decoder      = EM28XX_TVP5150,
+ 		.has_dvb      = 1,
+-		.dvb_gpio     = default_digital,
++		.dvb_gpio     = terratec_cinergy_USB_XS_FR_digital,
+ 		.input        = { {
+ 			.type     = EM28XX_VMUX_TELEVISION,
+ 			.vmux     = TVP5150_COMPOSITE0,
+ 			.amux     = EM28XX_AMUX_VIDEO,
+-			.gpio     = default_analog,
++			.gpio     = terratec_cinergy_USB_XS_FR_analog,
+ 		}, {
+ 			.type     = EM28XX_VMUX_COMPOSITE1,
+ 			.vmux     = TVP5150_COMPOSITE1,
+ 			.amux     = EM28XX_AMUX_LINE_IN,
+-			.gpio     = default_analog,
++			.gpio     = terratec_cinergy_USB_XS_FR_analog,
+ 		}, {
+ 			.type     = EM28XX_VMUX_SVIDEO,
+ 			.vmux     = TVP5150_SVIDEO,
+ 			.amux     = EM28XX_AMUX_LINE_IN,
+-			.gpio     = default_analog,
++			.gpio     = terratec_cinergy_USB_XS_FR_analog,
+ 		} },
  	},
- 	{
-+		.name = "timb-video",
-+		.num_resources = ARRAY_SIZE(timberdale_video_resources),
-+		.resources = timberdale_video_resources,
-+		.platform_data = &timberdale_video_platform_data,
-+		.data_size = sizeof(timberdale_video_platform_data),
-+	},
-+	{
- 		.name = "timb-radio",
- 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
- 		.resources = timberdale_radio_resources,
-@@ -430,6 +467,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg1[] = {
- 		.resources = timberdale_mlogicore_resources,
- 	},
- 	{
-+		.name = "timb-video",
-+		.num_resources = ARRAY_SIZE(timberdale_video_resources),
-+		.resources = timberdale_video_resources,
-+		.platform_data = &timberdale_video_platform_data,
-+		.data_size = sizeof(timberdale_video_platform_data),
-+	},
-+	{
- 		.name = "timb-radio",
- 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
- 		.resources = timberdale_radio_resources,
-@@ -478,6 +522,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg2[] = {
- 		.data_size = sizeof(timberdale_gpio_platform_data),
- 	},
- 	{
-+		.name = "timb-video",
-+		.num_resources = ARRAY_SIZE(timberdale_video_resources),
-+		.resources = timberdale_video_resources,
-+		.platform_data = &timberdale_video_platform_data,
-+		.data_size = sizeof(timberdale_video_platform_data),
-+	},
-+	{
- 		.name = "timb-radio",
- 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
- 		.resources = timberdale_radio_resources,
-@@ -521,6 +572,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg3[] = {
- 		.data_size = sizeof(timberdale_gpio_platform_data),
- 	},
- 	{
-+		.name = "timb-video",
-+		.num_resources = ARRAY_SIZE(timberdale_video_resources),
-+		.resources = timberdale_video_resources,
-+		.platform_data = &timberdale_video_platform_data,
-+		.data_size = sizeof(timberdale_video_platform_data),
-+	},
-+	{
- 		.name = "timb-radio",
- 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
- 		.resources = timberdale_radio_resources,
-diff --git a/drivers/mfd/timberdale.h b/drivers/mfd/timberdale.h
-index c11bf6e..4412acd 100644
---- a/drivers/mfd/timberdale.h
-+++ b/drivers/mfd/timberdale.h
-@@ -23,7 +23,7 @@
- #ifndef MFD_TIMBERDALE_H
- #define MFD_TIMBERDALE_H
- 
--#define DRV_VERSION		"0.2"
-+#define DRV_VERSION		"0.3"
- 
- /* This driver only support versions >= 3.8 and < 4.0  */
- #define TIMB_SUPPORTED_MAJOR	3
+ 	[EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900] = {
+@@ -2259,6 +2271,7 @@
+ 		ctl->demod = XC3028_FE_ZARLINK456;
+ 		break;
+ 	case EM2880_BOARD_TERRATEC_HYBRID_XS:
++	case EM2880_BOARD_TERRATEC_HYBRID_XS_FR:
+ 	case EM2881_BOARD_PINNACLE_HYBRID_PRO:
+ 		ctl->demod = XC3028_FE_ZARLINK456;
+ 		break;
+
+--------------070506050903020805000103--
+
 
