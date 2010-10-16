@@ -1,71 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:5646 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760300Ab0J2DNU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Oct 2010 23:13:20 -0400
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o9T3DJN4029072
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 28 Oct 2010 23:13:19 -0400
-Received: from xavier.bos.redhat.com (xavier.bos.redhat.com [10.16.16.50])
-	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id o9T3DJ6A024398
-	for <linux-media@vger.kernel.org>; Thu, 28 Oct 2010 23:13:19 -0400
-Date: Thu, 28 Oct 2010 23:13:19 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Subject: [RFC PATCH 1/2] ir-nec-decoder: decode Apple's NEC remote variant
-Message-ID: <20101029031319.GF17238@redhat.com>
-References: <20101029031131.GE17238@redhat.com>
+Received: from casper.infradead.org ([85.118.1.10]:40851 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754278Ab0JPM4X (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Oct 2010 08:56:23 -0400
+Message-ID: <4CB9A0DB.6060203@infradead.org>
+Date: Sat, 16 Oct 2010 09:55:55 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20101029031131.GE17238@redhat.com>
+To: Daniel Drake <dsd@laptop.org>
+CC: Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/3] ov7670: disable QVGA mode
+References: <20101008210418.2B1809D401C@zog.reactivated.net>	<20101008151305.68f3897a@bike.lwn.net> <AANLkTi=G_k6CSy9wUTiXNK9DHPwk4FTqPWRReRC7DO24@mail.gmail.com>
+In-Reply-To: <AANLkTi=G_k6CSy9wUTiXNK9DHPwk4FTqPWRReRC7DO24@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Apple's remotes use an NEC-like protocol, but without checksumming. See
-http://en.wikipedia.org/wiki/Apple_Remote for details. Since they always
-send a specific vendor code, check for that, and bypass the checksum
-check.
+Em 08-10-2010 18:18, Daniel Drake escreveu:
+> On 8 October 2010 22:13, Jonathan Corbet <corbet@lwn.net> wrote:
+>> A problem like that will be at the controller level, not the sensor
+>> level.  Given that this is an XO-1 report, I'd assume something
+>> requires tweaking in the cafe_ccic driver.  I wasn't aware of this; I
+>> know it worked once upon a time.
+> 
+> I reported it 3 months ago
+> http://dev.laptop.org/ticket/10231
+> 
+> Are you interested in working on this?
+> I'd have no idea where to start.
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/IR/ir-nec-decoder.c |   10 +++++++++-
- 1 files changed, 9 insertions(+), 1 deletions(-)
+It maybe at one or at the other. What happens is that, in general, both the controller
+and the sensor discards the initial/final parts of a line. The visible area of the image
+is (generally) configurable on both. If the visible area doesn't match, you'll see a vertical
+or a horizontal line.
 
-diff --git a/drivers/media/IR/ir-nec-decoder.c b/drivers/media/IR/ir-nec-decoder.c
-index 70993f7..6dcddd2 100644
---- a/drivers/media/IR/ir-nec-decoder.c
-+++ b/drivers/media/IR/ir-nec-decoder.c
-@@ -50,6 +50,7 @@ static int ir_nec_decode(struct input_dev *input_dev, struct ir_raw_event ev)
- 	struct nec_dec *data = &ir_dev->raw->nec;
- 	u32 scancode;
- 	u8 address, not_address, command, not_command;
-+	bool apple = false;
- 
- 	if (!(ir_dev->raw->enabled_protocols & IR_TYPE_NEC))
- 		return 0;
-@@ -158,7 +159,14 @@ static int ir_nec_decode(struct input_dev *input_dev, struct ir_raw_event ev)
- 		command	    = bitrev8((data->bits >>  8) & 0xff);
- 		not_command = bitrev8((data->bits >>  0) & 0xff);
- 
--		if ((command ^ not_command) != 0xff) {
-+		/* Apple remotes use an NEC-like proto, but w/o a checksum */
-+		if ((address == 0xee) && (not_address == 0x87)) {
-+			apple = true;
-+			IR_dprintk(1, "Apple remote, ID byte 0x%02x\n",
-+				   not_command);
-+		}
-+
-+		if (((command ^ not_command) != 0xff) && !apple) {
- 			IR_dprintk(1, "NEC checksum error: received 0x%08x\n",
- 				   data->bits);
- 			break;
--- 
-1.7.1
+This is configured by hstart and hstop, in the case of ov sensors. If you wanna try to fix, all 
+you need to do is do move the start/stop window, for example, subtracting 2 on both hstart/hstop. 
+If this doesn't fix, try 3, 4, ...
+
+Yet, as Jon mentioned, if this works on XO-1, the better fix would be to adjust the screen visible
+area at XO-2 visible area setup (sometimes called "crop area" at datasheets).
 
 
--- 
-Jarod Wilson
-jarod@redhat.com
+> 
+> I'm not so convinced that it's a controller problem rather than a
+> sensor one, given that it says the sensor register values were
+> determined empirically rather than from docs.
+> 
+> Thanks,
+> Daniel
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
