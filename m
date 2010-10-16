@@ -1,59 +1,103 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:54152 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751090Ab0JWASL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Oct 2010 20:18:11 -0400
-Message-ID: <4CC229BC.90000@redhat.com>
-Date: Fri, 22 Oct 2010 22:18:04 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	p.osciak@samsung.com, s.nawrocki@samsung.com
-Subject: Re: [PATCH 7/8] v4l: Add EBUSY error description for VIDIOC_STREAMON
-References: <1283756030-28634-1-git-send-email-m.szyprowski@samsung.com> <1283756030-28634-8-git-send-email-m.szyprowski@samsung.com>
-In-Reply-To: <1283756030-28634-8-git-send-email-m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4245 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753832Ab0JPTFU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Oct 2010 15:05:20 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id o9GJ5I5k050314
+	for <linux-media@vger.kernel.org>; Sat, 16 Oct 2010 21:05:18 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 16 Oct 2010 21:05:18 +0200 (CEST)
+Message-Id: <201010161905.o9GJ5I5k050314@smtp-vbr14.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 06-09-2010 03:53, Marek Szyprowski escreveu:
-> From: Pawel Osciak <p.osciak@samsung.com>
-> 
-> VIDIOC_STREAMON should return EBUSY if streaming is already active.
-> 
-> Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> ---
->  Documentation/DocBook/v4l/vidioc-streamon.xml |    7 +++++++
->  1 files changed, 7 insertions(+), 0 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/v4l/vidioc-streamon.xml b/Documentation/DocBook/v4l/vidioc-streamon.xml
-> index e42bff1..fdbd8d8 100644
-> --- a/Documentation/DocBook/v4l/vidioc-streamon.xml
-> +++ b/Documentation/DocBook/v4l/vidioc-streamon.xml
-> @@ -93,6 +93,13 @@ synchronize with other events.</para>
->  been allocated (memory mapping) or enqueued (output) yet.</para>
->  	</listitem>
->        </varlistentry>
-> +      <varlistentry>
-> +	<term><errorcode>EBUSY</errorcode></term>
-> +	<listitem>
-> +	  <para><constant>VIDIOC_STREAMON</constant> called, but
-> +	  streaming I/O already active.</para>
-> +	</listitem>
-> +      </varlistentry>
->      </variablelist>
->    </refsect1>
->  </refentry>
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-I'm in doubt about this patch. I don't see any problem on just return 0 if
-stream is active.
+Results of the daily build of v4l-dvb:
 
-Actually, I think that this patch may break some applications, as there are
-some cases where stream may start even without streamon (like via read() method).
+date:        Sat Oct 16 19:00:17 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15164:1da5fed5c8b2
+git master:       3e6dce76d99b328716b43929b9195adfee1de00c
+git media-master: e749edc7e6967f8f92d2c0251c8a3a96524ec327
+gcc version:      i686-linux-gcc (GCC) 4.5.1
+host hardware:    x86_64
+host os:          2.6.32.5
 
-Cheers,
-Mauro
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: WARNINGS
+linux-git-mips: WARNINGS
+linux-git-powerpc64: WARNINGS
+linux-git-x86_64: WARNINGS
+linux-2.6.32.6-armv5: WARNINGS
+linux-2.6.33-armv5: WARNINGS
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.32.6-armv5-davinci: ERRORS
+linux-2.6.33-armv5-davinci: ERRORS
+linux-2.6.34-armv5-davinci: ERRORS
+linux-2.6.35.3-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: ERRORS
+linux-2.6.33-armv5-ixp: ERRORS
+linux-2.6.34-armv5-ixp: ERRORS
+linux-2.6.35.3-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: ERRORS
+linux-2.6.33-armv5-omap2: ERRORS
+linux-2.6.34-armv5-omap2: ERRORS
+linux-2.6.35.3-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.32.6-m32r: WARNINGS
+linux-2.6.33-m32r: WARNINGS
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
