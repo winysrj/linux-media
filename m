@@ -1,148 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:44212 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753504Ab0JHIuy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Oct 2010 04:50:54 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Fri, 08 Oct 2010 10:50:36 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 4/5 v4] V4L/DVB: s5p-fimc: Do not lock both buffer queues in
- s_fmt
-In-reply-to: <1286527837-4980-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com
-Message-id: <1286527837-4980-5-git-send-email-s.nawrocki@samsung.com>
-References: <1286527837-4980-1-git-send-email-s.nawrocki@samsung.com>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:4180 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756897Ab0JQAgt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Oct 2010 20:36:49 -0400
+Subject: Re: [PATCH 0/3] Remaining patches in my queue for IR
+From: Andy Walls <awalls@md.metrocast.net>
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
+	David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
+	mchehab@infradead.org, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org
+In-Reply-To: <1287269790-17605-1-git-send-email-maximlevitsky@gmail.com>
+References: <1287269790-17605-1-git-send-email-maximlevitsky@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 16 Oct 2010 20:36:45 -0400
+Message-ID: <1287275805.11162.5.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-It is not necessary to lock both capture and output buffer queue while
-setting format for single queue.
+On Sun, 2010-10-17 at 00:56 +0200, Maxim Levitsky wrote:
+> Hi,
+> 
+> This series is rebased on top of media_tree/staging/v2.6.37 only.
+> Really this time, sorry for cheating, last time :-)
+> 
+> The first patch like we agreed extends the raw packets.
+> It touches all drivers (except imon as it isn't a raw IR driver).
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-core.c |   69 +++++++++++++----------------
- 1 files changed, 31 insertions(+), 38 deletions(-)
+Will IR for the CX23885 and CX23888 still work given the changes?
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index 27379a6..23cc054 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -742,8 +742,9 @@ static int fimc_m2m_try_fmt(struct file *file, void *priv,
- static int fimc_m2m_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- {
- 	struct fimc_ctx *ctx = priv;
--	struct v4l2_device *v4l2_dev = &ctx->fimc_dev->m2m.v4l2_dev;
--	struct videobuf_queue *src_vq, *dst_vq;
-+	struct fimc_dev *fimc = ctx->fimc_dev;
-+	struct v4l2_device *v4l2_dev = &fimc->m2m.v4l2_dev;
-+	struct videobuf_queue *vq;
- 	struct fimc_frame *frame;
- 	struct v4l2_pix_format *pix;
- 	unsigned long flags;
-@@ -755,69 +756,61 @@ static int fimc_m2m_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 	if (ret)
- 		return ret;
- 
--	mutex_lock(&ctx->fimc_dev->lock);
-+	if (mutex_lock_interruptible(&fimc->lock))
-+		return -ERESTARTSYS;
- 
--	src_vq = v4l2_m2m_get_src_vq(ctx->m2m_ctx);
--	dst_vq = v4l2_m2m_get_dst_vq(ctx->m2m_ctx);
-+	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
-+	mutex_lock(&vq->vb_lock);
- 
--	mutex_lock(&src_vq->vb_lock);
--	mutex_lock(&dst_vq->vb_lock);
-+	if (videobuf_queue_is_busy(vq)) {
-+		v4l2_err(v4l2_dev, "%s: queue (%d) busy\n", __func__, f->type);
-+		ret = -EBUSY;
-+		goto sf_out;
-+	}
- 
-+	spin_lock_irqsave(&ctx->slock, flags);
- 	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
--		if (videobuf_queue_is_busy(src_vq)) {
--			v4l2_err(v4l2_dev, "%s queue busy\n", __func__);
--			ret = -EBUSY;
--			goto s_fmt_out;
--		}
- 		frame = &ctx->s_frame;
--		spin_lock_irqsave(&ctx->slock, flags);
- 		ctx->state |= FIMC_SRC_FMT;
--		spin_unlock_irqrestore(&ctx->slock, flags);
--
- 	} else if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
--		if (videobuf_queue_is_busy(dst_vq)) {
--			v4l2_err(v4l2_dev, "%s queue busy\n", __func__);
--			ret = -EBUSY;
--			goto s_fmt_out;
--		}
- 		frame = &ctx->d_frame;
--		spin_lock_irqsave(&ctx->slock, flags);
- 		ctx->state |= FIMC_DST_FMT;
--		spin_unlock_irqrestore(&ctx->slock, flags);
- 	} else {
-+		spin_unlock_irqrestore(&ctx->slock, flags);
- 		v4l2_err(&ctx->fimc_dev->m2m.v4l2_dev,
- 			 "Wrong buffer/video queue type (%d)\n", f->type);
- 		ret = -EINVAL;
--		goto s_fmt_out;
-+		goto sf_out;
- 	}
-+	spin_unlock_irqrestore(&ctx->slock, flags);
- 
- 	pix = &f->fmt.pix;
- 	frame->fmt = find_format(f);
- 	if (!frame->fmt) {
- 		ret = -EINVAL;
--		goto s_fmt_out;
-+		goto sf_out;
- 	}
- 
--	frame->f_width = pix->bytesperline * 8 / frame->fmt->depth;
--	frame->f_height = pix->sizeimage/pix->bytesperline;
--	frame->width = pix->width;
--	frame->height = pix->height;
--	frame->o_width = pix->width;
-+	frame->f_width	= pix->bytesperline * 8 / frame->fmt->depth;
-+	frame->f_height	= pix->height;
-+	frame->width	= pix->width;
-+	frame->height	= pix->height;
-+	frame->o_width	= pix->width;
- 	frame->o_height = pix->height;
--	frame->offs_h = 0;
--	frame->offs_v = 0;
--	frame->size = (pix->width * pix->height * frame->fmt->depth) >> 3;
--	src_vq->field = dst_vq->field = pix->field;
-+	frame->offs_h	= 0;
-+	frame->offs_v	= 0;
-+	frame->size	= (pix->width * pix->height * frame->fmt->depth) >> 3;
-+	vq->field	= pix->field;
-+
- 	spin_lock_irqsave(&ctx->slock, flags);
- 	ctx->state |= FIMC_PARAMS;
- 	spin_unlock_irqrestore(&ctx->slock, flags);
- 
--	dbg("f_width= %d, f_height= %d", frame->f_width, frame->f_height);
-+	dbg("f_w: %d, f_h: %d", frame->f_width, frame->f_height);
- 
--s_fmt_out:
--	mutex_unlock(&dst_vq->vb_lock);
--	mutex_unlock(&src_vq->vb_lock);
--	mutex_unlock(&ctx->fimc_dev->lock);
-+sf_out:
-+	mutex_unlock(&vq->vb_lock);
-+	mutex_unlock(&fimc->lock);
- 	return ret;
- }
- 
--- 
-1.7.3.1
+Here's the relevant files that use struct ir_raw_event:
+
+http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/media/video/cx23885/cx23885-input.c;h=bb61870b8d6ed39d25c11aa676b55bd0a94dc235;hb=staging/v2.6.37
+http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/media/video/cx25840/cx25840-ir.c;h=c2b4c14dc9ab533ff524b3e301235d6bdc92e2b9;hb=staging/v2.6.37
+http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/media/video/cx23885/cx23888-ir.c;h=2502a0a6709783b8c01d5de639d759d097f0f1cd;hb=staging/v2.6.37
+
+If needed, cx23885-input.c is where a fix can be made to ensure
+structure fields are properly zeroed until I have time to fix he lower
+level stuff.
+
+Regards,
+Andy
+
+> Code is compile tested with all drivers, 
+> and run tested with ENE and all receiver protocols
+> (except the streamzap rc5 flavour)
+> Since it also moves timeouts to lirc bridge, at least streazap driver
+> should have its timeout gap support removed. I am afraid to break the code
+> if I do so.
+> 
+> Other 2 patches are ENE specific, and don't touch anything else.
+> 
+> Please test other drivers.
+> 
+> Best regards,
+> 	Maxim Levitsky
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 
