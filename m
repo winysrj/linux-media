@@ -1,456 +1,92 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:57340 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751858Ab0JWJVF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Oct 2010 05:21:05 -0400
-Received: by eye27 with SMTP id 27so2238284eye.19
-        for <linux-media@vger.kernel.org>; Sat, 23 Oct 2010 02:21:04 -0700 (PDT)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Hendrik Skarpeid <skarp@online.no>,
-	Mauro Chehab <mchehab@infradead.org>
-Subject: Re: DM1105: could not attach frontend 195d:1105
-Date: Sat, 23 Oct 2010 12:20:51 +0300
-Cc: linux-media@vger.kernel.org,
-	Nameer Kazzaz <nameer.kazzaz@gmail.com>
-References: <4B7D83B2.4030709@online.no> <201003032105.06263.liplianin@me.by> <4B978D75.5080501@online.no>
-In-Reply-To: <4B978D75.5080501@online.no>
+Received: from mx1.redhat.com ([209.132.183.28]:54267 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932392Ab0JQT3r (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Oct 2010 15:29:47 -0400
+Message-ID: <4CBB4EA3.7070901@redhat.com>
+Date: Sun, 17 Oct 2010 17:29:39 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_zjqwMd65UhTk+g1"
-Message-Id: <201010231220.51387.liplianin@me.by>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+CC: linux-media@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"Marek Szyprowski/Poland R&D Center-Linux (MSS)/./????"
+	<m.szyprowski@samsung.com>
+Subject: Re: [GIT PATCHES FOR 2.6.37]  s5p-fimc camera host interface and
+ SR030PC30 sensor drivers
+References: <4CB42FF4.7060707@samsung.com>
+In-Reply-To: <4CB42FF4.7060707@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---Boundary-00=_zjqwMd65UhTk+g1
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Em 12-10-2010 06:52, Sylwester Nawrocki escreveu:
+> Hi Mauro,
+> 
+> 
+> The following changes since commit 9147e3dbca0712a5435cd2ea7c48d39344f904eb
+> 
+> V4L/DVB: cx231xx: use core-assisted lock (Sat Oct 9 13:13:35 2010)
+> 
+> are available in the git repository at:
+> 
+> git://git.infradead.org/users/kmpark/linux-2.6-samsung s5p_fimc_vga_for_2.6.37
+> 
+> Sylwester Nawrocki (7):
+> cd8ea8a V4L/DVB: Add driver for Siliconfile SR030PC30 VGA camera
+> 467835b V4L/DVB: s5p-fimc: Add suport for FIMC on S5PC210 SoCs
+> ce30889 V4L/DVB: s5p-fimc: Add camera capture support
+> bff8eea V4L/DVB: s5p-fimc: Do not lock both buffer queues in s_fmt
+> 00c222c V4L/DVB: s5p-fimc: Fix 90/270 deg rotation errors
+> 68028d6 V4L/DVB: s5p-fimc: mem2mem driver refactoring and cleanup
+> c03564c V4L/DVB: s5p-fimc: Register definition cleanup
+> 
+> 
+> drivers/media/video/Kconfig                 |    6 +
+> drivers/media/video/Makefile                |    1 +
+> drivers/media/video/s5p-fimc/Makefile       |    2 +-
+> drivers/media/video/s5p-fimc/fimc-capture.c |  819 +++++++++++++++++++++
+> drivers/media/video/s5p-fimc/fimc-core.c    | 1026 +++++++++++++++++----------
+> drivers/media/video/s5p-fimc/fimc-core.h    |  377 ++++++++--
+> drivers/media/video/s5p-fimc/fimc-reg.c     |  321 ++++++---
+> drivers/media/video/s5p-fimc/regs-fimc.h    |   64 +-
+> drivers/media/video/sr030pc30.c             |  893 +++++++++++++++++++++++
+> include/media/s3c_fimc.h                    |   60 ++
+> include/media/sr030pc30.h                   |   21 +
+> 11 files changed, 2992 insertions(+), 598 deletions(-)
+> 
+> 
+> All the patches have been posted to linux-media for review and can be found at
+> patchwork at:
+> https://patchwork.kernel.org/patch/245901/
+> https://patchwork.kernel.org/patch/245911/
+> https://patchwork.kernel.org/patch/245881/
+> https://patchwork.kernel.org/patch/245871/
+> https://patchwork.kernel.org/patch/245921/
+> https://patchwork.kernel.org/patch/245891/
+> https://patchwork.kernel.org/patch/245471/
+> 
+> The two patches added in the above repository
+> 
+> b6eb9a5 v4l: s5p-fimc: Fix 3-planar formats handling and pixel offset error on
+> S5PV210 SoCs
+> 03bda68 v4l: s5p-fimc: Fix return value on probe() failure
+> 
+> are already in 2.6.36.
+> 
+> The patch cd8ea8a V4L/DVB: Add driver for Siliconfile SR030PC30 VGA camera
+> has coding style changes in 3 lines comparing to version posted to ML.
 
-=D0=92 =D1=81=D0=BE=D0=BE=D0=B1=D1=89=D0=B5=D0=BD=D0=B8=D0=B8 =D0=BE=D1=82 =
-10 =D0=BC=D0=B0=D1=80=D1=82=D0=B0 2010 14:15:49 =D0=B0=D0=B2=D1=82=D0=BE=D1=
-=80 Hendrik Skarpeid =D0=BD=D0=B0=D0=BF=D0=B8=D1=81=D0=B0=D0=BB:
-> Igor M. Liplianin skrev:
-> > On 3 =D0=BC=D0=B0=D1=80=D1=82=D0=B0 2010 18:42:42 Hendrik Skarpeid wrot=
-e:
-> >> Igor M. Liplianin wrote:
-> >>> Now to find GPIO's for LNB power control and ... watch TV :)
-> >>=20
-> >> Yep. No succesful tuning at the moment. There might also be an issue
-> >> with the reset signal and writing to GPIOCTR, as the module at the
-> >> moment loads succesfully only once.
-> >> As far as I can make out, the LNB power control is probably GPIO 16 and
-> >> 17, not sure which is which, and how they work.
-> >> GPIO15 is wired to tuner #reset
-> >=20
-> > New patch to test
->=20
-> I think the LNB voltage may be a little to high on my card, 14.5V and
-> 20V. I would be a little more happy if they were 14 and 19, 13 and 18
-> would be perfect.
-> Anyways, as Igor pointet out, I don't have any signal from the LNB,
-> checked with another tuner card. It's a quad LNB, and the other outputs
-> are fine. Maybe it's' toasted from to high supply voltage! I little word
-> of warning then.
-> Anyways, here's my tweaked driver.
+There are a few warnings on it:
 
-Here is reworked patch for clear GPIO's handling.
-It allows to support I2C on GPIO's and per board LNB control through GPIO's.
-Also incuded support for Hendrik's card.
-I think it is clear how to change and test GPIO's for LNB and other stuff n=
-ow.
-To Hendrik:
-	Not shure, but there is maybe GPIO for raise/down LNB voltage a little (~1=
-v).
-	It is used for long coaxial lines to compensate voltage dropping.
+drivers/media/video/sr030pc30.c: In function ‘cam_i2c_write’:
+drivers/media/video/sr030pc30.c:356: warning: ‘ret’ may be used uninitialized in this function
+drivers/media/video/sr030pc30.c: In function ‘sr030pc30_set_params’:
+drivers/media/video/sr030pc30.c:345: warning: ‘ret’ may be used uninitialized in this function
+drivers/media/video/sr030pc30.c:328: note: ‘ret’ was declared here
 
-Signed-off-by: Igor M. Liplianin <liplianin@me.by>
+Please fix.
 
---Boundary-00=_zjqwMd65UhTk+g1
-Content-Type: text/x-patch;
-  charset="iso-8859-15";
-  name="dm1105_i2c_gpio.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
-	filename="dm1105_i2c_gpio.patch"
-
-diff -r abd3aac6644e linux/drivers/media/dvb/dm1105/dm1105.c
---- a/linux/drivers/media/dvb/dm1105/dm1105.c	Fri Jul 02 00:38:54 2010 -0300
-+++ b/linux/drivers/media/dvb/dm1105/dm1105.c	Sat Oct 23 11:58:32 2010 +0300
-@@ -20,6 +20,7 @@
-  */
- 
- #include <linux/i2c.h>
-+#include <linux/i2c-algo-bit.h>
- #include <linux/init.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
-@@ -50,11 +51,12 @@
- 
- #define UNSET (-1U)
- 
--#define DM1105_BOARD_NOAUTO		UNSET
--#define DM1105_BOARD_UNKNOWN		0
--#define DM1105_BOARD_DVBWORLD_2002	1
--#define DM1105_BOARD_DVBWORLD_2004	2
--#define DM1105_BOARD_AXESS_DM05		3
-+#define DM1105_BOARD_NOAUTO			UNSET
-+#define DM1105_BOARD_UNKNOWN			0
-+#define DM1105_BOARD_DVBWORLD_2002		1
-+#define DM1105_BOARD_DVBWORLD_2004		2
-+#define DM1105_BOARD_AXESS_DM05			3
-+#define DM1105_BOARD_UNBRANDED_I2C_ON_GPIO	4
- 
- /* ----------------------------------------------- */
- /*
-@@ -158,22 +160,38 @@
- #define DM1105_MAX				0x04
- 
- #define DRIVER_NAME				"dm1105"
-+#define DM1105_I2C_GPIO_NAME			"dm1105-gpio"
- 
- #define DM1105_DMA_PACKETS			47
- #define DM1105_DMA_PACKET_LENGTH		(128*4)
- #define DM1105_DMA_BYTES			(128 * 4 * DM1105_DMA_PACKETS)
- 
-+/*  */
-+#define GPIO08					(1 << 8)
-+#define GPIO13					(1 << 13)
-+#define GPIO14					(1 << 14)
-+#define GPIO15					(1 << 15)
-+#define GPIO16					(1 << 16)
-+#define GPIO17					(1 << 17)
-+#define GPIO_ALL				0x03ffff
-+
- /* GPIO's for LNB power control */
--#define DM1105_LNB_MASK				0x00000000
--#define DM1105_LNB_OFF				0x00020000
--#define DM1105_LNB_13V				0x00010100
--#define DM1105_LNB_18V				0x00000100
-+#define DM1105_LNB_MASK				(GPIO_ALL & ~(GPIO14 | GPIO13))
-+#define DM1105_LNB_OFF				GPIO17
-+#define DM1105_LNB_13V				(GPIO16 | GPIO08)
-+#define DM1105_LNB_18V				GPIO08
- 
- /* GPIO's for LNB power control for Axess DM05 */
--#define DM05_LNB_MASK				0x00000000
--#define DM05_LNB_OFF				0x00020000/* actually 13v */
--#define DM05_LNB_13V				0x00020000
--#define DM05_LNB_18V				0x00030000
-+#define DM05_LNB_MASK				(GPIO_ALL & ~(GPIO14 | GPIO13))
-+#define DM05_LNB_OFF				GPIO17/* actually 13v */
-+#define DM05_LNB_13V				GPIO17
-+#define DM05_LNB_18V				(GPIO17 | GPIO16)
-+
-+/* GPIO's for LNB power control for unbranded with I2C on GPIO */
-+#define UNBR_LNB_MASK				(GPIO17 | GPIO16)
-+#define UNBR_LNB_OFF				0
-+#define UNBR_LNB_13V				GPIO17
-+#define UNBR_LNB_18V				(GPIO17 | GPIO16)
- 
- static unsigned int card[]  = {[0 ... 3] = UNSET };
- module_param_array(card,  int, NULL, 0444);
-@@ -188,7 +206,11 @@
- DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- 
- struct dm1105_board {
--	char                    *name;
-+	char	*name;
-+	struct	{
-+		u32	mask, off, v13, v18;
-+	} lnb;
-+	u32	gpio_scl, gpio_sda;
- };
- 
- struct dm1105_subid {
-@@ -200,15 +222,50 @@
- static const struct dm1105_board dm1105_boards[] = {
- 	[DM1105_BOARD_UNKNOWN] = {
- 		.name		= "UNKNOWN/GENERIC",
-+		.lnb = {
-+			.mask = DM1105_LNB_MASK,
-+			.off = DM1105_LNB_OFF,
-+			.v13 = DM1105_LNB_13V,
-+			.v18 = DM1105_LNB_18V,
-+		},
- 	},
- 	[DM1105_BOARD_DVBWORLD_2002] = {
- 		.name		= "DVBWorld PCI 2002",
-+		.lnb = {
-+			.mask = DM1105_LNB_MASK,
-+			.off = DM1105_LNB_OFF,
-+			.v13 = DM1105_LNB_13V,
-+			.v18 = DM1105_LNB_18V,
-+		},
- 	},
- 	[DM1105_BOARD_DVBWORLD_2004] = {
- 		.name		= "DVBWorld PCI 2004",
-+		.lnb = {
-+			.mask = DM1105_LNB_MASK,
-+			.off = DM1105_LNB_OFF,
-+			.v13 = DM1105_LNB_13V,
-+			.v18 = DM1105_LNB_18V,
-+		},
- 	},
- 	[DM1105_BOARD_AXESS_DM05] = {
- 		.name		= "Axess/EasyTv DM05",
-+		.lnb = {
-+			.mask = DM05_LNB_MASK,
-+			.off = DM05_LNB_OFF,
-+			.v13 = DM05_LNB_13V,
-+			.v18 = DM05_LNB_18V,
-+		},
-+	},
-+	[DM1105_BOARD_UNBRANDED_I2C_ON_GPIO] = {
-+		.name		= "Unbranded DM1105 with i2c on GPIOs",
-+		.lnb = {
-+			.mask = UNBR_LNB_MASK,
-+			.off = UNBR_LNB_OFF,
-+			.v13 = UNBR_LNB_13V,
-+			.v18 = UNBR_LNB_18V,
-+		},
-+		.gpio_scl	= GPIO14,
-+		.gpio_sda	= GPIO13,
- 	},
- };
- 
-@@ -294,6 +351,8 @@
- 
- 	/* i2c */
- 	struct i2c_adapter i2c_adap;
-+	struct i2c_adapter i2c_bb_adap;
-+	struct i2c_algo_bit_data i2c_bit;
- 
- 	/* irq */
- 	struct work_struct work;
-@@ -329,6 +388,103 @@
- #define dm_setl(reg, bit)	dm_andorl((reg), (bit), (bit))
- #define dm_clearl(reg, bit)	dm_andorl((reg), (bit), 0)
- 
-+/* The chip has 18 GPIOs. In HOST mode GPIO's used as 15 bit address lines,
-+ so we can use only 3 GPIO's from GPIO15 to GPIO17.
-+ Here I don't check whether HOST is enebled as it is not implemented yet.
-+ */
-+static void dm1105_gpio_set(struct dm1105_dev *dev, u32 mask)
-+{
-+	if (mask & 0xfffc0000)
-+		printk(KERN_ERR "%s: Only 18 GPIO's are allowed\n", __func__);
-+
-+	if (mask & 0x0003ffff)
-+		dm_setl(DM1105_GPIOVAL, mask & 0x0003ffff);
-+
-+}
-+
-+static void dm1105_gpio_clear(struct dm1105_dev *dev, u32 mask)
-+{
-+	if (mask & 0xfffc0000)
-+		printk(KERN_ERR "%s: Only 18 GPIO's are allowed\n", __func__);
-+
-+	if (mask & 0x0003ffff)
-+		dm_clearl(DM1105_GPIOVAL, mask & 0x0003ffff);
-+
-+}
-+
-+static void dm1105_gpio_andor(struct dm1105_dev *dev, u32 mask, u32 val)
-+{
-+	if (mask & 0xfffc0000)
-+		printk(KERN_ERR "%s: Only 18 GPIO's are allowed\n", __func__);
-+
-+	if (mask & 0x0003ffff)
-+		dm_andorl(DM1105_GPIOVAL, mask & 0x0003ffff, val);
-+
-+}
-+
-+static u32 dm1105_gpio_get(struct dm1105_dev *dev, u32 mask)
-+{
-+	if (mask & 0xfffc0000)
-+		printk(KERN_ERR "%s: Only 18 GPIO's are allowed\n", __func__);
-+
-+	if (mask & 0x0003ffff)
-+		return dm_readl(DM1105_GPIOVAL) & mask & 0x0003ffff;
-+
-+	return 0;
-+}
-+
-+static void dm1105_gpio_enable(struct dm1105_dev *dev, u32 mask, int asoutput)
-+{
-+	if (mask & 0xfffc0000)
-+		printk(KERN_ERR "%s: Only 18 GPIO's are allowed\n", __func__);
-+
-+	if ((mask & 0x0003ffff) && asoutput)
-+		dm_clearl(DM1105_GPIOCTR, mask & 0x0003ffff);
-+	else if ((mask & 0x0003ffff) && !asoutput)
-+		dm_setl(DM1105_GPIOCTR, mask & 0x0003ffff);
-+
-+}
-+
-+static void dm1105_setline(struct dm1105_dev *dev, u32 line, int state)
-+{
-+	if (state)
-+		dm1105_gpio_enable(dev, line, 0);
-+	else {
-+		dm1105_gpio_enable(dev, line, 1);
-+		dm1105_gpio_clear(dev, line);
-+	}
-+}
-+
-+static void dm1105_setsda(void *data, int state)
-+{
-+	struct dm1105_dev *dev = data;
-+
-+	dm1105_setline(dev, dm1105_boards[dev->boardnr].gpio_sda, state);
-+}
-+
-+static void dm1105_setscl(void *data, int state)
-+{
-+	struct dm1105_dev *dev = data;
-+
-+	dm1105_setline(dev, dm1105_boards[dev->boardnr].gpio_scl, state);
-+}
-+
-+static int dm1105_getsda(void *data)
-+{
-+	struct dm1105_dev *dev = data;
-+
-+	return dm1105_gpio_get(dev, dm1105_boards[dev->boardnr].gpio_sda)
-+									? 1 : 0;
-+}
-+
-+static int dm1105_getscl(void *data)
-+{
-+	struct dm1105_dev *dev = data;
-+
-+	return dm1105_gpio_get(dev, dm1105_boards[dev->boardnr].gpio_scl)
-+									? 1 : 0;
-+}
-+
- static int dm1105_i2c_xfer(struct i2c_adapter *i2c_adap,
- 			    struct i2c_msg *msgs, int num)
- {
-@@ -440,31 +596,20 @@
- static int dm1105_set_voltage(struct dvb_frontend *fe, fe_sec_voltage_t voltage)
- {
- 	struct dm1105_dev *dev = frontend_to_dm1105_dev(fe);
--	u32 lnb_mask, lnb_13v, lnb_18v, lnb_off;
- 
--	switch (dev->boardnr) {
--	case DM1105_BOARD_AXESS_DM05:
--		lnb_mask = DM05_LNB_MASK;
--		lnb_off = DM05_LNB_OFF;
--		lnb_13v = DM05_LNB_13V;
--		lnb_18v = DM05_LNB_18V;
--		break;
--	case DM1105_BOARD_DVBWORLD_2002:
--	case DM1105_BOARD_DVBWORLD_2004:
--	default:
--		lnb_mask = DM1105_LNB_MASK;
--		lnb_off = DM1105_LNB_OFF;
--		lnb_13v = DM1105_LNB_13V;
--		lnb_18v = DM1105_LNB_18V;
--	}
--
--	dm_writel(DM1105_GPIOCTR, lnb_mask);
-+	dm1105_gpio_enable(dev, dm1105_boards[dev->boardnr].lnb.mask, 1);
- 	if (voltage == SEC_VOLTAGE_18)
--		dm_writel(DM1105_GPIOVAL, lnb_18v);
-+		dm1105_gpio_andor(dev,
-+				dm1105_boards[dev->boardnr].lnb.mask,
-+				dm1105_boards[dev->boardnr].lnb.v18);
- 	else if (voltage == SEC_VOLTAGE_13)
--		dm_writel(DM1105_GPIOVAL, lnb_13v);
-+		dm1105_gpio_andor(dev,
-+				dm1105_boards[dev->boardnr].lnb.mask,
-+				dm1105_boards[dev->boardnr].lnb.v13);
- 	else
--		dm_writel(DM1105_GPIOVAL, lnb_off);
-+		dm1105_gpio_andor(dev,
-+				dm1105_boards[dev->boardnr].lnb.mask,
-+				dm1105_boards[dev->boardnr].lnb.off);
- 
- 	return 0;
- }
-@@ -740,6 +885,38 @@
- 	int ret;
- 
- 	switch (dev->boardnr) {
-+	case DM1105_BOARD_UNBRANDED_I2C_ON_GPIO:
-+		dm1105_gpio_enable(dev, GPIO15, 1);
-+		dm1105_gpio_clear(dev, GPIO15);
-+		msleep(100);
-+		dm1105_gpio_set(dev, GPIO15);
-+		msleep(200);
-+		dev->fe = dvb_attach(
-+			stv0299_attach, &sharp_z0194a_config,
-+			&dev->i2c_bb_adap);
-+		if (dev->fe) {
-+			dev->fe->ops.set_voltage = dm1105_set_voltage;
-+			dvb_attach(dvb_pll_attach, dev->fe, 0x60,
-+					&dev->i2c_bb_adap, DVB_PLL_OPERA1);
-+			break;
-+		}
-+
-+		dev->fe = dvb_attach(
-+			stv0288_attach, &earda_config,
-+			&dev->i2c_bb_adap);
-+		if (dev->fe) {
-+			dev->fe->ops.set_voltage = dm1105_set_voltage;
-+			dvb_attach(stb6000_attach, dev->fe, 0x61,
-+					&dev->i2c_bb_adap);
-+			break;
-+		}
-+
-+		dev->fe = dvb_attach(
-+			si21xx_attach, &serit_config,
-+			&dev->i2c_bb_adap);
-+		if (dev->fe)
-+			dev->fe->ops.set_voltage = dm1105_set_voltage;
-+		break;
- 	case DM1105_BOARD_DVBWORLD_2004:
- 		dev->fe = dvb_attach(
- 			cx24116_attach, &serit_sp2633_config,
-@@ -903,11 +1080,33 @@
- 	if (ret < 0)
- 		goto err_dm1105_hw_exit;
- 
-+	i2c_set_adapdata(&dev->i2c_bb_adap, dev);
-+	strcpy(dev->i2c_bb_adap.name, DM1105_I2C_GPIO_NAME);
-+	dev->i2c_bb_adap.owner = THIS_MODULE;
-+	dev->i2c_bb_adap.class = I2C_CLASS_TV_DIGITAL;
-+	dev->i2c_bb_adap.dev.parent = &pdev->dev;
-+	dev->i2c_bb_adap.algo_data = &dev->i2c_bit;
-+	dev->i2c_bit.data = dev;
-+	dev->i2c_bit.setsda = dm1105_setsda;
-+	dev->i2c_bit.setscl = dm1105_setscl;
-+	dev->i2c_bit.getsda = dm1105_getsda;
-+	dev->i2c_bit.getscl = dm1105_getscl;
-+	dev->i2c_bit.udelay = 10;
-+	dev->i2c_bit.timeout = 10;
-+
-+	/* Raise SCL and SDA */
-+	dm1105_setsda(dev, 1);
-+	dm1105_setscl(dev, 1);
-+
-+	ret = i2c_bit_add_bus(&dev->i2c_bb_adap);
-+	if (ret < 0)
-+		goto err_i2c_del_adapter;
-+
- 	/* dvb */
- 	ret = dvb_register_adapter(&dev->dvb_adapter, DRIVER_NAME,
- 					THIS_MODULE, &pdev->dev, adapter_nr);
- 	if (ret < 0)
--		goto err_i2c_del_adapter;
-+		goto err_i2c_del_adapters;
- 
- 	dvb_adapter = &dev->dvb_adapter;
- 
-@@ -989,6 +1188,8 @@
- 	dvb_dmx_release(dvbdemux);
- err_dvb_unregister_adapter:
- 	dvb_unregister_adapter(dvb_adapter);
-+err_i2c_del_adapters:
-+	i2c_del_adapter(&dev->i2c_bb_adap);
- err_i2c_del_adapter:
- 	i2c_del_adapter(&dev->i2c_adap);
- err_dm1105_hw_exit:
-
---Boundary-00=_zjqwMd65UhTk+g1--
+Cheers,
+Mauro
