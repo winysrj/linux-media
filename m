@@ -1,85 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from smtp5.tech.numericable.fr ([82.216.111.41]:56453 "EHLO
-	smtp5.tech.numericable.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932229Ab0JDTcv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Oct 2010 15:32:51 -0400
-Received: from [192.168.2.1] (abo-159-1-69.bdx.modulonet.fr [85.69.1.159])
-	by smtp5.tech.numericable.fr (Postfix) with ESMTP id 4C12C124027
-	for <linux-media@vger.kernel.org>; Mon,  4 Oct 2010 21:32:48 +0200 (CEST)
-Message-ID: <4CAA2BE6.1050302@libertysurf.fr>
-Date: Mon, 04 Oct 2010 21:32:54 +0200
-From: Catimimi <catimimi@libertysurf.fr>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [PATCH] Terratec Cinergy Hybrid T USB XS FR
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Received: from ironport2-out.teksavvy.com ([206.248.154.181]:37450 "EHLO
+	ironport2-out.pppoe.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757371Ab0JQRDd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Oct 2010 13:03:33 -0400
+Subject: Re: [GIT PATCHES FOR 2.6.36] Fix msp3400 regression causing mute
+	audio
+From: Shane Shrybman <shrybman@teksavvy.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>,
+	ivtv-devel@ivtvdriver.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+In-Reply-To: <201010171243.39520.hverkuil@xs4all.nl>
+References: <201010171243.39520.hverkuil@xs4all.nl>
+Content-Type: text/plain
+Date: Sun, 17 Oct 2010 12:53:44 -0400
+Message-Id: <1287334424.3593.3.camel@mars>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-  New gpio definitions.
-XC3028_FE_ZARLINK456 was not loaded.
+On Sun, 2010-10-17 at 12:43 +0200, Hans Verkuil wrote:
+> Hi Mauro,
+> 
+> I hope you can fast-track this to Linus! It's a nasty regression. From the log:
+> 
+> "The switch to the new control framework caused a regression where the audio was
+> no longer unmuted after the carrier scan finished.
+> 
+> The original code attempted to set the volume control to its current value in
+> order to have the set-volume control code to be called that handles the volume
+> and muting. However, the framework will not call that code unless the new volume
+> value is different from the old.
+> 
+> Instead we now call msp_s_ctrl directly.
+> 
+> It is a bit of a hack: we really need a v4l2_ctrl_refresh_ctrl function for this
+> (or something along those lines).
+> 
+> Thanks to Andy Walls for bisecting this and to Shane Shrybman for reporting it!"
+> 
+> I've tested this with my PVR-350 and the audio is now working properly again.
+> 
 
-Signed-off-by: Michel Garnier<catimimi@libertysurf.fr>
+I've done a quick test of this patch on 2.6.36-rc8 and confirm it fixes
+the no audio issue.
 
----
+Thanks very much Andy and Hans.
 
-diff -Nru v4l-dvb-1da5fed5c8b2-orig/linux/drivers/media/video/em28xx/em28xx-cards.c 
-v4l-dvb-1da5fed5c8b2-new/linux/drivers/media/video/em28xx/em28xx-cards.c
---- v4l-dvb-1da5fed5c8b2-orig/linux/drivers/media/video/em28xx/em28xx-cards.c    2010-09-19 07:23:09.000000000 +0200
-+++ v4l-dvb-1da5fed5c8b2-new/linux/drivers/media/video/em28xx/em28xx-cards.c    2010-10-04 19:05:11.000000000 +0200
-@@ -200,6 +200,18 @@
-      {    -1,        -1,    -1,        -1},
-  };
+Shane
 
-+static struct em28xx_reg_seq terratec_cinergy_USB_XS_analog[] = {
-+    {EM28XX_R08_GPIO,    0x6d,    ~EM_GPIO_4,    10},
-+    {EM2880_R04_GPO,    0x00,    0xff,        10},
-+    { -1,            -1,    -1,        -1},
-+};
-+
-+static struct em28xx_reg_seq terratec_cinergy_USB_XS_digital[] = {
-+    {EM28XX_R08_GPIO,    0x6e,    ~EM_GPIO_4,    10},
-+    {EM2880_R04_GPO,    0x08,    0xff,        10},
-+    { -1,            -1,    -1,        -1},
-+};
-+
-  /* eb1a:2868 Reddo DVB-C USB TV Box
-     GPIO4 - CU1216L NIM
-     Other GPIOs seems to be don't care. */
-@@ -824,22 +836,22 @@
-          .tuner_gpio   = default_tuner_gpio,
-          .decoder      = EM28XX_TVP5150,
-          .has_dvb      = 1,
--        .dvb_gpio     = default_digital,
-+        .dvb_gpio     = terratec_cinergy_USB_XS_digital,
-          .input        = { {
-              .type     = EM28XX_VMUX_TELEVISION,
-              .vmux     = TVP5150_COMPOSITE0,
-              .amux     = EM28XX_AMUX_VIDEO,
--            .gpio     = default_analog,
-+            .gpio     = terratec_cinergy_USB_XS_analog,
-          }, {
-              .type     = EM28XX_VMUX_COMPOSITE1,
-              .vmux     = TVP5150_COMPOSITE1,
-              .amux     = EM28XX_AMUX_LINE_IN,
--            .gpio     = default_analog,
-+            .gpio     = terratec_cinergy_USB_XS_analog,
-          }, {
-              .type     = EM28XX_VMUX_SVIDEO,
-              .vmux     = TVP5150_SVIDEO,
-              .amux     = EM28XX_AMUX_LINE_IN,
--            .gpio     = default_analog,
-+            .gpio     = terratec_cinergy_USB_XS_analog,
-          } },
-      },
-      [EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900] = {
-@@ -2259,6 +2271,7 @@
-          ctl->demod = XC3028_FE_ZARLINK456;
-          break;
-      case EM2880_BOARD_TERRATEC_HYBRID_XS:
-+    case EM2880_BOARD_TERRATEC_HYBRID_XS_FR:
-      case EM2881_BOARD_PINNACLE_HYBRID_PRO:
-          ctl->demod = XC3028_FE_ZARLINK456;
-          break;
 
