@@ -1,96 +1,123 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:48983 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753769Ab0JMW6r (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Oct 2010 18:58:47 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Eino-Ville Talvala" <talvala@stanford.edu>
-Subject: Re: OMAP 3530 camera ISP forks and new media framework
-Date: Thu, 14 Oct 2010 00:58:46 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sung Hee Park <shpark7@stanford.edu>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-References: <AANLkTimyR117ZiHq8GFz4YW5tBtW3k82NzGVZqKoVTbY@mail.gmail.com> <AANLkTimzU8rR2a0=gTLX8UOxGZaiY0gxx4zTr2VH-iMa@mail.gmail.com> <4CB62CB5.9000706@stanford.edu>
-In-Reply-To: <4CB62CB5.9000706@stanford.edu>
+Received: from mx1.redhat.com ([209.132.183.28]:18407 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751038Ab0JQXIz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Oct 2010 19:08:55 -0400
+Message-ID: <4CBB81E5.1010506@redhat.com>
+Date: Sun, 17 Oct 2010 21:08:21 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: LMML <linux-media@vger.kernel.org>,
+	"Igor M. Liplianin" <liplianin@me.by>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Jarod Wilson <jarod@redhat.com>,
+	Richard Zidlicky <rz@linux-m68k.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Sven Barth <pascaldragon@googlemail.com>,
+	Patrick Boettcher <pboettcher@kernellabs.com>,
+	Henrik Kurelid <henke@kurelid.se>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: Re: Old patches sent via the Mailing list
+References: <4CBB689F.1070100@redhat.com> <Pine.LNX.4.64.1010172348520.2757@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1010172348520.2757@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201010140058.47236.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Eino-Ville,
-
-On Thursday 14 October 2010 00:03:33 Eino-Ville Talvala wrote:
->  Hi Laurent, linux-media,
+Em 17-10-2010 20:03, Guennadi Liakhovetski escreveu:
+> Hi Mauro
 > 
-> We've been working on porting our OMAP3 ISP/mt9p031 Frankencamera framework
-> forward to the current kernel versions (currently, we're using the N900
-> ISP driver codebase, which is rather old by now). We'd been following
-> Sakari's omap3camera tree, but as is clear from this discussion, that's a
-> bad idea now.
+> On Sun, 17 Oct 2010, Mauro Carvalho Chehab wrote:
 > 
-> (I'd love to just send out our mt9p031 driver code, but we still haven't
-> sorted out whether we're free to do so - since we're rewriting it a great
-> deal anyway, it hasn't been a priority to sort out.)
+>> 		== Soc_camera waiting for Guennadi Liakhovetski <g.liakhovetski@gmx.de> review == 
+>>
+>> (Guennadi gave me an update about those patches last time. I'm not sure about the updated status)
+>>
+>> Jul, 5 2010: soc-camera: module_put() fix                                           http://patchwork.kernel.org/patch/110202  Magnus Damm <damm@opensource.se>
 > 
-> I've been handing off dev work on this to the next set of students on the
-> project, so I haven't been paying much attention to the mailing lists
-> recently, and I apologize if these questions have had clear answers
-> already.
+> Please, mark as dropped
 > 
-> Assuming one has a driver that works fine on the old v4l2_int_framework
-> back in .28-n900 kernel version - what is the best way forward to move it
-> to the 'current best option' framework, whatever that's currently
-> considered to be for the OMAP3 ISP?  And for whatever option that is, is
-> there a document somewhere describing what needs to hooked up to what to
-> make that go, or is the best way to just look at the *-rx51 / et8ek8 code
-> in the right git repository?
+>> Jul,27 2010: [1/4] mx2_camera: fix a race causing NULL dereference                  http://patchwork.kernel.org/patch/114515  Baruch Siach <baruch@tkos.co.il>
+> 
+> is upstream 
+> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=5384a12b23160e11ff949a94172051476d308b66
+> 
+>> Jul,27 2010: [2/4] mx2_camera: return IRQ_NONE when doing nothing                   http://patchwork.kernel.org/patch/114517  Baruch Siach <baruch@tkos.co.il>
+> 
+> mark as dropped
+> 
+>> Jul,27 2010: [4/4] mx2_camera: implement forced termination of active buffer for mx http://patchwork.kernel.org/patch/114518  Baruch Siach <baruch@tkos.co.il>
+> 
+> is in next 
+> http://git.kernel.org/?p=linux/kernel/git/next/linux-next.git;a=commit;h=9cf6ddf5eeedaffd989f9b93df1b7ea8d459786b
+> 
+>> Aug, 3 2010: [2/5] mx2_camera: remove emma limitation for RGB565                    http://patchwork.kernel.org/patch/116703  Michael Grzeschik <m.grzeschik@pengutronix.de>
+> 
+> is in next 
+> http://git.kernel.org/?p=linux/kernel/git/next/linux-next.git;a=commit;h=2b262a18b79768a2b7a62ba187f8830802790b9a
+> 
+>> Aug, 3 2010: [3/5] mx2_camera: fix for list bufnum in frame_done_emma               http://patchwork.kernel.org/patch/116705  Michael Grzeschik <m.grzeschik@pengutronix.de>
+> 
+> is upstream 
+> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=cd9ebdbc0541b4e8ee145c81642d68332f79b932
+> 
+>> Aug, 3 2010: [4/5] mx2_camera: add rising edge for pixclock                         http://patchwork.kernel.org/patch/116704  Michael Grzeschik <m.grzeschik@pengutronix.de>
+> 
+> upstream 
+> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=d86097e19cef2f13a29fc37db0dad17b99b6d5f8
+> 
+>> Aug, 3 2010: [5/5] mx2_camera: add informative camera clock frequency printout      http://patchwork.kernel.org/patch/116707  Michael Grzeschik <m.grzeschik@pengutronix.de>
+> 
+> in next 
+> http://git.kernel.org/?p=linux/kernel/git/next/linux-next.git;a=commit;h=e7d317b5b210a2f9486faa335e4eff81e5f6210d
+> 
+>> Aug, 3 2010: [04/11] mt9m111: added new bit offset defines                          http://patchwork.kernel.org/patch/116721  Michael Grzeschik <m.grzeschik@pengutronix.de>
+> 
+> waiting an update (possible merge with 08/11 and 10/11 below)
+> 
+>> Aug, 3 2010: [06/11] mt9m111: cropcap and s_crop check if type is VIDEO_CAPTURE     http://patchwork.kernel.org/patch/116726  Michael Grzeschik <m.grzeschik@pengutronix.de>
+> 
+> upstream 
+> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=6b6d33c746ace7bd0dbbdde674d3fb1100ab081d
+> 
+>> Aug, 3 2010: [07/11] mt9m111: added current colorspace at g_fmt                     http://patchwork.kernel.org/patch/116724  Michael Grzeschik <m.grzeschik@pengutronix.de>
+> 
+> upstream 
+> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=01f5a394eac48b74c84434e95e74cd172b0682c3
+> 
+>> Aug, 3 2010: [08/11] mt9m111: added reg_mask function                               http://patchwork.kernel.org/patch/116722  Michael Grzeschik <m.grzeschik@pengutronix.de>
+> 
+> waiting for update (see 04/11 above)
+> 
+>> Aug, 3 2010: [v2,10/11] mt9m111: rewrite set_pixfmt                                 http://patchwork.kernel.org/patch/116728  Michael Grzeschik <m.grzeschik@pengutronix.de>
+> 
+> waiting for update (see 04/11 above)
+> 
+>> Aug, 3 2010: [v2,11/11] mt9m111: make use of testpattern                            http://patchwork.kernel.org/patch/116730  Michael Grzeschik <m.grzeschik@pengutronix.de>
+> 
+> waiting for a new version, using additional inputs to provide test 
+> patterns.
 
-First of all, you need to get the latest OMAP3 ISP driver sources.
+Updated, thanks!
+> 
+> Somehow, looks like patches, that I push to you, don't (automatically) get 
+> updated in patchwork, is there anything, that I'm doing wrongly, why this 
+> is happening?
 
-The most recent OMAP3 ISP driver for the N900 can be found in the omap3isp-
-rx51 git tree on gitorious.org (devel branch from 
-http://meego.gitorious.org/maemo-multimedia/omap3isp-rx51). This is the tree 
-used by MeeGo for the OMAP3 ISP camera driver. The driver has been ported to 
-the media controller framework, but the latest changes to the framework are 
-not present in that tree as they break the driver ABI and API. This should be 
-fixed in the future, but I can't give you any time estimate at the moment.
+Unfortunately, they're not updated automatically. There's no easy way to
+discover when a patch at a pull request were also sent to the ML. I need
+to do it manually.
 
-The most recent OMAP3 ISP driver and media controller framework can be found 
-in the pinchartl/media git tree on linuxtv.org (media-0004-omap3isp branch 
-from http://git.linuxtv.org/pinchartl/media.git). This is the tree used for 
-upstream submission of the media controller and OMAP3 ISP driver. The OMAP3 
-ISP driver implements the latest media controller API, but the tree doesn't 
-contain RX51 camera support.
+In fact, there's an easy way to allow me to automatically update the patchwork ID.
+All you need is to add:
 
-As I assume you need RX51 camera support (arch/arm/mach-omap2/board-rx51-
-camera.c, drivers/media/video/et8ek8.c, ...), the easiest solution is to go 
-for the gitorious.org tree. You will need to modify your code later when the 
-OMAP3 ISP driver will hit upstream, but the modifications will be very small 
-(mostly a matter of renaming constants or structure fields).
+X-Patchwork-Id: <ID>
 
-If you want to play with the latest media controller API, you could go for the 
-linuxtv.org tree and port the RX51 camera support from the gitorious.org tree. 
-That shouldn't be difficult, but time is unfortunately a scarce resource.
+in the body of the email. My scripts use this tag to mark a patch as accepted/rejected
+when I accept/reject a patch, as this tag is generated by patchwork.
 
-For userspace API documentation, run "make htmldocs" on the linuxtv.org tree 
-to generate HTML documentation, and navigate to 
-Documentation/DocBook/media/media_controller.html and 
-Documentation/DocBook/media/subdev.html.
-
-Regarding the v4l2_int framework, your kernel drivers will need to be ported 
-to the V4L2 subdev framework and use pad-level operations. The et8ek8 driver 
-should be a good example. You can also have a look at the mt9t001 driver in 
-the media-mt9t001 branch from the linuxtv.org tree. The subdev pad-level 
-userspace API documentation will also help you understand the in-kernel API.
-
-I hope this information will help you. Feel free to contact me if you have 
-further questions.
-
--- 
-Regards,
-
-Laurent Pinchart
+Thanks,
+Mauro
