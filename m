@@ -1,264 +1,111 @@
 Return-path: <mchehab@pedra>
-Received: from nm7.bullet.mail.ukl.yahoo.com ([217.146.182.248]:40524 "HELO
-	nm7.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1758981Ab0JFODJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Oct 2010 10:03:09 -0400
-From: Paul Gover <pmw.gover@yahoo.co.uk>
-To: linux-media@vger.kernel.org
-Subject: [linux-dvb] [bug] AF9015 message "WARNING: >>> tuning failed!!!"
-Date: Wed, 6 Oct 2010 14:56:19 +0100
+Received: from mailout-de.gmx.net ([213.165.64.22]:38926 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1751144Ab0JQWDe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Oct 2010 18:03:34 -0400
+Date: Mon, 18 Oct 2010 00:03:30 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+cc: LMML <linux-media@vger.kernel.org>,
+	"Igor M. Liplianin" <liplianin@me.by>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Jarod Wilson <jarod@redhat.com>,
+	Richard Zidlicky <rz@linux-m68k.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Sven Barth <pascaldragon@googlemail.com>,
+	Patrick Boettcher <pboettcher@kernellabs.com>,
+	Henrik Kurelid <henke@kurelid.se>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: Re: Old patches sent via the Mailing list
+In-Reply-To: <4CBB689F.1070100@redhat.com>
+Message-ID: <Pine.LNX.4.64.1010172348520.2757@axis700.grange>
+References: <4CBB689F.1070100@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201010061456.19573.pmw.gover@yahoo.co.uk>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-I've a cheap USB DVB key that won't work with Kaffeine.
-It identifies itself as KWorld USB DVB-T TV Stick II (VS-DVB-T 395U).
-It shows up on Kaffeine's "Configure Television" dialog,
-but scanning for channels finds nothing,
-and tuning using an old channel list gives "Sorry - no available device found"
+Hi Mauro
 
-I had Kaffeine working OK with a different USB TV key.
+On Sun, 17 Oct 2010, Mauro Carvalho Chehab wrote:
 
-dvbscan produces "WARNING:>>> tuning failed!!!" messages.
+> 		== Soc_camera waiting for Guennadi Liakhovetski <g.liakhovetski@gmx.de> review == 
+> 
+> (Guennadi gave me an update about those patches last time. I'm not sure about the updated status)
+> 
+> Jul, 5 2010: soc-camera: module_put() fix                                           http://patchwork.kernel.org/patch/110202  Magnus Damm <damm@opensource.se>
 
-The key works on XP using KWorld's HyperMedia Center.
-Rebooting from there to Linux with warm USB key shows it contains 4.95.0 
-firmware.  
-At one point, such a warm reboot enabled Kaffeine to show TV.
-That was with one of the early KDE4 Kaffeine candidates,
-and an older linux kernel (sorry, I forget which).
+Please, mark as dropped
 
-Now using kernel modules in Linux version 2.6.34-gentoo-r6.
-Kaffeine 1.0, KDE 4.4.5.  linuxtv-dvb-apps 1.1.1.20080317
-on an ASUS EeePC 1000HE (Intel Atom processor).
+> Jul,27 2010: [1/4] mx2_camera: fix a race causing NULL dereference                  http://patchwork.kernel.org/patch/114515  Baruch Siach <baruch@tkos.co.il>
 
-Diagnostic stuff
+is upstream 
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=5384a12b23160e11ff949a94172051476d308b66
 
-lsusb -v :
+> Jul,27 2010: [2/4] mx2_camera: return IRQ_NONE when doing nothing                   http://patchwork.kernel.org/patch/114517  Baruch Siach <baruch@tkos.co.il>
 
-Bus 001 Device 023: ID 1b80:e396 Afatech 
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0 
-  bDeviceProtocol         0 
-  bMaxPacketSize0        64
-  idVendor           0x1b80 Afatech
-  idProduct          0xe396 
-  bcdDevice            2.00
-  iManufacturer           1 Afatech
-  iProduct                2 DVB-T 2
-  iSerial                 0 
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength           46
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration          0 
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x02  EP 2 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x85  EP 5 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0 
-  bDeviceProtocol         0 
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0000
-  (Bus Powered)
+mark as dropped
 
-lsmod :
+> Jul,27 2010: [4/4] mx2_camera: implement forced termination of active buffer for mx http://patchwork.kernel.org/patch/114518  Baruch Siach <baruch@tkos.co.il>
 
-Module                  Size  Used by
-ppp_deflate             3156  0 
-zlib_deflate           17980  1 ppp_deflate
-zlib_inflate           14197  1 ppp_deflate
-bsd_comp                4568  0 
-ppp_async               6283  1 
-crc_ccitt               1023  1 ppp_async
-ppp_generic            14958  7 ppp_deflate,bsd_comp,ppp_async
-slhc                    4431  1 ppp_generic
-sr_mod                 10825  0 
-cdrom                  29800  1 sr_mod
-option                 18224  1 
-usbserial              24352  4 option
-snd_seq_oss            23625  0 
-snd_seq_midi_event      4280  1 snd_seq_oss
-snd_seq                39723  4 snd_seq_oss,snd_seq_midi_event
-snd_seq_device          4109  2 snd_seq_oss,snd_seq
-snd_pcm_oss            30331  0 
-snd_mixer_oss          12481  1 snd_pcm_oss
-snd_hda_codec_realtek   187652  1 
-qt1010                  4461  1 
-snd_hda_intel          16732  2 
-af9013                 17817  1 
-snd_hda_codec          42659  2 snd_hda_codec_realtek,snd_hda_intel
-snd_pcm                50564  3 snd_pcm_oss,snd_hda_intel,snd_hda_codec
-dvb_usb_af9015         24963  0 
-snd_timer              14785  2 snd_seq,snd_pcm
-snd                    39369  14 
-snd_seq_oss,snd_seq,snd_seq_device,snd_pcm_oss,snd_mixer_oss,snd_hda_codec_realtek,snd_hda_intel,snd_hda_codec,snd_pcm,snd_timer
-dvb_usb                15353  1 dvb_usb_af9015
-dvb_core               72670  1 dvb_usb
-snd_page_alloc          5445  2 snd_hda_intel,snd_pcm
+is in next 
+http://git.kernel.org/?p=linux/kernel/git/next/linux-next.git;a=commit;h=9cf6ddf5eeedaffd989f9b93df1b7ea8d459786b
 
-Syslog when connecting cold device (debug level 3) :
+> Aug, 3 2010: [2/5] mx2_camera: remove emma limitation for RGB565                    http://patchwork.kernel.org/patch/116703  Michael Grzeschik <m.grzeschik@pengutronix.de>
 
-usb 1-3: new high speed USB device using ehci_hcd and address 22
-af9015_usb_probe: interface:0
-af9015_eeprom_hash: eeprom sum=37ec4ddf
-af9015_read_config: IR mode:4
-af9015_read_config: TS mode:0
-af9015_read_config: [0] xtal:2 set adc_clock:28000
-af9015_read_config: [0] IF1:36125
-af9015_read_config: [0] MT2060 IF1:5888
-af9015_read_config: [0] tuner id:134
-af9015_identify_state: reply:01
-af9015_download_firmware:
-dvb-usb: found a 'KWorld USB DVB-T TV Stick II (VS-DVB-T 395U)' in cold state, 
-will try to load a firmware
-usb 1-3: firmware: requesting dvb-usb-af9015.fw
-dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
-dvb-usb: found a 'KWorld USB DVB-T TV Stick II (VS-DVB-T 395U)' in warm state.
-dvb-usb: will pass the complete MPEG2 transport stream to the software 
-demuxer.
-DVB: registering new adapter (KWorld USB DVB-T TV Stick II (VS-DVB-T 395U))
-af9013: firmware version:4.95.0
-af9015_af9013_frontend_attach: init I2C
-af9015_i2c_init:
-Quantek QT1010 successfully identified.
-input: IR-receiver inside an USB DVB receiver as 
-/devices/pci0000:00/0000:00:1d.7/usb1/1-3/input/input12
-dvb-usb: schedule remote query interval to 150 msecs.
-dvb-usb: KWorld USB DVB-T TV Stick II (VS-DVB-T 395U) successfully initialized 
-and connected.
-DVB: registering adapter 0 frontend 0 (Afatech AF9013 DVB-T)...
-af9015_tuner_attach: 
-af9015_init:
-af9015_init_endpoint: USB speed:3
-af9015_download_ir_table:
+is in next 
+http://git.kernel.org/?p=linux/kernel/git/next/linux-next.git;a=commit;h=2b262a18b79768a2b7a62ba187f8830802790b9a
 
-and on disconnection:
+> Aug, 3 2010: [3/5] mx2_camera: fix for list bufnum in frame_done_emma               http://patchwork.kernel.org/patch/116705  Michael Grzeschik <m.grzeschik@pengutronix.de>
 
-usb 1-3: USB disconnect, address 22
-dvb-usb: KWorld USB DVB-T TV Stick II (VS-DVB-T 395U) successfully 
-deinitialized and disconnected.
-af9015_usb_device_exit: 
-af9015_i2c_exit: 
-input device has been disconnected
+is upstream 
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=cd9ebdbc0541b4e8ee145c81642d68332f79b932
 
-ls -l  /dev/dvb/adapter0/ :
+> Aug, 3 2010: [4/5] mx2_camera: add rising edge for pixclock                         http://patchwork.kernel.org/patch/116704  Michael Grzeschik <m.grzeschik@pengutronix.de>
 
-total 0
-crw-rw---- 1 root video 212, 4 Oct  6 12:43 demux0
-crw-rw---- 1 root video 212, 5 Oct  6 12:43 dvr0
-crw-rw---- 1 root video 212, 3 Oct  6 12:43 frontend0
-crw-rw---- 1 root video 212, 7 Oct  6 12:43 net0
+upstream 
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=d86097e19cef2f13a29fc37db0dad17b99b6d5f8
 
-dvbscan -uvvt1 /usr/share/dvb/dvb-t/uk-Rowridge :
+> Aug, 3 2010: [5/5] mx2_camera: add informative camera clock frequency printout      http://patchwork.kernel.org/patch/116707  Michael Grzeschik <m.grzeschik@pengutronix.de>
 
-scanning /usr/share/dvb/dvb-t/uk-Rowridge
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 489833000 0 3 9 1 0 0 0
-initial transponder 530000000 0 2 9 3 0 0 0
-initial transponder 545833000 0 2 9 3 0 0 0
-initial transponder 562167000 0 3 9 1 0 0 0
-initial transponder 513833000 0 3 9 1 0 0 0
-initial transponder 570167000 0 3 9 1 0 0 0
->>> tune to: 
-489833000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->>> tuning status == 0x03
->>> tuning status == 0x03
->>> tuning status == 0x03
->>> tuning status == 0x03
->>> tuning status == 0x03
->>> tuning status == 0x03
->>> tuning status == 0x03
->>> tuning status == 0x03
->>> tuning status == 0x03
->>> tuning status == 0x03
-WARNING: >>> tuning failed!!!
->>> tune to: 
-489833000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE 
-(tuning failed)
->>> tuning status == 0x03
->>> tuning status == 0x03
->>> tuning status == 0x03
->>> tuning status == 0x03
->>> tuning status == 0x03
->>> tuning status == 0x03
->>> tuning status == 0x03
->>> tuning status == 0x03
->>> tuning status == 0x03
->>> tuning status == 0x03
-WARNING: >>> tuning failed!!!
+in next 
+http://git.kernel.org/?p=linux/kernel/git/next/linux-next.git;a=commit;h=e7d317b5b210a2f9486faa335e4eff81e5f6210d
 
- ... repeated for each frequency
+> Aug, 3 2010: [04/11] mt9m111: added new bit offset defines                          http://patchwork.kernel.org/patch/116721  Michael Grzeschik <m.grzeschik@pengutronix.de>
 
-ERROR: initial tuning failed
-dumping lists (0 services)
-Done.
+waiting an update (possible merge with 08/11 and 10/11 below)
 
-Thanks for any help.
+> Aug, 3 2010: [06/11] mt9m111: cropcap and s_crop check if type is VIDEO_CAPTURE     http://patchwork.kernel.org/patch/116726  Michael Grzeschik <m.grzeschik@pengutronix.de>
+
+upstream 
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=6b6d33c746ace7bd0dbbdde674d3fb1100ab081d
+
+> Aug, 3 2010: [07/11] mt9m111: added current colorspace at g_fmt                     http://patchwork.kernel.org/patch/116724  Michael Grzeschik <m.grzeschik@pengutronix.de>
+
+upstream 
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=01f5a394eac48b74c84434e95e74cd172b0682c3
+
+> Aug, 3 2010: [08/11] mt9m111: added reg_mask function                               http://patchwork.kernel.org/patch/116722  Michael Grzeschik <m.grzeschik@pengutronix.de>
+
+waiting for update (see 04/11 above)
+
+> Aug, 3 2010: [v2,10/11] mt9m111: rewrite set_pixfmt                                 http://patchwork.kernel.org/patch/116728  Michael Grzeschik <m.grzeschik@pengutronix.de>
+
+waiting for update (see 04/11 above)
+
+> Aug, 3 2010: [v2,11/11] mt9m111: make use of testpattern                            http://patchwork.kernel.org/patch/116730  Michael Grzeschik <m.grzeschik@pengutronix.de>
+
+waiting for a new version, using additional inputs to provide test 
+patterns.
+
+Somehow, looks like patches, that I push to you, don't (automatically) get 
+updated in patchwork, is there anything, that I'm doing wrongly, why this 
+is happening?
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
