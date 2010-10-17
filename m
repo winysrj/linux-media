@@ -1,200 +1,89 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:55202 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752237Ab0JENMp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 09:12:45 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from v-smtp-auth-relay-2.gradwell.net ([79.135.125.41]:35886 "EHLO
+	v-smtp-auth-relay-2.gradwell.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932340Ab0JQKrV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Oct 2010 06:47:21 -0400
+Received: from zntrx-gw.adsl.newnet.co.uk ([80.175.181.245] helo=echelon.upsilon.org.uk country=GB ident=dave&pop3&upsilon$org&uk)
+          by v-smtp-auth-relay-2.gradwell.net with esmtpa (Gradwell gwh-smtpd 1.290) id 4cbad436.4e0f.28
+          for linux-media@vger.kernel.org; Sun, 17 Oct 2010 11:47:18 +0100
+          (envelope-sender <news004@upsilon.org.uk>)
+Message-ID: <0wdXDqCnQtuMFwvF@echelon.upsilon.org.uk>
+Date: Sun, 17 Oct 2010 11:47:03 +0100
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v2 01/10] v4l: Move the media/v4l2-mediabus.h header to include/linux
-Date: Tue,  5 Oct 2010 15:12:47 +0200
-Message-Id: <1286284376-12217-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1286284376-12217-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1286284376-12217-1-git-send-email-laurent.pinchart@ideasonboard.com>
+From: dave cunningham <news004@upsilon.org.uk>
+Subject: AF9013/15 I2C problems
+MIME-Version: 1.0
+Content-Type: text/plain;charset=us-ascii;format=flowed
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The header defines the v4l2_mbus_framefmt structure which will be used
-by the V4L2 subdevs userspace API.
+A few months ago I switched systems and started having problems with a 
+pair of WT-220U sticks 
+<http://www.spinics.net/lists/linux-media/msg22309.html>.
 
-Change the type of the v4l2_mbus_framefmt::code field to __u32, as enum
-sizes can differ between different ABIs on the same architectures.
+I got nowhere with this problem so gave up changing to a pair of AT9015 
+sticks.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/linux/Kbuild          |    1 +
- include/linux/v4l2-mediabus.h |   70 +++++++++++++++++++++++++++++++++++++++++
- include/media/soc_mediabus.h  |    3 +-
- include/media/v4l2-mediabus.h |   53 +------------------------------
- 4 files changed, 73 insertions(+), 54 deletions(-)
- create mode 100644 include/linux/v4l2-mediabus.h
+I started with a Tevion DK-5203 using firmware 4.65.
 
-diff --git a/include/linux/Kbuild b/include/linux/Kbuild
-index f836ee4..38127c2 100644
---- a/include/linux/Kbuild
-+++ b/include/linux/Kbuild
-@@ -369,6 +369,7 @@ header-y += unistd.h
- header-y += usbdevice_fs.h
- header-y += utime.h
- header-y += utsname.h
-+header-y += v4l2-mediabus.h
- header-y += veth.h
- header-y += vhost.h
- header-y += videodev.h
-diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-new file mode 100644
-index 0000000..127512a
---- /dev/null
-+++ b/include/linux/v4l2-mediabus.h
-@@ -0,0 +1,70 @@
-+/*
-+ * Media Bus API header
-+ *
-+ * Copyright (C) 2009, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef __LINUX_V4L2_MEDIABUS_H
-+#define __LINUX_V4L2_MEDIABUS_H
-+
-+#include <linux/types.h>
-+#include <linux/videodev2.h>
-+
-+/*
-+ * These pixel codes uniquely identify data formats on the media bus. Mostly
-+ * they correspond to similarly named V4L2_PIX_FMT_* formats, format 0 is
-+ * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client pairs, where the
-+ * data format is fixed. Additionally, "2X8" means that one pixel is transferred
-+ * in two 8-bit samples, "BE" or "LE" specify in which order those samples are
-+ * transferred over the bus: "LE" means that the least significant bits are
-+ * transferred first, "BE" means that the most significant bits are transferred
-+ * first, and "PADHI" and "PADLO" define which bits - low or high, in the
-+ * incomplete high byte, are filled with padding bits.
-+ */
-+enum v4l2_mbus_pixelcode {
-+	V4L2_MBUS_FMT_FIXED = 1,
-+	V4L2_MBUS_FMT_YUYV8_2X8,
-+	V4L2_MBUS_FMT_YVYU8_2X8,
-+	V4L2_MBUS_FMT_UYVY8_2X8,
-+	V4L2_MBUS_FMT_VYUY8_2X8,
-+	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
-+	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
-+	V4L2_MBUS_FMT_RGB565_2X8_LE,
-+	V4L2_MBUS_FMT_RGB565_2X8_BE,
-+	V4L2_MBUS_FMT_SBGGR8_1X8,
-+	V4L2_MBUS_FMT_SBGGR10_1X10,
-+	V4L2_MBUS_FMT_GREY8_1X8,
-+	V4L2_MBUS_FMT_Y10_1X10,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
-+	V4L2_MBUS_FMT_SGRBG8_1X8,
-+	V4L2_MBUS_FMT_SBGGR12_1X12,
-+	V4L2_MBUS_FMT_YUYV8_1_5X8,
-+	V4L2_MBUS_FMT_YVYU8_1_5X8,
-+	V4L2_MBUS_FMT_UYVY8_1_5X8,
-+	V4L2_MBUS_FMT_VYUY8_1_5X8,
-+};
-+
-+/**
-+ * struct v4l2_mbus_framefmt - frame format on the media bus
-+ * @width:	frame width
-+ * @height:	frame height
-+ * @code:	data format code
-+ * @field:	used interlacing type
-+ * @colorspace:	colorspace of the data
-+ */
-+struct v4l2_mbus_framefmt {
-+	__u32				width;
-+	__u32				height;
-+	__u32				code;
-+	enum v4l2_field			field;
-+	enum v4l2_colorspace		colorspace;
-+};
-+
-+#endif
-diff --git a/include/media/soc_mediabus.h b/include/media/soc_mediabus.h
-index 037cd7b..6243147 100644
---- a/include/media/soc_mediabus.h
-+++ b/include/media/soc_mediabus.h
-@@ -12,8 +12,7 @@
- #define SOC_MEDIABUS_H
- 
- #include <linux/videodev2.h>
--
--#include <media/v4l2-mediabus.h>
-+#include <linux/v4l2-mediabus.h>
- 
- /**
-  * enum soc_mbus_packing - data packing types on the media-bus
-diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-index f0cf2e7..971c7fa 100644
---- a/include/media/v4l2-mediabus.h
-+++ b/include/media/v4l2-mediabus.h
-@@ -11,58 +11,7 @@
- #ifndef V4L2_MEDIABUS_H
- #define V4L2_MEDIABUS_H
- 
--/*
-- * These pixel codes uniquely identify data formats on the media bus. Mostly
-- * they correspond to similarly named V4L2_PIX_FMT_* formats, format 0 is
-- * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client pairs, where the
-- * data format is fixed. Additionally, "2X8" means that one pixel is transferred
-- * in two 8-bit samples, "BE" or "LE" specify in which order those samples are
-- * transferred over the bus: "LE" means that the least significant bits are
-- * transferred first, "BE" means that the most significant bits are transferred
-- * first, and "PADHI" and "PADLO" define which bits - low or high, in the
-- * incomplete high byte, are filled with padding bits.
-- */
--enum v4l2_mbus_pixelcode {
--	V4L2_MBUS_FMT_FIXED = 1,
--	V4L2_MBUS_FMT_YUYV8_2X8,
--	V4L2_MBUS_FMT_YVYU8_2X8,
--	V4L2_MBUS_FMT_UYVY8_2X8,
--	V4L2_MBUS_FMT_VYUY8_2X8,
--	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
--	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
--	V4L2_MBUS_FMT_RGB565_2X8_LE,
--	V4L2_MBUS_FMT_RGB565_2X8_BE,
--	V4L2_MBUS_FMT_SBGGR8_1X8,
--	V4L2_MBUS_FMT_SBGGR10_1X10,
--	V4L2_MBUS_FMT_GREY8_1X8,
--	V4L2_MBUS_FMT_Y10_1X10,
--	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
--	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
--	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
--	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
--	V4L2_MBUS_FMT_SGRBG8_1X8,
--	V4L2_MBUS_FMT_SBGGR12_1X12,
--	V4L2_MBUS_FMT_YUYV8_1_5X8,
--	V4L2_MBUS_FMT_YVYU8_1_5X8,
--	V4L2_MBUS_FMT_UYVY8_1_5X8,
--	V4L2_MBUS_FMT_VYUY8_1_5X8,
--};
--
--/**
-- * struct v4l2_mbus_framefmt - frame format on the media bus
-- * @width:	frame width
-- * @height:	frame height
-- * @code:	data format code
-- * @field:	used interlacing type
-- * @colorspace:	colorspace of the data
-- */
--struct v4l2_mbus_framefmt {
--	__u32				width;
--	__u32				height;
--	enum v4l2_mbus_pixelcode	code;
--	enum v4l2_field			field;
--	enum v4l2_colorspace		colorspace;
--};
-+#include <linux/v4l2-mediabus.h>
- 
- static inline void v4l2_fill_pix_format(struct v4l2_pix_format *pix_fmt,
- 				const struct v4l2_mbus_framefmt *mbus_fmt)
+I have no problems in this configuration.
+
+I then added a KWorld 399U. On insertion I got a kernel message saying 
+firmware 4.95 is required so I switched to this.
+
+Now neither stick works correctly (either individually or with the other 
+stick).
+
+At boot things are fine and I can use either stick (and both tuners on 
+the 399U).
+
+At some point however I get a flood of message in the syslog like this:
+
+Oct 16 18:43:18 beta dhcpd: DHCPACK on 192.168.0.9 to 00:1c:c0:8c:88:7d via eth0
+Oct 16 19:47:10 beta kernel: [ 8510.288055] af9013: I2C write failed reg:ae00 len:1
+Oct 16 19:47:14 beta kernel: [ 8514.312050] af9013: I2C read failed reg:d330
+Oct 16 19:47:18 beta kernel: [ 8518.336048] af9013: I2C read failed reg:9bee
+Oct 16 19:47:22 beta kernel: [ 8522.360053] af9013: I2C read failed reg:d330
+Oct 16 19:47:26 beta kernel: [ 8526.384054] af9013: I2C read failed reg:d330
+Oct 16 19:47:31 beta kernel: [ 8530.408060] af9013: I2C read failed reg:d330
+Oct 16 19:47:35 beta kernel: [ 8534.432060] af9013: I2C read failed reg:9bee
+Oct 16 19:47:39 beta kernel: [ 8538.456051] af9013: I2C read failed reg:d330
+Oct 16 19:47:43 beta kernel: [ 8542.480055] af9013: I2C read failed reg:d330
+Oct 16 19:47:47 beta kernel: [ 8546.504050] af9013: I2C read failed reg:d330
+Oct 16 19:47:51 beta kernel: [ 8550.528048] af9013: I2C read failed reg:9bee
+Oct 16 19:47:55 beta kernel: [ 8554.552056] af9013: I2C read failed reg:d330
+Oct 16 19:47:59 beta kernel: [ 8558.576062] af9013: I2C read failed reg:d330
+Oct 16 19:48:03 beta kernel: [ 8562.600056] af9013: I2C read failed reg:d330
+Oct 16 19:48:07 beta kernel: [ 8566.624074] af9013: I2C read failed reg:9bee
+Oct 16 19:48:11 beta kernel: [ 8570.648052] af9013: I2C read failed reg:d330
+Oct 16 19:48:15 beta kernel: [ 8574.672053] af9013: I2C read failed reg:d330
+Oct 16 19:48:19 beta kernel: [ 8578.696059] af9013: I2C read failed reg:d330
+Oct 16 19:48:23 beta kernel: [ 8582.720039] af9013: I2C read failed reg:9bee
+Oct 16 19:48:27 beta kernel: [ 8586.744056] af9013: I2C read failed reg:d330
+Oct 16 19:48:31 beta kernel: [ 8590.768039] af9013: I2C read failed reg:d330
+Oct 16 19:48:35 beta kernel: [ 8594.792053] af9013: I2C read failed reg:d330
+Oct 16 19:48:39 beta kernel: [ 8598.816066] af9013: I2C read failed reg:9bee
+Oct 16 19:48:43 beta kernel: [ 8602.840054] af9013: I2C read failed reg:9bee
+Oct 16 19:48:47 beta kernel: [ 8606.864133] af9013: I2C read failed reg:d330
+Oct 16 19:48:51 beta kernel: [ 8610.888106] af9013: I2C write failed reg:ae00 len:1
+Oct 16 19:48:55 beta kernel: [ 8614.912052] af9013: I2C read failed reg:9bee
+Oct 16 19:48:59 beta kernel: [ 8618.936056] af9013: I2C read failed reg:9bee
+
+The host machine has now slowed to a crawl and I have to remove the 
+stick(s) and reboot to recover.
+
+I'm currently on hg version <14319:37581bb7e6f1>, on a debian-squeeze 
+system, kernel 2.6.32.
+
+I've googled and found various people seeing similar problems but have 
+yet to come across a solution.
+
+Would anyone have any suggestions (note if I switch back to firmware 
+4.65 with just the Tevion stick things are fine - I'd like to use the 
+KWorld stick if possible though)?
+
+Thanks,
 -- 
-1.7.2.2
-
+Dave Cunningham                                  dave at upsilon org uk
+                                                  PGP KEY ID: 0xA78636DC
