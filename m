@@ -1,166 +1,227 @@
 Return-path: <mchehab@pedra>
-Received: from 5571f1ba.dsl.concepts.nl ([85.113.241.186]:36713 "EHLO
-	his08.hoogenraad.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755840Ab0J1SCS (ORCPT
+Received: from relay02.digicable.hu ([92.249.128.188]:51280 "EHLO
+	relay02.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750858Ab0JQLbI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Oct 2010 14:02:18 -0400
-Message-ID: <4CC9BA90.2080805@hoogenraad.net>
-Date: Thu, 28 Oct 2010 20:01:52 +0200
-From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+	Sun, 17 Oct 2010 07:31:08 -0400
+Message-ID: <4CBAD917.80704@freemail.hu>
+Date: Sun, 17 Oct 2010 13:08:07 +0200
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
-References: <201010271905.o9RJ504u021145@smtp-vbr1.xs4all.nl> <4CC94D5A.3090504@redhat.com>
-In-Reply-To: <4CC94D5A.3090504@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/2] gspca_sonixj: add hardware horizontal flip support for
+ hama AC-150
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Douglas:
+From: Márton Németh <nm127@freemail.hu>
 
-First of all thank you for the support you have done so far.
+The PO2030N sensor chip found in hama AC-150 webcam supports horizontal flipping
+the image by hardware. Add support for this in the gspca_sonixj driver also.
 
-Hans:
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+diff -upr c/drivers/media/video/gspca/sonixj.c d/drivers/media/video/gspca/sonixj.c
+--- c/drivers/media/video/gspca/sonixj.c	2010-10-17 12:08:12.000000000 +0200
++++ d/drivers/media/video/gspca/sonixj.c	2010-10-17 12:28:41.000000000 +0200
+@@ -46,6 +46,7 @@ struct sd {
+ 	u8 red;
+ 	u8 gamma;
+ 	u8 vflip;			/* ov7630/ov7648/po2030n only */
++	u8 hflip;			/* po2030n only */
+ 	u8 sharpness;
+ 	u8 infrared;			/* mt9v111 only */
+ 	u8 freq;			/* ov76xx only */
+@@ -104,6 +105,8 @@ static int sd_setautogain(struct gspca_d
+ static int sd_getautogain(struct gspca_dev *gspca_dev, __s32 *val);
+ static int sd_setvflip(struct gspca_dev *gspca_dev, __s32 val);
+ static int sd_getvflip(struct gspca_dev *gspca_dev, __s32 *val);
++static int sd_sethflip(struct gspca_dev *gspca_dev, __s32 val);
++static int sd_gethflip(struct gspca_dev *gspca_dev, __s32 *val);
+ static int sd_setsharpness(struct gspca_dev *gspca_dev, __s32 val);
+ static int sd_getsharpness(struct gspca_dev *gspca_dev, __s32 *val);
+ static int sd_setinfrared(struct gspca_dev *gspca_dev, __s32 val);
+@@ -235,7 +238,22 @@ static const struct ctrl sd_ctrls[] = {
+ 	    .set = sd_setvflip,
+ 	    .get = sd_getvflip,
+ 	},
+-#define SHARPNESS_IDX 8
++#define HFLIP_IDX 8
++	{
++	    {
++		.id      = V4L2_CID_HFLIP,
++		.type    = V4L2_CTRL_TYPE_BOOLEAN,
++		.name    = "Hflip",
++		.minimum = 0,
++		.maximum = 1,
++		.step    = 1,
++#define HFLIP_DEF 0
++		.default_value = HFLIP_DEF,
++	    },
++	    .set = sd_sethflip,
++	    .get = sd_gethflip,
++	},
++#define SHARPNESS_IDX 9
+ 	{
+ 	    {
+ 		.id	 = V4L2_CID_SHARPNESS,
+@@ -251,7 +269,7 @@ static const struct ctrl sd_ctrls[] = {
+ 	    .get = sd_getsharpness,
+ 	},
+ /* mt9v111 only */
+-#define INFRARED_IDX 9
++#define INFRARED_IDX 10
+ 	{
+ 	    {
+ 		.id      = V4L2_CID_INFRARED,
+@@ -267,7 +285,7 @@ static const struct ctrl sd_ctrls[] = {
+ 	    .get = sd_getinfrared,
+ 	},
+ /* ov7630/ov7648/ov7660 only */
+-#define FREQ_IDX 10
++#define FREQ_IDX 11
+ 	{
+ 	    {
+ 		.id	 = V4L2_CID_POWER_LINE_FREQUENCY,
+@@ -289,41 +307,52 @@ static const __u32 ctrl_dis[] = {
+ [SENSOR_ADCM1700] =	(1 << AUTOGAIN_IDX) |
+ 			(1 << INFRARED_IDX) |
+ 			(1 << VFLIP_IDX) |
++			(1 << HFLIP_IDX) |
+ 			(1 << FREQ_IDX),
 
-Is it possible to build the tar from
-http://git.linuxtv.org/mchehab/new_build.git
-automatically each night, just like the way the hg archive was built ?
-I don't have sufficient processing power to run that.
+ [SENSOR_GC0307] =	(1 << INFRARED_IDX) |
+ 			(1 << VFLIP_IDX) |
++			(1 << HFLIP_IDX) |
+ 			(1 << FREQ_IDX),
 
-Mauro:
+ [SENSOR_HV7131R] =	(1 << INFRARED_IDX) |
++			(1 << HFLIP_IDX) |
+ 			(1 << FREQ_IDX),
 
-I'm willing to give the mercurial conversion a shot.
-I do not know a lot about v4l, but tend to be able to resolve this kind 
-of release-type issues.
+ [SENSOR_MI0360] =	(1 << INFRARED_IDX) |
+ 			(1 << VFLIP_IDX) |
++			(1 << HFLIP_IDX) |
+ 			(1 << FREQ_IDX),
 
-The way it seems to me is that first new_build.git should compile for 
-all releases that the hg archive supported.
+ [SENSOR_MO4000] =	(1 << INFRARED_IDX) |
+ 			(1 << VFLIP_IDX) |
++			(1 << HFLIP_IDX) |
+ 			(1 << FREQ_IDX),
 
-Then I'd like some support from you as to transfer all current HG 
-branches to the git line. In principle, that should be fixed by the 
-maintainers. If the new_build.git complies well, that should be 
-relatively straightforward.
+ [SENSOR_MT9V111] =	(1 << VFLIP_IDX) |
++			(1 << HFLIP_IDX) |
+ 			(1 << FREQ_IDX),
 
-For me, it would be great if Mauro could transfer these branches 
-automatically at that time to git.
+ [SENSOR_OM6802] =	(1 << INFRARED_IDX) |
+ 			(1 << VFLIP_IDX) |
++			(1 << HFLIP_IDX) |
+ 			(1 << FREQ_IDX),
 
+-[SENSOR_OV7630] =	(1 << INFRARED_IDX),
++[SENSOR_OV7630] =	(1 << INFRARED_IDX) |
++			(1 << HFLIP_IDX),
 
+-[SENSOR_OV7648] =	(1 << INFRARED_IDX),
++[SENSOR_OV7648] =	(1 << INFRARED_IDX) |
++			(1 << HFLIP_IDX),
 
+ [SENSOR_OV7660] =	(1 << AUTOGAIN_IDX) |
+ 			(1 << INFRARED_IDX) |
+-			(1 << VFLIP_IDX),
++			(1 << VFLIP_IDX) |
++			(1 << HFLIP_IDX),
 
-Mauro Carvalho Chehab wrote:
-> Hi Hans,
->
-> Provided that we're without a maintainer for Mercurial tree, I doubt that anyone would
-> fix the problems there. So, I think you should disable the mercurial build reports,
-> while we don't have any backport tree maintainer.
->
-> Cheers,
-> Mauro
->
-> Em 27-10-2010 17:05, Hans Verkuil escreveu:
->> This message is generated daily by a cron job that builds v4l-dvb for
->> the kernels and architectures in the list below.
->>
->> Results of the daily build of v4l-dvb:
->>
->> date:        Wed Oct 27 19:00:19 CEST 2010
->> path:        http://www.linuxtv.org/hg/v4l-dvb
->> changeset:   15167:abd3aac6644e
->> git master:       3e6dce76d99b328716b43929b9195adfee1de00c
->> git media-master: a348e9110ddb5d494e060d989b35dd1f35359d58
->> gcc version:      i686-linux-gcc (GCC) 4.5.1
->> host hardware:    x86_64
->> host os:          2.6.32.5
->>
->> linux-git-armv5: WARNINGS
->> linux-git-armv5-davinci: WARNINGS
->> linux-git-armv5-ixp: WARNINGS
->> linux-git-armv5-omap2: WARNINGS
->> linux-git-i686: WARNINGS
->> linux-git-m32r: WARNINGS
->> linux-git-mips: WARNINGS
->> linux-git-powerpc64: WARNINGS
->> linux-git-x86_64: WARNINGS
->> linux-2.6.32.6-armv5: WARNINGS
->> linux-2.6.33-armv5: WARNINGS
->> linux-2.6.34-armv5: WARNINGS
->> linux-2.6.35.3-armv5: WARNINGS
->> linux-2.6.32.6-armv5-davinci: ERRORS
->> linux-2.6.33-armv5-davinci: ERRORS
->> linux-2.6.34-armv5-davinci: ERRORS
->> linux-2.6.35.3-armv5-davinci: ERRORS
->> linux-2.6.32.6-armv5-ixp: ERRORS
->> linux-2.6.33-armv5-ixp: ERRORS
->> linux-2.6.34-armv5-ixp: ERRORS
->> linux-2.6.35.3-armv5-ixp: ERRORS
->> linux-2.6.32.6-armv5-omap2: ERRORS
->> linux-2.6.33-armv5-omap2: ERRORS
->> linux-2.6.34-armv5-omap2: ERRORS
->> linux-2.6.35.3-armv5-omap2: ERRORS
->> linux-2.6.26.8-i686: WARNINGS
->> linux-2.6.27.44-i686: WARNINGS
->> linux-2.6.28.10-i686: WARNINGS
->> linux-2.6.29.1-i686: WARNINGS
->> linux-2.6.30.10-i686: WARNINGS
->> linux-2.6.31.12-i686: WARNINGS
->> linux-2.6.32.6-i686: WARNINGS
->> linux-2.6.33-i686: WARNINGS
->> linux-2.6.34-i686: WARNINGS
->> linux-2.6.35.3-i686: WARNINGS
->> linux-2.6.32.6-m32r: WARNINGS
->> linux-2.6.33-m32r: WARNINGS
->> linux-2.6.34-m32r: WARNINGS
->> linux-2.6.35.3-m32r: WARNINGS
->> linux-2.6.32.6-mips: WARNINGS
->> linux-2.6.33-mips: WARNINGS
->> linux-2.6.34-mips: WARNINGS
->> linux-2.6.35.3-mips: WARNINGS
->> linux-2.6.32.6-powerpc64: WARNINGS
->> linux-2.6.33-powerpc64: WARNINGS
->> linux-2.6.34-powerpc64: WARNINGS
->> linux-2.6.35.3-powerpc64: WARNINGS
->> linux-2.6.26.8-x86_64: WARNINGS
->> linux-2.6.27.44-x86_64: WARNINGS
->> linux-2.6.28.10-x86_64: WARNINGS
->> linux-2.6.29.1-x86_64: WARNINGS
->> linux-2.6.30.10-x86_64: WARNINGS
->> linux-2.6.31.12-x86_64: WARNINGS
->> linux-2.6.32.6-x86_64: WARNINGS
->> linux-2.6.33-x86_64: WARNINGS
->> linux-2.6.34-x86_64: WARNINGS
->> linux-2.6.35.3-x86_64: WARNINGS
->> spec-git: OK
->> sparse: ERRORS
->>
->> Detailed results are available here:
->>
->> http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
->>
->> Full logs are available here:
->>
->> http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
->>
->> The V4L-DVB specification from this daily build is here:
->>
->> http://www.xs4all.nl/~hverkuil/spec/media.html
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+ [SENSOR_PO1030] =	(1 << AUTOGAIN_IDX) |
+ 			(1 << INFRARED_IDX) |
+ 			(1 << VFLIP_IDX) |
++			(1 << HFLIP_IDX) |
+ 			(1 << FREQ_IDX),
 
+ [SENSOR_PO2030N] =	(1 << AUTOGAIN_IDX) |
+@@ -332,11 +361,13 @@ static const __u32 ctrl_dis[] = {
+ [SENSOR_SOI768] =	(1 << AUTOGAIN_IDX) |
+ 			(1 << INFRARED_IDX) |
+ 			(1 << VFLIP_IDX) |
++			(1 << HFLIP_IDX) |
+ 			(1 << FREQ_IDX),
 
--- 
-Jan Hoogenraad
-Hoogenraad Interface Services
-Postbus 2717
-3500 GS Utrecht
+ [SENSOR_SP80708] =	(1 << AUTOGAIN_IDX) |
+ 			(1 << INFRARED_IDX) |
+ 			(1 << VFLIP_IDX) |
++			(1 << HFLIP_IDX) |
+ 			(1 << FREQ_IDX),
+ };
+
+@@ -1800,6 +1831,7 @@ static int sd_config(struct gspca_dev *g
+ 	sd->autogain = AUTOGAIN_DEF;
+ 	sd->ag_cnt = -1;
+ 	sd->vflip = VFLIP_DEF;
++	sd->hflip = HFLIP_DEF;
+ 	switch (sd->sensor) {
+ 	case SENSOR_OM6802:
+ 		sd->sharpness = 0x10;
+@@ -2136,7 +2168,7 @@ static void setautogain(struct gspca_dev
+ }
+
+ /* hv7131r/ov7630/ov7648/po2030n only */
+-static void setvflip(struct sd *sd)
++static void sethvflip(struct sd *sd)
+ {
+ 	u8 comn;
+
+@@ -2167,6 +2199,8 @@ static void setvflip(struct sd *sd)
+ 		comn = 0x0A;
+ 		if (sd->vflip)
+ 			comn |= 0x40;
++		if (sd->hflip)
++			comn |= 0x80;
+ 		i2c_w1(&sd->gspca_dev, 0x1E, comn);
+ 		break;
+ 	default:
+@@ -2551,7 +2585,7 @@ static int sd_start(struct gspca_dev *gs
+ 	reg_w1(gspca_dev, 0x17, reg17);
+ 	reg_w1(gspca_dev, 0x01, reg1);
+
+-	setvflip(sd);
++	sethvflip(sd);
+ 	setbrightness(gspca_dev);
+ 	setcontrast(gspca_dev);
+ 	setcolors(gspca_dev);
+@@ -2863,7 +2897,7 @@ static int sd_setvflip(struct gspca_dev
+
+ 	sd->vflip = val;
+ 	if (gspca_dev->streaming)
+-		setvflip(sd);
++		sethvflip(sd);
+ 	return 0;
+ }
+
+@@ -2875,6 +2909,24 @@ static int sd_getvflip(struct gspca_dev
+ 	return 0;
+ }
+
++static int sd_sethflip(struct gspca_dev *gspca_dev, __s32 val)
++{
++	struct sd *sd = (struct sd *) gspca_dev;
++
++	sd->hflip = val;
++	if (gspca_dev->streaming)
++		sethvflip(sd);
++	return 0;
++}
++
++static int sd_gethflip(struct gspca_dev *gspca_dev, __s32 *val)
++{
++	struct sd *sd = (struct sd *) gspca_dev;
++
++	*val = sd->hflip;
++	return 0;
++}
++
+ static int sd_setinfrared(struct gspca_dev *gspca_dev, __s32 val)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
