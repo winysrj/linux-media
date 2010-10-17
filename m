@@ -1,87 +1,91 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:36846 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753105Ab0J0JEd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Oct 2010 05:04:33 -0400
-Message-ID: <4CC7EC13.1080008@redhat.com>
-Date: Wed, 27 Oct 2010 11:08:35 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Mitar <mmitar@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Too slow libv4l MJPEG decoding with HD cameras
-References: <AANLkTikGT6m9Ji3bBrwUB-yJY9dT0j8eCP_RNAvh3deG@mail.gmail.com>
-In-Reply-To: <AANLkTikGT6m9Ji3bBrwUB-yJY9dT0j8eCP_RNAvh3deG@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3578 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753045Ab0JQM03 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Oct 2010 08:26:29 -0400
+Message-Id: <49e7400bcbcc4412b77216bb061db1b57cb3b882.1287318143.git.hverkuil@xs4all.nl>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Sun, 17 Oct 2010 14:26:18 +0200
+Subject: [RFC PATCH] radio-mr800: locking fixes
+To: linux-media@vger.kernel.org
+Cc: David Ellingsworth <david@identd.dyndns.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+- serialize the suspend and resume functions using the global lock.
+- do not call usb_autopm_put_interface after a disconnect.
+- fix a race when disconnecting the device.
 
-On 10/27/2010 01:51 AM, Mitar wrote:
-> Hi!
->
-> On Sun, Oct 24, 2010 at 6:04 PM, Mitar<mmitar@gmail.com>  wrote:
->> Has anybody tried to improve MJPEG support in libv4l? With newer
->> cameras this becomes important.
->
-> I have made a patch which makes libv4l uses ffmpeg's avcodec library
-> for MJPEG decoding. Performance improvements are unbelievable.
->
+Reported-by: David Ellingsworth <david@identd.dyndns.org>
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/radio/radio-mr800.c |   17 ++++++++++++++---
+ 1 files changed, 14 insertions(+), 3 deletions(-)
 
-Thanks for the patch!
+diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
+index 2f56b26..b540e80 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -284,9 +284,13 @@ static void usb_amradio_disconnect(struct usb_interface *intf)
+ 	struct amradio_device *radio = to_amradio_dev(usb_get_intfdata(intf));
+ 
+ 	mutex_lock(&radio->lock);
++	/* increase the device node's refcount */
++	get_device(&radio->videodev.dev);
+ 	v4l2_device_disconnect(&radio->v4l2_dev);
+-	mutex_unlock(&radio->lock);
+ 	video_unregister_device(&radio->videodev);
++	mutex_unlock(&radio->lock);
++	/* decrease the device node's refcount, allowing it to be released */
++	put_device(&radio->videodev.dev);
+ }
+ 
+ /* vidioc_querycap - query device capabilities */
+@@ -515,7 +519,8 @@ static int usb_amradio_close(struct file *file)
+ {
+ 	struct amradio_device *radio = file->private_data;
+ 
+-	usb_autopm_put_interface(radio->intf);
++	if (video_is_registered(&radio->videodev))
++		usb_autopm_put_interface(radio->intf);
+ 	return 0;
+ }
+ 
+@@ -524,10 +529,12 @@ static int usb_amradio_suspend(struct usb_interface *intf, pm_message_t message)
+ {
+ 	struct amradio_device *radio = to_amradio_dev(usb_get_intfdata(intf));
+ 
++	mutex_lock(&radio->lock);
+ 	if (!radio->muted && radio->initialized) {
+ 		amradio_set_mute(radio, AMRADIO_STOP);
+ 		radio->muted = 0;
+ 	}
++	mutex_unlock(&radio->lock);
+ 
+ 	dev_info(&intf->dev, "going into suspend..\n");
+ 	return 0;
+@@ -538,8 +545,9 @@ static int usb_amradio_resume(struct usb_interface *intf)
+ {
+ 	struct amradio_device *radio = to_amradio_dev(usb_get_intfdata(intf));
+ 
++	mutex_lock(&radio->lock);
+ 	if (unlikely(!radio->initialized))
+-		return 0;
++		goto unlock;
+ 
+ 	if (radio->stereo)
+ 		amradio_set_stereo(radio, WANT_STEREO);
+@@ -551,6 +559,9 @@ static int usb_amradio_resume(struct usb_interface *intf)
+ 	if (!radio->muted)
+ 		amradio_set_mute(radio, AMRADIO_START);
+ 
++unlock:
++	mutex_unlock(&radio->lock);
++
+ 	dev_info(&intf->dev, "coming out of suspend..\n");
+ 	return 0;
+ }
+-- 
+1.7.0.4
 
-> I have been testing with Logitech HD Pro Webcam C910 and
-> 2.6.36-rc6-amd64 and Intel(R) Core(TM)2 Quad CPU Q9400 @ 2.66GHz.
-> Camera supports 2592x1944 at 10 FPS MJPEG stream.
->
-> With using original MJPEG code it takes my computer on average 129.614
-> ms to decode the frame what is 0.0257 us per pixel.
->
-> With using ffmpeg MJPEG decoding it takes my computer on average
-> 43.616 ms to decode the frame what is 0.0087 us per pixel.
-
-That is a great improvement, but using ffmpeg in libv4l is not an option
-for multiple reasons:
-
-1) It is GPL licensed not LGPL
-2) It has various other legal issues which means it is not available
-    in most distro's main repository.
-
-So I'm afraid that using ffmpeg really is out of the question. What
-would be interesting is to see how libjpeg performs and then esp. the
-turbo-libjpeg version:
-http://libjpeg-turbo.virtualgl.org/
-
-I would love to see a patch to use that instead of tiny jpeg, leaving
-tinyjpeg usage only for the pixart jpeg variant stuff.
-
-Note that some cameras generate what I call planar jpeg, this means
-that they send 3 SOS markers with one component per scan. I don't know
-if libjpeg will grok this (I had to patch libv4l's tinyjpeg copy for
-this). But first lets see how libjpeg performs, and then we can always
-use tinyjpeg to parse the header and depending on the header decide to
-use tinyjpeg or libjpeg.
-
-Sorry about nacking your ffmpeg patch, I hope that you are willing to
-do a patch to switch to libjpeg, as I'm afraid I currently don't have
-time to look into this.
-
-Oh and a hint when using libjpeg for in memory images, please
-use the jpeg_mem_src code from here:
-http://gphoto.svn.sourceforge.net/viewvc/gphoto/branches/libgphoto2-2_4/libgphoto2/camlibs/ax203/jpeg_memsrcdest.c?revision=13328&view=markup
-
-This code was specifically written to be API compatible with the
-one introduced in newer libjpeg versions (8), while providing
-memory src support when working with libjpeg versions which
-do not ship with a memory src themselves like the version 6b
-shipped by most distros (and used as a basis for libjpeg turbo).
-
-So by using this memory src code, the libv4l libjpeg support can
-work with libjpeg6-8 and libjpeg-turbo without needing any
-ifdef's other then the one in that .c file.
-
-Thanks & Regards,
-
-Hans
