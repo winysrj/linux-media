@@ -1,44 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:55215 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751899Ab0J0Qwr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Oct 2010 12:52:47 -0400
-Message-ID: <4CC858B1.6090408@redhat.com>
-Date: Wed, 27 Oct 2010 14:52:01 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4957 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757290Ab0JQJKK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Oct 2010 05:10:10 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Andy Walls <awalls@md.metrocast.net>
+Subject: Re: Bisected MSP34xx PVR-250/PVR-350 no audio in 2.6.36
+Date: Sun, 17 Oct 2010 11:09:19 +0200
+Cc: linux-media@vger.kernel.org, ivtv-devel@ivtvdriver.org,
+	Shane Shrybman <shrybman@teksavvy.com>
+References: <1287285781.2267.5.camel@morgan.silverblock.net>
+In-Reply-To: <1287285781.2267.5.camel@morgan.silverblock.net>
 MIME-Version: 1.0
-To: Jiri Slaby <jirislaby@gmail.com>
-CC: Linus Torvalds <torvalds@linux-foundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Michael Krufky <mkrufky@kernellabs.com>
-Subject: Re: [GIT PULL for 2.6.37-rc1] V4L/DVB updates
-References: <4CC8380D.3040802@redhat.com> <4CC84597.4000204@gmail.com> <4CC84846.6020304@redhat.com> <4CC84B14.1030303@gmail.com> <4CC8550B.4060403@redhat.com> <4CC8558C.3000209@gmail.com>
-In-Reply-To: <4CC8558C.3000209@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201010171109.19488.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 27-10-2010 14:38, Jiri Slaby escreveu:
-> On 10/27/2010 06:36 PM, Mauro Carvalho Chehab wrote:
->> Basically, af9015 broke due to (3), as .small_i2c = 1 means nothing. It should be using
->> .small_i2c = TDA18271_16_BYTE_CHUNK_INIT, instead.
->>
->> What I don't understand is why a patch doing this change didn't fix the issue. Please
->> test the patch I posted on the original -next thread. Let's try to identify why
->> tda18271_write_regs() is not breaking the data into smaller writes.
+On Sunday, October 17, 2010 05:23:01 Andy Walls wrote:
+> Hans,
 > 
-> It helps, but one needs to unplug and replug the device. So care to
-> respin the pull request with the patch included?
+> Shane Shrybman reported that in the 2.6.36 kernel, after the first
+> capture on his PVR-250, TV audio from the RF input no longer works.
+> 
+> I verified that RF TV audio never works with a PVR-350.
+> 
+> I bisected the problem to this change to the msp3400 driver:
+> 
+> http://git.linuxtv.org/media_tree.git?a=commit;h=ebc3bba5833e7021336f09767347a52448a60bc5
+> 
+> 
+> $ git bisect bad
+> ebc3bba5833e7021336f09767347a52448a60bc5 is the first bad commit
+> commit ebc3bba5833e7021336f09767347a52448a60bc5
+> Author: Hans Verkuil <hverkuil@xs4all.nl>
+> Date:   Mon May 24 10:01:58 2010 -0300
+> 
+>     V4L/DVB: msp3400: convert to the new control framework
+>     
+>     Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+> :040000 040000 fabcfdd08fe2835d9a146666c891b274b6546428 2199dcba591213638336d254b3a57d38bd068de4 M	drivers
+> 
+> 
+> I don't have time to fix it this weekend, but there it is before I
+> forget.
 
-AH! Yes, this is sometimes needed on some hardware: when a longer or wrong I2C transaction
-is received, the hardware simply stops working. You need to replug it for it to return to
-life.
+Since it is my code that broke it I took a quick look and I found the problem.
 
-Ok, I'll add the patch that changes it to .small_i2c = TDA18271_16_BYTE_CHUNK_INIT
-to the series.
+I'm trying to find the shortest fix possible since this is a regression for
+2.6.36.
 
-Thanks,
-Mauro.
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
