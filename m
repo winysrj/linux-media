@@ -1,65 +1,113 @@
 Return-path: <mchehab@pedra>
-Received: from mtaout02-winn.ispmail.ntl.com ([81.103.221.48]:11373 "EHLO
-	mtaout02-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759677Ab0JHVEQ (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:50221 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932724Ab0JQUQJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Oct 2010 17:04:16 -0400
-From: Daniel Drake <dsd@laptop.org>
-To: corbet@lwn.net
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 1/3] ov7670: remove QCIF mode
-Message-Id: <20101008210412.E85769D401B@zog.reactivated.net>
-Date: Fri,  8 Oct 2010 22:04:12 +0100 (BST)
+	Sun, 17 Oct 2010 16:16:09 -0400
+Message-ID: <4CBB5974.8060907@infradead.org>
+Date: Sun, 17 Oct 2010 18:15:48 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Kusanagi Kouichi <slash@ac.auone-net.jp>
+CC: Andy Walls <awalls@md.metrocast.net>,
+	Steven Toth <stoth@kernellabs.com>,
+	Douglas Schilling Landgraf <dougsland@redhat.com>,
+	"David T. L. Wong" <davidtlwong@gmail.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] cx23885: Use enum for board type definitions.
+References: <20100816123012.9C5FC62C03A@msa106.auone-net.jp>
+In-Reply-To: <20100816123012.9C5FC62C03A@msa106.auone-net.jp>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This super-low-resolution mode only captures from a small portion of
-the sensor FOV, making it a bit useless.
+Em 16-08-2010 09:30, Kusanagi Kouichi escreveu:
+> Signed-off-by: Kusanagi Kouichi <slash@ac.auone-net.jp>
+> ---
+>  drivers/media/video/cx23885/cx23885.h |   62 +++++++++++++++++----------------
+>  1 files changed, 32 insertions(+), 30 deletions(-)
 
-Signed-off-by: Daniel Drake <dsd@laptop.org>
----
- drivers/media/video/ov7670.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
+There's not much gain on converting it to enum. In a matter of fact, keeping the
+numbers is the way we do on other drivers, since, for some broken hardware without
+eeprom, we may need to force the usage of a certain device number, and we don't want
+that such number would change from kernel version to kernel version.
 
-diff --git a/drivers/media/video/ov7670.c b/drivers/media/video/ov7670.c
-index a18dcd0..7017e5c 100644
---- a/drivers/media/video/ov7670.c
-+++ b/drivers/media/video/ov7670.c
-@@ -618,6 +618,7 @@ static struct ov7670_format_struct {
-  * which is allegedly provided by the sensor.  So here's the weird register
-  * settings.
-  */
-+#if 0
- static struct regval_list ov7670_qcif_regs[] = {
- 	{ REG_COM3, COM3_SCALEEN|COM3_DCWEN },
- 	{ REG_COM3, COM3_DCWEN },
-@@ -636,6 +637,7 @@ static struct regval_list ov7670_qcif_regs[] = {
- 	{ REG_COM13, 0xc0 },
- 	{ 0xff, 0xff },
- };
-+#endif
- 
- static struct ov7670_win_size {
- 	int	width;
-@@ -681,7 +683,8 @@ static struct ov7670_win_size {
- 		.vstop		= 494,
- 		.regs 		= NULL,
- 	},
--	/* QCIF */
-+#if 0
-+	/* QCIF - disabled because it only shows a small portion of sensor FOV */
- 	{
- 		.width		= QCIF_WIDTH,
- 		.height		= QCIF_HEIGHT,
-@@ -692,6 +695,7 @@ static struct ov7670_win_size {
- 		.vstop		= 494,
- 		.regs 		= ov7670_qcif_regs,
- 	},
-+#endif
- };
- 
- #define N_WIN_SIZES (ARRAY_SIZE(ov7670_win_sizes))
--- 
-1.7.2.3
+I'm not sure if we have any case on cx23885, but it is better to keep the same 
+philosophy, as this may be needed in some future, if not needed currently.
+
+> 
+> diff --git a/drivers/media/video/cx23885/cx23885.h b/drivers/media/video/cx23885/cx23885.h
+> index ed94b17..55dc282 100644
+> --- a/drivers/media/video/cx23885/cx23885.h
+> +++ b/drivers/media/video/cx23885/cx23885.h
+> @@ -54,36 +54,38 @@
+>  
+>  #define BUFFER_TIMEOUT     (HZ)  /* 0.5 seconds */
+>  
+> -#define CX23885_BOARD_NOAUTO               UNSET
+> -#define CX23885_BOARD_UNKNOWN                  0
+> -#define CX23885_BOARD_HAUPPAUGE_HVR1800lp      1
+> -#define CX23885_BOARD_HAUPPAUGE_HVR1800        2
+> -#define CX23885_BOARD_HAUPPAUGE_HVR1250        3
+> -#define CX23885_BOARD_DVICO_FUSIONHDTV_5_EXP   4
+> -#define CX23885_BOARD_HAUPPAUGE_HVR1500Q       5
+> -#define CX23885_BOARD_HAUPPAUGE_HVR1500        6
+> -#define CX23885_BOARD_HAUPPAUGE_HVR1200        7
+> -#define CX23885_BOARD_HAUPPAUGE_HVR1700        8
+> -#define CX23885_BOARD_HAUPPAUGE_HVR1400        9
+> -#define CX23885_BOARD_DVICO_FUSIONHDTV_7_DUAL_EXP 10
+> -#define CX23885_BOARD_DVICO_FUSIONHDTV_DVB_T_DUAL_EXP 11
+> -#define CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H 12
+> -#define CX23885_BOARD_COMPRO_VIDEOMATE_E650F   13
+> -#define CX23885_BOARD_TBS_6920                 14
+> -#define CX23885_BOARD_TEVII_S470               15
+> -#define CX23885_BOARD_DVBWORLD_2005            16
+> -#define CX23885_BOARD_NETUP_DUAL_DVBS2_CI      17
+> -#define CX23885_BOARD_HAUPPAUGE_HVR1270        18
+> -#define CX23885_BOARD_HAUPPAUGE_HVR1275        19
+> -#define CX23885_BOARD_HAUPPAUGE_HVR1255        20
+> -#define CX23885_BOARD_HAUPPAUGE_HVR1210        21
+> -#define CX23885_BOARD_MYGICA_X8506             22
+> -#define CX23885_BOARD_MAGICPRO_PROHDTVE2       23
+> -#define CX23885_BOARD_HAUPPAUGE_HVR1850        24
+> -#define CX23885_BOARD_COMPRO_VIDEOMATE_E800    25
+> -#define CX23885_BOARD_HAUPPAUGE_HVR1290        26
+> -#define CX23885_BOARD_MYGICA_X8558PRO          27
+> -#define CX23885_BOARD_LEADTEK_WINFAST_PXTV1200 28
+> +enum {
+> +	CX23885_BOARD_NOAUTO = UNSET,
+> +	CX23885_BOARD_UNKNOWN = 0,
+> +	CX23885_BOARD_HAUPPAUGE_HVR1800lp,
+> +	CX23885_BOARD_HAUPPAUGE_HVR1800,
+> +	CX23885_BOARD_HAUPPAUGE_HVR1250,
+> +	CX23885_BOARD_DVICO_FUSIONHDTV_5_EXP,
+> +	CX23885_BOARD_HAUPPAUGE_HVR1500Q,
+> +	CX23885_BOARD_HAUPPAUGE_HVR1500,
+> +	CX23885_BOARD_HAUPPAUGE_HVR1200,
+> +	CX23885_BOARD_HAUPPAUGE_HVR1700,
+> +	CX23885_BOARD_HAUPPAUGE_HVR1400,
+> +	CX23885_BOARD_DVICO_FUSIONHDTV_7_DUAL_EXP,
+> +	CX23885_BOARD_DVICO_FUSIONHDTV_DVB_T_DUAL_EXP,
+> +	CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H,
+> +	CX23885_BOARD_COMPRO_VIDEOMATE_E650F,
+> +	CX23885_BOARD_TBS_6920,
+> +	CX23885_BOARD_TEVII_S470,
+> +	CX23885_BOARD_DVBWORLD_2005,
+> +	CX23885_BOARD_NETUP_DUAL_DVBS2_CI,
+> +	CX23885_BOARD_HAUPPAUGE_HVR1270,
+> +	CX23885_BOARD_HAUPPAUGE_HVR1275,
+> +	CX23885_BOARD_HAUPPAUGE_HVR1255,
+> +	CX23885_BOARD_HAUPPAUGE_HVR1210,
+> +	CX23885_BOARD_MYGICA_X8506,
+> +	CX23885_BOARD_MAGICPRO_PROHDTVE2,
+> +	CX23885_BOARD_HAUPPAUGE_HVR1850,
+> +	CX23885_BOARD_COMPRO_VIDEOMATE_E800,
+> +	CX23885_BOARD_HAUPPAUGE_HVR1290,
+> +	CX23885_BOARD_MYGICA_X8558PRO,
+> +	CX23885_BOARD_LEADTEK_WINFAST_PXTV1200
+> +};
+>  
+>  #define GPIO_0 0x00000001
+>  #define GPIO_1 0x00000002
 
