@@ -1,206 +1,362 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1518 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751054Ab0JSOEa (ORCPT
+Received: from relay02.digicable.hu ([92.249.128.188]:57929 "EHLO
+	relay02.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754717Ab0JQOpK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Oct 2010 10:04:30 -0400
-Message-ID: <f0be7bac845617a2a3351fc6e7f78c65.squirrel@webmail.xs4all.nl>
-In-Reply-To: <201010191505.04436.laurent.pinchart@ideasonboard.com>
-References: <20101010162313.5caa137f@bike.lwn.net>
-    <201010190952.46938.laurent.pinchart@ideasonboard.com>
-    <4CBD76F3.5060609@infradead.org>
-    <201010191505.04436.laurent.pinchart@ideasonboard.com>
-Date: Tue, 19 Oct 2010 16:04:22 +0200
-Subject: Re: [PATCH] viafb camera controller driver
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
-Cc: "Mauro Carvalho Chehab" <mchehab@infradead.org>,
-	"Jonathan Corbet" <corbet@lwn.net>, linux-media@vger.kernel.org,
-	"Florian Tobias Schandinat" <florianschandinat@gmx.de>,
-	"Daniel Drake" <dsd@laptop.org>
+	Sun, 17 Oct 2010 10:45:10 -0400
+Message-ID: <4CBB0BEF.1050005@freemail.hu>
+Date: Sun, 17 Oct 2010 16:45:03 +0200
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC] gspca_sonixj: handle return values from USB subsystem
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Laurent,
+From: MÃ¡rton NÃ©meth <nm127@freemail.hu>
 
-> Hi Mauro,
->
-> On Tuesday 19 October 2010 12:46:11 Mauro Carvalho Chehab wrote:
->> Em 19-10-2010 05:52, Laurent Pinchart escreveu:
->> > On Tuesday 19 October 2010 08:54:40 Hans Verkuil wrote:
->> >> On Tuesday, October 19, 2010 05:20:17 Jonathan Corbet wrote:
->> >>> On Sat, 16 Oct 2010 10:44:56 -0300 Mauro Carvalho Chehab wrote:
->> >>>> drivers/media/video/via-camera.c: In function ‘viacam_open’:
->> >>>> drivers/media/video/via-camera.c:651: error: too few arguments to
->> >>>> function ‘videobuf_queue_sg_init’
->> >>>>
->> >>>> The fix for this one is trivial:
->> >>>> drivers/media/video/via-camera.c:651: error: too few arguments to
->> >>>> function ‘videobuf_queue_sg_init’
->> >>>>
->> >>>> Just add an extra NULL parameter to the function.
->> >>>
->> >>> So I'm looking into this stuff.  The extra NULL parameter is a
->> struct
->> >>>
->> >>> mutex, which seems to be used in one place in videobuf_waiton():
->> >>> 	is_ext_locked = q->ext_lock && mutex_is_locked(q->ext_lock);
->> >>>
->> >>> 	/* Release vdev lock to prevent this wait from blocking outside
->> access
->> >>> 	to
->> >>>
->> >>> 	   the device. */
->> >>>
->> >>> 	if (is_ext_locked)
->> >>>
->> >>> 		mutex_unlock(q->ext_lock);
->> >>>
->> >>> I'd be most curious to know what the reasoning behind this code is;
->> to
->> >>> my uneducated eye, it looks like a real hack.  How does this
->> function
->> >>> know who locked ext_lock?  Can it really just unlock it safely?  It
->> >>> seems to me that this is a sign of locking issues which should
->> really
->> >>> be dealt with elsewhere, but, as I said, I'm uneducated, and the
->> >>> changelogs don't help me much.  Can somebody educate me?
->> >>
->> >> We are working on removing the BKL. As part of that effort it is now
->> >> possible for drivers to pass a serialization mutex to the v4l core (a
->> >> mutex pointer was added to struct video_device). If the core sees
->> that
->> >> mutex then the core will serialize all open/ioctl/read/write/etc.
->> file
->> >> ops. So all file ops will in that case be called with that mutex
->> held.
->> >> Which is fine, but if the driver has to do a blocking wait, then you
->> >> need to unlock the mutex first and lock it again afterwards. And
->> since
->> >> videobuf does a blocking wait it needs to know about that mutex.
->> >>
->> >> Right now we are in the middle of the transition from BKL to using
->> core
->> >> locks (and some drivers will do their own locking completely). During
->> >> this transition period we have drivers that provide an external lock
->> >> and drivers still relying on the BKL in which case videobuf needs to
->> >> handle its own locking. Hopefully in 1-2 kernel cycles we will have
->> >> abolished the BKL and we can remove the videobuf internal lock and
->> use
->> >> the external mutex only.
->> >>
->> >> So yes, it is a bit of a hack but there is actually a plan behind it
->> :-)
->> >
->> > I still believe drivers should be encouraged to handle locking on
->> their
->> > own. These new "big v4l lock" (one per device) should be used only to
->> > remove the BKL in existing drivers. It's a hack that we should work on
->> > getting rid of.
->>
->> It is not a "big lock": it doesn't stop other CPU's, doesn't affect
->> other
->> hardware, not even another V4L device. Basically, what this new lock
->> does
->> is to serialize access to the hardware and to the hardware-mirrored
->> data.
->
-> The lock serializes all ioctls. That's much more than protecting access to
-> data (both in system memory and in the hardware).
+The usb_control_msg() may return error at any time so it is necessary to handle
+it. The error handling mechanism is taken from the pac7302.
 
-Absolutely correct. That's exactly what this lock does. Serializing all
-this makes it much easier to prove that a driver is correctly locking
-everything.
+The resulting driver was tested with hama AC-150 webcam (USB ID 0c45:6142).
 
-For 90% of all our drivers this is all that is needed. Yes, it is at a
-coarser level than the theoretical optimum, but basically, who cares? For
-that 90% it is simply sufficient and without any performance penalties.
+Signed-off-by: MÃ¡rton NÃ©meth <nm127@freemail.hu>
+---
+diff -upr d/drivers/media/video/gspca/sonixj.c e/drivers/media/video/gspca/sonixj.c
+--- d/drivers/media/video/gspca/sonixj.c	2010-10-17 12:28:41.000000000 +0200
++++ e/drivers/media/video/gspca/sonixj.c	2010-10-17 16:28:38.000000000 +0200
+@@ -1359,29 +1359,45 @@ static const u8 (*sensor_init[])[8] = {
+ static void reg_r(struct gspca_dev *gspca_dev,
+ 		  u16 value, int len)
+ {
++	int ret;
++
+ #ifdef GSPCA_DEBUG
+ 	if (len > USB_BUF_SZ) {
+ 		err("reg_r: buffer overflow");
+ 		return;
+ 	}
+ #endif
+-	usb_control_msg(gspca_dev->dev,
++	if (gspca_dev->usb_err < 0)
++		return;
++	ret = usb_control_msg(gspca_dev->dev,
+ 			usb_rcvctrlpipe(gspca_dev->dev, 0),
+ 			0,
+ 			USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
+ 			value, 0,
+ 			gspca_dev->usb_buf, len,
+ 			500);
+-	PDEBUG(D_USBI, "reg_r [%02x] -> %02x", value, gspca_dev->usb_buf[0]);
++	if (ret < 0) {
++		PDEBUG(D_ERR, "reg_r(): "
++			"Failed to read %i registers from to 0x%x, error %i",
++			len, value, ret);
++		gspca_dev->usb_err = ret;
++	} else {
++		PDEBUG(D_USBI, "reg_r [%02x] -> %02x",
++			value, gspca_dev->usb_buf[0]);
++	}
+ }
 
->> On several cases, if you serialize open, close, ioctl, read, write and
->> mmap, the hardware will be serialized.
->>
->> Of course, this doesn't cover 100% of the cases where a lock is needed.
->> So,
->> if the driver have more fun things like kthreads, alsa, dvb, IR polling,
->> etc, the driver will need to lock on other places as well.
->>
->> A typical V4L driver has lots of functions that need locking: open,
->> close,
->> read, write, mmap and almost all ioctl (depending on the driver, just a
->> very few set of enum ioctl's could eventually not need an ioctl). What
->> we
->> found is that:
->>
->> 	1) several developers didn't do the right thing since the beginning;
->
-> That's not a valid reason to push new drivers for a very coarse grain
-> locking
-> scheme. Developers must not get told to be stupid and don't care about
-> locks
-> just because other developers got it wrong in the past. If people don't
-> get
-> locking right we need to educate them, not encourage them to understand
-> even
-> less of it.
+ static void reg_w1(struct gspca_dev *gspca_dev,
+ 		   u16 value,
+ 		   u8 data)
+ {
++	int ret;
++
++	if (gspca_dev->usb_err < 0)
++		return;
+ 	PDEBUG(D_USBO, "reg_w1 [%04x] = %02x", value, data);
+ 	gspca_dev->usb_buf[0] = data;
+-	usb_control_msg(gspca_dev->dev,
++	ret = usb_control_msg(gspca_dev->dev,
+ 			usb_sndctrlpipe(gspca_dev->dev, 0),
+ 			0x08,
+ 			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
+@@ -1389,12 +1405,22 @@ static void reg_w1(struct gspca_dev *gsp
+ 			0,
+ 			gspca_dev->usb_buf, 1,
+ 			500);
++	if (ret < 0) {
++		PDEBUG(D_ERR, "reg_w1(): "
++			"Failed to write register to 0x%x, error %i",
++			value, ret);
++		gspca_dev->usb_err = ret;
++	}
+ }
+ static void reg_w(struct gspca_dev *gspca_dev,
+ 			  u16 value,
+ 			  const u8 *buffer,
+ 			  int len)
+ {
++	int ret;
++
++	if (gspca_dev->usb_err < 0)
++		return;
+ 	PDEBUG(D_USBO, "reg_w [%04x] = %02x %02x ..",
+ 		value, buffer[0], buffer[1]);
+ #ifdef GSPCA_DEBUG
+@@ -1404,20 +1430,29 @@ static void reg_w(struct gspca_dev *gspc
+ 	}
+ #endif
+ 	memcpy(gspca_dev->usb_buf, buffer, len);
+-	usb_control_msg(gspca_dev->dev,
++	ret = usb_control_msg(gspca_dev->dev,
+ 			usb_sndctrlpipe(gspca_dev->dev, 0),
+ 			0x08,
+ 			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
+ 			value, 0,
+ 			gspca_dev->usb_buf, len,
+ 			500);
++	if (ret < 0) {
++		PDEBUG(D_ERR, "reg_w(): "
++			"Failed to write %i registers to 0x%x, error %i",
++			len, value, ret);
++		gspca_dev->usb_err = ret;
++	}
+ }
 
-Locking is hard in complex drivers. Period.
+ /* I2C write 1 byte */
+ static void i2c_w1(struct gspca_dev *gspca_dev, u8 reg, u8 val)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
++	int ret;
 
->
->> 	2) as time goes by, locks got bit roted.
->> 	3) some drivers were needing to touch on several locks (videobuf, their
->> internal priv locks, etc), sometimes generating cases where a dead lock
->> would be possible.
->>
->> On the tests we did so far, the v4l-core assisted lock helped to solve
->> some
->> locking issues on the very few drivers that were ported. Also, it caused
->> a
->> regression on a driver where the lock were working ;)
->>
->> There are basically several opinions about this new schema: some that
->> think
->> that this is the right thing to do, others think that think that this is
->> the wrong thing or that this is acceptable only as a transition for
->> BKL-free drivers.
->
-> Indeed, and I belong to the second group.
->
->> IMO, I think that both ways are acceptable: a core-assisted
->> "hardware-access lock" helps to avoid having lots of lock/unlock code at
->> the driver, making drivers cleaner and easier to review, and reducing
->> the
->> risk of lock degradation with time. On the other hand, some drivers may
->> require more complex locking schemas, like, for example, devices that
->> support several simultaneous independent video streams may have some
->> common parts used by all streams that need to be serialized, and other
->> parts that can (and should) not be serialized. So, a core-assisted
->> locking
->> for some cases may cause unneeded long waits.
->
-> A coarse core lock is acceptable in a transition phase to get rid of the
-> BKL
-> because we don't have the necessary resources to do it right and right
-> now.
-> Our goal should be to get rid of it in the long term as well (although we
-> will
-> probably never complete this task, as not all drivers have a wide users
-> and
-> developers base). New drivers must thus implement proper locking.
->
-> --
-> Regards,
->
-> Laurent Pinchart
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
++	if (gspca_dev->usb_err < 0)
++		return;
+ 	PDEBUG(D_USBO, "i2c_w1 [%02x] = %02x", reg, val);
+ 	switch (sd->sensor) {
+ 	case SENSOR_ADCM1700:
+@@ -1436,7 +1471,7 @@ static void i2c_w1(struct gspca_dev *gsp
+ 	gspca_dev->usb_buf[5] = 0;
+ 	gspca_dev->usb_buf[6] = 0;
+ 	gspca_dev->usb_buf[7] = 0x10;
+-	usb_control_msg(gspca_dev->dev,
++	ret = usb_control_msg(gspca_dev->dev,
+ 			usb_sndctrlpipe(gspca_dev->dev, 0),
+ 			0x08,
+ 			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
+@@ -1444,22 +1479,37 @@ static void i2c_w1(struct gspca_dev *gsp
+ 			0,
+ 			gspca_dev->usb_buf, 8,
+ 			500);
++	if (ret < 0) {
++		PDEBUG(D_ERR, "i2c_w1(): Failed to write "
++			"I2C register 0x%x, value 0x%X, error %i",
++			reg, val, ret);
++		gspca_dev->usb_err = ret;
++	}
+ }
 
+ /* I2C write 8 bytes */
+ static void i2c_w8(struct gspca_dev *gspca_dev,
+ 		   const u8 *buffer)
+ {
++	int ret;
++
++	if (gspca_dev->usb_err < 0)
++		return;
+ 	PDEBUG(D_USBO, "i2c_w8 [%02x] = %02x ..",
+ 		buffer[2], buffer[3]);
+ 	memcpy(gspca_dev->usb_buf, buffer, 8);
+-	usb_control_msg(gspca_dev->dev,
++	ret = usb_control_msg(gspca_dev->dev,
+ 			usb_sndctrlpipe(gspca_dev->dev, 0),
+ 			0x08,
+ 			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
+ 			0x08, 0,		/* value, index */
+ 			gspca_dev->usb_buf, 8,
+ 			500);
++	if (ret < 0) {
++		PDEBUG(D_ERR, "i2c_w8(): Failed to write "
++			"I2C registers, error %i", ret);
++		gspca_dev->usb_err = ret;
++	}
+ 	msleep(2);
+ }
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+@@ -1915,7 +1965,7 @@ static int sd_init(struct gspca_dev *gsp
 
+ 	gspca_dev->ctrl_dis = ctrl_dis[sd->sensor];
+
+-	return 0;
++	return gspca_dev->usb_err;
+ }
+
+ static u32 setexposure(struct gspca_dev *gspca_dev,
+@@ -2289,6 +2339,7 @@ static void setjpegqual(struct gspca_dev
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 	int i, sc;
++	int ret;
+
+ 	if (sd->jpegqual < 50)
+ 		sc = 5000 / sd->jpegqual;
+@@ -2300,23 +2351,35 @@ static void setjpegqual(struct gspca_dev
+ 	for (i = 0; i < 64; i++)
+ 		gspca_dev->usb_buf[i] =
+ 			(jpeg_head[JPEG_QT0_OFFSET + i] * sc + 50) / 100;
+-	usb_control_msg(gspca_dev->dev,
++	ret = usb_control_msg(gspca_dev->dev,
+ 			usb_sndctrlpipe(gspca_dev->dev, 0),
+ 			0x08,
+ 			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
+ 			0x0100, 0,
+ 			gspca_dev->usb_buf, 64,
+ 			500);
++	if (ret < 0) {
++		PDEBUG(D_ERR, "setjpegqual(): Failed to set JPEG quality, "
++			"error %i", ret);
++		gspca_dev->usb_err = ret;
++		return;
++	}
+ 	for (i = 0; i < 64; i++)
+ 		gspca_dev->usb_buf[i] =
+ 			(jpeg_head[JPEG_QT1_OFFSET + i] * sc + 50) / 100;
+-	usb_control_msg(gspca_dev->dev,
++	ret = usb_control_msg(gspca_dev->dev,
+ 			usb_sndctrlpipe(gspca_dev->dev, 0),
+ 			0x08,
+ 			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
+ 			0x0140, 0,
+ 			gspca_dev->usb_buf, 64,
+ 			500);
++	if (ret < 0) {
++		PDEBUG(D_ERR, "setjpegqual(): Failed to set JPEG quality, "
++			"error %i", ret);
++		gspca_dev->usb_err = ret;
++		return;
++	}
+
+ 	sd->reg18 ^= 0x40;
+ 	reg_w1(gspca_dev, 0x18, sd->reg18);
+@@ -2591,7 +2654,7 @@ static int sd_start(struct gspca_dev *gs
+ 	setcolors(gspca_dev);
+ 	setautogain(gspca_dev);
+ 	setfreq(gspca_dev);
+-	return 0;
++	return gspca_dev->usb_err;
+ }
+
+ static void sd_stopN(struct gspca_dev *gspca_dev)
+@@ -2754,7 +2817,7 @@ static int sd_setbrightness(struct gspca
+ 	sd->brightness = val;
+ 	if (gspca_dev->streaming)
+ 		setbrightness(gspca_dev);
+-	return 0;
++	return gspca_dev->usb_err;
+ }
+
+ static int sd_getbrightness(struct gspca_dev *gspca_dev, __s32 *val)
+@@ -2772,7 +2835,7 @@ static int sd_setcontrast(struct gspca_d
+ 	sd->contrast = val;
+ 	if (gspca_dev->streaming)
+ 		setcontrast(gspca_dev);
+-	return 0;
++	return gspca_dev->usb_err;
+ }
+
+ static int sd_getcontrast(struct gspca_dev *gspca_dev, __s32 *val)
+@@ -2790,7 +2853,7 @@ static int sd_setcolors(struct gspca_dev
+ 	sd->colors = val;
+ 	if (gspca_dev->streaming)
+ 		setcolors(gspca_dev);
+-	return 0;
++	return gspca_dev->usb_err;
+ }
+
+ static int sd_getcolors(struct gspca_dev *gspca_dev, __s32 *val)
+@@ -2808,7 +2871,7 @@ static int sd_setblue_balance(struct gsp
+ 	sd->blue = val;
+ 	if (gspca_dev->streaming)
+ 		setredblue(gspca_dev);
+-	return 0;
++	return gspca_dev->usb_err;
+ }
+
+ static int sd_getblue_balance(struct gspca_dev *gspca_dev, __s32 *val)
+@@ -2826,7 +2889,7 @@ static int sd_setred_balance(struct gspc
+ 	sd->red = val;
+ 	if (gspca_dev->streaming)
+ 		setredblue(gspca_dev);
+-	return 0;
++	return gspca_dev->usb_err;
+ }
+
+ static int sd_getred_balance(struct gspca_dev *gspca_dev, __s32 *val)
+@@ -2844,7 +2907,7 @@ static int sd_setgamma(struct gspca_dev
+ 	sd->gamma = val;
+ 	if (gspca_dev->streaming)
+ 		setgamma(gspca_dev);
+-	return 0;
++	return gspca_dev->usb_err;
+ }
+
+ static int sd_getgamma(struct gspca_dev *gspca_dev, __s32 *val)
+@@ -2862,7 +2925,7 @@ static int sd_setautogain(struct gspca_d
+ 	sd->autogain = val;
+ 	if (gspca_dev->streaming)
+ 		setautogain(gspca_dev);
+-	return 0;
++	return gspca_dev->usb_err;
+ }
+
+ static int sd_getautogain(struct gspca_dev *gspca_dev, __s32 *val)
+@@ -2880,7 +2943,7 @@ static int sd_setsharpness(struct gspca_
+ 	sd->sharpness = val;
+ 	if (gspca_dev->streaming)
+ 		setsharpness(sd);
+-	return 0;
++	return gspca_dev->usb_err;
+ }
+
+ static int sd_getsharpness(struct gspca_dev *gspca_dev, __s32 *val)
+@@ -2898,7 +2961,7 @@ static int sd_setvflip(struct gspca_dev
+ 	sd->vflip = val;
+ 	if (gspca_dev->streaming)
+ 		sethvflip(sd);
+-	return 0;
++	return gspca_dev->usb_err;
+ }
+
+ static int sd_getvflip(struct gspca_dev *gspca_dev, __s32 *val)
+@@ -2916,7 +2979,7 @@ static int sd_sethflip(struct gspca_dev
+ 	sd->hflip = val;
+ 	if (gspca_dev->streaming)
+ 		sethvflip(sd);
+-	return 0;
++	return gspca_dev->usb_err;
+ }
+
+ static int sd_gethflip(struct gspca_dev *gspca_dev, __s32 *val)
+@@ -2934,7 +2997,7 @@ static int sd_setinfrared(struct gspca_d
+ 	sd->infrared = val;
+ 	if (gspca_dev->streaming)
+ 		setinfrared(sd);
+-	return 0;
++	return gspca_dev->usb_err;
+ }
+
+ static int sd_getinfrared(struct gspca_dev *gspca_dev, __s32 *val)
+@@ -2952,7 +3015,7 @@ static int sd_setfreq(struct gspca_dev *
+ 	sd->freq = val;
+ 	if (gspca_dev->streaming)
+ 		setfreq(gspca_dev);
+-	return 0;
++	return gspca_dev->usb_err;
+ }
+
+ static int sd_getfreq(struct gspca_dev *gspca_dev, __s32 *val)
+@@ -2976,7 +3039,7 @@ static int sd_set_jcomp(struct gspca_dev
+ 		sd->quality = jcomp->quality;
+ 	if (gspca_dev->streaming)
+ 		jpeg_set_qual(sd->jpeg_hdr, sd->quality);
+-	return 0;
++	return gspca_dev->usb_err;
+ }
+
+ static int sd_get_jcomp(struct gspca_dev *gspca_dev,
