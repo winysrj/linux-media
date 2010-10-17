@@ -1,73 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:45025 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757709Ab0JXQwb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Oct 2010 12:52:31 -0400
-Received: by fxm16 with SMTP id 16so2165922fxm.19
-        for <linux-media@vger.kernel.org>; Sun, 24 Oct 2010 09:52:30 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:23953 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750980Ab0JQW6Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Oct 2010 18:58:16 -0400
+Message-ID: <4CBB7F7B.9040503@redhat.com>
+Date: Sun, 17 Oct 2010 20:58:03 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <4CC229BC.90000@redhat.com>
-References: <1283756030-28634-1-git-send-email-m.szyprowski@samsung.com>
- <1283756030-28634-8-git-send-email-m.szyprowski@samsung.com> <4CC229BC.90000@redhat.com>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Sun, 24 Oct 2010 09:52:09 -0700
-Message-ID: <AANLkTin_puofnGcxyLbcLCqE8TbX0CUbtHRd-o+CBQt2@mail.gmail.com>
-Subject: Re: [PATCH 7/8] v4l: Add EBUSY error description for VIDIOC_STREAMON
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	p.osciak@samsung.com, s.nawrocki@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Antti Palosaari <crope@iki.fi>
+CC: LMML <linux-media@vger.kernel.org>
+Subject: Re: Old patches sent via the Mailing list
+References: <4CBB689F.1070100@redhat.com> <4CBB7839.5040307@iki.fi>
+In-Reply-To: <4CBB7839.5040307@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, Oct 22, 2010 at 17:18, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> Em 06-09-2010 03:53, Marek Szyprowski escreveu:
->> From: Pawel Osciak <p.osciak@samsung.com>
+Em 17-10-2010 20:27, Antti Palosaari escreveu:
+> On 10/18/2010 12:20 AM, Mauro Carvalho Chehab wrote:
+>> Hi,
 >>
->> VIDIOC_STREAMON should return EBUSY if streaming is already active.
+>> I did a large effort during this weekend to handle the maximum amount of patches, in order to have them
+>> ready for 2.6.37. While there are still some patches marked as NEW at patchwork, and a few pending pull
+>> requests (mostly related to more kABI changes), there are still a list of patches that are marked as
+>> Under review. Except for 4 patches from me, related to Doc (that I'm keeping in this list just to remind
+>> me that I'll need to fix them when I have some time - just some automation stuff at DocBook), all other
+>> patches marked as Under review are stuff that I basically depend on others.
 >>
->> Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
->> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
->> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
->> ---
->>  Documentation/DocBook/v4l/vidioc-streamon.xml |    7 +++++++
->>  1 files changed, 7 insertions(+), 0 deletions(-)
+>> The last time I sent this list, I was about to travel, and I may have missed some comments, or maybe I
+>> may just forgot to update. But I suspect that, for the list bellow, most of them are stuff where the
+>> driver maintainer just forgot at limbo.
 >>
->> diff --git a/Documentation/DocBook/v4l/vidioc-streamon.xml b/Documentation/DocBook/v4l/vidioc-streamon.xml
->> index e42bff1..fdbd8d8 100644
->> --- a/Documentation/DocBook/v4l/vidioc-streamon.xml
->> +++ b/Documentation/DocBook/v4l/vidioc-streamon.xml
->> @@ -93,6 +93,13 @@ synchronize with other events.</para>
->>  been allocated (memory mapping) or enqueued (output) yet.</para>
->>       </listitem>
->>        </varlistentry>
->> +      <varlistentry>
->> +     <term><errorcode>EBUSY</errorcode></term>
->> +     <listitem>
->> +       <para><constant>VIDIOC_STREAMON</constant> called, but
->> +       streaming I/O already active.</para>
->> +     </listitem>
->> +      </varlistentry>
->>      </variablelist>
->>    </refsect1>
->>  </refentry>
->
-> I'm in doubt about this patch. I don't see any problem on just return 0 if
-> stream is active.
->
-> Actually, I think that this patch may break some applications, as there are
-> some cases where stream may start even without streamon (like via read() method).
+>>> From the list of patches under review, we have:
+>>
+> 
+>>         == Waiting for Antti Palosaari<crope@iki.fi>  review ==
+>>
+>> Mar,21 2010: af9015 : more robust eeprom parsing                                    http://patchwork.kernel.org/patch/87243   matthieu castet<castet.matthieu@free.fr>
+> 
+> 
+> Mark as dropped.
 
-
-A quick grep over the media directory reveals that many drivers
-(including videobuf_streamon) return EBUSY for some cases. This patch
-was not intended to introduce something new to the API. I just wanted
-to document an undocumented return value. How should the EBUSY return
-be interpreted? Or should we get rid of it?
-
--- 
-Best regards,
-Pawel Osciak
+Done. Thanks!
