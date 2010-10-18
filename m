@@ -1,43 +1,65 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1981 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754222Ab0JIJsA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Oct 2010 05:48:00 -0400
-From: Joris van Rantwijk <jorispubl@xs4all.nl>
-To: Jarod Wilson <jarod@redhat.com>
-Subject: Re: [PATCH 1/2] IR/lirc: further ioctl portability fixups
-Date: Sat, 9 Oct 2010 11:47:25 +0200
-Cc: linux-media@vger.kernel.org, lirc-list@lists.sourceforge.net
-References: <20101008211235.GF5165@redhat.com>
-In-Reply-To: <20101008211235.GF5165@redhat.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:48442 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752620Ab0JRGkT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Oct 2010 02:40:19 -0400
+Received: by bwz15 with SMTP id 15so374607bwz.19
+        for <linux-media@vger.kernel.org>; Sun, 17 Oct 2010 23:40:18 -0700 (PDT)
+From: =?US-ASCII?Q?Ali_Guller?= <aliguller@gmail.com>
+To: "'Patrick Boettcher'" <pboettcher@kernellabs.com>,
+	"'Mauro Carvalho Chehab'" <mchehab@redhat.com>
+Cc: "'Linux Media Mailing List'" <linux-media@vger.kernel.org>
+References: <201010171450.18459.pboettcher@kernellabs.com>
+In-Reply-To: <201010171450.18459.pboettcher@kernellabs.com>
+Subject: RE: [GIT PULL request for 2.6.37] Add Technisat SkyStar HD USB driver
+Date: Mon, 18 Oct 2010 09:40:14 +0300
+Message-ID: <000701cb6e8f$53583720$fa08a560$@com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain;
+	charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201010091147.25562.jorispubl@xs4all.nl>
+Content-Language: tr
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Friday, October 08, 2010 23:12:35 Jarod Wilson wrote:
-> I've dropped the .compat_ioctl addition from Joris' original patch,
-> as I swear the non-compat definition should now work for both 32-bit
-> and 64-bit userspace. Technically, I think we still need/want a
-> Signed-off-by: from Joris here. Joris? (And sorry for the lengthy
-> delay in getting a reply to you).
+Hi,
+Does this driver cover Technisat Skystar USB 2 device?. I mean non HD
+version. Thank you.
 
-No. I just tested the patch and it does not work without .compat_ioctl.
-I get this error:
+-----Original Message-----
+From: linux-media-owner@vger.kernel.org
+[mailto:linux-media-owner@vger.kernel.org] On Behalf Of Patrick Boettcher
+Sent: Sunday, October 17, 2010 3:50 PM
+To: Mauro Carvalho Chehab
+Cc: Linux Media Mailing List
+Subject: [GIT PULL request for 2.6.37] Add Technisat SkyStar HD USB driver
 
-[  313.614017] ioctl32(irrecord:4490): Unknown cmd fd(4) cmd(80046900 {t:'i';sz:4} arg(080705e8) on /dev/lirc0
-irrecord: could not get hardware features
-irrecord: this device driver does not support the new LIRC interface
-irrecord: major number of /dev/lirc0 is 252
-irrecord: LIRC major number is 61
-irrecord: check if /dev/lirc0 is a LIRC device
-irrecord: could not init hardware (lircd running ? --> close it, check permissions)
+Hi Mauro,
 
-On the other hand it works fine when .compat_ioctl is added to ir_lirc_codec.c and lirc_dev.c and 
-lirc_serial.c.
+please 
 
-Regards,
-Joris.
+git pull git://github.com/pboettch/linux-2.6.git for_mauro
+
+for the following changes:
+
+technisat-usb2: added driver for Technisat's USB2.0 DVB-S/S2 receiver
+stv090x: add tei-field to config-structure
+stv090x: added function to control GPIOs from the outside
+
+Those are intended for 2.6.37 and have been rebased today on linuxtv's 
+staging/2.6.37-branch.
+
+The development of the new technisat-usb2-driver has been sponsored by 
+Technisat UK.
+
+
+Thanks in advance for pulling and commenting,
+--
+Patrick Boettcher - KernelLabs
+http://www.kernellabs.com/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
