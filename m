@@ -1,106 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:20113 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757828Ab0JRWzT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Oct 2010 18:55:19 -0400
-Date: Mon, 18 Oct 2010 20:52:59 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Srinivasa.Deevi@conexant.com, jarod@redhat.com,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/3] cx231xx: Only register USB interface 1
-Message-ID: <20101018205259.171bd8ed@pedra>
-In-Reply-To: <cover.1287442245.git.mchehab@redhat.com>
-References: <cover.1287442245.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:49120 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755085Ab0JRNQg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Oct 2010 09:16:36 -0400
+Received: by ywi6 with SMTP id 6so329540ywi.19
+        for <linux-media@vger.kernel.org>; Mon, 18 Oct 2010 06:16:35 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201010171452.17454.hverkuil@xs4all.nl>
+References: <49e7400bcbcc4412b77216bb061db1b57cb3b882.1287318143.git.hverkuil@xs4all.nl>
+	<201010171452.17454.hverkuil@xs4all.nl>
+Date: Mon, 18 Oct 2010 09:16:33 -0400
+Message-ID: <AANLkTikPugSRT-t=5bKSLjk3eDmeYh5NYUui=uks35vy@mail.gmail.com>
+Subject: Re: [RFC PATCH] radio-mr800: locking fixes
+From: David Ellingsworth <david@identd.dyndns.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Interface 0 is used by IR. The current driver starts initializing
-on it, finishing on interface 6. Change the logic to only handle
-interface 1. This allows another driver (mceusb) to take care of
-the IR interface.
+On Sun, Oct 17, 2010 at 8:52 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Sunday, October 17, 2010 14:26:18 Hans Verkuil wrote:
+>> - serialize the suspend and resume functions using the global lock.
+>> - do not call usb_autopm_put_interface after a disconnect.
+>> - fix a race when disconnecting the device.
+>
+> Regarding autosuspend: something seems to work since the power/runtime_status
+> attribute goes from 'suspended' to 'active' whenever the radio handle is open.
+> But the suspend and resume functions are never called. I can't figure out
+> why not. I don't see anything strange.
+>
+> The whole autopm stuff is highly suspect anyway on a device like this since
+> it is perfectly reasonable to just set a frequency and exit. The audio is
+> just going to the line-in anyway. In other words: not having the device node
+> open does not mean that the device is idle and can be suspended.
+>
+> My proposal would be to rip out the whole autosuspend business from this
+> driver. I've no idea why it is here at all.
+>
+> Regards,
+>
+>        Hans
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Hans, I highly agree with that analysis. The original author put that
+code in. But like you, I'm not sure if it was ever really valid. Since
+I didn't have anything to test with, I left it untouched.
 
-diff --git a/drivers/media/video/cx231xx/cx231xx-cards.c b/drivers/media/video/cx231xx/cx231xx-cards.c
-index 9c3a926..2db9856 100644
---- a/drivers/media/video/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/video/cx231xx/cx231xx-cards.c
-@@ -843,13 +843,12 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
- 	char *speed;
- 	char descr[255] = "";
- 	struct usb_interface *lif = NULL;
--	int skip_interface = 0;
- 	struct usb_interface_assoc_descriptor *assoc_desc;
- 
- 	udev = usb_get_dev(interface_to_usbdev(interface));
- 	ifnum = interface->altsetting[0].desc.bInterfaceNumber;
- 
--	if (!ifnum) {
-+	if (ifnum == 1) {
- 		/*
- 		 * Interface number 0 - IR interface
- 		 */
-@@ -936,13 +935,6 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
- 		     le16_to_cpu(udev->descriptor.idVendor),
- 		     le16_to_cpu(udev->descriptor.idProduct),
- 		     dev->max_iad_interface_count);
--	} else {
--		/* Get dev structure first */
--		dev = usb_get_intfdata(udev->actconfig->interface[0]);
--		if (dev == NULL) {
--			cx231xx_err(DRIVER_NAME ": out of first interface!\n");
--			return -ENODEV;
--		}
- 
- 		/* store the interface 0 back */
- 		lif = udev->actconfig->interface[0];
-@@ -953,35 +945,21 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
- 		/* get device number */
- 		nr = dev->devno;
- 
--		/*
--		 * set skip interface, for all interfaces but
--		 * interface 1 and the last one
--		 */
--		if ((ifnum != 1) && ((ifnum)
--				     != dev->max_iad_interface_count))
--			skip_interface = 1;
--
--		if (ifnum == 1) {
--			assoc_desc = udev->actconfig->intf_assoc[0];
--			if (assoc_desc->bFirstInterface != ifnum) {
--				cx231xx_err(DRIVER_NAME ": Not found "
--					    "matching IAD interface\n");
--				return -ENODEV;
--			}
-+		assoc_desc = udev->actconfig->intf_assoc[0];
-+		if (assoc_desc->bFirstInterface != ifnum) {
-+			cx231xx_err(DRIVER_NAME ": Not found "
-+				    "matching IAD interface\n");
-+			return -ENODEV;
- 		}
--	}
--
--	if (skip_interface)
-+	} else {
- 		return -ENODEV;
-+	}
- 
- 	cx231xx_info("registering interface %d\n", ifnum);
- 
- 	/* save our data pointer in this interface device */
- 	usb_set_intfdata(lif, dev);
- 
--	if ((ifnum) != dev->max_iad_interface_count)
--		return 0;
--
- 	/*
- 	 * AV device initialization - only done at the last interface
- 	 */
--- 
-1.7.1
+Regards,
 
-
+David Ellingsworth
