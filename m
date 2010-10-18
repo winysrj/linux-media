@@ -1,100 +1,106 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:34487 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753867Ab0JSHwe convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4105 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754333Ab0JRKlQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Oct 2010 03:52:34 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] viafb camera controller driver
-Date: Tue, 19 Oct 2010 09:52:46 +0200
-Cc: Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Daniel Drake <dsd@laptop.org>
-References: <20101010162313.5caa137f@bike.lwn.net> <20101018212017.7c53789e@bike.lwn.net> <201010190854.40419.hverkuil@xs4all.nl>
-In-Reply-To: <201010190854.40419.hverkuil@xs4all.nl>
+	Mon, 18 Oct 2010 06:41:16 -0400
+Message-ID: <77120174419e5626d8b795bc2722d071.squirrel@webmail.xs4all.nl>
+In-Reply-To: <1287395654-1822-1-git-send-email-matti.j.aaltonen@nokia.com>
+References: <1287395654-1822-1-git-send-email-matti.j.aaltonen@nokia.com>
+Date: Mon, 18 Oct 2010 12:40:59 +0200
+Subject: Re: [PATCH RFC 1/1] V4L2: Use new CAP bits in existing RDS capable
+ drivers.
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
+	"Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="windows-1252"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201010190952.46938.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
 
-On Tuesday 19 October 2010 08:54:40 Hans Verkuil wrote:
-> On Tuesday, October 19, 2010 05:20:17 Jonathan Corbet wrote:
-> > On Sat, 16 Oct 2010 10:44:56 -0300 Mauro Carvalho Chehab wrote:
-> > > drivers/media/video/via-camera.c: In function ‘viacam_open’:
-> > > drivers/media/video/via-camera.c:651: error: too few arguments to
-> > > function ‘videobuf_queue_sg_init’
-> > > 
-> > > The fix for this one is trivial:
-> > > drivers/media/video/via-camera.c:651: error: too few arguments to
-> > > function ‘videobuf_queue_sg_init’
-> > > 
-> > > Just add an extra NULL parameter to the function.
-> > 
-> > So I'm looking into this stuff.  The extra NULL parameter is a struct
-> > 
-> > mutex, which seems to be used in one place in videobuf_waiton():
-> > 	is_ext_locked = q->ext_lock && mutex_is_locked(q->ext_lock);
-> > 	
-> > 	/* Release vdev lock to prevent this wait from blocking outside access
-> > 	to
-> > 	
-> > 	   the device. */
-> > 	
-> > 	if (is_ext_locked)
-> > 	
-> > 		mutex_unlock(q->ext_lock);
-> > 
-> > I'd be most curious to know what the reasoning behind this code is; to my
-> > uneducated eye, it looks like a real hack.  How does this function know
-> > who locked ext_lock?  Can it really just unlock it safely?  It seems to
-> > me that this is a sign of locking issues which should really be dealt
-> > with elsewhere, but, as I said, I'm uneducated, and the changelogs don't
-> > help me much.  Can somebody educate me?
-> 
-> We are working on removing the BKL. As part of that effort it is now
-> possible for drivers to pass a serialization mutex to the v4l core (a
-> mutex pointer was added to struct video_device). If the core sees that
-> mutex then the core will serialize all open/ioctl/read/write/etc. file
-> ops. So all file ops will in that case be called with that mutex held.
-> Which is fine, but if the driver has to do a blocking wait, then you need
-> to unlock the mutex first and lock it again afterwards. And since videobuf
-> does a blocking wait it needs to know about that mutex.
-> 
-> Right now we are in the middle of the transition from BKL to using core
-> locks (and some drivers will do their own locking completely). During this
-> transition period we have drivers that provide an external lock and
-> drivers still relying on the BKL in which case videobuf needs to handle
-> its own locking. Hopefully in 1-2 kernel cycles we will have abolished the
-> BKL and we can remove the videobuf internal lock and use the external
-> mutex only.
-> 
-> So yes, it is a bit of a hack but there is actually a plan behind it :-)
 
-I still believe drivers should be encouraged to handle locking on their own. 
-These new "big v4l lock" (one per device) should be used only to remove the 
-BKL in existing drivers. It's a hack that we should work on getting rid of.
+> Add either V4L2_TUNER_CAP_RDS_BLOCK_IO or V4L2_TUNER_CAP_RDS_CONTROLS
+> bit to tuner or modulator capabilities of existing drivers of devices with
+> RDS capability.
+>
+> Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
+> ---
+>  drivers/media/radio/radio-cadet.c                |    3 ++-
+>  drivers/media/radio/si470x/radio-si470x-common.c |    2 +-
+>  drivers/media/radio/si4713-i2c.c                 |    2 +-
+>  drivers/media/video/saa6588.c                    |    2 +-
+>  4 files changed, 5 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/media/radio/radio-cadet.c
+> b/drivers/media/radio/radio-cadet.c
+> index 482d0f3..b701ea6 100644
+> --- a/drivers/media/radio/radio-cadet.c
+> +++ b/drivers/media/radio/radio-cadet.c
+> @@ -374,7 +374,8 @@ static int vidioc_g_tuner(struct file *file, void
+> *priv,
+>  	switch (v->index) {
+>  	case 0:
+>  		strlcpy(v->name, "FM", sizeof(v->name));
+> -		v->capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS;
+> +		v->capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS |
+> +			V4L2_TUNER_CAP_RDS_BLOCK_IO;
+>  		v->rangelow = 1400;     /* 87.5 MHz */
+>  		v->rangehigh = 1728;    /* 108.0 MHz */
+>  		v->rxsubchans = cadet_getstereo(dev);
+> diff --git a/drivers/media/radio/si470x/radio-si470x-common.c
+> b/drivers/media/radio/si470x/radio-si470x-common.c
+> index 9927a59..af5ad45 100644
+> --- a/drivers/media/radio/si470x/radio-si470x-common.c
+> +++ b/drivers/media/radio/si470x/radio-si470x-common.c
+> @@ -681,7 +681,7 @@ static int si470x_vidioc_g_tuner(struct file *file,
+> void *priv,
+>  	tuner->type = V4L2_TUNER_RADIO;
+>  #if defined(CONFIG_USB_SI470X) || defined(CONFIG_USB_SI470X_MODULE)
+>  	tuner->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO |
+> -			    V4L2_TUNER_CAP_RDS;
+> +			    V4L2_TUNER_CAP_RDS | V4L2_TUNER_CAP_RDS_BLOCK_IO;
+>  #else
+>  	tuner->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
+>  #endif
+> diff --git a/drivers/media/radio/si4713-i2c.c
+> b/drivers/media/radio/si4713-i2c.c
+> index fc7f4b7..a6e6f19 100644
+> --- a/drivers/media/radio/si4713-i2c.c
+> +++ b/drivers/media/radio/si4713-i2c.c
+> @@ -1804,7 +1804,7 @@ static int si4713_g_modulator(struct v4l2_subdev
+> *sd, struct v4l2_modulator *vm)
+>
+>  	strncpy(vm->name, "FM Modulator", 32);
+>  	vm->capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_LOW |
+> -						V4L2_TUNER_CAP_RDS;
+> +		V4L2_TUNER_CAP_RDS | V4L2_TUNER_CAP_RDS_CONTROLS;
+>
+>  	/* Report current frequency range limits */
+>  	vm->rangelow = si4713_to_v4l2(FREQ_RANGE_LOW);
+> diff --git a/drivers/media/video/saa6588.c b/drivers/media/video/saa6588.c
+> index c3e96f0..eac222b 100644
+> --- a/drivers/media/video/saa6588.c
+> +++ b/drivers/media/video/saa6588.c
+> @@ -430,7 +430,7 @@ static int saa6588_g_tuner(struct v4l2_subdev *sd,
+> struct v4l2_tuner *vt)
+>  {
+>  	struct saa6588 *s = to_saa6588(sd);
+>
+> -	vt->capability |= V4L2_TUNER_CAP_RDS;
+> +	vt->capability |= V4L2_TUNER_CAP_RDS | V4L2_TUNER_CAP_RDS_BLOCK_IO;
+>  	if (s->sync)
+>  		vt->rxsubchans |= V4L2_TUNER_SUB_RDS;
+>  	return 0;
+> --
+> 1.6.1.3
+>
+>
 
-> It's a common theme inside the v4l subsystem, I'm afraid. We are still in
-> the process of creating a fully functional v4l core framework that all
-> drivers can use. But for every new piece of core functionality it means a
-> transition period where drivers are one by one converted to use it. That
-> can take a very long time. Add to that mix all the new functionality that
-> is being added to support embedded video hardware and it can get complex
-> indeed.
-> 
-> I have a very clear goal in mind, though, and I (and many others!) are
-> steadily moving closer to that goal. Every kernel release has one or more
-> essential building blocks in place.
 
 -- 
-Regards,
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
 
-Laurent Pinchart
