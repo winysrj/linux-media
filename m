@@ -1,66 +1,103 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:41535 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753240Ab0JRH4A (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Oct 2010 03:56:00 -0400
-Message-ID: <4CBBFE4D.7000604@redhat.com>
-Date: Mon, 18 Oct 2010 09:59:09 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Gary Thomas <gary@mlbassoc.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: libv4l conversion problem
-References: <4CB6E671.2060706@mlbassoc.com>
-In-Reply-To: <4CB6E671.2060706@mlbassoc.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4133 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754764Ab0JRTFZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Oct 2010 15:05:25 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id o9IJ5OV8064364
+	for <linux-media@vger.kernel.org>; Mon, 18 Oct 2010 21:05:24 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 18 Oct 2010 21:05:24 +0200 (CEST)
+Message-Id: <201010181905.o9IJ5OV8064364@smtp-vbr2.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-On 10/14/2010 01:16 PM, Gary Thomas wrote:
-> Hans,
->
-> Please forgive the direct email; try as I might, I could not
-> find any other vehicle to discuss this (feel free to steer me
-> to the proper place).
->
+Results of the daily build of v4l-dvb:
 
-There indeed is a lack of a mailinglist or forum for
-v4l-utils. This has been discussed before and it was decided
-that given the low amount of discussion around v4l-utils we will
-just use the linux-media mailing list for this (added to the CC).
+date:        Mon Oct 18 19:00:19 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15164:1da5fed5c8b2
+git master:       3e6dce76d99b328716b43929b9195adfee1de00c
+git media-master: 350df81ebaccc651fa4dfad27738db958e067ded
+gcc version:      i686-linux-gcc (GCC) 4.5.1
+host hardware:    x86_64
+host os:          2.6.32.5
 
-> I'm working with the latest code (0.8.1) on an embedded ARM
-> system which has a camera that can only deliver UYVY422 data.
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: WARNINGS
+linux-git-mips: WARNINGS
+linux-git-powerpc64: WARNINGS
+linux-git-x86_64: WARNINGS
+linux-2.6.32.6-armv5: WARNINGS
+linux-2.6.33-armv5: WARNINGS
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.32.6-armv5-davinci: ERRORS
+linux-2.6.33-armv5-davinci: ERRORS
+linux-2.6.34-armv5-davinci: ERRORS
+linux-2.6.35.3-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: ERRORS
+linux-2.6.33-armv5-ixp: ERRORS
+linux-2.6.34-armv5-ixp: ERRORS
+linux-2.6.35.3-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: ERRORS
+linux-2.6.33-armv5-omap2: ERRORS
+linux-2.6.34-armv5-omap2: ERRORS
+linux-2.6.35.3-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.32.6-m32r: WARNINGS
+linux-2.6.33-m32r: WARNINGS
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-Ok, so when you say UYVY422, I assume that this is packed data,
-right, so not some planar format, right? libv4l supports
-converting UYVY422 packed data to:
-RGB24
-BGR24
-YUV420 (planar)
-YVU420 (planar)
+Detailed results are available here:
 
-> The problem I have is that most everything else, e.g. I'm trying
-> to run cheese, wants YUYV422.
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-cheese specifically should be happy with almost any YUV or RGB
-format as it uses gstreamer. I know for a fact that it works
-happily with libv4l's YUV420 (planar) output.
+Full logs are available here:
 
-> Should the library be able to handle this case (device only
-> does UYUV and application wants YUYV)?
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-It does not support converting to packed yuv formats, but it does
-support conversion to planar yuv formats. At least for cheese
-this should work fine.
+The V4L-DVB specification from this daily build is here:
 
-> Any suggestions how I move forward?
-
-Make sure that your gstreamer is compiled with libv4l support.
-
-Regards,
-
-Hans
+http://www.xs4all.nl/~hverkuil/spec/media.html
