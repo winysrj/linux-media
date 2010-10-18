@@ -1,115 +1,37 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:61349 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754656Ab0JCWf4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Oct 2010 18:35:56 -0400
-Received: by ewy23 with SMTP id 23so1663605ewy.19
-        for <linux-media@vger.kernel.org>; Sun, 03 Oct 2010 15:35:55 -0700 (PDT)
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 2.6.37]  Support for NetUP Dual DVB-T/C CI RF card
-From: "Igor M. Liplianin" <liplianin@me.by>
-Date: Mon, 4 Oct 2010 01:35:59 +0300
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from mx1.redhat.com ([209.132.183.28]:4487 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933484Ab0JRW4V (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Oct 2010 18:56:21 -0400
+Date: Mon, 18 Oct 2010 20:53:00 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Srinivasa.Deevi@conexant.com, jarod@redhat.com,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 0/3]  Fix IR support at cx231xx
+Message-ID: <20101018205300.23e0da75@pedra>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201010040135.59454.liplianin@me.by>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Patches to support for NetUP Dual DVB-T/C-CI RF from NetUP Inc. 
-	http://linuxtv.org/wiki/index.php/NetUP_Dual_DVB_T_C_CI_RF
+cx231xx has a stub for IR handling, but this is incomplete. However, as
+the IR were designed to work with a standard MCE driver on another OS,
+the better is to just drop the cx231xx internal handling, and let the
+mceusb driver take care of the protocol.
 
-Features:
+Maybe some adjustments may be needed, to be sure that we're using the right
+generation of the MCE protocol.
 
-PCI-e x1  
-Supports two DVB-T/DVB-C transponders simultaneously
-Supports two analog audio/video channels simultaneously
-Independent descrambling of two transponders
-Hardware PID filtering
+Mauro Carvalho Chehab (3):
+  mceusb: add support for cx231xx-based IR (e. g. Polaris)
+  cx231xx: Only register USB interface 1
+  cx231xx: Remove IR support from the driver
 
-Components:
+ drivers/media/IR/mceusb.c                   |   20 ++
+ drivers/media/video/cx231xx/cx231xx-cards.c |   49 +-----
+ drivers/media/video/cx231xx/cx231xx-input.c |  251 ---------------------------
+ drivers/media/video/cx231xx/cx231xx.h       |    4 -
+ 4 files changed, 28 insertions(+), 296 deletions(-)
+ delete mode 100644 drivers/media/video/cx231xx/cx231xx-input.c
 
-Conexant CX23885 
-STM STV0367 low-power and ultra-compact combo DVB-T/C single-chip receiver
-Xceive XC5000 silicon TV tuner
-Altera FPGA for Common Interafce
-
-The following changes since commit c8dd732fd119ce6d562d5fa82a10bbe75a376575:
-
-  V4L/DVB: gspca - sonixj: Have 0c45:6130 handled by sonixj instead of sn9c102 (2010-10-01 
-18:14:35 -0300)
-
-are available in the git repository at:
-  http://udev.netup.ru/git/v4l-dvb.git netup-for-media-tree
-
-Abylay Ospan (6):
-      cx23885: Altera FPGA CI interface reworked.
-      stv0367: change default value for AGC register.
-      stv0367: implement uncorrected blocks counter.
-      cx23885, cimax2.c: Fix case of two CAM insertion irq.
-      Fix CI code for NetUP Dual  DVB-T/C CI RF card
-      Force xc5000 firmware loading for NetUP Dual  DVB-T/C CI RF card
-
-Igor M. Liplianin (14):
-      Altera FPGA firmware download module.
-      Altera FPGA based CI driver module.
-      Support for stv0367 multi-standard demodulator.
-      xc5000: add support for DVB-C tuning.
-      Initial commit to support NetUP Dual DVB-T/C CI RF card.
-      cx23885: implement tuner_bus parameter for cx23885_board structure.
-      cx23885: implement num_fds_portb, num_fds_portc parameters for cx23885_board structure.
-      stv0367: Fix potential divide error
-      cx23885: remove duplicate set interrupt mask
-      stv0367: coding style corrections
-      cx25840: Fix subdev registration and typo in cx25840-core.c
-      cx23885: 0xe becomes 0xc again for NetUP Dual DVB-S2
-      cx23885: disable MSI for NetUP cards, otherwise CI is not working
-      cx23885, altera-ci: enable all PID's less than 0x20 in hardware PID filter.
-
- drivers/media/common/tuners/xc5000.c        |   18 +
- drivers/media/dvb/frontends/Kconfig         |    7 +
- drivers/media/dvb/frontends/Makefile        |    1 +
- drivers/media/dvb/frontends/stv0367.c       | 3419 +++++++++++++++++++++++++
- drivers/media/dvb/frontends/stv0367.h       |   62 +
- drivers/media/dvb/frontends/stv0367_priv.h  |  211 ++
- drivers/media/dvb/frontends/stv0367_regs.h  | 3614 +++++++++++++++++++++++++++
- drivers/media/video/cx23885/Kconfig         |   12 +-
- drivers/media/video/cx23885/Makefile        |    1 +
- drivers/media/video/cx23885/altera-ci.c     |  841 +++++++
- drivers/media/video/cx23885/altera-ci.h     |  102 +
- drivers/media/video/cx23885/cimax2.c        |   24 +-
- drivers/media/video/cx23885/cx23885-cards.c |  116 +-
- drivers/media/video/cx23885/cx23885-core.c  |   35 +-
- drivers/media/video/cx23885/cx23885-dvb.c   |  175 ++-
- drivers/media/video/cx23885/cx23885-reg.h   |    1 +
- drivers/media/video/cx23885/cx23885-video.c |    7 +-
- drivers/media/video/cx23885/cx23885.h       |    7 +-
- drivers/media/video/cx25840/cx25840-core.c  |    4 +-
- drivers/misc/Kconfig                        |    1 +
- drivers/misc/Makefile                       |    1 +
- drivers/misc/stapl-altera/Kconfig           |    8 +
- drivers/misc/stapl-altera/Makefile          |    3 +
- drivers/misc/stapl-altera/altera.c          | 2739 ++++++++++++++++++++
- drivers/misc/stapl-altera/jbicomp.c         |  163 ++
- drivers/misc/stapl-altera/jbiexprt.h        |   94 +
- drivers/misc/stapl-altera/jbijtag.c         | 1038 ++++++++
- drivers/misc/stapl-altera/jbijtag.h         |   83 +
- drivers/misc/stapl-altera/jbistub.c         |   70 +
- include/misc/altera.h                       |   49 +
- 30 files changed, 12872 insertions(+), 34 deletions(-)
- create mode 100644 drivers/media/dvb/frontends/stv0367.c
- create mode 100644 drivers/media/dvb/frontends/stv0367.h
- create mode 100644 drivers/media/dvb/frontends/stv0367_priv.h
- create mode 100644 drivers/media/dvb/frontends/stv0367_regs.h
- create mode 100644 drivers/media/video/cx23885/altera-ci.c
- create mode 100644 drivers/media/video/cx23885/altera-ci.h
- create mode 100644 drivers/misc/stapl-altera/Kconfig
- create mode 100644 drivers/misc/stapl-altera/Makefile
- create mode 100644 drivers/misc/stapl-altera/altera.c
- create mode 100644 drivers/misc/stapl-altera/jbicomp.c
- create mode 100644 drivers/misc/stapl-altera/jbiexprt.h
- create mode 100644 drivers/misc/stapl-altera/jbijtag.c
- create mode 100644 drivers/misc/stapl-altera/jbijtag.h
- create mode 100644 drivers/misc/stapl-altera/jbistub.c
- create mode 100644 include/misc/altera.h
