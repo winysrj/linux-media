@@ -1,21 +1,19 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com (ext-mx09.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.13])
-	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP
-	id o98NQqj1017157
-	for <video4linux-list@redhat.com>; Fri, 8 Oct 2010 19:26:52 -0400
-Received: from mail-vw0-f46.google.com (mail-vw0-f46.google.com
-	[209.85.212.46])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o98NQbD2006188
-	for <video4linux-list@redhat.com>; Fri, 8 Oct 2010 19:26:38 -0400
-Received: by vws3 with SMTP id 3so679995vws.33
-	for <video4linux-list@redhat.com>; Fri, 08 Oct 2010 16:26:37 -0700 (PDT)
+Received: from mx1.redhat.com (ext-mx08.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.12])
+	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o9IB0Hg0014457
+	for <video4linux-list@redhat.com>; Mon, 18 Oct 2010 07:00:17 -0400
+Received: from mta-blr1.sasken.com (mta-blr1.sasken.com [203.200.200.72])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o9IB04Gh007885
+	for <video4linux-list@redhat.com>; Mon, 18 Oct 2010 07:00:05 -0400
+From: Rohit Vashist <rohit.vashist@sasken.com>
+To: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Date: Mon, 18 Oct 2010 16:30:00 +0530
+Subject: Query regarding V4l2 and VideoBuf buffers
+Message-ID: <6F91E0FFDA542149961F7BDED2D2B94B0FC02A1522@EXGMBX01.sasken.com>
+Content-Language: en-US
 MIME-Version: 1.0
-Date: Fri, 8 Oct 2010 20:26:37 -0300
-Message-ID: <AANLkTi=_-+Rk1Tq3R3SzLMxaPLSy70chRET1rsvc=EoB@mail.gmail.com>
-Subject: Add support to TW800X Capture Card
-From: Raul Almeida <rcaj.dev@gmail.com>
-To: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,22 +27,21 @@ Errors-To: video4linux-list-bounces@redhat.com
 Sender: <mchehab@pedra>
 List-ID: <video4linux-list@redhat.com>
 
-Hello folks,
+Hi,
 
-I'm trying to add support to a card that is sold in Brazil as TopWay TW800x.
-It has four Conexant 878A chips to provide 16 channels of video.
-It don't has radio tuner and can't capture tv.
-The only card id that partly works is card=131.
-It partly works because I can see only one camera on all channels.
-I already turned multi buffer off but it just can not capture other
-channels.
-I used both BtSpy and RegSpy to look for gpio_out_en, gpio_out_data and
-other values but i don't really know the next step.
-If anyone can help me I'll be glad.
+I am writing a modules where i have allocated a buffer using kmalloc.I need to pass this buffer to be accessed by v4l2_driver.
+I have my own buffer structure in which i embed my meta data.I want that this buffer to be recognised by v4l2_driver.
+Can anyone just tell as to how to corelate this two things?
 
-If anyone has some sort of guide please send me.
+Thanks a lot
 
-Thank you all.
+
+-Regards
+ Rohit Vashist
+
+SASKEN BUSINESS DISCLAIMER: This message may contain confidential, proprietary or legally privileged information. In case you are not the original intended Recipient of the message, you must not, directly or indirectly, use, disclose, distribute, print, or copy any part of this message and you are requested to delete it and inform the sender. Any views expressed in this message are those of the individual sender unless otherwise stated. Nothing contained in this message shall be construed as an offer or acceptance of any offer by Sasken Communication Technologies Limited ("Sasken") unless sent with that express intent and with due authority of Sasken. Sasken has taken enough precautions to prevent the spread of viruses. However the company accepts no liability for any damage caused by any virus transmitted by this email.
+Read Disclaimer at http://www.sasken.com/extras/mail_disclaimer.html
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
