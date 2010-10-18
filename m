@@ -1,61 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:33160 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753951Ab0JSEwe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Oct 2010 00:52:34 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:12615 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755878Ab0JRTBi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Oct 2010 15:01:38 -0400
+Message-ID: <4CBC9969.30005@redhat.com>
+Date: Mon, 18 Oct 2010 17:00:57 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <alpine.LNX.2.00.1010182342120.31740@banach.math.auburn.edu>
-References: <201009161632.59210.arnd@arndb.de>
-	<201010181742.06678.arnd@arndb.de>
-	<20101018184346.GD27089@kroah.com>
-	<AANLkTin2KPNNXvwcWphhM-5qexB14FS7M7ezkCCYCZ2H@mail.gmail.com>
-	<20101019004004.GB28380@kroah.com>
-	<AANLkTi=ffaihP5-yNYFKAbAbX+XbRgWRXXfCZd4J3KwQ@mail.gmail.com>
-	<20101019022413.GB30307@kroah.com>
-	<AANLkTinv4VFpi=Jkc_5oyFgPbdLRg0ResJx9u9Puhm-7@mail.gmail.com>
-	<1287459219.16971.352.camel@gandalf.stny.rr.com>
-	<alpine.LNX.2.00.1010182342120.31740@banach.math.auburn.edu>
-Date: Tue, 19 Oct 2010 14:52:32 +1000
-Message-ID: <AANLkTi=oAeuz8ZxcOMpf=3MVY=WMt0BwHiGCUxO7OAEV@mail.gmail.com>
-Subject: Re: [Ksummit-2010-discuss] [v2] Remaining BKL users, what to do
-From: Dave Airlie <airlied@gmail.com>
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-Cc: Steven Rostedt <rostedt@goodmis.org>, Greg KH <greg@kroah.com>,
-	codalist@telemann.coda.cs.cmu.edu, autofs@linux.kernel.org,
-	Samuel Ortiz <samuel@sortiz.org>, Jan Kara <jack@suse.cz>,
-	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Jan Harkes <jaharkes@cs.cmu.edu>, netdev@vger.kernel.org,
-	Anders Larsen <al@alarsen.net>, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	Bryan Schumaker <bjschuma@netapp.com>,
-	Christoph Hellwig <hch@infradead.org>,
-	ksummit-2010-discuss@lists.linux-foundation.org,
-	Petr Vandrovec <vandrove@vc.cvut.cz>,
-	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
-	linux-fsdevel@vger.kernel.org,
-	Evgeniy Dushistov <dushistov@mail.ru>,
-	Ingo Molnar <mingo@elte.hu>,
-	Andrew Hendry <andrew.hendry@gmail.com>,
-	linux-media@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Andrew Morton <akpm@linux-foundation.org>, Valdis.Kletnieks@vt.edu,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: mmotm 2010-10-13 - GSPCA SPCA561 webcam driver broken
+References: <201010140044.o9E0iuR3029069@imap1.linux-foundation.org> <201010151202.31629.hverkuil@xs4all.nl> <4CB84393.3020205@redhat.com> <201010151423.52318.hverkuil@xs4all.nl>
+In-Reply-To: <201010151423.52318.hverkuil@xs4all.nl>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> I might be able to find some hardware still lying around here that uses an
-> i810. Not sure unless I go hunting it. But I get the impression that if
-> the kernel is a single-CPU kernel there is not any problem anyway? Don't
-> distros offer a non-smp kernel as an installation option in case the user
-> needs it? So in reality how big a problem is this?
+Em 15-10-2010 09:23, Hans Verkuil escreveu:
+> On Friday, October 15, 2010 14:05:39 Mauro Carvalho Chehab wrote:
+>> Em 15-10-2010 07:02, Hans Verkuil escreveu:
+>>> On Friday, October 15, 2010 11:05:26 Andrew Morton wrote:
+>>>> On Fri, 15 Oct 2010 10:45:45 +0200 Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>>
+>>>>> On Thursday, October 14, 2010 22:06:29 Valdis.Kletnieks@vt.edu wrote:
+>>>>>> On Wed, 13 Oct 2010 17:13:25 PDT, akpm@linux-foundation.org said:
+>>>>>>> The mm-of-the-moment snapshot 2010-10-13-17-13 has been uploaded to
+>>>
+>>> Mauro, is this something for you to fix?
+>>
+>> I have a patch fixing this conflict already:
+>>
+>> http://git.linuxtv.org/mchehab/sbtvd.git?a=commit;h=88164fbe701a0a16e9044b74443dddb6188b54cc
+>>
+>> The patch is currently on a separate tree, that I'm using to test some experimental
+>> drivers for Brazilian Digital TV system (SBTVD). I'm planning to merge this patch, among
+>> with other patches I received for .37 during this weekend.
+> 
+> No, this patch isn't sufficient. It backs out the wrong code but doesn't put
+> in the 'video_is_registered()' if statements that were in my original patch.
+> 
+> Those are really needed.
 
-Not anymore, which is my old point of making a fuss. Nowadays in the
-modern distro world, we supply a single kernel that can at runtime
-decide if its running on SMP or UP and rewrite the text section
-appropriately with locks etc. Its like magic, and something like
-marking drivers as BROKEN_ON_SMP at compile time is really wrong when
-what you want now is a runtime warning if someone tries to hotplug a
-CPU with a known iffy driver loaded or if someone tries to load the
-driver when we are already in SMP mode.
+Ok, I've re-done the conflict fix patch:
 
-Dave.
+http://git.kernel.org/?p=linux/kernel/git/mchehab/linux-next.git;a=commitdiff;h=f9fccbad2a67668240edeaa6ada5aea2281d10b3
+
+Cheers,
+Mauro.
