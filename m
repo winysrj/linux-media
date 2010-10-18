@@ -1,181 +1,219 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:17292 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753504Ab0JHIuv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Oct 2010 04:50:51 -0400
-Date: Fri, 08 Oct 2010 10:50:33 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 1/5 v4] V4L/DVB: s5p-fimc: Register definition cleanup
-In-reply-to: <1286527837-4980-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com
-Message-id: <1286527837-4980-2-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1286527837-4980-1-git-send-email-s.nawrocki@samsung.com>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3075 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754989Ab0JRNRv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Oct 2010 09:17:51 -0400
+Message-ID: <9c6327556dad0b210e353c11126e2ceb.squirrel@webmail.xs4all.nl>
+In-Reply-To: <1287406657-18859-2-git-send-email-matti.j.aaltonen@nokia.com>
+References: <1287406657-18859-1-git-send-email-matti.j.aaltonen@nokia.com>
+    <1287406657-18859-2-git-send-email-matti.j.aaltonen@nokia.com>
+Date: Mon, 18 Oct 2010 15:17:34 +0200
+Subject: Re: [PATCH v13 1/1] Documentation: v4l: Add hw_seek spacing and
+ two TUNER_RDS_CAP flags.
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
+	"Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add MIPI CSI format definitions, prepare DMA address
-definitions for interlaced input frame mode.
+Just a few very small comments:
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-reg.c  |    6 +-
- drivers/media/video/s5p-fimc/regs-fimc.h |   61 ++++++++++++-----------------
- 2 files changed, 28 insertions(+), 39 deletions(-)
+> Add a couple of words about the spacing field in the HW seek struct,
+> also a few words about the new RDS tuner capability flags
+> V4L2_TUNER_CAP_RDS_BLOCK-IO and V4L2_TUNER_CAP_RDS_CONTROLS.
+>
+> Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
+> ---
+>  Documentation/DocBook/v4l/dev-rds.xml              |   60
+> ++++++++++++++------
+>  .../DocBook/v4l/vidioc-s-hw-freq-seek.xml          |   10 +++-
+>  2 files changed, 51 insertions(+), 19 deletions(-)
+>
+> diff --git a/Documentation/DocBook/v4l/dev-rds.xml
+> b/Documentation/DocBook/v4l/dev-rds.xml
+> index 0869d70..5498753 100644
+> --- a/Documentation/DocBook/v4l/dev-rds.xml
+> +++ b/Documentation/DocBook/v4l/dev-rds.xml
+> @@ -3,15 +3,16 @@
+>        <para>The Radio Data System transmits supplementary
+>  information in binary format, for example the station name or travel
+>  information, on an inaudible audio subcarrier of a radio program. This
+> -interface is aimed at devices capable of receiving and decoding RDS
+> +interface is aimed at devices capable of receiving and/or transmitting
+> RDS
+>  information.</para>
+>
+>        <para>For more information see the core RDS standard <xref
+> linkend="en50067" />
+>  and the RBDS standard <xref linkend="nrsc4" />.</para>
+>
+>        <para>Note that the RBDS standard as is used in the USA is almost
+> identical
+> -to the RDS standard. Any RDS decoder can also handle RBDS. Only some of
+> the fields
+> -have slightly different meanings. See the RBDS standard for more
+> information.</para>
+> +to the RDS standard. Any RDS decoder/encoder can also handle RBDS. Only
+> some of the
+> +fields have slightly different meanings. See the RBDS standard for more
+> +information.</para>
+>
+>        <para>The RBDS standard also specifies support for MMBS (Modified
+> Mobile Search).
+>  This is a proprietary format which seems to be discontinued. The RDS
+> interface does not
+> @@ -21,16 +22,26 @@ be needed, then please contact the linux-media mailing
+> list: &v4l-ml;.</para>
+>    <section>
+>      <title>Querying Capabilities</title>
+>
+> -    <para>Devices supporting the RDS capturing API
+> -set the <constant>V4L2_CAP_RDS_CAPTURE</constant> flag in
+> +    <para>Devices supporting the RDS capturing API set
+> +the <constant>V4L2_CAP_RDS_CAPTURE</constant> flag in
+>  the <structfield>capabilities</structfield> field of &v4l2-capability;
+> -returned by the &VIDIOC-QUERYCAP; ioctl.
+> -Any tuner that supports RDS will set the
+> -<constant>V4L2_TUNER_CAP_RDS</constant> flag in the
+> <structfield>capability</structfield>
+> -field of &v4l2-tuner;.
+> -Whether an RDS signal is present can be detected by looking at
+> -the <structfield>rxsubchans</structfield> field of &v4l2-tuner;: the
+> -<constant>V4L2_TUNER_SUB_RDS</constant> will be set if RDS data was
+> detected.</para>
+> +returned by the &VIDIOC-QUERYCAP; ioctl.  Any tuner that supports RDS
+> +will set the <constant>V4L2_TUNER_CAP_RDS</constant> flag in
+> +the <structfield>capability</structfield> field of &v4l2-tuner;.  If
+> +the driver only passes RDS blocks without interpreting the data
+> +the <constant>V4L2_TUNER_SUB_RDS_BLOCK_IO</constant> flag has to be
+> +set, see <link linkend="reading-rds-data">Reading RDS data</link>.
+> +For future use the
+> +flag <constant>V4L2_TUNER_SUB_RDS_CONTROLS</constant> has also been
+> +defined. However, a driver for a radio tuner with this capability does
+> +not yet exist, so if you are planning to write such a driver the best
+> +way to start would probably be by opening a discussion about it on
+> +the linux-media mailing list: &v4l-ml;. </para>
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
-index 5570f1c..70f29c5 100644
---- a/drivers/media/video/s5p-fimc/fimc-reg.c
-+++ b/drivers/media/video/s5p-fimc/fimc-reg.c
-@@ -507,9 +507,9 @@ void fimc_hw_set_input_addr(struct fimc_dev *dev, struct fimc_addr *paddr)
- 	cfg |= S5P_CIREAL_ISIZE_ADDR_CH_DIS;
- 	writel(cfg, dev->regs + S5P_CIREAL_ISIZE);
- 
--	writel(paddr->y, dev->regs + S5P_CIIYSA0);
--	writel(paddr->cb, dev->regs + S5P_CIICBSA0);
--	writel(paddr->cr, dev->regs + S5P_CIICRSA0);
-+	writel(paddr->y, dev->regs + S5P_CIIYSA(0));
-+	writel(paddr->cb, dev->regs + S5P_CIICBSA(0));
-+	writel(paddr->cr, dev->regs + S5P_CIICRSA(0));
- 
- 	cfg &= ~S5P_CIREAL_ISIZE_ADDR_CH_DIS;
- 	writel(cfg, dev->regs + S5P_CIREAL_ISIZE);
-diff --git a/drivers/media/video/s5p-fimc/regs-fimc.h b/drivers/media/video/s5p-fimc/regs-fimc.h
-index a3cfe82..9e83315 100644
---- a/drivers/media/video/s5p-fimc/regs-fimc.h
-+++ b/drivers/media/video/s5p-fimc/regs-fimc.h
-@@ -11,10 +11,6 @@
- #ifndef REGS_FIMC_H_
- #define REGS_FIMC_H_
- 
--#define S5P_CIOYSA(__x)			(0x18 + (__x) * 4)
--#define S5P_CIOCBSA(__x)		(0x28 + (__x) * 4)
--#define S5P_CIOCRSA(__x)		(0x38 + (__x) * 4)
--
- /* Input source format */
- #define S5P_CISRCFMT			0x00
- #define S5P_CISRCFMT_ITU601_8BIT	(1 << 31)
-@@ -28,22 +24,21 @@
- 
- /* Window offset */
- #define S5P_CIWDOFST			0x04
--#define S5P_CIWDOFST_WINOFSEN		(1 << 31)
-+#define S5P_CIWDOFST_OFF_EN		(1 << 31)
- #define S5P_CIWDOFST_CLROVFIY		(1 << 30)
- #define S5P_CIWDOFST_CLROVRLB		(1 << 29)
--#define S5P_CIWDOFST_WINHOROFST_MASK	(0x7ff << 16)
-+#define S5P_CIWDOFST_HOROFF_MASK	(0x7ff << 16)
- #define S5P_CIWDOFST_CLROVFICB		(1 << 15)
- #define S5P_CIWDOFST_CLROVFICR		(1 << 14)
--#define S5P_CIWDOFST_WINHOROFST(x)	((x) << 16)
--#define S5P_CIWDOFST_WINVEROFST(x)	((x) << 0)
--#define S5P_CIWDOFST_WINVEROFST_MASK	(0xfff << 0)
-+#define S5P_CIWDOFST_HOROFF(x)		((x) << 16)
-+#define S5P_CIWDOFST_VEROFF(x)		((x) << 0)
-+#define S5P_CIWDOFST_VEROFF_MASK	(0xfff << 0)
- 
- /* Global control */
- #define S5P_CIGCTRL			0x08
- #define S5P_CIGCTRL_SWRST		(1 << 31)
- #define S5P_CIGCTRL_CAMRST_A		(1 << 30)
- #define S5P_CIGCTRL_SELCAM_ITU_A	(1 << 29)
--#define S5P_CIGCTRL_SELCAM_ITU_MASK	(1 << 29)
- #define S5P_CIGCTRL_TESTPAT_NORMAL	(0 << 27)
- #define S5P_CIGCTRL_TESTPAT_COLOR_BAR	(1 << 27)
- #define S5P_CIGCTRL_TESTPAT_HOR_INC	(2 << 27)
-@@ -61,6 +56,8 @@
- #define S5P_CIGCTRL_SHDW_DISABLE	(1 << 12)
- #define S5P_CIGCTRL_SELCAM_MIPI_A	(1 << 7)
- #define S5P_CIGCTRL_CAMIF_SELWB		(1 << 6)
-+/* 0 - ITU601; 1 - ITU709 */
-+#define S5P_CIGCTRL_CSC_ITU601_709	(1 << 5)
- #define S5P_CIGCTRL_INVPOLHSYNC		(1 << 4)
- #define S5P_CIGCTRL_SELCAM_MIPI		(1 << 3)
- #define S5P_CIGCTRL_INTERLACE		(1 << 0)
-@@ -72,23 +69,10 @@
- #define S5P_CIWDOFST2_HOROFF(x)		((x) << 16)
- #define S5P_CIWDOFST2_VEROFF(x)		((x) << 0)
- 
--/* Output DMA Y plane start address */
--#define S5P_CIOYSA1			0x18
--#define S5P_CIOYSA2			0x1c
--#define S5P_CIOYSA3			0x20
--#define S5P_CIOYSA4			0x24
--
--/* Output DMA Cb plane start address */
--#define S5P_CIOCBSA1			0x28
--#define S5P_CIOCBSA2			0x2c
--#define S5P_CIOCBSA3			0x30
--#define S5P_CIOCBSA4			0x34
--
--/* Output DMA Cr plane start address */
--#define S5P_CIOCRSA1			0x38
--#define S5P_CIOCRSA2			0x3c
--#define S5P_CIOCRSA3			0x40
--#define S5P_CIOCRSA4			0x44
-+/* Output DMA Y/Cb/Cr plane start addresses */
-+#define S5P_CIOYSA(n)			(0x18 + (n) * 4)
-+#define S5P_CIOCBSA(n)			(0x28 + (n) * 4)
-+#define S5P_CIOCRSA(n)			(0x38 + (n) * 4)
- 
- /* Target image format */
- #define S5P_CITRGFMT			0x48
-@@ -168,6 +152,8 @@
- #define S5P_CISTATUS_OVFICB		(1 << 30)
- #define S5P_CISTATUS_OVFICR		(1 << 29)
- #define S5P_CISTATUS_VSYNC		(1 << 28)
-+#define S5P_CISTATUS_FRAMECNT_MASK	(3 << 26)
-+#define S5P_CISTATUS_FRAMECNT_SHIFT	26
- #define S5P_CISTATUS_WINOFF_EN		(1 << 25)
- #define S5P_CISTATUS_IMGCPT_EN		(1 << 22)
- #define S5P_CISTATUS_IMGCPT_SCEN	(1 << 21)
-@@ -206,10 +192,10 @@
- #define S5P_CIIMGEFF_PAT_CB(x)		((x) << 13)
- #define S5P_CIIMGEFF_PAT_CR(x)		((x) << 0)
- 
--/* Input DMA Y/Cb/Cr plane start address 0 */
--#define S5P_CIIYSA0			0xd4
--#define S5P_CIICBSA0			0xd8
--#define S5P_CIICRSA0			0xdc
-+/* Input DMA Y/Cb/Cr plane start address 0/1 */
-+#define S5P_CIIYSA(n)			(0xd4 + (n) * 0x70)
-+#define S5P_CIICBSA(n)			(0xd8 + (n) * 0x70)
-+#define S5P_CIICRSA(n)			(0xdc + (n) * 0x70)
- 
- /* Real input DMA image size */
- #define S5P_CIREAL_ISIZE		0xf8
-@@ -250,11 +236,6 @@
- #define S5P_MSCTRL_ENVID		(1 << 0)
- #define S5P_MSCTRL_FRAME_COUNT(x)	((x) << 24)
- 
--/* Input DMA Y/Cb/Cr plane start address 1 */
--#define S5P_CIIYSA1			0x144
--#define S5P_CIICBSA1			0x148
--#define S5P_CIICRSA1			0x14c
--
- /* Output DMA Y/Cb/Cr offset */
- #define S5P_CIOYOFF			0x168
- #define S5P_CIOCBOFF			0x16c
-@@ -289,5 +270,13 @@
- 
- /* MIPI CSI image format */
- #define S5P_CSIIMGFMT			0x194
-+#define S5P_CSIIMGFMT_YCBCR422_8BIT	0x1e
-+#define S5P_CSIIMGFMT_RAW8		0x2a
-+#define S5P_CSIIMGFMT_RAW10		0x2b
-+#define S5P_CSIIMGFMT_RAW12		0x2c
-+#define S5P_CSIIMGFMT_USER1		0x30
-+#define S5P_CSIIMGFMT_USER2		0x31
-+#define S5P_CSIIMGFMT_USER3		0x32
-+#define S5P_CSIIMGFMT_USER4		0x33
- 
- #endif /* REGS_FIMC_H_ */
+Change to:
+
+not yet exist, so if you are planning to write such a driver you
+should discuss this on the linux-media mailing list: &v4l-ml;.</para>
+
+> +
+> +    <para> Whether an RDS signal is present can be detected by looking
+> +at the <structfield>rxsubchans</structfield> field of &v4l2-tuner;:
+> +the <constant>V4L2_TUNER_SUB_RDS</constant> will be set if RDS data
+> +was detected.</para>
+>
+>      <para>Devices supporting the RDS output API
+>  set the <constant>V4L2_CAP_RDS_OUTPUT</constant> flag in
+> @@ -40,16 +51,31 @@ Any modulator that supports RDS will set the
+>  <constant>V4L2_TUNER_CAP_RDS</constant> flag in the
+> <structfield>capability</structfield>
+>  field of &v4l2-modulator;.
+>  In order to enable the RDS transmission one must set the
+> <constant>V4L2_TUNER_SUB_RDS</constant>
+> -bit in the <structfield>txsubchans</structfield> field of
+> &v4l2-modulator;.</para>
+> -
+> +bit in the <structfield>txsubchans</structfield> field of
+> &v4l2-modulator;.
+> +If the driver only passes RDS blocks without interpreting the data
+> +the <constant>V4L2_TUNER_SUB_RDS_BLOCK_IO</constant> flag has to be set.
+> If the
+> +tuner is capable of handling RDS entities like program identification
+> codes and radio
+> +text, the flag <constant>V4L2_TUNER_SUB_RDS_CONTROLS</constant> should be
+> set,
+> +see <link linkend="writing-rds-data">Writing RDS data</link> and
+> +<link linkend="fm-tx-controls">FM Transmitter Control
+> Reference</link>.</para>
+>    </section>
+>
+> -  <section>
+> +  <section  id="reading-rds-data">
+>      <title>Reading RDS data</title>
+>
+>        <para>RDS data can be read from the radio device
+> -with the &func-read; function. The data is packed in groups of three
+> bytes,
+> +with the &func-read; function. The data is packed in groups of three
+> bytes.</para>
+> +  </section>
+> +
+> +  <section  id="writing-rds-data">
+> +    <title>Writing RDS data</title>
+> +
+> +      <para>RDS data can be written to the radio device
+> +with the &func-write; function. The data is packed in groups of three
+> bytes,
+>  as follows:</para>
+> +  </section>
+> +
+> +  <section>
+>      <table frame="none" pgwide="1" id="v4l2-rds-data">
+>        <title>struct
+>  <structname>v4l2_rds_data</structname></title>
+> @@ -152,7 +178,7 @@ as follows:</para>
+>  	  <row>
+>  	    <entry>V4L2_RDS_BLOCK_ERROR</entry>
+>  	    <entry>0x80</entry>
+> -	    <entry>An incorrectable error occurred.</entry>
+> +	    <entry>An uncorrectable error occurred.</entry>
+
+In addition to this change we should also specify that BLOCK_INVALID,
+BLOCK_ERROR and BLOCK_CORRECTED are for reading only, not for writing.
+
+>  	  </row>
+>  	</tbody>
+>        </tgroup>
+> diff --git a/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
+> b/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
+> index 14b3ec7..c30dcc4 100644
+> --- a/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
+> +++ b/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
+> @@ -51,7 +51,8 @@
+>
+>      <para>Start a hardware frequency seek from the current frequency.
+>  To do this applications initialize the <structfield>tuner</structfield>,
+> -<structfield>type</structfield>, <structfield>seek_upward</structfield>
+> and
+> +<structfield>type</structfield>, <structfield>seek_upward</structfield>,
+> +<structfield>spacing</structfield> and
+>  <structfield>wrap_around</structfield> fields, and zero out the
+>  <structfield>reserved</structfield> array of a &v4l2-hw-freq-seek; and
+>  call the <constant>VIDIOC_S_HW_FREQ_SEEK</constant> ioctl with a pointer
+> @@ -89,7 +90,12 @@ field and the &v4l2-tuner;
+> <structfield>index</structfield> field.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry>__u32</entry>
+> -	    <entry><structfield>reserved</structfield>[8]</entry>
+> +	    <entry><structfield>spacing</structfield></entry>
+> +	    <entry>If non-zero, defines the hardware seek resolution in Hz. The
+> driver selects the nearest value that is supported by the device. If
+> spacing is zero a reasonable default value is used.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>reserved</structfield>[7]</entry>
+>  	    <entry>Reserved for future extensions. Drivers and
+>  	    applications must set the array to zero.</entry>
+>  	  </row>
+> --
+> 1.6.1.3
+>
+>
+
+Regards,
+
+        Hans
+
 -- 
-1.7.3.1
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
 
