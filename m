@@ -1,50 +1,131 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:28713 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758159Ab0JUN4E (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Oct 2010 09:56:04 -0400
-Message-ID: <4CC04671.6000608@redhat.com>
-Date: Thu, 21 Oct 2010 11:56:01 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:40263 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755160Ab0JRN4P convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Oct 2010 09:56:15 -0400
+Received: by ywi6 with SMTP id 6so362150ywi.19
+        for <linux-media@vger.kernel.org>; Mon, 18 Oct 2010 06:56:15 -0700 (PDT)
 MIME-Version: 1.0
-To: Jarod Wilson <jarod@wilsonet.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFC]  ir-rc5-decoder: don't wait for the end space to
- produce a code
-References: <4CBF2477.9020008@redhat.com> <0C5A1128-33E7-4331-98EB-D36C1005F51F@wilsonet.com>
-In-Reply-To: <0C5A1128-33E7-4331-98EB-D36C1005F51F@wilsonet.com>
+In-Reply-To: <9e7c8ba580484bbc3066089ece9c08a3.squirrel@webmail.xs4all.nl>
+References: <49e7400bcbcc4412b77216bb061db1b57cb3b882.1287318143.git.hverkuil@xs4all.nl>
+	<AANLkTikmKf5uZ=QFYMQ8x_tQ4Mws3pJ61oXsr6Rt=ifx@mail.gmail.com>
+	<9e7c8ba580484bbc3066089ece9c08a3.squirrel@webmail.xs4all.nl>
+Date: Mon, 18 Oct 2010 09:56:14 -0400
+Message-ID: <AANLkTik_dGRV9DLiCFg6YYDTa2_NASQ5HgNxpo=mzCF=@mail.gmail.com>
+Subject: Re: [RFC PATCH] radio-mr800: locking fixes
+From: David Ellingsworth <david@identd.dyndns.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 21-10-2010 11:46, Jarod Wilson escreveu:
-> On Oct 20, 2010, at 1:18 PM, Mauro Carvalho Chehab wrote:
-> 
->> The RC5 decoding is complete at a BIT_END state. there's no reason
->> to wait for the next space to produce a code.
-> 
-> Well, if I'm reading things correctly here, I think the only true functional difference made to the decoder here was to skip the if
-> (ev.pulse) break; check in STATE_FINISHED, no? In other words, this looks like it was purely an issue with the receiver data parsing,
-> which was ending on a pulse instead of a space. I can make this guess in greater confidence having seen another patch somewhere that
-> implements a different buffer parsing routine for the polaris devices though... ;)
+On Mon, Oct 18, 2010 at 9:38 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+>> On Sun, Oct 17, 2010 at 8:26 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>> - serialize the suspend and resume functions using the global lock.
+>>> - do not call usb_autopm_put_interface after a disconnect.
+>>> - fix a race when disconnecting the device.
+>>>
+>>> Reported-by: David Ellingsworth <david@identd.dyndns.org>
+>>> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+>>> ---
+>>>  drivers/media/radio/radio-mr800.c |   17 ++++++++++++++---
+>>>  1 files changed, 14 insertions(+), 3 deletions(-)
+>>>
+>>> diff --git a/drivers/media/radio/radio-mr800.c
+>>> b/drivers/media/radio/radio-mr800.c
+>>> index 2f56b26..b540e80 100644
+>>> --- a/drivers/media/radio/radio-mr800.c
+>>> +++ b/drivers/media/radio/radio-mr800.c
+>>> @@ -284,9 +284,13 @@ static void usb_amradio_disconnect(struct
+>>> usb_interface *intf)
+>>>        struct amradio_device *radio =
+>>> to_amradio_dev(usb_get_intfdata(intf));
+>>>
+>>>        mutex_lock(&radio->lock);
+>>> +       /* increase the device node's refcount */
+>>> +       get_device(&radio->videodev.dev);
+>>>        v4l2_device_disconnect(&radio->v4l2_dev);
+>>> -       mutex_unlock(&radio->lock);
+>>>        video_unregister_device(&radio->videodev);
+>>> +       mutex_unlock(&radio->lock);
+>>> +       /* decrease the device node's refcount, allowing it to be
+>>> released */
+>>> +       put_device(&radio->videodev.dev);
+>>>  }
+>>
+>> Hans, I understand the use of get/put_device here.. but can you
+>> explain to me what issue you are trying to solve?
+>> video_unregister_device does not have to be synchronized with anything
+>> else. Thus, it is perfectly safe to call video_unregister_device while
+>> not holding the device lock. Your prior implementation here was
+>> correct.
+>
+> This the original sequence:
+>
+>       mutex_lock(&radio->lock);
+>       v4l2_device_disconnect(&radio->v4l2_dev);
+>       mutex_unlock(&radio->lock);
+>       video_unregister_device(&radio->videodev);
+>
+> The problem with this is that userspace can call open or ioctl after the
+> unlock and before the device node is marked unregistered by
+> video_unregister_device.
+>
+> Once you disconnect you want to block all access (except the release call).
+> What my patch does is to move the video_unregister_device call inside the
+> lock, but then I have to guard against the release being called before the
+> unlock by increasing the refcount.
+>
+> I have ideas to improve on this as this gets hairy when you have multiple
+> device nodes, but I wait with that until the next kernel cycle.
+>
+> Regards,
+>
+>         Hans
+>
 
-This patch doesn't solve the Polaris issue ;)
+I think you're trying to solve a problem that doesn't exist.
+To be a little more specific we have the following:
 
-While I made it in the hope that it would fix Polaris (it ended by not solving), I still think it can be kept, as
-it speeds up a little bit the RC-5 output, by not waiting for the last space.
+1. video_register_device - increments device refcount
+2. video_unregister_device - decrements device refcount
+3. v4l2_open - increments device refcount
+4. v4l2_release - decrements device refcount
 
-I'll be forwarding soon the polaris decoder fixes patch, and another mceusb patch I did,
-improving data decode on debug mode.
+Keeping this in mind, the release callback of video_device is called
+only when the device count reaches 0.
 
-> The mceusb portion of the patch is probably a worthwhile micro-optimization of its ir processing routine though -- 
-> don't call ir_raw_event_handle if there's no event to handle. Lemme just go ahead and merge that part via my staging tree, 
-> if you don't mind. (I've got a dozen or so IR patches that have been queueing up, planning on another pull req relatively soon).
-> 
+So under normal operation we have:
 
-Oh! I didn't notice that this went into the patch... for sure it doesn't belong here.
-Yes, it is just a cleanup for mceusb. Feel free to split it, adding a proper description for it
-and preserving my SOB.
+1. video_register_device -> device refcount incremented to 1
+2. v4l2_open -> device refcount incremented to 2
+3. v4l2_release -> device refcount decremented to 1
+4. disconnect callback: video_unregister_device -> device refcount
+decremented to 0 & release callback called.
 
-Thanks,
-Mauro
+If the user disconnects the device while it's open we have the following:
+
+1. video_register_device -> device refcount incremented to 1
+2. v4l2_open -> device refcount incremented to 2
+3. disconnect callback: video_unregister_device -> device refcount
+decremented to 1
+4. v4l2_release -> device refcount decremented to 0 & release callback called.
+
+In the above case, once video_unregister_device has been called, calls
+to open no longer will work. However, the user holding the currently
+open file handle can still call ioctl and other callbacks, but those
+should be met with an -EIO, forcing them to close the open handle. The
+original code did this by using the usb device as an indicator to see
+if the device was still connected, as this functionality was not in
+v4l2_core. On the other hand, v4l2_core could do this for us, just by
+checking if the device is still registered.
+
+As you can see from the above, there are no race conditions here.
+
+Regards,
+
+David Ellingsworth
