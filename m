@@ -1,175 +1,99 @@
 Return-path: <mchehab@pedra>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:44700 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755256Ab0JDS0k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Oct 2010 14:26:40 -0400
-Date: Mon, 4 Oct 2010 20:25:05 +0200 (CEST)
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Subject: [PATCH update] V4L/DVB: firedtv: support for PSK8 for S2 devices. To
- watch HD.
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Tommy Jonsson <quazzie2@gmail.com>, linux-media@vger.kernel.org,
-	linux1394-devel@lists.sourceforge.net
-In-Reply-To: <AANLkTikQLd1_thyADU8AMjOATFQoZaJfko3Sn-qtNgQR@mail.gmail.com>
-Message-ID: <tkrat.85246f2f7084d010@s5r6.in-berlin.de>
-References: <AANLkTin53SY_xaed_tRfWRPOFmc65GmGzXrEt15ZyriW@mail.gmail.com>
- <4C90B4FB.2050401@s5r6.in-berlin.de>
- <AANLkTikQLd1_thyADU8AMjOATFQoZaJfko3Sn-qtNgQR@mail.gmail.com>
+Received: from moutng.kundenserver.de ([212.227.126.171]:56700 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755465Ab0JRRi4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Oct 2010 13:38:56 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [v2] Remaining BKL users, what to do
+Date: Mon, 18 Oct 2010 19:38:26 +0200
+Cc: codalist@coda.cs.cmu.edu,
+	ksummit-2010-discuss@lists.linux-foundation.org,
+	autofs@linux.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
+	Trond Myklebust <Trond.Myklebust@netapp.com>,
+	Petr Vandrovec <vandrove@vc.cvut.cz>,
+	Anders Larsen <al@alarsen.net>, Jan Kara <jack@suse.cz>,
+	Evgeniy Dushistov <dushistov@mail.ru>,
+	Ingo Molnar <mingo@elte.hu>, netdev@vger.kernel.org,
+	Samuel Ortiz <samuel@sortiz.org>,
+	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
+	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	Andrew Hendry <andrew.hendry@gmail.com>,
+	David Miller <davem@davemloft.net>,
+	Jan Harkes <jaharkes@cs.cmu.edu>,
+	Bryan Schumaker <bjschuma@netapp.com>
+References: <201009161632.59210.arnd@arndb.de> <201010181742.06678.arnd@arndb.de> <20101018161924.GA9571@infradead.org>
+In-Reply-To: <20101018161924.GA9571@infradead.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=us-ascii
-Content-Disposition: INLINE
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201010181938.27076.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Date: Sun, 12 Sep 2010 21:03:45 +0200
-From: Tommy Jonsson <quazzie2@gmail.com>
+On Monday 18 October 2010 18:19:24 Christoph Hellwig wrote:
+> Before we get into all these fringe drivers:
+> 
+>  - I've not seen any progrss on ->get_sb BKL removal for a while
 
-This is the first i have ever developed for linux, cant really wrap my
-head around how to submit this..
-Hope im sending this correctly, diff made with 'hg diff' from latest
-"hg clone http://linuxtv.org/hg/v4l-dvb"
+Not sure what you mean. Jan Blunck did the pushdown into get_sb
+last year, which is included into linux-next through my bkl/vfs
+tree. Subsequent patches remove it from most file systems along with
+the other BKL uses in them. If you like, I can post the series
+once more, but it has been posted a few times now.
 
-It adds support for tuning with PSK8 modulation, pilot and rolloff
-with the S2 versions of firedtv.
+>  - locks.c is probably a higher priorit, too.
 
-Signed-off-by: Tommy Jonsson <quazzie2@gmail.com>
-Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de> (trivial simplification)
+As mentioned in the list, I expect the trivial final patch to
+be applied in 2.6.37-rc1 after Linus has pulled the trees that
+this depends on (bkl/vfs, nfs, nfsd, ceph), see below.
+
+This is currently not in -next because of the prerequisites.
+
+	Arnd
 ---
-Update: resend with whitespace preserved, fe pointer does not have to be
-put into function parameter lists, copyright notice removed (authorship
-of smaller changes like this is tracked in the git changelog)
 
- drivers/media/dvb/firewire/firedtv-avc.c |   30 +++++++++++++++++--
- drivers/media/dvb/firewire/firedtv-fe.c  |   36 ++++++++++++++++++++++-
- 2 files changed, 60 insertions(+), 6 deletions(-)
-
-Index: b/drivers/media/dvb/firewire/firedtv-avc.c
-===================================================================
---- a/drivers/media/dvb/firewire/firedtv-avc.c
-+++ b/drivers/media/dvb/firewire/firedtv-avc.c
-@@ -24,6 +24,8 @@
- #include <linux/wait.h>
- #include <linux/workqueue.h>
+diff --git a/fs/Kconfig b/fs/Kconfig
+index c386a9f..25ce2dc 100644
+--- a/fs/Kconfig
++++ b/fs/Kconfig
+@@ -50,7 +50,6 @@ endif # BLOCK
+ config FILE_LOCKING
+ 	bool "Enable POSIX file locking API" if EMBEDDED
+ 	default y
+-	select BKL
+ 	help
+ 	  This option enables standard file locking support, required
+           for filesystems like NFS and for the flock() system
+diff --git a/fs/locks.c b/fs/locks.c
+index 8b2b6ad..02b6e0e 100644
+--- a/fs/locks.c
++++ b/fs/locks.c
+@@ -142,6 +142,7 @@ int lease_break_time = 45;
  
-+#include <dvb_frontend.h>
-+
- #include "firedtv.h"
+ static LIST_HEAD(file_lock_list);
+ static LIST_HEAD(blocked_list);
++static DEFINE_SPINLOCK(file_lock_lock);
  
- #define FCP_COMMAND_REGISTER		0xfffff0000b00ULL
-@@ -368,10 +370,30 @@ static int avc_tuner_tuneqpsk(struct fir
- 		c->operand[12] = 0;
- 
- 	if (fdtv->type == FIREDTV_DVB_S2) {
--		c->operand[13] = 0x1;
--		c->operand[14] = 0xff;
--		c->operand[15] = 0xff;
--
-+ 		if (fdtv->fe.dtv_property_cache.delivery_system == SYS_DVBS2) {
-+			switch (fdtv->fe.dtv_property_cache.modulation) {
-+			case QAM_16:		c->operand[13] = 0x1; break;
-+			case QPSK:		c->operand[13] = 0x2; break;
-+			case PSK_8:		c->operand[13] = 0x3; break;
-+			default:		c->operand[13] = 0x2; break;
-+			}
-+ 			switch (fdtv->fe.dtv_property_cache.rolloff) {
-+			case ROLLOFF_AUTO:	c->operand[14] = 0x2; break;
-+			case ROLLOFF_35:	c->operand[14] = 0x2; break;
-+			case ROLLOFF_20:	c->operand[14] = 0x0; break;
-+			case ROLLOFF_25:	c->operand[14] = 0x1; break;
-+			/* case ROLLOFF_NONE:	c->operand[14] = 0xff; break; */
-+			}
-+			switch (fdtv->fe.dtv_property_cache.pilot) {
-+			case PILOT_AUTO:	c->operand[15] = 0x0; break;
-+			case PILOT_OFF:		c->operand[15] = 0x0; break;
-+			case PILOT_ON:		c->operand[15] = 0x1; break;
-+			}
-+		} else {
-+			c->operand[13] = 0x1;  /* auto modulation */
-+			c->operand[14] = 0xff; /* disable rolloff */
-+			c->operand[15] = 0xff; /* disable pilot */
-+		}
- 		return 16;
- 	} else {
- 		return 13;
-Index: b/drivers/media/dvb/firewire/firedtv-fe.c
-===================================================================
---- a/drivers/media/dvb/firewire/firedtv-fe.c
-+++ b/drivers/media/dvb/firewire/firedtv-fe.c
-@@ -155,6 +155,16 @@ static int fdtv_get_frontend(struct dvb_
- 	return -EOPNOTSUPP;
- }
- 
-+static int fdtv_get_property(struct dvb_frontend *fe, struct dtv_property *tvp)
-+{
-+	return 0;
-+}
-+
-+static int fdtv_set_property(struct dvb_frontend *fe, struct dtv_property *tvp)
-+{
-+	return 0;
-+}
-+
- void fdtv_frontend_init(struct firedtv *fdtv)
+ /*
+  * Protects the two list heads above, plus the inode->i_flock list
+@@ -149,13 +150,13 @@ static LIST_HEAD(blocked_list);
+  */
+ void lock_flocks(void)
  {
- 	struct dvb_frontend_ops *ops = &fdtv->fe.ops;
-@@ -166,6 +176,9 @@ void fdtv_frontend_init(struct firedtv *
- 	ops->set_frontend		= fdtv_set_frontend;
- 	ops->get_frontend		= fdtv_get_frontend;
+-	lock_kernel();
++	spin_lock(&file_lock_lock);
+ }
+ EXPORT_SYMBOL_GPL(lock_flocks);
  
-+	ops->get_property		= fdtv_get_property;
-+	ops->set_property		= fdtv_set_property;
-+
- 	ops->read_status		= fdtv_read_status;
- 	ops->read_ber			= fdtv_read_ber;
- 	ops->read_signal_strength	= fdtv_read_signal_strength;
-@@ -179,7 +192,6 @@ void fdtv_frontend_init(struct firedtv *
+ void unlock_flocks(void)
+ {
+-	unlock_kernel();
++	spin_unlock(&file_lock_lock);
+ }
+ EXPORT_SYMBOL_GPL(unlock_flocks);
  
- 	switch (fdtv->type) {
- 	case FIREDTV_DVB_S:
--	case FIREDTV_DVB_S2:
- 		fi->type		= FE_QPSK;
- 
- 		fi->frequency_min	= 950000;
-@@ -188,7 +200,7 @@ void fdtv_frontend_init(struct firedtv *
- 		fi->symbol_rate_min	= 1000000;
- 		fi->symbol_rate_max	= 40000000;
- 
--		fi->caps 		= FE_CAN_INVERSION_AUTO	|
-+		fi->caps		= FE_CAN_INVERSION_AUTO |
- 					  FE_CAN_FEC_1_2	|
- 					  FE_CAN_FEC_2_3	|
- 					  FE_CAN_FEC_3_4	|
-@@ -198,6 +210,26 @@ void fdtv_frontend_init(struct firedtv *
- 					  FE_CAN_QPSK;
- 		break;
- 
-+	case FIREDTV_DVB_S2:
-+		fi->type		= FE_QPSK;
-+
-+		fi->frequency_min	= 950000;
-+		fi->frequency_max	= 2150000;
-+		fi->frequency_stepsize	= 125;
-+		fi->symbol_rate_min	= 1000000;
-+		fi->symbol_rate_max	= 40000000;
-+
-+		fi->caps		= FE_CAN_INVERSION_AUTO |
-+					  FE_CAN_FEC_1_2        |
-+					  FE_CAN_FEC_2_3        |
-+					  FE_CAN_FEC_3_4        |
-+					  FE_CAN_FEC_5_6        |
-+					  FE_CAN_FEC_7_8        |
-+					  FE_CAN_FEC_AUTO       |
-+					  FE_CAN_QPSK           |
-+					  FE_CAN_2G_MODULATION;
-+		break;
-+
- 	case FIREDTV_DVB_C:
- 		fi->type		= FE_QAM;
- 
-
-
--- 
-Stefan Richter
--=====-==-=- =-=- --=--
-http://arcgraph.de/sr/
-
