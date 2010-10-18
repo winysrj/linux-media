@@ -1,48 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:39511 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933583Ab0JSHND (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Oct 2010 03:13:03 -0400
-Received: from [192.168.0.1] (unknown [83.159.42.244])
-	by smtp1-g21.free.fr (Postfix) with ESMTP id DDA3E94001B
-	for <linux-media@vger.kernel.org>; Tue, 19 Oct 2010 09:12:55 +0200 (CEST)
-Message-ID: <4CBD450E.1070907@free.fr>
-Date: Tue, 19 Oct 2010 09:13:18 +0200
-From: =?ISO-8859-1?Q?Herv=E9_Cauwelier?= <herve.cauwelier@free.fr>
-MIME-Version: 1.0
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:10500 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753952Ab0JRJvk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Oct 2010 05:51:40 -0400
+Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LAH008LOCQ2RE@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 18 Oct 2010 10:51:38 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LAH0078ACQ26X@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 18 Oct 2010 10:51:38 +0100 (BST)
+Date: Mon, 18 Oct 2010 11:51:35 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH] SR030PC30: Avoid use of uninitialized variables
 To: linux-media@vger.kernel.org
-Subject: Re: support for AF9035 (not tuner)
-References: <4CBBFCBA.2010707@free.fr> <20101018185729.GA8210@minime.bse> <4CBCA407.9080101@free.fr> <20101018203932.GB8210@minime.bse>
-In-Reply-To: <20101018203932.GB8210@minime.bse>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Cc: kyungmin.park@samsung.com, m.szyprowski@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <1287395495-1337-1-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 10/18/10 22:39, Daniel Gl�ckner wrote:
-> On Mon, Oct 18, 2010 at 09:46:15PM +0200, Herv� Cauwelier wrote:
->> I've uploaded the compressed installer at http://dl.free.fr/p2BTq9BNi
->
-> The driver mentiones two video decoders:
-> - TI TVP5150
-> - Trident AVF4900B/AVF4910B
->
-> If it is the first one, sniffed USB traffic might be enough to write a
-> driver as there already is one for the decoder.
->
-> The latter one is undocumented. Two months ago I was told by Trident
-> that the device is not supported as it has been phased out from
-> production.
->
->    Daniel
+Fix the following compilation warnings:
 
-I managed to open it properly. I see two chips: the AF9035B and the 
-other one is labelled "AVF 4910BA1".
+drivers/media/video/sr030pc30.c: In function ‘cam_i2c_write’:
+drivers/media/video/sr030pc30.c:356: warning: ‘ret’ may be used uninitialized in this function
+drivers/media/video/sr030pc30.c: In function ‘sr030pc30_set_params’:
+drivers/media/video/sr030pc30.c:345: warning: ‘ret’ may be used uninitialized in this function
+drivers/media/video/sr030pc30.c:328: note: ‘ret’ was declared here
 
-So is it dead? I couldn't find any datasheet, even to sell. I could only 
-find a commercial 2-page PDF presentation. I doubt you can grab any 
-technical information from it.
+Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 
-Do I continue searching for a datasheet?
+---
+Unfortunately I could not reproduce all the warnings in various build configurations,
+this patch fixes the only issue I was able to find.
+---
+ drivers/media/video/sr030pc30.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Herv�
+diff --git a/drivers/media/video/sr030pc30.c b/drivers/media/video/sr030pc30.c
+index ec8d875..c9dc67a 100644
+--- a/drivers/media/video/sr030pc30.c
++++ b/drivers/media/video/sr030pc30.c
+@@ -326,7 +326,7 @@ static inline struct sr030pc30_info *to_sr030pc30(struct v4l2_subdev *sd)
+ static inline int set_i2c_page(struct sr030pc30_info *info,
+ 			       struct i2c_client *client, unsigned int reg)
+ {
+-	int ret;
++	int ret = 0;
+ 	u32 page = reg >> 8 & 0xFF;
+ 
+ 	if (info->i2c_reg_page != page && (reg & 0xFF) != 0x03) {
+-- 
+1.7.3.1
+
