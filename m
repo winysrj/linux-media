@@ -1,62 +1,40 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:23762 "EHLO mx1.redhat.com"
+Received: from tex.lwn.net ([70.33.254.29]:37342 "EHLO vena.lwn.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751696Ab0J0QrZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Oct 2010 12:47:25 -0400
-Message-ID: <4CC85771.2080307@redhat.com>
-Date: Wed, 27 Oct 2010 14:46:41 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Jiri Slaby <jirislaby@gmail.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Michael Krufky <mkrufky@kernellabs.com>
-Subject: Re: [GIT PULL for 2.6.37-rc1] V4L/DVB updates
-References: <4CC8380D.3040802@redhat.com>	<4CC84597.4000204@gmail.com>	<4CC84846.6020304@redhat.com> <AANLkTim=RfR3Dq0w+ACYjhGTHCSgapdf35wGW8QoZ38n@mail.gmail.com>
-In-Reply-To: <AANLkTim=RfR3Dq0w+ACYjhGTHCSgapdf35wGW8QoZ38n@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1753507Ab0JRNZx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Oct 2010 09:25:53 -0400
+Date: Mon, 18 Oct 2010 07:25:51 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Daniel Drake <dsd@laptop.org>
+Subject: Re: [PATCH] viafb camera controller driver
+Message-ID: <20101018072551.75fcda5c@bike.lwn.net>
+In-Reply-To: <4CB9AC58.5020301@infradead.org>
+References: <20101010162313.5caa137f@bike.lwn.net>
+	<4CB9AC58.5020301@infradead.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 27-10-2010 13:48, Devin Heitmueller escreveu:
-> On Wed, Oct 27, 2010 at 11:41 AM, Mauro Carvalho Chehab
-> 
-> Have you looked at the code for how the Conexant guys got the xc5000
-> firmware load to work (which uses 64 bytes at a time).  I suspect what
-> *really* needs to happen is that needs to be made generic so that the
-> stop bit is properly set (which would allow a single i2c transaction
-> to span across multiple USB control messages).
-> 
-> Note that the xc5000 hack is actually two changes merged together -
-> one uses a GPIO mode in certain cases to handle clock stretching
-> properly (which probably has to stay there for now), and the other
-> allows for larger i2c transactions.  I am referring to the latter
-> change.
-> 
-> If we fix the cx231xx i2c master, then we can go back to the original
-> 18271 config, which avoids the risk of regression for other devices.
+On Sat, 16 Oct 2010 10:44:56 -0300
+Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
 
-The original code is broken, as it doesn't properly honour a max size of 8.
-Even if we do some optimization at cx231xx, we still need to fix the tda18271
-code, as it is trying to use more than 8 bytes on some writes.
+> Hmm... do you need BKL? Otherwise, you should be using, instead, .unlocked_ioctl.
 
-Also, as you noticed, the way cx231xx sends large firmwares to xc5000 is a hack:
-it requires to identify that the I2C device is a xc5000 and do an special
-treatment for it.
+No, that was just silly.
 
-We may actually move all those small_i2c logic to the bridge drivers, adding
-those hacks inside the I2C adapter part, but this means that they'll need to 
-have some complex-logic that are dependent on what device is connected to it,
-damaging the benefits that the I2C bus abstraction brings.
+> Btw, the driver build is broken:
 
-Instead of polluting bridge drivers with I2C-device specific code, the proper
-way seems to use parameters to adjust the maximum size, eventually flagging
-the broken messages in a way that the I2C adapter won't sent a stop transaction
-in the middle of a larger initialization like this one.
+And that, it seems, indicates that I'm making my patch against the
+wrong tree.  I'll try to fix that up in the next day or so, sorry for
+the trouble.
 
-Cheers,
-Mauro
+Thanks,
+
+jon
+
