@@ -1,58 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:56485 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757008Ab0JQBHr (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:42797 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750718Ab0JREG4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Oct 2010 21:07:47 -0400
-Subject: Re: [PATCH 0/3] Remaining patches in my queue for IR
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
-	David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	mchehab@infradead.org, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org
-In-Reply-To: <1287275805.11162.5.camel@morgan.silverblock.net>
-References: <1287269790-17605-1-git-send-email-maximlevitsky@gmail.com>
-	 <1287275805.11162.5.camel@morgan.silverblock.net>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 17 Oct 2010 03:07:18 +0200
-Message-ID: <1287277638.23804.3.camel@maxim-laptop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Mon, 18 Oct 2010 00:06:56 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o9I46tw9026819
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 17 Oct 2010 23:06:56 -0500
+From: Samreen <samreen@ti.com>
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: linux-media@vger.kernel.org, Samreen <samreen@ti.com>
+Subject: [PATCH 1/1] OMAP3: V4L2: Kconfig changes to enable V4L2 options on OMAP3
+Date: Mon, 18 Oct 2010 09:32:14 +0530
+Message-Id: <1287374534-10722-1-git-send-email-samreen@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, 2010-10-16 at 20:36 -0400, Andy Walls wrote:
-> On Sun, 2010-10-17 at 00:56 +0200, Maxim Levitsky wrote:
-> > Hi,
-> > 
-> > This series is rebased on top of media_tree/staging/v2.6.37 only.
-> > Really this time, sorry for cheating, last time :-)
-> > 
-> > The first patch like we agreed extends the raw packets.
-> > It touches all drivers (except imon as it isn't a raw IR driver).
-> 
-> Will IR for the CX23885 and CX23888 still work given the changes?
-> 
-> Here's the relevant files that use struct ir_raw_event:
-> 
-> http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/media/video/cx23885/cx23885-input.c;h=bb61870b8d6ed39d25c11aa676b55bd0a94dc235;hb=staging/v2.6.37
-> http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/media/video/cx25840/cx25840-ir.c;h=c2b4c14dc9ab533ff524b3e301235d6bdc92e2b9;hb=staging/v2.6.37
-> http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/media/video/cx23885/cx23888-ir.c;h=2502a0a6709783b8c01d5de639d759d097f0f1cd;hb=staging/v2.6.37
-> 
-> If needed, cx23885-input.c is where a fix can be made to ensure
-> structure fields are properly zeroed until I have time to fix he lower
-> level stuff.
-> 
-> Regards,
-> Andy
-Wasn't aware of this as I only looked at IR directory. Will grep the
-sources for more drivers. 
-Anyway the changes I propose are
-straightforward, I shouldn't break the driver with it.
-But of course if driver isn't updated it probably won't work.
+The defconfig options for V4L2 are taken in the respective Kconfig
+to enable V4L2 by default on OMAP3 platforms
 
-Best regards,
-	Maxim Levitsky
+Signed-off-by: Samreen <samreen@ti.com>
+---
+ drivers/media/Kconfig            |    2 ++
+ drivers/media/video/omap/Kconfig |    2 +-
+ 2 files changed, 3 insertions(+), 1 deletions(-)
 
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index a28541b..2592d88 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -5,6 +5,7 @@
+ menuconfig MEDIA_SUPPORT
+ 	tristate "Multimedia support"
+ 	depends on HAS_IOMEM
++	default y if ARCH_OMAP2 || ARCH_OMAP3
+ 	help
+ 	  If you want to use Video for Linux, DVB for Linux, or DAB adapters,
+ 	  enable this option and other options below.
+@@ -19,6 +20,7 @@ comment "Multimedia core support"
+ 
+ config VIDEO_DEV
+ 	tristate "Video For Linux"
++	default y if ARCH_OMAP2 || ARCH_OMAP3
+ 	---help---
+ 	  V4L core support for video capture and overlay devices, webcams and
+ 	  AM/FM radio cards.
+diff --git a/drivers/media/video/omap/Kconfig b/drivers/media/video/omap/Kconfig
+index e63233f..f3e33c3 100644
+--- a/drivers/media/video/omap/Kconfig
++++ b/drivers/media/video/omap/Kconfig
+@@ -6,6 +6,6 @@ config VIDEO_OMAP2_VOUT
+ 	select OMAP2_DSS
+ 	select OMAP2_VRAM
+ 	select OMAP2_VRFB
+-	default n
++	default y
+ 	---help---
+ 	  V4L2 Display driver support for OMAP2/3 based boards.
+-- 
+1.5.6.3
 
