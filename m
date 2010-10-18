@@ -1,316 +1,184 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.samsung.com ([203.254.224.34]:30377 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752309Ab0JUIUs (ORCPT
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:59309 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754116Ab0JROfC convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Oct 2010 04:20:48 -0400
-Date: Thu, 21 Oct 2010 17:21:06 +0900
-From: Sewoon Park <seuni.park@samsung.com>
-Subject: RE: [PATCH 5/6 v5] V4L/DVB: s5p-fimc: Add camera capture support
-In-reply-to: <1286817993-21558-6-git-send-email-s.nawrocki@samsung.com>
-To: 'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com
-Message-id: <001a01cb70f8$ea978530$bfc68f90$%park@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-language: ko
-Content-transfer-encoding: 7BIT
-References: <1286817993-21558-1-git-send-email-s.nawrocki@samsung.com>
- <1286817993-21558-6-git-send-email-s.nawrocki@samsung.com>
+	Mon, 18 Oct 2010 10:35:02 -0400
+Received: by vws2 with SMTP id 2so476720vws.19
+        for <linux-media@vger.kernel.org>; Mon, 18 Oct 2010 07:35:01 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <26db46dc537ffbd7bd3e906043852169.squirrel@webmail.xs4all.nl>
+References: <49e7400bcbcc4412b77216bb061db1b57cb3b882.1287318143.git.hverkuil@xs4all.nl>
+	<AANLkTikmKf5uZ=QFYMQ8x_tQ4Mws3pJ61oXsr6Rt=ifx@mail.gmail.com>
+	<9e7c8ba580484bbc3066089ece9c08a3.squirrel@webmail.xs4all.nl>
+	<AANLkTik_dGRV9DLiCFg6YYDTa2_NASQ5HgNxpo=mzCF=@mail.gmail.com>
+	<26db46dc537ffbd7bd3e906043852169.squirrel@webmail.xs4all.nl>
+Date: Mon, 18 Oct 2010 10:35:00 -0400
+Message-ID: <AANLkTikdgWXsmGE1KPC3KbLc37T_=G3Aa8RaVhL1PsAN@mail.gmail.com>
+Subject: Re: [RFC PATCH] radio-mr800: locking fixes
+From: David Ellingsworth <david@identd.dyndns.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Latest your reply is easy to understand.
-And I send you another parts review comments.
+On Mon, Oct 18, 2010 at 10:18 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+>> On Mon, Oct 18, 2010 at 9:38 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>
+>>>> On Sun, Oct 17, 2010 at 8:26 AM, Hans Verkuil <hverkuil@xs4all.nl>
+>>>> wrote:
+>>>>> - serialize the suspend and resume functions using the global lock.
+>>>>> - do not call usb_autopm_put_interface after a disconnect.
+>>>>> - fix a race when disconnecting the device.
+>>>>>
+>>>>> Reported-by: David Ellingsworth <david@identd.dyndns.org>
+>>>>> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+>>>>> ---
+>>>>>  drivers/media/radio/radio-mr800.c |   17 ++++++++++++++---
+>>>>>  1 files changed, 14 insertions(+), 3 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/media/radio/radio-mr800.c
+>>>>> b/drivers/media/radio/radio-mr800.c
+>>>>> index 2f56b26..b540e80 100644
+>>>>> --- a/drivers/media/radio/radio-mr800.c
+>>>>> +++ b/drivers/media/radio/radio-mr800.c
+>>>>> @@ -284,9 +284,13 @@ static void usb_amradio_disconnect(struct
+>>>>> usb_interface *intf)
+>>>>>        struct amradio_device *radio =
+>>>>> to_amradio_dev(usb_get_intfdata(intf));
+>>>>>
+>>>>>        mutex_lock(&radio->lock);
+>>>>> +       /* increase the device node's refcount */
+>>>>> +       get_device(&radio->videodev.dev);
+>>>>>        v4l2_device_disconnect(&radio->v4l2_dev);
+>>>>> -       mutex_unlock(&radio->lock);
+>>>>>        video_unregister_device(&radio->videodev);
+>>>>> +       mutex_unlock(&radio->lock);
+>>>>> +       /* decrease the device node's refcount, allowing it to be
+>>>>> released */
+>>>>> +       put_device(&radio->videodev.dev);
+>>>>>  }
+>>>>
+>>>> Hans, I understand the use of get/put_device here.. but can you
+>>>> explain to me what issue you are trying to solve?
+>>>> video_unregister_device does not have to be synchronized with anything
+>>>> else. Thus, it is perfectly safe to call video_unregister_device while
+>>>> not holding the device lock. Your prior implementation here was
+>>>> correct.
+>>>
+>>> This the original sequence:
+>>>
+>>>       mutex_lock(&radio->lock);
+>>>       v4l2_device_disconnect(&radio->v4l2_dev);
+>>>       mutex_unlock(&radio->lock);
+>>>       video_unregister_device(&radio->videodev);
+>>>
+>>> The problem with this is that userspace can call open or ioctl after the
+>>> unlock and before the device node is marked unregistered by
+>>> video_unregister_device.
+>>>
+>>> Once you disconnect you want to block all access (except the release
+>>> call).
+>>> What my patch does is to move the video_unregister_device call inside
+>>> the
+>>> lock, but then I have to guard against the release being called before
+>>> the
+>>> unlock by increasing the refcount.
+>>>
+>>> I have ideas to improve on this as this gets hairy when you have
+>>> multiple
+>>> device nodes, but I wait with that until the next kernel cycle.
+>>>
+>>> Regards,
+>>>
+>>>         Hans
+>>>
+>>
+>> I think you're trying to solve a problem that doesn't exist.
+>> To be a little more specific we have the following:
+>>
+>> 1. video_register_device - increments device refcount
+>> 2. video_unregister_device - decrements device refcount
+>> 3. v4l2_open - increments device refcount
+>> 4. v4l2_release - decrements device refcount
+>>
+>> Keeping this in mind, the release callback of video_device is called
+>> only when the device count reaches 0.
+>>
+>> So under normal operation we have:
+>>
+>> 1. video_register_device -> device refcount incremented to 1
+>> 2. v4l2_open -> device refcount incremented to 2
+>> 3. v4l2_release -> device refcount decremented to 1
+>> 4. disconnect callback: video_unregister_device -> device refcount
+>> decremented to 0 & release callback called.
+>>
+>> If the user disconnects the device while it's open we have the following:
+>>
+>> 1. video_register_device -> device refcount incremented to 1
+>> 2. v4l2_open -> device refcount incremented to 2
+>> 3. disconnect callback: video_unregister_device -> device refcount
+>> decremented to 1
+>> 4. v4l2_release -> device refcount decremented to 0 & release callback
+>> called.
+>>
+>> In the above case, once video_unregister_device has been called, calls
+>> to open no longer will work. However, the user holding the currently
+>> open file handle can still call ioctl and other callbacks, but those
+>> should be met with an -EIO, forcing them to close the open handle. The
+>> original code did this by using the usb device as an indicator to see
+>> if the device was still connected, as this functionality was not in
+>> v4l2_core. On the other hand, v4l2_core could do this for us, just by
+>> checking if the device is still registered.
+>>
+>> As you can see from the above, there are no race conditions here.
+>
+> Yes there is a race: what you want is that in the disconnect function you
+> can safely clean up any data structures or whatever in the knowledge that
+> once the device nodes are unregistered only the release call can reach the
+> driver. All other calls (open, ioctl, etc) are blocked by the v4l core.
+>
+> In order to do this you have to unregister the device nodes while the lock
+> is held. In the original code the device node was unregistered without the
+> lock being held, so that would allow userspace to sneak in a e.g. open()
+> call just before the unregister call.
+>
+> BTW, note that this is probably not relevant for this particular driver.
+> Even if this race happens, it will most likely not be a problem for this
+> simple device.
+>
+> Regards,
+>
+>        Hans
+>
 
-Tuesday, October 12, 2010 2:27, Sylwester Nawrocki wrote :
-> 
-> Add a video device driver per each FIMC entity to support
-> the camera capture input mode. Video capture node is registered
-> only if CCD sensor data is provided through driver's platfrom data
-> and board setup code.
-> 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Reviewed-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> ---
->  drivers/media/video/s5p-fimc/Makefile       |    2 +-
->  drivers/media/video/s5p-fimc/fimc-capture.c |  819
-> +++++++++++++++++++++++++++
->  drivers/media/video/s5p-fimc/fimc-core.c    |  563 +++++++++++++------
->  drivers/media/video/s5p-fimc/fimc-core.h    |  205 +++++++-
->  drivers/media/video/s5p-fimc/fimc-reg.c     |  173 +++++-
->  include/media/s3c_fimc.h                    |   60 ++
->  6 files changed, 1630 insertions(+), 192 deletions(-)
->  create mode 100644 drivers/media/video/s5p-fimc/fimc-capture.c
->  create mode 100644 include/media/s3c_fimc.h
-> 
-> diff --git a/drivers/media/video/s5p-fimc/Makefile
-> b/drivers/media/video/s5p-fimc/Makefile
-> index 0d9d541..7ea1b14 100644
-> --- a/drivers/media/video/s5p-fimc/Makefile
-> +++ b/drivers/media/video/s5p-fimc/Makefile
-> @@ -1,3 +1,3 @@
-> 
->  obj-$(CONFIG_VIDEO_SAMSUNG_S5P_FIMC) := s5p-fimc.o
-> -s5p-fimc-y := fimc-core.o fimc-reg.o
-> +s5p-fimc-y := fimc-core.o fimc-reg.o fimc-capture.o
-> diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c
-> b/drivers/media/video/s5p-fimc/fimc-capture.c
-> new file mode 100644
-> index 0000000..e8f13d3
-> --- /dev/null
-> +++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-> @@ -0,0 +1,819 @@
-> +/*
-> + * Samsung S5P SoC series camera interface (camera capture) driver
-> + *
-> + * Copyright (c) 2010 Samsung Electronics Co., Ltd
-> + * Author: Sylwester Nawrocki, <s.nawrocki@samsung.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/kernel.h>
-> +#include <linux/version.h>
-> +#include <linux/types.h>
-> +#include <linux/errno.h>
-> +#include <linux/bug.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/device.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/list.h>
-> +#include <linux/slab.h>
-> +#include <linux/clk.h>
-> +#include <linux/i2c.h>
-> +
-> +#include <linux/videodev2.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-ioctl.h>
-> +#include <media/v4l2-mem2mem.h>
-> +#include <media/videobuf-core.h>
-> +#include <media/videobuf-dma-contig.h>
-> +
-> +#include "fimc-core.h"
-> +
-> +static struct v4l2_subdev *fimc_subdev_register(struct fimc_dev *fimc,
-> +					    struct s3c_fimc_isp_info *isp_info)
-> +{
-> +	struct i2c_adapter *i2c_adap;
-> +	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
-> +	struct v4l2_subdev *sd = NULL;
-> +
-> +	i2c_adap = i2c_get_adapter(isp_info->i2c_bus_num);
-> +	if (!i2c_adap)
-> +		return ERR_PTR(-ENOMEM);
-> +
-> +	sd = v4l2_i2c_new_subdev_board(&vid_cap->v4l2_dev, i2c_adap,
-> +				       MODULE_NAME, isp_info->board_info, NULL);
-> +	if (!sd) {
-> +		v4l2_err(&vid_cap->v4l2_dev, "failed to acquire subdev\n");
-> +		return NULL;
-> +	}
-> +
-> +	v4l2_info(&vid_cap->v4l2_dev, "subdevice %s registered
-> successfuly\n",
-> +		isp_info->board_info->type);
-> +
-> +	return sd;
-> +}
-> +
-> +static void fimc_subdev_unregister(struct fimc_dev *fimc)
-> +{
-> +	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
-> +	struct i2c_client *client;
-> +
-> +	if (vid_cap->input_index < 0)
-> +		return;	/* Subdevice already released or not registered.
-> */
-> +
-> +	if (vid_cap->sd) {
-> +		v4l2_device_unregister_subdev(vid_cap->sd);
-> +		client = v4l2_get_subdevdata(vid_cap->sd);
-> +		i2c_unregister_device(client);
-> +		i2c_put_adapter(client->adapter);
-> +		vid_cap->sd = NULL;
-> +	}
-> +
-> +	vid_cap->input_index = -1;
-> +}
+Hans, right I understand what you're getting at.. between the
+v4l2_device_disconnect and video_unregister_device a call to open
+could succeed. In the original code, the usb device of the object was
+set to NULL. In the open callback if the usb device was NULL, the open
+would fail with -EIO, thus preventing the race you are referring to.
 
-(snip)
+Subsequently, all ioctl callbacks had the same check applied. So yes,
+while there is a race here now, there wasn't one before. It was
+already handled by the driver. The addition get/put_device calls do
+nothing to prevent this race. Not even locking around
+video_unregister_device prevents this race. Consider the following:
 
-> +static int fimc_cap_s_fmt(struct file *file, void *priv,
-> +			     struct v4l2_format *f)
-> +{
-> +	struct fimc_ctx *ctx = priv;
-> +	struct fimc_dev *fimc = ctx->fimc_dev;
-> +	struct fimc_frame *frame;
-> +	struct v4l2_pix_format *pix;
-> +	int ret;
-> +
-> +	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +		return -EINVAL;
-> +
-> +	ret = fimc_vidioc_try_fmt(file, priv, f);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (mutex_lock_interruptible(&fimc->lock))
-> +		return -ERESTARTSYS;
-> +
-> +	if (fimc_capture_active(fimc)) {
-> +		ret = -EBUSY;
-> +		goto sf_unlock;
-> +	}
+1. The lock is taken in the disconnect callback.
+2. While the disconnect callback is being processed, a call to open happens.
+3. Since the lock is already taken the open waits on the lock to be released.
+4. The lock is finally released, the call to open acquires the lock
+and succeeds.
 
-I suggest to use vb_lock on here.
-You already use vb_lock "fimc_m2m_s_fmt" function in fimc-core.c code
+As you can see.. there's nothing you can do to prevent this from
+happening. This is the reason the original code set the usb device to
+NULL while holding the lock, and checked to see if it was NULL in open
+and the ioctl callbacks with the lock held. It's the only way to
+prevent this race from happening.
 
--- sample --
-struct fimc_capture_device *cap = &ctx->fimc_dev->vid_cap;
-mutex_lock(&cap->vbq->vb->lock);
+Regards,
 
-
-> +
-> +	frame = &ctx->d_frame;
-> +
-> +	pix = &f->fmt.pix;
-> +	frame->fmt = find_format(f, FMT_FLAGS_M2M | FMT_FLAGS_CAM);
-> +	if (!frame->fmt) {
-> +		err("fimc target format not found\n");
-> +		ret = -EINVAL;
-> +		goto sf_unlock;
-> +	}
-> +
-> +	/* Output DMA frame pixel size and offsets. */
-> +	frame->f_width	= pix->bytesperline * 8 / frame->fmt->depth;
-> +	frame->f_height = pix->height;
-> +	frame->width	= pix->width;
-> +	frame->height	= pix->height;
-> +	frame->o_width	= pix->width;
-> +	frame->o_height = pix->height;
-> +	frame->size	= (pix->width * pix->height * frame->fmt->depth) >> 3;
-> +	frame->offs_h	= 0;
-> +	frame->offs_v	= 0;
-> +
-> +	ret = sync_capture_fmt(ctx);
-> +
-> +	ctx->state |= (FIMC_PARAMS | FIMC_DST_FMT);
-> +
-> +sf_unlock:
-> +	mutex_unlock(&fimc->lock);
-> +	return ret;
-> +}
-
-(snip)
-
-> -static int fimc_prepare_config(struct fimc_ctx *ctx, u32 flags)
-> +int fimc_prepare_config(struct fimc_ctx *ctx, u32 flags)
->  {
->  	struct fimc_frame *s_frame, *d_frame;
->  	struct fimc_vid_buffer *buf = NULL;
-> @@ -513,9 +585,9 @@ static void fimc_dma_run(void *priv)
->  	if (ctx->state & FIMC_PARAMS)
->  		fimc_hw_set_out_dma(ctx);
-> 
-> -	ctx->state = 0;
->  	fimc_activate_capture(ctx);
-> 
-> +	ctx->state &= (FIMC_CTX_M2M | FIMC_CTX_CAP);
->  	fimc_hw_activate_input_dma(fimc, true);
-> 
->  dma_unlock:
-> @@ -598,10 +670,31 @@ static void fimc_buf_queue(struct videobuf_queue *vq,
->  				  struct videobuf_buffer *vb)
->  {
->  	struct fimc_ctx *ctx = vq->priv_data;
-> -	v4l2_m2m_buf_queue(ctx->m2m_ctx, vq, vb);
-> +	struct fimc_dev *fimc = ctx->fimc_dev;
-> +	struct fimc_vid_cap *cap = &fimc->vid_cap;
-> +	unsigned long flags;
-> +
-> +	dbg("ctx: %p, ctx->state: 0x%x", ctx, ctx->state);
-> +
-> +	if ((ctx->state & FIMC_CTX_M2M) && ctx->m2m_ctx) {
-> +		v4l2_m2m_buf_queue(ctx->m2m_ctx, vq, vb);
-> +	} else if (ctx->state & FIMC_CTX_CAP) {
-> +		spin_lock_irqsave(&fimc->slock, flags);
-> +		fimc_vid_cap_buf_queue(fimc, (struct fimc_vid_buffer *)vb);
-> +
-> +		dbg("fimc->cap.active_buf_cnt: %d",
-> +		    fimc->vid_cap.active_buf_cnt);
-> +
-> +		if (cap->active_buf_cnt >= cap->reqbufs_count ||
-> +		   cap->active_buf_cnt >= FIMC_MAX_OUT_BUFS) {
-
-1. purpose of queues
-In my understand through your code,
-The qbuf() which call before streamon() is pushed done_list in videobuf 
-framework to use dqbuf().
-During streamon(), Number of FIMC h/w output DMA allocated buffers have pushed 
-in active_queue(normally 4) and rest allocated buffers have pushed to pending_queue.
-
-It means that, active_queue is connection to FIMC h/w for output DMA.
-(maximum 4 in s5pc110, 32 in s5pc210)
-pending_queue is available buffer list or returned buffer list from user.
-
-Please let me know if I have misunderstanding.
-
-2. Which case of condition, active_buf_cnt greater than reqbufs_count?
-In preview mode normally, reqbufs_count are 4 or more.
-Likewise, which case of condition, active_buf_cnt greater than FIMC_MAX_OUT_BUFS(4)?
-
-> +			if (!test_and_set_bit(ST_CAPT_STREAM, &fimc->state))
-> +				fimc_activate_capture(ctx);
-> +		}
-
-Condition which fimc_deactivate_capture() function run is 
-"cap->active_buf_cnt <= 1".
-Then I think condition which fimc_activate_capture() function run is
-"cap->active_buf_cnt >= 2".
-But, your code wait 4 or more.
-
-> +		spin_unlock_irqrestore(&fimc->slock, flags);
-> +	}
->  }
-> 
-> -static struct videobuf_queue_ops fimc_qops = {
-> +struct videobuf_queue_ops fimc_qops = {
->  	.buf_setup	= fimc_buf_setup,
->  	.buf_prepare	= fimc_buf_prepare,
->  	.buf_queue	= fimc_buf_queue,
-> @@ -624,7 +717,7 @@ static int fimc_m2m_querycap(struct file *file, void
-> *priv,
->  	return 0;
->  }
-> 
-
-(snip)
-
-> +
-> +
-> +#define FIMC_MAX_CAMIF_CLIENTS	2
-> +
-> +/**
-> + * struct s3c_platform_fimc - camera host interface platform data
-> + *
-> + * @isp_info: properties of camera sensor required for host interface
-> setup
-> + */
-> +struct s3c_platform_fimc {
-> +	struct s3c_fimc_isp_info *isp_info[FIMC_MAX_CAMIF_CLIENTS];
-> +};
-> +#endif /* S3C_FIMC_H_ */
-> --
-> 1.7.3.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+David Ellingsworth
