@@ -1,104 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:60206 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752747Ab0JENSq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 09:18:46 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v2 5/6] omap3: Export omap3isp platform device structure
-Date: Tue,  5 Oct 2010 15:18:54 +0200
-Message-Id: <1286284734-12292-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1286284734-12292-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1286284734-12292-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2539 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755160Ab0JRN5a (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Oct 2010 09:57:30 -0400
+Message-ID: <ec5341251875e33faaea9cc94c160978.squirrel@webmail.xs4all.nl>
+In-Reply-To: <4CBC4E73.70601@redhat.com>
+References: <1287406657-18859-1-git-send-email-matti.j.aaltonen@nokia.com>
+    <1287406657-18859-2-git-send-email-matti.j.aaltonen@nokia.com>
+    <9c6327556dad0b210e353c11126e2ceb.squirrel@webmail.xs4all.nl>
+    <4CBC4E73.70601@redhat.com>
+Date: Mon, 18 Oct 2010 15:57:11 +0200
+Subject: Re: [PATCH v13 1/1] Documentation: v4l: Add hw_seek spacing and  
+ two TUNER_RDS_CAP flags.
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Mauro Carvalho Chehab" <mchehab@redhat.com>
+Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>,
+	linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Stanimir Varbanov <svarbanov@mm-sol.com>
 
-The omap3isp platform device requires platform data. As the data can be
-provided by a kernel module, the device can't be registered during arch
-initialization.
+> Em 18-10-2010 11:17, Hans Verkuil escreveu:
+>> Just a few very small comments:
+>
+>>> +For future use the
+>>> +flag <constant>V4L2_TUNER_SUB_RDS_CONTROLS</constant> has also been
+>>> +defined. However, a driver for a radio tuner with this capability does
+>>> +not yet exist, so if you are planning to write such a driver the best
+>>> +way to start would probably be by opening a discussion about it on
+>>> +the linux-media mailing list: &v4l-ml;. </para>
+>>
+>> Change to:
+>>
+>> not yet exist, so if you are planning to write such a driver you
+>> should discuss this on the linux-media mailing list: &v4l-ml;.</para>
+>
+> No, please. Don't add any API capabilities at the DocBook without having a
+> driver
+> using it. At the time a driver start needing it, we can just add the API
+> bits
+> and doing the needed discussions as you've proposed. This is already
+> implicit.
 
-Remove the omap3isp platform device registration from
-omap_init_camera(), and export the platform device structure to let
-board code register/unregister it.
+These caps are shared between tuner and modulator. And for the modulator
+both caps *are* used in Matti's driver. But while RDS_CONTROLS is
+available for modulators, it is not yet applicable to tuners and for that
+we need to make this note in the spec.
 
-Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- arch/arm/mach-omap2/devices.c |   18 ++++++++++++++++--
- arch/arm/mach-omap2/devices.h |   17 +++++++++++++++++
- 2 files changed, 33 insertions(+), 2 deletions(-)
- create mode 100644 arch/arm/mach-omap2/devices.h
+So this is an exception to the rule, I'm afraid.
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index ade8db0..f9bc507 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -31,6 +31,8 @@
- 
- #include "mux.h"
- 
-+#include "devices.h"
-+
- #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
- 
- static struct resource cam_resources[] = {
-@@ -141,16 +143,28 @@ static struct resource omap3isp_resources[] = {
- 	}
- };
- 
--static struct platform_device omap3isp_device = {
-+static void omap3isp_release(struct device *dev)
-+{
-+	/* Zero the device structure to avoid re-initialization complaints from
-+	 * kobject when the device will be re-registered.
-+	 */
-+	memset(dev, 0, sizeof(*dev));
-+	dev->release = omap3isp_release;
-+}
-+
-+struct platform_device omap3isp_device = {
- 	.name		= "omap3isp",
- 	.id		= -1,
- 	.num_resources	= ARRAY_SIZE(omap3isp_resources),
- 	.resource	= omap3isp_resources,
-+	.dev = {
-+		.release	= omap3isp_release,
-+	},
- };
-+EXPORT_SYMBOL_GPL(omap3isp_device);
- 
- static inline void omap_init_camera(void)
- {
--	platform_device_register(&omap3isp_device);
- }
- #else
- static inline void omap_init_camera(void)
-diff --git a/arch/arm/mach-omap2/devices.h b/arch/arm/mach-omap2/devices.h
-new file mode 100644
-index 0000000..f312d49
---- /dev/null
-+++ b/arch/arm/mach-omap2/devices.h
-@@ -0,0 +1,17 @@
-+/*
-+ * arch/arm/mach-omap2/devices.h
-+ *
-+ * OMAP2 platform device setup/initialization
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#ifndef __ARCH_ARM_MACH_OMAP_DEVICES_H
-+#define __ARCH_ARM_MACH_OMAP_DEVICES_H
-+
-+extern struct platform_device omap3isp_device;
-+
-+#endif
+Regards,
+
+        Hans
+
 -- 
-1.7.2.2
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
 
