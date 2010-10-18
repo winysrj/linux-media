@@ -1,116 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:50099 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750941Ab0JBQyv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Oct 2010 12:54:51 -0400
-Received: by wyb28 with SMTP id 28so3831424wyb.19
-        for <linux-media@vger.kernel.org>; Sat, 02 Oct 2010 09:54:50 -0700 (PDT)
-Message-ID: <4CA763D6.4050005@gmail.com>
-Date: Sat, 02 Oct 2010 18:54:46 +0200
-From: thomas schorpp <thomas.schorpp@googlemail.com>
-Reply-To: thomas.schorpp@gmail.com
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: dvb-c: TT C-1501: tda827x.c: Cannot hold lock at 746 MHz
-References: <4CA74509.6000404@gmail.com> <4CA74D80.7000707@gmail.com>
-In-Reply-To: <4CA74D80.7000707@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mgw-sa02.nokia.com ([147.243.1.48]:62952 "EHLO
+	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753952Ab0JRJyj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Oct 2010 05:54:39 -0400
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+To: linux-media@vger.kernel.org, mchehab@redhat.com, hverkuil@xs4all.nl
+Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: [PATCH RFC 1/1] V4L2: Use new CAP bits in existing RDS capable drivers.
+Date: Mon, 18 Oct 2010 12:54:14 +0300
+Message-Id: <1287395654-1822-1-git-send-email-matti.j.aaltonen@nokia.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Am 02.10.2010 17:19, schrieb thomas schorpp:
-> Am 02.10.2010 16:43, schrieb thomas schorpp:
->> Hello,
->>
->> Klaas patch is not complete:
->> http://article.gmane.org/gmane.linux.drivers.dvb/47571
->>
->> I found a hole at 746MHz with 2.6.34.0 kernel and DE provider kabelbw.de,
->> Picture fragments and audio bursts only:
->>
->> Oct 2 15:53:03 tom1 vdr: [16380] receiver on device 1 thread ended (pid=16268, tid=16380)
->> Oct 2 15:53:03 tom1 kernel: tda827x: tda827xa_set_params:
->> Oct 2 15:53:03 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
->> Oct 2 15:53:03 tom1 kernel: tda827x: tda8275a AGC2 gain is: 4
->> Oct 2 15:53:04 tom1 vdr: [16462] setting audio track to 1 (0)
->> Oct 2 15:53:04 tom1 kernel: tda827x: tda827xa_set_params:
->> Oct 2 15:53:04 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
->> Oct 2 15:53:04 tom1 kernel: tda827x: tda8275a AGC2 gain is: 5
->> Oct 2 15:53:04 tom1 vdr: [16279] frontend 0 lost lock on channel 496, tp 746
->> Oct 2 15:53:04 tom1 vdr: [16279] frontend 0 regained lock on channel 496, tp 746
->> Oct 2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params:
->> Oct 2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
->> Oct 2 15:53:05 tom1 kernel: tda827x: tda8275a AGC2 gain is: 4
->> Oct 2 15:53:05 tom1 vdr: [16279] frontend 0 lost lock on channel 496, tp 746
->> Oct 2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params:
->> Oct 2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
->> Oct 2 15:53:05 tom1 kernel: tda827x: tda8275a AGC2 gain is: 4
->> Oct 2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params:
->> Oct 2 15:53:05 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
->> Oct 2 15:53:05 tom1 kernel: tda827x: tda8275a AGC2 gain is: 5
->> Oct 2 15:53:06 tom1 vdr: [16279] frontend 0 regained lock on channel 496, tp 746
->> Oct 2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params:
->> Oct 2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
->> Oct 2 15:53:06 tom1 kernel: tda827x: tda8275a AGC2 gain is: 5
->> Oct 2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params:
->> Oct 2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
->> Oct 2 15:53:06 tom1 kernel: tda827x: tda8275a AGC2 gain is: 5
->> Oct 2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params:
->> Oct 2 15:53:06 tom1 kernel: tda827x: tda827xa_set_params select tda827xa_dvbc
->> Oct 2 15:53:06 tom1 kernel: tda827x: tda8275a AGC2 gain is: 4
->> Oct 2 15:53:06 tom1 vdr: [16268] switching to channel 494
->>
->> cycle: 78 d_time: 0.004 s Sig: 51657 SNR: 43690 BER: 1728 UBLK: 55 Stat: 0x00 []
->> cycle: 79 d_time: 0.004 s Sig: 52428 SNR: 60395 BER: 1728 UBLK: 57 Stat: 0x03 [SIG CARR ]
->> cycle: 80 d_time: 0.004 s Sig: 50886 SNR: 46517 BER: 1728 UBLK: 95 Stat: 0x00 []
->> cycle: 81 d_time: 0.007 s Sig: 52428 SNR: 44461 BER: 1728 UBLK: 54 Stat: 0x03 [SIG CARR ]
->> cycle: 82 d_time: 0.003 s Sig: 51657 SNR: 61423 BER: 1728 UBLK: 5 Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
->> cycle: 83 d_time: 0.237 s Sig: 40092 SNR: 47288 BER: 1048575 UBLK: 66 Stat: 0x00 []
->> cycle: 84 d_time: 0.005 s Sig: 56283 SNR: 45232 BER: 1728 UBLK: 113 Stat: 0x00 []
->> cycle: 85 d_time: 0.006 s Sig: 53199 SNR: 46774 BER: 1728 UBLK: 136 Stat: 0x00 []
->> cycle: 86 d_time: 0.008 s Sig: 50115 SNR: 44975 BER: 1728 UBLK: 55 Stat: 0x00 []
->> cycle: 87 d_time: 0.004 s Sig: 53199 SNR: 53970 BER: 1728 UBLK: 287 Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
->> cycle: 88 d_time: 0.020 s Sig: 50886 SNR: 61166 BER: 1728 UBLK: 62 Stat: 0x03 [SIG CARR ]
->>
->> Current parameters:
->> Frequency: 746000.000 kHz
->> Inversion: ON
->> Symbol rate: 6.900000 MSym/s
->> FEC: none
->> Modulation: QAM 64
->>
->> Card is just bought newly:
->>
->> 00:06.0 0480: 1131:7146 (rev 01)
->> Subsystem: 13c2:101a
->> Flags: bus master, medium devsel, latency 32, IRQ 17
->> Memory at fbeffc00 (32-bit, non-prefetchable) [size=512]
->> Kernel driver in use: budget_ci dvb
->>
->> Other (tested favourite) channels are tuned in fine.
->>
->> No network problems for this transponder reported in cable provider's support forums.
->>
->> Anyone got the chips datasheet or a hint what to tweak in the tda827xa_dvbc[] for this frequency?
->>
->> { .lomax = 802000000, .svco = 2, .spd = 0, .scr = 2, .sbs = 4, .gc3 = 1}, ?
->>
->> thx,
->> Y
->> tom
->>
->>
->>
->
-> Hm, this gets complicated, tuning is fine at 722+754MHz but not on 746MHz,
-> this is within the same control segment
->
-> { .lomax = 720000000, .svco = 2, .spd = 0, .scr = 1, .sbs = 4, .gc3 = 1},
-> { .lomax = 802000000, .svco = 2, .spd = 0, .scr = 2, .sbs = 4, .gc3 = 1},
->
+Add either V4L2_TUNER_CAP_RDS_BLOCK_IO or V4L2_TUNER_CAP_RDS_CONTROLS
+bit to tuner or modulator capabilities of existing drivers of devices with
+RDS capability.
 
-Tweaking those parameters doesn't change anything.
+Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
+---
+ drivers/media/radio/radio-cadet.c                |    3 ++-
+ drivers/media/radio/si470x/radio-si470x-common.c |    2 +-
+ drivers/media/radio/si4713-i2c.c                 |    2 +-
+ drivers/media/video/saa6588.c                    |    2 +-
+ 4 files changed, 5 insertions(+), 4 deletions(-)
 
-Fixed. Bad IEC Connectors. Avoid Philips coaxial cable products or TT Tuner connectors :-/
+diff --git a/drivers/media/radio/radio-cadet.c b/drivers/media/radio/radio-cadet.c
+index 482d0f3..b701ea6 100644
+--- a/drivers/media/radio/radio-cadet.c
++++ b/drivers/media/radio/radio-cadet.c
+@@ -374,7 +374,8 @@ static int vidioc_g_tuner(struct file *file, void *priv,
+ 	switch (v->index) {
+ 	case 0:
+ 		strlcpy(v->name, "FM", sizeof(v->name));
+-		v->capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS;
++		v->capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS |
++			V4L2_TUNER_CAP_RDS_BLOCK_IO;
+ 		v->rangelow = 1400;     /* 87.5 MHz */
+ 		v->rangehigh = 1728;    /* 108.0 MHz */
+ 		v->rxsubchans = cadet_getstereo(dev);
+diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
+index 9927a59..af5ad45 100644
+--- a/drivers/media/radio/si470x/radio-si470x-common.c
++++ b/drivers/media/radio/si470x/radio-si470x-common.c
+@@ -681,7 +681,7 @@ static int si470x_vidioc_g_tuner(struct file *file, void *priv,
+ 	tuner->type = V4L2_TUNER_RADIO;
+ #if defined(CONFIG_USB_SI470X) || defined(CONFIG_USB_SI470X_MODULE)
+ 	tuner->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO |
+-			    V4L2_TUNER_CAP_RDS;
++			    V4L2_TUNER_CAP_RDS | V4L2_TUNER_CAP_RDS_BLOCK_IO;
+ #else
+ 	tuner->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
+ #endif
+diff --git a/drivers/media/radio/si4713-i2c.c b/drivers/media/radio/si4713-i2c.c
+index fc7f4b7..a6e6f19 100644
+--- a/drivers/media/radio/si4713-i2c.c
++++ b/drivers/media/radio/si4713-i2c.c
+@@ -1804,7 +1804,7 @@ static int si4713_g_modulator(struct v4l2_subdev *sd, struct v4l2_modulator *vm)
+ 
+ 	strncpy(vm->name, "FM Modulator", 32);
+ 	vm->capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_LOW |
+-						V4L2_TUNER_CAP_RDS;
++		V4L2_TUNER_CAP_RDS | V4L2_TUNER_CAP_RDS_CONTROLS;
+ 
+ 	/* Report current frequency range limits */
+ 	vm->rangelow = si4713_to_v4l2(FREQ_RANGE_LOW);
+diff --git a/drivers/media/video/saa6588.c b/drivers/media/video/saa6588.c
+index c3e96f0..eac222b 100644
+--- a/drivers/media/video/saa6588.c
++++ b/drivers/media/video/saa6588.c
+@@ -430,7 +430,7 @@ static int saa6588_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+ {
+ 	struct saa6588 *s = to_saa6588(sd);
+ 
+-	vt->capability |= V4L2_TUNER_CAP_RDS;
++	vt->capability |= V4L2_TUNER_CAP_RDS | V4L2_TUNER_CAP_RDS_BLOCK_IO;
+ 	if (s->sync)
+ 		vt->rxsubchans |= V4L2_TUNER_SUB_RDS;
+ 	return 0;
+-- 
+1.6.1.3
 
