@@ -1,103 +1,37 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3455 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754455Ab0JTTFM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Oct 2010 15:05:12 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id o9KJ5Aq6007970
-	for <linux-media@vger.kernel.org>; Wed, 20 Oct 2010 21:05:11 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 20 Oct 2010 21:05:10 +0200 (CEST)
-Message-Id: <201010201905.o9KJ5Aq6007970@smtp-vbr14.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+Received: from mailout-de.gmx.net ([213.165.64.23]:35554 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1756985Ab0JRUjd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Oct 2010 16:39:33 -0400
+Date: Mon, 18 Oct 2010 22:39:32 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: =?iso-8859-1?Q?Herv=E9?= Cauwelier <herve.cauwelier@free.fr>
+Cc: linux-media@vger.kernel.org
+Subject: Re: support for AF9035 (not tuner)
+Message-ID: <20101018203932.GB8210@minime.bse>
+References: <4CBBFCBA.2010707@free.fr>
+ <20101018185729.GA8210@minime.bse>
+ <4CBCA407.9080101@free.fr>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <4CBCA407.9080101@free.fr>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Mon, Oct 18, 2010 at 09:46:15PM +0200, Hervé Cauwelier wrote:
+> I've uploaded the compressed installer at http://dl.free.fr/p2BTq9BNi
 
-Results of the daily build of v4l-dvb:
+The driver mentiones two video decoders:
+- TI TVP5150
+- Trident AVF4900B/AVF4910B
 
-date:        Wed Oct 20 19:00:15 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15167:abd3aac6644e
-git master:       3e6dce76d99b328716b43929b9195adfee1de00c
-git media-master: 350df81ebaccc651fa4dfad27738db958e067ded
-gcc version:      i686-linux-gcc (GCC) 4.5.1
-host hardware:    x86_64
-host os:          2.6.32.5
+If it is the first one, sniffed USB traffic might be enough to write a
+driver as there already is one for the decoder.
 
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: WARNINGS
-linux-git-mips: WARNINGS
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-linux-2.6.32.6-armv5: WARNINGS
-linux-2.6.33-armv5: WARNINGS
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35.3-armv5: WARNINGS
-linux-2.6.32.6-armv5-davinci: ERRORS
-linux-2.6.33-armv5-davinci: ERRORS
-linux-2.6.34-armv5-davinci: ERRORS
-linux-2.6.35.3-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: ERRORS
-linux-2.6.33-armv5-ixp: ERRORS
-linux-2.6.34-armv5-ixp: ERRORS
-linux-2.6.35.3-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: ERRORS
-linux-2.6.33-armv5-omap2: ERRORS
-linux-2.6.34-armv5-omap2: ERRORS
-linux-2.6.35.3-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.32.6-m32r: WARNINGS
-linux-2.6.33-m32r: WARNINGS
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35.3-m32r: WARNINGS
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35.3-mips: WARNINGS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35.3-powerpc64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-spec-git: OK
-sparse: ERRORS
+The latter one is undocumented. Two months ago I was told by Trident
+that the device is not supported as it has been phased out from
+production.
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+  Daniel
