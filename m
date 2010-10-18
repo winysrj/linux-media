@@ -1,132 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:50856 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754526Ab0JRKnr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Oct 2010 06:43:47 -0400
-Date: Mon, 18 Oct 2010 12:44:40 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-Cc: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/2] gspca_sonixj: add hardware vertical flip support
- for hama AC-150
-Message-ID: <20101018124440.4dbc2538@tele>
-In-Reply-To: <4CBAD911.9070800@freemail.hu>
-References: <4CBAD911.9070800@freemail.hu>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/OZLHRLV7gFz_k.2PSF0.5rV"
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:3738 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754823Ab0JRNUZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Oct 2010 09:20:25 -0400
+Message-ID: <aa9cebfeb2bfad9ef7f6ee67a188bf98.squirrel@webmail.xs4all.nl>
+In-Reply-To: <AANLkTikPugSRT-t=5bKSLjk3eDmeYh5NYUui=uks35vy@mail.gmail.com>
+References: <49e7400bcbcc4412b77216bb061db1b57cb3b882.1287318143.git.hverkuil@xs4all.nl>
+    <201010171452.17454.hverkuil@xs4all.nl>
+    <AANLkTikPugSRT-t=5bKSLjk3eDmeYh5NYUui=uks35vy@mail.gmail.com>
+Date: Mon, 18 Oct 2010 15:20:21 +0200
+Subject: Re: [RFC PATCH] radio-mr800: locking fixes
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "David Ellingsworth" <david@identd.dyndns.org>
+Cc: linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---MP_/OZLHRLV7gFz_k.2PSF0.5rV
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
 
-On Sun, 17 Oct 2010 13:08:01 +0200
-N=C3=A9meth M=C3=A1rton <nm127@freemail.hu> wrote:
+> On Sun, Oct 17, 2010 at 8:52 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On Sunday, October 17, 2010 14:26:18 Hans Verkuil wrote:
+>>> - serialize the suspend and resume functions using the global lock.
+>>> - do not call usb_autopm_put_interface after a disconnect.
+>>> - fix a race when disconnecting the device.
+>>
+>> Regarding autosuspend: something seems to work since the
+>> power/runtime_status
+>> attribute goes from 'suspended' to 'active' whenever the radio handle is
+>> open.
+>> But the suspend and resume functions are never called. I can't figure
+>> out
+>> why not. I don't see anything strange.
+>>
+>> The whole autopm stuff is highly suspect anyway on a device like this
+>> since
+>> it is perfectly reasonable to just set a frequency and exit. The audio
+>> is
+>> just going to the line-in anyway. In other words: not having the device
+>> node
+>> open does not mean that the device is idle and can be suspended.
+>>
+>> My proposal would be to rip out the whole autosuspend business from this
+>> driver. I've no idea why it is here at all.
+>>
+>> Regards,
+>>
+>>        Hans
+>
+> Hans, I highly agree with that analysis. The original author put that
+> code in. But like you, I'm not sure if it was ever really valid. Since
+> I didn't have anything to test with, I left it untouched.
+>
+> Regards,
+>
+> David Ellingsworth
+>
+>
 
-> The PO2030N sensor chip found in hama AC-150 webcam supports vertical
-> flipping the image by hardware. Add support for this in the
-> gspca_sonixj driver also.
-	[snip]
+OK, then I'll make a new patch that just rips out autosuspend support.
 
-Hi N=C3=A9meth,
+Regards,
 
-The driver sonixj has changed in staging/2.6.37. I join a new version
-of your patches. May you check it? (when acked, I'll keep you as the
-author of the change)
+         Hans
 
-Cheers.
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
 
---=20
-Ken ar c'henta=C3=B1	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
-
---MP_/OZLHRLV7gFz_k.2PSF0.5rV
-Content-Type: application/octet-stream; name=patch.pat
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename=patch.pat
-
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vZ3NwY2Evc29uaXhqLmMgYi9kcml2ZXJz
-L21lZGlhL3ZpZGVvL2dzcGNhL3Nvbml4ai5jCmluZGV4IDIxMDVlY2IuLjFiNjUxZTMgMTAwNjQ0
-Ci0tLSBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vZ3NwY2Evc29uaXhqLmMKKysrIGIvZHJpdmVycy9t
-ZWRpYS92aWRlby9nc3BjYS9zb25peGouYwpAQCAtNDAsNiArNDAsNyBAQCBlbnVtIGVfY3RybCB7
-CiAJUkVELAogCUdBTU1BLAogCUFVVE9HQUlOLAorCUhGTElQLAogCVZGTElQLAogCVNIQVJQTkVT
-UywKIAlJTkZSQVJFRCwKQEAgLTEwMiw3ICsxMDMsNyBAQCBzdGF0aWMgdm9pZCBzZXRjb2xvcnMo
-c3RydWN0IGdzcGNhX2RldiAqZ3NwY2FfZGV2KTsKIHN0YXRpYyB2b2lkIHNldHJlZGJsdWUoc3Ry
-dWN0IGdzcGNhX2RldiAqZ3NwY2FfZGV2KTsKIHN0YXRpYyB2b2lkIHNldGdhbW1hKHN0cnVjdCBn
-c3BjYV9kZXYgKmdzcGNhX2Rldik7CiBzdGF0aWMgdm9pZCBzZXRhdXRvZ2FpbihzdHJ1Y3QgZ3Nw
-Y2FfZGV2ICpnc3BjYV9kZXYpOwotc3RhdGljIHZvaWQgc2V0dmZsaXAoc3RydWN0IGdzcGNhX2Rl
-diAqZ3NwY2FfZGV2KTsKK3N0YXRpYyB2b2lkIHNldGh2ZmxpcChzdHJ1Y3QgZ3NwY2FfZGV2ICpn
-c3BjYV9kZXYpOwogc3RhdGljIHZvaWQgc2V0c2hhcnBuZXNzKHN0cnVjdCBnc3BjYV9kZXYgKmdz
-cGNhX2Rldik7CiBzdGF0aWMgdm9pZCBzZXRpbmZyYXJlZChzdHJ1Y3QgZ3NwY2FfZGV2ICpnc3Bj
-YV9kZXYpOwogc3RhdGljIHZvaWQgc2V0ZnJlcShzdHJ1Y3QgZ3NwY2FfZGV2ICpnc3BjYV9kZXYp
-OwpAQCAtMTk1LDcgKzE5NiwxOCBAQCBzdGF0aWMgY29uc3Qgc3RydWN0IGN0cmwgc2RfY3RybHNb
-TkNUUkxTXSA9IHsKIAkgICAgfSwKIAkgICAgLnNldF9jb250cm9sID0gc2V0YXV0b2dhaW4KIAl9
-LAotLyogb3Y3NjMwL292NzY0OCBvbmx5ICovCitbSEZMSVBdID0geworCSAgICB7CisJCS5pZCAg
-ICAgID0gVjRMMl9DSURfVkZMSVAsCisJCS50eXBlICAgID0gVjRMMl9DVFJMX1RZUEVfQk9PTEVB
-TiwKKwkJLm5hbWUgICAgPSAiTWlycm9yIiwKKwkJLm1pbmltdW0gPSAwLAorCQkubWF4aW11bSA9
-IDEsCisJCS5zdGVwICAgID0gMSwKKwkJLmRlZmF1bHRfdmFsdWUgPSAwLAorCSAgICB9LAorCSAg
-ICAuc2V0X2NvbnRyb2wgPSBzZXRodmZsaXAKKwl9LAogW1ZGTElQXSA9IHsKIAkgICAgewogCQku
-aWQgICAgICA9IFY0TDJfQ0lEX1ZGTElQLApAQCAtMjA2LDcgKzIxOCw3IEBAIHN0YXRpYyBjb25z
-dCBzdHJ1Y3QgY3RybCBzZF9jdHJsc1tOQ1RSTFNdID0gewogCQkuc3RlcCAgICA9IDEsCiAJCS5k
-ZWZhdWx0X3ZhbHVlID0gMCwKIAkgICAgfSwKLQkgICAgLnNldF9jb250cm9sID0gc2V0dmZsaXAK
-KwkgICAgLnNldF9jb250cm9sID0gc2V0aHZmbGlwCiAJfSwKIFtTSEFSUE5FU1NdID0gewogCSAg
-ICB7CkBAIC0yNTIsNTkgKzI2NCw3MiBAQCBzdGF0aWMgY29uc3Qgc3RydWN0IGN0cmwgc2RfY3Ry
-bHNbTkNUUkxTXSA9IHsKIHN0YXRpYyBjb25zdCBfX3UzMiBjdHJsX2Rpc1tdID0gewogW1NFTlNP
-Ul9BRENNMTcwMF0gPQkoMSA8PCBBVVRPR0FJTikgfAogCQkJKDEgPDwgSU5GUkFSRUQpIHwKKwkJ
-CSgxIDw8IEhGTElQKSB8CiAJCQkoMSA8PCBWRkxJUCkgfAogCQkJKDEgPDwgRlJFUSksCiAKIFtT
-RU5TT1JfR0MwMzA3XSA9CSgxIDw8IElORlJBUkVEKSB8CisJCQkoMSA8PCBIRkxJUCkgfAogCQkJ
-KDEgPDwgVkZMSVApIHwKIAkJCSgxIDw8IEZSRVEpLAogCiBbU0VOU09SX0hWNzEzMVJdID0JKDEg
-PDwgSU5GUkFSRUQpIHwKKwkJCSgxIDw8IEhGTElQKSB8CiAJCQkoMSA8PCBGUkVRKSwKIAogW1NF
-TlNPUl9NSTAzNjBdID0JKDEgPDwgSU5GUkFSRUQpIHwKKwkJCSgxIDw8IEhGTElQKSB8CiAJCQko
-MSA8PCBWRkxJUCkgfAogCQkJKDEgPDwgRlJFUSksCiAKIFtTRU5TT1JfTUkwMzYwQl0gPQkoMSA8
-PCBJTkZSQVJFRCkgfAorCQkJKDEgPDwgSEZMSVApIHwKIAkJCSgxIDw8IFZGTElQKSB8CiAJCQko
-MSA8PCBGUkVRKSwKIAogW1NFTlNPUl9NTzQwMDBdID0JKDEgPDwgSU5GUkFSRUQpIHwKKwkJCSgx
-IDw8IEhGTElQKSB8CiAJCQkoMSA8PCBWRkxJUCkgfAogCQkJKDEgPDwgRlJFUSksCiAKLVtTRU5T
-T1JfTVQ5VjExMV0gPQkoMSA8PCBWRkxJUCkgfAorW1NFTlNPUl9NVDlWMTExXSA9CSgxIDw8IEhG
-TElQKSB8CisJCQkoMSA8PCBWRkxJUCkgfAogCQkJKDEgPDwgRlJFUSksCiAKIFtTRU5TT1JfT002
-ODAyXSA9CSgxIDw8IElORlJBUkVEKSB8CisJCQkoMSA8PCBIRkxJUCkgfAogCQkJKDEgPDwgVkZM
-SVApIHwKIAkJCSgxIDw8IEZSRVEpLAogCi1bU0VOU09SX09WNzYzMF0gPQkoMSA8PCBJTkZSQVJF
-RCksCitbU0VOU09SX09WNzYzMF0gPQkoMSA8PCBJTkZSQVJFRCkgfAorCQkJKDEgPDwgSEZMSVAp
-LAogCi1bU0VOU09SX09WNzY0OF0gPQkoMSA8PCBJTkZSQVJFRCksCitbU0VOU09SX09WNzY0OF0g
-PQkoMSA8PCBJTkZSQVJFRCkgfAorCQkJKDEgPDwgSEZMSVApLAogCiBbU0VOU09SX09WNzY2MF0g
-PQkoMSA8PCBBVVRPR0FJTikgfAogCQkJKDEgPDwgSU5GUkFSRUQpIHwKKwkJCSgxIDw8IEhGTElQ
-KSB8CiAJCQkoMSA8PCBWRkxJUCksCiAKIFtTRU5TT1JfUE8xMDMwXSA9CSgxIDw8IEFVVE9HQUlO
-KSB8CiAJCQkoMSA8PCBJTkZSQVJFRCkgfAorCQkJKDEgPDwgSEZMSVApIHwKIAkJCSgxIDw8IFZG
-TElQKSB8CiAJCQkoMSA8PCBGUkVRKSwKIAogW1NFTlNPUl9QTzIwMzBOXSA9CSgxIDw8IEFVVE9H
-QUlOKSB8CiAJCQkoMSA8PCBJTkZSQVJFRCkgfAotCQkJKDEgPDwgVkZMSVApIHwKIAkJCSgxIDw8
-IEZSRVEpLAogW1NFTlNPUl9TT0k3NjhdID0JKDEgPDwgQVVUT0dBSU4pIHwKIAkJCSgxIDw8IElO
-RlJBUkVEKSB8CisJCQkoMSA8PCBIRkxJUCkgfAogCQkJKDEgPDwgVkZMSVApIHwKIAkJCSgxIDw8
-IEZSRVEpLAogCiBbU0VOU09SX1NQODA3MDhdID0JKDEgPDwgQVVUT0dBSU4pIHwKIAkJCSgxIDw8
-IElORlJBUkVEKSB8CisJCQkoMSA8PCBIRkxJUCkgfAogCQkJKDEgPDwgVkZMSVApIHwKIAkJCSgx
-IDw8IEZSRVEpLAogfTsKQEAgLTIyMzgsMTQgKzIyNjMsMTEgQEAgc3RhdGljIHZvaWQgc2V0YXV0
-b2dhaW4oc3RydWN0IGdzcGNhX2RldiAqZ3NwY2FfZGV2KQogCQlzZC0+YWdfY250ID0gLTE7CiB9
-CiAKLS8qIGh2NzEzMXIvb3Y3NjMwL292NzY0OCBvbmx5ICovCi1zdGF0aWMgdm9pZCBzZXR2Zmxp
-cChzdHJ1Y3QgZ3NwY2FfZGV2ICpnc3BjYV9kZXYpCitzdGF0aWMgdm9pZCBzZXRodmZsaXAoc3Ry
-dWN0IGdzcGNhX2RldiAqZ3NwY2FfZGV2KQogewogCXN0cnVjdCBzZCAqc2QgPSAoc3RydWN0IHNk
-ICopIGdzcGNhX2RldjsKIAl1OCBjb21uOwogCi0JaWYgKGdzcGNhX2Rldi0+Y3RybF9kaXMgJiAo
-MSA8PCBWRkxJUCkpCi0JCXJldHVybjsKIAlzd2l0Y2ggKHNkLT5zZW5zb3IpIHsKIAljYXNlIFNF
-TlNPUl9IVjcxMzFSOgogCQljb21uID0gMHgxODsJCQkvKiBjbGtkaXYgPSAxLCBhYmxjZW4gPSAx
-ICovCkBAIC0yMjU5LDEzICsyMjgxLDI4IEBAIHN0YXRpYyB2b2lkIHNldHZmbGlwKHN0cnVjdCBn
-c3BjYV9kZXYgKmdzcGNhX2RldikKIAkJCWNvbW4gfD0gMHg4MDsKIAkJaTJjX3cxKGdzcGNhX2Rl
-diwgMHg3NSwgY29tbik7CiAJCWJyZWFrOwotCWRlZmF1bHQ6Ci0vKgljYXNlIFNFTlNPUl9PVjc2
-NDg6ICovCisJY2FzZSBTRU5TT1JfT1Y3NjQ4OgogCQljb21uID0gMHgwNjsKIAkJaWYgKHNkLT5j
-dHJsc1tWRkxJUF0udmFsKQogCQkJY29tbiB8PSAweDgwOwogCQlpMmNfdzEoZ3NwY2FfZGV2LCAw
-eDc1LCBjb21uKTsKIAkJYnJlYWs7CisJY2FzZSBTRU5TT1JfUE8yMDMwTjoKKwkJLyogUmVnLiAw
-eDFFOiBUaW1pbmcgR2VuZXJhdG9yIENvbnRyb2wgUmVnaXN0ZXIgMiAoVGdjb250cm9sMikKKwkJ
-ICogKHJlc2V0IHZhbHVlOiAweDBBKQorCQkgKiBiaXQ3OiBITTogSG9yaXpvbnRhbCBNaXJyb3I6
-IDA6IGRpc2FibGUsIDE6IGVuYWJsZQorCQkgKiBiaXQ2OiBWTTogVmVydGljYWwgTWlycm9yOiAw
-OiBkaXNhYmxlLCAxOiBlbmFibGUKKwkJICogYml0NTogU1Q6IFNodXR0ZXIgU2VsZWN0aW9uOiAw
-OiBlbGVjdHJpY2FsLCAxOiBtZWNoYW5pY2FsCisJCSAqIGJpdDQ6IEZUOiBTaW5nbGUgRnJhbWUg
-VHJhbnNmZXI6IDA6IGRpc2FibGUsIDE6IGVuYWJsZQorCQkgKiBiaXQzLTA6IFgKKwkJICovCisJ
-CWNvbW4gPSAweDBhOworCQlpZiAoc2QtPmN0cmxzW0hGTElQXS52YWwpCisJCQljb21uIHw9IDB4
-ODA7CisJCWlmIChzZC0+Y3RybHNbVkZMSVBdLnZhbCkKKwkJCWNvbW4gfD0gMHg0MDsKKwkJaTJj
-X3cxKCZzZC0+Z3NwY2FfZGV2LCAweDFlLCBjb21uKTsKKwkJYnJlYWs7CiAJfQogfQogCkBAIC0y
-NjUyLDcgKzI2ODksNyBAQCBzdGF0aWMgaW50IHNkX3N0YXJ0KHN0cnVjdCBnc3BjYV9kZXYgKmdz
-cGNhX2RldikKIAlyZWdfdzEoZ3NwY2FfZGV2LCAweDE3LCByZWcxNyk7CiAJcmVnX3cxKGdzcGNh
-X2RldiwgMHgwMSwgcmVnMSk7CiAKLQlzZXR2ZmxpcChnc3BjYV9kZXYpOworCXNldGh2ZmxpcChn
-c3BjYV9kZXYpOwogCXNldGJyaWdodG5lc3MoZ3NwY2FfZGV2KTsKIAlzZXRjb250cmFzdChnc3Bj
-YV9kZXYpOwogCXNldGNvbG9ycyhnc3BjYV9kZXYpOwo=
-
---MP_/OZLHRLV7gFz_k.2PSF0.5rV--
