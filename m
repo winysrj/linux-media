@@ -1,244 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from wp197.webpack.hosteurope.de ([80.237.132.204]:55505 "EHLO
-	wp197.webpack.hosteurope.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753155Ab0JSTw4 (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:42438 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754207Ab0JRXAM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Oct 2010 15:52:56 -0400
-Message-ID: <4CBDF156.5020707@gmx.de>
-Date: Tue, 19 Oct 2010 21:28:22 +0200
-From: Daniel <paessler@gmx.de>
+	Mon, 18 Oct 2010 19:00:12 -0400
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: no DVB-T with AVerMedia M115S
-References: <4CB85E8B.4060105@gmx.de>
-In-Reply-To: <4CB85E8B.4060105@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20101018184346.GD27089@kroah.com>
+References: <201009161632.59210.arnd@arndb.de>
+	<201010181742.06678.arnd@arndb.de>
+	<20101018184346.GD27089@kroah.com>
+Date: Tue, 19 Oct 2010 09:00:09 +1000
+Message-ID: <AANLkTin2KPNNXvwcWphhM-5qexB14FS7M7ezkCCYCZ2H@mail.gmail.com>
+Subject: Re: [Ksummit-2010-discuss] [v2] Remaining BKL users, what to do
+From: Dave Airlie <airlied@gmail.com>
+To: Greg KH <greg@kroah.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, codalist@telemann.coda.cs.cmu.edu,
+	ksummit-2010-discuss@lists.linux-foundation.org,
+	autofs@linux.kernel.org, Jan Harkes <jaharkes@cs.cmu.edu>,
+	Samuel Ortiz <samuel@sortiz.org>, Jan Kara <jack@suse.cz>,
+	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
+	netdev@vger.kernel.org, Anders Larsen <al@alarsen.net>,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Bryan Schumaker <bjschuma@netapp.com>,
+	Christoph Hellwig <hch@infradead.org>,
+	Petr Vandrovec <vandrove@vc.cvut.cz>,
+	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
+	linux-fsdevel@vger.kernel.org,
+	Evgeniy Dushistov <dushistov@mail.ru>,
+	Ingo Molnar <mingo@elte.hu>,
+	Andrew Hendry <andrew.hendry@gmail.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-is there any additional information i could give to help supporting this
-card?
+On Tue, Oct 19, 2010 at 4:43 AM, Greg KH <greg@kroah.com> wrote:
+> On Mon, Oct 18, 2010 at 05:42:06PM +0200, Arnd Bergmann wrote:
+>>
+>> Out of the remaining modules, I guess i810/i830, adfs, hpfs and ufs might end
+>> up not getting fixed at all, we can either mark them non-SMP or move them
+>> to drivers/staging once all the others are done.
+>
+> I recommend moving them to staging, and then retire them from there if
+> no one steps up to maintain them.
 
-thanks,
-daniel
+I think this sets a bad precedent, these drivers work fine. Removing
+BKL from them is hard, and involves finding and booting hw that
+developers don't have much time/interest in at the moment. Anyone who
+has access to the i810 hw and has time to work out the locking has
+more important things to be doing with modern hw, however it doesn't
+mean we should just drop support for old drivers because they don't
+have active maintainers. Removing the BKL from the kernel is a great
+goal, but breaking userspace ABI by removing drivers isn't.
 
-Am 15.10.2010 16:00, schrieb Daniel:
->  Hi,
-> 
-> i own a mini-PCI card builtin in a Sony Vaio VGN-AR71ZU Notebook.
-> After searching the web it looks like this is a AVerMedia M115S (maybe
-> the S stands for Sony?), which is somehow different to an ordinary M115.
-> Is there any chance to get DVB-T working with this card? It seems, that
-> the tuner is the problem, but i don't know how to find out the type of
-> the tuner.
-> 
-> 
-> lspci -vvvnn gives this:
-> 
-> 08:04.0 Multimedia controller [0480]: Philips Semiconductors
-> SAA7131/SAA7133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d1)
->     Subsystem: Avermedia Technologies Inc Device [1461:e836]
->     Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-> Stepping- SERR- FastB2B- DisINTx-
->     Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
-> <TAbort- <MAbort- >SERR- <PERR- INTx-
->     Latency: 64
->     Interrupt: pin A routed to IRQ 22
->     Region 0: Memory at fc006800 (32-bit, non-prefetchable) [size=2K]
->     Capabilities: [40] Power Management version 2
->         Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA
-> PME(D0-,D1-,D2-,D3hot-,D3cold-)
->         Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
->     Kernel driver in use: saa7134
->     Kernel modules: saa7134
-> 
-> 
-> and dmesg with the actual checkout of v4l gives this:
-> 
-> saa7130/34: v4l2 driver version 0.2.16 loaded
-> saa7133[0]: found at 0000:08:04.0, rev: 209, irq: 22, latency: 64, mmio:
-> 0xfc006800
-> saa7133[0]: subsystem: 1461:e836, board: UNKNOWN/GENERIC
-> [card=0,autodetected]
-> saa7133[0]: board init: gpio is effffff
-> saa7133[0]/core: hwinit1
-> saa7133[0]: i2c xfer: < a0 00 >
-> saa7133[0]: i2c xfer: < a1 =61 =14 =36 =e8 =00 =00 =00 =00 =00 =00 =00
-> =00 =00 =00 =00 =00 =ff =ff =ff =ff =ff =20 =ff =ff =ff =ff =ff =ff =ff
-> =ff =ff =ff =01 =40 =01 =02 =02 =01 =01 =03 =08 =ff =00 =00 =ff =ff =ff
-> =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
-> =65 =00 =ff =c2 =00 =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
-> =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
-> =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
-> =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
-> =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
-> =ff =ff =ff =ff =ff =0d =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
-> =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
-> =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
-> =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
-> =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
-> =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff >
-> saa7133[0]: i2c eeprom 00: 61 14 36 e8 00 00 00 00 00 00 00 00 00 00 00 00
-> saa7133[0]: i2c eeprom 10: ff ff ff ff ff 20 ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom 20: 01 40 01 02 02 01 01 03 08 ff 00 00 ff ff ff ff
-> saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom 40: ff 65 00 ff c2 00 ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom a0: 0d ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c xfer: < 01 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 03 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 05 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 07 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 09 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 0b ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 0d ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 0f ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 11 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 13 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 15 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 17 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 19 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 1b ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 1d ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 1f ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 21 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 23 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 25 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 27 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 29 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 2b ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 2d ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 2f ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 31 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 33 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 35 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 37 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 39 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 3b ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 3d ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 3f ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 41 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 43 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 45 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 47 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 49 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 4b ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 4d ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 4f ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 51 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 53 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 55 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 57 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 59 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 5b ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 5d ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 5f ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 61 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 63 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 65 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 67 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 69 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 6b ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 6d ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 6f ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 71 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 73 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 75 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 77 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 79 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 7b ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 7d ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 7f ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 81 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 83 >
-> saa7133[0]: i2c scan: found device @ 0x82  [???]
-> saa7133[0]: i2c xfer: < 85 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 87 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 89 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 8b ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 8d ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 8f ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 91 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 93 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 95 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 97 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 99 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 9b ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 9d ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 9f ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < a1 >
-> saa7133[0]: i2c scan: found device @ 0xa0  [eeprom]
-> saa7133[0]: i2c xfer: < a3 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < a5 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < a7 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < a9 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < ab ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < ad ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < af ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < b1 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < b3 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < b5 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < b7 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < b9 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < bb ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < bd ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < bf ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < c1 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < c3 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < c5 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < c7 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < c9 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < cb ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < cd ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < cf ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < d1 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < d3 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < d5 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < d7 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < d9 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < db ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < dd ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < df ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < e1 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < e3 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < e5 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < e7 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < e9 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < eb ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < ed ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < ef ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < f1 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < f3 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < f5 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < f7 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < f9 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < fb ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < fd ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < ff ERROR: NO_DEVICE
-> saa7133[0]/ir: No I2C IR support for board 0
-> saa7133[0]/core: hwinit2
-> saa7133[0]/audio: sound IF not in use, skipping scan
-> saa7133[0]: registered device video1 [v4l2]
-> saa7133[0]: registered device vbi0
-> saa7133[0]: dsp access error
-> saa7133[0] vbi (UNKNOWN/GENERIC: VIDIOC_QUERYCAP
-> saa7133[0] video (UNKNOWN/GENER: VIDIOC_QUERYCAP
-> saa7134 ALSA driver for DMA sound loaded
-> saa7133[0]/alsa: saa7133[0] at 0xfc006800 irq 22 registered as card -1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+Dave.
