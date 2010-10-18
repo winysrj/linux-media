@@ -1,40 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:41410 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752977Ab0JRGwn convert rfc822-to-8bit (ORCPT
+Received: from relay01.digicable.hu ([92.249.128.189]:55361 "EHLO
+	relay01.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932993Ab0JRTr0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Oct 2010 02:52:43 -0400
-Date: Mon, 18 Oct 2010 08:53:35 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-Cc: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFC] gspca_sonixj: handle return values from USB
- subsystem
-Message-ID: <20101018085335.75e6689e@tele>
-In-Reply-To: <4CBB0BEF.1050005@freemail.hu>
-References: <4CBB0BEF.1050005@freemail.hu>
-Mime-Version: 1.0
+	Mon, 18 Oct 2010 15:47:26 -0400
+Message-ID: <4CBCA449.7050600@freemail.hu>
+Date: Mon, 18 Oct 2010 21:47:21 +0200
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+MIME-Version: 1.0
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/2] gspca_sonixj: add hardware vertical flip support
+ for hama AC-150
+References: <4CBAD911.9070800@freemail.hu> <20101018124440.4dbc2538@tele>
+In-Reply-To: <20101018124440.4dbc2538@tele>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, 17 Oct 2010 16:45:03 +0200
-Németh Márton <nm127@freemail.hu> wrote:
+Hi Jean-Francois,
 
-> The usb_control_msg() may return error at any time so it is necessary
-> to handle it. The error handling mechanism is taken from the pac7302.
+Jean-Francois Moine wrote:
+> On Sun, 17 Oct 2010 13:08:01 +0200
+> Németh Márton <nm127@freemail.hu> wrote:
 > 
-> The resulting driver was tested with hama AC-150 webcam (USB ID
-> 0c45:6142).
+>> The PO2030N sensor chip found in hama AC-150 webcam supports vertical
+>> flipping the image by hardware. Add support for this in the
+>> gspca_sonixj driver also.
+> 	[snip]
+> The driver sonixj has changed in staging/2.6.37. I join a new version
+> of your patches. May you check it? (when acked, I'll keep you as the
+> author of the change)
 
-Hi Németh,
+Looks good. It was a bit tricky for me sometimes to understand the changes
+together with the "V4L/DVB: gspca - main: New video control mechanism"
+(commit ccbfd092a4199a6fba17273c11c1e0b340d91eb5), but still looks good.
 
-This mechanism has already been done by commit 60f44336 in
-media_tree.git branch staging/v2.6.37.
+One small thing: the title of the patch shall be changed because this
+version contains horizontal and vertical flip also.
 
-Cheers.
+Note that I could not run the new driver, yet, together with hama AC-150,
+but I hope you could already try whether the new feature is working correctly.
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+	Márton Németh
+
