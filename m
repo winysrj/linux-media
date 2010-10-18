@@ -1,113 +1,66 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.186]:63335 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752126Ab0JDTcL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Oct 2010 15:32:11 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] dabusb: remove the BKL
-Date: Mon, 4 Oct 2010 21:32:05 +0200
-Cc: linux-media@vger.kernel.org
+Received: from mx1.redhat.com ([209.132.183.28]:41535 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753240Ab0JRH4A (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Oct 2010 03:56:00 -0400
+Message-ID: <4CBBFE4D.7000604@redhat.com>
+Date: Mon, 18 Oct 2010 09:59:09 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+To: Gary Thomas <gary@mlbassoc.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: libv4l conversion problem
+References: <4CB6E671.2060706@mlbassoc.com>
+In-Reply-To: <4CB6E671.2060706@mlbassoc.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201010042132.05292.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The dabusb device driver is sufficiently serialized using
-its own mutex, no need for the big kernel lock here
-in addition.
-    
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
----
+Hi,
 
-Hi Mauro,
+On 10/14/2010 01:16 PM, Gary Thomas wrote:
+> Hans,
+>
+> Please forgive the direct email; try as I might, I could not
+> find any other vehicle to discuss this (feel free to steer me
+> to the proper place).
+>
 
-I just realized that the dabusb driver is not actually a v4l driver,
-when I did more test builds with allyesconfig and CONFIG_BKL disabled.
+There indeed is a lack of a mailinglist or forum for
+v4l-utils. This has been discussed before and it was decided
+that given the low amount of discussion around v4l-utils we will
+just use the linux-media mailing list for this (added to the CC).
 
-I've added this patch to my bkl/config queue for now, but if you want to carry
-it in your tree, I'll drop it from mine.
+> I'm working with the latest code (0.8.1) on an embedded ARM
+> system which has a camera that can only deliver UYVY422 data.
 
-diff --git a/drivers/media/video/dabusb.c b/drivers/media/video/dabusb.c
-index 5b176bd..f3e25e9 100644
---- a/drivers/media/video/dabusb.c
-+++ b/drivers/media/video/dabusb.c
-@@ -32,7 +32,6 @@
- #include <linux/list.h>
- #include <linux/vmalloc.h>
- #include <linux/slab.h>
--#include <linux/smp_lock.h>
- #include <linux/init.h>
- #include <asm/uaccess.h>
- #include <asm/atomic.h>
-@@ -621,7 +620,6 @@ static int dabusb_open (struct inode *inode, struct file *file)
- 	if (devnum < DABUSB_MINOR || devnum >= (DABUSB_MINOR + NRDABUSB))
- 		return -EIO;
- 
--	lock_kernel();
- 	s = &dabusb[devnum - DABUSB_MINOR];
- 
- 	dbg("dabusb_open");
-@@ -630,21 +628,17 @@ static int dabusb_open (struct inode *inode, struct file *file)
- 	while (!s->usbdev || s->opened) {
- 		mutex_unlock(&s->mutex);
- 
--		if (file->f_flags & O_NONBLOCK) {
-+		if (file->f_flags & O_NONBLOCK)
- 			return -EBUSY;
--		}
- 		msleep_interruptible(500);
- 
--		if (signal_pending (current)) {
--			unlock_kernel();
-+		if (signal_pending (current))
- 			return -EAGAIN;
--		}
- 		mutex_lock(&s->mutex);
- 	}
- 	if (usb_set_interface (s->usbdev, _DABUSB_IF, 1) < 0) {
- 		mutex_unlock(&s->mutex);
- 		dev_err(&s->usbdev->dev, "set_interface failed\n");
--		unlock_kernel();
- 		return -EINVAL;
- 	}
- 	s->opened = 1;
-@@ -654,7 +648,6 @@ static int dabusb_open (struct inode *inode, struct file *file)
- 	file->private_data = s;
- 
- 	r = nonseekable_open(inode, file);
--	unlock_kernel();
- 	return r;
- }
- 
-@@ -689,17 +682,13 @@ static long dabusb_ioctl (struct file *file, unsigned int cmd, unsigned long arg
- 
- 	dbg("dabusb_ioctl");
- 
--	lock_kernel();
--	if (s->remove_pending) {
--		unlock_kernel();
-+	if (s->remove_pending)
- 		return -EIO;
--	}
- 
- 	mutex_lock(&s->mutex);
- 
- 	if (!s->usbdev) {
- 		mutex_unlock(&s->mutex);
--		unlock_kernel();
- 		return -EIO;
- 	}
- 
-@@ -735,7 +724,6 @@ static long dabusb_ioctl (struct file *file, unsigned int cmd, unsigned long arg
- 		break;
- 	}
- 	mutex_unlock(&s->mutex);
--	unlock_kernel();
- 	return ret;
- }
- 
+Ok, so when you say UYVY422, I assume that this is packed data,
+right, so not some planar format, right? libv4l supports
+converting UYVY422 packed data to:
+RGB24
+BGR24
+YUV420 (planar)
+YVU420 (planar)
+
+> The problem I have is that most everything else, e.g. I'm trying
+> to run cheese, wants YUYV422.
+
+cheese specifically should be happy with almost any YUV or RGB
+format as it uses gstreamer. I know for a fact that it works
+happily with libv4l's YUV420 (planar) output.
+
+> Should the library be able to handle this case (device only
+> does UYUV and application wants YUYV)?
+
+It does not support converting to packed yuv formats, but it does
+support conversion to planar yuv formats. At least for cheese
+this should work fine.
+
+> Any suggestions how I move forward?
+
+Make sure that your gstreamer is compiled with libv4l support.
+
+Regards,
+
+Hans
