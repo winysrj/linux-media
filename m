@@ -1,39 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:40604 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1752999Ab0JGJEr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Oct 2010 05:04:47 -0400
-Content-Type: text/plain; charset="utf-8"
-Date: Thu, 07 Oct 2010 11:04:43 +0200
-From: "Matthias Weber" <matthiaz.weber@gmx.de>
-Message-ID: <20101007090443.54550@gmx.net>
-MIME-Version: 1.0
-Subject: Re: [v4l/dvb] identification/ fixed registration order of DVB cards
-To: linux-media@vger.kernel.org
-Content-Transfer-Encoding: 8bit
+Received: from mgw-sa02.nokia.com ([147.243.1.48]:16549 "EHLO
+	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754838Ab0JRM6F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Oct 2010 08:58:05 -0400
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+To: linux-media@vger.kernel.org, mchehab@redhat.com, hverkuil@xs4all.nl
+Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: [PATCH v13 0/1] V4L2: Documentation: hw_seek spacing, tuner/modulator
+Date: Mon, 18 Oct 2010 15:57:36 +0300
+Message-Id: <1287406657-18859-1-git-send-email-matti.j.aaltonen@nokia.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
->Can't this be forced using udev rules?
+Hello.
 
-udev seems to be a good way. I tried several different configurations.. my last one (file called '50-dvb_cards.rules'):
+Thank you for the comments. Here are my comments to Hans's comments:
 
-# Create a symlink /dev/dvb/adapter104 pointing to dvb card with PCI bus id 04:00.0
-SUBSYSTEM=="dvb", KERNEL=="0000:04:00.0", PROGRAM="/bin/sh -c 'K=%k; K=$${K#dvb}; printf dvb/adapter104/%%s $${K#*.}'", SYMLINK+="%c"
+On Thu, 2010-10-14 at 08:41 +0200, ext Hans Verkuil wrote:
+> 
+> This can be improved a bit:
 
-# Create a symlink /dev/dvb/adapter106 pointing to dvb card with PCI bus id 04:02.0
-SUBSYSTEM=="dvb", KERNEL=="0000:04:02.0", PROGRAM="/bin/sh -c 'K=%k; K=$${K#dvb}; printf dvb/adapter106/%%s $${K#*.}'", SYMLINK+="%c"
+Yes...
 
-BUS and ID combinations I saw on different other webpages seem to be out of date. Not sure what I am doing wrong as there still is only /dev/dvb/adapter0 and /dev/dvb/adapter1.
+> I think that for now we should only mention BLOCK_IO here since we do
+> not know yet what controls would be used if the receiver would
+> understand that. There are no devices yet that support that
+> mode. Perhaps we should mention instead that if someone has hardware
+> that can decode rds automagically that they should contact the
+> mailing list.
+> Can you also add a link to the "Reading RDS data"
+> section when describing the BLOCK_IO capability?
 
-I also tried to get my usbstick running with
-BUS=="usb", SYSFS{idVendor}=="058f", SYMLINK=+"usbstick"
-but this didn't work also.
+I more or less did the above. 
 
-Any help appreciated. Thanks!
+> The RDS interface section should be extended with a "Writing RDS data"
+> section, and a link should be added to that new section when
+> describing the BLOCK_IO capability here.
+> 
+> Just read carefully through the "RDS interface" section and make sure
+> it is no longer exclusively referring to the receiver API.
+> 
+> You should alse add a link to the "FM Transmitter Control Reference"
+> section when describing the CONTROLS capability.
 
-Cheers
-Matthias
--- 
-GMX DSL Doppel-Flat ab 19,99 &euro;/mtl.! Jetzt auch mit 
-gratis Notebook-Flat! http://portal.gmx.net/de/go/dsl
+
+I added "Writing RDS data" section etc...
+
+B.R.
+Matti
+
+Matti J. Aaltonen (1):
+  Documentation: v4l: Add hw_seek spacing and two TUNER_RDS_CAP flags.
+
+ Documentation/DocBook/v4l/dev-rds.xml              |   60 ++++++++++++++------
+ .../DocBook/v4l/vidioc-s-hw-freq-seek.xml          |   10 +++-
+ 2 files changed, 51 insertions(+), 19 deletions(-)
+
