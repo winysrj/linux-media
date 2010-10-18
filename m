@@ -1,104 +1,171 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:29136 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755324Ab0JKPmX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Oct 2010 11:42:23 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o9BFgNtA001138
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 11 Oct 2010 11:42:23 -0400
-Received: from pedra (vpn-225-124.phx2.redhat.com [10.3.225.124])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o9BFdDOY032640
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 11 Oct 2010 11:42:22 -0400
-Date: Mon, 11 Oct 2010 12:37:18 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 3/4] V4L/DVB: Use just one lock for devlist
-Message-ID: <20101011123718.0dfb7774@pedra>
-In-Reply-To: <cover.1286807828.git.mchehab@redhat.com>
-References: <cover.1286807828.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from moutng.kundenserver.de ([212.227.17.8]:57963 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932167Ab0JRPlx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Oct 2010 11:41:53 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: codalist@coda.cs.cmu.edu,
+	ksummit-2010-discuss@lists.linux-foundation.org
+Subject: [v2] Remaining BKL users, what to do
+Date: Mon, 18 Oct 2010 17:42:06 +0200
+Cc: autofs@linux.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	Christoph Hellwig <hch@infradead.org>,
+	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
+	Trond Myklebust <Trond.Myklebust@netapp.com>,
+	Petr Vandrovec <vandrove@vc.cvut.cz>,
+	Anders Larsen <al@alarsen.net>, Jan Kara <jack@suse.cz>,
+	Evgeniy Dushistov <dushistov@mail.ru>,
+	Ingo Molnar <mingo@elte.hu>, netdev@vger.kernel.org,
+	Samuel Ortiz <samuel@sortiz.org>,
+	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
+	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	Andrew Hendry <andrew.hendry@gmail.com>,
+	David Miller <davem@davemloft.net>,
+	Jan Harkes <jaharkes@cs.cmu.edu>,
+	Bryan Schumaker <bjschuma@netapp.com>
+References: <201009161632.59210.arnd@arndb.de>
+In-Reply-To: <201009161632.59210.arnd@arndb.de>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Message-Id: <201010181742.06678.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This avoids a race condition
+This is a update on the current progress for the BKL removal, reflecting
+what is currently in linux-next.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Maybe we can briefly discuss this at the kernel summit to decide if we
+want a quick death of the BKL, i.e. fixing/disabling/staging-out the
+remaining users in 2.6.38 or rather leave them there indefinitely.
 
-diff --git a/drivers/staging/tm6000/tm6000-core.c b/drivers/staging/tm6000/tm6000-core.c
-index f5f8632..02c9c7c 100644
---- a/drivers/staging/tm6000/tm6000-core.c
-+++ b/drivers/staging/tm6000/tm6000-core.c
-@@ -657,7 +657,6 @@ void tm6000_add_into_devlist(struct tm6000_core *dev)
-  */
- 
- static LIST_HEAD(tm6000_extension_devlist);
--static DEFINE_MUTEX(tm6000_extension_devlist_lock);
- 
- int tm6000_call_fillbuf(struct tm6000_core *dev, enum tm6000_ops_type type,
- 			char *buf, int size)
-@@ -681,14 +680,12 @@ int tm6000_register_extension(struct tm6000_ops *ops)
- 	struct tm6000_core *dev = NULL;
- 
- 	mutex_lock(&tm6000_devlist_mutex);
--	mutex_lock(&tm6000_extension_devlist_lock);
- 	list_add_tail(&ops->next, &tm6000_extension_devlist);
- 	list_for_each_entry(dev, &tm6000_devlist, devlist) {
- 		ops->init(dev);
- 		printk(KERN_INFO "%s: Initialized (%s) extension\n",
- 		       dev->name, ops->name);
- 	}
--	mutex_unlock(&tm6000_extension_devlist_lock);
- 	mutex_unlock(&tm6000_devlist_mutex);
- 	return 0;
- }
-@@ -704,10 +701,8 @@ void tm6000_unregister_extension(struct tm6000_ops *ops)
- 			ops->fini(dev);
- 	}
- 
--	mutex_lock(&tm6000_extension_devlist_lock);
- 	printk(KERN_INFO "tm6000: Remove (%s) extension\n", ops->name);
- 	list_del(&ops->next);
--	mutex_unlock(&tm6000_extension_devlist_lock);
- 	mutex_unlock(&tm6000_devlist_mutex);
- }
- EXPORT_SYMBOL(tm6000_unregister_extension);
-@@ -716,26 +711,26 @@ void tm6000_init_extension(struct tm6000_core *dev)
- {
- 	struct tm6000_ops *ops = NULL;
- 
--	mutex_lock(&tm6000_extension_devlist_lock);
-+	mutex_lock(&tm6000_devlist_mutex);
- 	if (!list_empty(&tm6000_extension_devlist)) {
- 		list_for_each_entry(ops, &tm6000_extension_devlist, next) {
- 			if (ops->init)
- 				ops->init(dev);
- 		}
- 	}
--	mutex_unlock(&tm6000_extension_devlist_lock);
-+	mutex_unlock(&tm6000_devlist_mutex);
- }
- 
- void tm6000_close_extension(struct tm6000_core *dev)
- {
- 	struct tm6000_ops *ops = NULL;
- 
--	mutex_lock(&tm6000_extension_devlist_lock);
-+	mutex_lock(&tm6000_devlist_mutex);
- 	if (!list_empty(&tm6000_extension_devlist)) {
- 		list_for_each_entry(ops, &tm6000_extension_devlist, next) {
- 			if (ops->fini)
- 				ops->fini(dev);
- 		}
- 	}
--	mutex_unlock(&tm6000_extension_devlist_lock);
-+	mutex_lock(&tm6000_devlist_mutex);
- }
--- 
-1.7.1
+On Thursday 16 September 2010, Arnd Bergmann wrote:
+> The big kernel lock is gone from almost all code in linux-next, this is
+> the status of what I think will happen to the remaining users:
+> 
+> drivers/gpu/drm/i810/{i810,i830}_dma.c:
+> 	Fixable, but needs someone with the hardware to test. Can probably be
+> 	marked CONFIG_BROKEN_ON_SMP if nobody cares.
 
+Still open, no good solution for this.
 
+> drivers/media/video (V4L):
+> 	Mauro is working on it, some drivers get moved to staging while the
+> 	others get fixed. An easy workaround would be possible by adding
+> 	per-driver mutexes, but Mauro wants to it properly by locking all
+> 	the right places.
+
+Progressing well, patches are being worked on.
+
+> fs/adfs:
+> 	Probably not hard to fix, but needs someone to test it.
+> 	adfs has only seen janitorial fixes for the last 5 years.
+> 	Do we know of any users?
+
+Nobody replied.
+
+> fs/autofs:
+> 	Pretty much dead, replaced by autofs4. I'd suggest moving this
+> 	to drivers/staging in 2.6.37 and letting it die there.
+
+Now in staging.
+
+> fs/coda:
+> 	Coda seems to have an active community, but not all of their
+> 	code is actually part of linux (pioctl!), while the last official
+> 	release is missing many of the cleanups that were don in Linux.
+> 	Not sure what to do, if someone is interested, the best way might
+> 	be a fresh start with a merger of the mainline linux and the
+> 	coda.cs.cmu.edu	codebase in drivers/staging.
+> 	Just removing the BKL without the Coda community seems like a heap
+> 	of pointless work.
+
+Jan Harkes showed interest, looks like this will get fixed eventually,
+but probably not in time for 2.6.37.
+
+> fs/freevxfs:
+> 	Uses the BKL in readdir and lookup, should be easy to fix. Christoph?
+
+Still waiting for confirmation from Christoph Hellwig that the BKL
+is not needed here. I can do the patch to remove it then.
+
+> fs/hpfs:
+> 	Looks fixable, if anyone cares. Maybe it's time for retirement in
+> 	drivers/staging though. The web page only has a Link to the
+> 	linux-2.2 version.
+
+No replies.
+
+> fs/lockd:
+> 	Trond writes that he has someone working on BKL removal here.
+
+Bryan Schumaker took care of this, looks like the locking is independent
+of the fs/locks.c locking now, although it still uses the BKL internally.
+
+I assume that this will get fixed as well, doesn't seem hard. As long
+as lockd uses the BKL, both nfs and nfsd depend on the BKL implicitly.
+
+> fs/locks.c:
+> 	Patch is under discussion, blocked by work on fs/lockd currently.
+
+No longer blocked now, both lockd and ceph can deal with this converted
+to spinlocks. I will follow up with the final patch once they hit mainline.
+
+> fs/ncpfs:
+> 	Should be fixable if Petr still cares about it. Otherwise suggest
+> 	moving to drivers/staging if there are no users left.
+
+Fixed by Petr Vandrovec.
+
+> fs/qnx4:
+> 	Should be easy to fix, there are only a few places in the code that
+> 	use the BKL. Anders?
+
+Anders Larsen volunteered.
+
+> fs/smbfs:
+> 	Last I heard this was considered obsolete. Should be move it to
+> 	drivers/staging now?
+
+Now in staging.
+
+> fs/udf:
+> 	Not completely trivial, but probably necessary to fix. Project web
+> 	site is dead, I hope that Jan Kara can be motivated to fix it though.
+
+Jan Kara volunteered to do it.
+
+> fs/ufs:
+> 	Evgeniy Dushistov is maintaining this, I hope he can take care of
+> 	getting rid of the BKL in UFS.
+
+No replies.
+
+> kernel/trace/blktrace.c:
+> 	Should be easy. Ingo? Steven?
+
+Done.
+
+> net/appletalk:
+> net/ipx/af_ipx.c:
+> net/irda/af_irda.c:
+> 	Can probably be saved from retirement in drivers/staging if the
+> 	maintainers still care.
+
+Samuel Ortiz fixed irda.
+
+David Miller volunteered to do appletalk and ipx.
+
+> net/x25:
+> 	Andrew Hendry has started working on it.
+
+Patches have shown up in -next now, I suppose Andrew will finish it soon.
+
+Out of the remaining modules, I guess i810/i830, adfs, hpfs and ufs might end
+up not getting fixed at all, we can either mark them non-SMP or move them
+to drivers/staging once all the others are done.
+
+	Arnd
