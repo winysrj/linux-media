@@ -1,65 +1,41 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:48442 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752620Ab0JRGkT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Oct 2010 02:40:19 -0400
-Received: by bwz15 with SMTP id 15so374607bwz.19
-        for <linux-media@vger.kernel.org>; Sun, 17 Oct 2010 23:40:18 -0700 (PDT)
-From: =?US-ASCII?Q?Ali_Guller?= <aliguller@gmail.com>
-To: "'Patrick Boettcher'" <pboettcher@kernellabs.com>,
-	"'Mauro Carvalho Chehab'" <mchehab@redhat.com>
-Cc: "'Linux Media Mailing List'" <linux-media@vger.kernel.org>
-References: <201010171450.18459.pboettcher@kernellabs.com>
-In-Reply-To: <201010171450.18459.pboettcher@kernellabs.com>
-Subject: RE: [GIT PULL request for 2.6.37] Add Technisat SkyStar HD USB driver
-Date: Mon, 18 Oct 2010 09:40:14 +0300
-Message-ID: <000701cb6e8f$53583720$fa08a560$@com>
+Received: from mx1.redhat.com ([209.132.183.28]:11791 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750806Ab0JRMoM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Oct 2010 08:44:12 -0400
+Message-ID: <4CBC4118.6040009@redhat.com>
+Date: Mon, 18 Oct 2010 10:44:08 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-Content-Language: tr
+To: =?ISO-8859-1?Q?Andr=E9_Weidemann?= <Andre.Weidemann@web.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] faster DVB-S lock with cards using stb0899 demod
+References: <BLU0-SMTP1574ECDF1FB4B418ACB34CED87D0@phx.gbl> <4CBC04E2.10701@web.de>
+In-Reply-To: <4CBC04E2.10701@web.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
-Does this driver cover Technisat Skystar USB 2 device?. I mean non HD
-version. Thank you.
+Em 18-10-2010 06:27, André Weidemann escreveu:
+> Hello Mauro,
+> 
+> On 19.09.2010 11:46, SE wrote:
+>> hi list
+>>
+>> v4l-dvb still lacks fast and reliable dvb-s lock for stb08899 chipsets. This
+>> problem was adressed by Alex Betis two years ago [1]+[2]resulting in a patch
+>> [3] that made its way into s2-liplianin, not v4l-dvb.
+>>
+>> With minor adjustments by me this patch now offers reliable dvb-s/dvb-s2 lock
+>> for v4l-dvb, most of them will lock in less than a second. Without the patch
+>> many QPSK channels won't lock at all or within a 5-20 second delay.
+> 
+> Can you please comment on this patch and tell us if you are considering this patch for integration into the v4l git tree?
 
------Original Message-----
-From: linux-media-owner@vger.kernel.org
-[mailto:linux-media-owner@vger.kernel.org] On Behalf Of Patrick Boettcher
-Sent: Sunday, October 17, 2010 3:50 PM
-To: Mauro Carvalho Chehab
-Cc: Linux Media Mailing List
-Subject: [GIT PULL request for 2.6.37] Add Technisat SkyStar HD USB driver
+You should ask s2-liplianin and stb08899 maintainers about that, and not me. Ideally,
+patches at s2-liplianin that fixes bug or improves support should be rebased to upstream
+and send to us, but, currently, I didn't see any effort from the maintainers to do it.
 
-Hi Mauro,
-
-please 
-
-git pull git://github.com/pboettch/linux-2.6.git for_mauro
-
-for the following changes:
-
-technisat-usb2: added driver for Technisat's USB2.0 DVB-S/S2 receiver
-stv090x: add tei-field to config-structure
-stv090x: added function to control GPIOs from the outside
-
-Those are intended for 2.6.37 and have been rebased today on linuxtv's 
-staging/2.6.37-branch.
-
-The development of the new technisat-usb2-driver has been sponsored by 
-Technisat UK.
-
-
-Thanks in advance for pulling and commenting,
---
-Patrick Boettcher - KernelLabs
-http://www.kernellabs.com/
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Cheers,
+Mauro.
