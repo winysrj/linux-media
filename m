@@ -1,43 +1,44 @@
 Return-path: <mchehab@pedra>
-Received: from mail-in-17.arcor-online.net ([151.189.21.57]:59588 "EHLO
-	mail-in-17.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752481Ab0J0Oho (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Oct 2010 10:37:44 -0400
-Message-ID: <4CC83934.1000009@arcor.de>
-Date: Wed, 27 Oct 2010 16:37:40 +0200
-From: Stefan Ringel <stefan.ringel@arcor.de>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: tm6000 problems with picture
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from lo.gmane.org ([80.91.229.12]:47411 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754050Ab0JRRZP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Oct 2010 13:25:15 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1P7tSL-0000cA-Pb
+	for linux-media@vger.kernel.org; Mon, 18 Oct 2010 19:25:05 +0200
+Received: from 69.red-80-32-146.staticip.rima-tde.net ([80.32.146.69])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 18 Oct 2010 19:25:05 +0200
+Received: from javier by 69.red-80-32-146.staticip.rima-tde.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 18 Oct 2010 19:25:05 +0200
+To: linux-media@vger.kernel.org
+From: "Javier S. Pedro" <javier@javispedro.com>
+Subject: A16D (XC3028) FM radio regression -- constant 2.75Mhz offset
+Date: Mon, 18 Oct 2010 17:07:27 +0000 (UTC)
+Message-ID: <i9husf$77l$1@dough.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-  Hello Mauro,
+Hello,
 
-I have actually problems with my terratec cinergy hybrid xe (tm6010). 
-Today as I test with last git update, it don't work with my stick, but a 
-few weeks before it has work (black/white picture; bottom position). But 
-I found the worried points.
+Since upgrading to a 2.6.35 kernel I've found out that all FM radio 
+stations have been offset by 2.75Mhz . Card is AVERMEDIA A16D, using 
+XC3028 tuner (firmware v27). 
 
+I've bisected the issue to commit:
+7f2199c03b4946f1b79514b3411e3dbf130a6bba
+V4L/DVB: tuner-xc2028: fix tuning logic to solve a regression in Australia
 
-Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+Seems that the code is not properly handling anything other than 
+T_ANALOG_TV, T_DIGITAL_TV. Thus, when new_mode is T_RADIO, it blindly 
+offsets freq by 2.75Mhz assuming it's DTV8 or DTV78. I'm worried why 
+nobody has complained yet about this, though.
 
-@@ -1030,10 +1030,11 @@ static int vidioc_s_std (struct file *file, void 
-*priv, v4l2_std_id *norm)
-  {
-      int rc=0;
-      struct tm6000_fh   *fh=priv;
-      struct tm6000_core *dev = fh->dev;
-
-+    dev->norm = *norm;
-      rc = tm6000_init_analog_mode(dev);
-
-      fh->width  = dev->width;
-      fh->height = dev->height;
-
-
+Javier.
 
