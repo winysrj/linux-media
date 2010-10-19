@@ -1,76 +1,119 @@
 Return-path: <mchehab@pedra>
-Received: from gateway01.websitewelcome.com ([69.93.136.19]:33978 "HELO
-	gateway01.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S932187Ab0JXU3B (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:53370 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752030Ab0JSKqU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Oct 2010 16:29:01 -0400
-Received: from [209.85.216.46] (port=55760 helo=mail-qw0-f46.google.com)
-	by gator1121.hostgator.com with esmtpsa (TLSv1:RC4-MD5:128)
-	(Exim 4.69)
-	(envelope-from <demiurg@femtolinux.com>)
-	id 1PA758-0000TN-53
-	for linux-media@vger.kernel.org; Sun, 24 Oct 2010 15:22:18 -0500
-Received: by qwk3 with SMTP id 3so898656qwk.19
-        for <linux-media@vger.kernel.org>; Sun, 24 Oct 2010 13:22:19 -0700 (PDT)
+	Tue, 19 Oct 2010 06:46:20 -0400
+Message-ID: <4CBD76F3.5060609@infradead.org>
+Date: Tue, 19 Oct 2010 08:46:11 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-In-Reply-To: <201010242055.30799.albin.kauffmann@gmail.com>
-References: <AANLkTint2Xw3bJuGh2voUpncWderrbUgbeOaPdp1-yNm@mail.gmail.com>
-	<201010242055.30799.albin.kauffmann@gmail.com>
-Date: Sun, 24 Oct 2010 22:22:18 +0200
-Message-ID: <AANLkTinwb_7ErteoWcO2VC1nu9uNqUwu6N+HEhrDwwg-@mail.gmail.com>
-Subject: Re: Wintv-HVR-1120 woes
-From: Sasha Sirotkin <demiurg@femtolinux.com>
-To: Albin Kauffmann <albin.kauffmann@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	Daniel Drake <dsd@laptop.org>
+Subject: Re: [PATCH] viafb camera controller driver
+References: <20101010162313.5caa137f@bike.lwn.net> <20101018212017.7c53789e@bike.lwn.net> <201010190854.40419.hverkuil@xs4all.nl> <201010190952.46938.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201010190952.46938.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, Oct 24, 2010 at 8:55 PM, Albin Kauffmann
-<albin.kauffmann@gmail.com> wrote:
-> On Thursday 21 October 2010 23:25:29 Sasha Sirotkin wrote:
->> I'm having all sorts of troubles with Wintv-HVR-1120 on Ubuntu 10.10
->> (kernel 2.6.35-22). Judging from what I've seen on the net, including
->> this mailing list, I'm not the only one not being able to use this
->> card and no solution seem to exist.
+Em 19-10-2010 05:52, Laurent Pinchart escreveu:
+> Hi Hans,
+> 
+> On Tuesday 19 October 2010 08:54:40 Hans Verkuil wrote:
+>> On Tuesday, October 19, 2010 05:20:17 Jonathan Corbet wrote:
+>>> On Sat, 16 Oct 2010 10:44:56 -0300 Mauro Carvalho Chehab wrote:
+>>>> drivers/media/video/via-camera.c: In function ‘viacam_open’:
+>>>> drivers/media/video/via-camera.c:651: error: too few arguments to
+>>>> function ‘videobuf_queue_sg_init’
+>>>>
+>>>> The fix for this one is trivial:
+>>>> drivers/media/video/via-camera.c:651: error: too few arguments to
+>>>> function ‘videobuf_queue_sg_init’
+>>>>
+>>>> Just add an extra NULL parameter to the function.
+>>>
+>>> So I'm looking into this stuff.  The extra NULL parameter is a struct
+>>>
+>>> mutex, which seems to be used in one place in videobuf_waiton():
+>>> 	is_ext_locked = q->ext_lock && mutex_is_locked(q->ext_lock);
+>>> 	
+>>> 	/* Release vdev lock to prevent this wait from blocking outside access
+>>> 	to
+>>> 	
+>>> 	   the device. */
+>>> 	
+>>> 	if (is_ext_locked)
+>>> 	
+>>> 		mutex_unlock(q->ext_lock);
+>>>
+>>> I'd be most curious to know what the reasoning behind this code is; to my
+>>> uneducated eye, it looks like a real hack.  How does this function know
+>>> who locked ext_lock?  Can it really just unlock it safely?  It seems to
+>>> me that this is a sign of locking issues which should really be dealt
+>>> with elsewhere, but, as I said, I'm uneducated, and the changelogs don't
+>>> help me much.  Can somebody educate me?
 >>
->> Problems:
->> 1. The driver yells various cryptic error messages
->> ("tda18271_write_regs: [1-0060|M] ERROR: idx = 0x5, len = 1,
->> i2c_transfer returned: -5", "tda18271_set_analog_params: [1-0060|M]
->> error -5 on line 1045", etc)
->
-> yes, indeed :(
-> (cf "Hauppauge WinTV-HVR-1120 on Unbuntu 10.04" thread)
->
->> 2. DVB-T scan (using w_scan) produces no results
->
-> Is this happening after each reboot? As far as I'm concerned, I've never had
-> problems with DVB-T scans.
->
+>> We are working on removing the BKL. As part of that effort it is now
+>> possible for drivers to pass a serialization mutex to the v4l core (a
+>> mutex pointer was added to struct video_device). If the core sees that
+>> mutex then the core will serialize all open/ioctl/read/write/etc. file
+>> ops. So all file ops will in that case be called with that mutex held.
+>> Which is fine, but if the driver has to do a blocking wait, then you need
+>> to unlock the mutex first and lock it again afterwards. And since videobuf
+>> does a blocking wait it needs to know about that mutex.
+>>
+>> Right now we are in the middle of the transition from BKL to using core
+>> locks (and some drivers will do their own locking completely). During this
+>> transition period we have drivers that provide an external lock and
+>> drivers still relying on the BKL in which case videobuf needs to handle
+>> its own locking. Hopefully in 1-2 kernel cycles we will have abolished the
+>> BKL and we can remove the videobuf internal lock and use the external
+>> mutex only.
+>>
+>> So yes, it is a bit of a hack but there is actually a plan behind it :-)
+> 
+> I still believe drivers should be encouraged to handle locking on their own. 
+> These new "big v4l lock" (one per device) should be used only to remove the 
+> BKL in existing drivers. It's a hack that we should work on getting rid of.
 
-Almost always. I think I had a lucky reboot or two, but most of the
-time DVB-T scan produces nothing.
+It is not a "big lock": it doesn't stop other CPU's, doesn't affect other hardware,
+not even another V4L device. Basically, what this new lock does is to serialize access 
+to the hardware and to the hardware-mirrored data. On several cases, if you serialize 
+open, close, ioctl, read, write and mmap, the hardware will be serialized. 
 
->> 3. Analog seems to work, but with very poor quality
->
-> I just tried to use Analog TV in order to confirm the problem but I cannot get
-> any picture. Maybe I just don't know how to use it. I'm using commands like
-> (I'm located in France):
->
-> mplayer tv:// -tv driver=v4l2:norm=SECAM:chanlist=france -tvscan autostart
->
-> ... and just get some "snow" on scanned channels.
-> As I might have a problem with my antenna (an interior one), I am going to
-> test it under Windows and report back my experience.
+Of course, this doesn't cover 100% of the cases where a lock is needed. So, if the
+driver have more fun things like kthreads, alsa, dvb, IR polling, etc, the driver will
+need to lock on other places as well.
 
-I'm using tvtime-scanner
->
-> Cheers,
->
-> --
-> Albin Kauffmann
->
+A typical V4L driver has lots of functions that need locking: open, close, read, write,
+mmap and almost all ioctl (depending on the driver, just a very few set of enum ioctl's
+could eventually not need an ioctl). What we found is that:
 
+	1) several developers didn't do the right thing since the beginning;
+	2) as time goes by, locks got bit roted.
+	3) some drivers were needing to touch on several locks (videobuf, their internal
+priv locks, etc), sometimes generating cases where a dead lock would be possible.
 
-I'm trying to downgrade the kernel now to see if it helps
+On the tests we did so far, the v4l-core assisted lock helped to solve some locking issues 
+on the very few drivers that were ported. Also, it caused a regression on a driver where
+the lock were working ;)
+
+There are basically several opinions about this new schema: some that think that this is the
+right thing to do, others think that think that this is the wrong thing or that this is
+acceptable only as a transition for BKL-free drivers.
+
+IMO, I think that both ways are acceptable: a core-assisted "hardware-access lock" helps to
+avoid having lots of lock/unlock code at the driver, making drivers cleaner and easier to review,
+and reducing the risk of lock degradation with time. On the other hand, some drivers may require 
+more complex locking schemas, like, for example, devices that support several simultaneous 
+independent video streams may have some common parts used by all streams that need to be serialized,
+and other parts that can (and should) not be serialized. So, a core-assisted locking 
+for some cases may cause unneeded long waits.
+
+Cheers,
+Mauro
