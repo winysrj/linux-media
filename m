@@ -1,51 +1,80 @@
 Return-path: <mchehab@pedra>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:32897 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753452Ab0JRHwL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Oct 2010 03:52:11 -0400
-Received: from [192.168.0.1] (unknown [83.158.255.42])
-	by smtp3-g21.free.fr (Postfix) with ESMTP id 49E7DA62A9
-	for <linux-media@vger.kernel.org>; Mon, 18 Oct 2010 09:52:04 +0200 (CEST)
-Message-ID: <4CBBFCBA.2010707@free.fr>
-Date: Mon, 18 Oct 2010 09:52:26 +0200
-From: =?ISO-8859-1?Q?Herv=E9_Cauwelier?= <herve.cauwelier@free.fr>
+Received: from moutng.kundenserver.de ([212.227.126.171]:52771 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758484Ab0JSNZl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Oct 2010 09:25:41 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Dave Airlie <airlied@gmail.com>
+Subject: Re: [Ksummit-2010-discuss] [v2] Remaining BKL users, what to do
+Date: Tue, 19 Oct 2010 15:26:01 +0200
+Cc: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Steven Rostedt <rostedt@goodmis.org>, Greg KH <greg@kroah.com>,
+	codalist@telemann.coda.cs.cmu.edu, autofs@linux.kernel.org,
+	Samuel Ortiz <samuel@sortiz.org>, Jan Kara <jack@suse.cz>,
+	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
+	Jan Harkes <jaharkes@cs.cmu.edu>, netdev@vger.kernel.org,
+	Anders Larsen <al@alarsen.net>, linux-kernel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	Bryan Schumaker <bjschuma@netapp.com>,
+	Christoph Hellwig <hch@infradead.org>,
+	ksummit-2010-discuss@lists.linux-foundation.org,
+	Petr Vandrovec <vandrove@vc.cvut.cz>,
+	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
+	linux-fsdevel@vger.kernel.org,
+	Evgeniy Dushistov <dushistov@mail.ru>,
+	Ingo Molnar <mingo@elte.hu>,
+	Andrew Hendry <andrew.hendry@gmail.com>,
+	linux-media@vger.kernel.org
+References: <201009161632.59210.arnd@arndb.de> <AANLkTi=oAeuz8ZxcOMpf=3MVY=WMt0BwHiGCUxO7OAEV@mail.gmail.com> <201010190926.54635.arnd@arndb.de>
+In-Reply-To: <201010190926.54635.arnd@arndb.de>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: support for AF9035 (not tuner)
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201010191526.01887.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+On Tuesday 19 October 2010, Arnd Bergmann wrote:
+> On Tuesday 19 October 2010 06:52:32 Dave Airlie wrote:
+> > > I might be able to find some hardware still lying around here that uses an
+> > > i810. Not sure unless I go hunting it. But I get the impression that if
+> > > the kernel is a single-CPU kernel there is not any problem anyway? Don't
+> > > distros offer a non-smp kernel as an installation option in case the user
+> > > needs it? So in reality how big a problem is this?
+> > 
+> > Not anymore, which is my old point of making a fuss. Nowadays in the
+> > modern distro world, we supply a single kernel that can at runtime
+> > decide if its running on SMP or UP and rewrite the text section
+> > appropriately with locks etc. Its like magic, and something like
+> > marking drivers as BROKEN_ON_SMP at compile time is really wrong when
+> > what you want now is a runtime warning if someone tries to hotplug a
+> > CPU with a known iffy driver loaded or if someone tries to load the
+> > driver when we are already in SMP mode.
+> 
+> We could make the driver run-time non-SMP by adding
+> 
+> 	if (num_present_cpus() > 1) {
+> 		pr_err("i810 no longer supports SMP\n");
+> 		return -EINVAL;
+> 	}
+> 
+> to the init function. That would cover the vast majority of the
+> users of i810 hardware, I guess.
 
-I got a USB video grabber, which is a dumb analog video converter.
+Some research showed that Intel never support i810/i815 SMP setups,
+but there was indeed one company (http://www.acorpusa.com at the time,
+now owned by a domain squatter) that made i815E based dual Pentium-III
+boards like this one: http://cgi.ebay.com/280319795096
 
-Installing it under Windows with the given drivers reveals it as "AF9035 
-Analog Capture Filter", when capturing from VLC for example.
+The first person that can send me an authentic log file showing the
+use of X.org with DRM on a 2.6.35 kernel with two processors on that
+mainboard dated today or earlier gets a free upgrade to an AGP graphics
+card of comparable or better 3D performance from me. Please include
+the story how why you are running this machine with a new kernel.
 
-I couldn't find any direct support for Linux but only when coupled with 
-a DVB tuner or something:
-http://strobe.anti.nu/af9035_fc0011.html
+i830 is harder, apparently some i865G boards support Pentium 4 with HT
+and even later dual-core processors.
 
-I could successfully build the given driver from Terratec on a 2.6.35 
-kernel but loading it doesn't bring any support. Yet it contains source 
-files for AF903x but without license headers.
-
-When plugged in:
-
-Oct 18 09:47:56 xiong kernel: usb 2-1: new high speed USB device using 
-ehci_hcd and address 6
-Oct 18 09:47:56 xiong load-modules.sh: 
-'usb:v1D19p6105d0200dc00dsc00dp00icFFisc00ip00' is not a valid module or 
-alias name
-
-And "lsusb -v": http://bpaste.net/show/10197/
-
-So I request help for bringing support for this chipset. Anything from 
-obscure experimental repository to compile, to free beers and even 
-financial contribution.
-
-Regards,
-
-Hervé
+	Arnd
