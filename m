@@ -1,67 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from mail-in-02.arcor-online.net ([151.189.21.42]:44184 "EHLO
-	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750721Ab0JHAY6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Oct 2010 20:24:58 -0400
-Subject: Re: [linux-dvb] Asus MyCinema P7131 Dual support
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Giorgio <mywing81@gmail.com>
-Cc: Dejan Rodiger <dejan.rodiger@gmail.com>,
-	linux-media@vger.kernel.org, Dmitri Belimov <d.belimov@gmail.com>
-In-Reply-To: <AANLkTimujmbJEYua6Ezb6zZzvF-WGnorTBGMc2CtrEz7@mail.gmail.com>
-References: <25861669.1285195582100.JavaMail.ngmail@webmail18.arcor-online.net>
-	 <AANLkTimdpehorJb+YrDuRgL7vSbF9Bn5iQS_g5TqF35F@mail.gmail.com>
-	 <4CA9FCB0.40502@gmail.com> <1286234505.3167.29.camel@pc07.localdom.local>
-	 <AANLkTimujmbJEYua6Ezb6zZzvF-WGnorTBGMc2CtrEz7@mail.gmail.com>
-Content-Type: text/plain
-Date: Fri, 08 Oct 2010 02:09:51 +0200
-Message-Id: <1286496591.3135.12.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from kroah.org ([198.145.64.141]:48379 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755809Ab0JSAqo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Oct 2010 20:46:44 -0400
+Date: Mon, 18 Oct 2010 17:40:04 -0700
+From: Greg KH <greg@kroah.com>
+To: Dave Airlie <airlied@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, codalist@telemann.coda.cs.cmu.edu,
+	ksummit-2010-discuss@lists.linux-foundation.org,
+	autofs@linux.kernel.org, Jan Harkes <jaharkes@cs.cmu.edu>,
+	Samuel Ortiz <samuel@sortiz.org>, Jan Kara <jack@suse.cz>,
+	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
+	netdev@vger.kernel.org, Anders Larsen <al@alarsen.net>,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Bryan Schumaker <bjschuma@netapp.com>,
+	Christoph Hellwig <hch@infradead.org>,
+	Petr Vandrovec <vandrove@vc.cvut.cz>,
+	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
+	linux-fsdevel@vger.kernel.org,
+	Evgeniy Dushistov <dushistov@mail.ru>,
+	Ingo Molnar <mingo@elte.hu>,
+	Andrew Hendry <andrew.hendry@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [Ksummit-2010-discuss] [v2] Remaining BKL users, what to do
+Message-ID: <20101019004004.GB28380@kroah.com>
+References: <201009161632.59210.arnd@arndb.de> <201010181742.06678.arnd@arndb.de> <20101018184346.GD27089@kroah.com> <AANLkTin2KPNNXvwcWphhM-5qexB14FS7M7ezkCCYCZ2H@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <AANLkTin2KPNNXvwcWphhM-5qexB14FS7M7ezkCCYCZ2H@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-
-Hi Giorgio,
-
-Am Mittwoch, den 06.10.2010, 13:50 +0200 schrieb Giorgio:
-
-[big snip]
-
-> > Likely, I only have to read the LKML daily ...
+On Tue, Oct 19, 2010 at 09:00:09AM +1000, Dave Airlie wrote:
+> On Tue, Oct 19, 2010 at 4:43 AM, Greg KH <greg@kroah.com> wrote:
+> > On Mon, Oct 18, 2010 at 05:42:06PM +0200, Arnd Bergmann wrote:
+> >>
+> >> Out of the remaining modules, I guess i810/i830, adfs, hpfs and ufs might end
+> >> up not getting fixed at all, we can either mark them non-SMP or move them
+> >> to drivers/staging once all the others are done.
 > >
-> > Despite of that, we need a good analysis of course, and a way how to
-> > avoid such.
+> > I recommend moving them to staging, and then retire them from there if
+> > no one steps up to maintain them.
 > 
-> Maybe we can have some kind of test team? It would help to find
-> regressions before it's too late.
-> 
-> > Cheers,
-> > Hermann
-> 
-> Giorgio Vazzana
+> I think this sets a bad precedent, these drivers work fine. Removing
+> BKL from them is hard, and involves finding and booting hw that
+> developers don't have much time/interest in at the moment. Anyone who
+> has access to the i810 hw and has time to work out the locking has
+> more important things to be doing with modern hw, however it doesn't
+> mean we should just drop support for old drivers because they don't
+> have active maintainers. Removing the BKL from the kernel is a great
+> goal, but breaking userspace ABI by removing drivers isn't.
 
-Yes, we always need test teams.
+Should we just restrict such drivers to only be able to build on UP
+machines with preempt disabled so that the BKL could be safely removed
+from them?
 
-And Mauro explicitly did call for testing.
+Or what other idea do you have as to what could be done here?
 
-I did, Dmitry did and Mauro.
+I do have access to this hardware, but its on an old single processor
+laptop, so any work that it would take to help do this development,
+really wouldn't be able to be tested to be valid at all.
 
-But we did not find the potential bug, caused by moving some identical
-code between saa7134-ts and saa7134-core forth and back.
+thanks,
 
-This was still on hg and I only have _some_ of such cards.
-
-Having this on latest Linus git stuff,
-
-likely only compile fixes on previous -next, can find such ...
-
-;)
-
-I'm sorry for repeating my dumbness on that.
-
-Cheers,
-Hermann
-
-
+greg k-h
