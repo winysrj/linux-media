@@ -1,48 +1,65 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:40136 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757563Ab0JWPcn (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:58917 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757904Ab0JSH2Y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Oct 2010 11:32:43 -0400
-Received: by iwn34 with SMTP id 34so2248917iwn.19
-        for <linux-media@vger.kernel.org>; Sat, 23 Oct 2010 08:32:42 -0700 (PDT)
+	Tue, 19 Oct 2010 03:28:24 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Dave Airlie <airlied@gmail.com>
+Subject: Re: [Ksummit-2010-discuss] [v2] Remaining BKL users, what to do
+Date: Tue, 19 Oct 2010 09:26:54 +0200
+Cc: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Steven Rostedt <rostedt@goodmis.org>, Greg KH <greg@kroah.com>,
+	codalist@telemann.coda.cs.cmu.edu, autofs@linux.kernel.org,
+	Samuel Ortiz <samuel@sortiz.org>, Jan Kara <jack@suse.cz>,
+	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
+	Jan Harkes <jaharkes@cs.cmu.edu>, netdev@vger.kernel.org,
+	Anders Larsen <al@alarsen.net>, linux-kernel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	Bryan Schumaker <bjschuma@netapp.com>,
+	Christoph Hellwig <hch@infradead.org>,
+	ksummit-2010-discuss@lists.linux-foundation.org,
+	Petr Vandrovec <vandrove@vc.cvut.cz>,
+	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
+	linux-fsdevel@vger.kernel.org,
+	Evgeniy Dushistov <dushistov@mail.ru>,
+	Ingo Molnar <mingo@elte.hu>,
+	Andrew Hendry <andrew.hendry@gmail.com>,
+	linux-media@vger.kernel.org
+References: <201009161632.59210.arnd@arndb.de> <alpine.LNX.2.00.1010182342120.31740@banach.math.auburn.edu> <AANLkTi=oAeuz8ZxcOMpf=3MVY=WMt0BwHiGCUxO7OAEV@mail.gmail.com>
+In-Reply-To: <AANLkTi=oAeuz8ZxcOMpf=3MVY=WMt0BwHiGCUxO7OAEV@mail.gmail.com>
 MIME-Version: 1.0
-Date: Sat, 23 Oct 2010 10:32:41 -0500
-Message-ID: <AANLkTi=z_2TquEUNp01upEhpHSyTv1NjQkn4tRT0MDbp@mail.gmail.com>
-Subject: Searchable archives, and the Auvitek 8521
-From: Christopher Harrington <ironiridis@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201010190926.54635.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi, I'm new to the list and apologize if I've already broken all of
-the unspoken, spoken, listed and branded-into-flesh rules.
+On Tuesday 19 October 2010 06:52:32 Dave Airlie wrote:
+> > I might be able to find some hardware still lying around here that uses an
+> > i810. Not sure unless I go hunting it. But I get the impression that if
+> > the kernel is a single-CPU kernel there is not any problem anyway? Don't
+> > distros offer a non-smp kernel as an installation option in case the user
+> > needs it? So in reality how big a problem is this?
+> 
+> Not anymore, which is my old point of making a fuss. Nowadays in the
+> modern distro world, we supply a single kernel that can at runtime
+> decide if its running on SMP or UP and rewrite the text section
+> appropriately with locks etc. Its like magic, and something like
+> marking drivers as BROKEN_ON_SMP at compile time is really wrong when
+> what you want now is a runtime warning if someone tries to hotplug a
+> CPU with a known iffy driver loaded or if someone tries to load the
+> driver when we are already in SMP mode.
 
-I'm unable to find a searchable archive for the mailing list to see if
-my particular device has been discussed in the past. This[1] archive
-has a Google search field, but whenever I try to use it, it seems to
-revert to a simple Google web search. And then there's this[2]
-archive, which only turns up 18 results for "Auvitek" which seemed
-either unlikely or very bad news for me. How do the veterans search
-the archive?
+We could make the driver run-time non-SMP by adding
 
-This leads into my second topic: I just came into possession of an
-Auvitek 8521 via Monoprice. Seeing the reference to Sabrent on the
-product page[3], I was surprised to plug it in and see the output from
-lspci. I noticed the existence of an Auvitek 8522 driver, but (being
-unfamiliar with I2C code) I don't see a way to force the 8522 driver
-to attach to my card. Having typed that out I realize it probably
-sounds absurd to even try that.
+	if (num_present_cpus() > 1) {
+		pr_err("i810 no longer supports SMP\n");
+		return -EINVAL;
+	}
 
-So what is my next step? I'm willing to buy and give away two or three
-of these if the folks here on the mailing list can use them, and
-otherwise I can try and hack something together myself.
+to the init function. That would cover the vast majority of the
+users of i810 hardware, I guess.
 
-[1] http://www.spinics.net/lists/linux-media/maillist.html
-[2] http://dir.gmane.org/gmane.linux.drivers.video-input-infrastructure
-[3] http://www.monoprice.com/products/product.asp?p_id=6043
-
--- 
--Chris Harrington
-Phone: 612.598.3650
+	Arnd
