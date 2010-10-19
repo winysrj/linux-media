@@ -1,36 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:42227 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932797Ab0JHVPS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Oct 2010 17:15:18 -0400
-Received: by gyg13 with SMTP id 13so233792gyg.19
-        for <linux-media@vger.kernel.org>; Fri, 08 Oct 2010 14:15:18 -0700 (PDT)
+Received: from kroah.org ([198.145.64.141]:40830 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751825Ab0JSTiH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Oct 2010 15:38:07 -0400
+Date: Tue, 19 Oct 2010 12:37:35 -0700
+From: Greg KH <greg@kroah.com>
+To: Valdis.Kletnieks@vt.edu
+Cc: Dave Airlie <airlied@gmail.com>, Arnd Bergmann <arnd@arndb.de>,
+	codalist@telemann.coda.cs.cmu.edu,
+	ksummit-2010-discuss@lists.linux-foundation.org,
+	autofs@linux.kernel.org, Jan Harkes <jaharkes@cs.cmu.edu>,
+	Samuel Ortiz <samuel@sortiz.org>, Jan Kara <jack@suse.cz>,
+	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
+	netdev@vger.kernel.org, Anders Larsen <al@alarsen.net>,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Bryan Schumaker <bjschuma@netapp.com>,
+	Christoph Hellwig <hch@infradead.org>,
+	Petr Vandrovec <vandrove@vc.cvut.cz>,
+	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
+	linux-fsdevel@vger.kernel.org,
+	Evgeniy Dushistov <dushistov@mail.ru>,
+	Ingo Molnar <mingo@elte.hu>,
+	Andrew Hendry <andrew.hendry@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [Ksummit-2010-discuss] [v2] Remaining BKL users, what to do
+Message-ID: <20101019193735.GA4043@kroah.com>
+References: <201009161632.59210.arnd@arndb.de>
+ <201010181742.06678.arnd@arndb.de>
+ <20101018184346.GD27089@kroah.com>
+ <AANLkTin2KPNNXvwcWphhM-5qexB14FS7M7ezkCCYCZ2H@mail.gmail.com>
+ <20101019004004.GB28380@kroah.com>
+ <21406.1287512693@localhost>
 MIME-Version: 1.0
-In-Reply-To: <20101008151110.127a62fe@bike.lwn.net>
-References: <20101008210412.E85769D401B@zog.reactivated.net>
-	<20101008151110.127a62fe@bike.lwn.net>
-Date: Fri, 8 Oct 2010 22:15:17 +0100
-Message-ID: <AANLkTi=Lsu0JXgQ5ZGja0w7q6+wzQA1gmpx9b724UH+Z@mail.gmail.com>
-Subject: Re: [PATCH 1/3] ov7670: remove QCIF mode
-From: Daniel Drake <dsd@laptop.org>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <21406.1287512693@localhost>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 8 October 2010 22:11, Jonathan Corbet <corbet@lwn.net> wrote:
-> I'm certainly not attached to this mode, but...does it harm anybody if
-> it's there?
+On Tue, Oct 19, 2010 at 02:24:53PM -0400, Valdis.Kletnieks@vt.edu wrote:
+> On Mon, 18 Oct 2010 17:40:04 PDT, Greg KH said:
+> 
+> > I do have access to this hardware, but its on an old single processor
+> > laptop, so any work that it would take to help do this development,
+> > really wouldn't be able to be tested to be valid at all.
+> 
+> The i810 is a graphics chipset embedded on the memory controller, which
+> was designed for the Intel Pentium II, Pentium III, and Celeron CPUs.  Page 8
+> of the datasheet specifically says:
+> 
+> Processor/Host Bus Support
+> - Optimized for the Intel Pentium II processor, Intel Pentium III processor, and Intel
+> CeleronTM processor
+> - Supports processor 370-Pin Socket and SC242
+> connectors
+> - Supports 32-Bit System Bus Addressing
+> - 4 deep in-order queue; 4 or 1 deep request queue
+> - Supports Uni-processor systems only
+> 
+> So no need to clean it up for multiprocessor support.
+> 
+> http://download.intel.com/design/chipsets/datashts/29067602.pdf
+> http://www.intel.com/design/chipsets/specupdt/29069403.pdf
 
-Yes. Applications like gstreamer will pick this resolution if its the
-closest resolution to the target file resolution. On XO-1 we always
-pick a low res so gstreamer picks this one. And we end up with a video
-that only records a miniscule portion of the FOV.
+Great, we can just drop all calls to lock_kernel() and the like in the
+driver and be done with it, right?
 
-All the other settings of the camera scale the image so that the whole
-FOV is covered. But this one records at normal resolution, only
-sending a small center portion of the FOV. The same pixels can be read
-by recording at full res and then just cutting out the center bit.
+thanks,
 
-Daniel
+greg k-h
