@@ -1,490 +1,113 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:55203 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752558Ab0JENMu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 09:12:50 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v2 09/10] v4l: v4l2_subdev userspace frame interval API
-Date: Tue,  5 Oct 2010 15:12:55 +0200
-Message-Id: <1286284376-12217-10-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1286284376-12217-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1286284376-12217-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:52040 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758037Ab0JSMH7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Oct 2010 08:07:59 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o9JC7tUX015751
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 19 Oct 2010 07:07:58 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o9JC7tPI002460
+	for <linux-media@vger.kernel.org>; Tue, 19 Oct 2010 17:37:55 +0530 (IST)
+From: "Nilofer, Samreen" <samreen@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 19 Oct 2010 17:37:54 +0530
+Subject: RE: [PATCH 1/1] OMAP3: V4L2: Kconfig changes to enable V4L2 options
+ on OMAP3
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087034BB0126C@dbde02.ent.ti.com>
+References: <1287374534-10722-1-git-send-email-samreen@ti.com>
+ <19F8576C6E063C45BE387C64729E739404AA4E760C@dbde02.ent.ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404AA4E760C@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The three new ioctl VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL,
-VIDIOC_SUBDEV_G_FRAME_INTERVAL and VIDIOC_SUBDEV_S_FRAME_INTERVAL can be
-used to enumerate and configure a subdev's frame rate from userspace.
-
-Two new video::g/s_frame_interval subdev operations are introduced to
-support those ioctls. The existing video::g/s_parm operations are
-deprecated and shouldn't be used anymore.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- Documentation/DocBook/media-entities.tmpl          |    6 +
- Documentation/DocBook/v4l/v4l2.xml                 |    2 +
- .../v4l/vidioc-subdev-enum-frame-interval.xml      |  146 ++++++++++++++++++++
- .../DocBook/v4l/vidioc-subdev-g-frame-interval.xml |  135 ++++++++++++++++++
- drivers/media/video/v4l2-subdev.c                  |   16 ++
- include/linux/v4l2-subdev.h                        |   36 +++++
- include/media/v4l2-subdev.h                        |    7 +
- 7 files changed, 348 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/DocBook/v4l/vidioc-subdev-enum-frame-interval.xml
- create mode 100644 Documentation/DocBook/v4l/vidioc-subdev-g-frame-interval.xml
-
-diff --git a/Documentation/DocBook/media-entities.tmpl b/Documentation/DocBook/media-entities.tmpl
-index 160bca6..71cdc75 100644
---- a/Documentation/DocBook/media-entities.tmpl
-+++ b/Documentation/DocBook/media-entities.tmpl
-@@ -89,7 +89,9 @@
- <!ENTITY VIDIOC-SUBDEV-ENUM-FRAME-SIZE "<link linkend='vidioc-subdev-enum-frame-size'><constant>VIDIOC_SUBDEV_ENUM_FRAME_SIZE</constant></link>">
- <!ENTITY VIDIOC-SUBDEV-ENUM-MBUS-CODE "<link linkend='vidioc-subdev-enum-mbus-code'><constant>VIDIOC_SUBDEV_ENUM_MBUS_CODE</constant></link>">
- <!ENTITY VIDIOC-SUBDEV-G-FMT "<link linkend='vidioc-subdev-g-fmt'><constant>VIDIOC_SUBDEV_G_FMT</constant></link>">
-+<!ENTITY VIDIOC-SUBDEV-G-FRAME-INTERVAL "<link linkend='vidioc-subdev-g-frame-interval'><constant>VIDIOC_SUBDEV_G_FRAME_INTERVAL</constant></link>">
- <!ENTITY VIDIOC-SUBDEV-S-FMT "<link linkend='vidioc-subdev-g-fmt'><constant>VIDIOC_SUBDEV_S_FMT</constant></link>">
-+<!ENTITY VIDIOC-SUBDEV-S-FRAME-INTERVAL "<link linkend='vidioc-subdev-g-frame-interval'><constant>VIDIOC_SUBDEV_S_FRAME_INTERVAL</constant></link>">
- <!ENTITY VIDIOC-TRY-ENCODER-CMD "<link linkend='vidioc-encoder-cmd'><constant>VIDIOC_TRY_ENCODER_CMD</constant></link>">
- <!ENTITY VIDIOC-TRY-EXT-CTRLS "<link linkend='vidioc-g-ext-ctrls'><constant>VIDIOC_TRY_EXT_CTRLS</constant></link>">
- <!ENTITY VIDIOC-TRY-FMT "<link linkend='vidioc-g-fmt'><constant>VIDIOC_TRY_FMT</constant></link>">
-@@ -190,6 +192,8 @@
- <!ENTITY v4l2-sliced-vbi-cap "struct&nbsp;<link linkend='v4l2-sliced-vbi-cap'>v4l2_sliced_vbi_cap</link>">
- <!ENTITY v4l2-sliced-vbi-data "struct&nbsp;<link linkend='v4l2-sliced-vbi-data'>v4l2_sliced_vbi_data</link>">
- <!ENTITY v4l2-sliced-vbi-format "struct&nbsp;<link linkend='v4l2-sliced-vbi-format'>v4l2_sliced_vbi_format</link>">
-+<!ENTITY v4l2-subdev-frame-interval "struct&nbsp;<link linkend='v4l2-subdev-frame-interval'>v4l2_subdev_frame_interval</link>">
-+<!ENTITY v4l2-subdev-frame-interval-enum "struct&nbsp;<link linkend='v4l2-subdev-frame-interval-enum'>v4l2_subdev_frame_interval_enum</link>">
- <!ENTITY v4l2-subdev-frame-size-enum "struct&nbsp;<link linkend='v4l2-subdev-frame-size-enum'>v4l2_subdev_frame_size_enum</link>">
- <!ENTITY v4l2-subdev-format "struct&nbsp;<link linkend='v4l2-subdev-format'>v4l2_subdev_format</link>">
- <!ENTITY v4l2-subdev-mbus-code-enum "struct&nbsp;<link linkend='v4l2-subdev-mbus-code-enum'>v4l2_subdev_mbus_code_enum</link>">
-@@ -322,10 +326,12 @@
- <!ENTITY sub-reqbufs SYSTEM "v4l/vidioc-reqbufs.xml">
- <!ENTITY sub-s-hw-freq-seek SYSTEM "v4l/vidioc-s-hw-freq-seek.xml">
- <!ENTITY sub-streamon SYSTEM "v4l/vidioc-streamon.xml">
-+<!ENTITY sub-subdev-enum-frame-interval SYSTEM "v4l/vidioc-subdev-enum-frame-interval.xml">
- <!ENTITY sub-subdev-enum-frame-size SYSTEM "v4l/vidioc-subdev-enum-frame-size.xml">
- <!ENTITY sub-subdev-enum-mbus-code SYSTEM "v4l/vidioc-subdev-enum-mbus-code.xml">
- <!ENTITY sub-subdev-formats SYSTEM "v4l/subdev-formats.xml">
- <!ENTITY sub-subdev-g-fmt SYSTEM "v4l/vidioc-subdev-g-fmt.xml">
-+<!ENTITY sub-subdev-g-frame-interval SYSTEM "v4l/vidioc-subdev-g-frame-interval.xml">
- <!ENTITY sub-capture-c SYSTEM "v4l/capture.c.xml">
- <!ENTITY sub-keytable-c SYSTEM "v4l/keytable.c.xml">
- <!ENTITY sub-v4l2grab-c SYSTEM "v4l/v4l2grab.c.xml">
-diff --git a/Documentation/DocBook/v4l/v4l2.xml b/Documentation/DocBook/v4l/v4l2.xml
-index 3a59b82..7806562 100644
---- a/Documentation/DocBook/v4l/v4l2.xml
-+++ b/Documentation/DocBook/v4l/v4l2.xml
-@@ -470,9 +470,11 @@ and discussions on the V4L mailing list.</revremark>
-     &sub-reqbufs;
-     &sub-s-hw-freq-seek;
-     &sub-streamon;
-+    &sub-subdev-enum-frame-interval;
-     &sub-subdev-enum-frame-size;
-     &sub-subdev-enum-mbus-code;
-     &sub-subdev-g-fmt;
-+    &sub-subdev-g-frame-interval;
-     &sub-subscribe-event;
-     <!-- End of ioctls. -->
-     &sub-mmap;
-diff --git a/Documentation/DocBook/v4l/vidioc-subdev-enum-frame-interval.xml b/Documentation/DocBook/v4l/vidioc-subdev-enum-frame-interval.xml
-new file mode 100644
-index 0000000..bcea9d49
---- /dev/null
-+++ b/Documentation/DocBook/v4l/vidioc-subdev-enum-frame-interval.xml
-@@ -0,0 +1,146 @@
-+<refentry id="vidioc-subdev-enum-frame-interval">
-+  <refmeta>
-+    <refentrytitle>ioctl VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL</refname>
-+    <refpurpose>Enumerate frame intervals</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>struct v4l2_subdev_frame_interval_enum *
-+	<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>&fd;</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>This ioctl lets applications enumerate available frame intervals on a
-+    given sub-device pad. Frame intervals only makes sense for sub-devices that
-+    can control the frame period on their own. This includes, for instance,
-+    image sensors and TV tuners.</para>
-+
-+    <para>For the common use case of image sensors, the frame intervals
-+    available on the sub-device output pad depend on the frame format and size
-+    on the same pad. Applications must thus specify the desired format and size
-+    when enumerating frame intervals.</para>
-+
-+    <para>To enumerate frame intervals applications initialize the
-+    <structfield>index</structfield>, <structfield>pad</structfield>,
-+    <structfield>code</structfield>, <structfield>width</structfield> and
-+    <structfield>height</structfield> fields of
-+    &v4l2-subdev-frame-interval-enum; and call the
-+    <constant>VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL</constant> ioctl with a pointer
-+    to this structure. Drivers fill the rest of the structure or return
-+    an &EINVAL; if one of the input fields is invalid. All frame intervals are
-+    enumerable by beginning at index zero and incrementing by one until
-+    <errorcode>EINVAL</errorcode> is returned.</para>
-+
-+    <para>Available frame intervals may depend on the current 'try' formats
-+    at other pads of the sub-device, as well as on the current active links. See
-+    &VIDIOC-SUBDEV-G-FMT; for more information about the try formats.</para>
-+
-+    <para>Sub-devices that support the frame interval enumeration ioctl should
-+    implemented it on a single pad only. Its behaviour when supported on
-+    multiple pads of the same sub-device is not defined.</para>
-+
-+    <table pgwide="1" frame="none" id="v4l2-subdev-frame-interval-enum">
-+      <title>struct <structname>v4l2_subdev_frame_interval_enum</structname></title>
-+      <tgroup cols="3">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>index</structfield></entry>
-+	    <entry>Number of the format in the enumeration, set by the
-+	    application.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>pad</structfield></entry>
-+	    <entry>Pad number as reported by the media controller API.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>code</structfield></entry>
-+	    <entry>The media bus format code, as defined in
-+	    <xref linkend="v4l2-mbus-format" />.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>width</structfield></entry>
-+	    <entry>Frame width, in pixels.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>height</structfield></entry>
-+	    <entry>Frame height, in pixels.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>&v4l2-fract;</entry>
-+	    <entry><structfield>interval</structfield></entry>
-+	    <entry>Period, in seconds, between consecutive video frames.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[9]</entry>
-+	    <entry>Reserved for future extensions. Applications and drivers must
-+	    set the array to zero.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+  </refsect1>
-+
-+  <refsect1>
-+    &return-value;
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><errorcode>EINVAL</errorcode></term>
-+	<listitem>
-+	  <para>The &v4l2-subdev-frame-interval-enum;
-+	  <structfield>pad</structfield> references a non-existing pad, one of
-+	  the <structfield>code</structfield>, <structfield>width</structfield>
-+	  or <structfield>height</structfield> fields are invalid for the given
-+	  pad or the <structfield>index</structfield> field is out of bounds.
-+	  </para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/v4l/vidioc-subdev-g-frame-interval.xml b/Documentation/DocBook/v4l/vidioc-subdev-g-frame-interval.xml
-new file mode 100644
-index 0000000..1d0e0e1
---- /dev/null
-+++ b/Documentation/DocBook/v4l/vidioc-subdev-g-frame-interval.xml
-@@ -0,0 +1,135 @@
-+<refentry id="vidioc-subdev-g-frame-interval">
-+  <refmeta>
-+    <refentrytitle>ioctl VIDIOC_SUBDEV_G_FRAME_INTERVAL, VIDIOC_SUBDEV_S_FRAME_INTERVAL</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>VIDIOC_SUBDEV_G_FRAME_INTERVAL</refname>
-+    <refname>VIDIOC_SUBDEV_S_FRAME_INTERVAL</refname>
-+    <refpurpose>Get or set the frame interval on a subdev pad</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>struct v4l2_subdev_frame_interval *<parameter>argp</parameter>
-+	</paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>&fd;</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>VIDIOC_SUBDEV_G_FRAME_INTERVAL, VIDIOC_SUBDEV_S_FRAME_INTERVAL</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>These ioctls are used to get and set the frame interval at specific
-+    subdev pads in the image pipeline. The frame interval only makes sense for
-+    sub-devices that can control the frame period on their own. This includes,
-+    for instance, image sensors and TV tuners. Sub-devices that don't support
-+    frame intervals must not implement these ioctls.</para>
-+
-+    <para>To retrieve the current frame interval applications set the
-+    <structfield>pad</structfield> field of a &v4l2-subdev-frame-interval; to
-+    the desired pad number as reported by the media controller API. When they
-+    call the <constant>VIDIOC_SUBDEV_G_FRAME_INTERVAL</constant> ioctl with a
-+    pointer to this structure the driver fills the members of the
-+    <structfield>interval</structfield> field.</para>
-+
-+    <para>To change the current frame interval applications set both the
-+    <structfield>pad</structfield> field and all members of the
-+    <structfield>interval</structfield> field. When they call the
-+    <constant>VIDIOC_SUBDEV_S_FRAME_INTERVAL</constant> ioctl with a pointer to
-+    this structure the driver verifies the requested interval, adjusts it based
-+    on the hardware capabilities and configures the device. Upon return the
-+    &v4l2-subdev-frame-interval; contains the current frame interval as would be
-+    returned by a <constant>VIDIOC_SUBDEV_G_FRAME_INTERVAL</constant> call.
-+    </para>
-+
-+    <para>Drivers must not return an error solely because the requested interval
-+    doesn't match the device capabilities. They must instead modify the interval
-+    to match what the hardware can provide. The modified interval should be as
-+    close as possible to the original request.</para>
-+
-+    <para>Sub-devices that support the frame interval ioctls should implement
-+    them on a single pad only. Their behaviour when supported on multiple pads
-+    of the same sub-device is not defined.</para>
-+
-+    <table pgwide="1" frame="none" id="v4l2-subdev-frame-interval">
-+      <title>struct <structname>v4l2_subdev_frame_interval</structname></title>
-+      <tgroup cols="3">
-+        &cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>pad</structfield></entry>
-+	    <entry>Pad number as reported by the media controller API.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>&v4l2-fract;</entry>
-+	    <entry><structfield>interval</structfield></entry>
-+	    <entry>Period, in seconds, between consecutive video frames.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[5]</entry>
-+	    <entry>Reserved for future extensions. Applications and drivers must
-+	    set the array to zero.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+  </refsect1>
-+
-+  <refsect1>
-+    &return-value;
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><errorcode>EBUSY</errorcode></term>
-+	<listitem>
-+	  <para>The frame interval can't be changed because the pad is currently
-+	  busy. This can be caused, for instance, by an active video stream on
-+	  the pad. The ioctl must not be retried without performing another
-+	  action to fix the problem first. Only returned by
-+	  <constant>VIDIOC_SUBDEV_S_FRAME_INTERVAL</constant></para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>EINVAL</errorcode></term>
-+	<listitem>
-+	  <para>The &v4l2-subdev-frame-interval; <structfield>pad</structfield>
-+	  references a non-existing pad, or the pad doesn't support frame
-+	  intervals.</para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+</refentry>
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index 26dafb7..7c3c079 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -215,6 +215,22 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 					fse);
- 	}
  
-+	case VIDIOC_SUBDEV_G_FRAME_INTERVAL:
-+		return v4l2_subdev_call(sd, video, g_frame_interval, arg);
-+
-+	case VIDIOC_SUBDEV_S_FRAME_INTERVAL:
-+		return v4l2_subdev_call(sd, video, s_frame_interval, arg);
-+
-+	case VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL: {
-+		struct v4l2_subdev_frame_interval_enum *fie = arg;
-+
-+		if (fie->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(sd, pad, enum_frame_interval, subdev_fh,
-+					fie);
-+	}
-+
- 	default:
- 		return -ENOIOCTLCMD;
- 	}
-diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
-index 039c6e4..7af0c34 100644
---- a/include/linux/v4l2-subdev.h
-+++ b/include/linux/v4l2-subdev.h
-@@ -80,11 +80,47 @@ struct v4l2_subdev_frame_size_enum {
- 	__u32 reserved[9];
- };
- 
-+/**
-+ * struct v4l2_subdev_frame_interval - Pad-level frame rate
-+ * @pad: pad number, as reported by the media API
-+ * @interval: frame interval in seconds
-+ */
-+struct v4l2_subdev_frame_interval {
-+	__u32 pad;
-+	struct v4l2_fract interval;
-+	__u32 reserved[5];
-+};
-+
-+/**
-+ * struct v4l2_subdev_frame_interval_enum - Frame interval enumeration
-+ * @pad: pad number, as reported by the media API
-+ * @index: frame interval index during enumeration
-+ * @code: format code (from enum v4l2_mbus_pixelcode)
-+ * @width: frame width in pixels
-+ * @height: frame height in pixels
-+ * @interval: frame interval in seconds
-+ */
-+struct v4l2_subdev_frame_interval_enum {
-+	__u32 index;
-+	__u32 pad;
-+	__u32 code;
-+	__u32 width;
-+	__u32 height;
-+	struct v4l2_fract interval;
-+	__u32 reserved[9];
-+};
-+
- #define VIDIOC_SUBDEV_G_FMT	_IOWR('V',  4, struct v4l2_subdev_format)
- #define VIDIOC_SUBDEV_S_FMT	_IOWR('V',  5, struct v4l2_subdev_format)
-+#define VIDIOC_SUBDEV_G_FRAME_INTERVAL \
-+			_IOWR('V', 21, struct v4l2_subdev_frame_interval)
-+#define VIDIOC_SUBDEV_S_FRAME_INTERVAL \
-+			_IOWR('V', 22, struct v4l2_subdev_frame_interval)
- #define VIDIOC_SUBDEV_ENUM_MBUS_CODE \
- 			_IOWR('V',  2, struct v4l2_subdev_mbus_code_enum)
- #define VIDIOC_SUBDEV_ENUM_FRAME_SIZE \
- 			_IOWR('V', 74, struct v4l2_subdev_frame_size_enum)
-+#define VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL \
-+			_IOWR('V', 75, struct v4l2_subdev_frame_interval_enum)
- 
- #endif
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 640e838..65f5482 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -276,6 +276,10 @@ struct v4l2_subdev_video_ops {
- 	int (*s_crop)(struct v4l2_subdev *sd, struct v4l2_crop *crop);
- 	int (*g_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
- 	int (*s_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
-+	int (*g_frame_interval)(struct v4l2_subdev *sd,
-+				struct v4l2_subdev_frame_interval *interval);
-+	int (*s_frame_interval)(struct v4l2_subdev *sd,
-+				struct v4l2_subdev_frame_interval *interval);
- 	int (*enum_framesizes)(struct v4l2_subdev *sd, struct v4l2_frmsizeenum *fsize);
- 	int (*enum_frameintervals)(struct v4l2_subdev *sd, struct v4l2_frmivalenum *fival);
- 	int (*enum_dv_presets) (struct v4l2_subdev *sd,
-@@ -426,6 +430,9 @@ struct v4l2_subdev_pad_ops {
- 	int (*enum_frame_size)(struct v4l2_subdev *sd,
- 			       struct v4l2_subdev_fh *fh,
- 			       struct v4l2_subdev_frame_size_enum *fse);
-+	int (*enum_frame_interval)(struct v4l2_subdev *sd,
-+				   struct v4l2_subdev_fh *fh,
-+				   struct v4l2_subdev_frame_interval_enum *fie);
- 	int (*get_fmt)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 		       struct v4l2_subdev_format *format);
- 	int (*set_fmt)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
--- 
-1.7.2.2
 
+> -----Original Message-----
+> From: Hiremath, Vaibhav 
+> Sent: Tuesday, October 19, 2010 9:40 AM
+> To: Nilofer, Samreen
+> Cc: linux-media@vger.kernel.org
+> Subject: RE: [PATCH 1/1] OMAP3: V4L2: Kconfig changes to 
+> enable V4L2 options on OMAP3
+> 
+> > -----Original Message-----
+> > From: Nilofer, Samreen
+> > Sent: Monday, October 18, 2010 9:32 AM
+> > To: Hiremath, Vaibhav
+> > Cc: linux-media@vger.kernel.org; Nilofer, Samreen
+> > Subject: [PATCH 1/1] OMAP3: V4L2: Kconfig changes to enable V4L2 
+> > options on OMAP3
+> > 
+> > The defconfig options for V4L2 are taken in the respective 
+> Kconfig to 
+> > enable V4L2 by default on OMAP3 platforms
+> > 
+> > Signed-off-by: Samreen <samreen@ti.com>
+> > ---
+> >  drivers/media/Kconfig            |    2 ++
+> >  drivers/media/video/omap/Kconfig |    2 +-
+> >  2 files changed, 3 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig index 
+> > a28541b..2592d88 100644
+> > --- a/drivers/media/Kconfig
+> > +++ b/drivers/media/Kconfig
+> > @@ -5,6 +5,7 @@
+> >  menuconfig MEDIA_SUPPORT
+> >  	tristate "Multimedia support"
+> >  	depends on HAS_IOMEM
+> > +	default y if ARCH_OMAP2 || ARCH_OMAP3
+> [Hiremath, Vaibhav] I am quite not sure whether this is right 
+> approach to do this, I think adding dependency of ARCH_ here 
+> will pollute the file.
+> 
+> Why not add this definition to omap2plus_defconfig, which is 
+> common defconfig file for all OMAP architecture.
+> 
+> Thanks,
+> Vaibhav
+[Samreen]
+  I was not aware of the fact that the defconfig could be modified..
+Will incorporate the changes and will post them soon.
+-Regards,
+Samreen
+> 
+> >  	help
+> >  	  If you want to use Video for Linux, DVB for Linux, or DAB 
+> > adapters,
+> >  	  enable this option and other options below.
+> > @@ -19,6 +20,7 @@ comment "Multimedia core support"
+> > 
+> >  config VIDEO_DEV
+> >  	tristate "Video For Linux"
+> > +	default y if ARCH_OMAP2 || ARCH_OMAP3
+> >  	---help---
+> >  	  V4L core support for video capture and overlay 
+> devices, webcams 
+> > and
+> >  	  AM/FM radio cards.
+> > diff --git a/drivers/media/video/omap/Kconfig
+> > b/drivers/media/video/omap/Kconfig
+> > index e63233f..f3e33c3 100644
+> > --- a/drivers/media/video/omap/Kconfig
+> > +++ b/drivers/media/video/omap/Kconfig
+> > @@ -6,6 +6,6 @@ config VIDEO_OMAP2_VOUT
+> >  	select OMAP2_DSS
+> >  	select OMAP2_VRAM
+> >  	select OMAP2_VRFB
+> > -	default n
+> > +	default y
+> >  	---help---
+> >  	  V4L2 Display driver support for OMAP2/3 based boards.
+> > --
+> > 1.5.6.3
+> 
+> 
