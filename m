@@ -1,102 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:36651 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752170Ab0JSPnC (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:33160 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753951Ab0JSEwe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Oct 2010 11:43:02 -0400
-Message-ID: <4CBDBC7C.8010000@infradead.org>
-Date: Tue, 19 Oct 2010 13:42:52 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Tue, 19 Oct 2010 00:52:34 -0400
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Daniel Drake <dsd@laptop.org>
-Subject: Re: [PATCH] viafb camera controller driver
-References: <20101010162313.5caa137f@bike.lwn.net> <201010191505.04436.laurent.pinchart@ideasonboard.com> <4CBDAFF5.1090509@infradead.org> <201010191652.56655.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201010191652.56655.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <alpine.LNX.2.00.1010182342120.31740@banach.math.auburn.edu>
+References: <201009161632.59210.arnd@arndb.de>
+	<201010181742.06678.arnd@arndb.de>
+	<20101018184346.GD27089@kroah.com>
+	<AANLkTin2KPNNXvwcWphhM-5qexB14FS7M7ezkCCYCZ2H@mail.gmail.com>
+	<20101019004004.GB28380@kroah.com>
+	<AANLkTi=ffaihP5-yNYFKAbAbX+XbRgWRXXfCZd4J3KwQ@mail.gmail.com>
+	<20101019022413.GB30307@kroah.com>
+	<AANLkTinv4VFpi=Jkc_5oyFgPbdLRg0ResJx9u9Puhm-7@mail.gmail.com>
+	<1287459219.16971.352.camel@gandalf.stny.rr.com>
+	<alpine.LNX.2.00.1010182342120.31740@banach.math.auburn.edu>
+Date: Tue, 19 Oct 2010 14:52:32 +1000
+Message-ID: <AANLkTi=oAeuz8ZxcOMpf=3MVY=WMt0BwHiGCUxO7OAEV@mail.gmail.com>
+Subject: Re: [Ksummit-2010-discuss] [v2] Remaining BKL users, what to do
+From: Dave Airlie <airlied@gmail.com>
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+Cc: Steven Rostedt <rostedt@goodmis.org>, Greg KH <greg@kroah.com>,
+	codalist@telemann.coda.cs.cmu.edu, autofs@linux.kernel.org,
+	Samuel Ortiz <samuel@sortiz.org>, Jan Kara <jack@suse.cz>,
+	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jan Harkes <jaharkes@cs.cmu.edu>, netdev@vger.kernel.org,
+	Anders Larsen <al@alarsen.net>, linux-kernel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	Bryan Schumaker <bjschuma@netapp.com>,
+	Christoph Hellwig <hch@infradead.org>,
+	ksummit-2010-discuss@lists.linux-foundation.org,
+	Petr Vandrovec <vandrove@vc.cvut.cz>,
+	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
+	linux-fsdevel@vger.kernel.org,
+	Evgeniy Dushistov <dushistov@mail.ru>,
+	Ingo Molnar <mingo@elte.hu>,
+	Andrew Hendry <andrew.hendry@gmail.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 19-10-2010 12:52, Laurent Pinchart escreveu:
-> Hi Mauro,
-> 
-> On Tuesday 19 October 2010 16:49:25 Mauro Carvalho Chehab wrote:
->> Em 19-10-2010 11:05, Laurent Pinchart escreveu:
->>>> It is not a "big lock": it doesn't stop other CPU's, doesn't affect
->>>> other hardware, not even another V4L device. Basically, what this new
->>>> lock does is to serialize access to the hardware and to the
->>>> hardware-mirrored data.
->>>
->>> The lock serializes all ioctls. That's much more than protecting access
->>> to data (both in system memory and in the hardware).
->>
->> It is not much more. What ioctl's doesn't access the hardware directly nor
->> access some struct that caches the hardware data? None, at the most
->> complex devices.
->>
->> For simpler devices, there are very few VIDIOC*ENUM stuff that may just
->> return a fixed set of values, but the userspace applications that call
->> them serializes the access anyway (as they are the enum ioctls, used
->> during the hardware detection phase of the userspace software).
->>
->> So, in practice, it makes no difference to serialize everything or to
->> remove the lock for the very few ioctls that just return a fixed set of
->> info.
-> 
-> That's not correct. There's a difference between taking a lock around 
-> read/write operations and around the whole ioctl call stack.
+> I might be able to find some hardware still lying around here that uses an
+> i810. Not sure unless I go hunting it. But I get the impression that if
+> the kernel is a single-CPU kernel there is not any problem anyway? Don't
+> distros offer a non-smp kernel as an installation option in case the user
+> needs it? So in reality how big a problem is this?
 
-Huh?
+Not anymore, which is my old point of making a fuss. Nowadays in the
+modern distro world, we supply a single kernel that can at runtime
+decide if its running on SMP or UP and rewrite the text section
+appropriately with locks etc. Its like magic, and something like
+marking drivers as BROKEN_ON_SMP at compile time is really wrong when
+what you want now is a runtime warning if someone tries to hotplug a
+CPU with a known iffy driver loaded or if someone tries to load the
+driver when we are already in SMP mode.
 
-Even on simpler hardware, there are very few ioctls that don't access hardware.
-Hardly, this would cause any performance impact.
-
-What I said is that, if the userspace does:
-
-open()
-/* Serialized ioctls */
-ioctl (...)
-ioctl (...)
-ioctl (...)
-ioctl (...)
-ioctl (...)
-ioctl (...)
-ioctl (...)
-...
-
-It doesn't matter if kernel is forcing serialization or not.
-
-The difference only happens if userspace does things like:
-
-fork()	/* Or some thread creation function */
-...
-/* proccess/thread 1 */
-ioctl()
-...
-/* proccess/thread 2 */
-ioctl()
-...
-/* proccess/thread 3 */
-ioctl()
-...
-
-However, it doesn't make sense to do parallel access to *ENUM ioctls, so I don't know
-any application doing that during the "hardware discover phase", whe.
-
-The usage of different process/threads may make sense, from userspace POV, while streaming.
-There are a few reasons for that, like:
-	- users may want to adjust the bright/contrast (or other video/audio control)
-	  while streaming;
-	- if the dqbuf logic is complex (for example, it may have some software processing
-	  logic - like de interlacing);
-	- a separate process may be recording the video.
-
-On all the above valid use-cases, the ioctl is really accessing the hardware and/or some
-hardware-cached data. So, a lock is needed anyway.
-
-Cheers,
-Mauro
+Dave.
