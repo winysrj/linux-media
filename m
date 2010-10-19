@@ -1,464 +1,120 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:41368 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752707Ab0JYU0b (ORCPT
+Received: from banach.math.auburn.edu ([131.204.45.3]:59981 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750706Ab0JSEao (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Oct 2010 16:26:31 -0400
-Received: from 201-68-231-211.dsl.telesp.net.br ([201.68.231.211] helo=[192.168.30.170])
-	by casper.infradead.org with esmtpsa (Exim 4.72 #1 (Red Hat Linux))
-	id 1PATci-0007LS-4N
-	for linux-media@vger.kernel.org; Mon, 25 Oct 2010 20:26:29 +0000
-Message-ID: <4CC5E7F0.3080408@infradead.org>
-Date: Mon, 25 Oct 2010 18:26:24 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Tue, 19 Oct 2010 00:30:44 -0400
+Date: Tue, 19 Oct 2010 00:00:58 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Steven Rostedt <rostedt@goodmis.org>
+cc: Dave Airlie <airlied@gmail.com>, Greg KH <greg@kroah.com>,
+	codalist@telemann.coda.cs.cmu.edu, autofs@linux.kernel.org,
+	Samuel Ortiz <samuel@sortiz.org>, Jan Kara <jack@suse.cz>,
+	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jan Harkes <jaharkes@cs.cmu.edu>, netdev@vger.kernel.org,
+	Anders Larsen <al@alarsen.net>, linux-kernel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	Bryan Schumaker <bjschuma@netapp.com>,
+	Christoph Hellwig <hch@infradead.org>,
+	ksummit-2010-discuss@lists.linux-foundation.org,
+	Petr Vandrovec <vandrove@vc.cvut.cz>,
+	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
+	linux-fsdevel@vger.kernel.org,
+	Evgeniy Dushistov <dushistov@mail.ru>,
+	Ingo Molnar <mingo@elte.hu>,
+	Andrew Hendry <andrew.hendry@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [Ksummit-2010-discuss] [v2] Remaining BKL users, what to do
+In-Reply-To: <1287459219.16971.352.camel@gandalf.stny.rr.com>
+Message-ID: <alpine.LNX.2.00.1010182342120.31740@banach.math.auburn.edu>
+References: <201009161632.59210.arnd@arndb.de>  <201010181742.06678.arnd@arndb.de> <20101018184346.GD27089@kroah.com>  <AANLkTin2KPNNXvwcWphhM-5qexB14FS7M7ezkCCYCZ2H@mail.gmail.com>  <20101019004004.GB28380@kroah.com>  <AANLkTi=ffaihP5-yNYFKAbAbX+XbRgWRXXfCZd4J3KwQ@mail.gmail.com>
+  <20101019022413.GB30307@kroah.com>  <AANLkTinv4VFpi=Jkc_5oyFgPbdLRg0ResJx9u9Puhm-7@mail.gmail.com> <1287459219.16971.352.camel@gandalf.stny.rr.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Fwd: Re: DM1105: could not attach frontend 195d:1105
-Content-Type: multipart/mixed;
- boundary="------------070700080707050908040704"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This is a multi-part message in MIME format.
---------------070700080707050908040704
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-
-Patchwork lost a few patches, including this one. Probably some database corruption
-and a later rollback, since this patch were already a patchwork ID...
 
 
-Sorry for the noise.
+On Mon, 18 Oct 2010, Steven Rostedt wrote:
 
--------- Mensagem original --------
-Assunto: Re: DM1105: could not attach frontend 195d:1105
-Data: Sat, 23 Oct 2010 12:20:51 +0300
-De: Igor M. Liplianin <liplianin@me.by>
-Para: Hendrik Skarpeid <skarp@online.no>,	Mauro Chehab <mchehab@infradead.org>
-CC: linux-media@vger.kernel.org,	Nameer Kazzaz <nameer.kazzaz@gmail.com>
-
-В сообщении от 10 марта 2010 14:15:49 автор Hendrik Skarpeid написал:
-> Igor M. Liplianin skrev:
-> > On 3 марта 2010 18:42:42 Hendrik Skarpeid wrote:
-> >> Igor M. Liplianin wrote:
-> >>> Now to find GPIO's for LNB power control and ... watch TV :)
-> >> 
-> >> Yep. No succesful tuning at the moment. There might also be an issue
-> >> with the reset signal and writing to GPIOCTR, as the module at the
-> >> moment loads succesfully only once.
-> >> As far as I can make out, the LNB power control is probably GPIO 16 and
-> >> 17, not sure which is which, and how they work.
-> >> GPIO15 is wired to tuner #reset
-> > 
-> > New patch to test
+> On Tue, 2010-10-19 at 12:45 +1000, Dave Airlie wrote:
+> > On Tue, Oct 19, 2010 at 12:24 PM, Greg KH <greg@kroah.com> wrote:
 > 
-> I think the LNB voltage may be a little to high on my card, 14.5V and
-> 20V. I would be a little more happy if they were 14 and 19, 13 and 18
-> would be perfect.
-> Anyways, as Igor pointet out, I don't have any signal from the LNB,
-> checked with another tuner card. It's a quad LNB, and the other outputs
-> are fine. Maybe it's' toasted from to high supply voltage! I little word
-> of warning then.
-> Anyways, here's my tweaked driver.
+> > > So, there is no need for the i830 driver?  Can it just be removed
+> > > because i915 works instead?
+> > 
+> > No because it provides a different userspace ABI to the i915 driver to
+> > a different userspace X driver etc.
+> > 
+> > like I'm sure the intersection of this driver and reality are getting
+> > quite limited, but its still a userspace ABI change and needs to be
+> > treated as such. Xorg 6.7 and XFree86 4.3 were the last users of the
+> > old driver/API.
+> 
+> Thus, you are saying that this will break for people with older user
+> apps and have a newer kernel?
+> 
+> > 
+> > >> So it really only leaves the problem case of what do distros do if we
+> > >> mark things as BROKEN_ON_SMP, since no distro builds UP kernels and
+> > >> when you boot the SMP kernels on UP they don't run as SMP so not
+> > >> having the driver load on those is a problem. Maybe we just need some
+> > >> sort of warn on smp if a smp unfriendly driver is loaded and we
+> > >> transition to SMP mode. Though this sounds like either (a) something
+> > >> we do now and I don't about it, (b) work.
+> > >
+> > > So you are saying that just because distros will never build such a
+> > > thing, we should keep it building for SMP mode?  Why not prevent it from
+> > > being built and if a distro really cares, then they will pony up the
+> > > development to fix the driver up?
+> > 
+> > Distros build the driver now even it it didn't work on SMP it wouldn't
+> > matter to the 99% of people who have this hw since it can't suppport
+> > SMP except in some corner cases. So not building for SMP is the same
+> > as just throwing it out of the kernel since most people don't run
+> > kernel.org kernels, and shouldn't have to just to get a driver for
+> > some piece of hardware that worked fine up until now.
+> 
+> Ah! Exactly! Thus, those that do not run kernel.org kernels are using a
+> distro kernel. Wont these same people use the distro userspace? That is,
+> if they have upgraded their kernel, most likely, they also update their
+> X interface.
+> 
+> > 
+> > Look at this from a user who has this hardware pov, it works for them
+> > now with a distro kernel, us breaking it isn't going to help that user
+> > or make any distro care, its just going to screw over the people who
+> > are actually using it.
+> 
+> But they can use the i915 driver instead, because they are using the
+> newer userspace apps.
+> 
+> > 
+> > > In other words, if someone really cares, then they will do the work,
+> > > otherwise why worry?  Especially as it seems that no one here is going
+> > > to do it, right?
+> > 
+> > Well the thing is doing the work right is a non-trivial task and just
+> > dropping support only screws the people using the hardware,
+> > it doesn't place any burden on the distro developers to fix it up. If
+> > people are really serious about making the BKL go away completely, I
+> > think the onus should be on them to fix the drivers not on the users
+> > who are using it, like I'm  guessing if this gets broken the bug will
+> > end up in Novell or RH bugzilla in a year and nobody will ever see it.
+> 
+> Well the problem comes down to testing it. I don't know of any developer
+> that is removing the BKL that actually owns hardware to test out these
+> broken drivers. And for the change not being trivial, means that there's
+> no way to do in correctly.
+> 
+> -- Steve
 
-Here is reworked patch for clear GPIO's handling.
-It allows to support I2C on GPIO's and per board LNB control through GPIO's.
-Also incuded support for Hendrik's card.
-I think it is clear how to change and test GPIO's for LNB and other stuff now.
-To Hendrik:
-	Not shure, but there is maybe GPIO for raise/down LNB voltage a little (~1v).
-	It is used for long coaxial lines to compensate voltage dropping.
+I might be able to find some hardware still lying around here that uses an 
+i810. Not sure unless I go hunting it. But I get the impression that if 
+the kernel is a single-CPU kernel there is not any problem anyway? Don't 
+distros offer a non-smp kernel as an installation option in case the user 
+needs it? So in reality how big a problem is this?
 
-Signed-off-by: Igor M. Liplianin <liplianin@me.by>
-
-
-
---------------070700080707050908040704
-Content-Type: text/x-patch;
- name="dm1105_i2c_gpio.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="dm1105_i2c_gpio.patch"
-
-diff -r abd3aac6644e linux/drivers/media/dvb/dm1105/dm1105.c
---- a/linux/drivers/media/dvb/dm1105/dm1105.c	Fri Jul 02 00:38:54 2010 -0300
-+++ b/linux/drivers/media/dvb/dm1105/dm1105.c	Sat Oct 23 11:58:32 2010 +0300
-@@ -20,6 +20,7 @@
-  */
- 
- #include <linux/i2c.h>
-+#include <linux/i2c-algo-bit.h>
- #include <linux/init.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
-@@ -50,11 +51,12 @@
- 
- #define UNSET (-1U)
- 
--#define DM1105_BOARD_NOAUTO		UNSET
--#define DM1105_BOARD_UNKNOWN		0
--#define DM1105_BOARD_DVBWORLD_2002	1
--#define DM1105_BOARD_DVBWORLD_2004	2
--#define DM1105_BOARD_AXESS_DM05		3
-+#define DM1105_BOARD_NOAUTO			UNSET
-+#define DM1105_BOARD_UNKNOWN			0
-+#define DM1105_BOARD_DVBWORLD_2002		1
-+#define DM1105_BOARD_DVBWORLD_2004		2
-+#define DM1105_BOARD_AXESS_DM05			3
-+#define DM1105_BOARD_UNBRANDED_I2C_ON_GPIO	4
- 
- /* ----------------------------------------------- */
- /*
-@@ -158,22 +160,38 @@
- #define DM1105_MAX				0x04
- 
- #define DRIVER_NAME				"dm1105"
-+#define DM1105_I2C_GPIO_NAME			"dm1105-gpio"
- 
- #define DM1105_DMA_PACKETS			47
- #define DM1105_DMA_PACKET_LENGTH		(128*4)
- #define DM1105_DMA_BYTES			(128 * 4 * DM1105_DMA_PACKETS)
- 
-+/*  */
-+#define GPIO08					(1 << 8)
-+#define GPIO13					(1 << 13)
-+#define GPIO14					(1 << 14)
-+#define GPIO15					(1 << 15)
-+#define GPIO16					(1 << 16)
-+#define GPIO17					(1 << 17)
-+#define GPIO_ALL				0x03ffff
-+
- /* GPIO's for LNB power control */
--#define DM1105_LNB_MASK				0x00000000
--#define DM1105_LNB_OFF				0x00020000
--#define DM1105_LNB_13V				0x00010100
--#define DM1105_LNB_18V				0x00000100
-+#define DM1105_LNB_MASK				(GPIO_ALL & ~(GPIO14 | GPIO13))
-+#define DM1105_LNB_OFF				GPIO17
-+#define DM1105_LNB_13V				(GPIO16 | GPIO08)
-+#define DM1105_LNB_18V				GPIO08
- 
- /* GPIO's for LNB power control for Axess DM05 */
--#define DM05_LNB_MASK				0x00000000
--#define DM05_LNB_OFF				0x00020000/* actually 13v */
--#define DM05_LNB_13V				0x00020000
--#define DM05_LNB_18V				0x00030000
-+#define DM05_LNB_MASK				(GPIO_ALL & ~(GPIO14 | GPIO13))
-+#define DM05_LNB_OFF				GPIO17/* actually 13v */
-+#define DM05_LNB_13V				GPIO17
-+#define DM05_LNB_18V				(GPIO17 | GPIO16)
-+
-+/* GPIO's for LNB power control for unbranded with I2C on GPIO */
-+#define UNBR_LNB_MASK				(GPIO17 | GPIO16)
-+#define UNBR_LNB_OFF				0
-+#define UNBR_LNB_13V				GPIO17
-+#define UNBR_LNB_18V				(GPIO17 | GPIO16)
- 
- static unsigned int card[]  = {[0 ... 3] = UNSET };
- module_param_array(card,  int, NULL, 0444);
-@@ -188,7 +206,11 @@
- DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- 
- struct dm1105_board {
--	char                    *name;
-+	char	*name;
-+	struct	{
-+		u32	mask, off, v13, v18;
-+	} lnb;
-+	u32	gpio_scl, gpio_sda;
- };
- 
- struct dm1105_subid {
-@@ -200,15 +222,50 @@
- static const struct dm1105_board dm1105_boards[] = {
- 	[DM1105_BOARD_UNKNOWN] = {
- 		.name		= "UNKNOWN/GENERIC",
-+		.lnb = {
-+			.mask = DM1105_LNB_MASK,
-+			.off = DM1105_LNB_OFF,
-+			.v13 = DM1105_LNB_13V,
-+			.v18 = DM1105_LNB_18V,
-+		},
- 	},
- 	[DM1105_BOARD_DVBWORLD_2002] = {
- 		.name		= "DVBWorld PCI 2002",
-+		.lnb = {
-+			.mask = DM1105_LNB_MASK,
-+			.off = DM1105_LNB_OFF,
-+			.v13 = DM1105_LNB_13V,
-+			.v18 = DM1105_LNB_18V,
-+		},
- 	},
- 	[DM1105_BOARD_DVBWORLD_2004] = {
- 		.name		= "DVBWorld PCI 2004",
-+		.lnb = {
-+			.mask = DM1105_LNB_MASK,
-+			.off = DM1105_LNB_OFF,
-+			.v13 = DM1105_LNB_13V,
-+			.v18 = DM1105_LNB_18V,
-+		},
- 	},
- 	[DM1105_BOARD_AXESS_DM05] = {
- 		.name		= "Axess/EasyTv DM05",
-+		.lnb = {
-+			.mask = DM05_LNB_MASK,
-+			.off = DM05_LNB_OFF,
-+			.v13 = DM05_LNB_13V,
-+			.v18 = DM05_LNB_18V,
-+		},
-+	},
-+	[DM1105_BOARD_UNBRANDED_I2C_ON_GPIO] = {
-+		.name		= "Unbranded DM1105 with i2c on GPIOs",
-+		.lnb = {
-+			.mask = UNBR_LNB_MASK,
-+			.off = UNBR_LNB_OFF,
-+			.v13 = UNBR_LNB_13V,
-+			.v18 = UNBR_LNB_18V,
-+		},
-+		.gpio_scl	= GPIO14,
-+		.gpio_sda	= GPIO13,
- 	},
- };
- 
-@@ -294,6 +351,8 @@
- 
- 	/* i2c */
- 	struct i2c_adapter i2c_adap;
-+	struct i2c_adapter i2c_bb_adap;
-+	struct i2c_algo_bit_data i2c_bit;
- 
- 	/* irq */
- 	struct work_struct work;
-@@ -329,6 +388,103 @@
- #define dm_setl(reg, bit)	dm_andorl((reg), (bit), (bit))
- #define dm_clearl(reg, bit)	dm_andorl((reg), (bit), 0)
- 
-+/* The chip has 18 GPIOs. In HOST mode GPIO's used as 15 bit address lines,
-+ so we can use only 3 GPIO's from GPIO15 to GPIO17.
-+ Here I don't check whether HOST is enebled as it is not implemented yet.
-+ */
-+static void dm1105_gpio_set(struct dm1105_dev *dev, u32 mask)
-+{
-+	if (mask & 0xfffc0000)
-+		printk(KERN_ERR "%s: Only 18 GPIO's are allowed\n", __func__);
-+
-+	if (mask & 0x0003ffff)
-+		dm_setl(DM1105_GPIOVAL, mask & 0x0003ffff);
-+
-+}
-+
-+static void dm1105_gpio_clear(struct dm1105_dev *dev, u32 mask)
-+{
-+	if (mask & 0xfffc0000)
-+		printk(KERN_ERR "%s: Only 18 GPIO's are allowed\n", __func__);
-+
-+	if (mask & 0x0003ffff)
-+		dm_clearl(DM1105_GPIOVAL, mask & 0x0003ffff);
-+
-+}
-+
-+static void dm1105_gpio_andor(struct dm1105_dev *dev, u32 mask, u32 val)
-+{
-+	if (mask & 0xfffc0000)
-+		printk(KERN_ERR "%s: Only 18 GPIO's are allowed\n", __func__);
-+
-+	if (mask & 0x0003ffff)
-+		dm_andorl(DM1105_GPIOVAL, mask & 0x0003ffff, val);
-+
-+}
-+
-+static u32 dm1105_gpio_get(struct dm1105_dev *dev, u32 mask)
-+{
-+	if (mask & 0xfffc0000)
-+		printk(KERN_ERR "%s: Only 18 GPIO's are allowed\n", __func__);
-+
-+	if (mask & 0x0003ffff)
-+		return dm_readl(DM1105_GPIOVAL) & mask & 0x0003ffff;
-+
-+	return 0;
-+}
-+
-+static void dm1105_gpio_enable(struct dm1105_dev *dev, u32 mask, int asoutput)
-+{
-+	if (mask & 0xfffc0000)
-+		printk(KERN_ERR "%s: Only 18 GPIO's are allowed\n", __func__);
-+
-+	if ((mask & 0x0003ffff) && asoutput)
-+		dm_clearl(DM1105_GPIOCTR, mask & 0x0003ffff);
-+	else if ((mask & 0x0003ffff) && !asoutput)
-+		dm_setl(DM1105_GPIOCTR, mask & 0x0003ffff);
-+
-+}
-+
-+static void dm1105_setline(struct dm1105_dev *dev, u32 line, int state)
-+{
-+	if (state)
-+		dm1105_gpio_enable(dev, line, 0);
-+	else {
-+		dm1105_gpio_enable(dev, line, 1);
-+		dm1105_gpio_clear(dev, line);
-+	}
-+}
-+
-+static void dm1105_setsda(void *data, int state)
-+{
-+	struct dm1105_dev *dev = data;
-+
-+	dm1105_setline(dev, dm1105_boards[dev->boardnr].gpio_sda, state);
-+}
-+
-+static void dm1105_setscl(void *data, int state)
-+{
-+	struct dm1105_dev *dev = data;
-+
-+	dm1105_setline(dev, dm1105_boards[dev->boardnr].gpio_scl, state);
-+}
-+
-+static int dm1105_getsda(void *data)
-+{
-+	struct dm1105_dev *dev = data;
-+
-+	return dm1105_gpio_get(dev, dm1105_boards[dev->boardnr].gpio_sda)
-+									? 1 : 0;
-+}
-+
-+static int dm1105_getscl(void *data)
-+{
-+	struct dm1105_dev *dev = data;
-+
-+	return dm1105_gpio_get(dev, dm1105_boards[dev->boardnr].gpio_scl)
-+									? 1 : 0;
-+}
-+
- static int dm1105_i2c_xfer(struct i2c_adapter *i2c_adap,
- 			    struct i2c_msg *msgs, int num)
- {
-@@ -440,31 +596,20 @@
- static int dm1105_set_voltage(struct dvb_frontend *fe, fe_sec_voltage_t voltage)
- {
- 	struct dm1105_dev *dev = frontend_to_dm1105_dev(fe);
--	u32 lnb_mask, lnb_13v, lnb_18v, lnb_off;
- 
--	switch (dev->boardnr) {
--	case DM1105_BOARD_AXESS_DM05:
--		lnb_mask = DM05_LNB_MASK;
--		lnb_off = DM05_LNB_OFF;
--		lnb_13v = DM05_LNB_13V;
--		lnb_18v = DM05_LNB_18V;
--		break;
--	case DM1105_BOARD_DVBWORLD_2002:
--	case DM1105_BOARD_DVBWORLD_2004:
--	default:
--		lnb_mask = DM1105_LNB_MASK;
--		lnb_off = DM1105_LNB_OFF;
--		lnb_13v = DM1105_LNB_13V;
--		lnb_18v = DM1105_LNB_18V;
--	}
--
--	dm_writel(DM1105_GPIOCTR, lnb_mask);
-+	dm1105_gpio_enable(dev, dm1105_boards[dev->boardnr].lnb.mask, 1);
- 	if (voltage == SEC_VOLTAGE_18)
--		dm_writel(DM1105_GPIOVAL, lnb_18v);
-+		dm1105_gpio_andor(dev,
-+				dm1105_boards[dev->boardnr].lnb.mask,
-+				dm1105_boards[dev->boardnr].lnb.v18);
- 	else if (voltage == SEC_VOLTAGE_13)
--		dm_writel(DM1105_GPIOVAL, lnb_13v);
-+		dm1105_gpio_andor(dev,
-+				dm1105_boards[dev->boardnr].lnb.mask,
-+				dm1105_boards[dev->boardnr].lnb.v13);
- 	else
--		dm_writel(DM1105_GPIOVAL, lnb_off);
-+		dm1105_gpio_andor(dev,
-+				dm1105_boards[dev->boardnr].lnb.mask,
-+				dm1105_boards[dev->boardnr].lnb.off);
- 
- 	return 0;
- }
-@@ -740,6 +885,38 @@
- 	int ret;
- 
- 	switch (dev->boardnr) {
-+	case DM1105_BOARD_UNBRANDED_I2C_ON_GPIO:
-+		dm1105_gpio_enable(dev, GPIO15, 1);
-+		dm1105_gpio_clear(dev, GPIO15);
-+		msleep(100);
-+		dm1105_gpio_set(dev, GPIO15);
-+		msleep(200);
-+		dev->fe = dvb_attach(
-+			stv0299_attach, &sharp_z0194a_config,
-+			&dev->i2c_bb_adap);
-+		if (dev->fe) {
-+			dev->fe->ops.set_voltage = dm1105_set_voltage;
-+			dvb_attach(dvb_pll_attach, dev->fe, 0x60,
-+					&dev->i2c_bb_adap, DVB_PLL_OPERA1);
-+			break;
-+		}
-+
-+		dev->fe = dvb_attach(
-+			stv0288_attach, &earda_config,
-+			&dev->i2c_bb_adap);
-+		if (dev->fe) {
-+			dev->fe->ops.set_voltage = dm1105_set_voltage;
-+			dvb_attach(stb6000_attach, dev->fe, 0x61,
-+					&dev->i2c_bb_adap);
-+			break;
-+		}
-+
-+		dev->fe = dvb_attach(
-+			si21xx_attach, &serit_config,
-+			&dev->i2c_bb_adap);
-+		if (dev->fe)
-+			dev->fe->ops.set_voltage = dm1105_set_voltage;
-+		break;
- 	case DM1105_BOARD_DVBWORLD_2004:
- 		dev->fe = dvb_attach(
- 			cx24116_attach, &serit_sp2633_config,
-@@ -903,11 +1080,33 @@
- 	if (ret < 0)
- 		goto err_dm1105_hw_exit;
- 
-+	i2c_set_adapdata(&dev->i2c_bb_adap, dev);
-+	strcpy(dev->i2c_bb_adap.name, DM1105_I2C_GPIO_NAME);
-+	dev->i2c_bb_adap.owner = THIS_MODULE;
-+	dev->i2c_bb_adap.class = I2C_CLASS_TV_DIGITAL;
-+	dev->i2c_bb_adap.dev.parent = &pdev->dev;
-+	dev->i2c_bb_adap.algo_data = &dev->i2c_bit;
-+	dev->i2c_bit.data = dev;
-+	dev->i2c_bit.setsda = dm1105_setsda;
-+	dev->i2c_bit.setscl = dm1105_setscl;
-+	dev->i2c_bit.getsda = dm1105_getsda;
-+	dev->i2c_bit.getscl = dm1105_getscl;
-+	dev->i2c_bit.udelay = 10;
-+	dev->i2c_bit.timeout = 10;
-+
-+	/* Raise SCL and SDA */
-+	dm1105_setsda(dev, 1);
-+	dm1105_setscl(dev, 1);
-+
-+	ret = i2c_bit_add_bus(&dev->i2c_bb_adap);
-+	if (ret < 0)
-+		goto err_i2c_del_adapter;
-+
- 	/* dvb */
- 	ret = dvb_register_adapter(&dev->dvb_adapter, DRIVER_NAME,
- 					THIS_MODULE, &pdev->dev, adapter_nr);
- 	if (ret < 0)
--		goto err_i2c_del_adapter;
-+		goto err_i2c_del_adapters;
- 
- 	dvb_adapter = &dev->dvb_adapter;
- 
-@@ -989,6 +1188,8 @@
- 	dvb_dmx_release(dvbdemux);
- err_dvb_unregister_adapter:
- 	dvb_unregister_adapter(dvb_adapter);
-+err_i2c_del_adapters:
-+	i2c_del_adapter(&dev->i2c_bb_adap);
- err_i2c_del_adapter:
- 	i2c_del_adapter(&dev->i2c_adap);
- err_dm1105_hw_exit:
-
-
-
---------------070700080707050908040704--
+Theodore Kilgore
