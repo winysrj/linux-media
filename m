@@ -1,96 +1,93 @@
 Return-path: <mchehab@pedra>
-Received: from qmta06.emeryville.ca.mail.comcast.net ([76.96.30.56]:59181 "EHLO
-	qmta06.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756593Ab0JEXqd (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:37402 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752774Ab0JSUvA convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Oct 2010 19:46:33 -0400
-Date: Tue, 5 Oct 2010 16:44:25 -0700
-From: matt mooney <mfm@muteddisk.com>
-To: Sam Ravnborg <sam@ravnborg.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michal Marek <mmarek@suse.cz>, linux-media@vger.kernel.org,
-	linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: Re: [RFC PATCH] media: consolidation of -I flags
-Message-ID: <20101005234425.GA18586@haskell.muteddisk.com>
-References: <1285534847-31463-1-git-send-email-mfm@muteddisk.com>
- <20101005142906.GA20059@merkur.ravnborg.org>
- <20101005192435.GA17798@haskell.muteddisk.com>
+	Tue, 19 Oct 2010 16:51:00 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20101005192435.GA17798@haskell.muteddisk.com>
+In-Reply-To: <201010191526.01887.arnd@arndb.de>
+References: <201009161632.59210.arnd@arndb.de>
+	<AANLkTi=oAeuz8ZxcOMpf=3MVY=WMt0BwHiGCUxO7OAEV@mail.gmail.com>
+	<201010190926.54635.arnd@arndb.de>
+	<201010191526.01887.arnd@arndb.de>
+Date: Wed, 20 Oct 2010 06:50:58 +1000
+Message-ID: <AANLkTinw=Wzh2Ucj6zKSoqC8J3Yq9xDr3mKMUB7K6Yyo@mail.gmail.com>
+Subject: Re: [Ksummit-2010-discuss] [v2] Remaining BKL users, what to do
+From: Dave Airlie <airlied@gmail.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Steven Rostedt <rostedt@goodmis.org>, Greg KH <greg@kroah.com>,
+	codalist@telemann.coda.cs.cmu.edu, autofs@linux.kernel.org,
+	Samuel Ortiz <samuel@sortiz.org>, Jan Kara <jack@suse.cz>,
+	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
+	Jan Harkes <jaharkes@cs.cmu.edu>, netdev@vger.kernel.org,
+	Anders Larsen <al@alarsen.net>, linux-kernel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	Bryan Schumaker <bjschuma@netapp.com>,
+	Christoph Hellwig <hch@infradead.org>,
+	ksummit-2010-discuss@lists.linux-foundation.org,
+	Petr Vandrovec <vandrove@vc.cvut.cz>,
+	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
+	linux-fsdevel@vger.kernel.org,
+	Evgeniy Dushistov <dushistov@mail.ru>,
+	Ingo Molnar <mingo@elte.hu>,
+	Andrew Hendry <andrew.hendry@gmail.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 12:24 Tue 05 Oct     , matt mooney wrote:
-> On 16:29 Tue 05 Oct     , Sam Ravnborg wrote:
-> > On Sun, Sep 26, 2010 at 02:00:47PM -0700, matt mooney wrote:
-> > > I have been doing cleanup of makefiles, namely replacing the older style
-> > > compilation flag variables with the newer style. While doing this, I
-> > > noticed that the majority of drivers in the media subsystem seem to rely
-> > > on a few core header files:
-> > > 
-> > > 	-Idrivers/media/video
-> > > 	-Idrivers/media/common/tuners
-> > > 	-Idrivers/media/dvb/dvb-core
-> > > 	-Idrivers/media/dvb/frontends
-> > > 
-> > > This patch removes them from the individual makefiles and puts them in
-> > > the main makefile under media.
-> > Using subdir-ccflags-y has one drawback you need to be aware of.
-> > The variable is _not_ picked up if you build individual drivers like
-> > this:
-> > 
-> > 
-> >      make drivers/media/dvb/b2c2/
-> > 
-> > So with this patch applied it is no longer possible to do so.
-> > It is better to accept the duplication rather than breaking
-> > the build of individual drivers.
-> 
-> Ah, I was not aware of that, and I forgot to test for that case.
-> 
-> > > 
-> > > If neither idea is considered beneficial, I will go ahead and replace
-> > > the older variables with the newer ones as is.
-> > 
-> > This is the right approach.
-> > 
-> > You could consider to do a more general cleanup:
-> > 1) replace EXTRA_CFLAGS with ccflags-y (the one you suggest)
-> > 2) replace use of <module>-objs with <module>-y
-> > 3) break continued lines into several assignments
-> >    People very often uses '\' to break long lines, where a
-> >    simple += would be much more readable.
-> >    But this topic may be personal - I never uses "\" in my .c code unless in macros,
-> >    and I have applied the same rule for Makefiles.
-> >    An ugly example is drivers/media/Makefile
-> > 4) In general use ":=" instead of "=".
-> >    Add using "+=" as first assignment is OK - but it just looks plain wrong
-> > 5) some files has a mixture of spaces/tabs (are red in my vim)
-> >    dvb-core/Makefile is one such example
-> > 6) remove useless stuff
-> >    siano/Makefile has some strange assignments to EXTRA_CFLAGS
-> > 7) Likely a few more items to look after...
-> > 
-> > This is more work - but then you finish a Makefile rather than doing a simple
-> > conversion.
-> 
-> I agree with all your points above; however, I was unsure of whether a wholesale
-> cleanup would be welcomed because I would then end up touching numerous lines
-> (and in some cases, possibly all lines). I did notice, though, the need for
-> quite a bit of cleanup like you have mentioned, and I have a few patches queued
-> up that make a second pass on some files changing <module>-objs to
-> <module>-y. You know better than I do, so if you feel I should cleanup the whole
-> file in one patch, then that is what I will do although this will take some
-> time.
-> 
-> Is the use of <module>-objs deprecated? Some people might wonder why I am
-> changing that when they are not building a multisource object.
+On Tue, Oct 19, 2010 at 11:26 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Tuesday 19 October 2010, Arnd Bergmann wrote:
+>> On Tuesday 19 October 2010 06:52:32 Dave Airlie wrote:
+>> > > I might be able to find some hardware still lying around here that uses an
+>> > > i810. Not sure unless I go hunting it. But I get the impression that if
+>> > > the kernel is a single-CPU kernel there is not any problem anyway? Don't
+>> > > distros offer a non-smp kernel as an installation option in case the user
+>> > > needs it? So in reality how big a problem is this?
+>> >
+>> > Not anymore, which is my old point of making a fuss. Nowadays in the
+>> > modern distro world, we supply a single kernel that can at runtime
+>> > decide if its running on SMP or UP and rewrite the text section
+>> > appropriately with locks etc. Its like magic, and something like
+>> > marking drivers as BROKEN_ON_SMP at compile time is really wrong when
+>> > what you want now is a runtime warning if someone tries to hotplug a
+>> > CPU with a known iffy driver loaded or if someone tries to load the
+>> > driver when we are already in SMP mode.
+>>
+>> We could make the driver run-time non-SMP by adding
+>>
+>>       if (num_present_cpus() > 1) {
+>>               pr_err("i810 no longer supports SMP\n");
+>>               return -EINVAL;
+>>       }
+>>
+>> to the init function. That would cover the vast majority of the
+>> users of i810 hardware, I guess.
+>
+> Some research showed that Intel never support i810/i815 SMP setups,
+> but there was indeed one company (http://www.acorpusa.com at the time,
+> now owned by a domain squatter) that made i815E based dual Pentium-III
+> boards like this one: http://cgi.ebay.com/280319795096
 
-I just realized I stated that wrong. I meant when they are not using a
-conditional inclusion of sources.
+Also that board has no on-board GPU enabled i815EP (P means no on-board GPU).
 
-Thanks,
-mfm
+So I think i810 is fine.
+>
+> The first person that can send me an authentic log file showing the
+> use of X.org with DRM on a 2.6.35 kernel with two processors on that
+> mainboard dated today or earlier gets a free upgrade to an AGP graphics
+> card of comparable or better 3D performance from me. Please include
+> the story how why you are running this machine with a new kernel.
+>
+> i830 is harder, apparently some i865G boards support Pentium 4 with HT
+> and even later dual-core processors.
+
+Also hyper-threaded 845G boards, however I'm happy to start a proper
+deprecation procedure on the i830 ABI,
+Its been a few years since a distro shipped with it, I think even
+RHEL5 has the i915 driver enabled, so we are
+probably talking RHEL4 era.
+
+Dave.
