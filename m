@@ -1,84 +1,93 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.samsung.com ([203.254.224.34]:20920 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753198Ab0JTOat (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:60685 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752049Ab0JSUrK convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Oct 2010 10:30:49 -0400
-Date: Wed, 20 Oct 2010 16:30:42 +0200
-From: Kamil Debski <k.debski@samsung.com>
-Subject: RE: [PATCH 3/4] MFC: Add MFC 5.1 V4L2 driver
-In-reply-to: <002f01cb6e9e$b4ce2cd0$1e6a8670$%oh@samsung.com>
-To: jaeryul.oh@samsung.com, linux-media@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	kyungmin.park@samsung.com, kgene.kim@samsung.com
-Message-id: <000201cb7063$63119140$2934b3c0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: en-us
-Content-transfer-encoding: 7BIT
-References: <1286968160-10629-1-git-send-email-k.debski@samsung.com>
- <1286968160-10629-4-git-send-email-k.debski@samsung.com>
- <002f01cb6e9e$b4ce2cd0$1e6a8670$%oh@samsung.com>
+	Tue, 19 Oct 2010 16:47:10 -0400
+Received: by ywi6 with SMTP id 6so1547849ywi.19
+        for <linux-media@vger.kernel.org>; Tue, 19 Oct 2010 13:47:10 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201010192227.39364.hverkuil@xs4all.nl>
+References: <B757CA7E-493B-44D6-8CE5-2F7AED446D70@gmail.com>
+	<AANLkTim+QfU5hJwi_DkdpnAvUWSOLdEM5kXoTDK5+tsy@mail.gmail.com>
+	<201010192227.39364.hverkuil@xs4all.nl>
+Date: Tue, 19 Oct 2010 16:47:09 -0400
+Message-ID: <AANLkTim8BZvyxbj9SV3rNi0sSpnjX8WneCjAu5XxN0ve@mail.gmail.com>
+Subject: Re: rtl2832u support
+From: Alex Deucher <alexdeucher@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Damjan Marion <damjan.marion@gmail.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
->Hi, Kamil
->This is third feedback about watchdog timer. 
->(s5p_mfc.c)
-
-Hi, Peter
-
-Thanks for pointing that out, enabling and disabling watchdog in
-open/release is reasonable.
-
->[...]
-
->> +	platform_set_drvdata(pdev, dev);
->> +	dev->hw_lock = 0;
->> +	dev->watchdog_workqueue = create_singlethread_workqueue("s5p-mfc");
->> +	INIT_WORK(&dev->watchdog_work, s5p_mfc_watchdog_worker);
->> +	atomic_set(&dev->watchdog_cnt, 0);
->> +	init_timer(&dev->watchdog_timer);
->> +	dev->watchdog_timer.data = 0;
->> +	dev->watchdog_timer.function = s5p_mfc_watchdog;
->> +	dev->watchdog_timer.expires = jiffies +
->> + msecs_to_jiffies(MFC_WATCHDOG_INTERVAL);
->> +	add_timer(&dev->watchdog_timer);
-
->Watch_dog single thread runs right after probing MFC, but this doesn't look
->like
->nice way in terms of purpose of this timer which is for error handling in
->the 
->middle of decoding. What about moving point running this timer to the
->open().
->And it should be stopped in release time. Of course, dev->num_inst should
->be 
->considered.
-
-Yes, I agree. I've changed that.
-
-> 
->> +
->> +	dev->alloc_ctx = vb2_cma_init_multi(&pdev->dev, 2, s5p_mem_types,
->> +							s5p_mem_alignments);
->> +	if (IS_ERR(dev->alloc_ctx)) {
->> +		mfc_err("Couldn't prepare allocator context.\n");
->> +		ret = PTR_ERR(dev->alloc_ctx);
->> +		goto alloc_ctx_fail;
->> +	}
->> +
->> +	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
->> +	if (ret) {
->> +		v4l2_err(&dev->v4l2_dev, "Failed to register video
->> device\n");
->> +		video_device_release(vfd);
->> +		goto rel_vdev;
->> +	}
+On Tue, Oct 19, 2010 at 4:27 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Tuesday, October 19, 2010 21:26:13 Devin Heitmueller wrote:
+>> On Tue, Oct 19, 2010 at 1:42 PM, Damjan Marion <damjan.marion@gmail.com> wrote:
+>> >
+>> > Hi,
+>> >
+>> > Is there any special reason why driver for rtl2832u DVB-T receiver chipset is not included into v4l-dvb?
+>> >
+>> > Realtek published source code under GPL:
+>> >
+>> > MODULE_AUTHOR("Realtek");
+>> > MODULE_DESCRIPTION("Driver for the RTL2832U DVB-T / RTL2836 DTMB USB2.0 device");
+>> > MODULE_VERSION("1.4.2");
+>> > MODULE_LICENSE("GPL");
 >>
+>> Unfortunately, in most cases much more is "required" than having a
+>> working driver under the GPL in order for it to be accepted upstream.
+>> In some cases it can mean a developer spending a few hours cleaning up
+>> whitespace and indentation, and in other cases it means significant
+>> work to the driver is required.
+>>
+>> The position the LinuxTV team has taken is that they would rather have
+>> no upstream driver at all than to have a driver which doesn't have the
+>> right indentation or other aesthetic problems which has no bearing on
+>> how well the driver actually works.
+>>
+>> This is one of the big reasons KernelLabs has tens of thousands of
+>> lines of code adding support for a variety of devices with many happy
+>> users (who are willing to go through the trouble to compile from
+>> source), but the code cannot be accepted upstream.  I just cannot find
+>> the time to do the "idiot work".
+>
+> Bullshit. First of all these rules are those of the kernel community
+> as a whole and *not* linuxtv as such, and secondly you can upstream such
+> drivers in the staging tree. If you want to move it out of staging, then
+> it will take indeed more work since the quality requirements are higher
+> there.
+>
+> Them's the rules for kernel development.
+>
+> I've done my share of coding style cleanups. I never understand why people
+> dislike doing that. In my experience it always greatly improves the code
+> (i.e. I can actually understand it) and it tends to highlight the remaining
+> problematic areas in the driver.
+>
+> Of course, I can also rant for several paragraphs about companies throwing
+> code over the wall without bothering to actually do the remaining work to
+> get it mainlined. The very least they can do is to sponsor someone to do the
+> work for them.
 
---
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
+To start, I appreciate the kernel coding style requirements.  I think
+it makes the code much easier to read and more consistent across the
+kernel tree.  But, just to play devil's advocate, it's a fair amount
+of work to write a driver especially if the hw is complex.  It's much
+easier to share a common codebase between different OSs because to
+reduces the maintenance burden and makes it easier to support new asic
+variants.  This is especially true if you are a small company with
+limited resources.  It annoys me somewhat when IHVs put in the effort
+to actually produce a GPLed Linux driver and the community shits on
+them for not writing it from scratch to match the kernel style
+requirements.  Lets face it, there are a lot of hw specs out there
+with no driver.  A working driver with source is vastly more useful.
+It would be nice if every company out there had the resources to
+develop a nice clean native Linux driver, but right now that's not
+always the case.
 
+Alex
