@@ -1,67 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from mtaout01-winn.ispmail.ntl.com ([81.103.221.47]:22980 "EHLO
-	mtaout01-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759611Ab0JHVFm (ORCPT
+Received: from mtaout02-winn.ispmail.ntl.com ([81.103.221.48]:10322 "EHLO
+	mtaout02-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757914Ab0JSVYO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Oct 2010 17:05:42 -0400
+	Tue, 19 Oct 2010 17:24:14 -0400
 From: Daniel Drake <dsd@laptop.org>
 To: corbet@lwn.net
 To: mchehab@infradead.org
 Cc: linux-media@vger.kernel.org
-Subject: [PATCH 3/3] ov7670: Support customization of clock speed
-Message-Id: <20101008210433.126649D401B@zog.reactivated.net>
-Date: Fri,  8 Oct 2010 22:04:32 +0100 (BST)
+Subject: [PATCH 1/2] ov7670: allow configuration of image size, clock speed, and I/O method
+Message-Id: <20101019212405.85C279D401B@zog.reactivated.net>
+Date: Tue, 19 Oct 2010 22:24:05 +0100 (BST)
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-For accurate frame rate limiting, we need to know the speed of the external
-clock wired into the ov7670 chip.
+These parameters need to be configurable based on the host system.
+They can now be communicated through the s_config call.
 
-Add a module parameter so that the user can specify this information.
-And add DMI detection for appropriate clock speeds on the OLPC XO-1 and
-XO-1.5 laptops. If specified, the module parameter wins over whatever we
-might have set through the DMI table.
+The old CONFIG_OLPC_XO_1 selector was not correct; this kind of
+arrangement wouldn't allow for a universal kernel that would work on both
+laptops.
 
-Based on earlier work by Jonathan Corbet.
+Certain parts of the probe routine had to be moved later (into s_config),
+because we can't do any I/O until we know which I/O method has been
+selected through this mechanism.
 
 Signed-off-by: Daniel Drake <dsd@laptop.org>
 ---
- drivers/media/video/ov7670.c |   71 ++++++++++++++++++++++++++++++++++++-----
- 1 files changed, 62 insertions(+), 9 deletions(-)
+ drivers/media/video/ov7670.c |  133 ++++++++++++++++++++++++++++++------------
+ drivers/media/video/ov7670.h |   20 ++++++
+ 2 files changed, 115 insertions(+), 38 deletions(-)
+ create mode 100644 drivers/media/video/ov7670.h
 
 diff --git a/drivers/media/video/ov7670.c b/drivers/media/video/ov7670.c
-index 9fffcdd..c4d9ed0 100644
+index 0b78f33..c881a64 100644
 --- a/drivers/media/video/ov7670.c
 +++ b/drivers/media/video/ov7670.c
-@@ -16,6 +16,7 @@
- #include <linux/i2c.h>
- #include <linux/delay.h>
- #include <linux/videodev2.h>
-+#include <linux/dmi.h>
- #include <media/v4l2-device.h>
+@@ -20,6 +20,7 @@
  #include <media/v4l2-chip-ident.h>
  #include <media/v4l2-mediabus.h>
-@@ -30,6 +31,19 @@ module_param(debug, bool, 0644);
- MODULE_PARM_DESC(debug, "Debug level (0-1)");
  
- /*
-+ * What is our fastest frame rate?  It's a function of how the chip
-+ * is clocked, and this is an external clock, so we don't know. If we have
-+ * a DMI entry describing the platform, use it. If not, assume 30. In both
-+ * cases, accept override from a module parameter.
-+ */
-+static int clock_speed = 30;
-+static bool clock_speed_from_param = false;
-+static int set_clock_speed_from_param(const char *val, struct kernel_param *kp);
-+module_param_call(clock_speed, set_clock_speed_from_param, param_get_int,
-+		  &clock_speed, 0440);
-+MODULE_PARM_DESC(clock_speed, "External clock speed (Hz)");
-+
-+/*
-  * Basic window sizes.  These probably belong somewhere more globally
-  * useful.
-  */
-@@ -43,11 +57,6 @@ MODULE_PARM_DESC(debug, "Debug level (0-1)");
++#include "ov7670.h"
+ 
+ MODULE_AUTHOR("Jonathan Corbet <corbet@lwn.net>");
+ MODULE_DESCRIPTION("A low-level driver for OmniVision ov7670 sensors");
+@@ -43,11 +44,6 @@ MODULE_PARM_DESC(debug, "Debug level (0-1)");
  #define	QCIF_HEIGHT	144
  
  /*
@@ -73,66 +56,102 @@ index 9fffcdd..c4d9ed0 100644
   * The 7670 sits on i2c with ID 0x42
   */
  #define OV7670_I2C_ADDR 0x42
-@@ -188,6 +197,44 @@ MODULE_PARM_DESC(debug, "Debug level (0-1)");
- #define REG_HAECC7	0xaa	/* Hist AEC/AGC control 7 */
- #define REG_BD60MAX	0xab	/* 60hz banding step limit */
+@@ -198,7 +194,11 @@ struct ov7670_info {
+ 	struct ov7670_format_struct *fmt;  /* Current format */
+ 	unsigned char sat;		/* Saturation value */
+ 	int hue;			/* Hue value */
++	int min_width;			/* Filter out smaller sizes */
++	int min_height;			/* Filter out smaller sizes */
++	int clock_speed;		/* External clock speed (MHz) */
+ 	u8 clkrc;			/* Clock divider value */
++	bool use_smbus;			/* Use smbus I/O instead of I2C */
+ };
  
-+static int set_clock_speed_from_param(const char *val, struct kernel_param *kp)
+ static inline struct ov7670_info *to_state(struct v4l2_subdev *sd)
+@@ -415,8 +415,7 @@ static struct regval_list ov7670_fmt_raw[] = {
+  * ov7670 is not really an SMBUS device, though, so the communication
+  * is not always entirely reliable.
+  */
+-#ifdef CONFIG_OLPC_XO_1
+-static int ov7670_read(struct v4l2_subdev *sd, unsigned char reg,
++static int ov7670_read_smbus(struct v4l2_subdev *sd, unsigned char reg,
+ 		unsigned char *value)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+@@ -431,7 +430,7 @@ static int ov7670_read(struct v4l2_subdev *sd, unsigned char reg,
+ }
+ 
+ 
+-static int ov7670_write(struct v4l2_subdev *sd, unsigned char reg,
++static int ov7670_write_smbus(struct v4l2_subdev *sd, unsigned char reg,
+ 		unsigned char value)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+@@ -442,11 +441,10 @@ static int ov7670_write(struct v4l2_subdev *sd, unsigned char reg,
+ 	return ret;
+ }
+ 
+-#else /* ! CONFIG_OLPC_XO_1 */
+ /*
+  * On most platforms, we'd rather do straight i2c I/O.
+  */
+-static int ov7670_read(struct v4l2_subdev *sd, unsigned char reg,
++static int ov7670_read_i2c(struct v4l2_subdev *sd, unsigned char reg,
+ 		unsigned char *value)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+@@ -479,7 +477,7 @@ static int ov7670_read(struct v4l2_subdev *sd, unsigned char reg,
+ }
+ 
+ 
+-static int ov7670_write(struct v4l2_subdev *sd, unsigned char reg,
++static int ov7670_write_i2c(struct v4l2_subdev *sd, unsigned char reg,
+ 		unsigned char value)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+@@ -498,8 +496,26 @@ static int ov7670_write(struct v4l2_subdev *sd, unsigned char reg,
+ 		msleep(5);  /* Wait for reset to run */
+ 	return ret;
+ }
+-#endif /* CONFIG_OLPC_XO_1 */
+ 
++static int ov7670_read(struct v4l2_subdev *sd, unsigned char reg,
++		unsigned char *value)
 +{
-+	int ret = param_set_int(val, kp);
-+	if (ret == 0)
-+		clock_speed_from_param = true;
-+	return ret;
++	struct ov7670_info *info = to_state(sd);
++	if (info->use_smbus)
++		return ov7670_read_smbus(sd, reg, value);
++	else
++		return ov7670_read_i2c(sd, reg, value);
 +}
 +
-+static int __init set_clock_speed_from_dmi(const struct dmi_system_id *dmi)
++static int ov7670_write(struct v4l2_subdev *sd, unsigned char reg,
++		unsigned char value)
 +{
-+	if (clock_speed_from_param)
-+		return 0; /* module param beats DMI */
-+
-+	clock_speed = (int) dmi->driver_data;
-+	return 0;
++	struct ov7670_info *info = to_state(sd);
++	if (info->use_smbus)
++		return ov7670_write_smbus(sd, reg, value);
++	else
++		return ov7670_write_i2c(sd, reg, value);
 +}
-+
-+static const struct dmi_system_id __initconst dmi_clock_speeds[] = {
-+	{
-+		.callback = set_clock_speed_from_dmi,
-+		.driver_data = (void *) 45,
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "OLPC"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "XO"),
-+			DMI_MATCH(DMI_PRODUCT_VERSION, "1"),
-+		},
-+	},
-+	{
-+		.callback = set_clock_speed_from_dmi,
-+		.driver_data = (void *) 90,
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "OLPC"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "XO"),
-+			DMI_MATCH(DMI_PRODUCT_VERSION, "1.5"),
-+		},
-+	},
-+	{ }
-+};
  
  /*
-  * Information we maintain about a known sensor.
-@@ -861,7 +908,7 @@ static int ov7670_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
+  * Write a list of register settings; ff/ff stops the process.
+@@ -854,7 +870,7 @@ static int ov7670_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
  	memset(cp, 0, sizeof(struct v4l2_captureparm));
  	cp->capability = V4L2_CAP_TIMEPERFRAME;
  	cp->timeperframe.numerator = 1;
 -	cp->timeperframe.denominator = OV7670_FRAME_RATE;
-+	cp->timeperframe.denominator = clock_speed;
++	cp->timeperframe.denominator = info->clock_speed;
  	if ((info->clkrc & CLK_EXT) == 0 && (info->clkrc & CLK_SCALE) > 1)
  		cp->timeperframe.denominator /= (info->clkrc & CLK_SCALE);
  	return 0;
-@@ -882,14 +929,14 @@ static int ov7670_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
+@@ -875,14 +891,14 @@ static int ov7670_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
  	if (tpf->numerator == 0 || tpf->denominator == 0)
  		div = 1;  /* Reset to full rate */
  	else
 -		div = (tpf->numerator*OV7670_FRAME_RATE)/tpf->denominator;
-+		div = (tpf->numerator*clock_speed)/tpf->denominator;
++		div = (tpf->numerator * info->clock_speed) / tpf->denominator;
  	if (div == 0)
  		div = 1;
  	else if (div > CLK_SCALE)
@@ -140,35 +159,160 @@ index 9fffcdd..c4d9ed0 100644
  	info->clkrc = (info->clkrc & 0x80) | div;
  	tpf->numerator = 1;
 -	tpf->denominator = OV7670_FRAME_RATE/div;
-+	tpf->denominator = clock_speed/div;
++	tpf->denominator = info->clock_speed / div;
  	return ov7670_write(sd, REG_CLKRC, info->clkrc);
  }
  
-@@ -1510,10 +1557,15 @@ static int ov7670_probe(struct i2c_client *client,
- 	}
- 	v4l_info(client, "chip found @ 0x%02x (%s)\n",
- 			client->addr << 1, client->adapter->name);
+@@ -912,14 +928,30 @@ static int ov7670_enum_frameintervals(struct v4l2_subdev *sd,
+ static int ov7670_enum_framesizes(struct v4l2_subdev *sd,
+ 		struct v4l2_frmsizeenum *fsize)
+ {
++	struct ov7670_info *info = to_state(sd);
++	int i;
++	int num_valid = -1;
+ 	__u32 index = fsize->index;
+-	if (index >= N_WIN_SIZES)
+-		return -EINVAL;
+ 
+-	fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
+-	fsize->discrete.width = ov7670_win_sizes[index].width;
+-	fsize->discrete.height = ov7670_win_sizes[index].height;
+-	return 0;
 +	/*
-+	 * Make sure the clock speed is rational.
++	 * If a minimum width/height was requested, filter out the capture
++	 * windows that fall outside that.
 +	 */
-+	if (clock_speed < 1 || clock_speed > 100)
-+		clock_speed = 30;
++	for (i = 0; i < N_WIN_SIZES; i++) {
++		struct ov7670_win_size *win = &ov7670_win_sizes[index];
++		if (info->min_width && win->width < info->min_width)
++			continue;
++		if (info->min_height && win->height < info->min_height)
++			continue;
++		if (index == ++num_valid) {
++			fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
++			fsize->discrete.width = win->width;
++			fsize->discrete.height = win->height;
++			return 0;
++		}
++	}
++
++	return -EINVAL;
+ }
  
- 	info->fmt = &ov7670_formats[0];
- 	info->sat = 128;	/* Review this */
+ /*
+@@ -1417,6 +1449,47 @@ static int ov7670_g_chip_ident(struct v4l2_subdev *sd,
+ 	return v4l2_chip_ident_i2c_client(client, chip, V4L2_IDENT_OV7670, 0);
+ }
+ 
++static int ov7670_s_config(struct v4l2_subdev *sd, int dumb, void *data)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct ov7670_config *config = data;
++	struct ov7670_info *info = to_state(sd);
++	int ret;
++
++	info->clock_speed = 30; /* default: a guess */
++
++	/*
++	 * Must apply configuration before initializing device, because it
++	 * selects I/O method.
++	 */
++	if (config) {
++		info->min_width = config->min_width;
++		info->min_height = config->min_height;
++		info->use_smbus = config->use_smbus;
++
++		if (config->clock_speed)
++			info->clock_speed = config->clock_speed;
++	}
++
++	/* Make sure it's an ov7670 */
++	ret = ov7670_detect(sd);
++	if (ret) {
++		v4l_dbg(1, debug, client,
++			"chip found @ 0x%x (%s) is not an ov7670 chip.\n",
++			client->addr << 1, client->adapter->name);
++		kfree(info);
++		return ret;
++	}
++	v4l_info(client, "chip found @ 0x%02x (%s)\n",
++			client->addr << 1, client->adapter->name);
++
++	info->fmt = &ov7670_formats[0];
++	info->sat = 128;	/* Review this */
++	info->clkrc = info->clock_speed / 30;
++
++	return 0;
++}
++
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ static int ov7670_g_register(struct v4l2_subdev *sd, struct v4l2_dbg_register *reg)
+ {
+@@ -1455,6 +1528,7 @@ static const struct v4l2_subdev_core_ops ov7670_core_ops = {
+ 	.s_ctrl = ov7670_s_ctrl,
+ 	.queryctrl = ov7670_queryctrl,
+ 	.reset = ov7670_reset,
++	.s_config = ov7670_s_config,
+ 	.init = ov7670_init,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.g_register = ov7670_g_register,
+@@ -1484,7 +1558,6 @@ static int ov7670_probe(struct i2c_client *client,
+ {
+ 	struct v4l2_subdev *sd;
+ 	struct ov7670_info *info;
+-	int ret;
+ 
+ 	info = kzalloc(sizeof(struct ov7670_info), GFP_KERNEL);
+ 	if (info == NULL)
+@@ -1492,22 +1565,6 @@ static int ov7670_probe(struct i2c_client *client,
+ 	sd = &info->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &ov7670_ops);
+ 
+-	/* Make sure it's an ov7670 */
+-	ret = ov7670_detect(sd);
+-	if (ret) {
+-		v4l_dbg(1, debug, client,
+-			"chip found @ 0x%x (%s) is not an ov7670 chip.\n",
+-			client->addr << 1, client->adapter->name);
+-		kfree(info);
+-		return ret;
+-	}
+-	v4l_info(client, "chip found @ 0x%02x (%s)\n",
+-			client->addr << 1, client->adapter->name);
+-
+-	info->fmt = &ov7670_formats[0];
+-	info->sat = 128;	/* Review this */
 -	info->clkrc = 1;	/* 30fps */
-+	info->clkrc = clock_speed / 30;
- 
+-
  	return 0;
  }
-@@ -1546,6 +1598,7 @@ static struct i2c_driver ov7670_driver = {
  
- static __init int init_ov7670(void)
- {
-+	dmi_check_system(dmi_clock_speeds);
- 	return i2c_add_driver(&ov7670_driver);
- }
- 
+diff --git a/drivers/media/video/ov7670.h b/drivers/media/video/ov7670.h
+new file mode 100644
+index 0000000..b133bc1
+--- /dev/null
++++ b/drivers/media/video/ov7670.h
+@@ -0,0 +1,20 @@
++/*
++ * A V4L2 driver for OmniVision OV7670 cameras.
++ *
++ * Copyright 2010 One Laptop Per Child
++ *
++ * This file may be distributed under the terms of the GNU General
++ * Public License, version 2.
++ */
++
++#ifndef __OV7670_H
++#define __OV7670_H
++
++struct ov7670_config {
++	int min_width;			/* Filter out smaller sizes */
++	int min_height;			/* Filter out smaller sizes */
++	int clock_speed;		/* External clock speed (MHz) */
++	bool use_smbus;			/* Use smbus I/O instead of I2C */
++};
++
++#endif
 -- 
 1.7.2.3
 
