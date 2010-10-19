@@ -1,21 +1,22 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.11])
-	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o9DMEjI4011439
-	for <video4linux-list@redhat.com>; Wed, 13 Oct 2010 18:14:45 -0400
-Received: from mail-yx0-f174.google.com (mail-yx0-f174.google.com
-	[209.85.213.174])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o9DMEXHd023185
-	for <video4linux-list@redhat.com>; Wed, 13 Oct 2010 18:14:33 -0400
-Received: by yxm8 with SMTP id 8so1699982yxm.33
-	for <video4linux-list@redhat.com>; Wed, 13 Oct 2010 15:14:33 -0700 (PDT)
+Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.5])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o9JLsoI5014870
+	for <video4linux-list@redhat.com>; Tue, 19 Oct 2010 17:54:50 -0400
+Received: from mail.suremessenger.com (mail.suremessenger.com [12.5.48.16])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o9JLsZEv011704
+	for <video4linux-list@redhat.com>; Tue, 19 Oct 2010 17:54:35 -0400
+Received: from [206.248.194.3] (account freds@adiengineering.com HELO
+	[192.0.0.58]) by mail.suremessenger.com (CommuniGate Pro SMTP 4.1.8)
+	with ESMTP id 205106066 for video4linux-list@redhat.com;
+	Tue, 19 Oct 2010 17:54:34 -0400
+Message-ID: <4CBE139C.8000508@adiengineering.com>
+Date: Tue, 19 Oct 2010 17:54:36 -0400
+From: Fred Seward <fred.seward@adiengineering.com>
 MIME-Version: 1.0
-Date: Wed, 13 Oct 2010 19:14:32 -0300
-Message-ID: <AANLkTikF2wTZesbRo+EP9r8oC7m_R6orkWJuh-6BiYAM@mail.gmail.com>
-Subject: Add support to TW800X Capture Card
-From: Raul Almeida <rcaj.dev@gmail.com>
 To: video4linux-list@redhat.com
+Subject: cx23888 board setup
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -23,55 +24,62 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: video4linux-list-bounces@redhat.com
 Sender: <mchehab@pedra>
 List-ID: <video4linux-list@redhat.com>
 
-I'll post some more info.
-The chipsets are 4 conexant fusion 878A.
-As far as I research I need to figure out a way to switch channels by
-defining a custom xxx_muxsel function.
-I collected some data from regspy..
+We have a custom x86 board with:
 
-Note that I have 2 boards connected to my system.
+    - A soldered down cx23888
 
-GPIO_DATA
-CARD0
-00335FF8|00335FF9|00335FFA|00335FFB
-CARD1
-00738FFC|00738FFD|00738FFE|00738FFF
-CARD2
-008F8FF8|008F8FF9|008F8FFA|008F8FFB
-CARD3
-00CF0FFC|00CF0FFD|00CF0FFE|00CF0FFF
-CARD4
-000F8FF8|000F8FF9|000F8FFA|000F8FFB
-CARD5
-004F0FFC|004F0FFD|004F0FFE|004F0FFF
-CARD6
-00B30FFC|00B30FFD|00B30FFE|00B30FFF
-CARD7
-00F30FF8|00F30FF9|00F30FFA|00F30FFB
+    - Four composite inputs feeding the cx23888. No tuner.
+      We're only looking at the four composite inputs.
 
-INT_MASK
-00000800
+    - FC13 with a 2.6.33.4 kernel.
 
-GPIO_DMA_CTL
-C003
+The cx23885 driver loads and I get /dev/video0 but when I try to
+cat /dev/video0 I get data but it's not an mpeg file.
 
-GPIO_OUT_EN
-003C7007
+Can anyone point me to some documentation which tells how to set
+up the cx23885_board board structure and what other
+initialization might need to be done?
 
-I also found a card sold in Russia that I think mind have same components of
-mine.
-It is ORIENT SDVR-1604.
 
-This guy is looking for the same solution I am.
-http://www.zoneminder.com/forums/viewtopic.php?p=39287&sid=e5dde89bd0d99637e9f202b7ea0eee72
+In the cx23885 driver I modified cx23885-cards.c to add an
+entry for our hardware.
 
-Thank you all.
+struct cx23885_board cx23885_boards[] = {
+
+   [CX23885_BOARD_ECU] = {
+       .name       = "custom board",
+       .porta      = CX23885_ANALOG_VIDEO,
+       .portb      = CX23885_MPEG_ENCODER,
+       .clk_freq   = 50000000,
+       .input          = {{
+           .type   = CX23885_VMUX_COMPOSITE1,
+           .vmux   = 0,
+       }, {
+           .type   = CX23885_VMUX_COMPOSITE2,
+           .vmux   = 1,
+       }, {
+           .type   = CX23885_VMUX_COMPOSITE3,
+           .vmux   = 2,
+       }, {
+           .type   = CX23885_VMUX_COMPOSITE4,
+           .vmux   = 3,
+       } },
+   },
+
+cx23885_subids
+
+   }, {
+       .subvendor = 0x0000,
+       .subdevice = 0x0000,
+       .card      = CX23885_BOARD_ECU,
+   }, {
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
