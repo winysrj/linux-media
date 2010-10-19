@@ -1,52 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:47984 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750965Ab0JWJPa (ORCPT
+Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:42803 "EHLO
+	www.etchedpixels.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753741Ab0JSUoO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Oct 2010 05:15:30 -0400
-Received: by wyf28 with SMTP id 28so1708669wyf.19
-        for <linux-media@vger.kernel.org>; Sat, 23 Oct 2010 02:15:29 -0700 (PDT)
-Subject: Re: [PATCH][UPDATE for 2.6.37] LME2510(C) DM04/QQBOX USB DVB-S
- BOXES
-From: tvbox <tvboxspy@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <4CC22B52.7040003@redhat.com>
-References: <1287258283.494.10.camel@canaries-desktop>
-	 <4CC22B52.7040003@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 23 Oct 2010 10:15:26 +0100
-Message-ID: <1287825326.6605.43.camel@canaries-desktop>
+	Tue, 19 Oct 2010 16:44:14 -0400
+Date: Tue, 19 Oct 2010 21:41:22 +0100
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Greg KH <greg@kroah.com>
+Cc: Oliver Neukum <oliver@neukum.org>, Valdis.Kletnieks@vt.edu,
+	Dave Airlie <airlied@gmail.com>, Arnd Bergmann <arnd@arndb.de>,
+	codalist@telemann.coda.cs.cmu.edu,
+	ksummit-2010-discuss@lists.linux-foundation.org,
+	autofs@linux.kernel.org, Jan Harkes <jaharkes@cs.cmu.edu>,
+	Samuel Ortiz <samuel@sortiz.org>, Jan Kara <jack@suse.cz>,
+	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
+	netdev@vger.kernel.org, Anders Larsen <al@alarsen.net>,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Bryan Schumaker <bjschuma@netapp.com>,
+	Christoph Hellwig <hch@infradead.org>,
+	Petr Vandrovec <vandrove@vc.cvut.cz>,
+	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
+	linux-fsdevel@vger.kernel.org,
+	Evgeniy Dushistov <dushistov@mail.ru>,
+	Ingo Molnar <mingo@elte.hu>,
+	Andrew Hendry <andrew.hendry@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [Ksummit-2010-discuss] [v2] Remaining BKL users, what to do
+Message-ID: <20101019214122.301ca754@lxorguk.ukuu.org.uk>
+In-Reply-To: <20101019202912.GA30133@kroah.com>
+References: <201009161632.59210.arnd@arndb.de>
+	<21406.1287512693@localhost>
+	<20101019193735.GA4043@kroah.com>
+	<201010192140.47433.oliver@neukum.org>
+	<20101019202912.GA30133@kroah.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, 2010-10-22 at 22:24 -0200, Mauro Carvalho Chehab wrote:
-> Em 16-10-2010 16:44, tvbox escreveu:
-> > Updated driver for DM04/QQBOX USB DVB-S BOXES to version 1.60
-> > 
-> > These include
-> > -later kill of usb_buffer to avoid kernel crash on hot unplugging.
-> > -DiSEqC functions.
-> > -LNB Power switch
-> > -Faster channel change.
-> > -support for LG tuner on LME2510C.
-> > -firmware switching for LG tuner.
+> > you still need to switch off preemption.
 > 
-> Please, don't do updates like that, adding several different things into just
-> one patch. Instead, send one patch per change.
-> 
-The patches as released is a working driver.
+> Hm, how would you do that from within a driver?
 
-This device is particularly temperamental and covers several
-adaptations. The driver returned to beta testing through several of
-those changes.
-
-I didn't want release patches that would have produced an unworkable
-driver for the user.
-
-Regards
-
-Malcolm
-
+Do we care - unless I misunderstand the current intel DRM driver handles
+the i810 as well ?
