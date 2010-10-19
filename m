@@ -1,126 +1,93 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:46220 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1752403Ab0JCCmt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Oct 2010 22:42:49 -0400
-Date: Sun, 3 Oct 2010 04:42:53 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Tony Lindgren <tony@atomide.com>,
-	Discussion of the Amstrad E3 emailer hardware/software
-	<e3-hacking@earth.li>
-Subject: Re: [PATCH v3] SoC Camera: add driver for OMAP1 camera interface
-In-Reply-To: <201010021445.14567.jkrzyszt@tis.icnet.pl>
-Message-ID: <Pine.LNX.4.64.1010030439550.15920@axis700.grange>
-References: <201009301335.51643.jkrzyszt@tis.icnet.pl>
- <Pine.LNX.4.64.1010020803200.14599@axis700.grange> <201010021445.14567.jkrzyszt@tis.icnet.pl>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2520 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753867Ab0JSHuV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Oct 2010 03:50:21 -0400
+Message-ID: <edd6ff0baff8d2ab1247e097f66abe35.squirrel@webmail.xs4all.nl>
+In-Reply-To: <1287473655.7176.41.camel@masi.mnp.nokia.com>
+References: <1287406657-18859-1-git-send-email-matti.j.aaltonen@nokia.com>
+    <1287406657-18859-2-git-send-email-matti.j.aaltonen@nokia.com>
+    <9c6327556dad0b210e353c11126e2ceb.squirrel@webmail.xs4all.nl>
+    <4CBC4E73.70601@redhat.com>
+    <ec5341251875e33faaea9cc94c160978.squirrel@webmail.xs4all.nl>
+    <1287473655.7176.41.camel@masi.mnp.nokia.com>
+Date: Tue, 19 Oct 2010 09:49:58 +0200
+Subject: Re: [PATCH v13 1/1] Documentation: v4l: Add hw_seek spacing and   
+ two TUNER_RDS_CAP flags.
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: matti.j.aaltonen@nokia.com
+Cc: "Mauro Carvalho Chehab" <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, 2 Oct 2010, Janusz Krzysztofik wrote:
 
-> Saturday 02 October 2010 08:07:28 Guennadi Liakhovetski napisał(a):
-> > Same with this one - let's take it as is and address a couple of clean-ups
-> > later.
-> 
-> Guennadi,
-> Thanks for taking them both.
-> 
-> BTW, what are your intentions about the last patch from my series still left 
-> not commented, "SoC Camera: add support for g_parm / s_parm operations",
-> http://www.spinics.net/lists/linux-media/msg22887.html ?
+> Hi.
+>
+> On Mon, 2010-10-18 at 15:57 +0200, ext Hans Verkuil wrote:
+>> > Em 18-10-2010 11:17, Hans Verkuil escreveu:
+>> >> Just a few very small comments:
+>> >
+>> >>> +For future use the
+>> >>> +flag <constant>V4L2_TUNER_SUB_RDS_CONTROLS</constant> has also been
+>> >>> +defined. However, a driver for a radio tuner with this capability
+>> does
+>> >>> +not yet exist, so if you are planning to write such a driver the
+>> best
+>> >>> +way to start would probably be by opening a discussion about it on
+>> >>> +the linux-media mailing list: &v4l-ml;. </para>
+>> >>
+>> >> Change to:
+>> >>
+>> >> not yet exist, so if you are planning to write such a driver you
+>> >> should discuss this on the linux-media mailing list: &v4l-ml;.</para>
+>> >
+>> > No, please. Don't add any API capabilities at the DocBook without
+>> having a
+>> > driver
+>> > using it. At the time a driver start needing it, we can just add the
+>> API
+>> > bits
+>> > and doing the needed discussions as you've proposed. This is already
+>> > implicit.
+>>
+>> These caps are shared between tuner and modulator. And for the modulator
+>> both caps *are* used in Matti's driver. But while RDS_CONTROLS is
+>> available for modulators, it is not yet applicable to tuners and for
+>> that
+>> we need to make this note in the spec.
+>>
+>> So this is an exception to the rule, I'm afraid.
+>
+> So it's ACK... or NACK?
 
-Yes, taking that one too, thanks. I see it right, that I have to apply 3 
-of your patches: omap1 camera driver, ov6650 and default .[gs]_fmt for 
-soc_camera, the rest will go via the OMAP / ARM tree, right?
+ACK from me :-)
 
-> > On Thu, 30 Sep 2010, Janusz Krzysztofik wrote:
-> > > +static void omap1_videobuf_queue(struct videobuf_queue *vq,
-> > > +						struct videobuf_buffer *vb)
-> > > +{
-> > > +	struct soc_camera_device *icd = vq->priv_data;
-> > > +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-> > > +	struct omap1_cam_dev *pcdev = ici->priv;
-> > > +	struct omap1_cam_buf *buf;
-> > > +	u32 mode;
-> > > +
-> > > +	list_add_tail(&vb->queue, &pcdev->capture);
-> > > +	vb->state = VIDEOBUF_QUEUED;
-> > > +
-> > > +	if (pcdev->active) {
-> > > +		/*
-> > > +		 * Capture in progress, so don't touch pcdev->ready even if
-> > > +		 * empty. Since the transfer of the DMA programming register set
-> > > +		 * content to the DMA working register set is done automatically
-> > > +		 * by the DMA hardware, this can pretty well happen while we
-> > > +		 * are keeping the lock here. Levae fetching it from the queue
-> >
-> > "Leave"
-> 
-> Yes, sorry.
-> 
-> > > +		 * to be done when a next DMA interrupt occures instead.
-> > > +		 */
-> > > +		return;
-> > > +	}
-> >
-> > superfluous braces
-> 
-> I was instructed once to do a reverse in a patch against ASoC subtree (see 
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg14863.html), but 
-> TBH, I can't find a clear enough requirement specified in the 
-> Documentation/CodingStyle, so I probably change my habits, at least for you 
-> subtree ;).
+Regards,
 
-Nah, forget it, doesn't matter.
+       Hans
 
-> > > +static void videobuf_done(struct omap1_cam_dev *pcdev,
-> > > +		enum videobuf_state result)
-> > > +{
-> > > +	struct omap1_cam_buf *buf = pcdev->active;
-> > > +	struct videobuf_buffer *vb;
-> > > +	struct device *dev = pcdev->icd->dev.parent;
-> > > +
-> > > +	if (WARN_ON(!buf)) {
-> > > +		suspend_capture(pcdev);
-> > > +		disable_capture(pcdev);
-> > > +		return;
-> > > +	}
-> > > +
-> > > +	if (result == VIDEOBUF_ERROR)
-> > > +		suspend_capture(pcdev);
-> > > +
-> > > +	vb = &buf->vb;
-> > > +	if (waitqueue_active(&vb->done)) {
-> > > +		if (!pcdev->ready && result != VIDEOBUF_ERROR) {
-> > > +			/*
-> > > +			 * No next buffer has been entered into the DMA
-> > > +			 * programming register set on time (could be done only
-> > > +			 * while the previous DMA interurpt was processed, not
-> > > +			 * later), so the last DMA block, be it a whole buffer
-> > > +			 * if in CONTIG or its last sgbuf if in SG mode, is
-> > > +			 * about to be reused by the just autoreinitialized DMA
-> > > +			 * engine, and overwritten with next frame data. Best we
-> > > +			 * can do is stopping the capture as soon as possible,
-> > > +			 * hopefully before the next frame start.
-> > > +			 */
-> > > +			suspend_capture(pcdev);
-> > > +		}
-> >
-> > superfluous braces
-> 
-> ditto.
-> 
-> I'll address the issues when ready with my forementioned corner case fixes.
+>
+> Cheers,
+> Matti
+>
+>> Regards,
+>>
+>>         Hans
+>>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+
