@@ -1,67 +1,72 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:29135 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752675Ab0JGOoJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Oct 2010 10:44:09 -0400
-Date: Thu, 07 Oct 2010 16:43:58 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v3 0/4] Add support for camera capture in s5p-fimc driver
-To: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com
-Message-id: <1286462642-28211-1-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
+Received: from smtp205.alice.it ([82.57.200.101]:39578 "EHLO smtp205.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758109Ab0JSJUq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Oct 2010 05:20:46 -0400
+Date: Tue, 19 Oct 2010 11:20:32 +0200
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [GIT PATCHES FOR 2.6.36] gspca for_2.6.36
+Message-Id: <20101019112032.d8487d72.ospite@studenti.unina.it>
+In-Reply-To: <20101015094148.95fd205b.ospite@studenti.unina.it>
+References: <20101010132447.0c7f9a22@tele>
+	<20101015094148.95fd205b.ospite@studenti.unina.it>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Tue__19_Oct_2010_11_20_32_+0200_Fr9WR_hOr0rPMP3L"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi all,
+--Signature=_Tue__19_Oct_2010_11_20_32_+0200_Fr9WR_hOr0rPMP3L
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Here is a third version of patches adding camera capture capability
-to the s5p-fimc driver. I didn't receive any comments on v2 but I tracked
-a few issues myself and made little additions. I hope to get these patches
-merged in current form unless any objections appear.
+On Fri, 15 Oct 2010 09:41:48 +0200
+Antonio Ospite <ospite@studenti.unina.it> wrote:
 
-The driver has been tested on Samsung Aquila and GONI boards (S5PC110) 
-with SR030PC30 (VGA) and NOON010PC30 (CIF) image sensors.
+> On Sun, 10 Oct 2010 13:24:47 +0200
+> Jean-Francois Moine <moinejf@free.fr> wrote:
+>=20
+> > The following changes since commit
+> > d65728875a85ac7c8b7d6eb8d51425bacc188980:
+> >=20
+> >   V4L/DVB: v4l: radio: si470x: fix unneeded free_irq() call (2010-09-30=
+ 07:35:12 -0300)
+> >=20
+> > are available in the git repository at:
+> >   git://linuxtv.org/jfrancois/gspca.git for_2.6.36
+> >=20
+> > Jean-Fran=E7ois Moine (1):
+> >       gspca - main: Fix a regression with the PS3 Eye webcam
+> >=20
+>=20
+> Hi, this is not in 2.6.36-rc8, any chance we can make it for 2.6.36?
 
-Changes since v1:
-- entirely removed plat-samsung/include/plat/fimc.h header so there is no
- platform code dependency
+Ping.
 
-- improved s/try_fmt ioctl and introduced common ioctl handlers for mem2mem 
-  and capture node where it's reasonable
+--=20
+Antonio Ospite
+http://ao2.it
 
-- register definition changes merged with previous commit   
- [3/8] v4l: s5p-fimc: Register definition cleanup
+PGP public key ID: 0x4553B001
 
-Changes since v2:
-	- improved s/g/crop(cap) handling in capture node
-	- added passing of v4l control to the sensor subdevice
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
 
-The patch series contains:
+--Signature=_Tue__19_Oct_2010_11_20_32_+0200_Fr9WR_hOr0rPMP3L
+Content-Type: application/pgp-signature
 
-[PATCH 1/4] V4L/DVB: s5p-fimc: Register definition cleanup
-[PATCH 2/4] V4L/DVB: s5p-fimc: M2M driver cleanup and minor improvements
-[PATCH 3/4] V4L/DVB: s5p-fimc: Do not lock both capture and output buffer queue in s_fmt
-[PATCH 4/4] V4L/DVB: s5p-fimc: Add camera capture support
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
 
-It has been rebased onto linuxtv/staging-2.6.37 branch at
-git://linuxtv.org/media_tree.git with 2 bugfix patches:
+iEYEARECAAYFAky9YuAACgkQ5xr2akVTsAGNGACbB5nbYvGXyYjJbBJfGGLPgdNR
+cu0AoJCLpd6QKIx/xFatzfT4CeljVF9b
+=5RFs
+-----END PGP SIGNATURE-----
 
-v4l: s5p-fimc: Fix 3-planar formats handling and pixel offset error on S5PV210 SoCs
-v4l: s5p-fimc: Fix return value on probe() failure
-
-also applied.
-
-Cheers,
-Sylwester
-
---
-Sylwester Nawrocki
-Linux Platform Group
-Samsung Poland R&D Center
-
-
+--Signature=_Tue__19_Oct_2010_11_20_32_+0200_Fr9WR_hOr0rPMP3L--
