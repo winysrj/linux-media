@@ -1,55 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:53059 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760598Ab0JGNqO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Oct 2010 09:46:14 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/3] V4L/DVB: videobuf-dma-sg: Use min_t(size_t, PAGE_SIZE ..)
-Date: Thu, 7 Oct 2010 15:46:29 +0200
-References: <20101007094543.47b77328@pedra>
-In-Reply-To: <20101007094543.47b77328@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:2438 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757935Ab0JSLNw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Oct 2010 07:13:52 -0400
+Message-ID: <4CBD7D68.5090409@redhat.com>
+Date: Tue, 19 Oct 2010 09:13:44 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201010071546.30191.laurent.pinchart@ideasonboard.com>
+To: Antonio Ospite <ospite@studenti.unina.it>
+CC: Jean-Francois Moine <moinejf@free.fr>, linux-media@vger.kernel.org
+Subject: Re: [GIT PATCHES FOR 2.6.36] gspca for_2.6.36
+References: <20101010132447.0c7f9a22@tele>	<20101015094148.95fd205b.ospite@studenti.unina.it> <20101019112032.d8487d72.ospite@studenti.unina.it>
+In-Reply-To: <20101019112032.d8487d72.ospite@studenti.unina.it>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
-
-On Thursday 07 October 2010 14:45:43 Mauro Carvalho Chehab wrote:
-> As pointed by Laurent:
+Em 19-10-2010 07:20, Antonio Ospite escreveu:
+> On Fri, 15 Oct 2010 09:41:48 +0200
+> Antonio Ospite <ospite@studenti.unina.it> wrote:
 > 
-> I think min_t(size_t, PAGE_SIZE, size) is the preferred way.
+>> On Sun, 10 Oct 2010 13:24:47 +0200
+>> Jean-Francois Moine <moinejf@free.fr> wrote:
+>>
+>>> The following changes since commit
+>>> d65728875a85ac7c8b7d6eb8d51425bacc188980:
+>>>
+>>>   V4L/DVB: v4l: radio: si470x: fix unneeded free_irq() call (2010-09-30 07:35:12 -0300)
+>>>
+>>> are available in the git repository at:
+>>>   git://linuxtv.org/jfrancois/gspca.git for_2.6.36
+>>>
+>>> Jean-François Moine (1):
+>>>       gspca - main: Fix a regression with the PS3 Eye webcam
+>>>
+>>
+>> Hi, this is not in 2.6.36-rc8, any chance we can make it for 2.6.36?
 > 
-> Thanks-to: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Ping.
 > 
-> diff --git a/drivers/media/video/videobuf-dma-sg.c
-> b/drivers/media/video/videobuf-dma-sg.c index 7153e44..20f227e 100644
-> --- a/drivers/media/video/videobuf-dma-sg.c
-> +++ b/drivers/media/video/videobuf-dma-sg.c
-> @@ -116,8 +116,8 @@ static struct scatterlist *videobuf_pages_to_sg(struct
-> page **pages, goto nopage;
->  		if (PageHighMem(pages[i]))
->  			goto highmem;
-> -		sg_set_page(&sglist[i], pages[i], min((unsigned)PAGE_SIZE, size), 0);
-> -		size -= min((unsigned)PAGE_SIZE, size);
-> +		sg_set_page(&sglist[i], pages[i], min_t(size_t, PAGE_SIZE, size), 0);
+The patch is in the today's linux-next tree. I added it together with another patch
+for 2.6.36 (they are on a separate brancho on my local tree). If everything wents well, 
+it is likely that we'll have time to add it for 2.6.36.
 
-This won't pass checkpatch.pl (line > 80 characters long).
-
-Beside, this patch applies on top of the previous one whereas I suppose you'd 
-want to replace the previous one.
-
-> +		size -= min_t(size_t, PAGE_SIZE, size);
->  	}
->  	return sglist;
-
--- 
-Regards,
-
-Laurent Pinchart
+Cheers,
+Mauro
