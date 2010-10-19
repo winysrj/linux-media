@@ -1,41 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from thingy.pointless.net ([91.209.244.43]:60566 "EHLO
-	thingy.pointless.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751054Ab0JUBXQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Oct 2010 21:23:16 -0400
-Received: from [93.89.81.29] (port=13951 helo=limpit.local)
-	by thingy.pointless.net with esmtpsa (TLSv1:DHE-RSA-AES256-SHA:256)
-	(Exim 4.71)
-	(envelope-from <jasper@pointless.net>)
-	id 1P8jUj-0005kw-CV
-	for linux-media@vger.kernel.org; Thu, 21 Oct 2010 01:59:01 +0100
-Date: Thu, 21 Oct 2010 01:59:00 +0100 (BST)
-From: Jasper Wallace <jasper@pointless.net>
-To: linux-media@vger.kernel.org
-Subject: em28xx: new board id [1b80:e349]
-Message-ID: <alpine.DEB.2.00.1010210153130.4519@yvzcvg>
+Received: from cantor2.suse.de ([195.135.220.15]:48538 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753381Ab0JSUiV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Oct 2010 16:38:21 -0400
+Date: Tue, 19 Oct 2010 22:38:13 +0200 (CEST)
+From: Jiri Kosina <jkosina@suse.cz>
+To: Greg KH <greg@kroah.com>
+Cc: Oliver Neukum <oliver@neukum.org>, Jan Kara <jack@suse.cz>,
+	Anders Larsen <al@alarsen.net>,
+	dri-devel@lists.freedesktop.org,
+	ksummit-2010-discuss@lists.linux-foundation.org,
+	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
+	codalist@telemann.coda.cs.cmu.edu,
+	Bryan Schumaker <bjschuma@netapp.com>,
+	Christoph Hellwig <hch@infradead.org>,
+	Petr Vandrovec <vandrove@vc.cvut.cz>,
+	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
+	Ingo Molnar <mingo@elte.hu>, linux-media@vger.kernel.org,
+	Samuel Ortiz <samuel@sortiz.org>,
+	Evgeniy Dushistov <dushistov@mail.ru>,
+	Arnd Bergmann <arnd@arndb.de>, autofs@linux.kernel.org,
+	Jan Harkes <jaharkes@cs.cmu.edu>, Valdis.Kletnieks@vt.edu,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	Andrew Hendry <andrew.hendry@gmail.com>
+Subject: Re: [Ksummit-2010-discuss] [v2] Remaining BKL users, what to do
+In-Reply-To: <20101019202912.GA30133@kroah.com>
+Message-ID: <alpine.LNX.2.00.1010192237220.6879@pobox.suse.cz>
+References: <201009161632.59210.arnd@arndb.de> <21406.1287512693@localhost> <20101019193735.GA4043@kroah.com> <201010192140.47433.oliver@neukum.org> <20101019202912.GA30133@kroah.com>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+On Tue, 19 Oct 2010, Greg KH wrote:
 
-Hi, 
+> > > > So no need to clean it up for multiprocessor support.
+> > > > 
+> > > > http://download.intel.com/design/chipsets/datashts/29067602.pdf
+> > > > http://www.intel.com/design/chipsets/specupdt/29069403.pdf
+> > > 
+> > > Great, we can just drop all calls to lock_kernel() and the like in the
+> > > driver and be done with it, right?
+> > 
+> > No,
+> > 
+> > you still need to switch off preemption.
+> 
+> Hm, how would you do that from within a driver?
 
-I've made tests with my Magix "RESCUE YOUR VIDEOTAPES!" usb dongle, this 
-device looks identical to the pictures of the Kaiser Baas USB DVD Maker 2 
-(KBA0300300) on the wiki:
-
-Model: Magix RESCUE YOUR VIDEOTAPES!
-Vendor/Product id: [1b80:e349].
-
-Tests made: 
-
-    - Analog [Worked, only tested PAL]
-    - DVB    [this board doesn't support dvb mode]
-
-Tested-by: Jasper <jasper@pointless.net>
+preempt_disable()
 
 -- 
-[http://pointless.net/]                                   [0x2ECA0975]
+Jiri Kosina
+SUSE Labs, Novell Inc.
