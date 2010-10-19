@@ -1,91 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3578 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753045Ab0JQM03 (ORCPT
+Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196]:46152 "EHLO
+	mta1.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751178Ab0JSV5h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Oct 2010 08:26:29 -0400
-Message-Id: <49e7400bcbcc4412b77216bb061db1b57cb3b882.1287318143.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Sun, 17 Oct 2010 14:26:18 +0200
-Subject: [RFC PATCH] radio-mr800: locking fixes
-To: linux-media@vger.kernel.org
-Cc: David Ellingsworth <david@identd.dyndns.org>
+	Tue, 19 Oct 2010 17:57:37 -0400
+Received: from TheShoveller.local
+ (ool-4572125f.dyn.optonline.net [69.114.18.95]) by mta1.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0LAK001WC3LZZ1H0@mta1.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Tue, 19 Oct 2010 17:27:36 -0400 (EDT)
+Date: Tue, 19 Oct 2010 17:27:35 -0400
+From: Steven Toth <stoth@kernellabs.com>
+Subject: Re: cx23885 module
+In-reply-to: <BLU0-SMTP179D180C75C88F1B693AA73A75A0@phx.gbl>
+To: Daniel Lee Kim <danlkim@hotmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Message-id: <4CBE0D47.7080201@kernellabs.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <BLU0-SMTP179D180C75C88F1B693AA73A75A0@phx.gbl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-- serialize the suspend and resume functions using the global lock.
-- do not call usb_autopm_put_interface after a disconnect.
-- fix a race when disconnecting the device.
+Hi Dan,
 
-Reported-by: David Ellingsworth <david@identd.dyndns.org>
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/radio/radio-mr800.c |   17 ++++++++++++++---
- 1 files changed, 14 insertions(+), 3 deletions(-)
+Thanks for writing.
 
-diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
-index 2f56b26..b540e80 100644
---- a/drivers/media/radio/radio-mr800.c
-+++ b/drivers/media/radio/radio-mr800.c
-@@ -284,9 +284,13 @@ static void usb_amradio_disconnect(struct usb_interface *intf)
- 	struct amradio_device *radio = to_amradio_dev(usb_get_intfdata(intf));
- 
- 	mutex_lock(&radio->lock);
-+	/* increase the device node's refcount */
-+	get_device(&radio->videodev.dev);
- 	v4l2_device_disconnect(&radio->v4l2_dev);
--	mutex_unlock(&radio->lock);
- 	video_unregister_device(&radio->videodev);
-+	mutex_unlock(&radio->lock);
-+	/* decrease the device node's refcount, allowing it to be released */
-+	put_device(&radio->videodev.dev);
- }
- 
- /* vidioc_querycap - query device capabilities */
-@@ -515,7 +519,8 @@ static int usb_amradio_close(struct file *file)
- {
- 	struct amradio_device *radio = file->private_data;
- 
--	usb_autopm_put_interface(radio->intf);
-+	if (video_is_registered(&radio->videodev))
-+		usb_autopm_put_interface(radio->intf);
- 	return 0;
- }
- 
-@@ -524,10 +529,12 @@ static int usb_amradio_suspend(struct usb_interface *intf, pm_message_t message)
- {
- 	struct amradio_device *radio = to_amradio_dev(usb_get_intfdata(intf));
- 
-+	mutex_lock(&radio->lock);
- 	if (!radio->muted && radio->initialized) {
- 		amradio_set_mute(radio, AMRADIO_STOP);
- 		radio->muted = 0;
- 	}
-+	mutex_unlock(&radio->lock);
- 
- 	dev_info(&intf->dev, "going into suspend..\n");
- 	return 0;
-@@ -538,8 +545,9 @@ static int usb_amradio_resume(struct usb_interface *intf)
- {
- 	struct amradio_device *radio = to_amradio_dev(usb_get_intfdata(intf));
- 
-+	mutex_lock(&radio->lock);
- 	if (unlikely(!radio->initialized))
--		return 0;
-+		goto unlock;
- 
- 	if (radio->stereo)
- 		amradio_set_stereo(radio, WANT_STEREO);
-@@ -551,6 +559,9 @@ static int usb_amradio_resume(struct usb_interface *intf)
- 	if (!radio->muted)
- 		amradio_set_mute(radio, AMRADIO_START);
- 
-+unlock:
-+	mutex_unlock(&radio->lock);
-+
- 	dev_info(&intf->dev, "coming out of suspend..\n");
- 	return 0;
- }
+I can't do one-on-one end user support without copying in the Linux Media 
+mailing list. I'm taking the liberty of doing so. Please reply-all when 
+discussing this issue - so everyone can benefit.
+
+[Dan is having issues being up an AverMedia board with a LG demod and a MT2131 
+tuner via the cx23885 driver]
+
+> However, I am having some trouble getting the tuner to be recognized. I was
+
+It's the GPIO probably holding the tuner in reset, I suspect your gpio 
+configuration is wrong. That's my first guess. What makes you think the gpio 
+settings in your patch are correct?
+
+> hoping that you might be willing to look over the code a bit to see what I am
+> missing. I have altered the following 3 files: cx23885.h, cx23885-cards.c, and
+> cx23885-dvb.c. I am attaching the 3 files in this email. I have been trying to
+> do 3 things. First, to have the module auto-detect my card which was successful.
+> Second, I wanted to attach the LGDT330X as my frontend which was successful.
+> Third, I wanted to attach the MT2131 tuner. This third step is where I am having
+> my troubles. I feel so close but I am not there yet. I know that you wrote the
+> code a while back but if you would be willing to help me, I'd really appreciate
+> it. Some folks have gotten the ngene module to work with the M780 board which
+
+Yeah, I worked on the ngene with Devin as part of our KernelLabs.com projects, 
+we brought up the digital side of the card as a pre-test while investigating 
+ngene analog support.
+
+If the 2131 isn't attaching then it's because you think it's on a different I2C 
+bus, or the LG demod has it's I2C gate closed (unlikely) or the tuner is not 
+responding because it's being held in reset.
+
+Do you see the tuner if you perform and I2C scan (modprobe i2c_scan=1)?
+
+- Steve
+
 -- 
-1.7.0.4
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
+
 
