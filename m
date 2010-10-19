@@ -1,336 +1,173 @@
 Return-path: <mchehab@pedra>
-Received: from host63-43-static.30-87-b.business.telecomitalia.it ([87.30.43.63]:56485
-	"EHLO intranet.spintec.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752220Ab0J1KXd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Oct 2010 06:23:33 -0400
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <maurochehab@gmail.com>
-Subject: Fwd: Re: [PATCH] DiSEqC bug fixed for stv0288 based interfaces
-Content-Disposition: inline
-From: Josef Pavlik <josef@pavlik.it>
-Date: Thu, 28 Oct 2010 11:44:26 +0200
+Received: from mga01.intel.com ([192.55.52.88]:4505 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753467Ab0JSKVq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Oct 2010 06:21:46 -0400
+Date: Tue, 19 Oct 2010 12:21:43 +0200
+From: Samuel Ortiz <sameo@linux.intel.com>
+To: Richard =?iso-8859-1?Q?R=F6jfors?=
+	<richard.rojfors@pelagicore.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>,
+	Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [RESEND][PATCH 2/2 v2] mfd: Add timberdale video-in driver to
+ timberdale
+Message-ID: <20101019102142.GJ2736@sortiz-mobl>
+References: <1287074260.6322.18.camel@debian>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201010281144.27003.josef@pavlik.it>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1287074260.6322.18.camel@debian>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro
-can you try to insert it in your GIT please? 
+Hi Richard,
 
-> >> Fixed problem with DiSEqC communication. The message was wrongly modulated, 
-> >> so the DiSEqC switch was not work.
-> >> 
-> >> This patch fixes DiSEqC messages, simple tone burst and tone on/off. 
-> >> I verified it with osciloscope against the DiSEqC documentation.
-> >> 
-> >> Interface: PCI DVB-S TV tuner TeVii S420
-> >> Kernel: 2.6.32-24-generic (UBUNTU 10.4)
-> >> 
-
-Signed-off-by: Josef Pavlik <josef@pavlik.it>
-
-----------  Forwarded Message  ----------
-
-Subject: Re: [PATCH] DiSEqC bug fixed for stv0288 based interfaces
-Date: Sunday 26 September 2010
-From: tvbox <tvboxspy@gmail.com>
-To: josef@pavlik.it
-
-Hi Josef
-
-This patch does work and has been tested in my driver.
-
-However, your patch was still corrupt, here is a cleaned up version.
-
-I have had to shorten some quotes in some lines to within 80 characters
-
-Tested-by: Malcolm Priestley <tvboxspy@gmail.com>
-
-It is also in my own hg tree at
-http://mercurial.intuxication.org/hg/tvboxspy/rev/666fe763c5f6
-
-
-diff --git a/drivers/media/dvb/frontends/stv0288.c b/drivers/media/dvb/frontends/stv0288.c
-index 2930a5d..6cd442e 100644
---- a/drivers/media/dvb/frontends/stv0288.c
-+++ b/drivers/media/dvb/frontends/stv0288.c
-@@ -6,6 +6,8 @@
- 	Copyright (C) 2008 Igor M. Liplianin <liplianin@me.by>
- 		Removed stb6000 specific tuner code and revised some
- 		procedures.
-+	2010-09-01 Josef Pavlik <josef@pavlik.it>
-+		Fixed diseqc_msg, diseqc_burst and set_tone problems
-
- 	This program is free software; you can redistribute it and/or modify
- 	it under the terms of the GNU General Public License as published by
-@@ -156,14 +158,13 @@ static int stv0288_send_diseqc_msg(struct dvb_frontend *fe,
- 
- 	stv0288_writeregI(state, 0x09, 0);
- 	msleep(30);
--	stv0288_writeregI(state, 0x05, 0x16);
-+	stv0288_writeregI(state, 0x05, 0x12);/* modulated mode, single shot */
-
- 	for (i = 0; i < m->msg_len; i++) {
- 		if (stv0288_writeregI(state, 0x06, m->msg[i]))
- 			return -EREMOTEIO;
--		msleep(12);
- 	}
--
-+	msleep(m->msg_len*12);
- 	return 0;
- }
-
-@@ -174,13 +175,14 @@ static int stv0288_send_diseqc_burst(struct dvb_frontend *fe,
-
- 	dprintk("%s\n", __func__);
- 
--	if (stv0288_writeregI(state, 0x05, 0x16))/* burst mode */
--		return -EREMOTEIO;
--
--	if (stv0288_writeregI(state, 0x06, burst == SEC_MINI_A ? 0x00 : 0xff))
-+	if (stv0288_writeregI(state, 0x05, 0x03))/* burst mode, single shot */
-+		return -EREMOTEIO;
-+
-+	if (stv0288_writeregI(state, 0x06, burst == SEC_MINI_A ? 0x00 : 0xff))
- 		return -EREMOTEIO;
-
--	if (stv0288_writeregI(state, 0x06, 0x12))
-+	msleep(15);
-+	if (stv0288_writeregI(state, 0x05, 0x12))
- 		return -EREMOTEIO;
- 
- 	return 0;
-@@ -192,18 +194,19 @@ static int stv0288_set_tone(struct dvb_frontend *fe, fe_sec_tone_mode_t tone)
-
- 	switch (tone) {
- 	case SEC_TONE_ON:
--		if (stv0288_writeregI(state, 0x05, 0x10))/* burst mode */
-+		if (stv0288_writeregI(state, 0x05, 0x10))/* cont carrier */
- 			return -EREMOTEIO;
--		return stv0288_writeregI(state, 0x06, 0xff);
-+	break;
- 
- 	case SEC_TONE_OFF:
--		if (stv0288_writeregI(state, 0x05, 0x13))/* burst mode */
-+		if (stv0288_writeregI(state, 0x05, 0x12))/* burst mode off*/
- 			return -EREMOTEIO;
--		return stv0288_writeregI(state, 0x06, 0x00);
-+	break;
- 
- 	default:
- 		return -EINVAL;
- 	}
-+	return 0;
- }
- 
- static u8 stv0288_inittab[] = {
-
-
-> sorry, but something eats the leading spaces (but no the tabs) in the inlined 
-> patch making it unusable, so please use the attached one.
+On Thu, Oct 14, 2010 at 06:37:40PM +0200, Richard Röjfors wrote:
+> This patch defines platform data for the video-in driver
+> and adds it to all configurations of timberdale.
 > 
-> 
-> ---------------------
-> on  Sep 12, 2010, at 13:30, I wrote:
-> seems that the patch was corrupted by the kmail used for the post (missing 
-> space before the last close bracket resulting corrupted patch)
-> the corrected patch follows (and I'm sending it with another mail program)
-> 
-> Signed-off-by: Josef Pavlik <jo...@pavlik.it>
-> 
-> -------------------------------------
-> diff --git a/drivers/media/dvb/frontends/stv0288.c 
-> b/drivers/media/dvb/frontends/stv0288.c
-> index 2930a5d..6cd442e 100644
-> --- a/drivers/media/dvb/frontends/stv0288.c
-> +++ b/drivers/media/dvb/frontends/stv0288.c
-> @@ -6,6 +6,8 @@
->         Copyright (C) 2008 Igor M. Liplianin <liplia...@me.by>
->                 Removed stb6000 specific tuner code and revised some
->                 procedures.
-> +        2010-09-01 Josef Pavlik <jo...@pavlik.it>
-> +                Fixed diseqc_msg, diseqc_burst and set_tone problems
-> 
->         This program is free software; you can redistribute it and/or modify
->         it under the terms of the GNU General Public License as published by
-> @@ -156,14 +158,13 @@ static int stv0288_send_diseqc_msg(struct dvb_frontend 
-> *fe,
-> 
->         stv0288_writeregI(state, 0x09, 0);
->         msleep(30);
-> -       stv0288_writeregI(state, 0x05, 0x16);
-> +       stv0288_writeregI(state, 0x05, 0x12); /* modulated mode, single shot */
-> 
->         for (i = 0; i < m->msg_len; i++) {
->                 if (stv0288_writeregI(state, 0x06, m->msg[i]))
->                         return -EREMOTEIO;
-> -               msleep(12);
->         }
-> -
-> +    msleep(m->msg_len*12); 
->         return 0;
-> }
-> 
-> @@ -174,13 +175,14 @@ static int stv0288_send_diseqc_burst(struct dvb_frontend 
-> *fe,
-> 
->         dprintk("%s\n", __func__);
-> 
-> -       if (stv0288_writeregI(state, 0x05, 0x16))/* burst mode */
-> -               return -EREMOTEIO;
-> -
-> -       if (stv0288_writeregI(state, 0x06, burst == SEC_MINI_A ? 0x00 : 0xff))
-> +    if (stv0288_writeregI(state, 0x05, 0x03)) /* simple tone burst mode, 
-> single shot */
-> +        return -EREMOTEIO;
-> +       
-> +    if (stv0288_writeregI(state, 0x06, burst == SEC_MINI_A ? 0x00 : 0xff))
->                 return -EREMOTEIO;
-> 
-> -       if (stv0288_writeregI(state, 0x06, 0x12))
-> +    msleep(15);
-> +       if (stv0288_writeregI(state, 0x05, 0x12))
->                 return -EREMOTEIO;
-> 
->         return 0;
-> @@ -192,18 +194,19 @@ static int stv0288_set_tone(struct dvb_frontend *fe, 
-> fe_sec_tone_mode_t tone)
-> 
->         switch (tone) {
->         case SEC_TONE_ON:
-> -               if (stv0288_writeregI(state, 0x05, 0x10))/* burst mode */
-> +               if (stv0288_writeregI(state, 0x05, 0x10))/* burst mode, 
-> continuous carrier */
->                         return -EREMOTEIO;
-> -               return stv0288_writeregI(state, 0x06, 0xff);
-> +        break;
-> 
->         case SEC_TONE_OFF:
-> -               if (stv0288_writeregI(state, 0x05, 0x13))/* burst mode */
-> +               if (stv0288_writeregI(state, 0x05, 0x12))/* burst mode off*/
->                         return -EREMOTEIO;
-> -               return stv0288_writeregI(state, 0x06, 0x00);
-> +        break;
-> 
->         default:
->                 return -EINVAL;
->         }
-> +    return 0;
-> }
-> 
-> static u8 stv0288_inittab[] = {
-> -----------------------------------------------------
-> 
-> 
-> 
-> On Sep 8, 2010, at 21:16 , Mauro Carvalho Chehab wrote:
-> 
-> > Em 01-09-2010 09:35, Josef Pavlik escreveu:
-> >> Fixed problem with DiSEqC communication. The message was wrongly modulated, 
-> >> so the DiSEqC switch was not work.
-> >> 
-> >> This patch fixes DiSEqC messages, simple tone burst and tone on/off. 
-> >> I verified it with osciloscope against the DiSEqC documentation.
-> >> 
-> >> Interface: PCI DVB-S TV tuner TeVii S420
-> >> Kernel: 2.6.32-24-generic (UBUNTU 10.4)
-> >> 
-> >> Signed-off-by: Josef Pavlik <jo...@pavlik.it>
-> > 
-> > Patch doesn't apply against the latest version, at my -git tree. 
-> > Not sure if the bugs you're pointing were already fixed.
-> > 
-> > Cheers,
-> > Mauro.
-> >> 
-> >> 
-> >> 
-> >> 
-> >> diff --git a/drivers/media/dvb/frontends/stv0288.c 
-> >> b/drivers/media/dvb/frontends/stv0288.c
-> >> index 2930a5d..6a32535 100644
-> >> --- a/drivers/media/dvb/frontends/stv0288.c
-> >> +++ b/drivers/media/dvb/frontends/stv0288.c
-> >> @@ -6,6 +6,8 @@
-> >>       Copyright (C) 2008 Igor M. Liplianin <liplia...@me.by>
-> >>               Removed stb6000 specific tuner code and revised some
-> >>               procedures.
-> >> +       2010-09-01 Josef Pavlik <jo...@pavlik.it>
-> >> +               Fixed diseqc_msg, diseqc_burst and set_tone problems
-> >> 
-> >>       This program is free software; you can redistribute it and/or modify
-> >>       it under the terms of the GNU General Public License as published by
-> >> @@ -156,14 +158,13 @@ static int stv0288_send_diseqc_msg(struct dvb_frontend 
-> >> *fe,
-> >> 
-> >>       stv0288_writeregI(state, 0x09, 0);
-> >>       msleep(30);
-> >> -       stv0288_writeregI(state, 0x05, 0x16);
-> >> +       stv0288_writeregI(state, 0x05, 0x12); /* modulated mode, single shot 
-> >> */
-> >> 
-> >>       for (i = 0; i < m->msg_len; i++) {
-> >>               if (stv0288_writeregI(state, 0x06, m->msg[i]))
-> >>                       return -EREMOTEIO;
-> >> -               msleep(12);
-> >>       }
-> >> -
-> >> +       msleep(m->msg_len*12);
-> >>       return 0;
-> >> }
-> >> 
-> >> @@ -174,13 +175,14 @@ static int stv0288_send_diseqc_burst(struct 
-> >> dvb_frontend *fe,
-> >> 
-> >>       dprintk("%s\n", __func__);
-> >> 
-> >> -       if (stv0288_writeregI(state, 0x05, 0x16))/* burst mode */
-> >> +       if (stv0288_writeregI(state, 0x05, 0x03)) /* "simple tone burst" 
-> >> mode, single shot */
-> >>               return -EREMOTEIO;
-> >> 
-> >>       if (stv0288_writeregI(state, 0x06, burst == SEC_MINI_A ? 0x00 : 0xff))
-> >>               return -EREMOTEIO;
-> >> 
-> >> -       if (stv0288_writeregI(state, 0x06, 0x12))
-> >> +       msleep(15);
-> >> +       if (stv0288_writeregI(state, 0x05, 0x12))
-> >>               return -EREMOTEIO;
-> >> 
-> >>       return 0;
-> >> @@ -192,18 +194,19 @@ static int stv0288_set_tone(struct dvb_frontend *fe, 
-> >> fe_sec_tone_mode_t tone)
-> >> 
-> >>       switch (tone) {
-> >>       case SEC_TONE_ON:
-> >> -               if (stv0288_writeregI(state, 0x05, 0x10))/* burst mode */
-> >> +               if (stv0288_writeregI(state, 0x05, 0x10))/* burst mode, 
-> >> continuous carrier */
-> >>                       return -EREMOTEIO;
-> >> -               return stv0288_writeregI(state, 0x06, 0xff);
-> >> +               break;
-> >> 
-> >>       case SEC_TONE_OFF:
-> >> -               if (stv0288_writeregI(state, 0x05, 0x13))/* burst mode */
-> >> +               if (stv0288_writeregI(state, 0x05, 0x12))/* burst mode off*/
-> >>                       return -EREMOTEIO;
-> >> -               return stv0288_writeregI(state, 0x06, 0x00);
-> >> +               break;
-> >> 
-> >>       default:
-> >>               return -EINVAL;
-> >>       }
-> >> +       return 0;
-> >> }
-> >> 
-> >> static u8 stv0288_inittab[] = {
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> >> the body of a message to majord...@vger.kernel.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Signed-off-by: Richard Röjfors <richard.rojfors@pelagicore.com>
+Mauro, please add my:
+Acked-by: Samuel Ortiz <sameo@linux.intel.com>
 
--------------------------------------------------------
+Richard, you can automatically add it when re-sending your patchset.
+
+Cheers,
+Samuel.
+
+> ---
+> diff --git a/drivers/mfd/timberdale.c b/drivers/mfd/timberdale.c
+> index ac59950..52a651b 100644
+> --- a/drivers/mfd/timberdale.c
+> +++ b/drivers/mfd/timberdale.c
+> @@ -40,6 +40,7 @@
+>  #include <linux/spi/mc33880.h>
+>  
+>  #include <media/timb_radio.h>
+> +#include <media/timb_video.h>
+>  
+>  #include <linux/timb_dma.h>
+>  
+> @@ -238,7 +239,24 @@ static const __devinitconst struct resource timberdale_uartlite_resources[] = {
+>  	},
+>  };
+>  
+> -static const __devinitconst struct resource timberdale_radio_resources[] = {
+> +static __devinitdata struct i2c_board_info timberdale_adv7180_i2c_board_info = {
+> +	/* Requires jumper JP9 to be off */
+> +	I2C_BOARD_INFO("adv7180", 0x42 >> 1),
+> +	.irq = IRQ_TIMBERDALE_ADV7180
+> +};
+> +
+> +static __devinitdata struct timb_video_platform_data
+> +	timberdale_video_platform_data = {
+> +	.dma_channel = DMA_VIDEO_RX,
+> +	.i2c_adapter = 0,
+> +	.encoder = {
+> +		.module_name = "adv7180",
+> +		.info = &timberdale_adv7180_i2c_board_info
+> +	}
+> +};
+> +
+> +static const __devinitconst struct resource
+> +timberdale_radio_resources[] = {
+>  	{
+>  		.start	= RDSOFFSET,
+>  		.end	= RDSEND,
+> @@ -272,6 +290,18 @@ static __devinitdata struct timb_radio_platform_data
+>  	}
+>  };
+>  
+> +static const __devinitconst struct resource timberdale_video_resources[] = {
+> +	{
+> +		.start	= LOGIWOFFSET,
+> +		.end	= LOGIWEND,
+> +		.flags	= IORESOURCE_MEM,
+> +	},
+> +	/*
+> +	note that the "frame buffer" is located in DMA area
+> +	starting at 0x1200000
+> +	*/
+> +};
+> +
+>  static __devinitdata struct timb_dma_platform_data timb_dma_platform_data = {
+>  	.nr_channels = 10,
+>  	.channels = {
+> @@ -372,6 +402,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg0[] = {
+>  		.data_size = sizeof(timberdale_gpio_platform_data),
+>  	},
+>  	{
+> +		.name = "timb-video",
+> +		.num_resources = ARRAY_SIZE(timberdale_video_resources),
+> +		.resources = timberdale_video_resources,
+> +		.platform_data = &timberdale_video_platform_data,
+> +		.data_size = sizeof(timberdale_video_platform_data),
+> +	},
+> +	{
+>  		.name = "timb-radio",
+>  		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+>  		.resources = timberdale_radio_resources,
+> @@ -430,6 +467,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg1[] = {
+>  		.resources = timberdale_mlogicore_resources,
+>  	},
+>  	{
+> +		.name = "timb-video",
+> +		.num_resources = ARRAY_SIZE(timberdale_video_resources),
+> +		.resources = timberdale_video_resources,
+> +		.platform_data = &timberdale_video_platform_data,
+> +		.data_size = sizeof(timberdale_video_platform_data),
+> +	},
+> +	{
+>  		.name = "timb-radio",
+>  		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+>  		.resources = timberdale_radio_resources,
+> @@ -478,6 +522,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg2[] = {
+>  		.data_size = sizeof(timberdale_gpio_platform_data),
+>  	},
+>  	{
+> +		.name = "timb-video",
+> +		.num_resources = ARRAY_SIZE(timberdale_video_resources),
+> +		.resources = timberdale_video_resources,
+> +		.platform_data = &timberdale_video_platform_data,
+> +		.data_size = sizeof(timberdale_video_platform_data),
+> +	},
+> +	{
+>  		.name = "timb-radio",
+>  		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+>  		.resources = timberdale_radio_resources,
+> @@ -521,6 +572,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg3[] = {
+>  		.data_size = sizeof(timberdale_gpio_platform_data),
+>  	},
+>  	{
+> +		.name = "timb-video",
+> +		.num_resources = ARRAY_SIZE(timberdale_video_resources),
+> +		.resources = timberdale_video_resources,
+> +		.platform_data = &timberdale_video_platform_data,
+> +		.data_size = sizeof(timberdale_video_platform_data),
+> +	},
+> +	{
+>  		.name = "timb-radio",
+>  		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+>  		.resources = timberdale_radio_resources,
+> diff --git a/drivers/mfd/timberdale.h b/drivers/mfd/timberdale.h
+> index c11bf6e..4412acd 100644
+> --- a/drivers/mfd/timberdale.h
+> +++ b/drivers/mfd/timberdale.h
+> @@ -23,7 +23,7 @@
+>  #ifndef MFD_TIMBERDALE_H
+>  #define MFD_TIMBERDALE_H
+>  
+> -#define DRV_VERSION		"0.2"
+> +#define DRV_VERSION		"0.3"
+>  
+>  /* This driver only support versions >= 3.8 and < 4.0  */
+>  #define TIMB_SUPPORTED_MAJOR	3
+> 
+
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
