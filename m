@@ -1,94 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:49373 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752099Ab0JMOkf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Oct 2010 10:40:35 -0400
-Message-ID: <4CB5C4DD.9080308@iki.fi>
-Date: Wed, 13 Oct 2010 17:40:29 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Stefan Lippers-Hollmann <s.l-h@gmx.de>,
-	linux-media@vger.kernel.org,
-	"Yann E. MORIN" <yann.morin.1998@anciens.enib.fr>
-Subject: [GIT PULL FOR 2.6.37] AF9013 + AF9015 changes, mostly remote controller
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:13135 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755435Ab0JSXj6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Oct 2010 19:39:58 -0400
+Date: Tue, 19 Oct 2010 19:39:43 -0400
+Subject: Re: cx23888 board setup
+Message-ID: <qarwkfd9fpwb5mmfv2m8t4vu.1287531545590@email.android.com>
+From: Andy Walls <awalls@md.metrocast.net>
+To: Fred Seward <fred.seward@adiengineering.com>,
+	video4linux-list@redhat.com, stoth@kernellabs.com,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Moikka Mauro,
+RnJlZCwKWW91IHNob3VsZCBzZW5kIG1haWwgdG8gdGhlIGxpbnV4LW1lZGlhIGxpc3Q7IHRoZSB2
+aWRlbzRsaW51eCBsaXN0IGlzIG1vc3RseSBkZWFkLgoKQW5hbG9nIHN1cHBvcnQgaW4gdGhlIGN4
+MjM4ODUgZHJpdmVyIGlzIG5vdCBjb21wbGV0ZS4gIFlvdSBjYW4gY29udGFjdCBTdGV2ZSBUb3Ro
+IGF0IGtlcm5lbGxhYnMsIGlmIHlvdXIgY29tcGFueSBuZWVkcyBzb21ldGhpbmcgaW4gYSBjZXJ0
+YWluIHRpbWVmcmFtZSBhbmQgaXMgd2lsbGluZyB0byBzcG9uc29yIGdldHRpbmcgdGhlIGZ1bmN0
+aW9uYWxpdHkgeW91IG5lZWQuCgpBbHNvIHRoZSBDWDIzODg4IGl0c2VsZiBkb2Vzbid0IGRvIE1Q
+RUcgY29tcHJlc3Npb24uICBZb3UnbGwgbmVlZCBhIGNvbm5lY3RlZCBDWDIzNDE3IChvciBDWDIz
+NDE2KSB0byBkbyB0aGUgY29tcHJlc3Npb24uICAoTWF5YmUgeW91IGhhdmUgdGhhdCwgYnV0IHlv
+dSBkaWRuJ3QgbWVudGlvbiBpdC4pCgpSZWdhcmRzLApBbmR5CgpGcmVkIFNld2FyZCA8ZnJlZC5z
+ZXdhcmRAYWRpZW5naW5lZXJpbmcuY29tPiB3cm90ZToKCj5XZSBoYXZlIGEgY3VzdG9tIHg4NiBi
+b2FyZCB3aXRoOgo+Cj4gICAgLSBBIHNvbGRlcmVkIGRvd24gY3gyMzg4OAo+Cj4gICAgLSBGb3Vy
+IGNvbXBvc2l0ZSBpbnB1dHMgZmVlZGluZyB0aGUgY3gyMzg4OC4gTm8gdHVuZXIuCj4gICAgICBX
+ZSdyZSBvbmx5IGxvb2tpbmcgYXQgdGhlIGZvdXIgY29tcG9zaXRlIGlucHV0cy4KPgo+ICAgIC0g
+RkMxMyB3aXRoIGEgMi42LjMzLjQga2VybmVsLgo+Cj5UaGUgY3gyMzg4NSBkcml2ZXIgbG9hZHMg
+YW5kIEkgZ2V0IC9kZXYvdmlkZW8wIGJ1dCB3aGVuIEkgdHJ5IHRvCj5jYXQgL2Rldi92aWRlbzAg
+SSBnZXQgZGF0YSBidXQgaXQncyBub3QgYW4gbXBlZyBmaWxlLgo+Cj5DYW4gYW55b25lIHBvaW50
+IG1lIHRvIHNvbWUgZG9jdW1lbnRhdGlvbiB3aGljaCB0ZWxscyBob3cgdG8gc2V0Cj51cCB0aGUg
+Y3gyMzg4NV9ib2FyZCBib2FyZCBzdHJ1Y3R1cmUgYW5kIHdoYXQgb3RoZXIKPmluaXRpYWxpemF0
+aW9uIG1pZ2h0IG5lZWQgdG8gYmUgZG9uZT8KPgo+Cj5JbiB0aGUgY3gyMzg4NSBkcml2ZXIgSSBt
+b2RpZmllZCBjeDIzODg1LWNhcmRzLmMgdG8gYWRkIGFuCj5lbnRyeSBmb3Igb3VyIGhhcmR3YXJl
+Lgo+Cj5zdHJ1Y3QgY3gyMzg4NV9ib2FyZCBjeDIzODg1X2JvYXJkc1tdID0gewo+Cj4gICBbQ1gy
+Mzg4NV9CT0FSRF9FQ1VdID0gewo+ICAgICAgIC5uYW1lICAgICAgID0gImN1c3RvbSBib2FyZCIs
+Cj4gICAgICAgLnBvcnRhICAgICAgPSBDWDIzODg1X0FOQUxPR19WSURFTywKPiAgICAgICAucG9y
+dGIgICAgICA9IENYMjM4ODVfTVBFR19FTkNPREVSLAo+ICAgICAgIC5jbGtfZnJlcSAgID0gNTAw
+MDAwMDAsCj4gICAgICAgLmlucHV0ICAgICAgICAgID0ge3sKPiAgICAgICAgICAgLnR5cGUgICA9
+IENYMjM4ODVfVk1VWF9DT01QT1NJVEUxLAo+ICAgICAgICAgICAudm11eCAgID0gMCwKPiAgICAg
+ICB9LCB7Cj4gICAgICAgICAgIC50eXBlICAgPSBDWDIzODg1X1ZNVVhfQ09NUE9TSVRFMiwKPiAg
+ICAgICAgICAgLnZtdXggICA9IDEsCj4gICAgICAgfSwgewo+ICAgICAgICAgICAudHlwZSAgID0g
+Q1gyMzg4NV9WTVVYX0NPTVBPU0lURTMsCj4gICAgICAgICAgIC52bXV4ICAgPSAyLAo+ICAgICAg
+IH0sIHsKPiAgICAgICAgICAgLnR5cGUgICA9IENYMjM4ODVfVk1VWF9DT01QT1NJVEU0LAo+ICAg
+ICAgICAgICAudm11eCAgID0gMywKPiAgICAgICB9IH0sCj4gICB9LAo+Cj5jeDIzODg1X3N1Ymlk
+cwo+Cj4gICB9LCB7Cj4gICAgICAgLnN1YnZlbmRvciA9IDB4MDAwMCwKPiAgICAgICAuc3ViZGV2
+aWNlID0gMHgwMDAwLAo+ICAgICAgIC5jYXJkICAgICAgPSBDWDIzODg1X0JPQVJEX0VDVSwKPiAg
+IH0sIHsKPgo+LS0KPnZpZGVvNGxpbnV4LWxpc3QgbWFpbGluZyBsaXN0Cj5VbnN1YnNjcmliZSBt
+YWlsdG86dmlkZW80bGludXgtbGlzdC1yZXF1ZXN0QHJlZGhhdC5jb20/c3ViamVjdD11bnN1YnNj
+cmliZQo+aHR0cHM6Ly93d3cucmVkaGF0LmNvbS9tYWlsbWFuL2xpc3RpbmZvL3ZpZGVvNGxpbnV4
+LWxpc3QK
 
-This patch series mainly moves af9015 remote controllers to rc-core. 
-Also some other changes which should not have visible effects.
-
-I did forced update since normal said: "To prevent you from losing 
-history, non-fast-forward updates were rejected". Hopefully it does not 
-cause merging problems for you.
-
-t. Antti
-
-The following changes since commit c8dd732fd119ce6d562d5fa82a10bbe75a376575:
-
-   V4L/DVB: gspca - sonixj: Have 0c45:6130 handled by sonixj instead of 
-sn9c102 (2010-10-01 18:14:35 -0300)
-
-are available in the git repository at:
-   git://linuxtv.org/anttip/media_tree.git af9015
-
-Antti Palosaari (19):
-       af9013: optimize code size
-       af9013: cache some reg values to reduce reg reads
-       af9015: make checkpatch.pl happy
-       af9015: remove needless variable set
-       TerraTec remote controller keytable
-       MSI DIGIVOX mini III remote controller keytable
-       TrekStor DVB-T USB Stick remote controller
-       Digittrade DVB-T USB Stick remote controller keytable
-       AverMedia RM-KS remote controller keytable
-       LeadTek Y04G0051 remote controller keytable
-       TwinHan AzureWave AD-TU700(704J) remote controller
-       A-Link DTU(m) remote controller
-       MSI DIGIVOX mini II remote controller
-       rename rc-msi-digivox.c -> rc-msi-digivox-iii.c
-       Total Media In Hand remote controller
-       fix MSI DIGIVOX mini III remote controller power buttons
-       fix TerraTec remote controller PIP button
-       fix A-Link DTU(m) remote controller PIP button
-       af9015: move remote controllers to new RC core
-
-Yann E. MORIN (1):
-       v4l/dvb: add support for AVerMedia AVerTV Red HD+ (A850T)
-
-  drivers/media/IR/keymaps/Makefile                 |   10 +
-  drivers/media/IR/keymaps/rc-alink-dtu-m.c         |   68 ++++
-  drivers/media/IR/keymaps/rc-avermedia-rm-ks.c     |   79 ++++
-  drivers/media/IR/keymaps/rc-azurewave-ad-tu700.c  |  102 +++++
-  drivers/media/IR/keymaps/rc-digittrade.c          |   82 ++++
-  drivers/media/IR/keymaps/rc-leadtek-y04g0051.c    |   99 +++++
-  drivers/media/IR/keymaps/rc-msi-digivox-ii.c      |   67 ++++
-  drivers/media/IR/keymaps/rc-msi-digivox-iii.c     |   85 +++++
-  drivers/media/IR/keymaps/rc-terratec-slim.c       |   79 ++++
-  drivers/media/IR/keymaps/rc-total-media-in-hand.c |   85 +++++
-  drivers/media/IR/keymaps/rc-trekstor.c            |   80 ++++
-  drivers/media/dvb/dvb-usb/af9015.c                |  253 +++++++------
-  drivers/media/dvb/dvb-usb/af9015.h                |  418 
-+--------------------
-  drivers/media/dvb/dvb-usb/dvb-usb-ids.h           |    1 +
-  drivers/media/dvb/frontends/af9013.c              |   92 ++---
-  drivers/media/dvb/frontends/af9013_priv.h         |   69 ++--
-  include/media/rc-map.h                            |   10 +
-  17 files changed, 1062 insertions(+), 617 deletions(-)
-  create mode 100644 drivers/media/IR/keymaps/rc-alink-dtu-m.c
-  create mode 100644 drivers/media/IR/keymaps/rc-avermedia-rm-ks.c
-  create mode 100644 drivers/media/IR/keymaps/rc-azurewave-ad-tu700.c
-  create mode 100644 drivers/media/IR/keymaps/rc-digittrade.c
-  create mode 100644 drivers/media/IR/keymaps/rc-leadtek-y04g0051.c
-  create mode 100644 drivers/media/IR/keymaps/rc-msi-digivox-ii.c
-  create mode 100644 drivers/media/IR/keymaps/rc-msi-digivox-iii.c
-  create mode 100644 drivers/media/IR/keymaps/rc-terratec-slim.c
-  create mode 100644 drivers/media/IR/keymaps/rc-total-media-in-hand.c
-  create mode 100644 drivers/media/IR/keymaps/rc-trekstor.c
-
--- 
-http://palosaari.fi/
