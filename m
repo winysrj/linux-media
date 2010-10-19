@@ -1,82 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:8383 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751299Ab0JRGPz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Oct 2010 02:15:55 -0400
-Message-ID: <4CBBE5F6.6030201@redhat.com>
-Date: Mon, 18 Oct 2010 04:15:18 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:63475 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751557Ab0JST0P (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Oct 2010 15:26:15 -0400
+Received: by ewy20 with SMTP id 20so3882270ewy.19
+        for <linux-media@vger.kernel.org>; Tue, 19 Oct 2010 12:26:14 -0700 (PDT)
 MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: LMML <linux-media@vger.kernel.org>,
-	"Igor M. Liplianin" <liplianin@me.by>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Jarod Wilson <jarod@redhat.com>,
-	Richard Zidlicky <rz@linux-m68k.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Sven Barth <pascaldragon@googlemail.com>,
-	Patrick Boettcher <pboettcher@kernellabs.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Henrik Kurelid <henke@kurelid.se>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: Re: Old patches sent via the Mailing list
-References: <4CBB689F.1070100@redhat.com> <1287358617.2320.12.camel@morgan.silverblock.net>
-In-Reply-To: <1287358617.2320.12.camel@morgan.silverblock.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <B757CA7E-493B-44D6-8CE5-2F7AED446D70@gmail.com>
+References: <B757CA7E-493B-44D6-8CE5-2F7AED446D70@gmail.com>
+Date: Tue, 19 Oct 2010 15:26:13 -0400
+Message-ID: <AANLkTim+QfU5hJwi_DkdpnAvUWSOLdEM5kXoTDK5+tsy@mail.gmail.com>
+Subject: Re: rtl2832u support
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Damjan Marion <damjan.marion@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 17-10-2010 21:36, Andy Walls escreveu:
-> On Sun, 2010-10-17 at 19:20 -0200, Mauro Carvalho Chehab wrote:
->> Hi,
->>
->> I did a large effort during this weekend to handle the maximum amount of patches, in order to have them
->> ready for 2.6.37. While there are still some patches marked as NEW at patchwork, and a few pending pull
->> requests (mostly related to more kABI changes), there are still a list of patches that are marked as
->> Under review. Except for 4 patches from me, related to Doc (that I'm keeping in this list just to remind
->> me that I'll need to fix them when I have some time - just some automation stuff at DocBook), all other
->> patches marked as Under review are stuff that I basically depend on others.
->>
->> The last time I sent this list, I was about to travel, and I may have missed some comments, or maybe I
->> may just forgot to update. But I suspect that, for the list bellow, most of them are stuff where the
->> driver maintainer just forgot at limbo.
->>
->> >From the list of patches under review, we have:
->>
->> Waiting for new patch, signed, from Sven Barth <pascaldragon@googlemail.com>
->>   Apr,25 2010: Problem with cx25840 and Terratec Grabster AV400                       http://patchwork.kernel.org/patch/94960   Sven Barth <pascaldragon@googlemail.com>
-> 
-> Sven,
-> 
-> We need a "Signed-off-by: " for your submitted patch:
-> 
-> http://www.linuxtv.org/wiki/index.php/Development:_Submitting_Patches#Sign_your_work
-> 
-> Note, your patch has an obvious, unintentional white space change for
-> "if (std == V4L2_STD_NTSC_M_JP)", so could you fix that up and send a
-> new signed off version?
-> 
-> 
-> Mauro,
-> 
-> This patch makes obvious sense to me: don't perform audio register
-> updates on a chip that doesn't have an audio processing block.  Sven's
-> approach was based on my recommended approach, after his initial
-> discovery on how to get his audio working.
-> 
-> Do we really need an S.O.B for something that appears to be common
-> sense, and wouldn't have been implemented any other way, even if I had
-> implemented it?
+On Tue, Oct 19, 2010 at 1:42 PM, Damjan Marion <damjan.marion@gmail.com> wrote:
+>
+> Hi,
+>
+> Is there any special reason why driver for rtl2832u DVB-T receiver chipset is not included into v4l-dvb?
+>
+> Realtek published source code under GPL:
+>
+> MODULE_AUTHOR("Realtek");
+> MODULE_DESCRIPTION("Driver for the RTL2832U DVB-T / RTL2836 DTMB USB2.0 device");
+> MODULE_VERSION("1.4.2");
+> MODULE_LICENSE("GPL");
 
-The original patch were in the middle of a discussion, no proper description,
-bad whitespacing, etc. It is better to let the patch author to fix those issues,
-as they learn more about how to submit a patch.
+Unfortunately, in most cases much more is "required" than having a
+working driver under the GPL in order for it to be accepted upstream.
+In some cases it can mean a developer spending a few hours cleaning up
+whitespace and indentation, and in other cases it means significant
+work to the driver is required.
 
-Anyway, I agree with you, the patch is obvious, and can proceed without the SOB.
-I did the usual CodingStyle fixups, put part of your above comment as the patch
-description, together with your ack and moved it forward. One patch less on my queue ;)
+The position the LinuxTV team has taken is that they would rather have
+no upstream driver at all than to have a driver which doesn't have the
+right indentation or other aesthetic problems which has no bearing on
+how well the driver actually works.
 
-Cheers,
-Mauro
+This is one of the big reasons KernelLabs has tens of thousands of
+lines of code adding support for a variety of devices with many happy
+users (who are willing to go through the trouble to compile from
+source), but the code cannot be accepted upstream.  I just cannot find
+the time to do the "idiot work".
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
