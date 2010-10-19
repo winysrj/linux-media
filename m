@@ -1,136 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:60203 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752059Ab0JENSn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 09:18:43 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v2 0/6] OMAP3 ISP driver
-Date: Tue,  5 Oct 2010 15:18:49 +0200
-Message-Id: <1286284734-12292-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from 124x34x33x190.ap124.ftth.ucom.ne.jp ([124.34.33.190]:33109 "EHLO
+	master.linux-sh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751635Ab0JSNzC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Oct 2010 09:55:02 -0400
+Date: Tue, 19 Oct 2010 22:54:46 +0900
+From: Paul Mundt <lethal@linux-sh.org>
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Dave Airlie <airlied@gmail.com>,
+	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Greg KH <greg@kroah.com>, codalist@telemann.coda.cs.cmu.edu,
+	autofs@linux.kernel.org, Samuel Ortiz <samuel@sortiz.org>,
+	Jan Kara <jack@suse.cz>,
+	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
+	Jan Harkes <jaharkes@cs.cmu.edu>, netdev@vger.kernel.org,
+	Anders Larsen <al@alarsen.net>, linux-kernel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	Bryan Schumaker <bjschuma@netapp.com>,
+	Christoph Hellwig <hch@infradead.org>,
+	ksummit-2010-discuss@lists.linux-foundation.org,
+	Petr Vandrovec <vandrove@vc.cvut.cz>,
+	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
+	linux-fsdevel@vger.kernel.org,
+	Evgeniy Dushistov <dushistov@mail.ru>,
+	Ingo Molnar <mingo@elte.hu>,
+	Andrew Hendry <andrew.hendry@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [Ksummit-2010-discuss] [v2] Remaining BKL users, what to do
+Message-ID: <20101019135445.GA19367@linux-sh.org>
+References: <201009161632.59210.arnd@arndb.de> <alpine.LNX.2.00.1010182342120.31740@banach.math.auburn.edu> <AANLkTi=oAeuz8ZxcOMpf=3MVY=WMt0BwHiGCUxO7OAEV@mail.gmail.com> <201010190926.54635.arnd@arndb.de> <1287491998.16971.360.camel@gandalf.stny.rr.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1287491998.16971.360.camel@gandalf.stny.rr.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi everybody,
-
-Here's the second version of the OMAP3 ISP driver, rebased on top of the latest
-media controller and sub-device API patches.
-
-As with the previous version, the V4L/DVB patches come from the upstream
-staging/v2.6.37 branch and won't be needed anymore when the driver will be
-rebased on top of 2.6.36.
-
-Patch 6/6 (the driver itself) is too big for vger, even in compressed form.
-You can find it at
-http://git.linuxtv.org/pinchartl/media.git?h=refs/heads/media-0004-omap3isp
-(sorry for the inconvenience). I'll try splitting up the patch in the next
-version for easier review.
-
-Laurent Pinchart (4):
-  v4l: subdev: Generic ioctl support
-  V4L/DVB: v4l: Use v4l2_get_subdevdata instead of accessing
-    v4l2_subdev::priv
-  V4L/DVB: v4l: Add a v4l2_subdev host private data field
-  OMAP3 ISP driver
-
-Stanimir Varbanov (1):
-  omap3: Export omap3isp platform device structure
-
-Tuukka Toivonen (1):
-  ARM: OMAP3: Update Camera ISP definitions for OMAP3630
-
- Documentation/video4linux/v4l2-framework.txt |   10 +
- arch/arm/mach-omap2/devices.c                |   46 +-
- arch/arm/mach-omap2/devices.h                |   17 +
- arch/arm/plat-omap/include/mach/isp_user.h   |  644 ++++++++
- arch/arm/plat-omap/include/plat/omap34xx.h   |   16 +-
- drivers/media/video/Kconfig                  |   15 +
- drivers/media/video/Makefile                 |    2 +
- drivers/media/video/isp/Makefile             |   13 +
- drivers/media/video/isp/bluegamma_table.h    | 1050 ++++++++++++
- drivers/media/video/isp/cfa_coef_table.h     |  601 +++++++
- drivers/media/video/isp/greengamma_table.h   | 1050 ++++++++++++
- drivers/media/video/isp/isp.c                | 1867 +++++++++++++++++++++
- drivers/media/video/isp/isp.h                |  399 +++++
- drivers/media/video/isp/ispccdc.c            | 2295 ++++++++++++++++++++++++++
- drivers/media/video/isp/ispccdc.h            |  194 +++
- drivers/media/video/isp/ispccp2.c            | 1115 +++++++++++++
- drivers/media/video/isp/ispccp2.h            |   97 ++
- drivers/media/video/isp/ispcsi2.c            | 1217 ++++++++++++++
- drivers/media/video/isp/ispcsi2.h            |  162 ++
- drivers/media/video/isp/ispcsiphy.c          |  246 +++
- drivers/media/video/isp/ispcsiphy.h          |   77 +
- drivers/media/video/isp/isph3a.h             |  116 ++
- drivers/media/video/isp/isph3a_aewb.c        |  354 ++++
- drivers/media/video/isp/isph3a_af.c          |  401 +++++
- drivers/media/video/isp/isphist.c            |  509 ++++++
- drivers/media/video/isp/isphist.h            |   39 +
- drivers/media/video/isp/isppreview.c         | 2293 +++++++++++++++++++++++++
- drivers/media/video/isp/isppreview.h         |  262 +++
- drivers/media/video/isp/ispqueue.c           | 1103 +++++++++++++
- drivers/media/video/isp/ispqueue.h           |  183 ++
- drivers/media/video/isp/ispreg.h             | 1652 ++++++++++++++++++
- drivers/media/video/isp/ispresizer.c         | 1729 +++++++++++++++++++
- drivers/media/video/isp/ispresizer.h         |  142 ++
- drivers/media/video/isp/ispstat.c            | 1039 ++++++++++++
- drivers/media/video/isp/ispstat.h            |  165 ++
- drivers/media/video/isp/ispvideo.c           | 1164 +++++++++++++
- drivers/media/video/isp/ispvideo.h           |  168 ++
- drivers/media/video/isp/luma_enhance_table.h |  154 ++
- drivers/media/video/isp/noise_filter_table.h |   90 +
- drivers/media/video/isp/redgamma_table.h     | 1050 ++++++++++++
- drivers/media/video/mt9m001.c                |   26 +-
- drivers/media/video/mt9m111.c                |   20 +-
- drivers/media/video/mt9t031.c                |   24 +-
- drivers/media/video/mt9t112.c                |   14 +-
- drivers/media/video/mt9v022.c                |   26 +-
- drivers/media/video/ov772x.c                 |   18 +-
- drivers/media/video/ov9640.c                 |   12 +-
- drivers/media/video/rj54n1cb0c.c             |   26 +-
- drivers/media/video/soc_camera.c             |    2 +-
- drivers/media/video/tw9910.c                 |   20 +-
- drivers/media/video/v4l2-subdev.c            |    5 +-
- include/media/v4l2-subdev.h                  |   17 +-
- 52 files changed, 23847 insertions(+), 109 deletions(-)
- create mode 100644 arch/arm/mach-omap2/devices.h
- create mode 100644 arch/arm/plat-omap/include/mach/isp_user.h
- create mode 100644 drivers/media/video/isp/Makefile
- create mode 100644 drivers/media/video/isp/bluegamma_table.h
- create mode 100644 drivers/media/video/isp/cfa_coef_table.h
- create mode 100644 drivers/media/video/isp/greengamma_table.h
- create mode 100644 drivers/media/video/isp/isp.c
- create mode 100644 drivers/media/video/isp/isp.h
- create mode 100644 drivers/media/video/isp/ispccdc.c
- create mode 100644 drivers/media/video/isp/ispccdc.h
- create mode 100644 drivers/media/video/isp/ispccp2.c
- create mode 100644 drivers/media/video/isp/ispccp2.h
- create mode 100644 drivers/media/video/isp/ispcsi2.c
- create mode 100644 drivers/media/video/isp/ispcsi2.h
- create mode 100644 drivers/media/video/isp/ispcsiphy.c
- create mode 100644 drivers/media/video/isp/ispcsiphy.h
- create mode 100644 drivers/media/video/isp/isph3a.h
- create mode 100644 drivers/media/video/isp/isph3a_aewb.c
- create mode 100644 drivers/media/video/isp/isph3a_af.c
- create mode 100644 drivers/media/video/isp/isphist.c
- create mode 100644 drivers/media/video/isp/isphist.h
- create mode 100644 drivers/media/video/isp/isppreview.c
- create mode 100644 drivers/media/video/isp/isppreview.h
- create mode 100644 drivers/media/video/isp/ispqueue.c
- create mode 100644 drivers/media/video/isp/ispqueue.h
- create mode 100644 drivers/media/video/isp/ispreg.h
- create mode 100644 drivers/media/video/isp/ispresizer.c
- create mode 100644 drivers/media/video/isp/ispresizer.h
- create mode 100644 drivers/media/video/isp/ispstat.c
- create mode 100644 drivers/media/video/isp/ispstat.h
- create mode 100644 drivers/media/video/isp/ispvideo.c
- create mode 100644 drivers/media/video/isp/ispvideo.h
- create mode 100644 drivers/media/video/isp/luma_enhance_table.h
- create mode 100644 drivers/media/video/isp/noise_filter_table.h
- create mode 100644 drivers/media/video/isp/redgamma_table.h
-
--- 
-Regards,
-
-Laurent Pinchart
-
+On Tue, Oct 19, 2010 at 08:39:58AM -0400, Steven Rostedt wrote:
+> On Tue, 2010-10-19 at 09:26 +0200, Arnd Bergmann wrote:
+> > On Tuesday 19 October 2010 06:52:32 Dave Airlie wrote:
+> > > > I might be able to find some hardware still lying around here that uses an
+> > > > i810. Not sure unless I go hunting it. But I get the impression that if
+> > > > the kernel is a single-CPU kernel there is not any problem anyway? Don't
+> > > > distros offer a non-smp kernel as an installation option in case the user
+> > > > needs it? So in reality how big a problem is this?
+> > > 
+> > > Not anymore, which is my old point of making a fuss. Nowadays in the
+> > > modern distro world, we supply a single kernel that can at runtime
+> > > decide if its running on SMP or UP and rewrite the text section
+> > > appropriately with locks etc. Its like magic, and something like
+> > > marking drivers as BROKEN_ON_SMP at compile time is really wrong when
+> > > what you want now is a runtime warning if someone tries to hotplug a
+> > > CPU with a known iffy driver loaded or if someone tries to load the
+> > > driver when we are already in SMP mode.
+> > 
+> > We could make the driver run-time non-SMP by adding
+> > 
+> > 	if (num_present_cpus() > 1) {
+> > 		pr_err("i810 no longer supports SMP\n");
+> > 		return -EINVAL;
+> > 	}
+> > 
+> > to the init function. That would cover the vast majority of the
+> > users of i810 hardware, I guess.
+> 
+> I think we also need to cover the PREEMPT case too. But that could be a
+> compile time check, since you can't boot a preempt kernel and make it
+> non preempt.
+> 
+There are enough nameless embedded vendors that have turned a preempt
+kernel in to a non-preempt one at run-time by leaking the preempt count,
+whether by design or not, so it's certainly possile :-)
