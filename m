@@ -1,40 +1,37 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:25819 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:25000 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757730Ab0J2NqF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Oct 2010 09:46:05 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o9TDk4Vk022230
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 29 Oct 2010 09:46:05 -0400
-Message-ID: <4CCAD01A.3090106@redhat.com>
-Date: Fri, 29 Oct 2010 11:46:02 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1751076Ab0JSRwN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Oct 2010 13:52:13 -0400
+Date: Tue, 19 Oct 2010 13:52:11 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Srinivasa.Deevi@conexant.com,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/3] cx231xx: Only register USB interface 1
+Message-ID: <20101019175211.GB16942@redhat.com>
+References: <cover.1287442245.git.mchehab@redhat.com>
+ <20101018205259.171bd8ed@pedra>
 MIME-Version: 1.0
-To: Jarod Wilson <jarod@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 0/2] Apple remote support
-References: <20101029031131.GE17238@redhat.com> <20101029031530.GH17238@redhat.com>
-In-Reply-To: <20101029031530.GH17238@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20101018205259.171bd8ed@pedra>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 29-10-2010 01:15, Jarod Wilson escreveu:
-> On Thu, Oct 28, 2010 at 11:11:31PM -0400, Jarod Wilson wrote:
->> I've got one of those tiny little 6-button Apple remotes here, now it can
->> be decoded in-kernel (tested w/an mceusb transceiver).
+On Mon, Oct 18, 2010 at 08:52:59PM -0200, Mauro Carvalho Chehab wrote:
+> Interface 0 is used by IR. The current driver starts initializing
+> on it, finishing on interface 6. Change the logic to only handle
+> interface 1. This allows another driver (mceusb) to take care of
+> the IR interface.
 > 
-> Oh yeah, RFC, because I'm not sure if we should have a more generic "skip
-> the checksum check" support -- I seem to recall discussion about it in the
-> not so recent past. And a decoder hack for one specific remote is just
-> kinda ugly...
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Yeah, I have the same doubt. One possibility would be to simply report a 32 bits
-code, if the check fails. I don't doubt that we'll find other remotes with
-a "NEC relaxed" protocol, with no checksum at all.
+Looks good.
 
-Cheers,
-Mauro.
+Reviewed-by: Jarod Wilson <jarod@redhat.com>
+
+-- 
+Jarod Wilson
+jarod@redhat.com
 
