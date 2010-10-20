@@ -1,56 +1,41 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:4605 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751529Ab0JGVsV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Oct 2010 17:48:21 -0400
-Message-ID: <4CAE4020.4000209@redhat.com>
-Date: Thu, 07 Oct 2010 18:48:16 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: dheitmueller@kernellabs.com
-CC: Srinivasa.Deevi@conexant.com, Palash.Bandyopadhyay@conexant.com,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 01/10] V4L/DVB: cx231xx: remove a printk warning at -avcore
- and at -417
-References: <cover.1285699057.git.mchehab@redhat.com> <20100928154653.785c1f3f@pedra>
-In-Reply-To: <20100928154653.785c1f3f@pedra>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:43634 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752187Ab0JTJet (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Oct 2010 05:34:49 -0400
+Received: by mail-bw0-f46.google.com with SMTP id 10so1122571bwz.19
+        for <linux-media@vger.kernel.org>; Wed, 20 Oct 2010 02:34:49 -0700 (PDT)
+From: Ruslan Pisarev <ruslanpisarev@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Ruslan Pisarev <ruslan@rpisarev.org.ua>
+Subject: [PATCH 2/6] Staging: tm6000: fix "ERROR: do not initialise statics to 0 or NULL" in tm6000-i2c.c
+Date: Wed, 20 Oct 2010 12:34:40 +0300
+Message-Id: <1287567280-18700-1-git-send-email-ruslan@rpisarev.org.ua>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 28-09-2010 15:46, Mauro Carvalho Chehab escreveu:
-> drivers/media/video/cx231xx/cx231xx-avcore.c:1608: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘long unsigned int’
-> drivers/media/video/cx231xx/cx231xx-417.c:1047: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘size_t’
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+This is a patch to the tm6000-i2c.c file that fixed "ERROR: do not
+initialise statics to 0 or NULL" found by the checkpatch.pl tools.
 
-OK, I just updated my tree with the patches that Mkrufky acked.
-It basically contains the same patches from my previous post, plus
-the patches that Palash sent, and Devin/Mkrufky patches from polaris4
-tree, rebased over the top of kernel v2.6.36-rc7 (this makes easier
-for me to test and to merge).
+Signed-off-by: Ruslan Pisarev <ruslan@rpisarev.org.ua>
+---
+ drivers/staging/tm6000/tm6000-i2c.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-The patches are at:
-	http://git.linuxtv.org/mchehab/cx231xx.git
+diff --git a/drivers/staging/tm6000/tm6000-i2c.c b/drivers/staging/tm6000/tm6000-i2c.c
+index 79bc67f..a08d6a3 100644
+--- a/drivers/staging/tm6000/tm6000-i2c.c
++++ b/drivers/staging/tm6000/tm6000-i2c.c
+@@ -36,7 +36,7 @@
+ #define I2C_HW_B_TM6000 I2C_HW_B_EM28XX
+ /* ----------------------------------------------------------- */
+ 
+-static unsigned int i2c_debug = 0;
++static unsigned int i2c_debug;
+ module_param(i2c_debug, int, 0644);
+ MODULE_PARM_DESC(i2c_debug, "enable debug messages [i2c]");
+ 
+-- 
+1.7.0.4
 
-Sri already sent his ack for the first series of the patches.
-
-The tree contains two extra patches:
-
-1) a cx231xx large CodingStyle fix patch:
-	http://git.linuxtv.org/mchehab/cx231xx.git?a=commit;h=eacd1a7749ae45d1f2f5782c013b863ff480746d
-
-It basically solves the issues that checkpatch.pl complained on this series of patches;
-
-2) a cx231xx-417 gcc warning fix:
-	http://git.linuxtv.org/mchehab/cx231xx.git?a=commit;h=ca3a6a8c2a4819702e93b9612c4a6d90474ea9b5
-
-Devin,
-
-Would it be ok for you if I merge them on my main tree? They're needed for one
-board I'm working with (a Pixelview SBTVD Hybrid - that supports both analog
-and full-seg ISDB-T).
-
-Thanks,
-Mauro.
