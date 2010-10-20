@@ -1,51 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:57780 "EHLO smtp5-g21.free.fr"
+Received: from que21.charter.net ([209.225.8.22]:39379 "EHLO que21.charter.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754107Ab0JFLsQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Oct 2010 07:48:16 -0400
-Date: Wed, 6 Oct 2010 13:48:55 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Antonio Ospite <ospite@studenti.unina.it>
-Cc: linux-media@vger.kernel.org
-Subject: Re: gspca, audio and ov534: regression.
-Message-ID: <20101006134855.43879d74@tele>
-In-Reply-To: <20101006123321.baade0a4.ospite@studenti.unina.it>
-References: <20101006123321.baade0a4.ospite@studenti.unina.it>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	id S1751757Ab0JTR5U (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Oct 2010 13:57:20 -0400
+Received: from imp11 ([10.20.200.11]) by mta21.charter.net
+          (InterMail vM.7.09.02.04 201-2219-117-106-20090629) with ESMTP
+          id <20101020173833.VKRD3705.mta21.charter.net@imp11>
+          for <linux-media@vger.kernel.org>;
+          Wed, 20 Oct 2010 13:38:33 -0400
+Message-ID: <4CBF291B.1080506@charter.net>
+Date: Wed, 20 Oct 2010 12:38:35 -0500
+From: RickCharter <ricksjunk@charter.net>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: cx88_dvb cannot lock channels
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 6 Oct 2010 12:33:21 +0200
-Antonio Ospite <ospite@studenti.unina.it> wrote:
+  Starting with the 2.6.35 kernels, my KWorld ATSC120 tuner will not 
+lock on to any channels.  Everything works fine up to 2.6.34.7, but will 
+not work with the newer kernels.  This card uses CX88-dvb, s5h1409, and 
+xc2028/3028 modules, and all modules load without any errors. Firmware 
+loads properly. Only irregularity is that in my /var/log/messages files, 
+I get:
 
-> with 2.6.36-rc6 I can't use the ov534 gspca subdriver (with PS3 eye)
-> anymore, when I try to capture video in dmesg I get:
-> gspca: no transfer endpoint found
-> 
-> If I revert commit 35680ba I can make video capture work again but I
-> still don't get the audio device in pulseaudio, it shows up in
-> alsamixer but if I try to select it, on the console I get:
-> cannot load mixer controls: Invalid argument
-> 
-> I'll test with latest Jean-François tree, and if it still fails I'll
-> try to find a solution, but I wanted to report it quickly first, I
-> hope we fix this before 2.6.36.
+Oct 19 22:46:03 slackware kernel: cx88[0]: Calling XC2028/3028 callback
+Oct 19 22:46:31 slackware last message repeated 25 times
+Oct 19 22:46:33 slackware kernel: cx88[0]: Calling XC2028/3028 callback
+Oct 19 22:47:04 slackware last message repeated 28 times
+Oct 19 22:48:05 slackware last message repeated 55 times
+Oct 19 22:49:03 slackware last message repeated 39 times
+Oct 19 22:54:58 slackware kernel: cx88[0]: Calling XC2028/3028 callback
+Oct 19 22:55:59 slackware last message repeated 48 times
+Oct 19 22:56:02 slackware last message repeated 3 times
 
-Hi Antonio,
+Tried to tune a channel in Kaffeine, get: kaffeine(2015) 
+DvbDevice::frontendEvent: tuning failed
 
-I think I see why the commit prevents the webcam to work: as it is
-done, the choice of the alternate setting does not work with bulk
-transfer. A simple fix could be to also check bulk transfer when
-skipping an alt setting in the function get_ep().
+Xine and mplayer freeze trying to channel lock, Mythtv cannot lock on 
+any channel.
 
-About audio stream, I do not see how it can have been broken.
-
-Might you send me the full USB information of your webcam?
-
-Best regards.
-
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Tried using a rc7 of the 2.36 kernel, get same problem... nothing after 
+2.6.34.7 seems to work!
