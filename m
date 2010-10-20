@@ -1,67 +1,126 @@
 Return-path: <mchehab@pedra>
-Received: from p-mail2.rd.francetelecom.com ([195.101.245.16]:18796 "EHLO
-	p-mail2.rd.francetelecom.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752295Ab0JAIMH (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4643 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756414Ab0JTGpE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Oct 2010 04:12:07 -0400
-Message-ID: <4CA5963C.3070202@Free.fr>
-Date: Fri, 01 Oct 2010 10:05:16 +0200
-From: Eric Valette <Eric.Valette@Free.fr>
-Reply-To: Eric.Valette@Free.fr
+	Wed, 20 Oct 2010 02:45:04 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: rtl2832u support
+Date: Wed, 20 Oct 2010 08:44:57 +0200
+Cc: Damjan Marion <damjan.marion@gmail.com>,
+	linux-media@vger.kernel.org
+References: <B757CA7E-493B-44D6-8CE5-2F7AED446D70@gmail.com> <201010192227.39364.hverkuil@xs4all.nl> <AANLkTimk9kP5pb4yy+L0Zu0Om0siLnsDUzDZ2AmZkHMd@mail.gmail.com>
+In-Reply-To: <AANLkTimk9kP5pb4yy+L0Zu0Om0siLnsDUzDZ2AmZkHMd@mail.gmail.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: "Yann E. MORIN" <yann.morin.1998@anciens.enib.fr>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] v4l/dvb: add support for AVerMedia AVerTV Red HD+ (A850T)
-References: <1285795123-11046-1-git-send-email-yann.morin.1998@anciens.enib.fr> <201009301956.50154.yann.morin.1998@anciens.enib.fr> <4CA4F640.7030206@iki.fi> <201009302309.58546.yann.morin.1998@anciens.enib.fr> <4CA505C9.1040400@iki.fi>
-In-Reply-To: <4CA505C9.1040400@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201010200844.58041.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 09/30/2010 11:48 PM, Antti Palosaari wrote:
-> Moi Yann
->
-> On 10/01/2010 12:09 AM, Yann E. MORIN wrote:
->> Antti, All,
->>
->> On Thursday 30 September 2010 22:42:40 Antti Palosaari wrote:
->>> On 09/30/2010 08:56 PM, Yann E. MORIN wrote:
->>>> OK. The number of supported devices is already 9 in all sections, so
->>>> I guess
->>>> I'll have to add a new entry in the af9015_properties array, before
->>>> I can
->>>> add a new device, right?
->>> Actually you are using too old code as base. You should take latest GIT
->>> media tree and 2.6.37 branch.
->>
->> I'm using the latest tree from:
->> git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
->>
->> Is that OK?
->
-> No, it is too old. Correct tree is staging/v2.6.37 at:
-> http://git.linuxtv.org/media_tree.git
+On Tuesday, October 19, 2010 23:28:49 Devin Heitmueller wrote:
+> On Tue, Oct 19, 2010 at 4:27 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > Bullshit.
+> 
+> Not exactly the level of mutual respect for your peers that I would
+> expect of you, Hans.
 
-Antti,
+You I right, that could have been phrased more diplomatically. So I'm human
+after all :-)
 
-just a side comment: the web pages at http://linuxtv.org are, how could 
-I say it politely, confusing.
+> > First of all these rules are those of the kernel community
+> > as a whole and *not* linuxtv as such, and secondly you can upstream such
+> > drivers in the staging tree. If you want to move it out of staging, then
+> > it will take indeed more work since the quality requirements are higher
+> > there.
+> 
+> You are correct - while I indeed say it was the position of the
+> LinuxTV developers, I didn't intend to single them out from the rest
+> of the Linux kernel community.  The problem I described is systemic to
+> working with the Linux kernel community in general.
+> 
+> > Them's the rules for kernel development.
+> >
+> > I've done my share of coding style cleanups. I never understand why people
+> > dislike doing that. In my experience it always greatly improves the code
+> > (i.e. I can actually understand it) and it tends to highlight the remaining
+> > problematic areas in the driver.
+> 
+> Because it's additional work.  I agree that *sometimes* it can be
+> useful.  And yet many times it's a bunch of changes that provide
+> little actual value and only make it harder to keep the Linux driver
+> in sync with the upstream source (in many cases, the GPL driver is
+> derived from some Windows driver or other source).
 
-The cvs page are still there but speak about mercurial. The hg page 
-speak about git and points to the wrong repository
+Yes, it is additional work, but there is a big payout at the end: once the
+driver is merged in the mainline, then your maintenance level falls down
+to just bug fixing. That is a *huge* cost saving.
 
-V4L-DVB repository (http://git.linuxtv.org/v4l-dvb.git)	Git repository 
-with V4L/DVB patches for next kernels 	Mauro Carvalho Chehab 	RSS
+I also have to say that in my experience most driver code made this way
+(i.e. OS independent) tends to be truly awful code.
+ 
+> Alex makes a point that I think it's worth expanding on a bit:
+> 
+> The Linux kernel developers' goals are different than those of the
+> product/chipset vendor.  The product/chipset vendor typically wants
+> consistency across operating systems.  This usually involves some sort
+> of OS portability layer to abstract out the OS specific parts (which
+> is usually done as a combination of OS specific header files and C
+> macros).  This reduces the maintenance cost for the author as it makes
+> it easier to be confident that changes to the core will basically
+> "just work" on other operating systems.
 
+Been there, done that.
+ 
+> The Linux kernel developer wants consistency across Linux drivers
+> regardless of who wrote them.  This makes sense for the Linux kernel
+> community in that it makes it easier to work on drivers that you
+> didn't necessarily write.  However it also means that all of the
+> portability code and macros are seen as "crap which has to be stripped
+> out".  The net effect is a driver that looks little like the original
+> platform independent driver, making it easier for the Linux kernel
+> community to maintain but harder for the original author to provide
+> updates to.
 
->> Anyway, before you get action and push this patch, Eric helped in the
->> testing
->> so far. Maybe he'll want to add his tested-by?
+Ah, and there is the crucial phrase: "making it easier for the Linux kernel
+community to maintain". That's the pay-off: once it is in you no longer have
+to care about maintaining it besides bug fixes. The maintenance level of
+out-of-tree drivers seems quite low in the beginning but over time it can
+skyrocket. Particularly in a subsystem like v4l which is undergoing a lot
+of change.
 
-I would prefer to have better web pages for the project ;-)
+> I can appreciate why the Linux development community chose this route,
+> but let's not pretend that it doesn't come at a significant cost.
 
-Thanks for the good work anyway,
+It's the difference between 'high initial cost, low or no cost afterwards'
+and 'low initial cost, ever increasing cost afterwards'. In my experience,
+the first option has always a (much) lower total cost compared to the
+second option. Not to mention a much higher code quality. But it can be
+very hard to convince companies of that, particularly when they just start
+out doing linux work.
 
---eric
+A special case is when the hardware needs to support a new feature for which
+a new public API is needed. There the initial cost can be very high indeed.
+
+For small companies that can be prohibitive. I have no real solution for this
+at the moment. But it does make me appreciate companies like TI, Samsung and
+Nokia who are willing to take the long road, hopefully with a big payout at
+the end.
+
+> Kind of like how the Git move has resulted in developers who want to
+> build drivers on a known-stable kernel (as opposed to the bleeding
+> edge) being treated as second class citizens.
+
+That's a typical example of having limited resources. I also would like to
+see better support for building against stable kernels (and I have to test
+Mauro's new approach one of these days), but there is only so much time
+(and money) available.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
