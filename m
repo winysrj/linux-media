@@ -1,127 +1,103 @@
 Return-path: <mchehab@pedra>
-Received: from comal.ext.ti.com ([198.47.26.152]:51271 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754904Ab0JSM2Z convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3455 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754455Ab0JTTFM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Oct 2010 08:28:25 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o9JCSMDD019521
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 19 Oct 2010 07:28:24 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o9JCSL5u005268
-	for <linux-media@vger.kernel.org>; Tue, 19 Oct 2010 17:58:21 +0530 (IST)
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "Nilofer, Samreen" <samreen@ti.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 19 Oct 2010 17:58:20 +0530
-Subject: RE: [PATCH 1/1] OMAP3: V4L2: Kconfig changes to enable V4L2 options
- on OMAP3
-Message-ID: <19F8576C6E063C45BE387C64729E739404AA4E77BA@dbde02.ent.ti.com>
-References: <1287374534-10722-1-git-send-email-samreen@ti.com>
- <19F8576C6E063C45BE387C64729E739404AA4E760C@dbde02.ent.ti.com>
- <FCCFB4CDC6E5564B9182F639FC356087034BB0126C@dbde02.ent.ti.com>
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087034BB0126C@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Wed, 20 Oct 2010 15:05:12 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id o9KJ5Aq6007970
+	for <linux-media@vger.kernel.org>; Wed, 20 Oct 2010 21:05:11 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 20 Oct 2010 21:05:10 +0200 (CEST)
+Message-Id: <201010201905.o9KJ5Aq6007970@smtp-vbr14.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> -----Original Message-----
-> From: Nilofer, Samreen
-> Sent: Tuesday, October 19, 2010 5:38 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-media@vger.kernel.org
-> Subject: RE: [PATCH 1/1] OMAP3: V4L2: Kconfig changes to enable V4L2
-> options on OMAP3
-> 
-> 
-> 
-> > -----Original Message-----
-> > From: Hiremath, Vaibhav
-> > Sent: Tuesday, October 19, 2010 9:40 AM
-> > To: Nilofer, Samreen
-> > Cc: linux-media@vger.kernel.org
-> > Subject: RE: [PATCH 1/1] OMAP3: V4L2: Kconfig changes to
-> > enable V4L2 options on OMAP3
-> >
-> > > -----Original Message-----
-> > > From: Nilofer, Samreen
-> > > Sent: Monday, October 18, 2010 9:32 AM
-> > > To: Hiremath, Vaibhav
-> > > Cc: linux-media@vger.kernel.org; Nilofer, Samreen
-> > > Subject: [PATCH 1/1] OMAP3: V4L2: Kconfig changes to enable V4L2
-> > > options on OMAP3
-> > >
-> > > The defconfig options for V4L2 are taken in the respective
-> > Kconfig to
-> > > enable V4L2 by default on OMAP3 platforms
-> > >
-> > > Signed-off-by: Samreen <samreen@ti.com>
-> > > ---
-> > >  drivers/media/Kconfig            |    2 ++
-> > >  drivers/media/video/omap/Kconfig |    2 +-
-> > >  2 files changed, 3 insertions(+), 1 deletions(-)
-> > >
-> > > diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig index
-> > > a28541b..2592d88 100644
-> > > --- a/drivers/media/Kconfig
-> > > +++ b/drivers/media/Kconfig
-> > > @@ -5,6 +5,7 @@
-> > >  menuconfig MEDIA_SUPPORT
-> > >  	tristate "Multimedia support"
-> > >  	depends on HAS_IOMEM
-> > > +	default y if ARCH_OMAP2 || ARCH_OMAP3
-> > [Hiremath, Vaibhav] I am quite not sure whether this is right
-> > approach to do this, I think adding dependency of ARCH_ here
-> > will pollute the file.
-> >
-> > Why not add this definition to omap2plus_defconfig, which is
-> > common defconfig file for all OMAP architecture.
-> >
-> > Thanks,
-> > Vaibhav
-> [Samreen]
->   I was not aware of the fact that the defconfig could be modified..
-> Will incorporate the changes and will post them soon.
-[Hiremath, Vaibhav] Please cc linux-omap mailing list, since all arch patches should go through it.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Thanks,
-Vaibhav
+Results of the daily build of v4l-dvb:
 
-> -Regards,
-> Samreen
-> >
-> > >  	help
-> > >  	  If you want to use Video for Linux, DVB for Linux, or DAB
-> > > adapters,
-> > >  	  enable this option and other options below.
-> > > @@ -19,6 +20,7 @@ comment "Multimedia core support"
-> > >
-> > >  config VIDEO_DEV
-> > >  	tristate "Video For Linux"
-> > > +	default y if ARCH_OMAP2 || ARCH_OMAP3
-> > >  	---help---
-> > >  	  V4L core support for video capture and overlay
-> > devices, webcams
-> > > and
-> > >  	  AM/FM radio cards.
-> > > diff --git a/drivers/media/video/omap/Kconfig
-> > > b/drivers/media/video/omap/Kconfig
-> > > index e63233f..f3e33c3 100644
-> > > --- a/drivers/media/video/omap/Kconfig
-> > > +++ b/drivers/media/video/omap/Kconfig
-> > > @@ -6,6 +6,6 @@ config VIDEO_OMAP2_VOUT
-> > >  	select OMAP2_DSS
-> > >  	select OMAP2_VRAM
-> > >  	select OMAP2_VRFB
-> > > -	default n
-> > > +	default y
-> > >  	---help---
-> > >  	  V4L2 Display driver support for OMAP2/3 based boards.
-> > > --
-> > > 1.5.6.3
-> >
-> >
+date:        Wed Oct 20 19:00:15 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15167:abd3aac6644e
+git master:       3e6dce76d99b328716b43929b9195adfee1de00c
+git media-master: 350df81ebaccc651fa4dfad27738db958e067ded
+gcc version:      i686-linux-gcc (GCC) 4.5.1
+host hardware:    x86_64
+host os:          2.6.32.5
+
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: WARNINGS
+linux-git-mips: WARNINGS
+linux-git-powerpc64: WARNINGS
+linux-git-x86_64: WARNINGS
+linux-2.6.32.6-armv5: WARNINGS
+linux-2.6.33-armv5: WARNINGS
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.32.6-armv5-davinci: ERRORS
+linux-2.6.33-armv5-davinci: ERRORS
+linux-2.6.34-armv5-davinci: ERRORS
+linux-2.6.35.3-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: ERRORS
+linux-2.6.33-armv5-ixp: ERRORS
+linux-2.6.34-armv5-ixp: ERRORS
+linux-2.6.35.3-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: ERRORS
+linux-2.6.33-armv5-omap2: ERRORS
+linux-2.6.34-armv5-omap2: ERRORS
+linux-2.6.35.3-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.32.6-m32r: WARNINGS
+linux-2.6.33-m32r: WARNINGS
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
