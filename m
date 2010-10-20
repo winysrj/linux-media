@@ -1,65 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:37548 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758438Ab0J1Xi3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Oct 2010 19:38:29 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Bastian Hecht <hechtb@googlemail.com>
-Subject: Re: New media framework user space usage
-Date: Fri, 29 Oct 2010 01:39:10 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <AANLkTimx6XJKEz9883cwrm977OtXVPVB5K5PjSGFi_AJ@mail.gmail.com> <AANLkTi=Nv2Oe=61NQjzH0+P+TcODDJW3_n+NbfzxF5g3@mail.gmail.com>
-In-Reply-To: <AANLkTi=Nv2Oe=61NQjzH0+P+TcODDJW3_n+NbfzxF5g3@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201010290139.10204.laurent.pinchart@ideasonboard.com>
+Received: from tex.lwn.net ([70.33.254.29]:55594 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755299Ab0JTTXo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Oct 2010 15:23:44 -0400
+Date: Wed, 20 Oct 2010 13:23:42 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Daniel Drake <dsd@laptop.org>
+Subject: Re: ext_lock (was viafb camera controller driver)
+Message-ID: <20101020132342.35a2c401@bike.lwn.net>
+In-Reply-To: <201010190854.40419.hverkuil@xs4all.nl>
+References: <20101010162313.5caa137f@bike.lwn.net>
+	<4CB9AC58.5020301@infradead.org>
+	<20101018212017.7c53789e@bike.lwn.net>
+	<201010190854.40419.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Bastian,
+On Tue, 19 Oct 2010 08:54:40 +0200
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-On Thursday 28 October 2010 17:16:10 Bastian Hecht wrote:
-> 
-> after reading the topic "controls, subdevs, and media framework"
-> (http://www.spinics.net/lists/linux-media/msg24474.html) I guess I
-> double-posted something here :S
-> But what I still don't understand is, how configuring the camera
-> works. You say that the subdevs (my camera sensor) are configured
-> directly. 2 things make me wonder. How gets the ISP informed about the
-> change
+> We are working on removing the BKL. As part of that effort it is now possible
+> for drivers to pass a serialization mutex to the v4l core (a mutex pointer was
+> added to struct video_device). If the core sees that mutex then the core will
+> serialize all open/ioctl/read/write/etc. file ops. So all file ops will in that
+> case be called with that mutex held. Which is fine, but if the driver has to do
+> a blocking wait, then you need to unlock the mutex first and lock it again
+> afterwards. And since videobuf does a blocking wait it needs to know about that
+> mutex.
 
-The ISP doesn't need to know about sensor parameters except for image formats. 
-Formats need to be set on both ends of every link, so the ISP will get 
-informed when you will setup the sensor -> CCDC link.
+So videobuf is expecting that you're passing this special device mutex
+in particular?  In that case, why not just use it directly?  Having a
+separate pointer to (what looks like) a distinct lock seems like a way
+to cause fatal confusion.  Given the tightness of the rules here (you
+*must* know that this "ext_lock" has been grabbed by the v4l core in the
+current call chain or you cannot possibly unlock it safely), I don't
+get why you wouldn't use the lock directly.
 
-> and why don't I see my camera in the subdevs name list I posted. All subdevs
-> are from the ISP.
+I would be inclined to go even further and emit a warning if the mutex
+is *not* locked.  It seems that the rules would require it, no?  If
+mutex debugging is turned on, you could even check if the current task
+is the locker, would would be even better.
 
-See my answer to your previous e-mail for that.
+In general, put me in the "leery of central locking" camp.  If you
+don't understand locking, you're going to mess things up somewhere
+along the way.  And, as soon as you get into hardware with interrupts,
+it seems like you have to deal with your own locking for access to the
+hardware regardless...
 
-> My camera already receives a clock, the i2c connection works and my
-> oscilloscope shows that the sensor is throwing out data on the parallel bus
-> pins. But unfortunately I am a completely v4l2 newbie. I read through the
-> v4l2-docs now but the first example already didn't work because of the new
-> framework. Can you point me to a way to read /dev/video2?
+Thanks,
 
-With the media-ctl and yavta test applications, just run
+jon
 
-./media-ctl -r -l '"mt9t001 3-005d":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP 
-CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-./media-ctl -f '"mt9t001 3-005d":0[SGRBG10 1024x768], "OMAP3 ISP 
-CCDC":1[SGRBG10 1024x768]'
-
-./yavta -f SGRBG10 -s 1024x768 -n 4 --capture=4 --skip 3 -F $(./media-ctl -e 
-"OMAP3 ISP CCDC output")
-
-Replace all occurences of 1024x768 by your sensor native resolution, and 
-"mt9t001 3-005d" by the sensur subdev name.
-
--- 
-Regards,
-
-Laurent Pinchart
