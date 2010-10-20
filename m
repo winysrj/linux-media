@@ -1,83 +1,89 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:60720 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755333Ab0JSSc5 (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:54411 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752425Ab0JTMQE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Oct 2010 14:32:57 -0400
-Received: by ewy20 with SMTP id 20so3816206ewy.19
-        for <linux-media@vger.kernel.org>; Tue, 19 Oct 2010 11:32:56 -0700 (PDT)
-From: Albin Kauffmann <albin.kauffmann@gmail.com>
-To: fabio tirapelle <ftirapelle@yahoo.it>
-Subject: Re: Hauppauge WinTV-HVR-1120 on Unbuntu 10.04
-Date: Tue, 19 Oct 2010 20:32:50 +0200
-Cc: linux-media@vger.kernel.org
-References: <259225.84971.qm@web25402.mail.ukl.yahoo.com>
-In-Reply-To: <259225.84971.qm@web25402.mail.ukl.yahoo.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+	Wed, 20 Oct 2010 08:16:04 -0400
+Subject: Re: Unloading cx8802 results in crash of
+ ir_core:ir_unregister_class
+From: Andy Walls <awalls@md.metrocast.net>
+To: Hans-Peter Jansen <hpj@urpla.net>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, opensuse-kernel@opensuse.org
+In-Reply-To: <201010201231.24173.hpj@urpla.net>
+References: <201010201231.24173.hpj@urpla.net>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 20 Oct 2010 08:16:03 -0400
+Message-ID: <1287576963.2679.16.camel@morgan.silverblock.net>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201010192032.50484.albin.kauffmann@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Monday 11 October 2010 11:57:14 fabio tirapelle wrote:
-> Hi
+On Wed, 2010-10-20 at 12:31 +0200, Hans-Peter Jansen wrote:
+> Hi Mauro,
 > 
-> After upgrading from Ubuntu 9.10 to Ubuntu 10.04 my Hauppauge
-> WinTV-HVR-1120 (sometimes) doesn't work correctly.
-> I get random the following errors:
+> since you got your fingers dirty with ir, I would like to direct this 
+> issue towards you. 
+
+
+> Unfortunately, unloading all the dvb drivers is not possible, because
+> unloading cx8802 leads to this oops:
 > 
-> [   53.216153] DVB: registering new adapter (saa7133[0])
-> [   53.216156] DVB: registering adapter 2 frontend 0 (NXP TDA10048HN
-> DVB-T)... [   53.840013] tda10048_firmware_upload: waiting for firmware
-> upload (dvb-fe-tda10048-1.0.fw)...
-> [   53.840019] saa7134 0000:01:06.0: firmware: requesting
-> dvb-fe-tda10048-1.0.fw [   53.880505] tda10048_firmware_upload: firmware
-> read 24878 bytes. [   53.880509] tda10048_firmware_upload: firmware
-> uploading
-> [   58.280136] tda10048_firmware_upload: firmware uploaded
-> [   59.024537] tda18271_write_regs: ERROR: idx = 0x5, len = 1, i2c_transfer
-> returned: -5
-> [   59.024541] tda18271c2_rf_tracking_filters_correction: error -5 on line
-> 264 [   59.420153] tda18271_write_regs: ERROR: idx = 0x5, len = 1,
-> i2c_transfer returned: -5
-> [   59.420157] tda18271_toggle_output: error -5 on line 47
-> [   91.004019] Clocksource tsc unstable (delta = -295012684 ns)
-> [  256.293639] eth0: link up.
-> [  256.294750] ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready
-> [  263.523498] eth0: link down.
-> [  265.258740] eth0: link up.
-> [  266.460026] eth0: no IPv6 routers present
-> [ 9869.636167] tda18271_write_regs: ERROR: idx = 0x5, len = 1, i2c_transfer
-> returned: -5
-> [ 9869.636178] tda18271_init: error -5 on line 826
-> [ 9872.636220] tda18271_write_regs: ERROR: idx = 0x5, len = 1, i2c_transfer
-> returned: -5
-> [ 9872.636232] tda18271_toggle_output: error -5 on line 47
-> [ 9998.240167] tda18271_write_regs: ERROR: idx = 0x5, len = 1, i2c_transfer
-> returned: -5
-> [ 9998.240178] tda18271_init: error -5 on line 826
-> [10001.240179] tda18271_write_regs: ERROR: idx = 0x5, len = 1, i2c_transfer
-> returned: -5
-> [10001.240190] tda18271_toggle_output: error -5 on line 47
+> Welcome to openSUSE 11.1 - Kernel 2.6.34.7-4-pae (ttyS0)
+> [111047.940641] BUG: unable to handle kernel paging request at 313a3030
+> [111047.953710] IP: [<c03654fe>] sysfs_remove_group+0x7e/0xd0
+> [111047.964838] *pdpt = 0000000029f53001 *pde = 0000000000000000 
+> [111047.976687] Oops: 0000 [#1] SMP 
+> [111047.983453] last sysfs file: /sys/devices/system/cpu/cpu7/cache/index2/shared_cpu_map
+> [111047.999559] Modules linked in: ip6t_LOG ipt_MASQUERADE xt_pkttype xt_TCPMSS xt_tcpudp ipt_LOG xt_limit iptable_nat ]
+> [111048.204691] 
+> [111048.207843] Pid: 10029, comm: rmmod Not tainted 2.6.34.7-4-pae #1 P7F-E/System Product Name
+> [111048.224918] EIP: 0060:[<c03654fe>] EFLAGS: 00210206 CPU: 0
+> [111048.236201] EIP is at sysfs_remove_group+0x7e/0xd0
+> [111048.246007] EAX: ef4ff008 EBX: 313a3030 ECX: f0600000 EDX: 00000000
+> [111048.258879] ESI: 00000000 EDI: efb7e71c EBP: ef4ff008 ESP: e3ee7e64
+> [111048.271716]  DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
+> [111048.282668] Process rmmod (pid: 10029, ti=e3ee6000 task=eaf00e00 task.ti=e3ee6000)
+> [111048.298133] Stack:
+> [111048.302319]  f02cabe0 00000041 ef5208c0 ef49ac00 00200286 efb7e700 ef3f0000 00000000
+> [111048.318132] <0> ef329800 f8f84932 efb7e700 ef3f0000 f8f84044 00000000 f8ffffff f015f1c0
+> [111048.334811] <0> ef329800 f917c655 00000000 f8000000 f9178dd9 01000000 00000000 f8ffffff
+> [111048.351939] Call Trace:
+> [111048.357213]  [<f8f84932>] ir_unregister_class+0x32/0x60 [ir_core]
+> [111048.369821]  [<f8f84044>] ir_input_unregister+0x44/0x90 [ir_core]
+> [111048.382338]  [<f917c655>] cx88_ir_fini+0x25/0x50 [cx88xx]
+> [111048.393437]  [<f9178dd9>] cx88_core_put+0xb9/0x140 [cx88xx]
+> [111048.404834]  [<f91e8795>] cx8802_remove+0x82/0x169 [cx8802]
+> [111048.416319]  [<c041d966>] pci_device_remove+0x16/0x40
+> [111048.426610]  [<c04b214d>] __device_release_driver+0x6d/0xd0
+> [111048.437993]  [<c04b222f>] driver_detach+0x7f/0x90
+> [111048.447872]  [<c04b11fa>] bus_remove_driver+0x7a/0x100
+> [111048.458687]  [<c041db6e>] pci_unregister_driver+0x2e/0x80
+> [111048.469658]  [<c0279669>] sys_delete_module+0x179/0x240
+> [111048.480262]  [<c020320c>] sysenter_do_call+0x12/0x22
+> [111048.490357]  [<ffffe424>] 0xffffe424
+> [111048.497680] Code: f0 ff 0e 0f 94 c0 84 c0 75 0b 83 c4 14 5b 5e 5f 5d c3 8d 76 00 83 c4 14 89 f0 5b 5e 5f 5d e9 ca e 
 
-Hi,
+These code bytes are truncated; there are only 32 here.  There are
+supposed to be 64 of them, with the Oops-ing instruction being around
+the 48th byte.  
 
-I have the same HVR-1120 TV card and I get the same kind of errors happening 
-on my ArchLinux installation (kernel 2.6.35). However, these errors are not 
-occuring after all boots. Indeed, I can watch TV (DVB-T) with no problem after 
-3/4 of my reboots. Is your problem happening at all time ?
+Please review your logs and provide the full Ooops.
 
-I've started to recompile my own kernel with the v4l module from the hg 
-repository. I'll tell you if it improves the behavior.
 
-I don't use Ubuntu on my desktop computer but, as far as you are concerned, 
-you could first try to update your installation to the last Ubuntu 10.10 or to 
-compile the last Linux kernel. And tell us if it improves something ;)
+> [111048.537852] EIP: [<c03654fe>] sysfs_remove_group+0x7e/0xd0 SS:ESP 0068:e3ee7e64
+> [111048.552782] CR2: 00000000313a3030
+> [111048.559854] ---[ end trace d7231a8e672c4adc ]---
+> 
+> Any ideas, what's going wrong here?
 
-Cheers,
+I don't. Mauro might since he knows the code better.  I just decode
+Oops'es every once in a while.
 
--- 
-Albin Kauffmann
-Open Wide - Architecte Open Source
+Regards,
+Andy
+
+> Pete
+
+
