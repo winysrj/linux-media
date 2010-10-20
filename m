@@ -1,118 +1,432 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:38680 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751974Ab0JJPwr (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:38043 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751577Ab0JTJgI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Oct 2010 11:52:47 -0400
-Received: by iwn6 with SMTP id 6so2343289iwn.19
-        for <linux-media@vger.kernel.org>; Sun, 10 Oct 2010 08:52:47 -0700 (PDT)
-MIME-Version: 1.0
-Date: Sun, 10 Oct 2010 17:52:46 +0200
-Message-ID: <AANLkTik-PXRnbzhF_4hPW2y=2h6Vnht9VsCtsBHcpFHG@mail.gmail.com>
-Subject: s-video input from terratec cinergy 200 gives black frame or out of
- sync video
-From: Antonio-Blasco Bonito <blasco.bonito@gmail.com>
+	Wed, 20 Oct 2010 05:36:08 -0400
+Received: by bwz10 with SMTP id 10so1123351bwz.19
+        for <linux-media@vger.kernel.org>; Wed, 20 Oct 2010 02:36:07 -0700 (PDT)
+From: Ruslan Pisarev <ruslanpisarev@gmail.com>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Cc: Ruslan Pisarev <ruslan@rpisarev.org.ua>
+Subject: [PATCH 5/6] Staging: tm6000: fix comments coding style issue in group of files
+Date: Wed, 20 Oct 2010 12:35:54 +0300
+Message-Id: <1287567354-18908-1-git-send-email-ruslan@rpisarev.org.ua>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-I'm trying to use a Terratec Cinergy 200 usb board to grab analog video.
-I'm using Ubuntu 10.04 and the included em28xx driver
+This is a patch to the
+tm6000-cards.c
+tm6000-core.c
+tm6000-dvb.c
+tm6000-i2c.c
+tm6000-input.c
+tm6000-regs.h
+tm6000-stds.c
+tm6000-usb-isoc.h
+tm6000.h
+files that fixed up a comments warnings found by the checkpatch.pl tools.
 
-$ uname -a
-Linux airone 2.6.32-25-generic #44-Ubuntu SMP Fri Sep 17 20:05:27 UTC
-2010 x86_64 GNU/Linux
+Signed-off-by: Ruslan Pisarev <ruslan@rpisarev.org.ua>
+---
+ drivers/staging/tm6000/tm6000-cards.c    |   32 ++++++++++++------------
+ drivers/staging/tm6000/tm6000-core.c     |   38 +++++++++++++++---------------
+ drivers/staging/tm6000/tm6000-dvb.c      |   32 ++++++++++++------------
+ drivers/staging/tm6000/tm6000-i2c.c      |   38 +++++++++++++++---------------
+ drivers/staging/tm6000/tm6000-input.c    |   32 ++++++++++++------------
+ drivers/staging/tm6000/tm6000-regs.h     |   32 ++++++++++++------------
+ drivers/staging/tm6000/tm6000-stds.c     |   32 ++++++++++++------------
+ drivers/staging/tm6000/tm6000-usb-isoc.h |   32 ++++++++++++------------
+ drivers/staging/tm6000/tm6000.h          |   38 +++++++++++++++---------------
+ 9 files changed, 153 insertions(+), 153 deletions(-)
 
-I get different behaviours whether the board is connected while
-booting or after that.
+diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+index 9d091c3..3064d0c 100644
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -1,20 +1,20 @@
+ /*
+-   tm6000-cards.c - driver for TM5600/TM6000/TM6010 USB video capture devices
+-
+-   Copyright (C) 2006-2007 Mauro Carvalho Chehab <mchehab@infradead.org>
+-
+-   This program is free software; you can redistribute it and/or modify
+-   it under the terms of the GNU General Public License as published by
+-   the Free Software Foundation version 2
+-
+-   This program is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-   GNU General Public License for more details.
+-
+-   You should have received a copy of the GNU General Public License
+-   along with this program; if not, write to the Free Software
+-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ *  tm6000-cards.c - driver for TM5600/TM6000/TM6010 USB video capture devices
++ *
++ *  Copyright (C) 2006-2007 Mauro Carvalho Chehab <mchehab@infradead.org>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation version 2
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #include <linux/init.h>
+diff --git a/drivers/staging/tm6000/tm6000-core.c b/drivers/staging/tm6000/tm6000-core.c
+index 9c0bf84..e2fbb6a 100644
+--- a/drivers/staging/tm6000/tm6000-core.c
++++ b/drivers/staging/tm6000/tm6000-core.c
+@@ -1,23 +1,23 @@
+ /*
+-   tm6000-core.c - driver for TM5600/TM6000/TM6010 USB video capture devices
+-
+-   Copyright (C) 2006-2007 Mauro Carvalho Chehab <mchehab@infradead.org>
+-
+-   Copyright (C) 2007 Michel Ludwig <michel.ludwig@gmail.com>
+-       - DVB-T support
+-
+-   This program is free software; you can redistribute it and/or modify
+-   it under the terms of the GNU General Public License as published by
+-   the Free Software Foundation version 2
+-
+-   This program is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-   GNU General Public License for more details.
+-
+-   You should have received a copy of the GNU General Public License
+-   along with this program; if not, write to the Free Software
+-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ *  tm6000-core.c - driver for TM5600/TM6000/TM6010 USB video capture devices
++ *
++ *  Copyright (C) 2006-2007 Mauro Carvalho Chehab <mchehab@infradead.org>
++ *
++ *  Copyright (C) 2007 Michel Ludwig <michel.ludwig@gmail.com>
++ *      - DVB-T support
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation version 2
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #include <linux/module.h>
+diff --git a/drivers/staging/tm6000/tm6000-dvb.c b/drivers/staging/tm6000/tm6000-dvb.c
+index f501edc..ff04c89 100644
+--- a/drivers/staging/tm6000/tm6000-dvb.c
++++ b/drivers/staging/tm6000/tm6000-dvb.c
+@@ -1,20 +1,20 @@
+ /*
+-   tm6000-dvb.c - dvb-t support for TM5600/TM6000/TM6010 USB video capture devices
+-
+-   Copyright (C) 2007 Michel Ludwig <michel.ludwig@gmail.com>
+-
+-   This program is free software; you can redistribute it and/or modify
+-   it under the terms of the GNU General Public License as published by
+-   the Free Software Foundation version 2
+-
+-   This program is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-   GNU General Public License for more details.
+-
+-   You should have received a copy of the GNU General Public License
+-   along with this program; if not, write to the Free Software
+-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ *  tm6000-dvb.c - dvb-t support for TM5600/TM6000/TM6010 USB video capture devices
++ *
++ *  Copyright (C) 2007 Michel Ludwig <michel.ludwig@gmail.com>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation version 2
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #include <linux/kernel.h>
+diff --git a/drivers/staging/tm6000/tm6000-i2c.c b/drivers/staging/tm6000/tm6000-i2c.c
+index a08d6a3..13b3bc1 100644
+--- a/drivers/staging/tm6000/tm6000-i2c.c
++++ b/drivers/staging/tm6000/tm6000-i2c.c
+@@ -1,23 +1,23 @@
+ /*
+-   tm6000-i2c.c - driver for TM5600/TM6000/TM6010 USB video capture devices
+-
+-   Copyright (C) 2006-2007 Mauro Carvalho Chehab <mchehab@infradead.org>
+-
+-   Copyright (C) 2007 Michel Ludwig <michel.ludwig@gmail.com>
+-	- Fix SMBus Read Byte command
+-
+-   This program is free software; you can redistribute it and/or modify
+-   it under the terms of the GNU General Public License as published by
+-   the Free Software Foundation version 2
+-
+-   This program is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-   GNU General Public License for more details.
+-
+-   You should have received a copy of the GNU General Public License
+-   along with this program; if not, write to the Free Software
+-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ *  tm6000-i2c.c - driver for TM5600/TM6000/TM6010 USB video capture devices
++ *
++ *  Copyright (C) 2006-2007 Mauro Carvalho Chehab <mchehab@infradead.org>
++ *
++ *  Copyright (C) 2007 Michel Ludwig <michel.ludwig@gmail.com>
++ *	- Fix SMBus Read Byte command
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation version 2
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #include <linux/module.h>
+diff --git a/drivers/staging/tm6000/tm6000-input.c b/drivers/staging/tm6000/tm6000-input.c
+index 32f7a0a..b1eabed 100644
+--- a/drivers/staging/tm6000/tm6000-input.c
++++ b/drivers/staging/tm6000/tm6000-input.c
+@@ -1,20 +1,20 @@
+ /*
+-   tm6000-input.c - driver for TM5600/TM6000/TM6010 USB video capture devices
+-
+-   Copyright (C) 2010 Stefan Ringel <stefan.ringel@arcor.de>
+-
+-   This program is free software; you can redistribute it and/or modify
+-   it under the terms of the GNU General Public License as published by
+-   the Free Software Foundation version 2
+-
+-   This program is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-   GNU General Public License for more details.
+-
+-   You should have received a copy of the GNU General Public License
+-   along with this program; if not, write to the Free Software
+-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ *  tm6000-input.c - driver for TM5600/TM6000/TM6010 USB video capture devices
++ *
++ *  Copyright (C) 2010 Stefan Ringel <stefan.ringel@arcor.de>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation version 2
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #include <linux/module.h>
+diff --git a/drivers/staging/tm6000/tm6000-regs.h b/drivers/staging/tm6000/tm6000-regs.h
+index c31dbe9..b4349b5 100644
+--- a/drivers/staging/tm6000/tm6000-regs.h
++++ b/drivers/staging/tm6000/tm6000-regs.h
+@@ -1,20 +1,20 @@
+ /*
+-   tm6000-regs.h - driver for TM5600/TM6000/TM6010 USB video capture devices
+-
+-   Copyright (C) 2006-2007 Mauro Carvalho Chehab <mchehab@infradead.org>
+-
+-   This program is free software; you can redistribute it and/or modify
+-   it under the terms of the GNU General Public License as published by
+-   the Free Software Foundation version 2
+-
+-   This program is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-   GNU General Public License for more details.
+-
+-   You should have received a copy of the GNU General Public License
+-   along with this program; if not, write to the Free Software
+-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ *  tm6000-regs.h - driver for TM5600/TM6000/TM6010 USB video capture devices
++ *
++ *  Copyright (C) 2006-2007 Mauro Carvalho Chehab <mchehab@infradead.org>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation version 2
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ /*
+diff --git a/drivers/staging/tm6000/tm6000-stds.c b/drivers/staging/tm6000/tm6000-stds.c
+index 6bf4a73..357a9de 100644
+--- a/drivers/staging/tm6000/tm6000-stds.c
++++ b/drivers/staging/tm6000/tm6000-stds.c
+@@ -1,20 +1,20 @@
+ /*
+-   tm6000-stds.c - driver for TM5600/TM6000/TM6010 USB video capture devices
+-
+-   Copyright (C) 2007 Mauro Carvalho Chehab <mchehab@redhat.com>
+-
+-   This program is free software; you can redistribute it and/or modify
+-   it under the terms of the GNU General Public License as published by
+-   the Free Software Foundation version 2
+-
+-   This program is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-   GNU General Public License for more details.
+-
+-   You should have received a copy of the GNU General Public License
+-   along with this program; if not, write to the Free Software
+-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ *  tm6000-stds.c - driver for TM5600/TM6000/TM6010 USB video capture devices
++ *
++ *  Copyright (C) 2007 Mauro Carvalho Chehab <mchehab@redhat.com>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation version 2
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #include <linux/module.h>
+diff --git a/drivers/staging/tm6000/tm6000-usb-isoc.h b/drivers/staging/tm6000/tm6000-usb-isoc.h
+index 138716a..a9e61d9 100644
+--- a/drivers/staging/tm6000/tm6000-usb-isoc.h
++++ b/drivers/staging/tm6000/tm6000-usb-isoc.h
+@@ -1,20 +1,20 @@
+ /*
+-   tm6000-buf.c - driver for TM5600/TM6000/TM6010 USB video capture devices
+-
+-   Copyright (C) 2006-2007 Mauro Carvalho Chehab <mchehab@infradead.org>
+-
+-   This program is free software; you can redistribute it and/or modify
+-   it under the terms of the GNU General Public License as published by
+-   the Free Software Foundation version 2
+-
+-   This program is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-   GNU General Public License for more details.
+-
+-   You should have received a copy of the GNU General Public License
+-   along with this program; if not, write to the Free Software
+-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ *  tm6000-buf.c - driver for TM5600/TM6000/TM6010 USB video capture devices
++ *
++ *  Copyright (C) 2006-2007 Mauro Carvalho Chehab <mchehab@infradead.org>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation version 2
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #include <linux/videodev2.h>
+diff --git a/drivers/staging/tm6000/tm6000.h b/drivers/staging/tm6000/tm6000.h
+index 712ce84..5dc64d4 100644
+--- a/drivers/staging/tm6000/tm6000.h
++++ b/drivers/staging/tm6000/tm6000.h
+@@ -1,23 +1,23 @@
+ /*
+-   tm6000.h - driver for TM5600/TM6000/TM6010 USB video capture devices
+-
+-   Copyright (C) 2006-2007 Mauro Carvalho Chehab <mchehab@infradead.org>
+-
+-   Copyright (C) 2007 Michel Ludwig <michel.ludwig@gmail.com>
+-	- DVB-T support
+-
+-   This program is free software; you can redistribute it and/or modify
+-   it under the terms of the GNU General Public License as published by
+-   the Free Software Foundation version 2
+-
+-   This program is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-   GNU General Public License for more details.
+-
+-   You should have received a copy of the GNU General Public License
+-   along with this program; if not, write to the Free Software
+-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ *  tm6000.h - driver for TM5600/TM6000/TM6010 USB video capture devices
++ *
++ *  Copyright (C) 2006-2007 Mauro Carvalho Chehab <mchehab@infradead.org>
++ *
++ *  Copyright (C) 2007 Michel Ludwig <michel.ludwig@gmail.com>
++ *	- DVB-T support
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation version 2
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ /* Use the tm6000-hack, instead of the proper initialization code i*/
+-- 
+1.7.0.4
 
-1- If i connect it to the usb port after booting the board recognition
-fails so I have to force it with "options em28xx card=6"
-Here follows the "dmesg | grep em28xx" output:
-
-[ 5749.157765] em28xx: New device @ 480 Mbps (eb1a:2800, interface 0, class 0)
-[ 5749.158322] em28xx #0: em28xx chip ID = 4
-[ 5749.380045] em28xx #0: board has no eeprom
-[ 5749.500074] em28xx #0: preparing read at i2c address 0x60 failed (error=-19)
-[ 5749.620068] em28xx #0: Identified as Terratec Cinergy 200 USB (card=6)
-[ 5751.210426] em28xx #0: Config register raw data: 0xf6
-[ 5751.210435] em28xx #0: I2S Audio (5 sample rates)
-[ 5751.210439] em28xx #0: No AC97 audio processor
-[ 5751.310058] em28xx #0: v4l2 driver version 0.1.2
-[ 5752.050357] em28xx #0: V4L2 video device registered as /dev/video1
-[ 5752.050454] usbcore: registered new interface driver em28xx
-[ 5752.050467] em28xx driver loaded
-[ 5752.068423] em28xx-audio.c: probing for em28x1 non standard usbaudio
-[ 5752.068436] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
-
-Trying to look at the video signal with:
-$ v4lctl -c /dev/video1 setinput s-video
-$ v4lctl -c /dev/video1 show
-norm: PAL-DK
-input: S-Video
-audio mode: mono
-
-$ xawtv -c /dev/video1
-I get nothing... a black frame :-(
-
-2- If I connect to the usb port before booting the board recognition
-works (why?), so I have:
-
-[   15.689540] em28xx: New device @ 480 Mbps (eb1a:2800, interface 0, class 0)
-[   15.689733] em28xx #0: em28xx chip ID = 4
-[   15.830246] em28xx #0: board has no eeprom
-[   15.870730] em28xx #0: Identified as Unknown EM2800 video grabber (card=0)
-[   17.423791] em28xx #0: found i2c device @ 0x4a [saa7113h]
-[   17.860869] em28xx #0: found i2c device @ 0x60 [remote IR sensor]
-[   17.901010] em28xx #0: found i2c device @ 0x62 [???]
-[   17.940885] em28xx #0: found i2c device @ 0x64 [???]
-[   18.630295] em28xx #0: found i2c device @ 0x86 [tda9887]
-[   19.812231] em28xx #0: found i2c device @ 0xc0 [tuner (analog)]
-[   19.850112] em28xx #0: found i2c device @ 0xc2 [tuner (analog)]
-[   21.150095] em28xx #0: Your board has no unique USB ID.
-[   21.150345] em28xx #0: A hint were successfully done, based on i2c
-devicelist hash.
-[   21.150663] em28xx #0: This method is not 100% failproof.
-[   21.150897] em28xx #0: If the board were missdetected, please email
-this log to:
-[   21.151211] em28xx #0: 	V4L Mailing List  <linux-media@vger.kernel.org>
-[   21.151466] em28xx #0: Board detected as Terratec Cinergy 200 USB
-[   21.189182] ir-kbd-i2c: i2c IR (KNC One) detected at
-i2c-1/1-0030/ir0 [em28xx #0]
-[   22.470223] saa7115 1-0025: saa7113 found (1f7113d0e100000) @ 0x4a
-(em28xx #0)
-[   24.180383] tuner 1-0043: chip found @ 0x86 (em28xx #0)
-[   24.410553] tuner 1-0060: chip found @ 0xc0 (em28xx #0)
-[   24.550217] em28xx #0: Config register raw data: 0xf6
-[   24.550223] em28xx #0: I2S Audio (5 sample rates)
-[   24.550227] em28xx #0: No AC97 audio processor
-[   24.810149] em28xx #0: v4l2 driver version 0.1.2
-[   25.550259] em28xx #0: V4L2 video device registered as /dev/video1
-[   25.571390] usbcore: registered new interface driver em28xx
-[   25.571567] em28xx driver loaded
-[   25.597473] em28xx-audio.c: probing for em28x1 non standard usbaudio
-[   25.597481] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
-
-In this case with:
-$ v4lctl -c /dev/video1 setinput s-video
-$ v4lctl -c /dev/video1 show
-norm: PAL-DK
-input: S-Video
-audio mode: mono
-bright: 128
-contrast: 64
-color: 64
-hue: 0
-[more options are showed... why?]
-
-$ xawtv -c /dev/video1
-I get an out-of-sync video... better than nothing but not ok :-(
-
---
-Antonio-Blasco Bonito
-Via Vico Fiaschi 35
-54033 Carrara Avenza MS
-
-tel. 0585-026169
-cell. 340-6199450
