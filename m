@@ -1,96 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:37169 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755007Ab0JKQN3 convert rfc822-to-8bit (ORCPT
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198]:56903 "EHLO
+	mta3.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751885Ab0JTU61 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Oct 2010 12:13:29 -0400
-Received: by ewy20 with SMTP id 20so661142ewy.19
-        for <linux-media@vger.kernel.org>; Mon, 11 Oct 2010 09:13:28 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1010111718010.11865@axis700.grange>
-References: <AANLkTimyR117ZiHq8GFz4YW5tBtW3k82NzGVZqKoVTbY@mail.gmail.com>
-	<Pine.LNX.4.64.1010072012280.15141@axis700.grange>
-	<AANLkTinJhywDoZg5F2tvqdW44to-6P4hgNd9Fav9qTv8@mail.gmail.com>
-	<201010111514.37592.laurent.pinchart@ideasonboard.com>
-	<AANLkTikBWjgNmDdG6dCXQQmcDRBUc4gP7717uqAY3+_J@mail.gmail.com>
-	<Pine.LNX.4.64.1010111718010.11865@axis700.grange>
-Date: Mon, 11 Oct 2010 18:13:27 +0200
-Message-ID: <AANLkTi=DpmOum+m_YNrn-ENaAZk9rOi8rZF-fGp-dRf1@mail.gmail.com>
-Subject: Re: OMAP 3530 camera ISP forks and new media framework
-From: Bastian Hecht <hechtb@googlemail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Wed, 20 Oct 2010 16:58:27 -0400
+Received: from TheShoveller.local
+ (ool-4572125f.dyn.optonline.net [69.114.18.95]) by mta3.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0LAL002V3WXD7I90@mta3.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Wed, 20 Oct 2010 16:58:26 -0400 (EDT)
+Date: Wed, 20 Oct 2010 16:58:27 -0400
+From: Steven Toth <stoth@kernellabs.com>
+Subject: Re: cx23885 module
+In-reply-to: <BLU0-SMTP3076739B1A745CCB3563D3A75C0@phx.gbl>
+To: Daniel Lee Kim <danlkim@hotmail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Message-id: <4CBF57F3.1000008@kernellabs.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <BLU0-SMTP179D180C75C88F1B693AA73A75A0@phx.gbl>
+ <4CBE0D47.7080201@kernellabs.com>
+ <BLU0-SMTP3076739B1A745CCB3563D3A75C0@phx.gbl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-2010/10/11 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
-> On Mon, 11 Oct 2010, Bastian Hecht wrote:
->
->> 2010/10/11 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
->> > Hi Bastian,
->> >
->> > On Monday 11 October 2010 14:59:15 Bastian Hecht wrote:
->> >> So... let's see if i got some things right, please let me now if you
->> >> disagree:
->> >>
->> >> - I do want to use the omap34xxcam.c driver as it is for the newest
->> >> framework and I get most support for it
->> >
->> > That's a bad start. With the latest driver, omap34xxcam.c doesn't exist
->> > anymore :-)
->>
->> Nice :S
->>
->> I think I take the mt9t001 approach (Sorry Guennadi, I think modifying
->> your framework is too much for me to start with).
->
-> AFAIR, you said, that register sets of mt9t031 and mt9p031 are identical,
-> so, I think, I will be against mainlining a new driver for the "same"
-> hardware for the pad-level ops, duplicating an soc-camera driver. Apart
-> from creating a one-off redundancy, this looks like an extremely negative
-> precedent to me.
->
-> That said, please, double check your estimate as "identical." If there are
-> differences, say, even in only 10% of registers, it might still be
-> justified to make a new driver. mt9m001 and mt9t031 are also "very
-> similar," still, it appeared to me at that time, that a new driver would
-> be cleaner, than a single driver full of forks or other indirections.
->
-> Thanks
-> Guennadi
->
+On 10/20/10 12:19 PM, Daniel Lee Kim wrote:
+> Thank you, Steve, for introducing me to the mailing list and showing me the
+> protocol. I have taken a look at your questions and comments. My responses are
+> interspersed in the email below
 
-The point is, I will jump around my office for a full day when I get
-out a single picture of my camera PCB. After that I will gladly work
-towards uncluttering the driver duplication. I will see if it fits
-better the mt9t001 or mt9t031 and integrate it in there.
+You are welcome.
 
-Cheers,
+<cut>
 
- Bastian
-
-
->> So in this driver I
->> tell the framework that I can do i2c probing, some subdev_core_ops and
->> some subdev_video_ops. I define these functions that mostly do some
->> basic i2c communication to the sensor chip. I guess I can handle that
->> as there are so many examples out there.
->>
->> But where do I stack that on top? On the camera bridge host, but if it
->> isn't omap34xxcam, which driver can I use? How are they connected?
->>
->> Thanks,
->>
->>  Bastian
->>
+> However, running dmesg, I get the following:
+> [ 3072.274680] cx23885 driver version 0.0.2 loaded
+> [ 3072.274752] cx23885 0000:04:00.0: PCI INT A -> GSI 19 (level, low) -> IRQ 19
+> [ 3072.274970] CORE cx23885[0]: subsystem: 1461:d439, board: AVermedia M791
+> [card=29,autodetected]
+> [ 3072.605134] cx23885_dvb_register() allocating 1 frontend(s)
+> [ 3072.605189] cx23885[0]: cx23885 based dvb card
+> [ 3072.621974] MT2131: successfully identified at address 0x60
+> [ 3072.621981] DVB: registering new adapter (cx23885[0])
+> [ 3072.621986] DVB: registering adapter 0 frontend 0 (LG Electronics LGDT3303
+> VSB/QAM Frontend)...
+> [ 3072.622519] cx23885_dev_checkrevision() Hardware revision = 0xb1
+> [ 3072.622529] cx23885[0]/0: found at 0000:04:00.0, rev: 15, irq: 19, latency:
+> 0, mmio: 0xea000000
+> [ 3072.622540] cx23885 0000:04:00.0: setting latency timer to 64
+> [ 3072.622546] IRQ 19/cx23885[0]: IRQF_DISABLED is not guaranteed on shared IRQs
 >
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
+> so it does look like it has identified MT2131 as the tuner but is unable to work
+> it.
 >
+> Any further help would be greatly appreciated.
+
+If the drivers are now loading (which sounds like progress) then the GPIOs (in 
+whatever form you have them) are probably OK. Double check this by doing a cold 
+boot without booting into windows first, does the tuner still attach?
+
+It's never wise to drive a GPIO regardless unless you know what you are doing, 
+you could be sinking current into a part for long periods of time that doesn't 
+like it (or applying/removing write protection from eeproms etc).
+
+At this stage I'd probably guess when you say the 'tuner is unable to work' that 
+it's not locking when testing with azap (and a correctly configured 
+channels.conf). It's probably the I/F (intermediate frequency) between the 
+MT2131 and the LG3305 is incorrect, so the demod does not see the RF correctly 
+from the tuner. Try stepping the LG I/F through it's various combination (see 
+the LG header .h file) then repeat the test with spectral inversion inverted.
+
+Use azap to tune during each test and watch for status bits 0x1f (meaning the 
+demod is locked).
+
+If no lock, adjust the I/F and/or spectral inversion and try again.
+
+- Steve
+
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
+
