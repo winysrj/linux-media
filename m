@@ -1,121 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:60867 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751283Ab0JFMZZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Oct 2010 08:25:25 -0400
-Received: by wwj40 with SMTP id 40so7033134wwj.1
-        for <linux-media@vger.kernel.org>; Wed, 06 Oct 2010 05:25:24 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTim0HrykiHrB1U18yZ3njqCeDNtXavu-tJc2EDjV@mail.gmail.com>
-References: <25861669.1285195582100.JavaMail.ngmail@webmail18.arcor-online.net>
-	<AANLkTimdpehorJb+YrDuRgL7vSbF9Bn5iQS_g5TqF35F@mail.gmail.com>
-	<4CA9FCB0.40502@gmail.com>
-	<AANLkTim0HrykiHrB1U18yZ3njqCeDNtXavu-tJc2EDjV@mail.gmail.com>
-Date: Wed, 6 Oct 2010 14:25:22 +0200
-Message-ID: <AANLkTim2a0zGzFP=e0ShJfaovJXjWw5S6M-TAUUB2pht@mail.gmail.com>
-Subject: Re: [linux-dvb] Asus MyCinema P7131 Dual support
-From: Giorgio <mywing81@gmail.com>
-To: Dejan Rodiger <dejan.rodiger@gmail.com>
-Cc: hermann-pitton@arcor.de, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mailout2.samsung.com ([203.254.224.25]:27551 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932162Ab0JTHka (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Oct 2010 03:40:30 -0400
+Received: from epmmp1 (mailout2.samsung.com [203.254.224.25])
+ by mailout2.samsung.com
+ (Sun Java(tm) System Messaging Server 7u3-15.01 64bit (built Feb 12 2010))
+ with ESMTP id <0LAK009FRVZG6570@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 20 Oct 2010 16:40:28 +0900 (KST)
+Received: from AMDC159 ([106.116.37.153])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LAK0079OVZCVM@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 20 Oct 2010 16:40:28 +0900 (KST)
+Date: Wed, 20 Oct 2010 09:40:23 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH/RFC v3 0/7] Videobuf2 framework
+In-reply-to: <201010200914.32868.hverkuil@xs4all.nl>
+To: 'Hans Verkuil' <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+	kyungmin.park@samsung.com
+Message-id: <004901cb702a$10a69100$31f3b300$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1287556873-23179-1-git-send-email-m.szyprowski@samsung.com>
+ <201010200914.32868.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-2010/10/6 Dejan Rodiger <dejan.rodiger@gmail.com>:
-> Hi Giorgio,
->
->>
->> Dejan,
->>
->> I have the exact same card:
->>
->> # sudo lpci -vnn
->> 02:07.0 Multimedia controller [0480]: Philips Semiconductors SAA7131/SAA7133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d1)
->>        Subsystem: ASUSTeK Computer Inc. Device [1043:4876]
->>        Flags: bus master, medium devsel, latency 64, IRQ 20
->>        Memory at fbfff800 (32-bit, non-prefetchable) [size=2K]
->>        Capabilities: [40] Power Management version 2
->>        Kernel driver in use: saa7134
->>        Kernel modules: saa7134
->>
->> and I can confirm you that it's autodetected and works very well (both the
->> analog and the digital part) on 2.6.35.
->> 2.6.32 has a problem with dvb-t reception, but I have reported it and hopefully
->> it will be fixed soon upstream: http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/23604
->>
->> If you want to test the analog part, install MPlayer and run the following command:
->>
->> mplayer tv:// -tv driver=v4l2:device=/dev/video0:norm=PAL:input=0:chanlist=europe-west
->
-> This is working OK. I have also experimented more with tvtime and both
-> versions work, but I have to do little more fine tuning and then I
-> have better picture. So I will probably have to manually find exact
-> stations frequencies and enter them in mythtv. But I first have to
-> figure how and where to enter them.
->
->
->> and then press 'k' or 'h' to select previous/next channel (after you switch
->> channel, wait some seconds until the card tunes, for some channels I need
->> 5 seconds here, for others about 1 second). Now, with some patience, explore
->> all the channels and you should be able to find your local tv stations.
->> Also, you might need to adjust mplayer options, like norm= or chanlist=
->> (you could try chanlist=europe-east).
->>
->> The command line above doesn't grab audio though, so you won't hear a thing.
->> If you want to hear the audio you need to make sure saa7134-alsa is loaded
->> and run something like:
->>
->> mplayer tv:// -tv driver=v4l2:device=/dev/video0:norm=PAL:input=0:alsa:adevice=hw.1,0:amode=1:immediatemode=0:chanlist=europe-west
->
-> saa7134-alsa is loaded automatically, but I am unable to get any sound
-> from mplayer or tvtime. I see on google, that I am not the only one.
-> I have also noticed that about 8-10% of the frames are lost.
+Hello,
 
-Hmm...things you can try:
-1) Tell pulseaudio not to use the saa7134-alsa soundcard (click on
-sound preferences (top panel, on the right, near the clock) and
-disable saa7134 soundcard).
-2) Run "cat /proc/asound/card" or "arecord -l" and make sure you're
-using the right device on the MPlayer command line (the
-"adevice=hw.1,0" part).
-3) Add "audiorate=32000" like this:
-mplayer tv:// -tv
-driver=v4l2:device=/dev/video0:norm=PAL:input=0:alsa:adevice=hw.1,0:amode=1:audiorate=32000:immediatemode=0:chanlist=europe-west
-4) See if MPlayer reports any error with alsa/audio.
+On Wednesday, October 20, 2010 9:15 AM wrote:
 
-Lastly, I think tvtime only works with a patch audio cable (which is
-cable that connects the tv-card "audio out" to the soundcard "line
-in"). So you can try to start tvtime and then run:
+> On Wednesday, October 20, 2010 08:41:06 Marek Szyprowski wrote:
+> > Hello,
+> >
+> > As I promissed I continue the development of the VideoBuf2 at Samsung
+> > until Pawel finds some spare time to help us. This is a third version of
+> > the framework. Besides the minor bugfixes here and there I've added a
+> > complete read() callback emulator. This emulator provides 2 types of
+> > read() operation - 'streaming' and 'one shot'. It is suitable to replace
+> > both videobuf_read_stream() and videobuf_read_one() methods from the old
+> > videobuf.
+> 
+> One thing I never understood: what is the point of supporting 'one shot' read
+> mode? Why not support just streaming? Does anyone know?
 
-arecord -D hw:1,0 -r 32000 -c 2 -f S16_LE | aplay -
+I can imagine that some simple cameras that capture pure JPG frames might want
+to use 'one shot' mode. This enables easier scripting and things like 
+'cat /dev/video >capture.jpg' working. If you think that 'one shot' mode should
+be removed - let me know.
 
-this way you record from the saa7134 audio device and play it back to
-your speakers.
+> Another question: how hard is it to support write mode as well? I think
+> vb2 should support both. I suspect that once we have a read emulator it isn't
+> difficult to make a write emulator too.
 
->
->> (make sure you select the right alsa device in adevice=)
->>
->> The wiki has a good page about MPlayer:
->>
->> http://www.linuxtv.org/wiki/index.php/MPlayer
->>
->> and of course the MPlayer man page explain all the options too.
->>
->> These pages are also useful (but some things might be a bit outdated):
->>
->> http://www.linuxtv.org/wiki/index.php/ASUS_My_Cinema-P7131_Hybrid
->> http://www.linuxtv.org/wiki/index.php/Saa7134-alsa
->>
->> I hope this can help you and others reading this ML.
->>
->> Regards,
->> Giorgio Vazzana
->>
->>> Thanks
->>> --
->>> Dejan Rodiger
->
+Well, that's possible. If you really think that write() emulator is also
+required, I can implement both. This shouldn't be much work.
 
-Cheers,
-Giorgio Vazzana
+> A last remark: the locking has changed recently in videobuf due to the work
+> done on eliminating the BKL.  It's probably a good idea to incorporate those
+> changes as well in vb2.
+
+Yes, I noticed that there are a lot of changes in for-2.6.37 staging tree, I
+will try to get through them and update relevant parts of vb2. The current
+version the vb2 patches is based on 2.6.36-rc8. Kernel tree with vb2 patches
+(and the required multiplane patches) will be available in a few hours on:
+
+http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/heads/v4l/vb2
+
+Best regards
+--
+Marek Szyprowski
+Samsung Poland R&D Center
+
