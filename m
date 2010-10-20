@@ -1,40 +1,32 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:54487 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933065Ab0JHVST convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Oct 2010 17:18:19 -0400
-Received: by iwn6 with SMTP id 6so806235iwn.19
-        for <linux-media@vger.kernel.org>; Fri, 08 Oct 2010 14:18:19 -0700 (PDT)
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:59347 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750707Ab0JTEE4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Oct 2010 00:04:56 -0400
+Received: by gxk21 with SMTP id 21so1327959gxk.19
+        for <linux-media@vger.kernel.org>; Tue, 19 Oct 2010 21:04:55 -0700 (PDT)
+From: Jim Peters <jiminycricket180@gmail.com>
+To: linux-media@vger.kernel.org
+Subject: Hauppauge WinTV PVR USB2 problems
+Date: Tue, 19 Oct 2010 23:04:51 -0500
 MIME-Version: 1.0
-In-Reply-To: <20101008151305.68f3897a@bike.lwn.net>
-References: <20101008210418.2B1809D401C@zog.reactivated.net>
-	<20101008151305.68f3897a@bike.lwn.net>
-Date: Fri, 8 Oct 2010 22:18:18 +0100
-Message-ID: <AANLkTi=G_k6CSy9wUTiXNK9DHPwk4FTqPWRReRC7DO24@mail.gmail.com>
-Subject: Re: [PATCH 2/3] ov7670: disable QVGA mode
-From: Daniel Drake <dsd@laptop.org>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201010192304.51964.jiminycricket180@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 8 October 2010 22:13, Jonathan Corbet <corbet@lwn.net> wrote:
-> A problem like that will be at the controller level, not the sensor
-> level.  Given that this is an XO-1 report, I'd assume something
-> requires tweaking in the cafe_ccic driver.  I wasn't aware of this; I
-> know it worked once upon a time.
-
-I reported it 3 months ago
-http://dev.laptop.org/ticket/10231
-
-Are you interested in working on this?
-I'd have no idea where to start.
-
-I'm not so convinced that it's a controller problem rather than a
-sensor one, given that it says the sensor register values were
-determined empirically rather than from docs.
-
-Thanks,
-Daniel
+I have 4 of these tuners, 3 of them are the 24xx series and 1 is a 29xx 
+series, at one time they all worked great and I am not sure what happened to 
+cause this but at some point the 29xx tuner started outputting black and white 
+video. At first I suspected a hardware failure and thought maybe it was in the 
+analog tuner part of the card so I switched it over to using the composite 
+side but this didn't help. As a last resort to chalking it up as a failed 
+piece of hardware I tried it on a windows machine and it works fine there so I 
+am under the impression that this must be a driver/firmware issue. Since my 
+other 3 tuners don't have a problem I assume that there must be some part of 
+the driver/firmware that only affects the 29xx series cards and the problem lies 
+within this, I have no idea where to look for a solution, any help would be 
+appreciated.
