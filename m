@@ -1,106 +1,94 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4105 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754333Ab0JRKlQ (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:44189 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753313Ab0JTFU2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Oct 2010 06:41:16 -0400
-Message-ID: <77120174419e5626d8b795bc2722d071.squirrel@webmail.xs4all.nl>
-In-Reply-To: <1287395654-1822-1-git-send-email-matti.j.aaltonen@nokia.com>
-References: <1287395654-1822-1-git-send-email-matti.j.aaltonen@nokia.com>
-Date: Mon, 18 Oct 2010 12:40:59 +0200
-Subject: Re: [PATCH RFC 1/1] V4L2: Use new CAP bits in existing RDS capable
- drivers.
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
-	"Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+	Wed, 20 Oct 2010 01:20:28 -0400
+Received: by bwz10 with SMTP id 10so1011985bwz.19
+        for <linux-media@vger.kernel.org>; Tue, 19 Oct 2010 22:20:27 -0700 (PDT)
+Message-ID: <4CBE7BFA.6020507@googlemail.com>
+Date: Wed, 20 Oct 2010 07:19:54 +0200
+From: Sven Barth <pascaldragon@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Andy Walls <awalls@md.metrocast.net>,
+	LMML <linux-media@vger.kernel.org>,
+	"Igor M. Liplianin" <liplianin@me.by>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Jarod Wilson <jarod@redhat.com>,
+	Richard Zidlicky <rz@linux-m68k.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Patrick Boettcher <pboettcher@kernellabs.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Henrik Kurelid <henke@kurelid.se>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: Re: Old patches sent via the Mailing list
+References: <4CBB689F.1070100@redhat.com> <1287358617.2320.12.camel@morgan.silverblock.net> <4CBBE5F6.6030201@redhat.com>
+In-Reply-To: <4CBBE5F6.6030201@redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+Am 18.10.2010 08:15, schrieb Mauro Carvalho Chehab:
+> Em 17-10-2010 21:36, Andy Walls escreveu:
+>> On Sun, 2010-10-17 at 19:20 -0200, Mauro Carvalho Chehab wrote:
+>>> Hi,
+>>>
+>>> I did a large effort during this weekend to handle the maximum amount of patches, in order to have them
+>>> ready for 2.6.37. While there are still some patches marked as NEW at patchwork, and a few pending pull
+>>> requests (mostly related to more kABI changes), there are still a list of patches that are marked as
+>>> Under review. Except for 4 patches from me, related to Doc (that I'm keeping in this list just to remind
+>>> me that I'll need to fix them when I have some time - just some automation stuff at DocBook), all other
+>>> patches marked as Under review are stuff that I basically depend on others.
+>>>
+>>> The last time I sent this list, I was about to travel, and I may have missed some comments, or maybe I
+>>> may just forgot to update. But I suspect that, for the list bellow, most of them are stuff where the
+>>> driver maintainer just forgot at limbo.
+>>>
+>>> > From the list of patches under review, we have:
+>>>
+>>> Waiting for new patch, signed, from Sven Barth<pascaldragon@googlemail.com>
+>>>    Apr,25 2010: Problem with cx25840 and Terratec Grabster AV400                       http://patchwork.kernel.org/patch/94960   Sven Barth<pascaldragon@googlemail.com>
+>>
+>> Sven,
+>>
+>> We need a "Signed-off-by: " for your submitted patch:
+>>
+>> http://www.linuxtv.org/wiki/index.php/Development:_Submitting_Patches#Sign_your_work
+>>
+>> Note, your patch has an obvious, unintentional white space change for
+>> "if (std == V4L2_STD_NTSC_M_JP)", so could you fix that up and send a
+>> new signed off version?
+>>
+>>
+>> Mauro,
+>>
+>> This patch makes obvious sense to me: don't perform audio register
+>> updates on a chip that doesn't have an audio processing block.  Sven's
+>> approach was based on my recommended approach, after his initial
+>> discovery on how to get his audio working.
+>>
+>> Do we really need an S.O.B for something that appears to be common
+>> sense, and wouldn't have been implemented any other way, even if I had
+>> implemented it?
+>
+> The original patch were in the middle of a discussion, no proper description,
+> bad whitespacing, etc. It is better to let the patch author to fix those issues,
+> as they learn more about how to submit a patch.
+>
+> Anyway, I agree with you, the patch is obvious, and can proceed without the SOB.
+> I did the usual CodingStyle fixups, put part of your above comment as the patch
+> description, together with your ack and moved it forward. One patch less on my queue ;)
+>
+> Cheers,
+> Mauro
 
+Eh... I thought I had superseeded it with the patch from 10th July (mail 
+title: [PATCH] Add support for AUX_PLL on cx2583x chips). It included a 
+"Signed-of by" from me as well as "Acked by" from Mike and Andy and I 
+also excluded the whitespace change ^^
 
-> Add either V4L2_TUNER_CAP_RDS_BLOCK_IO or V4L2_TUNER_CAP_RDS_CONTROLS
-> bit to tuner or modulator capabilities of existing drivers of devices with
-> RDS capability.
->
-> Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
-> ---
->  drivers/media/radio/radio-cadet.c                |    3 ++-
->  drivers/media/radio/si470x/radio-si470x-common.c |    2 +-
->  drivers/media/radio/si4713-i2c.c                 |    2 +-
->  drivers/media/video/saa6588.c                    |    2 +-
->  4 files changed, 5 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/media/radio/radio-cadet.c
-> b/drivers/media/radio/radio-cadet.c
-> index 482d0f3..b701ea6 100644
-> --- a/drivers/media/radio/radio-cadet.c
-> +++ b/drivers/media/radio/radio-cadet.c
-> @@ -374,7 +374,8 @@ static int vidioc_g_tuner(struct file *file, void
-> *priv,
->  	switch (v->index) {
->  	case 0:
->  		strlcpy(v->name, "FM", sizeof(v->name));
-> -		v->capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS;
-> +		v->capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS |
-> +			V4L2_TUNER_CAP_RDS_BLOCK_IO;
->  		v->rangelow = 1400;     /* 87.5 MHz */
->  		v->rangehigh = 1728;    /* 108.0 MHz */
->  		v->rxsubchans = cadet_getstereo(dev);
-> diff --git a/drivers/media/radio/si470x/radio-si470x-common.c
-> b/drivers/media/radio/si470x/radio-si470x-common.c
-> index 9927a59..af5ad45 100644
-> --- a/drivers/media/radio/si470x/radio-si470x-common.c
-> +++ b/drivers/media/radio/si470x/radio-si470x-common.c
-> @@ -681,7 +681,7 @@ static int si470x_vidioc_g_tuner(struct file *file,
-> void *priv,
->  	tuner->type = V4L2_TUNER_RADIO;
->  #if defined(CONFIG_USB_SI470X) || defined(CONFIG_USB_SI470X_MODULE)
->  	tuner->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO |
-> -			    V4L2_TUNER_CAP_RDS;
-> +			    V4L2_TUNER_CAP_RDS | V4L2_TUNER_CAP_RDS_BLOCK_IO;
->  #else
->  	tuner->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
->  #endif
-> diff --git a/drivers/media/radio/si4713-i2c.c
-> b/drivers/media/radio/si4713-i2c.c
-> index fc7f4b7..a6e6f19 100644
-> --- a/drivers/media/radio/si4713-i2c.c
-> +++ b/drivers/media/radio/si4713-i2c.c
-> @@ -1804,7 +1804,7 @@ static int si4713_g_modulator(struct v4l2_subdev
-> *sd, struct v4l2_modulator *vm)
->
->  	strncpy(vm->name, "FM Modulator", 32);
->  	vm->capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_LOW |
-> -						V4L2_TUNER_CAP_RDS;
-> +		V4L2_TUNER_CAP_RDS | V4L2_TUNER_CAP_RDS_CONTROLS;
->
->  	/* Report current frequency range limits */
->  	vm->rangelow = si4713_to_v4l2(FREQ_RANGE_LOW);
-> diff --git a/drivers/media/video/saa6588.c b/drivers/media/video/saa6588.c
-> index c3e96f0..eac222b 100644
-> --- a/drivers/media/video/saa6588.c
-> +++ b/drivers/media/video/saa6588.c
-> @@ -430,7 +430,7 @@ static int saa6588_g_tuner(struct v4l2_subdev *sd,
-> struct v4l2_tuner *vt)
->  {
->  	struct saa6588 *s = to_saa6588(sd);
->
-> -	vt->capability |= V4L2_TUNER_CAP_RDS;
-> +	vt->capability |= V4L2_TUNER_CAP_RDS | V4L2_TUNER_CAP_RDS_BLOCK_IO;
->  	if (s->sync)
->  		vt->rxsubchans |= V4L2_TUNER_SUB_RDS;
->  	return 0;
-> --
-> 1.6.1.3
->
->
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
-
+Regards,
+Sven
