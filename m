@@ -1,68 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:57872 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932269Ab0JOUvo (ORCPT
+Received: from filtteri1.pp.htv.fi ([213.243.153.184]:36449 "EHLO
+	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751439Ab0JTQPC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Oct 2010 16:51:44 -0400
-Subject: Re: [PATCH 3/5] IR: ene_ir: few bugfixes
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: Jarod Wilson <jarod@redhat.com>
-Cc: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
-	David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	mchehab@infradead.org, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org
-In-Reply-To: <20101015200212.GK9658@redhat.com>
-References: <1287158799-21486-1-git-send-email-maximlevitsky@gmail.com>
-	 <1287158799-21486-4-git-send-email-maximlevitsky@gmail.com>
-	 <20101015200212.GK9658@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 15 Oct 2010 22:24:55 +0200
-Message-ID: <1287174295.1867.1.camel@MAIN>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Wed, 20 Oct 2010 12:15:02 -0400
+Date: Wed, 20 Oct 2010 19:14:55 +0300
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>
+To: Dave Airlie <airlied@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Jan Kara <jack@suse.cz>,
+	Greg KH <greg@kroah.com>, Anders Larsen <al@alarsen.net>,
+	dri-devel@lists.freedesktop.org,
+	ksummit-2010-discuss@lists.linux-foundation.org,
+	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
+	codalist@telemann.coda.cs.cmu.edu,
+	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Bryan Schumaker <bjschuma@netapp.com>,
+	Christoph Hellwig <hch@infradead.org>,
+	Petr Vandrovec <vandrove@vc.cvut.cz>,
+	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
+	linux-media@vger.kernel.org, Samuel Ortiz <samuel@sortiz.org>,
+	Evgeniy Dushistov <dushistov@mail.ru>,
+	Steven Rostedt <rostedt@goodmis.org>, autofs@linux.kernel.org,
+	Jan Harkes <jaharkes@cs.cmu.edu>, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	Andrew Hendry <andrew.hendry@gmail.com>
+Subject: Re: [Ksummit-2010-discuss] [v2] Remaining BKL users, what to do
+Message-ID: <20101020161455.GC24313@sci.fi>
+References: <201009161632.59210.arnd@arndb.de>
+ <AANLkTi=oAeuz8ZxcOMpf=3MVY=WMt0BwHiGCUxO7OAEV@mail.gmail.com>
+ <201010190926.54635.arnd@arndb.de>
+ <201010191526.01887.arnd@arndb.de>
+ <AANLkTinw=Wzh2Ucj6zKSoqC8J3Yq9xDr3mKMUB7K6Yyo@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <AANLkTinw=Wzh2Ucj6zKSoqC8J3Yq9xDr3mKMUB7K6Yyo@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, 2010-10-15 at 16:02 -0400, Jarod Wilson wrote:
-> On Fri, Oct 15, 2010 at 06:06:37PM +0200, Maxim Levitsky wrote:
-> > This is a result of last round of debug with
-> > Sami R <maesesami@gmail.com>.
-> > 
-> > Thank you Sami very much!
-> > 
-> > The biggest bug I fixed is that,
-> > I was clobbering the CIRCFG register after it is setup
-> > That wasn't a good idea really
-> > 
-> > And some small refactoring, etc.
-> > 
-> > Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
-> > ---
-> >  drivers/media/IR/ene_ir.c |   43 ++++++++++++++++++++-----------------------
-> >  1 files changed, 20 insertions(+), 23 deletions(-)
-> > 
-> > diff --git a/drivers/media/IR/ene_ir.c b/drivers/media/IR/ene_ir.c
-> > index dc32509..8639621 100644
-> > --- a/drivers/media/IR/ene_ir.c
-> > +++ b/drivers/media/IR/ene_ir.c
-> ...
-> > @@ -282,6 +287,7 @@ static void ene_rx_setup(struct ene_device *dev)
-> >  		ene_set_reg_mask(dev, ENE_CIRCFG, ENE_CIRCFG_CARR_DEMOD);
-> >  
-> >  		/* Enable carrier detection */
-> > +		ene_write_reg(dev, ENE_CIRCAR_PULS, 0x63);
+On Wed, Oct 20, 2010 at 06:50:58AM +1000, Dave Airlie wrote:
+> On Tue, Oct 19, 2010 at 11:26 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> > On Tuesday 19 October 2010, Arnd Bergmann wrote:
+> >> On Tuesday 19 October 2010 06:52:32 Dave Airlie wrote:
+> >> > > I might be able to find some hardware still lying around here that uses an
+> >> > > i810. Not sure unless I go hunting it. But I get the impression that if
+> >> > > the kernel is a single-CPU kernel there is not any problem anyway? Don't
+> >> > > distros offer a non-smp kernel as an installation option in case the user
+> >> > > needs it? So in reality how big a problem is this?
+> >> >
+> >> > Not anymore, which is my old point of making a fuss. Nowadays in the
+> >> > modern distro world, we supply a single kernel that can at runtime
+> >> > decide if its running on SMP or UP and rewrite the text section
+> >> > appropriately with locks etc. Its like magic, and something like
+> >> > marking drivers as BROKEN_ON_SMP at compile time is really wrong when
+> >> > what you want now is a runtime warning if someone tries to hotplug a
+> >> > CPU with a known iffy driver loaded or if someone tries to load the
+> >> > driver when we are already in SMP mode.
+> >>
+> >> We could make the driver run-time non-SMP by adding
+> >>
+> >>       if (num_present_cpus() > 1) {
+> >>               pr_err("i810 no longer supports SMP\n");
+> >>               return -EINVAL;
+> >>       }
+> >>
+> >> to the init function. That would cover the vast majority of the
+> >> users of i810 hardware, I guess.
+> >
+> > Some research showed that Intel never support i810/i815 SMP setups,
+> > but there was indeed one company (http://www.acorpusa.com at the time,
+> > now owned by a domain squatter) that made i815E based dual Pentium-III
+> > boards like this one: http://cgi.ebay.com/280319795096
 > 
-> Looks sane, though I'd prefer to see symbolic bit names or some such thing
-> here instead of 0x63. Not something to hold up the patch though.
-> 
-> Acked-by: Jarod Wilson <jarod@redhat.com>
-> 
-63 isn't a bitfileld, but rather two numbers.
-3 is number of carrier pulses to skip, and 6 is number of carrier pulses
-to average.
+> Also that board has no on-board GPU enabled i815EP (P means no on-board GPU).
 
-I have a note about that in header.
+A quick search seems to indicate that an i815E variant also existed.
 
-Best regards,
-	Maxim Levitsky
-
+-- 
+Ville Syrjälä
+syrjala@sci.fi
+http://www.sci.fi/~syrjala/
