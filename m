@@ -1,83 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from chybek.jannau.net ([83.169.20.219]:54643 "EHLO
-	chybek.jannau.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751639Ab0J0KtF (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:20920 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753198Ab0JTOat (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Oct 2010 06:49:05 -0400
-Date: Wed, 27 Oct 2010 12:49:33 +0200
-From: Janne Grunau <j@jannau.net>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Mitar <mmitar@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] Too slow libv4l MJPEG decoding with HD cameras
-Message-ID: <20101027104933.GC15291@aniel.fritz.box>
-References: <AANLkTikGT6m9Ji3bBrwUB-yJY9dT0j8eCP_RNAvh3deG@mail.gmail.com>
- <4CC7EC13.1080008@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4CC7EC13.1080008@redhat.com>
+	Wed, 20 Oct 2010 10:30:49 -0400
+Date: Wed, 20 Oct 2010 16:30:42 +0200
+From: Kamil Debski <k.debski@samsung.com>
+Subject: RE: [PATCH 3/4] MFC: Add MFC 5.1 V4L2 driver
+In-reply-to: <002f01cb6e9e$b4ce2cd0$1e6a8670$%oh@samsung.com>
+To: jaeryul.oh@samsung.com, linux-media@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, kgene.kim@samsung.com
+Message-id: <000201cb7063$63119140$2934b3c0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: en-us
+Content-transfer-encoding: 7BIT
+References: <1286968160-10629-1-git-send-email-k.debski@samsung.com>
+ <1286968160-10629-4-git-send-email-k.debski@samsung.com>
+ <002f01cb6e9e$b4ce2cd0$1e6a8670$%oh@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Oct 27, 2010 at 11:08:35AM +0200, Hans de Goede wrote:
-> Hi,
-> 
-> On 10/27/2010 01:51 AM, Mitar wrote:
-> > Hi!
-> >
-> > On Sun, Oct 24, 2010 at 6:04 PM, Mitar<mmitar@gmail.com>  wrote:
-> >> Has anybody tried to improve MJPEG support in libv4l? With newer
-> >> cameras this becomes important.
-> >
-> > I have made a patch which makes libv4l uses ffmpeg's avcodec library
-> > for MJPEG decoding. Performance improvements are unbelievable.
-> >
-> 
-> Thanks for the patch!
-> 
-> > I have been testing with Logitech HD Pro Webcam C910 and
-> > 2.6.36-rc6-amd64 and Intel(R) Core(TM)2 Quad CPU Q9400 @ 2.66GHz.
-> > Camera supports 2592x1944 at 10 FPS MJPEG stream.
-> >
-> > With using original MJPEG code it takes my computer on average 129.614
-> > ms to decode the frame what is 0.0257 us per pixel.
-> >
-> > With using ffmpeg MJPEG decoding it takes my computer on average
-> > 43.616 ms to decode the frame what is 0.0087 us per pixel.
-> 
-> That is a great improvement, but using ffmpeg in libv4l is not an option
-> for multiple reasons:
-> 
-> 1) It is GPL licensed not LGPL
+>Hi, Kamil
+>This is third feedback about watchdog timer. 
+>(s5p_mfc.c)
 
-FFmpeg is mostly LGPL licensed, only a few optimizations and interfaces
-to GPL libraries. Running FFmpeg's configure without options and
-especially without --enable-gpl will only use lgpl or compatible
-licensed code.
+Hi, Peter
 
-> 2) It has various other legal issues which means it is not available
->     in most distro's main repository.
+Thanks for pointing that out, enabling and disabling watchdog in
+open/release is reasonable.
 
-FUD, Ubuntu doesn't seem to have a problem with it.
+>[...]
 
-> So I'm afraid that using ffmpeg really is out of the question. What
-> would be interesting is to see how libjpeg performs and then esp. the
-> turbo-libjpeg version:
-> http://libjpeg-turbo.virtualgl.org/
+>> +	platform_set_drvdata(pdev, dev);
+>> +	dev->hw_lock = 0;
+>> +	dev->watchdog_workqueue = create_singlethread_workqueue("s5p-mfc");
+>> +	INIT_WORK(&dev->watchdog_work, s5p_mfc_watchdog_worker);
+>> +	atomic_set(&dev->watchdog_cnt, 0);
+>> +	init_timer(&dev->watchdog_timer);
+>> +	dev->watchdog_timer.data = 0;
+>> +	dev->watchdog_timer.function = s5p_mfc_watchdog;
+>> +	dev->watchdog_timer.expires = jiffies +
+>> + msecs_to_jiffies(MFC_WATCHDOG_INTERVAL);
+>> +	add_timer(&dev->watchdog_timer);
+
+>Watch_dog single thread runs right after probing MFC, but this doesn't look
+>like
+>nice way in terms of purpose of this timer which is for error handling in
+>the 
+>middle of decoding. What about moving point running this timer to the
+>open().
+>And it should be stopped in release time. Of course, dev->num_inst should
+>be 
+>considered.
+
+Yes, I agree. I've changed that.
+
 > 
-> I would love to see a patch to use that instead of tiny jpeg, leaving
-> tinyjpeg usage only for the pixart jpeg variant stuff.
-> 
-> Note that some cameras generate what I call planar jpeg, this means
-> that they send 3 SOS markers with one component per scan. I don't know
-> if libjpeg will grok this (I had to patch libv4l's tinyjpeg copy for
-> this). But first lets see how libjpeg performs, and then we can always
-> use tinyjpeg to parse the header and depending on the header decide to
-> use tinyjpeg or libjpeg.
-> 
-> Sorry about nacking your ffmpeg patch,
+>> +
+>> +	dev->alloc_ctx = vb2_cma_init_multi(&pdev->dev, 2, s5p_mem_types,
+>> +							s5p_mem_alignments);
+>> +	if (IS_ERR(dev->alloc_ctx)) {
+>> +		mfc_err("Couldn't prepare allocator context.\n");
+>> +		ret = PTR_ERR(dev->alloc_ctx);
+>> +		goto alloc_ctx_fail;
+>> +	}
+>> +
+>> +	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
+>> +	if (ret) {
+>> +		v4l2_err(&dev->v4l2_dev, "Failed to register video
+>> device\n");
+>> +		video_device_release(vfd);
+>> +		goto rel_vdev;
+>> +	}
+>>
 
-While the patch is not the cleanest, there shouldn't be a problem of
-making ffmpeg mjpeg decoding optional.
+--
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
 
-Janne
