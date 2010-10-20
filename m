@@ -1,102 +1,35 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3772 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932243Ab0JDTJc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Oct 2010 15:09:32 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id o94J9U1s036988
-	for <linux-media@vger.kernel.org>; Mon, 4 Oct 2010 21:09:30 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 4 Oct 2010 21:09:30 +0200 (CEST)
-Message-Id: <201010041909.o94J9U1s036988@smtp-vbr13.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+Received: from smtp-out-seis.uned.es ([62.204.192.120]:43035 "EHLO
+	smtp-out-seis.uned.es" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751139Ab0JTAQq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Oct 2010 20:16:46 -0400
+Message-ID: <62836d3776629a93329ef3d1dc62c0d0.squirrel@correo.uned.es>
+Date: Wed, 20 Oct 2010 02:06:55 +0200
+Subject: DIAMOND LOAN
+From: "DIAMOND FINANCIAL SERVICE" <elecuona@malaga.uned.es>
+Reply-To: d.financialloan1@qualityservice.com
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
 
-Results of the daily build of v4l-dvb:
 
-date:        Mon Oct  4 19:00:08 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15164:1da5fed5c8b2
-git master:       3e6dce76d99b328716b43929b9195adfee1de00c
-git media-master: c8dd732fd119ce6d562d5fa82a10bbe75a376575
-gcc version:      i686-linux-gcc (GCC) 4.5.1
-host hardware:    x86_64
-host os:          2.6.32.5
 
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: WARNINGS
-linux-git-mips: WARNINGS
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-linux-2.6.32.6-armv5: WARNINGS
-linux-2.6.33-armv5: WARNINGS
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35.3-armv5: WARNINGS
-linux-2.6.32.6-armv5-davinci: ERRORS
-linux-2.6.33-armv5-davinci: ERRORS
-linux-2.6.34-armv5-davinci: ERRORS
-linux-2.6.35.3-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: ERRORS
-linux-2.6.33-armv5-ixp: ERRORS
-linux-2.6.34-armv5-ixp: ERRORS
-linux-2.6.35.3-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: ERRORS
-linux-2.6.33-armv5-omap2: ERRORS
-linux-2.6.34-armv5-omap2: ERRORS
-linux-2.6.35.3-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.32.6-m32r: WARNINGS
-linux-2.6.33-m32r: WARNINGS
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35.3-m32r: WARNINGS
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35.3-mips: WARNINGS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35.3-powerpc64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-spec-git: OK
-sparse: ERRORS
+We are Diamond Financial Loan service, we are registered and guaranteed
+loan company here in Europe, and we give out loans to individuals,
+companies, government establishments, churches and business organizations.
+Are you in need of a loan for any purpose? Are you in a financial problem?
+Do you need financial solution? Diamond loans is the solution to all your
+financial problems, our loans are easy, cheap, and quick. Contact us today
+for that loan that you desire, we can arrange any loan to suit your budget
+at only 3% interest rate,minimum of 5,000euros to maximum of 3 million
+euros If interested, contact us immediately,
 
-Detailed results are available here:
+Best Regards
+Mrs White Goldman
+E mail:(d.financialloan1@qualityservice.com)
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
