@@ -1,208 +1,319 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:56662 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758383Ab0J1VMJ (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:29173 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758160Ab0JTGl2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Oct 2010 17:12:09 -0400
-Received: by ewy7 with SMTP id 7so1946550ewy.19
-        for <linux-media@vger.kernel.org>; Thu, 28 Oct 2010 14:12:07 -0700 (PDT)
-From: Alexey Chernov <4ernov@gmail.com>
+	Wed, 20 Oct 2010 02:41:28 -0400
+Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LAK00D2TT8ZO4@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 20 Oct 2010 07:41:23 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LAK001K9T8Y9R@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 20 Oct 2010 07:41:23 +0100 (BST)
+Date: Wed, 20 Oct 2010 08:41:08 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 2/7] v4l: videobuf2: add generic memory handling routines
+In-reply-to: <1287556873-23179-1-git-send-email-m.szyprowski@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH] Patch for cx18 module with added support of GoTView PCI DVD3 Hybrid tuner
-Date: Fri, 29 Oct 2010 01:12:02 +0400
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201010290112.02949.4ernov@gmail.com>
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com
+Message-id: <1287556873-23179-3-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1287556873-23179-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
-I've got code which adds support of GoTView PCI DVD3 Hybrid tuner in cx18 module and Andy Walls in ivtv mailing-list gave me some advice on making a patch and sending it here. So here's the patch against staging/2.6.37-rc1 branch (the tutorial recommends to include it as plain text but if it's 
-the case I can surely send as an attachment):
+From: Pawel Osciak <p.osciak@samsung.com>
 
-diff -uprB v4l-dvb.orig/drivers/media/video/cx18/cx18-cards.c v4l-dvb/drivers/media/video/cx18/cx18-cards.c
---- v4l-dvb.orig/drivers/media/video/cx18/cx18-cards.c	2010-10-28 22:04:11.000000000 +0400
-+++ v4l-dvb/drivers/media/video/cx18/cx18-cards.c	2010-10-29 00:31:53.000000000 +0400
-@@ -251,6 +251,66 @@ static const struct cx18_card cx18_card_
+Add generic memory handling routines for userspace pointer handling,
+contiguous memory verification and mapping.
+
+Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+CC: Pawel Osciak <pawel@osciak.com>
+---
+ drivers/media/video/Kconfig            |    3 +
+ drivers/media/video/Makefile           |    1 +
+ drivers/media/video/videobuf2-memops.c |  199 ++++++++++++++++++++++++++++++++
+ include/media/videobuf2-memops.h       |   31 +++++
+ 4 files changed, 234 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/videobuf2-memops.c
+ create mode 100644 include/media/videobuf2-memops.h
+
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 9bf2fe1..2acb0f8 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -52,6 +52,9 @@ config V4L2_MEM2MEM_DEV
+ config VIDEOBUF2_CORE
+ 	tristate
  
- /* ------------------------------------------------------------------------- */
- 
-+/* GoTView PCI */
++config VIDEOBUF2_MEMOPS
++	tristate
 +
-+static const struct cx18_card_pci_info cx18_pci_gotview_dvd3[] = {
-+	{ PCI_DEVICE_ID_CX23418, CX18_PCI_ID_GOTVIEW, 0x3343 },
-+	{ 0, 0, 0 }
-+};
+ #
+ # Multimedia Video device configuration
+ #
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index e66f53b..77cc798 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -118,6 +118,7 @@ obj-$(CONFIG_VIDEOBUF_DVB) += videobuf-dvb.o
+ obj-$(CONFIG_VIDEO_BTCX)  += btcx-risc.o
+ 
+ obj-$(CONFIG_VIDEOBUF2_CORE)		+= videobuf2-core.o
++obj-$(CONFIG_VIDEOBUF2_MEMOPS)		+= videobuf2-memops.o
+ 
+ obj-$(CONFIG_V4L2_MEM2MEM_DEV) += v4l2-mem2mem.o
+ 
+diff --git a/drivers/media/video/videobuf2-memops.c b/drivers/media/video/videobuf2-memops.c
+new file mode 100644
+index 0000000..67ebdff
+--- /dev/null
++++ b/drivers/media/video/videobuf2-memops.c
+@@ -0,0 +1,199 @@
++/*
++ * videobuf2-memops.c - generic memory handling routines for videobuf2
++ *
++ * Copyright (C) 2010 Samsung Electronics
++ *
++ * Author: Pawel Osciak <p.osciak@samsung.com>
++ *	   Marek Szyprowski <m.szyprowski@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation.
++ */
 +
-+static const struct cx18_card cx18_card_gotview_dvd3 = {
-+	.type = CX18_CARD_GOTVIEW_PCI_DVD3,
-+	.name = "GoTView PCI DVD3 Hybrid",
-+	.comment = "Experimenters needed for device to work well.\n"
-+		  "\tTo help, mail the ivtv-devel list (www.ivtvdriver.org).\n",
-+	.v4l2_capabilities = CX18_CAP_ENCODER,
-+	.hw_audio_ctrl = CX18_HW_418_AV,
-+	.hw_muxer = CX18_HW_GPIO_MUX,
-+	.hw_all = CX18_HW_TVEEPROM | CX18_HW_418_AV | CX18_HW_TUNER |
-+		  CX18_HW_GPIO_MUX | CX18_HW_DVB | CX18_HW_GPIO_RESET_CTRL,
-+	.video_inputs = {
-+		{ CX18_CARD_INPUT_VID_TUNER,  0, CX18_AV_COMPOSITE2 },
-+		{ CX18_CARD_INPUT_SVIDEO1,    1,
-+				CX18_AV_SVIDEO_LUMA3 | CX18_AV_SVIDEO_CHROMA4 },
-+		{ CX18_CARD_INPUT_COMPOSITE1, 1, CX18_AV_COMPOSITE1 },
-+		{ CX18_CARD_INPUT_SVIDEO2,    2,
-+				CX18_AV_SVIDEO_LUMA7 | CX18_AV_SVIDEO_CHROMA8 },
-+		{ CX18_CARD_INPUT_COMPOSITE2, 2, CX18_AV_COMPOSITE6 },
-+	},
-+	.audio_inputs = {
-+		{ CX18_CARD_INPUT_AUD_TUNER, CX18_AV_AUDIO5,        0 },
-+		{ CX18_CARD_INPUT_LINE_IN1,  CX18_AV_AUDIO_SERIAL1, 1 },
-+		{ CX18_CARD_INPUT_LINE_IN2,  CX18_AV_AUDIO_SERIAL2, 1 },
-+	},
-+	.tuners = {
-+		/* XC3028 tuner */
-+		{ .std = V4L2_STD_ALL, .tuner = TUNER_XC2028 },
-+	},
-+	/* FIXME - the FM radio is just a guess and driver doesn't use SIF */
-+	.radio_input = { CX18_CARD_INPUT_AUD_TUNER, CX18_AV_AUDIO5, 2 },
-+	.ddr = {
-+		/* Hynix HY5DU283222B DDR RAM */
-+		.chip_config = 0x303,
-+		.refresh = 0x3bd,
-+		.timing1 = 0x36320966,
-+		.timing2 = 0x1f,
-+		.tune_lane = 0,
-+		.initial_emrs = 2,
-+	},
-+	.gpio_init.initial_value = 0x1,
-+	.gpio_init.direction = 0x3,
-+	
-+	.gpio_audio_input = { .mask   = 0x3,
-+			      .tuner  = 0x1,
-+			      .linein = 0x2,
-+			      .radio  = 0x1 },
-+	.xceive_pin = 0,
-+	.pci_list = cx18_pci_gotview_dvd3,
-+	.i2c = &cx18_i2c_std,
-+};
++#include <linux/slab.h>
++#include <linux/module.h>
++#include <linux/dma-mapping.h>
++#include <linux/vmalloc.h>
++#include <linux/cma.h>
++#include <linux/mm.h>
++#include <linux/sched.h>
++#include <linux/file.h>
 +
-+/* ------------------------------------------------------------------------- */
++#include <media/videobuf2-core.h>
 +
- /* Conexant Raptor PAL/SECAM: note that this card is analog only! */
- 
- static const struct cx18_card_pci_info cx18_pci_cnxt_raptor_pal[] = {
-@@ -463,6 +523,7 @@ static const struct cx18_card *cx18_card
- 	&cx18_card_toshiba_qosmio_dvbt,
- 	&cx18_card_leadtek_pvr2100,
- 	&cx18_card_leadtek_dvr3100h,
-+	&cx18_card_gotview_dvd3
- };
- 
- const struct cx18_card *cx18_get_card(u16 index)
-diff -uprB v4l-dvb.orig/drivers/media/video/cx18/cx18-driver.c v4l-dvb/drivers/media/video/cx18/cx18-driver.c
---- v4l-dvb.orig/drivers/media/video/cx18/cx18-driver.c	2010-10-28 22:04:11.000000000 +0400
-+++ v4l-dvb/drivers/media/video/cx18/cx18-driver.c	2010-10-28 22:19:09.000000000 +0400
-@@ -156,6 +156,7 @@ MODULE_PARM_DESC(cardtype,
- 		 "\t\t\t 6 = Toshiba Qosmio DVB-T/Analog\n"
- 		 "\t\t\t 7 = Leadtek WinFast PVR2100\n"
- 		 "\t\t\t 8 = Leadtek WinFast DVR3100 H\n"
-+		 "\t\t\t 9 = GoTView PCI DVD3 Hybrid\n"
- 		 "\t\t\t 0 = Autodetect (default)\n"
- 		 "\t\t\t-1 = Ignore this card\n\t\t");
- MODULE_PARM_DESC(pal, "Set PAL standard: B, G, H, D, K, I, M, N, Nc, 60");
-@@ -333,6 +334,7 @@ void cx18_read_eeprom(struct cx18 *cx, s
- 		tveeprom_hauppauge_analog(&c, tv, eedata);
- 		break;
- 	case CX18_CARD_YUAN_MPC718:
-+	case CX18_CARD_GOTVIEW_PCI_DVD3:
- 		tv->model = 0x718;
- 		cx18_eeprom_dump(cx, eedata, sizeof(eedata));
- 		CX18_INFO("eeprom PCI ID: %02x%02x:%02x%02x\n",
-diff -uprB v4l-dvb.orig/drivers/media/video/cx18/cx18-driver.h v4l-dvb/drivers/media/video/cx18/cx18-driver.h
---- v4l-dvb.orig/drivers/media/video/cx18/cx18-driver.h	2010-10-28 22:04:11.000000000 +0400
-+++ v4l-dvb/drivers/media/video/cx18/cx18-driver.h	2010-10-28 22:33:49.000000000 +0400
-@@ -84,7 +84,8 @@
- #define CX18_CARD_TOSHIBA_QOSMIO_DVBT 5 /* Toshiba Qosmio Interal DVB-T/Analog*/
- #define CX18_CARD_LEADTEK_PVR2100     6 /* Leadtek WinFast PVR2100 */
- #define CX18_CARD_LEADTEK_DVR3100H    7 /* Leadtek WinFast DVR3100 H */
--#define CX18_CARD_LAST 		      7
-+#define CX18_CARD_GOTVIEW_PCI_DVD3    8 /* GoTView PCI DVD3 Hybrid */
-+#define CX18_CARD_LAST 		      8
- 
- #define CX18_ENC_STREAM_TYPE_MPG  0
- #define CX18_ENC_STREAM_TYPE_TS   1
-@@ -106,6 +107,7 @@
- #define CX18_PCI_ID_CONEXANT		0x14f1
- #define CX18_PCI_ID_TOSHIBA		0x1179
- #define CX18_PCI_ID_LEADTEK		0x107D
-+#define CX18_PCI_ID_GOTVIEW 		0x5854
- 
- /* ======================================================================== */
- /* ========================== START USER SETTABLE DMA VARIABLES =========== */
-diff -uprB v4l-dvb.orig/drivers/media/video/cx18/cx18-dvb.c v4l-dvb/drivers/media/video/cx18/cx18-dvb.c
---- v4l-dvb.orig/drivers/media/video/cx18/cx18-dvb.c	2010-10-28 22:04:11.000000000 +0400
-+++ v4l-dvb/drivers/media/video/cx18/cx18-dvb.c	2010-10-28 22:20:08.000000000 +0400
-@@ -203,6 +203,14 @@ static struct zl10353_config yuan_mpc718
- 	.disable_i2c_gate_ctrl = 1,         /* Disable the I2C gate */
- };
- 
-+static struct zl10353_config gotview_dvd3_zl10353_demod = {
-+	.demod_address         = 0x1e >> 1, /* Datasheet suggested straps */
-+	.if2                   = 45600,     /* 4.560 MHz IF from the XC3028 */
-+	.parallel_ts           = 1,         /* Not a serial TS */
-+	.no_tuner              = 1,         /* XC3028 is not behind the gate */
-+	.disable_i2c_gate_ctrl = 1,         /* Disable the I2C gate */
-+};
++/**
++ * vb2_contig_verify_userptr() - verify contiguity of a userspace-mapped memory
++ * @vma:	virtual memory region which maps the physical memory
++ *		to be verified
++ * @vaddr:	starting virtual address of the area to be verified
++ * @size:	size of the area to be verified
++ * @paddr:	will return physical address for the given vaddr
++ *
++ * This function will go through memory area of size size mapped at vaddr and
++ * verify that the underlying physical pages are contiguous.
++ *
++ * Returns 0 on success and a physical address to the memory pointed
++ * to by vaddr in paddr.
++ */
++int vb2_contig_verify_userptr(struct vm_area_struct *vma,
++				unsigned long vaddr, unsigned long size,
++				unsigned long *paddr)
++{
++	struct mm_struct *mm = current->mm;
++	unsigned long offset;
++	unsigned long vma_size;
++	unsigned long curr_pfn, prev_pfn;
++	unsigned long num_pages;
++	int ret = -EINVAL;
++	unsigned int i;
 +
- static int dvb_register(struct cx18_stream *stream);
- 
- /* Kernel DVB framework calls this when the feed needs to start.
-@@ -247,6 +255,7 @@ static int cx18_dvb_start_feed(struct dv
- 
- 	case CX18_CARD_LEADTEK_DVR3100H:
- 	case CX18_CARD_YUAN_MPC718:
-+	case CX18_CARD_GOTVIEW_PCI_DVD3:
- 	default:
- 		/* Assumption - Parallel transport - Signalling
- 		 * undefined or default.
-@@ -495,6 +504,29 @@ static int dvb_register(struct cx18_stre
- 				fe->ops.tuner_ops.set_config(fe, &ctrl);
- 		}
- 		break;
-+	case CX18_CARD_GOTVIEW_PCI_DVD3:
-+			dvb->fe = dvb_attach(zl10353_attach,
-+					     &gotview_dvd3_zl10353_demod,
-+					     &cx->i2c_adap[1]);
-+		if (dvb->fe != NULL) {
-+			struct dvb_frontend *fe;
-+			struct xc2028_config cfg = {
-+				.i2c_adap = &cx->i2c_adap[1],
-+				.i2c_addr = 0xc2 >> 1,
-+				.ctrl = NULL,
-+			};
-+			static struct xc2028_ctrl ctrl = {
-+				.fname   = XC2028_DEFAULT_FIRMWARE,
-+				.max_len = 64,
-+				.demod   = XC3028_FE_ZARLINK456,
-+				.type    = XC2028_AUTO,
-+			};
++	offset = vaddr & ~PAGE_MASK;
 +
-+			fe = dvb_attach(xc2028_attach, dvb->fe, &cfg);
-+			if (fe != NULL && fe->ops.tuner_ops.set_config != NULL)
-+				fe->ops.tuner_ops.set_config(fe, &ctrl);
++	down_read(&mm->mmap_sem);
++
++	vma = find_vma(mm, vaddr);
++	if (!vma) {
++		printk(KERN_ERR "Invalid userspace address\n");
++		goto done;
++	}
++
++	vma_size = vma->vm_end - vma->vm_start;
++
++	if (size > vma_size - offset) {
++		printk(KERN_ERR "Region too small\n");
++		goto done;
++	}
++	num_pages = (size + offset) >> PAGE_SHIFT;
++
++	ret = follow_pfn(vma, vaddr, &curr_pfn);
++	if (ret) {
++		printk(KERN_ERR "Invalid userspace address\n");
++		goto done;
++	}
++
++	*paddr = (curr_pfn << PAGE_SHIFT) + offset;
++
++	for (i = 1; i < num_pages; ++i) {
++		prev_pfn = curr_pfn;
++		vaddr += PAGE_SIZE;
++
++		ret = follow_pfn(vma, vaddr, &curr_pfn);
++		if (ret || curr_pfn != prev_pfn + 1) {
++			printk(KERN_ERR "Invalid userspace address\n");
++			ret = -EINVAL;
++			break;
 +		}
-+		break;
- 	default:
- 		/* No Digital Tv Support */
- 		break;
++	}
++
++done:
++	up_read(&mm->mmap_sem);
++	return ret;
++}
++
++/**
++ * vb2_mmap_pfn_range() - map physical pages to userspace
++ * @vma:	virtual memory region for the mapping
++ * @paddr:	starting physical address of the memory to be mapped
++ * @size:	size of the memory to be mapped
++ * @vm_ops:	vm operations to be assigned to the created area
++ * @priv:	private data to be associated with the area
++ *
++ * Returns 0 on success.
++ */
++int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
++				unsigned long size,
++				const struct vm_operations_struct *vm_ops,
++				void *priv)
++{
++	int ret;
++
++	size = min_t(unsigned long, vma->vm_end - vma->vm_start, size);
++
++	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
++	ret = remap_pfn_range(vma, vma->vm_start, paddr >> PAGE_SHIFT,
++				size, vma->vm_page_prot);
++	if (ret) {
++		printk(KERN_ERR "Remapping memory failed, error: %d\n", ret);
++		return ret;
++	}
++
++	vma->vm_flags		|= VM_DONTEXPAND | VM_RESERVED;
++	vma->vm_private_data	= priv;
++	vma->vm_ops		= vm_ops;
++
++	vm_ops->open(vma);
++
++	printk(KERN_DEBUG "%s: mapped paddr 0x%08lx at 0x%08lx, size %ld\n",
++			__func__, paddr, vma->vm_start, size);
++
++	return 0;
++}
++
++/**
++ * vb2_get_userptr() - acquire an area pointed to by userspace addres vaddr
++ * @vaddr:	virtual userspace address to the given area
++ *
++ * This function attempts to acquire an area mapped in the userspace for
++ * the duration of a hardware operation.
++ *
++ * Returns a virtual memory region associated with the given vaddr on success
++ * or NULL.
++ */
++struct vm_area_struct *vb2_get_userptr(unsigned long vaddr)
++{
++	struct mm_struct *mm = current->mm;
++	struct vm_area_struct *vma;
++	struct vm_area_struct *vma_copy;
++
++	vma_copy = kmalloc(sizeof(struct vm_area_struct), GFP_KERNEL);
++	if (vma_copy == NULL)
++		return NULL;
++
++	down_read(&mm->mmap_sem);
++
++	vma = find_vma(mm, vaddr);
++	if (!vma)
++		goto done;
++
++	if (vma->vm_ops && vma->vm_ops->open)
++		vma->vm_ops->open(vma);
++
++	if (vma->vm_file)
++		get_file(vma->vm_file);
++
++	memcpy(vma_copy, vma, sizeof(*vma));
++done:
++	up_read(&mm->mmap_sem);
++
++	vma_copy->vm_mm = NULL;
++	vma_copy->vm_next = NULL;
++	vma_copy->vm_prev = NULL;
++
++	return vma_copy;
++}
++
++/**
++ * vb2_put_userptr() - release a userspace memory area
++ * @vma:	virtual memory region associated with the area to be released
++ *
++ * This function releases the previously acquired memory area after a hardware
++ * operation.
++ */
++void vb2_put_userptr(struct vm_area_struct *vma)
++{
++	if (!vma)
++		return;
++
++	if (vma->vm_file)
++		fput(vma->vm_file);
++
++	if (vma->vm_ops && vma->vm_ops->close)
++		vma->vm_ops->close(vma);
++
++	kfree(vma);
++}
++
++MODULE_DESCRIPTION("common memory handling routines for videobuf2");
++MODULE_AUTHOR("Pawel Osciak");
++MODULE_LICENSE("GPL");
+diff --git a/include/media/videobuf2-memops.h b/include/media/videobuf2-memops.h
+new file mode 100644
+index 0000000..3257411
+--- /dev/null
++++ b/include/media/videobuf2-memops.h
+@@ -0,0 +1,31 @@
++/*
++ * videobuf2-memops.h - generic memory handling routines for videobuf2
++ *
++ * Copyright (C) 2010 Samsung Electronics
++ *
++ * Author: Pawel Osciak <p.osciak@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation.
++ */
++
++#ifndef _MEDIA_VIDEOBUF2_MEMOPS_H
++#define _MEDIA_VIDEOBUF2_MEMOPS_H
++
++#include <media/videobuf2-core.h>
++
++int vb2_contig_verify_userptr(struct vm_area_struct *vma,
++				unsigned long vaddr, unsigned long size,
++				unsigned long *paddr);
++
++int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
++				unsigned long size,
++				const struct vm_operations_struct *vm_ops,
++				void *priv);
++
++struct vm_area_struct *vb2_get_userptr(unsigned long vaddr);
++
++void vb2_put_userptr(struct vm_area_struct *vma);
++
++#endif
+-- 
+1.7.1.569.g6f426
 
-Several comments on the patch:
-1. Both users on the official Gotview forum and support said that PCI DVD3 is very similar to Yuan MPC718 card so the main part of code is taken from Yuan configuration. Some users reported it to work properly.
-2. Everything is being initialized correctly including analog, dvb, radio and alsa parts. Analogue part and alsa virtual card is tested by myself using original Gotview card.
-
-I'm completely newbie in making and sending patches for the kernel so I'm very sorry if I did something wrong.
-
-Thank you very much in advance!
-
-Signed-off-by: Alexey Chernov <4ernov@gmail.com>
