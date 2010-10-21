@@ -1,84 +1,165 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:37049 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751153Ab0JTMVE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Oct 2010 08:21:04 -0400
-Message-ID: <4CBEDE92.6070800@infradead.org>
-Date: Wed, 20 Oct 2010 10:20:34 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Jonathan Corbet <corbet@lwn.net>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Daniel Drake <dsd@laptop.org>
-Subject: Re: [PATCH] V4L/DVB: Add the via framebuffer camera controller driver
-References: <20101019183211.6af74f57@bike.lwn.net> <201010200907.35954.hverkuil@xs4all.nl>
-In-Reply-To: <201010200907.35954.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:63503 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758476Ab0JUOKe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Oct 2010 10:10:34 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o9LEAXPt026947
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 21 Oct 2010 10:10:34 -0400
+Received: from pedra (vpn-225-164.phx2.redhat.com [10.3.225.164])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o9LE9S5B022469
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 21 Oct 2010 10:10:32 -0400
+Date: Thu, 21 Oct 2010 12:07:48 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 4/4] [media] mceusb: Fix parser for Polaris
+Message-ID: <20101021120748.47828273@pedra>
+In-Reply-To: <cover.1287669886.git.mchehab@redhat.com>
+References: <cover.1287669886.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 20-10-2010 05:07, Hans Verkuil escreveu:
-> On Wednesday, October 20, 2010 02:32:11 Jonathan Corbet wrote:
->> OK, here's a new version of the patch, done against the V4L tree.  Now
->> with 100% fewer compiler errors!  It took a while to figure out the API
->> changes, and I'm not convinced I like them all - the controller driver
->> didn't used to have to worry about format details, but now it does -
->> but so it goes.
-> 
-> I'm afraid that that change is a sign of V4L growing up and being used in
-> much more demanding environments like the omap3. While the pixel format and
-> media bus format have a trivial mapping in this controller driver, things
-> become a lot more complicated if the same sensor driver were to be used in
-> e.g. the omap3 SoC.
-> 
-> The sensor driver does not know what the video will look like in memory. It
-> just passes the video data over a physical bus to some other device. That
-> other device is what usually determines how the video data it receives over
-> the bus is DMA-ed into memory. Simple devices just copy the video data almost
-> directly to memory, but more complex devices can do colorspace transformations,
-> dword swapping, 4:2:2 to 4:2:0 conversions, scaling, etc., etc.
-> 
-> So what finally arrives in memory may look completely different from what the
-> sensor supplies.
-> 
-> The consequence of supporting these more complex devices is that it also
-> makes simple device drivers a bit more complex.
+Add a parser for polaris mce. On this device, sometimes, a control
+data appears together with the IR data, causing problems at the parser.
+Also, it signalizes the end of a data with a 0x80 value. The normal
+parser would believe that this is a time with 0x1f size, but cx231xx
+provides just one byte for it.
 
-Hans,
+I'm not sure if the new parser would work for other devices (probably, it
+will), but the better is to just write it as a new parser, to avoid breaking
+support for other supported IR devices.
 
-The kABI changes should not cause troubles for driver developers. 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-I actually tried to look how to fix the conflicts, and it is not trivial to convert 
-a driver to mbus (well, I'd say that there are 50% of chance of getting the wrong
-values, as just inspecting the source code, it is impossible to know if the bus
-is LE or BE).
-
-In a matter of fact, we're using the "MBUS" format to do two different things:
-a) configure the FOURCC image format;
-b) configure the type of mbus.
-
-While all drivers need to do (a), just a few need to do (b), as, for most cases,
-the bridge driver just accepts one fixed format.
-
-I can't imagine how a driver like gspca, where most of the work is done via reverse 
-engineering could be converted correctly, as I doubt that developers have any glue
-about the endianness used on all webcams (or any other parameter for the streaming
-bus between the sensor and the bridge).
-
-So, while I understand that this is needed for complex devices used on embedded,
-the kABI changes should not cause troubles for other developers, otherwise, they
-may just put some "fake" values to workaround the kABI "pedantic" requirements,
-causing future problems when someone would try to use it with those more complex
-devices or do some other workarounds.
-
-I suspect that we'll need to do some cleanups on it, as, on all drivers but soc_camera
-and omap3 (and maybe a few other hardware), just passing the fourcc format is enough.
-
-Cheers,
-Mauro
+diff --git a/drivers/media/IR/mceusb.c b/drivers/media/IR/mceusb.c
+index 609bf3d..7210760 100644
+--- a/drivers/media/IR/mceusb.c
++++ b/drivers/media/IR/mceusb.c
+@@ -265,6 +265,7 @@ struct mceusb_dev {
+ 		u32 connected:1;
+ 		u32 tx_mask_inverted:1;
+ 		u32 microsoft_gen1:1;
++		u32 is_polaris:1;
+ 		u32 reserved:29;
+ 	} flags;
+ 
+@@ -697,6 +698,90 @@ static int mceusb_set_tx_carrier(void *priv, u32 carrier)
+ 	return carrier;
+ }
+ 
++static void mceusb_parse_polaris(struct mceusb_dev *ir, int buf_len)
++{
++	struct ir_raw_event rawir;
++	int i;
++	u8 cmd;
++
++	while (i < buf_len) {
++		cmd = ir->buf_in[i];
++
++		/* Discard any non-IR cmd */
++
++		if ((cmd & 0xe0) >> 5 != 4) {
++			i++;
++			if (i >= buf_len)
++				return;
++
++			cmd = ir->buf_in[i];	/* sub cmd */
++			i++;
++			switch (cmd) {
++			case 0x08:
++			case 0x14:
++			case 0x17:
++				i += 1;
++				break;
++			case 0x11:
++				i += 5;
++				break;
++			case 0x06:
++			case 0x81:
++			case 0x15:
++			case 0x16:
++				i += 2;
++				break;
++			}
++		} else if (cmd == 0x80) {
++			/*
++			 * Special case: timeout event on cx231xx
++			 * Is it needed to check if is_polaris?
++			 */
++			rawir.pulse = 0;
++			rawir.duration = IR_MAX_DURATION;
++			dev_dbg(ir->dev, "Storing %s with duration %d\n",
++				rawir.pulse ? "pulse" : "space",
++				rawir.duration);
++
++			ir_raw_event_store(ir->idev, &rawir);
++		} else {
++			ir->rem = (cmd & MCE_PACKET_LENGTH_MASK);
++			ir->cmd = (cmd & ~MCE_PACKET_LENGTH_MASK);
++			dev_dbg(ir->dev, "New data. rem: 0x%02x, cmd: 0x%02x\n",
++				ir->rem, ir->cmd);
++			i++;
++			for (; (ir->rem > 0) && (i < buf_len); i++) {
++				ir->rem--;
++
++				rawir.pulse = ((ir->buf_in[i] & MCE_PULSE_BIT) != 0);
++				rawir.duration = (ir->buf_in[i] & MCE_PULSE_MASK)
++						 * MCE_TIME_UNIT * 1000;
++
++				if ((ir->buf_in[i] & MCE_PULSE_MASK) == 0x7f) {
++					if (ir->rawir.pulse == rawir.pulse)
++						ir->rawir.duration += rawir.duration;
++					else {
++						ir->rawir.duration = rawir.duration;
++						ir->rawir.pulse = rawir.pulse;
++					}
++					continue;
++				}
++				rawir.duration += ir->rawir.duration;
++				ir->rawir.duration = 0;
++				ir->rawir.pulse = rawir.pulse;
++
++				dev_dbg(ir->dev, "Storing %s with duration %d\n",
++					rawir.pulse ? "pulse" : "space",
++					rawir.duration);
++
++				ir_raw_event_store(ir->idev, &rawir);
++			}
++		}
++	}
++	dev_dbg(ir->dev, "calling ir_raw_event_handle\n");
++	ir_raw_event_handle(ir->idev);
++}
++
+ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
+ {
+ 	DEFINE_IR_RAW_EVENT(rawir);
+@@ -707,6 +792,11 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
+ 	if (ir->flags.microsoft_gen1)
+ 		start_index = 2;
+ 
++	if (ir->flags.is_polaris) {
++		mceusb_parse_polaris(ir, buf_len);
++		return;
++	}
++
+ 	for (i = start_index; i < buf_len;) {
+ 		if (ir->rem == 0) {
+ 			/* decode mce packets of the form (84),AA,BB,CC,DD */
+@@ -1044,6 +1134,7 @@ static int __devinit mceusb_dev_probe(struct usb_interface *intf,
+ 	ir->len_in = maxp;
+ 	ir->flags.microsoft_gen1 = is_microsoft_gen1;
+ 	ir->flags.tx_mask_inverted = tx_mask_inverted;
++	ir->flags.is_polaris = is_polaris;
+ 	init_ir_raw_event(&ir->rawir);
+ 
+ 	/* Saving usb interface data for use by the transmitter routine */
+-- 
+1.7.1
 
