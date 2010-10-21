@@ -1,61 +1,103 @@
 Return-path: <mchehab@pedra>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:61087 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761501Ab0J2OGT (ORCPT
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2857 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757593Ab0JUTFN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Oct 2010 10:06:19 -0400
-Received: by yxk8 with SMTP id 8so1635182yxk.19
-        for <linux-media@vger.kernel.org>; Fri, 29 Oct 2010 07:06:18 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTi=83sd2yTsHt166_63vorioD5Fas32P9XLX15ss@mail.gmail.com>
-References: <AANLkTimx6XJKEz9883cwrm977OtXVPVB5K5PjSGFi_AJ@mail.gmail.com>
-	<AANLkTi=Nv2Oe=61NQjzH0+P+TcODDJW3_n+NbfzxF5g3@mail.gmail.com>
-	<201010290139.10204.laurent.pinchart@ideasonboard.com>
-	<AANLkTinWnGtb32kBNwoeN27OcCh7sVvZOoC=Vi1BtOua@mail.gmail.com>
-	<AANLkTimJu-QDToxGNWKPj_B4QM_iO_x6G6eE4U2WnDPB@mail.gmail.com>
-	<AANLkTi=83sd2yTsHt166_63vorioD5Fas32P9XLX15ss@mail.gmail.com>
-Date: Fri, 29 Oct 2010 16:06:18 +0200
-Message-ID: <AANLkTin9M0FZrBYy5xq_-uCFbYa=LfZqLWurb_rB+uW_@mail.gmail.com>
-Subject: Re: New media framework user space usage
-From: Bastian Hecht <hechtb@googlemail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 21 Oct 2010 15:05:13 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id o9LJ58Hh088174
+	for <linux-media@vger.kernel.org>; Thu, 21 Oct 2010 21:05:12 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 21 Oct 2010 21:05:08 +0200 (CEST)
+Message-Id: <201010211905.o9LJ58Hh088174@smtp-vbr16.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello Laurant,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-sorry I am flooding a bit here, but now I reached a point where I am
-really stuck.
+Results of the daily build of v4l-dvb:
 
-In the get_fmt_pad I set the following format
-        *format = mt9p031->format;
-that is defined as
-        mt9p031->format.code = V4L2_MBUS_FMT_SGRBG10_1X10;
-        mt9p031->format.width = MT9P031_MAX_WIDTH;
-        mt9p031->format.height = MT9P031_MAX_HEIGHT;
-        mt9p031->format.field = V4L2_FIELD_NONE;
-        mt9p031->format.colorspace = V4L2_COLORSPACE_SRGB;
+date:        Thu Oct 21 19:00:22 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15167:abd3aac6644e
+git master:       3e6dce76d99b328716b43929b9195adfee1de00c
+git media-master: a348e9110ddb5d494e060d989b35dd1f35359d58
+gcc version:      i686-linux-gcc (GCC) 4.5.1
+host hardware:    x86_64
+host os:          2.6.32.5
 
-I found the different formats in /include/linux/v4l2-mediabus.h. I
-have 12 data bit channels, but there is no enum for that (like
-V4L2_MBUS_FMT_SGRBG10_1X12).
-I am the first guy needing a 12 bit-bus?
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: WARNINGS
+linux-git-mips: WARNINGS
+linux-git-powerpc64: WARNINGS
+linux-git-x86_64: WARNINGS
+linux-2.6.32.6-armv5: WARNINGS
+linux-2.6.33-armv5: WARNINGS
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.32.6-armv5-davinci: ERRORS
+linux-2.6.33-armv5-davinci: ERRORS
+linux-2.6.34-armv5-davinci: ERRORS
+linux-2.6.35.3-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: ERRORS
+linux-2.6.33-armv5-ixp: ERRORS
+linux-2.6.34-armv5-ixp: ERRORS
+linux-2.6.35.3-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: ERRORS
+linux-2.6.33-armv5-omap2: ERRORS
+linux-2.6.34-armv5-omap2: ERRORS
+linux-2.6.35.3-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.32.6-m32r: WARNINGS
+linux-2.6.33-m32r: WARNINGS
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-Second thing is, the yavta app now gets stuck while dequeuing a buffer.
+Detailed results are available here:
 
-strace ./yavta -f SGRBG10 -s 2592x1944 -n 4 --capture=4 --skip 3 -F /dev/video2
-...
-ioctl(3, VIDIOC_QBUF, 0xbec111cc)       = 0
-ioctl(3, VIDIOC_QBUF, 0xbec111cc)       = 0
-ioctl(3, VIDIOC_QBUF, 0xbec111cc)       = 0
-ioctl(3, VIDIOC_QBUF, 0xbec111cc)       = 0
-ioctl(3, VIDIOC_STREAMON, 0xbec11154)   = 0
-ioctl(3, VIDIOC_DQBUF
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-strace gets stuck in mid of this line.
+Full logs are available here:
 
-cheers,
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
- Bastian
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
