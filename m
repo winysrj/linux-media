@@ -1,108 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4113 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751203Ab0JTICk (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:34660 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757186Ab0JUC5j (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Oct 2010 04:02:40 -0400
-Message-ID: <3a9bc7b5a90b780d693ee4e4e02a9325.squirrel@webmail.xs4all.nl>
-In-Reply-To: <004901cb702a$10a69100$31f3b300$%szyprowski@samsung.com>
-References: <1287556873-23179-1-git-send-email-m.szyprowski@samsung.com>
-    <201010200914.32868.hverkuil@xs4all.nl>
-    <004901cb702a$10a69100$31f3b300$%szyprowski@samsung.com>
-Date: Wed, 20 Oct 2010 10:02:21 +0200
-Subject: RE: [PATCH/RFC v3 0/7] Videobuf2 framework
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Marek Szyprowski" <m.szyprowski@samsung.com>
-Cc: linux-media@vger.kernel.org, pawel@osciak.com,
-	kyungmin.park@samsung.com, mchehab@redhat.com
+	Wed, 20 Oct 2010 22:57:39 -0400
+Message-ID: <4CBFAC1A.90306@infradead.org>
+Date: Thu, 21 Oct 2010 00:57:30 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: Jonathan Corbet <corbet@lwn.net>
+CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Daniel Drake <dsd@laptop.org>
+Subject: Re: ext_lock (was viafb camera controller driver)
+References: <20101010162313.5caa137f@bike.lwn.net>	<4CB9AC58.5020301@infradead.org>	<20101018212017.7c53789e@bike.lwn.net>	<201010190854.40419.hverkuil@xs4all.nl> <20101020132342.35a2c401@bike.lwn.net>
+In-Reply-To: <20101020132342.35a2c401@bike.lwn.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Em 20-10-2010 17:23, Jonathan Corbet escreveu:
+> On Tue, 19 Oct 2010 08:54:40 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> 
+>> We are working on removing the BKL. As part of that effort it is now possible
+>> for drivers to pass a serialization mutex to the v4l core (a mutex pointer was
+>> added to struct video_device). If the core sees that mutex then the core will
+>> serialize all open/ioctl/read/write/etc. file ops. So all file ops will in that
+>> case be called with that mutex held. Which is fine, but if the driver has to do
+>> a blocking wait, then you need to unlock the mutex first and lock it again
+>> afterwards. And since videobuf does a blocking wait it needs to know about that
+>> mutex.
+> 
+> So videobuf is expecting that you're passing this special device mutex
+> in particular?  In that case, why not just use it directly?  Having a
+> separate pointer to (what looks like) a distinct lock seems like a way
+> to cause fatal confusion.  Given the tightness of the rules here (you
+> *must* know that this "ext_lock" has been grabbed by the v4l core in the
+> current call chain or you cannot possibly unlock it safely), I don't
+> get why you wouldn't use the lock directly.
+> 
+> I would be inclined to go even further and emit a warning if the mutex
+> is *not* locked.  It seems that the rules would require it, no?  If
+> mutex debugging is turned on, you could even check if the current task
+> is the locker, would would be even better.
 
-> Hello,
->
-> On Wednesday, October 20, 2010 9:15 AM wrote:
->
->> On Wednesday, October 20, 2010 08:41:06 Marek Szyprowski wrote:
->> > Hello,
->> >
->> > As I promissed I continue the development of the VideoBuf2 at Samsung
->> > until Pawel finds some spare time to help us. This is a third version
->> of
->> > the framework. Besides the minor bugfixes here and there I've added a
->> > complete read() callback emulator. This emulator provides 2 types of
->> > read() operation - 'streaming' and 'one shot'. It is suitable to
->> replace
->> > both videobuf_read_stream() and videobuf_read_one() methods from the
->> old
->> > videobuf.
->>
->> One thing I never understood: what is the point of supporting 'one shot'
->> read
->> mode? Why not support just streaming? Does anyone know?
->
-> I can imagine that some simple cameras that capture pure JPG frames might
-> want
-> to use 'one shot' mode. This enables easier scripting and things like
-> 'cat /dev/video >capture.jpg' working. If you think that 'one shot' mode
-> should
-> be removed - let me know.
+Yeah, a definitive solution would be to directly use the lock at videobuf. However,
+people are re-writing videobuf (the new version is called videobuf2), in order
+to fix some know issues on it.
 
-I did a grep for videobuf_read_one in the sources and the only ones that
-use it are bttv, saa7134, zr364xx, cx88 and cx23885. AFAIK zr364xx is the
-only webcam driver in this set.
+Probably, it is better to wait for the new vb2, test it, and better integrate
+its locking schema.
 
-Mauro, do you know if there are any guidelines on what drivers are
-supposed to use? Right now it seems random as to what drivers use.
+> In general, put me in the "leery of central locking" camp.  If you
+> don't understand locking, you're going to mess things up somewhere
+> along the way.  And, as soon as you get into hardware with interrupts,
+> it seems like you have to deal with your own locking for access to the
+> hardware regardless...
 
-The only constant I see is that vbi and compressed video (e.g. mpeg)
-streaming is always using read_stream. Raw video seems to depend purely on
-what the driver developer chose.
+Yeah, if developers don't understand lock, a mess will happen, but this
+doesn't matter if the developer is using a central or a driver-priv lock.
 
->> Another question: how hard is it to support write mode as well? I think
->> vb2 should support both. I suspect that once we have a read emulator it
->> isn't
->> difficult to make a write emulator too.
->
-> Well, that's possible. If you really think that write() emulator is also
-> required, I can implement both. This shouldn't be much work.
+With a core-assisted lock, driver code is cleaner, and, hopefully, will be
+easier to analyze the lock "exceptions", as the common case (hardware access
+via file operations) will already be covered.
 
-If it is not much work, then we should do that. The reason write wasn't
-present before is simply that few drivers supported output streaming. But
-that is changing these days so write support would definitely be a good
-idea.
-
-Regards,
-
-        Hans
-
-
->> A last remark: the locking has changed recently in videobuf due to the
->> work
->> done on eliminating the BKL.  It's probably a good idea to incorporate
->> those
->> changes as well in vb2.
->
-> Yes, I noticed that there are a lot of changes in for-2.6.37 staging tree,
-> I
-> will try to get through them and update relevant parts of vb2. The current
-> version the vb2 patches is based on 2.6.36-rc8. Kernel tree with vb2
-> patches
-> (and the required multiplane patches) will be available in a few hours on:
->
-> http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/heads/v4l/vb2
->
-> Best regards
-> --
-> Marek Szyprowski
-> Samsung Poland R&D Center
->
->
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
-
+Cheers,
+Mauro.
