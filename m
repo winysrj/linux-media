@@ -1,111 +1,40 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:60207 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752451Ab0JENSq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 09:18:46 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v2 4/6] ARM: OMAP3: Update Camera ISP definitions for OMAP3630
-Date: Tue,  5 Oct 2010 15:18:53 +0200
-Message-Id: <1286284734-12292-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1286284734-12292-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1286284734-12292-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:64635 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932154Ab0JUOLg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Oct 2010 10:11:36 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o9LEBZUt022089
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 21 Oct 2010 10:11:35 -0400
+Received: from pedra (vpn-225-164.phx2.redhat.com [10.3.225.164])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o9LE9S5C022469
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 21 Oct 2010 10:11:34 -0400
+Date: Thu, 21 Oct 2010 12:07:49 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 0/4] Some cx231xx IR fixes
+Message-ID: <20101021120749.5efa51fc@pedra>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
+This patch series fix the remaining issues with IR for Polaris (cx231xx).
+Basically, it adds another parser at mceusb, that works better with Polaris.
+I think that the same parser may also work well for other devices.
 
-Add new/changed base address definitions and resources for
-OMAP3630 ISP.
+Mauro Carvalho Chehab (4):
+  [media] cx231xx: Fix compilation breakage if DVB is not selected
+  [media] ir-raw-event: Fix a stupid error at a printk
+  [media] mceusb: Improve parser to get codes sent together with IR RX data
+  [media] mceusb: Fix parser for Polaris
 
-The OMAP3430 CSI2PHY block is same as the OMAP3630 CSIPHY2
-block. But the later name is chosen as it gives more symmetry
-to the names.
-
-Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
-Signed-off-by: Vimarsh Zutshi <vimarsh.zutshi@nokia.com>
----
- arch/arm/mach-omap2/devices.c              |   28 ++++++++++++++++++++++++----
- arch/arm/plat-omap/include/plat/omap34xx.h |   16 ++++++++++++----
- 2 files changed, 36 insertions(+), 8 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 2dbb265..ade8db0 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -106,13 +106,33 @@ static struct resource omap3isp_resources[] = {
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
--		.start		= OMAP3430_ISP_CSI2A_BASE,
--		.end		= OMAP3430_ISP_CSI2A_END,
-+		.start		= OMAP3430_ISP_CSI2A_REGS1_BASE,
-+		.end		= OMAP3430_ISP_CSI2A_REGS1_END,
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
--		.start		= OMAP3430_ISP_CSI2PHY_BASE,
--		.end		= OMAP3430_ISP_CSI2PHY_END,
-+		.start		= OMAP3430_ISP_CSIPHY2_BASE,
-+		.end		= OMAP3430_ISP_CSIPHY2_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3630_ISP_CSI2A_REGS2_BASE,
-+		.end		= OMAP3630_ISP_CSI2A_REGS2_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3630_ISP_CSI2C_REGS1_BASE,
-+		.end		= OMAP3630_ISP_CSI2C_REGS1_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3630_ISP_CSIPHY1_BASE,
-+		.end		= OMAP3630_ISP_CSIPHY1_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3630_ISP_CSI2C_REGS2_BASE,
-+		.end		= OMAP3630_ISP_CSI2C_REGS2_END,
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
-diff --git a/arch/arm/plat-omap/include/plat/omap34xx.h b/arch/arm/plat-omap/include/plat/omap34xx.h
-index 98fc8b4..b9e8588 100644
---- a/arch/arm/plat-omap/include/plat/omap34xx.h
-+++ b/arch/arm/plat-omap/include/plat/omap34xx.h
-@@ -56,8 +56,12 @@
- #define OMAP3430_ISP_RESZ_BASE		(OMAP3430_ISP_BASE + 0x1000)
- #define OMAP3430_ISP_SBL_BASE		(OMAP3430_ISP_BASE + 0x1200)
- #define OMAP3430_ISP_MMU_BASE		(OMAP3430_ISP_BASE + 0x1400)
--#define OMAP3430_ISP_CSI2A_BASE		(OMAP3430_ISP_BASE + 0x1800)
--#define OMAP3430_ISP_CSI2PHY_BASE	(OMAP3430_ISP_BASE + 0x1970)
-+#define OMAP3430_ISP_CSI2A_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1800)
-+#define OMAP3430_ISP_CSIPHY2_BASE	(OMAP3430_ISP_BASE + 0x1970)
-+#define OMAP3630_ISP_CSI2A_REGS2_BASE	(OMAP3430_ISP_BASE + 0x19C0)
-+#define OMAP3630_ISP_CSI2C_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1C00)
-+#define OMAP3630_ISP_CSIPHY1_BASE	(OMAP3430_ISP_BASE + 0x1D70)
-+#define OMAP3630_ISP_CSI2C_REGS2_BASE	(OMAP3430_ISP_BASE + 0x1DC0)
- 
- #define OMAP3430_ISP_END		(OMAP3430_ISP_BASE         + 0x06F)
- #define OMAP3430_ISP_CBUFF_END		(OMAP3430_ISP_CBUFF_BASE   + 0x077)
-@@ -69,8 +73,12 @@
- #define OMAP3430_ISP_RESZ_END		(OMAP3430_ISP_RESZ_BASE    + 0x0AB)
- #define OMAP3430_ISP_SBL_END		(OMAP3430_ISP_SBL_BASE     + 0x0FB)
- #define OMAP3430_ISP_MMU_END		(OMAP3430_ISP_MMU_BASE     + 0x06F)
--#define OMAP3430_ISP_CSI2A_END		(OMAP3430_ISP_CSI2A_BASE   + 0x16F)
--#define OMAP3430_ISP_CSI2PHY_END	(OMAP3430_ISP_CSI2PHY_BASE + 0x007)
-+#define OMAP3430_ISP_CSI2A_REGS1_END	(OMAP3430_ISP_CSI2A_REGS1_BASE + 0x16F)
-+#define OMAP3430_ISP_CSIPHY2_END	(OMAP3430_ISP_CSIPHY2_BASE + 0x00B)
-+#define OMAP3630_ISP_CSI2A_REGS2_END	(OMAP3630_ISP_CSI2A_REGS2_BASE + 0x3F)
-+#define OMAP3630_ISP_CSI2C_REGS1_END	(OMAP3630_ISP_CSI2C_REGS1_BASE + 0x16F)
-+#define OMAP3630_ISP_CSIPHY1_END	(OMAP3630_ISP_CSIPHY1_BASE + 0x00B)
-+#define OMAP3630_ISP_CSI2C_REGS2_END	(OMAP3630_ISP_CSI2C_REGS2_BASE + 0x3F)
- 
- #define OMAP34XX_HSUSB_OTG_BASE	(L4_34XX_BASE + 0xAB000)
- #define OMAP34XX_USBTLL_BASE	(L4_34XX_BASE + 0x62000)
--- 
-1.7.2.2
+ drivers/media/IR/ir-raw-event.c       |    2 +-
+ drivers/media/IR/mceusb.c             |  300 +++++++++++++++++++++++----------
+ drivers/media/video/cx231xx/cx231xx.h |    3 -
+ 3 files changed, 212 insertions(+), 93 deletions(-)
 
