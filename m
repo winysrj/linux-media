@@ -1,43 +1,38 @@
 Return-path: <mchehab@pedra>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:64196 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755480Ab0JIOhV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Oct 2010 10:37:21 -0400
-Received: by ywi6 with SMTP id 6so245302ywi.19
-        for <linux-media@vger.kernel.org>; Sat, 09 Oct 2010 07:37:20 -0700 (PDT)
-References: <20101008211235.GF5165@redhat.com> <201010091147.25562.jorispubl@xs4all.nl>
-In-Reply-To: <201010091147.25562.jorispubl@xs4all.nl>
-Mime-Version: 1.0 (iPhone Mail 8B117)
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain;
-	charset=us-ascii
-Message-Id: <B782CDD2-F496-4007-949E-6278A1076A2B@wilsonet.com>
-Cc: Jarod Wilson <jarod@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"lirc-list@lists.sourceforge.net" <lirc-list@lists.sourceforge.net>
-From: Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: [PATCH 1/2] IR/lirc: further ioctl portability fixups
-Date: Sat, 9 Oct 2010 10:36:17 -0400
-To: Joris van Rantwijk <jorispubl@xs4all.nl>
+Received: from gateway06.websitewelcome.com ([67.18.144.9]:33377 "HELO
+	gateway06.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1758365Ab0JUVfH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Oct 2010 17:35:07 -0400
+Received: from [209.85.214.174] (port=47506 helo=mail-iw0-f174.google.com)
+	by gator1121.hostgator.com with esmtpsa (TLSv1:RC4-MD5:128)
+	(Exim 4.69)
+	(envelope-from <demiurg@femtolinux.com>)
+	id 1P92dc-0006Rr-81
+	for linux-media@vger.kernel.org; Thu, 21 Oct 2010 16:25:28 -0500
+Received: by iwn34 with SMTP id 34so52727iwn.19
+        for <linux-media@vger.kernel.org>; Thu, 21 Oct 2010 14:25:29 -0700 (PDT)
+MIME-Version: 1.0
+Date: Thu, 21 Oct 2010 23:25:29 +0200
+Message-ID: <AANLkTint2Xw3bJuGh2voUpncWderrbUgbeOaPdp1-yNm@mail.gmail.com>
+Subject: Wintv-HVR-1120 woes
+From: Sasha Sirotkin <demiurg@femtolinux.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Oct 9, 2010, at 5:47 AM, Joris van Rantwijk <jorispubl@xs4all.nl> wrote:
+I'm having all sorts of troubles with Wintv-HVR-1120 on Ubuntu 10.10
+(kernel 2.6.35-22). Judging from what I've seen on the net, including
+this mailing list, I'm not the only one not being able to use this
+card and no solution seem to exist.
 
-> On Friday, October 08, 2010 23:12:35 Jarod Wilson wrote:
->> I've dropped the .compat_ioctl addition from Joris' original patch,
->> as I swear the non-compat definition should now work for both 32-bit
->> and 64-bit userspace. Technically, I think we still need/want a
->> Signed-off-by: from Joris here. Joris? (And sorry for the lengthy
->> delay in getting a reply to you).
-> 
-> No. I just tested the patch and it does not work without .compat_ioctl.
+Problems:
+1. The driver yells various cryptic error messages
+("tda18271_write_regs: [1-0060|M] ERROR: idx = 0x5, len = 1,
+i2c_transfer returned: -5", "tda18271_set_analog_params: [1-0060|M]
+error -5 on line 1045", etc)
+2. DVB-T scan (using w_scan) produces no results
+3. Analog seems to work, but with very poor quality
 
-Okay, seems I misunderstood something then, thought the main one would be tried if the compat one wasn't wired. 
-
-Will tack on another patch adding back .compat_ioctl where needed, thanks for testing!
-
--- 
-Jarod Wilson
-jarod@wilsonet.com
-
+Any suggestions would be greatly appreciated.
