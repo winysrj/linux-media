@@ -1,97 +1,70 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:54371 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752671Ab0JVHLB (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:40972 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756643Ab0JUMwd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Oct 2010 03:11:01 -0400
+	Thu, 21 Oct 2010 08:52:33 -0400
+Date: Thu, 21 Oct 2010 14:52:24 +0200
+From: Kamil Debski <k.debski@samsung.com>
+Subject: RE: [PATCH 3/4] MFC: Add MFC 5.1 V4L2 driver
+In-reply-to: <007601cb70b3$5c1fdcc0$145f9640$%oh@samsung.com>
+To: jaeryul.oh@samsung.com, linux-media@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, kgene.kim@samsung.com
+Message-id: <000901cb711e$d2614a20$7723de60$%debski@samsung.com>
 MIME-version: 1.0
-Content-transfer-encoding: 7BIT
 Content-type: text/plain; charset=us-ascii
-Date: Fri, 22 Oct 2010 09:10:57 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: RE: [patch 3/3] V4L/DVB: s5p-fimc: dubious one-bit signed bitfields
-In-reply-to: <20101021192424.GL5985@bicker>
-To: 'Dan Carpenter' <error27@gmail.com>
-Cc: 'Mauro Carvalho Chehab' <mchehab@infradead.org>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Message-id: <000a01cb71b8$465248f0$d2f6dad0$%nawrocki@samsung.com>
 Content-language: en-us
-References: <20101021192424.GL5985@bicker>
+Content-transfer-encoding: 7BIT
+References: <1286968160-10629-1-git-send-email-k.debski@samsung.com>
+ <1286968160-10629-4-git-send-email-k.debski@samsung.com>
+ <000201cb6c1e$52002130$f6006390$%oh@samsung.com>
+ <000001cb7062$a1e00470$e5a00d50$%debski@samsung.com>
+ <007601cb70b3$5c1fdcc0$145f9640$%oh@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> -----Original Message-----
-> From: Dan Carpenter [mailto:error27@gmail.com]
-> Sent: Thursday, October 21, 2010 9:24 PM
-> To: Mauro Carvalho Chehab
-> Cc: Kyungmin Park; Sylwester Nawrocki; Pawel Osciak; Marek Szyprowski;
-> linux-media@vger.kernel.org; kernel-janitors@vger.kernel.org
-> Subject: [patch 3/3] V4L/DVB: s5p-fimc: dubious one-bit signed
-> bitfields
+Hi,
+
+ 
+> I commented as belows,
+> And you missed one important things 'cause there were my comments
+> in the very long email which is strongly fixed in the reset seq.
+
+Yes, thanks for your suggestion.
+ 
 > 
-> These are signed so instead of being 1 and 0 as intended they are -1
-> and
-> 0.  It doesn't cause a bug in the current code but Sparse warns about
-> it:
+> [....]
+> > +#define READL(offset)		readl(dev->regs_base + (offset))
+> > +#define WRITEL(data, offset)	writel((data), dev->regs_base +
+> (offset))
+> > +#define OFFSETA(x)		(((x) - dev->port_a) >> 11)
+> > +#define OFFSETB(x)		(((x) - dev->port_b) >> 11)
+> > +
+> > +/* Reset the device */
+> > +static int s5p_mfc_cmd_reset(struct s5p_mfc_dev *dev)
+> > +{
+> > +	unsigned int mc_status;
+> > +	unsigned long timeout;
+> > +	mfc_debug("s5p_mfc_cmd_reset++\n");
+> > +	/* Stop procedure */
+> > +	WRITEL(0x3f7, S5P_FIMV_SW_RESET);	/*  reset VI */
 > 
-> drivers/media/video/s5p-fimc/fimc-core.h:226:28:
-> 	error: dubious one-bit signed bitfield
+> Ahm, This (WRITEL(0x3f7, S5P_FIMV_SW_RESET)) might be a problem.
+> In the reset seq. of MFC driver, we checked out
+> That FW(s5pc110-mfc.fw in the s5p_mfc_load_firmware()) runned by RISC
+> core
+> at this point could access invalid address. It should be removed.
 > 
-> Signed-off-by: Dan Carpenter <error27@gmail.com>
-> 
-> diff --git a/drivers/media/video/s5p-fimc/fimc-core.h
-> b/drivers/media/video/s5p-fimc/fimc-core.h
-> index e3a7c6a..7665a3f 100644
-> --- a/drivers/media/video/s5p-fimc/fimc-core.h
-> +++ b/drivers/media/video/s5p-fimc/fimc-core.h
-> @@ -222,10 +223,10 @@ struct fimc_effect {
->   * @real_height:	source pixel (height - offset)
->   */
->  struct fimc_scaler {
-> -	int	scaleup_h:1;
-> -	int	scaleup_v:1;
-> -	int	copy_mode:1;
-> -	int	enabled:1;
-> +	unsigned int	scaleup_h:1;
-> +	unsigned int	caleup_v:1;
-> +	unsigned int	copy_mode:1;
-> +	unsigned int	enabled:1;
->  	u32	hfactor;
->  	u32	vfactor;
->  	u32	pre_hratio;
 
-In general I agree, however this patch would change scaleup_v:1 
-to caleup_v, so it cannot be applied in current form.
-Here is the corrected patch:
+Thanks for pointing this out. I will remove it in the next version.
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h
-b/drivers/media/video/s5p-fimc/fimc-core.h
-index e3a7c6a..3e10785 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -222,10 +222,10 @@ struct fimc_effect {
-  * @real_height:	source pixel (height - offset)
-  */
- struct fimc_scaler {
--	int	scaleup_h:1;
--	int	scaleup_v:1;
--	int	copy_mode:1;
--	int	enabled:1;
-+	unsigned int scaleup_h:1;
-+	unsigned int scaleup_v:1;
-+	unsigned int copy_mode:1;
-+	unsigned int enabled:1;
- 	u32	hfactor;
- 	u32	vfactor;
- 	u32	pre_hratio;
+[snip]
 
-
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-
+Best regards
 --
-Sylwester Nawrocki
+Kamil Debski
 Linux Platform Group
 Samsung Poland R&D Center
 
