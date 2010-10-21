@@ -1,72 +1,141 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:55204 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752452Ab0JENMr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 09:12:47 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v2 04/10] v4l: Add 8-bit YUYV on 16-bit bus and SGRBG10 media bus pixel codes
-Date: Tue,  5 Oct 2010 15:12:50 +0200
-Message-Id: <1286284376-12217-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1286284376-12217-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1286284376-12217-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mailout4.samsung.com ([203.254.224.34]:27160 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753745Ab0JUK7I convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Oct 2010 06:59:08 -0400
+Date: Thu, 21 Oct 2010 19:59:25 +0900
+From: Jaeryul Oh <jaeryul.oh@samsung.com>
+Subject: RE: [PATCH 3/4] MFC: Add MFC 5.1 V4L2 driver
+In-reply-to: <1286968160-10629-4-git-send-email-k.debski@samsung.com>
+To: 'Kamil Debski' <k.debski@samsung.com>, linux-media@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, kgene.kim@samsung.com
+Reply-to: jaeryul.oh@samsung.com
+Message-id: <008101cb710f$08af85c0$1a0e9140$%oh@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ks_c_5601-1987
+Content-language: ko
+Content-transfer-encoding: 8BIT
+References: <1286968160-10629-1-git-send-email-k.debski@samsung.com>
+ <1286968160-10629-4-git-send-email-k.debski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add the following media bus format code definitions:
+I have some opinion about the usage of wait_event_interruptible_timeout()
 
-- V4L2_MBUS_FMT_SGRBG10_1X10 for 10-bit GRBG Bayer
-- V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 for 10-bit DPCM compressed GRBG Bayer
-- V4L2_MBUS_FMT_YUYV16_1X16 for 8-bit YUYV on 16-bit bus
-- V4L2_MBUS_FMT_UYVY16_1X16 for 8-bit UYVY on 16-bit bus
-- V4L2_MBUS_FMT_YVYU16_1X16 for 8-bit YVYU on 16-bit bus
-- V4L2_MBUS_FMT_VYUY16_1X16 for 8-bit VYUY on 16-bit bus
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/linux/v4l2-mediabus.h |   10 ++++++++--
- 1 files changed, 8 insertions(+), 2 deletions(-)
+k.debski@samsung.com wrote:
+[snip]
 
-diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-index 1f24a22..897c13a 100644
---- a/include/linux/v4l2-mediabus.h
-+++ b/include/linux/v4l2-mediabus.h
-@@ -43,19 +43,23 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_RGB565_2X8_BE = 0x1003,
- 	V4L2_MBUS_FMT_RGB565_2X8_LE = 0x1004,
- 
--	/* YUV (including grey) - next is 0x200b */
-+	/* YUV (including grey) - next is 0x200f */
-+	V4L2_MBUS_FMT_UYVY8_1X16 = 0x200b,
- 	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2001,
- 	V4L2_MBUS_FMT_UYVY8_2X8 = 0x2002,
-+	V4L2_MBUS_FMT_VYUY8_1X16 = 0x200c,
- 	V4L2_MBUS_FMT_VYUY8_1_5X8 = 0x2003,
- 	V4L2_MBUS_FMT_VYUY8_2X8 = 0x2004,
- 	V4L2_MBUS_FMT_Y8_1X8 = 0x2005,
-+	V4L2_MBUS_FMT_YUYV8_1X16 = 0x200d,
- 	V4L2_MBUS_FMT_YUYV8_1_5X8 = 0x2006,
- 	V4L2_MBUS_FMT_YUYV8_2X8 = 0x2007,
-+	V4L2_MBUS_FMT_YVYU8_1X16 = 0x200e,
- 	V4L2_MBUS_FMT_YVYU8_1_5X8 = 0x2008,
- 	V4L2_MBUS_FMT_YVYU8_2X8 = 0x2009,
- 	V4L2_MBUS_FMT_Y10_1X10 = 0x200a,
- 
--	/* Bayer - next is 0x3009 */
-+	/* Bayer - next is 0x300b */
- 	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
- 	V4L2_MBUS_FMT_SGRBG8_1X8 = 0x3002,
- 	V4L2_MBUS_FMT_SBGGR10_1X10 = 0x3003,
-@@ -63,6 +67,8 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE = 0x3005,
- 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE = 0x3006,
- 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE = 0x3007,
-+	V4L2_MBUS_FMT_SGRBG10_1X10 = 0x3009,
-+	V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 = 0x300a,
- 	V4L2_MBUS_FMT_SBGGR12_1X12 = 0x3008,
- };
- 
--- 
-1.7.2.2
+> +
+> diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_intr.c
+> b/drivers/media/video/s5p-mfc/s5p_mfc_intr.c
+> new file mode 100644
+> index 0000000..543f3fb
+> --- /dev/null
+> +++ b/drivers/media/video/s5p-mfc/s5p_mfc_intr.c
+> @@ -0,0 +1,77 @@
+> +/*
+> + * drivers/media/video/samsung/mfc5/s5p_mfc_intr.c
+> + *
+> + * C file for Samsung MFC (Multi Function Codec - FIMV) driver
+> + * This file contains functions used to wait for command completion.
+> + *
+> + * Kamil Debski, Copyright (c) 2010 Samsung Electronics
+> + * http://www.samsung.com/
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/delay.h>
+> +#include <linux/errno.h>
+> +#include <linux/wait.h>
+> +#include <linux/sched.h>
+> +#include <linux/io.h>
+> +#include "regs-mfc5.h"
+> +#include "s5p_mfc_intr.h"
+> +#include "s5p_mfc_logmsg.h"
+> +#include "s5p_mfc_common.h"
+> +
+> +int s5p_mfc_wait_for_done_dev(struct s5p_mfc_dev *dev, int command)
+> +{
+> +	if (wait_event_interruptible_timeout(dev->queue,
+> +		(dev->int_cond && (dev->int_type == command
+> +		|| dev->int_type == S5P_FIMV_R2H_CMD_DECODE_ERR_RET)),
+> +		msecs_to_jiffies(MFC_INT_TIMEOUT)) == 0) {
+> +		mfc_err("Interrupt (%d dev) timed out.\n", dev->int_type);
+> +		return 1;
+> +	}
+> +	mfc_debug("Finished waiting (dev->queue, %d).\n", dev->int_type);
+> +	if (dev->int_type == S5P_FIMV_R2H_CMD_ERROR_RET)
+> +		return 1;
+> +	return 0;
+> +}
+
+
+You used wait_event_interruptible_timeout() in the driver, but this
+function is 
+considered not only int. by MFC but also int. by some signal. I'm wondering
+whether we have to consider interrupt by signal in the middle of hw
+operation.
+and also I cannot see some operation(handler) in case of wake-up by signal.
+So, why don¡¯t you remove the interruptible function or add some operation
+in case of 
+wake-up by signal. (refer to the other driver in the kernel)
+
+> +
+> +void s5p_mfc_clean_dev_int_flags(struct s5p_mfc_dev *dev)
+> +{
+> +	dev->int_cond = 0;
+> +	dev->int_type = 0;
+> +	dev->int_err = 0;
+> +}
+> +
+> +int s5p_mfc_wait_for_done_ctx(struct s5p_mfc_ctx *ctx,
+> +				    int command, int interrupt)
+> +{
+> +	int ret;
+> +	if (interrupt) {
+> +		ret = wait_event_interruptible_timeout(ctx->queue,
+> +				(ctx->int_cond && (ctx->int_type == command
+> +			|| ctx->int_type ==
+S5P_FIMV_R2H_CMD_DECODE_ERR_RET)),
+> +					msecs_to_jiffies(MFC_INT_TIMEOUT));
+> +	} else {
+> +		ret = wait_event_timeout(ctx->queue,
+> +				(ctx->int_cond && (ctx->int_type == command
+> +			|| ctx->int_type ==
+S5P_FIMV_R2H_CMD_DECODE_ERR_RET)),
+> +					msecs_to_jiffies(MFC_INT_TIMEOUT));
+> +	}
+> +	if (ret == 0) {
+> +		mfc_err("Interrupt (%d ctx) timed out.\n", ctx->int_type);
+> +		return 1;
+> +	}
+> +	mfc_debug("Finished waiting (ctx->queue, %d).\n", ctx->int_type);
+> +	if (ctx->int_type == S5P_FIMV_R2H_CMD_ERROR_RET)
+> +		return 1;
+> +	return 0;
+> +}
+> +
+> +void s5p_mfc_clean_ctx_int_flags(struct s5p_mfc_ctx *ctx)
+> +{
+> +	ctx->int_cond = 0;
+> +	ctx->int_type = 0;
+> +	ctx->int_err = 0;
+> +}
+
+[snip]
+
+> --
+> 1.6.3.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
