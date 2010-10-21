@@ -1,58 +1,42 @@
 Return-path: <mchehab@pedra>
-Received: from kroah.org ([198.145.64.141]:49484 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757273Ab0JSUaB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Oct 2010 16:30:01 -0400
-Date: Tue, 19 Oct 2010 13:29:12 -0700
-From: Greg KH <greg@kroah.com>
-To: Oliver Neukum <oliver@neukum.org>
-Cc: Valdis.Kletnieks@vt.edu, Dave Airlie <airlied@gmail.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	codalist@telemann.coda.cs.cmu.edu,
-	ksummit-2010-discuss@lists.linux-foundation.org,
-	autofs@linux.kernel.org, Jan Harkes <jaharkes@cs.cmu.edu>,
-	Samuel Ortiz <samuel@sortiz.org>, Jan Kara <jack@suse.cz>,
-	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
-	netdev@vger.kernel.org, Anders Larsen <al@alarsen.net>,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Bryan Schumaker <bjschuma@netapp.com>,
-	Christoph Hellwig <hch@infradead.org>,
-	Petr Vandrovec <vandrove@vc.cvut.cz>,
-	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
-	linux-fsdevel@vger.kernel.org,
-	Evgeniy Dushistov <dushistov@mail.ru>,
-	Ingo Molnar <mingo@elte.hu>,
-	Andrew Hendry <andrew.hendry@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [Ksummit-2010-discuss] [v2] Remaining BKL users, what to do
-Message-ID: <20101019202912.GA30133@kroah.com>
-References: <201009161632.59210.arnd@arndb.de>
- <21406.1287512693@localhost>
- <20101019193735.GA4043@kroah.com>
- <201010192140.47433.oliver@neukum.org>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:57467 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755845Ab0JUPX4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Oct 2010 11:23:56 -0400
+Received: by gyb13 with SMTP id 13so528918gyb.19
+        for <linux-media@vger.kernel.org>; Thu, 21 Oct 2010 08:23:55 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201010192140.47433.oliver@neukum.org>
+In-Reply-To: <20101021120745.44578b22@pedra>
+References: <cover.1287669886.git.mchehab@redhat.com>
+	<20101021120745.44578b22@pedra>
+Date: Thu, 21 Oct 2010 11:23:55 -0400
+Message-ID: <AANLkTi=3Hbn7NAWWGhHu7BS8nsJjdroEXXB+S4T4dYaN@mail.gmail.com>
+Subject: Re: [PATCH 1/4] [media] cx231xx: Fix compilation breakage if DVB is
+ not selected
+From: Jarod Wilson <jarod@wilsonet.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Oct 19, 2010 at 09:40:47PM +0200, Oliver Neukum wrote:
-> Am Dienstag, 19. Oktober 2010, 21:37:35 schrieb Greg KH:
-> > > So no need to clean it up for multiprocessor support.
-> > > 
-> > > http://download.intel.com/design/chipsets/datashts/29067602.pdf
-> > > http://www.intel.com/design/chipsets/specupdt/29069403.pdf
-> > 
-> > Great, we can just drop all calls to lock_kernel() and the like in the
-> > driver and be done with it, right?
-> 
-> No,
-> 
-> you still need to switch off preemption.
+On Thu, Oct 21, 2010 at 10:07 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> In file included from drivers/media/video/cx231xx/cx231xx-audio.c:40:
+> drivers/media/video/cx231xx/cx231xx.h:559: error: field ‘frontends’ has incomplete type
+> make[4]: ** [drivers/media/video/cx231xx/cx231xx-audio.o] Erro 1
+> make[3]: ** [drivers/media/video/cx231xx] Erro 2
+> make[2]: ** [drivers/media/video] Erro 2
+> make[1]: ** [drivers/media] Erro 2
+> make: ** [drivers] Erro 2
+>
+> Reported-by: Marcio Araujo Alves <froooozen@gmail.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Hm, how would you do that from within a driver?
+Acked-by: Jarod Wilson <jarod@redhat.com>
 
-thanks,
-
-greg k-h
+-- 
+Jarod Wilson
+jarod@wilsonet.com
