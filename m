@@ -1,68 +1,75 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:8280 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754838Ab0JRM6I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Oct 2010 08:58:08 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 8BIT
-Content-type: text/plain; charset=UTF-8
-Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LAH006DQLCTR000@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 18 Oct 2010 13:58:05 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LAH006QYLCS1X@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 18 Oct 2010 13:58:05 +0100 (BST)
-Date: Mon, 18 Oct 2010 14:58:04 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [git:v4l-dvb/v2.6.37] [media] Add driver for Siliconfile SR030PC30
- VGA camera
-In-reply-to: <201010172214.15773.hverkuil@xs4all.nl>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <4CBC445C.5000903@samsung.com>
-References: <E1P7Yvq-0001kW-Pf@www.linuxtv.org>
- <201010172214.15773.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:34371 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757189Ab0JULon (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Oct 2010 07:44:43 -0400
+Message-ID: <4CC027A5.8090008@redhat.com>
+Date: Thu, 21 Oct 2010 09:44:37 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Sven Barth <pascaldragon@googlemail.com>
+CC: Andy Walls <awalls@md.metrocast.net>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: Old patches sent via the Mailing list
+References: <4CBB689F.1070100@redhat.com>	 <1287358617.2320.12.camel@morgan.silverblock.net>	 <4CBBE5F6.6030201@redhat.com>  <4CBE7BFA.6020507@googlemail.com> <1287576040.2679.3.camel@morgan.silverblock.net> <4CBF2E7F.6090706@googlemail.com>
+In-Reply-To: <4CBF2E7F.6090706@googlemail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-
-Hello Hans,
-
-On 10/17/2010 10:14 PM, Hans Verkuil wrote:
-> On Sunday, October 17, 2010 21:28:29 Mauro Carvalho Chehab wrote:
->> This is an automatic generated email to let you know that the following patch were queued at the 
->> http://git.linuxtv.org/media_tree.git tree:
+Em 20-10-2010 16:01, Sven Barth escreveu:
+> On 20.10.2010 14:00, Andy Walls wrote:
+>> On Wed, 2010-10-20 at 07:19 +0200, Sven Barth wrote:
+>>> Am 18.10.2010 08:15, schrieb Mauro Carvalho Chehab:
+>>>> Em 17-10-2010 21:36, Andy Walls escreveu:
 >>
->> Subject: [media] Add driver for Siliconfile SR030PC30 VGA camera
->> Author:  Sylwester Nawrocki <s.nawrocki@samsung.com>
->> Date:    Mon Oct 11 13:33:57 2010 -0300
+>>>>>> The last time I sent this list, I was about to travel, and I may have missed some comments, or maybe I
+>>>>>> may just forgot to update. But I suspect that, for the list bellow, most of them are stuff where the
+>>>>>> driver maintainer just forgot at limbo.
+>>>>>>
+>>>>>>>  From the list of patches under review, we have:
+>>>>>>
+>>>>>> Waiting for new patch, signed, from Sven Barth<pascaldragon@googlemail.com>
+>>>>>>     Apr,25 2010: Problem with cx25840 and Terratec Grabster AV400                       http://patchwork.kernel.org/patch/94960   Sven Barth<pascaldragon@googlemail.com>
+>>>>>
+>>>>> Sven,
+>>>>>
+>>>>> We need a "Signed-off-by: " for your submitted patch:
+>>>>>
+>>>>> http://www.linuxtv.org/wiki/index.php/Development:_Submitting_Patches#Sign_your_work
+>>>>>
+>>>>> Note, your patch has an obvious, unintentional white space change for
+>>>>> "if (std == V4L2_STD_NTSC_M_JP)", so could you fix that up and send a
+>>>>> new signed off version?
 >>
-[snip]
-> It fails to compile with this error:
+>>>
+>>> Eh... I thought I had superseeded it with the patch from 10th July (mail
+>>> title: [PATCH] Add support for AUX_PLL on cx2583x chips). It included a
+>>> "Signed-of by" from me as well as "Acked by" from Mike and Andy and I
+>>> also excluded the whitespace change ^^
+>>
+>> Hi Sven,
+>>
+>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg20296.html
+>>
+>> So you have.  How embarrassing.<:}
 > 
-> drivers/media/video/sr030pc30.c: In function ‘sr030pc30_probe’:
-> drivers/media/video/sr030pc30.c:834: error: implicit declaration of function ‘kzalloc’
-> drivers/media/video/sr030pc30.c:834: warning: assignment makes pointer from integer without a cast
-> drivers/media/video/sr030pc30.c: In function ‘sr030pc30_remove’:
-> drivers/media/video/sr030pc30.c:858: error: implicit declaration of function ‘kfree’
+> Well... it's a bit hard to keep the overview in this list. ;) I only saw this thread about "old patches" by pure luck.
 > 
-> Here is the patch to fix this:
-[snip]
-> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+> And thank you for digging up the link, I only had the mail version lying around.
+> 
+> [And finally I won't have to patch v4l manually anymore... yippieh! I'm looking forward to 2.6.37 :D (Good that I use a distro (ArchLinux) that has a rolling release style ^^) ]
 > 
 
-Thank you for fixing this. I will definitely improve my test environment
-so this kind of errors do not appear in the future.
+OK, I've replaced the non-signed patch to the signed one, at the new branch I've
+created for the patches that I'll send during the merge window (staging/v2.6.37-rc1).
 
-Regards,
-Sylwester
+The reason why the new patch were not catched is that the emailer broke long lines on
+your patch, so, patchwork didn't catch it.
 
--- 
-Sylwester Nawrocki
-Linux Platform Group
-Samsung Poland R&D Center
+Please, next time, be sure that you'll submit your patch with an emailer that don't break
+long lines.
+
+Thanks,
+Mauro
