@@ -1,83 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from mgw-sa02.nokia.com ([147.243.1.48]:62952 "EHLO
-	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753952Ab0JRJyj (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:39136 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752199Ab0JUTV7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Oct 2010 05:54:39 -0400
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-To: linux-media@vger.kernel.org, mchehab@redhat.com, hverkuil@xs4all.nl
-Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Subject: [PATCH RFC 1/1] V4L2: Use new CAP bits in existing RDS capable drivers.
-Date: Mon, 18 Oct 2010 12:54:14 +0300
-Message-Id: <1287395654-1822-1-git-send-email-matti.j.aaltonen@nokia.com>
+	Thu, 21 Oct 2010 15:21:59 -0400
+Date: Thu, 21 Oct 2010 21:21:45 +0200
+From: Dan Carpenter <error27@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Istvan Varga <istvanv@users.sourceforge.net>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] V4L/DVB: cx88: uninitialized variable
+Message-ID: <20101021192145.GH5985@bicker>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add either V4L2_TUNER_CAP_RDS_BLOCK_IO or V4L2_TUNER_CAP_RDS_CONTROLS
-bit to tuner or modulator capabilities of existing drivers of devices with
-RDS capability.
+Fixes a gcc warning:
 
-Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
----
- drivers/media/radio/radio-cadet.c                |    3 ++-
- drivers/media/radio/si470x/radio-si470x-common.c |    2 +-
- drivers/media/radio/si4713-i2c.c                 |    2 +-
- drivers/media/video/saa6588.c                    |    2 +-
- 4 files changed, 5 insertions(+), 4 deletions(-)
+drivers/media/video/cx88/cx88-video.c:772:
+	warning: ‘core’ may be used uninitialized in this function
 
-diff --git a/drivers/media/radio/radio-cadet.c b/drivers/media/radio/radio-cadet.c
-index 482d0f3..b701ea6 100644
---- a/drivers/media/radio/radio-cadet.c
-+++ b/drivers/media/radio/radio-cadet.c
-@@ -374,7 +374,8 @@ static int vidioc_g_tuner(struct file *file, void *priv,
- 	switch (v->index) {
- 	case 0:
- 		strlcpy(v->name, "FM", sizeof(v->name));
--		v->capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS;
-+		v->capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS |
-+			V4L2_TUNER_CAP_RDS_BLOCK_IO;
- 		v->rangelow = 1400;     /* 87.5 MHz */
- 		v->rangehigh = 1728;    /* 108.0 MHz */
- 		v->rxsubchans = cadet_getstereo(dev);
-diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
-index 9927a59..af5ad45 100644
---- a/drivers/media/radio/si470x/radio-si470x-common.c
-+++ b/drivers/media/radio/si470x/radio-si470x-common.c
-@@ -681,7 +681,7 @@ static int si470x_vidioc_g_tuner(struct file *file, void *priv,
- 	tuner->type = V4L2_TUNER_RADIO;
- #if defined(CONFIG_USB_SI470X) || defined(CONFIG_USB_SI470X_MODULE)
- 	tuner->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO |
--			    V4L2_TUNER_CAP_RDS;
-+			    V4L2_TUNER_CAP_RDS | V4L2_TUNER_CAP_RDS_BLOCK_IO;
- #else
- 	tuner->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
- #endif
-diff --git a/drivers/media/radio/si4713-i2c.c b/drivers/media/radio/si4713-i2c.c
-index fc7f4b7..a6e6f19 100644
---- a/drivers/media/radio/si4713-i2c.c
-+++ b/drivers/media/radio/si4713-i2c.c
-@@ -1804,7 +1804,7 @@ static int si4713_g_modulator(struct v4l2_subdev *sd, struct v4l2_modulator *vm)
- 
- 	strncpy(vm->name, "FM Modulator", 32);
- 	vm->capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_LOW |
--						V4L2_TUNER_CAP_RDS;
-+		V4L2_TUNER_CAP_RDS | V4L2_TUNER_CAP_RDS_CONTROLS;
- 
- 	/* Report current frequency range limits */
- 	vm->rangelow = si4713_to_v4l2(FREQ_RANGE_LOW);
-diff --git a/drivers/media/video/saa6588.c b/drivers/media/video/saa6588.c
-index c3e96f0..eac222b 100644
---- a/drivers/media/video/saa6588.c
-+++ b/drivers/media/video/saa6588.c
-@@ -430,7 +430,7 @@ static int saa6588_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+
+diff --git a/drivers/media/video/cx88/cx88-video.c b/drivers/media/video/cx88/cx88-video.c
+index 19c64a7..c19ec71 100644
+--- a/drivers/media/video/cx88/cx88-video.c
++++ b/drivers/media/video/cx88/cx88-video.c
+@@ -752,7 +752,7 @@ static int video_open(struct file *file)
  {
- 	struct saa6588 *s = to_saa6588(sd);
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct cx8800_dev *dev = video_drvdata(file);
+-	struct cx88_core *core;
++	struct cx88_core *core = dev->core;
+ 	struct cx8800_fh *fh;
+ 	enum v4l2_buf_type type = 0;
+ 	int radio = 0;
+@@ -786,7 +786,6 @@ static int video_open(struct file *file)
+ 	fh->fmt      = format_by_fourcc(V4L2_PIX_FMT_BGR24);
  
--	vt->capability |= V4L2_TUNER_CAP_RDS;
-+	vt->capability |= V4L2_TUNER_CAP_RDS | V4L2_TUNER_CAP_RDS_BLOCK_IO;
- 	if (s->sync)
- 		vt->rxsubchans |= V4L2_TUNER_SUB_RDS;
- 	return 0;
--- 
-1.6.1.3
-
+ 	mutex_lock(&core->lock);
+-	core = dev->core;
+ 
+ 	videobuf_queue_sg_init(&fh->vidq, &cx8800_video_qops,
+ 			    &dev->pci->dev, &dev->slock,
