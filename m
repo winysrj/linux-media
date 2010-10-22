@@ -1,43 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:53222 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755198Ab0JNTTn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Oct 2010 15:19:43 -0400
-Received: by pvc7 with SMTP id 7so619454pvc.19
-        for <linux-media@vger.kernel.org>; Thu, 14 Oct 2010 12:19:43 -0700 (PDT)
-Message-ID: <4CB757BD.1070302@gmail.com>
-Date: Thu, 14 Oct 2010 12:19:25 -0700
-From: "D. K." <user.vdr@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:39277 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932464Ab0JVR7X (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Oct 2010 13:59:23 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o9MHxMrh016629
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 22 Oct 2010 13:59:23 -0400
+Date: Fri, 22 Oct 2010 13:59:22 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 0/3] mceusb: allow per-model data
+Message-ID: <20101022175922.GA30199@redhat.com>
+References: <20101022112529.36638e7e@pedra>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [PATCH] Fix av7110 driver name (resend)
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20101022112529.36638e7e@pedra>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
- This patch simply changes the name of the av7110 driver to "av7110"
-instead of the generic "dvb" it's set to currently.  Although it's
-somewhat trivial, it still seems appropriate to fix the name to be
-descriptive of the driver.
+On Fri, Oct 22, 2010 at 11:25:29AM -0200, Mauro Carvalho Chehab wrote:
+> This is a series of patches to allow per-device data on mceusb. It basically
+> removes the duplicate USB ID's from the driver, and adds a per-model
+> struct, where quirks may be specified, and extra data, like per-model
+> rc_map tables can be stored.
+> 
+> Unfortunately, I don't have any branded cx231xx device using mceusb,
+> but, as I wanted to have an example on how to do the association,
+> and knowing that the Conexant Polaris EVK Kit is not a device that users
+> will tipically find, I've associated it to the Hauppauge Grey rc map.
+> 
+> Mauro Carvalho Chehab (3):
+>   mceusb: add a per-model structure
+>   mceusb: allow a per-model RC map
+>   mceusb: Allow a per-model device name
 
-This patch was already ack'ed by other users but the original email
-got mangled I guess so it was never submitted.  The original email
-is: "[PATCH] Fix av7110 driver name"
+Whole series looks good to me. Going to commit this, along with some
+additonal work on top of it in my tree, then have you pull from there...
 
-Signed-off-by: Derek Kelly <user.vdr@gmail.com <mailto:user.vdr@gmail.com>>
-----------
-diff -pruN v4l-dvb.orig/linux/drivers/media/dvb/ttpci/av7110.c v4l-dvb/linux/drivers/media/dvb/ttpci/av7110.c
---- v4l-dvb.orig/linux/drivers/media/dvb/ttpci/av7110.c 2010-10-14 11:12:23.000000000 -0700
-+++ v4l-dvb/linux/drivers/media/dvb/ttpci/av7110.c      2010-10-14 12:16:19.000000000 -0700
-@@ -2893,7 +2893,7 @@ MODULE_DEVICE_TABLE(pci, pci_tbl);
-
-
- static struct saa7146_extension av7110_extension_driver = {
--       .name           = "dvb",
-+       .name           = "av7110",
-        .flags          = SAA7146_USE_I2C_IRQ,
-
-        .module         = THIS_MODULE,
+-- 
+Jarod Wilson
+jarod@redhat.com
 
