@@ -1,80 +1,66 @@
 Return-path: <mchehab@pedra>
-Received: from v-smtp-auth-relay-2.gradwell.net ([79.135.125.41]:59291 "EHLO
-	v-smtp-auth-relay-2.gradwell.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756648Ab0JSXYL (ORCPT
+Received: from fallback-out2.mxes.net ([216.86.168.191]:40809 "EHLO
+	fallback-in2.mxes.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757633Ab0JVQbP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Oct 2010 19:24:11 -0400
-Message-ID: <leHzokEJiivMFwXd@echelon.upsilon.org.uk>
-Date: Wed, 20 Oct 2010 00:23:53 +0100
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-From: dave cunningham <news004@upsilon.org.uk>
-Subject: Re: AF9013/15 I2C problems
-References: <0wdXDqCnQtuMFwvF@echelon.upsilon.org.uk>
- <4CBB1982.4050309@iki.fi>
-In-Reply-To: <4CBB1982.4050309@iki.fi>
+	Fri, 22 Oct 2010 12:31:15 -0400
+Received: from mxout-07.mxes.net (mxout-07.mxes.net [216.86.168.182])
+	by fallback-in1.mxes.net (Postfix) with ESMTP id 521732FD7B6
+	for <linux-media@vger.kernel.org>; Fri, 22 Oct 2010 12:22:12 -0400 (EDT)
+Message-ID: <4CC1B9F1.7070505@kde.org>
+Date: Fri, 22 Oct 2010 18:21:05 +0200
+From: =?ISO-8859-1?Q?Aur=E9lien_G=E2teau?= <agateau@kde.org>
 MIME-Version: 1.0
-Content-Type: text/plain;charset=us-ascii;format=flowed
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: agateau@kde.org
+Subject: [PATCH] flip camera for Asus P81IJ
+Content-Type: multipart/mixed;
+ boundary="------------050307010005050303020903"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-In message <4CBB1982.4050309@iki.fi>, Antti Palosaari wrote
+This is a multi-part message in MIME format.
+--------------050307010005050303020903
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 
->On 10/17/2010 01:47 PM, dave cunningham wrote:
->> I'm currently on hg version <14319:37581bb7e6f1>, on a debian-squeeze
->> system, kernel 2.6.32.
->>
->> I've googled and found various people seeing similar problems but have
->> yet to come across a solution.
->>
->> Would anyone have any suggestions (note if I switch back to firmware
->> 4.65 with just the Tevion stick things are fine - I'd like to use the
->> KWorld stick if possible though)?
->
->I have strong feeling this issue is fixed already. Install latest Git 
->master driver from Linuxtv.org
->
+Hi,
 
-I've compiled the git media-master, commit 
-<1c8c51f7413ec522c7b729c8ebc5ce815fb7d4a8> and still have problems.
+Here is a simple patch to flip camera for the Asus P81IJ laptop.
 
-With the Tevion Stick I now see the following at boot (with both 
-firmware 4.65.0 and 4.95.0):
+Aurélien
 
+--------------050307010005050303020903
+Content-Type: text/x-diff;
+ name="0001-Added-Asus-P81IJ.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="0001-Added-Asus-P81IJ.patch"
 
-[    6.257795] DVB: registering adapter 0 frontend 0 (STB0899 Multistandard)...
-[    6.264875] TDA18271HD/C1 detected @ 1-00c0
-[    6.902293] af9015: command failed:1
-[    6.902789] tda18271_write_regs: [1-00c0|M] ERROR: idx = 0x0, len = 39, i2c_t
-ransfer returned: -1
-[    7.540215] af9015: command failed:1
-[    7.540707] tda18271_write_regs: [1-00c0|M] ERROR: idx = 0x20, len = 1, i2c_t
-ransfer returned: -1
-[    8.178133] af9015: command failed:1
-[    8.178747] tda18271_write_regs: [1-00c0|M] ERROR: idx = 0x20, len = 1, i2c_t
-ransfer returned: -1
-[    8.816417] af9015: command failed:1
-[    8.817039] tda18271_write_regs: [1-00c0|M] ERROR: idx = 0x20, len = 1, i2c_transfer returned: -1
-[    9.454467] af9015: command failed:1
-[    9.455080] tda18271_write_regs: [1-00c0|M] ERROR: idx = 0x20, len = 1, i2c_transfer returned: -1
-[   10.092508] af9015: command failed:1
-[   10.093122] tda18271_write_regs: [1-00c0|M] ERROR: idx = 0x23, len = 1, i2c_transfer returned: -1
-[   10.730542] af9015: command failed:1
-...
+>From 015e4bcf34bd7569f7593958099276b989c08bac Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Aur=C3=A9lien=20G=C3=A2teau?= <agateau@kde.org>
+Date: Fri, 22 Oct 2010 18:15:51 +0200
+Subject: [PATCH] Added Asus P81IJ
 
+---
+ libv4lconvert/control/libv4lcontrol.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-The KWorld stick comes up OK and can be used but after changing 
-channels/sources a few times in mythtv I get (firmware 4.95.0):
-
-
-Oct 19 23:52:32 beta dhcpd: DHCPACK on 192.168.0.9 to 00:1c:c0:8c:88:7d via eth0
-Oct 19 23:58:04 beta kernel: [  480.140076] af9013: I2C read failed reg:d507
-Oct 19 23:58:06 beta kernel: [  482.152089] af9013: I2C read failed reg:d507
-Oct 19 23:58:08 beta kernel: [  484.164077] af9013: I2C read failed reg:d507
-Oct 19 23:58:10 beta kernel: [  486.176076] af9013: I2C read failed reg:d507
-Oct 19 23:58:12 beta kernel: [  488.188128] af9013: I2C read failed reg:d507
-...
-
+diff --git a/libv4lconvert/control/libv4lcontrol.c b/libv4lconvert/control/libv4lcontrol.c
+index f74bb3a..a2950e0 100644
+--- a/libv4lconvert/control/libv4lcontrol.c
++++ b/libv4lconvert/control/libv4lcontrol.c
+@@ -232,6 +232,8 @@ static const struct v4lcontrol_flags_info v4lcontrol_flags[] = {
+     V4LCONTROL_HFLIPPED|V4LCONTROL_VFLIPPED },
+   { 0x13d3, 0x5094, 0, "ASUSTeK Computer Inc.        ", "P50IJ     ",
+     V4LCONTROL_HFLIPPED|V4LCONTROL_VFLIPPED },
++  { 0x13d3, 0x5094, 0, "ASUSTeK Computer Inc.        ", "P81IJ     ",
++    V4LCONTROL_HFLIPPED|V4LCONTROL_VFLIPPED },
+   { 0x174f, 0x5a35, 0, "ASUSTeK Computer Inc.        ", "F3Ka      ",
+     V4LCONTROL_HFLIPPED|V4LCONTROL_VFLIPPED },
+   { 0x174f, 0x5a35, 0, "ASUSTeK Computer Inc.        ", "F3Ke      ",
 -- 
-Dave Cunningham                                  dave at upsilon org uk
-                                                  PGP KEY ID: 0xA78636DC
+1.7.1
+
+
+--------------050307010005050303020903--
