@@ -1,542 +1,81 @@
 Return-path: <mchehab@pedra>
-Received: from smtp24.services.sfr.fr ([93.17.128.81]:27262 "EHLO
-	smtp24.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751431Ab0JRKGF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Oct 2010 06:06:05 -0400
-Received: from filter.sfr.fr (localhost [127.0.0.1])
-	by msfrf2404.sfr.fr (SMTP Server) with ESMTP id 0A5DD7000086
-	for <linux-media@vger.kernel.org>; Mon, 18 Oct 2010 12:06:04 +0200 (CEST)
-Received: from smtp-in.softsystem.co.uk (102.125.200-77.rev.gaoland.net [77.200.125.102])
-	by msfrf2404.sfr.fr (SMTP Server) with SMTP id 7B7847000087
-	for <linux-media@vger.kernel.org>; Mon, 18 Oct 2010 12:06:03 +0200 (CEST)
-Received: FROM [192.168.1.62] (gagarin [192.168.1.62])
-	BY smtp-in.softsystem.co.uk [77.200.125.102] (SoftMail 1.0.5, www.softsystem.co.uk) WITH ESMTP
-	FOR <linux-media@vger.kernel.org>; Mon, 18 Oct 2010 12:06:02 +0200
-Subject: [PATCH V3] Nova-S-Plus audio line input
-From: Lawrence Rust <lawrence@softsystem.co.uk>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Darron Broad <darron@kewl.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 18 Oct 2010 12:06:02 +0200
-Message-ID: <1287396362.1430.62.camel@gagarin>
+Received: from mx1.redhat.com ([209.132.183.28]:39264 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756424Ab0JVN0s (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Oct 2010 09:26:48 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o9MDQlcA005812
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 22 Oct 2010 09:26:48 -0400
+Date: Fri, 22 Oct 2010 11:25:27 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: jarod@redhat.com
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/3] mceusb: allow a per-model RC map
+Message-ID: <20101022112527.7104b849@pedra>
+In-Reply-To: <cover.1287753463.git.mchehab@redhat.com>
+References: <cover.1287753463.git.mchehab@redhat.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch adds audio DMA capture and ALSA mixer elements for the line
-input jack of the Hauppauge Nova-S-plus DVB-S PCI card.  The Nova-S-plus
-has a WM8775 ADC that is currently not detected.  This patch enables
-this chip and exports volume, balance mute and ALC elements for ALSA
-mixer controls.
+Especially when used with Polaris boards, devices may have different
+types of remotes shipped. So, we need a per-model rc-map.
 
-This revision provides compatibility with the current 2.6.37 staging
-codebase.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Signed-off-by: Lawrence Rust <lawrence@softsystem.co.uk>
----
- drivers/media/video/cx88/cx88-alsa.c  |   98 +++++++++++++++++++++++++++----
- drivers/media/video/cx88/cx88-cards.c |    7 ++
- drivers/media/video/cx88/cx88-video.c |   27 ++++++++-
- drivers/media/video/cx88/cx88.h       |    6 +-
- drivers/media/video/wm8775.c          |  105 +++++++++++++++++++++------------
- include/media/wm8775.h                |    3 +
- 6 files changed, 192 insertions(+), 54 deletions(-)
-
-diff --git a/drivers/media/video/cx88/cx88-alsa.c b/drivers/media/video/cx88/cx88-alsa.c
-index 54b7fcd..8ce7d7a 100644
---- a/drivers/media/video/cx88/cx88-alsa.c
-+++ b/drivers/media/video/cx88/cx88-alsa.c
-@@ -40,6 +40,7 @@
- #include <sound/control.h>
- #include <sound/initval.h>
- #include <sound/tlv.h>
-+#include <media/wm8775.h>
+diff --git a/drivers/media/IR/mceusb.c b/drivers/media/IR/mceusb.c
+index 9143ab6..e72bfa1 100644
+--- a/drivers/media/IR/mceusb.c
++++ b/drivers/media/IR/mceusb.c
+@@ -125,10 +125,7 @@ struct mceusb_model {
+ 	u32 tx_mask_inverted:1;
+ 	u32 is_polaris:1;
  
- #include "cx88.h"
- #include "cx88-reg.h"
-@@ -586,26 +587,47 @@ static int snd_cx88_volume_put(struct snd_kcontrol *kcontrol,
- 	int left, right, v, b;
- 	int changed = 0;
- 	u32 old;
-+	struct v4l2_control client_ctl;
-+
-+	/* Pass volume & balance onto any WM8775 */
-+	if ( value->value.integer.value[0] >= value->value.integer.value[1]) {
-+		v = value->value.integer.value[0] << 10;
-+		b = value->value.integer.value[0] ?
-+			(0x8000 * value->value.integer.value[1]) / value->value.integer.value[0] :
-+			0x8000;
-+	} else {
-+		v = value->value.integer.value[1] << 10;
-+		b = value->value.integer.value[1] ?
-+		0xffff - (0x8000 * value->value.integer.value[0]) / value->value.integer.value[1] :
-+		0x8000;
-+	}
-+	client_ctl.value = v;
-+	client_ctl.id = V4L2_CID_AUDIO_VOLUME;
-+	call_hw(core, WM8775_GID, core, s_ctrl, &client_ctl);
-+
-+	client_ctl.value = b;
-+	client_ctl.id = V4L2_CID_AUDIO_BALANCE;
-+	call_hw(core, WM8775_GID, core, s_ctrl, &client_ctl);
- 
- 	left = value->value.integer.value[0] & 0x3f;
- 	right = value->value.integer.value[1] & 0x3f;
- 	b = right - left;
- 	if (b < 0) {
--	    v = 0x3f - left;
--	    b = (-b) | 0x40;
-+		v = 0x3f - left;
-+		b = (-b) | 0x40;
- 	} else {
--	    v = 0x3f - right;
-+		v = 0x3f - right;
- 	}
- 	/* Do we really know this will always be called with IRQs on? */
- 	spin_lock_irq(&chip->reg_lock);
- 	old = cx_read(AUD_VOL_CTL);
- 	if (v != (old & 0x3f)) {
--	    cx_write(AUD_VOL_CTL, (old & ~0x3f) | v);
--	    changed = 1;
-+		cx_swrite(SHADOW_AUD_VOL_CTL, AUD_VOL_CTL, (old & ~0x3f) | v);
-+		changed = 1;
- 	}
--	if (cx_read(AUD_BAL_CTL) != b) {
--	    cx_write(AUD_BAL_CTL, b);
--	    changed = 1;
-+	if ((cx_read(AUD_BAL_CTL) & 0x7f) != b) {
-+		cx_write(AUD_BAL_CTL, b);
-+		changed = 1;
- 	}
- 	spin_unlock_irq(&chip->reg_lock);
- 
-@@ -618,7 +640,7 @@ static const struct snd_kcontrol_new snd_cx88_volume = {
- 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
- 	.access = SNDRV_CTL_ELEM_ACCESS_READWRITE |
- 		  SNDRV_CTL_ELEM_ACCESS_TLV_READ,
--	.name = "Playback Volume",
-+	.name = "Analog-TV Volume",
- 	.info = snd_cx88_volume_info,
- 	.get = snd_cx88_volume_get,
- 	.put = snd_cx88_volume_put,
-@@ -649,7 +671,14 @@ static int snd_cx88_switch_put(struct snd_kcontrol *kcontrol,
- 	vol = cx_read(AUD_VOL_CTL);
- 	if (value->value.integer.value[0] != !(vol & bit)) {
- 		vol ^= bit;
--		cx_write(AUD_VOL_CTL, vol);
-+        	cx_swrite(SHADOW_AUD_VOL_CTL, AUD_VOL_CTL, vol);
-+		/* Pass mute onto any WM8775 */
-+	        if ( (1<<6) == bit) {
-+			struct v4l2_control client_ctl;
-+			client_ctl.value = 0 != (vol & bit);
-+			client_ctl.id = V4L2_CID_AUDIO_MUTE;
-+			call_hw(core, WM8775_GID, core, s_ctrl, &client_ctl);
-+		}
- 		ret = 1;
- 	}
- 	spin_unlock_irq(&chip->reg_lock);
-@@ -658,7 +687,7 @@ static int snd_cx88_switch_put(struct snd_kcontrol *kcontrol,
- 
- static const struct snd_kcontrol_new snd_cx88_dac_switch = {
- 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
--	.name = "Playback Switch",
-+	.name = "Audio-Out Switch",
- 	.info = snd_ctl_boolean_mono_info,
- 	.get = snd_cx88_switch_get,
- 	.put = snd_cx88_switch_put,
-@@ -667,13 +696,49 @@ static const struct snd_kcontrol_new snd_cx88_dac_switch = {
- 
- static const struct snd_kcontrol_new snd_cx88_source_switch = {
- 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
--	.name = "Capture Switch",
-+	.name = "Analog-TV Switch",
- 	.info = snd_ctl_boolean_mono_info,
- 	.get = snd_cx88_switch_get,
- 	.put = snd_cx88_switch_put,
- 	.private_value = (1<<6),
+-	/*
+-	 * Allow specify a per-board extra data, like
+-	 * device names, and per-device rc_maps
+-	 */
++	const char *rc_map;	/* Allow specify a per-board map */
  };
  
-+static int snd_cx88_alc_get(struct snd_kcontrol *kcontrol,
-+			       struct snd_ctl_elem_value *value)
-+{
-+	snd_cx88_card_t *chip = snd_kcontrol_chip(kcontrol);
-+	struct cx88_core *core = chip->core;
-+	struct v4l2_control client_ctl;
-+
-+	client_ctl.id = V4L2_CID_AUDIO_LOUDNESS;
-+	call_hw(core, WM8775_GID, core, g_ctrl, &client_ctl);
-+	value->value.integer.value[0] = client_ctl.value ? 1 : 0;
-+
-+	return 0;
-+}
-+
-+static int snd_cx88_alc_put(struct snd_kcontrol *kcontrol,
-+				       struct snd_ctl_elem_value *value)
-+{
-+	snd_cx88_card_t *chip = snd_kcontrol_chip(kcontrol);
-+	struct cx88_core *core = chip->core;
-+	struct v4l2_control client_ctl;
-+
-+	client_ctl.value = 0 != value->value.integer.value[0];
-+	client_ctl.id = V4L2_CID_AUDIO_LOUDNESS;
-+	call_hw(core, WM8775_GID, core, s_ctrl, &client_ctl);
-+
-+	return 0;
-+}
-+
-+static struct snd_kcontrol_new snd_cx88_alc_switch = {
-+	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
-+	.name = "Line-In ALC Switch",
-+	.info = snd_ctl_boolean_mono_info,
-+	.get = snd_cx88_alc_get,
-+	.put = snd_cx88_alc_put,
-+};
-+
- /****************************************************************************
- 			Basic Flow for Sound Devices
-  ****************************************************************************/
-@@ -830,6 +895,15 @@ static int __devinit cx88_audio_initdev(struct pci_dev *pci,
- 	if (err < 0)
- 		goto error;
- 
-+	/* If there's a wm8775 then add a Line-In ALC switch */
-+	{ struct v4l2_subdev *sd;
-+	list_for_each_entry(sd, &chip->core->v4l2_dev.subdevs, list) {
-+		if (WM8775_GID == sd->grp_id) {
-+			snd_ctl_add(card, snd_ctl_new1(&snd_cx88_alc_switch, chip));
-+			break;
-+		}
-+	}}
-+
- 	strcpy (card->driver, "CX88x");
- 	sprintf(card->shortname, "Conexant CX%x", pci->device);
- 	sprintf(card->longname, "%s at %#llx",
-diff --git a/drivers/media/video/cx88/cx88-cards.c b/drivers/media/video/cx88/cx88-cards.c
-index f220fa2..dfba74f 100644
---- a/drivers/media/video/cx88/cx88-cards.c
-+++ b/drivers/media/video/cx88/cx88-cards.c
-@@ -970,15 +970,22 @@ static const struct cx88_board cx88_boards[] = {
- 		.radio_type	= UNSET,
- 		.tuner_addr	= ADDR_UNSET,
- 		.radio_addr	= ADDR_UNSET,
-+		.audio_chip = V4L2_IDENT_WM8775,
- 		.input		= {{
- 			.type	= CX88_VMUX_DVB,
- 			.vmux	= 0,
-+			/* 2: Line-In */
-+			.audioroute = 2,
- 		},{
- 			.type	= CX88_VMUX_COMPOSITE1,
- 			.vmux	= 1,
-+			/* 2: Line-In */
-+			.audioroute = 2,
- 		},{
- 			.type	= CX88_VMUX_SVIDEO,
- 			.vmux	= 2,
-+			/* 2: Line-In */
-+			.audioroute = 2,
- 		}},
- 		.mpeg           = CX88_MPEG_DVB,
+ static const struct mceusb_model mceusb_model[] = {
+@@ -152,6 +149,12 @@ static const struct mceusb_model mceusb_model[] = {
  	},
-diff --git a/drivers/media/video/cx88/cx88-video.c b/drivers/media/video/cx88/cx88-video.c
-index 19c64a7..bb16bff 100644
---- a/drivers/media/video/cx88/cx88-video.c
-+++ b/drivers/media/video/cx88/cx88-video.c
-@@ -41,6 +41,7 @@
- #include "cx88.h"
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
-+#include <media/wm8775.h>
- 
- MODULE_DESCRIPTION("v4l2 driver module for cx2388x based TV cards");
- MODULE_AUTHOR("Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]");
-@@ -978,6 +979,7 @@ int cx88_set_control(struct cx88_core *core, struct v4l2_control *ctl)
- 	const struct cx88_ctrl *c = NULL;
- 	u32 value,mask;
- 	int i;
-+	struct v4l2_control client_ctl;
- 
- 	for (i = 0; i < CX8800_CTLS; i++) {
- 		if (cx8800_ctls[i].v.id == ctl->id) {
-@@ -991,6 +993,27 @@ int cx88_set_control(struct cx88_core *core, struct v4l2_control *ctl)
- 		ctl->value = c->v.minimum;
- 	if (ctl->value > c->v.maximum)
- 		ctl->value = c->v.maximum;
-+
-+	/* Pass changes onto any WM8775 */
-+	client_ctl.id = ctl->id;
-+	switch (ctl->id) {
-+		case V4L2_CID_AUDIO_MUTE:
-+			client_ctl.value = ctl->value;
-+			break;
-+		case V4L2_CID_AUDIO_VOLUME:
-+			client_ctl.value = (ctl->value) ?
-+				(0x90 + ctl->value) << 8 : 0;
-+			break;
-+		case V4L2_CID_AUDIO_BALANCE:
-+			client_ctl.value = ctl->value << 9;
-+			break;
-+		default:
-+			client_ctl.id = 0;
-+			break;
-+	}
-+	if (client_ctl.id)
-+		call_hw(core, WM8775_GID, core, s_ctrl, &client_ctl);
-+
- 	mask=c->mask;
- 	switch (ctl->id) {
- 	case V4L2_CID_AUDIO_BALANCE:
-@@ -1537,7 +1560,9 @@ static int radio_queryctrl (struct file *file, void *priv,
- 	if (c->id <  V4L2_CID_BASE ||
- 		c->id >= V4L2_CID_LASTP1)
- 		return -EINVAL;
--	if (c->id == V4L2_CID_AUDIO_MUTE) {
-+	if (c->id == V4L2_CID_AUDIO_MUTE ||
-+		c->id == V4L2_CID_AUDIO_VOLUME ||
-+		c->id == V4L2_CID_AUDIO_BALANCE) {
- 		for (i = 0; i < CX8800_CTLS; i++) {
- 			if (cx8800_ctls[i].v.id == c->id)
- 				break;
-diff --git a/drivers/media/video/cx88/cx88.h b/drivers/media/video/cx88/cx88.h
-index c9981e7..e8c732e 100644
---- a/drivers/media/video/cx88/cx88.h
-+++ b/drivers/media/video/cx88/cx88.h
-@@ -398,17 +398,19 @@ static inline struct cx88_core *to_core(struct v4l2_device *v4l2_dev)
- 	return container_of(v4l2_dev, struct cx88_core, v4l2_dev);
- }
- 
--#define call_all(core, o, f, args...) 				\
-+#define call_hw(core, grpid, o, f, args...) \
- 	do {							\
- 		if (!core->i2c_rc) {				\
- 			if (core->gate_ctrl)			\
- 				core->gate_ctrl(core, 1);	\
--			v4l2_device_call_all(&core->v4l2_dev, 0, o, f, ##args); \
-+			v4l2_device_call_all(&core->v4l2_dev, grpid, o, f, ##args); \
- 			if (core->gate_ctrl)			\
- 				core->gate_ctrl(core, 0);	\
- 		}						\
- 	} while (0)
- 
-+#define call_all(core, o, f, args...) call_hw(core, 0, o, f, ##args)
-+
- struct cx8800_dev;
- struct cx8802_dev;
- 
-diff --git a/drivers/media/video/wm8775.c b/drivers/media/video/wm8775.c
-index fe8ef64..ba249c2 100644
---- a/drivers/media/video/wm8775.c
-+++ b/drivers/media/video/wm8775.c
-@@ -35,6 +35,7 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-chip-ident.h>
- #include <media/v4l2-ctrls.h>
-+#include <media/wm8775.h>
- 
- MODULE_DESCRIPTION("wm8775 driver");
- MODULE_AUTHOR("Ulf Eklund, Hans Verkuil");
-@@ -50,10 +51,16 @@ enum {
- 	TOT_REGS
+ 	[POLARIS_EVK] = {
+ 		.is_polaris = 1,
++		/*
++		 * In fact, the EVK is shipped without
++		 * remotes, but we should have something handy,
++		 * to allow testing it
++		 */
++		.rc_map = RC_MAP_RC5_HAUPPAUGE_NEW,
+ 	},
  };
  
-+#define ALC_HOLD 0x85 /* R17: use zero cross detection, ALC hold time 42.6 ms */
-+#define ALC_EN 0x100  /* R17: ALC enable */
+@@ -956,6 +959,7 @@ static struct input_dev *mceusb_init_input_dev(struct mceusb_dev *ir)
+ 	struct input_dev *idev;
+ 	struct ir_dev_props *props;
+ 	struct device *dev = ir->dev;
++	const char *rc_map = RC_MAP_RC6_MCE;
+ 	int ret = -ENODEV;
+ 
+ 	idev = input_allocate_device();
+@@ -990,7 +994,10 @@ static struct input_dev *mceusb_init_input_dev(struct mceusb_dev *ir)
+ 
+ 	ir->props = props;
+ 
+-	ret = ir_input_register(idev, RC_MAP_RC6_MCE, props, DRIVER_NAME);
++	if (mceusb_model[ir->model].rc_map)
++		rc_map = mceusb_model[ir->model].rc_map;
 +
- struct wm8775_state {
- 	struct v4l2_subdev sd;
- 	struct v4l2_ctrl_handler hdl;
- 	struct v4l2_ctrl *mute;
-+	struct v4l2_ctrl *vol;
-+	struct v4l2_ctrl *bal;
-+	struct v4l2_ctrl *loud;
- 	u8 input;		/* Last selected input (0-0xf) */
- };
- 
-@@ -85,6 +92,30 @@ static int wm8775_write(struct v4l2_subdev *sd, int reg, u16 val)
- 	return -1;
- }
- 
-+static void wm8775_set_audio(struct v4l2_subdev *sd, int quietly)
-+{
-+	struct wm8775_state *state = to_state(sd);
-+	u8 vol_l, vol_r;
-+        int muted = 0 != state->mute->val;
-+        u16 volume = (u16)state->vol->val;
-+        u16 balance = (u16)state->bal->val;
-+
-+	/* normalize ( 65535 to 0 -> 255 to 0 (+24dB to -103dB) ) */
-+	vol_l = (min(65536 - balance, 32768) * volume) >> 23;
-+	vol_r = (min(balance, (u16)32768) * volume) >> 23;
-+
-+	/* Mute */
-+	if (muted || quietly)
-+		wm8775_write(sd, R21, 0x0c0 | state->input);
-+
-+	wm8775_write(sd, R14, vol_l | 0x100); /* 0x100= Left channel ADC zero cross enable */
-+	wm8775_write(sd, R15, vol_r | 0x100); /* 0x100= Right channel ADC zero cross enable */
-+
-+	/* Un-mute */
-+	if (!muted)
-+		wm8775_write(sd, R21, state->input);
-+}
-+
- static int wm8775_s_routing(struct v4l2_subdev *sd,
- 			    u32 input, u32 output, u32 config)
- {
-@@ -102,25 +133,26 @@ static int wm8775_s_routing(struct v4l2_subdev *sd,
- 	state->input = input;
- 	if (!v4l2_ctrl_g_ctrl(state->mute))
- 		return 0;
--	wm8775_write(sd, R21, 0x0c0);
--	wm8775_write(sd, R14, 0x1d4);
--	wm8775_write(sd, R15, 0x1d4);
--	wm8775_write(sd, R21, 0x100 + state->input);
-+	if (!v4l2_ctrl_g_ctrl(state->vol))
-+		return 0;
-+	if (!v4l2_ctrl_g_ctrl(state->bal))
-+		return 0;
-+	wm8775_set_audio(sd, 1);
- 	return 0;
- }
- 
- static int wm8775_s_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	struct v4l2_subdev *sd = to_sd(ctrl);
--	struct wm8775_state *state = to_state(sd);
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_AUDIO_MUTE:
--		wm8775_write(sd, R21, 0x0c0);
--		wm8775_write(sd, R14, 0x1d4);
--		wm8775_write(sd, R15, 0x1d4);
--		if (!ctrl->val)
--			wm8775_write(sd, R21, 0x100 + state->input);
-+	case V4L2_CID_AUDIO_VOLUME:
-+	case V4L2_CID_AUDIO_BALANCE:
-+		wm8775_set_audio(sd, 0);
-+		return 0;
-+	case V4L2_CID_AUDIO_LOUDNESS:
-+		wm8775_write(sd, R17, (ctrl->val ? ALC_EN : 0) | ALC_HOLD);
- 		return 0;
- 	}
- 	return -EINVAL;
-@@ -144,16 +176,7 @@ static int wm8775_log_status(struct v4l2_subdev *sd)
- 
- static int wm8775_s_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *freq)
- {
--	struct wm8775_state *state = to_state(sd);
--
--	/* If I remove this, then it can happen that I have no
--	   sound the first time I tune from static to a valid channel.
--	   It's difficult to reproduce and is almost certainly related
--	   to the zero cross detect circuit. */
--	wm8775_write(sd, R21, 0x0c0);
--	wm8775_write(sd, R14, 0x1d4);
--	wm8775_write(sd, R15, 0x1d4);
--	wm8775_write(sd, R21, 0x100 + state->input);
-+	wm8775_set_audio(sd, 0);
- 	return 0;
- }
- 
-@@ -203,6 +226,7 @@ static int wm8775_probe(struct i2c_client *client,
- {
- 	struct wm8775_state *state;
- 	struct v4l2_subdev *sd;
-+	int err;
- 
- 	/* Check if the adapter supports the needed features */
- 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-@@ -216,15 +240,21 @@ static int wm8775_probe(struct i2c_client *client,
- 		return -ENOMEM;
- 	sd = &state->sd;
- 	v4l2_i2c_subdev_init(sd, client, &wm8775_ops);
-+	sd->grp_id = WM8775_GID; /* subdev group id */
- 	state->input = 2;
- 
--	v4l2_ctrl_handler_init(&state->hdl, 1);
-+	v4l2_ctrl_handler_init(&state->hdl, 4);
- 	state->mute = v4l2_ctrl_new_std(&state->hdl, &wm8775_ctrl_ops,
- 			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 0);
-+	state->vol = v4l2_ctrl_new_std(&state->hdl, &wm8775_ctrl_ops,
-+			V4L2_CID_AUDIO_VOLUME, 0, 65535, (65535+99)/100, 0xCF00); /* 0dB*/
-+	state->bal = v4l2_ctrl_new_std(&state->hdl, &wm8775_ctrl_ops,
-+			V4L2_CID_AUDIO_BALANCE, 0, 65535, (65535+99)/100, 32768);
-+	state->loud = v4l2_ctrl_new_std(&state->hdl, &wm8775_ctrl_ops,
-+			V4L2_CID_AUDIO_LOUDNESS, 0, 1, 1, 1);
- 	sd->ctrl_handler = &state->hdl;
--	if (state->hdl.error) {
--		int err = state->hdl.error;
--
-+	err = state->hdl.error;
-+	if (err) {
- 		v4l2_ctrl_handler_free(&state->hdl);
- 		kfree(state);
- 		return err;
-@@ -236,29 +266,25 @@ static int wm8775_probe(struct i2c_client *client,
- 	wm8775_write(sd, R23, 0x000);
- 	/* Disable zero cross detect timeout */
- 	wm8775_write(sd, R7, 0x000);
--	/* Left justified, 24-bit mode */
--	wm8775_write(sd, R11, 0x021);
-+	/* HPF enable, I2S mode, 24-bit */
-+	wm8775_write(sd, R11, 0x022);
- 	/* Master mode, clock ratio 256fs */
- 	wm8775_write(sd, R12, 0x102);
- 	/* Powered up */
- 	wm8775_write(sd, R13, 0x000);
--	/* ADC gain +2.5dB, enable zero cross */
--	wm8775_write(sd, R14, 0x1d4);
--	/* ADC gain +2.5dB, enable zero cross */
--	wm8775_write(sd, R15, 0x1d4);
--	/* ALC Stereo, ALC target level -1dB FS max gain +8dB */
--	wm8775_write(sd, R16, 0x1bf);
--	/* Enable gain control, use zero cross detection,
--	   ALC hold time 42.6 ms */
--	wm8775_write(sd, R17, 0x185);
-+	/* ALC stereo, ALC target level -5dB FS, ALC max gain +8dB */
-+	wm8775_write(sd, R16, 0x1bb);
-+	/* Set ALC mode and hold time */
-+	wm8775_write(sd, R17, (state->loud->val ? ALC_EN : 0) | ALC_HOLD);
- 	/* ALC gain ramp up delay 34 s, ALC gain ramp down delay 33 ms */
- 	wm8775_write(sd, R18, 0x0a2);
- 	/* Enable noise gate, threshold -72dBfs */
- 	wm8775_write(sd, R19, 0x005);
--	/* Transient window 4ms, lower PGA gain limit -1dB */
--	wm8775_write(sd, R20, 0x07a);
--	/* LRBOTH = 1, use input 2. */
--	wm8775_write(sd, R21, 0x102);
-+	/* Transient window 4ms, ALC min gain -5dB  */
-+	wm8775_write(sd, R20, 0x0fb);
-+
-+	wm8775_set_audio(sd, 1);      /* set volume/mute/mux */
-+
- 	return 0;
- }
- 
-@@ -301,3 +327,4 @@ static __exit void exit_wm8775(void)
- 
- module_init(init_wm8775);
- module_exit(exit_wm8775);
-+
-diff --git a/include/media/wm8775.h b/include/media/wm8775.h
-index 60739c5..a1c4d41 100644
---- a/include/media/wm8775.h
-+++ b/include/media/wm8775.h
-@@ -32,4 +32,7 @@
- #define WM8775_AIN3 4
- #define WM8775_AIN4 8
- 
-+/* subdev group ID */
-+#define WM8775_GID (1 << 0)
-+
- #endif
++	ret = ir_input_register(idev, rc_map, props, DRIVER_NAME);
+ 	if (ret < 0) {
+ 		dev_err(dev, "remote input device register failed\n");
+ 		goto irdev_failed;
 -- 
-1.7.0.4
-
-
+1.7.1
 
 
