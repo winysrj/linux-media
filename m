@@ -1,141 +1,34 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:64418 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756205Ab0JFAwU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 20:52:20 -0400
+Received: from gateway03.websitewelcome.com ([67.18.34.23]:46669 "HELO
+	gateway03.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754837Ab0JVHfl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Oct 2010 03:35:41 -0400
+Received: from [74.125.83.46] (port=48153 helo=mail-gw0-f46.google.com)
+	by gator1121.hostgator.com with esmtpsa (TLSv1:RC4-MD5:128)
+	(Exim 4.69)
+	(envelope-from <demiurg@femtolinux.com>)
+	id 1P9C3g-0003V2-EY
+	for linux-media@vger.kernel.org; Fri, 22 Oct 2010 02:29:00 -0500
+Received: by gwj21 with SMTP id 21so813832gwj.19
+        for <linux-media@vger.kernel.org>; Fri, 22 Oct 2010 00:29:00 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20101005235355.GB18586@haskell.muteddisk.com>
-References: <1285534847-31463-1-git-send-email-mfm@muteddisk.com>
-	<20101005142906.GA20059@merkur.ravnborg.org>
-	<20101005192435.GA17798@haskell.muteddisk.com>
-	<AANLkTik4Ezpj939za2PMWOqOxjXnbdXjvtbXR6Tau2zr@mail.gmail.com>
-	<20101005235355.GB18586@haskell.muteddisk.com>
-Date: Tue, 5 Oct 2010 20:52:20 -0400
-Message-ID: <AANLkTin+vdjH_JaWqc-iWHQ=92kEg9Nc2T9wruTOFpYZ@mail.gmail.com>
-Subject: Re: [RFC PATCH] media: consolidation of -I flags
-From: T Dent <tdent48227@gmail.com>
-To: T Dent <tdent48227@gmail.com>, Sam Ravnborg <sam@ravnborg.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michal Marek <mmarek@suse.cz>, linux-media@vger.kernel.org,
-	linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
+Date: Fri, 22 Oct 2010 09:29:00 +0200
+Message-ID: <AANLkTimVc830OkXo44bnqFpWGw_EnUWBPGYd8KjxDTdu@mail.gmail.com>
+Subject: Wintv-HVR-1120 incorrectly detected
+From: Sasha Sirotkin <demiurg@femtolinux.com>
+To: linux-media <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 10/5/10, matt mooney <mfm@muteddisk.com> wrote:
-> On 18:27 Tue 05 Oct     , T Dent wrote:
->> On 10/5/10, Sam Ravnborg <sam@ravnborg.org> wrote:
->> > On Sun, Sep 26, 2010 at 02:00:47PM -0700, matt mooney wrote:
->> >> I have been doing cleanup of makefiles, namely replacing the older
->> >> style
->> >> compilation flag variables with the newer style. While doing this, I
->> >> noticed that the majority of drivers in the media subsystem seem to
->> >> rely
->> >> on a few core header files:
->> >>
->> >> 	-Idrivers/media/video
->> >> 	-Idrivers/media/common/tuners
->> >> 	-Idrivers/media/dvb/dvb-core
->> >> 	-Idrivers/media/dvb/frontends
->> >>
->> >> This patch removes them from the individual makefiles and puts them in
->> >> the main makefile under media.
->> > Using subdir-ccflags-y has one drawback you need to be aware of.
->> > The variable is _not_ picked up if you build individual drivers like
->> > this:
->> >
->> >
->> >      make drivers/media/dvb/b2c2/
->> >
->> > So with this patch applied it is no longer possible to do so.
->> > It is better to accept the duplication rather than breaking
->> > the build of individual drivers.
->> >
->> >>
->> >> If neither idea is considered beneficial, I will go ahead and replace
->> >> the older variables with the newer ones as is.
->> >
->> > This is the right approach.
->> >
->> > You could consider to do a more general cleanup:
->> > 1) replace EXTRA_CFLAGS with ccflags-y (the one you suggest)
->> > 2) replace use of <module>-objs with <module>-y
->> > 3) break continued lines into several assignments
->>
->> I have a question when you say this do you mean change something like
->> this:
->>
->> r8187se-objs :=
->>
->> to
->>
->> r8187se-y :=
->
-> Yes, that is what is meant, but remember to change conditional inclusions to
-> the
-> kbuild idiom.
+There are many reports about Wintv-HVR-1120 card not working
+correctly. There are many errors related to dvb-fe-tda10048-1.0.fw
+firmware.
 
-Okay, I get start on it right away.
->
->> If so, I could start working on that in the staging directory.
->
-> That's cool; the staging makefiles need extra attention though, so you
-> really
-> need to go through and make sure you understand what is and isn't needed.
-> And
-> check to see what drivers are on their way out so that you don't waste your
-> time.
->
-> Now, I do have some of these queued up for other parts of the kernel, so
-> please
-> let me know before you start sending in patches for other parts that I have
-> already worked on.
+Some people noticed that in the earlier versions this same card was
+detected differently and the driver was loading a different firmware -
+dvb-fe-tda10046.fw.
 
-I message you if haven't sent the patches in, yet to see what you did
-or are doing.
->
-> Thanks,
-> mfm
->
->> >    People very often uses '\' to break long lines, where a
->> >    simple += would be much more readable.
->> >    But this topic may be personal - I never uses "\" in my .c code
->> > unless in
->> > macros,
->> >    and I have applied the same rule for Makefiles.
->> >    An ugly example is drivers/media/Makefile
->> > 4) In general use ":=" instead of "=".
->> >    Add using "+=" as first assignment is OK - but it just looks plain
->> > wrong
->> > 5) some files has a mixture of spaces/tabs (are red in my vim)
->> >    dvb-core/Makefile is one such example
->> > 6) remove useless stuff
->> >    siano/Makefile has some strange assignments to EXTRA_CFLAGS
->> > 7) Likely a few more items to look after...
->> >
->> > This is more work - but then you finish a Makefile rather than doing a
->> > simple
->> > conversion.
->> >
->> > 	Sam
->> > --
->> > To unsubscribe from this list: send the line "unsubscribe linux-kernel"
->> > in
->> > the body of a message to majordomo@vger.kernel.org
->> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> > Please read the FAQ at  http://www.tux.org/lkml/
->> >
->>
->> Thanks,
->>
->> Tracey D
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-kbuild" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
-Thanks,
-
-Tracey D
+Is there anybody willing to take a look at this issue ? I can help
+with debugging.
