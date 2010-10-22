@@ -1,58 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:16619 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:52735 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761149Ab0J0Mbo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Oct 2010 08:31:44 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Lee Jones <lee.jones@canonical.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 7/7] gspca_ov519: generate release button event on stream stop if needed
-Date: Wed, 27 Oct 2010 14:35:26 +0200
-Message-Id: <1288182926-25400-8-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1288182926-25400-1-git-send-email-hdegoede@redhat.com>
-References: <1288182926-25400-1-git-send-email-hdegoede@redhat.com>
+	id S1756567Ab0JVO0I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Oct 2010 10:26:08 -0400
+Message-ID: <4CC19EFD.7010107@iki.fi>
+Date: Fri, 22 Oct 2010 17:26:05 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Felix Droste <felixdroste@arcor.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: USB DVBT af9015: tuner id:177 not supported, please report!
+References: <4CC0444E.1040902@arcor.de>
+In-Reply-To: <4CC0444E.1040902@arcor.de>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Generate a release button event when the button is still pressed when the
-stream stops.
+Moikka Felix.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/media/video/gspca/ov519.c |   10 +++++++++-
- 1 files changed, 9 insertions(+), 1 deletions(-)
+It is already supported, will go the 2.6.37. Tuner ID 177 is MaxLinear 
+MXL5007T.
 
-diff --git a/drivers/media/video/gspca/ov519.c b/drivers/media/video/gspca/ov519.c
-index 6cf6855..7e86faf 100644
---- a/drivers/media/video/gspca/ov519.c
-+++ b/drivers/media/video/gspca/ov519.c
-@@ -3912,7 +3912,6 @@ static int sd_start(struct gspca_dev *gspca_dev)
- 	   pressed while we weren't streaming */
- 	sd->snapshot_needs_reset = 1;
- 	sd_reset_snapshot(gspca_dev);
--	sd->snapshot_pressed = 0;
- 
- 	sd->first_frame = 3;
- 
-@@ -3940,6 +3939,15 @@ static void sd_stop0(struct gspca_dev *gspca_dev)
- 
- 	if (sd->bridge == BRIDGE_W9968CF)
- 		w9968cf_stop0(sd);
-+
-+#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+	/* If the last button state is pressed, release it now! */
-+	if (sd->snapshot_pressed) {
-+		input_report_key(gspca_dev->input_dev, KEY_CAMERA, 0);
-+		input_sync(gspca_dev->input_dev);
-+		sd->snapshot_pressed = 0;
-+	}
-+#endif
- }
- 
- static void ov51x_handle_button(struct gspca_dev *gspca_dev, u8 state)
+Antti
+
+
+On 10/21/2010 04:46 PM, Felix Droste wrote:
+> I could not get this DVBT-Stick (USB) to work:
+>
+> auvisio USB-DVB-T-Receiver & -Recorder "DR-340"
+>
+> h t t p : / / w w w
+> .pearl.de/product.jsp?pdid=HPM1520&catid=8909&vid=922&curr=DEM
+>
+> dmesg:
+>
+> [25239.410175] usb 2-1: new high speed USB device using ehci_hcd and
+> address 6
+> [25239.569729] Afatech DVB-T 2: Fixing fullspeed to highspeed interval:
+> 10 -> 7
+> [25239.570294] input: Afatech DVB-T 2 as
+> /devices/pci0000:00/0000:00:1d.7/usb2/2-1/2-1:1.1/input/input12
+> [25239.570642] generic-usb 0003:15A4:9016.0003: input,hidraw2: USB HID
+> v1.01 Keyboard [Afatech DVB-T 2] on usb-0000:00:1d.7-1/input1
+> [25239.982243] af9015: tuner id:177 not supported, please report!
+> [25239.982339] usbcore: registered new interface driver dvb_usb_af9015
+>
+>
+> Cheers!
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at http://vger.kernel.org/majordomo-info.html
+
+
 -- 
-1.7.3.1
-
+http://palosaari.fi/
