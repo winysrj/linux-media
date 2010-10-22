@@ -1,103 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2583 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932189Ab0JWTF1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Oct 2010 15:05:27 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id o9NJ5PO6014915
-	for <linux-media@vger.kernel.org>; Sat, 23 Oct 2010 21:05:26 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 23 Oct 2010 21:05:25 +0200 (CEST)
-Message-Id: <201010231905.o9NJ5PO6014915@smtp-vbr11.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+Received: from mx1.redhat.com ([209.132.183.28]:6320 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756632Ab0JVN1t (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Oct 2010 09:27:49 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o9MDRnOS027668
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 22 Oct 2010 09:27:49 -0400
+Date: Fri, 22 Oct 2010 11:25:28 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: jarod@redhat.com
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 3/3] mceusb: Allow a per-model device name
+Message-ID: <20101022112528.6c2e4131@pedra>
+In-Reply-To: <cover.1287753463.git.mchehab@redhat.com>
+References: <cover.1287753463.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+It is better to use a per-model device name, especially on multi-function
+devices like Polaris. So, allow overriding the default name at the
+mceusb model table.
 
-Results of the daily build of v4l-dvb:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-date:        Sat Oct 23 19:00:28 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15167:abd3aac6644e
-git master:       3e6dce76d99b328716b43929b9195adfee1de00c
-git media-master: a348e9110ddb5d494e060d989b35dd1f35359d58
-gcc version:      i686-linux-gcc (GCC) 4.5.1
-host hardware:    x86_64
-host os:          2.6.32.5
+diff --git a/drivers/media/IR/mceusb.c b/drivers/media/IR/mceusb.c
+index e72bfa1..35425ee 100644
+--- a/drivers/media/IR/mceusb.c
++++ b/drivers/media/IR/mceusb.c
+@@ -126,6 +126,7 @@ struct mceusb_model {
+ 	u32 is_polaris:1;
+ 
+ 	const char *rc_map;	/* Allow specify a per-board map */
++	const char *name;	/* per-board name */
+ };
+ 
+ static const struct mceusb_model mceusb_model[] = {
+@@ -155,6 +156,7 @@ static const struct mceusb_model mceusb_model[] = {
+ 		 * to allow testing it
+ 		 */
+ 		.rc_map = RC_MAP_RC5_HAUPPAUGE_NEW,
++		.name = "cx231xx MCE IR",
+ 	},
+ };
+ 
+@@ -960,6 +962,7 @@ static struct input_dev *mceusb_init_input_dev(struct mceusb_dev *ir)
+ 	struct ir_dev_props *props;
+ 	struct device *dev = ir->dev;
+ 	const char *rc_map = RC_MAP_RC6_MCE;
++	const char *name = "Media Center Ed. eHome Infrared Remote Transceiver";
+ 	int ret = -ENODEV;
+ 
+ 	idev = input_allocate_device();
+@@ -975,8 +978,11 @@ static struct input_dev *mceusb_init_input_dev(struct mceusb_dev *ir)
+ 		goto props_alloc_failed;
+ 	}
+ 
+-	snprintf(ir->name, sizeof(ir->name), "Media Center Ed. eHome "
+-		 "Infrared Remote Transceiver (%04x:%04x)",
++	if (mceusb_model[ir->model].name)
++		name = mceusb_model[ir->model].name;
++
++	snprintf(ir->name, sizeof(ir->name), "%s (%04x:%04x)",
++		 name,
+ 		 le16_to_cpu(ir->usbdev->descriptor.idVendor),
+ 		 le16_to_cpu(ir->usbdev->descriptor.idProduct));
+ 
+-- 
+1.7.1
 
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: WARNINGS
-linux-git-mips: WARNINGS
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-linux-2.6.32.6-armv5: WARNINGS
-linux-2.6.33-armv5: WARNINGS
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35.3-armv5: WARNINGS
-linux-2.6.32.6-armv5-davinci: ERRORS
-linux-2.6.33-armv5-davinci: ERRORS
-linux-2.6.34-armv5-davinci: ERRORS
-linux-2.6.35.3-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: ERRORS
-linux-2.6.33-armv5-ixp: ERRORS
-linux-2.6.34-armv5-ixp: ERRORS
-linux-2.6.35.3-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: ERRORS
-linux-2.6.33-armv5-omap2: ERRORS
-linux-2.6.34-armv5-omap2: ERRORS
-linux-2.6.35.3-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.32.6-m32r: WARNINGS
-linux-2.6.33-m32r: WARNINGS
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35.3-m32r: WARNINGS
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35.3-mips: WARNINGS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35.3-powerpc64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
