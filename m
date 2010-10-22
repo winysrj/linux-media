@@ -1,57 +1,88 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:60194 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751569Ab0JLDTl convert rfc822-to-8bit (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:16393 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753104Ab0JVHZu convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Oct 2010 23:19:41 -0400
-Received: by fxm4 with SMTP id 4so822321fxm.19
-        for <linux-media@vger.kernel.org>; Mon, 11 Oct 2010 20:19:40 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTimabbX5PzA_ozkuuv5=CQGEr-hw_bzHynum8cFU@mail.gmail.com>
-References: <AANLkTima57h2Zz23y885AnyzWJOOUNWZxzt4o4gRjaUX@mail.gmail.com>
-	<4CB37BB6.4050307@infradead.org>
-	<4CB38A7C.5040603@redhat.com>
-	<AANLkTimabbX5PzA_ozkuuv5=CQGEr-hw_bzHynum8cFU@mail.gmail.com>
-Date: Mon, 11 Oct 2010 20:19:38 -0700
-Message-ID: <AANLkTin1bJWMZ0G+8a2wnsYmvEtZPWv7WtgwXmOyyNC9@mail.gmail.com>
-Subject: Re: [PULL] http://kernellabs.com/hg/~stoth/saa7164-v4l
-From: Gavin Hurlbut <gjhurlbu@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Fri, 22 Oct 2010 03:25:50 -0400
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Date: Fri, 22 Oct 2010 09:25:47 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: RE: [patch 2/3] V4L/DVB: s5p-fimc: make it compile
+In-reply-to: <20101021192400.GK5985@bicker>
+To: 'Dan Carpenter' <error27@gmail.com>
+Cc: 'Mauro Carvalho Chehab' <mchehab@infradead.org>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Message-id: <000b01cb71ba$58902ad0$09b08070$%nawrocki@samsung.com>
+Content-language: en-us
+Content-transfer-encoding: 8BIT
+References: <20101021192400.GK5985@bicker>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-I replied earlier, but due to gmail wanting to send HTML mail by
-default (grr), it bounced when sending to the list....   Original
-reply (slightly reformatted) follows:
+> -----Original Message-----
+> From: Dan Carpenter [mailto:error27@gmail.com]
+> Sent: Thursday, October 21, 2010 9:24 PM
+> To: Mauro Carvalho Chehab
+> Cc: Kyungmin Park; Sylwester Nawrocki; Marek Szyprowski; Pawel Osciak;
+> linux-media@vger.kernel.org; kernel-janitors@vger.kernel.org
+> Subject: [patch 2/3] V4L/DVB: s5p-fimc: make it compile
+> 
+> The work_queue was partially removed in f93000ac11: "[media] s5p-fimc:
+> mem2mem driver refactoring and cleanup" but this bit was missed.  Also
+> we need to include sched.h otherwise the compile fails with:
+> 
+> drivers/media/video/s5p-fimc/fimc-core.c:
+> 	In function â€˜fimc_capture_handlerâ€™:
+> drivers/media/video/s5p-fimc/fimc-core.c:286:
+> 	error: â€˜TASK_NORMALâ€™ undeclared (first use in this function)
+> 
+> Signed-off-by: Dan Carpenter <error27@gmail.com>
+> ---
+> Compile tested only.                                       :P
+> 
+> diff --git a/drivers/media/video/s5p-fimc/fimc-core.h
+> b/drivers/media/video/s5p-fimc/fimc-core.h
+> index e3a7c6a..1c1437c 100644
+> --- a/drivers/media/video/s5p-fimc/fimc-core.h
+> +++ b/drivers/media/video/s5p-fimc/fimc-core.h
+> @@ -14,6 +14,7 @@
+>  /*#define DEBUG*/
+> 
+>  #include <linux/types.h>
+> +#include <linux/sched.h>
+>  #include <media/videobuf-core.h>
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-mem2mem.h>
+> diff --git a/drivers/media/video/s5p-fimc/fimc-core.c
+> b/drivers/media/video/s5p-fimc/fimc-core.c
+> index 8335045..cf9bc8e 100644
+> --- a/drivers/media/video/s5p-fimc/fimc-core.c
+> +++ b/drivers/media/video/s5p-fimc/fimc-core.c
+> @@ -1593,12 +1593,6 @@ static int fimc_probe(struct platform_device
+> *pdev)
+>  		goto err_clk;
+>  	}
+> 
+> -	fimc->work_queue = create_workqueue(dev_name(&fimc->pdev->dev));
+> -	if (!fimc->work_queue) {
+> -		ret = -ENOMEM;
+> -		goto err_irq;
+> -	}
+> -
 
->    commit 86ae40b5f3da13c5fd0c70731aac6447c6af4cd8
->    Author: Gavin Hurlbut <gjhurlbu@gmail.com>
->    Date:   Thu Sep 30 18:21:20 2010 -0300
->
->    V4L/DVB: Fix the -E{*} returns in the VBI device as well
->
->    commit f92f45822ce73cfc4bde8d61a75598fb9db35d6b
->    Author: Gavin Hurlbut <gjhurlbu@gmail.com>
->    Date:   Wed Sep 29 15:18:20 2010 -0300
->
->    V4L/DVB: Fix the negative -E{BLAH} returns from fops_read
->
->    commit 25b5ab78a5240c82baa78167e55c8d74a6e0a276
->    Author: Gavin Hurlbut <gjhurlbu@gmail.com>
->    Date:   Mon Sep 27 23:50:43 2010 -0300
->
->    V4L/DVB: Change the second input names to include " 2" to distinguish them
->
-> Those three patches are missing your Signed-off-by: and Gavin's Signed-off-by:
->
-> Could you please provide it?
+This code is properly removed in my original patch. But it has been added
+again during a merge conflict solving. Unfortunately I cannot identify the
+merge commit today in linux-next. 
+As for sched.h, it needs a separate patch so I could handle it and add you
+as reported by it is OK.
 
-Chock those up to me missing putting the Signed-off-by: lines in the
-patches I sent to Steven due to me being new to mercurial.  Is there a
-way for me to add it posthumously, as it were?  I'll be sure to add
-that in any future patches, and I apologize for the oversight.  It
-would be (for all three patches):
+Regards,
+Sylwester
 
-Signed-off-by: Gavin Hurlbut <gjhurlbu@gmail.com>
+>  	ret = fimc_register_m2m_device(fimc);
+>  	if (ret)
+>  		goto err_irq;
+
