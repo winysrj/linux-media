@@ -1,51 +1,44 @@
 Return-path: <mchehab@pedra>
-Received: from smtp28.orange.fr ([80.12.242.101]:43036 "EHLO smtp28.orange.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757160Ab0JDUzS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Oct 2010 16:55:18 -0400
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2822.orange.fr (SMTP Server) with ESMTP id ED3237000426
-	for <linux-media@vger.kernel.org>; Mon,  4 Oct 2010 22:55:16 +0200 (CEST)
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2822.orange.fr (SMTP Server) with ESMTP id E05EF7000546
-	for <linux-media@vger.kernel.org>; Mon,  4 Oct 2010 22:55:16 +0200 (CEST)
-Received: from roazhon.bzh.lan (ARennes-256-1-120-172.w90-32.abo.wanadoo.fr [90.32.119.172])
-	by mwinf2822.orange.fr (SMTP Server) with ESMTP id C64097000426
-	for <linux-media@vger.kernel.org>; Mon,  4 Oct 2010 22:55:16 +0200 (CEST)
-From: "Yann E. MORIN" <yann.morin.1998@anciens.enib.fr>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] v4l/dvb: add support for AVerMedia AVerTV Red HD+ (A850T)
-Date: Mon, 4 Oct 2010 22:55:14 +0200
-References: <1285962943-20312-1-git-send-email-yann.morin.1998@anciens.enib.fr> <1285962943-20312-2-git-send-email-yann.morin.1998@anciens.enib.fr>
-In-Reply-To: <1285962943-20312-2-git-send-email-yann.morin.1998@anciens.enib.fr>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:35673 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751838Ab0JVILj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Oct 2010 04:11:39 -0400
+Date: Fri, 22 Oct 2010 10:11:28 +0200
+From: Dan Carpenter <error27@gmail.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: 'Mauro Carvalho Chehab' <mchehab@infradead.org>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch 2/3] V4L/DVB: s5p-fimc: make it compile
+Message-ID: <20101022081128.GP5985@bicker>
+References: <20101021192400.GK5985@bicker> <000b01cb71ba$58902ad0$09b08070$%nawrocki@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Message-Id: <201010042255.14358.yann.morin.1998@anciens.enib.fr>
+In-Reply-To: <000b01cb71ba$58902ad0$09b08070$%nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-All,
+On Fri, Oct 22, 2010 at 09:25:47AM +0200, Sylwester Nawrocki wrote:
+> 
+> This code is properly removed in my original patch. But it has been added
+> again during a merge conflict solving. Unfortunately I cannot identify the
+> merge commit today in linux-next. 
+> As for sched.h, it needs a separate patch so I could handle it and add you
+> as reported by it is OK.
+> 
 
-On Friday 01 October 2010 21:55:43 Yann E. MORIN wrote:
-> The AVerTV Red HD+ (A850T) is basically the same as the existing
-> AVerTV Volar Black HD (A850), but is specific to the french market.
-> The A850T identifies itself as a A850, but has its own PID. It even
-> suffers from the same EEPROM deficiencies.
+I thought it was probably a merge conflict.  Thanks for taking care of
+this.
 
-Ping? Is there something that I should still work on?
+regards,
+dan carpenter
 
-Regards,
-Yann E. MORIN.
-
--- 
-.-----------------.--------------------.------------------.--------------------.
-|  Yann E. MORIN  | Real-Time Embedded | /"\ ASCII RIBBON | Erics' conspiracy: |
-| +33 662 376 056 | Software  Designer | \ / CAMPAIGN     |  ___               |
-| +33 223 225 172 `------------.-------:  X  AGAINST      |  \e/  There is no  |
-| http://ymorin.is-a-geek.org/ | _/*\_ | / \ HTML MAIL    |   v   conspiracy.  |
-'------------------------------^-------^------------------^--------------------'
-
-
+> Regards,
+> Sylwester
+> 
+> >  	ret = fimc_register_m2m_device(fimc);
+> >  	if (ret)
+> >  		goto err_irq;
