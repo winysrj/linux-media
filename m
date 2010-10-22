@@ -1,103 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1719 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932150Ab0JOTEs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Oct 2010 15:04:48 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id o9FJ4k2l017361
-	for <linux-media@vger.kernel.org>; Fri, 15 Oct 2010 21:04:46 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 15 Oct 2010 21:04:46 +0200 (CEST)
-Message-Id: <201010151904.o9FJ4k2l017361@smtp-vbr15.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+Received: from mx1.redhat.com ([209.132.183.28]:16880 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751922Ab0JVWxx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Oct 2010 18:53:53 -0400
+Message-ID: <4CC215EA.30504@redhat.com>
+Date: Fri, 22 Oct 2010 20:53:30 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Jarod Wilson <jarod@wilsonet.com>
+CC: Adrian Taylor <adrian.taylor@realvnc.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] Support for Elgato Video Capture.
+References: <20E008D5-74E6-4BD7-8337-08A27646E265@realvnc.com> <1CA567F4-48D2-4C45-B65B-26F1F7056BEA@wilsonet.com>
+In-Reply-To: <1CA567F4-48D2-4C45-B65B-26F1F7056BEA@wilsonet.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Em 22-10-2010 11:25, Jarod Wilson escreveu:
+> On Oct 22, 2010, at 7:30 AM, Adrian Taylor wrote:
+> 
+>> This patch allows this device successfully to show video, at least from
+>> its composite input.
+>>
+>> I have no information about the true hardware contents of this device and so
+>> this patch is based solely on fiddling with things until it worked. The
+>> chip appears to be em2860, and the closest device with equivalent inputs
+>> is the Typhoon DVD Maker. Copying the settings for that device appears
+>> to do the trick. That's what this patch does.
+>>
+>> Patch redone against the staging/v2.6.37 branch of the v4l/dvb
+>> media_tree as requested.
+>>
+>> Signed-off-by: Adrian Taylor <adrian.taylor@realvnc.com>
+> 
+> Looks good, thanks for the redo.
+> 
+> Reviewed-by: Jarod Wilson <jarod@redhat.com>
+> 
+> 
 
-Results of the daily build of v4l-dvb:
+Thanks. Yet, I've renumbered it to 33, as we had this number free...
+I think that the next free number is 59... It would be nice to
+fill-in the blanks ;)
 
-date:        Fri Oct 15 19:00:16 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15164:1da5fed5c8b2
-git master:       3e6dce76d99b328716b43929b9195adfee1de00c
-git media-master: 7c0f36fc484c5693a145e9d795fcc700f42b5231
-gcc version:      i686-linux-gcc (GCC) 4.5.1
-host hardware:    x86_64
-host os:          2.6.32.5
-
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: WARNINGS
-linux-git-mips: WARNINGS
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-linux-2.6.32.6-armv5: WARNINGS
-linux-2.6.33-armv5: WARNINGS
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35.3-armv5: WARNINGS
-linux-2.6.32.6-armv5-davinci: ERRORS
-linux-2.6.33-armv5-davinci: ERRORS
-linux-2.6.34-armv5-davinci: ERRORS
-linux-2.6.35.3-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: ERRORS
-linux-2.6.33-armv5-ixp: ERRORS
-linux-2.6.34-armv5-ixp: ERRORS
-linux-2.6.35.3-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: ERRORS
-linux-2.6.33-armv5-omap2: ERRORS
-linux-2.6.34-armv5-omap2: ERRORS
-linux-2.6.35.3-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.32.6-m32r: WARNINGS
-linux-2.6.33-m32r: WARNINGS
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35.3-m32r: WARNINGS
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35.3-mips: WARNINGS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35.3-powerpc64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Cheers,
+Mauro
