@@ -1,85 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from lennier.cc.vt.edu ([198.82.162.213]:59937 "EHLO
-	lennier.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756004Ab0JNUGw (ORCPT
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:36034 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754671Ab0JWMNe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Oct 2010 16:06:52 -0400
-To: Andrew Morton <akpm@linux-foundation.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: mmotm 2010-10-13 - GSPCA SPCA561 webcam driver broken
-In-Reply-To: Your message of "Wed, 13 Oct 2010 17:13:25 PDT."
-             <201010140044.o9E0iuR3029069@imap1.linux-foundation.org>
-From: Valdis.Kletnieks@vt.edu
-References: <201010140044.o9E0iuR3029069@imap1.linux-foundation.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="==_Exmh_1287086789_5000P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
-Content-Transfer-Encoding: 7bit
-Date: Thu, 14 Oct 2010 16:06:29 -0400
-Message-ID: <5158.1287086789@localhost>
+	Sat, 23 Oct 2010 08:13:34 -0400
+Date: Sat, 23 Oct 2010 14:13:29 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
+	mchehab@infradead.org, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/3] IR: extend ir_raw_event and do refactoring
+Message-ID: <20101023121329.GA21845@hardeman.nu>
+References: <1287269790-17605-1-git-send-email-maximlevitsky@gmail.com>
+ <1287269790-17605-2-git-send-email-maximlevitsky@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1287269790-17605-2-git-send-email-maximlevitsky@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---==_Exmh_1287086789_5000P
-Content-Type: text/plain; charset=us-ascii
-
-On Wed, 13 Oct 2010 17:13:25 PDT, akpm@linux-foundation.org said:
-> The mm-of-the-moment snapshot 2010-10-13-17-13 has been uploaded to
+On Sun, Oct 17, 2010 at 12:56:28AM +0200, Maxim Levitsky wrote:
+> Add new event types for timeout & carrier report
+> Move timeout handling from ir_raw_event_store_with_filter to
+> ir-lirc-codec, where it is really needed.
+> Now lirc bridge ensures proper gap handling.
+> Extend lirc bridge for carrier & timeout reports
 > 
->    http://userweb.kernel.org/~akpm/mmotm/
+> Note: all new ir_raw_event variables now should be initialized
+> like that: DEFINE_IR_RAW_EVENT(ev);
+> 
+> To clean an existing event, use init_ir_raw_event(&ev);
+> 
+> Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+> Acked-by: Jarod Wilson <jarod@redhat.com>
 
-This broke my webcam.  I bisected it down to this commit, and things
-work again after reverting the 2 code lines of change.
+I finally had a read-through of this patch. I like it. Note that we're 
+going to have to change the decoders to also use the timeout event 
+(since it basically behaves like a long space and e.g. the NEC decoder 
+waits for the trailing space before sending a keydown). The same problem 
+already exists for users of ir_raw_event_store_with_filter() though so 
+the patch should still go in.
 
-commit 9e4d79a98ebd857ec729f5fa8f432f35def4d0da
-Author: Hans Verkuil <hverkuil@xs4all.nl>
-Date:   Sun Sep 26 08:16:56 2010 -0300
-
-    V4L/DVB: v4l2-dev: after a disconnect any ioctl call will be blocked
-    
-    Until now all fops except release and (unlocked_)ioctl returned an error
-    after the device node was unregistered. Extend this as well to the ioctl
-    fops. There is nothing useful that an application can do here and it
-    complicates the driver code unnecessarily.
-    
-    Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-
-diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-index d4a3532..f069c61 100644
---- a/drivers/media/video/v4l2-dev.c
-+++ b/drivers/media/video/v4l2-dev.c
-@@ -221,8 +221,8 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, 
-        struct video_device *vdev = video_devdata(filp);
-        int ret;
- 
--       /* Allow ioctl to continue even if the device was unregistered.
--          Things like dequeueing buffers might still be useful. */
-+       if (!vdev->fops->ioctl)
-+               return -ENOTTY;
-        if (vdev->fops->unlocked_ioctl) {
-                ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
-        } else if (vdev->fops->ioctl) {
-
-I suspect this doesn't do what's intended if a driver is using ->unlocked_ioctl
-rather than ->ioctl, and it should be reverted - it only saves at most one
-if statement.
-
-
---==_Exmh_1287086789_5000P
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-Comment: Exmh version 2.5 07/13/2001
-
-iD8DBQFMt2LFcC3lWbTT17ARAjfuAKDDTUXbTNeuq9on+MoSM7ZCYo0aCACfTeC/
-0Y2ydJe6V1LNdBC0O8LH5Ak=
-=0IAe
------END PGP SIGNATURE-----
-
---==_Exmh_1287086789_5000P--
+Acked-by: David Härdeman <david@hardeman.nu>
 
