@@ -1,64 +1,77 @@
 Return-path: <mchehab@pedra>
-Received: from nm20.bullet.mail.ukl.yahoo.com ([217.146.183.194]:39724 "HELO
-	nm20.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750947Ab0JKKCy convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Oct 2010 06:02:54 -0400
-Message-ID: <259225.84971.qm@web25402.mail.ukl.yahoo.com>
-Date: Mon, 11 Oct 2010 10:57:14 +0100 (BST)
-From: fabio tirapelle <ftirapelle@yahoo.it>
-Subject: Hauppauge WinTV-HVR-1120 on Unbuntu 10.04
-To: linux-media@vger.kernel.org
+Received: from mx1.redhat.com ([209.132.183.28]:26073 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755441Ab0JWDZx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Oct 2010 23:25:53 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o9N3PqPK023894
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 22 Oct 2010 23:25:52 -0400
+Received: from [10.3.227.40] (vpn-227-40.phx2.redhat.com [10.3.227.40])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o9N3PpLN001607
+	for <linux-media@vger.kernel.org>; Fri, 22 Oct 2010 23:25:51 -0400
+Message-ID: <4CC255BE.8030001@redhat.com>
+Date: Sat, 23 Oct 2010 01:25:50 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+To: "linux-med >> Linux Media Mailing List" <linux-media@vger.kernel.org>
+Subject: [PATCH] tm6000: Remove some ugly debug code
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi
+Those time debugs were here just while developing the driver. They are
+not really needed, as kernel may be configured to print jiffies with
+printk's. Also, it breaks, if more than one device is connected.
 
-After upgrading from Ubuntu 9.10 to Ubuntu 10.04 my Hauppauge WinTV-HVR-1120 
-(sometimes) doesn't work correctly.
-I get random the following errors:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-[   53.216153] DVB: registering new adapter (saa7133[0])
-[   53.216156] DVB: registering adapter 2 frontend 0 (NXP TDA10048HN DVB-T)...
-[   53.840013] tda10048_firmware_upload: waiting for firmware upload 
-(dvb-fe-tda10048-1.0.fw)...
-[   53.840019] saa7134 0000:01:06.0: firmware: requesting dvb-fe-tda10048-1.0.fw
-[   53.880505] tda10048_firmware_upload: firmware read 24878 bytes.
-[   53.880509] tda10048_firmware_upload: firmware uploading
-[   58.280136] tda10048_firmware_upload: firmware uploaded
-[   59.024537] tda18271_write_regs: ERROR: idx = 0x5, len = 1, i2c_transfer 
-returned: -5
-[   59.024541] tda18271c2_rf_tracking_filters_correction: error -5 on line 264
-[   59.420153] tda18271_write_regs: ERROR: idx = 0x5, len = 1, i2c_transfer 
-returned: -5
-[   59.420157] tda18271_toggle_output: error -5 on line 47
-[   91.004019] Clocksource tsc unstable (delta = -295012684 ns)
-[  256.293639] eth0: link up.
-[  256.294750] ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready
-[  263.523498] eth0: link down.
-[  265.258740] eth0: link up.
-[  266.460026] eth0: no IPv6 routers present
-[ 9869.636167] tda18271_write_regs: ERROR: idx = 0x5, len = 1, i2c_transfer 
-returned: -5
-[ 9869.636178] tda18271_init: error -5 on line 826
-[ 9872.636220] tda18271_write_regs: ERROR: idx = 0x5, len = 1, i2c_transfer 
-returned: -5
-[ 9872.636232] tda18271_toggle_output: error -5 on line 47
-[ 9998.240167] tda18271_write_regs: ERROR: idx = 0x5, len = 1, i2c_transfer 
-returned: -5
-[ 9998.240178] tda18271_init: error -5 on line 826
-[10001.240179] tda18271_write_regs: ERROR: idx = 0x5, len = 1, i2c_transfer 
-returned: -5
-[10001.240190] tda18271_toggle_output: error -5 on line 47
-
-
-
-Any ideas?
-Thanks
-
-
-
-      
+diff --git a/drivers/media/IR/mceusb.c b/drivers/media/IR/mceusb.c
+index 9dce684..e34efac 100644
+--- a/drivers/media/IR/mceusb.c
++++ b/drivers/media/IR/mceusb.c
+@@ -812,8 +812,7 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
+ 					ir->rawir.duration = rawir.duration;
+ 					ir->rawir.pulse = rawir.pulse;
+ 				}
+-				if (ir->rem)
+-					break;
++				break;
+ 			}
+ 			rawir.duration += ir->rawir.duration;
+ 			ir->rawir.duration = 0;
+diff --git a/drivers/staging/tm6000/tm6000-core.c b/drivers/staging/tm6000/tm6000-core.c
+index 9b45101..0883ea5 100644
+--- a/drivers/staging/tm6000/tm6000-core.c
++++ b/drivers/staging/tm6000/tm6000-core.c
+@@ -37,7 +37,6 @@ int tm6000_read_write_usb(struct tm6000_core *dev, u8 req_type, u8 req,
+ {
+ 	int          ret, i;
+ 	unsigned int pipe;
+-	static int   ini = 0, last = 0, n = 0;
+ 	u8	     *data = NULL;
+ 
+ 	if (len)
+@@ -52,19 +51,12 @@ int tm6000_read_write_usb(struct tm6000_core *dev, u8 req_type, u8 req,
+ 	}
+ 
+ 	if (tm6000_debug & V4L2_DEBUG_I2C) {
+-		if (!ini)
+-			last = ini = jiffies;
++		printk("(dev %p, pipe %08x): ", dev->udev, pipe);
+ 
+-		printk("%06i (dev %p, pipe %08x): ", n, dev->udev, pipe);
+-
+-		printk("%s: %06u ms %06u ms %02x %02x %02x %02x %02x %02x %02x %02x ",
++		printk("%s: %02x %02x %02x %02x %02x %02x %02x %02x ",
+ 			(req_type & USB_DIR_IN) ? " IN" : "OUT",
+-			jiffies_to_msecs(jiffies-last),
+-			jiffies_to_msecs(jiffies-ini),
+ 			req_type, req, value&0xff, value>>8, index&0xff,
+ 			index>>8, len&0xff, len>>8);
+-		last = jiffies;
+-		n++;
+ 
+ 		if (!(req_type & USB_DIR_IN)) {
+ 			printk(">>> ");
