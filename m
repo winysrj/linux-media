@@ -1,80 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from smtp204.alice.it ([82.57.200.100]:34828 "EHLO smtp204.alice.it"
+Received: from mail.kapsi.fi ([217.30.184.167]:50141 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754139Ab0JJJpr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Oct 2010 05:45:47 -0400
-Date: Sun, 10 Oct 2010 11:45:36 +0200
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: linux-media@vger.kernel.org
-Subject: Re: gspca, audio and ov534: regression.
-Message-Id: <20101010114536.1ecbaf29.ospite@studenti.unina.it>
-In-Reply-To: <20101007194401.4a327081@tele>
-References: <20101006123321.baade0a4.ospite@studenti.unina.it>
-	<20101006134855.43879d74@tele>
-	<20101006160441.6ee9583d.ospite@studenti.unina.it>
-	<20101006165337.9c60bb95.ospite@studenti.unina.it>
-	<20101007194401.4a327081@tele>
-Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Sun__10_Oct_2010_11_45_36_+0200_=1poc6VNMzCaSh8B"
+	id S1752356Ab0JWKtb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Oct 2010 06:49:31 -0400
+Message-ID: <4CC2BDB7.1010502@iki.fi>
+Date: Sat, 23 Oct 2010 13:49:27 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+CC: Renura Enterprises Pty Ltd <renura@digitalnow.com.au>,
+	Bernard Giannetti <thebernmeister@hotmail.com>
+Subject: [GIT PULL FOR 2.6.37] af9015 new device and remote controller changes
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---Signature=_Sun__10_Oct_2010_11_45_36_+0200_=1poc6VNMzCaSh8B
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Moikka Mauro,
 
-On Thu, 7 Oct 2010 19:44:01 +0200
-Jean-Francois Moine <moinejf@free.fr> wrote:
+PULL following changes to the 2.6.37-RC1.
 
-> On Wed, 6 Oct 2010 16:53:37 +0200
-> Antonio Ospite <ospite@studenti.unina.it> wrote:
->=20
-> > > PS3 Eye audio is working with linux-2.6.33.7 it is broken in
-> > > linux-2.6.35.7 already, I'll try to further narrow down the
-> > > interval. Ah, alsamixer doesn't work even when the device is OK in
-> > > pulseaudio...=20
-> >=20
-> > I was wrong, the audio part works even in 2.6.36-rc6 but _only_ when
-> > the webcam is plugged in from boot, could this have to do with the
-> > order gspca and snd-usb-audio are loaded?
->=20
-> Hi Antonio,
->=20
-> If you still have a kernel 2.6.33, may you try my test version (tarball
-> in my web page)? As it contain only the gspca stuff, this may tell if
-> the problem is in gspca or elsewhere in the kernel.
->=20
+t. Antti
 
-JF I suspect the device not showing up in pulseaudio has nothing to do
-with gspca at all. I can actually record audio using alsa even if
-pulseaudio does not see the device, so it must be a pulseaudio issue.
+The following changes since commit a348e9110ddb5d494e060d989b35dd1f35359d58:
 
-Thanks,
-   Antonio
+   [media] cx25840: fix problem with Terratec Grabster AV400 (2010-10-18 
+04:11:44 -0200)
 
---=20
-Antonio Ospite
-http://ao2.it
+are available in the git repository at:
+   git://linuxtv.org/anttip/media_tree.git af9015
 
-PGP public key ID: 0x4553B001
+Antti Palosaari (4):
+       af9015: RC fixes and improvements
+       DigitalNow TinyTwin remote controller
+       af9015: map DigitalNow TinyTwin v2 remote
+       af9015: support for DigitalNow TinyTwin v3 [1f4d:9016]
 
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
+  drivers/media/IR/keymaps/Makefile                 |    1 +
+  drivers/media/IR/keymaps/rc-digitalnow-tinytwin.c |   98 
++++++++++++++++++++++
+  drivers/media/dvb/dvb-usb/af9015.c                |   88 
++++++++++----------
+  drivers/media/dvb/dvb-usb/dvb-usb-ids.h           |    2 +
+  include/media/rc-map.h                            |    1 +
+  5 files changed, 142 insertions(+), 48 deletions(-)
+  create mode 100644 drivers/media/IR/keymaps/rc-digitalnow-tinytwin.c
 
---Signature=_Sun__10_Oct_2010_11_45_36_+0200_=1poc6VNMzCaSh8B
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iEYEARECAAYFAkyxi0AACgkQ5xr2akVTsAERWwCfXALCDsc7fTtQ6QAYxOf0HYlW
-hlAAmgLNMRSawLI+gSoDy8ZDdN2fajKN
-=7SFf
------END PGP SIGNATURE-----
-
---Signature=_Sun__10_Oct_2010_11_45_36_+0200_=1poc6VNMzCaSh8B--
+-- 
+http://palosaari.fi/
