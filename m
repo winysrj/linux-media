@@ -1,61 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:34286 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754320Ab0JKM7R (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:45958 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757582Ab0JWP2B convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Oct 2010 08:59:17 -0400
-Received: by ewy20 with SMTP id 20so555726ewy.19
-        for <linux-media@vger.kernel.org>; Mon, 11 Oct 2010 05:59:16 -0700 (PDT)
+	Sat, 23 Oct 2010 11:28:01 -0400
+Received: by wyf28 with SMTP id 28so1907993wyf.19
+        for <linux-media@vger.kernel.org>; Sat, 23 Oct 2010 08:27:59 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1010072012280.15141@axis700.grange>
-References: <AANLkTimyR117ZiHq8GFz4YW5tBtW3k82NzGVZqKoVTbY@mail.gmail.com>
-	<4CADA7ED.5020604@maxwell.research.nokia.com>
-	<201010071527.41438.laurent.pinchart@ideasonboard.com>
-	<19F8576C6E063C45BE387C64729E739404AA21D15A@dbde02.ent.ti.com>
-	<Pine.LNX.4.64.1010072012280.15141@axis700.grange>
-Date: Mon, 11 Oct 2010 14:59:15 +0200
-Message-ID: <AANLkTinJhywDoZg5F2tvqdW44to-6P4hgNd9Fav9qTv8@mail.gmail.com>
-Subject: Re: OMAP 3530 camera ISP forks and new media framework
-From: Bastian Hecht <hechtb@googlemail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <4CC25F60.7050106@redhat.com>
+References: <4CC25F60.7050106@redhat.com>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Sat, 23 Oct 2010 08:27:37 -0700
+Message-ID: <AANLkTik-QN5wkgvAkmR-yDT9-pLqceAScoYCgRsA3Z9J@mail.gmail.com>
+Subject: Re: V4L/DVB/IR patches pending merge
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	kyungmin.park@samsung.com
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-So... let's see if i got some things right, please let me now if you disagree:
+Hi Mauro,
 
-- I do want to use the omap34xxcam.c driver as it is for the newest
-framework and I get most support for it
+2010/10/22 Mauro Carvalho Chehab <mchehab@redhat.com>:
+> This is the list of patches that weren't applied yet. I've made a big effort starting
+> last weekend to handle everything I could. All pull requests were addressed. There are still
+> 43 patches on my queue.
+>
+> Please help me to clean the list.
 
-- The camera sensor driver must implement the v4l2-subdev and the new
-pad-level api. As the register list of mt9t031 and mt9p031 sensors are
-identical, I could copy the subdev-part. But the existing mt9t031
-driver stacks on top of soc_camera. soc_camera creates a v4l2 device.
-omap34xxcam also creates a v4l2 dev. Obviously they are competing
-architectures.
-Guennadi wrote:
-> There is already an mt9t031 v4l2-subdev / soc-camera driver, so, if
-> mt9t031 and mt9p031 are indeed similar enough, I think, the right way is
-> to join efforts to port soc-camera over to the new "pad-level" API and
-> re-use the driver.
-This confuses me a bit now. Guennadi, is your idea to update the
-soc_camera interface for pad-level support and port omap34xxcam to a
-soc_camera_omap34xxcam?
-I don't think I am capable of writing a new host bridge driver, so I
-would prefer touching only the sensor driver part. Or do you think it
-is better to remove the soc_camera dependency and fit the camera
-sensor driver to omap34xxcam directly?
-
-- If I do the later, I take Laurent's approach and look at his MT9T001
-sensor driver for Sakari's omap34xxcam host driver and adapt it for my
-needs. I can look for more subdev pad-level examples in Vaibhav's
-repository.
+>                == Videobuf2 series ==
+>
+> Oct,20 2010: [7/7] v4l: videobuf2: add CMA allocator                                http://patchwork.kernel.org/patch/267521  Pawel Osciak <p.osciak@samsung.com>
+> Oct,20 2010: [2/7] v4l: videobuf2: add generic memory handling routines             http://patchwork.kernel.org/patch/267531  Pawel Osciak <p.osciak@samsung.com>
+> Oct,20 2010: [4/7] v4l: videobuf2: add DMA coherent allocator                       http://patchwork.kernel.org/patch/267541  Pawel Osciak <p.osciak@samsung.com>
+> Oct,20 2010: [6/7] v4l: vivi: port to videobuf2                                     http://patchwork.kernel.org/patch/267551  Pawel Osciak <p.osciak@samsung.com>
+> Oct,20 2010: [1/7] v4l: add videobuf2 Video for Linux 2 driver framework            http://patchwork.kernel.org/patch/267561  Pawel Osciak <p.osciak@samsung.com>
+> Oct,20 2010: [3/7] v4l: videobuf2: add vmalloc allocator                            http://patchwork.kernel.org/patch/267571  Pawel Osciak <p.osciak@samsung.com>
+> Oct,20 2010: [5/7] v4l: videobuf2: add read() emulator                              http://patchwork.kernel.org/patch/267581  Marek Szyprowski <m.szyprowski@samsung.com>
+> Oct,13 2010: [1/4] MFC: Changes in include/linux/videodev2.h for MFC 5.1 codec      http://patchwork.kernel.org/patch/250371  Kamil Debski <k.debski@samsung.com>
+> Oct,13 2010: [2/4] MFC: Add MFC 5.1 driver to plat-s5p                              http://patchwork.kernel.org/patch/250361  Kamil Debski <k.debski@samsung.com>
+> Oct,13 2010: [3/4] MFC: Add MFC 5.1 V4L2 driver                                     http://patchwork.kernel.org/patch/250411  Kamil Debski <k.debski@samsung.com>
+> Oct,13 2010: [4/4] s5pc110: Enable MFC 5.1 on Goni                                  http://patchwork.kernel.org/patch/250401  Kamil Debski <k.debski@samsung.com>
+>
+> Laurent wants more time to review videobuf2. I agree. reviewing API changes like this require some
+> time and some tests. Also, i would like to see DMA Scatter/Gather version, as it allows testing with
+> more complex devices.
 
 
-So long, thanks for all your help,
+Videobuf2 depends on multi-planar extensions. It of course works with
+the "old" non-multiplanar API, but supports both. What is the status
+of those patches? I see them as RFC in patchwork.
+(I've been away those last couple of weeks, but trying to catch up.)
 
-Bastian
+-- 
+Best regards,
+Pawel Osciak
