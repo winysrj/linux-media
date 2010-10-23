@@ -1,80 +1,86 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.171]:52771 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758484Ab0JSNZl (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:56611 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756239Ab0JWCCO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Oct 2010 09:25:41 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Dave Airlie <airlied@gmail.com>
-Subject: Re: [Ksummit-2010-discuss] [v2] Remaining BKL users, what to do
-Date: Tue, 19 Oct 2010 15:26:01 +0200
-Cc: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	Steven Rostedt <rostedt@goodmis.org>, Greg KH <greg@kroah.com>,
-	codalist@telemann.coda.cs.cmu.edu, autofs@linux.kernel.org,
-	Samuel Ortiz <samuel@sortiz.org>, Jan Kara <jack@suse.cz>,
-	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
-	Jan Harkes <jaharkes@cs.cmu.edu>, netdev@vger.kernel.org,
-	Anders Larsen <al@alarsen.net>, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	Bryan Schumaker <bjschuma@netapp.com>,
-	Christoph Hellwig <hch@infradead.org>,
-	ksummit-2010-discuss@lists.linux-foundation.org,
-	Petr Vandrovec <vandrove@vc.cvut.cz>,
-	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
-	linux-fsdevel@vger.kernel.org,
-	Evgeniy Dushistov <dushistov@mail.ru>,
-	Ingo Molnar <mingo@elte.hu>,
-	Andrew Hendry <andrew.hendry@gmail.com>,
-	linux-media@vger.kernel.org
-References: <201009161632.59210.arnd@arndb.de> <AANLkTi=oAeuz8ZxcOMpf=3MVY=WMt0BwHiGCUxO7OAEV@mail.gmail.com> <201010190926.54635.arnd@arndb.de>
-In-Reply-To: <201010190926.54635.arnd@arndb.de>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+	Fri, 22 Oct 2010 22:02:14 -0400
+Received: by fxm16 with SMTP id 16so1242557fxm.19
+        for <linux-media@vger.kernel.org>; Fri, 22 Oct 2010 19:02:13 -0700 (PDT)
+Subject: Re: [PATCH RFC]  ir-rc5-decoder: don't wait for the end space to
+ produce a code
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <4CC23CD7.1000907@redhat.com>
+References: <4CBF2477.9020008@redhat.com>
+	 <0C5A1128-33E7-4331-98EB-D36C1005F51F@wilsonet.com>
+	 <4CC04671.6000608@redhat.com> <1287797114.4948.2.camel@maxim-laptop>
+	 <4CC23CD7.1000907@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 23 Oct 2010 04:02:09 +0200
+Message-ID: <1287799329.11999.5.camel@maxim-laptop>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201010191526.01887.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday 19 October 2010, Arnd Bergmann wrote:
-> On Tuesday 19 October 2010 06:52:32 Dave Airlie wrote:
-> > > I might be able to find some hardware still lying around here that uses an
-> > > i810. Not sure unless I go hunting it. But I get the impression that if
-> > > the kernel is a single-CPU kernel there is not any problem anyway? Don't
-> > > distros offer a non-smp kernel as an installation option in case the user
-> > > needs it? So in reality how big a problem is this?
+On Fri, 2010-10-22 at 23:39 -0200, Mauro Carvalho Chehab wrote:
+> Em 22-10-2010 23:25, Maxim Levitsky escreveu:
+> > On Thu, 2010-10-21 at 11:56 -0200, Mauro Carvalho Chehab wrote:
+> >> Em 21-10-2010 11:46, Jarod Wilson escreveu:
+> >>> On Oct 20, 2010, at 1:18 PM, Mauro Carvalho Chehab wrote:
+> >>>
+> >>>> The RC5 decoding is complete at a BIT_END state. there's no reason
+> >>>> to wait for the next space to produce a code.
+> >>>
+> >>> Well, if I'm reading things correctly here, I think the only true functional difference made to the decoder here was to skip the if
+> >>> (ev.pulse) break; check in STATE_FINISHED, no? In other words, this looks like it was purely an issue with the receiver data parsing,
+> >>> which was ending on a pulse instead of a space. I can make this guess in greater confidence having seen another patch somewhere that
+> >>> implements a different buffer parsing routine for the polaris devices though... ;)
+> >>
+> >> This patch doesn't solve the Polaris issue ;)
+> >>
+> >> While I made it in the hope that it would fix Polaris (it ended by not solving), I still think it can be kept, as
+> >> it speeds up a little bit the RC-5 output, by not waiting for the last space.
+> >>
+> >> I'll be forwarding soon the polaris decoder fixes patch, and another mceusb patch I did,
+> >> improving data decode on debug mode.
+> >>
+> >>> The mceusb portion of the patch is probably a worthwhile micro-optimization of its ir processing routine though -- 
+> >>> don't call ir_raw_event_handle if there's no event to handle. Lemme just go ahead and merge that part via my staging tree, 
+> >>> if you don't mind. (I've got a dozen or so IR patches that have been queueing up, planning on another pull req relatively soon).
+> >>>
+> >>
+> >> Oh! I didn't notice that this went into the patch... for sure it doesn't belong here.
+> >> Yes, it is just a cleanup for mceusb. Feel free to split it, adding a proper description for it
+> >> and preserving my SOB.
 > > 
-> > Not anymore, which is my old point of making a fuss. Nowadays in the
-> > modern distro world, we supply a single kernel that can at runtime
-> > decide if its running on SMP or UP and rewrite the text section
-> > appropriately with locks etc. Its like magic, and something like
-> > marking drivers as BROKEN_ON_SMP at compile time is really wrong when
-> > what you want now is a runtime warning if someone tries to hotplug a
-> > CPU with a known iffy driver loaded or if someone tries to load the
-> > driver when we are already in SMP mode.
+> > No need in this patch.
+> > My patch resolves the issue genericly by making the driver send the
+> > timeout message at the end of the data among the current length of the
+> > space (which will continue to grow).
+> > 
+> > Just make mceusb send the timeout sample.
 > 
-> We could make the driver run-time non-SMP by adding
 > 
-> 	if (num_present_cpus() > 1) {
-> 		pr_err("i810 no longer supports SMP\n");
-> 		return -EINVAL;
-> 	}
-> 
-> to the init function. That would cover the vast majority of the
-> users of i810 hardware, I guess.
+> Hmm... now, a RC6(0) remote is also being decoded as a RC5 remote. Could this be due to
+> your patches?
+Very unlikely.
+Probably the remote is really RC5
 
-Some research showed that Intel never support i810/i815 SMP setups,
-but there was indeed one company (http://www.acorpusa.com at the time,
-now owned by a domain squatter) that made i815E based dual Pentium-III
-boards like this one: http://cgi.ebay.com/280319795096
+RC5 and RC6 just differ too much.
+And besides mceusb doesn't even send the timeouts yet.
+Still you could revert and see if it helps.
 
-The first person that can send me an authentic log file showing the
-use of X.org with DRM on a 2.6.35 kernel with two processors on that
-mainboard dated today or earlier gets a free upgrade to an AGP graphics
-card of comparable or better 3D performance from me. Please include
-the story how why you are running this machine with a new kernel.
+The only patch that has any potential of breaking anything is the
+'[PATCH 1/3] IR: extend ir_raw_event and do refactoring'
 
-i830 is harder, apparently some i865G boards support Pentium 4 with HT
-and even later dual-core processors.
+Note that I tried going the way this patch does.
+And it really doesn't work.
 
-	Arnd
+
+
+Best regards,
+	Maxim Levitsky
+
