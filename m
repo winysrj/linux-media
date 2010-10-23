@@ -1,47 +1,31 @@
 Return-path: <mchehab@pedra>
-Received: from p-mail2.rd.francetelecom.com ([195.101.245.16]:21400 "EHLO
-	p-mail2.rd.francetelecom.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756528Ab0JAPMI (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:46963 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753011Ab0JWBVt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Oct 2010 11:12:08 -0400
-From: "Yann E. MORIN" <yann.morin.1998@anciens.enib.fr>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] v4l/dvb: add support for AVerMedia AVerTV Red HD+ (A850T)
-Date: Fri, 1 Oct 2010 17:05:55 +0200
-Cc: Eric.Valette@free.fr, Antti Palosaari <crope@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <1285795123-11046-1-git-send-email-yann.morin.1998@anciens.enib.fr> <4CA5CED7.2090203@Free.fr> <4CA5F5DE.7070209@redhat.com>
-In-Reply-To: <4CA5F5DE.7070209@redhat.com>
+	Fri, 22 Oct 2010 21:21:49 -0400
+Received: by fxm16 with SMTP id 16so1225405fxm.19
+        for <linux-media@vger.kernel.org>; Fri, 22 Oct 2010 18:21:48 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201010011705.55459.yann.morin.1998@anciens.enib.fr>
+In-Reply-To: <4CC22CD0.1090800@redhat.com>
+References: <49e7400bcbcc4412b77216bb061db1b57cb3b882.1287318143.git.hverkuil@xs4all.nl>
+	<AANLkTikdgWXsmGE1KPC3KbLc37T_=G3Aa8RaVhL1PsAN@mail.gmail.com>
+	<AANLkTi=S4o+V0YSbkySEpVOCMFx5JJC-TB5QzYN0B=Qx@mail.gmail.com>
+	<201010181751.39859.hverkuil@xs4all.nl>
+	<4CC22CD0.1090800@redhat.com>
+Date: Fri, 22 Oct 2010 21:21:48 -0400
+Message-ID: <AANLkTins=jGr2h5x4tc6UJb+7nuBRaLdaKvLZvHrx_6C@mail.gmail.com>
+Subject: Re: [RFC PATCH] radio-mr800: locking fixes
+From: David Ellingsworth <david@identd.dyndns.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hell all!
+> Any conclusion about the locking fixes patch?
+>
 
-On Friday 01 October 2010 165318 Mauro Carvalho Chehab wrote:
-> If you're talking about http://linuxtv.org/repo/, I just updated it.
+I don't like it, but it at least fixes the problem. You can add my ack.
 
-Just nit-picking here, but the instructions still have some typoes:
-
-git remote add linuxtv git://linuxtv.org/media-tree.git
--> the name of the tree uses a '_'            ^
-
-git pull . remotes/staging/v2.6.37
--> should be (at least the above does not work for me):
-git pull . remotes/linuxtv/staging/v2.6.37
-
-Regards,
-Yann E. MORIN.
-
--- 
-.-----------------.--------------------.------------------.--------------------.
-|  Yann E. MORIN  | Real-Time Embedded | /"\ ASCII RIBBON | Erics' conspiracy: |
-| +0/33 662376056 | Software  Designer | \ / CAMPAIGN     |   ^                |
-| --==< O_o >==-- '------------.-------:  X  AGAINST      |  /e\  There is no  |
-| http://ymorin.is-a-geek.org/ | (*_*) | / \ HTML MAIL    |  """  conspiracy.  |
-'------------------------------'-------'------------------'--------------------'
+Acked-by: David Ellingsworth<david@identd.dyndns.org>
