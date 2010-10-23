@@ -1,86 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:61029 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757802Ab0JSV2v (ORCPT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:48736 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752606Ab0JWLYR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Oct 2010 17:28:51 -0400
-Received: by eyx24 with SMTP id 24so331244eyx.19
-        for <linux-media@vger.kernel.org>; Tue, 19 Oct 2010 14:28:50 -0700 (PDT)
+	Sat, 23 Oct 2010 07:24:17 -0400
+Received: by gyg4 with SMTP id 4so1221925gyg.19
+        for <linux-media@vger.kernel.org>; Sat, 23 Oct 2010 04:24:16 -0700 (PDT)
+Message-ID: <4CC2C5D9.7080103@gmail.com>
+Date: Sat, 23 Oct 2010 09:24:09 -0200
+From: Mauro Carvalho Chehab <maurochehab@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <201010192227.39364.hverkuil@xs4all.nl>
-References: <B757CA7E-493B-44D6-8CE5-2F7AED446D70@gmail.com>
-	<AANLkTim+QfU5hJwi_DkdpnAvUWSOLdEM5kXoTDK5+tsy@mail.gmail.com>
-	<201010192227.39364.hverkuil@xs4all.nl>
-Date: Tue, 19 Oct 2010 17:28:49 -0400
-Message-ID: <AANLkTimk9kP5pb4yy+L0Zu0Om0siLnsDUzDZ2AmZkHMd@mail.gmail.com>
-Subject: Re: rtl2832u support
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Damjan Marion <damjan.marion@gmail.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Patrick Boettcher <pboettcher@kernellabs.com>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	=?UTF-8?B?SGVybsOhbiBPcmRpYWxlcw==?= <h.ordiales@gmail.com>,
+	"Igor M. Liplianin" <liplianin@me.by>
+CC: LMML <linux-media@vger.kernel.org>
+Subject: Re: V4L/DVB/IR patches pending merge
+References: <4CC25F60.7050106@redhat.com>
+In-Reply-To: <4CC25F60.7050106@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Oct 19, 2010 at 4:27 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Bullshit.
+Ok, let me eat my own dogfood...
 
-Not exactly the level of mutual respect for your peers that I would
-expect of you, Hans.
+Em 23-10-2010 02:06, Mauro Carvalho Chehab escreveu:
 
-> First of all these rules are those of the kernel community
-> as a whole and *not* linuxtv as such, and secondly you can upstream such
-> drivers in the staging tree. If you want to move it out of staging, then
-> it will take indeed more work since the quality requirements are higher
-> there.
+> 		== Waiting for Mauro Carvalho Chehab <mchehab@redhat.com> fixes on Docbook == 
+> 
+> Feb,25 2010: DocBook/Makefile: Make it less verbose                                 http://patchwork.kernel.org/patch/82076   Mauro Carvalho Chehab <mchehab@redhat.com>
 
-You are correct - while I indeed say it was the position of the
-LinuxTV developers, I didn't intend to single them out from the rest
-of the Linux kernel community.  The problem I described is systemic to
-working with the Linux kernel community in general.
+Patch broken, and not really important. Discarded.
 
-> Them's the rules for kernel development.
->
-> I've done my share of coding style cleanups. I never understand why people
-> dislike doing that. In my experience it always greatly improves the code
-> (i.e. I can actually understand it) and it tends to highlight the remaining
-> problematic areas in the driver.
+> Feb,25 2010: DocBook/v4l/pixfmt.xml: Add missing formats for gspca cpia1 and sn9c20 http://patchwork.kernel.org/patch/82074   Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Because it's additional work.  I agree that *sometimes* it can be
-useful.  And yet many times it's a bunch of changes that provide
-little actual value and only make it harder to keep the Linux driver
-in sync with the upstream source (in many cases, the GPL driver is
-derived from some Windows driver or other source).
+Patch applied.
 
-Alex makes a point that I think it's worth expanding on a bit:
+> Feb,25 2010: v4l: document new Bayer and monochrome pixel formats                   http://patchwork.kernel.org/patch/82073   Mauro Carvalho Chehab <mchehab@redhat.com>
 
-The Linux kernel developers' goals are different than those of the
-product/chipset vendor.  The product/chipset vendor typically wants
-consistency across operating systems.  This usually involves some sort
-of OS portability layer to abstract out the OS specific parts (which
-is usually done as a combination of OS specific header files and C
-macros).  This reduces the maintenance cost for the author as it makes
-it easier to be confident that changes to the core will basically
-"just work" on other operating systems.
+This patch were made by Guennadi. Not sure why Patchwork pointed it as me. It were depending on the auto-generate rules, due to some changes
+that were needed to happen at some template files. I just applied those changes semi-manually, and finally applied the patch.
 
-The Linux kernel developer wants consistency across Linux drivers
-regardless of who wrote them.  This makes sense for the Linux kernel
-community in that it makes it easier to work on drivers that you
-didn't necessarily write.  However it also means that all of the
-portability code and macros are seen as "crap which has to be stripped
-out".  The net effect is a driver that looks little like the original
-platform independent driver, making it easier for the Linux kernel
-community to maintain but harder for the original author to provide
-updates to.
+> Feb,25 2010: DocBook: Add rules to auto-generate some media docbooks                http://patchwork.kernel.org/patch/82075   Mauro Carvalho Chehab <mchehab@redhat.com>
 
-I can appreciate why the Linux development community chose this route,
-but let's not pretend that it doesn't come at a significant cost.
-Kind of like how the Git move has resulted in developers who want to
-build drivers on a known-stable kernel (as opposed to the bleeding
-edge) being treated as second class citizens.
+This is actually the patch that auto-generate media-indices.tmpl and media-entities.tmpl. It needs
+a more serious review, as some things are not working on it anymore, due to some API additions.
+I'll postpone it, for now, until I have some time to fix. Eventually, I'll just discard, but I think
+that some of the checks that happen here are important, as they help to track missing stuff at the API.
 
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Cheers,
+Mauro
