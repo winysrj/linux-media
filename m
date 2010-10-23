@@ -1,63 +1,77 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:53389 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751843Ab0JNIlr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Oct 2010 04:41:47 -0400
-Received: by ewy20 with SMTP id 20so3062344ewy.19
-        for <linux-media@vger.kernel.org>; Thu, 14 Oct 2010 01:41:46 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4CB6C049.70907@iki.fi>
-References: <20100518173011.5d9c7f2c@glory.loctelecom.ru>
-	<AANLkTilL60q2PrBGagobWK99dV9OMKldxLiKZafn1oYb@mail.gmail.com>
-	<20100525114939.067404eb@glory.loctelecom.ru>
-	<4C32044C.3060007@redhat.com>
-	<AANLkTinctdXC5lmzXSkgwjwfIwAH3BNFCWeWMnK3Xi5-@mail.gmail.com>
-	<20101006155256.11ec6d6d@glory.local>
-	<4CAC6E45.5030005@redhat.com>
-	<4CB6C049.70907@iki.fi>
-Date: Thu, 14 Oct 2010 04:41:45 -0400
-Message-ID: <AANLkTikz+eczKDwo4-1H-QFXsg0dzRcbsdgwb=XL0cXH@mail.gmail.com>
-Subject: Re: [RFC] Resource reservation for frontend - Was: Re: xc5000 and
- switch RF input
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Dmitri Belimov <d.belimov@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Stefan Ringel <stefan.ringel@arcor.de>,
-	Bee Hock Goh <beehock@gmail.com>,
-	Michael Krufky <mkrufky@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from lo.gmane.org ([80.91.229.12]:48930 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753676Ab0JWMBx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Oct 2010 08:01:53 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1P9cnG-000142-4x
+	for linux-media@vger.kernel.org; Sat, 23 Oct 2010 14:01:50 +0200
+Received: from nemi.mork.no ([148.122.252.4])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sat, 23 Oct 2010 14:01:50 +0200
+Received: from bjorn by nemi.mork.no with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sat, 23 Oct 2010 14:01:50 +0200
+To: linux-media@vger.kernel.org
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+Subject: linuxtv.org Wiki (was Re: cx23885 module)
+Date: Sat, 23 Oct 2010 14:01:39 +0200
+Message-ID: <878w1pkti4.fsf_-_@nemi.mork.no>
+References: <BLU0-SMTP179D180C75C88F1B693AA73A75A0@phx.gbl>
+	<4CBE0D47.7080201@kernellabs.com>
+	<BLU0-SMTP3076739B1A745CCB3563D3A75C0@phx.gbl>
+	<4CBF57F3.1000008@kernellabs.com>
+	<SNT130-w25B4AAC1A5FC7F00372440A75E0@phx.gbl>
+	<4CC18C47.9070305@kernellabs.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Oct 14, 2010 at 4:33 AM, Antti Palosaari <crope@iki.fi> wrote:
-> I haven't examined this yet enough, but for the background information I can
-> say I have one device which needs this. There is tuner behind demodulator,
-> but instead of normal I2C-gate switch, it is rather much likely repeater.
-> All tuner commands are send to the demod which then writes those to the
-> tuner.
+Steven Toth <stoth@kernellabs.com> writes:
+> On 10/22/10 9:02 AM, Daniel Lee Kim wrote:
 >
-> DD = demod I2C addr
-> TT = tuner I2C addr
-> Bn = payload data
+>> One more question, is there a place I can go to learn how to compile just the
+>> cx23885.ko module? I am not able to compile only that module and so I have to
+>> wait until it compiles all the modules. I apologize as this is my first time
+>> tweaking a driver module. I've searched all over the net but have not found
+>> anyone who wrote about this. Thanks,
 >
-> traditional I2C send to the tuner:
-> TT >> B0 B1 B2 ...
->
-> demod as repeater send to the tuner:
-> DD >> TT B0 B1 B2 ...
+> The wiki at linuxtv.org should contain everything you need for
+> compiling, modifying and submitting patches.
 
-You can accomplish this by having the demod create an i2c adapter
-instance, which generates i2c commands to the bridge.  Then when
-instantiating the tuner subdev, pass a pointer to the demod's i2c
-adapter instead of the i2c adapter provided by the bridge.
+It should, but it does not.
 
-No changes required to the core framework.
+Following the path from 
+www.linuxtv.org => V4L-DVB Wiki => Developer Section => How to submit patches
+you end up at
+http://www.linuxtv.org/wiki/index.php/Development:_How_to_submit_patches
+which states
 
-Devin
+ 'For V4L-DVB driver modules and/or documentation, patches should be
+  created against the master V4L-DVB mercurial tree; for instructions on
+  obtaining and building these sources, see the "How to Obtain, Build and
+  Install V4L-DVB Device Drivers" article.'
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+
+and the "How to Obtain, Build and Install V4L-DVB Device Drivers"
+article contains more of the same outdated information, with its
+references to to 2.6.16 backwards compatibility and Mercurial.
+
+For a new developer coming from the outside, this is worse than not
+having any information at all.  Anyone reading this list will know that
+the above quote is plain misleading.  But as a new developer you have no
+way to know whether other information in the same page, or even the
+whole Wiki, is just as misleading.  So you cannot trust any of it.
+Making the Wiki useless.
+
+Never write documentation you do not plan to keep updated. Delete
+outdated documentation if you don't have time/resources to update it.
+Misleading documentation is much, much worse than no documentation.
+
+Bjørn
+
+
