@@ -1,204 +1,214 @@
 Return-path: <mchehab@pedra>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:42415 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754034Ab0JMMYc (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:36254 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756585Ab0JXOqR convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Oct 2010 08:24:32 -0400
-Date: Wed, 13 Oct 2010 14:24:25 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: Linux I2C <linux-i2c@vger.kernel.org>,
-	LMML <linux-media@vger.kernel.org>
-Subject: [PATCH 2/2] i2c: Stop using I2C_CLASS_TV_DIGITAL
-Message-ID: <20101013142425.4b1007f7@endymion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Sun, 24 Oct 2010 10:46:17 -0400
+Received: by mail-bw0-f46.google.com with SMTP id 11so1724349bwz.19
+        for <linux-media@vger.kernel.org>; Sun, 24 Oct 2010 07:46:16 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <AANLkTi=Qw4MhARWVUNaAmGxH7sFy_Wk1=sqoRVBdrbpn@mail.gmail.com>
+References: <1287730851-18579-1-git-send-email-mats.randgaard@tandberg.com>
+	<1287730851-18579-6-git-send-email-mats.randgaard@tandberg.com>
+	<AANLkTi=Qw4MhARWVUNaAmGxH7sFy_Wk1=sqoRVBdrbpn@mail.gmail.com>
+Date: Sun, 24 Oct 2010 10:46:16 -0400
+Message-ID: <AANLkTiknnDRaqMzhws-=VGgVUA2zngd5-HwVuLynuQRZ@mail.gmail.com>
+Subject: Fwd: [RFC/PATCH 5/5] vpif_cap/disp: Cleanup, improved comments
+From: Muralidharan Karicheri <mkaricheri@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Detection class I2C_CLASS_TV_DIGITAL is set by many adapters but no
-I2C device driver is setting it anymore, which means it can be
-dropped. I2C devices on digital TV adapters are instantiated
-explicitly these days, which is much better.
+---------- Forwarded message ----------
+From: Muralidharan Karicheri <mkaricheri@gmail.com>
+Date: Sun, Oct 24, 2010 at 10:36 AM
+Subject: Re: [RFC/PATCH 5/5] vpif_cap/disp: Cleanup, improved comments
+To: mats.randgaard@tandberg.com
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- drivers/media/dvb/b2c2/flexcop-i2c.c              |    3 ---
- drivers/media/dvb/dm1105/dm1105.c                 |    1 -
- drivers/media/dvb/dvb-usb/af9015.c                |    5 -----
- drivers/media/dvb/dvb-usb/dvb-usb-i2c.c           |    1 -
- drivers/media/dvb/frontends/cx24123.c             |    1 -
- drivers/media/dvb/frontends/dibx000_common.c      |    1 -
- drivers/media/dvb/frontends/s5h1420.c             |    1 -
- drivers/media/dvb/mantis/mantis_i2c.c             |    1 -
- drivers/media/dvb/ngene/ngene-i2c.c               |    1 -
- drivers/media/dvb/pluto2/pluto2.c                 |    1 -
- drivers/media/dvb/pt1/pt1.c                       |    1 -
- drivers/media/dvb/ttpci/av7110.c                  |    1 -
- drivers/media/dvb/ttpci/budget-core.c             |    2 --
- drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c |    1 -
- drivers/media/video/cx88/cx88-vp3054-i2c.c        |    2 --
- 15 files changed, 23 deletions(-)
 
---- linux-2.6.36-rc7.orig/drivers/media/dvb/b2c2/flexcop-i2c.c	2010-10-13 12:36:36.000000000 +0200
-+++ linux-2.6.36-rc7/drivers/media/dvb/b2c2/flexcop-i2c.c	2010-10-13 12:37:39.000000000 +0200
-@@ -245,9 +245,6 @@ int flexcop_i2c_init(struct flexcop_devi
- 	i2c_set_adapdata(&fc->fc_i2c_adap[1].i2c_adap, &fc->fc_i2c_adap[1]);
- 	i2c_set_adapdata(&fc->fc_i2c_adap[2].i2c_adap, &fc->fc_i2c_adap[2]);
- 
--	fc->fc_i2c_adap[0].i2c_adap.class =
--		fc->fc_i2c_adap[1].i2c_adap.class =
--		fc->fc_i2c_adap[2].i2c_adap.class = I2C_CLASS_TV_DIGITAL;
- 	fc->fc_i2c_adap[0].i2c_adap.algo =
- 		fc->fc_i2c_adap[1].i2c_adap.algo =
- 		fc->fc_i2c_adap[2].i2c_adap.algo = &flexcop_algo;
---- linux-2.6.36-rc7.orig/drivers/media/dvb/dm1105/dm1105.c	2010-10-13 12:36:36.000000000 +0200
-+++ linux-2.6.36-rc7/drivers/media/dvb/dm1105/dm1105.c	2010-10-13 12:37:39.000000000 +0200
-@@ -862,7 +862,6 @@ static int __devinit dm1105_probe(struct
- 	i2c_set_adapdata(&dev->i2c_adap, dev);
- 	strcpy(dev->i2c_adap.name, DRIVER_NAME);
- 	dev->i2c_adap.owner = THIS_MODULE;
--	dev->i2c_adap.class = I2C_CLASS_TV_DIGITAL;
- 	dev->i2c_adap.dev.parent = &pdev->dev;
- 	dev->i2c_adap.algo = &dm1105_algo;
- 	dev->i2c_adap.algo_data = dev;
---- linux-2.6.36-rc7.orig/drivers/media/dvb/dvb-usb/af9015.c	2010-10-13 12:36:36.000000000 +0200
-+++ linux-2.6.36-rc7/drivers/media/dvb/dvb-usb/af9015.c	2010-10-13 12:37:39.000000000 +0200
-@@ -1100,11 +1100,6 @@ static int af9015_i2c_init(struct dvb_us
- 
- 	strncpy(state->i2c_adap.name, d->desc->name,
- 		sizeof(state->i2c_adap.name));
--#ifdef I2C_ADAP_CLASS_TV_DIGITAL
--	state->i2c_adap.class = I2C_ADAP_CLASS_TV_DIGITAL,
--#else
--	state->i2c_adap.class = I2C_CLASS_TV_DIGITAL,
--#endif
- 	state->i2c_adap.algo      = d->props.i2c_algo;
- 	state->i2c_adap.algo_data = NULL;
- 	state->i2c_adap.dev.parent = &d->udev->dev;
---- linux-2.6.36-rc7.orig/drivers/media/dvb/dvb-usb/dvb-usb-i2c.c	2010-10-13 12:36:36.000000000 +0200
-+++ linux-2.6.36-rc7/drivers/media/dvb/dvb-usb/dvb-usb-i2c.c	2010-10-13 12:37:39.000000000 +0200
-@@ -20,7 +20,6 @@ int dvb_usb_i2c_init(struct dvb_usb_devi
- 	}
- 
- 	strlcpy(d->i2c_adap.name, d->desc->name, sizeof(d->i2c_adap.name));
--	d->i2c_adap.class = I2C_CLASS_TV_DIGITAL,
- 	d->i2c_adap.algo      = d->props.i2c_algo;
- 	d->i2c_adap.algo_data = NULL;
- 	d->i2c_adap.dev.parent = &d->udev->dev;
---- linux-2.6.36-rc7.orig/drivers/media/dvb/frontends/cx24123.c	2010-10-13 12:36:36.000000000 +0200
-+++ linux-2.6.36-rc7/drivers/media/dvb/frontends/cx24123.c	2010-10-13 12:37:39.000000000 +0200
-@@ -1108,7 +1108,6 @@ struct dvb_frontend *cx24123_attach(cons
- 
- 	strlcpy(state->tuner_i2c_adapter.name, "CX24123 tuner I2C bus",
- 		sizeof(state->tuner_i2c_adapter.name));
--	state->tuner_i2c_adapter.class     = I2C_CLASS_TV_DIGITAL,
- 	state->tuner_i2c_adapter.algo      = &cx24123_tuner_i2c_algo;
- 	state->tuner_i2c_adapter.algo_data = NULL;
- 	i2c_set_adapdata(&state->tuner_i2c_adapter, state);
---- linux-2.6.36-rc7.orig/drivers/media/dvb/frontends/dibx000_common.c	2010-10-13 12:36:36.000000000 +0200
-+++ linux-2.6.36-rc7/drivers/media/dvb/frontends/dibx000_common.c	2010-10-13 12:37:39.000000000 +0200
-@@ -130,7 +130,6 @@ static int i2c_adapter_init(struct i2c_a
- 			    struct dibx000_i2c_master *mst)
- {
- 	strncpy(i2c_adap->name, name, sizeof(i2c_adap->name));
--	i2c_adap->class = I2C_CLASS_TV_DIGITAL, i2c_adap->algo = algo;
- 	i2c_adap->algo_data = NULL;
- 	i2c_set_adapdata(i2c_adap, mst);
- 	if (i2c_add_adapter(i2c_adap) < 0)
---- linux-2.6.36-rc7.orig/drivers/media/dvb/frontends/s5h1420.c	2010-10-13 12:36:36.000000000 +0200
-+++ linux-2.6.36-rc7/drivers/media/dvb/frontends/s5h1420.c	2010-10-13 12:37:39.000000000 +0200
-@@ -920,7 +920,6 @@ struct dvb_frontend *s5h1420_attach(cons
- 	/* create tuner i2c adapter */
- 	strlcpy(state->tuner_i2c_adapter.name, "S5H1420-PN1010 tuner I2C bus",
- 		sizeof(state->tuner_i2c_adapter.name));
--	state->tuner_i2c_adapter.class     = I2C_CLASS_TV_DIGITAL,
- 	state->tuner_i2c_adapter.algo      = &s5h1420_tuner_i2c_algo;
- 	state->tuner_i2c_adapter.algo_data = NULL;
- 	i2c_set_adapdata(&state->tuner_i2c_adapter, state);
---- linux-2.6.36-rc7.orig/drivers/media/dvb/mantis/mantis_i2c.c	2010-10-13 12:36:36.000000000 +0200
-+++ linux-2.6.36-rc7/drivers/media/dvb/mantis/mantis_i2c.c	2010-10-13 12:37:39.000000000 +0200
-@@ -229,7 +229,6 @@ int __devinit mantis_i2c_init(struct man
- 	i2c_set_adapdata(i2c_adapter, mantis);
- 
- 	i2c_adapter->owner	= THIS_MODULE;
--	i2c_adapter->class	= I2C_CLASS_TV_DIGITAL;
- 	i2c_adapter->algo	= &mantis_algo;
- 	i2c_adapter->algo_data	= NULL;
- 	i2c_adapter->timeout	= 500;
---- linux-2.6.36-rc7.orig/drivers/media/dvb/ngene/ngene-i2c.c	2010-10-13 12:36:50.000000000 +0200
-+++ linux-2.6.36-rc7/drivers/media/dvb/ngene/ngene-i2c.c	2010-10-13 12:37:39.000000000 +0200
-@@ -165,7 +165,6 @@ int ngene_i2c_init(struct ngene *dev, in
- 	struct i2c_adapter *adap = &(dev->channel[dev_nr].i2c_adapter);
- 
- 	i2c_set_adapdata(adap, &(dev->channel[dev_nr]));
--	adap->class = I2C_CLASS_TV_DIGITAL;
- 
- 	strcpy(adap->name, "nGene");
- 
---- linux-2.6.36-rc7.orig/drivers/media/dvb/pluto2/pluto2.c	2010-10-13 12:36:36.000000000 +0200
-+++ linux-2.6.36-rc7/drivers/media/dvb/pluto2/pluto2.c	2010-10-13 12:37:39.000000000 +0200
-@@ -647,7 +647,6 @@ static int __devinit pluto2_probe(struct
- 	i2c_set_adapdata(&pluto->i2c_adap, pluto);
- 	strcpy(pluto->i2c_adap.name, DRIVER_NAME);
- 	pluto->i2c_adap.owner = THIS_MODULE;
--	pluto->i2c_adap.class = I2C_CLASS_TV_DIGITAL;
- 	pluto->i2c_adap.dev.parent = &pdev->dev;
- 	pluto->i2c_adap.algo_data = &pluto->i2c_bit;
- 	pluto->i2c_bit.data = pluto;
---- linux-2.6.36-rc7.orig/drivers/media/dvb/pt1/pt1.c	2010-10-13 12:36:36.000000000 +0200
-+++ linux-2.6.36-rc7/drivers/media/dvb/pt1/pt1.c	2010-10-13 12:37:39.000000000 +0200
-@@ -1087,7 +1087,6 @@ pt1_probe(struct pci_dev *pdev, const st
- 	pt1_update_power(pt1);
- 
- 	i2c_adap = &pt1->i2c_adap;
--	i2c_adap->class = I2C_CLASS_TV_DIGITAL;
- 	i2c_adap->algo = &pt1_i2c_algo;
- 	i2c_adap->algo_data = NULL;
- 	i2c_adap->dev.parent = &pdev->dev;
---- linux-2.6.36-rc7.orig/drivers/media/dvb/ttpci/av7110.c	2010-10-13 12:36:36.000000000 +0200
-+++ linux-2.6.36-rc7/drivers/media/dvb/ttpci/av7110.c	2010-10-13 12:37:39.000000000 +0200
-@@ -2476,7 +2476,6 @@ static int __devinit av7110_attach(struc
- 	   get recognized before the main driver is fully loaded */
- 	saa7146_write(dev, GPIO_CTRL, 0x500000);
- 
--	av7110->i2c_adap.class = I2C_CLASS_TV_DIGITAL;
- 	strlcpy(av7110->i2c_adap.name, pci_ext->ext_priv, sizeof(av7110->i2c_adap.name));
- 
- 	saa7146_i2c_adapter_prepare(dev, &av7110->i2c_adap, SAA7146_I2C_BUS_BIT_RATE_120); /* 275 kHz */
---- linux-2.6.36-rc7.orig/drivers/media/dvb/ttpci/budget-core.c	2010-10-13 12:36:36.000000000 +0200
-+++ linux-2.6.36-rc7/drivers/media/dvb/ttpci/budget-core.c	2010-10-13 12:37:39.000000000 +0200
-@@ -495,8 +495,6 @@ int ttpci_budget_init(struct budget *bud
- 	if (bi->type != BUDGET_FS_ACTIVY)
- 		saa7146_write(dev, GPIO_CTRL, 0x500000);	/* GPIO 3 = 1 */
- 
--	budget->i2c_adap.class = I2C_CLASS_TV_DIGITAL;
--
- 	strlcpy(budget->i2c_adap.name, budget->card->name, sizeof(budget->i2c_adap.name));
- 
- 	saa7146_i2c_adapter_prepare(dev, &budget->i2c_adap, SAA7146_I2C_BUS_BIT_RATE_120);
---- linux-2.6.36-rc7.orig/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c	2010-10-13 12:36:36.000000000 +0200
-+++ linux-2.6.36-rc7/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c	2010-10-13 12:37:39.000000000 +0200
-@@ -1694,7 +1694,6 @@ static int ttusb_probe(struct usb_interf
- 
- 	i2c_set_adapdata(&ttusb->i2c_adap, ttusb);
- 
--	ttusb->i2c_adap.class		  = I2C_CLASS_TV_DIGITAL;
- 	ttusb->i2c_adap.algo              = &ttusb_dec_algo;
- 	ttusb->i2c_adap.algo_data         = NULL;
- 	ttusb->i2c_adap.dev.parent	  = &udev->dev;
---- linux-2.6.36-rc7.orig/drivers/media/video/cx88/cx88-vp3054-i2c.c	2010-10-13 12:36:36.000000000 +0200
-+++ linux-2.6.36-rc7/drivers/media/video/cx88/cx88-vp3054-i2c.c	2010-10-13 12:37:39.000000000 +0200
-@@ -121,8 +121,6 @@ int vp3054_i2c_probe(struct cx8802_dev *
- 	memcpy(&vp3054_i2c->algo, &vp3054_i2c_algo_template,
- 	       sizeof(vp3054_i2c->algo));
- 
--	vp3054_i2c->adap.class |= I2C_CLASS_TV_DIGITAL;
--
- 	vp3054_i2c->adap.dev.parent = &dev->pci->dev;
- 	strlcpy(vp3054_i2c->adap.name, core->name,
- 		sizeof(vp3054_i2c->adap.name));
+Acked-by: Murali Karicheri <mkaricheri@gmail.com>
+
+On Fri, Oct 22, 2010 at 3:00 AM, <mats.randgaard@tandberg.com> wrote:
+>
+> From: Mats Randgaard <mats.randgaard@tandberg.com>
+>
+> Signed-off-by: Mats Randgaard <mats.randgaard@tandberg.com>
+> Signed-off-by: Hans Verkuil <hans.verkuil@tandberg.com>
+> ---
+>  drivers/media/video/davinci/vpif.h         |   13 ++++++-------
+>  drivers/media/video/davinci/vpif_capture.c |   13 ++++++-------
+>  drivers/media/video/davinci/vpif_display.c |   23 ++++++++++++++++++++---
+>  3 files changed, 32 insertions(+), 17 deletions(-)
+>
+> diff --git a/drivers/media/video/davinci/vpif.h b/drivers/media/video/davinci/vpif.h
+> index b121683..aea7487 100644
+> --- a/drivers/media/video/davinci/vpif.h
+> +++ b/drivers/media/video/davinci/vpif.h
+> @@ -577,11 +577,10 @@ struct vpif_channel_config_params {
+>        char name[VPIF_MAX_NAME];       /* Name of the mode */
+>        u16 width;                      /* Indicates width of the image */
+>        u16 height;                     /* Indicates height of the image */
+> -       u8 frm_fmt;                     /* Indicates whether this is interlaced
+> -                                        * or progressive format */
+> -       u8 ycmux_mode;                  /* Indicates whether this mode requires
+> -                                        * single or two channels */
+> -       u16 eav2sav;                    /* length of sav 2 eav */
+> +       u8 frm_fmt;                     /* Interlaced (0) or progressive (1) */
+> +       u8 ycmux_mode;                  /* This mode requires one (0) or two (1)
+> +                                          channels */
+> +       u16 eav2sav;                    /* length of eav 2 sav */
+>        u16 sav2eav;                    /* length of sav 2 eav */
+>        u16 l1, l3, l5, l7, l9, l11;    /* Other parameter configurations */
+>        u16 vsize;                      /* Vertical size of the image */
+> @@ -589,8 +588,8 @@ struct vpif_channel_config_params {
+>                                         * is in BT or in CCD/CMOS */
+>        u8  vbi_supported;              /* Indicates whether this mode
+>                                         * supports capturing vbi or not */
+> -       u8 hd_sd;
+> -       v4l2_std_id stdid;
+> +       u8 hd_sd;                       /* HDTV (1) or SDTV (0) format */
+> +       v4l2_std_id stdid;              /* SDTV format */
+>        u32 dv_preset;                  /* HDTV format */
+>  };
+>
+> diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
+> index 184fa3c..3acc081 100644
+> --- a/drivers/media/video/davinci/vpif_capture.c
+> +++ b/drivers/media/video/davinci/vpif_capture.c
+> @@ -329,7 +329,7 @@ static void vpif_schedule_next_buffer(struct common_obj *common)
+>  * @dev_id: dev_id ptr
+>  *
+>  * It changes status of the captured buffer, takes next buffer from the queue
+> - * and sets its address in VPIF  registers
+> + * and sets its address in VPIF registers
+>  */
+>  static irqreturn_t vpif_channel_isr(int irq, void *dev_id)
+>  {
+> @@ -422,14 +422,12 @@ static int vpif_update_std_info(struct channel_obj *ch)
+>        struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
+>        struct vpif_params *vpifparams = &ch->vpifparams;
+>        const struct vpif_channel_config_params *config;
+> -       struct vpif_channel_config_params *std_info;
+> +       struct vpif_channel_config_params *std_info = &vpifparams->std_info;
+>        struct video_obj *vid_ch = &ch->video;
+>        int index;
+>
+>        vpif_dbg(2, debug, "vpif_update_std_info\n");
+>
+> -       std_info = &vpifparams->std_info;
+> -
+>        for (index = 0; index < vpif_ch_params_count; index++) {
+>                config = &ch_params[index];
+>                if (config->hd_sd == 0) {
+> @@ -458,6 +456,7 @@ static int vpif_update_std_info(struct channel_obj *ch)
+>        common->fmt.fmt.pix.bytesperline = std_info->width;
+>        vpifparams->video_params.hpitch = std_info->width;
+>        vpifparams->video_params.storage_mode = std_info->frm_fmt;
+> +
+>        return 0;
+>  }
+>
+> @@ -1691,7 +1690,7 @@ static int vpif_s_fmt_vid_cap(struct file *file, void *priv,
+>        struct v4l2_pix_format *pixfmt;
+>        int ret = 0;
+>
+> -       vpif_dbg(2, debug, "VIDIOC_S_FMT\n");
+> +       vpif_dbg(2, debug, "%s\n", __func__);
+>
+>        /* If streaming is started, return error */
+>        if (common->started) {
+> @@ -2356,9 +2355,9 @@ static __init int vpif_probe(struct platform_device *pdev)
+>                if (vpif_obj.sd[i])
+>                        vpif_obj.sd[i]->grp_id = 1 << i;
+>        }
+> -       v4l2_info(&vpif_obj.v4l2_dev, "DM646x VPIF Capture driver"
+> -                 " initialized\n");
+>
+> +       v4l2_info(&vpif_obj.v4l2_dev,
+> +                       "DM646x VPIF capture driver initialized\n");
+>        return 0;
+>
+>  probe_subdev_out:
+> diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
+> index bc42505..0a7a05e 100644
+> --- a/drivers/media/video/davinci/vpif_display.c
+> +++ b/drivers/media/video/davinci/vpif_display.c
+> @@ -363,6 +363,13 @@ static irqreturn_t vpif_channel_isr(int irq, void *dev_id)
+>        return IRQ_HANDLED;
+>  }
+>
+> +/**
+> + * vpif_get_std_info() - update standard related info
+> + * @ch: ptr to channel object
+> + *
+> + * For a given standard selected by application, update values
+> + * in the device data structures
+> + */
+>  static int vpif_get_std_info(struct channel_obj *ch)
+>  {
+>        struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
+> @@ -566,7 +573,10 @@ static void vpif_config_addr(struct channel_obj *ch, int muxmode)
+>  static int vpif_mmap(struct file *filep, struct vm_area_struct *vma)
+>  {
+>        struct vpif_fh *fh = filep->private_data;
+> -       struct common_obj *common = &fh->channel->common[VPIF_VIDEO_INDEX];
+> +       struct channel_obj *ch = fh->channel;
+> +       struct common_obj *common = &(ch->common[VPIF_VIDEO_INDEX]);
+> +
+> +       vpif_dbg(2, debug, "vpif_mmap\n");
+>
+>        return videobuf_mmap_mapper(&common->buffer_queue, vma);
+>  }
+> @@ -678,7 +688,12 @@ static int vpif_release(struct file *filep)
+>  }
+>
+>  /* functions implementing ioctls */
+> -
+> +/**
+> + * vpif_querycap() - QUERYCAP handler
+> + * @file: file ptr
+> + * @priv: file handle
+> + * @cap: ptr to v4l2_capability structure
+> + */
+>  static int vpif_querycap(struct file *file, void  *priv,
+>                                struct v4l2_capability *cap)
+>  {
+> @@ -1088,7 +1103,7 @@ static int vpif_streamon(struct file *file, void *priv,
+>        if (ret < 0)
+>                return ret;
+>
+> -       /* Call videobuf_streamon to start streaming  in videobuf */
+> +       /* Call videobuf_streamon to start streaming in videobuf */
+>        ret = videobuf_streamon(&common->buffer_queue);
+>        if (ret < 0) {
+>                vpif_err("videobuf_streamon\n");
+> @@ -1872,6 +1887,8 @@ static __init int vpif_probe(struct platform_device *pdev)
+>                        vpif_obj.sd[i]->grp_id = 1 << i;
+>        }
+>
+> +       v4l2_info(&vpif_obj.v4l2_dev,
+> +                       "DM646x VPIF display driver initialized\n");
+>        return 0;
+>
+>  probe_subdev_out:
+> --
+> 1.7.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+--
+Murali Karicheri
+mkaricheri@gmail.com
+
 
 
 -- 
-Jean Delvare
+Murali Karicheri
+mkaricheri@gmail.com
