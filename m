@@ -1,96 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:45047 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932116Ab0JSEDU convert rfc822-to-8bit (ORCPT
+Received: from gateway11.websitewelcome.com ([69.93.164.12]:40368 "HELO
+	gateway11.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S932938Ab0JXWDA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Oct 2010 00:03:20 -0400
+	Sun, 24 Oct 2010 18:03:00 -0400
+Received: from [209.85.216.46] (port=46992 helo=mail-qw0-f46.google.com)
+	by gator1121.hostgator.com with esmtpsa (TLSv1:RC4-MD5:128)
+	(Exim 4.69)
+	(envelope-from <demiurg@femtolinux.com>)
+	id 1PA8O2-000728-Jy
+	for linux-media@vger.kernel.org; Sun, 24 Oct 2010 16:45:54 -0500
+Received: by qwk3 with SMTP id 3so929080qwk.19
+        for <linux-media@vger.kernel.org>; Sun, 24 Oct 2010 14:45:56 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1287459219.16971.352.camel@gandalf.stny.rr.com>
-References: <201009161632.59210.arnd@arndb.de>
-	<201010181742.06678.arnd@arndb.de>
-	<20101018184346.GD27089@kroah.com>
-	<AANLkTin2KPNNXvwcWphhM-5qexB14FS7M7ezkCCYCZ2H@mail.gmail.com>
-	<20101019004004.GB28380@kroah.com>
-	<AANLkTi=ffaihP5-yNYFKAbAbX+XbRgWRXXfCZd4J3KwQ@mail.gmail.com>
-	<20101019022413.GB30307@kroah.com>
-	<AANLkTinv4VFpi=Jkc_5oyFgPbdLRg0ResJx9u9Puhm-7@mail.gmail.com>
-	<1287459219.16971.352.camel@gandalf.stny.rr.com>
-Date: Tue, 19 Oct 2010 14:03:17 +1000
-Message-ID: <AANLkTimL5j1kcL5x+Om0==B30Pps=CAJM5X4NMV09koW@mail.gmail.com>
-Subject: Re: [Ksummit-2010-discuss] [v2] Remaining BKL users, what to do
-From: Dave Airlie <airlied@gmail.com>
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Greg KH <greg@kroah.com>, codalist@telemann.coda.cs.cmu.edu,
-	autofs@linux.kernel.org, Samuel Ortiz <samuel@sortiz.org>,
-	Jan Kara <jack@suse.cz>,
-	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Jan Harkes <jaharkes@cs.cmu.edu>, netdev@vger.kernel.org,
-	Anders Larsen <al@alarsen.net>, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	Bryan Schumaker <bjschuma@netapp.com>,
-	Christoph Hellwig <hch@infradead.org>,
-	ksummit-2010-discuss@lists.linux-foundation.org,
-	Petr Vandrovec <vandrove@vc.cvut.cz>,
-	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
-	linux-fsdevel@vger.kernel.org,
-	Evgeniy Dushistov <dushistov@mail.ru>,
-	Ingo Molnar <mingo@elte.hu>,
-	Andrew Hendry <andrew.hendry@gmail.com>,
-	linux-media@vger.kernel.org
+In-Reply-To: <AANLkTinwb_7ErteoWcO2VC1nu9uNqUwu6N+HEhrDwwg-@mail.gmail.com>
+References: <AANLkTint2Xw3bJuGh2voUpncWderrbUgbeOaPdp1-yNm@mail.gmail.com>
+	<201010242055.30799.albin.kauffmann@gmail.com>
+	<AANLkTinwb_7ErteoWcO2VC1nu9uNqUwu6N+HEhrDwwg-@mail.gmail.com>
+Date: Sun, 24 Oct 2010 23:45:55 +0200
+Message-ID: <AANLkTinVas23b2ZMuBxzdY6PUP-4JEMchNup9nSpxsf3@mail.gmail.com>
+Subject: Re: Wintv-HVR-1120 woes
+From: Sasha Sirotkin <demiurg@femtolinux.com>
+To: Albin Kauffmann <albin.kauffmann@gmail.com>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+On Sun, Oct 24, 2010 at 10:22 PM, Sasha Sirotkin <demiurg@femtolinux.com> wrote:
+> On Sun, Oct 24, 2010 at 8:55 PM, Albin Kauffmann
+> <albin.kauffmann@gmail.com> wrote:
+>> On Thursday 21 October 2010 23:25:29 Sasha Sirotkin wrote:
+>>> I'm having all sorts of troubles with Wintv-HVR-1120 on Ubuntu 10.10
+>>> (kernel 2.6.35-22). Judging from what I've seen on the net, including
+>>> this mailing list, I'm not the only one not being able to use this
+>>> card and no solution seem to exist.
+>>>
+>>> Problems:
+>>> 1. The driver yells various cryptic error messages
+>>> ("tda18271_write_regs: [1-0060|M] ERROR: idx = 0x5, len = 1,
+>>> i2c_transfer returned: -5", "tda18271_set_analog_params: [1-0060|M]
+>>> error -5 on line 1045", etc)
 >>
->> like I'm sure the intersection of this driver and reality are getting
->> quite limited, but its still a userspace ABI change and needs to be
->> treated as such. Xorg 6.7 and XFree86 4.3 were the last users of the
->> old driver/API.
->
-> Thus, you are saying that this will break for people with older user
-> apps and have a newer kernel?
-
-There are two drivers here:
-
-i810
-
-i830
-
-The i830 case is the case I care less about since the ABI is only used
-by older userspace and i915 provides a replacement.
-
-the i810 case ABI is still in use today by distro userspaces that are
-still released, i.e. i810 is still used in F14, Ubuntu 10.10, RHEL6
-Beta etc.
-
-I've snipped the rest of the argument on the grounds you are
-conflating two cases that aren't the same.
-
->
+>> yes, indeed :(
+>> (cf "Hauppauge WinTV-HVR-1120 on Unbuntu 10.04" thread)
 >>
->> Well the thing is doing the work right is a non-trivial task and just
->> dropping support only screws the people using the hardware,
->> it doesn't place any burden on the distro developers to fix it up. If
->> people are really serious about making the BKL go away completely, I
->> think the onus should be on them to fix the drivers not on the users
->> who are using it, like I'm  guessing if this gets broken the bug will
->> end up in Novell or RH bugzilla in a year and nobody will ever see it.
+>>> 2. DVB-T scan (using w_scan) produces no results
+>>
+>> Is this happening after each reboot? As far as I'm concerned, I've never had
+>> problems with DVB-T scans.
+>>
 >
-> Well the problem comes down to testing it. I don't know of any developer
-> that is removing the BKL that actually owns hardware to test out these
-> broken drivers. And for the change not being trivial, means that there's
-> no way to do in correctly.
+> Almost always. I think I had a lucky reboot or two, but most of the
+> time DVB-T scan produces nothing.
+>
+>>> 3. Analog seems to work, but with very poor quality
+>>
+>> I just tried to use Analog TV in order to confirm the problem but I cannot get
+>> any picture. Maybe I just don't know how to use it. I'm using commands like
+>> (I'm located in France):
+>>
+>> mplayer tv:// -tv driver=v4l2:norm=SECAM:chanlist=france -tvscan autostart
+>>
+>> ... and just get some "snow" on scanned channels.
+>> As I might have a problem with my antenna (an interior one), I am going to
+>> test it under Windows and report back my experience.
+>
+> I'm using tvtime-scanner
+>>
+>> Cheers,
+>>
+>> --
+>> Albin Kauffmann
+>>
+>
+>
+> I'm trying to downgrade the kernel now to see if it helps
 >
 
-So we can drop i830 using deprecation, however its pointless since the
-fix for i810 is the same fix for i830 if we can work out the fix.
-
-Well the way to do it correctly is make it so if the driver is
-initialised and we do an SMP transition we warn the users, or we make
-BROKEN_ON_SMP into a runtime thing that warns when the driver is
-loaded on an SMP system. The intersection of SMP and this hardware is
-definitely a very very small number and a lot more workable.
-
-Dave.
+I went back as far as 2.6.30 and I still have this problem. 2.6.29
+does not recognize this card at all.
