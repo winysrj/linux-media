@@ -1,78 +1,284 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.samsung.com ([203.254.224.25]:27551 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932162Ab0JTHka (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:57461 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752765Ab0JXOnc convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Oct 2010 03:40:30 -0400
-Received: from epmmp1 (mailout2.samsung.com [203.254.224.25])
- by mailout2.samsung.com
- (Sun Java(tm) System Messaging Server 7u3-15.01 64bit (built Feb 12 2010))
- with ESMTP id <0LAK009FRVZG6570@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 20 Oct 2010 16:40:28 +0900 (KST)
-Received: from AMDC159 ([106.116.37.153])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LAK0079OVZCVM@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 20 Oct 2010 16:40:28 +0900 (KST)
-Date: Wed, 20 Oct 2010 09:40:23 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH/RFC v3 0/7] Videobuf2 framework
-In-reply-to: <201010200914.32868.hverkuil@xs4all.nl>
-To: 'Hans Verkuil' <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, pawel@osciak.com,
-	kyungmin.park@samsung.com
-Message-id: <004901cb702a$10a69100$31f3b300$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <1287556873-23179-1-git-send-email-m.szyprowski@samsung.com>
- <201010200914.32868.hverkuil@xs4all.nl>
+	Sun, 24 Oct 2010 10:43:32 -0400
+Received: by bwz11 with SMTP id 11so1723581bwz.19
+        for <linux-media@vger.kernel.org>; Sun, 24 Oct 2010 07:43:31 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <AANLkTikZCSmfg2o5=zzNzPGOoqZBzKYsa-mjjeQnjdAT@mail.gmail.com>
+References: <1287730851-18579-1-git-send-email-mats.randgaard@tandberg.com>
+	<1287730851-18579-2-git-send-email-mats.randgaard@tandberg.com>
+	<AANLkTikZCSmfg2o5=zzNzPGOoqZBzKYsa-mjjeQnjdAT@mail.gmail.com>
+Date: Sun, 24 Oct 2010 10:43:31 -0400
+Message-ID: <AANLkTin+3unwdDbK_YSWR_Pokb-r45wBbw=+-Xf2A8b5@mail.gmail.com>
+Subject: Re: [RFC/PATCH 1/5] vpif_cap/disp: Add debug functionality
+From: Muralidharan Karicheri <mkaricheri@gmail.com>
+To: mats.randgaard@tandberg.com, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+My previous reply didn't make it to linuxtv server.
 
-On Wednesday, October 20, 2010 9:15 AM wrote:
+See comments below.
 
-> On Wednesday, October 20, 2010 08:41:06 Marek Szyprowski wrote:
-> > Hello,
-> >
-> > As I promissed I continue the development of the VideoBuf2 at Samsung
-> > until Pawel finds some spare time to help us. This is a third version of
-> > the framework. Besides the minor bugfixes here and there I've added a
-> > complete read() callback emulator. This emulator provides 2 types of
-> > read() operation - 'streaming' and 'one shot'. It is suitable to replace
-> > both videobuf_read_stream() and videobuf_read_one() methods from the old
-> > videobuf.
-> 
-> One thing I never understood: what is the point of supporting 'one shot' read
-> mode? Why not support just streaming? Does anyone know?
+On Sun, Oct 24, 2010 at 10:04 AM, Muralidharan Karicheri
+<mkaricheri@gmail.com> wrote:
+> Thanks for the patch. Please read below for my comments
+>
+>
+>>
+>> +/*
+>> + * vpif_g_chip_ident() - Identify the chip
+>> + * @file: file ptr
+>> + * @priv: file handle
+>> + * @chip: chip identity
+>> + *
+>> + * Returns zero or -EINVAL if read operations fails.
+>> + */
+>> +static int vpif_g_chip_ident(struct file *file, void *priv,
+>> +               struct v4l2_dbg_chip_ident *chip)
+>> +{
+>> +       int ret = 0;
+>> +
+>> +       chip->ident = V4L2_IDENT_NONE;
+>> +       chip->revision = 0;
+>> +       if (chip->match.type != V4L2_CHIP_MATCH_I2C_DRIVER &&
+>> +                       chip->match.type != V4L2_CHIP_MATCH_I2C_ADDR) {
+>> +               vpif_dbg(2, debug, "match_type is invalid.\n");
+>> +               return -EINVAL;
+>> +       }
+>> +
+>> +       if (vpif_obj.sd)
+>> +               ret = v4l2_device_call_until_err(&vpif_obj.v4l2_dev, 0,
+>> core,
+>> +                               g_chip_ident, chip);
+>
+> I think the if check is unnecessary since probe() will fail and this device
+> node will not be visible to user :)
+>
+>> +       return ret;
+>> +}
+>> +
+>> +#ifdef CONFIG_VIDEO_ADV_DEBUG
+>> +/*
+>> + * vpif_dbg_g_register() - Read register
+>> + * @file: file ptr
+>> + * @priv: file handle
+>> + * @reg: register to be read
+>> + *
+>> + * Debugging only
+>> + * Returns zero or -EINVAL if read operations fails.
+>> + */
+>> +static int vpif_dbg_g_register(struct file *file, void *priv,
+>> +               struct v4l2_dbg_register *reg){
+>> +       struct vpif_fh *fh = priv;
+>> +       struct channel_obj *ch = fh->channel;
+>> +
+>> +       return v4l2_subdev_call(vpif_obj.sd[ch->curr_sd_index], core,
+>> +                       g_register, reg);
+>>
+>> +}
+>> +
+>> +/*
+>> + * vpif_dbg_s_register() - Write to register
+>> + * @file: file ptr
+>> + * @priv: file handle
+>> + * @reg: register to be modified
+>> + *
+>> + * Debugging only
+>> + * Returns zero or -EINVAL if write operations fails.
+>> + */
+>> +static int vpif_dbg_s_register(struct file *file, void *priv,
+>> +               struct v4l2_dbg_register *reg){
+>> +       struct vpif_fh *fh = priv;
+>> +       struct channel_obj *ch = fh->channel;
+>> +
+>> +       return v4l2_subdev_call(vpif_obj.sd[ch->curr_sd_index], core,
+>> +                       s_register, reg);
+>> +}
+>> +#endif
+>> +
+>> +/*
+>> + * vpif_log_status() - Status information
+>> + * @file: file ptr
+>> + * @priv: file handle
+>> + *
+>> + * Returns zero.
+>> + */
+>> +static int vpif_log_status(struct file *filep, void *priv)
+>> +{
+>> +       /* status for sub devices */
+>> +       v4l2_device_call_all(&vpif_obj.v4l2_dev, 0, core, log_status);
+>> +
+>> +       return 0;
+>> +}
+>> +
+>>  /* vpif capture ioctl operations */
+>>  static const struct v4l2_ioctl_ops vpif_ioctl_ops = {
+>>        .vidioc_querycap                = vpif_querycap,
+>> @@ -1829,6 +1910,12 @@ static const struct v4l2_ioctl_ops vpif_ioctl_ops =
+>> {
+>>        .vidioc_streamon                = vpif_streamon,
+>>        .vidioc_streamoff               = vpif_streamoff,
+>>        .vidioc_cropcap                 = vpif_cropcap,
+>> +       .vidioc_g_chip_ident            = vpif_g_chip_ident,
+>> +#ifdef CONFIG_VIDEO_ADV_DEBUG
+>> +       .vidioc_g_register              = vpif_dbg_g_register,
+>> +       .vidioc_s_register              = vpif_dbg_s_register,
+>> +#endif
+>> +       .vidioc_log_status              = vpif_log_status,
+>>  };
+>>
+>>  /* vpif file operations */
+>> diff --git a/drivers/media/video/davinci/vpif_display.c
+>> b/drivers/media/video/davinci/vpif_display.c
+>> index 8894af2..b56c53a 100644
+>> --- a/drivers/media/video/davinci/vpif_display.c
+>> +++ b/drivers/media/video/davinci/vpif_display.c
+>> @@ -38,6 +38,7 @@
+>>  #include <media/adv7343.h>
+>>  #include <media/v4l2-device.h>
+>>  #include <media/v4l2-ioctl.h>
+>> +#include <media/v4l2-chip-ident.h>
+>>
+>>  #include <mach/dm646x.h>
+>>
+>> @@ -1315,6 +1316,90 @@ static int vpif_s_priority(struct file *file, void
+>> *priv, enum v4l2_priority p)
+>>        return v4l2_prio_change(&ch->prio, &fh->prio, p);
+>>  }
+>>
+>> +
+>> +/*
+>> + * vpif_g_chip_ident() - Identify the chip
+>> + * @file: file ptr
+>> + * @priv: file handle
+>> + * @chip: chip identity
+>> + *
+>> + * Returns zero or -EINVAL if read operations fails.
+>> + */
+>> +static int vpif_g_chip_ident(struct file *file, void *priv,
+>> +               struct v4l2_dbg_chip_ident *chip)
+>> +{
+>> +       int ret = 0;
+>> +
+>> +       chip->ident = V4L2_IDENT_NONE;
+>> +       chip->revision = 0;
+>> +       if (chip->match.type != V4L2_CHIP_MATCH_I2C_DRIVER &&
+>> +                       chip->match.type != V4L2_CHIP_MATCH_I2C_ADDR) {
+>> +               vpif_dbg(2, debug, "match_type is invalid.\n");
+>> +               return -EINVAL;
+>> +       }
+>> +
+>> +       if (vpif_obj.sd)
+>> +               ret = v4l2_device_call_until_err(&vpif_obj.v4l2_dev, 0,
+>> core,
+>> +                               g_chip_ident, chip);
+>> +
+>
+> Same comment as above
+>
+>
+>>
+>> +       return ret;
+>> +}
+>> +
+>
+> +#ifdef CONFIG_VIDEO_ADV_DEBUG
+>>
+>> +/*
+>> + * vpif_dbg_g_register() - Read register
+>> + * @file: file ptr
+>> + * @priv: file handle
+>> + * @reg: register to be read
+>> + *
+>> + * Debugging only
+>> + * Returns zero or -EINVAL if read operations fails.
+>> + */
+>> +static int vpif_dbg_g_register(struct file *file, void *priv,
+>> +               struct v4l2_dbg_register *reg){
+>> +       struct vpif_fh *fh = priv;
+>> +       struct channel_obj *ch = fh->channel;
+>> +       struct video_obj *vid_ch = &ch->video;
+>> +
+>> +       return v4l2_subdev_call(vpif_obj.sd[vid_ch->output_id], core,
+>> +                       g_register, reg);
+>> +}
+>> +
+>> +/*
+>> + * vpif_dbg_s_register() - Write to register
+>> + * @file: file ptr
+>> + * @priv: file handle
+>> + * @reg: register to be modified
+>> + *
+>> + * Debugging only
+>> + * Returns zero or -EINVAL if write operations fails.
+>> + */
+>> +static int vpif_dbg_s_register(struct file *file, void *priv,
+>> +               struct v4l2_dbg_register *reg){
+>> +       struct vpif_fh *fh = priv;
+>> +       struct channel_obj *ch = fh->channel;
+>> +       struct video_obj *vid_ch = &ch->video;
+>> +
+>> +       return v4l2_subdev_call(vpif_obj.sd[vid_ch->output_id], core,
+>> +                       s_register, reg);
+>> +}
+>> +#endif
+>> +
+>> +/*
+>> + * vpif_log_status() - Status information
+>> + * @file: file ptr
+>> + * @priv: file handle
+>> + *
+>> + * Returns zero.
+>> + */
+>> +static int vpif_log_status(struct file *filep, void *priv)
+>> +{
+>> +       /* status for sub devices */
+>> +       v4l2_device_call_all(&vpif_obj.v4l2_dev, 0, core, log_status);
+>> +
+>> +       return 0;
+>> +}
+>> +
+>>  /* vpif display ioctl operations */
+>>  static const struct v4l2_ioctl_ops vpif_ioctl_ops = {
+>>        .vidioc_querycap                = vpif_querycap,
+>> @@ -1336,6 +1421,12 @@ static const struct v4l2_ioctl_ops vpif_ioctl_ops =
+>> {
+>>        .vidioc_s_output                = vpif_s_output,
+>>        .vidioc_g_output                = vpif_g_output,
+>>        .vidioc_cropcap                 = vpif_cropcap,
+>> +       .vidioc_g_chip_ident            = vpif_g_chip_ident,
+>> +#ifdef CONFIG_VIDEO_ADV_DEBUG
+>> +       .vidioc_g_register              = vpif_dbg_g_register,
+>> +       .vidioc_s_register              = vpif_dbg_s_register,
+>> +#endif
+>> +       .vidioc_log_status              = vpif_log_status,
+>>  };
+>>
+>>  static const struct v4l2_file_operations vpif_fops = {
+>> --
+>> 1.7.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
+>
+>
+> --
+> Murali Karicheri
+> mkaricheri@gmail.com
+>
 
-I can imagine that some simple cameras that capture pure JPG frames might want
-to use 'one shot' mode. This enables easier scripting and things like 
-'cat /dev/video >capture.jpg' working. If you think that 'one shot' mode should
-be removed - let me know.
 
-> Another question: how hard is it to support write mode as well? I think
-> vb2 should support both. I suspect that once we have a read emulator it isn't
-> difficult to make a write emulator too.
 
-Well, that's possible. If you really think that write() emulator is also
-required, I can implement both. This shouldn't be much work.
-
-> A last remark: the locking has changed recently in videobuf due to the work
-> done on eliminating the BKL.  It's probably a good idea to incorporate those
-> changes as well in vb2.
-
-Yes, I noticed that there are a lot of changes in for-2.6.37 staging tree, I
-will try to get through them and update relevant parts of vb2. The current
-version the vb2 patches is based on 2.6.36-rc8. Kernel tree with vb2 patches
-(and the required multiplane patches) will be available in a few hours on:
-
-http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/heads/v4l/vb2
-
-Best regards
 --
-Marek Szyprowski
-Samsung Poland R&D Center
-
+Murali Karicheri
+mkaricheri@gmail.com
