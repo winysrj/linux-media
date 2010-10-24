@@ -1,159 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57050 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751216Ab0JFJ5m convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Oct 2010 05:57:42 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "Aguirre, Sergio" <saaguirre@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "sakari.ailus@maxwell.research.nokia.com"
-	<sakari.ailus@maxwell.research.nokia.com>
-Date: Wed, 6 Oct 2010 15:27:32 +0530
-Subject: RE: [RFC/PATCH v2 5/6] omap3: Export omap3isp platform device
- structure
-Message-ID: <19F8576C6E063C45BE387C64729E739404AA21CCD6@dbde02.ent.ti.com>
-References: <1286284734-12292-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1286284734-12292-6-git-send-email-laurent.pinchart@ideasonboard.com>
- <A24693684029E5489D1D202277BE894472B4F82F@dlee02.ent.ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE894472B4F82F@dlee02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:45025 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757709Ab0JXQwb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Oct 2010 12:52:31 -0400
+Received: by fxm16 with SMTP id 16so2165922fxm.19
+        for <linux-media@vger.kernel.org>; Sun, 24 Oct 2010 09:52:30 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <4CC229BC.90000@redhat.com>
+References: <1283756030-28634-1-git-send-email-m.szyprowski@samsung.com>
+ <1283756030-28634-8-git-send-email-m.szyprowski@samsung.com> <4CC229BC.90000@redhat.com>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Sun, 24 Oct 2010 09:52:09 -0700
+Message-ID: <AANLkTin_puofnGcxyLbcLCqE8TbX0CUbtHRd-o+CBQt2@mail.gmail.com>
+Subject: Re: [PATCH 7/8] v4l: Add EBUSY error description for VIDIOC_STREAMON
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	p.osciak@samsung.com, s.nawrocki@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+On Fri, Oct 22, 2010 at 17:18, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+> Em 06-09-2010 03:53, Marek Szyprowski escreveu:
+>> From: Pawel Osciak <p.osciak@samsung.com>
+>>
+>> VIDIOC_STREAMON should return EBUSY if streaming is already active.
+>>
+>> Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>> ---
+>>  Documentation/DocBook/v4l/vidioc-streamon.xml |    7 +++++++
+>>  1 files changed, 7 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/Documentation/DocBook/v4l/vidioc-streamon.xml b/Documentation/DocBook/v4l/vidioc-streamon.xml
+>> index e42bff1..fdbd8d8 100644
+>> --- a/Documentation/DocBook/v4l/vidioc-streamon.xml
+>> +++ b/Documentation/DocBook/v4l/vidioc-streamon.xml
+>> @@ -93,6 +93,13 @@ synchronize with other events.</para>
+>>  been allocated (memory mapping) or enqueued (output) yet.</para>
+>>       </listitem>
+>>        </varlistentry>
+>> +      <varlistentry>
+>> +     <term><errorcode>EBUSY</errorcode></term>
+>> +     <listitem>
+>> +       <para><constant>VIDIOC_STREAMON</constant> called, but
+>> +       streaming I/O already active.</para>
+>> +     </listitem>
+>> +      </varlistentry>
+>>      </variablelist>
+>>    </refsect1>
+>>  </refentry>
+>
+> I'm in doubt about this patch. I don't see any problem on just return 0 if
+> stream is active.
+>
+> Actually, I think that this patch may break some applications, as there are
+> some cases where stream may start even without streamon (like via read() method).
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Aguirre, Sergio
-> Sent: Tuesday, October 05, 2010 9:40 PM
-> To: Laurent Pinchart; linux-media@vger.kernel.org
-> Cc: sakari.ailus@maxwell.research.nokia.com
-> Subject: RE: [RFC/PATCH v2 5/6] omap3: Export omap3isp platform device
-> structure
-> 
-> Hi Laurent,
-> 
-> > -----Original Message-----
-> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> > owner@vger.kernel.org] On Behalf Of Laurent Pinchart
-> > Sent: Tuesday, October 05, 2010 8:19 AM
-> > To: linux-media@vger.kernel.org
-> > Cc: sakari.ailus@maxwell.research.nokia.com
-> > Subject: [RFC/PATCH v2 5/6] omap3: Export omap3isp platform device
-> > structure
-> >
-> > From: Stanimir Varbanov <svarbanov@mm-sol.com>
-> >
-> > The omap3isp platform device requires platform data. As the data can be
-> > provided by a kernel module, the device can't be registered during arch
-> > initialization.
-> >
-> > Remove the omap3isp platform device registration from
-> > omap_init_camera(), and export the platform device structure to let
-> > board code register/unregister it.
-> >
-> 
-> This patch needs to go through linux-omap ML.
 
-[Hiremath, Vaibhav] Yes that's correct, all arch/arm/mach-omap2 and arch/arm/plat-omap/ changes supposed to get reviewed from linux-omap mailing list.
+A quick grep over the media directory reveals that many drivers
+(including videobuf_streamon) return EBUSY for some cases. This patch
+was not intended to introduce something new to the API. I just wanted
+to document an undocumented return value. How should the EBUSY return
+be interpreted? Or should we get rid of it?
 
-Thanks,
-Vaibhav
-
-> 
-> Regards,
-> Sergio
-> 
-> > Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> >  arch/arm/mach-omap2/devices.c |   18 ++++++++++++++++--
-> >  arch/arm/mach-omap2/devices.h |   17 +++++++++++++++++
-> >  2 files changed, 33 insertions(+), 2 deletions(-)
-> >  create mode 100644 arch/arm/mach-omap2/devices.h
-> >
-> > diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-
-> omap2/devices.c
-> > index ade8db0..f9bc507 100644
-> > --- a/arch/arm/mach-omap2/devices.c
-> > +++ b/arch/arm/mach-omap2/devices.c
-> > @@ -31,6 +31,8 @@
-> >
-> >  #include "mux.h"
-> >
-> > +#include "devices.h"
-> > +
-> >  #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
-> >
-> >  static struct resource cam_resources[] = {
-> > @@ -141,16 +143,28 @@ static struct resource omap3isp_resources[] = {
-> >  	}
-> >  };
-> >
-> > -static struct platform_device omap3isp_device = {
-> > +static void omap3isp_release(struct device *dev)
-> > +{
-> > +	/* Zero the device structure to avoid re-initialization complaints
-> > from
-> > +	 * kobject when the device will be re-registered.
-> > +	 */
-> > +	memset(dev, 0, sizeof(*dev));
-> > +	dev->release = omap3isp_release;
-> > +}
-> > +
-> > +struct platform_device omap3isp_device = {
-> >  	.name		= "omap3isp",
-> >  	.id		= -1,
-> >  	.num_resources	= ARRAY_SIZE(omap3isp_resources),
-> >  	.resource	= omap3isp_resources,
-> > +	.dev = {
-> > +		.release	= omap3isp_release,
-> > +	},
-> >  };
-> > +EXPORT_SYMBOL_GPL(omap3isp_device);
-> >
-> >  static inline void omap_init_camera(void)
-> >  {
-> > -	platform_device_register(&omap3isp_device);
-> >  }
-> >  #else
-> >  static inline void omap_init_camera(void)
-> > diff --git a/arch/arm/mach-omap2/devices.h b/arch/arm/mach-
-> omap2/devices.h
-> > new file mode 100644
-> > index 0000000..f312d49
-> > --- /dev/null
-> > +++ b/arch/arm/mach-omap2/devices.h
-> > @@ -0,0 +1,17 @@
-> > +/*
-> > + * arch/arm/mach-omap2/devices.h
-> > + *
-> > + * OMAP2 platform device setup/initialization
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of the GNU General Public License as published by
-> > + * the Free Software Foundation; either version 2 of the License, or
-> > + * (at your option) any later version.
-> > + */
-> > +
-> > +#ifndef __ARCH_ARM_MACH_OMAP_DEVICES_H
-> > +#define __ARCH_ARM_MACH_OMAP_DEVICES_H
-> > +
-> > +extern struct platform_device omap3isp_device;
-> > +
-> > +#endif
-> > --
-> > 1.7.2.2
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media"
-> in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Best regards,
+Pawel Osciak
