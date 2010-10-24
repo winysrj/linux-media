@@ -1,138 +1,383 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:46751 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1751327Ab0JBFrl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 2 Oct 2010 01:47:41 -0400
-Date: Sat, 2 Oct 2010 07:47:47 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Discussion of the Amstrad E3 emailer hardware/software
-	<e3-hacking@earth.li>
-Subject: Re: [PATCH v3 3/6] SoC Camera: add driver for OV6650 sensor
-In-Reply-To: <201009270514.01865.jkrzyszt@tis.icnet.pl>
-Message-ID: <Pine.LNX.4.64.1010020538500.14599@axis700.grange>
-References: <201009270514.01865.jkrzyszt@tis.icnet.pl>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:36254 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751139Ab0JXOpv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Oct 2010 10:45:51 -0400
+Received: by bwz11 with SMTP id 11so1724349bwz.19
+        for <linux-media@vger.kernel.org>; Sun, 24 Oct 2010 07:45:49 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <AANLkTikAKhfcdjwCZjvez4A7OBLyE1s7mgVKoO3ChAa=@mail.gmail.com>
+References: <1287730851-18579-1-git-send-email-mats.randgaard@tandberg.com>
+	<1287730851-18579-5-git-send-email-mats.randgaard@tandberg.com>
+	<AANLkTikAKhfcdjwCZjvez4A7OBLyE1s7mgVKoO3ChAa=@mail.gmail.com>
+Date: Sun, 24 Oct 2010 10:45:49 -0400
+Message-ID: <AANLkTimCkGpZGNPyr0qfzuEKrp65MCQ+wOh_4w7CW7nr@mail.gmail.com>
+Subject: Fwd: [RFC/PATCH 4/5] vpif_cap/disp: Added support for DV timings
+From: Muralidharan Karicheri <mkaricheri@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Ok, let's take this one, but, please, address the below couple of minor 
-issues in an incremental patch.
+---------- Forwarded message ----------
+From: Muralidharan Karicheri <mkaricheri@gmail.com>
+Date: Sun, Oct 24, 2010 at 10:33 AM
+Subject: Re: [RFC/PATCH 4/5] vpif_cap/disp: Added support for DV timings
+To: mats.randgaard@tandberg.com
 
-On Mon, 27 Sep 2010, Janusz Krzysztofik wrote:
 
-> +/* write a register */
-> +static int ov6650_reg_write(struct i2c_client *client, u8 reg, u8 val)
+
+
+On Fri, Oct 22, 2010 at 3:00 AM, <mats.randgaard@tandberg.com> wrote:
+>
+> From: Mats Randgaard <mats.randgaard@tandberg.com>
+>
+> Added functions to set and get custom DV timings.
+>
+> Signed-off-by: Mats Randgaard <mats.randgaard@tandberg.com>
+> Signed-off-by: Hans Verkuil <hans.verkuil@tandberg.com>
+> ---
+>  drivers/media/video/davinci/vpif_capture.c |  119 +++++++++++++++++++++++++++
+>  drivers/media/video/davinci/vpif_capture.h |    1 +
+>  drivers/media/video/davinci/vpif_display.c |  120 ++++++++++++++++++++++++++++
+>  drivers/media/video/davinci/vpif_display.h |    1 +
+>  4 files changed, 241 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
+> index bf1adea..184fa3c 100644
+> --- a/drivers/media/video/davinci/vpif_capture.c
+> +++ b/drivers/media/video/davinci/vpif_capture.c
+> @@ -1927,6 +1927,123 @@ static int vpif_g_dv_preset(struct file *file, void *priv,
+>        return 0;
+>  }
+>
+> +/**
+> + * vpif_s_dv_timings() - S_DV_TIMINGS handler
+> + * @file: file ptr
+> + * @priv: file handle
+> + * @timings: digital video timings
+> + */
+> +static int vpif_s_dv_timings(struct file *file, void *priv,
+> +               struct v4l2_dv_timings *timings)
 > +{
-> +	int ret;
-> +	unsigned char data[2] = { reg, val };
-> +	struct i2c_msg msg = {
-> +		.addr	= client->addr,
-> +		.flags	= 0,
-> +		.len	= 2,
-> +		.buf	= data,
-> +	};
+> +       struct vpif_fh *fh = priv;
+> +       struct channel_obj *ch = fh->channel;
+> +       struct vpif_params *vpifparams = &ch->vpifparams;
+> +       struct vpif_channel_config_params *std_info = &vpifparams->std_info;
+> +       struct video_obj *vid_obj = &ch->video;
+> +       struct v4l2_bt_timings *bt = &vid_obj->bt_timings;
+> +       int ret;
 > +
-> +	ret = i2c_transfer(client->adapter, &msg, 1);
-> +	usleep_range(100, 1000);
+> +       if (timings->type != V4L2_DV_BT_656_1120) {
+> +               vpif_dbg(2, debug, "Timing type not defined\n");
+> +               return -EINVAL;
+> +       }
+> +
+> +       /* Configure subdevice timings, if any */
+> +       ret = v4l2_subdev_call(vpif_obj.sd[ch->curr_sd_index],
+> +                       video, s_dv_timings, timings);
+> +       if (ret == -ENOIOCTLCMD) {
+> +               vpif_dbg(2, debug, "Custom DV timings not supported by "
+> +                               "subdevice\n");
+> +               return -EINVAL;
+> +       }
+> +       if (ret < 0) {
+> +               vpif_dbg(2, debug, "Error setting custom DV timings\n");
+> +               return ret;
+> +       }
+> +
+> +       if (!(timings->bt.width && timings->bt.height &&
+> +                               (timings->bt.hbackporch ||
+> +                                timings->bt.hfrontporch ||
+> +                                timings->bt.hsync) &&
+> +                               timings->bt.vfrontporch &&
+> +                               (timings->bt.vbackporch ||
+> +                                timings->bt.vsync))) {
+> +               vpif_dbg(2, debug, "Timings for width, height, "
+> +                               "horizontal back porch, horizontal sync, "
+> +                               "horizontal front porch, vertical back porch, "
+> +                               "vertical sync and vertical back porch "
+> +                               "must be defined\n");
+> +               return -EINVAL;
+> +       }
+> +
+> +       *bt = timings->bt;
+> +
+> +       /* Configure videoport timings */
 
-So, 100us are enough? Then I'd just go with udelay(100).
 
-> static bool is_unscaled_ok(int width, int height, struct v4l2_rect *rect)
-> +{
-> +	return (width > rect->width >> 1 || height > rect->height >> 1);
+>
+> video port ?
+
+
+>
+> +       std_info->eav2sav = bt->hbackporch + bt->hfrontporch +
+> +               bt->hsync - 8;
+> +       std_info->sav2eav = bt->width;
+> +
+> +       std_info->l1 = 1;
+> +       std_info->l3 = bt->vsync + bt->vbackporch + 1;
+> +
+> +       if (bt->interlaced) {
+> +               if (bt->il_vbackporch || bt->il_vfrontporch || bt->il_vsync) {
+> +                       std_info->vsize = bt->height * 2 +
+> +                               bt->vfrontporch + bt->vsync + bt->vbackporch +
+> +                               bt->il_vfrontporch + bt->il_vsync +
+> +                               bt->il_vbackporch;
+> +                       std_info->l5 = std_info->vsize/2 -
+> +                               (bt->vfrontporch - 1);
+> +                       std_info->l7 = std_info->vsize/2 + 1;
+> +                       std_info->l9 = std_info->l7 + bt->il_vsync +
+> +                               bt->il_vbackporch + 1;
+> +                       std_info->l11 = std_info->vsize -
+> +                               (bt->il_vfrontporch - 1);
+> +               } else {
+> +                       vpif_dbg(2, debug, "Required timing values for "
+> +                                       "interlaced BT format missing\n");
+> +                       return -EINVAL;
+> +               }
+> +       } else {
+> +               std_info->vsize = bt->height + bt->vfrontporch +
+> +                       bt->vsync + bt->vbackporch;
+> +               std_info->l5 = std_info->vsize - (bt->vfrontporch - 1);
+> +       }
+
+Is the calculation above generic? If not, better this be moved to vpif.c
+
+>
+> +       strncpy(std_info->name, "Custom timings BT656/1120", VPIF_MAX_NAME);
+> +       std_info->width = bt->width;
+> +       std_info->height = bt->height;
+> +       std_info->frm_fmt = bt->interlaced ? 0 : 1;
+> +       std_info->ycmux_mode = 0;
+> +       std_info->capture_format = 0;
+> +       std_info->vbi_supported = 0;
+> +       std_info->hd_sd = 1;
+> +       std_info->stdid = 0;
+> +       std_info->dv_preset = V4L2_DV_INVALID;
+> +
+> +       return 0;
 > +}
-
-Ok, just one more pair of brackets to remove;)
-
 > +
-> +static u8 to_clkrc(struct v4l2_fract *timeperframe,
-> +		unsigned long pclk_limit, unsigned long pclk_max)
+> +/**
+> + * vpif_g_dv_timings() - G_DV_TIMINGS handler
+> + * @file: file ptr
+> + * @priv: file handle
+> + * @timings: digital video timings
+> + */
+> +static int vpif_g_dv_timings(struct file *file, void *priv,
+> +               struct v4l2_dv_timings *timings)
 > +{
-> +	unsigned long pclk;
+> +       struct vpif_fh *fh = priv;
+> +       struct channel_obj *ch = fh->channel;
+> +       struct video_obj *vid_obj = &ch->video;
+> +       struct v4l2_bt_timings *bt = &vid_obj->bt_timings;
 > +
-> +	if (timeperframe->numerator && timeperframe->denominator)
-> +		pclk = pclk_max * timeperframe->denominator /
-> +				(FRAME_RATE_MAX * timeperframe->numerator);
-> +	else
-> +		pclk = pclk_max;
+> +       timings->bt = *bt;
 > +
-> +	if (pclk_limit && pclk_limit < pclk)
-> +		pclk = pclk_limit;
-> +
-> +	return (pclk_max - 1) / pclk;
+> +       return 0;
 > +}
 > +
-> +/* set the format we will capture in */
-> +static int ov6650_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
+>  /*
+>  * vpif_g_chip_ident() - Identify the chip
+>  * @file: file ptr
+> @@ -2033,6 +2150,8 @@ static const struct v4l2_ioctl_ops vpif_ioctl_ops = {
+>        .vidioc_s_dv_preset             = vpif_s_dv_preset,
+>        .vidioc_g_dv_preset             = vpif_g_dv_preset,
+>        .vidioc_query_dv_preset         = vpif_query_dv_preset,
+> +       .vidioc_s_dv_timings            = vpif_s_dv_timings,
+> +       .vidioc_g_dv_timings            = vpif_g_dv_timings,
+>        .vidioc_g_chip_ident            = vpif_g_chip_ident,
+>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+>        .vidioc_g_register              = vpif_dbg_g_register,
+> diff --git a/drivers/media/video/davinci/vpif_capture.h b/drivers/media/video/davinci/vpif_capture.h
+> index 3452a8a..7a4196d 100644
+> --- a/drivers/media/video/davinci/vpif_capture.h
+> +++ b/drivers/media/video/davinci/vpif_capture.h
+> @@ -60,6 +60,7 @@ struct video_obj {
+>        /* Currently selected or default standard */
+>        v4l2_std_id stdid;
+>        u32 dv_preset;
+> +       struct v4l2_bt_timings bt_timings;
+>        /* This is to track the last input that is passed to application */
+>        u32 input_idx;
+>  };
+> diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
+> index 4554971..bc42505 100644
+> --- a/drivers/media/video/davinci/vpif_display.c
+> +++ b/drivers/media/video/davinci/vpif_display.c
+> @@ -1409,6 +1409,124 @@ static int vpif_g_dv_preset(struct file *file, void *priv,
+>
+>        return 0;
+>  }
+> +/**
+> + * vpif_s_dv_timings() - S_DV_TIMINGS handler
+> + * @file: file ptr
+> + * @priv: file handle
+> + * @timings: digital video timings
+> + */
+> +static int vpif_s_dv_timings(struct file *file, void *priv,
+> +               struct v4l2_dv_timings *timings)
 > +{
-> +	struct i2c_client *client = sd->priv;
-> +	struct soc_camera_device *icd = client->dev.platform_data;
-> +	struct soc_camera_sense *sense = icd->sense;
-> +	struct ov6650 *priv = to_ov6650(client);
-> +	bool half_scale = !is_unscaled_ok(mf->width, mf->height, &priv->rect);
-> +	struct v4l2_crop a = {
-> +		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
-> +		.c = {
-> +			.left	= priv->rect.left + (priv->rect.width >> 1) -
-> +					(mf->width >> (1 - half_scale)),
-> +			.top	= priv->rect.top + (priv->rect.height >> 1) -
-> +					(mf->height >> (1 - half_scale)),
-> +			.width	= mf->width << half_scale,
-> +			.height	= mf->height << half_scale,
-> +		},
-> +	};
+> +       struct vpif_fh *fh = priv;
+> +       struct channel_obj *ch = fh->channel;
+> +       struct vpif_params *vpifparams = &ch->vpifparams;
+> +       struct vpif_channel_config_params *std_info = &vpifparams->std_info;
+> +       struct video_obj *vid_obj = &ch->video;
+> +       struct v4l2_bt_timings *bt = &vid_obj->bt_timings;
+> +       struct video_obj *vid_ch = &ch->video;
+> +       int ret;
+> +
+> +       if (timings->type != V4L2_DV_BT_656_1120) {
+> +               vpif_dbg(2, debug, "Timing type not defined\n");
+> +               return -EINVAL;
+> +       }
+> +
+> +       /* Configure subdevice timings, if any */
+> +       ret = v4l2_subdev_call(vpif_obj.sd[vid_ch->output_id],
+> +                       video, s_dv_timings, timings);
+> +       if (ret == -ENOIOCTLCMD) {
+> +               vpif_dbg(2, debug, "Custom DV timings not supported by "
+> +                               "subdevice\n");
+> +               return -EINVAL;
+> +       }
+> +       if (ret < 0) {
+> +               vpif_dbg(2, debug, "Error setting custom DV timings\n");
+> +               return ret;
+> +       }
+> +
+> +       if (!(timings->bt.width && timings->bt.height &&
+> +                               (timings->bt.hbackporch ||
+> +                                timings->bt.hfrontporch ||
+> +                                timings->bt.hsync) &&
+> +                               timings->bt.vfrontporch &&
+> +                               (timings->bt.vbackporch ||
+> +                                timings->bt.vsync))) {
+> +               vpif_dbg(2, debug, "Timings for width, height, "
+> +                               "horizontal back porch, horizontal sync, "
+> +                               "horizontal front porch, vertical back porch, "
+> +                               "vertical sync and vertical back porch "
+> +                               "must be defined\n");
+> +               return -EINVAL;
+> +       }
+> +
+> +       *bt = timings->bt;
+> +
+> +       /* Configure videoport timings */
+> +
 
-Hm, this seems wrong to me... You calculate left and top to preserve the 
-center, right? This is good, but: if output is unscaled, you want
+video port?
 
-	.left = priv->rect.left + (priv->rect.width - mf->width) / 2;
+>
+> +       std_info->eav2sav = bt->hbackporch + bt->hfrontporch +
+> +               bt->hsync - 8;
+> +       std_info->sav2eav = bt->width;
+> +
+> +       std_info->l1 = 1;
+> +       std_info->l3 = bt->vsync + bt->vbackporch + 1;
+> +
+> +       if (bt->interlaced) {
+> +               if (bt->il_vbackporch || bt->il_vfrontporch || bt->il_vsync) {
+> +                       std_info->vsize = bt->height * 2 +
+> +                               bt->vfrontporch + bt->vsync + bt->vbackporch +
+> +                               bt->il_vfrontporch + bt->il_vsync +
+> +                               bt->il_vbackporch;
+> +                       std_info->l5 = std_info->vsize/2 -
+> +                               (bt->vfrontporch - 1);
+> +                       std_info->l7 = std_info->vsize/2 + 1;
+> +                       std_info->l9 = std_info->l7 + bt->il_vsync +
+> +                               bt->il_vbackporch + 1;
+> +                       std_info->l11 = std_info->vsize -
+> +                               (bt->il_vfrontporch - 1);
+> +               } else {
+> +                       vpif_dbg(2, debug, "Required timing values for "
+> +                                       "interlaced BT format missing\n");
+> +                       return -EINVAL;
+> +               }
+> +       } else {
+> +               std_info->vsize = bt->height + bt->vfrontporch +
+> +                       bt->vsync + bt->vbackporch;
+> +               std_info->l5 = std_info->vsize - (bt->vfrontporch - 1);
+> +       }
 
-in this case half_scale = 0 and the above is correct. Now, is the output 
-is scaled, you want
+If the calculation above is dependent on vpif, move this part to vpif?
 
-	.left = priv->rect.left + (priv->rect.width - mf->width * 2) / 2;
-which is not, what you have above. Am I missing anything?
+>
+> +       strncpy(std_info->name, "Custom timings BT656/1120",
+> +                       VPIF_MAX_NAME);
+> +       std_info->width = bt->width;
+> +       std_info->height = bt->height;
+> +       std_info->frm_fmt = bt->interlaced ? 0 : 1;
+> +       std_info->ycmux_mode = 0;
+> +       std_info->capture_format = 0;
+> +       std_info->vbi_supported = 0;
+> +       std_info->hd_sd = 1;
+> +       std_info->stdid = 0;
+> +       std_info->dv_preset = V4L2_DV_INVALID;
+> +
+> +       return 0;
+> +}
+> +
+> +/**
+> + * vpif_g_dv_timings() - G_DV_TIMINGS handler
+> + * @file: file ptr
+> + * @priv: file handle
+> + * @timings: digital video timings
+> + */
+> +static int vpif_g_dv_timings(struct file *file, void *priv,
+> +               struct v4l2_dv_timings *timings)
+> +{
+> +       struct vpif_fh *fh = priv;
+> +       struct channel_obj *ch = fh->channel;
+> +       struct video_obj *vid_obj = &ch->video;
+> +       struct v4l2_bt_timings *bt = &vid_obj->bt_timings;
+> +
+> +       timings->bt = *bt;
+> +
+> +       return 0;
+> +}
+>
+>  /*
+>  * vpif_g_chip_ident() - Identify the chip
+> @@ -1517,6 +1635,8 @@ static const struct v4l2_ioctl_ops vpif_ioctl_ops = {
+>        .vidioc_enum_dv_presets         = vpif_enum_dv_presets,
+>        .vidioc_s_dv_preset             = vpif_s_dv_preset,
+>        .vidioc_g_dv_preset             = vpif_g_dv_preset,
+> +       .vidioc_s_dv_timings            = vpif_s_dv_timings,
+> +       .vidioc_g_dv_timings            = vpif_g_dv_timings,
+>        .vidioc_g_chip_ident            = vpif_g_chip_ident,
+>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+>        .vidioc_g_register              = vpif_dbg_g_register,
+> diff --git a/drivers/media/video/davinci/vpif_display.h b/drivers/media/video/davinci/vpif_display.h
+> index 3d56b3e..b53aaa8 100644
+> --- a/drivers/media/video/davinci/vpif_display.h
+> +++ b/drivers/media/video/davinci/vpif_display.h
+> @@ -68,6 +68,7 @@ struct video_obj {
+>        v4l2_std_id stdid;              /* Currently selected or default
+>                                         * standard */
+>        u32 dv_preset;
+> +       struct v4l2_bt_timings bt_timings;
+>        u32 output_id;                  /* Current output id */
+>  };
+>
+> --
+> 1.7.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-> +	case V4L2_MBUS_FMT_UYVY8_2X8:
-> +		dev_dbg(&client->dev, "pixel format YUYV8_2X8_BE\n");
-> +		if (half_scale) {
-> +			coma_mask |= COMA_RGB | COMA_BW | COMA_WORD_SWAP;
-> +			coma_set |= COMA_BYTE_SWAP;
-> +		} else {
-> +			coma_mask |= COMA_RGB | COMA_BW;
-> +			coma_set |= COMA_BYTE_SWAP | COMA_WORD_SWAP;
-> +		}
-> +		break;
-> +	case V4L2_MBUS_FMT_VYUY8_2X8:
-> +		dev_dbg(&client->dev, "pixel format YVYU8_2X8_BE (untested)\n");
-> +		if (half_scale) {
-> +			coma_mask |= COMA_RGB | COMA_BW;
-> +			coma_set |= COMA_BYTE_SWAP | COMA_WORD_SWAP;
-> +		} else {
-> +			coma_mask |= COMA_RGB | COMA_BW | COMA_WORD_SWAP;
-> +			coma_set |= COMA_BYTE_SWAP;
-> +		}
-> +		break;
 
-...since there anyway will be an incremental patch . what does 
-word-swapping have to do with scaling?...
 
-> +	case V4L2_MBUS_FMT_SBGGR8_1X8:
-> +		dev_dbg(&client->dev, "pixel format SBGGR8_1X8 (untested)\n");
-> +		coma_mask |= COMA_BW | COMA_BYTE_SWAP | COMA_WORD_SWAP;
-> +		coma_set |= COMA_RAW_RGB | COMA_RGB;
-> +		break;
-> +	case 0:
-> +		break;
+--
+Murali Karicheri
+mkaricheri@gmail.com
 
-0 is defined as reserved... What for do you need it here?
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+
+-- 
+Murali Karicheri
+mkaricheri@gmail.com
