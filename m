@@ -1,73 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:39420 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755462Ab0JVUAa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Oct 2010 16:00:30 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o9MK0UTJ002154
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 22 Oct 2010 16:00:30 -0400
-Date: Fri, 22 Oct 2010 16:00:29 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Subject: [GIT PULL REQUEST] more IR enhancements for 2.6.37-rc1
-Message-ID: <20101022200029.GB30199@redhat.com>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:44033 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932881Ab0JXQEi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Oct 2010 12:04:38 -0400
+Received: by qwk3 with SMTP id 3so819641qwk.19
+        for <linux-media@vger.kernel.org>; Sun, 24 Oct 2010 09:04:38 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Date: Sun, 24 Oct 2010 18:04:36 +0200
+Message-ID: <AANLkTi=iP7rUtv4Fu76CGmzoOBnQXDtKYJeRipcdoZ0u@mail.gmail.com>
+Subject: To slow libv4l MJPEG decoding with HD cameras
+From: Mitar <mmitar@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-As you already know, we've been making a number of improvements to the
-mceusb driver's raw buffer parsing routines, both to enhance functionality
-for existing devices, and to enable proper support for the cx231xx/Polaris
-integrated IR receiver. These changes to the mceusb driver are all
-included here, along with a number of fixups for some of the lirc device
-drivers, and a handful of improvements to the lirc base device driver,
-lirc_dev, among which is included a fix for an oops when a device using
-the lirc_dev interface is removed while its chardev is open (i.e., a
-client, such as irw, is attached to lircd and in turn, lircd is looking
-at /dev/lirc0 for data).
+Hi!
 
-The following changes since commit 780e312175f688ab5ab6124c91d46fa2b9afe2d2:
+Logitech HD Pro Webcam C910 supports 2592x1944 at 10 FPS MJPEG stream.
+This is really great but the problem is that libv4l decoding of MJPEG
+is too slow for real-time on the fly decoding at this framerate. I use
+2.6.36-rc6-amd64 and Intel(R) Core(TM)2 Quad CPU Q9400 @ 2.66GHz and
+0.8.1 v4l-utils.
 
-  [media] gspca: Fix coding style issues (2010-10-21 14:50:06 -0200)
+For example, with libv4l decoding of one pixel of MJPEG to BGR24 takes
+around 0.025 microseconds on my machine. This is nothing important
+with for example 640x480 resolution, it takes around 7680
+microseconds, that is 8 milliseconds. But with 2592x1944 this becomes
+around 125 milliseconds. So it is impossible to decode stream on the
+fly in real-time with 10 FPS.
 
-are available in the git repository at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/jarod/linux-2.6-lirc.git staging
+In comparison YUYV decoding takes 0.005 microseconds per pixel on
+average. Those measurements per pixel (both for MJPEG and YUYV) are
+quite consistent even for different framerates and frame sizes.
 
-Jarod Wilson (13):
-      lirc_dev: sanitize function and struct names a bit
-      lirc_dev: fix pointer to owner
-      lirc_dev: get irctl from irctls by inode again
-      lirc_dev: more error-checking improvements
-      lirc_dev: call cdev_del *after* irctl cleanup
-      lirc_dev: rework storage for cdev data
-      lirc_parallel: build on smp and kill dead code
-      lirc_igorplugusb: assorted fixups
-      lirc_igorplugusb: handle hw buffer overruns better
-      lirc_igorplugusb: add Fit PC2 device ID
-      lirc_it87: add another pnp id
-      mceusb: add symbolic names for commands
-      mceusb: hook debug print spew directly into parser routine
+So maybe there is some room for improvement here? For example by using
+ffmpeg MJPEG decoder instead of tinyjpeg? They argue (not really
+kindly) that it has better performance:
 
-Mauro Carvalho Chehab (4):
-      mceusb: improve ir data buffer parser
-      mceusb: add a per-model structure
-      mceusb: allow a per-model RC map
-      mceusb: Allow a per-model device name
+https://roundup.ffmpeg.org/issue1816
 
- drivers/media/IR/lirc_dev.c             |   97 +++++--
- drivers/media/IR/mceusb.c               |  470 ++++++++++++++++++++-----------
- drivers/staging/lirc/Kconfig            |    2 +-
- drivers/staging/lirc/lirc_igorplugusb.c |  188 +++++++------
- drivers/staging/lirc/lirc_it87.c        |    3 +-
- drivers/staging/lirc/lirc_parallel.c    |   26 --
- 6 files changed, 478 insertions(+), 308 deletions(-)
+Has anybody tried to improve MJPEG support in libv4l? With newer
+cameras this becomes important.
+
+And by the way, it would be useful to increase those hardcoded limits
+in ib/libv4lconvert/tinyjpeg-internal.h to for example:
+
+#define JPEG_MAX_WIDTH     4096
+#define JPEG_MAX_HEIGHT    2048
+
+Now we have affordable cameras which have bigger frame sizes than
+those currently hardcoded. ;-)
 
 
--- 
-Jarod Wilson
-jarod@redhat.com
-
+Mitar
