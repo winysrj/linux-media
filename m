@@ -1,81 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:54668 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756019Ab0J2VgT (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:60131 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751139Ab0JXOmM convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Oct 2010 17:36:19 -0400
-From: James Hogan <james@albanarts.com>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 1/6] Input: add support for large scancodes
-Date: Fri, 29 Oct 2010 22:36:06 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Input <linux-input@vger.kernel.org>,
-	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	David Hardeman <david@hardeman.nu>,
-	Jiri Kosina <jkosina@suse.cz>, Ville Syrjala <syrjala@sci.fi>,
-	linux-doc@vger.kernel.org, Randy Dunlap <rdunlap@xenotime.net>
-References: <20100908073233.32365.74621.stgit@hammer.corenet.prv> <20100908074144.32365.27232.stgit@hammer.corenet.prv>
-In-Reply-To: <20100908074144.32365.27232.stgit@hammer.corenet.prv>
+	Sun, 24 Oct 2010 10:42:12 -0400
+Received: by bwz11 with SMTP id 11so1723153bwz.19
+        for <linux-media@vger.kernel.org>; Sun, 24 Oct 2010 07:42:10 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201010292236.07437.james@albanarts.com>
+In-Reply-To: <AANLkTik_idAA9gmKSEvCXfQ=MP2Oe0gSi=PrUKqyoOMZ@mail.gmail.com>
+References: <1287730851-18579-1-git-send-email-mats.randgaard@tandberg.com>
+	<AANLkTik_idAA9gmKSEvCXfQ=MP2Oe0gSi=PrUKqyoOMZ@mail.gmail.com>
+Date: Sun, 24 Oct 2010 10:42:10 -0400
+Message-ID: <AANLkTimGJguc96H+wF0+z-6uCAh67WEGyT3aGad2gZrp@mail.gmail.com>
+Subject: Re: [RFC/PATCH 0/5] DaVinci VPIF: Support for DV preset and DV timings.
+From: Muralidharan Karicheri <mkaricheri@gmail.com>
+To: mats.randgaard@tandberg.com
+Cc: hvaibhav@ti.com, linux-media@vger.kernel.org,
+	hans.verkuil@tandberg.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> diff --git a/include/linux/input.h b/include/linux/input.h
-> index 7892651..0057698 100644
-> --- a/include/linux/input.h
-> +++ b/include/linux/input.h
-<snip>
-> +/**
-> + * struct input_keymap_entry - used by EVIOCGKEYCODE/EVIOCSKEYCODE ioctls
-> + * @scancode: scancode represented in machine-endian form.
-> + * @len: length of the scancode that resides in @scancode buffer.
-> + * @index: index in the keymap, may be used instead of scancode
-> + * @flags: allows to specify how kernel should handle the request. For
-> + *	example, setting INPUT_KEYMAP_BY_INDEX flag indicates that kernel
-> + *	should perform lookup in keymap by @index instead of @scancode
-> + * @keycode: key code assigned to this scancode
-> + *
-> + * The structure is used to retrieve and modify keymap data. Users have
-> + * option of performing lookup either by @scancode itself or by @index
-> + * in keymap entry. EVIOCGKEYCODE will also return scancode or index
-> + * (depending on which element was used to perform lookup).
-> + */
-> +struct input_keymap_entry {
-> +#define INPUT_KEYMAP_BY_INDEX	(1 << 0)
-> +	__u8  flags;
-> +	__u8  len;
-> +	__u16 index;
-> +	__u32 keycode;
-> +	__u8  scancode[32];
-> +};
+Thanks for the patch!
 
-I thought I better point out that this breaks make htmldocs (see below) 
-because of the '<' characters "in" a kernel doc'd struct. This is with 
-12ba8d1e9262ce81a695795410bd9ee5c9407ba1 from Linus' tree (>2.6.36). Moving 
-the #define below the struct works around the problem, but I guess the real 
-issue is in the kerneldoc code.
+On Sun, Oct 24, 2010 at 9:38 AM, Muralidharan Karicheri
+<mkaricheri@gmail.com> wrote:
+>
+> On Fri, Oct 22, 2010 at 3:00 AM, <mats.randgaard@tandberg.com> wrote:
+>>
+>> From: Mats Randgaard <mats.randgaard@tandberg.com>
+>>
+>> Support for DV preset and timings added to vpif_capture and vpif_display drivers.
+>> Functions for debugging are added and the code is improved as well.
+>>
+>> Mats Randgaard (5):
+>>  vpif_cap/disp: Add debug functionality
+>>  vpif: Move and extend ch_params[]
+>>  vpif_cap/disp: Added support for DV presets
+>>  vpif_cap/disp: Added support for DV timings
+>>  vpif_cap/disp: Cleanup, improved comments
+>>
+>>  drivers/media/video/davinci/vpif.c         |  178 +++++++++++++
+>>  drivers/media/video/davinci/vpif.h         |   18 +-
+>>  drivers/media/video/davinci/vpif_capture.c |  380 ++++++++++++++++++++++++++--
+>>  drivers/media/video/davinci/vpif_capture.h |    2 +
+>>  drivers/media/video/davinci/vpif_display.c |  370 +++++++++++++++++++++++++--
+>>  drivers/media/video/davinci/vpif_display.h |    2 +
+>>  6 files changed, 893 insertions(+), 57 deletions(-)
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> Thanks for the patch!
+>
+> --
+> Murali Karicheri
+> mkaricheri@gmail.com
 
-Cheers
-James
 
-$ make htmldocs
-  DOCPROC Documentation/DocBook/device-drivers.xml
-  HTML    Documentation/DocBook/device-drivers.html
-/home/james/src/kernel/linux-2.6/Documentation/DocBook/device-
-drivers.xml:41883: parser error : StartTag: invalid element name
-#define INPUT_KEYMAP_BY_INDEX   (1 << 0)
-                                    ^
-/home/james/src/kernel/linux-2.6/Documentation/DocBook/device-
-drivers.xml:41883: parser error : StartTag: invalid element name
-#define INPUT_KEYMAP_BY_INDEX   (1 << 0)
-                                     ^
-unable to parse /home/james/src/kernel/linux-2.6/Documentation/DocBook/device-
-drivers.xml
-/bin/cp: cannot stat `*.*htm*': No such file or directory
-make[1]: *** [Documentation/DocBook/device-drivers.html] Error 1
-make: *** [htmldocs] Error 2
+
+--
+Murali Karicheri
+mkaricheri@gmail.com
