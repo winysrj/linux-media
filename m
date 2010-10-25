@@ -1,193 +1,348 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:57314 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751688Ab0J3BPq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Oct 2010 21:15:46 -0400
-Received: by bwz11 with SMTP id 11so3074525bwz.19
-        for <linux-media@vger.kernel.org>; Fri, 29 Oct 2010 18:15:45 -0700 (PDT)
+Received: from mailout-de.gmx.net ([213.165.64.23]:41279 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1756468Ab0JYUTu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Oct 2010 16:19:50 -0400
+Date: Mon, 25 Oct 2010 22:19:44 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Michael Grzeschik <m.grzeschik@pengutronix.de>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: Re: [PATCH v3] mt9m111: rewrite set_pixfmt
+In-Reply-To: <1288001488-23806-1-git-send-email-m.grzeschik@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.1010252114480.3519@axis700.grange>
+References: <1280833069-26993-11-git-send-email-m.grzeschik@pengutronix.de>
+ <1288001488-23806-1-git-send-email-m.grzeschik@pengutronix.de>
 MIME-Version: 1.0
-Reply-To: h.ordiales@gmail.com
-In-Reply-To: <4CCB5790.60904@iki.fi>
-References: <4CC25F60.7050106@redhat.com> <AANLkTimEQPK-HvM7BPrMt4LH=x2Gq7tCZfq0trzmkAcU@mail.gmail.com>
- <4CCB5790.60904@iki.fi>
-From: =?ISO-8859-1?Q?Hern=E1n_Ordiales?= <h.ordiales@gmail.com>
-Date: Fri, 29 Oct 2010 22:15:29 -0300
-Message-ID: <AANLkTikMX5s06Aa5wyVOYJigaUJpLJaLeL4nv=FKKruO@mail.gmail.com>
-Subject: Re: V4L/DVB/IR patches pending merge
-To: Antti Palosaari <crope@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Patrick Boettcher <pboettcher@kernellabs.com>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"Igor M. Liplianin" <liplianin@me.by>,
-	LMML <linux-media@vger.kernel.org>
-Content-Type: multipart/mixed; boundary=0016e6dbdf477f55e70493cb50d0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---0016e6dbdf477f55e70493cb50d0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Mon, 25 Oct 2010, Michael Grzeschik wrote:
 
-On Fri, Oct 29, 2010 at 8:24 PM, Antti Palosaari <crope@iki.fi> wrote:
-> On 10/30/2010 02:02 AM, Hern=E1n Ordiales wrote:
->>
->> 2010/10/23 Mauro Carvalho Chehab<mchehab@redhat.com>:
->>>
->>> This is the list of patches that weren't applied yet. I've made a big
->>> effort starting
->>> last weekend to handle everything I could. All pull requests were
->>> addressed. There are still
->>> 43 patches on my queue.
->>>
->>> Please help me to clean the list.
->>>
->>> This is what we have currently:
->>
->> [snip]
->>>
->>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=3D=3D Waiting for Patrick Boettcher<pbo=
-ettcher@dibcom.fr>
->>> =A0review =3D=3D
->>>
->>> May,25 2010: Adding support to the Geniatech/MyGica SBTVD Stick S870
->>> remote control http://patchwork.kernel.org/patch/102314 =A0Hern=E1n
->>> Ordiales<h.ordiales@gmail.com>
->>> Jul,14 2010: [1/4] drivers/media/dvb: Remove dead Configs
->>> =A0 =A0 =A0 =A0 =A0 http://patchwork.kernel.org/patch/111972 =A0Christi=
-an
->>> Dietrich<qy03fugy@stud.informatik.uni-erlangen.de>
->>> Jul,14 2010: [2/4] drivers/media/dvb: Remove undead configs
->>> =A0 =A0 =A0 =A0 =A0 http://patchwork.kernel.org/patch/111973 =A0Christi=
-an
->>> Dietrich<qy03fugy@stud.informatik.uni-erlangen.de>
->>>
->>> The first patch is probably broken.
->>>
->>> Hern=E1n,
->>> Could you please re-generate it?
->>
->> Yes, i'm sending it as attachment (regenerated agaisnt trunk, 15168
->> revision)
->>
->> Cheers
->
-> Your keytable seems to be wrong since it have both keycode and its
-> complement (which is used for error check normally). I think it is NEC
-> remote? In that case address byte is typically same for all buttons.
+> added new bit offset defines,
+> more supported BE colour formats
+> and also support BGR565 swapped pixel formats
+> 
+> removed pixfmt helper functions and option flags
+> setting the configuration register directly in set_pixfmt
+> 
+> added reg_mask function
+> 
+> reg_mask is basically the same as clearing & setting registers,
+> but it is more convenient and faster (saves one rw cycle).
+> 
+> Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+> Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
+> ---
+> Changes v1 -> v2
+>         * removed unrelated OPMODE handling in this function
+> 
+> Changes v2 -> v3
+>         * squashed: "[PATCH 04/11] mt9m111: added new bit offset defines"
+> 	* squashed: "[PATCH 08/11] mt9m111: added reg_mask function"
+> 
+>  drivers/media/video/mt9m111.c |  176 +++++++++++++++++++----------------------
+>  1 files changed, 81 insertions(+), 95 deletions(-)
+> 
+> diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+> index 3eeda19..9da30c0 100644
+> --- a/drivers/media/video/mt9m111.c
+> +++ b/drivers/media/video/mt9m111.c
+> @@ -63,6 +63,12 @@
+>  #define MT9M111_RESET_RESTART_FRAME	(1 << 1)
+>  #define MT9M111_RESET_RESET_MODE	(1 << 0)
+>  
+> +#define MT9M111_RM_FULL_POWER_RD	(0 << 10)
+> +#define MT9M111_RM_LOW_POWER_RD		(1 << 10)
+> +#define MT9M111_RM_COL_SKIP_4X		(1 << 5)
+> +#define MT9M111_RM_ROW_SKIP_4X		(1 << 4)
+> +#define MT9M111_RM_COL_SKIP_2X		(1 << 3)
+> +#define MT9M111_RM_ROW_SKIP_2X		(1 << 2)
+>  #define MT9M111_RMB_MIRROR_COLS		(1 << 1)
+>  #define MT9M111_RMB_MIRROR_ROWS		(1 << 0)
+>  #define MT9M111_CTXT_CTRL_RESTART	(1 << 15)
+> @@ -95,7 +101,8 @@
+>  
+>  #define MT9M111_OPMODE_AUTOEXPO_EN	(1 << 14)
+>  #define MT9M111_OPMODE_AUTOWHITEBAL_EN	(1 << 1)
+> -
+> +#define MT9M111_OUTFMT_FLIP_BAYER_COL  (1 << 9)
+> +#define MT9M111_OUTFMT_FLIP_BAYER_ROW  (1 << 8)
+>  #define MT9M111_OUTFMT_PROCESSED_BAYER	(1 << 14)
+>  #define MT9M111_OUTFMT_BYPASS_IFP	(1 << 10)
+>  #define MT9M111_OUTFMT_INV_PIX_CLOCK	(1 << 9)
+> @@ -113,6 +120,7 @@
+>  #define MT9M111_OUTFMT_SWAP_YCbCr_C_Y	(1 << 1)
+>  #define MT9M111_OUTFMT_SWAP_RGB_EVEN	(1 << 1)
+>  #define MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr	(1 << 0)
+> +#define MT9M111_OUTFMT_SWAP_RGB_R_B	(1 << 0)
+>  
+>  /*
+>   * Camera control register addresses (0x200..0x2ff not implemented)
+> @@ -122,6 +130,8 @@
+>  #define reg_write(reg, val) mt9m111_reg_write(client, MT9M111_##reg, (val))
+>  #define reg_set(reg, val) mt9m111_reg_set(client, MT9M111_##reg, (val))
+>  #define reg_clear(reg, val) mt9m111_reg_clear(client, MT9M111_##reg, (val))
+> +#define reg_mask(reg, val, mask) mt9m111_reg_mask(client, MT9M111_##reg, \
+> +		(val), (mask))
+>  
+>  #define MT9M111_MIN_DARK_ROWS	8
+>  #define MT9M111_MIN_DARK_COLS	26
+> @@ -148,12 +158,16 @@ static const struct mt9m111_datafmt *mt9m111_find_datafmt(
+>  }
+>  
+>  static const struct mt9m111_datafmt mt9m111_colour_fmts[] = {
+> -	{V4L2_MBUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_JPEG},
+> -	{V4L2_MBUS_FMT_YVYU8_2X8, V4L2_COLORSPACE_JPEG},
+> -	{V4L2_MBUS_FMT_UYVY8_2X8, V4L2_COLORSPACE_JPEG},
+> -	{V4L2_MBUS_FMT_VYUY8_2X8, V4L2_COLORSPACE_JPEG},
+> +	{V4L2_MBUS_FMT_YUYV8_2X8_LE, V4L2_COLORSPACE_JPEG},
+> +	{V4L2_MBUS_FMT_YVYU8_2X8_LE, V4L2_COLORSPACE_JPEG},
+> +	{V4L2_MBUS_FMT_YUYV8_2X8_BE, V4L2_COLORSPACE_JPEG},
+> +	{V4L2_MBUS_FMT_YVYU8_2X8_BE, V4L2_COLORSPACE_JPEG},
 
-Yes, i know the complement thing . The table was generated by reverse
-engineering and i couldn't found the common address so i left in that
-way. For example, for '7' button i receive:
-dib0700: IR raw 01 01 00 00 07 F8 (len 6)
+This looks to me like you're breaking the driver. Please, develop against 
+a recent v4l tree, or, in fact, against next. With this in mind, I don't 
+think we still have a realistic chance to get this in for 2.6.37. In fact, 
+it is _already_ too late, so, no way, sorry.
 
-I think Is not a nec remote, it is a generic one that comes with
-mygica/geniatech products. I rebuilt the key table (patch attached)
-using '00' as address, is that ok? And leaving it using RC5 protocol
-(instead adding a case for dvb_usb_dib0700_ir_proto=3D1)
-in this way works ok too
+>  	{V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE, V4L2_COLORSPACE_SRGB},
+> +	{V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE, V4L2_COLORSPACE_SRGB},
+>  	{V4L2_MBUS_FMT_RGB565_2X8_LE, V4L2_COLORSPACE_SRGB},
+> +	{V4L2_MBUS_FMT_RGB565_2X8_BE, V4L2_COLORSPACE_SRGB},
+> +	{V4L2_MBUS_FMT_BGR565_2X8_LE, V4L2_COLORSPACE_SRGB},
+> +	{V4L2_MBUS_FMT_BGR565_2X8_BE, V4L2_COLORSPACE_SRGB},
+>  	{V4L2_MBUS_FMT_SBGGR8_1X8, V4L2_COLORSPACE_SRGB},
+>  	{V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE, V4L2_COLORSPACE_SRGB},
+>  };
+> @@ -176,10 +190,6 @@ struct mt9m111 {
+>  	unsigned int powered:1;
+>  	unsigned int hflip:1;
+>  	unsigned int vflip:1;
+> -	unsigned int swap_rgb_even_odd:1;
+> -	unsigned int swap_rgb_red_blue:1;
+> -	unsigned int swap_yuv_y_chromas:1;
+> -	unsigned int swap_yuv_cb_cr:1;
+>  	unsigned int autowhitebalance:1;
+>  };
+>  
+> @@ -251,6 +261,15 @@ static int mt9m111_reg_clear(struct i2c_client *client, const u16 reg,
+>  	return mt9m111_reg_write(client, reg, ret & ~data);
+>  }
+>  
+> +static int mt9m111_reg_mask(struct i2c_client *client, const u16 reg,
+> +			    const u16 data, const u16 mask)
+> +{
+> +	int ret;
+> +
+> +	ret = mt9m111_reg_read(client, reg);
+> +	return mt9m111_reg_write(client, reg, (ret & ~mask) | data);
 
-.   default:
-.   .   /* RC5 Protocol */
-.   .   poll_reply.report_id  =3D buf[0];
-.   .   poll_reply.data_state =3D buf[1];
-.   .   poll_reply.system     =3D (buf[2] << 8) | buf[3];
-.   .   poll_reply.data       =3D buf[4];
-.   .   poll_reply.not_data   =3D buf[5];
-.   .   break;
+Ok, I feel ashamed, that I have accepted this driver in this form... It is 
+full of such buggy error handling instances, and this adds just one 
+more... So, I would very appreciate if you could clean them up - before 
+this patch, and handle this error properly too, otherwise I might do this 
+myself some time... And, just noticed - "static int lastpage" from 
+reg_page_map_set() must be moved into struct mt9m111, if this driver shall 
+be able to handle more than one sensor simultaneously, at least in 
+principle...
 
-+	/* Key codes for the Geniatech/MyGica SBTVD Stick S870 remote
-+	   set dvb_usb_dib0700_ir_proto=3D1 */
-+	{ 0x0038, KEY_TV }, /* TV/AV */
-+	{ 0x000c, KEY_POWER },
-+	{ 0x000a, KEY_MUTE },
-+	{ 0x002b, KEY_VOLUMEUP },
-+	{ 0x002c, KEY_VOLUMEDOWN },
-+	{ 0x0012, KEY_CHANNELUP },
-+	{ 0x0013, KEY_CHANNELDOWN },
-+	{ 0x0001, KEY_1 },
-+	{ 0x0002, KEY_2 },
-+	{ 0x0003, KEY_3 },
-+	{ 0x0004, KEY_4 },
-+	{ 0x0005, KEY_5 },
-+	{ 0x0006, KEY_6 },
-+	{ 0x0007, KEY_7 },
-+	{ 0x0008, KEY_8 },
-+	{ 0x0009, KEY_9 },
-+	{ 0x0000, KEY_0 },
-+	{ 0x0016, KEY_PAUSE },
-+	{ 0x0017, KEY_PLAY },
-+	{ 0x000b, KEY_STOP },
-+	{ 0x0026, KEY_REWIND },
-+	{ 0x0027, KEY_FASTFORWARD },
-+	{ 0x0029, KEY_ESC },
-+	{ 0x001f, KEY_RECORD },
-+	{ 0x0020, KEY_UP },
-+	{ 0x0021, KEY_DOWN },
-+	{ 0x0011, KEY_LEFT },
-+	{ 0x0010, KEY_RIGHT },
-+	{ 0x000d, KEY_OK },
-+	{ 0x001e, KEY_PLAYPAUSE }, /* Timeshift */
-+	{ 0x000e, KEY_CAMERA }, /* Snapshot */
-+	{ 0x0025, KEY_EPG }, /* Info KEY_INFO */
-+	{ 0x002d, KEY_MENU }, /* DVD Menu */
-+	{ 0x000f, KEY_SCREEN }, /* Full screen toggle */
-+	{ 0x0014, KEY_SHUFFLE },
+Thanks
+Guennadi
 
+> +}
+> +
+>  static int mt9m111_set_context(struct i2c_client *client,
+>  			       enum mt9m111_context ctxt)
+>  {
+> @@ -312,68 +331,6 @@ static int mt9m111_setup_rect(struct i2c_client *client,
+>  	return ret;
+>  }
+>  
+> -static int mt9m111_setup_pixfmt(struct i2c_client *client, u16 outfmt)
+> -{
+> -	int ret;
+> -
+> -	ret = reg_write(OUTPUT_FORMAT_CTRL2_A, outfmt);
+> -	if (!ret)
+> -		ret = reg_write(OUTPUT_FORMAT_CTRL2_B, outfmt);
+> -	return ret;
+> -}
+> -
+> -static int mt9m111_setfmt_bayer8(struct i2c_client *client)
+> -{
+> -	return mt9m111_setup_pixfmt(client, MT9M111_OUTFMT_PROCESSED_BAYER |
+> -				    MT9M111_OUTFMT_RGB);
+> -}
+> -
+> -static int mt9m111_setfmt_bayer10(struct i2c_client *client)
+> -{
+> -	return mt9m111_setup_pixfmt(client, MT9M111_OUTFMT_BYPASS_IFP);
+> -}
+> -
+> -static int mt9m111_setfmt_rgb565(struct i2c_client *client)
+> -{
+> -	struct mt9m111 *mt9m111 = to_mt9m111(client);
+> -	int val = 0;
+> -
+> -	if (mt9m111->swap_rgb_red_blue)
+> -		val |= MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr;
+> -	if (mt9m111->swap_rgb_even_odd)
+> -		val |= MT9M111_OUTFMT_SWAP_RGB_EVEN;
+> -	val |= MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB565;
+> -
+> -	return mt9m111_setup_pixfmt(client, val);
+> -}
+> -
+> -static int mt9m111_setfmt_rgb555(struct i2c_client *client)
+> -{
+> -	struct mt9m111 *mt9m111 = to_mt9m111(client);
+> -	int val = 0;
+> -
+> -	if (mt9m111->swap_rgb_red_blue)
+> -		val |= MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr;
+> -	if (mt9m111->swap_rgb_even_odd)
+> -		val |= MT9M111_OUTFMT_SWAP_RGB_EVEN;
+> -	val |= MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB555;
+> -
+> -	return mt9m111_setup_pixfmt(client, val);
+> -}
+> -
+> -static int mt9m111_setfmt_yuv(struct i2c_client *client)
+> -{
+> -	struct mt9m111 *mt9m111 = to_mt9m111(client);
+> -	int val = 0;
+> -
+> -	if (mt9m111->swap_yuv_cb_cr)
+> -		val |= MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr;
+> -	if (mt9m111->swap_yuv_y_chromas)
+> -		val |= MT9M111_OUTFMT_SWAP_YCbCr_C_Y;
+> -
+> -	return mt9m111_setup_pixfmt(client, val);
+> -}
+> -
+>  static int mt9m111_enable(struct i2c_client *client)
+>  {
+>  	struct mt9m111 *mt9m111 = to_mt9m111(client);
+> @@ -501,41 +458,54 @@ static int mt9m111_g_fmt(struct v4l2_subdev *sd,
+>  static int mt9m111_set_pixfmt(struct i2c_client *client,
+>  			      enum v4l2_mbus_pixelcode code)
+>  {
+> -	struct mt9m111 *mt9m111 = to_mt9m111(client);
+> +	u16 data_outfmt1 = 0, data_outfmt2 = 0, mask_outfmt1, mask_outfmt2;
+>  	int ret;
+>  
+>  	switch (code) {
+>  	case V4L2_MBUS_FMT_SBGGR8_1X8:
+> -		ret = mt9m111_setfmt_bayer8(client);
+> +		data_outfmt1 = MT9M111_OUTFMT_FLIP_BAYER_ROW;
+> +		data_outfmt2 = MT9M111_OUTFMT_PROCESSED_BAYER |
+> +			MT9M111_OUTFMT_RGB;
+>  		break;
+>  	case V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE:
+> -		ret = mt9m111_setfmt_bayer10(client);
+> +		data_outfmt2 = MT9M111_OUTFMT_BYPASS_IFP | MT9M111_OUTFMT_RGB;
+>  		break;
+>  	case V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE:
+> -		ret = mt9m111_setfmt_rgb555(client);
+> +		data_outfmt2 = MT9M111_OUTFMT_SWAP_RGB_EVEN |
+> +			MT9M111_OUTFMT_RGB |
+> +			MT9M111_OUTFMT_RGB555;
+> +		break;
+> +	case V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE:
+> +		data_outfmt2 = MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB555;
+>  		break;
+>  	case V4L2_MBUS_FMT_RGB565_2X8_LE:
+> -		ret = mt9m111_setfmt_rgb565(client);
+> +		data_outfmt2 = MT9M111_OUTFMT_SWAP_RGB_EVEN |
+> +			MT9M111_OUTFMT_RGB |
+> +			MT9M111_OUTFMT_RGB565;
+> +		break;
+> +	case V4L2_MBUS_FMT_RGB565_2X8_BE:
+> +		data_outfmt2 = MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB565;
+>  		break;
+> -	case V4L2_MBUS_FMT_UYVY8_2X8:
+> -		mt9m111->swap_yuv_y_chromas = 0;
+> -		mt9m111->swap_yuv_cb_cr = 0;
+> -		ret = mt9m111_setfmt_yuv(client);
+> +	case V4L2_MBUS_FMT_BGR565_2X8_LE:
+> +		data_outfmt2 = MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr |
+> +			MT9M111_OUTFMT_SWAP_RGB_EVEN |
+> +			MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB565;
+>  		break;
+> -	case V4L2_MBUS_FMT_VYUY8_2X8:
+> -		mt9m111->swap_yuv_y_chromas = 0;
+> -		mt9m111->swap_yuv_cb_cr = 1;
+> -		ret = mt9m111_setfmt_yuv(client);
+> +	case V4L2_MBUS_FMT_BGR565_2X8_BE:
+> +		data_outfmt2 = MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr |
+> +			MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB565;
+>  		break;
+> -	case V4L2_MBUS_FMT_YUYV8_2X8:
+> -		mt9m111->swap_yuv_y_chromas = 1;
+> -		mt9m111->swap_yuv_cb_cr = 0;
+> -		ret = mt9m111_setfmt_yuv(client);
+> +	case V4L2_MBUS_FMT_YUYV8_2X8_BE:
+>  		break;
+> -	case V4L2_MBUS_FMT_YVYU8_2X8:
+> -		mt9m111->swap_yuv_y_chromas = 1;
+> -		mt9m111->swap_yuv_cb_cr = 1;
+> -		ret = mt9m111_setfmt_yuv(client);
+> +	case V4L2_MBUS_FMT_YVYU8_2X8_BE:
+> +		data_outfmt2 = MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr;
+> +		break;
+> +	case V4L2_MBUS_FMT_YUYV8_2X8_LE:
+> +		data_outfmt2 = MT9M111_OUTFMT_SWAP_YCbCr_C_Y;
+> +		break;
+> +	case V4L2_MBUS_FMT_YVYU8_2X8_LE:
+> +		data_outfmt2 = MT9M111_OUTFMT_SWAP_YCbCr_C_Y |
+> +			MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr;
+>  		break;
+>  	default:
+>  		dev_err(&client->dev, "Pixel format not handled : %x\n",
+> @@ -543,6 +513,25 @@ static int mt9m111_set_pixfmt(struct i2c_client *client,
+>  		ret = -EINVAL;
+>  	}
+>  
+> +	mask_outfmt1 = MT9M111_OUTFMT_FLIP_BAYER_COL |
+> +		MT9M111_OUTFMT_FLIP_BAYER_ROW;
+> +
+> +	mask_outfmt2 = MT9M111_OUTFMT_PROCESSED_BAYER |
+> +		MT9M111_OUTFMT_BYPASS_IFP | MT9M111_OUTFMT_RGB |
+> +		MT9M111_OUTFMT_RGB565 | MT9M111_OUTFMT_RGB555 |
+> +		MT9M111_OUTFMT_RGB444x | MT9M111_OUTFMT_RGBx444 |
+> +		MT9M111_OUTFMT_SWAP_YCbCr_C_Y | MT9M111_OUTFMT_SWAP_RGB_EVEN |
+> +		MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr | MT9M111_OUTFMT_SWAP_RGB_R_B;
+> +
+> +	ret = reg_mask(OUTPUT_FORMAT_CTRL, data_outfmt1, mask_outfmt1);
+> +
+> +	if (!ret)
+> +		ret = reg_mask(OUTPUT_FORMAT_CTRL2_A, data_outfmt2,
+> +			mask_outfmt2);
+> +	if (!ret)
+> +		ret = reg_mask(OUTPUT_FORMAT_CTRL2_B, data_outfmt2,
+> +			mask_outfmt2);
+> +
+>  	return ret;
+>  }
+>  
+> @@ -972,9 +961,6 @@ static int mt9m111_video_probe(struct soc_camera_device *icd,
+>  	mt9m111->autoexposure = 1;
+>  	mt9m111->autowhitebalance = 1;
+>  
+> -	mt9m111->swap_rgb_even_odd = 1;
+> -	mt9m111->swap_rgb_red_blue = 1;
+> -
+>  	data = reg_read(CHIP_VERSION);
+>  
+>  	switch (data) {
+> -- 
+> 1.7.0
+> 
+> 
 
-
-
-> Antti
-> --
-> http://palosaari.fi/
->
-
-
-
---=20
-Hern=E1n
-http://h.ordia.com.ar
-
---0016e6dbdf477f55e70493cb50d0
-Content-Type: text/x-patch; charset=US-ASCII; name="GeniatechMyGicaS870_keytable.patch"
-Content-Disposition: attachment;
-	filename="GeniatechMyGicaS870_keytable.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gfvsrw630
-
-IyBIRyBjaGFuZ2VzZXQgcGF0Y2gKIyBVc2VyIGhvcmRpYQojIERhdGUgMTI4ODQwMDEyOSAxMDgw
-MAojIE5vZGUgSUQgYjRjNTI1OWExM2NkMWEwNWFmNGFiNTI0MjIzNmFkODhmMmRlMzMxOQojIFBh
-cmVudCAgYWJkM2FhYzY2NDRlMWEzMTAyMGY0Y2RmZGVlODRiZGU3Y2ExZTFiNApHZW5pYXRlY2gv
-TXlHaWNhIFNCVFZEIFN0aWNrIFM4NzAgcmVtb3RlIGNvbnRyb2wga2V5dGFibGUKCmRpZmYgLXIg
-YWJkM2FhYzY2NDRlIC1yIGI0YzUyNTlhMTNjZCBsaW51eC9kcml2ZXJzL21lZGlhL2R2Yi9kdmIt
-dXNiL2RpYjA3MDBfZGV2aWNlcy5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11
-c2IvZGliMDcwMF9kZXZpY2VzLmMJRnJpIEp1bCAwMiAwMDozODo1NCAyMDEwIC0wMzAwCisrKyBi
-L2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZGliMDcwMF9kZXZpY2VzLmMJRnJpIE9j
-dCAyOSAyMTo1NToyOSAyMDEwIC0wMzAwCkBAIC04MzEsNiArODMxLDQ0IEBACiAJeyAweDQ1NDAs
-IEtFWV9SRUNPUkQgfSwgLyogRm9udCAnU2l6ZScgZm9yIFRlbGV0ZXh0ICovCiAJeyAweDQ1NDEs
-IEtFWV9TQ1JFRU4gfSwgLyogIEZ1bGwgc2NyZWVuIHRvZ2dsZSwgJ0hvbGQnIGZvciBUZWxldGV4
-dCAqLwogCXsgMHg0NTQyLCBLRVlfU0VMRUNUIH0sIC8qIFNlbGVjdCB2aWRlbyBpbnB1dCwgJ1Nl
-bGVjdCcgZm9yIFRlbGV0ZXh0ICovCisKKwkvKiBLZXkgY29kZXMgZm9yIHRoZSBHZW5pYXRlY2gv
-TXlHaWNhIFNCVFZEIFN0aWNrIFM4NzAgcmVtb3RlCisJICAgc2V0IGR2Yl91c2JfZGliMDcwMF9p
-cl9wcm90bz0xICovCisJeyAweDAwMzgsIEtFWV9UViB9LCAvKiBUVi9BViAqLworCXsgMHgwMDBj
-LCBLRVlfUE9XRVIgfSwKKwl7IDB4MDAwYSwgS0VZX01VVEUgfSwKKwl7IDB4MDAyYiwgS0VZX1ZP
-TFVNRVVQIH0sCisJeyAweDAwMmMsIEtFWV9WT0xVTUVET1dOIH0sCisJeyAweDAwMTIsIEtFWV9D
-SEFOTkVMVVAgfSwKKwl7IDB4MDAxMywgS0VZX0NIQU5ORUxET1dOIH0sCisJeyAweDAwMDEsIEtF
-WV8xIH0sCisJeyAweDAwMDIsIEtFWV8yIH0sCisJeyAweDAwMDMsIEtFWV8zIH0sCisJeyAweDAw
-MDQsIEtFWV80IH0sCisJeyAweDAwMDUsIEtFWV81IH0sCisJeyAweDAwMDYsIEtFWV82IH0sCisJ
-eyAweDAwMDcsIEtFWV83IH0sCisJeyAweDAwMDgsIEtFWV84IH0sCisJeyAweDAwMDksIEtFWV85
-IH0sCisJeyAweDAwMDAsIEtFWV8wIH0sCisJeyAweDAwMTYsIEtFWV9QQVVTRSB9LAorCXsgMHgw
-MDE3LCBLRVlfUExBWSB9LAorCXsgMHgwMDBiLCBLRVlfU1RPUCB9LAorCXsgMHgwMDI2LCBLRVlf
-UkVXSU5EIH0sCisJeyAweDAwMjcsIEtFWV9GQVNURk9SV0FSRCB9LAorCXsgMHgwMDI5LCBLRVlf
-RVNDIH0sCisJeyAweDAwMWYsIEtFWV9SRUNPUkQgfSwKKwl7IDB4MDAyMCwgS0VZX1VQIH0sCisJ
-eyAweDAwMjEsIEtFWV9ET1dOIH0sCisJeyAweDAwMTEsIEtFWV9MRUZUIH0sCisJeyAweDAwMTAs
-IEtFWV9SSUdIVCB9LAorCXsgMHgwMDBkLCBLRVlfT0sgfSwKKwl7IDB4MDAxZSwgS0VZX1BMQVlQ
-QVVTRSB9LCAvKiBUaW1lc2hpZnQgKi8KKwl7IDB4MDAwZSwgS0VZX0NBTUVSQSB9LCAvKiBTbmFw
-c2hvdCAqLworCXsgMHgwMDI1LCBLRVlfRVBHIH0sIC8qIEluZm8gS0VZX0lORk8gKi8KKwl7IDB4
-MDAyZCwgS0VZX01FTlUgfSwgLyogRFZEIE1lbnUgKi8KKwl7IDB4MDAwZiwgS0VZX1NDUkVFTiB9
-LCAvKiBGdWxsIHNjcmVlbiB0b2dnbGUgKi8KKwl7IDB4MDAxNCwgS0VZX1NIVUZGTEUgfSwKIH07
-CiAKIC8qIFNUSzc3MDBQOiBIYXVwcGF1Z2UgTm92YS1UIFN0aWNrLCBBVmVyTWVkaWEgVm9sYXIg
-Ki8K
---0016e6dbdf477f55e70493cb50d0--
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
