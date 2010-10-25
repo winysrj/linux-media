@@ -1,85 +1,155 @@
 Return-path: <mchehab@pedra>
-Received: from relay02.digicable.hu ([92.249.128.188]:56117 "EHLO
-	relay02.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750858Ab0JQLoN (ORCPT
+Received: from smtp-gw11.han.skanova.net ([81.236.55.20]:44969 "EHLO
+	smtp-gw11.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755475Ab0JYOqW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Oct 2010 07:44:13 -0400
-Message-ID: <4CBAD911.9070800@freemail.hu>
-Date: Sun, 17 Oct 2010 13:08:01 +0200
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/2] gspca_sonixj: add hardware vertical flip support for
- hama AC-150
-Content-Type: text/plain; charset=UTF-8
+	Mon, 25 Oct 2010 10:46:22 -0400
+Subject: [PATCH 2/2 v3] mfd: Add timberdale video-in driver to timberdale
+From: Richard =?ISO-8859-1?Q?R=F6jfors?=
+	<richard.rojfors@pelagicore.com>
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 25 Oct 2010 16:40:24 +0200
+Message-ID: <1288017624.8517.28.camel@debian>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Márton Németh <nm127@freemail.hu>
+This patch defines platform data for the video-in driver
+and adds it to all configurations of timberdale.
 
-The PO2030N sensor chip found in hama AC-150 webcam supports vertical flipping
-the image by hardware. Add support for this in the gspca_sonixj driver also.
-
-Signed-off-by: Márton Németh <nm127@freemail.hu>
+Signed-off-by: Richard Röjfors <richard.rojfors@pelagicore.com>
+Acked-by: Samuel Ortiz <sameo@linux.intel.com>
 ---
-diff -upr b/drivers/media/video/gspca/sonixj.c c/drivers/media/video/gspca/sonixj.c
---- b/drivers/media/video/gspca/sonixj.c	2010-10-17 11:22:33.000000000 +0200
-+++ c/drivers/media/video/gspca/sonixj.c	2010-10-17 12:08:12.000000000 +0200
-@@ -45,7 +45,7 @@ struct sd {
- 	u8 blue;
- 	u8 red;
- 	u8 gamma;
--	u8 vflip;			/* ov7630/ov7648 only */
-+	u8 vflip;			/* ov7630/ov7648/po2030n only */
- 	u8 sharpness;
- 	u8 infrared;			/* mt9v111 only */
- 	u8 freq;			/* ov76xx only */
-@@ -219,7 +219,7 @@ static const struct ctrl sd_ctrls[] = {
- 	    .set = sd_setautogain,
- 	    .get = sd_getautogain,
+diff --git a/drivers/mfd/timberdale.c b/drivers/mfd/timberdale.c
+index ac59950..52a651b 100644
+--- a/drivers/mfd/timberdale.c
++++ b/drivers/mfd/timberdale.c
+@@ -40,6 +40,7 @@
+ #include <linux/spi/mc33880.h>
+ 
+ #include <media/timb_radio.h>
++#include <media/timb_video.h>
+ 
+ #include <linux/timb_dma.h>
+ 
+@@ -238,7 +239,24 @@ static const __devinitconst struct resource timberdale_uartlite_resources[] = {
  	},
--/* ov7630/ov7648 only */
-+/* ov7630/ov7648/po2030n only */
- #define VFLIP_IDX 7
+ };
+ 
+-static const __devinitconst struct resource timberdale_radio_resources[] = {
++static __devinitdata struct i2c_board_info timberdale_adv7180_i2c_board_info = {
++	/* Requires jumper JP9 to be off */
++	I2C_BOARD_INFO("adv7180", 0x42 >> 1),
++	.irq = IRQ_TIMBERDALE_ADV7180
++};
++
++static __devinitdata struct timb_video_platform_data
++	timberdale_video_platform_data = {
++	.dma_channel = DMA_VIDEO_RX,
++	.i2c_adapter = 0,
++	.encoder = {
++		.module_name = "adv7180",
++		.info = &timberdale_adv7180_i2c_board_info
++	}
++};
++
++static const __devinitconst struct resource
++timberdale_radio_resources[] = {
  	{
- 	    {
-@@ -328,7 +328,6 @@ static const __u32 ctrl_dis[] = {
+ 		.start	= RDSOFFSET,
+ 		.end	= RDSEND,
+@@ -272,6 +290,18 @@ static __devinitdata struct timb_radio_platform_data
+ 	}
+ };
+ 
++static const __devinitconst struct resource timberdale_video_resources[] = {
++	{
++		.start	= LOGIWOFFSET,
++		.end	= LOGIWEND,
++		.flags	= IORESOURCE_MEM,
++	},
++	/*
++	note that the "frame buffer" is located in DMA area
++	starting at 0x1200000
++	*/
++};
++
+ static __devinitdata struct timb_dma_platform_data timb_dma_platform_data = {
+ 	.nr_channels = 10,
+ 	.channels = {
+@@ -372,6 +402,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg0[] = {
+ 		.data_size = sizeof(timberdale_gpio_platform_data),
+ 	},
+ 	{
++		.name = "timb-video",
++		.num_resources = ARRAY_SIZE(timberdale_video_resources),
++		.resources = timberdale_video_resources,
++		.platform_data = &timberdale_video_platform_data,
++		.data_size = sizeof(timberdale_video_platform_data),
++	},
++	{
+ 		.name = "timb-radio",
+ 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+ 		.resources = timberdale_radio_resources,
+@@ -430,6 +467,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg1[] = {
+ 		.resources = timberdale_mlogicore_resources,
+ 	},
+ 	{
++		.name = "timb-video",
++		.num_resources = ARRAY_SIZE(timberdale_video_resources),
++		.resources = timberdale_video_resources,
++		.platform_data = &timberdale_video_platform_data,
++		.data_size = sizeof(timberdale_video_platform_data),
++	},
++	{
+ 		.name = "timb-radio",
+ 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+ 		.resources = timberdale_radio_resources,
+@@ -478,6 +522,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg2[] = {
+ 		.data_size = sizeof(timberdale_gpio_platform_data),
+ 	},
+ 	{
++		.name = "timb-video",
++		.num_resources = ARRAY_SIZE(timberdale_video_resources),
++		.resources = timberdale_video_resources,
++		.platform_data = &timberdale_video_platform_data,
++		.data_size = sizeof(timberdale_video_platform_data),
++	},
++	{
+ 		.name = "timb-radio",
+ 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+ 		.resources = timberdale_radio_resources,
+@@ -521,6 +572,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg3[] = {
+ 		.data_size = sizeof(timberdale_gpio_platform_data),
+ 	},
+ 	{
++		.name = "timb-video",
++		.num_resources = ARRAY_SIZE(timberdale_video_resources),
++		.resources = timberdale_video_resources,
++		.platform_data = &timberdale_video_platform_data,
++		.data_size = sizeof(timberdale_video_platform_data),
++	},
++	{
+ 		.name = "timb-radio",
+ 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+ 		.resources = timberdale_radio_resources,
+diff --git a/drivers/mfd/timberdale.h b/drivers/mfd/timberdale.h
+index c11bf6e..4412acd 100644
+--- a/drivers/mfd/timberdale.h
++++ b/drivers/mfd/timberdale.h
+@@ -23,7 +23,7 @@
+ #ifndef MFD_TIMBERDALE_H
+ #define MFD_TIMBERDALE_H
+ 
+-#define DRV_VERSION		"0.2"
++#define DRV_VERSION		"0.3"
+ 
+ /* This driver only support versions >= 3.8 and < 4.0  */
+ #define TIMB_SUPPORTED_MAJOR	3
 
- [SENSOR_PO2030N] =	(1 << AUTOGAIN_IDX) |
- 			(1 << INFRARED_IDX) |
--			(1 << VFLIP_IDX) |
- 			(1 << FREQ_IDX),
- [SENSOR_SOI768] =	(1 << AUTOGAIN_IDX) |
- 			(1 << INFRARED_IDX) |
-@@ -2136,7 +2135,7 @@ static void setautogain(struct gspca_dev
- 		sd->ag_cnt = -1;
- }
-
--/* hv7131r/ov7630/ov7648 only */
-+/* hv7131r/ov7630/ov7648/po2030n only */
- static void setvflip(struct sd *sd)
- {
- 	u8 comn;
-@@ -2156,6 +2155,20 @@ static void setvflip(struct sd *sd)
- 			comn |= 0x80;
- 		i2c_w1(&sd->gspca_dev, 0x75, comn);
- 		break;
-+	case SENSOR_PO2030N:
-+		/* Reg. 0x1E: Timing Generator Control Register 2 (Tgcontrol2)
-+		 * (reset value: 0x0A)
-+		 * bit7: HM: Horizontal Mirror: 0: disable, 1: enable
-+		 * bit6: VM: Vertical Mirror: 0: disable, 1: enable
-+		 * bit5: ST: Shutter Selection: 0: electrical, 1: mechanical
-+		 * bit4: FT: Single Frame Transfer: 0: disable, 1: enable
-+		 * bit3-0: X
-+		 */
-+		comn = 0x0A;
-+		if (sd->vflip)
-+			comn |= 0x40;
-+		i2c_w1(&sd->gspca_dev, 0x1E, comn);
-+		break;
- 	default:
- /*	case SENSOR_OV7648: */
- 		comn = 0x06;
