@@ -1,122 +1,160 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:56756 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753588Ab0JEOZF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 10:25:05 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH/RFC v3 02/11] v4l: Rename V4L2_MBUS_FMT_GREY8_1X8 to V4L2_MBUS_FMT_Y8_1X8
-Date: Tue,  5 Oct 2010 16:25:05 +0200
-Message-Id: <1286288714-16506-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1286288714-16506-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1286288714-16506-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from gateway08.websitewelcome.com ([69.56.224.29]:48353 "HELO
+	gateway08.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753626Ab0JYH4j convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Oct 2010 03:56:39 -0400
+Received: from [209.85.161.174] (port=39193 helo=mail-gx0-f174.google.com)
+	by gator1121.hostgator.com with esmtpsa (TLSv1:RC4-MD5:128)
+	(Exim 4.69)
+	(envelope-from <demiurg@femtolinux.com>)
+	id 1PAHli-0001oB-NZ
+	for linux-media@vger.kernel.org; Mon, 25 Oct 2010 02:47:03 -0500
+Received: by gxk23 with SMTP id 23so1613317gxk.19
+        for <linux-media@vger.kernel.org>; Mon, 25 Oct 2010 00:46:58 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <575680.5975.qm@web25406.mail.ukl.yahoo.com>
+References: <AANLkTint2Xw3bJuGh2voUpncWderrbUgbeOaPdp1-yNm@mail.gmail.com>
+	<201010242055.30799.albin.kauffmann@gmail.com>
+	<AANLkTinwb_7ErteoWcO2VC1nu9uNqUwu6N+HEhrDwwg-@mail.gmail.com>
+	<AANLkTinVas23b2ZMuBxzdY6PUP-4JEMchNup9nSpxsf3@mail.gmail.com>
+	<130335.5569.qm@web25404.mail.ukl.yahoo.com>
+	<AANLkTi=na1Rs6GmKzVUPZ9FrqVt8F-H-gi=JO0+7WW6K@mail.gmail.com>
+	<575680.5975.qm@web25406.mail.ukl.yahoo.com>
+Date: Mon, 25 Oct 2010 09:46:58 +0200
+Message-ID: <AANLkTimf5Y6GybqDiEDdVo7OJ_f2X0Rxz1HxFEk7kHxj@mail.gmail.com>
+Subject: Re: Wintv-HVR-1120 woes
+From: Sasha Sirotkin <demiurg@femtolinux.com>
+To: fabio tirapelle <ftirapelle@yahoo.it>
+Cc: Albin Kauffmann <albin.kauffmann@gmail.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-For consistency with the V4L2_MBUS_FMT_Y10_1X10 format.
+On Mon, Oct 25, 2010 at 9:24 AM, fabio tirapelle <ftirapelle@yahoo.it> wrote:
+>
+>
+>> Da: Sasha Sirotkin <demiurg@femtolinux.com>
+>> A: fabio tirapelle <ftirapelle@yahoo.it>
+>> Cc: Albin Kauffmann <albin.kauffmann@gmail.com>; linux-media@vger.kernel.org
+>> Inviato: Lun 25 ottobre 2010, 09:18:28
+>> Oggetto: Re: Wintv-HVR-1120 woes
+>>
+>> On Mon, Oct 25, 2010 at 8:16 AM, fabio tirapelle <ftirapelle@yahoo.it> wrote:
+>> > My  WinTV-HVR-1120 works if I delete dvb-fe-tda10048-1.0.fw and
+>> > rename  dvb-fe-tda10046.fw in dvb-fe-tda10048-1.0.fw
+>> > (see cf "Hauppauge   WinTV-HVR-1120 on Unbuntu 10.04" thread).
+>> > After reboot my  WinTV-HVR-1120 works. Ubuntu recognizes that the firmware
+>>isn't
+>> > correct  and doesn't load the firmware.
+>>
+>> How come it works without the firmware !?  Is it possible that you
+>> booted into Windows before that and there is a  correct firmware
+>> already running in the card ?
+>
+> No my mediacenter works only on Ubuntu
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/mt9m001.c        |    2 +-
- drivers/media/video/mt9v022.c        |    4 ++--
- drivers/media/video/sh_mobile_csi2.c |    6 +++---
- drivers/media/video/soc_mediabus.c   |    2 +-
- include/linux/v4l2-mediabus.h        |    2 +-
- 5 files changed, 8 insertions(+), 8 deletions(-)
+This is weird. I will try this workaround tonight.
 
-diff --git a/drivers/media/video/mt9m001.c b/drivers/media/video/mt9m001.c
-index 79f096d..c6adc41 100644
---- a/drivers/media/video/mt9m001.c
-+++ b/drivers/media/video/mt9m001.c
-@@ -79,7 +79,7 @@ static const struct mt9m001_datafmt mt9m001_colour_fmts[] = {
- static const struct mt9m001_datafmt mt9m001_monochrome_fmts[] = {
- 	/* Order important - see above */
- 	{V4L2_MBUS_FMT_Y10_1X10, V4L2_COLORSPACE_JPEG},
--	{V4L2_MBUS_FMT_GREY8_1X8, V4L2_COLORSPACE_JPEG},
-+	{V4L2_MBUS_FMT_Y8_1X8, V4L2_COLORSPACE_JPEG},
- };
- 
- struct mt9m001 {
-diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
-index e7cd23c..196c291 100644
---- a/drivers/media/video/mt9v022.c
-+++ b/drivers/media/video/mt9v022.c
-@@ -95,7 +95,7 @@ static const struct mt9v022_datafmt mt9v022_colour_fmts[] = {
- static const struct mt9v022_datafmt mt9v022_monochrome_fmts[] = {
- 	/* Order important - see above */
- 	{V4L2_MBUS_FMT_Y10_1X10, V4L2_COLORSPACE_JPEG},
--	{V4L2_MBUS_FMT_GREY8_1X8, V4L2_COLORSPACE_JPEG},
-+	{V4L2_MBUS_FMT_Y8_1X8, V4L2_COLORSPACE_JPEG},
- };
- 
- struct mt9v022 {
-@@ -392,7 +392,7 @@ static int mt9v022_s_fmt(struct v4l2_subdev *sd,
- 	 * icd->try_fmt(), datawidth is from our supported format list
- 	 */
- 	switch (mf->code) {
--	case V4L2_MBUS_FMT_GREY8_1X8:
-+	case V4L2_MBUS_FMT_Y8_1X8:
- 	case V4L2_MBUS_FMT_Y10_1X10:
- 		if (mt9v022->model != V4L2_IDENT_MT9V022IX7ATM)
- 			return -EINVAL;
-diff --git a/drivers/media/video/sh_mobile_csi2.c b/drivers/media/video/sh_mobile_csi2.c
-index 84a6468..dd1b81b 100644
---- a/drivers/media/video/sh_mobile_csi2.c
-+++ b/drivers/media/video/sh_mobile_csi2.c
-@@ -56,7 +56,7 @@ static int sh_csi2_try_fmt(struct v4l2_subdev *sd,
- 		switch (mf->code) {
- 		case V4L2_MBUS_FMT_UYVY8_2X8:		/* YUV422 */
- 		case V4L2_MBUS_FMT_YUYV8_1_5X8:		/* YUV420 */
--		case V4L2_MBUS_FMT_GREY8_1X8:		/* RAW8 */
-+		case V4L2_MBUS_FMT_Y8_1X8:		/* RAW8 */
- 		case V4L2_MBUS_FMT_SBGGR8_1X8:
- 		case V4L2_MBUS_FMT_SGRBG8_1X8:
- 			break;
-@@ -67,7 +67,7 @@ static int sh_csi2_try_fmt(struct v4l2_subdev *sd,
- 		break;
- 	case SH_CSI2I:
- 		switch (mf->code) {
--		case V4L2_MBUS_FMT_GREY8_1X8:		/* RAW8 */
-+		case V4L2_MBUS_FMT_Y8_1X8:		/* RAW8 */
- 		case V4L2_MBUS_FMT_SBGGR8_1X8:
- 		case V4L2_MBUS_FMT_SGRBG8_1X8:
- 		case V4L2_MBUS_FMT_SBGGR10_1X10:	/* RAW10 */
-@@ -111,7 +111,7 @@ static int sh_csi2_s_fmt(struct v4l2_subdev *sd,
- 	case V4L2_MBUS_FMT_RGB565_2X8_BE:
- 		tmp |= 0x22;	/* RGB565 */
- 		break;
--	case V4L2_MBUS_FMT_GREY8_1X8:
-+	case V4L2_MBUS_FMT_Y8_1X8:
- 	case V4L2_MBUS_FMT_SBGGR8_1X8:
- 	case V4L2_MBUS_FMT_SGRBG8_1X8:
- 		tmp |= 0x2a;	/* RAW8 */
-diff --git a/drivers/media/video/soc_mediabus.c b/drivers/media/video/soc_mediabus.c
-index 9139121..d9c297d 100644
---- a/drivers/media/video/soc_mediabus.c
-+++ b/drivers/media/video/soc_mediabus.c
-@@ -88,7 +88,7 @@ static const struct soc_mbus_pixelfmt mbus_fmt[] = {
- 		.packing		= SOC_MBUS_PACKING_EXTEND16,
- 		.order			= SOC_MBUS_ORDER_LE,
- 	},
--	[MBUS_IDX(GREY8_1X8)] = {
-+	[MBUS_IDX(Y8_1X8)] = {
- 		.fourcc			= V4L2_PIX_FMT_GREY,
- 		.name			= "Grey",
- 		.bits_per_sample	= 8,
-diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-index 127512a..75c2d55 100644
---- a/include/linux/v4l2-mediabus.h
-+++ b/include/linux/v4l2-mediabus.h
-@@ -37,7 +37,7 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_RGB565_2X8_BE,
- 	V4L2_MBUS_FMT_SBGGR8_1X8,
- 	V4L2_MBUS_FMT_SBGGR10_1X10,
--	V4L2_MBUS_FMT_GREY8_1X8,
-+	V4L2_MBUS_FMT_Y8_1X8,
- 	V4L2_MBUS_FMT_Y10_1X10,
- 	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
- 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
--- 
-1.7.2.2
+I hope that anyone will eventually reveal an interest to solve this
+bug. I'd happily do it myself, but I cannot really afford to spend
+enough time to start digging into these sources, but I'm willing to
+help.
 
+>
+>>
+>> > But I know that  isn't a good practice.
+>> >
+>> >
+>> > ----- Messaggio originale  -----
+>> >> Da: Sasha Sirotkin <demiurg@femtolinux.com>
+>> >>  A: Albin Kauffmann <albin.kauffmann@gmail.com>
+>> >>  Cc: linux-media@vger.kernel.org
+>> >>  Inviato: Dom 24 ottobre 2010, 23:45:55
+>> >> Oggetto: Re: Wintv-HVR-1120  woes
+>> >>
+>> >> On Sun, Oct 24, 2010 at 10:22 PM, Sasha Sirotkin  <demiurg@femtolinux.com>
+>> >>wrote:
+>> >>  > On Sun, Oct 24, 2010 at 8:55 PM, Albin Kauffmann
+>> >> > <albin.kauffmann@gmail.com>   wrote:
+>> >> >> On Thursday 21 October 2010 23:25:29 Sasha Sirotkin   wrote:
+>> >> >>> I'm having all sorts of troubles with  Wintv-HVR-1120 on  Ubuntu 10.10
+>> >> >>> (kernel 2.6.35-22).  Judging from what I've seen on  the net, including
+>> >> >>> this  mailing list, I'm not the only one not  being able to use this
+>> >>  >>> card and no solution seem to  exist.
+>> >>  >>>
+>> >> >>> Problems:
+>> >> >>> 1. The  driver  yells various cryptic error messages
+>> >> >>>  ("tda18271_write_regs:  [1-0060|M] ERROR: idx = 0x5, len = 1,
+>> >>  >>> i2c_transfer returned:  -5", "tda18271_set_analog_params:  [1-0060|M]
+>> >> >>> error -5 on line  1045", etc)
+>> >>  >>
+>> >> >> yes, indeed :(
+>> >> >> (cf "Hauppauge   WinTV-HVR-1120 on Unbuntu 10.04" thread)
+>> >> >>
+>> >>  >>> 2. DVB-T  scan (using w_scan) produces no results
+>> >>  >>
+>> >> >> Is this  happening after each reboot? As far as  I'm concerned, I've
+>>never
+>> >>had
+>> >> >>  problems with  DVB-T scans.
+>> >> >>
+>> >> >
+>> >> > Almost  always. I think I  had a lucky reboot or two, but most of the
+>> >> >  time DVB-T scan produces  nothing.
+>> >> >
+>> >> >>> 3.  Analog seems to work, but with very poor  quality
+>> >>  >>
+>> >> >> I just tried to use Analog TV in order to  confirm  the problem but I
+>>cannot
+>> >>get
+>> >> >> any picture. Maybe  I just don't  know how to use it. I'm using commands
+>> > like
+>> >>  >> (I'm located in  France):
+>> >> >>
+>> >> >>  mplayer tv:// -tv  driver=v4l2:norm=SECAM:chanlist=france -tvscan
+>>autostart
+>> >> >>
+>> >> >>  ... and just get some  "snow" on scanned channels.
+>> >> >> As I might have a  problem with  my antenna (an interior one), I am going
+>>to
+>> >> >> test it  under  Windows and report back my experience.
+>> >> >
+>> >> > I'm  using  tvtime-scanner
+>> >> >>
+>> >> >>  Cheers,
+>> >> >>
+>> >> >>  --
+>> >> >> Albin  Kauffmann
+>> >> >>
+>> >> >
+>> >> >
+>> >>  > I'm trying to  downgrade the kernel now to see if it helps
+>> >>  >
+>> >>
+>> >> I went back as far as  2.6.30 and I still have this  problem. 2.6.29
+>> >> does not recognize this card at  all.
+>> >>  --
+>> >> To unsubscribe from this list: send the line "unsubscribe   linux-media" in
+>> >> the body of a message to majordomo@vger.kernel.org
+>> >>  More  majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> >>
+>> >
+>> >
+>> >
+>> >  --
+>> > To unsubscribe from this list: send the line "unsubscribe  linux-media" in
+>> > the body of a message to majordomo@vger.kernel.org
+>> >  More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> >
+>>
+>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
