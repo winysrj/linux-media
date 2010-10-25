@@ -1,134 +1,113 @@
 Return-path: <mchehab@pedra>
-Received: from bear.ext.ti.com ([192.94.94.41]:50767 "EHLO bear.ext.ti.com"
+Received: from tur.go2.pl ([193.17.41.50]:34327 "EHLO tur.go2.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755246Ab0JEQJy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 12:09:54 -0400
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "sakari.ailus@maxwell.research.nokia.com"
-	<sakari.ailus@maxwell.research.nokia.com>
-Date: Tue, 5 Oct 2010 11:09:45 -0500
-Subject: RE: [RFC/PATCH v2 5/6] omap3: Export omap3isp platform device
- structure
-Message-ID: <A24693684029E5489D1D202277BE894472B4F82F@dlee02.ent.ti.com>
-References: <1286284734-12292-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1286284734-12292-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1286284734-12292-6-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	id S1755326Ab0JYR7y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Oct 2010 13:59:54 -0400
+Received: from moh1-ve1.go2.pl (moh1-ve3.go2.pl [193.17.41.134])
+	by tur.go2.pl (o2.pl Mailer 2.0.1) with ESMTP id 47867230C65
+	for <linux-media@vger.kernel.org>; Mon, 25 Oct 2010 19:59:53 +0200 (CEST)
+Received: from moh1-ve1.go2.pl (unknown [10.0.0.134])
+	by moh1-ve1.go2.pl (Postfix) with ESMTP id B4860570213
+	for <linux-media@vger.kernel.org>; Mon, 25 Oct 2010 19:59:10 +0200 (CEST)
+Received: from unknown (unknown [10.0.0.42])
+	by moh1-ve1.go2.pl (Postfix) with SMTP
+	for <linux-media@vger.kernel.org>; Mon, 25 Oct 2010 19:59:10 +0200 (CEST)
+Message-ID: <4CC5C568.4090809@o2.pl>
+Date: Mon, 25 Oct 2010 19:59:04 +0200
+From: Maciej Szmigiero <mhej@o2.pl>
 MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [V4L][SAA7134] fix tda9887 detection on cold and eeprom read corruption
+ on warm Medion 7134
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Laurent,
+[V4L][SAA7134] fix tda9887 detection on cold and eeprom read corruption on warm Medion 7134
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Laurent Pinchart
-> Sent: Tuesday, October 05, 2010 8:19 AM
-> To: linux-media@vger.kernel.org
-> Cc: sakari.ailus@maxwell.research.nokia.com
-> Subject: [RFC/PATCH v2 5/6] omap3: Export omap3isp platform device
-> structure
-> 
-> From: Stanimir Varbanov <svarbanov@mm-sol.com>
-> 
-> The omap3isp platform device requires platform data. As the data can be
-> provided by a kernel module, the device can't be registered during arch
-> initialization.
-> 
-> Remove the omap3isp platform device registration from
-> omap_init_camera(), and export the platform device structure to let
-> board code register/unregister it.
-> 
+When Medion 7134 analog+DVB-T card is cold (after powerup) the tda9887 analog demodulator
+won't show on i2c bus.
+This results in no signal on analog TV. After loading driver for second time
+eeprom (required for tuner autodetection) read is corrupted, but tda9987 is detected
+properly and analog TV works when tuner model is forced.
 
-This patch needs to go through linux-omap ML.
+Fix tda9887 problem by moving its detect code after tuner setup which unhides it.
+The eeprom read issue is fixed by opening i2c gate in DVB-T demodulator.
 
-Regards,
-Sergio
+Tested on Medion 7134 and also tested for reference on Typhoon Cardbus Hybrid
+(which also uses saa7134 driver).
 
-> Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  arch/arm/mach-omap2/devices.c |   18 ++++++++++++++++--
->  arch/arm/mach-omap2/devices.h |   17 +++++++++++++++++
->  2 files changed, 33 insertions(+), 2 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/devices.h
-> 
-> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> index ade8db0..f9bc507 100644
-> --- a/arch/arm/mach-omap2/devices.c
-> +++ b/arch/arm/mach-omap2/devices.c
-> @@ -31,6 +31,8 @@
-> 
->  #include "mux.h"
-> 
-> +#include "devices.h"
-> +
->  #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
-> 
->  static struct resource cam_resources[] = {
-> @@ -141,16 +143,28 @@ static struct resource omap3isp_resources[] = {
->  	}
->  };
-> 
-> -static struct platform_device omap3isp_device = {
-> +static void omap3isp_release(struct device *dev)
-> +{
-> +	/* Zero the device structure to avoid re-initialization complaints
-> from
-> +	 * kobject when the device will be re-registered.
-> +	 */
-> +	memset(dev, 0, sizeof(*dev));
-> +	dev->release = omap3isp_release;
-> +}
-> +
-> +struct platform_device omap3isp_device = {
->  	.name		= "omap3isp",
->  	.id		= -1,
->  	.num_resources	= ARRAY_SIZE(omap3isp_resources),
->  	.resource	= omap3isp_resources,
-> +	.dev = {
-> +		.release	= omap3isp_release,
-> +	},
->  };
-> +EXPORT_SYMBOL_GPL(omap3isp_device);
-> 
->  static inline void omap_init_camera(void)
->  {
-> -	platform_device_register(&omap3isp_device);
->  }
->  #else
->  static inline void omap_init_camera(void)
-> diff --git a/arch/arm/mach-omap2/devices.h b/arch/arm/mach-omap2/devices.h
-> new file mode 100644
-> index 0000000..f312d49
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/devices.h
-> @@ -0,0 +1,17 @@
-> +/*
-> + * arch/arm/mach-omap2/devices.h
-> + *
-> + * OMAP2 platform device setup/initialization
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + */
-> +
-> +#ifndef __ARCH_ARM_MACH_OMAP_DEVICES_H
-> +#define __ARCH_ARM_MACH_OMAP_DEVICES_H
-> +
-> +extern struct platform_device omap3isp_device;
-> +
-> +#endif
-> --
-> 1.7.2.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Maciej Szmigiero <mhej@o2.pl>
+
+--- a/drivers/media/video/saa7134/saa7134-cards.c	2010-08-02 00:11:14.000000000 +0200
++++ b/drivers/media/video/saa7134/saa7134-cards.c	2010-10-25 19:19:08.000000000 +0200
+@@ -7249,12 +7249,37 @@
+ 		break;
+ 	case SAA7134_BOARD_MD7134:
+ 	{
+-		u8 subaddr;
++		u8 subaddr, dmdregval;
+ 		u8 data[3];
+ 		int ret, tuner_t;
++		struct i2c_msg i2cgatemsg_r[] = { {.addr = 0x08, .flags = 0,
++						.buf = &subaddr, .len = 1},
++						{.addr = 0x08,
++							.flags = I2C_M_RD,
++						.buf = &dmdregval, .len = 1} };
++		struct i2c_msg i2cgatemsg_w[] = { {.addr = 0x08, .flags = 0,
++						.buf = data, .len = 2} };
+ 		struct i2c_msg msg[] = {{.addr=0x50, .flags=0, .buf=&subaddr, .len = 1},
+ 					{.addr=0x50, .flags=I2C_M_RD, .buf=data, .len = 3}};
+ 
++		/* open i2c gate in DVB-T demod */
++		/* so eeprom read won't be corrupted */
++		subaddr = 0x7;
++		ret = i2c_transfer(&dev->i2c_adap, i2cgatemsg_r, 2);
++		if ((ret == 2) && (dmdregval & 0x2)) {
++			printk(KERN_NOTICE "%s DVB-T demod i2c gate was left"
++						    " closed\n", dev->name);
++			printk(KERN_NOTICE "%s previous informational"
++					    " EEPROM read might have been"
++					    " corrupted\n", dev->name);
++
++			data[0] = 0x7;
++			data[1] = (dmdregval & ~0x2);
++			if (i2c_transfer(&dev->i2c_adap, i2cgatemsg_w, 1) != 1)
++				printk(KERN_ERR "early i2c gate"
++						" open failure\n");
++		}
++
+ 		subaddr= 0x14;
+ 		tuner_t = 0;
+ 
+@@ -7522,10 +7547,6 @@
+ 			v4l2_i2c_new_subdev(&dev->v4l2_dev,
+ 				&dev->i2c_adap, "tuner", "tuner",
+ 				dev->radio_addr, NULL);
+-		if (has_demod)
+-			v4l2_i2c_new_subdev(&dev->v4l2_dev,
+-				&dev->i2c_adap, "tuner", "tuner",
+-				0, v4l2_i2c_tuner_addrs(ADDRS_DEMOD));
+ 		if (dev->tuner_addr == ADDR_UNSET) {
+ 			enum v4l2_i2c_tuner_type type =
+ 				has_demod ? ADDRS_TV_WITH_DEMOD : ADDRS_TV;
+@@ -7542,6 +7563,15 @@
+ 
+ 	saa7134_tuner_setup(dev);
+ 
++	/* some cards (Medion 7134 for example) needs tuner to be setup */
++	/* before tda9887 shows itself on i2c bus */
++	if ((TUNER_ABSENT != dev->tuner_type)
++			&& (dev->tda9887_conf & TDA9887_PRESENT)) {
++		v4l2_i2c_new_subdev(&dev->v4l2_dev,
++			&dev->i2c_adap, "tuner", "tuner",
++			0, v4l2_i2c_tuner_addrs(ADDRS_DEMOD));
++	}
++
+ 	switch (dev->board) {
+ 	case SAA7134_BOARD_BEHOLD_COLUMBUS_TVFM:
+ 	case SAA7134_BOARD_AVERMEDIA_CARDBUS_501:
+
+
