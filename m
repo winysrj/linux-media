@@ -1,717 +1,319 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:30588 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758114Ab0JTGl3 (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:44850 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751361Ab0JYKLl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Oct 2010 02:41:29 -0400
-Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LAK00B5XT90QA@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 20 Oct 2010 07:41:25 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LAK005HLT8ZLV@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 20 Oct 2010 07:41:24 +0100 (BST)
-Date: Wed, 20 Oct 2010 08:41:12 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 6/7] v4l: vivi: port to videobuf2
-In-reply-to: <1287556873-23179-1-git-send-email-m.szyprowski@samsung.com>
+	Mon, 25 Oct 2010 06:11:41 -0400
+From: Michael Grzeschik <m.grzeschik@pengutronix.de>
 To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	kyungmin.park@samsung.com
-Message-id: <1287556873-23179-7-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1287556873-23179-1-git-send-email-m.szyprowski@samsung.com>
+Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de,
+	Michael Grzeschik <m.grzeschik@pengutronix.de>
+Subject: [PATCH v3] mt9m111: rewrite set_pixfmt
+Date: Mon, 25 Oct 2010 12:11:28 +0200
+Message-Id: <1288001488-23806-1-git-send-email-m.grzeschik@pengutronix.de>
+In-Reply-To: <1280833069-26993-11-git-send-email-m.grzeschik@pengutronix.de>
+References: <1280833069-26993-11-git-send-email-m.grzeschik@pengutronix.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Pawel Osciak <p.osciak@samsung.com>
+added new bit offset defines,
+more supported BE colour formats
+and also support BGR565 swapped pixel formats
 
-Make vivi use videobuf2 in place of videobuf.
+removed pixfmt helper functions and option flags
+setting the configuration register directly in set_pixfmt
 
-Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-CC: Pawel Osciak <pawel@osciak.com>
+added reg_mask function
+
+reg_mask is basically the same as clearing & setting registers,
+but it is more convenient and faster (saves one rw cycle).
+
+Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
 ---
- drivers/media/video/Kconfig |    2 +-
- drivers/media/video/vivi.c  |  348 +++++++++++++++++++++++--------------------
- 2 files changed, 186 insertions(+), 164 deletions(-)
+Changes v1 -> v2
+        * removed unrelated OPMODE handling in this function
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 2143112..4dd14c2 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -557,7 +557,7 @@ config VIDEO_VIVI
- 	depends on VIDEO_DEV && VIDEO_V4L2 && !SPARC32 && !SPARC64
- 	depends on (FRAMEBUFFER_CONSOLE || STI_CONSOLE) && FONTS
- 	select FONT_8x16
--	select VIDEOBUF_VMALLOC
-+	select VIDEOBUF2_VMALLOC
- 	default n
- 	---help---
- 	  Enables a virtual video driver. This device shows a color bar
-diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-index e17b6fe..662de4f 100644
---- a/drivers/media/video/vivi.c
-+++ b/drivers/media/video/vivi.c
-@@ -7,6 +7,9 @@
-  *      John Sokol <sokol--a.t--videotechnology.com>
-  *      http://v4l.videotechnology.com/
-  *
-+ *      Conversion to videobuf2 by Pawel Osciak & Marek Szyprowski
-+ *      Copyright (c) 2010 Samsung Electronics
-+ *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the BSD Licence, GNU General Public License
-  * as published by the Free Software Foundation; either version 2 of the
-@@ -23,10 +26,8 @@
- #include <linux/mutex.h>
- #include <linux/videodev2.h>
- #include <linux/kthread.h>
--#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 20)
- #include <linux/freezer.h>
--#endif
--#include <media/videobuf-vmalloc.h>
-+#include <media/videobuf2-vmalloc.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-common.h>
-@@ -42,7 +43,7 @@
- #define MAX_HEIGHT 1200
+Changes v2 -> v3
+        * squashed: "[PATCH 04/11] mt9m111: added new bit offset defines"
+	* squashed: "[PATCH 08/11] mt9m111: added reg_mask function"
+
+ drivers/media/video/mt9m111.c |  176 +++++++++++++++++++----------------------
+ 1 files changed, 81 insertions(+), 95 deletions(-)
+
+diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+index 3eeda19..9da30c0 100644
+--- a/drivers/media/video/mt9m111.c
++++ b/drivers/media/video/mt9m111.c
+@@ -63,6 +63,12 @@
+ #define MT9M111_RESET_RESTART_FRAME	(1 << 1)
+ #define MT9M111_RESET_RESET_MODE	(1 << 0)
  
- #define VIVI_MAJOR_VERSION 0
--#define VIVI_MINOR_VERSION 7
-+#define VIVI_MINOR_VERSION 8
- #define VIVI_RELEASE 0
- #define VIVI_VERSION \
- 	KERNEL_VERSION(VIVI_MAJOR_VERSION, VIVI_MINOR_VERSION, VIVI_RELEASE)
-@@ -70,6 +71,9 @@ MODULE_PARM_DESC(vid_limit, "capture memory limit in megabytes");
- /* Global font descriptor */
- static const u8 *font8x16;
++#define MT9M111_RM_FULL_POWER_RD	(0 << 10)
++#define MT9M111_RM_LOW_POWER_RD		(1 << 10)
++#define MT9M111_RM_COL_SKIP_4X		(1 << 5)
++#define MT9M111_RM_ROW_SKIP_4X		(1 << 4)
++#define MT9M111_RM_COL_SKIP_2X		(1 << 3)
++#define MT9M111_RM_ROW_SKIP_2X		(1 << 2)
+ #define MT9M111_RMB_MIRROR_COLS		(1 << 1)
+ #define MT9M111_RMB_MIRROR_ROWS		(1 << 0)
+ #define MT9M111_CTXT_CTRL_RESTART	(1 << 15)
+@@ -95,7 +101,8 @@
  
-+/* Videobuf2 allocator/memory handler context */
-+static struct vb2_alloc_ctx *alloc_ctx;
-+
- #define dprintk(dev, level, fmt, arg...) \
- 	v4l2_dbg(level, debug, &dev->v4l2_dev, fmt, ## arg)
+ #define MT9M111_OPMODE_AUTOEXPO_EN	(1 << 14)
+ #define MT9M111_OPMODE_AUTOWHITEBAL_EN	(1 << 1)
+-
++#define MT9M111_OUTFMT_FLIP_BAYER_COL  (1 << 9)
++#define MT9M111_OUTFMT_FLIP_BAYER_ROW  (1 << 8)
+ #define MT9M111_OUTFMT_PROCESSED_BAYER	(1 << 14)
+ #define MT9M111_OUTFMT_BYPASS_IFP	(1 << 10)
+ #define MT9M111_OUTFMT_INV_PIX_CLOCK	(1 << 9)
+@@ -113,6 +120,7 @@
+ #define MT9M111_OUTFMT_SWAP_YCbCr_C_Y	(1 << 1)
+ #define MT9M111_OUTFMT_SWAP_RGB_EVEN	(1 << 1)
+ #define MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr	(1 << 0)
++#define MT9M111_OUTFMT_SWAP_RGB_R_B	(1 << 0)
  
-@@ -133,16 +137,11 @@ static struct vivi_fmt *get_format(struct v4l2_format *f)
- 	return &formats[k];
+ /*
+  * Camera control register addresses (0x200..0x2ff not implemented)
+@@ -122,6 +130,8 @@
+ #define reg_write(reg, val) mt9m111_reg_write(client, MT9M111_##reg, (val))
+ #define reg_set(reg, val) mt9m111_reg_set(client, MT9M111_##reg, (val))
+ #define reg_clear(reg, val) mt9m111_reg_clear(client, MT9M111_##reg, (val))
++#define reg_mask(reg, val, mask) mt9m111_reg_mask(client, MT9M111_##reg, \
++		(val), (mask))
+ 
+ #define MT9M111_MIN_DARK_ROWS	8
+ #define MT9M111_MIN_DARK_COLS	26
+@@ -148,12 +158,16 @@ static const struct mt9m111_datafmt *mt9m111_find_datafmt(
  }
  
--struct sg_to_addr {
--	int pos;
--	struct scatterlist *sg;
--};
--
- /* buffer for one video frame */
- struct vivi_buffer {
- 	/* common v4l buffer stuff -- must be first */
--	struct videobuf_buffer vb;
--
-+	struct vb2_buffer	vb;
-+	struct list_head	list;
- 	struct vivi_fmt        *fmt;
+ static const struct mt9m111_datafmt mt9m111_colour_fmts[] = {
+-	{V4L2_MBUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_JPEG},
+-	{V4L2_MBUS_FMT_YVYU8_2X8, V4L2_COLORSPACE_JPEG},
+-	{V4L2_MBUS_FMT_UYVY8_2X8, V4L2_COLORSPACE_JPEG},
+-	{V4L2_MBUS_FMT_VYUY8_2X8, V4L2_COLORSPACE_JPEG},
++	{V4L2_MBUS_FMT_YUYV8_2X8_LE, V4L2_COLORSPACE_JPEG},
++	{V4L2_MBUS_FMT_YVYU8_2X8_LE, V4L2_COLORSPACE_JPEG},
++	{V4L2_MBUS_FMT_YUYV8_2X8_BE, V4L2_COLORSPACE_JPEG},
++	{V4L2_MBUS_FMT_YVYU8_2X8_BE, V4L2_COLORSPACE_JPEG},
+ 	{V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE, V4L2_COLORSPACE_SRGB},
++	{V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE, V4L2_COLORSPACE_SRGB},
+ 	{V4L2_MBUS_FMT_RGB565_2X8_LE, V4L2_COLORSPACE_SRGB},
++	{V4L2_MBUS_FMT_RGB565_2X8_BE, V4L2_COLORSPACE_SRGB},
++	{V4L2_MBUS_FMT_BGR565_2X8_LE, V4L2_COLORSPACE_SRGB},
++	{V4L2_MBUS_FMT_BGR565_2X8_BE, V4L2_COLORSPACE_SRGB},
+ 	{V4L2_MBUS_FMT_SBGGR8_1X8, V4L2_COLORSPACE_SRGB},
+ 	{V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE, V4L2_COLORSPACE_SRGB},
+ };
+@@ -176,10 +190,6 @@ struct mt9m111 {
+ 	unsigned int powered:1;
+ 	unsigned int hflip:1;
+ 	unsigned int vflip:1;
+-	unsigned int swap_rgb_even_odd:1;
+-	unsigned int swap_rgb_red_blue:1;
+-	unsigned int swap_yuv_y_chromas:1;
+-	unsigned int swap_yuv_cb_cr:1;
+ 	unsigned int autowhitebalance:1;
  };
  
-@@ -190,9 +189,11 @@ struct vivi_dev {
- 	/* video capture */
- 	struct vivi_fmt            *fmt;
- 	unsigned int               width, height;
--	struct videobuf_queue      vb_vidq;
-+	struct vb2_queue	   vb_vidq;
-+	enum v4l2_field		   field;
-+	unsigned int		   field_count;
- 
--	unsigned long 		   generating;
-+	atomic_t		   open_count;
- 	u8 			   bars[9][3];
- 	u8 			   line[MAX_WIDTH * 4];
- };
-@@ -443,10 +444,10 @@ static void gen_text(struct vivi_dev *dev, char *basep,
- 
- static void vivi_fillbuff(struct vivi_dev *dev, struct vivi_buffer *buf)
- {
--	int hmax = buf->vb.height;
--	int wmax = buf->vb.width;
-+	int wmax = dev->width;
-+	int hmax = dev->height;
- 	struct timeval ts;
--	void *vbuf = videobuf_to_vmalloc(&buf->vb);
-+	void *vbuf = vb2_plane_vaddr(&buf->vb, 0);
- 	unsigned ms;
- 	char str[100];
- 	int h, line = 1;
-@@ -483,11 +484,11 @@ static void vivi_fillbuff(struct vivi_dev *dev, struct vivi_buffer *buf)
- 
- 	dev->mv_count += 2;
- 
--	/* Advice that buffer was filled */
--	buf->vb.field_count++;
-+	buf->vb.v4l2_buf.field = dev->field;
-+	dev->field_count++;
-+	buf->vb.v4l2_buf.sequence = dev->field_count >> 1;
- 	do_gettimeofday(&ts);
--	buf->vb.ts = ts;
--	buf->vb.state = VIDEOBUF_DONE;
-+	buf->vb.v4l2_buf.timestamp = ts;
+@@ -251,6 +261,15 @@ static int mt9m111_reg_clear(struct i2c_client *client, const u16 reg,
+ 	return mt9m111_reg_write(client, reg, ret & ~data);
  }
  
- static void vivi_thread_tick(struct vivi_dev *dev)
-@@ -504,23 +505,21 @@ static void vivi_thread_tick(struct vivi_dev *dev)
- 		goto unlock;
- 	}
- 
--	buf = list_entry(dma_q->active.next,
--			 struct vivi_buffer, vb.queue);
--
--	/* Nobody is waiting on this buffer, return */
--	if (!waitqueue_active(&buf->vb.done))
-+	/* If nobody is waiting for a buffer, return */
-+	if (!vb2_has_consumers(&dev->vb_vidq))
- 		goto unlock;
- 
--	list_del(&buf->vb.queue);
-+	buf = list_entry(dma_q->active.next, struct vivi_buffer, list);
-+	list_del(&buf->list);
- 
--	do_gettimeofday(&buf->vb.ts);
-+	do_gettimeofday(&buf->vb.v4l2_buf.timestamp);
- 
- 	/* Fill buffer */
- 	vivi_fillbuff(dev, buf);
- 	dprintk(dev, 1, "filled buffer %p\n", buf);
- 
--	wake_up(&buf->vb.done);
--	dprintk(dev, 2, "[%p/%d] wakeup\n", buf, buf->vb. i);
-+	vb2_buffer_done(&buf->vb, VB2_BUF_STATE_DONE);
-+	dprintk(dev, 2, "[%p/%d] done\n", buf, buf->vb.v4l2_buf.index);
- unlock:
- 	spin_unlock_irqrestore(&dev->slock, flags);
- }
-@@ -571,17 +570,12 @@ static int vivi_thread(void *data)
- 	return 0;
- }
- 
--static void vivi_start_generating(struct file *file)
-+static int vivi_start_generating(struct vivi_dev *dev)
- {
--	struct vivi_dev *dev = video_drvdata(file);
- 	struct vivi_dmaqueue *dma_q = &dev->vidq;
- 
- 	dprintk(dev, 1, "%s\n", __func__);
- 
--	if (test_and_set_bit(0, &dev->generating))
--		return;
--	file->private_data = dev;
--
- 	/* Resets frame counters */
- 	dev->ms = 0;
- 	dev->mv_count = 0;
-@@ -593,146 +587,182 @@ static void vivi_start_generating(struct file *file)
- 
- 	if (IS_ERR(dma_q->kthread)) {
- 		v4l2_err(&dev->v4l2_dev, "kernel_thread() failed\n");
--		clear_bit(0, &dev->generating);
--		return;
-+		return PTR_ERR(dma_q->kthread);
- 	}
- 	/* Wakes thread */
- 	wake_up_interruptible(&dma_q->wq);
- 
- 	dprintk(dev, 1, "returning from %s\n", __func__);
-+	return 0;
- }
- 
--static void vivi_stop_generating(struct file *file)
-+static void vivi_stop_generating(struct vivi_dev *dev)
- {
--	struct vivi_dev *dev = video_drvdata(file);
- 	struct vivi_dmaqueue *dma_q = &dev->vidq;
- 
- 	dprintk(dev, 1, "%s\n", __func__);
- 
--	if (!file->private_data)
--		return;
--	if (!test_and_clear_bit(0, &dev->generating))
--		return;
--
- 	/* shutdown control thread */
- 	if (dma_q->kthread) {
- 		kthread_stop(dma_q->kthread);
- 		dma_q->kthread = NULL;
- 	}
--	videobuf_stop(&dev->vb_vidq);
--	videobuf_mmap_free(&dev->vb_vidq);
--}
- 
--static int vivi_is_generating(struct vivi_dev *dev)
--{
--	return test_bit(0, &dev->generating);
-+	/*
-+	 * Typical driver might need to wait here until dma engine stops.
-+	 * In this case we can abort imiedetly, so it's just a noop.
-+	 */
++static int mt9m111_reg_mask(struct i2c_client *client, const u16 reg,
++			    const u16 data, const u16 mask)
++{
++	int ret;
 +
-+	/* Release all active buffers */
-+	while (!list_empty(&dma_q->active)) {
-+		struct vivi_buffer *buf;
-+		buf = list_entry(dma_q->active.next, struct vivi_buffer, list);
-+		list_del(&buf->list);
-+		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+		dprintk(dev, 2, "[%p/%d] done\n", buf, buf->vb.v4l2_buf.index);
-+	}
- }
--
- /* ------------------------------------------------------------------
- 	Videobuf operations
-    ------------------------------------------------------------------*/
--static int
--buffer_setup(struct videobuf_queue *vq, unsigned int *count, unsigned int *size)
-+static int queue_negotiate(struct vb2_queue *vq, unsigned int *num_buffers,
-+				unsigned int *num_planes)
- {
--	struct vivi_dev *dev = vq->priv_data;
-+	struct vivi_dev *dev = vb2_get_drv_priv(vq);
-+	unsigned long size;
- 
--	*size = dev->width * dev->height * 2;
-+	size = dev->width * dev->height * 2;
- 
--	if (0 == *count)
--		*count = 32;
-+	if (0 == *num_buffers)
-+		*num_buffers = 32;
- 
--	while (*size * *count > vid_limit * 1024 * 1024)
--		(*count)--;
-+	while (size * *num_buffers > vid_limit * 1024 * 1024)
-+		(*num_buffers)--;
- 
--	dprintk(dev, 1, "%s, count=%d, size=%d\n", __func__,
--		*count, *size);
-+	*num_planes = 1;
-+
-+	dprintk(dev, 1, "%s, count=%d, size=%ld\n", __func__,
-+		*num_buffers, size);
- 
- 	return 0;
- }
- 
--static void free_buffer(struct videobuf_queue *vq, struct vivi_buffer *buf)
-+static int plane_setup(struct vb2_queue *vq, unsigned int plane_no,
-+			unsigned long *plane_size)
- {
--	struct vivi_dev *dev = vq->priv_data;
-+	struct vivi_dev *dev = vb2_get_drv_priv(vq);
-+
-+	if (plane_no > 0)
-+		return -EINVAL;
- 
--	dprintk(dev, 1, "%s, state: %i\n", __func__, buf->vb.state);
-+	*plane_size = dev->width * dev->height * 2;
- 
--	videobuf_vmalloc_free(&buf->vb);
--	dprintk(dev, 1, "free_buffer: freed\n");
--	buf->vb.state = VIDEOBUF_NEEDS_INIT;
-+	dprintk(dev, 1, "%s: plane: %d, size: %ld\n",
-+			__func__, plane_no, *plane_size);
-+
-+	return 0;
- }
- 
--static int
--buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
--						enum v4l2_field field)
-+static int buffer_init(struct vb2_buffer *vb)
- {
--	struct vivi_dev *dev = vq->priv_data;
-+	struct vivi_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
-+
-+	BUG_ON(NULL == dev->fmt);
-+
-+	/*
-+	 * This callback is called once per buffer, after its allocation.
-+	 *
-+	 * Vivi does not allow changing format during streaming, but it is
-+	 * possible to do so when streaming is paused (i.e. in streamoff state).
-+	 * Buffers however are not freed when going into streamoff and so
-+	 * buffer size verification has to be done in buffer_prepare, on each
-+	 * qbuf.
-+	 * It would be best to move verification code here to buf_init and
-+	 * s_fmt though.
-+	 */
-+
-+	return 0;
++	ret = mt9m111_reg_read(client, reg);
++	return mt9m111_reg_write(client, reg, (ret & ~mask) | data);
 +}
 +
-+static int buffer_prepare(struct vb2_buffer *vb)
-+{
-+	struct vivi_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
- 	struct vivi_buffer *buf = container_of(vb, struct vivi_buffer, vb);
--	int rc;
-+	unsigned long size;
- 
--	dprintk(dev, 1, "%s, field=%d\n", __func__, field);
-+	dprintk(dev, 1, "%s, field=%d\n", __func__, vb->v4l2_buf.field);
- 
- 	BUG_ON(NULL == dev->fmt);
- 
-+	/*
-+	 * Theses properties only change when queue is idle, see s_fmt.
-+	 * The below checks should not be performed here, on each
-+	 * buffer_prepare (i.e. on each qbuf). Most of the code in this function
-+	 * should thus be moved to buffer_init and s_fmt.
-+	 */
- 	if (dev->width  < 48 || dev->width  > MAX_WIDTH ||
- 	    dev->height < 32 || dev->height > MAX_HEIGHT)
- 		return -EINVAL;
- 
--	buf->vb.size = dev->width * dev->height * 2;
--	if (0 != buf->vb.baddr && buf->vb.bsize < buf->vb.size)
-+	size = dev->width * dev->height * 2;
-+	if (vb2_plane_size(vb, 0) < size) {
-+		dprintk(dev, 1, "%s data will not fit into plane (%lu < %lu)\n",
-+				__func__, vb2_plane_size(vb, 0), size);
- 		return -EINVAL;
-+	}
-+
-+	vb2_set_plane_payload(&buf->vb, 0, size);
- 
--	/* These properties only change when queue is idle, see s_fmt */
--	buf->fmt       = dev->fmt;
--	buf->vb.width  = dev->width;
--	buf->vb.height = dev->height;
--	buf->vb.field  = field;
-+	buf->fmt = dev->fmt;
- 
- 	precalculate_bars(dev);
- 	precalculate_line(dev);
- 
--	if (VIDEOBUF_NEEDS_INIT == buf->vb.state) {
--		rc = videobuf_iolock(vq, &buf->vb, NULL);
--		if (rc < 0)
--			goto fail;
--	}
--
--	buf->vb.state = VIDEOBUF_PREPARED;
- 	return 0;
--
--fail:
--	free_buffer(vq, buf);
--	return rc;
- }
- 
--static void
--buffer_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
-+static void buffer_queue(struct vb2_buffer *vb)
+ static int mt9m111_set_context(struct i2c_client *client,
+ 			       enum mt9m111_context ctxt)
  {
--	struct vivi_dev *dev = vq->priv_data;
-+	struct vivi_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
- 	struct vivi_buffer *buf = container_of(vb, struct vivi_buffer, vb);
- 	struct vivi_dmaqueue *vidq = &dev->vidq;
-+	unsigned long flags = 0;
- 
- 	dprintk(dev, 1, "%s\n", __func__);
- 
--	buf->vb.state = VIDEOBUF_QUEUED;
--	list_add_tail(&buf->vb.queue, &vidq->active);
-+	spin_lock_irqsave(&dev->slock, flags);
-+	list_add_tail(&buf->list, &vidq->active);
-+	spin_unlock_irqrestore(&dev->slock, flags);
- }
- 
--static void buffer_release(struct videobuf_queue *vq,
--			   struct videobuf_buffer *vb)
-+static int start_streaming(struct vb2_queue *vq)
- {
--	struct vivi_dev *dev = vq->priv_data;
--	struct vivi_buffer *buf  = container_of(vb, struct vivi_buffer, vb);
--
-+	struct vivi_dev *dev = vb2_get_drv_priv(vq);
- 	dprintk(dev, 1, "%s\n", __func__);
-+	return vivi_start_generating(dev);
-+}
- 
--	free_buffer(vq, buf);
-+/* abort streaming and wait for last buffer */
-+static int stop_streaming(struct vb2_queue *vq)
-+{
-+	struct vivi_dev *dev = vb2_get_drv_priv(vq);
-+	dprintk(dev, 1, "%s\n", __func__);
-+	vivi_stop_generating(dev);
-+	return 0;
- }
- 
--static struct videobuf_queue_ops vivi_video_qops = {
--	.buf_setup      = buffer_setup,
--	.buf_prepare    = buffer_prepare,
--	.buf_queue      = buffer_queue,
--	.buf_release    = buffer_release,
-+static struct vb2_ops vivi_video_qops = {
-+	.queue_negotiate	= queue_negotiate,
-+	.plane_setup		= plane_setup,
-+	.buf_init		= buffer_init,
-+	.buf_prepare		= buffer_prepare,
-+	.buf_queue		= buffer_queue,
-+	.start_streaming	= start_streaming,
-+	.stop_streaming		= stop_streaming,
-+};
-+
-+static struct vb2_read_ctx vivi_read_ctx = {
-+	.num_bufs		= 2,
- };
- 
- /* ------------------------------------------------------------------
-@@ -774,7 +804,7 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
- 
- 	f->fmt.pix.width        = dev->width;
- 	f->fmt.pix.height       = dev->height;
--	f->fmt.pix.field        = dev->vb_vidq.field;
-+	f->fmt.pix.field        = dev->field;
- 	f->fmt.pix.pixelformat  = dev->fmt->fourcc;
- 	f->fmt.pix.bytesperline =
- 		(f->fmt.pix.width * dev->fmt->depth) >> 3;
-@@ -820,15 +850,15 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 					struct v4l2_format *f)
- {
- 	struct vivi_dev *dev = video_drvdata(file);
--	struct videobuf_queue *q = &dev->vb_vidq;
-+	struct vb2_queue *q = &dev->vb_vidq;
- 
- 	int ret = vidioc_try_fmt_vid_cap(file, priv, f);
- 	if (ret < 0)
- 		return ret;
- 
--	mutex_lock(&q->vb_lock);
-+	vb2_lock(q);
- 
--	if (vivi_is_generating(dev)) {
-+	if (vb2_is_streaming(q)) {
- 		dprintk(dev, 1, "%s device busy\n", __func__);
- 		ret = -EBUSY;
- 		goto out;
-@@ -837,10 +867,10 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 	dev->fmt = get_format(f);
- 	dev->width = f->fmt.pix.width;
- 	dev->height = f->fmt.pix.height;
--	dev->vb_vidq.field = f->fmt.pix.field;
-+	dev->field = f->fmt.pix.field;
- 	ret = 0;
- out:
--	mutex_unlock(&q->vb_lock);
-+	vb2_unlock(q);
+@@ -312,68 +331,6 @@ static int mt9m111_setup_rect(struct i2c_client *client,
  	return ret;
  }
  
-@@ -849,66 +879,42 @@ static int vidioc_reqbufs(struct file *file, void *priv,
- {
- 	struct vivi_dev *dev = video_drvdata(file);
- 
--	return videobuf_reqbufs(&dev->vb_vidq, p);
-+	return vb2_reqbufs(&dev->vb_vidq, p);
- }
- 
- static int vidioc_querybuf(struct file *file, void *priv, struct v4l2_buffer *p)
- {
- 	struct vivi_dev *dev = video_drvdata(file);
- 
--	return videobuf_querybuf(&dev->vb_vidq, p);
-+	return vb2_querybuf(&dev->vb_vidq, p);
- }
- 
- static int vidioc_qbuf(struct file *file, void *priv, struct v4l2_buffer *p)
- {
- 	struct vivi_dev *dev = video_drvdata(file);
- 
--	return videobuf_qbuf(&dev->vb_vidq, p);
-+	return vb2_qbuf(&dev->vb_vidq, p);
- }
- 
- static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *p)
- {
- 	struct vivi_dev *dev = video_drvdata(file);
- 
--	return videobuf_dqbuf(&dev->vb_vidq, p,
--				file->f_flags & O_NONBLOCK);
-+	return vb2_dqbuf(&dev->vb_vidq, p, file->f_flags & O_NONBLOCK);
- }
- 
--#ifdef CONFIG_VIDEO_V4L1_COMPAT
--static int vidiocgmbuf(struct file *file, void *priv, struct video_mbuf *mbuf)
+-static int mt9m111_setup_pixfmt(struct i2c_client *client, u16 outfmt)
 -{
--	struct vivi_dev *dev = video_drvdata(file);
--
--	return videobuf_cgmbuf(&dev->vb_vidq, mbuf, 8);
--}
--#endif
--
- static int vidioc_streamon(struct file *file, void *priv, enum v4l2_buf_type i)
- {
- 	struct vivi_dev *dev = video_drvdata(file);
 -	int ret;
 -
--	if (i != V4L2_BUF_TYPE_VIDEO_CAPTURE)
--		return -EINVAL;
--	ret = videobuf_streamon(&dev->vb_vidq);
--	if (ret)
--		return ret;
- 
--	vivi_start_generating(file);
--	return 0;
-+	return vb2_streamon(&dev->vb_vidq, i);
- }
- 
- static int vidioc_streamoff(struct file *file, void *priv, enum v4l2_buf_type i)
- {
- 	struct vivi_dev *dev = video_drvdata(file);
--	int ret;
- 
--	if (i != V4L2_BUF_TYPE_VIDEO_CAPTURE)
--		return -EINVAL;
--	ret = videobuf_streamoff(&dev->vb_vidq);
+-	ret = reg_write(OUTPUT_FORMAT_CTRL2_A, outfmt);
 -	if (!ret)
--		vivi_stop_generating(file);
+-		ret = reg_write(OUTPUT_FORMAT_CTRL2_B, outfmt);
 -	return ret;
-+	return vb2_streamoff(&dev->vb_vidq, i);
- }
- 
- static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *i)
-@@ -1031,26 +1037,25 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
- 	File operations for the device
-    ------------------------------------------------------------------*/
- 
--static ssize_t
--vivi_read(struct file *file, char __user *data, size_t count, loff_t *ppos)
-+static int vivi_open(struct file *file)
+-}
+-
+-static int mt9m111_setfmt_bayer8(struct i2c_client *client)
+-{
+-	return mt9m111_setup_pixfmt(client, MT9M111_OUTFMT_PROCESSED_BAYER |
+-				    MT9M111_OUTFMT_RGB);
+-}
+-
+-static int mt9m111_setfmt_bayer10(struct i2c_client *client)
+-{
+-	return mt9m111_setup_pixfmt(client, MT9M111_OUTFMT_BYPASS_IFP);
+-}
+-
+-static int mt9m111_setfmt_rgb565(struct i2c_client *client)
+-{
+-	struct mt9m111 *mt9m111 = to_mt9m111(client);
+-	int val = 0;
+-
+-	if (mt9m111->swap_rgb_red_blue)
+-		val |= MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr;
+-	if (mt9m111->swap_rgb_even_odd)
+-		val |= MT9M111_OUTFMT_SWAP_RGB_EVEN;
+-	val |= MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB565;
+-
+-	return mt9m111_setup_pixfmt(client, val);
+-}
+-
+-static int mt9m111_setfmt_rgb555(struct i2c_client *client)
+-{
+-	struct mt9m111 *mt9m111 = to_mt9m111(client);
+-	int val = 0;
+-
+-	if (mt9m111->swap_rgb_red_blue)
+-		val |= MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr;
+-	if (mt9m111->swap_rgb_even_odd)
+-		val |= MT9M111_OUTFMT_SWAP_RGB_EVEN;
+-	val |= MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB555;
+-
+-	return mt9m111_setup_pixfmt(client, val);
+-}
+-
+-static int mt9m111_setfmt_yuv(struct i2c_client *client)
+-{
+-	struct mt9m111 *mt9m111 = to_mt9m111(client);
+-	int val = 0;
+-
+-	if (mt9m111->swap_yuv_cb_cr)
+-		val |= MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr;
+-	if (mt9m111->swap_yuv_y_chromas)
+-		val |= MT9M111_OUTFMT_SWAP_YCbCr_C_Y;
+-
+-	return mt9m111_setup_pixfmt(client, val);
+-}
+-
+ static int mt9m111_enable(struct i2c_client *client)
  {
- 	struct vivi_dev *dev = video_drvdata(file);
+ 	struct mt9m111 *mt9m111 = to_mt9m111(client);
+@@ -501,41 +458,54 @@ static int mt9m111_g_fmt(struct v4l2_subdev *sd,
+ static int mt9m111_set_pixfmt(struct i2c_client *client,
+ 			      enum v4l2_mbus_pixelcode code)
+ {
+-	struct mt9m111 *mt9m111 = to_mt9m111(client);
++	u16 data_outfmt1 = 0, data_outfmt2 = 0, mask_outfmt1, mask_outfmt2;
+ 	int ret;
  
--	vivi_start_generating(file);
--	return videobuf_read_stream(&dev->vb_vidq, data, count, ppos, 0,
--					file->f_flags & O_NONBLOCK);
-+	dprintk(dev, 1, "%s, %p\n", __func__, file);
+ 	switch (code) {
+ 	case V4L2_MBUS_FMT_SBGGR8_1X8:
+-		ret = mt9m111_setfmt_bayer8(client);
++		data_outfmt1 = MT9M111_OUTFMT_FLIP_BAYER_ROW;
++		data_outfmt2 = MT9M111_OUTFMT_PROCESSED_BAYER |
++			MT9M111_OUTFMT_RGB;
+ 		break;
+ 	case V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE:
+-		ret = mt9m111_setfmt_bayer10(client);
++		data_outfmt2 = MT9M111_OUTFMT_BYPASS_IFP | MT9M111_OUTFMT_RGB;
+ 		break;
+ 	case V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE:
+-		ret = mt9m111_setfmt_rgb555(client);
++		data_outfmt2 = MT9M111_OUTFMT_SWAP_RGB_EVEN |
++			MT9M111_OUTFMT_RGB |
++			MT9M111_OUTFMT_RGB555;
++		break;
++	case V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE:
++		data_outfmt2 = MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB555;
+ 		break;
+ 	case V4L2_MBUS_FMT_RGB565_2X8_LE:
+-		ret = mt9m111_setfmt_rgb565(client);
++		data_outfmt2 = MT9M111_OUTFMT_SWAP_RGB_EVEN |
++			MT9M111_OUTFMT_RGB |
++			MT9M111_OUTFMT_RGB565;
++		break;
++	case V4L2_MBUS_FMT_RGB565_2X8_BE:
++		data_outfmt2 = MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB565;
+ 		break;
+-	case V4L2_MBUS_FMT_UYVY8_2X8:
+-		mt9m111->swap_yuv_y_chromas = 0;
+-		mt9m111->swap_yuv_cb_cr = 0;
+-		ret = mt9m111_setfmt_yuv(client);
++	case V4L2_MBUS_FMT_BGR565_2X8_LE:
++		data_outfmt2 = MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr |
++			MT9M111_OUTFMT_SWAP_RGB_EVEN |
++			MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB565;
+ 		break;
+-	case V4L2_MBUS_FMT_VYUY8_2X8:
+-		mt9m111->swap_yuv_y_chromas = 0;
+-		mt9m111->swap_yuv_cb_cr = 1;
+-		ret = mt9m111_setfmt_yuv(client);
++	case V4L2_MBUS_FMT_BGR565_2X8_BE:
++		data_outfmt2 = MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr |
++			MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB565;
+ 		break;
+-	case V4L2_MBUS_FMT_YUYV8_2X8:
+-		mt9m111->swap_yuv_y_chromas = 1;
+-		mt9m111->swap_yuv_cb_cr = 0;
+-		ret = mt9m111_setfmt_yuv(client);
++	case V4L2_MBUS_FMT_YUYV8_2X8_BE:
+ 		break;
+-	case V4L2_MBUS_FMT_YVYU8_2X8:
+-		mt9m111->swap_yuv_y_chromas = 1;
+-		mt9m111->swap_yuv_cb_cr = 1;
+-		ret = mt9m111_setfmt_yuv(client);
++	case V4L2_MBUS_FMT_YVYU8_2X8_BE:
++		data_outfmt2 = MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr;
++		break;
++	case V4L2_MBUS_FMT_YUYV8_2X8_LE:
++		data_outfmt2 = MT9M111_OUTFMT_SWAP_YCbCr_C_Y;
++		break;
++	case V4L2_MBUS_FMT_YVYU8_2X8_LE:
++		data_outfmt2 = MT9M111_OUTFMT_SWAP_YCbCr_C_Y |
++			MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr;
+ 		break;
+ 	default:
+ 		dev_err(&client->dev, "Pixel format not handled : %x\n",
+@@ -543,6 +513,25 @@ static int mt9m111_set_pixfmt(struct i2c_client *client,
+ 		ret = -EINVAL;
+ 	}
+ 
++	mask_outfmt1 = MT9M111_OUTFMT_FLIP_BAYER_COL |
++		MT9M111_OUTFMT_FLIP_BAYER_ROW;
 +
-+	atomic_inc(&dev->open_count);
-+	return 0;
- }
- 
- static unsigned int
- vivi_poll(struct file *file, struct poll_table_struct *wait)
- {
- 	struct vivi_dev *dev = video_drvdata(file);
--	struct videobuf_queue *q = &dev->vb_vidq;
-+	struct vb2_queue *q = &dev->vb_vidq;
- 
- 	dprintk(dev, 1, "%s\n", __func__);
- 
--	vivi_start_generating(file);
--	return videobuf_poll_stream(file, q, wait);
-+	return vb2_poll(q, file, wait);
- }
- 
- static int vivi_close(struct file *file)
-@@ -1058,10 +1063,11 @@ static int vivi_close(struct file *file)
- 	struct video_device  *vdev = video_devdata(file);
- 	struct vivi_dev *dev = video_drvdata(file);
- 
--	vivi_stop_generating(file);
-+	dprintk(dev, 1, "close called (dev=%s), file %p\n",
-+		video_device_node_name(vdev), file);
- 
--	dprintk(dev, 1, "close called (dev=%s)\n",
--		video_device_node_name(vdev));
-+	if (atomic_dec_and_test(&dev->open_count))
-+		vb2_queue_release(&dev->vb_vidq);
- 	return 0;
- }
- 
-@@ -1072,7 +1078,7 @@ static int vivi_mmap(struct file *file, struct vm_area_struct *vma)
- 
- 	dprintk(dev, 1, "mmap called, vma=0x%08lx\n", (unsigned long)vma);
- 
--	ret = videobuf_mmap_mapper(&dev->vb_vidq, vma);
-+	ret = vb2_mmap(&dev->vb_vidq, vma);
- 
- 	dprintk(dev, 1, "vma start=0x%08lx, size=%ld, ret=%d\n",
- 		(unsigned long)vma->vm_start,
-@@ -1081,13 +1087,25 @@ static int vivi_mmap(struct file *file, struct vm_area_struct *vma)
++	mask_outfmt2 = MT9M111_OUTFMT_PROCESSED_BAYER |
++		MT9M111_OUTFMT_BYPASS_IFP | MT9M111_OUTFMT_RGB |
++		MT9M111_OUTFMT_RGB565 | MT9M111_OUTFMT_RGB555 |
++		MT9M111_OUTFMT_RGB444x | MT9M111_OUTFMT_RGBx444 |
++		MT9M111_OUTFMT_SWAP_YCbCr_C_Y | MT9M111_OUTFMT_SWAP_RGB_EVEN |
++		MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr | MT9M111_OUTFMT_SWAP_RGB_R_B;
++
++	ret = reg_mask(OUTPUT_FORMAT_CTRL, data_outfmt1, mask_outfmt1);
++
++	if (!ret)
++		ret = reg_mask(OUTPUT_FORMAT_CTRL2_A, data_outfmt2,
++			mask_outfmt2);
++	if (!ret)
++		ret = reg_mask(OUTPUT_FORMAT_CTRL2_B, data_outfmt2,
++			mask_outfmt2);
++
  	return ret;
  }
  
-+static ssize_t vivi_read(struct file *file, char __user *buf, size_t count,
-+			    loff_t *ppos)
-+{
-+	struct vivi_dev *dev = video_drvdata(file);
-+
-+	dprintk(dev, 1, "read called\n");
-+
-+	return vb2_read(&dev->vb_vidq, buf, count, ppos,
-+					file->f_flags & O_NONBLOCK);
-+}
-+
- static const struct v4l2_file_operations vivi_fops = {
- 	.owner		= THIS_MODULE,
-+	.open		= vivi_open,
- 	.release        = vivi_close,
--	.read           = vivi_read,
- 	.poll		= vivi_poll,
- 	.ioctl          = video_ioctl2, /* V4L2 ioctl handler */
- 	.mmap           = vivi_mmap,
-+	.read           = vivi_read,
- };
+@@ -972,9 +961,6 @@ static int mt9m111_video_probe(struct soc_camera_device *icd,
+ 	mt9m111->autoexposure = 1;
+ 	mt9m111->autowhitebalance = 1;
  
- static const struct v4l2_ioctl_ops vivi_ioctl_ops = {
-@@ -1109,9 +1127,6 @@ static const struct v4l2_ioctl_ops vivi_ioctl_ops = {
- 	.vidioc_queryctrl     = vidioc_queryctrl,
- 	.vidioc_g_ctrl        = vidioc_g_ctrl,
- 	.vidioc_s_ctrl        = vidioc_s_ctrl,
--#ifdef CONFIG_VIDEO_V4L1_COMPAT
--	.vidiocgmbuf          = vidiocgmbuf,
--#endif
- };
+-	mt9m111->swap_rgb_even_odd = 1;
+-	mt9m111->swap_rgb_red_blue = 1;
+-
+ 	data = reg_read(CHIP_VERSION);
  
- static struct video_device vivi_template = {
-@@ -1145,6 +1160,8 @@ static int vivi_release(void)
- 		kfree(dev);
- 	}
- 
-+	vb2_vmalloc_cleanup(alloc_ctx);
-+
- 	return 0;
- }
- 
-@@ -1173,10 +1190,8 @@ static int __init vivi_create_instance(int inst)
- 	dev->saturation = 127;
- 	dev->hue = 0;
- 
--	videobuf_queue_vmalloc_init(&dev->vb_vidq, &vivi_video_qops,
--			NULL, &dev->slock, V4L2_BUF_TYPE_VIDEO_CAPTURE,
--			V4L2_FIELD_INTERLACED,
--			sizeof(struct vivi_buffer), dev);
-+	vb2_queue_init(&dev->vb_vidq, &vivi_video_qops, alloc_ctx,
-+		       &vivi_read_ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE, dev);
- 
- 	/* init video dma queues */
- 	INIT_LIST_HEAD(&dev->vidq.active);
-@@ -1238,6 +1253,13 @@ static int __init vivi_init(void)
- 	}
- 	font8x16 = font->data;
- 
-+	/* Initialize vmalloc allocator */
-+	alloc_ctx = vb2_vmalloc_init();
-+	if (IS_ERR(alloc_ctx)) {
-+		printk(KERN_ERR "vivi: allocator init failed\n");
-+		return PTR_ERR(alloc_ctx);
-+	}
-+
- 	if (n_devs <= 0)
- 		n_devs = 1;
- 
+ 	switch (data) {
 -- 
-1.7.1.569.g6f426
+1.7.0
 
