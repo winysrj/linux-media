@@ -1,104 +1,85 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:48435 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755921Ab0JYWpe (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:56424 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754895Ab0JYKNm convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Oct 2010 18:45:34 -0400
-Received: by qwk3 with SMTP id 3so1903394qwk.19
-        for <linux-media@vger.kernel.org>; Mon, 25 Oct 2010 15:45:33 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTimQAu-76tv6MWQhfT5L1fDJrnK0uTYobQXBi8vQ@mail.gmail.com>
-References: <AANLkTimQAu-76tv6MWQhfT5L1fDJrnK0uTYobQXBi8vQ@mail.gmail.com>
-Date: Mon, 25 Oct 2010 18:45:33 -0400
-Message-ID: <AANLkTimnDSBSr8+b3HoGmORrsd3+Q2v=p-nuSJfs5vw6@mail.gmail.com>
-Subject: Re: Pinnacle PCTV HD 800i troubles
-From: Tugrul Galatali <tugrul@galatali.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 25 Oct 2010 06:13:42 -0400
+Received: from epmmp1 (mailout3.samsung.com [203.254.224.33])
+ by mailout3.samsung.com
+ (Sun Java(tm) System Messaging Server 7u3-15.01 64bit (built Feb 12 2010))
+ with ESMTP id <0LAU00MCCCESEU40@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 25 Oct 2010 19:13:40 +0900 (KST)
+Received: from AMDC159 ([106.116.37.153])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LAU00JXFCEP2I@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 25 Oct 2010 19:13:40 +0900 (KST)
+Date: Mon, 25 Oct 2010 12:13:36 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH 1/7] v4l: add videobuf2 Video for Linux 2 driver framework
+In-reply-to: <AANLkTinaYuwHci++fDRB7c1Lzbcew2Hzzect=GZqOpEL@mail.gmail.com>
+To: 'Pawel Osciak' <pawel@osciak.com>
+Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com
+Message-id: <019301cb742d$4ba0c990$e2e25cb0$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=iso-8859-2
+Content-language: pl
+Content-transfer-encoding: 8BIT
+References: <1287556873-23179-1-git-send-email-m.szyprowski@samsung.com>
+ <1287556873-23179-2-git-send-email-m.szyprowski@samsung.com>
+ <AANLkTinaYuwHci++fDRB7c1Lzbcew2Hzzect=GZqOpEL@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Oct 18, 2010 at 11:05 PM, Tugrul Galatali <tugrul@galatali.com> wrote:
-> After a variable amount of time recording, the card stops functioning
-> and starts filling my disk with error messages. It usually starts with
-> something like this:
+Hello,
 
-This happened again after the longest spell of not occurring, about 6.5 days.
+On Monday, October 25, 2010 2:17 AM Pawel Osciak wrote:
 
-This time when I removed the cx88_dvb module it stopped the error
-stream, which previously wouldn't happen until I removed more modules
-like s5h1409 and lgdt3305. When I tried reloading it, I got:
+> On Tue, Oct 19, 2010 at 23:41, Marek Szyprowski
+> <m.szyprowski@samsung.com> wrote:
+> > From: Pawel Osciak <p.osciak@samsung.com>
+> 
+> > +/**
+> > + * __vb2_queue_cancel() - cancel and stop (pause) streaming
+> > + *
+> > + * Removes all queued buffers from driver's queue and all buffers queued by
+> > + * userspace from videobuf's queue. Returns to state after reqbufs.
+> > + */
+> > +static void __vb2_queue_cancel(struct vb2_queue *q)
+> > +{
+> > +       /*
+> > +        * Tell driver to stop all dma transactions and release all queued
+> > +        * buffers
+> > +        */
+> 
+> Just being picky, but those doesn't neccesarily are "dma" transactions.
 
-[589132.812877] cx88/2: unregistering cx8802 driver, type: dvb access: shared
-[589132.812881] cx88[0]/2: subsystem: 11bd:0051, board: Pinnacle PCTV
-HD 800i [card=58]
-[589141.517555] cx88/2: cx2388x dvb driver version 0.0.8 loaded
-[589141.517558] cx88/2: registering cx8802 driver, type: dvb access: shared
-[589141.517561] cx88[0]/2: subsystem: 11bd:0051, board: Pinnacle PCTV
-HD 800i [card=58]
-[589141.517563] cx88[0]/2: cx2388x based DVB/ATSC card
-[589141.517564] cx8802_alloc_frontends() allocating 1 frontend(s)
-[589141.518266] s5h1409_readreg: readreg error (ret == -6)
-[589141.518311] cx88[0]/2: frontend initialization failed
-[589141.518313] cx88[0]/2: dvb_register failed (err = -22)
-[589141.518314] cx88[0]/2: cx8802 probe failed, err = -22
+Ok, I will change this comment.
 
-This was the beginning of the errors from syslog:
+> 
+> > +       if (q->streaming && q->ops->stop_streaming)
+> > +               q->ops->stop_streaming(q);
+> > +       q->streaming = 0;
+> > +
+> > +       /*
+> > +        * Remove all buffers from videobuf's list...
+> > +        */
+> > +       INIT_LIST_HEAD(&q->queued_list);
+> > +       /*
+> > +        * ...and done list; userspace will not receive any buffers it
+> > +        * has not already dequeued before initiating cancel.
+> > +        */
+> > +       INIT_LIST_HEAD(&q->done_list);
+> > +       wake_up_all(&q->done_wq);
+> 
+> Any reason for replacing wake_up_interruptible_all with wake_up_all?
 
-[572105.888680] s5h1409_readreg: readreg error (ret == -6)
-[572105.889326] s5h1409_writereg: error (reg == 0xf5, val == 0x0000, ret == -6)
-[572105.889989] s5h1409_writereg: error (reg == 0xf5, val == 0x0001, ret == -6)
-[572105.890632] s5h1409_writereg: error (reg == 0xf4, val == 0x0001, ret == -6)
-[572105.891273] s5h1409_writereg: error (reg == 0x85, val == 0x0110, ret == -6)
-[572105.891915] s5h1409_writereg: error (reg == 0xf5, val == 0x0000, ret == -6)
-[572105.892573] s5h1409_writereg: error (reg == 0xf5, val == 0x0001, ret == -6)
-[572105.893229] s5h1409_writereg: error (reg == 0xf3, val == 0x0001, ret == -6)
-[572105.893897] xc5000: I2C read failed
-[572105.894540] xc5000: I2C read failed
-[572105.894542] xc5000: waiting for firmware upload
-(dvb-fe-xc5000-1.6.114.fw)...
-[572105.969198] xc5000: firmware read 12401 bytes.
-[572105.969199] xc5000: firmware uploading...
-[572105.969201] cx88[0]: Calling XC5000 callback
-[572105.969869] xc5000: I2C write failed (len=3)
-[572105.969870] xc5000: firmware upload complete...
-[572105.970516] s5h1409_writereg: error (reg == 0xf3, val == 0x0000, ret == -6)
-[572105.971158] s5h1409_writereg: error (reg == 0xf5, val == 0x0000, ret == -6)
-[572105.971800] s5h1409_writereg: error (reg == 0xf5, val == 0x0001, ret == -6)
-[572105.972454] s5h1409_readreg: readreg error (ret == -6)
-[572105.973110] s5h1409_writereg: error (reg == 0x96, val == 0x0008, ret == -6)
-[572105.973774] s5h1409_writereg: error (reg == 0x93, val == 0x3332, ret == -6)
-[572105.974417] s5h1409_writereg: error (reg == 0x9e, val == 0x2c37, ret == -6)
-[572105.975058] s5h1409_readreg: readreg error (ret == -6)
-[572105.975701] s5h1409_writereg: error (reg == 0x96, val == 0x0008, ret == -6)
-[572105.976355] s5h1409_readreg: readreg error (ret == -6)
-[572105.977006] s5h1409_writereg: error (reg == 0xab, val == 0x1001, ret == -6)
-[572106.078183] lgdt3305_read_reg: error (addr 0e reg 0003 error (ret == -5)
-[572106.078185] lgdt3305_read_status: error -5 on line 819
-[572106.080329] tda18271_write_regs: [2-0060|M] ERROR: idx = 0x5, len
-= 1, i2c_transfer returned: -5
-[572106.080331] tda18271_init: [2-0060|M] error -5 on line 830
-[572106.080333] tda18271_tune: [2-0060|M] error -5 on line 908
-[572106.080335] tda18271_set_params: [2-0060|M] error -5 on line 989
-[572106.080336] lgdt3305_set_parameters: error -5 on line 655
-[572106.582179] lgdt3305_read_reg: error (addr 0e reg 0003 error (ret == -5)
-[572106.582182] lgdt3305_read_status: error -5 on line 819
-[572106.976682] s5h1409_readreg: readreg error (ret == -6)
-[572106.977343] s5h1409_writereg: error (reg == 0xf5, val == 0x0000, ret == -6)
-[572106.977997] s5h1409_writereg: error (reg == 0xf5, val == 0x0001, ret == -6)
-[572106.978639] s5h1409_writereg: error (reg == 0xf4, val == 0x0001, ret == -6)
-[572106.979280] s5h1409_writereg: error (reg == 0x85, val == 0x0110, ret == -6)
-[572106.979923] s5h1409_writereg: error (reg == 0xf5, val == 0x0000, ret == -6)
-[572106.980593] s5h1409_writereg: error (reg == 0xf5, val == 0x0001, ret == -6)
-[572106.981256] s5h1409_writereg: error (reg == 0xf3, val == 0x0001, ret == -6)
-[572106.981898] xc5000: I2C read failed
-[572106.982540] xc5000: I2C read failed
-[572106.982542] xc5000: waiting for firmware upload
-(dvb-fe-xc5000-1.6.114.fw)...
-[572106.984838] xc5000: firmware read 12401 bytes.
-[572106.984839] xc5000: firmware uploading...
-[572106.984841] cx88[0]: Calling XC5000 callback
-[572106.985544] xc5000: I2C write failed (len=3)
-[572106.985546] xc5000: firmware upload complete...
+IMHO there is no reason to limit it to wake_up_interruptible_all. 
 
-Tugrul Galatali
+Initially I thought that the driver MIGHT want to implement stop_streaming()
+on top of this wait_queue, but later I abandoned this idea...
+
+Best regards
+--
+Marek Szyprowski
+Samsung Poland R&D Center
+
