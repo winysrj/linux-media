@@ -1,82 +1,104 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2555 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754062Ab0JNGrD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Oct 2010 02:47:03 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Subject: Re: [PATCH v12 0/3] TI WL1273 FM Radio driver...
-Date: Thu, 14 Oct 2010 08:46:32 +0200
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
-	eduardo.valentin@nokia.com
-References: <1286457373-1742-1-git-send-email-matti.j.aaltonen@nokia.com>
-In-Reply-To: <1286457373-1742-1-git-send-email-matti.j.aaltonen@nokia.com>
+Received: from flokli.de ([78.46.104.9]:44908 "EHLO asterix.flokli.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759210Ab0JYRdS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Oct 2010 13:33:18 -0400
+To: <linux-media@vger.kernel.org>
+Subject: em28xx: Terratec Grabby no sound
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Content-Type: text/plain;
+ charset=UTF-8;
+ format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201010140846.32224.hverkuil@xs4all.nl>
+Date: Mon, 25 Oct 2010 19:24:46 +0200
+From: Florian Klink <flokli@flokli.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Message-ID: <f9fc4355b0c721744c6522a720ee2df7@flokli.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Matti,
+ Hi,
 
-I've acked patches 1 and 2 and added some comments to patch 3.
+ I recently bought a Terratec Grabby. The device has a S-Video and 3 
+ Cinch
+ cables (sound left, sound right, video). I want to record some video
+ cassettes with it. (with a cinch-scart adapter).
 
-Two other patches are needed, though: the new BLOCK_IO and CONTROLS
-capabilities also need to be set in existing RDS drivers:
+ I checked the signal, there is audio and video on it.
 
-video/saa6588.c
-radio/radio-cadet.c
-radio/si4713-i2c.c
-radio/si470x/radio-si470x-common.c
+ When I try to "play" the capture device with e.g. mplayer, I see "no
+ sound", even with various options.
 
-The other patch is for v4l2-ctl.cpp in the v4l-utils repository where
-support for these new caps needs to be added as well.
+ I can hear sound only by doing "arecord -D hw:2,0 -r 32000 -c 2 -f 
+ S16_LE |
+ aplay -", but as soon as mplayer is starting, I can't hear anything
+ anymore.
 
-This second patch can be provided once the other patches are merged, although
-it would be nice if you can have it earlier.
+ ...which means that using alsa as the sound device with mplayer doesn't
+ work either.
 
-Regards,
+ Am I missing something?
 
-	Hans
+ I checked the source code, Terratec Grabby support was introduced with
+ 4557af9c5338605c85fe54f5ebba3d4b14a60ab8:
 
-On Thursday, October 07, 2010 15:16:10 Matti J. Aaltonen wrote:
-> Hello Mauro, Hans and others.
-> 
-> I haven't gotten any comments to the latest patch set. The audio part
-> of the driver has already been accepted so I'm now trying to apply a
-> similar approach as with the codec. I've abstracted out the physical
-> control layer from the driver, it could use I2c or UART but the driver
-> now has only read and write calls (and a couple of other calls). Also
-> the driver doesn't export anything and it doesn't expose the FM radio
-> bands it uses internally to the outsize world.
-> 
-> Cheers,
-> Matti
-> 
-> 
-> Matti J. Aaltonen (3):
->   V4L2: Add seek spacing and RDS CAP bits.
->   V4L2: WL1273 FM Radio: Controls for the FM radio.
->   Documentation: v4l: Add hw_seek spacing and two TUNER_RDS_CAP flags.
-> 
->  Documentation/DocBook/v4l/dev-rds.xml              |   10 +-
->  .../DocBook/v4l/vidioc-s-hw-freq-seek.xml          |   10 +-
->  drivers/media/radio/Kconfig                        |   16 +
->  drivers/media/radio/Makefile                       |    1 +
->  drivers/media/radio/radio-wl1273.c                 | 1848 ++++++++++++++++++++
->  include/linux/videodev2.h                          |    5 +-
->  6 files changed, 1886 insertions(+), 4 deletions(-)
->  create mode 100644 drivers/media/radio/radio-wl1273.c
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+ -----------------------------------------
+ diff --git a/drivers/media/video/em28xx/em28xx-cards.c 
+ b/drivers/media/video/em28xx/em28xx-cards.c
+ index 7cb93fb..b4c78f2 100644
+ --- a/drivers/media/video/em28xx/em28xx-cards.c
+ +++ b/drivers/media/video/em28xx/em28xx-cards.c
+ @@ -1347,6 +1347,22 @@ struct em28xx_board em28xx_boards[] = {
+  			.amux     = EM28XX_AMUX_VIDEO,
+  		} },
+  	},
+ +	[EM2860_BOARD_TERRATEC_GRABBY] = {
+ +		.name            = "Terratec Grabby",
+ +		.vchannels       = 2,
+ +		.tuner_type      = TUNER_ABSENT,
+ +		.decoder         = EM28XX_SAA711X,
+ +		.xclk            = EM28XX_XCLK_FREQUENCY_12MHZ,
+ +		.input           = { {
+ +			.type     = EM28XX_VMUX_COMPOSITE1,
+ +			.vmux     = SAA7115_COMPOSITE0,
+ +			.amux     = EM28XX_AMUX_VIDEO2,
+ +		}, {
+ +			.type     = EM28XX_VMUX_SVIDEO,
+ +			.vmux     = SAA7115_SVIDEO3,
+ +			.amux     = EM28XX_AMUX_VIDEO2,
+ +		} },
+ +	},
+  };
+  const unsigned int em28xx_bcount = ARRAY_SIZE(em28xx_boards);
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+ @@ -1410,6 +1426,8 @@ struct usb_device_id em28xx_id_table[] = {
+  			.driver_info = EM2870_BOARD_TERRATEC_XS },
+  	{ USB_DEVICE(0x0ccd, 0x0047),
+  			.driver_info = EM2880_BOARD_TERRATEC_PRODIGY_XS },
+ +	{ USB_DEVICE(0x0ccd, 0x0096),
+ +			.driver_info = EM2860_BOARD_TERRATEC_GRABBY },
+  	{ USB_DEVICE(0x185b, 0x2870),
+  			.driver_info = EM2870_BOARD_COMPRO_VIDEOMATE },
+  	{ USB_DEVICE(0x185b, 0x2041),
+ diff --git a/drivers/media/video/em28xx/em28xx.h 
+ b/drivers/media/video/em28xx/em28xx.h
+ index e801f78..fa2fb41 100644
+ --- a/drivers/media/video/em28xx/em28xx.h
+ +++ b/drivers/media/video/em28xx/em28xx.h
+ @@ -103,6 +103,7 @@
+  #define EM2860_BOARD_EASYCAP                      64
+  #define EM2820_BOARD_IODATA_GVMVP_SZ		  65
+  #define EM2880_BOARD_EMPIRE_DUAL_TV		  66
+ +#define EM2860_BOARD_TERRATEC_GRABBY		  67
+
+  /* Limits minimum and default number of buffers */
+  #define EM28XX_MIN_BUF 4
+ -----------------------------------------
+
+ Is there maybe a wrong amux set? Which one could it be?
+ Is sound-usb-audio somehow conflicting with em28xx module?
+
+ I hope you have an idea what is wrong here!
+
+ Florian Klink
+
