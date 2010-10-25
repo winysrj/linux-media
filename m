@@ -1,305 +1,1004 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:14617 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758128Ab0JTGl2 (ORCPT
+Received: from smtp-gw21.han.skanova.net ([81.236.55.21]:48924 "EHLO
+	smtp-gw21.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756310Ab0JYOkX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Oct 2010 02:41:28 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from eu_spt2 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LAK009ATT8ZUS20@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 20 Oct 2010 07:41:24 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LAK00KKFT8YAC@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 20 Oct 2010 07:41:23 +0100 (BST)
-Date: Wed, 20 Oct 2010 08:41:06 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH/RFC v3 0/7] Videobuf2 framework
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	kyungmin.park@samsung.com
-Message-id: <1287556873-23179-1-git-send-email-m.szyprowski@samsung.com>
+	Mon, 25 Oct 2010 10:40:23 -0400
+Subject: [PATCH 1/2 v3] media: Add timberdale video-in driver
+From: Richard =?ISO-8859-1?Q?R=F6jfors?=
+	<richard.rojfors@pelagicore.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>,
+	Samuel Ortiz <sameo@linux.intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 25 Oct 2010 16:40:21 +0200
+Message-ID: <1288017621.8517.27.camel@debian>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+This patch adds the timberdale video-in driver.
 
-As I promissed I continue the development of the VideoBuf2 at Samsung
-until Pawel finds some spare time to help us. This is a third version of
-the framework. Besides the minor bugfixes here and there I've added a
-complete read() callback emulator. This emulator provides 2 types of
-read() operation - 'streaming' and 'one shot'. It is suitable to replace
-both videobuf_read_stream() and videobuf_read_one() methods from the old
-videobuf.
+The video IP of timberdale delivers the video data via DMA.
+The driver uses the DMA api to handle DMA transfers, and make use
+of the V4L2 video buffers to handle buffers against user space.
 
-Taking into account the size of the patches and the number of lines I've
-changed, I've decided to keep the Pawel signed-off attribute and
-authorship to correctly credit him. If this is against kernel rules,
-feel free to let me know.
+If available the driver uses an encoder to get/set the video standard
 
-Best regards
---
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
-Changes since V2:
-=================
-- added read() emulator (see patch #5/7)
-- fixed lack of parentheses in macro definitions (caused side effects
-  in some places)
-- added a separate check for VM_READ or VM_WRITE in vb2_mmap()
-- added vb2_is_streaming(), vb2_lock and vb2_unlock inlines
-- updated vivi driver with the new read() emulator 
-
-Changes since V1:
-=================
-- removed drv_lock, added start_streaming and stop_streaming callbacks
-
-
-Here is the original Videobuf2 introduction prepared by Pawel:
-=======================================================================
-
-These patches add a new driver framework for Video for Linux 2 driver
-- Videobuf2.
-
-Videobuf2 is intended as a replacement for videobuf, the current driver
-framework, which will be referred to as "videobuf1" for the remainder
-of this document.
-
-================================
-What is videobuf2?
-================================
-Videobuf2 is a Video for Linux 2 API-compatible driver framework for
-multimedia devices. It acts as an intermediate layer between userspace
-applications and device drivers. It also provides low-level, modular
-memory management functions for drivers.
-
-Videobuf2 eases driver development, reduces drivers' code size and aids in
-proper and consistent implementation of V4L2 API in drivers.
-
-Videobuf2 memory management backend is fully modular. This allows custom
-memory management routines for devices and platforms with non-standard
-memory management requirements to be plugged in, without changing the
-high-level buffer management functions and API.
-
-The framework provides:
-- implementations of streaming I/O V4L2 ioctls and file operations
-- high-level video buffer, video queue and state management functions
-- video buffer memory allocation and management
-
-================================
-Why a new framework?
-================================
-There have been many discussions in the V4L2 community about the feasibility
-of writing a new framework, as opposed to fixing the existing one. It has been
-agreed though that:
-- videobuf1 has major flaws and an attempt to fix it would end up in rewriting
-most of the code
-- many drivers depend on videobuf1 and since the changes would be major,
-an effort to adapt and test them all would not be realistically possible
-
-Due to the problems with videobuf most new drivers cannot use it. This leads
-to code replication and overcomplicated drivers.
-
-================================
-What is wrong with videobuf1?
-================================
-There are many problems with the current videobuf implementation. During a V4L2
-mini-summit in Helsinki in June 2010, two presentations were delivered
-on this topic:
-- Laurent Pinchart "videobuf - the good, the bad and the ugly"
-http://linuxtv.org/downloads/presentations/summit_jun_2010/20100614-v4l2_summit-videobuf.pdf
-- Pawel Osciak "Future of the videobuf framework"
-http://linuxtv.org/downloads/presentations/summit_jun_2010/Videobuf_Helsinki_June2010.pdf
-
-These presentations highlighted many problems with videobuf. The most prominent
-include:
-
-- V4L2 API violations and wrong memory management design
-  - it is impossible to pause streaming (buffers are freed on streamoff)
-  - VIDIOC_REQBUFS(0) does not free memory
-  - it is impossible to reallocate memory with VIDIOC_REQBUFS
-  - video memory is allocated on mmap, qbuf or even on page fault,
-    freed on unmap, streamoff or explicitly by drivers
-  - per-buffer waitqueues
-- not extensible enough and thus not ready for new platforms and uses,
-  especially considering embedded multimedia devices
-  - very hard to add new memory handling routines and custom memory allocators
-  - no or poor support for handling cache coherency, IOMMUs, 
-  - poor flexibility - only one do-it-all function for handling memory pinning,
-    cache, sg-list creation, etc...
-- unused fields, code duplication, vague/inconsistent naming, obscure usage in
-  some places...
-
-Many driver authors expressed their frustration with videobuf. Developers
-acknowledge its merits and would like to use it, but due mostly to its
-inflexible memory allocation schemes they are unable to do so.
-
-================================
-Main goals of the redesign
-================================
-- correct V4L2 API implementation, fixing videobuf1 problems and shortcomings
-- full separation between queue management and memory management
-- fully flexible, pluggable memory allocators and memory handling routines
-- more specialized driver callbacks, called at different points
-- support for new V4L2 API extensions, such as multi-planar video buffers
-
-================================
-Driver callbacks
-================================
-Driver callbacks have been redesigned for symmetry:
-- buf_init - called once, after memory is allocated or after a new USERPTR
-  buffer is queued; can be used e.g. to pin pages, verify contiguity, set up
-  IOMMU mappings, etc.
-- buf_prepare - called on each QBUF; can be used e.g. for cache sync, copying
-  to bounce buffers, etc.
-- buf_finish - called on each DQBUF; can be used e.g. for cache sync, copying
-  back from bounce buffers, etc.
-- buf_cleanup - called before freeing/releasing memory; can be used e.g. for
-  unmapping memory, etc.
-
-The remaining driver callbacks have been slightly redesigned:
-- queue_negotiate - now incorporates multi-planar extensions; drivers return
-  required number of buffers and planes per buffer
-- plane_setup - drivers return plane sizes
-Those two callbacks replace the old buf_setup.
-
-- buf_queue - basically stays the same
-
-================================
-Memory allocators and handling
-================================
-Memory handling has been designed to allow more customization than in the
-original videobuf. For this memory allocation ops have been slightly redesigned,
-and have become fully replaceable and an allocator context struct have been
-introduced.
-
-Allocator context is intended to provide memory operations to videobuf and also
-for storing allocator private data, if required, although simpler allocators
-do not have to use this feature. Private data can be added by embedding the
-context struct inside their own structures:
-
-struct vb2_alloc_ctx {
-        const struct vb2_mem_ops        *mem_ops;
-};
-
-struct vb2_foo_alloc_conf {
-        struct vb2_alloc_ctx    alloc_ctx;                          
-	/* Allocator private data here */
-};
-
-Moreover, a buffer context structure concept has been introduced. Allocators
-return their own, custom, per-buffer structures on every allocation. This
-structure is then used as a "cookie" and passed to other memory handling
-methods called for its corresponding buffer.
-
-Memory operations, stored in the allocator context, can be replaced if
-needed by drivers on a per-function basis and functions from other allocators
-or drivers can be reused as well. A full list with documentation can be found
-in the videobuf2-core.h file.
-
-It is also possible, although not required, to assign different contexts per
-plane. This may be useful for drivers that need to use different memory types
-for different planes. An example may be a driver that stores video data in the
-first plane, which has to be allocated from a device-accessible memory area,
-and metadata in the second plane, which does not have to be stored in
-a device-accessible memory.
-
-An good example of integrating a more advanced allocator, the recently discussed
-on this list CMA (contiguous memory allocator), can be found in videobuf2-cma.*.
-
-================================
-Other changes
-================================
-The changes described above are the main changes in videobuf2. Most of the core
-API has remained the same or very similar, although its implementation has been
-fully rewritten. Some more visible changes include:
-
-- Memory is now properly allocated on REQBUFS and can be freed and reallocated
-  there as well.
-- It is now possible to pause and resume streaming with streamon/streamoff,
-  without freeing the buffers.
-- V4L2 API-related, userspace-visible metadata, such as inputs, timestamps, etc.
-  are no longer stored in videobuf buffer structure, but in an actual
-  v4l2_buffer struct (idea borrowed from Laurent Pinchart). I felt that driver
-  authors would prefer to use V4L2 API-based structures of videobuf custom
-  structures where possible. It also eases copying v4l2_buffer-related data
-  from/to userspace.
-- Buffers do not include waitqueues anymore. One, global, per-queue waitqueue
-  for done buffers has been introduced instead. Per-buffer waitqueues were not
-  very useful and introduced additional complications in code.
-  With this, drivers have gained the ability of dequeuing buffers out-of-order
-  as well.
-- Buffer states are not handled jointly by both videobuf and driver anymore,
-  I felt it was not required and confusing for driver authors
-- Some fields that were less useful have been removed and naming of others
-  have been changed to better reflect their function.
-- Other then reqbufs, ioctl implementations have remained almost the same
-  and behave in the same way, 
-  
-
-Please see documentation in videobuf2-core.c and videobuf2-core.h for more
-details and the patch porting vivi to videobuf2 for how to port existing
-drivers to videobuf2.
-
-This is a preliminary version intended for review, but has already been tested
-for multiple drivers and different memory handling implementations. DMA-SG
-implementation is not included yet.
-
-The CMA allocator patches are attached for reference, to show how a more
-complicated allocator can be integrated into the framework.
-
-Any comments will be very much appreciated!
-
-Best regards,
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center 
-
-=======================================================================
-
-Patch summary:
-
-Pawel Osciak (6):
-  v4l: add videobuf2 Video for Linux 2 driver framework
-  v4l: videobuf2: add generic memory handling routines
-  v4l: videobuf2: add vmalloc allocator
-  v4l: videobuf2: add DMA coherent allocator
-  v4l: vivi: port to videobuf2
-  v4l: videobuf2: add CMA allocator
-
-Marek Szyprowski (1):
-  v4l: videobuf2: add read() emulator
-
- drivers/media/video/Kconfig                  |   23 +-
- drivers/media/video/Makefile                 |    6 +
- drivers/media/video/videobuf2-cma.c          |  250 ++++
- drivers/media/video/videobuf2-core.c         | 1726 ++++++++++++++++++++++++++
- drivers/media/video/videobuf2-dma-coherent.c |  208 ++++
- drivers/media/video/videobuf2-memops.c       |  199 +++
- drivers/media/video/videobuf2-vmalloc.c      |  177 +++
- drivers/media/video/vivi.c                   |  348 +++---
- include/media/videobuf2-cma.h                |   25 +
- include/media/videobuf2-core.h               |  392 ++++++
- include/media/videobuf2-dma-coherent.h       |   21 +
- include/media/videobuf2-memops.h             |   31 +
- include/media/videobuf2-vmalloc.h            |   16 +
- 13 files changed, 3258 insertions(+), 164 deletions(-)
- create mode 100644 drivers/media/video/videobuf2-cma.c
- create mode 100644 drivers/media/video/videobuf2-core.c
- create mode 100644 drivers/media/video/videobuf2-dma-coherent.c
- create mode 100644 drivers/media/video/videobuf2-memops.c
- create mode 100644 drivers/media/video/videobuf2-vmalloc.c
- create mode 100644 include/media/videobuf2-cma.h
- create mode 100644 include/media/videobuf2-core.h
- create mode 100644 include/media/videobuf2-dma-coherent.h
- create mode 100644 include/media/videobuf2-memops.h
- create mode 100644 include/media/videobuf2-vmalloc.h
-
--- 
-1.7.1.569.g6f426
+Signed-off-by: Richard Röjfors <richard.rojfors@pelagicore.com>
+---
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index f6e4d04..1afbe26 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -734,6 +734,15 @@ config VIDEO_HEXIUM_GEMINI
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called hexium_gemini.
+ 
++config VIDEO_TIMBERDALE
++	tristate "Support for timberdale Video In/LogiWIN"
++	depends on VIDEO_V4L2 && I2C
++	select TIMB_DMA
++	select VIDEO_ADV7180
++	select VIDEOBUF_DMA_CONTIG
++	---help---
++	Add support for the Video In peripherial of the timberdale FPGA.
++
+ source "drivers/media/video/cx88/Kconfig"
+ 
+ source "drivers/media/video/cx23885/Kconfig"
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index 40f98fb..c93af35 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -109,6 +109,7 @@ obj-$(CONFIG_VIDEO_CPIA2) += cpia2/
+ obj-$(CONFIG_VIDEO_MXB) += mxb.o
+ obj-$(CONFIG_VIDEO_HEXIUM_ORION) += hexium_orion.o
+ obj-$(CONFIG_VIDEO_HEXIUM_GEMINI) += hexium_gemini.o
++obj-$(CONFIG_VIDEO_TIMBERDALE)	+= timblogiw.o
+ 
+ obj-$(CONFIG_VIDEOBUF_GEN) += videobuf-core.o
+ obj-$(CONFIG_VIDEOBUF_DMA_SG) += videobuf-dma-sg.o
+diff --git a/drivers/media/video/timblogiw.c b/drivers/media/video/timblogiw.c
+new file mode 100644
+index 0000000..a3a330f
+--- /dev/null
++++ b/drivers/media/video/timblogiw.c
+@@ -0,0 +1,894 @@
++/*
++ * timblogiw.c timberdale FPGA LogiWin Video In driver
++ * Copyright (c) 2009-2010 Intel Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++/* Supports:
++ * Timberdale FPGA LogiWin Video In
++ */
++
++#include <linux/version.h>
++#include <linux/platform_device.h>
++#include <linux/slab.h>
++#include <linux/dmaengine.h>
++#include <linux/scatterlist.h>
++#include <linux/interrupt.h>
++#include <linux/list.h>
++#include <linux/i2c.h>
++#include <media/v4l2-ioctl.h>
++#include <media/v4l2-device.h>
++#include <media/videobuf-dma-contig.h>
++#include <media/timb_video.h>
++
++#define DRIVER_NAME			"timb-video"
++
++#define TIMBLOGIWIN_NAME		"Timberdale Video-In"
++#define TIMBLOGIW_VERSION_CODE		0x04
++
++#define TIMBLOGIW_LINES_PER_DESC	44
++#define TIMBLOGIW_MAX_VIDEO_MEM		16
++
++#define TIMBLOGIW_HAS_DECODER(lw)	(lw->pdata.encoder.module_name)
++
++
++struct timblogiw {
++	struct video_device		video_dev;
++	struct v4l2_device		v4l2_dev; /* mutual exclusion */
++	struct mutex			lock;
++	struct device			*dev;
++	struct timb_video_platform_data pdata;
++	struct v4l2_subdev		*sd_enc;	/* encoder */
++	bool				opened;
++};
++
++struct timblogiw_tvnorm {
++	v4l2_std_id std;
++	u16     width;
++	u16     height;
++	u8	fps;
++};
++
++struct timblogiw_fh {
++	struct videobuf_queue		vb_vidq;
++	struct timblogiw_tvnorm const	*cur_norm;
++	struct list_head		capture;
++	struct dma_chan			*chan;
++	spinlock_t			queue_lock; /* mutual exclusion */
++	unsigned int			frame_count;
++};
++
++struct timblogiw_buffer {
++	/* common v4l buffer stuff -- must be first */
++	struct videobuf_buffer	vb;
++	struct scatterlist	sg[16];
++	dma_cookie_t		cookie;
++	struct timblogiw_fh	*fh;
++};
++
++const struct timblogiw_tvnorm timblogiw_tvnorms[] = {
++	{
++		.std			= V4L2_STD_PAL,
++		.width			= 720,
++		.height			= 576,
++		.fps			= 25
++	},
++	{
++		.std			= V4L2_STD_NTSC,
++		.width			= 720,
++		.height			= 480,
++		.fps			= 30
++	}
++};
++
++static int timblogiw_bytes_per_line(const struct timblogiw_tvnorm *norm)
++{
++	return norm->width * 2;
++}
++
++
++static int timblogiw_frame_size(const struct timblogiw_tvnorm *norm)
++{
++	return norm->height * timblogiw_bytes_per_line(norm);
++}
++
++static const struct timblogiw_tvnorm *timblogiw_get_norm(const v4l2_std_id std)
++{
++	int i;
++	for (i = 0; i < ARRAY_SIZE(timblogiw_tvnorms); i++)
++		if (timblogiw_tvnorms[i].std & std)
++			return timblogiw_tvnorms + i;
++
++	/* default to first element */
++	return timblogiw_tvnorms;
++}
++
++static void timblogiw_dma_cb(void *data)
++{
++	struct timblogiw_buffer *buf = data;
++	struct timblogiw_fh *fh = buf->fh;
++	struct videobuf_buffer *vb = &buf->vb;
++
++	spin_lock(&fh->queue_lock);
++
++	/* mark the transfer done */
++	buf->cookie = -1;
++
++	fh->frame_count++;
++
++	if (vb->state != VIDEOBUF_ERROR) {
++		list_del(&vb->queue);
++		do_gettimeofday(&vb->ts);
++		vb->field_count = fh->frame_count * 2;
++		vb->state = VIDEOBUF_DONE;
++
++		wake_up(&vb->done);
++	}
++
++	if (!list_empty(&fh->capture)) {
++		vb = list_entry(fh->capture.next, struct videobuf_buffer,
++			queue);
++		vb->state = VIDEOBUF_ACTIVE;
++	}
++
++	spin_unlock(&fh->queue_lock);
++}
++
++static bool timblogiw_dma_filter_fn(struct dma_chan *chan, void *filter_param)
++{
++	return chan->chan_id == (int)filter_param;
++}
++
++/* IOCTL functions */
++
++static int timblogiw_g_fmt(struct file *file, void  *priv,
++	struct v4l2_format *format)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw *lw = video_get_drvdata(vdev);
++	struct timblogiw_fh *fh = priv;
++
++	dev_dbg(&vdev->dev, "%s entry\n", __func__);
++
++	if (format->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	mutex_lock(&lw->lock);
++
++	format->fmt.pix.width = fh->cur_norm->width;
++	format->fmt.pix.height = fh->cur_norm->height;
++	format->fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
++	format->fmt.pix.bytesperline = timblogiw_bytes_per_line(fh->cur_norm);
++	format->fmt.pix.sizeimage = timblogiw_frame_size(fh->cur_norm);
++	format->fmt.pix.field = V4L2_FIELD_NONE;
++
++	mutex_unlock(&lw->lock);
++
++	return 0;
++}
++
++static int timblogiw_try_fmt(struct file *file, void  *priv,
++	struct v4l2_format *format)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct v4l2_pix_format *pix = &format->fmt.pix;
++
++	dev_dbg(&vdev->dev,
++		"%s - width=%d, height=%d, pixelformat=%d, field=%d\n"
++		"bytes per line %d, size image: %d, colorspace: %d\n",
++		__func__,
++		pix->width, pix->height, pix->pixelformat, pix->field,
++		pix->bytesperline, pix->sizeimage, pix->colorspace);
++
++	if (format->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	if (pix->field != V4L2_FIELD_NONE)
++		return -EINVAL;
++
++	if (pix->pixelformat != V4L2_PIX_FMT_UYVY)
++		return -EINVAL;
++
++	return 0;
++}
++
++static int timblogiw_s_fmt(struct file *file, void  *priv,
++	struct v4l2_format *format)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw *lw = video_get_drvdata(vdev);
++	struct timblogiw_fh *fh = priv;
++	struct v4l2_pix_format *pix = &format->fmt.pix;
++	int err;
++
++	mutex_lock(&lw->lock);
++
++	err = timblogiw_try_fmt(file, priv, format);
++	if (err)
++		goto out;
++
++	if (videobuf_queue_is_busy(&fh->vb_vidq)) {
++		dev_err(&vdev->dev, "%s queue busy\n", __func__);
++		err = -EBUSY;
++		goto out;
++	}
++
++	pix->width = fh->cur_norm->width;
++	pix->height = fh->cur_norm->height;
++
++out:
++	mutex_unlock(&lw->lock);
++	return err;
++}
++
++static int timblogiw_querycap(struct file *file, void  *priv,
++	struct v4l2_capability *cap)
++{
++	struct video_device *vdev = video_devdata(file);
++
++	dev_dbg(&vdev->dev, "%s: Entry\n",  __func__);
++	memset(cap, 0, sizeof(*cap));
++	strncpy(cap->card, TIMBLOGIWIN_NAME, sizeof(cap->card)-1);
++	strncpy(cap->driver, DRIVER_NAME, sizeof(cap->card)-1);
++	strlcpy(cap->bus_info, vdev->name, sizeof(cap->bus_info));
++	cap->version = TIMBLOGIW_VERSION_CODE;
++	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
++		V4L2_CAP_READWRITE;
++
++	return 0;
++}
++
++static int timblogiw_enum_fmt(struct file *file, void  *priv,
++	struct v4l2_fmtdesc *fmt)
++{
++	struct video_device *vdev = video_devdata(file);
++
++	dev_dbg(&vdev->dev, "%s, index: %d\n",  __func__, fmt->index);
++
++	if (fmt->index != 0)
++		return -EINVAL;
++	memset(fmt, 0, sizeof(*fmt));
++	fmt->index = 0;
++	fmt->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	strncpy(fmt->description, "4:2:2, packed, YUYV",
++		sizeof(fmt->description)-1);
++	fmt->pixelformat = V4L2_PIX_FMT_UYVY;
++
++	return 0;
++}
++
++static int timblogiw_g_parm(struct file *file, void *priv,
++	struct v4l2_streamparm *sp)
++{
++	struct timblogiw_fh *fh = priv;
++	struct v4l2_captureparm *cp = &sp->parm.capture;
++
++	cp->capability = V4L2_CAP_TIMEPERFRAME;
++	cp->timeperframe.numerator = 1;
++	cp->timeperframe.denominator = fh->cur_norm->fps;
++
++	return 0;
++}
++
++static int timblogiw_reqbufs(struct file *file, void  *priv,
++	struct v4l2_requestbuffers *rb)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw_fh *fh = priv;
++
++	dev_dbg(&vdev->dev, "%s: entry\n",  __func__);
++
++	return videobuf_reqbufs(&fh->vb_vidq, rb);
++}
++
++static int timblogiw_querybuf(struct file *file, void  *priv,
++	struct v4l2_buffer *b)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw_fh *fh = priv;
++
++	dev_dbg(&vdev->dev, "%s: entry\n",  __func__);
++
++	return videobuf_querybuf(&fh->vb_vidq, b);
++}
++
++static int timblogiw_qbuf(struct file *file, void  *priv, struct v4l2_buffer *b)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw_fh *fh = priv;
++
++	dev_dbg(&vdev->dev, "%s: entry\n",  __func__);
++
++	return videobuf_qbuf(&fh->vb_vidq, b);
++}
++
++static int timblogiw_dqbuf(struct file *file, void  *priv,
++	struct v4l2_buffer *b)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw_fh *fh = priv;
++
++	dev_dbg(&vdev->dev, "%s: entry\n",  __func__);
++
++	return videobuf_dqbuf(&fh->vb_vidq, b, file->f_flags & O_NONBLOCK);
++}
++
++static int timblogiw_g_std(struct file *file, void  *priv, v4l2_std_id *std)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw_fh *fh = priv;
++
++	dev_dbg(&vdev->dev, "%s: entry\n",  __func__);
++
++	*std = fh->cur_norm->std;
++	return 0;
++}
++
++static int timblogiw_s_std(struct file *file, void  *priv, v4l2_std_id *std)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw *lw = video_get_drvdata(vdev);
++	struct timblogiw_fh *fh = priv;
++	int err = 0;
++
++	dev_dbg(&vdev->dev, "%s: entry\n",  __func__);
++
++	mutex_lock(&lw->lock);
++
++	if (TIMBLOGIW_HAS_DECODER(lw))
++		err = v4l2_subdev_call(lw->sd_enc, core, s_std, *std);
++
++	if (!err)
++		fh->cur_norm = timblogiw_get_norm(*std);
++
++	mutex_unlock(&lw->lock);
++
++	return err;
++}
++
++static int timblogiw_enuminput(struct file *file, void  *priv,
++	struct v4l2_input *inp)
++{
++	struct video_device *vdev = video_devdata(file);
++	int i;
++
++	dev_dbg(&vdev->dev, "%s: Entry\n",  __func__);
++
++	if (inp->index != 0)
++		return -EINVAL;
++
++	memset(inp, 0, sizeof(*inp));
++	inp->index = 0;
++
++	strncpy(inp->name, "Timb input 1", sizeof(inp->name) - 1);
++	inp->type = V4L2_INPUT_TYPE_CAMERA;
++
++	inp->std = 0;
++	for (i = 0; i < ARRAY_SIZE(timblogiw_tvnorms); i++)
++		inp->std |= timblogiw_tvnorms[i].std;
++
++	return 0;
++}
++
++static int timblogiw_g_input(struct file *file, void  *priv,
++	unsigned int *input)
++{
++	struct video_device *vdev = video_devdata(file);
++
++	dev_dbg(&vdev->dev, "%s: Entry\n",  __func__);
++
++	*input = 0;
++
++	return 0;
++}
++
++static int timblogiw_s_input(struct file *file, void  *priv, unsigned int input)
++{
++	struct video_device *vdev = video_devdata(file);
++
++	dev_dbg(&vdev->dev, "%s: Entry\n",  __func__);
++
++	if (input != 0)
++		return -EINVAL;
++	return 0;
++}
++
++static int timblogiw_streamon(struct file *file, void  *priv, unsigned int type)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw_fh *fh = priv;
++
++	dev_dbg(&vdev->dev, "%s: entry\n",  __func__);
++
++	if (type != V4L2_BUF_TYPE_VIDEO_CAPTURE) {
++		dev_dbg(&vdev->dev, "%s - No capture device\n", __func__);
++		return -EINVAL;
++	}
++
++	fh->frame_count = 0;
++	return videobuf_streamon(&fh->vb_vidq);
++}
++
++static int timblogiw_streamoff(struct file *file, void  *priv,
++	unsigned int type)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw_fh *fh = priv;
++
++	dev_dbg(&vdev->dev, "%s entry\n",  __func__);
++
++	if (type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	return videobuf_streamoff(&fh->vb_vidq);
++}
++
++static int timblogiw_querystd(struct file *file, void  *priv, v4l2_std_id *std)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw *lw = video_get_drvdata(vdev);
++	struct timblogiw_fh *fh = priv;
++
++	dev_dbg(&vdev->dev, "%s entry\n",  __func__);
++
++	if (TIMBLOGIW_HAS_DECODER(lw))
++		return v4l2_subdev_call(lw->sd_enc, video, querystd, std);
++	else {
++		*std = fh->cur_norm->std;
++		return 0;
++	}
++}
++
++static int timblogiw_enum_framesizes(struct file *file, void  *priv,
++	struct v4l2_frmsizeenum *fsize)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw_fh *fh = priv;
++
++	dev_dbg(&vdev->dev, "%s - index: %d, format: %d\n",  __func__,
++		fsize->index, fsize->pixel_format);
++
++	if ((fsize->index != 0) ||
++		(fsize->pixel_format != V4L2_PIX_FMT_UYVY))
++		return -EINVAL;
++
++	fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
++	fsize->discrete.width = fh->cur_norm->width;
++	fsize->discrete.height = fh->cur_norm->height;
++
++	return 0;
++}
++
++/* Video buffer functions */
++
++static int buffer_setup(struct videobuf_queue *vq, unsigned int *count,
++	unsigned int *size)
++{
++	struct timblogiw_fh *fh = vq->priv_data;
++
++	*size = timblogiw_frame_size(fh->cur_norm);
++
++	if (!*count)
++		*count = 32;
++
++	while (*size * *count > TIMBLOGIW_MAX_VIDEO_MEM * 1024 * 1024)
++		(*count)--;
++
++	return 0;
++}
++
++static int buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
++	enum v4l2_field field)
++{
++	struct timblogiw_fh *fh = vq->priv_data;
++	struct timblogiw_buffer *buf = container_of(vb, struct timblogiw_buffer,
++		vb);
++	unsigned int data_size = timblogiw_frame_size(fh->cur_norm);
++	int err = 0;
++
++	if (vb->baddr && vb->bsize < data_size)
++		/* User provided buffer, but it is too small */
++		return -ENOMEM;
++
++	vb->size = data_size;
++	vb->width = fh->cur_norm->width;
++	vb->height = fh->cur_norm->height;
++	vb->field = field;
++
++	if (vb->state == VIDEOBUF_NEEDS_INIT) {
++		int i;
++		unsigned int size;
++		unsigned int bytes_per_desc = TIMBLOGIW_LINES_PER_DESC *
++			timblogiw_bytes_per_line(fh->cur_norm);
++		dma_addr_t addr;
++
++		sg_init_table(buf->sg, ARRAY_SIZE(buf->sg));
++
++		err = videobuf_iolock(vq, vb, NULL);
++		if (err)
++			goto err;
++
++		addr = videobuf_to_dma_contig(vb);
++		for (i = 0, size = 0; size < data_size; i++) {
++			sg_dma_address(buf->sg + i) = addr + size;
++			size += bytes_per_desc;
++			sg_dma_len(buf->sg + i) = (size > data_size) ?
++				(bytes_per_desc - (size - data_size)) :
++				bytes_per_desc;
++		}
++
++		vb->state = VIDEOBUF_PREPARED;
++		buf->cookie = -1;
++		buf->fh = fh;
++	}
++
++	return 0;
++
++err:
++	videobuf_dma_contig_free(vq, vb);
++	vb->state = VIDEOBUF_NEEDS_INIT;
++	return err;
++}
++
++static void buffer_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
++{
++	struct timblogiw_fh *fh = vq->priv_data;
++	struct timblogiw_buffer *buf = container_of(vb, struct timblogiw_buffer,
++		vb);
++	struct dma_async_tx_descriptor *desc;
++	int sg_elems;
++	int bytes_per_desc = TIMBLOGIW_LINES_PER_DESC *
++		timblogiw_bytes_per_line(fh->cur_norm);
++
++	sg_elems = timblogiw_frame_size(fh->cur_norm) / bytes_per_desc;
++	sg_elems +=
++		(timblogiw_frame_size(fh->cur_norm) % bytes_per_desc) ? 1 : 0;
++
++	if (list_empty(&fh->capture))
++		vb->state = VIDEOBUF_ACTIVE;
++	else
++		vb->state = VIDEOBUF_QUEUED;
++
++	list_add_tail(&vb->queue, &fh->capture);
++
++	spin_unlock_irq(&fh->queue_lock);
++
++	desc = fh->chan->device->device_prep_slave_sg(fh->chan,
++		buf->sg, sg_elems, DMA_FROM_DEVICE,
++		DMA_PREP_INTERRUPT | DMA_COMPL_SKIP_SRC_UNMAP);
++	if (!desc) {
++		spin_lock_irq(&fh->queue_lock);
++		list_del_init(&vb->queue);
++		vb->state = VIDEOBUF_PREPARED;
++		return;
++	}
++
++	desc->callback_param = buf;
++	desc->callback = timblogiw_dma_cb;
++
++	buf->cookie = desc->tx_submit(desc);
++
++	spin_lock_irq(&fh->queue_lock);
++}
++
++static void buffer_release(struct videobuf_queue *vq,
++	struct videobuf_buffer *vb)
++{
++	struct timblogiw_fh *fh = vq->priv_data;
++	struct timblogiw_buffer *buf = container_of(vb, struct timblogiw_buffer,
++		vb);
++
++	videobuf_waiton(vb, 0, 0);
++	if (buf->cookie >= 0)
++		dma_sync_wait(fh->chan, buf->cookie);
++
++	videobuf_dma_contig_free(vq, vb);
++	vb->state = VIDEOBUF_NEEDS_INIT;
++}
++
++static struct videobuf_queue_ops timblogiw_video_qops = {
++	.buf_setup      = buffer_setup,
++	.buf_prepare    = buffer_prepare,
++	.buf_queue      = buffer_queue,
++	.buf_release    = buffer_release,
++};
++
++/* Device Operations functions */
++
++static int timblogiw_open(struct file *file)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw *lw = video_get_drvdata(vdev);
++	struct timblogiw_fh *fh;
++	v4l2_std_id std;
++	dma_cap_mask_t mask;
++	int err = 0;
++
++	dev_dbg(&vdev->dev, "%s: entry\n", __func__);
++
++	mutex_lock(&lw->lock);
++	if (lw->opened) {
++		err = -EBUSY;
++		goto out;
++	}
++
++	if (TIMBLOGIW_HAS_DECODER(lw) && !lw->sd_enc) {
++		struct i2c_adapter *adapt;
++
++		/* find the video decoder */
++		adapt = i2c_get_adapter(lw->pdata.i2c_adapter);
++		if (!adapt) {
++			dev_err(&vdev->dev, "No I2C bus #%d\n",
++				lw->pdata.i2c_adapter);
++			err = -ENODEV;
++			goto out;
++		}
++
++		/* now find the encoder */
++		lw->sd_enc = v4l2_i2c_new_subdev_board(&lw->v4l2_dev, adapt,
++			lw->pdata.encoder.module_name, lw->pdata.encoder.info,
++			NULL);
++
++		i2c_put_adapter(adapt);
++
++		if (!lw->sd_enc) {
++			dev_err(&vdev->dev, "Failed to get encoder: %s\n",
++				lw->pdata.encoder.module_name);
++			err = -ENODEV;
++			goto out;
++		}
++	}
++
++	fh = kzalloc(sizeof(*fh), GFP_KERNEL);
++	if (!fh) {
++		err = -ENOMEM;
++		goto out;
++	}
++
++	fh->cur_norm = timblogiw_tvnorms;
++	timblogiw_querystd(file, fh, &std);
++	fh->cur_norm = timblogiw_get_norm(std);
++
++	INIT_LIST_HEAD(&fh->capture);
++	spin_lock_init(&fh->queue_lock);
++
++	dma_cap_zero(mask);
++	dma_cap_set(DMA_SLAVE, mask);
++	dma_cap_set(DMA_PRIVATE, mask);
++
++	/* find the DMA channel */
++	fh->chan = dma_request_channel(mask, timblogiw_dma_filter_fn,
++			(void *)lw->pdata.dma_channel);
++	if (!fh->chan) {
++		dev_err(&vdev->dev, "Failed to get DMA channel\n");
++		kfree(fh);
++		err = -ENODEV;
++		goto out;
++	}
++
++	file->private_data = fh;
++	videobuf_queue_dma_contig_init(&fh->vb_vidq, &timblogiw_video_qops,
++		lw->dev, &fh->queue_lock, V4L2_BUF_TYPE_VIDEO_CAPTURE,
++		V4L2_FIELD_NONE, sizeof(struct timblogiw_buffer), fh);
++
++	lw->opened = true;
++out:
++	mutex_unlock(&lw->lock);
++
++	return err;
++}
++
++static int timblogiw_close(struct file *file)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw *lw = video_get_drvdata(vdev);
++	struct timblogiw_fh *fh = file->private_data;
++
++	dev_dbg(&vdev->dev, "%s: Entry\n",  __func__);
++
++	videobuf_stop(&fh->vb_vidq);
++	videobuf_mmap_free(&fh->vb_vidq);
++
++	dma_release_channel(fh->chan);
++
++	kfree(fh);
++
++	mutex_lock(&lw->lock);
++	lw->opened = false;
++	mutex_unlock(&lw->lock);
++	return 0;
++}
++
++static ssize_t timblogiw_read(struct file *file, char __user *data,
++	size_t count, loff_t *ppos)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw_fh *fh = file->private_data;
++
++	dev_dbg(&vdev->dev, "%s: entry\n",  __func__);
++
++	return videobuf_read_stream(&fh->vb_vidq, data, count, ppos, 0,
++		file->f_flags & O_NONBLOCK);
++}
++
++static unsigned int timblogiw_poll(struct file *file,
++	struct poll_table_struct *wait)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw_fh *fh = file->private_data;
++
++	dev_dbg(&vdev->dev, "%s: entry\n",  __func__);
++
++	return videobuf_poll_stream(file, &fh->vb_vidq, wait);
++}
++
++static int timblogiw_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw_fh *fh = file->private_data;
++
++	dev_dbg(&vdev->dev, "%s: entry\n", __func__);
++
++	return videobuf_mmap_mapper(&fh->vb_vidq, vma);
++}
++
++/* Platform device functions */
++
++static const __devinitdata struct v4l2_ioctl_ops timblogiw_ioctl_ops = {
++	.vidioc_querycap		= timblogiw_querycap,
++	.vidioc_enum_fmt_vid_cap	= timblogiw_enum_fmt,
++	.vidioc_g_fmt_vid_cap		= timblogiw_g_fmt,
++	.vidioc_try_fmt_vid_cap		= timblogiw_try_fmt,
++	.vidioc_s_fmt_vid_cap		= timblogiw_s_fmt,
++	.vidioc_g_parm			= timblogiw_g_parm,
++	.vidioc_reqbufs			= timblogiw_reqbufs,
++	.vidioc_querybuf		= timblogiw_querybuf,
++	.vidioc_qbuf			= timblogiw_qbuf,
++	.vidioc_dqbuf			= timblogiw_dqbuf,
++	.vidioc_g_std			= timblogiw_g_std,
++	.vidioc_s_std			= timblogiw_s_std,
++	.vidioc_enum_input		= timblogiw_enuminput,
++	.vidioc_g_input			= timblogiw_g_input,
++	.vidioc_s_input			= timblogiw_s_input,
++	.vidioc_streamon		= timblogiw_streamon,
++	.vidioc_streamoff		= timblogiw_streamoff,
++	.vidioc_querystd		= timblogiw_querystd,
++	.vidioc_enum_framesizes		= timblogiw_enum_framesizes,
++};
++
++static const __devinitdata struct v4l2_file_operations timblogiw_fops = {
++	.owner		= THIS_MODULE,
++	.open		= timblogiw_open,
++	.release	= timblogiw_close,
++	.unlocked_ioctl		= video_ioctl2, /* V4L2 ioctl handler */
++	.mmap		= timblogiw_mmap,
++	.read		= timblogiw_read,
++	.poll		= timblogiw_poll,
++};
++
++static const __devinitdata struct video_device timblogiw_template = {
++	.name		= TIMBLOGIWIN_NAME,
++	.fops		= &timblogiw_fops,
++	.ioctl_ops	= &timblogiw_ioctl_ops,
++	.release	= video_device_release_empty,
++	.minor		= -1,
++	.tvnorms	= V4L2_STD_PAL | V4L2_STD_NTSC
++};
++
++static int __devinit timblogiw_probe(struct platform_device *pdev)
++{
++	int err;
++	struct timblogiw *lw = NULL;
++	struct timb_video_platform_data *pdata = pdev->dev.platform_data;
++
++	if (!pdata) {
++		dev_err(&pdev->dev, "No platform data\n");
++		err = -EINVAL;
++		goto err;
++	}
++
++	if (!pdata->encoder.module_name)
++		dev_info(&pdev->dev, "Running without decoder\n");
++
++	lw = kzalloc(sizeof(*lw), GFP_KERNEL);
++	if (!lw) {
++		err = -ENOMEM;
++		goto err;
++	}
++
++	if (pdev->dev.parent)
++		lw->dev = pdev->dev.parent;
++	else
++		lw->dev = &pdev->dev;
++
++	memcpy(&lw->pdata, pdata, sizeof(lw->pdata));
++
++	mutex_init(&lw->lock);
++
++	lw->video_dev = timblogiw_template;
++
++	strlcpy(lw->v4l2_dev.name, DRIVER_NAME, sizeof(lw->v4l2_dev.name));
++	err = v4l2_device_register(NULL, &lw->v4l2_dev);
++	if (err)
++		goto err_register;
++
++	lw->video_dev.v4l2_dev = &lw->v4l2_dev;
++
++	platform_set_drvdata(pdev, lw);
++	video_set_drvdata(&lw->video_dev, lw);
++
++	err = video_register_device(&lw->video_dev, VFL_TYPE_GRABBER, 0);
++	if (err) {
++		dev_err(&pdev->dev, "Error reg video: %d\n", err);
++		goto err_request;
++	}
++
++
++	return 0;
++
++err_request:
++	platform_set_drvdata(pdev, NULL);
++	v4l2_device_unregister(&lw->v4l2_dev);
++err_register:
++	kfree(lw);
++err:
++	dev_err(&pdev->dev, "Failed to register: %d\n", err);
++
++	return err;
++}
++
++static int __devexit timblogiw_remove(struct platform_device *pdev)
++{
++	struct timblogiw *lw = platform_get_drvdata(pdev);
++
++	video_unregister_device(&lw->video_dev);
++
++	v4l2_device_unregister(&lw->v4l2_dev);
++
++	kfree(lw);
++
++	platform_set_drvdata(pdev, NULL);
++
++	return 0;
++}
++
++static struct platform_driver timblogiw_platform_driver = {
++	.driver = {
++		.name	= DRIVER_NAME,
++		.owner	= THIS_MODULE,
++	},
++	.probe		= timblogiw_probe,
++	.remove		= __devexit_p(timblogiw_remove),
++};
++
++/* Module functions */
++
++static int __init timblogiw_init(void)
++{
++	return platform_driver_register(&timblogiw_platform_driver);
++}
++
++static void __exit timblogiw_exit(void)
++{
++	platform_driver_unregister(&timblogiw_platform_driver);
++}
++
++module_init(timblogiw_init);
++module_exit(timblogiw_exit);
++
++MODULE_DESCRIPTION(TIMBLOGIWIN_NAME);
++MODULE_AUTHOR("Pelagicore AB <info@pelagicore.com>");
++MODULE_LICENSE("GPL v2");
++MODULE_ALIAS("platform:"DRIVER_NAME);
+diff --git a/include/media/timb_video.h b/include/media/timb_video.h
+new file mode 100644
+index 0000000..70ae439
+--- /dev/null
++++ b/include/media/timb_video.h
+@@ -0,0 +1,33 @@
++/*
++ * timb_video.h Platform struct for the Timberdale video driver
++ * Copyright (c) 2009-2010 Intel Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#ifndef _TIMB_VIDEO_
++#define _TIMB_VIDEO_ 1
++
++#include <linux/i2c.h>
++
++struct timb_video_platform_data {
++	int dma_channel;
++	int i2c_adapter; /* The I2C adapter where the encoder is attached */
++	struct {
++		const char *module_name;
++		struct i2c_board_info *info;
++	} encoder;
++};
++
++#endif
 
