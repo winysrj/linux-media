@@ -1,81 +1,101 @@
 Return-path: <mchehab@pedra>
-Received: from smtp204.alice.it ([82.57.200.100]:42755 "EHLO smtp204.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751031Ab0JOHl5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Oct 2010 03:41:57 -0400
-Date: Fri, 15 Oct 2010 09:41:48 +0200
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [GIT PATCHES FOR 2.6.36] gspca for_2.6.36
-Message-Id: <20101015094148.95fd205b.ospite@studenti.unina.it>
-In-Reply-To: <20101010132447.0c7f9a22@tele>
-References: <20101010132447.0c7f9a22@tele>
-Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Fri__15_Oct_2010_09_41_48_+0200_Vwi0Z93usEMfQ95C"
+Received: from web25404.mail.ukl.yahoo.com ([217.12.10.138]:35648 "HELO
+	web25404.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752754Ab0JYGQ1 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Oct 2010 02:16:27 -0400
+Message-ID: <130335.5569.qm@web25404.mail.ukl.yahoo.com>
+References: <AANLkTint2Xw3bJuGh2voUpncWderrbUgbeOaPdp1-yNm@mail.gmail.com> <201010242055.30799.albin.kauffmann@gmail.com> <AANLkTinwb_7ErteoWcO2VC1nu9uNqUwu6N+HEhrDwwg-@mail.gmail.com> <AANLkTinVas23b2ZMuBxzdY6PUP-4JEMchNup9nSpxsf3@mail.gmail.com>
+Date: Mon, 25 Oct 2010 07:16:26 +0100 (BST)
+From: fabio tirapelle <ftirapelle@yahoo.it>
+Subject: Re: Wintv-HVR-1120 woes
+To: Sasha Sirotkin <demiurg@femtolinux.com>,
+	Albin Kauffmann <albin.kauffmann@gmail.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <AANLkTinVas23b2ZMuBxzdY6PUP-4JEMchNup9nSpxsf3@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---Signature=_Fri__15_Oct_2010_09_41_48_+0200_Vwi0Z93usEMfQ95C
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+My WinTV-HVR-1120 works if I delete dvb-fe-tda10048-1.0.fw and 
+rename dvb-fe-tda10046.fw in dvb-fe-tda10048-1.0.fw
+(see cf "Hauppauge  WinTV-HVR-1120 on Unbuntu 10.04" thread).
+After reboot my WinTV-HVR-1120 works. Ubuntu recognizes that the firmware isn't 
+correct and doesn't load the firmware.
+But I know that isn't a good practice.
 
-On Sun, 10 Oct 2010 13:24:47 +0200
-Jean-Francois Moine <moinejf@free.fr> wrote:
 
-> The following changes since commit
-> d65728875a85ac7c8b7d6eb8d51425bacc188980:
->=20
->   V4L/DVB: v4l: radio: si470x: fix unneeded free_irq() call (2010-09-30 0=
-7:35:12 -0300)
->=20
-> are available in the git repository at:
->   git://linuxtv.org/jfrancois/gspca.git for_2.6.36
->=20
-> Jean-Fran=E7ois Moine (1):
->       gspca - main: Fix a regression with the PS3 Eye webcam
->=20
-
-Hi, this is not in 2.6.36-rc8, any chance we can make it for 2.6.36?
-
-Thanks,
-   Antonio
-
->  drivers/media/video/gspca/gspca.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
->
-> --=20
-> Ken ar c'henta=F1	|	      ** Breizh ha Linux atav! **
-> Jef		|		http://moinejf.free.fr/
+----- Messaggio originale -----
+> Da: Sasha Sirotkin <demiurg@femtolinux.com>
+> A: Albin Kauffmann <albin.kauffmann@gmail.com>
+> Cc: linux-media@vger.kernel.org
+> Inviato: Dom 24 ottobre 2010, 23:45:55
+> Oggetto: Re: Wintv-HVR-1120 woes
+> 
+> On Sun, Oct 24, 2010 at 10:22 PM, Sasha Sirotkin <demiurg@femtolinux.com>  
+>wrote:
+> > On Sun, Oct 24, 2010 at 8:55 PM, Albin Kauffmann
+> > <albin.kauffmann@gmail.com>  wrote:
+> >> On Thursday 21 October 2010 23:25:29 Sasha Sirotkin  wrote:
+> >>> I'm having all sorts of troubles with Wintv-HVR-1120 on  Ubuntu 10.10
+> >>> (kernel 2.6.35-22). Judging from what I've seen on  the net, including
+> >>> this mailing list, I'm not the only one not  being able to use this
+> >>> card and no solution seem to  exist.
+> >>>
+> >>> Problems:
+> >>> 1. The driver  yells various cryptic error messages
+> >>> ("tda18271_write_regs:  [1-0060|M] ERROR: idx = 0x5, len = 1,
+> >>> i2c_transfer returned:  -5", "tda18271_set_analog_params: [1-0060|M]
+> >>> error -5 on line  1045", etc)
+> >>
+> >> yes, indeed :(
+> >> (cf "Hauppauge  WinTV-HVR-1120 on Unbuntu 10.04" thread)
+> >>
+> >>> 2. DVB-T  scan (using w_scan) produces no results
+> >>
+> >> Is this  happening after each reboot? As far as I'm concerned, I've never 
+>had
+> >>  problems with DVB-T scans.
+> >>
+> >
+> > Almost always. I think I  had a lucky reboot or two, but most of the
+> > time DVB-T scan produces  nothing.
+> >
+> >>> 3. Analog seems to work, but with very poor  quality
+> >>
+> >> I just tried to use Analog TV in order to  confirm the problem but I cannot 
+>get
+> >> any picture. Maybe I just don't  know how to use it. I'm using commands 
+like
+> >> (I'm located in  France):
+> >>
+> >> mplayer tv:// -tv  driver=v4l2:norm=SECAM:chanlist=france -tvscan autostart
+> >>
+> >>  ... and just get some "snow" on scanned channels.
+> >> As I might have a  problem with my antenna (an interior one), I am going to
+> >> test it  under Windows and report back my experience.
+> >
+> > I'm using  tvtime-scanner
+> >>
+> >> Cheers,
+> >>
+> >>  --
+> >> Albin Kauffmann
+> >>
+> >
+> >
+> > I'm trying to  downgrade the kernel now to see if it helps
+> >
+> 
+> I went back as far as  2.6.30 and I still have this problem. 2.6.29
+> does not recognize this card at  all.
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> To unsubscribe from this list: send the line "unsubscribe  linux-media" in
 > the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
+> More  majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
---=20
-Antonio Ospite
-http://ao2.it
 
-PGP public key ID: 0x4553B001
-
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
-
---Signature=_Fri__15_Oct_2010_09_41_48_+0200_Vwi0Z93usEMfQ95C
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iEYEARECAAYFAky4BbwACgkQ5xr2akVTsAEEkgCgg0COV8b6Im8K5uHT2at60DWR
-j90AoKzrtCBC1g8qMde6GC/i7foYNv/f
-=eEM9
------END PGP SIGNATURE-----
-
---Signature=_Fri__15_Oct_2010_09_41_48_+0200_Vwi0Z93usEMfQ95C--
+      
