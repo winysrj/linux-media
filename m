@@ -1,163 +1,179 @@
 Return-path: <mchehab@pedra>
-Received: from webhosting01.bon.m2soft.com ([195.38.20.32]:45298 "EHLO
-	webhosting01.bon.m2soft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751144Ab0JQWH1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Oct 2010 18:07:27 -0400
-Date: Mon, 18 Oct 2010 00:05:31 +0200
-From: Nicolas Kaiser <nikai@nikai.net>
-To: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] staging/cx25821: fix messages that line wrap within quotes
-Message-ID: <20101018000531.6ba2b333@absol.kitzblitz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail.perches.com ([173.55.12.10]:3561 "EHLO mail.perches.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757992Ab0JZCoe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Oct 2010 22:44:34 -0400
+From: Joe Perches <joe@perches.com>
+To: Jiri Kosina <trivial@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 07/10] drivers/media: Removed unnecessary KERN_<level>s from dprintk uses
+Date: Mon, 25 Oct 2010 19:44:25 -0700
+Message-Id: <970cb8e439723953f9b44b564dab3b03b311dbfd.1288059486.git.joe@perches.com>
+In-Reply-To: <cover.1288059486.git.joe@perches.com>
+References: <cover.1288059486.git.joe@perches.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Fix messages that line wrap within quotes.
+Converted if (debug >= 2) printk(KERN_DEBUG... to if debug >= 2) dprintk(...)
 
-Signed-off-by: Nicolas Kaiser <nikai@nikai.net>
+Signed-off-by: Joe Perches <joe@perches.com>
 ---
- drivers/staging/cx25821/cx25821-core.c           |    4 +-
- drivers/staging/cx25821/cx25821-video-upstream.c |   36 +++++++++++-----------
- drivers/staging/cx25821/cx25821-video.c          |    8 ++--
- 3 files changed, 24 insertions(+), 24 deletions(-)
+ drivers/media/common/tuners/max2165.c         |   10 ++++------
+ drivers/media/dvb/frontends/atbm8830.c        |    8 +++-----
+ drivers/media/dvb/frontends/lgs8gxx.c         |   11 ++++-------
+ drivers/media/video/saa7134/saa7134-input.c   |    2 +-
+ drivers/media/video/saa7134/saa7134-tvaudio.c |   12 ++++++------
+ 5 files changed, 18 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/staging/cx25821/cx25821-core.c b/drivers/staging/cx25821/cx25821-core.c
-index 08eb620..44ad9e5 100644
---- a/drivers/staging/cx25821/cx25821-core.c
-+++ b/drivers/staging/cx25821/cx25821-core.c
-@@ -1018,8 +1018,8 @@ static int cx25821_dev_setup(struct cx25821_dev *dev)
- 	    (dev->ioctl_dev, VFL_TYPE_GRABBER, VIDEO_IOCTL_CH) < 0) {
- 		cx25821_videoioctl_unregister(dev);
- 		printk(KERN_ERR
--		   "%s() Failed to register video adapter for IOCTL, so \
--		   unregistering videoioctl device.\n", __func__);
-+		   "%s() Failed to register video adapter for IOCTL, so"
-+		   " unregistering videoioctl device.\n", __func__);
+diff --git a/drivers/media/common/tuners/max2165.c b/drivers/media/common/tuners/max2165.c
+index 937e4b0..9883617 100644
+--- a/drivers/media/common/tuners/max2165.c
++++ b/drivers/media/common/tuners/max2165.c
+@@ -52,13 +52,12 @@ static int max2165_write_reg(struct max2165_priv *priv, u8 reg, u8 data)
+ 	msg.addr = priv->config->i2c_address;
+ 
+ 	if (debug >= 2)
+-		printk(KERN_DEBUG "%s: reg=0x%02X, data=0x%02X\n",
+-			__func__, reg, data);
++		dprintk("%s: reg=0x%02X, data=0x%02X\n", __func__, reg, data);
+ 
+ 	ret = i2c_transfer(priv->i2c, &msg, 1);
+ 
+ 	if (ret != 1)
+-		dprintk(KERN_DEBUG "%s: error reg=0x%x, data=0x%x, ret=%i\n",
++		dprintk("%s: error reg=0x%x, data=0x%x, ret=%i\n",
+ 			__func__, reg, data, ret);
+ 
+ 	return (ret != 1) ? -EIO : 0;
+@@ -78,14 +77,13 @@ static int max2165_read_reg(struct max2165_priv *priv, u8 reg, u8 *p_data)
+ 
+ 	ret = i2c_transfer(priv->i2c, msg, 2);
+ 	if (ret != 2) {
+-		dprintk(KERN_DEBUG "%s: error reg=0x%x, ret=%i\n",
+-			__func__, reg, ret);
++		dprintk("%s: error reg=0x%x, ret=%i\n", __func__, reg, ret);
+ 		return -EIO;
  	}
  
- 	cx25821_dev_checkrevision(dev);
-diff --git a/drivers/staging/cx25821/cx25821-video-upstream.c b/drivers/staging/cx25821/cx25821-video-upstream.c
-index 756a820..2b82e05 100644
---- a/drivers/staging/cx25821/cx25821-video-upstream.c
-+++ b/drivers/staging/cx25821/cx25821-video-upstream.c
-@@ -389,8 +389,8 @@ int cx25821_get_frame(struct cx25821_dev *dev, struct sram_channel *sram_ch)
+ 	*p_data = b1[0];
+ 	if (debug >= 2)
+-		printk(KERN_DEBUG "%s: reg=0x%02X, data=0x%02X\n",
++		dprintk("%s: reg=0x%02X, data=0x%02X\n",
+ 			__func__, reg, b1[0]);
+ 	return 0;
+ }
+diff --git a/drivers/media/dvb/frontends/atbm8830.c b/drivers/media/dvb/frontends/atbm8830.c
+index 43aac2f..1539ea1 100644
+--- a/drivers/media/dvb/frontends/atbm8830.c
++++ b/drivers/media/dvb/frontends/atbm8830.c
+@@ -50,8 +50,7 @@ static int atbm8830_write_reg(struct atbm_state *priv, u16 reg, u8 data)
+ 	msg2.addr = dev_addr;
  
- 			if (vfs_read_retval < line_size) {
- 				printk(KERN_INFO
--				      "Done: exit %s() since no more bytes to \
--				      read from Video file.\n",
-+				      "Done: exit %s() since no more bytes to"
-+				      " read from Video file.\n",
- 				       __func__);
- 				break;
- 			}
-@@ -457,8 +457,8 @@ int cx25821_openfile(struct cx25821_dev *dev, struct sram_channel *sram_ch)
+ 	if (debug >= 2)
+-		printk(KERN_DEBUG "%s: reg=0x%04X, data=0x%02X\n",
+-			__func__, reg, data);
++		dprintk("%s: reg=0x%04X, data=0x%02X\n", __func__, reg, data);
  
- 		if (!myfile->f_op->read) {
- 		       printk(KERN_ERR
--			   "%s: File has no READ operations registered!  \
--			   Returning.",
-+			   "%s: File has no READ operations registered!"
-+			   " Returning.",
- 			     __func__);
- 			filp_close(myfile, NULL);
- 			return -EIO;
-@@ -488,8 +488,8 @@ int cx25821_openfile(struct cx25821_dev *dev, struct sram_channel *sram_ch)
+ 	ret = i2c_transfer(priv->i2c, &msg1, 1);
+ 	if (ret != 1)
+@@ -77,8 +76,7 @@ static int atbm8830_read_reg(struct atbm_state *priv, u16 reg, u8 *p_data)
  
- 				if (vfs_read_retval < line_size) {
- 					printk(KERN_INFO
--					    "Done: exit %s() since no more \
--					    bytes to read from Video file.\n",
-+					    "Done: exit %s() since no more"
-+					    " bytes to read from Video file.\n",
- 					       __func__);
- 					break;
- 				}
-@@ -535,8 +535,8 @@ int cx25821_upstream_buffer_prepare(struct cx25821_dev *dev,
- 
- 	if (!dev->_dma_virt_addr) {
- 		printk
--		   (KERN_ERR "cx25821: FAILED to allocate memory for Risc \
--		   buffer! Returning.\n");
-+		   (KERN_ERR "cx25821: FAILED to allocate memory for Risc"
-+		   " buffer! Returning.\n");
- 		return -ENOMEM;
+ 	ret = i2c_transfer(priv->i2c, &msg1, 1);
+ 	if (ret != 1) {
+-		dprintk(KERN_DEBUG "%s: error reg=0x%04x, ret=%i\n",
+-			__func__, reg, ret);
++		dprintk("%s: error reg=0x%04x, ret=%i\n", __func__, reg, ret);
+ 		return -EIO;
  	}
  
-@@ -557,8 +557,8 @@ int cx25821_upstream_buffer_prepare(struct cx25821_dev *dev,
+@@ -88,7 +86,7 @@ static int atbm8830_read_reg(struct atbm_state *priv, u16 reg, u8 *p_data)
  
- 	if (!dev->_data_buf_virt_addr) {
- 		printk
--		   (KERN_ERR "cx25821: FAILED to allocate memory for data \
--		   buffer! Returning.\n");
-+		   (KERN_ERR "cx25821: FAILED to allocate memory for data"
-+		   " buffer! Returning.\n");
- 		return -ENOMEM;
+ 	*p_data = buf2[0];
+ 	if (debug >= 2)
+-		printk(KERN_DEBUG "%s: reg=0x%04X, data=0x%02X\n",
++		dprintk("%s: reg=0x%04X, data=0x%02X\n",
+ 			__func__, reg, buf2[0]);
+ 
+ 	return 0;
+diff --git a/drivers/media/dvb/frontends/lgs8gxx.c b/drivers/media/dvb/frontends/lgs8gxx.c
+index 5ea28ae..8989f8f 100644
+--- a/drivers/media/dvb/frontends/lgs8gxx.c
++++ b/drivers/media/dvb/frontends/lgs8gxx.c
+@@ -60,13 +60,12 @@ static int lgs8gxx_write_reg(struct lgs8gxx_state *priv, u8 reg, u8 data)
+ 		msg.addr += 0x02;
+ 
+ 	if (debug >= 2)
+-		printk(KERN_DEBUG "%s: reg=0x%02X, data=0x%02X\n",
+-			__func__, reg, data);
++		dprintk("%s: reg=0x%02X, data=0x%02X\n", __func__, reg, data);
+ 
+ 	ret = i2c_transfer(priv->i2c, &msg, 1);
+ 
+ 	if (ret != 1)
+-		dprintk(KERN_DEBUG "%s: error reg=0x%x, data=0x%x, ret=%i\n",
++		dprintk("%s: error reg=0x%x, data=0x%x, ret=%i\n",
+ 			__func__, reg, data, ret);
+ 
+ 	return (ret != 1) ? -1 : 0;
+@@ -91,15 +90,13 @@ static int lgs8gxx_read_reg(struct lgs8gxx_state *priv, u8 reg, u8 *p_data)
+ 
+ 	ret = i2c_transfer(priv->i2c, msg, 2);
+ 	if (ret != 2) {
+-		dprintk(KERN_DEBUG "%s: error reg=0x%x, ret=%i\n",
+-			__func__, reg, ret);
++		dprintk("%s: error reg=0x%x, ret=%i\n", __func__, reg, ret);
+ 		return -1;
  	}
  
-@@ -653,16 +653,16 @@ int cx25821_video_upstream_irq(struct cx25821_dev *dev, int chan_num,
- 	} else {
- 		if (status & FLD_VID_SRC_UF)
- 			printk
--			   (KERN_ERR "%s: Video Received Underflow Error \
--			   Interrupt!\n", __func__);
-+			   (KERN_ERR "%s: Video Received Underflow Error"
-+			   " Interrupt!\n", __func__);
+ 	*p_data = b1[0];
+ 	if (debug >= 2)
+-		printk(KERN_DEBUG "%s: reg=0x%02X, data=0x%02X\n",
+-			__func__, reg, b1[0]);
++		dprintk("%s: reg=0x%02X, data=0x%02X\n", __func__, reg, b1[0]);
+ 	return 0;
+ }
  
- 		if (status & FLD_VID_SRC_SYNC)
--		       printk(KERN_ERR "%s: Video Received Sync Error \
--		       Interrupt!\n", __func__);
-+			printk(KERN_ERR "%s: Video Received Sync Error"
-+			" Interrupt!\n", __func__);
+diff --git a/drivers/media/video/saa7134/saa7134-input.c b/drivers/media/video/saa7134/saa7134-input.c
+index 0b336ca..f81a19f 100644
+--- a/drivers/media/video/saa7134/saa7134-input.c
++++ b/drivers/media/video/saa7134/saa7134-input.c
+@@ -965,7 +965,7 @@ void saa7134_probe_i2c_ir(struct saa7134_dev *dev)
+ 		   an existing device. Weird...
+ 		   REVISIT: might no longer be needed */
+ 		rc = i2c_transfer(&dev->i2c_adap, &msg_msi, 1);
+-		dprintk(KERN_DEBUG "probe 0x%02x @ %s: %s\n",
++		dprintk("probe 0x%02x @ %s: %s\n",
+ 			msg_msi.addr, dev->i2c_adap.name,
+ 			(1 == rc) ? "yes" : "no");
+ 		break;
+diff --git a/drivers/media/video/saa7134/saa7134-tvaudio.c b/drivers/media/video/saa7134/saa7134-tvaudio.c
+index 3e7d2fd..57e646b 100644
+--- a/drivers/media/video/saa7134/saa7134-tvaudio.c
++++ b/drivers/media/video/saa7134/saa7134-tvaudio.c
+@@ -550,16 +550,16 @@ static int tvaudio_thread(void *data)
+ 		} else if (0 != dev->last_carrier) {
+ 			/* no carrier -- try last detected one as fallback */
+ 			carrier = dev->last_carrier;
+-			dprintk(KERN_WARNING "%s/audio: audio carrier scan failed, "
+-			       "using %d.%03d MHz [last detected]\n",
+-			       dev->name, carrier/1000, carrier%1000);
++			dprintk("audio carrier scan failed, "
++				"using %d.%03d MHz [last detected]\n",
++				carrier/1000, carrier%1000);
  
- 		if (status & FLD_VID_SRC_OPC_ERR)
--		       printk(KERN_ERR "%s: Video Received OpCode Error \
--		       Interrupt!\n", __func__);
-+			printk(KERN_ERR "%s: Video Received OpCode Error"
-+			" Interrupt!\n", __func__);
- 	}
- 
- 	if (dev->_file_status == END_OF_FILE) {
-@@ -818,8 +818,8 @@ int cx25821_vidupstream_init_ch1(struct cx25821_dev *dev, int channel_select,
- 
- 	if (!dev->_irq_queues) {
- 		printk
--		   (KERN_ERR "cx25821: create_singlethread_workqueue() for \
--		   Video FAILED!\n");
-+		   (KERN_ERR "cx25821: create_singlethread_workqueue() for"
-+		   " Video FAILED!\n");
- 		return -ENOMEM;
- 	}
- 	/* 656/VIP SRC Upstream Channel I & J and 7 - Host Bus Interface for
-diff --git a/drivers/staging/cx25821/cx25821-video.c b/drivers/staging/cx25821/cx25821-video.c
-index e7f1d57..523a445 100644
---- a/drivers/staging/cx25821/cx25821-video.c
-+++ b/drivers/staging/cx25821/cx25821-video.c
-@@ -751,8 +751,8 @@ static void buffer_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
- 	       buf->count = q->count++;
- 	       mod_timer(&q->timeout, jiffies + BUFFER_TIMEOUT);
- 	       dprintk(2,
--		       "[%p/%d] buffer_queue - first active, buf cnt = %d, \
--		       q->count = %d\n",
-+		       "[%p/%d] buffer_queue - first active, buf cnt = %d,"
-+		       " q->count = %d\n",
- 		       buf, buf->vb.i, buf->count, q->count);
-        } else {
- 	       prev =
-@@ -768,8 +768,8 @@ static void buffer_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
- 		       /* 64 bit bits 63-32 */
- 		       prev->risc.jmp[2] = cpu_to_le32(0);
- 		       dprintk(2,
--			       "[%p/%d] buffer_queue - append to active, \
--			       buf->count=%d\n",
-+			       "[%p/%d] buffer_queue - append to active,"
-+			       " buf->count=%d\n",
- 			       buf, buf->vb.i, buf->count);
- 
- 	       } else {
+ 		} else {
+ 			/* no carrier + no fallback -- use default */
+ 			carrier = default_carrier;
+-			dprintk(KERN_WARNING "%s/audio: audio carrier scan failed, "
+-			       "using %d.%03d MHz [default]\n",
+-			       dev->name, carrier/1000, carrier%1000);
++			dprintk("audio carrier scan failed, "
++				"using %d.%03d MHz [default]\n",
++				carrier/1000, carrier%1000);
+ 		}
+ 		tvaudio_setcarrier(dev,carrier,carrier);
+ 		dev->automute = 0;
 -- 
-1.7.2.2
+1.7.3.dirty
+
