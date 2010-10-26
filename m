@@ -1,74 +1,32 @@
 Return-path: <mchehab@pedra>
-Received: from mail.issp.bas.bg ([195.96.236.10]:54217 "EHLO mail.issp.bas.bg"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750791Ab0JMQnd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Oct 2010 12:43:33 -0400
-From: Marin Mitov <mitov@issp.bas.bg>
-To: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: Re: [RFC][PATCH] add dma_reserve_coherent_memory()/dma_free_reserved_memory() API
-Date: Wed, 13 Oct 2010 19:42:56 +0300
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	g.liakhovetski@gmx.de
-References: <201008201113.46036.mitov@issp.bas.bg> <20101010230323B.fujita.tomonori@lab.ntt.co.jp> <20101013170457.c5c5d2e1.kamezawa.hiroyu@jp.fujitsu.com>
-In-Reply-To: <20101013170457.c5c5d2e1.kamezawa.hiroyu@jp.fujitsu.com>
+Received: from mail1.matrix-vision.com ([78.47.19.71]:47937 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751796Ab0JZPIP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Oct 2010 11:08:15 -0400
+Message-ID: <4CC6EEDC.20206@matrix-vision.de>
+Date: Tue, 26 Oct 2010 17:08:12 +0200
+From: Michael Jones <michael.jones@matrix-vision.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: laurent.pinchart@ideasonboard.com,
+	"sakari.ailus@maxwell.research.nokia.com"
+	<sakari.ailus@maxwell.research.nokia.com>
+Subject: controls, subdevs, and media framework
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201010131942.57639.mitov@issp.bas.bg>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wednesday, October 13, 2010 11:04:57 am KAMEZAWA Hiroyuki wrote:
-> On Sun, 10 Oct 2010 23:08:22 +0900
-> FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp> wrote:
-> 
-> > On Fri, 20 Aug 2010 14:50:12 +0300
-> > Marin Mitov <mitov@issp.bas.bg> wrote:
-> > 
-> > > On Friday, August 20, 2010 11:35:06 am FUJITA Tomonori wrote:
-> > > > On Fri, 20 Aug 2010 11:13:45 +0300
-> > > > Marin Mitov <mitov@issp.bas.bg> wrote:
-> > > > 
-> > > > > > > This tric is already used in drivers/staging/dt3155v4l.c
-> > > > > > > dt3155_alloc_coherent()/dt3155_free_coherent()
-> > > > > > > 
-> > > > > > > Here proposed for general use by popular demand from video4linux folks.
-> > > > > > > Helps for videobuf-dma-contig framework.
-> > > > > > 
-> > > > > > What you guys exactly want to do? If you just want to pre-allocate
-> > > > > > coherent memory for latter usage,
-> > > > > 
-> > > > > Yes, just to preallocate not coherent, but rather contiguous memory for latter usage.
-> > > > > We use coherent memory because it turns out to be contiguous.
-> > > > 
-> > > > Hmm, you don't care about coherency? You just need contiguous memory?
-> > > 
-> > > Yes. We just need contiguous memory. Coherency is important as far as when dma
-> > > transfer finishes user land is able to see the new data. Could be done by something like
-> > > dma_{,un}map_single()
-> > 
-> > Anyone is working on this?
-> > 
-> > KAMEZAWA posted a patch to improve the generic page allocator to
-> > allocate physically contiguous memory. He said that he can push it
-> > into mainline.
-> > 
-> I said I do make an effort ;)
-> New one here.
-> 
-> http://lkml.org/lkml/2010/10/12/421
+I'm trying to understand how the media framework and V4L2 share the responsibility of configuring a video device.  Referring to the ISP code on Laurent's media-0004-omap3isp branch, the video device is now split up into several devices... suppose you have a sensor delivering raw bayer data to the CCDC.  I could get this raw data from the /dev/video2 device (named "OMAP3 ISP CCDC output") or I could get YUV data from the previewer or resizer.  But I would no longer have a single device where I could ENUM_FMT and see that I could get either.  Correct?
 
-I like the patch. The possibility to allocate a contiguous chunk of memory
-(or few of them) is what I need. The next step will be to get a dma handle 
-(for dma transfers to/from) and then mmap them to user space.
+Having settled on a particular video device, (how) do regular controls (ie. VIDIOC_[S|G]_CTRL) work?  I don't see any support for them in ispvideo.c.  Is it just yet to be implemented?  Or is it expected that the application will access the subdevs individually?
 
-Thanks.
+Basically the same Q for CROPCAP:  isp_video_cropcap passes it on to the last link in the chain, but none of the subdevs in the ISP currently have a cropcap function implemented (yet).  Does this still need to be written?
 
-Marin Mitov
+-- 
+Michael Jones
 
-> 
-> Thanks,
-> -Kame
-> 
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
