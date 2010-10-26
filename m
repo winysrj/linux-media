@@ -1,60 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:46720 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753861Ab0JGJmD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Oct 2010 05:42:03 -0400
-Received: by iwn9 with SMTP id 9so617545iwn.19
-        for <linux-media@vger.kernel.org>; Thu, 07 Oct 2010 02:42:03 -0700 (PDT)
+Received: from flokli.de ([78.46.104.9]:34594 "EHLO asterix.flokli.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751561Ab0JZM66 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Oct 2010 08:58:58 -0400
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: em28xx: Terratec Grabby no sound
 MIME-Version: 1.0
-Date: Thu, 7 Oct 2010 11:42:01 +0200
-Message-ID: <AANLkTimyR117ZiHq8GFz4YW5tBtW3k82NzGVZqKoVTbY@mail.gmail.com>
-Subject: OMAP 3530 camera ISP forks and new media framework
-From: Bastian Hecht <hechtb@googlemail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: sakari.ailus@maxwell.research.nokia.com,
-	laurent.pinchart@ideasonboard.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+ charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Tue, 26 Oct 2010 14:58:56 +0200
+From: Florian Klink <flokli@flokli.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <4CC61058.7090205@redhat.com>
+References: <f9fc4355b0c721744c6522a720ee2df7@flokli.de>
+ <4CC5BE39.70206@redhat.com> <d8211f823d481e2991821b5dfc4e8b84@flokli.de>
+ <4CC5EDC3.3020506@redhat.com> <0346874f2869b186cbe1224baeef5462@flokli.de>
+ <4CC61058.7090205@redhat.com>
+Message-ID: <d1e3b54f6aca1dcdf74041ef2d8e9463@flokli.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello media team,
+ Hi,
 
-I want to write a sensor driver for the mt9p031 (not mt9t031) camera
-chip and start getting confused about the different kernel forks and
-architectural changes that happen in V4L2.
-A similar problem was discussed in this mailing list at
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg19084.html.
+> The sound comes from alsa device. Several em28xx types provide
+> standard USB audio. So,
+> snd-usb-audio handles it. That's why you need
+> alsa:adevice=hw.2,0:forceaudio at mplayer.
 
-Currently I don't know which branch to follow. Either
-http://gitorious.org/omap3camera from Sakari Ailus or the branch
-media-0004-omap3isp at http://git.linuxtv.org/pinchartl/media.git from
-Laurent Pinchart. Both have an folder drivers/media/video/isp and are
-written for the new media controller architecture if I am right.
+ ... but thats my problem.
+ sound doesn't appear inside mplayer, even with the command line options 
+ set to use the "external" alsa device. However, "arecord -D hw:2,0 -r 
+ 32000 -c 2 -f S16_LE | aplay -" plays the sound, but only before mplayer 
+ tried to access the sound card
 
-I see in http://gitorious.org/omap3camera/camera-firmware that there
-is already an empty placeholder for the mt9t031.
-The README of the camera-firmware repository states: "makemodes.pl is
-a perl script which converts sensor register lists from FIXME into C
-code. dcc-pulautin is a Makefile (mostly) that converts sensor
-register lists as C code into binaries understandable to sensor
-drivers. The end result is a binary with sensor driver name, sensor
-version and bin suffix, for example et8ek8-0002.bin."
+ When trying to play sound with arecord again after mplayer tried to 
+ access it, I have to re-plug the card to get it playing sound over 
+ arecord again, video only seems to not break it. There is no error 
+ message or something in arecord when it's not playing anything, just 
+ silence and the same command line output.
 
-So I think the goal is to provide a script framework for camera
-systems. You just script some register tables and it creates a binary
-that can be read by a sensor driver made for that framework. If the a
-camera bridge driver for your chip exists, you are done. Am I right?
-Are drivers/media/video/et8ek8.c and
-drivers/staging/dream/camera/mt9p012_* such drivers?
+ Is there maybe anything with the sample format S16_LE or something that 
+ confuses mplayer/the driver/whatever?
 
-So do you think it is the right way to go to use your ISP driver,
-adapt drivers/staging/dream/camera/mt9p012_* to suit my mt9p031 and
-write a register list and create a camera firmware for that sensor
-driver with makemodes?
+ Strange problem...
 
-I am still quite confused... if I get something wrong, please give me
-some hints.
+ mplayer output (mplayer -v -tv 
+ driver=v4l2:input=0:device=/dev/video1:alsa:adevice=hw.2,0:forceaudio 
+ tv://):
+ http://pastebin.com/yTV300iG
 
-Thanks a lot!
-
-Bastian Hecht
+ Florian
