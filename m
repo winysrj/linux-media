@@ -1,148 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:65331 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755486Ab0JKR0k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Oct 2010 13:26:40 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Mon, 11 Oct 2010 19:26:31 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 4/6 v5] V4L/DVB: s5p-fimc: Do not lock both buffer queues in
- s_fmt
-In-reply-to: <1286817993-21558-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com
-Message-id: <1286817993-21558-5-git-send-email-s.nawrocki@samsung.com>
-References: <1286817993-21558-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:7371 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756527Ab0J0NNT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Oct 2010 09:13:19 -0400
+Message-ID: <4CC82658.3040205@redhat.com>
+Date: Wed, 27 Oct 2010 15:17:12 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Lee Jones <lee.jones@canonical.com>,
+	Jean-Francois Moine <moinejf@free.fr>
+Subject: Re: [PATCH 3/7] gspca-stv06xx: support bandwidth changing
+References: <1288182926-25400-1-git-send-email-hdegoede@redhat.com>	<1288182926-25400-4-git-send-email-hdegoede@redhat.com> <AANLkTi=tiYJU0fLVqSiN-BRGgMqcf3eF0jFFVDTtr-Lh@mail.gmail.com>
+In-Reply-To: <AANLkTi=tiYJU0fLVqSiN-BRGgMqcf3eF0jFFVDTtr-Lh@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-It is not necessary to lock both capture and output buffer queue while
-setting format for single queue.
+Hi,
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-core.c |   69 +++++++++++++----------------
- 1 files changed, 31 insertions(+), 38 deletions(-)
+On 10/27/2010 02:39 PM, Erik Andrén wrote:
+> 2010/10/27 Hans de Goede<hdegoede@redhat.com>:
+>> stv06xx devices have only one altsetting, but the actual used
+>> bandwidth can be programmed through a register. We were already
+>> setting this register lower then the max packetsize of the altsetting
+>> indicates. This patch makes the gspca-stv06xx update the usb descriptor
+>> for the alt setting to reflect the actual packetsize in use, so that
+>> the usb subsystem uses the correct information for scheduling usb transfers.
+>>
+>> This patch also tries to fallback to lower speeds in case a ENOSPC error
+>> is received when submitting urbs, but currently this is only supported
+>> with stv06xx cams with the pb0100 sensor, as this is the only one for
+>> which we know how to change the framerate.
+>>
+>> This patch is based on an initial incomplete patch by
+>> Lee Jones<lee.jones@canonical.com>
+>>
+>> Signed-off-by: Lee Jones<lee.jones@canonical.com>
+>> Signed-off-by: Hans de Goede<hdegoede@redhat.com>
+>
+> Cool,
+> Has this been verified to work with all affected devices?
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index 6bddec3..85a7e72 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -742,8 +742,9 @@ static int fimc_m2m_try_fmt(struct file *file, void *priv,
- static int fimc_m2m_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- {
- 	struct fimc_ctx *ctx = priv;
--	struct v4l2_device *v4l2_dev = &ctx->fimc_dev->m2m.v4l2_dev;
--	struct videobuf_queue *src_vq, *dst_vq;
-+	struct fimc_dev *fimc = ctx->fimc_dev;
-+	struct v4l2_device *v4l2_dev = &fimc->m2m.v4l2_dev;
-+	struct videobuf_queue *vq;
- 	struct fimc_frame *frame;
- 	struct v4l2_pix_format *pix;
- 	unsigned long flags;
-@@ -755,69 +756,61 @@ static int fimc_m2m_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 	if (ret)
- 		return ret;
- 
--	mutex_lock(&ctx->fimc_dev->lock);
-+	if (mutex_lock_interruptible(&fimc->lock))
-+		return -ERESTARTSYS;
- 
--	src_vq = v4l2_m2m_get_src_vq(ctx->m2m_ctx);
--	dst_vq = v4l2_m2m_get_dst_vq(ctx->m2m_ctx);
-+	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
-+	mutex_lock(&vq->vb_lock);
- 
--	mutex_lock(&src_vq->vb_lock);
--	mutex_lock(&dst_vq->vb_lock);
-+	if (videobuf_queue_is_busy(vq)) {
-+		v4l2_err(v4l2_dev, "%s: queue (%d) busy\n", __func__, f->type);
-+		ret = -EBUSY;
-+		goto sf_out;
-+	}
- 
-+	spin_lock_irqsave(&ctx->slock, flags);
- 	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
--		if (videobuf_queue_is_busy(src_vq)) {
--			v4l2_err(v4l2_dev, "%s queue busy\n", __func__);
--			ret = -EBUSY;
--			goto s_fmt_out;
--		}
- 		frame = &ctx->s_frame;
--		spin_lock_irqsave(&ctx->slock, flags);
- 		ctx->state |= FIMC_SRC_FMT;
--		spin_unlock_irqrestore(&ctx->slock, flags);
--
- 	} else if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
--		if (videobuf_queue_is_busy(dst_vq)) {
--			v4l2_err(v4l2_dev, "%s queue busy\n", __func__);
--			ret = -EBUSY;
--			goto s_fmt_out;
--		}
- 		frame = &ctx->d_frame;
--		spin_lock_irqsave(&ctx->slock, flags);
- 		ctx->state |= FIMC_DST_FMT;
--		spin_unlock_irqrestore(&ctx->slock, flags);
- 	} else {
-+		spin_unlock_irqrestore(&ctx->slock, flags);
- 		v4l2_err(&ctx->fimc_dev->m2m.v4l2_dev,
- 			 "Wrong buffer/video queue type (%d)\n", f->type);
- 		ret = -EINVAL;
--		goto s_fmt_out;
-+		goto sf_out;
- 	}
-+	spin_unlock_irqrestore(&ctx->slock, flags);
- 
- 	pix = &f->fmt.pix;
- 	frame->fmt = find_format(f);
- 	if (!frame->fmt) {
- 		ret = -EINVAL;
--		goto s_fmt_out;
-+		goto sf_out;
- 	}
- 
--	frame->f_width = pix->bytesperline * 8 / frame->fmt->depth;
--	frame->f_height = pix->sizeimage/pix->bytesperline;
--	frame->width = pix->width;
--	frame->height = pix->height;
--	frame->o_width = pix->width;
-+	frame->f_width	= pix->bytesperline * 8 / frame->fmt->depth;
-+	frame->f_height	= pix->height;
-+	frame->width	= pix->width;
-+	frame->height	= pix->height;
-+	frame->o_width	= pix->width;
- 	frame->o_height = pix->height;
--	frame->offs_h = 0;
--	frame->offs_v = 0;
--	frame->size = (pix->width * pix->height * frame->fmt->depth) >> 3;
--	src_vq->field = dst_vq->field = pix->field;
-+	frame->offs_h	= 0;
-+	frame->offs_v	= 0;
-+	frame->size	= (pix->width * pix->height * frame->fmt->depth) >> 3;
-+	vq->field	= pix->field;
-+
- 	spin_lock_irqsave(&ctx->slock, flags);
- 	ctx->state |= FIMC_PARAMS;
- 	spin_unlock_irqrestore(&ctx->slock, flags);
- 
--	dbg("f_width= %d, f_height= %d", frame->f_width, frame->f_height);
-+	dbg("f_w: %d, f_h: %d", frame->f_width, frame->f_height);
- 
--s_fmt_out:
--	mutex_unlock(&dst_vq->vb_lock);
--	mutex_unlock(&src_vq->vb_lock);
--	mutex_unlock(&ctx->fimc_dev->lock);
-+sf_out:
-+	mutex_unlock(&vq->vb_lock);
-+	mutex_unlock(&fimc->lock);
- 	return ret;
- }
- 
--- 
-1.7.3.1
+Yes and no, it has been verified with a camera with a st6422 sensor
+and one with a pb0100 sensor. It has not been verified with the others, but
+it makes no changes to the others. See min and max bandwidth settings in
+the sensor struct in the sensors .h file (and the FIXME comments there).
+These result in the STV_ISO_SIZE_L register setting being left untouched
+for the untested devices, effectively making this patch a nop for them.
+Except that the usb core will be told that some of them do not use the full
+bandwidth, which will allow peaceful coexistence with other devices.
 
+AFAIK you have a vv6410 sensor camera, it would be cool if you could:
+1) See if you can vary the framerate of it
+2) See what the minimum required bandwidth is for each framerate
+    (change min and max packet_size to be the same to test).
+3) Update max and min packetsize (to reflect the minimum needed
+    packetsize at the highest. resp lowest framerate).
+4) Update the sensor_start function to program the framerate depending
+    on the available bandwidth (see the pb0100 code).
+
+Thanks & Regards,
+
+Hans
