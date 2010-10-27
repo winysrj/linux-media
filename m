@@ -1,162 +1,124 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:56052 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1755374Ab0J2JKR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Oct 2010 05:10:17 -0400
-Date: Fri, 29 Oct 2010 11:10:24 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Adam Sutton <aps@plextek.co.uk>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: RE: Changing frame size on the fly in SOC module
-In-Reply-To: <8C9A6B7580601F4FBDC0ED4C1D6A9B1D02AF3325@plextek3.plextek.lan>
-Message-ID: <Pine.LNX.4.64.1010291108240.25084@axis700.grange>
-References: <8C9A6B7580601F4FBDC0ED4C1D6A9B1D02AF331B@plextek3.plextek.lan>
- <Pine.LNX.4.64.1010282009160.1257@axis700.grange>
- <8C9A6B7580601F4FBDC0ED4C1D6A9B1D02AF3325@plextek3.plextek.lan>
+Received: from mx1.redhat.com ([209.132.183.28]:46906 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750978Ab0J0QhM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Oct 2010 12:37:12 -0400
+Message-ID: <4CC8550B.4060403@redhat.com>
+Date: Wed, 27 Oct 2010 14:36:27 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Jiri Slaby <jirislaby@gmail.com>
+CC: Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Michael Krufky <mkrufky@kernellabs.com>
+Subject: Re: [GIT PULL for 2.6.37-rc1] V4L/DVB updates
+References: <4CC8380D.3040802@redhat.com> <4CC84597.4000204@gmail.com> <4CC84846.6020304@redhat.com> <4CC84B14.1030303@gmail.com>
+In-Reply-To: <4CC84B14.1030303@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Adam
+Em 27-10-2010 13:53, Jiri Slaby escreveu:
+> On 10/27/2010 05:41 PM, Mauro Carvalho Chehab wrote:
+>> Hi Jiri,
+>>
+>> Em 27-10-2010 13:30, Jiri Slaby escreveu:
+>>> On 10/27/2010 04:32 PM, Mauro Carvalho Chehab wrote:
+>>>> Linus,
+>>>>
+>>>> Please pull from
+>>>> 	ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
+>>> ...
+>>>> Mauro Carvalho Chehab (72):
+>>> ...
+>>>>       [media] tda18271: allow restricting max out to 4 bytes
+>>>
+>>> Even though you know this one breaks at least one driver you want it merged?
+>>
+>> We need to fix that issue with af9015, but, without this patch, cx231xx is broken, as it
+>> doesn't accept more than 4 bytes per I2C transfer. I tested the patch here with some possible
+>> restrictions for I2C size. Also, Mkrufky tested it with other different hardware.
+> 
+> I think the rule is "no regressions". Was cx231xx broken by some recent
+> change or was it broken forever?
+> 
+> Anyway the patch itself is in -next as of next-20101019. What the hell
+> is -next good for then if people skip it? (Yes, 10 workdays is too few
+> for people to really test kernels. Especially when we are talking about
+> DVB.)
+> 
+>> What I don't understand is that the only change that this patch caused for af9015 is to change
+>> the I2C max size that used to be 16. The patch I sent you reverted this behaviour, by using
+>> the proper macro value, instead of a magic number, but you reported that this didn't fix your
+>> problem.
+> 
+> What about this hunk? Could it be a source of the problem?
+> @@ -326,24 +352,7 @@ int tda18271_init_regs(struct dvb_frontend *fe)
+>         regs[R_EB22] = 0x48;
+>         regs[R_EB23] = 0xb0;
+> 
+> -       switch (priv->small_i2c) {
+> -       case TDA18271_08_BYTE_CHUNK_INIT:
+> -               tda18271_write_regs(fe, 0x00, 0x08);
+> -               tda18271_write_regs(fe, 0x08, 0x08);
+> -               tda18271_write_regs(fe, 0x10, 0x08);
+> -               tda18271_write_regs(fe, 0x18, 0x08);
+> -               tda18271_write_regs(fe, 0x20, 0x07);
+> -               break;
+> -       case TDA18271_16_BYTE_CHUNK_INIT:
+> -               tda18271_write_regs(fe, 0x00, 0x10);
+> -               tda18271_write_regs(fe, 0x10, 0x10);
+> -               tda18271_write_regs(fe, 0x20, 0x07);
+> -               break;
+> -       case TDA18271_39_BYTE_CHUNK_INIT:
+> -       default:
+>                 tda18271_write_regs(fe, 0x00, TDA18271_NUM_REGS);
+> -               break;
+> -       }
+> 
+>         /* setup agc1 gain */
+>         regs[R_EB17] = 0x00;
+> 
+> Previously it wrote 3 values, now it writes only one.
 
-On Fri, 29 Oct 2010, Adam Sutton wrote:
+No. Previously, the init_regs were manually breaking the 0x39 register initialization
+on several calls to tda18271_write_regs().
 
-> Hi Guennadi,
+What the patch did were to move the logic of breaking the data into smaller groups
+to happen inside tda18271_write_regs().
 
-Please, use the inline reply style.
+So, while the old logic broke it on 3 writes, being the first one from registers
+0x00 to 0x0f, the second from 0x10 to 0x1f and the third from 0x20 to 0x27, the new
+code breaks it inside tda18271_write_regs().
 
-> Thanks for the response, it's good just to get confirmation that I was
-> indeed interpreting the code properly.
-> 
-> I guess the main reason this is more significant for me is the
-> constraints I have on the hardware, i.e. it cannot handle the 640x480 at
-> any reasonable frame rate so we need the camera hardware to provide the
-> smaller image and second closing the camera powers the module down to
-> conserve power, which means time from open to image capture is slow
-> (particularly because I have to drop the first few frames with the auto
-> white balance etc... settles).
-> 
-> I had already assumed that streaming would need to be stopped before the
-> size could be changed, really don't see a problem with that. I had used
-> that approach with non-SOC style modules.
-> 
-> I think the documentation in videobuf talks about requesting the MAX
-> buffer size you will require from the start. So again I had already
-> assumed I'd need to do that as well.
-> 
-> I'm not sure I fully understand the concern about multiple simultaneous
-> users. I certainly don't have that as a user case in my own requirements
-> (device is a small handheld teaching aid) and I would have thought that
-> if 2 users try to use the same camera module at the same time all hell
-> would probably break out anyway. Have to admit I've never tried it
-> before.
+The old logic is broken, since there are some parts of the code calling tda18271_write_regs()
+with a size that were bigger than the maximum supported size.
 
-Multiple users, of which only one does the streaming. The rest may only 
-issues control requests like adjusting image quality, etc.
+If you take a look at the code, before this patch, you'll see places where more than the maximum
+allowed size is used. For example:
 
-Thanks
-Guennadi
+http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/media/common/tuners/tda18271-common.c;h=e1f678281a58d327752dfcf24dc72ccf1d93ff79;hb=1724c8fa7eb33d68898e060a08a8e6a88348b62f#l385
 
-> 
-> Adam
-> 
-> 
-> -----Original Message-----
-> From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de] 
-> Sent: 28 October 2010 20:01
-> To: Adam Sutton
-> Cc: linux-media@vger.kernel.org
-> Subject: Re: Changing frame size on the fly in SOC module
-> 
-> Hi Adam
-> 
-> On Thu, 28 Oct 2010, Adam Sutton wrote:
-> 
-> > Hi,
-> > 
-> > Sometime ago I developed an SOC based camera driver for my platform
-> > (ov7675 on iMX25), for the most part it seems to be working well
-> however
-> > at the time I couldn't manage to change the frame size on the fly
-> > (without closing / re-opening the device).
-> > 
-> > The current problem I have is that my application needs to display a
-> > 320x240 preview image on screen, but to capture a static image at
-> > 640x480. I can do this as long as I close the device in between,
-> > unfortunately for power consumption reasons the camera device is put
-> > into a low power state whenever the device is released. This means
-> that
-> > the image capture takes approx 1.5s (the requirement I have to meet is
-> > 1s).
-> > 
-> > Now I could cheat and simply subsample (in software) the 640x480
-> image,
-> > but that puts additional burden on an already overworked MCU.
-> > 
-> > Having been through the soc_camera and videobuf code and as far as I
-> can
-> > tell this inability to change the frame size without closing the
-> camera
-> > device appears to be a design decision.
-> 
-> Yes, it is.
-> 
-> > What I'm really after is confirmation one way of the other. If it's
-> not,
-> > what is the correct process to achieve the frame change without
-> closing
-> > the device. And if it is, does anybody have any suggestions of
-> possible
-> > workarounds?
-> 
-> It has been decided that way, because we didn't have a good use-case for
-> 
-> changing the frame format on-the-fly to develop for and to test with.
-> You 
-> seem to have one now, so, go ahead;)
-> 
-> There are a couple of issues to address though - videobuffer
-> configuration 
-> is one of them, host reconfiguration is the other one, possible multiple
-> 
-> simultaneous users is the third one (ok, only one of them will be
-> actually 
-> streaming).
-> 
-> This use case - different size preview and single shot capture has come
-> up 
-> a couple of times before, but noone has brought it to a proper
-> mainstream 
-> solution.
-> 
-> One thing you'd still want to do, I think, is to stop streaming before 
-> reconfiguring, and restart it afterwards.
-> 
-> So, maybe a viable solution would be:
-> 
-> in soc_camera_s_fmt_vid_cap() check not just for "icf->vb_vidq.bufs[0]
-> != 
-> NULL", but rather for if streaming is not running, and then someone will
-> 
-> certainly have to check for large enough buffers. So, you'd have to 
-> request max size buffers from the beginning even for preview.
-> 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> Plextek Limited
-> Registered Address: London Road, Great Chesterford, Essex, CB10 1NY, UK Company Registration No. 2305889
-> VAT Registration No. GB 918 4425 15
-> Tel: +44 1799 533 200. Fax: +44 1799 533 201 Web:http://www.plextek.com 
-> Electronics Design and Consultancy
-> 
-> 
+The driver is wring 11 values:
+	tda18271_write_regs(fe, R_EP3, 11);
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+This doesn't honor the max size of 8 bytes, if small_i2c = TDA18271_08_BYTE_CHUNK_INIT.
+
+My patch basically did:
+
+1) it moved the logic that restricts the maximum size to be inside tda18271_write_regs();
+2) it added a new max size of 4 bytes;
+3) It renamed the magic values associated with small_i2c.
+
+Basically, af9015 broke due to (3), as .small_i2c = 1 means nothing. It should be using
+.small_i2c = TDA18271_16_BYTE_CHUNK_INIT, instead.
+
+What I don't understand is why a patch doing this change didn't fix the issue. Please
+test the patch I posted on the original -next thread. Let's try to identify why
+tda18271_write_regs() is not breaking the data into smaller writes.
+
+Cheers,
+Mauro
