@@ -1,64 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.1.47]:24390 "EHLO mgw-sa01.nokia.com"
+Received: from mx1.redhat.com ([209.132.183.28]:44011 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933188Ab0J0Nsu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Oct 2010 09:48:50 -0400
-Message-ID: <4CC82DBC.4020907@maxwell.research.nokia.com>
-Date: Wed, 27 Oct 2010 16:48:44 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+	id S1753293Ab0J0Rw0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Oct 2010 13:52:26 -0400
+Message-ID: <4CC866C9.2010803@redhat.com>
+Date: Wed, 27 Oct 2010 15:52:09 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Michael Jones <michael.jones@matrix-vision.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: controls, subdevs, and media framework
-References: <4CC6EEDC.20206@matrix-vision.de>
-In-Reply-To: <4CC6EEDC.20206@matrix-vision.de>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [GIT PULL for 2.6.37-rc1] V4L/DVB updates
+References: <4CC8380D.3040802@redhat.com> <4CC863D6.7010404@redhat.com>
+In-Reply-To: <4CC863D6.7010404@redhat.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Michael,
+Em 27-10-2010 15:39, Hans de Goede escreveu:
+> Hi,
+> 
+> On 10/27/2010 04:32 PM, Mauro Carvalho Chehab wrote:
+>> Linus,
+>>
+>> Please pull from
+>>     ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
+>>
+> 
+> <snip snip>
+> 
+> I see that you did not include the changes from my pull request send today,
+> understandably so, but I wonder if these could still get into 2.6.37 for say
+> rc2 ?
+>
+> All of them are bug fixes except for the xirlink_cit button support which
+> makes changes to a driver new this cycle, so no chance for causing regressions
+> there.
 
-Michael Jones wrote:
-> Having settled on a particular video device, (how) do regular
-> controls (ie. VIDIOC_[S|G]_CTRL) work?  I don't see any support for
-> them in ispvideo.c.  Is it just yet to be implemented?  Or is it
-> expected that the application will access the subdevs individually?
+Before posting patches upstream, I send them to Linux-next in order to be tested there 
+for a while, before sending pull requests upstream. So, yes, patches sent me recently
+will need to wait for the next series of patches.
 
-The applications will access the subdevs independently. I'd expect that
-regular applications won't be interested in things like
-V4L2_CID_EXPOSURE (to manually set exposure value) since they'd more
-likely want automatic exposure.
-
-These interfaces (subdevs) can be used by specialised applications and
-libraries, most likely a general purpose application would not access
-them directly. For example, on N900 the automatic exposure algorithm is
-a user space beast, so that functionality cannot be implemented in
-kernel level at all.
-
-I'd expect general purpose applications to be using libv4l which will
-know how to handle the hardware, in future.
-
-> Basically the same Q for CROPCAP:  isp_video_cropcap passes it on to
-> the last link in the chain, but none of the subdevs in the ISP
-> currently have a cropcap function implemented (yet).  Does this still
-> need to be written?
-
-Setting and getting crop is supported but CROPCAP ioctl isn't actually
-even defined for subdevs. I don't think an ioctl similar to CROPCAP even
-makes sense since crop is so much more simple for subdevs.
-
-Every time I need to deal with CROPCAP I'll first have to go to read the
-specs. ;-)
-
-If there is hardware which has somehow limited crop capability then
-there might be a need for an ioctl to query the minimum possible size
-after crop. At least the OMAP 3 ISP can crop as much as you want. That
-shouldn't be a problem from hardware perspective as fas as I understand.
+I can't tell you in advance if I'll merge them for rc2, as I didn't review them yet,
+and I'll be travelling abroad next week for LPC/KS, but bug fixes need to be addressed 
+and merged in time for 2.6.37.
 
 Cheers,
-
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+Mauro.
