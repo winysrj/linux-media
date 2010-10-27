@@ -1,49 +1,121 @@
 Return-path: <mchehab@pedra>
-Received: from mail-in-15.arcor-online.net ([151.189.21.55]:59394 "EHLO
-	mail-in-15.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757376Ab0JUNqz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Oct 2010 09:46:55 -0400
-Received: from mail-in-06-z2.arcor-online.net (mail-in-06-z2.arcor-online.net [151.189.8.18])
-	by mx.arcor.de (Postfix) with ESMTP id B7AB41AB9E1
-	for <linux-media@vger.kernel.org>; Thu, 21 Oct 2010 15:46:54 +0200 (CEST)
-Received: from mail-in-04.arcor-online.net (mail-in-04.arcor-online.net [151.189.21.44])
-	by mail-in-06-z2.arcor-online.net (Postfix) with ESMTP id AD85E157809
-	for <linux-media@vger.kernel.org>; Thu, 21 Oct 2010 15:46:54 +0200 (CEST)
-Received: from [192.168.10.10] (dslb-088-076-250-016.pools.arcor-ip.net [88.76.250.16])
-	(Authenticated sender: felix_droste@arcor.de)
-	by mail-in-04.arcor-online.net (Postfix) with ESMTPA id 8BCCDAA44D
-	for <linux-media@vger.kernel.org>; Thu, 21 Oct 2010 15:46:54 +0200 (CEST)
-Message-ID: <4CC0444E.1040902@arcor.de>
-Date: Thu, 21 Oct 2010 15:46:54 +0200
-From: Felix Droste <felixdroste@arcor.de>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: USB DVBT af9015: tuner id:177 not supported, please report!
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:1028 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761136Ab0J0Mbj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Oct 2010 08:31:39 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Lee Jones <lee.jones@canonical.com>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 4/7] gspca_xirlink_cit: various usb bandwidth allocation improvements / fixes
+Date: Wed, 27 Oct 2010 14:35:23 +0200
+Message-Id: <1288182926-25400-5-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1288182926-25400-1-git-send-email-hdegoede@redhat.com>
+References: <1288182926-25400-1-git-send-email-hdegoede@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-I could not get this DVBT-Stick (USB) to work:
+The following usb bandwidth allocation changes were made to the ibm netcam
+pro code:
+- Don't restart negotiation at max packet size on stop0, as that gets called
+  by gspca_main during negotiation. Move this to sd_isoc_init.
+- Don't ask for full bandwidth when running at 160x120, that does not need
+  full bandwidth
+- Make minimum acceptable bandwidth depend upon resolution
 
-auvisio USB-DVB-T-Receiver & -Recorder "DR-340"
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/media/video/gspca/xirlink_cit.c |   41 +++++++++++++++++++++++-------
+ 1 files changed, 31 insertions(+), 10 deletions(-)
 
-h t t  p : / / w w w 
-.pearl.de/product.jsp?pdid=HPM1520&catid=8909&vid=922&curr=DEM
+diff --git a/drivers/media/video/gspca/xirlink_cit.c b/drivers/media/video/gspca/xirlink_cit.c
+index 8715577..f0f6279 100644
+--- a/drivers/media/video/gspca/xirlink_cit.c
++++ b/drivers/media/video/gspca/xirlink_cit.c
+@@ -2769,16 +2769,43 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 	return 0;
+ }
+ 
++static int sd_isoc_init(struct gspca_dev *gspca_dev)
++{
++	struct usb_host_interface *alt;
++	int max_packet_size;
++
++	switch (gspca_dev->width) {
++		case 160: max_packet_size = 450; break;
++		case 176: max_packet_size = 600; break;
++		default:  max_packet_size = 1022; break;
++	}
++
++	/* Start isoc bandwidth "negotiation" at max isoc bandwidth */
++	alt = &gspca_dev->dev->config->intf_cache[0]->altsetting[1];
++	alt->endpoint[0].desc.wMaxPacketSize = cpu_to_le16(max_packet_size);
++
++	return 0;
++}
++
+ static int sd_isoc_nego(struct gspca_dev *gspca_dev)
+ {
+-	int ret, packet_size;
++	int ret, packet_size, min_packet_size;
+ 	struct usb_host_interface *alt;
+ 
++	switch (gspca_dev->width) {
++		case 160: min_packet_size = 200; break;
++		case 176: min_packet_size = 266; break;
++		default:  min_packet_size = 400; break;
++	}
++
+ 	alt = &gspca_dev->dev->config->intf_cache[0]->altsetting[1];
+ 	packet_size = le16_to_cpu(alt->endpoint[0].desc.wMaxPacketSize);
+-	packet_size -= 100;
+-	if (packet_size < 300)
++	if (packet_size <= min_packet_size)
+ 		return -EIO;
++
++	packet_size -= 100;
++	if (packet_size < min_packet_size)
++		packet_size = min_packet_size;
+ 	alt->endpoint[0].desc.wMaxPacketSize = cpu_to_le16(packet_size);
+ 
+ 	ret = usb_set_interface(gspca_dev->dev, gspca_dev->iface, 1);
+@@ -2796,15 +2823,12 @@ static void sd_stopN(struct gspca_dev *gspca_dev)
+ static void sd_stop0(struct gspca_dev *gspca_dev)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+-	struct usb_host_interface *alt;
+ 
+ 	/* We cannot use gspca_dev->present here as that is not set when
+ 	   sd_init gets called and we get called from sd_init */
+ 	if (!gspca_dev->dev)
+ 		return;
+ 
+-	alt = &gspca_dev->dev->config->intf_cache[0]->altsetting[1];
+-
+ 	switch (sd->model) {
+ 	case CIT_MODEL0:
+ 		/* HDG windows does this, but it causes the cams autogain to
+@@ -2859,10 +2883,6 @@ static void sd_stop0(struct gspca_dev *gspca_dev)
+ 		   restarting the stream after this */
+ 		/* cit_write_reg(gspca_dev, 0x0000, 0x0112); */
+ 		cit_write_reg(gspca_dev, 0x00c0, 0x0100);
+-
+-		/* Start isoc bandwidth "negotiation" at max isoc bandwith
+-		   next stream start */
+-		alt->endpoint[0].desc.wMaxPacketSize = cpu_to_le16(1022);
+ 		break;
+ 	}
+ }
+@@ -3179,6 +3199,7 @@ static const struct sd_desc sd_desc_isoc_nego = {
+ 	.config = sd_config,
+ 	.init = sd_init,
+ 	.start = sd_start,
++	.isoc_init = sd_isoc_init,
+ 	.isoc_nego = sd_isoc_nego,
+ 	.stopN = sd_stopN,
+ 	.stop0 = sd_stop0,
+-- 
+1.7.3.1
 
-dmesg:
-
-[25239.410175] usb 2-1: new high speed USB device using ehci_hcd and 
-address 6
-[25239.569729] Afatech DVB-T 2: Fixing fullspeed to highspeed interval: 
-10 -> 7
-[25239.570294] input: Afatech DVB-T 2 as 
-/devices/pci0000:00/0000:00:1d.7/usb2/2-1/2-1:1.1/input/input12
-[25239.570642] generic-usb 0003:15A4:9016.0003: input,hidraw2: USB HID 
-v1.01 Keyboard [Afatech DVB-T 2] on usb-0000:00:1d.7-1/input1
-[25239.982243] af9015: tuner id:177 not supported, please report!
-[25239.982339] usbcore: registered new interface driver dvb_usb_af9015
-
-
-Cheers!
