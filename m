@@ -1,50 +1,87 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:39136 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752199Ab0JUTV7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Oct 2010 15:21:59 -0400
-Date: Thu, 21 Oct 2010 21:21:45 +0200
-From: Dan Carpenter <error27@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Istvan Varga <istvanv@users.sourceforge.net>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch] V4L/DVB: cx88: uninitialized variable
-Message-ID: <20101021192145.GH5985@bicker>
+Received: from mx1.redhat.com ([209.132.183.28]:36846 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753105Ab0J0JEd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Oct 2010 05:04:33 -0400
+Message-ID: <4CC7EC13.1080008@redhat.com>
+Date: Wed, 27 Oct 2010 11:08:35 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+To: Mitar <mmitar@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Too slow libv4l MJPEG decoding with HD cameras
+References: <AANLkTikGT6m9Ji3bBrwUB-yJY9dT0j8eCP_RNAvh3deG@mail.gmail.com>
+In-Reply-To: <AANLkTikGT6m9Ji3bBrwUB-yJY9dT0j8eCP_RNAvh3deG@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Fixes a gcc warning:
+Hi,
 
-drivers/media/video/cx88/cx88-video.c:772:
-	warning: ‘core’ may be used uninitialized in this function
+On 10/27/2010 01:51 AM, Mitar wrote:
+> Hi!
+>
+> On Sun, Oct 24, 2010 at 6:04 PM, Mitar<mmitar@gmail.com>  wrote:
+>> Has anybody tried to improve MJPEG support in libv4l? With newer
+>> cameras this becomes important.
+>
+> I have made a patch which makes libv4l uses ffmpeg's avcodec library
+> for MJPEG decoding. Performance improvements are unbelievable.
+>
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
+Thanks for the patch!
 
-diff --git a/drivers/media/video/cx88/cx88-video.c b/drivers/media/video/cx88/cx88-video.c
-index 19c64a7..c19ec71 100644
---- a/drivers/media/video/cx88/cx88-video.c
-+++ b/drivers/media/video/cx88/cx88-video.c
-@@ -752,7 +752,7 @@ static int video_open(struct file *file)
- {
- 	struct video_device *vdev = video_devdata(file);
- 	struct cx8800_dev *dev = video_drvdata(file);
--	struct cx88_core *core;
-+	struct cx88_core *core = dev->core;
- 	struct cx8800_fh *fh;
- 	enum v4l2_buf_type type = 0;
- 	int radio = 0;
-@@ -786,7 +786,6 @@ static int video_open(struct file *file)
- 	fh->fmt      = format_by_fourcc(V4L2_PIX_FMT_BGR24);
- 
- 	mutex_lock(&core->lock);
--	core = dev->core;
- 
- 	videobuf_queue_sg_init(&fh->vidq, &cx8800_video_qops,
- 			    &dev->pci->dev, &dev->slock,
+> I have been testing with Logitech HD Pro Webcam C910 and
+> 2.6.36-rc6-amd64 and Intel(R) Core(TM)2 Quad CPU Q9400 @ 2.66GHz.
+> Camera supports 2592x1944 at 10 FPS MJPEG stream.
+>
+> With using original MJPEG code it takes my computer on average 129.614
+> ms to decode the frame what is 0.0257 us per pixel.
+>
+> With using ffmpeg MJPEG decoding it takes my computer on average
+> 43.616 ms to decode the frame what is 0.0087 us per pixel.
+
+That is a great improvement, but using ffmpeg in libv4l is not an option
+for multiple reasons:
+
+1) It is GPL licensed not LGPL
+2) It has various other legal issues which means it is not available
+    in most distro's main repository.
+
+So I'm afraid that using ffmpeg really is out of the question. What
+would be interesting is to see how libjpeg performs and then esp. the
+turbo-libjpeg version:
+http://libjpeg-turbo.virtualgl.org/
+
+I would love to see a patch to use that instead of tiny jpeg, leaving
+tinyjpeg usage only for the pixart jpeg variant stuff.
+
+Note that some cameras generate what I call planar jpeg, this means
+that they send 3 SOS markers with one component per scan. I don't know
+if libjpeg will grok this (I had to patch libv4l's tinyjpeg copy for
+this). But first lets see how libjpeg performs, and then we can always
+use tinyjpeg to parse the header and depending on the header decide to
+use tinyjpeg or libjpeg.
+
+Sorry about nacking your ffmpeg patch, I hope that you are willing to
+do a patch to switch to libjpeg, as I'm afraid I currently don't have
+time to look into this.
+
+Oh and a hint when using libjpeg for in memory images, please
+use the jpeg_mem_src code from here:
+http://gphoto.svn.sourceforge.net/viewvc/gphoto/branches/libgphoto2-2_4/libgphoto2/camlibs/ax203/jpeg_memsrcdest.c?revision=13328&view=markup
+
+This code was specifically written to be API compatible with the
+one introduced in newer libjpeg versions (8), while providing
+memory src support when working with libjpeg versions which
+do not ship with a memory src themselves like the version 6b
+shipped by most distros (and used as a basis for libjpeg turbo).
+
+So by using this memory src code, the libv4l libjpeg support can
+work with libjpeg6-8 and libjpeg-turbo without needing any
+ifdef's other then the one in that .c file.
+
+Thanks & Regards,
+
+Hans
