@@ -1,38 +1,107 @@
 Return-path: <mchehab@pedra>
-Received: from gateway15.websitewelcome.com ([67.18.88.8]:41133 "HELO
-	gateway15.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752119Ab0JUWJ0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Oct 2010 18:09:26 -0400
-Received: from [209.85.161.174] (port=65432 helo=mail-gx0-f174.google.com)
-	by gator1121.hostgator.com with esmtpsa (TLSv1:RC4-MD5:128)
-	(Exim 4.69)
-	(envelope-from <demiurg@femtolinux.com>)
-	id 1P933b-0008Vn-6F
-	for linux-media@vger.kernel.org; Thu, 21 Oct 2010 16:52:19 -0500
-Received: by gxk3 with SMTP id 3so60527gxk.19
-        for <linux-media@vger.kernel.org>; Thu, 21 Oct 2010 14:52:20 -0700 (PDT)
-MIME-Version: 1.0
-Date: Thu, 21 Oct 2010 23:52:20 +0200
-Message-ID: <AANLkTi=-_GX0LOpCWZ3==Yaq32sD1QSL-VDi=HVqRMyx@mail.gmail.com>
-Subject: Wintv-HVR-1120 woes
-From: Sasha Sirotkin <demiurg@femtolinux.com>
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:49040 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761105Ab0J0Mbl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Oct 2010 08:31:41 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Lee Jones <lee.jones@canonical.com>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 5/7] gspca_xirlink_cit: Frames have a 4 byte footer
+Date: Wed, 27 Oct 2010 14:35:24 +0200
+Message-Id: <1288182926-25400-6-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1288182926-25400-1-git-send-email-hdegoede@redhat.com>
+References: <1288182926-25400-1-git-send-email-hdegoede@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-I'm having all sorts of troubles with Wintv-HVR-1120 on Ubuntu 10.10
-(kernel 2.6.35-22). Judging from what I've seen on the net, including
-this mailing list, I'm not the only one not being able to use this
-card and no solution seem to exist.
+Atleast on the ibm netcam pro frames have a 4 byte footer, take this
+into account when calculating sizeimage.
 
-Problems:
-1. The driver yells various cryptic error messages
-("tda18271_write_regs: [1-0060|M] ERROR: idx = 0x5, len = 1,
-i2c_transfer returned: -5", "tda18271_set_analog_params: [1-0060|M]
-error -5 on line 1045", etc)
-2. DVB-T scan (using w_scan) produces no results
-3. Analog seems to work, but with very poor quality
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/media/video/gspca/xirlink_cit.c |   24 ++++++++++++------------
+ 1 files changed, 12 insertions(+), 12 deletions(-)
 
-Any suggestions would be greatly appreciated.
+diff --git a/drivers/media/video/gspca/xirlink_cit.c b/drivers/media/video/gspca/xirlink_cit.c
+index f0f6279..ea73377 100644
+--- a/drivers/media/video/gspca/xirlink_cit.c
++++ b/drivers/media/video/gspca/xirlink_cit.c
+@@ -185,60 +185,60 @@ static const struct ctrl sd_ctrls[] = {
+ static const struct v4l2_pix_format cif_yuv_mode[] = {
+ 	{176, 144, V4L2_PIX_FMT_CIT_YYVYUY, V4L2_FIELD_NONE,
+ 		.bytesperline = 176,
+-		.sizeimage = 176 * 144 * 3 / 2,
++		.sizeimage = 176 * 144 * 3 / 2 + 4,
+ 		.colorspace = V4L2_COLORSPACE_SRGB},
+ 	{352, 288, V4L2_PIX_FMT_CIT_YYVYUY, V4L2_FIELD_NONE,
+ 		.bytesperline = 352,
+-		.sizeimage = 352 * 288 * 3 / 2,
++		.sizeimage = 352 * 288 * 3 / 2 + 4,
+ 		.colorspace = V4L2_COLORSPACE_SRGB},
+ };
+ 
+ static const struct v4l2_pix_format vga_yuv_mode[] = {
+ 	{160, 120, V4L2_PIX_FMT_CIT_YYVYUY, V4L2_FIELD_NONE,
+ 		.bytesperline = 160,
+-		.sizeimage = 160 * 120 * 3 / 2,
++		.sizeimage = 160 * 120 * 3 / 2 + 4,
+ 		.colorspace = V4L2_COLORSPACE_SRGB},
+ 	{320, 240, V4L2_PIX_FMT_CIT_YYVYUY, V4L2_FIELD_NONE,
+ 		.bytesperline = 320,
+-		.sizeimage = 320 * 240 * 3 / 2,
++		.sizeimage = 320 * 240 * 3 / 2 + 4,
+ 		.colorspace = V4L2_COLORSPACE_SRGB},
+ 	{640, 480, V4L2_PIX_FMT_CIT_YYVYUY, V4L2_FIELD_NONE,
+ 		.bytesperline = 640,
+-		.sizeimage = 640 * 480 * 3 / 2,
++		.sizeimage = 640 * 480 * 3 / 2 + 4,
+ 		.colorspace = V4L2_COLORSPACE_SRGB},
+ };
+ 
+ static const struct v4l2_pix_format model0_mode[] = {
+ 	{160, 120, V4L2_PIX_FMT_CIT_YYVYUY, V4L2_FIELD_NONE,
+ 		.bytesperline = 160,
+-		.sizeimage = 160 * 120 * 3 / 2,
++		.sizeimage = 160 * 120 * 3 / 2 + 4,
+ 		.colorspace = V4L2_COLORSPACE_SRGB},
+ 	{176, 144, V4L2_PIX_FMT_CIT_YYVYUY, V4L2_FIELD_NONE,
+ 		.bytesperline = 176,
+-		.sizeimage = 176 * 144 * 3 / 2,
++		.sizeimage = 176 * 144 * 3 / 2 + 4,
+ 		.colorspace = V4L2_COLORSPACE_SRGB},
+ 	{320, 240, V4L2_PIX_FMT_CIT_YYVYUY, V4L2_FIELD_NONE,
+ 		.bytesperline = 320,
+-		.sizeimage = 320 * 240 * 3 / 2,
++		.sizeimage = 320 * 240 * 3 / 2 + 4,
+ 		.colorspace = V4L2_COLORSPACE_SRGB},
+ };
+ 
+ static const struct v4l2_pix_format model2_mode[] = {
+ 	{160, 120, V4L2_PIX_FMT_CIT_YYVYUY, V4L2_FIELD_NONE,
+ 		.bytesperline = 160,
+-		.sizeimage = 160 * 120 * 3 / 2,
++		.sizeimage = 160 * 120 * 3 / 2 + 4,
+ 		.colorspace = V4L2_COLORSPACE_SRGB},
+ 	{176, 144, V4L2_PIX_FMT_CIT_YYVYUY, V4L2_FIELD_NONE,
+ 		.bytesperline = 176,
+-		.sizeimage = 176 * 144 * 3 / 2,
++		.sizeimage = 176 * 144 * 3 / 2 + 4,
+ 		.colorspace = V4L2_COLORSPACE_SRGB},
+ 	{320, 240, V4L2_PIX_FMT_SGRBG8, V4L2_FIELD_NONE,
+ 		.bytesperline = 320,
+-		.sizeimage = 320 * 240,
++		.sizeimage = 320 * 240 + 4,
+ 		.colorspace = V4L2_COLORSPACE_SRGB},
+ 	{352, 288, V4L2_PIX_FMT_SGRBG8, V4L2_FIELD_NONE,
+ 		.bytesperline = 352,
+-		.sizeimage = 352 * 288,
++		.sizeimage = 352 * 288 + 4,
+ 		.colorspace = V4L2_COLORSPACE_SRGB},
+ };
+ 
+-- 
+1.7.3.1
+
