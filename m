@@ -1,72 +1,105 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:50297 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752209Ab0JSOte (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Oct 2010 10:49:34 -0400
-Message-ID: <4CBDAFF5.1090509@infradead.org>
-Date: Tue, 19 Oct 2010 12:49:25 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Daniel Drake <dsd@laptop.org>
-Subject: Re: [PATCH] viafb camera controller driver
-References: <20101010162313.5caa137f@bike.lwn.net> <201010190952.46938.laurent.pinchart@ideasonboard.com> <4CBD76F3.5060609@infradead.org> <201010191505.04436.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201010191505.04436.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:58907 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754846Ab0J0Mbf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Oct 2010 08:31:35 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Lee Jones <lee.jones@canonical.com>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 1/7] gspca: submit interrupt urbs *after* isoc urbs
+Date: Wed, 27 Oct 2010 14:35:20 +0200
+Message-Id: <1288182926-25400-2-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1288182926-25400-1-git-send-email-hdegoede@redhat.com>
+References: <1288182926-25400-1-git-send-email-hdegoede@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 19-10-2010 11:05, Laurent Pinchart escreveu:
-> Hi Mauro,
-> 
->> It is not a "big lock": it doesn't stop other CPU's, doesn't affect other
->> hardware, not even another V4L device. Basically, what this new lock does
->> is to serialize access to the hardware and to the hardware-mirrored data.
-> 
-> The lock serializes all ioctls. That's much more than protecting access to 
-> data (both in system memory and in the hardware).
+Currently gspca supported usb-1.1 webcams for which we support the input
+button through an interrupt endpoint won't stream (not enough bandwidth
+error) when used through an USB-2.0 hub.
 
-It is not much more. What ioctl's doesn't access the hardware directly nor access
-some struct that caches the hardware data? None, at the most complex devices.
+After much debugging I've found out that the cause for this is that the
+ehci-sched.c schedeling code does not like it when there are already urb's
+scheduled when (large) isoc urbs are queued. By moving the submission
+of the interrupt urbs to after submitting the isoc urbs the camera
+starts working again through usb-2.0 hubs.
 
-For simpler devices, there are very few VIDIOC*ENUM stuff that may just return
-a fixed set of values, but the userspace applications that call them serializes 
-the access anyway (as they are the enum ioctls, used during the hardware detection 
-phase of the userspace software).
+Note that this does not fix isoc. streaming through a usb-hub while another
+1.1 usb device (like the microphone of the same cam) is also active
+at the same time :(
 
-So, in practice, it makes no difference to serialize everything or to remove
-the lock for the very few ioctls that just return a fixed set of info.
+I've spend a long time analyzing the linux kernel ehci scheduler code,
+resulting in this (long) mail:
+http://www.spinics.net/lists/linux-usb/msg37982.html
 
->> There are basically several opinions about this new schema: some that think
->> that this is the right thing to do, others think that think that this is
->> the wrong thing or that this is acceptable only as a transition for
->> BKL-free drivers.
-> 
-> Indeed, and I belong to the second group.
+The conclusion of the following mail thread is that yes there are several
+issues when using usb-1.1 devices through a usb-2.0 hub, but these are not
+easily fixable in the current code. Fixing this in ehci-sched.c requires
+an almost full rewrite, which is not bound to happen anytime soon.
 
-And Hans belong to the first one.
+So with this patch gspca driven usb-1.1 webcams will atleast work when
+connected through an usb-2.0 hub when the microphone is not used.
 
->> IMO, I think that both ways are acceptable: a core-assisted
->> "hardware-access lock" helps to avoid having lots of lock/unlock code at
->> the driver, making drivers cleaner and easier to review, and reducing the
->> risk of lock degradation with time. On the other hand, some drivers may
->> require more complex locking schemas, like, for example, devices that
->> support several simultaneous independent video streams may have some
->> common parts used by all streams that need to be serialized, and other
->> parts that can (and should) not be serialized. So, a core-assisted locking
->> for some cases may cause unneeded long waits.
+As an added bonus this patch avoids extra destroy/create input urb cycles
+when we end up falling back to a lower speed alt setting because of bandwidth
+limitations.
 
-I am in a position between the first and the second group.
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/media/video/gspca/gspca.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
 
-Reviewing locks is simpler with the new schema, and, if well implemented, it
-will help to solve a big problem, but I don't believe that this schema is enough
-to solve all cases, nor that drivers with lots of independent streams should
-use it.
+diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
+index 8fe8fb4..dbd63c5 100644
+--- a/drivers/media/video/gspca/gspca.c
++++ b/drivers/media/video/gspca/gspca.c
+@@ -676,13 +676,11 @@ static struct usb_host_endpoint *get_ep(struct gspca_dev *gspca_dev)
+ 			i, ep->desc.bEndpointAddress);
+ 	gspca_dev->alt = i;		/* memorize the current alt setting */
+ 	if (gspca_dev->nbalt > 1) {
+-		gspca_input_destroy_urb(gspca_dev);
+ 		ret = usb_set_interface(gspca_dev->dev, gspca_dev->iface, i);
+ 		if (ret < 0) {
+ 			err("set alt %d err %d", i, ret);
+ 			ep = NULL;
+ 		}
+-		gspca_input_create_urb(gspca_dev);
+ 	}
+ 	return ep;
+ }
+@@ -781,7 +779,7 @@ static int gspca_init_transfer(struct gspca_dev *gspca_dev)
+ 
+ 	if (!gspca_dev->present) {
+ 		ret = -ENODEV;
+-		goto out;
++		goto unlock;
+ 	}
+ 
+ 	/* reset the streaming variables */
+@@ -802,8 +800,10 @@ static int gspca_init_transfer(struct gspca_dev *gspca_dev)
+ 	if (gspca_dev->sd_desc->isoc_init) {
+ 		ret = gspca_dev->sd_desc->isoc_init(gspca_dev);
+ 		if (ret < 0)
+-			goto out;
++			goto unlock;
+ 	}
++
++	gspca_input_destroy_urb(gspca_dev);
+ 	ep = get_ep(gspca_dev);
+ 	if (ep == NULL) {
+ 		ret = -EIO;
+@@ -873,6 +873,8 @@ static int gspca_init_transfer(struct gspca_dev *gspca_dev)
+ 		}
+ 	}
+ out:
++	gspca_input_create_urb(gspca_dev);
++unlock:
+ 	mutex_unlock(&gspca_dev->usb_lock);
+ 	return ret;
+ }
+-- 
+1.7.3.1
 
-Cheers,
-Mauro
