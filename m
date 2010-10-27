@@ -1,21 +1,18 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com (ext-mx04.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.8])
-	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP
-	id o9RFUmbc002158
-	for <video4linux-list@redhat.com>; Wed, 27 Oct 2010 11:30:48 -0400
-Received: from mail-fx0-f46.google.com (mail-fx0-f46.google.com
-	[209.85.161.46])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o9RFUb38032147
-	for <video4linux-list@redhat.com>; Wed, 27 Oct 2010 11:30:37 -0400
-Received: by fxm16 with SMTP id 16so795198fxm.33
-	for <video4linux-list@redhat.com>; Wed, 27 Oct 2010 08:30:36 -0700 (PDT)
-Message-ID: <4CC84596.2000704@gmail.com>
-Date: Wed, 27 Oct 2010 18:30:30 +0300
-From: Alex Ivasyuv <industral@gmail.com>
+Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.11])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o9REALfE010896
+	for <video4linux-list@redhat.com>; Wed, 27 Oct 2010 10:10:21 -0400
+Received: from nm1-vm0.bullet.mail.sp2.yahoo.com
+	(nm1-vm0.bullet.mail.sp2.yahoo.com [98.139.91.202])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o9REA7ca017951
+	for <video4linux-list@redhat.com>; Wed, 27 Oct 2010 10:10:07 -0400
+Message-ID: <730498.37514.qm@web111717.mail.gq1.yahoo.com>
+Date: Wed, 27 Oct 2010 06:57:32 -0700 (PDT)
+From: gccdragoonkain@yahoo.com
+To: coolguys@novell.com, video4linux-list@redhat.com
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Subject: V4L2 capture example, gray color
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -23,53 +20,16 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: video4linux-list-bounces@redhat.com
 Sender: <mchehab@pedra>
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+http://vosoqere.t35.com/
 
-I've tried to use sample code example from 
-http://v4l2spec.bytesex.org/spec/capture-example.html
-and save frame data to image, and found, that images are *gray* instead 
-of color.
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-
-using namespace std;
-
-int i = 0;
-
-.....
-
-static void process_image(const void * p) {
-     ++i;
-     fputc('.', stdout);
-     fflush(stdout);
-
-     std::stringstream out;
-     out << "capt-" << i << ".raw";
-
-     ofstream outfile(out.str().c_str(), ofstream::binary);
-     outfile.write((const char*) p, buffers[0].length);
-     outfile.close();
-}
-
-....
-
-Raw images I converted with "raw2tiff" application.
-
-lspci: http://pastebin.com/raw.php?i=VVL8m2Gu
-my code: http://pastebin.com/R3j3LL96
-
-What' wrong with my code? Why I get in gray, instead of color?
-
-Thanks,
-
+      
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
