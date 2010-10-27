@@ -1,156 +1,34 @@
 Return-path: <mchehab@pedra>
-Received: from smtprelay-h21.telenor.se ([195.54.99.196]:46587 "EHLO
-	smtprelay-h21.telenor.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753648Ab0JNQ4c (ORCPT
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:61468 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761296Ab0J0OB0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Oct 2010 12:56:32 -0400
-Subject: [RESEND][PATCH 2/2 v2] mfd: Add timberdale video-in driver to
- timberdale
-From: Richard =?ISO-8859-1?Q?R=F6jfors?=
-	<richard.rojfors@pelagicore.com>
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Andrew Morton <akpm@linux-foundation.org>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 14 Oct 2010 18:37:40 +0200
-Message-ID: <1287074260.6322.18.camel@debian>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	Wed, 27 Oct 2010 10:01:26 -0400
+Received: by qyk10 with SMTP id 10so783524qyk.19
+        for <linux-media@vger.kernel.org>; Wed, 27 Oct 2010 07:01:25 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20101027104933.GC15291@aniel.fritz.box>
+References: <AANLkTikGT6m9Ji3bBrwUB-yJY9dT0j8eCP_RNAvh3deG@mail.gmail.com>
+	<4CC7EC13.1080008@redhat.com>
+	<20101027104933.GC15291@aniel.fritz.box>
+Date: Wed, 27 Oct 2010 16:01:25 +0200
+Message-ID: <AANLkTin3SbL_DL+ZL=8AmTi1nHhKAT_iARnGMQE1H6Je@mail.gmail.com>
+Subject: Re: [PATCH] Too slow libv4l MJPEG decoding with HD cameras
+From: Mitar <mmitar@gmail.com>
+To: Janne Grunau <j@jannau.net>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch defines platform data for the video-in driver
-and adds it to all configurations of timberdale.
+Hi!
 
-Signed-off-by: Richard Röjfors <richard.rojfors@pelagicore.com>
----
-diff --git a/drivers/mfd/timberdale.c b/drivers/mfd/timberdale.c
-index ac59950..52a651b 100644
---- a/drivers/mfd/timberdale.c
-+++ b/drivers/mfd/timberdale.c
-@@ -40,6 +40,7 @@
- #include <linux/spi/mc33880.h>
- 
- #include <media/timb_radio.h>
-+#include <media/timb_video.h>
- 
- #include <linux/timb_dma.h>
- 
-@@ -238,7 +239,24 @@ static const __devinitconst struct resource timberdale_uartlite_resources[] = {
- 	},
- };
- 
--static const __devinitconst struct resource timberdale_radio_resources[] = {
-+static __devinitdata struct i2c_board_info timberdale_adv7180_i2c_board_info = {
-+	/* Requires jumper JP9 to be off */
-+	I2C_BOARD_INFO("adv7180", 0x42 >> 1),
-+	.irq = IRQ_TIMBERDALE_ADV7180
-+};
-+
-+static __devinitdata struct timb_video_platform_data
-+	timberdale_video_platform_data = {
-+	.dma_channel = DMA_VIDEO_RX,
-+	.i2c_adapter = 0,
-+	.encoder = {
-+		.module_name = "adv7180",
-+		.info = &timberdale_adv7180_i2c_board_info
-+	}
-+};
-+
-+static const __devinitconst struct resource
-+timberdale_radio_resources[] = {
- 	{
- 		.start	= RDSOFFSET,
- 		.end	= RDSEND,
-@@ -272,6 +290,18 @@ static __devinitdata struct timb_radio_platform_data
- 	}
- };
- 
-+static const __devinitconst struct resource timberdale_video_resources[] = {
-+	{
-+		.start	= LOGIWOFFSET,
-+		.end	= LOGIWEND,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	/*
-+	note that the "frame buffer" is located in DMA area
-+	starting at 0x1200000
-+	*/
-+};
-+
- static __devinitdata struct timb_dma_platform_data timb_dma_platform_data = {
- 	.nr_channels = 10,
- 	.channels = {
-@@ -372,6 +402,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg0[] = {
- 		.data_size = sizeof(timberdale_gpio_platform_data),
- 	},
- 	{
-+		.name = "timb-video",
-+		.num_resources = ARRAY_SIZE(timberdale_video_resources),
-+		.resources = timberdale_video_resources,
-+		.platform_data = &timberdale_video_platform_data,
-+		.data_size = sizeof(timberdale_video_platform_data),
-+	},
-+	{
- 		.name = "timb-radio",
- 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
- 		.resources = timberdale_radio_resources,
-@@ -430,6 +467,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg1[] = {
- 		.resources = timberdale_mlogicore_resources,
- 	},
- 	{
-+		.name = "timb-video",
-+		.num_resources = ARRAY_SIZE(timberdale_video_resources),
-+		.resources = timberdale_video_resources,
-+		.platform_data = &timberdale_video_platform_data,
-+		.data_size = sizeof(timberdale_video_platform_data),
-+	},
-+	{
- 		.name = "timb-radio",
- 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
- 		.resources = timberdale_radio_resources,
-@@ -478,6 +522,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg2[] = {
- 		.data_size = sizeof(timberdale_gpio_platform_data),
- 	},
- 	{
-+		.name = "timb-video",
-+		.num_resources = ARRAY_SIZE(timberdale_video_resources),
-+		.resources = timberdale_video_resources,
-+		.platform_data = &timberdale_video_platform_data,
-+		.data_size = sizeof(timberdale_video_platform_data),
-+	},
-+	{
- 		.name = "timb-radio",
- 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
- 		.resources = timberdale_radio_resources,
-@@ -521,6 +572,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg3[] = {
- 		.data_size = sizeof(timberdale_gpio_platform_data),
- 	},
- 	{
-+		.name = "timb-video",
-+		.num_resources = ARRAY_SIZE(timberdale_video_resources),
-+		.resources = timberdale_video_resources,
-+		.platform_data = &timberdale_video_platform_data,
-+		.data_size = sizeof(timberdale_video_platform_data),
-+	},
-+	{
- 		.name = "timb-radio",
- 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
- 		.resources = timberdale_radio_resources,
-diff --git a/drivers/mfd/timberdale.h b/drivers/mfd/timberdale.h
-index c11bf6e..4412acd 100644
---- a/drivers/mfd/timberdale.h
-+++ b/drivers/mfd/timberdale.h
-@@ -23,7 +23,7 @@
- #ifndef MFD_TIMBERDALE_H
- #define MFD_TIMBERDALE_H
- 
--#define DRV_VERSION		"0.2"
-+#define DRV_VERSION		"0.3"
- 
- /* This driver only support versions >= 3.8 and < 4.0  */
- #define TIMB_SUPPORTED_MAJOR	3
+On Wed, Oct 27, 2010 at 12:49 PM, Janne Grunau <j@jannau.net> wrote:
+> While the patch is not the cleanest, there shouldn't be a problem of
+> making ffmpeg mjpeg decoding optional.
 
+In which way not the cleanest? I am always searching for ways to
+improve my further work. So please elaborate.
+
+
+Mitar
