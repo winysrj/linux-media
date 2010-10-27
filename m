@@ -1,53 +1,341 @@
 Return-path: <mchehab@pedra>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:56246 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934271Ab0J2R5K convert rfc822-to-8bit (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:53627 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761108Ab0J0MjH convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Oct 2010 13:57:10 -0400
-Received: from tele (unknown [82.245.201.222])
-	by smtp5-g21.free.fr (Postfix) with ESMTP id 19B39D4803C
-	for <linux-media@vger.kernel.org>; Fri, 29 Oct 2010 19:57:04 +0200 (CEST)
-Date: Fri, 29 Oct 2010 19:58:18 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 2.6.37] gspca for_2.6.37
-Message-ID: <20101029195818.1abd1759@tele>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+	Wed, 27 Oct 2010 08:39:07 -0400
+Received: by fxm16 with SMTP id 16so630399fxm.19
+        for <linux-media@vger.kernel.org>; Wed, 27 Oct 2010 05:39:06 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1288182926-25400-4-git-send-email-hdegoede@redhat.com>
+References: <1288182926-25400-1-git-send-email-hdegoede@redhat.com>
+	<1288182926-25400-4-git-send-email-hdegoede@redhat.com>
+Date: Wed, 27 Oct 2010 14:39:05 +0200
+Message-ID: <AANLkTi=tiYJU0fLVqSiN-BRGgMqcf3eF0jFFVDTtr-Lh@mail.gmail.com>
+Subject: Re: [PATCH 3/7] gspca-stv06xx: support bandwidth changing
+From: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Lee Jones <lee.jones@canonical.com>,
+	Jean-Francois Moine <moinejf@free.fr>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The following changes since commit
-18cb657ca1bafe635f368346a1676fb04c512edf:
+2010/10/27 Hans de Goede <hdegoede@redhat.com>:
+> stv06xx devices have only one altsetting, but the actual used
+> bandwidth can be programmed through a register. We were already
+> setting this register lower then the max packetsize of the altsetting
+> indicates. This patch makes the gspca-stv06xx update the usb descriptor
+> for the alt setting to reflect the actual packetsize in use, so that
+> the usb subsystem uses the correct information for scheduling usb transfers.
+>
+> This patch also tries to fallback to lower speeds in case a ENOSPC error
+> is received when submitting urbs, but currently this is only supported
+> with stv06xx cams with the pb0100 sensor, as this is the only one for
+> which we know how to change the framerate.
+>
+> This patch is based on an initial incomplete patch by
+> Lee Jones <lee.jones@canonical.com>
+>
+> Signed-off-by: Lee Jones <lee.jones@canonical.com>
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-  Merge branch 'stable/xen-pcifront-0.8.2' of git://git.kernel.org/pub/scm/linux/kernel/git/konrad/xen   and branch 'for-linus' of git://xenbits.xen.org/people/sstabellini/linux-pvhvm (2010-10-28 17:11:17 -0700)
+Cool,
+Has this been verified to work with all affected devices?
 
-are available in the git repository at:
+Best regards,
+Erik
 
-  git://linuxtv.org/jfrancois/gspca.git for_2.6.37
 
-Jean-FranÃ§ois Moine (5):
-      gspca - main: Version change
-      gspca - main: Fix a small code error
-      gspca - zc3xx: Bad clocksetting for mt9v111_3 with 640x480 resolution
-      gspca - sonixj: Simplify and clarify the hv7131r probe function
-      gspca: Convert some uppercase hexadecimal values to lowercase
-
- drivers/media/video/gspca/cpia1.c                  |   10 +++++-----
- drivers/media/video/gspca/gspca.c                  |    4 ++--
- drivers/media/video/gspca/m5602/m5602_ov9650.c     |    2 +-
- drivers/media/video/gspca/pac207.c                 |    4 ++--
- drivers/media/video/gspca/sonixb.c                 |    4 ++--
- drivers/media/video/gspca/sonixj.c                 |   18 +++++++++---------
- drivers/media/video/gspca/spca561.c                |    2 +-
- drivers/media/video/gspca/stv06xx/stv06xx.c        |    2 +-
- drivers/media/video/gspca/stv06xx/stv06xx_st6422.c |    4 ++--
- drivers/media/video/gspca/t613.c                   |    2 +-
- drivers/media/video/gspca/tv8532.c                 |    2 +-
- drivers/media/video/gspca/zc3xx.c                  |    2 +-
- 12 files changed, 28 insertions(+), 28 deletions(-)
-
--- 
-Ken ar c'hentaÃ±	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+> ---
+>  drivers/media/video/gspca/stv06xx/stv06xx.c        |   55 +++++++++++++++++++-
+>  drivers/media/video/gspca/stv06xx/stv06xx_hdcs.h   |   11 ++++-
+>  drivers/media/video/gspca/stv06xx/stv06xx_pb0100.c |   18 +++++--
+>  drivers/media/video/gspca/stv06xx/stv06xx_pb0100.h |    3 +
+>  drivers/media/video/gspca/stv06xx/stv06xx_sensor.h |    4 ++
+>  drivers/media/video/gspca/stv06xx/stv06xx_st6422.c |   17 +------
+>  drivers/media/video/gspca/stv06xx/stv06xx_st6422.h |    3 +
+>  drivers/media/video/gspca/stv06xx/stv06xx_vv6410.h |    9 ++--
+>  8 files changed, 93 insertions(+), 27 deletions(-)
+>
+> diff --git a/drivers/media/video/gspca/stv06xx/stv06xx.c b/drivers/media/video/gspca/stv06xx/stv06xx.c
+> index 086de44..ca86762 100644
+> --- a/drivers/media/video/gspca/stv06xx/stv06xx.c
+> +++ b/drivers/media/video/gspca/stv06xx/stv06xx.c
+> @@ -263,7 +263,21 @@ static int stv06xx_init(struct gspca_dev *gspca_dev)
+>  static int stv06xx_start(struct gspca_dev *gspca_dev)
+>  {
+>        struct sd *sd = (struct sd *) gspca_dev;
+> -       int err;
+> +       struct usb_host_interface *alt;
+> +       struct usb_interface *intf;
+> +       int err, packet_size;
+> +
+> +       intf = usb_ifnum_to_if(sd->gspca_dev.dev, sd->gspca_dev.iface);
+> +       alt = usb_altnum_to_altsetting(intf, sd->gspca_dev.alt);
+> +       if (!alt) {
+> +               PDEBUG(D_ERR, "Couldn't get altsetting");
+> +               return -EIO;
+> +       }
+> +
+> +       packet_size = le16_to_cpu(alt->endpoint[0].desc.wMaxPacketSize);
+> +       err = stv06xx_write_bridge(sd, STV_ISO_SIZE_L, packet_size);
+> +       if (err < 0)
+> +               return err;
+>
+>        /* Prepare the sensor for start */
+>        err = sd->sensor->start(sd);
+> @@ -282,6 +296,43 @@ out:
+>        return (err < 0) ? err : 0;
+>  }
+>
+> +static int stv06xx_isoc_init(struct gspca_dev *gspca_dev)
+> +{
+> +       struct usb_host_interface *alt;
+> +       struct sd *sd = (struct sd *) gspca_dev;
+> +
+> +       /* Start isoc bandwidth "negotiation" at max isoc bandwidth */
+> +       alt = &gspca_dev->dev->config->intf_cache[0]->altsetting[1];
+> +       alt->endpoint[0].desc.wMaxPacketSize =
+> +               cpu_to_le16(sd->sensor->max_packet_size[gspca_dev->curr_mode]);
+> +
+> +       return 0;
+> +}
+> +
+> +static int stv06xx_isoc_nego(struct gspca_dev *gspca_dev)
+> +{
+> +       int ret, packet_size, min_packet_size;
+> +       struct usb_host_interface *alt;
+> +       struct sd *sd = (struct sd *) gspca_dev;
+> +
+> +       alt = &gspca_dev->dev->config->intf_cache[0]->altsetting[1];
+> +       packet_size = le16_to_cpu(alt->endpoint[0].desc.wMaxPacketSize);
+> +       min_packet_size = sd->sensor->min_packet_size[gspca_dev->curr_mode];
+> +       if (packet_size <= min_packet_size)
+> +               return -EIO;
+> +
+> +       packet_size -= 100;
+> +       if (packet_size < min_packet_size)
+> +               packet_size = min_packet_size;
+> +       alt->endpoint[0].desc.wMaxPacketSize = cpu_to_le16(packet_size);
+> +
+> +       ret = usb_set_interface(gspca_dev->dev, gspca_dev->iface, 1);
+> +       if (ret < 0)
+> +               PDEBUG(D_ERR|D_STREAM, "set alt 1 err %d", ret);
+> +
+> +       return ret;
+> +}
+> +
+>  static void stv06xx_stopN(struct gspca_dev *gspca_dev)
+>  {
+>        int err;
+> @@ -462,6 +513,8 @@ static const struct sd_desc sd_desc = {
+>        .start = stv06xx_start,
+>        .stopN = stv06xx_stopN,
+>        .pkt_scan = stv06xx_pkt_scan,
+> +       .isoc_init = stv06xx_isoc_init,
+> +       .isoc_nego = stv06xx_isoc_nego,
+>  #if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
+>        .int_pkt_scan = sd_int_pkt_scan,
+>  #endif
+> diff --git a/drivers/media/video/gspca/stv06xx/stv06xx_hdcs.h b/drivers/media/video/gspca/stv06xx/stv06xx_hdcs.h
+> index cf3d0cc..b538dce 100644
+> --- a/drivers/media/video/gspca/stv06xx/stv06xx_hdcs.h
+> +++ b/drivers/media/video/gspca/stv06xx/stv06xx_hdcs.h
+> @@ -146,6 +146,11 @@ const struct stv06xx_sensor stv06xx_sensor_hdcs1x00 = {
+>        .i2c_addr = (0x55 << 1),
+>        .i2c_len = 1,
+>
+> +       /* FIXME (see if we can lower min_packet_size, needs testing, and also
+> +          adjusting framerate when the bandwidth gets lower) */
+> +       .min_packet_size = { 847 },
+> +       .max_packet_size = { 847 },
+> +
+>        .init = hdcs_init,
+>        .probe = hdcs_probe_1x00,
+>        .start = hdcs_start,
+> @@ -160,6 +165,11 @@ const struct stv06xx_sensor stv06xx_sensor_hdcs1020 = {
+>        .i2c_addr = (0x55 << 1),
+>        .i2c_len = 1,
+>
+> +       /* FIXME (see if we can lower min_packet_size, needs testing, and also
+> +          adjusting framerate when the bandwidthm gets lower) */
+> +       .min_packet_size = { 847 },
+> +       .max_packet_size = { 847 },
+> +
+>        .init = hdcs_init,
+>        .probe = hdcs_probe_1020,
+>        .start = hdcs_start,
+> @@ -177,7 +187,6 @@ static const u16 stv_bridge_init[][2] = {
+>        {STV_REG04, 0x07},
+>
+>        {STV_SCAN_RATE, 0x20},
+> -       {STV_ISO_SIZE_L, 847},
+>        {STV_Y_CTRL, 0x01},
+>        {STV_X_CTRL, 0x0a}
+>  };
+> diff --git a/drivers/media/video/gspca/stv06xx/stv06xx_pb0100.c b/drivers/media/video/gspca/stv06xx/stv06xx_pb0100.c
+> index 285221e..ac47b4c 100644
+> --- a/drivers/media/video/gspca/stv06xx/stv06xx_pb0100.c
+> +++ b/drivers/media/video/gspca/stv06xx/stv06xx_pb0100.c
+> @@ -208,11 +208,24 @@ static int pb0100_probe(struct sd *sd)
+>
+>  static int pb0100_start(struct sd *sd)
+>  {
+> -       int err;
+> +       int err, packet_size, max_packet_size;
+> +       struct usb_host_interface *alt;
+> +       struct usb_interface *intf;
+>        struct cam *cam = &sd->gspca_dev.cam;
+>        s32 *sensor_settings = sd->sensor_priv;
+>        u32 mode = cam->cam_mode[sd->gspca_dev.curr_mode].priv;
+>
+> +       intf = usb_ifnum_to_if(sd->gspca_dev.dev, sd->gspca_dev.iface);
+> +       alt = usb_altnum_to_altsetting(intf, sd->gspca_dev.alt);
+> +       packet_size = le16_to_cpu(alt->endpoint[0].desc.wMaxPacketSize);
+> +
+> +       /* If we don't have enough bandwidth use a lower framerate */
+> +       max_packet_size = sd->sensor->max_packet_size[sd->gspca_dev.curr_mode];
+> +       if (packet_size < max_packet_size)
+> +               stv06xx_write_sensor(sd, PB_ROWSPEED, BIT(4)|BIT(3)|BIT(1));
+> +       else
+> +               stv06xx_write_sensor(sd, PB_ROWSPEED, BIT(5)|BIT(3)|BIT(1));
+> +
+>        /* Setup sensor window */
+>        if (mode & PB0100_CROP_TO_VGA) {
+>                stv06xx_write_sensor(sd, PB_RSTART, 30);
+> @@ -328,9 +341,6 @@ static int pb0100_init(struct sd *sd)
+>        stv06xx_write_bridge(sd, STV_REG03, 0x45);
+>        stv06xx_write_bridge(sd, STV_REG04, 0x07);
+>
+> -       /* ISO-Size (0x27b: 635... why? - HDCS uses 847) */
+> -       stv06xx_write_bridge(sd, STV_ISO_SIZE_L, 847);
+> -
+>        /* Scan/timing for the sensor */
+>        stv06xx_write_sensor(sd, PB_ROWSPEED, BIT(4)|BIT(3)|BIT(1));
+>        stv06xx_write_sensor(sd, PB_CFILLIN, 14);
+> diff --git a/drivers/media/video/gspca/stv06xx/stv06xx_pb0100.h b/drivers/media/video/gspca/stv06xx/stv06xx_pb0100.h
+> index 4de4fa5..757de24 100644
+> --- a/drivers/media/video/gspca/stv06xx/stv06xx_pb0100.h
+> +++ b/drivers/media/video/gspca/stv06xx/stv06xx_pb0100.h
+> @@ -138,6 +138,9 @@ const struct stv06xx_sensor stv06xx_sensor_pb0100 = {
+>        .i2c_addr = 0xba,
+>        .i2c_len = 2,
+>
+> +       .min_packet_size = { 635, 847 },
+> +       .max_packet_size = { 847, 923 },
+> +
+>        .init = pb0100_init,
+>        .probe = pb0100_probe,
+>        .start = pb0100_start,
+> diff --git a/drivers/media/video/gspca/stv06xx/stv06xx_sensor.h b/drivers/media/video/gspca/stv06xx/stv06xx_sensor.h
+> index 934b9ce..fb229d8 100644
+> --- a/drivers/media/video/gspca/stv06xx/stv06xx_sensor.h
+> +++ b/drivers/media/video/gspca/stv06xx/stv06xx_sensor.h
+> @@ -53,6 +53,10 @@ struct stv06xx_sensor {
+>        /* length of an i2c word */
+>        u8 i2c_len;
+>
+> +       /* Isoc packet size (per mode) */
+> +       int min_packet_size[4];
+> +       int max_packet_size[4];
+> +
+>        /* Probes if the sensor is connected */
+>        int (*probe)(struct sd *sd);
+>
+> diff --git a/drivers/media/video/gspca/stv06xx/stv06xx_st6422.c b/drivers/media/video/gspca/stv06xx/stv06xx_st6422.c
+> index 3af5326..42390bd 100644
+> --- a/drivers/media/video/gspca/stv06xx/stv06xx_st6422.c
+> +++ b/drivers/media/video/gspca/stv06xx/stv06xx_st6422.c
+> @@ -213,7 +213,6 @@ static int st6422_init(struct sd *sd)
+>                { 0x150e, 0x8e },
+>                { 0x150f, 0x37 },
+>                { 0x15c0, 0x00 },
+> -               { 0x15c1, 1023 }, /* 160x120, ISOC_PACKET_SIZE */
+>                { 0x15c3, 0x08 },       /* 0x04/0x14 ... test pictures ??? */
+>
+>
+> @@ -237,23 +236,9 @@ static void st6422_disconnect(struct sd *sd)
+>
+>  static int st6422_start(struct sd *sd)
+>  {
+> -       int err, packet_size;
+> +       int err;
+>        struct cam *cam = &sd->gspca_dev.cam;
+>        s32 *sensor_settings = sd->sensor_priv;
+> -       struct usb_host_interface *alt;
+> -       struct usb_interface *intf;
+> -
+> -       intf = usb_ifnum_to_if(sd->gspca_dev.dev, sd->gspca_dev.iface);
+> -       alt = usb_altnum_to_altsetting(intf, sd->gspca_dev.alt);
+> -       if (!alt) {
+> -               err("Couldn't get altsetting");
+> -               return -EIO;
+> -       }
+> -
+> -       packet_size = le16_to_cpu(alt->endpoint[0].desc.wMaxPacketSize);
+> -       err = stv06xx_write_bridge(sd, 0x15c1, packet_size);
+> -       if (err < 0)
+> -               return err;
+>
+>        if (cam->cam_mode[sd->gspca_dev.curr_mode].priv)
+>                err = stv06xx_write_bridge(sd, 0x1505, 0x0f);
+> diff --git a/drivers/media/video/gspca/stv06xx/stv06xx_st6422.h b/drivers/media/video/gspca/stv06xx/stv06xx_st6422.h
+> index b2d45fe..12608ae 100644
+> --- a/drivers/media/video/gspca/stv06xx/stv06xx_st6422.h
+> +++ b/drivers/media/video/gspca/stv06xx/stv06xx_st6422.h
+> @@ -49,6 +49,9 @@ static int st6422_set_exposure(struct gspca_dev *gspca_dev, __s32 val);
+>
+>  const struct stv06xx_sensor stv06xx_sensor_st6422 = {
+>        .name = "ST6422",
+> +       /* No known way to lower framerate in case of less bandwidth */
+> +       .min_packet_size = { 300, 847 },
+> +       .max_packet_size = { 300, 847 },
+>        .init = st6422_init,
+>        .probe = st6422_probe,
+>        .start = st6422_start,
+> diff --git a/drivers/media/video/gspca/stv06xx/stv06xx_vv6410.h b/drivers/media/video/gspca/stv06xx/stv06xx_vv6410.h
+> index b3b5508..7fe3587 100644
+> --- a/drivers/media/video/gspca/stv06xx/stv06xx_vv6410.h
+> +++ b/drivers/media/video/gspca/stv06xx/stv06xx_vv6410.h
+> @@ -197,6 +197,10 @@ const struct stv06xx_sensor stv06xx_sensor_vv6410 = {
+>        .i2c_flush = 5,
+>        .i2c_addr = 0x20,
+>        .i2c_len = 1,
+> +       /* FIXME (see if we can lower packet_size-s, needs testing, and also
+> +          adjusting framerate when the bandwidth gets lower) */
+> +       .min_packet_size = { 1023 },
+> +       .max_packet_size = { 1023 },
+>        .init = vv6410_init,
+>        .probe = vv6410_probe,
+>        .start = vv6410_start,
+> @@ -220,10 +224,6 @@ static const u8 x1536[] = {        /* 0x1536 - 0x153b */
+>        0x02, 0x00, 0x60, 0x01, 0x20, 0x01
+>  };
+>
+> -static const u8 x15c1[] = {    /* 0x15c1 - 0x15c2 */
+> -       0xff, 0x03 /* Output word 0x03ff = 1023 (ISO size) */
+> -};
+> -
+>  static const struct stv_init stv_bridge_init[] = {
+>        /* This reg is written twice. Some kind of reset? */
+>        {NULL,  0x1620, 0x80},
+> @@ -232,7 +232,6 @@ static const struct stv_init stv_bridge_init[] = {
+>        {NULL,  0x1423, 0x04},
+>        {x1500, 0x1500, ARRAY_SIZE(x1500)},
+>        {x1536, 0x1536, ARRAY_SIZE(x1536)},
+> -       {x15c1, 0x15c1, ARRAY_SIZE(x15c1)}
+>  };
+>
+>  static const u8 vv6410_sensor_init[][2] = {
+> --
+> 1.7.3.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
