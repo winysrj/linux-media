@@ -1,36 +1,43 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2107 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755230Ab0JKPl0 (ORCPT
+Received: from mail-in-17.arcor-online.net ([151.189.21.57]:59588 "EHLO
+	mail-in-17.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752481Ab0J0Oho (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Oct 2010 11:41:26 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 2.6.37] Fix locking order in radio-mr800
-Date: Mon, 11 Oct 2010 17:41:12 +0200
-Cc: David Ellingsworth <david@identd.dyndns.org>
+	Wed, 27 Oct 2010 10:37:44 -0400
+Message-ID: <4CC83934.1000009@arcor.de>
+Date: Wed, 27 Oct 2010 16:37:40 +0200
+From: Stefan Ringel <stefan.ringel@arcor.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: tm6000 problems with picture
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201010111741.13010.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The following changes since commit 9147e3dbca0712a5435cd2ea7c48d39344f904eb:
-  Mauro Carvalho Chehab (1):
-        V4L/DVB: cx231xx: use core-assisted lock
+  Hello Mauro,
 
-are available in the git repository at:
+I have actually problems with my terratec cinergy hybrid xe (tm6010). 
+Today as I test with last git update, it don't work with my stick, but a 
+few weeks before it has work (black/white picture; bottom position). But 
+I found the worried points.
 
-  ssh://linuxtv.org/git/hverkuil/v4l-dvb.git mr800
 
-Hans Verkuil (1):
-      radio-mr800: fix locking order
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
 
- Documentation/video4linux/v4l2-framework.txt |    2 +-
- drivers/media/radio/radio-mr800.c            |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+@@ -1030,10 +1030,11 @@ static int vidioc_s_std (struct file *file, void 
+*priv, v4l2_std_id *norm)
+  {
+      int rc=0;
+      struct tm6000_fh   *fh=priv;
+      struct tm6000_core *dev = fh->dev;
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
++    dev->norm = *norm;
+      rc = tm6000_init_analog_mode(dev);
+
+      fh->width  = dev->width;
+      fh->height = dev->height;
+
+
+
