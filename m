@@ -1,127 +1,65 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:53722 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754442Ab0JSCpp convert rfc822-to-8bit (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:36390 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756911Ab0J0OYF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Oct 2010 22:45:45 -0400
+	Wed, 27 Oct 2010 10:24:05 -0400
+Message-ID: <4CC835FF.40309@infradead.org>
+Date: Wed, 27 Oct 2010 12:23:59 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-In-Reply-To: <20101019022413.GB30307@kroah.com>
-References: <201009161632.59210.arnd@arndb.de>
-	<201010181742.06678.arnd@arndb.de>
-	<20101018184346.GD27089@kroah.com>
-	<AANLkTin2KPNNXvwcWphhM-5qexB14FS7M7ezkCCYCZ2H@mail.gmail.com>
-	<20101019004004.GB28380@kroah.com>
-	<AANLkTi=ffaihP5-yNYFKAbAbX+XbRgWRXXfCZd4J3KwQ@mail.gmail.com>
-	<20101019022413.GB30307@kroah.com>
-Date: Tue, 19 Oct 2010 12:45:43 +1000
-Message-ID: <AANLkTinv4VFpi=Jkc_5oyFgPbdLRg0ResJx9u9Puhm-7@mail.gmail.com>
-Subject: Re: [Ksummit-2010-discuss] [v2] Remaining BKL users, what to do
-From: Dave Airlie <airlied@gmail.com>
-To: Greg KH <greg@kroah.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, codalist@telemann.coda.cs.cmu.edu,
-	ksummit-2010-discuss@lists.linux-foundation.org,
-	autofs@linux.kernel.org, Jan Harkes <jaharkes@cs.cmu.edu>,
-	Samuel Ortiz <samuel@sortiz.org>, Jan Kara <jack@suse.cz>,
-	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
-	netdev@vger.kernel.org, Anders Larsen <al@alarsen.net>,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Bryan Schumaker <bjschuma@netapp.com>,
-	Christoph Hellwig <hch@infradead.org>,
-	Petr Vandrovec <vandrove@vc.cvut.cz>,
-	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
-	linux-fsdevel@vger.kernel.org,
-	Evgeniy Dushistov <dushistov@mail.ru>,
-	Ingo Molnar <mingo@elte.hu>,
-	Andrew Hendry <andrew.hendry@gmail.com>,
-	linux-media@vger.kernel.org
+To: Daniel Drake <dsd@laptop.org>
+CC: linux-media@vger.kernel.org, corbet@lwn.net
+Subject: Re: [PATCH] cafe_ccic: fix subdev configuration
+References: <20101027134532.3E0DF9D401B@zog.reactivated.net>
+In-Reply-To: <20101027134532.3E0DF9D401B@zog.reactivated.net>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Oct 19, 2010 at 12:24 PM, Greg KH <greg@kroah.com> wrote:
-> On Tue, Oct 19, 2010 at 10:57:43AM +1000, Dave Airlie wrote:
->> On Tue, Oct 19, 2010 at 10:40 AM, Greg KH <greg@kroah.com> wrote:
->> > On Tue, Oct 19, 2010 at 09:00:09AM +1000, Dave Airlie wrote:
->> >> On Tue, Oct 19, 2010 at 4:43 AM, Greg KH <greg@kroah.com> wrote:
->> >> > On Mon, Oct 18, 2010 at 05:42:06PM +0200, Arnd Bergmann wrote:
->> >> >>
->> >> >> Out of the remaining modules, I guess i810/i830, adfs, hpfs and ufs might end
->> >> >> up not getting fixed at all, we can either mark them non-SMP or move them
->> >> >> to drivers/staging once all the others are done.
->> >> >
->> >> > I recommend moving them to staging, and then retire them from there if
->> >> > no one steps up to maintain them.
->> >>
->> >> I think this sets a bad precedent, these drivers work fine. Removing
->> >> BKL from them is hard, and involves finding and booting hw that
->> >> developers don't have much time/interest in at the moment. Anyone who
->> >> has access to the i810 hw and has time to work out the locking has
->> >> more important things to be doing with modern hw, however it doesn't
->> >> mean we should just drop support for old drivers because they don't
->> >> have active maintainers. Removing the BKL from the kernel is a great
->> >> goal, but breaking userspace ABI by removing drivers isn't.
->> >
->> > Should we just restrict such drivers to only be able to build on UP
->> > machines with preempt disabled so that the BKL could be safely removed
->> > from them?
->> >
->> > Or what other idea do you have as to what could be done here?
->> >
->> > I do have access to this hardware, but its on an old single processor
->> > laptop, so any work that it would take to help do this development,
->> > really wouldn't be able to be tested to be valid at all.
->>
->> There is only very rare case where the i830 driver might get used with
->> SMP and really I think that case is in the don't care place, since if
->> you have that hw you probably should be using i915 on it anyways.
->
-> So, there is no need for the i830 driver?  Can it just be removed
-> because i915 works instead?
+Em 27-10-2010 11:45, Daniel Drake escreveu:
+> For some reason, commit 1aafeb30104a is missing one change that was
+> included in the email submission.
+> 
+> The sensor configuration must be passed down to the ov7670 subdev.
+> 
+> Signed-off-by: Daniel Drake <dsd@laptop.org>
+> ---
+>  drivers/media/video/cafe_ccic.c |    5 +++--
+>  1 files changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/video/cafe_ccic.c b/drivers/media/video/cafe_ccic.c
+> index 8a07906..21f6f06 100644
+> --- a/drivers/media/video/cafe_ccic.c
+> +++ b/drivers/media/video/cafe_ccic.c
+> @@ -2065,8 +2065,9 @@ static int cafe_pci_probe(struct pci_dev *pdev,
+>  		sensor_cfg.clock_speed = 45;
+>  
+>  	cam->sensor_addr = 0x42;
+> -	cam->sensor = v4l2_i2c_new_subdev(&cam->v4l2_dev, &cam->i2c_adapter,
+> -			NULL, "ov7670", cam->sensor_addr, NULL);
+> +	cam->sensor = v4l2_i2c_new_subdev_cfg(&cam->v4l2_dev, &cam->i2c_adapter,
+> +			"ov7670", "ov7670", 0, &sensor_cfg, cam->sensor_addr,
+> +			NULL);
 
-No because it provides a different userspace ABI to the i915 driver to
-a different userspace X driver etc.
+Sorry... that was my fault. One of the parameters of v4l2_i2c_new_subdev & friends
+were removed by a previous patch (the duplicate "ov7670"). I probably didn't fix
+the conflict right.
 
-like I'm sure the intersection of this driver and reality are getting
-quite limited, but its still a userspace ABI change and needs to be
-treated as such. Xorg 6.7 and XFree86 4.3 were the last users of the
-old driver/API.
+As I don't want to postpone the pull request that I'll do today, waiting for more
+days at linux-next, so, I'll apply this patch and send it on a next pull request.
 
->> So it really only leaves the problem case of what do distros do if we
->> mark things as BROKEN_ON_SMP, since no distro builds UP kernels and
->> when you boot the SMP kernels on UP they don't run as SMP so not
->> having the driver load on those is a problem. Maybe we just need some
->> sort of warn on smp if a smp unfriendly driver is loaded and we
->> transition to SMP mode. Though this sounds like either (a) something
->> we do now and I don't about it, (b) work.
->
-> So you are saying that just because distros will never build such a
-> thing, we should keep it building for SMP mode?  Why not prevent it from
-> being built and if a distro really cares, then they will pony up the
-> development to fix the driver up?
+In the interim, could you please test if using this instead will equally work?
 
-Distros build the driver now even it it didn't work on SMP it wouldn't
-matter to the 99% of people who have this hw since it can't suppport
-SMP except in some corner cases. So not building for SMP is the same
-as just throwing it out of the kernel since most people don't run
-kernel.org kernels, and shouldn't have to just to get a driver for
-some piece of hardware that worked fine up until now.
+	cam->sensor = v4l2_i2c_new_subdev_cfg(&cam->v4l2_dev, &cam->i2c_adapter,
+ 			NULL, "ov7670", 0, &sensor_cfg, cam->sensor_addr,
+			NULL);
 
-Look at this from a user who has this hardware pov, it works for them
-now with a distro kernel, us breaking it isn't going to help that user
-or make any distro care, its just going to screw over the people who
-are actually using it.
+(you should test it against my git tree or against linux-next tree).
 
-> In other words, if someone really cares, then they will do the work,
-> otherwise why worry?  Especially as it seems that no one here is going
-> to do it, right?
+There's a pending patch to be applied after -rc1 release that will remove the extra
+parameter, as is is not needed anymore.
 
-Well the thing is doing the work right is a non-trivial task and just
-dropping support only screws the people using the hardware,
-it doesn't place any burden on the distro developers to fix it up. If
-people are really serious about making the BKL go away completely, I
-think the onus should be on them to fix the drivers not on the users
-who are using it, like I'm  guessing if this gets broken the bug will
-end up in Novell or RH bugzilla in a year and nobody will ever see it.
-
-Dave.
+Cheers,
+Mauro
