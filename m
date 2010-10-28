@@ -1,91 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.1.47]:59902 "EHLO mgw-sa01.nokia.com"
+Received: from mx1.redhat.com ([209.132.183.28]:31552 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757389Ab0JLR5I (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Oct 2010 13:57:08 -0400
-Message-ID: <4CB4A168.2060105@maxwell.research.nokia.com>
-Date: Tue, 12 Oct 2010 20:56:56 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+	id S1751496Ab0J1Tqv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Oct 2010 15:46:51 -0400
+Message-ID: <4CC9D31F.4080404@redhat.com>
+Date: Thu, 28 Oct 2010 17:46:39 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: "Wang, Wen W" <wen.w.wang@intel.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Zhang, Xiaolin" <xiaolin.zhang@intel.com>,
-	"Hu, Gang A" <gang.a.hu@intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: Proposal to extend V4L2 Control ID for advanced imaging processing
- features.
-References: <D5AB6E638E5A3E4B8F4406B113A5A19A2A658B6D@shsmsx501.ccr.corp.intel.com>
-In-Reply-To: <D5AB6E638E5A3E4B8F4406B113A5A19A2A658B6D@shsmsx501.ccr.corp.intel.com>
+To: David Woodhouse <dwmw2@infradead.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Huang Shijie <shijie8@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Firmware for Telgent 2300 V4L/DVB driver
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Wang, Wen W wrote:
-> Hi all,
+Hi David,
 
-Hi Wang,
+Huang sent me a firmware file for Telgent 2300 some time ago, with the proper
+redistribution rights from the manufacturer. Not sure why, but it seems that 
+I forgot to add on my linux-next tree and to ask you to pull from it.
 
-Thanks for the proposal!
+So, please pull it from my tree:
+  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-firmware.git master
 
-(Cc'ing Hans Verkuil.)
+Thanks,
+Mauro
 
-> We are developing a V4L2 device driver which the ISP has many
-> advanced features such as manual exposure setting, GDC (Geometric
-> Distortion Correction), CAC (Chromatic Aberration Correction), video
-> stabilization, false color correction, shading correction, etc. But
-> to control those features, we find current v4l2 framework has limited
-> CIDs and cannot support these advanced features in normal way .
+---
 
-Manual exposure sounds like a sensor property, not ISP's. Are the rest
-implemented in the ISP or is there a user space library to support them?
-I think in either case the definition will be in kernel headers.
+The following changes since commit e9f9e3a9b7d780e93ae869c1b8502c843bfd93a4:
 
-These controls appear quite high level to me. What about the specific
-parameters for the functionality, I suppose shading correction for
-example has a lot more parameters than just disable/enable?
+  wimax: update WiMAX firmwares for 2.6.35 (2010-09-29 12:02:34 +0900)
 
-> So we propose to extend the V4L2 CIDs and add the below CIDs. Can you
-> please review and feel free to give your comments?
-> 
-> V4L2_CID_ISO_ABSOLUTE -- This CID is used to set up manual ISO speed
-> value. This CID has integer type and with as valid range or limited
-> valid value, depending on the hardware. If the target value is not
-> supported by hardware, a closest value will be set 
-> V4L2_CID_APERTURE_ABSOLUTE -- This CID is used to set up manual
-> aperture value. This CID has integer type and with as valid range or
-> limited valid value, depending on the hardware. If the target value
-> is not supported by hardware, a closest value will be set 
+are available in the git repository at:
+  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-firmware.git master
 
-The above look like image sensor properties.
+Mauro Carvalho Chehab (1):
+      Add firmware for Telgent 2300 V4L/DVB driver
 
-I wonder if it would make sense to create a new control class for these.
-
-> V4L2_CID_ATOMISP_FIXED_PATTERN_NR - This CID is used to
-> enable/disable Fixed pattern noise reduction. This CID has Boolean
-> type and 0 indicate to disable fixed pattern NR and 1 indicate to
-> enable it. V4L2_CID_ATOMISP_POSTPROCESS_XNR - This CID is used to
-> enable/disable XNR. This CID has Boolean type and 0 indicate to
-> disable XNR and 1 indicate to enable it. 
-> V4L2_CID_ATOMISP_POSTPROCESS_GDC_CAC - Our ISP combined GDC and CAC
-> together. This CID is used to enable/disable GDC and CAC. This CID
-> has Boolean type and 0 indicate to disable it and 1 indicate to
-
-What are GDC and CAC?
-
-> enable it. V4L2_CID_ATOMISP_VIDEO_STABILIZATION -- This CID is used
-> to enable/disable video stabilization capability. This CID has
-> Boolean type and 0 indicate to disable it and 1 indicate to enable
-> it. V4L2_CID_ATOMISP_FALSE_COLOR_CORRECTION - This CID is used to
-> enable color correction capability. This CID has Boolean type and 0
-> indicate to disable it and 1 indicate to enable it.
-
-Ps. Could you wrap your lines to 80 characters, please? That makes your
-messages easier to read and reply. Thank you.
-
-Regards,
-
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+ WHENCE               |   16 ++++++++++++++++
+ tlg2300_firmware.bin |  Bin 0 -> 51972 bytes
+ 2 files changed, 16 insertions(+), 0 deletions(-)
+ create mode 100644 tlg2300_firmware.bin
