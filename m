@@ -1,55 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from relay01.digicable.hu ([92.249.128.189]:37345 "EHLO
-	relay01.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754559Ab0JQOhs (ORCPT
+Received: from mail1.matrix-vision.com ([78.47.19.71]:45623 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751355Ab0J1K2t (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Oct 2010 10:37:48 -0400
-Message-ID: <4CBB0A36.6000000@freemail.hu>
-Date: Sun, 17 Oct 2010 16:37:42 +0200
-From: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+	Thu, 28 Oct 2010 06:28:49 -0400
+Message-ID: <4CC9505E.8020004@matrix-vision.de>
+Date: Thu, 28 Oct 2010 12:28:46 +0200
+From: Michael Jones <michael.jones@matrix-vision.de>
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Marius_Bj=F8rnstad?= <pmb@fa2k.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: em28xx in v4l-dvb destroyed my USB TV card
-References: <4CBAF4BD.20906@fa2k.net>
-In-Reply-To: <4CBAF4BD.20906@fa2k.net>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Eino-Ville Talvala <talvala@stanford.edu>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sung Hee Park <shpark7@stanford.edu>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: OMAP 3530 camera ISP forks and new media framework
+References: <AANLkTimyR117ZiHq8GFz4YW5tBtW3k82NzGVZqKoVTbY@mail.gmail.com> <AANLkTimzU8rR2a0=gTLX8UOxGZaiY0gxx4zTr2VH-iMa@mail.gmail.com> <4CB62CB5.9000706@stanford.edu> <201010140058.47236.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201010140058.47236.laurent.pinchart@ideasonboard.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
-Marius Bjørnstad wrote:
-> A problem with the em28xx driver was brought up in June by Thorsten
-> Hirsch: http://www.spinics.net/lists/linux-media/msg20588.html . I also
-> have a "TerraTec Cinergy Hybrid T USB XS". When I used my device with
-> Linux, it would take a long time to be recognised by the OS, and this
-> would get worse. At this point, the device is not recognised, and almost
-> completely dead.
+Hi Laurent,
+
+Laurent Pinchart wrote:
+
 > 
-> When I plug it in, I get errors like
-> ---------------------------------------------
-> Oct 17 14:34:55 muon kernel: [ 7111.324875] hub 1-1:1.0: unable to
-> enumerate USB device on port 2
-> Oct 17 14:34:55 muon kernel: [ 7111.580618] hub 1-1:1.0: unable to
-> enumerate USB device on port 2
-> Oct 17 14:34:55 muon kernel: [ 7111.840481] hub 1-1:1.0: unable to
-> enumerate USB device on port 2
-> Oct 17 14:34:55 muon kernel: [ 7112.092358] hub 1-1:1.0: unable to
-> enumerate USB device on port 2
-> ----------------------------------------------
-> and these keep coming until the device is removed. The device is also
-> not available in windows.
+> First of all, you need to get the latest OMAP3 ISP driver sources.
+> 
+> The most recent OMAP3 ISP driver for the N900 can be found in the omap3isp-
+> rx51 git tree on gitorious.org (devel branch from 
+> http://meego.gitorious.org/maemo-multimedia/omap3isp-rx51). This is the tree 
+> used by MeeGo for the OMAP3 ISP camera driver. The driver has been ported to 
+> the media controller framework, but the latest changes to the framework are 
+> not present in that tree as they break the driver ABI and API. This should be 
+> fixed in the future, but I can't give you any time estimate at the moment.
+> 
+> The most recent OMAP3 ISP driver and media controller framework can be found 
+> in the pinchartl/media git tree on linuxtv.org (media-0004-omap3isp branch 
+> from http://git.linuxtv.org/pinchartl/media.git). This is the tree used for 
+> upstream submission of the media controller and OMAP3 ISP driver. The OMAP3 
+> ISP driver implements the latest media controller API, but the tree doesn't 
+> contain RX51 camera support.
+>
 
-The "unable to enumerate USB device on port ..." error message usually means that
-the USB hardware what you connect itself is damaged. At that time the v4l-dvb driver
-is not yet started, only the low level USB enumeration is running. It is also possible
-that the USB cable causes the problem, if any. I had an USB device which had wrong
-soldering and that one gave the same error message. That device was degraded as time
-passed.
+You say "the most recent OMAP3 ISP driver for the N900" is on gitorious but "the most recent OMAP3 ISP driver and media controller framework" is your branch.  I'm confused about where I find "the most recent OMAP3 ISP driver".  To take a concrete example, in media-0004-omap3isp, media_device_register() WARNs if mdev doesn't have a model name (I get the warning).  On the Meego branch, it WARNs only if it's missing both a model name and a parent dev pointer.  If I understood you correctly above, media-0004-omap3isp has the newer framework, so the newer framework requires a model name?
 
-You might want to try the device on different USB port, different USB cable, or even
-on different computer to see exactly which hardware component is not working properly.
+I don't need RX51 camera support, but I would like to have a reasonably up-to-date OMAP3 ISP driver.  Laurent said before that media-0004-omap3isp will be updated regularly.  Do these updates come from a cherry-pick of the gitorious branch?  I anticipate sending a patch based on media-0004-omap3isp someday (like one addressing my WARN_ON issue) and getting as a reply, "yeah, we already did that on meego.gitorious.org".
 
-	Márton Németh
+I appreciate your help so far.
 
+-- 
+Michael Jones
+
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
