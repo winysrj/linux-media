@@ -1,54 +1,36 @@
 Return-path: <mchehab@pedra>
-Received: from slow3-v.mail.gandi.net ([217.70.178.89]:43251 "EHLO
-	slow3-v.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751448Ab0JPRb5 (ORCPT
+Received: from rtp-iport-2.cisco.com ([64.102.122.149]:13541 "EHLO
+	rtp-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932530Ab0J1Gqj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Oct 2010 13:31:57 -0400
-Received: from relay2-v.mail.gandi.net (relay2-v.mail.gandi.net [217.70.178.76])
-	by slow3-v.mail.gandi.net (Postfix) with ESMTP id A6A893840E
-	for <linux-media@vger.kernel.org>; Sat, 16 Oct 2010 19:31:56 +0200 (CEST)
-Received: from mfilter2-d.gandi.net (mfilter2-d.gandi.net [217.70.178.42])
-	by relay2-v.mail.gandi.net (Postfix) with ESMTP id 60D07135E5
-	for <linux-media@vger.kernel.org>; Sat, 16 Oct 2010 19:31:32 +0200 (CEST)
-Received: from relay2-v.mail.gandi.net ([217.70.178.76])
-	by mfilter2-d.gandi.net (mfilter2-d.gandi.net [217.70.178.42]) (amavisd-new, port 10024)
-	with ESMTP id KGY2RRIdtEPD for <linux-media@vger.kernel.org>;
-	Sat, 16 Oct 2010 19:31:29 +0200 (CEST)
-Received: from [192.168.1.112] (cpc6-glfd5-2-0-cust126.6-2.cable.virginmedia.com [80.4.117.127])
-	(Authenticated sender: hadess@hadess.net)
-	by relay2-v.mail.gandi.net (Postfix) with ESMTPSA id B8088135DA
-	for <linux-media@vger.kernel.org>; Sat, 16 Oct 2010 19:31:29 +0200 (CEST)
-Subject: Support for ATI DVB TV Tuner?
-From: Bastien Nocera <hadess@hadess.net>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="ISO-8859-1"
-Date: Sat, 16 Oct 2010 18:31:28 +0100
-Message-ID: <1287250288.3678.3.camel@novo.hadess.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Thu, 28 Oct 2010 02:46:39 -0400
+From: mats.randgaard@tandberg.com
+To: hvaibhav@ti.com, mkaricheri@gmail.com
+Cc: hans.verkuil@tandberg.com, linux-media@vger.kernel.org,
+	Mats Randgaard <mats.randgaard@tandberg.com>
+Subject: [RFCv2/PATCH 0/5] DaVinci VPIF: Support for DV preset and DV timings.
+Date: Thu, 28 Oct 2010 08:46:18 +0200
+Message-Id: <1288248383-12557-1-git-send-email-mats.randgaard@tandberg.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Heya,
+From: Mats Randgaard <mats.randgaard@tandberg.com>
 
-My new desktop, a Lenovo Ideacentre A700, has one of those TV tuners. Is
-there any driver available for it, or a driver that would just be
-missing some PCI IDs?
+Support for DV preset and timings added to vpif_capture and vpif_display drivers.
+Functions for debugging are added and the code is improved as well.
 
-Here's the lspci output:
-03:00.0 Multimedia controller [0480]: ATI Technologies Inc Device [1002:ac12]
-	Subsystem: Yuan Yuan Enterprise Co., Ltd. Device [12ab:0003]
-	Flags: bus master, fast devsel, latency 0, IRQ 11
-	Memory at fe400000 (64-bit, non-prefetchable) [size=1M]
-	Memory at d0100000 (64-bit, prefetchable) [size=128K]
-	Capabilities: [50] Power Management version 3
-	Capabilities: [58] Express Endpoint, MSI 00
-	Capabilities: [a0] MSI: Enable- Count=1/1 Maskable- 64bit+
-	Capabilities: [100] Vendor Specific Information: ID=0001 Rev=1 Len=010 <?>
+Mats Randgaard (5):
+  vpif_cap/disp: Add debug functionality
+  vpif: Consolidate formats from capture and display
+  vpif_cap/disp: Add support for DV presets
+  vpif_cap/disp: Added support for DV timings
+  vpif_cap/disp: Cleanup, improved comments
 
-Ideas?
-
-Cheers
-
-PS: Please CC: me on replies as I'm not subscribed to the list
+ drivers/media/video/davinci/vpif.c         |  177 ++++++++++++++
+ drivers/media/video/davinci/vpif.h         |   18 +-
+ drivers/media/video/davinci/vpif_capture.c |  357 ++++++++++++++++++++++++++--
+ drivers/media/video/davinci/vpif_capture.h |    2 +
+ drivers/media/video/davinci/vpif_display.c |  351 +++++++++++++++++++++++++--
+ drivers/media/video/davinci/vpif_display.h |    2 +
+ 6 files changed, 850 insertions(+), 57 deletions(-)
 
