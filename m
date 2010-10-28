@@ -1,38 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:36730 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759838Ab0J2DLc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Oct 2010 23:11:32 -0400
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o9T3BWdh030607
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 28 Oct 2010 23:11:32 -0400
-Date: Thu, 28 Oct 2010 23:11:31 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Subject: [RFC PATCH 0/2] Apple remote support
-Message-ID: <20101029031131.GE17238@redhat.com>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:39205 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932442Ab0J1RKp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Oct 2010 13:10:45 -0400
+Received: by yxk8 with SMTP id 8so1060188yxk.19
+        for <linux-media@vger.kernel.org>; Thu, 28 Oct 2010 10:10:44 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Date: Thu, 28 Oct 2010 18:10:44 +0100
+Message-ID: <AANLkTikKrB_PckALLnoX=g2Fm8X1jVRjCCYYB8xD_yBp@mail.gmail.com>
+Subject: via-camera crash on unload (but possibly a wider v4l2 issue)
+From: Daniel Drake <dsd@laptop.org>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-I've got one of those tiny little 6-button Apple remotes here, now it can
-be decoded in-kernel (tested w/an mceusb transceiver).
+I can reproduce a crash on via-camera module unload. Running latest
+linux-next. Simple modprobe then rmmod reproduces it.
+I guess cafe_ccic is affected too.
 
-Jarod Wilson (2):
-      ir-nec-decoder: decode Apple's NEC remote variant
-      IR: add Apple remote keymap
+BUG: unable to handle kernel paging request at 6b6b6b6b
+IP: device_del
 
- drivers/media/IR/ir-nec-decoder.c       |   10 +++++-
- drivers/media/IR/keymaps/Makefile       |    1 +
- drivers/media/IR/keymaps/rc-nec-apple.c |   51 +++++++++++++++++++++++++++++++
- include/media/rc-map.h                  |    1 +
- 4 files changed, 62 insertions(+), 1 deletions(-)
- create mode 100644 drivers/media/IR/keymaps/rc-nec-apple.c
+I've diagnosed it, but don't know the solution.
 
--- 
-Jarod Wilson
-jarod@redhat.com
+viacam_remove() calls v4l2_device_unregister()
 
+v4l2_device_unregister() starts to unregister all the subdevs
+	list_for_each_entry_safe(sd, next, &v4l2_dev->subdevs, list) {
+		v4l2_device_unregister_subdev(sd);
+
+So the subdev has been unregistered.
+Still inside v4l2_device_unregister, it then realises its an i2c
+subdev and unregisters it at the i2c layer:
+
+		if (sd->flags & V4L2_SUBDEV_FL_IS_I2C) {
+...
+				i2c_unregister_device(client);
+
+i2c_unregister_device() calls device_unregister()
+...which calls device_del()
+...which calls bus_remove_device()
+...which calls device_release_driver()
+...which calls __device_release_driver()
+...which calls i2c_device_remove()
+...which calls ov7670_remove()
+
+This is where the badness starts.
+
+ov7670_remove() calls v4l2_device_unregister_subdev *on the same
+subdev that was released above*. Can't lead to good things.
+ov7670_remove() then frees its ov7670_info structure (which contains
+the v4l2_subdev structure) (eek)
+
+then v4l2_device_unregister() continues, and it checks:
+		if (sd->flags & V4L2_SUBDEV_FL_IS_SPI) {
+sd->flags is now freed, so it reads 6b6b6b6b, so we go on:
+				spi_unregister_device(spi);
+
+and this calls device_unregister() on more of our freed memory
+and now things have gone wrong enough for a BUG() to happen
+
+Thoughts?
+
+Daniel
