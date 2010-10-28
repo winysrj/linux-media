@@ -1,42 +1,80 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:5659 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755040Ab0JRNlN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Oct 2010 09:41:13 -0400
-Message-ID: <4CBC4E73.70601@redhat.com>
-Date: Mon, 18 Oct 2010 11:41:07 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mailout-de.gmx.net ([213.165.64.22]:40734 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1753333Ab0J1TAo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Oct 2010 15:00:44 -0400
+Date: Thu, 28 Oct 2010 21:01:01 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Adam Sutton <aps@plextek.co.uk>
+cc: linux-media@vger.kernel.org
+Subject: Re: Changing frame size on the fly in SOC module
+In-Reply-To: <8C9A6B7580601F4FBDC0ED4C1D6A9B1D02AF331B@plextek3.plextek.lan>
+Message-ID: <Pine.LNX.4.64.1010282009160.1257@axis700.grange>
+References: <8C9A6B7580601F4FBDC0ED4C1D6A9B1D02AF331B@plextek3.plextek.lan>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v13 1/1] Documentation: v4l: Add hw_seek spacing and
- two TUNER_RDS_CAP flags.
-References: <1287406657-18859-1-git-send-email-matti.j.aaltonen@nokia.com>    <1287406657-18859-2-git-send-email-matti.j.aaltonen@nokia.com> <9c6327556dad0b210e353c11126e2ceb.squirrel@webmail.xs4all.nl>
-In-Reply-To: <9c6327556dad0b210e353c11126e2ceb.squirrel@webmail.xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 18-10-2010 11:17, Hans Verkuil escreveu:
-> Just a few very small comments:
+Hi Adam
 
->> +For future use the
->> +flag <constant>V4L2_TUNER_SUB_RDS_CONTROLS</constant> has also been
->> +defined. However, a driver for a radio tuner with this capability does
->> +not yet exist, so if you are planning to write such a driver the best
->> +way to start would probably be by opening a discussion about it on
->> +the linux-media mailing list: &v4l-ml;. </para>
+On Thu, 28 Oct 2010, Adam Sutton wrote:
+
+> Hi,
 > 
-> Change to:
+> Sometime ago I developed an SOC based camera driver for my platform
+> (ov7675 on iMX25), for the most part it seems to be working well however
+> at the time I couldn't manage to change the frame size on the fly
+> (without closing / re-opening the device).
 > 
-> not yet exist, so if you are planning to write such a driver you
-> should discuss this on the linux-media mailing list: &v4l-ml;.</para>
+> The current problem I have is that my application needs to display a
+> 320x240 preview image on screen, but to capture a static image at
+> 640x480. I can do this as long as I close the device in between,
+> unfortunately for power consumption reasons the camera device is put
+> into a low power state whenever the device is released. This means that
+> the image capture takes approx 1.5s (the requirement I have to meet is
+> 1s).
+> 
+> Now I could cheat and simply subsample (in software) the 640x480 image,
+> but that puts additional burden on an already overworked MCU.
+> 
+> Having been through the soc_camera and videobuf code and as far as I can
+> tell this inability to change the frame size without closing the camera
+> device appears to be a design decision.
 
-No, please. Don't add any API capabilities at the DocBook without having a driver
-using it. At the time a driver start needing it, we can just add the API bits
-and doing the needed discussions as you've proposed. This is already implicit.
+Yes, it is.
 
-Cheers,
-Mauro
+> What I'm really after is confirmation one way of the other. If it's not,
+> what is the correct process to achieve the frame change without closing
+> the device. And if it is, does anybody have any suggestions of possible
+> workarounds?
+
+It has been decided that way, because we didn't have a good use-case for 
+changing the frame format on-the-fly to develop for and to test with. You 
+seem to have one now, so, go ahead;)
+
+There are a couple of issues to address though - videobuffer configuration 
+is one of them, host reconfiguration is the other one, possible multiple 
+simultaneous users is the third one (ok, only one of them will be actually 
+streaming).
+
+This use case - different size preview and single shot capture has come up 
+a couple of times before, but noone has brought it to a proper mainstream 
+solution.
+
+One thing you'd still want to do, I think, is to stop streaming before 
+reconfiguring, and restart it afterwards.
+
+So, maybe a viable solution would be:
+
+in soc_camera_s_fmt_vid_cap() check not just for "icf->vb_vidq.bufs[0] != 
+NULL", but rather for if streaming is not running, and then someone will 
+certainly have to check for large enough buffers. So, you'd have to 
+request max size buffers from the beginning even for preview.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
