@@ -1,59 +1,30 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.outflux.net ([198.145.64.163]:34250 "EHLO smtp.outflux.net"
+Received: from tex.lwn.net ([70.33.254.29]:34775 "EHLO vena.lwn.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758178Ab0JFWQD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Oct 2010 18:16:03 -0400
-Date: Wed, 6 Oct 2010 15:05:48 -0700
-From: Kees Cook <kees.cook@canonical.com>
-To: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH] video: fix potential use-before-NULL-check crash
-Message-ID: <20101006220548.GV14666@outflux.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	id S1760765Ab0J1SXJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Oct 2010 14:23:09 -0400
+Date: Thu, 28 Oct 2010 12:23:07 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Daniel Drake <dsd@laptop.org>
+Cc: mchehab@infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] cafe_ccic: fix colorspace corruption on resume
+Message-ID: <20101028122307.57f1b2e3@bike.lwn.net>
+In-Reply-To: <20101027135500.BA4869D401B@zog.reactivated.net>
+References: <20101027135500.BA4869D401B@zog.reactivated.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Moves use to after NULL-check.
+On Wed, 27 Oct 2010 14:55:00 +0100 (BST)
+Daniel Drake <dsd@laptop.org> wrote:
 
-Signed-off-by: Kees Cook <kees.cook@canonical.com>
----
+> Only power down during resume if the camera is not in use, and correctly
+> reconfigure the sensor during resume.
 
-Sent before as part of https://patchwork.kernel.org/patch/138711/ but it
-still hasn't been applied.
+Makes sense to me.
 
----
- drivers/media/video/em28xx/em28xx-video.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+Acked-by: Jonathan Corbet <corbet@lwn.net>
 
-diff --git a/drivers/media/video/em28xx/em28xx-video.c b/drivers/media/video/em28xx/em28xx-video.c
-index 7b9ec6e..95a4b60 100644
---- a/drivers/media/video/em28xx/em28xx-video.c
-+++ b/drivers/media/video/em28xx/em28xx-video.c
-@@ -277,12 +277,13 @@ static void em28xx_copy_vbi(struct em28xx *dev,
- {
- 	void *startwrite, *startread;
- 	int  offset;
--	int bytesperline = dev->vbi_width;
-+	int bytesperline;
- 
- 	if (dev == NULL) {
- 		em28xx_isocdbg("dev is null\n");
- 		return;
- 	}
-+	bytesperline = dev->vbi_width;
- 
- 	if (dma_q == NULL) {
- 		em28xx_isocdbg("dma_q is null\n");
--- 
-1.7.1
-
-
--- 
-Kees Cook
-Ubuntu Security Team
+jon
