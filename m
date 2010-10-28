@@ -1,96 +1,206 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:55185 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751164Ab0JTEnY convert rfc822-to-8bit (ORCPT
+Received: from rtp-iport-1.cisco.com ([64.102.122.148]:38915 "EHLO
+	rtp-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754411Ab0J1GqZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Oct 2010 00:43:24 -0400
-MIME-Version: 1.0
-In-Reply-To: <201010192244.41913.arnd@arndb.de>
-References: <201009161632.59210.arnd@arndb.de>
-	<201010192140.47433.oliver@neukum.org>
-	<20101019202912.GA30133@kroah.com>
-	<201010192244.41913.arnd@arndb.de>
-Date: Wed, 20 Oct 2010 12:43:21 +0800
-Message-ID: <AANLkTimRFxKT5p1K=Rd1MxXZymonx_t6rHKBhn=8CsW=@mail.gmail.com>
-Subject: Re: [Ksummit-2010-discuss] [v2] Remaining BKL users, what to do
-From: Dave Young <hidave.darkstar@gmail.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg KH <greg@kroah.com>, Oliver Neukum <oliver@neukum.org>,
-	Valdis.Kletnieks@vt.edu, Dave Airlie <airlied@gmail.com>,
-	codalist@telemann.coda.cs.cmu.edu,
-	ksummit-2010-discuss@lists.linux-foundation.org,
-	autofs@linux.kernel.org, Jan Harkes <jaharkes@cs.cmu.edu>,
-	Samuel Ortiz <samuel@sortiz.org>, Jan Kara <jack@suse.cz>,
-	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
-	netdev@vger.kernel.org, Anders Larsen <al@alarsen.net>,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Bryan Schumaker <bjschuma@netapp.com>,
-	Christoph Hellwig <hch@infradead.org>,
-	Petr Vandrovec <vandrove@vc.cvut.cz>,
-	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
-	linux-fsdevel@vger.kernel.org,
-	Evgeniy Dushistov <dushistov@mail.ru>,
-	Ingo Molnar <mingo@elte.hu>,
-	Andrew Hendry <andrew.hendry@gmail.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Thu, 28 Oct 2010 02:46:25 -0400
+From: mats.randgaard@tandberg.com
+To: hvaibhav@ti.com, mkaricheri@gmail.com
+Cc: hans.verkuil@tandberg.com, linux-media@vger.kernel.org,
+	Mats Randgaard <mats.randgaard@tandberg.com>
+Subject: [RFCv2/PATCH 2/5] vpif: Consolidate formats from capture and display
+Date: Thu, 28 Oct 2010 08:46:20 +0200
+Message-Id: <1288248383-12557-3-git-send-email-mats.randgaard@tandberg.com>
+In-Reply-To: <1288248383-12557-1-git-send-email-mats.randgaard@tandberg.com>
+References: <1288248383-12557-1-git-send-email-mats.randgaard@tandberg.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Oct 20, 2010 at 4:44 AM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Tuesday 19 October 2010 22:29:12 Greg KH wrote:
->> On Tue, Oct 19, 2010 at 09:40:47PM +0200, Oliver Neukum wrote:
->> > Am Dienstag, 19. Oktober 2010, 21:37:35 schrieb Greg KH:
->> > > > So no need to clean it up for multiprocessor support.
->> > > >
->> > > > http://download.intel.com/design/chipsets/datashts/29067602.pdf
->> > > > http://www.intel.com/design/chipsets/specupdt/29069403.pdf
->> > >
->> > > Great, we can just drop all calls to lock_kernel() and the like in the
->> > > driver and be done with it, right?
->> >
->> > No,
->> >
->> > you still need to switch off preemption.
->>
->> Hm, how would you do that from within a driver?
->
-> I think this would do:
-> ---
-> drm/i810: remove SMP support and BKL
->
-> The i810 and i815 chipsets supported by the i810 drm driver were not
-> officially designed for SMP operation, so the big kernel lock is
-> only required for kernel preemption. This disables the driver if
-> preemption is enabled and removes all calls to lock_kernel in it.
->
-> If you own an Acorp 6A815EPD mainboard with a i815 chipset and
-> two Pentium-III sockets, and want to run recent kernels on it,
-> tell me about it.
->
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
->
-> diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
-> index b755301..e071bc8 100644
-> --- a/drivers/gpu/drm/Kconfig
-> +++ b/drivers/gpu/drm/Kconfig
-> @@ -73,8 +73,8 @@ source "drivers/gpu/drm/radeon/Kconfig"
->
->  config DRM_I810
->        tristate "Intel I810"
-> -       # BKL usage in order to avoid AB-BA deadlocks, may become BROKEN_ON_SMP
-> -       depends on DRM && AGP && AGP_INTEL && BKL
-> +       # PREEMPT requires BKL support here, which was removed
-> +       depends on DRM && AGP && AGP_INTEL && !PREEMPT
+From: Mats Randgaard <mats.randgaard@tandberg.com>
 
-be curious, why can't just fix the lock_kernel logic of i810? Fixing
-is too hard?
+- The ch_params tables in vpif_capture.c and vpif_display.c are moved to a common
+  table in vpif.c. Then it is easier to maintain the table.
+- The field "fps" is removed from the struct vpif_channel_config_params because it
+  is not used.
 
-Find a i810 hardware should be possible, even if the hardware does not
-support SMP, can't we test the fix with preemption?
+Signed-off-by: Mats Randgaard <mats.randgaard@tandberg.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@tandberg.com>
+Acked-by : Murali Karicheri <mkaricheri@gmail.com>
+---
+ drivers/media/video/davinci/vpif.c         |   50 ++++++++++++++++++++++++++++
+ drivers/media/video/davinci/vpif.h         |    4 ++-
+ drivers/media/video/davinci/vpif_capture.c |   18 +---------
+ drivers/media/video/davinci/vpif_display.c |   17 ++--------
+ 4 files changed, 58 insertions(+), 31 deletions(-)
 
+diff --git a/drivers/media/video/davinci/vpif.c b/drivers/media/video/davinci/vpif.c
+index 1f532e3..54cc0da 100644
+--- a/drivers/media/video/davinci/vpif.c
++++ b/drivers/media/video/davinci/vpif.c
+@@ -41,6 +41,56 @@ spinlock_t vpif_lock;
+ 
+ void __iomem *vpif_base;
+ 
++/**
++ * ch_params: video standard configuration parameters for vpif
++ * The table must include all presets from supported subdevices.
++ */
++const struct vpif_channel_config_params ch_params[] = {
++	/* SDTV formats */
++	{
++		.name = "NTSC_M",
++		.width = 720,
++		.height = 480,
++		.frm_fmt = 0,
++		.ycmux_mode = 1,
++		.eav2sav = 268,
++		.sav2eav = 1440,
++		.l1 = 1,
++		.l3 = 23,
++		.l5 = 263,
++		.l7 = 266,
++		.l9 = 286,
++		.l11 = 525,
++		.vsize = 525,
++		.capture_format = 0,
++		.vbi_supported = 1,
++		.hd_sd = 0,
++		.stdid = V4L2_STD_525_60,
++	},
++	{
++		.name = "PAL_BDGHIK",
++		.width = 720,
++		.height = 576,
++		.frm_fmt = 0,
++		.ycmux_mode = 1,
++		.eav2sav = 280,
++		.sav2eav = 1440,
++		.l1 = 1,
++		.l3 = 23,
++		.l5 = 311,
++		.l7 = 313,
++		.l9 = 336,
++		.l11 = 624,
++		.vsize = 625,
++		.capture_format = 0,
++		.vbi_supported = 1,
++		.hd_sd = 0,
++		.stdid = V4L2_STD_625_50,
++	},
++};
++
++const unsigned int vpif_ch_params_count = ARRAY_SIZE(ch_params);
++
+ static inline void vpif_wr_bit(u32 reg, u32 bit, u32 val)
+ {
+ 	if (val)
+diff --git a/drivers/media/video/davinci/vpif.h b/drivers/media/video/davinci/vpif.h
+index 188841b..940c30f 100644
+--- a/drivers/media/video/davinci/vpif.h
++++ b/drivers/media/video/davinci/vpif.h
+@@ -577,7 +577,6 @@ struct vpif_channel_config_params {
+ 	char name[VPIF_MAX_NAME];	/* Name of the mode */
+ 	u16 width;			/* Indicates width of the image */
+ 	u16 height;			/* Indicates height of the image */
+-	u8 fps;
+ 	u8 frm_fmt;			/* Indicates whether this is interlaced
+ 					 * or progressive format */
+ 	u8 ycmux_mode;			/* Indicates whether this mode requires
+@@ -594,6 +593,9 @@ struct vpif_channel_config_params {
+ 	v4l2_std_id stdid;
+ };
+ 
++extern const unsigned int vpif_ch_params_count;
++extern const struct vpif_channel_config_params ch_params[];
++
+ struct vpif_video_params;
+ struct vpif_params;
+ struct vpif_vbi_params;
+diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
+index 3b5c98b..4768f79 100644
+--- a/drivers/media/video/davinci/vpif_capture.c
++++ b/drivers/media/video/davinci/vpif_capture.c
+@@ -82,20 +82,6 @@ static struct vpif_device vpif_obj = { {NULL} };
+ static struct device *vpif_dev;
+ 
+ /**
+- * ch_params: video standard configuration parameters for vpif
+- */
+-static const struct vpif_channel_config_params ch_params[] = {
+-	{
+-		"NTSC_M", 720, 480, 30, 0, 1, 268, 1440, 1, 23, 263, 266,
+-		286, 525, 525, 0, 1, 0, V4L2_STD_525_60,
+-	},
+-	{
+-		"PAL_BDGHIK", 720, 576, 25, 0, 1, 280, 1440, 1, 23, 311, 313,
+-		336, 624, 625, 0, 1, 0, V4L2_STD_625_50,
+-	},
+-};
+-
+-/**
+  * vpif_uservirt_to_phys : translate user/virtual address to phy address
+  * @virtp: user/virtual address
+  *
+@@ -444,7 +430,7 @@ static int vpif_update_std_info(struct channel_obj *ch)
+ 
+ 	std_info = &vpifparams->std_info;
+ 
+-	for (index = 0; index < ARRAY_SIZE(ch_params); index++) {
++	for (index = 0; index < vpif_ch_params_count; index++) {
+ 		config = &ch_params[index];
+ 		if (config->stdid & vid_ch->stdid) {
+ 			memcpy(std_info, config, sizeof(*config));
+@@ -453,7 +439,7 @@ static int vpif_update_std_info(struct channel_obj *ch)
+ 	}
+ 
+ 	/* standard not found */
+-	if (index == ARRAY_SIZE(ch_params))
++	if (index == vpif_ch_params_count)
+ 		return -EINVAL;
+ 
+ 	common->fmt.fmt.pix.width = std_info->width;
+diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
+index 57b206c..be3fa2e 100644
+--- a/drivers/media/video/davinci/vpif_display.c
++++ b/drivers/media/video/davinci/vpif_display.c
+@@ -85,17 +85,6 @@ static struct vpif_config_params config_params = {
+ static struct vpif_device vpif_obj = { {NULL} };
+ static struct device *vpif_dev;
+ 
+-static const struct vpif_channel_config_params ch_params[] = {
+-	{
+-		"NTSC", 720, 480, 30, 0, 1, 268, 1440, 1, 23, 263, 266,
+-		286, 525, 525, 0, 1, 0, V4L2_STD_525_60,
+-	},
+-	{
+-		"PAL", 720, 576, 25, 0, 1, 280, 1440, 1, 23, 311, 313,
+-		336, 624, 625, 0, 1, 0, V4L2_STD_625_50,
+-	},
+-};
+-
+ /*
+  * vpif_uservirt_to_phys: This function is used to convert user
+  * space virtual address to physical address.
+@@ -388,7 +377,7 @@ static int vpif_get_std_info(struct channel_obj *ch)
+ 	if (!std_info->stdid)
+ 		return -1;
+ 
+-	for (index = 0; index < ARRAY_SIZE(ch_params); index++) {
++	for (index = 0; index < vpif_ch_params_count; index++) {
+ 		config = &ch_params[index];
+ 		if (config->stdid & std_info->stdid) {
+ 			memcpy(std_info, config, sizeof(*config));
+@@ -396,8 +385,8 @@ static int vpif_get_std_info(struct channel_obj *ch)
+ 		}
+ 	}
+ 
+-	if (index == ARRAY_SIZE(ch_params))
+-		return -1;
++	if (index == vpif_ch_params_count)
++		return -EINVAL;
+ 
+ 	common->fmt.fmt.pix.width = std_info->width;
+ 	common->fmt.fmt.pix.height = std_info->height;
 -- 
-Regards
-dave
+1.7.1
+
