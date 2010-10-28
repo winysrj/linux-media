@@ -1,129 +1,85 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:57053 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755105Ab0JKQX1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Oct 2010 12:23:27 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [GIT PATCHES FOR 2.6.37] Move V4L2 locking into the core framework
-Date: Mon, 11 Oct 2010 18:23:23 +0200
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	David Ellingsworth <david@identd.dyndns.org>,
-	linux-media@vger.kernel.org
-References: <201009261425.00146.hverkuil@xs4all.nl> <4CB331DD.9030806@infradead.org> <201010111754.07853.hverkuil@xs4all.nl>
-In-Reply-To: <201010111754.07853.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:17090 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757796Ab0J1Sww (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Oct 2010 14:52:52 -0400
+Message-ID: <4CC9C67C.8040102@redhat.com>
+Date: Thu, 28 Oct 2010 16:52:44 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+References: <201010271905.o9RJ504u021145@smtp-vbr1.xs4all.nl> <4CC94D5A.3090504@redhat.com> <4CC9BA90.2080805@hoogenraad.net>
+In-Reply-To: <4CC9BA90.2080805@hoogenraad.net>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201010111823.24360.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
+Hi Jan,
 
-On Monday 11 October 2010 17:54:07 Hans Verkuil wrote:
-> On Monday, October 11, 2010 17:48:45 Mauro Carvalho Chehab wrote:
-> > Em 11-10-2010 12:40, Hans Verkuil escreveu:
-> > > On Sunday, October 10, 2010 19:33:48 David Ellingsworth wrote:
-> > >> Hans,
-> > >> 
-> > >> On Sun, Sep 26, 2010 at 8:25 AM, Hans Verkuil <hverkuil@xs4all.nl> 
-wrote:
-> > >>> Hi Mauro,
-> > >>> 
-> > >>> These are the locking patches. It's based on my previous test tree,
-> > >>> but with more testing with em28xx and radio-mr800 and some small
-> > >>> tweaks relating to disconnect handling and video_is_registered().
-> > >>> 
-> > >>> I also removed the unused get_unmapped_area file op and I am now
-> > >>> blocking any further (unlocked_)ioctl calls after the device node is
-> > >>> unregistered. The only things an application can do legally after a
-> > >>> disconnect is unmap() and close().
-> > >>> 
-> > >>> This patch series also contains a small em28xx fix that I found while
-> > >>> testing the em28xx BKL removal patch.
-> > >>> 
-> > >>> Regards,
-> > >>> 
-> > >>>        Hans
-> > >>> 
-> > >>> The following changes since commit 
-dace3857de7a16b83ae7d4e13c94de8e4b267d2a:
-> > >>>  Hans Verkuil (1):
-> > >>>        V4L/DVB: tvaudio: remove obsolete tda8425 initialization
-> > >>> 
-> > >>> are available in the git repository at:
-> > >>>  ssh://linuxtv.org/git/hverkuil/v4l-dvb.git bkl
-> > >>> 
-> > >>> Hans Verkuil (10):
-> > >>>      v4l2-dev: after a disconnect any ioctl call will be blocked.
-> > >>>      v4l2-dev: remove get_unmapped_area
-> > >>>      v4l2: add core serialization lock.
-> > >>>      videobuf: prepare to make locking optional in videobuf
-> > >>>      videobuf: add ext_lock argument to the queue init functions
-> > >>>      videobuf: add queue argument to videobuf_waiton()
-> > >>>      vivi: remove BKL.
-> > >>>      em28xx: remove BKL.
-> > >>>      em28xx: the default std was not passed on to the subdevs
-> > >>>      radio-mr800: remove BKL
-> > >> 
-> > >> Did you even test these patches?
-> > > 
-> > > Yes, I did test. And it works for me. But you are correct in that it
-> > > shouldn't work since the struct will indeed be freed. I'll fix this
-> > > and post a patch.
-> > > 
-> > > I'm not sure why it works fine when I test it.
-> > > 
-> > > There is a problem as well with unlocking before unregistering the
-> > > device in that it leaves a race condition where another app can open
-> > > the device again before it is registered. I have to think about that
-> > > some more.
-> > > 
-> > >> The last one in the series clearly
-> > >> breaks radio-mr800 and the commit message does not describe the
-> > >> changes made. radio-mr800 has been BKL independent for quite some
-> > >> time. Hans, you of all people should know that calling
-> > >> video_unregister_device could result in the driver specific structure
-> > >> being freed.
-> > > 
-> > > Jeez, relax. I'm human (really!).
-> > > 
-> > >> The mutex must therefore be unlocked _before_ calling
-> > >> video_unregister_device. Otherwise you're passing freed memory to
-> > >> mutex_unlock in usb_amradio_disconnect.
-> > >> 
-> > >> If each patch had been properly posted to the list, others might have
-> > >> caught issues like this earlier. Posting a link to a repository is no
-> > >> substitute for this process.
-> > >> 
-> > >> Mauro, you should be ashamed for accepting a series that obviously has
-> > >> issues.
-> > > 
-> > > Hardly obvious, and definitely not his fault.
-> > 
-> > Hans,
-> > 
-> > This is a somewhat recurring discussion at #v4l irc nowadays. Next time,
-> > please send your patch series first to the ML, tagged with [PATCH RFC]
-> > especially if they touch ondrivers that you're not the maintainer or
-> > when you weren't able to test.
+Em 28-10-2010 16:01, Jan Hoogenraad escreveu:
+> Douglas:
 > 
-> So this is the new policy? Post with [PATCH RFC], wait a few days, then
-> post a git pull request?
+> First of all thank you for the support you have done so far.
+> 
+> Hans:
+> 
+> Is it possible to build the tar from
+> http://git.linuxtv.org/mchehab/new_build.git
+> automatically each night, just like the way the hg archive was built ?
+> I don't have sufficient processing power to run that.
+> 
+> Mauro:
+> 
+> I'm willing to give the mercurial conversion a shot.
+> I do not know a lot about v4l, but tend to be able to resolve this kind of release-type issues.
+> 
+> The way it seems to me is that first new_build.git should compile for all releases that the hg archive supported.
 
-That's a new policy under discussion. I think it's worth being discussed a bit 
-more. http://www.linuxtv.org/irc/v4l/index.php?date=2010-10-01 and 
-http://www.linuxtv.org/irc/v4l/index.php?date=2010-10-11 if you want to catch 
-up with the informal discussion.
+We still lack a maintainer for the new_build ;) I think we need to have someone
+with time looking on it, before flooding the ML's with breakage reports.
+I did the initial work: the tree is compiling, and I did a basic test with a few
+drivers on v2.6.32, but, unfortunately, I won't have time to maintain it.
+So, someone needs to head it. A few already talked to me about maintaining it
+it in priv, but didn't manifest yet publicly, because they're still analysing it.
+Also, so far, I received only one patch not made by me.
 
-> Should I also do this for long but mechanical conversions like the
-> 'video_device' to 'v4l2_devnode'rename patch series? I think posting that
-> would be spamming the list.
+Currently, the new_build tree covers kernel versions from .32 to .36, but, if nobody 
+handles it, the backport patches will break with the time. Probably, some API will
+change on .37, requiring a new backport patch. In the meantime, someone may change 
+one of the backported lines, breaking those patches.
 
--- 
-Regards,
+The good news is that there are just a few backport patches to maintain:
+8 patches were enough for 2.6.32 (plus the v4l/compat.h logic).
 
-Laurent Pinchart
+It is up to the one that takes the maintainership to decide what will be the minimum
+supported version. 
+
+IMHO, 2.6.32 is a good choice, as it has a long-maintained stable version and almost all 
+major distros are using it as basis for their newest version (and anyone 'crazy' enough 
+to use an experimental, pre -rc version, is likely using a brand new distribution ;) ).
+
+> Then I'd like some support from you as to transfer all current HG branches to the git line.
+> In principle, that should be fixed by the maintainers. If the new_build.git complies well, 
+> that should be relatively straightforward.
+> 
+> For me, it would be great if Mauro could transfer these branches automatically at that time to git.
+
+I can't do it, due to several reasons:
+
+1) it would be a huge manual effort;
+2) Trees will require up-port to the latest git version;
+3) some trees are there mostly due to historic reasons;
+4) developers need to rebase their drivers to the latest git, and test on their hardware if the
+   up-port didn't break anything;
+5) developers should be ok on migrating to git;
+
+I sent already a procedure for everybody with an account at linuxtv explaining how to create
+a git tree there. If they have any doubts, it is just a matter of pinging me, in priv.
+
+Cheers,
+Mauro
