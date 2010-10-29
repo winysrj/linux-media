@@ -1,103 +1,162 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1538 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757050Ab0J2TFZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Oct 2010 15:05:25 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id o9TJ5Gbj030834
-	for <linux-media@vger.kernel.org>; Fri, 29 Oct 2010 21:05:24 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 29 Oct 2010 21:05:16 +0200 (CEST)
-Message-Id: <201010291905.o9TJ5Gbj030834@smtp-vbr1.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+Received: from mailout-de.gmx.net ([213.165.64.23]:56052 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1755374Ab0J2JKR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Oct 2010 05:10:17 -0400
+Date: Fri, 29 Oct 2010 11:10:24 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Adam Sutton <aps@plextek.co.uk>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: RE: Changing frame size on the fly in SOC module
+In-Reply-To: <8C9A6B7580601F4FBDC0ED4C1D6A9B1D02AF3325@plextek3.plextek.lan>
+Message-ID: <Pine.LNX.4.64.1010291108240.25084@axis700.grange>
+References: <8C9A6B7580601F4FBDC0ED4C1D6A9B1D02AF331B@plextek3.plextek.lan>
+ <Pine.LNX.4.64.1010282009160.1257@axis700.grange>
+ <8C9A6B7580601F4FBDC0ED4C1D6A9B1D02AF3325@plextek3.plextek.lan>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi Adam
 
-Results of the daily build of v4l-dvb:
+On Fri, 29 Oct 2010, Adam Sutton wrote:
 
-date:        Fri Oct 29 19:00:24 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15167:abd3aac6644e
-git master:       3e6dce76d99b328716b43929b9195adfee1de00c
-git media-master: a348e9110ddb5d494e060d989b35dd1f35359d58
-gcc version:      i686-linux-gcc (GCC) 4.5.1
-host hardware:    x86_64
-host os:          2.6.32.5
+> Hi Guennadi,
 
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: WARNINGS
-linux-git-mips: WARNINGS
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-linux-2.6.32.6-armv5: WARNINGS
-linux-2.6.33-armv5: WARNINGS
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35.3-armv5: WARNINGS
-linux-2.6.32.6-armv5-davinci: ERRORS
-linux-2.6.33-armv5-davinci: ERRORS
-linux-2.6.34-armv5-davinci: ERRORS
-linux-2.6.35.3-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: ERRORS
-linux-2.6.33-armv5-ixp: ERRORS
-linux-2.6.34-armv5-ixp: ERRORS
-linux-2.6.35.3-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: ERRORS
-linux-2.6.33-armv5-omap2: ERRORS
-linux-2.6.34-armv5-omap2: ERRORS
-linux-2.6.35.3-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.32.6-m32r: WARNINGS
-linux-2.6.33-m32r: WARNINGS
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35.3-m32r: WARNINGS
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35.3-mips: WARNINGS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35.3-powerpc64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-spec-git: OK
-sparse: ERRORS
+Please, use the inline reply style.
 
-Detailed results are available here:
+> Thanks for the response, it's good just to get confirmation that I was
+> indeed interpreting the code properly.
+> 
+> I guess the main reason this is more significant for me is the
+> constraints I have on the hardware, i.e. it cannot handle the 640x480 at
+> any reasonable frame rate so we need the camera hardware to provide the
+> smaller image and second closing the camera powers the module down to
+> conserve power, which means time from open to image capture is slow
+> (particularly because I have to drop the first few frames with the auto
+> white balance etc... settles).
+> 
+> I had already assumed that streaming would need to be stopped before the
+> size could be changed, really don't see a problem with that. I had used
+> that approach with non-SOC style modules.
+> 
+> I think the documentation in videobuf talks about requesting the MAX
+> buffer size you will require from the start. So again I had already
+> assumed I'd need to do that as well.
+> 
+> I'm not sure I fully understand the concern about multiple simultaneous
+> users. I certainly don't have that as a user case in my own requirements
+> (device is a small handheld teaching aid) and I would have thought that
+> if 2 users try to use the same camera module at the same time all hell
+> would probably break out anyway. Have to admit I've never tried it
+> before.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+Multiple users, of which only one does the streaming. The rest may only 
+issues control requests like adjusting image quality, etc.
 
-Full logs are available here:
+Thanks
+Guennadi
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+> 
+> Adam
+> 
+> 
+> -----Original Message-----
+> From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de] 
+> Sent: 28 October 2010 20:01
+> To: Adam Sutton
+> Cc: linux-media@vger.kernel.org
+> Subject: Re: Changing frame size on the fly in SOC module
+> 
+> Hi Adam
+> 
+> On Thu, 28 Oct 2010, Adam Sutton wrote:
+> 
+> > Hi,
+> > 
+> > Sometime ago I developed an SOC based camera driver for my platform
+> > (ov7675 on iMX25), for the most part it seems to be working well
+> however
+> > at the time I couldn't manage to change the frame size on the fly
+> > (without closing / re-opening the device).
+> > 
+> > The current problem I have is that my application needs to display a
+> > 320x240 preview image on screen, but to capture a static image at
+> > 640x480. I can do this as long as I close the device in between,
+> > unfortunately for power consumption reasons the camera device is put
+> > into a low power state whenever the device is released. This means
+> that
+> > the image capture takes approx 1.5s (the requirement I have to meet is
+> > 1s).
+> > 
+> > Now I could cheat and simply subsample (in software) the 640x480
+> image,
+> > but that puts additional burden on an already overworked MCU.
+> > 
+> > Having been through the soc_camera and videobuf code and as far as I
+> can
+> > tell this inability to change the frame size without closing the
+> camera
+> > device appears to be a design decision.
+> 
+> Yes, it is.
+> 
+> > What I'm really after is confirmation one way of the other. If it's
+> not,
+> > what is the correct process to achieve the frame change without
+> closing
+> > the device. And if it is, does anybody have any suggestions of
+> possible
+> > workarounds?
+> 
+> It has been decided that way, because we didn't have a good use-case for
+> 
+> changing the frame format on-the-fly to develop for and to test with.
+> You 
+> seem to have one now, so, go ahead;)
+> 
+> There are a couple of issues to address though - videobuffer
+> configuration 
+> is one of them, host reconfiguration is the other one, possible multiple
+> 
+> simultaneous users is the third one (ok, only one of them will be
+> actually 
+> streaming).
+> 
+> This use case - different size preview and single shot capture has come
+> up 
+> a couple of times before, but noone has brought it to a proper
+> mainstream 
+> solution.
+> 
+> One thing you'd still want to do, I think, is to stop streaming before 
+> reconfiguring, and restart it afterwards.
+> 
+> So, maybe a viable solution would be:
+> 
+> in soc_camera_s_fmt_vid_cap() check not just for "icf->vb_vidq.bufs[0]
+> != 
+> NULL", but rather for if streaming is not running, and then someone will
+> 
+> certainly have to check for large enough buffers. So, you'd have to 
+> request max size buffers from the beginning even for preview.
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> Plextek Limited
+> Registered Address: London Road, Great Chesterford, Essex, CB10 1NY, UK Company Registration No. 2305889
+> VAT Registration No. GB 918 4425 15
+> Tel: +44 1799 533 200. Fax: +44 1799 533 201 Web:http://www.plextek.com 
+> Electronics Design and Consultancy
+> 
+> 
 
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
