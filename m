@@ -1,227 +1,81 @@
 Return-path: <mchehab@pedra>
-Received: from relay02.digicable.hu ([92.249.128.188]:51280 "EHLO
-	relay02.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750858Ab0JQLbI (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:54668 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756019Ab0J2VgT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Oct 2010 07:31:08 -0400
-Message-ID: <4CBAD917.80704@freemail.hu>
-Date: Sun, 17 Oct 2010 13:08:07 +0200
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+	Fri, 29 Oct 2010 17:36:19 -0400
+From: James Hogan <james@albanarts.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH 1/6] Input: add support for large scancodes
+Date: Fri, 29 Oct 2010 22:36:06 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	David Hardeman <david@hardeman.nu>,
+	Jiri Kosina <jkosina@suse.cz>, Ville Syrjala <syrjala@sci.fi>,
+	linux-doc@vger.kernel.org, Randy Dunlap <rdunlap@xenotime.net>
+References: <20100908073233.32365.74621.stgit@hammer.corenet.prv> <20100908074144.32365.27232.stgit@hammer.corenet.prv>
+In-Reply-To: <20100908074144.32365.27232.stgit@hammer.corenet.prv>
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/2] gspca_sonixj: add hardware horizontal flip support for
- hama AC-150
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201010292236.07437.james@albanarts.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Márton Németh <nm127@freemail.hu>
+> diff --git a/include/linux/input.h b/include/linux/input.h
+> index 7892651..0057698 100644
+> --- a/include/linux/input.h
+> +++ b/include/linux/input.h
+<snip>
+> +/**
+> + * struct input_keymap_entry - used by EVIOCGKEYCODE/EVIOCSKEYCODE ioctls
+> + * @scancode: scancode represented in machine-endian form.
+> + * @len: length of the scancode that resides in @scancode buffer.
+> + * @index: index in the keymap, may be used instead of scancode
+> + * @flags: allows to specify how kernel should handle the request. For
+> + *	example, setting INPUT_KEYMAP_BY_INDEX flag indicates that kernel
+> + *	should perform lookup in keymap by @index instead of @scancode
+> + * @keycode: key code assigned to this scancode
+> + *
+> + * The structure is used to retrieve and modify keymap data. Users have
+> + * option of performing lookup either by @scancode itself or by @index
+> + * in keymap entry. EVIOCGKEYCODE will also return scancode or index
+> + * (depending on which element was used to perform lookup).
+> + */
+> +struct input_keymap_entry {
+> +#define INPUT_KEYMAP_BY_INDEX	(1 << 0)
+> +	__u8  flags;
+> +	__u8  len;
+> +	__u16 index;
+> +	__u32 keycode;
+> +	__u8  scancode[32];
+> +};
 
-The PO2030N sensor chip found in hama AC-150 webcam supports horizontal flipping
-the image by hardware. Add support for this in the gspca_sonixj driver also.
+I thought I better point out that this breaks make htmldocs (see below) 
+because of the '<' characters "in" a kernel doc'd struct. This is with 
+12ba8d1e9262ce81a695795410bd9ee5c9407ba1 from Linus' tree (>2.6.36). Moving 
+the #define below the struct works around the problem, but I guess the real 
+issue is in the kerneldoc code.
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
----
-diff -upr c/drivers/media/video/gspca/sonixj.c d/drivers/media/video/gspca/sonixj.c
---- c/drivers/media/video/gspca/sonixj.c	2010-10-17 12:08:12.000000000 +0200
-+++ d/drivers/media/video/gspca/sonixj.c	2010-10-17 12:28:41.000000000 +0200
-@@ -46,6 +46,7 @@ struct sd {
- 	u8 red;
- 	u8 gamma;
- 	u8 vflip;			/* ov7630/ov7648/po2030n only */
-+	u8 hflip;			/* po2030n only */
- 	u8 sharpness;
- 	u8 infrared;			/* mt9v111 only */
- 	u8 freq;			/* ov76xx only */
-@@ -104,6 +105,8 @@ static int sd_setautogain(struct gspca_d
- static int sd_getautogain(struct gspca_dev *gspca_dev, __s32 *val);
- static int sd_setvflip(struct gspca_dev *gspca_dev, __s32 val);
- static int sd_getvflip(struct gspca_dev *gspca_dev, __s32 *val);
-+static int sd_sethflip(struct gspca_dev *gspca_dev, __s32 val);
-+static int sd_gethflip(struct gspca_dev *gspca_dev, __s32 *val);
- static int sd_setsharpness(struct gspca_dev *gspca_dev, __s32 val);
- static int sd_getsharpness(struct gspca_dev *gspca_dev, __s32 *val);
- static int sd_setinfrared(struct gspca_dev *gspca_dev, __s32 val);
-@@ -235,7 +238,22 @@ static const struct ctrl sd_ctrls[] = {
- 	    .set = sd_setvflip,
- 	    .get = sd_getvflip,
- 	},
--#define SHARPNESS_IDX 8
-+#define HFLIP_IDX 8
-+	{
-+	    {
-+		.id      = V4L2_CID_HFLIP,
-+		.type    = V4L2_CTRL_TYPE_BOOLEAN,
-+		.name    = "Hflip",
-+		.minimum = 0,
-+		.maximum = 1,
-+		.step    = 1,
-+#define HFLIP_DEF 0
-+		.default_value = HFLIP_DEF,
-+	    },
-+	    .set = sd_sethflip,
-+	    .get = sd_gethflip,
-+	},
-+#define SHARPNESS_IDX 9
- 	{
- 	    {
- 		.id	 = V4L2_CID_SHARPNESS,
-@@ -251,7 +269,7 @@ static const struct ctrl sd_ctrls[] = {
- 	    .get = sd_getsharpness,
- 	},
- /* mt9v111 only */
--#define INFRARED_IDX 9
-+#define INFRARED_IDX 10
- 	{
- 	    {
- 		.id      = V4L2_CID_INFRARED,
-@@ -267,7 +285,7 @@ static const struct ctrl sd_ctrls[] = {
- 	    .get = sd_getinfrared,
- 	},
- /* ov7630/ov7648/ov7660 only */
--#define FREQ_IDX 10
-+#define FREQ_IDX 11
- 	{
- 	    {
- 		.id	 = V4L2_CID_POWER_LINE_FREQUENCY,
-@@ -289,41 +307,52 @@ static const __u32 ctrl_dis[] = {
- [SENSOR_ADCM1700] =	(1 << AUTOGAIN_IDX) |
- 			(1 << INFRARED_IDX) |
- 			(1 << VFLIP_IDX) |
-+			(1 << HFLIP_IDX) |
- 			(1 << FREQ_IDX),
+Cheers
+James
 
- [SENSOR_GC0307] =	(1 << INFRARED_IDX) |
- 			(1 << VFLIP_IDX) |
-+			(1 << HFLIP_IDX) |
- 			(1 << FREQ_IDX),
-
- [SENSOR_HV7131R] =	(1 << INFRARED_IDX) |
-+			(1 << HFLIP_IDX) |
- 			(1 << FREQ_IDX),
-
- [SENSOR_MI0360] =	(1 << INFRARED_IDX) |
- 			(1 << VFLIP_IDX) |
-+			(1 << HFLIP_IDX) |
- 			(1 << FREQ_IDX),
-
- [SENSOR_MO4000] =	(1 << INFRARED_IDX) |
- 			(1 << VFLIP_IDX) |
-+			(1 << HFLIP_IDX) |
- 			(1 << FREQ_IDX),
-
- [SENSOR_MT9V111] =	(1 << VFLIP_IDX) |
-+			(1 << HFLIP_IDX) |
- 			(1 << FREQ_IDX),
-
- [SENSOR_OM6802] =	(1 << INFRARED_IDX) |
- 			(1 << VFLIP_IDX) |
-+			(1 << HFLIP_IDX) |
- 			(1 << FREQ_IDX),
-
--[SENSOR_OV7630] =	(1 << INFRARED_IDX),
-+[SENSOR_OV7630] =	(1 << INFRARED_IDX) |
-+			(1 << HFLIP_IDX),
-
--[SENSOR_OV7648] =	(1 << INFRARED_IDX),
-+[SENSOR_OV7648] =	(1 << INFRARED_IDX) |
-+			(1 << HFLIP_IDX),
-
- [SENSOR_OV7660] =	(1 << AUTOGAIN_IDX) |
- 			(1 << INFRARED_IDX) |
--			(1 << VFLIP_IDX),
-+			(1 << VFLIP_IDX) |
-+			(1 << HFLIP_IDX),
-
- [SENSOR_PO1030] =	(1 << AUTOGAIN_IDX) |
- 			(1 << INFRARED_IDX) |
- 			(1 << VFLIP_IDX) |
-+			(1 << HFLIP_IDX) |
- 			(1 << FREQ_IDX),
-
- [SENSOR_PO2030N] =	(1 << AUTOGAIN_IDX) |
-@@ -332,11 +361,13 @@ static const __u32 ctrl_dis[] = {
- [SENSOR_SOI768] =	(1 << AUTOGAIN_IDX) |
- 			(1 << INFRARED_IDX) |
- 			(1 << VFLIP_IDX) |
-+			(1 << HFLIP_IDX) |
- 			(1 << FREQ_IDX),
-
- [SENSOR_SP80708] =	(1 << AUTOGAIN_IDX) |
- 			(1 << INFRARED_IDX) |
- 			(1 << VFLIP_IDX) |
-+			(1 << HFLIP_IDX) |
- 			(1 << FREQ_IDX),
- };
-
-@@ -1800,6 +1831,7 @@ static int sd_config(struct gspca_dev *g
- 	sd->autogain = AUTOGAIN_DEF;
- 	sd->ag_cnt = -1;
- 	sd->vflip = VFLIP_DEF;
-+	sd->hflip = HFLIP_DEF;
- 	switch (sd->sensor) {
- 	case SENSOR_OM6802:
- 		sd->sharpness = 0x10;
-@@ -2136,7 +2168,7 @@ static void setautogain(struct gspca_dev
- }
-
- /* hv7131r/ov7630/ov7648/po2030n only */
--static void setvflip(struct sd *sd)
-+static void sethvflip(struct sd *sd)
- {
- 	u8 comn;
-
-@@ -2167,6 +2199,8 @@ static void setvflip(struct sd *sd)
- 		comn = 0x0A;
- 		if (sd->vflip)
- 			comn |= 0x40;
-+		if (sd->hflip)
-+			comn |= 0x80;
- 		i2c_w1(&sd->gspca_dev, 0x1E, comn);
- 		break;
- 	default:
-@@ -2551,7 +2585,7 @@ static int sd_start(struct gspca_dev *gs
- 	reg_w1(gspca_dev, 0x17, reg17);
- 	reg_w1(gspca_dev, 0x01, reg1);
-
--	setvflip(sd);
-+	sethvflip(sd);
- 	setbrightness(gspca_dev);
- 	setcontrast(gspca_dev);
- 	setcolors(gspca_dev);
-@@ -2863,7 +2897,7 @@ static int sd_setvflip(struct gspca_dev
-
- 	sd->vflip = val;
- 	if (gspca_dev->streaming)
--		setvflip(sd);
-+		sethvflip(sd);
- 	return 0;
- }
-
-@@ -2875,6 +2909,24 @@ static int sd_getvflip(struct gspca_dev
- 	return 0;
- }
-
-+static int sd_sethflip(struct gspca_dev *gspca_dev, __s32 val)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+
-+	sd->hflip = val;
-+	if (gspca_dev->streaming)
-+		sethvflip(sd);
-+	return 0;
-+}
-+
-+static int sd_gethflip(struct gspca_dev *gspca_dev, __s32 *val)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+
-+	*val = sd->hflip;
-+	return 0;
-+}
-+
- static int sd_setinfrared(struct gspca_dev *gspca_dev, __s32 val)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
+$ make htmldocs
+  DOCPROC Documentation/DocBook/device-drivers.xml
+  HTML    Documentation/DocBook/device-drivers.html
+/home/james/src/kernel/linux-2.6/Documentation/DocBook/device-
+drivers.xml:41883: parser error : StartTag: invalid element name
+#define INPUT_KEYMAP_BY_INDEX   (1 << 0)
+                                    ^
+/home/james/src/kernel/linux-2.6/Documentation/DocBook/device-
+drivers.xml:41883: parser error : StartTag: invalid element name
+#define INPUT_KEYMAP_BY_INDEX   (1 << 0)
+                                     ^
+unable to parse /home/james/src/kernel/linux-2.6/Documentation/DocBook/device-
+drivers.xml
+/bin/cp: cannot stat `*.*htm*': No such file or directory
+make[1]: *** [Documentation/DocBook/device-drivers.html] Error 1
+make: *** [htmldocs] Error 2
