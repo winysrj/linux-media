@@ -1,71 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:3738 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754823Ab0JRNUZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Oct 2010 09:20:25 -0400
-Message-ID: <aa9cebfeb2bfad9ef7f6ee67a188bf98.squirrel@webmail.xs4all.nl>
-In-Reply-To: <AANLkTikPugSRT-t=5bKSLjk3eDmeYh5NYUui=uks35vy@mail.gmail.com>
-References: <49e7400bcbcc4412b77216bb061db1b57cb3b882.1287318143.git.hverkuil@xs4all.nl>
-    <201010171452.17454.hverkuil@xs4all.nl>
-    <AANLkTikPugSRT-t=5bKSLjk3eDmeYh5NYUui=uks35vy@mail.gmail.com>
-Date: Mon, 18 Oct 2010 15:20:21 +0200
-Subject: Re: [RFC PATCH] radio-mr800: locking fixes
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "David Ellingsworth" <david@identd.dyndns.org>
+Received: from mx1.redhat.com ([209.132.183.28]:23977 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757323Ab0J2PLm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Oct 2010 11:11:42 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o9TFBgGX011425
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 29 Oct 2010 11:11:42 -0400
+Date: Fri, 29 Oct 2010 11:11:41 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 0/2] Apple remote support
+Message-ID: <20101029151141.GA21604@redhat.com>
+References: <20101029031131.GE17238@redhat.com>
+ <20101029031530.GH17238@redhat.com>
+ <4CCAD01A.3090106@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4CCAD01A.3090106@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+On Fri, Oct 29, 2010 at 11:46:02AM -0200, Mauro Carvalho Chehab wrote:
+> Em 29-10-2010 01:15, Jarod Wilson escreveu:
+> > On Thu, Oct 28, 2010 at 11:11:31PM -0400, Jarod Wilson wrote:
+> >> I've got one of those tiny little 6-button Apple remotes here, now it can
+> >> be decoded in-kernel (tested w/an mceusb transceiver).
+> > 
+> > Oh yeah, RFC, because I'm not sure if we should have a more generic "skip
+> > the checksum check" support -- I seem to recall discussion about it in the
+> > not so recent past. And a decoder hack for one specific remote is just
+> > kinda ugly...
+> 
+> Yeah, I have the same doubt. One possibility would be to simply report a 32 bits
+> code, if the check fails. I don't doubt that we'll find other remotes with
+> a "NEC relaxed" protocol, with no checksum at all.
 
-> On Sun, Oct 17, 2010 at 8:52 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> On Sunday, October 17, 2010 14:26:18 Hans Verkuil wrote:
->>> - serialize the suspend and resume functions using the global lock.
->>> - do not call usb_autopm_put_interface after a disconnect.
->>> - fix a race when disconnecting the device.
->>
->> Regarding autosuspend: something seems to work since the
->> power/runtime_status
->> attribute goes from 'suspended' to 'active' whenever the radio handle is
->> open.
->> But the suspend and resume functions are never called. I can't figure
->> out
->> why not. I don't see anything strange.
->>
->> The whole autopm stuff is highly suspect anyway on a device like this
->> since
->> it is perfectly reasonable to just set a frequency and exit. The audio
->> is
->> just going to the line-in anyway. In other words: not having the device
->> node
->> open does not mean that the device is idle and can be suspended.
->>
->> My proposal would be to rip out the whole autosuspend business from this
->> driver. I've no idea why it is here at all.
->>
->> Regards,
->>
->>        Hans
->
-> Hans, I highly agree with that analysis. The original author put that
-> code in. But like you, I'm not sure if it was ever really valid. Since
-> I didn't have anything to test with, I left it untouched.
->
-> Regards,
->
-> David Ellingsworth
->
->
-
-OK, then I'll make a new patch that just rips out autosuspend support.
-
-Regards,
-
-         Hans
+So the Apple remotes do something funky... One of the four bytes is a
+remote identifier byte, which is used for pairing the remote to a specific
+device, and you can change the ID byte by simply holding down buttons on
+the remote. We could ignore the ID byte, and just match all Apple remotes,
+or we could add some sort of pairing support where we require the right ID
+byte in order to do scancode -> keycode mapping... But in the match all
+case, I think we need the NEC extended scancode (e.g. 0xee8703 for KEY_MENU
+on my remote), while in the match paired case, we need the full
+4-byte/32-bit code... Offhand, I'm not quite sure how to cleanly handle
+both cases. When using lirc, the full 32-bits are used, and you either
+have your config with exact matches (remote ID byte included), or you add
+an ignore mask, which tells scancode matching to just ignore the ID byte.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Jarod Wilson
+jarod@redhat.com
 
