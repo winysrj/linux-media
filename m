@@ -1,119 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:55886 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752663Ab0JPDbt (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3611 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934035Ab0J2QGT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Oct 2010 23:31:49 -0400
-Message-ID: <4CB91C9C.8050908@infradead.org>
-Date: Sat, 16 Oct 2010 00:31:40 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Fri, 29 Oct 2010 12:06:19 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+Date: Fri, 29 Oct 2010 18:05:32 +0200
+Cc: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>,
+	linux-media@vger.kernel.org
+References: <201010271905.o9RJ504u021145@smtp-vbr1.xs4all.nl> <4CC9BA90.2080805@hoogenraad.net> <4CC9C67C.8040102@redhat.com>
+In-Reply-To: <4CC9C67C.8040102@redhat.com>
 MIME-Version: 1.0
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-CC: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
-	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 4/5] IR: ene_ir: add support for carrier reports
-References: <1287158799-21486-1-git-send-email-maximlevitsky@gmail.com> <1287158799-21486-5-git-send-email-maximlevitsky@gmail.com>
-In-Reply-To: <1287158799-21486-5-git-send-email-maximlevitsky@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201010291805.32363.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 15-10-2010 13:06, Maxim Levitsky escreveu:
-> Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
-> ---
->  drivers/media/IR/ene_ir.c |   37 +++++++++++++++++++++++++++++--------
->  1 files changed, 29 insertions(+), 8 deletions(-)
+On Thursday, October 28, 2010 20:52:44 Mauro Carvalho Chehab wrote:
+> Hi Jan,
 > 
-> diff --git a/drivers/media/IR/ene_ir.c b/drivers/media/IR/ene_ir.c
-> index 8639621..1962652 100644
-> --- a/drivers/media/IR/ene_ir.c
-> +++ b/drivers/media/IR/ene_ir.c
-> @@ -193,10 +193,11 @@ static int ene_hw_detect(struct ene_device *dev)
->  /* Sense current received carrier */
->  void ene_rx_sense_carrier(struct ene_device *dev)
->  {
-> +	DEFINE_IR_RAW_EVENT(ev);
-> +
+> Em 28-10-2010 16:01, Jan Hoogenraad escreveu:
+> > Douglas:
+> > 
+> > First of all thank you for the support you have done so far.
+> > 
+> > Hans:
+> > 
+> > Is it possible to build the tar from
+> > http://git.linuxtv.org/mchehab/new_build.git
+> > automatically each night, just like the way the hg archive was built ?
+> > I don't have sufficient processing power to run that.
 
-Hmm... shouldn't it be in the patch that adds DEFINE_IR_RAW_EVENT(ev) ?
+I haven't had time to look into new_build.git. It is on my todo list. I hope
+to have some time next week.
 
-This way, it will likely break git bisect.
+> > Mauro:
+> > 
+> > I'm willing to give the mercurial conversion a shot.
+> > I do not know a lot about v4l, but tend to be able to resolve this kind of release-type issues.
+> > 
+> > The way it seems to me is that first new_build.git should compile for all releases that the hg archive supported.
+> 
+> We still lack a maintainer for the new_build ;) I think we need to have someone
+> with time looking on it, before flooding the ML's with breakage reports.
+> I did the initial work: the tree is compiling, and I did a basic test with a few
+> drivers on v2.6.32, but, unfortunately, I won't have time to maintain it.
+> So, someone needs to head it. A few already talked to me about maintaining it
+> it in priv, but didn't manifest yet publicly, because they're still analysing it.
+> Also, so far, I received only one patch not made by me.
+> 
+> Currently, the new_build tree covers kernel versions from .32 to .36, but, if nobody 
+> handles it, the backport patches will break with the time. Probably, some API will
+> change on .37, requiring a new backport patch. In the meantime, someone may change 
+> one of the backported lines, breaking those patches.
+> 
+> The good news is that there are just a few backport patches to maintain:
+> 8 patches were enough for 2.6.32 (plus the v4l/compat.h logic).
+> 
+> It is up to the one that takes the maintainership to decide what will be the minimum
+> supported version. 
+> 
+> IMHO, 2.6.32 is a good choice, as it has a long-maintained stable version and almost all 
+> major distros are using it as basis for their newest version (and anyone 'crazy' enough 
+> to use an experimental, pre -rc version, is likely using a brand new distribution ;) ).
 
-Anyway, as patch 2/5 weren't applied, I can't apply this one either.
+I agree. I will kill the mercurial builds this weekend. After I have looked at new_build
+I'll see if I can set up an automated build for it (or at least do some prototyping).
+I'm not going to spend a lot of time on it as long as there is no maintainer. But
+once a maintainer is announced, then I will finish the work on the daily build so
+that it gets included every day.
 
-the other 2 patches were applied.
+Regards,
 
-> +	int carrier, duty_cycle;
->  	int period = ene_read_reg(dev, ENE_CIRCAR_PRD);
->  	int hperiod = ene_read_reg(dev, ENE_CIRCAR_HPRD);
-> -	int carrier, duty_cycle;
-> -
->  
->  	if (!(period & ENE_CIRCAR_PRD_VALID))
->  		return;
-> @@ -209,13 +210,16 @@ void ene_rx_sense_carrier(struct ene_device *dev)
->  	dbg("RX: hardware carrier period = %02x", period);
->  	dbg("RX: hardware carrier pulse period = %02x", hperiod);
->  
-> -
->  	carrier = 2000000 / period;
->  	duty_cycle = (hperiod * 100) / period;
->  	dbg("RX: sensed carrier = %d Hz, duty cycle %d%%",
-> -							carrier, duty_cycle);
-> -
-> -	/* TODO: Send carrier & duty cycle to IR layer */
-> +						carrier, duty_cycle);
-> +	if (dev->carrier_detect_enabled) {
-> +		ev.carrier_report = true;
-> +		ev.carrier = carrier;
-> +		ev.duty_cycle = duty_cycle;
-> +		ir_raw_event_store(dev->idev, &ev);
-> +	}
->  }
->  
->  /* this enables/disables the CIR RX engine */
-> @@ -724,7 +728,7 @@ static irqreturn_t ene_isr(int irq, void *data)
->  
->  	dbg_verbose("RX interrupt");
->  
-> -	if (dev->carrier_detect_enabled || debug)
-> +	if (dev->hw_learning_and_tx_capable)
->  		ene_rx_sense_carrier(dev);
->  
->  	/* On hardware that don't support extra buffer we need to trust
-> @@ -897,6 +901,23 @@ static int ene_set_learning_mode(void *data, int enable)
->  	return 0;
->  }
->  
-> +static int ene_set_carrier_report(void *data, int enable)
-> +{
-> +	struct ene_device *dev = (struct ene_device *)data;
-> +	unsigned long flags;
-> +
-> +	if (enable == dev->carrier_detect_enabled)
-> +		return 0;
-> +
-> +	spin_lock_irqsave(&dev->hw_lock, flags);
-> +	dev->carrier_detect_enabled = enable;
-> +	ene_rx_disable(dev);
-> +	ene_rx_setup(dev);
-> +	ene_rx_enable(dev);
-> +	spin_unlock_irqrestore(&dev->hw_lock, flags);
-> +	return 0;
-> +}
-> +
->  /* outside interface: enable or disable idle mode */
->  static void ene_rx_set_idle(void *data, bool idle)
->  {
-> @@ -1029,7 +1050,7 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
->  		ir_props->s_tx_mask = ene_set_tx_mask;
->  		ir_props->s_tx_carrier = ene_set_tx_carrier;
->  		ir_props->s_tx_duty_cycle = ene_set_tx_duty_cycle;
-> -		/* ir_props->s_carrier_report = ene_set_carrier_report; */
-> +		ir_props->s_carrier_report = ene_set_carrier_report;
->  	}
->  
->  	ene_setup_hw_buffer(dev);
+	Hans
 
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
