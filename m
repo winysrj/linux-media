@@ -1,52 +1,43 @@
 Return-path: <mchehab@pedra>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:41434 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755577Ab0JALL0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Oct 2010 07:11:26 -0400
-Received: from tele (unknown [82.245.201.222])
-	by smtp5-g21.free.fr (Postfix) with ESMTP id E2054D4802D
-	for <linux-media@vger.kernel.org>; Fri,  1 Oct 2010 13:11:20 +0200 (CEST)
-Date: Fri, 1 Oct 2010 13:12:00 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 2.6.37] gspca for_2.6.37
-Message-ID: <20101001131200.53022736@tele>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:49215 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761919Ab0J2T7W (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Oct 2010 15:59:22 -0400
+Date: Fri, 29 Oct 2010 21:59:18 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Jarod Wilson <jarod@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 0/2] Apple remote support
+Message-ID: <20101029195918.GA12501@hardeman.nu>
+References: <20101029031131.GE17238@redhat.com>
+ <20101029031530.GH17238@redhat.com>
+ <4CCAD01A.3090106@redhat.com>
+ <20101029151141.GA21604@redhat.com>
+ <20101029191711.GA12136@hardeman.nu>
+ <20101029192733.GE21604@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20101029192733.GE21604@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The following changes since commit
-1a45fd8d5ec39af5c00bec6094a606ccfc7957d5:
+On Fri, Oct 29, 2010 at 03:27:33PM -0400, Jarod Wilson wrote:
+> On Fri, Oct 29, 2010 at 09:17:11PM +0200, David H‰rdeman wrote:
+> > On Fri, Oct 29, 2010 at 11:11:41AM -0400, Jarod Wilson wrote:
+> > > So the Apple remotes do something funky... One of the four bytes is a
+> > > remote identifier byte, which is used for pairing the remote to a specific
+> > > device, and you can change the ID byte by simply holding down buttons on
+> > > the remote.
+> > 
+> > How many different ID's are possible to set on the remote?
+> 
+> 256, apparently.
 
-  V4L/DVB: tda18271: Add some hint about what tda18217 reg ID returned (2010-09-30 22:47:20 -0300)
-
-are available in the git repository at:
-  git://linuxtv.org/jfrancois/gspca.git for_2.6.37
-
-Jean-Fran√ßois Moine (5):
-      gspca - many subdrivers: Handle the buttons when CONFIG_INPUT=m.
-      gspca - mr97310a: Declare static the constant tables.
-      gspca - sonixj: Add sensor mi0360b.
-      gspca - sonixj: Bad detection of the end of image.
-      gspca - sonixj: Have 0c45:6130 handled by sonixj instead of sn9c102.
-
- drivers/media/video/gspca/konica.c             |    6 +-
- drivers/media/video/gspca/mr97310a.c           |   23 ++--
- drivers/media/video/gspca/ov519.c              |    4 +-
- drivers/media/video/gspca/pac207.c             |    4 +-
- drivers/media/video/gspca/pac7302.c            |    4 +-
- drivers/media/video/gspca/pac7311.c            |    4 +-
- drivers/media/video/gspca/sn9c20x.c            |    6 +-
- drivers/media/video/gspca/sonixb.c             |    4 +-
- drivers/media/video/gspca/sonixj.c             |  180 ++++++++++++++++++++----
- drivers/media/video/gspca/spca561.c            |    6 +-
- drivers/media/video/gspca/stv06xx/stv06xx.c    |    4 +-
- drivers/media/video/gspca/zc3xx.c              |    6 +-
- drivers/media/video/sn9c102/sn9c102_devtable.h |    2 +
- 13 files changed, 187 insertions(+), 66 deletions(-)
+Does the remote pick one for you at random?
 
 -- 
-Ken ar c'henta√±	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+David H‰rdeman
