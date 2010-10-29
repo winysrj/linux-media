@@ -1,53 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-out002.kontent.com ([81.88.40.216]:49620 "EHLO
-	smtp-out002.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753117Ab0JSTuE (ORCPT
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:42211 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761850Ab0J2ULp convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Oct 2010 15:50:04 -0400
-From: Oliver Neukum <oliver@neukum.org>
-To: Greg KH <greg@kroah.com>
-Subject: Re: [Ksummit-2010-discuss] [v2] Remaining BKL users, what to do
-Date: Tue, 19 Oct 2010 21:40:47 +0200
-Cc: Valdis.Kletnieks@vt.edu, Dave Airlie <airlied@gmail.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	codalist@telemann.coda.cs.cmu.edu,
-	ksummit-2010-discuss@lists.linux-foundation.org,
-	autofs@linux.kernel.org, Jan Harkes <jaharkes@cs.cmu.edu>,
-	Samuel Ortiz <samuel@sortiz.org>, Jan Kara <jack@suse.cz>,
-	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
-	netdev@vger.kernel.org, Anders Larsen <al@alarsen.net>,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Bryan Schumaker <bjschuma@netapp.com>,
-	Christoph Hellwig <hch@infradead.org>,
-	Petr Vandrovec <vandrove@vc.cvut.cz>,
-	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
-	linux-fsdevel@vger.kernel.org,
-	Evgeniy Dushistov <dushistov@mail.ru>,
-	Ingo Molnar <mingo@elte.hu>,
-	Andrew Hendry <andrew.hendry@gmail.com>,
-	linux-media@vger.kernel.org
-References: <201009161632.59210.arnd@arndb.de> <21406.1287512693@localhost> <20101019193735.GA4043@kroah.com>
-In-Reply-To: <20101019193735.GA4043@kroah.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201010192140.47433.oliver@neukum.org>
+	Fri, 29 Oct 2010 16:11:45 -0400
+Received: by vws13 with SMTP id 13so475067vws.19
+        for <linux-media@vger.kernel.org>; Fri, 29 Oct 2010 13:11:45 -0700 (PDT)
+Subject: Re: [PATCH 0/7] rc-core: ir-core to rc-core conversion
+Mime-Version: 1.0 (Apple Message framework v1081)
+Content-Type: text/plain; charset=iso-8859-1
+From: Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <20101029190745.11982.75723.stgit@localhost.localdomain>
+Date: Fri, 29 Oct 2010 16:11:42 -0400
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org
+Content-Transfer-Encoding: 8BIT
+Message-Id: <44165E94-F983-430F-8433-80985E1FF21F@wilsonet.com>
+References: <20101029190745.11982.75723.stgit@localhost.localdomain>
+To: =?iso-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Am Dienstag, 19. Oktober 2010, 21:37:35 schrieb Greg KH:
-> > So no need to clean it up for multiprocessor support.
-> > 
-> > http://download.intel.com/design/chipsets/datashts/29067602.pdf
-> > http://www.intel.com/design/chipsets/specupdt/29069403.pdf
+On Oct 29, 2010, at 3:07 PM, David Härdeman wrote:
+
+> This is my current patch queue, the main change is to make struct rc_dev
+> the primary interface for rc drivers and to abstract away the fact that
+> there's an input device lurking in there somewhere. The patchset has been
+> updated to apply on top of the staging/for_v2.6.37-rc1 branch of the
+> media_tree git repo.
 > 
-> Great, we can just drop all calls to lock_kernel() and the like in the
-> driver and be done with it, right?
+> In addition, the cx88 and winbond-cir drivers are converted to use rc-core.
+> 
+> The first patch (which is not to be merged) just merges the large scancodes
+> patches for the input subsystem to make sure that merging my patches upstream
+> will be doable post -rc1 (the input patches are already merged upstream).
+> 
+> Given the changes, these patches touch every single driver. Obviously I
+> haven't tested them all due to a lack of hardware (I have made sure that
+> all drivers compile without any warnings and I have tested the end result
+> on mceusb and winbond-cir hardware).
 
-No,
+You can definitely sign me up for imon, streamzap and nuvoton-cir testing, and for sanity's sake, I can also verify multiple generations of mceusb devices. I'll see what I can get done on that front this weekend...
 
-you still need to switch off preemption.
+-- 
+Jarod Wilson
+jarod@wilsonet.com
 
-	Regards
-		Oliver
+
+
