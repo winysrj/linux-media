@@ -1,86 +1,39 @@
 Return-path: <mchehab@pedra>
-Received: from c2bthomr09.btconnect.com ([213.123.20.127]:40215 "EHLO
-	mail.btconnect.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751573Ab0JDAWq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Oct 2010 20:22:46 -0400
-From: sibu xolo <sibxol@btconnect.com>
-To: linux-media@vger.kernel.org
-Subject: udev-161 dvbT kernel-2.6.35.5
-Date: Mon, 4 Oct 2010 01:16:35 +0100
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:52516 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933121Ab0J2Wea (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Oct 2010 18:34:30 -0400
+From: James Hogan <james@albanarts.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH 1/6] Input: add support for large scancodes
+Date: Fri, 29 Oct 2010 23:34:15 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	David Hardeman <david@hardeman.nu>,
+	Jiri Kosina <jkosina@suse.cz>, Ville Syrjala <syrjala@sci.fi>,
+	linux-doc@vger.kernel.org, Randy Dunlap <rdunlap@xenotime.net>
+References: <20100908073233.32365.74621.stgit@hammer.corenet.prv> <20100908074144.32365.27232.stgit@hammer.corenet.prv> <201010292236.07437.james@albanarts.com>
+In-Reply-To: <201010292236.07437.james@albanarts.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
+Content-Type: Text/Plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201010040116.35961.sibxol@btconnect.com>
+Message-Id: <201010292334.20732.james@albanarts.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Greetings,  
+On Friday 29 October 2010 22:36:06 James Hogan wrote:
+> I thought I better point out that this breaks make htmldocs (see below)
+> because of the '<' characters "in" a kernel doc'd struct. This is with
+> 12ba8d1e9262ce81a695795410bd9ee5c9407ba1 from Linus' tree (>2.6.36). Moving
+> the #define below the struct works around the problem, but I guess the real
+> issue is in the kerneldoc code.
 
-I am attempting to set up DVBT on a computer with these:
+appologies for the noise.
+I see Randy had already beaten me to a fix.
 
---------cpu:  amd64 2 cores, gpu nvidia gforce  nouveau drm
---------o/s cblfslinux 64-bit kernel-2.6.35.5 udev-161  kde-4.4.5 
---------dvb device  Hauppauge wintvNovaT DVBT usb2
-
-I have  the foollowing in /lib/firmware
-
-
-dvb-usb-dib0700-01.fw       
-dvb-usb-dib0700-1.20.fw 
-
-
-#############  my udev rule looks like so:-
-
-KERNEL="dvb*",
-PROGRAM="/etc/udev/scripts/dvb.sh %k",  
-ATTRS{serial}=="123456789a",
-ATTRS{product}=="Nova-T Stick",
-GROUP="video", 
-MODE="0660",
-SYMLINK+="Nova-T-usb2"
-
-###### the machine dwells a litle   on booting
-###### lsmod yoelds:-
-
-root [ ~teeveey ]# lsmod
-Module                  Size  Used by
-snd_hda_codec_realtek   294785  1 
-dvb_usb_dib0700        77625  0 
-dib7000p               15705  1 dvb_usb_dib0700
-dib0090                12297  1 dvb_usb_dib0700
-dib7000m               12868  1 dvb_usb_dib0700
-dib0070                 7510  1 dvb_usb_dib0700
-dvb_usb                16683  1 dvb_usb_dib0700
-dib8000                23992  1 dvb_usb_dib0700
-dvb_core               87312  3 dib7000p,dvb_usb,dib8000
-dib3000mc              11061  1 dvb_usb_dib0700
-dibx000_common          3213  4 dib7000p,dib7000m,dib8000,dib3000mc
-nouveau               387642  2 
-ttm                    53985  1 nouveau
-drm_kms_helper         25234  1 nouveau
-snd_hda_intel          24006  3 
-snd_hda_codec          82672  2 snd_hda_codec_realtek,snd_hda_intel
-pcspkr                  1854  0 
-ohci_hcd               33354  0 
-cfbcopyarea             3037  1 nouveau
-cfbimgblt               2205  1 nouveau
-cfbfillrect             3113  1 nouveau
-snd_hwdep               6048  1 snd_hda_codec
-root [ ~teeveey ]# 
-
-
-
-#############  but ls   for /dev/dvb*  yields nought like so:-
-
-root [ ~teeveey ]# ls -l  /dev/dvb*
-ls: cannot access /dev/dvb*: No such file or directory
-root [ ~teeveey ]# 
-
-I used the said device successfully  in a build wih 2,6.28.8/udev-113 last 
-year  but it appears   the setup for DVB on linux has changed recently.  
-Accordingly guidance on where I am gping wrong would be much appreciated.
-
-Yours sincerely
-
-sibuXolo
+Cheers
+James
