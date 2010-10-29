@@ -1,129 +1,34 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:34324 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1752675Ab0JEPcR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Oct 2010 11:32:17 -0400
-Date: Tue, 5 Oct 2010 17:32:28 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-Subject: Re: [PATCH/RFC v3 03/11] v4l: Group media bus pixel codes by types
- and sort them alphabetically
-In-Reply-To: <1286288714-16506-4-git-send-email-laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1010051731140.31708@axis700.grange>
-References: <1286288714-16506-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1286288714-16506-4-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:25109 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756106Ab0J2DFq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Oct 2010 23:05:46 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o9T35jfP018367
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 28 Oct 2010 23:05:46 -0400
+Date: Thu, 28 Oct 2010 23:05:45 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 0/3] mceusb cleanups and new device support
+Message-ID: <20101029030545.GA17238@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 5 Oct 2010, Laurent Pinchart wrote:
+Another round of mceusb patches...
 
-> Adding new pixel codes at the end of the enumeration will soon create a
-> mess, so group the pixel codes by type and sort them by bus_width, bits
-> per component, samples per pixel and order of subsamples.
-> 
-> As the codes are part of the kernel ABI their value can't change when a
-> new code is inserted in the enumeration, so they are given an explicit
-> numerical value. When inserting a new pixel code developers must use and
-> update the next free value.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  include/linux/v4l2-mediabus.h |   61 +++++++++++++++++++++++++---------------
->  1 files changed, 38 insertions(+), 23 deletions(-)
-> 
-> diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-> index 75c2d55..53c81f2 100644
-> --- a/include/linux/v4l2-mediabus.h
-> +++ b/include/linux/v4l2-mediabus.h
-> @@ -24,31 +24,46 @@
->   * transferred first, "BE" means that the most significant bits are transferred
->   * first, and "PADHI" and "PADLO" define which bits - low or high, in the
->   * incomplete high byte, are filled with padding bits.
-> + *
-> + * The pixel codes are grouped by type, bus_width, bits per component, samples
-> + * per pixel and order of subsamples. Numerical values are sorted using generic
-> + * numerical sort order (8 thus comes before 10).
-> + *
-> + * As their value can't change when a new pixel code is inserted in the
-> + * enumeration, the pixel codes are explicitly given a numerical value. The next
-> + * free values for each category are listed below, update them when inserting
-> + * new pixel codes.
->   */
->  enum v4l2_mbus_pixelcode {
-> -	V4L2_MBUS_FMT_FIXED = 1,
-> -	V4L2_MBUS_FMT_YUYV8_2X8,
-> -	V4L2_MBUS_FMT_YVYU8_2X8,
-> -	V4L2_MBUS_FMT_UYVY8_2X8,
-> -	V4L2_MBUS_FMT_VYUY8_2X8,
-> -	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
-> -	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
-> -	V4L2_MBUS_FMT_RGB565_2X8_LE,
-> -	V4L2_MBUS_FMT_RGB565_2X8_BE,
-> -	V4L2_MBUS_FMT_SBGGR8_1X8,
-> -	V4L2_MBUS_FMT_SBGGR10_1X10,
-> -	V4L2_MBUS_FMT_Y8_1X8,
-> -	V4L2_MBUS_FMT_Y10_1X10,
-> -	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
-> -	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
-> -	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
-> -	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
-> -	V4L2_MBUS_FMT_SGRBG8_1X8,
-> -	V4L2_MBUS_FMT_SBGGR12_1X12,
-> -	V4L2_MBUS_FMT_YUYV8_1_5X8,
-> -	V4L2_MBUS_FMT_YVYU8_1_5X8,
-> -	V4L2_MBUS_FMT_UYVY8_1_5X8,
-> -	V4L2_MBUS_FMT_VYUY8_1_5X8,
-> +	V4L2_MBUS_FMT_FIXED = 0x0001,
-> +
-> +	/* RGB - next is 0x1005 */
-> +	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE = 0x1001,
-> +	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE = 0x1002,
-> +	V4L2_MBUS_FMT_RGB565_2X8_BE = 0x1003,
-> +	V4L2_MBUS_FMT_RGB565_2X8_LE = 0x1004,
-> +
-> +	/* YUV (including grey) - next is 0x200b */
-> +	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
-> +	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
-> +	V4L2_MBUS_FMT_VYUY8_1_5X8 = 0x2003,
-> +	V4L2_MBUS_FMT_YUYV8_1_5X8 = 0x2004,
-> +	V4L2_MBUS_FMT_YVYU8_1_5X8 = 0x2005,
-> +	V4L2_MBUS_FMT_UYVY8_2X8 = 0x2006,
-> +	V4L2_MBUS_FMT_VYUY8_2X8 = 0x2007,
-> +	V4L2_MBUS_FMT_YUYV8_2X8 = 0x2008,
-> +	V4L2_MBUS_FMT_YVYU8_2X8 = 0x2009,
-> +	V4L2_MBUS_FMT_Y10_1X10 = 0x200a,
+Jarod Wilson (3):
+      mceusb: add support for Conexant Hybrid TV RDU253S
+      mceusb: fix up reporting of trailing space
+      mceusb: buffer parsing fixups for 1st-gen device
 
-Personally, I would put greys separately, but I don't consider that alone 
-to be important enough to justify a v4;)
+ drivers/media/IR/mceusb.c               |   82  +++++++++++++++++++++----------
+ 1 files changed, 55 insertions(+), 27 deletions(-)
 
-Thanks
-Guennadi
+-- 
+Jarod Wilson
+jarod@redhat.com
 
-> +
-> +	/* Bayer - next is 0x3009 */
-> +	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
-> +	V4L2_MBUS_FMT_SGRBG8_1X8 = 0x3002,
-> +	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE = 0x3003,
-> +	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE = 0x3004,
-> +	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE = 0x3005,
-> +	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE = 0x3006,
-> +	V4L2_MBUS_FMT_SBGGR10_1X10 = 0x3007,
-> +	V4L2_MBUS_FMT_SBGGR12_1X12 = 0x3008,
->  };
->  
->  /**
-> -- 
-> 1.7.2.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
----
-Guennadi Liakhovetski
