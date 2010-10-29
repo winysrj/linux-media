@@ -1,80 +1,97 @@
 Return-path: <mchehab@pedra>
-Received: from uucp.cirr.com ([192.67.63.5]:65136 "EHLO killer.cirr.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753966Ab0JMMLp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Oct 2010 08:11:45 -0400
-Received: from afc by tashi.lonestar.org with local (Exim 4.69)
-	(envelope-from <afc@shibaya.lonestar.org>)
-	id 1P5sKU-0002Ko-Qw
-	for linux-media@vger.kernel.org; Tue, 12 Oct 2010 23:48:38 -0400
-Date: Tue, 12 Oct 2010 23:48:38 -0400
-From: "A. F. Cano" <afc@shibaya.lonestar.org>
-To: linux-media@vger.kernel.org
-Subject: Re: s-video input from terratec cinergy 200 gives black frame or
-	out of sync video
-Message-ID: <20101013034838.GA5502@shibaya.lonestar.org>
-References: <AANLkTik-PXRnbzhF_4hPW2y=2h6Vnht9VsCtsBHcpFHG@mail.gmail.com> <AANLkTinqQy-iWrWxwqUZTPc_5qWonFLG9NKphZthutic@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <AANLkTinqQy-iWrWxwqUZTPc_5qWonFLG9NKphZthutic@mail.gmail.com>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:65410 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932900Ab0J2WO7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Oct 2010 18:14:59 -0400
+Subject: Re: [RFC PATCH 1/2] ir-nec-decoder: decode Apple's NEC remote
+ variant
+From: Andy Walls <awalls@md.metrocast.net>
+To: Jarod Wilson <jarod@redhat.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <20101029031319.GF17238@redhat.com>
+References: <20101029031131.GE17238@redhat.com>
+	 <20101029031319.GF17238@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Fri, 29 Oct 2010 18:15:16 -0400
+Message-ID: <1288390516.2387.27.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Oct 12, 2010 at 06:31:53PM +0200, Antonio-Blasco Bonito wrote:
-> I got no answer. Why? I thought it was correct to ask my question on
-> this list... Did I ask it in a wrong way?
+On Thu, 2010-10-28 at 23:13 -0400, Jarod Wilson wrote:
+> Apple's remotes use an NEC-like protocol, but without checksumming. See
+> http://en.wikipedia.org/wiki/Apple_Remote for details. Since they always
+> send a specific vendor code, check for that, and bypass the checksum
+> check.
 
-I don't think so.  It's likely that no one has a good answer/solution.
+Jarrod,
 
-I don't use the same usb device you're using so I can't be of much help,
-unfortunately.  However, with my own usb device (OnAir Creator) I also
-encounter the black screen when trying to display from the composite
-input.  I have been in contact with one of the developers but I now
-need to test under Windows and I don't have access to windows machines,
-so that's the holdup until I manage to find one where I could install
-the manufacturer's driver and software.  You might try your setup under
-windows, if you have access to such a machine.
+This is kind of icky.
 
-When I asked about my black screen issue here, I was pointed to
+According to the Wikipedia article, the Apple remote is use the NEC
+protocol's physical (PHY) layer, but it's using a different datalink
+(DL) layer.
 
-http://www.isely.net/pvrusb2/usage.html#V4L
+I say the data link layers are different, because the target device
+address bytes are in different places and the command payload differs:
 
-I have tried mplayer in pvr mode
+NEC bytes are:   Addr Addr' Command Command'
+Apple bytes are: 0xee 0x87  Command ID
 
-$ mplayer -tv input=1:normid=16 pvr://
 
-For my device, input=1 is the composite input, 2 is the S-video, but
-the camera I'm connecting has only composite, no S-video, so I can't
-test the S-video input.  Normid=16 is the first NTSC video standard,
-NTSC-M if I remember correctly, but I tried all of them: no difference.
+In NEC "Addr" is used to address a particular device (TV model, VCR
+model, etc.) which in the Apple protocol seems to be the function of ID.
 
-You might want to test with mplayer, it gives pretty verbose output and
-it describes all the video standards supported and inputs of the device.
-I see that you use PAL-DK.  Interesting that we have the same black
-screen problem with different norms and different devices.  Does your
-device supply an mpeg stream?  Mplayer in pvr mode detects the mpeg
-stream.
+Maybe the Apple remote protocol just needs it's own decoder.  That way
+the Apple rc-map can just ignore the ID bytes (or maybe make it a user
+configurable option to ignore).
 
-It would be interesting to compare notes as we both try to figure this
-out...
+Or, if you really want to work, split up PHY vs DL layer in the ir
+protocol decoders. ;) 
 
-A.
+Regards,
+Andy
 
+
+
+> Signed-off-by: Jarod Wilson <jarod@redhat.com>
+> ---
+>  drivers/media/IR/ir-nec-decoder.c |   10 +++++++++-
+>  1 files changed, 9 insertions(+), 1 deletions(-)
 > 
-> 2010/10/10 Antonio-Blasco Bonito <blasco.bonito@gmail.com>
-> >
-> > I'm trying to use a Terratec Cinergy 200 usb board to grab analog video.
-> > I'm using Ubuntu 10.04 and the included em28xx driver
-> >
-> > ...
-> > $ v4lctl -c /dev/video1 setinput s-video
-> > $ v4lctl -c /dev/video1 show
-> > norm: PAL-DK
-> > input: S-Video
-> > audio mode: mono
-> >
-> > $ xawtv -c /dev/video1
-> > I get nothing... a black frame :-(
-> >
+> diff --git a/drivers/media/IR/ir-nec-decoder.c b/drivers/media/IR/ir-nec-decoder.c
+> index 70993f7..6dcddd2 100644
+> --- a/drivers/media/IR/ir-nec-decoder.c
+> +++ b/drivers/media/IR/ir-nec-decoder.c
+> @@ -50,6 +50,7 @@ static int ir_nec_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+>  	struct nec_dec *data = &ir_dev->raw->nec;
+>  	u32 scancode;
+>  	u8 address, not_address, command, not_command;
+> +	bool apple = false;
+>  
+>  	if (!(ir_dev->raw->enabled_protocols & IR_TYPE_NEC))
+>  		return 0;
+> @@ -158,7 +159,14 @@ static int ir_nec_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+>  		command	    = bitrev8((data->bits >>  8) & 0xff);
+>  		not_command = bitrev8((data->bits >>  0) & 0xff);
+>  
+> -		if ((command ^ not_command) != 0xff) {
+> +		/* Apple remotes use an NEC-like proto, but w/o a checksum */
+> +		if ((address == 0xee) && (not_address == 0x87)) {
+> +			apple = true;
+> +			IR_dprintk(1, "Apple remote, ID byte 0x%02x\n",
+> +				   not_command);
+> +		}
+> +
+> +		if (((command ^ not_command) != 0xff) && !apple) {
+>  			IR_dprintk(1, "NEC checksum error: received 0x%08x\n",
+>  				   data->bits);
+>  			break;
+> -- 
+> 1.7.1
+> 
+> 
+
 
