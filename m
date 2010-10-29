@@ -1,57 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:60205 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752451Ab0JENSn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Oct 2010 09:18:43 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:30663 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756106Ab0J2DIn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Oct 2010 23:08:43 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o9T38gxJ008146
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 28 Oct 2010 23:08:43 -0400
+Received: from xavier.bos.redhat.com (xavier.bos.redhat.com [10.16.16.50])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o9T38gd1020465
+	for <linux-media@vger.kernel.org>; Thu, 28 Oct 2010 23:08:42 -0400
+Date: Thu, 28 Oct 2010 23:08:42 -0400
+From: Jarod Wilson <jarod@redhat.com>
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v2 1/6] v4l: subdev: Generic ioctl support
-Date: Tue,  5 Oct 2010 15:18:50 +0200
-Message-Id: <1286284734-12292-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1286284734-12292-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1286284734-12292-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: [PATCH 3/3] mceusb: buffer parsing fixups for 1st-gen device
+Message-ID: <20101029030842.GD17238@redhat.com>
+References: <20101029030545.GA17238@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20101029030545.GA17238@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Instead of returning an error when receiving an ioctl call with an
-unsupported command, forward the call to the subdev core::ioctl handler.
+If we pass in an offset, we shouldn't skip 2 bytes. And the first-gen
+hardware generates a constant stream of interrupts, always with two
+header bytes, and if there's been no IR, with nothing else. Bail from
+ir processing without calling ir_handle_raw_event when we get such a
+buffer delivered to us.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
 ---
- Documentation/video4linux/v4l2-framework.txt |    5 +++++
- drivers/media/video/v4l2-subdev.c            |    2 +-
- 2 files changed, 6 insertions(+), 1 deletions(-)
+ drivers/media/IR/mceusb.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
 
-diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index 3416d93..21bb837 100644
---- a/Documentation/video4linux/v4l2-framework.txt
-+++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -402,6 +402,11 @@ VIDIOC_UNSUBSCRIBE_EVENT
- 	To properly support events, the poll() file operation is also
- 	implemented.
+diff --git a/drivers/media/IR/mceusb.c b/drivers/media/IR/mceusb.c
+index a05dec7..09a62f1 100644
+--- a/drivers/media/IR/mceusb.c
++++ b/drivers/media/IR/mceusb.c
+@@ -445,7 +445,7 @@ static void mceusb_dev_printdata(struct mceusb_dev *ir, char *buf,
+ 		return;
  
-+Private ioctls
+ 	/* skip meaningless 0xb1 0x60 header bytes on orig receiver */
+-	if (ir->flags.microsoft_gen1 && !out)
++	if (ir->flags.microsoft_gen1 && !out && !offset)
+ 		skip = 2;
+ 
+ 	if (len <= skip)
+@@ -806,6 +806,10 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
+ 	if (ir->flags.microsoft_gen1)
+ 		i = 2;
+ 
++	/* if there's no data, just return now */
++	if (buf_len <= i)
++		return;
 +
-+	All ioctls not in the above list are passed directly to the sub-device
-+	driver through the core::ioctl operation.
-+
- 
- I2C sub-device drivers
- ----------------------
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index a37b537..096644d 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -258,7 +258,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	}
- 
- 	default:
--		return -ENOIOCTLCMD;
-+		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
- 	}
- 
- 	return 0;
+ 	for (; i < buf_len; i++) {
+ 		switch (ir->parser_state) {
+ 		case SUBCMD:
 -- 
-1.7.2.2
+1.7.1
+
+
+-- 
+Jarod Wilson
+jarod@redhat.com
 
