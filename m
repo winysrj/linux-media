@@ -1,53 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:39382 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933875Ab0J2OYq (ORCPT
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:36979 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751890Ab0J2MHd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Oct 2010 10:24:46 -0400
-Received: by eye27 with SMTP id 27so2144957eye.19
-        for <linux-media@vger.kernel.org>; Fri, 29 Oct 2010 07:24:45 -0700 (PDT)
-Date: Fri, 29 Oct 2010 17:26:01 +0300
-From: Jarkko Nikula <jhnikula@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, linuxtv-commits@linuxtv.org,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [git:v4l-dvb/v2.6.37] [media] radio-si4713: Add regulator
- framework support
-Message-Id: <20101029172601.fdf7ed07.jhnikula@gmail.com>
-In-Reply-To: <4CCAD21A.9040100@redhat.com>
-References: <E1P7ZwW-0003bq-Uv@www.linuxtv.org>
-	<20101029092935.b6dd7693.jhnikula@gmail.com>
-	<4CCAD21A.9040100@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Fri, 29 Oct 2010 08:07:33 -0400
+Received: by iwn10 with SMTP id 10so3654698iwn.19
+        for <linux-media@vger.kernel.org>; Fri, 29 Oct 2010 05:07:33 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201010290139.10204.laurent.pinchart@ideasonboard.com>
+References: <AANLkTimx6XJKEz9883cwrm977OtXVPVB5K5PjSGFi_AJ@mail.gmail.com>
+	<AANLkTi=Nv2Oe=61NQjzH0+P+TcODDJW3_n+NbfzxF5g3@mail.gmail.com>
+	<201010290139.10204.laurent.pinchart@ideasonboard.com>
+Date: Fri, 29 Oct 2010 14:07:33 +0200
+Message-ID: <AANLkTinWnGtb32kBNwoeN27OcCh7sVvZOoC=Vi1BtOua@mail.gmail.com>
+Subject: Re: New media framework user space usage
+From: Bastian Hecht <hechtb@googlemail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, 29 Oct 2010 11:54:34 -0200
-Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+Hello Laurant,
 
-> I had to remove it from my queue, as the patch broke compilation:
-> 
-> 	http://git.linuxtv.org/media_tree.git?a=commit;h=350df81ebaccc651fa4dfad27738db958e067ded
-> 
-> What's the sense of adding a patch that breaks a driver?
-> 
-> Even assuming that you would later send a patch fixing it, there are still some problems:
-> 
-> 1) A latter patch will break git bisect;
-> 2) A broken driver means that I can't test anymore if there are any other problems on other
->    drivers.
-> 
-> So, please test your patches against breakages, before sending them to me.
-> 
-Oh shit, true, my fault. I definitely forgot one file from git commit
-but luckily I had the diff file around that I used in testing instead
-of the commit I sent...
+> With the media-ctl and yavta test applications, just run
+>
+> ./media-ctl -r -l '"mt9t001 3-005d":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
+> CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+> ./media-ctl -f '"mt9t001 3-005d":0[SGRBG10 1024x768], "OMAP3 ISP
+> CCDC":1[SGRBG10 1024x768]'
+>
+> ./yavta -f SGRBG10 -s 1024x768 -n 4 --capture=4 --skip 3 -F $(./media-ctl -e
+> "OMAP3 ISP CCDC output")
+>
+> Replace all occurences of 1024x768 by your sensor native resolution, and
+> "mt9t001 3-005d" by the sensur subdev name.
 
-Sorry the hassle and thanks for letting me know, I'll send an update
-in a minute.
+I did as you said and everything works fine until I use yavta:
+
+Video format set: width: 2952 height: 1944 buffer size: 11508480
+Video format: BA10 (30314142) 2952x1944
+4 buffers requested.
+length: 11508480 offset: 0
+Buffer 0 mapped at address 0x4016d000.
+length: 11508480 offset: 11509760
+Buffer 1 mapped at address 0x40c67000.
+length: 11508480 offset: 23019520
+Buffer 2 mapped at address 0x41761000.
+length: 11508480 offset: 34529280
+Buffer 3 mapped at address 0x4225b000.
+Unable to start streaming: 22
+
+This is in
+ret = ioctl(dev->fd, enable ? VIDIOC_STREAMON : VIDIOC_STREAMOFF, &type);
+errno 22 is: Invalid argument
+
+Any ideas where to look next?
+
+Thanks,
+
+ Bastian
 
 
--- 
-Jarkko
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
