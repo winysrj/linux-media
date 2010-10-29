@@ -1,66 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3862 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751843Ab0JNGdG (ORCPT
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:57381 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754672Ab0J2G2X (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Oct 2010 02:33:06 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Subject: Re: [PATCH v12 1/3] V4L2: Add seek spacing and RDS CAP bits.
-Date: Thu, 14 Oct 2010 08:32:35 +0200
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
-	eduardo.valentin@nokia.com
-References: <1286457373-1742-1-git-send-email-matti.j.aaltonen@nokia.com> <1286457373-1742-2-git-send-email-matti.j.aaltonen@nokia.com>
-In-Reply-To: <1286457373-1742-2-git-send-email-matti.j.aaltonen@nokia.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+	Fri, 29 Oct 2010 02:28:23 -0400
+Received: by ewy7 with SMTP id 7so2078071ewy.19
+        for <linux-media@vger.kernel.org>; Thu, 28 Oct 2010 23:28:22 -0700 (PDT)
+Date: Fri, 29 Oct 2010 09:29:35 +0300
+From: Jarkko Nikula <jhnikula@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linuxtv-commits@linuxtv.org,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [git:v4l-dvb/v2.6.37] [media] radio-si4713: Add regulator
+ framework support
+Message-Id: <20101029092935.b6dd7693.jhnikula@gmail.com>
+In-Reply-To: <E1P7ZwW-0003bq-Uv@www.linuxtv.org>
+References: <E1P7ZwW-0003bq-Uv@www.linuxtv.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201010140832.35329.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+Hi
 
-On Thursday, October 07, 2010 15:16:11 Matti J. Aaltonen wrote:
-> Add spacing field to v4l2_hw_freq_seek.
+On Sun, 17 Oct 2010 22:34:32 +0200
+Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+
+> This is an automatic generated email to let you know that the following patch were queued at the 
+> http://git.linuxtv.org/media_tree.git tree:
 > 
-> Add V4L2_TUNER_CAP_RDS_BLOCK_IO, which indicates that the tuner/
-> transmitter if capable of transmitting/receiving RDS blocks.
+> Subject: [media] radio-si4713: Add regulator framework support
+> Author:  Jarkko Nikula <jhnikula@gmail.com>
+> Date:    Tue Sep 21 05:49:43 2010 -0300
 > 
-> Add V4L2_TUNER_CAP_RDS_CONTROLS capability, which indicates that the
-> RDS data is handled as values of predefined controls like radio text,
-> program ID and so on.
+> Convert the driver to use regulator framework instead of set_power callback.
+> This with gpio_reset platform data provide cleaner way to manage chip VIO,
+> VDD and reset signal inside the driver.
 > 
-> Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
+> Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+> Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+>  drivers/media/radio/si4713-i2c.c |   74 ++++++++++++++++++++++++++++++++------
+>  drivers/media/radio/si4713-i2c.h |    5 ++-
+>  2 files changed, 67 insertions(+), 12 deletions(-)
+> 
 > ---
->  include/linux/videodev2.h |    5 ++++-
->  1 files changed, 4 insertions(+), 1 deletions(-)
 > 
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 61490c6..eadcda3 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -1363,6 +1363,8 @@ struct v4l2_modulator {
->  #define V4L2_TUNER_CAP_SAP		0x0020
->  #define V4L2_TUNER_CAP_LANG1		0x0040
->  #define V4L2_TUNER_CAP_RDS		0x0080
-> +#define V4L2_TUNER_CAP_RDS_BLOCK_IO	0x0100
-> +#define V4L2_TUNER_CAP_RDS_CONTROLS	0x0200
->  
->  /*  Flags for the 'rxsubchans' field */
->  #define V4L2_TUNER_SUB_MONO		0x0001
-> @@ -1392,7 +1394,8 @@ struct v4l2_hw_freq_seek {
->  	enum v4l2_tuner_type  type;
->  	__u32		      seek_upward;
->  	__u32		      wrap_around;
-> -	__u32		      reserved[8];
-> +	__u32		      spacing;
-> +	__u32		      reserved[7];
->  };
->  
->  /*
+> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=d455b639c1fb09f8ea888371fb6e04b490e115fb
 > 
+Was this patch lost somewhere? I don't see it in mainline for 2.6.37
+but e.g. 85c55ef is there.
+
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Jarkko
