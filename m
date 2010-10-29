@@ -1,70 +1,143 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:64201 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752332Ab0JYCFi (ORCPT
+Received: from mailgate.plextek.co.uk ([62.254.222.163]:60084 "EHLO
+	mailgate.plextek.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755897Ab0J2Ifs convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Oct 2010 22:05:38 -0400
-Received: by bwz11 with SMTP id 11so1963681bwz.19
-        for <linux-media@vger.kernel.org>; Sun, 24 Oct 2010 19:05:37 -0700 (PDT)
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: lirc-list@lists.sourceforge.net
-Cc: Jarod Wilson <jarod@wilsonet.com>, mchehab@infradead.org,
-	linux-media@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>,
-	Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: [PATCH] IR: initialize ir_raw_event in few more drivers
-Date: Mon, 25 Oct 2010 04:05:29 +0200
-Message-Id: <1287972329-8171-1-git-send-email-maximlevitsky@gmail.com>
+	Fri, 29 Oct 2010 04:35:48 -0400
+Content-class: urn:content-classes:message
+MIME-Version: 1.0
+Subject: RE: Changing frame size on the fly in SOC module
+Date: Fri, 29 Oct 2010 09:35:46 +0100
+Message-ID: <8C9A6B7580601F4FBDC0ED4C1D6A9B1D02AF3325@plextek3.plextek.lan>
+References: <8C9A6B7580601F4FBDC0ED4C1D6A9B1D02AF331B@plextek3.plextek.lan> <Pine.LNX.4.64.1010282009160.1257@axis700.grange>
+From: "Adam Sutton" <aps@plextek.co.uk>
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+Cc: <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Few drivers still have assumption that ir_raw_event
-consists of duration and pulse flag.
-Fix that.
+Hi Guennadi,
 
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+Thanks for the response, it's good just to get confirmation that I was
+indeed interpreting the code properly.
+
+I guess the main reason this is more significant for me is the
+constraints I have on the hardware, i.e. it cannot handle the 640x480 at
+any reasonable frame rate so we need the camera hardware to provide the
+smaller image and second closing the camera powers the module down to
+conserve power, which means time from open to image capture is slow
+(particularly because I have to drop the first few frames with the auto
+white balance etc... settles).
+
+I had already assumed that streaming would need to be stopped before the
+size could be changed, really don't see a problem with that. I had used
+that approach with non-SOC style modules.
+
+I think the documentation in videobuf talks about requesting the MAX
+buffer size you will require from the start. So again I had already
+assumed I'd need to do that as well.
+
+I'm not sure I fully understand the concern about multiple simultaneous
+users. I certainly don't have that as a user case in my own requirements
+(device is a small handheld teaching aid) and I would have thought that
+if 2 users try to use the same camera module at the same time all hell
+would probably break out anyway. Have to admit I've never tried it
+before.
+
+Adam
+
+
+-----Original Message-----
+From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de] 
+Sent: 28 October 2010 20:01
+To: Adam Sutton
+Cc: linux-media@vger.kernel.org
+Subject: Re: Changing frame size on the fly in SOC module
+
+Hi Adam
+
+On Thu, 28 Oct 2010, Adam Sutton wrote:
+
+> Hi,
+> 
+> Sometime ago I developed an SOC based camera driver for my platform
+> (ov7675 on iMX25), for the most part it seems to be working well
+however
+> at the time I couldn't manage to change the frame size on the fly
+> (without closing / re-opening the device).
+> 
+> The current problem I have is that my application needs to display a
+> 320x240 preview image on screen, but to capture a static image at
+> 640x480. I can do this as long as I close the device in between,
+> unfortunately for power consumption reasons the camera device is put
+> into a low power state whenever the device is released. This means
+that
+> the image capture takes approx 1.5s (the requirement I have to meet is
+> 1s).
+> 
+> Now I could cheat and simply subsample (in software) the 640x480
+image,
+> but that puts additional burden on an already overworked MCU.
+> 
+> Having been through the soc_camera and videobuf code and as far as I
+can
+> tell this inability to change the frame size without closing the
+camera
+> device appears to be a design decision.
+
+Yes, it is.
+
+> What I'm really after is confirmation one way of the other. If it's
+not,
+> what is the correct process to achieve the frame change without
+closing
+> the device. And if it is, does anybody have any suggestions of
+possible
+> workarounds?
+
+It has been decided that way, because we didn't have a good use-case for
+
+changing the frame format on-the-fly to develop for and to test with.
+You 
+seem to have one now, so, go ahead;)
+
+There are a couple of issues to address though - videobuffer
+configuration 
+is one of them, host reconfiguration is the other one, possible multiple
+
+simultaneous users is the third one (ok, only one of them will be
+actually 
+streaming).
+
+This use case - different size preview and single shot capture has come
+up 
+a couple of times before, but noone has brought it to a proper
+mainstream 
+solution.
+
+One thing you'd still want to do, I think, is to stop streaming before 
+reconfiguring, and restart it afterwards.
+
+So, maybe a viable solution would be:
+
+in soc_camera_s_fmt_vid_cap() check not just for "icf->vb_vidq.bufs[0]
+!= 
+NULL", but rather for if streaming is not running, and then someone will
+
+certainly have to check for large enough buffers. So, you'd have to 
+request max size buffers from the beginning even for preview.
+
+Thanks
+Guennadi
 ---
- drivers/media/dvb/siano/smsir.c          |    2 +-
- drivers/media/video/cx23885/cx23888-ir.c |    1 +
- drivers/media/video/cx25840/cx25840-ir.c |    1 +
- 3 files changed, 3 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/dvb/siano/smsir.c b/drivers/media/dvb/siano/smsir.c
-index d0e4639..a27c44a 100644
---- a/drivers/media/dvb/siano/smsir.c
-+++ b/drivers/media/dvb/siano/smsir.c
-@@ -40,7 +40,7 @@ void sms_ir_event(struct smscore_device_t *coredev, const char *buf, int len)
- 	const s32 *samples = (const void *)buf;
- 
- 	for (i = 0; i < len >> 2; i++) {
--		struct ir_raw_event ev;
-+		DEFINE_IR_RAW_EVENT(ev);
- 
- 		ev.duration = abs(samples[i]) * 1000; /* Convert to ns */
- 		ev.pulse = (samples[i] > 0) ? false : true;
-diff --git a/drivers/media/video/cx23885/cx23888-ir.c b/drivers/media/video/cx23885/cx23888-ir.c
-index 2502a0a..e78e3e4 100644
---- a/drivers/media/video/cx23885/cx23888-ir.c
-+++ b/drivers/media/video/cx23885/cx23888-ir.c
-@@ -704,6 +704,7 @@ static int cx23888_ir_rx_read(struct v4l2_subdev *sd, u8 *buf, size_t count,
- 		if (v > IR_MAX_DURATION)
- 			v = IR_MAX_DURATION;
- 
-+		init_ir_raw_event(&p->ir_core_data);
- 		p->ir_core_data.pulse = u;
- 		p->ir_core_data.duration = v;
- 
-diff --git a/drivers/media/video/cx25840/cx25840-ir.c b/drivers/media/video/cx25840/cx25840-ir.c
-index c2b4c14..97a4e9b 100644
---- a/drivers/media/video/cx25840/cx25840-ir.c
-+++ b/drivers/media/video/cx25840/cx25840-ir.c
-@@ -706,6 +706,7 @@ static int cx25840_ir_rx_read(struct v4l2_subdev *sd, u8 *buf, size_t count,
- 		if (v > IR_MAX_DURATION)
- 			v = IR_MAX_DURATION;
- 
-+		init_ir_raw_event(&p->ir_core_data);
- 		p->ir_core_data.pulse = u;
- 		p->ir_core_data.duration = v;
- 
--- 
-1.7.1
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
+Plextek Limited
+Registered Address: London Road, Great Chesterford, Essex, CB10 1NY, UK Company Registration No. 2305889
+VAT Registration No. GB 918 4425 15
+Tel: +44 1799 533 200. Fax: +44 1799 533 201 Web:http://www.plextek.com 
+Electronics Design and Consultancy
 
