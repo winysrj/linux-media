@@ -1,164 +1,187 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:65471 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751428Ab0KBKmu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Nov 2010 06:42:50 -0400
-Date: Tue, 02 Nov 2010 11:42:41 +0100
-From: Kamil Debski <k.debski@samsung.com>
-Subject: [RFC/PATCH v2 2/4] MFC: Add MFC 5.1 driver to plat-s5p
-In-reply-to: <1288694563-18489-1-git-send-email-k.debski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	kyungmin.park@samsung.com, k.debski@samsung.com,
-	jaeryul.oh@samsung.com, kgene.kim@samsung.com
-Message-id: <1288694563-18489-3-git-send-email-k.debski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1288694563-18489-1-git-send-email-k.debski@samsung.com>
+Received: from mail.perches.com ([173.55.12.10]:3682 "EHLO mail.perches.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751414Ab0J3VJT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 30 Oct 2010 17:09:19 -0400
+From: Joe Perches <joe@perches.com>
+To: Jiri Kosina <trivial@kernel.org>
+Cc: linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+	linux-tegra@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	linux-pm@lists.linux-foundation.org, discuss@x86-64.org,
+	linux-acpi@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+	dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
+	linux-media@vger.kernel.org, socketcan-core@lists.berlios.de,
+	netdev@vger.kernel.org, linux-usb@vger.kernel.org,
+	linux-wireless@vger.kernel.org, devel@open-fcoe.org,
+	linux-scsi@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-fbdev@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	linux-nfs@vger.kernel.org, linux-arch@vger.kernel.org,
+	linux-mm@kvack.org, alsa-devel@alsa-project.org
+Subject: [PATCH 00/39] Cleanup WARN #defines
+Date: Sat, 30 Oct 2010 14:08:17 -0700
+Message-Id: <cover.1288471897.git.joe@perches.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Add platform support for Multi Format Codec 5.1 is a module available
-on S5PC110 and S5PC210 Samsung SoCs. Hardware is capable of handling
-a range of video codecs and this driver provides V4L2 interface for
-video decoding.
+WARN uses sometimes use KERN_<level> but mostly don't
+have any prefix.
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- arch/arm/mach-s5pv210/clock.c             |    6 ++++
- arch/arm/mach-s5pv210/include/mach/map.h  |    4 +++
- arch/arm/plat-s5p/Kconfig                 |    5 ++++
- arch/arm/plat-s5p/Makefile                |    1 +
- arch/arm/plat-s5p/dev-mfc5.c              |   37 +++++++++++++++++++++++++++++
- arch/arm/plat-samsung/include/plat/devs.h |    2 +
- 6 files changed, 55 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/plat-s5p/dev-mfc5.c
+Change the WARN macros and the warn_slowpath function to preface
+KERN_WARNING and remove all the KERN_<level> uses from WARN sites.
 
-diff --git a/arch/arm/mach-s5pv210/clock.c b/arch/arm/mach-s5pv210/clock.c
-index d562670..0717a07 100644
---- a/arch/arm/mach-s5pv210/clock.c
-+++ b/arch/arm/mach-s5pv210/clock.c
-@@ -294,6 +294,12 @@ static struct clk init_clocks_disable[] = {
- 		.enable		= s5pv210_clk_ip0_ctrl,
- 		.ctrlbit	= (1 << 26),
- 	}, {
-+		.name		= "mfc",
-+		.id		= -1,
-+		.parent		= &clk_pclk_psys.clk,
-+		.enable		= s5pv210_clk_ip0_ctrl,
-+		.ctrlbit	= (1 << 16),
-+	}, {
- 		.name		= "otg",
- 		.id		= -1,
- 		.parent		= &clk_hclk_psys.clk,
-diff --git a/arch/arm/mach-s5pv210/include/mach/map.h b/arch/arm/mach-s5pv210/include/mach/map.h
-index 586652f..9960d50 100644
---- a/arch/arm/mach-s5pv210/include/mach/map.h
-+++ b/arch/arm/mach-s5pv210/include/mach/map.h
-@@ -104,6 +104,9 @@
- #define S5PV210_PA_DMC0		(0xF0000000)
- #define S5PV210_PA_DMC1		(0xF1400000)
- 
-+/* MFC */
-+#define S5PV210_PA_MFC		(0xF1700000)
-+
- /* compatibiltiy defines. */
- #define S3C_PA_UART		S5PV210_PA_UART
- #define S3C_PA_HSMMC0		S5PV210_PA_HSMMC(0)
-@@ -120,6 +123,7 @@
- #define S5P_PA_FIMC0		S5PV210_PA_FIMC0
- #define S5P_PA_FIMC1		S5PV210_PA_FIMC1
- #define S5P_PA_FIMC2		S5PV210_PA_FIMC2
-+#define S5P_PA_MFC		S5PV210_PA_MFC
- 
- #define SAMSUNG_PA_ADC		S5PV210_PA_ADC
- #define SAMSUNG_PA_CFCON	S5PV210_PA_CFCON
-diff --git a/arch/arm/plat-s5p/Kconfig b/arch/arm/plat-s5p/Kconfig
-index 65dbfa8..a1918fc 100644
---- a/arch/arm/plat-s5p/Kconfig
-+++ b/arch/arm/plat-s5p/Kconfig
-@@ -5,6 +5,11 @@
- #
- # Licensed under GPLv2
- 
-+config S5P_DEV_MFC
-+	bool
-+	help
-+	  Compile in platform device definitions for MFC 
-+	  
- config PLAT_S5P
- 	bool
- 	depends on (ARCH_S5P64X0 || ARCH_S5P6442 || ARCH_S5PC100 || ARCH_S5PV210 || ARCH_S5PV310)
-diff --git a/arch/arm/plat-s5p/Makefile b/arch/arm/plat-s5p/Makefile
-index de65238..d1d1ea9 100644
---- a/arch/arm/plat-s5p/Makefile
-+++ b/arch/arm/plat-s5p/Makefile
-@@ -23,6 +23,7 @@ obj-$(CONFIG_PM)		+= pm.o
- obj-$(CONFIG_PM)		+= irq-pm.o
- 
- # devices
-+obj-$(CONFIG_S5P_DEV_MFC)	+= dev-mfc5.o
- 
- obj-$(CONFIG_S5P_DEV_FIMC0)	+= dev-fimc0.o
- obj-$(CONFIG_S5P_DEV_FIMC1)	+= dev-fimc1.o
-diff --git a/arch/arm/plat-s5p/dev-mfc5.c b/arch/arm/plat-s5p/dev-mfc5.c
-new file mode 100644
-index 0000000..c06ea97
---- /dev/null
-+++ b/arch/arm/plat-s5p/dev-mfc5.c
-@@ -0,0 +1,37 @@
-+/* Base S3C64XX mfc resource and device definitions */
-+
-+
-+#include <linux/kernel.h>
-+#include <linux/interrupt.h>
-+#include <linux/platform_device.h>
-+#include <linux/ioport.h>
-+
-+#include <mach/map.h>
-+#include <plat/map-base.h>
-+#include <plat/devs.h>
-+#include <plat/irqs.h>
-+
-+/* MFC controller */
-+static struct resource s5p_mfc_resource[] = {
-+	[0] = {
-+		.start  = S5P_PA_MFC,
-+		.end    = S5P_PA_MFC + SZ_64K - 1,
-+		.flags  = IORESOURCE_MEM,
-+	},
-+	[1] = {
-+		.start  = IRQ_MFC,
-+		.end    = IRQ_MFC,
-+		.flags  = IORESOURCE_IRQ,
-+	}
-+};
-+
-+struct platform_device s5p_device_mfc5 = {
-+	.name          = "s5p-mfc5",
-+	.id            = -1,
-+	.num_resources = ARRAY_SIZE(s5p_mfc_resource),
-+	.resource      = s5p_mfc_resource,
-+};
-+
-+EXPORT_SYMBOL(s5p_device_mfc5);
-+
-+
-diff --git a/arch/arm/plat-samsung/include/plat/devs.h b/arch/arm/plat-samsung/include/plat/devs.h
-index 71bcc0f..39948de 100644
---- a/arch/arm/plat-samsung/include/plat/devs.h
-+++ b/arch/arm/plat-samsung/include/plat/devs.h
-@@ -118,6 +118,8 @@ extern struct platform_device s5p_device_fimc0;
- extern struct platform_device s5p_device_fimc1;
- extern struct platform_device s5p_device_fimc2;
- 
-+extern struct platform_device s5p_device_mfc5;
-+
- /* s3c2440 specific devices */
- 
- #ifdef CONFIG_CPU_S3C2440
+Neatening clean up of include/asm-generic/bug.h
+
+Update WARN macros
+Add KERN_WARNING to WARN output
+Remove any KERN_<level> from WARN uses
+Coalesce formats
+Align WARN arguments
+Add some missing newlines to WARN uses
+Add some missing first test argument (1, fmt, args) to WARN uses
+
+Joe Perches (39):
+  include/asm-generic/bug.h: Update WARN macros
+  arch/alpha: Update WARN uses
+  arch/arm: Update WARN uses
+  arch/powerpc: Update WARN uses
+  arch/x86: Update WARN uses
+  drivers/acpi: Update WARN uses
+  drivers/base: Update WARN uses
+  drivers/block: Update WARN uses
+  drivers/cpuidle: Update WARN uses
+  drivers/firewire: Update WARN uses
+  drivers/firmware: Update WARN uses
+  drivers/gpio: Update WARN uses
+  drivers/gpu/drm: Update WARN uses
+  drivers/media/video: Update WARN uses
+  drivers/mfd: Update WARN uses
+  drivers/net/can: Update WARN uses
+  drivers/net/usb: Update WARN uses
+  drivers/net/wireless/iwlwifi: Update WARN uses
+  drivers/regulator: Update WARN uses
+  drivers/scsi/fcoe: Update WARN uses
+  drivers/staging: Update WARN uses
+  drivers/usb/musb: Update WARN uses
+  drivers/video/omap2/dss: Update WARN uses
+  fs/nfsd: Update WARN uses
+  fs/notify/inotify: Update WARN uses
+  fs/sysfs: Update WARN uses
+  fs/proc: Update WARN uses
+  fs: Update WARN uses
+  include/linux/device.h: Update WARN uses
+  kernel/irq: Update WARN uses
+  kernel/panic.c: Update warn_slowpath to use %pV
+  kernel: Update WARN uses
+  lib: Update WARN uses
+  mm: Update WARN uses
+  net/core/dev.c: Update WARN uses
+  net/ipv4/tcp.c: Update WARN uses
+  net/mac80211: Update WARN uses
+  net/rfkill/input.c: Update WARN uses
+  sound/soc/codecs/wm_hubs.c: Update WARN uses
+
+ arch/alpha/kernel/pci-sysfs.c                |   14 ++--
+ arch/arm/mach-davinci/clock.c                |    4 +-
+ arch/arm/mach-davinci/da830.c                |    2 +-
+ arch/arm/mach-davinci/da850.c                |   12 ++--
+ arch/arm/mach-omap2/clkt_clksel.c            |   12 ++--
+ arch/arm/mach-omap2/clock.c                  |   16 ++--
+ arch/arm/mach-omap2/devices.c                |    4 +-
+ arch/arm/mach-omap2/omap_hwmod.c             |   47 +++++++-----
+ arch/arm/mach-omap2/pm34xx.c                 |    7 +-
+ arch/arm/mach-omap2/serial.c                 |    2 +-
+ arch/arm/mach-omap2/timer-gp.c               |    3 +-
+ arch/arm/mach-tegra/clock.c                  |    3 +-
+ arch/arm/mach-tegra/timer.c                  |    2 +-
+ arch/arm/mach-u300/padmux.c                  |   14 +---
+ arch/arm/plat-omap/omap-pm-noop.c            |   10 ++--
+ arch/powerpc/kernel/hw_breakpoint.c          |    4 +-
+ arch/x86/kernel/acpi/boot.c                  |    2 +-
+ arch/x86/kernel/apic/apic.c                  |    2 +-
+ arch/x86/kernel/apic/es7000_32.c             |    2 +-
+ arch/x86/kernel/cpu/perf_event.c             |    4 +-
+ arch/x86/kernel/pci-calgary_64.c             |    4 +-
+ arch/x86/kernel/tsc_sync.c                   |    4 +-
+ arch/x86/kernel/xsave.c                      |    2 +-
+ arch/x86/mm/ioremap.c                        |    5 +-
+ arch/x86/mm/pageattr-test.c                  |    2 +-
+ arch/x86/mm/pageattr.c                       |    5 +-
+ arch/x86/platform/sfi/sfi.c                  |    4 +-
+ drivers/acpi/ec.c                            |    4 +-
+ drivers/base/class.c                         |    4 +-
+ drivers/base/core.c                          |    5 +-
+ drivers/base/memory.c                        |    4 +-
+ drivers/base/sys.c                           |   10 +--
+ drivers/block/floppy.c                       |    2 +-
+ drivers/cpuidle/driver.c                     |    2 +-
+ drivers/firewire/core-transaction.c          |    6 +-
+ drivers/firmware/dmi_scan.c                  |    2 +-
+ drivers/gpio/gpiolib.c                       |    4 +-
+ drivers/gpio/it8761e_gpio.c                  |    2 +-
+ drivers/gpu/drm/drm_crtc_helper.c            |    2 +-
+ drivers/gpu/drm/i915/i915_gem.c              |    3 +-
+ drivers/gpu/drm/radeon/evergreen.c           |    2 +-
+ drivers/gpu/drm/radeon/r100.c                |    4 +-
+ drivers/gpu/drm/radeon/r300.c                |    2 +-
+ drivers/gpu/drm/radeon/r600.c                |    4 +-
+ drivers/gpu/drm/radeon/radeon_fence.c        |    3 +-
+ drivers/gpu/drm/radeon/radeon_ttm.c          |    3 +-
+ drivers/gpu/drm/radeon/rs400.c               |    2 +-
+ drivers/gpu/drm/radeon/rs600.c               |    4 +-
+ drivers/media/video/s5p-fimc/fimc-core.c     |    2 +-
+ drivers/media/video/sr030pc30.c              |    2 +-
+ drivers/mfd/ezx-pcap.c                       |    5 +-
+ drivers/net/can/mscan/mscan.c                |    2 +-
+ drivers/net/usb/ipheth.c                     |    2 +-
+ drivers/net/wireless/iwlwifi/iwl-agn-lib.c   |    3 +-
+ drivers/net/wireless/iwlwifi/iwl-agn-sta.c   |    6 +-
+ drivers/net/wireless/iwlwifi/iwl-tx.c        |    6 +-
+ drivers/net/wireless/iwlwifi/iwl3945-base.c  |    2 +-
+ drivers/regulator/core.c                     |    3 +-
+ drivers/scsi/fcoe/libfcoe.c                  |    2 +-
+ drivers/staging/memrar/memrar_allocator.c    |    2 +-
+ drivers/staging/solo6x10/solo6010-v4l2-enc.c |    2 +-
+ drivers/usb/musb/musb_host.c                 |    6 +-
+ drivers/video/omap2/dss/core.c               |    3 +-
+ fs/bio.c                                     |    2 +-
+ fs/buffer.c                                  |    2 +-
+ fs/nfsd/nfs4state.c                          |    3 +-
+ fs/notify/inotify/inotify_fsnotify.c         |    4 +-
+ fs/proc/generic.c                            |    9 +--
+ fs/super.c                                   |    5 +-
+ fs/sysfs/dir.c                               |    3 +-
+ fs/sysfs/file.c                              |    4 +-
+ fs/sysfs/group.c                             |    4 +-
+ fs/sysfs/symlink.c                           |   10 +--
+ include/asm-generic/bug.h                    |  101 ++++++++++++++++----------
+ include/linux/device.h                       |    2 +-
+ kernel/irq/chip.c                            |    2 +-
+ kernel/irq/manage.c                          |    2 +-
+ kernel/notifier.c                            |    2 +-
+ kernel/panic.c                               |   40 +++++------
+ kernel/pm_qos_params.c                       |    6 +-
+ lib/debugobjects.c                           |   21 +++---
+ lib/iomap.c                                  |    2 +-
+ lib/kobject.c                                |    9 +--
+ lib/kobject_uevent.c                         |    4 +-
+ lib/list_debug.c                             |   24 +++----
+ lib/plist.c                                  |   12 ++--
+ mm/percpu.c                                  |    4 +-
+ mm/vmalloc.c                                 |    5 +-
+ net/core/dev.c                               |    3 +-
+ net/ipv4/tcp.c                               |   16 ++---
+ net/mac80211/agg-tx.c                        |    5 +-
+ net/mac80211/iface.c                         |    4 +-
+ net/mac80211/mlme.c                          |    2 +-
+ net/mac80211/rx.c                            |    4 +-
+ net/mac80211/tx.c                            |    4 +-
+ net/mac80211/util.c                          |    4 +-
+ net/mac80211/work.c                          |    4 +-
+ net/rfkill/input.c                           |    5 +-
+ sound/soc/codecs/wm_hubs.c                   |    2 +-
+ 99 files changed, 319 insertions(+), 330 deletions(-)
+
 -- 
-1.6.3.3
+1.7.3.1.g432b3.dirty
 
