@@ -1,120 +1,57 @@
-Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:45665 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1751628Ab0KIHJK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Nov 2010 02:09:10 -0500
-Date: Tue, 9 Nov 2010 08:09:12 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Baruch Siach <baruch@tkos.co.il>
-cc: Sascha Hauer <s.hauer@pengutronix.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] soc-camera: Compile fixes for mx2-camera
-In-Reply-To: <20101109052342.GA29441@jasper.tkos.co.il>
-Message-ID: <Pine.LNX.4.64.1011090806440.25364@axis700.grange>
-References: <1289249565-18346-1-git-send-email-s.hauer@pengutronix.de>
- <20101109052342.GA29441@jasper.tkos.co.il>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <mchehab@gaivota>
+Received: from mail.perches.com ([173.55.12.10]:3744 "EHLO mail.perches.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752087Ab0J3VJe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 30 Oct 2010 17:09:34 -0400
+From: Joe Perches <joe@perches.com>
+To: Jiri Kosina <trivial@kernel.org>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 14/39] drivers/media/video: Update WARN uses
+Date: Sat, 30 Oct 2010 14:08:31 -0700
+Message-Id: <def5be1d0f38494d6aea661227e7d9a24e08590b.1288471898.git.joe@perches.com>
+In-Reply-To: <cover.1288471897.git.joe@perches.com>
+References: <cover.1288471897.git.joe@perches.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Tue, 9 Nov 2010, Baruch Siach wrote:
+Add missing newlines.
 
-> Hi Sascha,
-> 
-> On Mon, Nov 08, 2010 at 09:52:45PM +0100, Sascha Hauer wrote:
-> > mx2-camera got broken during the last merge window. This patch
-> > fixes this and removes some unused variables.
-> > 
-> > Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-> > ---
-> >  drivers/media/video/mx2_camera.c |   13 +++++--------
-> >  1 files changed, 5 insertions(+), 8 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-> > index 4a27862..072bd2d 100644
-> > --- a/drivers/media/video/mx2_camera.c
-> > +++ b/drivers/media/video/mx2_camera.c
-> > @@ -31,6 +31,7 @@
-> >  
-> >  #include <media/v4l2-common.h>
-> >  #include <media/v4l2-dev.h>
-> > +#include <media/videobuf-core.h>
-> 
-> What is this needed for? The driver seems to build without this hunk.
-
-This is needed, because that's where some of the symbols, used in this 
-file, are declared. Yes, it compiles without it, because it is also 
-included in media/videobuf-dma-contig.h, none the less, an explicit 
-include should be present. Actually, it should be added to other 
-soc-camera camera host drivers too.
-
-Thanks
-Guennadi
-
-> 
-> Other than that:
-> 
-> Acked-by: Baruch Siach <baruch@tkos.co.il>
-> 
-> >  #include <media/videobuf-dma-contig.h>
-> >  #include <media/soc_camera.h>
-> >  #include <media/soc_mediabus.h>
-> > @@ -903,8 +904,6 @@ static int mx2_camera_set_crop(struct soc_camera_device *icd,
-> >  static int mx2_camera_set_fmt(struct soc_camera_device *icd,
-> >  			       struct v4l2_format *f)
-> >  {
-> > -	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-> > -	struct mx2_camera_dev *pcdev = ici->priv;
-> >  	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-> >  	const struct soc_camera_format_xlate *xlate;
-> >  	struct v4l2_pix_format *pix = &f->fmt.pix;
-> > @@ -943,8 +942,6 @@ static int mx2_camera_set_fmt(struct soc_camera_device *icd,
-> >  static int mx2_camera_try_fmt(struct soc_camera_device *icd,
-> >  				  struct v4l2_format *f)
-> >  {
-> > -	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-> > -	struct mx2_camera_dev *pcdev = ici->priv;
-> >  	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-> >  	const struct soc_camera_format_xlate *xlate;
-> >  	struct v4l2_pix_format *pix = &f->fmt.pix;
-> > @@ -1024,13 +1021,13 @@ static int mx2_camera_querycap(struct soc_camera_host *ici,
-> >  	return 0;
-> >  }
-> >  
-> > -static int mx2_camera_reqbufs(struct soc_camera_file *icf,
-> > +static int mx2_camera_reqbufs(struct soc_camera_device *icd,
-> >  			      struct v4l2_requestbuffers *p)
-> >  {
-> >  	int i;
-> >  
-> >  	for (i = 0; i < p->count; i++) {
-> > -		struct mx2_buffer *buf = container_of(icf->vb_vidq.bufs[i],
-> > +		struct mx2_buffer *buf = container_of(icd->vb_vidq.bufs[i],
-> >  						      struct mx2_buffer, vb);
-> >  		INIT_LIST_HEAD(&buf->vb.queue);
-> >  	}
-> > @@ -1151,9 +1148,9 @@ err_out:
-> >  
-> >  static unsigned int mx2_camera_poll(struct file *file, poll_table *pt)
-> >  {
-> > -	struct soc_camera_file *icf = file->private_data;
-> > +	struct soc_camera_device *icd = file->private_data;
-> >  
-> > -	return videobuf_poll_stream(file, &icf->vb_vidq, pt);
-> > +	return videobuf_poll_stream(file, &icd->vb_vidq, pt);
-> >  }
-> >  
-> >  static struct soc_camera_host_ops mx2_soc_camera_host_ops = {
-> > -- 
-> 
-> -- 
->                                                      ~. .~   Tk Open Systems
-> =}------------------------------------------------ooO--U--Ooo------------{=
->    - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
-> 
-
+Signed-off-by: Joe Perches <joe@perches.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/s5p-fimc/fimc-core.c |    2 +-
+ drivers/media/video/sr030pc30.c          |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index 2e7c547..91fc213 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -543,7 +543,7 @@ static void fimc_dma_run(void *priv)
+ 	unsigned long flags;
+ 	u32 ret;
+ 
+-	if (WARN(!ctx, "null hardware context"))
++	if (WARN(!ctx, "null hardware context\n"))
+ 		return;
+ 
+ 	fimc = ctx->fimc_dev;
+diff --git a/drivers/media/video/sr030pc30.c b/drivers/media/video/sr030pc30.c
+index c9dc67a..864696b 100644
+--- a/drivers/media/video/sr030pc30.c
++++ b/drivers/media/video/sr030pc30.c
+@@ -735,7 +735,7 @@ static int sr030pc30_s_power(struct v4l2_subdev *sd, int on)
+ 	const struct sr030pc30_platform_data *pdata = info->pdata;
+ 	int ret;
+ 
+-	if (WARN(pdata == NULL, "No platform data!"))
++	if (WARN(pdata == NULL, "No platform data!\n"))
+ 		return -ENOMEM;
+ 
+ 	/*
+-- 
+1.7.3.1.g432b3.dirty
+
