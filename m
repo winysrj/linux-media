@@ -1,109 +1,124 @@
 Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40781 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755838Ab0KUVpr (ORCPT
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:56805 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752174Ab0J3St4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Nov 2010 16:45:47 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 1/5] uvcvideo: Lock controls mutex when querying menus
-Date: Sun, 21 Nov 2010 22:45:48 +0100
-Cc: linux-media@vger.kernel.org
-References: <1290371573-14907-1-git-send-email-laurent.pinchart@ideasonboard.com> <1290371573-14907-2-git-send-email-laurent.pinchart@ideasonboard.com> <201011212218.41564.hverkuil@xs4all.nl>
-In-Reply-To: <201011212218.41564.hverkuil@xs4all.nl>
+	Sat, 30 Oct 2010 14:49:56 -0400
+Received: by pzk3 with SMTP id 3so263310pzk.19
+        for <linux-media@vger.kernel.org>; Sat, 30 Oct 2010 11:49:56 -0700 (PDT)
+Message-ID: <4CCC68CD.50409@gmail.com>
+Date: Sat, 30 Oct 2010 11:49:49 -0700
+From: "D. K." <user.vdr@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011212245.49540.laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] dvb-usb-gp8psk: get firmware and fpga versions
+Content-Type: multipart/mixed;
+ boundary="------------080806060502080404000903"
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Hans,
+This is a multi-part message in MIME format.
+--------------080806060502080404000903
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Thanks for the comment.
+ This patch adds retrieval of firmware and FPGA versions of Genpix devices.
+That information is useful for users who experience performance differences
+with the various firmware versions, and may want to use a specific firmware
+that best suits their needs.
 
-On Sunday 21 November 2010 22:18:41 Hans Verkuil wrote:
-> On Sunday, November 21, 2010 21:32:49 Laurent Pinchart wrote:
-> > uvc_find_control() must be called with the controls mutex locked. Fix
-> > uvc_query_v4l2_menu() accordingly.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  drivers/media/video/uvc/uvc_ctrl.c |   48
-> >  +++++++++++++++++++++++++++++++++++- drivers/media/video/uvc/uvc_v4l2.c
-> >  |   36 +-------------------------- drivers/media/video/uvc/uvcvideo.h |
-> >     4 +-
-> >  3 files changed, 50 insertions(+), 38 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/uvc/uvc_ctrl.c
-> > b/drivers/media/video/uvc/uvc_ctrl.c index f169f77..59f8a9a 100644
-> > --- a/drivers/media/video/uvc/uvc_ctrl.c
-> > +++ b/drivers/media/video/uvc/uvc_ctrl.c
-> > @@ -785,7 +785,7 @@ static void __uvc_find_control(struct uvc_entity
-> > *entity, __u32 v4l2_id,
-> > 
-> >  	}
-> >  
-> >  }
-> > 
-> > -struct uvc_control *uvc_find_control(struct uvc_video_chain *chain,
-> > +static struct uvc_control *uvc_find_control(struct uvc_video_chain
-> > *chain,
-> > 
-> >  	__u32 v4l2_id, struct uvc_control_mapping **mapping)
-> >  
-> >  {
-> >  
-> >  	struct uvc_control *ctrl = NULL;
-> > 
-> > @@ -944,6 +944,52 @@ done:
-> >  	return ret;
-> >  
-> >  }
-> > 
-> > +/*
-> > + * Mapping V4L2 controls to UVC controls can be straighforward if done
-> > well. + * Most of the UVC controls exist in V4L2, and can be mapped
-> > directly. Some + * must be grouped (for instance the Red Balance, Blue
-> > Balance and Do White + * Balance V4L2 controls use the White Balance
-> > Component UVC control) or + * otherwise translated. The approach we take
-> > here is to use a translation + * table for the controls that can be
-> > mapped directly, and handle the others + * manually.
-> > + */
-> > +int uvc_query_v4l2_menu(struct uvc_video_chain *chain,
-> > +	struct v4l2_querymenu *query_menu)
-> > +{
-> > +	struct uvc_menu_info *menu_info;
-> > +	struct uvc_control_mapping *mapping;
-> > +	struct uvc_control *ctrl;
-> > +	u32 index = query_menu->index;
-> > +	u32 id = query_menu->id;
-> > +	int ret;
-> > +
-> > +	memset(query_menu, 0, sizeof(*query_menu));
-> > +	query_menu->id = id;
-> > +	query_menu->index = index;
-> > +
-> > +	ret = mutex_lock_interruptible(&chain->ctrl_mutex);
-> > +	if (ret < 0)
-> > +		return -ERESTARTSYS;
-> 
-> Just return 'ret' here (which is -EINTR).
+Example dmesg output:
+gp8psk: FW Version = 2.09.4 (0x20904)  Build 2009/04/02
+gp8psk: FPGA Version = 1
 
-Hmmm... The uvcvideo driver uses -ERESTARTSYS extensively. What's the 
-rationale behind using -EINTR instead ? Allowing users to interrupt the ioctl 
-with ctrl-C ? If so, I wonder if it's worth it in this case, as the controls 
-mutex will not be locked by another thread for an extensive period of time 
-anyway.
+Signed-off-by: Derek Kelly <user.vdr@gmail.com>
 
-ERESTARTSYS is meant to be used to deliver signals to application right away 
-and then restart the system call. With EINTR applications would see an error 
-in response to a VIDIOC_QUERYMENU call if SIGALRM arrives at the same time. I 
-don't think that's something we want.
 
--- 
-Regards,
+--------------080806060502080404000903
+Content-Type: text/plain;
+ name="gp8psk-get_fw_fpga_git.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="gp8psk-get_fw_fpga_git.diff"
 
-Laurent Pinchart
+diff -pruN v4l-dvb.orig/linux/drivers/media/dvb/dvb-usb/gp8psk.c v4l-dvb/linux/drivers/media/dvb/dvb-usb/gp8psk.c
+--- v4l-dvb.orig/linux/drivers/media/dvb/dvb-usb/gp8psk.c	2010-10-30 11:20:46.000000000 -0700
++++ v4l-dvb/linux/drivers/media/dvb/dvb-usb/gp8psk.c	2010-10-30 11:21:36.000000000 -0700
+@@ -24,6 +24,33 @@ MODULE_PARM_DESC(debug, "set debugging l
+ 
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ 
++static int gp8psk_get_fw_version(struct dvb_usb_device *d, u8 *fw_vers)
++{
++	return (gp8psk_usb_in_op(d, GET_FW_VERS, 0, 0, fw_vers, 6));
++}
++
++static int gp8psk_get_fpga_version(struct dvb_usb_device *d, u8 *fpga_vers)
++{
++	return (gp8psk_usb_in_op(d, GET_FPGA_VERS, 0, 0, fpga_vers, 1));
++}
++
++static void gp8psk_info(struct dvb_usb_device *d)
++{
++	u8 fpga_vers, fw_vers[6];
++
++	if (!gp8psk_get_fw_version(d, fw_vers))
++		info("FW Version = %i.%02i.%i (0x%x)  Build %4i/%02i/%02i",
++		fw_vers[2], fw_vers[1], fw_vers[0], GP8PSK_FW_VERS(fw_vers),
++		2000 + fw_vers[5], fw_vers[4], fw_vers[3]);
++	else
++		info("failed to get FW version");
++
++	if (!gp8psk_get_fpga_version(d, &fpga_vers))
++		info("FPGA Version = %i", fpga_vers);
++	else
++		info("failed to get FPGA version");
++}
++
+ int gp8psk_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen)
+ {
+ 	int ret = 0,try = 0;
+@@ -146,6 +173,7 @@ static int gp8psk_power_ctrl(struct dvb_
+ 				gp8psk_usb_out_op(d, CW3K_INIT, 1, 0, NULL, 0);
+ 			if (gp8psk_usb_in_op(d, BOOT_8PSK, 1, 0, &buf, 1))
+ 				return -EINVAL;
++			gp8psk_info(d);
+ 		}
+ 
+ 		if (gp_product_id == USB_PID_GENPIX_8PSK_REV_1_WARM)
+diff -pruN v4l-dvb.orig/linux/drivers/media/dvb/dvb-usb/gp8psk.h v4l-dvb/linux/drivers/media/dvb/dvb-usb/gp8psk.h
+--- v4l-dvb.orig/linux/drivers/media/dvb/dvb-usb/gp8psk.h	2010-10-30 11:20:46.000000000 -0700
++++ v4l-dvb/linux/drivers/media/dvb/dvb-usb/gp8psk.h	2010-10-30 11:24:30.000000000 -0700
+@@ -25,7 +25,6 @@ extern int dvb_usb_gp8psk_debug;
+ #define deb_xfer(args...) dprintk(dvb_usb_gp8psk_debug,0x02,args)
+ #define deb_rc(args...)   dprintk(dvb_usb_gp8psk_debug,0x04,args)
+ #define deb_fe(args...)   dprintk(dvb_usb_gp8psk_debug,0x08,args)
+-/* gp8psk commands */
+ 
+ /* Twinhan Vendor requests */
+ #define TH_COMMAND_IN                     0xC0
+@@ -49,8 +48,10 @@ extern int dvb_usb_gp8psk_debug;
+ #define SET_DVB_MODE                    0x8E
+ #define SET_DN_SWITCH                   0x8F
+ #define GET_SIGNAL_LOCK                 0x90    /* in */
++#define GET_FW_VERS			0x92
+ #define GET_SERIAL_NUMBER               0x93    /* in */
+ #define USE_EXTRA_VOLT                  0x94
++#define GET_FPGA_VERS			0x95
+ #define CW3K_INIT			0x9d
+ 
+ /* PSK_configuration bits */
+@@ -88,6 +89,11 @@ extern int dvb_usb_gp8psk_debug;
+ #define PRODUCT_STRING_READ               0x0D
+ #define FW_BCD_VERSION_READ               0x14
+ 
++/* firmware revision id's */
++#define GP8PSK_FW_REV1			0x020604
++#define GP8PSK_FW_REV2			0x020704
++#define GP8PSK_FW_VERS(_fw_vers)	((_fw_vers)[2]<<0x10 | (_fw_vers)[1]<<0x08 | (_fw_vers)[0])
++
+ extern struct dvb_frontend * gp8psk_fe_attach(struct dvb_usb_device *d);
+ extern int gp8psk_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen);
+ extern int gp8psk_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
+
+--------------080806060502080404000903--
