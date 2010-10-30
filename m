@@ -1,68 +1,109 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:53562 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752128Ab0KQCSc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Nov 2010 21:18:32 -0500
-Message-ID: <4CE33B74.6020304@redhat.com>
-Date: Wed, 17 Nov 2010 00:18:28 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: hg pull http://202.88.242.108:8000/hg/var/www/hg/v4l-dvb/
-References: <AANLkTi=ptdBfOm1qaj5EvYfc4ipzdS4PTVsBpW03vdNp@mail.gmail.com>
-In-Reply-To: <AANLkTi=ptdBfOm1qaj5EvYfc4ipzdS4PTVsBpW03vdNp@mail.gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Return-path: <mchehab@gaivota>
+Received: from fallback1.mail.ru ([94.100.176.18]:58464 "EHLO
+	fallback1.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752517Ab0J3JcG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 30 Oct 2010 05:32:06 -0400
+Received: from smtp3.mail.ru (smtp3.mail.ru [94.100.176.131])
+	by fallback1.mail.ru (mPOP.Fallback_MX) with ESMTP id CABB1F36E88
+	for <linux-media@vger.kernel.org>; Sat, 30 Oct 2010 13:21:12 +0400 (MSD)
+Date: Sat, 30 Oct 2010 13:31:07 +0400
+From: Goga777 <goga777@bk.ru>
+To: "T. Taner" <tanerinux@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Proftuners S2-8000 support
+Message-ID: <20101030133107.2b550c2b@bk.ru>
+In-Reply-To: <AANLkTi=LedNdgYkBa2Si3dpnnMDqPv=zr=AVx3GkM3GD@mail.gmail.com>
+References: <AANLkTi=LedNdgYkBa2Si3dpnnMDqPv=zr=AVx3GkM3GD@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 14-11-2010 18:48, Manu Abraham escreveu:
-> Mauro,
-> 
-> Please pull from http://202.88.242.108:8000/hg/var/www/hg/v4l-dvb/
-> 
-> for the following changes.
-> 
-> 
-> changeset 15168:baa4e8008db5 Mantis, hopper: use MODULE_DEVICE_TABLE
-> http://202.88.242.108:8000/hg/var/www/hg/v4l-dvb/rev/baa4e8008db5
-> 
-> changeset 15169:f04605948fdc Mantis: append tasklet maintenance for
-> DVB stream delivery
-> http://202.88.242.108:8000/hg/var/www/hg/v4l-dvb/rev/f04605948fdc
-> 
-> changeset 15170:ee7a63d70f94 Mantis: use dvb_attach to avoid double
-> dereferencing on module removal
-> http://202.88.242.108:8000/hg/var/www/hg/v4l-dvb/rev/ee7a63d70f94
-> 
-> changeset 15171:3a2ece3bf184 Mantis: Rename gpio_set_bits to
-> mantis_gpio_set_bits
-> http://202.88.242.108:8000/hg/var/www/hg/v4l-dvb/rev/3a2ece3bf184
-> 
-> changeset 15172:56c20de4f697 stb6100: Improve tuner performance
-> http://202.88.242.108:8000/hg/var/www/hg/v4l-dvb/rev/56c20de4f697
-> 
-> changeset 15173:5cc010e3a803 stb0899: fix diseqc messages getting lost
-> http://202.88.242.108:8000/hg/var/www/hg/v4l-dvb/rev/5cc010e3a803
+please try this patch http://linuxdvb.org.ru/wbb/index.php?page=Thread&postID=17602#post17602 for
+s2-liplianin drivers
 
-Applied, thanks.
-
-A new warning appeared:
-
-drivers/media/dvb/frontends/stb6100.c:120: warning: ëstb6100_normalise_regsí defined but not used
-
-I tried to remove the applied patches from the patchwork queue. There are still a few patches
-pending there. Not sure if they got obsoleted by the applied ones, or if they are still
-relevant:
-
-Jun,20 2010: [2/2] DVB/V4L: mantis: remove unused files                             http://patchwork.kernel.org/patch/107062  Bj√∏rn Mork <bjorn@mork.no>
-Jul,10 2010: Mantis driver patch: use interrupt for I2C traffic instead of busy reg http://patchwork.kernel.org/patch/111245  Marko Ristola <marko.ristola@kolumbus.fi>
-Jul,19 2010: Twinhan DTV Ter-CI (3030 mantis)                                       http://patchwork.kernel.org/patch/112708  Niklas Claesson <nicke.claesson@gmail.com>
-Aug, 7 2010: Refactor Mantis DMA transfer to deliver 16Kb TS data per interrupt     http://patchwork.kernel.org/patch/118173  Marko Ristola <marko.ristola@kolumbus.fi>
-Oct,10 2010: [v2] V4L/DVB: faster DVB-S lock for mantis cards using stb0899 demod   http://patchwork.kernel.org/patch/244201  Tuxoholic <tuxoholic@hotmail.de>
-
-Please take a look and give us some feedback.
-
-Thanks,
-Mauro.
+> I have recently purchased Proftuners S2-8000 PCI-e card which consist of :
+> 
+> * CX23885 pci-e interface
+> * STB6100 Frontend
+> * STV0900 Demodulator
+> 
+> Vendor company supposed that card has Linux support via additional
+> patch in their support page. I applied patch to v4l-dvb and
+> s2-liplianin repositories. Patched source compiled and modules loaded
+> successfully, but it didn't work properly. I got mass of error
+> messages below, during launching VDR application.
+> 
+> Insructions: http://www.proftuners.com/driver8000.html
+> Patch: http://www.proftuners.com/sites/default/files/prof8000.patch
+> 
+> kernel.log
+> -----------------------------------
+> stv0900_search:
+> stv0900_algo
+> stv0900_set_symbol_rate: Mclk 4500000, SR 1000000, Dmd 0
+> stv0900_set_tuner: Frequency=1146000
+> stv0900_set_tuner: Bandwidth=72000000
+> stv0900_algo: NO AGC1, POWERI, POWERQ
+> Search Fail
+> stv0900_read_status:
+> stv0900_status: locked = 0
+> stv0900_get_mclk_freq: Calculated Mclk = 4500000
+> TS bitrate = 0 Mbit/sec
+> DEMOD LOCK FAIL
+> stv0900_search:
+> stv0900_algo
+> stv0900_set_symbol_rate: Mclk 4500000, SR 1000000, Dmd 0
+> stv0900_set_tuner: Frequency=1146000
+> stv0900_set_tuner: Bandwidth=72000000
+> stv0900_algo: NO AGC1, POWERI, POWERQ
+> Search Fail
+> stv0900_read_status:
+> stv0900_status: locked = 0
+> stv0900_get_mclk_freq: Calculated Mclk = 4500000
+> TS bitrate = 0 Mbit/sec
+> DEMOD LOCK FAIL
+> -----------------------------------
+> 
+> Here is the log messages during card has been detected:
+> -----------------------------------
+> Octt 16 17:27:39 localhost kernel: cx23885 driver version 0.0.2 loaded
+> Oct 16 17:27:39 localhost kernel: cx23885 0000:03:00.0: PCI INT A ->
+> Link[LN2A] -> GSI 18 (level, low) -> IRQ 18
+> Oct 16 17:27:39 localhost kernel: CORE cx23885[0]: subsystem:
+> 8000:3034, board: Prof Revolution DVB-S2 8000 [card=29,autodetected]
+> Oct 16 17:03:34 localhost kernel: cx23885_dvb_register() allocating 1
+> frontend(s)
+> Oct 16 17:03:34 localhost kernel: cx23885[0]: cx23885 based dvb card
+> Oct 16 17:03:34 localhost kernel: stv0900_init_internal
+> Oct 16 17:03:34 localhost kernel: stv0900_init_internal: Create New
+> Internal Structure!
+> Oct 16 17:03:34 localhost kernel: stv0900_st_dvbs2_single
+> Oct 16 17:03:34 localhost kernel: stv0900_stop_all_s2_modcod
+> Oct 16 17:03:34 localhost kernel: stv0900_activate_s2_modcod_single
+> Oct 16 17:03:34 localhost kernel: stv0900_set_ts_parallel_serial
+> Oct 16 17:03:34 localhost kernel: stv0900_set_mclk: Mclk set to
+> 135000000, Quartz = 27000000
+> Oct 16 17:03:34 localhost kernel: stv0900_get_mclk_freq: Calculated
+> Mclk = 4500000
+> Oct 16 17:03:34 localhost kernel: stv0900_get_mclk_freq: Calculated
+> Mclk = 4500000
+> Oct 16 17:03:34 localhost kernel: stv0900_attach: Attaching STV0900
+> demodulator(0)
+> Oct 16 17:03:34 localhost kernel: stb6100_attach: Attaching STB6100
+> Oct 16 17:03:34 localhost kernel: DVB: registering new adapter (cx23885[0])
+> Oct 16 17:03:34 localhost kernel: DVB: registering adapter 0 frontend
+> 0 (STV0900 frontend)...
+> Oct 16 17:03:34 localhost kernel: cx23885_dev_checkrevision() Hardware
+> revision = 0xb0
+> Oct 16 17:03:34 localhost kernel: cx23885[0]/0: found at 0000:03:00.0,
+> rev: 2, irq: 18, latency: 0, mmio: 0xfbe00000
+> Oct 16 17:03:34 localhost kernel: cx23885 0000:03:00.0: setting
+> latency timer to 64
+> -----------------------------------
+> 
+> Kernel: 2.6.35  x64
+> Distro: Archlinux/Gentoo x64
+> App: VDR 1.7.16
