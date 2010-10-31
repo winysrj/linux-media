@@ -1,50 +1,56 @@
-Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.187]:56734 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753098Ab0KPQAu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Nov 2010 11:00:50 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Subject: Re: [RFC PATCH 0/8] V4L BKL removal: first round
-Date: Tue, 16 Nov 2010 17:01:36 +0100
-Cc: "Mauro Carvalho Chehab" <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-References: <cover.1289740431.git.hverkuil@xs4all.nl> <ccc5d34bc1daa662da4af75127256505.squirrel@webmail.xs4all.nl> <ebc68dfa756290569c3905a79175f65a.squirrel@webmail.xs4all.nl>
-In-Reply-To: <ebc68dfa756290569c3905a79175f65a.squirrel@webmail.xs4all.nl>
+Return-path: <mchehab@gaivota>
+Received: from mx1.redhat.com ([209.132.183.28]:56524 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752286Ab0JaH2q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 Oct 2010 03:28:46 -0400
+Message-ID: <4CCD1AA3.4090501@redhat.com>
+Date: Sun, 31 Oct 2010 08:28:35 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Anca Emanuel <anca.emanuel@gmail.com>
+CC: linux-media@vger.kernel.org, moinejf@free.fr, mchehab@infradead.org
+Subject: Re: Webcam driver not working: drivers/media/video/gspca/ov519.c
+ device 05a9:4519
+References: <AANLkTik8__Q9au8u3fxsRr3cNdpjXZqmra9ohKTpSR+k@mail.gmail.com> <AANLkTimFimU5FiAmmTqsaJOhqUQAjSGkbPe1XJTtCGhe@mail.gmail.com>
+In-Reply-To: <AANLkTimFimU5FiAmmTqsaJOhqUQAjSGkbPe1XJTtCGhe@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201011161701.36982.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Tuesday 16 November 2010, Hans Verkuil wrote:
-> > I think there is a misunderstanding. One V4L device (e.g. a TV capture
-> > card, a webcam, etc.) has one v4l2_device struct. But it can have multiple
-> > V4L device nodes (/dev/video0, /dev/radio0, etc.), each represented by a
-> > struct video_device (and I really hope I can rename that to v4l2_devnode
-> > soon since that's a very confusing name).
-> >
-> > You typically need to serialize between all the device nodes belonging to
-> > the same video hardware. A mutex in struct video_device doesn't do that,
-> > that just serializes access to that single device node. But a mutex in
-> > v4l2_device is at the right level.
+Hi,
 
-Ok, got it now.
+On 10/30/2010 12:40 PM, Anca Emanuel wrote:
+> On Fri, Oct 29, 2010 at 3:12 PM, Anca Emanuel<anca.emanuel@gmail.com>  wrote:
+>> Hi all, sorry for the noise, but in current mainline (2.6.36-git12)
+>> there are some updates in ov519.c
+>> I'm running this kernel now and my camera is still not working (tested
+>> in windows and it works).
+>>
+>> lsusb:
+>> Bus 008 Device 002: ID 05a9:4519 OmniVision Technologies, Inc. Webcam Classic
+>
+> found this: http://www.rastageeks.org/ov51x-jpeg/index.php/Ov51xJpegHackedSource
+> and this: http://packages.ubuntu.com/maverick/ov51x-jpeg-source
+>
+> but I get an error when I try to compile:
+> ov51x-jpeg-core.c:87: fatal error: linux/autoconf.h: No such file or directory
+> compilation terminated.
+>
 
-> A quick follow-up as I saw I didn't fully answer your question: to my
-> knowledge there are no per-driver data structures that need a BKL for
-> protection. It's definitely not something I am worried about.
+Please do the following (as root):
+echo 63 > /sys/module/gspca_main/parameters/debug
 
-Good. Are you preparing a patch for a per-v4l2_device then? This sounds
-like the right place with your explanation. I would not put in the
-CONFIG_BKL switch, because I tried that for two other subsystems and got
-called back, but I'm not going to stop you.
+Then unplug your camera, re plug it, and then do
+dmesg > plug.log
 
-As for the fallback to a global mutex, I guess you can set the
-videodev->lock pointer and use unlocked_ioctl for those drivers
-that do not use a v4l2_device yet, if there are only a handful of them.
+Try to use it and then do:
+dmesg > stream.log
 
-	Arnd
+Then send another mail with plug.log and stream.log
+attached. Please CC me on that mail (I'm not sure of
+the list will allow the attachments).
+
+Regards,
+
+Hans
