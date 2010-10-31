@@ -1,79 +1,95 @@
-Return-path: <mchehab@pedra>
-Received: from hqemgate04.nvidia.com ([216.228.121.35]:6771 "EHLO
-	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751444Ab0KPU1c (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:57265 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752771Ab0JaTi6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Nov 2010 15:27:32 -0500
-From: achew@nvidia.com
-To: zhangtianfei@leadcoretech.com, hverkuil@xs4all.nl, pawel@osciak.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Andrew Chew <achew@nvidia.com>
-Subject: [PATCH 1/1] videobuf: Initialize lists in videobuf_buffer.
-Date: Tue, 16 Nov 2010 12:24:43 -0800
-Message-Id: <1289939083-27209-1-git-send-email-achew@nvidia.com>
+	Sun, 31 Oct 2010 15:38:58 -0400
+Received: by wwe15 with SMTP id 15so5341482wwe.1
+        for <linux-media@vger.kernel.org>; Sun, 31 Oct 2010 12:38:57 -0700 (PDT)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [GIT PULL request for 2.6.37] Add Technisat SkyStar HD USB driver
+Date: Sun, 31 Oct 2010 20:38:51 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Manu Abraham <abraham.manu@gmail.com>
+References: <201010171450.18459.pboettcher@kernellabs.com> <4CBAEAA7.6050206@redhat.com>
+In-Reply-To: <4CBAEAA7.6050206@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201010312038.51597.pboettcher@kernellabs.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-From: Andrew Chew <achew@nvidia.com>
+On Sunday 17 October 2010 14:23:03 Mauro Carvalho Chehab wrote:
+> Em 17-10-2010 10:50, Patrick Boettcher escreveu:
+> > Hi Mauro,
+> > 
+> > please
+> > 
+> > git pull git://github.com/pboettch/linux-2.6.git for_mauro
+> > 
+> > for the following changes:
+> > 
+> > technisat-usb2: added driver for Technisat's USB2.0 DVB-S/S2 receiver
+> > stv090x: add tei-field to config-structure
+> > stv090x: added function to control GPIOs from the outside
+> 
+> Both stv090x patches seem ok to me.
+> 
+> > Thanks in advance for pulling and commenting,
+> 
+> I have a few comments for the technisat-usb2:
 
-There are two struct list_head's in struct videobuf_buffer.
-Prior to this fix, all we did for initialization of struct videobuf_buffer
-was to zero out its memory.  This does not properly initialize this struct's
-two list_head members.
+Thanks for your comments, they were appreciated.
 
-This patch immediately calls INIT_LIST_HEAD on both lists after the kzalloc,
-so that the two lists are initialized properly.
+> [...]
+> > +static int technisat_usb2_debug;
+> > +module_param_named(debug, technisat_usb2_debug, int, 0644);
+> 
+> As this is static, you could just name it as:
+> 
+> 	static int debug;
+> 
+> and use module_param() instead.
 
-Signed-off-by: Andrew Chew <achew@nvidia.com>
----
-I thought I'd submit a patch for this anyway.  Without this, the existing
-camera host drivers will spew an ugly warning on every videobuf allocation,
-which gets annoying really fast.
+OK.
 
- drivers/media/video/videobuf-dma-contig.c |    2 ++
- drivers/media/video/videobuf-dma-sg.c     |    2 ++
- drivers/media/video/videobuf-vmalloc.c    |    2 ++
- 3 files changed, 6 insertions(+), 0 deletions(-)
+> 
+> > +static struct i2c_algorithm technisat_usb2_i2c_algo = {
+> > +	.master_xfer   = technisat_usb2_i2c_xfer,
+> > +	.functionality = technisat_usb2_i2c_func,
+> > +
+> > +#ifdef NEED_ALGO_CONTROL
+> > +	.algo_control = dummy_algo_control,
+> > +#endif
+> 
+> You don't need it. This is always false upstream.
 
-diff --git a/drivers/media/video/videobuf-dma-contig.c b/drivers/media/video/videobuf-dma-contig.c
-index c969111..f7e0f86 100644
---- a/drivers/media/video/videobuf-dma-contig.c
-+++ b/drivers/media/video/videobuf-dma-contig.c
-@@ -193,6 +193,8 @@ static struct videobuf_buffer *__videobuf_alloc_vb(size_t size)
- 	if (vb) {
- 		mem = vb->priv = ((char *)vb) + size;
- 		mem->magic = MAGIC_DC_MEM;
-+		INIT_LIST_HEAD(&vb->stream);
-+		INIT_LIST_HEAD(&vb->queue);
- 	}
- 
- 	return vb;
-diff --git a/drivers/media/video/videobuf-dma-sg.c b/drivers/media/video/videobuf-dma-sg.c
-index 20f227e..5af3217 100644
---- a/drivers/media/video/videobuf-dma-sg.c
-+++ b/drivers/media/video/videobuf-dma-sg.c
-@@ -430,6 +430,8 @@ static struct videobuf_buffer *__videobuf_alloc_vb(size_t size)
- 
- 	mem = vb->priv = ((char *)vb) + size;
- 	mem->magic = MAGIC_SG_MEM;
-+	INIT_LIST_HEAD(&vb->stream);
-+	INIT_LIST_HEAD(&vb->queue);
- 
- 	videobuf_dma_init(&mem->dma);
- 
-diff --git a/drivers/media/video/videobuf-vmalloc.c b/drivers/media/video/videobuf-vmalloc.c
-index df14258..8babedd 100644
---- a/drivers/media/video/videobuf-vmalloc.c
-+++ b/drivers/media/video/videobuf-vmalloc.c
-@@ -146,6 +146,8 @@ static struct videobuf_buffer *__videobuf_alloc_vb(size_t size)
- 
- 	mem = vb->priv = ((char *)vb) + size;
- 	mem->magic = MAGIC_VMAL_MEM;
-+	INIT_LIST_HEAD(&vb->stream);
-+	INIT_LIST_HEAD(&vb->queue);
- 
- 	dprintk(1, "%s: allocated at %p(%ld+%ld) & %p(%ld)\n",
- 		__func__, vb, (long)sizeof(*vb), (long)size - sizeof(*vb),
--- 
-1.7.0.4
+OK.
 
+> [...]
+> Don't implement your own IR RC5 decoding logic. We have it already at IR
+> core, and it is able to handle several protocols. Instead, just sent the
+> raw events to RC core.
+> 
+> See drivers/media/dvb/siano/smsir.c for an example on how to do it.
+>
+> [...]
+> 
+> Also, don't put the RC tables at the driver. Move it to a separate file, at
+> drivers/media/IR/keymaps/. This allows importing the RC keycodes by
+> ir-keytable userspace tool (from v4l-utils.git).
+
+Everythings' done. Ported to use ir-rc5-decoder. Rebased and squashed.
+
+So, please pull now from:
+
+git pull git://github.com/pboettch/linux-2.6.git for_mauro
+
+thanks in advance and best regards,
+
+--
+Patrick Boettcher - KernelLabs
+http://www.kernellabs.com/
