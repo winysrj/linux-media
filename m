@@ -1,48 +1,116 @@
-Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:47931 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752867Ab0KJEdt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Nov 2010 23:33:49 -0500
-Message-ID: <4CDA2093.7010101@infradead.org>
-Date: Wed, 10 Nov 2010 02:33:23 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Return-path: <mchehab@gaivota>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:62781 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755215Ab0JaLvD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 Oct 2010 07:51:03 -0400
+Received: by iwn10 with SMTP id 10so5814860iwn.19
+        for <linux-media@vger.kernel.org>; Sun, 31 Oct 2010 04:51:02 -0700 (PDT)
 MIME-Version: 1.0
-To: Jarod Wilson <jarod@wilsonet.com>
-CC: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/6] rc-core: ir-core to rc-core conversion
-References: <20101102201733.12010.30019.stgit@localhost.localdomain>	<AANLkTi=z2yU568sEs0RNuQ6gZUzJQeHajTZ_0LeXS-2D@mail.gmail.com>	<4CD9FA59.9020702@infradead.org> <AANLkTik4s2vaAYu-A7VwDGRdeDDd=QZkUYN-p6yrFeqR@mail.gmail.com>
-In-Reply-To: <AANLkTik4s2vaAYu-A7VwDGRdeDDd=QZkUYN-p6yrFeqR@mail.gmail.com>
+In-Reply-To: <4CCB1443.9080509@stanford.edu>
+References: <AANLkTimx6XJKEz9883cwrm977OtXVPVB5K5PjSGFi_AJ@mail.gmail.com>
+	<AANLkTi=Nv2Oe=61NQjzH0+P+TcODDJW3_n+NbfzxF5g3@mail.gmail.com>
+	<201010290139.10204.laurent.pinchart@ideasonboard.com>
+	<AANLkTinWnGtb32kBNwoeN27OcCh7sVvZOoC=Vi1BtOua@mail.gmail.com>
+	<AANLkTimJu-QDToxGNWKPj_B4QM_iO_x6G6eE4U2WnDPB@mail.gmail.com>
+	<AANLkTi=83sd2yTsHt166_63vorioD5Fas32P9XLX15ss@mail.gmail.com>
+	<AANLkTin9M0FZrBYy5xq_-uCFbYa=LfZqLWurb_rB+uW_@mail.gmail.com>
+	<4CCB1443.9080509@stanford.edu>
+Date: Sun, 31 Oct 2010 12:51:02 +0100
+Message-ID: <AANLkTimY+sWWxF9+9P5uq8nDeSPdq0jRegtkfvEWRj-+@mail.gmail.com>
+Subject: Re: New media framework user space usage
+From: Bastian Hecht <hechtb@googlemail.com>
+To: Eino-Ville Talvala <talvala@stanford.edu>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 10-11-2010 01:25, Jarod Wilson escreveu:
-> On Tue, Nov 9, 2010 at 8:50 PM, Mauro Carvalho Chehab
-> <mchehab@infradead.org> wrote:
-> ...
->> Sorry for giving you a late feedback about those patches. I was busy the last two
->> weeks, due to my trip to US for KS/LPC.
->>
->> I've applied patches 1 to 3 (in fact, I got the patches from the previous version -
->> unfortunately, patchwork do a very bad job when someone sends a new series that superseeds
->> the previous patches).
->>
->> I didn't like patch 4 for some reasons: instead of just doing rename, it is a
->> all-in-one patch, doing several things at the same time. It is hard to analyse it by
->> just looking at the diffs, as it is not a pure rename patch. Also, it doesn't rename
->> /drivers/media/IR into something else.
->>
->> Btw, the patch is currently broken:
-> 
-> Hm, the series applied cleanly against 2.6.37-rc1 a bit ago:
-> 
-> http://git.kernel.org/?p=linux/kernel/git/jarod/linux-2.6-ir.git;a=shortlog;h=refs/heads/staging
+Hello Eino-Ville,
 
-Probably, some other RC patch broke it. It doesn't apply cleanly 
-against staging/for_v2.6.38.
+>
+> Most of the ISP can't handle more than 10-bit input - unless you're
+> streaming raw sensor data straight to memory, you'll have to use the bridge
+> lane shifter to decimate the input.
+> In the new framework, I don't know how that's done, unfortunately.
 
-Cheers,
-Mauro
+Thank you for pointing me to it. Now I read about it in the technical
+reference manual too
+(http://focus.ti.com/lit/ug/spruf98k/spruf98k.pdf).
+At page 1392 it mentions the possibility to reduce the precision from
+12- to 10-bit. It turns out Laurent already sent me the right
+configuration in a side note of a former post of me. On page 1574 I
+found another related register: CCDC_FMTCFG. Here you can select which
+10 of the 12 bits you want to keep.
+I looked up the code-flow for the isp-framework and post it here for reference:
 
+static struct isp_v4l2_subdevs_group bastix_camera_subdevs[] = {
+        {
+                .subdevs = bastix_camera_mt9p031,
+                .interface = ISP_INTERFACE_PARALLEL,
+                .bus = { .parallel = {
+                       .data_lane_shift        = 1,
+        <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                       .clk_pol                = 1,
+                       .bridge                 = ISPCTRL_PAR_BRIDGE_DISABLE,
+                } },
+        },
+        { NULL, 0, },
+};
+static struct isp_platform_data bastix_isp_platform_data = {
+        .subdevs = bastix_camera_subdevs,
+};
+...
+omap3isp_device.dev.platform_data = &bastix_isp_platform_data;
+-----------------------
+The config is handled in isp.c here:
+void isp_configure_bridge(struct isp_device *isp, enum ccdc_input_entity input,
+                          const struct isp_parallel_platform_data *pdata)
+{
+...
+        switch (input) {
+        case CCDC_INPUT_PARALLEL:
+                ispctrl_val |= ISPCTRL_PAR_SER_CLK_SEL_PARALLEL;
+                ispctrl_val |= pdata->data_lane_shift <<
+ISPCTRL_SHIFT_SHIFT;   <<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                ispctrl_val |= pdata->clk_pol << ISPCTRL_PAR_CLK_POL_SHIFT;
+                ispctrl_val |= pdata->bridge << ISPCTRL_PAR_BRIDGE_SHIFT;
+                break;
+
+...
+}
+
+> Also, technically, the mt9p031 output colorspace is not sRGB, although I'm
+> not sure how close it is. It's its own sensor-specific space, determined by
+> the color filters on it, and you'll want to calibrate for it at some point.
+
+The output format of the sensor is
+
+R   Gr
+Gb B
+
+The same colorspace is given as example in spruf98k on page 1409.
+There I am still confused about the sematic of 1 pixel. Is it the
+quadruple of the bayer values or each component? Or does it depend on
+the context? Does the the sensor send 5MP data to the isp or 5MPx4
+bayer values? Does the 12-bit width belong to each bayer value? In the
+sensor you read from right to left, I don't know if the ISP doc means
+reading left to right. And so on and so on...
+
+> Good luck,
+
+As you can see I need and appreciate it :)
+
+About the freezing ioctl. I discovered that I have a clocking issue. I
+will solve it monday and see if it works better and had an impact on
+the isp-driver.
+
+
+> Eino-Ville Talvala
+> Stanford University
+>
+
+cheers,
+
+ Bastian
