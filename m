@@ -1,51 +1,92 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:36771 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750766Ab0KATOf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Nov 2010 15:14:35 -0400
-Date: Mon, 1 Nov 2010 20:15:47 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Anca Emanuel <anca.emanuel@gmail.com>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org
-Subject: Re: Webcam driver not working: drivers/media/video/gspca/ov519.c
- device 05a9:4519
-Message-ID: <20101101201547.47fd0d4c@tele>
-In-Reply-To: <AANLkTikZPmJWebfpU2yLpvMygqhzfAKZYL7rTCG45K3b@mail.gmail.com>
-References: <AANLkTikZPmJWebfpU2yLpvMygqhzfAKZYL7rTCG45K3b@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:46474 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753642Ab0JaDQU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 30 Oct 2010 23:16:20 -0400
+Received: by gyg4 with SMTP id 4so2630301gyg.19
+        for <linux-media@vger.kernel.org>; Sat, 30 Oct 2010 20:16:19 -0700 (PDT)
+MIME-Version: 1.0
+Date: Sun, 31 Oct 2010 14:16:18 +1100
+Message-ID: <AANLkTimQ3hqPepPkaYX40MiM+r9=DYzDUD2fC+uQ2ec1@mail.gmail.com>
+Subject: [patch] new_build.git - remove bashist equality testing
+From: Vincent McIntyre <vincent.mcintyre@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: multipart/mixed; boundary=0015174bf1b27f10a20493e11d2e
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Sun, 31 Oct 2010 15:16:40 +0200
-Anca Emanuel <anca.emanuel@gmail.com> wrote:
+--0015174bf1b27f10a20493e11d2e
+Content-Type: text/plain; charset=ISO-8859-1
 
-> After this patch,
-	[snip]
-> I get:
-> [  182.680032] usb 8-1: new full speed USB device using uhci_hcd and
-> address 3 [  182.875331] gspca: probing 05a9:4519
-> [  183.064309] ov519: I2C synced in 0 attempt(s)
-> [  183.064314] ov519: starting OV7xx0 configuration
-> [  183.076312] ov519: Sensor is an OV7660
-	[snip]
-> But only a green screen in Cheese. Logs attached.
+Hi,
 
-Hi Emanuel,
+while trying to build this on ubuntu 10.04 (2.6.32-24-generic) I
+noticed some of the equality
+tests in linux/Makefile are bash-style, not POSIX-style.
+The problem I encountered was error messages like:
+  ...
+  make -C ../linux apply_patches
+  make[2]: Entering directory `/home/ltv/git/clones/linuxtv.org/new_build/linux'
+  [: 23: v2.6.32: unexpected operator
+  cat: .patches_applied: No such file or directory
+  [: 23: unexpected operator
 
-The sensor ov7660 has not the same registers as the ov7670, so, your
-webcam could not work.
+Please consider applying the attached patch, which fixes the problem for me.
 
-To make it work, I need a USB trace done with ms-windows. May you do it?
+Cheers
+Vince
 
-In a first step, I need the webcam connection and no more than one
-second of streaming at the maximum resolution.
+--0015174bf1b27f10a20493e11d2e
+Content-Type: text/x-patch; charset=US-ASCII; name="new_build.drop-bashims.patch"
+Content-Disposition: attachment; filename="new_build.drop-bashims.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: file0
 
-Please, use a sniffer which creates text files like sniffbin.
-
-Best regards.
-
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+ZGlmZiAtLWdpdCBhL2xpbnV4L01ha2VmaWxlIGIvbGludXgvTWFrZWZpbGUKaW5kZXggNTYzZWQx
+Ny4uODAxMDgxZiAxMDA2NDQKLS0tIGEvbGludXgvTWFrZWZpbGUKKysrIGIvbGludXgvTWFrZWZp
+bGUKQEAgLTYwLDExICs2MCwxMSBAQCBoZWxwOgogCUBlY2hvICIgICAgICAgICAgdW50YXJ8Y2xl
+YW58ZGlzdGNsZWFuIgogCiB0b2RheXRhcjoKLQlAaWYgWyAiJChESVIpIiA9PSAiIiBdOyB0aGVu
+IGVjaG8gIm1ha2UgJEAgRElSPTx2ZXJzaW9uPiI7IGV4aXQgLTE7IGZpCisJQGlmIFsgIiQoRElS
+KSIgPSAiIiBdOyB0aGVuIGVjaG8gIm1ha2UgJEAgRElSPTx2ZXJzaW9uPiI7IGV4aXQgLTE7IGZp
+CiAJLXJtICQoUFdEKS8kKFRPREFZX1RBUikuYnoyCiAJdGFyIGNmICQoUFdEKS8kKFRPREFZX1RB
+UikgLUMgJChESVIpICQoVEFSRklMRVMpCiAJZm9yIGkgaW4gJChUQVJESVIpOyBkbyBcCi0JCWlm
+IFsgImBlY2hvICQkaXxncmVwIERvY3VtZW50YXRpb25gIiA9PSAiIiBdOyB0aGVuIFwKKwkJaWYg
+WyAiYGVjaG8gJCRpfGdyZXAgRG9jdW1lbnRhdGlvbmAiID0gIiIgXTsgdGhlbiBcCiAJCQlkaXI9
+ImAoY2QgJChESVIpOyBmaW5kICQkaSAtdHlwZSBmIC1uYW1lICouW2NoXSlgIjsgXAogCQkJZGly
+PSIkJGRpciBgKGNkICQoRElSKTsgZmluZCAkJGkgLXR5cGUgZiAtbmFtZSBNYWtlZmlsZSlgIjsg
+XAogCQkJZGlyPSIkJGRpciBgKGNkICQoRElSKTsgZmluZCAkJGkgLXR5cGUgZiAtbmFtZSBLY29u
+ZmlnKWAiOyBcCkBAIC03NCwxMSArNzQsMTEgQEAgdG9kYXl0YXI6CiAJCWZpOyBkb25lOyBiemlw
+MiAkKFBXRCkvJChUT0RBWV9UQVIpCiAKIHRhcjoKLQlAaWYgWyAiJChESVIpIiA9PSAiIiBdOyB0
+aGVuIGVjaG8gIm1ha2UgJEAgRElSPTx2ZXJzaW9uPiI7IGV4aXQgLTE7IGZpCisJQGlmIFsgIiQo
+RElSKSIgPSAiIiBdOyB0aGVuIGVjaG8gIm1ha2UgJEAgRElSPTx2ZXJzaW9uPiI7IGV4aXQgLTE7
+IGZpCiAJLXJtICQoUFdEKS9saW51eC1tZWRpYS50YXIuYnoyCiAJdGFyIGNmICQoUFdEKS9saW51
+eC1tZWRpYS50YXIgLUMgJChESVIpICQoVEFSRklMRVMpCiAJZm9yIGkgaW4gJChUQVJESVIpOyBk
+byBcCi0JCWlmIFsgImBlY2hvICQkaXxncmVwIERvY3VtZW50YXRpb25gIiA9PSAiIiBdOyB0aGVu
+IFwKKwkJaWYgWyAiYGVjaG8gJCRpfGdyZXAgRG9jdW1lbnRhdGlvbmAiID0gIiIgXTsgdGhlbiBc
+CiAJCQlkaXI9ImAoY2QgJChESVIpOyBmaW5kICQkaSAtdHlwZSBmIC1uYW1lICouW2NoXSlgIjsg
+XAogCQkJZGlyPSIkJGRpciBgKGNkICQoRElSKTsgZmluZCAkJGkgLXR5cGUgZiAtbmFtZSBNYWtl
+ZmlsZSlgIjsgXAogCQkJZGlyPSIkJGRpciBgKGNkICQoRElSKTsgZmluZCAkJGkgLXR5cGUgZiAt
+bmFtZSBLY29uZmlnKWAiOyBcCkBAIC05NCwxNCArOTQsMTQgQEAgY2xlYW46CiAJLXJtIC1yZiAk
+KE1BSU5ESVJTKSAucGF0Y2hlc19hcHBsaWVkCiAKIGRpcjogY2xlYW4KLQlAaWYgWyAiJChESVIp
+IiA9PSAiIiBdOyB0aGVuIGVjaG8gIm1ha2UgJEAgRElSPTx2ZXJzaW9uPiI7IGV4aXQgLTE7IGZp
+CisJQGlmIFsgIiQoRElSKSIgPSAiIiBdOyB0aGVuIGVjaG8gIm1ha2UgJEAgRElSPTx2ZXJzaW9u
+PiI7IGV4aXQgLTE7IGZpCiAJQGVjaG8gIlNlYXJjaGluZyBpbiAkKERJUikvTWFrZWZpbGUgZm9y
+IGtlcm5lbCB2ZXJzaW9uLiIKIAogCWZvciBpIGluICQoVEFSRklMRVMpOyBkbyBcCiAJCWluc3Rh
+bGwgLUQgJChESVIpLyQkaSAkJGk7IFwKIAlkb25lCiAJZm9yIGkgaW4gJChUQVJESVIpOyBkbyBc
+Ci0JCWlmIFsgImBlY2hvICQkaXxncmVwIERvY3VtZW50YXRpb25gIiA9PSAiIiBdOyB0aGVuIFwK
+KwkJaWYgWyAiYGVjaG8gJCRpfGdyZXAgRG9jdW1lbnRhdGlvbmAiID0gIiIgXTsgdGhlbiBcCiAJ
+CQlkaXI9ImAoY2QgJChESVIpOyBmaW5kICQkaSAtdHlwZSBmIC1uYW1lICouW2NoXSlgIjsgXAog
+CQkJZGlyPSIkJGRpciBgKGNkICQoRElSKTsgZmluZCAkJGkgLXR5cGUgZiAtbmFtZSBNYWtlZmls
+ZSlgIjsgXAogCQkJZGlyPSIkJGRpciBgKGNkICQoRElSKTsgZmluZCAkJGkgLXR5cGUgZiAtbmFt
+ZSBLY29uZmlnKWAiOyBcCkBAIC0xMjUsOSArMTI1LDkgQEAgYXBwbHlfcGF0Y2hlcyBhcHBseS1w
+YXRjaGVzOgogCQlmaTsgXAogCWZpOyBcCiAJaWYgWyAiJChWRVIpIiAhPSAiIiBdOyB0aGVuIGRp
+cj0idiQoVkVSKSI7IGZpOyBcCi0JaWYgWyAiJCRkaXIiID09ICIiIF07IHRoZW4gZWNobyAibWFr
+ZSAkQCBWRVI9PHZlcnNpb24+IjsgZXhpdCAtMTsgZmk7IFwKKwlpZiBbICIkJGRpciIgPSAiIiBd
+OyB0aGVuIGVjaG8gIm1ha2UgJEAgVkVSPTx2ZXJzaW9uPiI7IGV4aXQgLTE7IGZpOyBcCiAJaWYg
+WyAtZSAuLi9iYWNrcG9ydHMvJCRkaXIvc2VyaWVzIF07IHRoZW4gXAotCQlpZiBbICJgY2F0IC5w
+YXRjaGVzX2FwcGxpZWRgIiA9PSAiJCRkaXIiIF07IHRoZW4gXAorCQlpZiBbICJgY2F0IC5wYXRj
+aGVzX2FwcGxpZWRgIiA9ICIkJGRpciIgXTsgdGhlbiBcCiAJCQllY2hvICJQYXRjaGVzIGZvciAk
+JGRpciBhbHJlYWR5IGFwcGxpZWQuIjsgZXhpdDsgXAogCQllbHNlIFwKIAkJCSQoTUFLRSkgdW5h
+cHBseV9wYXRjaGVzOyBcCg==
+--0015174bf1b27f10a20493e11d2e--
