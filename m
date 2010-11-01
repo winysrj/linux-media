@@ -1,76 +1,51 @@
-Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35735 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751439Ab0KIPa2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Nov 2010 10:30:28 -0500
-Received: from localhost.localdomain (unknown [91.178.204.79])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 8E64735CB5
-	for <linux-media@vger.kernel.org>; Tue,  9 Nov 2010 15:30:27 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/2] v4l: Remove hardcoded module names passed to v4l2_i2c_new_subdev* (2)
-Date: Tue,  9 Nov 2010 16:30:27 +0100
-Message-Id: <1289316628-9394-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1289316628-9394-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1289316628-9394-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Return-path: <mchehab@gaivota>
+Received: from smtp5-g21.free.fr ([212.27.42.5]:36771 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750766Ab0KATOf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Nov 2010 15:14:35 -0400
+Date: Mon, 1 Nov 2010 20:15:47 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Anca Emanuel <anca.emanuel@gmail.com>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org
+Subject: Re: Webcam driver not working: drivers/media/video/gspca/ov519.c
+ device 05a9:4519
+Message-ID: <20101101201547.47fd0d4c@tele>
+In-Reply-To: <AANLkTikZPmJWebfpU2yLpvMygqhzfAKZYL7rTCG45K3b@mail.gmail.com>
+References: <AANLkTikZPmJWebfpU2yLpvMygqhzfAKZYL7rTCG45K3b@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-With the v4l2_i2c_new_subdev* functions now supporting loading modules
-based on modaliases, replace the hardcoded module name passed to those
-functions by NULL in the cafe-ccic, via-camera and s5p-fimc drivers.
+On Sun, 31 Oct 2010 15:16:40 +0200
+Anca Emanuel <anca.emanuel@gmail.com> wrote:
 
-All corresponding I2C modules have been checked, and all of them include
-a module aliases table with names corresponding to what the drivers
-modified here use.
+> After this patch,
+	[snip]
+> I get:
+> [  182.680032] usb 8-1: new full speed USB device using uhci_hcd and
+> address 3 [  182.875331] gspca: probing 05a9:4519
+> [  183.064309] ov519: I2C synced in 0 attempt(s)
+> [  183.064314] ov519: starting OV7xx0 configuration
+> [  183.076312] ov519: Sensor is an OV7660
+	[snip]
+> But only a green screen in Cheese. Logs attached.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/cafe_ccic.c             |    3 +--
- drivers/media/video/s5p-fimc/fimc-capture.c |    2 +-
- drivers/media/video/via-camera.c            |    2 +-
- 3 files changed, 3 insertions(+), 4 deletions(-)
+Hi Emanuel,
 
-diff --git a/drivers/media/video/cafe_ccic.c b/drivers/media/video/cafe_ccic.c
-index 5ae2cec..68b6dce 100644
---- a/drivers/media/video/cafe_ccic.c
-+++ b/drivers/media/video/cafe_ccic.c
-@@ -2064,8 +2064,7 @@ static int cafe_pci_probe(struct pci_dev *pdev,
- 
- 	cam->sensor_addr = 0x42;
- 	cam->sensor = v4l2_i2c_new_subdev_cfg(&cam->v4l2_dev, &cam->i2c_adapter,
--			"ov7670", "ov7670", 0, &sensor_cfg, cam->sensor_addr,
--			NULL);
-+			NULL, "ov7670", 0, &sensor_cfg, cam->sensor_addr, NULL);
- 	if (cam->sensor == NULL) {
- 		ret = -ENODEV;
- 		goto out_smbus;
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index e8f13d3..26f7ad2 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -44,7 +44,7 @@ static struct v4l2_subdev *fimc_subdev_register(struct fimc_dev *fimc,
- 		return ERR_PTR(-ENOMEM);
- 
- 	sd = v4l2_i2c_new_subdev_board(&vid_cap->v4l2_dev, i2c_adap,
--				       MODULE_NAME, isp_info->board_info, NULL);
-+				       NULL, isp_info->board_info, NULL);
- 	if (!sd) {
- 		v4l2_err(&vid_cap->v4l2_dev, "failed to acquire subdev\n");
- 		return NULL;
-diff --git a/drivers/media/video/via-camera.c b/drivers/media/video/via-camera.c
-index 02a21bc..01bcdb4 100644
---- a/drivers/media/video/via-camera.c
-+++ b/drivers/media/video/via-camera.c
-@@ -1360,7 +1360,7 @@ static __devinit int viacam_probe(struct platform_device *pdev)
- 	 */
- 	sensor_adapter = viafb_find_i2c_adapter(VIA_PORT_31);
- 	cam->sensor = v4l2_i2c_new_subdev(&cam->v4l2_dev, sensor_adapter,
--			"ov7670", "ov7670", 0x42 >> 1, NULL);
-+			NULL, "ov7670", 0x42 >> 1, NULL);
- 	if (cam->sensor == NULL) {
- 		dev_err(&pdev->dev, "Unable to find the sensor!\n");
- 		ret = -ENODEV;
+The sensor ov7660 has not the same registers as the ov7670, so, your
+webcam could not work.
+
+To make it work, I need a USB trace done with ms-windows. May you do it?
+
+In a first step, I need the webcam connection and no more than one
+second of streaming at the maximum resolution.
+
+Please, use a sniffer which creates text files like sniffbin.
+
+Best regards.
+
 -- 
-1.7.2.2
-
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
