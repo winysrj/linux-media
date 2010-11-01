@@ -1,124 +1,59 @@
 Return-path: <mchehab@gaivota>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:35258 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751423Ab0KBURp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Nov 2010 16:17:45 -0400
-Subject: [PATCH 0/6] rc-core: ir-core to rc-core conversion
+Received: from lo.gmane.org ([80.91.229.12]:60766 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757122Ab0KAKab (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Nov 2010 06:30:31 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1PCrem-000846-6Z
+	for linux-media@vger.kernel.org; Mon, 01 Nov 2010 11:30:28 +0100
+Received: from nemi.mork.no ([148.122.252.4])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 01 Nov 2010 11:30:28 +0100
+Received: from bjorn by nemi.mork.no with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 01 Nov 2010 11:30:28 +0100
 To: linux-media@vger.kernel.org
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: jarod@wilsonet.com, mchehab@infradead.org
-Date: Tue, 02 Nov 2010 21:17:38 +0100
-Message-ID: <20101102201733.12010.30019.stgit@localhost.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+Subject: Re: V4L/DVB/IR patches pending merge
+Date: Mon, 01 Nov 2010 11:30:16 +0100
+Message-ID: <87vd4hwd3b.fsf@nemi.mork.no>
+References: <4CC25F60.7050106@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-This is my current patch queue, the main change is to make struct rc_dev
-the primary interface for rc drivers and to abstract away the fact that
-there's an input device lurking in there somewhere.
+Mauro Carvalho Chehab <mchehab@redhat.com> writes:
 
-In addition, the cx88 and winbond-cir drivers are converted to use rc-core.
+> 		== mantis patches - Waiting for Manu Abraham <abraham.manu@gmail.com> == 
+>
+> Apr,15 2010: [5/8] ir-core: convert mantis from ir-functions.c                      http://patchwork.kernel.org/patch/92961   David HÃ¤rdeman <david@hardeman.nu>
+> Jun,20 2010: Mantis DMA transfer cleanup, fixes data corruption and a race, improve http://patchwork.kernel.org/patch/107036  Marko Ristola <marko.ristola@kolumbus.fi>
+> Jun,20 2010: [2/2] DVB/V4L: mantis: remove unused files                             http://patchwork.kernel.org/patch/107062  BjÃ¸rn Mork <bjorn@mork.no>
+> Jun,20 2010: mantis: use dvb_attach to avoid double dereferencing on module removal http://patchwork.kernel.org/patch/107063  BjÃ¸rn Mork <bjorn@mork.no>
+> Jun,21 2010: Mantis, hopper: use MODULE_DEVICE_TABLE use the macro to make modules  http://patchwork.kernel.org/patch/107147  Manu Abraham <abraham.manu@gmail.com>
+> Jul, 3 2010: mantis: Rename gpio_set_bits to mantis_gpio_set_bits                   http://patchwork.kernel.org/patch/109972  Ben Hutchings <ben@decadent.org.uk>
+> Jul, 8 2010: Mantis DMA transfer cleanup, fixes data corruption and a race, improve http://patchwork.kernel.org/patch/110909  Marko Ristola <marko.ristola@kolumbus.fi>
+> Jul, 9 2010: Mantis: append tasklet maintenance for DVB stream delivery             http://patchwork.kernel.org/patch/111090  Marko Ristola <marko.ristola@kolumbus.fi>
+> Jul,10 2010: Mantis driver patch: use interrupt for I2C traffic instead of busy reg http://patchwork.kernel.org/patch/111245  Marko Ristola <marko.ristola@kolumbus.fi>
+> Jul,19 2010: Twinhan DTV Ter-CI (3030 mantis)                                       http://patchwork.kernel.org/patch/112708  Niklas Claesson <nicke.claesson@gmail.com>
+> Aug, 7 2010: Refactor Mantis DMA transfer to deliver 16Kb TS data per interrupt     http://patchwork.kernel.org/patch/118173  Marko Ristola <marko.ristola@kolumbus.fi>
+> Oct,10 2010: [v2] V4L/DVB: faster DVB-S lock for mantis cards using stb0899 demod   http://patchwork.kernel.org/patch/244201  Tuxoholic <tuxoholic@hotmail.de>
+> Jun,11 2010: stb0899: Removed an extra byte sent at init on DiSEqC bus              http://patchwork.kernel.org/patch/105621  Florent AUDEBERT <florent.audebert@anevia.com>
+>
+> What to say? Well, still waiting for Manu to handle those patches. He said he had a problem with
+> his dish and should be working on it next week. Let's hope we can finally have some movement
+> on those patches in time for .37.
 
-The patchset is now based on current linux-2.6 upstream git tree since it
-carries both the v4l patches from the staging/for_v2.6.37-rc1 branch, large
-scancode support and bugfixes.
-
-Given the changes, these patches touch every single driver. Obviously I
-haven't tested them all due to a lack of hardware (I have made sure that
-all drivers compile without any warnings and I have tested the end result
-on mceusb and winbond-cir hardware, Jarod Wilson has tested nuvoton-cir,
-imon and several mceusb devices).
-
----
-
-David Härdeman (6):
-      ir-core: convert drivers/media/video/cx88 to ir-core
-      ir-core: remove remaining users of the ir-functions keyhandlers
-      ir-core: more cleanups of ir-functions.c
-      ir-core: merge and rename to rc-core
-      ir-core: make struct rc_dev the primary interface
-      rc-core: convert winbond-cir
+Can we agree that this was yet another useless waiting exercise?  Please
+start learning from experience.  You are just repeating the same mistake
+again and again.  Its rather frustrating to watch.  Like watching a rat
+in a maze banging it's head against the same wall over and over again.
 
 
- drivers/input/misc/Kconfig                  |   18 
- drivers/input/misc/Makefile                 |    1 
- drivers/input/misc/winbond-cir.c            | 1608 ---------------------------
- drivers/media/IR/Kconfig                    |   19 
- drivers/media/IR/Makefile                   |    7 
- drivers/media/IR/ene_ir.c                   |  129 +-
- drivers/media/IR/ene_ir.h                   |    3 
- drivers/media/IR/imon.c                     |   67 -
- drivers/media/IR/ir-core-priv.h             |   26 
- drivers/media/IR/ir-functions.c             |  254 ----
- drivers/media/IR/ir-jvc-decoder.c           |   13 
- drivers/media/IR/ir-keytable.c              |  710 ------------
- drivers/media/IR/ir-lirc-codec.c            |  121 +-
- drivers/media/IR/ir-nec-decoder.c           |   15 
- drivers/media/IR/ir-raw-event.c             |  382 ------
- drivers/media/IR/ir-rc5-decoder.c           |   13 
- drivers/media/IR/ir-rc5-sz-decoder.c        |   13 
- drivers/media/IR/ir-rc6-decoder.c           |   17 
- drivers/media/IR/ir-sony-decoder.c          |   11 
- drivers/media/IR/ir-sysfs.c                 |  362 ------
- drivers/media/IR/mceusb.c                   |  105 +-
- drivers/media/IR/nuvoton-cir.c              |   85 +
- drivers/media/IR/nuvoton-cir.h              |    3 
- drivers/media/IR/rc-main.c                  | 1135 +++++++++++++++++++
- drivers/media/IR/rc-map.c                   |  107 --
- drivers/media/IR/rc-raw.c                   |  371 ++++++
- drivers/media/IR/streamzap.c                |   66 -
- drivers/media/IR/winbond-cir.c              |  932 ++++++++++++++++
- drivers/media/dvb/dm1105/Kconfig            |    3 
- drivers/media/dvb/dm1105/dm1105.c           |   42 -
- drivers/media/dvb/dvb-usb/af9015.c          |   16 
- drivers/media/dvb/dvb-usb/anysee.c          |    2 
- drivers/media/dvb/dvb-usb/dib0700.h         |    2 
- drivers/media/dvb/dvb-usb/dib0700_core.c    |    8 
- drivers/media/dvb/dvb-usb/dib0700_devices.c |  144 +-
- drivers/media/dvb/dvb-usb/dvb-usb-remote.c  |   77 +
- drivers/media/dvb/dvb-usb/dvb-usb.h         |   12 
- drivers/media/dvb/dvb-usb/lmedm04.c         |   42 -
- drivers/media/dvb/mantis/mantis_common.h    |    4 
- drivers/media/dvb/mantis/mantis_input.c     |   71 +
- drivers/media/dvb/siano/smscoreapi.c        |    2 
- drivers/media/dvb/siano/smsir.c             |   52 -
- drivers/media/dvb/siano/smsir.h             |    3 
- drivers/media/dvb/ttpci/Kconfig             |    3 
- drivers/media/dvb/ttpci/budget-ci.c         |   49 -
- drivers/media/video/Kconfig                 |    2 
- drivers/media/video/bt8xx/Kconfig           |    4 
- drivers/media/video/bt8xx/bttv-input.c      |   73 -
- drivers/media/video/bt8xx/bttvp.h           |    1 
- drivers/media/video/cx18/Kconfig            |    3 
- drivers/media/video/cx231xx/Kconfig         |    4 
- drivers/media/video/cx23885/cx23885-input.c |   64 +
- drivers/media/video/cx23885/cx23885.h       |    3 
- drivers/media/video/cx88/Kconfig            |    3 
- drivers/media/video/cx88/cx88-input.c       |  233 +---
- drivers/media/video/em28xx/Kconfig          |    4 
- drivers/media/video/em28xx/em28xx-input.c   |   72 +
- drivers/media/video/ir-kbd-i2c.c            |   28 
- drivers/media/video/ivtv/Kconfig            |    3 
- drivers/media/video/saa7134/Kconfig         |    2 
- drivers/media/video/saa7134/saa7134-input.c |  121 +-
- drivers/media/video/tlg2300/Kconfig         |    4 
- drivers/staging/cx25821/Kconfig             |    4 
- drivers/staging/go7007/Kconfig              |    4 
- drivers/staging/tm6000/tm6000-input.c       |   98 +-
- include/media/ir-common.h                   |   38 -
- include/media/ir-core.h                     |  201 ++-
- include/media/ir-kbd-i2c.h                  |    7 
- 68 files changed, 3410 insertions(+), 4691 deletions(-)
- delete mode 100644 drivers/input/misc/winbond-cir.c
- delete mode 100644 drivers/media/IR/ir-keytable.c
- delete mode 100644 drivers/media/IR/ir-raw-event.c
- delete mode 100644 drivers/media/IR/ir-sysfs.c
- create mode 100644 drivers/media/IR/rc-main.c
- delete mode 100644 drivers/media/IR/rc-map.c
- create mode 100644 drivers/media/IR/rc-raw.c
- create mode 100644 drivers/media/IR/winbond-cir.c
 
--- 
-David Härdeman
+Bjørn
+
