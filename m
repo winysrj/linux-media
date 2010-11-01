@@ -1,49 +1,35 @@
-Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.26]:48236 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933839Ab0KQOc0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Nov 2010 09:32:26 -0500
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-To: mchehab@redhat.com, hverkuil@xs4all.nl, sameo@linux.intel.com,
-	linux-media@vger.kernel.org
-Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Subject: [PATCH v16 0/2] *** SUBJECT HERE ***
-Date: Wed, 17 Nov 2010 15:41:59 +0200
-Message-Id: <1290001321-6732-1-git-send-email-matti.j.aaltonen@nokia.com>
+Return-path: <mchehab@gaivota>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:33022 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755288Ab0KAWHS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Nov 2010 18:07:18 -0400
+Date: Mon, 1 Nov 2010 23:07:15 +0100
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: jarod@wilsonet.com, mchehab@infradead.org
+Subject: Re: [PATCH 0/7] rc-core: ir-core to rc-core conversion
+Message-ID: <20101101220715.GC4808@hardeman.nu>
+References: <20101029190745.11982.75723.stgit@localhost.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20101029190745.11982.75723.stgit@localhost.localdomain>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hello all,
+On Fri, Oct 29, 2010 at 09:07:52PM +0200, David Härdeman wrote:
+> This is my current patch queue, the main change is to make struct rc_dev
+> the primary interface for rc drivers and to abstract away the fact that
+> there's an input device lurking in there somewhere. The patchset has been
+> updated to apply on top of the staging/for_v2.6.37-rc1 branch of the
+> media_tree git repo.
 
-This the sixteenth version of the patch set.
+And 2.6.37-rc1 is now released with the large scancode support as well 
+as two bugfixes to that code. Could I please get some indication on the 
+status of my patches? Last time I heard anything it was that they should 
+go in after 2.6.37-rc1. Having to keep on rebasing them is a pain in the 
+ass.
 
-On Tue, 2010-11-16 at 12:19 -0200, ext Mauro Carvalho Chehab wrote:
-> 
-> The proper way is to add the core stuff to drivers/media/radio, adding just
-> the mfd glue at drivers/mfd.
-
-Now I've moved basically all of the stuff to the drivers/media/radio...
-
-> I also want mfd's maintainer ack of the mfd patch.
-
-Sending this also to Samuel Ortiz...
-
-Cheers,
-Matti
-
-Matti J. Aaltonen (2):
-  MFD: WL1273 FM Radio: MFD driver for the FM radio.
-  V4L2: WL1273 FM Radio: TI WL1273 FM radio driver
-
- drivers/media/radio/Kconfig        |   16 +
- drivers/media/radio/Makefile       |    1 +
- drivers/media/radio/radio-wl1273.c | 2347 ++++++++++++++++++++++++++++++++++++
- drivers/mfd/Kconfig                |    6 +
- drivers/mfd/Makefile               |    1 +
- drivers/mfd/wl1273-core.c          |  154 +++
- include/linux/mfd/wl1273-core.h    |  298 +++++
- 7 files changed, 2823 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/radio/radio-wl1273.c
- create mode 100644 drivers/mfd/wl1273-core.c
- create mode 100644 include/linux/mfd/wl1273-core.h
-
+-- 
+David Härdeman
