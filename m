@@ -1,73 +1,63 @@
-Return-path: <mchehab@pedra>
-Received: from mail.perches.com ([173.55.12.10]:1286 "EHLO mail.perches.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754989Ab0KOQaV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Nov 2010 11:30:21 -0500
-Subject: RE: [PATCH 01/10] MCDE: Add hardware abstraction layer
-From: Joe Perches <joe@perches.com>
-To: Jimmy RUBIN <jimmy.rubin@stericsson.com>
-Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Dan JOHANSSON <dan.johansson@stericsson.com>,
-	Linus WALLEIJ <linus.walleij@stericsson.com>
-In-Reply-To: <F45880696056844FA6A73F415B568C6953604E7105@EXDCVYMBSTM006.EQ1STM.local>
-References: <1289390653-6111-1-git-send-email-jimmy.rubin@stericsson.com>
-	 <1289390653-6111-2-git-send-email-jimmy.rubin@stericsson.com>
-	 <1289409276.15905.65.camel@Joe-Laptop>
-	 <F45880696056844FA6A73F415B568C6953604E7105@EXDCVYMBSTM006.EQ1STM.local>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 15 Nov 2010 08:30:18 -0800
-Message-ID: <1289838618.16461.132.camel@Joe-Laptop>
-Mime-Version: 1.0
+Return-path: <mchehab@gaivota>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33146 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755363Ab0KAWIh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Nov 2010 18:08:37 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Bastian Hecht <hechtb@googlemail.com>
+Subject: Re: New media framework user space usage
+Date: Mon, 1 Nov 2010 23:02:02 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <AANLkTimx6XJKEz9883cwrm977OtXVPVB5K5PjSGFi_AJ@mail.gmail.com> <AANLkTi=83sd2yTsHt166_63vorioD5Fas32P9XLX15ss@mail.gmail.com> <AANLkTin9M0FZrBYy5xq_-uCFbYa=LfZqLWurb_rB+uW_@mail.gmail.com>
+In-Reply-To: <AANLkTin9M0FZrBYy5xq_-uCFbYa=LfZqLWurb_rB+uW_@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201011012302.03284.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Mon, 2010-11-15 at 10:52 +0100, Jimmy RUBIN wrote:
-> > Just trivia:
-[]
-> > It'd be nice to change to continuous_running
-> Continous_running [...]
+Hi Bastian,
 
-It was just a spelling comment.
-continous
-continuous
-
+On Friday 29 October 2010 16:06:18 Bastian Hecht wrote:
+> Hello Laurant,
 > 
-> > > +int mcde_dsi_dcs_write(struct mcde_chnl_state *chnl, u8 cmd, u8*
-> > data, int len)
-> > > +{
-> > > +	int i;
-> > > +	u32 wrdat[4] = { 0, 0, 0, 0 };
-> > > +	u32 settings;
-> > > +	u8 link = chnl->port.link;
-> > > +	u8 virt_id = chnl->port.phy.dsi.virt_id;
-> > > +
-> > > +	/* REVIEW: One command at a time */
-> > > +	/* REVIEW: Allow read/write on unreserved ports */
-> > > +	if (len > MCDE_MAX_DCS_WRITE || chnl->port.type !=
-> > MCDE_PORTTYPE_DSI)
-> > > +		return -EINVAL;
-> > > +
-> > > +	wrdat[0] = cmd;
-> > > +	for (i = 1; i <= len; i++)
-> > > +		wrdat[i>>2] |= ((u32)data[i-1] << ((i & 3) * 8));
-> > 
-> > Ever overrun wrdat?
-> > Maybe WARN_ON(len > 16, "oops?")
-> > 
-> MCDE_MAX_DCS_WRITE is 15 so it will be an early return in that case.
+> sorry I am flooding a bit here, but now I reached a point where I am
+> really stuck.
+> 
+> In the get_fmt_pad I set the following format
+>         *format = mt9p031->format;
+> that is defined as
+>         mt9p031->format.code = V4L2_MBUS_FMT_SGRBG10_1X10;
+>         mt9p031->format.width = MT9P031_MAX_WIDTH;
+>         mt9p031->format.height = MT9P031_MAX_HEIGHT;
+>         mt9p031->format.field = V4L2_FIELD_NONE;
+>         mt9p031->format.colorspace = V4L2_COLORSPACE_SRGB;
+> 
+> I found the different formats in /include/linux/v4l2-mediabus.h. I
+> have 12 data bit channels, but there is no enum for that (like
+> V4L2_MBUS_FMT_SGRBG10_1X12).
+> I am the first guy needing a 12 bit-bus?
 
-Perhaps it'd be better to use
+Yes you are :-) You will need to implement 12 bit support in the ISP driver, 
+or start by hacking the sensor driver to report a 10 bit format (2 bits will 
+be lost but you should still be able to capture an image).
 
-DECLARE_BITMAP(wrdat, MCDE_MAX_DCS_WRITE);
+> Second thing is, the yavta app now gets stuck while dequeuing a buffer.
+> 
+> strace ./yavta -f SGRBG10 -s 2592x1944 -n 4 --capture=4 --skip 3 -F
+> /dev/video2 ...
+> ioctl(3, VIDIOC_QBUF, 0xbec111cc)       = 0
+> ioctl(3, VIDIOC_QBUF, 0xbec111cc)       = 0
+> ioctl(3, VIDIOC_QBUF, 0xbec111cc)       = 0
+> ioctl(3, VIDIOC_QBUF, 0xbec111cc)       = 0
+> ioctl(3, VIDIOC_STREAMON, 0xbec11154)   = 0
+> ioctl(3, VIDIOC_DQBUF
+> 
+> strace gets stuck in mid of this line.
 
-or some other mechanism to link the array
-size to the #define. 
+-- 
+Regards,
 
-> /Jimmy
-
-
-
+Laurent Pinchart
