@@ -1,59 +1,87 @@
-Return-path: <mchehab@pedra>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:59728 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756869Ab0KJWBT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Nov 2010 17:01:19 -0500
-Date: Wed, 10 Nov 2010 23:01:15 +0100
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/6] rc-core: ir-core to rc-core conversion
-Message-ID: <20101110220115.GA7302@hardeman.nu>
-References: <20101102201733.12010.30019.stgit@localhost.localdomain>
- <AANLkTi=z2yU568sEs0RNuQ6gZUzJQeHajTZ_0LeXS-2D@mail.gmail.com>
- <4CD9FA59.9020702@infradead.org>
- <33c8487ce0141587f695d9719289467e@hardeman.nu>
- <4CDA94C6.2010506@infradead.org>
- <0bda4af059880eb492d921728997958c@hardeman.nu>
- <4CDAC730.4060303@infradead.org>
+Return-path: <mchehab@gaivota>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:50250 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751070Ab0KARPH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Nov 2010 13:15:07 -0400
+From: Chris Clayton <chris2553@googlemail.com>
+Reply-To: chris2553@googlemail.com
+To: linux-media@vger.kernel.org
+Subject: 2.6.37-rc1: NULL pointer dereference
+Date: Mon, 1 Nov 2010 17:14:51 +0000
+Cc: linux-kernel@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <4CDAC730.4060303@infradead.org>
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201011011714.51260.chris2553@googlemail.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Wed, Nov 10, 2010 at 02:24:16PM -0200, Mauro Carvalho Chehab wrote:
-> Em 10-11-2010 11:06, David Härdeman escreveu:
-> > On Wed, 10 Nov 2010 10:49:10 -0200, Mauro Carvalho Chehab
-> > <mchehab@infradead.org> wrote:
-> 
-> >> So, I'll try to merge the pending patches from your tree. I'll let you
-> >> know if I have any problems.
-> > 
-> > Sounds good. Thanks.
-> 
-> David/Jarod,
-> 
-> I pushed the merged patches at the tmp_rc tree:
-> 
-> 	http://git.linuxtv.org/mchehab/tmp_rc.git
-> 
-> Please test and give me some feedback. It ended that the rc function renaming patch
-> (6/7) broke both mceusb (due to TX changes) and cx231xx-input (a new driver from me,
-> for some devices that uses a crappy i2c uP, instead of the excellent in-cx231xx
-> IR support).
-> 
-> I did no tests at all, except for compilation. So, I need your feedback
-> if the patches didn't actually break anything.
+Just built, installed and booted 2.6.37-rc1 and I got this BUG report
 
-So far I've noticed that this patch:
-[media] rc-core: convert winbond-cir
+BUG: unable to handle kernel NULL pointer dereference at   (null)
+IP: [<c12339b8>] i2c_transfer+0x18/0xe0
+*pdpt = 0000000033caf001 *pde = 0000000000000000
+Oops: 0000 [#1] PREEMPT SMP
+last sysfs file: /sys/devices/pci0000:00/0000:00:1d.0/usb3/manufacturer
+Modules linked in: mt2060 videodev v4l1_compat dvb_usb_dib0700(+) dib7000p 
+dib0090 dib7000m dib0070 dvb_usb dib8000 dvb_core dib3000mc dibx000_common 
+ir_lirc_codec lirc_dev ir_core uhci_hcd ehci_hcd floppy evdev [last unloaded: 
+microcode]
 
-removed the old winbond-cir.c file but doesn't add one in the
-drivers/media/rc/ directory.
+Pid: 1377, comm: modprobe Not tainted 2.6.37-rc1 #456 EG41MF-US2H/EG41MF-US2H
+EIP: 0060:[<c12339b8>] EFLAGS: 00010286 CPU: 0
+EIP is at i2c_transfer+0x18/0xe0
+EAX: 00000000 EBX: ffffffa1 ECX: 00000002 EDX: f42cfd24
+ESI: f4401ad4 EDI: f88d9af2 EBP: f4401800 ESP: f42cfd00
+ DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
+Process modprobe (pid: 1377, ti=f42ce000 task=f4054dc0 task.ti=f42ce000)
+Stack:
+ f42cfd24 00000002 f88d9af2 f4401ad4 f88d9af2 f4401800 f8a54093 f42cfd5c
+ f4d0ee00 00000060 c10a0001 f42cfd20 00010060 f4400001 f42cfd53 f4d0ee00
+gspca: v2.10.0 registered
+ f8a54639 f42cfd53 00000000 04cee0a9 00000001 f469889c f8a545c0 000004ce
+Call Trace:
+ [<f8a54093>] ? mt2060_readreg.clone.2+0x53/0x80 [mt2060]
+ [<c10a0001>] ? sys_swapoff+0x931/0x9b0
+ [<f8a54639>] ? mt2060_attach+0x79/0x344 [mt2060]
+ [<f8a545c0>] ? mt2060_attach+0x0/0x344 [mt2060]
+ [<f88d102d>] ? bristol_tuner_attach+0x6d/0x120 [dvb_usb_dib0700]
+ [<f88741f3>] ? dvb_usb_adapter_frontend_init+0x73/0xf0 [dvb_usb]
+ [<f88737d5>] ? dvb_usb_device_init+0x325/0x5d0 [dvb_usb]
+ [<f88ceea8>] ? dib0700_probe+0x58/0xe0 [dvb_usb_dib0700]
+ [<c121976a>] ? usb_match_one_id+0x2a/0xb0
+ [<c12199df>] ? usb_probe_interface+0x9f/0x130
+ [<c11c86a5>] ? driver_probe_device+0x65/0x160
+ [<c1219899>] ? usb_match_id+0x39/0x60
+ [<c1219923>] ? usb_device_match+0x63/0x80
+ [<c11c8819>] ? __driver_attach+0x79/0x80
+ [<c11c87a0>] ? __driver_attach+0x0/0x80
+ [<c11c79ab>] ? bus_for_each_dev+0x4b/0x70
+ [<c11c8416>] ? driver_attach+0x16/0x20
+ [<c11c87a0>] ? __driver_attach+0x0/0x80
+ [<c11c811f>] ? bus_add_driver+0x16f/0x250
+ [<c11c8a1f>] ? driver_register+0x5f/0x100
+ [<c1219151>] ? usb_register_driver+0x81/0x130
+ [<f88dd02d>] ? dib0700_module_init+0x2d/0x4a [dvb_usb_dib0700]
+ [<c1001203>] ? do_one_initcall+0x33/0x170
+ [<c109b548>] ? __vunmap+0xb8/0xf0
+ [<f88dd000>] ? dib0700_module_init+0x0/0x4a [dvb_usb_dib0700]
+ [<c105e949>] ? sys_init_module+0x129/0x1850
+ [<c1002d10>] ? sysenter_do_call+0x12/0x26
+Code: 00 00 00 83 ea 34 74 eb 89 d0 eb d7 8d b4 26 00 00 00 00 55 57 56 89 c6 53 
+bb a1 ff ff ff 83 ec 08 89 4c 24 04 8b 40 0c 8914 24 <8b> 08 85 c9 74 7b 64 a1 
+cc f4 4b c1 89 e2 8b 40 14 81 e2 00 e0
+EIP: [<c12339b8>] i2c_transfer+0x18/0xe0 SS:ESP 0068:f42cfd00
+CR2: 0000000000000000
+---[ end trace eb2261dd66891417 ]---
 
+The hardware is Hauppauge WinTv NOva-T-500.
+
+I'm happy to test any patches, but please cc me as I'm not subscribed.
+
+Chris
 -- 
-David Härdeman
+The more I see, the more I know. The more I know, the less I understand. 
+Changing Man - Paul Weller
