@@ -1,127 +1,75 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3059 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755280Ab0KRHtN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Nov 2010 02:49:13 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: manjunatha_halli@ti.com
-Subject: Re: [PATCH v4 2/6] drivers:staging: ti-st: fmdrv_v4l2 sources
-Date: Thu, 18 Nov 2010 08:49:07 +0100
-Cc: mchehab@infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-References: <1289913494-21590-1-git-send-email-manjunatha_halli@ti.com> <1289913494-21590-2-git-send-email-manjunatha_halli@ti.com> <1289913494-21590-3-git-send-email-manjunatha_halli@ti.com>
-In-Reply-To: <1289913494-21590-3-git-send-email-manjunatha_halli@ti.com>
+Return-path: <mchehab@gaivota>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:64597 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751548Ab0KBUmG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Nov 2010 16:42:06 -0400
+Received: by ywc21 with SMTP id 21so2045804ywc.19
+        for <linux-media@vger.kernel.org>; Tue, 02 Nov 2010 13:42:06 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011180849.07405.hverkuil@xs4all.nl>
+In-Reply-To: <20101101215635.GA4808@hardeman.nu>
+References: <20101029031131.GE17238@redhat.com>
+	<20101029031530.GH17238@redhat.com>
+	<4CCAD01A.3090106@redhat.com>
+	<20101029151141.GA21604@redhat.com>
+	<20101029191711.GA12136@hardeman.nu>
+	<20101029192733.GE21604@redhat.com>
+	<20101029195918.GA12501@hardeman.nu>
+	<20101029200937.GG21604@redhat.com>
+	<20101030233617.GA13155@hardeman.nu>
+	<AANLkTimLU1TUn6nY4pr2pWNJp1hviyx=NiXYUQLSQA0e@mail.gmail.com>
+	<20101101215635.GA4808@hardeman.nu>
+Date: Tue, 2 Nov 2010 16:42:05 -0400
+Message-ID: <AANLkTi=c_g7nxCFWsVMYM-tJr68V1iMzhSyJ7=g9VLnR@mail.gmail.com>
+Subject: Re: [RFC PATCH 0/2] Apple remote support
+From: Jarod Wilson <jarod@wilsonet.com>
+To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
+Cc: Jarod Wilson <jarod@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Tuesday, November 16, 2010 14:18:10 manjunatha_halli@ti.com wrote:
-> From: Manjunatha Halli <manjunatha_halli@ti.com>
-> 
-> This module interfaces V4L2 subsystem and FM common
-> module. It registers itself with V4L2 as Radio module.
-> 
-> Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
-> ---
->  drivers/staging/ti-st/fmdrv_v4l2.c |  757 ++++++++++++++++++++++++++++++++++++
->  drivers/staging/ti-st/fmdrv_v4l2.h |   32 ++
->  2 files changed, 789 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/staging/ti-st/fmdrv_v4l2.c
->  create mode 100644 drivers/staging/ti-st/fmdrv_v4l2.h
-> 
-> diff --git a/drivers/staging/ti-st/fmdrv_v4l2.c b/drivers/staging/ti-st/fmdrv_v4l2.c
-> new file mode 100644
-> index 0000000..687d10f
-> --- /dev/null
-> +++ b/drivers/staging/ti-st/fmdrv_v4l2.c
-> @@ -0,0 +1,757 @@
-> +/*
-> + *  FM Driver for Connectivity chip of Texas Instruments.
-> + *  This file provides interfaces to V4L2 subsystem.
-> + *
-> + *  This module registers with V4L2 subsystem as Radio
-> + *  data system interface (/dev/radio). During the registration,
-> + *  it will expose two set of function pointers.
-> + *
-> + *    1) File operation related API (open, close, read, write, poll...etc).
-> + *    2) Set of V4L2 IOCTL complaint API.
-> + *
-> + *  Copyright (C) 2010 Texas Instruments
-> + *  Author: Raja Mani <raja_mani@ti.com>
-> + *
-> + *  This program is free software; you can redistribute it and/or modify
-> + *  it under the terms of the GNU General Public License version 2 as
-> + *  published by the Free Software Foundation.
-> + *
-> + *  This program is distributed in the hope that it will be useful,
-> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + *  GNU General Public License for more details.
-> + *
-> + *  You should have received a copy of the GNU General Public License
-> + *  along with this program; if not, write to the Free Software
-> + *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-> + *
-> + */
-> +
-> +#include "fmdrv.h"
-> +#include "fmdrv_v4l2.h"
-> +#include "fmdrv_common.h"
-> +#include "fmdrv_rx.h"
-> +#include "fmdrv_tx.h"
-> +
-> +static struct video_device *gradio_dev;
-> +static unsigned char radio_disconnected;
-> +
-> +/* Query control */
-> +static struct v4l2_queryctrl fmdrv_v4l2_queryctrl[] = {
-> +	{
-> +	 .id = V4L2_CID_AUDIO_VOLUME,
-> +	 .type = V4L2_CTRL_TYPE_INTEGER,
-> +	 .name = "Volume",
-> +	 .minimum = FM_RX_VOLUME_MIN,
-> +	 .maximum = FM_RX_VOLUME_MAX,
-> +	 .step = 1,
-> +	 .default_value = FM_DEFAULT_RX_VOLUME,
-> +	 },
-> +	{
-> +	 .id = V4L2_CID_AUDIO_BALANCE,
-> +	 .flags = V4L2_CTRL_FLAG_DISABLED,
-> +	 },
-> +	{
-> +	 .id = V4L2_CID_AUDIO_BASS,
-> +	 .flags = V4L2_CTRL_FLAG_DISABLED,
-> +	 },
-> +	{
-> +	 .id = V4L2_CID_AUDIO_TREBLE,
-> +	 .flags = V4L2_CTRL_FLAG_DISABLED,
-> +	 },
-> +	{
-> +	 .id = V4L2_CID_AUDIO_MUTE,
-> +	 .type = V4L2_CTRL_TYPE_BOOLEAN,
-> +	 .name = "Mute",
-> +	 .minimum = 0,
-> +	 .maximum = 2,
-> +	 .step = 1,
-> +	 .default_value = FM_MUTE_OFF,
-> +	 },
-> +	{
-> +	 .id = V4L2_CID_AUDIO_LOUDNESS,
-> +	 .flags = V4L2_CTRL_FLAG_DISABLED,
-> +	 },
-> +};
+On Mon, Nov 1, 2010 at 5:56 PM, David Härdeman <david@hardeman.nu> wrote:
+> On Sat, Oct 30, 2010 at 10:32:14PM -0400, Jarod Wilson wrote:
+>> On Sat, Oct 30, 2010 at 7:36 PM, David Härdeman <david@hardeman.nu> wrote:
+>> > In that case, one solution would be:
+>> >
+>> > * using the full 32 bit scancode
+>> > * add a module parameter to squash the ID byte to zero
+>> > * default the module parameter to true
+>> > * create a keymap suitable for ID = 0x00
+>> >
+>> > Users who really want to distinguish remotes can then change the module
+>> > parameter and generate a keymap for their particular ID. Most others
+>> > will be blissfully unaware of this feature.
+>>
+>> I was thinking something similar but slightly different. I think ID =
+>> 0x00 is a valid ID byte, so I was thinking static int pair_id = -1; to
+>> start out. This would be a stand-alone apple-only decoder, so we'd
+>> look for the apple identifier bytes, bail if not found. We'd also look
+>> at the ID byte, and if pair_id is 0-255, we'd bail if the ID byte
+>> didn't match it. The scancode we'd actually use to match the key table
+>> would be just the one command byte. It seems to make sense in my head,
+>> at least.
+>
+> But you'd lose the ability to support two different remotes with
+> different ID's (if you want different mappings in the keymap).
 
-Please use the control framework. See Documentation/video4linux/v4l2-controls.txt.
-It's much easier to use and should be used for new drivers.
+Hm, true. How likely are people to want to do that, I wonder?
 
-Regards,
-
-	Hans
+So alternatively, rather than a pair_id param, could use a
+check_pair_byte param. If 0, then just & 0xff the pair byte, and have
+0xff there in the default keymap (using all 32 bits for each code) or
+just don't make it part of the scancode and use 24 bits. If
+check_pair_byte = 1, pass the pair byte along unmodified, using all 32
+bits for the scancode. Would also require the user to add the
+remote-specific 32-bit codes though. But we're moving towards keymaps
+being uploaded from userspace anyway, so perhaps that's not a big
+deal. Would rather avoid the default keymap having 256 entries for
+every key for every pair id variant.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Jarod Wilson
+jarod@wilsonet.com
