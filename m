@@ -1,61 +1,59 @@
-Return-path: <mchehab@pedra>
-Received: from lo.gmane.org ([80.91.229.12]:38559 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755874Ab0KJOpF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Nov 2010 09:45:05 -0500
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1PGBv6-0006Ml-Lo
-	for linux-media@vger.kernel.org; Wed, 10 Nov 2010 15:45:04 +0100
-Received: from 93-172-48-16.bb.netvision.net.il ([93.172.48.16])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 10 Nov 2010 15:45:04 +0100
-Received: from baruch by 93-172-48-16.bb.netvision.net.il with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 10 Nov 2010 15:45:04 +0100
-To: linux-media@vger.kernel.org
-From: Baruch Siach <baruch@tkos.co.il>
-Subject: Re: [PATCH] =?utf-8?b?bXgyX2NhbWVyYTo=?= fix pixel clock polarity configuration
-Date: Wed, 10 Nov 2010 14:37:52 +0000 (UTC)
-Message-ID: <loom.20101110T152629-530@post.gmane.org>
-References: <a54ec7e539912fd6009803cffa331b028fdb9a67.1288162873.git.baruch@tkos.co.il> <Pine.LNX.4.64.1010272336290.13615@axis700.grange>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@gaivota>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:38756 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752111Ab0KBQE6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Nov 2010 12:04:58 -0400
+MIME-Version: 1.0
+In-Reply-To: <201010311518.42998.dmitry.torokhov@gmail.com>
+References: <tkrat.980deadea593e9ed@s5r6.in-berlin.de>
+	<201010311518.42998.dmitry.torokhov@gmail.com>
+Date: Tue, 2 Nov 2010 12:04:56 -0400
+Message-ID: <AANLkTi=AGWGv2WPuGQ4bF7N4TSAbU5YMjry9beXyvspk@mail.gmail.com>
+Subject: Re: drivers/media/IR/ir-keytable.c::ir_getkeycode - 'retval' may be
+ used uninitialized
+From: Jarod Wilson <jarod@wilsonet.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	mchehab@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Guennadi Liakhovetski <g.liakhovetski <at> gmx.de> writes:
+On Sun, Oct 31, 2010 at 6:18 PM, Dmitry Torokhov
+<dmitry.torokhov@gmail.com> wrote:
+> On Sunday, October 31, 2010 10:51:21 am Stefan Richter wrote:
+>> Commit 9f470095068e "Input: media/IR - switch to using new keycode
+>> interface" added the following build warning:
+>>
+>> drivers/media/IR/ir-keytable.c: In function 'ir_getkeycode':
+>> drivers/media/IR/ir-keytable.c:363: warning: 'retval' may be used uninitialized in this function
+>>
+>> It is due to an actual bug but I don't know the fix.
+>>
+>
+> The patch below should fix it. I wonder if Linus released -rc1 yet...
 
-> On Wed, 27 Oct 2010, Baruch Siach wrote:
-> > When SOCAM_PCLK_SAMPLE_FALLING, just leave CSICR1_REDGE unset, 
-> > otherwise we get
-> > the inverted behaviour.
-> Seems logical to me, that if this is true, then you need the inverse:
-> 
-> 	if (!(common_flags & SOCAM_PCLK_SAMPLE_FALLING))
-> 		csicr1 |= CSICR1_INV_PCLK;
+Looks like it missed rc1.
 
-No. Doing so you'll get the inverted behaviour of SAMPLE_RISING. When
-common_flags have SAMPLE_RISING set and SAMPLE_FALLING unset you get
-CSICR1_REDGE set, which triggers on the rising edge, and then also
-CSICR1_INV_PCLK set, which invert this. Thus you get the expected 
-behaviour of SAMPLE_FALLING.
+> Input: ir-keytable - fix uninitialized variable warning
+>
+> From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+>
+> We were forgetting to set up proper return value in success path causing
+> ir_getkeycode() to fail intermittently:
+>
+> drivers/media/IR/ir-keytable.c: In function 'ir_getkeycode':
+> drivers/media/IR/ir-keytable.c:363: warning: 'retval' may be used
+> uninitialized in this function
+>
+> Reported-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+> Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
 
-Currently you get the inverted behaviour only for SAMPLE_FALLING.
-
-IMO, we should just use CSICR1_REDGE to set the sample timing, and leave
-CSICR1_INV_PCLK alone.
-
-baruch
-
-> >  	if (common_flags & SOCAM_PCLK_SAMPLE_RISING)
-> >  		csicr1 |= CSICR1_REDGE;
-> > -	if (common_flags & SOCAM_PCLK_SAMPLE_FALLING)
-> > -		csicr1 |= CSICR1_INV_PCLK;
-> >  	if (common_flags & SOCAM_VSYNC_ACTIVE_HIGH)
-> >  		csicr1 |= CSICR1_SOF_POL;
-> >  	if (common_flags & SOCAM_HSYNC_ACTIVE_HIGH)
+Acked-by: Jarod Wilson <jarod@redhat.com>
 
 
+-- 
+Jarod Wilson
+jarod@wilsonet.com
