@@ -1,50 +1,58 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:57265 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754132Ab0KCJm5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Nov 2010 05:42:57 -0400
-Received: by iwn10 with SMTP id 10so564082iwn.19
-        for <linux-media@vger.kernel.org>; Wed, 03 Nov 2010 02:42:56 -0700 (PDT)
-MIME-Version: 1.0
-Date: Wed, 3 Nov 2010 10:42:56 +0100
-Message-ID: <AANLkTint8J4NdXQ4v1wmKAKWa7oeSHsdOn8JzjDqCqeY@mail.gmail.com>
-Subject: OMAP3530 ISP irqs disabled
-From: Bastian Hecht <hechtb@googlemail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:41029 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751659Ab0KBKmv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Nov 2010 06:42:51 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Tue, 02 Nov 2010 11:42:43 +0100
+From: Kamil Debski <k.debski@samsung.com>
+Subject: [RFC/PATCH v2 4/4] s5pc110: Enable MFC 5.1 on Goni
+In-reply-to: <1288694563-18489-1-git-send-email-k.debski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, k.debski@samsung.com,
+	jaeryul.oh@samsung.com, kgene.kim@samsung.com
+Message-id: <1288694563-18489-5-git-send-email-k.debski@samsung.com>
+References: <1288694563-18489-1-git-send-email-k.debski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hello ISP team,
+Multi Format Codec 5.1 is a module available on S5PC110 and S5PC210
+Samsung SoCs. Hardware is capable of handling a range of video codecs.
 
-I succeeded to stream the first images from the sensor to userspace
-using Laurent's media-ctl and yafta. Unfortunately all images are
-black (10MB of zeros).
-Once by chance I streamed some images (1 of 20 about) with content.
-All values were < 0x400, so that I assume the values were correctly
-transferred for my 10-bit pixels.
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ arch/arm/mach-s5pv210/Kconfig     |    1 +
+ arch/arm/mach-s5pv210/mach-goni.c |    1 +
+ 2 files changed, 2 insertions(+), 0 deletions(-)
 
-I shortly describe my setup:
-As I need xclk_a activated for my sensor to work (I2C), I activate the
-xclk in the isp_probe function. Early hack that I want to remove
-later.
-While I placed my activation in mid of the probe function, I had
-somehow the interrupts disabled when trying to stream using yafta. So
-I hacked in the reenabling of the interrupts somewhere else in probe()
-too.
-As I dug through the isp code I saw that it is better to place the
-clock activation after the final isp_put in probe() then the
-interrupts keep working, but this way I never got a valid picture so
-far. It's all a mess, I know. I try to transfer the activation to my
-sensor code and board-setup code like in the et8ek8 code.
+diff --git a/arch/arm/mach-s5pv210/Kconfig b/arch/arm/mach-s5pv210/Kconfig
+index 862f239..b5e3a39 100644
+--- a/arch/arm/mach-s5pv210/Kconfig
++++ b/arch/arm/mach-s5pv210/Kconfig
+@@ -85,6 +85,7 @@ config MACH_GONI
+ 	select S3C_DEV_I2C1
+ 	select S3C_DEV_I2C2
+ 	select S3C_DEV_USB_HSOTG
++	select S5P_DEV_MFC
+ 	select S5P_DEV_ONENAND
+ 	select SAMSUNG_DEV_KEYPAD
+ 	select S5PV210_SETUP_FB_24BPP
+diff --git a/arch/arm/mach-s5pv210/mach-goni.c b/arch/arm/mach-s5pv210/mach-goni.c
+index 3602d16..cc5cdad 100644
+--- a/arch/arm/mach-s5pv210/mach-goni.c
++++ b/arch/arm/mach-s5pv210/mach-goni.c
+@@ -648,6 +648,7 @@ static struct platform_device *goni_devices[] __initdata = {
+ 	&goni_i2c_gpio_pmic,
+ 	&mmc2_fixed_voltage,
+ 	&goni_device_gpiokeys,
++	&s5p_device_mfc5,
+ 	&s5p_device_fimc0,
+ 	&s5p_device_fimc1,
+ 	&s5p_device_fimc2,
+-- 
+1.6.3.3
 
-However... please help me get rid of these zeros! I keep reading
-through the ISP and the mt9p031 docs to find some settings that could
-have influence on the data sampling. The sensor is working fine now,
-so the solution should be somewhere within the isp.
-
-Thank you all,
-
- Bastian
