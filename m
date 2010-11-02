@@ -1,53 +1,52 @@
-Return-path: <mchehab@pedra>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:57948 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757301Ab0KLOJD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Nov 2010 09:09:03 -0500
-Date: Fri, 12 Nov 2010 15:08:58 +0100
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/6] rc-core: ir-core to rc-core conversion
-Message-ID: <20101112140858.GA15203@hardeman.nu>
-References: <4CDAC730.4060303@infradead.org>
- <20101110220115.GA7302@hardeman.nu>
- <4CDBF596.6030206@infradead.org>
- <02f13638ea24016b5b3673b50940a91c@hardeman.nu>
- <4CDC1326.3030502@infradead.org>
- <20101111203501.GA8276@hardeman.nu>
- <AANLkTinjBOdnYfs=+HVxjaurbwEA33U2YwE0=bdz_Zto@mail.gmail.com>
- <4CDCBBF7.8050702@infradead.org>
- <20101112121252.GB14033@hardeman.nu>
- <4CDD3982.8070804@infradead.org>
+Return-path: <mchehab@gaivota>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:47901 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751758Ab0KBUVW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Nov 2010 16:21:22 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <4CDD3982.8070804@infradead.org>
+In-Reply-To: <20101102162429.GB14198@core.coreip.homeip.net>
+References: <tkrat.980deadea593e9ed@s5r6.in-berlin.de>
+	<201010311518.42998.dmitry.torokhov@gmail.com>
+	<AANLkTi=AGWGv2WPuGQ4bF7N4TSAbU5YMjry9beXyvspk@mail.gmail.com>
+	<20101102162429.GB14198@core.coreip.homeip.net>
+Date: Tue, 2 Nov 2010 16:21:22 -0400
+Message-ID: <AANLkTinpjb4W3irzrrXtK14v9GhVt_UP+-=ioadJezY6@mail.gmail.com>
+Subject: Re: drivers/media/IR/ir-keytable.c::ir_getkeycode - 'retval' may be
+ used uninitialized
+From: Jarod Wilson <jarod@wilsonet.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	mchehab@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Fri, Nov 12, 2010 at 10:56:34AM -0200, Mauro Carvalho Chehab wrote:
->Em 12-11-2010 10:12, David Härdeman escreveu:
->> Shouldn't platform_data be const? And you'll break the refcounting
->> done in rc_allocate_device() and rc_free_device() /
->> rc_unregister_device().  Not to mention the silent bugs that may be
->> introduced if anyone modifies rc_allocate_device() without noticing
->> that one driver isn't using it.
+On Tue, Nov 2, 2010 at 12:24 PM, Dmitry Torokhov
+<dmitry.torokhov@gmail.com> wrote:
+> On Tue, Nov 02, 2010 at 12:04:56PM -0400, Jarod Wilson wrote:
+>> On Sun, Oct 31, 2010 at 6:18 PM, Dmitry Torokhov
+>> <dmitry.torokhov@gmail.com> wrote:
+>> > On Sunday, October 31, 2010 10:51:21 am Stefan Richter wrote:
+>> >> Commit 9f470095068e "Input: media/IR - switch to using new keycode
+>> >> interface" added the following build warning:
+>> >>
+>> >> drivers/media/IR/ir-keytable.c: In function 'ir_getkeycode':
+>> >> drivers/media/IR/ir-keytable.c:363: warning: 'retval' may be used uninitialized in this function
+>> >>
+>> >> It is due to an actual bug but I don't know the fix.
+>> >>
+>> >
+>> > The patch below should fix it. I wonder if Linus released -rc1 yet...
+>>
+>> Looks like it missed rc1.
+>>
 >
->It will still be const. platform_data will pass a pointer to some struct.
->The value of the pointer won't change. I don't see why this would break
->refcounting, as what will happen is that the caller driver will call
->rc_allocate_device() and fill some fields there, instead of ir_kbd_i2c.
+> Nope, I see it there, 47c5ba53bc5e5f88b5d1bbb97acd25afc27f74eb ;)
 
-I think I've misunderstood what you've been proposing for ir_kbd_i2c.
-That sounds like a good solution.
-
->I'm working on a patch for it right now.
-
-Good, I'll just wait until the patches are available to comment :)
-
+Oh, damn. Sorry for the noise... I blame it on my cold... :)
 
 -- 
-David Härdeman
+Jarod Wilson
+jarod@wilsonet.com
