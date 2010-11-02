@@ -1,90 +1,77 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-in-09.arcor-online.net ([151.189.21.49]:51786 "EHLO
-	mail-in-09.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754253Ab0KFKE6 (ORCPT
+Received: from mail-in-11.arcor-online.net ([151.189.21.51]:33493 "EHLO
+	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755324Ab0KBDWc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Nov 2010 06:04:58 -0400
-From: stefan.ringel@arcor.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, root <stefan.ringel@arcor.de>
-Subject: [PATCH] tm6000: add revision check
-Date: Sat,  6 Nov 2010 11:04:53 +0100
-Message-Id: <1289037893-6907-1-git-send-email-stefan.ringel@arcor.de>
+	Mon, 1 Nov 2010 23:22:32 -0400
+Subject: Re: V4L/DVB/IR patches pending merge
+From: hermann pitton <hermann-pitton@arcor.de>
+To: =?ISO-8859-1?Q?Bj=F8rn?= Mork <bjorn@mork.no>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <87vd4hwd3b.fsf@nemi.mork.no>
+References: <4CC25F60.7050106@redhat.com>  <87vd4hwd3b.fsf@nemi.mork.no>
+Content-Type: text/plain; charset=UTF-8
+Date: Tue, 02 Nov 2010 04:06:25 +0100
+Message-Id: <1288667185.3146.20.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-From: root <stefan.ringel@arcor.de>
 
-adding chip revision check
+Am Montag, den 01.11.2010, 11:30 +0100 schrieb Bjørn Mork:
+> Mauro Carvalho Chehab <mchehab@redhat.com> writes:
+> 
+> > 		== mantis patches - Waiting for Manu Abraham <abraham.manu@gmail.com> == 
+> >
+> > Apr,15 2010: [5/8] ir-core: convert mantis from ir-functions.c                      http://patchwork.kernel.org/patch/92961   David HÃ¤rdeman <david@hardeman.nu>
+> > Jun,20 2010: Mantis DMA transfer cleanup, fixes data corruption and a race, improve http://patchwork.kernel.org/patch/107036  Marko Ristola <marko.ristola@kolumbus.fi>
+> > Jun,20 2010: [2/2] DVB/V4L: mantis: remove unused files                             http://patchwork.kernel.org/patch/107062  BjÃ¸rn Mork <bjorn@mork.no>
+> > Jun,20 2010: mantis: use dvb_attach to avoid double dereferencing on module removal http://patchwork.kernel.org/patch/107063  BjÃ¸rn Mork <bjorn@mork.no>
+> > Jun,21 2010: Mantis, hopper: use MODULE_DEVICE_TABLE use the macro to make modules  http://patchwork.kernel.org/patch/107147  Manu Abraham <abraham.manu@gmail.com>
+> > Jul, 3 2010: mantis: Rename gpio_set_bits to mantis_gpio_set_bits                   http://patchwork.kernel.org/patch/109972  Ben Hutchings <ben@decadent.org.uk>
+> > Jul, 8 2010: Mantis DMA transfer cleanup, fixes data corruption and a race, improve http://patchwork.kernel.org/patch/110909  Marko Ristola <marko.ristola@kolumbus.fi>
+> > Jul, 9 2010: Mantis: append tasklet maintenance for DVB stream delivery             http://patchwork.kernel.org/patch/111090  Marko Ristola <marko.ristola@kolumbus.fi>
+> > Jul,10 2010: Mantis driver patch: use interrupt for I2C traffic instead of busy reg http://patchwork.kernel.org/patch/111245  Marko Ristola <marko.ristola@kolumbus.fi>
+> > Jul,19 2010: Twinhan DTV Ter-CI (3030 mantis)                                       http://patchwork.kernel.org/patch/112708  Niklas Claesson <nicke.claesson@gmail.com>
+> > Aug, 7 2010: Refactor Mantis DMA transfer to deliver 16Kb TS data per interrupt     http://patchwork.kernel.org/patch/118173  Marko Ristola <marko.ristola@kolumbus.fi>
+> > Oct,10 2010: [v2] V4L/DVB: faster DVB-S lock for mantis cards using stb0899 demod   http://patchwork.kernel.org/patch/244201  Tuxoholic <tuxoholic@hotmail.de>
+> > Jun,11 2010: stb0899: Removed an extra byte sent at init on DiSEqC bus              http://patchwork.kernel.org/patch/105621  Florent AUDEBERT <florent.audebert@anevia.com>
+> >
+> > What to say? Well, still waiting for Manu to handle those patches. He said he had a problem with
+> > his dish and should be working on it next week. Let's hope we can finally have some movement
+> > on those patches in time for .37.
+> 
+> Can we agree that this was yet another useless waiting exercise?  Please
+> start learning from experience.  You are just repeating the same mistake
+> again and again.  Its rather frustrating to watch.  Like watching a rat
+> in a maze banging it's head against the same wall over and over again.
+> 
+> 
+> 
+> Bjørn
 
-Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
----
- drivers/staging/tm6000/tm6000-cards.c |    7 -------
- drivers/staging/tm6000/tm6000-core.c  |   26 +++++++++++++++++++-------
- 2 files changed, 19 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
-index 664e603..1c9374a 100644
---- a/drivers/staging/tm6000/tm6000-cards.c
-+++ b/drivers/staging/tm6000/tm6000-cards.c
-@@ -521,13 +521,6 @@ int tm6000_cards_setup(struct tm6000_core *dev)
- 				printk(KERN_ERR "Error %i doing tuner reset\n", rc);
- 				return rc;
- 			}
--			msleep(10);
--
--			if (!i) {
--				rc = tm6000_get_reg32(dev, REQ_40_GET_VERSION, 0, 0);
--				if (rc >= 0)
--					printk(KERN_DEBUG "board=0x%08x\n", rc);
--			}
- 		}
- 	} else {
- 		printk(KERN_ERR "Tuner reset is not configured\n");
-diff --git a/drivers/staging/tm6000/tm6000-core.c b/drivers/staging/tm6000/tm6000-core.c
-index df3f187..efefa6a 100644
---- a/drivers/staging/tm6000/tm6000-core.c
-+++ b/drivers/staging/tm6000/tm6000-core.c
-@@ -542,6 +542,25 @@ int tm6000_init(struct tm6000_core *dev)
- 	int board, rc = 0, i, size;
- 	struct reg_init *tab;
- 
-+	/* Check board revision */
-+	board = tm6000_get_reg32(dev, REQ_40_GET_VERSION, 0, 0);
-+	if (board >= 0) {
-+		switch (board & 0xff)
-+		case 0xf3:
-+			printk(KERN_INFO "Found tm6000\n");
-+			if (dev->dev_type != TM6000)
-+				dev->dev_type = TM6000;
-+			break;
-+		case 0xf4:
-+			printk(KERN_INFO "Found tm6010\n");
-+			if (dev->dev_type != TM6010)
-+				dev->dev_type = TM6010;
-+			break;
-+		default:
-+			printk(KERN_INFO "Unknown board version = 0x%08x\n", board);
-+	} else
-+		printk(KERN_ERR "Error %i while retrieving board version\n", board);
-+
- 	if (dev->dev_type == TM6010) {
- 		tab = tm6010_init_tab;
- 		size = ARRAY_SIZE(tm6010_init_tab);
-@@ -563,13 +582,6 @@ int tm6000_init(struct tm6000_core *dev)
- 
- 	msleep(5); /* Just to be conservative */
- 
--	/* Check board version - maybe 10Moons specific */
--	board = tm6000_get_reg32(dev, REQ_40_GET_VERSION, 0, 0);
--	if (board >= 0)
--		printk(KERN_INFO "Board version = 0x%08x\n", board);
--	else
--		printk(KERN_ERR "Error %i while retrieving board version\n", board);
--
- 	rc = tm6000_cards_setup(dev);
- 
- 	return rc;
--- 
-1.7.1
+Bjorn,
+
+you are taking it wrong.
+
+Indeed, neither Manu nor Mauro can do anything on this now.
+
+It got stuck from outside. There is a war.
+
+If you look closer, beside of Mantis stuff, there are drivers for much
+more recent chipsets, failing for not having linux support right now,
+being able to do the triple performance and even much more.
+
+Without help, neither Manu nor Mauro can "hack" them together.
+
+Cheers,
+Hermann
+
+
+
+
+
+
 
