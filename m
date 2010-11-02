@@ -1,66 +1,57 @@
-Return-path: <mchehab@pedra>
-Received: from eu1sys200aog119.obsmtp.com ([207.126.144.147]:55024 "EHLO
-	eu1sys200aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751147Ab0KIPG2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Nov 2010 10:06:28 -0500
-From: Michael PARKER <michael.parker@st.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: =?utf-8?B?RGFuaWVsIEdsw7Zja25lcg==?= <daniel-gl@gmx.net>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 9 Nov 2010 16:06:09 +0100
-Subject: RE: Format of /dev/video0 data for HVR-4000 frame grabber
-Message-ID: <A3BF01DB4A606149A4C20C4C4C808F6C2A2CACB2A3@SAFEX1MAIL1.st.com>
-References: <A3BF01DB4A606149A4C20C4C4C808F6C2A2CACB088@SAFEX1MAIL1.st.com>
-	 <20101109091024.GA15043@minime.bse>
-	 <A3BF01DB4A606149A4C20C4C4C808F6C2A2CACB0B5@SAFEX1MAIL1.st.com>
- <1289305712.2075.12.camel@morgan.silverblock.net>
-In-Reply-To: <1289305712.2075.12.camel@morgan.silverblock.net>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Return-path: <mchehab@gaivota>
+Received: from d1.icnet.pl ([212.160.220.21]:53992 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753541Ab0KBPW7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Nov 2010 11:22:59 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH 2.6.37-rc1] SoC Camera: OMAP1: update for recent videobuf changes
+Date: Tue, 2 Nov 2010 16:22:32 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	e3-hacking@earth.li
 MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201011021622.33156.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-QW5keSwNCg0KVGhhbmtzIC0gSSdtIGxvb2tpbmcgb3ZlciB0aGUgc291cmNlIGNvZGUgZm9yIHRo
-ZSBWNEwyIHNhbXBsZSBjYXB0dXJlIGFwcGxpY2F0aW9uIChodHRwOi8vdjRsMnNwZWMuYnl0ZXNl
-eC5vcmcvdjRsMnNwZWMvY2FwdHVyZS5jKSBmb3IgaW5zcGlyYXRpb24uDQoNCkknbSBzdGlsbCBt
-b3JlIHRoYW4gYSBsaXR0bGUgdW5jbGVhciBob3cgSSBnbyBhYm91dCB0cmFuc2Zvcm1pbmcgbXkg
-Y2FwdHVyZWQgZnJhbWUgaW50byBhbiBpbWFnZSBmaWxlLiANCg0KQ2FuIHlvdSBwb2ludCBtZSBp
-biB0aGUgZGlyZWN0aW9uIG9mIGEgdXRpbGl0eS9tZXRob2RvbG9neSB0aGF0IEkgY2FuIHVzZSB0
-byB0cmFuc2Zvcm0gUkdCL0JHUi9ZQ2JDci9ncmV5c2NhbGUgaW50byBKUEVHL1BORy9HSUYgb3Ig
-c2ltaWxhcj8NCg0KQ2hlZXJzLA0KDQpNaWtlDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0t
-LS0NCj4gRnJvbTogQW5keSBXYWxscyBbbWFpbHRvOmF3YWxsc0BtZC5tZXRyb2Nhc3QubmV0XQ0K
-PiBTZW50OiAwOSBOb3ZlbWJlciAyMDEwIDEyOjI5DQo+IFRvOiBNaWNoYWVsIFBBUktFUg0KPiBD
-YzogRGFuaWVsIEdsw7Zja25lcjsgbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnDQo+IFN1Ympl
-Y3Q6IFJFOiBGb3JtYXQgb2YgL2Rldi92aWRlbzAgZGF0YSBmb3IgSFZSLTQwMDAgZnJhbWUgZ3Jh
-YmJlcg0KPiANCj4gT24gVHVlLCAyMDEwLTExLTA5IGF0IDEwOjM0ICswMTAwLCBNaWNoYWVsIFBB
-UktFUiB3cm90ZToNCj4gPiBEYW5pZWwsDQo+ID4NCj4gPiBNYW55IHRoYW5rcyBmb3IgeW91ciBt
-YWlsLiBQbGVhc2UgZXhjdXNlIHRoZSBuYWl2ZXR5IG9mIG15IHF1ZXN0aW9ucyAtDQo+ID4gSSdt
-IGEgaC93IGd1eSBhbmQgYSBudWJlIHRvIHRoZSBzL3cgd29ybGQuDQo+IA0KPiANCj4gPiBEbyB5
-b3Uga25vdyB3aGljaCBvZiB0aGVzZSBpcyB0aGUgZGVmYXVsdCBmb3JtYXQgb3IgaG93IHRvIGRl
-dGVybWluZQ0KPiA+IHRoZSBmb3JtYXQgSSdtIHNlZWluZyBjb21pbmcgb3V0IG9mIC9kZXYvdmlk
-ZW8wPw0KPiANCj4gJCB2NGwyLWN0bCAtZCAvZGV2L3ZpZGVvMCAtLWxpc3QtZm9ybWF0cw0KPiAk
-IHY0bDItY3RsIC1kIC9kZXYvdmlkZW8wIC0tZ2V0LWZtdC12aWRlbw0KPiAkIHY0bDItY3RsIC0t
-aGVscA0KPiANCj4gPiBEbyB5b3UgaGF2ZSBhIHN1Z2dlc3Rpb24gZm9yIGhvdyBkYXRhIGNhcHR1
-cmVkIGZyb20gL2Rldi92aWRlbzAgY2FuIGJlDQo+ID4gY29udmVydGVkIGludG8gYSByZWNvZ25p
-c2FibGUgaW1hZ2UgZm9ybWF0IChKUEVHLCBHSUYsIFBORyBldGMuKT8NCj4gPg0KPiA+IEknbSBr
-ZWVuLCBpZiBwb3NzaWJsZSwgdG8gZ3JhYiB0aGUgc2luZ2xlIGZyYW1lIGltYWdlIHVzaW5nIGp1
-c3QNCj4gPiBjb21tYW5kIGxpbmUgdG9vbHMgYW5kIHdpdGhvdXQgcmVjb3Vyc2UgdG8gaW9jdGxz
-LCBjb21waWxlZCBjb2RlIGV0Yy4NCj4gDQo+IHY0bDItY3RsIGNhbiBzZXQgdXAgdGhlIGRldmlj
-ZS4gIEFzIHlvdSBhbmQgRGFuaWVsIG1lbnRpb25lZCwgZGQgY2FuDQo+IHJlYWQgb2ZmIGEgZnJh
-bWUgZ2l2ZW4gdGhlIHByb3BlciBwYXJhbWV0ZXJzLg0KPiANCj4gDQo+ID4gQWxzbywgaG93IGRv
-IEkgc3luY2hyb25pc2UgZGQgdG8gdGhlIGJlZ2lubmluZyBvZiBhIG5ldyBmcmFtZSAoYW5kDQo+
-ID4gdGh1cyBhdm9pZCBjYXB0dXJpbmcgc2VjdGlvbnMgb2YgdHdvIGZyYW1lcyk/DQo+IA0KPiBX
-aGVuIGRkIG9wZW4oKXMgdGhlIGRldmljZSBhbmQgZG9lcyBhIHJlYWQoKSBpdCBzaG91bGQgc3Rh
-cnQgYSBjYXB0dXJlLg0KPiBXaGVuIGRkIGNsb3NlKClzIHRoZSBkZXZpY2UgYW5kIGV4aXRzLCBp
-dCBzaG91bGQgc3RvcCB0aGUgY2FwdHVyZS4gIEknbQ0KPiBmYWlybHkgY2VydGFpbiBzdG9wcGlu
-ZyBhbmQgcmVzdGFydGluZyBhIGNhcHR1cmUgc2hvdWxkIHJlc3luY2hyb25pemUNCj4gdGhpbmdz
-LCBidXQgSSdtIG5vdCBzdXJlLiAgVGhlIG92ZXJoZWFkIG9mIHN0b3BwaW5nIGFuZCBzdGFydGlu
-ZyBhDQo+IGNhcHR1cmUgbWF5IGNhdXNlIHlvdSBzb21lIG5vdGljZWFibGUgZGVsYXlzLCBidXQg
-YWdhaW4sIEknbSBub3Qgc3VyZS4NCj4gDQo+IEkgdGhpbmsgdGhlIGFuc3dlciBpcyB0byB3cml0
-ZSBzb21lIGNvZGUgYW5kIHVzZSB0aGUgU3RyZWFtaW5nIEkvTw0KPiBpb2N0bCgpcyBpbnRlcmZh
-Y2UgdG8gZ2V0IGZyYW1lIGJhc2VkIGRhdGEuIEkga25vdyB5b3Ugd2VyZSBob3BpbmcgdG8NCj4g
-YXZvaWQgdGhhdC4NCj4gDQo+IFJlZ2FyZHMsDQo+IEFuZHkNCj4gDQo+ID4gVGhhbmtzIGFnYWlu
-LA0KPiA+DQo+ID4gTWlrZQ0KPiANCg0K
+Recent locking related videobuf changes has not been incorporated into the new 
+OMAP1 camera driver. Fix it.
+
+Created and tested against linux-2.6.37-rc1.
+
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+---
+
+ drivers/media/video/omap1_camera.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+--- linux-2.6.37-rc1/drivers/media/video/omap1_camera.c.orig	2010-11-01 22:41:59.000000000 +0100
++++ linux-2.6.37-rc1/drivers/media/video/omap1_camera.c	2010-11-01 23:55:26.000000000 +0100
+@@ -235,7 +235,7 @@ static void free_buffer(struct videobuf_
+ 
+ 	BUG_ON(in_interrupt());
+ 
+-	videobuf_waiton(vb, 0, 0);
++	videobuf_waiton(vq, vb, 0, 0);
+ 
+ 	if (vb_mode == OMAP1_CAM_DMA_CONTIG) {
+ 		videobuf_dma_contig_free(vq, vb);
+@@ -1365,12 +1365,12 @@ static void omap1_cam_init_videobuf(stru
+ 		videobuf_queue_dma_contig_init(q, &omap1_videobuf_ops,
+ 				icd->dev.parent, &pcdev->lock,
+ 				V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FIELD_NONE,
+-				sizeof(struct omap1_cam_buf), icd);
++				sizeof(struct omap1_cam_buf), icd, NULL);
+ 	else
+ 		videobuf_queue_sg_init(q, &omap1_videobuf_ops,
+ 				icd->dev.parent, &pcdev->lock,
+ 				V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FIELD_NONE,
+-				sizeof(struct omap1_cam_buf), icd);
++				sizeof(struct omap1_cam_buf), icd, NULL);
+ 
+ 	/* use videobuf mode (auto)selected with the module parameter */
+ 	pcdev->vb_mode = sg_mode ? OMAP1_CAM_DMA_SG : OMAP1_CAM_DMA_CONTIG;
