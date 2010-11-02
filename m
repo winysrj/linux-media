@@ -1,130 +1,64 @@
 Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39753 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755732Ab0KUUcv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Nov 2010 15:32:51 -0500
-Received: from localhost.localdomain (unknown [91.178.49.10])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 58DE035C96
-	for <linux-media@vger.kernel.org>; Sun, 21 Nov 2010 20:32:50 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 2/5] uvcvideo: Move mutex lock/unlock inside uvc_free_buffers
-Date: Sun, 21 Nov 2010 21:32:50 +0100
-Message-Id: <1290371573-14907-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1290371573-14907-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1290371573-14907-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from d1.icnet.pl ([212.160.220.21]:50941 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753237Ab0KBPJY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Nov 2010 11:09:24 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH 2.6.37-rc1] SoC Camera: OMAP1: update for recent framework changes
+Date: Tue, 2 Nov 2010 16:08:51 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	e3-hacking@earth.li
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201011021608.52379.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Callers outside uvc_queue.c should not be forced to lock/unlock the
-queue mutex manually. Move the mutex operations inside
-uvc_free_buffers().
+The recently added OMAP1 camera driver was not ready for one video queue per 
+device framework changes. Fix it.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Created and tested against linux-2.6.37-rc1.
+
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 ---
- drivers/media/video/uvc/uvc_queue.c |   57 +++++++++++++++++++++--------------
- drivers/media/video/uvc/uvc_v4l2.c  |    2 -
- 2 files changed, 34 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/media/video/uvc/uvc_queue.c b/drivers/media/video/uvc/uvc_queue.c
-index ed6d544..32c1822 100644
---- a/drivers/media/video/uvc/uvc_queue.c
-+++ b/drivers/media/video/uvc/uvc_queue.c
-@@ -90,6 +90,39 @@ void uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
- }
- 
- /*
-+ * Free the video buffers.
-+ *
-+ * This function must be called with the queue lock held.
-+ */
-+static int __uvc_free_buffers(struct uvc_video_queue *queue)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < queue->count; ++i) {
-+		if (queue->buffer[i].vma_use_count != 0)
-+			return -EBUSY;
-+	}
-+
-+	if (queue->count) {
-+		vfree(queue->mem);
-+		queue->count = 0;
-+	}
-+
-+	return 0;
-+}
-+
-+int uvc_free_buffers(struct uvc_video_queue *queue)
-+{
-+	int ret;
-+
-+	mutex_lock(&queue->mutex);
-+	ret = __uvc_free_buffers(queue);
-+	mutex_unlock(&queue->mutex);
-+
-+	return ret;
-+}
-+
-+/*
-  * Allocate the video buffers.
-  *
-  * Pages are reserved to make sure they will not be swapped, as they will be
-@@ -110,7 +143,7 @@ int uvc_alloc_buffers(struct uvc_video_queue *queue, unsigned int nbuffers,
- 
- 	mutex_lock(&queue->mutex);
- 
--	if ((ret = uvc_free_buffers(queue)) < 0)
-+	if ((ret = __uvc_free_buffers(queue)) < 0)
- 		goto done;
- 
- 	/* Bail out if no buffers should be allocated. */
-@@ -152,28 +185,6 @@ done:
- }
- 
- /*
-- * Free the video buffers.
-- *
-- * This function must be called with the queue lock held.
-- */
--int uvc_free_buffers(struct uvc_video_queue *queue)
--{
--	unsigned int i;
--
--	for (i = 0; i < queue->count; ++i) {
--		if (queue->buffer[i].vma_use_count != 0)
--			return -EBUSY;
--	}
--
--	if (queue->count) {
--		vfree(queue->mem);
--		queue->count = 0;
--	}
--
--	return 0;
--}
--
--/*
-  * Check if buffers have been allocated.
-  */
- int uvc_queue_allocated(struct uvc_video_queue *queue)
-diff --git a/drivers/media/video/uvc/uvc_v4l2.c b/drivers/media/video/uvc/uvc_v4l2.c
-index 0f865e9..0fd9848b 100644
---- a/drivers/media/video/uvc/uvc_v4l2.c
-+++ b/drivers/media/video/uvc/uvc_v4l2.c
-@@ -494,11 +494,9 @@ static int uvc_v4l2_release(struct file *file)
- 	if (uvc_has_privileges(handle)) {
- 		uvc_video_enable(stream, 0);
- 
--		mutex_lock(&stream->queue.mutex);
- 		if (uvc_free_buffers(&stream->queue) < 0)
- 			uvc_printk(KERN_ERR, "uvc_v4l2_release: Unable to "
- 					"free buffers.\n");
--		mutex_unlock(&stream->queue.mutex);
+ drivers/media/video/omap1_camera.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+--- linux-2.6.37-rc1/drivers/media/video/omap1_camera.c.orig	2010-11-01 22:41:59.000000000 +0100
++++ linux-2.6.37-rc1/drivers/media/video/omap1_camera.c	2010-11-01 23:55:26.000000000 +0100
+@@ -1386,7 +1386,7 @@ static void omap1_cam_init_videobuf(stru
  	}
+ }
  
- 	/* Release the file handle. */
--- 
-1.7.2.2
-
+-static int omap1_cam_reqbufs(struct soc_camera_file *icf,
++static int omap1_cam_reqbufs(struct soc_camera_device *icd,
+ 			      struct v4l2_requestbuffers *p)
+ {
+ 	int i;
+@@ -1398,7 +1398,7 @@ static int omap1_cam_reqbufs(struct soc_
+ 	 * it hadn't triggered
+ 	 */
+ 	for (i = 0; i < p->count; i++) {
+-		struct omap1_cam_buf *buf = container_of(icf->vb_vidq.bufs[i],
++		struct omap1_cam_buf *buf = container_of(icd->vb_vidq.bufs[i],
+ 						      struct omap1_cam_buf, vb);
+ 		buf->inwork = 0;
+ 		INIT_LIST_HEAD(&buf->vb.queue);
+@@ -1485,10 +1485,10 @@ static int omap1_cam_set_bus_param(struc
+ 
+ static unsigned int omap1_cam_poll(struct file *file, poll_table *pt)
+ {
+-	struct soc_camera_file *icf = file->private_data;
++	struct soc_camera_device *icd = file->private_data;
+ 	struct omap1_cam_buf *buf;
+ 
+-	buf = list_entry(icf->vb_vidq.stream.next, struct omap1_cam_buf,
++	buf = list_entry(icd->vb_vidq.stream.next, struct omap1_cam_buf,
+ 			 vb.stream);
+ 
+ 	poll_wait(file, &buf->vb.done, pt);
