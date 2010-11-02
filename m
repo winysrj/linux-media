@@ -1,64 +1,35 @@
-Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:65185 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753494Ab0KPCte (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Nov 2010 21:49:34 -0500
-Received: by wwa36 with SMTP id 36so234359wwa.1
-        for <linux-media@vger.kernel.org>; Mon, 15 Nov 2010 18:49:33 -0800 (PST)
-Message-ID: <4CE1F139.1030509@gmail.com>
-Date: Tue, 16 Nov 2010 03:49:29 +0100
-From: poma <pomidorabelisima@gmail.com>
-MIME-Version: 1.0
+Return-path: <mchehab@gaivota>
+Received: from cx75.justhost.com ([184.154.88.74]:49794 "EHLO
+	cx75.justhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751069Ab0KBAAN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Nov 2010 20:00:13 -0400
+Received: from mylnpno1 by cx75.justhost.com with local (Exim 4.69)
+	(envelope-from <bounce@mylnpnow.com>)
+	id 1PD4IJ-0004Al-61
+	for linux-media@vger.kernel.org; Mon, 01 Nov 2010 19:00:07 -0500
 To: linux-media@vger.kernel.org
-CC: Okkel Klaver <vbroek@iae.nl>
-Subject: Re: af9015 and nxp tda182128 support
-References: <4CE16387.3040103@iae.nl>
-In-Reply-To: <4CE16387.3040103@iae.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: I just have a quick question about your business
+From: James McClure <james@mylnpnow.com>
+Reply-To: james@mylnpnow.com
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Message-Id: <E1PD4IJ-0004Al-61@cx75.justhost.com>
+Date: Mon, 01 Nov 2010 19:00:07 -0500
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Okkel Klaver wrote:
-...
-> I own a brandless hdtv usb dvb-t stick.
-> 
-> lsusb identifies it as:
-> Bus 001 Device 005: ID 15a4:9016 Afatech Technologies, Inc. AF9015 DVB-T
-> USB2.0 stick
-> 
-> I'm using debian with kernel 2.6.32. This kernel doesn't have support
-> for the nxp tda18218 tuner on the stick.
-> I compiled the latest v4l-dvb source tree from mercural. Now i get the
-> following error message when i plugin the stick:
-> af9015: tuner NXP TDA18218 not supported yet
-> 
-> Searching the archives of this list i found some messages concerning nxp
-> tda18218 support. It seems to me that there is support for the nxp
-> tda18218 in the current source tree, but support for the new tuner
-> driver is lacking from the af9015 driver.
-> 
-> Now is my question: are there any plans to support the nxp tda18218
-> tuner in the af9015 driver?
-> 
+Hello, My name is Jim
+ 
+I was searching online to find more info about on line businesses
+and I came across your information.
+ 
+Can you tell me, are you still involved in a on line business? If
+you are, how are things going for you?
+ 
+Please send me info about your business. 
+ 
+Sincerely,
+James McClure
 
-==> [ANNOUNCE] new experimental building system <==
-...
-If you want to test the new building system, all you need to do is:
-
-	$ git clone git://linuxtv.org/mchehab/new_build.git
-	$ cd new_build
-	$ ./build.sh
-
-This will download the newest tarball from linuxtv.org, apply the 
-backport patches
-and build it.
-
-After that, you may install the new drivers with:
-	$ make install
-...
-
-Regards,
-poma
 
