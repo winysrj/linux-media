@@ -1,32 +1,47 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:51853 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754601Ab0KQUVg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Nov 2010 15:21:36 -0500
-Date: Wed, 17 Nov 2010 15:21:30 -0500
-From: Jarod Wilson <jarod@redhat.com>
-To: Dan Carpenter <error27@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Zimny Lech <napohybelskurwysynom2010@gmail.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch 1/3] [media] lirc_dev: stray unlock in lirc_dev_fop_poll()
-Message-ID: <20101117202130.GB24814@redhat.com>
-References: <20101117051223.GD31724@bicker>
+Return-path: <mchehab@gaivota>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:62407 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753732Ab0KBQYk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Nov 2010 12:24:40 -0400
+Date: Tue, 2 Nov 2010 09:24:30 -0700
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	mchehab@redhat.com
+Subject: Re: drivers/media/IR/ir-keytable.c::ir_getkeycode - 'retval' may be
+ used uninitialized
+Message-ID: <20101102162429.GB14198@core.coreip.homeip.net>
+References: <tkrat.980deadea593e9ed@s5r6.in-berlin.de>
+ <201010311518.42998.dmitry.torokhov@gmail.com>
+ <AANLkTi=AGWGv2WPuGQ4bF7N4TSAbU5YMjry9beXyvspk@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20101117051223.GD31724@bicker>
+In-Reply-To: <AANLkTi=AGWGv2WPuGQ4bF7N4TSAbU5YMjry9beXyvspk@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Wed, Nov 17, 2010 at 08:12:23AM +0300, Dan Carpenter wrote:
-> We shouldn't unlock here.  I think this was a cut and paste error.
+On Tue, Nov 02, 2010 at 12:04:56PM -0400, Jarod Wilson wrote:
+> On Sun, Oct 31, 2010 at 6:18 PM, Dmitry Torokhov
+> <dmitry.torokhov@gmail.com> wrote:
+> > On Sunday, October 31, 2010 10:51:21 am Stefan Richter wrote:
+> >> Commit 9f470095068e "Input: media/IR - switch to using new keycode
+> >> interface" added the following build warning:
+> >>
+> >> drivers/media/IR/ir-keytable.c: In function 'ir_getkeycode':
+> >> drivers/media/IR/ir-keytable.c:363: warning: 'retval' may be used uninitialized in this function
+> >>
+> >> It is due to an actual bug but I don't know the fix.
+> >>
+> >
+> > The patch below should fix it. I wonder if Linus released -rc1 yet...
+> 
+> Looks like it missed rc1.
+> 
 
-Yeah, looks like it.
-
-Acked-by: Jarod Wilson <jarod@redhat.com>
+Nope, I see it there, 47c5ba53bc5e5f88b5d1bbb97acd25afc27f74eb ;)
 
 -- 
-Jarod Wilson
-jarod@redhat.com
-
+Dmitry
