@@ -1,77 +1,52 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:61448 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754377Ab0KSOJG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 09:09:06 -0500
-Received: by fxm13 with SMTP id 13so684630fxm.19
-        for <linux-media@vger.kernel.org>; Fri, 19 Nov 2010 06:09:04 -0800 (PST)
-Message-ID: <4CE684E6.6010403@brooks.nu>
-Date: Fri, 19 Nov 2010 07:08:38 -0700
-From: Lane Brooks <lane@brooks.nu>
+Received: from d1.icnet.pl ([212.160.220.21]:35736 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751596Ab0KBQPH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Nov 2010 12:15:07 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH] SoC Camera: ov6650: minor cleanups
+Date: Tue, 2 Nov 2010 17:14:36 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-To: David Cohen <david.cohen@nokia.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Translation faults with OMAP ISP
-References: <4CE16AA2.3000208@brooks.nu> <201011160001.10737.laurent.pinchart@ideasonboard.com> <4CE317D3.2020504@brooks.nu> <201011180009.31053.laurent.pinchart@ideasonboard.com> <4CE46281.2010308@brooks.nu> <20101119132927.GD13490@esdhcp04381.research.nokia.com>
-In-Reply-To: <20101119132927.GD13490@esdhcp04381.research.nokia.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201011021714.37544.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On 11/19/2010 06:29 AM, David Cohen wrote:
-> On Thu, Nov 18, 2010 at 12:17:21AM +0100, ext Lane Brooks wrote:
->> On Wednesday 17 November 2010 00:46:27 Lane Brooks wrote:
->>>> Laurent,
->>>>
->>>> I am getting iommu translation errors when I try to use the CCDC output
->>>> after using the Resizer output.
->>>>
->>>> If I use the CCDC output to stream some video, then close it down,
->>>> switch to the Resizer output and open it up and try to stream, I get the
->>>> following errors spewing out:
->>>>
->>>> omap-iommu omap-iommu.0: omap2_iommu_fault_isr: da:00d0ef00 translation
->>>> fault
->>>> omap-iommu omap-iommu.0: iommu_fault_handler: da:00d0ef00 pgd:ce664034
->>>> *pgd:00000000
->>>>
->>>> and the select times out.
->>>>
->>>>    From a fresh boot, I can stream just fine from the Resizer and then
->>>> switch to the CCDC output just fine. It is only when I go from the CCDC
->>>> to the Resizer that I get this problem. Furthermore, when it gets into
->>>> this state, then anything dev node I try to use has the translation
->>>> errors and the only way to recover is to reboot.
->>>>
->>>> Any ideas on the problem?
-> I'm not sure if it's your case, but OMAP3 ISP driver does not support
-> pipeline with multiples outputs yet. We have to return error from the
-> driver in this case. If you configured CCDC to write to memory and then
-> to write to preview/resizer afterwards without deactivating the link to
-> write to memory, you may face a similar problem you described.
->
-> Can you please try a patch I've sent to you (CC'ing linux-media) with subject:
-> "[omap3isp][PATCH] omap3isp: does not allow pipeline with multiple video
-> outputs yet"?
->
-> Regards,
->
-> David
-David,
+This is a followup patch that addresses two minor issues left in the recently 
+added ov6650 sensor driver, as I've promised to the subsystem maintainer:
+- remove a pair of extra brackets,
+- drop useless case for not possible v4l2_mbus_pixelcode enum value of 0.
 
-I am not trying to use multiple outputs simultaneously. I get the 
-translation error with the following sequence:
+Created against linux-2.6.37-rc1.
 
-- Open resizer output and setup media links.
-- Stream some images.
-- Close resizer.
-- Reset all media links.
-- Open CCDC and setup media links.
-- Try to stream some images but get translation faults.
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+---
 
-Is your patch going to help with this problem?
+ drivers/media/video/ov6650.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-Lane
+--- linux-2.6.37-rc1/drivers/media/video/ov6650.c.orig	2010-11-01 22:41:59.000000000 +0100
++++ linux-2.6.37-rc1/drivers/media/video/ov6650.c	2010-11-02 16:56:49.000000000 +0100
+@@ -754,7 +754,7 @@ static int ov6650_g_fmt(struct v4l2_subd
+ 
+ static bool is_unscaled_ok(int width, int height, struct v4l2_rect *rect)
+ {
+-	return (width > rect->width >> 1 || height > rect->height >> 1);
++	return width > rect->width >> 1 || height > rect->height >> 1;
+ }
+ 
+ static u8 to_clkrc(struct v4l2_fract *timeperframe,
+@@ -840,8 +840,6 @@ static int ov6650_s_fmt(struct v4l2_subd
+ 		coma_mask |= COMA_BW | COMA_BYTE_SWAP | COMA_WORD_SWAP;
+ 		coma_set |= COMA_RAW_RGB | COMA_RGB;
+ 		break;
+-	case 0:
+-		break;
+ 	default:
+ 		dev_err(&client->dev, "Pixel format not handled: 0x%x\n", code);
+ 		return -EINVAL;
