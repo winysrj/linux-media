@@ -1,91 +1,52 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:52592 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751948Ab0KEPSq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Nov 2010 11:18:46 -0400
-Received: by iwn41 with SMTP id 41so1015183iwn.19
-        for <linux-media@vger.kernel.org>; Fri, 05 Nov 2010 08:18:45 -0700 (PDT)
+Received: from mailout-de.gmx.net ([213.165.64.22]:44564 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1755110Ab0KBHzH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Nov 2010 03:55:07 -0400
+Date: Tue, 2 Nov 2010 08:55:11 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Jun Nie <niej0001@gmail.com>
+cc: linux-media <linux-media@vger.kernel.org>,
+	linux-fbdev@vger.kernel.org
+Subject: Re: V4L2 and framebuffer for the same controller
+In-Reply-To: <AANLkTikJNdcnRbNwv4j8zfv4TfSqOgB2K=UD4UFfL=q4@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1011020821300.3804@axis700.grange>
+References: <AANLkTikJNdcnRbNwv4j8zfv4TfSqOgB2K=UD4UFfL=q4@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4CD413E4.20401@matrix-vision.de>
-References: <AANLkTint8J4NdXQ4v1wmKAKWa7oeSHsdOn8JzjDqCqeY@mail.gmail.com>
-	<4CD161B3.9000709@maxwell.research.nokia.com>
-	<AANLkTikTAo71Kr+Nh8Q8DOMFwWB=gLQSXozgGo8ecYwm@mail.gmail.com>
-	<201011040434.53836.laurent.pinchart@ideasonboard.com>
-	<AANLkTik56opb35vrTnsP=U0F+24uvAWxjtnoGnW18Yta@mail.gmail.com>
-	<AANLkTi=drc6qQeYx_RHOAuQHZ=h6wy6m9fhHsatAjoQU@mail.gmail.com>
-	<4CD413E4.20401@matrix-vision.de>
-Date: Fri, 5 Nov 2010 16:18:45 +0100
-Message-ID: <AANLkTimVGmwD88u9xpK7regWYNfBS3hRP5JrhEdEb8i4@mail.gmail.com>
-Subject: Re: OMAP3530 ISP irqs disabled
-From: Bastian Hecht <hechtb@googlemail.com>
-To: Michael Jones <michael.jones@matrix-vision.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-2010/11/5 Michael Jones <michael.jones@matrix-vision.de>:
-> Hi Bastian (Laurent, and Sakari),
->>
->> I want to clarify this:
->>
->> I try to read images with yafta.
->> I read in 4 images with 5MP size (no skipping). All 4 images contain only zeros.
->> I repeat the process some times and keep checking the data. After -
->> let's say the 6th time - the images contain exactly the data I expect.
->> WHEN they are read they are good. I just don't want to read 20 black
->> images before 1 image is transferred right.
->>
->> -Bastian
->>
->
-> I'm on to your problem, having reproduced it myself.  I suspect that you're actually only getting one frame: your very first buffer.  You don't touch it, and neither does the CCDC after you requeue it, and after you've cycled through all your other buffers, you get back the non-zero frame.  If you clear the "good" frame in your application once, you won't get any more non-zero frames afterwards.  Or if you request more buffers, you'll have fewer non-zero frames.  That's the behavior I observe.
+Hi Jun
 
-I can confirm the very first buffer theorem. I indeed get 1 valid
-frame after each reboot. First I didn'notice it because I used
-Laurent's yafta .... --skip 3 ... command line. I read 4 frames and
-only saved the last.
+On Fri, 29 Oct 2010, Jun Nie wrote:
 
-Btw, heaven sent you... I keep working on this problem 1 week now and
-am pretty desperate. I started reading about the linux memory
-management system to understand all the buffer dma streaming. (well
-that is probably not the worst thing to sacrifice time...)
+> Hi Guennadi,
+>     I find that your idea of "provide a generic framebuffer driver
+> that could sit on top of a v4l output driver", which may be a good
+> solution of our LCD controller driver, or maybe much more other SOC
+> LCD drivers. V4L2 interface support many features than framebuffer for
+> video playback usage, such as buffer queue/dequeue, quality control,
+> etc. However, framebuffer is common for UI display. Implement two
+> drivers for one controller is a challenge for current architecture.
+>     I am interested in your idea. Could you elaborate it? Or do you
+> think multifunction driver is the right solution for this the
+> scenario?
 
-Tell me if I can do something for you to help.
+Right, we have discussed this idea at the V4L2/MC mini-summit earlier this 
+year, there the outcome was, that the idea is not bad, but it is easy 
+enough to create such framebuffer additions on top of specific v4l2 output 
+drivers anyway, so, noone was interested enough to start designing and 
+implementing such a generic wrapper driver. However, I've heard, that this 
+topic has also been scheduled for discussion at another v4l / kernel 
+meeting (plumbers?), so, someone might be looking into implementing 
+this... If you yourself would like to do that - feel free to propose a 
+design on both mailing lists (fbdev added to cc), then we can discuss it, 
+and you can implement it;)
 
-cheers,
-
- Bastian
-
-
-> The CCDC is getting disabled by the VD1 interrupt:
-> ispccdc_vd1_isr()->__ispccdc_handle_stopping()->__ispccdc_enable(ccdc, 0)
->
-> To test this theory I tried disabling the VD1 interrupt, but it didn't solve the problem.  In fact, I was still getting VD1 interrupts even though I had disabled them.  Has anybody else observed that VD1 cannot be disabled?
->
-> I also found it strange that the CCDC seemed to continue to generate interrupts when it's disabled.
->
-> Here's my suggestion for a fix, hopefully Laurent or Sakari can comment on it:
->
-> --- a/drivers/media/video/isp/ispccdc.c
-> +++ b/drivers/media/video/isp/ispccdc.c
-> @@ -1477,7 +1477,7 @@ static void ispccdc_vd1_isr(struct isp_ccdc_device *ccdc)
->        spin_lock_irqsave(&ccdc->lsc.req_lock, flags);
->
->        /* We are about to stop CCDC and/without LSC */
-> -       if ((ccdc->output & CCDC_OUTPUT_MEMORY) ||
-> +       if ((ccdc->output & CCDC_OUTPUT_MEMORY) &&
->            (ccdc->state == ISP_PIPELINE_STREAM_SINGLESHOT))
->                ccdc->stopping = CCDC_STOP_REQUEST;
->
->
-> --
-> Michael Jones
->
-> MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-> Registergericht: Amtsgericht Stuttgart, HRB 271090
-> Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
->
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
