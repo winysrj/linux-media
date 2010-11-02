@@ -1,51 +1,48 @@
-Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:40191 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755835Ab0KOL2G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Nov 2010 06:28:06 -0500
-Received: by fxm6 with SMTP id 6so1636978fxm.19
-        for <linux-media@vger.kernel.org>; Mon, 15 Nov 2010 03:28:05 -0800 (PST)
-Date: Mon, 15 Nov 2010 12:27:46 +0100
-From: Richard Zidlicky <rz@linux-m68k.org>
-To: linux-media@vger.kernel.org, mchehab@infradead.org
-Cc: stefano.pompa@gmail.com
-Subject: Hauppauge WinTV MiniStick IR in 2.6.36 - [PATCH]
-Message-ID: <20101115112746.GB6607@linux-m68k.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Return-path: <mchehab@gaivota>
+Received: from smtp5-g21.free.fr ([212.27.42.5]:44632 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750829Ab0KBIZm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Nov 2010 04:25:42 -0400
+Date: Tue, 2 Nov 2010 09:26:53 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Anca Emanuel <anca.emanuel@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Subject: Re: Webcam driver not working: drivers/media/video/gspca/ov519.c
+ device 05a9:4519
+Message-ID: <20101102092653.4bbd1319@tele>
+In-Reply-To: <AANLkTim1BsqKSt8zOH9_bwExLnSxpax0dz1rjc2zLDOj@mail.gmail.com>
+References: <AANLkTikZPmJWebfpU2yLpvMygqhzfAKZYL7rTCG45K3b@mail.gmail.com>
+	<20101101201547.47fd0d4c@tele>
+	<AANLkTin8M1ZGdayVZT0OZ-Rgig-9-7Lb9uaobihvDK-H@mail.gmail.com>
+	<20101101213140.3985f4b5@tele>
+	<AANLkTim1BsqKSt8zOH9_bwExLnSxpax0dz1rjc2zLDOj@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi,
+On Tue, 2 Nov 2010 00:23:23 +0200
+Anca Emanuel <anca.emanuel@gmail.com> wrote:
 
-for some users (thats at least one user in Italy and me) the following is required:
+> This file is stream.ulz compressed
+> http://rapidshare.com/files/428384860/stream.zip
+> 
+> To see the data, you need: http://www.usblyzer.com/download.htm
+> And a windows machine.
+> Sorry for the trouble.
 
---- linux-2.6.36/drivers/media/dvb/siano/sms-cards.c.rz 2010-11-15 11:16:56.000000000 +0100
-+++ linux-2.6.36/drivers/media/dvb/siano/sms-cards.c    2010-11-15 11:54:25.000000000 +0100
-@@ -17,6 +17,9 @@
-  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
- 
-+//#include <media/ir-kbd-i2c.h>
-+//#include <media/ir-core.h>
-+
- #include "sms-cards.h"
- #include "smsir.h"
- 
-@@ -64,7 +67,7 @@
-                .type   = SMS_NOVA_B0,
-                .fw[DEVICE_MODE_ISDBT_BDA] = "sms1xxx-hcw-55xxx-isdbt-02.fw",
-                .fw[DEVICE_MODE_DVBT_BDA] = "sms1xxx-hcw-55xxx-dvbt-02.fw",
--               .rc_codes = RC_MAP_RC5_HAUPPAUGE_NEW,
-+               .rc_codes = RC_MAP_DIB0700_RC5_TABLE,
-                .board_cfg.leds_power = 26,
-                .board_cfg.led0 = 27,
-                .board_cfg.led1 = 28,
+I got the ms-windows program, and I can see the lacking information,
+but only on clicking on each exchange. It could take one month to
+move all information into a readable format!
 
-What is the way to achieve the effect without recompiling the kernel - is there any?
-Could we combine the keymaps - as I understand it all RC5 maps could be combined into
-one huge map without any problems except memory usage?
+May you redo traces with one of the free SniffUSB's? You may find links
+in:
 
-Richard
+https://groups.google.com/group/microdia/web/usb-sniffing-on-windows
+
+Thanks.
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
