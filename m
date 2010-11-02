@@ -1,84 +1,111 @@
-Return-path: <mchehab@pedra>
-Received: from comal.ext.ti.com ([198.47.26.152]:38534 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756055Ab0KOOaB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Nov 2010 09:30:01 -0500
-From: Sergio Aguirre <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
-Subject: [omap3isp][PATCH v2 2/9] omap3: Fix camera resources for multiomap
-Date: Mon, 15 Nov 2010 08:29:54 -0600
-Message-Id: <1289831401-593-3-git-send-email-saaguirre@ti.com>
-In-Reply-To: <1289831401-593-1-git-send-email-saaguirre@ti.com>
-References: <1289831401-593-1-git-send-email-saaguirre@ti.com>
+Return-path: <mchehab@gaivota>
+Received: from server.trebels.com ([217.20.117.122]:50034 "EHLO
+	server.trebels.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751255Ab0KBKol (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Nov 2010 06:44:41 -0400
+Subject: Re: [libdvben50221] stack leaks resources on non-MMI session
+ reconnect.
+From: Stephan Trebels <stephan@trebels.com>
+To: DUBOST Brice <dubost@crans.ens-cachan.fr>
+Cc: stephan@trebels.com, linux-media@vger.kernel.org,
+	adq_dvb@lidskialf.net
+In-Reply-To: <4CCFE4DE.8070706@crans.ens-cachan.fr>
+References: <1279200014.14890.33.camel@stephan-laptop>
+	 <4C5F2747.1010806@crans.ens-cachan.fr>
+	 <4CCFE4DE.8070706@crans.ens-cachan.fr>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-eaHgoVwaHX8GdIzEH1Gz"
+Date: Tue, 02 Nov 2010 11:38:29 +0100
+Message-ID: <1288694309.3365.11604.camel@stephan-laptop>
+Mime-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
----
- arch/arm/mach-omap2/devices.c |   27 ++++++++++++---------------
- 1 files changed, 12 insertions(+), 15 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index c2275d3..c9fc732 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -38,7 +38,7 @@
- 
- #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
- 
--static struct resource cam_resources[] = {
-+static struct resource omap2cam_resources[] = {
- 	{
- 		.start		= OMAP24XX_CAMERA_BASE,
- 		.end		= OMAP24XX_CAMERA_BASE + 0xfff,
-@@ -50,19 +50,15 @@ static struct resource cam_resources[] = {
- 	}
- };
- 
--static struct platform_device omap_cam_device = {
-+static struct platform_device omap2cam_device = {
- 	.name		= "omap24xxcam",
- 	.id		= -1,
--	.num_resources	= ARRAY_SIZE(cam_resources),
--	.resource	= cam_resources,
-+	.num_resources	= ARRAY_SIZE(omap2cam_resources),
-+	.resource	= omap2cam_resources,
- };
-+#endif
- 
--static inline void omap_init_camera(void)
--{
--	platform_device_register(&omap_cam_device);
--}
--
--#elif defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
-+#if defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
- 
- static struct resource omap3isp_resources[] = {
- 	{
-@@ -165,15 +161,16 @@ struct platform_device omap3isp_device = {
- 	},
- };
- EXPORT_SYMBOL_GPL(omap3isp_device);
-+#endif
- 
- static inline void omap_init_camera(void)
- {
--}
--#else
--static inline void omap_init_camera(void)
--{
--}
-+#if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
-+	if (cpu_is_omap24xx())
-+		platform_device_register(&omap2cam_device);
- #endif
-+}
-+
- 
- #if defined(CONFIG_OMAP_MBOX_FWK) || defined(CONFIG_OMAP_MBOX_FWK_MODULE)
- 
--- 
-1.7.0.4
+--=-eaHgoVwaHX8GdIzEH1Gz
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: quoted-printable
+
+Hi Brice,
+
+I did not find more things to be changed, and it works fine for me now.
+Given, that the responsiveness on this list is a bit underwhelming, I
+wonder whether we can find someone with commit privileges, to push this
+change.
+
+Stephan
+
+On Tue, 2010-11-02 at 11:15 +0100, DUBOST Brice wrote:=20
+> On 08/08/2010 23:53, DUBOST Brice wrote:
+> > On 15/07/2010 15:20, Stephan Trebels wrote:
+> >>
+> >> The issue was, that LIBDVBEN50221 did not allow a CAM to re-establish
+> >> the session holding non-MMI resources if using the lowlevel interface.
+> >> The session_number was recorded on open, but not freed on close (which
+> >> IMO is an bug in the code, I attach the scaled down hg changeset). Wit=
+h
+> >> this change, the SMIT CAM with a showtime card works fine according to
+> >> tests so far.
+> >>
+> >> The effect was, that the CAM tried to constantly close and re-open the
+> >> session and the LIBDVBEN50221 kept telling it, that the resource is
+> >> already allocated to a different session. Additionally this caused the
+> >> library to use the _old_ session number in communications with the CAM=
+,
+> >> which did not even exist anymore, so caused all writes of CA PMTs to
+> >> fail with EINTR.
+> >>
+> >> Stephan
+> >>
+> >
+> > Hello
+> >
+> > Just to inform that this patch solves problems with CAM PowerCAM v4.3,
+> > so I think it can interest more people.
+> >
+> > Before gnutv -cammenu (and other applications using libdvben50221) was
+> > returning ti;eout (-3) errors constantly after the display of the syste=
+m
+> > IDs.
+> >
+> > Now, the menu is working flawlessly
+> >
+> > I cannot test the descrambling for the moment but it improved quite a
+> > lot the situation (communication with th CAM is now possible).
+> >
+> > One note concerning the patch itself, the last "else if (resource_id =
+=3D=3D
+> > EN50221_APP_MMI_RESOURCEID)" is useless.
+> >
+> > Best regards
+> >
+> >
+>=20
+>=20
+> Hello
+>=20
+>=20
+> After more testing this Patches allow several CAM models to work and=20
+> don't seem to make any regression.
+>=20
+> Is there anything to be improved/tested for having it included upstream ?
+>=20
+> Thank you
+>=20
+> Regards
+>=20
+
+
+--=-eaHgoVwaHX8GdIzEH1Gz
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEABECAAYFAkzP6iAACgkQaPIaLXoy76Nv4QCeOpRgEcDGCrf5JrfnRA0FVP7P
+CiwAoKhTmK9AD4RKcpHEGajG+esp8/JK
+=di0m
+-----END PGP SIGNATURE-----
+
+--=-eaHgoVwaHX8GdIzEH1Gz--
 
