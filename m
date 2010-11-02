@@ -1,59 +1,41 @@
-Return-path: <mchehab@pedra>
-Received: from fep32.mx.upcmail.net ([62.179.121.50]:33052 "EHLO
-	fep32.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932132Ab0KOQ7o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Nov 2010 11:59:44 -0500
-Received: from edge04.upcmail.net ([192.168.13.239])
-          by viefep20-int.chello.at
-          (InterMail vM.8.01.02.02 201-2260-120-106-20100312) with ESMTP
-          id <20101115164456.GULH18131.viefep20-int.chello.at@edge04.upcmail.net>
-          for <linux-media@vger.kernel.org>;
-          Mon, 15 Nov 2010 17:44:56 +0100
-Message-ID: <4CE16387.3040103@iae.nl>
-Date: Mon, 15 Nov 2010 17:44:55 +0100
-From: Okkel Klaver <vbroek@iae.nl>
+Return-path: <mchehab@gaivota>
+Received: from d1.icnet.pl ([212.160.220.21]:55808 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753681Ab0KBPbP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Nov 2010 11:31:15 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH] SOC Camera: OMAP1: typo fix
+Date: Tue, 2 Nov 2010 16:30:48 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: af9015 and nxp tda182128 support
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Disposition: inline
+Message-Id: <201011021630.49706.jkrzyszt@tis.icnet.pl>
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
- 
-Hello everybody,
+Fix an outstanding typo in the recently added driver, as requested by 
+the subsystem maintainer.
 
+Created against linux-2.6.37-rc1.
 
-I own a brandless hdtv usb dvb-t stick.
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+---
 
-lsusb identifies it as:
-Bus 001 Device 005: ID 15a4:9016 Afatech Technologies, Inc. AF9015 DVB-T
-USB2.0 stick
+ drivers/media/video/omap1_camera.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I'm using debian with kernel 2.6.32. This kernel doesn't have support
-for the nxp tda18218 tuner on the stick.
-I compiled the latest v4l-dvb source tree from mercural. Now i get the
-following error message when i plugin the stick:
-af9015: tuner NXP TDA18218 not supported yet
-
-Searching the archives of this list i found some messages concerning nxp
-tda18218 support. It seems to me that there is support for the nxp
-tda18218 in the current source tree, but support for the new tuner
-driver is lacking from the af9015 driver.
-
-Now is my question: are there any plans to support the nxp tda18218
-tuner in the af9015 driver?
-
-Regards, Okkel Klaver
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (MingW32)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
- 
-iEYEARECAAYFAkzhY4YACgkQQxTA2p4ePKepXQCglAqp/RLvA+Ba8Y8Q7ZXa6wO9
-6yMAoIy9R8e2KsK/H2Mb4sv++IdHHeU0
-=FC6T
------END PGP SIGNATURE-----
-
+--- linux-2.6.37-rc1/drivers/media/video/omap1_camera.c.orig	2010-11-01 23:55:26.000000000 +0100
++++ linux-2.6.37-rc1/drivers/media/video/omap1_camera.c	2010-11-02 01:48:55.000000000 +0100
+@@ -504,7 +504,7 @@ static void omap1_videobuf_queue(struct 
+ 		 * empty. Since the transfer of the DMA programming register set
+ 		 * content to the DMA working register set is done automatically
+ 		 * by the DMA hardware, this can pretty well happen while we
+-		 * are keeping the lock here. Levae fetching it from the queue
++		 * are keeping the lock here. Leave fetching it from the queue
+ 		 * to be done when a next DMA interrupt occures instead.
+ 		 */
+ 		return;
