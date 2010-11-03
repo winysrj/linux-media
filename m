@@ -1,38 +1,36 @@
-Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60073 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755147Ab0KOKgt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Nov 2010 05:36:49 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sergio Aguirre <saaguirre@ti.com>
-Subject: Re: [omap3isp RFC][PATCH 02/10] omap3isp: ccdc: Write SYN_MODE.INPMOD based on fmt
-Date: Mon, 15 Nov 2010 11:36:57 +0100
-Cc: linux-media@vger.kernel.org
-References: <1289596693-27660-1-git-send-email-saaguirre@ti.com> <1289596693-27660-3-git-send-email-saaguirre@ti.com>
-In-Reply-To: <1289596693-27660-3-git-send-email-saaguirre@ti.com>
+Return-path: <mchehab@gaivota>
+Received: from eastrmmtai101.cox.net ([68.230.240.6]:36458 "EHLO
+	eastrmmtai101.cox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751488Ab0KCOAT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Nov 2010 10:00:19 -0400
+Message-ID: <20101103094035.UNPVJ.2361725.imail@eastrmwml37>
+Date: Wed, 3 Nov 2010 9:40:35 -0400
+From: "W.I.N.S" <malude4@cox.net>
+Reply-To: thomasherman@onfruit.cn
+Subject: FINAL NOTIFICATION
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201011151136.58000.laurent.pinchart@ideasonboard.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Sergio,
+I am pleased to inform you of the just concluded promotions
+that was conducted on the 2nd NOV in regards to the
+EU award promo. in this view you are to collect the
+sum of one million Dollars. grant number.
 
-Thanks for the patch.
+(CT-222-6747,FGN/P-900-56).
 
-On Friday 12 November 2010 22:18:05 Sergio Aguirre wrote:
-> This takes into account the input format to select the
-> adequate configuration for SYNC mode.
-> 
-> Also, change bitmask ISPCCDC_SYN_MODE_INPMOD_MASK to be
-> more consistent with other bitmasks.
+Please contact Thomas Herman with the following detail Below
 
-Could you please squash this with the previous patch ?
+1) Full Names, 2) Full Addresss, 3) Sex, 4) Phone Number,
+5) Occupation, 6) Nationality, 7) Age, 8) Country.
 
--- 
-Regards,
+Email:                                            
+                  thomasherman@onfruit.cn
+                                  
 
-Laurent Pinchart
+
+Sophia Bufford,
+Promo  Announcer.
