@@ -1,77 +1,40 @@
-Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.187]:61154 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932382Ab0KLPOK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Nov 2010 10:14:10 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH 02/10] MCDE: Add configuration registers
-Date: Fri, 12 Nov 2010 16:14:51 +0100
-Cc: Jimmy Rubin <jimmy.rubin@stericsson.com>,
-	linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
-	Dan Johansson <dan.johansson@stericsson.com>,
-	Linus Walleij <linus.walleij@stericsson.com>
-References: <1289390653-6111-1-git-send-email-jimmy.rubin@stericsson.com> <1289390653-6111-2-git-send-email-jimmy.rubin@stericsson.com> <1289390653-6111-3-git-send-email-jimmy.rubin@stericsson.com>
-In-Reply-To: <1289390653-6111-3-git-send-email-jimmy.rubin@stericsson.com>
+Return-path: <mchehab@gaivota>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:52414 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753753Ab0KCLuJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Nov 2010 07:50:09 -0400
+Received: by eye27 with SMTP id 27so170173eye.19
+        for <linux-media@vger.kernel.org>; Wed, 03 Nov 2010 04:50:08 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011121614.51528.arnd@arndb.de>
+In-Reply-To: <4CD14309.60209@redhat.com>
+References: <AANLkTi=tc_4ZAk20fEamcFQ-VDFkt4tBwFH+uGv9Fw62@mail.gmail.com>
+	<AANLkTimYMTa8zigTYbZhH5dN7VGZDBUFmw3PL4jRV9hv@mail.gmail.com>
+	<4CD14309.60209@redhat.com>
+Date: Wed, 3 Nov 2010 07:50:07 -0400
+Message-ID: <AANLkTinn-z-900iws96du0kMbMRnrJa_ozoK_SvMtii3@mail.gmail.com>
+Subject: Re: [PULL] http://www.kernellabs.com/hg/~dheitmueller/v4l-dvb-950q-final
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Wednesday 10 November 2010, Jimmy Rubin wrote:
-> This patch adds support for MCDE, Memory-to-display controller
-> found in the ST-Ericsson ux500 products.
-> 
-> This patch adds the configuration registers found in MCDE.
+On Wed, Nov 3, 2010 at 7:10 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Hi Devin,
+>
+> I didn't start to pull any fixes yet. I might eventually have some time
+> during this week, but it is more likely that I'll handle after my
+> return back.
 
-> +
-> +#define MCDE_VAL2REG(__reg, __fld, __val) \
-> +	(((__val) << __reg##_##__fld##_SHIFT) & __reg##_##__fld##_MASK)
-> +#define MCDE_REG2VAL(__reg, __fld, __val) \
-> +	(((__val) & __reg##_##__fld##_MASK) >> __reg##_##__fld##_SHIFT)
-> +
-> +#define MCDE_CR 0x00000000
-> +#define MCDE_CR_DSICMD2_EN_V1_SHIFT 0
-> +#define MCDE_CR_DSICMD2_EN_V1_MASK 0x00000001
-> +#define MCDE_CR_DSICMD2_EN_V1(__x) \
-> +	MCDE_VAL2REG(MCDE_CR, DSICMD2_EN_V1, __x)
-> +#define MCDE_CR_DSICMD1_EN_V1_SHIFT 1
-> +#define MCDE_CR_DSICMD1_EN_V1_MASK 0x00000002
-> +#define MCDE_CR_DSICMD1_EN_V1(__x) \
-> +	MCDE_VAL2REG(MCDE_CR, DSICMD1_EN_V1, __x)
-> +#define MCDE_CR_DSI0_EN_V3_SHIFT 0
-> +#define MCDE_CR_DSI0_EN_V3_MASK 0x00000001
-> +#define MCDE_CR_DSI0_EN_V3(__x) \
-> +	MCDE_VAL2REG(MCDE_CR, DSI0_EN_V3, __x)
+That's fine.  It's been pending for almost a month so I just wanted to
+be sure it didn't get lost.
 
-This looks all rather unreadable. The easiest way is usually to just
-define the bit mask, i.e. the second line of each register definition,
-which you can use to mask the bits. It's also useful to indent the lines
-so you can easily tell the register offsets apart from the contents:
+Regards,
 
-#define MCDE_CR 0x00000000
-#define		MCDE_CR_DSICMD2_EN_V1 0x00000001
-#define		MCDE_CR_DSICMD1_EN_V1 0x00000002
+Devin
 
-Some people prefer to express all this in C instead of macros:
-
-struct mcde_registers {
-	enum {
-		mcde_cr_dsicmd2_en = 0x00000001,
-		mcde_cr_dsicmd1_en = 0x00000002,
-		...
-	} cr;
-	enum {
-		mcde_conf0_syncmux0 = 0x00000001,
-		...
-	} conf0;
-	...
-};
-
-This gives you better type safety, but which one you choose is your decision.
-
-	Arnd
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
