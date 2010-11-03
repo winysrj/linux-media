@@ -1,94 +1,50 @@
 Return-path: <mchehab@gaivota>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41462 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753190Ab0KSQhc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 11:37:32 -0500
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: David Cohen <david.cohen@nokia.com>,
-	ext Lane Brooks <lane@brooks.nu>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Fri, 19 Nov 2010 10:37:24 -0600
-Subject: RE: [omap3isp] Prefered patch base for latest code? (was: "RE:
- Translation faults with OMAP ISP")
-Message-ID: <A24693684029E5489D1D202277BE8944850C08EA@dlee02.ent.ti.com>
-References: <4CE16AA2.3000208@brooks.nu>
- <201011191716.23102.laurent.pinchart@ideasonboard.com>
- <A24693684029E5489D1D202277BE8944850C08AF@dlee02.ent.ti.com>
- <201011191732.20289.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201011191732.20289.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:57265 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754132Ab0KCJm5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Nov 2010 05:42:57 -0400
+Received: by iwn10 with SMTP id 10so564082iwn.19
+        for <linux-media@vger.kernel.org>; Wed, 03 Nov 2010 02:42:56 -0700 (PDT)
 MIME-Version: 1.0
+Date: Wed, 3 Nov 2010 10:42:56 +0100
+Message-ID: <AANLkTint8J4NdXQ4v1wmKAKWa7oeSHsdOn8JzjDqCqeY@mail.gmail.com>
+Subject: OMAP3530 ISP irqs disabled
+From: Bastian Hecht <hechtb@googlemail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Laurent,
+Hello ISP team,
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Laurent Pinchart
-> Sent: Friday, November 19, 2010 10:32 AM
-> To: Aguirre, Sergio
-> Cc: David Cohen; ext Lane Brooks; linux-media@vger.kernel.org
-> Subject: Re: [omap3isp] Prefered patch base for latest code? (was: "RE:
-> Translation faults with OMAP ISP")
-> 
-> Hi Sergio,
-> 
-> On Friday 19 November 2010 17:23:45 Aguirre, Sergio wrote:
-> > On Friday, November 19, 2010 10:16 AM Aguirre, Sergio wrote:
-> > > On Friday 19 November 2010 17:07:09 Aguirre, Sergio wrote:
-> 
-> [snip]
-> 
-> > > > How close is this tree from the latest internal version you guys
-> work
-> > > > with?
-> > > >
-> > > > http://meego.gitorious.com/maemo-multimedia/omap3isp-
-> rx51/commits/devel
-> > >
-> > > There's less differences between gitorious and our internal tree than
-> > > between linuxtv and our internal tree.
-> >
-> > Ok, I guess I can treat above tree as an "omap3isp-next" tree then, to
-> have
-> > a sneak preview of what's coming ;)
-> 
-> I haven't expressed myself clearly enough. The gitorious tree is currently
-> more in sync with our internal tree that the linuxtv is for a simple
-> reason:
-> both our internal tree and the gitorious tree are missing modifications
-> made
-> during the public review process.
+I succeeded to stream the first images from the sensor to userspace
+using Laurent's media-ctl and yafta. Unfortunately all images are
+black (10MB of zeros).
+Once by chance I streamed some images (1 of 20 about) with content.
+All values were < 0x400, so that I assume the values were correctly
+transferred for my 10-bit pixels.
 
-Ok. Sorry, I think I didn't quite understood that.
+I shortly describe my setup:
+As I need xclk_a activated for my sensor to work (I2C), I activate the
+xclk in the isp_probe function. Early hack that I want to remove
+later.
+While I placed my activation in mid of the probe function, I had
+somehow the interrupts disabled when trying to stream using yafta. So
+I hacked in the reenabling of the interrupts somewhere else in probe()
+too.
+As I dug through the isp code I saw that it is better to place the
+clock activation after the final isp_put in probe() then the
+interrupts keep working, but this way I never got a valid picture so
+far. It's all a mess, I know. I try to transfer the activation to my
+sensor code and board-setup code like in the et8ek8 code.
 
-> 
-> Patches published from our internal tree are always pushed to linuxtv and
-> gitorious at the same time (or mostly). Please don't use the gitorious
-> tree
-> for anything else than trying the driver on the N900.
+However... please help me get rid of these zeros! I keep reading
+through the ISP and the mt9p031 docs to find some settings that could
+have influence on the data sampling. The sensor is working fine now,
+so the solution should be somewhere within the isp.
 
-I see. So I probably won't worry about this tree at all, since I don't have an N900.
+Thank you all,
 
-I'm trying this in my Zoom board w/OMAP3630, and I have a Beagleboard xM handy aswell (OMAP3730), so In my tree I'll try to keep support for both of
-These.
-
-Also, I'm working on trying to bring this in a very different chip, but that's a secret ;) That's why I'm working in doing cleanups.
-
-Regards,
-Sergio
-
-> 
-> --
-> Regards,
-> 
-> Laurent Pinchart
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ Bastian
