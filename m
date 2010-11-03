@@ -1,124 +1,121 @@
 Return-path: <mchehab@gaivota>
-Received: from devils.ext.ti.com ([198.47.26.153]:52313 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754300Ab0KSXYB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 18:24:01 -0500
-From: Sergio Aguirre <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
-Subject: [omap3isp RFC][PATCH 2/4] omap3isp: Move CCDC LSC prefetch wait to main isp code
-Date: Fri, 19 Nov 2010 17:23:49 -0600
-Message-Id: <1290209031-12817-3-git-send-email-saaguirre@ti.com>
-In-Reply-To: <1290209031-12817-1-git-send-email-saaguirre@ti.com>
-References: <1290209031-12817-1-git-send-email-saaguirre@ti.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:64102 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751935Ab0KCNi0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Nov 2010 09:38:26 -0400
+Received: by iwn10 with SMTP id 10so789782iwn.19
+        for <linux-media@vger.kernel.org>; Wed, 03 Nov 2010 06:38:26 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4CD161B3.9000709@maxwell.research.nokia.com>
+References: <AANLkTint8J4NdXQ4v1wmKAKWa7oeSHsdOn8JzjDqCqeY@mail.gmail.com>
+	<AANLkTimDN73S9ZWii80i9LtHtsHtPQPsMdEdGB+C5nYy@mail.gmail.com>
+	<4CD161B3.9000709@maxwell.research.nokia.com>
+Date: Wed, 3 Nov 2010 14:38:25 +0100
+Message-ID: <AANLkTikTAo71Kr+Nh8Q8DOMFwWB=gLQSXozgGo8ecYwm@mail.gmail.com>
+Subject: Re: OMAP3530 ISP irqs disabled
+From: Bastian Hecht <hechtb@googlemail.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Since this sequence strictly touches ISP global registers, it's
-not really part of the same register address space than the CCDC.
+2010/11/3 Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>:
+> Hi Bastian,
+>
+> Bastian Hecht wrote:
+>> 2010/11/3 Bastian Hecht <hechtb@googlemail.com>:
+>>> Hello ISP team,
+>>>
+>>> I succeeded to stream the first images from the sensor to userspace
+>>> using Laurent's media-ctl and yafta. Unfortunately all images are
+>>> black (10MB of zeros).
+>>> Once by chance I streamed some images (1 of 20 about) with content.
+>>> All values were < 0x400, so that I assume the values were correctly
+>>> transferred for my 10-bit pixels.
+>>>
+>>> I shortly describe my setup:
+>>> As I need xclk_a activated for my sensor to work (I2C), I activate the
+>>> xclk in the isp_probe function. Early hack that I want to remove
+>>> later.
+>
+> It _might_ be better to have this in isp_get().
+>
+>>> While I placed my activation in mid of the probe function, I had
+>>> somehow the interrupts disabled when trying to stream using yafta. So
+>>> I hacked in the reenabling of the interrupts somewhere else in probe()
+>>> too.
+>
+> That should definitely not be necessary. The interrupts are enabled in
+> isp_get().
+>
+>>> As I dug through the isp code I saw that it is better to place the
+>>> clock activation after the final isp_put in probe() then the
+>>> interrupts keep working, but this way I never got a valid picture so
+>>> far. It's all a mess, I know. I try to transfer the activation to my
+>>> sensor code and board-setup code like in the et8ek8 code.
+>>
+>> I enabled isr debugging (#define ISP_ISR_DEBUG) and see that only 1
+>> HS_VS_event is generated per second. 1fps corresponds to my clocking,
+>> so 1 vs per second is fine. But shouldn't I see about 2000 hs
+>> interrupts there too? HS_VS_IRQ is described as "HS or VS synchro
+>> event".
+>
+> Are you getting any other interrupts? Basically every ISP block which is
+> on the pipe will produce interrupts. Which ISP block is writing the
+> images to memory for you?
 
-Do this check in main isp code instead.
+I read out the CCDC with this pipeline:
+./media-ctl -r -l '"mt9p031 2-005d":0->"OMAP3 ISP CCDC":0[1], "OMAP3
+ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+./media-ctl -f '"mt9p031 2-005d":0[SGRBG10 2592x1944], "OMAP3 ISP
+CCDC":1[SGRBG10 2592x1944]'
+./yavta -f SGRBG10 -s 2592x1944 -n 4 --capture=4 --skip 3 -F /dev/video2
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
----
- drivers/media/video/isp/isp.c     |   24 ++++++++++++++++++++++++
- drivers/media/video/isp/isp.h     |    2 ++
- drivers/media/video/isp/ispccdc.c |   26 +-------------------------
- 3 files changed, 27 insertions(+), 25 deletions(-)
+I get these interrupts while reading 4 frames:
 
-diff --git a/drivers/media/video/isp/isp.c b/drivers/media/video/isp/isp.c
-index 2e5030f..ee45eb6 100644
---- a/drivers/media/video/isp/isp.c
-+++ b/drivers/media/video/isp/isp.c
-@@ -339,6 +339,30 @@ void isphist_dma_done(struct isp_device *isp)
- 	}
- }
- 
-+int ispccdc_lsc_wait_prefetch(struct isp_device *isp)
-+{
-+	unsigned int wait;
-+
-+	isp_reg_writel(isp, IRQ0STATUS_CCDC_LSC_PREF_COMP_IRQ,
-+		       OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATUS);
-+
-+	/* timeout 1 ms */
-+	for (wait = 0; wait < 1000; wait++) {
-+		if (isp_reg_readl(isp, OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATUS) &
-+				  IRQ0STATUS_CCDC_LSC_PREF_COMP_IRQ) {
-+			isp_reg_writel(isp, IRQ0STATUS_CCDC_LSC_PREF_COMP_IRQ,
-+				       OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATUS);
-+			return 0;
-+		}
-+
-+		rmb();
-+		udelay(1);
-+	}
-+
-+	return -ETIMEDOUT;
-+}
-+
-+
- static inline void isp_isr_dbg(struct isp_device *isp, u32 irqstatus)
- {
- 	static const char *name[] = {
-diff --git a/drivers/media/video/isp/isp.h b/drivers/media/video/isp/isp.h
-index 1260e9f..d0b7b0f 100644
---- a/drivers/media/video/isp/isp.h
-+++ b/drivers/media/video/isp/isp.h
-@@ -280,6 +280,8 @@ struct isp_device {
- 
- void isphist_dma_done(struct isp_device *isp);
- 
-+int ispccdc_lsc_wait_prefetch(struct isp_device *isp);
-+
- void isp_flush(struct isp_device *isp);
- 
- int isp_pipeline_set_stream(struct isp_pipeline *pipe,
-diff --git a/drivers/media/video/isp/ispccdc.c b/drivers/media/video/isp/ispccdc.c
-index 4244edf..b039bce 100644
---- a/drivers/media/video/isp/ispccdc.c
-+++ b/drivers/media/video/isp/ispccdc.c
-@@ -223,30 +223,6 @@ static void ispccdc_lsc_setup_regs(struct isp_ccdc_device *ccdc,
- 		       ISPCCDC_LSC_INITIAL);
- }
- 
--static int ispccdc_lsc_wait_prefetch(struct isp_ccdc_device *ccdc)
--{
--	struct isp_device *isp = to_isp_device(ccdc);
--	unsigned int wait;
--
--	isp_reg_writel(isp, IRQ0STATUS_CCDC_LSC_PREF_COMP_IRQ,
--		       OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATUS);
--
--	/* timeout 1 ms */
--	for (wait = 0; wait < 1000; wait++) {
--		if (isp_reg_readl(isp, OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATUS) &
--				  IRQ0STATUS_CCDC_LSC_PREF_COMP_IRQ) {
--			isp_reg_writel(isp, IRQ0STATUS_CCDC_LSC_PREF_COMP_IRQ,
--				       OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATUS);
--			return 0;
--		}
--
--		rmb();
--		udelay(1);
--	}
--
--	return -ETIMEDOUT;
--}
--
- /*
-  * __ispccdc_lsc_enable - Enables/Disables the Lens Shading Compensation module.
-  * @ccdc: Pointer to ISP CCDC device.
-@@ -272,7 +248,7 @@ static int __ispccdc_lsc_enable(struct isp_ccdc_device *ccdc, int enable)
- 			ISPCCDC_LSC_ENABLE, enable ? ISPCCDC_LSC_ENABLE : 0);
- 
- 	if (enable) {
--		if (ispccdc_lsc_wait_prefetch(ccdc) < 0) {
-+		if (ispccdc_lsc_wait_prefetch(isp) < 0) {
- 			isp_reg_clr(isp, OMAP3_ISP_IOMEM_CCDC,
- 				    ISPCCDC_LSC_CONFIG, ISPCCDC_LSC_ENABLE);
- 			ccdc->lsc.state = LSC_STATE_STOPPED;
--- 
-1.7.0.4
+[ 3962.689483] s_stream is it! enable: 1
+[ 3962.783843] omap3isp omap3isp: CCDC_VD0_IRQ
+[ 3962.799530] omap3isp omap3isp: HS_VS_IRQ
+[ 3963.532958] omap3isp omap3isp: CCDC_VD1_IRQ
+[ 3963.899505] omap3isp omap3isp: CCDC_VD0_IRQ
+[ 3963.914184] omap3isp omap3isp: HS_VS_IRQ
+[ 3964.647644] omap3isp omap3isp: CCDC_VD1_IRQ
+[ 3965.013153] omap3isp omap3isp: CCDC_VD0_IRQ
+[ 3965.028839] omap3isp omap3isp: HS_VS_IRQ
+[ 3965.762298] omap3isp omap3isp: CCDC_VD1_IRQ
+[ 3966.127838] omap3isp omap3isp: CCDC_VD0_IRQ
+[ 3966.143585] omap3isp omap3isp: HS_VS_IRQ
+[ 3966.370788] omap3isp omap3isp: OMAP3 ISP AEWB: user wants to disable module.
+[ 3966.370819] omap3isp omap3isp: OMAP3 ISP AEWB: module is being disabled
+[ 3966.370849] omap3isp omap3isp: OMAP3 ISP AF: user wants to disable module.
+[ 3966.370880] omap3isp omap3isp: OMAP3 ISP AF: module is being disabled
+[ 3966.370880] omap3isp omap3isp: OMAP3 ISP histogram: user wants to
+disable module.
+[ 3966.370910] omap3isp omap3isp: OMAP3 ISP histogram: module is being disabled
+[ 3966.876983] omap3isp omap3isp: CCDC_VD1_IRQ
+[ 3967.242492] omap3isp omap3isp: CCDC_VD0_IRQ
+[ 3967.242614] s_stream is it! enable: 0
 
+> Maybe a stupid question, but have you set exposure and gain to a
+> reasonable value? :-)
+
+First reaction was - that must be it! But hmmm... the flanks on the
+data lines of the camera are mostly high. When I press my finger on
+the sensor they are mostly low. The other values seem to be good too:
+xclk comes in with 6Mhz and pixelclk comes out with 6Mhz (all within
+the limits of the datasheets - camera and omap isp). cam_vs raises for
+about 1 sec goes shortly down and comes up again. cam_hs seems to fit
+too.
+Every 20th try I get data from an image sample the other times only zeros.
+
+- Bastian
+
+
+> Regards,
+>
+> --
+> Sakari Ailus
+> sakari.ailus@maxwell.research.nokia.com
+>
