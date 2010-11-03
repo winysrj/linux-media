@@ -1,105 +1,77 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:61442 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757274Ab0KALKz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Nov 2010 07:10:55 -0400
-Received: by iwn10 with SMTP id 10so6922992iwn.19
-        for <linux-media@vger.kernel.org>; Mon, 01 Nov 2010 04:10:55 -0700 (PDT)
+Received: from smtp.nokia.com ([147.243.1.47]:28816 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751616Ab0KCNUy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Nov 2010 09:20:54 -0400
+Message-ID: <4CD161B3.9000709@maxwell.research.nokia.com>
+Date: Wed, 03 Nov 2010 15:20:51 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-In-Reply-To: <4CCDF6B7.1040708@stanford.edu>
-References: <AANLkTimx6XJKEz9883cwrm977OtXVPVB5K5PjSGFi_AJ@mail.gmail.com>
-	<AANLkTi=Nv2Oe=61NQjzH0+P+TcODDJW3_n+NbfzxF5g3@mail.gmail.com>
-	<201010290139.10204.laurent.pinchart@ideasonboard.com>
-	<AANLkTinWnGtb32kBNwoeN27OcCh7sVvZOoC=Vi1BtOua@mail.gmail.com>
-	<AANLkTimJu-QDToxGNWKPj_B4QM_iO_x6G6eE4U2WnDPB@mail.gmail.com>
-	<AANLkTi=83sd2yTsHt166_63vorioD5Fas32P9XLX15ss@mail.gmail.com>
-	<AANLkTin9M0FZrBYy5xq_-uCFbYa=LfZqLWurb_rB+uW_@mail.gmail.com>
-	<4CCB1443.9080509@stanford.edu>
-	<AANLkTimY+sWWxF9+9P5uq8nDeSPdq0jRegtkfvEWRj-+@mail.gmail.com>
-	<4CCDF6B7.1040708@stanford.edu>
-Date: Mon, 1 Nov 2010 12:10:55 +0100
-Message-ID: <AANLkTinowGqbs8p3iHQt25xb=5FxRoSX5KwXtkC_FBYG@mail.gmail.com>
-Subject: Re: New media framework user space usage
-From: Bastian Hecht <hechtb@googlemail.com>
-To: Eino-Ville Talvala <talvala@stanford.edu>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+To: Bastian Hecht <hechtb@googlemail.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: OMAP3530 ISP irqs disabled
+References: <AANLkTint8J4NdXQ4v1wmKAKWa7oeSHsdOn8JzjDqCqeY@mail.gmail.com> <AANLkTimDN73S9ZWii80i9LtHtsHtPQPsMdEdGB+C5nYy@mail.gmail.com>
+In-Reply-To: <AANLkTimDN73S9ZWii80i9LtHtsHtPQPsMdEdGB+C5nYy@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-> To clarify this: The number of pixels in an image sensor is typically simply
-> the number of independent photosites - so the 5-MP MT9P031 sensor will give
-> you a raw image with 5 million 12-bit values in it. (not 5x3 million, or 5x4
-> million, just 5 million)
->
-> Each photosite is covered by a single color filter, so each 12-bit raw value
-> represents a single color channel, and it is the only color channel measured
-> at that pixel.
->
-> Which color channel is recorded for each pixel depends on the arrangement of
-> the color filters. The most common arrangement is the Bayer pattern, which
-> you wrote:
-> G R G R G R G R
-> B G B G B G B G
-> G R G R G R G R
-> B G B G B G B G
-> So the top-left pixel in the sensor is covered by a green filter, the one to
-> the right of it is covered by a red filter, the one below it is a blue
-> filter. The pattern tiles across the whole sensor in this fashion. (Note
-> that which color is the top-leftmost does vary between sensors, but the
-> basic repeating tile is the same - two greens for each red and blue,
-> diagonally arranged)
->
-> To convert this 5-million-pixel raw image into a 5-million-pixel RGB image,
-> you have to demosaic the image - come up with the missing two color values
-> for each pixel. It suffices to say that there are lots of ways to do this,
-> of varying levels of complexity and quality.
->
-> The OMAP3 ISP preview pipe runs such a method in hardware, to give you a
-> 3-channel YUV 4:2:2 output from a raw sensor image, with 5 million Y values,
-> 2.5 million U, and 2.5 million V values.  There is a 3x3 color conversion
-> matrix inside the preview pipeline that converts from the sensor's RGB space
-> to a standard RGB space (at least if you set up the matrix right), and then
-> a second matrix to go from that RGB space to YUV. The number of bits per
-> channel also gets reduced from 10 to 8 using a gamma lookup table.
->
-> So if you ask the ISP for raw data, you get 5 million 16-bit values (of
-> which only the lower 10 or 12 bits are valid) total. If you ask it for YUV
-> data, you'll get 10 million 8-bit values.
->
-> Hope that clarifies, and doesn't further confuse things.
+Hi Bastian,
 
-OK, sure! Somehow I got stuck with the idea that you can get 1 pixel
-only from each quadruple, but as you said you can check the
-neighbourhood from each raw pixel with a kernel-matrix.
-Another step to a clearer understanding of the materia, thank you.
+Bastian Hecht wrote:
+> 2010/11/3 Bastian Hecht <hechtb@googlemail.com>:
+>> Hello ISP team,
+>>
+>> I succeeded to stream the first images from the sensor to userspace
+>> using Laurent's media-ctl and yafta. Unfortunately all images are
+>> black (10MB of zeros).
+>> Once by chance I streamed some images (1 of 20 about) with content.
+>> All values were < 0x400, so that I assume the values were correctly
+>> transferred for my 10-bit pixels.
+>>
+>> I shortly describe my setup:
+>> As I need xclk_a activated for my sensor to work (I2C), I activate the
+>> xclk in the isp_probe function. Early hack that I want to remove
+>> later.
 
-So, I followed the stuck ioctl in the code until I saw that the ISP
-simply waits for an image to complete. As the signals seem to come out
-right of the chip, I will double check my mux settings and investigate
-the ISP_IRQ0STATUS register to see if interrupts are generated at all.
+It _might_ be better to have this in isp_get().
 
-The reference manual states on page 1503 that this register is located
-at 0x480B C010 in physical memory. Instead of polluting the kernel
-code I tried to use inw() to read the register from userspace:
-unsigned int a;
-a = inw(0xC010480B); // and I tried a = inw(0x480BC010);
+>> While I placed my activation in mid of the probe function, I had
+>> somehow the interrupts disabled when trying to stream using yafta. So
+>> I hacked in the reenabling of the interrupts somewhere else in probe()
+>> too.
 
-Both tries gave me segfaults. Any idea why that does not work?
-Well now I put the debug message in the kernel code.
+That should definitely not be necessary. The interrupts are enabled in
+isp_get().
 
-bye,
+>> As I dug through the isp code I saw that it is better to place the
+>> clock activation after the final isp_put in probe() then the
+>> interrupts keep working, but this way I never got a valid picture so
+>> far. It's all a mess, I know. I try to transfer the activation to my
+>> sensor code and board-setup code like in the et8ek8 code.
+> 
+> I enabled isr debugging (#define ISP_ISR_DEBUG) and see that only 1
+> HS_VS_event is generated per second. 1fps corresponds to my clocking,
+> so 1 vs per second is fine. But shouldn't I see about 2000 hs
+> interrupts there too? HS_VS_IRQ is described as "HS or VS synchro
+> event".
 
- Bastian
+Are you getting any other interrupts? Basically every ISP block which is
+on the pipe will produce interrupts. Which ISP block is writing the
+images to memory for you?
 
+>> However... please help me get rid of these zeros! I keep reading
+>> through the ISP and the mt9p031 docs to find some settings that could
+>> have influence on the data sampling. The sensor is working fine now,
+>> so the solution should be somewhere within the isp.
 
+Maybe a stupid question, but have you set exposure and gain to a
+reasonable value? :-)
 
-> Eino-Ville Talvala
-> Stanford University
->
->
->
->
->
+Regards,
+
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
