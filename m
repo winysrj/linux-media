@@ -1,83 +1,37 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:64935 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754456Ab0KSOR1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 09:17:27 -0500
-Received: by fxm13 with SMTP id 13so692185fxm.19
-        for <linux-media@vger.kernel.org>; Fri, 19 Nov 2010 06:17:26 -0800 (PST)
-Message-ID: <4CE686C9.6070902@brooks.nu>
-Date: Fri, 19 Nov 2010 07:16:41 -0700
-From: Lane Brooks <lane@brooks.nu>
+Received: from mail1.matrix-vision.com ([78.47.19.71]:47316 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751616Ab0KCM6i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Nov 2010 08:58:38 -0400
+Message-ID: <4CD15C7B.2010008@matrix-vision.de>
+Date: Wed, 03 Nov 2010 13:58:35 +0100
+From: Michael Jones <michael.jones@matrix-vision.de>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: David Cohen <david.cohen@nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Translation faults with OMAP ISP
-References: <4CE16AA2.3000208@brooks.nu> <20101119132927.GD13490@esdhcp04381.research.nokia.com> <4CE684E6.6010403@brooks.nu> <201011191513.59622.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201011191513.59622.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Bastian Hecht <hechtb@googlemail.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: OMAP3530 ISP irqs disabled
+References: <AANLkTint8J4NdXQ4v1wmKAKWa7oeSHsdOn8JzjDqCqeY@mail.gmail.com> <AANLkTimDN73S9ZWii80i9LtHtsHtPQPsMdEdGB+C5nYy@mail.gmail.com>
+In-Reply-To: <AANLkTimDN73S9ZWii80i9LtHtsHtPQPsMdEdGB+C5nYy@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On 11/19/2010 07:13 AM, Laurent Pinchart wrote:
-> On Friday 19 November 2010 15:08:38 Lane Brooks wrote:
->> On 11/19/2010 06:29 AM, David Cohen wrote:
->>> On Thu, Nov 18, 2010 at 12:17:21AM +0100, ext Lane Brooks wrote:
->>>> On Wednesday 17 November 2010 00:46:27 Lane Brooks wrote:
->>>>>> Laurent,
->>>>>>
->>>>>> I am getting iommu translation errors when I try to use the CCDC
->>>>>> output after using the Resizer output.
->>>>>>
->>>>>> If I use the CCDC output to stream some video, then close it down,
->>>>>> switch to the Resizer output and open it up and try to stream, I get
->>>>>> the following errors spewing out:
->>>>>>
->>>>>> omap-iommu omap-iommu.0: omap2_iommu_fault_isr: da:00d0ef00
->>>>>> translation fault
->>>>>> omap-iommu omap-iommu.0: iommu_fault_handler: da:00d0ef00 pgd:ce664034
->>>>>> *pgd:00000000
->>>>>>
->>>>>> and the select times out.
->>>>>>
->>>>>>     From a fresh boot, I can stream just fine from the Resizer and then
->>>>>>
->>>>>> switch to the CCDC output just fine. It is only when I go from the
->>>>>> CCDC to the Resizer that I get this problem. Furthermore, when it
->>>>>> gets into this state, then anything dev node I try to use has the
->>>>>> translation errors and the only way to recover is to reboot.
->>>>>>
->>>>>> Any ideas on the problem?
->>> I'm not sure if it's your case, but OMAP3 ISP driver does not support
->>> pipeline with multiples outputs yet. We have to return error from the
->>> driver in this case. If you configured CCDC to write to memory and then
->>> to write to preview/resizer afterwards without deactivating the link to
->>> write to memory, you may face a similar problem you described.
->>>
->>> Can you please try a patch I've sent to you (CC'ing linux-media) with
->>> subject: "[omap3isp][PATCH] omap3isp: does not allow pipeline with
->>> multiple video outputs yet"?
->>>
->>> Regards,
->>>
->>> David
->> David,
->>
->> I am not trying to use multiple outputs simultaneously. I get the
->> translation error with the following sequence:
->>
->> - Open resizer output and setup media links.
->> - Stream some images.
->> - Close resizer.
->> - Reset all media links.
->> - Open CCDC and setup media links.
->> - Try to stream some images but get translation faults.
->>
->> Is your patch going to help with this problem?
-> If you reset all links before setting them up for the CCDC output, probably
-> not (unless you have a bug in your CCDC links setup, but I doubt that).
-I can stream just fine from the CCDC output if I do not use the resizer 
-prior, so I am pretty sure I am setting up the CCDC links correctly.
+Bastian Hecht wrote:
+> 
+> I enabled isr debugging (#define ISP_ISR_DEBUG) and see that only 1
+> HS_VS_event is generated per second. 1fps corresponds to my clocking,
+> so 1 vs per second is fine. But shouldn't I see about 2000 hs
+> interrupts there too? HS_VS_IRQ is described as "HS or VS synchro
+> event".
 
+HS_VS_IRQ is _either_ VS _or_ HS interrupts, but not both.  The SYNC_DETECT bits in ISP_CTRL determines which.  For writing into memory, the ISP only needs to react per frame, not per line, so it is set up to trigger on VS.
+
+-- 
+Michael Jones
+
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
