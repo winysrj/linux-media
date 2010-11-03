@@ -1,63 +1,61 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.polytechnique.org ([129.104.30.34]:47128 "EHLO
-	mx1.polytechnique.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759032Ab0KQVws (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Nov 2010 16:52:48 -0500
-Received: from [192.168.0.1] (mic92-4-82-224-132-174.fbx.proxad.net [82.224.132.174])
-	(using TLSv1 with cipher AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by ssl.polytechnique.org (Postfix) with ESMTPSA id B3AED14000633
-	for <linux-media@vger.kernel.org>; Wed, 17 Nov 2010 22:52:46 +0100 (CET)
-Message-ID: <4CE44EAF.9000705@free.fr>
-Date: Wed, 17 Nov 2010 22:52:47 +0100
-From: Massis Sirapian <msirapian@free.fr>
+Return-path: <mchehab@gaivota>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:53104 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754709Ab0KCMrk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Nov 2010 08:47:40 -0400
+Received: by yxk8 with SMTP id 8so409083yxk.19
+        for <linux-media@vger.kernel.org>; Wed, 03 Nov 2010 05:47:39 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: HVR900H : analog audio input
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <AANLkTint8J4NdXQ4v1wmKAKWa7oeSHsdOn8JzjDqCqeY@mail.gmail.com>
+References: <AANLkTint8J4NdXQ4v1wmKAKWa7oeSHsdOn8JzjDqCqeY@mail.gmail.com>
+Date: Wed, 3 Nov 2010 13:47:38 +0100
+Message-ID: <AANLkTimDN73S9ZWii80i9LtHtsHtPQPsMdEdGB+C5nYy@mail.gmail.com>
+Subject: Re: OMAP3530 ISP irqs disabled
+From: Bastian Hecht <hechtb@googlemail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi,
+2010/11/3 Bastian Hecht <hechtb@googlemail.com>:
+> Hello ISP team,
+>
+> I succeeded to stream the first images from the sensor to userspace
+> using Laurent's media-ctl and yafta. Unfortunately all images are
+> black (10MB of zeros).
+> Once by chance I streamed some images (1 of 20 about) with content.
+> All values were < 0x400, so that I assume the values were correctly
+> transferred for my 10-bit pixels.
+>
+> I shortly describe my setup:
+> As I need xclk_a activated for my sensor to work (I2C), I activate the
+> xclk in the isp_probe function. Early hack that I want to remove
+> later.
+> While I placed my activation in mid of the probe function, I had
+> somehow the interrupts disabled when trying to stream using yafta. So
+> I hacked in the reenabling of the interrupts somewhere else in probe()
+> too.
+> As I dug through the isp code I saw that it is better to place the
+> clock activation after the final isp_put in probe() then the
+> interrupts keep working, but this way I never got a valid picture so
+> far. It's all a mess, I know. I try to transfer the activation to my
+> sensor code and board-setup code like in the et8ek8 code.
 
-In parallel of my IR investigations, I've tried to capture audio+video 
-through RCA+S-VIDEO.
+I enabled isr debugging (#define ISP_ISR_DEBUG) and see that only 1
+HS_VS_event is generated per second. 1fps corresponds to my clocking,
+so 1 vs per second is fine. But shouldn't I see about 2000 hs
+interrupts there too? HS_VS_IRQ is described as "HS or VS synchro
+event".
 
-tvtime works perfectly to show the video stream, but it complains about 
-a mute card for audio.
-
-Loading tm6000-alsa doesn't change anything and alsamixer says device 
-has no control.
-
-dmesg says
-[ 8289.655732] tm6000_alsa: module is from the staging directory, the 
-quality is unknown, you have been warned.
-[ 8289.657114] tm6000 #0/1: Registered audio driver for TM5600/60x0 
-Audio at bus 2 device 5
-[ 8289.657116] tm6000 #0: Initialized (TM6000 Audio Extension) extension
-[ 8289.680811] tm6000 #0/1: Stopping audio DMA
-[ 8289.714352] tm6000 #0/1: Stopping audio DMA
-[ 8289.750136] tm6000 #0/1: Stopping audio DMA
-[ 8289.786166] tm6000 #0/1: Stopping audio DMA
-[ 8289.822196] tm6000 #0/1: Stopping audio DMA
-[ 8289.857689] tm6000 #0/1: Stopping audio DMA
-[ 8289.897843] tm6000 #0/1: Starting audio DMA
-[ 8294.973206] tm6000 #0/1: Stopping audio DMA
-[ 8295.008157] tm6000 #0/1: Stopping audio DMA
-[ 8295.044065] tm6000 #0/1: Stopping audio DMA
-
-I also have a lot of :
-[ 8433.752545] tm6000 tm6000_irq_callback :urb resubmit failed (error=-1)
-
-Is it normal (analog audio not implemented) ?
-
-Another symptom is also that modprobing tm6000 takes like 1 minute to 
-load, and opening TV (DVB or analog) takes 20-30 sec the first time 
-(switching channels is faster then). Is it an expected behaviour (looks 
-like it takes time after having loaded the firmware) ?
-
-Thanks
-
-Massis
+> However... please help me get rid of these zeros! I keep reading
+> through the ISP and the mt9p031 docs to find some settings that could
+> have influence on the data sampling. The sensor is working fine now,
+> so the solution should be somewhere within the isp.
+>
+> Thank you all,
+>
+>  Bastian
+>
