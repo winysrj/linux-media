@@ -1,61 +1,63 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:57539 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751739Ab0KDCbn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Nov 2010 22:31:43 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:18771 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753728Ab0KCXCQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Nov 2010 19:02:16 -0400
+Message-ID: <4CD1E9E8.4000302@redhat.com>
+Date: Wed, 03 Nov 2010 19:02:00 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <4CD1E232.30406@redhat.com>
-References: <20101009224041.GA901@sepie.suse.cz>
-	<4CD1E232.30406@redhat.com>
-Date: Wed, 3 Nov 2010 22:31:42 -0400
-Message-ID: <AANLkTimyh-k8gYwuNi6nZFp3oviQ33+M3fDRzZ+sJN9i@mail.gmail.com>
-Subject: Re: REGRESSION: Re: [GIT] kconfig rc fixes
-From: Arnaud Lacombe <lacombar@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Michal Marek <mmarek@suse.cz>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	kyle@redhat.com, linux-kbuild@vger.kernel.org,
+To: Michal Marek <mmarek@suse.cz>
+CC: Linus Torvalds <torvalds@linux-foundation.org>, kyle@redhat.com,
+	lacombar@gmail.com, linux-kbuild@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: REGRESSION: Re: [GIT] kconfig rc fixes
+References: <20101009224041.GA901@sepie.suse.cz> <4CD1E232.30406@redhat.com> <4CD1E679.5080202@suse.cz>
+In-Reply-To: <4CD1E679.5080202@suse.cz>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi,
-
-On Wed, Nov 3, 2010 at 6:29 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em 09-10-2010 18:40, Michal Marek escreveu:
+Em 03-11-2010 18:47, Michal Marek escreveu:
+> On 3.11.2010 23:29, Mauro Carvalho Chehab wrote:
+>> Em 09-10-2010 18:40, Michal Marek escreveu:
+>>> The following changes since commit cb655d0f3d57c23db51b981648e452988c0223f9:
+>>>
+>>>   Linux 2.6.36-rc7 (2010-10-06 13:39:52 -0700)
+>>>
+>>> are available in the git repository at:
+>>>   git://git.kernel.org/pub/scm/linux/kernel/git/mmarek/kbuild-2.6.git rc-fixes
+>>>
+>>> Arnaud Lacombe (1):
+>>>       kconfig: delay symbol direct dependency initialization
 >>
->> Arnaud Lacombe (1):
->>       kconfig: delay symbol direct dependency initialization
->
-> This patch generated a regression with V4L build. After applying it,
-> some Kconfig dependencies that used to work with V4L Kconfig broke.
->
-of course, but they were all-likely buggy. If a compiler version N
-outputs a new legitimate warning because of a bug in the code, you do
-not switch back to the previous version because the warning wasn't
-there, you fix the code.
+>> This patch generated a regression with V4L build. After applying it, some Kconfig
+>> dependencies that used to work with V4L Kconfig broke.
+> 
+> You mean, the dependencies trigger a warning now, right? Also, you are
+> replying to my pull request for 2.6.36-rc8, but that pull request also
+> included "kconfig: Temporarily disable dependency warnings", so 2.6.36
+> final is NOT affected by this, just to clarify. 2.6.37-rc1 reverted this
+> workaround and I hope we come to some solution now. BTW,
+> http://www.kerneltrap.com/mailarchive/linux-kernel/2010/10/7/4629122/thread
+> is how a very similar issue was fixed in the i2c Kconfig (commit 0a57274
+> in 2.6.37-rc1 now).
 
-That said, please point me to a false positive, eventually with a
-minimal testcase, and I'll be happy to fix the issue.
+Well, I'm seeing those warnings on 2.6.37-rc1, after the patch that re-enable
+the warnings. Just reverting the delay symbol direct dependency init changeset 
+makes the warnings stop.
 
- - Arnaud
+I didn't really try to run lots of tests to be sure that they actually break
+anything, or if they are just unwanted warnings, but, in any case, we need a
+fix before the end of .37 cycle.
 
-> Basically, we have things there like:
->
-> config VIDEO_HELPER_CHIPS_AUTO
->        bool "Autoselect pertinent encoders/decoders and other helper chips"
->
-> config VIDEO_IVTV
->        select VIDEO_WM8739 if VIDEO_HELPER_CHIPS_AUTO
->
-> menu "Encoders/decoders and other helper chips"
->        depends on !VIDEO_HELPER_CHIPS_AUTO
->
-> config VIDEO_WM8739
->        tristate "Wolfson Microelectronics WM8739 stereo audio ADC"
->
-this is broken.
+A solution like what was done on i2c doesn't seem nice, as it will require lots
+of artificial changes at kconfig stuff. Maybe it would be better to just add
+some logic at Kconfig file to specify those kind of menus without producing
+warnings, of course assuming that actually won't break symbols dependency solve.
+
+Thanks,
+Mauro
+anything.
