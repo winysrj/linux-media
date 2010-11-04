@@ -1,247 +1,163 @@
-Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:57454 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1751712Ab0KLHlU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Nov 2010 02:41:20 -0500
-Message-ID: <4CDCEF9D.3000701@gmx.de>
-Date: Fri, 12 Nov 2010 08:41:17 +0100
-From: =?ISO-8859-15?Q?Daniel_P=E4=DFler?= <paessler@gmx.de>
+Return-path: <mchehab@gaivota>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:64109 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751251Ab0KDMxx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Nov 2010 08:53:53 -0400
+Received: by iwn10 with SMTP id 10so1399539iwn.19
+        for <linux-media@vger.kernel.org>; Thu, 04 Nov 2010 05:53:53 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: no DVB-T with AVerMedia M115S
-References: <4CB85FB3.6020509@gmx.de>
-In-Reply-To: <4CB85FB3.6020509@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <AANLkTik56opb35vrTnsP=U0F+24uvAWxjtnoGnW18Yta@mail.gmail.com>
+References: <AANLkTint8J4NdXQ4v1wmKAKWa7oeSHsdOn8JzjDqCqeY@mail.gmail.com>
+	<4CD161B3.9000709@maxwell.research.nokia.com>
+	<AANLkTikTAo71Kr+Nh8Q8DOMFwWB=gLQSXozgGo8ecYwm@mail.gmail.com>
+	<201011040434.53836.laurent.pinchart@ideasonboard.com>
+	<AANLkTik56opb35vrTnsP=U0F+24uvAWxjtnoGnW18Yta@mail.gmail.com>
+Date: Thu, 4 Nov 2010 13:53:52 +0100
+Message-ID: <AANLkTi=drc6qQeYx_RHOAuQHZ=h6wy6m9fhHsatAjoQU@mail.gmail.com>
+Subject: Re: OMAP3530 ISP irqs disabled
+From: Bastian Hecht <hechtb@googlemail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Is really no one able to tell me, if there is any chance to get this
-card working?
-And if so, i have to buy a new card, so can someone at least recommend a
-mini-PCI card which is known to to work (only DVB-T needed)?
+2010/11/4 Bastian Hecht <hechtb@googlemail.com>:
+> 2010/11/4 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+>> Hi Bastian,
+>>
+>> On Wednesday 03 November 2010 14:38:25 Bastian Hecht wrote:
+>>> 2010/11/3 Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>:
+>>> > Bastian Hecht wrote:
+>>> >> 2010/11/3 Bastian Hecht <hechtb@googlemail.com>:
+>>> >>> Hello ISP team,
+>>> >>>
+>>> >>> I succeeded to stream the first images from the sensor to userspace
+>>> >>> using Laurent's media-ctl and yafta. Unfortunately all images are
+>>> >>> black (10MB of zeros).
+>>> >>> Once by chance I streamed some images (1 of 20 about) with content.
+>>> >>> All values were < 0x400, so that I assume the values were correctly
+>>> >>> transferred for my 10-bit pixels.
+>>> >>>
+>>> >>> I shortly describe my setup:
+>>> >>> As I need xclk_a activated for my sensor to work (I2C), I activate the
+>>> >>> xclk in the isp_probe function. Early hack that I want to remove
+>>> >>> later.
+>>> >
+>>> > It _might_ be better to have this in isp_get().
+>>> >
+>>> >>> While I placed my activation in mid of the probe function, I had
+>>> >>> somehow the interrupts disabled when trying to stream using yafta. So
+>>> >>> I hacked in the reenabling of the interrupts somewhere else in probe()
+>>> >>> too.
+>>> >
+>>> > That should definitely not be necessary. The interrupts are enabled in
+>>> > isp_get().
+>>> >
+>>> >>> As I dug through the isp code I saw that it is better to place the
+>>> >>> clock activation after the final isp_put in probe() then the
+>>> >>> interrupts keep working, but this way I never got a valid picture so
+>>> >>> far. It's all a mess, I know. I try to transfer the activation to my
+>>> >>> sensor code and board-setup code like in the et8ek8 code.
+>>> >>
+>>> >> I enabled isr debugging (#define ISP_ISR_DEBUG) and see that only 1
+>>> >> HS_VS_event is generated per second. 1fps corresponds to my clocking,
+>>> >> so 1 vs per second is fine. But shouldn't I see about 2000 hs
+>>> >> interrupts there too? HS_VS_IRQ is described as "HS or VS synchro
+>>> >> event".
+>>> >
+>>> > Are you getting any other interrupts? Basically every ISP block which is
+>>> > on the pipe will produce interrupts. Which ISP block is writing the
+>>> > images to memory for you?
+>>>
+>>> I read out the CCDC with this pipeline:
+>>> ./media-ctl -r -l '"mt9p031 2-005d":0->"OMAP3 ISP CCDC":0[1], "OMAP3
+>>> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+>>> ./media-ctl -f '"mt9p031 2-005d":0[SGRBG10 2592x1944], "OMAP3 ISP
+>>> CCDC":1[SGRBG10 2592x1944]'
+>>> ./yavta -f SGRBG10 -s 2592x1944 -n 4 --capture=4 --skip 3 -F /dev/video2
+>>>
+>>> I get these interrupts while reading 4 frames:
+>>>
+>>> [ 3962.689483] s_stream is it! enable: 1
+>>> [ 3962.783843] omap3isp omap3isp: CCDC_VD0_IRQ
+>>> [ 3962.799530] omap3isp omap3isp: HS_VS_IRQ
+>>> [ 3963.532958] omap3isp omap3isp: CCDC_VD1_IRQ
+>>> [ 3963.899505] omap3isp omap3isp: CCDC_VD0_IRQ
+>>> [ 3963.914184] omap3isp omap3isp: HS_VS_IRQ
+>>> [ 3964.647644] omap3isp omap3isp: CCDC_VD1_IRQ
+>>> [ 3965.013153] omap3isp omap3isp: CCDC_VD0_IRQ
+>>> [ 3965.028839] omap3isp omap3isp: HS_VS_IRQ
+>>> [ 3965.762298] omap3isp omap3isp: CCDC_VD1_IRQ
+>>> [ 3966.127838] omap3isp omap3isp: CCDC_VD0_IRQ
+>>> [ 3966.143585] omap3isp omap3isp: HS_VS_IRQ
+>>> [ 3966.370788] omap3isp omap3isp: OMAP3 ISP AEWB: user wants to disable
+>>> module. [ 3966.370819] omap3isp omap3isp: OMAP3 ISP AEWB: module is being
+>>> disabled [ 3966.370849] omap3isp omap3isp: OMAP3 ISP AF: user wants to
+>>> disable module. [ 3966.370880] omap3isp omap3isp: OMAP3 ISP AF: module is
+>>> being disabled [ 3966.370880] omap3isp omap3isp: OMAP3 ISP histogram: user
+>>> wants to disable module.
+>>> [ 3966.370910] omap3isp omap3isp: OMAP3 ISP histogram: module is being
+>>> disabled [ 3966.876983] omap3isp omap3isp: CCDC_VD1_IRQ
+>>> [ 3967.242492] omap3isp omap3isp: CCDC_VD0_IRQ
+>>> [ 3967.242614] s_stream is it! enable: 0
+>>>
+>>> > Maybe a stupid question, but have you set exposure and gain to a
+>>> > reasonable value? :-)
+>>>
+>>> First reaction was - that must be it! But hmmm... the flanks on the
+>>> data lines of the camera are mostly high. When I press my finger on
+>>> the sensor they are mostly low. The other values seem to be good too:
+>>> xclk comes in with 6Mhz and pixelclk comes out with 6Mhz (all within
+>>> the limits of the datasheets - camera and omap isp). cam_vs raises for
+>>> about 1 sec goes shortly down and comes up again. cam_hs seems to fit
+>>> too.
+>>> Every 20th try I get data from an image sample the other times only zeros.
+>>
+>> The CCDC is configured with a DC subtract value of 64 by default, so it
+>> subtract 64 from every pixel. If your pixel values are lower than or equal to
+>> 64 you will get a black image. As a quick hack you can replace
+>>
+>> ccdc->clamp.dcsubval = 64;
+>>
+>> with
+>>
+>> ccdc->clamp.dcsubval = 0;
+>>
+>> in isp_ccdc_init(). The correct solution is to use the
+>> VIDIOC_PRIVATE_ISP_CCDC_CFG ioctl to configure the DC subtraction value to 0.
+>
+> This is not the problem. The 64 reduction is a nice hint as I was
+> wondering why I get 0x3BF when the sensor is full in light and I was
+> lucky and a frame was read. I wondered why it is not 0x3FF - all 10
+> bits high. When I slightly press my finger on it I get about
+> 0x045-0x1bf. So the sensor values seem to be ok. The values fill the
+> whole 10MB image.
+
+I want to clarify this:
+
+I try to read images with yafta.
+I read in 4 images with 5MP size (no skipping). All 4 images contain only zeros.
+I repeat the process some times and keep checking the data. After -
+let's say the 6th time - the images contain exactly the data I expect.
+WHEN they are read they are good. I just don't want to read 20 black
+images before 1 image is transferred right.
+
+-Bastian
 
 
-Thanks,
-
-Daniel
-
-Am 15.10.2010 16:05, schrieb Daniel Päßler:
->  Hi,
-> 
-> i own a mini-PCI card builtin in a Sony Vaio VGN-AR71ZU Notebook.
-> After searching the web it looks like this is a AVerMedia M115S (maybe
-> the S stands for Sony?), which is somehow different to an ordinary M115.
-> Is there any chance to get DVB-T working with this card? It seems, that
-> the tuner is the problem, but i don't know how to find out the type of
-> the tuner.
-> 
-> 
-> lspci -vvvnn gives this:
-> 
-> 08:04.0 Multimedia controller [0480]: Philips Semiconductors
-> SAA7131/SAA7133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d1)
->     Subsystem: Avermedia Technologies Inc Device [1461:e836]
->     Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-> Stepping- SERR- FastB2B- DisINTx-
->     Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
-> <TAbort- <MAbort- >SERR- <PERR- INTx-
->     Latency: 64
->     Interrupt: pin A routed to IRQ 22
->     Region 0: Memory at fc006800 (32-bit, non-prefetchable) [size=2K]
->     Capabilities: [40] Power Management version 2
->         Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA
-> PME(D0-,D1-,D2-,D3hot-,D3cold-)
->         Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
->     Kernel driver in use: saa7134
->     Kernel modules: saa7134
-> 
-> 
-> and dmesg with the actual checkout of v4l gives this:
-> 
-> saa7130/34: v4l2 driver version 0.2.16 loaded
-> saa7133[0]: found at 0000:08:04.0, rev: 209, irq: 22, latency: 64, mmio:
-> 0xfc006800
-> saa7133[0]: subsystem: 1461:e836, board: UNKNOWN/GENERIC
-> [card=0,autodetected]
-> saa7133[0]: board init: gpio is effffff
-> saa7133[0]/core: hwinit1
-> saa7133[0]: i2c xfer: < a0 00 >
-> saa7133[0]: i2c xfer: < a1 =61 =14 =36 =e8 =00 =00 =00 =00 =00 =00 =00
-> =00 =00 =00 =00 =00 =ff =ff =ff =ff =ff =20 =ff =ff =ff =ff =ff =ff =ff
-> =ff =ff =ff =01 =40 =01 =02 =02 =01 =01 =03 =08 =ff =00 =00 =ff =ff =ff
-> =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
-> =65 =00 =ff =c2 =00 =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
-> =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
-> =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
-> =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
-> =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
-> =ff =ff =ff =ff =ff =0d =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
-> =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
-> =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
-> =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
-> =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
-> =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff >
-> saa7133[0]: i2c eeprom 00: 61 14 36 e8 00 00 00 00 00 00 00 00 00 00 00 00
-> saa7133[0]: i2c eeprom 10: ff ff ff ff ff 20 ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom 20: 01 40 01 02 02 01 01 03 08 ff 00 00 ff ff ff ff
-> saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom 40: ff 65 00 ff c2 00 ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom a0: 0d ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c xfer: < 01 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 03 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 05 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 07 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 09 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 0b ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 0d ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 0f ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 11 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 13 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 15 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 17 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 19 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 1b ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 1d ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 1f ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 21 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 23 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 25 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 27 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 29 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 2b ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 2d ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 2f ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 31 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 33 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 35 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 37 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 39 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 3b ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 3d ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 3f ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 41 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 43 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 45 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 47 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 49 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 4b ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 4d ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 4f ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 51 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 53 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 55 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 57 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 59 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 5b ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 5d ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 5f ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 61 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 63 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 65 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 67 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 69 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 6b ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 6d ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 6f ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 71 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 73 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 75 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 77 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 79 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 7b ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 7d ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 7f ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 81 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 83 >
-> saa7133[0]: i2c scan: found device @ 0x82  [???]
-> saa7133[0]: i2c xfer: < 85 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 87 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 89 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 8b ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 8d ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 8f ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 91 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 93 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 95 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 97 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 99 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 9b ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 9d ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 9f ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < a1 >
-> saa7133[0]: i2c scan: found device @ 0xa0  [eeprom]
-> saa7133[0]: i2c xfer: < a3 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < a5 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < a7 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < a9 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < ab ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < ad ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < af ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < b1 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < b3 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < b5 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < b7 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < b9 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < bb ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < bd ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < bf ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < c1 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < c3 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < c5 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < c7 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < c9 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < cb ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < cd ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < cf ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < d1 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < d3 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < d5 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < d7 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < d9 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < db ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < dd ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < df ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < e1 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < e3 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < e5 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < e7 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < e9 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < eb ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < ed ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < ef ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < f1 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < f3 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < f5 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < f7 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < f9 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < fb ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < fd ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < ff ERROR: NO_DEVICE
-> saa7133[0]/ir: No I2C IR support for board 0
-> saa7133[0]/core: hwinit2
-> saa7133[0]/audio: sound IF not in use, skipping scan
-> saa7133[0]: registered device video1 [v4l2]
-> saa7133[0]: registered device vbi0
-> saa7133[0]: dsp access error
-> saa7133[0] vbi (UNKNOWN/GENERIC: VIDIOC_QUERYCAP
-> saa7133[0] video (UNKNOWN/GENER: VIDIOC_QUERYCAP
-> saa7134 ALSA driver for DMA sound loaded
-> saa7133[0]/alsa: saa7133[0] at 0xfc006800 irq 22 registered as card -1
-> 
-> 
-> 
-> Thanks in advance,
-> 
-> Daniel
-
+> Can you give me an other media-ctl setup, so that I can read jpegs
+> from the preview unit, please?
+>
+> I want to follow 3 leads now:
+>
+> - replace my igep with another one
+> - check if the isp (code) works better with preview data
+> - I want to check yafta
+>
+> Thank you,
+>
+>  Bastian
+>
