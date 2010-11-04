@@ -1,70 +1,61 @@
-Return-path: <mchehab@pedra>
-Received: from lo.gmane.org ([80.91.229.12]:60982 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757331Ab0KOEzJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Nov 2010 23:55:09 -0500
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1PHr5t-0004L6-5e
-	for linux-media@vger.kernel.org; Mon, 15 Nov 2010 05:55:05 +0100
-Received: from 203.106.17.237 ([203.106.17.237])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 15 Nov 2010 05:55:05 +0100
-Received: from bahathir by 203.106.17.237 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 15 Nov 2010 05:55:05 +0100
-To: linux-media@vger.kernel.org
-From: Mohammad Bahathir Hashim <bahathir@gmail.com>
-Subject: Re: For those that uses Pinnacle PCTV 340e
-Date: Mon, 15 Nov 2010 04:24:13 +0000 (UTC)
-Message-ID: <ibqclc$q5u$1@dough.gmane.org>
-References: <AANLkTinWJu92nCR4vHUO3MWZp_ipNZL8LzpYrU4GDj7U@mail.gmail.com>
-Reply-To: Mohammad Bahathir Hashim <bahathir@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@gaivota>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:57539 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751739Ab0KDCbn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Nov 2010 22:31:43 -0400
+MIME-Version: 1.0
+In-Reply-To: <4CD1E232.30406@redhat.com>
+References: <20101009224041.GA901@sepie.suse.cz>
+	<4CD1E232.30406@redhat.com>
+Date: Wed, 3 Nov 2010 22:31:42 -0400
+Message-ID: <AANLkTimyh-k8gYwuNi6nZFp3oviQ33+M3fDRzZ+sJN9i@mail.gmail.com>
+Subject: Re: REGRESSION: Re: [GIT] kconfig rc fixes
+From: Arnaud Lacombe <lacombar@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Michal Marek <mmarek@suse.cz>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	kyle@redhat.com, linux-kbuild@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On 2010-11-14, Magnus Alm <magnus.alm@gmail.com> wrote:
-> --00504502b04953b108049503ec60
-> Content-Type: text/plain; charset=ISO-8859-1
+Hi,
+
+On Wed, Nov 3, 2010 at 6:29 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Em 09-10-2010 18:40, Michal Marek escreveu:
+>>
+>> Arnaud Lacombe (1):
+>>       kconfig: delay symbol direct dependency initialization
 >
-> Hi!
+> This patch generated a regression with V4L build. After applying it,
+> some Kconfig dependencies that used to work with V4L Kconfig broke.
 >
-> I've merged the code for the 340e, that Devin Heitmueller made over at
-> Kernellabs, with the latest HG tree and tested it on Ubuntu 10.10
-> today (2.6.35-22-generic).
+of course, but they were all-likely buggy. If a compiler version N
+outputs a new legitimate warning because of a bug in the code, you do
+not switch back to the previous version because the warning wasn't
+there, you fix the code.
+
+That said, please point me to a false positive, eventually with a
+minimal testcase, and I'll be happy to fix the issue.
+
+ - Arnaud
+
+> Basically, we have things there like:
 >
-> I lack the knowledge on how to add the new files (xc4000.c and
-> xc4000.h) to a patch, so the script added in the tar ball just copies
-> it to the right place, the firmware has to be manually copied too.
+> config VIDEO_HELPER_CHIPS_AUTO
+>        bool "Autoselect pertinent encoders/decoders and other helper chips"
 >
-> /Magnus
-
-Just want to share an alternatives, patches to vanilla kernel 2.6.35;
-by me, which I sent to Istvan Varga. 
-
-http://istvanv.users.sourceforge.net/v4l/xc4000.html
-
-
-I am using PCTV 340e with GNU/Linux since Devin Heitmueller's
-"Christmas present" in kernellabs.com last year. I did few portings to
-make the driver workable with vanilla 2.6.34 and later. 
-
-Beside's Devin's xc4000.[ch], I also use the files (xc4000.[ch] and
-firmware) from Istvan page. It works very well and the dongle feels
-much cooler when idling. because the PCTV 340e's power management is
-working. 
-
-Since there are several devices using xc4000 driver; I really hope
-that it can included in main v4l stream; at least in the staging
-directory. 
-
-Also really like to see analog support (S-video capture, analog TV and
-FM radio) for PCTV 340e too :). I was told that the dib0700 driver
-does not has the analog tuning yet.
-
-Thank you
-
+> config VIDEO_IVTV
+>        select VIDEO_WM8739 if VIDEO_HELPER_CHIPS_AUTO
+>
+> menu "Encoders/decoders and other helper chips"
+>        depends on !VIDEO_HELPER_CHIPS_AUTO
+>
+> config VIDEO_WM8739
+>        tristate "Wolfson Microelectronics WM8739 stereo audio ADC"
+>
+this is broken.
