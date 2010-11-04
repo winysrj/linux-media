@@ -1,45 +1,70 @@
-Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:48508 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754895Ab0KIKfI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Nov 2010 05:35:08 -0500
-Message-ID: <4CD923C3.5040000@infradead.org>
-Date: Tue, 09 Nov 2010 08:34:43 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Return-path: <mchehab@gaivota>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:35518 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750858Ab0KDSeI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Nov 2010 14:34:08 -0400
 MIME-Version: 1.0
-To: =?UTF-8?B?RGF2aWQgSMOkcmRlbWFu?= <david@hardeman.nu>
-CC: linux-media@vger.kernel.org, jarod@wilsonet.com
-Subject: Re: [PATCH 0/6] rc-core: ir-core to rc-core conversion
-References: <20101102201733.12010.30019.stgit@localhost.localdomain> <66b8b2f940b40cc67fa95c3ae064ef91@hardeman.nu>
-In-Reply-To: <66b8b2f940b40cc67fa95c3ae064ef91@hardeman.nu>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <4CD1E232.30406@redhat.com>
+References: <20101009224041.GA901@sepie.suse.cz>
+	<4CD1E232.30406@redhat.com>
+Date: Thu, 4 Nov 2010 14:34:07 -0400
+Message-ID: <AANLkTiksbQQsXDydmohz6TiR4u-QNSJkfZHnkLOKizF7@mail.gmail.com>
+Subject: Re: REGRESSION: Re: [GIT] kconfig rc fixes
+From: Arnaud Lacombe <lacombar@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Michal Marek <mmarek@suse.cz>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	kyle@redhat.com, linux-kbuild@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi David,
+Hi,
 
-Em 09-11-2010 08:27, David HÃ¤rdeman escreveu:
-> On Tue, 02 Nov 2010 21:17:38 +0100, David HÃ¤rdeman <david@hardeman.nu>
-> wrote:
->> This is my current patch queue, the main change is to make struct rc_dev
->> the primary interface for rc drivers and to abstract away the fact that
->> there's an input device lurking in there somewhere.
-> 
-> Mauro,
-> 
-> you have neither commented on the patches nor committed them. At the same
-> time you've created a "for_v2.6.38" branch where you've already committed
-> other IR related patches. Could you please provide some feedback on what
-> the plan is?
+On Wed, Nov 3, 2010 at 6:29 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Basically, we have things there like:
+>
+> config VIDEO_HELPER_CHIPS_AUTO
+>        bool "Autoselect pertinent encoders/decoders and other helper chips"
+>
+> config VIDEO_IVTV
+>        select VIDEO_WM8739 if VIDEO_HELPER_CHIPS_AUTO
+>
+> menu "Encoders/decoders and other helper chips"
+>        depends on !VIDEO_HELPER_CHIPS_AUTO
+>
+> config VIDEO_WM8739
+>        tristate "Wolfson Microelectronics WM8739 stereo audio ADC"
+>
+Where do you get that code from ? this particular one is not in 2.6.37-rc1:
 
-I've returned from LPC at Sunday. In the last two weeks, I received
-about 140+ patches at patchwork, plus 8 pull requests, plus tons of emails that
-I received at the last week. So, I have lots of backlog to handle.
+% git describe
+v2.6.37-rc1-27-gff8b16d
 
-My intention is to handle the pending stuff during this week.
+% head -20 drivers/media/video/ivtv/Kconfig
+config VIDEO_IVTV
+        tristate "Conexant cx23416/cx23415 MPEG encoder/decoder support"
+        depends on VIDEO_V4L2 && PCI && I2C
+        depends on INPUT   # due to VIDEO_IR
+        select I2C_ALGOBIT
+        depends on VIDEO_IR
+        select VIDEO_TUNER
+        select VIDEO_TVEEPROM
+        select VIDEO_CX2341X
+        select VIDEO_CX25840
+        select VIDEO_MSP3400
+        select VIDEO_SAA711X
+        select VIDEO_SAA717X
+        select VIDEO_SAA7127
+        select VIDEO_CS53L32A
+        select VIDEO_M52790
+        select VIDEO_WM8775
+        select VIDEO_WM8739
+        select VIDEO_VP27SMPX
+        select VIDEO_UPD64031A
 
-Cheers,
-Mauro
-
-
+ - Arnaud
