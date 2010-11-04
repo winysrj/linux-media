@@ -1,87 +1,41 @@
 Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56027 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754313Ab0KSNzJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 08:55:09 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH/RFC] v4l: Add subdev sensor g_skip_frames operation
-Date: Fri, 19 Nov 2010 14:55:12 +0100
-Cc: linux-media@vger.kernel.org
-References: <1290173202-28769-1-git-send-email-laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1011191439030.20751@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1011191439030.20751@axis700.grange>
+Received: from mx1.redhat.com ([209.132.183.28]:31453 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752337Ab0KDTnk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Nov 2010 15:43:40 -0400
+Message-ID: <4CD30CE5.5030003@redhat.com>
+Date: Thu, 04 Nov 2010 15:43:33 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011191455.12632.laurent.pinchart@ideasonboard.com>
+To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
+CC: Jarod Wilson <jarod@wilsonet.com>, Jarod Wilson <jarod@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 0/2] Apple remote support
+References: <20101029191711.GA12136@hardeman.nu> <20101029192733.GE21604@redhat.com> <20101029195918.GA12501@hardeman.nu> <20101029200937.GG21604@redhat.com> <20101030233617.GA13155@hardeman.nu> <AANLkTimLU1TUn6nY4pr2pWNJp1hviyx=NiXYUQLSQA0e@mail.gmail.com> <20101101215635.GA4808@hardeman.nu> <AANLkTi=c_g7nxCFWsVMYM-tJr68V1iMzhSyJ7=g9VLnR@mail.gmail.com> <37bb20b43afce52964a95a72a725b0e4@hardeman.nu> <AANLkTimAx+D745-VxoUJ25ii+=Dm6rHb8OXs9_D69S1W@mail.gmail.com> <20101104193823.GA9107@hardeman.nu>
+In-Reply-To: <20101104193823.GA9107@hardeman.nu>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Guennadi,
-
-On Friday 19 November 2010 14:49:44 Guennadi Liakhovetski wrote:
-> On Fri, 19 Nov 2010, Laurent Pinchart wrote:
-> > Some buggy sensors generate corrupt frames when the stream is started.
-> > This new operation returns the number of corrupt frames to skip when
-> > starting the stream.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  include/media/v4l2-subdev.h |    4 ++++
-> >  1 files changed, 4 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> > index 04878e1..b196966 100644
-> > --- a/include/media/v4l2-subdev.h
-> > +++ b/include/media/v4l2-subdev.h
-> > @@ -291,9 +291,13 @@ struct v4l2_subdev_pad_ops {
-> > 
-> >   *		      This is needed for some sensors, which always corrupt
-> >   *		      several top lines of the output image, or which send their
-> >   *		      metadata in them.
-> > 
-> > + * @g_skip_frames: number of frames to skip at stream start. This is
-> > needed for + * 		   buggy sensors that generate faulty frames when they
-> > are + * 		   turned on.
-> > 
-> >   */
-> >  
-> >  struct v4l2_subdev_sensor_ops {
-> >  
-> >  	int (*g_skip_top_lines)(struct v4l2_subdev *sd, u32 *lines);
-> > 
-> > +	int (*g_skip_frames)(struct v4l2_subdev *sd, u32 *frames);
+Em 04-11-2010 15:38, David Härdeman escreveu:
+> On Thu, Nov 04, 2010 at 11:54:25AM -0400, Jarod Wilson wrote:
+>> Okay, so we seem to be in agreement for an approach to handling this.
+>> I'll toss something together implementing that RSN... Though I talked
+>> with Mauro about this a bit yesterday here at LPC, and we're thinking
+>> maybe we slide this support back over into the nec decoder and make it
+>> a slightly more generic "use full 32 bits" NEC variant we look for
+>> and/or enable/disable somehow. I've got another remote here, for a
+>> Motorola cable box, which is NEC-ish, but always fails decode w/a
+>> checksum error ("got 0x00000000", iirc), which may also need to use
+>> the full 32 bits somehow... Probably a very important protocol variant
+>> to support, particularly once we have native transmit support, as its
+>> used by plenty of cable boxes on the major carriers here in the US.
 > 
-> Well, yes, this would be useful, but, I think, it is a part of a larger
-> problem - general video quality from sensors. Like, I think, there are
-> other situations, when the sensor driver knows, that the next few frames
-> will be of poor quality. E.g., when changing some parameters, which will
-> make the sensor re-adjust auto-exposure, auto-gain or something similar.
-> So, we can either just handle this one specific case, or try to design a
-> more generic approach, or leave frame quality analysis completely to the
-> user-space. Like - for a normal generic mplayer, just streaming video to
-> an output device - you don't really care in most cases. If recording video
-> - you edit it afterwords, if building an industrial quality
-> purpose-designed application - it will, probably, take care of these
-> things itself. And yes, there is also out-of-band data, that can carry
-> such quality-related information. So, this is just one bit of a bigger
-> problem, no idea though, wheather it's worth trying to tackle all those
-> issues at once or better just fix this one small specific problem.
+> I've always found the "checksum" tests in the NEC decoder to be unnecessary so I'm all for using a 32 bit scancode in all cases (and still using a module param to squash the ID byte of apple remotes, defaulting to "yes").
+> 
+This means changing all existing NEC tables to have 32 bits, and add
+the "redundant" information on all of them. It doesn't seem a good idea
+to me to add a penalty for those NEC tables that follow the standard.
 
-Lots of different issues there. Quality handling should be implemented in 
-userspace, but drivers need to provide enough information to 
-applications/libraries. Metadata could be bundled with frame using the recent 
-multiplane formats support infrastructure.
-
-The purpose of this operation is to skip frames that are know to be real bad. 
-Think of a buggy sensor that outputs a frame of complete garbage when you 
-start the stream. Not just bad quality data, but real garbage (either random 
-or a flat color).
-
--- 
-Regards,
-
-Laurent Pinchart
+Mauro
