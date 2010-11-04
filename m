@@ -1,52 +1,77 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:38633 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754905Ab0KBTRV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Nov 2010 15:17:21 -0400
-Date: Tue, 2 Nov 2010 20:18:34 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Anca Emanuel <anca.emanuel@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: Webcam driver not working: drivers/media/video/gspca/ov519.c
- device 05a9:4519
-Message-ID: <20101102201834.038b6d14@tele>
-In-Reply-To: <AANLkTimxo=Z2YDqdsi1Vr6opX9eWHTb06SGz5bGfxRxj@mail.gmail.com>
-References: <AANLkTikZPmJWebfpU2yLpvMygqhzfAKZYL7rTCG45K3b@mail.gmail.com>
-	<20101101201547.47fd0d4c@tele>
-	<AANLkTin8M1ZGdayVZT0OZ-Rgig-9-7Lb9uaobihvDK-H@mail.gmail.com>
-	<20101101213140.3985f4b5@tele>
-	<AANLkTim1BsqKSt8zOH9_bwExLnSxpax0dz1rjc2zLDOj@mail.gmail.com>
-	<20101102092653.4bbd1319@tele>
-	<AANLkTimxo=Z2YDqdsi1Vr6opX9eWHTb06SGz5bGfxRxj@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:60659 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752345Ab0KDScI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Nov 2010 14:32:08 -0400
+MIME-Version: 1.0
+In-Reply-To: <4CD2F735.2040903@redhat.com>
+References: <20101009224041.GA901@sepie.suse.cz>
+	<4CD1E232.30406@redhat.com>
+	<AANLkTimyh-k8gYwuNi6nZFp3oviQ33+M3fDRzZ+sJN9i@mail.gmail.com>
+	<4CD22627.2000607@redhat.com>
+	<AANLkTi=Eb8k6gmeGqvC=Zbo2mj51oHcbCncZGt00u9Tx@mail.gmail.com>
+	<4CD29493.5020101@redhat.com>
+	<20101104101910.920efbed.randy.dunlap@oracle.com>
+	<4CD2F735.2040903@redhat.com>
+Date: Thu, 4 Nov 2010 14:32:07 -0400
+Message-ID: <AANLkTikx+RkV82Cb1YQfYNzVWpMqRQOnvhNY4LtS64FC@mail.gmail.com>
+Subject: Re: REGRESSION: Re: [GIT] kconfig rc fixes
+From: Arnaud Lacombe <lacombar@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>,
+	Michal Marek <mmarek@suse.cz>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	kyle@redhat.com, linux-kbuild@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Tue, 2 Nov 2010 12:33:10 +0200
-Anca Emanuel <anca.emanuel@gmail.com> wrote:
-
-> I am using
-> http://www.pcausa.com/Utilities/UsbSnoop/SniffUSB-x86-2.0.0006.zip
-> now.
-> 
-> The data:
-> http://rapidshare.com/files/428460107/log4.zip
-> 
-> please let me know if this is what you ask for.
-
 Hi,
 
-Thanks, that's what I wanted. Looking at the trace, I saw that the
-capture stopped and restarted 3 or 4 times. May you tell me what
-occured?
+On Thu, Nov 4, 2010 at 2:11 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> [...]
+> Yes, but this makes things worse: it will allow compiling drivers that Kernel
+> will never use, as they won't work without an I2C adapter, and the I2C adapter
+> is not compiled.
+>
+> Worse than that: if you go into all V4L bridge drivers, that implements the I2C
+> adapters and disable them, the I2C ancillary adapters will still be compiled
+> (as they won't return to 'n'), but they will never ever be used...
+>
+> So, no, this is not a solution.
+>
+> What we need is to prompt the menu only if the user wants to do some manual configuration.
+> Otherwise, just use the selects done by the drivers that implement the I2C bus adapters,
+> and have some code to use those selected I2C devices.
+>
+These is an easy solution: doing as
+`Documentation/kbuild/kconfig-language.txt' say it should be done:
 
-Anyway, I will try to code your sensor tomorrow. I'll e-mail you when
-done.
+config MODULES
+        bool "modules ?"
+        default y
 
-Best regards.
+config AUTO
+        bool "AUTO"
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+config IVTV
+        tristate "IVTV"
+        select WM42 if AUTO
+
+menu "TV"
+        depends on !AUTO
+
+config WM42_USER
+        tristate "WM42"
+        select WM42
+
+endmenu
+
+config WM42
+        tristate
+        default n
+
+ - Arnaud
