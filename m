@@ -1,35 +1,52 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:3434 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751417Ab0KMOK6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Nov 2010 09:10:58 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: msp3400 regression fix for 2.6.36?
-Date: Sat, 13 Nov 2010 15:10:43 +0100
-Cc: linux-media@vger.kernel.org
+Return-path: <mchehab@gaivota>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:53197 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750908Ab0KDORB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Nov 2010 10:17:01 -0400
+Received: by bwz11 with SMTP id 11so1694404bwz.19
+        for <linux-media@vger.kernel.org>; Thu, 04 Nov 2010 07:17:00 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011131510.43314.hverkuil@xs4all.nl>
+Date: Thu, 4 Nov 2010 15:16:59 +0100
+Message-ID: <AANLkTimpXwWGJfXRa=_38SKbKyfu_6sEME=in7YESV8x@mail.gmail.com>
+Subject: Tevii S470 on Debian Squeeze
+From: Josu Lazkano <josu.lazkano@gmail.com>
+To: linux-media@vger.kernel.org,
+	Discussion about mythtv <mythtv-users@mythtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Mauro,
+Hello, I am having some problems to get working my Tevii S470 DVB-S2 PCIe card.
 
-Will you backport this fix to the stable 2.6.36?
+I am using a Debian Squeeze (2.6.32-5-686) system on a Intel Atom 330
+(Nvidia ION) machine. I read the LinuxTV wiki:
+http://www.linuxtv.org/wiki/index.php/TeVii_S470#Older_kernels
 
-http://git.linuxtv.org/linux-2.6.git?a=commit;h=0310871d8f71da4ad8643687fbc40f219a0dac4d
+These are my steps:
 
-The patch applies fine against 2.6.36.
+1. Donwloas the Tevii driver:
+  wget -c http://tevii.com/tevii_ds3000.tar.gz
+  tar zxfv tevii_ds3000.tar.gz
+  su
+  cp tevii_ds3000/dvb-fe-ds3000.fw /lib/firmware/
 
-If you want me to do something, then let me know.
+2. Download s2-liplianin:
+  hg clone http://mercurial.intuxication.org/hg/s2-liplianin
 
-Regards,
+3. When I run make I have some warnings and errors: (all the log from
+make: http://dl.dropbox.com/u/1541853/tevii/s2-liplianin_make)
+  make[5]: *** [/home/lazkano/s2-liplianin/v4l/ir-sysfs.o] Error 1
+  make[4]: *** [_module_/home/lazkano/s2-liplianin/v4l] Error 2
 
-	Hans
+This is my card info:
+  $ lspci | grep CX23885
+  05:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885
+PCI Video and Audio Decoder (rev 02)
+
+Can you help with this?
+
+Thanks for all your help and best regards
+
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Josu Lazkano
