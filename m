@@ -1,59 +1,91 @@
-Return-path: <mchehab@pedra>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:40621 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754829Ab0KJJ2K (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Nov 2010 04:28:10 -0500
+Return-path: <mchehab@gaivota>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:52592 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751948Ab0KEPSq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Nov 2010 11:18:46 -0400
+Received: by iwn41 with SMTP id 41so1015183iwn.19
+        for <linux-media@vger.kernel.org>; Fri, 05 Nov 2010 08:18:45 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Date: Wed, 10 Nov 2010 10:28:09 +0100
-From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	<linux-media@vger.kernel.org>
-Subject: Re: [PATCH 0/6] rc-core: ir-core to rc-core conversion
-In-Reply-To: <AANLkTik4s2vaAYu-A7VwDGRdeDDd=QZkUYN-p6yrFeqR@mail.gmail.com>
-References: <20101102201733.12010.30019.stgit@localhost.localdomain> <AANLkTi=z2yU568sEs0RNuQ6gZUzJQeHajTZ_0LeXS-2D@mail.gmail.com> <4CD9FA59.9020702@infradead.org> <AANLkTik4s2vaAYu-A7VwDGRdeDDd=QZkUYN-p6yrFeqR@mail.gmail.com>
-Message-ID: <210c15166347a1923a18871afe1965bd@hardeman.nu>
+In-Reply-To: <4CD413E4.20401@matrix-vision.de>
+References: <AANLkTint8J4NdXQ4v1wmKAKWa7oeSHsdOn8JzjDqCqeY@mail.gmail.com>
+	<4CD161B3.9000709@maxwell.research.nokia.com>
+	<AANLkTikTAo71Kr+Nh8Q8DOMFwWB=gLQSXozgGo8ecYwm@mail.gmail.com>
+	<201011040434.53836.laurent.pinchart@ideasonboard.com>
+	<AANLkTik56opb35vrTnsP=U0F+24uvAWxjtnoGnW18Yta@mail.gmail.com>
+	<AANLkTi=drc6qQeYx_RHOAuQHZ=h6wy6m9fhHsatAjoQU@mail.gmail.com>
+	<4CD413E4.20401@matrix-vision.de>
+Date: Fri, 5 Nov 2010 16:18:45 +0100
+Message-ID: <AANLkTimVGmwD88u9xpK7regWYNfBS3hRP5JrhEdEb8i4@mail.gmail.com>
+Subject: Re: OMAP3530 ISP irqs disabled
+From: Bastian Hecht <hechtb@googlemail.com>
+To: Michael Jones <michael.jones@matrix-vision.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Tue, 9 Nov 2010 22:25:56 -0500, Jarod Wilson <jarod@wilsonet.com>
-wrote:
-> On Tue, Nov 9, 2010 at 8:50 PM, Mauro Carvalho Chehab
-> <mchehab@infradead.org> wrote:
-> ...
->> Sorry for giving you a late feedback about those patches. I was busy
-the
->> last two
->> weeks, due to my trip to US for KS/LPC.
+2010/11/5 Michael Jones <michael.jones@matrix-vision.de>:
+> Hi Bastian (Laurent, and Sakari),
 >>
->> I've applied patches 1 to 3 (in fact, I got the patches from the
->> previous version -
->> unfortunately, patchwork do a very bad job when someone sends a new
->> series that superseeds
->> the previous patches).
+>> I want to clarify this:
 >>
->> I didn't like patch 4 for some reasons: instead of just doing rename,
-it
->> is a
->> all-in-one patch, doing several things at the same time. It is hard to
->> analyse it by
->> just looking at the diffs, as it is not a pure rename patch. Also, it
->> doesn't rename
->> /drivers/media/IR into something else.
+>> I try to read images with yafta.
+>> I read in 4 images with 5MP size (no skipping). All 4 images contain only zeros.
+>> I repeat the process some times and keep checking the data. After -
+>> let's say the 6th time - the images contain exactly the data I expect.
+>> WHEN they are read they are good. I just don't want to read 20 black
+>> images before 1 image is transferred right.
 >>
->> Btw, the patch is currently broken:
-> 
-> Hm, the series applied cleanly against 2.6.37-rc1 a bit ago:
-> 
+>> -Bastian
+>>
 >
-http://git.kernel.org/?p=linux/kernel/git/jarod/linux-2.6-ir.git;a=shortlog;h=refs/heads/staging
+> I'm on to your problem, having reproduced it myself.  I suspect that you're actually only getting one frame: your very first buffer.  You don't touch it, and neither does the CCDC after you requeue it, and after you've cycled through all your other buffers, you get back the non-zero frame.  If you clear the "good" frame in your application once, you won't get any more non-zero frames afterwards.  Or if you request more buffers, you'll have fewer non-zero frames.  That's the behavior I observe.
 
-Still does, and it's no wonder it doesn't apply to staging/for_v2.6.38
-since it's a franken-branch of 2.6.36 + staging/for_v2.6.37 + some more
-patches.
+I can confirm the very first buffer theorem. I indeed get 1 valid
+frame after each reboot. First I didn'notice it because I used
+Laurent's yafta .... --skip 3 ... command line. I read 4 frames and
+only saved the last.
 
--- 
-David HÃ¤rdeman
+Btw, heaven sent you... I keep working on this problem 1 week now and
+am pretty desperate. I started reading about the linux memory
+management system to understand all the buffer dma streaming. (well
+that is probably not the worst thing to sacrifice time...)
+
+Tell me if I can do something for you to help.
+
+cheers,
+
+ Bastian
+
+
+> The CCDC is getting disabled by the VD1 interrupt:
+> ispccdc_vd1_isr()->__ispccdc_handle_stopping()->__ispccdc_enable(ccdc, 0)
+>
+> To test this theory I tried disabling the VD1 interrupt, but it didn't solve the problem.  In fact, I was still getting VD1 interrupts even though I had disabled them.  Has anybody else observed that VD1 cannot be disabled?
+>
+> I also found it strange that the CCDC seemed to continue to generate interrupts when it's disabled.
+>
+> Here's my suggestion for a fix, hopefully Laurent or Sakari can comment on it:
+>
+> --- a/drivers/media/video/isp/ispccdc.c
+> +++ b/drivers/media/video/isp/ispccdc.c
+> @@ -1477,7 +1477,7 @@ static void ispccdc_vd1_isr(struct isp_ccdc_device *ccdc)
+>        spin_lock_irqsave(&ccdc->lsc.req_lock, flags);
+>
+>        /* We are about to stop CCDC and/without LSC */
+> -       if ((ccdc->output & CCDC_OUTPUT_MEMORY) ||
+> +       if ((ccdc->output & CCDC_OUTPUT_MEMORY) &&
+>            (ccdc->state == ISP_PIPELINE_STREAM_SINGLESHOT))
+>                ccdc->stopping = CCDC_STOP_REQUEST;
+>
+>
+> --
+> Michael Jones
+>
+> MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+> Registergericht: Amtsgericht Stuttgart, HRB 271090
+> Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
+>
