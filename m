@@ -1,96 +1,64 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:51426 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753351Ab0KTPwi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Nov 2010 10:52:38 -0500
-Received: by wyb28 with SMTP id 28so5522753wyb.19
-        for <linux-media@vger.kernel.org>; Sat, 20 Nov 2010 07:52:37 -0800 (PST)
-Message-ID: <4CE7EEC2.3040900@googlemail.com>
-Date: Sat, 20 Nov 2010 15:52:34 +0000
-From: Robert Longbottom <rongblor@googlemail.com>
+Received: from mail1.matrix-vision.com ([78.47.19.71]:46003 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752546Ab0KEOZq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Nov 2010 10:25:46 -0400
+Message-ID: <4CD413E4.20401@matrix-vision.de>
+Date: Fri, 05 Nov 2010 15:25:40 +0100
+From: Michael Jones <michael.jones@matrix-vision.de>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: ngene & Satix-S2 dual problems
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Bastian Hecht <hechtb@googlemail.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: OMAP3530 ISP irqs disabled
+References: <AANLkTint8J4NdXQ4v1wmKAKWa7oeSHsdOn8JzjDqCqeY@mail.gmail.com>	<4CD161B3.9000709@maxwell.research.nokia.com>	<AANLkTikTAo71Kr+Nh8Q8DOMFwWB=gLQSXozgGo8ecYwm@mail.gmail.com>	<201011040434.53836.laurent.pinchart@ideasonboard.com>	<AANLkTik56opb35vrTnsP=U0F+24uvAWxjtnoGnW18Yta@mail.gmail.com> <AANLkTi=drc6qQeYx_RHOAuQHZ=h6wy6m9fhHsatAjoQU@mail.gmail.com>
+In-Reply-To: <AANLkTi=drc6qQeYx_RHOAuQHZ=h6wy6m9fhHsatAjoQU@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi all,
+Hi Bastian (Laurent, and Sakari),
+> 
+> I want to clarify this:
+> 
+> I try to read images with yafta.
+> I read in 4 images with 5MP size (no skipping). All 4 images contain only zeros.
+> I repeat the process some times and keep checking the data. After -
+> let's say the 6th time - the images contain exactly the data I expect.
+> WHEN they are read they are good. I just don't want to read 20 black
+> images before 1 image is transferred right.
+> 
+> -Bastian
+> 
 
-I have a Satix-S2 Dual that I'm trying to get to work properly so that I 
-can use it under MythTv however I'm running into a few issues.  I 
-previously posted about the problems I'm having here to the mythtv 
-list[1], but didn't really get anywhere.  I've had chance to have a bit 
-more of a play and I now seem to have a definite repeatable problem.
+I'm on to your problem, having reproduced it myself.  I suspect that you're actually only getting one frame: your very first buffer.  You don't touch it, and neither does the CCDC after you requeue it, and after you've cycled through all your other buffers, you get back the non-zero frame.  If you clear the "good" frame in your application once, you won't get any more non-zero frames afterwards.  Or if you request more buffers, you'll have fewer non-zero frames.  That's the behavior I observe.
 
-The problem is when a recording stops on one of the inputs, after about 
-40s it causes the other input to loose it's signal lock and stop the 
-recording as well.
+The CCDC is getting disabled by the VD1 interrupt:
+ispccdc_vd1_isr()->__ispccdc_handle_stopping()->__ispccdc_enable(ccdc, 0)
+
+To test this theory I tried disabling the VD1 interrupt, but it didn't solve the problem.  In fact, I was still getting VD1 interrupts even though I had disabled them.  Has anybody else observed that VD1 cannot be disabled?
+
+I also found it strange that the CCDC seemed to continue to generate interrupts when it's disabled.
+
+Here's my suggestion for a fix, hopefully Laurent or Sakari can comment on it:
+
+--- a/drivers/media/video/isp/ispccdc.c
++++ b/drivers/media/video/isp/ispccdc.c
+@@ -1477,7 +1477,7 @@ static void ispccdc_vd1_isr(struct isp_ccdc_device *ccdc)
+        spin_lock_irqsave(&ccdc->lsc.req_lock, flags);
+
+        /* We are about to stop CCDC and/without LSC */
+-       if ((ccdc->output & CCDC_OUTPUT_MEMORY) ||
++       if ((ccdc->output & CCDC_OUTPUT_MEMORY) &&
+            (ccdc->state == ISP_PIPELINE_STREAM_SINGLESHOT))
+                ccdc->stopping = CCDC_STOP_REQUEST;
 
 
-Steps to demonstrate the problem (My Satix card is adapters 5 and 6)
+-- 
+Michael Jones
 
-In 3 seperate terminals set up femon/szap/cat to make a recording from 
-one of the inputs:
-
-1 - femon -a 6 -f 0 -H
-2 - szap -a 6 -f 0 -d 0 -r -H -p -c scanResult07Oct2010_Satix -l 
-UNIVERSAL "BBC 1 London"
-3 - cat /dev/dvb/adapter6/dvr0 > ad6.mpg
-
-In 2 seperate terminals tune in the other input:
-
-4 - femon -a 5 -f 0 -H
-5 - szap -a 5 -f 0 -d 0 -r -H -p -c scanResult07Oct2010_Satix -l 
-UNIVERSAL "ITV1 London"
-
-Both inputs are fine, signal is good, recording from adapter 6 works.
-
-6 - Ctrl-C the szap process created in (5).
-
-femon in (4) still reports status=SCVYL and decent signal strengh as if 
-the adapter is still tuned and FE_HAS_LOCK.  After approximately 40 
-seconds, either:
-
-a) the signal drops significantly but the status remains at SCVYL and 
-FE_HAS_LOCK
-
-or
-
-b) the signal drops and the status goes blank with no lock.
-
-It doesn't seem to matter which of these two happen, but at the same 
-time the recording on the other tuner looses it signal and stops 
-recording, despite the fact that szap is still running in (2).  femon in 
-(1) no longer reports FE_HAS_LOCK.
-
-Strangely if I then try to restart the szap process created in terminal 
-2 (to try and retune it) it just waits after printing out "using 
-'/dev/dvb/....".  However if I then restart the szap process in terminal 
-5, the one in terminal 2 suddenly kicks in and gets a lock.
-
-Interestingly I found a link describing a 60s period the card is kept 
-open for [2], which seems to be similar to my ~40s delay.  So it looks 
-like when the second input on the card is closed the first input looses 
-it's lock.
-
-This obviously makes it pretty useless for MythTv and as a result it's 
-not currently being used, which is a shame!
-
-I'm using the ngene driver from the stock 2.6.35.4 kernel on Gentoo.
-
-Does anyone else see this problem?  Is there anything I can do to try 
-and fix / debug it?  Are there any bug fixes in the latest kernel that 
-might help, or in the linux-dvb drivers that would help?
-
-Any help or advice much appreciated.
-
-Thanks,
-Robert.
-
-[1] - 
-http://www.mailinglistarchive.com/html/mythtv-users@mythtv.org/2010-10/msg00725.html
-
-[2] - https://patchwork.kernel.org/patch/87392/
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
