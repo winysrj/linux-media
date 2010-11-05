@@ -1,137 +1,70 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4283 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932742Ab0KPV4d (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Nov 2010 16:56:33 -0500
-Message-Id: <5b543344708b09e84dbac1ea6db313a8edb90abe.1289944160.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1289944159.git.hverkuil@xs4all.nl>
-References: <cover.1289944159.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Tue, 16 Nov 2010 22:56:29 +0100
-Subject: [RFCv2 PATCH 08/15] BKL: trivial ioctl -> unlocked_ioctl video driver conversions
-To: linux-media@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>
+Return-path: <mchehab@gaivota>
+Received: from smtp206.alice.it ([82.57.200.102]:50266 "EHLO smtp206.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753476Ab0KEWJK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Nov 2010 18:09:10 -0400
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: stable@kernel.org
+Cc: Antonio Ospite <ospite@studenti.unina.it>,
+	=?UTF-8?q?Jean-Fran=C3=A7ois=20Moine?= <moinejf@free.fr>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH] [media] gspca - main: Fix a regression with the PS3 Eye webcam
+Date: Fri,  5 Nov 2010 23:08:12 +0100
+Message-Id: <1288994892-6681-1-git-send-email-ospite@studenti.unina.it>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-These drivers could be trivially converted to unlocked_ioctl since they
-already did locking.
+From: =?UTF-8?q?Jean-Fran=C3=A7ois=20Moine?= <moinejf@free.fr>
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+commit f43402fa55bf5e7e190c176343015122f694857c upstream.
+
+When audio is present, some alternate settings were skipped.
+This prevented some webcams to work, especially when bulk transfer was used.
+This patch permits to use the last or only alternate setting.
+
+Reported-by: Antonio Ospite <ospite@studenti.unina.it>
+Tested-by: Antonio Ospite <ospite@studenti.unina.it>
+Signed-off-by: Jean-François Moine <moinejf@free.fr>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/video/arv.c     |    2 +-
- drivers/media/video/bw-qcam.c |    2 +-
- drivers/media/video/c-qcam.c  |    2 +-
- drivers/media/video/meye.c    |   14 +++++++-------
- drivers/media/video/pms.c     |    2 +-
- drivers/media/video/w9966.c   |    2 +-
- 6 files changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/video/arv.c b/drivers/media/video/arv.c
-index 31e7a12..f989f28 100644
---- a/drivers/media/video/arv.c
-+++ b/drivers/media/video/arv.c
-@@ -712,7 +712,7 @@ static int ar_initialize(struct ar *ar)
- static const struct v4l2_file_operations ar_fops = {
- 	.owner		= THIS_MODULE,
- 	.read		= ar_read,
--	.ioctl		= video_ioctl2,
-+	.unlocked_ioctl	= video_ioctl2,
- };
- 
- static const struct v4l2_ioctl_ops ar_ioctl_ops = {
-diff --git a/drivers/media/video/bw-qcam.c b/drivers/media/video/bw-qcam.c
-index 935e0c9..c119350 100644
---- a/drivers/media/video/bw-qcam.c
-+++ b/drivers/media/video/bw-qcam.c
-@@ -860,7 +860,7 @@ static ssize_t qcam_read(struct file *file, char __user *buf,
- 
- static const struct v4l2_file_operations qcam_fops = {
- 	.owner		= THIS_MODULE,
--	.ioctl          = video_ioctl2,
-+	.unlocked_ioctl = video_ioctl2,
- 	.read		= qcam_read,
- };
- 
-diff --git a/drivers/media/video/c-qcam.c b/drivers/media/video/c-qcam.c
-index 6e4b196..24fc009 100644
---- a/drivers/media/video/c-qcam.c
-+++ b/drivers/media/video/c-qcam.c
-@@ -718,7 +718,7 @@ static ssize_t qcam_read(struct file *file, char __user *buf,
- 
- static const struct v4l2_file_operations qcam_fops = {
- 	.owner		= THIS_MODULE,
--	.ioctl		= video_ioctl2,
-+	.unlocked_ioctl	= video_ioctl2,
- 	.read		= qcam_read,
- };
- 
-diff --git a/drivers/media/video/meye.c b/drivers/media/video/meye.c
-index 2be23bc..48d2c24 100644
---- a/drivers/media/video/meye.c
-+++ b/drivers/media/video/meye.c
-@@ -1659,7 +1659,7 @@ static const struct v4l2_file_operations meye_fops = {
- 	.open		= meye_open,
- 	.release	= meye_release,
- 	.mmap		= meye_mmap,
--	.ioctl		= video_ioctl2,
-+	.unlocked_ioctl	= video_ioctl2,
- 	.poll		= meye_poll,
- };
- 
-@@ -1831,12 +1831,6 @@ static int __devinit meye_probe(struct pci_dev *pcidev,
- 	msleep(1);
- 	mchip_set(MCHIP_MM_INTA, MCHIP_MM_INTA_HIC_1_MASK);
- 
--	if (video_register_device(meye.vdev, VFL_TYPE_GRABBER,
--				  video_nr) < 0) {
--		v4l2_err(v4l2_dev, "video_register_device failed\n");
--		goto outvideoreg;
--	}
--
- 	mutex_init(&meye.lock);
- 	init_waitqueue_head(&meye.proc_list);
- 	meye.brightness = 32 << 10;
-@@ -1858,6 +1852,12 @@ static int __devinit meye_probe(struct pci_dev *pcidev,
- 	sony_pic_camera_command(SONY_PIC_COMMAND_SETCAMERAPICTURE, 0);
- 	sony_pic_camera_command(SONY_PIC_COMMAND_SETCAMERAAGC, 48);
- 
-+	if (video_register_device(meye.vdev, VFL_TYPE_GRABBER,
-+				  video_nr) < 0) {
-+		v4l2_err(v4l2_dev, "video_register_device failed\n");
-+		goto outvideoreg;
-+	}
-+
- 	v4l2_info(v4l2_dev, "Motion Eye Camera Driver v%s.\n",
- 	       MEYE_DRIVER_VERSION);
- 	v4l2_info(v4l2_dev, "mchip KL5A72002 rev. %d, base %lx, irq %d\n",
-diff --git a/drivers/media/video/pms.c b/drivers/media/video/pms.c
-index 7129b50..7551907 100644
---- a/drivers/media/video/pms.c
-+++ b/drivers/media/video/pms.c
-@@ -932,7 +932,7 @@ static ssize_t pms_read(struct file *file, char __user *buf,
- 
- static const struct v4l2_file_operations pms_fops = {
- 	.owner		= THIS_MODULE,
--	.ioctl		= video_ioctl2,
-+	.unlocked_ioctl	= video_ioctl2,
- 	.read           = pms_read,
- };
- 
-diff --git a/drivers/media/video/w9966.c b/drivers/media/video/w9966.c
-index 635420d..019ee20 100644
---- a/drivers/media/video/w9966.c
-+++ b/drivers/media/video/w9966.c
-@@ -815,7 +815,7 @@ out:
- 
- static const struct v4l2_file_operations w9966_fops = {
- 	.owner		= THIS_MODULE,
--	.ioctl          = video_ioctl2,
-+	.unlocked_ioctl = video_ioctl2,
- 	.read           = w9966_v4l_read,
- };
- 
+This is to be applied to 2.6.36 only, as the regression was introduced there.
+I don't know how many distributors are shipping 2.6.36 and how urgent this can
+be, but FYI without this change video capture on the Playstation Eye (gspca
+ov534 driver) does not work at all.
+
+Regards,
+   Antonio
+
+ drivers/media/video/gspca/gspca.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
+index 0fb48c0..c64299d 100644
+--- a/drivers/media/video/gspca/gspca.c
++++ b/drivers/media/video/gspca/gspca.c
+@@ -652,7 +652,7 @@ static struct usb_host_endpoint *get_ep(struct gspca_dev *gspca_dev)
+ 				   : USB_ENDPOINT_XFER_ISOC;
+ 	i = gspca_dev->alt;			/* previous alt setting */
+ 	if (gspca_dev->cam.reverse_alts) {
+-		if (gspca_dev->audio)
++		if (gspca_dev->audio && i < gspca_dev->nbalt - 2)
+ 			i++;
+ 		while (++i < gspca_dev->nbalt) {
+ 			ep = alt_xfer(&intf->altsetting[i], xfer);
+@@ -660,7 +660,7 @@ static struct usb_host_endpoint *get_ep(struct gspca_dev *gspca_dev)
+ 				break;
+ 		}
+ 	} else {
+-		if (gspca_dev->audio)
++		if (gspca_dev->audio && i > 1)
+ 			i--;
+ 		while (--i >= 0) {
+ 			ep = alt_xfer(&intf->altsetting[i], xfer);
 -- 
-1.7.0.4
+1.7.2.3
 
