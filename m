@@ -1,65 +1,65 @@
-Return-path: <mchehab@pedra>
-Received: from smtp205.alice.it ([82.57.200.101]:56718 "EHLO smtp205.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756231Ab0KJPzT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Nov 2010 10:55:19 -0500
-Date: Wed, 10 Nov 2010 16:54:38 +0100
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: Mohamed Ikbel Boulabiar <boulabiar@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Bounty for the first Open Source driver for Kinect
-Message-Id: <20101110165438.632e487b.ospite@studenti.unina.it>
-In-Reply-To: <AANLkTimCRU2ZoF0=CjP4D5C4YPdZtHZfp_xYgUiP0g1J@mail.gmail.com>
-References: <AANLkTimMJ+u0qXs=LJ+XZ2HH6Ubc4fTSqseXFJAzMJnX@mail.gmail.com>
-	<AANLkTimCRU2ZoF0=CjP4D5C4YPdZtHZfp_xYgUiP0g1J@mail.gmail.com>
+Return-path: <mchehab@gaivota>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:7656 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752270Ab0KEUIA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Nov 2010 16:08:00 -0400
+Date: Fri, 5 Nov 2010 21:07:53 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: Linux I2C <linux-i2c@vger.kernel.org>,
+	LMML <linux-media@vger.kernel.org>
+Cc: Michael Hunold <michael@mihu.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 2/3] i2c: Drivers shouldn't include <linux/i2c-id.h>
+Message-ID: <20101105210753.4d1a03bc@endymion.delvare>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Wed__10_Nov_2010_16_54_38_+0100_jGpi6wnO_hSPFl7N"
-List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
-
---Signature=_Wed__10_Nov_2010_16_54_38_+0100_jGpi6wnO_hSPFl7N
 Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
+List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Wed, 10 Nov 2010 15:20:40 +0100
-Mohamed Ikbel Boulabiar <boulabiar@gmail.com> wrote:
+Drivers don't need to include <linux/i2c-id.h>, especially not when
+they don't use anything that header file provides.
 
-> MS Kinect interfacing via libusb released
-> http://www.youtube.com/watch?v=3DrKhW-cvpkks
->=20
-> http://git.marcansoft.com/?p=3Dlibfreenect.git
->=20
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Michael Hunold <michael@mihu.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+---
+ drivers/media/common/saa7146_i2c.c    |    1 -
+ drivers/media/video/ir-kbd-i2c.c      |    1 -
+ drivers/staging/olpc_dcon/olpc_dcon.c |    1 -
+ 3 files changed, 3 deletions(-)
 
-Good, if anyone is willing to provide the hardware I think I can help
-with a proper gspca driver (I helped with the PS3 Eye already). Are
-there other RGB-Depth cams supported in linux? Are they usually exposed
-just as two distinct cameras?
+--- linux-2.6.37-rc1.orig/drivers/media/common/saa7146_i2c.c	2010-11-02 09:19:35.000000000 +0100
++++ linux-2.6.37-rc1/drivers/media/common/saa7146_i2c.c	2010-11-05 15:34:25.000000000 +0100
+@@ -391,7 +391,6 @@ static int saa7146_i2c_xfer(struct i2c_a
+ 
+ /*****************************************************************************/
+ /* i2c-adapter helper functions                                              */
+-#include <linux/i2c-id.h>
+ 
+ /* exported algorithm data */
+ static struct i2c_algorithm saa7146_algo = {
+--- linux-2.6.37-rc1.orig/drivers/media/video/ir-kbd-i2c.c	2010-11-02 09:19:35.000000000 +0100
++++ linux-2.6.37-rc1/drivers/media/video/ir-kbd-i2c.c	2010-11-05 15:34:18.000000000 +0100
+@@ -44,7 +44,6 @@
+ #include <linux/errno.h>
+ #include <linux/slab.h>
+ #include <linux/i2c.h>
+-#include <linux/i2c-id.h>
+ #include <linux/workqueue.h>
+ 
+ #include <media/ir-core.h>
+--- linux-2.6.37-rc1.orig/drivers/staging/olpc_dcon/olpc_dcon.c	2010-11-02 09:19:37.000000000 +0100
++++ linux-2.6.37-rc1/drivers/staging/olpc_dcon/olpc_dcon.c	2010-11-05 15:34:14.000000000 +0100
+@@ -17,7 +17,6 @@
+ #include <linux/console.h>
+ #include <linux/i2c.h>
+ #include <linux/platform_device.h>
+-#include <linux/i2c-id.h>
+ #include <linux/pci.h>
+ #include <linux/pci_ids.h>
+ #include <linux/interrupt.h>
 
-Regards,
-   Antonio
 
---=20
-Antonio Ospite
-http://ao2.it
-
-PGP public key ID: 0x4553B001
-
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
-
---Signature=_Wed__10_Nov_2010_16_54_38_+0100_jGpi6wnO_hSPFl7N
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iEYEARECAAYFAkzawD4ACgkQ5xr2akVTsAHvbACghVMJTq4QxLImGtFqvHo9eikP
-+bsAoItYcC4UpsP05LfWNmx0bD2Fk+XV
-=uhhZ
------END PGP SIGNATURE-----
-
---Signature=_Wed__10_Nov_2010_16_54_38_+0100_jGpi6wnO_hSPFl7N--
+-- 
+Jean Delvare
