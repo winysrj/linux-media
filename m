@@ -1,474 +1,83 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:25566 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755354Ab0KSP62 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 10:58:28 -0500
-Date: Fri, 19 Nov 2010 16:58:04 +0100
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Subject: [RFCv6 06/13] mm: cma: Best-fit algorithm added
-In-reply-to: <cover.1290172312.git.m.nazarewicz@samsung.com>
-To: mina86@mina86.com
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Bryan Huntsman <bryanh@codeaurora.org>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Johan Mossberg <johan.xx.mossberg@stericsson.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Marcus LORENTZON <marcus.xm.lorentzon@stericsson.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Mel Gorman <mel@csn.ul.ie>, Pawel Osciak <pawel@osciak.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>, dipankar@in.ibm.com,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org
-Message-id: <b82ec382957f8846aedcb83f650aa1b48e5b87a8.1290172312.git.m.nazarewicz@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <cover.1290172312.git.m.nazarewicz@samsung.com>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:20292 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752300Ab0KEUG6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Nov 2010 16:06:58 -0400
+Date: Fri, 5 Nov 2010 21:06:45 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: Linux I2C <linux-i2c@vger.kernel.org>,
+	LMML <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Jarod Wilson <jarod@redhat.com>
+Subject: [PATCH 1/3] i2c: Delete unused adapter IDs
+Message-ID: <20101105210645.6e47498c@endymion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-This commits adds a best-fit algorithm to the set of
-algorithms supported by the CMA.
+Delete unused I2C adapter IDs. Special cases are:
 
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+* I2C_HW_B_RIVA was still set in driver rivafb, however no other
+  driver is ever looking for this value, so we can safely remove it.
+* I2C_HW_B_HDPVR is used in staging driver lirc_zilog, however no
+  adapter ID is ever set to this value, so the code in question never
+  runs. As the code additionally expects that I2C_HW_B_HDPVR may not
+  be defined, we can delete it now and let the lirc_zilog driver
+  maintainer rewrite this piece of code.
+
+Big thanks for Hans Verkuil for doing all the hard work :)
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Jarod Wilson <jarod@redhat.com>
 ---
- mm/Kconfig        |   16 ++-
- mm/Makefile       |    1 +
- mm/cma-best-fit.c |  372 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 388 insertions(+), 1 deletions(-)
- create mode 100644 mm/cma-best-fit.c
+ drivers/video/riva/rivafb-i2c.c |    1 -
+ include/linux/i2c-id.h          |   22 ----------------------
+ 2 files changed, 23 deletions(-)
 
-diff --git a/mm/Kconfig b/mm/Kconfig
-index a5480ea..5ad2471 100644
---- a/mm/Kconfig
-+++ b/mm/Kconfig
-@@ -332,10 +332,13 @@ config CLEANCACHE
+--- linux-2.6.37-rc1.orig/include/linux/i2c-id.h	2010-11-05 13:55:17.000000000 +0100
++++ linux-2.6.37-rc1/include/linux/i2c-id.h	2010-11-05 15:05:32.000000000 +0100
+@@ -32,28 +32,6 @@
+  */
  
- 	  If unsure, say Y to enable cleancache
+ /* --- Bit algorithm adapters						*/
+-#define I2C_HW_B_BT848		0x010005 /* BT848 video boards */
+-#define I2C_HW_B_RIVA		0x010010 /* Riva based graphics cards */
+-#define I2C_HW_B_ZR36067	0x010019 /* Zoran-36057/36067 based boards */
+ #define I2C_HW_B_CX2388x	0x01001b /* connexant 2388x based tv cards */
+-#define I2C_HW_B_EM28XX		0x01001f /* em28xx video capture cards */
+-#define I2C_HW_B_CX2341X	0x010020 /* Conexant CX2341X MPEG encoder cards */
+-#define I2C_HW_B_CX23885	0x010022 /* conexant 23885 based tv cards (bus1) */
+-#define I2C_HW_B_AU0828		0x010023 /* auvitek au0828 usb bridge */
+-#define I2C_HW_B_CX231XX	0x010024 /* Conexant CX231XX USB based cards */
+-#define I2C_HW_B_HDPVR		0x010025 /* Hauppauge HD PVR */
+-
+-/* --- SGI adapters							*/
+-#define I2C_HW_SGI_VINO		0x160000
+-
+-/* --- SMBus only adapters						*/
+-#define I2C_HW_SMBUS_W9968CF	0x04000d
+-#define I2C_HW_SMBUS_OV511	0x04000e /* OV511(+) USB 1.1 webcam ICs */
+-#define I2C_HW_SMBUS_OV518	0x04000f /* OV518(+) USB 1.1 webcam ICs */
+-#define I2C_HW_SMBUS_CAFE	0x040012 /* Marvell 88ALP01 "CAFE" cam  */
+-
+-/* --- Miscellaneous adapters */
+-#define I2C_HW_SAA7146		0x060000 /* SAA7146 video decoder bus */
+-#define I2C_HW_SAA7134		0x090000 /* SAA7134 video decoder bus */
  
-+config CMA_HAS_ALLOCATOR
-+	bool
-+
- config CMA
- 	bool "Contiguous Memory Allocator framework"
- 	# Currently there is only one allocator so force it on
--	select CMA_GENERIC_ALLOCATOR
-+	select CMA_GENERIC_ALLOCATOR if !CMA_HAS_ALLOCATOR
- 	help
- 	  This enables the Contiguous Memory Allocator framework which
- 	  allows drivers to allocate big physically-contiguous blocks of
-@@ -391,3 +394,14 @@ config CMA_GENERIC_ALLOCATOR
- 	  implementations: the first-fit, bitmap-based algorithm or
- 	  a best-fit, red-black tree-based algorithm.  The algorithm can
- 	  be changed under "Library routines".
-+
-+config CMA_BEST_FIT
-+	bool "CMA best-fit allocator"
-+	depends on CMA
-+	select CMA_HAS_ALLOCATOR
-+	help
-+	  This is a best-fit algorithm running in O(n log n) time where
-+	  n is the number of existing holes (which is never greater then
-+	  the number of allocated regions and usually much smaller).  It
-+	  allocates area from the smallest hole that is big enough for
-+	  allocation in question.
-diff --git a/mm/Makefile b/mm/Makefile
-index c6a84f1..2cb2569 100644
---- a/mm/Makefile
-+++ b/mm/Makefile
-@@ -44,3 +44,4 @@ obj-$(CONFIG_DEBUG_KMEMLEAK) += kmemleak.o
- obj-$(CONFIG_DEBUG_KMEMLEAK_TEST) += kmemleak-test.o
- obj-$(CONFIG_CLEANCACHE) += cleancache.o
- obj-$(CONFIG_CMA) += cma.o
-+obj-$(CONFIG_CMA_BEST_FIT) += cma-best-fit.o
-diff --git a/mm/cma-best-fit.c b/mm/cma-best-fit.c
-new file mode 100644
-index 0000000..5ed1168
---- /dev/null
-+++ b/mm/cma-best-fit.c
-@@ -0,0 +1,372 @@
-+/*
-+ * Contiguous Memory Allocator framework: Best Fit allocator
-+ * Copyright (c) 2010 by Samsung Electronics.
-+ * Written by Michal Nazarewicz (m.nazarewicz@samsung.com)
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation; either version 2 of the
-+ * License or (at your optional) any later version of the license.
-+ */
-+
-+#define pr_fmt(fmt) "cma: bf: " fmt
-+
-+#ifdef CONFIG_CMA_DEBUG
-+#  define DEBUG
-+#endif
-+
-+#include <linux/errno.h>       /* Error numbers */
-+#include <linux/slab.h>        /* kmalloc() */
-+
-+#include <linux/cma.h>         /* CMA structures */
-+
-+
-+/************************* Data Types *************************/
-+
-+struct cma_bf_node {
-+	unsigned long v;
-+	struct rb_node n;
-+};
-+
-+union cma_bf_item {
-+	struct cma chunk;
-+	struct {
-+		struct cma_bf_node start, size;
-+	};
-+};
-+
-+struct cma_bf_private {
-+	struct rb_root by_start_root;
-+	struct rb_root by_size_root;
-+	bool warned;
-+};
-+
-+
-+/************************* Basic Tree Manipulation *************************/
-+
-+static int  cma_bf_node_add(struct cma_bf_node *node, struct rb_root *root,
-+			    bool unique)
-+{
-+	struct rb_node **link = &root->rb_node, *parent = NULL;
-+	const unsigned long v = node->v;
-+
-+	while (*link) {
-+		struct cma_bf_node *n;
-+		parent = *link;
-+		n = rb_entry(parent, struct cma_bf_node, n);
-+
-+		if (unlikely(unique && v == n->v))
-+			return -EBUSY;
-+
-+		link = v <= n->v ? &parent->rb_left : &parent->rb_right;
-+	}
-+
-+	rb_link_node(&node->n, parent, link);
-+	rb_insert_color(&node->n, root);
-+
-+	return 0;
-+}
-+
-+static void cma_bf_node_del(struct cma_bf_node *node, struct rb_root *root)
-+{
-+	rb_erase(&node->n, root);
-+}
-+
-+static int  cma_bf_item_add_by_start(union cma_bf_item *item,
-+				     struct cma_bf_private *prv)
-+{
-+	int ret = cma_bf_node_add(&item->start, &prv->by_start_root, true);
-+	if (WARN_ON(ret && !prv->warned))
-+		prv->warned = true;
-+	return ret;
-+}
-+
-+static void cma_bf_item_del_by_start(union cma_bf_item *item,
-+				     struct cma_bf_private *prv)
-+{
-+	cma_bf_node_del(&item->start, &prv->by_start_root);
-+}
-+
-+static void cma_bf_item_add_by_size(union cma_bf_item *item,
-+				    struct cma_bf_private *prv)
-+{
-+	cma_bf_node_add(&item->size, &prv->by_size_root, false);
-+}
-+
-+static void cma_bf_item_del_by_size(union cma_bf_item *item,
-+				    struct cma_bf_private *prv)
-+{
-+	cma_bf_node_del(&item->size, &prv->by_size_root);
-+}
-+
-+
-+/************************* Device API *************************/
-+
-+static int cma_bf_init(struct cma_region *reg)
-+{
-+	struct cma_bf_private *prv;
-+	union cma_bf_item *item;
-+
-+	prv = kzalloc(sizeof *prv, GFP_KERNEL);
-+	if (unlikely(!prv))
-+		return -ENOMEM;
-+
-+	item = kzalloc(sizeof *item, GFP_KERNEL);
-+	if (unlikely(!item)) {
-+		kfree(prv);
-+		return -ENOMEM;
-+	}
-+
-+	item->start.v = reg->start;
-+	item->size.v  = reg->size;
-+
-+	rb_root_init(&prv->by_start_root, &item->start.n);
-+	rb_root_init(&prv->by_size_root, &item->size.n);
-+	prv->warned = false;
-+
-+	reg->private_data = prv;
-+	return 0;
-+}
-+
-+static void cma_bf_cleanup(struct cma_region *reg)
-+{
-+	struct cma_bf_private *prv = reg->private_data;
-+	union cma_bf_item *item =
-+		rb_entry(prv->by_start_root.rb_node,
-+			 union cma_bf_item, start.n);
-+
-+	/* There should be only one item. */
-+	WARN_ON(!prv->warned &&
-+		(!item ||
-+		 item->start.n.rb_left || item->start.n.rb_right ||
-+		 item->size.n.rb_left || item->size.n.rb_right));
-+
-+	kfree(item);
-+	kfree(prv);
-+}
-+
-+struct cma *cma_bf_alloc(struct cma_region *reg,
-+			 size_t size, unsigned long alignment)
-+{
-+	struct cma_bf_private *prv = reg->private_data;
-+	struct rb_node *node = prv->by_size_root.rb_node;
-+	union cma_bf_item *hole = NULL, *item;
-+	unsigned long start;
-+	int ret;
-+
-+	/* First find hole that is large enough */
-+	while (node) {
-+		union cma_bf_item *item =
-+			rb_entry(node, union cma_bf_item, size.n);
-+
-+		if (item->size.v < size) {
-+			node = node->rb_right;
-+		} else if (item->size.v >= size) {
-+			node = node->rb_left;
-+			hole = item;
-+		}
-+	}
-+	if (!hole)
-+		return ERR_PTR(-ENOMEM);
-+
-+	/* Now look for items which can satisfy alignment requirements */
-+	for (;;) {
-+		unsigned long end = hole->start.v + hole->size.v;
-+		start = ALIGN(hole->start.v, alignment);
-+		if (start < end && end - start >= size)
-+			break;
-+
-+		node = rb_next(node);
-+		if (!node)
-+			return ERR_PTR(-ENOMEM);
-+
-+		hole = rb_entry(node, union cma_bf_item, size.n);
-+	}
-+
-+	/* And finally, take part of the hole */
-+
-+	/*
-+	 * There are three cases:
-+	 * 1. the chunk takes the whole hole,
-+	 * 2. the chunk is at the beginning or at the end of the hole, or
-+	 * 3. the chunk is in the middle of the hole.
-+	 */
-+
-+	/* Case 1, the whole hole */
-+	if (size == hole->size.v) {
-+		ret = __cma_grab(reg, start, size);
-+		if (ret)
-+			return ERR_PTR(ret);
-+
-+		cma_bf_item_del_by_start(hole, prv);
-+		cma_bf_item_del_by_size(hole, prv);
-+
-+		hole->chunk.phys = start;
-+		hole->chunk.size = size;
-+		return &hole->chunk;
-+	}
-+
-+	/* Allocate (so we can test early if ther's enough memory) */
-+	item = kmalloc(sizeof *item, GFP_KERNEL);
-+	if (unlikely(!item))
-+		return ERR_PTR(-ENOMEM);
-+
-+	/* Case 3, in the middle */
-+	if (start != hole->start.v &&
-+	    start + size != hole->start.v + hole->size.v) {
-+		union cma_bf_item *tail;
-+
-+		/*
-+		 * Space between the end of the chunk and the end of
-+		 * the region, ie. space left after the end of the
-+		 * chunk.  If this is dividable by alignment we can
-+		 * move the chunk to the end of the hole.
-+		 */
-+		unsigned long left =
-+			hole->start.v + hole->size.v - (start + size);
-+		if ((left & (alignment - 1)) == 0) {
-+			start += left;
-+			/* And so, we have reduced problem to case 2. */
-+			goto case_2;
-+		}
-+
-+		/*
-+		 * We are going to add a hole at the end.  This way,
-+		 * we will reduce the problem to case 2 -- the chunk
-+		 * will be at the end of a reduced hole.
-+		 */
-+		tail = kmalloc(sizeof *tail, GFP_KERNEL);
-+		if (unlikely(!tail)) {
-+			kfree(item);
-+			return ERR_PTR(-ENOMEM);
-+		}
-+
-+		tail->start.v = start + size;
-+		tail->size.v  =
-+			hole->start.v + hole->size.v - tail->start.v;
-+
-+		if (cma_bf_item_add_by_start(tail, prv))
-+			/*
-+			 * Things are broken beyond repair...  Abort
-+			 * inserting the hole but continue with the
-+			 * item.  We will loose some memory but we're
-+			 * screwed anyway.
-+			 */
-+			kfree(tail);
-+		else
-+			cma_bf_item_add_by_size(tail, prv);
-+
-+		/*
-+		 * It's important that we first insert the new hole in
-+		 * the tree sorted by size and later reduce the size
-+		 * of the old hole.  We will update the position of
-+		 * the old hole in the rb tree in code that handles
-+		 * case 2.
-+		 */
-+		hole->size.v = tail->start.v - hole->start.v;
-+
-+		/* Go to case 2 */
-+	}
-+
-+	/* Case 2, at the beginning or at the end */
-+case_2:
-+	/* No need to update the tree; order preserved. */
-+	if (start == hole->start.v)
-+		hole->start.v += size;
-+
-+	/* Alter hole's size */
-+	hole->size.v -= size;
-+	cma_bf_item_del_by_size(hole, prv);
-+	cma_bf_item_add_by_size(hole, prv);
-+
-+	item->chunk.phys = start;
-+	item->chunk.size = size;
-+	return &item->chunk;
-+}
-+
-+static void cma_bf_free(struct cma_chunk *chunk)
-+{
-+	struct cma_bf_private *prv = reg->private_data;
-+	union cma_bf_item *prev;
-+	struct rb_node *node;
-+	int twice;
-+
-+	{
-+		unsigned long start = item->chunk.phys;
-+		unsigned long size  = item->chunk.size;
-+		item->start.v = start;
-+		item->size.v = size;
-+	}
-+
-+	/* Add new hole */
-+	if (cma_bf_item_add_by_start(item, prv)) {
-+		/*
-+		 * We're screwed...  Just free the item and forget
-+		 * about it.  Things are broken beyond repair so no
-+		 * sense in trying to recover.
-+		 */
-+		kfree(item);
-+		return;
-+	}
-+
-+	cma_bf_item_add_by_size(item, prv);
-+
-+	/* Merge with prev or next sibling */
-+	twice = 2;
-+	node = rb_prev(&item->start.n);
-+	if (unlikely(!node))
-+		goto next;
-+	prev = rb_entry(node, union cma_bf_item, start.n);
-+
-+	for (;;) {
-+		if (prev->start.v + prev->size.v == item->start.v) {
-+			/* Remove previous hole from trees */
-+			cma_bf_item_del_by_start(prev, prv);
-+			cma_bf_item_del_by_size(prev, prv);
-+
-+			/* Alter this hole */
-+			item->start.v  = prev->start.v;
-+			item->size.v += prev->size.v;
-+			cma_bf_item_del_by_size(item, prv);
-+			cma_bf_item_del_by_size(item, prv);
-+			/*
-+			 * No need to update the by start trees as we
-+			 * do not break sequence order.
-+			 */
-+
-+			/* Free prev hole */
-+			kfree(prev);
-+		}
-+
-+next:
-+		if (!--twice)
-+			break;
-+
-+		node = rb_next(&item->start.n);
-+		if (unlikely(!node))
-+			break;
-+		prev = item;
-+		item = rb_entry(node, union cma_bf_item, start.n);
-+	}
-+}
-+
-+{
-+	__cma_ungrab(chunk->reg, chunk->phys, chunk->size);
-+	__cma_bf_free(chunk->reg, 
-+		      container_of(chunk, union cma_bf_item, chunk));
-+}
-+
-+/************************* Register *************************/
-+
-+static int cma_bf_module_init(void)
-+{
-+	static struct cma_allocator alloc = {
-+		.name    = "bf",
-+		.init    = cma_bf_init,
-+		.cleanup = cma_bf_cleanup,
-+		.alloc   = cma_bf_alloc,
-+		.free    = cma_bf_free,
-+	};
-+	return cma_allocator_register(&alloc);
-+}
-+module_init(cma_bf_module_init);
+ #endif /* LINUX_I2C_ID_H */
+--- linux-2.6.37-rc1.orig/drivers/video/riva/rivafb-i2c.c	2010-11-05 13:55:17.000000000 +0100
++++ linux-2.6.37-rc1/drivers/video/riva/rivafb-i2c.c	2010-11-05 13:55:19.000000000 +0100
+@@ -94,7 +94,6 @@ static int __devinit riva_setup_i2c_bus(
+ 
+ 	strcpy(chan->adapter.name, name);
+ 	chan->adapter.owner		= THIS_MODULE;
+-	chan->adapter.id		= I2C_HW_B_RIVA;
+ 	chan->adapter.class		= i2c_class;
+ 	chan->adapter.algo_data		= &chan->algo;
+ 	chan->adapter.dev.parent	= &chan->par->pdev->dev;
+
+
 -- 
-1.7.2.3
-
+Jean Delvare
