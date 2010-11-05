@@ -1,38 +1,55 @@
-Return-path: <mchehab@pedra>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:57007 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932456Ab0KOCbF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Nov 2010 21:31:05 -0500
-Received: by mail-qw0-f46.google.com with SMTP id 4so123404qwi.19
-        for <linux-media@vger.kernel.org>; Sun, 14 Nov 2010 18:31:04 -0800 (PST)
-Subject: Re: [PATCH 2/3] [media] saa7134: Remove legacy IR decoding logic inside the module
-Mime-Version: 1.0 (Apple Message framework v1081)
-Content-Type: text/plain; charset=us-ascii
-From: Jarod Wilson <jarod@wilsonet.com>
-In-Reply-To: <20101113173316.76e5a56d@pedra>
-Date: Sun, 14 Nov 2010 21:31:02 -0500
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Return-path: <mchehab@gaivota>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:27794 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752270Ab0KEUKI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Nov 2010 16:10:08 -0400
+Date: Fri, 5 Nov 2010 21:10:01 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: Linux I2C <linux-i2c@vger.kernel.org>,
+	LMML <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Jarod Wilson <jarod@redhat.com>
+Subject: [PATCH 3/3] i2c: Mark i2c_adapter.id as deprecated
+Message-ID: <20101105211001.1cc93ac7@endymion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <54797F1B-5200-4CA1-BA04-2B5A62CFC119@wilsonet.com>
-References: <cover.1289676395.git.mchehab@redhat.com> <20101113173316.76e5a56d@pedra>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Nov 13, 2010, at 2:33 PM, Mauro Carvalho Chehab wrote:
+It's about time to make it clear that i2c_adapter.id is deprecated.
+Hopefully this will remind the last user to move over to a different
+strategy.
 
-> The only IR left still using the old raw decoders on saa7134 is ENCORE
-> FM 5.3. As it is now using the standard rc-core raw decoders, lots
-> of old code can be removed from saa7134.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/i2c/i2c-mux.c |    1 -
+ include/linux/i2c.h   |    2 +-
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-Acked-by: Jarod Wilson <jarod@redhat.com>
+--- linux-2.6.37-rc1.orig/include/linux/i2c.h	2010-11-05 13:55:17.000000000 +0100
++++ linux-2.6.37-rc1/include/linux/i2c.h	2010-11-05 15:41:20.000000000 +0100
+@@ -353,7 +353,7 @@ struct i2c_algorithm {
+  */
+ struct i2c_adapter {
+ 	struct module *owner;
+-	unsigned int id;
++	unsigned int id __deprecated;
+ 	unsigned int class;		  /* classes to allow probing for */
+ 	const struct i2c_algorithm *algo; /* the algorithm to access the bus */
+ 	void *algo_data;
+--- linux-2.6.37-rc1.orig/drivers/i2c/i2c-mux.c	2010-11-05 16:06:18.000000000 +0100
++++ linux-2.6.37-rc1/drivers/i2c/i2c-mux.c	2010-11-05 16:06:33.000000000 +0100
+@@ -120,7 +120,6 @@ struct i2c_adapter *i2c_add_mux_adapter(
+ 	snprintf(priv->adap.name, sizeof(priv->adap.name),
+ 		 "i2c-%d-mux (chan_id %d)", i2c_adapter_id(parent), chan_id);
+ 	priv->adap.owner = THIS_MODULE;
+-	priv->adap.id = parent->id;
+ 	priv->adap.algo = &priv->algo;
+ 	priv->adap.algo_data = priv;
+ 	priv->adap.dev.parent = &parent->dev;
+
 
 -- 
-Jarod Wilson
-jarod@wilsonet.com
-
-
-
+Jean Delvare
