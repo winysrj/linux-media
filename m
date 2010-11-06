@@ -1,60 +1,39 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:37645 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754798Ab0KCTji convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Nov 2010 15:39:38 -0400
-Date: Wed, 3 Nov 2010 20:40:51 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: maciej.rutecki@gmail.com
-Cc: =?UTF-8?B?VMO1bnU=?= Samuel <tonu@jes.ee>,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	"linux-kernel" <linux-kernel@vger.kernel.org>
-Subject: Re: gspca for_2.6.36 - maybe does not work properly for me
-Message-ID: <20101103204051.13407da4@tele>
-In-Reply-To: <201011032007.25474.maciej.rutecki@gmail.com>
-References: <1288264077.1891.40.camel@x41.itrotid.ee>
-	<201011032007.25474.maciej.rutecki@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:37974 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753775Ab0KFVdv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Nov 2010 17:33:51 -0400
+From: Arnaud Lacombe <lacombar@gmail.com>
+To: linux-kbuild@vger.kernel.org, linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Michal Marek <mmarek@suse.cz>,
+	Arnaud Lacombe <lacombar@gmail.com>
+Subject: [PATCH 5/5] i2c/algos: convert Kconfig to use the menu's `visible' keyword
+Date: Sat,  6 Nov 2010 17:30:27 -0400
+Message-Id: <1289079027-3037-6-git-send-email-lacombar@gmail.com>
+In-Reply-To: <4CD300AC.3010708@redhat.com>
+References: <4CD300AC.3010708@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Wed, 3 Nov 2010 20:07:25 +0100
-Maciej Rutecki <maciej.rutecki@gmail.com> wrote:
+Signed-off-by: Arnaud Lacombe <lacombar@gmail.com>
+---
+ drivers/i2c/algos/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-> (add CC's)
-> On czwartek, 28 października 2010 o 13:07:57 Tõnu Samuel wrote:
-> > I am Sony PS3 Eye webcam user.
-> > 
-> > After installing 2.6.36 this camera gets recognized but actually
-> > does not work. It might be some own stupidity of improper kernel
-> > configuration but I cannot track it down at moment.
-> > 
-> > relevant dmesg:
-> > 
-> > [ 1372.224068] usb 1-5: new high speed USB device using ehci_hcd and
-> > address 5
-> > [ 1372.359574] usb 1-5: New USB device found, idVendor=1415,
-> > idProduct=2000
-> > [ 1372.359582] usb 1-5: New USB device strings: Mfr=1, Product=2,
-> > SerialNumber=0
-> > [ 1372.359588] usb 1-5: Product: USB Camera-B4.04.27.1
-> > [ 1372.359593] usb 1-5: Manufacturer: OmniVision Technologies, Inc.
-> > [ 1372.360623] gspca: probing 1415:2000
-> > [ 1372.483830] ov534: Sensor ID: 7721
-> > [ 1372.534205] ov534: frame_rate: 30
-> > [ 1372.534319] gspca: video0 created
-	[snip]
-> 2.6.35,  or  another, older kernel works OK?
-
-Hi,
-
-Yes, this is a regression. It has been fixed last month, but too late
-for 2.6.36 (commit f43402fa55bf5e7e190c176343015122f694857c).
-
-Best regards.
-
+diff --git a/drivers/i2c/algos/Kconfig b/drivers/i2c/algos/Kconfig
+index 7b2ce4a..f1cfe7e 100644
+--- a/drivers/i2c/algos/Kconfig
++++ b/drivers/i2c/algos/Kconfig
+@@ -3,7 +3,7 @@
+ #
+ 
+ menu "I2C Algorithms"
+-	depends on !I2C_HELPER_AUTO
++	visible if !I2C_HELPER_AUTO
+ 
+ config I2C_ALGOBIT
+ 	tristate "I2C bit-banging interfaces"
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+1.7.2.30.gc37d7.dirty
+
