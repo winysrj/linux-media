@@ -1,121 +1,96 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4837 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755918Ab0KPOuk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Nov 2010 09:50:40 -0500
-Message-ID: <b8ec38c9574d2b83b5e9bf9fd0bb45c1.squirrel@webmail.xs4all.nl>
-In-Reply-To: <201011161522.19758.arnd@arndb.de>
-References: <cover.1289740431.git.hverkuil@xs4all.nl>
-    <4CE281E8.3040705@redhat.com>
-    <7d7108eaf1260587bbe2cacf8f5d2db9.squirrel@webmail.xs4all.nl>
-    <201011161522.19758.arnd@arndb.de>
-Date: Tue, 16 Nov 2010 15:50:21 +0100
-Subject: Re: [RFC PATCH 0/8] V4L BKL removal: first round
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Arnd Bergmann" <arnd@arndb.de>
-Cc: "Mauro Carvalho Chehab" <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
+Return-path: <mchehab@gaivota>
+Received: from 190.225.192-77.rev.gaoland.net ([77.192.225.190]:40773 "EHLO
+	lissyx.dyndns.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750919Ab0KFSuV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Nov 2010 14:50:21 -0400
+Message-ID: <4CD5A23D.3070409@lissyx.dyndns.org>
+Date: Sat, 06 Nov 2010 19:45:17 +0100
+From: Alexandre LISSY <lissyx@lissyx.dyndns.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: linux-media@vger.kernel.org
+CC: n_estre@yahoo.fr
+Subject: New initial DVB-T tuning for Tours (France)
+Content-Type: multipart/mixed;
+ boundary="------------090100020901080004030106"
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+
+This is a multi-part message in MIME format.
+--------------090100020901080004030106
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+Hello,
+
+A couple of weeks ago, the transponder for Tours in Chissay
+(Loir-et-Cher, 41) has been updated and new frequencies are used.
+Consequently, the initial DVB-T tuning informations used by many
+software (dvb-apps, kaffeine, etc.) are now unusable for people
+depending on this transponder.
+
+Attached is an updated file (fr-Tours) I just generated with the new
+values. A sample channels.conf, channels.tmp.conf, is also attached for
+information. This one has been generated using the fr-Tours provided.
 
 
-> On Tuesday 16 November 2010, Hans Verkuil wrote:
->> No, it will also affect e.g. two bttv cards that you capture from in
->> parallel. Or two webcams, or...
->
-> Would it be safe to turn the global mutex into a per-driver or per-device
-> mutex? That would largely mitigate the impact as far as I can tell.
+--------------090100020901080004030106
+Content-Type: text/plain;
+ name="fr-Tours"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="fr-Tours"
 
-What would work better is to add a mutex to struct v4l2_device (which is
-the top-level struct for v4l devices) and have the core lock that.
-
-A pointer to this struct is available in vdev->v4l2_dev. However, not all
-drivers implement struct v4l2_device. But on the other hand, most relevant
-drivers do. So as a fallback we would still need a static mutex.
-
-What would be best is to add an #ifdef CONFIG_LOCK_KERNEL and use the BKL
-there. In the #else we can use a v4l2_device mutex, or (if not set) a
-static mutex.
-
-Hardly elegant, but it'll have to do.
-
->> We can't just ditch the BKL yet for 2.6.37 IMHO. Perhaps for 2.6.38 if
->> we
->> all work really hard to convert everything.
->
-> Linus was pretty clear in that he wanted to make the default for the BKL
-> disabled for 2.6.37. That may of course change if there are significant
-> problems with this, but as long as there is an easier way, we could do
-> that instead.
->
-> I have not tested the patch below, but maybe that would solve the
-> immediate problem without reverting v4l2-dev back to use the BKL.
->
-> It would not work if we have drivers that need to serialize access
-> to multiple v4l2 devices in their ioctl functions because they access
-> global data, which is unlikely but possible.
-
-It's very likely, I'm afraid :-(
-
-Regards,
-
-       Hans
-
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
->
-> diff --git a/drivers/media/video/v4l2-dev.c
-> b/drivers/media/video/v4l2-dev.c
-> index 03f7f46..5873d12 100644
-> --- a/drivers/media/video/v4l2-dev.c
-> +++ b/drivers/media/video/v4l2-dev.c
-> @@ -246,12 +246,11 @@ static long v4l2_ioctl(struct file *filp, unsigned
-> int cmd, unsigned long arg)
->  			mutex_unlock(vdev->lock);
->  	} else if (vdev->fops->ioctl) {
->  		/* TODO: convert all drivers to unlocked_ioctl */
-> -		static DEFINE_MUTEX(v4l2_ioctl_mutex);
-> -
-> -		mutex_lock(&v4l2_ioctl_mutex);
-> -		if (video_is_registered(vdev))
-> +		if (video_is_registered(vdev)) {
-> +			mutex_lock(&vdev->ioctl_lock);
->  			ret = vdev->fops->ioctl(filp, cmd, arg);
-> -		mutex_unlock(&v4l2_ioctl_mutex);
-> +			mutex_unlock(&vdev->ioctl_lock);
-> +		}
->  	} else
->  		ret = -ENOTTY;
->
-> @@ -507,6 +506,7 @@ static int __video_register_device(struct video_device
-> *vdev, int type, int nr,
->  #endif
->  	vdev->minor = i + minor_offset;
->  	vdev->num = nr;
-> +	mutex_init(&vdev->ioctl_lock);
->  	devnode_set(vdev);
->
->  	/* Should not happen since we thought this minor was free */
-> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-> index 15802a0..e8a8485 100644
-> --- a/include/media/v4l2-dev.h
-> +++ b/include/media/v4l2-dev.h
-> @@ -97,6 +97,9 @@ struct video_device
->
->  	/* serialization lock */
->  	struct mutex *lock;
-> +
-> +	/* used for the legacy locked ioctl */
-> +	struct mutex ioctl_lock;
->  };
->
->  /* dev to video-device */
->
+# Tours (Chissay) - France
+# Initial DVB-T tuning as of 19 october 2010
+#
+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+T 498000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+T 578000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+T 602000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+T 610000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+T 690000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+T 714000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
 
 
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+--------------090100020901080004030106
+Content-Type: text/plain;
+ name="channels.tmp.conf"
+Content-Transfer-Encoding: 8bit
+Content-Disposition: attachment;
+ filename="channels.tmp.conf"
 
+CANAL+:498167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:170:120:769
+CANAL+ CINEMA:498167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:161:0:770
+CANAL+ SPORT:498167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:162:0:771
+PLANETE:498167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:163:92:772
+TPS STAR:498167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:165:100:774
+France 2:578167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:120:130:257
+France 5:578167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:320:330:260
+France Ô:578167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:520:530:261
+LCP:578167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:620:630:262
+France3:578167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:220:230:275
+TV TOURS:578167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:720:730:369
+TF1 HD:602167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:120:0:1281
+France 2 HD:602167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:220:0:1282
+M6HD:602167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:320:0:1283
+Direct 8:610167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:120:130:513
+BFM TV:610167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:320:330:515
+i>TELE:610167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:420:430:516
+DirectStar:610167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:520:530:517
+Gulli:610167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:620:630:518
+France 4:610167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:720:730:519
+M6:690167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:120:130:1025
+W9:690167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:220:230:1026
+NT1:690167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:320:330:1027
+PARIS PREMIERE:690167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:421:435:1028
+ARTE HD:690167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:720:730:1031
+TF1:714167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:120:130:1537
+NRJ12:714167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:220:230:1538
+LCI:714167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:320:330:1539
+Eurosport :714167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:420:430:1540
+TF6:714167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:520:530:1541
+TMC:714167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:620:630:1542
+ARTE:714167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:720:730:1543
+
+
+--------------090100020901080004030106--
