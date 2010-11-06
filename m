@@ -1,58 +1,63 @@
-Return-path: <mchehab@pedra>
-Received: from bear.ext.ti.com ([192.94.94.41]:58874 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933174Ab0KPOeX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Nov 2010 09:34:23 -0500
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 16 Nov 2010 08:34:19 -0600
-Subject: RE: [omap3isp][PATCH v2 0/9] YUV support for CCDC + cleanups
-Message-ID: <A24693684029E5489D1D202277BE89447382A32E@dlee02.ent.ti.com>
-References: <1289831401-593-1-git-send-email-saaguirre@ti.com>
- <201011161244.45127.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201011161244.45127.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Return-path: <mchehab@gaivota>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:44901 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753776Ab0KFVdn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Nov 2010 17:33:43 -0400
+From: Arnaud Lacombe <lacombar@gmail.com>
+To: linux-kbuild@vger.kernel.org, linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Michal Marek <mmarek@suse.cz>,
+	Arnaud Lacombe <lacombar@gmail.com>
+Subject: [PATCH 3/5] Revert "i2c: Fix Kconfig dependencies"
+Date: Sat,  6 Nov 2010 17:30:25 -0400
+Message-Id: <1289079027-3037-4-git-send-email-lacombar@gmail.com>
+In-Reply-To: <4CD300AC.3010708@redhat.com>
+References: <4CD300AC.3010708@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
+This reverts commit 0a57274ea026c2b7670683947b6cc08b195148cf.
 
+Signed-off-by: Arnaud Lacombe <lacombar@gmail.com>
+---
+ drivers/i2c/Kconfig       |    3 +--
+ drivers/i2c/algos/Kconfig |   12 ------------
+ 2 files changed, 1 insertions(+), 14 deletions(-)
 
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Tuesday, November 16, 2010 5:45 AM
-> To: Aguirre, Sergio
-> Cc: linux-media@vger.kernel.org
-> Subject: Re: [omap3isp][PATCH v2 0/9] YUV support for CCDC + cleanups
-> 
-> Hi Sergio,
+diff --git a/drivers/i2c/Kconfig b/drivers/i2c/Kconfig
+index b923074..30f06e9 100644
+--- a/drivers/i2c/Kconfig
++++ b/drivers/i2c/Kconfig
+@@ -75,8 +75,7 @@ config I2C_HELPER_AUTO
+ 	  In doubt, say Y.
+ 
+ config I2C_SMBUS
+-	tristate
+-	prompt "SMBus-specific protocols" if !I2C_HELPER_AUTO
++	tristate "SMBus-specific protocols" if !I2C_HELPER_AUTO
+ 	help
+ 	  Say Y here if you want support for SMBus extensions to the I2C
+ 	  specification. At the moment, the only supported extension is
+diff --git a/drivers/i2c/algos/Kconfig b/drivers/i2c/algos/Kconfig
+index 3998dd6..7b2ce4a 100644
+--- a/drivers/i2c/algos/Kconfig
++++ b/drivers/i2c/algos/Kconfig
+@@ -15,15 +15,3 @@ config I2C_ALGOPCA
+ 	tristate "I2C PCA 9564 interfaces"
+ 
+ endmenu
+-
+-# In automatic configuration mode, we still have to define the
+-# symbols to avoid unmet dependencies.
+-
+-if I2C_HELPER_AUTO
+-config I2C_ALGOBIT
+-	tristate
+-config I2C_ALGOPCF
+-	tristate
+-config I2C_ALGOPCA
+-	tristate
+-endif
+-- 
+1.7.2.30.gc37d7.dirty
 
-Hi Laurent,
-
-> 
-> Thanks for the patches.
-
-You're welcome.
-
-> 
-> I've reviewed and tested them and found no issue. They will be a small
-> delay
-> as I need to sync our internal tree with the public tree before applying
-> them.
-
-Not a problem.
-
-Thanks for your time.
-
-Regards,
-Sergio
-
-> 
-> --
-> Regards,
-> 
-> Laurent Pinchart
