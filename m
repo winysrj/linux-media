@@ -1,69 +1,45 @@
-Return-path: <mchehab@pedra>
-Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198]:33143 "EHLO
-	mta3.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756825Ab0KJQMH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Nov 2010 11:12:07 -0500
-Received: from TheShoveller.local
- (ool-4572125f.dyn.optonline.net [69.114.18.95]) by mta3.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0LBO00G1KFNZN2L0@mta3.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Wed, 10 Nov 2010 11:12:05 -0500 (EST)
-Date: Wed, 10 Nov 2010 11:11:59 -0500
-From: Steven Toth <stoth@kernellabs.com>
-Subject: Re: Bounty for the first Open Source driver for Kinect
-In-reply-to: <20101110165438.632e487b.ospite@studenti.unina.it>
-To: Antonio Ospite <ospite@studenti.unina.it>
-Cc: Mohamed Ikbel Boulabiar <boulabiar@gmail.com>,
-	linux-media@vger.kernel.org
-Message-id: <4CDAC44F.8060707@kernellabs.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7BIT
-References: <AANLkTimMJ+u0qXs=LJ+XZ2HH6Ubc4fTSqseXFJAzMJnX@mail.gmail.com>
- <AANLkTimCRU2ZoF0=CjP4D5C4YPdZtHZfp_xYgUiP0g1J@mail.gmail.com>
- <20101110165438.632e487b.ospite@studenti.unina.it>
+Return-path: <mchehab@gaivota>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:38534 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754536Ab0KFNdA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Nov 2010 09:33:00 -0400
+Received: by yxk8 with SMTP id 8so2681834yxk.19
+        for <linux-media@vger.kernel.org>; Sat, 06 Nov 2010 06:33:00 -0700 (PDT)
+Message-ID: <4CD559C6.7040106@gmail.com>
+Date: Sat, 06 Nov 2010 09:36:06 -0400
+From: Emmanuel <eallaud@gmail.com>
+MIME-Version: 1.0
+CC: linux-media@vger.kernel.org
+Subject: Re: Proftuners S2-8000 support
+References: <AANLkTi=LedNdgYkBa2Si3dpnnMDqPv=zr=AVx3GkM3GD@mail.gmail.com>
+In-Reply-To: <AANLkTi=LedNdgYkBa2Si3dpnnMDqPv=zr=AVx3GkM3GD@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On 11/10/10 10:54 AM, Antonio Ospite wrote:
-> On Wed, 10 Nov 2010 15:20:40 +0100
-> Mohamed Ikbel Boulabiar <boulabiar@gmail.com> wrote:
-> 
->> MS Kinect interfacing via libusb released
->> http://www.youtube.com/watch?v=rKhW-cvpkks
->>
->> http://git.marcansoft.com/?p=libfreenect.git
->>
-> 
-> Good, if anyone is willing to provide the hardware I think I can help
-> with a proper gspca driver (I helped with the PS3 Eye already). Are
-> there other RGB-Depth cams supported in linux? Are they usually exposed
-> just as two distinct cameras?
+T. Taner a écrit :
+> Hi,
+>
+> I have recently purchased Proftuners S2-8000 PCI-e card which consist of :
+>
+> * CX23885 pci-e interface
+> * STB6100 Frontend
+> * STV0900 Demodulator
+>
+> Vendor company supposed that card has Linux support via additional
+> patch in their support page. I applied patch to v4l-dvb and
+> s2-liplianin repositories. Patched source compiled and modules loaded
+> successfully, but it didn't work properly. I got mass of error
+> messages below, during launching VDR application.
+>
+> Insructions: http://www.proftuners.com/driver8000.html
+> Patch: http://www.proftuners.com/sites/default/files/prof8000.patch
+>
+>   
 
-Antonio,
-
-Excellent!
-
-If you are willing to donate your personal time freely to Linux then Kernel Labs
-are willing to assist by shipping a Kinect unit to you.
-
-Let me be clear, Kernel Labs have no commercial interest in this project. We
-simply like to encourage Linux media projects where possible. Projects like this
-are good for Linux and thus good for the community.
-
-My only requirement is that you post regular project status emails to this
-mailing list so we can all benefit from your thoughts, rants, any problems or
-comments on the project! :)
-
-Drop me a private email if you're interested.
-
-Regards,
-
-- Steve
-
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
-
-
+So... any news for support and 45Msps DVB-S2 capability?
+TIA
+Bye
+Manu
