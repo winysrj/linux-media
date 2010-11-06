@@ -1,45 +1,59 @@
-Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:50672 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1753904Ab0KKPb6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Nov 2010 10:31:58 -0500
-Date: Thu, 11 Nov 2010 16:32:02 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-cc: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: mediabus enums
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A7C8C@dbde02.ent.ti.com>
-Message-ID: <Pine.LNX.4.64.1011111553320.15747@axis700.grange>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A7C8C@dbde02.ent.ti.com>
+Return-path: <mchehab@gaivota>
+Received: from mx1.redhat.com ([209.132.183.28]:54018 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753138Ab0KFW2x (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Nov 2010 18:28:53 -0400
+Message-ID: <4CD5D67F.9040307@redhat.com>
+Date: Sat, 06 Nov 2010 18:28:15 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Arnaud Lacombe <lacombar@gmail.com>
+CC: linux-kbuild@vger.kernel.org, linux-media@vger.kernel.org,
+	Michal Marek <mmarek@suse.cz>
+Subject: Re: [PATCH 0/5] Re: REGRESSION: Re: [GIT] kconfig rc fixes
+References: <4CD300AC.3010708@redhat.com> <1289079027-3037-1-git-send-email-lacombar@gmail.com>
+In-Reply-To: <1289079027-3037-1-git-send-email-lacombar@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Wed, 10 Nov 2010, Hadli, Manjunath wrote:
+Em 06-11-2010 17:30, Arnaud Lacombe escreveu:
+> Hi,
+> 
+> This should do the job.
+> 
 
-> Hello Guennadi,
->    Your media-bus enumerations capture the formats quite well. I needed 
-> the following for support on Davinci SOCs and liked to check with you if 
-> these are covered in some format in the list.
-> 1. Parallel RGB 666 (18 data lines+ 5 sync lines)
-> 2. YUYV16 (16 lines) (16 data lines + 4 or 5 sync lines)
+Thank you, Arnaud! Good job!
 
-According to the subdev-formats.xml
+I'm currently at the airport preparing to take an international flight
+to return back home from LPC. I'll test your patch series tomorrow or more likely
+during the beginning of the next week. There are probably few more drivers/media
+Kconfig files that need to use "visible if" option to remove all warnings, 
+but it will be a trivial fix.
 
-http://git.linuxtv.org/pinchartl/media.git?a=blob;f=Documentation/DocBook/v4l/subdev-formats.xml;h=3688f27185f72ab109e3094c268e04f67cb8643e;hb=refs/heads/media-0003-subdev-pad
+Thanks!
+Mauro
 
-they should be called V4L2_MBUS_FMT_RGB666_1X18 (or BGR666...) and 
-V4L2_MBUS_FMT_YUYV16_1X16. Notice, that these codes do not define the 
-complete bus topology, e.g., they say nothing about sync signals. This is 
-a separate topic.
+> A.
+> 
+> Arnaud Lacombe (5):
+>   kconfig: add an option to determine a menu's visibility
+>   kconfig: regen parser
+>   Revert "i2c: Fix Kconfig dependencies"
+>   media/video: convert Kconfig to use the menu's `visible' keyword
+>   i2c/algos: convert Kconfig to use the menu's `visible' keyword
+> 
+>  drivers/i2c/Kconfig                  |    3 +-
+>  drivers/i2c/algos/Kconfig            |   14 +-
+>  drivers/media/video/Kconfig          |    2 +-
+>  scripts/kconfig/expr.h               |    1 +
+>  scripts/kconfig/lkc.h                |    1 +
+>  scripts/kconfig/menu.c               |   11 +
+>  scripts/kconfig/zconf.gperf          |    1 +
+>  scripts/kconfig/zconf.hash.c_shipped |  122 ++++----
+>  scripts/kconfig/zconf.tab.c_shipped  |  570 +++++++++++++++++----------------
+>  scripts/kconfig/zconf.y              |   21 +-
+>  10 files changed, 393 insertions(+), 353 deletions(-)
+> 
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
