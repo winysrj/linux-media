@@ -1,25 +1,22 @@
-Return-path: <mchehab@pedra>
+Return-path: <mchehab@gaivota>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <xhakerek@o2.pl>) id 1PFCIB-0003zH-H8
-	for linux-dvb@linuxtv.org; Sun, 07 Nov 2010 21:56:48 +0100
-Received: from mailout1.go2.pl ([193.17.41.11])
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-d) with esmtp
+	(envelope-from <dehqan65@gmail.com>) id 1PEo9J-0001es-4Q
+	for linux-dvb@linuxtv.org; Sat, 06 Nov 2010 20:10:01 +0100
+Received: from mail-qw0-f54.google.com ([209.85.216.54])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-a) with esmtp
 	for <linux-dvb@linuxtv.org>
-	id 1PFCIB-0003A5-0P; Sun, 07 Nov 2010 21:56:47 +0100
-Received: from mailout1.go2.pl (unknown [10.0.0.104])
-	by mailout1.go2.pl (Postfix) with ESMTP id 60BAA30005
-	for <linux-dvb@linuxtv.org>; Sun,  7 Nov 2010 21:56:46 +0100 (CET)
-Received: from o2.pl (unknown [10.0.0.28])
-	by mailout1.go2.pl (Postfix) with SMTP
-	for <linux-dvb@linuxtv.org>; Sun,  7 Nov 2010 21:56:43 +0100 (CET)
-From: xhakerek@o2.pl
-To: linux-dvb@linuxtv.org
-Mime-Version: 1.0
-Message-ID: <59d87a03.5ef50bae.4cd7128a.16197@o2.pl
-Date: Sun, 07 Nov 2010 21:56:42 +0100
-Subject: [linux-dvb] =?utf-8?q?USALS_support_for_TechniSat_SkyStar_HD/Tech?=
-	=?utf-8?q?noTrend_TT-Budget_S2-3200?=
+	id 1PEo9I-0005rc-BX; Sat, 06 Nov 2010 20:10:00 +0100
+Received: by qwg8 with SMTP id 8so4085972qwg.41
+	for <linux-dvb@linuxtv.org>; Sat, 06 Nov 2010 12:09:59 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <AANLkTim9kkFuORZHwtC+Wd2BN8HJRxCtEr+2zP5P9cx3@mail.gmail.com>
+References: <AANLkTim9kkFuORZHwtC+Wd2BN8HJRxCtEr+2zP5P9cx3@mail.gmail.com>
+Date: Sat, 6 Nov 2010 22:39:55 +0330
+Message-ID: <AANLkTi=a63M3KasUOAb69UxHivgPxRLy8GJC+Nnp=UDx@mail.gmail.com>
+From: dehqan65 <dehqan65@gmail.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
+Subject: [linux-dvb] Fwd: Analog TV shoow has not sound
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -31,10 +28,38 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello, I have SkyStar HD card with SG2100 positioner but USALS is not working with vdr and mythtv. I am using gentoo Linux and checked vdr: 1.6,(gotox patch) 1.7.9(vdr-rotor), 1.7.12, 1.7.13, 1.7.14(gotox patch) and mythtv 0.22 with no success. Positioner works good with my old card(bt878). What can I do to help you to solve this problem? Vdr-rotor hangs when entering in rotor menu, with patch it simply does not work. I can move my rotor with xdipo but have no idea how to check usals with it. It is my third whole day(and half of the night) with no success, please help me:(
+---------- Forwarded message ----------
+From: dehqan65 <dehqan65@gmail.com>
+Date: Sat, 6 Nov 2010 22:34:44 +0330
+Subject: Analog TV shoow has not sound
+To: linux-media <linux-media@vger.kernel.org>
+
+In The Name Of God The compassionate merciful
+
+
+Hello ;
+Good day
+i-humble have bought a usb hybrid dongel with tlg2300 chipset.
+dvb-t works fine with vlc .
+ .
+1-but analog TV has not sound .(while there is no susppend and hibrenate before)
+these 2 ways both have not sound with tv show:
+
+mplayer -tv chanlist=us-bcast tv://
+
+OR
+
+vlc v4l2:///dev/video0  :input-slave=alsa://hw:1,0 :v4l2-standard=1
+:v4l2-tuner-frequency=495250
+
+audio codec of analog tv is :PCM S16LE (araw)
+what is the problem , how to solve it ?
+maybe you need this http://pastebin.com/dYwAQFxq
+
+Regards dehqan
 
 _______________________________________________
 linux-dvb users mailing list
