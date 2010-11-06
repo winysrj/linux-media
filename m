@@ -1,284 +1,39 @@
-Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:20228 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759889Ab0KQIjr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Nov 2010 03:39:47 -0500
-Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LC000CJETE8CJ@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 17 Nov 2010 08:39:44 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LC000E4ETE7FY@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 17 Nov 2010 08:39:44 +0000 (GMT)
-Date: Wed, 17 Nov 2010 09:39:30 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 3/7] v4l: videobuf2: add vmalloc allocator
-In-reply-to: <1289983174-2835-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	kyungmin.park@samsung.com
-Message-id: <1289983174-2835-4-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1289983174-2835-1-git-send-email-m.szyprowski@samsung.com>
+Return-path: <mchehab@gaivota>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:48563 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753697Ab0KFVdt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Nov 2010 17:33:49 -0400
+From: Arnaud Lacombe <lacombar@gmail.com>
+To: linux-kbuild@vger.kernel.org, linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Michal Marek <mmarek@suse.cz>,
+	Arnaud Lacombe <lacombar@gmail.com>
+Subject: [PATCH 4/5] media/video: convert Kconfig to use the menu's `visible' keyword
+Date: Sat,  6 Nov 2010 17:30:26 -0400
+Message-Id: <1289079027-3037-5-git-send-email-lacombar@gmail.com>
+In-Reply-To: <4CD300AC.3010708@redhat.com>
+References: <4CD300AC.3010708@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-From: Pawel Osciak <p.osciak@samsung.com>
-
-Add an implementation of contiguous virtual memory allocator and handling
-routines for videobuf2, implemented on top of vmalloc()/vfree() calls.
-
-Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: Pawel Osciak <pawel@osciak.com>
+Signed-off-by: Arnaud Lacombe <lacombar@gmail.com>
 ---
- drivers/media/video/Kconfig             |    5 +
- drivers/media/video/Makefile            |    1 +
- drivers/media/video/videobuf2-vmalloc.c |  177 +++++++++++++++++++++++++++++++
- include/media/videobuf2-vmalloc.h       |   16 +++
- 4 files changed, 199 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/videobuf2-vmalloc.c
- create mode 100644 include/media/videobuf2-vmalloc.h
+ drivers/media/video/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 83ce858..9351423 100644
+index ac16e81..6830d28 100644
 --- a/drivers/media/video/Kconfig
 +++ b/drivers/media/video/Kconfig
-@@ -55,6 +55,11 @@ config VIDEOBUF2_CORE
- config VIDEOBUF2_MEMOPS
- 	tristate
- 
-+config VIDEOBUF2_VMALLOC
-+	select VIDEOBUF2_CORE
-+	select VIDEOBUF2_MEMOPS
-+	tristate
-+
+@@ -112,7 +112,7 @@ config VIDEO_IR_I2C
  #
- # Multimedia Video device configuration
- #
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index a97a2a0..538bee9 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -116,6 +116,7 @@ obj-$(CONFIG_VIDEO_BTCX)  += btcx-risc.o
  
- obj-$(CONFIG_VIDEOBUF2_CORE)		+= videobuf2-core.o
- obj-$(CONFIG_VIDEOBUF2_MEMOPS)		+= videobuf2-memops.o
-+obj-$(CONFIG_VIDEOBUF2_VMALLOC)		+= videobuf2-vmalloc.o
+ menu "Encoders/decoders and other helper chips"
+-	depends on !VIDEO_HELPER_CHIPS_AUTO
++	visible if !VIDEO_HELPER_CHIPS_AUTO
  
- obj-$(CONFIG_V4L2_MEM2MEM_DEV) += v4l2-mem2mem.o
+ comment "Audio decoders"
  
-diff --git a/drivers/media/video/videobuf2-vmalloc.c b/drivers/media/video/videobuf2-vmalloc.c
-new file mode 100644
-index 0000000..3310900
---- /dev/null
-+++ b/drivers/media/video/videobuf2-vmalloc.c
-@@ -0,0 +1,177 @@
-+/*
-+ * videobuf2-vmalloc.c - vmalloc memory allocator for videobuf2
-+ *
-+ * Copyright (C) 2010 Samsung Electronics
-+ *
-+ * Author: Pawel Osciak <p.osciak@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/mm.h>
-+#include <linux/slab.h>
-+#include <linux/vmalloc.h>
-+
-+#include <media/videobuf2-core.h>
-+#include <media/videobuf2-memops.h>
-+
-+struct vb2_vmalloc_conf {
-+	struct vb2_alloc_ctx	alloc_ctx;
-+};
-+
-+struct vb2_vmalloc_buf {
-+	void			*vaddr;
-+	unsigned long		size;
-+	unsigned int		refcount;
-+};
-+
-+static void *vb2_vmalloc_alloc(const struct vb2_alloc_ctx *alloc_ctx,
-+				unsigned long size)
-+{
-+	struct vb2_vmalloc_buf *buf;
-+
-+	buf = kzalloc(sizeof *buf, GFP_KERNEL);
-+	if (!buf)
-+		return NULL;
-+
-+	buf->size = size;
-+	buf->vaddr = vmalloc_user(buf->size);
-+	if (!buf->vaddr) {
-+		printk(KERN_ERR "vmalloc of size %ld failed\n", buf->size);
-+		kfree(buf);
-+		return NULL;
-+	}
-+
-+	buf->refcount++;
-+	printk(KERN_DEBUG "Allocated vmalloc buffer of size %ld at vaddr=%p\n",
-+			buf->size, buf->vaddr);
-+
-+	return buf;
-+}
-+
-+static void vb2_vmalloc_put(void *buf_priv)
-+{
-+	struct vb2_vmalloc_buf *buf = buf_priv;
-+
-+	buf->refcount--;
-+
-+	if (0 == buf->refcount) {
-+		printk(KERN_DEBUG "%s: Freeing vmalloc mem at vaddr=%p\n",
-+			__func__, buf->vaddr);
-+		vfree(buf->vaddr);
-+		kfree(buf);
-+	}
-+}
-+
-+static void *vb2_vmalloc_vaddr(void *buf_priv)
-+{
-+	struct vb2_vmalloc_buf *buf = buf_priv;
-+
-+	BUG_ON(!buf);
-+
-+	if (!buf->vaddr) {
-+		printk(KERN_ERR "Address of an unallocated "
-+				"plane requested\n");
-+		return NULL;
-+	}
-+
-+	return buf->vaddr;
-+}
-+
-+static unsigned int vb2_vmalloc_num_users(void *buf_priv)
-+{
-+	struct vb2_vmalloc_buf *buf = buf_priv;
-+
-+	return buf->refcount;
-+}
-+
-+/* TODO generalize and extract to core as much as possible */
-+static void vb2_vmalloc_vm_open(struct vm_area_struct *vma)
-+{
-+	struct vb2_vmalloc_buf *buf = vma->vm_private_data;
-+
-+	printk(KERN_DEBUG "%s vmalloc_priv: %p, refcount: %d, "
-+			"vma: %08lx-%08lx\n", __func__, buf, buf->refcount,
-+			vma->vm_start, vma->vm_end);
-+
-+	buf->refcount++;
-+}
-+
-+static void vb2_vmalloc_vm_close(struct vm_area_struct *vma)
-+{
-+	struct vb2_vmalloc_buf *buf = vma->vm_private_data;
-+
-+	printk(KERN_DEBUG "%s vmalloc_priv: %p, refcount: %d, "
-+			"vma: %08lx-%08lx\n", __func__, buf, buf->refcount,
-+			vma->vm_start, vma->vm_end);
-+
-+	vb2_vmalloc_put(buf);
-+}
-+
-+static const struct vm_operations_struct vb2_vmalloc_vm_ops = {
-+	.open = vb2_vmalloc_vm_open,
-+	.close = vb2_vmalloc_vm_close,
-+};
-+
-+static int vb2_vmalloc_mmap(void *buf_priv, struct vm_area_struct *vma)
-+{
-+	struct vb2_vmalloc_buf *buf = buf_priv;
-+	int ret;
-+
-+	if (!buf) {
-+		printk(KERN_ERR "No memory to map\n");
-+		return -EINVAL;
-+	}
-+
-+	ret = remap_vmalloc_range(vma, buf->vaddr, 0);
-+	if (ret) {
-+		printk(KERN_ERR "Remapping vmalloc memory, error: %d\n", ret);
-+		return ret;
-+	}
-+
-+	vma->vm_flags		|= VM_DONTEXPAND | VM_RESERVED;
-+	vma->vm_private_data	= buf;
-+	vma->vm_ops		= &vb2_vmalloc_vm_ops;
-+
-+	vb2_vmalloc_vm_open(vma);
-+
-+	return 0;
-+}
-+
-+static const struct vb2_mem_ops vb2_vmalloc_ops = {
-+	.alloc		= vb2_vmalloc_alloc,
-+	.put		= vb2_vmalloc_put,
-+	.vaddr		= vb2_vmalloc_vaddr,
-+	.mmap		= vb2_vmalloc_mmap,
-+	.num_users	= vb2_vmalloc_num_users,
-+};
-+
-+struct vb2_alloc_ctx *vb2_vmalloc_init(void)
-+{
-+	struct vb2_vmalloc_conf *conf;
-+
-+	conf = kzalloc(sizeof *conf, GFP_KERNEL);
-+	if (!conf)
-+		return ERR_PTR(-ENOMEM);
-+
-+	conf->alloc_ctx.mem_ops = &vb2_vmalloc_ops;
-+
-+	return &conf->alloc_ctx;
-+}
-+EXPORT_SYMBOL_GPL(vb2_vmalloc_init);
-+
-+void vb2_vmalloc_cleanup(struct vb2_alloc_ctx *alloc_ctx)
-+{
-+	struct vb2_vmalloc_conf *conf =
-+		container_of(alloc_ctx, struct vb2_vmalloc_conf, alloc_ctx);
-+
-+	kfree(conf);
-+}
-+EXPORT_SYMBOL_GPL(vb2_vmalloc_cleanup);
-+
-+MODULE_DESCRIPTION("vmalloc memory handling routines for videobuf2");
-+MODULE_AUTHOR("Pawel Osciak");
-+MODULE_LICENSE("GPL");
-diff --git a/include/media/videobuf2-vmalloc.h b/include/media/videobuf2-vmalloc.h
-new file mode 100644
-index 0000000..7612f9f
---- /dev/null
-+++ b/include/media/videobuf2-vmalloc.h
-@@ -0,0 +1,16 @@
-+/*
-+ * videobuf2-vmalloc.h - vmalloc memory allocator for videobuf2
-+ *
-+ * Copyright (C) 2010 Samsung Electronics
-+ *
-+ * Author: Pawel Osciak <p.osciak@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation.
-+ */
-+
-+#include <media/videobuf2-core.h>
-+
-+struct vb2_alloc_ctx *vb2_vmalloc_init(void);
-+void vb2_vmalloc_cleanup(struct vb2_alloc_ctx *alloc_ctx);
 -- 
-1.7.1.569.g6f426
+1.7.2.30.gc37d7.dirty
 
