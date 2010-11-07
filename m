@@ -1,100 +1,92 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp.nokia.com ([147.243.128.26]:29963 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752355Ab0KSKFR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 05:05:17 -0500
-Date: Fri, 19 Nov 2010 12:06:13 +0200
-From: David Cohen <david.cohen@nokia.com>
-To: ext Sergio Aguirre <saaguirre@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [omap3isp][PATCH v2 8/9] omap3isp: ccp2: Make SYSCONFIG fields
- consistent
-Message-ID: <20101119100613.GA13490@esdhcp04381.research.nokia.com>
-References: <1289831401-593-1-git-send-email-saaguirre@ti.com>
- <1289831401-593-9-git-send-email-saaguirre@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1289831401-593-9-git-send-email-saaguirre@ti.com>
+Return-path: <mchehab@pedra>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:11998 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753309Ab0KGPyk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Nov 2010 10:54:40 -0500
+Date: Sun, 7 Nov 2010 16:53:44 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Michel Ludwig <michel.ludwig@gmail.com>,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 1/2] TM6000: Clean-up i2c initialization
+Message-ID: <20101107165344.4243b602@endymion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Sergio,
+Usage of templates for large structures is a bad idea, as it wastes a
+lot of space. Manually initializing the few fields we need is way more
+efficient.
 
-I've few comments below.
+Also set the algorithm data const, use strlcpy instead of strcpy, fix
+a small race (device data must always be set before registering said
+device) and properly return error on adapter registration failure.
 
-On Mon, Nov 15, 2010 at 03:30:00PM +0100, ext Sergio Aguirre wrote:
-> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> ---
->  drivers/media/video/isp/ispccp2.c |    3 +--
->  drivers/media/video/isp/ispreg.h  |   14 ++++++++------
->  2 files changed, 9 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/video/isp/ispccp2.c b/drivers/media/video/isp/ispccp2.c
-> index fa23394..3127a74 100644
-> --- a/drivers/media/video/isp/ispccp2.c
-> +++ b/drivers/media/video/isp/ispccp2.c
-> @@ -419,8 +419,7 @@ static void ispccp2_mem_configure(struct isp_ccp2_device *ccp2,
->  		config->src_ofst = 0;
->  	}
->  
-> -	isp_reg_writel(isp, (ISPCSI1_MIDLEMODE_SMARTSTANDBY <<
-> -		       ISPCSI1_MIDLEMODE_SHIFT),
-> +	isp_reg_writel(isp, ISPCCP2_SYSCONFIG_MSTANDBY_MODE_SMART,
->  		       OMAP3_ISP_IOMEM_CCP2, ISPCCP2_SYSCONFIG);
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Michel Ludwig <michel.ludwig@gmail.com>
+Cc: Stefan Ringel <stefan.ringel@arcor.de>
+---
+Untested, I don't have the hardware.
 
-To make your cleanup even better, you could change isp_reg_clr_set() instead.
-If CCP2 MSTANDY_MODE is set to NOSTANDY, the result is going to be an
-invalid 0x3 value. Despite it cannot happen with the current code, it's
-still better to avoid such situations for future versions. :)
+ drivers/staging/tm6000/tm6000-i2c.c |   27 ++++++++++-----------------
+ 1 file changed, 10 insertions(+), 17 deletions(-)
 
->  
->  	/* Hsize, Skip */
-> diff --git a/drivers/media/video/isp/ispreg.h b/drivers/media/video/isp/ispreg.h
-> index d885541..9b0d3ad 100644
-> --- a/drivers/media/video/isp/ispreg.h
-> +++ b/drivers/media/video/isp/ispreg.h
-> @@ -141,6 +141,14 @@
->  #define ISPCCP2_REVISION		(0x000)
->  #define ISPCCP2_SYSCONFIG		(0x004)
->  #define ISPCCP2_SYSCONFIG_SOFT_RESET	(1 << 1)
-> +#define ISPCCP2_SYSCONFIG_AUTO_IDLE		0x1
-> +#define ISPCCP2_SYSCONFIG_MSTANDBY_MODE_SHIFT	12
-> +#define ISPCCP2_SYSCONFIG_MSTANDBY_MODE_FORCE	\
-> +	(0x0 << ISPCCP2_SYSCONFIG_MSTANDBY_MODE_SHIFT)
-> +#define ISPCCP2_SYSCONFIG_MSTANDBY_MODE_NO	\
-> +	(0x1 << ISPCCP2_SYSCONFIG_MSTANDBY_MODE_SHIFT)
-> +#define ISPCCP2_SYSCONFIG_MSTANDBY_MODE_SMART	\
-> +	(0x2 << ISPCCP2_SYSCONFIG_MSTANDBY_MODE_SHIFT)
+--- linux-2.6.36-rc7.orig/drivers/staging/tm6000/tm6000-i2c.c	2010-10-13 09:56:21.000000000 +0200
++++ linux-2.6.36-rc7/drivers/staging/tm6000/tm6000-i2c.c	2010-10-13 10:52:26.000000000 +0200
+@@ -313,21 +313,11 @@ static u32 functionality(struct i2c_adap
+ 	msleep(10);							\
+ 	}
+ 
+-static struct i2c_algorithm tm6000_algo = {
++static const struct i2c_algorithm tm6000_algo = {
+ 	.master_xfer   = tm6000_i2c_xfer,
+ 	.functionality = functionality,
+ };
+ 
+-static struct i2c_adapter tm6000_adap_template = {
+-	.owner = THIS_MODULE,
+-	.name = "tm6000",
+-	.algo = &tm6000_algo,
+-};
+-
+-static struct i2c_client tm6000_client_template = {
+-	.name = "tm6000 internal",
+-};
+-
+ /* ----------------------------------------------------------- */
+ 
+ /*
+@@ -337,17 +327,20 @@ static struct i2c_client tm6000_client_t
+ int tm6000_i2c_register(struct tm6000_core *dev)
+ {
+ 	unsigned char eedata[256];
++	int rc;
+ 
+-	dev->i2c_adap = tm6000_adap_template;
++	dev->i2c_adap.owner = THIS_MODULE;
++	dev->i2c_adap.algo = &tm6000_algo;
+ 	dev->i2c_adap.dev.parent = &dev->udev->dev;
+-	strcpy(dev->i2c_adap.name, dev->name);
++	strlcpy(dev->i2c_adap.name, dev->name, sizeof(dev->i2c_adap.name));
+ 	dev->i2c_adap.algo_data = dev;
+-	i2c_add_adapter(&dev->i2c_adap);
++	i2c_set_adapdata(&dev->i2c_adap, &dev->v4l2_dev);
++	rc = i2c_add_adapter(&dev->i2c_adap);
++	if (rc)
++		return rc;
+ 
+-	dev->i2c_client = tm6000_client_template;
+ 	dev->i2c_client.adapter = &dev->i2c_adap;
+-
+-	i2c_set_adapdata(&dev->i2c_adap, &dev->v4l2_dev);
++	strlcpy(dev->i2c_client.name, "tm6000 internal", I2C_NAME_SIZE);
+ 
+ 	tm6000_i2c_eeprom(dev, eedata, sizeof(eedata));
+ 
 
-You can add some ISPCCP2_SYSCONFIG_MSTANDY_MODE_MASK, as 2 bits must be
-always set together.
 
-Regards,
-
-David Cohen
-
->  #define ISPCCP2_SYSSTATUS		(0x008)
->  #define ISPCCP2_SYSSTATUS_RESET_DONE	(1 << 0)
->  #define ISPCCP2_LC01_IRQENABLE		(0x00C)
-> @@ -1309,12 +1317,6 @@
->  #define ISPMMU_SIDLEMODE_SMARTIDLE		2
->  #define ISPMMU_SIDLEMODE_SHIFT			3
->  
-> -#define ISPCSI1_AUTOIDLE			0x1
-> -#define ISPCSI1_MIDLEMODE_SHIFT			12
-> -#define ISPCSI1_MIDLEMODE_FORCESTANDBY		0x0
-> -#define ISPCSI1_MIDLEMODE_NOSTANDBY		0x1
-> -#define ISPCSI1_MIDLEMODE_SMARTSTANDBY		0x2
-> -
->  /* -----------------------------------------------------------------------------
->   * CSI2 receiver registers (ES2.0)
->   */
-> -- 
-> 1.7.0.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Jean Delvare
