@@ -1,134 +1,121 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:45330 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1754283Ab0KJNBX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Nov 2010 08:01:23 -0500
-Date: Wed, 10 Nov 2010 14:01:23 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Wolfram Sang <w.sang@pengutronix.de>
-cc: linux-i2c@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Greg Kroah-Hartman <gregkh@suse.de>,
-	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Hong Liu <hong.liu@intel.com>, Alan Cox <alan@linux.intel.com>,
-	Anantha Narayanan <anantha.narayanan@intel.com>,
-	Andres Salomon <dilinger@queued.net>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	devel@driverdev.osuosl.org
-Subject: Re: [PATCH] i2c: Remove obsolete cleanup for clientdata
-In-Reply-To: <1289392100-32668-1-git-send-email-w.sang@pengutronix.de>
-Message-ID: <Pine.LNX.4.64.1011101359480.13739@axis700.grange>
-References: <1289392100-32668-1-git-send-email-w.sang@pengutronix.de>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:33798 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752444Ab0KGJLD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Nov 2010 04:11:03 -0500
+Received: by iwn41 with SMTP id 41so2710018iwn.19
+        for <linux-media@vger.kernel.org>; Sun, 07 Nov 2010 01:11:02 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <4CD630EA.8040409@maxwell.research.nokia.com>
+References: <AANLkTint8J4NdXQ4v1wmKAKWa7oeSHsdOn8JzjDqCqeY@mail.gmail.com>
+	<4CD161B3.9000709@maxwell.research.nokia.com>
+	<AANLkTikTAo71Kr+Nh8Q8DOMFwWB=gLQSXozgGo8ecYwm@mail.gmail.com>
+	<201011040434.53836.laurent.pinchart@ideasonboard.com>
+	<AANLkTik56opb35vrTnsP=U0F+24uvAWxjtnoGnW18Yta@mail.gmail.com>
+	<AANLkTi=drc6qQeYx_RHOAuQHZ=h6wy6m9fhHsatAjoQU@mail.gmail.com>
+	<4CD413E4.20401@matrix-vision.de>
+	<4CD630EA.8040409@maxwell.research.nokia.com>
+Date: Sun, 7 Nov 2010 10:11:02 +0100
+Message-ID: <AANLkTiks64D3t4j+maWNG4+ZOspYE0hMg8Pf8_XcrGw8@mail.gmail.com>
+Subject: Re: OMAP3530 ISP irqs disabled
+From: Bastian Hecht <hechtb@googlemail.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Cc: Michael Jones <michael.jones@matrix-vision.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 10 Nov 2010, Wolfram Sang wrote:
+2010/11/7 Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>:
+> Hi all!
+>
+> Michael Jones wrote:
+>> Hi Bastian (Laurent, and Sakari),
+>>>
+>>> I want to clarify this:
+>>>
+>>> I try to read images with yafta.
+>>> I read in 4 images with 5MP size (no skipping). All 4 images contain only zeros.
+>>> I repeat the process some times and keep checking the data. After -
+>>> let's say the 6th time - the images contain exactly the data I expect.
+>>> WHEN they are read they are good. I just don't want to read 20 black
+>>> images before 1 image is transferred right.
+>>>
+>>> -Bastian
+>>>
+>>
+>> I'm on to your problem, having reproduced it myself. I suspect that
+> you're actually only getting one frame: your very first buffer. You
+> don't touch it, and neither does the CCDC after you requeue it, and
+> after you've cycled through all your other buffers, you get back the
+> non-zero frame. If you clear the "good" frame in your application once,
+> you won't get any more non-zero frames afterwards. Or if you request
+> more buffers, you'll have fewer non-zero frames. That's the behavior I
+> observe.
+>
+> (FYI: your lines are quite long, well over 80 characters.)
+>
+> Have you checked the ISP writes data to the buffers? It's good to try
+> with a known pattern that you can't get from a sensor.
+>
+>>
+>> The CCDC is getting disabled by the VD1 interrupt:
+>> ispccdc_vd1_isr()->__ispccdc_handle_stopping()->__ispccdc_enable(ccdc,
+>> 0)
+>>
+>> To test this theory I tried disabling the VD1 interrupt, but it
+>> didn't
+> solve the problem. In fact, I was still getting VD1 interrupts even
+> though I had disabled them. Has anybody else observed that VD1 cannot be
+> disabled?
+>>
+>> I also found it strange that the CCDC seemed to continue to generate interrupts when it's disabled.
+>
+> Yes, the CCDC VD0 and VD1 counters keep counting even if the module is
+> disabled. That is a known problem.
+>
+> The VD0 interrupts are ignored as long as there are no buffers queued.
+>
+> How many buffers do you have btw.?
+>
+>> Here's my suggestion for a fix, hopefully Laurent or Sakari can comment on it:
+>>
+>> --- a/drivers/media/video/isp/ispccdc.c
+>> +++ b/drivers/media/video/isp/ispccdc.c
+>> @@ -1477,7 +1477,7 @@ static void ispccdc_vd1_isr(struct isp_ccdc_device *ccdc)
+>>         spin_lock_irqsave(&ccdc->lsc.req_lock, flags);
+>>
+>>         /* We are about to stop CCDC and/without LSC */
+>> -       if ((ccdc->output & CCDC_OUTPUT_MEMORY) ||
+>> +       if ((ccdc->output & CCDC_OUTPUT_MEMORY) &&
+>>             (ccdc->state == ISP_PIPELINE_STREAM_SINGLESHOT))
+>>                 ccdc->stopping = CCDC_STOP_REQUEST;
+>
+> Does this fix the problem? ISP_PIPELINE_STREAM_SINGLESHOT is there for
+> memory sources and I do not think this is a correct fix.
 
-> A few new i2c-drivers came into the kernel which clear the clientdata-pointer
-> on exit. This is obsolete meanwhile, so fix it and hope the word will spread.
-> 
-> Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+It fixes the problem for me. I read 2 frames now, the first is half
+full, but the second gets synchronized nicely then and I got my first
+picture out of it. It works reliable now.
 
-for imx074 and ov6650:
+> Is your VSYNC on falling or rising edge? This is defined for CCP2 and
+> this is what the driver was originally written for. If it's different
+> (rising??), you should apply the attached wildly opportunistic patch,
+> which I do not expect to fix this problem, however.
 
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+I got rising HSYNC and rising VSINC sampled at falling pixelclock.
 
-Thanks
-Guennadi
+- Bastian
 
-> ---
-> 
-> Like last time I suggest to collect acks from the driver authors and merge it
-> vie Jean's i2c-tree.
-> 
->  drivers/media/video/imx074.c          |    2 --
->  drivers/media/video/ov6650.c          |    2 --
->  drivers/misc/apds9802als.c            |    1 -
->  drivers/staging/olpc_dcon/olpc_dcon.c |    3 ---
->  4 files changed, 0 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/video/imx074.c b/drivers/media/video/imx074.c
-> index 380e459..27b5dfd 100644
-> --- a/drivers/media/video/imx074.c
-> +++ b/drivers/media/video/imx074.c
-> @@ -451,7 +451,6 @@ static int imx074_probe(struct i2c_client *client,
->  	ret = imx074_video_probe(icd, client);
->  	if (ret < 0) {
->  		icd->ops = NULL;
-> -		i2c_set_clientdata(client, NULL);
->  		kfree(priv);
->  		return ret;
->  	}
-> @@ -468,7 +467,6 @@ static int imx074_remove(struct i2c_client *client)
->  	icd->ops = NULL;
->  	if (icl->free_bus)
->  		icl->free_bus(icl);
-> -	i2c_set_clientdata(client, NULL);
->  	client->driver = NULL;
->  	kfree(priv);
->  
-> diff --git a/drivers/media/video/ov6650.c b/drivers/media/video/ov6650.c
-> index b7cfeab..2dd5298 100644
-> --- a/drivers/media/video/ov6650.c
-> +++ b/drivers/media/video/ov6650.c
-> @@ -1176,7 +1176,6 @@ static int ov6650_probe(struct i2c_client *client,
->  
->  	if (ret) {
->  		icd->ops = NULL;
-> -		i2c_set_clientdata(client, NULL);
->  		kfree(priv);
->  	}
->  
-> @@ -1187,7 +1186,6 @@ static int ov6650_remove(struct i2c_client *client)
->  {
->  	struct ov6650 *priv = to_ov6650(client);
->  
-> -	i2c_set_clientdata(client, NULL);
->  	kfree(priv);
->  	return 0;
->  }
-> diff --git a/drivers/misc/apds9802als.c b/drivers/misc/apds9802als.c
-> index f9b91ba..abe3d21 100644
-> --- a/drivers/misc/apds9802als.c
-> +++ b/drivers/misc/apds9802als.c
-> @@ -251,7 +251,6 @@ static int apds9802als_probe(struct i2c_client *client,
->  
->  	return res;
->  als_error1:
-> -	i2c_set_clientdata(client, NULL);
->  	kfree(data);
->  	return res;
->  }
-> diff --git a/drivers/staging/olpc_dcon/olpc_dcon.c b/drivers/staging/olpc_dcon/olpc_dcon.c
-> index 75aa7a36..f286a4c 100644
-> --- a/drivers/staging/olpc_dcon/olpc_dcon.c
-> +++ b/drivers/staging/olpc_dcon/olpc_dcon.c
-> @@ -733,7 +733,6 @@ static int dcon_probe(struct i2c_client *client, const struct i2c_device_id *id)
->   edev:
->  	platform_device_unregister(dcon_device);
->  	dcon_device = NULL;
-> -	i2c_set_clientdata(client, NULL);
->   eirq:
->  	free_irq(DCON_IRQ, &dcon_driver);
->   einit:
-> @@ -757,8 +756,6 @@ static int dcon_remove(struct i2c_client *client)
->  		platform_device_unregister(dcon_device);
->  	cancel_work_sync(&dcon_work);
->  
-> -	i2c_set_clientdata(client, NULL);
-> -
->  	return 0;
->  }
->  
-> -- 
-> 1.7.2.3
-> 
-> 
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+> But I might be just pointing you to wrong direction, better wait for
+> Laurent's answer. :-)
+>
+> Cheers,
+>
+> --
+> Sakari Ailus
+> sakari.ailus@maxwell.research.nokia.com
+>
