@@ -1,30 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:57021 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752167Ab0KLRVD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Nov 2010 12:21:03 -0500
-Received: by qwh5 with SMTP id 5so55751qwh.19
-        for <linux-media@vger.kernel.org>; Fri, 12 Nov 2010 09:21:02 -0800 (PST)
+Received: from swampdragon.chaosbits.net ([90.184.90.115]:39349 "EHLO
+	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755971Ab0KHXUH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Nov 2010 18:20:07 -0500
+Date: Tue, 9 Nov 2010 00:08:41 +0100 (CET)
+From: Jesper Juhl <jj@chaosbits.net>
+To: linux-kernel@vger.kernel.org
+cc: trivial@kernel.org, linux-media@vger.kernel.org,
+	Jelle Foks <jelle@foks.us>, Gerd Knorr <kraxel@bytesex.org>,
+	Steven Toth <stoth@linuxtv.org>
+Subject: [PATCH 04/17][trivial] drivers/media/, cx231xx-417: Remove unnecessary
+ casts of void ptr returning alloc function return values
+Message-ID: <alpine.LNX.2.00.1011082318590.23697@swampdragon.chaosbits.net>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTikUD_EFr7oM2Vb+7RfPzozz5+of=EJy7np3n=YK@mail.gmail.com>
-References: <AANLkTi=P57eJV8MuWDNbVG=LouhD04_d3TdUHQWoVfoX@mail.gmail.com>
-	<AANLkTikUD_EFr7oM2Vb+7RfPzozz5+of=EJy7np3n=YK@mail.gmail.com>
-Date: Fri, 12 Nov 2010 19:21:02 +0200
-Message-ID: <AANLkTik5jvGePHYenNGEv2QoSznpYu+c1msc=b-kGD5o@mail.gmail.com>
-Subject: Re: Leadtek WinFast PxPVR2200
-From: Anca Emanuel <anca.emanuel@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	"David T. L. Wong" <davidtlwong@gmail.com>,
-	Michael Krufky <mkrufky@kernellabs.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Douglas Schilling Landgraf <dougsland@redhat.com>,
-	"Hans J. Koch" <hjk@linutronix.de>, Jiri Kosina <jkosina@suse.cz>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-I think I found the firmware.
-http://rapidshare.com/files/430422366/fw64.zip
+Hi,
+
+The [vk][cmz]alloc(_node) family of functions return void pointers which
+it's completely unnecessary/pointless to cast to other pointer types since
+that happens implicitly.
+
+This patch removes such casts from drivers/media/
+
+
+Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+---
+ cx231xx-417.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+diff --git a/drivers/media/video/cx231xx/cx231xx-417.c b/drivers/media/video/cx231xx/cx231xx-417.c
+index aab21f3..42075dc 100644
+--- a/drivers/media/video/cx231xx/cx231xx-417.c
++++ b/drivers/media/video/cx231xx/cx231xx-417.c
+@@ -941,14 +941,14 @@ static int cx231xx_load_firmware(struct cx231xx *dev)
+ 	u16 _buffer_size = 4096;
+ 	u8 *p_buffer;
+ 
+-	p_current_fw = (u32 *)vmalloc(1884180*4);
++	p_current_fw = vmalloc(1884180*4);
+ 	p_fw = p_current_fw;
+ 	if (p_current_fw == 0) {
+ 		dprintk(2, "FAIL!!!\n");
+ 		return -1;
+ 	}
+ 
+-	p_buffer = (u8 *)vmalloc(4096);
++	p_buffer = vmalloc(4096);
+ 	if (p_buffer == 0) {
+ 		dprintk(2, "FAIL!!!\n");
+ 		return -1;
+
+
+
+-- 
+Jesper Juhl <jj@chaosbits.net>             http://www.chaosbits.net/
+Don't top-post  http://www.catb.org/~esr/jargon/html/T/top-post.html
+Plain text mails only, please.
+
