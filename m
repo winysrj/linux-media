@@ -1,63 +1,85 @@
 Return-path: <mchehab@pedra>
-Received: from ozlabs.org ([203.10.76.45]:55501 "EHLO ozlabs.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751569Ab0KRGnP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Nov 2010 01:43:15 -0500
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Subject: [PATCH] V4L/DVB: cx88: Add module parameter to disable IR
-Message-Id: <1290062581.41867.321546213719.1.gpush@pororo>
-To: <linux-media@vger.kernel.org>
-From: Jeremy Kerr <jeremy.kerr@canonical.com>
-Date: Thu, 18 Nov 2010 14:43:01 +0800
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:40864 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753702Ab0KHUwu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Nov 2010 15:52:50 -0500
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Baruch Siach <baruch@tkos.co.il>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Subject: [PATCH] soc-camera: Compile fixes for mx2-camera
+Date: Mon,  8 Nov 2010 21:52:45 +0100
+Message-Id: <1289249565-18346-1-git-send-email-s.hauer@pengutronix.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Jeremy Kerr <jk@ozlabs.org>
+mx2-camera got broken during the last merge window. This patch
+fixes this and removes some unused variables.
 
-Currently, the cx88-input code unconditionally establishes an input
-device for IR events. On some cards, this sets up a hrtimer to poll the
-IR status frequently - I get around 200 wakeups per second from this
-polling, and don't use the IR ports.
-
-Although the hrtimer is only run when the input device is opened, the
-device is actually unconditionally opened by kbd_connect, because we
-have the EV_KEY bit set in the input device descriptor. In effect, the
-IR device is always opened (and so polling) if CONFIG_VT.
-
-This change adds a module parameter, 'ir_disable' to disable the IR
-code, and not register this input device at all. This drastically
-reduces the number of wakeups per second for me.
-
-Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
-
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
 ---
- drivers/media/video/cx88/cx88-input.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/media/video/mx2_camera.c |   13 +++++--------
+ 1 files changed, 5 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/video/cx88/cx88-input.c b/drivers/media/video/cx88/cx88-input.c
-index fc777bc..d49af18 100644
---- a/drivers/media/video/cx88/cx88-input.c
-+++ b/drivers/media/video/cx88/cx88-input.c
-@@ -67,6 +67,10 @@ static int ir_debug;
- module_param(ir_debug, int, 0644);	/* debug level [IR] */
- MODULE_PARM_DESC(ir_debug, "enable debug messages [IR]");
+diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+index 4a27862..072bd2d 100644
+--- a/drivers/media/video/mx2_camera.c
++++ b/drivers/media/video/mx2_camera.c
+@@ -31,6 +31,7 @@
  
-+static int ir_disable;
-+module_param(ir_disable, int, 0644);
-+MODULE_PARM_DESC(ir_disable, "disable IR support");
-+
- #define ir_dprintk(fmt, arg...)	if (ir_debug) \
- 	printk(KERN_DEBUG "%s IR: " fmt , ir->core->name , ##arg)
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-dev.h>
++#include <media/videobuf-core.h>
+ #include <media/videobuf-dma-contig.h>
+ #include <media/soc_camera.h>
+ #include <media/soc_mediabus.h>
+@@ -903,8 +904,6 @@ static int mx2_camera_set_crop(struct soc_camera_device *icd,
+ static int mx2_camera_set_fmt(struct soc_camera_device *icd,
+ 			       struct v4l2_format *f)
+ {
+-	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+-	struct mx2_camera_dev *pcdev = ici->priv;
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+ 	const struct soc_camera_format_xlate *xlate;
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+@@ -943,8 +942,6 @@ static int mx2_camera_set_fmt(struct soc_camera_device *icd,
+ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
+ 				  struct v4l2_format *f)
+ {
+-	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+-	struct mx2_camera_dev *pcdev = ici->priv;
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+ 	const struct soc_camera_format_xlate *xlate;
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+@@ -1024,13 +1021,13 @@ static int mx2_camera_querycap(struct soc_camera_host *ici,
+ 	return 0;
+ }
  
-@@ -244,6 +248,9 @@ int cx88_ir_init(struct cx88_core *core, struct pci_dev *pci)
- 				 * used with a full-code IR table
- 				 */
+-static int mx2_camera_reqbufs(struct soc_camera_file *icf,
++static int mx2_camera_reqbufs(struct soc_camera_device *icd,
+ 			      struct v4l2_requestbuffers *p)
+ {
+ 	int i;
  
-+	if (ir_disable)
-+		return 0;
-+
- 	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
- 	input_dev = input_allocate_device();
- 	if (!ir || !input_dev)
+ 	for (i = 0; i < p->count; i++) {
+-		struct mx2_buffer *buf = container_of(icf->vb_vidq.bufs[i],
++		struct mx2_buffer *buf = container_of(icd->vb_vidq.bufs[i],
+ 						      struct mx2_buffer, vb);
+ 		INIT_LIST_HEAD(&buf->vb.queue);
+ 	}
+@@ -1151,9 +1148,9 @@ err_out:
+ 
+ static unsigned int mx2_camera_poll(struct file *file, poll_table *pt)
+ {
+-	struct soc_camera_file *icf = file->private_data;
++	struct soc_camera_device *icd = file->private_data;
+ 
+-	return videobuf_poll_stream(file, &icf->vb_vidq, pt);
++	return videobuf_poll_stream(file, &icd->vb_vidq, pt);
+ }
+ 
+ static struct soc_camera_host_ops mx2_soc_camera_host_ops = {
+-- 
+1.7.2.3
+
