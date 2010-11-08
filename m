@@ -1,18 +1,21 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.11])
+Received: from mx1.redhat.com (ext-mx10.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.14])
 	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id oA80QMjd007255
-	for <video4linux-list@redhat.com>; Sun, 7 Nov 2010 19:26:22 -0500
-Received: from nm15-vm0.bullet.mail.sp2.yahoo.com
-	(nm15-vm0.bullet.mail.sp2.yahoo.com [98.139.91.208])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id oA80Q95A013778
-	for <video4linux-list@redhat.com>; Sun, 7 Nov 2010 19:26:09 -0500
-Message-ID: <707287.64563.qm@web111704.mail.gq1.yahoo.com>
-Date: Sun, 7 Nov 2010 16:12:39 -0800 (PST)
-From: Mike Farrell <gccdragoonkain@yahoo.com>
-To: video4linux-list@redhat.com, coolguys@novell.com
+	id oA8Hiers032306
+	for <video4linux-list@redhat.com>; Mon, 8 Nov 2010 12:44:40 -0500
+Received: from mail-ew0-f46.google.com (mail-ew0-f46.google.com
+	[209.85.215.46])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oA8HiOXL002350
+	for <video4linux-list@redhat.com>; Mon, 8 Nov 2010 12:44:25 -0500
+Received: by ewy7 with SMTP id 7so3052428ewy.33
+	for <video4linux-list@redhat.com>; Mon, 08 Nov 2010 09:44:24 -0800 (PST)
 MIME-Version: 1.0
+From: Vikram Ivatury <vikramivatury@gmail.com>
+Date: Mon, 8 Nov 2010 12:44:03 -0500
+Message-ID: <AANLkTikp9Ao9eVb61kL7aOUYiMzKBKO0+WxhN29E548J@mail.gmail.com>
+Subject: Output Format Problems
+To: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,10 +29,22 @@ Errors-To: video4linux-list-bounces@redhat.com
 Sender: <mchehab@pedra>
 List-ID: <video4linux-list@redhat.com>
 
-http://www.gulaymurat.com/to.php
+Hello All,
 
+I am trying to use the ISI "capture" example program and the CMOS camera
+that I am using is capturing an image. However, anything red in the image
+turns blue in the output. How can I go about changing this in the ISI
+"capture" program? There is a YUV to RGB conversion that I believe is
+causing the error with the Y, U or V values. Any suggestions?
 
-      
+Thanks,
+Vikram
+-- 
+Vikram Ivatury
+University of Michigan | Aerospace Engineering
+Multi-Disciplinary Design | Space Systems Engineering
+M-Cubed | Payload Team Lead
+(301)-908-0448
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
