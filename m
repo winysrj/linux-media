@@ -1,15 +1,15 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com (ext-mx09.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.13])
-	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP
-	id oAI1SIEx025158
-	for <video4linux-list@redhat.com>; Wed, 17 Nov 2010 20:28:18 -0500
-Received: from nm11-vm0.bullet.mail.ne1.yahoo.com
-	(nm11-vm0.bullet.mail.ne1.yahoo.com [98.138.90.58])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id oAI1S5XB013714
-	for <video4linux-list@redhat.com>; Wed, 17 Nov 2010 20:28:05 -0500
-Message-ID: <507636.78388.qm@web111707.mail.gq1.yahoo.com>
-Date: Wed, 17 Nov 2010 17:14:57 -0800 (PST)
+Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.11])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id oA80QMjd007255
+	for <video4linux-list@redhat.com>; Sun, 7 Nov 2010 19:26:22 -0500
+Received: from nm15-vm0.bullet.mail.sp2.yahoo.com
+	(nm15-vm0.bullet.mail.sp2.yahoo.com [98.139.91.208])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id oA80Q95A013778
+	for <video4linux-list@redhat.com>; Sun, 7 Nov 2010 19:26:09 -0500
+Message-ID: <707287.64563.qm@web111704.mail.gq1.yahoo.com>
+Date: Sun, 7 Nov 2010 16:12:39 -0800 (PST)
 From: Mike Farrell <gccdragoonkain@yahoo.com>
 To: video4linux-list@redhat.com, coolguys@novell.com
 MIME-Version: 1.0
@@ -26,7 +26,7 @@ Errors-To: video4linux-list-bounces@redhat.com
 Sender: <mchehab@pedra>
 List-ID: <video4linux-list@redhat.com>
 
-http://www.grupponext.net/to.php
+http://www.gulaymurat.com/to.php
 
 
       
