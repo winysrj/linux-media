@@ -1,50 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:34705 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751507Ab0KGS4c convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Nov 2010 13:56:32 -0500
-Subject: Re: [PATCH 1/3] i2c: Delete unused adapter IDs
-Mime-Version: 1.0 (Apple Message framework v1081)
-Content-Type: text/plain; charset=us-ascii
-From: Jarod Wilson <jarod@wilsonet.com>
-In-Reply-To: <20101105210645.6e47498c@endymion.delvare>
-Date: Sun, 7 Nov 2010 13:56:29 -0500
-Cc: Linux I2C <linux-i2c@vger.kernel.org>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Jarod Wilson <jarod@redhat.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:60375 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750901Ab0KHFne convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Nov 2010 00:43:34 -0500
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.1011020821300.3804@axis700.grange>
+References: <AANLkTikJNdcnRbNwv4j8zfv4TfSqOgB2K=UD4UFfL=q4@mail.gmail.com>
+	<Pine.LNX.4.64.1011020821300.3804@axis700.grange>
+Date: Sun, 7 Nov 2010 22:43:33 -0700
+Message-ID: <AANLkTikww_o+L0hS8jFhL+u2EGvZMQPogY_F89Kcm1xT@mail.gmail.com>
+Subject: Re: V4L2 and framebuffer for the same controller
+From: Jun Nie <niej0001@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	linux-fbdev@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
-Message-Id: <833D252B-AB88-4895-849F-2F8C8E5400A6@wilsonet.com>
-References: <20101105210645.6e47498c@endymion.delvare>
-To: Jean Delvare <khali@linux-fr.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Nov 5, 2010, at 4:06 PM, Jean Delvare wrote:
+2010/11/2 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> Hi Jun
+>
+> On Fri, 29 Oct 2010, Jun Nie wrote:
+>
+>> Hi Guennadi,
+>>     I find that your idea of "provide a generic framebuffer driver
+>> that could sit on top of a v4l output driver", which may be a good
+>> solution of our LCD controller driver, or maybe much more other SOC
+>> LCD drivers. V4L2 interface support many features than framebuffer for
+>> video playback usage, such as buffer queue/dequeue, quality control,
+>> etc. However, framebuffer is common for UI display. Implement two
+>> drivers for one controller is a challenge for current architecture.
+>>     I am interested in your idea. Could you elaborate it? Or do you
+>> think multifunction driver is the right solution for this the
+>> scenario?
+>
+> Right, we have discussed this idea at the V4L2/MC mini-summit earlier this
+> year, there the outcome was, that the idea is not bad, but it is easy
+> enough to create such framebuffer additions on top of specific v4l2 output
+> drivers anyway, so, noone was interested enough to start designing and
+> implementing such a generic wrapper driver. However, I've heard, that this
+> topic has also been scheduled for discussion at another v4l / kernel
+> meeting (plumbers?), so, someone might be looking into implementing
+> this... If you yourself would like to do that - feel free to propose a
+> design on both mailing lists (fbdev added to cc), then we can discuss it,
+> and you can implement it;)
+>
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+>
 
-> Delete unused I2C adapter IDs. Special cases are:
-> 
-> * I2C_HW_B_RIVA was still set in driver rivafb, however no other
->  driver is ever looking for this value, so we can safely remove it.
-> * I2C_HW_B_HDPVR is used in staging driver lirc_zilog, however no
->  adapter ID is ever set to this value, so the code in question never
->  runs. As the code additionally expects that I2C_HW_B_HDPVR may not
->  be defined, we can delete it now and let the lirc_zilog driver
->  maintainer rewrite this piece of code.
-> 
-> Big thanks for Hans Verkuil for doing all the hard work :)
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Cc: Jarod Wilson <jarod@redhat.com>
+Good to know others are also interested in it. I surely can contribute
+to it. But my concern is how to support Xwindow. Android and Ubuntu
+should both run on our platform. Queue/deque should work well for
+Android UI. I still can not figure out how to support Xwindow, for it
+does not interact with driver after it get the mmaped buffer.
 
-I think I2C_HW_B_HDPVR was only being used by a not-yet-merged-upstream patch to the hdpvr driver, which enabled the IR functionality on it. Its not merged, as enabling it seems to like to lock the unit up from time to time, and nobody (myself included) has had time to figure out why. In any case, it should be perfectly fine to nuke that, we need to fix lirc_zilog regardless.
-
-Acked-by: Jarod Wilson <jarod@redhat.com>
-
--- 
-Jarod Wilson
-jarod@wilsonet.com
-
-
-
+Jun
