@@ -1,78 +1,39 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:53885 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1755999Ab0KJNE6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Nov 2010 08:04:58 -0500
-Date: Wed, 10 Nov 2010 14:05:01 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Baruch Siach <baruch@tkos.co.il>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sascha Hauer <kernel@pengutronix.de>
-Subject: Re: [PATCH] mx2_camera: fix pixel clock polarity configuration
-In-Reply-To: <20101110121445.GF26776@jasper.tkos.co.il>
-Message-ID: <Pine.LNX.4.64.1011101401400.13739@axis700.grange>
-References: <a54ec7e539912fd6009803cffa331b028fdb9a67.1288162873.git.baruch@tkos.co.il>
- <20101110121445.GF26776@jasper.tkos.co.il>
+Received: from mail1.matrix-vision.com ([78.47.19.71]:51418 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752420Ab0KHM1B (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Nov 2010 07:27:01 -0500
+Message-ID: <4CD7EC8C.1020505@matrix-vision.de>
+Date: Mon, 08 Nov 2010 13:26:52 +0100
+From: Michael Jones <michael.jones@matrix-vision.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Bastian Hecht <hechtb@googlemail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: OMAP3530 ISP irqs disabled
+References: <AANLkTint8J4NdXQ4v1wmKAKWa7oeSHsdOn8JzjDqCqeY@mail.gmail.com> <4CD413E4.20401@matrix-vision.de> <4CD630EA.8040409@maxwell.research.nokia.com> <201011080416.16090.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201011080416.16090.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 10 Nov 2010, Baruch Siach wrote:
-
-> Hi linux-media,
-> 
-> On Wed, Oct 27, 2010 at 09:03:52AM +0200, Baruch Siach wrote:
-> > When SOCAM_PCLK_SAMPLE_FALLING, just leave CSICR1_REDGE unset, otherwise we get
-> > the inverted behaviour.
-> > 
-> > Signed-off-by: Baruch Siach <baruch@tkos.co.il>
-> 
-> Trying my luck again. Now adding Guennadi to Cc.
-
-Trying again will not help, until you reply to my previous comment, and 
-you, probably, will not reply to it, until your mail-server stops 
-rejecting my mails, and it probably will reject this one too in a way 
-similar too
-
-<baruch@tkos.co.il>:
-62.219.50.35_does_not_like_recipient./Remote_host_said:_550_5.7.1_<baruch@tkos.co.il>..._Rejected_recent_spam_sourc
-e_[mailout-de.gmx.net]_Reply_at_http://tk-open-systems.com/unblockme/index.php?id=tango/Giving_up_on_62.219.50.35./
-
-Thanks
-Guennadi
+Laurent Pinchart wrote:
 
 > 
-> This is a real bug fix, BTW.
-> 
-> baruch
-> 
-> > ---
-> >  drivers/media/video/mx2_camera.c |    2 --
-> >  1 files changed, 0 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-> > index 3ea2ec0..02f144f 100644
-> > --- a/drivers/media/video/mx2_camera.c
-> > +++ b/drivers/media/video/mx2_camera.c
-> > @@ -811,8 +811,6 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd,
-> >  
-> >  	if (common_flags & SOCAM_PCLK_SAMPLE_RISING)
-> >  		csicr1 |= CSICR1_REDGE;
-> > -	if (common_flags & SOCAM_PCLK_SAMPLE_FALLING)
-> > -		csicr1 |= CSICR1_INV_PCLK;
-> >  	if (common_flags & SOCAM_VSYNC_ACTIVE_HIGH)
-> >  		csicr1 |= CSICR1_SOF_POL;
-> >  	if (common_flags & SOCAM_HSYNC_ACTIVE_HIGH)
-> > -- 
-> 
-> -- 
->                                                      ~. .~   Tk Open Systems
-> =}------------------------------------------------ooO--U--Ooo------------{=
->    - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
+> Sorry for the late reply, I've been travelling for the past two weeks and had 
+> no hardware to test this on. I will try the latest code on a board with a 
+> parallel sensor and I'll let you know if I can reproduce the problem.
 > 
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+If I'm correct about the problem, it's not about the parallel sensor,
+it's about writing the data from the CCDC to memory.  I expect the
+problem to occur with a serial sensor too if the CCDC writes to memory.
+
+-- 
+Michael Jones
+
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
