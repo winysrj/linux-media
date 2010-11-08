@@ -1,53 +1,155 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp-roam2.Stanford.EDU ([171.67.219.89]:42892 "EHLO
-	smtp-roam.stanford.edu" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751745Ab0KBTfD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Nov 2010 15:35:03 -0400
-Message-ID: <4CD067E0.6070405@stanford.edu>
-Date: Tue, 02 Nov 2010 12:34:56 -0700
-From: Eino-Ville Talvala <talvala@stanford.edu>
-MIME-Version: 1.0
-To: Bastian Hecht <hechtb@googlemail.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: New media framework user space usage
-References: <AANLkTimx6XJKEz9883cwrm977OtXVPVB5K5PjSGFi_AJ@mail.gmail.com>	<AANLkTi=83sd2yTsHt166_63vorioD5Fas32P9XLX15ss@mail.gmail.com>	<AANLkTin9M0FZrBYy5xq_-uCFbYa=LfZqLWurb_rB+uW_@mail.gmail.com>	<201011012302.03284.laurent.pinchart@ideasonboard.com> <AANLkTinWo7siGdbmRPNEfOfJHTZLEqxMFHOO9aqijP0d@mail.gmail.com>
-In-Reply-To: <AANLkTinWo7siGdbmRPNEfOfJHTZLEqxMFHOO9aqijP0d@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@pedra>
+Received: from smtp-gw11.han.skanova.net ([81.236.55.20]:60647 "EHLO
+	smtp-gw11.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754541Ab0KHNpt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Nov 2010 08:45:49 -0500
+Subject: [PATCH 2/2 v4] mfd: Add timberdale video-in driver to timberdale
+From: Richard =?ISO-8859-1?Q?R=F6jfors?=
+	<richard.rojfors@pelagicore.com>
+To: Richard =?ISO-8859-1?Q?R=F6jfors?=
+	<richard.rojfors@pelagicore.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 08 Nov 2010 14:45:48 +0100
+Message-ID: <1289223948.23406.23.camel@debian>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On 11/2/2010 3:31 AM, Bastian Hecht wrote:
-> Hello Laurent,
->
->>> I am the first guy needing a 12 bit-bus?
->> Yes you are :-) You will need to implement 12 bit support in the ISP driver,
->> or start by hacking the sensor driver to report a 10 bit format (2 bits will
->> be lost but you should still be able to capture an image).
-> Isn't that an "officially" supported procedure to drop the least
-> significant bits?
-> You gave me the isp configuration
-> .bus = { .parallel = {
->                         .data_lane_shift        = 1,
-> ...
-> that instructs the isp to use 10 of the 12 bits.
->
+This patch defines platform data for the video-in driver
+and adds it to all configurations of timberdale.
 
-I suspect what Laurent means is that there's no way to send out 12-bit 
-raw data to memory without ISP code changes. You can connect up a 12-bit 
-sensor and just decimate to 10 bits, but that's not the same as the ISP 
-driver supporting the 12-bit data paths that are possible in hardware.
-
-That is, the OMAP3 ISP _is_ capable of writing out raw data to memory 
-that's 12 bits per pixel, but the current ISP code hardcodes the data 
-lane shift value in the ISP configuration, instead of making it depend 
-on format - you'd want GRBG12 to set the data lane shift to 0, and 
-GRBG10 or UYVY  (enum names approximate) to set the data lane shift to 
-1.  We had a hack deep in the ISP code for a bit that did this, but it 
-was hardcoded for the MT9P031, and we abandoned the idea pretty quickly.
-
-
-Eino-Ville Talvala
-Stanford University
+Signed-off-by: Richard Röjfors <richard.rojfors@pelagicore.com>
+Acked-by: Samuel Ortiz <sameo@linux.intel.com>
+---
+diff --git a/drivers/mfd/timberdale.c b/drivers/mfd/timberdale.c
+index 727f62c..6e53a16 100644
+--- a/drivers/mfd/timberdale.c
++++ b/drivers/mfd/timberdale.c
+@@ -40,6 +40,7 @@
+ #include <linux/spi/mc33880.h>
+ 
+ #include <media/timb_radio.h>
++#include <media/timb_video.h>
+ 
+ #include <linux/timb_dma.h>
+ 
+@@ -246,7 +247,24 @@ static const __devinitconst struct resource timberdale_uartlite_resources[] = {
+ 	},
+ };
+ 
+-static const __devinitconst struct resource timberdale_radio_resources[] = {
++static __devinitdata struct i2c_board_info timberdale_adv7180_i2c_board_info = {
++	/* Requires jumper JP9 to be off */
++	I2C_BOARD_INFO("adv7180", 0x42 >> 1),
++	.irq = IRQ_TIMBERDALE_ADV7180
++};
++
++static __devinitdata struct timb_video_platform_data
++	timberdale_video_platform_data = {
++	.dma_channel = DMA_VIDEO_RX,
++	.i2c_adapter = 0,
++	.encoder = {
++		.module_name = "adv7180",
++		.info = &timberdale_adv7180_i2c_board_info
++	}
++};
++
++static const __devinitconst struct resource
++timberdale_radio_resources[] = {
+ 	{
+ 		.start	= RDSOFFSET,
+ 		.end	= RDSEND,
+@@ -280,6 +298,18 @@ static __devinitdata struct timb_radio_platform_data
+ 	}
+ };
+ 
++static const __devinitconst struct resource timberdale_video_resources[] = {
++	{
++		.start	= LOGIWOFFSET,
++		.end	= LOGIWEND,
++		.flags	= IORESOURCE_MEM,
++	},
++	/*
++	note that the "frame buffer" is located in DMA area
++	starting at 0x1200000
++	*/
++};
++
+ static __devinitdata struct timb_dma_platform_data timb_dma_platform_data = {
+ 	.nr_channels = 10,
+ 	.channels = {
+@@ -380,6 +410,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg0[] = {
+ 		.data_size = sizeof(timberdale_gpio_platform_data),
+ 	},
+ 	{
++		.name = "timb-video",
++		.num_resources = ARRAY_SIZE(timberdale_video_resources),
++		.resources = timberdale_video_resources,
++		.platform_data = &timberdale_video_platform_data,
++		.data_size = sizeof(timberdale_video_platform_data),
++	},
++	{
+ 		.name = "timb-radio",
+ 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+ 		.resources = timberdale_radio_resources,
+@@ -440,6 +477,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg1[] = {
+ 		.resources = timberdale_mlogicore_resources,
+ 	},
+ 	{
++		.name = "timb-video",
++		.num_resources = ARRAY_SIZE(timberdale_video_resources),
++		.resources = timberdale_video_resources,
++		.platform_data = &timberdale_video_platform_data,
++		.data_size = sizeof(timberdale_video_platform_data),
++	},
++	{
+ 		.name = "timb-radio",
+ 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+ 		.resources = timberdale_radio_resources,
+@@ -490,6 +534,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg2[] = {
+ 		.data_size = sizeof(timberdale_gpio_platform_data),
+ 	},
+ 	{
++		.name = "timb-video",
++		.num_resources = ARRAY_SIZE(timberdale_video_resources),
++		.resources = timberdale_video_resources,
++		.platform_data = &timberdale_video_platform_data,
++		.data_size = sizeof(timberdale_video_platform_data),
++	},
++	{
+ 		.name = "timb-radio",
+ 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+ 		.resources = timberdale_radio_resources,
+@@ -533,6 +584,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg3[] = {
+ 		.data_size = sizeof(timberdale_gpio_platform_data),
+ 	},
+ 	{
++		.name = "timb-video",
++		.num_resources = ARRAY_SIZE(timberdale_video_resources),
++		.resources = timberdale_video_resources,
++		.platform_data = &timberdale_video_platform_data,
++		.data_size = sizeof(timberdale_video_platform_data),
++	},
++	{
+ 		.name = "timb-radio",
+ 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+ 		.resources = timberdale_radio_resources,
+diff --git a/drivers/mfd/timberdale.h b/drivers/mfd/timberdale.h
+index c11bf6e..4412acd 100644
+--- a/drivers/mfd/timberdale.h
++++ b/drivers/mfd/timberdale.h
+@@ -23,7 +23,7 @@
+ #ifndef MFD_TIMBERDALE_H
+ #define MFD_TIMBERDALE_H
+ 
+-#define DRV_VERSION		"0.2"
++#define DRV_VERSION		"0.3"
+ 
+ /* This driver only support versions >= 3.8 and < 4.0  */
+ #define TIMB_SUPPORTED_MAJOR	3
 
