@@ -1,71 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from pfepa.post.tele.dk ([195.41.46.235]:33609 "EHLO
-	pfepa.post.tele.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755052Ab0KPVwV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Nov 2010 16:52:21 -0500
-Date: Tue, 16 Nov 2010 22:52:19 +0100
-From: Sam Ravnborg <sam@ravnborg.org>
-To: Arnaud Lacombe <lacombar@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Michal Marek <mmarek@suse.cz>, linux-kbuild@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/5] kconfig: add an option to determine a menu's
-	visibility
-Message-ID: <20101116215219.GA19230@merkur.ravnborg.org>
-References: <4CD300AC.3010708@redhat.com> <1289079027-3037-2-git-send-email-lacombar@gmail.com> <AANLkTinwmSOSnQ6SsLy4ijXmocccX=o+iHh+9otfmAmN@mail.gmail.com> <4CE2C2F9.9010801@redhat.com> <AANLkTim6VNvSTWOC_jZR09ktRaKUFaGorPz-cpS5bG7C@mail.gmail.com>
+Received: from mailout-de.gmx.net ([213.165.64.22]:45670 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1755135Ab0KHVRU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Nov 2010 16:17:20 -0500
+Date: Mon, 8 Nov 2010 22:17:12 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PULL v2] soc-camera fixes for 2.6.37
+In-Reply-To: <Pine.LNX.4.64.1011060032210.28289@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1011082215080.29934@axis700.grange>
+References: <Pine.LNX.4.64.1011060032210.28289@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <AANLkTim6VNvSTWOC_jZR09ktRaKUFaGorPz-cpS5bG7C@mail.gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Nov 16, 2010 at 04:41:06PM -0500, Arnaud Lacombe wrote:
-> Hi,
-> 
-> On Tue, Nov 16, 2010 at 12:44 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
-> > Em 15-11-2010 14:57, Arnaud Lacombe escreveu:
-> >> Hi all
-> >>
-> >> On Sat, Nov 6, 2010 at 5:30 PM, Arnaud Lacombe <lacombar@gmail.com> wrote:
-> >>> This option is aimed to add the possibility to control a menu's visibility
-> >>> without adding dependency to the expression to all the submenu.
-> >>>
-> >>> Signed-off-by: Arnaud Lacombe <lacombar@gmail.com>
-> >>> ---
-> >>>  scripts/kconfig/expr.h      |    1 +
-> >>>  scripts/kconfig/lkc.h       |    1 +
-> >>>  scripts/kconfig/menu.c      |   11 +++++++++++
-> >>>  scripts/kconfig/zconf.gperf |    1 +
-> >>>  scripts/kconfig/zconf.y     |   21 ++++++++++++++++++---
-> >>>  5 files changed, 32 insertions(+), 3 deletions(-)
-> >>>
-> >> Michal, I don't think you commented on this ? Mauro, has it been
-> >> worked around differently ?
-> >
-> > Those patches worked fine, and solved all problems we had (I just had to touch
-> > on two other menus that are used, as I answered upstream).
-> >
-> > I prefer if Michal could forward those patches upstream, so, there's my ack:
-> >
-> > Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> > Tested-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> >
-> It would seem Michal is not around lately, his only passage on
-> linux-kbuild@ is nearly a week old.
-> 
-> Sam, by any chance, could you comment on these patches so that we
-> could keep moving forward ?
-I will try to take a look in the weekend - daytime job keeps me busy as usual.
+Mauro, since you haven't pulled soc-camera -rc1 fixes yet, I've updated 
+the branch with one more compile-breakage fix, so, here's an updated 
+request:
 
-> 
-> Thanks,
->  - Arnaud
-> 
-> ps: yes, I know, I did not upgrade the documentation.
-And I will toast you for that when I look at the patches :-)
+The following changes since commit 7655e594945289b418af39f6669fea4666a7b520:
 
-	Sam
+  [media] af9015: Fix max I2C message size when used with tda18271 (2010-10-27 15:02:35 -0200)
+
+are available in the git repository at:
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git 2.6.37-rc1-fixes
+
+Janusz Krzysztofik (4):
+      SoC Camera: OMAP1: update for recent framework changes
+      SoC Camera: OMAP1: update for recent videobuf changes
+      SOC Camera: OMAP1: typo fix
+      SoC Camera: ov6650: minor cleanups
+
+Sascha Hauer (2):
+      ARM mx3_camera: check for DMA engine type
+      soc-camera: Compile fixes for mx2-camera
+
+ drivers/media/video/mx2_camera.c   |   13 +++++--------
+ drivers/media/video/mx3_camera.c   |    4 ++++
+ drivers/media/video/omap1_camera.c |   16 ++++++++--------
+ drivers/media/video/ov6650.c       |    4 +---
+ 4 files changed, 18 insertions(+), 19 deletions(-)
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
