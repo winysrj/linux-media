@@ -1,231 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3801 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755650Ab0KPU3i (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:42665 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752670Ab0KIRjl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Nov 2010 15:29:38 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andy Walls <awalls@md.metrocast.net>
-Subject: Re: [RFC PATCH 0/8] V4L BKL removal: first round
-Date: Tue, 16 Nov 2010 21:29:11 +0100
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <cover.1289740431.git.hverkuil@xs4all.nl> <201011161938.11476.hverkuil@xs4all.nl> <1289937581.2104.29.camel@morgan.silverblock.net>
-In-Reply-To: <1289937581.2104.29.camel@morgan.silverblock.net>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011162129.11096.hverkuil@xs4all.nl>
+	Tue, 9 Nov 2010 12:39:41 -0500
+Date: Tue, 09 Nov 2010 12:39:47 -0500
+Subject: RE: Format of /dev/video0 data for HVR-4000 frame grabber
+Message-ID: <id3uxs3tammjiw4615ogw2rl.1289324387202@email.android.com>
+From: Andy Walls <awalls@md.metrocast.net>
+To: Michael PARKER <michael.parker@st.com>
+Cc: =?ISO-8859-1?Q?Daniel_Gl=F6ckner?= <daniel-gl@gmx.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday, November 16, 2010 20:59:41 Andy Walls wrote:
-> On Tue, 2010-11-16 at 19:38 +0100, Hans Verkuil wrote:
-> > On Tuesday, November 16, 2010 17:49:05 Hans Verkuil wrote:
-> > > On Tuesday, November 16, 2010 17:01:36 Arnd Bergmann wrote:
-> > > > On Tuesday 16 November 2010, Hans Verkuil wrote:
-> > > > > > I think there is a misunderstanding. One V4L device (e.g. a TV capture
-> > > > > > card, a webcam, etc.) has one v4l2_device struct. But it can have multiple
-> > > > > > V4L device nodes (/dev/video0, /dev/radio0, etc.), each represented by a
-> > > > > > struct video_device (and I really hope I can rename that to v4l2_devnode
-> > > > > > soon since that's a very confusing name).
-> > > > > >
-> > > > > > You typically need to serialize between all the device nodes belonging to
-> > > > > > the same video hardware. A mutex in struct video_device doesn't do that,
-> > > > > > that just serializes access to that single device node. But a mutex in
-> > > > > > v4l2_device is at the right level.
-> > > > 
-> > > > Ok, got it now.
-> > > > 
-> > > > > A quick follow-up as I saw I didn't fully answer your question: to my
-> > > > > knowledge there are no per-driver data structures that need a BKL for
-> > > > > protection. It's definitely not something I am worried about.
-> > > > 
-> > > > Good. Are you preparing a patch for a per-v4l2_device then? This sounds
-> > > > like the right place with your explanation. I would not put in the
-> > > > CONFIG_BKL switch, because I tried that for two other subsystems and got
-> > > > called back, but I'm not going to stop you.
-> > > > 
-> > > > As for the fallback to a global mutex, I guess you can set the
-> > > > videodev->lock pointer and use unlocked_ioctl for those drivers
-> > > > that do not use a v4l2_device yet, if there are only a handful of them.
-> > > > 
-> > > > 	Arnd
-> > > > 
-> > > 
-> > > I will look into it. I'll try to have something today or tomorrow.
-> > 
-> > OK, here is my patch adding a mutex to v4l2_device.
-> > 
-> > I did some tests if we merge this patch then there are three classes of
-> > drivers:
-> > 
-> > 1) Those implementing unlocked_ioctl: these work like a charm.
-> > 2) Those implementing v4l2_device: capturing works fine, but calling ioctls
-> > at the same time from another process or thread is *exceedingly* slow. But at
-> > least there is no interference from other drivers.
+TWlrZSwKCjEuIEZvciBhIHV0aWxpdHkgbG9vayBhdCB3aGF0IGZmbXBlZyBoYXMgdG8gb2ZmZXIu
+ICBJZCB3YWdlciBpdCBjYW4gYmUgZW1wbG95ZWQgdG8gZG8gd2hhdCBldmVyIHlvdSB3YW50LiAg
+KEFsdGhvdWdoIHNpbmdsZSBKUEVHIGltYWdlIGNyZWF0aW9uIG1pZ2h0IGhhdmUgbm9ub2J2aW91
+cyBjb21tYW5kIGxpbmUgYXJndW1lbnRzIGNvbXBhcmVkIHRvIE1KUEVHKQoKMi4gSWYgeW91IGFy
+ZSB3cml0aW5nIGNvZGUsIHlvdSBtYXkgd2FudCB0byBsaW5rIHdpdGggbGlidjRsMiwgbGlidjRs
+LCBhbmQvb3IgbGlidjRsY29udmVydCB0byBoYXZlIHRoZSBsaWJyYXJ5IHRvIHRyYW5zcGFyZW50
+IGZvcm1hdCBjb252ZXJzaW9uIGluIHVzZXJzcGFjZS4gIFNlYXJjaCB0aGUgbGlzdCBhcmNoaXZl
+cyBmb3IgYW5ub3VuY2VtZW50IGJ5IEhhbnMgZGUgR29lZGUuCgpSZWdhcmRzLApBbmR5CgpNaWNo
+YWVsIFBBUktFUiA8bWljaGFlbC5wYXJrZXJAc3QuY29tPiB3cm90ZToKCj5BbmR5LAo+Cj5UaGFu
+a3MgLSBJJ20gbG9va2luZyBvdmVyIHRoZSBzb3VyY2UgY29kZSBmb3IgdGhlIFY0TDIgc2FtcGxl
+IGNhcHR1cmUgYXBwbGljYXRpb24gKGh0dHA6Ly92NGwyc3BlYy5ieXRlc2V4Lm9yZy92NGwyc3Bl
+Yy9jYXB0dXJlLmMpIGZvciBpbnNwaXJhdGlvbi4KPgo+SSdtIHN0aWxsIG1vcmUgdGhhbiBhIGxp
+dHRsZSB1bmNsZWFyIGhvdyBJIGdvIGFib3V0IHRyYW5zZm9ybWluZyBteSBjYXB0dXJlZCBmcmFt
+ZSBpbnRvIGFuIGltYWdlIGZpbGUuIAo+Cj5DYW4geW91IHBvaW50IG1lIGluIHRoZSBkaXJlY3Rp
+b24gb2YgYSB1dGlsaXR5L21ldGhvZG9sb2d5IHRoYXQgSSBjYW4gdXNlIHRvIHRyYW5zZm9ybSBS
+R0IvQkdSL1lDYkNyL2dyZXlzY2FsZSBpbnRvIEpQRUcvUE5HL0dJRiBvciBzaW1pbGFyPwo+Cj5D
+aGVlcnMsCj4KPk1pa2UKPgo+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQo+PiBGcm9tOiBB
+bmR5IFdhbGxzIFttYWlsdG86YXdhbGxzQG1kLm1ldHJvY2FzdC5uZXRdCj4+IFNlbnQ6IDA5IE5v
+dmVtYmVyIDIwMTAgMTI6MjkKPj4gVG86IE1pY2hhZWwgUEFSS0VSCj4+IENjOiBEYW5pZWwgR2zD
+tmNrbmVyOyBsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcKPj4gU3ViamVjdDogUkU6IEZvcm1h
+dCBvZiAvZGV2L3ZpZGVvMCBkYXRhIGZvciBIVlItNDAwMCBmcmFtZSBncmFiYmVyCj4+IAo+PiBP
+biBUdWUsIDIwMTAtMTEtMDkgYXQgMTA6MzQgKzAxMDAsIE1pY2hhZWwgUEFSS0VSIHdyb3RlOgo+
+PiA+IERhbmllbCwKPj4gPgo+PiA+IE1hbnkgdGhhbmtzIGZvciB5b3VyIG1haWwuIFBsZWFzZSBl
+eGN1c2UgdGhlIG5haXZldHkgb2YgbXkgcXVlc3Rpb25zIC0KPj4gPiBJJ20gYSBoL3cgZ3V5IGFu
+ZCBhIG51YmUgdG8gdGhlIHMvdyB3b3JsZC4KPj4gCj4+IAo+PiA+IERvIHlvdSBrbm93IHdoaWNo
+IG9mIHRoZXNlIGlzIHRoZSBkZWZhdWx0IGZvcm1hdCBvciBob3cgdG8gZGV0ZXJtaW5lCj4+ID4g
+dGhlIGZvcm1hdCBJJ20gc2VlaW5nIGNvbWluZyBvdXQgb2YgL2Rldi92aWRlbzA/Cj4+IAo+PiAk
+IHY0bDItY3RsIC1kIC9kZXYvdmlkZW8wIC0tbGlzdC1mb3JtYXRzCj4+ICQgdjRsMi1jdGwgLWQg
+L2Rldi92aWRlbzAgLS1nZXQtZm10LXZpZGVvCj4+ICQgdjRsMi1jdGwgLS1oZWxwCj4+IAo+PiA+
+IERvIHlvdSBoYXZlIGEgc3VnZ2VzdGlvbiBmb3IgaG93IGRhdGEgY2FwdHVyZWQgZnJvbSAvZGV2
+L3ZpZGVvMCBjYW4gYmUKPj4gPiBjb252ZXJ0ZWQgaW50byBhIHJlY29nbmlzYWJsZSBpbWFnZSBm
+b3JtYXQgKEpQRUcsIEdJRiwgUE5HIGV0Yy4pPwo+PiA+Cj4+ID4gSSdtIGtlZW4sIGlmIHBvc3Np
+YmxlLCB0byBncmFiIHRoZSBzaW5nbGUgZnJhbWUgaW1hZ2UgdXNpbmcganVzdAo+PiA+IGNvbW1h
+bmQgbGluZSB0b29scyBhbmQgd2l0aG91dCByZWNvdXJzZSB0byBpb2N0bHMsIGNvbXBpbGVkIGNv
+ZGUgZXRjLgo+PiAKPj4gdjRsMi1jdGwgY2FuIHNldCB1cCB0aGUgZGV2aWNlLiAgQXMgeW91IGFu
+ZCBEYW5pZWwgbWVudGlvbmVkLCBkZCBjYW4KPj4gcmVhZCBvZmYgYSBmcmFtZSBnaXZlbiB0aGUg
+cHJvcGVyIHBhcmFtZXRlcnMuCj4+IAo+PiAKPj4gPiBBbHNvLCBob3cgZG8gSSBzeW5jaHJvbmlz
+ZSBkZCB0byB0aGUgYmVnaW5uaW5nIG9mIGEgbmV3IGZyYW1lIChhbmQKPj4gPiB0aHVzIGF2b2lk
+IGNhcHR1cmluZyBzZWN0aW9ucyBvZiB0d28gZnJhbWVzKT8KPj4gCj4+IFdoZW4gZGQgb3Blbigp
+cyB0aGUgZGV2aWNlIGFuZCBkb2VzIGEgcmVhZCgpIGl0IHNob3VsZCBzdGFydCBhIGNhcHR1cmUu
+Cj4+IFdoZW4gZGQgY2xvc2UoKXMgdGhlIGRldmljZSBhbmQgZXhpdHMsIGl0IHNob3VsZCBzdG9w
+IHRoZSBjYXB0dXJlLiAgSSdtCj4+IGZhaXJseSBjZXJ0YWluIHN0b3BwaW5nIGFuZCByZXN0YXJ0
+aW5nIGEgY2FwdHVyZSBzaG91bGQgcmVzeW5jaHJvbml6ZQo+PiB0aGluZ3MsIGJ1dCBJJ20gbm90
+IHN1cmUuICBUaGUgb3ZlcmhlYWQgb2Ygc3RvcHBpbmcgYW5kIHN0YXJ0aW5nIGEKPj4gY2FwdHVy
+ZSBtYXkgY2F1c2UgeW91IHNvbWUgbm90aWNlYWJsZSBkZWxheXMsIGJ1dCBhZ2FpbiwgSSdtIG5v
+dCBzdXJlLgo+PiAKPj4gSSB0aGluayB0aGUgYW5zd2VyIGlzIHRvIHdyaXRlIHNvbWUgY29kZSBh
+bmQgdXNlIHRoZSBTdHJlYW1pbmcgSS9PCj4+IGlvY3RsKClzIGludGVyZmFjZSB0byBnZXQgZnJh
+bWUgYmFzZWQgZGF0YS4gSSBrbm93IHlvdSB3ZXJlIGhvcGluZyB0bwo+PiBhdm9pZCB0aGF0Lgo+
+PiAKPj4gUmVnYXJkcywKPj4gQW5keQo+PiAKPj4gPiBUaGFua3MgYWdhaW4sCj4+ID4KPj4gPiBN
+aWtlCj4+IAo+Cg==
 
-BTW, with 'exceedingly slow' I mean that e.g. a v4l2-ctl --list-ctrls takes 10-20
-seconds if the device node is streaming at the same time. Something that normally
-takes less than 0.01s.
-
-> > 3) Those not implementing v4l2_device: using a core lock makes it simply
-> > impossible to capture from e.g. two devices at the same time. I tried with two
-> > uvc webcams: the capture rate is simply horrible.
-> > 
-> > Note that this is tested in blocking mode. These problems do not appear if you
-> > capture in non-blocking mode.
-> > 
-> > I consider class 3 unacceptable for commonly seen devices. I did a quick scan
-> > of the v4l drivers and the only common driver that falls in that class is uvc.
-> > 
-> > There is one other option, although it is very dirty: don't take the lock if
-> > the ioctl command is VIDIOC_DQBUF.
-> 
-> Is this "in addition to" or "instead of" the mutex lock at
-> v4l2_device ? 
-
-In addition to.
-
-> >  It works and reliably as well for uvc and
-> > videobuf (I did a quick code analysis). But I don't know if it works everywhere.
-> > 
-> > I would like to get the opinion of others before I implement such a check. But
-> > frankly, I think this may be our best bet.
-> 
-> Opinions? No problem! ;)
-> 
-> <opinions>
-> 
-> I think it is probably bad.
-> 
-> 
-> > So the patch below would look like this if I add the check:
-> > 
-> > -               mutex_lock(&v4l2_ioctl_mutex);
-> > +               if (cmd != VIDIOC_DQBUF)
-> > +                       mutex_lock(m);
-> >                 if (video_is_registered(vdev))
-> >                         ret = vdev->fops->ioctl(filp, cmd, arg);
-> > -               mutex_unlock(&v4l2_ioctl_mutex);
-> > +               if (cmd != VIDIOC_DQBUF)
-> > +                       mutex_unlock(m);
-> 
-> What happens to driver state when VIDIOC_STREAMOFF has the lock held and
-> VIDIOC_DQBUF comes through?  I think it is legitimate design for an
-> application to have a playback control thread separate from a thread
-> that reads in the capture data.
-
-All I can say is that it will work OK for drivers using videobuf since
-videobuf will take its own lock.
-
-UVC? I'm not sure. But I think that it is probably best to fix uvc for
-2.6.37 regardless given the importance of this driver.
-
-It's dirty, but I actually think that it will work fine.
-
-> If this quirk of "infrastructure locking" is going in, might I suggest
-> that you please document in code comments:
-> 
-> a. The scope of what infrastructure lock is intended to protect.  That
-> is obvious right now, but may not be in the future.
->  
-> b. Why there is an exception to taking the infrastructure lock or what
-> conditions necessitate having the lock ignored/dropped.
-> 
-> c. What code maintenance must be done to remove the exception to taking
-> the lock.  A specific bullet-list of problem drivers might be nice.
-
-Obviously. The right solution is simply that all drivers should move to
-unlocked_ioctl. Preferably for 2.6.38. I don't like this hack at all, but
-circumstances basically force this on us. Not doing this hack leads to
-unacceptable side-effects.
-
-We can also fast-track for 2.6.37 the set of trivial unlocked_ioctl
-conversions I did this week. That will reduce the impact as well.
-
-> We won't do future maintainers any favors by letting the operation,
-> intended behavior, intended scope, and rationale for this odd locking
-> semantic be lost to history.  We just introduce a BKL with smaller
-> scope.
-
-We have to aggressively track this and convert all drivers to unlocked_ioctl
-as soon as possible. There is no other option.
-
-Regards,
-
-	Hans
-
-> > 
-> > diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-> > index 03f7f46..026bf38 100644
-> > --- a/drivers/media/video/v4l2-dev.c
-> > +++ b/drivers/media/video/v4l2-dev.c
-> > @@ -247,11 +247,13 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
-> >  	} else if (vdev->fops->ioctl) {
-> >  		/* TODO: convert all drivers to unlocked_ioctl */
-> >  		static DEFINE_MUTEX(v4l2_ioctl_mutex);
-> > +		struct mutex *m = vdev->v4l2_dev ?
-> > +			&vdev->v4l2_dev->ioctl_lock : &v4l2_ioctl_mutex;
-> >  
-> > -		mutex_lock(&v4l2_ioctl_mutex);
-> > +		mutex_lock(m);
-> >  		if (video_is_registered(vdev))
-> >  			ret = vdev->fops->ioctl(filp, cmd, arg);
-> > -		mutex_unlock(&v4l2_ioctl_mutex);
-> > +		mutex_unlock(m);
-> >  	} else
-> >  		ret = -ENOTTY;
-> >  
-> > diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
-> > index 0b08f96..7fe6f92 100644
-> > --- a/drivers/media/video/v4l2-device.c
-> > +++ b/drivers/media/video/v4l2-device.c
-> > @@ -35,6 +35,7 @@ int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
-> >  
-> >  	INIT_LIST_HEAD(&v4l2_dev->subdevs);
-> >  	spin_lock_init(&v4l2_dev->lock);
-> > +	mutex_init(&v4l2_dev->ioctl_lock);
-> >  	v4l2_dev->dev = dev;
-> >  	if (dev == NULL) {
-> >  		/* If dev == NULL, then name must be filled in by the caller */
-> > diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-> > index 6648036..b16f307 100644
-> > --- a/include/media/v4l2-device.h
-> > +++ b/include/media/v4l2-device.h
-> > @@ -51,6 +51,8 @@ struct v4l2_device {
-> >  			unsigned int notification, void *arg);
-> >  	/* The control handler. May be NULL. */
-> >  	struct v4l2_ctrl_handler *ctrl_handler;
-> > +	/* BKL replacement mutex. Temporary solution only. */
-> > +	struct mutex ioctl_lock;
-> 
-> Perhaps please add a comment on the specific software maintenance tasks
-> that are required to remove this temporary solution in the future.
-> Knowing is half the battle for future maintainers.
-> 
-> 
-> I know an SCM change log comments can capture the rationale, etc., but
-> relying on change logs doesn't work when the SCM tool changes. (e.g. the
-> transition to git)
-> 
-> </opinions>
-> 
-> :)
-> 
-> Regards,
-> Andy
-> 
-> >  };
-> >  
-> >  /* Initialize v4l2_dev and make dev->driver_data point to v4l2_dev.
-> > 
-> 
-> 
-> 
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
