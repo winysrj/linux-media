@@ -1,83 +1,77 @@
-Return-path: <mchehab@gaivota>
-Received: from wolverine01.qualcomm.com ([199.106.114.254]:22088 "EHLO
-	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755605Ab0KTXvr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Nov 2010 18:51:47 -0500
-From: "Shuzhen Wang" <shuzhenw@codeaurora.org>
-To: "'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>
-Cc: <linux-media@vger.kernel.org>
-References: <000001cb883f$ec4e4220$c4eac660$@org> <201011201837.18832.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201011201837.18832.laurent.pinchart@ideasonboard.com>
-Subject: RE: Zooming with V4L2
-Date: Sat, 20 Nov 2010 15:50:59 -0800
-Message-ID: <000001cb890d$c870ffe0$5952ffa0$@org>
+Return-path: <mchehab@pedra>
+Received: from mailout-de.gmx.net ([213.165.64.22]:49631 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1753864Ab0KITtH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Nov 2010 14:49:07 -0500
+Content-Type: text/plain; charset="utf-8"
+Date: Tue, 09 Nov 2010 20:49:04 +0100
+From: "Alina Friedrichsen" <x-alina@gmx.net>
+In-Reply-To: <1268788483.1536.24.camel@destiny>
+Message-ID: <20101109194904.107230@gmx.net>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-Content-Language: en-us
+References: <1268788483.1536.24.camel@destiny>
+Subject: Re: Hauppauge WinTV HVR-1400 (XC3028L) firmware loading problem
+To: linux-media@vger.kernel.org
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hello, Laurent,
+Hi,
 
-Thank you for the reply.
+beginning with kernel 2.6.34.? the HVR-1400 stops working completely.
+If I run the scan utility, only the fist tuning works and after that it fails always. On the next run of the utility it says "Device or resource busy". Watching TV with vlc works never.
 
-In our case, most of the time the sensor outputs bigger image size than the
-output size, so the ISP hardware does downscaling.
-When zooming in, we can do cropping, and less downscaling to achieve the
-same output size. All these happen under of the hood of ISP driver.
-That's why I said it was like optical zoom to the application.
+This bug persist up to the current developer kernel 2.6.37-rc1-git7.
 
-So if "digital zoom == cropping and upscaling", then I don't think my case
-fits in digital zoom category.
+Any ideas? Maybe it's a PCIe/ExpressCard related problem? Some more
+popular USB sticks use the same chipset.
 
 Regards,
-Shuzhen
+Alina
 
------Original Message-----
-From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com] 
-Sent: Saturday, November 20, 2010 9:37 AM
-To: Shuzhen Wang
-Cc: linux-media@vger.kernel.org
-Subject: Re: Zooming with V4L2
+-------- Original-Nachricht --------
+> Datum: Wed, 17 Mar 2010 02:14:43 +0100
+> Von: Alina Friedrichsen <x-alina@gmx.net>
+> An: linux-media@vger.kernel.org
+> Betreff: Hauppauge WinTV HVR-1400 firmware loading problem
 
-Hi Shuzhen,
-
-On Saturday 20 November 2010 00:17:23 Shuzhen Wang wrote:
-> Hello,
+> My kernel is 2.6.33.
+> When I want to watch DVB-T with VLC, loading the firmwares stops after
+> the following and don't see any pictures:
 > 
-> I am working on a SOC V4L2 driver, and need to implement zoom
-> functionality.
+> cx23885 0000:03:00.0: firmware: requesting xc3028L-v36.fw
+> xc2028 3-0064: Loading 81 firmware images from xc3028L-v36.fw, type:
+> xc2028 firmware, ver 3.6
+> xc2028 3-0064: Loading firmware for type=BASE F8MHZ (3), id
+> 0000000000000000.
+> xc2028 3-0064: Loading firmware for type=D2633 DTV7 (90), id
+> 0000000000000000.
 > 
-> From application, there are 2 ways to do zooming. The 1st way is to use
-> cropping and scaling as described in section 1.11.1. The application needs
-> to figure out what the steps will be, and calling VIDIOC_S_CROP.
+> And hangs forever. Any retries has the same effect.
 > 
-> The 2nd way is to use V4L2_CID_ZOOM_ABSOLUTE and V4L2_CID_ZOOM_RELATIVE as
-> described by Laurent in
-> http://video4linux-list.1448896.n2.nabble.com/RFC-Zoom-controls-in-V4L2-
-td1451987.html.
+> But if I start "scan /usr/share/dvb/dvb-t/de-Berlin" the tuning fails
+> two times, then all firmwares load correctly and scanning works.
 > 
-> Our camera hardware supports digital zoom. However, it acts LIKE optical
-> zoom because it doesn't do upscaling, so no video quality is sacrificed.
-
-How can you apply a digital zoom, keeping the output size constant, without 
-performing upscaling ?
-
-> As a driver writter, is it okay to support only V4L2_CID_ZOOM_ABSOLUTE and
-> V4L2_CID_ZOOM_RELATIVE?
+> xc2028 3-0064: Loading firmware for type=BASE F8MHZ (3), id
+> 0000000000000000.
+> xc2028 3-0064: Loading firmware for type=D2633 DTV7 (90), id
+> 0000000000000000.
+> xc2028 3-0064: Loading firmware for type=BASE F8MHZ (3), id
+> 0000000000000000.
+> xc2028 3-0064: Loading firmware for type=D2633 DTV7 (90), id
+> 0000000000000000.
+> xc2028 3-0064: Loading firmware for type=D2633 DTV78 (110), id
+> 0000000000000000.
+> xc2028 3-0064: Loading SCODE for type=DTV78 DTV8 DIBCOM52 SCODE
+> HAS_IF_5200 (61000300), id 0000000000000000.
 > 
-> I guess it also depends on how zooming is done for most of the V4L2 user
-> application out there.
-
-The V4L2_CID_ZOOM_* controls are really meant for optical zoom. Digital zoom
-
-should be implemented using cropping.
-
--- 
-Regards,
-
-Laurent Pinchart
-
+> After that all other firmware loadings works fine and I can watch TV.
+> 
+> Any idea whats goes wrong? Is this a problem of the driver, or is my
+> express card broken? I unfortunately has no other card to test.
+> 
+> Thanks!
+> Alina
+> 
+> 
+> 
