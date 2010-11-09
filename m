@@ -1,82 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1026 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753757Ab0KQHxL (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:14702 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755167Ab0KIM2h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Nov 2010 02:53:11 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Figo.zhang" <zhangtianfei@leadcoretech.com>
-Subject: Re: [PATCH 1/1] videobuf: Initialize lists in videobuf_buffer.
-Date: Wed, 17 Nov 2010 08:52:53 +0100
-Cc: Andrew Chew <AChew@nvidia.com>,
-	"pawel@osciak.com" <pawel@osciak.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-References: <1289939083-27209-1-git-send-email-achew@nvidia.com> <201011170811.06697.hverkuil@xs4all.nl> <4CE3814B.5010008@leadcoretech.com>
-In-Reply-To: <4CE3814B.5010008@leadcoretech.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+	Tue, 9 Nov 2010 07:28:37 -0500
+Subject: RE: Format of /dev/video0 data for HVR-4000 frame grabber
+From: Andy Walls <awalls@md.metrocast.net>
+To: Michael PARKER <michael.parker@st.com>
+Cc: Daniel =?ISO-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <A3BF01DB4A606149A4C20C4C4C808F6C2A2CACB0B5@SAFEX1MAIL1.st.com>
+References: <A3BF01DB4A606149A4C20C4C4C808F6C2A2CACB088@SAFEX1MAIL1.st.com>
+	 <20101109091024.GA15043@minime.bse>
+	 <A3BF01DB4A606149A4C20C4C4C808F6C2A2CACB0B5@SAFEX1MAIL1.st.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 09 Nov 2010 07:28:32 -0500
+Message-ID: <1289305712.2075.12.camel@morgan.silverblock.net>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201011170852.53093.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wednesday, November 17, 2010 08:16:27 Figo.zhang wrote:
-> On 11/17/2010 03:11 PM, Hans Verkuil wrote:
-> > On Wednesday, November 17, 2010 02:38:09 Andrew Chew wrote:
-> >>>> diff --git a/drivers/media/video/videobuf-dma-contig.c
-> >>> b/drivers/media/video/videobuf-dma-contig.c
-> >>>> index c969111..f7e0f86 100644
-> >>>> --- a/drivers/media/video/videobuf-dma-contig.c
-> >>>> +++ b/drivers/media/video/videobuf-dma-contig.c
-> >>>> @@ -193,6 +193,8 @@ static struct videobuf_buffer
-> >>> *__videobuf_alloc_vb(size_t size)
-> >>>>    	if (vb) {
-> >>>>    		mem = vb->priv = ((char *)vb) + size;
-> >>>>    		mem->magic = MAGIC_DC_MEM;
-> >>>> +		INIT_LIST_HEAD(&vb->stream);
-> >>>> +		INIT_LIST_HEAD(&vb->queue);
-> >>>
-> >>> i think it no need to be init, it just a list-entry.
-> >>
-> >> Okay, if that's really the case, then sh_mobile_ceu_camera.c, pxa_camera.c, mx1_camera.c, mx2_camera.c, and omap1_camera.c needs to be fixed to remove that WARN_ON(!list_empty(&vb->queue)); in their videobuf_prepare() methods, because those WARN_ON's are assuming that vb->queue is properly initialized as a list head.
-> >>
-> >> Which will it be?
-> >>
-> >
-> > These list entries need to be inited. It is bad form to have uninitialized
-> > list entries. It is not as if this is a big deal to initialize them properly.
+On Tue, 2010-11-09 at 10:34 +0100, Michael PARKER wrote:
+> Daniel,
 > 
-> in kernel source code, list entry are not often to be inited.
+> Many thanks for your mail. Please excuse the naivety of my questions -
+> I'm a h/w guy and a nube to the s/w world.
+
+
+> Do you know which of these is the default format or how to determine
+> the format I'm seeing coming out of /dev/video0? 
+
+$ v4l2-ctl -d /dev/video0 --list-formats
+$ v4l2-ctl -d /dev/video0 --get-fmt-video
+$ v4l2-ctl --help
+
+> Do you have a suggestion for how data captured from /dev/video0 can be
+> converted into a recognisable image format (JPEG, GIF, PNG etc.)?
 > 
-> for example, see mm/vmscan.c register_shrinker(), no one init the 
-> shrinker->list.
-> 
-> another example: see mm/swapfile.c  add_swap_extent(), no one init the
-> new_se->list.
+> I'm keen, if possible, to grab the single frame image using just
+> command line tools and without recourse to ioctls, compiled code etc.
 
-I have to think some more about this. I'll get back to this today. BTW, I do
-agree that the WARN_ON's are bogus and should be removed.
+v4l2-ctl can set up the device.  As you and Daniel mentioned, dd can
+read off a frame given the proper parameters.
 
-And BTW, this isn't going to work either (mx1_camera.c):
 
-static int mx1_camera_setup_dma(struct mx1_camera_dev *pcdev)
-{
-        struct videobuf_buffer *vbuf = &pcdev->active->vb;
-        struct device *dev = pcdev->icd->dev.parent;
-        int ret;
+> Also, how do I synchronise dd to the beginning of a new frame (and
+> thus avoid capturing sections of two frames)?
 
-        if (unlikely(!pcdev->active)) {
-                dev_err(dev, "DMA End IRQ with no active buffer\n");
-                return -EFAULT;
-        }
+When dd open()s the device and does a read() it should start a capture.
+When dd close()s the device and exits, it should stop the capture.  I'm
+fairly certain stopping and restarting a capture should resynchronize
+things, but I'm not sure.  The overhead of stopping and starting a
+capture may cause you some noticeable delays, but again, I'm not sure.
 
-The vbuf assignment should be moved after the 'if'.
+I think the answer is to write some code and use the Streaming I/O
+ioctl()s interface to get frame based data. I know you were hoping to
+avoid that.
 
 Regards,
+Andy
 
-	Hans
+> Thanks again,
+> 
+> Mike
 
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+
