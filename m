@@ -1,43 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:53129 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751228Ab0KGSu5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Nov 2010 13:50:57 -0500
-Received: by wyb36 with SMTP id 36so2761453wyb.19
-        for <linux-media@vger.kernel.org>; Sun, 07 Nov 2010 10:50:56 -0800 (PST)
-Subject: Re:  IX2505V: i2c transfer error code ignored
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Matthias Schwarzott <zzam@gentoo.org>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <201011071457.14929.zzam@gentoo.org>
-References: <201011071457.14929.zzam@gentoo.org>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 07 Nov 2010 18:50:50 +0000
-Message-ID: <1289155850.4638.7.camel@tvboxspy>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:36273 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751818Ab0KIOz1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Nov 2010 09:55:27 -0500
+Received: by yxe1 with SMTP id 1so119028yxe.19
+        for <linux-media@vger.kernel.org>; Tue, 09 Nov 2010 06:55:27 -0800 (PST)
+MIME-Version: 1.0
+Date: Tue, 9 Nov 2010 15:48:16 +0100
+Message-ID: <AANLkTikpXa7SSNm=esBBSVLHahO0zmsJsHEX4KmOvmpL@mail.gmail.com>
+Subject: Trying to get unlisted Terratec Cinergy to work
+From: Mark van Reijn <mvreijn@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, 2010-11-07 at 14:57 +0100, Matthias Schwarzott wrote:
-> Hello Malcolm!
-> 
-> It seems that ix2505v driver ignores a i2c error in ix2505v_read_status_reg.
-> This looks like a typing error using (ret = 1) instead of correct (ret == 1).
-> 
-> The attached patch fixes this.
+Hi everyone,
 
-Hi Matthias,
+I have been trying to get my "Terratec Cinergy HT USB PVR" tuner to
+work (on DVB-T). This is a hybrid analog/dvb-t tuner with a hardware
+MPEG encoder.
+Inserting the device does not cause any driver to respond and load.
+The USB ID is "0ccd:006b". The PID is not listed in dvb-usb-ids.h.
 
-Thanks for picking that up.
+After quite a bit of research I have a lot of information on the
+device. I also opened it up to check the actual chip versions (took me
+back to slackware 3 and graphics cards).
+The various components are:
+* Cypress CY7C68013A FX2 USB controller
+* Intel CE6353 demodulator (should be the same as Zarlink ZL10353)
+* XCeive XC3028 tuner
+(* Conexant CX25843 a/v decoder)
+(* Conexant CX23416 MPEG encoder)
 
-Acked-by: Malcolm Priestley <tvboxspy@gmail.com>
+The last two should not be really necessary from what I have learned.
 
-Regards
+>From what I can see, all components are supported in one way or
+another. There are several drivers that mention the combination of
+FX2, ZL10353 and XC2028/XC3028, "cxusb" seems to be closest. A
+copy-paste from existing code might do the trick.
 
+One thing stands in my way: I have never written C code in my life. I
+can read the code and more or less understand what the purpose is, but
+to combine stuff into a working driver requires real skills :-)
 
-Malcolm
+I have the correct xceive and conexant firmwares, a windows driver
+with INF file, etc. at my disposal.
+Can anyone help me assemble a driver for my device?
+TIA,
 
-
-
-
+Mark
