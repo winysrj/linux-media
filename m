@@ -1,84 +1,38 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:7840 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:50826 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754101Ab0KMNpi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Nov 2010 08:45:38 -0500
-Message-ID: <4CDE9677.3060506@redhat.com>
-Date: Sat, 13 Nov 2010 11:45:27 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1754642Ab0KIVjZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Nov 2010 16:39:25 -0500
+Date: Tue, 9 Nov 2010 16:39:21 -0500
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Subject: [PATCH 0/3 v2] mceusb: buffer parsing and keymap cleanups
+Message-ID: <20101109213921.GD11073@redhat.com>
 MIME-Version: 1.0
-To: Linus Torvalds <torvalds@linux-foundation.org>
-CC: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for 2.6.36-rc2] drivers/media fixes
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Linus,
+This v2 series is actually one patch light from v1, as the Conexant device
+support patch has already been merged into the for_v2.6.38 tree, but adds
+another patch not in v1 which simply cleans up the mce keytable a bit and
+adds a missing mapping for one of my mce remotes.
 
-Please pull from:
-  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
+The core good done by this patchset is to fix the reporting of trailing
+spaces, which makes lirc decode work again, and some necessary buffer
+parsing fixes specific to the first-gen device. v2 of the trailing space
+fix implements multiple suggestions from David Härdeman that greatly
+simplify the buffer parsing state machine.
 
-For a few bug fixes on some drivers, and for Arnd's patch to finish the BKL removal 
-from V4L/DVB, as discussed during the KS/2010.
+Jarod Wilson (3):
+    mceusb: fix up reporting of trailing space
+    mceusb: buffer parsing fixups for 1st-gen device
+    IR: add tv power scancode to rc6 mce keymap
 
-Thanks!
-Mauro
-
-The following changes since commit c8ddb2713c624f432fa5fe3c7ecffcdda46ea0d4:
-
-  Linux 2.6.37-rc1 (2010-11-01 07:54:12 -0400)
-
-are available in the git repository at:
-  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
-
-Arnd Bergmann (1):
-      [media] v4l: kill the BKL
-
-Daniel Drake (1):
-      [media] cafe_ccic: fix subdev configuration
-
-Dmitri Belimov (1):
-      [media] saa7134: Fix autodetect for Behold A7 and H7 TV cards
-
-Janusz Krzysztofik (4):
-      [media] SoC Camera: OMAP1: update for recent framework changes
-      [media] SoC Camera: OMAP1: update for recent videobuf changes
-      [media] SOC Camera: OMAP1: typo fix
-      [media] SoC Camera: ov6650: minor cleanups
-
-Jean Delvare (1):
-      [media] BZ#22292: dibx000_common: Restore i2c algo pointer
-
-Sascha Hauer (2):
-      [media] ARM mx3_camera: check for DMA engine type
-      [media] soc-camera: Compile fixes for mx2-camera
-
-Stefan Ringel (1):
-      [media] tm6000: bugfix set tv standards
-
- drivers/media/Kconfig                        |    1 -
- drivers/media/dvb/frontends/dibx000_common.c |    1 +
- drivers/media/video/cafe_ccic.c              |    5 ++-
- drivers/media/video/cx231xx/cx231xx-417.c    |    6 +---
- drivers/media/video/cx23885/cx23885-417.c    |    9 +-------
- drivers/media/video/cx23885/cx23885-video.c  |    5 ----
- drivers/media/video/mx2_camera.c             |   13 ++++-------
- drivers/media/video/mx3_camera.c             |    4 +++
- drivers/media/video/omap1_camera.c           |   16 +++++++-------
- drivers/media/video/ov6650.c                 |    4 +--
- drivers/media/video/saa7134/saa7134-cards.c  |   24 ++++++++++----------
- drivers/media/video/se401.c                  |    7 ++---
- drivers/media/video/stk-webcam.c             |    4 ---
- drivers/media/video/tlg2300/pd-main.c        |   13 +++--------
- drivers/media/video/usbvideo/vicam.c         |   29 ++++++++++++-------------
- drivers/media/video/v4l2-dev.c               |    7 +++--
- drivers/media/video/zoran/zoran.h            |    1 +
- drivers/media/video/zoran/zoran_card.c       |    1 +
- drivers/media/video/zoran/zoran_driver.c     |   27 ++++++++++++++++++-----
- drivers/staging/tm6000/tm6000-video.c        |    1 +
- 20 files changed, 86 insertions(+), 92 deletions(-)
+-- 
+Jarod Wilson
+jarod@redhat.com
 
