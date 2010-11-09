@@ -1,52 +1,122 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4771 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755247Ab0KSSdL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 13:33:11 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id oAJIX4Cc079809
-	for <linux-media@vger.kernel.org>; Fri, 19 Nov 2010 19:33:08 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 19 Nov 2010 19:33:04 +0100 (CET)
-Message-Id: <201011191833.oAJIX4Cc079809@smtp-vbr14.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build: WARNINGS
+Return-path: <mchehab@pedra>
+Received: from casper.infradead.org ([85.118.1.10]:55068 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755069Ab0KIKxG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Nov 2010 05:53:06 -0500
+Message-ID: <4CD9280C.40204@infradead.org>
+Date: Tue, 09 Nov 2010 08:53:00 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Maciej Szmigiero <mhej@o2.pl>
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [V4L][SAA7134] fix tda9887 detection on cold and eeprom read
+ corruption on warm Medion 7134
+References: <4CC5C568.4090809@o2.pl>
+In-Reply-To: <4CC5C568.4090809@o2.pl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Em 25-10-2010 15:59, Maciej Szmigiero escreveu:
+> [V4L][SAA7134] fix tda9887 detection on cold and eeprom read corruption on warm Medion 7134
+> 
+> When Medion 7134 analog+DVB-T card is cold (after powerup) the tda9887 analog demodulator
+> won't show on i2c bus.
+> This results in no signal on analog TV. After loading driver for second time
+> eeprom (required for tuner autodetection) read is corrupted, but tda9987 is detected
+> properly and analog TV works when tuner model is forced.
+> 
+> Fix tda9887 problem by moving its detect code after tuner setup which unhides it.
+> The eeprom read issue is fixed by opening i2c gate in DVB-T demodulator.
+> 
+> Tested on Medion 7134 and also tested for reference on Typhoon Cardbus Hybrid
+> (which also uses saa7134 driver).
+> 
+> Signed-off-by: Maciej Szmigiero <mhej@o2.pl>
+> 
+> --- a/drivers/media/video/saa7134/saa7134-cards.c	2010-08-02 00:11:14.000000000 +0200
+> +++ b/drivers/media/video/saa7134/saa7134-cards.c	2010-10-25 19:19:08.000000000 +0200
+> @@ -7249,12 +7249,37 @@
+>  		break;
+>  	case SAA7134_BOARD_MD7134:
+>  	{
+> -		u8 subaddr;
+> +		u8 subaddr, dmdregval;
+>  		u8 data[3];
+>  		int ret, tuner_t;
+> +		struct i2c_msg i2cgatemsg_r[] = { {.addr = 0x08, .flags = 0,
+> +						.buf = &subaddr, .len = 1},
+> +						{.addr = 0x08,
+> +							.flags = I2C_M_RD,
+> +						.buf = &dmdregval, .len = 1} };
+> +		struct i2c_msg i2cgatemsg_w[] = { {.addr = 0x08, .flags = 0,
+> +						.buf = data, .len = 2} };
+>  		struct i2c_msg msg[] = {{.addr=0x50, .flags=0, .buf=&subaddr, .len = 1},
+>  					{.addr=0x50, .flags=I2C_M_RD, .buf=data, .len = 3}};
+>  
+> +		/* open i2c gate in DVB-T demod */
+> +		/* so eeprom read won't be corrupted */
+> +		subaddr = 0x7;
+> +		ret = i2c_transfer(&dev->i2c_adap, i2cgatemsg_r, 2);
+> +		if ((ret == 2) && (dmdregval & 0x2)) {
+> +			printk(KERN_NOTICE "%s DVB-T demod i2c gate was left"
+> +						    " closed\n", dev->name);
+> +			printk(KERN_NOTICE "%s previous informational"
+> +					    " EEPROM read might have been"
+> +					    " corrupted\n", dev->name);
 
-Results of the daily build of v4l-dvb:
+hmm... I don't think we need those debug messages on normal cases. Also, we want the log
+shown as:
+	saa7134: <foo>
+and not as:
+	saa7134 <foo>
 
-date:        Fri Nov 19 19:00:22 CET 2010
-git master:       59365d136d205cc20fe666ca7f89b1c5001b0d5a
-git media-master: gcc version:      i686-linux-gcc (GCC) 4.5.1
-host hardware:    x86_64
-host os:          2.6.32.5
+> +
+> +			data[0] = 0x7;
+> +			data[1] = (dmdregval & ~0x2);
+> +			if (i2c_transfer(&dev->i2c_adap, i2cgatemsg_w, 1) != 1)
+> +				printk(KERN_ERR "early i2c gate"
+> +						" open failure\n");
 
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: WARNINGS
-linux-git-mips: WARNINGS
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-spec-git: OK
-sparse: ERRORS
+Gah. A message like that should really specify the dev->name, and the board.
 
-Detailed results are available here:
+> +		}
+> +
+>  		subaddr= 0x14;
+>  		tuner_t = 0;
+>  
+> @@ -7522,10 +7547,6 @@
+>  			v4l2_i2c_new_subdev(&dev->v4l2_dev,
+>  				&dev->i2c_adap, "tuner", "tuner",
+>  				dev->radio_addr, NULL);
+> -		if (has_demod)
+> -			v4l2_i2c_new_subdev(&dev->v4l2_dev,
+> -				&dev->i2c_adap, "tuner", "tuner",
+> -				0, v4l2_i2c_tuner_addrs(ADDRS_DEMOD));
+>  		if (dev->tuner_addr == ADDR_UNSET) {
+>  			enum v4l2_i2c_tuner_type type =
+>  				has_demod ? ADDRS_TV_WITH_DEMOD : ADDRS_TV;
+> @@ -7542,6 +7563,15 @@
+>  
+>  	saa7134_tuner_setup(dev);
+>  
+> +	/* some cards (Medion 7134 for example) needs tuner to be setup */
+> +	/* before tda9887 shows itself on i2c bus */
+> +	if ((TUNER_ABSENT != dev->tuner_type)
+> +			&& (dev->tda9887_conf & TDA9887_PRESENT)) {
+> +		v4l2_i2c_new_subdev(&dev->v4l2_dev,
+> +			&dev->i2c_adap, "tuner", "tuner",
+> +			0, v4l2_i2c_tuner_addrs(ADDRS_DEMOD));
+> +	}
+> +
+>  	switch (dev->board) {
+>  	case SAA7134_BOARD_BEHOLD_COLUMBUS_TVFM:
+>  	case SAA7134_BOARD_AVERMEDIA_CARDBUS_501:
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+The order change for the demod probe will likely break support for other boards.
+If the problem is specific to Medion 7134, what you should do, instead, is to
+change the order just for MD7134 (so, inside the switch(dev->board)).
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Cheers,
+Mauro.
