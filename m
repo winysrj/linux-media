@@ -1,50 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:62929 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:63594 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750761Ab0KRUtz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Nov 2010 15:49:55 -0500
-Date: Thu, 18 Nov 2010 15:49:52 -0500
-From: Jarod Wilson <jarod@redhat.com>
-To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 0/2] Apple remote support
-Message-ID: <20101118204952.GC16899@redhat.com>
-References: <37bb20b43afce52964a95a72a725b0e4@hardeman.nu>
- <AANLkTimAx+D745-VxoUJ25ii+=Dm6rHb8OXs9_D69S1W@mail.gmail.com>
- <20101104193823.GA9107@hardeman.nu>
- <4CD30CE5.5030003@redhat.com>
- <da4aa0687909ae3843c682fbf446e452@hardeman.nu>
- <AANLkTin1Lu9cdnLeVfA8NDQFWkKzb6k+yCiSBqq6Otz6@mail.gmail.com>
- <4CE2743D.5040501@redhat.com>
- <20101116232636.GA28261@hardeman.nu>
- <20101118163304.GB16899@redhat.com>
- <20101118204319.GA8213@hardeman.nu>
+	id S1753875Ab0KIK4g (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Nov 2010 05:56:36 -0500
+Message-ID: <4CD928E0.5090100@redhat.com>
+Date: Tue, 09 Nov 2010 08:56:32 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20101118204319.GA8213@hardeman.nu>
+To: Florian Klink <flokli@flokli.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx: Terratec Grabby no sound
+References: <f9fc4355b0c721744c6522a720ee2df7@flokli.de> <4CC5BE39.70206@redhat.com> <d8211f823d481e2991821b5dfc4e8b84@flokli.de> <4CC5EDC3.3020506@redhat.com> <0346874f2869b186cbe1224baeef5462@flokli.de> <4CC61058.7090205@redhat.com> <d1e3b54f6aca1dcdf74041ef2d8e9463@flokli.de>
+In-Reply-To: <d1e3b54f6aca1dcdf74041ef2d8e9463@flokli.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Nov 18, 2010 at 09:43:19PM +0100, David Härdeman wrote:
-> On Thu, Nov 18, 2010 at 11:33:04AM -0500, Jarod Wilson wrote:
-> >Mauro's suggestion, iirc, was that max scancode size should be a
-> >property of the keytable uploaded, and something set at load time (and
-> >probably exposed as a sysfs node, similar to protocols).
+Em 26-10-2010 10:58, Florian Klink escreveu:
+> Hi,
 > 
-> I think that would be a step in the wrong direction. It would make the
-> keytables less flexible while providing no real advantages.
+>> The sound comes from alsa device. Several em28xx types provide
+>> standard USB audio. So,
+>> snd-usb-audio handles it. That's why you need
+>> alsa:adevice=hw.2,0:forceaudio at mplayer.
+> 
+> ... but thats my problem.
+> sound doesn't appear inside mplayer, even with the command line options set to use the "external" alsa device. However, "arecord -D hw:2,0 -r 32000 -c 2 -f S16_LE | aplay -" plays the sound, but only before mplayer tried to access the sound card
 
-I think it was supposed to be something you could update on the fly when
-uploading new keys, so its not entirely inflexible. Default keymap might
-be 24-bit NEC, then you upload 32-bit NEC codes, and the max scancode size
-would get updated at the same time. Of course, it probably wouldn't work
-terribly well to have a mix of 24-bit and 32-bit NEC codes in the same
-table.
+Have you tried my patch?
 
--- 
-Jarod Wilson
-jarod@redhat.com
+If you're using alsa:adevice=hw.2,0:forceaudio at mplayer, you should not be running arecord/aplay. You need
+to use one solution or the other.
+> 
+> When trying to play sound with arecord again after mplayer tried to access it, I have to re-plug the card to get it playing sound over arecord again, video only seems to not break it. There is no error message or something in arecord when it's not playing anything, just silence and the same command line output.
+> 
+> Is there maybe anything with the sample format S16_LE or something that confuses mplayer/the driver/whatever?
+> 
+> Strange problem...
+> 
+> mplayer output (mplayer -v -tv driver=v4l2:input=0:device=/dev/video1:alsa:adevice=hw.2,0:forceaudio tv://):
+> http://pastebin.com/yTV300iG
+> 
+> Florian
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
