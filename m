@@ -1,22 +1,21 @@
 Return-path: <mchehab@pedra>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <frank-info@gmx.de>) id 1PIyzt-0006Oe-Vg
-	for linux-dvb@linuxtv.org; Thu, 18 Nov 2010 08:33:34 +0100
-Received: from mailout-de.gmx.net ([213.165.64.22] helo=mail.gmx.net)
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-b) with smtp
+	(envelope-from <mvreijn@gmail.com>) id 1PFpLG-0005z4-5M
+	for linux-dvb@linuxtv.org; Tue, 09 Nov 2010 15:38:34 +0100
+Received: from mail-yw0-f54.google.com ([209.85.213.54])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-c) with esmtp
 	for <linux-dvb@linuxtv.org>
-	id 1PIyzt-0006xV-8C; Thu, 18 Nov 2010 08:33:33 +0100
-From: Frank Wohlfahrt <frank-info@gmx.de>
-To: linux-dvb@linuxtv.org
-Date: Thu, 18 Nov 2010 08:33:32 +0100
-References: <mailman.0.1290063176.21965.linux-dvb@linuxtv.org>
-In-Reply-To: <mailman.0.1290063176.21965.linux-dvb@linuxtv.org>
+	id 1PFpLF-0004ji-5D; Tue, 09 Nov 2010 15:38:33 +0100
+Received: by ywg4 with SMTP id 4so912138ywg.41
+	for <linux-dvb@linuxtv.org>; Tue, 09 Nov 2010 06:38:31 -0800 (PST)
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <201011180833.32137.frank-info@gmx.de>
-Subject: [linux-dvb] cx23885 crashes with TeVii S470
-Reply-To: linux-media@vger.kernel.org, frank-info@gmx.de
+Date: Tue, 9 Nov 2010 15:38:31 +0100
+Message-ID: <AANLkTin=npFSbftv-ut_Cv-iZDYw1Dqrj=im5VG7G=CR@mail.gmail.com>
+From: Mark van Reijn <mvreijn@gmail.com>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Trying to get unlisted Terratec Cinergy to work
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,86 +23,93 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0010158688=="
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 Sender: <mchehab@pedra>
 List-ID: <linux-dvb@linuxtv.org>
 
-I have a  TeVii S470 installed on the only PCIe slot of my MSI H55M-ED55.
+--===============0010158688==
+Content-Type: multipart/alternative; boundary=0016361e7b44d6288504949fb102
 
-The driver crashes about 50% already immediately after booting, but also some 
-time afterwards, working properly until then.
+--0016361e7b44d6288504949fb102
+Content-Type: text/plain; charset=ISO-8859-1
 
-[  190.764711] ds3000_firmware_ondemand: Waiting for firmware upload 
-(dvb-fe-ds3000.fw)...
-[  190.764722] cx23885 0000:02:00.0: firmware: requesting dvb-fe-ds3000.fw
-[  190.767173] ds3000_firmware_ondemand: Waiting for firmware upload(2)...
-[  193.151417] cx23885[0]: mpeg risc op code error
-[  193.151427] cx23885[0]: TS1 B - dma channel status dump
-[  193.151434] cx23885[0]:   cmds: init risc lo   : 0x2390e000
-[  193.151440] cx23885[0]:   cmds: init risc hi   : 0x00000000
-[  193.151446] cx23885[0]:   cmds: cdt base       : 0x00010580
-[  193.151451] cx23885[0]:   cmds: cdt size       : 0x0000000a
-[  193.151456] cx23885[0]:   cmds: iq base        : 0x00010400
-[  193.151462] cx23885[0]:   cmds: iq size        : 0x00000010
-[  193.151468] cx23885[0]:   cmds: risc pc lo     : 0x2390e1cc
-[  193.151473] cx23885[0]:   cmds: risc pc hi     : 0x00000000
-[  193.151478] cx23885[0]:   cmds: iq wr ptr      : 0x00004103
-...
+Hi everyone,
 
-The related source module is (I think): cx23885-core.c
+I have been trying to get my "Terratec Cinergy HT USB PVR" tuner to work (on
+DVB-T). This is a hybrid analog/dvb-t tuner with a hardware MPEG encoder.
+Inserting the device does not cause any driver to respond and load. The USB
+ID is "0ccd:006b". The PID is not listed in "dvb-usb-ids.h".
 
-Only yesterday I had the error during shutdown (preventing the system to 
-switch off):
+After quite a bit of research I have a lot of information on the device. I
+also opened it up to check the actual chip versions (took me back to
+slackware 3 and graphics cards).
+The various components are:
+* Cypress CY7C68013A FX2 USB controller
+* Intel CE6353 demodulator (should be the same as Zarlink ZL10353)
+* XCeive XC3028 tuner
+(* Conexant CX25843 a/v decoder)
+(* Conexant CX23416 MPEG encoder)
 
-[ 5021.188012] cx23885 0000:02:00.0: PCI INT A disabled
-[ 5021.211443] saa7146: unregister extension 'dvb'.
-[ 5021.243256] BUG: unable to handle kernel NULL pointer dereference at (null)
-[ 5021.243262] IP: [<ef9824ce>] v4l2_device_unregister+0x1e/0x50 [videodev]
-[ 5021.243272] *pde = 76190067 
-[ 5021.243274] Oops: 0000 [#1] SMP 
-[ 5021.243277] last sysfs 
-file: /sys/devices/pci0000:00/0000:00:1c.3/0000:02:00.0/firmware/0000:02:00.0/loading
+The last two should not be really necessary from what I have learned.
 
-I don't know if this failure has something to do with the problem above.
+>From what I can see, all components are supported in one way or another.
+There are several drivers that mention the combination of FX2, ZL10353 and
+XC2028/XC3028, "cxusb" seems to be closest. A copy-paste from existing code
+might do the trick.
 
-The software I use is Ubuntu Lucid (Kernel 2.6.32-25-generic) coming with the 
-VDR distribution yavdr 0.3.
+One thing stands in my way: I have never written C code in my life. I can
+read the code and more or less understand what the purpose is, but to
+combine stuff into a working driver requires real skills :-)
 
-The firmware for the card is from packet "linux-firmware-yavdr" Version: 
-1.1-3yavdr1 
--rw-r--r--  1 root root    8192 2010-07-18 21:54 dvb-fe-ds3000.fw
+I have the correct xceive and conexant firmwares, a windows driver with INF,
+etc. at my disposal.
+Can anyone help me assemble a driver for my device?
+TIA,
 
-I get the same problems using the original kernel module from 2.6.32 or the 
-DKMS modules from v4l-dvb-dkms (0~20101018.15139) or s2-liplianin-dkms 
-(0~20101016.14629).
+Mark
 
-I think I have a hardware problem and I just have to know wether it can be 
-fixed with maybe BIOS settings or if I have to get a different DVB-S2 card. 
-What is the reason for a "mpeg risc op code error" ?
+--0016361e7b44d6288504949fb102
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Thanks in advance !!
+Hi everyone,<br><br>I have been trying to get my &quot;Terratec Cinergy HT =
+USB PVR&quot; tuner to work (on DVB-T). This is a hybrid analog/dvb-t tuner=
+ with a hardware MPEG encoder. <br>Inserting the device does not cause any =
+driver to respond and load. The USB ID is &quot;0ccd:006b&quot;. The PID is=
+ not listed in &quot;dvb-usb-ids.h&quot;.<br>
+<br>After quite a bit of research I have a lot of information on the device=
+. I also opened it up to check the actual chip versions (took me back to sl=
+ackware 3 and graphics cards). <br>The various components are:<br>* Cypress=
+ CY7C68013A FX2 USB controller<br>
+* Intel CE6353 demodulator (should be the same as Zarlink ZL10353)<br>* XCe=
+ive XC3028 tuner<br>(* Conexant CX25843 a/v decoder)<br>(* Conexant CX23416=
+ MPEG encoder)<br><br>The last two should not be really necessary from what=
+ I have learned. <br>
+<br>From what I can see, all components are supported in one way or another=
+.
+ There are several drivers that mention the combination of FX2, ZL10353 and=
+ XC2028/XC3028, &quot;cxusb&quot; seems to be closest. A copy-paste from ex=
+isting code might do the trick. <br><br>One thing stands in my way: I have =
+never written C code in my life. I can read the code and more or less under=
+stand what the purpose is, but to combine stuff into a working driver requi=
+res real skills :-) <br>
+<br>I have the correct xceive and conexant firmwares, a windows driver with=
+ INF, etc. at my disposal. <br>Can anyone help me assemble a driver for my =
+device? <br>TIA, <br><br>Mark<br>
 
-TeVii S470:
-02:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI Video 
-and Audio Decoder (rev 02)
+--0016361e7b44d6288504949fb102--
 
-Rest of the system:
-Intel Core i3 530,+ Hauppauge Nexus-s 2.2 (PCI slot)
 
-cx23885               117401  6 
-cx2341x                12404  1 cx23885
-v4l2_common            16390  2 cx23885,cx2341x
-videodev               36345  3 saa7146_vv,cx23885,v4l2_common
-v4l1_compat            13251  1 videodev
-videobuf_dma_sg        10782  2 saa7146_vv,cx23885
-videobuf_dvb            5096  1 cx23885
-
-Frank Wohlfahrt
+--===============0010158688==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0010158688==--
