@@ -1,85 +1,94 @@
 Return-path: <mchehab@pedra>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:58536 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753841Ab0KRP7D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Nov 2010 10:59:03 -0500
-Received: by yxf34 with SMTP id 34so1910631yxf.19
-        for <linux-media@vger.kernel.org>; Thu, 18 Nov 2010 07:59:03 -0800 (PST)
+Received: from nm18-vm1.bullet.mail.ukl.yahoo.com ([217.146.183.112]:42969
+	"HELO nm18-vm1.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752350Ab0KIUrS convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Nov 2010 15:47:18 -0500
+Message-ID: <110420.78541.qm@web25408.mail.ukl.yahoo.com>
+References: <1268788483.1536.24.camel@destiny> <20101109194904.107230@gmx.net>
+Date: Tue, 9 Nov 2010 20:47:15 +0000 (GMT)
+From: fabio tirapelle <ftirapelle@yahoo.it>
+Subject: Re: Hauppauge WinTV HVR-1400 (XC3028L) firmware loading problem
+To: Alina Friedrichsen <x-alina@gmx.net>, linux-media@vger.kernel.org
+In-Reply-To: <20101109194904.107230@gmx.net>
 MIME-Version: 1.0
-In-Reply-To: <55f4fc73372a105a2d20ed1ab39a6a4a.squirrel@webmail.xs4all.nl>
-References: <cover.1289944159.git.hverkuil@xs4all.nl>
-	<659fdfa774acb1e359cb0c3c3b48b5e26bb3fcc9.1289944160.git.hverkuil@xs4all.nl>
-	<AANLkTikH0+hhWwTUAkYS1Z_WpwQvyZrw1sCt1vkjghN3@mail.gmail.com>
-	<e29b49a76577b6eb777d1aa0dba7bd95.squirrel@webmail.xs4all.nl>
-	<AANLkTimuV4ZZEcbrf4a2toHLcKMDAEQF9ZLWkju6zwZ0@mail.gmail.com>
-	<55f4fc73372a105a2d20ed1ab39a6a4a.squirrel@webmail.xs4all.nl>
-Date: Thu, 18 Nov 2010 10:58:57 -0500
-Message-ID: <AANLkTi=Qi9U2iGbsumhu0OBUkUBae9Woe_4R5V53Wu0v@mail.gmail.com>
-Subject: Re: [RFCv2 PATCH 07/15] dsbr100: convert to unlocked_ioctl.
-From: David Ellingsworth <david@identd.dyndns.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Nov 18, 2010 at 10:29 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
->> On Thu, Nov 18, 2010 at 9:46 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>>
->>>> This driver has quite a few locking issues that would only be made
->>>> worse by your patch. A much better patch for this can be found here:
->>>>
->>>> http://desource.dyndns.org/~atog/gitweb?p=linux-media.git;a=commitdiff;h=9c5d8ebb602e9af46902c5f3d4d4cc80227d3f7c
->>>
->>> Much too big for 2.6.37. I'll just drop this patch from my patch series.
->>> Instead it will rely on the new lock in v4l2_device (BKL replacement)
->>> that
->>> serializes all ioctls. For 2.6.38 we can convert it to core assisted
->>> locking which is much easier.
->>>
->>
->> I don't see how this patch is really any bigger than some of the
->> others in your series. Sure there are a lot of deletions, but the
->> number of additions is quite small. There are much worse ways all the
->> locking issues in this driver could have been corrected. This patch
->> manages to do just that while reducing the overall size of the driver
->> at the same time.
->
-> Basically there are two reasons why I'm not including this in my patch
-> series: 1) you disagreed with my patch and 2) I disagree with your patch.
->
-> In this case the patch for 2.6.37 should either be small and trivial, or
-> we should postpone it to 2.6.38 and use proper core-assisted locking
-> (which makes the most sense for this driver in my opinion). And I really
-> dislike those BUG_ONs you've added, to be honest. Sorry about that...
+> 
 
-The reality is that the BUG_ONs should never be hit. I added those
-because I don't have the hardware needed to test my changes. So if I
-missed something, the issue would be very apparent to whoever was
-doing the testing. If someone would actually test this series, the
-BUG_ONs could be removed. Maybe a WARN_ON would have been better, but
-to me accessing the device struct without holding the lock is a bug.
-The only valid case where it would be okay to do that would be from
-within the probe function before the device is registered.
+> Hi,
+> 
+> beginning with kernel 2.6.34.? the HVR-1400 stops working  completely.
+> If I run the scan utility, only the fist tuning works and after  that it fails 
+>always. On the next run of the utility it says "Device or resource  busy". 
+>Watching TV with vlc works never.
 
->
-> Anyway, feel free to post your own patch for this driver. I've no problems
-> with that at all. It is clear that this driver takes more time to get a
-> proper patch for that makes everyone happy, and I really need to make the
-> git pull request for 2.6.37 tomorrow as we don't want to do this too late
-> in the 2.6.37 cycle.
->
+I think that all the WinTV-HVR will be effected by theese problems. See thread 
+"Wintv-HVR-1120 woes"
 
-I understand, but if you or anyone else had actually bothered to
-review this patch when it was submitted back in May then it might have
-made its way into the kernel by now. At the time the patch was
-written, core assisted locking wasn't even implemented. Granted the
-ioctl added to correct the locking might cause a cache miss, but this
-is acceptable for such a simple driver. This is a good first step
-towards core assisted locking.
+> 
+> This bug persist up to the  current developer kernel 2.6.37-rc1-git7.
+> 
+> Any ideas? Maybe it's a  PCIe/ExpressCard related problem? Some more
+> popular USB sticks use the same  chipset.
+> 
+> Regards,
+> Alina
+> 
+> -------- Original-Nachricht  --------
+> > Datum: Wed, 17 Mar 2010 02:14:43 +0100
+> > Von: Alina  Friedrichsen <x-alina@gmx.net>
+> > An: linux-media@vger.kernel.org
+> >  Betreff: Hauppauge WinTV HVR-1400 firmware loading problem
+> 
+> > My  kernel is 2.6.33.
+> > When I want to watch DVB-T with VLC, loading the  firmwares stops after
+> > the following and don't see any pictures:
+> > 
+> > cx23885 0000:03:00.0: firmware: requesting xc3028L-v36.fw
+> >  xc2028 3-0064: Loading 81 firmware images from xc3028L-v36.fw, type:
+> >  xc2028 firmware, ver 3.6
+> > xc2028 3-0064: Loading firmware for type=BASE  F8MHZ (3), id
+> > 0000000000000000.
+> > xc2028 3-0064: Loading firmware  for type=D2633 DTV7 (90), id
+> > 0000000000000000.
+> > 
+> > And  hangs forever. Any retries has the same effect.
+> > 
+> > But if I start  "scan /usr/share/dvb/dvb-t/de-Berlin" the tuning fails
+> > two times, then  all firmwares load correctly and scanning works.
+> > 
+> > xc2028 3-0064:  Loading firmware for type=BASE F8MHZ (3), id
+> > 0000000000000000.
+> >  xc2028 3-0064: Loading firmware for type=D2633 DTV7 (90), id
+> >  0000000000000000.
+> > xc2028 3-0064: Loading firmware for type=BASE F8MHZ  (3), id
+> > 0000000000000000.
+> > xc2028 3-0064: Loading firmware for  type=D2633 DTV7 (90), id
+> > 0000000000000000.
+> > xc2028 3-0064:  Loading firmware for type=D2633 DTV78 (110), id
+> >  0000000000000000.
+> > xc2028 3-0064: Loading SCODE for type=DTV78 DTV8  DIBCOM52 SCODE
+> > HAS_IF_5200 (61000300), id 0000000000000000.
+> > 
+> > After that all other firmware loadings works fine and I can watch  TV.
+> > 
+> > Any idea whats goes wrong? Is this a problem of the driver,  or is my
+> > express card broken? I unfortunately has no other card to  test.
+> > 
+> > Thanks!
+> > Alina
+> > 
+> > 
+> > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media"  in
+> the body of a message to majordomo@vger.kernel.org
+> More  majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Regards,
 
-David Ellingsworth
+      
