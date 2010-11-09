@@ -1,45 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3445 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755814Ab0KJNYd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Nov 2010 08:24:33 -0500
-Message-ID: <4c82bf1c3e1d08acd513e99ac15a2f81.squirrel@webmail.xs4all.nl>
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A7C77@dbde02.ent.ti.com>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A7C77@dbde02.ent.ti.com>
-Date: Wed, 10 Nov 2010 14:24:12 +0100
-Subject: RE: [PATCH 1/6] davinci vpbe: V4L2 display driver for DM644X SoC
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-Cc: "LMML" <linux-media@vger.kernel.org>,
-	"dlos" <davinci-linux-open-source@linux.davincidsp.com>,
-	"Mauro Carvalho Chehab" <mchehab@redhat.com>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Received: from casper.infradead.org ([85.118.1.10]:48508 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754895Ab0KIKfI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Nov 2010 05:35:08 -0500
+Message-ID: <4CD923C3.5040000@infradead.org>
+Date: Tue, 09 Nov 2010 08:34:43 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: =?UTF-8?B?RGF2aWQgSMOkcmRlbWFu?= <david@hardeman.nu>
+CC: linux-media@vger.kernel.org, jarod@wilsonet.com
+Subject: Re: [PATCH 0/6] rc-core: ir-core to rc-core conversion
+References: <20101102201733.12010.30019.stgit@localhost.localdomain> <66b8b2f940b40cc67fa95c3ae064ef91@hardeman.nu>
+In-Reply-To: <66b8b2f940b40cc67fa95c3ae064ef91@hardeman.nu>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Hi David,
 
-> Hans,
->  Thank you for the review. I have taken care of the points you mentioned.
-> The name comparison is unnecessary. I have also replaced the native
-> struct definitions with those of v4l2. Request you to go through the rest
-> of the patches so I can send the set once again.
+Em 09-11-2010 08:27, David Härdeman escreveu:
+> On Tue, 02 Nov 2010 21:17:38 +0100, David Härdeman <david@hardeman.nu>
+> wrote:
+>> This is my current patch queue, the main change is to make struct rc_dev
+>> the primary interface for rc drivers and to abstract away the fact that
+>> there's an input device lurking in there somewhere.
+> 
+> Mauro,
+> 
+> you have neither commented on the patches nor committed them. At the same
+> time you've created a "for_v2.6.38" branch where you've already committed
+> other IR related patches. Could you please provide some feedback on what
+> the plan is?
 
-I won't have time for that until Friday at the earliest. More likely it
-will be the weekend. I hope that's OK.
+I've returned from LPC at Sunday. In the last two weeks, I received
+about 140+ patches at patchwork, plus 8 pull requests, plus tons of emails that
+I received at the last week. So, I have lots of backlog to handle.
 
-Regards,
+My intention is to handle the pending stuff during this week.
 
-       Hans
+Cheers,
+Mauro
 
->
-> Thanks and Regards,
-> -Manju
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
 
