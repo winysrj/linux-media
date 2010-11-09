@@ -1,78 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3530 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754856Ab0KRHRs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Nov 2010 02:17:48 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Pavan Savoy <pavan_savoy@ti.com>
-Subject: Re: [PATCH v4 0/6] FM V4L2 drivers for WL128x
-Date: Thu, 18 Nov 2010 08:17:39 +0100
-Cc: "Ohad Ben-Cohen" <ohad@wizery.com>, mchehab@infradead.org,
-	manjunatha_halli@ti.com, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-References: <1289913494-21590-1-git-send-email-manjunatha_halli@ti.com> <AANLkTi=ZT0E=A9ZYAM86qu4P8eStkF2PLep6-DofCX-s@mail.gmail.com> <AANLkTinyaZ07HBFNHNyR9eK6__QdZtG6O1gQX1F+YRB9@mail.gmail.com>
-In-Reply-To: <AANLkTinyaZ07HBFNHNyR9eK6__QdZtG6O1gQX1F+YRB9@mail.gmail.com>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:45596 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752233Ab0KIQHf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Nov 2010 11:07:35 -0500
+Received: by ewy7 with SMTP id 7so3643712ewy.19
+        for <linux-media@vger.kernel.org>; Tue, 09 Nov 2010 08:07:34 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011180817.39801.hverkuil@xs4all.nl>
+In-Reply-To: <4CD970BB.5030307@redhat.com>
+References: <AANLkTi=tc_4ZAk20fEamcFQ-VDFkt4tBwFH+uGv9Fw62@mail.gmail.com>
+	<AANLkTimYMTa8zigTYbZhH5dN7VGZDBUFmw3PL4jRV9hv@mail.gmail.com>
+	<4CD970BB.5030307@redhat.com>
+Date: Tue, 9 Nov 2010 11:07:33 -0500
+Message-ID: <AANLkTin7pq=UZPTWvCJ+Zdj2SeqfmruJ8q=dktEZLZBP@mail.gmail.com>
+Subject: Re: [PULL] http://www.kernellabs.com/hg/~dheitmueller/v4l-dvb-950q-final
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thursday, November 18, 2010 06:54:16 Pavan Savoy wrote:
-> Hans, Mauro, Ohad,
-> 
-> On Wed, Nov 17, 2010 at 6:32 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
-> > Hi Manjunatha,
-> >
-> > On Tue, Nov 16, 2010 at 3:18 PM,  <manjunatha_halli@ti.com> wrote:
-> >>  drivers/staging/ti-st/Kconfig        |   10 +
-> >>  drivers/staging/ti-st/Makefile       |    2 +
-> >>  drivers/staging/ti-st/fmdrv.h        |  259 ++++
-> >>  drivers/staging/ti-st/fmdrv_common.c | 2141 ++++++++++++++++++++++++++++++++++
-> >>  drivers/staging/ti-st/fmdrv_common.h |  458 ++++++++
-> >>  drivers/staging/ti-st/fmdrv_rx.c     |  979 ++++++++++++++++
-> >>  drivers/staging/ti-st/fmdrv_rx.h     |   59 +
-> >>  drivers/staging/ti-st/fmdrv_tx.c     |  461 ++++++++
-> >>  drivers/staging/ti-st/fmdrv_tx.h     |   37 +
-> >>  drivers/staging/ti-st/fmdrv_v4l2.c   |  757 ++++++++++++
-> >>  drivers/staging/ti-st/fmdrv_v4l2.h   |   32 +
-> >>  11 files changed, 5195 insertions(+), 0 deletions(-)
-> >
-> > Usually when a driver is added to staging, it should also have a TODO
-> > file specifying what needs to be done before the driver can be taken
-> > out of staging (at least as far as the author knows of today).
-> >
-> > It helps keeping track of the open issues in the driver, which is good
-> > for everyone - the author, the random contributor/observer, and
-> > probably even the staging maintainer.
-> >
-> > Can you please add such a TODO file ?
-> >
-> > Thanks,
-> > Ohad.
-> 
-> Thanks Ohad, for the comments, We do have an internal TODO.
-> In terms of functionality we have stuff like TX RDS which already has
-> few CIDs in the extended controls.
-> extend V4L2 for complete-scan, add in stop search during hw_seek .. etc...
-> But I just wanted to ask whether this is good enough to be staged.
-> Because as we begin to implement and add in the items in TODO - the
-> patch set will keep continuing to grow.
-> 
-> So Hans, Mauro, What do you think ?
-> It would be real helpful - if this can be staged, it is becoming
-> difficult to maintain for us.
+On Tue, Nov 9, 2010 at 11:03 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Em 02-11-2010 16:47, Devin Heitmueller escreveu:
+>> On Sat, Oct 9, 2010 at 2:40 PM, Devin Heitmueller
+>> <dheitmueller@kernellabs.com> wrote:
+>>> Hello,
+>>>
+>>> Please pull from the following for some basic fixes related to
+>>> applications such as tvtime hanging when no video is present, as well
+>>> as some quality improvements for analog.
+>>>
+>>> http://www.kernellabs.com/hg/~dheitmueller/v4l-dvb-950q-final
+>>>
+>>> Please let me know if there are any questions/problems.
+>
+> I'm still importing your patches, but, at the very first one, you
+> forgot to send your Signed-off-by:
+>
+> Generating hg_15168_djh_merge_vbi_changes.patch
+> WARNING: please, no space before tabs
+> #39: FILE: drivers/media/video/au0828/au0828.h:155:
+> +^Istruct au0828_buffer    ^I*vbi_buf;$
+>
+> ERROR: Missing Signed-off-by: line(s)
+>
+> Cheers,
+> Mauro
+>
 
-I have no problem with it going to staging. It is not yet ready for the
-mainline. I'll try to do a quick review and point out what needs to be
-changed.
+"djh - merge vbi changes" was just a rebase against the latest code.
+The very first patch in the series is one earlier (047a8c9fa9d5).
 
-Regards,
-
-	Hans
+Devin
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
