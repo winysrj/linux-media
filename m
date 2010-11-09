@@ -1,59 +1,92 @@
-Return-path: <mchehab@gaivota>
-Received: from lo.gmane.org ([80.91.229.12]:37645 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753532Ab0KUPqu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Nov 2010 10:46:50 -0500
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1PKC7s-0004TO-Pb
-	for linux-media@vger.kernel.org; Sun, 21 Nov 2010 16:46:48 +0100
-Received: from 60.52.96.29 ([60.52.96.29])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sun, 21 Nov 2010 16:46:48 +0100
-Received: from bahathir by 60.52.96.29 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sun, 21 Nov 2010 16:46:48 +0100
+Return-path: <mchehab@pedra>
+Received: from mail-in-01.arcor-online.net ([151.189.21.41]:55283 "EHLO
+	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752463Ab0KIQud (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Nov 2010 11:50:33 -0500
+From: stefan.ringel@arcor.de
 To: linux-media@vger.kernel.org
-From: Mohammad Bahathir Hashim <bahathir@gmail.com>
-Subject: Re: For those that uses Pinnacle PCTV 340e
-Date: Sun, 21 Nov 2010 15:46:36 +0000 (UTC)
-Message-ID: <icbess$jj2$1@dough.gmane.org>
-References: <AANLkTinWJu92nCR4vHUO3MWZp_ipNZL8LzpYrU4GDj7U@mail.gmail.com>
- <ibqclc$q5u$1@dough.gmane.org>
- <AANLkTi=iLjVzq2T61FkPEEMdPKXd6L9Va5_L0JjkhN5J@mail.gmail.com>
-Reply-To: Mohammad Bahathir Hashim <bahathir@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Cc: mchehab@redhat.com, Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH v2] tm6000: add revision check
+Date: Tue,  9 Nov 2010 17:50:28 +0100
+Message-Id: <1289321428-6332-1-git-send-email-stefan.ringel@arcor.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
->
-> Tried "your" code today and it works slightly better since the tuner
-> still works after a reboot.
-> The remote stops working tho. I get this in dmesg: "dib0700: rc submit
-> urb failed".
->
-> Can't say I notice any difference on how warm it becomes tho.
->
-> /Magnus Alm
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
-Thank you for trying the patch.  The patch is just a quick and simple
-patch, to make xc4000 works with linux 2.6.35, and I only just want to
-make sure the DVB feature is up and running. I remembered that Devin
-had said something about RC polling, which make the 'load' getting
-high (1.00) eventhough the system proccesses are in idle or sleeping. 
-
-In my case, the PCTV 340e dongle is cooler when it is in idle; ie, not
-streaming to the host; compared to the original xc4000 driver.
-
-One more thing is, the SNR, signal strength, ... are quite not reported
-correctly. if you use 'femon -H'.
-
-I really hope other experienced developers can take a look into the
-code, and make it better compability with current kernel. :)
+adding chip revision check
 
 
-Thank you very much.
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+---
+ drivers/staging/tm6000/tm6000-cards.c |    7 -------
+ drivers/staging/tm6000/tm6000-core.c  |   27 ++++++++++++++++++++-------
+ 2 files changed, 20 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+index 664e603..1c9374a 100644
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -521,13 +521,6 @@ int tm6000_cards_setup(struct tm6000_core *dev)
+ 				printk(KERN_ERR "Error %i doing tuner reset\n", rc);
+ 				return rc;
+ 			}
+-			msleep(10);
+-
+-			if (!i) {
+-				rc = tm6000_get_reg32(dev, REQ_40_GET_VERSION, 0, 0);
+-				if (rc >= 0)
+-					printk(KERN_DEBUG "board=0x%08x\n", rc);
+-			}
+ 		}
+ 	} else {
+ 		printk(KERN_ERR "Tuner reset is not configured\n");
+diff --git a/drivers/staging/tm6000/tm6000-core.c b/drivers/staging/tm6000/tm6000-core.c
+index df3f187..121dc46 100644
+--- a/drivers/staging/tm6000/tm6000-core.c
++++ b/drivers/staging/tm6000/tm6000-core.c
+@@ -542,6 +542,26 @@ int tm6000_init(struct tm6000_core *dev)
+ 	int board, rc = 0, i, size;
+ 	struct reg_init *tab;
+ 
++	/* Check board revision */
++	board = tm6000_get_reg32(dev, REQ_40_GET_VERSION, 0, 0);
++	if (board >= 0) {
++		switch (board & 0xff) {
++		case 0xf3:
++			printk(KERN_INFO "Found tm6000\n");
++			if (dev->dev_type != TM6000)
++				dev->dev_type = TM6000;
++			break;
++		case 0xf4:
++			printk(KERN_INFO "Found tm6010\n");
++			if (dev->dev_type != TM6010)
++				dev->dev_type = TM6010;
++			break;
++		default:
++			printk(KERN_INFO "Unknown board version = 0x%08x\n", board);
++		}
++	} else
++		printk(KERN_ERR "Error %i while retrieving board version\n", board);
++
+ 	if (dev->dev_type == TM6010) {
+ 		tab = tm6010_init_tab;
+ 		size = ARRAY_SIZE(tm6010_init_tab);
+@@ -563,13 +583,6 @@ int tm6000_init(struct tm6000_core *dev)
+ 
+ 	msleep(5); /* Just to be conservative */
+ 
+-	/* Check board version - maybe 10Moons specific */
+-	board = tm6000_get_reg32(dev, REQ_40_GET_VERSION, 0, 0);
+-	if (board >= 0)
+-		printk(KERN_INFO "Board version = 0x%08x\n", board);
+-	else
+-		printk(KERN_ERR "Error %i while retrieving board version\n", board);
+-
+ 	rc = tm6000_cards_setup(dev);
+ 
+ 	return rc;
+-- 
+1.7.2.2
 
