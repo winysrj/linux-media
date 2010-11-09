@@ -1,77 +1,120 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4791 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753830Ab0KOJuR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Nov 2010 04:50:17 -0500
-Message-ID: <342eb735192f26a4a84488cad7f01068.squirrel@webmail.xs4all.nl>
-In-Reply-To: <201011151017.41453.arnd@arndb.de>
-References: <cover.1289740431.git.hverkuil@xs4all.nl>
-    <201011142253.29768.arnd@arndb.de>
-    <201011142348.51859.hverkuil@xs4all.nl>
-    <201011151017.41453.arnd@arndb.de>
-Date: Mon, 15 Nov 2010 10:49:57 +0100
-Subject: Re: [RFC PATCH 0/8] V4L BKL removal: first round
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Arnd Bergmann" <arnd@arndb.de>
-Cc: linux-media@vger.kernel.org,
-	"Mauro Carvalho Chehab" <mchehab@redhat.com>
+Received: from mailout-de.gmx.net ([213.165.64.22]:45665 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1751628Ab0KIHJK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Nov 2010 02:09:10 -0500
+Date: Tue, 9 Nov 2010 08:09:12 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Baruch Siach <baruch@tkos.co.il>
+cc: Sascha Hauer <s.hauer@pengutronix.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] soc-camera: Compile fixes for mx2-camera
+In-Reply-To: <20101109052342.GA29441@jasper.tkos.co.il>
+Message-ID: <Pine.LNX.4.64.1011090806440.25364@axis700.grange>
+References: <1289249565-18346-1-git-send-email-s.hauer@pengutronix.de>
+ <20101109052342.GA29441@jasper.tkos.co.il>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+On Tue, 9 Nov 2010, Baruch Siach wrote:
 
-> On Sunday 14 November 2010 23:48:51 Hans Verkuil wrote:
->> On Sunday, November 14, 2010 22:53:29 Arnd Bergmann wrote:
->> > On Sunday 14 November 2010, Hans Verkuil wrote:
->> > > This patch series converts 24 v4l drivers to unlocked_ioctl. These
->> are low
->> > > hanging fruit but you have to start somewhere :-)
->> > >
->> > > The first patch replaces mutex_lock in the V4L2 core by
->> mutex_lock_interruptible
->> > > for most fops.
->> >
->> > The patches all look good as far as I can tell, but I suppose the
->> title is
->> > obsolete now that the BKL has been replaced with a v4l-wide mutex,
->> which
->> > is what you are removing in the series.
->>
->> I guess I have to rename it, even though strictly speaking the branch
->> I'm
->> working in doesn't have your patch merged yet.
->>
->> BTW, replacing the BKL with a static mutex is rather scary: the BKL
->> gives up
->> the lock whenever you sleep, the mutex doesn't. Since sleeping is very
->> common
->> in V4L (calling VIDIOC_DQBUF will typically sleep while waiting for a
->> new frame
->> to arrive), this will make it impossible for another process to access
->> any
->> v4l2 device node while the ioctl is sleeping.
->>
->> I am not sure whether that is what you intended. Or am I missing
->> something?
->
-> I was aware that something like this could happen, but I apparently
-> misjudged how big the impact is. The general pattern for ioctls is that
-> those that get called frequently do not sleep, so it can almost always be
-> called with a mutex held.
+> Hi Sascha,
+> 
+> On Mon, Nov 08, 2010 at 09:52:45PM +0100, Sascha Hauer wrote:
+> > mx2-camera got broken during the last merge window. This patch
+> > fixes this and removes some unused variables.
+> > 
+> > Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+> > ---
+> >  drivers/media/video/mx2_camera.c |   13 +++++--------
+> >  1 files changed, 5 insertions(+), 8 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+> > index 4a27862..072bd2d 100644
+> > --- a/drivers/media/video/mx2_camera.c
+> > +++ b/drivers/media/video/mx2_camera.c
+> > @@ -31,6 +31,7 @@
+> >  
+> >  #include <media/v4l2-common.h>
+> >  #include <media/v4l2-dev.h>
+> > +#include <media/videobuf-core.h>
+> 
+> What is this needed for? The driver seems to build without this hunk.
 
-True in general, but most definitely not true for V4L. The all important
-VIDIOC_DQBUF ioctl will almost always sleep.
+This is needed, because that's where some of the symbols, used in this 
+file, are declared. Yes, it compiles without it, because it is also 
+included in media/videobuf-dma-contig.h, none the less, an explicit 
+include should be present. Actually, it should be added to other 
+soc-camera camera host drivers too.
 
-Mauro, I think this patch will have to be reverted and we just have to do
-the hard work ourselves.
+Thanks
+Guennadi
 
-Regards,
+> 
+> Other than that:
+> 
+> Acked-by: Baruch Siach <baruch@tkos.co.il>
+> 
+> >  #include <media/videobuf-dma-contig.h>
+> >  #include <media/soc_camera.h>
+> >  #include <media/soc_mediabus.h>
+> > @@ -903,8 +904,6 @@ static int mx2_camera_set_crop(struct soc_camera_device *icd,
+> >  static int mx2_camera_set_fmt(struct soc_camera_device *icd,
+> >  			       struct v4l2_format *f)
+> >  {
+> > -	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> > -	struct mx2_camera_dev *pcdev = ici->priv;
+> >  	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+> >  	const struct soc_camera_format_xlate *xlate;
+> >  	struct v4l2_pix_format *pix = &f->fmt.pix;
+> > @@ -943,8 +942,6 @@ static int mx2_camera_set_fmt(struct soc_camera_device *icd,
+> >  static int mx2_camera_try_fmt(struct soc_camera_device *icd,
+> >  				  struct v4l2_format *f)
+> >  {
+> > -	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> > -	struct mx2_camera_dev *pcdev = ici->priv;
+> >  	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+> >  	const struct soc_camera_format_xlate *xlate;
+> >  	struct v4l2_pix_format *pix = &f->fmt.pix;
+> > @@ -1024,13 +1021,13 @@ static int mx2_camera_querycap(struct soc_camera_host *ici,
+> >  	return 0;
+> >  }
+> >  
+> > -static int mx2_camera_reqbufs(struct soc_camera_file *icf,
+> > +static int mx2_camera_reqbufs(struct soc_camera_device *icd,
+> >  			      struct v4l2_requestbuffers *p)
+> >  {
+> >  	int i;
+> >  
+> >  	for (i = 0; i < p->count; i++) {
+> > -		struct mx2_buffer *buf = container_of(icf->vb_vidq.bufs[i],
+> > +		struct mx2_buffer *buf = container_of(icd->vb_vidq.bufs[i],
+> >  						      struct mx2_buffer, vb);
+> >  		INIT_LIST_HEAD(&buf->vb.queue);
+> >  	}
+> > @@ -1151,9 +1148,9 @@ err_out:
+> >  
+> >  static unsigned int mx2_camera_poll(struct file *file, poll_table *pt)
+> >  {
+> > -	struct soc_camera_file *icf = file->private_data;
+> > +	struct soc_camera_device *icd = file->private_data;
+> >  
+> > -	return videobuf_poll_stream(file, &icf->vb_vidq, pt);
+> > +	return videobuf_poll_stream(file, &icd->vb_vidq, pt);
+> >  }
+> >  
+> >  static struct soc_camera_host_ops mx2_soc_camera_host_ops = {
+> > -- 
+> 
+> -- 
+>                                                      ~. .~   Tk Open Systems
+> =}------------------------------------------------ooO--U--Ooo------------{=
+>    - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
+> 
 
-       Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
-
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
