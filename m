@@ -1,137 +1,842 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2249 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755485Ab0KNNXL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Nov 2010 08:23:11 -0500
-Message-Id: <3af9cf3b01c9e86b9826b65495d0528f93752e2c.1289740431.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1289740431.git.hverkuil@xs4all.nl>
-References: <cover.1289740431.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Sun, 14 Nov 2010 14:23:06 +0100
-Subject: [RFC PATCH 8/8] BKL: trivial ioctl -> unlocked_ioctl video driver conversions
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35736 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751439Ab0KIPab (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Nov 2010 10:30:31 -0500
+Received: from localhost.localdomain (unknown [91.178.204.79])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id BC00635CB6
+	for <linux-media@vger.kernel.org>; Tue,  9 Nov 2010 15:30:27 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 2/2] v4l: Remove module_name argument to the v4l2_i2c_new_subdev* functions
+Date: Tue,  9 Nov 2010 16:30:28 +0100
+Message-Id: <1289316628-9394-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1289316628-9394-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1289316628-9394-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-These drivers could be trivially converted to unlocked_ioctl since they
-already did locking.
+The argument isn't used anymore by the functions, remote it.
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/video/arv.c     |    2 +-
- drivers/media/video/bw-qcam.c |    2 +-
- drivers/media/video/c-qcam.c  |    2 +-
- drivers/media/video/meye.c    |   14 +++++++-------
- drivers/media/video/pms.c     |    2 +-
- drivers/media/video/w9966.c   |    2 +-
- 6 files changed, 12 insertions(+), 12 deletions(-)
+ drivers/media/radio/radio-si4713.c            |    2 +-
+ drivers/media/video/au0828/au0828-cards.c     |    4 ++--
+ drivers/media/video/bt8xx/bttv-cards.c        |   22 +++++++++++-----------
+ drivers/media/video/cafe_ccic.c               |    2 +-
+ drivers/media/video/cx18/cx18-i2c.c           |    8 ++++----
+ drivers/media/video/cx231xx/cx231xx-cards.c   |    4 ++--
+ drivers/media/video/cx23885/cx23885-cards.c   |    2 +-
+ drivers/media/video/cx23885/cx23885-video.c   |    4 ++--
+ drivers/media/video/cx88/cx88-cards.c         |    9 ++++-----
+ drivers/media/video/cx88/cx88-video.c         |    7 +++----
+ drivers/media/video/davinci/vpfe_capture.c    |    1 -
+ drivers/media/video/davinci/vpif_capture.c    |    1 -
+ drivers/media/video/davinci/vpif_display.c    |    2 +-
+ drivers/media/video/em28xx/em28xx-cards.c     |   18 +++++++++---------
+ drivers/media/video/fsl-viu.c                 |    2 +-
+ drivers/media/video/ivtv/ivtv-i2c.c           |   22 +++++++++-------------
+ drivers/media/video/mxb.c                     |   12 ++++++------
+ drivers/media/video/pvrusb2/pvrusb2-hdw.c     |    6 ++----
+ drivers/media/video/s5p-fimc/fimc-capture.c   |    2 +-
+ drivers/media/video/saa7134/saa7134-cards.c   |    8 ++++----
+ drivers/media/video/saa7134/saa7134-core.c    |    4 ++--
+ drivers/media/video/sh_vou.c                  |    2 +-
+ drivers/media/video/soc_camera.c              |    2 +-
+ drivers/media/video/usbvision/usbvision-i2c.c |    6 +++---
+ drivers/media/video/v4l2-common.c             |   15 +++++----------
+ drivers/media/video/via-camera.c              |    2 +-
+ drivers/media/video/vino.c                    |    4 ++--
+ drivers/media/video/zoran/zoran_card.c        |    5 ++---
+ drivers/staging/go7007/go7007-driver.c        |    2 +-
+ drivers/staging/tm6000/tm6000-cards.c         |    4 ++--
+ include/media/v4l2-common.h                   |   16 ++++++----------
+ 31 files changed, 90 insertions(+), 110 deletions(-)
 
-diff --git a/drivers/media/video/arv.c b/drivers/media/video/arv.c
-index 31e7a12..f989f28 100644
---- a/drivers/media/video/arv.c
-+++ b/drivers/media/video/arv.c
-@@ -712,7 +712,7 @@ static int ar_initialize(struct ar *ar)
- static const struct v4l2_file_operations ar_fops = {
- 	.owner		= THIS_MODULE,
- 	.read		= ar_read,
--	.ioctl		= video_ioctl2,
-+	.unlocked_ioctl	= video_ioctl2,
- };
+diff --git a/drivers/media/radio/radio-si4713.c b/drivers/media/radio/radio-si4713.c
+index 6a43578..03829e6 100644
+--- a/drivers/media/radio/radio-si4713.c
++++ b/drivers/media/radio/radio-si4713.c
+@@ -291,7 +291,7 @@ static int radio_si4713_pdriver_probe(struct platform_device *pdev)
+ 		goto unregister_v4l2_dev;
+ 	}
  
- static const struct v4l2_ioctl_ops ar_ioctl_ops = {
-diff --git a/drivers/media/video/bw-qcam.c b/drivers/media/video/bw-qcam.c
-index 935e0c9..c119350 100644
---- a/drivers/media/video/bw-qcam.c
-+++ b/drivers/media/video/bw-qcam.c
-@@ -860,7 +860,7 @@ static ssize_t qcam_read(struct file *file, char __user *buf,
+-	sd = v4l2_i2c_new_subdev_board(&rsdev->v4l2_dev, adapter, NULL,
++	sd = v4l2_i2c_new_subdev_board(&rsdev->v4l2_dev, adapter,
+ 					pdata->subdev_board_info, NULL);
+ 	if (!sd) {
+ 		dev_err(&pdev->dev, "Cannot get v4l2 subdevice\n");
+diff --git a/drivers/media/video/au0828/au0828-cards.c b/drivers/media/video/au0828/au0828-cards.c
+index 0453816..01be89f 100644
+--- a/drivers/media/video/au0828/au0828-cards.c
++++ b/drivers/media/video/au0828/au0828-cards.c
+@@ -212,7 +212,7 @@ void au0828_card_setup(struct au0828_dev *dev)
+ 		   be abstracted out if we ever need to support a different
+ 		   demod) */
+ 		sd = v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap,
+-				NULL, "au8522", 0x8e >> 1, NULL);
++				"au8522", 0x8e >> 1, NULL);
+ 		if (sd == NULL)
+ 			printk(KERN_ERR "analog subdev registration failed\n");
+ 	}
+@@ -221,7 +221,7 @@ void au0828_card_setup(struct au0828_dev *dev)
+ 	if (dev->board.tuner_type != TUNER_ABSENT) {
+ 		/* Load the tuner module, which does the attach */
+ 		sd = v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap,
+-				NULL, "tuner", dev->board.tuner_addr, NULL);
++				"tuner", dev->board.tuner_addr, NULL);
+ 		if (sd == NULL)
+ 			printk(KERN_ERR "tuner subdev registration fail\n");
  
- static const struct v4l2_file_operations qcam_fops = {
- 	.owner		= THIS_MODULE,
--	.ioctl          = video_ioctl2,
-+	.unlocked_ioctl = video_ioctl2,
- 	.read		= qcam_read,
- };
+diff --git a/drivers/media/video/bt8xx/bttv-cards.c b/drivers/media/video/bt8xx/bttv-cards.c
+index 87d8b00..49efcf6 100644
+--- a/drivers/media/video/bt8xx/bttv-cards.c
++++ b/drivers/media/video/bt8xx/bttv-cards.c
+@@ -3529,7 +3529,7 @@ void __devinit bttv_init_card2(struct bttv *btv)
+ 		struct v4l2_subdev *sd;
  
-diff --git a/drivers/media/video/c-qcam.c b/drivers/media/video/c-qcam.c
-index 6e4b196..24fc009 100644
---- a/drivers/media/video/c-qcam.c
-+++ b/drivers/media/video/c-qcam.c
-@@ -718,7 +718,7 @@ static ssize_t qcam_read(struct file *file, char __user *buf,
+ 		sd = v4l2_i2c_new_subdev(&btv->c.v4l2_dev,
+-			&btv->c.i2c_adap, NULL, "saa6588", 0, addrs);
++			&btv->c.i2c_adap, "saa6588", 0, addrs);
+ 		btv->has_saa6588 = (sd != NULL);
+ 	}
  
- static const struct v4l2_file_operations qcam_fops = {
- 	.owner		= THIS_MODULE,
--	.ioctl		= video_ioctl2,
-+	.unlocked_ioctl	= video_ioctl2,
- 	.read		= qcam_read,
- };
+@@ -3554,7 +3554,7 @@ void __devinit bttv_init_card2(struct bttv *btv)
+ 		};
  
-diff --git a/drivers/media/video/meye.c b/drivers/media/video/meye.c
-index 2be23bc..48d2c24 100644
---- a/drivers/media/video/meye.c
-+++ b/drivers/media/video/meye.c
-@@ -1659,7 +1659,7 @@ static const struct v4l2_file_operations meye_fops = {
- 	.open		= meye_open,
- 	.release	= meye_release,
- 	.mmap		= meye_mmap,
--	.ioctl		= video_ioctl2,
-+	.unlocked_ioctl	= video_ioctl2,
- 	.poll		= meye_poll,
- };
+ 		btv->sd_msp34xx = v4l2_i2c_new_subdev(&btv->c.v4l2_dev,
+-			&btv->c.i2c_adap, NULL, "msp3400", 0, addrs);
++			&btv->c.i2c_adap, "msp3400", 0, addrs);
+ 		if (btv->sd_msp34xx)
+ 			return;
+ 		goto no_audio;
+@@ -3568,7 +3568,7 @@ void __devinit bttv_init_card2(struct bttv *btv)
+ 		};
  
-@@ -1831,12 +1831,6 @@ static int __devinit meye_probe(struct pci_dev *pcidev,
- 	msleep(1);
- 	mchip_set(MCHIP_MM_INTA, MCHIP_MM_INTA_HIC_1_MASK);
+ 		if (v4l2_i2c_new_subdev(&btv->c.v4l2_dev,
+-				&btv->c.i2c_adap, NULL, "tda7432", 0, addrs))
++				&btv->c.i2c_adap, "tda7432", 0, addrs))
+ 			return;
+ 		goto no_audio;
+ 	}
+@@ -3576,7 +3576,7 @@ void __devinit bttv_init_card2(struct bttv *btv)
+ 	case 3: {
+ 		/* The user specified that we should probe for tvaudio */
+ 		btv->sd_tvaudio = v4l2_i2c_new_subdev(&btv->c.v4l2_dev,
+-			&btv->c.i2c_adap, NULL, "tvaudio", 0, tvaudio_addrs());
++			&btv->c.i2c_adap, "tvaudio", 0, tvaudio_addrs());
+ 		if (btv->sd_tvaudio)
+ 			return;
+ 		goto no_audio;
+@@ -3596,11 +3596,11 @@ void __devinit bttv_init_card2(struct bttv *btv)
+ 	   found is really something else (e.g. a tea6300). */
+ 	if (!bttv_tvcards[btv->c.type].no_msp34xx) {
+ 		btv->sd_msp34xx = v4l2_i2c_new_subdev(&btv->c.v4l2_dev,
+-			&btv->c.i2c_adap, NULL, "msp3400",
++			&btv->c.i2c_adap, "msp3400",
+ 			0, I2C_ADDRS(I2C_ADDR_MSP3400 >> 1));
+ 	} else if (bttv_tvcards[btv->c.type].msp34xx_alt) {
+ 		btv->sd_msp34xx = v4l2_i2c_new_subdev(&btv->c.v4l2_dev,
+-			&btv->c.i2c_adap, NULL, "msp3400",
++			&btv->c.i2c_adap, "msp3400",
+ 			0, I2C_ADDRS(I2C_ADDR_MSP3400_ALT >> 1));
+ 	}
  
--	if (video_register_device(meye.vdev, VFL_TYPE_GRABBER,
--				  video_nr) < 0) {
--		v4l2_err(v4l2_dev, "video_register_device failed\n");
--		goto outvideoreg;
--	}
--
- 	mutex_init(&meye.lock);
- 	init_waitqueue_head(&meye.proc_list);
- 	meye.brightness = 32 << 10;
-@@ -1858,6 +1852,12 @@ static int __devinit meye_probe(struct pci_dev *pcidev,
- 	sony_pic_camera_command(SONY_PIC_COMMAND_SETCAMERAPICTURE, 0);
- 	sony_pic_camera_command(SONY_PIC_COMMAND_SETCAMERAAGC, 48);
+@@ -3616,13 +3616,13 @@ void __devinit bttv_init_card2(struct bttv *btv)
+ 		};
  
-+	if (video_register_device(meye.vdev, VFL_TYPE_GRABBER,
-+				  video_nr) < 0) {
-+		v4l2_err(v4l2_dev, "video_register_device failed\n");
-+		goto outvideoreg;
-+	}
-+
- 	v4l2_info(v4l2_dev, "Motion Eye Camera Driver v%s.\n",
- 	       MEYE_DRIVER_VERSION);
- 	v4l2_info(v4l2_dev, "mchip KL5A72002 rev. %d, base %lx, irq %d\n",
-diff --git a/drivers/media/video/pms.c b/drivers/media/video/pms.c
-index 7129b50..7551907 100644
---- a/drivers/media/video/pms.c
-+++ b/drivers/media/video/pms.c
-@@ -932,7 +932,7 @@ static ssize_t pms_read(struct file *file, char __user *buf,
+ 		if (v4l2_i2c_new_subdev(&btv->c.v4l2_dev,
+-				&btv->c.i2c_adap, NULL, "tda7432", 0, addrs))
++				&btv->c.i2c_adap, "tda7432", 0, addrs))
+ 			return;
+ 	}
  
- static const struct v4l2_file_operations pms_fops = {
- 	.owner		= THIS_MODULE,
--	.ioctl		= video_ioctl2,
-+	.unlocked_ioctl	= video_ioctl2,
- 	.read           = pms_read,
- };
+ 	/* Now see if we can find one of the tvaudio devices. */
+ 	btv->sd_tvaudio = v4l2_i2c_new_subdev(&btv->c.v4l2_dev,
+-		&btv->c.i2c_adap, NULL, "tvaudio", 0, tvaudio_addrs());
++		&btv->c.i2c_adap, "tvaudio", 0, tvaudio_addrs());
+ 	if (btv->sd_tvaudio)
+ 		return;
  
-diff --git a/drivers/media/video/w9966.c b/drivers/media/video/w9966.c
-index 635420d..019ee20 100644
---- a/drivers/media/video/w9966.c
-+++ b/drivers/media/video/w9966.c
-@@ -815,7 +815,7 @@ out:
+@@ -3646,13 +3646,13 @@ void __devinit bttv_init_tuner(struct bttv *btv)
+ 		/* Load tuner module before issuing tuner config call! */
+ 		if (bttv_tvcards[btv->c.type].has_radio)
+ 			v4l2_i2c_new_subdev(&btv->c.v4l2_dev,
+-				&btv->c.i2c_adap, NULL, "tuner",
++				&btv->c.i2c_adap, "tuner",
+ 				0, v4l2_i2c_tuner_addrs(ADDRS_RADIO));
+ 		v4l2_i2c_new_subdev(&btv->c.v4l2_dev,
+-				&btv->c.i2c_adap, NULL, "tuner",
++				&btv->c.i2c_adap, "tuner",
+ 				0, v4l2_i2c_tuner_addrs(ADDRS_DEMOD));
+ 		v4l2_i2c_new_subdev(&btv->c.v4l2_dev,
+-				&btv->c.i2c_adap, NULL, "tuner",
++				&btv->c.i2c_adap, "tuner",
+ 				0, v4l2_i2c_tuner_addrs(ADDRS_TV_WITH_DEMOD));
  
- static const struct v4l2_file_operations w9966_fops = {
- 	.owner		= THIS_MODULE,
--	.ioctl          = video_ioctl2,
-+	.unlocked_ioctl = video_ioctl2,
- 	.read           = w9966_v4l_read,
- };
+ 		tun_setup.mode_mask = T_ANALOG_TV | T_DIGITAL_TV;
+diff --git a/drivers/media/video/cafe_ccic.c b/drivers/media/video/cafe_ccic.c
+index 68b6dce..8fee44d 100644
+--- a/drivers/media/video/cafe_ccic.c
++++ b/drivers/media/video/cafe_ccic.c
+@@ -2064,7 +2064,7 @@ static int cafe_pci_probe(struct pci_dev *pdev,
  
+ 	cam->sensor_addr = 0x42;
+ 	cam->sensor = v4l2_i2c_new_subdev_cfg(&cam->v4l2_dev, &cam->i2c_adapter,
+-			NULL, "ov7670", 0, &sensor_cfg, cam->sensor_addr, NULL);
++			"ov7670", 0, &sensor_cfg, cam->sensor_addr, NULL);
+ 	if (cam->sensor == NULL) {
+ 		ret = -ENODEV;
+ 		goto out_smbus;
+diff --git a/drivers/media/video/cx18/cx18-i2c.c b/drivers/media/video/cx18/cx18-i2c.c
+index a09caf8..e71a026 100644
+--- a/drivers/media/video/cx18/cx18-i2c.c
++++ b/drivers/media/video/cx18/cx18-i2c.c
+@@ -122,15 +122,15 @@ int cx18_i2c_register(struct cx18 *cx, unsigned idx)
+ 	if (hw == CX18_HW_TUNER) {
+ 		/* special tuner group handling */
+ 		sd = v4l2_i2c_new_subdev(&cx->v4l2_dev,
+-				adap, NULL, type, 0, cx->card_i2c->radio);
++				adap, type, 0, cx->card_i2c->radio);
+ 		if (sd != NULL)
+ 			sd->grp_id = hw;
+ 		sd = v4l2_i2c_new_subdev(&cx->v4l2_dev,
+-				adap, NULL, type, 0, cx->card_i2c->demod);
++				adap, type, 0, cx->card_i2c->demod);
+ 		if (sd != NULL)
+ 			sd->grp_id = hw;
+ 		sd = v4l2_i2c_new_subdev(&cx->v4l2_dev,
+-				adap, NULL, type, 0, cx->card_i2c->tv);
++				adap, type, 0, cx->card_i2c->tv);
+ 		if (sd != NULL)
+ 			sd->grp_id = hw;
+ 		return sd != NULL ? 0 : -1;
+@@ -144,7 +144,7 @@ int cx18_i2c_register(struct cx18 *cx, unsigned idx)
+ 		return -1;
+ 
+ 	/* It's an I2C device other than an analog tuner or IR chip */
+-	sd = v4l2_i2c_new_subdev(&cx->v4l2_dev, adap, NULL, type, hw_addrs[idx],
++	sd = v4l2_i2c_new_subdev(&cx->v4l2_dev, adap, type, hw_addrs[idx],
+ 				 NULL);
+ 	if (sd != NULL)
+ 		sd->grp_id = hw;
+diff --git a/drivers/media/video/cx231xx/cx231xx-cards.c b/drivers/media/video/cx231xx/cx231xx-cards.c
+index ac4bf2c..83772eb 100644
+--- a/drivers/media/video/cx231xx/cx231xx-cards.c
++++ b/drivers/media/video/cx231xx/cx231xx-cards.c
+@@ -610,7 +610,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
+ 	if (dev->board.decoder == CX231XX_AVDECODER) {
+ 		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
+ 					&dev->i2c_bus[0].i2c_adap,
+-					NULL, "cx25840", 0x88 >> 1, NULL);
++					"cx25840", 0x88 >> 1, NULL);
+ 		if (dev->sd_cx25840 == NULL)
+ 			cx231xx_info("cx25840 subdev registration failure\n");
+ 		cx25840_call(dev, core, load_fw);
+@@ -621,7 +621,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
+ 	if (dev->board.tuner_type != TUNER_ABSENT) {
+ 		dev->sd_tuner = v4l2_i2c_new_subdev(&dev->v4l2_dev,
+ 						    &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
+-						    NULL, "tuner",
++						    "tuner",
+ 						    dev->tuner_addr, NULL);
+ 		if (dev->sd_tuner == NULL)
+ 			cx231xx_info("tuner subdev registration failure\n");
+diff --git a/drivers/media/video/cx23885/cx23885-cards.c b/drivers/media/video/cx23885/cx23885-cards.c
+index db05400..8861309 100644
+--- a/drivers/media/video/cx23885/cx23885-cards.c
++++ b/drivers/media/video/cx23885/cx23885-cards.c
+@@ -1247,7 +1247,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_LEADTEK_WINFAST_PXTV1200:
+ 		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
+ 				&dev->i2c_bus[2].i2c_adap,
+-				NULL, "cx25840", 0x88 >> 1, NULL);
++				"cx25840", 0x88 >> 1, NULL);
+ 		if (dev->sd_cx25840) {
+ 			dev->sd_cx25840->grp_id = CX23885_HW_AV_CORE;
+ 			v4l2_subdev_call(dev->sd_cx25840, core, load_fw);
+diff --git a/drivers/media/video/cx23885/cx23885-video.c b/drivers/media/video/cx23885/cx23885-video.c
+index 93af9c6..57fa3e7 100644
+--- a/drivers/media/video/cx23885/cx23885-video.c
++++ b/drivers/media/video/cx23885/cx23885-video.c
+@@ -1512,10 +1512,10 @@ int cx23885_video_register(struct cx23885_dev *dev)
+ 		if (dev->tuner_addr)
+ 			sd = v4l2_i2c_new_subdev(&dev->v4l2_dev,
+ 				&dev->i2c_bus[1].i2c_adap,
+-				NULL, "tuner", dev->tuner_addr, NULL);
++				"tuner", dev->tuner_addr, NULL);
+ 		else
+ 			sd = v4l2_i2c_new_subdev(&dev->v4l2_dev,
+-				&dev->i2c_bus[1].i2c_adap, NULL,
++				&dev->i2c_bus[1].i2c_adap,
+ 				"tuner", 0, v4l2_i2c_tuner_addrs(ADDRS_TV));
+ 		if (sd) {
+ 			struct tuner_setup tun_setup;
+diff --git a/drivers/media/video/cx88/cx88-cards.c b/drivers/media/video/cx88/cx88-cards.c
+index b26fcba..9b9e169 100644
+--- a/drivers/media/video/cx88/cx88-cards.c
++++ b/drivers/media/video/cx88/cx88-cards.c
+@@ -3515,19 +3515,18 @@ struct cx88_core *cx88_core_create(struct pci_dev *pci, int nr)
+ 		   later code configures a tea5767.
+ 		 */
+ 		v4l2_i2c_new_subdev(&core->v4l2_dev, &core->i2c_adap,
+-				NULL, "tuner",
+-				0, v4l2_i2c_tuner_addrs(ADDRS_RADIO));
++				"tuner", 0, v4l2_i2c_tuner_addrs(ADDRS_RADIO));
+ 		if (has_demod)
+ 			v4l2_i2c_new_subdev(&core->v4l2_dev,
+-				&core->i2c_adap, NULL, "tuner",
++				&core->i2c_adap, "tuner",
+ 				0, v4l2_i2c_tuner_addrs(ADDRS_DEMOD));
+ 		if (core->board.tuner_addr == ADDR_UNSET) {
+ 			v4l2_i2c_new_subdev(&core->v4l2_dev,
+-				&core->i2c_adap, NULL, "tuner",
++				&core->i2c_adap, "tuner",
+ 				0, has_demod ? tv_addrs + 4 : tv_addrs);
+ 		} else {
+ 			v4l2_i2c_new_subdev(&core->v4l2_dev, &core->i2c_adap,
+-				NULL, "tuner", core->board.tuner_addr, NULL);
++				"tuner", core->board.tuner_addr, NULL);
+ 		}
+ 	}
+ 
+diff --git a/drivers/media/video/cx88/cx88-video.c b/drivers/media/video/cx88/cx88-video.c
+index d2f159d..ab98c0e 100644
+--- a/drivers/media/video/cx88/cx88-video.c
++++ b/drivers/media/video/cx88/cx88-video.c
+@@ -1896,14 +1896,13 @@ static int __devinit cx8800_initdev(struct pci_dev *pci_dev,
+ 
+ 	if (core->board.audio_chip == V4L2_IDENT_WM8775)
+ 		v4l2_i2c_new_subdev(&core->v4l2_dev, &core->i2c_adap,
+-				NULL, "wm8775", 0x36 >> 1, NULL);
++				"wm8775", 0x36 >> 1, NULL);
+ 
+ 	if (core->board.audio_chip == V4L2_IDENT_TVAUDIO) {
+ 		/* This probes for a tda9874 as is used on some
+ 		   Pixelview Ultra boards. */
+-		v4l2_i2c_new_subdev(&core->v4l2_dev,
+-				&core->i2c_adap,
+-				NULL, "tvaudio", 0, I2C_ADDRS(0xb0 >> 1));
++		v4l2_i2c_new_subdev(&core->v4l2_dev, &core->i2c_adap,
++				"tvaudio", 0, I2C_ADDRS(0xb0 >> 1));
+ 	}
+ 
+ 	switch (core->boardnr) {
+diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
+index d8e38cc..7333a9b 100644
+--- a/drivers/media/video/davinci/vpfe_capture.c
++++ b/drivers/media/video/davinci/vpfe_capture.c
+@@ -1986,7 +1986,6 @@ static __init int vpfe_probe(struct platform_device *pdev)
+ 		vpfe_dev->sd[i] =
+ 			v4l2_i2c_new_subdev_board(&vpfe_dev->v4l2_dev,
+ 						  i2c_adap,
+-						  NULL,
+ 						  &sdinfo->board_info,
+ 						  NULL);
+ 		if (vpfe_dev->sd[i]) {
+diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
+index 6ac6acd..193abab 100644
+--- a/drivers/media/video/davinci/vpif_capture.c
++++ b/drivers/media/video/davinci/vpif_capture.c
+@@ -2013,7 +2013,6 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 		vpif_obj.sd[i] =
+ 			v4l2_i2c_new_subdev_board(&vpif_obj.v4l2_dev,
+ 						  i2c_adap,
+-						  NULL,
+ 						  &subdevdata->board_info,
+ 						  NULL);
+ 
+diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
+index 685f6a6..412c65d 100644
+--- a/drivers/media/video/davinci/vpif_display.c
++++ b/drivers/media/video/davinci/vpif_display.c
+@@ -1553,7 +1553,7 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 
+ 	for (i = 0; i < subdev_count; i++) {
+ 		vpif_obj.sd[i] = v4l2_i2c_new_subdev_board(&vpif_obj.v4l2_dev,
+-						i2c_adap, NULL,
++						i2c_adap,
+ 						&subdevdata[i].board_info,
+ 						NULL);
+ 		if (!vpif_obj.sd[i]) {
+diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
+index 4ff3ac4..24caa851 100644
+--- a/drivers/media/video/em28xx/em28xx-cards.c
++++ b/drivers/media/video/em28xx/em28xx-cards.c
+@@ -2612,39 +2612,39 @@ void em28xx_card_setup(struct em28xx *dev)
+ 	/* request some modules */
+ 	if (dev->board.has_msp34xx)
+ 		v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap,
+-			NULL, "msp3400", 0, msp3400_addrs);
++			"msp3400", 0, msp3400_addrs);
+ 
+ 	if (dev->board.decoder == EM28XX_SAA711X)
+ 		v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap,
+-			NULL, "saa7115_auto", 0, saa711x_addrs);
++			"saa7115_auto", 0, saa711x_addrs);
+ 
+ 	if (dev->board.decoder == EM28XX_TVP5150)
+ 		v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap,
+-			NULL, "tvp5150", 0, tvp5150_addrs);
++			"tvp5150", 0, tvp5150_addrs);
+ 
+ 	if (dev->em28xx_sensor == EM28XX_MT9V011) {
+ 		struct v4l2_subdev *sd;
+ 
+ 		sd = v4l2_i2c_new_subdev(&dev->v4l2_dev,
+-			 &dev->i2c_adap, NULL, "mt9v011", 0, mt9v011_addrs);
++			 &dev->i2c_adap, "mt9v011", 0, mt9v011_addrs);
+ 		v4l2_subdev_call(sd, core, s_config, 0, &dev->sensor_xtal);
+ 	}
+ 
+ 
+ 	if (dev->board.adecoder == EM28XX_TVAUDIO)
+ 		v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap,
+-			NULL, "tvaudio", dev->board.tvaudio_addr, NULL);
++			"tvaudio", dev->board.tvaudio_addr, NULL);
+ 
+ 	if (dev->board.tuner_type != TUNER_ABSENT) {
+ 		int has_demod = (dev->tda9887_conf & TDA9887_PRESENT);
+ 
+ 		if (dev->board.radio.type)
+ 			v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap,
+-				NULL, "tuner", dev->board.radio_addr, NULL);
++				"tuner", dev->board.radio_addr, NULL);
+ 
+ 		if (has_demod)
+ 			v4l2_i2c_new_subdev(&dev->v4l2_dev,
+-				&dev->i2c_adap, NULL, "tuner",
++				&dev->i2c_adap, "tuner",
+ 				0, v4l2_i2c_tuner_addrs(ADDRS_DEMOD));
+ 		if (dev->tuner_addr == 0) {
+ 			enum v4l2_i2c_tuner_type type =
+@@ -2652,14 +2652,14 @@ void em28xx_card_setup(struct em28xx *dev)
+ 			struct v4l2_subdev *sd;
+ 
+ 			sd = v4l2_i2c_new_subdev(&dev->v4l2_dev,
+-				&dev->i2c_adap, NULL, "tuner",
++				&dev->i2c_adap, "tuner",
+ 				0, v4l2_i2c_tuner_addrs(type));
+ 
+ 			if (sd)
+ 				dev->tuner_addr = v4l2_i2c_subdev_addr(sd);
+ 		} else {
+ 			v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap,
+-				NULL, "tuner", dev->tuner_addr, NULL);
++				"tuner", dev->tuner_addr, NULL);
+ 		}
+ 	}
+ 
+diff --git a/drivers/media/video/fsl-viu.c b/drivers/media/video/fsl-viu.c
+index 9a075d8..b8faff2 100644
+--- a/drivers/media/video/fsl-viu.c
++++ b/drivers/media/video/fsl-viu.c
+@@ -1486,7 +1486,7 @@ static int __devinit viu_of_probe(struct platform_device *op,
+ 
+ 	ad = i2c_get_adapter(0);
+ 	viu_dev->decoder = v4l2_i2c_new_subdev(&viu_dev->v4l2_dev, ad,
+-			NULL, "saa7113", VIU_VIDEO_DECODER_ADDR, NULL);
++			"saa7113", VIU_VIDEO_DECODER_ADDR, NULL);
+ 
+ 	viu_dev->vidq.timeout.function = viu_vid_timeout;
+ 	viu_dev->vidq.timeout.data     = (unsigned long)viu_dev;
+diff --git a/drivers/media/video/ivtv/ivtv-i2c.c b/drivers/media/video/ivtv/ivtv-i2c.c
+index 9e8039a..665191c 100644
+--- a/drivers/media/video/ivtv/ivtv-i2c.c
++++ b/drivers/media/video/ivtv/ivtv-i2c.c
+@@ -239,19 +239,16 @@ int ivtv_i2c_register(struct ivtv *itv, unsigned idx)
+ 		return -1;
+ 	if (hw == IVTV_HW_TUNER) {
+ 		/* special tuner handling */
+-		sd = v4l2_i2c_new_subdev(&itv->v4l2_dev,
+-				adap, NULL, type,
+-				0, itv->card_i2c->radio);
++		sd = v4l2_i2c_new_subdev(&itv->v4l2_dev, adap, type, 0,
++				itv->card_i2c->radio);
+ 		if (sd)
+ 			sd->grp_id = 1 << idx;
+-		sd = v4l2_i2c_new_subdev(&itv->v4l2_dev,
+-				adap, NULL, type,
+-				0, itv->card_i2c->demod);
++		sd = v4l2_i2c_new_subdev(&itv->v4l2_dev, adap, type, 0,
++				itv->card_i2c->demod);
+ 		if (sd)
+ 			sd->grp_id = 1 << idx;
+-		sd = v4l2_i2c_new_subdev(&itv->v4l2_dev,
+-				adap, NULL, type,
+-				0, itv->card_i2c->tv);
++		sd = v4l2_i2c_new_subdev(&itv->v4l2_dev, adap, type, 0,
++				itv->card_i2c->tv);
+ 		if (sd)
+ 			sd->grp_id = 1 << idx;
+ 		return sd ? 0 : -1;
+@@ -267,17 +264,16 @@ int ivtv_i2c_register(struct ivtv *itv, unsigned idx)
+ 	/* It's an I2C device other than an analog tuner or IR chip */
+ 	if (hw == IVTV_HW_UPD64031A || hw == IVTV_HW_UPD6408X) {
+ 		sd = v4l2_i2c_new_subdev(&itv->v4l2_dev,
+-				adap, NULL, type, 0, I2C_ADDRS(hw_addrs[idx]));
++				adap, type, 0, I2C_ADDRS(hw_addrs[idx]));
+ 	} else if (hw == IVTV_HW_CX25840) {
+ 		struct cx25840_platform_data pdata;
+ 
+ 		pdata.pvr150_workaround = itv->pvr150_workaround;
+ 		sd = v4l2_i2c_new_subdev_cfg(&itv->v4l2_dev,
+-				adap, NULL, type, 0, &pdata, hw_addrs[idx],
+-				NULL);
++				adap, type, 0, &pdata, hw_addrs[idx], NULL);
+ 	} else {
+ 		sd = v4l2_i2c_new_subdev(&itv->v4l2_dev,
+-				adap, NULL, type, hw_addrs[idx], NULL);
++				adap, type, hw_addrs[idx], NULL);
+ 	}
+ 	if (sd)
+ 		sd->grp_id = 1 << idx;
+diff --git a/drivers/media/video/mxb.c b/drivers/media/video/mxb.c
+index 4c9c1bb..8104129 100644
+--- a/drivers/media/video/mxb.c
++++ b/drivers/media/video/mxb.c
+@@ -185,17 +185,17 @@ static int mxb_probe(struct saa7146_dev *dev)
+ 	}
+ 
+ 	mxb->saa7111a = v4l2_i2c_new_subdev(&dev->v4l2_dev, &mxb->i2c_adapter,
+-			NULL, "saa7111", I2C_SAA7111A, NULL);
++			"saa7111", I2C_SAA7111A, NULL);
+ 	mxb->tea6420_1 = v4l2_i2c_new_subdev(&dev->v4l2_dev, &mxb->i2c_adapter,
+-			NULL, "tea6420", I2C_TEA6420_1, NULL);
++			"tea6420", I2C_TEA6420_1, NULL);
+ 	mxb->tea6420_2 = v4l2_i2c_new_subdev(&dev->v4l2_dev, &mxb->i2c_adapter,
+-			NULL, "tea6420", I2C_TEA6420_2, NULL);
++			"tea6420", I2C_TEA6420_2, NULL);
+ 	mxb->tea6415c = v4l2_i2c_new_subdev(&dev->v4l2_dev, &mxb->i2c_adapter,
+-			NULL, "tea6415c", I2C_TEA6415C, NULL);
++			"tea6415c", I2C_TEA6415C, NULL);
+ 	mxb->tda9840 = v4l2_i2c_new_subdev(&dev->v4l2_dev, &mxb->i2c_adapter,
+-			NULL, "tda9840", I2C_TDA9840, NULL);
++			"tda9840", I2C_TDA9840, NULL);
+ 	mxb->tuner = v4l2_i2c_new_subdev(&dev->v4l2_dev, &mxb->i2c_adapter,
+-			NULL, "tuner", I2C_TUNER, NULL);
++			"tuner", I2C_TUNER, NULL);
+ 
+ 	/* check if all devices are present */
+ 	if (!mxb->tea6420_1 || !mxb->tea6420_2 || !mxb->tea6415c ||
+diff --git a/drivers/media/video/pvrusb2/pvrusb2-hdw.c b/drivers/media/video/pvrusb2/pvrusb2-hdw.c
+index bef2027..66ad516 100644
+--- a/drivers/media/video/pvrusb2/pvrusb2-hdw.c
++++ b/drivers/media/video/pvrusb2/pvrusb2-hdw.c
+@@ -2088,16 +2088,14 @@ static int pvr2_hdw_load_subdev(struct pvr2_hdw *hdw,
+ 			   " Setting up with specified i2c address 0x%x",
+ 			   mid, i2caddr[0]);
+ 		sd = v4l2_i2c_new_subdev(&hdw->v4l2_dev, &hdw->i2c_adap,
+-					 NULL, fname,
+-					 i2caddr[0], NULL);
++					 fname, i2caddr[0], NULL);
+ 	} else {
+ 		pvr2_trace(PVR2_TRACE_INIT,
+ 			   "Module ID %u:"
+ 			   " Setting up with address probe list",
+ 			   mid);
+ 		sd = v4l2_i2c_new_subdev(&hdw->v4l2_dev, &hdw->i2c_adap,
+-						NULL, fname,
+-						0, i2caddr);
++					 fname, 0, i2caddr);
+ 	}
+ 
+ 	if (!sd) {
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index 26f7ad2..1b93207 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -44,7 +44,7 @@ static struct v4l2_subdev *fimc_subdev_register(struct fimc_dev *fimc,
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	sd = v4l2_i2c_new_subdev_board(&vid_cap->v4l2_dev, i2c_adap,
+-				       NULL, isp_info->board_info, NULL);
++				       isp_info->board_info, NULL);
+ 	if (!sd) {
+ 		v4l2_err(&vid_cap->v4l2_dev, "failed to acquire subdev\n");
+ 		return NULL;
+diff --git a/drivers/media/video/saa7134/saa7134-cards.c b/drivers/media/video/saa7134/saa7134-cards.c
+index 215c0cd..3beb284 100644
+--- a/drivers/media/video/saa7134/saa7134-cards.c
++++ b/drivers/media/video/saa7134/saa7134-cards.c
+@@ -7661,22 +7661,22 @@ int saa7134_board_init2(struct saa7134_dev *dev)
+ 		   so we do not need to probe for a radio tuner device. */
+ 		if (dev->radio_type != UNSET)
+ 			v4l2_i2c_new_subdev(&dev->v4l2_dev,
+-				&dev->i2c_adap, NULL, "tuner",
++				&dev->i2c_adap, "tuner",
+ 				dev->radio_addr, NULL);
+ 		if (has_demod)
+ 			v4l2_i2c_new_subdev(&dev->v4l2_dev,
+-				&dev->i2c_adap, NULL, "tuner",
++				&dev->i2c_adap, "tuner",
+ 				0, v4l2_i2c_tuner_addrs(ADDRS_DEMOD));
+ 		if (dev->tuner_addr == ADDR_UNSET) {
+ 			enum v4l2_i2c_tuner_type type =
+ 				has_demod ? ADDRS_TV_WITH_DEMOD : ADDRS_TV;
+ 
+ 			v4l2_i2c_new_subdev(&dev->v4l2_dev,
+-				&dev->i2c_adap, NULL, "tuner",
++				&dev->i2c_adap, "tuner",
+ 				0, v4l2_i2c_tuner_addrs(type));
+ 		} else {
+ 			v4l2_i2c_new_subdev(&dev->v4l2_dev,
+-				&dev->i2c_adap, NULL, "tuner",
++				&dev->i2c_adap, "tuner",
+ 				dev->tuner_addr, NULL);
+ 		}
+ 	}
+diff --git a/drivers/media/video/saa7134/saa7134-core.c b/drivers/media/video/saa7134/saa7134-core.c
+index 764d7d2..756a278 100644
+--- a/drivers/media/video/saa7134/saa7134-core.c
++++ b/drivers/media/video/saa7134/saa7134-core.c
+@@ -991,7 +991,7 @@ static int __devinit saa7134_initdev(struct pci_dev *pci_dev,
+ 	if (card_is_empress(dev)) {
+ 		struct v4l2_subdev *sd =
+ 			v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap,
+-				NULL, "saa6752hs",
++				"saa6752hs",
+ 				saa7134_boards[dev->board].empress_addr, NULL);
+ 
+ 		if (sd)
+@@ -1002,7 +1002,7 @@ static int __devinit saa7134_initdev(struct pci_dev *pci_dev,
+ 		struct v4l2_subdev *sd;
+ 
+ 		sd = v4l2_i2c_new_subdev(&dev->v4l2_dev,
+-				&dev->i2c_adap, NULL, "saa6588",
++				&dev->i2c_adap, "saa6588",
+ 				0, I2C_ADDRS(saa7134_boards[dev->board].rds_addr));
+ 		if (sd) {
+ 			printk(KERN_INFO "%s: found RDS decoder\n", dev->name);
+diff --git a/drivers/media/video/sh_vou.c b/drivers/media/video/sh_vou.c
+index 0f49061..4e5a8cf 100644
+--- a/drivers/media/video/sh_vou.c
++++ b/drivers/media/video/sh_vou.c
+@@ -1406,7 +1406,7 @@ static int __devinit sh_vou_probe(struct platform_device *pdev)
+ 		goto ereset;
+ 
+ 	subdev = v4l2_i2c_new_subdev_board(&vou_dev->v4l2_dev, i2c_adap,
+-			NULL, vou_pdata->board_info, NULL);
++			vou_pdata->board_info, NULL);
+ 	if (!subdev) {
+ 		ret = -ENOMEM;
+ 		goto ei2cnd;
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index 43848a7..335120c 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -896,7 +896,7 @@ static int soc_camera_init_i2c(struct soc_camera_device *icd,
+ 	icl->board_info->platform_data = icd;
+ 
+ 	subdev = v4l2_i2c_new_subdev_board(&ici->v4l2_dev, adap,
+-				NULL, icl->board_info, NULL);
++				icl->board_info, NULL);
+ 	if (!subdev)
+ 		goto ei2cnd;
+ 
+diff --git a/drivers/media/video/usbvision/usbvision-i2c.c b/drivers/media/video/usbvision/usbvision-i2c.c
+index e3bbae2..81dd53b 100644
+--- a/drivers/media/video/usbvision/usbvision-i2c.c
++++ b/drivers/media/video/usbvision/usbvision-i2c.c
+@@ -251,7 +251,7 @@ int usbvision_i2c_register(struct usb_usbvision *usbvision)
+ 		   hit-and-miss. */
+ 		mdelay(10);
+ 		v4l2_i2c_new_subdev(&usbvision->v4l2_dev,
+-				&usbvision->i2c_adap, NULL,
++				&usbvision->i2c_adap,
+ 				"saa7115_auto", 0, saa711x_addrs);
+ 		break;
+ 	}
+@@ -261,14 +261,14 @@ int usbvision_i2c_register(struct usb_usbvision *usbvision)
+ 		struct tuner_setup tun_setup;
+ 
+ 		sd = v4l2_i2c_new_subdev(&usbvision->v4l2_dev,
+-				&usbvision->i2c_adap, NULL,
++				&usbvision->i2c_adap,
+ 				"tuner", 0, v4l2_i2c_tuner_addrs(ADDRS_DEMOD));
+ 		/* depending on whether we found a demod or not, select
+ 		   the tuner type. */
+ 		type = sd ? ADDRS_TV_WITH_DEMOD : ADDRS_TV;
+ 
+ 		sd = v4l2_i2c_new_subdev(&usbvision->v4l2_dev,
+-				&usbvision->i2c_adap, NULL,
++				&usbvision->i2c_adap,
+ 				"tuner", 0, v4l2_i2c_tuner_addrs(type));
+ 
+ 		if (sd == NULL)
+diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
+index 9294282..b5eb1f3 100644
+--- a/drivers/media/video/v4l2-common.c
++++ b/drivers/media/video/v4l2-common.c
+@@ -368,18 +368,15 @@ EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_init);
+ 
+ /* Load an i2c sub-device. */
+ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
+-		struct i2c_adapter *adapter, const char *module_name,
+-		struct i2c_board_info *info, const unsigned short *probe_addrs)
++		struct i2c_adapter *adapter, struct i2c_board_info *info,
++		const unsigned short *probe_addrs)
+ {
+ 	struct v4l2_subdev *sd = NULL;
+ 	struct i2c_client *client;
+ 
+ 	BUG_ON(!v4l2_dev);
+ 
+-	if (module_name)
+-		request_module(module_name);
+-	else
+-		request_module(I2C_MODULE_PREFIX "%s", info->type);
++	request_module(I2C_MODULE_PREFIX "%s", info->type);
+ 
+ 	/* Create the i2c client */
+ 	if (info->addr == 0 && probe_addrs)
+@@ -432,8 +429,7 @@ error:
+ EXPORT_SYMBOL_GPL(v4l2_i2c_new_subdev_board);
+ 
+ struct v4l2_subdev *v4l2_i2c_new_subdev_cfg(struct v4l2_device *v4l2_dev,
+-		struct i2c_adapter *adapter,
+-		const char *module_name, const char *client_type,
++		struct i2c_adapter *adapter, const char *client_type,
+ 		int irq, void *platform_data,
+ 		u8 addr, const unsigned short *probe_addrs)
+ {
+@@ -447,8 +443,7 @@ struct v4l2_subdev *v4l2_i2c_new_subdev_cfg(struct v4l2_device *v4l2_dev,
+ 	info.irq = irq;
+ 	info.platform_data = platform_data;
+ 
+-	return v4l2_i2c_new_subdev_board(v4l2_dev, adapter, module_name,
+-			&info, probe_addrs);
++	return v4l2_i2c_new_subdev_board(v4l2_dev, adapter, &info, probe_addrs);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_i2c_new_subdev_cfg);
+ 
+diff --git a/drivers/media/video/via-camera.c b/drivers/media/video/via-camera.c
+index 01bcdb4..9eda7cc 100644
+--- a/drivers/media/video/via-camera.c
++++ b/drivers/media/video/via-camera.c
+@@ -1360,7 +1360,7 @@ static __devinit int viacam_probe(struct platform_device *pdev)
+ 	 */
+ 	sensor_adapter = viafb_find_i2c_adapter(VIA_PORT_31);
+ 	cam->sensor = v4l2_i2c_new_subdev(&cam->v4l2_dev, sensor_adapter,
+-			NULL, "ov7670", 0x42 >> 1, NULL);
++			"ov7670", 0x42 >> 1, NULL);
+ 	if (cam->sensor == NULL) {
+ 		dev_err(&pdev->dev, "Unable to find the sensor!\n");
+ 		ret = -ENODEV;
+diff --git a/drivers/media/video/vino.c b/drivers/media/video/vino.c
+index e5e005d..7e7eec4 100644
+--- a/drivers/media/video/vino.c
++++ b/drivers/media/video/vino.c
+@@ -4334,10 +4334,10 @@ static int __init vino_module_init(void)
+ 
+ 	vino_drvdata->decoder =
+ 		v4l2_i2c_new_subdev(&vino_drvdata->v4l2_dev, &vino_i2c_adapter,
+-			       NULL, "saa7191", 0, I2C_ADDRS(0x45));
++			       "saa7191", 0, I2C_ADDRS(0x45));
+ 	vino_drvdata->camera =
+ 		v4l2_i2c_new_subdev(&vino_drvdata->v4l2_dev, &vino_i2c_adapter,
+-			       NULL, "indycam", 0, I2C_ADDRS(0x2b));
++			       "indycam", 0, I2C_ADDRS(0x2b));
+ 
+ 	dprintk("init complete!\n");
+ 
+diff --git a/drivers/media/video/zoran/zoran_card.c b/drivers/media/video/zoran/zoran_card.c
+index 0aac376..76179f7 100644
+--- a/drivers/media/video/zoran/zoran_card.c
++++ b/drivers/media/video/zoran/zoran_card.c
+@@ -1342,13 +1342,12 @@ static int __devinit zoran_probe(struct pci_dev *pdev,
+ 	}
+ 
+ 	zr->decoder = v4l2_i2c_new_subdev(&zr->v4l2_dev,
+-		&zr->i2c_adapter, NULL, zr->card.i2c_decoder,
++		&zr->i2c_adapter, zr->card.i2c_decoder,
+ 		0, zr->card.addrs_decoder);
+ 
+ 	if (zr->card.i2c_encoder)
+ 		zr->encoder = v4l2_i2c_new_subdev(&zr->v4l2_dev,
+-			&zr->i2c_adapter,
+-			NULL, zr->card.i2c_encoder,
++			&zr->i2c_adapter, zr->card.i2c_encoder,
+ 			0, zr->card.addrs_encoder);
+ 
+ 	dprintk(2,
+diff --git a/drivers/staging/go7007/go7007-driver.c b/drivers/staging/go7007/go7007-driver.c
+index b3f42f3..48d4e48 100644
+--- a/drivers/staging/go7007/go7007-driver.c
++++ b/drivers/staging/go7007/go7007-driver.c
+@@ -199,7 +199,7 @@ static int init_i2c_module(struct i2c_adapter *adapter, const char *type,
+ 	struct go7007 *go = i2c_get_adapdata(adapter);
+ 	struct v4l2_device *v4l2_dev = &go->v4l2_dev;
+ 
+-	if (v4l2_i2c_new_subdev(v4l2_dev, adapter, NULL, type, addr, NULL))
++	if (v4l2_i2c_new_subdev(v4l2_dev, adapter, type, addr, NULL))
+ 		return 0;
+ 
+ 	printk(KERN_INFO "go7007: probing for module i2c:%s failed\n", type);
+diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+index 664e603..b143258 100644
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -545,7 +545,7 @@ static void tm6000_config_tuner(struct tm6000_core *dev)
+ 
+ 	/* Load tuner module */
+ 	v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap,
+-		NULL, "tuner", dev->tuner_addr, NULL);
++		"tuner", dev->tuner_addr, NULL);
+ 
+ 	memset(&tun_setup, 0, sizeof(tun_setup));
+ 	tun_setup.type = dev->tuner_type;
+@@ -683,7 +683,7 @@ static int tm6000_init_dev(struct tm6000_core *dev)
+ 
+ 	if (dev->caps.has_tda9874)
+ 		v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap,
+-			NULL, "tvaudio", I2C_ADDR_TDA9874, NULL);
++			"tvaudio", I2C_ADDR_TDA9874, NULL);
+ 
+ 	/* register and initialize V4L2 */
+ 	rc = tm6000_v4l2_register(dev);
+diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+index 41dd480..239125a 100644
+--- a/include/media/v4l2-common.h
++++ b/include/media/v4l2-common.h
+@@ -137,31 +137,27 @@ struct v4l2_subdev_ops;
+ 
+ 
+ /* Load an i2c module and return an initialized v4l2_subdev struct.
+-   Only call request_module if module_name != NULL.
+    The client_type argument is the name of the chip that's on the adapter. */
+ struct v4l2_subdev *v4l2_i2c_new_subdev_cfg(struct v4l2_device *v4l2_dev,
+-		struct i2c_adapter *adapter,
+-		const char *module_name, const char *client_type,
++		struct i2c_adapter *adapter, const char *client_type,
+ 		int irq, void *platform_data,
+ 		u8 addr, const unsigned short *probe_addrs);
+ 
+ /* Load an i2c module and return an initialized v4l2_subdev struct.
+-   Only call request_module if module_name != NULL.
+    The client_type argument is the name of the chip that's on the adapter. */
+ static inline struct v4l2_subdev *v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
+-		struct i2c_adapter *adapter,
+-		const char *module_name, const char *client_type,
++		struct i2c_adapter *adapter, const char *client_type,
+ 		u8 addr, const unsigned short *probe_addrs)
+ {
+-	return v4l2_i2c_new_subdev_cfg(v4l2_dev, adapter, module_name,
+-				client_type, 0, NULL, addr, probe_addrs);
++	return v4l2_i2c_new_subdev_cfg(v4l2_dev, adapter, client_type, 0, NULL,
++				       addr, probe_addrs);
+ }
+ 
+ struct i2c_board_info;
+ 
+ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
+-		struct i2c_adapter *adapter, const char *module_name,
+-		struct i2c_board_info *info, const unsigned short *probe_addrs);
++		struct i2c_adapter *adapter, struct i2c_board_info *info,
++		const unsigned short *probe_addrs);
+ 
+ /* Initialize an v4l2_subdev with data from an i2c_client struct */
+ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
 -- 
-1.7.0.4
+1.7.2.2
 
