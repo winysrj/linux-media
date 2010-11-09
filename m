@@ -1,55 +1,43 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2480 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753196Ab0KJS13 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Nov 2010 13:27:29 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id oAAIRRUb073303
-	for <linux-media@vger.kernel.org>; Wed, 10 Nov 2010 19:27:28 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 10 Nov 2010 19:27:27 +0100 (CET)
-Message-Id: <201011101827.oAAIRRUb073303@smtp-vbr14.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build: WARNINGS
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60680 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752627Ab0KIXKm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Nov 2010 18:10:42 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Michael Jones <michael.jones@matrix-vision.de>
+Subject: Re: OMAP3530 ISP irqs disabled
+Date: Wed, 10 Nov 2010 00:10:41 +0100
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Bastian Hecht <hechtb@googlemail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <AANLkTint8J4NdXQ4v1wmKAKWa7oeSHsdOn8JzjDqCqeY@mail.gmail.com> <201011080416.16090.laurent.pinchart@ideasonboard.com> <4CD7EC8C.1020505@matrix-vision.de>
+In-Reply-To: <4CD7EC8C.1020505@matrix-vision.de>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201011100010.42129.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi Michael,
 
-Results of the daily build of v4l-dvb:
+On Monday 08 November 2010 13:26:52 Michael Jones wrote:
+> Laurent Pinchart wrote:
+> > Sorry for the late reply, I've been travelling for the past two weeks and
+> > had no hardware to test this on. I will try the latest code on a board
+> > with a parallel sensor and I'll let you know if I can reproduce the
+> > problem.
+> 
+> If I'm correct about the problem, it's not about the parallel sensor,
+> it's about writing the data from the CCDC to memory.  I expect the
+> problem to occur with a serial sensor too if the CCDC writes to memory.
 
-date:        Wed Nov 10 19:00:18 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15167:abd3aac6644e
-git master:       3e6dce76d99b328716b43929b9195adfee1de00c
-git media-master: a348e9110ddb5d494e060d989b35dd1f35359d58
-gcc version:      i686-linux-gcc (GCC) 4.5.1
-host hardware:    x86_64
-host os:          2.6.32.5
+You're 100% right, I've been able to reproduce the problem with both a 
+parallel and a serial sensor. I wonder how this bug got introduced, it's time 
+to tighten the QA process. I'll work on a fix ASAP.
 
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: WARNINGS
-linux-git-mips: WARNINGS
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-spec-git: OK
-sparse: ERRORS
+-- 
+Regards,
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Laurent Pinchart
