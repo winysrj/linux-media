@@ -1,85 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:62990 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754360Ab0KISCU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Nov 2010 13:02:20 -0500
-Message-ID: <4CD98CA8.9020003@redhat.com>
-Date: Tue, 09 Nov 2010 16:02:16 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PULL] http://www.kernellabs.com/hg/~dheitmueller/v4l-dvb-950q-final
-References: <AANLkTi=tc_4ZAk20fEamcFQ-VDFkt4tBwFH+uGv9Fw62@mail.gmail.com>	<AANLkTimYMTa8zigTYbZhH5dN7VGZDBUFmw3PL4jRV9hv@mail.gmail.com>	<4CD970BB.5030307@redhat.com> <AANLkTin7pq=UZPTWvCJ+Zdj2SeqfmruJ8q=dktEZLZBP@mail.gmail.com>
-In-Reply-To: <AANLkTin7pq=UZPTWvCJ+Zdj2SeqfmruJ8q=dktEZLZBP@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198]:33143 "EHLO
+	mta3.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756825Ab0KJQMH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Nov 2010 11:12:07 -0500
+Received: from TheShoveller.local
+ (ool-4572125f.dyn.optonline.net [69.114.18.95]) by mta3.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0LBO00G1KFNZN2L0@mta3.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Wed, 10 Nov 2010 11:12:05 -0500 (EST)
+Date: Wed, 10 Nov 2010 11:11:59 -0500
+From: Steven Toth <stoth@kernellabs.com>
+Subject: Re: Bounty for the first Open Source driver for Kinect
+In-reply-to: <20101110165438.632e487b.ospite@studenti.unina.it>
+To: Antonio Ospite <ospite@studenti.unina.it>
+Cc: Mohamed Ikbel Boulabiar <boulabiar@gmail.com>,
+	linux-media@vger.kernel.org
+Message-id: <4CDAC44F.8060707@kernellabs.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7BIT
+References: <AANLkTimMJ+u0qXs=LJ+XZ2HH6Ubc4fTSqseXFJAzMJnX@mail.gmail.com>
+ <AANLkTimCRU2ZoF0=CjP4D5C4YPdZtHZfp_xYgUiP0g1J@mail.gmail.com>
+ <20101110165438.632e487b.ospite@studenti.unina.it>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 09-11-2010 14:07, Devin Heitmueller escreveu:
-> On Tue, Nov 9, 2010 at 11:03 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> Em 02-11-2010 16:47, Devin Heitmueller escreveu:
->>> On Sat, Oct 9, 2010 at 2:40 PM, Devin Heitmueller
->>> <dheitmueller@kernellabs.com> wrote:
->>>> Hello,
->>>>
->>>> Please pull from the following for some basic fixes related to
->>>> applications such as tvtime hanging when no video is present, as well
->>>> as some quality improvements for analog.
->>>>
->>>> http://www.kernellabs.com/hg/~dheitmueller/v4l-dvb-950q-final
->>>>
->>>> Please let me know if there are any questions/problems.
+On 11/10/10 10:54 AM, Antonio Ospite wrote:
+> On Wed, 10 Nov 2010 15:20:40 +0100
+> Mohamed Ikbel Boulabiar <boulabiar@gmail.com> wrote:
+> 
+>> MS Kinect interfacing via libusb released
+>> http://www.youtube.com/watch?v=rKhW-cvpkks
 >>
->> I'm still importing your patches, but, at the very first one, you
->> forgot to send your Signed-off-by:
->>
->> Generating hg_15168_djh_merge_vbi_changes.patch
->> WARNING: please, no space before tabs
->> #39: FILE: drivers/media/video/au0828/au0828.h:155:
->> +^Istruct au0828_buffer    ^I*vbi_buf;$
->>
->> ERROR: Missing Signed-off-by: line(s)
->>
->> Cheers,
->> Mauro
+>> http://git.marcansoft.com/?p=libfreenect.git
 >>
 > 
-> "djh - merge vbi changes" was just a rebase against the latest code.
-> The very first patch in the series is one earlier (047a8c9fa9d5).
+> Good, if anyone is willing to provide the hardware I think I can help
+> with a proper gspca driver (I helped with the PS3 Eye already). Are
+> there other RGB-Depth cams supported in linux? Are they usually exposed
+> just as two distinct cameras?
 
-Ok.
+Antonio,
 
-Hmm... the second patch is also without SOB:
+Excellent!
 
-patches/hg_15169_au8522_properly_set_default_brightness.patch
-Changeset: 15169
-From: Devin Heitmueller  <dheitmueller@kernellabs.com>
-Commiter: Devin Heitmueller <dheitmueller@kernellabs.com>
-Date: Sun Jun 13 16:31:22 2010 -0400
-Subject: au8522: Properly set default brightness
+If you are willing to donate your personal time freely to Linux then Kernel Labs
+are willing to assist by shipping a Kinect unit to you.
 
-The chip's default value for the brightness didn't match what we were sending
-back in the queryctrl ioctl(), so if the application actually set the
-brightness to the "default", it would actually end up being way too bright.
+Let me be clear, Kernel Labs have no commercial interest in this project. We
+simply like to encourage Linux media projects where possible. Projects like this
+are good for Linux and thus good for the community.
 
-This work was sponsored by GetWellNetwork Inc.
+My only requirement is that you post regular project status emails to this
+mailing list so we can all benefit from your thoughts, rants, any problems or
+comments on the project! :)
 
-Priority: normal
+Drop me a private email if you're interested.
 
----
+Regards,
 
-diff -upNr oldtree/drivers/media/dvb/frontends/au8522_decoder.c linux/drivers/media/dvb/frontends/au8522_decoder.c
---- oldtree/drivers/media/dvb/frontends/au8522_decoder.c	2010-11-09 14:00:23.000000000 -0200
-+++ linux/drivers/media/dvb/frontends/au8522_decoder.c	2010-11-09 14:00:13.000000000 -0200
-@@ -623,7 +623,7 @@ static int au8522_queryctrl(struct v4l2_
- 		return v4l2_ctrl_query_fill(qc, 0, 255, 1,
- 					    AU8522_TVDEC_CONTRAST_REG00BH_CVBS);
- 	case V4L2_CID_BRIGHTNESS:
--		return v4l2_ctrl_query_fill(qc, 0, 255, 1, 128);
-+		return v4l2_ctrl_query_fill(qc, 0, 255, 1, 109);
- 	case V4L2_CID_SATURATION:
- 		return v4l2_ctrl_query_fill(qc, 0, 255, 1, 128);
- 	case V4L2_CID_HUE:
+- Steve
+
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
+
+
