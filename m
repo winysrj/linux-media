@@ -1,71 +1,35 @@
 Return-path: <mchehab@pedra>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49306 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756344Ab0KPM4u (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Nov 2010 07:56:50 -0500
-From: manjunatha_halli@ti.com
-To: mchehab@infradead.org, hverkuil@xs4all.nl
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Manjunatha Halli <manjunatha_halli@ti.com>
-Subject: [PATCH v4 0/6] FM V4L2 drivers for WL128x
-Date: Tue, 16 Nov 2010 08:18:08 -0500
-Message-Id: <1289913494-21590-1-git-send-email-manjunatha_halli@ti.com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:51463 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756520Ab0KJUzT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Nov 2010 15:55:19 -0500
+Received: by gyh4 with SMTP id 4so738958gyh.19
+        for <linux-media@vger.kernel.org>; Wed, 10 Nov 2010 12:55:19 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <yanpj3usd6gfp0xwdbaxlkni.1289407954066@email.android.com>
+References: <yanpj3usd6gfp0xwdbaxlkni.1289407954066@email.android.com>
+From: Mohamed Ikbel Boulabiar <boulabiar@gmail.com>
+Date: Wed, 10 Nov 2010 21:54:58 +0100
+Message-ID: <AANLkTimE-MWjG0JRCenOA4xhammTMS_11uvh7E+qWrNe@mail.gmail.com>
+Subject: Re: Bounty for the first Open Source driver for Kinect
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Antonio Ospite <ospite@studenti.unina.it>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Manjunatha Halli <manjunatha_halli@ti.com>
+The bounty is already taken by that developer.
 
-Mauro, Hans and the list,
+But now, the Kinect thing is supported like a GPL userspace library.
+Maybe still need more work to be rewritten as a kernel module.
 
-This is the v4 version of the TI WL128x FM V4L2 drivers patchset.
-Texas Instrument's WL128x chipset packs BT, FM, GPS and WLAN in a single
-die with BT, FM and GPS being interfaced over a single UART.
-This driver works on top of the shared transport line discipline driver.
-This driver can also be made use for the WL127x version of the chip which packs
-BT, FM and WLAN only.
+The device has also a microphone (still need to be hacked), an
+accelerometer and even a motor/engine.
+The design should be similar to the ps3eye (but 2 video output).
+The engine controller and the accelerometer needs to be adressed to
+which place ? Linux-input ?.
 
-Comments on the last version of the patches have been taken care,
-such as
-- New private CID for Channel Spacing added.
-- FM Seek Wrap around support is also added.
-- Few other style issues also taken care of.
 
-Also,
-Can you please also stage this version? Since the files are becoming big
-to be posted as patches?
-Currently there are few modifications which are supposed to go into videodev2.h
-which have been added to generic header file to make it self-contained.
-
-Thanks & Regards,
-Manjunatha.
-
-Manjunatha Halli (6):
-  drivers:staging: ti-st: fmdrv common header file
-  drivers:staging: ti-st: fmdrv_v4l2 sources
-  drivers:staging: ti-st: fmdrv_common sources
-  drivers:staging: ti-st: fmdrv_rx sources
-  drivers:staging: ti-st: fmdrv_tx sources
-  drivers:staging: ti-st: Kconfig & Makefile change
-
- drivers/staging/ti-st/Kconfig        |   10 +
- drivers/staging/ti-st/Makefile       |    2 +
- drivers/staging/ti-st/fmdrv.h        |  259 ++++
- drivers/staging/ti-st/fmdrv_common.c | 2141 ++++++++++++++++++++++++++++++++++
- drivers/staging/ti-st/fmdrv_common.h |  458 ++++++++
- drivers/staging/ti-st/fmdrv_rx.c     |  979 ++++++++++++++++
- drivers/staging/ti-st/fmdrv_rx.h     |   59 +
- drivers/staging/ti-st/fmdrv_tx.c     |  461 ++++++++
- drivers/staging/ti-st/fmdrv_tx.h     |   37 +
- drivers/staging/ti-st/fmdrv_v4l2.c   |  757 ++++++++++++
- drivers/staging/ti-st/fmdrv_v4l2.h   |   32 +
- 11 files changed, 5195 insertions(+), 0 deletions(-)
- create mode 100644 drivers/staging/ti-st/fmdrv.h
- create mode 100644 drivers/staging/ti-st/fmdrv_common.c
- create mode 100644 drivers/staging/ti-st/fmdrv_common.h
- create mode 100644 drivers/staging/ti-st/fmdrv_rx.c
- create mode 100644 drivers/staging/ti-st/fmdrv_rx.h
- create mode 100644 drivers/staging/ti-st/fmdrv_tx.c
- create mode 100644 drivers/staging/ti-st/fmdrv_tx.h
- create mode 100644 drivers/staging/ti-st/fmdrv_v4l2.c
- create mode 100644 drivers/staging/ti-st/fmdrv_v4l2.h
-
+i
