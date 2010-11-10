@@ -1,58 +1,48 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:57973 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751857Ab0KDSyz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Nov 2010 14:54:55 -0400
-From: Maciej Rutecki <maciej.rutecki@gmail.com>
-Reply-To: maciej.rutecki@gmail.com
-To: Antonio Ospite <ospite@studenti.unina.it>
-Subject: Re: gspca for_2.6.36 - maybe does not work properly for me (ov534)
-Date: Thu, 4 Nov 2010 19:54:48 +0100
-Cc: =?utf-8?q?T=C3=B5nu_Samuel?= <tonu@jes.ee>,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	"linux-kernel" <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-References: <1288264077.1891.40.camel@x41.itrotid.ee> <201011032007.25474.maciej.rutecki@gmail.com> <20101103215339.bf451689.ospite@studenti.unina.it>
-In-Reply-To: <20101103215339.bf451689.ospite@studenti.unina.it>
+Return-path: <mchehab@pedra>
+Received: from casper.infradead.org ([85.118.1.10]:47931 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752867Ab0KJEdt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Nov 2010 23:33:49 -0500
+Message-ID: <4CDA2093.7010101@infradead.org>
+Date: Wed, 10 Nov 2010 02:33:23 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201011041954.48985.maciej.rutecki@gmail.com>
+To: Jarod Wilson <jarod@wilsonet.com>
+CC: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/6] rc-core: ir-core to rc-core conversion
+References: <20101102201733.12010.30019.stgit@localhost.localdomain>	<AANLkTi=z2yU568sEs0RNuQ6gZUzJQeHajTZ_0LeXS-2D@mail.gmail.com>	<4CD9FA59.9020702@infradead.org> <AANLkTik4s2vaAYu-A7VwDGRdeDDd=QZkUYN-p6yrFeqR@mail.gmail.com>
+In-Reply-To: <AANLkTik4s2vaAYu-A7VwDGRdeDDd=QZkUYN-p6yrFeqR@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On środa, 3 listopada 2010 o 21:53:39 Antonio Ospite wrote:
-> On Wed, 3 Nov 2010 20:07:25 +0100
+Em 10-11-2010 01:25, Jarod Wilson escreveu:
+> On Tue, Nov 9, 2010 at 8:50 PM, Mauro Carvalho Chehab
+> <mchehab@infradead.org> wrote:
+> ...
+>> Sorry for giving you a late feedback about those patches. I was busy the last two
+>> weeks, due to my trip to US for KS/LPC.
+>>
+>> I've applied patches 1 to 3 (in fact, I got the patches from the previous version -
+>> unfortunately, patchwork do a very bad job when someone sends a new series that superseeds
+>> the previous patches).
+>>
+>> I didn't like patch 4 for some reasons: instead of just doing rename, it is a
+>> all-in-one patch, doing several things at the same time. It is hard to analyse it by
+>> just looking at the diffs, as it is not a pure rename patch. Also, it doesn't rename
+>> /drivers/media/IR into something else.
+>>
+>> Btw, the patch is currently broken:
 > 
-> Maciej Rutecki <maciej.rutecki@gmail.com> wrote:
-> > (add CC's)
-> > 
-> > On czwartek, 28 października 2010 o 13:07:57 Tõnu Samuel wrote:
-> > > I am Sony PS3 Eye webcam user.
+> Hm, the series applied cleanly against 2.6.37-rc1 a bit ago:
 > 
-> Please more context in the Subject next time :)
-> 
-> > > After installing 2.6.36 this camera gets recognized but actually does
-> > > not work. It might be some own stupidity of improper kernel
-> > > configuration but I cannot track it down at moment.
-> 
-> This is fixed in 2.6.37-rc1, Mauro this should go in 2.6.36.1 as well,
-> ASAP please as we missed 2.6.36.
-> 
-> This is the thread:
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg23039.html
-> 
-> This is the patch:
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h
-> =f43402fa55bf5e7e190c176343015122f694857c
-> 
-> Regards,
->    Antonio
+> http://git.kernel.org/?p=linux/kernel/git/jarod/linux-2.6-ir.git;a=shortlog;h=refs/heads/staging
 
-Thanks for the information.
+Probably, some other RC patch broke it. It doesn't apply cleanly 
+against staging/for_v2.6.38.
 
-Regards
--- 
-Maciej Rutecki
-http://www.maciek.unixy.pl
+Cheers,
+Mauro
+
