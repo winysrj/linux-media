@@ -1,57 +1,31 @@
 Return-path: <mchehab@pedra>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:59886 "EHLO smtp5-g21.free.fr"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38950 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754010Ab0KMJpV convert rfc822-to-8bit (ORCPT
+	id S1755816Ab0KJNYH convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Nov 2010 04:45:21 -0500
-Received: from tele (unknown [82.245.201.222])
-	by smtp5-g21.free.fr (Postfix) with ESMTP id B463FD48187
-	for <linux-media@vger.kernel.org>; Sat, 13 Nov 2010 10:45:11 +0100 (CET)
-Date: Sat, 13 Nov 2010 10:46:43 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 2.6.38] gspca for_2.6.38
-Message-ID: <20101113104643.2b99e160@tele>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+	Wed, 10 Nov 2010 08:24:07 -0500
+From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+To: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>
+CC: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Date: Wed, 10 Nov 2010 18:53:40 +0530
+Subject: mediabus enums
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A7C8C@dbde02.ent.ti.com>
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A7C79@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The following changes since commit
-af9f14f7fc31f0d7b7cdf8f7f7f15a3c3794aea3:
+Hello Guennadi,
+   Your media-bus enumerations capture the formats quite well. I needed the following for support on Davinci SOCs and liked to check with you if these are covered in some format in the list. 
+1. Parallel RGB 666 (18 data lines+ 5 sync lines)
+2. YUYV16 (16 lines) (16 data lines + 4 or 5 sync lines)
 
-  [media] IR: add tv power scancode to rc6 mce keymap (2010-11-10 00:58:49 -0200)
 
-are available in the git repository at:
-  git://linuxtv.org/jfrancois/gspca.git for_2.6.38
-
-Jean-François Moine (16):
-      gspca - ov519: Handle the snapshot on capture stop when CONFIG_INPUT=m
-      gspca - ov519: Don't do USB exchanges after disconnection
-      gspca - ov519: Change types '__xx' to 'xx'
-      gspca - ov519: Reduce the size of some variables
-      gspca - ov519: Define the sensor types in an enum
-      gspca - ov519: Cleanup source
-      gspca - ov519: Set their numbers in the ov519 and ov7670 register names
-      gspca - ov519: Define the disabled controls in a table
-      gspca - ov519: Propagate errors to higher level
-      gspca - ov519: Clearer debug and error messages
-      gspca - ov519: Check the disabled controls at start time only
-      gspca - ov519: Simplify the LED control functions
-      gspca - ov519: Change the ov519 start and stop sequences
-      gspca - ov519: Initialize the ov519 snapshot register
-      gspca - ov519: Re-initialize the webcam at resume time
-      gspca - ov519: New sensor ov7660 with bridge ov530 (ov519)
-
-Nicolas Kaiser (1):
-      gspca - cpia1: Fix error check
-
- drivers/media/video/gspca/cpia1.c   |    2 +-
- drivers/media/video/gspca/ov519.c   | 1671 +++++++++++++++++++++--------------
- drivers/media/video/gspca/w996Xcf.c |  325 +++----
- 3 files changed, 1131 insertions(+), 867 deletions(-)
-
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Thanks and Regards,
+-Manju
