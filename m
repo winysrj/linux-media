@@ -1,106 +1,129 @@
-Return-path: <mchehab@gaivota>
-Received: from mailout-de.gmx.net ([213.165.64.23]:34933 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1754805Ab0KTT6I (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Nov 2010 14:58:08 -0500
-From: Oliver Endriss <o.endriss@gmx.de>
-To: Robert Longbottom <rongblor@googlemail.com>
-Subject: Re: ngene & Satix-S2 dual problems
-Date: Sat, 20 Nov 2010 20:22:42 +0100
-Cc: linux-media@vger.kernel.org
-References: <4CE7EEC2.3040900@googlemail.com>
-In-Reply-To: <4CE7EEC2.3040900@googlemail.com>
+Return-path: <mchehab@pedra>
+Received: from eu1sys200aog115.obsmtp.com ([207.126.144.139]:59351 "EHLO
+	eu1sys200aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755816Ab0KJM0k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Nov 2010 07:26:40 -0500
+From: Jimmy Rubin <jimmy.rubin@stericsson.com>
+To: <linux-fbdev@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>
+Cc: Linus Walleij <linus.walleij@stericsson.com>,
+	Dan Johansson <dan.johansson@stericsson.com>,
+	Jimmy Rubin <jimmy.rubin@stericsson.com>
+Subject: [PATCH 00/10] MCDE: Add frame buffer device driver
+Date: Wed, 10 Nov 2010 13:04:03 +0100
+Message-ID: <1289390653-6111-1-git-send-email-jimmy.rubin@stericsson.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201011202022.43042@orion.escape-edv.de>
+Content-Type: text/plain
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi,
+These set of patches contains a display sub system framework (DSS) which is used to
+implement the frame buffer device interface and a display device
+framework that is used to add support for different type of displays
+such as LCD, HDMI and so on.
 
-On Saturday 20 November 2010 16:52:34 Robert Longbottom wrote:
-> Hi all,
-> 
-> I have a Satix-S2 Dual that I'm trying to get to work properly so that I 
-> can use it under MythTv however I'm running into a few issues.  I 
-> previously posted about the problems I'm having here to the mythtv 
-> list[1], but didn't really get anywhere.  I've had chance to have a bit 
-> more of a play and I now seem to have a definite repeatable problem.
-> 
-> The problem is when a recording stops on one of the inputs, after about 
-> 40s it causes the other input to loose it's signal lock and stop the 
-> recording as well.
-> 
-> 
-> Steps to demonstrate the problem (My Satix card is adapters 5 and 6)
-> 
-> In 3 seperate terminals set up femon/szap/cat to make a recording from 
-> one of the inputs:
-> 
-> 1 - femon -a 6 -f 0 -H
-> 2 - szap -a 6 -f 0 -d 0 -r -H -p -c scanResult07Oct2010_Satix -l 
-> UNIVERSAL "BBC 1 London"
-> 3 - cat /dev/dvb/adapter6/dvr0 > ad6.mpg
-> 
-> In 2 seperate terminals tune in the other input:
-> 
-> 4 - femon -a 5 -f 0 -H
-> 5 - szap -a 5 -f 0 -d 0 -r -H -p -c scanResult07Oct2010_Satix -l 
-> UNIVERSAL "ITV1 London"
-> 
-> Both inputs are fine, signal is good, recording from adapter 6 works.
-> 
-> 6 - Ctrl-C the szap process created in (5).
-> 
-> femon in (4) still reports status=SCVYL and decent signal strengh as if 
-> the adapter is still tuned and FE_HAS_LOCK.  After approximately 40 
-> seconds, either:
-> 
-> a) the signal drops significantly but the status remains at SCVYL and 
-> FE_HAS_LOCK
-> 
-> or
-> 
-> b) the signal drops and the status goes blank with no lock.
-> 
-> It doesn't seem to matter which of these two happen, but at the same 
-> time the recording on the other tuner looses it signal and stops 
-> recording, despite the fact that szap is still running in (2).  femon in 
-> (1) no longer reports FE_HAS_LOCK.
-> 
-> Strangely if I then try to restart the szap process created in terminal 
-> 2 (to try and retune it) it just waits after printing out "using 
-> '/dev/dvb/....".  However if I then restart the szap process in terminal 
-> 5, the one in terminal 2 suddenly kicks in and gets a lock.
-> 
-> Interestingly I found a link describing a 60s period the card is kept 
-> open for [2], which seems to be similar to my ~40s delay.  So it looks 
-> like when the second input on the card is closed the first input looses 
-> it's lock.
-> 
-> This obviously makes it pretty useless for MythTv and as a result it's 
-> not currently being used, which is a shame!
-> 
-> I'm using the ngene driver from the stock 2.6.35.4 kernel on Gentoo.
-> 
-> Does anyone else see this problem?  Is there anything I can do to try 
-> and fix / debug it?  Are there any bug fixes in the latest kernel that 
-> might help, or in the linux-dvb drivers that would help?
-> 
-> Any help or advice much appreciated.
+The current implementation supports DSI command mode displays.
 
-Please try this driver:
-http://linuxtv.org/hg/~endriss/ngene-test2
+Below is a short summary of the files in this patchset:
 
-CU
-Oliver
+mcde_fb.c
+Implements the frame buffer device driver.
 
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
+mcde_dss.c
+Contains the implementation of the display sub system framework (DSS).
+This API is used by the frame buffer device driver.
+
+mcde_display.c
+Contains default implementations of the functions in the display driver
+API. A display driver may override the necessary functions to function
+properly. A simple display driver is implemented in display-generic_dsi.c.
+
+display-generic_dsi.c
+Sample driver for a DSI command mode display.
+
+mcde_bus.c
+Implementation of the display bus. A display device is probed when both
+the display driver and display configuration have been registered with
+the display bus.
+
+mcde_hw.c
+Hardware abstraction layer of MCDE. All code that communicates directly
+with the hardware resides in this file.
+
+board-mop500-mcde.c
+The configuration of the display and the frame buffer device is handled
+in this file
+
+NOTE: These set of patches replaces the patches already sent out for review.
+
+RFC:[PATCH 1/2] Video: Add support for MCDE frame buffer driver
+RFC:[PATCH 2/2] Ux500: Add support for MCDE frame buffer driver  
+
+The old patchset was to large to be handled by the mailing lists.
+
+Jimmy Rubin (10):
+  MCDE: Add hardware abstraction layer
+  MCDE: Add configuration registers
+  MCDE: Add pixel processing registers
+  MCDE: Add formatter registers
+  MCDE: Add dsi link registers
+  MCDE: Add generic display
+  MCDE: Add display subsystem framework
+  MCDE: Add frame buffer device driver
+  MCDE: Add build files and bus
+  ux500: MCDE: Add platform specific data
+
+ arch/arm/mach-ux500/Kconfig                    |    8 +
+ arch/arm/mach-ux500/Makefile                   |    1 +
+ arch/arm/mach-ux500/board-mop500-mcde.c        |  209 ++
+ arch/arm/mach-ux500/board-mop500-regulators.c  |   28 +
+ arch/arm/mach-ux500/board-mop500.c             |    3 +
+ arch/arm/mach-ux500/devices-db8500.c           |   68 +
+ arch/arm/mach-ux500/include/mach/db8500-regs.h |    7 +
+ arch/arm/mach-ux500/include/mach/devices.h     |    1 +
+ arch/arm/mach-ux500/include/mach/prcmu-regs.h  |    1 +
+ arch/arm/mach-ux500/include/mach/prcmu.h       |    3 +
+ arch/arm/mach-ux500/prcmu.c                    |  129 ++
+ drivers/video/Kconfig                          |    2 +
+ drivers/video/Makefile                         |    1 +
+ drivers/video/mcde/Kconfig                     |   39 +
+ drivers/video/mcde/Makefile                    |   12 +
+ drivers/video/mcde/display-generic_dsi.c       |  152 ++
+ drivers/video/mcde/dsi_link_config.h           | 1486 ++++++++++++++
+ drivers/video/mcde/mcde_bus.c                  |  259 +++
+ drivers/video/mcde/mcde_config.h               | 2156 ++++++++++++++++++++
+ drivers/video/mcde/mcde_display.c              |  427 ++++
+ drivers/video/mcde/mcde_dss.c                  |  353 ++++
+ drivers/video/mcde/mcde_fb.c                   |  697 +++++++
+ drivers/video/mcde/mcde_formatter.h            |  782 ++++++++
+ drivers/video/mcde/mcde_hw.c                   | 2528 ++++++++++++++++++++++++
+ drivers/video/mcde/mcde_mod.c                  |   67 +
+ drivers/video/mcde/mcde_pixelprocess.h         | 1137 +++++++++++
+ include/video/mcde/mcde.h                      |  387 ++++
+ include/video/mcde/mcde_display-generic_dsi.h  |   34 +
+ include/video/mcde/mcde_display.h              |  139 ++
+ include/video/mcde/mcde_dss.h                  |   78 +
+ include/video/mcde/mcde_fb.h                   |   54 +
+ 31 files changed, 11248 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-ux500/board-mop500-mcde.c
+ create mode 100644 drivers/video/mcde/Kconfig
+ create mode 100644 drivers/video/mcde/Makefile
+ create mode 100644 drivers/video/mcde/display-generic_dsi.c
+ create mode 100644 drivers/video/mcde/dsi_link_config.h
+ create mode 100644 drivers/video/mcde/mcde_bus.c
+ create mode 100644 drivers/video/mcde/mcde_config.h
+ create mode 100644 drivers/video/mcde/mcde_display.c
+ create mode 100644 drivers/video/mcde/mcde_dss.c
+ create mode 100644 drivers/video/mcde/mcde_fb.c
+ create mode 100644 drivers/video/mcde/mcde_formatter.h
+ create mode 100644 drivers/video/mcde/mcde_hw.c
+ create mode 100644 drivers/video/mcde/mcde_mod.c
+ create mode 100644 drivers/video/mcde/mcde_pixelprocess.h
+ create mode 100644 include/video/mcde/mcde.h
+ create mode 100644 include/video/mcde/mcde_display-generic_dsi.h
+ create mode 100644 include/video/mcde/mcde_display.h
+ create mode 100644 include/video/mcde/mcde_dss.h
+ create mode 100644 include/video/mcde/mcde_fb.h
+
