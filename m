@@ -1,382 +1,2201 @@
-Return-path: <mchehab@gaivota>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:35267 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752156Ab0KBUR5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Nov 2010 16:17:57 -0400
-Subject: [PATCH 3/6] ir-core: more cleanups of ir-functions.c
-To: linux-media@vger.kernel.org
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: jarod@wilsonet.com, mchehab@infradead.org
-Date: Tue, 02 Nov 2010 21:17:54 +0100
-Message-ID: <20101102201754.12010.27662.stgit@localhost.localdomain>
-In-Reply-To: <20101102201733.12010.30019.stgit@localhost.localdomain>
-References: <20101102201733.12010.30019.stgit@localhost.localdomain>
+Return-path: <mchehab@pedra>
+Received: from eu1sys200aog105.obsmtp.com ([207.126.144.119]:42842 "EHLO
+	eu1sys200aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755587Ab0KJM0t (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Nov 2010 07:26:49 -0500
+From: Jimmy Rubin <jimmy.rubin@stericsson.com>
+To: <linux-fbdev@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>
+Cc: Linus Walleij <linus.walleij@stericsson.com>,
+	Dan Johansson <dan.johansson@stericsson.com>,
+	Jimmy Rubin <jimmy.rubin@stericsson.com>
+Subject: [PATCH 02/10] MCDE: Add configuration registers
+Date: Wed, 10 Nov 2010 13:04:05 +0100
+Message-ID: <1289390653-6111-3-git-send-email-jimmy.rubin@stericsson.com>
+In-Reply-To: <1289390653-6111-2-git-send-email-jimmy.rubin@stericsson.com>
+References: <1289390653-6111-1-git-send-email-jimmy.rubin@stericsson.com>
+ <1289390653-6111-2-git-send-email-jimmy.rubin@stericsson.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-cx88 only depends on VIDEO_IR because it needs ir_extract_bits().
-Move that function to ir-core.h and make it inline.
+This patch adds support for MCDE, Memory-to-display controller
+found in the ST-Ericsson ux500 products.
 
-Lots of drivers had dependencies on VIDEO_IR when they really
-wanted IR_CORE.
+This patch adds the configuration registers found in MCDE.
 
-The only remaining drivers to depend on VIDEO_IR are bt8xx and
-saa7134 (ir_rc5_timer_end is the only function exported by
-ir-functions).
-
-Rename VIDEO_IR -> IR_LEGACY to give a hint to anyone writing or
-converting drivers to IR_CORE that they do not want a dependency
-on IR_LEGACY.
-
-Signed-off-by: David Härdeman <david@hardeman.nu>
-Acked-by: Jarod Wilson <jarod@redhat.com>
+Signed-off-by: Jimmy Rubin <jimmy.rubin@stericsson.com>
+Acked-by: Linus Walleij <linus.walleij.stericsson.com>
 ---
- drivers/media/IR/Kconfig              |    2 +-
- drivers/media/IR/Makefile             |    2 +-
- drivers/media/IR/ir-functions.c       |   19 -------------------
- drivers/media/dvb/dm1105/Kconfig      |    3 +--
- drivers/media/dvb/ttpci/Kconfig       |    3 +--
- drivers/media/video/Kconfig           |    2 +-
- drivers/media/video/bt8xx/Kconfig     |    4 ++--
- drivers/media/video/cx18/Kconfig      |    3 +--
- drivers/media/video/cx231xx/Kconfig   |    4 ++--
- drivers/media/video/cx88/Kconfig      |    3 +--
- drivers/media/video/cx88/cx88-input.c |    1 -
- drivers/media/video/em28xx/Kconfig    |    4 ++--
- drivers/media/video/ivtv/Kconfig      |    3 +--
- drivers/media/video/saa7134/Kconfig   |    2 +-
- drivers/media/video/tlg2300/Kconfig   |    4 ++--
- drivers/staging/cx25821/Kconfig       |    4 ++--
- drivers/staging/go7007/Kconfig        |    4 ++--
- include/media/ir-common.h             |    1 -
- include/media/ir-core.h               |   19 +++++++++++++++++++
- 19 files changed, 40 insertions(+), 47 deletions(-)
+ drivers/video/mcde/mcde_config.h | 2156 ++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 2156 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/video/mcde/mcde_config.h
 
-diff --git a/drivers/media/IR/Kconfig b/drivers/media/IR/Kconfig
-index aa4163e..20e02a0 100644
---- a/drivers/media/IR/Kconfig
-+++ b/drivers/media/IR/Kconfig
-@@ -10,7 +10,7 @@ menuconfig IR_CORE
- 	  if you don't need IR, as otherwise, you may not be able to
- 	  compile the driver for your adapter.
- 
--config VIDEO_IR
-+config IR_LEGACY
- 	tristate
- 	depends on IR_CORE
- 	default IR_CORE
-diff --git a/drivers/media/IR/Makefile b/drivers/media/IR/Makefile
-index f9574ad..38873cf 100644
---- a/drivers/media/IR/Makefile
-+++ b/drivers/media/IR/Makefile
-@@ -4,7 +4,7 @@ ir-core-objs	:= ir-keytable.o ir-sysfs.o ir-raw-event.o rc-map.o
- obj-y += keymaps/
- 
- obj-$(CONFIG_IR_CORE) += ir-core.o
--obj-$(CONFIG_VIDEO_IR) += ir-common.o
-+obj-$(CONFIG_IR_LEGACY) += ir-common.o
- obj-$(CONFIG_LIRC) += lirc_dev.o
- obj-$(CONFIG_IR_NEC_DECODER) += ir-nec-decoder.o
- obj-$(CONFIG_IR_RC5_DECODER) += ir-rc5-decoder.o
-diff --git a/drivers/media/IR/ir-functions.c b/drivers/media/IR/ir-functions.c
-index fca734c..ec021c9 100644
---- a/drivers/media/IR/ir-functions.c
-+++ b/drivers/media/IR/ir-functions.c
-@@ -31,25 +31,6 @@
- MODULE_AUTHOR("Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]");
- MODULE_LICENSE("GPL");
- 
--/* -------------------------------------------------------------------------- */
--/* extract mask bits out of data and pack them into the result */
--u32 ir_extract_bits(u32 data, u32 mask)
--{
--	u32 vbit = 1, value = 0;
--
--	do {
--	    if (mask&1) {
--		if (data&1)
--			value |= vbit;
--		vbit<<=1;
--	    }
--	    data>>=1;
--	} while (mask>>=1);
--
--	return value;
--}
--EXPORT_SYMBOL_GPL(ir_extract_bits);
--
- /* RC5 decoding stuff, moved from bttv-input.c to share it with
-  * saa7134 */
- 
-diff --git a/drivers/media/dvb/dm1105/Kconfig b/drivers/media/dvb/dm1105/Kconfig
-index a6ceb08..576f3b7 100644
---- a/drivers/media/dvb/dm1105/Kconfig
-+++ b/drivers/media/dvb/dm1105/Kconfig
-@@ -1,7 +1,6 @@
- config DVB_DM1105
- 	tristate "SDMC DM1105 based PCI cards"
- 	depends on DVB_CORE && PCI && I2C
--	depends on INPUT
- 	select DVB_PLL if !DVB_FE_CUSTOMISE
- 	select DVB_STV0299 if !DVB_FE_CUSTOMISE
- 	select DVB_STV0288 if !DVB_FE_CUSTOMISE
-@@ -9,7 +8,7 @@ config DVB_DM1105
- 	select DVB_CX24116 if !DVB_FE_CUSTOMISE
- 	select DVB_SI21XX if !DVB_FE_CUSTOMISE
- 	select DVB_DS3000 if !DVB_FE_CUSTOMISE
--	depends on VIDEO_IR
-+	depends on IR_CORE
- 	help
- 	  Support for cards based on the SDMC DM1105 PCI chip like
- 	  DvbWorld 2002
-diff --git a/drivers/media/dvb/ttpci/Kconfig b/drivers/media/dvb/ttpci/Kconfig
-index debea8d..0ffd694 100644
---- a/drivers/media/dvb/ttpci/Kconfig
-+++ b/drivers/media/dvb/ttpci/Kconfig
-@@ -89,7 +89,6 @@ config DVB_BUDGET
- config DVB_BUDGET_CI
- 	tristate "Budget cards with onboard CI connector"
- 	depends on DVB_BUDGET_CORE && I2C
--	depends on INPUT # due to IR
- 	select DVB_STV0297 if !DVB_FE_CUSTOMISE
- 	select DVB_STV0299 if !DVB_FE_CUSTOMISE
- 	select DVB_TDA1004X if !DVB_FE_CUSTOMISE
-@@ -98,7 +97,7 @@ config DVB_BUDGET_CI
- 	select DVB_LNBP21 if !DVB_FE_CUSTOMISE
- 	select DVB_TDA10023 if !DVB_FE_CUSTOMISE
- 	select MEDIA_TUNER_TDA827X if !MEDIA_TUNER_CUSTOMISE
--	depends on VIDEO_IR
-+	depends on IR_CORE
- 	help
- 	  Support for simple SAA7146 based DVB cards
- 	  (so called Budget- or Nova-PCI cards) without onboard
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index ac16e81..9c66f50 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -96,7 +96,7 @@ config VIDEO_HELPER_CHIPS_AUTO
- 
- config VIDEO_IR_I2C
- 	tristate "I2C module for IR" if !VIDEO_HELPER_CHIPS_AUTO
--	depends on I2C && VIDEO_IR
-+	depends on I2C && IR_CORE
- 	default y
- 	---help---
- 	  Most boards have an IR chip directly connected via GPIO. However,
-diff --git a/drivers/media/video/bt8xx/Kconfig b/drivers/media/video/bt8xx/Kconfig
-index 1a4a89f..659e448 100644
---- a/drivers/media/video/bt8xx/Kconfig
-+++ b/drivers/media/video/bt8xx/Kconfig
-@@ -1,10 +1,10 @@
- config VIDEO_BT848
- 	tristate "BT848 Video For Linux"
--	depends on VIDEO_DEV && PCI && I2C && VIDEO_V4L2 && INPUT
-+	depends on VIDEO_DEV && PCI && I2C && VIDEO_V4L2
- 	select I2C_ALGOBIT
- 	select VIDEO_BTCX
- 	select VIDEOBUF_DMA_SG
--	depends on VIDEO_IR
-+	depends on IR_LEGACY
- 	select VIDEO_TUNER
- 	select VIDEO_TVEEPROM
- 	select VIDEO_MSP3400 if VIDEO_HELPER_CHIPS_AUTO
-diff --git a/drivers/media/video/cx18/Kconfig b/drivers/media/video/cx18/Kconfig
-index 76c054d..f3c3ccb 100644
---- a/drivers/media/video/cx18/Kconfig
-+++ b/drivers/media/video/cx18/Kconfig
-@@ -1,9 +1,8 @@
- config VIDEO_CX18
- 	tristate "Conexant cx23418 MPEG encoder support"
- 	depends on VIDEO_V4L2 && DVB_CORE && PCI && I2C && EXPERIMENTAL
--	depends on INPUT	# due to VIDEO_IR
- 	select I2C_ALGOBIT
--	depends on VIDEO_IR
-+	depends on IR_CORE
- 	select VIDEO_TUNER
- 	select VIDEO_TVEEPROM
- 	select VIDEO_CX2341X
-diff --git a/drivers/media/video/cx231xx/Kconfig b/drivers/media/video/cx231xx/Kconfig
-index bb04914..99f8683 100644
---- a/drivers/media/video/cx231xx/Kconfig
-+++ b/drivers/media/video/cx231xx/Kconfig
-@@ -1,9 +1,9 @@
- config VIDEO_CX231XX
- 	tristate "Conexant cx231xx USB video capture support"
--	depends on VIDEO_DEV && I2C && INPUT
-+	depends on VIDEO_DEV && I2C
- 	select VIDEO_TUNER
- 	select VIDEO_TVEEPROM
--	depends on VIDEO_IR
-+	depends on IR_CORE
- 	select VIDEOBUF_VMALLOC
- 	select VIDEO_CX25840
- 	select VIDEO_CX2341X
-diff --git a/drivers/media/video/cx88/Kconfig b/drivers/media/video/cx88/Kconfig
-index bcfd1ac..dbae629 100644
---- a/drivers/media/video/cx88/Kconfig
-+++ b/drivers/media/video/cx88/Kconfig
-@@ -1,12 +1,11 @@
- config VIDEO_CX88
- 	tristate "Conexant 2388x (bt878 successor) support"
--	depends on VIDEO_DEV && PCI && I2C && INPUT && IR_CORE
-+	depends on VIDEO_DEV && PCI && I2C && IR_CORE
- 	select I2C_ALGOBIT
- 	select VIDEO_BTCX
- 	select VIDEOBUF_DMA_SG
- 	select VIDEO_TUNER
- 	select VIDEO_TVEEPROM
--	depends on VIDEO_IR
- 	select VIDEO_WM8775 if VIDEO_HELPER_CHIPS_AUTO
- 	---help---
- 	  This is a video4linux driver for Conexant 2388x based
-diff --git a/drivers/media/video/cx88/cx88-input.c b/drivers/media/video/cx88/cx88-input.c
-index 564e3cb..8c41124 100644
---- a/drivers/media/video/cx88/cx88-input.c
-+++ b/drivers/media/video/cx88/cx88-input.c
-@@ -31,7 +31,6 @@
- 
- #include "cx88.h"
- #include <media/ir-core.h>
--#include <media/ir-common.h>
- 
- #define MODULE_NAME "cx88xx"
- 
-diff --git a/drivers/media/video/em28xx/Kconfig b/drivers/media/video/em28xx/Kconfig
-index 66aefd6..f363069 100644
---- a/drivers/media/video/em28xx/Kconfig
-+++ b/drivers/media/video/em28xx/Kconfig
-@@ -1,9 +1,9 @@
- config VIDEO_EM28XX
- 	tristate "Empia EM28xx USB video capture support"
--	depends on VIDEO_DEV && I2C && INPUT
-+	depends on VIDEO_DEV && I2C
- 	select VIDEO_TUNER
- 	select VIDEO_TVEEPROM
--	depends on VIDEO_IR
-+	depends on IR_CORE
- 	select VIDEOBUF_VMALLOC
- 	select VIDEO_SAA711X if VIDEO_HELPER_CHIPS_AUTO
- 	select VIDEO_TVP5150 if VIDEO_HELPER_CHIPS_AUTO
-diff --git a/drivers/media/video/ivtv/Kconfig b/drivers/media/video/ivtv/Kconfig
-index be4af1f..c4f1980 100644
---- a/drivers/media/video/ivtv/Kconfig
-+++ b/drivers/media/video/ivtv/Kconfig
-@@ -1,9 +1,8 @@
- config VIDEO_IVTV
- 	tristate "Conexant cx23416/cx23415 MPEG encoder/decoder support"
- 	depends on VIDEO_V4L2 && PCI && I2C
--	depends on INPUT   # due to VIDEO_IR
- 	select I2C_ALGOBIT
--	depends on VIDEO_IR
-+	depends on IR_CORE
- 	select VIDEO_TUNER
- 	select VIDEO_TVEEPROM
- 	select VIDEO_CX2341X
-diff --git a/drivers/media/video/saa7134/Kconfig b/drivers/media/video/saa7134/Kconfig
-index 3fe71be..32a95a2 100644
---- a/drivers/media/video/saa7134/Kconfig
-+++ b/drivers/media/video/saa7134/Kconfig
-@@ -26,7 +26,7 @@ config VIDEO_SAA7134_ALSA
- 
- config VIDEO_SAA7134_RC
- 	bool "Philips SAA7134 Remote Controller support"
--	depends on VIDEO_IR
-+	depends on IR_LEGACY
- 	depends on VIDEO_SAA7134
- 	default y
- 	---help---
-diff --git a/drivers/media/video/tlg2300/Kconfig b/drivers/media/video/tlg2300/Kconfig
-index 1686ebf..580580e 100644
---- a/drivers/media/video/tlg2300/Kconfig
-+++ b/drivers/media/video/tlg2300/Kconfig
-@@ -1,9 +1,9 @@
- config VIDEO_TLG2300
- 	tristate "Telegent TLG2300 USB video capture support"
--	depends on VIDEO_DEV && I2C && INPUT && SND && DVB_CORE
-+	depends on VIDEO_DEV && I2C && SND && DVB_CORE
- 	select VIDEO_TUNER
- 	select VIDEO_TVEEPROM
--	depends on VIDEO_IR
-+	depends on IR_CORE
- 	select VIDEOBUF_VMALLOC
- 	select SND_PCM
- 	select VIDEOBUF_DVB
-diff --git a/drivers/staging/cx25821/Kconfig b/drivers/staging/cx25821/Kconfig
-index 1d73334..f8f2bb0 100644
---- a/drivers/staging/cx25821/Kconfig
-+++ b/drivers/staging/cx25821/Kconfig
-@@ -1,11 +1,11 @@
- config VIDEO_CX25821
- 	tristate "Conexant cx25821 support"
--	depends on DVB_CORE && VIDEO_DEV && PCI && I2C && INPUT
-+	depends on DVB_CORE && VIDEO_DEV && PCI && I2C
- 	depends on BKL # please fix
- 	select I2C_ALGOBIT
- 	select VIDEO_BTCX
- 	select VIDEO_TVEEPROM
--	depends on VIDEO_IR
-+	depends on IR_CORE
- 	select VIDEOBUF_DVB
- 	select VIDEOBUF_DMA_SG
- 	select VIDEO_CX25840
-diff --git a/drivers/staging/go7007/Kconfig b/drivers/staging/go7007/Kconfig
-index 3aecd30..edc9091 100644
---- a/drivers/staging/go7007/Kconfig
-+++ b/drivers/staging/go7007/Kconfig
-@@ -1,10 +1,10 @@
- config VIDEO_GO7007
- 	tristate "WIS GO7007 MPEG encoder support"
--	depends on VIDEO_DEV && PCI && I2C && INPUT
-+	depends on VIDEO_DEV && PCI && I2C
- 	depends on BKL # please fix
- 	depends on SND
- 	select VIDEOBUF_DMA_SG
--	depends on VIDEO_IR
-+	depends on IR_CORE
- 	select VIDEO_TUNER
- 	select VIDEO_TVEEPROM
- 	select SND_PCM
-diff --git a/include/media/ir-common.h b/include/media/ir-common.h
-index 4a32e89..d1ae869 100644
---- a/include/media/ir-common.h
-+++ b/include/media/ir-common.h
-@@ -73,7 +73,6 @@ struct card_ir {
- };
- 
- /* Routines from ir-functions.c */
--u32  ir_extract_bits(u32 data, u32 mask);
- void ir_rc5_timer_end(unsigned long data);
- 
- #endif
-diff --git a/include/media/ir-core.h b/include/media/ir-core.h
-index bff75f2..53048a2 100644
---- a/include/media/ir-core.h
-+++ b/include/media/ir-core.h
-@@ -212,4 +212,23 @@ static inline void ir_raw_event_reset(struct input_dev *input_dev)
- 	ir_raw_event_handle(input_dev);
- }
- 
+diff --git a/drivers/video/mcde/mcde_config.h b/drivers/video/mcde/mcde_config.h
+new file mode 100644
+index 0000000..c4c9e49
+--- /dev/null
++++ b/drivers/video/mcde/mcde_config.h
+@@ -0,0 +1,2156 @@
 +
-+/* extract mask bits out of data and pack them into the result */
-+static inline u32 ir_extract_bits(u32 data, u32 mask)
-+{
-+	u32 vbit = 1, value = 0;
++#define MCDE_VAL2REG(__reg, __fld, __val) \
++	(((__val) << __reg##_##__fld##_SHIFT) & __reg##_##__fld##_MASK)
++#define MCDE_REG2VAL(__reg, __fld, __val) \
++	(((__val) & __reg##_##__fld##_MASK) >> __reg##_##__fld##_SHIFT)
 +
-+	do {
-+	    if (mask & 1) {
-+		if (data & 1)
-+			value |= vbit;
-+		vbit <<= 1;
-+	    }
-+	    data >>= 1;
-+	} while (mask >>= 1);
-+
-+	return value;
-+}
-+
-+
- #endif /* _IR_CORE */
++#define MCDE_CR 0x00000000
++#define MCDE_CR_DSICMD2_EN_V1_SHIFT 0
++#define MCDE_CR_DSICMD2_EN_V1_MASK 0x00000001
++#define MCDE_CR_DSICMD2_EN_V1(__x) \
++	MCDE_VAL2REG(MCDE_CR, DSICMD2_EN_V1, __x)
++#define MCDE_CR_DSICMD1_EN_V1_SHIFT 1
++#define MCDE_CR_DSICMD1_EN_V1_MASK 0x00000002
++#define MCDE_CR_DSICMD1_EN_V1(__x) \
++	MCDE_VAL2REG(MCDE_CR, DSICMD1_EN_V1, __x)
++#define MCDE_CR_DSI0_EN_V3_SHIFT 0
++#define MCDE_CR_DSI0_EN_V3_MASK 0x00000001
++#define MCDE_CR_DSI0_EN_V3(__x) \
++	MCDE_VAL2REG(MCDE_CR, DSI0_EN_V3, __x)
++#define MCDE_CR_DSI1_EN_V3_SHIFT 1
++#define MCDE_CR_DSI1_EN_V3_MASK 0x00000002
++#define MCDE_CR_DSI1_EN_V3(__x) \
++	MCDE_VAL2REG(MCDE_CR, DSI1_EN_V3, __x)
++#define MCDE_CR_DSICMD0_EN_V1_SHIFT 2
++#define MCDE_CR_DSICMD0_EN_V1_MASK 0x00000004
++#define MCDE_CR_DSICMD0_EN_V1(__x) \
++	MCDE_VAL2REG(MCDE_CR, DSICMD0_EN_V1, __x)
++#define MCDE_CR_DSIVID2_EN_V1_SHIFT 3
++#define MCDE_CR_DSIVID2_EN_V1_MASK 0x00000008
++#define MCDE_CR_DSIVID2_EN_V1(__x) \
++	MCDE_VAL2REG(MCDE_CR, DSIVID2_EN_V1, __x)
++#define MCDE_CR_DSIVID1_EN_V1_SHIFT 4
++#define MCDE_CR_DSIVID1_EN_V1_MASK 0x00000010
++#define MCDE_CR_DSIVID1_EN_V1(__x) \
++	MCDE_VAL2REG(MCDE_CR, DSIVID1_EN_V1, __x)
++#define MCDE_CR_DSIVID0_EN_V1_SHIFT 5
++#define MCDE_CR_DSIVID0_EN_V1_MASK 0x00000020
++#define MCDE_CR_DSIVID0_EN_V1(__x) \
++	MCDE_VAL2REG(MCDE_CR, DSIVID0_EN_V1, __x)
++#define MCDE_CR_DBIC1_EN_V1_SHIFT 6
++#define MCDE_CR_DBIC1_EN_V1_MASK 0x00000040
++#define MCDE_CR_DBIC1_EN_V1(__x) \
++	MCDE_VAL2REG(MCDE_CR, DBIC1_EN_V1, __x)
++#define MCDE_CR_DBIC0_EN_V1_SHIFT 7
++#define MCDE_CR_DBIC0_EN_V1_MASK 0x00000080
++#define MCDE_CR_DBIC0_EN_V1(__x) \
++	MCDE_VAL2REG(MCDE_CR, DBIC0_EN_V1, __x)
++#define MCDE_CR_DBI_EN_V3_SHIFT 7
++#define MCDE_CR_DBI_EN_V3_MASK 0x00000080
++#define MCDE_CR_DBI_EN_V3(__x) \
++	MCDE_VAL2REG(MCDE_CR, DBI_EN_V3, __x)
++#define MCDE_CR_DPIB_EN_V1_SHIFT 8
++#define MCDE_CR_DPIB_EN_V1_MASK 0x00000100
++#define MCDE_CR_DPIB_EN_V1(__x) \
++	MCDE_VAL2REG(MCDE_CR, DPIB_EN_V1, __x)
++#define MCDE_CR_DPIA_EN_V1_SHIFT 9
++#define MCDE_CR_DPIA_EN_V1_MASK 0x00000200
++#define MCDE_CR_DPIA_EN_V1(__x) \
++	MCDE_VAL2REG(MCDE_CR, DPIA_EN_V1, __x)
++#define MCDE_CR_DPI_EN_V3_SHIFT 9
++#define MCDE_CR_DPI_EN_V3_MASK 0x00000200
++#define MCDE_CR_DPI_EN_V3(__x) \
++	MCDE_VAL2REG(MCDE_CR, DPI_EN_V3, __x)
++#define MCDE_CR_IFIFOCTRLEN_SHIFT 15
++#define MCDE_CR_IFIFOCTRLEN_MASK 0x00008000
++#define MCDE_CR_IFIFOCTRLEN(__x) \
++	MCDE_VAL2REG(MCDE_CR, IFIFOCTRLEN, __x)
++#define MCDE_CR_F01MUX_V1_SHIFT 16
++#define MCDE_CR_F01MUX_V1_MASK 0x00010000
++#define MCDE_CR_F01MUX_V1(__x) \
++	MCDE_VAL2REG(MCDE_CR, F01MUX_V1, __x)
++#define MCDE_CR_FABMUX_V1_SHIFT 17
++#define MCDE_CR_FABMUX_V1_MASK 0x00020000
++#define MCDE_CR_FABMUX_V1(__x) \
++	MCDE_VAL2REG(MCDE_CR, FABMUX_V1, __x)
++#define MCDE_CR_AUTOCLKG_EN_SHIFT 30
++#define MCDE_CR_AUTOCLKG_EN_MASK 0x40000000
++#define MCDE_CR_AUTOCLKG_EN(__x) \
++	MCDE_VAL2REG(MCDE_CR, AUTOCLKG_EN, __x)
++#define MCDE_CR_MCDEEN_SHIFT 31
++#define MCDE_CR_MCDEEN_MASK 0x80000000
++#define MCDE_CR_MCDEEN(__x) \
++	MCDE_VAL2REG(MCDE_CR, MCDEEN, __x)
++#define MCDE_CONF0 0x00000004
++#define MCDE_CONF0_SYNCMUX0_SHIFT 0
++#define MCDE_CONF0_SYNCMUX0_MASK 0x00000001
++#define MCDE_CONF0_SYNCMUX0(__x) \
++	MCDE_VAL2REG(MCDE_CONF0, SYNCMUX0, __x)
++#define MCDE_CONF0_SYNCMUX1_SHIFT 1
++#define MCDE_CONF0_SYNCMUX1_MASK 0x00000002
++#define MCDE_CONF0_SYNCMUX1(__x) \
++	MCDE_VAL2REG(MCDE_CONF0, SYNCMUX1, __x)
++#define MCDE_CONF0_SYNCMUX2_SHIFT 2
++#define MCDE_CONF0_SYNCMUX2_MASK 0x00000004
++#define MCDE_CONF0_SYNCMUX2(__x) \
++	MCDE_VAL2REG(MCDE_CONF0, SYNCMUX2, __x)
++#define MCDE_CONF0_SYNCMUX3_SHIFT 3
++#define MCDE_CONF0_SYNCMUX3_MASK 0x00000008
++#define MCDE_CONF0_SYNCMUX3(__x) \
++	MCDE_VAL2REG(MCDE_CONF0, SYNCMUX3, __x)
++#define MCDE_CONF0_SYNCMUX4_SHIFT 4
++#define MCDE_CONF0_SYNCMUX4_MASK 0x00000010
++#define MCDE_CONF0_SYNCMUX4(__x) \
++	MCDE_VAL2REG(MCDE_CONF0, SYNCMUX4, __x)
++#define MCDE_CONF0_SYNCMUX5_SHIFT 5
++#define MCDE_CONF0_SYNCMUX5_MASK 0x00000020
++#define MCDE_CONF0_SYNCMUX5(__x) \
++	MCDE_VAL2REG(MCDE_CONF0, SYNCMUX5, __x)
++#define MCDE_CONF0_SYNCMUX6_SHIFT 6
++#define MCDE_CONF0_SYNCMUX6_MASK 0x00000040
++#define MCDE_CONF0_SYNCMUX6(__x) \
++	MCDE_VAL2REG(MCDE_CONF0, SYNCMUX6, __x)
++#define MCDE_CONF0_SYNCMUX7_SHIFT 7
++#define MCDE_CONF0_SYNCMUX7_MASK 0x00000080
++#define MCDE_CONF0_SYNCMUX7(__x) \
++	MCDE_VAL2REG(MCDE_CONF0, SYNCMUX7, __x)
++#define MCDE_CONF0_SWAP_A_C0_V1_SHIFT 8
++#define MCDE_CONF0_SWAP_A_C0_V1_MASK 0x00000100
++#define MCDE_CONF0_SWAP_A_C0_V1(__x) \
++	MCDE_VAL2REG(MCDE_CONF0, SWAP_A_C0_V1, __x)
++#define MCDE_CONF0_SWAP_B_C1_V1_SHIFT 9
++#define MCDE_CONF0_SWAP_B_C1_V1_MASK 0x00000200
++#define MCDE_CONF0_SWAP_B_C1_V1(__x) \
++	MCDE_VAL2REG(MCDE_CONF0, SWAP_B_C1_V1, __x)
++#define MCDE_CONF0_FSYNCTRLA_V1_SHIFT 10
++#define MCDE_CONF0_FSYNCTRLA_V1_MASK 0x00000400
++#define MCDE_CONF0_FSYNCTRLA_V1(__x) \
++	MCDE_VAL2REG(MCDE_CONF0, FSYNCTRLA_V1, __x)
++#define MCDE_CONF0_FSYNCTRLB_V1_SHIFT 11
++#define MCDE_CONF0_FSYNCTRLB_V1_MASK 0x00000800
++#define MCDE_CONF0_FSYNCTRLB_V1(__x) \
++	MCDE_VAL2REG(MCDE_CONF0, FSYNCTRLB_V1, __x)
++#define MCDE_CONF0_IFIFOCTRLWTRMRKLVL_SHIFT 12
++#define MCDE_CONF0_IFIFOCTRLWTRMRKLVL_MASK 0x00007000
++#define MCDE_CONF0_IFIFOCTRLWTRMRKLVL(__x) \
++	MCDE_VAL2REG(MCDE_CONF0, IFIFOCTRLWTRMRKLVL, __x)
++#define MCDE_CONF0_OUTMUX0_SHIFT 16
++#define MCDE_CONF0_OUTMUX0_MASK 0x00070000
++#define MCDE_CONF0_OUTMUX0(__x) \
++	MCDE_VAL2REG(MCDE_CONF0, OUTMUX0, __x)
++#define MCDE_CONF0_OUTMUX1_SHIFT 19
++#define MCDE_CONF0_OUTMUX1_MASK 0x00380000
++#define MCDE_CONF0_OUTMUX1(__x) \
++	MCDE_VAL2REG(MCDE_CONF0, OUTMUX1, __x)
++#define MCDE_CONF0_OUTMUX2_SHIFT 22
++#define MCDE_CONF0_OUTMUX2_MASK 0x01C00000
++#define MCDE_CONF0_OUTMUX2(__x) \
++	MCDE_VAL2REG(MCDE_CONF0, OUTMUX2, __x)
++#define MCDE_CONF0_OUTMUX3_SHIFT 25
++#define MCDE_CONF0_OUTMUX3_MASK 0x0E000000
++#define MCDE_CONF0_OUTMUX3(__x) \
++	MCDE_VAL2REG(MCDE_CONF0, OUTMUX3, __x)
++#define MCDE_CONF0_OUTMUX4_SHIFT 28
++#define MCDE_CONF0_OUTMUX4_MASK 0x70000000
++#define MCDE_CONF0_OUTMUX4(__x) \
++	MCDE_VAL2REG(MCDE_CONF0, OUTMUX4, __x)
++#define MCDE_IMSCPP 0x00000104
++#define MCDE_IMSCPP_VCMPAIM_SHIFT 0
++#define MCDE_IMSCPP_VCMPAIM_MASK 0x00000001
++#define MCDE_IMSCPP_VCMPAIM(__x) \
++	MCDE_VAL2REG(MCDE_IMSCPP, VCMPAIM, __x)
++#define MCDE_IMSCPP_VCMPBIM_SHIFT 1
++#define MCDE_IMSCPP_VCMPBIM_MASK 0x00000002
++#define MCDE_IMSCPP_VCMPBIM(__x) \
++	MCDE_VAL2REG(MCDE_IMSCPP, VCMPBIM, __x)
++#define MCDE_IMSCPP_VSCC0IM_SHIFT 2
++#define MCDE_IMSCPP_VSCC0IM_MASK 0x00000004
++#define MCDE_IMSCPP_VSCC0IM(__x) \
++	MCDE_VAL2REG(MCDE_IMSCPP, VSCC0IM, __x)
++#define MCDE_IMSCPP_VSCC1IM_SHIFT 3
++#define MCDE_IMSCPP_VSCC1IM_MASK 0x00000008
++#define MCDE_IMSCPP_VSCC1IM(__x) \
++	MCDE_VAL2REG(MCDE_IMSCPP, VSCC1IM, __x)
++#define MCDE_IMSCPP_VCMPC0IM_SHIFT 4
++#define MCDE_IMSCPP_VCMPC0IM_MASK 0x00000010
++#define MCDE_IMSCPP_VCMPC0IM(__x) \
++	MCDE_VAL2REG(MCDE_IMSCPP, VCMPC0IM, __x)
++#define MCDE_IMSCPP_VCMPC1IM_SHIFT 5
++#define MCDE_IMSCPP_VCMPC1IM_MASK 0x00000020
++#define MCDE_IMSCPP_VCMPC1IM(__x) \
++	MCDE_VAL2REG(MCDE_IMSCPP, VCMPC1IM, __x)
++#define MCDE_IMSCPP_ROTFDIM_B_SHIFT 6
++#define MCDE_IMSCPP_ROTFDIM_B_MASK 0x00000040
++#define MCDE_IMSCPP_ROTFDIM_B(__x) \
++	MCDE_VAL2REG(MCDE_IMSCPP, ROTFDIM_B, __x)
++#define MCDE_IMSCPP_ROTFDIM_A_SHIFT 7
++#define MCDE_IMSCPP_ROTFDIM_A_MASK 0x00000080
++#define MCDE_IMSCPP_ROTFDIM_A(__x) \
++	MCDE_VAL2REG(MCDE_IMSCPP, ROTFDIM_A, __x)
++#define MCDE_IMSCOVL 0x00000108
++#define MCDE_IMSCOVL_OVLRDIM_SHIFT 0
++#define MCDE_IMSCOVL_OVLRDIM_MASK 0x0000FFFF
++#define MCDE_IMSCOVL_OVLRDIM(__x) \
++	MCDE_VAL2REG(MCDE_IMSCOVL, OVLRDIM, __x)
++#define MCDE_IMSCOVL_OVLFDIM_SHIFT 16
++#define MCDE_IMSCOVL_OVLFDIM_MASK 0xFFFF0000
++#define MCDE_IMSCOVL_OVLFDIM(__x) \
++	MCDE_VAL2REG(MCDE_IMSCOVL, OVLFDIM, __x)
++#define MCDE_IMSCCHNL 0x0000010C
++#define MCDE_IMSCCHNL_CHNLRDIM_SHIFT 0
++#define MCDE_IMSCCHNL_CHNLRDIM_MASK 0x0000FFFF
++#define MCDE_IMSCCHNL_CHNLRDIM(__x) \
++	MCDE_VAL2REG(MCDE_IMSCCHNL, CHNLRDIM, __x)
++#define MCDE_IMSCCHNL_CHNLAIM_SHIFT 16
++#define MCDE_IMSCCHNL_CHNLAIM_MASK 0xFFFF0000
++#define MCDE_IMSCCHNL_CHNLAIM(__x) \
++	MCDE_VAL2REG(MCDE_IMSCCHNL, CHNLAIM, __x)
++#define MCDE_IMSCERR 0x00000110
++#define MCDE_IMSCERR_FUAIM_SHIFT 0
++#define MCDE_IMSCERR_FUAIM_MASK 0x00000001
++#define MCDE_IMSCERR_FUAIM(__x) \
++	MCDE_VAL2REG(MCDE_IMSCERR, FUAIM, __x)
++#define MCDE_IMSCERR_FUBIM_SHIFT 1
++#define MCDE_IMSCERR_FUBIM_MASK 0x00000002
++#define MCDE_IMSCERR_FUBIM(__x) \
++	MCDE_VAL2REG(MCDE_IMSCERR, FUBIM, __x)
++#define MCDE_IMSCERR_SCHBLCKDIM_SHIFT 2
++#define MCDE_IMSCERR_SCHBLCKDIM_MASK 0x00000004
++#define MCDE_IMSCERR_SCHBLCKDIM(__x) \
++	MCDE_VAL2REG(MCDE_IMSCERR, SCHBLCKDIM, __x)
++#define MCDE_IMSCERR_ROTAFEIM_WRITE_SHIFT 3
++#define MCDE_IMSCERR_ROTAFEIM_WRITE_MASK 0x00000008
++#define MCDE_IMSCERR_ROTAFEIM_WRITE(__x) \
++	MCDE_VAL2REG(MCDE_IMSCERR, ROTAFEIM_WRITE, __x)
++#define MCDE_IMSCERR_ROTAFEIM_READ_SHIFT 4
++#define MCDE_IMSCERR_ROTAFEIM_READ_MASK 0x00000010
++#define MCDE_IMSCERR_ROTAFEIM_READ(__x) \
++	MCDE_VAL2REG(MCDE_IMSCERR, ROTAFEIM_READ, __x)
++#define MCDE_IMSCERR_ROTBFEIM_WRITE_SHIFT 5
++#define MCDE_IMSCERR_ROTBFEIM_WRITE_MASK 0x00000020
++#define MCDE_IMSCERR_ROTBFEIM_WRITE(__x) \
++	MCDE_VAL2REG(MCDE_IMSCERR, ROTBFEIM_WRITE, __x)
++#define MCDE_IMSCERR_ROTBFEIM_READ_SHIFT 6
++#define MCDE_IMSCERR_ROTBFEIM_READ_MASK 0x00000040
++#define MCDE_IMSCERR_ROTBFEIM_READ(__x) \
++	MCDE_VAL2REG(MCDE_IMSCERR, ROTBFEIM_READ, __x)
++#define MCDE_IMSCERR_FUC0IM_SHIFT 7
++#define MCDE_IMSCERR_FUC0IM_MASK 0x00000080
++#define MCDE_IMSCERR_FUC0IM(__x) \
++	MCDE_VAL2REG(MCDE_IMSCERR, FUC0IM, __x)
++#define MCDE_IMSCERR_FUC1IM_SHIFT 8
++#define MCDE_IMSCERR_FUC1IM_MASK 0x00000100
++#define MCDE_IMSCERR_FUC1IM(__x) \
++	MCDE_VAL2REG(MCDE_IMSCERR, FUC1IM, __x)
++#define MCDE_IMSCERR_OVLFERRIM_SHIFT 16
++#define MCDE_IMSCERR_OVLFERRIM_MASK 0xFFFF0000
++#define MCDE_IMSCERR_OVLFERRIM(__x) \
++	MCDE_VAL2REG(MCDE_IMSCERR, OVLFERRIM, __x)
++#define MCDE_RISPP 0x00000114
++#define MCDE_RISPP_VCMPARIS_SHIFT 0
++#define MCDE_RISPP_VCMPARIS_MASK 0x00000001
++#define MCDE_RISPP_VCMPARIS(__x) \
++	MCDE_VAL2REG(MCDE_RISPP, VCMPARIS, __x)
++#define MCDE_RISPP_VCMPBRIS_SHIFT 1
++#define MCDE_RISPP_VCMPBRIS_MASK 0x00000002
++#define MCDE_RISPP_VCMPBRIS(__x) \
++	MCDE_VAL2REG(MCDE_RISPP, VCMPBRIS, __x)
++#define MCDE_RISPP_VSCC0RIS_SHIFT 2
++#define MCDE_RISPP_VSCC0RIS_MASK 0x00000004
++#define MCDE_RISPP_VSCC0RIS(__x) \
++	MCDE_VAL2REG(MCDE_RISPP, VSCC0RIS, __x)
++#define MCDE_RISPP_VSCC1RIS_SHIFT 3
++#define MCDE_RISPP_VSCC1RIS_MASK 0x00000008
++#define MCDE_RISPP_VSCC1RIS(__x) \
++	MCDE_VAL2REG(MCDE_RISPP, VSCC1RIS, __x)
++#define MCDE_RISPP_VCMPC0RIS_SHIFT 4
++#define MCDE_RISPP_VCMPC0RIS_MASK 0x00000010
++#define MCDE_RISPP_VCMPC0RIS(__x) \
++	MCDE_VAL2REG(MCDE_RISPP, VCMPC0RIS, __x)
++#define MCDE_RISPP_VCMPC1RIS_SHIFT 5
++#define MCDE_RISPP_VCMPC1RIS_MASK 0x00000020
++#define MCDE_RISPP_VCMPC1RIS(__x) \
++	MCDE_VAL2REG(MCDE_RISPP, VCMPC1RIS, __x)
++#define MCDE_RISPP_ROTFDRIS_B_SHIFT 6
++#define MCDE_RISPP_ROTFDRIS_B_MASK 0x00000040
++#define MCDE_RISPP_ROTFDRIS_B(__x) \
++	MCDE_VAL2REG(MCDE_RISPP, ROTFDRIS_B, __x)
++#define MCDE_RISPP_ROTFDRIS_A_SHIFT 7
++#define MCDE_RISPP_ROTFDRIS_A_MASK 0x00000080
++#define MCDE_RISPP_ROTFDRIS_A(__x) \
++	MCDE_VAL2REG(MCDE_RISPP, ROTFDRIS_A, __x)
++#define MCDE_RISOVL 0x00000118
++#define MCDE_RISOVL_OVLRDRIS_SHIFT 0
++#define MCDE_RISOVL_OVLRDRIS_MASK 0x0000FFFF
++#define MCDE_RISOVL_OVLRDRIS(__x) \
++	MCDE_VAL2REG(MCDE_RISOVL, OVLRDRIS, __x)
++#define MCDE_RISOVL_OVLFDRIS_SHIFT 16
++#define MCDE_RISOVL_OVLFDRIS_MASK 0xFFFF0000
++#define MCDE_RISOVL_OVLFDRIS(__x) \
++	MCDE_VAL2REG(MCDE_RISOVL, OVLFDRIS, __x)
++#define MCDE_RISCHNL 0x0000011C
++#define MCDE_RISCHNL_CHNLRDRIS_SHIFT 0
++#define MCDE_RISCHNL_CHNLRDRIS_MASK 0x0000FFFF
++#define MCDE_RISCHNL_CHNLRDRIS(__x) \
++	MCDE_VAL2REG(MCDE_RISCHNL, CHNLRDRIS, __x)
++#define MCDE_RISCHNL_CHNLARIS_SHIFT 16
++#define MCDE_RISCHNL_CHNLARIS_MASK 0xFFFF0000
++#define MCDE_RISCHNL_CHNLARIS(__x) \
++	MCDE_VAL2REG(MCDE_RISCHNL, CHNLARIS, __x)
++#define MCDE_RISERR 0x00000120
++#define MCDE_RISERR_FUARIS_SHIFT 0
++#define MCDE_RISERR_FUARIS_MASK 0x00000001
++#define MCDE_RISERR_FUARIS(__x) \
++	MCDE_VAL2REG(MCDE_RISERR, FUARIS, __x)
++#define MCDE_RISERR_FUBRIS_SHIFT 1
++#define MCDE_RISERR_FUBRIS_MASK 0x00000002
++#define MCDE_RISERR_FUBRIS(__x) \
++	MCDE_VAL2REG(MCDE_RISERR, FUBRIS, __x)
++#define MCDE_RISERR_SCHBLCKDRIS_SHIFT 2
++#define MCDE_RISERR_SCHBLCKDRIS_MASK 0x00000004
++#define MCDE_RISERR_SCHBLCKDRIS(__x) \
++	MCDE_VAL2REG(MCDE_RISERR, SCHBLCKDRIS, __x)
++#define MCDE_RISERR_ROTAFERIS_WRITE_SHIFT 3
++#define MCDE_RISERR_ROTAFERIS_WRITE_MASK 0x00000008
++#define MCDE_RISERR_ROTAFERIS_WRITE(__x) \
++	MCDE_VAL2REG(MCDE_RISERR, ROTAFERIS_WRITE, __x)
++#define MCDE_RISERR_ROTAFERIS_READ_SHIFT 4
++#define MCDE_RISERR_ROTAFERIS_READ_MASK 0x00000010
++#define MCDE_RISERR_ROTAFERIS_READ(__x) \
++	MCDE_VAL2REG(MCDE_RISERR, ROTAFERIS_READ, __x)
++#define MCDE_RISERR_ROTBFERIS_WRITE_SHIFT 5
++#define MCDE_RISERR_ROTBFERIS_WRITE_MASK 0x00000020
++#define MCDE_RISERR_ROTBFERIS_WRITE(__x) \
++	MCDE_VAL2REG(MCDE_RISERR, ROTBFERIS_WRITE, __x)
++#define MCDE_RISERR_ROTBFERIS_READ_SHIFT 6
++#define MCDE_RISERR_ROTBFERIS_READ_MASK 0x00000040
++#define MCDE_RISERR_ROTBFERIS_READ(__x) \
++	MCDE_VAL2REG(MCDE_RISERR, ROTBFERIS_READ, __x)
++#define MCDE_RISERR_FUC0RIS_SHIFT 7
++#define MCDE_RISERR_FUC0RIS_MASK 0x00000080
++#define MCDE_RISERR_FUC0RIS(__x) \
++	MCDE_VAL2REG(MCDE_RISERR, FUC0RIS, __x)
++#define MCDE_RISERR_FUC1RIS_SHIFT 8
++#define MCDE_RISERR_FUC1RIS_MASK 0x00000100
++#define MCDE_RISERR_FUC1RIS(__x) \
++	MCDE_VAL2REG(MCDE_RISERR, FUC1RIS, __x)
++#define MCDE_RISERR_OVLFERRRIS_SHIFT 16
++#define MCDE_RISERR_OVLFERRRIS_MASK 0xFFFF0000
++#define MCDE_RISERR_OVLFERRRIS(__x) \
++	MCDE_VAL2REG(MCDE_RISERR, OVLFERRRIS, __x)
++#define MCDE_PID 0x000001FC
++#define MCDE_PID_METALFIX_VERSION_SHIFT 0
++#define MCDE_PID_METALFIX_VERSION_MASK 0x000000FF
++#define MCDE_PID_METALFIX_VERSION(__x) \
++	MCDE_VAL2REG(MCDE_PID, METALFIX_VERSION, __x)
++#define MCDE_PID_DEVELOPMENT_VERSION_SHIFT 8
++#define MCDE_PID_DEVELOPMENT_VERSION_MASK 0x0000FF00
++#define MCDE_PID_DEVELOPMENT_VERSION(__x) \
++	MCDE_VAL2REG(MCDE_PID, DEVELOPMENT_VERSION, __x)
++#define MCDE_PID_MINOR_VERSION_SHIFT 16
++#define MCDE_PID_MINOR_VERSION_MASK 0x00FF0000
++#define MCDE_PID_MINOR_VERSION(__x) \
++	MCDE_VAL2REG(MCDE_PID, MINOR_VERSION, __x)
++#define MCDE_PID_MAJOR_VERSION_SHIFT 24
++#define MCDE_PID_MAJOR_VERSION_MASK 0xFF000000
++#define MCDE_PID_MAJOR_VERSION(__x) \
++	MCDE_VAL2REG(MCDE_PID, MAJOR_VERSION, __x)
++#define MCDE_EXTSRC0A0 0x00000200
++#define MCDE_EXTSRC0A0_GROUPOFFSET 0x20
++#define MCDE_EXTSRC0A0_BASEADDRESS0_SHIFT 3
++#define MCDE_EXTSRC0A0_BASEADDRESS0_MASK 0xFFFFFFF8
++#define MCDE_EXTSRC0A0_BASEADDRESS0(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC0A0, BASEADDRESS0, __x)
++#define MCDE_EXTSRC1A0 0x00000220
++#define MCDE_EXTSRC1A0_BASEADDRESS0_SHIFT 3
++#define MCDE_EXTSRC1A0_BASEADDRESS0_MASK 0xFFFFFFF8
++#define MCDE_EXTSRC1A0_BASEADDRESS0(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC1A0, BASEADDRESS0, __x)
++#define MCDE_EXTSRC2A0 0x00000240
++#define MCDE_EXTSRC2A0_BASEADDRESS0_SHIFT 3
++#define MCDE_EXTSRC2A0_BASEADDRESS0_MASK 0xFFFFFFF8
++#define MCDE_EXTSRC2A0_BASEADDRESS0(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC2A0, BASEADDRESS0, __x)
++#define MCDE_EXTSRC3A0 0x00000260
++#define MCDE_EXTSRC3A0_BASEADDRESS0_SHIFT 3
++#define MCDE_EXTSRC3A0_BASEADDRESS0_MASK 0xFFFFFFF8
++#define MCDE_EXTSRC3A0_BASEADDRESS0(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC3A0, BASEADDRESS0, __x)
++#define MCDE_EXTSRC4A0 0x00000280
++#define MCDE_EXTSRC4A0_BASEADDRESS0_SHIFT 3
++#define MCDE_EXTSRC4A0_BASEADDRESS0_MASK 0xFFFFFFF8
++#define MCDE_EXTSRC4A0_BASEADDRESS0(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC4A0, BASEADDRESS0, __x)
++#define MCDE_EXTSRC5A0 0x000002A0
++#define MCDE_EXTSRC5A0_BASEADDRESS0_SHIFT 3
++#define MCDE_EXTSRC5A0_BASEADDRESS0_MASK 0xFFFFFFF8
++#define MCDE_EXTSRC5A0_BASEADDRESS0(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC5A0, BASEADDRESS0, __x)
++#define MCDE_EXTSRC0A1 0x00000204
++#define MCDE_EXTSRC0A1_GROUPOFFSET 0x20
++#define MCDE_EXTSRC0A1_BASEADDRESS1_SHIFT 3
++#define MCDE_EXTSRC0A1_BASEADDRESS1_MASK 0xFFFFFFF8
++#define MCDE_EXTSRC0A1_BASEADDRESS1(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC0A1, BASEADDRESS1, __x)
++#define MCDE_EXTSRC1A1 0x00000224
++#define MCDE_EXTSRC1A1_BASEADDRESS1_SHIFT 3
++#define MCDE_EXTSRC1A1_BASEADDRESS1_MASK 0xFFFFFFF8
++#define MCDE_EXTSRC1A1_BASEADDRESS1(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC1A1, BASEADDRESS1, __x)
++#define MCDE_EXTSRC2A1 0x00000244
++#define MCDE_EXTSRC2A1_BASEADDRESS1_SHIFT 3
++#define MCDE_EXTSRC2A1_BASEADDRESS1_MASK 0xFFFFFFF8
++#define MCDE_EXTSRC2A1_BASEADDRESS1(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC2A1, BASEADDRESS1, __x)
++#define MCDE_EXTSRC3A1 0x00000264
++#define MCDE_EXTSRC3A1_BASEADDRESS1_SHIFT 3
++#define MCDE_EXTSRC3A1_BASEADDRESS1_MASK 0xFFFFFFF8
++#define MCDE_EXTSRC3A1_BASEADDRESS1(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC3A1, BASEADDRESS1, __x)
++#define MCDE_EXTSRC4A1 0x00000284
++#define MCDE_EXTSRC4A1_BASEADDRESS1_SHIFT 3
++#define MCDE_EXTSRC4A1_BASEADDRESS1_MASK 0xFFFFFFF8
++#define MCDE_EXTSRC4A1_BASEADDRESS1(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC4A1, BASEADDRESS1, __x)
++#define MCDE_EXTSRC5A1 0x000002A4
++#define MCDE_EXTSRC5A1_BASEADDRESS1_SHIFT 3
++#define MCDE_EXTSRC5A1_BASEADDRESS1_MASK 0xFFFFFFF8
++#define MCDE_EXTSRC5A1_BASEADDRESS1(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC5A1, BASEADDRESS1, __x)
++#define MCDE_EXTSRC6A2 0x000002C8
++#define MCDE_EXTSRC6A2_BASEADDRESS2_SHIFT 3
++#define MCDE_EXTSRC6A2_BASEADDRESS2_MASK 0xFFFFFFF8
++#define MCDE_EXTSRC6A2_BASEADDRESS2(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC6A2, BASEADDRESS2, __x)
++#define MCDE_EXTSRC0CONF 0x0000020C
++#define MCDE_EXTSRC0CONF_GROUPOFFSET 0x20
++#define MCDE_EXTSRC0CONF_BUF_ID_SHIFT 0
++#define MCDE_EXTSRC0CONF_BUF_ID_MASK 0x00000003
++#define MCDE_EXTSRC0CONF_BUF_ID(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC0CONF, BUF_ID, __x)
++#define MCDE_EXTSRC0CONF_BUF_NB_SHIFT 2
++#define MCDE_EXTSRC0CONF_BUF_NB_MASK 0x0000000C
++#define MCDE_EXTSRC0CONF_BUF_NB(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC0CONF, BUF_NB, __x)
++#define MCDE_EXTSRC0CONF_PRI_OVLID_SHIFT 4
++#define MCDE_EXTSRC0CONF_PRI_OVLID_MASK 0x000000F0
++#define MCDE_EXTSRC0CONF_PRI_OVLID(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC0CONF, PRI_OVLID, __x)
++#define MCDE_EXTSRC0CONF_BPP_SHIFT 8
++#define MCDE_EXTSRC0CONF_BPP_MASK 0x00000F00
++#define MCDE_EXTSRC0CONF_BPP_1BPP_PAL 0
++#define MCDE_EXTSRC0CONF_BPP_2BPP_PAL 1
++#define MCDE_EXTSRC0CONF_BPP_4BPP_PAL 2
++#define MCDE_EXTSRC0CONF_BPP_8BPP_PAL 3
++#define MCDE_EXTSRC0CONF_BPP_RGB444 4
++#define MCDE_EXTSRC0CONF_BPP_ARGB4444 5
++#define MCDE_EXTSRC0CONF_BPP_IRGB1555 6
++#define MCDE_EXTSRC0CONF_BPP_RGB565 7
++#define MCDE_EXTSRC0CONF_BPP_RGB888 8
++#define MCDE_EXTSRC0CONF_BPP_XRGB8888 9
++#define MCDE_EXTSRC0CONF_BPP_ARGB8888 10
++#define MCDE_EXTSRC0CONF_BPP_YCBCR422 11
++#define MCDE_EXTSRC0CONF_BPP_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC0CONF, BPP, MCDE_EXTSRC0CONF_BPP_##__x)
++#define MCDE_EXTSRC0CONF_BPP(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC0CONF, BPP, __x)
++#define MCDE_EXTSRC0CONF_BGR_SHIFT 12
++#define MCDE_EXTSRC0CONF_BGR_MASK 0x00001000
++#define MCDE_EXTSRC0CONF_BGR_RGB 0
++#define MCDE_EXTSRC0CONF_BGR_BGR 1
++#define MCDE_EXTSRC0CONF_BGR_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC0CONF, BGR, MCDE_EXTSRC0CONF_BGR_##__x)
++#define MCDE_EXTSRC0CONF_BGR(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC0CONF, BGR, __x)
++#define MCDE_EXTSRC0CONF_BEBO_SHIFT 13
++#define MCDE_EXTSRC0CONF_BEBO_MASK 0x00002000
++#define MCDE_EXTSRC0CONF_BEBO_LITTLE_ENDIAN 0
++#define MCDE_EXTSRC0CONF_BEBO_BIG_ENDIAN 1
++#define MCDE_EXTSRC0CONF_BEBO_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC0CONF, BEBO, MCDE_EXTSRC0CONF_BEBO_##__x)
++#define MCDE_EXTSRC0CONF_BEBO(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC0CONF, BEBO, __x)
++#define MCDE_EXTSRC0CONF_BEPO_SHIFT 14
++#define MCDE_EXTSRC0CONF_BEPO_MASK 0x00004000
++#define MCDE_EXTSRC0CONF_BEPO_LITTLE_ENDIAN 0
++#define MCDE_EXTSRC0CONF_BEPO_BIG_ENDIAN 1
++#define MCDE_EXTSRC0CONF_BEPO_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC0CONF, BEPO, MCDE_EXTSRC0CONF_BEPO_##__x)
++#define MCDE_EXTSRC0CONF_BEPO(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC0CONF, BEPO, __x)
++#define MCDE_EXTSRC1CONF 0x0000022C
++#define MCDE_EXTSRC1CONF_BUF_ID_SHIFT 0
++#define MCDE_EXTSRC1CONF_BUF_ID_MASK 0x00000003
++#define MCDE_EXTSRC1CONF_BUF_ID(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC1CONF, BUF_ID, __x)
++#define MCDE_EXTSRC1CONF_BUF_NB_SHIFT 2
++#define MCDE_EXTSRC1CONF_BUF_NB_MASK 0x0000000C
++#define MCDE_EXTSRC1CONF_BUF_NB(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC1CONF, BUF_NB, __x)
++#define MCDE_EXTSRC1CONF_PRI_OVLID_SHIFT 4
++#define MCDE_EXTSRC1CONF_PRI_OVLID_MASK 0x000000F0
++#define MCDE_EXTSRC1CONF_PRI_OVLID(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC1CONF, PRI_OVLID, __x)
++#define MCDE_EXTSRC1CONF_BPP_SHIFT 8
++#define MCDE_EXTSRC1CONF_BPP_MASK 0x00000F00
++#define MCDE_EXTSRC1CONF_BPP_1BPP_PAL 0
++#define MCDE_EXTSRC1CONF_BPP_2BPP_PAL 1
++#define MCDE_EXTSRC1CONF_BPP_4BPP_PAL 2
++#define MCDE_EXTSRC1CONF_BPP_8BPP_PAL 3
++#define MCDE_EXTSRC1CONF_BPP_RGB444 4
++#define MCDE_EXTSRC1CONF_BPP_ARGB4444 5
++#define MCDE_EXTSRC1CONF_BPP_IRGB1555 6
++#define MCDE_EXTSRC1CONF_BPP_RGB565 7
++#define MCDE_EXTSRC1CONF_BPP_RGB888 8
++#define MCDE_EXTSRC1CONF_BPP_XRGB8888 9
++#define MCDE_EXTSRC1CONF_BPP_ARGB8888 10
++#define MCDE_EXTSRC1CONF_BPP_YCBCR422 11
++#define MCDE_EXTSRC1CONF_BPP_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC1CONF, BPP, MCDE_EXTSRC1CONF_BPP_##__x)
++#define MCDE_EXTSRC1CONF_BPP(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC1CONF, BPP, __x)
++#define MCDE_EXTSRC1CONF_BGR_SHIFT 12
++#define MCDE_EXTSRC1CONF_BGR_MASK 0x00001000
++#define MCDE_EXTSRC1CONF_BGR_RGB 0
++#define MCDE_EXTSRC1CONF_BGR_BGR 1
++#define MCDE_EXTSRC1CONF_BGR_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC1CONF, BGR, MCDE_EXTSRC1CONF_BGR_##__x)
++#define MCDE_EXTSRC1CONF_BGR(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC1CONF, BGR, __x)
++#define MCDE_EXTSRC1CONF_BEBO_SHIFT 13
++#define MCDE_EXTSRC1CONF_BEBO_MASK 0x00002000
++#define MCDE_EXTSRC1CONF_BEBO_LITTLE_ENDIAN 0
++#define MCDE_EXTSRC1CONF_BEBO_BIG_ENDIAN 1
++#define MCDE_EXTSRC1CONF_BEBO_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC1CONF, BEBO, MCDE_EXTSRC1CONF_BEBO_##__x)
++#define MCDE_EXTSRC1CONF_BEBO(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC1CONF, BEBO, __x)
++#define MCDE_EXTSRC1CONF_BEPO_SHIFT 14
++#define MCDE_EXTSRC1CONF_BEPO_MASK 0x00004000
++#define MCDE_EXTSRC1CONF_BEPO_LITTLE_ENDIAN 0
++#define MCDE_EXTSRC1CONF_BEPO_BIG_ENDIAN 1
++#define MCDE_EXTSRC1CONF_BEPO_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC1CONF, BEPO, MCDE_EXTSRC1CONF_BEPO_##__x)
++#define MCDE_EXTSRC1CONF_BEPO(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC1CONF, BEPO, __x)
++#define MCDE_EXTSRC2CONF 0x0000024C
++#define MCDE_EXTSRC2CONF_BUF_ID_SHIFT 0
++#define MCDE_EXTSRC2CONF_BUF_ID_MASK 0x00000003
++#define MCDE_EXTSRC2CONF_BUF_ID(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC2CONF, BUF_ID, __x)
++#define MCDE_EXTSRC2CONF_BUF_NB_SHIFT 2
++#define MCDE_EXTSRC2CONF_BUF_NB_MASK 0x0000000C
++#define MCDE_EXTSRC2CONF_BUF_NB(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC2CONF, BUF_NB, __x)
++#define MCDE_EXTSRC2CONF_PRI_OVLID_SHIFT 4
++#define MCDE_EXTSRC2CONF_PRI_OVLID_MASK 0x000000F0
++#define MCDE_EXTSRC2CONF_PRI_OVLID(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC2CONF, PRI_OVLID, __x)
++#define MCDE_EXTSRC2CONF_BPP_SHIFT 8
++#define MCDE_EXTSRC2CONF_BPP_MASK 0x00000F00
++#define MCDE_EXTSRC2CONF_BPP_1BPP_PAL 0
++#define MCDE_EXTSRC2CONF_BPP_2BPP_PAL 1
++#define MCDE_EXTSRC2CONF_BPP_4BPP_PAL 2
++#define MCDE_EXTSRC2CONF_BPP_8BPP_PAL 3
++#define MCDE_EXTSRC2CONF_BPP_RGB444 4
++#define MCDE_EXTSRC2CONF_BPP_ARGB4444 5
++#define MCDE_EXTSRC2CONF_BPP_IRGB1555 6
++#define MCDE_EXTSRC2CONF_BPP_RGB565 7
++#define MCDE_EXTSRC2CONF_BPP_RGB888 8
++#define MCDE_EXTSRC2CONF_BPP_XRGB8888 9
++#define MCDE_EXTSRC2CONF_BPP_ARGB8888 10
++#define MCDE_EXTSRC2CONF_BPP_YCBCR422 11
++#define MCDE_EXTSRC2CONF_BPP_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC2CONF, BPP, MCDE_EXTSRC2CONF_BPP_##__x)
++#define MCDE_EXTSRC2CONF_BPP(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC2CONF, BPP, __x)
++#define MCDE_EXTSRC2CONF_BGR_SHIFT 12
++#define MCDE_EXTSRC2CONF_BGR_MASK 0x00001000
++#define MCDE_EXTSRC2CONF_BGR_RGB 0
++#define MCDE_EXTSRC2CONF_BGR_BGR 1
++#define MCDE_EXTSRC2CONF_BGR_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC2CONF, BGR, MCDE_EXTSRC2CONF_BGR_##__x)
++#define MCDE_EXTSRC2CONF_BGR(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC2CONF, BGR, __x)
++#define MCDE_EXTSRC2CONF_BEBO_SHIFT 13
++#define MCDE_EXTSRC2CONF_BEBO_MASK 0x00002000
++#define MCDE_EXTSRC2CONF_BEBO_LITTLE_ENDIAN 0
++#define MCDE_EXTSRC2CONF_BEBO_BIG_ENDIAN 1
++#define MCDE_EXTSRC2CONF_BEBO_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC2CONF, BEBO, MCDE_EXTSRC2CONF_BEBO_##__x)
++#define MCDE_EXTSRC2CONF_BEBO(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC2CONF, BEBO, __x)
++#define MCDE_EXTSRC2CONF_BEPO_SHIFT 14
++#define MCDE_EXTSRC2CONF_BEPO_MASK 0x00004000
++#define MCDE_EXTSRC2CONF_BEPO_LITTLE_ENDIAN 0
++#define MCDE_EXTSRC2CONF_BEPO_BIG_ENDIAN 1
++#define MCDE_EXTSRC2CONF_BEPO_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC2CONF, BEPO, MCDE_EXTSRC2CONF_BEPO_##__x)
++#define MCDE_EXTSRC2CONF_BEPO(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC2CONF, BEPO, __x)
++#define MCDE_EXTSRC3CONF 0x0000026C
++#define MCDE_EXTSRC3CONF_BUF_ID_SHIFT 0
++#define MCDE_EXTSRC3CONF_BUF_ID_MASK 0x00000003
++#define MCDE_EXTSRC3CONF_BUF_ID(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC3CONF, BUF_ID, __x)
++#define MCDE_EXTSRC3CONF_BUF_NB_SHIFT 2
++#define MCDE_EXTSRC3CONF_BUF_NB_MASK 0x0000000C
++#define MCDE_EXTSRC3CONF_BUF_NB(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC3CONF, BUF_NB, __x)
++#define MCDE_EXTSRC3CONF_PRI_OVLID_SHIFT 4
++#define MCDE_EXTSRC3CONF_PRI_OVLID_MASK 0x000000F0
++#define MCDE_EXTSRC3CONF_PRI_OVLID(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC3CONF, PRI_OVLID, __x)
++#define MCDE_EXTSRC3CONF_BPP_SHIFT 8
++#define MCDE_EXTSRC3CONF_BPP_MASK 0x00000F00
++#define MCDE_EXTSRC3CONF_BPP_1BPP_PAL 0
++#define MCDE_EXTSRC3CONF_BPP_2BPP_PAL 1
++#define MCDE_EXTSRC3CONF_BPP_4BPP_PAL 2
++#define MCDE_EXTSRC3CONF_BPP_8BPP_PAL 3
++#define MCDE_EXTSRC3CONF_BPP_RGB444 4
++#define MCDE_EXTSRC3CONF_BPP_ARGB4444 5
++#define MCDE_EXTSRC3CONF_BPP_IRGB1555 6
++#define MCDE_EXTSRC3CONF_BPP_RGB565 7
++#define MCDE_EXTSRC3CONF_BPP_RGB888 8
++#define MCDE_EXTSRC3CONF_BPP_XRGB8888 9
++#define MCDE_EXTSRC3CONF_BPP_ARGB8888 10
++#define MCDE_EXTSRC3CONF_BPP_YCBCR422 11
++#define MCDE_EXTSRC3CONF_BPP_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC3CONF, BPP, MCDE_EXTSRC3CONF_BPP_##__x)
++#define MCDE_EXTSRC3CONF_BPP(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC3CONF, BPP, __x)
++#define MCDE_EXTSRC3CONF_BGR_SHIFT 12
++#define MCDE_EXTSRC3CONF_BGR_MASK 0x00001000
++#define MCDE_EXTSRC3CONF_BGR_RGB 0
++#define MCDE_EXTSRC3CONF_BGR_BGR 1
++#define MCDE_EXTSRC3CONF_BGR_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC3CONF, BGR, MCDE_EXTSRC3CONF_BGR_##__x)
++#define MCDE_EXTSRC3CONF_BGR(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC3CONF, BGR, __x)
++#define MCDE_EXTSRC3CONF_BEBO_SHIFT 13
++#define MCDE_EXTSRC3CONF_BEBO_MASK 0x00002000
++#define MCDE_EXTSRC3CONF_BEBO_LITTLE_ENDIAN 0
++#define MCDE_EXTSRC3CONF_BEBO_BIG_ENDIAN 1
++#define MCDE_EXTSRC3CONF_BEBO_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC3CONF, BEBO, MCDE_EXTSRC3CONF_BEBO_##__x)
++#define MCDE_EXTSRC3CONF_BEBO(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC3CONF, BEBO, __x)
++#define MCDE_EXTSRC3CONF_BEPO_SHIFT 14
++#define MCDE_EXTSRC3CONF_BEPO_MASK 0x00004000
++#define MCDE_EXTSRC3CONF_BEPO_LITTLE_ENDIAN 0
++#define MCDE_EXTSRC3CONF_BEPO_BIG_ENDIAN 1
++#define MCDE_EXTSRC3CONF_BEPO_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC3CONF, BEPO, MCDE_EXTSRC3CONF_BEPO_##__x)
++#define MCDE_EXTSRC3CONF_BEPO(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC3CONF, BEPO, __x)
++#define MCDE_EXTSRC4CONF 0x0000028C
++#define MCDE_EXTSRC4CONF_BUF_ID_SHIFT 0
++#define MCDE_EXTSRC4CONF_BUF_ID_MASK 0x00000003
++#define MCDE_EXTSRC4CONF_BUF_ID(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC4CONF, BUF_ID, __x)
++#define MCDE_EXTSRC4CONF_BUF_NB_SHIFT 2
++#define MCDE_EXTSRC4CONF_BUF_NB_MASK 0x0000000C
++#define MCDE_EXTSRC4CONF_BUF_NB(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC4CONF, BUF_NB, __x)
++#define MCDE_EXTSRC4CONF_PRI_OVLID_SHIFT 4
++#define MCDE_EXTSRC4CONF_PRI_OVLID_MASK 0x000000F0
++#define MCDE_EXTSRC4CONF_PRI_OVLID(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC4CONF, PRI_OVLID, __x)
++#define MCDE_EXTSRC4CONF_BPP_SHIFT 8
++#define MCDE_EXTSRC4CONF_BPP_MASK 0x00000F00
++#define MCDE_EXTSRC4CONF_BPP_1BPP_PAL 0
++#define MCDE_EXTSRC4CONF_BPP_2BPP_PAL 1
++#define MCDE_EXTSRC4CONF_BPP_4BPP_PAL 2
++#define MCDE_EXTSRC4CONF_BPP_8BPP_PAL 3
++#define MCDE_EXTSRC4CONF_BPP_RGB444 4
++#define MCDE_EXTSRC4CONF_BPP_ARGB4444 5
++#define MCDE_EXTSRC4CONF_BPP_IRGB1555 6
++#define MCDE_EXTSRC4CONF_BPP_RGB565 7
++#define MCDE_EXTSRC4CONF_BPP_RGB888 8
++#define MCDE_EXTSRC4CONF_BPP_XRGB8888 9
++#define MCDE_EXTSRC4CONF_BPP_ARGB8888 10
++#define MCDE_EXTSRC4CONF_BPP_YCBCR422 11
++#define MCDE_EXTSRC4CONF_BPP_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC4CONF, BPP, MCDE_EXTSRC4CONF_BPP_##__x)
++#define MCDE_EXTSRC4CONF_BPP(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC4CONF, BPP, __x)
++#define MCDE_EXTSRC4CONF_BGR_SHIFT 12
++#define MCDE_EXTSRC4CONF_BGR_MASK 0x00001000
++#define MCDE_EXTSRC4CONF_BGR_RGB 0
++#define MCDE_EXTSRC4CONF_BGR_BGR 1
++#define MCDE_EXTSRC4CONF_BGR_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC4CONF, BGR, MCDE_EXTSRC4CONF_BGR_##__x)
++#define MCDE_EXTSRC4CONF_BGR(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC4CONF, BGR, __x)
++#define MCDE_EXTSRC4CONF_BEBO_SHIFT 13
++#define MCDE_EXTSRC4CONF_BEBO_MASK 0x00002000
++#define MCDE_EXTSRC4CONF_BEBO_LITTLE_ENDIAN 0
++#define MCDE_EXTSRC4CONF_BEBO_BIG_ENDIAN 1
++#define MCDE_EXTSRC4CONF_BEBO_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC4CONF, BEBO, MCDE_EXTSRC4CONF_BEBO_##__x)
++#define MCDE_EXTSRC4CONF_BEBO(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC4CONF, BEBO, __x)
++#define MCDE_EXTSRC4CONF_BEPO_SHIFT 14
++#define MCDE_EXTSRC4CONF_BEPO_MASK 0x00004000
++#define MCDE_EXTSRC4CONF_BEPO_LITTLE_ENDIAN 0
++#define MCDE_EXTSRC4CONF_BEPO_BIG_ENDIAN 1
++#define MCDE_EXTSRC4CONF_BEPO_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC4CONF, BEPO, MCDE_EXTSRC4CONF_BEPO_##__x)
++#define MCDE_EXTSRC4CONF_BEPO(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC4CONF, BEPO, __x)
++#define MCDE_EXTSRC5CONF 0x000002AC
++#define MCDE_EXTSRC5CONF_BUF_ID_SHIFT 0
++#define MCDE_EXTSRC5CONF_BUF_ID_MASK 0x00000003
++#define MCDE_EXTSRC5CONF_BUF_ID(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC5CONF, BUF_ID, __x)
++#define MCDE_EXTSRC5CONF_BUF_NB_SHIFT 2
++#define MCDE_EXTSRC5CONF_BUF_NB_MASK 0x0000000C
++#define MCDE_EXTSRC5CONF_BUF_NB(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC5CONF, BUF_NB, __x)
++#define MCDE_EXTSRC5CONF_PRI_OVLID_SHIFT 4
++#define MCDE_EXTSRC5CONF_PRI_OVLID_MASK 0x000000F0
++#define MCDE_EXTSRC5CONF_PRI_OVLID(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC5CONF, PRI_OVLID, __x)
++#define MCDE_EXTSRC5CONF_BPP_SHIFT 8
++#define MCDE_EXTSRC5CONF_BPP_MASK 0x00000F00
++#define MCDE_EXTSRC5CONF_BPP_1BPP_PAL 0
++#define MCDE_EXTSRC5CONF_BPP_2BPP_PAL 1
++#define MCDE_EXTSRC5CONF_BPP_4BPP_PAL 2
++#define MCDE_EXTSRC5CONF_BPP_8BPP_PAL 3
++#define MCDE_EXTSRC5CONF_BPP_RGB444 4
++#define MCDE_EXTSRC5CONF_BPP_ARGB4444 5
++#define MCDE_EXTSRC5CONF_BPP_IRGB1555 6
++#define MCDE_EXTSRC5CONF_BPP_RGB565 7
++#define MCDE_EXTSRC5CONF_BPP_RGB888 8
++#define MCDE_EXTSRC5CONF_BPP_XRGB8888 9
++#define MCDE_EXTSRC5CONF_BPP_ARGB8888 10
++#define MCDE_EXTSRC5CONF_BPP_YCBCR422 11
++#define MCDE_EXTSRC5CONF_BPP_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC5CONF, BPP, MCDE_EXTSRC5CONF_BPP_##__x)
++#define MCDE_EXTSRC5CONF_BPP(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC5CONF, BPP, __x)
++#define MCDE_EXTSRC5CONF_BGR_SHIFT 12
++#define MCDE_EXTSRC5CONF_BGR_MASK 0x00001000
++#define MCDE_EXTSRC5CONF_BGR_RGB 0
++#define MCDE_EXTSRC5CONF_BGR_BGR 1
++#define MCDE_EXTSRC5CONF_BGR_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC5CONF, BGR, MCDE_EXTSRC5CONF_BGR_##__x)
++#define MCDE_EXTSRC5CONF_BGR(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC5CONF, BGR, __x)
++#define MCDE_EXTSRC5CONF_BEBO_SHIFT 13
++#define MCDE_EXTSRC5CONF_BEBO_MASK 0x00002000
++#define MCDE_EXTSRC5CONF_BEBO_LITTLE_ENDIAN 0
++#define MCDE_EXTSRC5CONF_BEBO_BIG_ENDIAN 1
++#define MCDE_EXTSRC5CONF_BEBO_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC5CONF, BEBO, MCDE_EXTSRC5CONF_BEBO_##__x)
++#define MCDE_EXTSRC5CONF_BEBO(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC5CONF, BEBO, __x)
++#define MCDE_EXTSRC5CONF_BEPO_SHIFT 14
++#define MCDE_EXTSRC5CONF_BEPO_MASK 0x00004000
++#define MCDE_EXTSRC5CONF_BEPO_LITTLE_ENDIAN 0
++#define MCDE_EXTSRC5CONF_BEPO_BIG_ENDIAN 1
++#define MCDE_EXTSRC5CONF_BEPO_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC5CONF, BEPO, MCDE_EXTSRC5CONF_BEPO_##__x)
++#define MCDE_EXTSRC5CONF_BEPO(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC5CONF, BEPO, __x)
++#define MCDE_EXTSRC0CR 0x00000210
++#define MCDE_EXTSRC0CR_GROUPOFFSET 0x20
++#define MCDE_EXTSRC0CR_SEL_MOD_SHIFT 0
++#define MCDE_EXTSRC0CR_SEL_MOD_MASK 0x00000003
++#define MCDE_EXTSRC0CR_SEL_MOD_EXTERNAL_SEL 0
++#define MCDE_EXTSRC0CR_SEL_MOD_AUTO_TOGGLE 1
++#define MCDE_EXTSRC0CR_SEL_MOD_SOFTWARE_SEL 2
++#define MCDE_EXTSRC0CR_SEL_MOD_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC0CR, SEL_MOD, MCDE_EXTSRC0CR_SEL_MOD_##__x)
++#define MCDE_EXTSRC0CR_SEL_MOD(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC0CR, SEL_MOD, __x)
++#define MCDE_EXTSRC0CR_MULTIOVL_CTRL_SHIFT 2
++#define MCDE_EXTSRC0CR_MULTIOVL_CTRL_MASK 0x00000004
++#define MCDE_EXTSRC0CR_MULTIOVL_CTRL_ALL 0
++#define MCDE_EXTSRC0CR_MULTIOVL_CTRL_PRIMARY 1
++#define MCDE_EXTSRC0CR_MULTIOVL_CTRL_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC0CR, MULTIOVL_CTRL, \
++	MCDE_EXTSRC0CR_MULTIOVL_CTRL_##__x)
++#define MCDE_EXTSRC0CR_MULTIOVL_CTRL(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC0CR, MULTIOVL_CTRL, __x)
++#define MCDE_EXTSRC0CR_FS_DIV_DISABLE_SHIFT 3
++#define MCDE_EXTSRC0CR_FS_DIV_DISABLE_MASK 0x00000008
++#define MCDE_EXTSRC0CR_FS_DIV_DISABLE(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC0CR, FS_DIV_DISABLE, __x)
++#define MCDE_EXTSRC0CR_FORCE_FS_DIV_SHIFT 4
++#define MCDE_EXTSRC0CR_FORCE_FS_DIV_MASK 0x00000010
++#define MCDE_EXTSRC0CR_FORCE_FS_DIV(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC0CR, FORCE_FS_DIV, __x)
++#define MCDE_EXTSRC1CR 0x00000230
++#define MCDE_EXTSRC1CR_SEL_MOD_SHIFT 0
++#define MCDE_EXTSRC1CR_SEL_MOD_MASK 0x00000003
++#define MCDE_EXTSRC1CR_SEL_MOD_EXTERNAL_SEL 0
++#define MCDE_EXTSRC1CR_SEL_MOD_AUTO_TOGGLE 1
++#define MCDE_EXTSRC1CR_SEL_MOD_SOFTWARE_SEL 2
++#define MCDE_EXTSRC1CR_SEL_MOD_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC1CR, SEL_MOD, MCDE_EXTSRC1CR_SEL_MOD_##__x)
++#define MCDE_EXTSRC1CR_SEL_MOD(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC1CR, SEL_MOD, __x)
++#define MCDE_EXTSRC1CR_MULTIOVL_CTRL_SHIFT 2
++#define MCDE_EXTSRC1CR_MULTIOVL_CTRL_MASK 0x00000004
++#define MCDE_EXTSRC1CR_MULTIOVL_CTRL_ALL 0
++#define MCDE_EXTSRC1CR_MULTIOVL_CTRL_PRIMARY 1
++#define MCDE_EXTSRC1CR_MULTIOVL_CTRL_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC1CR, MULTIOVL_CTRL, \
++	MCDE_EXTSRC1CR_MULTIOVL_CTRL_##__x)
++#define MCDE_EXTSRC1CR_MULTIOVL_CTRL(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC1CR, MULTIOVL_CTRL, __x)
++#define MCDE_EXTSRC1CR_FS_DIV_DISABLE_SHIFT 3
++#define MCDE_EXTSRC1CR_FS_DIV_DISABLE_MASK 0x00000008
++#define MCDE_EXTSRC1CR_FS_DIV_DISABLE(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC1CR, FS_DIV_DISABLE, __x)
++#define MCDE_EXTSRC1CR_FORCE_FS_DIV_SHIFT 4
++#define MCDE_EXTSRC1CR_FORCE_FS_DIV_MASK 0x00000010
++#define MCDE_EXTSRC1CR_FORCE_FS_DIV(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC1CR, FORCE_FS_DIV, __x)
++#define MCDE_EXTSRC2CR 0x00000250
++#define MCDE_EXTSRC2CR_SEL_MOD_SHIFT 0
++#define MCDE_EXTSRC2CR_SEL_MOD_MASK 0x00000003
++#define MCDE_EXTSRC2CR_SEL_MOD_EXTERNAL_SEL 0
++#define MCDE_EXTSRC2CR_SEL_MOD_AUTO_TOGGLE 1
++#define MCDE_EXTSRC2CR_SEL_MOD_SOFTWARE_SEL 2
++#define MCDE_EXTSRC2CR_SEL_MOD_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC2CR, SEL_MOD, MCDE_EXTSRC2CR_SEL_MOD_##__x)
++#define MCDE_EXTSRC2CR_SEL_MOD(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC2CR, SEL_MOD, __x)
++#define MCDE_EXTSRC2CR_MULTIOVL_CTRL_SHIFT 2
++#define MCDE_EXTSRC2CR_MULTIOVL_CTRL_MASK 0x00000004
++#define MCDE_EXTSRC2CR_MULTIOVL_CTRL_ALL 0
++#define MCDE_EXTSRC2CR_MULTIOVL_CTRL_PRIMARY 1
++#define MCDE_EXTSRC2CR_MULTIOVL_CTRL_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC2CR, MULTIOVL_CTRL, \
++	MCDE_EXTSRC2CR_MULTIOVL_CTRL_##__x)
++#define MCDE_EXTSRC2CR_MULTIOVL_CTRL(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC2CR, MULTIOVL_CTRL, __x)
++#define MCDE_EXTSRC2CR_FS_DIV_DISABLE_SHIFT 3
++#define MCDE_EXTSRC2CR_FS_DIV_DISABLE_MASK 0x00000008
++#define MCDE_EXTSRC2CR_FS_DIV_DISABLE(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC2CR, FS_DIV_DISABLE, __x)
++#define MCDE_EXTSRC2CR_FORCE_FS_DIV_SHIFT 4
++#define MCDE_EXTSRC2CR_FORCE_FS_DIV_MASK 0x00000010
++#define MCDE_EXTSRC2CR_FORCE_FS_DIV(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC2CR, FORCE_FS_DIV, __x)
++#define MCDE_EXTSRC3CR 0x00000270
++#define MCDE_EXTSRC3CR_SEL_MOD_SHIFT 0
++#define MCDE_EXTSRC3CR_SEL_MOD_MASK 0x00000003
++#define MCDE_EXTSRC3CR_SEL_MOD_EXTERNAL_SEL 0
++#define MCDE_EXTSRC3CR_SEL_MOD_AUTO_TOGGLE 1
++#define MCDE_EXTSRC3CR_SEL_MOD_SOFTWARE_SEL 2
++#define MCDE_EXTSRC3CR_SEL_MOD_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC3CR, SEL_MOD, MCDE_EXTSRC3CR_SEL_MOD_##__x)
++#define MCDE_EXTSRC3CR_SEL_MOD(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC3CR, SEL_MOD, __x)
++#define MCDE_EXTSRC3CR_MULTIOVL_CTRL_SHIFT 2
++#define MCDE_EXTSRC3CR_MULTIOVL_CTRL_MASK 0x00000004
++#define MCDE_EXTSRC3CR_MULTIOVL_CTRL_ALL 0
++#define MCDE_EXTSRC3CR_MULTIOVL_CTRL_PRIMARY 1
++#define MCDE_EXTSRC3CR_MULTIOVL_CTRL_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC3CR, MULTIOVL_CTRL, \
++	MCDE_EXTSRC3CR_MULTIOVL_CTRL_##__x)
++#define MCDE_EXTSRC3CR_MULTIOVL_CTRL(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC3CR, MULTIOVL_CTRL, __x)
++#define MCDE_EXTSRC3CR_FS_DIV_DISABLE_SHIFT 3
++#define MCDE_EXTSRC3CR_FS_DIV_DISABLE_MASK 0x00000008
++#define MCDE_EXTSRC3CR_FS_DIV_DISABLE(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC3CR, FS_DIV_DISABLE, __x)
++#define MCDE_EXTSRC3CR_FORCE_FS_DIV_SHIFT 4
++#define MCDE_EXTSRC3CR_FORCE_FS_DIV_MASK 0x00000010
++#define MCDE_EXTSRC3CR_FORCE_FS_DIV(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC3CR, FORCE_FS_DIV, __x)
++#define MCDE_EXTSRC4CR 0x00000290
++#define MCDE_EXTSRC4CR_SEL_MOD_SHIFT 0
++#define MCDE_EXTSRC4CR_SEL_MOD_MASK 0x00000003
++#define MCDE_EXTSRC4CR_SEL_MOD_EXTERNAL_SEL 0
++#define MCDE_EXTSRC4CR_SEL_MOD_AUTO_TOGGLE 1
++#define MCDE_EXTSRC4CR_SEL_MOD_SOFTWARE_SEL 2
++#define MCDE_EXTSRC4CR_SEL_MOD_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC4CR, SEL_MOD, MCDE_EXTSRC4CR_SEL_MOD_##__x)
++#define MCDE_EXTSRC4CR_SEL_MOD(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC4CR, SEL_MOD, __x)
++#define MCDE_EXTSRC4CR_MULTIOVL_CTRL_SHIFT 2
++#define MCDE_EXTSRC4CR_MULTIOVL_CTRL_MASK 0x00000004
++#define MCDE_EXTSRC4CR_MULTIOVL_CTRL_ALL 0
++#define MCDE_EXTSRC4CR_MULTIOVL_CTRL_PRIMARY 1
++#define MCDE_EXTSRC4CR_MULTIOVL_CTRL_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC4CR, MULTIOVL_CTRL, \
++	MCDE_EXTSRC4CR_MULTIOVL_CTRL_##__x)
++#define MCDE_EXTSRC4CR_MULTIOVL_CTRL(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC4CR, MULTIOVL_CTRL, __x)
++#define MCDE_EXTSRC4CR_FS_DIV_DISABLE_SHIFT 3
++#define MCDE_EXTSRC4CR_FS_DIV_DISABLE_MASK 0x00000008
++#define MCDE_EXTSRC4CR_FS_DIV_DISABLE(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC4CR, FS_DIV_DISABLE, __x)
++#define MCDE_EXTSRC4CR_FORCE_FS_DIV_SHIFT 4
++#define MCDE_EXTSRC4CR_FORCE_FS_DIV_MASK 0x00000010
++#define MCDE_EXTSRC4CR_FORCE_FS_DIV(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC4CR, FORCE_FS_DIV, __x)
++#define MCDE_EXTSRC5CR 0x000002B0
++#define MCDE_EXTSRC5CR_SEL_MOD_SHIFT 0
++#define MCDE_EXTSRC5CR_SEL_MOD_MASK 0x00000003
++#define MCDE_EXTSRC5CR_SEL_MOD_EXTERNAL_SEL 0
++#define MCDE_EXTSRC5CR_SEL_MOD_AUTO_TOGGLE 1
++#define MCDE_EXTSRC5CR_SEL_MOD_SOFTWARE_SEL 2
++#define MCDE_EXTSRC5CR_SEL_MOD_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC5CR, SEL_MOD, MCDE_EXTSRC5CR_SEL_MOD_##__x)
++#define MCDE_EXTSRC5CR_SEL_MOD(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC5CR, SEL_MOD, __x)
++#define MCDE_EXTSRC5CR_MULTIOVL_CTRL_SHIFT 2
++#define MCDE_EXTSRC5CR_MULTIOVL_CTRL_MASK 0x00000004
++#define MCDE_EXTSRC5CR_MULTIOVL_CTRL_ALL 0
++#define MCDE_EXTSRC5CR_MULTIOVL_CTRL_PRIMARY 1
++#define MCDE_EXTSRC5CR_MULTIOVL_CTRL_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC5CR, MULTIOVL_CTRL, \
++	MCDE_EXTSRC5CR_MULTIOVL_CTRL_##__x)
++#define MCDE_EXTSRC5CR_MULTIOVL_CTRL(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC5CR, MULTIOVL_CTRL, __x)
++#define MCDE_EXTSRC5CR_FS_DIV_DISABLE_SHIFT 3
++#define MCDE_EXTSRC5CR_FS_DIV_DISABLE_MASK 0x00000008
++#define MCDE_EXTSRC5CR_FS_DIV_DISABLE(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC5CR, FS_DIV_DISABLE, __x)
++#define MCDE_EXTSRC5CR_FORCE_FS_DIV_SHIFT 4
++#define MCDE_EXTSRC5CR_FORCE_FS_DIV_MASK 0x00000010
++#define MCDE_EXTSRC5CR_FORCE_FS_DIV(__x) \
++	MCDE_VAL2REG(MCDE_EXTSRC5CR, FORCE_FS_DIV, __x)
++#define MCDE_OVL0CR 0x00000400
++#define MCDE_OVL0CR_GROUPOFFSET 0x20
++#define MCDE_OVL0CR_OVLEN_SHIFT 0
++#define MCDE_OVL0CR_OVLEN_MASK 0x00000001
++#define MCDE_OVL0CR_OVLEN(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CR, OVLEN, __x)
++#define MCDE_OVL0CR_COLCCTRL_SHIFT 1
++#define MCDE_OVL0CR_COLCCTRL_MASK 0x00000006
++#define MCDE_OVL0CR_COLCCTRL_DISABLED 0
++#define MCDE_OVL0CR_COLCCTRL_ENABLED_NO_SAT 1
++#define MCDE_OVL0CR_COLCCTRL_ENABLED_SAT 2
++#define MCDE_OVL0CR_COLCCTRL_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CR, COLCCTRL, MCDE_OVL0CR_COLCCTRL_##__x)
++#define MCDE_OVL0CR_COLCCTRL(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CR, COLCCTRL, __x)
++#define MCDE_OVL0CR_CKEYGEN_SHIFT 3
++#define MCDE_OVL0CR_CKEYGEN_MASK 0x00000008
++#define MCDE_OVL0CR_CKEYGEN(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CR, CKEYGEN, __x)
++#define MCDE_OVL0CR_ALPHAPMEN_SHIFT 4
++#define MCDE_OVL0CR_ALPHAPMEN_MASK 0x00000010
++#define MCDE_OVL0CR_ALPHAPMEN(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CR, ALPHAPMEN, __x)
++#define MCDE_OVL0CR_OVLF_SHIFT 5
++#define MCDE_OVL0CR_OVLF_MASK 0x00000020
++#define MCDE_OVL0CR_OVLF(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CR, OVLF, __x)
++#define MCDE_OVL0CR_OVLR_SHIFT 6
++#define MCDE_OVL0CR_OVLR_MASK 0x00000040
++#define MCDE_OVL0CR_OVLR(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CR, OVLR, __x)
++#define MCDE_OVL0CR_OVLB_SHIFT 7
++#define MCDE_OVL0CR_OVLB_MASK 0x00000080
++#define MCDE_OVL0CR_OVLB(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CR, OVLB, __x)
++#define MCDE_OVL0CR_FETCH_ROPC_SHIFT 8
++#define MCDE_OVL0CR_FETCH_ROPC_MASK 0x0000FF00
++#define MCDE_OVL0CR_FETCH_ROPC(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CR, FETCH_ROPC, __x)
++#define MCDE_OVL0CR_STBPRIO_SHIFT 16
++#define MCDE_OVL0CR_STBPRIO_MASK 0x000F0000
++#define MCDE_OVL0CR_STBPRIO(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CR, STBPRIO, __x)
++#define MCDE_OVL0CR_BURSTSIZE_SHIFT 20
++#define MCDE_OVL0CR_BURSTSIZE_MASK 0x00F00000
++#define MCDE_OVL0CR_BURSTSIZE_1W 0
++#define MCDE_OVL0CR_BURSTSIZE_2W 1
++#define MCDE_OVL0CR_BURSTSIZE_4W 2
++#define MCDE_OVL0CR_BURSTSIZE_8W 3
++#define MCDE_OVL0CR_BURSTSIZE_16W 4
++#define MCDE_OVL0CR_BURSTSIZE_HW_1W 8
++#define MCDE_OVL0CR_BURSTSIZE_HW_2W 9
++#define MCDE_OVL0CR_BURSTSIZE_HW_4W 10
++#define MCDE_OVL0CR_BURSTSIZE_HW_8W 11
++#define MCDE_OVL0CR_BURSTSIZE_HW_16W 12
++#define MCDE_OVL0CR_BURSTSIZE_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CR, BURSTSIZE, MCDE_OVL0CR_BURSTSIZE_##__x)
++#define MCDE_OVL0CR_BURSTSIZE(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CR, BURSTSIZE, __x)
++#define MCDE_OVL0CR_MAXOUTSTANDING_SHIFT 24
++#define MCDE_OVL0CR_MAXOUTSTANDING_MASK 0x0F000000
++#define MCDE_OVL0CR_MAXOUTSTANDING_1_REQ 0
++#define MCDE_OVL0CR_MAXOUTSTANDING_2_REQ 1
++#define MCDE_OVL0CR_MAXOUTSTANDING_4_REQ 2
++#define MCDE_OVL0CR_MAXOUTSTANDING_8_REQ 3
++#define MCDE_OVL0CR_MAXOUTSTANDING_16_REQ 4
++#define MCDE_OVL0CR_MAXOUTSTANDING_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CR, MAXOUTSTANDING, \
++	MCDE_OVL0CR_MAXOUTSTANDING_##__x)
++#define MCDE_OVL0CR_MAXOUTSTANDING(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CR, MAXOUTSTANDING, __x)
++#define MCDE_OVL0CR_ROTBURSTSIZE_SHIFT 28
++#define MCDE_OVL0CR_ROTBURSTSIZE_MASK 0xF0000000
++#define MCDE_OVL0CR_ROTBURSTSIZE_1W 0
++#define MCDE_OVL0CR_ROTBURSTSIZE_2W 1
++#define MCDE_OVL0CR_ROTBURSTSIZE_4W 2
++#define MCDE_OVL0CR_ROTBURSTSIZE_8W 3
++#define MCDE_OVL0CR_ROTBURSTSIZE_16W 4
++#define MCDE_OVL0CR_ROTBURSTSIZE_HW_1W 8
++#define MCDE_OVL0CR_ROTBURSTSIZE_HW_2W 9
++#define MCDE_OVL0CR_ROTBURSTSIZE_HW_4W 10
++#define MCDE_OVL0CR_ROTBURSTSIZE_HW_8W 11
++#define MCDE_OVL0CR_ROTBURSTSIZE_HW_16W 12
++#define MCDE_OVL0CR_ROTBURSTSIZE_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CR, ROTBURSTSIZE, MCDE_OVL0CR_ROTBURSTSIZE_##__x)
++#define MCDE_OVL0CR_ROTBURSTSIZE(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CR, ROTBURSTSIZE, __x)
++#define MCDE_OVL1CR 0x00000420
++#define MCDE_OVL1CR_OVLEN_SHIFT 0
++#define MCDE_OVL1CR_OVLEN_MASK 0x00000001
++#define MCDE_OVL1CR_OVLEN(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CR, OVLEN, __x)
++#define MCDE_OVL1CR_COLCCTRL_SHIFT 1
++#define MCDE_OVL1CR_COLCCTRL_MASK 0x00000006
++#define MCDE_OVL1CR_COLCCTRL_DISABLED 0
++#define MCDE_OVL1CR_COLCCTRL_ENABLED_NO_SAT 1
++#define MCDE_OVL1CR_COLCCTRL_ENABLED_SAT 2
++#define MCDE_OVL1CR_COLCCTRL_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CR, COLCCTRL, MCDE_OVL1CR_COLCCTRL_##__x)
++#define MCDE_OVL1CR_COLCCTRL(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CR, COLCCTRL, __x)
++#define MCDE_OVL1CR_CKEYGEN_SHIFT 3
++#define MCDE_OVL1CR_CKEYGEN_MASK 0x00000008
++#define MCDE_OVL1CR_CKEYGEN(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CR, CKEYGEN, __x)
++#define MCDE_OVL1CR_ALPHAPMEN_SHIFT 4
++#define MCDE_OVL1CR_ALPHAPMEN_MASK 0x00000010
++#define MCDE_OVL1CR_ALPHAPMEN(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CR, ALPHAPMEN, __x)
++#define MCDE_OVL1CR_OVLF_SHIFT 5
++#define MCDE_OVL1CR_OVLF_MASK 0x00000020
++#define MCDE_OVL1CR_OVLF(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CR, OVLF, __x)
++#define MCDE_OVL1CR_OVLR_SHIFT 6
++#define MCDE_OVL1CR_OVLR_MASK 0x00000040
++#define MCDE_OVL1CR_OVLR(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CR, OVLR, __x)
++#define MCDE_OVL1CR_OVLB_SHIFT 7
++#define MCDE_OVL1CR_OVLB_MASK 0x00000080
++#define MCDE_OVL1CR_OVLB(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CR, OVLB, __x)
++#define MCDE_OVL1CR_FETCH_ROPC_SHIFT 8
++#define MCDE_OVL1CR_FETCH_ROPC_MASK 0x0000FF00
++#define MCDE_OVL1CR_FETCH_ROPC(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CR, FETCH_ROPC, __x)
++#define MCDE_OVL1CR_STBPRIO_SHIFT 16
++#define MCDE_OVL1CR_STBPRIO_MASK 0x000F0000
++#define MCDE_OVL1CR_STBPRIO(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CR, STBPRIO, __x)
++#define MCDE_OVL1CR_BURSTSIZE_SHIFT 20
++#define MCDE_OVL1CR_BURSTSIZE_MASK 0x00F00000
++#define MCDE_OVL1CR_BURSTSIZE_1W 0
++#define MCDE_OVL1CR_BURSTSIZE_2W 1
++#define MCDE_OVL1CR_BURSTSIZE_4W 2
++#define MCDE_OVL1CR_BURSTSIZE_8W 3
++#define MCDE_OVL1CR_BURSTSIZE_16W 4
++#define MCDE_OVL1CR_BURSTSIZE_HW_1W 8
++#define MCDE_OVL1CR_BURSTSIZE_HW_2W 9
++#define MCDE_OVL1CR_BURSTSIZE_HW_4W 10
++#define MCDE_OVL1CR_BURSTSIZE_HW_8W 11
++#define MCDE_OVL1CR_BURSTSIZE_HW_16W 12
++#define MCDE_OVL1CR_BURSTSIZE_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CR, BURSTSIZE, MCDE_OVL1CR_BURSTSIZE_##__x)
++#define MCDE_OVL1CR_BURSTSIZE(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CR, BURSTSIZE, __x)
++#define MCDE_OVL1CR_MAXOUTSTANDING_SHIFT 24
++#define MCDE_OVL1CR_MAXOUTSTANDING_MASK 0x0F000000
++#define MCDE_OVL1CR_MAXOUTSTANDING_1_REQ 0
++#define MCDE_OVL1CR_MAXOUTSTANDING_2_REQ 1
++#define MCDE_OVL1CR_MAXOUTSTANDING_4_REQ 2
++#define MCDE_OVL1CR_MAXOUTSTANDING_8_REQ 3
++#define MCDE_OVL1CR_MAXOUTSTANDING_16_REQ 4
++#define MCDE_OVL1CR_MAXOUTSTANDING_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CR, MAXOUTSTANDING, \
++	MCDE_OVL1CR_MAXOUTSTANDING_##__x)
++#define MCDE_OVL1CR_MAXOUTSTANDING(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CR, MAXOUTSTANDING, __x)
++#define MCDE_OVL1CR_ROTBURSTSIZE_SHIFT 28
++#define MCDE_OVL1CR_ROTBURSTSIZE_MASK 0xF0000000
++#define MCDE_OVL1CR_ROTBURSTSIZE_1W 0
++#define MCDE_OVL1CR_ROTBURSTSIZE_2W 1
++#define MCDE_OVL1CR_ROTBURSTSIZE_4W 2
++#define MCDE_OVL1CR_ROTBURSTSIZE_8W 3
++#define MCDE_OVL1CR_ROTBURSTSIZE_16W 4
++#define MCDE_OVL1CR_ROTBURSTSIZE_HW_1W 8
++#define MCDE_OVL1CR_ROTBURSTSIZE_HW_2W 9
++#define MCDE_OVL1CR_ROTBURSTSIZE_HW_4W 10
++#define MCDE_OVL1CR_ROTBURSTSIZE_HW_8W 11
++#define MCDE_OVL1CR_ROTBURSTSIZE_HW_16W 12
++#define MCDE_OVL1CR_ROTBURSTSIZE_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CR, ROTBURSTSIZE, MCDE_OVL1CR_ROTBURSTSIZE_##__x)
++#define MCDE_OVL1CR_ROTBURSTSIZE(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CR, ROTBURSTSIZE, __x)
++#define MCDE_OVL2CR 0x00000440
++#define MCDE_OVL2CR_OVLEN_SHIFT 0
++#define MCDE_OVL2CR_OVLEN_MASK 0x00000001
++#define MCDE_OVL2CR_OVLEN(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CR, OVLEN, __x)
++#define MCDE_OVL2CR_COLCCTRL_SHIFT 1
++#define MCDE_OVL2CR_COLCCTRL_MASK 0x00000006
++#define MCDE_OVL2CR_COLCCTRL_DISABLED 0
++#define MCDE_OVL2CR_COLCCTRL_ENABLED_NO_SAT 1
++#define MCDE_OVL2CR_COLCCTRL_ENABLED_SAT 2
++#define MCDE_OVL2CR_COLCCTRL_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CR, COLCCTRL, MCDE_OVL2CR_COLCCTRL_##__x)
++#define MCDE_OVL2CR_COLCCTRL(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CR, COLCCTRL, __x)
++#define MCDE_OVL2CR_CKEYGEN_SHIFT 3
++#define MCDE_OVL2CR_CKEYGEN_MASK 0x00000008
++#define MCDE_OVL2CR_CKEYGEN(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CR, CKEYGEN, __x)
++#define MCDE_OVL2CR_ALPHAPMEN_SHIFT 4
++#define MCDE_OVL2CR_ALPHAPMEN_MASK 0x00000010
++#define MCDE_OVL2CR_ALPHAPMEN(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CR, ALPHAPMEN, __x)
++#define MCDE_OVL2CR_OVLF_SHIFT 5
++#define MCDE_OVL2CR_OVLF_MASK 0x00000020
++#define MCDE_OVL2CR_OVLF(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CR, OVLF, __x)
++#define MCDE_OVL2CR_OVLR_SHIFT 6
++#define MCDE_OVL2CR_OVLR_MASK 0x00000040
++#define MCDE_OVL2CR_OVLR(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CR, OVLR, __x)
++#define MCDE_OVL2CR_OVLB_SHIFT 7
++#define MCDE_OVL2CR_OVLB_MASK 0x00000080
++#define MCDE_OVL2CR_OVLB(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CR, OVLB, __x)
++#define MCDE_OVL2CR_FETCH_ROPC_SHIFT 8
++#define MCDE_OVL2CR_FETCH_ROPC_MASK 0x0000FF00
++#define MCDE_OVL2CR_FETCH_ROPC(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CR, FETCH_ROPC, __x)
++#define MCDE_OVL2CR_STBPRIO_SHIFT 16
++#define MCDE_OVL2CR_STBPRIO_MASK 0x000F0000
++#define MCDE_OVL2CR_STBPRIO(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CR, STBPRIO, __x)
++#define MCDE_OVL2CR_BURSTSIZE_SHIFT 20
++#define MCDE_OVL2CR_BURSTSIZE_MASK 0x00F00000
++#define MCDE_OVL2CR_BURSTSIZE_1W 0
++#define MCDE_OVL2CR_BURSTSIZE_2W 1
++#define MCDE_OVL2CR_BURSTSIZE_4W 2
++#define MCDE_OVL2CR_BURSTSIZE_8W 3
++#define MCDE_OVL2CR_BURSTSIZE_16W 4
++#define MCDE_OVL2CR_BURSTSIZE_HW_1W 8
++#define MCDE_OVL2CR_BURSTSIZE_HW_2W 9
++#define MCDE_OVL2CR_BURSTSIZE_HW_4W 10
++#define MCDE_OVL2CR_BURSTSIZE_HW_8W 11
++#define MCDE_OVL2CR_BURSTSIZE_HW_16W 12
++#define MCDE_OVL2CR_BURSTSIZE_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CR, BURSTSIZE, MCDE_OVL2CR_BURSTSIZE_##__x)
++#define MCDE_OVL2CR_BURSTSIZE(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CR, BURSTSIZE, __x)
++#define MCDE_OVL2CR_MAXOUTSTANDING_SHIFT 24
++#define MCDE_OVL2CR_MAXOUTSTANDING_MASK 0x0F000000
++#define MCDE_OVL2CR_MAXOUTSTANDING_1_REQ 0
++#define MCDE_OVL2CR_MAXOUTSTANDING_2_REQ 1
++#define MCDE_OVL2CR_MAXOUTSTANDING_4_REQ 2
++#define MCDE_OVL2CR_MAXOUTSTANDING_8_REQ 3
++#define MCDE_OVL2CR_MAXOUTSTANDING_16_REQ 4
++#define MCDE_OVL2CR_MAXOUTSTANDING_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CR, MAXOUTSTANDING, \
++	MCDE_OVL2CR_MAXOUTSTANDING_##__x)
++#define MCDE_OVL2CR_MAXOUTSTANDING(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CR, MAXOUTSTANDING, __x)
++#define MCDE_OVL2CR_ROTBURSTSIZE_SHIFT 28
++#define MCDE_OVL2CR_ROTBURSTSIZE_MASK 0xF0000000
++#define MCDE_OVL2CR_ROTBURSTSIZE_1W 0
++#define MCDE_OVL2CR_ROTBURSTSIZE_2W 1
++#define MCDE_OVL2CR_ROTBURSTSIZE_4W 2
++#define MCDE_OVL2CR_ROTBURSTSIZE_8W 3
++#define MCDE_OVL2CR_ROTBURSTSIZE_16W 4
++#define MCDE_OVL2CR_ROTBURSTSIZE_HW_1W 8
++#define MCDE_OVL2CR_ROTBURSTSIZE_HW_2W 9
++#define MCDE_OVL2CR_ROTBURSTSIZE_HW_4W 10
++#define MCDE_OVL2CR_ROTBURSTSIZE_HW_8W 11
++#define MCDE_OVL2CR_ROTBURSTSIZE_HW_16W 12
++#define MCDE_OVL2CR_ROTBURSTSIZE_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CR, ROTBURSTSIZE, MCDE_OVL2CR_ROTBURSTSIZE_##__x)
++#define MCDE_OVL2CR_ROTBURSTSIZE(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CR, ROTBURSTSIZE, __x)
++#define MCDE_OVL3CR 0x00000460
++#define MCDE_OVL3CR_OVLEN_SHIFT 0
++#define MCDE_OVL3CR_OVLEN_MASK 0x00000001
++#define MCDE_OVL3CR_OVLEN(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CR, OVLEN, __x)
++#define MCDE_OVL3CR_COLCCTRL_SHIFT 1
++#define MCDE_OVL3CR_COLCCTRL_MASK 0x00000006
++#define MCDE_OVL3CR_COLCCTRL_DISABLED 0
++#define MCDE_OVL3CR_COLCCTRL_ENABLED_NO_SAT 1
++#define MCDE_OVL3CR_COLCCTRL_ENABLED_SAT 2
++#define MCDE_OVL3CR_COLCCTRL_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CR, COLCCTRL, MCDE_OVL3CR_COLCCTRL_##__x)
++#define MCDE_OVL3CR_COLCCTRL(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CR, COLCCTRL, __x)
++#define MCDE_OVL3CR_CKEYGEN_SHIFT 3
++#define MCDE_OVL3CR_CKEYGEN_MASK 0x00000008
++#define MCDE_OVL3CR_CKEYGEN(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CR, CKEYGEN, __x)
++#define MCDE_OVL3CR_ALPHAPMEN_SHIFT 4
++#define MCDE_OVL3CR_ALPHAPMEN_MASK 0x00000010
++#define MCDE_OVL3CR_ALPHAPMEN(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CR, ALPHAPMEN, __x)
++#define MCDE_OVL3CR_OVLF_SHIFT 5
++#define MCDE_OVL3CR_OVLF_MASK 0x00000020
++#define MCDE_OVL3CR_OVLF(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CR, OVLF, __x)
++#define MCDE_OVL3CR_OVLR_SHIFT 6
++#define MCDE_OVL3CR_OVLR_MASK 0x00000040
++#define MCDE_OVL3CR_OVLR(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CR, OVLR, __x)
++#define MCDE_OVL3CR_OVLB_SHIFT 7
++#define MCDE_OVL3CR_OVLB_MASK 0x00000080
++#define MCDE_OVL3CR_OVLB(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CR, OVLB, __x)
++#define MCDE_OVL3CR_FETCH_ROPC_SHIFT 8
++#define MCDE_OVL3CR_FETCH_ROPC_MASK 0x0000FF00
++#define MCDE_OVL3CR_FETCH_ROPC(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CR, FETCH_ROPC, __x)
++#define MCDE_OVL3CR_STBPRIO_SHIFT 16
++#define MCDE_OVL3CR_STBPRIO_MASK 0x000F0000
++#define MCDE_OVL3CR_STBPRIO(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CR, STBPRIO, __x)
++#define MCDE_OVL3CR_BURSTSIZE_SHIFT 20
++#define MCDE_OVL3CR_BURSTSIZE_MASK 0x00F00000
++#define MCDE_OVL3CR_BURSTSIZE_1W 0
++#define MCDE_OVL3CR_BURSTSIZE_2W 1
++#define MCDE_OVL3CR_BURSTSIZE_4W 2
++#define MCDE_OVL3CR_BURSTSIZE_8W 3
++#define MCDE_OVL3CR_BURSTSIZE_16W 4
++#define MCDE_OVL3CR_BURSTSIZE_HW_1W 8
++#define MCDE_OVL3CR_BURSTSIZE_HW_2W 9
++#define MCDE_OVL3CR_BURSTSIZE_HW_4W 10
++#define MCDE_OVL3CR_BURSTSIZE_HW_8W 11
++#define MCDE_OVL3CR_BURSTSIZE_HW_16W 12
++#define MCDE_OVL3CR_BURSTSIZE_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CR, BURSTSIZE, MCDE_OVL3CR_BURSTSIZE_##__x)
++#define MCDE_OVL3CR_BURSTSIZE(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CR, BURSTSIZE, __x)
++#define MCDE_OVL3CR_MAXOUTSTANDING_SHIFT 24
++#define MCDE_OVL3CR_MAXOUTSTANDING_MASK 0x0F000000
++#define MCDE_OVL3CR_MAXOUTSTANDING_1_REQ 0
++#define MCDE_OVL3CR_MAXOUTSTANDING_2_REQ 1
++#define MCDE_OVL3CR_MAXOUTSTANDING_4_REQ 2
++#define MCDE_OVL3CR_MAXOUTSTANDING_8_REQ 3
++#define MCDE_OVL3CR_MAXOUTSTANDING_16_REQ 4
++#define MCDE_OVL3CR_MAXOUTSTANDING_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CR, MAXOUTSTANDING, \
++	MCDE_OVL3CR_MAXOUTSTANDING_##__x)
++#define MCDE_OVL3CR_MAXOUTSTANDING(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CR, MAXOUTSTANDING, __x)
++#define MCDE_OVL3CR_ROTBURSTSIZE_SHIFT 28
++#define MCDE_OVL3CR_ROTBURSTSIZE_MASK 0xF0000000
++#define MCDE_OVL3CR_ROTBURSTSIZE_1W 0
++#define MCDE_OVL3CR_ROTBURSTSIZE_2W 1
++#define MCDE_OVL3CR_ROTBURSTSIZE_4W 2
++#define MCDE_OVL3CR_ROTBURSTSIZE_8W 3
++#define MCDE_OVL3CR_ROTBURSTSIZE_16W 4
++#define MCDE_OVL3CR_ROTBURSTSIZE_HW_1W 8
++#define MCDE_OVL3CR_ROTBURSTSIZE_HW_2W 9
++#define MCDE_OVL3CR_ROTBURSTSIZE_HW_4W 10
++#define MCDE_OVL3CR_ROTBURSTSIZE_HW_8W 11
++#define MCDE_OVL3CR_ROTBURSTSIZE_HW_16W 12
++#define MCDE_OVL3CR_ROTBURSTSIZE_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CR, ROTBURSTSIZE, MCDE_OVL3CR_ROTBURSTSIZE_##__x)
++#define MCDE_OVL3CR_ROTBURSTSIZE(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CR, ROTBURSTSIZE, __x)
++#define MCDE_OVL4CR 0x00000480
++#define MCDE_OVL4CR_OVLEN_SHIFT 0
++#define MCDE_OVL4CR_OVLEN_MASK 0x00000001
++#define MCDE_OVL4CR_OVLEN(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CR, OVLEN, __x)
++#define MCDE_OVL4CR_COLCCTRL_SHIFT 1
++#define MCDE_OVL4CR_COLCCTRL_MASK 0x00000006
++#define MCDE_OVL4CR_COLCCTRL_DISABLED 0
++#define MCDE_OVL4CR_COLCCTRL_ENABLED_NO_SAT 1
++#define MCDE_OVL4CR_COLCCTRL_ENABLED_SAT 2
++#define MCDE_OVL4CR_COLCCTRL_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CR, COLCCTRL, MCDE_OVL4CR_COLCCTRL_##__x)
++#define MCDE_OVL4CR_COLCCTRL(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CR, COLCCTRL, __x)
++#define MCDE_OVL4CR_CKEYGEN_SHIFT 3
++#define MCDE_OVL4CR_CKEYGEN_MASK 0x00000008
++#define MCDE_OVL4CR_CKEYGEN(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CR, CKEYGEN, __x)
++#define MCDE_OVL4CR_ALPHAPMEN_SHIFT 4
++#define MCDE_OVL4CR_ALPHAPMEN_MASK 0x00000010
++#define MCDE_OVL4CR_ALPHAPMEN(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CR, ALPHAPMEN, __x)
++#define MCDE_OVL4CR_OVLF_SHIFT 5
++#define MCDE_OVL4CR_OVLF_MASK 0x00000020
++#define MCDE_OVL4CR_OVLF(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CR, OVLF, __x)
++#define MCDE_OVL4CR_OVLR_SHIFT 6
++#define MCDE_OVL4CR_OVLR_MASK 0x00000040
++#define MCDE_OVL4CR_OVLR(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CR, OVLR, __x)
++#define MCDE_OVL4CR_OVLB_SHIFT 7
++#define MCDE_OVL4CR_OVLB_MASK 0x00000080
++#define MCDE_OVL4CR_OVLB(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CR, OVLB, __x)
++#define MCDE_OVL4CR_FETCH_ROPC_SHIFT 8
++#define MCDE_OVL4CR_FETCH_ROPC_MASK 0x0000FF00
++#define MCDE_OVL4CR_FETCH_ROPC(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CR, FETCH_ROPC, __x)
++#define MCDE_OVL4CR_STBPRIO_SHIFT 16
++#define MCDE_OVL4CR_STBPRIO_MASK 0x000F0000
++#define MCDE_OVL4CR_STBPRIO(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CR, STBPRIO, __x)
++#define MCDE_OVL4CR_BURSTSIZE_SHIFT 20
++#define MCDE_OVL4CR_BURSTSIZE_MASK 0x00F00000
++#define MCDE_OVL4CR_BURSTSIZE_1W 0
++#define MCDE_OVL4CR_BURSTSIZE_2W 1
++#define MCDE_OVL4CR_BURSTSIZE_4W 2
++#define MCDE_OVL4CR_BURSTSIZE_8W 3
++#define MCDE_OVL4CR_BURSTSIZE_16W 4
++#define MCDE_OVL4CR_BURSTSIZE_HW_1W 8
++#define MCDE_OVL4CR_BURSTSIZE_HW_2W 9
++#define MCDE_OVL4CR_BURSTSIZE_HW_4W 10
++#define MCDE_OVL4CR_BURSTSIZE_HW_8W 11
++#define MCDE_OVL4CR_BURSTSIZE_HW_16W 12
++#define MCDE_OVL4CR_BURSTSIZE_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CR, BURSTSIZE, MCDE_OVL4CR_BURSTSIZE_##__x)
++#define MCDE_OVL4CR_BURSTSIZE(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CR, BURSTSIZE, __x)
++#define MCDE_OVL4CR_MAXOUTSTANDING_SHIFT 24
++#define MCDE_OVL4CR_MAXOUTSTANDING_MASK 0x0F000000
++#define MCDE_OVL4CR_MAXOUTSTANDING_1_REQ 0
++#define MCDE_OVL4CR_MAXOUTSTANDING_2_REQ 1
++#define MCDE_OVL4CR_MAXOUTSTANDING_4_REQ 2
++#define MCDE_OVL4CR_MAXOUTSTANDING_8_REQ 3
++#define MCDE_OVL4CR_MAXOUTSTANDING_16_REQ 4
++#define MCDE_OVL4CR_MAXOUTSTANDING_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CR, MAXOUTSTANDING, \
++	MCDE_OVL4CR_MAXOUTSTANDING_##__x)
++#define MCDE_OVL4CR_MAXOUTSTANDING(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CR, MAXOUTSTANDING, __x)
++#define MCDE_OVL4CR_ROTBURSTSIZE_SHIFT 28
++#define MCDE_OVL4CR_ROTBURSTSIZE_MASK 0xF0000000
++#define MCDE_OVL4CR_ROTBURSTSIZE_1W 0
++#define MCDE_OVL4CR_ROTBURSTSIZE_2W 1
++#define MCDE_OVL4CR_ROTBURSTSIZE_4W 2
++#define MCDE_OVL4CR_ROTBURSTSIZE_8W 3
++#define MCDE_OVL4CR_ROTBURSTSIZE_16W 4
++#define MCDE_OVL4CR_ROTBURSTSIZE_HW_1W 8
++#define MCDE_OVL4CR_ROTBURSTSIZE_HW_2W 9
++#define MCDE_OVL4CR_ROTBURSTSIZE_HW_4W 10
++#define MCDE_OVL4CR_ROTBURSTSIZE_HW_8W 11
++#define MCDE_OVL4CR_ROTBURSTSIZE_HW_16W 12
++#define MCDE_OVL4CR_ROTBURSTSIZE_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CR, ROTBURSTSIZE, MCDE_OVL4CR_ROTBURSTSIZE_##__x)
++#define MCDE_OVL4CR_ROTBURSTSIZE(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CR, ROTBURSTSIZE, __x)
++#define MCDE_OVL5CR 0x000004A0
++#define MCDE_OVL5CR_OVLEN_SHIFT 0
++#define MCDE_OVL5CR_OVLEN_MASK 0x00000001
++#define MCDE_OVL5CR_OVLEN(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CR, OVLEN, __x)
++#define MCDE_OVL5CR_COLCCTRL_SHIFT 1
++#define MCDE_OVL5CR_COLCCTRL_MASK 0x00000006
++#define MCDE_OVL5CR_COLCCTRL_DISABLED 0
++#define MCDE_OVL5CR_COLCCTRL_ENABLED_NO_SAT 1
++#define MCDE_OVL5CR_COLCCTRL_ENABLED_SAT 2
++#define MCDE_OVL5CR_COLCCTRL_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CR, COLCCTRL, MCDE_OVL5CR_COLCCTRL_##__x)
++#define MCDE_OVL5CR_COLCCTRL(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CR, COLCCTRL, __x)
++#define MCDE_OVL5CR_CKEYGEN_SHIFT 3
++#define MCDE_OVL5CR_CKEYGEN_MASK 0x00000008
++#define MCDE_OVL5CR_CKEYGEN(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CR, CKEYGEN, __x)
++#define MCDE_OVL5CR_ALPHAPMEN_SHIFT 4
++#define MCDE_OVL5CR_ALPHAPMEN_MASK 0x00000010
++#define MCDE_OVL5CR_ALPHAPMEN(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CR, ALPHAPMEN, __x)
++#define MCDE_OVL5CR_OVLF_SHIFT 5
++#define MCDE_OVL5CR_OVLF_MASK 0x00000020
++#define MCDE_OVL5CR_OVLF(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CR, OVLF, __x)
++#define MCDE_OVL5CR_OVLR_SHIFT 6
++#define MCDE_OVL5CR_OVLR_MASK 0x00000040
++#define MCDE_OVL5CR_OVLR(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CR, OVLR, __x)
++#define MCDE_OVL5CR_OVLB_SHIFT 7
++#define MCDE_OVL5CR_OVLB_MASK 0x00000080
++#define MCDE_OVL5CR_OVLB(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CR, OVLB, __x)
++#define MCDE_OVL5CR_FETCH_ROPC_SHIFT 8
++#define MCDE_OVL5CR_FETCH_ROPC_MASK 0x0000FF00
++#define MCDE_OVL5CR_FETCH_ROPC(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CR, FETCH_ROPC, __x)
++#define MCDE_OVL5CR_STBPRIO_SHIFT 16
++#define MCDE_OVL5CR_STBPRIO_MASK 0x000F0000
++#define MCDE_OVL5CR_STBPRIO(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CR, STBPRIO, __x)
++#define MCDE_OVL5CR_BURSTSIZE_SHIFT 20
++#define MCDE_OVL5CR_BURSTSIZE_MASK 0x00F00000
++#define MCDE_OVL5CR_BURSTSIZE_1W 0
++#define MCDE_OVL5CR_BURSTSIZE_2W 1
++#define MCDE_OVL5CR_BURSTSIZE_4W 2
++#define MCDE_OVL5CR_BURSTSIZE_8W 3
++#define MCDE_OVL5CR_BURSTSIZE_16W 4
++#define MCDE_OVL5CR_BURSTSIZE_HW_1W 8
++#define MCDE_OVL5CR_BURSTSIZE_HW_2W 9
++#define MCDE_OVL5CR_BURSTSIZE_HW_4W 10
++#define MCDE_OVL5CR_BURSTSIZE_HW_8W 11
++#define MCDE_OVL5CR_BURSTSIZE_HW_16W 12
++#define MCDE_OVL5CR_BURSTSIZE_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CR, BURSTSIZE, MCDE_OVL5CR_BURSTSIZE_##__x)
++#define MCDE_OVL5CR_BURSTSIZE(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CR, BURSTSIZE, __x)
++#define MCDE_OVL5CR_MAXOUTSTANDING_SHIFT 24
++#define MCDE_OVL5CR_MAXOUTSTANDING_MASK 0x0F000000
++#define MCDE_OVL5CR_MAXOUTSTANDING_1_REQ 0
++#define MCDE_OVL5CR_MAXOUTSTANDING_2_REQ 1
++#define MCDE_OVL5CR_MAXOUTSTANDING_4_REQ 2
++#define MCDE_OVL5CR_MAXOUTSTANDING_8_REQ 3
++#define MCDE_OVL5CR_MAXOUTSTANDING_16_REQ 4
++#define MCDE_OVL5CR_MAXOUTSTANDING_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CR, MAXOUTSTANDING, \
++	MCDE_OVL5CR_MAXOUTSTANDING_##__x)
++#define MCDE_OVL5CR_MAXOUTSTANDING(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CR, MAXOUTSTANDING, __x)
++#define MCDE_OVL5CR_ROTBURSTSIZE_SHIFT 28
++#define MCDE_OVL5CR_ROTBURSTSIZE_MASK 0xF0000000
++#define MCDE_OVL5CR_ROTBURSTSIZE_1W 0
++#define MCDE_OVL5CR_ROTBURSTSIZE_2W 1
++#define MCDE_OVL5CR_ROTBURSTSIZE_4W 2
++#define MCDE_OVL5CR_ROTBURSTSIZE_8W 3
++#define MCDE_OVL5CR_ROTBURSTSIZE_16W 4
++#define MCDE_OVL5CR_ROTBURSTSIZE_HW_1W 8
++#define MCDE_OVL5CR_ROTBURSTSIZE_HW_2W 9
++#define MCDE_OVL5CR_ROTBURSTSIZE_HW_4W 10
++#define MCDE_OVL5CR_ROTBURSTSIZE_HW_8W 11
++#define MCDE_OVL5CR_ROTBURSTSIZE_HW_16W 12
++#define MCDE_OVL5CR_ROTBURSTSIZE_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CR, ROTBURSTSIZE, MCDE_OVL5CR_ROTBURSTSIZE_##__x)
++#define MCDE_OVL5CR_ROTBURSTSIZE(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CR, ROTBURSTSIZE, __x)
++#define MCDE_OVL0CONF 0x00000404
++#define MCDE_OVL0CONF_GROUPOFFSET 0x20
++#define MCDE_OVL0CONF_PPL_SHIFT 0
++#define MCDE_OVL0CONF_PPL_MASK 0x000007FF
++#define MCDE_OVL0CONF_PPL(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CONF, PPL, __x)
++#define MCDE_OVL0CONF_EXTSRC_ID_SHIFT 11
++#define MCDE_OVL0CONF_EXTSRC_ID_MASK 0x00007800
++#define MCDE_OVL0CONF_EXTSRC_ID(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CONF, EXTSRC_ID, __x)
++#define MCDE_OVL0CONF_LPF_SHIFT 16
++#define MCDE_OVL0CONF_LPF_MASK 0x07FF0000
++#define MCDE_OVL0CONF_LPF(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CONF, LPF, __x)
++#define MCDE_OVL1CONF 0x00000424
++#define MCDE_OVL1CONF_PPL_SHIFT 0
++#define MCDE_OVL1CONF_PPL_MASK 0x000007FF
++#define MCDE_OVL1CONF_PPL(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CONF, PPL, __x)
++#define MCDE_OVL1CONF_EXTSRC_ID_SHIFT 11
++#define MCDE_OVL1CONF_EXTSRC_ID_MASK 0x00007800
++#define MCDE_OVL1CONF_EXTSRC_ID(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CONF, EXTSRC_ID, __x)
++#define MCDE_OVL1CONF_LPF_SHIFT 16
++#define MCDE_OVL1CONF_LPF_MASK 0x07FF0000
++#define MCDE_OVL1CONF_LPF(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CONF, LPF, __x)
++#define MCDE_OVL2CONF 0x00000444
++#define MCDE_OVL2CONF_PPL_SHIFT 0
++#define MCDE_OVL2CONF_PPL_MASK 0x000007FF
++#define MCDE_OVL2CONF_PPL(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CONF, PPL, __x)
++#define MCDE_OVL2CONF_EXTSRC_ID_SHIFT 11
++#define MCDE_OVL2CONF_EXTSRC_ID_MASK 0x00007800
++#define MCDE_OVL2CONF_EXTSRC_ID(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CONF, EXTSRC_ID, __x)
++#define MCDE_OVL2CONF_LPF_SHIFT 16
++#define MCDE_OVL2CONF_LPF_MASK 0x07FF0000
++#define MCDE_OVL2CONF_LPF(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CONF, LPF, __x)
++#define MCDE_OVL3CONF 0x00000464
++#define MCDE_OVL3CONF_PPL_SHIFT 0
++#define MCDE_OVL3CONF_PPL_MASK 0x000007FF
++#define MCDE_OVL3CONF_PPL(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CONF, PPL, __x)
++#define MCDE_OVL3CONF_EXTSRC_ID_SHIFT 11
++#define MCDE_OVL3CONF_EXTSRC_ID_MASK 0x00007800
++#define MCDE_OVL3CONF_EXTSRC_ID(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CONF, EXTSRC_ID, __x)
++#define MCDE_OVL3CONF_LPF_SHIFT 16
++#define MCDE_OVL3CONF_LPF_MASK 0x07FF0000
++#define MCDE_OVL3CONF_LPF(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CONF, LPF, __x)
++#define MCDE_OVL4CONF 0x00000484
++#define MCDE_OVL4CONF_PPL_SHIFT 0
++#define MCDE_OVL4CONF_PPL_MASK 0x000007FF
++#define MCDE_OVL4CONF_PPL(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CONF, PPL, __x)
++#define MCDE_OVL4CONF_EXTSRC_ID_SHIFT 11
++#define MCDE_OVL4CONF_EXTSRC_ID_MASK 0x00007800
++#define MCDE_OVL4CONF_EXTSRC_ID(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CONF, EXTSRC_ID, __x)
++#define MCDE_OVL4CONF_LPF_SHIFT 16
++#define MCDE_OVL4CONF_LPF_MASK 0x07FF0000
++#define MCDE_OVL4CONF_LPF(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CONF, LPF, __x)
++#define MCDE_OVL5CONF 0x000004A4
++#define MCDE_OVL5CONF_PPL_SHIFT 0
++#define MCDE_OVL5CONF_PPL_MASK 0x000007FF
++#define MCDE_OVL5CONF_PPL(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CONF, PPL, __x)
++#define MCDE_OVL5CONF_EXTSRC_ID_SHIFT 11
++#define MCDE_OVL5CONF_EXTSRC_ID_MASK 0x00007800
++#define MCDE_OVL5CONF_EXTSRC_ID(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CONF, EXTSRC_ID, __x)
++#define MCDE_OVL5CONF_LPF_SHIFT 16
++#define MCDE_OVL5CONF_LPF_MASK 0x07FF0000
++#define MCDE_OVL5CONF_LPF(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CONF, LPF, __x)
++#define MCDE_OVL0CONF2 0x00000408
++#define MCDE_OVL0CONF2_GROUPOFFSET 0x20
++#define MCDE_OVL0CONF2_BP_SHIFT 0
++#define MCDE_OVL0CONF2_BP_MASK 0x00000001
++#define MCDE_OVL0CONF2_BP_PER_PIXEL_ALPHA 0
++#define MCDE_OVL0CONF2_BP_CONSTANT_ALPHA 1
++#define MCDE_OVL0CONF2_BP_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CONF2, BP, MCDE_OVL0CONF2_BP_##__x)
++#define MCDE_OVL0CONF2_BP(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CONF2, BP, __x)
++#define MCDE_OVL0CONF2_ALPHAVALUE_SHIFT 1
++#define MCDE_OVL0CONF2_ALPHAVALUE_MASK 0x000001FE
++#define MCDE_OVL0CONF2_ALPHAVALUE(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CONF2, ALPHAVALUE, __x)
++#define MCDE_OVL0CONF2_OPQ_SHIFT 9
++#define MCDE_OVL0CONF2_OPQ_MASK 0x00000200
++#define MCDE_OVL0CONF2_OPQ(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CONF2, OPQ, __x)
++#define MCDE_OVL0CONF2_PIXOFF_SHIFT 10
++#define MCDE_OVL0CONF2_PIXOFF_MASK 0x0000FC00
++#define MCDE_OVL0CONF2_PIXOFF(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CONF2, PIXOFF, __x)
++#define MCDE_OVL0CONF2_PIXELFETCHERWATERMARKLEVEL_SHIFT 16
++#define MCDE_OVL0CONF2_PIXELFETCHERWATERMARKLEVEL_MASK 0x1FFF0000
++#define MCDE_OVL0CONF2_PIXELFETCHERWATERMARKLEVEL(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CONF2, PIXELFETCHERWATERMARKLEVEL, __x)
++#define MCDE_OVL1CONF2 0x00000428
++#define MCDE_OVL1CONF2_BP_SHIFT 0
++#define MCDE_OVL1CONF2_BP_MASK 0x00000001
++#define MCDE_OVL1CONF2_BP_PER_PIXEL_ALPHA 0
++#define MCDE_OVL1CONF2_BP_CONSTANT_ALPHA 1
++#define MCDE_OVL1CONF2_BP_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CONF2, BP, MCDE_OVL1CONF2_BP_##__x)
++#define MCDE_OVL1CONF2_BP(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CONF2, BP, __x)
++#define MCDE_OVL1CONF2_ALPHAVALUE_SHIFT 1
++#define MCDE_OVL1CONF2_ALPHAVALUE_MASK 0x000001FE
++#define MCDE_OVL1CONF2_ALPHAVALUE(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CONF2, ALPHAVALUE, __x)
++#define MCDE_OVL1CONF2_OPQ_SHIFT 9
++#define MCDE_OVL1CONF2_OPQ_MASK 0x00000200
++#define MCDE_OVL1CONF2_OPQ(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CONF2, OPQ, __x)
++#define MCDE_OVL1CONF2_PIXOFF_SHIFT 10
++#define MCDE_OVL1CONF2_PIXOFF_MASK 0x0000FC00
++#define MCDE_OVL1CONF2_PIXOFF(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CONF2, PIXOFF, __x)
++#define MCDE_OVL1CONF2_PIXELFETCHERWATERMARKLEVEL_SHIFT 16
++#define MCDE_OVL1CONF2_PIXELFETCHERWATERMARKLEVEL_MASK 0x1FFF0000
++#define MCDE_OVL1CONF2_PIXELFETCHERWATERMARKLEVEL(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CONF2, PIXELFETCHERWATERMARKLEVEL, __x)
++#define MCDE_OVL2CONF2 0x00000448
++#define MCDE_OVL2CONF2_BP_SHIFT 0
++#define MCDE_OVL2CONF2_BP_MASK 0x00000001
++#define MCDE_OVL2CONF2_BP_PER_PIXEL_ALPHA 0
++#define MCDE_OVL2CONF2_BP_CONSTANT_ALPHA 1
++#define MCDE_OVL2CONF2_BP_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CONF2, BP, MCDE_OVL2CONF2_BP_##__x)
++#define MCDE_OVL2CONF2_BP(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CONF2, BP, __x)
++#define MCDE_OVL2CONF2_ALPHAVALUE_SHIFT 1
++#define MCDE_OVL2CONF2_ALPHAVALUE_MASK 0x000001FE
++#define MCDE_OVL2CONF2_ALPHAVALUE(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CONF2, ALPHAVALUE, __x)
++#define MCDE_OVL2CONF2_OPQ_SHIFT 9
++#define MCDE_OVL2CONF2_OPQ_MASK 0x00000200
++#define MCDE_OVL2CONF2_OPQ(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CONF2, OPQ, __x)
++#define MCDE_OVL2CONF2_PIXOFF_SHIFT 10
++#define MCDE_OVL2CONF2_PIXOFF_MASK 0x0000FC00
++#define MCDE_OVL2CONF2_PIXOFF(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CONF2, PIXOFF, __x)
++#define MCDE_OVL2CONF2_PIXELFETCHERWATERMARKLEVEL_SHIFT 16
++#define MCDE_OVL2CONF2_PIXELFETCHERWATERMARKLEVEL_MASK 0x1FFF0000
++#define MCDE_OVL2CONF2_PIXELFETCHERWATERMARKLEVEL(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CONF2, PIXELFETCHERWATERMARKLEVEL, __x)
++#define MCDE_OVL3CONF2 0x00000468
++#define MCDE_OVL3CONF2_BP_SHIFT 0
++#define MCDE_OVL3CONF2_BP_MASK 0x00000001
++#define MCDE_OVL3CONF2_BP_PER_PIXEL_ALPHA 0
++#define MCDE_OVL3CONF2_BP_CONSTANT_ALPHA 1
++#define MCDE_OVL3CONF2_BP_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CONF2, BP, MCDE_OVL3CONF2_BP_##__x)
++#define MCDE_OVL3CONF2_BP(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CONF2, BP, __x)
++#define MCDE_OVL3CONF2_ALPHAVALUE_SHIFT 1
++#define MCDE_OVL3CONF2_ALPHAVALUE_MASK 0x000001FE
++#define MCDE_OVL3CONF2_ALPHAVALUE(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CONF2, ALPHAVALUE, __x)
++#define MCDE_OVL3CONF2_OPQ_SHIFT 9
++#define MCDE_OVL3CONF2_OPQ_MASK 0x00000200
++#define MCDE_OVL3CONF2_OPQ(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CONF2, OPQ, __x)
++#define MCDE_OVL3CONF2_PIXOFF_SHIFT 10
++#define MCDE_OVL3CONF2_PIXOFF_MASK 0x0000FC00
++#define MCDE_OVL3CONF2_PIXOFF(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CONF2, PIXOFF, __x)
++#define MCDE_OVL3CONF2_PIXELFETCHERWATERMARKLEVEL_SHIFT 16
++#define MCDE_OVL3CONF2_PIXELFETCHERWATERMARKLEVEL_MASK 0x1FFF0000
++#define MCDE_OVL3CONF2_PIXELFETCHERWATERMARKLEVEL(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CONF2, PIXELFETCHERWATERMARKLEVEL, __x)
++#define MCDE_OVL4CONF2 0x00000488
++#define MCDE_OVL4CONF2_BP_SHIFT 0
++#define MCDE_OVL4CONF2_BP_MASK 0x00000001
++#define MCDE_OVL4CONF2_BP_PER_PIXEL_ALPHA 0
++#define MCDE_OVL4CONF2_BP_CONSTANT_ALPHA 1
++#define MCDE_OVL4CONF2_BP_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CONF2, BP, MCDE_OVL4CONF2_BP_##__x)
++#define MCDE_OVL4CONF2_BP(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CONF2, BP, __x)
++#define MCDE_OVL4CONF2_ALPHAVALUE_SHIFT 1
++#define MCDE_OVL4CONF2_ALPHAVALUE_MASK 0x000001FE
++#define MCDE_OVL4CONF2_ALPHAVALUE(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CONF2, ALPHAVALUE, __x)
++#define MCDE_OVL4CONF2_OPQ_SHIFT 9
++#define MCDE_OVL4CONF2_OPQ_MASK 0x00000200
++#define MCDE_OVL4CONF2_OPQ(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CONF2, OPQ, __x)
++#define MCDE_OVL4CONF2_PIXOFF_SHIFT 10
++#define MCDE_OVL4CONF2_PIXOFF_MASK 0x0000FC00
++#define MCDE_OVL4CONF2_PIXOFF(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CONF2, PIXOFF, __x)
++#define MCDE_OVL4CONF2_PIXELFETCHERWATERMARKLEVEL_SHIFT 16
++#define MCDE_OVL4CONF2_PIXELFETCHERWATERMARKLEVEL_MASK 0x1FFF0000
++#define MCDE_OVL4CONF2_PIXELFETCHERWATERMARKLEVEL(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CONF2, PIXELFETCHERWATERMARKLEVEL, __x)
++#define MCDE_OVL5CONF2 0x000004A8
++#define MCDE_OVL5CONF2_BP_SHIFT 0
++#define MCDE_OVL5CONF2_BP_MASK 0x00000001
++#define MCDE_OVL5CONF2_BP_PER_PIXEL_ALPHA 0
++#define MCDE_OVL5CONF2_BP_CONSTANT_ALPHA 1
++#define MCDE_OVL5CONF2_BP_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CONF2, BP, MCDE_OVL5CONF2_BP_##__x)
++#define MCDE_OVL5CONF2_BP(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CONF2, BP, __x)
++#define MCDE_OVL5CONF2_ALPHAVALUE_SHIFT 1
++#define MCDE_OVL5CONF2_ALPHAVALUE_MASK 0x000001FE
++#define MCDE_OVL5CONF2_ALPHAVALUE(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CONF2, ALPHAVALUE, __x)
++#define MCDE_OVL5CONF2_OPQ_SHIFT 9
++#define MCDE_OVL5CONF2_OPQ_MASK 0x00000200
++#define MCDE_OVL5CONF2_OPQ(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CONF2, OPQ, __x)
++#define MCDE_OVL5CONF2_PIXOFF_SHIFT 10
++#define MCDE_OVL5CONF2_PIXOFF_MASK 0x0000FC00
++#define MCDE_OVL5CONF2_PIXOFF(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CONF2, PIXOFF, __x)
++#define MCDE_OVL5CONF2_PIXELFETCHERWATERMARKLEVEL_SHIFT 16
++#define MCDE_OVL5CONF2_PIXELFETCHERWATERMARKLEVEL_MASK 0x1FFF0000
++#define MCDE_OVL5CONF2_PIXELFETCHERWATERMARKLEVEL(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CONF2, PIXELFETCHERWATERMARKLEVEL, __x)
++#define MCDE_OVL0LJINC 0x0000040C
++#define MCDE_OVL0LJINC_GROUPOFFSET 0x20
++#define MCDE_OVL0LJINC_LJINC_SHIFT 0
++#define MCDE_OVL0LJINC_LJINC_MASK 0xFFFFFFFF
++#define MCDE_OVL0LJINC_LJINC(__x) \
++	MCDE_VAL2REG(MCDE_OVL0LJINC, LJINC, __x)
++#define MCDE_OVL1LJINC 0x0000042C
++#define MCDE_OVL1LJINC_LJINC_SHIFT 0
++#define MCDE_OVL1LJINC_LJINC_MASK 0xFFFFFFFF
++#define MCDE_OVL1LJINC_LJINC(__x) \
++	MCDE_VAL2REG(MCDE_OVL1LJINC, LJINC, __x)
++#define MCDE_OVL2LJINC 0x0000044C
++#define MCDE_OVL2LJINC_LJINC_SHIFT 0
++#define MCDE_OVL2LJINC_LJINC_MASK 0xFFFFFFFF
++#define MCDE_OVL2LJINC_LJINC(__x) \
++	MCDE_VAL2REG(MCDE_OVL2LJINC, LJINC, __x)
++#define MCDE_OVL3LJINC 0x0000046C
++#define MCDE_OVL3LJINC_LJINC_SHIFT 0
++#define MCDE_OVL3LJINC_LJINC_MASK 0xFFFFFFFF
++#define MCDE_OVL3LJINC_LJINC(__x) \
++	MCDE_VAL2REG(MCDE_OVL3LJINC, LJINC, __x)
++#define MCDE_OVL4LJINC 0x0000048C
++#define MCDE_OVL4LJINC_LJINC_SHIFT 0
++#define MCDE_OVL4LJINC_LJINC_MASK 0xFFFFFFFF
++#define MCDE_OVL4LJINC_LJINC(__x) \
++	MCDE_VAL2REG(MCDE_OVL4LJINC, LJINC, __x)
++#define MCDE_OVL5LJINC 0x000004AC
++#define MCDE_OVL5LJINC_LJINC_SHIFT 0
++#define MCDE_OVL5LJINC_LJINC_MASK 0xFFFFFFFF
++#define MCDE_OVL5LJINC_LJINC(__x) \
++	MCDE_VAL2REG(MCDE_OVL5LJINC, LJINC, __x)
++#define MCDE_OVL0CROP 0x00000410
++#define MCDE_OVL0CROP_GROUPOFFSET 0x20
++#define MCDE_OVL0CROP_TMRGN_SHIFT 0
++#define MCDE_OVL0CROP_TMRGN_MASK 0x003FFFFF
++#define MCDE_OVL0CROP_TMRGN(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CROP, TMRGN, __x)
++#define MCDE_OVL0CROP_LMRGN_SHIFT 22
++#define MCDE_OVL0CROP_LMRGN_MASK 0xFFC00000
++#define MCDE_OVL0CROP_LMRGN(__x) \
++	MCDE_VAL2REG(MCDE_OVL0CROP, LMRGN, __x)
++#define MCDE_OVL1CROP 0x00000430
++#define MCDE_OVL1CROP_TMRGN_SHIFT 0
++#define MCDE_OVL1CROP_TMRGN_MASK 0x003FFFFF
++#define MCDE_OVL1CROP_TMRGN(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CROP, TMRGN, __x)
++#define MCDE_OVL1CROP_LMRGN_SHIFT 22
++#define MCDE_OVL1CROP_LMRGN_MASK 0xFFC00000
++#define MCDE_OVL1CROP_LMRGN(__x) \
++	MCDE_VAL2REG(MCDE_OVL1CROP, LMRGN, __x)
++#define MCDE_OVL2CROP 0x00000450
++#define MCDE_OVL2CROP_TMRGN_SHIFT 0
++#define MCDE_OVL2CROP_TMRGN_MASK 0x003FFFFF
++#define MCDE_OVL2CROP_TMRGN(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CROP, TMRGN, __x)
++#define MCDE_OVL2CROP_LMRGN_SHIFT 22
++#define MCDE_OVL2CROP_LMRGN_MASK 0xFFC00000
++#define MCDE_OVL2CROP_LMRGN(__x) \
++	MCDE_VAL2REG(MCDE_OVL2CROP, LMRGN, __x)
++#define MCDE_OVL3CROP 0x00000470
++#define MCDE_OVL3CROP_TMRGN_SHIFT 0
++#define MCDE_OVL3CROP_TMRGN_MASK 0x003FFFFF
++#define MCDE_OVL3CROP_TMRGN(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CROP, TMRGN, __x)
++#define MCDE_OVL3CROP_LMRGN_SHIFT 22
++#define MCDE_OVL3CROP_LMRGN_MASK 0xFFC00000
++#define MCDE_OVL3CROP_LMRGN(__x) \
++	MCDE_VAL2REG(MCDE_OVL3CROP, LMRGN, __x)
++#define MCDE_OVL4CROP 0x00000490
++#define MCDE_OVL4CROP_TMRGN_SHIFT 0
++#define MCDE_OVL4CROP_TMRGN_MASK 0x003FFFFF
++#define MCDE_OVL4CROP_TMRGN(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CROP, TMRGN, __x)
++#define MCDE_OVL4CROP_LMRGN_SHIFT 22
++#define MCDE_OVL4CROP_LMRGN_MASK 0xFFC00000
++#define MCDE_OVL4CROP_LMRGN(__x) \
++	MCDE_VAL2REG(MCDE_OVL4CROP, LMRGN, __x)
++#define MCDE_OVL5CROP 0x000004B0
++#define MCDE_OVL5CROP_TMRGN_SHIFT 0
++#define MCDE_OVL5CROP_TMRGN_MASK 0x003FFFFF
++#define MCDE_OVL5CROP_TMRGN(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CROP, TMRGN, __x)
++#define MCDE_OVL5CROP_LMRGN_SHIFT 22
++#define MCDE_OVL5CROP_LMRGN_MASK 0xFFC00000
++#define MCDE_OVL5CROP_LMRGN(__x) \
++	MCDE_VAL2REG(MCDE_OVL5CROP, LMRGN, __x)
++#define MCDE_OVL0COMP 0x00000414
++#define MCDE_OVL0COMP_GROUPOFFSET 0x20
++#define MCDE_OVL0COMP_XPOS_SHIFT 0
++#define MCDE_OVL0COMP_XPOS_MASK 0x000007FF
++#define MCDE_OVL0COMP_XPOS(__x) \
++	MCDE_VAL2REG(MCDE_OVL0COMP, XPOS, __x)
++#define MCDE_OVL0COMP_CH_ID_SHIFT 11
++#define MCDE_OVL0COMP_CH_ID_MASK 0x00007800
++#define MCDE_OVL0COMP_CH_ID(__x) \
++	MCDE_VAL2REG(MCDE_OVL0COMP, CH_ID, __x)
++#define MCDE_OVL0COMP_YPOS_SHIFT 16
++#define MCDE_OVL0COMP_YPOS_MASK 0x07FF0000
++#define MCDE_OVL0COMP_YPOS(__x) \
++	MCDE_VAL2REG(MCDE_OVL0COMP, YPOS, __x)
++#define MCDE_OVL0COMP_Z_SHIFT 27
++#define MCDE_OVL0COMP_Z_MASK 0x78000000
++#define MCDE_OVL0COMP_Z(__x) \
++	MCDE_VAL2REG(MCDE_OVL0COMP, Z, __x)
++#define MCDE_OVL1COMP 0x00000434
++#define MCDE_OVL1COMP_XPOS_SHIFT 0
++#define MCDE_OVL1COMP_XPOS_MASK 0x000007FF
++#define MCDE_OVL1COMP_XPOS(__x) \
++	MCDE_VAL2REG(MCDE_OVL1COMP, XPOS, __x)
++#define MCDE_OVL1COMP_CH_ID_SHIFT 11
++#define MCDE_OVL1COMP_CH_ID_MASK 0x00007800
++#define MCDE_OVL1COMP_CH_ID(__x) \
++	MCDE_VAL2REG(MCDE_OVL1COMP, CH_ID, __x)
++#define MCDE_OVL1COMP_YPOS_SHIFT 16
++#define MCDE_OVL1COMP_YPOS_MASK 0x07FF0000
++#define MCDE_OVL1COMP_YPOS(__x) \
++	MCDE_VAL2REG(MCDE_OVL1COMP, YPOS, __x)
++#define MCDE_OVL1COMP_Z_SHIFT 27
++#define MCDE_OVL1COMP_Z_MASK 0x78000000
++#define MCDE_OVL1COMP_Z(__x) \
++	MCDE_VAL2REG(MCDE_OVL1COMP, Z, __x)
++#define MCDE_OVL2COMP 0x00000454
++#define MCDE_OVL2COMP_XPOS_SHIFT 0
++#define MCDE_OVL2COMP_XPOS_MASK 0x000007FF
++#define MCDE_OVL2COMP_XPOS(__x) \
++	MCDE_VAL2REG(MCDE_OVL2COMP, XPOS, __x)
++#define MCDE_OVL2COMP_CH_ID_SHIFT 11
++#define MCDE_OVL2COMP_CH_ID_MASK 0x00007800
++#define MCDE_OVL2COMP_CH_ID(__x) \
++	MCDE_VAL2REG(MCDE_OVL2COMP, CH_ID, __x)
++#define MCDE_OVL2COMP_YPOS_SHIFT 16
++#define MCDE_OVL2COMP_YPOS_MASK 0x07FF0000
++#define MCDE_OVL2COMP_YPOS(__x) \
++	MCDE_VAL2REG(MCDE_OVL2COMP, YPOS, __x)
++#define MCDE_OVL2COMP_Z_SHIFT 27
++#define MCDE_OVL2COMP_Z_MASK 0x78000000
++#define MCDE_OVL2COMP_Z(__x) \
++	MCDE_VAL2REG(MCDE_OVL2COMP, Z, __x)
++#define MCDE_OVL3COMP 0x00000474
++#define MCDE_OVL3COMP_XPOS_SHIFT 0
++#define MCDE_OVL3COMP_XPOS_MASK 0x000007FF
++#define MCDE_OVL3COMP_XPOS(__x) \
++	MCDE_VAL2REG(MCDE_OVL3COMP, XPOS, __x)
++#define MCDE_OVL3COMP_CH_ID_SHIFT 11
++#define MCDE_OVL3COMP_CH_ID_MASK 0x00007800
++#define MCDE_OVL3COMP_CH_ID(__x) \
++	MCDE_VAL2REG(MCDE_OVL3COMP, CH_ID, __x)
++#define MCDE_OVL3COMP_YPOS_SHIFT 16
++#define MCDE_OVL3COMP_YPOS_MASK 0x07FF0000
++#define MCDE_OVL3COMP_YPOS(__x) \
++	MCDE_VAL2REG(MCDE_OVL3COMP, YPOS, __x)
++#define MCDE_OVL3COMP_Z_SHIFT 27
++#define MCDE_OVL3COMP_Z_MASK 0x78000000
++#define MCDE_OVL3COMP_Z(__x) \
++	MCDE_VAL2REG(MCDE_OVL3COMP, Z, __x)
++#define MCDE_OVL4COMP 0x00000494
++#define MCDE_OVL4COMP_XPOS_SHIFT 0
++#define MCDE_OVL4COMP_XPOS_MASK 0x000007FF
++#define MCDE_OVL4COMP_XPOS(__x) \
++	MCDE_VAL2REG(MCDE_OVL4COMP, XPOS, __x)
++#define MCDE_OVL4COMP_CH_ID_SHIFT 11
++#define MCDE_OVL4COMP_CH_ID_MASK 0x00007800
++#define MCDE_OVL4COMP_CH_ID(__x) \
++	MCDE_VAL2REG(MCDE_OVL4COMP, CH_ID, __x)
++#define MCDE_OVL4COMP_YPOS_SHIFT 16
++#define MCDE_OVL4COMP_YPOS_MASK 0x07FF0000
++#define MCDE_OVL4COMP_YPOS(__x) \
++	MCDE_VAL2REG(MCDE_OVL4COMP, YPOS, __x)
++#define MCDE_OVL4COMP_Z_SHIFT 27
++#define MCDE_OVL4COMP_Z_MASK 0x78000000
++#define MCDE_OVL4COMP_Z(__x) \
++	MCDE_VAL2REG(MCDE_OVL4COMP, Z, __x)
++#define MCDE_OVL5COMP 0x000004B4
++#define MCDE_OVL5COMP_XPOS_SHIFT 0
++#define MCDE_OVL5COMP_XPOS_MASK 0x000007FF
++#define MCDE_OVL5COMP_XPOS(__x) \
++	MCDE_VAL2REG(MCDE_OVL5COMP, XPOS, __x)
++#define MCDE_OVL5COMP_CH_ID_SHIFT 11
++#define MCDE_OVL5COMP_CH_ID_MASK 0x00007800
++#define MCDE_OVL5COMP_CH_ID(__x) \
++	MCDE_VAL2REG(MCDE_OVL5COMP, CH_ID, __x)
++#define MCDE_OVL5COMP_YPOS_SHIFT 16
++#define MCDE_OVL5COMP_YPOS_MASK 0x07FF0000
++#define MCDE_OVL5COMP_YPOS(__x) \
++	MCDE_VAL2REG(MCDE_OVL5COMP, YPOS, __x)
++#define MCDE_OVL5COMP_Z_SHIFT 27
++#define MCDE_OVL5COMP_Z_MASK 0x78000000
++#define MCDE_OVL5COMP_Z(__x) \
++	MCDE_VAL2REG(MCDE_OVL5COMP, Z, __x)
++#define MCDE_CHNL0CONF 0x00000600
++#define MCDE_CHNL0CONF_GROUPOFFSET 0x20
++#define MCDE_CHNL0CONF_PPL_SHIFT 0
++#define MCDE_CHNL0CONF_PPL_MASK 0x000007FF
++#define MCDE_CHNL0CONF_PPL(__x) \
++	MCDE_VAL2REG(MCDE_CHNL0CONF, PPL, __x)
++#define MCDE_CHNL0CONF_LPF_SHIFT 16
++#define MCDE_CHNL0CONF_LPF_MASK 0x07FF0000
++#define MCDE_CHNL0CONF_LPF(__x) \
++	MCDE_VAL2REG(MCDE_CHNL0CONF, LPF, __x)
++#define MCDE_CHNL1CONF 0x00000620
++#define MCDE_CHNL1CONF_PPL_SHIFT 0
++#define MCDE_CHNL1CONF_PPL_MASK 0x000007FF
++#define MCDE_CHNL1CONF_PPL(__x) \
++	MCDE_VAL2REG(MCDE_CHNL1CONF, PPL, __x)
++#define MCDE_CHNL1CONF_LPF_SHIFT 16
++#define MCDE_CHNL1CONF_LPF_MASK 0x07FF0000
++#define MCDE_CHNL1CONF_LPF(__x) \
++	MCDE_VAL2REG(MCDE_CHNL1CONF, LPF, __x)
++#define MCDE_CHNL2CONF 0x00000640
++#define MCDE_CHNL2CONF_PPL_SHIFT 0
++#define MCDE_CHNL2CONF_PPL_MASK 0x000007FF
++#define MCDE_CHNL2CONF_PPL(__x) \
++	MCDE_VAL2REG(MCDE_CHNL2CONF, PPL, __x)
++#define MCDE_CHNL2CONF_LPF_SHIFT 16
++#define MCDE_CHNL2CONF_LPF_MASK 0x07FF0000
++#define MCDE_CHNL2CONF_LPF(__x) \
++	MCDE_VAL2REG(MCDE_CHNL2CONF, LPF, __x)
++#define MCDE_CHNL3CONF 0x00000660
++#define MCDE_CHNL3CONF_PPL_SHIFT 0
++#define MCDE_CHNL3CONF_PPL_MASK 0x000007FF
++#define MCDE_CHNL3CONF_PPL(__x) \
++	MCDE_VAL2REG(MCDE_CHNL3CONF, PPL, __x)
++#define MCDE_CHNL3CONF_LPF_SHIFT 16
++#define MCDE_CHNL3CONF_LPF_MASK 0x07FF0000
++#define MCDE_CHNL3CONF_LPF(__x) \
++	MCDE_VAL2REG(MCDE_CHNL3CONF, LPF, __x)
++#define MCDE_CHNL0STAT 0x00000604
++#define MCDE_CHNL0STAT_GROUPOFFSET 0x20
++#define MCDE_CHNL0STAT_CHNLRD_SHIFT 0
++#define MCDE_CHNL0STAT_CHNLRD_MASK 0x00000001
++#define MCDE_CHNL0STAT_CHNLRD(__x) \
++	MCDE_VAL2REG(MCDE_CHNL0STAT, CHNLRD, __x)
++#define MCDE_CHNL0STAT_CHNLA_SHIFT 1
++#define MCDE_CHNL0STAT_CHNLA_MASK 0x00000002
++#define MCDE_CHNL0STAT_CHNLA(__x) \
++	MCDE_VAL2REG(MCDE_CHNL0STAT, CHNLA, __x)
++#define MCDE_CHNL0STAT_CHNLBLBCKGND_EN_SHIFT 16
++#define MCDE_CHNL0STAT_CHNLBLBCKGND_EN_MASK 0x00010000
++#define MCDE_CHNL0STAT_CHNLBLBCKGND_EN(__x) \
++	MCDE_VAL2REG(MCDE_CHNL0STAT, CHNLBLBCKGND_EN, __x)
++#define MCDE_CHNL1STAT 0x00000624
++#define MCDE_CHNL1STAT_CHNLRD_SHIFT 0
++#define MCDE_CHNL1STAT_CHNLRD_MASK 0x00000001
++#define MCDE_CHNL1STAT_CHNLRD(__x) \
++	MCDE_VAL2REG(MCDE_CHNL1STAT, CHNLRD, __x)
++#define MCDE_CHNL1STAT_CHNLA_SHIFT 1
++#define MCDE_CHNL1STAT_CHNLA_MASK 0x00000002
++#define MCDE_CHNL1STAT_CHNLA(__x) \
++	MCDE_VAL2REG(MCDE_CHNL1STAT, CHNLA, __x)
++#define MCDE_CHNL1STAT_CHNLBLBCKGND_EN_SHIFT 16
++#define MCDE_CHNL1STAT_CHNLBLBCKGND_EN_MASK 0x00010000
++#define MCDE_CHNL1STAT_CHNLBLBCKGND_EN(__x) \
++	MCDE_VAL2REG(MCDE_CHNL1STAT, CHNLBLBCKGND_EN, __x)
++#define MCDE_CHNL2STAT 0x00000644
++#define MCDE_CHNL2STAT_CHNLRD_SHIFT 0
++#define MCDE_CHNL2STAT_CHNLRD_MASK 0x00000001
++#define MCDE_CHNL2STAT_CHNLRD(__x) \
++	MCDE_VAL2REG(MCDE_CHNL2STAT, CHNLRD, __x)
++#define MCDE_CHNL2STAT_CHNLA_SHIFT 1
++#define MCDE_CHNL2STAT_CHNLA_MASK 0x00000002
++#define MCDE_CHNL2STAT_CHNLA(__x) \
++	MCDE_VAL2REG(MCDE_CHNL2STAT, CHNLA, __x)
++#define MCDE_CHNL2STAT_CHNLBLBCKGND_EN_SHIFT 16
++#define MCDE_CHNL2STAT_CHNLBLBCKGND_EN_MASK 0x00010000
++#define MCDE_CHNL2STAT_CHNLBLBCKGND_EN(__x) \
++	MCDE_VAL2REG(MCDE_CHNL2STAT, CHNLBLBCKGND_EN, __x)
++#define MCDE_CHNL3STAT 0x00000664
++#define MCDE_CHNL3STAT_CHNLRD_SHIFT 0
++#define MCDE_CHNL3STAT_CHNLRD_MASK 0x00000001
++#define MCDE_CHNL3STAT_CHNLRD(__x) \
++	MCDE_VAL2REG(MCDE_CHNL3STAT, CHNLRD, __x)
++#define MCDE_CHNL3STAT_CHNLA_SHIFT 1
++#define MCDE_CHNL3STAT_CHNLA_MASK 0x00000002
++#define MCDE_CHNL3STAT_CHNLA(__x) \
++	MCDE_VAL2REG(MCDE_CHNL3STAT, CHNLA, __x)
++#define MCDE_CHNL3STAT_CHNLBLBCKGND_EN_SHIFT 16
++#define MCDE_CHNL3STAT_CHNLBLBCKGND_EN_MASK 0x00010000
++#define MCDE_CHNL3STAT_CHNLBLBCKGND_EN(__x) \
++	MCDE_VAL2REG(MCDE_CHNL3STAT, CHNLBLBCKGND_EN, __x)
++#define MCDE_CHNL0SYNCHMOD 0x00000608
++#define MCDE_CHNL0SYNCHMOD_GROUPOFFSET 0x20
++#define MCDE_CHNL0SYNCHMOD_SRC_SYNCH_SHIFT 0
++#define MCDE_CHNL0SYNCHMOD_SRC_SYNCH_MASK 0x00000003
++#define MCDE_CHNL0SYNCHMOD_SRC_SYNCH_OUTPUT 0
++#define MCDE_CHNL0SYNCHMOD_SRC_SYNCH_AUTO 1
++#define MCDE_CHNL0SYNCHMOD_SRC_SYNCH_SOFTWARE 2
++#define MCDE_CHNL0SYNCHMOD_SRC_SYNCH_EXTERNAL 3
++#define MCDE_CHNL0SYNCHMOD_SRC_SYNCH_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_CHNL0SYNCHMOD, SRC_SYNCH, \
++	MCDE_CHNL0SYNCHMOD_SRC_SYNCH_##__x)
++#define MCDE_CHNL0SYNCHMOD_SRC_SYNCH(__x) \
++	MCDE_VAL2REG(MCDE_CHNL0SYNCHMOD, SRC_SYNCH, __x)
++#define MCDE_CHNL0SYNCHMOD_OUT_SYNCH_SRC_SHIFT 2
++#define MCDE_CHNL0SYNCHMOD_OUT_SYNCH_SRC_MASK 0x0000001C
++#define MCDE_CHNL0SYNCHMOD_OUT_SYNCH_SRC_FORMATTER 0
++#define MCDE_CHNL0SYNCHMOD_OUT_SYNCH_SRC_VSYNC0 1
++#define MCDE_CHNL0SYNCHMOD_OUT_SYNCH_SRC_VSYNC1 2
++#define MCDE_CHNL0SYNCHMOD_OUT_SYNCH_SRC_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_CHNL0SYNCHMOD, OUT_SYNCH_SRC, \
++	MCDE_CHNL0SYNCHMOD_OUT_SYNCH_SRC_##__x)
++#define MCDE_CHNL0SYNCHMOD_OUT_SYNCH_SRC(__x) \
++	MCDE_VAL2REG(MCDE_CHNL0SYNCHMOD, OUT_SYNCH_SRC, __x)
++#define MCDE_CHNL1SYNCHMOD 0x00000628
++#define MCDE_CHNL1SYNCHMOD_SRC_SYNCH_SHIFT 0
++#define MCDE_CHNL1SYNCHMOD_SRC_SYNCH_MASK 0x00000003
++#define MCDE_CHNL1SYNCHMOD_SRC_SYNCH_OUTPUT 0
++#define MCDE_CHNL1SYNCHMOD_SRC_SYNCH_AUTO 1
++#define MCDE_CHNL1SYNCHMOD_SRC_SYNCH_SOFTWARE 2
++#define MCDE_CHNL1SYNCHMOD_SRC_SYNCH_EXTERNAL 3
++#define MCDE_CHNL1SYNCHMOD_SRC_SYNCH_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_CHNL1SYNCHMOD, SRC_SYNCH, \
++	MCDE_CHNL1SYNCHMOD_SRC_SYNCH_##__x)
++#define MCDE_CHNL1SYNCHMOD_SRC_SYNCH(__x) \
++	MCDE_VAL2REG(MCDE_CHNL1SYNCHMOD, SRC_SYNCH, __x)
++#define MCDE_CHNL1SYNCHMOD_OUT_SYNCH_SRC_SHIFT 2
++#define MCDE_CHNL1SYNCHMOD_OUT_SYNCH_SRC_MASK 0x0000001C
++#define MCDE_CHNL1SYNCHMOD_OUT_SYNCH_SRC_FORMATTER 0
++#define MCDE_CHNL1SYNCHMOD_OUT_SYNCH_SRC_VSYNC0 1
++#define MCDE_CHNL1SYNCHMOD_OUT_SYNCH_SRC_VSYNC1 2
++#define MCDE_CHNL1SYNCHMOD_OUT_SYNCH_SRC_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_CHNL1SYNCHMOD, OUT_SYNCH_SRC, \
++	MCDE_CHNL1SYNCHMOD_OUT_SYNCH_SRC_##__x)
++#define MCDE_CHNL1SYNCHMOD_OUT_SYNCH_SRC(__x) \
++	MCDE_VAL2REG(MCDE_CHNL1SYNCHMOD, OUT_SYNCH_SRC, __x)
++#define MCDE_CHNL2SYNCHMOD 0x00000648
++#define MCDE_CHNL2SYNCHMOD_SRC_SYNCH_SHIFT 0
++#define MCDE_CHNL2SYNCHMOD_SRC_SYNCH_MASK 0x00000003
++#define MCDE_CHNL2SYNCHMOD_SRC_SYNCH_OUTPUT 0
++#define MCDE_CHNL2SYNCHMOD_SRC_SYNCH_AUTO 1
++#define MCDE_CHNL2SYNCHMOD_SRC_SYNCH_SOFTWARE 2
++#define MCDE_CHNL2SYNCHMOD_SRC_SYNCH_EXTERNAL 3
++#define MCDE_CHNL2SYNCHMOD_SRC_SYNCH_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_CHNL2SYNCHMOD, SRC_SYNCH, \
++	MCDE_CHNL2SYNCHMOD_SRC_SYNCH_##__x)
++#define MCDE_CHNL2SYNCHMOD_SRC_SYNCH(__x) \
++	MCDE_VAL2REG(MCDE_CHNL2SYNCHMOD, SRC_SYNCH, __x)
++#define MCDE_CHNL2SYNCHMOD_OUT_SYNCH_SRC_SHIFT 2
++#define MCDE_CHNL2SYNCHMOD_OUT_SYNCH_SRC_MASK 0x0000001C
++#define MCDE_CHNL2SYNCHMOD_OUT_SYNCH_SRC_FORMATTER 0
++#define MCDE_CHNL2SYNCHMOD_OUT_SYNCH_SRC_VSYNC0 1
++#define MCDE_CHNL2SYNCHMOD_OUT_SYNCH_SRC_VSYNC1 2
++#define MCDE_CHNL2SYNCHMOD_OUT_SYNCH_SRC_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_CHNL2SYNCHMOD, OUT_SYNCH_SRC, \
++	MCDE_CHNL2SYNCHMOD_OUT_SYNCH_SRC_##__x)
++#define MCDE_CHNL2SYNCHMOD_OUT_SYNCH_SRC(__x) \
++	MCDE_VAL2REG(MCDE_CHNL2SYNCHMOD, OUT_SYNCH_SRC, __x)
++#define MCDE_CHNL3SYNCHMOD 0x00000668
++#define MCDE_CHNL3SYNCHMOD_SRC_SYNCH_SHIFT 0
++#define MCDE_CHNL3SYNCHMOD_SRC_SYNCH_MASK 0x00000003
++#define MCDE_CHNL3SYNCHMOD_SRC_SYNCH_OUTPUT 0
++#define MCDE_CHNL3SYNCHMOD_SRC_SYNCH_AUTO 1
++#define MCDE_CHNL3SYNCHMOD_SRC_SYNCH_SOFTWARE 2
++#define MCDE_CHNL3SYNCHMOD_SRC_SYNCH_EXTERNAL 3
++#define MCDE_CHNL3SYNCHMOD_SRC_SYNCH_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_CHNL3SYNCHMOD, SRC_SYNCH, \
++	MCDE_CHNL3SYNCHMOD_SRC_SYNCH_##__x)
++#define MCDE_CHNL3SYNCHMOD_SRC_SYNCH(__x) \
++	MCDE_VAL2REG(MCDE_CHNL3SYNCHMOD, SRC_SYNCH, __x)
++#define MCDE_CHNL3SYNCHMOD_OUT_SYNCH_SRC_SHIFT 2
++#define MCDE_CHNL3SYNCHMOD_OUT_SYNCH_SRC_MASK 0x0000001C
++#define MCDE_CHNL3SYNCHMOD_OUT_SYNCH_SRC_FORMATTER 0
++#define MCDE_CHNL3SYNCHMOD_OUT_SYNCH_SRC_VSYNC0 1
++#define MCDE_CHNL3SYNCHMOD_OUT_SYNCH_SRC_VSYNC1 2
++#define MCDE_CHNL3SYNCHMOD_OUT_SYNCH_SRC_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_CHNL3SYNCHMOD, OUT_SYNCH_SRC, \
++	MCDE_CHNL3SYNCHMOD_OUT_SYNCH_SRC_##__x)
++#define MCDE_CHNL3SYNCHMOD_OUT_SYNCH_SRC(__x) \
++	MCDE_VAL2REG(MCDE_CHNL3SYNCHMOD, OUT_SYNCH_SRC, __x)
++#define MCDE_CHNL0SYNCHSW 0x0000060C
++#define MCDE_CHNL0SYNCHSW_GROUPOFFSET 0x20
++#define MCDE_CHNL0SYNCHSW_SW_TRIG_SHIFT 0
++#define MCDE_CHNL0SYNCHSW_SW_TRIG_MASK 0x00000001
++#define MCDE_CHNL0SYNCHSW_SW_TRIG(__x) \
++	MCDE_VAL2REG(MCDE_CHNL0SYNCHSW, SW_TRIG, __x)
++#define MCDE_CHNL1SYNCHSW 0x0000062C
++#define MCDE_CHNL1SYNCHSW_SW_TRIG_SHIFT 0
++#define MCDE_CHNL1SYNCHSW_SW_TRIG_MASK 0x00000001
++#define MCDE_CHNL1SYNCHSW_SW_TRIG(__x) \
++	MCDE_VAL2REG(MCDE_CHNL1SYNCHSW, SW_TRIG, __x)
++#define MCDE_CHNL2SYNCHSW 0x0000064C
++#define MCDE_CHNL2SYNCHSW_SW_TRIG_SHIFT 0
++#define MCDE_CHNL2SYNCHSW_SW_TRIG_MASK 0x00000001
++#define MCDE_CHNL2SYNCHSW_SW_TRIG(__x) \
++	MCDE_VAL2REG(MCDE_CHNL2SYNCHSW, SW_TRIG, __x)
++#define MCDE_CHNL3SYNCHSW 0x0000066C
++#define MCDE_CHNL3SYNCHSW_SW_TRIG_SHIFT 0
++#define MCDE_CHNL3SYNCHSW_SW_TRIG_MASK 0x00000001
++#define MCDE_CHNL3SYNCHSW_SW_TRIG(__x) \
++	MCDE_VAL2REG(MCDE_CHNL3SYNCHSW, SW_TRIG, __x)
++#define MCDE_CHNL0BCKGNDCOL 0x00000610
++#define MCDE_CHNL0BCKGNDCOL_GROUPOFFSET 0x20
++#define MCDE_CHNL0BCKGNDCOL_B_SHIFT 0
++#define MCDE_CHNL0BCKGNDCOL_B_MASK 0x000000FF
++#define MCDE_CHNL0BCKGNDCOL_B(__x) \
++	MCDE_VAL2REG(MCDE_CHNL0BCKGNDCOL, B, __x)
++#define MCDE_CHNL0BCKGNDCOL_G_SHIFT 8
++#define MCDE_CHNL0BCKGNDCOL_G_MASK 0x0000FF00
++#define MCDE_CHNL0BCKGNDCOL_G(__x) \
++	MCDE_VAL2REG(MCDE_CHNL0BCKGNDCOL, G, __x)
++#define MCDE_CHNL0BCKGNDCOL_R_SHIFT 16
++#define MCDE_CHNL0BCKGNDCOL_R_MASK 0x00FF0000
++#define MCDE_CHNL0BCKGNDCOL_R(__x) \
++	MCDE_VAL2REG(MCDE_CHNL0BCKGNDCOL, R, __x)
++#define MCDE_CHNL1BCKGNDCOL 0x00000630
++#define MCDE_CHNL1BCKGNDCOL_B_SHIFT 0
++#define MCDE_CHNL1BCKGNDCOL_B_MASK 0x000000FF
++#define MCDE_CHNL1BCKGNDCOL_B(__x) \
++	MCDE_VAL2REG(MCDE_CHNL1BCKGNDCOL, B, __x)
++#define MCDE_CHNL1BCKGNDCOL_G_SHIFT 8
++#define MCDE_CHNL1BCKGNDCOL_G_MASK 0x0000FF00
++#define MCDE_CHNL1BCKGNDCOL_G(__x) \
++	MCDE_VAL2REG(MCDE_CHNL1BCKGNDCOL, G, __x)
++#define MCDE_CHNL1BCKGNDCOL_R_SHIFT 16
++#define MCDE_CHNL1BCKGNDCOL_R_MASK 0x00FF0000
++#define MCDE_CHNL1BCKGNDCOL_R(__x) \
++	MCDE_VAL2REG(MCDE_CHNL1BCKGNDCOL, R, __x)
++#define MCDE_CHNL2BCKGNDCOL 0x00000650
++#define MCDE_CHNL2BCKGNDCOL_B_SHIFT 0
++#define MCDE_CHNL2BCKGNDCOL_B_MASK 0x000000FF
++#define MCDE_CHNL2BCKGNDCOL_B(__x) \
++	MCDE_VAL2REG(MCDE_CHNL2BCKGNDCOL, B, __x)
++#define MCDE_CHNL2BCKGNDCOL_G_SHIFT 8
++#define MCDE_CHNL2BCKGNDCOL_G_MASK 0x0000FF00
++#define MCDE_CHNL2BCKGNDCOL_G(__x) \
++	MCDE_VAL2REG(MCDE_CHNL2BCKGNDCOL, G, __x)
++#define MCDE_CHNL2BCKGNDCOL_R_SHIFT 16
++#define MCDE_CHNL2BCKGNDCOL_R_MASK 0x00FF0000
++#define MCDE_CHNL2BCKGNDCOL_R(__x) \
++	MCDE_VAL2REG(MCDE_CHNL2BCKGNDCOL, R, __x)
++#define MCDE_CHNL3BCKGNDCOL 0x00000670
++#define MCDE_CHNL3BCKGNDCOL_B_SHIFT 0
++#define MCDE_CHNL3BCKGNDCOL_B_MASK 0x000000FF
++#define MCDE_CHNL3BCKGNDCOL_B(__x) \
++	MCDE_VAL2REG(MCDE_CHNL3BCKGNDCOL, B, __x)
++#define MCDE_CHNL3BCKGNDCOL_G_SHIFT 8
++#define MCDE_CHNL3BCKGNDCOL_G_MASK 0x0000FF00
++#define MCDE_CHNL3BCKGNDCOL_G(__x) \
++	MCDE_VAL2REG(MCDE_CHNL3BCKGNDCOL, G, __x)
++#define MCDE_CHNL3BCKGNDCOL_R_SHIFT 16
++#define MCDE_CHNL3BCKGNDCOL_R_MASK 0x00FF0000
++#define MCDE_CHNL3BCKGNDCOL_R(__x) \
++	MCDE_VAL2REG(MCDE_CHNL3BCKGNDCOL, R, __x)
++#define MCDE_CHNL0MUXING_V2 0x00000614
++#define MCDE_CHNL0MUXING_V2_GROUPOFFSET 0x20
++#define MCDE_CHNL0MUXING_V2_FIFO_ID_SHIFT 0
++#define MCDE_CHNL0MUXING_V2_FIFO_ID_MASK 0x00000007
++#define MCDE_CHNL0MUXING_V2_FIFO_ID_FIFO_A 0
++#define MCDE_CHNL0MUXING_V2_FIFO_ID_FIFO_B 1
++#define MCDE_CHNL0MUXING_V2_FIFO_ID_FIFO_C0 2
++#define MCDE_CHNL0MUXING_V2_FIFO_ID_FIFO_C1 3
++#define MCDE_CHNL0MUXING_V2_FIFO_ID_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_CHNL0MUXING_V2, FIFO_ID, \
++	MCDE_CHNL0MUXING_V2_FIFO_ID_##__x)
++#define MCDE_CHNL0MUXING_V2_FIFO_ID(__x) \
++	MCDE_VAL2REG(MCDE_CHNL0MUXING_V2, FIFO_ID, __x)
++#define MCDE_CHNL1MUXING_V2 0x00000634
++#define MCDE_CHNL1MUXING_V2_FIFO_ID_SHIFT 0
++#define MCDE_CHNL1MUXING_V2_FIFO_ID_MASK 0x00000007
++#define MCDE_CHNL1MUXING_V2_FIFO_ID_FIFO_A 0
++#define MCDE_CHNL1MUXING_V2_FIFO_ID_FIFO_B 1
++#define MCDE_CHNL1MUXING_V2_FIFO_ID_FIFO_C0 2
++#define MCDE_CHNL1MUXING_V2_FIFO_ID_FIFO_C1 3
++#define MCDE_CHNL1MUXING_V2_FIFO_ID_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_CHNL1MUXING_V2, FIFO_ID, \
++	MCDE_CHNL1MUXING_V2_FIFO_ID_##__x)
++#define MCDE_CHNL1MUXING_V2_FIFO_ID(__x) \
++	MCDE_VAL2REG(MCDE_CHNL1MUXING_V2, FIFO_ID, __x)
++#define MCDE_CHNL2MUXING_V2 0x00000654
++#define MCDE_CHNL2MUXING_V2_FIFO_ID_SHIFT 0
++#define MCDE_CHNL2MUXING_V2_FIFO_ID_MASK 0x00000007
++#define MCDE_CHNL2MUXING_V2_FIFO_ID_FIFO_A 0
++#define MCDE_CHNL2MUXING_V2_FIFO_ID_FIFO_B 1
++#define MCDE_CHNL2MUXING_V2_FIFO_ID_FIFO_C0 2
++#define MCDE_CHNL2MUXING_V2_FIFO_ID_FIFO_C1 3
++#define MCDE_CHNL2MUXING_V2_FIFO_ID_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_CHNL2MUXING_V2, FIFO_ID, \
++	MCDE_CHNL2MUXING_V2_FIFO_ID_##__x)
++#define MCDE_CHNL2MUXING_V2_FIFO_ID(__x) \
++	MCDE_VAL2REG(MCDE_CHNL2MUXING_V2, FIFO_ID, __x)
++#define MCDE_CHNL3MUXING_V2 0x00000674
++#define MCDE_CHNL3MUXING_V2_FIFO_ID_SHIFT 0
++#define MCDE_CHNL3MUXING_V2_FIFO_ID_MASK 0x00000007
++#define MCDE_CHNL3MUXING_V2_FIFO_ID_FIFO_A 0
++#define MCDE_CHNL3MUXING_V2_FIFO_ID_FIFO_B 1
++#define MCDE_CHNL3MUXING_V2_FIFO_ID_FIFO_C0 2
++#define MCDE_CHNL3MUXING_V2_FIFO_ID_FIFO_C1 3
++#define MCDE_CHNL3MUXING_V2_FIFO_ID_ENUM(__x) \
++	MCDE_VAL2REG(MCDE_CHNL3MUXING_V2, FIFO_ID, \
++	MCDE_CHNL3MUXING_V2_FIFO_ID_##__x)
++#define MCDE_CHNL3MUXING_V2_FIFO_ID(__x) \
++	MCDE_VAL2REG(MCDE_CHNL3MUXING_V2, FIFO_ID, __x)
+-- 
+1.6.3.3
 
