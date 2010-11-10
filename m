@@ -1,87 +1,58 @@
-Return-path: <mchehab@gaivota>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:33742 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757201Ab0KSXoj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 18:44:39 -0500
-Subject: [PATCH 08/10] bttv: merge ir decoding timers
-To: linux-media@vger.kernel.org
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: jarod@wilsonet.com, mchehab@infradead.org
-Date: Sat, 20 Nov 2010 00:43:17 +0100
-Message-ID: <20101119234317.3511.48553.stgit@localhost.localdomain>
-In-Reply-To: <20101119233959.3511.91287.stgit@localhost.localdomain>
-References: <20101119233959.3511.91287.stgit@localhost.localdomain>
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:32742 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754254Ab0KJLBb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Nov 2010 06:01:31 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oAAB1V2u014514
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 10 Nov 2010 06:01:31 -0500
+Received: from shalem.localdomain (vpn1-5-48.ams2.redhat.com [10.36.5.48])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id oAAB1TNR006470
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 10 Nov 2010 06:01:31 -0500
+Message-ID: <4CDA7BC5.30803@redhat.com>
+Date: Wed, 10 Nov 2010 12:02:29 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PATCHES FOR 2.6.38] gspca-stv06xx: support bandwidth changing
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Similarly to saa7134, bttv_ir has two timers, only one of which is used
-at a time and which serve the same purpose. Merge them.
+Hi,
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
----
- drivers/media/video/bt8xx/bttv-input.c |    8 +++-----
- drivers/media/video/bt8xx/bttvp.h      |    3 +--
- 2 files changed, 4 insertions(+), 7 deletions(-)
+Here is a pull request the one patch which did not merge properly in my
+previous pull request.
 
-diff --git a/drivers/media/video/bt8xx/bttv-input.c b/drivers/media/video/bt8xx/bttv-input.c
-index c8bf423..8013d91 100644
---- a/drivers/media/video/bt8xx/bttv-input.c
-+++ b/drivers/media/video/bt8xx/bttv-input.c
-@@ -283,8 +283,7 @@ static int bttv_rc5_irq(struct bttv *btv)
- 		ir->base_time = tv;
- 		ir->last_bit = 0;
- 
--		mod_timer(&ir->timer_end,
--			  current_jiffies + msecs_to_jiffies(30));
-+		mod_timer(&ir->timer, current_jiffies + msecs_to_jiffies(30));
- 	}
- 
- 	/* toggle GPIO pin 4 to reset the irq */
-@@ -303,8 +302,7 @@ static void bttv_ir_start(struct bttv *btv, struct bttv_ir *ir)
- 		add_timer(&ir->timer);
- 	} else if (ir->rc5_gpio) {
- 		/* set timer_end for code completion */
--		setup_timer(&ir->timer_end, bttv_rc5_timer_end,
--			    (unsigned long)ir);
-+		setup_timer(&ir->timer, bttv_rc5_timer_end, (unsigned long)ir);
- 		ir->shift_by = 1;
- 		ir->start = 3;
- 		ir->addr = 0x0;
-@@ -322,7 +320,7 @@ static void bttv_ir_stop(struct bttv *btv)
- 	if (btv->remote->rc5_gpio) {
- 		u32 gpio;
- 
--		del_timer_sync(&btv->remote->timer_end);
-+		del_timer_sync(&btv->remote->timer);
- 		flush_scheduled_work();
- 
- 		gpio = bttv_gpio_read(&btv->c);
-diff --git a/drivers/media/video/bt8xx/bttvp.h b/drivers/media/video/bt8xx/bttvp.h
-index 3d5b2bc..0712320 100644
---- a/drivers/media/video/bt8xx/bttvp.h
-+++ b/drivers/media/video/bt8xx/bttvp.h
-@@ -122,6 +122,7 @@ struct bttv_format {
- 
- struct bttv_ir {
- 	struct rc_dev           *dev;
-+	struct timer_list       timer;
- 
- 	char                    name[32];
- 	char                    phys[32];
-@@ -136,11 +137,9 @@ struct bttv_ir {
- 	int                     start; // What should RC5_START() be
- 	int                     addr; // What RC5_ADDR() should be.
- 	int                     rc5_remote_gap;
--	struct timer_list       timer;
- 
- 	/* RC5 gpio */
- 	u32                     rc5_gpio;
--	struct timer_list       timer_end;  /* timer_end for code completion */
- 	u32                     last_bit;   /* last raw bit seen */
- 	u32                     code;       /* raw code under construction */
- 	struct timeval          base_time;  /* time of last seen code */
+I based this on staging/for_v2.6.38, as that is where the patches from the
+previous pull request ended up. But these are all bug-fixes intended for
+2.6.37. Do I need to do anything special (like a branch based on
+staging/for_v2.6.37-rc1 with all of them and a separate pull request) for
+this, or will you cherry pick them over later?
 
+The following changes since commit af9f14f7fc31f0d7b7cdf8f7f7f15a3c3794aea3:
+
+   [media] IR: add tv power scancode to rc6 mce keymap (2010-11-10 00:58:49 -0200)
+
+are available in the git repository at:
+   git://linuxtv.org/hgoede/gspca gspca-for_v2.6.38
+
+Hans de Goede (1):
+       gspca-stv06xx: support bandwidth changing
+
+  drivers/media/video/gspca/stv06xx/stv06xx.c        |   55 +++++++++++++++++++-
+  drivers/media/video/gspca/stv06xx/stv06xx_hdcs.h   |   11 ++++-
+  drivers/media/video/gspca/stv06xx/stv06xx_pb0100.c |   18 +++++--
+  drivers/media/video/gspca/stv06xx/stv06xx_pb0100.h |    3 +
+  drivers/media/video/gspca/stv06xx/stv06xx_sensor.h |    4 ++
+  drivers/media/video/gspca/stv06xx/stv06xx_st6422.c |   17 +------
+  drivers/media/video/gspca/stv06xx/stv06xx_st6422.h |    3 +
+  drivers/media/video/gspca/stv06xx/stv06xx_vv6410.h |    9 ++--
+  8 files changed, 93 insertions(+), 27 deletions(-)
+
+Regards,
+
+Hans
