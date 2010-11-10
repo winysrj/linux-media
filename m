@@ -1,163 +1,481 @@
-Return-path: <mchehab@gaivota>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:33749 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757492Ab0KSXom (ORCPT
+Return-path: <mchehab@pedra>
+Received: from eu1sys200aog120.obsmtp.com ([207.126.144.149]:54943 "EHLO
+	eu1sys200aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755835Ab0KJM0t (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 18:44:42 -0500
-Subject: [PATCH 09/10] mceusb: int to bool conversion
-To: linux-media@vger.kernel.org
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: jarod@wilsonet.com, mchehab@infradead.org
-Date: Sat, 20 Nov 2010 00:43:22 +0100
-Message-ID: <20101119234322.3511.37384.stgit@localhost.localdomain>
-In-Reply-To: <20101119233959.3511.91287.stgit@localhost.localdomain>
-References: <20101119233959.3511.91287.stgit@localhost.localdomain>
+	Wed, 10 Nov 2010 07:26:49 -0500
+From: Jimmy Rubin <jimmy.rubin@stericsson.com>
+To: <linux-fbdev@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>
+Cc: Linus Walleij <linus.walleij@stericsson.com>,
+	Dan Johansson <dan.johansson@stericsson.com>,
+	Jimmy Rubin <jimmy.rubin@stericsson.com>
+Subject: [PATCH 09/10] MCDE: Add build files and bus
+Date: Wed, 10 Nov 2010 13:04:12 +0100
+Message-ID: <1289390653-6111-10-git-send-email-jimmy.rubin@stericsson.com>
+In-Reply-To: <1289390653-6111-9-git-send-email-jimmy.rubin@stericsson.com>
+References: <1289390653-6111-1-git-send-email-jimmy.rubin@stericsson.com>
+ <1289390653-6111-2-git-send-email-jimmy.rubin@stericsson.com>
+ <1289390653-6111-3-git-send-email-jimmy.rubin@stericsson.com>
+ <1289390653-6111-4-git-send-email-jimmy.rubin@stericsson.com>
+ <1289390653-6111-5-git-send-email-jimmy.rubin@stericsson.com>
+ <1289390653-6111-6-git-send-email-jimmy.rubin@stericsson.com>
+ <1289390653-6111-7-git-send-email-jimmy.rubin@stericsson.com>
+ <1289390653-6111-8-git-send-email-jimmy.rubin@stericsson.com>
+ <1289390653-6111-9-git-send-email-jimmy.rubin@stericsson.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Convert boolean variables to use the corresponding data type.
+This patch adds support for the MCDE, Memory-to-display controller,
+found in the ST-Ericsson ux500 products.
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
+This patch adds the necessary build files for MCDE and the bus that
+all displays are connected to.
+
+Signed-off-by: Jimmy Rubin <jimmy.rubin@stericsson.com>
+Acked-by: Linus Walleij <linus.walleij.stericsson.com>
 ---
- drivers/media/rc/mceusb.c |   62 +++++++++++++++++++--------------------------
- 1 files changed, 26 insertions(+), 36 deletions(-)
+ drivers/video/Kconfig         |    2 +
+ drivers/video/Makefile        |    1 +
+ drivers/video/mcde/Kconfig    |   39 ++++++
+ drivers/video/mcde/Makefile   |   12 ++
+ drivers/video/mcde/mcde_bus.c |  259 +++++++++++++++++++++++++++++++++++++++++
+ drivers/video/mcde/mcde_mod.c |   67 +++++++++++
+ 6 files changed, 380 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/video/mcde/Kconfig
+ create mode 100644 drivers/video/mcde/Makefile
+ create mode 100644 drivers/video/mcde/mcde_bus.c
+ create mode 100644 drivers/video/mcde/mcde_mod.c
 
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index ef9bddc..bb6e2dc 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -103,9 +103,9 @@
+diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
+index 935cdc2..04aecf4 100644
+--- a/drivers/video/Kconfig
++++ b/drivers/video/Kconfig
+@@ -2260,6 +2260,8 @@ config FB_JZ4740
+ source "drivers/video/omap/Kconfig"
+ source "drivers/video/omap2/Kconfig"
  
- /* module parameters */
- #ifdef CONFIG_USB_DEBUG
--static int debug = 1;
-+static bool debug = true;
- #else
--static int debug;
-+static bool debug;
- #endif
++source "drivers/video/mcde/Kconfig"
++
+ source "drivers/video/backlight/Kconfig"
+ source "drivers/video/display/Kconfig"
  
- /* general constants */
-@@ -151,12 +151,12 @@ enum mceusb_model_type {
- };
- 
- struct mceusb_model {
--	u32 mce_gen1:1;
--	u32 mce_gen2:1;
--	u32 mce_gen3:1;
--	u32 tx_mask_inverted:1;
--	u32 is_polaris:1;
--	u32 no_tx:1;
-+	bool mce_gen1:1;
-+	bool mce_gen2:1;
-+	bool mce_gen3:1;
-+	bool tx_mask_inverted:1;
-+	bool is_polaris:1;
-+	bool no_tx:1;
- 
- 	const char *rc_map;	/* Allow specify a per-board map */
- 	const char *name;	/* per-board name */
-@@ -164,22 +164,22 @@ struct mceusb_model {
- 
- static const struct mceusb_model mceusb_model[] = {
- 	[MCE_GEN1] = {
--		.mce_gen1 = 1,
--		.tx_mask_inverted = 1,
-+		.mce_gen1 = true,
-+		.tx_mask_inverted = true,
- 	},
- 	[MCE_GEN2] = {
--		.mce_gen2 = 1,
-+		.mce_gen2 = true,
- 	},
- 	[MCE_GEN2_TX_INV] = {
--		.mce_gen2 = 1,
--		.tx_mask_inverted = 1,
-+		.mce_gen2 = true,
-+		.tx_mask_inverted = true,
- 	},
- 	[MCE_GEN3] = {
--		.mce_gen3 = 1,
--		.tx_mask_inverted = 1,
-+		.mce_gen3 = true,
-+		.tx_mask_inverted = true,
- 	},
- 	[POLARIS_EVK] = {
--		.is_polaris = 1,
-+		.is_polaris = true,
- 		/*
- 		 * In fact, the EVK is shipped without
- 		 * remotes, but we should have something handy,
-@@ -189,8 +189,8 @@ static const struct mceusb_model mceusb_model[] = {
- 		.name = "Conexant Hybrid TV (cx231xx) MCE IR",
- 	},
- 	[CX_HYBRID_TV] = {
--		.is_polaris = 1,
--		.no_tx = 1, /* tx isn't wired up at all */
-+		.is_polaris = true,
-+		.no_tx = true, /* tx isn't wired up at all */
- 		.name = "Conexant Hybrid TV (cx231xx) MCE IR",
- 	},
- };
-@@ -344,10 +344,10 @@ struct mceusb_dev {
- 	u8 cmd, rem;		/* Remaining IR data bytes in packet */
- 
- 	struct {
--		u32 connected:1;
--		u32 tx_mask_inverted:1;
--		u32 microsoft_gen1:1;
--		u32 no_tx:1;
-+		bool connected:1;
-+		bool tx_mask_inverted:1;
-+		bool microsoft_gen1:1;
-+		bool no_tx:1;
- 	} flags;
- 
- 	/* transmit support */
-@@ -1090,21 +1090,11 @@ static int __devinit mceusb_dev_probe(struct usb_interface *intf,
- 	int pipe, maxp, i;
- 	char buf[63], name[128] = "";
- 	enum mceusb_model_type model = id->driver_info;
--	bool is_gen3;
--	bool is_microsoft_gen1;
--	bool tx_mask_inverted;
--	bool is_polaris;
- 
- 	dev_dbg(&intf->dev, "%s called\n", __func__);
--
- 	idesc  = intf->cur_altsetting;
- 
--	is_gen3 = mceusb_model[model].mce_gen3;
--	is_microsoft_gen1 = mceusb_model[model].mce_gen1;
--	tx_mask_inverted = mceusb_model[model].tx_mask_inverted;
--	is_polaris = mceusb_model[model].is_polaris;
--
--	if (is_polaris) {
-+	if (mceusb_model[model].is_polaris) {
- 		/* Interface 0 is IR */
- 		if (idesc->desc.bInterfaceNumber)
- 			return -ENODEV;
-@@ -1167,8 +1157,8 @@ static int __devinit mceusb_dev_probe(struct usb_interface *intf,
- 	ir->usbdev = dev;
- 	ir->dev = &intf->dev;
- 	ir->len_in = maxp;
--	ir->flags.microsoft_gen1 = is_microsoft_gen1;
--	ir->flags.tx_mask_inverted = tx_mask_inverted;
-+	ir->flags.microsoft_gen1 = mceusb_model[model].mce_gen1;
-+	ir->flags.tx_mask_inverted = mceusb_model[model].tx_mask_inverted;
- 	ir->flags.no_tx = mceusb_model[model].no_tx;
- 	ir->model = model;
- 
-@@ -1203,7 +1193,7 @@ static int __devinit mceusb_dev_probe(struct usb_interface *intf,
- 	/* initialize device */
- 	if (ir->flags.microsoft_gen1)
- 		mceusb_gen1_init(ir);
--	else if (!is_gen3)
-+	else if (!mceusb_model[model].mce_gen3)
- 		mceusb_gen2_init(ir);
- 
- 	mceusb_get_parameters(ir);
+diff --git a/drivers/video/Makefile b/drivers/video/Makefile
+index 485e8ed..325cdcc 100644
+--- a/drivers/video/Makefile
++++ b/drivers/video/Makefile
+@@ -128,6 +128,7 @@ obj-$(CONFIG_FB_SH_MOBILE_HDMI)	  += sh_mobile_hdmi.o
+ obj-$(CONFIG_FB_SH_MOBILE_LCDC)	  += sh_mobile_lcdcfb.o
+ obj-$(CONFIG_FB_OMAP)             += omap/
+ obj-y                             += omap2/
++obj-$(CONFIG_FB_MCDE)             += mcde/
+ obj-$(CONFIG_XEN_FBDEV_FRONTEND)  += xen-fbfront.o
+ obj-$(CONFIG_FB_CARMINE)          += carminefb.o
+ obj-$(CONFIG_FB_MB862XX)	  += mb862xx/
+diff --git a/drivers/video/mcde/Kconfig b/drivers/video/mcde/Kconfig
+new file mode 100644
+index 0000000..5dab37b
+--- /dev/null
++++ b/drivers/video/mcde/Kconfig
+@@ -0,0 +1,39 @@
++config FB_MCDE
++	tristate "MCDE support"
++	depends on FB
++	select FB_SYS_FILLRECT
++	select FB_SYS_COPYAREA
++	select FB_SYS_IMAGEBLIT
++	select FB_SYS_FOPS
++	---help---
++	  This enables support for MCDE based frame buffer driver.
++
++	  Please read the file <file:Documentation/fb/mcde.txt>
++
++config MCDE_DISPLAY_GENERIC_DSI
++	tristate "Generic display driver"
++	depends on FB_MCDE
++
++config FB_MCDE_DEBUG
++	bool "MCDE debug messages"
++	depends on FB_MCDE
++	---help---
++	  Say Y here if you want the MCDE driver to output debug messages
++
++config FB_MCDE_VDEBUG
++	bool "MCDE verbose debug messages"
++	depends on FB_MCDE_DEBUG
++	---help---
++	  Say Y here if you want the MCDE driver to output more debug messages
++
++config MCDE_FB_AVOID_REALLOC
++	bool "MCDE early allocate framebuffer"
++	default n
++	depends on FB_MCDE
++	---help---
++	  If you say Y here maximum frame buffer size is allocated and
++	  used for all resolutions. If you say N here, the frame buffer is
++	  reallocated when resolution is changed. This reallocation might
++	  fail because of fragmented memory. Note that this memory will
++	  never be deallocated, while the MCDE framebuffer is used.
++
+diff --git a/drivers/video/mcde/Makefile b/drivers/video/mcde/Makefile
+new file mode 100644
+index 0000000..f90979a
+--- /dev/null
++++ b/drivers/video/mcde/Makefile
+@@ -0,0 +1,12 @@
++
++mcde-objs			:= mcde_mod.o mcde_hw.o mcde_dss.o mcde_display.o mcde_bus.o mcde_fb.o
++obj-$(CONFIG_FB_MCDE)		+= mcde.o
++
++obj-$(CONFIG_MCDE_DISPLAY_GENERIC_DSI)	+= display-generic_dsi.o
++
++ifdef CONFIG_FB_MCDE_DEBUG
++EXTRA_CFLAGS += -DDEBUG
++endif
++ifdef CONFIG_FB_MCDE_VDEBUG
++EXTRA_CFLAGS += -DVERBOSE_DEBUG
++endif
+diff --git a/drivers/video/mcde/mcde_bus.c b/drivers/video/mcde/mcde_bus.c
+new file mode 100644
+index 0000000..bc1f048
+--- /dev/null
++++ b/drivers/video/mcde/mcde_bus.c
+@@ -0,0 +1,259 @@
++/*
++ * Copyright (C) ST-Ericsson SA 2010
++ *
++ * ST-Ericsson MCDE display bus driver
++ *
++ * Author: Marcus Lorentzon <marcus.xm.lorentzon@stericsson.com>
++ * for ST-Ericsson.
++ *
++ * License terms: GNU General Public License (GPL), version 2.
++ */
++
++#include <linux/kernel.h>
++#include <linux/device.h>
++#include <linux/platform_device.h>
++#include <linux/dma-mapping.h>
++#include <linux/notifier.h>
++
++#include <video/mcde/mcde_display.h>
++#include <video/mcde/mcde_dss.h>
++
++#define to_mcde_display_driver(__drv) \
++	container_of((__drv), struct mcde_display_driver, driver)
++
++static BLOCKING_NOTIFIER_HEAD(bus_notifier_list);
++
++static int mcde_drv_suspend(struct device *_dev, pm_message_t state);
++static int mcde_drv_resume(struct device *_dev);
++struct bus_type mcde_bus_type;
++
++static int mcde_suspend_device(struct device *dev, void *data)
++{
++	pm_message_t* state = (pm_message_t *) data;
++	if (dev->driver->suspend)
++		return dev->driver->suspend(dev, *state);
++	return 0;
++}
++
++static int mcde_resume_device(struct device *dev, void *data)
++{
++	if (dev->driver->resume)
++		return dev->driver->resume(dev);
++	return 0;
++}
++
++/* Bus driver */
++
++static int mcde_bus_match(struct device *_dev, struct device_driver *driver)
++{
++	pr_debug("Matching device %s with driver %s\n",
++		dev_name(_dev), driver->name);
++
++	return strncmp(dev_name(_dev), driver->name, strlen(driver->name)) == 0;
++}
++
++static int mcde_bus_suspend(struct device *_dev, pm_message_t state)
++{
++	int ret;
++	ret = bus_for_each_dev(&mcde_bus_type, NULL, &state,
++				mcde_suspend_device);
++	if (ret) {
++		/* TODO Resume all suspended devices */
++		/* mcde_bus_resume(dev); */
++		return ret;
++	}
++	return 0;
++}
++
++static int mcde_bus_resume(struct device *_dev)
++{
++	return bus_for_each_dev(&mcde_bus_type, NULL, NULL, mcde_resume_device);
++}
++
++struct bus_type mcde_bus_type = {
++	.name = "mcde_bus",
++	.match = mcde_bus_match,
++	.suspend = mcde_bus_suspend,
++	.resume = mcde_bus_resume,
++};
++
++static int mcde_drv_probe(struct device *_dev)
++{
++	struct mcde_display_driver *drv = to_mcde_display_driver(_dev->driver);
++	struct mcde_display_device *dev = to_mcde_display_device(_dev);
++
++	return drv->probe(dev);
++}
++
++static int mcde_drv_remove(struct device *_dev)
++{
++	struct mcde_display_driver *drv = to_mcde_display_driver(_dev->driver);
++	struct mcde_display_device *dev = to_mcde_display_device(_dev);
++
++	return drv->remove(dev);
++}
++
++static void mcde_drv_shutdown(struct device *_dev)
++{
++	struct mcde_display_driver *drv = to_mcde_display_driver(_dev->driver);
++	struct mcde_display_device *dev = to_mcde_display_device(_dev);
++
++	drv->shutdown(dev);
++}
++
++static int mcde_drv_suspend(struct device *_dev, pm_message_t state)
++{
++	struct mcde_display_driver *drv = to_mcde_display_driver(_dev->driver);
++	struct mcde_display_device *dev = to_mcde_display_device(_dev);
++
++	return drv->suspend(dev, state);
++}
++
++static int mcde_drv_resume(struct device *_dev)
++{
++	struct mcde_display_driver *drv = to_mcde_display_driver(_dev->driver);
++	struct mcde_display_device *dev = to_mcde_display_device(_dev);
++
++	return drv->resume(dev);
++}
++
++/* Bus device */
++
++static void mcde_bus_release(struct device *dev)
++{
++}
++
++struct device mcde_bus = {
++	.init_name = "mcde_bus",
++	.release  = mcde_bus_release
++};
++
++/* Public bus API */
++
++int mcde_display_driver_register(struct mcde_display_driver *drv)
++{
++	drv->driver.bus = &mcde_bus_type;
++	if (drv->probe)
++		drv->driver.probe = mcde_drv_probe;
++	if (drv->remove)
++		drv->driver.remove = mcde_drv_remove;
++	if (drv->shutdown)
++		drv->driver.shutdown = mcde_drv_shutdown;
++	if (drv->suspend)
++		drv->driver.suspend = mcde_drv_suspend;
++	if (drv->resume)
++		drv->driver.resume = mcde_drv_resume;
++
++	return driver_register(&drv->driver);
++}
++EXPORT_SYMBOL(mcde_display_driver_register);
++
++void mcde_display_driver_unregister(struct mcde_display_driver *drv)
++{
++	driver_unregister(&drv->driver);
++}
++EXPORT_SYMBOL(mcde_display_driver_unregister);
++
++static void mcde_display_dev_release(struct device *dev)
++{
++	/* Do nothing */
++}
++
++int mcde_display_device_register(struct mcde_display_device *dev)
++{
++	/* Setup device */
++	if (!dev)
++		return -EINVAL;
++	dev->dev.coherent_dma_mask = DMA_BIT_MASK(32);
++	dev->dev.bus = &mcde_bus_type;
++	if (dev->dev.parent != NULL)
++		dev->dev.parent = &mcde_bus;
++	dev->dev.release = mcde_display_dev_release;
++	if (dev->id != -1)
++		dev_set_name(&dev->dev, "%s.%d", dev->name,  dev->id);
++	else
++		dev_set_name(&dev->dev, dev->name);
++
++	mcde_display_init_device(dev);
++
++	return device_register(&dev->dev);
++}
++EXPORT_SYMBOL(mcde_display_device_register);
++
++void mcde_display_device_unregister(struct mcde_display_device *dev)
++{
++	device_unregister(&dev->dev);
++}
++EXPORT_SYMBOL(mcde_display_device_unregister);
++
++/* Notifications */
++int mcde_dss_register_notifier(struct notifier_block *nb)
++{
++	return blocking_notifier_chain_register(&bus_notifier_list, nb);
++}
++EXPORT_SYMBOL(mcde_dss_register_notifier);
++
++int mcde_dss_unregister_notifier(struct notifier_block *nb)
++{
++	return blocking_notifier_chain_unregister(&bus_notifier_list, nb);
++}
++EXPORT_SYMBOL(mcde_dss_unregister_notifier);
++
++static int bus_notify_callback(struct notifier_block *nb,
++	unsigned long event, void *dev)
++{
++	struct mcde_display_device *ddev = to_mcde_display_device(dev);
++
++	if (event == BUS_NOTIFY_BOUND_DRIVER) {
++		ddev->initialized = true;
++		blocking_notifier_call_chain(&bus_notifier_list,
++			MCDE_DSS_EVENT_DISPLAY_REGISTERED, ddev);
++	} else if (event == BUS_NOTIFY_UNBIND_DRIVER) {
++		ddev->initialized = false;
++		blocking_notifier_call_chain(&bus_notifier_list,
++			MCDE_DSS_EVENT_DISPLAY_UNREGISTERED, ddev);
++	}
++	return 0;
++}
++
++struct notifier_block bus_nb = {
++	.notifier_call = bus_notify_callback,
++};
++
++/* Driver init/exit */
++
++int __init mcde_display_init(void)
++{
++	int ret;
++
++	ret = bus_register(&mcde_bus_type);
++	if (ret) {
++		pr_warning("Unable to register bus type\n");
++		return ret;
++	}
++	ret = device_register(&mcde_bus);
++	if (ret) {
++		pr_warning("Unable to register bus device\n");
++		goto no_device_registration;
++	}
++	ret = bus_register_notifier(&mcde_bus_type, &bus_nb);
++	if (ret) {
++		pr_warning("Unable to register bus notifier\n");
++		goto no_bus_notifier;
++	}
++
++	return 0;
++
++no_bus_notifier:
++	device_unregister(&mcde_bus);
++no_device_registration:
++	bus_unregister(&mcde_bus_type);
++	return ret;
++}
++
++void mcde_display_exit(void)
++{
++	bus_unregister_notifier(&mcde_bus_type, &bus_nb);
++	device_unregister(&mcde_bus);
++	bus_unregister(&mcde_bus_type);
++}
+diff --git a/drivers/video/mcde/mcde_mod.c b/drivers/video/mcde/mcde_mod.c
+new file mode 100644
+index 0000000..297857f
+--- /dev/null
++++ b/drivers/video/mcde/mcde_mod.c
+@@ -0,0 +1,67 @@
++/*
++ * Copyright (C) ST-Ericsson SA 2010
++ *
++ * ST-Ericsson MCDE driver
++ *
++ * Author: Marcus Lorentzon <marcus.xm.lorentzon@stericsson.com>
++ * for ST-Ericsson.
++ *
++ * License terms: GNU General Public License (GPL), version 2.
++ */
++#include <linux/init.h>
++#include <linux/module.h>
++
++#include <video/mcde/mcde.h>
++#include <video/mcde/mcde_fb.h>
++#include <video/mcde/mcde_dss.h>
++#include <video/mcde/mcde_display.h>
++
++/* Module init */
++
++static int __init mcde_subsystem_init(void)
++{
++	int ret;
++	pr_info("MCDE subsystem init begin\n");
++
++	/* MCDE module init sequence */
++	ret = mcde_init();
++	if (ret)
++		return ret;
++	ret = mcde_display_init();
++	if (ret)
++		goto mcde_display_failed;
++	ret = mcde_dss_init();
++	if (ret)
++		goto mcde_dss_failed;
++	ret = mcde_fb_init();
++	if (ret)
++		goto mcde_fb_failed;
++	pr_info("MCDE subsystem init done\n");
++
++	return 0;
++mcde_fb_failed:
++	mcde_dss_exit();
++mcde_dss_failed:
++	mcde_display_exit();
++mcde_display_failed:
++	mcde_exit();
++	return ret;
++}
++#ifdef MODULE
++module_init(mcde_subsystem_init);
++#else
++fs_initcall(mcde_subsystem_init);
++#endif
++
++static void __exit mcde_module_exit(void)
++{
++	mcde_exit();
++	mcde_display_exit();
++	mcde_dss_exit();
++}
++module_exit(mcde_module_exit);
++
++MODULE_AUTHOR("Marcus Lorentzon <marcus.xm.lorentzon@stericsson.com>");
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("ST-Ericsson MCDE driver");
++
+-- 
+1.6.3.3
 
