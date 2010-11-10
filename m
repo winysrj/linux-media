@@ -1,43 +1,74 @@
-Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39754 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755720Ab0KUUcy (ORCPT
+Return-path: <mchehab@pedra>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:45220 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756001Ab0KJNG1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Nov 2010 15:32:54 -0500
-Received: from localhost.localdomain (unknown [91.178.49.10])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 5A21F35CA7
-	for <linux-media@vger.kernel.org>; Sun, 21 Nov 2010 20:32:53 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 5/5] uvcvideo: Convert to unlocked_ioctl
-Date: Sun, 21 Nov 2010 21:32:53 +0100
-Message-Id: <1290371573-14907-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1290371573-14907-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1290371573-14907-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Wed, 10 Nov 2010 08:06:27 -0500
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Date: Wed, 10 Nov 2010 14:06:24 +0100
+From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Jarod Wilson <jarod@wilsonet.com>, <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 0/6] rc-core: ir-core to rc-core conversion
+In-Reply-To: <4CDA94C6.2010506@infradead.org>
+References: <20101102201733.12010.30019.stgit@localhost.localdomain> <AANLkTi=z2yU568sEs0RNuQ6gZUzJQeHajTZ_0LeXS-2D@mail.gmail.com> <4CD9FA59.9020702@infradead.org> <33c8487ce0141587f695d9719289467e@hardeman.nu> <4CDA94C6.2010506@infradead.org>
+Message-ID: <0bda4af059880eb492d921728997958c@hardeman.nu>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-The uvcvideo driver now locks all ioctls correctly on its own, the BKL
-isn't needed anymore.
+On Wed, 10 Nov 2010 10:49:10 -0200, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+> Em 10-11-2010 07:24, David Härdeman escreveu:
+>> Not sure if you used the most recent version of patch 4/6 or not.
+>> 
+>> If you used the most recent, it's based on 2.6.37-rc1 upstream which
+has
+>> both the large-input-scancodes patches as well as two important
+bugfixes
+>> to ir-keytable.c, so since your staging/for_v2.6.38 is based on 2.6.36
+>> plus the staging/for_v2.6.37-rc1 branch, it won't apply.
+> 
+> Gah! Yeah, my tree is based on 2.6.36, but we need to be based on
+.37-rc1.
+> I'll merge .37-rc1.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/uvc/uvc_v4l2.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+I think/hope my patches will apply with little to no fuzz once you've done
+that.
 
-diff --git a/drivers/media/video/uvc/uvc_v4l2.c b/drivers/media/video/uvc/uvc_v4l2.c
-index b4615e2..3349e26 100644
---- a/drivers/media/video/uvc/uvc_v4l2.c
-+++ b/drivers/media/video/uvc/uvc_v4l2.c
-@@ -1088,7 +1088,7 @@ const struct v4l2_file_operations uvc_fops = {
- 	.owner		= THIS_MODULE,
- 	.open		= uvc_v4l2_open,
- 	.release	= uvc_v4l2_release,
--	.ioctl		= uvc_v4l2_ioctl,
-+	.unlocked_ioctl	= uvc_v4l2_ioctl,
- 	.read		= uvc_v4l2_read,
- 	.mmap		= uvc_v4l2_mmap,
- 	.poll		= uvc_v4l2_poll,
+>> My name used to be UTF-8 encoded in winbond-cir, and it was changed
+>> upstream (not by me), so I'm not going to revert it.
+> 
+> Patchwork handles very badly charset encodings, due to Python. I sent
+> several
+> patches for it to fix several problems I noticed there.
+> Basically, Python kills any script if the an invalid character is
+inserted
+> on a string. E. g., if your emailer says that the email is encoded as
+> UTF-8, and
+> a non-UTF-8 character is found on any part of the email, the script will
+> die, as
+> it will try to write the email contents on some vars. 
+> 
+> Due to that, a patch/email with an invalid character on his 
+> charset will be silently discarded by patchwork, as the script will die.
+
+Not much I can do there :)
+
+> I suspect that your emailer might be doing some bad things also, as I
+need 
+> to manually fix your author's name every time. In general the SOB on
+your
+> emails have one encoding, while the From: has another encoding.
+
+I didn't know that, I'll have a look. I'm guessing that both iso88591-1
+and utf-8 encodings are used.
+
+> So, I'll try to merge the pending patches from your tree. I'll let you
+> know if I have any problems.
+
+Sounds good. Thanks.
+
 -- 
-1.7.2.2
-
+David Härdeman
