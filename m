@@ -1,66 +1,65 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4954 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752618Ab0KMOkV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Nov 2010 09:40:21 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCH 3/3] i2c: Mark i2c_adapter.id as deprecated
-Date: Sat, 13 Nov 2010 15:40:06 +0100
-Cc: Linux I2C <linux-i2c@vger.kernel.org>,
-	LMML <linux-media@vger.kernel.org>,
-	Jarod Wilson <jarod@redhat.com>
-References: <20101105211001.1cc93ac7@endymion.delvare>
-In-Reply-To: <20101105211001.1cc93ac7@endymion.delvare>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011131540.06705.hverkuil@xs4all.nl>
+Received: from smtp205.alice.it ([82.57.200.101]:56718 "EHLO smtp205.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756231Ab0KJPzT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Nov 2010 10:55:19 -0500
+Date: Wed, 10 Nov 2010 16:54:38 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Mohamed Ikbel Boulabiar <boulabiar@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Bounty for the first Open Source driver for Kinect
+Message-Id: <20101110165438.632e487b.ospite@studenti.unina.it>
+In-Reply-To: <AANLkTimCRU2ZoF0=CjP4D5C4YPdZtHZfp_xYgUiP0g1J@mail.gmail.com>
+References: <AANLkTimMJ+u0qXs=LJ+XZ2HH6Ubc4fTSqseXFJAzMJnX@mail.gmail.com>
+	<AANLkTimCRU2ZoF0=CjP4D5C4YPdZtHZfp_xYgUiP0g1J@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Wed__10_Nov_2010_16_54_38_+0100_jGpi6wnO_hSPFl7N"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Friday, November 05, 2010 21:10:01 Jean Delvare wrote:
-> It's about time to make it clear that i2c_adapter.id is deprecated.
-> Hopefully this will remind the last user to move over to a different
-> strategy.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Cc: Jarod Wilson <jarod@redhat.com>
+--Signature=_Wed__10_Nov_2010_16_54_38_+0100_jGpi6wnO_hSPFl7N
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+On Wed, 10 Nov 2010 15:20:40 +0100
+Mohamed Ikbel Boulabiar <boulabiar@gmail.com> wrote:
 
-> ---
->  drivers/i2c/i2c-mux.c |    1 -
->  include/linux/i2c.h   |    2 +-
->  2 files changed, 1 insertion(+), 2 deletions(-)
-> 
-> --- linux-2.6.37-rc1.orig/include/linux/i2c.h	2010-11-05 13:55:17.000000000 +0100
-> +++ linux-2.6.37-rc1/include/linux/i2c.h	2010-11-05 15:41:20.000000000 +0100
-> @@ -353,7 +353,7 @@ struct i2c_algorithm {
->   */
->  struct i2c_adapter {
->  	struct module *owner;
-> -	unsigned int id;
-> +	unsigned int id __deprecated;
->  	unsigned int class;		  /* classes to allow probing for */
->  	const struct i2c_algorithm *algo; /* the algorithm to access the bus */
->  	void *algo_data;
-> --- linux-2.6.37-rc1.orig/drivers/i2c/i2c-mux.c	2010-11-05 16:06:18.000000000 +0100
-> +++ linux-2.6.37-rc1/drivers/i2c/i2c-mux.c	2010-11-05 16:06:33.000000000 +0100
-> @@ -120,7 +120,6 @@ struct i2c_adapter *i2c_add_mux_adapter(
->  	snprintf(priv->adap.name, sizeof(priv->adap.name),
->  		 "i2c-%d-mux (chan_id %d)", i2c_adapter_id(parent), chan_id);
->  	priv->adap.owner = THIS_MODULE;
-> -	priv->adap.id = parent->id;
->  	priv->adap.algo = &priv->algo;
->  	priv->adap.algo_data = priv;
->  	priv->adap.dev.parent = &parent->dev;
-> 
-> 
-> 
+> MS Kinect interfacing via libusb released
+> http://www.youtube.com/watch?v=3DrKhW-cvpkks
+>=20
+> http://git.marcansoft.com/?p=3Dlibfreenect.git
+>=20
 
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Good, if anyone is willing to provide the hardware I think I can help
+with a proper gspca driver (I helped with the PS3 Eye already). Are
+there other RGB-Depth cams supported in linux? Are they usually exposed
+just as two distinct cameras?
+
+Regards,
+   Antonio
+
+--=20
+Antonio Ospite
+http://ao2.it
+
+PGP public key ID: 0x4553B001
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+
+--Signature=_Wed__10_Nov_2010_16_54_38_+0100_jGpi6wnO_hSPFl7N
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAkzawD4ACgkQ5xr2akVTsAHvbACghVMJTq4QxLImGtFqvHo9eikP
++bsAoItYcC4UpsP05LfWNmx0bD2Fk+XV
+=uhhZ
+-----END PGP SIGNATURE-----
+
+--Signature=_Wed__10_Nov_2010_16_54_38_+0100_jGpi6wnO_hSPFl7N--
