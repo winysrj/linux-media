@@ -1,45 +1,45 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:38856 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754740Ab0KAJWg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Nov 2010 05:22:36 -0400
-Subject: [PATCH] V4L/DVB: tea6415c: return -EIO if i2c_check_functionality
-	fails
-From: Axel Lin <axel.lin@gmail.com>
-To: linux-kernel <linux-kernel@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Content-Type: text/plain
-Date: Mon, 01 Nov 2010 17:25:39 +0800
-Message-Id: <1288603539.3831.2.camel@mola>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3445 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755814Ab0KJNYd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Nov 2010 08:24:33 -0500
+Message-ID: <4c82bf1c3e1d08acd513e99ac15a2f81.squirrel@webmail.xs4all.nl>
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A7C77@dbde02.ent.ti.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A7C77@dbde02.ent.ti.com>
+Date: Wed, 10 Nov 2010 14:24:12 +0100
+Subject: RE: [PATCH 1/6] davinci vpbe: V4L2 display driver for DM644X SoC
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+Cc: "LMML" <linux-media@vger.kernel.org>,
+	"dlos" <davinci-linux-open-source@linux.davincidsp.com>,
+	"Mauro Carvalho Chehab" <mchehab@redhat.com>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-If the adapter does not support I2C_FUNC_SMBUS_WRITE_BYTE,
-return -EIO instead of 0.
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
----
- drivers/media/video/tea6415c.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+> Hans,
+>  Thank you for the review. I have taken care of the points you mentioned.
+> The name comparison is unnecessary. I have also replaced the native
+> struct definitions with those of v4l2. Request you to go through the rest
+> of the patches so I can send the set once again.
 
-diff --git a/drivers/media/video/tea6415c.c b/drivers/media/video/tea6415c.c
-index 3e99cea..19621ed 100644
---- a/drivers/media/video/tea6415c.c
-+++ b/drivers/media/video/tea6415c.c
-@@ -148,7 +148,7 @@ static int tea6415c_probe(struct i2c_client *client,
- 
- 	/* let's see whether this adapter can support what we need */
- 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_WRITE_BYTE))
--		return 0;
-+		return -EIO;
- 
- 	v4l_info(client, "chip found @ 0x%x (%s)\n",
- 			client->addr << 1, client->adapter->name);
+I won't have time for that until Friday at the earliest. More likely it
+will be the weekend. I hope that's OK.
+
+Regards,
+
+       Hans
+
+>
+> Thanks and Regards,
+> -Manju
+
+
 -- 
-1.7.2
-
-
+Hans Verkuil - video4linux developer - sponsored by Cisco
 
