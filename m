@@ -1,200 +1,127 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:45831 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755950Ab0KJMtR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Nov 2010 07:49:17 -0500
-Message-ID: <4CDA94C6.2010506@infradead.org>
-Date: Wed, 10 Nov 2010 10:49:10 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from mailout-de.gmx.net ([213.165.64.22]:35150 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1756009Ab0KJOYY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Nov 2010 09:24:24 -0500
+Date: Wed, 10 Nov 2010 15:24:31 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Wolfram Sang <w.sang@pengutronix.de>
+cc: linux-i2c@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sergio Aguirre <saaguirre@ti.com>,
+	Michael Grzeschik <m.grzeschik@pengutronix.de>,
+	Philipp Wiesner <p.wiesner@phytec.de>,
+	=?UTF-8?q?M=C3=A1rton=20N=C3=A9meth?= <nm127@freemail.hu>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: video: do not clear 'driver' from an i2c_client
+In-Reply-To: <1289398455-21949-1-git-send-email-w.sang@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.1011101524120.13739@axis700.grange>
+References: <1289398455-21949-1-git-send-email-w.sang@pengutronix.de>
 MIME-Version: 1.0
-To: =?UTF-8?B?RGF2aWQgSMOkcmRlbWFu?= <david@hardeman.nu>
-CC: Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/6] rc-core: ir-core to rc-core conversion
-References: <20101102201733.12010.30019.stgit@localhost.localdomain> <AANLkTi=z2yU568sEs0RNuQ6gZUzJQeHajTZ_0LeXS-2D@mail.gmail.com> <4CD9FA59.9020702@infradead.org> <33c8487ce0141587f695d9719289467e@hardeman.nu>
-In-Reply-To: <33c8487ce0141587f695d9719289467e@hardeman.nu>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 10-11-2010 07:24, David Härdeman escreveu:
-> On Tue, 09 Nov 2010 23:50:17 -0200, Mauro Carvalho Chehab
-> <mchehab@infradead.org> wrote:
->> Hi David,
->>
->> Em 02-11-2010 18:26, Jarod Wilson escreveu:
->>> On Tue, Nov 2, 2010 at 4:17 PM, David Härdeman <david@hardeman.nu>
->>> wrote:
->>>> This is my current patch queue, the main change is to make struct
-> rc_dev
->>>> the primary interface for rc drivers and to abstract away the fact
-> that
->>>> there's an input device lurking in there somewhere.
->>>>
->>>> In addition, the cx88 and winbond-cir drivers are converted to use
->>>> rc-core.
->>>>
->>>> The patchset is now based on current linux-2.6 upstream git tree since
->>>> it
->>>> carries both the v4l patches from the staging/for_v2.6.37-rc1 branch,
->>>> large
->>>> scancode support and bugfixes.
->>>>
->>>> Given the changes, these patches touch every single driver. Obviously
-> I
->>>> haven't tested them all due to a lack of hardware (I have made sure
-> that
->>>> all drivers compile without any warnings and I have tested the end
->>>> result
->>>> on mceusb and winbond-cir hardware, Jarod Wilson has tested
-> nuvoton-cir,
->>>> imon and several mceusb devices).
->>>
->>> And streamzap! :)
->>>
->>> Mauro's at the kernel summit, but I had a brief moment to talk to him
->>> earlier today. He had a few issues he wanted to give feedback on, but
->>> I didn't get any specifics yet, other than him not liking the rc-map.c
->>> bits merged into rc-main.c, mainly because part of the plan is to
->>> remove in-kernel maps entirely in 2.6.38. It doesn't make a big
->>> difference to me either way, and rc-main.c is still only 1300-ish
->>> lines, and would be even less once rc-map.c bits are ripped out...
->>
->> Sorry for giving you a late feedback about those patches. I was busy the
->> last two
->> weeks, due to my trip to US for KS/LPC.
->>
->> I've applied patches 1 to 3 (in fact, I got the patches from the
-> previous
->> version - 
->> unfortunately, patchwork do a very bad job when someone sends a new
-> series
->> that superseeds
->> the previous patches).
-> 
-> Kinda makes it pointless to refresh patchsets, doesn't it?
+On Wed, 10 Nov 2010, Wolfram Sang wrote:
 
-Yes.
+> The i2c-core does this already.
+> 
+> Reported-by: Jean Delvare <khali@linux-fr.org>
+> Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+
+Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+
+> ---
+> 
+> Not sure if this should go via i2c or media?
+> 
+>  drivers/media/video/imx074.c     |    1 -
+>  drivers/media/video/mt9m001.c    |    1 -
+>  drivers/media/video/mt9m111.c    |    1 -
+>  drivers/media/video/mt9t031.c    |    1 -
+>  drivers/media/video/mt9v022.c    |    1 -
+>  drivers/media/video/rj54n1cb0c.c |    1 -
+>  6 files changed, 0 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/video/imx074.c b/drivers/media/video/imx074.c
+> index 27b5dfd..1a11691 100644
+> --- a/drivers/media/video/imx074.c
+> +++ b/drivers/media/video/imx074.c
+> @@ -467,7 +467,6 @@ static int imx074_remove(struct i2c_client *client)
+>  	icd->ops = NULL;
+>  	if (icl->free_bus)
+>  		icl->free_bus(icl);
+> -	client->driver = NULL;
+>  	kfree(priv);
 >  
->> I didn't like patch 4 for some reasons: instead of just doing rename, it
->> is a
->> all-in-one patch, doing several things at the same time. It is hard to
->> analyse it by
->> just looking at the diffs, as it is not a pure rename patch.
+>  	return 0;
+> diff --git a/drivers/media/video/mt9m001.c b/drivers/media/video/mt9m001.c
+> index fcb4cd9..f7fc88d 100644
+> --- a/drivers/media/video/mt9m001.c
+> +++ b/drivers/media/video/mt9m001.c
+> @@ -798,7 +798,6 @@ static int mt9m001_remove(struct i2c_client *client)
+>  
+>  	icd->ops = NULL;
+>  	mt9m001_video_remove(icd);
+> -	client->driver = NULL;
+>  	kfree(mt9m001);
+>  
+>  	return 0;
+> diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+> index 525a16e..53fa2a7 100644
+> --- a/drivers/media/video/mt9m111.c
+> +++ b/drivers/media/video/mt9m111.c
+> @@ -1092,7 +1092,6 @@ static int mt9m111_remove(struct i2c_client *client)
+>  	struct soc_camera_device *icd = client->dev.platform_data;
+>  
+>  	icd->ops = NULL;
+> -	client->driver = NULL;
+>  	kfree(mt9m111);
+>  
+>  	return 0;
+> diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
+> index 9bd44a8..7ce279c 100644
+> --- a/drivers/media/video/mt9t031.c
+> +++ b/drivers/media/video/mt9t031.c
+> @@ -896,7 +896,6 @@ static int mt9t031_remove(struct i2c_client *client)
+>  
+>  	if (icd)
+>  		icd->ops = NULL;
+> -	client->driver = NULL;
+>  	kfree(mt9t031);
+>  
+>  	return 0;
+> diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
+> index b96171c..6a784c8 100644
+> --- a/drivers/media/video/mt9v022.c
+> +++ b/drivers/media/video/mt9v022.c
+> @@ -930,7 +930,6 @@ static int mt9v022_remove(struct i2c_client *client)
+>  
+>  	icd->ops = NULL;
+>  	mt9v022_video_remove(icd);
+> -	client->driver = NULL;
+>  	kfree(mt9v022);
+>  
+>  	return 0;
+> diff --git a/drivers/media/video/rj54n1cb0c.c b/drivers/media/video/rj54n1cb0c.c
+> index d2fa2d4..57e11b6 100644
+> --- a/drivers/media/video/rj54n1cb0c.c
+> +++ b/drivers/media/video/rj54n1cb0c.c
+> @@ -1460,7 +1460,6 @@ static int rj54n1_remove(struct i2c_client *client)
+>  	icd->ops = NULL;
+>  	if (icl->free_bus)
+>  		icl->free_bus(icl);
+> -	client->driver = NULL;
+>  	kfree(rj54n1);
+>  
+>  	return 0;
+> -- 
+> 1.7.2.3
 > 
-> It was an almost pure merge + rename (it added only the things that follow
-> from the merger...forward declarations and making functions static).
-> 
-> The real problem is that, since it includes the removal of files, those
-> files need to be identical.
-> 
->> Also, it
->> doesn't rename
->> /drivers/media/IR into something else.
-> 
-> No, of course not, that would have made the patch even larger for little
-> gain.
-> 
-> I see that you've included a renaming patch in your patchset sent to the
-> list, but wouldn't it be easier to apply it after all the other patches
-> rather than before?
-
-When such change is done as I did, git is smart enough to do the right thing. So,
-even if the file suffered changes, it is still a rename operation there, even
-if the file had changes.
-
-> 
->> Btw, the patch is currently broken:
->>
->> $ quilt push
->> Applying patch
->> patches/lmml_298052_4_6_ir_core_merge_and_rename_to_rc_core.patch
->> patching file drivers/media/IR/Makefile
->> patching file drivers/media/IR/ir-core-priv.h
->> patching file drivers/media/IR/ir-keytable.c
->> Hunk #1 FAILED at 1.
->> File drivers/media/IR/ir-keytable.c is not empty after patch, as
-> expected
->> 1 out of 1 hunk FAILED -- rejects in file drivers/media/IR/ir-keytable.c
-> 
-> Not sure if you used the most recent version of patch 4/6 or not.
-> 
-> If you used the most recent, it's based on 2.6.37-rc1 upstream which has
-> both the large-input-scancodes patches as well as two important bugfixes to
-> ir-keytable.c, so since your staging/for_v2.6.38 is based on 2.6.36 plus
-> the staging/for_v2.6.37-rc1 branch, it won't apply.
-
-Gah! Yeah, my tree is based on 2.6.36, but we need to be based on .37-rc1.
-I'll merge .37-rc1.
-
-> If you used to second most recent, then it's based on the
-> input-large-scancodes being merged but not the two upstream bugfixes which
-> followed it.
-> 
-> Whichever way you choose, those two bugfixes should not get lost in the
-> noise.
-
-Yeah, sure. The git renaming patches will probably do the right thing. I'll
-double check.
-
->> patching file drivers/media/IR/ir-raw-event.c
->> patching file drivers/media/IR/ir-sysfs.c
->> patching file drivers/media/IR/rc-main.c
->> patching file drivers/media/IR/rc-map.c
->> patching file drivers/media/IR/rc-raw.c
->> patching file include/media/ir-core.h
->> Patch patches/lmml_298052_4_6_ir_core_merge_and_rename_to_rc_core.patch
->> does not apply (enforce with -f)
->>
->> I think that the better is if I write a few patches doing the basic
-> rename
->> stuff, based on my
->> current tip, and then we can discuss about merging things into a fewer
->> number of files, as 
->> you're proposing, and apply patch 5/6 and 6/6.
->>
->> Not sure why, but patchwork didn't seem to catch patch 6/6. I suspect
-> that
->> it is because your
->> name is not encoded with UTF-8 inside the driver. I've picked it
-> manually
->> here, and fixed
->> the naming stuff, but it needs patch 5/6, in order to work.
-> 
-> My name used to be UTF-8 encoded in winbond-cir, and it was changed
-> upstream (not by me), so I'm not going to revert it.
-
-Patchwork handles very badly charset encodings, due to Python. I sent several
-patches for it to fix several problems I noticed there.
-Basically, Python kills any script if the an invalid character is inserted
-on a string. E. g., if your emailer says that the email is encoded as UTF-8, and
-a non-UTF-8 character is found on any part of the email, the script will die, as
-it will try to write the email contents on some vars. 
-
-Due to that, a patch/email with an invalid character on his 
-charset will be silently discarded by patchwork, as the script will die.
-
-I suspect that your emailer might be doing some bad things also, as I need 
-to manually fix your author's name every time. In general the SOB on your
-emails have one encoding, while the From: has another encoding.
- 
->> I'll be pushing the renaming stuff soon at ML. I'll try to use your
-> naming
->> convention and, if
->> I do it well, maybe I can apply patches 5/6 and 6/6 on it without
->> rebasing. Well, let's see.
-> 
-> I'll wait for more feedback then?
-
-I'm pulling from 2.6.37-rc1 on my tree. I prefer to keep my approach of using the
-git rename stuff on separate patches, as the patches become smaller and easier
-to review, and git should probably handle it well, when merged upstream.
-
-So, I'll try to merge the pending patches from your tree. I'll let you know if
-I have any problems.
-
-Cheers,
-Mauro
 > 
 
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
