@@ -1,45 +1,134 @@
 Return-path: <mchehab@pedra>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:39401 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753120Ab0KLVG7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Nov 2010 16:06:59 -0500
-Date: Fri, 12 Nov 2010 22:06:56 +0100
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Raw mode for SAA7134_BOARD_ENCORE_ENLTV_FM53?
-Message-ID: <20101112210656.GB18719@hardeman.nu>
-References: <20101112141453.GA15756@hardeman.nu>
- <4CDD4DFC.4080105@infradead.org>
+Received: from mailout-de.gmx.net ([213.165.64.23]:45330 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1754283Ab0KJNBX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Nov 2010 08:01:23 -0500
+Date: Wed, 10 Nov 2010 14:01:23 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Wolfram Sang <w.sang@pengutronix.de>
+cc: linux-i2c@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Greg Kroah-Hartman <gregkh@suse.de>,
+	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Hong Liu <hong.liu@intel.com>, Alan Cox <alan@linux.intel.com>,
+	Anantha Narayanan <anantha.narayanan@intel.com>,
+	Andres Salomon <dilinger@queued.net>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	devel@driverdev.osuosl.org
+Subject: Re: [PATCH] i2c: Remove obsolete cleanup for clientdata
+In-Reply-To: <1289392100-32668-1-git-send-email-w.sang@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.1011101359480.13739@axis700.grange>
+References: <1289392100-32668-1-git-send-email-w.sang@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <4CDD4DFC.4080105@infradead.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, Nov 12, 2010 at 12:23:56PM -0200, Mauro Carvalho Chehab wrote:
->Em 12-11-2010 12:14, David Härdeman escreveu:
->> Mauro,
->> 
->> as far as I could tell, you wrote the initial support for
->> SAA7134_BOARD_ENCORE_ENLTV_FM53 in
->> drivers/media/video/saa7134/saa7134-input.c, right?
->> 
->> It appears to be the only user of ir-functions.c left in that driver and
->> I'm wondering if it could be converted to use raw_decode with a patch
->> similar to what you committed for SAA7134_BOARD_ASUSTeK_P7131_ANALOG?
->> 
->I need to check if I still have this board, or if it were a board that
->someone borrowed me.
->
->I'll put it on my todo list.
+On Wed, 10 Nov 2010, Wolfram Sang wrote:
 
-Since that list is probably quite long, anyone else who reads this and
-who has an Encore ENLTV-FM v5.3, feel free to get in touch with me in
-the meantime.
+> A few new i2c-drivers came into the kernel which clear the clientdata-pointer
+> on exit. This is obsolete meanwhile, so fix it and hope the word will spread.
+> 
+> Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
 
--- 
-David Härdeman
+for imx074 and ov6650:
+
+Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+
+Thanks
+Guennadi
+
+> ---
+> 
+> Like last time I suggest to collect acks from the driver authors and merge it
+> vie Jean's i2c-tree.
+> 
+>  drivers/media/video/imx074.c          |    2 --
+>  drivers/media/video/ov6650.c          |    2 --
+>  drivers/misc/apds9802als.c            |    1 -
+>  drivers/staging/olpc_dcon/olpc_dcon.c |    3 ---
+>  4 files changed, 0 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/media/video/imx074.c b/drivers/media/video/imx074.c
+> index 380e459..27b5dfd 100644
+> --- a/drivers/media/video/imx074.c
+> +++ b/drivers/media/video/imx074.c
+> @@ -451,7 +451,6 @@ static int imx074_probe(struct i2c_client *client,
+>  	ret = imx074_video_probe(icd, client);
+>  	if (ret < 0) {
+>  		icd->ops = NULL;
+> -		i2c_set_clientdata(client, NULL);
+>  		kfree(priv);
+>  		return ret;
+>  	}
+> @@ -468,7 +467,6 @@ static int imx074_remove(struct i2c_client *client)
+>  	icd->ops = NULL;
+>  	if (icl->free_bus)
+>  		icl->free_bus(icl);
+> -	i2c_set_clientdata(client, NULL);
+>  	client->driver = NULL;
+>  	kfree(priv);
+>  
+> diff --git a/drivers/media/video/ov6650.c b/drivers/media/video/ov6650.c
+> index b7cfeab..2dd5298 100644
+> --- a/drivers/media/video/ov6650.c
+> +++ b/drivers/media/video/ov6650.c
+> @@ -1176,7 +1176,6 @@ static int ov6650_probe(struct i2c_client *client,
+>  
+>  	if (ret) {
+>  		icd->ops = NULL;
+> -		i2c_set_clientdata(client, NULL);
+>  		kfree(priv);
+>  	}
+>  
+> @@ -1187,7 +1186,6 @@ static int ov6650_remove(struct i2c_client *client)
+>  {
+>  	struct ov6650 *priv = to_ov6650(client);
+>  
+> -	i2c_set_clientdata(client, NULL);
+>  	kfree(priv);
+>  	return 0;
+>  }
+> diff --git a/drivers/misc/apds9802als.c b/drivers/misc/apds9802als.c
+> index f9b91ba..abe3d21 100644
+> --- a/drivers/misc/apds9802als.c
+> +++ b/drivers/misc/apds9802als.c
+> @@ -251,7 +251,6 @@ static int apds9802als_probe(struct i2c_client *client,
+>  
+>  	return res;
+>  als_error1:
+> -	i2c_set_clientdata(client, NULL);
+>  	kfree(data);
+>  	return res;
+>  }
+> diff --git a/drivers/staging/olpc_dcon/olpc_dcon.c b/drivers/staging/olpc_dcon/olpc_dcon.c
+> index 75aa7a36..f286a4c 100644
+> --- a/drivers/staging/olpc_dcon/olpc_dcon.c
+> +++ b/drivers/staging/olpc_dcon/olpc_dcon.c
+> @@ -733,7 +733,6 @@ static int dcon_probe(struct i2c_client *client, const struct i2c_device_id *id)
+>   edev:
+>  	platform_device_unregister(dcon_device);
+>  	dcon_device = NULL;
+> -	i2c_set_clientdata(client, NULL);
+>   eirq:
+>  	free_irq(DCON_IRQ, &dcon_driver);
+>   einit:
+> @@ -757,8 +756,6 @@ static int dcon_remove(struct i2c_client *client)
+>  		platform_device_unregister(dcon_device);
+>  	cancel_work_sync(&dcon_work);
+>  
+> -	i2c_set_clientdata(client, NULL);
+> -
+>  	return 0;
+>  }
+>  
+> -- 
+> 1.7.2.3
+> 
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
