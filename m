@@ -1,32 +1,40 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:41705 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757325Ab0J3RBL (ORCPT
+Return-path: <mchehab@pedra>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:49911 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755419Ab0KJVO7 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Oct 2010 13:01:11 -0400
-Received: by iwn10 with SMTP id 10so5144281iwn.19
-        for <linux-media@vger.kernel.org>; Sat, 30 Oct 2010 10:01:11 -0700 (PDT)
+	Wed, 10 Nov 2010 16:14:59 -0500
+Received: by mail-ww0-f44.google.com with SMTP id 39so1209682wwb.1
+        for <linux-media@vger.kernel.org>; Wed, 10 Nov 2010 13:14:58 -0800 (PST)
 MIME-Version: 1.0
-Date: Sat, 30 Oct 2010 19:01:11 +0200
-Message-ID: <AANLkTikZL0+3N-_ELRnedxKW+7YHqNZssFxdV+1BbW8Z@mail.gmail.com>
-Subject: TechnoTrend S2-3650 CI
-From: Thomas Pietrowski <thopiekar@googlemail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <20101110221159.8bdcbfd7.ospite@studenti.unina.it>
+References: <yanpj3usd6gfp0xwdbaxlkni.1289407954066@email.android.com>
+	<AANLkTimE-MWjG0JRCenOA4xhammTMS_11uvh7E+qWrNe@mail.gmail.com>
+	<20101110221159.8bdcbfd7.ospite@studenti.unina.it>
+Date: Wed, 10 Nov 2010 18:14:57 -0300
+Message-ID: <AANLkTikbmvGL_aXWPfNhexDJ7isodbwcYsSfGRFfQqed@mail.gmail.com>
+Subject: Re: Bounty for the first Open Source driver for Kinect
+From: Fernando Cassia <fcassia@gmail.com>
+To: Antonio Ospite <ospite@studenti.unina.it>
+Cc: Mohamed Ikbel Boulabiar <boulabiar@gmail.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hello,
+On Wed, Nov 10, 2010 at 6:11 PM, Antonio Ospite
+<ospite@studenti.unina.it> wrote:
+> On Wed, 10 Nov 2010 21:54:58 +0100
+> Mohamed Ikbel Boulabiar <boulabiar@gmail.com> wrote:
+>
+>> The bounty is already taken by that developer.
+>>
+>
+> Which surely deserves it :)
 
-I've got the TechnoTrend S2-3650 CI and I want to use it on Ubuntu
-Maverick x64 (2.6.35-23-generic).
-I followed the intructions on the linuxtv wiki, but I can't tune into
-a channel, that is what w_scan says, while kaffeine doesn't show any
-messages.
+And then there´s the clueless Ziff-Gates writers who call this Piracy...
+http://www.zdnet.com/blog/open-source/is-adafruit-bounty-open-source-or-piracy/7728
 
-Could you please make this device work? I would be very happy about
-that and I would, if needed, help you to debug!
-
-Hope to hear from you soon ;)
-
-Thomas-Karl Pietrowski
+FC
