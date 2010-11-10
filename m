@@ -1,64 +1,131 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:53626 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756034Ab0KKMt7 convert rfc822-to-8bit (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:39206 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755884Ab0KJNSB convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Nov 2010 07:49:59 -0500
-Received: by wyb28 with SMTP id 28so654062wyb.19
-        for <linux-media@vger.kernel.org>; Thu, 11 Nov 2010 04:49:58 -0800 (PST)
+	Wed, 10 Nov 2010 08:18:01 -0500
+Received: by bwz15 with SMTP id 15so731958bwz.19
+        for <linux-media@vger.kernel.org>; Wed, 10 Nov 2010 05:18:00 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <4CDBCEB6.6020405@redhat.com>
-References: <yanpj3usd6gfp0xwdbaxlkni.1289407954066@email.android.com>
-	<AANLkTimE-MWjG0JRCenOA4xhammTMS_11uvh7E+qWrNe@mail.gmail.com>
-	<AANLkTi=5dNVBHvEtLxcO52AynjCyJq=Dpi6NqMEjd0tb@mail.gmail.com>
-	<4CDBCEB6.6020405@redhat.com>
-Date: Thu, 11 Nov 2010 13:49:57 +0100
-Message-ID: <AANLkTi=c9ryV4r7mq14gGouf0-64no98tC7M6pH5BKRF@mail.gmail.com>
-Subject: Re: Bounty for the first Open Source driver for Kinect
-From: Markus Rechberger <mrechberger@gmail.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Mohamed Ikbel Boulabiar <boulabiar@gmail.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Antonio Ospite <ospite@studenti.unina.it>,
+In-Reply-To: <AANLkTimmDcxZsNEruFrr+qwnairJRZGCsnOTJBA7BPQu@mail.gmail.com>
+References: <1289228045-4512-1-git-send-email-manjunath.hadli@ti.com>
+	<AANLkTimmDcxZsNEruFrr+qwnairJRZGCsnOTJBA7BPQu@mail.gmail.com>
+Date: Wed, 10 Nov 2010 08:17:58 -0500
+Message-ID: <AANLkTinYg0zPK4kmgTyUGftLCqqtn6enpTpO+xhz9X-5@mail.gmail.com>
+Subject: Re: [PATCH 0/6] davinci vpbe: V4L2 Display driver for DM644X
+From: Muralidharan Karicheri <mkaricheri@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "Hadli, Manjunath" <manjunath.hadli@ti.com>,
 	linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Nov 11, 2010 at 12:08 PM, Hans de Goede <hdegoede@redhat.com> wrote:
-> Hi,
+Hans,
+
+Is it possible to extend the sub device ops to include SoC ip sub
+device specific ops? I remember I had posted this question some time
+back and you had proposed to add something like this. Just want to
+check if that is still valid. This would make this driver
+implementation little more cleaner.
+
+struct vpbe_osd_ops;
+
+struct v4l2_subdev_ops {
+        const struct v4l2_subdev_core_ops       *core;
+        const struct v4l2_subdev_tuner_ops      *tuner;
+        const struct v4l2_subdev_audio_ops      *audio;
+        const struct v4l2_subdev_video_ops      *video;
+        const struct v4l2_subdev_vbi_ops        *vbi;
+        const struct v4l2_subdev_ir_ops         *ir;
+        const struct v4l2_subdev_sensor_ops     *sensor;
+        /* SoC IP specific ops */
+        const struct vpbe_osd_ops  *vpbe_osd;
+ };
+
+The struct vpbe_osd_ops will be defined in the osd sub device header
+file. This will allow the host/bridge driver to call osd specific
+operations like standard sub dev ops.
+
+Any comments?
+
+On Wed, Nov 10, 2010 at 8:05 AM, Muralidharan Karicheri
+<mkaricheri@gmail.com> wrote:
+> Manjunath,
 >
-> On 11/10/2010 10:14 PM, Markus Rechberger wrote:
+> Thank you for putting up this patch together. I didn't see the 1/6 of
+> this series in the mailing list. Also it appears as if the patch came
+> from me. Please add my sign-off as second, you being the first.
+>
+> Murali
+> On Mon, Nov 8, 2010 at 9:54 AM, Manjunath Hadli <manjunath.hadli@ti.com> wrote:
+>> This driver is written for Texas Instruments's DM644X VPBE IP.
+>> This SoC supports 2 video planes and 2 OSD planes as part of its
+>> OSD (On Screen Display) block. The OSD lanes predminantly support
+>> RGB space and the Video planes support YUV data. Out of these 4,
+>> the 2 video planes are supported as part of the V4L2 driver. These
+>> would be enumerated as video2 and video3 dev nodes.
+>> The blending and video timing generator unit (VENC- for Video Encoder)
+>> is the unit which combines/blends the output of these 4 planes
+>> into a single stream and this output is given to Video input devices
+>> like TV and other digital LCDs. The software for VENC is designed as
+>> a subdevice with support for SD(NTSC and PAL) modes and 2 outputs.
+>> This SoC forms the iniial implementation of its later additions
+>> like DM355 and DM365.
 >>
->> On Wed, Nov 10, 2010 at 9:54 PM, Mohamed Ikbel Boulabiar
->> <boulabiar@gmail.com>  wrote:
->>>
->>> The bounty is already taken by that developer.
->>>
->>> But now, the Kinect thing is supported like a GPL userspace library.
->>> Maybe still need more work to be rewritten as a kernel module.
->>>
+>> Muralidharan Karicheri (6):
+>>  davinci vpbe: V4L2 display driver for DM644X SoC
+>>  davinci vpbe: VPBE display driver
+>>  davinci vpbe: OSD(On Screen Display ) block
+>>  davinci vpbe: VENC( Video Encoder) implementation
+>>  davinci vpbe: platform specific additions
+>>  davinci vpbe: Build infrastructure for VPBE driver
 >>
->> This should better remain in userspace and interface libv4l/libv4l2 no
->> need to make things more complicated than they have to be.
+>>  arch/arm/mach-davinci/board-dm644x-evm.c     |   85 +-
+>>  arch/arm/mach-davinci/dm644x.c               |  181 ++-
+>>  arch/arm/mach-davinci/include/mach/dm644x.h  |    4 +
+>>  drivers/media/video/davinci/Kconfig          |   22 +
+>>  drivers/media/video/davinci/Makefile         |    2 +
+>>  drivers/media/video/davinci/vpbe.c           |  861 ++++++++++
+>>  drivers/media/video/davinci/vpbe_display.c   | 2283 ++++++++++++++++++++++++++
+>>  drivers/media/video/davinci/vpbe_osd.c       | 1208 ++++++++++++++
+>>  drivers/media/video/davinci/vpbe_osd_regs.h  |  389 +++++
+>>  drivers/media/video/davinci/vpbe_venc.c      |  617 +++++++
+>>  drivers/media/video/davinci/vpbe_venc_regs.h |  189 +++
+>>  include/media/davinci/vpbe.h                 |  187 +++
+>>  include/media/davinci/vpbe_display.h         |  144 ++
+>>  include/media/davinci/vpbe_osd.h             |  397 +++++
+>>  include/media/davinci/vpbe_types.h           |  170 ++
+>>  include/media/davinci/vpbe_venc.h            |   70 +
+>>  16 files changed, 6790 insertions(+), 19 deletions(-)
+>>  create mode 100644 drivers/media/video/davinci/vpbe.c
+>>  create mode 100644 drivers/media/video/davinci/vpbe_display.c
+>>  create mode 100644 drivers/media/video/davinci/vpbe_osd.c
+>>  create mode 100644 drivers/media/video/davinci/vpbe_osd_regs.h
+>>  create mode 100644 drivers/media/video/davinci/vpbe_venc.c
+>>  create mode 100644 drivers/media/video/davinci/vpbe_venc_regs.h
+>>  create mode 100644 include/media/davinci/vpbe.h
+>>  create mode 100644 include/media/davinci/vpbe_display.h
+>>  create mode 100644 include/media/davinci/vpbe_osd.h
+>>  create mode 100644 include/media/davinci/vpbe_types.h
+>>  create mode 100644 include/media/davinci/vpbe_venc.h
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >>
 >
-> As the author and maintainer of libv4l I say no, webcam drivers and
-> the like belong in kernel space. libv4l is there to add things
-> like format conversion (de-bayering in this case) which do not belong
-> in userspace.
 >
-> Also there is no way to do 100% reliable isoc data handling from
-> userspace.
+>
+> --
+> Murali Karicheri
+> mkaricheri@gmail.com
 >
 
-That's just your opinion we have 100% reliable isoc data handling in
-userspace, transferring 21 Mbyte/sec without any problem. And the
-driver works from 2.6.15 on - without recompiling.
-We're just about to release a new device in a few days, kernelsupport
-is absolutely not interesting since most distributions would not ship
-support for those devices at time of product release.
 
-Best Regards,
-Markus
+
+-- 
+Murali Karicheri
+mkaricheri@gmail.com
