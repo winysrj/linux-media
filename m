@@ -1,70 +1,76 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp206.alice.it ([82.57.200.102]:50266 "EHLO smtp206.alice.it"
+Return-path: <mchehab@pedra>
+Received: from smtp209.alice.it ([82.57.200.105]:38946 "EHLO smtp209.alice.it"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753476Ab0KEWJK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Nov 2010 18:09:10 -0400
+	id S1756550Ab0KJVYc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Nov 2010 16:24:32 -0500
+Date: Wed, 10 Nov 2010 22:24:18 +0100
 From: Antonio Ospite <ospite@studenti.unina.it>
-To: stable@kernel.org
-Cc: Antonio Ospite <ospite@studenti.unina.it>,
-	=?UTF-8?q?Jean-Fran=C3=A7ois=20Moine?= <moinejf@free.fr>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
+To: Markus Rechberger <mrechberger@gmail.com>
+Cc: Mohamed Ikbel Boulabiar <boulabiar@gmail.com>,
+	Andy Walls <awalls@md.metrocast.net>,
 	linux-media@vger.kernel.org
-Subject: [PATCH] [media] gspca - main: Fix a regression with the PS3 Eye webcam
-Date: Fri,  5 Nov 2010 23:08:12 +0100
-Message-Id: <1288994892-6681-1-git-send-email-ospite@studenti.unina.it>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: Re: Bounty for the first Open Source driver for Kinect
+Message-Id: <20101110222418.6098a92a.ospite@studenti.unina.it>
+In-Reply-To: <AANLkTi=5dNVBHvEtLxcO52AynjCyJq=Dpi6NqMEjd0tb@mail.gmail.com>
+References: <yanpj3usd6gfp0xwdbaxlkni.1289407954066@email.android.com>
+	<AANLkTimE-MWjG0JRCenOA4xhammTMS_11uvh7E+qWrNe@mail.gmail.com>
+	<AANLkTi=5dNVBHvEtLxcO52AynjCyJq=Dpi6NqMEjd0tb@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Wed__10_Nov_2010_22_24_18_+0100_whEI45MQrzUPIZ.b"
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-From: =?UTF-8?q?Jean-Fran=C3=A7ois=20Moine?= <moinejf@free.fr>
+--Signature=_Wed__10_Nov_2010_22_24_18_+0100_whEI45MQrzUPIZ.b
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-commit f43402fa55bf5e7e190c176343015122f694857c upstream.
+On Wed, 10 Nov 2010 22:14:36 +0100
+Markus Rechberger <mrechberger@gmail.com> wrote:
 
-When audio is present, some alternate settings were skipped.
-This prevented some webcams to work, especially when bulk transfer was used.
-This patch permits to use the last or only alternate setting.
+> On Wed, Nov 10, 2010 at 9:54 PM, Mohamed Ikbel Boulabiar
+> <boulabiar@gmail.com> wrote:
+> > The bounty is already taken by that developer.
+> >
+> > But now, the Kinect thing is supported like a GPL userspace library.
+> > Maybe still need more work to be rewritten as a kernel module.
+> >
+>=20
+> This should better remain in userspace and interface libv4l/libv4l2 no
+> need to make things more complicated than they have to be.
 
-Reported-by: Antonio Ospite <ospite@studenti.unina.it>
-Tested-by: Antonio Ospite <ospite@studenti.unina.it>
-Signed-off-by: Jean-François Moine <moinejf@free.fr>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
+I can see at least two reasons for a kernel driver:
+ 1. performance
+ 2. out-of-the-box experience: the casual user who wants to just use
+    kinect as a normal webcam doesn't have to care about installing some
+    library
 
-This is to be applied to 2.6.36 only, as the regression was introduced there.
-I don't know how many distributors are shipping 2.6.36 and how urgent this can
-be, but FYI without this change video capture on the Playstation Eye (gspca
-ov534 driver) does not work at all.
+If there are arguments against a kernel driver I can't see them yet.
 
-Regards,
+Ciao,
    Antonio
 
- drivers/media/video/gspca/gspca.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+--=20
+Antonio Ospite
+http://ao2.it
 
-diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
-index 0fb48c0..c64299d 100644
---- a/drivers/media/video/gspca/gspca.c
-+++ b/drivers/media/video/gspca/gspca.c
-@@ -652,7 +652,7 @@ static struct usb_host_endpoint *get_ep(struct gspca_dev *gspca_dev)
- 				   : USB_ENDPOINT_XFER_ISOC;
- 	i = gspca_dev->alt;			/* previous alt setting */
- 	if (gspca_dev->cam.reverse_alts) {
--		if (gspca_dev->audio)
-+		if (gspca_dev->audio && i < gspca_dev->nbalt - 2)
- 			i++;
- 		while (++i < gspca_dev->nbalt) {
- 			ep = alt_xfer(&intf->altsetting[i], xfer);
-@@ -660,7 +660,7 @@ static struct usb_host_endpoint *get_ep(struct gspca_dev *gspca_dev)
- 				break;
- 		}
- 	} else {
--		if (gspca_dev->audio)
-+		if (gspca_dev->audio && i > 1)
- 			i--;
- 		while (--i >= 0) {
- 			ep = alt_xfer(&intf->altsetting[i], xfer);
--- 
-1.7.2.3
+PGP public key ID: 0x4553B001
 
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+
+--Signature=_Wed__10_Nov_2010_22_24_18_+0100_whEI45MQrzUPIZ.b
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAkzbDYIACgkQ5xr2akVTsAFktQCfYk6GJdG6H427quSb2+8Mzio0
+nbkAnRktvsRZxfpfJTR8tLwU95MHJBvR
+=AJxb
+-----END PGP SIGNATURE-----
+
+--Signature=_Wed__10_Nov_2010_22_24_18_+0100_whEI45MQrzUPIZ.b--
