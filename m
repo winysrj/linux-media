@@ -1,50 +1,40 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35771 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933291Ab0KQMfp (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:37492 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757031Ab0KJQwa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Nov 2010 07:35:45 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Shuzhen Wang" <shuzhenw@codeaurora.org>
-Subject: Re: Question about setting V4L2_CID_AUTO_WHITE_BALANCE control to FALSE
-Date: Wed, 17 Nov 2010 13:35:44 +0100
+	Wed, 10 Nov 2010 11:52:30 -0500
+Date: Wed, 10 Nov 2010 11:52:34 -0500
+Subject: Re: Bounty for the first Open Source driver for Kinect
+Message-ID: <yanpj3usd6gfp0xwdbaxlkni.1289407954066@email.android.com>
+From: Andy Walls <awalls@md.metrocast.net>
+To: Antonio Ospite <ospite@studenti.unina.it>,
+	Mohamed Ikbel Boulabiar <boulabiar@gmail.com>
 Cc: linux-media@vger.kernel.org
-References: <000001cb85c4$981fdba0$c85f92e0$@org> <000301cb85de$642dd3f0$2c897bd0$@org>
-In-Reply-To: <000301cb85de$642dd3f0$2c897bd0$@org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011171335.44876.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+SUZpeGl0IGhhcyBhIHRlYXIgZG93biBtZW50aW9uaW5nIGFsbCB0aGUgY2hpcHMgYW5kIGEgcmVm
+ZXJlbmNlIGRlc2lnbgoKaHR0cDovL3d3dy5pZml4aXQuY29tL1RlYXJkb3duL01pY3Jvc29mdC1L
+aW5lY3QtVGVhcmRvd24vNDA2Ni8xCgpUaGVyZSdzIHR3byBjYW1lcmEgc2Vuc29ycywgYW4gaXIg
+aWxsdW1pbmF0b3IsIGZvdXIgbWljcm9waG9uZXMsIGEgbW90b3IsIGFuZCBhcHBhcmVudGx5IGEg
+YnVpbHQgaW4gdXNiIGh1Yi4KCkl0IHN1cHBvc2VkbHkgY29uc3VtZXMgbW9yZSBwb3dlciB0aGFu
+IGEgc3RhbmRhcmQgdXNiIHBvcnQgY2FuIHN1cHBseSwgc28geW91IG1heSBuZWVkIGFuIGV4dGVy
+bmFsIHBvd2VyIHN1cHBseS4KCkhhdmUgZnVuLgoKQW5keQoKQW50b25pbyBPc3BpdGUgPG9zcGl0
+ZUBzdHVkZW50aS51bmluYS5pdD4gd3JvdGU6Cgo+T24gV2VkLCAxMCBOb3YgMjAxMCAxNToyMDo0
+MCArMDEwMAo+TW9oYW1lZCBJa2JlbCBCb3VsYWJpYXIgPGJvdWxhYmlhckBnbWFpbC5jb20+IHdy
+b3RlOgo+Cj4+IE1TIEtpbmVjdCBpbnRlcmZhY2luZyB2aWEgbGlidXNiIHJlbGVhc2VkCj4+IGh0
+dHA6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1yS2hXLWN2cGtrcwo+PiAKPj4gaHR0cDovL2dp
+dC5tYXJjYW5zb2Z0LmNvbS8/cD1saWJmcmVlbmVjdC5naXQKPj4gCj4KPkdvb2QsIGlmIGFueW9u
+ZSBpcyB3aWxsaW5nIHRvIHByb3ZpZGUgdGhlIGhhcmR3YXJlIEkgdGhpbmsgSSBjYW4gaGVscAo+
+d2l0aCBhIHByb3BlciBnc3BjYSBkcml2ZXIgKEkgaGVscGVkIHdpdGggdGhlIFBTMyBFeWUgYWxy
+ZWFkeSkuIEFyZQo+dGhlcmUgb3RoZXIgUkdCLURlcHRoIGNhbXMgc3VwcG9ydGVkIGluIGxpbnV4
+PyBBcmUgdGhleSB1c3VhbGx5IGV4cG9zZWQKPmp1c3QgYXMgdHdvIGRpc3RpbmN0IGNhbWVyYXM/
+Cj4KPlJlZ2FyZHMsCj4gICBBbnRvbmlvCj4KPi0tIAo+QW50b25pbyBPc3BpdGUKPmh0dHA6Ly9h
+bzIuaXQKPgo+UEdQIHB1YmxpYyBrZXkgSUQ6IDB4NDU1M0IwMDEKPgo+QTogQmVjYXVzZSBpdCBt
+ZXNzZXMgdXAgdGhlIG9yZGVyIGluIHdoaWNoIHBlb3BsZSBub3JtYWxseSByZWFkIHRleHQuCj4g
+ICBTZWUgaHR0cDovL2VuLndpa2lwZWRpYS5vcmcvd2lraS9Qb3N0aW5nX3N0eWxlCj5ROiBXaHkg
+aXMgdG9wLXBvc3Rpbmcgc3VjaCBhIGJhZCB0aGluZz8K
 
-On Tuesday 16 November 2010 23:34:11 Shuzhen Wang wrote:
-> Nevermind. I think behavior #1 makes more sense.
-
-I agree with that.
-
-> On Tuesday, November 16, 2010 11:30 AM Shuzhen Wang wrote:
-> > 
-> > When I set V4L2_CID_AUTO_WHITE_BALANCE control to FALSE, which one of the
-> > following is the expected behavior?
-> > 
-> > 1. Hold the current white balance settting.
-> > 2. Set the white balance to whatever V4L2_CID_WHITE_BALANCE_TEMPERATURE
-> > control is set to.
-> > 
-> > The V4L2 API spec doesn't specify this clearly.
-
-The reason why the specification doesn't clearly state what must be done is 
-that the behaviour might be hardware dependent. Some hardware won't offer 
-option 1, so drivers will be forced to go for option 2.
-
-(I'm not totally sure that's why the specification isn't clear about the 
-expected behaviour, but it's at least a good justification for it :-))
-
--- 
-Regards,
-
-Laurent Pinchart
