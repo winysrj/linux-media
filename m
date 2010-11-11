@@ -1,52 +1,56 @@
-Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:7077 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752814Ab0KBVMS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Nov 2010 17:12:18 -0400
-Date: Tue, 2 Nov 2010 17:12:14 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/3] mceusb: fix up reporting of trailing space
-Message-ID: <20101102211214.GC20631@redhat.com>
-References: <20101029030545.GA17238@redhat.com>
- <20101029030810.GC17238@redhat.com>
- <20101029192121.GB12136@hardeman.nu>
+Return-path: <mchehab@pedra>
+Received: from casper.infradead.org ([85.118.1.10]:44787 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752482Ab0KKOGX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Nov 2010 09:06:23 -0500
+Message-ID: <4CDBF859.4010909@infradead.org>
+Date: Thu, 11 Nov 2010 12:06:17 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
+CC: Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/6] rc-core: ir-core to rc-core conversion
+References: <20101102201733.12010.30019.stgit@localhost.localdomain> <AANLkTi=z2yU568sEs0RNuQ6gZUzJQeHajTZ_0LeXS-2D@mail.gmail.com> <4CD9FA59.9020702@infradead.org> <33c8487ce0141587f695d9719289467e@hardeman.nu> <4CDA94C6.2010506@infradead.org> <0bda4af059880eb492d921728997958c@hardeman.nu> <4CDAC730.4060303@infradead.org> <20101110220115.GA7302@hardeman.nu>
+In-Reply-To: <20101110220115.GA7302@hardeman.nu>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20101029192121.GB12136@hardeman.nu>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Fri, Oct 29, 2010 at 09:21:21PM +0200, David Härdeman wrote:
-> On Thu, Oct 28, 2010 at 11:08:10PM -0400, Jarod Wilson wrote:
-> > We were storing a bunch of spaces at the end of each signal, rather than
-> > a single long space. The in-kernel decoders were actually okay with
-> > this, but lirc isn't. Both are happy again with this change, which
-> > starts accumulating data upon seeing an 0x7f space, and then stores it
-> > when we see the next non-space, non-0x7f space, or an 0x80 end of signal
-> > command. To get to that final 0x80 properly, we also need to support
-> > proper parsing of 0x9f 0x01 commands, support for which is also added.
+Em 10-11-2010 20:01, David Härdeman escreveu:
+> On Wed, Nov 10, 2010 at 02:24:16PM -0200, Mauro Carvalho Chehab wrote:
+>> Em 10-11-2010 11:06, David Härdeman escreveu:
+>>> On Wed, 10 Nov 2010 10:49:10 -0200, Mauro Carvalho Chehab
+>>> <mchehab@infradead.org> wrote:
+>>
+>>>> So, I'll try to merge the pending patches from your tree. I'll let you
+>>>> know if I have any problems.
+>>>
+>>> Sounds good. Thanks.
+>>
+>> David/Jarod,
+>>
+>> I pushed the merged patches at the tmp_rc tree:
+>>
+>> 	http://git.linuxtv.org/mchehab/tmp_rc.git
+>>
+>> Please test and give me some feedback. It ended that the rc function renaming patch
+>> (6/7) broke both mceusb (due to TX changes) and cx231xx-input (a new driver from me,
+>> for some devices that uses a crappy i2c uP, instead of the excellent in-cx231xx
+>> IR support).
+>>
+>> I did no tests at all, except for compilation. So, I need your feedback
+>> if the patches didn't actually break anything.
 > 
-> I think the driver could be further simplified by using 
-> ir_raw_event_store_with_filter(), right?
+> So far I've noticed that this patch:
+> [media] rc-core: convert winbond-cir
+> 
+> removed the old winbond-cir.c file but doesn't add one in the
+> drivers/media/rc/ directory.
 
-And in fact, it is. I've got a new series of patches redone atop your
-rc-core patch series that includes usage of _with_filter in mceusb.
+Fixed:
 
-http://git.kernel.org/?p=linux/kernel/git/jarod/linux-2.6-ir.git;a=shortlog;h=refs/heads/staging
+	http://git.linuxtv.org/mchehab/tmp_rc.git?a=commit;h=b84d81386621b2c56b65f80f9428a516a330b095
 
-And more specifically, the update of this patch:
-
-http://git.kernel.org/?p=linux/kernel/git/jarod/linux-2.6-ir.git;a=commitdiff;h=bc3d1300cd2d51dc8d877be343382d8932320dfc
-
-Still a bit of testing to do before I send v2 off to the list, plus I'd
-like to know where we're at w/your patches first wrt getting them
-committed, just in case I need to rework them slightly.
-
--- 
-Jarod Wilson
-jarod@redhat.com
-
+(note that I rebased the temporary branch, and that the latest patch on it is incomplete and broken)
