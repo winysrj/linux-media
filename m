@@ -1,57 +1,104 @@
 Return-path: <mchehab@pedra>
-Received: from skyboo.net ([82.160.187.4]:38725 "EHLO skyboo.net"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753018Ab0KLJmt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Nov 2010 04:42:49 -0500
-Received: from localhost ([::1])
-	by skyboo.net with esmtpsa (TLS1.0:RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.72)
-	(envelope-from <manio@skyboo.net>)
-	id 1PGq9a-0000vG-Sw
-	for linux-media@vger.kernel.org; Fri, 12 Nov 2010 10:42:47 +0100
-Message-ID: <4CDD0C1A.7060707@skyboo.net>
-Date: Fri, 12 Nov 2010 10:42:50 +0100
-From: Mariusz Bialonczyk <manio@skyboo.net>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-References: <4CC7D4C5.6000104@skyboo.net> <f071a1229ec4db0a922ffbf91d4f2b5f.squirrel@www.hardeman.nu> <4CC85C0B.3010106@skyboo.net> <20101027170709.GA926@hardeman.nu> <4CC86734.1080003@skyboo.net> <20101027204837.GA2906@hardeman.nu> <4CC90A13.4070709@skyboo.net> <e4db9cd2c5a4ddc5345f16d441dc4351.squirrel@www.hardeman.nu> <4CC9A45A.1000004@skyboo.net> <4CD30DFB.7030304@skyboo.net> <20101104194412.GB9107@hardeman.nu>
-In-Reply-To: <20101104194412.GB9107@hardeman.nu>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mail-in-01.arcor-online.net ([151.189.21.41]:55104 "EHLO
+	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932219Ab0KKCCg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Nov 2010 21:02:36 -0500
+Subject: Re: Bounty for the first Open Source driver for Kinect
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Markus Rechberger <mrechberger@gmail.com>
+Cc: Antonio Ospite <ospite@studenti.unina.it>,
+	Mohamed Ikbel Boulabiar <boulabiar@gmail.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	linux-media@vger.kernel.org
+In-Reply-To: <AANLkTi=v9Ev0BDXBTWZs=LcMVGXoxcA7we5bKaR_m+2Z@mail.gmail.com>
+References: <yanpj3usd6gfp0xwdbaxlkni.1289407954066@email.android.com>
+	 <AANLkTimE-MWjG0JRCenOA4xhammTMS_11uvh7E+qWrNe@mail.gmail.com>
+	 <AANLkTi=5dNVBHvEtLxcO52AynjCyJq=Dpi6NqMEjd0tb@mail.gmail.com>
+	 <20101110222418.6098a92a.ospite@studenti.unina.it>
+	 <AANLkTin+HtdoXO7+ObNCoix70knaL+Fi4725BOWVXuy9@mail.gmail.com>
+	 <AANLkTim4hzoTg4t-jHFUCrpQwQ9Pj2sbJAH=iuawrK7E@mail.gmail.com>
+	 <20101111002952.f5873ed4.ospite@studenti.unina.it>
+	 <AANLkTi=v9Ev0BDXBTWZs=LcMVGXoxcA7we5bKaR_m+2Z@mail.gmail.com>
+Content-Type: text/plain
+Date: Thu, 11 Nov 2010 02:58:37 +0100
+Message-Id: <1289440717.7148.30.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Subject: Fixing tbs-nec table after converting to cx88 driver ir-core
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello
-I am using Prof 7301 PCI card.
-After converting cx88 driver to ir-core (thank you very much for your
-work, David) the table rc-tbs-nec (for bundled remote) has incorrect
-values.
-I was comparing the results and there is a regularity (constant offset):
-If i add 0x80 (128 decimal) value to every code in rc-tbs-nec.c then
-original remote gives correct EV_KEY events (just like before cx88
-conversion) :)
-Despite the fact that my IR receiver is now able to work with many
-remotes it is still using standard remote which is in mentioned table,
-so I think that we should correct the table to have it correct, what do
-you think?
 
-I also need to mention that the table is incomplete.
-Please have a look at remote:
-http://www.prof-tuners.com/eng/images/review/review_prof_7301/prof_7301_6.jpg
+Am Donnerstag, den 11.11.2010, 00:36 +0100 schrieb Markus Rechberger:
+> On Thu, Nov 11, 2010 at 12:29 AM, Antonio Ospite
+> <ospite@studenti.unina.it> wrote:
+> > On Thu, 11 Nov 2010 00:13:09 +0100
+> > Markus Rechberger <mrechberger@gmail.com> wrote:
+> >
+> >> On Wed, Nov 10, 2010 at 11:48 PM, Mohamed Ikbel Boulabiar
+> >> <boulabiar@gmail.com> wrote:
+> >> > On Wed, Nov 10, 2010 at 10:24 PM, Antonio Ospite
+> >> > <ospite@studenti.unina.it> wrote:
+> >> >> If there are arguments against a kernel driver I can't see them yet.
+> > [...]
+> >> > If I want to use this device, I will add many userspace code to create
+> >> > the skeleton model and that need much computation. Kernel Module adds
+> >> > performance to my other code.
+> >>
+> >> just some experience from our side, we do have fully working
+> >> video4linux1/2 drivers
+> >> in userspace, the only exception we have is a very thin layered
+> >> kernelmodule in order
+> >> to improve the datatransfer.
+> >
+> > Markus, can you point to some example so I can get a clearer picture?
+> >
+> 
+> unfortunately we're closed source (and much more advanced) but you can
+> have a look at other projects:
 
-As you can see there are two buttons (10+ and 10-), which the table
-doesn't take into account. Correct me if i'm wrong, but i believe it
-means: 10 channels up, and 10 channels down.
-So my proposition is to add new definitions for this buttons.
-Maybe: KEY_10CHANNELSUP and KEY_10CHANNELSDOWN, what do you think?
-Unfortunately I can't test the button meaning, because i don't have
-windows at home computer with original software for the card.
+Markus,
 
-I can provide full and fixed rc-tbs-nec table patch then.
+please go away with such.
 
-regards,
--- 
-Mariusz Bialonczyk
-jabber/e-mail: manio@skyboo.net
-http://manio.skyboo.net
+Despite of all previously, this is _not_ a place for any closed source
+to discuss. There is nothing to discuss on that, please stop it.
+
+Either try to come back with open source in a new round, or at least
+don't try to hide what you have. Without all the code and hardware
+specific stuff _previously_ developed/hacked on v4l-dvb, you don't
+exist.
+
+I still admit, overall, you did a very good job previously, but all
+others are _not_ just your captives after some clashes.
+
+With "unfortunately we're closed source", you deliberately declare, that
+you have nothing to do with open source at all anymore.
+
+?
+
+So, what is the remaining interest for you, except that you can continue
+easier in userspace, instead of getting a hard block in the kernel, if
+some enough have enough of your "closed source" ?
+
+Cheers,
+Hermann
+
+
+> * libv4l2
+> * freebsd has webcamd or something like that to emulate analog
+> tv/webcams and dvb (they are even reusing linux kernel drivers with a
+> userspace wrapper - so everything works in userspace for them).
+> 
+> aside of that you can just debug userspace drivers with gdb, valgrind
+> etc. if issues come up it will only affect your work not the entire
+> system, kernel is seriously something critical.
+> 
+> Markus
+> > Thanks,
+> >   Antonio
+> >
+> > --
+> > Antonio Ospite
+> > http://ao2.it
+
