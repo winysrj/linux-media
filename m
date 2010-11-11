@@ -1,45 +1,51 @@
-Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47581 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752244Ab0KSN0l (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 08:26:41 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de
-Subject: [PATCH/RFC] v4l: Add subdev sensor g_skip_frames operation
-Date: Fri, 19 Nov 2010 14:26:42 +0100
-Message-Id: <1290173202-28769-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Return-path: <mchehab@pedra>
+Received: from kroah.org ([198.145.64.141]:57972 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753586Ab0KKAgU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Nov 2010 19:36:20 -0500
+Date: Wed, 10 Nov 2010 16:25:42 -0800
+From: Greg KH <greg@kroah.com>
+To: Wolfram Sang <w.sang@pengutronix.de>
+Cc: linux-i2c@vger.kernel.org, devel@driverdev.osuosl.org,
+	Hong Liu <hong.liu@intel.com>,
+	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
+	linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Anantha Narayanan <anantha.narayanan@intel.com>,
+	Andres Salomon <dilinger@queued.net>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Alan Cox <alan@linux.intel.com>
+Subject: Re: [PATCH] i2c: Remove obsolete cleanup for clientdata
+Message-ID: <20101111002542.GA21393@kroah.com>
+References: <1289392100-32668-1-git-send-email-w.sang@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1289392100-32668-1-git-send-email-w.sang@pengutronix.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Some buggy sensors generate corrupt frames when the stream is started.
-This new operation returns the number of corrupt frames to skip when
-starting the stream.
+On Wed, Nov 10, 2010 at 01:28:19PM +0100, Wolfram Sang wrote:
+> A few new i2c-drivers came into the kernel which clear the clientdata-pointer
+> on exit. This is obsolete meanwhile, so fix it and hope the word will spread.
+> 
+> Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+> ---
+> 
+> Like last time I suggest to collect acks from the driver authors and merge it
+> vie Jean's i2c-tree.
+> 
+>  drivers/media/video/imx074.c          |    2 --
+>  drivers/media/video/ov6650.c          |    2 --
+>  drivers/misc/apds9802als.c            |    1 -
+>  drivers/staging/olpc_dcon/olpc_dcon.c |    3 ---
+>  4 files changed, 0 insertions(+), 8 deletions(-)
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/media/v4l2-subdev.h |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+For the staging driver:
+	Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 04878e1..b196966 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -291,9 +291,13 @@ struct v4l2_subdev_pad_ops {
-  *		      This is needed for some sensors, which always corrupt
-  *		      several top lines of the output image, or which send their
-  *		      metadata in them.
-+ * @g_skip_frames: number of frames to skip at stream start. This is needed for
-+ * 		   buggy sensors that generate faulty frames when they are
-+ * 		   turned on.
-  */
- struct v4l2_subdev_sensor_ops {
- 	int (*g_skip_top_lines)(struct v4l2_subdev *sd, u32 *lines);
-+	int (*g_skip_frames)(struct v4l2_subdev *sd, u32 *frames);
- };
- 
- struct v4l2_subdev_ops {
--- 
-1.7.2.2
+thanks,
 
+greg k-h
