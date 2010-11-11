@@ -1,81 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:43835 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:53088 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932786Ab0KPMT0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Nov 2010 07:19:26 -0500
-Message-ID: <4CE276C9.3000802@redhat.com>
-Date: Tue, 16 Nov 2010 10:19:21 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1753593Ab0KKLH2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Nov 2010 06:07:28 -0500
+Message-ID: <4CDBCEB6.6020405@redhat.com>
+Date: Thu, 11 Nov 2010 12:08:38 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 0/8] V4L BKL removal: first round
-References: <cover.1289740431.git.hverkuil@xs4all.nl>    <201011142253.29768.arnd@arndb.de>    <201011142348.51859.hverkuil@xs4all.nl>    <201011151017.41453.arnd@arndb.de> <342eb735192f26a4a84488cad7f01068.squirrel@webmail.xs4all.nl>
-In-Reply-To: <342eb735192f26a4a84488cad7f01068.squirrel@webmail.xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Markus Rechberger <mrechberger@gmail.com>
+CC: Mohamed Ikbel Boulabiar <boulabiar@gmail.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Antonio Ospite <ospite@studenti.unina.it>,
+	linux-media@vger.kernel.org
+Subject: Re: Bounty for the first Open Source driver for Kinect
+References: <yanpj3usd6gfp0xwdbaxlkni.1289407954066@email.android.com>	<AANLkTimE-MWjG0JRCenOA4xhammTMS_11uvh7E+qWrNe@mail.gmail.com> <AANLkTi=5dNVBHvEtLxcO52AynjCyJq=Dpi6NqMEjd0tb@mail.gmail.com>
+In-Reply-To: <AANLkTi=5dNVBHvEtLxcO52AynjCyJq=Dpi6NqMEjd0tb@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 15-11-2010 07:49, Hans Verkuil escreveu:
-> 
->> On Sunday 14 November 2010 23:48:51 Hans Verkuil wrote:
->>> On Sunday, November 14, 2010 22:53:29 Arnd Bergmann wrote:
->>>> On Sunday 14 November 2010, Hans Verkuil wrote:
->>>>> This patch series converts 24 v4l drivers to unlocked_ioctl. These
->>> are low
->>>>> hanging fruit but you have to start somewhere :-)
->>>>>
->>>>> The first patch replaces mutex_lock in the V4L2 core by
->>> mutex_lock_interruptible
->>>>> for most fops.
->>>>
->>>> The patches all look good as far as I can tell, but I suppose the
->>> title is
->>>> obsolete now that the BKL has been replaced with a v4l-wide mutex,
->>> which
->>>> is what you are removing in the series.
->>>
->>> I guess I have to rename it, even though strictly speaking the branch
->>> I'm
->>> working in doesn't have your patch merged yet.
->>>
->>> BTW, replacing the BKL with a static mutex is rather scary: the BKL
->>> gives up
->>> the lock whenever you sleep, the mutex doesn't. Since sleeping is very
->>> common
->>> in V4L (calling VIDIOC_DQBUF will typically sleep while waiting for a
->>> new frame
->>> to arrive), this will make it impossible for another process to access
->>> any
->>> v4l2 device node while the ioctl is sleeping.
->>>
->>> I am not sure whether that is what you intended. Or am I missing
->>> something?
+Hi,
+
+On 11/10/2010 10:14 PM, Markus Rechberger wrote:
+> On Wed, Nov 10, 2010 at 9:54 PM, Mohamed Ikbel Boulabiar
+> <boulabiar@gmail.com>  wrote:
+>> The bounty is already taken by that developer.
 >>
->> I was aware that something like this could happen, but I apparently
->> misjudged how big the impact is. The general pattern for ioctls is that
->> those that get called frequently do not sleep, so it can almost always be
->> called with a mutex held.
-> 
-> True in general, but most definitely not true for V4L. The all important
-> VIDIOC_DQBUF ioctl will almost always sleep.
-> 
-> Mauro, I think this patch will have to be reverted and we just have to do
-> the hard work ourselves.
+>> But now, the Kinect thing is supported like a GPL userspace library.
+>> Maybe still need more work to be rewritten as a kernel module.
+>>
+>
+> This should better remain in userspace and interface libv4l/libv4l2 no
+> need to make things more complicated than they have to be.
+>
 
-The VIDIOC_QBUF/VIDIOC_DQBUF ioctls are called after having the V4L device ready
-for stream. During the qbuf/dqbuf loop, the only other ioctls that may appear are
-the control change ioctl's, to adjust things like bright. I doubt that his will
-cause a really serious trouble.
+As the author and maintainer of libv4l I say no, webcam drivers and
+the like belong in kernel space. libv4l is there to add things
+like format conversion (de-bayering in this case) which do not belong
+in userspace.
 
-On the other hand, currently, if BKL is disabled, the entire V4L subsystem is
-disabled.
+Also there is no way to do 100% reliable isoc data handling from
+userspace.
 
-So, IMO, the impact of having Arnd's patch applied is less than just having
-almost all drivers disabled if BKL is not compiled. So, I prefer to apply 
-his patch and then fix it, driver by driver, than to disable the entire
-subsystem on .37.
+Regards,
 
-Cheers,
-Mauro
+Hans
