@@ -1,95 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1945 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752799Ab0KQHNx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Nov 2010 02:13:53 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: achew@nvidia.com
-Subject: Re: [PATCH 1/1] videobuf: Initialize lists in videobuf_buffer.
-Date: Wed, 17 Nov 2010 08:13:43 +0100
-Cc: zhangtianfei@leadcoretech.com, pawel@osciak.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <1289939083-27209-1-git-send-email-achew@nvidia.com>
-In-Reply-To: <1289939083-27209-1-git-send-email-achew@nvidia.com>
+Received: from 200-232-120-2.rf.com.br ([200.232.120.2]:33046 "EHLO rf.com.br"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753123Ab0KKSpy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Nov 2010 13:45:54 -0500
+Received: from rf.com.br (yankee.rf.com.br [127.0.0.1])
+	by rf.com.br (8.14.3/8.14.3/Debian-5+lenny1) with ESMTP id oABIYh0B015792
+	for <linux-media@vger.kernel.org>; Thu, 11 Nov 2010 16:34:43 -0200
+From: "Joao S Veiga" <jsveiga@rf.com.br>
+To: linux-media@vger.kernel.org
+Subject: DVB-S/S2 Card for a linux-based dish pointer
+Date: Thu, 11 Nov 2010 16:34:43 -0200
+Message-Id: <20101111175421.M41484@rf.com.br>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011170813.43236.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=iso-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday, November 16, 2010 21:24:43 achew@nvidia.com wrote:
-> From: Andrew Chew <achew@nvidia.com>
-> 
-> There are two struct list_head's in struct videobuf_buffer.
-> Prior to this fix, all we did for initialization of struct videobuf_buffer
-> was to zero out its memory.  This does not properly initialize this struct's
-> two list_head members.
-> 
-> This patch immediately calls INIT_LIST_HEAD on both lists after the kzalloc,
-> so that the two lists are initialized properly.
+Hello guys,
 
-Rather than doing this for all videobuf variants I would suggest that you
-do this in videobuf-core.c, videobuf_alloc_vb().
+We're developing an automatic satellite dish pointer controller (for Satellite News Gathering vehicles and other
+applications), and it will be based on a mini-itx Atom motherboard running debian.
 
-Regards,
+I'm looking for options for measuring the received signal strength and quality for the auto-track and signal lock
+confirmation, and would like to use an off-the-shelf dvb-s card, supported by a vanilla kernel if possible.
 
-	Hans
+I've looked at this list's archive, and found good recommendations for the Technotrend TT-S3200 and TT-S1600.
 
-> 
-> Signed-off-by: Andrew Chew <achew@nvidia.com>
-> ---
-> I thought I'd submit a patch for this anyway.  Without this, the existing
-> camera host drivers will spew an ugly warning on every videobuf allocation,
-> which gets annoying really fast.
-> 
->  drivers/media/video/videobuf-dma-contig.c |    2 ++
->  drivers/media/video/videobuf-dma-sg.c     |    2 ++
->  drivers/media/video/videobuf-vmalloc.c    |    2 ++
->  3 files changed, 6 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/videobuf-dma-contig.c b/drivers/media/video/videobuf-dma-contig.c
-> index c969111..f7e0f86 100644
-> --- a/drivers/media/video/videobuf-dma-contig.c
-> +++ b/drivers/media/video/videobuf-dma-contig.c
-> @@ -193,6 +193,8 @@ static struct videobuf_buffer *__videobuf_alloc_vb(size_t size)
->  	if (vb) {
->  		mem = vb->priv = ((char *)vb) + size;
->  		mem->magic = MAGIC_DC_MEM;
-> +		INIT_LIST_HEAD(&vb->stream);
-> +		INIT_LIST_HEAD(&vb->queue);
->  	}
->  
->  	return vb;
-> diff --git a/drivers/media/video/videobuf-dma-sg.c b/drivers/media/video/videobuf-dma-sg.c
-> index 20f227e..5af3217 100644
-> --- a/drivers/media/video/videobuf-dma-sg.c
-> +++ b/drivers/media/video/videobuf-dma-sg.c
-> @@ -430,6 +430,8 @@ static struct videobuf_buffer *__videobuf_alloc_vb(size_t size)
->  
->  	mem = vb->priv = ((char *)vb) + size;
->  	mem->magic = MAGIC_SG_MEM;
-> +	INIT_LIST_HEAD(&vb->stream);
-> +	INIT_LIST_HEAD(&vb->queue);
->  
->  	videobuf_dma_init(&mem->dma);
->  
-> diff --git a/drivers/media/video/videobuf-vmalloc.c b/drivers/media/video/videobuf-vmalloc.c
-> index df14258..8babedd 100644
-> --- a/drivers/media/video/videobuf-vmalloc.c
-> +++ b/drivers/media/video/videobuf-vmalloc.c
-> @@ -146,6 +146,8 @@ static struct videobuf_buffer *__videobuf_alloc_vb(size_t size)
->  
->  	mem = vb->priv = ((char *)vb) + size;
->  	mem->magic = MAGIC_VMAL_MEM;
-> +	INIT_LIST_HEAD(&vb->stream);
-> +	INIT_LIST_HEAD(&vb->queue);
->  
->  	dprintk(1, "%s: allocated at %p(%ld+%ld) & %p(%ld)\n",
->  		__func__, vb, (long)sizeof(*vb), (long)size - sizeof(*vb),
-> 
+Remote control and hardware mpeg2 decoding are not needed; the 2Ux19" dish pointer controller will have no display
+(other than a 480x220 touchscreen which cannot show video, and a web user interface). Eventually we'll allow the
+connection of a monitor if the 1.6GHz fanless single-core Atom can handle the decoding, but that would be just a
+interesting feature, not a must.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+The card can be PCI or USB2 (the mini-itx board also has a very useful mini-pcie).
+
+I've never used a DVB card, so I'd like to please ask you guys if the dvb-s support under linux can be used in this
+situation:
+
+- no X running
+- send tuning/cps/etc configuration/commands via command line
+- get signal strength (dBm?) and quality (BER?), signal lock, and other sat info via command line or api or somewhere in
+/proc/ for example
+
+Considering that this is all I need (and users-do-not-need-to-know-this-is-a-computer stability), are the Technotrend
+TT-S3200 and TT-S1600 still good bets? Any less featured but still good quality cheaper option?
+
+Thank you!
+
+Joao S Veiga
+
