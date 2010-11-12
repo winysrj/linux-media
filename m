@@ -1,121 +1,129 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:33798 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752444Ab0KGJLD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Nov 2010 04:11:03 -0500
-Received: by iwn41 with SMTP id 41so2710018iwn.19
-        for <linux-media@vger.kernel.org>; Sun, 07 Nov 2010 01:11:02 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4CD630EA.8040409@maxwell.research.nokia.com>
-References: <AANLkTint8J4NdXQ4v1wmKAKWa7oeSHsdOn8JzjDqCqeY@mail.gmail.com>
-	<4CD161B3.9000709@maxwell.research.nokia.com>
-	<AANLkTikTAo71Kr+Nh8Q8DOMFwWB=gLQSXozgGo8ecYwm@mail.gmail.com>
-	<201011040434.53836.laurent.pinchart@ideasonboard.com>
-	<AANLkTik56opb35vrTnsP=U0F+24uvAWxjtnoGnW18Yta@mail.gmail.com>
-	<AANLkTi=drc6qQeYx_RHOAuQHZ=h6wy6m9fhHsatAjoQU@mail.gmail.com>
-	<4CD413E4.20401@matrix-vision.de>
-	<4CD630EA.8040409@maxwell.research.nokia.com>
-Date: Sun, 7 Nov 2010 10:11:02 +0100
-Message-ID: <AANLkTiks64D3t4j+maWNG4+ZOspYE0hMg8Pf8_XcrGw8@mail.gmail.com>
-Subject: Re: OMAP3530 ISP irqs disabled
-From: Bastian Hecht <hechtb@googlemail.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Cc: Michael Jones <michael.jones@matrix-vision.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from lo.gmane.org ([80.91.229.12]:48812 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752902Ab0KLOoF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Nov 2010 09:44:05 -0500
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1PGurC-0000GR-Is
+	for linux-media@vger.kernel.org; Fri, 12 Nov 2010 15:44:02 +0100
+Received: from 193.160.199.2 ([193.160.199.2])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 12 Nov 2010 15:44:02 +0100
+Received: from bjorn by 193.160.199.2 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 12 Nov 2010 15:44:02 +0100
+To: linux-media@vger.kernel.org
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+Subject: [GIT PATCHES FOR 2.6.38] mantis for_2.6.38
+Date: Fri, 12 Nov 2010 15:43:42 +0100
+Message-ID: <874obmiov5.fsf@nemi.mork.no>
+References: <4CBB689F.1070100@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Marko Ristola <marko.ristola@kolumbus.fi>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	Ben Hutchings <ben@decadent.org.uk>,
+	Niklas Claesson <nicke.claesson@gmail.com>,
+	Tuxoholic <tuxoholic@hotmail.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-2010/11/7 Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>:
-> Hi all!
->
-> Michael Jones wrote:
->> Hi Bastian (Laurent, and Sakari),
->>>
->>> I want to clarify this:
->>>
->>> I try to read images with yafta.
->>> I read in 4 images with 5MP size (no skipping). All 4 images contain only zeros.
->>> I repeat the process some times and keep checking the data. After -
->>> let's say the 6th time - the images contain exactly the data I expect.
->>> WHEN they are read they are good. I just don't want to read 20 black
->>> images before 1 image is transferred right.
->>>
->>> -Bastian
->>>
->>
->> I'm on to your problem, having reproduced it myself. I suspect that
-> you're actually only getting one frame: your very first buffer. You
-> don't touch it, and neither does the CCDC after you requeue it, and
-> after you've cycled through all your other buffers, you get back the
-> non-zero frame. If you clear the "good" frame in your application once,
-> you won't get any more non-zero frames afterwards. Or if you request
-> more buffers, you'll have fewer non-zero frames. That's the behavior I
-> observe.
->
-> (FYI: your lines are quite long, well over 80 characters.)
->
-> Have you checked the ISP writes data to the buffers? It's good to try
-> with a known pattern that you can't get from a sensor.
->
->>
->> The CCDC is getting disabled by the VD1 interrupt:
->> ispccdc_vd1_isr()->__ispccdc_handle_stopping()->__ispccdc_enable(ccdc,
->> 0)
->>
->> To test this theory I tried disabling the VD1 interrupt, but it
->> didn't
-> solve the problem. In fact, I was still getting VD1 interrupts even
-> though I had disabled them. Has anybody else observed that VD1 cannot be
-> disabled?
->>
->> I also found it strange that the CCDC seemed to continue to generate interrupts when it's disabled.
->
-> Yes, the CCDC VD0 and VD1 counters keep counting even if the module is
-> disabled. That is a known problem.
->
-> The VD0 interrupts are ignored as long as there are no buffers queued.
->
-> How many buffers do you have btw.?
->
->> Here's my suggestion for a fix, hopefully Laurent or Sakari can comment on it:
->>
->> --- a/drivers/media/video/isp/ispccdc.c
->> +++ b/drivers/media/video/isp/ispccdc.c
->> @@ -1477,7 +1477,7 @@ static void ispccdc_vd1_isr(struct isp_ccdc_device *ccdc)
->> † † † † spin_lock_irqsave(&ccdc->lsc.req_lock, flags);
->>
->> † † † † /* We are about to stop CCDC and/without LSC */
->> - † † † if ((ccdc->output & CCDC_OUTPUT_MEMORY) ||
->> + † † † if ((ccdc->output & CCDC_OUTPUT_MEMORY) &&
->> † † † † † † (ccdc->state == ISP_PIPELINE_STREAM_SINGLESHOT))
->> † † † † † † † † ccdc->stopping = CCDC_STOP_REQUEST;
->
-> Does this fix the problem? ISP_PIPELINE_STREAM_SINGLESHOT is there for
-> memory sources and I do not think this is a correct fix.
+Hello, 
 
-It fixes the problem for me. I read 2 frames now, the first is half
-full, but the second gets synchronized nicely then and I got my first
-picture out of it. It works reliable now.
+I've been waiting for this list of patchwork patches to be included for
+quite a while, and have now taken the liberty to clean them up as
+necessary and add them to a git tree, based on the current media_tree
+for_v2.6.38 branch, with exceptions as noted below:
 
-> Is your VSYNC on falling or rising edge? This is defined for CCP2 and
-> this is what the driver was originally written for. If it's different
-> (rising??), you should apply the attached wildly opportunistic patch,
-> which I do not expect to fix this problem, however.
+> 		== mantis patches - Waiting for Manu Abraham <abraham.manu@gmail.com> == 
+>
+> Apr,15 2010: [5/8] ir-core: convert mantis from ir-functions.c                      http://patchwork.kernel.org/patch/92961   David H√É¬§rdeman <david@hardeman.nu>
 
-I got rising HSYNC and rising VSINC sampled at falling pixelclock.
+already applied as commit f0bdee26a2dc904c463bae1c2ae9ad06f97f100d
 
-- Bastian
+> Jun,20 2010: Mantis DMA transfer cleanup, fixes data corruption and a race, improve http://patchwork.kernel.org/patch/107036  Marko Ristola <marko.ristola@kolumbus.fi>
+
+duplicate of http://patchwork.kernel.org/patch/118173
+
+> Jun,20 2010: [2/2] DVB/V4L: mantis: remove unused files                             http://patchwork.kernel.org/patch/107062  Bj√É¬∏rn Mork <bjorn@mork.no>
+> Jun,20 2010: mantis: use dvb_attach to avoid double dereferencing on module removal http://patchwork.kernel.org/patch/107063  Bj√É¬∏rn Mork <bjorn@mork.no>
+> Jun,21 2010: Mantis, hopper: use MODULE_DEVICE_TABLE use the macro to make modules  http://patchwork.kernel.org/patch/107147  Manu Abraham <abraham.manu@gmail.com>
+> Jul, 3 2010: mantis: Rename gpio_set_bits to mantis_gpio_set_bits                   http://patchwork.kernel.org/patch/109972  Ben Hutchings <ben@decadent.org.uk>
+> Jul, 8 2010: Mantis DMA transfer cleanup, fixes data corruption and a race, improve http://patchwork.kernel.org/patch/110909  Marko Ristola <marko.ristola@kolumbus.fi>
+
+another duplicate of http://patchwork.kernel.org/patch/118173
+
+> Jul, 9 2010: Mantis: append tasklet maintenance for DVB stream delivery             http://patchwork.kernel.org/patch/111090  Marko Ristola <marko.ristola@kolumbus.fi>
+> Jul,10 2010: Mantis driver patch: use interrupt for I2C traffic instead of busy reg http://patchwork.kernel.org/patch/111245  Marko Ristola <marko.ristola@kolumbus.fi>
+> Jul,19 2010: Twinhan DTV Ter-CI (3030 mantis)                                       http://patchwork.kernel.org/patch/112708  Niklas Claesson <nicke.claesson@gmail.com>
+
+Missing Signed-off-by, and I'm also a bit confused wrt what the patch
+actually is.  Needs further cleanup.
+
+> Aug, 7 2010: Refactor Mantis DMA transfer to deliver 16Kb TS data per interrupt     http://patchwork.kernel.org/patch/118173  Marko Ristola <marko.ristola@kolumbus.fi>
+> Oct,10 2010: [v2] V4L/DVB: faster DVB-S lock for mantis cards using stb0899 demod   http://patchwork.kernel.org/patch/244201  Tuxoholic <tuxoholic@hotmail.de>
 
 
-> But I might be just pointing you to wrong direction, better wait for
-> Laurent's answer. :-)
->
-> Cheers,
->
-> --
-> Sakari Ailus
-> sakari.ailus@maxwell.research.nokia.com
->
+
+The following changes since commit 
+
+af9f14f7fc31f0d7b7cdf8f7f7f15a3c3794aea3    [media] IR: add tv power scancode to rc6 mce keymap
+
+are available in the git repository at:
+
+  git://git.mork.no/mantis.git for_2.6.38
+
+Ben Hutchings (1):
+      V4L/DVB: mantis: Rename gpio_set_bits to mantis_gpio_set_bits
+
+Bj√∏rn Mork (2):
+      V4L/DVB: mantis: use dvb_attach to avoid double dereferencing on module removal
+      V4L/DVB/V4L: mantis: remove unused files
+
+Manu Abraham (1):
+      Mantis, hopper: use MODULE_DEVICE_TABLE use the macro to make modules auto-loadable
+
+Marko Ristola (3):
+      V4L/DVB: mantis: append tasklet maintenance for DVB stream delivery
+      Refactor Mantis DMA transfer to deliver 16Kb TS data per interrupt
+      media: mantis: use interrupt for I2C traffic instead of busy registry polling
+
+tuxoholic@hotmail.de (1):
+      V4L/DVB: faster DVB-S lock for mantis cards using stb0899 demod
+
+ drivers/media/dvb/frontends/stb0899_algo.c |   33 +++--
+ drivers/media/dvb/mantis/hopper_cards.c    |    4 +-
+ drivers/media/dvb/mantis/hopper_vp3028.c   |    6 +-
+ drivers/media/dvb/mantis/mantis_cards.c    |   18 ++-
+ drivers/media/dvb/mantis/mantis_common.h   |    9 +-
+ drivers/media/dvb/mantis/mantis_core.c     |  235 ----------------------------
+ drivers/media/dvb/mantis/mantis_core.h     |   57 -------
+ drivers/media/dvb/mantis/mantis_dma.c      |   92 ++++-------
+ drivers/media/dvb/mantis/mantis_dvb.c      |   17 ++-
+ drivers/media/dvb/mantis/mantis_i2c.c      |  128 ++++++++++++----
+ drivers/media/dvb/mantis/mantis_ioc.c      |    4 +-
+ drivers/media/dvb/mantis/mantis_ioc.h      |    2 +-
+ drivers/media/dvb/mantis/mantis_vp1033.c   |    2 +-
+ drivers/media/dvb/mantis/mantis_vp1034.c   |   10 +-
+ drivers/media/dvb/mantis/mantis_vp1041.c   |    6 +-
+ drivers/media/dvb/mantis/mantis_vp2033.c   |    5 +-
+ drivers/media/dvb/mantis/mantis_vp2040.c   |    4 +-
+ drivers/media/dvb/mantis/mantis_vp3030.c   |    8 +-
+ 18 files changed, 208 insertions(+), 432 deletions(-)
+
+
+Note that some of these patches will trigger checkpatch long line
+warnings due to deliberate choices. I have no strong feelings about
+reformatting them, but I believe the review is easier the less I have
+changed the original patchworks patch...
+
+
+I sincerely hope this will make your job easier.  Thanks for reviewing,
+
+
+Bj√∏rn
+
