@@ -1,124 +1,138 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:56805 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752174Ab0J3St4 (ORCPT
+Return-path: <mchehab@pedra>
+Received: from casper.infradead.org ([85.118.1.10]:52053 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752041Ab0KLEBW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Oct 2010 14:49:56 -0400
-Received: by pzk3 with SMTP id 3so263310pzk.19
-        for <linux-media@vger.kernel.org>; Sat, 30 Oct 2010 11:49:56 -0700 (PDT)
-Message-ID: <4CCC68CD.50409@gmail.com>
-Date: Sat, 30 Oct 2010 11:49:49 -0700
-From: "D. K." <user.vdr@gmail.com>
+	Thu, 11 Nov 2010 23:01:22 -0500
+Message-ID: <4CDCBBF7.8050702@infradead.org>
+Date: Fri, 12 Nov 2010 02:00:55 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [PATCH] dvb-usb-gp8psk: get firmware and fpga versions
-Content-Type: multipart/mixed;
- boundary="------------080806060502080404000903"
-List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
-
-This is a multi-part message in MIME format.
---------------080806060502080404000903
+To: Jarod Wilson <jarod@wilsonet.com>
+CC: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/6] rc-core: ir-core to rc-core conversion
+References: <AANLkTi=z2yU568sEs0RNuQ6gZUzJQeHajTZ_0LeXS-2D@mail.gmail.com>	<4CD9FA59.9020702@infradead.org>	<33c8487ce0141587f695d9719289467e@hardeman.nu>	<4CDA94C6.2010506@infradead.org>	<0bda4af059880eb492d921728997958c@hardeman.nu>	<4CDAC730.4060303@infradead.org>	<20101110220115.GA7302@hardeman.nu>	<4CDBF596.6030206@infradead.org>	<02f13638ea24016b5b3673b50940a91c@hardeman.nu>	<4CDC1326.3030502@infradead.org>	<20101111203501.GA8276@hardeman.nu> <AANLkTinjBOdnYfs=+HVxjaurbwEA33U2YwE0=bdz_Zto@mail.gmail.com>
+In-Reply-To: <AANLkTinjBOdnYfs=+HVxjaurbwEA33U2YwE0=bdz_Zto@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
- This patch adds retrieval of firmware and FPGA versions of Genpix devices.
-That information is useful for users who experience performance differences
-with the various firmware versions, and may want to use a specific firmware
-that best suits their needs.
+Em 11-11-2010 21:40, Jarod Wilson escreveu:
+> On Thu, Nov 11, 2010 at 3:35 PM, David Härdeman <david@hardeman.nu> wrote:
+>> On Thu, Nov 11, 2010 at 02:00:38PM -0200, Mauro Carvalho Chehab wrote:
+> ...
+>>>> struct input_dev only gets input_name, input_phys and input_id from struct
+>>>> rc_dev, and I did it that way because I didn't want to remove all that
+>>>> information from all drivers (and fill input_dev with generic information
+>>>> instead).
+>>>
+>>> input_dev fields need to be properly filled, but just duplicating the same
+>>> info on both structs and copying from one to the other doesn't seem the better
+>>> way. Why not just initialize rc_dev->input_dev fields directly, not duplicating
+>>> the data (or having a helper in-lined routine) to initialize those fields?
+>>
+>> The data is not duplicated, input_name and input_phys are passed around
+>> as pointers.
+>>
+>> And the reason it looks the way it does is, again, that
+>> multiple-input-devices-per-rc-device will be broken if drivers fiddle
+>> with the input_dev directly. Not to mention it's a layering violation to
+>> expect rc drivers to also know about the underlying input devices.
+>>
+>> (Yes, you could say that input_name, input_phys and input_id are
+>> layering violations as well, but they are not an equally problematic
+>> violation and they're a stopgap measure).
+>>
+>>> Ok, but the point is that a driver like ir-kbd-i2c (and other I2C drivers like
+>>> lirc-zilog - after ported to rc-core) will require several additional fields
+>>> that are added at rc_dev (basically, all fields that are, currently, at
+>>> ir_dev_props structs may be needed by an i2c driver).
+>>
+>> I don't think it's a problem. Making rc-core ir-kbd-i2c friendly is
+>> putting the cart before the horse, ir-kbd-i2c is but one user of rc-core
+>> (and I also doubt that you'll actually need to duplicate all members,
+>> i2c hardware is too basic to need all bells and whistles of rc-core).
+> 
+> And just for the record, lirc_zilog probably needs a fairly massive
+> overhaul, so I'd definitely not worry about it *too* much...
+> 
+>>>> The new struct is much more straightforward, and your worries about
+>>>> additional pain caused by not having a struct ir_dev_props did not
+>>>> materialize in any of the changes I did (see for example
+>>>> drivers/media/dvb/dvb-usb/dib0700_devices.c which had similar
+>>>> requirements to struct IR_i2c).
+>>>
+>>> dvb-usb uses a large struct to device dvb devices, and, due to the
+>>> way it were done, every single field at RC should be inititialized,
+>>> per device. I don't like the way it is, but I didn't want to delay
+>>> the rc_core port on it, due to some discussions about how to re-structure
+>>> it to avoid the large amount of data duplication there. So, I just
+>>> added the absolute minimum fields there. IMO, we should do later
+>>> a large cleanup on it. Yet, it is different than ir-kdb-i2c, since
+>>> since the beginning, the complete IR code is exported on DVB drivers,
+>>> while V4L drivers use to export just a few bits of the IR code (up
+>>> to seven bits). So, it is not a good example.
+>>>
+>>> A good exercise would be to port lirc-zilog and see what happens.
+>>
+>> I had a quick look at lirc-zilog and I doubt it would be a good
+>> candidate to integrate with ir-kbd-i2c.c (I assume that's what you were
+>> implying?). Which code from ir-kbd-i2c would it actually be using?
+> 
+> On the receive side, lirc_zilog was pretty similar to lirc_i2c, which
+> we dropped entirely, as ir-kbd-i2c handles receive just fine for all
+> the relevant rx-only devices lirc_i2c worked with. So in theory,
+> ir-kbd-i2c might want to just grow tx support, but I think I'm more
+> inclined to make it a new stand-alone rx and tx capable driver.
 
-Example dmesg output:
-gp8psk: FW Version = 2.09.4 (0x20904)  Build 2009/04/02
-gp8psk: FPGA Version = 1
+It doesn't matter much if we'll grow ir-kbd-i2c or convert lirc_zilog.
+The point is that rc_register_device() should be called inside the i2c
+driver, but several parameters should be passed to it via platform_data,
+in a way that is similar to ir-kbd-i2c.
 
-Signed-off-by: Derek Kelly <user.vdr@gmail.com>
+Maybe one solution would be to pass rc_dev via platform_data.
 
+>>>> What's your suggestion?
+>>>
+>>> One idea could be to initialize rc_dev at the caller drivers, passing
+>>> it via platform_data for the I2C drivers.
+>>
+>> Having a subsystem mucking around in a struct embedded as part of the
+>> platform data of a higher level driver sounds iffy. You'll never (for
+>> example) be able to const'ify platform_data...
+>>
+>>> Also, instead of duplicating input_dev fields, directly initialize them
+>>> inside the drivers, and not at rc-core.
+>>
+>> Won't work for the reasons explained above.
+>>
+>>> I like the idea of having an inlined function (like
+>>> usb_fill_control_urb), to be sure that all mandatory fields are
+>>> initialized by the drivers.
+>>
+>> I like the idea of having a function, let's call it
+>> rc_register_device(), which makes sure that all mandatory fields are
+>> initialized by the drivers :)
+> 
+> rc_register_device(rc, name, phys, id); to further prevent duplicate
+> struct members? :)
 
---------------080806060502080404000903
-Content-Type: text/plain;
- name="gp8psk-get_fw_fpga_git.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="gp8psk-get_fw_fpga_git.diff"
+Seems a good idea to me. It is easier and more direct to pass those info
+as parameter, than to have some code inside rc_register_device to check
+for the mandatory data.
 
-diff -pruN v4l-dvb.orig/linux/drivers/media/dvb/dvb-usb/gp8psk.c v4l-dvb/linux/drivers/media/dvb/dvb-usb/gp8psk.c
---- v4l-dvb.orig/linux/drivers/media/dvb/dvb-usb/gp8psk.c	2010-10-30 11:20:46.000000000 -0700
-+++ v4l-dvb/linux/drivers/media/dvb/dvb-usb/gp8psk.c	2010-10-30 11:21:36.000000000 -0700
-@@ -24,6 +24,33 @@ MODULE_PARM_DESC(debug, "set debugging l
- 
- DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- 
-+static int gp8psk_get_fw_version(struct dvb_usb_device *d, u8 *fw_vers)
-+{
-+	return (gp8psk_usb_in_op(d, GET_FW_VERS, 0, 0, fw_vers, 6));
-+}
-+
-+static int gp8psk_get_fpga_version(struct dvb_usb_device *d, u8 *fpga_vers)
-+{
-+	return (gp8psk_usb_in_op(d, GET_FPGA_VERS, 0, 0, fpga_vers, 1));
-+}
-+
-+static void gp8psk_info(struct dvb_usb_device *d)
-+{
-+	u8 fpga_vers, fw_vers[6];
-+
-+	if (!gp8psk_get_fw_version(d, fw_vers))
-+		info("FW Version = %i.%02i.%i (0x%x)  Build %4i/%02i/%02i",
-+		fw_vers[2], fw_vers[1], fw_vers[0], GP8PSK_FW_VERS(fw_vers),
-+		2000 + fw_vers[5], fw_vers[4], fw_vers[3]);
-+	else
-+		info("failed to get FW version");
-+
-+	if (!gp8psk_get_fpga_version(d, &fpga_vers))
-+		info("FPGA Version = %i", fpga_vers);
-+	else
-+		info("failed to get FPGA version");
-+}
-+
- int gp8psk_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen)
- {
- 	int ret = 0,try = 0;
-@@ -146,6 +173,7 @@ static int gp8psk_power_ctrl(struct dvb_
- 				gp8psk_usb_out_op(d, CW3K_INIT, 1, 0, NULL, 0);
- 			if (gp8psk_usb_in_op(d, BOOT_8PSK, 1, 0, &buf, 1))
- 				return -EINVAL;
-+			gp8psk_info(d);
- 		}
- 
- 		if (gp_product_id == USB_PID_GENPIX_8PSK_REV_1_WARM)
-diff -pruN v4l-dvb.orig/linux/drivers/media/dvb/dvb-usb/gp8psk.h v4l-dvb/linux/drivers/media/dvb/dvb-usb/gp8psk.h
---- v4l-dvb.orig/linux/drivers/media/dvb/dvb-usb/gp8psk.h	2010-10-30 11:20:46.000000000 -0700
-+++ v4l-dvb/linux/drivers/media/dvb/dvb-usb/gp8psk.h	2010-10-30 11:24:30.000000000 -0700
-@@ -25,7 +25,6 @@ extern int dvb_usb_gp8psk_debug;
- #define deb_xfer(args...) dprintk(dvb_usb_gp8psk_debug,0x02,args)
- #define deb_rc(args...)   dprintk(dvb_usb_gp8psk_debug,0x04,args)
- #define deb_fe(args...)   dprintk(dvb_usb_gp8psk_debug,0x08,args)
--/* gp8psk commands */
- 
- /* Twinhan Vendor requests */
- #define TH_COMMAND_IN                     0xC0
-@@ -49,8 +48,10 @@ extern int dvb_usb_gp8psk_debug;
- #define SET_DVB_MODE                    0x8E
- #define SET_DN_SWITCH                   0x8F
- #define GET_SIGNAL_LOCK                 0x90    /* in */
-+#define GET_FW_VERS			0x92
- #define GET_SERIAL_NUMBER               0x93    /* in */
- #define USE_EXTRA_VOLT                  0x94
-+#define GET_FPGA_VERS			0x95
- #define CW3K_INIT			0x9d
- 
- /* PSK_configuration bits */
-@@ -88,6 +89,11 @@ extern int dvb_usb_gp8psk_debug;
- #define PRODUCT_STRING_READ               0x0D
- #define FW_BCD_VERSION_READ               0x14
- 
-+/* firmware revision id's */
-+#define GP8PSK_FW_REV1			0x020604
-+#define GP8PSK_FW_REV2			0x020704
-+#define GP8PSK_FW_VERS(_fw_vers)	((_fw_vers)[2]<<0x10 | (_fw_vers)[1]<<0x08 | (_fw_vers)[0])
-+
- extern struct dvb_frontend * gp8psk_fe_attach(struct dvb_usb_device *d);
- extern int gp8psk_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen);
- extern int gp8psk_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
+> I still really like this interface change, even if its going to cause
+> short-term issues for i2c devices. I think we just extend this as
+> needed to handle the i2c bits. That said, I haven't really looked all
+> that closely at how much that entails...
+> 
 
---------------080806060502080404000903--
+I think I'll apply the cx231xx fixes and then rebase the rc_register_device
+patch on the top of it, doing a minimal change at IR_i2c. Currently, we
+just need to pass one extra parameter. After this, we can work to improve
+it.
+
+Cheers,
+Mauro
