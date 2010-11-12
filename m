@@ -1,319 +1,99 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:19963 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932636Ab0KQIjs (ORCPT
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:41925 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756992Ab0KLMM5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Nov 2010 03:39:48 -0500
-Received: from spt2.w1.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LC000H8ITE8BL@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 17 Nov 2010 08:39:44 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LC000HA0TE7BP@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 17 Nov 2010 08:39:44 +0000 (GMT)
-Date: Wed, 17 Nov 2010 09:39:29 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 2/7] v4l: videobuf2: add generic memory handling routines
-In-reply-to: <1289983174-2835-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	kyungmin.park@samsung.com
-Message-id: <1289983174-2835-3-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1289983174-2835-1-git-send-email-m.szyprowski@samsung.com>
+	Fri, 12 Nov 2010 07:12:57 -0500
+Date: Fri, 12 Nov 2010 13:12:53 +0100
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/6] rc-core: ir-core to rc-core conversion
+Message-ID: <20101112121252.GB14033@hardeman.nu>
+References: <4CDA94C6.2010506@infradead.org>
+ <0bda4af059880eb492d921728997958c@hardeman.nu>
+ <4CDAC730.4060303@infradead.org>
+ <20101110220115.GA7302@hardeman.nu>
+ <4CDBF596.6030206@infradead.org>
+ <02f13638ea24016b5b3673b50940a91c@hardeman.nu>
+ <4CDC1326.3030502@infradead.org>
+ <20101111203501.GA8276@hardeman.nu>
+ <AANLkTinjBOdnYfs=+HVxjaurbwEA33U2YwE0=bdz_Zto@mail.gmail.com>
+ <4CDCBBF7.8050702@infradead.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <4CDCBBF7.8050702@infradead.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Pawel Osciak <p.osciak@samsung.com>
+On Fri, Nov 12, 2010 at 02:00:55AM -0200, Mauro Carvalho Chehab wrote:
+>Em 11-11-2010 21:40, Jarod Wilson escreveu:
+>> On Thu, Nov 11, 2010 at 3:35 PM, David Härdeman <david@hardeman.nu> wrote:
+>>> On Thu, Nov 11, 2010 at 02:00:38PM -0200, Mauro Carvalho Chehab wrote:
+>>>> A good exercise would be to port lirc-zilog and see what happens.
+>>>
+>>> I had a quick look at lirc-zilog and I doubt it would be a good
+>>> candidate to integrate with ir-kbd-i2c.c (I assume that's what you were
+>>> implying?). Which code from ir-kbd-i2c would it actually be using?
+>> 
+>> On the receive side, lirc_zilog was pretty similar to lirc_i2c, which
+>> we dropped entirely, as ir-kbd-i2c handles receive just fine for all
+>> the relevant rx-only devices lirc_i2c worked with. So in theory,
+>> ir-kbd-i2c might want to just grow tx support, but I think I'm more
+>> inclined to make it a new stand-alone rx and tx capable driver.
+>
+>It doesn't matter much if we'll grow ir-kbd-i2c or convert lirc_zilog.
+>The point is that rc_register_device() should be called inside the i2c
+>driver, but several parameters should be passed to it via platform_data,
+>in a way that is similar to ir-kbd-i2c.
 
-Add generic memory handling routines for userspace pointer handling,
-contiguous memory verification and mapping.
+Yes, but if lirc_zilog doesn't use ir-kbd-i2c, there might not be a need
+for the large number of rc-specific members in platform_data?
 
-Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-CC: Pawel Osciak <pawel@osciak.com>
----
- drivers/media/video/Kconfig            |    3 +
- drivers/media/video/Makefile           |    1 +
- drivers/media/video/videobuf2-memops.c |  199 ++++++++++++++++++++++++++++++++
- include/media/videobuf2-memops.h       |   31 +++++
- 4 files changed, 234 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/videobuf2-memops.c
- create mode 100644 include/media/videobuf2-memops.h
+>Maybe one solution would be to pass rc_dev via platform_data.
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index fef6a14..83ce858 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -52,6 +52,9 @@ config V4L2_MEM2MEM_DEV
- config VIDEOBUF2_CORE
- 	tristate
- 
-+config VIDEOBUF2_MEMOPS
-+	tristate
-+
- #
- # Multimedia Video device configuration
- #
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index 77c4f85..a97a2a0 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -115,6 +115,7 @@ obj-$(CONFIG_VIDEOBUF_DVB) += videobuf-dvb.o
- obj-$(CONFIG_VIDEO_BTCX)  += btcx-risc.o
- 
- obj-$(CONFIG_VIDEOBUF2_CORE)		+= videobuf2-core.o
-+obj-$(CONFIG_VIDEOBUF2_MEMOPS)		+= videobuf2-memops.o
- 
- obj-$(CONFIG_V4L2_MEM2MEM_DEV) += v4l2-mem2mem.o
- 
-diff --git a/drivers/media/video/videobuf2-memops.c b/drivers/media/video/videobuf2-memops.c
-new file mode 100644
-index 0000000..67ebdff
---- /dev/null
-+++ b/drivers/media/video/videobuf2-memops.c
-@@ -0,0 +1,199 @@
-+/*
-+ * videobuf2-memops.c - generic memory handling routines for videobuf2
-+ *
-+ * Copyright (C) 2010 Samsung Electronics
-+ *
-+ * Author: Pawel Osciak <p.osciak@samsung.com>
-+ *	   Marek Szyprowski <m.szyprowski@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation.
-+ */
-+
-+#include <linux/slab.h>
-+#include <linux/module.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/vmalloc.h>
-+#include <linux/cma.h>
-+#include <linux/mm.h>
-+#include <linux/sched.h>
-+#include <linux/file.h>
-+
-+#include <media/videobuf2-core.h>
-+
-+/**
-+ * vb2_contig_verify_userptr() - verify contiguity of a userspace-mapped memory
-+ * @vma:	virtual memory region which maps the physical memory
-+ *		to be verified
-+ * @vaddr:	starting virtual address of the area to be verified
-+ * @size:	size of the area to be verified
-+ * @paddr:	will return physical address for the given vaddr
-+ *
-+ * This function will go through memory area of size size mapped at vaddr and
-+ * verify that the underlying physical pages are contiguous.
-+ *
-+ * Returns 0 on success and a physical address to the memory pointed
-+ * to by vaddr in paddr.
-+ */
-+int vb2_contig_verify_userptr(struct vm_area_struct *vma,
-+				unsigned long vaddr, unsigned long size,
-+				unsigned long *paddr)
-+{
-+	struct mm_struct *mm = current->mm;
-+	unsigned long offset;
-+	unsigned long vma_size;
-+	unsigned long curr_pfn, prev_pfn;
-+	unsigned long num_pages;
-+	int ret = -EINVAL;
-+	unsigned int i;
-+
-+	offset = vaddr & ~PAGE_MASK;
-+
-+	down_read(&mm->mmap_sem);
-+
-+	vma = find_vma(mm, vaddr);
-+	if (!vma) {
-+		printk(KERN_ERR "Invalid userspace address\n");
-+		goto done;
-+	}
-+
-+	vma_size = vma->vm_end - vma->vm_start;
-+
-+	if (size > vma_size - offset) {
-+		printk(KERN_ERR "Region too small\n");
-+		goto done;
-+	}
-+	num_pages = (size + offset) >> PAGE_SHIFT;
-+
-+	ret = follow_pfn(vma, vaddr, &curr_pfn);
-+	if (ret) {
-+		printk(KERN_ERR "Invalid userspace address\n");
-+		goto done;
-+	}
-+
-+	*paddr = (curr_pfn << PAGE_SHIFT) + offset;
-+
-+	for (i = 1; i < num_pages; ++i) {
-+		prev_pfn = curr_pfn;
-+		vaddr += PAGE_SIZE;
-+
-+		ret = follow_pfn(vma, vaddr, &curr_pfn);
-+		if (ret || curr_pfn != prev_pfn + 1) {
-+			printk(KERN_ERR "Invalid userspace address\n");
-+			ret = -EINVAL;
-+			break;
-+		}
-+	}
-+
-+done:
-+	up_read(&mm->mmap_sem);
-+	return ret;
-+}
-+
-+/**
-+ * vb2_mmap_pfn_range() - map physical pages to userspace
-+ * @vma:	virtual memory region for the mapping
-+ * @paddr:	starting physical address of the memory to be mapped
-+ * @size:	size of the memory to be mapped
-+ * @vm_ops:	vm operations to be assigned to the created area
-+ * @priv:	private data to be associated with the area
-+ *
-+ * Returns 0 on success.
-+ */
-+int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
-+				unsigned long size,
-+				const struct vm_operations_struct *vm_ops,
-+				void *priv)
-+{
-+	int ret;
-+
-+	size = min_t(unsigned long, vma->vm_end - vma->vm_start, size);
-+
-+	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-+	ret = remap_pfn_range(vma, vma->vm_start, paddr >> PAGE_SHIFT,
-+				size, vma->vm_page_prot);
-+	if (ret) {
-+		printk(KERN_ERR "Remapping memory failed, error: %d\n", ret);
-+		return ret;
-+	}
-+
-+	vma->vm_flags		|= VM_DONTEXPAND | VM_RESERVED;
-+	vma->vm_private_data	= priv;
-+	vma->vm_ops		= vm_ops;
-+
-+	vm_ops->open(vma);
-+
-+	printk(KERN_DEBUG "%s: mapped paddr 0x%08lx at 0x%08lx, size %ld\n",
-+			__func__, paddr, vma->vm_start, size);
-+
-+	return 0;
-+}
-+
-+/**
-+ * vb2_get_userptr() - acquire an area pointed to by userspace addres vaddr
-+ * @vaddr:	virtual userspace address to the given area
-+ *
-+ * This function attempts to acquire an area mapped in the userspace for
-+ * the duration of a hardware operation.
-+ *
-+ * Returns a virtual memory region associated with the given vaddr on success
-+ * or NULL.
-+ */
-+struct vm_area_struct *vb2_get_userptr(unsigned long vaddr)
-+{
-+	struct mm_struct *mm = current->mm;
-+	struct vm_area_struct *vma;
-+	struct vm_area_struct *vma_copy;
-+
-+	vma_copy = kmalloc(sizeof(struct vm_area_struct), GFP_KERNEL);
-+	if (vma_copy == NULL)
-+		return NULL;
-+
-+	down_read(&mm->mmap_sem);
-+
-+	vma = find_vma(mm, vaddr);
-+	if (!vma)
-+		goto done;
-+
-+	if (vma->vm_ops && vma->vm_ops->open)
-+		vma->vm_ops->open(vma);
-+
-+	if (vma->vm_file)
-+		get_file(vma->vm_file);
-+
-+	memcpy(vma_copy, vma, sizeof(*vma));
-+done:
-+	up_read(&mm->mmap_sem);
-+
-+	vma_copy->vm_mm = NULL;
-+	vma_copy->vm_next = NULL;
-+	vma_copy->vm_prev = NULL;
-+
-+	return vma_copy;
-+}
-+
-+/**
-+ * vb2_put_userptr() - release a userspace memory area
-+ * @vma:	virtual memory region associated with the area to be released
-+ *
-+ * This function releases the previously acquired memory area after a hardware
-+ * operation.
-+ */
-+void vb2_put_userptr(struct vm_area_struct *vma)
-+{
-+	if (!vma)
-+		return;
-+
-+	if (vma->vm_file)
-+		fput(vma->vm_file);
-+
-+	if (vma->vm_ops && vma->vm_ops->close)
-+		vma->vm_ops->close(vma);
-+
-+	kfree(vma);
-+}
-+
-+MODULE_DESCRIPTION("common memory handling routines for videobuf2");
-+MODULE_AUTHOR("Pawel Osciak");
-+MODULE_LICENSE("GPL");
-diff --git a/include/media/videobuf2-memops.h b/include/media/videobuf2-memops.h
-new file mode 100644
-index 0000000..3257411
---- /dev/null
-+++ b/include/media/videobuf2-memops.h
-@@ -0,0 +1,31 @@
-+/*
-+ * videobuf2-memops.h - generic memory handling routines for videobuf2
-+ *
-+ * Copyright (C) 2010 Samsung Electronics
-+ *
-+ * Author: Pawel Osciak <p.osciak@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation.
-+ */
-+
-+#ifndef _MEDIA_VIDEOBUF2_MEMOPS_H
-+#define _MEDIA_VIDEOBUF2_MEMOPS_H
-+
-+#include <media/videobuf2-core.h>
-+
-+int vb2_contig_verify_userptr(struct vm_area_struct *vma,
-+				unsigned long vaddr, unsigned long size,
-+				unsigned long *paddr);
-+
-+int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
-+				unsigned long size,
-+				const struct vm_operations_struct *vm_ops,
-+				void *priv);
-+
-+struct vm_area_struct *vb2_get_userptr(unsigned long vaddr);
-+
-+void vb2_put_userptr(struct vm_area_struct *vma);
-+
-+#endif
+Shouldn't platform_data be const? And you'll break the refcounting done
+in rc_allocate_device() and rc_free_device() / rc_unregister_device().
+Not to mention the silent bugs that may be introduced if anyone modifies
+rc_allocate_device() without noticing that one driver isn't using it.
+
+>>>> I like the idea of having an inlined function (like
+>>>> usb_fill_control_urb), to be sure that all mandatory fields are
+>>>> initialized by the drivers.
+>>>
+>>> I like the idea of having a function, let's call it
+>>> rc_register_device(), which makes sure that all mandatory fields are
+>>> initialized by the drivers :)
+>> 
+>> rc_register_device(rc, name, phys, id); to further prevent duplicate
+>> struct members? :)
+>
+>Seems a good idea to me. It is easier and more direct to pass those info
+>as parameter, than to have some code inside rc_register_device to check
+>for the mandatory data.
+
+See my reply to Jarod.
+
+And also, rc_register_device() is anyway going to check other mandatory
+fields so having it check all of them in one go is just good consistency
+IMHO.
+
+>> I still really like this interface change, even if its going to cause
+>> short-term issues for i2c devices. I think we just extend this as
+>> needed to handle the i2c bits. That said, I haven't really looked all
+>> that closely at how much that entails...
+>> 
+>
+>I think I'll apply the cx231xx fixes and then rebase the rc_register_device
+>patch on the top of it, doing a minimal change at IR_i2c. Currently, we
+>just need to pass one extra parameter. After this, we can work to improve
+>it.
+
+Meaning that you'll my patch with the rc_dev API the way it is basically
+and then we can revisit the IR_i2c debate later if necessary? If that's
+what you mean I'm all for it.
+
 -- 
-1.7.1.569.g6f426
-
+David Härdeman
