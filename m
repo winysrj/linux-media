@@ -1,85 +1,37 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:57729 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750725Ab0KDECt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Nov 2010 00:02:49 -0400
+Return-path: <mchehab@pedra>
+Received: from moutng.kundenserver.de ([212.227.126.171]:51098 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932471Ab0KLPpc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Nov 2010 10:45:32 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH 03/10] MCDE: Add pixel processing registers
+Date: Fri, 12 Nov 2010 16:46:12 +0100
+Cc: Jimmy Rubin <jimmy.rubin@stericsson.com>,
+	linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
+	Dan Johansson <dan.johansson@stericsson.com>,
+	Linus Walleij <linus.walleij@stericsson.com>
+References: <1289390653-6111-1-git-send-email-jimmy.rubin@stericsson.com> <1289390653-6111-3-git-send-email-jimmy.rubin@stericsson.com> <1289390653-6111-4-git-send-email-jimmy.rubin@stericsson.com>
+In-Reply-To: <1289390653-6111-4-git-send-email-jimmy.rubin@stericsson.com>
 MIME-Version: 1.0
-In-Reply-To: <4CD22627.2000607@redhat.com>
-References: <20101009224041.GA901@sepie.suse.cz>
-	<4CD1E232.30406@redhat.com>
-	<AANLkTimyh-k8gYwuNi6nZFp3oviQ33+M3fDRzZ+sJN9i@mail.gmail.com>
-	<4CD22627.2000607@redhat.com>
-Date: Thu, 4 Nov 2010 00:02:48 -0400
-Message-ID: <AANLkTi=N9pioMusdLCwEzT7dUg02j9QE_ndHs0tBhuiB@mail.gmail.com>
-Subject: Re: REGRESSION: Re: [GIT] kconfig rc fixes
-From: Arnaud Lacombe <lacombar@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Michal Marek <mmarek@suse.cz>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	kyle@redhat.com, linux-kbuild@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201011121646.12927.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi,
+On Wednesday 10 November 2010, Jimmy Rubin wrote:
+> This patch adds support for MCDE, Memory-to-display controller
+> found in the ST-Ericsson ux500 products.
+> 
+> This patch adds pixel processing registers found in MCDE.
+> 
+> Signed-off-by: Jimmy Rubin <jimmy.rubin@stericsson.com>
+> Acked-by: Linus Walleij <linus.walleij.stericsson.com>
 
-On Wed, Nov 3, 2010 at 11:19 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
->>> config VIDEO_HELPER_CHIPS_AUTO
->>>        bool "Autoselect pertinent encoders/decoders and other helper chips"
->>>
->>> config VIDEO_IVTV
->>>        select VIDEO_WM8739 if VIDEO_HELPER_CHIPS_AUTO
->>>
->>> menu "Encoders/decoders and other helper chips"
->>>        depends on !VIDEO_HELPER_CHIPS_AUTO
->>>
->>> config VIDEO_WM8739
->>>        tristate "Wolfson Microelectronics WM8739 stereo audio ADC"
->>>
->
-> I don't see anything wrong on such logic. It is valid in C, and it is also valid
-> (and works properly) at Kconfig language.
-no, it is not a valid Kconfig language, or at least, you create an
-ambiguity in the dependency tree.
+The same comments I gave for the configuration registers
+apply to this one and the other headers as well.
 
-> So, the warning is a false positive.
->
-no it is not. By saying:
-
-menu "Encoders/decoders and other helper chips"
-       depends on !VIDEO_HELPER_CHIPS_AUTO
-
-you create on all the menu's children an implicit dependency,
-!VIDEO_HELPER_CHIPS_AUTO. This is something that has ever been there;
-from `Documentation/kbuild/kconfig-language.txt':
-
-"
-[...]
-menu "Network device support"
-        depends on NET
-
-config NETDEVICES
-        ...
-endmenu
-
-All entries within the "menu" ... "endmenu" block become a submenu of
-"Network device support". All subentries inherit the dependencies from
-the menu entry, e.g. this means the dependency "NET" is added to the
-dependency list of the config option NETDEVICES.
-"
-
-Thus the warning as you also have:
-
-config VIDEO_IVTV
-       select VIDEO_WM8739 if VIDEO_HELPER_CHIPS_AUTO
-
-ie. VIDEO_IVTV selects VIDEO_WM8739 if VIDEO_HELPER_CHIPS_AUTO, but
-VIDEO_WM8739 has inherited the !VIDEO_HELPER_CHIPS_AUTO dependency.
-
-Now, if you want my true feeling, this warning should be fatal.
-
- - Arnaud
+	Arnd
