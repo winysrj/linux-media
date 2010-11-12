@@ -1,44 +1,50 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:65155 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752818Ab0KBP7z convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Nov 2010 11:59:55 -0400
-Received: by wyf28 with SMTP id 28so6858059wyf.19
-        for <linux-media@vger.kernel.org>; Tue, 02 Nov 2010 08:59:54 -0700 (PDT)
+Return-path: <mchehab@pedra>
+Received: from casper.infradead.org ([85.118.1.10]:48800 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932225Ab0KLOPZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Nov 2010 09:15:25 -0500
+Message-ID: <4CDD4BF7.1070209@infradead.org>
+Date: Fri, 12 Nov 2010 12:15:19 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-In-Reply-To: <20101029190812.11982.9884.stgit@localhost.localdomain>
-References: <20101029190745.11982.75723.stgit@localhost.localdomain>
-	<20101029190812.11982.9884.stgit@localhost.localdomain>
-Date: Tue, 2 Nov 2010 11:59:54 -0400
-Message-ID: <AANLkTikRpyr9aG8B+tzm9hya1rZrv6QWuwsvAB-7Dpk1@mail.gmail.com>
-Subject: Re: [PATCH 4/7] ir-core: more cleanups of ir-functions.c
-From: Jarod Wilson <jarod@wilsonet.com>
 To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org
+CC: Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/6] rc-core: ir-core to rc-core conversion
+References: <4CDAC730.4060303@infradead.org> <20101110220115.GA7302@hardeman.nu> <4CDBF596.6030206@infradead.org> <02f13638ea24016b5b3673b50940a91c@hardeman.nu> <4CDC1326.3030502@infradead.org> <20101111203501.GA8276@hardeman.nu> <AANLkTinjBOdnYfs=+HVxjaurbwEA33U2YwE0=bdz_Zto@mail.gmail.com> <4CDCBBF7.8050702@infradead.org> <20101112121252.GB14033@hardeman.nu> <4CDD3982.8070804@infradead.org> <20101112140858.GA15203@hardeman.nu>
+In-Reply-To: <20101112140858.GA15203@hardeman.nu>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Fri, Oct 29, 2010 at 3:08 PM, David Härdeman <david@hardeman.nu> wrote:
-> cx88 only depends on VIDEO_IR because it needs ir_extract_bits().
-> Move that function to ir-core.h and make it inline.
->
-> Lots of drivers had dependencies on VIDEO_IR when they really
-> wanted IR_CORE.
->
-> The only remaining drivers to depend on VIDEO_IR are bt8xx and
-> saa7134 (ir_rc5_timer_end is the only function exported by
-> ir-functions).
->
-> Rename VIDEO_IR -> IR_LEGACY to give a hint to anyone writing or
-> converting drivers to IR_CORE that they do not want a dependency
-> on IR_LEGACY.
->
-> Signed-off-by: David Härdeman <david@hardeman.nu>
+Em 12-11-2010 12:08, David Härdeman escreveu:
+> On Fri, Nov 12, 2010 at 10:56:34AM -0200, Mauro Carvalho Chehab wrote:
+>> Em 12-11-2010 10:12, David Härdeman escreveu:
+>>> Shouldn't platform_data be const? And you'll break the refcounting
+>>> done in rc_allocate_device() and rc_free_device() /
+>>> rc_unregister_device().  Not to mention the silent bugs that may be
+>>> introduced if anyone modifies rc_allocate_device() without noticing
+>>> that one driver isn't using it.
+>>
+>> It will still be const. platform_data will pass a pointer to some struct.
+>> The value of the pointer won't change. I don't see why this would break
+>> refcounting, as what will happen is that the caller driver will call
+>> rc_allocate_device() and fill some fields there, instead of ir_kbd_i2c.
+> 
+> I think I've misunderstood what you've been proposing for ir_kbd_i2c.
+> That sounds like a good solution.
+> 
+>> I'm working on a patch for it right now.
+> 
+> Good, I'll just wait until the patches are available to comment :)
 
-Acked-by: Jarod Wilson <jarod@redhat.com>
+They are there already ;)
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
+http://www.spinics.net/lists/linux-media/msg24987.html
+http://www.spinics.net/lists/linux-media/msg24986.html
+
+Tested with a i2c-based cx231xx device (Pixelview Hybrid).
+
+Cheers,
+Mauro
