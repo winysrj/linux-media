@@ -1,54 +1,66 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4433 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753025Ab0KIS15 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Nov 2010 13:27:57 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id oA9IRmE9000613
-	for <linux-media@vger.kernel.org>; Tue, 9 Nov 2010 19:27:56 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 9 Nov 2010 19:27:48 +0100 (CET)
-Message-Id: <201011091827.oA9IRmE9000613@smtp-vbr2.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build: WARNINGS
+Received: from bear.ext.ti.com ([192.94.94.41]:58215 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932284Ab0KLVSH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Nov 2010 16:18:07 -0500
+From: Sergio Aguirre <saaguirre@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
+Subject: [omap3isp RFC][PATCH 00/10] YUV support for CCDC + cleanups
+Date: Fri, 12 Nov 2010 15:18:03 -0600
+Message-Id: <1289596693-27660-1-git-send-email-saaguirre@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of v4l-dvb:
+First of all, these patches are based on Laurent's tree:
 
-date:        Tue Nov  9 19:00:19 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15167:abd3aac6644e
-git master:       3e6dce76d99b328716b43929b9195adfee1de00c
-git media-master: a348e9110ddb5d494e060d989b35dd1f35359d58
-gcc version:      i686-linux-gcc (GCC) 4.5.1
-host hardware:    x86_64
-host os:          2.6.32.5
+URL: git://linuxtv.org/pinchartl/media.git
+Branch: media-0004-omap3isp (Commit d0c5b0e4: OMAP3 ISP driver)
 
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: WARNINGS
-linux-git-mips: WARNINGS
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-spec-git: OK
-sparse: ERRORS
+I had these patches in my queue for some time, which:
 
-Detailed results are available here:
+- Add YUV support to CCDC
+- Cleans up platform device MEM resources
+- Removes some unused/legacy defines
+- IMPORTANT: Moves/Renames isp_user.h to include/linux/omap3isp.h
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+I'm working on some more changes to keep register access per component
+a bit cleaner. But that will be sent separately in another RFC patchlist.
 
-Full logs are available here:
+Please share your review comments.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+Regards,
+Sergio
 
-The V4L-DVB specification from this daily build is here:
+Sergio Aguirre (10):
+  omap3isp: ccdc: Add support for YUV format
+  omap3isp: ccdc: Write SYN_MODE.INPMOD based on fmt
+  omap3: Fix camera resources for multiomap
+  omap3isp: Export isp_user.h to userspace as omap3isp.h
+  omap3: Remove unusued CBUFF resource
+  omap3isp: Remove unused CBUFF register access
+  omap3isp: Remove CSIA/B register abstraction
+  omap3isp: Cleanup isp_power_settings
+  omap3isp: ccp2: Make SYSCONFIG fields consistent
+  omap3isp: Remove legacy MMU access regs/fields
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+ arch/arm/mach-omap2/devices.c              |   32 +-
+ arch/arm/plat-omap/include/mach/isp_user.h |  636 ----------------------------
+ drivers/media/video/isp/isp.c              |   51 +--
+ drivers/media/video/isp/isp.h              |    1 -
+ drivers/media/video/isp/ispccdc.c          |   14 +-
+ drivers/media/video/isp/ispccdc.h          |    2 +-
+ drivers/media/video/isp/ispccp2.c          |    5 +-
+ drivers/media/video/isp/isph3a.h           |    2 +-
+ drivers/media/video/isp/isphist.h          |    2 +-
+ drivers/media/video/isp/isppreview.h       |    2 +-
+ drivers/media/video/isp/ispreg.h           |   85 +----
+ drivers/media/video/isp/ispstat.h          |    2 +-
+ include/linux/Kbuild                       |    1 +
+ include/linux/omap3isp.h                   |  636 ++++++++++++++++++++++++++++
+ 14 files changed, 682 insertions(+), 789 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/include/mach/isp_user.h
+ create mode 100644 include/linux/omap3isp.h
+
