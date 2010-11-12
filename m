@@ -1,481 +1,1395 @@
 Return-path: <mchehab@pedra>
-Received: from eu1sys200aog120.obsmtp.com ([207.126.144.149]:54943 "EHLO
-	eu1sys200aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755835Ab0KJM0t (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:52897 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932284Ab0KLVSJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Nov 2010 07:26:49 -0500
-From: Jimmy Rubin <jimmy.rubin@stericsson.com>
-To: <linux-fbdev@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>
-Cc: Linus Walleij <linus.walleij@stericsson.com>,
-	Dan Johansson <dan.johansson@stericsson.com>,
-	Jimmy Rubin <jimmy.rubin@stericsson.com>
-Subject: [PATCH 09/10] MCDE: Add build files and bus
-Date: Wed, 10 Nov 2010 13:04:12 +0100
-Message-ID: <1289390653-6111-10-git-send-email-jimmy.rubin@stericsson.com>
-In-Reply-To: <1289390653-6111-9-git-send-email-jimmy.rubin@stericsson.com>
-References: <1289390653-6111-1-git-send-email-jimmy.rubin@stericsson.com>
- <1289390653-6111-2-git-send-email-jimmy.rubin@stericsson.com>
- <1289390653-6111-3-git-send-email-jimmy.rubin@stericsson.com>
- <1289390653-6111-4-git-send-email-jimmy.rubin@stericsson.com>
- <1289390653-6111-5-git-send-email-jimmy.rubin@stericsson.com>
- <1289390653-6111-6-git-send-email-jimmy.rubin@stericsson.com>
- <1289390653-6111-7-git-send-email-jimmy.rubin@stericsson.com>
- <1289390653-6111-8-git-send-email-jimmy.rubin@stericsson.com>
- <1289390653-6111-9-git-send-email-jimmy.rubin@stericsson.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Fri, 12 Nov 2010 16:18:09 -0500
+From: Sergio Aguirre <saaguirre@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
+Subject: [omap3isp RFC][PATCH 04/10] omap3isp: Export isp_user.h to userspace as omap3isp.h
+Date: Fri, 12 Nov 2010 15:18:07 -0600
+Message-Id: <1289596693-27660-5-git-send-email-saaguirre@ti.com>
+In-Reply-To: <1289596693-27660-1-git-send-email-saaguirre@ti.com>
+References: <1289596693-27660-1-git-send-email-saaguirre@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch adds support for the MCDE, Memory-to-display controller,
-found in the ST-Ericsson ux500 products.
-
-This patch adds the necessary build files for MCDE and the bus that
-all displays are connected to.
-
-Signed-off-by: Jimmy Rubin <jimmy.rubin@stericsson.com>
-Acked-by: Linus Walleij <linus.walleij.stericsson.com>
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- drivers/video/Kconfig         |    2 +
- drivers/video/Makefile        |    1 +
- drivers/video/mcde/Kconfig    |   39 ++++++
- drivers/video/mcde/Makefile   |   12 ++
- drivers/video/mcde/mcde_bus.c |  259 +++++++++++++++++++++++++++++++++++++++++
- drivers/video/mcde/mcde_mod.c |   67 +++++++++++
- 6 files changed, 380 insertions(+), 0 deletions(-)
- create mode 100644 drivers/video/mcde/Kconfig
- create mode 100644 drivers/video/mcde/Makefile
- create mode 100644 drivers/video/mcde/mcde_bus.c
- create mode 100644 drivers/video/mcde/mcde_mod.c
+ arch/arm/plat-omap/include/mach/isp_user.h |  636 ----------------------------
+ drivers/media/video/isp/ispccdc.h          |    2 +-
+ drivers/media/video/isp/isph3a.h           |    2 +-
+ drivers/media/video/isp/isphist.h          |    2 +-
+ drivers/media/video/isp/isppreview.h       |    2 +-
+ drivers/media/video/isp/ispstat.h          |    2 +-
+ include/linux/Kbuild                       |    1 +
+ include/linux/omap3isp.h                   |  636 ++++++++++++++++++++++++++++
+ 8 files changed, 642 insertions(+), 641 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/include/mach/isp_user.h
+ create mode 100644 include/linux/omap3isp.h
 
-diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
-index 935cdc2..04aecf4 100644
---- a/drivers/video/Kconfig
-+++ b/drivers/video/Kconfig
-@@ -2260,6 +2260,8 @@ config FB_JZ4740
- source "drivers/video/omap/Kconfig"
- source "drivers/video/omap2/Kconfig"
+diff --git a/arch/arm/plat-omap/include/mach/isp_user.h b/arch/arm/plat-omap/include/mach/isp_user.h
+deleted file mode 100644
+index dd9ccf6..0000000
+--- a/arch/arm/plat-omap/include/mach/isp_user.h
++++ /dev/null
+@@ -1,636 +0,0 @@
+-/*
+- * isp_user.h
+- *
+- * TI OMAP3 ISP - User-space API
+- *
+- * Copyright (C) 2010 Nokia Corporation
+- * Copyright (C) 2009 Texas Instruments, Inc.
+- *
+- * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+- *	     Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+- * 02110-1301 USA
+- */
+-
+-#ifndef OMAP3_ISP_USER_H
+-#define OMAP3_ISP_USER_H
+-
+-#include <linux/types.h>
+-
+-/* ISP Private IOCTLs */
+-#define VIDIOC_PRIVATE_ISP_CCDC_CFG	\
+-	_IOWR('V', BASE_VIDIOC_PRIVATE + 1, struct ispccdc_update_config)
+-#define VIDIOC_PRIVATE_ISP_PRV_CFG \
+-	_IOWR('V', BASE_VIDIOC_PRIVATE + 2, struct ispprv_update_config)
+-#define VIDIOC_PRIVATE_ISP_AEWB_CFG \
+-	_IOWR('V', BASE_VIDIOC_PRIVATE + 3, struct isph3a_aewb_config)
+-#define VIDIOC_PRIVATE_ISP_HIST_CFG \
+-	_IOWR('V', BASE_VIDIOC_PRIVATE + 4, struct isphist_config)
+-#define VIDIOC_PRIVATE_ISP_AF_CFG \
+-	_IOWR('V', BASE_VIDIOC_PRIVATE + 5, struct isph3a_af_config)
+-#define VIDIOC_PRIVATE_ISP_STAT_REQ \
+-	_IOWR('V', BASE_VIDIOC_PRIVATE + 6, struct ispstat_data)
+-#define VIDIOC_PRIVATE_ISP_STAT_EN \
+-	_IOWR('V', BASE_VIDIOC_PRIVATE + 7, unsigned long)
+-
+-/* Events */
+-
+-#define V4L2_EVENT_OMAP3ISP_CLASS	(V4L2_EVENT_PRIVATE_START | 0x100)
+-#define V4L2_EVENT_OMAP3ISP_AEWB	(V4L2_EVENT_OMAP3ISP_CLASS | 0x1)
+-#define V4L2_EVENT_OMAP3ISP_AF		(V4L2_EVENT_OMAP3ISP_CLASS | 0x2)
+-#define V4L2_EVENT_OMAP3ISP_HIST	(V4L2_EVENT_OMAP3ISP_CLASS | 0x3)
+-#define V4L2_EVENT_OMAP3ISP_HS_VS	(V4L2_EVENT_OMAP3ISP_CLASS | 0x4)
+-
+-struct ispstat_event_status {
+-	__u32 frame_number;
+-	__u16 config_counter;
+-	__u8 buf_err;
+-};
+-
+-/* AE/AWB related structures and flags*/
+-
+-/* Flags for update field */
+-#define REQUEST_STATISTICS	(1 << 0)
+-#define SET_COLOR_GAINS		(1 << 1)
+-#define SET_DIGITAL_GAIN	(1 << 2)
+-#define SET_EXPOSURE		(1 << 3)
+-#define SET_ANALOG_GAIN		(1 << 4)
+-
+-/* H3A Range Constants */
+-#define AEWB_MAX_SATURATION_LIM	1023
+-#define AEWB_MIN_WIN_H		2
+-#define AEWB_MAX_WIN_H		256
+-#define AEWB_MIN_WIN_W		6
+-#define AEWB_MAX_WIN_W		256
+-#define AEWB_MIN_WINVC		1
+-#define AEWB_MIN_WINHC		1
+-#define AEWB_MAX_WINVC		128
+-#define AEWB_MAX_WINHC		36
+-#define AEWB_MAX_WINSTART	4095
+-#define AEWB_MIN_SUB_INC	2
+-#define AEWB_MAX_SUB_INC	32
+-#define AEWB_MAX_BUF_SIZE	83600
+-
+-#define AF_IIRSH_MIN			0
+-#define AF_IIRSH_MAX			4095
+-#define AF_PAXEL_HORIZONTAL_COUNT_MIN	1
+-#define AF_PAXEL_HORIZONTAL_COUNT_MAX	36
+-#define AF_PAXEL_VERTICAL_COUNT_MIN	1
+-#define AF_PAXEL_VERTICAL_COUNT_MAX	128
+-#define AF_PAXEL_INCREMENT_MIN		2
+-#define AF_PAXEL_INCREMENT_MAX		32
+-#define AF_PAXEL_HEIGHT_MIN		2
+-#define AF_PAXEL_HEIGHT_MAX		256
+-#define AF_PAXEL_WIDTH_MIN		16
+-#define AF_PAXEL_WIDTH_MAX		256
+-#define AF_PAXEL_HZSTART_MIN		1
+-#define AF_PAXEL_HZSTART_MAX		4095
+-#define AF_PAXEL_VTSTART_MIN		0
+-#define AF_PAXEL_VTSTART_MAX		4095
+-#define AF_THRESHOLD_MAX		255
+-#define AF_COEF_MAX			4095
+-#define AF_PAXEL_SIZE			48
+-#define AF_MAX_BUF_SIZE			221184
+-
+-/**
+- * struct isph3a_aewb_config - AE AWB configuration reset values.
+- * saturation_limit: Saturation limit.
+- * @win_height: Window Height. Range 2 - 256, even values only.
+- * @win_width: Window Width. Range 6 - 256, even values only.
+- * @ver_win_count: Vertical Window Count. Range 1 - 128.
+- * @hor_win_count: Horizontal Window Count. Range 1 - 36.
+- * @ver_win_start: Vertical Window Start. Range 0 - 4095.
+- * @hor_win_start: Horizontal Window Start. Range 0 - 4095.
+- * @blk_ver_win_start: Black Vertical Windows Start. Range 0 - 4095.
+- * @blk_win_height: Black Window Height. Range 2 - 256, even values only.
+- * @subsample_ver_inc: Subsample Vertical points increment Range 2 - 32, even
+- *                     values only.
+- * @subsample_hor_inc: Subsample Horizontal points increment Range 2 - 32, even
+- *                     values only.
+- * @alaw_enable: AEW ALAW EN flag.
+- * @aewb_enable: AE AWB stats generation EN flag.
+- */
+-struct isph3a_aewb_config {
+-	/*
+-	 * Common fields.
+-	 * They should be the first ones and must be in the same order as in
+-	 * ispstat_generic_config struct.
+-	 */
+-	__u32 buf_size;
+-	__u16 config_counter;
+-
+-	/* Private fields */
+-	__u16 saturation_limit;
+-	__u16 win_height;
+-	__u16 win_width;
+-	__u16 ver_win_count;
+-	__u16 hor_win_count;
+-	__u16 ver_win_start;
+-	__u16 hor_win_start;
+-	__u16 blk_ver_win_start;
+-	__u16 blk_win_height;
+-	__u16 subsample_ver_inc;
+-	__u16 subsample_hor_inc;
+-	__u8 alaw_enable;
+-};
+-
+-/**
+- * struct ispstat_data - Struc of statistic data sent to or received from user
+- * @buf: Pointer to pass to user.
+- * @frame_number: Frame number of requested stats.
+- * @cur_frame: Current frame number being processed.
+- * @buf_size: Buffer size requested and returned.
+- * @ts: Timestamp of returned framestats.
+- */
+-struct ispstat_data {
+-	struct timeval ts;
+-	void __user *buf;
+-	__u32 buf_size;
+-	__u16 frame_number;
+-	__u16 cur_frame;
+-	__u16 config_counter;
+-	__u16 new_bufs;		/* Deprecated */
+-};
+-
+-
+-/* Histogram related structs */
+-
+-/* Flags for number of bins */
+-#define HIST_BINS_32		0
+-#define HIST_BINS_64		1
+-#define HIST_BINS_128		2
+-#define HIST_BINS_256		3
+-
+-/* Number of bins * 4 colors * 4-bytes word */
+-#define HIST_MEM_SIZE_BINS(n)	((1 << ((n)+5))*4*4)
+-
+-#define HIST_MEM_SIZE		1024
+-#define HIST_MIN_REGIONS	1
+-#define HIST_MAX_REGIONS	4
+-#define HIST_MAX_WB_GAIN	255
+-#define HIST_MIN_WB_GAIN	0
+-#define HIST_MAX_BIT_WIDTH	14
+-#define HIST_MIN_BIT_WIDTH	8
+-#define HIST_MAX_WG		4
+-#define HIST_MAX_BUF_SIZE	4096
+-
+-/* Source */
+-#define HIST_SOURCE_CCDC	0
+-#define HIST_SOURCE_MEM		1
+-
+-/* CFA pattern */
+-#define HIST_CFA_BAYER		0
+-#define HIST_CFA_FOVEONX3	1
+-
+-struct isphist_region {
+-	__u16 h_start;
+-	__u16 h_end;
+-	__u16 v_start;
+-	__u16 v_end;
+-};
+-
+-struct isphist_config {
+-	/*
+-	 * Common fields.
+-	 * They should be the first ones and must be in the same order as in
+-	 * ispstat_generic_config struct.
+-	 */
+-	__u32 buf_size;
+-	__u16 config_counter;
+-
+-	__u8 num_acc_frames;	/* Num of image frames to be processed and
+-				   accumulated for each histogram frame */
+-	__u16 hist_bins;	/* number of bins: 32, 64, 128, or 256 */
+-	__u8 cfa;		/* BAYER or FOVEON X3 */
+-	__u8 wg[HIST_MAX_WG];	/* White Balance Gain */
+-	__u8 num_regions;	/* number of regions to be configured */
+-	struct isphist_region region[HIST_MAX_REGIONS];
+-};
+-
+-/* Auto Focus related structs */
+-
+-#define AF_NUM_COEF		11
+-
+-enum isph3a_af_fvmode {
+-	AF_MODE_SUMMED = 0,
+-	AF_MODE_PEAK = 1
+-};
+-
+-/* Red, Green, and blue pixel location in the AF windows */
+-enum isph3a_af_rgbpos {
+-	AF_GR_GB_BAYER = 0,	/* GR and GB as Bayer pattern */
+-	AF_RG_GB_BAYER = 1,	/* RG and GB as Bayer pattern */
+-	AF_GR_BG_BAYER = 2,	/* GR and BG as Bayer pattern */
+-	AF_RG_BG_BAYER = 3,	/* RG and BG as Bayer pattern */
+-	AF_GG_RB_CUSTOM = 4,	/* GG and RB as custom pattern */
+-	AF_RB_GG_CUSTOM = 5	/* RB and GG as custom pattern */
+-};
+-
+-/* Contains the information regarding the Horizontal Median Filter */
+-struct isph3a_af_hmf {
+-	__u8 enable;	/* Status of Horizontal Median Filter */
+-	__u8 threshold;	/* Threshhold Value for Horizontal Median Filter */
+-};
+-
+-/* Contains the information regarding the IIR Filters */
+-struct isph3a_af_iir {
+-	__u16 h_start;			/* IIR horizontal start */
+-	__u16 coeff_set0[AF_NUM_COEF];	/* IIR Filter coefficient for set 0 */
+-	__u16 coeff_set1[AF_NUM_COEF];	/* IIR Filter coefficient for set 1 */
+-};
+-
+-/* Contains the information regarding the Paxels Structure in AF Engine */
+-struct isph3a_af_paxel {
+-	__u16 h_start;	/* Horizontal Start Position */
+-	__u16 v_start;	/* Vertical Start Position */
+-	__u8 width;	/* Width of the Paxel */
+-	__u8 height;	/* Height of the Paxel */
+-	__u8 h_cnt;	/* Horizontal Count */
+-	__u8 v_cnt;	/* vertical Count */
+-	__u8 line_inc;	/* Line Increment */
+-};
+-
+-/* Contains the parameters required for hardware set up of AF Engine */
+-struct isph3a_af_config {
+-	/*
+-	 * Common fields.
+-	 * They should be the first ones and must be in the same order as in
+-	 * ispstat_generic_config struct.
+-	 */
+-	__u32 buf_size;
+-	__u16 config_counter;
+-
+-	struct isph3a_af_hmf hmf;	/*HMF configurations */
+-	struct isph3a_af_iir iir;	/*IIR filter configurations */
+-	struct isph3a_af_paxel paxel;	/*Paxel parameters */
+-	enum isph3a_af_rgbpos rgb_pos;	/*RGB Positions */
+-	enum isph3a_af_fvmode fvmode;	/*Accumulator mode */
+-	__u8 alaw_enable;		/*AF ALAW status */
+-};
+-
+-/* ISP CCDC structs */
+-
+-/* Abstraction layer CCDC configurations */
+-#define ISP_ABS_CCDC_ALAW		(1 << 0)
+-#define ISP_ABS_CCDC_LPF		(1 << 1)
+-#define ISP_ABS_CCDC_BLCLAMP		(1 << 2)
+-#define ISP_ABS_CCDC_BCOMP		(1 << 3)
+-#define ISP_ABS_CCDC_FPC		(1 << 4)
+-#define ISP_ABS_CCDC_CULL		(1 << 5)
+-#define ISP_ABS_CCDC_COLPTN		(1 << 6)
+-#define ISP_ABS_CCDC_CONFIG_LSC		(1 << 7)
+-#define ISP_ABS_TBL_LSC			(1 << 8)
+-
+-#define RGB_MAX				3
+-
+-/* Enumeration constants for Alaw input width */
+-enum alaw_ipwidth {
+-	ALAW_BIT12_3 = 0x3,
+-	ALAW_BIT11_2 = 0x4,
+-	ALAW_BIT10_1 = 0x5,
+-	ALAW_BIT9_0 = 0x6
+-};
+-
+-/**
+- * struct ispccdc_lsc_config - Structure for LSC configuration.
+- * @offset: Table Offset of the gain table.
+- * @gain_mode_n: Vertical dimension of a paxel in LSC configuration.
+- * @gain_mode_m: Horizontal dimension of a paxel in LSC configuration.
+- * @gain_format: Gain table format.
+- * @fmtsph: Start pixel horizontal from start of the HS sync pulse.
+- * @fmtlnh: Number of pixels in horizontal direction to use for the data
+- *          reformatter.
+- * @fmtslv: Start line from start of VS sync pulse for the data reformatter.
+- * @fmtlnv: Number of lines in vertical direction for the data reformatter.
+- * @initial_x: X position, in pixels, of the first active pixel in reference
+- *             to the first active paxel. Must be an even number.
+- * @initial_y: Y position, in pixels, of the first active pixel in reference
+- *             to the first active paxel. Must be an even number.
+- * @size: Size of LSC gain table. Filled when loaded from userspace.
+- */
+-struct ispccdc_lsc_config {
+-	__u16 offset;
+-	__u8 gain_mode_n;
+-	__u8 gain_mode_m;
+-	__u8 gain_format;
+-	__u16 fmtsph;
+-	__u16 fmtlnh;
+-	__u16 fmtslv;
+-	__u16 fmtlnv;
+-	__u8 initial_x;
+-	__u8 initial_y;
+-	__u32 size;
+-};
+-
+-/**
+- * struct ispccdc_bclamp - Structure for Optical & Digital black clamp subtract
+- * @obgain: Optical black average gain.
+- * @obstpixel: Start Pixel w.r.t. HS pulse in Optical black sample.
+- * @oblines: Optical Black Sample lines.
+- * @oblen: Optical Black Sample Length.
+- * @dcsubval: Digital Black Clamp subtract value.
+- */
+-struct ispccdc_bclamp {
+-	__u8 obgain;
+-	__u8 obstpixel;
+-	__u8 oblines;
+-	__u8 oblen;
+-	__u16 dcsubval;
+-};
+-
+-/**
+- * ispccdc_fpc - Structure for FPC
+- * @fpnum: Number of faulty pixels to be corrected in the frame.
+- * @fpcaddr: Memory address of the FPC Table
+- */
+-struct ispccdc_fpc {
+-	__u16 fpnum;
+-	__u32 fpcaddr;
+-};
+-
+-/**
+- * ispccdc_blcomp - Structure for Black Level Compensation parameters.
+- * @b_mg: B/Mg pixels. 2's complement. -128 to +127.
+- * @gb_g: Gb/G pixels. 2's complement. -128 to +127.
+- * @gr_cy: Gr/Cy pixels. 2's complement. -128 to +127.
+- * @r_ye: R/Ye pixels. 2's complement. -128 to +127.
+- */
+-struct ispccdc_blcomp {
+-	__u8 b_mg;
+-	__u8 gb_g;
+-	__u8 gr_cy;
+-	__u8 r_ye;
+-};
+-
+-/**
+- * ispccdc_culling - Structure for Culling parameters.
+- * @v_pattern: Vertical culling pattern.
+- * @h_odd: Horizontal Culling pattern for odd lines.
+- * @h_even: Horizontal Culling pattern for even lines.
+- */
+-struct ispccdc_culling {
+-	__u8 v_pattern;
+-	__u16 h_odd;
+-	__u16 h_even;
+-};
+-
+-/**
+- * ispccdc_update_config - Structure for CCDC configuration.
+- * @update: Specifies which CCDC registers should be updated.
+- * @flag: Specifies which CCDC functions should be enabled.
+- * @alawip: Enable/Disable A-Law compression.
+- * @bclamp: Black clamp control register.
+- * @blcomp: Black level compensation value for RGrGbB Pixels. 2's complement.
+- * @fpc: Number of faulty pixels corrected in the frame, address of FPC table.
+- * @cull: Cull control register.
+- * @colptn: Color pattern of the sensor.
+- * @lsc: Pointer to LSC gain table.
+- */
+-struct ispccdc_update_config {
+-	__u16 update;
+-	__u16 flag;
+-	enum alaw_ipwidth alawip;
+-	struct ispccdc_bclamp __user *bclamp;
+-	struct ispccdc_blcomp __user *blcomp;
+-	struct ispccdc_fpc __user *fpc;
+-	struct ispccdc_lsc_config __user *lsc_cfg;
+-	struct ispccdc_culling __user *cull;
+-	__u32 colptn;
+-	__u8 __user *lsc;
+-};
+-
+-/* Preview configurations */
+-#define ISP_PREV_LUMAENH		(1 << 0)
+-#define ISP_PREV_INVALAW		(1 << 1)
+-#define ISP_PREV_HRZ_MED		(1 << 2)
+-#define ISP_PREV_CFA			(1 << 3)
+-#define ISP_PREV_CHROMA_SUPP		(1 << 4)
+-#define ISP_PREV_WB			(1 << 5)
+-#define ISP_PREV_BLKADJ			(1 << 6)
+-#define ISP_PREV_RGB2RGB		(1 << 7)
+-#define ISP_PREV_COLOR_CONV		(1 << 8)
+-#define ISP_PREV_YC_LIMIT		(1 << 9)
+-#define ISP_PREV_DEFECT_COR		(1 << 10)
+-#define ISP_PREV_GAMMABYPASS		(1 << 11)
+-#define ISP_PREV_DRK_FRM_CAPTURE	(1 << 12)
+-#define ISP_PREV_DRK_FRM_SUBTRACT	(1 << 13)
+-#define ISP_PREV_LENS_SHADING		(1 << 14)
+-#define ISP_PREV_NF			(1 << 15)
+-#define ISP_PREV_GAMMA			(1 << 16)
+-
+-#define ISPPRV_NF_TBL_SIZE		64
+-#define ISPPRV_CFA_TBL_SIZE		576
+-#define ISPPRV_GAMMA_TBL_SIZE		1024
+-#define ISPPRV_YENH_TBL_SIZE		128
+-
+-#define ISPPRV_DETECT_CORRECT_CHANNELS	4
+-
+-/**
+- * struct ispprev_hmed - Structure for Horizontal Median Filter.
+- * @odddist: Distance between consecutive pixels of same color in the odd line.
+- * @evendist: Distance between consecutive pixels of same color in the even
+- *            line.
+- * @thres: Horizontal median filter threshold.
+- */
+-struct ispprev_hmed {
+-	__u8 odddist;
+-	__u8 evendist;
+-	__u8 thres;
+-};
+-
+-/*
+- * Enumeration for CFA Formats supported by preview
+- */
+-enum cfa_fmt {
+-	CFAFMT_BAYER, CFAFMT_SONYVGA, CFAFMT_RGBFOVEON,
+-	CFAFMT_DNSPL, CFAFMT_HONEYCOMB, CFAFMT_RRGGBBFOVEON
+-};
+-
+-/**
+- * struct ispprev_cfa - Structure for CFA Inpterpolation.
+- * @format: CFA Format Enum value supported by preview.
+- * @gradthrs_vert: CFA Gradient Threshold - Vertical.
+- * @gradthrs_horz: CFA Gradient Threshold - Horizontal.
+- * @table: Pointer to the CFA table.
+- */
+-struct ispprev_cfa {
+-	enum cfa_fmt format;
+-	__u8 gradthrs_vert;
+-	__u8 gradthrs_horz;
+-	__u32 table[ISPPRV_CFA_TBL_SIZE];
+-};
+-
+-/**
+- * struct ispprev_csup - Structure for Chrominance Suppression.
+- * @gain: Gain.
+- * @thres: Threshold.
+- * @hypf_en: Flag to enable/disable the High Pass Filter.
+- */
+-struct ispprev_csup {
+-	__u8 gain;
+-	__u8 thres;
+-	__u8 hypf_en;
+-};
+-
+-/**
+- * struct ispprev_wbal - Structure for White Balance.
+- * @dgain: Digital gain (U10Q8).
+- * @coef3: White balance gain - COEF 3 (U8Q5).
+- * @coef2: White balance gain - COEF 2 (U8Q5).
+- * @coef1: White balance gain - COEF 1 (U8Q5).
+- * @coef0: White balance gain - COEF 0 (U8Q5).
+- */
+-struct ispprev_wbal {
+-	__u16 dgain;
+-	__u8 coef3;
+-	__u8 coef2;
+-	__u8 coef1;
+-	__u8 coef0;
+-};
+-
+-/**
+- * struct ispprev_blkadj - Structure for Black Adjustment.
+- * @red: Black level offset adjustment for Red in 2's complement format
+- * @green: Black level offset adjustment for Green in 2's complement format
+- * @blue: Black level offset adjustment for Blue in 2's complement format
+- */
+-struct ispprev_blkadj {
+-	/*Black level offset adjustment for Red in 2's complement format */
+-	__u8 red;
+-	/*Black level offset adjustment for Green in 2's complement format */
+-	__u8 green;
+-	/* Black level offset adjustment for Blue in 2's complement format */
+-	__u8 blue;
+-};
+-
+-/**
+- * struct ispprev_rgbtorgb - Structure for RGB to RGB Blending.
+- * @matrix: Blending values(S12Q8 format)
+- *              [RR] [GR] [BR]
+- *              [RG] [GG] [BG]
+- *              [RB] [GB] [BB]
+- * @offset: Blending offset value for R,G,B in 2's complement integer format.
+- */
+-struct ispprev_rgbtorgb {
+-	__u16 matrix[RGB_MAX][RGB_MAX];
+-	__u16 offset[RGB_MAX];
+-};
+-
+-/**
+- * struct ispprev_csc - Structure for Color Space Conversion from RGB-YCbYCr
+- * @matrix: Color space conversion coefficients(S10Q8)
+- *              [CSCRY]  [CSCGY]  [CSCBY]
+- *              [CSCRCB] [CSCGCB] [CSCBCB]
+- *              [CSCRCR] [CSCGCR] [CSCBCR]
+- * @offset: CSC offset values for Y offset, CB offset and CR offset respectively
+- */
+-struct ispprev_csc {
+-	__u16 matrix[RGB_MAX][RGB_MAX];
+-	__s16 offset[RGB_MAX];
+-};
+-
+-/**
+- * struct ispprev_yclimit - Structure for Y, C Value Limit.
+- * @minC: Minimum C value
+- * @maxC: Maximum C value
+- * @minY: Minimum Y value
+- * @maxY: Maximum Y value
+- */
+-struct ispprev_yclimit {
+-	__u8 minC;
+-	__u8 maxC;
+-	__u8 minY;
+-	__u8 maxY;
+-};
+-
+-/**
+- * struct ispprev_dcor - Structure for Defect correction.
+- * @couplet_mode_en: Flag to enable or disable the couplet dc Correction in NF
+- * @detect_correct: Thresholds for correction bit 0:10 detect 16:25 correct
+- */
+-struct ispprev_dcor {
+-	__u8 couplet_mode_en;
+-	__u32 detect_correct[ISPPRV_DETECT_CORRECT_CHANNELS];
+-};
+-
+-/**
+- * struct ispprev_nf - Structure for Noise Filter
+- * @spread: Spread value to be used in Noise Filter
+- * @table: Pointer to the Noise Filter table
+- */
+-struct ispprev_nf {
+-	__u8 spread;
+-	__u32 table[ISPPRV_NF_TBL_SIZE];
+-};
+-
+-/**
+- * struct ispprev_gtables - Structure for gamma correction tables.
+- * @red: Array for red gamma table.
+- * @green: Array for green gamma table.
+- * @blue: Array for blue gamma table.
+- */
+-struct ispprev_gtables {
+-	__u32 red[ISPPRV_GAMMA_TBL_SIZE];
+-	__u32 green[ISPPRV_GAMMA_TBL_SIZE];
+-	__u32 blue[ISPPRV_GAMMA_TBL_SIZE];
+-};
+-
+-/**
+- * struct ispprev_luma - Structure for luma enhancement.
+- * @table: Array for luma enhancement table.
+- */
+-struct ispprev_luma {
+-	__u32 table[ISPPRV_YENH_TBL_SIZE];
+-};
+-
+-/**
+- * struct ispprv_update_config - Structure for Preview Configuration (user).
+- * @update: Specifies which ISP Preview registers should be updated.
+- * @flag: Specifies which ISP Preview functions should be enabled.
+- * @shading_shift: 3bit value of shift used in shading compensation.
+- * @luma: Pointer to luma enhancement structure.
+- * @hmed: Pointer to structure containing the odd and even distance.
+- *        between the pixels in the image along with the filter threshold.
+- * @cfa: Pointer to structure containing the CFA interpolation table, CFA.
+- *       format in the image, vertical and horizontal gradient threshold.
+- * @csup: Pointer to Structure for Chrominance Suppression coefficients.
+- * @wbal: Pointer to structure for White Balance.
+- * @blkadj: Pointer to structure for Black Adjustment.
+- * @rgb2rgb: Pointer to structure for RGB to RGB Blending.
+- * @csc: Pointer to structure for Color Space Conversion from RGB-YCbYCr.
+- * @yclimit: Pointer to structure for Y, C Value Limit.
+- * @dcor: Pointer to structure for defect correction.
+- * @nf: Pointer to structure for Noise Filter
+- * @gamma: Pointer to gamma structure.
+- */
+-struct ispprv_update_config {
+-	__u32 update;
+-	__u32 flag;
+-	__u32 shading_shift;
+-	struct ispprev_luma __user *luma;
+-	struct ispprev_hmed __user *hmed;
+-	struct ispprev_cfa __user *cfa;
+-	struct ispprev_csup __user *csup;
+-	struct ispprev_wbal __user *wbal;
+-	struct ispprev_blkadj __user *blkadj;
+-	struct ispprev_rgbtorgb __user *rgb2rgb;
+-	struct ispprev_csc __user *csc;
+-	struct ispprev_yclimit __user *yclimit;
+-	struct ispprev_dcor __user *dcor;
+-	struct ispprev_nf __user *nf;
+-	struct ispprev_gtables __user *gamma;
+-};
+-
+-#endif	/* OMAP3_ISP_USER_H */
+diff --git a/drivers/media/video/isp/ispccdc.h b/drivers/media/video/isp/ispccdc.h
+index 6a8bfd4..2b9971f 100644
+--- a/drivers/media/video/isp/ispccdc.h
++++ b/drivers/media/video/isp/ispccdc.h
+@@ -28,7 +28,7 @@
+ #define OMAP3_ISP_CCDC_H
  
-+source "drivers/video/mcde/Kconfig"
-+
- source "drivers/video/backlight/Kconfig"
- source "drivers/video/display/Kconfig"
+ #include <linux/workqueue.h>
+-#include <mach/isp_user.h>
++#include <linux/omap3isp.h>
+ #include "ispvideo.h"
  
-diff --git a/drivers/video/Makefile b/drivers/video/Makefile
-index 485e8ed..325cdcc 100644
---- a/drivers/video/Makefile
-+++ b/drivers/video/Makefile
-@@ -128,6 +128,7 @@ obj-$(CONFIG_FB_SH_MOBILE_HDMI)	  += sh_mobile_hdmi.o
- obj-$(CONFIG_FB_SH_MOBILE_LCDC)	  += sh_mobile_lcdcfb.o
- obj-$(CONFIG_FB_OMAP)             += omap/
- obj-y                             += omap2/
-+obj-$(CONFIG_FB_MCDE)             += mcde/
- obj-$(CONFIG_XEN_FBDEV_FRONTEND)  += xen-fbfront.o
- obj-$(CONFIG_FB_CARMINE)          += carminefb.o
- obj-$(CONFIG_FB_MB862XX)	  += mb862xx/
-diff --git a/drivers/video/mcde/Kconfig b/drivers/video/mcde/Kconfig
+ enum ccdc_input_entity {
+diff --git a/drivers/media/video/isp/isph3a.h b/drivers/media/video/isp/isph3a.h
+index 343f80d..e45e5af 100644
+--- a/drivers/media/video/isp/isph3a.h
++++ b/drivers/media/video/isp/isph3a.h
+@@ -27,7 +27,7 @@
+ #ifndef OMAP3_ISP_H3A_H
+ #define OMAP3_ISP_H3A_H
+ 
+-#include <mach/isp_user.h>
++#include <linux/omap3isp.h>
+ 
+ /*
+  * ----------
+diff --git a/drivers/media/video/isp/isphist.h b/drivers/media/video/isp/isphist.h
+index 6b04ca7..3180c56 100644
+--- a/drivers/media/video/isp/isphist.h
++++ b/drivers/media/video/isp/isphist.h
+@@ -27,7 +27,7 @@
+ #ifndef OMAP3_ISP_HIST_H
+ #define OMAP3_ISP_HIST_H
+ 
+-#include <mach/isp_user.h>
++#include <linux/omap3isp.h>
+ 
+ #define ISPHIST_IN_BIT_WIDTH_CCDC	10
+ 
+diff --git a/drivers/media/video/isp/isppreview.h b/drivers/media/video/isp/isppreview.h
+index 6315942..a1c593a 100644
+--- a/drivers/media/video/isp/isppreview.h
++++ b/drivers/media/video/isp/isppreview.h
+@@ -27,7 +27,7 @@
+ #ifndef OMAP3_ISP_PREVIEW_H
+ #define OMAP3_ISP_PREVIEW_H
+ 
+-#include <mach/isp_user.h>
++#include <linux/omap3isp.h>
+ #include "ispvideo.h"
+ 
+ #define ISPPRV_BRIGHT_STEP		0x1
+diff --git a/drivers/media/video/isp/ispstat.h b/drivers/media/video/isp/ispstat.h
+index 9b6a92f..fb9ffb2 100644
+--- a/drivers/media/video/isp/ispstat.h
++++ b/drivers/media/video/isp/ispstat.h
+@@ -28,7 +28,7 @@
+ #define OMAP3_ISP_STAT_H
+ 
+ #include <linux/types.h>
+-#include <mach/isp_user.h>
++#include <linux/omap3isp.h>
+ #include <plat/dma.h>
+ #include <media/v4l2-event.h>
+ 
+diff --git a/include/linux/Kbuild b/include/linux/Kbuild
+index c0db7f4..9fdae44 100644
+--- a/include/linux/Kbuild
++++ b/include/linux/Kbuild
+@@ -273,6 +273,7 @@ header-y += nl80211.h
+ header-y += nubus.h
+ header-y += nvram.h
+ header-y += omapfb.h
++header-y += omap3isp.h
+ header-y += oom.h
+ header-y += param.h
+ header-y += parport.h
+diff --git a/include/linux/omap3isp.h b/include/linux/omap3isp.h
 new file mode 100644
-index 0000000..5dab37b
+index 0000000..dd9ccf6
 --- /dev/null
-+++ b/drivers/video/mcde/Kconfig
-@@ -0,0 +1,39 @@
-+config FB_MCDE
-+	tristate "MCDE support"
-+	depends on FB
-+	select FB_SYS_FILLRECT
-+	select FB_SYS_COPYAREA
-+	select FB_SYS_IMAGEBLIT
-+	select FB_SYS_FOPS
-+	---help---
-+	  This enables support for MCDE based frame buffer driver.
-+
-+	  Please read the file <file:Documentation/fb/mcde.txt>
-+
-+config MCDE_DISPLAY_GENERIC_DSI
-+	tristate "Generic display driver"
-+	depends on FB_MCDE
-+
-+config FB_MCDE_DEBUG
-+	bool "MCDE debug messages"
-+	depends on FB_MCDE
-+	---help---
-+	  Say Y here if you want the MCDE driver to output debug messages
-+
-+config FB_MCDE_VDEBUG
-+	bool "MCDE verbose debug messages"
-+	depends on FB_MCDE_DEBUG
-+	---help---
-+	  Say Y here if you want the MCDE driver to output more debug messages
-+
-+config MCDE_FB_AVOID_REALLOC
-+	bool "MCDE early allocate framebuffer"
-+	default n
-+	depends on FB_MCDE
-+	---help---
-+	  If you say Y here maximum frame buffer size is allocated and
-+	  used for all resolutions. If you say N here, the frame buffer is
-+	  reallocated when resolution is changed. This reallocation might
-+	  fail because of fragmented memory. Note that this memory will
-+	  never be deallocated, while the MCDE framebuffer is used.
-+
-diff --git a/drivers/video/mcde/Makefile b/drivers/video/mcde/Makefile
-new file mode 100644
-index 0000000..f90979a
---- /dev/null
-+++ b/drivers/video/mcde/Makefile
-@@ -0,0 +1,12 @@
-+
-+mcde-objs			:= mcde_mod.o mcde_hw.o mcde_dss.o mcde_display.o mcde_bus.o mcde_fb.o
-+obj-$(CONFIG_FB_MCDE)		+= mcde.o
-+
-+obj-$(CONFIG_MCDE_DISPLAY_GENERIC_DSI)	+= display-generic_dsi.o
-+
-+ifdef CONFIG_FB_MCDE_DEBUG
-+EXTRA_CFLAGS += -DDEBUG
-+endif
-+ifdef CONFIG_FB_MCDE_VDEBUG
-+EXTRA_CFLAGS += -DVERBOSE_DEBUG
-+endif
-diff --git a/drivers/video/mcde/mcde_bus.c b/drivers/video/mcde/mcde_bus.c
-new file mode 100644
-index 0000000..bc1f048
---- /dev/null
-+++ b/drivers/video/mcde/mcde_bus.c
-@@ -0,0 +1,259 @@
++++ b/include/linux/omap3isp.h
+@@ -0,0 +1,636 @@
 +/*
-+ * Copyright (C) ST-Ericsson SA 2010
++ * isp_user.h
 + *
-+ * ST-Ericsson MCDE display bus driver
++ * TI OMAP3 ISP - User-space API
 + *
-+ * Author: Marcus Lorentzon <marcus.xm.lorentzon@stericsson.com>
-+ * for ST-Ericsson.
++ * Copyright (C) 2010 Nokia Corporation
++ * Copyright (C) 2009 Texas Instruments, Inc.
 + *
-+ * License terms: GNU General Public License (GPL), version 2.
++ * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
++ *	     Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
 + */
 +
-+#include <linux/kernel.h>
-+#include <linux/device.h>
-+#include <linux/platform_device.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/notifier.h>
++#ifndef OMAP3_ISP_USER_H
++#define OMAP3_ISP_USER_H
 +
-+#include <video/mcde/mcde_display.h>
-+#include <video/mcde/mcde_dss.h>
++#include <linux/types.h>
 +
-+#define to_mcde_display_driver(__drv) \
-+	container_of((__drv), struct mcde_display_driver, driver)
++/* ISP Private IOCTLs */
++#define VIDIOC_PRIVATE_ISP_CCDC_CFG	\
++	_IOWR('V', BASE_VIDIOC_PRIVATE + 1, struct ispccdc_update_config)
++#define VIDIOC_PRIVATE_ISP_PRV_CFG \
++	_IOWR('V', BASE_VIDIOC_PRIVATE + 2, struct ispprv_update_config)
++#define VIDIOC_PRIVATE_ISP_AEWB_CFG \
++	_IOWR('V', BASE_VIDIOC_PRIVATE + 3, struct isph3a_aewb_config)
++#define VIDIOC_PRIVATE_ISP_HIST_CFG \
++	_IOWR('V', BASE_VIDIOC_PRIVATE + 4, struct isphist_config)
++#define VIDIOC_PRIVATE_ISP_AF_CFG \
++	_IOWR('V', BASE_VIDIOC_PRIVATE + 5, struct isph3a_af_config)
++#define VIDIOC_PRIVATE_ISP_STAT_REQ \
++	_IOWR('V', BASE_VIDIOC_PRIVATE + 6, struct ispstat_data)
++#define VIDIOC_PRIVATE_ISP_STAT_EN \
++	_IOWR('V', BASE_VIDIOC_PRIVATE + 7, unsigned long)
 +
-+static BLOCKING_NOTIFIER_HEAD(bus_notifier_list);
++/* Events */
 +
-+static int mcde_drv_suspend(struct device *_dev, pm_message_t state);
-+static int mcde_drv_resume(struct device *_dev);
-+struct bus_type mcde_bus_type;
++#define V4L2_EVENT_OMAP3ISP_CLASS	(V4L2_EVENT_PRIVATE_START | 0x100)
++#define V4L2_EVENT_OMAP3ISP_AEWB	(V4L2_EVENT_OMAP3ISP_CLASS | 0x1)
++#define V4L2_EVENT_OMAP3ISP_AF		(V4L2_EVENT_OMAP3ISP_CLASS | 0x2)
++#define V4L2_EVENT_OMAP3ISP_HIST	(V4L2_EVENT_OMAP3ISP_CLASS | 0x3)
++#define V4L2_EVENT_OMAP3ISP_HS_VS	(V4L2_EVENT_OMAP3ISP_CLASS | 0x4)
 +
-+static int mcde_suspend_device(struct device *dev, void *data)
-+{
-+	pm_message_t* state = (pm_message_t *) data;
-+	if (dev->driver->suspend)
-+		return dev->driver->suspend(dev, *state);
-+	return 0;
-+}
-+
-+static int mcde_resume_device(struct device *dev, void *data)
-+{
-+	if (dev->driver->resume)
-+		return dev->driver->resume(dev);
-+	return 0;
-+}
-+
-+/* Bus driver */
-+
-+static int mcde_bus_match(struct device *_dev, struct device_driver *driver)
-+{
-+	pr_debug("Matching device %s with driver %s\n",
-+		dev_name(_dev), driver->name);
-+
-+	return strncmp(dev_name(_dev), driver->name, strlen(driver->name)) == 0;
-+}
-+
-+static int mcde_bus_suspend(struct device *_dev, pm_message_t state)
-+{
-+	int ret;
-+	ret = bus_for_each_dev(&mcde_bus_type, NULL, &state,
-+				mcde_suspend_device);
-+	if (ret) {
-+		/* TODO Resume all suspended devices */
-+		/* mcde_bus_resume(dev); */
-+		return ret;
-+	}
-+	return 0;
-+}
-+
-+static int mcde_bus_resume(struct device *_dev)
-+{
-+	return bus_for_each_dev(&mcde_bus_type, NULL, NULL, mcde_resume_device);
-+}
-+
-+struct bus_type mcde_bus_type = {
-+	.name = "mcde_bus",
-+	.match = mcde_bus_match,
-+	.suspend = mcde_bus_suspend,
-+	.resume = mcde_bus_resume,
++struct ispstat_event_status {
++	__u32 frame_number;
++	__u16 config_counter;
++	__u8 buf_err;
 +};
 +
-+static int mcde_drv_probe(struct device *_dev)
-+{
-+	struct mcde_display_driver *drv = to_mcde_display_driver(_dev->driver);
-+	struct mcde_display_device *dev = to_mcde_display_device(_dev);
++/* AE/AWB related structures and flags*/
 +
-+	return drv->probe(dev);
-+}
++/* Flags for update field */
++#define REQUEST_STATISTICS	(1 << 0)
++#define SET_COLOR_GAINS		(1 << 1)
++#define SET_DIGITAL_GAIN	(1 << 2)
++#define SET_EXPOSURE		(1 << 3)
++#define SET_ANALOG_GAIN		(1 << 4)
 +
-+static int mcde_drv_remove(struct device *_dev)
-+{
-+	struct mcde_display_driver *drv = to_mcde_display_driver(_dev->driver);
-+	struct mcde_display_device *dev = to_mcde_display_device(_dev);
++/* H3A Range Constants */
++#define AEWB_MAX_SATURATION_LIM	1023
++#define AEWB_MIN_WIN_H		2
++#define AEWB_MAX_WIN_H		256
++#define AEWB_MIN_WIN_W		6
++#define AEWB_MAX_WIN_W		256
++#define AEWB_MIN_WINVC		1
++#define AEWB_MIN_WINHC		1
++#define AEWB_MAX_WINVC		128
++#define AEWB_MAX_WINHC		36
++#define AEWB_MAX_WINSTART	4095
++#define AEWB_MIN_SUB_INC	2
++#define AEWB_MAX_SUB_INC	32
++#define AEWB_MAX_BUF_SIZE	83600
 +
-+	return drv->remove(dev);
-+}
++#define AF_IIRSH_MIN			0
++#define AF_IIRSH_MAX			4095
++#define AF_PAXEL_HORIZONTAL_COUNT_MIN	1
++#define AF_PAXEL_HORIZONTAL_COUNT_MAX	36
++#define AF_PAXEL_VERTICAL_COUNT_MIN	1
++#define AF_PAXEL_VERTICAL_COUNT_MAX	128
++#define AF_PAXEL_INCREMENT_MIN		2
++#define AF_PAXEL_INCREMENT_MAX		32
++#define AF_PAXEL_HEIGHT_MIN		2
++#define AF_PAXEL_HEIGHT_MAX		256
++#define AF_PAXEL_WIDTH_MIN		16
++#define AF_PAXEL_WIDTH_MAX		256
++#define AF_PAXEL_HZSTART_MIN		1
++#define AF_PAXEL_HZSTART_MAX		4095
++#define AF_PAXEL_VTSTART_MIN		0
++#define AF_PAXEL_VTSTART_MAX		4095
++#define AF_THRESHOLD_MAX		255
++#define AF_COEF_MAX			4095
++#define AF_PAXEL_SIZE			48
++#define AF_MAX_BUF_SIZE			221184
 +
-+static void mcde_drv_shutdown(struct device *_dev)
-+{
-+	struct mcde_display_driver *drv = to_mcde_display_driver(_dev->driver);
-+	struct mcde_display_device *dev = to_mcde_display_device(_dev);
-+
-+	drv->shutdown(dev);
-+}
-+
-+static int mcde_drv_suspend(struct device *_dev, pm_message_t state)
-+{
-+	struct mcde_display_driver *drv = to_mcde_display_driver(_dev->driver);
-+	struct mcde_display_device *dev = to_mcde_display_device(_dev);
-+
-+	return drv->suspend(dev, state);
-+}
-+
-+static int mcde_drv_resume(struct device *_dev)
-+{
-+	struct mcde_display_driver *drv = to_mcde_display_driver(_dev->driver);
-+	struct mcde_display_device *dev = to_mcde_display_device(_dev);
-+
-+	return drv->resume(dev);
-+}
-+
-+/* Bus device */
-+
-+static void mcde_bus_release(struct device *dev)
-+{
-+}
-+
-+struct device mcde_bus = {
-+	.init_name = "mcde_bus",
-+	.release  = mcde_bus_release
-+};
-+
-+/* Public bus API */
-+
-+int mcde_display_driver_register(struct mcde_display_driver *drv)
-+{
-+	drv->driver.bus = &mcde_bus_type;
-+	if (drv->probe)
-+		drv->driver.probe = mcde_drv_probe;
-+	if (drv->remove)
-+		drv->driver.remove = mcde_drv_remove;
-+	if (drv->shutdown)
-+		drv->driver.shutdown = mcde_drv_shutdown;
-+	if (drv->suspend)
-+		drv->driver.suspend = mcde_drv_suspend;
-+	if (drv->resume)
-+		drv->driver.resume = mcde_drv_resume;
-+
-+	return driver_register(&drv->driver);
-+}
-+EXPORT_SYMBOL(mcde_display_driver_register);
-+
-+void mcde_display_driver_unregister(struct mcde_display_driver *drv)
-+{
-+	driver_unregister(&drv->driver);
-+}
-+EXPORT_SYMBOL(mcde_display_driver_unregister);
-+
-+static void mcde_display_dev_release(struct device *dev)
-+{
-+	/* Do nothing */
-+}
-+
-+int mcde_display_device_register(struct mcde_display_device *dev)
-+{
-+	/* Setup device */
-+	if (!dev)
-+		return -EINVAL;
-+	dev->dev.coherent_dma_mask = DMA_BIT_MASK(32);
-+	dev->dev.bus = &mcde_bus_type;
-+	if (dev->dev.parent != NULL)
-+		dev->dev.parent = &mcde_bus;
-+	dev->dev.release = mcde_display_dev_release;
-+	if (dev->id != -1)
-+		dev_set_name(&dev->dev, "%s.%d", dev->name,  dev->id);
-+	else
-+		dev_set_name(&dev->dev, dev->name);
-+
-+	mcde_display_init_device(dev);
-+
-+	return device_register(&dev->dev);
-+}
-+EXPORT_SYMBOL(mcde_display_device_register);
-+
-+void mcde_display_device_unregister(struct mcde_display_device *dev)
-+{
-+	device_unregister(&dev->dev);
-+}
-+EXPORT_SYMBOL(mcde_display_device_unregister);
-+
-+/* Notifications */
-+int mcde_dss_register_notifier(struct notifier_block *nb)
-+{
-+	return blocking_notifier_chain_register(&bus_notifier_list, nb);
-+}
-+EXPORT_SYMBOL(mcde_dss_register_notifier);
-+
-+int mcde_dss_unregister_notifier(struct notifier_block *nb)
-+{
-+	return blocking_notifier_chain_unregister(&bus_notifier_list, nb);
-+}
-+EXPORT_SYMBOL(mcde_dss_unregister_notifier);
-+
-+static int bus_notify_callback(struct notifier_block *nb,
-+	unsigned long event, void *dev)
-+{
-+	struct mcde_display_device *ddev = to_mcde_display_device(dev);
-+
-+	if (event == BUS_NOTIFY_BOUND_DRIVER) {
-+		ddev->initialized = true;
-+		blocking_notifier_call_chain(&bus_notifier_list,
-+			MCDE_DSS_EVENT_DISPLAY_REGISTERED, ddev);
-+	} else if (event == BUS_NOTIFY_UNBIND_DRIVER) {
-+		ddev->initialized = false;
-+		blocking_notifier_call_chain(&bus_notifier_list,
-+			MCDE_DSS_EVENT_DISPLAY_UNREGISTERED, ddev);
-+	}
-+	return 0;
-+}
-+
-+struct notifier_block bus_nb = {
-+	.notifier_call = bus_notify_callback,
-+};
-+
-+/* Driver init/exit */
-+
-+int __init mcde_display_init(void)
-+{
-+	int ret;
-+
-+	ret = bus_register(&mcde_bus_type);
-+	if (ret) {
-+		pr_warning("Unable to register bus type\n");
-+		return ret;
-+	}
-+	ret = device_register(&mcde_bus);
-+	if (ret) {
-+		pr_warning("Unable to register bus device\n");
-+		goto no_device_registration;
-+	}
-+	ret = bus_register_notifier(&mcde_bus_type, &bus_nb);
-+	if (ret) {
-+		pr_warning("Unable to register bus notifier\n");
-+		goto no_bus_notifier;
-+	}
-+
-+	return 0;
-+
-+no_bus_notifier:
-+	device_unregister(&mcde_bus);
-+no_device_registration:
-+	bus_unregister(&mcde_bus_type);
-+	return ret;
-+}
-+
-+void mcde_display_exit(void)
-+{
-+	bus_unregister_notifier(&mcde_bus_type, &bus_nb);
-+	device_unregister(&mcde_bus);
-+	bus_unregister(&mcde_bus_type);
-+}
-diff --git a/drivers/video/mcde/mcde_mod.c b/drivers/video/mcde/mcde_mod.c
-new file mode 100644
-index 0000000..297857f
---- /dev/null
-+++ b/drivers/video/mcde/mcde_mod.c
-@@ -0,0 +1,67 @@
-+/*
-+ * Copyright (C) ST-Ericsson SA 2010
-+ *
-+ * ST-Ericsson MCDE driver
-+ *
-+ * Author: Marcus Lorentzon <marcus.xm.lorentzon@stericsson.com>
-+ * for ST-Ericsson.
-+ *
-+ * License terms: GNU General Public License (GPL), version 2.
++/**
++ * struct isph3a_aewb_config - AE AWB configuration reset values.
++ * saturation_limit: Saturation limit.
++ * @win_height: Window Height. Range 2 - 256, even values only.
++ * @win_width: Window Width. Range 6 - 256, even values only.
++ * @ver_win_count: Vertical Window Count. Range 1 - 128.
++ * @hor_win_count: Horizontal Window Count. Range 1 - 36.
++ * @ver_win_start: Vertical Window Start. Range 0 - 4095.
++ * @hor_win_start: Horizontal Window Start. Range 0 - 4095.
++ * @blk_ver_win_start: Black Vertical Windows Start. Range 0 - 4095.
++ * @blk_win_height: Black Window Height. Range 2 - 256, even values only.
++ * @subsample_ver_inc: Subsample Vertical points increment Range 2 - 32, even
++ *                     values only.
++ * @subsample_hor_inc: Subsample Horizontal points increment Range 2 - 32, even
++ *                     values only.
++ * @alaw_enable: AEW ALAW EN flag.
++ * @aewb_enable: AE AWB stats generation EN flag.
 + */
-+#include <linux/init.h>
-+#include <linux/module.h>
++struct isph3a_aewb_config {
++	/*
++	 * Common fields.
++	 * They should be the first ones and must be in the same order as in
++	 * ispstat_generic_config struct.
++	 */
++	__u32 buf_size;
++	__u16 config_counter;
 +
-+#include <video/mcde/mcde.h>
-+#include <video/mcde/mcde_fb.h>
-+#include <video/mcde/mcde_dss.h>
-+#include <video/mcde/mcde_display.h>
++	/* Private fields */
++	__u16 saturation_limit;
++	__u16 win_height;
++	__u16 win_width;
++	__u16 ver_win_count;
++	__u16 hor_win_count;
++	__u16 ver_win_start;
++	__u16 hor_win_start;
++	__u16 blk_ver_win_start;
++	__u16 blk_win_height;
++	__u16 subsample_ver_inc;
++	__u16 subsample_hor_inc;
++	__u8 alaw_enable;
++};
 +
-+/* Module init */
++/**
++ * struct ispstat_data - Struc of statistic data sent to or received from user
++ * @buf: Pointer to pass to user.
++ * @frame_number: Frame number of requested stats.
++ * @cur_frame: Current frame number being processed.
++ * @buf_size: Buffer size requested and returned.
++ * @ts: Timestamp of returned framestats.
++ */
++struct ispstat_data {
++	struct timeval ts;
++	void __user *buf;
++	__u32 buf_size;
++	__u16 frame_number;
++	__u16 cur_frame;
++	__u16 config_counter;
++	__u16 new_bufs;		/* Deprecated */
++};
 +
-+static int __init mcde_subsystem_init(void)
-+{
-+	int ret;
-+	pr_info("MCDE subsystem init begin\n");
 +
-+	/* MCDE module init sequence */
-+	ret = mcde_init();
-+	if (ret)
-+		return ret;
-+	ret = mcde_display_init();
-+	if (ret)
-+		goto mcde_display_failed;
-+	ret = mcde_dss_init();
-+	if (ret)
-+		goto mcde_dss_failed;
-+	ret = mcde_fb_init();
-+	if (ret)
-+		goto mcde_fb_failed;
-+	pr_info("MCDE subsystem init done\n");
++/* Histogram related structs */
 +
-+	return 0;
-+mcde_fb_failed:
-+	mcde_dss_exit();
-+mcde_dss_failed:
-+	mcde_display_exit();
-+mcde_display_failed:
-+	mcde_exit();
-+	return ret;
-+}
-+#ifdef MODULE
-+module_init(mcde_subsystem_init);
-+#else
-+fs_initcall(mcde_subsystem_init);
-+#endif
++/* Flags for number of bins */
++#define HIST_BINS_32		0
++#define HIST_BINS_64		1
++#define HIST_BINS_128		2
++#define HIST_BINS_256		3
 +
-+static void __exit mcde_module_exit(void)
-+{
-+	mcde_exit();
-+	mcde_display_exit();
-+	mcde_dss_exit();
-+}
-+module_exit(mcde_module_exit);
++/* Number of bins * 4 colors * 4-bytes word */
++#define HIST_MEM_SIZE_BINS(n)	((1 << ((n)+5))*4*4)
 +
-+MODULE_AUTHOR("Marcus Lorentzon <marcus.xm.lorentzon@stericsson.com>");
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("ST-Ericsson MCDE driver");
++#define HIST_MEM_SIZE		1024
++#define HIST_MIN_REGIONS	1
++#define HIST_MAX_REGIONS	4
++#define HIST_MAX_WB_GAIN	255
++#define HIST_MIN_WB_GAIN	0
++#define HIST_MAX_BIT_WIDTH	14
++#define HIST_MIN_BIT_WIDTH	8
++#define HIST_MAX_WG		4
++#define HIST_MAX_BUF_SIZE	4096
 +
++/* Source */
++#define HIST_SOURCE_CCDC	0
++#define HIST_SOURCE_MEM		1
++
++/* CFA pattern */
++#define HIST_CFA_BAYER		0
++#define HIST_CFA_FOVEONX3	1
++
++struct isphist_region {
++	__u16 h_start;
++	__u16 h_end;
++	__u16 v_start;
++	__u16 v_end;
++};
++
++struct isphist_config {
++	/*
++	 * Common fields.
++	 * They should be the first ones and must be in the same order as in
++	 * ispstat_generic_config struct.
++	 */
++	__u32 buf_size;
++	__u16 config_counter;
++
++	__u8 num_acc_frames;	/* Num of image frames to be processed and
++				   accumulated for each histogram frame */
++	__u16 hist_bins;	/* number of bins: 32, 64, 128, or 256 */
++	__u8 cfa;		/* BAYER or FOVEON X3 */
++	__u8 wg[HIST_MAX_WG];	/* White Balance Gain */
++	__u8 num_regions;	/* number of regions to be configured */
++	struct isphist_region region[HIST_MAX_REGIONS];
++};
++
++/* Auto Focus related structs */
++
++#define AF_NUM_COEF		11
++
++enum isph3a_af_fvmode {
++	AF_MODE_SUMMED = 0,
++	AF_MODE_PEAK = 1
++};
++
++/* Red, Green, and blue pixel location in the AF windows */
++enum isph3a_af_rgbpos {
++	AF_GR_GB_BAYER = 0,	/* GR and GB as Bayer pattern */
++	AF_RG_GB_BAYER = 1,	/* RG and GB as Bayer pattern */
++	AF_GR_BG_BAYER = 2,	/* GR and BG as Bayer pattern */
++	AF_RG_BG_BAYER = 3,	/* RG and BG as Bayer pattern */
++	AF_GG_RB_CUSTOM = 4,	/* GG and RB as custom pattern */
++	AF_RB_GG_CUSTOM = 5	/* RB and GG as custom pattern */
++};
++
++/* Contains the information regarding the Horizontal Median Filter */
++struct isph3a_af_hmf {
++	__u8 enable;	/* Status of Horizontal Median Filter */
++	__u8 threshold;	/* Threshhold Value for Horizontal Median Filter */
++};
++
++/* Contains the information regarding the IIR Filters */
++struct isph3a_af_iir {
++	__u16 h_start;			/* IIR horizontal start */
++	__u16 coeff_set0[AF_NUM_COEF];	/* IIR Filter coefficient for set 0 */
++	__u16 coeff_set1[AF_NUM_COEF];	/* IIR Filter coefficient for set 1 */
++};
++
++/* Contains the information regarding the Paxels Structure in AF Engine */
++struct isph3a_af_paxel {
++	__u16 h_start;	/* Horizontal Start Position */
++	__u16 v_start;	/* Vertical Start Position */
++	__u8 width;	/* Width of the Paxel */
++	__u8 height;	/* Height of the Paxel */
++	__u8 h_cnt;	/* Horizontal Count */
++	__u8 v_cnt;	/* vertical Count */
++	__u8 line_inc;	/* Line Increment */
++};
++
++/* Contains the parameters required for hardware set up of AF Engine */
++struct isph3a_af_config {
++	/*
++	 * Common fields.
++	 * They should be the first ones and must be in the same order as in
++	 * ispstat_generic_config struct.
++	 */
++	__u32 buf_size;
++	__u16 config_counter;
++
++	struct isph3a_af_hmf hmf;	/*HMF configurations */
++	struct isph3a_af_iir iir;	/*IIR filter configurations */
++	struct isph3a_af_paxel paxel;	/*Paxel parameters */
++	enum isph3a_af_rgbpos rgb_pos;	/*RGB Positions */
++	enum isph3a_af_fvmode fvmode;	/*Accumulator mode */
++	__u8 alaw_enable;		/*AF ALAW status */
++};
++
++/* ISP CCDC structs */
++
++/* Abstraction layer CCDC configurations */
++#define ISP_ABS_CCDC_ALAW		(1 << 0)
++#define ISP_ABS_CCDC_LPF		(1 << 1)
++#define ISP_ABS_CCDC_BLCLAMP		(1 << 2)
++#define ISP_ABS_CCDC_BCOMP		(1 << 3)
++#define ISP_ABS_CCDC_FPC		(1 << 4)
++#define ISP_ABS_CCDC_CULL		(1 << 5)
++#define ISP_ABS_CCDC_COLPTN		(1 << 6)
++#define ISP_ABS_CCDC_CONFIG_LSC		(1 << 7)
++#define ISP_ABS_TBL_LSC			(1 << 8)
++
++#define RGB_MAX				3
++
++/* Enumeration constants for Alaw input width */
++enum alaw_ipwidth {
++	ALAW_BIT12_3 = 0x3,
++	ALAW_BIT11_2 = 0x4,
++	ALAW_BIT10_1 = 0x5,
++	ALAW_BIT9_0 = 0x6
++};
++
++/**
++ * struct ispccdc_lsc_config - Structure for LSC configuration.
++ * @offset: Table Offset of the gain table.
++ * @gain_mode_n: Vertical dimension of a paxel in LSC configuration.
++ * @gain_mode_m: Horizontal dimension of a paxel in LSC configuration.
++ * @gain_format: Gain table format.
++ * @fmtsph: Start pixel horizontal from start of the HS sync pulse.
++ * @fmtlnh: Number of pixels in horizontal direction to use for the data
++ *          reformatter.
++ * @fmtslv: Start line from start of VS sync pulse for the data reformatter.
++ * @fmtlnv: Number of lines in vertical direction for the data reformatter.
++ * @initial_x: X position, in pixels, of the first active pixel in reference
++ *             to the first active paxel. Must be an even number.
++ * @initial_y: Y position, in pixels, of the first active pixel in reference
++ *             to the first active paxel. Must be an even number.
++ * @size: Size of LSC gain table. Filled when loaded from userspace.
++ */
++struct ispccdc_lsc_config {
++	__u16 offset;
++	__u8 gain_mode_n;
++	__u8 gain_mode_m;
++	__u8 gain_format;
++	__u16 fmtsph;
++	__u16 fmtlnh;
++	__u16 fmtslv;
++	__u16 fmtlnv;
++	__u8 initial_x;
++	__u8 initial_y;
++	__u32 size;
++};
++
++/**
++ * struct ispccdc_bclamp - Structure for Optical & Digital black clamp subtract
++ * @obgain: Optical black average gain.
++ * @obstpixel: Start Pixel w.r.t. HS pulse in Optical black sample.
++ * @oblines: Optical Black Sample lines.
++ * @oblen: Optical Black Sample Length.
++ * @dcsubval: Digital Black Clamp subtract value.
++ */
++struct ispccdc_bclamp {
++	__u8 obgain;
++	__u8 obstpixel;
++	__u8 oblines;
++	__u8 oblen;
++	__u16 dcsubval;
++};
++
++/**
++ * ispccdc_fpc - Structure for FPC
++ * @fpnum: Number of faulty pixels to be corrected in the frame.
++ * @fpcaddr: Memory address of the FPC Table
++ */
++struct ispccdc_fpc {
++	__u16 fpnum;
++	__u32 fpcaddr;
++};
++
++/**
++ * ispccdc_blcomp - Structure for Black Level Compensation parameters.
++ * @b_mg: B/Mg pixels. 2's complement. -128 to +127.
++ * @gb_g: Gb/G pixels. 2's complement. -128 to +127.
++ * @gr_cy: Gr/Cy pixels. 2's complement. -128 to +127.
++ * @r_ye: R/Ye pixels. 2's complement. -128 to +127.
++ */
++struct ispccdc_blcomp {
++	__u8 b_mg;
++	__u8 gb_g;
++	__u8 gr_cy;
++	__u8 r_ye;
++};
++
++/**
++ * ispccdc_culling - Structure for Culling parameters.
++ * @v_pattern: Vertical culling pattern.
++ * @h_odd: Horizontal Culling pattern for odd lines.
++ * @h_even: Horizontal Culling pattern for even lines.
++ */
++struct ispccdc_culling {
++	__u8 v_pattern;
++	__u16 h_odd;
++	__u16 h_even;
++};
++
++/**
++ * ispccdc_update_config - Structure for CCDC configuration.
++ * @update: Specifies which CCDC registers should be updated.
++ * @flag: Specifies which CCDC functions should be enabled.
++ * @alawip: Enable/Disable A-Law compression.
++ * @bclamp: Black clamp control register.
++ * @blcomp: Black level compensation value for RGrGbB Pixels. 2's complement.
++ * @fpc: Number of faulty pixels corrected in the frame, address of FPC table.
++ * @cull: Cull control register.
++ * @colptn: Color pattern of the sensor.
++ * @lsc: Pointer to LSC gain table.
++ */
++struct ispccdc_update_config {
++	__u16 update;
++	__u16 flag;
++	enum alaw_ipwidth alawip;
++	struct ispccdc_bclamp __user *bclamp;
++	struct ispccdc_blcomp __user *blcomp;
++	struct ispccdc_fpc __user *fpc;
++	struct ispccdc_lsc_config __user *lsc_cfg;
++	struct ispccdc_culling __user *cull;
++	__u32 colptn;
++	__u8 __user *lsc;
++};
++
++/* Preview configurations */
++#define ISP_PREV_LUMAENH		(1 << 0)
++#define ISP_PREV_INVALAW		(1 << 1)
++#define ISP_PREV_HRZ_MED		(1 << 2)
++#define ISP_PREV_CFA			(1 << 3)
++#define ISP_PREV_CHROMA_SUPP		(1 << 4)
++#define ISP_PREV_WB			(1 << 5)
++#define ISP_PREV_BLKADJ			(1 << 6)
++#define ISP_PREV_RGB2RGB		(1 << 7)
++#define ISP_PREV_COLOR_CONV		(1 << 8)
++#define ISP_PREV_YC_LIMIT		(1 << 9)
++#define ISP_PREV_DEFECT_COR		(1 << 10)
++#define ISP_PREV_GAMMABYPASS		(1 << 11)
++#define ISP_PREV_DRK_FRM_CAPTURE	(1 << 12)
++#define ISP_PREV_DRK_FRM_SUBTRACT	(1 << 13)
++#define ISP_PREV_LENS_SHADING		(1 << 14)
++#define ISP_PREV_NF			(1 << 15)
++#define ISP_PREV_GAMMA			(1 << 16)
++
++#define ISPPRV_NF_TBL_SIZE		64
++#define ISPPRV_CFA_TBL_SIZE		576
++#define ISPPRV_GAMMA_TBL_SIZE		1024
++#define ISPPRV_YENH_TBL_SIZE		128
++
++#define ISPPRV_DETECT_CORRECT_CHANNELS	4
++
++/**
++ * struct ispprev_hmed - Structure for Horizontal Median Filter.
++ * @odddist: Distance between consecutive pixels of same color in the odd line.
++ * @evendist: Distance between consecutive pixels of same color in the even
++ *            line.
++ * @thres: Horizontal median filter threshold.
++ */
++struct ispprev_hmed {
++	__u8 odddist;
++	__u8 evendist;
++	__u8 thres;
++};
++
++/*
++ * Enumeration for CFA Formats supported by preview
++ */
++enum cfa_fmt {
++	CFAFMT_BAYER, CFAFMT_SONYVGA, CFAFMT_RGBFOVEON,
++	CFAFMT_DNSPL, CFAFMT_HONEYCOMB, CFAFMT_RRGGBBFOVEON
++};
++
++/**
++ * struct ispprev_cfa - Structure for CFA Inpterpolation.
++ * @format: CFA Format Enum value supported by preview.
++ * @gradthrs_vert: CFA Gradient Threshold - Vertical.
++ * @gradthrs_horz: CFA Gradient Threshold - Horizontal.
++ * @table: Pointer to the CFA table.
++ */
++struct ispprev_cfa {
++	enum cfa_fmt format;
++	__u8 gradthrs_vert;
++	__u8 gradthrs_horz;
++	__u32 table[ISPPRV_CFA_TBL_SIZE];
++};
++
++/**
++ * struct ispprev_csup - Structure for Chrominance Suppression.
++ * @gain: Gain.
++ * @thres: Threshold.
++ * @hypf_en: Flag to enable/disable the High Pass Filter.
++ */
++struct ispprev_csup {
++	__u8 gain;
++	__u8 thres;
++	__u8 hypf_en;
++};
++
++/**
++ * struct ispprev_wbal - Structure for White Balance.
++ * @dgain: Digital gain (U10Q8).
++ * @coef3: White balance gain - COEF 3 (U8Q5).
++ * @coef2: White balance gain - COEF 2 (U8Q5).
++ * @coef1: White balance gain - COEF 1 (U8Q5).
++ * @coef0: White balance gain - COEF 0 (U8Q5).
++ */
++struct ispprev_wbal {
++	__u16 dgain;
++	__u8 coef3;
++	__u8 coef2;
++	__u8 coef1;
++	__u8 coef0;
++};
++
++/**
++ * struct ispprev_blkadj - Structure for Black Adjustment.
++ * @red: Black level offset adjustment for Red in 2's complement format
++ * @green: Black level offset adjustment for Green in 2's complement format
++ * @blue: Black level offset adjustment for Blue in 2's complement format
++ */
++struct ispprev_blkadj {
++	/*Black level offset adjustment for Red in 2's complement format */
++	__u8 red;
++	/*Black level offset adjustment for Green in 2's complement format */
++	__u8 green;
++	/* Black level offset adjustment for Blue in 2's complement format */
++	__u8 blue;
++};
++
++/**
++ * struct ispprev_rgbtorgb - Structure for RGB to RGB Blending.
++ * @matrix: Blending values(S12Q8 format)
++ *              [RR] [GR] [BR]
++ *              [RG] [GG] [BG]
++ *              [RB] [GB] [BB]
++ * @offset: Blending offset value for R,G,B in 2's complement integer format.
++ */
++struct ispprev_rgbtorgb {
++	__u16 matrix[RGB_MAX][RGB_MAX];
++	__u16 offset[RGB_MAX];
++};
++
++/**
++ * struct ispprev_csc - Structure for Color Space Conversion from RGB-YCbYCr
++ * @matrix: Color space conversion coefficients(S10Q8)
++ *              [CSCRY]  [CSCGY]  [CSCBY]
++ *              [CSCRCB] [CSCGCB] [CSCBCB]
++ *              [CSCRCR] [CSCGCR] [CSCBCR]
++ * @offset: CSC offset values for Y offset, CB offset and CR offset respectively
++ */
++struct ispprev_csc {
++	__u16 matrix[RGB_MAX][RGB_MAX];
++	__s16 offset[RGB_MAX];
++};
++
++/**
++ * struct ispprev_yclimit - Structure for Y, C Value Limit.
++ * @minC: Minimum C value
++ * @maxC: Maximum C value
++ * @minY: Minimum Y value
++ * @maxY: Maximum Y value
++ */
++struct ispprev_yclimit {
++	__u8 minC;
++	__u8 maxC;
++	__u8 minY;
++	__u8 maxY;
++};
++
++/**
++ * struct ispprev_dcor - Structure for Defect correction.
++ * @couplet_mode_en: Flag to enable or disable the couplet dc Correction in NF
++ * @detect_correct: Thresholds for correction bit 0:10 detect 16:25 correct
++ */
++struct ispprev_dcor {
++	__u8 couplet_mode_en;
++	__u32 detect_correct[ISPPRV_DETECT_CORRECT_CHANNELS];
++};
++
++/**
++ * struct ispprev_nf - Structure for Noise Filter
++ * @spread: Spread value to be used in Noise Filter
++ * @table: Pointer to the Noise Filter table
++ */
++struct ispprev_nf {
++	__u8 spread;
++	__u32 table[ISPPRV_NF_TBL_SIZE];
++};
++
++/**
++ * struct ispprev_gtables - Structure for gamma correction tables.
++ * @red: Array for red gamma table.
++ * @green: Array for green gamma table.
++ * @blue: Array for blue gamma table.
++ */
++struct ispprev_gtables {
++	__u32 red[ISPPRV_GAMMA_TBL_SIZE];
++	__u32 green[ISPPRV_GAMMA_TBL_SIZE];
++	__u32 blue[ISPPRV_GAMMA_TBL_SIZE];
++};
++
++/**
++ * struct ispprev_luma - Structure for luma enhancement.
++ * @table: Array for luma enhancement table.
++ */
++struct ispprev_luma {
++	__u32 table[ISPPRV_YENH_TBL_SIZE];
++};
++
++/**
++ * struct ispprv_update_config - Structure for Preview Configuration (user).
++ * @update: Specifies which ISP Preview registers should be updated.
++ * @flag: Specifies which ISP Preview functions should be enabled.
++ * @shading_shift: 3bit value of shift used in shading compensation.
++ * @luma: Pointer to luma enhancement structure.
++ * @hmed: Pointer to structure containing the odd and even distance.
++ *        between the pixels in the image along with the filter threshold.
++ * @cfa: Pointer to structure containing the CFA interpolation table, CFA.
++ *       format in the image, vertical and horizontal gradient threshold.
++ * @csup: Pointer to Structure for Chrominance Suppression coefficients.
++ * @wbal: Pointer to structure for White Balance.
++ * @blkadj: Pointer to structure for Black Adjustment.
++ * @rgb2rgb: Pointer to structure for RGB to RGB Blending.
++ * @csc: Pointer to structure for Color Space Conversion from RGB-YCbYCr.
++ * @yclimit: Pointer to structure for Y, C Value Limit.
++ * @dcor: Pointer to structure for defect correction.
++ * @nf: Pointer to structure for Noise Filter
++ * @gamma: Pointer to gamma structure.
++ */
++struct ispprv_update_config {
++	__u32 update;
++	__u32 flag;
++	__u32 shading_shift;
++	struct ispprev_luma __user *luma;
++	struct ispprev_hmed __user *hmed;
++	struct ispprev_cfa __user *cfa;
++	struct ispprev_csup __user *csup;
++	struct ispprev_wbal __user *wbal;
++	struct ispprev_blkadj __user *blkadj;
++	struct ispprev_rgbtorgb __user *rgb2rgb;
++	struct ispprev_csc __user *csc;
++	struct ispprev_yclimit __user *yclimit;
++	struct ispprev_dcor __user *dcor;
++	struct ispprev_nf __user *nf;
++	struct ispprev_gtables __user *gamma;
++};
++
++#endif	/* OMAP3_ISP_USER_H */
 -- 
-1.6.3.3
+1.7.0.4
 
