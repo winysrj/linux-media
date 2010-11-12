@@ -1,125 +1,92 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:50239 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S932172Ab0KNUhW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Nov 2010 15:37:22 -0500
-Date: Sun, 14 Nov 2010 21:37:03 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: linux-media@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>
-Subject: Re: sh_vou: proposed patch to convert to unlocked_ioctl
-In-Reply-To: <201011141536.56781.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1011142135440.12672@axis700.grange>
-References: <201011141536.56781.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from bear.ext.ti.com ([192.94.94.41]:58224 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932399Ab0KLVSJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Nov 2010 16:18:09 -0500
+From: Sergio Aguirre <saaguirre@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
+Subject: [omap3isp RFC][PATCH 10/10] omap3isp: Remove legacy MMU access regs/fields
+Date: Fri, 12 Nov 2010 15:18:13 -0600
+Message-Id: <1289596693-27660-11-git-send-email-saaguirre@ti.com>
+In-Reply-To: <1289596693-27660-1-git-send-email-saaguirre@ti.com>
+References: <1289596693-27660-1-git-send-email-saaguirre@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans
-
-On Sun, 14 Nov 2010, Hans Verkuil wrote:
-
-> Hi Guennadi,
-> 
-> Below is my proposed patch to convert sh_vou to unlocked_ioctl. It uses the
-> V4L2 core locking method.
-> 
-> I didn't see any synchronization mechanisms other than the implicit BKL in
-> this driver, so using the core locking method seemed the right thing to do
-> here.
-
-Thanks for the patch. Yep, looks good and doesn't seem to break anything - 
-even managed to test it... So, once you post a formal patch to the list, 
-I'll ack it.
-
-Thanks
-Guennadi
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> diff --git a/drivers/media/video/sh_vou.c b/drivers/media/video/sh_vou.c
-> index 0f49061..858b2f8 100644
-> --- a/drivers/media/video/sh_vou.c
-> +++ b/drivers/media/video/sh_vou.c
-> @@ -75,6 +75,7 @@ struct sh_vou_device {
->  	int pix_idx;
->  	struct videobuf_buffer *active;
->  	enum sh_vou_status status;
-> +	struct mutex fop_lock;
->  };
->  
->  struct sh_vou_file {
-> @@ -235,7 +236,7 @@ static void free_buffer(struct videobuf_queue *vq, struct videobuf_buffer *vb)
->  	vb->state = VIDEOBUF_NEEDS_INIT;
->  }
->  
-> -/* Locking: caller holds vq->vb_lock mutex */
-> +/* Locking: caller holds fop_lock mutex */
->  static int sh_vou_buf_setup(struct videobuf_queue *vq, unsigned int *count,
->  			    unsigned int *size)
->  {
-> @@ -257,7 +258,7 @@ static int sh_vou_buf_setup(struct videobuf_queue *vq, unsigned int *count,
->  	return 0;
->  }
->  
-> -/* Locking: caller holds vq->vb_lock mutex */
-> +/* Locking: caller holds fop_lock mutex */
->  static int sh_vou_buf_prepare(struct videobuf_queue *vq,
->  			      struct videobuf_buffer *vb,
->  			      enum v4l2_field field)
-> @@ -306,7 +307,7 @@ static int sh_vou_buf_prepare(struct videobuf_queue *vq,
->  	return 0;
->  }
->  
-> -/* Locking: caller holds vq->vb_lock mutex and vq->irqlock spinlock */
-> +/* Locking: caller holds fop_lock mutex and vq->irqlock spinlock */
->  static void sh_vou_buf_queue(struct videobuf_queue *vq,
->  			     struct videobuf_buffer *vb)
->  {
-> @@ -1190,7 +1191,7 @@ static int sh_vou_open(struct file *file)
->  				       V4L2_BUF_TYPE_VIDEO_OUTPUT,
->  				       V4L2_FIELD_NONE,
->  				       sizeof(struct videobuf_buffer), vdev,
-> -				       NULL);
-> +				       &vou_dev->fop_lock);
->  
->  	return 0;
->  }
-> @@ -1292,7 +1293,7 @@ static const struct v4l2_file_operations sh_vou_fops = {
->  	.owner		= THIS_MODULE,
->  	.open		= sh_vou_open,
->  	.release	= sh_vou_release,
-> -	.ioctl		= video_ioctl2,
-> +	.unlocked_ioctl	= video_ioctl2,
->  	.mmap		= sh_vou_mmap,
->  	.poll		= sh_vou_poll,
->  };
-> @@ -1331,6 +1332,7 @@ static int __devinit sh_vou_probe(struct platform_device *pdev)
->  
->  	INIT_LIST_HEAD(&vou_dev->queue);
->  	spin_lock_init(&vou_dev->lock);
-> +	mutex_init(&vou_dev->fop_lock);
->  	atomic_set(&vou_dev->use_count, 0);
->  	vou_dev->pdata = vou_pdata;
->  	vou_dev->status = SH_VOU_IDLE;
-> @@ -1388,6 +1390,7 @@ static int __devinit sh_vou_probe(struct platform_device *pdev)
->  		vdev->tvnorms |= V4L2_STD_PAL;
->  	vdev->v4l2_dev = &vou_dev->v4l2_dev;
->  	vdev->release = video_device_release;
-> +	vdev->lock = &vou_dev->fop_lock;
->  
->  	vou_dev->vdev = vdev;
->  	video_set_drvdata(vdev, vou_dev);
-> 
-> -- 
-> Hans Verkuil - video4linux developer - sponsored by Cisco
-> 
-
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/isp/ispreg.h |   43 --------------------------------------
+ 1 files changed, 0 insertions(+), 43 deletions(-)
+
+diff --git a/drivers/media/video/isp/ispreg.h b/drivers/media/video/isp/ispreg.h
+index 9b0d3ad..af4ddaa 100644
+--- a/drivers/media/video/isp/ispreg.h
++++ b/drivers/media/video/isp/ispreg.h
+@@ -72,11 +72,6 @@
+ 					 OMAP3ISP_SBL_REG_OFFSET)
+ #define OMAP3ISP_SBL_REG(offset)	(OMAP3ISP_SBL_REG_BASE + (offset))
+ 
+-#define OMAP3ISP_MMU_REG_OFFSET		0x1400
+-#define OMAP3ISP_MMU_REG_BASE		(OMAP3ISP_REG_BASE +		\
+-					 OMAP3ISP_MMU_REG_OFFSET)
+-#define OMAP3ISP_MMU_REG(offset)	(OMAP3ISP_MMU_REG_BASE + (offset))
+-
+ #define OMAP3ISP_CSI2A_REGS1_REG_OFFSET	0x1800
+ #define OMAP3ISP_CSI2A_REGS1_REG_BASE	(OMAP3ISP_REG_BASE +		\
+ 					 OMAP3ISP_CSI2A_REGS1_REG_OFFSET)
+@@ -458,26 +453,6 @@
+ #define ISPRSZ_VFILT3130		(0x0A4)
+ #define ISPRSZ_YENH			(0x0A8)
+ 
+-/* MMU module registers */
+-#define ISPMMU_REVISION			(0x000)
+-#define ISPMMU_SYSCONFIG		(0x010)
+-#define ISPMMU_SYSSTATUS		(0x014)
+-#define ISPMMU_IRQSTATUS		(0x018)
+-#define ISPMMU_IRQENABLE		(0x01C)
+-#define ISPMMU_WALKING_ST		(0x040)
+-#define ISPMMU_CNTL			(0x044)
+-#define ISPMMU_FAULT_AD			(0x048)
+-#define ISPMMU_TTB			(0x04C)
+-#define ISPMMU_LOCK			(0x050)
+-#define ISPMMU_LD_TLB			(0x054)
+-#define ISPMMU_CAM			(0x058)
+-#define ISPMMU_RAM			(0x05C)
+-#define ISPMMU_GFLUSH			(0x060)
+-#define ISPMMU_FLUSH_ENTRY		(0x064)
+-#define ISPMMU_READ_CAM			(0x068)
+-#define ISPMMU_READ_RAM			(0x06c)
+-#define ISPMMU_EMU_FAULT_AD		(0x070)
+-
+ #define ISP_INT_CLR			0xFF113F11
+ #define ISPPRV_PCR_EN			1
+ #define ISPPRV_PCR_BUSY			(1 << 1)
+@@ -1299,24 +1274,6 @@
+ #define ISPCCDC_LSC_INITIAL_Y_MASK		0x3F0000
+ #define ISPCCDC_LSC_INITIAL_Y_SHIFT		16
+ 
+-#define ISPMMU_REVISION_REV_MINOR_MASK		0xF
+-#define ISPMMU_REVISION_REV_MAJOR_SHIFT		0x4
+-
+-#define IRQENABLE_MULTIHITFAULT			(1<<4)
+-#define IRQENABLE_TWFAULT			(1<<3)
+-#define IRQENABLE_EMUMISS			(1<<2)
+-#define IRQENABLE_TRANSLNFAULT			(1<<1)
+-#define IRQENABLE_TLBMISS			(1)
+-
+-#define ISPMMU_MMUCNTL_MMU_EN			(1<<1)
+-#define ISPMMU_MMUCNTL_TWL_EN			(1<<2)
+-#define ISPMMU_MMUCNTL_EMUTLBUPDATE		(1<<3)
+-#define ISPMMU_AUTOIDLE				0x1
+-#define ISPMMU_SIDLEMODE_FORCEIDLE		0
+-#define ISPMMU_SIDLEMODE_NOIDLE			1
+-#define ISPMMU_SIDLEMODE_SMARTIDLE		2
+-#define ISPMMU_SIDLEMODE_SHIFT			3
+-
+ /* -----------------------------------------------------------------------------
+  * CSI2 receiver registers (ES2.0)
+  */
+-- 
+1.7.0.4
+
