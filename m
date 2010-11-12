@@ -1,127 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:35150 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1756009Ab0KJOYY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Nov 2010 09:24:24 -0500
-Date: Wed, 10 Nov 2010 15:24:31 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Wolfram Sang <w.sang@pengutronix.de>
-cc: linux-i2c@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sergio Aguirre <saaguirre@ti.com>,
-	Michael Grzeschik <m.grzeschik@pengutronix.de>,
-	Philipp Wiesner <p.wiesner@phytec.de>,
-	=?UTF-8?q?M=C3=A1rton=20N=C3=A9meth?= <nm127@freemail.hu>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: video: do not clear 'driver' from an i2c_client
-In-Reply-To: <1289398455-21949-1-git-send-email-w.sang@pengutronix.de>
-Message-ID: <Pine.LNX.4.64.1011101524120.13739@axis700.grange>
-References: <1289398455-21949-1-git-send-email-w.sang@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199]:59147 "EHLO
+	mta4.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932771Ab0KLWCr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Nov 2010 17:02:47 -0500
+Received: from TheShoveller.local
+ (ool-4572125f.dyn.optonline.net [69.114.18.95]) by mta4.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0LBS00GQSL8LSN21@mta4.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Fri, 12 Nov 2010 17:02:46 -0500 (EST)
+Date: Fri, 12 Nov 2010 17:02:45 -0500
+From: Steven Toth <stoth@kernellabs.com>
+Subject: [PULL] git://kernellabs.com/stoth/saa7164-dev.git
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Message-id: <4CDDB985.9090907@kernellabs.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 10 Nov 2010, Wolfram Sang wrote:
+Mauro,
 
-> The i2c-core does this already.
-> 
-> Reported-by: Jean Delvare <khali@linux-fr.org>
-> Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+Please pull the following changes.
 
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+The following changes since commit 5ed5d45da807a6d0d1d06bfe45b3623f97ce2797:
+  Steven Toth (1):
+        [media] saa7164: Checkpatch compliance cleanup
 
-> ---
-> 
-> Not sure if this should go via i2c or media?
-> 
->  drivers/media/video/imx074.c     |    1 -
->  drivers/media/video/mt9m001.c    |    1 -
->  drivers/media/video/mt9m111.c    |    1 -
->  drivers/media/video/mt9t031.c    |    1 -
->  drivers/media/video/mt9v022.c    |    1 -
->  drivers/media/video/rj54n1cb0c.c |    1 -
->  6 files changed, 0 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/video/imx074.c b/drivers/media/video/imx074.c
-> index 27b5dfd..1a11691 100644
-> --- a/drivers/media/video/imx074.c
-> +++ b/drivers/media/video/imx074.c
-> @@ -467,7 +467,6 @@ static int imx074_remove(struct i2c_client *client)
->  	icd->ops = NULL;
->  	if (icl->free_bus)
->  		icl->free_bus(icl);
-> -	client->driver = NULL;
->  	kfree(priv);
->  
->  	return 0;
-> diff --git a/drivers/media/video/mt9m001.c b/drivers/media/video/mt9m001.c
-> index fcb4cd9..f7fc88d 100644
-> --- a/drivers/media/video/mt9m001.c
-> +++ b/drivers/media/video/mt9m001.c
-> @@ -798,7 +798,6 @@ static int mt9m001_remove(struct i2c_client *client)
->  
->  	icd->ops = NULL;
->  	mt9m001_video_remove(icd);
-> -	client->driver = NULL;
->  	kfree(mt9m001);
->  
->  	return 0;
-> diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-> index 525a16e..53fa2a7 100644
-> --- a/drivers/media/video/mt9m111.c
-> +++ b/drivers/media/video/mt9m111.c
-> @@ -1092,7 +1092,6 @@ static int mt9m111_remove(struct i2c_client *client)
->  	struct soc_camera_device *icd = client->dev.platform_data;
->  
->  	icd->ops = NULL;
-> -	client->driver = NULL;
->  	kfree(mt9m111);
->  
->  	return 0;
-> diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
-> index 9bd44a8..7ce279c 100644
-> --- a/drivers/media/video/mt9t031.c
-> +++ b/drivers/media/video/mt9t031.c
-> @@ -896,7 +896,6 @@ static int mt9t031_remove(struct i2c_client *client)
->  
->  	if (icd)
->  		icd->ops = NULL;
-> -	client->driver = NULL;
->  	kfree(mt9t031);
->  
->  	return 0;
-> diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
-> index b96171c..6a784c8 100644
-> --- a/drivers/media/video/mt9v022.c
-> +++ b/drivers/media/video/mt9v022.c
-> @@ -930,7 +930,6 @@ static int mt9v022_remove(struct i2c_client *client)
->  
->  	icd->ops = NULL;
->  	mt9v022_video_remove(icd);
-> -	client->driver = NULL;
->  	kfree(mt9v022);
->  
->  	return 0;
-> diff --git a/drivers/media/video/rj54n1cb0c.c b/drivers/media/video/rj54n1cb0c.c
-> index d2fa2d4..57e11b6 100644
-> --- a/drivers/media/video/rj54n1cb0c.c
-> +++ b/drivers/media/video/rj54n1cb0c.c
-> @@ -1460,7 +1460,6 @@ static int rj54n1_remove(struct i2c_client *client)
->  	icd->ops = NULL;
->  	if (icl->free_bus)
->  		icl->free_bus(icl);
-> -	client->driver = NULL;
->  	kfree(rj54n1);
->  
->  	return 0;
-> -- 
-> 1.7.2.3
-> 
-> 
+are available in the git repository at:
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+  git://kernellabs.com/stoth/saa7164-dev.git master
+
+gitweb access here:
+
+ http://www.kernellabs.com/gitweb/?p=stoth/saa7164-dev.git
+
+Regards,
+
+- Steve
+
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
+
+
