@@ -1,63 +1,38 @@
-Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:18771 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753728Ab0KCXCQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Nov 2010 19:02:16 -0400
-Message-ID: <4CD1E9E8.4000302@redhat.com>
-Date: Wed, 03 Nov 2010 19:02:00 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Return-path: <mchehab@pedra>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:39397 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752795Ab0KLVEe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Nov 2010 16:04:34 -0500
+Date: Fri, 12 Nov 2010 22:04:30 +0100
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/2] [media] ir-kbd-i2c: add rc_dev as a parameter to
+ the driver
+Message-ID: <20101112210430.GA18719@hardeman.nu>
+References: <cover.1289568397.git.mchehab@redhat.com>
+ <20101112112838.2218e2d7@pedra>
 MIME-Version: 1.0
-To: Michal Marek <mmarek@suse.cz>
-CC: Linus Torvalds <torvalds@linux-foundation.org>, kyle@redhat.com,
-	lacombar@gmail.com, linux-kbuild@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: REGRESSION: Re: [GIT] kconfig rc fixes
-References: <20101009224041.GA901@sepie.suse.cz> <4CD1E232.30406@redhat.com> <4CD1E679.5080202@suse.cz>
-In-Reply-To: <4CD1E679.5080202@suse.cz>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20101112112838.2218e2d7@pedra>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Em 03-11-2010 18:47, Michal Marek escreveu:
-> On 3.11.2010 23:29, Mauro Carvalho Chehab wrote:
->> Em 09-10-2010 18:40, Michal Marek escreveu:
->>> The following changes since commit cb655d0f3d57c23db51b981648e452988c0223f9:
->>>
->>>   Linux 2.6.36-rc7 (2010-10-06 13:39:52 -0700)
->>>
->>> are available in the git repository at:
->>>   git://git.kernel.org/pub/scm/linux/kernel/git/mmarek/kbuild-2.6.git rc-fixes
->>>
->>> Arnaud Lacombe (1):
->>>       kconfig: delay symbol direct dependency initialization
->>
->> This patch generated a regression with V4L build. After applying it, some Kconfig
->> dependencies that used to work with V4L Kconfig broke.
-> 
-> You mean, the dependencies trigger a warning now, right? Also, you are
-> replying to my pull request for 2.6.36-rc8, but that pull request also
-> included "kconfig: Temporarily disable dependency warnings", so 2.6.36
-> final is NOT affected by this, just to clarify. 2.6.37-rc1 reverted this
-> workaround and I hope we come to some solution now. BTW,
-> http://www.kerneltrap.com/mailarchive/linux-kernel/2010/10/7/4629122/thread
-> is how a very similar issue was fixed in the i2c Kconfig (commit 0a57274
-> in 2.6.37-rc1 now).
+On Fri, Nov 12, 2010 at 11:28:38AM -0200, Mauro Carvalho Chehab wrote:
+>There are several fields on rc_dev that drivers can benefit. Allow drivers
+>to pass it as a parameter to the driver.
+>
+>For now, the rc_dev parameter is optional. If drivers don't pass it, create
+>them internally. However, the best is to create rc_dev inside the drivers,
+>in order to fill other fields, like open(), close(), driver_name, etc.
+>So, a latter patch making it mandatory and changing the caller drivers is
+>welcome.
 
-Well, I'm seeing those warnings on 2.6.37-rc1, after the patch that re-enable
-the warnings. Just reverting the delay symbol direct dependency init changeset 
-makes the warnings stop.
+Looks good, no objections. Sorry for misinterpreting your suggested
+change.
 
-I didn't really try to run lots of tests to be sure that they actually break
-anything, or if they are just unwanted warnings, but, in any case, we need a
-fix before the end of .37 cycle.
-
-A solution like what was done on i2c doesn't seem nice, as it will require lots
-of artificial changes at kconfig stuff. Maybe it would be better to just add
-some logic at Kconfig file to specify those kind of menus without producing
-warnings, of course assuming that actually won't break symbols dependency solve.
-
-Thanks,
-Mauro
-anything.
+-- 
+David Härdeman
