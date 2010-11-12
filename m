@@ -1,149 +1,72 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4868 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755793Ab0KJNZo (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52707 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751211Ab0KLRRn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Nov 2010 08:25:44 -0500
-Message-ID: <b2ddeee1791a4306ab2f6075b6776168.squirrel@webmail.xs4all.nl>
-In-Reply-To: <AANLkTinYg0zPK4kmgTyUGftLCqqtn6enpTpO+xhz9X-5@mail.gmail.com>
-References: <1289228045-4512-1-git-send-email-manjunath.hadli@ti.com>
-    <AANLkTimmDcxZsNEruFrr+qwnairJRZGCsnOTJBA7BPQu@mail.gmail.com>
-    <AANLkTinYg0zPK4kmgTyUGftLCqqtn6enpTpO+xhz9X-5@mail.gmail.com>
-Date: Wed, 10 Nov 2010 14:25:41 +0100
-Subject: Re: [PATCH 0/6] davinci vpbe: V4L2 Display driver for DM644X
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Muralidharan Karicheri" <mkaricheri@gmail.com>
-Cc: "Hadli, Manjunath" <manjunath.hadli@ti.com>,
-	linux-media@vger.kernel.org
+	Fri, 12 Nov 2010 12:17:43 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+Subject: Re: mediabus enums
+Date: Fri, 12 Nov 2010 18:17:40 +0100
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E9402DC24F0EB@dbde02.ent.ti.com>
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DC24F0EB@dbde02.ent.ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201011121817.40926.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Hi Manjunath,
 
-> Hans,
->
-> Is it possible to extend the sub device ops to include SoC ip sub
-> device specific ops? I remember I had posted this question some time
-> back and you had proposed to add something like this. Just want to
-> check if that is still valid. This would make this driver
-> implementation little more cleaner.
->
-> struct vpbe_osd_ops;
->
-> struct v4l2_subdev_ops {
->         const struct v4l2_subdev_core_ops       *core;
->         const struct v4l2_subdev_tuner_ops      *tuner;
->         const struct v4l2_subdev_audio_ops      *audio;
->         const struct v4l2_subdev_video_ops      *video;
->         const struct v4l2_subdev_vbi_ops        *vbi;
->         const struct v4l2_subdev_ir_ops         *ir;
->         const struct v4l2_subdev_sensor_ops     *sensor;
->         /* SoC IP specific ops */
->         const struct vpbe_osd_ops  *vpbe_osd;
->  };
->
-> The struct vpbe_osd_ops will be defined in the osd sub device header
-> file. This will allow the host/bridge driver to call osd specific
-> operations like standard sub dev ops.
->
-> Any comments?
+On Friday 12 November 2010 17:00:36 Hadli, Manjunath wrote:
+> On Thu, Nov 11, 2010 at 22:17:23, Laurent Pinchart wrote:
+> > On Thursday 11 November 2010 16:32:02 Guennadi Liakhovetski wrote:
+> > > On Wed, 10 Nov 2010, Hadli, Manjunath wrote:
+> > > > Hello Guennadi,
+> > > > 
+> > > >    Your media-bus enumerations capture the formats quite well. I
+> > > > 
+> > > > needed
+> > > > 
+> > > > the following for support on Davinci SOCs and liked to check with
+> > > > you if these are covered in some format in the list.
+> > > > 1. Parallel RGB 666 (18 data lines+ 5 sync lines) 2. YUYV16 (16
+> > > > lines) (16 data lines + 4 or 5 sync lines)
+> > > 
+> > > According to the subdev-formats.xml
+> > > 
+> > > http://git.linuxtv.org/pinchartl/media.git?a=blob;f=Documentation/DocB
+> > > ook/v
+> > > 4l/subdev-formats.xml;h=3688f27185f72ab109e3094c268e04f67cb8643e;hb=re
+> > > fs/he
+> > > ads/media-0003-subdev-pad
+> > > 
+> > > they should be called V4L2_MBUS_FMT_RGB666_1X18 (or BGR666...)
+> > 
+> > Agreed.
+> > 
+> > > and V4L2_MBUS_FMT_YUYV16_1X16.
+> > 
+> > Depending on what Manjunath meant, this should be either YUYV16_2X16 or >
+> > > YUYV8_1X16. 16 bits per sample seems quite high to me, I suppose it
+> > should > then be YUYV8_1X16.
+> 
+> Actually, the interface transfers 16 bits per sample (Y=8bits and C=8bits)
+> For the YC16 and 18 data lines (parallel) for RGB666. probably
+> V4L2_MBUS_FMT_RGB666_1X18 and V4L2_MBUS_FMT_YUYV16_1X16 fit the bill.
 
-Almost right. You need to put the vpbe_osd into an anonymous union:
-
-         /* SoC IP specific ops */
-
-         const struct vpbe_osd_ops  *vpbe_osd;
-
-
->
-> On Wed, Nov 10, 2010 at 8:05 AM, Muralidharan Karicheri
-> <mkaricheri@gmail.com> wrote:
->> Manjunath,
->>
->> Thank you for putting up this patch together. I didn't see the 1/6 of
->> this series in the mailing list. Also it appears as if the patch came
->> from me. Please add my sign-off as second, you being the first.
->>
->> Murali
->> On Mon, Nov 8, 2010 at 9:54 AM, Manjunath Hadli <manjunath.hadli@ti.com>
->> wrote:
->>> This driver is written for Texas Instruments's DM644X VPBE IP.
->>> This SoC supports 2 video planes and 2 OSD planes as part of its
->>> OSD (On Screen Display) block. The OSD lanes predminantly support
->>> RGB space and the Video planes support YUV data. Out of these 4,
->>> the 2 video planes are supported as part of the V4L2 driver. These
->>> would be enumerated as video2 and video3 dev nodes.
->>> The blending and video timing generator unit (VENC- for Video Encoder)
->>> is the unit which combines/blends the output of these 4 planes
->>> into a single stream and this output is given to Video input devices
->>> like TV and other digital LCDs. The software for VENC is designed as
->>> a subdevice with support for SD(NTSC and PAL) modes and 2 outputs.
->>> This SoC forms the iniial implementation of its later additions
->>> like DM355 and DM365.
->>>
->>> Muralidharan Karicheri (6):
->>>  davinci vpbe: V4L2 display driver for DM644X SoC
->>>  davinci vpbe: VPBE display driver
->>>  davinci vpbe: OSD(On Screen Display ) block
->>>  davinci vpbe: VENC( Video Encoder) implementation
->>>  davinci vpbe: platform specific additions
->>>  davinci vpbe: Build infrastructure for VPBE driver
->>>
->>>  arch/arm/mach-davinci/board-dm644x-evm.c     |   85 +-
->>>  arch/arm/mach-davinci/dm644x.c               |  181 ++-
->>>  arch/arm/mach-davinci/include/mach/dm644x.h  |    4 +
->>>  drivers/media/video/davinci/Kconfig          |   22 +
->>>  drivers/media/video/davinci/Makefile         |    2 +
->>>  drivers/media/video/davinci/vpbe.c           |  861 ++++++++++
->>>  drivers/media/video/davinci/vpbe_display.c   | 2283
->>> ++++++++++++++++++++++++++
->>>  drivers/media/video/davinci/vpbe_osd.c       | 1208 ++++++++++++++
->>>  drivers/media/video/davinci/vpbe_osd_regs.h  |  389 +++++
->>>  drivers/media/video/davinci/vpbe_venc.c      |  617 +++++++
->>>  drivers/media/video/davinci/vpbe_venc_regs.h |  189 +++
->>>  include/media/davinci/vpbe.h                 |  187 +++
->>>  include/media/davinci/vpbe_display.h         |  144 ++
->>>  include/media/davinci/vpbe_osd.h             |  397 +++++
->>>  include/media/davinci/vpbe_types.h           |  170 ++
->>>  include/media/davinci/vpbe_venc.h            |   70 +
->>>  16 files changed, 6790 insertions(+), 19 deletions(-)
->>>  create mode 100644 drivers/media/video/davinci/vpbe.c
->>>  create mode 100644 drivers/media/video/davinci/vpbe_display.c
->>>  create mode 100644 drivers/media/video/davinci/vpbe_osd.c
->>>  create mode 100644 drivers/media/video/davinci/vpbe_osd_regs.h
->>>  create mode 100644 drivers/media/video/davinci/vpbe_venc.c
->>>  create mode 100644 drivers/media/video/davinci/vpbe_venc_regs.h
->>>  create mode 100644 include/media/davinci/vpbe.h
->>>  create mode 100644 include/media/davinci/vpbe_display.h
->>>  create mode 100644 include/media/davinci/vpbe_osd.h
->>>  create mode 100644 include/media/davinci/vpbe_types.h
->>>  create mode 100644 include/media/davinci/vpbe_venc.h
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-media"
->>> in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>
->>
->>
->> --
->> Murali Karicheri
->> mkaricheri@gmail.com
->>
->
->
->
-> --
-> Murali Karicheri
-> mkaricheri@gmail.com
->
->
-
+V4L2_MBUS_FMT_RGB666_1X18 is correct, but for YUYV I think it should be 
+V4L2_MBUS_FMT_YUYV8_1X16. You can find a detailed description of the format at 
+http://www.ideasonboard.org/media/media/subdev.html#V4L2-MBUS-FMT-YUYV8-1X16
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Regards,
 
+Laurent Pinchart
