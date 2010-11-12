@@ -1,39 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:41408 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755290Ab0KOLzC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Nov 2010 06:55:02 -0500
-Received: by qyk12 with SMTP id 12so3615035qyk.19
-        for <linux-media@vger.kernel.org>; Mon, 15 Nov 2010 03:55:01 -0800 (PST)
+Received: from skyboo.net ([82.160.187.4]:38725 "EHLO skyboo.net"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753018Ab0KLJmt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Nov 2010 04:42:49 -0500
+Received: from localhost ([::1])
+	by skyboo.net with esmtpsa (TLS1.0:RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.72)
+	(envelope-from <manio@skyboo.net>)
+	id 1PGq9a-0000vG-Sw
+	for linux-media@vger.kernel.org; Fri, 12 Nov 2010 10:42:47 +0100
+Message-ID: <4CDD0C1A.7060707@skyboo.net>
+Date: Fri, 12 Nov 2010 10:42:50 +0100
+From: Mariusz Bialonczyk <manio@skyboo.net>
 MIME-Version: 1.0
-In-Reply-To: <20101115112746.GB6607@linux-m68k.org>
-References: <20101115112746.GB6607@linux-m68k.org>
-Date: Mon, 15 Nov 2010 13:55:00 +0200
-Message-ID: <AANLkTi=DEJ4ku24vhsWcmY=w0oaycxsoTrYV7AfJzqUM@mail.gmail.com>
-Subject: Re: Hauppauge WinTV MiniStick IR in 2.6.36 - [PATCH]
-From: Anca Emanuel <anca.emanuel@gmail.com>
-To: Richard Zidlicky <rz@linux-m68k.org>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	stefano.pompa@gmail.com
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org
+References: <4CC7D4C5.6000104@skyboo.net> <f071a1229ec4db0a922ffbf91d4f2b5f.squirrel@www.hardeman.nu> <4CC85C0B.3010106@skyboo.net> <20101027170709.GA926@hardeman.nu> <4CC86734.1080003@skyboo.net> <20101027204837.GA2906@hardeman.nu> <4CC90A13.4070709@skyboo.net> <e4db9cd2c5a4ddc5345f16d441dc4351.squirrel@www.hardeman.nu> <4CC9A45A.1000004@skyboo.net> <4CD30DFB.7030304@skyboo.net> <20101104194412.GB9107@hardeman.nu>
+In-Reply-To: <20101104194412.GB9107@hardeman.nu>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: Fixing tbs-nec table after converting to cx88 driver ir-core
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Nov 15, 2010 at 1:27 PM, Richard Zidlicky <rz@linux-m68k.org> wrote:
-> Hi,
-<snip>
-> What is the way to achieve the effect without recompiling the kernel - is there any?
+Hello
+I am using Prof 7301 PCI card.
+After converting cx88 driver to ir-core (thank you very much for your
+work, David) the table rc-tbs-nec (for bundled remote) has incorrect
+values.
+I was comparing the results and there is a regularity (constant offset):
+If i add 0x80 (128 decimal) value to every code in rc-tbs-nec.c then
+original remote gives correct EV_KEY events (just like before cx88
+conversion) :)
+Despite the fact that my IR receiver is now able to work with many
+remotes it is still using standard remote which is in mentioned table,
+so I think that we should correct the table to have it correct, what do
+you think?
 
-On Ubuntu kernel list Chao Zhang asked the same question.
-Answer:
-[quote]
-You might find following links useful:
+I also need to mention that the table is incomplete.
+Please have a look at remote:
+http://www.prof-tuners.com/eng/images/review/review_prof_7301/prof_7301_6.jpg
 
-http://tldp.org/LDP/lkmpg/2.6/html/x181.html
-http://www.cyberciti.biz/tips/build-linux-kernel-module-against-installed-kernel-source-tree.html
-[/quote]
+As you can see there are two buttons (10+ and 10-), which the table
+doesn't take into account. Correct me if i'm wrong, but i believe it
+means: 10 channels up, and 10 channels down.
+So my proposition is to add new definitions for this buttons.
+Maybe: KEY_10CHANNELSUP and KEY_10CHANNELSDOWN, what do you think?
+Unfortunately I can't test the button meaning, because i don't have
+windows at home computer with original software for the card.
 
-And I think you will like Greg's presentation:
-http://www.youtube.com/watch?v=LLBrBBImJt4
-(mentioned for people who do not have time to read docs)
+I can provide full and fixed rc-tbs-nec table patch then.
+
+regards,
+-- 
+Mariusz Bialonczyk
+jabber/e-mail: manio@skyboo.net
+http://manio.skyboo.net
