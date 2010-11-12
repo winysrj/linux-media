@@ -1,45 +1,62 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:41694 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753009Ab0KBVCV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Nov 2010 17:02:21 -0400
-Received: by wwe15 with SMTP id 15so7831164wwe.1
-        for <linux-media@vger.kernel.org>; Tue, 02 Nov 2010 14:02:20 -0700 (PDT)
-Subject: [PATCH][UPDATE_for_2.6.37]  DM04/QQBOX Corrected Firmware
- Information.
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 02 Nov 2010 21:02:08 +0000
-Message-ID: <1288731728.4859.9.camel@tvboxspy>
-Mime-Version: 1.0
+Return-path: <mchehab@pedra>
+Received: from moutng.kundenserver.de ([212.227.17.10]:58756 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932107Ab0KLQiH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Nov 2010 11:38:07 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH 07/10] MCDE: Add display subsystem framework
+Date: Fri, 12 Nov 2010 17:38:53 +0100
+Cc: Jimmy Rubin <jimmy.rubin@stericsson.com>,
+	linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
+	Dan Johansson <dan.johansson@stericsson.com>,
+	Linus Walleij <linus.walleij@stericsson.com>
+References: <1289390653-6111-1-git-send-email-jimmy.rubin@stericsson.com> <1289390653-6111-7-git-send-email-jimmy.rubin@stericsson.com> <1289390653-6111-8-git-send-email-jimmy.rubin@stericsson.com>
+In-Reply-To: <1289390653-6111-8-git-send-email-jimmy.rubin@stericsson.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201011121738.53536.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Corrected Firmware Information for LG on LME2510.
+On Wednesday 10 November 2010, Jimmy Rubin wrote:
+> This patch adds support for the MCDE, Memory-to-display controller,
+> found in the ST-Ericsson ux500 products.
+> 
+> This patch adds a display subsystem framework that can be used
+> by a frame buffer device driver to control a display and MCDE.
 
+Like "hardware abstraction layer", "framework" is another term that
+we do not like to hear. We write drivers that drive specific hardware,
+so better name it after the exact part of the chip that it is driving.
 
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+Other terms to avoid include "middleware", "generic subsystem" and
+"wrapper".
 
+> +struct kobj_type ovly_type = {
+> +	.release = overlay_release,
+> +};
 
+You certainly should not define a new kobj_type for use in a device driver.
+This is an internal data structure of the linux core code. It might make
+sense if you were trying to become the new frame buffer layer maintainer
+and rewrite all the existing drivers to be based on the concept of
+overlays, but even then there is probably a better way.
 
+Maybe you were thinking of using kref instead of kobj?
 
+> +int __init mcde_dss_init(void)
+> +{
+> +	return 0;
+> +}
+> +
+> +void mcde_dss_exit(void)
+> +{
+> +}
 
+If they don't do anything, don't define them.
 
-diff --git a/Documentation/dvb/lmedm04.txt b/Documentation/dvb/lmedm04.txt
-old mode 100755
-new mode 100644
-index e175784..6418865
---- a/Documentation/dvb/lmedm04.txt
-+++ b/Documentation/dvb/lmedm04.txt
-@@ -46,7 +46,7 @@ and run
- Other LG firmware can be extracted manually from US280D.sys
- only found in windows/system32/driver.
- 
--dd if=US280D.sys ibs=1 skip=42616 count=3668 of=dvb-usb-lme2510-lg.fw
-+dd if=US280D.sys ibs=1 skip=42360 count=3924 of=dvb-usb-lme2510-lg.fw
- 
- for DM04 LME2510C (LG Tuner)
- ---------------------------
-
+	Arnd
