@@ -1,101 +1,90 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp.nokia.com ([192.100.122.233]:61228 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753563Ab0KCUAI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Nov 2010 16:00:08 -0400
-Message-ID: <4CD1BDB7.2030307@maxwell.research.nokia.com>
-Date: Wed, 03 Nov 2010 21:53:27 +0200
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Return-path: <mchehab@pedra>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:42084 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753348Ab0KLMDN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Nov 2010 07:03:13 -0500
+Date: Fri, 12 Nov 2010 13:03:08 +0100
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/6] rc-core: ir-core to rc-core conversion
+Message-ID: <20101112120308.GA14033@hardeman.nu>
+References: <33c8487ce0141587f695d9719289467e@hardeman.nu>
+ <4CDA94C6.2010506@infradead.org>
+ <0bda4af059880eb492d921728997958c@hardeman.nu>
+ <4CDAC730.4060303@infradead.org>
+ <20101110220115.GA7302@hardeman.nu>
+ <4CDBF596.6030206@infradead.org>
+ <02f13638ea24016b5b3673b50940a91c@hardeman.nu>
+ <4CDC1326.3030502@infradead.org>
+ <20101111203501.GA8276@hardeman.nu>
+ <AANLkTinjBOdnYfs=+HVxjaurbwEA33U2YwE0=bdz_Zto@mail.gmail.com>
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Yordan Kamenov <ykamenov@mm-sol.com>
-Subject: Re: RFCl libv4l2 plugin API
-References: <4CC9189E.3040700@redhat.com> <4CC91A3A.2070002@redhat.com>
-In-Reply-To: <4CC91A3A.2070002@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <AANLkTinjBOdnYfs=+HVxjaurbwEA33U2YwE0=bdz_Zto@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hans de Goede wrote:
-> Hi Sakari,
-
-Hi Hans,
-
-> On 10/28/2010 08:30 AM, Hans de Goede wrote:
->> Hans de Goede wrote:
->>  > Hi All,
+On Thu, Nov 11, 2010 at 06:40:42PM -0500, Jarod Wilson wrote:
+>On Thu, Nov 11, 2010 at 3:35 PM, David Härdeman <david@hardeman.nu> wrote:
+>> On Thu, Nov 11, 2010 at 02:00:38PM -0200, Mauro Carvalho Chehab wrote:
+>>>I like the idea of having an inlined function (like
+>>>usb_fill_control_urb), to be sure that all mandatory fields are
+>>>initialized by the drivers.
 >>
->> Hi Hans,
->>
->> Thanks for the RFC!
->>
->> I'd have a few comments and questions.
->>
->> The coding style for libv4l hasn't been defined as far as I understand.
->> Should kernel coding style be assumed, or something else?
-> 
-> v4l-utils uses kernel coding style.
+>> I like the idea of having a function, let's call it
+>> rc_register_device(), which makes sure that all mandatory fields are
+>> initialized by the drivers :)
+>
+>rc_register_device(rc, name, phys, id); to further prevent duplicate
+>struct members? :)
 
-Good! A well defined coding style is always a plus. The current codebase
-doesn't quite follow it at the moment, though. (And I don't have a patch
-either.) New patches should still pass checkpatch.pl, I understand.
+As I said before, that won't work with multiple input devices per rc
+dev. And it's a poorly designed API (IMHO) which expects you to set a
+few properties in a struct and then add a few more via a function call.
 
-I Cc'd Yordan who is working on the plugin interface.
+Notes wrt. a future multi-input support:
 
-...
->> However, the application is a V4L2 application which works on V4L2
->> devices and may well be unaware of the media device. I don't think this
->> is _necessarily_ a problem since the plugin can do whatever it sees fit
->> for user's request; it could even open another video node.
-> 
-> Yes this is the whole idea, the app uses just one video node, like with
-> any regular v4l device, and then the plugin can open video nodes
-> for "sub-devices" to hook up all the plumbing to get a pipeline which
-> does what the app wants.
+First, realize that the name/phys/id of an input device is primarily
+used to distinguish them from each other in user-space. Which means
+having a shared name/phys/id triplet for all input devices belonging to
+one rc device only makes them pointless.
 
-Ok.
+So, I think we'll want something similar to name/phys/id, but for the rc
+device (can be exported via sysfs). Input name/phys/id can then be
+derived from the rc device for each input subdev (or name could perhaps
+be set to some user-friendly description of the actual remote control by
+whichever user-space tool loads the corresponding keymap).
 
-Video nodes that are related to the ISP driver may not be opened as long
-as one of them is in use. They use the same resources --- the ISP.
-Multiple opens are possible but for the use case (libv4l) it makes no
-sense since libv4l is just for capture.
+Example:
+rc_dev->name = "FooBar IR-Masta 2000"
+rc_dev->phys = "PNP0BAR/rc0"
+(would be available from /sys/class/rc/rc0/{name|phys})
 
-V4L2 allows multiple opens but if the MC setup is done from both that
-may easily result in an invalid configuration. So for the time being, I
-think we will be limited to just one application per (MC) device for the
-time being.
+/* Not set by the driver, available with lsinput */
+rc_dev->input_devs[0]->name = "FooBar IR-Masta 2000 Remote 1"
+rc_dev->input_devs[0]->phys = "PNP0BAR/rc0/input0"
+rc_dev->input_devs[0]->id.bustype = BUS_RC;
+rc_dev->input_devs[1]->name = "FooBar IR-Masta 2000 Remote 2"
+rc_dev->input_devs[1]->phys = "PNP0BAR/rc0/input1"
+rc_dev->input_devs[1]->id.bustype = BUS_RC;
 
-That's specific to OMAP 3 plugin, however.
+(Just an example, don't overanalyse the details)
 
->> Obviously, there can be only one of this kind of media device control
->> plugins at a time. Other plugins should have their say before that, so
->> that the device appears a regular V4L2 device for those plugins as well.
-> 
-> The current "design" (the RFC) assumes only one plugin per /dev/video#
-> device, so no stacking of plugins on the same fd. It is possible to
-> have multiple plugins, but only one will get "attached" to a certain
-> fd. The idea here is that plugins are meant for doing certain hardware
-> specific stuff. And different /dev/video# nodes could relate
-> to completely different hardware, so we do need multiple plugins to
-> support this. But as the purpose of the plugins is to deal with certain
-> hardware specific things, having one plugin per type of hardware seems
-> enough.
+As you see, the rc_dev->input_name/phys/id is just a stopgap measure for
+now, and I certainly don't think future development will be helped by
+moving any input related fields up to the rc_register_device() level
+when they should instead go further "down".
 
-Sounds good.
+>I still really like this interface change, even if its going to cause
+>short-term issues for i2c devices. I think we just extend this as
+>needed to handle the i2c bits.
 
->> The order in which the plugins are executed matters also if they do
->> image processing. The result may well be different.
-> 
-> As said, there can only be one plugin per fd.
-
-This makes things easy indeed.
-
-Thanks for your comments.
-
-Regards,
+Agreed.
 
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+David Härdeman
