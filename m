@@ -1,21 +1,19 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com (ext-mx10.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.14])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id oA8Hiers032306
-	for <video4linux-list@redhat.com>; Mon, 8 Nov 2010 12:44:40 -0500
-Received: from mail-ew0-f46.google.com (mail-ew0-f46.google.com
-	[209.85.215.46])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oA8HiOXL002350
-	for <video4linux-list@redhat.com>; Mon, 8 Nov 2010 12:44:25 -0500
-Received: by ewy7 with SMTP id 7so3052428ewy.33
-	for <video4linux-list@redhat.com>; Mon, 08 Nov 2010 09:44:24 -0800 (PST)
-MIME-Version: 1.0
-From: Vikram Ivatury <vikramivatury@gmail.com>
-Date: Mon, 8 Nov 2010 12:44:03 -0500
-Message-ID: <AANLkTikp9Ao9eVb61kL7aOUYiMzKBKO0+WxhN29E548J@mail.gmail.com>
-Subject: Output Format Problems
+Received: from mx1.redhat.com (ext-mx02.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.6])
+	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP
+	id oADFfKF8022909
+	for <video4linux-list@redhat.com>; Sat, 13 Nov 2010 10:41:20 -0500
+Received: from web32407.mail.mud.yahoo.com (web32407.mail.mud.yahoo.com
+	[68.142.207.200])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id oADFf6jl002552
+	for <video4linux-list@redhat.com>; Sat, 13 Nov 2010 10:41:06 -0500
+Message-ID: <490413.42749.qm@web32407.mail.mud.yahoo.com>
+Date: Sat, 13 Nov 2010 07:41:05 -0800 (PST)
+From: Adrian Sandor <aditsu@yahoo.com>
+Subject: Logitech C310
 To: video4linux-list@redhat.com
+MIME-Version: 1.0
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,22 +27,18 @@ Errors-To: video4linux-list-bounces@redhat.com
 Sender: <mchehab@pedra>
 List-ID: <video4linux-list@redhat.com>
 
-Hello All,
+Hi, I bought a Logitech C310 webcam. According to the box, it supports 5 
+megapixel photos and 720p video.
+How can I take high-resolution photos from it? Does it work through v4l or a 
+separate interface?
+The camera is working well in mplayer (showing 1280*720 video).
 
-I am trying to use the ISI "capture" example program and the CMOS camera
-that I am using is capturing an image. However, anything red in the image
-turns blue in the output. How can I go about changing this in the ISI
-"capture" program? There is a YUV to RGB conversion that I believe is
-causing the error with the Y, U or V values. Any suggestions?
+Thanks
+Adrian
 
-Thanks,
-Vikram
--- 
-Vikram Ivatury
-University of Michigan | Aerospace Engineering
-Multi-Disciplinary Design | Space Systems Engineering
-M-Cubed | Payload Team Lead
-(301)-908-0448
+
+
+      
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
