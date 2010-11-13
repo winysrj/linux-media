@@ -1,121 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2472 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757460Ab0KPNVD (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3178 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752614Ab0KMS1R (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Nov 2010 08:21:03 -0500
-Message-ID: <7d7108eaf1260587bbe2cacf8f5d2db9.squirrel@webmail.xs4all.nl>
-In-Reply-To: <4CE281E8.3040705@redhat.com>
-References: <cover.1289740431.git.hverkuil@xs4all.nl>
-    <201011142253.29768.arnd@arndb.de>
-    <201011142348.51859.hverkuil@xs4all.nl>
-    <201011151017.41453.arnd@arndb.de>
-    <342eb735192f26a4a84488cad7f01068.squirrel@webmail.xs4all.nl>
-    <4CE276C9.3000802@redhat.com>
-    <9bb4a78df49dbe30ca6382b6b5408129.squirrel@webmail.xs4all.nl>
-    <4CE281E8.3040705@redhat.com>
-Date: Tue, 16 Nov 2010 14:20:46 +0100
-Subject: Re: [RFC PATCH 0/8] V4L BKL removal: first round
+	Sat, 13 Nov 2010 13:27:17 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id oADIRGcW057023
+	for <linux-media@vger.kernel.org>; Sat, 13 Nov 2010 19:27:16 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 13 Nov 2010 19:27:16 +0100 (CET)
+Message-Id: <201011131827.oADIRGcW057023@smtp-vbr14.xs4all.nl>
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Mauro Carvalho Chehab" <mchehab@redhat.com>
-Cc: "Arnd Bergmann" <arnd@arndb.de>, linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build: WARNINGS
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-> Em 16-11-2010 10:35, Hans Verkuil escreveu:
->>
->>> Em 15-11-2010 07:49, Hans Verkuil escreveu:
->>>>
->>>>> On Sunday 14 November 2010 23:48:51 Hans Verkuil wrote:
->>>>>> On Sunday, November 14, 2010 22:53:29 Arnd Bergmann wrote:
->>>>>>> On Sunday 14 November 2010, Hans Verkuil wrote:
->>>>>>>> This patch series converts 24 v4l drivers to unlocked_ioctl. These
->>>>>> are low
->>>>>>>> hanging fruit but you have to start somewhere :-)
->>>>>>>>
->>>>>>>> The first patch replaces mutex_lock in the V4L2 core by
->>>>>> mutex_lock_interruptible
->>>>>>>> for most fops.
->>>>>>>
->>>>>>> The patches all look good as far as I can tell, but I suppose the
->>>>>> title is
->>>>>>> obsolete now that the BKL has been replaced with a v4l-wide mutex,
->>>>>> which
->>>>>>> is what you are removing in the series.
->>>>>>
->>>>>> I guess I have to rename it, even though strictly speaking the
->>>>>> branch
->>>>>> I'm
->>>>>> working in doesn't have your patch merged yet.
->>>>>>
->>>>>> BTW, replacing the BKL with a static mutex is rather scary: the BKL
->>>>>> gives up
->>>>>> the lock whenever you sleep, the mutex doesn't. Since sleeping is
->>>>>> very
->>>>>> common
->>>>>> in V4L (calling VIDIOC_DQBUF will typically sleep while waiting for
->>>>>> a
->>>>>> new frame
->>>>>> to arrive), this will make it impossible for another process to
->>>>>> access
->>>>>> any
->>>>>> v4l2 device node while the ioctl is sleeping.
->>>>>>
->>>>>> I am not sure whether that is what you intended. Or am I missing
->>>>>> something?
->>>>>
->>>>> I was aware that something like this could happen, but I apparently
->>>>> misjudged how big the impact is. The general pattern for ioctls is
->>>>> that
->>>>> those that get called frequently do not sleep, so it can almost
->>>>> always
->>>>> be
->>>>> called with a mutex held.
->>>>
->>>> True in general, but most definitely not true for V4L. The all
->>>> important
->>>> VIDIOC_DQBUF ioctl will almost always sleep.
->>>>
->>>> Mauro, I think this patch will have to be reverted and we just have to
->>>> do
->>>> the hard work ourselves.
->>>
->>> The VIDIOC_QBUF/VIDIOC_DQBUF ioctls are called after having the V4L
->>> device
->>> ready
->>> for stream. During the qbuf/dqbuf loop, the only other ioctls that may
->>> appear are
->>> the control change ioctl's, to adjust things like bright. I doubt that
->>> his
->>> will
->>> cause a really serious trouble.
->>
->> Yes, it does. Anyone who is using multiple capture/output devices at the
->> same time will be affected.
->
-> One correction to your comment:
-> 	"Anyone that uses multiple capture/output devices that were not converted
-> to unlocked ioctl will be affected."
-> This means that devices with multiple entries need to be fixed first.
+Results of the daily build of v4l-dvb:
 
-No, it will also affect e.g. two bttv cards that you capture from in
-parallel. Or two webcams, or...
+date:        Sat Nov 13 19:00:21 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15167:abd3aac6644e
+git master:       3e6dce76d99b328716b43929b9195adfee1de00c
+git media-master: a348e9110ddb5d494e060d989b35dd1f35359d58
+gcc version:      i686-linux-gcc (GCC) 4.5.1
+host hardware:    x86_64
+host os:          2.6.32.5
 
-We can't just ditch the BKL yet for 2.6.37 IMHO. Perhaps for 2.6.38 if we
-all work really hard to convert everything.
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: WARNINGS
+linux-git-mips: WARNINGS
+linux-git-powerpc64: WARNINGS
+linux-git-x86_64: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-I would prefer to have those drivers that depend on the BKL to have a
-dependency on CONFIG_LOCK_KERNEL. Drivers should either work or not be
-available at all, rather than working poorly (if at all).
+Detailed results are available here:
 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-          Hans
+Full logs are available here:
 
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
