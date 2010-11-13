@@ -1,57 +1,66 @@
-Return-path: <mchehab@gaivota>
-Received: from mail.perches.com ([173.55.12.10]:3744 "EHLO mail.perches.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752087Ab0J3VJe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Oct 2010 17:09:34 -0400
-From: Joe Perches <joe@perches.com>
-To: Jiri Kosina <trivial@kernel.org>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 14/39] drivers/media/video: Update WARN uses
-Date: Sat, 30 Oct 2010 14:08:31 -0700
-Message-Id: <def5be1d0f38494d6aea661227e7d9a24e08590b.1288471898.git.joe@perches.com>
-In-Reply-To: <cover.1288471897.git.joe@perches.com>
-References: <cover.1288471897.git.joe@perches.com>
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4954 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752618Ab0KMOkV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Nov 2010 09:40:21 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [PATCH 3/3] i2c: Mark i2c_adapter.id as deprecated
+Date: Sat, 13 Nov 2010 15:40:06 +0100
+Cc: Linux I2C <linux-i2c@vger.kernel.org>,
+	LMML <linux-media@vger.kernel.org>,
+	Jarod Wilson <jarod@redhat.com>
+References: <20101105211001.1cc93ac7@endymion.delvare>
+In-Reply-To: <20101105211001.1cc93ac7@endymion.delvare>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201011131540.06705.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Add missing newlines.
+On Friday, November 05, 2010 21:10:01 Jean Delvare wrote:
+> It's about time to make it clear that i2c_adapter.id is deprecated.
+> Hopefully this will remind the last user to move over to a different
+> strategy.
+> 
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Cc: Jarod Wilson <jarod@redhat.com>
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- drivers/media/video/s5p-fimc/fimc-core.c |    2 +-
- drivers/media/video/sr030pc30.c          |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index 2e7c547..91fc213 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -543,7 +543,7 @@ static void fimc_dma_run(void *priv)
- 	unsigned long flags;
- 	u32 ret;
- 
--	if (WARN(!ctx, "null hardware context"))
-+	if (WARN(!ctx, "null hardware context\n"))
- 		return;
- 
- 	fimc = ctx->fimc_dev;
-diff --git a/drivers/media/video/sr030pc30.c b/drivers/media/video/sr030pc30.c
-index c9dc67a..864696b 100644
---- a/drivers/media/video/sr030pc30.c
-+++ b/drivers/media/video/sr030pc30.c
-@@ -735,7 +735,7 @@ static int sr030pc30_s_power(struct v4l2_subdev *sd, int on)
- 	const struct sr030pc30_platform_data *pdata = info->pdata;
- 	int ret;
- 
--	if (WARN(pdata == NULL, "No platform data!"))
-+	if (WARN(pdata == NULL, "No platform data!\n"))
- 		return -ENOMEM;
- 
- 	/*
+> ---
+>  drivers/i2c/i2c-mux.c |    1 -
+>  include/linux/i2c.h   |    2 +-
+>  2 files changed, 1 insertion(+), 2 deletions(-)
+> 
+> --- linux-2.6.37-rc1.orig/include/linux/i2c.h	2010-11-05 13:55:17.000000000 +0100
+> +++ linux-2.6.37-rc1/include/linux/i2c.h	2010-11-05 15:41:20.000000000 +0100
+> @@ -353,7 +353,7 @@ struct i2c_algorithm {
+>   */
+>  struct i2c_adapter {
+>  	struct module *owner;
+> -	unsigned int id;
+> +	unsigned int id __deprecated;
+>  	unsigned int class;		  /* classes to allow probing for */
+>  	const struct i2c_algorithm *algo; /* the algorithm to access the bus */
+>  	void *algo_data;
+> --- linux-2.6.37-rc1.orig/drivers/i2c/i2c-mux.c	2010-11-05 16:06:18.000000000 +0100
+> +++ linux-2.6.37-rc1/drivers/i2c/i2c-mux.c	2010-11-05 16:06:33.000000000 +0100
+> @@ -120,7 +120,6 @@ struct i2c_adapter *i2c_add_mux_adapter(
+>  	snprintf(priv->adap.name, sizeof(priv->adap.name),
+>  		 "i2c-%d-mux (chan_id %d)", i2c_adapter_id(parent), chan_id);
+>  	priv->adap.owner = THIS_MODULE;
+> -	priv->adap.id = parent->id;
+>  	priv->adap.algo = &priv->algo;
+>  	priv->adap.algo_data = priv;
+>  	priv->adap.dev.parent = &parent->dev;
+> 
+> 
+> 
+
 -- 
-1.7.3.1.g432b3.dirty
-
+Hans Verkuil - video4linux developer - sponsored by Cisco
