@@ -1,64 +1,78 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:43990 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750880Ab0KBKb3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Nov 2010 06:31:29 -0400
-Received: by iwn10 with SMTP id 10so8227207iwn.19
-        for <linux-media@vger.kernel.org>; Tue, 02 Nov 2010 03:31:29 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201011012302.03284.laurent.pinchart@ideasonboard.com>
-References: <AANLkTimx6XJKEz9883cwrm977OtXVPVB5K5PjSGFi_AJ@mail.gmail.com>
-	<AANLkTi=83sd2yTsHt166_63vorioD5Fas32P9XLX15ss@mail.gmail.com>
-	<AANLkTin9M0FZrBYy5xq_-uCFbYa=LfZqLWurb_rB+uW_@mail.gmail.com>
-	<201011012302.03284.laurent.pinchart@ideasonboard.com>
-Date: Tue, 2 Nov 2010 11:31:28 +0100
-Message-ID: <AANLkTinWo7siGdbmRPNEfOfJHTZLEqxMFHOO9aqijP0d@mail.gmail.com>
-Subject: Re: New media framework user space usage
-From: Bastian Hecht <hechtb@googlemail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Return-path: <mchehab@pedra>
+Received: from smtp204.alice.it ([82.57.200.100]:34165 "EHLO smtp204.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754699Ab0KMPpv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Nov 2010 10:45:51 -0500
+Date: Sat, 13 Nov 2010 16:45:37 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Cc: =?ISO-8859-1?Q?Jean-Fran=E7ois?= Moine <moinejf@free.fr>
+Subject: Re: gspca_ov534: Changing framerates, different behaviour in 2.6.36
+Message-Id: <20101113164537.79124037.ospite@studenti.unina.it>
+In-Reply-To: <20101113161205.b94cb748.ospite@studenti.unina.it>
+References: <20101113161205.b94cb748.ospite@studenti.unina.it>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Sat__13_Nov_2010_16_45_37_+0100_an46.12omKG19u2N"
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hello Laurent,
+--Signature=_Sat__13_Nov_2010_16_45_37_+0100_an46.12omKG19u2N
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->> I am the first guy needing a 12 bit-bus?
->
-> Yes you are :-) You will need to implement 12 bit support in the ISP driver,
-> or start by hacking the sensor driver to report a 10 bit format (2 bits will
-> be lost but you should still be able to capture an image).
+On Sat, 13 Nov 2010 16:12:05 +0100
+Antonio Ospite <ospite@studenti.unina.it> wrote:
 
-Isn't that an "officially" supported procedure to drop the least
-significant bits?
-You gave me the isp configuration
-.bus = { .parallel = {
-                       .data_lane_shift        = 1,
-...
-that instructs the isp to use 10 of the 12 bits.
+> guvcview:
+>=20
+> If I:
+>  1. Go to the "Video & Files Tab"
+>  2. Change the "Frame Rate" value from the drop down menu
+>=20
+[...]
+>=20
+> since 2.6.36 + the regression fix in [1] (please apply it):
+>  3a. dmesg shows the message: ov534: frame_rate: xx
+>  3b. guvcviews gives some errors and the preview image halts:
+>        VIDIOC_QBUF - Unable to queue buffer: Invalid argument
+>        Could not grab image (select timeout):
+>                   Resource temporarily unavailable
+>=20
+[...]
+> I am trying to spot what caused this, I guess it is something in
+> gspca_main, hopefully Jean-Fran=E7ois has some idea that can help me
+> narrowing down the search.
+>=20
 
->> Second thing is, the yavta app now gets stuck while dequeuing a buffer.
->>
->> strace ./yavta -f SGRBG10 -s 2592x1944 -n 4 --capture=4 --skip 3 -F
->> /dev/video2 ...
->> ioctl(3, VIDIOC_QBUF, 0xbec111cc)       = 0
->> ioctl(3, VIDIOC_QBUF, 0xbec111cc)       = 0
->> ioctl(3, VIDIOC_QBUF, 0xbec111cc)       = 0
->> ioctl(3, VIDIOC_QBUF, 0xbec111cc)       = 0
->> ioctl(3, VIDIOC_STREAMON, 0xbec11154)   = 0
->> ioctl(3, VIDIOC_DQBUF
->>
->> strace gets stuck in mid of this line.
+Reverting f7059eaa285c0460569ffd26c43ae07e3f03cd6c brings the old
+behaviour back. So something there is not happy with changing frame
+rate on the fly.
 
-Somehow the ISP_ENABLE_IRQ register was reset at some point that is
-unclear to me. When I put it on again manually yavta succeeds to read
-the frames. Unfortunately the image consists of black pixels only. We
-found out that the 2.8V voltage regulator got broken in the course of
-development - the 1.8V logic still worked but the ADC did not...
+Regards,
+   Antonio
 
-But the heck - I was never that close :)
+--=20
+Antonio Ospite
+http://ao2.it
 
-bye,
+PGP public key ID: 0x4553B001
 
- Bastian
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+
+--Signature=_Sat__13_Nov_2010_16_45_37_+0100_an46.12omKG19u2N
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAkzesqEACgkQ5xr2akVTsAGJDgCgnD6dfzV2ULuZH8cWlR8p9wXN
+ukwAoI+/isvVIYwbmQr9n03MY/hg5kzP
+=mfDj
+-----END PGP SIGNATURE-----
+
+--Signature=_Sat__13_Nov_2010_16_45_37_+0100_an46.12omKG19u2N--
