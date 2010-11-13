@@ -1,89 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.8]:58424 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758501Ab0KPOVo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Nov 2010 09:21:44 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Subject: Re: [RFC PATCH 0/8] V4L BKL removal: first round
-Date: Tue, 16 Nov 2010 15:22:19 +0100
-Cc: "Mauro Carvalho Chehab" <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-References: <cover.1289740431.git.hverkuil@xs4all.nl> <4CE281E8.3040705@redhat.com> <7d7108eaf1260587bbe2cacf8f5d2db9.squirrel@webmail.xs4all.nl>
-In-Reply-To: <7d7108eaf1260587bbe2cacf8f5d2db9.squirrel@webmail.xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:7840 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754101Ab0KMNpi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Nov 2010 08:45:38 -0500
+Message-ID: <4CDE9677.3060506@redhat.com>
+Date: Sat, 13 Nov 2010 11:45:27 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for 2.6.36-rc2] drivers/media fixes
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201011161522.19758.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday 16 November 2010, Hans Verkuil wrote:
-> No, it will also affect e.g. two bttv cards that you capture from in
-> parallel. Or two webcams, or...
+Hi Linus,
 
-Would it be safe to turn the global mutex into a per-driver or per-device
-mutex? That would largely mitigate the impact as far as I can tell.
+Please pull from:
+  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
 
-> We can't just ditch the BKL yet for 2.6.37 IMHO. Perhaps for 2.6.38 if we
-> all work really hard to convert everything.
+For a few bug fixes on some drivers, and for Arnd's patch to finish the BKL removal 
+from V4L/DVB, as discussed during the KS/2010.
 
-Linus was pretty clear in that he wanted to make the default for the BKL
-disabled for 2.6.37. That may of course change if there are significant
-problems with this, but as long as there is an easier way, we could do
-that instead.
+Thanks!
+Mauro
 
-I have not tested the patch below, but maybe that would solve the
-immediate problem without reverting v4l2-dev back to use the BKL.
+The following changes since commit c8ddb2713c624f432fa5fe3c7ecffcdda46ea0d4:
 
-It would not work if we have drivers that need to serialize access
-to multiple v4l2 devices in their ioctl functions because they access
-global data, which is unlikely but possible.
+  Linux 2.6.37-rc1 (2010-11-01 07:54:12 -0400)
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+are available in the git repository at:
+  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
 
-diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-index 03f7f46..5873d12 100644
---- a/drivers/media/video/v4l2-dev.c
-+++ b/drivers/media/video/v4l2-dev.c
-@@ -246,12 +246,11 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
- 			mutex_unlock(vdev->lock);
- 	} else if (vdev->fops->ioctl) {
- 		/* TODO: convert all drivers to unlocked_ioctl */
--		static DEFINE_MUTEX(v4l2_ioctl_mutex);
--
--		mutex_lock(&v4l2_ioctl_mutex);
--		if (video_is_registered(vdev))
-+		if (video_is_registered(vdev)) {
-+			mutex_lock(&vdev->ioctl_lock);
- 			ret = vdev->fops->ioctl(filp, cmd, arg);
--		mutex_unlock(&v4l2_ioctl_mutex);
-+			mutex_unlock(&vdev->ioctl_lock);
-+		}
- 	} else
- 		ret = -ENOTTY;
- 
-@@ -507,6 +506,7 @@ static int __video_register_device(struct video_device *vdev, int type, int nr,
- #endif
- 	vdev->minor = i + minor_offset;
- 	vdev->num = nr;
-+	mutex_init(&vdev->ioctl_lock);
- 	devnode_set(vdev);
- 
- 	/* Should not happen since we thought this minor was free */
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index 15802a0..e8a8485 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -97,6 +97,9 @@ struct video_device
- 
- 	/* serialization lock */
- 	struct mutex *lock;
-+
-+	/* used for the legacy locked ioctl */
-+	struct mutex ioctl_lock;
- };
- 
- /* dev to video-device */
+Arnd Bergmann (1):
+      [media] v4l: kill the BKL
+
+Daniel Drake (1):
+      [media] cafe_ccic: fix subdev configuration
+
+Dmitri Belimov (1):
+      [media] saa7134: Fix autodetect for Behold A7 and H7 TV cards
+
+Janusz Krzysztofik (4):
+      [media] SoC Camera: OMAP1: update for recent framework changes
+      [media] SoC Camera: OMAP1: update for recent videobuf changes
+      [media] SOC Camera: OMAP1: typo fix
+      [media] SoC Camera: ov6650: minor cleanups
+
+Jean Delvare (1):
+      [media] BZ#22292: dibx000_common: Restore i2c algo pointer
+
+Sascha Hauer (2):
+      [media] ARM mx3_camera: check for DMA engine type
+      [media] soc-camera: Compile fixes for mx2-camera
+
+Stefan Ringel (1):
+      [media] tm6000: bugfix set tv standards
+
+ drivers/media/Kconfig                        |    1 -
+ drivers/media/dvb/frontends/dibx000_common.c |    1 +
+ drivers/media/video/cafe_ccic.c              |    5 ++-
+ drivers/media/video/cx231xx/cx231xx-417.c    |    6 +---
+ drivers/media/video/cx23885/cx23885-417.c    |    9 +-------
+ drivers/media/video/cx23885/cx23885-video.c  |    5 ----
+ drivers/media/video/mx2_camera.c             |   13 ++++-------
+ drivers/media/video/mx3_camera.c             |    4 +++
+ drivers/media/video/omap1_camera.c           |   16 +++++++-------
+ drivers/media/video/ov6650.c                 |    4 +--
+ drivers/media/video/saa7134/saa7134-cards.c  |   24 ++++++++++----------
+ drivers/media/video/se401.c                  |    7 ++---
+ drivers/media/video/stk-webcam.c             |    4 ---
+ drivers/media/video/tlg2300/pd-main.c        |   13 +++--------
+ drivers/media/video/usbvideo/vicam.c         |   29 ++++++++++++-------------
+ drivers/media/video/v4l2-dev.c               |    7 +++--
+ drivers/media/video/zoran/zoran.h            |    1 +
+ drivers/media/video/zoran/zoran_card.c       |    1 +
+ drivers/media/video/zoran/zoran_driver.c     |   27 ++++++++++++++++++-----
+ drivers/staging/tm6000/tm6000-video.c        |    1 +
+ 20 files changed, 86 insertions(+), 92 deletions(-)
+
