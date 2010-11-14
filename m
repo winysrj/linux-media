@@ -1,99 +1,58 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2389 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755657Ab0KUVXs (ORCPT
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2467 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751888Ab0KNNWM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Nov 2010 16:23:48 -0500
+	Sun, 14 Nov 2010 08:22:12 -0500
+Message-Id: <cover.1289740431.git.hverkuil@xs4all.nl>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 4/5] uvcvideo: Lock stream mutex when accessing format-related information
-Date: Sun, 21 Nov 2010 22:23:38 +0100
-Cc: linux-media@vger.kernel.org
-References: <1290371573-14907-1-git-send-email-laurent.pinchart@ideasonboard.com> <1290371573-14907-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1290371573-14907-5-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011212223.38557.hverkuil@xs4all.nl>
+Date: Sun, 14 Nov 2010 14:21:57 +0100
+Subject: [RFC PATCH 0/8] V4L BKL removal: first round
+To: linux-media@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Another comment:
+This patch series converts 24 v4l drivers to unlocked_ioctl. These are low
+hanging fruit but you have to start somewhere :-)
 
-On Sunday, November 21, 2010 21:32:52 Laurent Pinchart wrote:
-> The stream mutex protects access to the struct uvc_streaming ctrl,
-> cur_format and cur_frame fields as well as to the hardware probe
-> control. Lock it appropriately.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/video/uvc/uvc_v4l2.c  |   76 +++++++++++++++++++++++++----------
->  drivers/media/video/uvc/uvc_video.c |    3 -
->  drivers/media/video/uvc/uvcvideo.h  |    4 +-
->  3 files changed, 57 insertions(+), 26 deletions(-)
-> 
-> diff --git a/drivers/media/video/uvc/uvc_v4l2.c b/drivers/media/video/uvc/uvc_v4l2.c
-> index 07dd235..b4615e2 100644
-> --- a/drivers/media/video/uvc/uvc_v4l2.c
-> +++ b/drivers/media/video/uvc/uvc_v4l2.c
-> @@ -226,12 +226,14 @@ static int uvc_v4l2_try_format(struct uvc_streaming *stream,
->  	 * developers test their webcams with the Linux driver as well as with
->  	 * the Windows driver).
->  	 */
-> +	mutex_lock(&stream->mutex);
->  	if (stream->dev->quirks & UVC_QUIRK_PROBE_EXTRAFIELDS)
->  		probe->dwMaxVideoFrameSize =
->  			stream->ctrl.dwMaxVideoFrameSize;
->  
->  	/* Probe the device. */
->  	ret = uvc_probe_video(stream, probe);
-> +	mutex_unlock(&stream->mutex);
->  	if (ret < 0)
->  		goto done;
->  
-> @@ -255,14 +257,21 @@ done:
->  static int uvc_v4l2_get_format(struct uvc_streaming *stream,
->  	struct v4l2_format *fmt)
->  {
-> -	struct uvc_format *format = stream->cur_format;
-> -	struct uvc_frame *frame = stream->cur_frame;
-> +	struct uvc_format *format;
-> +	struct uvc_frame *frame;
-> +	int ret = 0;
->  
->  	if (fmt->type != stream->type)
->  		return -EINVAL;
->  
-> -	if (format == NULL || frame == NULL)
-> -		return -EINVAL;
-> +	mutex_lock(&stream->mutex);
-> +	format = stream->cur_format;
-> +	frame = stream->cur_frame;
-> +
-> +	if (format == NULL || frame == NULL) {
-> +		ret = -EINVAL;
+The first patch replaces mutex_lock in the V4L2 core by mutex_lock_interruptible
+for most fops.
 
-ret is set...
+Hans Verkuil (8):
+  v4l2-dev: use mutex_lock_interruptible instead of plain mutex_lock
+  BKL: trivial BKL removal from V4L2 radio drivers
+  cadet: use unlocked_ioctl
+  tea5764: convert to unlocked_ioctl
+  si4713: convert to unlocked_ioctl
+  typhoon: convert to unlocked_ioctl.
+  dsbr100: convert to unlocked_ioctl.
+  BKL: trivial ioctl -> unlocked_ioctl video driver conversions
 
-> +		goto done;
-> +	}
->  
->  	fmt->fmt.pix.pixelformat = format->fcc;
->  	fmt->fmt.pix.width = frame->wWidth;
-> @@ -273,6 +282,8 @@ static int uvc_v4l2_get_format(struct uvc_streaming *stream,
->  	fmt->fmt.pix.colorspace = format->colorspace;
->  	fmt->fmt.pix.priv = 0;
->  
-> +done:
-> +	mutex_unlock(&stream->mutex);
->  	return 0;
+ drivers/media/radio/dsbr100.c          |    2 +-
+ drivers/media/radio/radio-aimslab.c    |   16 +++++-----
+ drivers/media/radio/radio-aztech.c     |    6 ++--
+ drivers/media/radio/radio-cadet.c      |   12 ++++++--
+ drivers/media/radio/radio-gemtek-pci.c |    6 ++--
+ drivers/media/radio/radio-gemtek.c     |   14 ++++----
+ drivers/media/radio/radio-maestro.c    |   14 ++++-----
+ drivers/media/radio/radio-maxiradio.c  |    2 +-
+ drivers/media/radio/radio-miropcm20.c  |    6 ++-
+ drivers/media/radio/radio-rtrack2.c    |   10 +++---
+ drivers/media/radio/radio-sf16fmi.c    |    7 ++--
+ drivers/media/radio/radio-sf16fmr2.c   |   11 +++----
+ drivers/media/radio/radio-si4713.c     |    3 +-
+ drivers/media/radio/radio-tea5764.c    |   49 ++++++--------------------------
+ drivers/media/radio/radio-terratec.c   |    8 ++--
+ drivers/media/radio/radio-trust.c      |   18 ++++++------
+ drivers/media/radio/radio-typhoon.c    |   16 +++++-----
+ drivers/media/radio/radio-zoltrix.c    |   30 ++++++++++----------
+ drivers/media/video/arv.c              |    2 +-
+ drivers/media/video/bw-qcam.c          |    2 +-
+ drivers/media/video/c-qcam.c           |    2 +-
+ drivers/media/video/meye.c             |   14 ++++----
+ drivers/media/video/pms.c              |    2 +-
+ drivers/media/video/v4l2-dev.c         |   44 +++++++++++++++++++++--------
+ drivers/media/video/w9966.c            |    2 +-
+ 25 files changed, 147 insertions(+), 151 deletions(-)
 
-But not returned?!
-
->  }
-
-<snip>
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
