@@ -1,40 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4601 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758374Ab0KROq5 (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:60077 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753242Ab0KNUsd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Nov 2010 09:46:57 -0500
-Message-ID: <e29b49a76577b6eb777d1aa0dba7bd95.squirrel@webmail.xs4all.nl>
-In-Reply-To: <AANLkTikH0+hhWwTUAkYS1Z_WpwQvyZrw1sCt1vkjghN3@mail.gmail.com>
-References: <cover.1289944159.git.hverkuil@xs4all.nl>
-    <659fdfa774acb1e359cb0c3c3b48b5e26bb3fcc9.1289944160.git.hverkuil@xs4all.nl>
-    <AANLkTikH0+hhWwTUAkYS1Z_WpwQvyZrw1sCt1vkjghN3@mail.gmail.com>
-Date: Thu, 18 Nov 2010 15:46:52 +0100
-Subject: Re: [RFCv2 PATCH 07/15] dsbr100: convert to unlocked_ioctl.
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "David Ellingsworth" <david@identd.dyndns.org>
-Cc: linux-media@vger.kernel.org, "Arnd Bergmann" <arnd@arndb.de>
+	Sun, 14 Nov 2010 15:48:33 -0500
+Received: by wwb29 with SMTP id 29so698557wwb.1
+        for <linux-media@vger.kernel.org>; Sun, 14 Nov 2010 12:48:32 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Date: Mon, 15 Nov 2010 02:18:31 +0530
+Message-ID: <AANLkTi=ptdBfOm1qaj5EvYfc4ipzdS4PTVsBpW03vdNp@mail.gmail.com>
+Subject: hg pull http://202.88.242.108:8000/hg/var/www/hg/v4l-dvb/
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Mauro,
 
-> This driver has quite a few locking issues that would only be made
-> worse by your patch. A much better patch for this can be found here:
->
-> http://desource.dyndns.org/~atog/gitweb?p=linux-media.git;a=commitdiff;h=9c5d8ebb602e9af46902c5f3d4d4cc80227d3f7c
+Please pull from http://202.88.242.108:8000/hg/var/www/hg/v4l-dvb/
 
-Much too big for 2.6.37. I'll just drop this patch from my patch series.
-Instead it will rely on the new lock in v4l2_device (BKL replacement) that
-serializes all ioctls. For 2.6.38 we can convert it to core assisted
-locking which is much easier.
+for the following changes.
+
+
+changeset 15168:baa4e8008db5 Mantis, hopper: use MODULE_DEVICE_TABLE
+http://202.88.242.108:8000/hg/var/www/hg/v4l-dvb/rev/baa4e8008db5
+
+changeset 15169:f04605948fdc Mantis: append tasklet maintenance for
+DVB stream delivery
+http://202.88.242.108:8000/hg/var/www/hg/v4l-dvb/rev/f04605948fdc
+
+changeset 15170:ee7a63d70f94 Mantis: use dvb_attach to avoid double
+dereferencing on module removal
+http://202.88.242.108:8000/hg/var/www/hg/v4l-dvb/rev/ee7a63d70f94
+
+changeset 15171:3a2ece3bf184 Mantis: Rename gpio_set_bits to
+mantis_gpio_set_bits
+http://202.88.242.108:8000/hg/var/www/hg/v4l-dvb/rev/3a2ece3bf184
+
+changeset 15172:56c20de4f697 stb6100: Improve tuner performance
+http://202.88.242.108:8000/hg/var/www/hg/v4l-dvb/rev/56c20de4f697
+
+changeset 15173:5cc010e3a803 stb0899: fix diseqc messages getting lost
+http://202.88.242.108:8000/hg/var/www/hg/v4l-dvb/rev/5cc010e3a803
+
 
 Regards,
-
-       Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
-
+Manu
