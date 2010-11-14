@@ -1,58 +1,105 @@
-Return-path: <mchehab@gaivota>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:45223 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751493Ab0KAV4l (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Nov 2010 17:56:41 -0400
-Date: Mon, 1 Nov 2010 22:56:35 +0100
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Jarod Wilson <jarod@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 0/2] Apple remote support
-Message-ID: <20101101215635.GA4808@hardeman.nu>
-References: <20101029031131.GE17238@redhat.com>
- <20101029031530.GH17238@redhat.com>
- <4CCAD01A.3090106@redhat.com>
- <20101029151141.GA21604@redhat.com>
- <20101029191711.GA12136@hardeman.nu>
- <20101029192733.GE21604@redhat.com>
- <20101029195918.GA12501@hardeman.nu>
- <20101029200937.GG21604@redhat.com>
- <20101030233617.GA13155@hardeman.nu>
- <AANLkTimLU1TUn6nY4pr2pWNJp1hviyx=NiXYUQLSQA0e@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <AANLkTimLU1TUn6nY4pr2pWNJp1hviyx=NiXYUQLSQA0e@mail.gmail.com>
+Return-path: <mchehab@pedra>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:63718 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751888Ab0KNNKr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Nov 2010 08:10:47 -0500
+Subject: Re: new_build on ubuntu (dvbdev.c)
+From: Andy Walls <awalls@md.metrocast.net>
+To: Vincent McIntyre <vincent.mcintyre@gmail.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <AANLkTim+OFLOH=dRERzkHOqtC9dLqJsR2Qy2nb+K9KHx@mail.gmail.com>
+References: <AANLkTimOyNpAatcZb775PPK3uEOXDKXW6-J0kMGis41f@mail.gmail.com>
+	 <1289684029.2426.65.camel@localhost>
+	 <AANLkTim+OFLOH=dRERzkHOqtC9dLqJsR2Qy2nb+K9KHx@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 14 Nov 2010 07:12:43 -0500
+Message-ID: <1289736763.2431.10.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Sat, Oct 30, 2010 at 10:32:14PM -0400, Jarod Wilson wrote:
-> On Sat, Oct 30, 2010 at 7:36 PM, David Härdeman <david@hardeman.nu> wrote:
-> > In that case, one solution would be:
+On Sun, 2010-11-14 at 20:26 +1100, Vincent McIntyre wrote:
+> On 11/14/10, Andy Walls <awalls@md.metrocast.net> wrote:
+> > On Sun, 2010-11-14 at 09:08 +1100, Vincent McIntyre wrote:
+
+
+> > noop_llseek() is a newer kernl function that provided a trivial llseek()
+> > implmenetation for drivers that don't support llseek() but still want to
+> > provide a successful return code:
 > >
-> > * using the full 32 bit scancode
-> > * add a module parameter to squash the ID byte to zero
-> > * default the module parameter to true
-> > * create a keymap suitable for ID = 0x00
+> > http://lkml.org/lkml/2010/4/9/193
+> > http://lkml.org/lkml/2010/4/9/184
 > >
-> > Users who really want to distinguish remotes can then change the module
-> > parameter and generate a keymap for their particular ID. Most others
-> > will be blissfully unaware of this feature.
+> Thanks for explaining this.
+
+
+> First dumb question - (I'll try to minimise these)
 > 
-> I was thinking something similar but slightly different. I think ID =
-> 0x00 is a valid ID byte, so I was thinking static int pair_id = -1; to
-> start out. This would be a stand-alone apple-only decoder, so we'd
-> look for the apple identifier bytes, bail if not found. We'd also look
-> at the ID byte, and if pair_id is 0-255, we'd bail if the ID byte
-> didn't match it. The scancode we'd actually use to match the key table
-> would be just the one command byte. It seems to make sense in my head,
-> at least.
+>  * Inspection of the patches new_build/backports shows all the patches
+> are to things in the v4l/ tree
+>  * Yet the patch you pointed to is to fs/read_write.c and include/linux/fs.h
+> 
+> So my question: should this function be implemented as a patch to
+> files outside the v4l/ tree
 
-But you'd lose the ability to support two different remotes with 
-different ID's (if you want different mappings in the keymap).
+I'm not sure, I haven't looked at the build system.  I'm guessing no.
 
--- 
-David Härdeman
+The build system *should* be using the kernel include files from your
+distribution.  Patching up fs.h in the git tree may not have any effect,
+and patching up fs/read_write.c in the git tree certainly won't have any
+effect.
+
+You also don't want to muck with your installed kernel files.
+
+> or as additional .c and .h files within the v4l top level. I guess the
+> latter would then need to be #included in a bunch of v4l files. I'm
+> mainly unsure of the convention here.
+
+1. A simple, stupid patch would just a statically defined, non-inline
+noop_llseek() function in each affected .c file.
+
+In this particular case I'm not sure adding a special .h file, a new .c
+file, a way to build the new .c file, and a bunch of #include's is worth
+it.
+
+or
+
+2. I suppose you could have a patch add a .h file that defined a
+non-inline static noop_llseek() function and just #include that where
+needed.  
+
+or
+
+3.  You could just add
+
+	#define noop_llseek	NULL
+
+instead of a real function in either of 1 or 2 above.
+
+> I checked the mkrufky tree mentioned in README.patches but that didn't help.
+> I also checked the mercurial tree and could not find any backport of
+> noop_llseek,
+> but I may have missed something.
+> 
+> The consumers of the function appear to be:
+> $ find v4l -exec grep -li noop_llseek {} \;
+> v4l/dvb_frontend.c
+> v4l/lirc_imon.c
+> v4l/lirc_dev.c
+> v4l/lirc_it87.c
+> v4l/imon.c
+> v4l/dvb_ca_en50221.c
+> v4l/dvb_net.c
+> v4l/dvbdev.c
+> v4l/lirc_sasem.c
+> v4l/av7110_av.c
+> v4l/av7110.c
+> v4l/av7110_ir.c
+> v4l/dst_ca.c
+> v4l/firedtv-ci.c
+
+Regards,
+Andy
+
