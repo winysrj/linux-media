@@ -1,54 +1,55 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3018 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753768Ab0KBS1r (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Nov 2010 14:27:47 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id oA2IRafl058684
-	for <linux-media@vger.kernel.org>; Tue, 2 Nov 2010 19:27:46 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 2 Nov 2010 19:27:36 +0100 (CET)
-Message-Id: <201011021827.oA2IRafl058684@smtp-vbr15.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Return-path: <mchehab@pedra>
+Received: from mx1.polytechnique.org ([129.104.30.34]:54564 "EHLO
+	mx1.polytechnique.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755725Ab0KNOqg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Nov 2010 09:46:36 -0500
+Received: from [192.168.0.1] (mic92-4-82-224-132-174.fbx.proxad.net [82.224.132.174])
+	(using TLSv1 with cipher AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by ssl.polytechnique.org (Postfix) with ESMTPSA id BC17414000634
+	for <linux-media@vger.kernel.org>; Sun, 14 Nov 2010 15:37:55 +0100 (CET)
+Message-ID: <4CDFF446.2000403@free.fr>
+Date: Sun, 14 Nov 2010 15:37:58 +0100
+From: Massis Sirapian <msirapian@free.fr>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build: WARNINGS
+Subject: HVR900H : IR Remote Control
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of v4l-dvb:
+I have discovered, upgrading my old WinTV PCI Hauppauge card to a 
+HVR-900H USB stick how much the IR userspace has evolved.
 
-date:        Tue Nov  2 19:00:12 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15167:abd3aac6644e
-git master:       3e6dce76d99b328716b43929b9195adfee1de00c
-git media-master: a348e9110ddb5d494e060d989b35dd1f35359d58
-gcc version:      i686-linux-gcc (GCC) 4.5.1
-host hardware:    x86_64
-host os:          2.6.32.5
+I'm using the 2.6.36 kernel provided by Debian in its experimental 
+repository.
 
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: WARNINGS
-linux-git-mips: WARNINGS
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-spec-git: OK
-sparse: ERRORS
+Loading the tm6000_dvb works fine (even if it takes a while when I 
+modprobe it while the USB stick is already plugged). Kaffeine sees and 
+uses correctly the device.
 
-Detailed results are available here:
+However, I'd like to use the IR remote control. It seems to be 
+recognized, as dmesg | grep -i lirc gives :
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+[  123.306153] lirc_dev: IR Remote Control driver registered, major 250
+[  123.306932] IR LIRC bridge handler initialized
 
-Full logs are available here:
+I have no event nor input device created. I've understood from Jarod's 
+pages that the new IR userspace doesn't necessarily require lirc, but 
+sees the IR receiver as a "keyboard". No such device is present in 
+/proc/bus/input/devices
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+inputlirc + irw don't show anything.
 
-The V4L-DVB specification from this daily build is here:
+Am I missing something here ? Do I have to load a specific module ?
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+I have found a lot of information concerning imon, but none I can apply 
+to my HVR-900H/tm6000 case.
+
+Thanks in advance
+
+Massis
