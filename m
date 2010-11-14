@@ -1,124 +1,137 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3941 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932708Ab0KPVzq (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2249 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755485Ab0KNNXL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Nov 2010 16:55:46 -0500
-Message-Id: <a93918cdde57ca474d76262f460ffb3976caf313.1289944160.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1289944159.git.hverkuil@xs4all.nl>
-References: <cover.1289944159.git.hverkuil@xs4all.nl>
+	Sun, 14 Nov 2010 08:23:11 -0500
+Message-Id: <3af9cf3b01c9e86b9826b65495d0528f93752e2c.1289740431.git.hverkuil@xs4all.nl>
+In-Reply-To: <cover.1289740431.git.hverkuil@xs4all.nl>
+References: <cover.1289740431.git.hverkuil@xs4all.nl>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Tue, 16 Nov 2010 22:55:32 +0100
-Subject: [RFCv2 PATCH 01/15] v4l2-dev: use mutex_lock_interruptible instead of plain mutex_lock
+Date: Sun, 14 Nov 2010 14:23:06 +0100
+Subject: [RFC PATCH 8/8] BKL: trivial ioctl -> unlocked_ioctl video driver conversions
 To: linux-media@vger.kernel.org
 Cc: Arnd Bergmann <arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Where reasonable use mutex_lock_interruptible instead of mutex_lock.
+These drivers could be trivially converted to unlocked_ioctl since they
+already did locking.
 
 Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
 ---
- drivers/media/video/v4l2-dev.c |   44 +++++++++++++++++++++++++++++----------
- 1 files changed, 32 insertions(+), 12 deletions(-)
+ drivers/media/video/arv.c     |    2 +-
+ drivers/media/video/bw-qcam.c |    2 +-
+ drivers/media/video/c-qcam.c  |    2 +-
+ drivers/media/video/meye.c    |   14 +++++++-------
+ drivers/media/video/pms.c     |    2 +-
+ drivers/media/video/w9966.c   |    2 +-
+ 6 files changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-index 0ca7978..8eb0756 100644
---- a/drivers/media/video/v4l2-dev.c
-+++ b/drivers/media/video/v4l2-dev.c
-@@ -191,8 +191,12 @@ static ssize_t v4l2_read(struct file *filp, char __user *buf,
+diff --git a/drivers/media/video/arv.c b/drivers/media/video/arv.c
+index 31e7a12..f989f28 100644
+--- a/drivers/media/video/arv.c
++++ b/drivers/media/video/arv.c
+@@ -712,7 +712,7 @@ static int ar_initialize(struct ar *ar)
+ static const struct v4l2_file_operations ar_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.read		= ar_read,
+-	.ioctl		= video_ioctl2,
++	.unlocked_ioctl	= video_ioctl2,
+ };
  
- 	if (!vdev->fops->read)
- 		return -EINVAL;
--	if (vdev->lock)
--		mutex_lock(vdev->lock);
-+	if (vdev->lock) {
-+		int res = mutex_lock_interruptible(vdev->lock);
-+
-+		if (res)
-+			return res;
+ static const struct v4l2_ioctl_ops ar_ioctl_ops = {
+diff --git a/drivers/media/video/bw-qcam.c b/drivers/media/video/bw-qcam.c
+index 935e0c9..c119350 100644
+--- a/drivers/media/video/bw-qcam.c
++++ b/drivers/media/video/bw-qcam.c
+@@ -860,7 +860,7 @@ static ssize_t qcam_read(struct file *file, char __user *buf,
+ 
+ static const struct v4l2_file_operations qcam_fops = {
+ 	.owner		= THIS_MODULE,
+-	.ioctl          = video_ioctl2,
++	.unlocked_ioctl = video_ioctl2,
+ 	.read		= qcam_read,
+ };
+ 
+diff --git a/drivers/media/video/c-qcam.c b/drivers/media/video/c-qcam.c
+index 6e4b196..24fc009 100644
+--- a/drivers/media/video/c-qcam.c
++++ b/drivers/media/video/c-qcam.c
+@@ -718,7 +718,7 @@ static ssize_t qcam_read(struct file *file, char __user *buf,
+ 
+ static const struct v4l2_file_operations qcam_fops = {
+ 	.owner		= THIS_MODULE,
+-	.ioctl		= video_ioctl2,
++	.unlocked_ioctl	= video_ioctl2,
+ 	.read		= qcam_read,
+ };
+ 
+diff --git a/drivers/media/video/meye.c b/drivers/media/video/meye.c
+index 2be23bc..48d2c24 100644
+--- a/drivers/media/video/meye.c
++++ b/drivers/media/video/meye.c
+@@ -1659,7 +1659,7 @@ static const struct v4l2_file_operations meye_fops = {
+ 	.open		= meye_open,
+ 	.release	= meye_release,
+ 	.mmap		= meye_mmap,
+-	.ioctl		= video_ioctl2,
++	.unlocked_ioctl	= video_ioctl2,
+ 	.poll		= meye_poll,
+ };
+ 
+@@ -1831,12 +1831,6 @@ static int __devinit meye_probe(struct pci_dev *pcidev,
+ 	msleep(1);
+ 	mchip_set(MCHIP_MM_INTA, MCHIP_MM_INTA_HIC_1_MASK);
+ 
+-	if (video_register_device(meye.vdev, VFL_TYPE_GRABBER,
+-				  video_nr) < 0) {
+-		v4l2_err(v4l2_dev, "video_register_device failed\n");
+-		goto outvideoreg;
+-	}
+-
+ 	mutex_init(&meye.lock);
+ 	init_waitqueue_head(&meye.proc_list);
+ 	meye.brightness = 32 << 10;
+@@ -1858,6 +1852,12 @@ static int __devinit meye_probe(struct pci_dev *pcidev,
+ 	sony_pic_camera_command(SONY_PIC_COMMAND_SETCAMERAPICTURE, 0);
+ 	sony_pic_camera_command(SONY_PIC_COMMAND_SETCAMERAAGC, 48);
+ 
++	if (video_register_device(meye.vdev, VFL_TYPE_GRABBER,
++				  video_nr) < 0) {
++		v4l2_err(v4l2_dev, "video_register_device failed\n");
++		goto outvideoreg;
 +	}
- 	if (video_is_registered(vdev))
- 		ret = vdev->fops->read(filp, buf, sz, off);
- 	if (vdev->lock)
-@@ -208,8 +212,12 @@ static ssize_t v4l2_write(struct file *filp, const char __user *buf,
- 
- 	if (!vdev->fops->write)
- 		return -EINVAL;
--	if (vdev->lock)
--		mutex_lock(vdev->lock);
-+	if (vdev->lock) {
-+		int res = mutex_lock_interruptible(vdev->lock);
 +
-+		if (res)
-+			return res;
-+	}
- 	if (video_is_registered(vdev))
- 		ret = vdev->fops->write(filp, buf, sz, off);
- 	if (vdev->lock)
-@@ -224,8 +232,8 @@ static unsigned int v4l2_poll(struct file *filp, struct poll_table_struct *poll)
+ 	v4l2_info(v4l2_dev, "Motion Eye Camera Driver v%s.\n",
+ 	       MEYE_DRIVER_VERSION);
+ 	v4l2_info(v4l2_dev, "mchip KL5A72002 rev. %d, base %lx, irq %d\n",
+diff --git a/drivers/media/video/pms.c b/drivers/media/video/pms.c
+index 7129b50..7551907 100644
+--- a/drivers/media/video/pms.c
++++ b/drivers/media/video/pms.c
+@@ -932,7 +932,7 @@ static ssize_t pms_read(struct file *file, char __user *buf,
  
- 	if (!vdev->fops->poll)
- 		return ret;
--	if (vdev->lock)
--		mutex_lock(vdev->lock);
-+	if (vdev->lock && mutex_lock_interruptible(vdev->lock))
-+		return ret;
- 	if (video_is_registered(vdev))
- 		ret = vdev->fops->poll(filp, poll);
- 	if (vdev->lock)
-@@ -239,8 +247,12 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
- 	int ret = -ENODEV;
+ static const struct v4l2_file_operations pms_fops = {
+ 	.owner		= THIS_MODULE,
+-	.ioctl		= video_ioctl2,
++	.unlocked_ioctl	= video_ioctl2,
+ 	.read           = pms_read,
+ };
  
- 	if (vdev->fops->unlocked_ioctl) {
--		if (vdev->lock)
--			mutex_lock(vdev->lock);
-+		if (vdev->lock) {
-+			int res = mutex_lock_interruptible(vdev->lock);
-+
-+			if (res)
-+				return res;
-+		}
- 		if (video_is_registered(vdev))
- 			ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
- 		if (vdev->lock)
-@@ -264,8 +276,12 @@ static int v4l2_mmap(struct file *filp, struct vm_area_struct *vm)
+diff --git a/drivers/media/video/w9966.c b/drivers/media/video/w9966.c
+index 635420d..019ee20 100644
+--- a/drivers/media/video/w9966.c
++++ b/drivers/media/video/w9966.c
+@@ -815,7 +815,7 @@ out:
  
- 	if (!vdev->fops->mmap)
- 		return ret;
--	if (vdev->lock)
--		mutex_lock(vdev->lock);
-+	if (vdev->lock) {
-+		int res = mutex_lock_interruptible(vdev->lock);
-+
-+		if (res)
-+			return res;
-+	}
- 	if (video_is_registered(vdev))
- 		ret = vdev->fops->mmap(filp, vm);
- 	if (vdev->lock)
-@@ -291,8 +307,11 @@ static int v4l2_open(struct inode *inode, struct file *filp)
- 	video_get(vdev);
- 	mutex_unlock(&videodev_lock);
- 	if (vdev->fops->open) {
--		if (vdev->lock)
--			mutex_lock(vdev->lock);
-+		if (vdev->lock) {
-+			ret = mutex_lock_interruptible(vdev->lock);
-+			if (ret)
-+				goto err;
-+		}
- 		if (video_is_registered(vdev))
- 			ret = vdev->fops->open(filp);
- 		else
-@@ -301,6 +320,7 @@ static int v4l2_open(struct inode *inode, struct file *filp)
- 			mutex_unlock(vdev->lock);
- 	}
+ static const struct v4l2_file_operations w9966_fops = {
+ 	.owner		= THIS_MODULE,
+-	.ioctl          = video_ioctl2,
++	.unlocked_ioctl = video_ioctl2,
+ 	.read           = w9966_v4l_read,
+ };
  
-+err:
- 	/* decrease the refcount in case of an error */
- 	if (ret)
- 		video_put(vdev);
 -- 
 1.7.0.4
 
