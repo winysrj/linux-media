@@ -1,49 +1,40 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:47511 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751532Ab0KRD4w (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1533 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755531Ab0KNNXE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Nov 2010 22:56:52 -0500
-Date: Thu, 18 Nov 2010 06:56:37 +0300
-From: Dan Carpenter <error27@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Devin Heitmueller <dheitmueller@hauppauge.com>,
-	Sri Devi <Srinivasa.Deevi@conexant.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [patch] [media] cx231xx: stray unlock on error path
-Message-ID: <20101118035637.GL31724@bicker>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	Sun, 14 Nov 2010 08:23:04 -0500
+Message-Id: <4bc7398f52b0a8cb0e8147fe9e2443772fe7d199.1289740431.git.hverkuil@xs4all.nl>
+In-Reply-To: <cover.1289740431.git.hverkuil@xs4all.nl>
+References: <cover.1289740431.git.hverkuil@xs4all.nl>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Sun, 14 Nov 2010 14:23:04 +0100
+Subject: [RFC PATCH 7/8] dsbr100: convert to unlocked_ioctl.
+To: linux-media@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The lock isn't held here and doesn't need to be unlocked.  The code has
-been like this since the driver was merged. 
+Trivial conversion to unlocked_ioctl.
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/radio/dsbr100.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/video/cx231xx/cx231xx-cards.c b/drivers/media/video/cx231xx/cx231xx-cards.c
-index 56c2d81..b7b905f 100644
---- a/drivers/media/video/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/video/cx231xx/cx231xx-cards.c
-@@ -731,16 +731,12 @@ static int cx231xx_init_dev(struct cx231xx **devhandle, struct usb_device *udev,
- 	retval = cx231xx_register_analog_devices(dev);
- 	if (retval < 0) {
- 		cx231xx_release_resources(dev);
--		goto fail_reg_devices;
-+		return retval;
- 	}
+diff --git a/drivers/media/radio/dsbr100.c b/drivers/media/radio/dsbr100.c
+index ed9cd7a..c3e952f 100644
+--- a/drivers/media/radio/dsbr100.c
++++ b/drivers/media/radio/dsbr100.c
+@@ -605,7 +605,7 @@ static void usb_dsbr100_video_device_release(struct video_device *videodev)
+ /* File system interface */
+ static const struct v4l2_file_operations usb_dsbr100_fops = {
+ 	.owner		= THIS_MODULE,
+-	.ioctl		= video_ioctl2,
++	.unlocked_ioctl	= video_ioctl2,
+ };
  
- 	cx231xx_init_extension(dev);
- 
- 	return 0;
--
--fail_reg_devices:
--	mutex_unlock(&dev->lock);
--	return retval;
- }
- 
- #if defined(CONFIG_MODULES) && defined(MODULE)
+ static const struct v4l2_ioctl_ops usb_dsbr100_ioctl_ops = {
+-- 
+1.7.0.4
+
