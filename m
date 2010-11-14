@@ -1,76 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:26475 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755793Ab0KJNZG (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1828 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756637Ab0KNS1Y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Nov 2010 08:25:06 -0500
-Date: Wed, 10 Nov 2010 14:24:11 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Wolfram Sang <w.sang@pengutronix.de>
-Cc: linux-i2c@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Greg Kroah-Hartman <gregkh@suse.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Hong Liu <hong.liu@intel.com>, Alan Cox <alan@linux.intel.com>,
-	Anantha Narayanan <anantha.narayanan@intel.com>,
-	Andres Salomon <dilinger@queued.net>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	devel@driverdev.osuosl.org
-Subject: Re: [PATCH] i2c: Remove obsolete cleanup for clientdata
-Message-ID: <20101110142411.6badf9d9@endymion.delvare>
-In-Reply-To: <1289392100-32668-1-git-send-email-w.sang@pengutronix.de>
-References: <1289392100-32668-1-git-send-email-w.sang@pengutronix.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Sun, 14 Nov 2010 13:27:24 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id oAEIRNYS037647
+	for <linux-media@vger.kernel.org>; Sun, 14 Nov 2010 19:27:23 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 14 Nov 2010 19:27:23 +0100 (CET)
+Message-Id: <201011141827.oAEIRNYS037647@smtp-vbr15.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build: WARNINGS
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Wolfram,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-On Wed, 10 Nov 2010 13:28:19 +0100, Wolfram Sang wrote:
-> A few new i2c-drivers came into the kernel which clear the clientdata-pointer
-> on exit. This is obsolete meanwhile, so fix it and hope the word will spread.
+Results of the daily build of v4l-dvb:
 
-Thanks for actively tracking these.
+date:        Sun Nov 14 19:00:13 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15167:abd3aac6644e
+git master:       3e6dce76d99b328716b43929b9195adfee1de00c
+git media-master: a348e9110ddb5d494e060d989b35dd1f35359d58
+gcc version:      i686-linux-gcc (GCC) 4.5.1
+host hardware:    x86_64
+host os:          2.6.32.5
 
-> Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
-> ---
-> 
-> Like last time I suggest to collect acks from the driver authors and merge it
-> vie Jean's i2c-tree.
-> 
->  drivers/media/video/imx074.c          |    2 --
->  drivers/media/video/ov6650.c          |    2 --
->  drivers/misc/apds9802als.c            |    1 -
->  drivers/staging/olpc_dcon/olpc_dcon.c |    3 ---
->  4 files changed, 0 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/video/imx074.c b/drivers/media/video/imx074.c
-> index 380e459..27b5dfd 100644
-> --- a/drivers/media/video/imx074.c
-> +++ b/drivers/media/video/imx074.c
-> @@ -451,7 +451,6 @@ static int imx074_probe(struct i2c_client *client,
->  	ret = imx074_video_probe(icd, client);
->  	if (ret < 0) {
->  		icd->ops = NULL;
-> -		i2c_set_clientdata(client, NULL);
->  		kfree(priv);
->  		return ret;
->  	}
-> @@ -468,7 +467,6 @@ static int imx074_remove(struct i2c_client *client)
->  	icd->ops = NULL;
->  	if (icl->free_bus)
->  		icl->free_bus(icl);
-> -	i2c_set_clientdata(client, NULL);
->  	client->driver = NULL;
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: WARNINGS
+linux-git-mips: WARNINGS
+linux-git-powerpc64: WARNINGS
+linux-git-x86_64: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-This statement seems equally unneeded, maybe you could remove it too?
+Detailed results are available here:
 
-Unless you want to provide a separate patch for this, as there are 5
-other drivers doing the same.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
--- 
-Jean Delvare
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
