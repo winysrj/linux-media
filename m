@@ -1,31 +1,38 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:50368 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753416Ab0KURC6 (ORCPT
+Return-path: <mchehab@pedra>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60073 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755147Ab0KOKgt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Nov 2010 12:02:58 -0500
-Received: by fxm13 with SMTP id 13so2002619fxm.19
-        for <linux-media@vger.kernel.org>; Sun, 21 Nov 2010 09:02:56 -0800 (PST)
+	Mon, 15 Nov 2010 05:36:49 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sergio Aguirre <saaguirre@ti.com>
+Subject: Re: [omap3isp RFC][PATCH 02/10] omap3isp: ccdc: Write SYN_MODE.INPMOD based on fmt
+Date: Mon, 15 Nov 2010 11:36:57 +0100
+Cc: linux-media@vger.kernel.org
+References: <1289596693-27660-1-git-send-email-saaguirre@ti.com> <1289596693-27660-3-git-send-email-saaguirre@ti.com>
+In-Reply-To: <1289596693-27660-3-git-send-email-saaguirre@ti.com>
 MIME-Version: 1.0
-Date: Sun, 21 Nov 2010 17:02:56 +0000
-Message-ID: <AANLkTinAKjPBWMPBoKgvQLpDj29L9T9+aimqhdC29Vos@mail.gmail.com>
-Subject: Problem with HVR 900 (B2C0) and USB detection
-From: Mike Martin <mike@redtux.org.uk>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201011151136.58000.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi
+Hi Sergio,
 
-I have been using this device for years using Markuses Driver.
+Thanks for the patch.
 
-Now for some bizarre reason using both this driver and devins the
-wrong USB driver is being used (ohci rather than ehci), which means it
-is recognised as a USB 1.1 device, which makes it stop working
+On Friday 12 November 2010 22:18:05 Sergio Aguirre wrote:
+> This takes into account the input format to select the
+> adequate configuration for SYNC mode.
+> 
+> Also, change bitmask ISPCCDC_SYN_MODE_INPMOD_MASK to be
+> more consistent with other bitmasks.
 
-Anyone know if there is any way to force it to use USB 2
+Could you please squash this with the previous patch ?
 
-Other usb devices use the correct usb speed
+-- 
+Regards,
 
-thanks
+Laurent Pinchart
