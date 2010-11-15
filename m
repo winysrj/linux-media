@@ -1,187 +1,70 @@
-Return-path: <mchehab@gaivota>
-Received: from mail.perches.com ([173.55.12.10]:3682 "EHLO mail.perches.com"
+Return-path: <mchehab@pedra>
+Received: from lo.gmane.org ([80.91.229.12]:60982 "EHLO lo.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751414Ab0J3VJT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Oct 2010 17:09:19 -0400
-From: Joe Perches <joe@perches.com>
-To: Jiri Kosina <trivial@kernel.org>
-Cc: linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-	linux-tegra@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	linux-pm@lists.linux-foundation.org, discuss@x86-64.org,
-	linux-acpi@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-	dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
-	linux-media@vger.kernel.org, socketcan-core@lists.berlios.de,
-	netdev@vger.kernel.org, linux-usb@vger.kernel.org,
-	linux-wireless@vger.kernel.org, devel@open-fcoe.org,
-	linux-scsi@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-fbdev@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	linux-nfs@vger.kernel.org, linux-arch@vger.kernel.org,
-	linux-mm@kvack.org, alsa-devel@alsa-project.org
-Subject: [PATCH 00/39] Cleanup WARN #defines
-Date: Sat, 30 Oct 2010 14:08:17 -0700
-Message-Id: <cover.1288471897.git.joe@perches.com>
+	id S1757331Ab0KOEzJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Nov 2010 23:55:09 -0500
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1PHr5t-0004L6-5e
+	for linux-media@vger.kernel.org; Mon, 15 Nov 2010 05:55:05 +0100
+Received: from 203.106.17.237 ([203.106.17.237])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 15 Nov 2010 05:55:05 +0100
+Received: from bahathir by 203.106.17.237 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 15 Nov 2010 05:55:05 +0100
+To: linux-media@vger.kernel.org
+From: Mohammad Bahathir Hashim <bahathir@gmail.com>
+Subject: Re: For those that uses Pinnacle PCTV 340e
+Date: Mon, 15 Nov 2010 04:24:13 +0000 (UTC)
+Message-ID: <ibqclc$q5u$1@dough.gmane.org>
+References: <AANLkTinWJu92nCR4vHUO3MWZp_ipNZL8LzpYrU4GDj7U@mail.gmail.com>
+Reply-To: Mohammad Bahathir Hashim <bahathir@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-WARN uses sometimes use KERN_<level> but mostly don't
-have any prefix.
+On 2010-11-14, Magnus Alm <magnus.alm@gmail.com> wrote:
+> --00504502b04953b108049503ec60
+> Content-Type: text/plain; charset=ISO-8859-1
+>
+> Hi!
+>
+> I've merged the code for the 340e, that Devin Heitmueller made over at
+> Kernellabs, with the latest HG tree and tested it on Ubuntu 10.10
+> today (2.6.35-22-generic).
+>
+> I lack the knowledge on how to add the new files (xc4000.c and
+> xc4000.h) to a patch, so the script added in the tar ball just copies
+> it to the right place, the firmware has to be manually copied too.
+>
+> /Magnus
 
-Change the WARN macros and the warn_slowpath function to preface
-KERN_WARNING and remove all the KERN_<level> uses from WARN sites.
+Just want to share an alternatives, patches to vanilla kernel 2.6.35;
+by me, which I sent to Istvan Varga. 
 
-Neatening clean up of include/asm-generic/bug.h
+http://istvanv.users.sourceforge.net/v4l/xc4000.html
 
-Update WARN macros
-Add KERN_WARNING to WARN output
-Remove any KERN_<level> from WARN uses
-Coalesce formats
-Align WARN arguments
-Add some missing newlines to WARN uses
-Add some missing first test argument (1, fmt, args) to WARN uses
 
-Joe Perches (39):
-  include/asm-generic/bug.h: Update WARN macros
-  arch/alpha: Update WARN uses
-  arch/arm: Update WARN uses
-  arch/powerpc: Update WARN uses
-  arch/x86: Update WARN uses
-  drivers/acpi: Update WARN uses
-  drivers/base: Update WARN uses
-  drivers/block: Update WARN uses
-  drivers/cpuidle: Update WARN uses
-  drivers/firewire: Update WARN uses
-  drivers/firmware: Update WARN uses
-  drivers/gpio: Update WARN uses
-  drivers/gpu/drm: Update WARN uses
-  drivers/media/video: Update WARN uses
-  drivers/mfd: Update WARN uses
-  drivers/net/can: Update WARN uses
-  drivers/net/usb: Update WARN uses
-  drivers/net/wireless/iwlwifi: Update WARN uses
-  drivers/regulator: Update WARN uses
-  drivers/scsi/fcoe: Update WARN uses
-  drivers/staging: Update WARN uses
-  drivers/usb/musb: Update WARN uses
-  drivers/video/omap2/dss: Update WARN uses
-  fs/nfsd: Update WARN uses
-  fs/notify/inotify: Update WARN uses
-  fs/sysfs: Update WARN uses
-  fs/proc: Update WARN uses
-  fs: Update WARN uses
-  include/linux/device.h: Update WARN uses
-  kernel/irq: Update WARN uses
-  kernel/panic.c: Update warn_slowpath to use %pV
-  kernel: Update WARN uses
-  lib: Update WARN uses
-  mm: Update WARN uses
-  net/core/dev.c: Update WARN uses
-  net/ipv4/tcp.c: Update WARN uses
-  net/mac80211: Update WARN uses
-  net/rfkill/input.c: Update WARN uses
-  sound/soc/codecs/wm_hubs.c: Update WARN uses
+I am using PCTV 340e with GNU/Linux since Devin Heitmueller's
+"Christmas present" in kernellabs.com last year. I did few portings to
+make the driver workable with vanilla 2.6.34 and later. 
 
- arch/alpha/kernel/pci-sysfs.c                |   14 ++--
- arch/arm/mach-davinci/clock.c                |    4 +-
- arch/arm/mach-davinci/da830.c                |    2 +-
- arch/arm/mach-davinci/da850.c                |   12 ++--
- arch/arm/mach-omap2/clkt_clksel.c            |   12 ++--
- arch/arm/mach-omap2/clock.c                  |   16 ++--
- arch/arm/mach-omap2/devices.c                |    4 +-
- arch/arm/mach-omap2/omap_hwmod.c             |   47 +++++++-----
- arch/arm/mach-omap2/pm34xx.c                 |    7 +-
- arch/arm/mach-omap2/serial.c                 |    2 +-
- arch/arm/mach-omap2/timer-gp.c               |    3 +-
- arch/arm/mach-tegra/clock.c                  |    3 +-
- arch/arm/mach-tegra/timer.c                  |    2 +-
- arch/arm/mach-u300/padmux.c                  |   14 +---
- arch/arm/plat-omap/omap-pm-noop.c            |   10 ++--
- arch/powerpc/kernel/hw_breakpoint.c          |    4 +-
- arch/x86/kernel/acpi/boot.c                  |    2 +-
- arch/x86/kernel/apic/apic.c                  |    2 +-
- arch/x86/kernel/apic/es7000_32.c             |    2 +-
- arch/x86/kernel/cpu/perf_event.c             |    4 +-
- arch/x86/kernel/pci-calgary_64.c             |    4 +-
- arch/x86/kernel/tsc_sync.c                   |    4 +-
- arch/x86/kernel/xsave.c                      |    2 +-
- arch/x86/mm/ioremap.c                        |    5 +-
- arch/x86/mm/pageattr-test.c                  |    2 +-
- arch/x86/mm/pageattr.c                       |    5 +-
- arch/x86/platform/sfi/sfi.c                  |    4 +-
- drivers/acpi/ec.c                            |    4 +-
- drivers/base/class.c                         |    4 +-
- drivers/base/core.c                          |    5 +-
- drivers/base/memory.c                        |    4 +-
- drivers/base/sys.c                           |   10 +--
- drivers/block/floppy.c                       |    2 +-
- drivers/cpuidle/driver.c                     |    2 +-
- drivers/firewire/core-transaction.c          |    6 +-
- drivers/firmware/dmi_scan.c                  |    2 +-
- drivers/gpio/gpiolib.c                       |    4 +-
- drivers/gpio/it8761e_gpio.c                  |    2 +-
- drivers/gpu/drm/drm_crtc_helper.c            |    2 +-
- drivers/gpu/drm/i915/i915_gem.c              |    3 +-
- drivers/gpu/drm/radeon/evergreen.c           |    2 +-
- drivers/gpu/drm/radeon/r100.c                |    4 +-
- drivers/gpu/drm/radeon/r300.c                |    2 +-
- drivers/gpu/drm/radeon/r600.c                |    4 +-
- drivers/gpu/drm/radeon/radeon_fence.c        |    3 +-
- drivers/gpu/drm/radeon/radeon_ttm.c          |    3 +-
- drivers/gpu/drm/radeon/rs400.c               |    2 +-
- drivers/gpu/drm/radeon/rs600.c               |    4 +-
- drivers/media/video/s5p-fimc/fimc-core.c     |    2 +-
- drivers/media/video/sr030pc30.c              |    2 +-
- drivers/mfd/ezx-pcap.c                       |    5 +-
- drivers/net/can/mscan/mscan.c                |    2 +-
- drivers/net/usb/ipheth.c                     |    2 +-
- drivers/net/wireless/iwlwifi/iwl-agn-lib.c   |    3 +-
- drivers/net/wireless/iwlwifi/iwl-agn-sta.c   |    6 +-
- drivers/net/wireless/iwlwifi/iwl-tx.c        |    6 +-
- drivers/net/wireless/iwlwifi/iwl3945-base.c  |    2 +-
- drivers/regulator/core.c                     |    3 +-
- drivers/scsi/fcoe/libfcoe.c                  |    2 +-
- drivers/staging/memrar/memrar_allocator.c    |    2 +-
- drivers/staging/solo6x10/solo6010-v4l2-enc.c |    2 +-
- drivers/usb/musb/musb_host.c                 |    6 +-
- drivers/video/omap2/dss/core.c               |    3 +-
- fs/bio.c                                     |    2 +-
- fs/buffer.c                                  |    2 +-
- fs/nfsd/nfs4state.c                          |    3 +-
- fs/notify/inotify/inotify_fsnotify.c         |    4 +-
- fs/proc/generic.c                            |    9 +--
- fs/super.c                                   |    5 +-
- fs/sysfs/dir.c                               |    3 +-
- fs/sysfs/file.c                              |    4 +-
- fs/sysfs/group.c                             |    4 +-
- fs/sysfs/symlink.c                           |   10 +--
- include/asm-generic/bug.h                    |  101 ++++++++++++++++----------
- include/linux/device.h                       |    2 +-
- kernel/irq/chip.c                            |    2 +-
- kernel/irq/manage.c                          |    2 +-
- kernel/notifier.c                            |    2 +-
- kernel/panic.c                               |   40 +++++------
- kernel/pm_qos_params.c                       |    6 +-
- lib/debugobjects.c                           |   21 +++---
- lib/iomap.c                                  |    2 +-
- lib/kobject.c                                |    9 +--
- lib/kobject_uevent.c                         |    4 +-
- lib/list_debug.c                             |   24 +++----
- lib/plist.c                                  |   12 ++--
- mm/percpu.c                                  |    4 +-
- mm/vmalloc.c                                 |    5 +-
- net/core/dev.c                               |    3 +-
- net/ipv4/tcp.c                               |   16 ++---
- net/mac80211/agg-tx.c                        |    5 +-
- net/mac80211/iface.c                         |    4 +-
- net/mac80211/mlme.c                          |    2 +-
- net/mac80211/rx.c                            |    4 +-
- net/mac80211/tx.c                            |    4 +-
- net/mac80211/util.c                          |    4 +-
- net/mac80211/work.c                          |    4 +-
- net/rfkill/input.c                           |    5 +-
- sound/soc/codecs/wm_hubs.c                   |    2 +-
- 99 files changed, 319 insertions(+), 330 deletions(-)
+Beside's Devin's xc4000.[ch], I also use the files (xc4000.[ch] and
+firmware) from Istvan page. It works very well and the dongle feels
+much cooler when idling. because the PCTV 340e's power management is
+working. 
 
--- 
-1.7.3.1.g432b3.dirty
+Since there are several devices using xc4000 driver; I really hope
+that it can included in main v4l stream; at least in the staging
+directory. 
+
+Also really like to see analog support (S-video capture, analog TV and
+FM radio) for PCTV 340e too :). I was told that the dib0700 driver
+does not has the analog tuning yet.
+
+Thank you
 
