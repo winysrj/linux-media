@@ -1,67 +1,76 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:52485 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1754792Ab0KHVUn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Nov 2010 16:20:43 -0500
-Date: Mon, 8 Nov 2010 22:20:33 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] SoC Camera: ov6650: minor cleanups
-In-Reply-To: <201011021714.37544.jkrzyszt@tis.icnet.pl>
-Message-ID: <Pine.LNX.4.64.1011082219580.29934@axis700.grange>
-References: <201011021714.37544.jkrzyszt@tis.icnet.pl>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:63263 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757010Ab0KOCpr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Nov 2010 21:45:47 -0500
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <AANLkTikww_o+L0hS8jFhL+u2EGvZMQPogY_F89Kcm1xT@mail.gmail.com>
+References: <AANLkTikJNdcnRbNwv4j8zfv4TfSqOgB2K=UD4UFfL=q4@mail.gmail.com>
+	<Pine.LNX.4.64.1011020821300.3804@axis700.grange>
+	<AANLkTikww_o+L0hS8jFhL+u2EGvZMQPogY_F89Kcm1xT@mail.gmail.com>
+Date: Mon, 15 Nov 2010 10:45:46 +0800
+Message-ID: <AANLkTikOdktmvDS0eXof-JCBT_6k=HKHSCYkR2Mu3v9d@mail.gmail.com>
+Subject: Re: V4L2 and framebuffer for the same controller
+From: Jun Nie <niej0001@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	linux-fbdev@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Janusz
+2010/11/8 Jun Nie <niej0001@gmail.com>:
+> 2010/11/2 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+>> Hi Jun
+>>
+>> On Fri, 29 Oct 2010, Jun Nie wrote:
+>>
+>>> Hi Guennadi,
+>>>     I find that your idea of "provide a generic framebuffer driver
+>>> that could sit on top of a v4l output driver", which may be a good
+>>> solution of our LCD controller driver, or maybe much more other SOC
+>>> LCD drivers. V4L2 interface support many features than framebuffer for
+>>> video playback usage, such as buffer queue/dequeue, quality control,
+>>> etc. However, framebuffer is common for UI display. Implement two
+>>> drivers for one controller is a challenge for current architecture.
+>>>     I am interested in your idea. Could you elaborate it? Or do you
+>>> think multifunction driver is the right solution for this the
+>>> scenario?
+>>
+>> Right, we have discussed this idea at the V4L2/MC mini-summit earlier this
+>> year, there the outcome was, that the idea is not bad, but it is easy
+>> enough to create such framebuffer additions on top of specific v4l2 output
+>> drivers anyway, so, noone was interested enough to start designing and
+>> implementing such a generic wrapper driver. However, I've heard, that this
+>> topic has also been scheduled for discussion at another v4l / kernel
+>> meeting (plumbers?), so, someone might be looking into implementing
+>> this... If you yourself would like to do that - feel free to propose a
+>> design on both mailing lists (fbdev added to cc), then we can discuss it,
+>> and you can implement it;)
+>>
+>> Thanks
+>> Guennadi
+>> ---
+>> Guennadi Liakhovetski, Ph.D.
+>> Freelance Open-Source Software Developer
+>> http://www.open-technology.de/
+>>
+>
+> Good to know others are also interested in it. I surely can contribute
+> to it. But my concern is how to support Xwindow. Android and Ubuntu
+> should both run on our platform. Queue/deque should work well for
+> Android UI. I still can not figure out how to support Xwindow, for it
+> does not interact with driver after it get the mmaped buffer.
+>
+> Jun
+>
 
-On Tue, 2 Nov 2010, Janusz Krzysztofik wrote:
+Guennadi,
 
-> This is a followup patch that addresses two minor issues left in the recently 
-> added ov6650 sensor driver, as I've promised to the subsystem maintainer:
-> - remove a pair of extra brackets,
-> - drop useless case for not possible v4l2_mbus_pixelcode enum value of 0.
-> 
-> Created against linux-2.6.37-rc1.
-> 
-> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Any idea on supporting this feature with V4L2 based FB? I can not
+figure out any method and will adopt framebuffer for UI and V4L2 for
+video layer for the schedule pressure.
 
-Applied together with other your 3 patches and pushed for 2.6.37-rc2.
-
-Thanks
-Guennadi
-
-> ---
-> 
->  drivers/media/video/ov6650.c |    4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
-> 
-> --- linux-2.6.37-rc1/drivers/media/video/ov6650.c.orig	2010-11-01 22:41:59.000000000 +0100
-> +++ linux-2.6.37-rc1/drivers/media/video/ov6650.c	2010-11-02 16:56:49.000000000 +0100
-> @@ -754,7 +754,7 @@ static int ov6650_g_fmt(struct v4l2_subd
->  
->  static bool is_unscaled_ok(int width, int height, struct v4l2_rect *rect)
->  {
-> -	return (width > rect->width >> 1 || height > rect->height >> 1);
-> +	return width > rect->width >> 1 || height > rect->height >> 1;
->  }
->  
->  static u8 to_clkrc(struct v4l2_fract *timeperframe,
-> @@ -840,8 +840,6 @@ static int ov6650_s_fmt(struct v4l2_subd
->  		coma_mask |= COMA_BW | COMA_BYTE_SWAP | COMA_WORD_SWAP;
->  		coma_set |= COMA_RAW_RGB | COMA_RGB;
->  		break;
-> -	case 0:
-> -		break;
->  	default:
->  		dev_err(&client->dev, "Pixel format not handled: 0x%x\n", code);
->  		return -EINVAL;
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Jun
