@@ -1,92 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from bear.ext.ti.com ([192.94.94.41]:58224 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932399Ab0KLVSJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Nov 2010 16:18:09 -0500
-From: Sergio Aguirre <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
-Subject: [omap3isp RFC][PATCH 10/10] omap3isp: Remove legacy MMU access regs/fields
-Date: Fri, 12 Nov 2010 15:18:13 -0600
-Message-Id: <1289596693-27660-11-git-send-email-saaguirre@ti.com>
-In-Reply-To: <1289596693-27660-1-git-send-email-saaguirre@ti.com>
-References: <1289596693-27660-1-git-send-email-saaguirre@ti.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:59240 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751605Ab0KOW6L (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Nov 2010 17:58:11 -0500
+Received: by bwz15 with SMTP id 15so41771bwz.19
+        for <linux-media@vger.kernel.org>; Mon, 15 Nov 2010 14:58:10 -0800 (PST)
+Date: Mon, 15 Nov 2010 23:57:46 +0100
+From: Richard Zidlicky <rz@linux-m68k.org>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	stefano.pompa@gmail.com
+Subject: Re: Hauppauge WinTV MiniStick IR in 2.6.36 - [PATCH]
+Message-ID: <20101115225746.GA26766@linux-m68k.org>
+References: <20101115112746.GB6607@linux-m68k.org> <1289824506.2057.9.camel@morgan.silverblock.net> <20101115150903.GB10718@linux-m68k.org> <1289858364.5515.3.camel@morgan.silverblock.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1289858364.5515.3.camel@morgan.silverblock.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
----
- drivers/media/video/isp/ispreg.h |   43 --------------------------------------
- 1 files changed, 0 insertions(+), 43 deletions(-)
+On Mon, Nov 15, 2010 at 04:59:24PM -0500, Andy Walls wrote:
+> On Mon, 2010-11-15 at 16:09 +0100, Richard Zidlicky wrote:
+> > On Mon, Nov 15, 2010 at 07:35:06AM -0500, Andy Walls wrote:
+> > > On Mon, 2010-11-15 at 12:27 +0100, Richard Zidlicky wrote:
+> > 
+> > > http://git.linuxtv.org/v4l-utils.git?a=tree;f=utils/keytable;h=e599a8b5288517fc7fe58d96f44f28030b04afbc;hb=HEAD
+> > 
+> > thanks, that should do the trick. 
+> > 
+> > In addition I am wondering if the maps of the two remotes that apparently get 
+> > bundled with the MiniStick should not be merged into one map in the kernel sources 
+> > so the most common cases are covered?
+> 
+> I have a certain case where I would like the maps of two bundled remotes
+> both to be loaded - one an RC-5 and one an RC-6 - for a receiver on the
+> HVR-1850 and friends.
 
-diff --git a/drivers/media/video/isp/ispreg.h b/drivers/media/video/isp/ispreg.h
-index 9b0d3ad..af4ddaa 100644
---- a/drivers/media/video/isp/ispreg.h
-+++ b/drivers/media/video/isp/ispreg.h
-@@ -72,11 +72,6 @@
- 					 OMAP3ISP_SBL_REG_OFFSET)
- #define OMAP3ISP_SBL_REG(offset)	(OMAP3ISP_SBL_REG_BASE + (offset))
- 
--#define OMAP3ISP_MMU_REG_OFFSET		0x1400
--#define OMAP3ISP_MMU_REG_BASE		(OMAP3ISP_REG_BASE +		\
--					 OMAP3ISP_MMU_REG_OFFSET)
--#define OMAP3ISP_MMU_REG(offset)	(OMAP3ISP_MMU_REG_BASE + (offset))
--
- #define OMAP3ISP_CSI2A_REGS1_REG_OFFSET	0x1800
- #define OMAP3ISP_CSI2A_REGS1_REG_BASE	(OMAP3ISP_REG_BASE +		\
- 					 OMAP3ISP_CSI2A_REGS1_REG_OFFSET)
-@@ -458,26 +453,6 @@
- #define ISPRSZ_VFILT3130		(0x0A4)
- #define ISPRSZ_YENH			(0x0A8)
- 
--/* MMU module registers */
--#define ISPMMU_REVISION			(0x000)
--#define ISPMMU_SYSCONFIG		(0x010)
--#define ISPMMU_SYSSTATUS		(0x014)
--#define ISPMMU_IRQSTATUS		(0x018)
--#define ISPMMU_IRQENABLE		(0x01C)
--#define ISPMMU_WALKING_ST		(0x040)
--#define ISPMMU_CNTL			(0x044)
--#define ISPMMU_FAULT_AD			(0x048)
--#define ISPMMU_TTB			(0x04C)
--#define ISPMMU_LOCK			(0x050)
--#define ISPMMU_LD_TLB			(0x054)
--#define ISPMMU_CAM			(0x058)
--#define ISPMMU_RAM			(0x05C)
--#define ISPMMU_GFLUSH			(0x060)
--#define ISPMMU_FLUSH_ENTRY		(0x064)
--#define ISPMMU_READ_CAM			(0x068)
--#define ISPMMU_READ_RAM			(0x06c)
--#define ISPMMU_EMU_FAULT_AD		(0x070)
--
- #define ISP_INT_CLR			0xFF113F11
- #define ISPPRV_PCR_EN			1
- #define ISPPRV_PCR_BUSY			(1 << 1)
-@@ -1299,24 +1274,6 @@
- #define ISPCCDC_LSC_INITIAL_Y_MASK		0x3F0000
- #define ISPCCDC_LSC_INITIAL_Y_SHIFT		16
- 
--#define ISPMMU_REVISION_REV_MINOR_MASK		0xF
--#define ISPMMU_REVISION_REV_MAJOR_SHIFT		0x4
--
--#define IRQENABLE_MULTIHITFAULT			(1<<4)
--#define IRQENABLE_TWFAULT			(1<<3)
--#define IRQENABLE_EMUMISS			(1<<2)
--#define IRQENABLE_TRANSLNFAULT			(1<<1)
--#define IRQENABLE_TLBMISS			(1)
--
--#define ISPMMU_MMUCNTL_MMU_EN			(1<<1)
--#define ISPMMU_MMUCNTL_TWL_EN			(1<<2)
--#define ISPMMU_MMUCNTL_EMUTLBUPDATE		(1<<3)
--#define ISPMMU_AUTOIDLE				0x1
--#define ISPMMU_SIDLEMODE_FORCEIDLE		0
--#define ISPMMU_SIDLEMODE_NOIDLE			1
--#define ISPMMU_SIDLEMODE_SMARTIDLE		2
--#define ISPMMU_SIDLEMODE_SHIFT			3
--
- /* -----------------------------------------------------------------------------
-  * CSI2 receiver registers (ES2.0)
-  */
--- 
-1.7.0.4
+looks a bit more twisted. In the case of the siano reciever it should be 
+simpler. Apparently it has been bundled with 2 different rc5 type remotes
+and normal users will have either one of them. So technically it is very 
+easy to provide a table that serves both cases.
+
+Richard
 
