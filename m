@@ -1,109 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:34737 "EHLO mx1.redhat.com"
+Received: from mail.perches.com ([173.55.12.10]:1334 "EHLO mail.perches.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758606Ab0KQWJY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Nov 2010 17:09:24 -0500
-Date: Wed, 17 Nov 2010 17:09:21 -0500
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Paul Bender <pebender@gmail.com>
-Subject: [PATCH] rc: fix sysfs entry for mceusb and streamzap
-Message-ID: <20101117220921.GE24814@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	id S932556Ab0KOUOH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Nov 2010 15:14:07 -0500
+From: Joe Perches <joe@perches.com>
+To: Jiri Kosina <trivial@kernel.org>
+Cc: linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-ide@vger.kernel.org, linux-media@vger.kernel.org,
+	netdev@vger.kernel.org, linux-scsi@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH 00/11] Remove unnecessary casts of pci_get_drvdata
+Date: Mon, 15 Nov 2010 12:13:51 -0800
+Message-Id: <cover.1289851770.git.joe@perches.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
->From 4c13334d96e667dfbad90882ffe671d598d30d7f Mon Sep 17 00:00:00 2001
-From: Paul Bender <pebender@gmail.com>
-Date: Wed, 17 Nov 2010 14:56:17 -0500
-Subject: [PATCH] rc: fix sysfs entry for mceusb and streamzap
+Joe Perches (11):
+  drivers/i2c/busses/i2c-nforce2.c: Remove unnecessary casts of pci_get_drvdata
+  drivers/ide/pmac.c: Remove unnecessary casts of pci_get_drvdata
+  drivers/media/dvb/ngene/ngene-core.c: Remove unnecessary casts of pci_get_drvdata
+  drivers/misc/ibmasm/module.c: Remove unnecessary casts of pci_get_drvdata
+  drivers/net/irda: Remove unnecessary casts of pci_get_drvdata
+  drivers/net/s2io.c: Remove unnecessary casts of pci_get_drvdata
+  drivers/net/vxge/vxge-main.c: Remove unnecessary casts of pci_get_drvdata
+  drivers/scsi/be2iscsi/be_main.c: Remove unnecessary casts of pci_get_drvdata
+  drivers/staging: Remove unnecessary casts of pci_get_drvdata
+  drivers/usb/host/uhci-hcd.c: Remove unnecessary casts of pci_get_drvdata
+  sound/pci/asihpi/hpioctl.c: Remove unnecessary casts of pci_get_drvdata
 
-When trying to create persistent device names for mceusb and streamzap
-devices, I noticed that their respective drivers are not creating the rc
-device as a child of the USB device. Rather it creates it as virtual
-device. As a result, udev cannot use the USB device information to
-create persistent device names for event and lirc devices associated
-with the rc device. Not having persistent device names makes it more
-difficult to make use of the devices in userspace as their names can
-change.
-
-Signed-off-by: Paul Bender <pebender@gmail.com>
-
-Forward-ported to media_tree staging/for_v2.6.38 and tested with
-both streamzap and mceusb devices:
-
-$ ll /dev/input/by-id/
-...
-lrwxrwxrwx. 1 root root 9 Nov 17 17:06 usb-Streamzap__Inc._Streamzap_Remote_Control-event-if00 -> ../event6
-lrwxrwxrwx. 1 root root 9 Nov 17 17:05 usb-Topseed_Technology_Corp._eHome_Infrared_Transceiver_TS000BzY-event-if00 -> ../event5
-
-Previously, nada.
-
-Tested-by: Jarod Wilson <jarod@redhat.com>
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/rc/mceusb.c    |    5 ++++-
- drivers/media/rc/streamzap.c |    3 +++
- 2 files changed, 7 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index 968cf1f..2cca983 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -36,6 +36,7 @@
- #include <linux/module.h>
- #include <linux/slab.h>
- #include <linux/usb.h>
-+#include <linux/usb/input.h>
- #include <media/ir-core.h>
- 
- #define DRIVER_VERSION	"1.91"
-@@ -1044,7 +1045,7 @@ static struct rc_dev *mceusb_init_rc_dev(struct mceusb_dev *ir)
- 
- 	snprintf(ir->name, sizeof(ir->name), "%s (%04x:%04x)",
- 		 mceusb_model[ir->model].name ?
--		 	mceusb_model[ir->model].name :
-+			mceusb_model[ir->model].name :
- 			"Media Center Ed. eHome Infrared Remote Transceiver",
- 		 le16_to_cpu(ir->usbdev->descriptor.idVendor),
- 		 le16_to_cpu(ir->usbdev->descriptor.idProduct));
-@@ -1053,6 +1054,8 @@ static struct rc_dev *mceusb_init_rc_dev(struct mceusb_dev *ir)
- 
- 	rc->input_name = ir->name;
- 	rc->input_phys = ir->phys;
-+	usb_to_input_id(ir->usbdev, &rc->input_id);
-+	rc->dev.parent = dev;
- 	rc->priv = ir;
- 	rc->driver_type = RC_DRIVER_IR_RAW;
- 	rc->allowed_protos = IR_TYPE_ALL;
-diff --git a/drivers/media/rc/streamzap.c b/drivers/media/rc/streamzap.c
-index 19652d4..b2eef51 100644
---- a/drivers/media/rc/streamzap.c
-+++ b/drivers/media/rc/streamzap.c
-@@ -35,6 +35,7 @@
- #include <linux/module.h>
- #include <linux/slab.h>
- #include <linux/usb.h>
-+#include <linux/usb/input.h>
- #include <media/ir-core.h>
- 
- #define DRIVER_VERSION	"1.61"
-@@ -315,6 +316,8 @@ static struct rc_dev *streamzap_init_rc_dev(struct streamzap_ir *sz)
- 
- 	rdev->input_name = sz->name;
- 	rdev->input_phys = sz->phys;
-+	usb_to_input_id(sz->usbdev, &rdev->input_id);
-+	rdev->dev.parent = dev;
- 	rdev->priv = sz;
- 	rdev->driver_type = RC_DRIVER_IR_RAW;
- 	rdev->allowed_protos = IR_TYPE_ALL;
--- 
-1.7.1
-
+ drivers/i2c/busses/i2c-nforce2.c          |    2 +-
+ drivers/ide/pmac.c                        |    4 ++--
+ drivers/media/dvb/ngene/ngene-core.c      |    2 +-
+ drivers/misc/ibmasm/module.c              |    2 +-
+ drivers/net/irda/donauboe.c               |    6 +++---
+ drivers/net/irda/vlsi_ir.c                |    2 +-
+ drivers/net/s2io.c                        |    3 +--
+ drivers/net/vxge/vxge-main.c              |   28 ++++++++++++----------------
+ drivers/scsi/be2iscsi/be_main.c           |    2 +-
+ drivers/staging/crystalhd/crystalhd_lnx.c |    6 +++---
+ drivers/staging/et131x/et131x_initpci.c   |    2 +-
+ drivers/staging/wlags49_h2/wl_pci.c       |    2 +-
+ drivers/usb/host/uhci-hcd.c               |    2 +-
+ sound/pci/asihpi/hpioctl.c                |    2 +-
+ 14 files changed, 30 insertions(+), 35 deletions(-)
 
 -- 
-Jarod Wilson
-jarod@redhat.com
+1.7.3.1.g432b3.dirty
 
