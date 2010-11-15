@@ -1,68 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:44403 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933659Ab0KQSvX convert rfc822-to-8bit (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:58336 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757220Ab0KOOZL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Nov 2010 13:51:23 -0500
-Received: by vws13 with SMTP id 13so1191134vws.19
-        for <linux-media@vger.kernel.org>; Wed, 17 Nov 2010 10:51:22 -0800 (PST)
+	Mon, 15 Nov 2010 09:25:11 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 02/10] MCDE: Add configuration registers
+Date: Mon, 15 Nov 2010 15:25:54 +0100
+Cc: linux-arm-kernel@lists.infradead.org,
+	Jimmy Rubin <jimmy.rubin@stericsson.com>,
+	Dan Johansson <dan.johansson@stericsson.com>,
+	linux-fbdev@vger.kernel.org,
+	Linus Walleij <linus.walleij@stericsson.com>,
+	linux-media@vger.kernel.org
+References: <1289390653-6111-1-git-send-email-jimmy.rubin@stericsson.com> <201011121614.51528.arnd@arndb.de> <20101112153423.GC3619@n2100.arm.linux.org.uk>
+In-Reply-To: <20101112153423.GC3619@n2100.arm.linux.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <201011171827.oAHIROhd086781@smtp-vbr18.xs4all.nl>
-References: <201011171827.oAHIROhd086781@smtp-vbr18.xs4all.nl>
-Date: Wed, 17 Nov 2010 20:51:22 +0200
-Message-ID: <AANLkTinb+h5FRodn-upP3PwNhtORskC=y7bcOeafbMvS@mail.gmail.com>
-Subject: Re: [cron job] v4l-dvb daily build: WARNINGS
-From: Anca Emanuel <anca.emanuel@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201011151525.54380.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Nov 17, 2010 at 8:27 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> This message is generated daily by a cron job that builds v4l-dvb for
-> the kernels and architectures in the list below.
->
-> Results of the daily build of v4l-dvb:
->
-> date:        Wed Nov 17 19:00:17 CET 2010
-> path:        http://www.linuxtv.org/hg/v4l-dvb
-> changeset:   15167:abd3aac6644e
-> git master:       3e6dce76d99b328716b43929b9195adfee1de00c
-> git media-master: a348e9110ddb5d494e060d989b35dd1f35359d58
-> gcc version:      i686-linux-gcc (GCC) 4.5.1
-> host hardware:    x86_64
-> host os:          2.6.32.5
->
-> linux-git-armv5: WARNINGS
-> linux-git-armv5-davinci: WARNINGS
-> linux-git-armv5-ixp: WARNINGS
-> linux-git-armv5-omap2: WARNINGS
-> linux-git-i686: WARNINGS
-> linux-git-m32r: WARNINGS
-> linux-git-mips: WARNINGS
-> linux-git-powerpc64: WARNINGS
-> linux-git-x86_64: WARNINGS
-> spec-git: OK
-> sparse: ERRORS
->
-> Detailed results are available here:
->
-> http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
->
-> Full logs are available here:
->
-> http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
->
-> The V4L-DVB specification from this daily build is here:
->
-> http://www.xs4all.nl/~hverkuil/spec/media.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+On Friday 12 November 2010, Russell King - ARM Linux wrote:
+> On Fri, Nov 12, 2010 at 04:14:51PM +0100, Arnd Bergmann wrote:
+> > Some people prefer to express all this in C instead of macros:
+> > 
+> > struct mcde_registers {
+> > 	enum {
+> > 		mcde_cr_dsicmd2_en = 0x00000001,
+> > 		mcde_cr_dsicmd1_en = 0x00000002,
+> > 		...
+> > 	} cr;
+> > 	enum {
+> > 		mcde_conf0_syncmux0 = 0x00000001,
+> > 		...
+> > 	} conf0;
+> > 	...
+> > };
+> > 
+> > This gives you better type safety, but which one you choose is your decision.
+> 
+> It is a bad idea to describe device registers using C structures, and
+> especially enums.
+> 
+> The only thing C guarantees about structure layout is that the elements
+> are arranged in the same order which you specify them in your definition.
+> It doesn't make any guarantees about placement of those elements within
+> the structure.
 
-Is somebody take care of this ?
+Right, I got carried away when seeing the macro overload. My example
+would work on a given architecture since the ABI is not changing, but
+we should of course not advocate nonportable code.
+
+Normally what I do is to describe the data structure in C and define the
+values in a separate enum. The main advantage of using the struct instead
+of offset defines is that you have a bit more type safety, i.e. you cannot
+accidentally do readw() on a __be32 member.
+
+Using #define for the actual values makes it possible to interleave the
+values with the structure definition like 
+
+struct mcde_registers {
+ 	__le32 cr;
+#define MCDE_CR_DSICMD2_EN 0x00000001
+#define MCDE_CR_DSICMD1_EN 0x00000002
+	__le32 conf0;
+ 	...
+};
+
+whereas the enum has the small advantage of putting the identifiers
+into the C language namespace rather than the preprocessor macro
+namespace.
+
+	Arnd
