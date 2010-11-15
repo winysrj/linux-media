@@ -1,66 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from devils.ext.ti.com ([198.47.26.153]:43543 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934459Ab0KPM5J (ORCPT
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:46606 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757885Ab0KOSjW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Nov 2010 07:57:09 -0500
-From: manjunatha_halli@ti.com
-To: mchehab@infradead.org, hverkuil@xs4all.nl
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Manjunatha Halli <manjunatha_halli@ti.com>
-Subject: [PATCH v4 6/6] drivers:staging: ti-st: Kconfig & Makefile change
-Date: Tue, 16 Nov 2010 08:18:14 -0500
-Message-Id: <1289913494-21590-7-git-send-email-manjunatha_halli@ti.com>
-In-Reply-To: <1289913494-21590-6-git-send-email-manjunatha_halli@ti.com>
-References: <1289913494-21590-1-git-send-email-manjunatha_halli@ti.com>
- <1289913494-21590-2-git-send-email-manjunatha_halli@ti.com>
- <1289913494-21590-3-git-send-email-manjunatha_halli@ti.com>
- <1289913494-21590-4-git-send-email-manjunatha_halli@ti.com>
- <1289913494-21590-5-git-send-email-manjunatha_halli@ti.com>
- <1289913494-21590-6-git-send-email-manjunatha_halli@ti.com>
+	Mon, 15 Nov 2010 13:39:22 -0500
+Date: Mon, 15 Nov 2010 19:39:17 +0100
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 0/2] Apple remote support
+Message-ID: <20101115183917.GA30458@hardeman.nu>
+References: <20101030233617.GA13155@hardeman.nu>
+ <AANLkTimLU1TUn6nY4pr2pWNJp1hviyx=NiXYUQLSQA0e@mail.gmail.com>
+ <20101101215635.GA4808@hardeman.nu>
+ <AANLkTi=c_g7nxCFWsVMYM-tJr68V1iMzhSyJ7=g9VLnR@mail.gmail.com>
+ <37bb20b43afce52964a95a72a725b0e4@hardeman.nu>
+ <AANLkTimAx+D745-VxoUJ25ii+=Dm6rHb8OXs9_D69S1W@mail.gmail.com>
+ <20101104193823.GA9107@hardeman.nu>
+ <4CD30CE5.5030003@redhat.com>
+ <da4aa0687909ae3843c682fbf446e452@hardeman.nu>
+ <AANLkTin1Lu9cdnLeVfA8NDQFWkKzb6k+yCiSBqq6Otz6@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <AANLkTin1Lu9cdnLeVfA8NDQFWkKzb6k+yCiSBqq6Otz6@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Manjunatha Halli <manjunatha_halli@ti.com>
+On Sun, Nov 14, 2010 at 11:11:47PM -0500, Jarod Wilson wrote:
+>Well, here's what I sent along on Friday:
+>
+>https://patchwork.kernel.org/patch/321592/
+>
+>Gives us support for using the full 32-bit codes right now w/o having
+>to change any tables yet, but does require a modparam to skip the
+>checksum checks, unless its an apple remote which we already know the
+>vendor bytes for. I do think I'm ultimately leaning towards just doing
+>the full 32 bits for all nec extended though -- optionally, we might
+>include a modparam to *enable* the checksum check for those that want
+>strict compliance (but I'd still say use the full 32 bits). The only
+>issue I see with going to the full 32 right now is that we have all
+>these nec tables with only 24 bits, and we don't know ... oh, wait,
+>no, nevermind... We *do* know the missing 8 bits, since they have to
+>fulfill the checksum check for command ^ not_command. So yeah, I'd say
+>32-bit scancodes for all nec extended, don't enforce the checksum by
+>default with a module option (or sysfs knob) to enable checksum
+>compliance.
 
-Add new menu option in Kconfig and compilation option in Makefile
-for TI FM driver.
+32 bit scancodes for *all* NEC, not only NEC extended. The "strict"
+check will still be provided, just that it's done as part of the
+keytable lookup.
 
-Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
----
- drivers/staging/ti-st/Kconfig  |   10 ++++++++++
- drivers/staging/ti-st/Makefile |    2 ++
- 2 files changed, 12 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/staging/ti-st/Kconfig b/drivers/staging/ti-st/Kconfig
-index 074b8e8..43b6dea 100644
---- a/drivers/staging/ti-st/Kconfig
-+++ b/drivers/staging/ti-st/Kconfig
-@@ -11,4 +11,14 @@ config ST_BT
- 	  This enables the Bluetooth driver for TI BT/FM/GPS combo devices.
- 	  This makes use of shared transport line discipline core driver to
- 	  communicate with the BT core of the combo chip.
-+
-+config ST_FM
-+        tristate "fm driver for ST"
-+        depends on VIDEO_DEV && RFKILL
-+        select TI_ST
-+        help
-+          This enables the FM driver for TI BT/FM/GPS combo devices.
-+          This makes use of shared transport line discipline core driver to
-+          communicate with the FM core of the combo chip.
-+
- endmenu
-diff --git a/drivers/staging/ti-st/Makefile b/drivers/staging/ti-st/Makefile
-index 5f11b82..330f95b 100644
---- a/drivers/staging/ti-st/Makefile
-+++ b/drivers/staging/ti-st/Makefile
-@@ -3,3 +3,5 @@
- # and its protocol drivers (BT, FM, GPS)
- #
- obj-$(CONFIG_ST_BT) 		+= bt_drv.o
-+obj-$(CONFIG_ST_FM) 		+= fm_drv.o
-+fm_drv-objs     		:= fmdrv_common.o fmdrv_rx.o fmdrv_tx.o fmdrv_v4l2.o
 -- 
-1.5.6.3
-
+David Härdeman
