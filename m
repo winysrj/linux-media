@@ -1,51 +1,92 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:23194 "EHLO mx1.redhat.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:60873 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757063Ab0KRU7s (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Nov 2010 15:59:48 -0500
-Message-ID: <4CE593BF.4010908@redhat.com>
-Date: Thu, 18 Nov 2010 18:59:43 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Jarod Wilson <jarod@redhat.com>
-CC: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
-	Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 0/2] Apple remote support
-References: <37bb20b43afce52964a95a72a725b0e4@hardeman.nu> <AANLkTimAx+D745-VxoUJ25ii+=Dm6rHb8OXs9_D69S1W@mail.gmail.com> <20101104193823.GA9107@hardeman.nu> <4CD30CE5.5030003@redhat.com> <da4aa0687909ae3843c682fbf446e452@hardeman.nu> <AANLkTin1Lu9cdnLeVfA8NDQFWkKzb6k+yCiSBqq6Otz6@mail.gmail.com> <4CE2743D.5040501@redhat.com> <20101116232636.GA28261@hardeman.nu> <20101118163304.GB16899@redhat.com> <20101118204319.GA8213@hardeman.nu> <20101118204952.GC16899@redhat.com>
-In-Reply-To: <20101118204952.GC16899@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+	id S1757356Ab0KOOaD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Nov 2010 09:30:03 -0500
+From: Sergio Aguirre <saaguirre@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
+Subject: [omap3isp][PATCH v2 9/9] omap3isp: Remove legacy MMU access regs/fields
+Date: Mon, 15 Nov 2010 08:30:01 -0600
+Message-Id: <1289831401-593-10-git-send-email-saaguirre@ti.com>
+In-Reply-To: <1289831401-593-1-git-send-email-saaguirre@ti.com>
+References: <1289831401-593-1-git-send-email-saaguirre@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 18-11-2010 18:49, Jarod Wilson escreveu:
-> On Thu, Nov 18, 2010 at 09:43:19PM +0100, David Härdeman wrote:
->> On Thu, Nov 18, 2010 at 11:33:04AM -0500, Jarod Wilson wrote:
->>> Mauro's suggestion, iirc, was that max scancode size should be a
->>> property of the keytable uploaded, and something set at load time (and
->>> probably exposed as a sysfs node, similar to protocols).
->>
->> I think that would be a step in the wrong direction. It would make the
->> keytables less flexible while providing no real advantages.
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ drivers/media/video/isp/ispreg.h |   43 --------------------------------------
+ 1 files changed, 0 insertions(+), 43 deletions(-)
 
-We can't simply just change NEC to 32 bits, as we'll break userspace ABI 
-(as current NEC keycode tables use only 16 bits). So, an old table will not
-worky anymore, if we do such change.
+diff --git a/drivers/media/video/isp/ispreg.h b/drivers/media/video/isp/ispreg.h
+index 9b0d3ad..af4ddaa 100644
+--- a/drivers/media/video/isp/ispreg.h
++++ b/drivers/media/video/isp/ispreg.h
+@@ -72,11 +72,6 @@
+ 					 OMAP3ISP_SBL_REG_OFFSET)
+ #define OMAP3ISP_SBL_REG(offset)	(OMAP3ISP_SBL_REG_BASE + (offset))
+ 
+-#define OMAP3ISP_MMU_REG_OFFSET		0x1400
+-#define OMAP3ISP_MMU_REG_BASE		(OMAP3ISP_REG_BASE +		\
+-					 OMAP3ISP_MMU_REG_OFFSET)
+-#define OMAP3ISP_MMU_REG(offset)	(OMAP3ISP_MMU_REG_BASE + (offset))
+-
+ #define OMAP3ISP_CSI2A_REGS1_REG_OFFSET	0x1800
+ #define OMAP3ISP_CSI2A_REGS1_REG_BASE	(OMAP3ISP_REG_BASE +		\
+ 					 OMAP3ISP_CSI2A_REGS1_REG_OFFSET)
+@@ -458,26 +453,6 @@
+ #define ISPRSZ_VFILT3130		(0x0A4)
+ #define ISPRSZ_YENH			(0x0A8)
+ 
+-/* MMU module registers */
+-#define ISPMMU_REVISION			(0x000)
+-#define ISPMMU_SYSCONFIG		(0x010)
+-#define ISPMMU_SYSSTATUS		(0x014)
+-#define ISPMMU_IRQSTATUS		(0x018)
+-#define ISPMMU_IRQENABLE		(0x01C)
+-#define ISPMMU_WALKING_ST		(0x040)
+-#define ISPMMU_CNTL			(0x044)
+-#define ISPMMU_FAULT_AD			(0x048)
+-#define ISPMMU_TTB			(0x04C)
+-#define ISPMMU_LOCK			(0x050)
+-#define ISPMMU_LD_TLB			(0x054)
+-#define ISPMMU_CAM			(0x058)
+-#define ISPMMU_RAM			(0x05C)
+-#define ISPMMU_GFLUSH			(0x060)
+-#define ISPMMU_FLUSH_ENTRY		(0x064)
+-#define ISPMMU_READ_CAM			(0x068)
+-#define ISPMMU_READ_RAM			(0x06c)
+-#define ISPMMU_EMU_FAULT_AD		(0x070)
+-
+ #define ISP_INT_CLR			0xFF113F11
+ #define ISPPRV_PCR_EN			1
+ #define ISPPRV_PCR_BUSY			(1 << 1)
+@@ -1299,24 +1274,6 @@
+ #define ISPCCDC_LSC_INITIAL_Y_MASK		0x3F0000
+ #define ISPCCDC_LSC_INITIAL_Y_SHIFT		16
+ 
+-#define ISPMMU_REVISION_REV_MINOR_MASK		0xF
+-#define ISPMMU_REVISION_REV_MAJOR_SHIFT		0x4
+-
+-#define IRQENABLE_MULTIHITFAULT			(1<<4)
+-#define IRQENABLE_TWFAULT			(1<<3)
+-#define IRQENABLE_EMUMISS			(1<<2)
+-#define IRQENABLE_TRANSLNFAULT			(1<<1)
+-#define IRQENABLE_TLBMISS			(1)
+-
+-#define ISPMMU_MMUCNTL_MMU_EN			(1<<1)
+-#define ISPMMU_MMUCNTL_TWL_EN			(1<<2)
+-#define ISPMMU_MMUCNTL_EMUTLBUPDATE		(1<<3)
+-#define ISPMMU_AUTOIDLE				0x1
+-#define ISPMMU_SIDLEMODE_FORCEIDLE		0
+-#define ISPMMU_SIDLEMODE_NOIDLE			1
+-#define ISPMMU_SIDLEMODE_SMARTIDLE		2
+-#define ISPMMU_SIDLEMODE_SHIFT			3
+-
+ /* -----------------------------------------------------------------------------
+  * CSI2 receiver registers (ES2.0)
+  */
+-- 
+1.7.0.4
 
-> I think it was supposed to be something you could update on the fly when
-> uploading new keys, so its not entirely inflexible. Default keymap might
-> be 24-bit NEC, then you upload 32-bit NEC codes, and the max scancode size
-> would get updated at the same time. Of course, it probably wouldn't work
-> terribly well to have a mix of 24-bit and 32-bit NEC codes in the same
-> table.
-
-There's another reason why it may be interesting to have the scancode size
-stored somewhere. With the new flexible scancode size, some devices may have
-bigger scancodes (I remember people mentioned some cases with 128 bits when 
-we've discussed the getkeycodbig patches in the past). So, we'll need to
-address some cases where the scancodes don't have 32 bits. I think that the
-current maximum limit is 31 bits (as the search algorithm uses the signal
-bit for some reason).
-
-Cheers,
-Mauro
