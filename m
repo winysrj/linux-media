@@ -1,89 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1999 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932708Ab0KPV4U (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:64919 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752864Ab0KOMgB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Nov 2010 16:56:20 -0500
-Message-Id: <acc3025747759b9c59978ba03033aad248a1f6b4.1289944160.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1289944159.git.hverkuil@xs4all.nl>
-References: <cover.1289944159.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Tue, 16 Nov 2010 22:56:07 +0100
-Subject: [RFCv2 PATCH 06/15] typhoon: convert to unlocked_ioctl.
-To: linux-media@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>
+	Mon, 15 Nov 2010 07:36:01 -0500
+Subject: Re: Hauppauge WinTV MiniStick IR in 2.6.36 - [PATCH]
+From: Andy Walls <awalls@md.metrocast.net>
+To: Richard Zidlicky <rz@linux-m68k.org>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	stefano.pompa@gmail.com
+In-Reply-To: <20101115112746.GB6607@linux-m68k.org>
+References: <20101115112746.GB6607@linux-m68k.org>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 15 Nov 2010 07:35:06 -0500
+Message-ID: <1289824506.2057.9.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Convert the typhoon driver from ioctl to unlocked_ioctl.
+On Mon, 2010-11-15 at 12:27 +0100, Richard Zidlicky wrote:
+> Hi,
+> 
+> for some users (thats at least one user in Italy and me) the following is required:
+> 
+> --- linux-2.6.36/drivers/media/dvb/siano/sms-cards.c.rz 2010-11-15 11:16:56.000000000 +0100
+> +++ linux-2.6.36/drivers/media/dvb/siano/sms-cards.c    2010-11-15 11:54:25.000000000 +0100
+> @@ -17,6 +17,9 @@
+>   *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+>   */
+>  
+> +//#include <media/ir-kbd-i2c.h>
+> +//#include <media/ir-core.h>
+> +
+>  #include "sms-cards.h"
+>  #include "smsir.h"
+>  
+> @@ -64,7 +67,7 @@
+>                 .type   = SMS_NOVA_B0,
+>                 .fw[DEVICE_MODE_ISDBT_BDA] = "sms1xxx-hcw-55xxx-isdbt-02.fw",
+>                 .fw[DEVICE_MODE_DVBT_BDA] = "sms1xxx-hcw-55xxx-dvbt-02.fw",
+> -               .rc_codes = RC_MAP_RC5_HAUPPAUGE_NEW,
+> +               .rc_codes = RC_MAP_DIB0700_RC5_TABLE,
+>                 .board_cfg.leds_power = 26,
+>                 .board_cfg.led0 = 27,
+>                 .board_cfg.led1 = 28,
+> 
+> What is the way to achieve the effect without recompiling the kernel - is there any?
+> Could we combine the keymaps - as I understand it all RC5 maps could be combined into
+> one huge map without any problems except memory usage?
 
-When doing this I noticed a bug where curfreq was not initialized correctly
-to mutefreq (it wasn't multiplied by 16).
+You apparently can use the keytable program to twiddle sysfs nodes or
+the /dev/input nodes, I think:
 
-The initialization is now also done before the device node is created.
+http://git.linuxtv.org/v4l-utils.git?a=tree;f=utils/keytable;h=e599a8b5288517fc7fe58d96f44f28030b04afbc;hb=HEAD
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/radio/radio-typhoon.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+DocBook documentation source is here:
+ 
+http://git.linuxtv.org/media_tree.git?a=tree;f=Documentation/DocBook/v4l;h=a3e5448a4703ef0bd35fc5910bd990b2a3ca306c;hb=staging/for_v2.6.37-rc1
 
-diff --git a/drivers/media/radio/radio-typhoon.c b/drivers/media/radio/radio-typhoon.c
-index b1f6305..8dbbf08 100644
---- a/drivers/media/radio/radio-typhoon.c
-+++ b/drivers/media/radio/radio-typhoon.c
-@@ -317,7 +317,7 @@ static int vidioc_log_status(struct file *file, void *priv)
- 
- static const struct v4l2_file_operations typhoon_fops = {
- 	.owner		= THIS_MODULE,
--	.ioctl		= video_ioctl2,
-+	.unlocked_ioctl	= video_ioctl2,
- };
- 
- static const struct v4l2_ioctl_ops typhoon_ioctl_ops = {
-@@ -344,18 +344,18 @@ static int __init typhoon_init(void)
- 
- 	strlcpy(v4l2_dev->name, "typhoon", sizeof(v4l2_dev->name));
- 	dev->io = io;
--	dev->curfreq = dev->mutefreq = mutefreq;
- 
- 	if (dev->io == -1) {
- 		v4l2_err(v4l2_dev, "You must set an I/O address with io=0x316 or io=0x336\n");
- 		return -EINVAL;
- 	}
- 
--	if (dev->mutefreq < 87000 || dev->mutefreq > 108500) {
-+	if (mutefreq < 87000 || mutefreq > 108500) {
- 		v4l2_err(v4l2_dev, "You must set a frequency (in kHz) used when muting the card,\n");
- 		v4l2_err(v4l2_dev, "e.g. with \"mutefreq=87500\" (87000 <= mutefreq <= 108500)\n");
- 		return -EINVAL;
- 	}
-+	dev->curfreq = dev->mutefreq = mutefreq << 4;
- 
- 	mutex_init(&dev->lock);
- 	if (!request_region(dev->io, 8, "typhoon")) {
-@@ -378,17 +378,17 @@ static int __init typhoon_init(void)
- 	dev->vdev.ioctl_ops = &typhoon_ioctl_ops;
- 	dev->vdev.release = video_device_release_empty;
- 	video_set_drvdata(&dev->vdev, dev);
-+
-+	/* mute card - prevents noisy bootups */
-+	typhoon_mute(dev);
-+
- 	if (video_register_device(&dev->vdev, VFL_TYPE_RADIO, radio_nr) < 0) {
- 		v4l2_device_unregister(&dev->v4l2_dev);
- 		release_region(dev->io, 8);
- 		return -EINVAL;
- 	}
- 	v4l2_info(v4l2_dev, "port 0x%x.\n", dev->io);
--	v4l2_info(v4l2_dev, "mute frequency is %lu kHz.\n", dev->mutefreq);
--	dev->mutefreq <<= 4;
--
--	/* mute card - prevents noisy bootups */
--	typhoon_mute(dev);
-+	v4l2_info(v4l2_dev, "mute frequency is %lu kHz.\n", mutefreq);
- 
- 	return 0;
- }
--- 
-1.7.0.4
+Human readable documentation is here:
+
+http://linuxtv.org/downloads/v4l-dvb-apis/v4ldvb_common.html
+
+Regards,
+Andy
+
 
