@@ -1,476 +1,66 @@
-Return-path: <mchehab@gaivota>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:25212 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755414Ab0KSP6b (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 10:58:31 -0500
-Date: Fri, 19 Nov 2010 16:58:10 +0100
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Subject: [RFCv6 12/13] mm: cma: Migration support added [wip]
-In-reply-to: <cover.1290172312.git.m.nazarewicz@samsung.com>
-To: mina86@mina86.com
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Bryan Huntsman <bryanh@codeaurora.org>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Johan Mossberg <johan.xx.mossberg@stericsson.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Marcus LORENTZON <marcus.xm.lorentzon@stericsson.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Mel Gorman <mel@csn.ul.ie>, Pawel Osciak <pawel@osciak.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>, dipankar@in.ibm.com,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org
-Message-id: <1e9146802598487745b442efb0b129a417972b3d.1290172312.git.m.nazarewicz@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <cover.1290172312.git.m.nazarewicz@samsung.com>
+Return-path: <mchehab@pedra>
+Received: from mail.perches.com ([173.55.12.10]:1148 "EHLO mail.perches.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932627Ab0KODFd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Nov 2010 22:05:33 -0500
+From: Joe Perches <joe@perches.com>
+To: Jiri Kosina <trivial@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 09/44] drivers/media/video: Remove unnecessary semicolons
+Date: Sun, 14 Nov 2010 19:04:28 -0800
+Message-Id: <d7cec5e05200050ee2c7f624eef8c571193b4d92.1289789604.git.joe@perches.com>
+In-Reply-To: <cover.1289789604.git.joe@perches.com>
+References: <cover.1289789604.git.joe@perches.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-This commits adds cma_early_grab_pageblocks() function as well
-as makes cma_early_region_reserve() function use the former if
-some conditions are met.
-
-Grabbed pageblocks are later given back to page allocator with
-migration type set to MIGRATE_CMA.  This guarantees that only
-movable and reclaimable pages are allocated from those page
-blocks.
-
-* * * THIS COMMIT IS NOT YET FINISHED * * *
-
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 ---
- include/linux/cma.h |   38 +++++++-
- mm/Kconfig          |   15 +++
- mm/cma-best-fit.c   |   12 +++-
- mm/cma.c            |  239 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 299 insertions(+), 5 deletions(-)
+ drivers/media/video/cx88/cx88-blackbird.c  |    2 +-
+ drivers/media/video/davinci/vpfe_capture.c |    2 +-
+ drivers/media/video/em28xx/em28xx-cards.c  |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/cma.h b/include/linux/cma.h
-index 56ed021..6a56e2a 100644
---- a/include/linux/cma.h
-+++ b/include/linux/cma.h
-@@ -310,10 +310,6 @@ struct cma_region {
- 	const char *alloc_name;
- 	void *private_data;
- 
--#ifdef CONFIG_CMA_USE_MIGRATE_CMA
--	unsigned short *isolation_map;
--#endif
--
- 	unsigned users;
- 	struct list_head list;
- 
-@@ -327,7 +323,9 @@ struct cma_region {
- 	unsigned reserved:1;
- 	unsigned copy_name:1;
- 	unsigned free_alloc_name:1;
-+#ifdef CONFIG_CMA_USE_MIGRATE_CMA
- 	unsigned use_isolate:1;
-+#endif
- };
- 
- /**
-@@ -449,6 +447,38 @@ struct cma_allocator {
-  */
- int cma_allocator_register(struct cma_allocator *alloc);
- 
-+/**
-+ * __cma_grab() - migrates all pages from range and reserves them for CMA
-+ * @reg:	Region this call is made in context of.  If the region is
-+ *		not marked needing grabbing the function does nothing.
-+ * @start:	Address in bytes of the first byte to free.
-+ * @size:	Size of the region to free.
-+ *
-+ * This function should be used when allocator wants to allocate some
-+ * physical memory to make sure that it is not used for any movable or
-+ * reclaimable pages (eg. page cache).
-+ *
-+ * In essence, this function migrates all movable and reclaimable
-+ * pages from the range and then removes them from buddy system so
-+ * page allocator won't consider them when allocating space.
-+ *
-+ * The allocator may assume that it is unlikely for this function to fail so
-+ * if it fails allocator should just recover and return error.
-+ */
-+int __cma_grab(struct cma_region *reg, phys_addr_t start, size_t size);
-+
-+/**
-+ * cma_ungrab_range() - frees pages from range back to buddy system.
-+ * @reg:	Region this call is made in context of.  If the region is
-+ *		not marked needing grabbing the function does nothing.
-+ * @start:	Address in bytes of the first byte to free.
-+ * @size:	Size of the region to free.
-+ *
-+ * This is reverse of cma_grab_range().  Allocator should use it when
-+ * physical memory is no longer used.
-+ */
-+void __cma_ungrab(struct cma_region *reg, phys_addr_t start, size_t size);
-+
- 
- /**************************** Initialisation API ****************************/
- 
-diff --git a/mm/Kconfig b/mm/Kconfig
-index 4aee3c5..80fd6bd 100644
---- a/mm/Kconfig
-+++ b/mm/Kconfig
-@@ -363,6 +363,21 @@ config CMA
- 	  For more information see <Documentation/contiguous-memory.txt>.
- 	  If unsure, say "n".
- 
-+config CMA_USE_MIGRATE_CMA
-+	bool "Use MIGRATE_CMA"
-+	depends on CMA
-+	default y
-+	select MIGRATION
-+	select MIGRATE_CMA
-+	help
-+	  This makes CMA use MIGRATE_CMA migration type for regions
-+	  maintained by CMA.  This makes it possible for standard page
-+	  allocator to use pages from such regions.  This in turn may
-+	  make the whole system run faster as there will be more space
-+	  for page caches, etc.
-+
-+	  If unsure, say "y".
-+
- config CMA_DEVELOPEMENT
- 	bool "Include CMA developement features"
- 	depends on CMA
-diff --git a/mm/cma-best-fit.c b/mm/cma-best-fit.c
-index 5ed1168..15f4206 100644
---- a/mm/cma-best-fit.c
-+++ b/mm/cma-best-fit.c
-@@ -145,6 +145,8 @@ static void cma_bf_cleanup(struct cma_region *reg)
- 	kfree(prv);
- }
- 
-+static void __cma_bf_free(struct cma_region *reg, union cma_bf_item *chunk);
-+
- struct cma *cma_bf_alloc(struct cma_region *reg,
- 			 size_t size, unsigned long alignment)
- {
-@@ -281,10 +283,17 @@ case_2:
- 
- 	item->chunk.phys = start;
- 	item->chunk.size = size;
-+
-+	ret = __cma_grab(reg, start, size);
-+	if (ret) {
-+		__cma_bf_free(reg, item);
-+		return ERR_PTR(ret);
-+	}
-+
- 	return &item->chunk;
- }
- 
--static void cma_bf_free(struct cma_chunk *chunk)
-+static void __cma_bf_free(struct cma_region *reg, union cma_bf_item *item)
- {
- 	struct cma_bf_private *prv = reg->private_data;
- 	union cma_bf_item *prev;
-@@ -350,6 +359,7 @@ next:
+diff --git a/drivers/media/video/cx88/cx88-blackbird.c b/drivers/media/video/cx88/cx88-blackbird.c
+index 417d1d5..14b2546 100644
+--- a/drivers/media/video/cx88/cx88-blackbird.c
++++ b/drivers/media/video/cx88/cx88-blackbird.c
+@@ -1065,7 +1065,7 @@ static int mpeg_open(struct file *file)
+ 		err = drv->request_acquire(drv);
+ 		if(err != 0) {
+ 			dprintk(1,"%s: Unable to acquire hardware, %d\n", __func__, err);
+-			mutex_unlock(&dev->core->lock);;
++			mutex_unlock(&dev->core->lock);
+ 			return err;
+ 		}
  	}
- }
+diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
+index d8e38cc..14f3d54 100644
+--- a/drivers/media/video/davinci/vpfe_capture.c
++++ b/drivers/media/video/davinci/vpfe_capture.c
+@@ -1276,7 +1276,7 @@ static int vpfe_videobuf_prepare(struct videobuf_queue *vq,
+ 		vb->size = vpfe_dev->fmt.fmt.pix.sizeimage;
+ 		vb->field = field;
  
-+static void cma_bf_free(struct cma *chunk)
- {
- 	__cma_ungrab(chunk->reg, chunk->phys, chunk->size);
- 	__cma_bf_free(chunk->reg, 
-diff --git a/mm/cma.c b/mm/cma.c
-index dfdeeb7..510181a 100644
---- a/mm/cma.c
-+++ b/mm/cma.c
-@@ -39,6 +39,13 @@
+-		ret = videobuf_iolock(vq, vb, NULL);;
++		ret = videobuf_iolock(vq, vb, NULL);
+ 		if (ret < 0)
+ 			return ret;
  
- #include <linux/cma.h>
- 
-+#ifdef CONFIG_CMA_USE_MIGRATE_CMA
-+#include <linux/page-isolation.h>
-+
-+#include <asm/page.h>
-+
-+#include "internal.h"          /* __free_pageblock_cma() */
-+#endif
- 
- /*
-  * Protects cma_regions, cma_allocators, cma_map, cma_map_length,
-@@ -410,6 +417,222 @@ __cma_early_reserve(struct cma_region *reg)
- 	return tried ? -ENOMEM : -EOPNOTSUPP;
- }
- 
-+#ifdef CONFIG_CMA_USE_MIGRATE_CMA
-+
-+static struct cma_grabbed_early {
-+	phys_addr_t start;
-+	size_t size;
-+} cma_grabbed_early[16] __initdata;
-+static unsigned cma_grabbed_early_count __initdata;
-+
-+/* XXX Revisit */
-+#ifdef phys_to_pfn
-+/* nothing to do */
-+#elif defined __phys_to_pfn
-+#  define phys_to_pfn __phys_to_pfn
-+#else
-+#  warning correct phys_to_pfn implementation needed
-+static unsigned long phys_to_pfn(phys_addr_t phys)
-+{
-+	return virt_to_pfn(phys_to_virt(phys));
-+}
-+#endif
-+
-+static unsigned long pfn_to_maxpage(unsigned long pfn)
-+{
-+	return pfn & ~(MAX_ORDER_NR_PAGES - 1);
-+}
-+
-+static unsigned long pfn_to_maxpage_up(unsigned long pfn)
-+{
-+	return ALIGN(pfn, MAX_ORDER_NR_PAGES);
-+}
-+
-+static int __init cma_free_grabbed(void)
-+{
-+	struct cma_grabbed_early *r = cma_grabbed_early;
-+	unsigned i = cma_grabbed_early_count;
-+
-+	for (; i; --i, ++r) {
-+		struct page *p = phys_to_page(r->start);
-+		unsigned j = r->size >> (PAGE_SHIFT + pageblock_order);
-+
-+		pr_debug("feeding buddy with: %p + %u * %luM\n",
-+			 (void *)r->start,
-+			 j, 1ul << (PAGE_SHIFT + pageblock_order - 20));
-+
-+		do {
-+			__free_pageblock_cma(p);
-+			p += pageblock_nr_pages;
-+		} while (--j);
-+	}
-+
-+	return 0;
-+}
-+module_init(cma_free_grabbed);
-+
-+static phys_addr_t
-+__cma_early_region_reserve_try_migrate_cma(struct cma_region *reg)
-+{
-+	int ret;
-+
-+	if (((reg->start | reg->size) & ((PAGE_SIZE << MAX_ORDER) - 1)))
-+		return -EOPNOTSUPP;
-+
-+	/*
-+	 * XXX Revisit: Do we need to check if the region is
-+	 * consistent?  For instance, are all pages valid and part of
-+	 * the same zone?
-+	 */
-+
-+	if (cma_grabbed_early_count >= ARRAY_SIZE(cma_grabbed_early)) {
-+		static bool once = true;
-+		if (once) {
-+			pr_warn("grabbed too many ranges, not all will be MIGRATE_CMA");
-+			once = false;
-+		}
-+		return -EOPNOTSUPP;
-+	}
-+
-+	pr_debug("init: reserving region as MIGRATE_CMA\n");
-+
-+	reg->alignment = max(reg->alignment,
-+			     (unsigned long)PAGE_SHIFT << MAX_ORDER);
-+
-+	ret = __cma_early_reserve(reg);
-+	if (ret)
-+		return ret;
-+
-+	cma_grabbed_early[cma_grabbed_early_count].start = reg->start;
-+	cma_grabbed_early[cma_grabbed_early_count].size  = reg->size;
-+	++cma_grabbed_early_count;
-+
-+	reg->use_isolate = 1;
-+
-+	return 0;
-+}
-+
-+int __cma_grab(struct cma_region *reg, phys_addr_t start_addr, size_t size)
-+{
-+	unsigned long start, end, _start, _end;
-+	int ret;
-+
-+	if (!reg->use_isolate)
-+		return 0;
-+
-+	pr_debug("%s\n", __func__);
-+
-+	/*
-+	 * What we do here is we mark all pageblocks in range as
-+	 * MIGRATE_ISOLATE.  Because of the way page allocator work, we
-+	 * align the range to MAX_ORDER pages so that page allocator
-+	 * won't try to merge buddies from different pageblocks and
-+	 * change MIGRATE_ISOLATE to some other migration type.
-+	 *
-+	 * Once the pageblocks are marked as MIGRATE_ISOLATE, we
-+	 * migrate the pages from an unaligned range (ie. pages that
-+	 * we are interested in).  This will put all the pages in
-+	 * range back to page allocator as MIGRATE_ISOLATE.
-+	 *
-+	 * When this is done, we take the pages in range from page
-+	 * allocator removing them from the buddy system.  This way
-+	 * page allocator will never consider using them.
-+	 *
-+	 * This lets us mark the pageblocks back as MIGRATE_CMA so
-+	 * that free pages in the MAX_ORDER aligned range but not in
-+	 * the unaligned, original range are put back to page
-+	 * allocator so that buddy can use them.
-+	 */
-+
-+	start = phys_to_pfn(start_addr);
-+	end   = start + (size >> PAGE_SHIFT);
-+
-+	pr_debug("\tisolate range(%lx, %lx)\n",
-+		 pfn_to_maxpage(start), pfn_to_maxpage_up(end));
-+	ret = __start_isolate_page_range(pfn_to_maxpage(start),
-+					 pfn_to_maxpage_up(end), MIGRATE_CMA);
-+	if (ret)
-+		goto done;
-+
-+	pr_debug("\tmigrate range(%lx, %lx)\n", start, end);
-+	ret = do_migrate_range(start, end);
-+	if (ret)
-+		goto done;
-+
-+	/*
-+	 * Pages from [start, end) are within a MAX_ORDER aligned
-+	 * blocks that are marked as MIGRATE_ISOLATE.  What's more,
-+	 * all pages in [start, end) are free in page allocator.  What
-+	 * we are going to do is to allocate all pages from [start,
-+	 * end) (that is remove them from page allocater).
-+	 *
-+	 * The only problem is that pages at the beginning and at the
-+	 * end of interesting range may be not aligned with pages that
-+	 * page allocator holds, ie. they can be part of higher order
-+	 * pages.  Because of this, we reserve the bigger range and
-+	 * once this is done free the pages we are not interested in.
-+	 */
-+
-+	pr_debug("\tfinding buddy\n");
-+	ret = 0;
-+	while (!PageBuddy(pfn_to_page(start & (~0UL << ret))))
-+		if (WARN_ON(++ret > MAX_ORDER))
-+			return -EINVAL;
-+
-+	_start = start & (~0UL << ret);
-+	pr_debug("\talloc freed(%lx, %lx)\n", _start, end);
-+	_end   = alloc_contig_freed_pages(_start, end, 0);
-+
-+	/* Free head and tail (if any) */
-+	pr_debug("\tfree contig(%lx, %lx)\n", _start, start);
-+	free_contig_pages(pfn_to_page(_start), start - _start);
-+	pr_debug("\tfree contig(%lx, %lx)\n", end, _end);
-+	free_contig_pages(pfn_to_page(end), _end - end);
-+
-+	ret = 0;
-+
-+done:
-+	pr_debug("\tundo isolate range(%lx, %lx)\n",
-+		 pfn_to_maxpage(start), pfn_to_maxpage_up(end));
-+	__undo_isolate_page_range(pfn_to_maxpage(start),
-+				  pfn_to_maxpage_up(end), MIGRATE_CMA);
-+
-+	pr_debug("ret = %d\n", ret);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(__cma_grab);
-+
-+void __cma_ungrab(struct cma_region *reg, phys_addr_t start, size_t size)
-+{
-+	if (reg->use_isolate)
-+		free_contig_pages(pfn_to_page(phys_to_pfn(start)),
-+				  size >> PAGE_SHIFT);
-+}
-+EXPORT_SYMBOL_GPL(__cma_ungrab);
-+
-+#else
-+
-+static inline phys_addr_t
-+__cma_early_region_reserve_try_migrate_cma(struct cma_region *reg)
-+{
-+	return -EOPNOTSUPP;
-+}
-+
-+int __cma_grab(struct cma_region *reg, phys_addr_t start, size_t size)
-+{
-+	(void)reg; (void)start; (void)size;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(__cma_grab);
-+
-+void __cma_ungrab(struct cma_region *reg, phys_addr_t start, size_t size)
-+{
-+	(void)reg; (void)start; (void)size;
-+}
-+EXPORT_SYMBOL_GPL(__cma_ungrab);
-+
-+#endif
-+
- int __init cma_early_region_reserve(struct cma_region *reg)
- {
- 	int ret;
-@@ -420,6 +643,13 @@ int __init cma_early_region_reserve(struct cma_region *reg)
- 	    reg->reserved)
- 		return -EINVAL;
- 
-+	/*
-+	 * Try using cma_early_grab_maxpages() if the requested
-+	 * region's start is aligned to PAGE_SIZE << MAX_ORDER and
-+	 * its size is PAGE_SIZE << MAX_ORDER multiple.
-+	 */
-+	ret = __cma_early_region_reserve_try_migrate_cma(reg);
-+	if (ret ==-EOPNOTSUPP)
- 	ret = __cma_early_reserve(reg);
- 	if (!ret)
- 		reg->reserved = 1;
-@@ -1393,6 +1623,7 @@ struct cma *cma_gen_alloc(struct cma_region *reg,
- {
- 	unsigned long start;
- 	struct cma *chunk;
-+	int ret;
- 
- 	chunk = kmalloc(sizeof *chunk, GFP_KERNEL);
- 	if (unlikely(!chunk))
-@@ -1405,6 +1636,13 @@ struct cma *cma_gen_alloc(struct cma_region *reg,
- 		return ERR_PTR(-ENOMEM);
- 	}
- 
-+	ret = __cma_grab(reg, start, size);
-+	if (ret) {
-+		gen_pool_free(reg->private_data, start, size);
-+		kfree(chunk);
-+		return ERR_PTR(ret);
-+	}
-+
- 	chunk->phys = start;
- 	chunk->size = size;
- 	return chunk;
-@@ -1413,6 +1651,7 @@ struct cma *cma_gen_alloc(struct cma_region *reg,
- static void cma_gen_free(struct cma *chunk)
- {
- 	gen_pool_free(chunk->reg->private_data, chunk->phys, chunk->size);
-+	__cma_ungrab(chunk->reg, chunk->phys, chunk->size);
- 	kfree(chunk);
- }
- 
+diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
+index 5485923..7aee7f0 100644
+--- a/drivers/media/video/em28xx/em28xx-cards.c
++++ b/drivers/media/video/em28xx/em28xx-cards.c
+@@ -2408,7 +2408,7 @@ void em28xx_register_i2c_ir(struct em28xx *dev)
+ 		dev->init_data.get_key = em28xx_get_key_em_haup;
+ 		dev->init_data.name = "i2c IR (EM2840 Hauppauge)";
+ 	case EM2820_BOARD_LEADTEK_WINFAST_USBII_DELUXE:
+-		dev->init_data.ir_codes = RC_MAP_WINFAST_USBII_DELUXE;;
++		dev->init_data.ir_codes = RC_MAP_WINFAST_USBII_DELUXE;
+ 		dev->init_data.get_key = em28xx_get_key_winfast_usbii_deluxe;
+ 		dev->init_data.name = "i2c IR (EM2820 Winfast TV USBII Deluxe)";
+ 		break;
 -- 
-1.7.2.3
+1.7.3.1.g432b3.dirty
 
