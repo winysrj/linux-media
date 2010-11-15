@@ -1,82 +1,42 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1616 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933626Ab0KQMpG (ORCPT
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:57007 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932456Ab0KOCav (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Nov 2010 07:45:06 -0500
-Message-ID: <79f17a04986247b4ac5806e708f3d2d5.squirrel@webmail.xs4all.nl>
-In-Reply-To: <201011171337.35663.laurent.pinchart@ideasonboard.com>
-References: <1289939083-27209-1-git-send-email-achew@nvidia.com>
-    <643E69AA4436674C8F39DCC2C05F763816BB828A40@HQMAIL03.nvidia.com>
-    <201011170811.06697.hverkuil@xs4all.nl>
-    <201011171337.35663.laurent.pinchart@ideasonboard.com>
-Date: Wed, 17 Nov 2010 13:44:57 +0100
-Subject: Re: [PATCH 1/1] videobuf: Initialize lists in videobuf_buffer.
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
-Cc: "Andrew Chew" <achew@nvidia.com>,
-	"'Figo.zhang'" <zhangtianfei@leadcoretech.com>,
-	"pawel@osciak.com" <pawel@osciak.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Sun, 14 Nov 2010 21:30:51 -0500
+Received: by mail-qw0-f46.google.com with SMTP id 4so123404qwi.19
+        for <linux-media@vger.kernel.org>; Sun, 14 Nov 2010 18:30:50 -0800 (PST)
+Subject: Re: [PATCH 3/3] [media] rc: Remove ir-common module
+Mime-Version: 1.0 (Apple Message framework v1081)
+Content-Type: text/plain; charset=us-ascii
+From: Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <20101113173319.53942066@pedra>
+Date: Sun, 14 Nov 2010 21:30:49 -0500
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Message-Id: <9F650ECB-29D3-48A4-A436-7FF79864238E@wilsonet.com>
+References: <cover.1289676395.git.mchehab@redhat.com> <20101113173319.53942066@pedra>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+On Nov 13, 2010, at 2:33 PM, Mauro Carvalho Chehab wrote:
 
-> Hi Hans,
->
-> On Wednesday 17 November 2010 08:11:06 Hans Verkuil wrote:
->> On Wednesday, November 17, 2010 02:38:09 Andrew Chew wrote:
->> > > > diff --git a/drivers/media/video/videobuf-dma-contig.c
->> > >
->> > > b/drivers/media/video/videobuf-dma-contig.c
->> > >
->> > > > index c969111..f7e0f86 100644
->> > > > --- a/drivers/media/video/videobuf-dma-contig.c
->> > > > +++ b/drivers/media/video/videobuf-dma-contig.c
->> > > > @@ -193,6 +193,8 @@ static struct videobuf_buffer
->> > >
->> > > *__videobuf_alloc_vb(size_t size)
->> > >
->> > > >   	if (vb) {
->> > > >
->> > > >   		mem = vb->priv = ((char *)vb) + size;
->> > > >   		mem->magic = MAGIC_DC_MEM;
->> > > >
->> > > > +		INIT_LIST_HEAD(&vb->stream);
->> > > > +		INIT_LIST_HEAD(&vb->queue);
->> > >
->> > > i think it no need to be init, it just a list-entry.
->> >
->> > Okay, if that's really the case, then sh_mobile_ceu_camera.c,
->> > pxa_camera.c, mx1_camera.c, mx2_camera.c, and omap1_camera.c needs to
->> be
->> > fixed to remove that WARN_ON(!list_empty(&vb->queue)); in their
->> > videobuf_prepare() methods, because those WARN_ON's are assuming that
->> > vb->queue is properly initialized as a list head.
->> >
->> > Which will it be?
->>
->> These list entries need to be inited. It is bad form to have
->> uninitialized
->> list entries. It is not as if this is a big deal to initialize them
->> properly.
->
-> I disagree with that. List heads must be initialized, but there's no point
-> in
-> initializing list entries.
+> Now, just one old bttv board uses the old RC5 raw decoding routines.
+> Its conversion to rc-core requires the generation of IRQ data for both
+> positive and negative transitions at the IRQ line. I'm not sure if
+> bttv driver supports it or if the transitions will be reliable enough.
+> So, due to the lack of hardware for testing, the better for now is to
+> just move the legacy routines to bttv driver, and wait for someone with
+> a Nebula Digi could help to port it to use also rc-core raw decoders.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-You are right. I got confused due to some problems I had in the past in
-another driver, but it turned out to be a list header that caused the
-problems, not a list entry. So removing the bogus WARN_ONs is sufficient.
-
-Regards,
-
-       Hans
+Acked-by: Jarod Wilson <jarod@redhat.com>
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Jarod Wilson
+jarod@wilsonet.com
+
+
 
