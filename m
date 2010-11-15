@@ -1,90 +1,52 @@
-Return-path: <mchehab@gaivota>
-Received: from bear.ext.ti.com ([192.94.94.41]:34964 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756840Ab0KSXYA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 18:24:00 -0500
-From: Sergio Aguirre <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
-Subject: [omap3isp RFC][PATCH 3/4] omap3isp: sbl: Abstract SBL busy check
-Date: Fri, 19 Nov 2010 17:23:50 -0600
-Message-Id: <1290209031-12817-4-git-send-email-saaguirre@ti.com>
-In-Reply-To: <1290209031-12817-1-git-send-email-saaguirre@ti.com>
-References: <1290209031-12817-1-git-send-email-saaguirre@ti.com>
+Return-path: <mchehab@pedra>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51566 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753108Ab0KOKuP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Nov 2010 05:50:15 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sergio Aguirre <saaguirre@ti.com>
+Subject: Re: [omap3isp RFC][PATCH 00/10] YUV support for CCDC + cleanups
+Date: Mon, 15 Nov 2010 11:50:22 +0100
+Cc: linux-media@vger.kernel.org
+References: <1289596693-27660-1-git-send-email-saaguirre@ti.com>
+In-Reply-To: <1289596693-27660-1-git-send-email-saaguirre@ti.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201011151150.22845.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Make a nicer interface that can be used by anyone accessing the isp.
+Hi Sergio,
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
----
- drivers/media/video/isp/isp.c     |   17 +++++++++++++++++
- drivers/media/video/isp/isp.h     |    2 ++
- drivers/media/video/isp/ispccdc.c |   10 +---------
- 3 files changed, 20 insertions(+), 9 deletions(-)
+Thanks for the patches !
 
-diff --git a/drivers/media/video/isp/isp.c b/drivers/media/video/isp/isp.c
-index ee45eb6..9db2145 100644
---- a/drivers/media/video/isp/isp.c
-+++ b/drivers/media/video/isp/isp.c
-@@ -362,6 +362,23 @@ int ispccdc_lsc_wait_prefetch(struct isp_device *isp)
- 	return -ETIMEDOUT;
- }
- 
-+int isp_sbl_busy(struct isp_device *isp, enum isp_sbl_resource res)
-+{
-+	int ret = 0;
-+
-+	if (res & OMAP3_ISP_SBL_CCDC_WRITE) {
-+		ret |= (isp_reg_readl(isp, OMAP3_ISP_IOMEM_SBL, ISPSBL_CCDC_WR_0) &
-+			ISPSBL_CCDC_WR_0_DATA_READY)
-+		     | (isp_reg_readl(isp, OMAP3_ISP_IOMEM_SBL, ISPSBL_CCDC_WR_1) &
-+			ISPSBL_CCDC_WR_0_DATA_READY)
-+		     | (isp_reg_readl(isp, OMAP3_ISP_IOMEM_SBL, ISPSBL_CCDC_WR_2) &
-+			ISPSBL_CCDC_WR_0_DATA_READY)
-+		     | (isp_reg_readl(isp, OMAP3_ISP_IOMEM_SBL, ISPSBL_CCDC_WR_3) &
-+			ISPSBL_CCDC_WR_0_DATA_READY);
-+	}
-+
-+	return ret;
-+}
- 
- static inline void isp_isr_dbg(struct isp_device *isp, u32 irqstatus)
- {
-diff --git a/drivers/media/video/isp/isp.h b/drivers/media/video/isp/isp.h
-index d0b7b0f..1948e23 100644
---- a/drivers/media/video/isp/isp.h
-+++ b/drivers/media/video/isp/isp.h
-@@ -282,6 +282,8 @@ void isphist_dma_done(struct isp_device *isp);
- 
- int ispccdc_lsc_wait_prefetch(struct isp_device *isp);
- 
-+int isp_sbl_busy(struct isp_device *isp, enum isp_sbl_resource res);
-+
- void isp_flush(struct isp_device *isp);
- 
- int isp_pipeline_set_stream(struct isp_pipeline *pipe,
-diff --git a/drivers/media/video/isp/ispccdc.c b/drivers/media/video/isp/ispccdc.c
-index b039bce..9220d09 100644
---- a/drivers/media/video/isp/ispccdc.c
-+++ b/drivers/media/video/isp/ispccdc.c
-@@ -1217,15 +1217,7 @@ static int ispccdc_sbl_busy(struct isp_ccdc_device *ccdc)
- {
- 	struct isp_device *isp = to_isp_device(ccdc);
- 
--	return ispccdc_busy(ccdc)
--		| (isp_reg_readl(isp, OMAP3_ISP_IOMEM_SBL, ISPSBL_CCDC_WR_0) &
--		   ISPSBL_CCDC_WR_0_DATA_READY)
--		| (isp_reg_readl(isp, OMAP3_ISP_IOMEM_SBL, ISPSBL_CCDC_WR_1) &
--		   ISPSBL_CCDC_WR_0_DATA_READY)
--		| (isp_reg_readl(isp, OMAP3_ISP_IOMEM_SBL, ISPSBL_CCDC_WR_2) &
--		   ISPSBL_CCDC_WR_0_DATA_READY)
--		| (isp_reg_readl(isp, OMAP3_ISP_IOMEM_SBL, ISPSBL_CCDC_WR_3) &
--		   ISPSBL_CCDC_WR_0_DATA_READY);
-+	return ispccdc_busy(ccdc) | isp_sbl_busy(isp, OMAP3_ISP_SBL_CCDC_WRITE);
- }
- 
- /*
+On Friday 12 November 2010 22:18:03 Sergio Aguirre wrote:
+> Hi,
+> 
+> First of all, these patches are based on Laurent's tree:
+> 
+> URL: git://linuxtv.org/pinchartl/media.git
+> Branch: media-0004-omap3isp (Commit d0c5b0e4: OMAP3 ISP driver)
+> 
+> I had these patches in my queue for some time, which:
+> 
+> - Add YUV support to CCDC
+> - Cleans up platform device MEM resources
+> - Removes some unused/legacy defines
+> - IMPORTANT: Moves/Renames isp_user.h to include/linux/omap3isp.h
+> 
+> I'm working on some more changes to keep register access per component
+> a bit cleaner. But that will be sent separately in another RFC patchlist.
+> 
+> Please share your review comments.
+
+Apart from one minor comment on patch 02/10, this set looks fine to me. Could 
+you please resend it with patches 01/10 and 02/10 squashed ?
+
 -- 
-1.7.0.4
+Regards,
 
+Laurent Pinchart
