@@ -1,56 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.1.48]:37651 "EHLO mgw-sa02.nokia.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:38534 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757434Ab0KPNf2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Nov 2010 08:35:28 -0500
-Subject: [GIT PULL REQUEST v2.]  WL1273 FM Radio driver.
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Reply-To: matti.j.aaltonen@nokia.com
-To: mchehab@redhat.com
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-In-Reply-To: <1289833803.5350.67.camel@masi.mnp.nokia.com>
-References: <E1P9THI-0003aa-4H@www.linuxtv.org>
-	 <1289833803.5350.67.camel@masi.mnp.nokia.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 16 Nov 2010 15:35:13 +0200
-Message-ID: <1289914513.5350.72.camel@masi.mnp.nokia.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	id S1756055Ab0KOOaB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Nov 2010 09:30:01 -0500
+From: Sergio Aguirre <saaguirre@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
+Subject: [omap3isp][PATCH v2 2/9] omap3: Fix camera resources for multiomap
+Date: Mon, 15 Nov 2010 08:29:54 -0600
+Message-Id: <1289831401-593-3-git-send-email-saaguirre@ti.com>
+In-Reply-To: <1289831401-593-1-git-send-email-saaguirre@ti.com>
+References: <1289831401-593-1-git-send-email-saaguirre@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi.
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ arch/arm/mach-omap2/devices.c |   27 ++++++++++++---------------
+ 1 files changed, 12 insertions(+), 15 deletions(-)
 
-The radio pull request, now using http protocol.
-
-The following changes since commit
-f6614b7bb405a9b35dd28baea989a749492c46b2:
-  Linus Torvalds (1):
-        Merge git://git.kernel.org/.../sfrench/cifs-2.6
-
-are available in the git repository at:
-
-  http://git.gitorious.org/wl1273-fm-driver/wl1273-fm-driver.git master
-
-Matti J. Aaltonen (2):
-      MFD: WL1273 FM Radio: MFD driver for the FM radio.
-      V4L2: WL1273 FM Radio: Controls for the FM radio.
-
- drivers/media/radio/Kconfig        |   16 +
- drivers/media/radio/Makefile       |    1 +
- drivers/media/radio/radio-wl1273.c | 1841
-++++++++++++++++++++++++++++++++++++
- drivers/mfd/Kconfig                |    6 +
- drivers/mfd/Makefile               |    1 +
- drivers/mfd/wl1273-core.c          |  617 ++++++++++++
- include/linux/mfd/wl1273-core.h    |  330 +++++++
- 7 files changed, 2812 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/radio/radio-wl1273.c
- create mode 100644 drivers/mfd/wl1273-core.c
- create mode 100644 include/linux/mfd/wl1273-core.h
-
-
-B.R.
-Matti A.
-
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index c2275d3..c9fc732 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -38,7 +38,7 @@
+ 
+ #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
+ 
+-static struct resource cam_resources[] = {
++static struct resource omap2cam_resources[] = {
+ 	{
+ 		.start		= OMAP24XX_CAMERA_BASE,
+ 		.end		= OMAP24XX_CAMERA_BASE + 0xfff,
+@@ -50,19 +50,15 @@ static struct resource cam_resources[] = {
+ 	}
+ };
+ 
+-static struct platform_device omap_cam_device = {
++static struct platform_device omap2cam_device = {
+ 	.name		= "omap24xxcam",
+ 	.id		= -1,
+-	.num_resources	= ARRAY_SIZE(cam_resources),
+-	.resource	= cam_resources,
++	.num_resources	= ARRAY_SIZE(omap2cam_resources),
++	.resource	= omap2cam_resources,
+ };
++#endif
+ 
+-static inline void omap_init_camera(void)
+-{
+-	platform_device_register(&omap_cam_device);
+-}
+-
+-#elif defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
++#if defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
+ 
+ static struct resource omap3isp_resources[] = {
+ 	{
+@@ -165,15 +161,16 @@ struct platform_device omap3isp_device = {
+ 	},
+ };
+ EXPORT_SYMBOL_GPL(omap3isp_device);
++#endif
+ 
+ static inline void omap_init_camera(void)
+ {
+-}
+-#else
+-static inline void omap_init_camera(void)
+-{
+-}
++#if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
++	if (cpu_is_omap24xx())
++		platform_device_register(&omap2cam_device);
+ #endif
++}
++
+ 
+ #if defined(CONFIG_OMAP_MBOX_FWK) || defined(CONFIG_OMAP_MBOX_FWK_MODULE)
+ 
+-- 
+1.7.0.4
 
