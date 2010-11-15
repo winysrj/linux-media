@@ -1,63 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:43650 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753419Ab0KOJjO (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:58724 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751016Ab0KOJSD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Nov 2010 04:39:14 -0500
-Received: by ywc21 with SMTP id 21so1577050ywc.19
-        for <linux-media@vger.kernel.org>; Mon, 15 Nov 2010 01:39:14 -0800 (PST)
+	Mon, 15 Nov 2010 04:18:03 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC PATCH 0/8] V4L BKL removal: first round
+Date: Mon, 15 Nov 2010 10:17:41 +0100
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <cover.1289740431.git.hverkuil@xs4all.nl> <201011142253.29768.arnd@arndb.de> <201011142348.51859.hverkuil@xs4all.nl>
+In-Reply-To: <201011142348.51859.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <4CE05F77.3080703@gmail.com>
-References: <AANLkTimOyNpAatcZb775PPK3uEOXDKXW6-J0kMGis41f@mail.gmail.com>
-	<1289684029.2426.65.camel@localhost>
-	<AANLkTim+OFLOH=dRERzkHOqtC9dLqJsR2Qy2nb+K9KHx@mail.gmail.com>
-	<1289736763.2431.10.camel@localhost>
-	<4CE05F77.3080703@gmail.com>
-Date: Mon, 15 Nov 2010 20:39:14 +1100
-Message-ID: <AANLkTinT=Rm1GgnTssGHnV-xqX4qvxORKEBzPP7fRDSb@mail.gmail.com>
-Subject: Re: new_build on ubuntu (dvbdev.c)
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: Mauro Carvalho Chehab <maurochehab@gmail.com>
-Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201011151017.41453.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 11/15/10, Mauro Carvalho Chehab <maurochehab@gmail.com> wrote:
-...
-> I've added several patches for the new-build today, in order to make it
-> compile
-> against older kernels. I tested compilation here with both RHEL6 (2.6.32)
-> and
-> Fedora 14 (2.6.35) and compilation is working fine. Didn't test the drivers.
-> I'm not sure if the remote controller will properly work with my quick
-> backport.
+On Sunday 14 November 2010 23:48:51 Hans Verkuil wrote:
+> On Sunday, November 14, 2010 22:53:29 Arnd Bergmann wrote:
+> > On Sunday 14 November 2010, Hans Verkuil wrote:
+> > > This patch series converts 24 v4l drivers to unlocked_ioctl. These are low
+> > > hanging fruit but you have to start somewhere :-)
+> > > 
+> > > The first patch replaces mutex_lock in the V4L2 core by mutex_lock_interruptible
+> > > for most fops.
+> > 
+> > The patches all look good as far as I can tell, but I suppose the title is
+> > obsolete now that the BKL has been replaced with a v4l-wide mutex, which
+> > is what you are removing in the series.
+> 
+> I guess I have to rename it, even though strictly speaking the branch I'm
+> working in doesn't have your patch merged yet.
+> 
+> BTW, replacing the BKL with a static mutex is rather scary: the BKL gives up
+> the lock whenever you sleep, the mutex doesn't. Since sleeping is very common
+> in V4L (calling VIDIOC_DQBUF will typically sleep while waiting for a new frame
+> to arrive), this will make it impossible for another process to access any
+> v4l2 device node while the ioctl is sleeping.
+> 
+> I am not sure whether that is what you intended. Or am I missing something?
 
-Thanks  for those changes. The build completes now, with only three warnings.
-I do have to say CONFIG_DVB_FIREDTV=n, it appears still to be a
-problem on ubuntu.
+I was aware that something like this could happen, but I apparently
+misjudged how big the impact is. The general pattern for ioctls is that
+those that get called frequently do not sleep, so it can almost always be
+called with a mutex held.
 
->>> First dumb question - (I'll try to minimise these)
->>>
-...
-> The patches generally reverse-apply some upstream change. Andy's approach
-> could be done via compat.h. I opted to just backport the upstream patch.
->
-> Anyway, there were other problems on it, due to other API changes, and to
-> the move of the rc-core from .../IR to .../rc directory.
->
-> I opted to simplify the backports, avoiding to duplicate the same patch on
-> several different directories.
->
-
-I see that now, after some quality time in the backports directory. It
-does look simpler.
-
-I think my original problem was that somehow the patch in the
-2.6.32_series to remove references to noop_llseek() was not applying
-cleanly. No idea why, I flushed the logs I kept.
-
-Thanks all, I'll give the new build a test run as soon as I get a chance.
-
-Cheers
-Vince
+	Arnd
