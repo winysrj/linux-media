@@ -1,40 +1,38 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:37704 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753056Ab0KFTEp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Nov 2010 15:04:45 -0400
-Received: by qyk10 with SMTP id 10so3779968qyk.19
-        for <linux-media@vger.kernel.org>; Sat, 06 Nov 2010 12:04:45 -0700 (PDT)
-MIME-Version: 1.0
-Date: Sat, 6 Nov 2010 22:34:44 +0330
-Message-ID: <AANLkTim9kkFuORZHwtC+Wd2BN8HJRxCtEr+2zP5P9cx3@mail.gmail.com>
-Subject: Analog TV shoow has not sound
-From: dehqan65 <dehqan65@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <mchehab@pedra>
+Received: from mail.perches.com ([173.55.12.10]:1337 "EHLO mail.perches.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933649Ab0KOUOI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Nov 2010 15:14:08 -0500
+From: Joe Perches <joe@perches.com>
+To: Jiri Kosina <trivial@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 03/11] drivers/media/dvb/ngene/ngene-core.c: Remove unnecessary casts of pci_get_drvdata
+Date: Mon, 15 Nov 2010 12:13:54 -0800
+Message-Id: <374f6c46109836f43924f89b404ce423d63fed6c.1289851770.git.joe@perches.com>
+In-Reply-To: <cover.1289851770.git.joe@perches.com>
+References: <cover.1289851770.git.joe@perches.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-In The Name Of God The compassionate merciful
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/media/dvb/ngene/ngene-core.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
+diff --git a/drivers/media/dvb/ngene/ngene-core.c b/drivers/media/dvb/ngene/ngene-core.c
+index 4caeb16..1999e35 100644
+--- a/drivers/media/dvb/ngene/ngene-core.c
++++ b/drivers/media/dvb/ngene/ngene-core.c
+@@ -1516,7 +1516,7 @@ static int init_channels(struct ngene *dev)
+ 
+ void __devexit ngene_remove(struct pci_dev *pdev)
+ {
+-	struct ngene *dev = (struct ngene *)pci_get_drvdata(pdev);
++	struct ngene *dev = pci_get_drvdata(pdev);
+ 	int i;
+ 
+ 	tasklet_kill(&dev->event_tasklet);
+-- 
+1.7.3.1.g432b3.dirty
 
-Hello ;
-Good day
-i-humble have bought a usb hybrid dongel with tlg2300 chipset.
-dvb-t works fine with vlc .
- .
-1-but analog TV has not sound .(while there is no susppend and hibrenate before)
-these 2 ways both have not sound with tv show:
-
-mplayer -tv chanlist=us-bcast tv://
-
-OR
-
-vlc v4l2:///dev/video0  :input-slave=alsa://hw:1,0 :v4l2-standard=1
-:v4l2-tuner-frequency=495250
-
-audio codec of analog tv is :PCM S16LE (araw)
-what is the problem , how to solve it ?
-maybe you need this http://pastebin.com/dYwAQFxq
-
-Regards dehqan
