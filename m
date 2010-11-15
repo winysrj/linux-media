@@ -1,52 +1,63 @@
-Return-path: <mchehab@gaivota>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:43393 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753190Ab0KSXzp (ORCPT
+Return-path: <mchehab@pedra>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:43650 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753419Ab0KOJjO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 18:55:45 -0500
-Date: Sat, 20 Nov 2010 00:55:42 +0100
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Jarod Wilson <jarod@redhat.com>, Jarod Wilson <jarod@wilsonet.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 0/2] Apple remote support
-Message-ID: <20101119235542.GA4694@hardeman.nu>
-References: <20101104193823.GA9107@hardeman.nu>
- <4CD30CE5.5030003@redhat.com>
- <da4aa0687909ae3843c682fbf446e452@hardeman.nu>
- <AANLkTin1Lu9cdnLeVfA8NDQFWkKzb6k+yCiSBqq6Otz6@mail.gmail.com>
- <4CE2743D.5040501@redhat.com>
- <20101116232636.GA28261@hardeman.nu>
- <20101118163304.GB16899@redhat.com>
- <20101118204319.GA8213@hardeman.nu>
- <20101118204952.GC16899@redhat.com>
- <4CE593BF.4010908@redhat.com>
+	Mon, 15 Nov 2010 04:39:14 -0500
+Received: by ywc21 with SMTP id 21so1577050ywc.19
+        for <linux-media@vger.kernel.org>; Mon, 15 Nov 2010 01:39:14 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <4CE593BF.4010908@redhat.com>
+In-Reply-To: <4CE05F77.3080703@gmail.com>
+References: <AANLkTimOyNpAatcZb775PPK3uEOXDKXW6-J0kMGis41f@mail.gmail.com>
+	<1289684029.2426.65.camel@localhost>
+	<AANLkTim+OFLOH=dRERzkHOqtC9dLqJsR2Qy2nb+K9KHx@mail.gmail.com>
+	<1289736763.2431.10.camel@localhost>
+	<4CE05F77.3080703@gmail.com>
+Date: Mon, 15 Nov 2010 20:39:14 +1100
+Message-ID: <AANLkTinT=Rm1GgnTssGHnV-xqX4qvxORKEBzPP7fRDSb@mail.gmail.com>
+Subject: Re: new_build on ubuntu (dvbdev.c)
+From: Vincent McIntyre <vincent.mcintyre@gmail.com>
+To: Mauro Carvalho Chehab <maurochehab@gmail.com>
+Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Thu, Nov 18, 2010 at 06:59:43PM -0200, Mauro Carvalho Chehab wrote:
->Em 18-11-2010 18:49, Jarod Wilson escreveu:
->> On Thu, Nov 18, 2010 at 09:43:19PM +0100, David Härdeman wrote:
->>> On Thu, Nov 18, 2010 at 11:33:04AM -0500, Jarod Wilson wrote:
->>>> Mauro's suggestion, iirc, was that max scancode size should be a
->>>> property of the keytable uploaded, and something set at load time (and
->>>> probably exposed as a sysfs node, similar to protocols).
+On 11/15/10, Mauro Carvalho Chehab <maurochehab@gmail.com> wrote:
+...
+> I've added several patches for the new-build today, in order to make it
+> compile
+> against older kernels. I tested compilation here with both RHEL6 (2.6.32)
+> and
+> Fedora 14 (2.6.35) and compilation is working fine. Didn't test the drivers.
+> I'm not sure if the remote controller will properly work with my quick
+> backport.
+
+Thanks  for those changes. The build completes now, with only three warnings.
+I do have to say CONFIG_DVB_FIREDTV=n, it appears still to be a
+problem on ubuntu.
+
+>>> First dumb question - (I'll try to minimise these)
 >>>
->>> I think that would be a step in the wrong direction. It would make the
->>> keytables less flexible while providing no real advantages.
+...
+> The patches generally reverse-apply some upstream change. Andy's approach
+> could be done via compat.h. I opted to just backport the upstream patch.
 >
->We can't simply just change NEC to 32 bits, as we'll break userspace ABI 
->(as current NEC keycode tables use only 16 bits). So, an old table will not
->worky anymore, if we do such change.
+> Anyway, there were other problems on it, due to other API changes, and to
+> the move of the rc-core from .../IR to .../rc directory.
+>
+> I opted to simplify the backports, avoiding to duplicate the same patch on
+> several different directories.
+>
 
-The idea was to do the conversion from <whatever> to 32 bits in
-get/setkeycode.
+I see that now, after some quality time in the backports directory. It
+does look simpler.
 
+I think my original problem was that somehow the patch in the
+2.6.32_series to remove references to noop_llseek() was not applying
+cleanly. No idea why, I flushed the logs I kept.
 
--- 
-David Härdeman
+Thanks all, I'll give the new build a test run as soon as I get a chance.
+
+Cheers
+Vince
