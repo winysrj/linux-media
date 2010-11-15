@@ -1,72 +1,66 @@
 Return-path: <mchehab@pedra>
-Received: from mail.perches.com ([173.55.12.10]:1501 "EHLO mail.perches.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934804Ab0KQQBU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Nov 2010 11:01:20 -0500
-Subject: Re: [PATCH 01/10] MCDE: Add hardware abstraction layer
-From: Joe Perches <joe@perches.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Jimmy RUBIN <jimmy.rubin@stericsson.com>,
-	Dan JOHANSSON <dan.johansson@stericsson.com>,
-	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-	Linus WALLEIJ <linus.walleij@stericsson.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-In-Reply-To: <201011171055.58201.arnd@arndb.de>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:59707 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933429Ab0KOSYB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Nov 2010 13:24:01 -0500
+MIME-Version: 1.0
+In-Reply-To: <20101115145918.GD24194@n2100.arm.linux.org.uk>
 References: <1289390653-6111-1-git-send-email-jimmy.rubin@stericsson.com>
-	 <F45880696056844FA6A73F415B568C6953604E7D94@EXDCVYMBSTM006.EQ1STM.local>
-	 <1289936772.28741.188.camel@Joe-Laptop>  <201011171055.58201.arnd@arndb.de>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 17 Nov 2010 08:01:17 -0800
-Message-ID: <1290009677.28741.302.camel@Joe-Laptop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	<201011121614.51528.arnd@arndb.de>
+	<20101112153423.GC3619@n2100.arm.linux.org.uk>
+	<201011151525.54380.arnd@arndb.de>
+	<20101115145918.GD24194@n2100.arm.linux.org.uk>
+Date: Mon, 15 Nov 2010 19:24:00 +0100
+Message-ID: <AANLkTimXBf0Qii2H7ewar+x2shFifhxcwXosekiV1hiz@mail.gmail.com>
+Subject: Re: [PATCH 02/10] MCDE: Add configuration registers
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Jimmy Rubin <jimmy.rubin@stericsson.com>,
+	Dan Johansson <dan.johansson@stericsson.com>,
+	linux-fbdev@vger.kernel.org,
+	Linus Walleij <linus.walleij@stericsson.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 2010-11-17 at 10:55 +0100, Arnd Bergmann wrote:
-> On Tuesday 16 November 2010, Joe Perches wrote:
-> > static inline u32 MCDE_channel_path(u32 chnl, u32 fifo, u32 type, u32 ifc, u32 link)
-> > {
-> >         return ((chnl << 16) |
-> >                 (fifo << 12) |
-> >                 (type << 8) |
-> >                 (ifc << 4) |
-> >                 (link << 0));
-> > }
-> > 
-> > #define SET_ENUM_MCDE_CHNLPATH(chnl, fifo, var, type, ifc, link)        \
-> >         MCDE_CHNLPATH_CHNL##chnl##_FIFO##fifo##_##var =                 \
-> >                 MCDE_channel_path(MCDE_CHNL_##chnl,                     \
-> >                                   MCDE_FIFO_##fifo,                     \
-> >                                   MCDE_PORTTYPE_##type,                 \
-> >                                   ifc,                                  \
-> >                                   link)
-> > 
-> > enum mcde_chnl_path {
-> >         /* Channel A */
-> >         SET_ENUM_MCDE_CHNLPATH(A, A, DPI_0,             DPI, 0, 0),
-> >         SET_ENUM_MCDE_CHNLPATH(A, A, DSI_IFC0_0,        DSI, 0, 0),
-> >         SET_ENUM_MCDE_CHNLPATH(A, A, DSI_IFC0_1,        DSI, 0, 1),
-> 
-> While more readable, this has two significant problems:
-> 
-> * You cannot use the result of an inline function in an enum definition
-> * It hides the name of the identifier, making it impossible to use grep
->   or ctags to find the definition when you only know the name
+On Mon, Nov 15, 2010 at 15:59, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Mon, Nov 15, 2010 at 03:25:54PM +0100, Arnd Bergmann wrote:
+>> On Friday 12 November 2010, Russell King - ARM Linux wrote:
+>> > It is a bad idea to describe device registers using C structures, and
+>> > especially enums.
+>> >
+>> > The only thing C guarantees about structure layout is that the elements
+>> > are arranged in the same order which you specify them in your definition.
+>> > It doesn't make any guarantees about placement of those elements within
+>> > the structure.
+>>
+>> Right, I got carried away when seeing the macro overload. My example
+>> would work on a given architecture since the ABI is not changing, but
+>> we should of course not advocate nonportable code.
+>
+> That is a mistake.  You can't rely on architectures not changing their
+> ABIs.  See ARM as an example where an ABI change has already happened.
+>
+> We actually have two ABIs at present - one ('native ARM') where enums
+> are sized according to the size of their values, and the Linux one
+> where we guarantee that enums are always 'int'.
 
-True, though I would avoid that problem by using a get function/macro
-and not use an enum at all.
+JFYI, on ppc64 there are 64-bit enum values, which sparse complains about.
+But gcc handles them fine.
 
-There are just 4 items of interest here.  chan, fifo, #1, #2.
-Encoding those in the variable name is a bit of a visual chase and
-a bit mind numbing to read I think.
- 
-> The easiest way is probably to get rid of the macros entirely here
-> and just define the values as hex, with a comment exmplaining what the
-> digits mean.
+Gr{oetje,eeting}s,
 
-That'd be fine too.
+                        Geert
 
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
