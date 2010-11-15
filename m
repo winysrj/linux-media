@@ -1,54 +1,38 @@
-Return-path: <mchehab@gaivota>
-Received: from mailout-de.gmx.net ([213.165.64.22]:58693 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1755054Ab0KEXmn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Nov 2010 19:42:43 -0400
-Date: Sat, 6 Nov 2010 00:42:38 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PULL] soc-camera fixes for 2.6.37
-Message-ID: <Pine.LNX.4.64.1011060032210.28289@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <mchehab@pedra>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:57007 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932456Ab0KOCbF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Nov 2010 21:31:05 -0500
+Received: by mail-qw0-f46.google.com with SMTP id 4so123404qwi.19
+        for <linux-media@vger.kernel.org>; Sun, 14 Nov 2010 18:31:04 -0800 (PST)
+Subject: Re: [PATCH 2/3] [media] saa7134: Remove legacy IR decoding logic inside the module
+Mime-Version: 1.0 (Apple Message framework v1081)
+Content-Type: text/plain; charset=us-ascii
+From: Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <20101113173316.76e5a56d@pedra>
+Date: Sun, 14 Nov 2010 21:31:02 -0500
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Message-Id: <54797F1B-5200-4CA1-BA04-2B5A62CFC119@wilsonet.com>
+References: <cover.1289676395.git.mchehab@redhat.com> <20101113173316.76e5a56d@pedra>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Mauro
+On Nov 13, 2010, at 2:33 PM, Mauro Carvalho Chehab wrote:
 
-Please, pull a couple of fixes for 2.6.37. TBH, two of them are not very 
-critical, of which one ("SOC Camera: OMAP1: typo fix") is purely 
-cosmetical - it fixes a typo in a comment. But at least it's trivial, 
-since it cannot cause any regressions. And the other non-critical one 
-("SoC Camera: ov6650: minor cleanups") does change handling of an 
-impossible switch case from silently ignoring to erroring out, which is an 
-improvement!
+> The only IR left still using the old raw decoders on saa7134 is ENCORE
+> FM 5.3. As it is now using the standard rc-core raw decoders, lots
+> of old code can be removed from saa7134.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-The following changes since commit 7655e594945289b418af39f6669fea4666a7b520:
+Acked-by: Jarod Wilson <jarod@redhat.com>
 
-  [media] af9015: Fix max I2C message size when used with tda18271 (2010-10-27 15:02:35 -0200)
+-- 
+Jarod Wilson
+jarod@wilsonet.com
 
-are available in the git repository at:
-  git://linuxtv.org/gliakhovetski/v4l-dvb.git 2.6.37-rc1-fixes
 
-Janusz Krzysztofik (4):
-      SoC Camera: OMAP1: update for recent framework changes
-      SoC Camera: OMAP1: update for recent videobuf changes
-      SOC Camera: OMAP1: typo fix
-      SoC Camera: ov6650: minor cleanups
-
-Sascha Hauer (1):
-      ARM mx3_camera: check for DMA engine type
-
- drivers/media/video/mx3_camera.c   |    4 ++++
- drivers/media/video/omap1_camera.c |   16 ++++++++--------
- drivers/media/video/ov6650.c       |    4 +---
- 3 files changed, 13 insertions(+), 11 deletions(-)
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
 
