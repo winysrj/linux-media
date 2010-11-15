@@ -1,124 +1,93 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1291 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932723Ab0KPV4u (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.23]:46101 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1757574Ab0KOHX1 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Nov 2010 16:56:50 -0500
-Message-Id: <ce95783505f7de21e3ed43f277c764afad2d8262.1289944160.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1289944159.git.hverkuil@xs4all.nl>
-References: <cover.1289944159.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Tue, 16 Nov 2010 22:56:45 +0100
-Subject: [RFCv2 PATCH 14/15] V4L: improve the BKL replacement heuristic
-To: linux-media@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>
+	Mon, 15 Nov 2010 02:23:27 -0500
+Date: Mon, 15 Nov 2010 08:23:27 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Jun Nie <niej0001@gmail.com>
+cc: linux-media <linux-media@vger.kernel.org>,
+	linux-fbdev@vger.kernel.org
+Subject: Re: V4L2 and framebuffer for the same controller
+In-Reply-To: <AANLkTikOdktmvDS0eXof-JCBT_6k=HKHSCYkR2Mu3v9d@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1011150816240.32257@axis700.grange>
+References: <AANLkTikJNdcnRbNwv4j8zfv4TfSqOgB2K=UD4UFfL=q4@mail.gmail.com>
+ <Pine.LNX.4.64.1011020821300.3804@axis700.grange>
+ <AANLkTikww_o+L0hS8jFhL+u2EGvZMQPogY_F89Kcm1xT@mail.gmail.com>
+ <AANLkTikOdktmvDS0eXof-JCBT_6k=HKHSCYkR2Mu3v9d@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The BKL replacement mutex had some serious performance side-effects on
-V4L drivers. It is replaced by a better heuristic that works around the
-worst of the side-effects.
+On Mon, 15 Nov 2010, Jun Nie wrote:
 
-Read the v4l2-dev.c comments for the whole sorry story. This is a
-temporary measure only until we can convert all v4l drivers to use
-unlocked_ioctl.
+> 2010/11/8 Jun Nie <niej0001@gmail.com>:
+> > 2010/11/2 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> >> Hi Jun
+> >>
+> >> On Fri, 29 Oct 2010, Jun Nie wrote:
+> >>
+> >>> Hi Guennadi,
+> >>>     I find that your idea of "provide a generic framebuffer driver
+> >>> that could sit on top of a v4l output driver", which may be a good
+> >>> solution of our LCD controller driver, or maybe much more other SOC
+> >>> LCD drivers. V4L2 interface support many features than framebuffer for
+> >>> video playback usage, such as buffer queue/dequeue, quality control,
+> >>> etc. However, framebuffer is common for UI display. Implement two
+> >>> drivers for one controller is a challenge for current architecture.
+> >>>     I am interested in your idea. Could you elaborate it? Or do you
+> >>> think multifunction driver is the right solution for this the
+> >>> scenario?
+> >>
+> >> Right, we have discussed this idea at the V4L2/MC mini-summit earlier this
+> >> year, there the outcome was, that the idea is not bad, but it is easy
+> >> enough to create such framebuffer additions on top of specific v4l2 output
+> >> drivers anyway, so, noone was interested enough to start designing and
+> >> implementing such a generic wrapper driver. However, I've heard, that this
+> >> topic has also been scheduled for discussion at another v4l / kernel
+> >> meeting (plumbers?), so, someone might be looking into implementing
+> >> this... If you yourself would like to do that - feel free to propose a
+> >> design on both mailing lists (fbdev added to cc), then we can discuss it,
+> >> and you can implement it;)
+> >>
+> >> Thanks
+> >> Guennadi
+> >> ---
+> >> Guennadi Liakhovetski, Ph.D.
+> >> Freelance Open-Source Software Developer
+> >> http://www.open-technology.de/
+> >>
+> >
+> > Good to know others are also interested in it. I surely can contribute
+> > to it. But my concern is how to support Xwindow. Android and Ubuntu
+> > should both run on our platform. Queue/deque should work well for
+> > Android UI. I still can not figure out how to support Xwindow, for it
+> > does not interact with driver after it get the mmaped buffer.
+> >
+> > Jun
+> >
+> 
+> Guennadi,
+> 
+> Any idea on supporting this feature with V4L2 based FB? I can not
+> figure out any method and will adopt framebuffer for UI and V4L2 for
+> video layer for the schedule pressure.
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+Hi Jun
+
+Sorry, not sure I understand you right here. You are saying, that atm you 
+don't have the time to work on a generic solution and are going for a 
+specific one, right? Yes, that's what everybody is currently doing. And 
+you're asking whether I am working or am going to work on such a generic 
+solution? No, sorry, I don't think I'll have time for it either in the 
+near future.
+
+Thanks
+Guennadi
 ---
- drivers/media/video/v4l2-dev.c    |   37 ++++++++++++++++++++++++++++++++++---
- drivers/media/video/v4l2-device.c |    1 +
- include/media/v4l2-dev.h          |    2 +-
- include/media/v4l2-device.h       |    2 ++
- 4 files changed, 38 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-index 8eb0756..59ef642 100644
---- a/drivers/media/video/v4l2-dev.c
-+++ b/drivers/media/video/v4l2-dev.c
-@@ -258,11 +258,42 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
- 		if (vdev->lock)
- 			mutex_unlock(vdev->lock);
- 	} else if (vdev->fops->ioctl) {
--		/* TODO: convert all drivers to unlocked_ioctl */
--		lock_kernel();
-+		/* This code path is a replacement for the BKL. It is a major
-+		 * hack but it will have to do for those drivers that are not
-+		 * yet converted to use unlocked_ioctl.
-+		 *
-+		 * There are two options: if the driver implements struct
-+		 * v4l2_device, then the lock defined there is used to
-+		 * serialize the ioctls. Otherwise the v4l2 core lock defined
-+		 * below is used. This lock is really bad since it serializes
-+		 * completely independent devices.
-+		 *
-+		 * Both variants suffer from the same problem: if the driver
-+		 * sleeps, then it blocks all ioctls since the lock is still
-+		 * held. This is very common for VIDIOC_DQBUF since that
-+		 * normally waits for a frame to arrive. As a result any other
-+		 * ioctl calls will proceed very, very slowly since each call
-+		 * will have to wait for the VIDIOC_QBUF to finish. Things that
-+		 * should take 0.01s may now take 10-20 seconds.
-+		 *
-+		 * The workaround is to *not* take the lock for VIDIOC_DQBUF.
-+		 * This actually works OK for videobuf-based drivers, since
-+		 * videobuf will take its own internal lock.
-+		 */
-+		static DEFINE_MUTEX(v4l2_ioctl_mutex);
-+		struct mutex *m = vdev->v4l2_dev ?
-+			&vdev->v4l2_dev->ioctl_lock : &v4l2_ioctl_mutex;
-+
-+		if (cmd != VIDIOC_DQBUF) {
-+			int res = mutex_lock_interruptible(m);
-+
-+			if (res)
-+				return res;
-+		}
- 		if (video_is_registered(vdev))
- 			ret = vdev->fops->ioctl(filp, cmd, arg);
--		unlock_kernel();
-+		if (cmd != VIDIOC_DQBUF)
-+			mutex_unlock(m);
- 	} else
- 		ret = -ENOTTY;
- 
-diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
-index 0b08f96..7fe6f92 100644
---- a/drivers/media/video/v4l2-device.c
-+++ b/drivers/media/video/v4l2-device.c
-@@ -35,6 +35,7 @@ int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
- 
- 	INIT_LIST_HEAD(&v4l2_dev->subdevs);
- 	spin_lock_init(&v4l2_dev->lock);
-+	mutex_init(&v4l2_dev->ioctl_lock);
- 	v4l2_dev->dev = dev;
- 	if (dev == NULL) {
- 		/* If dev == NULL, then name must be filled in by the caller */
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index 15802a0..59dec5a 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -39,7 +39,7 @@ struct v4l2_file_operations {
- 	ssize_t (*read) (struct file *, char __user *, size_t, loff_t *);
- 	ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *);
- 	unsigned int (*poll) (struct file *, struct poll_table_struct *);
--	long (*ioctl) (struct file *, unsigned int, unsigned long);
-+	long (*ioctl __deprecated) (struct file *, unsigned int, unsigned long);
- 	long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
- 	int (*mmap) (struct file *, struct vm_area_struct *);
- 	int (*open) (struct file *);
-diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-index 6648036..b16f307 100644
---- a/include/media/v4l2-device.h
-+++ b/include/media/v4l2-device.h
-@@ -51,6 +51,8 @@ struct v4l2_device {
- 			unsigned int notification, void *arg);
- 	/* The control handler. May be NULL. */
- 	struct v4l2_ctrl_handler *ctrl_handler;
-+	/* BKL replacement mutex. Temporary solution only. */
-+	struct mutex ioctl_lock;
- };
- 
- /* Initialize v4l2_dev and make dev->driver_data point to v4l2_dev.
--- 
-1.7.0.4
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
