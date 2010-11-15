@@ -1,59 +1,65 @@
-Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:54018 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753138Ab0KFW2x (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Nov 2010 18:28:53 -0400
-Message-ID: <4CD5D67F.9040307@redhat.com>
-Date: Sat, 06 Nov 2010 18:28:15 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Return-path: <mchehab@pedra>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51202 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756050Ab0KOW21 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Nov 2010 17:28:27 -0500
+Date: Mon, 15 Nov 2010 23:28:15 +0100
+From: Wolfram Sang <w.sang@pengutronix.de>
+To: linux-i2c@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sergio Aguirre <saaguirre@ti.com>,
+	Michael Grzeschik <m.grzeschik@pengutronix.de>,
+	Philipp Wiesner <p.wiesner@phytec.de>,
+	=?iso-8859-15?Q?M=E1rton_N=E9meth?= <nm127@freemail.hu>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: video: do not clear 'driver' from an i2c_client
+Message-ID: <20101115222815.GB25167@pengutronix.de>
+References: <1289398455-21949-1-git-send-email-w.sang@pengutronix.de>
 MIME-Version: 1.0
-To: Arnaud Lacombe <lacombar@gmail.com>
-CC: linux-kbuild@vger.kernel.org, linux-media@vger.kernel.org,
-	Michal Marek <mmarek@suse.cz>
-Subject: Re: [PATCH 0/5] Re: REGRESSION: Re: [GIT] kconfig rc fixes
-References: <4CD300AC.3010708@redhat.com> <1289079027-3037-1-git-send-email-lacombar@gmail.com>
-In-Reply-To: <1289079027-3037-1-git-send-email-lacombar@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="cmJC7u66zC7hs+87"
+Content-Disposition: inline
+In-Reply-To: <1289398455-21949-1-git-send-email-w.sang@pengutronix.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Em 06-11-2010 17:30, Arnaud Lacombe escreveu:
-> Hi,
-> 
-> This should do the job.
-> 
 
-Thank you, Arnaud! Good job!
+--cmJC7u66zC7hs+87
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I'm currently at the airport preparing to take an international flight
-to return back home from LPC. I'll test your patch series tomorrow or more likely
-during the beginning of the next week. There are probably few more drivers/media
-Kconfig files that need to use "visible if" option to remove all warnings, 
-but it will be a trivial fix.
+On Wed, Nov 10, 2010 at 03:14:13PM +0100, Wolfram Sang wrote:
+> The i2c-core does this already.
+>=20
+> Reported-by: Jean Delvare <khali@linux-fr.org>
+> Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+> ---
+>=20
+> Not sure if this should go via i2c or media?
 
-Thanks!
-Mauro
+Okay, as Jean did not pick it up in his latest pull request, I guess this m=
+eans
+it shall go via the media-tree? :) Mauro, will you pick it up?
 
-> A.
-> 
-> Arnaud Lacombe (5):
->   kconfig: add an option to determine a menu's visibility
->   kconfig: regen parser
->   Revert "i2c: Fix Kconfig dependencies"
->   media/video: convert Kconfig to use the menu's `visible' keyword
->   i2c/algos: convert Kconfig to use the menu's `visible' keyword
-> 
->  drivers/i2c/Kconfig                  |    3 +-
->  drivers/i2c/algos/Kconfig            |   14 +-
->  drivers/media/video/Kconfig          |    2 +-
->  scripts/kconfig/expr.h               |    1 +
->  scripts/kconfig/lkc.h                |    1 +
->  scripts/kconfig/menu.c               |   11 +
->  scripts/kconfig/zconf.gperf          |    1 +
->  scripts/kconfig/zconf.hash.c_shipped |  122 ++++----
->  scripts/kconfig/zconf.tab.c_shipped  |  570 +++++++++++++++++----------------
->  scripts/kconfig/zconf.y              |   21 +-
->  10 files changed, 393 insertions(+), 353 deletions(-)
-> 
+--=20
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
 
+--cmJC7u66zC7hs+87
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAkzhs/8ACgkQD27XaX1/VRvWegCfVM9iYnOkrjJqwXN/NkSvPCp3
+9GUAoI6SAxrwPd4WTAouJIfU7DpENPAn
+=RhbN
+-----END PGP SIGNATURE-----
+
+--cmJC7u66zC7hs+87--
