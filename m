@@ -1,33 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.171]:55920 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755361Ab0KNVwo (ORCPT
+Received: from comal.ext.ti.com ([198.47.26.152]:37969 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757091Ab0KOOU1 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Nov 2010 16:52:44 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC PATCH 0/8] V4L BKL removal: first round
-Date: Sun, 14 Nov 2010 22:53:29 +0100
-Cc: linux-media@vger.kernel.org
-References: <cover.1289740431.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1289740431.git.hverkuil@xs4all.nl>
+	Mon, 15 Nov 2010 09:20:27 -0500
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Mon, 15 Nov 2010 08:20:22 -0600
+Subject: RE: [omap3isp RFC][PATCH 02/10] omap3isp: ccdc: Write
+ SYN_MODE.INPMOD based on fmt
+Message-ID: <A24693684029E5489D1D202277BE894473777D58@dlee02.ent.ti.com>
+References: <1289596693-27660-1-git-send-email-saaguirre@ti.com>
+ <1289596693-27660-3-git-send-email-saaguirre@ti.com>
+ <201011151136.58000.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201011151136.58000.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011142253.29768.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sunday 14 November 2010, Hans Verkuil wrote:
-> This patch series converts 24 v4l drivers to unlocked_ioctl. These are low
-> hanging fruit but you have to start somewhere :-)
+Hi Laurent,
+
+> -----Original Message-----
+> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> Sent: Monday, November 15, 2010 4:37 AM
+> To: Aguirre, Sergio
+> Cc: linux-media@vger.kernel.org
+> Subject: Re: [omap3isp RFC][PATCH 02/10] omap3isp: ccdc: Write
+> SYN_MODE.INPMOD based on fmt
 > 
-> The first patch replaces mutex_lock in the V4L2 core by mutex_lock_interruptible
-> for most fops.
+> Hi Sergio,
+> 
+> Thanks for the patch.
 
-The patches all look good as far as I can tell, but I suppose the title is
-obsolete now that the BKL has been replaced with a v4l-wide mutex, which
-is what you are removing in the series.
+Thanks for reviewing.
 
-	Arnd
+> 
+> On Friday 12 November 2010 22:18:05 Sergio Aguirre wrote:
+> > This takes into account the input format to select the
+> > adequate configuration for SYNC mode.
+> >
+> > Also, change bitmask ISPCCDC_SYN_MODE_INPMOD_MASK to be
+> > more consistent with other bitmasks.
+> 
+> Could you please squash this with the previous patch ?
+
+Sure. I will resend the updated patchset in a couple of minutes.
+
+Regards,
+Sergio
+
+> 
+> --
+> Regards,
+> 
+> Laurent Pinchart
