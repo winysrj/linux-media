@@ -1,55 +1,89 @@
 Return-path: <mchehab@pedra>
-Received: from wolverine01.qualcomm.com ([199.106.114.254]:38598 "EHLO
-	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751444Ab0KPWek (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:54877 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757253Ab0KOOaC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Nov 2010 17:34:40 -0500
-Received: from SHUZHENW (pdmz-snip-v218.qualcomm.com [192.168.218.1])
-	by mostmsg01.qualcomm.com (Postfix) with ESMTPA id CCE4810004D5
-	for <linux-media@vger.kernel.org>; Tue, 16 Nov 2010 14:34:33 -0800 (PST)
-From: "Shuzhen Wang" <shuzhenw@codeaurora.org>
-To: <linux-media@vger.kernel.org>
-References: <000001cb85c4$981fdba0$c85f92e0$@org>
-In-Reply-To: <000001cb85c4$981fdba0$c85f92e0$@org>
-Subject: RE: Question about setting V4L2_CID_AUTO_WHITE_BALANCE control to FALSE
-Date: Tue, 16 Nov 2010 14:34:11 -0800
-Message-ID: <000301cb85de$642dd3f0$2c897bd0$@org>
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-language: en-us
+	Mon, 15 Nov 2010 09:30:02 -0500
+From: Sergio Aguirre <saaguirre@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
+Subject: [omap3isp][PATCH v2 6/9] omap3isp: Remove CSIA/B register abstraction
+Date: Mon, 15 Nov 2010 08:29:58 -0600
+Message-Id: <1289831401-593-7-git-send-email-saaguirre@ti.com>
+In-Reply-To: <1289831401-593-1-git-send-email-saaguirre@ti.com>
+References: <1289831401-593-1-git-send-email-saaguirre@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Nevermind. I think behavior #1 makes more sense.
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ drivers/media/video/isp/isp.c     |    8 ++++----
+ drivers/media/video/isp/ispccp2.c |    2 +-
+ drivers/media/video/isp/ispreg.h  |    3 ---
+ 3 files changed, 5 insertions(+), 8 deletions(-)
 
--Shuzhen
-
------Original Message-----
-From: linux-media-owner@vger.kernel.org
-[mailto:linux-media-owner@vger.kernel.org] On Behalf Of Shuzhen Wang
-Sent: Tuesday, November 16, 2010 11:30 AM
-To: linux-media@vger.kernel.org
-Subject: Question about setting V4L2_CID_AUTO_WHITE_BALANCE control to FALSE
-
-Hello, 
-
-When I set V4L2_CID_AUTO_WHITE_BALANCE control to FALSE, which one of the
-following is the expected behavior?
-
-1. Hold the current white balance settting.
-2. Set the white balance to whatever V4L2_CID_WHITE_BALANCE_TEMPERATURE
-control is set to.
-
-The V4L2 API spec doesn't specify this clearly.
-
-
-Regards,
--Shuzhen
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/video/isp/isp.c b/drivers/media/video/isp/isp.c
+index f266e7c..de9352b 100644
+--- a/drivers/media/video/isp/isp.c
++++ b/drivers/media/video/isp/isp.c
+@@ -264,12 +264,12 @@ static void isp_power_settings(struct isp_device *isp, int idle)
+ 				       (ISPCSI1_MIDLEMODE_SMARTSTANDBY <<
+ 					ISPCSI1_MIDLEMODE_SHIFT),
+ 				       OMAP3_ISP_IOMEM_CSI2A_REGS1,
+-				       ISP_CSIA_SYSCONFIG);
++				       ISPCSI2_SYSCONFIG);
+ 			isp_reg_writel(isp, ISPCSI1_AUTOIDLE |
+ 				       (ISPCSI1_MIDLEMODE_SMARTSTANDBY <<
+ 					ISPCSI1_MIDLEMODE_SHIFT),
+ 				       OMAP3_ISP_IOMEM_CCP2,
+-				       ISP_CSIB_SYSCONFIG);
++				       ISPCCP2_SYSCONFIG);
+ 		}
+ 		isp_reg_writel(isp, ISPCTRL_SBL_AUTOIDLE, OMAP3_ISP_IOMEM_MAIN,
+ 			       ISP_CTRL);
+@@ -284,13 +284,13 @@ static void isp_power_settings(struct isp_device *isp, int idle)
+ 				       (ISPCSI1_MIDLEMODE_FORCESTANDBY <<
+ 					ISPCSI1_MIDLEMODE_SHIFT),
+ 				       OMAP3_ISP_IOMEM_CSI2A_REGS1,
+-				       ISP_CSIA_SYSCONFIG);
++				       ISPCSI2_SYSCONFIG);
+ 
+ 			isp_reg_writel(isp, ISPCSI1_AUTOIDLE |
+ 				       (ISPCSI1_MIDLEMODE_FORCESTANDBY <<
+ 					ISPCSI1_MIDLEMODE_SHIFT),
+ 				       OMAP3_ISP_IOMEM_CCP2,
+-				       ISP_CSIB_SYSCONFIG);
++				       ISPCCP2_SYSCONFIG);
+ 		}
+ 
+ 		isp_reg_writel(isp, ISPCTRL_SBL_AUTOIDLE, OMAP3_ISP_IOMEM_MAIN,
+diff --git a/drivers/media/video/isp/ispccp2.c b/drivers/media/video/isp/ispccp2.c
+index 45506a7..fa23394 100644
+--- a/drivers/media/video/isp/ispccp2.c
++++ b/drivers/media/video/isp/ispccp2.c
+@@ -421,7 +421,7 @@ static void ispccp2_mem_configure(struct isp_ccp2_device *ccp2,
+ 
+ 	isp_reg_writel(isp, (ISPCSI1_MIDLEMODE_SMARTSTANDBY <<
+ 		       ISPCSI1_MIDLEMODE_SHIFT),
+-		       OMAP3_ISP_IOMEM_CCP2, ISP_CSIB_SYSCONFIG);
++		       OMAP3_ISP_IOMEM_CCP2, ISPCCP2_SYSCONFIG);
+ 
+ 	/* Hsize, Skip */
+ 	isp_reg_writel(isp, ISPCCP2_LCM_HSIZE_SKIP_MIN |
+diff --git a/drivers/media/video/isp/ispreg.h b/drivers/media/video/isp/ispreg.h
+index c080980..d885541 100644
+--- a/drivers/media/video/isp/ispreg.h
++++ b/drivers/media/video/isp/ispreg.h
+@@ -236,9 +236,6 @@
+ #define ISPCCP2_LCM_DST_ADDR		(0x1E8)
+ #define ISPCCP2_LCM_DST_OFST		(0x1EC)
+ 
+-#define ISP_CSIB_SYSCONFIG		ISPCCP2_SYSCONFIG
+-#define ISP_CSIA_SYSCONFIG		ISPCSI2_SYSCONFIG
+-
+ /* CCDC module register offset */
+ 
+ #define ISPCCDC_PID			(0x000)
+-- 
+1.7.0.4
 
