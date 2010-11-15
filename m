@@ -1,53 +1,77 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:5509 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752370Ab0KQCcN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Nov 2010 21:32:13 -0500
-Message-ID: <4CE33E8B.2070902@redhat.com>
-Date: Wed, 17 Nov 2010 00:31:39 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4791 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753830Ab0KOJuR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Nov 2010 04:50:17 -0500
+Message-ID: <342eb735192f26a4a84488cad7f01068.squirrel@webmail.xs4all.nl>
+In-Reply-To: <201011151017.41453.arnd@arndb.de>
+References: <cover.1289740431.git.hverkuil@xs4all.nl>
+    <201011142253.29768.arnd@arndb.de>
+    <201011142348.51859.hverkuil@xs4all.nl>
+    <201011151017.41453.arnd@arndb.de>
+Date: Mon, 15 Nov 2010 10:49:57 +0100
+Subject: Re: [RFC PATCH 0/8] V4L BKL removal: first round
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Arnd Bergmann" <arnd@arndb.de>
+Cc: linux-media@vger.kernel.org,
+	"Mauro Carvalho Chehab" <mchehab@redhat.com>
 MIME-Version: 1.0
-To: =?UTF-8?B?QmrDuHJuIE1vcms=?= <bjorn@mork.no>
-CC: linux-media@vger.kernel.org,
-	Marko Ristola <marko.ristola@kolumbus.fi>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	Ben Hutchings <ben@decadent.org.uk>,
-	Niklas Claesson <nicke.claesson@gmail.com>,
-	Tuxoholic <tuxoholic@hotmail.de>
-Subject: Re: [GIT PATCHES FOR 2.6.38] mantis for_2.6.38
-References: <4CBB689F.1070100@redhat.com> <874obmiov5.fsf@nemi.mork.no>	<4CDEA000.8020104@redhat.com> <87fwv5gu3y.fsf@nemi.mork.no>
-In-Reply-To: <87fwv5gu3y.fsf@nemi.mork.no>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Bjørn,
 
-Em 13-11-2010 12:45, Bjørn Mork escreveu:
-> Mauro Carvalho Chehab <mchehab@redhat.com> writes:
-> 
->> Em 12-11-2010 12:43, Bjørn Mork escreveu:
->>>
->>>   git://git.mork.no/mantis.git for_2.6.38
+> On Sunday 14 November 2010 23:48:51 Hans Verkuil wrote:
+>> On Sunday, November 14, 2010 22:53:29 Arnd Bergmann wrote:
+>> > On Sunday 14 November 2010, Hans Verkuil wrote:
+>> > > This patch series converts 24 v4l drivers to unlocked_ioctl. These
+>> are low
+>> > > hanging fruit but you have to start somewhere :-)
+>> > >
+>> > > The first patch replaces mutex_lock in the V4L2 core by
+>> mutex_lock_interruptible
+>> > > for most fops.
+>> >
+>> > The patches all look good as far as I can tell, but I suppose the
+>> title is
+>> > obsolete now that the BKL has been replaced with a v4l-wide mutex,
+>> which
+>> > is what you are removing in the series.
 >>
->> Didn't work:
+>> I guess I have to rename it, even though strictly speaking the branch
+>> I'm
+>> working in doesn't have your patch merged yet.
 >>
->> git pull git://git.mork.no/mantis.git for_2.6.38
->> fatal: Couldn't find remote ref for_2.6.38
-> 
-> Damn, sorry about that.  Was supposed to be 
-> 
-> git://git.mork.no/mantis.git for_v2.6.38
+>> BTW, replacing the BKL with a static mutex is rather scary: the BKL
+>> gives up
+>> the lock whenever you sleep, the mutex doesn't. Since sleeping is very
+>> common
+>> in V4L (calling VIDIOC_DQBUF will typically sleep while waiting for a
+>> new frame
+>> to arrive), this will make it impossible for another process to access
+>> any
+>> v4l2 device node while the ioctl is sleeping.
+>>
+>> I am not sure whether that is what you intended. Or am I missing
+>> something?
+>
+> I was aware that something like this could happen, but I apparently
+> misjudged how big the impact is. The general pattern for ioctls is that
+> those that get called frequently do not sleep, so it can almost always be
+> called with a mutex held.
 
-Except when drivers are not maintained anymore (or when the patch is trivial), 
-I wait for the driver author(s) to test the patches and ask me to pull (or for them to
-reply that a patch is ok with his ack).
+True in general, but most definitely not true for V4L. The all important
+VIDIOC_DQBUF ioctl will almost always sleep.
 
-Manu sent a pull request with some of the long-standing Mantis patches tested
-plus with some improvements for the frontend tuning. I've applied them today.
+Mauro, I think this patch will have to be reverted and we just have to do
+the hard work ourselves.
 
-Please test, and give us a feedback.
+Regards,
 
-Thanks,
-Mauro
+       Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
+
