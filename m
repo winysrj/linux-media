@@ -1,55 +1,59 @@
-Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59837 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755059Ab0KSQcR (ORCPT
+Return-path: <mchehab@pedra>
+Received: from fep32.mx.upcmail.net ([62.179.121.50]:33052 "EHLO
+	fep32.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932132Ab0KOQ7o (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 11:32:17 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: Re: [omap3isp] Prefered patch base for latest code? (was: "RE: Translation faults with OMAP ISP")
-Date: Fri, 19 Nov 2010 17:32:19 +0100
-Cc: David Cohen <david.cohen@nokia.com>,
-	ext Lane Brooks <lane@brooks.nu>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <4CE16AA2.3000208@brooks.nu> <201011191716.23102.laurent.pinchart@ideasonboard.com> <A24693684029E5489D1D202277BE8944850C08AF@dlee02.ent.ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE8944850C08AF@dlee02.ent.ti.com>
+	Mon, 15 Nov 2010 11:59:44 -0500
+Received: from edge04.upcmail.net ([192.168.13.239])
+          by viefep20-int.chello.at
+          (InterMail vM.8.01.02.02 201-2260-120-106-20100312) with ESMTP
+          id <20101115164456.GULH18131.viefep20-int.chello.at@edge04.upcmail.net>
+          for <linux-media@vger.kernel.org>;
+          Mon, 15 Nov 2010 17:44:56 +0100
+Message-ID: <4CE16387.3040103@iae.nl>
+Date: Mon, 15 Nov 2010 17:44:55 +0100
+From: Okkel Klaver <vbroek@iae.nl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: linux-media@vger.kernel.org
+Subject: af9015 and nxp tda182128 support
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201011191732.20289.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Sergio,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+ 
+Hello everybody,
 
-On Friday 19 November 2010 17:23:45 Aguirre, Sergio wrote:
-> On Friday, November 19, 2010 10:16 AM Aguirre, Sergio wrote:
-> > On Friday 19 November 2010 17:07:09 Aguirre, Sergio wrote:
 
-[snip]
+I own a brandless hdtv usb dvb-t stick.
 
-> > > How close is this tree from the latest internal version you guys work
-> > > with?
-> > >
-> > > http://meego.gitorious.com/maemo-multimedia/omap3isp-rx51/commits/devel
-> > 
-> > There's less differences between gitorious and our internal tree than
-> > between linuxtv and our internal tree.
-> 
-> Ok, I guess I can treat above tree as an "omap3isp-next" tree then, to have
-> a sneak preview of what's coming ;)
+lsusb identifies it as:
+Bus 001 Device 005: ID 15a4:9016 Afatech Technologies, Inc. AF9015 DVB-T
+USB2.0 stick
 
-I haven't expressed myself clearly enough. The gitorious tree is currently 
-more in sync with our internal tree that the linuxtv is for a simple reason: 
-both our internal tree and the gitorious tree are missing modifications made 
-during the public review process.
+I'm using debian with kernel 2.6.32. This kernel doesn't have support
+for the nxp tda18218 tuner on the stick.
+I compiled the latest v4l-dvb source tree from mercural. Now i get the
+following error message when i plugin the stick:
+af9015: tuner NXP TDA18218 not supported yet
 
-Patches published from our internal tree are always pushed to linuxtv and 
-gitorious at the same time (or mostly). Please don't use the gitorious tree 
-for anything else than trying the driver on the N900.
+Searching the archives of this list i found some messages concerning nxp
+tda18218 support. It seems to me that there is support for the nxp
+tda18218 in the current source tree, but support for the new tuner
+driver is lacking from the af9015 driver.
 
--- 
-Regards,
+Now is my question: are there any plans to support the nxp tda18218
+tuner in the af9015 driver?
 
-Laurent Pinchart
+Regards, Okkel Klaver
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (MingW32)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+ 
+iEYEARECAAYFAkzhY4YACgkQQxTA2p4ePKepXQCglAqp/RLvA+Ba8Y8Q7ZXa6wO9
+6yMAoIy9R8e2KsK/H2Mb4sv++IdHHeU0
+=FC6T
+-----END PGP SIGNATURE-----
+
