@@ -1,55 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.gentoo.org ([140.211.166.183]:57022 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752902Ab0KGOAQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Nov 2010 09:00:16 -0500
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: Malcolm Priestley <tvboxspy@gmail.com>
-Subject: [PATCH] IX2505V: i2c transfer error code ignored
-Date: Sun, 7 Nov 2010 14:57:13 +0100
-Cc: linux-media@vger.kernel.org
+Received: from fep32.mx.upcmail.net ([62.179.121.50]:33052 "EHLO
+	fep32.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932132Ab0KOQ7m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Nov 2010 11:59:42 -0500
+Received: from edge04.upcmail.net ([192.168.13.239])
+          by viefep11-int.chello.at
+          (InterMail vM.8.01.02.02 201-2260-120-106-20100312) with ESMTP
+          id <20101115164335.KFSY9177.viefep11-int.chello.at@edge04.upcmail.net>
+          for <linux-media@vger.kernel.org>;
+          Mon, 15 Nov 2010 17:43:35 +0100
+Message-ID: <4CE16335.10109@vanhetland.nl>
+Date: Mon, 15 Nov 2010 17:43:33 +0100
+From: Biologisch Tuinbouwbedrijf 'Van het Land' <info@vanhetland.nl>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_6Ar1May+vnJzvRC"
-Message-Id: <201011071457.14929.zzam@gentoo.org>
+To: linux-media@vger.kernel.org
+Subject: af9015 and nxp tda182128 support
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---Boundary-00=_6Ar1May+vnJzvRC
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Hello everybody,
 
-Hello Malcolm!
+I own a brandless hdtv usb dvb-t stick.
 
-It seems that ix2505v driver ignores a i2c error in ix2505v_read_status_reg.
-This looks like a typing error using (ret = 1) instead of correct (ret == 1).
+lsusb identifies it as:
+Bus 001 Device 005: ID 15a4:9016 Afatech Technologies, Inc. AF9015 DVB-T
+USB2.0 stick
 
-The attached patch fixes this.
+I'm using debian with kernel 2.6.32. This kernel doesn't have support
+for the nxp tda18218 tuner on the stick.
+I compiled the latest v4l-dvb source tree from mercural. Now i get the
+following error message when i plugin the stick:
+af9015: tuner NXP TDA18218 not supported yet
 
-Regards
-Matthias
+Searching the archives of this list i found some messages concerning nxp
+tda18218 support. It seems to me that there is support for the nxp
+tda18218 in the current source tree, but support for the new tuner
+driver is lacking from the af9015 driver.
 
---Boundary-00=_6Ar1May+vnJzvRC
-Content-Type: text/x-patch;
-  charset="UTF-8";
-  name="ix2505-error-code-ignored.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="ix2505-error-code-ignored.patch"
+Now is my question: are there any plans to support the nxp tda18218
+tuner in the af9015 driver?
 
-diff --git a/drivers/media/dvb/frontends/ix2505v.c b/drivers/media/dvb/frontends/ix2505v.c
-index 55f2eba..6360c68 100644
---- a/drivers/media/dvb/frontends/ix2505v.c
-+++ b/drivers/media/dvb/frontends/ix2505v.c
-@@ -72,7 +72,7 @@ static int ix2505v_read_status_reg(struct ix2505v_state *state)
- 	ret = i2c_transfer(state->i2c, msg, 1);
- 	deb_i2c("Read %s ", __func__);
- 
--	return (ret = 1) ? (int) b2[0] : -1;
-+	return (ret == 1) ? (int) b2[0] : -1;
- }
- 
- static int ix2505v_write(struct ix2505v_state *state, u8 buf[], u8 count)
-
---Boundary-00=_6Ar1May+vnJzvRC--
+Regards, Joost Hoeks
