@@ -1,55 +1,56 @@
-Return-path: <mchehab@gaivota>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:27794 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752270Ab0KEUKI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Nov 2010 16:10:08 -0400
-Date: Fri, 5 Nov 2010 21:10:01 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Linux I2C <linux-i2c@vger.kernel.org>,
-	LMML <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH 3/3] i2c: Mark i2c_adapter.id as deprecated
-Message-ID: <20101105211001.1cc93ac7@endymion.delvare>
+Return-path: <mchehab@pedra>
+Received: from smtp.nokia.com ([147.243.1.48]:37651 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757434Ab0KPNf2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Nov 2010 08:35:28 -0500
+Subject: [GIT PULL REQUEST v2.]  WL1273 FM Radio driver.
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Reply-To: matti.j.aaltonen@nokia.com
+To: mchehab@redhat.com
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+In-Reply-To: <1289833803.5350.67.camel@masi.mnp.nokia.com>
+References: <E1P9THI-0003aa-4H@www.linuxtv.org>
+	 <1289833803.5350.67.camel@masi.mnp.nokia.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 16 Nov 2010 15:35:13 +0200
+Message-ID: <1289914513.5350.72.camel@masi.mnp.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-It's about time to make it clear that i2c_adapter.id is deprecated.
-Hopefully this will remind the last user to move over to a different
-strategy.
+Hi.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Jarod Wilson <jarod@redhat.com>
----
- drivers/i2c/i2c-mux.c |    1 -
- include/linux/i2c.h   |    2 +-
- 2 files changed, 1 insertion(+), 2 deletions(-)
+The radio pull request, now using http protocol.
 
---- linux-2.6.37-rc1.orig/include/linux/i2c.h	2010-11-05 13:55:17.000000000 +0100
-+++ linux-2.6.37-rc1/include/linux/i2c.h	2010-11-05 15:41:20.000000000 +0100
-@@ -353,7 +353,7 @@ struct i2c_algorithm {
-  */
- struct i2c_adapter {
- 	struct module *owner;
--	unsigned int id;
-+	unsigned int id __deprecated;
- 	unsigned int class;		  /* classes to allow probing for */
- 	const struct i2c_algorithm *algo; /* the algorithm to access the bus */
- 	void *algo_data;
---- linux-2.6.37-rc1.orig/drivers/i2c/i2c-mux.c	2010-11-05 16:06:18.000000000 +0100
-+++ linux-2.6.37-rc1/drivers/i2c/i2c-mux.c	2010-11-05 16:06:33.000000000 +0100
-@@ -120,7 +120,6 @@ struct i2c_adapter *i2c_add_mux_adapter(
- 	snprintf(priv->adap.name, sizeof(priv->adap.name),
- 		 "i2c-%d-mux (chan_id %d)", i2c_adapter_id(parent), chan_id);
- 	priv->adap.owner = THIS_MODULE;
--	priv->adap.id = parent->id;
- 	priv->adap.algo = &priv->algo;
- 	priv->adap.algo_data = priv;
- 	priv->adap.dev.parent = &parent->dev;
+The following changes since commit
+f6614b7bb405a9b35dd28baea989a749492c46b2:
+  Linus Torvalds (1):
+        Merge git://git.kernel.org/.../sfrench/cifs-2.6
+
+are available in the git repository at:
+
+  http://git.gitorious.org/wl1273-fm-driver/wl1273-fm-driver.git master
+
+Matti J. Aaltonen (2):
+      MFD: WL1273 FM Radio: MFD driver for the FM radio.
+      V4L2: WL1273 FM Radio: Controls for the FM radio.
+
+ drivers/media/radio/Kconfig        |   16 +
+ drivers/media/radio/Makefile       |    1 +
+ drivers/media/radio/radio-wl1273.c | 1841
+++++++++++++++++++++++++++++++++++++
+ drivers/mfd/Kconfig                |    6 +
+ drivers/mfd/Makefile               |    1 +
+ drivers/mfd/wl1273-core.c          |  617 ++++++++++++
+ include/linux/mfd/wl1273-core.h    |  330 +++++++
+ 7 files changed, 2812 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/radio/radio-wl1273.c
+ create mode 100644 drivers/mfd/wl1273-core.c
+ create mode 100644 include/linux/mfd/wl1273-core.h
 
 
--- 
-Jean Delvare
+B.R.
+Matti A.
+
+
