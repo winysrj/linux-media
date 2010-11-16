@@ -1,34 +1,59 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:36358 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755088Ab0JaJYm (ORCPT
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2653 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758980Ab0KPHtB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Oct 2010 05:24:42 -0400
-Received: by iwn10 with SMTP id 10so5725731iwn.19
-        for <linux-media@vger.kernel.org>; Sun, 31 Oct 2010 02:24:41 -0700 (PDT)
+	Tue, 16 Nov 2010 02:49:01 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Andrew Chew <AChew@nvidia.com>
+Subject: Re: Allocating videobuf_buffer, but lists not being initialized
+Date: Tue, 16 Nov 2010 08:48:48 +0100
+Cc: "'linux-media@vger.kernel.org'" <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+References: <643E69AA4436674C8F39DCC2C05F763816BB828A36@HQMAIL03.nvidia.com> <643E69AA4436674C8F39DCC2C05F763816BB828A37@HQMAIL03.nvidia.com> <201011160837.32797.hverkuil@xs4all.nl>
+In-Reply-To: <201011160837.32797.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTinpmNNyfuv9mKViov+KpyDmjgyqTBCRtmU--i9L@mail.gmail.com>
-References: <AANLkTimf5zRiA8E0vFmmaiN1Xkr6gO4uxLQen6b_bTNu@mail.gmail.com>
-	<AANLkTimxOQLbfLDGmqBTG1wcqeztm=KYXVNrv7og3V-F@mail.gmail.com>
-	<AANLkTinpmNNyfuv9mKViov+KpyDmjgyqTBCRtmU--i9L@mail.gmail.com>
-Date: Sun, 31 Oct 2010 10:24:41 +0100
-Message-ID: <AANLkTinj68ogkLzv_qXckyzo2UF5oMLCCXpBnzQXyFA4@mail.gmail.com>
-Subject: Re: New channel frequencies for fr-Poitiers
-From: Christoph Pfister <christophpfister@gmail.com>
-To: Damien Brossard <brossard.damien@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201011160848.48643.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-2010/10/29 Damien Brossard <brossard.damien@gmail.com>:
-> Hi,
->
-> Here is updated version of dvb frequencies init file for Poitiers - France.
->
-> Damien
-<snip>
+On Tuesday, November 16, 2010 08:37:32 Hans Verkuil wrote:
+> On Tuesday, November 16, 2010 02:10:39 Andrew Chew wrote:
+> > I'm looking at drivers/media/video/videobuf-dma-contig.c's __videobuf_alloc() routine.  We call kzalloc() to allocate the videobuf_buffer.  However, I don't see where the two lists (vb->stream and vb->queue) that are a part of struct videobuf_buffer get initialized (with, say, INIT_LIST_HEAD).
+> 
+> Yuck. The videobuf framework doesn't initialize vb-stream at all. It relies on
+> list_add_tail to effectively initialize it for it. It works, but it is not
+> exactly clean programming :-(
+> 
+> The vb->queue list has to be initialized in the driver. Never understood the
+> reason for that either.
 
-Updated, thanks.
+I'm actually not sure about that. I know I had problems in my driver so I had
+to initialize it myself. But it seems not all drivers do that.
 
-Christoph
+> Marek, can you make sure that videobuf2 will initialize these lists correctly?
+> That is, vb2 should do this initialization instead of the driver.
+
+lists -> list entries
+
+> 
+> > This results in a warning in the V4L2 camera host driver that I'm developing when the buf_prepare method gets called.  I do a similar sanity check to the sh_mobile_ceu_camera driver (WARN_ON(!list->empty(&vb->queue));) in my buf_prepare method, and see the warning.  If I add INIT_LIST_HEAD to __videobuf_alloc(), this warning goes away.
+> > 
+> > Is this a known bug?
+> 
+> Well, videobuf is one big bug. We hope that we can merge the videobuf replacement
+> (called videobuf2, amazingly enough :-) ) for 2.6.38. Fingers crossed.
+> 
+> So you might want to wait until vb2 arrives, depending on your schedule.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
