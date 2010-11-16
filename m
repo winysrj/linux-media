@@ -1,55 +1,66 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2315 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755364Ab0KOS1H (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3063 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752929Ab0KPPas (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Nov 2010 13:27:07 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id oAFIR5o4064639
-	for <linux-media@vger.kernel.org>; Mon, 15 Nov 2010 19:27:05 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 15 Nov 2010 19:27:05 +0100 (CET)
-Message-Id: <201011151827.oAFIR5o4064639@smtp-vbr5.xs4all.nl>
+	Tue, 16 Nov 2010 10:30:48 -0500
+Message-ID: <ebc68dfa756290569c3905a79175f65a.squirrel@webmail.xs4all.nl>
+In-Reply-To: <ccc5d34bc1daa662da4af75127256505.squirrel@webmail.xs4all.nl>
+References: <cover.1289740431.git.hverkuil@xs4all.nl>
+    <201011161522.19758.arnd@arndb.de>
+    <b8ec38c9574d2b83b5e9bf9fd0bb45c1.squirrel@webmail.xs4all.nl>
+    <201011161613.12698.arnd@arndb.de>
+    <ccc5d34bc1daa662da4af75127256505.squirrel@webmail.xs4all.nl>
+Date: Tue, 16 Nov 2010 16:30:29 +0100
+Subject: Re: [RFC PATCH 0/8] V4L BKL removal: first round
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build: WARNINGS
+To: "Arnd Bergmann" <arnd@arndb.de>
+Cc: "Mauro Carvalho Chehab" <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
 
-Results of the daily build of v4l-dvb:
+>
+>> On Tuesday 16 November 2010, Hans Verkuil wrote:
+>>> A pointer to this struct is available in vdev->v4l2_dev. However, not
+>>> all
+>>> drivers implement struct v4l2_device. But on the other hand, most
+>>> relevant
+>>> drivers do. So as a fallback we would still need a static mutex.
+>>
+>> Wouldn't that suffer the same problem as putting the mutex into videodev
+>> as I suggested? You said that there are probably drivers that need to
+>> serialize between multiple devices, so if we have a mutex per
+>> v4l2_device,
+>> you can still get races between multiple ioctl calls accessing the same
+>> per-driver data. To solve this, we'd have to put the lock into a
+>> per-driver
+>> structure like v4l2_file_operations or v4l2_ioctl_ops, which would add
+>> to the ugliness.
+>
+> I think there is a misunderstanding. One V4L device (e.g. a TV capture
+> card, a webcam, etc.) has one v4l2_device struct. But it can have multiple
+> V4L device nodes (/dev/video0, /dev/radio0, etc.), each represented by a
+> struct video_device (and I really hope I can rename that to v4l2_devnode
+> soon since that's a very confusing name).
+>
+> You typically need to serialize between all the device nodes belonging to
+> the same video hardware. A mutex in struct video_device doesn't do that,
+> that just serializes access to that single device node. But a mutex in
+> v4l2_device is at the right level.
 
-date:        Mon Nov 15 19:00:06 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15167:abd3aac6644e
-git master:       3e6dce76d99b328716b43929b9195adfee1de00c
-git media-master: a348e9110ddb5d494e060d989b35dd1f35359d58
-gcc version:      i686-linux-gcc (GCC) 4.5.1
-host hardware:    x86_64
-host os:          2.6.32.5
+A quick follow-up as I saw I didn't fully answer your question: to my
+knowledge there are no per-driver data structures that need a BKL for
+protection. It's definitely not something I am worried about.
 
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: WARNINGS
-linux-git-mips: WARNINGS
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-spec-git: OK
-sparse: ERRORS
+Regards,
 
-Detailed results are available here:
+         Hans
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
