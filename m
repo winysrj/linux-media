@@ -1,146 +1,41 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:29468 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752711Ab0KLNaO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Nov 2010 08:30:14 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oACDUEB9006486
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 12 Nov 2010 08:30:14 -0500
-Received: from pedra (vpn-229-188.phx2.redhat.com [10.3.229.188])
-	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id oACDTBbY004220
-	for <linux-media@vger.kernel.org>; Fri, 12 Nov 2010 08:30:13 -0500
-Date: Fri, 12 Nov 2010 11:28:38 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/2] [media] ir-kbd-i2c: add rc_dev as a parameter to the
- driver
-Message-ID: <20101112112838.2218e2d7@pedra>
-In-Reply-To: <cover.1289568397.git.mchehab@redhat.com>
-References: <cover.1289568397.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:62624 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932380Ab0KPVc7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Nov 2010 16:32:59 -0500
+Received: by gxk23 with SMTP id 23so724494gxk.19
+        for <linux-media@vger.kernel.org>; Tue, 16 Nov 2010 13:32:58 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <201011162210.18000.hverkuil@xs4all.nl>
+References: <cover.1289740431.git.hverkuil@xs4all.nl>
+	<1289937581.2104.29.camel@morgan.silverblock.net>
+	<201011162129.11096.hverkuil@xs4all.nl>
+	<201011162210.18000.hverkuil@xs4all.nl>
+Date: Tue, 16 Nov 2010 16:32:57 -0500
+Message-ID: <AANLkTikXkEZELQSEa6eQLobK7gpDe=_7+AawuxT3tjd5@mail.gmail.com>
+Subject: Re: [RFC PATCH 0/8] V4L BKL removal: first round
+From: David Ellingsworth <david@identd.dyndns.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-There are several fields on rc_dev that drivers can benefit. Allow drivers
-to pass it as a parameter to the driver.
+Hans,
 
-For now, the rc_dev parameter is optional. If drivers don't pass it, create
-them internally. However, the best is to create rc_dev inside the drivers,
-in order to fill other fields, like open(), close(), driver_name, etc.
-So, a latter patch making it mandatory and changing the caller drivers is
-welcome.
+I've had some patches pending for a while now that affect the dsbr100
+driver. The patches can be seen here:
+http://desource.dyndns.org/~atog/gitweb/?p=linux-media.git in the
+dsbr100 branch. The first patch in the series fixes locking issues
+throughout the driver and converts it to use the unlocked ioctl. The
+series is a bit old, so it doesn't make use of the v4l2 core assisted
+locking; but that is trivial to implement after this patch.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Regards,
 
-diff --git a/drivers/media/video/ir-kbd-i2c.c b/drivers/media/video/ir-kbd-i2c.c
-index 55a22e7..50bb627 100644
---- a/drivers/media/video/ir-kbd-i2c.c
-+++ b/drivers/media/video/ir-kbd-i2c.c
-@@ -272,20 +272,16 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	const char *name = NULL;
- 	u64 ir_type = IR_TYPE_UNKNOWN;
- 	struct IR_i2c *ir;
--	struct rc_dev *rc;
-+	struct rc_dev *rc = NULL;
- 	struct i2c_adapter *adap = client->adapter;
- 	unsigned short addr = client->addr;
- 	int err;
- 
--	ir = kzalloc(sizeof(struct IR_i2c),GFP_KERNEL);
--	rc = rc_allocate_device();
--	if (!ir || !rc) {
--		err = -ENOMEM;
--		goto err_out_free;
--	}
-+	ir = kzalloc(sizeof(struct IR_i2c), GFP_KERNEL);
-+	if (!ir)
-+		return -ENOMEM;
- 
- 	ir->c = client;
--	ir->rc = rc;
- 	ir->polling_interval = DEFAULT_POLLING_INTERVAL;
- 	i2c_set_clientdata(client, ir);
- 
-@@ -334,6 +330,8 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 						client->dev.platform_data;
- 
- 		ir_codes = init_data->ir_codes;
-+		rc = init_data->rc_dev;
-+
- 		name = init_data->name;
- 		if (init_data->type)
- 			ir_type = init_data->type;
-@@ -367,6 +365,19 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		}
- 	}
- 
-+	if (!rc) {
-+		/*
-+		 * If platform_data doesn't specify rc_dev, initilize it
-+		 * internally
-+		 */
-+		rc = rc_allocate_device();
-+		if (!rc) {
-+			err = -ENOMEM;
-+			goto err_out_free;
-+		}
-+	}
-+	ir->rc = rc;
-+
- 	/* Make sure we are all setup before going on */
- 	if (!name || !ir->get_key || !ir_type || !ir_codes) {
- 		dprintk(1, ": Unsupported device at address 0x%02x\n",
-@@ -383,12 +394,21 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		 dev_name(&adap->dev),
- 		 dev_name(&client->dev));
- 
--	/* init + register input device */
-+	/*
-+	 * Initialize input_dev fields
-+	 * It doesn't make sense to allow overriding them via platform_data
-+	 */
- 	rc->input_id.bustype = BUS_I2C;
--	rc->input_name       = ir->name;
- 	rc->input_phys       = ir->phys;
--	rc->map_name         = ir->ir_codes;
--	rc->driver_name      = MODULE_NAME;
-+	rc->input_name	     = ir->name;
-+
-+	/*
-+	 * Initialize the other fields of rc_dev
-+	 */
-+	rc->map_name       = ir->ir_codes;
-+	rc->allowed_protos = ir_type;
-+	if (!rc->driver_name)
-+		rc->driver_name = MODULE_NAME;
- 
- 	err = rc_register_device(rc);
- 	if (err)
-@@ -404,6 +424,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	return 0;
- 
-  err_out_free:
-+	/* Only frees rc if it were allocated internally */
- 	rc_free_device(rc);
- 	kfree(ir);
- 	return err;
-diff --git a/include/media/ir-kbd-i2c.h b/include/media/ir-kbd-i2c.h
-index 4ee9b42..aca015e 100644
---- a/include/media/ir-kbd-i2c.h
-+++ b/include/media/ir-kbd-i2c.h
-@@ -46,5 +46,7 @@ struct IR_i2c_init_data {
- 	 */
- 	int                    (*get_key)(struct IR_i2c*, u32*, u32*);
- 	enum ir_kbd_get_key_fn internal_get_key_func;
-+
-+	struct rc_dev		*rc_dev;
- };
- #endif
--- 
-1.7.1
-
-
+David Ellingsworth
