@@ -1,104 +1,148 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:59583 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751640Ab0J3UIz (ORCPT
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4452 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755554Ab0KPSil (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Oct 2010 16:08:55 -0400
-Date: Sat, 30 Oct 2010 22:07:51 +0200
-From: "Carlos R. Mafra" <crmafra2@gmail.com>
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: [2.6.36-09452-g2d10d87] BUG: unable to handle kernel NULL pointer
- dereference at (null)
-Message-ID: <20101030200751.GA2866@Pilar.aei.mpg.de>
+	Tue, 16 Nov 2010 13:38:41 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCH 0/8] V4L BKL removal: first round
+Date: Tue, 16 Nov 2010 19:38:11 +0100
+Cc: "Mauro Carvalho Chehab" <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <cover.1289740431.git.hverkuil@xs4all.nl> <201011161701.36982.arnd@arndb.de> <201011161749.05844.hverkuil@xs4all.nl>
+In-Reply-To: <201011161749.05844.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201011161938.11476.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-I am testing Linus' git kernel from today 2.6.36-09452-g2d10d87
-and I get the following BUG: when I plug in the WinTV Nova-T USB
-stick to watch television:
+On Tuesday, November 16, 2010 17:49:05 Hans Verkuil wrote:
+> On Tuesday, November 16, 2010 17:01:36 Arnd Bergmann wrote:
+> > On Tuesday 16 November 2010, Hans Verkuil wrote:
+> > > > I think there is a misunderstanding. One V4L device (e.g. a TV capture
+> > > > card, a webcam, etc.) has one v4l2_device struct. But it can have multiple
+> > > > V4L device nodes (/dev/video0, /dev/radio0, etc.), each represented by a
+> > > > struct video_device (and I really hope I can rename that to v4l2_devnode
+> > > > soon since that's a very confusing name).
+> > > >
+> > > > You typically need to serialize between all the device nodes belonging to
+> > > > the same video hardware. A mutex in struct video_device doesn't do that,
+> > > > that just serializes access to that single device node. But a mutex in
+> > > > v4l2_device is at the right level.
+> > 
+> > Ok, got it now.
+> > 
+> > > A quick follow-up as I saw I didn't fully answer your question: to my
+> > > knowledge there are no per-driver data structures that need a BKL for
+> > > protection. It's definitely not something I am worried about.
+> > 
+> > Good. Are you preparing a patch for a per-v4l2_device then? This sounds
+> > like the right place with your explanation. I would not put in the
+> > CONFIG_BKL switch, because I tried that for two other subsystems and got
+> > called back, but I'm not going to stop you.
+> > 
+> > As for the fallback to a global mutex, I guess you can set the
+> > videodev->lock pointer and use unlocked_ioctl for those drivers
+> > that do not use a v4l2_device yet, if there are only a handful of them.
+> > 
+> > 	Arnd
+> > 
+> 
+> I will look into it. I'll try to have something today or tomorrow.
 
+OK, here is my patch adding a mutex to v4l2_device.
 
-[27002.897127] dvb-usb: found a 'Hauppauge Nova-T Stick' in warm state.
-[27002.897207] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-[27002.897564] DVB: registering new adapter (Hauppauge Nova-T Stick)
-[27003.096909] DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
-[27003.134119] BUG: unable to handle kernel NULL pointer dereference at           (null)
-[27003.134236] IP: [<ffffffff813ac9f3>] i2c_transfer+0x23/0xd0
-[27003.134317] PGD 70fbc067 PUD 70d27067 PMD 0 
-[27003.134391] Oops: 0000 [#1] SMP 
-[27003.134447] last sysfs file: /sys/devices/pci0000:00/0000:00:1d.7/usb2/2-1/2-1.3/2-1.3.3/manufacturer
-[27003.134555] CPU 0 
-[27003.134585] Modules linked in: snd_seq snd_seq_device vfat fat snd_hda_codec_idt snd_hda_intel iwlagn snd_hda_codec sky2 uvcvideo i2c_i801 snd_hwdep evdev
-[27003.134848] 
-[27003.134876] Pid: 20, comm: khubd Not tainted 2.6.36-09452-g2d10d87 #1 VAIO/VGN-FZ240E
-[27003.134967] RIP: 0010:[<ffffffff813ac9f3>]  [<ffffffff813ac9f3>] i2c_transfer+0x23/0xd0
-[27003.135034] RSP: 0018:ffff88007ca757f0  EFLAGS: 00010286
-[27003.135034] RAX: 00000000ffffffa1 RBX: ffff8800757eb418 RCX: 00000000ffffffff
-[27003.135034] RDX: 0000000000000000 RSI: ffff88007ca75850 RDI: ffff8800757eb418
-[27003.135034] RBP: ffff88007ca75830 R08: ffff88007ca74000 R09: ffff88007ca72578
-[27003.135034] R10: 0000000000000000 R11: 0000000000000001 R12: ffff88007c800140
-[27003.135034] R13: ffff88007ca75850 R14: 0000000000000002 R15: ffff8800757eb418
-[27003.135034] FS:  0000000000000000(0000) GS:ffff88007f400000(0000) knlGS:0000000000000000
-[27003.135034] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-[27003.135034] CR2: 0000000000000000 CR3: 0000000070de9000 CR4: 00000000000006f0
-[27003.135034] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[27003.135034] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-[27003.135034] Process khubd (pid: 20, threadinfo ffff88007ca74000, task ffff88007ca72540)
-[27003.135034] Stack:
-[27003.135034]  ffffffff8104ec60 ffff88007ca72540 ffff8800ffffffff ffff88007bd42a40
-[27003.135034]  ffff88007c800140 0000000000000080 ffffffff81a68f00 ffff8800757eb418
-[27003.135034]  ffff88007ca75880 ffffffff813ec7e4 ffff88007c800140 0000002200000080
-[27003.135034] Call Trace:
-[27003.135034]  [<ffffffff8104ec60>] ? process_timeout+0x0/0x10
-[27003.135034]  [<ffffffff813ec7e4>] dib0070_read_reg+0x54/0x80
-[27003.135034]  [<ffffffff8104ecc8>] ? msleep+0x18/0x20
-[27003.135034]  [<ffffffff813ed544>] dib0070_attach+0xb4/0x4f0
-[27003.135034]  [<ffffffff810769aa>] ? __symbol_get+0x2a/0xb0
-[27003.135034]  [<ffffffff813f5cd2>] dib7070p_tuner_attach+0x62/0x150
-[27003.135034]  [<ffffffff813f20c7>] dvb_usb_adapter_frontend_init+0x87/0x100
-[27003.135034]  [<ffffffff813f150d>] dvb_usb_device_init+0x35d/0x6c0
-[27003.135034]  [<ffffffff813f49b3>] dib0700_probe+0x63/0xe0
-[27003.135034]  [<ffffffff8138243b>] ? usb_match_id+0x3b/0x70
-[27003.135034]  [<ffffffff813825b3>] usb_probe_interface+0xb3/0x150
-[27003.135034]  [<ffffffff81322329>] driver_probe_device+0x89/0x1a0
-[27003.135034]  [<ffffffff813224e0>] ? __device_attach+0x0/0x60
-[27003.135034]  [<ffffffff8132252b>] __device_attach+0x4b/0x60
-[27003.135034]  [<ffffffff81321014>] bus_for_each_drv+0x64/0x90
-[27003.135034]  [<ffffffff813221e1>] device_attach+0x91/0xa0
-[27003.135034]  [<ffffffff813219c5>] bus_probe_device+0x25/0x40
-[27003.135034]  [<ffffffff8131f808>] device_add+0x4a8/0x580
-[27003.135034]  [<ffffffff81327fff>] ? device_pm_init+0x3f/0x60
-[27003.135034]  [<ffffffff81381435>] usb_set_configuration+0x3e5/0x690
-[27003.135034]  [<ffffffff811359dd>] ? sysfs_do_create_link+0xdd/0x210
-[27003.135034]  [<ffffffff81389b7f>] generic_probe+0x3f/0xa0
-[27003.135034]  [<ffffffff813817b5>] usb_probe_device+0x15/0x20
-[27003.135034]  [<ffffffff81322329>] driver_probe_device+0x89/0x1a0
-[27003.135034]  [<ffffffff813224e0>] ? __device_attach+0x0/0x60
-[27003.135034]  [<ffffffff8132252b>] __device_attach+0x4b/0x60
-[27003.135034]  [<ffffffff81321014>] bus_for_each_drv+0x64/0x90
-[27003.135034]  [<ffffffff813221e1>] device_attach+0x91/0xa0
-[27003.135034]  [<ffffffff813219c5>] bus_probe_device+0x25/0x40
-[27003.135034]  [<ffffffff8131f808>] device_add+0x4a8/0x580
-[27003.135034]  [<ffffffff8137a831>] usb_new_device+0x71/0xe0
-[27003.135034]  [<ffffffff8137b280>] hub_thread+0x9e0/0x1090
-[27003.135034]  [<ffffffff8105f3f0>] ? autoremove_wake_function+0x0/0x40
-[27003.135034]  [<ffffffff8137a8a0>] ? hub_thread+0x0/0x1090
-[27003.135034]  [<ffffffff8105eee6>] kthread+0x96/0xa0
-[27003.135034]  [<ffffffff81003ad4>] kernel_thread_helper+0x4/0x10
-[27003.135034]  [<ffffffff8105ee50>] ? kthread+0x0/0xa0
-[27003.135034]  [<ffffffff81003ad0>] ? kernel_thread_helper+0x0/0x10
-[27003.135034] Code: 0f 1f 84 00 00 00 00 00 55 b8 a1 ff ff ff 48 89 e5 41 57 41 56 41 89 d6 41 55 49 89 f5 41 54 53 48 89 fb 48 83 ec 18 48 8b 57 10 <48> 83 3a 00 74 75 65 48 8b 04 25 88 b5 00 00 f7 80 44 e0 ff ff 
-[27003.135034] RIP  [<ffffffff813ac9f3>] i2c_transfer+0x23/0xd0
-[27003.135034]  RSP <ffff88007ca757f0>
-[27003.135034] CR2: 0000000000000000
-[27003.205419] ---[ end trace 69e89a1609d21813 ]---
+I did some tests if we merge this patch then there are three classes of
+drivers:
 
+1) Those implementing unlocked_ioctl: these work like a charm.
+2) Those implementing v4l2_device: capturing works fine, but calling ioctls
+at the same time from another process or thread is *exceedingly* slow. But at
+least there is no interference from other drivers.
+3) Those not implementing v4l2_device: using a core lock makes it simply
+impossible to capture from e.g. two devices at the same time. I tried with two
+uvc webcams: the capture rate is simply horrible.
 
-Is this already known? I remember that the previous kernel 2.6.36-06794-g12ba8d1
-did not have this problem, so I can try to bisect it if necessary.
+Note that this is tested in blocking mode. These problems do not appear if you
+capture in non-blocking mode.
 
+I consider class 3 unacceptable for commonly seen devices. I did a quick scan
+of the v4l drivers and the only common driver that falls in that class is uvc.
+
+There is one other option, although it is very dirty: don't take the lock if
+the ioctl command is VIDIOC_DQBUF. It works and reliably as well for uvc and
+videobuf (I did a quick code analysis). But I don't know if it works everywhere.
+
+I would like to get the opinion of others before I implement such a check. But
+frankly, I think this may be our best bet.
+
+So the patch below would look like this if I add the check:
+
+-               mutex_lock(&v4l2_ioctl_mutex);
++               if (cmd != VIDIOC_DQBUF)
++                       mutex_lock(m);
+                if (video_is_registered(vdev))
+                        ret = vdev->fops->ioctl(filp, cmd, arg);
+-               mutex_unlock(&v4l2_ioctl_mutex);
++               if (cmd != VIDIOC_DQBUF)
++                       mutex_unlock(m);
+
+Comments?
+
+Regards,
+
+	Hans
+
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index 03f7f46..026bf38 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -247,11 +247,13 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 	} else if (vdev->fops->ioctl) {
+ 		/* TODO: convert all drivers to unlocked_ioctl */
+ 		static DEFINE_MUTEX(v4l2_ioctl_mutex);
++		struct mutex *m = vdev->v4l2_dev ?
++			&vdev->v4l2_dev->ioctl_lock : &v4l2_ioctl_mutex;
+ 
+-		mutex_lock(&v4l2_ioctl_mutex);
++		mutex_lock(m);
+ 		if (video_is_registered(vdev))
+ 			ret = vdev->fops->ioctl(filp, cmd, arg);
+-		mutex_unlock(&v4l2_ioctl_mutex);
++		mutex_unlock(m);
+ 	} else
+ 		ret = -ENOTTY;
+ 
+diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
+index 0b08f96..7fe6f92 100644
+--- a/drivers/media/video/v4l2-device.c
++++ b/drivers/media/video/v4l2-device.c
+@@ -35,6 +35,7 @@ int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
+ 
+ 	INIT_LIST_HEAD(&v4l2_dev->subdevs);
+ 	spin_lock_init(&v4l2_dev->lock);
++	mutex_init(&v4l2_dev->ioctl_lock);
+ 	v4l2_dev->dev = dev;
+ 	if (dev == NULL) {
+ 		/* If dev == NULL, then name must be filled in by the caller */
+diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
+index 6648036..b16f307 100644
+--- a/include/media/v4l2-device.h
++++ b/include/media/v4l2-device.h
+@@ -51,6 +51,8 @@ struct v4l2_device {
+ 			unsigned int notification, void *arg);
+ 	/* The control handler. May be NULL. */
+ 	struct v4l2_ctrl_handler *ctrl_handler;
++	/* BKL replacement mutex. Temporary solution only. */
++	struct mutex ioctl_lock;
+ };
+ 
+ /* Initialize v4l2_dev and make dev->driver_data point to v4l2_dev.
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
