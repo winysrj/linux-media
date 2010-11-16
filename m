@@ -1,59 +1,32 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4698 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752897Ab0KSOVn (ORCPT
+Return-path: <mchehab@pedra>
+Received: from hqemgate04.nvidia.com ([216.228.121.35]:1356 "EHLO
+	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757536Ab0KPBK7 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 09:21:43 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH/RFC] v4l: Add subdev sensor g_skip_frames operation
-Date: Fri, 19 Nov 2010 15:21:36 +0100
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-References: <1290173202-28769-1-git-send-email-laurent.pinchart@ideasonboard.com> <201011191451.44465.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1011191509541.20751@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1011191509541.20751@axis700.grange>
+	Mon, 15 Nov 2010 20:10:59 -0500
+From: Andrew Chew <AChew@nvidia.com>
+To: "'linux-media@vger.kernel.org'" <linux-media@vger.kernel.org>
+Date: Mon, 15 Nov 2010 17:10:39 -0800
+Subject: Allocating videobuf_buffer, but lists not being initialized
+Message-ID: <643E69AA4436674C8F39DCC2C05F763816BB828A37@HQMAIL03.nvidia.com>
+References: <643E69AA4436674C8F39DCC2C05F763816BB828A36@HQMAIL03.nvidia.com>
+In-Reply-To: <643E69AA4436674C8F39DCC2C05F763816BB828A36@HQMAIL03.nvidia.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011191521.36684.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Friday 19 November 2010 15:15:11 Guennadi Liakhovetski wrote:
-> On Fri, 19 Nov 2010, Laurent Pinchart wrote:
-> 
-> > Hi Hans,
-> > 
-> > On Friday 19 November 2010 14:42:31 Hans Verkuil wrote:
-> > > On Friday 19 November 2010 14:26:42 Laurent Pinchart wrote:
-> > > > Some buggy sensors generate corrupt frames when the stream is started.
-> > > > This new operation returns the number of corrupt frames to skip when
-> > > > starting the stream.
-> > > 
-> > > Looks OK, but perhaps the two should be combined to one function?
-> > 
-> > I'm fine with both. Guennadi, any opinion ?
-> 
-> Same as before;) I think, there can be many more such "micro" parameters, 
-> that we'll want to collect from the sensor. So, if we had a good idea - 
-> what those parameters are like, we could implement just one API call to 
-> get them all, or even just pass one object with this information - if it 
-> is constant. If we don't have a good idea yet, what to expect there, it 
-> might be best to wait and first collect a more complete understanding of 
-> this kind of information. In any case I wouldn't convert these two calls 
-> to one like
-> 
-> int (*get_bad_things)(struct v4l2_subdev *sd, u32 *lines, u32 *frames)
-> 
-> ;)
+I'm looking at drivers/media/video/videobuf-dma-contig.c's __videobuf_alloc() routine.  We call kzalloc() to allocate the videobuf_buffer.  However, I don't see where the two lists (vb->stream and vb->queue) that are a part of struct videobuf_buffer get initialized (with, say, INIT_LIST_HEAD).
 
-OK, let's go with Laurent's proposal. But I do think this should be reviewed
-at some point in time.
+This results in a warning in the V4L2 camera host driver that I'm developing when the buf_prepare method gets called.  I do a similar sanity check to the sh_mobile_ceu_camera driver (WARN_ON(!list->empty(&vb->queue));) in my buf_prepare method, and see the warning.  If I add INIT_LIST_HEAD to __videobuf_alloc(), this warning goes away.
 
-Regards,
+Is this a known bug?
 
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+-----------------------------------------------------------------------------------
+This email message is for the sole use of the intended recipient(s) and may contain
+confidential information.  Any unauthorized review, use, disclosure or distribution
+is prohibited.  If you are not the intended recipient, please contact the sender by
+reply email and destroy all copies of the original message.
+-----------------------------------------------------------------------------------
