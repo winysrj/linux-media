@@ -1,241 +1,103 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp.nokia.com ([147.243.1.48]:57988 "EHLO mgw-sa02.nokia.com"
+Return-path: <mchehab@pedra>
+Received: from mail.perches.com ([173.55.12.10]:1459 "EHLO mail.perches.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752413Ab0KTLZj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Nov 2010 06:25:39 -0500
-Date: Sat, 20 Nov 2010 13:26:40 +0200
-From: David Cohen <david.cohen@nokia.com>
-To: ext Sergio Aguirre <saaguirre@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	id S1756576Ab0KPTqO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Nov 2010 14:46:14 -0500
+Subject: RE: [PATCH 01/10] MCDE: Add hardware abstraction layer
+From: Joe Perches <joe@perches.com>
+To: Jimmy RUBIN <jimmy.rubin@stericsson.com>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+	Dan JOHANSSON <dan.johansson@stericsson.com>,
+	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	Linus WALLEIJ <linus.walleij@stericsson.com>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
 	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [omap3isp RFC][PATCH 1/4] omap3isp: Abstract isp subdevs clock
- control
-Message-ID: <20101120112640.GE13186@esdhcp04381.research.nokia.com>
-References: <1290209031-12817-1-git-send-email-saaguirre@ti.com>
- <1290209031-12817-2-git-send-email-saaguirre@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1290209031-12817-2-git-send-email-saaguirre@ti.com>
+In-Reply-To: <F45880696056844FA6A73F415B568C6953604E7D94@EXDCVYMBSTM006.EQ1STM.local>
+References: <1289390653-6111-1-git-send-email-jimmy.rubin@stericsson.com>
+	 <1289390653-6111-2-git-send-email-jimmy.rubin@stericsson.com>
+	 <201011121643.52923.arnd@arndb.de>
+	 <F45880696056844FA6A73F415B568C6953604E7D94@EXDCVYMBSTM006.EQ1STM.local>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 16 Nov 2010 11:46:12 -0800
+Message-ID: <1289936772.28741.188.camel@Joe-Laptop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Sergio,
+On Tue, 2010-11-16 at 16:29 +0100, Jimmy RUBIN wrote:
+> > > +/* Channel path */
+> > > +#define MCDE_CHNLPATH(__chnl, __fifo, __type, __ifc, __link) \
+> > > +	(((__chnl) << 16) | ((__fifo) << 12) | \
+> > > +	 ((__type) << 8) | ((__ifc) << 4) | ((__link) << 0))
+> > > +enum mcde_chnl_path {
+> > > +	/* Channel A */
+> > > +	MCDE_CHNLPATH_CHNLA_FIFOA_DPI_0 = MCDE_CHNLPATH(MCDE_CHNL_A,
+> > > +		MCDE_FIFO_A, MCDE_PORTTYPE_DPI, 0, 0),
+> > > +	MCDE_CHNLPATH_CHNLA_FIFOA_DSI_IFC0_0 =
+> > MCDE_CHNLPATH(MCDE_CHNL_A,
+> > > +		MCDE_FIFO_A, MCDE_PORTTYPE_DSI, 0, 0),
+> > > +	MCDE_CHNLPATH_CHNLA_FIFOA_DSI_IFC0_1 =
+> > MCDE_CHNLPATH(MCDE_CHNL_A,
+> > > +		MCDE_FIFO_A, MCDE_PORTTYPE_DSI, 0, 1),
+> > 
+> > A table like this would become more readable by making each entry a
+> > single line, even if that goes beyond the 80-character limit.
+> Good point, we will fix this
 
-Thanks for the patch. :)
+Or the #define could be changed to do something like:
 
-On Sat, Nov 20, 2010 at 12:23:48AM +0100, ext Sergio Aguirre wrote:
-> Submodules shouldn't be aware of global register bit structure,
-> specially if the submodules are shared in the future with
-> other TI architectures (Davinci, future OMAPs, etc)
-> 
-> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> ---
->  drivers/media/video/isp/isp.c        |   54 ++++++++++++++++++++++++++++++++++
->  drivers/media/video/isp/isp.h        |   12 +++++++
->  drivers/media/video/isp/ispccdc.c    |    6 +--
->  drivers/media/video/isp/isppreview.c |    6 +--
->  drivers/media/video/isp/ispresizer.c |    6 +--
->  5 files changed, 72 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/media/video/isp/isp.c b/drivers/media/video/isp/isp.c
-> index 30bdc48..2e5030f 100644
-> --- a/drivers/media/video/isp/isp.c
-> +++ b/drivers/media/video/isp/isp.c
-> @@ -991,6 +991,60 @@ void isp_sbl_disable(struct isp_device *isp, enum isp_sbl_resource res)
->   * Clock management
->   */
->  
-> +void isp_subclk_enable(struct isp_device *isp, enum isp_subclk_resource res)
-> +{
-> +	u32 clk = 0;
-> +
-> +	isp->subclk_resources |= res;
-> +
-> +	if (isp->subclk_resources & OMAP3_ISP_SUBCLK_H3A)
-> +		clk |= ISPCTRL_H3A_CLK_EN;
-> +
-> +	if (isp->subclk_resources & OMAP3_ISP_SUBCLK_HIST)
-> +		clk |= ISPCTRL_HIST_CLK_EN;
-> +
-> +	if (isp->subclk_resources & OMAP3_ISP_SUBCLK_RESIZER)
-> +		clk |= ISPCTRL_RSZ_CLK_EN;
-> +
-> +	/* NOTE: For CCDC & Preview submodules, we need to affect internal
-> +	 *       RAM aswell.
-> +	 */
-> +	if (isp->subclk_resources & OMAP3_ISP_SUBCLK_CCDC)
-> +		clk |= ISPCTRL_CCDC_CLK_EN | ISPCTRL_CCDC_RAM_EN;
-> +
-> +	if (isp->subclk_resources & OMAP3_ISP_SUBCLK_PREVIEW)
-> +		clk |= ISPCTRL_PREV_CLK_EN | ISPCTRL_PREV_RAM_EN;
-> +
-> +	isp_reg_set(isp, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL, clk);
-> +}
+static inline u32 MCDE_channel_path(u32 chnl, u32 fifo, u32 type, u32 ifc, u32 link)
+{
+	return ((chnl << 16) |
+		(fifo << 12) |
+		(type << 8) |
+		(ifc << 4) |
+		(link << 0));
+}
 
-To decrease the lines of code, you can create a new static function
-called e.g. isp_subclk_update(). It can be a copy of isp_subclk_enable()
-but removing the line where it changes 'isp->subclk_resources' and
-replacing 'isp_reg_set(isp, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL, clk)' by
-'isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL, <clocks mask>, clk)'.
+#define SET_ENUM_MCDE_CHNLPATH(chnl, fifo, var, type, ifc, link)	\
+	MCDE_CHNLPATH_CHNL##chnl##_FIFO##fifo##_##var =			\
+		MCDE_channel_path(MCDE_CHNL_##chnl,			\
+				  MCDE_FIFO_##fifo,			\
+				  MCDE_PORTTYPE_##type,			\
+				  ifc,					\
+				  link)
 
-Then, isp_subclk_enable() can update isp->subclk_resources, call
-isp_subclk_update() and finish.
+enum mcde_chnl_path {
+	/* Channel A */
+	SET_ENUM_MCDE_CHNLPATH(A, A, DPI_0,		DPI, 0, 0),
+	SET_ENUM_MCDE_CHNLPATH(A, A, DSI_IFC0_0,	DSI, 0, 0),
+	SET_ENUM_MCDE_CHNLPATH(A, A, DSI_IFC0_1,	DSI, 0, 1),
+	SET_ENUM_MCDE_CHNLPATH(A, C, DSI_IFC0_2,	DSI, 0, 2),
+	SET_ENUM_MCDE_CHNLPATH(A, C, DSI_IFC1_0,	DSI, 1, 0),
+	SET_ENUM_MCDE_CHNLPATH(A, C, DSI_IFC1_1,	DSI, 1, 1),
+	SET_ENUM_MCDE_CHNLPATH(A, A, DSI_IFC1_2,	DSI, 1, 2),
+	/* Channel B */
+	SET_ENUM_MCDE_CHNLPATH(B, B, DPI_1,		DPI, 0, 1),
+	SET_ENUM_MCDE_CHNLPATH(B, B, DSI_IFC0_0,	DSI, 0, 0),
+	SET_ENUM_MCDE_CHNLPATH(B, B, DSI_IFC0_1,	DSI, 0, 1),
+	SET_ENUM_MCDE_CHNLPATH(B, C, DSI_IFC0_2,	DSI, 0, 2),
+	SET_ENUM_MCDE_CHNLPATH(B, C, DSI_IFC1_0,	DSI, 1, 0),
+	SET_ENUM_MCDE_CHNLPATH(B, C, DSI_IFC1_1,	DSI, 1, 1),
+	SET_ENUM_MCDE_CHNLPATH(B, B, DSI_IFC1_2,	DSI, 1, 2),
+	/* Channel C0 */
+	SET_ENUM_MCDE_CHNLPATH(C0, A, DSI_IFC0_0,	DSI, 0, 0),
+	SET_ENUM_MCDE_CHNLPATH(C0, A, DSI_IFC0_1,	DSI, 0, 1),
+	SET_ENUM_MCDE_CHNLPATH(C0, C0, DSI_IFC0_2,	DSI, 0, 2),
+	SET_ENUM_MCDE_CHNLPATH(C0, C0, DSI_IFC1_0,	DSI, 1, 0),
+	SET_ENUM_MCDE_CHNLPATH(C0, C0, DSI_IFC1_1,	DSI, 1, 1),
+	SET_ENUM_MCDE_CHNLPATH(C0, A, DSI_IFC1_2,	DSI, 1, 2),
+	/* Channel C1 */
+	SET_ENUM_MCDE_CHNLPATH(C1, B, DSI_IFC0_0,	DSI, 0, 0),
+	SET_ENUM_MCDE_CHNLPATH(C1, B, DSI_IFC0_1,	DSI, 0, 1),
+	SET_ENUM_MCDE_CHNLPATH(C1, C1, DSI_IFC0_2,	DSI, 0, 2),
+	SET_ENUM_MCDE_CHNLPATH(C1, C1, DSI_IFC1_0,	DSI, 1, 0),
+	SET_ENUM_MCDE_CHNLPATH(C1, C1, DSI_IFC1_1,	DSI, 1, 1),
+	SET_ENUM_MCDE_CHNLPATH(C1, B, DSI_IFC1_2,	DSI, 1, 2),
+};
 
-> +
-> +void isp_subclk_disable(struct isp_device *isp, enum isp_subclk_resource res)
-> +{
-> +	u32 clk = 0;
-> +
-> +	isp->subclk_resources &= ~res;
+It seems that long blocks of upper case make my eyes glaze
+over and that many of your #defines are indistinguishable.
 
-Same here. This function can call isp_subclk_update() and end now.
-
-> +
-> +	if (!(isp->subclk_resources & OMAP3_ISP_SUBCLK_H3A))
-> +		clk |= ISPCTRL_H3A_CLK_EN;
-> +
-> +	if (!(isp->subclk_resources & OMAP3_ISP_SUBCLK_HIST))
-> +		clk |= ISPCTRL_HIST_CLK_EN;
-> +
-> +	if (!(isp->subclk_resources & OMAP3_ISP_SUBCLK_RESIZER))
-> +		clk |= ISPCTRL_RSZ_CLK_EN;
-> +
-> +	/* NOTE: For CCDC & Preview submodules, we need to affect internal
-> +	 *       RAM aswell.
-> +	 */
-> +	if (!(isp->subclk_resources & OMAP3_ISP_SUBCLK_CCDC))
-> +		clk |= ISPCTRL_CCDC_CLK_EN | ISPCTRL_CCDC_RAM_EN;
-> +
-> +	if (!(isp->subclk_resources & OMAP3_ISP_SUBCLK_PREVIEW))
-> +		clk |= ISPCTRL_PREV_CLK_EN | ISPCTRL_PREV_RAM_EN;
-> +
-> +	isp_reg_clr(isp, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL, clk);
-> +}
-> +
->  /*
->   * isp_enable_clocks - Enable ISP clocks
->   * @isp: OMAP3 ISP device
-> diff --git a/drivers/media/video/isp/isp.h b/drivers/media/video/isp/isp.h
-> index b8f63e2..1260e9f 100644
-> --- a/drivers/media/video/isp/isp.h
-> +++ b/drivers/media/video/isp/isp.h
-> @@ -85,6 +85,14 @@ enum isp_sbl_resource {
->  	OMAP3_ISP_SBL_RESIZER_WRITE	= 0x200,
->  };
->  
-> +enum isp_subclk_resource {
-> +	OMAP3_ISP_SUBCLK_CCDC		= 0x1,
-> +	OMAP3_ISP_SUBCLK_H3A		= 0x2,
-> +	OMAP3_ISP_SUBCLK_HIST		= 0x4,
-> +	OMAP3_ISP_SUBCLK_PREVIEW	= 0x8,
-> +	OMAP3_ISP_SUBCLK_RESIZER	= 0x10,
-
-I'm fine with this way, but (1 << 0), (1 << 1), ... has a better readability.
-
-Br,
-
-David Cohen
-
-> +};
-> +
->  enum isp_interface_type {
->  	ISP_INTERFACE_PARALLEL,
->  	ISP_INTERFACE_CSI2A_PHY2,
-> @@ -262,6 +270,7 @@ struct isp_device {
->  	struct isp_csiphy isp_csiphy2;
->  
->  	unsigned int sbl_resources;
-> +	unsigned int subclk_resources;
->  
->  	struct iommu *iommu;
->  };
-> @@ -294,6 +303,9 @@ void isp_print_status(struct isp_device *isp);
->  void isp_sbl_enable(struct isp_device *isp, enum isp_sbl_resource res);
->  void isp_sbl_disable(struct isp_device *isp, enum isp_sbl_resource res);
->  
-> +void isp_subclk_enable(struct isp_device *isp, enum isp_subclk_resource res);
-> +void isp_subclk_disable(struct isp_device *isp, enum isp_subclk_resource res);
-> +
->  int omap3isp_register_entities(struct platform_device *pdev,
->  			       struct v4l2_device *v4l2_dev);
->  void omap3isp_unregister_entities(struct platform_device *pdev);
-> diff --git a/drivers/media/video/isp/ispccdc.c b/drivers/media/video/isp/ispccdc.c
-> index c3d1d7a..4244edf 100644
-> --- a/drivers/media/video/isp/ispccdc.c
-> +++ b/drivers/media/video/isp/ispccdc.c
-> @@ -1687,8 +1687,7 @@ static int ccdc_set_stream(struct v4l2_subdev *sd, int enable)
->  		if (enable == ISP_PIPELINE_STREAM_STOPPED)
->  			return 0;
->  
-> -		isp_reg_set(isp, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL,
-> -			    ISPCTRL_CCDC_RAM_EN | ISPCTRL_CCDC_CLK_EN);
-> +		isp_subclk_enable(isp, OMAP3_ISP_SUBCLK_CCDC);
->  		isp_reg_set(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_CFG,
->  			    ISPCCDC_CFG_VDLC);
->  
-> @@ -1725,8 +1724,7 @@ static int ccdc_set_stream(struct v4l2_subdev *sd, int enable)
->  		ret = ispccdc_disable(ccdc);
->  		if (ccdc->output & CCDC_OUTPUT_MEMORY)
->  			isp_sbl_disable(isp, OMAP3_ISP_SBL_CCDC_WRITE);
-> -		isp_reg_clr(isp, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL,
-> -			    ISPCTRL_CCDC_CLK_EN | ISPCTRL_CCDC_RAM_EN);
-> +		isp_subclk_disable(isp, OMAP3_ISP_SUBCLK_CCDC);
->  		ccdc->underrun = 0;
->  		break;
->  	}
-> diff --git a/drivers/media/video/isp/isppreview.c b/drivers/media/video/isp/isppreview.c
-> index 74e4f6a..3e55123 100644
-> --- a/drivers/media/video/isp/isppreview.c
-> +++ b/drivers/media/video/isp/isppreview.c
-> @@ -1648,8 +1648,7 @@ static int preview_set_stream(struct v4l2_subdev *sd, int enable)
->  		if (enable == ISP_PIPELINE_STREAM_STOPPED)
->  			return 0;
->  
-> -		isp_reg_set(isp, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL,
-> -			    ISPCTRL_PREV_RAM_EN | ISPCTRL_PREV_CLK_EN);
-> +		isp_subclk_enable(isp, OMAP3_ISP_SUBCLK_PREVIEW);
->  		preview_configure(prev);
->  		isppreview_print_status(prev);
->  	}
-> @@ -1677,8 +1676,7 @@ static int preview_set_stream(struct v4l2_subdev *sd, int enable)
->  	case ISP_PIPELINE_STREAM_STOPPED:
->  		isp_sbl_disable(isp, OMAP3_ISP_SBL_PREVIEW_READ);
->  		isp_sbl_disable(isp, OMAP3_ISP_SBL_PREVIEW_WRITE);
-> -		isp_reg_clr(isp, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL,
-> -			    ISPCTRL_PREV_CLK_EN | ISPCTRL_PREV_RAM_EN);
-> +		isp_subclk_disable(isp, OMAP3_ISP_SUBCLK_PREVIEW);
->  		prev->underrun = 0;
->  		break;
->  	}
-> diff --git a/drivers/media/video/isp/ispresizer.c b/drivers/media/video/isp/ispresizer.c
-> index 95c5895..bd33f21 100644
-> --- a/drivers/media/video/isp/ispresizer.c
-> +++ b/drivers/media/video/isp/ispresizer.c
-> @@ -1120,8 +1120,7 @@ static int resizer_set_stream(struct v4l2_subdev *sd, int enable)
->  
->  	if (enable != ISP_PIPELINE_STREAM_STOPPED &&
->  	    res->state == ISP_PIPELINE_STREAM_STOPPED) {
-> -		isp_reg_set(isp, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL,
-> -			    ISPCTRL_RSZ_CLK_EN);
-> +		isp_subclk_enable(isp, OMAP3_ISP_SUBCLK_RESIZER);
->  		resizer_configure(res);
->  		ispresizer_print_status(res);
->  	}
-> @@ -1146,8 +1145,7 @@ static int resizer_set_stream(struct v4l2_subdev *sd, int enable)
->  	case ISP_PIPELINE_STREAM_STOPPED:
->  		isp_sbl_disable(isp, OMAP3_ISP_SBL_RESIZER_READ |
->  				OMAP3_ISP_SBL_RESIZER_WRITE);
-> -		isp_reg_clr(isp, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL,
-> -			    ISPCTRL_RSZ_CLK_EN);
-> +		isp_subclk_disable(isp, OMAP3_ISP_SUBCLK_RESIZER);
->  		res->underrun = 0;
->  		break;
->  	}
-> -- 
-> 1.7.0.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
