@@ -1,35 +1,124 @@
-Return-path: <mchehab@gaivota>
-Received: from cx75.justhost.com ([184.154.88.74]:49794 "EHLO
-	cx75.justhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751069Ab0KBAAN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Nov 2010 20:00:13 -0400
-Received: from mylnpno1 by cx75.justhost.com with local (Exim 4.69)
-	(envelope-from <bounce@mylnpnow.com>)
-	id 1PD4IJ-0004Al-61
-	for linux-media@vger.kernel.org; Mon, 01 Nov 2010 19:00:07 -0500
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3941 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932708Ab0KPVzq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Nov 2010 16:55:46 -0500
+Message-Id: <a93918cdde57ca474d76262f460ffb3976caf313.1289944160.git.hverkuil@xs4all.nl>
+In-Reply-To: <cover.1289944159.git.hverkuil@xs4all.nl>
+References: <cover.1289944159.git.hverkuil@xs4all.nl>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Tue, 16 Nov 2010 22:55:32 +0100
+Subject: [RFCv2 PATCH 01/15] v4l2-dev: use mutex_lock_interruptible instead of plain mutex_lock
 To: linux-media@vger.kernel.org
-Subject: I just have a quick question about your business
-From: James McClure <james@mylnpnow.com>
-Reply-To: james@mylnpnow.com
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Message-Id: <E1PD4IJ-0004Al-61@cx75.justhost.com>
-Date: Mon, 01 Nov 2010 19:00:07 -0500
+Cc: Arnd Bergmann <arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hello, My name is Jim
- 
-I was searching online to find more info about on line businesses
-and I came across your information.
- 
-Can you tell me, are you still involved in a on line business? If
-you are, how are things going for you?
- 
-Please send me info about your business. 
- 
-Sincerely,
-James McClure
+Where reasonable use mutex_lock_interruptible instead of mutex_lock.
 
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/video/v4l2-dev.c |   44 +++++++++++++++++++++++++++++----------
+ 1 files changed, 32 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index 0ca7978..8eb0756 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -191,8 +191,12 @@ static ssize_t v4l2_read(struct file *filp, char __user *buf,
+ 
+ 	if (!vdev->fops->read)
+ 		return -EINVAL;
+-	if (vdev->lock)
+-		mutex_lock(vdev->lock);
++	if (vdev->lock) {
++		int res = mutex_lock_interruptible(vdev->lock);
++
++		if (res)
++			return res;
++	}
+ 	if (video_is_registered(vdev))
+ 		ret = vdev->fops->read(filp, buf, sz, off);
+ 	if (vdev->lock)
+@@ -208,8 +212,12 @@ static ssize_t v4l2_write(struct file *filp, const char __user *buf,
+ 
+ 	if (!vdev->fops->write)
+ 		return -EINVAL;
+-	if (vdev->lock)
+-		mutex_lock(vdev->lock);
++	if (vdev->lock) {
++		int res = mutex_lock_interruptible(vdev->lock);
++
++		if (res)
++			return res;
++	}
+ 	if (video_is_registered(vdev))
+ 		ret = vdev->fops->write(filp, buf, sz, off);
+ 	if (vdev->lock)
+@@ -224,8 +232,8 @@ static unsigned int v4l2_poll(struct file *filp, struct poll_table_struct *poll)
+ 
+ 	if (!vdev->fops->poll)
+ 		return ret;
+-	if (vdev->lock)
+-		mutex_lock(vdev->lock);
++	if (vdev->lock && mutex_lock_interruptible(vdev->lock))
++		return ret;
+ 	if (video_is_registered(vdev))
+ 		ret = vdev->fops->poll(filp, poll);
+ 	if (vdev->lock)
+@@ -239,8 +247,12 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 	int ret = -ENODEV;
+ 
+ 	if (vdev->fops->unlocked_ioctl) {
+-		if (vdev->lock)
+-			mutex_lock(vdev->lock);
++		if (vdev->lock) {
++			int res = mutex_lock_interruptible(vdev->lock);
++
++			if (res)
++				return res;
++		}
+ 		if (video_is_registered(vdev))
+ 			ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
+ 		if (vdev->lock)
+@@ -264,8 +276,12 @@ static int v4l2_mmap(struct file *filp, struct vm_area_struct *vm)
+ 
+ 	if (!vdev->fops->mmap)
+ 		return ret;
+-	if (vdev->lock)
+-		mutex_lock(vdev->lock);
++	if (vdev->lock) {
++		int res = mutex_lock_interruptible(vdev->lock);
++
++		if (res)
++			return res;
++	}
+ 	if (video_is_registered(vdev))
+ 		ret = vdev->fops->mmap(filp, vm);
+ 	if (vdev->lock)
+@@ -291,8 +307,11 @@ static int v4l2_open(struct inode *inode, struct file *filp)
+ 	video_get(vdev);
+ 	mutex_unlock(&videodev_lock);
+ 	if (vdev->fops->open) {
+-		if (vdev->lock)
+-			mutex_lock(vdev->lock);
++		if (vdev->lock) {
++			ret = mutex_lock_interruptible(vdev->lock);
++			if (ret)
++				goto err;
++		}
+ 		if (video_is_registered(vdev))
+ 			ret = vdev->fops->open(filp);
+ 		else
+@@ -301,6 +320,7 @@ static int v4l2_open(struct inode *inode, struct file *filp)
+ 			mutex_unlock(vdev->lock);
+ 	}
+ 
++err:
+ 	/* decrease the refcount in case of an error */
+ 	if (ret)
+ 		video_put(vdev);
+-- 
+1.7.0.4
 
