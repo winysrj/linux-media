@@ -1,49 +1,41 @@
-Return-path: <mchehab@gaivota>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:33751 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757492Ab0KSXoo (ORCPT
+Return-path: <mchehab@pedra>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:51938 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757009Ab0KPSwY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 18:44:44 -0500
-Subject: [PATCH 06/10] saa7134: make module parameters boolean
-To: linux-media@vger.kernel.org
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: jarod@wilsonet.com, mchehab@infradead.org
-Date: Sat, 20 Nov 2010 00:43:07 +0100
-Message-ID: <20101119234307.3511.53565.stgit@localhost.localdomain>
-In-Reply-To: <20101119233959.3511.91287.stgit@localhost.localdomain>
-References: <20101119233959.3511.91287.stgit@localhost.localdomain>
+	Tue, 16 Nov 2010 13:52:24 -0500
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: Fwd: [PATH] Fix rc-tbs-nec table after converting the cx88 driver to ir-core
+Date: Tue, 16 Nov 2010 10:52:02 -0800
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"linux-input" <linux-input@vger.kernel.org>
+References: <4CE2C1BD.5040402@redhat.com>
+In-Reply-To: <4CE2C1BD.5040402@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201011161052.04424.dmitry.torokhov@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-int to bool conversion for module parameters which are truely boolean.
+On Tuesday, November 16, 2010 09:39:09 am Mauro Carvalho Chehab wrote:
+> Hi Dmitry,
+> 
+> This patch fixes an IR table. The patch is trivial, but there are two
+> buttons on this IR that are not directly supported currently (buttons 10-
+> and 10+). In a matter of fact, some other IR's use other key codes
+> (KEY_DOT, KEY_KPPLUS, KEY_DIGITS) for a similar keyboard key (100+).
+> 
+> Mariusz is proposing the addition of two new keycodes for it. What do you
+> think?
+> 
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
----
- drivers/media/video/saa7134/saa7134-input.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+Sure, why not. Just move them over to 0x1b8 please (somewhat 'closer' to
+other media keys).
 
-diff --git a/drivers/media/video/saa7134/saa7134-input.c b/drivers/media/video/saa7134/saa7134-input.c
-index 8b80efb..aea74e2 100644
---- a/drivers/media/video/saa7134/saa7134-input.c
-+++ b/drivers/media/video/saa7134/saa7134-input.c
-@@ -29,12 +29,12 @@
- 
- #define MODULE_NAME "saa7134"
- 
--static unsigned int disable_ir;
--module_param(disable_ir, int, 0444);
-+static bool disable_ir;
-+module_param(disable_ir, bool, 0444);
- MODULE_PARM_DESC(disable_ir,"disable infrared remote support");
- 
--static unsigned int ir_debug;
--module_param(ir_debug, int, 0644);
-+static bool ir_debug;
-+module_param(ir_debug, bool, 0644);
- MODULE_PARM_DESC(ir_debug,"enable debug messages [IR]");
- 
- static int pinnacle_remote;
+Thanks.
 
+-- 
+Dmitry
