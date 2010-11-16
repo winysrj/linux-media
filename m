@@ -1,51 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:30640 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755239Ab0KMTfc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Nov 2010 14:35:32 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oADJZWow014739
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 13 Nov 2010 14:35:32 -0500
-Received: from pedra (vpn-229-222.phx2.redhat.com [10.3.229.222])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id oADJXRSk018179
-	for <linux-media@vger.kernel.org>; Sat, 13 Nov 2010 14:35:31 -0500
-Date: Sat, 13 Nov 2010 17:33:19 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 0/3] Remove ir-common module
-Message-ID: <20101113173319.088ea5c7@pedra>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:36938 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754123Ab0KPXqb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Nov 2010 18:46:31 -0500
+Received: by vws13 with SMTP id 13so764342vws.19
+        for <linux-media@vger.kernel.org>; Tue, 16 Nov 2010 15:46:30 -0800 (PST)
+Message-ID: <4CE317D3.2020504@brooks.nu>
+Date: Tue, 16 Nov 2010 16:46:27 -0700
+From: Lane Brooks <lane@brooks.nu>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: Translation faults with OMAP ISP
+References: <4CE16AA2.3000208@brooks.nu> <4CE18EE4.7080203@brooks.nu> <201011160001.10737.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201011160001.10737.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-I did some tests using the Encore FM 5.3. This were the last device using
-the legacy IR support on saa7134. After it, only one device
-(Nebula Electronics DigiTV) still uses it. It is an old device, so, it will
-probably not be easy to find someone with such hardware.
+Laurent,
 
-As the conversion requires to test if raw decoding work with bttv (e. g.
-if the hardware works properly generating IRQ's on both GPIO transitions),
-we need someone with this hardware, or with another hardware that connects
-an IRQ directly into a bttv GPIO pin capable of generating IRQ's.
-While we don't have it, let's just move the legacy code to bttv driver.
+I am getting iommu translation errors when I try to use the CCDC output 
+after using the Resizer output.
 
-Mauro Carvalho Chehab (3):
-  [media] saa7134: use rc-core raw decoders for Encore FM 5.3
-  [media] saa7134: Remove legacy IR decoding logic inside the module
-  [media] rc: Remove ir-common module
+If I use the CCDC output to stream some video, then close it down, 
+switch to the Resizer output and open it up and try to stream, I get the 
+following errors spewing out:
 
- drivers/media/rc/Kconfig                    |    5 -
- drivers/media/rc/Makefile                   |    2 -
- drivers/media/rc/ir-functions.c             |  120 --------------
- drivers/media/video/bt8xx/Kconfig           |    2 +-
- drivers/media/video/bt8xx/bttv-input.c      |  103 ++++++++++++-
- drivers/media/video/saa7134/Kconfig         |    2 +-
- drivers/media/video/saa7134/saa7134-input.c |  226 +--------------------------
- drivers/media/video/saa7134/saa7134.h       |    2 +-
- 8 files changed, 107 insertions(+), 355 deletions(-)
- delete mode 100644 drivers/media/rc/ir-functions.c
+omap-iommu omap-iommu.0: omap2_iommu_fault_isr: da:00d0ef00 translation 
+fault
+omap-iommu omap-iommu.0: iommu_fault_handler: da:00d0ef00 pgd:ce664034 
+*pgd:00000000
 
+and the select times out.
+
+ From a fresh boot, I can stream just fine from the Resizer and then 
+switch to the CCDC output just fine. It is only when I go from the CCDC 
+to the Resizer that I get this problem. Furthermore, when it gets into 
+this state, then anything dev node I try to use has the translation 
+errors and the only way to recover is to reboot.
+
+Any ideas on the problem?
+
+Thanks,
+Lane
