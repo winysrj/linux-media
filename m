@@ -1,55 +1,44 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2714 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755242Ab0KLS1f (ORCPT
+Received: from [120.204.251.227] ([120.204.251.227]:37648 "EHLO
+	LC-SHMAIL-01.SHANGHAI.LEADCORETECH.COM" rhost-flags-FAIL-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1759524Ab0KPIHs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Nov 2010 13:27:35 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id oACIRX6U065239
-	for <linux-media@vger.kernel.org>; Fri, 12 Nov 2010 19:27:33 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 12 Nov 2010 19:27:33 +0100 (CET)
-Message-Id: <201011121827.oACIRX6U065239@smtp-vbr7.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build: WARNINGS
+	Tue, 16 Nov 2010 03:07:48 -0500
+Message-ID: <4CE239B4.7000503@leadcoretech.com>
+Date: Tue, 16 Nov 2010 15:58:44 +0800
+From: "Figo.zhang" <zhangtianfei@leadcoretech.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Pawel Osciak <pawel@osciak.com>, Andrew Chew <AChew@nvidia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Allocating videobuf_buffer, but lists not being initialized
+References: <643E69AA4436674C8F39DCC2C05F763816BB828A36@HQMAIL03.nvidia.com> <643E69AA4436674C8F39DCC2C05F763816BB828A37@HQMAIL03.nvidia.com> <AANLkTi=HFRJpLFOCszKDMfE-_CtsQUYNoGfd6ZgfVn6U@mail.gmail.com> <201011160840.24134.hverkuil@xs4all.nl>
+In-Reply-To: <201011160840.24134.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+于 11/16/2010 03:40 PM, Hans Verkuil 写道:
+> On Tuesday, November 16, 2010 06:29:53 Pawel Osciak wrote:
+>> On Mon, Nov 15, 2010 at 17:10, Andrew Chew<AChew@nvidia.com>  wrote:
+>>> I'm looking at drivers/media/video/videobuf-dma-contig.c's __videobuf_alloc() routine.  We call kzalloc() to allocate the videobuf_buffer.  However, I don't see where the two lists (vb->stream and vb->queue) that are a part of struct videobuf_buffer get initialized (with, say, INIT_LIST_HEAD).
+>>>
+>>
+>> Those are not lists, but list entries. Those members of
+>> videobuf_buffer struct are used to put the buffer on one of the
+>> following lists: stream is a list entry for stream list in
+>> videobuf_queue, queue is used as list entry for driver's buffer queue.
+>
+> So? They still should be initialized properly. It's bad form to leave
+> invalid pointers there.
 
-Results of the daily build of v4l-dvb:
+it just a list->entry, it has initialized by kzalloc at 
+__videobuf_alloc_vb(),
 
-date:        Fri Nov 12 19:00:11 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15167:abd3aac6644e
-git master:       3e6dce76d99b328716b43929b9195adfee1de00c
-git media-master: a348e9110ddb5d494e060d989b35dd1f35359d58
-gcc version:      i686-linux-gcc (GCC) 4.5.1
-host hardware:    x86_64
-host os:          2.6.32.5
+>
+> Regards,
+>
+> 	Hans
+>
 
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: WARNINGS
-linux-git-mips: WARNINGS
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
