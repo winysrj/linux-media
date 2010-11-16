@@ -1,39 +1,37 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:37974 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753775Ab0KFVdv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Nov 2010 17:33:51 -0400
-From: Arnaud Lacombe <lacombar@gmail.com>
-To: linux-kbuild@vger.kernel.org, linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Michal Marek <mmarek@suse.cz>,
-	Arnaud Lacombe <lacombar@gmail.com>
-Subject: [PATCH 5/5] i2c/algos: convert Kconfig to use the menu's `visible' keyword
-Date: Sat,  6 Nov 2010 17:30:27 -0400
-Message-Id: <1289079027-3037-6-git-send-email-lacombar@gmail.com>
-In-Reply-To: <4CD300AC.3010708@redhat.com>
-References: <4CD300AC.3010708@redhat.com>
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:10289 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756258Ab0KPVyS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Nov 2010 16:54:18 -0500
+Date: Tue, 16 Nov 2010 16:54:08 -0500
+From: Jarod Wilson <jarod@redhat.com>
+To: Nicolas Kaiser <nikai@nikai.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] drivers/media: nuvoton: always true expression
+Message-ID: <20101116215408.GA17140@redhat.com>
+References: <20101116211953.238012db@absol.kitzblitz>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20101116211953.238012db@absol.kitzblitz>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Signed-off-by: Arnaud Lacombe <lacombar@gmail.com>
----
- drivers/i2c/algos/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+On Tue, Nov 16, 2010 at 09:19:53PM +0100, Nicolas Kaiser wrote:
+> I noticed that the second part of this conditional is always true.
+> Would the intention be to strictly check on both chip_major and
+> chip_minor?
+> 
+> Signed-off-by: Nicolas Kaiser <nikai@nikai.net>
 
-diff --git a/drivers/i2c/algos/Kconfig b/drivers/i2c/algos/Kconfig
-index 7b2ce4a..f1cfe7e 100644
---- a/drivers/i2c/algos/Kconfig
-+++ b/drivers/i2c/algos/Kconfig
-@@ -3,7 +3,7 @@
- #
- 
- menu "I2C Algorithms"
--	depends on !I2C_HELPER_AUTO
-+	visible if !I2C_HELPER_AUTO
- 
- config I2C_ALGOBIT
- 	tristate "I2C bit-banging interfaces"
+Hrm, yeah, looks like I screwed that one up. You're correct, the intention
+was to make sure we have a matching chip id high and one or the other of
+the chip id low values.
+
+Acked-by: Jarod Wilson <jarod@redhat.com>
+
 -- 
-1.7.2.30.gc37d7.dirty
+Jarod Wilson
+jarod@redhat.com
 
