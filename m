@@ -1,228 +1,223 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:48619 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754163Ab0KLWjA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Nov 2010 17:39:00 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oACMd0Ut017109
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 12 Nov 2010 17:39:00 -0500
-Received: from xavier.bos.redhat.com (xavier.bos.redhat.com [10.16.16.50])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id oACMcxbQ016160
-	for <linux-media@vger.kernel.org>; Fri, 12 Nov 2010 17:39:00 -0500
-Date: Fri, 12 Nov 2010 17:38:59 -0500
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] IR: allow disabling NEC checksum check, enable apple remote
-Message-ID: <20101112223859.GA8205@redhat.com>
+Received: from eu1sys200aog117.obsmtp.com ([207.126.144.143]:55090 "EHLO
+	eu1sys200aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752289Ab0KPP3f convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Nov 2010 10:29:35 -0500
+From: Jimmy RUBIN <jimmy.rubin@stericsson.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Dan JOHANSSON <dan.johansson@stericsson.com>,
+	Linus WALLEIJ <linus.walleij@stericsson.com>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>
+Date: Tue, 16 Nov 2010 16:29:07 +0100
+Subject: RE: [PATCH 01/10] MCDE: Add hardware abstraction layer
+Message-ID: <F45880696056844FA6A73F415B568C6953604E7D94@EXDCVYMBSTM006.EQ1STM.local>
+References: <1289390653-6111-1-git-send-email-jimmy.rubin@stericsson.com>
+ <1289390653-6111-2-git-send-email-jimmy.rubin@stericsson.com>
+ <201011121643.52923.arnd@arndb.de>
+In-Reply-To: <201011121643.52923.arnd@arndb.de>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-In strict NEC extended IR protocol, a 32-bit signal consists of address,
-not address, command and not command, and checksums are performed
-between these two pairs of components. Currently, our NEC protocol
-decoder strictly enforces these checks, and only uses 24 bits (address,
-not address and command) to do scancode to keycode lookups. However,
-there are remotes out there using a variant of the NEC protocol, which
-assigns different meaning to some of these bits, without using any
-checksums.
+Hi,
 
-The test case here is Apple's remotes, which send a two-byte vendor
-code instead of address/not address, a pairing ID byte, and a command
-byte instead of command/not command.
+Thank you Arnd for your comments.
 
-For further details on the Apple remotes, see:
-  http://en.wikipedia.org/wiki/Apple_Remote
+> A "hardware abstraction layer" is generally considered a bad thing,
+> you're usually better off not advertising your code as being one.
+> 
+> As a rule, the device driver *is* the hardware abstraction, so you
+> should not add another one ;-)
+> 
+> > +static void disable_channel(struct mcde_chnl_state *chnl);
+> > +static void enable_channel(struct mcde_chnl_state *chnl);
+> > +static void watchdog_auto_sync_timer_function(unsigned long arg);
+> 
+> I generally recomment avoiding forward declarations of static
+> functions.
+> Just reorder the code so you don't need them.
 
-If we make it possible to bypass the checksum checks and use the full
-32 bits for scancode lookups, the current NEC decoder can successfully
-successfully decode and match keys from these remotes, as well as any
-others that might employ similar alternate bit meanings.
+Good point, will do that in the next patch
 
-In the Apple case, we can simply match the vendor code and auto-skip the
-checksum checks. For other remotes, we can bypass the checksum by
-handing a modparam to the NEC decoder, unless of course we figure out
-some other means by which to determine if its a signal for which we
-should skip checksumming, and/or develop something cleaner, and/or
-decide to only warn (in debug mode) when checksum checks fail.
+> 
+> > +u8 *mcdeio;
+> > +u8 **dsiio;
+> > +DEFINE_SPINLOCK(mcde_lock); /* REVIEW: Remove or use */
+> > +struct platform_device *mcde_dev;
+> > +u8 num_dsilinks;
+> 
+> You should try hard to avoid global variables in a well-designed
+> driver.
+> There are many ways around them, like accessor functions or splitting
+> the
+> driver into files in a more logical way where each file only accesses
+> its own data. If you really cannot think of a way to avoid these,
+> put them in a proper name space in the way that you have done for the
+> global functions, by prefixing each identifier with "mcde_".
+> 
+> > +static u8 hardware_version;
+> > +
+> > +static struct regulator *regulator;
+> > +static struct clk *clock_dsi;
+> > +static struct clk *clock_mcde;
+> > +static struct clk *clock_dsi_lp;
+> > +static u8 mcde_is_enabled;
+> 
+> Even static variables like these can cause problems. Ideally all of
+> these
+> are referenced through a driver private data structure that is passed
+> around
+> with the device. This way you can trivially support multiple devices if
+> that ever becomes necessary.
 
-An Apple keytable using the full 32 bits is included. Existing NEC
-extended remotes should continue to fuction with their current 24-bit
-tables, but we *could* decide in the future to simplify things and just
-use the full 32 bits for all NEC extended (ish) remotes.
+What is the general opinion about singleton drivers?
+Both global and static variables could be fixed if the driver is redesigned to support multiple devices.
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/rc/ir-nec-decoder.c       |   40 ++++++++++++++++++++----
- drivers/media/rc/keymaps/Makefile       |    1 +
- drivers/media/rc/keymaps/rc-nec-apple.c |   51 +++++++++++++++++++++++++++++++
- include/media/rc-map.h                  |    1 +
- 4 files changed, 86 insertions(+), 7 deletions(-)
- create mode 100644 drivers/media/rc/keymaps/rc-nec-apple.c
+> 
+> > +static inline u32 dsi_rreg(int i, u32 reg)
+> > +{
+> > +	return readl(dsiio[i] + reg);
+> > +}
+> > +static inline void dsi_wreg(int i, u32 reg, u32 val)
+> > +{
+> > +	writel(val, dsiio[i] + reg);
+> > +}
+> 
+> dsiio is not marked __iomem, so there is something wrong here.
+> Moreover, why do you need two indexes? If you have multiple identical
+> "dsiio" structures, maybe each of them should just be a device by
+> itself?
+We will add __iomem.
+Each dsi link (dsiio[x]) is tightly coupled with mcde and it feels that they should not be a device of their own.
+We feel that it would be to many devices doing little.
 
-diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
-index 8ff157a..abe9b4d 100644
---- a/drivers/media/rc/ir-nec-decoder.c
-+++ b/drivers/media/rc/ir-nec-decoder.c
-@@ -28,6 +28,16 @@
- #define	NEC_TRAILER_SPACE	(10 * NEC_UNIT) /* even longer in reality */
- #define NECX_REPEAT_BITS	1
- 
-+static bool csum = true;
-+module_param(csum, bool, S_IRUGO | S_IWUSR);
-+MODULE_PARM_DESC(csum, "Whether or not to perform NEC chucksum checks "
-+		 "(default: true)");
-+
-+static bool pair;
-+module_param(pair, bool, S_IRUGO | S_IWUSR);
-+MODULE_PARM_DESC(pair, "Whether or not the Apple Pairing ID byte should "
-+		 "be evaluated for scancode lookups (default: false)");
-+
- enum nec_state {
- 	STATE_INACTIVE,
- 	STATE_HEADER_SPACE,
-@@ -49,6 +59,7 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 	struct nec_dec *data = &dev->raw->nec;
- 	u32 scancode;
- 	u8 address, not_address, command, not_command;
-+	bool checksum = csum;
- 
- 	if (!(dev->raw->enabled_protocols & IR_TYPE_NEC))
- 		return 0;
-@@ -157,22 +168,37 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		command	    = bitrev8((data->bits >>  8) & 0xff);
- 		not_command = bitrev8((data->bits >>  0) & 0xff);
- 
--		if ((command ^ not_command) != 0xff) {
-+		if ((address == 0xee) && (not_address == 0x87)) {
-+			IR_dprintk(1, "Apple remote detected, pair ID 0x%02x\n",
-+				   not_command);
-+			checksum = false;
-+			/* We have a default non-paired keymap using 0x00 */
-+			if (!pair)
-+				not_command = 0x00;
-+		}
-+
-+		if (checksum && ((command ^ not_command) != 0xff)) {
- 			IR_dprintk(1, "NEC checksum error: received 0x%08x\n",
- 				   data->bits);
- 			break;
- 		}
- 
--		if ((address ^ not_address) != 0xff) {
--			/* Extended NEC */
-+		if (checksum && ((address ^ not_address) == 0xff)) {
-+			/* Normal NEC */
-+			scancode = address << 8 | command;
-+			IR_dprintk(1, "NEC scancode 0x%04x\n", scancode);
-+		} else if (!checksum) {
-+			/* Extended NEC, no checksum */
-+			scancode = address << 24 | not_address << 16 |
-+				   command <<  8 | not_command;
-+			IR_dprintk(1, "NEC (Ext, no csum) scancode 0x%08x\n",
-+				   scancode);
-+		} else {
-+			/* Extended NEC, standard */
- 			scancode = address     << 16 |
- 				   not_address <<  8 |
- 				   command;
- 			IR_dprintk(1, "NEC (Ext) scancode 0x%06x\n", scancode);
--		} else {
--			/* Normal NEC */
--			scancode = address << 8 | command;
--			IR_dprintk(1, "NEC scancode 0x%04x\n", scancode);
- 		}
- 
- 		if (data->is_nec_x)
-diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
-index 3194d39..8fa0e53 100644
---- a/drivers/media/rc/keymaps/Makefile
-+++ b/drivers/media/rc/keymaps/Makefile
-@@ -53,6 +53,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
- 			rc-msi-tvanywhere.o \
- 			rc-msi-tvanywhere-plus.o \
- 			rc-nebula.o \
-+			rc-nec-apple.o \
- 			rc-nec-terratec-cinergy-xs.o \
- 			rc-norwood.o \
- 			rc-npgtech.o \
-diff --git a/drivers/media/rc/keymaps/rc-nec-apple.c b/drivers/media/rc/keymaps/rc-nec-apple.c
-new file mode 100644
-index 0000000..7450280
---- /dev/null
-+++ b/drivers/media/rc/keymaps/rc-nec-apple.c
-@@ -0,0 +1,51 @@
-+/* rc-nec-apple.c - Keytable for Apple Remote Controls
-+ *
-+ * Copyright (c) 2010 by Jarod Wilson <jarod@redhat.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <media/rc-map.h>
-+
-+static struct ir_scancode nec_apple[] = {
-+	{ 0xee870002, KEY_MENU},
-+	{ 0xee870003, KEY_MENU},
-+	{ 0xee870004, KEY_PLAYPAUSE},
-+	{ 0xee870005, KEY_PLAYPAUSE},
-+	{ 0xee870006, KEY_FORWARD},
-+	{ 0xee870007, KEY_FORWARD},
-+	{ 0xee870008, KEY_BACK},
-+	{ 0xee870009, KEY_BACK},
-+	{ 0xee87000a, KEY_VOLUMEUP},
-+	{ 0xee87000b, KEY_VOLUMEUP},
-+	{ 0xee87000c, KEY_VOLUMEDOWN},
-+	{ 0xee87000d, KEY_VOLUMEDOWN},
-+};
-+
-+static struct rc_keymap nec_apple_map = {
-+	.map = {
-+		.scan    = nec_apple,
-+		.size    = ARRAY_SIZE(nec_apple),
-+		.ir_type = IR_TYPE_NEC,
-+		.name    = RC_MAP_NEC_APPLE,
-+	}
-+};
-+
-+static int __init init_rc_map_nec_apple(void)
-+{
-+	return ir_register_map(&nec_apple_map);
-+}
-+
-+static void __exit exit_rc_map_nec_apple(void)
-+{
-+	ir_unregister_map(&nec_apple_map);
-+}
-+
-+module_init(init_rc_map_nec_apple)
-+module_exit(exit_rc_map_nec_apple)
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Jarod Wilson <jarod@redhat.com>");
-diff --git a/include/media/rc-map.h b/include/media/rc-map.h
-index e0f17ed..2cdc523 100644
---- a/include/media/rc-map.h
-+++ b/include/media/rc-map.h
-@@ -110,6 +110,7 @@ void rc_map_init(void);
- #define RC_MAP_MSI_TVANYWHERE_PLUS       "rc-msi-tvanywhere-plus"
- #define RC_MAP_MSI_TVANYWHERE            "rc-msi-tvanywhere"
- #define RC_MAP_NEBULA                    "rc-nebula"
-+#define RC_MAP_NEC_APPLE                 "rc-nec-apple"
- #define RC_MAP_NEC_TERRATEC_CINERGY_XS   "rc-nec-terratec-cinergy-xs"
- #define RC_MAP_NORWOOD                   "rc-norwood"
- #define RC_MAP_NPGTECH                   "rc-npgtech"
--- 
-1.7.1
+> 
+> > +struct mcde_ovly_state {
+> > +	bool inuse;
+> > +	u8 idx; /* MCDE overlay index */
+> > +	struct mcde_chnl_state *chnl; /* Owner channel */
+> > +	u32 transactionid; /* Apply time stamp */
+> > +	u32 transactionid_regs; /* Register update time stamp */
+> > +	u32 transactionid_hw; /* HW completed time stamp */
+> > +	wait_queue_head_t waitq_hw; /* Waitq for transactionid_hw */
+> > +
+> > +	/* Staged settings */
+> > +	u32 paddr;
+> > +	u16 stride;
+> > +	enum mcde_ovly_pix_fmt pix_fmt;
+> > +
+> > +	u16 src_x;
+> > +	u16 src_y;
+> > +	u16 dst_x;
+> > +	u16 dst_y;
+> > +	u16 dst_z;
+> > +	u16 w;
+> > +	u16 h;
+> > +
+> > +	/* Applied settings */
+> > +	struct ovly_regs regs;
+> > +};
+> 
+> There should probably be a "struct device" pointer in this, so you can
+> pass
+> it around as a real object.
+We will look into this in the context of the singleton driver redesign.
 
+> 
+> > +	/* Handle channel irqs */
+> > +	irq_status = mcde_rreg(MCDE_RISPP);
+> > +	if (irq_status & MCDE_RISPP_VCMPARIS_MASK) {
+> > +		chnl = &channels[MCDE_CHNL_A];
+> > ...
+> > +	}
+> > +	if (irq_status & MCDE_RISPP_VCMPBRIS_MASK) {
+> > +		chnl = &channels[MCDE_CHNL_B];
+> > ...
+> > +	}
+> > +	if (irq_status & MCDE_RISPP_VCMPC0RIS_MASK) {
+> > +		chnl = &channels[MCDE_CHNL_C0];
+> > ...
+> > +	}
+> 
+> This looks a bit like you actually have multiple interrupt lines
+> multiplexed
+> through a private interrupt controller. Have you considered making this
+> controller
+> a separate device to multiplex the interrupt numbers?
 
--- 
-Jarod Wilson
-jarod@redhat.com
+MCDE contains several pipelines, each of them can generate interrupts.
+Since each interrupt comes from the same device there is no need for separate devices for interrupt controller.
+> 
+> > +void wait_for_overlay(struct mcde_ovly_state *ovly)
+> 
+> Not an appropriate name for a global function. Either make this static
+> or
+> call it mcde_wait_for_overlay. Same for some other functions.
 
+It is only used in here so it will be static.
+
+> 
+> > +#ifdef CONFIG_AV8100_SDTV
+> > +	/* TODO: check if these watermark levels work for HDMI as
+> well. */
+> > +	pixelfetchwtrmrklevel = MCDE_PIXFETCH_SMALL_WTRMRKLVL;
+> > +#else
+> > +	if ((fifo == MCDE_FIFO_A || fifo == MCDE_FIFO_B) &&
+> > +					regs->ppl >=
+> fifo_size * 2)
+> > +		pixelfetchwtrmrklevel =
+> MCDE_PIXFETCH_LARGE_WTRMRKLVL;
+> > +	else
+> > +		pixelfetchwtrmrklevel =
+> MCDE_PIXFETCH_MEDIUM_WTRMRKLVL;
+> > +#endif /* CONFIG_AV8100_SDTV */
+> 
+> Be careful with config options like this. If you want to build a kernel
+> to run on all machines, the first part probably needs to check where it
+> is running and consider the other pixelfetchwtrmrklevel values as well.
+
+Agree, this is on the todo list
+
+> 
+> > +/* Channel path */
+> > +#define MCDE_CHNLPATH(__chnl, __fifo, __type, __ifc, __link) \
+> > +	(((__chnl) << 16) | ((__fifo) << 12) | \
+> > +	 ((__type) << 8) | ((__ifc) << 4) | ((__link) << 0))
+> > +enum mcde_chnl_path {
+> > +	/* Channel A */
+> > +	MCDE_CHNLPATH_CHNLA_FIFOA_DPI_0 = MCDE_CHNLPATH(MCDE_CHNL_A,
+> > +		MCDE_FIFO_A, MCDE_PORTTYPE_DPI, 0, 0),
+> > +	MCDE_CHNLPATH_CHNLA_FIFOA_DSI_IFC0_0 =
+> MCDE_CHNLPATH(MCDE_CHNL_A,
+> > +		MCDE_FIFO_A, MCDE_PORTTYPE_DSI, 0, 0),
+> > +	MCDE_CHNLPATH_CHNLA_FIFOA_DSI_IFC0_1 =
+> MCDE_CHNLPATH(MCDE_CHNL_A,
+> > +		MCDE_FIFO_A, MCDE_PORTTYPE_DSI, 0, 1),
+> > +	MCDE_CHNLPATH_CHNLA_FIFOC0_DSI_IFC0_2 =
+> MCDE_CHNLPATH(MCDE_CHNL_A,
+> > +		MCDE_FIFO_C0, MCDE_PORTTYPE_DSI, 0, 2),
+> > +	MCDE_CHNLPATH_CHNLA_FIFOC0_DSI_IFC1_0 =
+> MCDE_CHNLPATH(MCDE_CHNL_A,
+> > +		MCDE_FIFO_C0, MCDE_PORTTYPE_DSI, 1, 0),
+> > +	MCDE_CHNLPATH_CHNLA_FIFOC0_DSI_IFC1_1 =
+> MCDE_CHNLPATH(MCDE_CHNL_A,
+> > +		MCDE_FIFO_C0, MCDE_PORTTYPE_DSI, 1, 1),
+> > +	MCDE_CHNLPATH_CHNLA_FIFOA_DSI_IFC1_2 =
+> MCDE_CHNLPATH(MCDE_CHNL_A,
+> > +		MCDE_FIFO_A, MCDE_PORTTYPE_DSI, 1, 2),
+> 
+> A table like this would become more readable by making each entry a
+> single line,
+> even if that goes beyond the 80-character limit.
+> 
+> 	
+Good point, we will fix this
+
+/Jimmy
