@@ -1,41 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:41461 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754360Ab0KISSO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Nov 2010 13:18:14 -0500
-Received: by eye27 with SMTP id 27so3727418eye.19
-        for <linux-media@vger.kernel.org>; Tue, 09 Nov 2010 10:18:13 -0800 (PST)
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:65185 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753494Ab0KPCte (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Nov 2010 21:49:34 -0500
+Received: by wwa36 with SMTP id 36so234359wwa.1
+        for <linux-media@vger.kernel.org>; Mon, 15 Nov 2010 18:49:33 -0800 (PST)
+Message-ID: <4CE1F139.1030509@gmail.com>
+Date: Tue, 16 Nov 2010 03:49:29 +0100
+From: poma <pomidorabelisima@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4CD98CA8.9020003@redhat.com>
-References: <AANLkTi=tc_4ZAk20fEamcFQ-VDFkt4tBwFH+uGv9Fw62@mail.gmail.com>
-	<AANLkTimYMTa8zigTYbZhH5dN7VGZDBUFmw3PL4jRV9hv@mail.gmail.com>
-	<4CD970BB.5030307@redhat.com>
-	<AANLkTin7pq=UZPTWvCJ+Zdj2SeqfmruJ8q=dktEZLZBP@mail.gmail.com>
-	<4CD98CA8.9020003@redhat.com>
-Date: Tue, 9 Nov 2010 13:18:13 -0500
-Message-ID: <AANLkTinPEGJOKDTq9wuoOYuC7GRPia2jL2HQkMWRkvTv@mail.gmail.com>
-Subject: Re: [PULL] http://www.kernellabs.com/hg/~dheitmueller/v4l-dvb-950q-final
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org
+CC: Okkel Klaver <vbroek@iae.nl>
+Subject: Re: af9015 and nxp tda182128 support
+References: <4CE16387.3040103@iae.nl>
+In-Reply-To: <4CE16387.3040103@iae.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Nov 9, 2010 at 1:02 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Ok.
->
-> Hmm... the second patch is also without SOB:
+Okkel Klaver wrote:
+...
+> I own a brandless hdtv usb dvb-t stick.
+> 
+> lsusb identifies it as:
+> Bus 001 Device 005: ID 15a4:9016 Afatech Technologies, Inc. AF9015 DVB-T
+> USB2.0 stick
+> 
+> I'm using debian with kernel 2.6.32. This kernel doesn't have support
+> for the nxp tda18218 tuner on the stick.
+> I compiled the latest v4l-dvb source tree from mercural. Now i get the
+> following error message when i plugin the stick:
+> af9015: tuner NXP TDA18218 not supported yet
+> 
+> Searching the archives of this list i found some messages concerning nxp
+> tda18218 support. It seems to me that there is support for the nxp
+> tda18218 in the current source tree, but support for the new tuner
+> driver is lacking from the af9015 driver.
+> 
+> Now is my question: are there any plans to support the nxp tda18218
+> tuner in the af9015 driver?
+> 
 
-Doh.
+==> [ANNOUNCE] new experimental building system <==
+...
+If you want to test the new building system, all you need to do is:
 
-Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+	$ git clone git://linuxtv.org/mchehab/new_build.git
+	$ cd new_build
+	$ ./build.sh
 
-Thanks,
+This will download the newest tarball from linuxtv.org, apply the 
+backport patches
+and build it.
 
-Devin
+After that, you may install the new drivers with:
+	$ make install
+...
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Regards,
+poma
+
