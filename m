@@ -1,134 +1,89 @@
-Return-path: <mchehab@gaivota>
-Received: from bear.ext.ti.com ([192.94.94.41]:53776 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752004Ab0KSPoY convert rfc822-to-8bit (ORCPT
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1999 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932708Ab0KPV4U (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 10:44:24 -0500
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: David Cohen <david.cohen@nokia.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Fri, 19 Nov 2010 09:44:17 -0600
-Subject: RE: [omap3isp][PATCH v2 8/9] omap3isp: ccp2: Make SYSCONFIG fields
- consistent
-Message-ID: <A24693684029E5489D1D202277BE8944850C0800@dlee02.ent.ti.com>
-References: <1289831401-593-1-git-send-email-saaguirre@ti.com>
- <1289831401-593-9-git-send-email-saaguirre@ti.com>
- <20101119100613.GA13490@esdhcp04381.research.nokia.com>
-In-Reply-To: <20101119100613.GA13490@esdhcp04381.research.nokia.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Tue, 16 Nov 2010 16:56:20 -0500
+Message-Id: <acc3025747759b9c59978ba03033aad248a1f6b4.1289944160.git.hverkuil@xs4all.nl>
+In-Reply-To: <cover.1289944159.git.hverkuil@xs4all.nl>
+References: <cover.1289944159.git.hverkuil@xs4all.nl>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Tue, 16 Nov 2010 22:56:07 +0100
+Subject: [RFCv2 PATCH 06/15] typhoon: convert to unlocked_ioctl.
+To: linux-media@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
+Convert the typhoon driver from ioctl to unlocked_ioctl.
 
-> -----Original Message-----
-> From: David Cohen [mailto:david.cohen@nokia.com]
-> Sent: Friday, November 19, 2010 4:06 AM
-> To: Aguirre, Sergio
-> Cc: Laurent Pinchart; linux-media@vger.kernel.org
-> Subject: Re: [omap3isp][PATCH v2 8/9] omap3isp: ccp2: Make SYSCONFIG
-> fields consistent
-> 
-> Hi Sergio,
+When doing this I noticed a bug where curfreq was not initialized correctly
+to mutefreq (it wasn't multiplied by 16).
 
-Hi David,
+The initialization is now also done before the device node is created.
 
-Thanks for the review.
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/radio/radio-typhoon.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-> 
-> I've few comments below.
-> 
-> On Mon, Nov 15, 2010 at 03:30:00PM +0100, ext Sergio Aguirre wrote:
-> > Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> > ---
-> >  drivers/media/video/isp/ispccp2.c |    3 +--
-> >  drivers/media/video/isp/ispreg.h  |   14 ++++++++------
-> >  2 files changed, 9 insertions(+), 8 deletions(-)
-> >
-> > diff --git a/drivers/media/video/isp/ispccp2.c
-> b/drivers/media/video/isp/ispccp2.c
-> > index fa23394..3127a74 100644
-> > --- a/drivers/media/video/isp/ispccp2.c
-> > +++ b/drivers/media/video/isp/ispccp2.c
-> > @@ -419,8 +419,7 @@ static void ispccp2_mem_configure(struct
-> isp_ccp2_device *ccp2,
-> >  		config->src_ofst = 0;
-> >  	}
-> >
-> > -	isp_reg_writel(isp, (ISPCSI1_MIDLEMODE_SMARTSTANDBY <<
-> > -		       ISPCSI1_MIDLEMODE_SHIFT),
-> > +	isp_reg_writel(isp, ISPCCP2_SYSCONFIG_MSTANDBY_MODE_SMART,
-> >  		       OMAP3_ISP_IOMEM_CCP2, ISPCCP2_SYSCONFIG);
-> 
-> To make your cleanup even better, you could change isp_reg_clr_set()
-> instead.
-> If CCP2 MSTANDY_MODE is set to NOSTANDY, the result is going to be an
-> invalid 0x3 value. Despite it cannot happen with the current code, it's
-> still better to avoid such situations for future versions. :)
+diff --git a/drivers/media/radio/radio-typhoon.c b/drivers/media/radio/radio-typhoon.c
+index b1f6305..8dbbf08 100644
+--- a/drivers/media/radio/radio-typhoon.c
++++ b/drivers/media/radio/radio-typhoon.c
+@@ -317,7 +317,7 @@ static int vidioc_log_status(struct file *file, void *priv)
+ 
+ static const struct v4l2_file_operations typhoon_fops = {
+ 	.owner		= THIS_MODULE,
+-	.ioctl		= video_ioctl2,
++	.unlocked_ioctl	= video_ioctl2,
+ };
+ 
+ static const struct v4l2_ioctl_ops typhoon_ioctl_ops = {
+@@ -344,18 +344,18 @@ static int __init typhoon_init(void)
+ 
+ 	strlcpy(v4l2_dev->name, "typhoon", sizeof(v4l2_dev->name));
+ 	dev->io = io;
+-	dev->curfreq = dev->mutefreq = mutefreq;
+ 
+ 	if (dev->io == -1) {
+ 		v4l2_err(v4l2_dev, "You must set an I/O address with io=0x316 or io=0x336\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	if (dev->mutefreq < 87000 || dev->mutefreq > 108500) {
++	if (mutefreq < 87000 || mutefreq > 108500) {
+ 		v4l2_err(v4l2_dev, "You must set a frequency (in kHz) used when muting the card,\n");
+ 		v4l2_err(v4l2_dev, "e.g. with \"mutefreq=87500\" (87000 <= mutefreq <= 108500)\n");
+ 		return -EINVAL;
+ 	}
++	dev->curfreq = dev->mutefreq = mutefreq << 4;
+ 
+ 	mutex_init(&dev->lock);
+ 	if (!request_region(dev->io, 8, "typhoon")) {
+@@ -378,17 +378,17 @@ static int __init typhoon_init(void)
+ 	dev->vdev.ioctl_ops = &typhoon_ioctl_ops;
+ 	dev->vdev.release = video_device_release_empty;
+ 	video_set_drvdata(&dev->vdev, dev);
++
++	/* mute card - prevents noisy bootups */
++	typhoon_mute(dev);
++
+ 	if (video_register_device(&dev->vdev, VFL_TYPE_RADIO, radio_nr) < 0) {
+ 		v4l2_device_unregister(&dev->v4l2_dev);
+ 		release_region(dev->io, 8);
+ 		return -EINVAL;
+ 	}
+ 	v4l2_info(v4l2_dev, "port 0x%x.\n", dev->io);
+-	v4l2_info(v4l2_dev, "mute frequency is %lu kHz.\n", dev->mutefreq);
+-	dev->mutefreq <<= 4;
+-
+-	/* mute card - prevents noisy bootups */
+-	typhoon_mute(dev);
++	v4l2_info(v4l2_dev, "mute frequency is %lu kHz.\n", mutefreq);
+ 
+ 	return 0;
+ }
+-- 
+1.7.0.4
 
-Hmm you're right, I guess I didn't do any real functional changes, just defines renaming.
-
-I can repost an updated patch with this suggestion. No problem.
-
-> 
-> >
-> >  	/* Hsize, Skip */
-> > diff --git a/drivers/media/video/isp/ispreg.h
-> b/drivers/media/video/isp/ispreg.h
-> > index d885541..9b0d3ad 100644
-> > --- a/drivers/media/video/isp/ispreg.h
-> > +++ b/drivers/media/video/isp/ispreg.h
-> > @@ -141,6 +141,14 @@
-> >  #define ISPCCP2_REVISION		(0x000)
-> >  #define ISPCCP2_SYSCONFIG		(0x004)
-> >  #define ISPCCP2_SYSCONFIG_SOFT_RESET	(1 << 1)
-> > +#define ISPCCP2_SYSCONFIG_AUTO_IDLE		0x1
-> > +#define ISPCCP2_SYSCONFIG_MSTANDBY_MODE_SHIFT	12
-> > +#define ISPCCP2_SYSCONFIG_MSTANDBY_MODE_FORCE	\
-> > +	(0x0 << ISPCCP2_SYSCONFIG_MSTANDBY_MODE_SHIFT)
-> > +#define ISPCCP2_SYSCONFIG_MSTANDBY_MODE_NO	\
-> > +	(0x1 << ISPCCP2_SYSCONFIG_MSTANDBY_MODE_SHIFT)
-> > +#define ISPCCP2_SYSCONFIG_MSTANDBY_MODE_SMART	\
-> > +	(0x2 << ISPCCP2_SYSCONFIG_MSTANDBY_MODE_SHIFT)
-> 
-> You can add some ISPCCP2_SYSCONFIG_MSTANDY_MODE_MASK, as 2 bits must be
-> always set together.
-
-Sure, will do.
-
-Thanks and Regards,
-Sergio
-
-> 
-> Regards,
-> 
-> David Cohen
-> 
-> >  #define ISPCCP2_SYSSTATUS		(0x008)
-> >  #define ISPCCP2_SYSSTATUS_RESET_DONE	(1 << 0)
-> >  #define ISPCCP2_LC01_IRQENABLE		(0x00C)
-> > @@ -1309,12 +1317,6 @@
-> >  #define ISPMMU_SIDLEMODE_SMARTIDLE		2
-> >  #define ISPMMU_SIDLEMODE_SHIFT			3
-> >
-> > -#define ISPCSI1_AUTOIDLE			0x1
-> > -#define ISPCSI1_MIDLEMODE_SHIFT			12
-> > -#define ISPCSI1_MIDLEMODE_FORCESTANDBY		0x0
-> > -#define ISPCSI1_MIDLEMODE_NOSTANDBY		0x1
-> > -#define ISPCSI1_MIDLEMODE_SMARTSTANDBY		0x2
-> > -
-> >  /* --------------------------------------------------------------------
-> ---------
-> >   * CSI2 receiver registers (ES2.0)
-> >   */
-> > --
-> > 1.7.0.4
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media"
-> in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
