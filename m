@@ -1,109 +1,548 @@
-Return-path: <mchehab@gaivota>
-Received: from comal.ext.ti.com ([198.47.26.152]:34316 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754187Ab0KDFhV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Nov 2010 01:37:21 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id oA45bHHI011192
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 4 Nov 2010 00:37:20 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id oA45bHEb002923
-	for <linux-media@vger.kernel.org>; Thu, 4 Nov 2010 11:07:17 +0530 (IST)
-From: "Nilofer, Samreen" <samreen@ti.com>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Thu, 4 Nov 2010 11:07:15 +0530
-Subject: RE: [PATCH 1/1] OMAP3: V4L2: Kconfig changes to enable V4L2 options
- on OMAP3
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087034BE1ECE4@dbde02.ent.ti.com>
-References: <1287374534-10722-1-git-send-email-samreen@ti.com>
- <19F8576C6E063C45BE387C64729E739404AA4E760C@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Return-path: <mchehab@pedra>
+Received: from devils.ext.ti.com ([198.47.26.153]:43520 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758181Ab0KPM4w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Nov 2010 07:56:52 -0500
+From: manjunatha_halli@ti.com
+To: mchehab@infradead.org, hverkuil@xs4all.nl
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Manjunatha Halli <manjunatha_halli@ti.com>
+Subject: [PATCH v4 5/6] drivers:staging: ti-st: fmdrv_tx sources
+Date: Tue, 16 Nov 2010 08:18:13 -0500
+Message-Id: <1289913494-21590-6-git-send-email-manjunatha_halli@ti.com>
+In-Reply-To: <1289913494-21590-5-git-send-email-manjunatha_halli@ti.com>
+References: <1289913494-21590-1-git-send-email-manjunatha_halli@ti.com>
+ <1289913494-21590-2-git-send-email-manjunatha_halli@ti.com>
+ <1289913494-21590-3-git-send-email-manjunatha_halli@ti.com>
+ <1289913494-21590-4-git-send-email-manjunatha_halli@ti.com>
+ <1289913494-21590-5-git-send-email-manjunatha_halli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi,
+From: Manjunatha Halli <manjunatha_halli@ti.com>
 
-Nilofer, Samreen wrote:
->> -----Original Message-----
->> From: Hiremath, Vaibhav
->> Sent: Tuesday, October 19, 2010 9:40 AM
->> To: Nilofer, Samreen
->> Cc: linux-media@vger.kernel.org
->> Subject: RE: [PATCH 1/1] OMAP3: V4L2: Kconfig changes to enable V4L2 options
->> on OMAP3 
->> 
->>> -----Original Message-----
->>> From: Nilofer, Samreen
->>> Sent: Monday, October 18, 2010 9:32 AM
->>> To: Hiremath, Vaibhav
->>> Cc: linux-media@vger.kernel.org; Nilofer, Samreen
->>> Subject: [PATCH 1/1] OMAP3: V4L2: Kconfig changes to enable V4L2 options on
->>> OMAP3 
->>> 
->>> The defconfig options for V4L2 are taken in the respective Kconfig to
->>> enable V4L2 by default on OMAP3 platforms
->>> 
->>> Signed-off-by: Samreen <samreen@ti.com>
->>> ---
->>>  drivers/media/Kconfig            |    2 ++
->>>  drivers/media/video/omap/Kconfig |    2 +-
->>>  2 files changed, 3 insertions(+), 1 deletions(-)
->>> 
->>> diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig index
->>> a28541b..2592d88 100644 --- a/drivers/media/Kconfig
->>> +++ b/drivers/media/Kconfig
->>> @@ -5,6 +5,7 @@
->>>  menuconfig MEDIA_SUPPORT
->>>  	tristate "Multimedia support"
->>>  	depends on HAS_IOMEM
->>> +	default y if ARCH_OMAP2 || ARCH_OMAP3
->> [Hiremath, Vaibhav] I am quite not sure whether this is right approach
->> to do this, I think adding dependency of ARCH_ here will pollute the file.
->> 
->> Why not add this definition to omap2plus_defconfig, which is common
->> defconfig file for all OMAP architecture.
->> 
->> Thanks,
->> Vaibhav
-> [Samreen]
->   I was not aware of the fact that the defconfig could be modified..
-> Will incorporate the changes and will post them soon. -Regards,
-> Samreen
+This has implementation for FM TX functionality.
+It communicates with FM V4l2 module and FM common module.
 
-[Samreen]
-    Just to clarify, if this Kconfig patch would be fine. As defconfig 
-changes are not appreciated by the community.
+Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
+---
+ drivers/staging/ti-st/fmdrv_tx.c |  461 ++++++++++++++++++++++++++++++++++++++
+ drivers/staging/ti-st/fmdrv_tx.h |   37 +++
+ 2 files changed, 498 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/staging/ti-st/fmdrv_tx.c
+ create mode 100644 drivers/staging/ti-st/fmdrv_tx.h
 
-Warm Regards,
-Samreen
->> 
->>>  	help
->>>  	  If you want to use Video for Linux, DVB for Linux, or DAB adapters,
->>>  	  enable this option and other options below.
->>> @@ -19,6 +20,7 @@ comment "Multimedia core support"
->>> 
->>>  config VIDEO_DEV
->>>  	tristate "Video For Linux"
->>> +	default y if ARCH_OMAP2 || ARCH_OMAP3
->>>  	---help---
->>>  	  V4L core support for video capture and overlay devices, webcams and
->>>  	  AM/FM radio cards.
->>> diff --git a/drivers/media/video/omap/Kconfig
->>> b/drivers/media/video/omap/Kconfig
->>> index e63233f..f3e33c3 100644
->>> --- a/drivers/media/video/omap/Kconfig
->>> +++ b/drivers/media/video/omap/Kconfig
->>> @@ -6,6 +6,6 @@ config VIDEO_OMAP2_VOUT
->>>  	select OMAP2_DSS
->>>  	select OMAP2_VRAM
->>>  	select OMAP2_VRFB
->>> -	default n
->>> +	default y
->>>  	---help---
->>>  	  V4L2 Display driver support for OMAP2/3 based boards. --
->>> 1.5.6.3
+diff --git a/drivers/staging/ti-st/fmdrv_tx.c b/drivers/staging/ti-st/fmdrv_tx.c
+new file mode 100644
+index 0000000..7850d19
+--- /dev/null
++++ b/drivers/staging/ti-st/fmdrv_tx.c
+@@ -0,0 +1,461 @@
++/*
++ *  FM Driver for Connectivity chip of Texas Instruments.
++ *  This sub-module of FM driver implements FM TX functionality.
++ *
++ *  Copyright (C) 2010 Texas Instruments
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License version 2 as
++ *  published by the Free Software Foundation.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ */
++
++#include <linux/delay.h>
++#include "fmdrv.h"
++#include "fmdrv_common.h"
++#include "fmdrv_tx.h"
++
++int fm_tx_set_stereo_mono(struct fmdrv_ops *fmdev, unsigned short mode)
++{
++	unsigned short payload;
++	int ret = 0;
++
++	if (fmdev->curr_fmmode != FM_MODE_TX)
++		return -EPERM;
++
++	if (fmdev->tx_data.aud_mode == mode)
++		return ret;
++
++	pr_debug("stereo mode: %d\n", mode);
++
++	/* Set Stereo/Mono mode */
++	FM_STORE_LE16_TO_BE16(payload, (1 - mode));
++	ret = fmc_send_cmd(fmdev, MONO_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set TX stereo/mono mode - %d\n",
++			ret);
++		return ret;
++	}
++
++	fmdev->tx_data.aud_mode = mode;
++
++	return ret;
++}
++
++static int __set_rds_text(struct fmdrv_ops *fmdev, unsigned char *rds_text)
++{
++	unsigned short payload;
++	int ret;
++
++	ret = fmc_send_cmd(fmdev, RDS_DATA_SET, rds_text, strlen(rds_text),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set TX RDS data - %d\n", ret);
++		return ret;
++	}
++
++	/* Scroll mode */
++	FM_STORE_LE16_TO_BE16(payload, (unsigned short)0x1);
++	ret = fmc_send_cmd(fmdev, DISPLAY_MODE_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set RDS display mode - %d\n", ret);
++		return ret;
++	}
++
++	return 0;
++}
++
++static int __set_rds_data_mode(struct fmdrv_ops *fmdev, unsigned char mode)
++{
++	unsigned short payload;
++	int ret;
++
++	/* Setting unique PI TODO: how unique? */
++	FM_STORE_LE16_TO_BE16(payload, (unsigned short)0xcafe);
++	ret = fmc_send_cmd(fmdev, PI_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set PI - %d\n", ret);
++		return ret;
++	}
++
++	/* Set decoder id */
++	FM_STORE_LE16_TO_BE16(payload, (unsigned short)0xa);
++	ret = fmc_send_cmd(fmdev, DI_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set DI - %d\n", ret);
++		return ret;
++	}
++
++	/* TODO: RDS_MODE_GET? */
++	return 0;
++}
++
++static int __set_rds_len(struct fmdrv_ops *fmdev, unsigned char type,
++				unsigned short len)
++{
++	unsigned short payload;
++	int ret;
++
++	len |= type << 8;
++	FM_STORE_LE16_TO_BE16(payload, len);
++	ret = fmc_send_cmd(fmdev, LENGTH_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set RDS data length - %d\n", ret);
++		return ret;
++	}
++
++	/* TODO: LENGTH_GET? */
++	return 0;
++}
++
++int fm_tx_set_rds_mode(struct fmdrv_ops *fmdev, unsigned char rds_en_dis)
++{
++	unsigned short payload;
++	int ret;
++	unsigned char rds_text[] = "Zoom2\n";
++
++	if (fmdev->curr_fmmode != FM_MODE_TX)
++		return -EPERM;
++
++	pr_debug("rds_en_dis:%d(E:%d, D:%d)\n", rds_en_dis,
++		   FM_RDS_ENABLE, FM_RDS_DISABLE);
++
++	if (rds_en_dis == FM_RDS_ENABLE) {
++		/* Set RDS length */
++		__set_rds_len(fmdev, 0, strlen(rds_text));
++
++		/* Set RDS text */
++		__set_rds_text(fmdev, rds_text);
++
++		/* Set RDS mode */
++		__set_rds_data_mode(fmdev, 0x0);
++	}
++
++	/* Send command to enable RDS */
++	if (rds_en_dis == FM_RDS_ENABLE)
++		FM_STORE_LE16_TO_BE16(payload, 0x01);
++	else
++		FM_STORE_LE16_TO_BE16(payload, 0x00);
++
++	ret = fmc_send_cmd(fmdev, RDS_DATA_ENB, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set TX RDS state - %d\n", ret);
++		return ret;
++	}
++
++	if (rds_en_dis == FM_RDS_ENABLE) {
++		/* Set RDS length */
++		__set_rds_len(fmdev, 0, strlen(rds_text));
++
++		/* Set RDS text */
++		__set_rds_text(fmdev, rds_text);
++	}
++	fmdev->tx_data.rds.flag = rds_en_dis;
++
++	return 0;
++}
++
++int fm_tx_set_radio_text(struct fmdrv_ops *fmdev,
++				unsigned char *rds_text,
++				unsigned char rds_type)
++{
++	unsigned short payload;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_TX)
++		return -EPERM;
++
++	fm_tx_set_rds_mode(fmdev, 0);
++
++	/* Set RDS length */
++	__set_rds_len(fmdev, rds_type, strlen(rds_text));
++
++	/* Set RDS text */
++	__set_rds_text(fmdev, rds_text);
++
++	/* Set RDS mode */
++	__set_rds_data_mode(fmdev, 0x0);
++
++	FM_STORE_LE16_TO_BE16(payload, 1);
++	ret = fmc_send_cmd(fmdev, RDS_DATA_ENB, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to enable TX RDS data - %d\n", ret);
++		return ret;
++	}
++
++	return 0;
++}
++
++int fm_tx_set_af(struct fmdrv_ops *fmdev, unsigned int af)
++{
++	unsigned short payload;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_TX)
++		return -EPERM;
++	pr_debug("AF: %d\n", af);
++
++	af = (af - 87500) / 100;
++	FM_STORE_LE16_TO_BE16(payload, (unsigned short)af);
++	ret = fmc_send_cmd(fmdev, TA_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set TX AF - %d\n", ret);
++		return ret;
++	}
++
++	return 0;
++}
++
++int fm_tx_set_region(struct fmdrv_ops *fmdev,
++				unsigned char region_to_set)
++{
++	unsigned short payload;
++	int ret;
++
++	if (region_to_set != FM_BAND_EUROPE_US &&
++	    region_to_set != FM_BAND_JAPAN) {
++		pr_err("Invalid band\n");
++		return -EINVAL;
++	}
++
++	/* Send command to set the band */
++	FM_STORE_LE16_TO_BE16(payload, (unsigned short)region_to_set);
++	ret = fmc_send_cmd(fmdev, TX_BAND_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set TX band - %d\n", ret);
++		return ret;
++	}
++
++	return 0;
++}
++
++int fm_tx_set_mute_mode(struct fmdrv_ops *fmdev,
++				unsigned char mute_mode_toset)
++{
++	unsigned short payload;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_TX)
++		return -EPERM;
++	pr_debug("tx: mute mode %d\n", mute_mode_toset);
++
++	FM_STORE_LE16_TO_BE16(payload, mute_mode_toset);
++	ret = fmc_send_cmd(fmdev, MUTE, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to TX mute mode - %d\n", ret);
++		return ret;
++	}
++
++	return 0;
++}
++
++/* Set TX Audio I/O */
++static int __set_audio_io(struct fmdrv_ops *fmdev)
++{
++	struct fmtx_data *tx = &fmdev->tx_data;
++	unsigned short payload;
++	int ret;
++
++	/* Set Audio I/O Enable */
++	FM_STORE_LE16_TO_BE16(payload, tx->audio_io);
++	ret = fmc_send_cmd(fmdev, AUDIO_IO_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to enable TX audio I/O - %d\n", ret);
++		return ret;
++	}
++
++	/* TODO: is audio set? */
++	return 0;
++}
++
++/* Start TX Transmission */
++static int __enable_xmit(struct fmdrv_ops *fmdev, unsigned char new_xmit_state)
++{
++	struct fmtx_data *tx = &fmdev->tx_data;
++	unsigned short payload;
++	unsigned long timeleft;
++	int ret;
++
++	/* Enable POWER_ENB interrupts */
++	FM_STORE_LE16_TO_BE16(payload, FM_POW_ENB_EVENT);
++	ret = fmc_send_cmd(fmdev, INT_MASK_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set interrupt mask - %d\n", ret);
++		return ret;
++	}
++
++	/* Set Power Enable */
++	FM_STORE_LE16_TO_BE16(payload, new_xmit_state);
++	ret = fmc_send_cmd(fmdev, POWER_ENB_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to enable transmission - %d\n", ret);
++		return ret;
++	}
++
++	/* Wait for Power Enabled */
++	init_completion(&fmdev->maintask_completion);
++	timeleft = wait_for_completion_timeout(&fmdev->maintask_completion,
++					       FM_DRV_TX_TIMEOUT);
++	if (!timeleft) {
++		pr_err("Timeout(%d sec),didn't get tune ended interrupt\n",
++			   jiffies_to_msecs(FM_DRV_TX_TIMEOUT) / 1000);
++		return -ETIMEDOUT;
++	}
++
++	set_bit(FM_CORE_TX_XMITING, &fmdev->flag);
++	tx->xmit_state = new_xmit_state;
++
++	return 0;
++}
++
++/* Set TX power level */
++int fm_tx_set_pwr_lvl(struct fmdrv_ops *fmdev, unsigned char new_pwr_lvl)
++{
++	unsigned short payload;
++	struct fmtx_data *tx = &fmdev->tx_data;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_TX)
++		return -EPERM;
++	pr_debug("tx: pwr_level_to_set %ld\n", (long int)new_pwr_lvl);
++
++	/* If the core isn't ready update global variable */
++	if (!test_bit(FM_CORE_READY, &fmdev->flag)) {
++		tx->pwr_lvl = new_pwr_lvl;
++		return 0;
++	}
++
++	/* Set power level */
++	FM_STORE_LE16_TO_BE16(payload, new_pwr_lvl);
++	ret = fmc_send_cmd(fmdev, POWER_LEL_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set TX power level - %d\n", ret);
++		return ret;
++	}
++
++	/* TODO: is the power level set? */
++	tx->pwr_lvl = new_pwr_lvl;
++
++	return 0;
++}
++
++/*
++ * Sets FM TX pre-emphasis filter value (OFF, 50us, or 75us)
++ * Convert V4L2 specified filter values to chip specific filter values.
++ */
++int fm_tx_set_preemph_filter(struct fmdrv_ops *fmdev, unsigned int filter)
++{
++	struct fmtx_data *tx = &fmdev->tx_data;
++	unsigned short payload;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_TX)
++		return -EPERM;
++
++	FM_STORE_LE16_TO_BE16(payload, filter);
++	ret = fmc_send_cmd(fmdev, PREMPH_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set TX preemphasis filter value -"
++			" %d\n", ret);
++		return ret;
++	}
++
++	tx->preemph = filter;
++
++	return ret;
++}
++
++/* Sets FM TX antenna impedance value */
++int fm_tx_set_ant_imp(struct fmdrv_ops *fmdev, unsigned char imp)
++{
++	unsigned short payload;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_TX)
++		return -EPERM;
++
++	FM_STORE_LE16_TO_BE16(payload, imp);
++	ret = fmc_send_cmd(fmdev, IMP_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set TX antenna impedance value -"
++			" %d\n", ret);
++		return ret;
++	}
++
++	return ret;
++}
++
++/* Set TX Frequency */
++int fm_tx_set_frequency(struct fmdrv_ops *fmdev, unsigned int freq_to_set)
++{
++	struct fmtx_data *tx = &fmdev->tx_data;
++	unsigned short payload, chanl_index;
++	int ret;
++
++	if (test_bit(FM_CORE_TX_XMITING, &fmdev->flag)) {
++		__enable_xmit(fmdev, 0);
++		clear_bit(FM_CORE_TX_XMITING, &fmdev->flag);
++	}
++
++	/* Enable FR, BL interrupts */
++	FM_STORE_LE16_TO_BE16(payload, (FM_FR_EVENT | FM_BL_EVENT));
++	ret = fmc_send_cmd(fmdev, INT_MASK_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set interrupt mask %d\n", ret);
++		return ret;
++	}
++
++	tx->tx_frq = (unsigned long)freq_to_set;
++	pr_debug("tx: freq_to_set %ld\n", (long int)tx->tx_frq);
++
++	chanl_index = freq_to_set / 10;
++
++	/* Set current tuner channel */
++	FM_STORE_LE16_TO_BE16(payload, chanl_index);
++	ret = fmc_send_cmd(fmdev, CHANL_SET, &payload, sizeof(payload),
++				&fmdev->maintask_completion, NULL, NULL);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set tunner channel %d\n", ret);
++		return ret;
++	}
++
++	fm_tx_set_pwr_lvl(fmdev, tx->pwr_lvl);
++	fm_tx_set_preemph_filter(fmdev, tx->preemph);
++
++	tx->audio_io = 0x01;	/* I2S */
++	__set_audio_io(fmdev);
++
++	__enable_xmit(fmdev, 0x01);	/* Enable transmission */
++
++	tx->aud_mode = FM_STEREO_MODE;
++	tx->rds.flag = FM_RDS_DISABLE;
++
++	return 0;
++}
++
+diff --git a/drivers/staging/ti-st/fmdrv_tx.h b/drivers/staging/ti-st/fmdrv_tx.h
+new file mode 100644
+index 0000000..f61dace
+--- /dev/null
++++ b/drivers/staging/ti-st/fmdrv_tx.h
+@@ -0,0 +1,37 @@
++/*
++ *  FM Driver for Connectivity chip of Texas Instruments.
++ *  FM TX module header.
++ *
++ *  Copyright (C) 2010 Texas Instruments
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License version 2 as
++ *  published by the Free Software Foundation.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ */
++
++#ifndef _FMDRV_TX_H
++#define _FMDRV_TX_H
++
++int fm_tx_set_frequency(struct fmdrv_ops*, unsigned int);
++int fm_tx_set_pwr_lvl(struct fmdrv_ops*, unsigned char);
++int fm_tx_set_region(struct fmdrv_ops*, unsigned char);
++int fm_tx_set_mute_mode(struct fmdrv_ops*, unsigned char);
++int fm_tx_set_stereo_mono(struct fmdrv_ops*, unsigned short);
++int fm_tx_set_rds_mode(struct fmdrv_ops*, unsigned char);
++int fm_tx_set_radio_text(struct fmdrv_ops*, unsigned char*, unsigned char);
++int fm_tx_set_af(struct fmdrv_ops*, unsigned int);
++int fm_tx_set_preemph_filter(struct fmdrv_ops*, unsigned int);
++int fm_tx_set_ant_imp(struct fmdrv_ops*, unsigned char);
++
++#endif
++
+-- 
+1.5.6.3
+
