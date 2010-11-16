@@ -1,152 +1,124 @@
-Return-path: <mchehab@gaivota>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:25182 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755183Ab0KSP60 (ORCPT
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1291 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932723Ab0KPV4u (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 10:58:26 -0500
-Date: Fri, 19 Nov 2010 16:58:00 +0100
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Subject: [RFCv6 02/13] lib: bitmap: Added alignment offset for
- bitmap_find_next_zero_area()
-In-reply-to: <cover.1290172312.git.m.nazarewicz@samsung.com>
-To: mina86@mina86.com
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Bryan Huntsman <bryanh@codeaurora.org>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Johan Mossberg <johan.xx.mossberg@stericsson.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Marcus LORENTZON <marcus.xm.lorentzon@stericsson.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Mel Gorman <mel@csn.ul.ie>, Pawel Osciak <pawel@osciak.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>, dipankar@in.ibm.com,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org
-Message-id: <23036a00743a5d45d435b32803463ec70041fc5a.1290172312.git.m.nazarewicz@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <cover.1290172312.git.m.nazarewicz@samsung.com>
+	Tue, 16 Nov 2010 16:56:50 -0500
+Message-Id: <ce95783505f7de21e3ed43f277c764afad2d8262.1289944160.git.hverkuil@xs4all.nl>
+In-Reply-To: <cover.1289944159.git.hverkuil@xs4all.nl>
+References: <cover.1289944159.git.hverkuil@xs4all.nl>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Tue, 16 Nov 2010 22:56:45 +0100
+Subject: [RFCv2 PATCH 14/15] V4L: improve the BKL replacement heuristic
+To: linux-media@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-This commit adds a bitmap_find_next_zero_area_off() function which
-works like bitmap_find_next_zero_area() function expect it allows an
-offset to be specified when alignment is checked.  This lets caller
-request a bit such that its number plus the offset is aligned
-according to the mask.
+The BKL replacement mutex had some serious performance side-effects on
+V4L drivers. It is replaced by a better heuristic that works around the
+worst of the side-effects.
 
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Read the v4l2-dev.c comments for the whole sorry story. This is a
+temporary measure only until we can convert all v4l drivers to use
+unlocked_ioctl.
+
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
 ---
- include/linux/bitmap.h |   24 +++++++++++++++++++-----
- lib/bitmap.c           |   22 ++++++++++++----------
- 2 files changed, 31 insertions(+), 15 deletions(-)
+ drivers/media/video/v4l2-dev.c    |   37 ++++++++++++++++++++++++++++++++++---
+ drivers/media/video/v4l2-device.c |    1 +
+ include/media/v4l2-dev.h          |    2 +-
+ include/media/v4l2-device.h       |    2 ++
+ 4 files changed, 38 insertions(+), 4 deletions(-)
 
-diff --git a/include/linux/bitmap.h b/include/linux/bitmap.h
-index daf8c48..c0528d1 100644
---- a/include/linux/bitmap.h
-+++ b/include/linux/bitmap.h
-@@ -45,6 +45,7 @@
-  * bitmap_set(dst, pos, nbits)			Set specified bit area
-  * bitmap_clear(dst, pos, nbits)		Clear specified bit area
-  * bitmap_find_next_zero_area(buf, len, pos, n, mask)	Find bit free area
-+ * bitmap_find_next_zero_area_off(buf, len, pos, n, mask)	as above
-  * bitmap_shift_right(dst, src, n, nbits)	*dst = *src >> n
-  * bitmap_shift_left(dst, src, n, nbits)	*dst = *src << n
-  * bitmap_remap(dst, src, old, new, nbits)	*dst = map(old, new)(src)
-@@ -113,11 +114,24 @@ extern int __bitmap_weight(const unsigned long *bitmap, int bits);
- 
- extern void bitmap_set(unsigned long *map, int i, int len);
- extern void bitmap_clear(unsigned long *map, int start, int nr);
--extern unsigned long bitmap_find_next_zero_area(unsigned long *map,
--					 unsigned long size,
--					 unsigned long start,
--					 unsigned int nr,
--					 unsigned long align_mask);
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index 8eb0756..59ef642 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -258,11 +258,42 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 		if (vdev->lock)
+ 			mutex_unlock(vdev->lock);
+ 	} else if (vdev->fops->ioctl) {
+-		/* TODO: convert all drivers to unlocked_ioctl */
+-		lock_kernel();
++		/* This code path is a replacement for the BKL. It is a major
++		 * hack but it will have to do for those drivers that are not
++		 * yet converted to use unlocked_ioctl.
++		 *
++		 * There are two options: if the driver implements struct
++		 * v4l2_device, then the lock defined there is used to
++		 * serialize the ioctls. Otherwise the v4l2 core lock defined
++		 * below is used. This lock is really bad since it serializes
++		 * completely independent devices.
++		 *
++		 * Both variants suffer from the same problem: if the driver
++		 * sleeps, then it blocks all ioctls since the lock is still
++		 * held. This is very common for VIDIOC_DQBUF since that
++		 * normally waits for a frame to arrive. As a result any other
++		 * ioctl calls will proceed very, very slowly since each call
++		 * will have to wait for the VIDIOC_QBUF to finish. Things that
++		 * should take 0.01s may now take 10-20 seconds.
++		 *
++		 * The workaround is to *not* take the lock for VIDIOC_DQBUF.
++		 * This actually works OK for videobuf-based drivers, since
++		 * videobuf will take its own internal lock.
++		 */
++		static DEFINE_MUTEX(v4l2_ioctl_mutex);
++		struct mutex *m = vdev->v4l2_dev ?
++			&vdev->v4l2_dev->ioctl_lock : &v4l2_ioctl_mutex;
 +
-+extern unsigned long bitmap_find_next_zero_area_off(unsigned long *map,
-+						    unsigned long size,
-+						    unsigned long start,
-+						    unsigned int nr,
-+						    unsigned long align_mask,
-+						    unsigned long align_offset);
++		if (cmd != VIDIOC_DQBUF) {
++			int res = mutex_lock_interruptible(m);
 +
-+static inline unsigned long
-+bitmap_find_next_zero_area(unsigned long *map,
-+			   unsigned long size,
-+			   unsigned long start,
-+			   unsigned int nr,
-+			   unsigned long align_mask)
-+{
-+	return bitmap_find_next_zero_area_off(map, size, start, nr,
-+					      align_mask, 0);
-+}
++			if (res)
++				return res;
++		}
+ 		if (video_is_registered(vdev))
+ 			ret = vdev->fops->ioctl(filp, cmd, arg);
+-		unlock_kernel();
++		if (cmd != VIDIOC_DQBUF)
++			mutex_unlock(m);
+ 	} else
+ 		ret = -ENOTTY;
  
- extern int bitmap_scnprintf(char *buf, unsigned int len,
- 			const unsigned long *src, int nbits);
-diff --git a/lib/bitmap.c b/lib/bitmap.c
-index 741fae9..8e75a6f 100644
---- a/lib/bitmap.c
-+++ b/lib/bitmap.c
-@@ -315,30 +315,32 @@ void bitmap_clear(unsigned long *map, int start, int nr)
- }
- EXPORT_SYMBOL(bitmap_clear);
+diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
+index 0b08f96..7fe6f92 100644
+--- a/drivers/media/video/v4l2-device.c
++++ b/drivers/media/video/v4l2-device.c
+@@ -35,6 +35,7 @@ int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
  
--/*
-+/**
-  * bitmap_find_next_zero_area - find a contiguous aligned zero area
-  * @map: The address to base the search on
-  * @size: The bitmap size in bits
-  * @start: The bitnumber to start searching at
-  * @nr: The number of zeroed bits we're looking for
-  * @align_mask: Alignment mask for zero area
-+ * @align_offset: Alignment offset for zero area.
-  *
-  * The @align_mask should be one less than a power of 2; the effect is that
-- * the bit offset of all zero areas this function finds is multiples of that
-- * power of 2. A @align_mask of 0 means no alignment is required.
-+ * the bit offset of all zero areas this function finds plus @align_offset
-+ * is multiple of that power of 2.
-  */
--unsigned long bitmap_find_next_zero_area(unsigned long *map,
--					 unsigned long size,
--					 unsigned long start,
--					 unsigned int nr,
--					 unsigned long align_mask)
-+unsigned long bitmap_find_next_zero_area_off(unsigned long *map,
-+					     unsigned long size,
-+					     unsigned long start,
-+					     unsigned int nr,
-+					     unsigned long align_mask,
-+					     unsigned long align_offset)
- {
- 	unsigned long index, end, i;
- again:
- 	index = find_next_zero_bit(map, size, start);
+ 	INIT_LIST_HEAD(&v4l2_dev->subdevs);
+ 	spin_lock_init(&v4l2_dev->lock);
++	mutex_init(&v4l2_dev->ioctl_lock);
+ 	v4l2_dev->dev = dev;
+ 	if (dev == NULL) {
+ 		/* If dev == NULL, then name must be filled in by the caller */
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 15802a0..59dec5a 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -39,7 +39,7 @@ struct v4l2_file_operations {
+ 	ssize_t (*read) (struct file *, char __user *, size_t, loff_t *);
+ 	ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *);
+ 	unsigned int (*poll) (struct file *, struct poll_table_struct *);
+-	long (*ioctl) (struct file *, unsigned int, unsigned long);
++	long (*ioctl __deprecated) (struct file *, unsigned int, unsigned long);
+ 	long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
+ 	int (*mmap) (struct file *, struct vm_area_struct *);
+ 	int (*open) (struct file *);
+diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
+index 6648036..b16f307 100644
+--- a/include/media/v4l2-device.h
++++ b/include/media/v4l2-device.h
+@@ -51,6 +51,8 @@ struct v4l2_device {
+ 			unsigned int notification, void *arg);
+ 	/* The control handler. May be NULL. */
+ 	struct v4l2_ctrl_handler *ctrl_handler;
++	/* BKL replacement mutex. Temporary solution only. */
++	struct mutex ioctl_lock;
+ };
  
- 	/* Align allocation */
--	index = __ALIGN_MASK(index, align_mask);
-+	index = __ALIGN_MASK(index + align_offset, align_mask) - align_offset;
- 
- 	end = index + nr;
- 	if (end > size)
-@@ -350,7 +352,7 @@ again:
- 	}
- 	return index;
- }
--EXPORT_SYMBOL(bitmap_find_next_zero_area);
-+EXPORT_SYMBOL(bitmap_find_next_zero_area_off);
- 
- /*
-  * Bitmap printing & parsing functions: first version by Bill Irwin,
+ /* Initialize v4l2_dev and make dev->driver_data point to v4l2_dev.
 -- 
-1.7.2.3
+1.7.0.4
 
