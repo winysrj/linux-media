@@ -1,70 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from bear.ext.ti.com ([192.94.94.41]:60870 "EHLO bear.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:24175 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756897Ab0KOOaC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Nov 2010 09:30:02 -0500
-From: Sergio Aguirre <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
-Subject: [omap3isp][PATCH v2 1/9] omap3isp: ccdc: Add support for YUV format
-Date: Mon, 15 Nov 2010 08:29:53 -0600
-Message-Id: <1289831401-593-2-git-send-email-saaguirre@ti.com>
-In-Reply-To: <1289831401-593-1-git-send-email-saaguirre@ti.com>
-References: <1289831401-593-1-git-send-email-saaguirre@ti.com>
+	id S1752289Ab0KPQE3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Nov 2010 11:04:29 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oAGG4SvX002308
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 16 Nov 2010 11:04:29 -0500
+Received: from shalem.localdomain (vpn1-6-110.ams2.redhat.com [10.36.6.110])
+	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id oAGG4PmK001262
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 16 Nov 2010 11:04:28 -0500
+Message-ID: <4CE2ABED.3080009@redhat.com>
+Date: Tue, 16 Nov 2010 17:06:05 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PATCHES FOR 2.6.38] Fixes for driver pwc
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-We were just supporting RAW10 formats, and we really support more
-options.
+Hi,
 
-Strictly speaking, CCDC needs at least to distinguish between RAW
-and YUV formats for proper configuration.
+While investigating the following bug:
+https://bugzilla.redhat.com/show_bug.cgi?id=624103
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
----
- drivers/media/video/isp/ispccdc.c |   14 +++++++++++---
- 1 files changed, 11 insertions(+), 3 deletions(-)
+I found several errors in the handling of isoc transfers in
+the pwc driver. The fixes in this pull request fix these.
 
-diff --git a/drivers/media/video/isp/ispccdc.c b/drivers/media/video/isp/ispccdc.c
-index be4581e..c3d1d7a 100644
---- a/drivers/media/video/isp/ispccdc.c
-+++ b/drivers/media/video/isp/ispccdc.c
-@@ -45,6 +45,8 @@ static const unsigned int ccdc_fmts[] = {
- 	V4L2_MBUS_FMT_SRGGB10_1X10,
- 	V4L2_MBUS_FMT_SBGGR10_1X10,
- 	V4L2_MBUS_FMT_SGBRG10_1X10,
-+	V4L2_MBUS_FMT_YUYV8_1X16,
-+	V4L2_MBUS_FMT_UYVY8_1X16,
- };
- 
- /*
-@@ -1069,6 +1071,9 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 	isp_configure_bridge(isp, ccdc->input, pdata);
- 	ispccdc_config_sync_if(ccdc, &ccdc->syncif);
- 
-+	/* CCDC_PAD_SINK */
-+	format = &ccdc->formats[CCDC_PAD_SINK];
-+
- 	syn_mode = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
- 
- 	/* Use the raw, unprocessed data when writing to memory. The H3A and
-@@ -1086,10 +1091,13 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 	else
- 		syn_mode &= ~ISPCCDC_SYN_MODE_SDR2RSZ;
- 
--	isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
-+	if ((format->code == V4L2_MBUS_FMT_YUYV8_1X16) ||
-+	    (format->code == V4L2_MBUS_FMT_UYVY8_1X16))
-+		syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
-+	else
-+		syn_mode &= ~ISPCCDC_SYN_MODE_INPMOD_MASK;
- 
--	/* CCDC_PAD_SINK */
--	format = &ccdc->formats[CCDC_PAD_SINK];
-+	isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
- 
- 	/* Mosaic filter */
- 	switch (format->code) {
--- 
-1.7.0.4
+Even with this fixed, the pwc driver is still far from ideal
+in various places, esp. plug / unplug handling. If I feel like
+it I may rewrite it as a gspca sub driver in the near future.
+
+The following changes since commit 552faf8580766b6fc944cb966f690ed0624a5564:
+
+   [media] mfd: Add timberdale video-in driver to timberdale (2010-11-16 12:06:58 -0200)
+
+are available in the git repository at:
+   git://linuxtv.org/hgoede/gspca.git gspca-for_v2.6.38
+
+Hans de Goede (3):
+       pwc: do not start isoc stream on /dev/video open
+       pwc: Also set alt setting to alt0 when no error occured
+       pwc: failure to submit an urb is a fatal error
+
+  drivers/media/video/pwc/pwc-ctrl.c |    7 +++-
+  drivers/media/video/pwc/pwc-if.c   |   65 +++++++++++------------------------
+  drivers/media/video/pwc/pwc-v4l.c  |   13 ++++---
+  drivers/media/video/pwc/pwc.h      |    1 -
+  4 files changed, 34 insertions(+), 52 deletions(-)
+
+Regards,
+
+Hans
 
