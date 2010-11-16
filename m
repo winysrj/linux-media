@@ -1,51 +1,66 @@
-Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56000 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753108Ab0KSNvl (ORCPT
+Return-path: <mchehab@pedra>
+Received: from devils.ext.ti.com ([198.47.26.153]:43543 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934459Ab0KPM5J (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 08:51:41 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH/RFC] v4l: Add subdev sensor g_skip_frames operation
-Date: Fri, 19 Nov 2010 14:51:43 +0100
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de
-References: <1290173202-28769-1-git-send-email-laurent.pinchart@ideasonboard.com> <201011191442.31982.hverkuil@xs4all.nl>
-In-Reply-To: <201011191442.31982.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011191451.44465.laurent.pinchart@ideasonboard.com>
+	Tue, 16 Nov 2010 07:57:09 -0500
+From: manjunatha_halli@ti.com
+To: mchehab@infradead.org, hverkuil@xs4all.nl
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Manjunatha Halli <manjunatha_halli@ti.com>
+Subject: [PATCH v4 6/6] drivers:staging: ti-st: Kconfig & Makefile change
+Date: Tue, 16 Nov 2010 08:18:14 -0500
+Message-Id: <1289913494-21590-7-git-send-email-manjunatha_halli@ti.com>
+In-Reply-To: <1289913494-21590-6-git-send-email-manjunatha_halli@ti.com>
+References: <1289913494-21590-1-git-send-email-manjunatha_halli@ti.com>
+ <1289913494-21590-2-git-send-email-manjunatha_halli@ti.com>
+ <1289913494-21590-3-git-send-email-manjunatha_halli@ti.com>
+ <1289913494-21590-4-git-send-email-manjunatha_halli@ti.com>
+ <1289913494-21590-5-git-send-email-manjunatha_halli@ti.com>
+ <1289913494-21590-6-git-send-email-manjunatha_halli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Hans,
+From: Manjunatha Halli <manjunatha_halli@ti.com>
 
-On Friday 19 November 2010 14:42:31 Hans Verkuil wrote:
-> On Friday 19 November 2010 14:26:42 Laurent Pinchart wrote:
-> > Some buggy sensors generate corrupt frames when the stream is started.
-> > This new operation returns the number of corrupt frames to skip when
-> > starting the stream.
-> 
-> Looks OK, but perhaps the two should be combined to one function?
+Add new menu option in Kconfig and compilation option in Makefile
+for TI FM driver.
 
-I'm fine with both. Guennadi, any opinion ?
+Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
+---
+ drivers/staging/ti-st/Kconfig  |   10 ++++++++++
+ drivers/staging/ti-st/Makefile |    2 ++
+ 2 files changed, 12 insertions(+), 0 deletions(-)
 
-> I also have my doubts about the sensor_ops in general. I expected
-> originally to see a lot of ops here, but apparently there is little or no
-> need for it.
-> 
-> Do we expect to see this grow, or would it make more sense to move the ops
-> to video_ops? I'd be interested to hear what sensor specialists think.
-
-Good question. It won't remove the need for the g_skip_frames operation, but 
-it's certainly worth asking. Standards are emerging for sensors in specific 
-markets (SMIA comes to mind - I'm not sure if the spec is public, but some 
-information can be found online) and there will probably be a need to provide 
-more sensor information to both "bridge" drivers and userspace applications in 
-the future.
-
+diff --git a/drivers/staging/ti-st/Kconfig b/drivers/staging/ti-st/Kconfig
+index 074b8e8..43b6dea 100644
+--- a/drivers/staging/ti-st/Kconfig
++++ b/drivers/staging/ti-st/Kconfig
+@@ -11,4 +11,14 @@ config ST_BT
+ 	  This enables the Bluetooth driver for TI BT/FM/GPS combo devices.
+ 	  This makes use of shared transport line discipline core driver to
+ 	  communicate with the BT core of the combo chip.
++
++config ST_FM
++        tristate "fm driver for ST"
++        depends on VIDEO_DEV && RFKILL
++        select TI_ST
++        help
++          This enables the FM driver for TI BT/FM/GPS combo devices.
++          This makes use of shared transport line discipline core driver to
++          communicate with the FM core of the combo chip.
++
+ endmenu
+diff --git a/drivers/staging/ti-st/Makefile b/drivers/staging/ti-st/Makefile
+index 5f11b82..330f95b 100644
+--- a/drivers/staging/ti-st/Makefile
++++ b/drivers/staging/ti-st/Makefile
+@@ -3,3 +3,5 @@
+ # and its protocol drivers (BT, FM, GPS)
+ #
+ obj-$(CONFIG_ST_BT) 		+= bt_drv.o
++obj-$(CONFIG_ST_FM) 		+= fm_drv.o
++fm_drv-objs     		:= fmdrv_common.o fmdrv_rx.o fmdrv_tx.o fmdrv_v4l2.o
 -- 
-Regards,
+1.5.6.3
 
-Laurent Pinchart
