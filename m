@@ -1,74 +1,66 @@
-Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51879 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754429Ab0KTR2a (ORCPT
+Return-path: <mchehab@pedra>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:56833 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757744Ab0KPVlH convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Nov 2010 12:28:30 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: David Cohen <david.cohen@nokia.com>
-Subject: Re: [omap3isp RFC][PATCH 2/4] omap3isp: Move CCDC LSC prefetch wait to main isp code
-Date: Sat, 20 Nov 2010 18:28:34 +0100
-Cc: ext Sergio Aguirre <saaguirre@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <1290209031-12817-1-git-send-email-saaguirre@ti.com> <1290209031-12817-3-git-send-email-saaguirre@ti.com> <20101120113956.GF13186@esdhcp04381.research.nokia.com>
-In-Reply-To: <20101120113956.GF13186@esdhcp04381.research.nokia.com>
+	Tue, 16 Nov 2010 16:41:07 -0500
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011201828.35042.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <4CE2C2F9.9010801@redhat.com>
+References: <4CD300AC.3010708@redhat.com>
+	<1289079027-3037-2-git-send-email-lacombar@gmail.com>
+	<AANLkTinwmSOSnQ6SsLy4ijXmocccX=o+iHh+9otfmAmN@mail.gmail.com>
+	<4CE2C2F9.9010801@redhat.com>
+Date: Tue, 16 Nov 2010 16:41:06 -0500
+Message-ID: <AANLkTim6VNvSTWOC_jZR09ktRaKUFaGorPz-cpS5bG7C@mail.gmail.com>
+Subject: Re: [PATCH 1/5] kconfig: add an option to determine a menu's visibility
+From: Arnaud Lacombe <lacombar@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sam Ravnborg <sam@ravnborg.org>
+Cc: Michal Marek <mmarek@suse.cz>, linux-kbuild@vger.kernel.org,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi David,
+Hi,
 
-On Saturday 20 November 2010 12:39:56 David Cohen wrote:
-> On Sat, Nov 20, 2010 at 12:23:49AM +0100, ext Sergio Aguirre wrote:
-> > Since this sequence strictly touches ISP global registers, it's
-> > not really part of the same register address space than the CCDC.
-> > 
-> > Do this check in main isp code instead.
-> > 
-> > Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> > ---
-> > 
-> >  drivers/media/video/isp/isp.c     |   24 ++++++++++++++++++++++++
-> >  drivers/media/video/isp/isp.h     |    2 ++
-> >  drivers/media/video/isp/ispccdc.c |   26 +-------------------------
-> >  3 files changed, 27 insertions(+), 25 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/isp/isp.c
-> > b/drivers/media/video/isp/isp.c index 2e5030f..ee45eb6 100644
-> > --- a/drivers/media/video/isp/isp.c
-> > +++ b/drivers/media/video/isp/isp.c
-> > @@ -339,6 +339,30 @@ void isphist_dma_done(struct isp_device *isp)
-> > 
-> >  	}
-> >  
-> >  }
-> > 
-> > +int ispccdc_lsc_wait_prefetch(struct isp_device *isp)
-> 
-> This is up to you, but to ensure this function now belongs to ISP core
-> and not CCDC anymore, I would change the function name to something like
-> isp_ccdc_lsc_wait_prefetch().
-> isp_* is prefix for ISP core and ispccdc_* is prefix for CCDC driver.
-> I know we have the isphist_dma_done() inside ISP core, but changing it
-> to isp_hist_dma_done could be a good cleanup as well.
-> But this is my opinion only. :)
+On Tue, Nov 16, 2010 at 12:44 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Em 15-11-2010 14:57, Arnaud Lacombe escreveu:
+>> Hi all
+>>
+>> On Sat, Nov 6, 2010 at 5:30 PM, Arnaud Lacombe <lacombar@gmail.com> wrote:
+>>> This option is aimed to add the possibility to control a menu's visibility
+>>> without adding dependency to the expression to all the submenu.
+>>>
+>>> Signed-off-by: Arnaud Lacombe <lacombar@gmail.com>
+>>> ---
+>>>  scripts/kconfig/expr.h      |    1 +
+>>>  scripts/kconfig/lkc.h       |    1 +
+>>>  scripts/kconfig/menu.c      |   11 +++++++++++
+>>>  scripts/kconfig/zconf.gperf |    1 +
+>>>  scripts/kconfig/zconf.y     |   21 ++++++++++++++++++---
+>>>  5 files changed, 32 insertions(+), 3 deletions(-)
+>>>
+>> Michal, I don't think you commented on this ? Mauro, has it been
+>> worked around differently ?
+>
+> Those patches worked fine, and solved all problems we had (I just had to touch
+> on two other menus that are used, as I answered upstream).
+>
+> I prefer if Michal could forward those patches upstream, so, there's my ack:
+>
+> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Tested-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>
+It would seem Michal is not around lately, his only passage on
+linux-kbuild@ is nearly a week old.
 
-I agree. I plan to submit a patch at some point that will rename all non-
-static functions to use the omap3isp_ prefix instead of the isp_ prefix. 
-Static functions should use the module name as prefix (ccdc_, preview_, ...).
+Sam, by any chance, could you comment on these patches so that we
+could keep moving forward ?
 
-It will be a simple patch but will conflict with pretty much everything, so 
-I'll try to push at at a quiet time (or at least quiet enough) to minimize 
-disturbances. I will also see if I can use spatch [1] to generate it.
+Thanks,
+ - Arnaud
 
-
-[1] http://coccinelle.lip6.fr/
-
--- 
-Regards,
-
-Laurent Pinchart
+ps: yes, I know, I did not upgrade the documentation.
