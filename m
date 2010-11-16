@@ -1,57 +1,98 @@
-Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40588 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754549Ab0KTRhO (ORCPT
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1619 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755052Ab0KPVzv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Nov 2010 12:37:14 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Shuzhen Wang" <shuzhenw@codeaurora.org>
-Subject: Re: Zooming with V4L2
-Date: Sat, 20 Nov 2010 18:37:18 +0100
-Cc: linux-media@vger.kernel.org
-References: <000001cb883f$ec4e4220$c4eac660$@org>
-In-Reply-To: <000001cb883f$ec4e4220$c4eac660$@org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011201837.18832.laurent.pinchart@ideasonboard.com>
+	Tue, 16 Nov 2010 16:55:51 -0500
+Message-Id: <124075f49669d3e7787e5f3156c30499f79bd817.1289944160.git.hverkuil@xs4all.nl>
+In-Reply-To: <cover.1289944159.git.hverkuil@xs4all.nl>
+References: <cover.1289944159.git.hverkuil@xs4all.nl>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Tue, 16 Nov 2010 22:55:46 +0100
+Subject: [RFCv2 PATCH 03/15] cadet: use unlocked_ioctl
+To: linux-media@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Shuzhen,
+Converted from ioctl to unlocked_ioctl.
 
-On Saturday 20 November 2010 00:17:23 Shuzhen Wang wrote:
-> Hello,
-> 
-> I am working on a SOC V4L2 driver, and need to implement zoom
-> functionality.
-> 
-> From application, there are 2 ways to do zooming. The 1st way is to use
-> cropping and scaling as described in section 1.11.1. The application needs
-> to figure out what the steps will be, and calling VIDIOC_S_CROP.
-> 
-> The 2nd way is to use V4L2_CID_ZOOM_ABSOLUTE and V4L2_CID_ZOOM_RELATIVE as
-> described by Laurent in
-> http://video4linux-list.1448896.n2.nabble.com/RFC-Zoom-controls-in-V4L2-
-td1451987.html.
-> 
-> Our camera hardware supports digital zoom. However, it acts LIKE optical
-> zoom because it doesn't do upscaling, so no video quality is sacrificed.
+This driver already used an internal lock, but it was missing in cadet_open and
+cadet_release and it was not used correctly in cadet_read.
 
-How can you apply a digital zoom, keeping the output size constant, without 
-performing upscaling ?
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/radio/radio-cadet.c |   12 +++++++++---
+ 1 files changed, 9 insertions(+), 3 deletions(-)
 
-> As a driver writter, is it okay to support only V4L2_CID_ZOOM_ABSOLUTE and
-> V4L2_CID_ZOOM_RELATIVE?
-> 
-> I guess it also depends on how zooming is done for most of the V4L2 user
-> application out there.
-
-The V4L2_CID_ZOOM_* controls are really meant for optical zoom. Digital zoom 
-should be implemented using cropping.
-
+diff --git a/drivers/media/radio/radio-cadet.c b/drivers/media/radio/radio-cadet.c
+index b701ea6..bc9ad08 100644
+--- a/drivers/media/radio/radio-cadet.c
++++ b/drivers/media/radio/radio-cadet.c
+@@ -328,11 +328,10 @@ static ssize_t cadet_read(struct file *file, char __user *data, size_t count, lo
+ 	unsigned char readbuf[RDS_BUFFER];
+ 	int i = 0;
+ 
++	mutex_lock(&dev->lock);
+ 	if (dev->rdsstat == 0) {
+-		mutex_lock(&dev->lock);
+ 		dev->rdsstat = 1;
+ 		outb(0x80, dev->io);        /* Select RDS fifo */
+-		mutex_unlock(&dev->lock);
+ 		init_timer(&dev->readtimer);
+ 		dev->readtimer.function = cadet_handler;
+ 		dev->readtimer.data = (unsigned long)dev;
+@@ -340,12 +339,15 @@ static ssize_t cadet_read(struct file *file, char __user *data, size_t count, lo
+ 		add_timer(&dev->readtimer);
+ 	}
+ 	if (dev->rdsin == dev->rdsout) {
++		mutex_unlock(&dev->lock);
+ 		if (file->f_flags & O_NONBLOCK)
+ 			return -EWOULDBLOCK;
+ 		interruptible_sleep_on(&dev->read_queue);
++		mutex_lock(&dev->lock);
+ 	}
+ 	while (i < count && dev->rdsin != dev->rdsout)
+ 		readbuf[i++] = dev->rdsbuf[dev->rdsout++];
++	mutex_unlock(&dev->lock);
+ 
+ 	if (copy_to_user(data, readbuf, i))
+ 		return -EFAULT;
+@@ -525,9 +527,11 @@ static int cadet_open(struct file *file)
+ {
+ 	struct cadet *dev = video_drvdata(file);
+ 
++	mutex_lock(&dev->lock);
+ 	dev->users++;
+ 	if (1 == dev->users)
+ 		init_waitqueue_head(&dev->read_queue);
++	mutex_unlock(&dev->lock);
+ 	return 0;
+ }
+ 
+@@ -535,11 +539,13 @@ static int cadet_release(struct file *file)
+ {
+ 	struct cadet *dev = video_drvdata(file);
+ 
++	mutex_lock(&dev->lock);
+ 	dev->users--;
+ 	if (0 == dev->users) {
+ 		del_timer_sync(&dev->readtimer);
+ 		dev->rdsstat = 0;
+ 	}
++	mutex_unlock(&dev->lock);
+ 	return 0;
+ }
+ 
+@@ -559,7 +565,7 @@ static const struct v4l2_file_operations cadet_fops = {
+ 	.open		= cadet_open,
+ 	.release       	= cadet_release,
+ 	.read		= cadet_read,
+-	.ioctl		= video_ioctl2,
++	.unlocked_ioctl	= video_ioctl2,
+ 	.poll		= cadet_poll,
+ };
+ 
 -- 
-Regards,
+1.7.0.4
 
-Laurent Pinchart
