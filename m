@@ -1,54 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:52561 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756699Ab0KKANn (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:9270 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756393Ab0KPWey (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Nov 2010 19:13:43 -0500
-Received: by yxk30 with SMTP id 30so83375yxk.19
-        for <linux-media@vger.kernel.org>; Wed, 10 Nov 2010 16:13:42 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTi=v9Ev0BDXBTWZs=LcMVGXoxcA7we5bKaR_m+2Z@mail.gmail.com>
-References: <yanpj3usd6gfp0xwdbaxlkni.1289407954066@email.android.com>
- <AANLkTimE-MWjG0JRCenOA4xhammTMS_11uvh7E+qWrNe@mail.gmail.com>
- <AANLkTi=5dNVBHvEtLxcO52AynjCyJq=Dpi6NqMEjd0tb@mail.gmail.com>
- <20101110222418.6098a92a.ospite@studenti.unina.it> <AANLkTin+HtdoXO7+ObNCoix70knaL+Fi4725BOWVXuy9@mail.gmail.com>
- <AANLkTim4hzoTg4t-jHFUCrpQwQ9Pj2sbJAH=iuawrK7E@mail.gmail.com>
- <20101111002952.f5873ed4.ospite@studenti.unina.it> <AANLkTi=v9Ev0BDXBTWZs=LcMVGXoxcA7we5bKaR_m+2Z@mail.gmail.com>
-From: Mohamed Ikbel Boulabiar <boulabiar@gmail.com>
-Date: Thu, 11 Nov 2010 01:13:21 +0100
-Message-ID: <AANLkTi=Dcqk0ZFDr4U7Tiv2dZVWM8JZ-6v-JtcTvzSKx@mail.gmail.com>
-Subject: Re: Bounty for the first Open Source driver for Kinect
-To: Markus Rechberger <mrechberger@gmail.com>
-Cc: Antonio Ospite <ospite@studenti.unina.it>,
-	Andy Walls <awalls@md.metrocast.net>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 16 Nov 2010 17:34:54 -0500
+Subject: Re: [RFCv2 PATCH 15/15] cx18: convert to unlocked_ioctl.
+From: Andy Walls <awalls@md.metrocast.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+In-Reply-To: <0819999d64a0e2c9b092c60602d32e2d7ab7ad25.1289944160.git.hverkuil@xs4all.nl>
+References: <cover.1289944159.git.hverkuil@xs4all.nl>
+	 <0819999d64a0e2c9b092c60602d32e2d7ab7ad25.1289944160.git.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 16 Nov 2010 17:35:24 -0500
+Message-ID: <1289946924.9534.20.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Nov 11, 2010 at 12:36 AM, Markus Rechberger
-<mrechberger@gmail.com> wrote:
-> I've seen alot projects failing due not having enough users
-> If it should mainly remain a hacker only project then a kernel module
-> should be fine.
-sorry ?
+On Tue, 2010-11-16 at 22:56 +0100, Hans Verkuil wrote:
+> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+> ---
+>  drivers/media/video/cx18/cx18-streams.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/cx18/cx18-streams.c b/drivers/media/video/cx18/cx18-streams.c
+> index 9045f1e..ab461e2 100644
+> --- a/drivers/media/video/cx18/cx18-streams.c
+> +++ b/drivers/media/video/cx18/cx18-streams.c
+> @@ -41,7 +41,7 @@ static struct v4l2_file_operations cx18_v4l2_enc_fops = {
+>  	.read = cx18_v4l2_read,
+>  	.open = cx18_v4l2_open,
+>  	/* FIXME change to video_ioctl2 if serialization lock can be removed */
+> -	.ioctl = cx18_v4l2_ioctl,
+> +	.unlocked_ioctl = cx18_v4l2_ioctl,
+>  	.release = cx18_v4l2_close,
+>  	.poll = cx18_v4l2_enc_poll,
+>  };
 
-> aside of that you can just debug userspace drivers with gdb, valgrind
-> etc. if issues come up it will only affect your work not the entire
-> system, kernel is seriously something critical.
-So you think that most of actual drivers which are inside the kernel are bad ?
+Hans,
 
-if it is inside the kernel it will be better maintained and fixed.
-External dependencies will break many things and add exceptions.
-You already got an answer for an issue similar to this from Linus
-Torvalds and Andrew Morton
-http://lkml.org/lkml/2007/10/10/244
+Because I haven't done my homework on the ALSA API, could you also add
+snd_cx18_lock()/snd_cx18_unlock() in snd_cx18_pcm_ioctl()?
 
-Most of people want to download a kernel that just has all things
-inside. not search for other dependencies somewhere. If it is inside
-the kernel, many licensing problems will disappear.
-What if I want to develop something based on that userspace GPL
-library, should I search which license should I use (and there are
-many MIT/BSD/LGPL/...)?
+Devin,
 
-i
+Do you know off the top of your head if any other operations in
+cx18-alsa-* may need additional locking?
+
+I am an ALSA API callback idiot. :)
+
+Regards,
+Andy
+
+
+
+
