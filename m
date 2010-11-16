@@ -1,45 +1,121 @@
 Return-path: <mchehab@pedra>
-Received: from hrndva-omtalb.mail.rr.com ([71.74.56.125]:34278 "EHLO
-	hrndva-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752746Ab0KMEDs (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3764 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755052Ab0KPV4H (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Nov 2010 23:03:48 -0500
-Subject: Re: Failed build on randconfig for DVB_DIB modules
-From: Steven Rostedt <rostedt@goodmis.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Patrick Boettcher <pboettcher@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-kbuild <linux-kbuild@vger.kernel.org>,
-	Michal Marek <mmarek@suse.cz>
-In-Reply-To: <1289620466.12418.583.camel@gandalf.stny.rr.com>
-References: <1288066536.18238.78.camel@gandalf.stny.rr.com>
-	 <4CC6BD78.5040200@infradead.org>
-	 <1289620466.12418.583.camel@gandalf.stny.rr.com>
-Content-Type: text/plain; charset="ISO-8859-15"
-Date: Fri, 12 Nov 2010 23:03:45 -0500
-Message-ID: <1289621025.12418.586.camel@gandalf.stny.rr.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 16 Nov 2010 16:56:07 -0500
+Message-Id: <81ed71feea3c7d705d3a687aad156782a5f18e2e.1289944160.git.hverkuil@xs4all.nl>
+In-Reply-To: <cover.1289944159.git.hverkuil@xs4all.nl>
+References: <cover.1289944159.git.hverkuil@xs4all.nl>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Tue, 16 Nov 2010 22:55:49 +0100
+Subject: [RFCv2 PATCH 04/15] tea5764: convert to unlocked_ioctl
+To: linux-media@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, 2010-11-12 at 22:54 -0500, Steven Rostedt wrote:
+Convert from ioctl to unlocked_ioctl using the v4l2 core lock.
 
-> Or we just don't test for define(MODULE). If either CONFIG_DVB_DIB3000MC
-> or CONFIG_DVB_DIB3000MC_MODULE are defined, the code must be there,
-> because, if this code is built as both a module and builtin, only the
-> builtin will be created.
+Also removed the 'exclusive access' limitation. There was no need for it
+and it violates the v4l2 spec as well.
 
-Ah, I just tried it, and I see that the code in that #if statement calls
-back into the dib3000mc module, so now the core kernel has missing
-functions. This is a bit of a nasty web.
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/radio/radio-tea5764.c |   49 ++++++----------------------------
+ 1 files changed, 9 insertions(+), 40 deletions(-)
 
-I guess it would require one of your proposed solutions, or I just
-simply add the dvb configs to my broken-config file and prevent
-randconfig from testing it.
-
--- Steve
-
+diff --git a/drivers/media/radio/radio-tea5764.c b/drivers/media/radio/radio-tea5764.c
+index 789d2ec..0e71d81 100644
+--- a/drivers/media/radio/radio-tea5764.c
++++ b/drivers/media/radio/radio-tea5764.c
+@@ -142,7 +142,6 @@ struct tea5764_device {
+ 	struct video_device		*videodev;
+ 	struct tea5764_regs		regs;
+ 	struct mutex			mutex;
+-	int				users;
+ };
+ 
+ /* I2C code related */
+@@ -458,41 +457,10 @@ static int vidioc_s_audio(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
+-static int tea5764_open(struct file *file)
+-{
+-	/* Currently we support only one device */
+-	struct tea5764_device *radio = video_drvdata(file);
+-
+-	mutex_lock(&radio->mutex);
+-	/* Only exclusive access */
+-	if (radio->users) {
+-		mutex_unlock(&radio->mutex);
+-		return -EBUSY;
+-	}
+-	radio->users++;
+-	mutex_unlock(&radio->mutex);
+-	file->private_data = radio;
+-	return 0;
+-}
+-
+-static int tea5764_close(struct file *file)
+-{
+-	struct tea5764_device *radio = video_drvdata(file);
+-
+-	if (!radio)
+-		return -ENODEV;
+-	mutex_lock(&radio->mutex);
+-	radio->users--;
+-	mutex_unlock(&radio->mutex);
+-	return 0;
+-}
+-
+ /* File system interface */
+ static const struct v4l2_file_operations tea5764_fops = {
+ 	.owner		= THIS_MODULE,
+-	.open           = tea5764_open,
+-	.release        = tea5764_close,
+-	.ioctl		= video_ioctl2,
++	.unlocked_ioctl	= video_ioctl2,
+ };
+ 
+ static const struct v4l2_ioctl_ops tea5764_ioctl_ops = {
+@@ -527,7 +495,7 @@ static int __devinit tea5764_i2c_probe(struct i2c_client *client,
+ 	int ret;
+ 
+ 	PDEBUG("probe");
+-	radio = kmalloc(sizeof(struct tea5764_device), GFP_KERNEL);
++	radio = kzalloc(sizeof(struct tea5764_device), GFP_KERNEL);
+ 	if (!radio)
+ 		return -ENOMEM;
+ 
+@@ -555,12 +523,7 @@ static int __devinit tea5764_i2c_probe(struct i2c_client *client,
+ 
+ 	i2c_set_clientdata(client, radio);
+ 	video_set_drvdata(radio->videodev, radio);
+-
+-	ret = video_register_device(radio->videodev, VFL_TYPE_RADIO, radio_nr);
+-	if (ret < 0) {
+-		PWARN("Could not register video device!");
+-		goto errrel;
+-	}
++	radio->videodev->lock = &radio->mutex;
+ 
+ 	/* initialize and power off the chip */
+ 	tea5764_i2c_read(radio);
+@@ -568,6 +531,12 @@ static int __devinit tea5764_i2c_probe(struct i2c_client *client,
+ 	tea5764_mute(radio, 1);
+ 	tea5764_power_down(radio);
+ 
++	ret = video_register_device(radio->videodev, VFL_TYPE_RADIO, radio_nr);
++	if (ret < 0) {
++		PWARN("Could not register video device!");
++		goto errrel;
++	}
++
+ 	PINFO("registered.");
+ 	return 0;
+ errrel:
+-- 
+1.7.0.4
 
