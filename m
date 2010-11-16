@@ -1,114 +1,56 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp.nokia.com ([147.243.128.26]:53548 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752502Ab0KSKRG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 05:17:06 -0500
-Date: Fri, 19 Nov 2010 12:18:03 +0200
-From: David Cohen <david.cohen@nokia.com>
-To: ext Sergio Aguirre <saaguirre@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [omap3isp][PATCH v2 7/9] omap3isp: Cleanup isp_power_settings
-Message-ID: <20101119101802.GB13490@esdhcp04381.research.nokia.com>
-References: <1289831401-593-1-git-send-email-saaguirre@ti.com>
- <1289831401-593-8-git-send-email-saaguirre@ti.com>
+Return-path: <mchehab@pedra>
+Received: from moutng.kundenserver.de ([212.227.126.186]:57314 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752929Ab0KPTWa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Nov 2010 14:22:30 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC PATCH 0/8] V4L BKL removal: first round
+Date: Tue, 16 Nov 2010 20:23:17 +0100
+Cc: "Mauro Carvalho Chehab" <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <cover.1289740431.git.hverkuil@xs4all.nl> <201011161749.05844.hverkuil@xs4all.nl> <201011161938.11476.hverkuil@xs4all.nl>
+In-Reply-To: <201011161938.11476.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1289831401-593-8-git-send-email-saaguirre@ti.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201011162023.17671.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Sergio,
+On Tuesday 16 November 2010, Hans Verkuil wrote:
+> I consider class 3 unacceptable for commonly seen devices. I did a quick scan
+> of the v4l drivers and the only common driver that falls in that class is uvc.
 
-Thanks for the patch.
+If uvc is the only important one, that should be easy enough to fix by adding
+a per-device mutex around uvc_v4l2_do_ioctl() or uvc_v4l2_ioctl().
 
-On Mon, Nov 15, 2010 at 03:29:59PM +0100, ext Sergio Aguirre wrote:
-> 1. Get rid of CSI2 / CCP2 power settings, as they are controlled
->    in the receivers code anyways.
-
-CCP2 is not correctly handling this. It's setting SMART STANDBY mode one
-when reading from memory. You should fix it before remove such code from
-ISP core driver.
-
-> 2. Avoid code duplication.
-
-Agree. But only after considering the comment above.
-
-Regards,
-
-David
-
+> There is one other option, although it is very dirty: don't take the lock if
+> the ioctl command is VIDIOC_DQBUF. It works and reliably as well for uvc and
+> videobuf (I did a quick code analysis). But I don't know if it works everywhere.
 > 
-> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> ---
->  drivers/media/video/isp/isp.c |   49 ++++++-----------------------------------
->  1 files changed, 7 insertions(+), 42 deletions(-)
+> I would like to get the opinion of others before I implement such a check. But
+> frankly, I think this may be our best bet.
 > 
-> diff --git a/drivers/media/video/isp/isp.c b/drivers/media/video/isp/isp.c
-> index de9352b..30bdc48 100644
-> --- a/drivers/media/video/isp/isp.c
-> +++ b/drivers/media/video/isp/isp.c
-> @@ -254,48 +254,13 @@ EXPORT_SYMBOL(isp_set_xclk);
->   */
->  static void isp_power_settings(struct isp_device *isp, int idle)
->  {
-> -	if (idle) {
-> -		isp_reg_writel(isp,
-> -			       (ISP_SYSCONFIG_MIDLEMODE_SMARTSTANDBY <<
-> -				ISP_SYSCONFIG_MIDLEMODE_SHIFT),
-> -			       OMAP3_ISP_IOMEM_MAIN, ISP_SYSCONFIG);
-> -		if (omap_rev() == OMAP3430_REV_ES1_0) {
-> -			isp_reg_writel(isp, ISPCSI1_AUTOIDLE |
-> -				       (ISPCSI1_MIDLEMODE_SMARTSTANDBY <<
-> -					ISPCSI1_MIDLEMODE_SHIFT),
-> -				       OMAP3_ISP_IOMEM_CSI2A_REGS1,
-> -				       ISPCSI2_SYSCONFIG);
-> -			isp_reg_writel(isp, ISPCSI1_AUTOIDLE |
-> -				       (ISPCSI1_MIDLEMODE_SMARTSTANDBY <<
-> -					ISPCSI1_MIDLEMODE_SHIFT),
-> -				       OMAP3_ISP_IOMEM_CCP2,
-> -				       ISPCCP2_SYSCONFIG);
-> -		}
-> -		isp_reg_writel(isp, ISPCTRL_SBL_AUTOIDLE, OMAP3_ISP_IOMEM_MAIN,
-> -			       ISP_CTRL);
-> -
-> -	} else {
-> -		isp_reg_writel(isp,
-> -			       (ISP_SYSCONFIG_MIDLEMODE_FORCESTANDBY <<
-> -				ISP_SYSCONFIG_MIDLEMODE_SHIFT),
-> -			       OMAP3_ISP_IOMEM_MAIN, ISP_SYSCONFIG);
-> -		if (omap_rev() == OMAP3430_REV_ES1_0) {
-> -			isp_reg_writel(isp, ISPCSI1_AUTOIDLE |
-> -				       (ISPCSI1_MIDLEMODE_FORCESTANDBY <<
-> -					ISPCSI1_MIDLEMODE_SHIFT),
-> -				       OMAP3_ISP_IOMEM_CSI2A_REGS1,
-> -				       ISPCSI2_SYSCONFIG);
-> -
-> -			isp_reg_writel(isp, ISPCSI1_AUTOIDLE |
-> -				       (ISPCSI1_MIDLEMODE_FORCESTANDBY <<
-> -					ISPCSI1_MIDLEMODE_SHIFT),
-> -				       OMAP3_ISP_IOMEM_CCP2,
-> -				       ISPCCP2_SYSCONFIG);
-> -		}
-> -
-> -		isp_reg_writel(isp, ISPCTRL_SBL_AUTOIDLE, OMAP3_ISP_IOMEM_MAIN,
-> -			       ISP_CTRL);
-> -	}
-> +	isp_reg_writel(isp,
-> +		       ((idle ? ISP_SYSCONFIG_MIDLEMODE_SMARTSTANDBY :
-> +				ISP_SYSCONFIG_MIDLEMODE_FORCESTANDBY) <<
-> +			ISP_SYSCONFIG_MIDLEMODE_SHIFT),
-> +		       OMAP3_ISP_IOMEM_MAIN, ISP_SYSCONFIG);
-> +	isp_reg_writel(isp, ISPCTRL_SBL_AUTOIDLE, OMAP3_ISP_IOMEM_MAIN,
-> +		       ISP_CTRL);
->  }
->  
->  /*
-> -- 
-> 1.7.0.4
+> So the patch below would look like this if I add the check:
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -               mutex_lock(&v4l2_ioctl_mutex);
+> +               if (cmd != VIDIOC_DQBUF)
+> +                       mutex_lock(m);
+>                 if (video_is_registered(vdev))
+>                         ret = vdev->fops->ioctl(filp, cmd, arg);
+> -               mutex_unlock(&v4l2_ioctl_mutex);
+> +               if (cmd != VIDIOC_DQBUF)
+> +                       mutex_unlock(m);
+> 
+
+I was thinking of this as well, but didn't bring it up because I considered
+it too hacky.
+
+The patch you posted looks good, thanks for bringing up the problem with
+my patch and the solution!
+
+Acked-by: Arnd Bergmann <arnd@arndb.de>
