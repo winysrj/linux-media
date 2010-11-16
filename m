@@ -1,70 +1,82 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:35518 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750858Ab0KDSeI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Nov 2010 14:34:08 -0400
-MIME-Version: 1.0
-In-Reply-To: <4CD1E232.30406@redhat.com>
-References: <20101009224041.GA901@sepie.suse.cz>
-	<4CD1E232.30406@redhat.com>
-Date: Thu, 4 Nov 2010 14:34:07 -0400
-Message-ID: <AANLkTiksbQQsXDydmohz6TiR4u-QNSJkfZHnkLOKizF7@mail.gmail.com>
-Subject: Re: REGRESSION: Re: [GIT] kconfig rc fixes
-From: Arnaud Lacombe <lacombar@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Michal Marek <mmarek@suse.cz>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	kyle@redhat.com, linux-kbuild@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:4215 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756274Ab0KPVzg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Nov 2010 16:55:36 -0500
+Message-Id: <cover.1289944159.git.hverkuil@xs4all.nl>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Tue, 16 Nov 2010 22:55:25 +0100
+Subject: [RFCv2 PATCH 00/15] BKL removal
+To: linux-media@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi,
+This is my second patch series for the BKL removal project.
 
-On Wed, Nov 3, 2010 at 6:29 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Basically, we have things there like:
->
-> config VIDEO_HELPER_CHIPS_AUTO
->        bool "Autoselect pertinent encoders/decoders and other helper chips"
->
-> config VIDEO_IVTV
->        select VIDEO_WM8739 if VIDEO_HELPER_CHIPS_AUTO
->
-> menu "Encoders/decoders and other helper chips"
->        depends on !VIDEO_HELPER_CHIPS_AUTO
->
-> config VIDEO_WM8739
->        tristate "Wolfson Microelectronics WM8739 stereo audio ADC"
->
-Where do you get that code from ? this particular one is not in 2.6.37-rc1:
+While this series is against the v2.6.38 staging tree I think it would be
+good to target 2.6.37 instead. A lot of files are changed, but the changes
+are all trivial. And this will hopefully take care of most of the BKL
+removal problems, except for uvc.
 
-% git describe
-v2.6.37-rc1-27-gff8b16d
+This patch also contains the improved core locking patch which doesn't lock
+the VIDIOC_DQBUF ioctl.
 
-% head -20 drivers/media/video/ivtv/Kconfig
-config VIDEO_IVTV
-        tristate "Conexant cx23416/cx23415 MPEG encoder/decoder support"
-        depends on VIDEO_V4L2 && PCI && I2C
-        depends on INPUT   # due to VIDEO_IR
-        select I2C_ALGOBIT
-        depends on VIDEO_IR
-        select VIDEO_TUNER
-        select VIDEO_TVEEPROM
-        select VIDEO_CX2341X
-        select VIDEO_CX25840
-        select VIDEO_MSP3400
-        select VIDEO_SAA711X
-        select VIDEO_SAA717X
-        select VIDEO_SAA7127
-        select VIDEO_CS53L32A
-        select VIDEO_M52790
-        select VIDEO_WM8775
-        select VIDEO_WM8739
-        select VIDEO_VP27SMPX
-        select VIDEO_UPD64031A
+Regards,
 
- - Arnaud
+	Hans
+
+Hans Verkuil (15):
+  v4l2-dev: use mutex_lock_interruptible instead of plain mutex_lock
+  BKL: trivial BKL removal from V4L2 radio drivers
+  cadet: use unlocked_ioctl
+  tea5764: convert to unlocked_ioctl
+  si4713: convert to unlocked_ioctl
+  typhoon: convert to unlocked_ioctl.
+  dsbr100: convert to unlocked_ioctl.
+  BKL: trivial ioctl -> unlocked_ioctl video driver conversions
+  sn9c102: convert to unlocked_ioctl.
+  et61x251_core: trivial conversion to unlocked_ioctl.
+  cafe_ccic: replace ioctl by unlocked_ioctl.
+  sh_vou: convert to unlocked_ioctl.
+  radio-timb: convert to unlocked_ioctl.
+  V4L: improve the BKL replacement heuristic
+  cx18: convert to unlocked_ioctl.
+
+ drivers/media/radio/dsbr100.c                |    2 +-
+ drivers/media/radio/radio-aimslab.c          |   16 +++---
+ drivers/media/radio/radio-aztech.c           |    6 +-
+ drivers/media/radio/radio-cadet.c            |   12 +++-
+ drivers/media/radio/radio-gemtek-pci.c       |    6 +-
+ drivers/media/radio/radio-gemtek.c           |   14 ++--
+ drivers/media/radio/radio-maestro.c          |   14 ++---
+ drivers/media/radio/radio-maxiradio.c        |    2 +-
+ drivers/media/radio/radio-miropcm20.c        |    6 +-
+ drivers/media/radio/radio-rtrack2.c          |   10 ++--
+ drivers/media/radio/radio-sf16fmi.c          |    7 +-
+ drivers/media/radio/radio-sf16fmr2.c         |   11 ++--
+ drivers/media/radio/radio-si4713.c           |    3 +-
+ drivers/media/radio/radio-tea5764.c          |   49 +++-------------
+ drivers/media/radio/radio-terratec.c         |    8 +-
+ drivers/media/radio/radio-timb.c             |    5 +-
+ drivers/media/radio/radio-trust.c            |   18 +++---
+ drivers/media/radio/radio-typhoon.c          |   16 +++---
+ drivers/media/radio/radio-zoltrix.c          |   30 +++++-----
+ drivers/media/video/arv.c                    |    2 +-
+ drivers/media/video/bw-qcam.c                |    2 +-
+ drivers/media/video/c-qcam.c                 |    2 +-
+ drivers/media/video/cafe_ccic.c              |    2 +-
+ drivers/media/video/cx18/cx18-streams.c      |    2 +-
+ drivers/media/video/et61x251/et61x251_core.c |    2 +-
+ drivers/media/video/meye.c                   |   14 ++--
+ drivers/media/video/pms.c                    |    2 +-
+ drivers/media/video/sh_vou.c                 |   13 +++--
+ drivers/media/video/sn9c102/sn9c102_core.c   |    2 +-
+ drivers/media/video/v4l2-dev.c               |   81 +++++++++++++++++++++-----
+ drivers/media/video/v4l2-device.c            |    1 +
+ drivers/media/video/w9966.c                  |    2 +-
+ include/media/v4l2-dev.h                     |    2 +-
+ include/media/v4l2-device.h                  |    2 +
+ 34 files changed, 201 insertions(+), 165 deletions(-)
+
