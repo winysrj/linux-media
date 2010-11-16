@@ -1,49 +1,35 @@
-Return-path: <mchehab@gaivota>
-Received: from mail.fc.unesp.br ([200.145.159.3]:53867 "EHLO mail.fc.unesp.br"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751980Ab0KBI6N convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Nov 2010 04:58:13 -0400
-Message-ID: <20101102060651.23291z3fz5vcsm1n@webmail.fc.unesp.br>
-Date: Tue, 02 Nov 2010 06:06:51 -0200
-From: "Webmail Help Desk" <jomilson@fc.unesp.br>
-Reply-to: web_admin10@mail2consultant.com
-To: undisclosed-recipients:;
-Subject: Urgent...(Webmail upgrade notice)
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset=ISO-8859-1;
-	DelSp="Yes";
-	format="flowed"
-Content-Disposition: inline
-Content-Transfer-Encoding: 8BIT
+Return-path: <mchehab@pedra>
+Received: from relay12.uol.com.br ([200.147.32.248]:49497 "EHLO
+	relay12.uol.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752308Ab0KPAGo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Nov 2010 19:06:44 -0500
+Received: from relay6.uol.com.br (shark3.srv.intranet [172.26.5.154])
+	by a2-sete3.uol.com.br (Postfix) with ESMTP id 2EB366800216A
+	for <linux-media@vger.kernel.org>; Mon, 15 Nov 2010 22:06:41 -0200 (BRST)
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by shark3.uol.com.br (Postfix) with ESMTP id 9143B1B1800FC
+	for <linux-media@vger.kernel.org>; Mon, 15 Nov 2010 22:05:05 -0200 (BRST)
+Received: from shark3.adm.intranet (localhost.localdomain [127.0.0.1])
+	by shark3.uol.com.br (Postfix) with ESMTP id 58A041B182EA0
+	for <linux-media@vger.kernel.org>; Mon, 15 Nov 2010 22:04:47 -0200 (BRST)
+Received: from localhost.localdomain (unknown [172.26.14.28])
+	by shark3.adm.intranet (Postfix) with ESMTP id 811FE115E506
+	for <linux-media@vger.kernel.org>; Mon, 15 Nov 2010 22:04:46 -0200 (BRST)
+Date: Mon, 15 Nov 2010 22:04:46 -0200
+From: Antonio Moraes <afmoraes@uol.com.br>
+To: linux-media@vger.kernel.org
+Message-Id: <4ce1ca9e62066_2e9cad4c67816d@weasel2.tmail>
+Subject: Pixelview PlayTV USB Hybrid Composite with video without sound
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
+Hi,
 
+  I'm using Linux 2.6.36 + last mchehab/sbtvd from git.linuxtv.org
+It's working with SBTVD (audio and video).
 
-Dear account user,
-
-We are updating our database, and e-mail account center. We are  
-deleting all unused webmail account and create more space for new  
-accounts. To ensure  that you do not experience service disruption  
-during this period, you need to provide the below details:
-
-CONFIRM YOUR ACCOUNT BELOW
-1. E-mail:.................................
-2. Username :....................................
-2. Password :...................................
-3. Confirm password :...............................
-
-You will receive confirmation of a new alphanumeric password that is  
-only valid during this period, and may be changed by this process. We  
-regret any inconvenience this may cost you.
-
-Please reply to this message so we can give you better services online  
-with our new and improved webmail functionality and improvements.
-
-Webmail Upgrade Team © 2010
-Warning Code: ID67565434.
-
-----------------------------------------------------------------
-This message was sent using IMP, the Internet Messaging Program.
-
+Thanks,
+Antonio Moraes
