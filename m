@@ -1,66 +1,92 @@
 Return-path: <mchehab@pedra>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:41501 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753745Ab0KJJa6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Nov 2010 04:30:58 -0500
+Received: from mx1.redhat.com ([209.132.183.28]:15224 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756264Ab0KPNGy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Nov 2010 08:06:54 -0500
+Message-ID: <4CE281E8.3040705@redhat.com>
+Date: Tue, 16 Nov 2010 11:06:48 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Date: Wed, 10 Nov 2010 10:30:57 +0100
-From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: <linux-media@vger.kernel.org>, <jarod@wilsonet.com>
-Subject: Re: [PATCH 6/7] ir-core: make struct =?UTF-8?Q?rc=5Fdev=20the=20primary?=
- =?UTF-8?Q?=20interface?=
-In-Reply-To: <4CDA201C.7020009@infradead.org>
-References: <20101029190745.11982.75723.stgit@localhost.localdomain> <20101029190823.11982.88750.stgit@localhost.localdomain> <4CDA201C.7020009@infradead.org>
-Message-ID: <46602391f22d6fcce432680599c3355e@hardeman.nu>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 0/8] V4L BKL removal: first round
+References: <cover.1289740431.git.hverkuil@xs4all.nl>    <201011142253.29768.arnd@arndb.de>    <201011142348.51859.hverkuil@xs4all.nl>    <201011151017.41453.arnd@arndb.de>    <342eb735192f26a4a84488cad7f01068.squirrel@webmail.xs4all.nl>    <4CE276C9.3000802@redhat.com> <9bb4a78df49dbe30ca6382b6b5408129.squirrel@webmail.xs4all.nl>
+In-Reply-To: <9bb4a78df49dbe30ca6382b6b5408129.squirrel@webmail.xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 10 Nov 2010 02:31:24 -0200, Mauro Carvalho Chehab
-<mchehab@infradead.org> wrote:
-> Em 29-10-2010 17:08, David Härdeman escreveu:
->> This patch merges the ir_input_dev and ir_dev_props structs into a
-single
->> struct called rc_dev. The drivers and various functions in rc-core used
->> by the drivers are also changed to use rc_dev as the primary interface
->> when dealing with rc-core.
->> 
->> This means that the input_dev is abstracted away from the drivers which
->> is necessary if we ever want to support multiple input devs per rc
->> device.
->> 
->> The new API is similar to what the input subsystem uses, i.e:
->> rc_device_alloc()
->> rc_device_free()
->> rc_device_register()
->> rc_device_unregister()
->> 
+Em 16-11-2010 10:35, Hans Verkuil escreveu:
 > 
+>> Em 15-11-2010 07:49, Hans Verkuil escreveu:
+>>>
+>>>> On Sunday 14 November 2010 23:48:51 Hans Verkuil wrote:
+>>>>> On Sunday, November 14, 2010 22:53:29 Arnd Bergmann wrote:
+>>>>>> On Sunday 14 November 2010, Hans Verkuil wrote:
+>>>>>>> This patch series converts 24 v4l drivers to unlocked_ioctl. These
+>>>>> are low
+>>>>>>> hanging fruit but you have to start somewhere :-)
+>>>>>>>
+>>>>>>> The first patch replaces mutex_lock in the V4L2 core by
+>>>>> mutex_lock_interruptible
+>>>>>>> for most fops.
+>>>>>>
+>>>>>> The patches all look good as far as I can tell, but I suppose the
+>>>>> title is
+>>>>>> obsolete now that the BKL has been replaced with a v4l-wide mutex,
+>>>>> which
+>>>>>> is what you are removing in the series.
+>>>>>
+>>>>> I guess I have to rename it, even though strictly speaking the branch
+>>>>> I'm
+>>>>> working in doesn't have your patch merged yet.
+>>>>>
+>>>>> BTW, replacing the BKL with a static mutex is rather scary: the BKL
+>>>>> gives up
+>>>>> the lock whenever you sleep, the mutex doesn't. Since sleeping is very
+>>>>> common
+>>>>> in V4L (calling VIDIOC_DQBUF will typically sleep while waiting for a
+>>>>> new frame
+>>>>> to arrive), this will make it impossible for another process to access
+>>>>> any
+>>>>> v4l2 device node while the ioctl is sleeping.
+>>>>>
+>>>>> I am not sure whether that is what you intended. Or am I missing
+>>>>> something?
+>>>>
+>>>> I was aware that something like this could happen, but I apparently
+>>>> misjudged how big the impact is. The general pattern for ioctls is that
+>>>> those that get called frequently do not sleep, so it can almost always
+>>>> be
+>>>> called with a mutex held.
+>>>
+>>> True in general, but most definitely not true for V4L. The all important
+>>> VIDIOC_DQBUF ioctl will almost always sleep.
+>>>
+>>> Mauro, I think this patch will have to be reverted and we just have to
+>>> do
+>>> the hard work ourselves.
+>>
+>> The VIDIOC_QBUF/VIDIOC_DQBUF ioctls are called after having the V4L device
+>> ready
+>> for stream. During the qbuf/dqbuf loop, the only other ioctls that may
+>> appear are
+>> the control change ioctl's, to adjust things like bright. I doubt that his
+>> will
+>> cause a really serious trouble.
 > 
-> David,
-> 
->> +	struct rc_dev *rdev;
-> ...
->> +	struct rc_dev			*dev;		/* pointer to the parent rc_dev */
-> 
->> +	struct rc_dev          *rc;
-> 
-> 
-> A quick comment: try to call this struct with the same name on all
-places,
-> avoiding to call it as just "dev". It makes harder to understand the
-code,
-> especially on complex devices that have several types of dev's. The
-better
-> is to always call it as "rc_dev".
+> Yes, it does. Anyone who is using multiple capture/output devices at the
+> same time will be affected.
 
-Fair enough. I can fix that in a separate patch, or in a respin of my
-original patch. But first I need to know what I should base a new patch
-on...I'm confused by now
+One correction to your comment:
+	"Anyone that uses multiple capture/output devices that were not converted to unlocked ioctl will be affected."
+This means that devices with multiple entries need to be fixed first.
 
+> For example, anyone who uses the davinci
+> dm6467 driver for both input and output. And yes, that's what we use at
+> work. And ship to thousands of customers. Or think about surveillance
+> applications where you are capturing from many streams simultaneously.
 
--- 
-David Härdeman
+Cheers,
+Mauro
