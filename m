@@ -1,59 +1,89 @@
-Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:50675 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750905Ab0KBM31 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Nov 2010 08:29:27 -0400
-Message-ID: <4CD00423.4060309@redhat.com>
-Date: Tue, 02 Nov 2010 08:29:23 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Return-path: <mchehab@pedra>
+Received: from moutng.kundenserver.de ([212.227.17.8]:58424 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758501Ab0KPOVo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Nov 2010 09:21:44 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+Subject: Re: [RFC PATCH 0/8] V4L BKL removal: first round
+Date: Tue, 16 Nov 2010 15:22:19 +0100
+Cc: "Mauro Carvalho Chehab" <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+References: <cover.1289740431.git.hverkuil@xs4all.nl> <4CE281E8.3040705@redhat.com> <7d7108eaf1260587bbe2cacf8f5d2db9.squirrel@webmail.xs4all.nl>
+In-Reply-To: <7d7108eaf1260587bbe2cacf8f5d2db9.squirrel@webmail.xs4all.nl>
 MIME-Version: 1.0
-To: chris2553@googlemail.com
-CC: linux-media@vger.kernel.org
-Subject: Re: Warnings from latest -git
-References: <201010300917.47372.chris2553@googlemail.com>
-In-Reply-To: <201010300917.47372.chris2553@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201011161522.19758.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Em 30-10-2010 04:17, Chris Clayton escreveu:
-> Hi,
-> 
-> Please cc me on any reply as I'm not subscribed.
-> 
-> Building v2.6.36-9452-g2d10d87 pulled this morning, I get:
-> 
-> warning: (DVB_USB_DIB0700 && MEDIA_SUPPORT && DVB_CAPTURE_DRIVERS && DVB_CORE && 
-> DVB_USB && !DVB_FE_CUSTOMISE) selects DVB_DIB8000 which has unmet direct 
-> dependencies (MEDIA_SUPPORT && DVB_CAPTURE_DRIVERS && DVB_FE_CUSTOMISE && 
-> DVB_CORE && I2C)
+On Tuesday 16 November 2010, Hans Verkuil wrote:
+> No, it will also affect e.g. two bttv cards that you capture from in
+> parallel. Or two webcams, or...
 
-It certainly requires further investigation. From your config file, we have,
-for dib0700:
+Would it be safe to turn the global mutex into a per-driver or per-device
+mutex? That would largely mitigate the impact as far as I can tell.
 
-CONFIG_DVB_USB_DIB0700=m
-CONFIG_MEDIA_SUPPORT=m
-CONFIG_DVB_CAPTURE_DRIVERS=y
-CONFIG_DVB_CORE=m
-CONFIG_DVB_USB=m
-# CONFIG_DVB_FE_CUSTOMISE is not set
+> We can't just ditch the BKL yet for 2.6.37 IMHO. Perhaps for 2.6.38 if we
+> all work really hard to convert everything.
 
-And, for dib8000:
+Linus was pretty clear in that he wanted to make the default for the BKL
+disabled for 2.6.37. That may of course change if there are significant
+problems with this, but as long as there is an easier way, we could do
+that instead.
 
-CONFIG_MEDIA_SUPPORT=m
-CONFIG_DVB_CAPTURE_DRIVERS=y
-# CONFIG_DVB_FE_CUSTOMISE is not set
-CONFIG_DVB_CORE=m
-CONFIG_I2C=y
+I have not tested the patch below, but maybe that would solve the
+immediate problem without reverting v4l2-dev back to use the BKL.
 
-Both dib0700 and dib8000 were marked as m:
+It would not work if we have drivers that need to serialize access
+to multiple v4l2 devices in their ioctl functions because they access
+global data, which is unlikely but possible.
 
-CONFIG_DVB_DIB8000=m
-CONFIG_DVB_USB_DIB0700=m
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-So, in this specific example, it actually worked, but we need to find a fix
-for this bug.
-
-Cheers,
-Mauro
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index 03f7f46..5873d12 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -246,12 +246,11 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 			mutex_unlock(vdev->lock);
+ 	} else if (vdev->fops->ioctl) {
+ 		/* TODO: convert all drivers to unlocked_ioctl */
+-		static DEFINE_MUTEX(v4l2_ioctl_mutex);
+-
+-		mutex_lock(&v4l2_ioctl_mutex);
+-		if (video_is_registered(vdev))
++		if (video_is_registered(vdev)) {
++			mutex_lock(&vdev->ioctl_lock);
+ 			ret = vdev->fops->ioctl(filp, cmd, arg);
+-		mutex_unlock(&v4l2_ioctl_mutex);
++			mutex_unlock(&vdev->ioctl_lock);
++		}
+ 	} else
+ 		ret = -ENOTTY;
+ 
+@@ -507,6 +506,7 @@ static int __video_register_device(struct video_device *vdev, int type, int nr,
+ #endif
+ 	vdev->minor = i + minor_offset;
+ 	vdev->num = nr;
++	mutex_init(&vdev->ioctl_lock);
+ 	devnode_set(vdev);
+ 
+ 	/* Should not happen since we thought this minor was free */
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 15802a0..e8a8485 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -97,6 +97,9 @@ struct video_device
+ 
+ 	/* serialization lock */
+ 	struct mutex *lock;
++
++	/* used for the legacy locked ioctl */
++	struct mutex ioctl_lock;
+ };
+ 
+ /* dev to video-device */
