@@ -1,50 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:60077 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753242Ab0KNUsd (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2813 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755170Ab0KPVmf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Nov 2010 15:48:33 -0500
-Received: by wwb29 with SMTP id 29so698557wwb.1
-        for <linux-media@vger.kernel.org>; Sun, 14 Nov 2010 12:48:32 -0800 (PST)
+	Tue, 16 Nov 2010 16:42:35 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: David Ellingsworth <david@identd.dyndns.org>
+Subject: Re: [RFC PATCH 0/8] V4L BKL removal: first round
+Date: Tue, 16 Nov 2010 22:42:02 +0100
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <cover.1289740431.git.hverkuil@xs4all.nl> <201011162210.18000.hverkuil@xs4all.nl> <AANLkTikXkEZELQSEa6eQLobK7gpDe=_7+AawuxT3tjd5@mail.gmail.com>
+In-Reply-To: <AANLkTikXkEZELQSEa6eQLobK7gpDe=_7+AawuxT3tjd5@mail.gmail.com>
 MIME-Version: 1.0
-Date: Mon, 15 Nov 2010 02:18:31 +0530
-Message-ID: <AANLkTi=ptdBfOm1qaj5EvYfc4ipzdS4PTVsBpW03vdNp@mail.gmail.com>
-Subject: hg pull http://202.88.242.108:8000/hg/var/www/hg/v4l-dvb/
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201011162242.02446.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Mauro,
+On Tuesday, November 16, 2010 22:32:57 David Ellingsworth wrote:
+> Hans,
+> 
+> I've had some patches pending for a while now that affect the dsbr100
+> driver. The patches can be seen here:
+> http://desource.dyndns.org/~atog/gitweb/?p=linux-media.git in the
+> dsbr100 branch. The first patch in the series fixes locking issues
+> throughout the driver and converts it to use the unlocked ioctl. The
+> series is a bit old, so it doesn't make use of the v4l2 core assisted
+> locking; but that is trivial to implement after this patch.
 
-Please pull from http://202.88.242.108:8000/hg/var/www/hg/v4l-dvb/
+Would it be a problem for you if for 2.6.37 I just replace .ioctl by
+.unlocked_ioctl? And do the full conversion for 2.6.38? That way the
+2.6.37 patches remain small.
 
-for the following changes.
+Regards.
 
+	Hans
 
-changeset 15168:baa4e8008db5 Mantis, hopper: use MODULE_DEVICE_TABLE
-http://202.88.242.108:8000/hg/var/www/hg/v4l-dvb/rev/baa4e8008db5
-
-changeset 15169:f04605948fdc Mantis: append tasklet maintenance for
-DVB stream delivery
-http://202.88.242.108:8000/hg/var/www/hg/v4l-dvb/rev/f04605948fdc
-
-changeset 15170:ee7a63d70f94 Mantis: use dvb_attach to avoid double
-dereferencing on module removal
-http://202.88.242.108:8000/hg/var/www/hg/v4l-dvb/rev/ee7a63d70f94
-
-changeset 15171:3a2ece3bf184 Mantis: Rename gpio_set_bits to
-mantis_gpio_set_bits
-http://202.88.242.108:8000/hg/var/www/hg/v4l-dvb/rev/3a2ece3bf184
-
-changeset 15172:56c20de4f697 stb6100: Improve tuner performance
-http://202.88.242.108:8000/hg/var/www/hg/v4l-dvb/rev/56c20de4f697
-
-changeset 15173:5cc010e3a803 stb0899: fix diseqc messages getting lost
-http://202.88.242.108:8000/hg/var/www/hg/v4l-dvb/rev/5cc010e3a803
-
-
-Regards,
-Manu
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
