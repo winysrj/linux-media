@@ -1,31 +1,42 @@
 Return-path: <mchehab@pedra>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38950 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755816Ab0KJNYH convert rfc822-to-8bit (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:47407 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932475Ab0KPJhk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Nov 2010 08:24:07 -0500
-From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-To: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>
-CC: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Date: Wed, 10 Nov 2010 18:53:40 +0530
-Subject: mediabus enums
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A7C8C@dbde02.ent.ti.com>
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A7C79@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Tue, 16 Nov 2010 04:37:40 -0500
+Received: by fxm6 with SMTP id 6so287835fxm.19
+        for <linux-media@vger.kernel.org>; Tue, 16 Nov 2010 01:37:39 -0800 (PST)
+Date: Tue, 16 Nov 2010 10:37:31 +0100
+From: Davor Emard <davoremard@gmail.com>
+To: Okkel Klaver <vbroek@iae.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: af9015 and nxp tda182128 support
+Message-ID: <20101116093731.GA21367@lipa.lan>
+References: <4CE16387.3040103@iae.nl>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4CE16387.3040103@iae.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello Guennadi,
-   Your media-bus enumerations capture the formats quite well. I needed the following for support on Davinci SOCs and liked to check with you if these are covered in some format in the list. 
-1. Parallel RGB 666 (18 data lines+ 5 sync lines)
-2. YUYV16 (16 lines) (16 data lines + 4 or 5 sync lines)
+On Mon, Nov 15, 2010 at 05:44:55PM +0100, Okkel Klaver wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+>  
+> Hello everybody,
+> 
+> 
+> I own a brandless hdtv usb dvb-t stick.
+> 
+> lsusb identifies it as:
+> Bus 001 Device 005: ID 15a4:9016 Afatech Technologies, Inc. AF9015 DVB-T
+> USB2.0 stick
 
+few days ago I submeitted
+[PATCH] terratec cinergy t-stick RC (with TDA18218)
+that applies to latest normal (not new) v4l tree
+Just add your usb id as terratec cinergy t-stick RC,
+make install and try it. it might work
 
-Thanks and Regards,
--Manju
+best regards, Emard
