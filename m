@@ -1,40 +1,79 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:60137 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932959Ab0KQBwD (ORCPT
+Received: from hqemgate04.nvidia.com ([216.228.121.35]:6771 "EHLO
+	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751444Ab0KPU1c (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Nov 2010 20:52:03 -0500
-Message-ID: <4CE33527.8090800@infradead.org>
-Date: Tue, 16 Nov 2010 23:51:35 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Jarod Wilson <jarod@redhat.com>
-CC: Nicolas Kaiser <nikai@nikai.net>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] drivers/media: nuvoton: always true expression
-References: <20101116211953.238012db@absol.kitzblitz> <20101116215408.GA17140@redhat.com>
-In-Reply-To: <20101116215408.GA17140@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Tue, 16 Nov 2010 15:27:32 -0500
+From: achew@nvidia.com
+To: zhangtianfei@leadcoretech.com, hverkuil@xs4all.nl, pawel@osciak.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Andrew Chew <achew@nvidia.com>
+Subject: [PATCH 1/1] videobuf: Initialize lists in videobuf_buffer.
+Date: Tue, 16 Nov 2010 12:24:43 -0800
+Message-Id: <1289939083-27209-1-git-send-email-achew@nvidia.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 16-11-2010 19:54, Jarod Wilson escreveu:
-> On Tue, Nov 16, 2010 at 09:19:53PM +0100, Nicolas Kaiser wrote:
->> I noticed that the second part of this conditional is always true.
->> Would the intention be to strictly check on both chip_major and
->> chip_minor?
->>
->> Signed-off-by: Nicolas Kaiser <nikai@nikai.net>
-> 
-> Hrm, yeah, looks like I screwed that one up. You're correct, the intention
-> was to make sure we have a matching chip id high and one or the other of
-> the chip id low values.
-> 
-> Acked-by: Jarod Wilson <jarod@redhat.com>
-> 
-I wander if it wouldn't be good to print something if the probe fails due to
-the wrong chip ID. It may help if someone complain about a different 
-revision.
+From: Andrew Chew <achew@nvidia.com>
 
-Mauro.
+There are two struct list_head's in struct videobuf_buffer.
+Prior to this fix, all we did for initialization of struct videobuf_buffer
+was to zero out its memory.  This does not properly initialize this struct's
+two list_head members.
+
+This patch immediately calls INIT_LIST_HEAD on both lists after the kzalloc,
+so that the two lists are initialized properly.
+
+Signed-off-by: Andrew Chew <achew@nvidia.com>
+---
+I thought I'd submit a patch for this anyway.  Without this, the existing
+camera host drivers will spew an ugly warning on every videobuf allocation,
+which gets annoying really fast.
+
+ drivers/media/video/videobuf-dma-contig.c |    2 ++
+ drivers/media/video/videobuf-dma-sg.c     |    2 ++
+ drivers/media/video/videobuf-vmalloc.c    |    2 ++
+ 3 files changed, 6 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/video/videobuf-dma-contig.c b/drivers/media/video/videobuf-dma-contig.c
+index c969111..f7e0f86 100644
+--- a/drivers/media/video/videobuf-dma-contig.c
++++ b/drivers/media/video/videobuf-dma-contig.c
+@@ -193,6 +193,8 @@ static struct videobuf_buffer *__videobuf_alloc_vb(size_t size)
+ 	if (vb) {
+ 		mem = vb->priv = ((char *)vb) + size;
+ 		mem->magic = MAGIC_DC_MEM;
++		INIT_LIST_HEAD(&vb->stream);
++		INIT_LIST_HEAD(&vb->queue);
+ 	}
+ 
+ 	return vb;
+diff --git a/drivers/media/video/videobuf-dma-sg.c b/drivers/media/video/videobuf-dma-sg.c
+index 20f227e..5af3217 100644
+--- a/drivers/media/video/videobuf-dma-sg.c
++++ b/drivers/media/video/videobuf-dma-sg.c
+@@ -430,6 +430,8 @@ static struct videobuf_buffer *__videobuf_alloc_vb(size_t size)
+ 
+ 	mem = vb->priv = ((char *)vb) + size;
+ 	mem->magic = MAGIC_SG_MEM;
++	INIT_LIST_HEAD(&vb->stream);
++	INIT_LIST_HEAD(&vb->queue);
+ 
+ 	videobuf_dma_init(&mem->dma);
+ 
+diff --git a/drivers/media/video/videobuf-vmalloc.c b/drivers/media/video/videobuf-vmalloc.c
+index df14258..8babedd 100644
+--- a/drivers/media/video/videobuf-vmalloc.c
++++ b/drivers/media/video/videobuf-vmalloc.c
+@@ -146,6 +146,8 @@ static struct videobuf_buffer *__videobuf_alloc_vb(size_t size)
+ 
+ 	mem = vb->priv = ((char *)vb) + size;
+ 	mem->magic = MAGIC_VMAL_MEM;
++	INIT_LIST_HEAD(&vb->stream);
++	INIT_LIST_HEAD(&vb->queue);
+ 
+ 	dprintk(1, "%s: allocated at %p(%ld+%ld) & %p(%ld)\n",
+ 		__func__, vb, (long)sizeof(*vb), (long)size - sizeof(*vb),
+-- 
+1.7.0.4
+
