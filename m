@@ -1,49 +1,80 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:51236 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935355Ab0KQUYD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Nov 2010 15:24:03 -0500
-Date: Wed, 17 Nov 2010 15:23:58 -0500
-From: Jarod Wilson <jarod@redhat.com>
-To: Dan Carpenter <error27@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Zimny Lech <napohybelskurwysynom2010@gmail.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch 3/3] [media] lirc_dev: fixes in lirc_dev_fop_read()
-Message-ID: <20101117202358.GD24814@redhat.com>
-References: <20101117052015.GF31724@bicker>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47268 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754065Ab0KQKsV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Nov 2010 05:48:21 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jonathan Corbet <corbet@lwn.net>
+Subject: Re: An article on the media controller
+Date: Wed, 17 Nov 2010 11:48:20 +0100
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <20101116151802.0ccdcd53@bike.lwn.net>
+In-Reply-To: <20101116151802.0ccdcd53@bike.lwn.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20101117052015.GF31724@bicker>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201011171148.21188.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Nov 17, 2010 at 08:20:15AM +0300, Dan Carpenter wrote:
-> This makes several changes but they're in one function and sort of
-> related:
-> 
-> "buf" was leaked on error.  The leak if we try to read an invalid
-> length is the main concern because it could be triggered over and
-> over.
-> 
-> If the copy_to_user() failed, then the original code returned the 
-> number of bytes remaining.  read() is supposed to be the opposite way,
-> where we return the number of bytes copied.  I changed it to just return
-> -EFAULT on errors.
-> 
-> Also I changed the debug output from "-EFAULT" to just "<fail>" because
-> it isn't -EFAULT necessarily.  And since we go though that path if the
-> length is invalid now, there was another debug print that I removed.
-> 
-> Signed-off-by: Dan Carpenter <error27@gmail.com>
+Hi Jonathan,
 
-Looks good, thanks much.
+On Tuesday 16 November 2010 23:18:02 Jonathan Corbet wrote:
+> I've just spent a fair while looking through the September posting of
+> the media controller code (is there a more recent version?).  The
+> result is a high-level review which interested people can read here:
+> 
+> 	http://lwn.net/SubscriberLink/415714/1e837f01b8579eb7/
 
-Reviewed-by: Jarod Wilson <jarod@redhat.com>
-Acked-by: Jarod Wilson <jarod@redhat.com>
+Thanks a lot for the article.
+
+> Most people will not see it for another 24 hours or so; if there's
+> something I got radically wrong, I'd appreciate hearing about it.
+
+Here are a few comments:
+
+- Second paragraph: s/lens distortion/lens shading/
+
+- Fifth paragraph: entities can have no bad if no data flows in or out of them 
+(think of a flash controller for instance,  it needs to be configured, 
+associated with a sensor, but is not involved in any media data flow). The 
+pads represent connection points for data flows (usually media data), not for 
+software configuration.
+
+- Tenth paragraph: there's no end-user application available at the moment, 
+but we already have a command line test application 
+(http://git.ideasonboard.org/?p=media-ctl.git;a=summary) and a GStreamer 
+element (called subdevsrc, available from http://meego.gitorious.org/maemo-
+multimedia/gst-nokia-videosrc).
+
+> The executive summary is that I think this code really needs some
+> exposure outside of the V4L2 list; I'd encourage posting it to
+> linux-kernel.  That could be hard on plans for a 2.6.38 merge (or, at
+> least, plans for any spare time between now and then), but the end
+> result might be better for everybody.
+
+I agree that the more developers who will look at the code, the more ideas we 
+will get. That might get difficult to manage though :-) I'll cross-post the 
+next version of the patches.
+
+Regarding sysfs, I won't repeat Hans' and Andy's arguments, but I don't think 
+it would be a very good match. The API would get much more difficult to use 
+and would require lany times more system calls. While the media controller 
+solves a problem that can appear similar to our current power management and 
+clock routing issues, I'm not sure a common API would make sense. That would 
+be like arguing that DirectShow should be used for hard disk power management 
+in Windows :-)
+
+> I have some low-level comments too which were not suitable for the
+> article.  I'll be posting them here, but I have to get some other
+> things done first.
+
+Thank you in advance for the review.
 
 -- 
-Jarod Wilson
-jarod@redhat.com
+Best regards,
 
+Laurent Pinchart
