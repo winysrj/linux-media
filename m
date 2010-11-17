@@ -1,92 +1,53 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:46474 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753642Ab0JaDQU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Oct 2010 23:16:20 -0400
-Received: by gyg4 with SMTP id 4so2630301gyg.19
-        for <linux-media@vger.kernel.org>; Sat, 30 Oct 2010 20:16:19 -0700 (PDT)
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:5509 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752370Ab0KQCcN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Nov 2010 21:32:13 -0500
+Message-ID: <4CE33E8B.2070902@redhat.com>
+Date: Wed, 17 Nov 2010 00:31:39 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Date: Sun, 31 Oct 2010 14:16:18 +1100
-Message-ID: <AANLkTimQ3hqPepPkaYX40MiM+r9=DYzDUD2fC+uQ2ec1@mail.gmail.com>
-Subject: [patch] new_build.git - remove bashist equality testing
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: multipart/mixed; boundary=0015174bf1b27f10a20493e11d2e
+To: =?UTF-8?B?QmrDuHJuIE1vcms=?= <bjorn@mork.no>
+CC: linux-media@vger.kernel.org,
+	Marko Ristola <marko.ristola@kolumbus.fi>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	Ben Hutchings <ben@decadent.org.uk>,
+	Niklas Claesson <nicke.claesson@gmail.com>,
+	Tuxoholic <tuxoholic@hotmail.de>
+Subject: Re: [GIT PATCHES FOR 2.6.38] mantis for_2.6.38
+References: <4CBB689F.1070100@redhat.com> <874obmiov5.fsf@nemi.mork.no>	<4CDEA000.8020104@redhat.com> <87fwv5gu3y.fsf@nemi.mork.no>
+In-Reply-To: <87fwv5gu3y.fsf@nemi.mork.no>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
---0015174bf1b27f10a20493e11d2e
-Content-Type: text/plain; charset=ISO-8859-1
+Hi Bjørn,
 
-Hi,
+Em 13-11-2010 12:45, Bjørn Mork escreveu:
+> Mauro Carvalho Chehab <mchehab@redhat.com> writes:
+> 
+>> Em 12-11-2010 12:43, Bjørn Mork escreveu:
+>>>
+>>>   git://git.mork.no/mantis.git for_2.6.38
+>>
+>> Didn't work:
+>>
+>> git pull git://git.mork.no/mantis.git for_2.6.38
+>> fatal: Couldn't find remote ref for_2.6.38
+> 
+> Damn, sorry about that.  Was supposed to be 
+> 
+> git://git.mork.no/mantis.git for_v2.6.38
 
-while trying to build this on ubuntu 10.04 (2.6.32-24-generic) I
-noticed some of the equality
-tests in linux/Makefile are bash-style, not POSIX-style.
-The problem I encountered was error messages like:
-  ...
-  make -C ../linux apply_patches
-  make[2]: Entering directory `/home/ltv/git/clones/linuxtv.org/new_build/linux'
-  [: 23: v2.6.32: unexpected operator
-  cat: .patches_applied: No such file or directory
-  [: 23: unexpected operator
+Except when drivers are not maintained anymore (or when the patch is trivial), 
+I wait for the driver author(s) to test the patches and ask me to pull (or for them to
+reply that a patch is ok with his ack).
 
-Please consider applying the attached patch, which fixes the problem for me.
+Manu sent a pull request with some of the long-standing Mantis patches tested
+plus with some improvements for the frontend tuning. I've applied them today.
 
-Cheers
-Vince
+Please test, and give us a feedback.
 
---0015174bf1b27f10a20493e11d2e
-Content-Type: text/x-patch; charset=US-ASCII; name="new_build.drop-bashims.patch"
-Content-Disposition: attachment; filename="new_build.drop-bashims.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: file0
-
-ZGlmZiAtLWdpdCBhL2xpbnV4L01ha2VmaWxlIGIvbGludXgvTWFrZWZpbGUKaW5kZXggNTYzZWQx
-Ny4uODAxMDgxZiAxMDA2NDQKLS0tIGEvbGludXgvTWFrZWZpbGUKKysrIGIvbGludXgvTWFrZWZp
-bGUKQEAgLTYwLDExICs2MCwxMSBAQCBoZWxwOgogCUBlY2hvICIgICAgICAgICAgdW50YXJ8Y2xl
-YW58ZGlzdGNsZWFuIgogCiB0b2RheXRhcjoKLQlAaWYgWyAiJChESVIpIiA9PSAiIiBdOyB0aGVu
-IGVjaG8gIm1ha2UgJEAgRElSPTx2ZXJzaW9uPiI7IGV4aXQgLTE7IGZpCisJQGlmIFsgIiQoRElS
-KSIgPSAiIiBdOyB0aGVuIGVjaG8gIm1ha2UgJEAgRElSPTx2ZXJzaW9uPiI7IGV4aXQgLTE7IGZp
-CiAJLXJtICQoUFdEKS8kKFRPREFZX1RBUikuYnoyCiAJdGFyIGNmICQoUFdEKS8kKFRPREFZX1RB
-UikgLUMgJChESVIpICQoVEFSRklMRVMpCiAJZm9yIGkgaW4gJChUQVJESVIpOyBkbyBcCi0JCWlm
-IFsgImBlY2hvICQkaXxncmVwIERvY3VtZW50YXRpb25gIiA9PSAiIiBdOyB0aGVuIFwKKwkJaWYg
-WyAiYGVjaG8gJCRpfGdyZXAgRG9jdW1lbnRhdGlvbmAiID0gIiIgXTsgdGhlbiBcCiAJCQlkaXI9
-ImAoY2QgJChESVIpOyBmaW5kICQkaSAtdHlwZSBmIC1uYW1lICouW2NoXSlgIjsgXAogCQkJZGly
-PSIkJGRpciBgKGNkICQoRElSKTsgZmluZCAkJGkgLXR5cGUgZiAtbmFtZSBNYWtlZmlsZSlgIjsg
-XAogCQkJZGlyPSIkJGRpciBgKGNkICQoRElSKTsgZmluZCAkJGkgLXR5cGUgZiAtbmFtZSBLY29u
-ZmlnKWAiOyBcCkBAIC03NCwxMSArNzQsMTEgQEAgdG9kYXl0YXI6CiAJCWZpOyBkb25lOyBiemlw
-MiAkKFBXRCkvJChUT0RBWV9UQVIpCiAKIHRhcjoKLQlAaWYgWyAiJChESVIpIiA9PSAiIiBdOyB0
-aGVuIGVjaG8gIm1ha2UgJEAgRElSPTx2ZXJzaW9uPiI7IGV4aXQgLTE7IGZpCisJQGlmIFsgIiQo
-RElSKSIgPSAiIiBdOyB0aGVuIGVjaG8gIm1ha2UgJEAgRElSPTx2ZXJzaW9uPiI7IGV4aXQgLTE7
-IGZpCiAJLXJtICQoUFdEKS9saW51eC1tZWRpYS50YXIuYnoyCiAJdGFyIGNmICQoUFdEKS9saW51
-eC1tZWRpYS50YXIgLUMgJChESVIpICQoVEFSRklMRVMpCiAJZm9yIGkgaW4gJChUQVJESVIpOyBk
-byBcCi0JCWlmIFsgImBlY2hvICQkaXxncmVwIERvY3VtZW50YXRpb25gIiA9PSAiIiBdOyB0aGVu
-IFwKKwkJaWYgWyAiYGVjaG8gJCRpfGdyZXAgRG9jdW1lbnRhdGlvbmAiID0gIiIgXTsgdGhlbiBc
-CiAJCQlkaXI9ImAoY2QgJChESVIpOyBmaW5kICQkaSAtdHlwZSBmIC1uYW1lICouW2NoXSlgIjsg
-XAogCQkJZGlyPSIkJGRpciBgKGNkICQoRElSKTsgZmluZCAkJGkgLXR5cGUgZiAtbmFtZSBNYWtl
-ZmlsZSlgIjsgXAogCQkJZGlyPSIkJGRpciBgKGNkICQoRElSKTsgZmluZCAkJGkgLXR5cGUgZiAt
-bmFtZSBLY29uZmlnKWAiOyBcCkBAIC05NCwxNCArOTQsMTQgQEAgY2xlYW46CiAJLXJtIC1yZiAk
-KE1BSU5ESVJTKSAucGF0Y2hlc19hcHBsaWVkCiAKIGRpcjogY2xlYW4KLQlAaWYgWyAiJChESVIp
-IiA9PSAiIiBdOyB0aGVuIGVjaG8gIm1ha2UgJEAgRElSPTx2ZXJzaW9uPiI7IGV4aXQgLTE7IGZp
-CisJQGlmIFsgIiQoRElSKSIgPSAiIiBdOyB0aGVuIGVjaG8gIm1ha2UgJEAgRElSPTx2ZXJzaW9u
-PiI7IGV4aXQgLTE7IGZpCiAJQGVjaG8gIlNlYXJjaGluZyBpbiAkKERJUikvTWFrZWZpbGUgZm9y
-IGtlcm5lbCB2ZXJzaW9uLiIKIAogCWZvciBpIGluICQoVEFSRklMRVMpOyBkbyBcCiAJCWluc3Rh
-bGwgLUQgJChESVIpLyQkaSAkJGk7IFwKIAlkb25lCiAJZm9yIGkgaW4gJChUQVJESVIpOyBkbyBc
-Ci0JCWlmIFsgImBlY2hvICQkaXxncmVwIERvY3VtZW50YXRpb25gIiA9PSAiIiBdOyB0aGVuIFwK
-KwkJaWYgWyAiYGVjaG8gJCRpfGdyZXAgRG9jdW1lbnRhdGlvbmAiID0gIiIgXTsgdGhlbiBcCiAJ
-CQlkaXI9ImAoY2QgJChESVIpOyBmaW5kICQkaSAtdHlwZSBmIC1uYW1lICouW2NoXSlgIjsgXAog
-CQkJZGlyPSIkJGRpciBgKGNkICQoRElSKTsgZmluZCAkJGkgLXR5cGUgZiAtbmFtZSBNYWtlZmls
-ZSlgIjsgXAogCQkJZGlyPSIkJGRpciBgKGNkICQoRElSKTsgZmluZCAkJGkgLXR5cGUgZiAtbmFt
-ZSBLY29uZmlnKWAiOyBcCkBAIC0xMjUsOSArMTI1LDkgQEAgYXBwbHlfcGF0Y2hlcyBhcHBseS1w
-YXRjaGVzOgogCQlmaTsgXAogCWZpOyBcCiAJaWYgWyAiJChWRVIpIiAhPSAiIiBdOyB0aGVuIGRp
-cj0idiQoVkVSKSI7IGZpOyBcCi0JaWYgWyAiJCRkaXIiID09ICIiIF07IHRoZW4gZWNobyAibWFr
-ZSAkQCBWRVI9PHZlcnNpb24+IjsgZXhpdCAtMTsgZmk7IFwKKwlpZiBbICIkJGRpciIgPSAiIiBd
-OyB0aGVuIGVjaG8gIm1ha2UgJEAgVkVSPTx2ZXJzaW9uPiI7IGV4aXQgLTE7IGZpOyBcCiAJaWYg
-WyAtZSAuLi9iYWNrcG9ydHMvJCRkaXIvc2VyaWVzIF07IHRoZW4gXAotCQlpZiBbICJgY2F0IC5w
-YXRjaGVzX2FwcGxpZWRgIiA9PSAiJCRkaXIiIF07IHRoZW4gXAorCQlpZiBbICJgY2F0IC5wYXRj
-aGVzX2FwcGxpZWRgIiA9ICIkJGRpciIgXTsgdGhlbiBcCiAJCQllY2hvICJQYXRjaGVzIGZvciAk
-JGRpciBhbHJlYWR5IGFwcGxpZWQuIjsgZXhpdDsgXAogCQllbHNlIFwKIAkJCSQoTUFLRSkgdW5h
-cHBseV9wYXRjaGVzOyBcCg==
---0015174bf1b27f10a20493e11d2e--
+Thanks,
+Mauro
