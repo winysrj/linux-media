@@ -1,47 +1,82 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:62407 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753732Ab0KBQYk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Nov 2010 12:24:40 -0400
-Date: Tue, 2 Nov 2010 09:24:30 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	mchehab@redhat.com
-Subject: Re: drivers/media/IR/ir-keytable.c::ir_getkeycode - 'retval' may be
- used uninitialized
-Message-ID: <20101102162429.GB14198@core.coreip.homeip.net>
-References: <tkrat.980deadea593e9ed@s5r6.in-berlin.de>
- <201010311518.42998.dmitry.torokhov@gmail.com>
- <AANLkTi=AGWGv2WPuGQ4bF7N4TSAbU5YMjry9beXyvspk@mail.gmail.com>
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1026 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753757Ab0KQHxL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Nov 2010 02:53:11 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Figo.zhang" <zhangtianfei@leadcoretech.com>
+Subject: Re: [PATCH 1/1] videobuf: Initialize lists in videobuf_buffer.
+Date: Wed, 17 Nov 2010 08:52:53 +0100
+Cc: Andrew Chew <AChew@nvidia.com>,
+	"pawel@osciak.com" <pawel@osciak.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+References: <1289939083-27209-1-git-send-email-achew@nvidia.com> <201011170811.06697.hverkuil@xs4all.nl> <4CE3814B.5010008@leadcoretech.com>
+In-Reply-To: <4CE3814B.5010008@leadcoretech.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <AANLkTi=AGWGv2WPuGQ4bF7N4TSAbU5YMjry9beXyvspk@mail.gmail.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201011170852.53093.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Tue, Nov 02, 2010 at 12:04:56PM -0400, Jarod Wilson wrote:
-> On Sun, Oct 31, 2010 at 6:18 PM, Dmitry Torokhov
-> <dmitry.torokhov@gmail.com> wrote:
-> > On Sunday, October 31, 2010 10:51:21 am Stefan Richter wrote:
-> >> Commit 9f470095068e "Input: media/IR - switch to using new keycode
-> >> interface" added the following build warning:
+On Wednesday, November 17, 2010 08:16:27 Figo.zhang wrote:
+> On 11/17/2010 03:11 PM, Hans Verkuil wrote:
+> > On Wednesday, November 17, 2010 02:38:09 Andrew Chew wrote:
+> >>>> diff --git a/drivers/media/video/videobuf-dma-contig.c
+> >>> b/drivers/media/video/videobuf-dma-contig.c
+> >>>> index c969111..f7e0f86 100644
+> >>>> --- a/drivers/media/video/videobuf-dma-contig.c
+> >>>> +++ b/drivers/media/video/videobuf-dma-contig.c
+> >>>> @@ -193,6 +193,8 @@ static struct videobuf_buffer
+> >>> *__videobuf_alloc_vb(size_t size)
+> >>>>    	if (vb) {
+> >>>>    		mem = vb->priv = ((char *)vb) + size;
+> >>>>    		mem->magic = MAGIC_DC_MEM;
+> >>>> +		INIT_LIST_HEAD(&vb->stream);
+> >>>> +		INIT_LIST_HEAD(&vb->queue);
+> >>>
+> >>> i think it no need to be init, it just a list-entry.
 > >>
-> >> drivers/media/IR/ir-keytable.c: In function 'ir_getkeycode':
-> >> drivers/media/IR/ir-keytable.c:363: warning: 'retval' may be used uninitialized in this function
+> >> Okay, if that's really the case, then sh_mobile_ceu_camera.c, pxa_camera.c, mx1_camera.c, mx2_camera.c, and omap1_camera.c needs to be fixed to remove that WARN_ON(!list_empty(&vb->queue)); in their videobuf_prepare() methods, because those WARN_ON's are assuming that vb->queue is properly initialized as a list head.
 > >>
-> >> It is due to an actual bug but I don't know the fix.
+> >> Which will it be?
 > >>
 > >
-> > The patch below should fix it. I wonder if Linus released -rc1 yet...
+> > These list entries need to be inited. It is bad form to have uninitialized
+> > list entries. It is not as if this is a big deal to initialize them properly.
 > 
-> Looks like it missed rc1.
+> in kernel source code, list entry are not often to be inited.
 > 
+> for example, see mm/vmscan.c register_shrinker(), no one init the 
+> shrinker->list.
+> 
+> another example: see mm/swapfile.c  add_swap_extent(), no one init the
+> new_se->list.
 
-Nope, I see it there, 47c5ba53bc5e5f88b5d1bbb97acd25afc27f74eb ;)
+I have to think some more about this. I'll get back to this today. BTW, I do
+agree that the WARN_ON's are bogus and should be removed.
+
+And BTW, this isn't going to work either (mx1_camera.c):
+
+static int mx1_camera_setup_dma(struct mx1_camera_dev *pcdev)
+{
+        struct videobuf_buffer *vbuf = &pcdev->active->vb;
+        struct device *dev = pcdev->icd->dev.parent;
+        int ret;
+
+        if (unlikely(!pcdev->active)) {
+                dev_err(dev, "DMA End IRQ with no active buffer\n");
+                return -EFAULT;
+        }
+
+The vbuf assignment should be moved after the 'if'.
+
+Regards,
+
+	Hans
 
 -- 
-Dmitry
+Hans Verkuil - video4linux developer - sponsored by Cisco
