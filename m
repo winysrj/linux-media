@@ -1,128 +1,117 @@
-Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53785 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751797Ab0KDDes (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Nov 2010 23:34:48 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Bastian Hecht <hechtb@googlemail.com>
-Subject: Re: OMAP3530 ISP irqs disabled
-Date: Thu, 4 Nov 2010 04:34:53 +0100
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <AANLkTint8J4NdXQ4v1wmKAKWa7oeSHsdOn8JzjDqCqeY@mail.gmail.com> <4CD161B3.9000709@maxwell.research.nokia.com> <AANLkTikTAo71Kr+Nh8Q8DOMFwWB=gLQSXozgGo8ecYwm@mail.gmail.com>
-In-Reply-To: <AANLkTikTAo71Kr+Nh8Q8DOMFwWB=gLQSXozgGo8ecYwm@mail.gmail.com>
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:52041 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758210Ab0KQPZq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Nov 2010 10:25:46 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oAHFPk6O019731
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 17 Nov 2010 10:25:46 -0500
+Received: from xavier.bos.redhat.com (xavier.bos.redhat.com [10.16.16.50])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id oAHFPjbs010104
+	for <linux-media@vger.kernel.org>; Wed, 17 Nov 2010 10:25:46 -0500
+Date: Wed, 17 Nov 2010 10:25:45 -0500
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] streamzap: merge timeout space with trailing space
+Message-ID: <20101117152545.GA24814@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011040434.53836.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Bastian,
+There are cases where we get an ending space, and our trailing timeout
+space then gets sent right after it, which breaks repeat, at least for
+lirc userspace decoding. Merge the two spaces by way of using
+ir_raw_event_store_filter, set a timeout value, and we're back to good.
 
-On Wednesday 03 November 2010 14:38:25 Bastian Hecht wrote:
-> 2010/11/3 Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>:
-> > Bastian Hecht wrote:
-> >> 2010/11/3 Bastian Hecht <hechtb@googlemail.com>:
-> >>> Hello ISP team,
-> >>> 
-> >>> I succeeded to stream the first images from the sensor to userspace
-> >>> using Laurent's media-ctl and yafta. Unfortunately all images are
-> >>> black (10MB of zeros).
-> >>> Once by chance I streamed some images (1 of 20 about) with content.
-> >>> All values were < 0x400, so that I assume the values were correctly
-> >>> transferred for my 10-bit pixels.
-> >>> 
-> >>> I shortly describe my setup:
-> >>> As I need xclk_a activated for my sensor to work (I2C), I activate the
-> >>> xclk in the isp_probe function. Early hack that I want to remove
-> >>> later.
-> > 
-> > It _might_ be better to have this in isp_get().
-> > 
-> >>> While I placed my activation in mid of the probe function, I had
-> >>> somehow the interrupts disabled when trying to stream using yafta. So
-> >>> I hacked in the reenabling of the interrupts somewhere else in probe()
-> >>> too.
-> > 
-> > That should definitely not be necessary. The interrupts are enabled in
-> > isp_get().
-> > 
-> >>> As I dug through the isp code I saw that it is better to place the
-> >>> clock activation after the final isp_put in probe() then the
-> >>> interrupts keep working, but this way I never got a valid picture so
-> >>> far. It's all a mess, I know. I try to transfer the activation to my
-> >>> sensor code and board-setup code like in the et8ek8 code.
-> >> 
-> >> I enabled isr debugging (#define ISP_ISR_DEBUG) and see that only 1
-> >> HS_VS_event is generated per second. 1fps corresponds to my clocking,
-> >> so 1 vs per second is fine. But shouldn't I see about 2000 hs
-> >> interrupts there too? HS_VS_IRQ is described as "HS or VS synchro
-> >> event".
-> > 
-> > Are you getting any other interrupts? Basically every ISP block which is
-> > on the pipe will produce interrupts. Which ISP block is writing the
-> > images to memory for you?
-> 
-> I read out the CCDC with this pipeline:
-> ./media-ctl -r -l '"mt9p031 2-005d":0->"OMAP3 ISP CCDC":0[1], "OMAP3
-> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-> ./media-ctl -f '"mt9p031 2-005d":0[SGRBG10 2592x1944], "OMAP3 ISP
-> CCDC":1[SGRBG10 2592x1944]'
-> ./yavta -f SGRBG10 -s 2592x1944 -n 4 --capture=4 --skip 3 -F /dev/video2
-> 
-> I get these interrupts while reading 4 frames:
-> 
-> [ 3962.689483] s_stream is it! enable: 1
-> [ 3962.783843] omap3isp omap3isp: CCDC_VD0_IRQ
-> [ 3962.799530] omap3isp omap3isp: HS_VS_IRQ
-> [ 3963.532958] omap3isp omap3isp: CCDC_VD1_IRQ
-> [ 3963.899505] omap3isp omap3isp: CCDC_VD0_IRQ
-> [ 3963.914184] omap3isp omap3isp: HS_VS_IRQ
-> [ 3964.647644] omap3isp omap3isp: CCDC_VD1_IRQ
-> [ 3965.013153] omap3isp omap3isp: CCDC_VD0_IRQ
-> [ 3965.028839] omap3isp omap3isp: HS_VS_IRQ
-> [ 3965.762298] omap3isp omap3isp: CCDC_VD1_IRQ
-> [ 3966.127838] omap3isp omap3isp: CCDC_VD0_IRQ
-> [ 3966.143585] omap3isp omap3isp: HS_VS_IRQ
-> [ 3966.370788] omap3isp omap3isp: OMAP3 ISP AEWB: user wants to disable
-> module. [ 3966.370819] omap3isp omap3isp: OMAP3 ISP AEWB: module is being
-> disabled [ 3966.370849] omap3isp omap3isp: OMAP3 ISP AF: user wants to
-> disable module. [ 3966.370880] omap3isp omap3isp: OMAP3 ISP AF: module is
-> being disabled [ 3966.370880] omap3isp omap3isp: OMAP3 ISP histogram: user
-> wants to disable module.
-> [ 3966.370910] omap3isp omap3isp: OMAP3 ISP histogram: module is being
-> disabled [ 3966.876983] omap3isp omap3isp: CCDC_VD1_IRQ
-> [ 3967.242492] omap3isp omap3isp: CCDC_VD0_IRQ
-> [ 3967.242614] s_stream is it! enable: 0
-> 
-> > Maybe a stupid question, but have you set exposure and gain to a
-> > reasonable value? :-)
-> 
-> First reaction was - that must be it! But hmmm... the flanks on the
-> data lines of the camera are mostly high. When I press my finger on
-> the sensor they are mostly low. The other values seem to be good too:
-> xclk comes in with 6Mhz and pixelclk comes out with 6Mhz (all within
-> the limits of the datasheets - camera and omap isp). cam_vs raises for
-> about 1 sec goes shortly down and comes up again. cam_hs seems to fit
-> too.
-> Every 20th try I get data from an image sample the other times only zeros.
+Successfully tested with streamzap and windows mce remotes.
 
-The CCDC is configured with a DC subtract value of 64 by default, so it 
-subtract 64 from every pixel. If your pixel values are lower than or equal to 
-64 you will get a black image. As a quick hack you can replace
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/rc/streamzap.c |   15 +++++++--------
+ 1 files changed, 7 insertions(+), 8 deletions(-)
 
-ccdc->clamp.dcsubval = 64;
-
-with
-
-ccdc->clamp.dcsubval = 0;
-
-in isp_ccdc_init(). The correct solution is to use the 
-VIDIOC_PRIVATE_ISP_CCDC_CFG ioctl to configure the DC subtraction value to 0.
+diff --git a/drivers/media/rc/streamzap.c b/drivers/media/rc/streamzap.c
+index 7781910..19652d4 100644
+--- a/drivers/media/rc/streamzap.c
++++ b/drivers/media/rc/streamzap.c
+@@ -137,7 +137,9 @@ static struct usb_driver streamzap_driver = {
+ 
+ static void sz_push(struct streamzap_ir *sz, struct ir_raw_event rawir)
+ {
+-	ir_raw_event_store(sz->rdev, &rawir);
++	dev_dbg(sz->dev, "Storing %s with duration %u us\n",
++		(rawir.pulse ? "pulse" : "space"), rawir.duration);
++	ir_raw_event_store_with_filter(sz->rdev, &rawir);
+ }
+ 
+ static void sz_push_full_pulse(struct streamzap_ir *sz,
+@@ -164,7 +166,6 @@ static void sz_push_full_pulse(struct streamzap_ir *sz,
+ 			rawir.duration *= 1000;
+ 			rawir.duration &= IR_MAX_DURATION;
+ 		}
+-		dev_dbg(sz->dev, "ls %u\n", rawir.duration);
+ 		sz_push(sz, rawir);
+ 
+ 		sz->idle = false;
+@@ -177,7 +178,6 @@ static void sz_push_full_pulse(struct streamzap_ir *sz,
+ 	sz->sum += rawir.duration;
+ 	rawir.duration *= 1000;
+ 	rawir.duration &= IR_MAX_DURATION;
+-	dev_dbg(sz->dev, "p %u\n", rawir.duration);
+ 	sz_push(sz, rawir);
+ }
+ 
+@@ -197,7 +197,6 @@ static void sz_push_full_space(struct streamzap_ir *sz,
+ 	rawir.duration += SZ_RESOLUTION / 2;
+ 	sz->sum += rawir.duration;
+ 	rawir.duration *= 1000;
+-	dev_dbg(sz->dev, "s %u\n", rawir.duration);
+ 	sz_push(sz, rawir);
+ }
+ 
+@@ -218,8 +217,6 @@ static void streamzap_callback(struct urb *urb)
+ 	struct streamzap_ir *sz;
+ 	unsigned int i;
+ 	int len;
+-	static int timeout = (((SZ_TIMEOUT * SZ_RESOLUTION * 1000) &
+-				IR_MAX_DURATION) | 0x03000000);
+ 
+ 	if (!urb)
+ 		return;
+@@ -243,7 +240,7 @@ static void streamzap_callback(struct urb *urb)
+ 
+ 	dev_dbg(sz->dev, "%s: received urb, len %d\n", __func__, len);
+ 	for (i = 0; i < len; i++) {
+-		dev_dbg(sz->dev, "sz idx %d: %x\n",
++		dev_dbg(sz->dev, "sz->buf_in[%d]: %x\n",
+ 			i, (unsigned char)sz->buf_in[i]);
+ 		switch (sz->decoder_state) {
+ 		case PulseSpace:
+@@ -270,7 +267,7 @@ static void streamzap_callback(struct urb *urb)
+ 				DEFINE_IR_RAW_EVENT(rawir);
+ 
+ 				rawir.pulse = false;
+-				rawir.duration = timeout;
++				rawir.duration = sz->rdev->timeout;
+ 				sz->idle = true;
+ 				if (sz->timeout_enabled)
+ 					sz_push(sz, rawir);
+@@ -430,6 +427,8 @@ static int __devinit streamzap_probe(struct usb_interface *intf,
+ 	sz->decoder_state = PulseSpace;
+ 	/* FIXME: don't yet have a way to set this */
+ 	sz->timeout_enabled = true;
++	sz->rdev->timeout = (((SZ_TIMEOUT * SZ_RESOLUTION * 1000) &
++				IR_MAX_DURATION) | 0x03000000);
+ 	#if 0
+ 	/* not yet supported, depends on patches from maxim */
+ 	/* see also: LIRC_GET_REC_RESOLUTION and LIRC_SET_REC_TIMEOUT */
+-- 
+1.7.1
 
 -- 
-Regards,
+Jarod Wilson
+jarod@redhat.com
 
-Laurent Pinchart
