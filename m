@@ -1,65 +1,55 @@
-Return-path: <mchehab@gaivota>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:42465 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754335Ab0JaBVS (ORCPT
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:3769 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933148Ab0KQS1Z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Oct 2010 21:21:18 -0400
-Subject: Re: [PATCH] bttv driver memory corruption
-From: Andy Walls <awalls@md.metrocast.net>
-To: Daniel =?ISO-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-Cc: Laurent Birtz <laurent.birtz@usherbrooke.ca>,
-	linux-media@vger.kernel.org
-In-Reply-To: <20101030234045.GA15147@minime.bse>
-References: <4CC5A390.9010800@usherbrooke.ca>
-	 <20101030234045.GA15147@minime.bse>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 30 Oct 2010 21:21:37 -0400
-Message-ID: <1288488097.23860.33.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	Wed, 17 Nov 2010 13:27:25 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr18.xs4all.nl (8.13.8/8.13.8) with ESMTP id oAHIROhd086781
+	for <linux-media@vger.kernel.org>; Wed, 17 Nov 2010 19:27:24 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 17 Nov 2010 19:27:24 +0100 (CET)
+Message-Id: <201011171827.oAHIROhd086781@smtp-vbr18.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build: WARNINGS
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Sun, 2010-10-31 at 01:40 +0200, Daniel Glöckner wrote:
-> On Mon, Oct 25, 2010 at 11:34:40AM -0400, Laurent Birtz wrote:
-> > I've observed that the poison was corrupted at some random pages, but
-> > always in the first four bytes. The value of those bytes is 0x23232323.
-> > This byte sequence often appears in kernel oops reports on my setup.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
+Results of the daily build of v4l-dvb:
 
-> I couldn't verify your findings by mallocing an equivalent of the
-> physical memory, filling everything with 0xdeadbeef, and then
-> periodically checking it didn't change while watching tv at 768x576
-> in YUY2.
-> 
+date:        Wed Nov 17 19:00:17 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15167:abd3aac6644e
+git master:       3e6dce76d99b328716b43929b9195adfee1de00c
+git media-master: a348e9110ddb5d494e060d989b35dd1f35359d58
+gcc version:      i686-linux-gcc (GCC) 4.5.1
+host hardware:    x86_64
+host os:          2.6.32.5
 
-Here are other apparent instances with bttv:
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: WARNINGS
+linux-git-mips: WARNINGS
+linux-git-powerpc64: WARNINGS
+linux-git-x86_64: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-http://linux.derkeiler.com/Mailing-Lists/Kernel/2004-08/2233.html
-http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg247084.html
-http://kerneltrap.org/mailarchive/linux-kernel/2008/11/19/4214764
-http://lkml.org/lkml/2006/6/2/16
-http://lkml.indiana.edu/hypermail/linux/kernel/0407.0/1124.html
-http://fixunix.com/kernel/323946-bug-unable-handle-kernel-paging-request-virtual-address.html
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-BTW, I did notice that
-drivers/acpi/acpica/utglobal.c:acpi_ut_get_node_name() has a
-return("####"); statement in it explicitly.  0x23232323 is "####" in
-ASCII.  It could possibly be the case that anything that calls that
-function could be a source of those "####" bytes.  Although the initial
-patch submission comments make that seem unlikely.
+Full logs are available here:
 
-Regards,
-Andy
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-> Which video mode and resolution did you use in your tests?
-> Did you try loading bttv with triton1=1 and vsfx=1?
-> 
->   Daniel
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The V4L-DVB specification from this daily build is here:
 
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
