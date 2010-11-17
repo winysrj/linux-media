@@ -1,89 +1,83 @@
-Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39612 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753070Ab0KECnH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Nov 2010 22:43:07 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <maurochehab@gmail.com>
-Subject: Re: [GIT PATCHES FOR 2.6.37] Use modaliases to load I2C modules
-Date: Fri, 5 Nov 2010 03:42:59 +0100
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Jean Delvare <khali@linux-fr.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pete Eberlein <pete@sensoray.com>,
-	Mike Isely <isely@pobox.com>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Vaibhav Hiremath <hvaibhav@ti.com>,
-	Muralidharan Karicheri <mkaricheri@gmail.com>
-References: <201010061045.02832.laurent.pinchart@ideasonboard.com> <201010231327.25916.laurent.pinchart@ideasonboard.com> <4CC2E36A.6030101@gmail.com>
-In-Reply-To: <4CC2E36A.6030101@gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:42003 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756884Ab0KQTMH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Nov 2010 14:12:07 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oAHJC7hY029571
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 17 Nov 2010 14:12:07 -0500
+Received: from pedra (vpn-230-120.phx2.redhat.com [10.3.230.120])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id oAHJC5xI007699
+	for <linux-media@vger.kernel.org>; Wed, 17 Nov 2010 14:12:06 -0500
+Date: Wed, 17 Nov 2010 17:08:28 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 05/10] [media] cx231xx: Properly name rc_map name
+Message-ID: <20101117170828.203a06e3@pedra>
+In-Reply-To: <cover.1290020731.git.mchehab@redhat.com>
+References: <cover.1290020731.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201011050343.06008.laurent.pinchart@ideasonboard.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Mauro,
+rc_map is confusing, as it may be understood as another thing. Properly
+rename the field to indicate its usage.
 
-On Saturday 23 October 2010 15:30:18 Mauro Carvalho Chehab wrote:
-> Em 23-10-2010 09:27, Laurent Pinchart escreveu:
-> > On Saturday 23 October 2010 02:02:01 Mauro Carvalho Chehab wrote:
-> >> Em 06-10-2010 05:45, Laurent Pinchart escreveu:
-> >>> The following changes since commit
-> > 
-> > c8dd732fd119ce6d562d5fa82a10bbe75a376575:
-> >>>   V4L/DVB: gspca - sonixj: Have 0c45:6130 handled by sonixj instead of
-> >>>   sn9c102 (2010-10-01 18:14:35 -0300)
-> >>> 
-> >>> are available in the git repository at:
-> >>>   git://linuxtv.org/pinchartl/uvcvideo.git i2c-module-name
-> >>> 
-> >>> The patches have been posted to the list, and acked for pvrusb2,
-> >>> soc-camera and sh_vou.
-> >>> 
-> >>> Laurent Pinchart (16):
-> >>>       v4l: Load I2C modules based on modalias
-> >>>       v4l: Remove hardcoded module names passed to v4l2_i2c_new_subdev*
-> >>>       go7007: Add MODULE_DEVICE_TABLE to the go7007 I2C modules
-> >>>       go7007: Fix the TW2804 I2C type name
-> >>>       go7007: Don't use module names to load I2C modules
-> >>>       zoran: Don't use module names to load I2C modules
-> >>>       pvrusb2: Don't use module names to load I2C modules
-> >>>       sh_vou: Don't use module names to load I2C modules
-> >>>       radio-si4713: Don't use module names to load I2C modules
-> >>>       soc_camera: Don't use module names to load I2C modules
-> >>>       vpfe_capture: Don't use module names to load I2C modules
-> >>>       vpif_display: Don't use module names to load I2C modules
-> >>>       vpif_capture: Don't use module names to load I2C modules
-> >>>       ivtv: Don't use module names to load I2C modules
-> >>>       cx18: Don't use module names to load I2C modules
-> >>>       v4l: Remove module_name argument to the v4l2_i2c_new_subdev*
-> >>>       functions
-> >> 
-> >> To avoid the risk of break something, I've applied all patches from your
-> >> series, but the last one. This way, we shouldn't have any regression,
-> >> and kABI shouldn't break. So, if someone send a patch late (and there
-> >> were some new driver additions committed after your patch), it won't
-> >> break compilation for the new drivers.
-> >> 
-> >> Please rebase the last patch and send it to me again at the end of the
-> >> -rc1 merge window.
-> > 
-> > OK. By end of the -rc1 merge window, do you mean right before it closes
-> > or right after it has closed ? If the former, when will that be ?
-> 
-> Right after it closes. Linus will likely close it in the end of the next
-> week. However, don't expect much maintainers activity during the first
-> week of november, due to KS/LPC. I'd say that a patch like that should be
-> produced/applied by Nov, 8 - Nov-14.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Now that -rc1 is out, which branch do you want me to generate the patch 
-against ?
-
+diff --git a/drivers/media/video/cx231xx/cx231xx-cards.c b/drivers/media/video/cx231xx/cx231xx-cards.c
+index ac4bf2c..bfa3251 100644
+--- a/drivers/media/video/cx231xx/cx231xx-cards.c
++++ b/drivers/media/video/cx231xx/cx231xx-cards.c
+@@ -412,7 +412,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.tuner_i2c_master = 2,
+ 		.demod_i2c_master = 1,
+ 		.ir_i2c_master = 2,
+-		.rc_map = RC_MAP_PIXELVIEW_NEW,
++		.rc_map_name = RC_MAP_PIXELVIEW_NEW,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x10,
+ 		.norm = V4L2_STD_PAL_M,
+diff --git a/drivers/media/video/cx231xx/cx231xx-input.c b/drivers/media/video/cx231xx/cx231xx-input.c
+index 65d951e..1d043ed 100644
+--- a/drivers/media/video/cx231xx/cx231xx-input.c
++++ b/drivers/media/video/cx231xx/cx231xx-input.c
+@@ -57,7 +57,7 @@ int cx231xx_ir_init(struct cx231xx *dev)
+ 	dev_dbg(&dev->udev->dev, "%s\n", __func__);
+ 
+ 	/* Only initialize if a rc keycode map is defined */
+-	if (!cx231xx_boards[dev->model].rc_map)
++	if (!cx231xx_boards[dev->model].rc_map_name)
+ 		return -ENODEV;
+ 
+ 	request_module("ir-kbd-i2c");
+@@ -80,7 +80,7 @@ int cx231xx_ir_init(struct cx231xx *dev)
+ 	 * an i2c device.
+ 	 */
+ 	dev->init_data.get_key = get_key_isdbt;
+-	dev->init_data.ir_codes = cx231xx_boards[dev->model].rc_map;
++	dev->init_data.ir_codes = cx231xx_boards[dev->model].rc_map_name;
+ 	/* The i2c micro-controller only outputs the cmd part of NEC protocol */
+ 	dev->init_data.rc_dev->scanmask = 0xff;
+ 	dev->init_data.rc_dev->driver_name = "cx231xx";
+diff --git a/drivers/media/video/cx231xx/cx231xx.h b/drivers/media/video/cx231xx/cx231xx.h
+index 87a20ae..709cb87 100644
+--- a/drivers/media/video/cx231xx/cx231xx.h
++++ b/drivers/media/video/cx231xx/cx231xx.h
+@@ -349,7 +349,7 @@ struct cx231xx_board {
+ 	u8 ir_i2c_master;
+ 
+ 	/* for devices with I2C chips for IR */
+-	char *rc_map;
++	char *rc_map_name;
+ 
+ 	unsigned int max_range_640_480:1;
+ 	unsigned int has_dvb:1;
 -- 
-Regards,
+1.7.1
 
-Laurent Pinchart
+
