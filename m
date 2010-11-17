@@ -1,35 +1,60 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:50503 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752543Ab0KBTZ5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Nov 2010 15:25:57 -0400
-Received: by vws13 with SMTP id 13so65152vws.19
-        for <linux-media@vger.kernel.org>; Tue, 02 Nov 2010 12:25:56 -0700 (PDT)
+Return-path: <mchehab@pedra>
+Received: from [120.204.251.227] ([120.204.251.227]:58694 "EHLO
+	LC-SHMAIL-01.SHANGHAI.LEADCORETECH.COM" rhost-flags-FAIL-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751481Ab0KQHR2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Nov 2010 02:17:28 -0500
+Message-ID: <4CE3814B.5010008@leadcoretech.com>
+Date: Wed, 17 Nov 2010 15:16:27 +0800
+From: "Figo.zhang" <zhangtianfei@leadcoretech.com>
 MIME-Version: 1.0
-In-Reply-To: <20101102201834.038b6d14@tele>
-References: <AANLkTikZPmJWebfpU2yLpvMygqhzfAKZYL7rTCG45K3b@mail.gmail.com>
-	<20101101201547.47fd0d4c@tele>
-	<AANLkTin8M1ZGdayVZT0OZ-Rgig-9-7Lb9uaobihvDK-H@mail.gmail.com>
-	<20101101213140.3985f4b5@tele>
-	<AANLkTim1BsqKSt8zOH9_bwExLnSxpax0dz1rjc2zLDOj@mail.gmail.com>
-	<20101102092653.4bbd1319@tele>
-	<AANLkTimxo=Z2YDqdsi1Vr6opX9eWHTb06SGz5bGfxRxj@mail.gmail.com>
-	<20101102201834.038b6d14@tele>
-Date: Tue, 2 Nov 2010 21:25:56 +0200
-Message-ID: <AANLkTikNzGqvtMjherNHVYg8PFPD6av6s9VTHkc_bBoE@mail.gmail.com>
-Subject: Re: Webcam driver not working: drivers/media/video/gspca/ov519.c
- device 05a9:4519
-From: Anca Emanuel <anca.emanuel@gmail.com>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Andrew Chew <AChew@nvidia.com>,
+	"pawel@osciak.com" <pawel@osciak.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 1/1] videobuf: Initialize lists in videobuf_buffer.
+References: <1289939083-27209-1-git-send-email-achew@nvidia.com> <4CE32B9D.1020705@leadcoretech.com> <643E69AA4436674C8F39DCC2C05F763816BB828A40@HQMAIL03.nvidia.com> <201011170811.06697.hverkuil@xs4all.nl>
+In-Reply-To: <201011170811.06697.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-> Hi,
+On 11/17/2010 03:11 PM, Hans Verkuil wrote:
+> On Wednesday, November 17, 2010 02:38:09 Andrew Chew wrote:
+>>>> diff --git a/drivers/media/video/videobuf-dma-contig.c
+>>> b/drivers/media/video/videobuf-dma-contig.c
+>>>> index c969111..f7e0f86 100644
+>>>> --- a/drivers/media/video/videobuf-dma-contig.c
+>>>> +++ b/drivers/media/video/videobuf-dma-contig.c
+>>>> @@ -193,6 +193,8 @@ static struct videobuf_buffer
+>>> *__videobuf_alloc_vb(size_t size)
+>>>>    	if (vb) {
+>>>>    		mem = vb->priv = ((char *)vb) + size;
+>>>>    		mem->magic = MAGIC_DC_MEM;
+>>>> +		INIT_LIST_HEAD(&vb->stream);
+>>>> +		INIT_LIST_HEAD(&vb->queue);
+>>>
+>>> i think it no need to be init, it just a list-entry.
+>>
+>> Okay, if that's really the case, then sh_mobile_ceu_camera.c, pxa_camera.c, mx1_camera.c, mx2_camera.c, and omap1_camera.c needs to be fixed to remove that WARN_ON(!list_empty(&vb->queue)); in their videobuf_prepare() methods, because those WARN_ON's are assuming that vb->queue is properly initialized as a list head.
+>>
+>> Which will it be?
+>>
 >
-> Thanks, that's what I wanted. Looking at the trace, I saw that the
-> capture stopped and restarted 3 or 4 times. May you tell me what
-> occured?
+> These list entries need to be inited. It is bad form to have uninitialized
+> list entries. It is not as if this is a big deal to initialize them properly.
 
-Just open and close some capture programs.
+in kernel source code, list entry are not often to be inited.
+
+for example, see mm/vmscan.c register_shrinker(), no one init the 
+shrinker->list.
+
+another example: see mm/swapfile.c  add_swap_extent(), no one init the
+new_se->list.
+
+
+
+
+
