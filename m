@@ -1,54 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3132 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754197Ab0KHS1v (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Nov 2010 13:27:51 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id oA8IReCa093784
-	for <linux-media@vger.kernel.org>; Mon, 8 Nov 2010 19:27:49 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 8 Nov 2010 19:27:40 +0100 (CET)
-Message-Id: <201011081827.oA8IReCa093784@smtp-vbr7.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build: WARNINGS
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:33082 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751109Ab0KQFOF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Nov 2010 00:14:05 -0500
+Date: Wed, 17 Nov 2010 08:13:39 +0300
+From: Dan Carpenter <error27@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Jarod Wilson <jarod@redhat.com>,
+	Zimny Lech <napohybelskurwysynom2010@gmail.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch 2/3] [media] lirc_dev: add some __user annotations
+Message-ID: <20101117051339.GE31724@bicker>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Sparse complains because there are no __user annotations.
 
-Results of the daily build of v4l-dvb:
+drivers/media/IR/lirc_dev.c:156:27: warning:
+	incorrect type in initializer (incompatible argument 2 (different address spaces))
+drivers/media/IR/lirc_dev.c:156:27:    expected int ( *read )( ... )
+drivers/media/IR/lirc_dev.c:156:27:    got int ( extern [toplevel] *<noident> )( ... )
 
-date:        Mon Nov  8 19:00:14 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15167:abd3aac6644e
-git master:       3e6dce76d99b328716b43929b9195adfee1de00c
-git media-master: a348e9110ddb5d494e060d989b35dd1f35359d58
-gcc version:      i686-linux-gcc (GCC) 4.5.1
-host hardware:    x86_64
-host os:          2.6.32.5
+Signed-off-by: Dan Carpenter <error27@gmail.com>
 
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: WARNINGS
-linux-git-mips: WARNINGS
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
+index 54780a5..630e702 100644
+--- a/include/media/lirc_dev.h
++++ b/include/media/lirc_dev.h
+@@ -217,9 +217,9 @@ int lirc_dev_fop_open(struct inode *inode, struct file *file);
+ int lirc_dev_fop_close(struct inode *inode, struct file *file);
+ unsigned int lirc_dev_fop_poll(struct file *file, poll_table *wait);
+ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
+-ssize_t lirc_dev_fop_read(struct file *file, char *buffer, size_t length,
++ssize_t lirc_dev_fop_read(struct file *file, char __user *buffer, size_t length,
+ 			  loff_t *ppos);
+-ssize_t lirc_dev_fop_write(struct file *file, const char *buffer, size_t length,
+-			   loff_t *ppos);
++ssize_t lirc_dev_fop_write(struct file *file, const char __user *buffer,
++			   size_t length, loff_t *ppos);
+ 
+ #endif
+diff --git a/drivers/media/IR/lirc_dev.c b/drivers/media/IR/lirc_dev.c
+index 8ab9d87..fbca94f 100644
+--- a/drivers/media/IR/lirc_dev.c
++++ b/drivers/media/IR/lirc_dev.c
+@@ -627,7 +627,7 @@ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ EXPORT_SYMBOL(lirc_dev_fop_ioctl);
+ 
+ ssize_t lirc_dev_fop_read(struct file *file,
+-			  char *buffer,
++			  char __user *buffer,
+ 			  size_t length,
+ 			  loff_t *ppos)
+ {
+@@ -742,7 +742,7 @@ void *lirc_get_pdata(struct file *file)
+ EXPORT_SYMBOL(lirc_get_pdata);
+ 
+ 
+-ssize_t lirc_dev_fop_write(struct file *file, const char *buffer,
++ssize_t lirc_dev_fop_write(struct file *file, const char __user *buffer,
+ 			   size_t length, loff_t *ppos)
+ {
+ 	struct irctl *ir = irctls[iminor(file->f_dentry->d_inode)];
