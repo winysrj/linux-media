@@ -1,88 +1,56 @@
-Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43063 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754386Ab0KSON4 (ORCPT
+Return-path: <mchehab@pedra>
+Received: from webhosting01.bon.m2soft.com ([195.38.20.32]:46393 "EHLO
+	webhosting01.bon.m2soft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751443Ab0KQKhx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 09:13:56 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Lane Brooks <lane@brooks.nu>
-Subject: Re: Translation faults with OMAP ISP
-Date: Fri, 19 Nov 2010 15:13:59 +0100
-Cc: David Cohen <david.cohen@nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <4CE16AA2.3000208@brooks.nu> <20101119132927.GD13490@esdhcp04381.research.nokia.com> <4CE684E6.6010403@brooks.nu>
-In-Reply-To: <4CE684E6.6010403@brooks.nu>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+	Wed, 17 Nov 2010 05:37:53 -0500
+Date: Wed, 17 Nov 2010 11:35:25 +0100
+From: Nicolas Kaiser <nikai@nikai.net>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] drivers/media: nuvoton: fix chip id probe
+Message-ID: <20101117113525.1ded029c@absol.kitzblitz>
+In-Reply-To: <4CE33527.8090800@infradead.org>
+References: <20101116211953.238012db@absol.kitzblitz>
+	<20101116215408.GA17140@redhat.com>
+	<4CE33527.8090800@infradead.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201011191513.59622.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Lane,
+Make sure we have a matching chip id high and one or the other
+of the chip id low values.
+Print the values if the probe fails.
 
-On Friday 19 November 2010 15:08:38 Lane Brooks wrote:
-> On 11/19/2010 06:29 AM, David Cohen wrote:
-> > On Thu, Nov 18, 2010 at 12:17:21AM +0100, ext Lane Brooks wrote:
-> >> On Wednesday 17 November 2010 00:46:27 Lane Brooks wrote:
-> >>>> Laurent,
-> >>>> 
-> >>>> I am getting iommu translation errors when I try to use the CCDC
-> >>>> output after using the Resizer output.
-> >>>> 
-> >>>> If I use the CCDC output to stream some video, then close it down,
-> >>>> switch to the Resizer output and open it up and try to stream, I get
-> >>>> the following errors spewing out:
-> >>>> 
-> >>>> omap-iommu omap-iommu.0: omap2_iommu_fault_isr: da:00d0ef00
-> >>>> translation fault
-> >>>> omap-iommu omap-iommu.0: iommu_fault_handler: da:00d0ef00 pgd:ce664034
-> >>>> *pgd:00000000
-> >>>> 
-> >>>> and the select times out.
-> >>>> 
-> >>>>    From a fresh boot, I can stream just fine from the Resizer and then
-> >>>> 
-> >>>> switch to the CCDC output just fine. It is only when I go from the
-> >>>> CCDC to the Resizer that I get this problem. Furthermore, when it
-> >>>> gets into this state, then anything dev node I try to use has the
-> >>>> translation errors and the only way to recover is to reboot.
-> >>>> 
-> >>>> Any ideas on the problem?
-> > 
-> > I'm not sure if it's your case, but OMAP3 ISP driver does not support
-> > pipeline with multiples outputs yet. We have to return error from the
-> > driver in this case. If you configured CCDC to write to memory and then
-> > to write to preview/resizer afterwards without deactivating the link to
-> > write to memory, you may face a similar problem you described.
-> > 
-> > Can you please try a patch I've sent to you (CC'ing linux-media) with
-> > subject: "[omap3isp][PATCH] omap3isp: does not allow pipeline with
-> > multiple video outputs yet"?
-> > 
-> > Regards,
-> > 
-> > David
-> 
-> David,
-> 
-> I am not trying to use multiple outputs simultaneously. I get the
-> translation error with the following sequence:
-> 
-> - Open resizer output and setup media links.
-> - Stream some images.
-> - Close resizer.
-> - Reset all media links.
-> - Open CCDC and setup media links.
-> - Try to stream some images but get translation faults.
-> 
-> Is your patch going to help with this problem?
+Signed-off-by: Nicolas Kaiser <nikai@nikai.net>
+---
+Like this?
+Supersedes patch "drivers/media: nuvoton: always true expression".
 
-If you reset all links before setting them up for the CCDC output, probably 
-not (unless you have a bug in your CCDC links setup, but I doubt that).
+ drivers/media/IR/nuvoton-cir.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/media/IR/nuvoton-cir.c b/drivers/media/IR/nuvoton-cir.c
+index 301be53..92d32c8 100644
+--- a/drivers/media/IR/nuvoton-cir.c
++++ b/drivers/media/IR/nuvoton-cir.c
+@@ -249,9 +249,12 @@ static int nvt_hw_detect(struct nvt_dev *nvt)
+ 	chip_minor = nvt_cr_read(nvt, CR_CHIP_ID_LO);
+ 	nvt_dbg("%s: chip id: 0x%02x 0x%02x", chip_id, chip_major, chip_minor);
+ 
+-	if (chip_major != CHIP_ID_HIGH &&
+-	    (chip_minor != CHIP_ID_LOW || chip_minor != CHIP_ID_LOW2))
++	if (chip_major != CHIP_ID_HIGH ||
++	    (chip_minor != CHIP_ID_LOW && chip_minor != CHIP_ID_LOW2)) {
++		nvt_pr(KERN_ERR, "%s: chip id mismatch: 0x%02x 0x%02x",
++		       chip_id, chip_major, chip_minor);
+ 		ret = -ENODEV;
++	}
+ 
+ 	nvt_efm_disable(nvt);
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.2.2
