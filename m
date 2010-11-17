@@ -1,32 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from hqemgate04.nvidia.com ([216.228.121.35]:1356 "EHLO
-	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757536Ab0KPBK7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Nov 2010 20:10:59 -0500
-From: Andrew Chew <AChew@nvidia.com>
-To: "'linux-media@vger.kernel.org'" <linux-media@vger.kernel.org>
-Date: Mon, 15 Nov 2010 17:10:39 -0800
-Subject: Allocating videobuf_buffer, but lists not being initialized
-Message-ID: <643E69AA4436674C8F39DCC2C05F763816BB828A37@HQMAIL03.nvidia.com>
-References: <643E69AA4436674C8F39DCC2C05F763816BB828A36@HQMAIL03.nvidia.com>
-In-Reply-To: <643E69AA4436674C8F39DCC2C05F763816BB828A36@HQMAIL03.nvidia.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from smtp.nokia.com ([147.243.128.26]:48236 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933839Ab0KQOc0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Nov 2010 09:32:26 -0500
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+To: mchehab@redhat.com, hverkuil@xs4all.nl, sameo@linux.intel.com,
+	linux-media@vger.kernel.org
+Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: [PATCH v16 0/2] *** SUBJECT HERE ***
+Date: Wed, 17 Nov 2010 15:41:59 +0200
+Message-Id: <1290001321-6732-1-git-send-email-matti.j.aaltonen@nokia.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-I'm looking at drivers/media/video/videobuf-dma-contig.c's __videobuf_alloc() routine.  We call kzalloc() to allocate the videobuf_buffer.  However, I don't see where the two lists (vb->stream and vb->queue) that are a part of struct videobuf_buffer get initialized (with, say, INIT_LIST_HEAD).
+Hello all,
 
-This results in a warning in the V4L2 camera host driver that I'm developing when the buf_prepare method gets called.  I do a similar sanity check to the sh_mobile_ceu_camera driver (WARN_ON(!list->empty(&vb->queue));) in my buf_prepare method, and see the warning.  If I add INIT_LIST_HEAD to __videobuf_alloc(), this warning goes away.
+This the sixteenth version of the patch set.
 
-Is this a known bug?
+On Tue, 2010-11-16 at 12:19 -0200, ext Mauro Carvalho Chehab wrote:
+> 
+> The proper way is to add the core stuff to drivers/media/radio, adding just
+> the mfd glue at drivers/mfd.
 
------------------------------------------------------------------------------------
-This email message is for the sole use of the intended recipient(s) and may contain
-confidential information.  Any unauthorized review, use, disclosure or distribution
-is prohibited.  If you are not the intended recipient, please contact the sender by
-reply email and destroy all copies of the original message.
------------------------------------------------------------------------------------
+Now I've moved basically all of the stuff to the drivers/media/radio...
+
+> I also want mfd's maintainer ack of the mfd patch.
+
+Sending this also to Samuel Ortiz...
+
+Cheers,
+Matti
+
+Matti J. Aaltonen (2):
+  MFD: WL1273 FM Radio: MFD driver for the FM radio.
+  V4L2: WL1273 FM Radio: TI WL1273 FM radio driver
+
+ drivers/media/radio/Kconfig        |   16 +
+ drivers/media/radio/Makefile       |    1 +
+ drivers/media/radio/radio-wl1273.c | 2347 ++++++++++++++++++++++++++++++++++++
+ drivers/mfd/Kconfig                |    6 +
+ drivers/mfd/Makefile               |    1 +
+ drivers/mfd/wl1273-core.c          |  154 +++
+ include/linux/mfd/wl1273-core.h    |  298 +++++
+ 7 files changed, 2823 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/radio/radio-wl1273.c
+ create mode 100644 drivers/mfd/wl1273-core.c
+ create mode 100644 include/linux/mfd/wl1273-core.h
+
