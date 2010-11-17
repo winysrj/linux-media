@@ -1,40 +1,35 @@
 Return-path: <mchehab@pedra>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36744 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757075Ab0KOOaC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Nov 2010 09:30:02 -0500
-From: Sergio Aguirre <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
-Subject: [omap3isp][PATCH v2 4/9] omap3: Remove unusued CBUFF resource
-Date: Mon, 15 Nov 2010 08:29:56 -0600
-Message-Id: <1289831401-593-5-git-send-email-saaguirre@ti.com>
-In-Reply-To: <1289831401-593-1-git-send-email-saaguirre@ti.com>
-References: <1289831401-593-1-git-send-email-saaguirre@ti.com>
+Received: from [120.204.251.227] ([120.204.251.227]:31289 "EHLO
+	LC-SHMAIL-01.SHANGHAI.LEADCORETECH.COM" rhost-flags-FAIL-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754186Ab0KQBLw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Nov 2010 20:11:52 -0500
+Message-ID: <4CE32B9D.1020705@leadcoretech.com>
+Date: Wed, 17 Nov 2010 09:10:53 +0800
+From: "Figo.zhang" <zhangtianfei@leadcoretech.com>
+MIME-Version: 1.0
+To: achew@nvidia.com
+CC: hverkuil@xs4all.nl, pawel@osciak.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/1] videobuf: Initialize lists in videobuf_buffer.
+References: <1289939083-27209-1-git-send-email-achew@nvidia.com>
+In-Reply-To: <1289939083-27209-1-git-send-email-achew@nvidia.com>
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
----
- arch/arm/mach-omap2/devices.c |    5 -----
- 1 files changed, 0 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index c9fc732..897ce82 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -67,11 +67,6 @@ static struct resource omap3isp_resources[] = {
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
--		.start		= OMAP3430_ISP_CBUFF_BASE,
--		.end		= OMAP3430_ISP_CBUFF_END,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
- 		.start		= OMAP3430_ISP_CCP2_BASE,
- 		.end		= OMAP3430_ISP_CCP2_END,
- 		.flags		= IORESOURCE_MEM,
--- 
-1.7.0.4
+> 
+> diff --git a/drivers/media/video/videobuf-dma-contig.c b/drivers/media/video/videobuf-dma-contig.c
+> index c969111..f7e0f86 100644
+> --- a/drivers/media/video/videobuf-dma-contig.c
+> +++ b/drivers/media/video/videobuf-dma-contig.c
+> @@ -193,6 +193,8 @@ static struct videobuf_buffer *__videobuf_alloc_vb(size_t size)
+>   	if (vb) {
+>   		mem = vb->priv = ((char *)vb) + size;
+>   		mem->magic = MAGIC_DC_MEM;
+> +		INIT_LIST_HEAD(&vb->stream);
+> +		INIT_LIST_HEAD(&vb->queue);
 
+i think it no need to be init, it just a list-entry.
