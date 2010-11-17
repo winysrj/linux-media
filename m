@@ -1,39 +1,95 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:56721 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753258Ab0J3KkW (ORCPT
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1945 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752799Ab0KQHNx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Oct 2010 06:40:22 -0400
-Received: by vws13 with SMTP id 13so1067915vws.19
-        for <linux-media@vger.kernel.org>; Sat, 30 Oct 2010 03:40:21 -0700 (PDT)
+	Wed, 17 Nov 2010 02:13:53 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: achew@nvidia.com
+Subject: Re: [PATCH 1/1] videobuf: Initialize lists in videobuf_buffer.
+Date: Wed, 17 Nov 2010 08:13:43 +0100
+Cc: zhangtianfei@leadcoretech.com, pawel@osciak.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <1289939083-27209-1-git-send-email-achew@nvidia.com>
+In-Reply-To: <1289939083-27209-1-git-send-email-achew@nvidia.com>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTik8__Q9au8u3fxsRr3cNdpjXZqmra9ohKTpSR+k@mail.gmail.com>
-References: <AANLkTik8__Q9au8u3fxsRr3cNdpjXZqmra9ohKTpSR+k@mail.gmail.com>
-Date: Sat, 30 Oct 2010 13:40:20 +0300
-Message-ID: <AANLkTimFimU5FiAmmTqsaJOhqUQAjSGkbPe1XJTtCGhe@mail.gmail.com>
-Subject: Re: Webcam driver not working: drivers/media/video/gspca/ov519.c
- device 05a9:4519
-From: Anca Emanuel <anca.emanuel@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: moinejf@free.fr, mchehab@infradead.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201011170813.43236.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Fri, Oct 29, 2010 at 3:12 PM, Anca Emanuel <anca.emanuel@gmail.com> wrote:
-> Hi all, sorry for the noise, but in current mainline (2.6.36-git12)
-> there are some updates in ov519.c
-> I'm running this kernel now and my camera is still not working (tested
-> in windows and it works).
->
-> lsusb:
-> Bus 008 Device 002: ID 05a9:4519 OmniVision Technologies, Inc. Webcam Classic
+On Tuesday, November 16, 2010 21:24:43 achew@nvidia.com wrote:
+> From: Andrew Chew <achew@nvidia.com>
+> 
+> There are two struct list_head's in struct videobuf_buffer.
+> Prior to this fix, all we did for initialization of struct videobuf_buffer
+> was to zero out its memory.  This does not properly initialize this struct's
+> two list_head members.
+> 
+> This patch immediately calls INIT_LIST_HEAD on both lists after the kzalloc,
+> so that the two lists are initialized properly.
 
-found this: http://www.rastageeks.org/ov51x-jpeg/index.php/Ov51xJpegHackedSource
-and this: http://packages.ubuntu.com/maverick/ov51x-jpeg-source
+Rather than doing this for all videobuf variants I would suggest that you
+do this in videobuf-core.c, videobuf_alloc_vb().
 
-but I get an error when I try to compile:
-ov51x-jpeg-core.c:87: fatal error: linux/autoconf.h: No such file or directory
-compilation terminated.
+Regards,
 
-(please CC)
+	Hans
+
+> 
+> Signed-off-by: Andrew Chew <achew@nvidia.com>
+> ---
+> I thought I'd submit a patch for this anyway.  Without this, the existing
+> camera host drivers will spew an ugly warning on every videobuf allocation,
+> which gets annoying really fast.
+> 
+>  drivers/media/video/videobuf-dma-contig.c |    2 ++
+>  drivers/media/video/videobuf-dma-sg.c     |    2 ++
+>  drivers/media/video/videobuf-vmalloc.c    |    2 ++
+>  3 files changed, 6 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/videobuf-dma-contig.c b/drivers/media/video/videobuf-dma-contig.c
+> index c969111..f7e0f86 100644
+> --- a/drivers/media/video/videobuf-dma-contig.c
+> +++ b/drivers/media/video/videobuf-dma-contig.c
+> @@ -193,6 +193,8 @@ static struct videobuf_buffer *__videobuf_alloc_vb(size_t size)
+>  	if (vb) {
+>  		mem = vb->priv = ((char *)vb) + size;
+>  		mem->magic = MAGIC_DC_MEM;
+> +		INIT_LIST_HEAD(&vb->stream);
+> +		INIT_LIST_HEAD(&vb->queue);
+>  	}
+>  
+>  	return vb;
+> diff --git a/drivers/media/video/videobuf-dma-sg.c b/drivers/media/video/videobuf-dma-sg.c
+> index 20f227e..5af3217 100644
+> --- a/drivers/media/video/videobuf-dma-sg.c
+> +++ b/drivers/media/video/videobuf-dma-sg.c
+> @@ -430,6 +430,8 @@ static struct videobuf_buffer *__videobuf_alloc_vb(size_t size)
+>  
+>  	mem = vb->priv = ((char *)vb) + size;
+>  	mem->magic = MAGIC_SG_MEM;
+> +	INIT_LIST_HEAD(&vb->stream);
+> +	INIT_LIST_HEAD(&vb->queue);
+>  
+>  	videobuf_dma_init(&mem->dma);
+>  
+> diff --git a/drivers/media/video/videobuf-vmalloc.c b/drivers/media/video/videobuf-vmalloc.c
+> index df14258..8babedd 100644
+> --- a/drivers/media/video/videobuf-vmalloc.c
+> +++ b/drivers/media/video/videobuf-vmalloc.c
+> @@ -146,6 +146,8 @@ static struct videobuf_buffer *__videobuf_alloc_vb(size_t size)
+>  
+>  	mem = vb->priv = ((char *)vb) + size;
+>  	mem->magic = MAGIC_VMAL_MEM;
+> +	INIT_LIST_HEAD(&vb->stream);
+> +	INIT_LIST_HEAD(&vb->queue);
+>  
+>  	dprintk(1, "%s: allocated at %p(%ld+%ld) & %p(%ld)\n",
+>  		__func__, vb, (long)sizeof(*vb), (long)size - sizeof(*vb),
+> 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
