@@ -1,49 +1,72 @@
-Return-path: <mchehab@gaivota>
-Received: from devils.ext.ti.com ([198.47.26.153]:52312 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757149Ab0KSXYA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 18:24:00 -0500
-From: Sergio Aguirre <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
-Subject: [omap3isp RFC][PATCH 0/4] Improve inter subdev interaction
-Date: Fri, 19 Nov 2010 17:23:47 -0600
-Message-Id: <1290209031-12817-1-git-send-email-saaguirre@ti.com>
+Return-path: <mchehab@pedra>
+Received: from mailout-de.gmx.net ([213.165.64.22]:37488 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1759779Ab0KQHJK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Nov 2010 02:09:10 -0500
+Date: Wed, 17 Nov 2010 08:09:09 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Baruch Siach <baruch@tkos.co.il>
+cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] =?utf-8?b?bXgyX2NhbWVyYTo=?= fix pixel clock polarity
+ configuration
+In-Reply-To: <loom.20101110T152629-530@post.gmane.org>
+Message-ID: <Pine.LNX.4.64.1011170805280.25275@axis700.grange>
+References: <a54ec7e539912fd6009803cffa331b028fdb9a67.1288162873.git.baruch@tkos.co.il>
+ <Pine.LNX.4.64.1010272336290.13615@axis700.grange> <loom.20101110T152629-530@post.gmane.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi,
+On Wed, 10 Nov 2010, Baruch Siach wrote:
 
-These are some patches to make these operations more generic:
-- Clock control is being controlled in a very crude manner by
-  subdevices, it should be centralized in isp.c.
-- LSC prefetch wait check is reading a main ISP register, so move
-  it to isp.c
-- Abstract SBL busy check: we don't want a submodule thinkering
-  with main ISP registers. That should be done in the main isp.c
+> Guennadi Liakhovetski <g.liakhovetski <at> gmx.de> writes:
+> 
+> > On Wed, 27 Oct 2010, Baruch Siach wrote:
+> > > When SOCAM_PCLK_SAMPLE_FALLING, just leave CSICR1_REDGE unset, 
+> > > otherwise we get
+> > > the inverted behaviour.
+> > Seems logical to me, that if this is true, then you need the inverse:
+> > 
+> > 	if (!(common_flags & SOCAM_PCLK_SAMPLE_FALLING))
+> > 		csicr1 |= CSICR1_INV_PCLK;
+> 
+> No. Doing so you'll get the inverted behaviour of SAMPLE_RISING. When
+> common_flags have SAMPLE_RISING set and SAMPLE_FALLING unset you get
+> CSICR1_REDGE set, which triggers on the rising edge, and then also
+> CSICR1_INV_PCLK set, which invert this. Thus you get the expected 
+> behaviour of SAMPLE_FALLING.
+> 
+> Currently you get the inverted behaviour only for SAMPLE_FALLING.
+> 
+> IMO, we should just use CSICR1_REDGE to set the sample timing, and leave
+> CSICR1_INV_PCLK alone.
 
-Also, remove main ISP register dump from CSI2 specific dump. We
-should be using isp_print_status if we'll like to know main ISP
-regdump.
+Ah, right, of course, I've overlooked that CSICR1_REDGE flag. Then yes, 
+your patch makes sense and should go in for 2.6.37.
 
-Comments are welcome. More cleanups for better subdevice isolation
-are on the way.
+Thanks
+Guennadi
 
-Regards,
-Sergio
+> 
+> baruch
+> 
+> > >  	if (common_flags & SOCAM_PCLK_SAMPLE_RISING)
+> > >  		csicr1 |= CSICR1_REDGE;
+> > > -	if (common_flags & SOCAM_PCLK_SAMPLE_FALLING)
+> > > -		csicr1 |= CSICR1_INV_PCLK;
+> > >  	if (common_flags & SOCAM_VSYNC_ACTIVE_HIGH)
+> > >  		csicr1 |= CSICR1_SOF_POL;
+> > >  	if (common_flags & SOCAM_HSYNC_ACTIVE_HIGH)
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Sergio Aguirre (4):
-  omap3isp: Abstract isp subdevs clock control
-  omap3isp: Move CCDC LSC prefetch wait to main isp code
-  omap3isp: sbl: Abstract SBL busy check
-  omap3isp: csi2: Don't dump ISP main registers
-
- drivers/media/video/isp/isp.c        |   95 ++++++++++++++++++++++++++++++++++
- drivers/media/video/isp/isp.h        |   16 ++++++
- drivers/media/video/isp/ispccdc.c    |   42 ++-------------
- drivers/media/video/isp/ispcsi2.c    |    7 ---
- drivers/media/video/isp/isppreview.c |    6 +--
- drivers/media/video/isp/ispresizer.c |    6 +--
- 6 files changed, 119 insertions(+), 53 deletions(-)
-
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
