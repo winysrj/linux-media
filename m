@@ -1,42 +1,80 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.gentoo.org ([140.211.166.183]:53445 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756592Ab0KJTp2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Nov 2010 14:45:28 -0500
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org
-Subject: Re: IX2505V: i2c transfer error code ignored
-Date: Wed, 10 Nov 2010 20:42:22 +0100
-Cc: Malcolm Priestley <tvboxspy@gmail.com>
-References: <201011071457.14929.zzam@gentoo.org> <1289155850.4638.7.camel@tvboxspy>
-In-Reply-To: <1289155850.4638.7.camel@tvboxspy>
+Received: from [120.204.251.227] ([120.204.251.227]:34817 "EHLO
+	LC-SHMAIL-01.SHANGHAI.LEADCORETECH.COM" rhost-flags-FAIL-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S933571Ab0KQBZA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Nov 2010 20:25:00 -0500
+Message-ID: <4CE32EB1.7090002@leadcoretech.com>
+Date: Wed, 17 Nov 2010 09:24:01 +0800
+From: "Figo.zhang" <zhangtianfei@leadcoretech.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011102042.22556.zzam@gentoo.org>
+To: manjunatha_halli@ti.com
+CC: mchehab@infradead.org, hverkuil@xs4all.nl,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v4 2/6] drivers:staging: ti-st: fmdrv_v4l2 sources
+References: <1289913494-21590-1-git-send-email-manjunatha_halli@ti.com> <1289913494-21590-2-git-send-email-manjunatha_halli@ti.com> <1289913494-21590-3-git-send-email-manjunatha_halli@ti.com>
+In-Reply-To: <1289913494-21590-3-git-send-email-manjunatha_halli@ti.com>
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sunday 07 November 2010, Malcolm Priestley wrote:
-> On Sun, 2010-11-07 at 14:57 +0100, Matthias Schwarzott wrote:
-> > Hello Malcolm!
-> > 
-> > It seems that ix2505v driver ignores a i2c error in
-> > ix2505v_read_status_reg. This looks like a typing error using (ret = 1)
-> > instead of correct (ret == 1).
-> > 
-> > The attached patch fixes this.
+ÓÚ 11/16/2010 09:18 PM, manjunatha_halli@ti.com Ð´µÀ:
+> From: Manjunatha Halli<manjunatha_halli@ti.com>
 > 
-> Hi Matthias,
+> This module interfaces V4L2 subsystem and FM common
+> module. It registers itself with V4L2 as Radio module.
 > 
-> Thanks for picking that up.
+> Signed-off-by: Manjunatha Halli<manjunatha_halli@ti.com>
+> ---
+>   drivers/staging/ti-st/fmdrv_v4l2.c |  757 ++++++++++++++++++++++++++++++++++++
+>   drivers/staging/ti-st/fmdrv_v4l2.h |   32 ++
+>   2 files changed, 789 insertions(+), 0 deletions(-)
+>   create mode 100644 drivers/staging/ti-st/fmdrv_v4l2.c
+>   create mode 100644 drivers/staging/ti-st/fmdrv_v4l2.h
 > 
-> Acked-by: Malcolm Priestley <tvboxspy@gmail.com>
-> 
+> diff --git a/drivers/staging/ti-st/fmdrv_v4l2.c b/drivers/staging/ti-st/fmdrv_v4l2.c
+> new file mode 100644
+> index 0000000..687d10f
+> --- /dev/null
+> +++ b/drivers/staging/ti-st/fmdrv_v4l2.c
+> @@ -0,0 +1,757 @@
+> +/*
+> + *  FM Driver for Connectivity chip of Texas Instruments.
+> + *  This file provides interfaces to V4L2 subsystem.
+> + *
+> + *  This module registers with V4L2 subsystem as Radio
+> + *  data system interface (/dev/radio). During the registration,
+> + *  it will expose two set of function pointers.
+> + *
+> + *    1) File operation related API (open, close, read, write, poll...etc).
+> + *    2) Set of V4L2 IOCTL complaint API.
+> + *
+> + *  Copyright (C) 2010 Texas Instruments
+> + *  Author: Raja Mani<raja_mani@ti.com>
+> + *
+> + *  This program is free software; you can redistribute it and/or modify
+> + *  it under the terms of the GNU General Public License version 2 as
+> + *  published by the Free Software Foundation.
+> + *
+> + *  This program is distributed in the hope that it will be useful,
+> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *  GNU General Public License for more details.
+> + *
+> + *  You should have received a copy of the GNU General Public License
+> + *  along with this program; if not, write to the Free Software
+> + *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+> + *
+> + */
+> +
+> +#include "fmdrv.h"
+> +#include "fmdrv_v4l2.h"
+> +#include "fmdrv_common.h"
+> +#include "fmdrv_rx.h"
+> +#include "fmdrv_tx.h"
+> +
+> +static struct video_device *gradio_dev;
 
-I forgot the SOB, so here it is:
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+why are you using global variable here?
 
-Regards
-Matthias
