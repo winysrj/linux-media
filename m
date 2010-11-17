@@ -1,80 +1,40 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47268 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754065Ab0KQKsV (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:43833 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750813Ab0KQFMt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Nov 2010 05:48:21 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Jonathan Corbet <corbet@lwn.net>
-Subject: Re: An article on the media controller
-Date: Wed, 17 Nov 2010 11:48:20 +0100
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <20101116151802.0ccdcd53@bike.lwn.net>
-In-Reply-To: <20101116151802.0ccdcd53@bike.lwn.net>
+	Wed, 17 Nov 2010 00:12:49 -0500
+Date: Wed, 17 Nov 2010 08:12:23 +0300
+From: Dan Carpenter <error27@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Jarod Wilson <jarod@redhat.com>,
+	Zimny Lech <napohybelskurwysynom2010@gmail.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch 1/3] [media] lirc_dev: stray unlock in lirc_dev_fop_poll()
+Message-ID: <20101117051223.GD31724@bicker>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011171148.21188.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Jonathan,
+We shouldn't unlock here.  I think this was a cut and paste error.
 
-On Tuesday 16 November 2010 23:18:02 Jonathan Corbet wrote:
-> I've just spent a fair while looking through the September posting of
-> the media controller code (is there a more recent version?).  The
-> result is a high-level review which interested people can read here:
-> 
-> 	http://lwn.net/SubscriberLink/415714/1e837f01b8579eb7/
+Signed-off-by: Dan Carpenter <error27@gmail.com>
 
-Thanks a lot for the article.
-
-> Most people will not see it for another 24 hours or so; if there's
-> something I got radically wrong, I'd appreciate hearing about it.
-
-Here are a few comments:
-
-- Second paragraph: s/lens distortion/lens shading/
-
-- Fifth paragraph: entities can have no bad if no data flows in or out of them 
-(think of a flash controller for instance,  it needs to be configured, 
-associated with a sensor, but is not involved in any media data flow). The 
-pads represent connection points for data flows (usually media data), not for 
-software configuration.
-
-- Tenth paragraph: there's no end-user application available at the moment, 
-but we already have a command line test application 
-(http://git.ideasonboard.org/?p=media-ctl.git;a=summary) and a GStreamer 
-element (called subdevsrc, available from http://meego.gitorious.org/maemo-
-multimedia/gst-nokia-videosrc).
-
-> The executive summary is that I think this code really needs some
-> exposure outside of the V4L2 list; I'd encourage posting it to
-> linux-kernel.  That could be hard on plans for a 2.6.38 merge (or, at
-> least, plans for any spare time between now and then), but the end
-> result might be better for everybody.
-
-I agree that the more developers who will look at the code, the more ideas we 
-will get. That might get difficult to manage though :-) I'll cross-post the 
-next version of the patches.
-
-Regarding sysfs, I won't repeat Hans' and Andy's arguments, but I don't think 
-it would be a very good match. The API would get much more difficult to use 
-and would require lany times more system calls. While the media controller 
-solves a problem that can appear similar to our current power management and 
-clock routing issues, I'm not sure a common API would make sense. That would 
-be like arguing that DirectShow should be used for hard disk power management 
-in Windows :-)
-
-> I have some low-level comments too which were not suitable for the
-> article.  I'll be posting them here, but I have to get some other
-> things done first.
-
-Thank you in advance for the review.
-
--- 
-Best regards,
-
-Laurent Pinchart
+diff --git a/drivers/media/IR/lirc_dev.c b/drivers/media/IR/lirc_dev.c
+index 8418b14..8ab9d87 100644
+--- a/drivers/media/IR/lirc_dev.c
++++ b/drivers/media/IR/lirc_dev.c
+@@ -522,10 +522,8 @@ unsigned int lirc_dev_fop_poll(struct file *file, poll_table *wait)
+ 
+ 	dev_dbg(ir->d.dev, LOGHEAD "poll called\n", ir->d.name, ir->d.minor);
+ 
+-	if (!ir->attached) {
+-		mutex_unlock(&ir->irctl_lock);
++	if (!ir->attached)
+ 		return POLLERR;
+-	}
+ 
+ 	poll_wait(file, &ir->buf->wait_poll, wait);
+ 
