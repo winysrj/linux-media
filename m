@@ -1,77 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:44910 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756780Ab0KKNyh (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:34865 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750743Ab0KQXR1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Nov 2010 08:54:37 -0500
-Message-ID: <4CDBF596.6030206@infradead.org>
-Date: Thu, 11 Nov 2010 11:54:30 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Wed, 17 Nov 2010 18:17:27 -0500
+Received: by eye27 with SMTP id 27so1659691eye.19
+        for <linux-media@vger.kernel.org>; Wed, 17 Nov 2010 15:17:26 -0800 (PST)
+Message-ID: <4CE46281.2010308@brooks.nu>
+Date: Wed, 17 Nov 2010 16:17:21 -0700
+From: Lane Brooks <lane@brooks.nu>
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
-CC: Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/6] rc-core: ir-core to rc-core conversion
-References: <20101102201733.12010.30019.stgit@localhost.localdomain> <AANLkTi=z2yU568sEs0RNuQ6gZUzJQeHajTZ_0LeXS-2D@mail.gmail.com> <4CD9FA59.9020702@infradead.org> <33c8487ce0141587f695d9719289467e@hardeman.nu> <4CDA94C6.2010506@infradead.org> <0bda4af059880eb492d921728997958c@hardeman.nu> <4CDAC730.4060303@infradead.org> <20101110220115.GA7302@hardeman.nu>
-In-Reply-To: <20101110220115.GA7302@hardeman.nu>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Translation faults with OMAP ISP
+References: <4CE16AA2.3000208@brooks.nu> <201011160001.10737.laurent.pinchart@ideasonboard.com> <4CE317D3.2020504@brooks.nu> <201011180009.31053.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201011180009.31053.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 10-11-2010 20:01, David Härdeman escreveu:
-> On Wed, Nov 10, 2010 at 02:24:16PM -0200, Mauro Carvalho Chehab wrote:
->> Em 10-11-2010 11:06, David Härdeman escreveu:
->>> On Wed, 10 Nov 2010 10:49:10 -0200, Mauro Carvalho Chehab
->>> <mchehab@infradead.org> wrote:
+On 11/17/2010 04:09 PM, Laurent Pinchart wrote:
+> Hi Lane,
+>
+> On Wednesday 17 November 2010 00:46:27 Lane Brooks wrote:
+>> Laurent,
 >>
->>>> So, I'll try to merge the pending patches from your tree. I'll let you
->>>> know if I have any problems.
->>>
->>> Sounds good. Thanks.
+>> I am getting iommu translation errors when I try to use the CCDC output
+>> after using the Resizer output.
 >>
->> David/Jarod,
+>> If I use the CCDC output to stream some video, then close it down,
+>> switch to the Resizer output and open it up and try to stream, I get the
+>> following errors spewing out:
 >>
->> I pushed the merged patches at the tmp_rc tree:
+>> omap-iommu omap-iommu.0: omap2_iommu_fault_isr: da:00d0ef00 translation
+>> fault
+>> omap-iommu omap-iommu.0: iommu_fault_handler: da:00d0ef00 pgd:ce664034
+>> *pgd:00000000
 >>
->> 	http://git.linuxtv.org/mchehab/tmp_rc.git
+>> and the select times out.
 >>
->> Please test and give me some feedback. It ended that the rc function renaming patch
->> (6/7) broke both mceusb (due to TX changes) and cx231xx-input (a new driver from me,
->> for some devices that uses a crappy i2c uP, instead of the excellent in-cx231xx
->> IR support).
+>>   From a fresh boot, I can stream just fine from the Resizer and then
+>> switch to the CCDC output just fine. It is only when I go from the CCDC
+>> to the Resizer that I get this problem. Furthermore, when it gets into
+>> this state, then anything dev node I try to use has the translation
+>> errors and the only way to recover is to reboot.
 >>
->> I did no tests at all, except for compilation. So, I need your feedback
->> if the patches didn't actually break anything.
-> 
-> So far I've noticed that this patch:
-> [media] rc-core: convert winbond-cir
-> 
-> removed the old winbond-cir.c file but doesn't add one in the
-> drivers/media/rc/ directory.
-> 
-Weird... it seems that i forgot to add the new file on my tree. I think I know why...
-there are two files from kernel tree that got deleted during the build time. So, I had
-to manually revert and re-do the commit. I suspect that there's something bad with
-those two files at -rc1...
+>> Any ideas on the problem?
+> Ouch. First of all, could you please make sure you run the latest code ? Many
+> bugs have been fixed in the last few months
 
-Anyway, my rebase to the patch that created the rc_register_device() functions
-were not ok, as it broke cx231xx-input (a new IR driver added before your series).
-While debugging the reason, I discovered some problems at the original patch. I just
-sent an update for it.
+I had a pretty good idea that this would be your response, but I was 
+hoping otherwise as merging has become more and more difficult to keep 
+up with. Anyway, until I have a chance to merge in everything, I just 
+found a work around for our usage needs, and that is to always use the 
+resizer output and just change the resizer format between full 
+resolution and preview resolution. This has turned out to be much more 
+stable than switching between the CCDC and RESIZER dev nodes.
 
-The bad news is that ir-kbd-i2c also needs the stuff that are inside ir.props (e. g.,
-the IR configuration logic). I wrote and just sent 2 patches to the ML with the fix
-patches, against my media-tree.git, branch staging/for_v2.6.38. For now, only one field
-of props is used, but other fields there are likely needed for the other places
-where this driver is used, like the open/close callbacks, allowed_protocols, etc.
+Thanks again for your feedback.
 
-I don't like the idea of just copying all those config stuff into struct IR_i2c, and
-then at struct rc_dev, and then at struct input_dev. It is too much data duplication
-for no good reason.
-
-So, I think we should re-think about your patch 6/7.
-
-Comments?
-Mauro
-
-
+Lane
