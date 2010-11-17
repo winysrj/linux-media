@@ -1,80 +1,44 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:53656 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754257Ab0KFAlI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Nov 2010 20:41:08 -0400
-Received: by bwz11 with SMTP id 11so3222610bwz.19
-        for <linux-media@vger.kernel.org>; Fri, 05 Nov 2010 17:41:06 -0700 (PDT)
+Return-path: <mchehab@pedra>
+Received: from [120.204.251.227] ([120.204.251.227]:40193 "EHLO
+	LC-SHMAIL-01.SHANGHAI.LEADCORETECH.COM" rhost-flags-FAIL-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S933241Ab0KQBkk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Nov 2010 20:40:40 -0500
+Message-ID: <4CE3325E.6030008@leadcoretech.com>
+Date: Wed, 17 Nov 2010 09:39:42 +0800
+From: "Figo.zhang" <zhangtianfei@leadcoretech.com>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTimpXwWGJfXRa=_38SKbKyfu_6sEME=in7YESV8x@mail.gmail.com>
-References: <AANLkTimpXwWGJfXRa=_38SKbKyfu_6sEME=in7YESV8x@mail.gmail.com>
-Date: Sat, 6 Nov 2010 01:41:04 +0100
-Message-ID: <AANLkTi=BEfin74WWmqppLZ945dcdxH3NYnOBoCkpPb3B@mail.gmail.com>
-Subject: Re: Tevii S470 on Debian Squeeze
-From: Josu Lazkano <josu.lazkano@gmail.com>
-To: linux-media@vger.kernel.org,
-	Discussion about mythtv <mythtv-users@mythtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Andrew Chew <AChew@nvidia.com>
+CC: "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"pawel@osciak.com" <pawel@osciak.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 1/1] videobuf: Initialize lists in videobuf_buffer.
+References: <1289939083-27209-1-git-send-email-achew@nvidia.com> <4CE32B9D.1020705@leadcoretech.com> <643E69AA4436674C8F39DCC2C05F763816BB828A40@HQMAIL03.nvidia.com>
+In-Reply-To: <643E69AA4436674C8F39DCC2C05F763816BB828A40@HQMAIL03.nvidia.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Thanks to Pedro i make it working, it works this way:
+äºŽ 11/17/2010 09:38 AM, Andrew Chew å†™é“:
+>>> diff --git a/drivers/media/video/videobuf-dma-contig.c
+>> b/drivers/media/video/videobuf-dma-contig.c
+>>> index c969111..f7e0f86 100644
+>>> --- a/drivers/media/video/videobuf-dma-contig.c
+>>> +++ b/drivers/media/video/videobuf-dma-contig.c
+>>> @@ -193,6 +193,8 @@ static struct videobuf_buffer
+>> *__videobuf_alloc_vb(size_t size)
+>>>    	if (vb) {
+>>>    		mem = vb->priv = ((char *)vb) + size;
+>>>    		mem->magic = MAGIC_DC_MEM;
+>>> +		INIT_LIST_HEAD(&vb->stream);
+>>> +		INIT_LIST_HEAD(&vb->queue);
+>>
+>> i think it no need to be init, it just a list-entry.
+>
+> Okay, if that's really the case, then sh_mobile_ceu_camera.c, pxa_camera.c, mx1_camera.c, mx2_camera.c, and omap1_camera.c needs to be fixed to remove that WARN_ON(!list_empty(&vb->queue)); in their videobuf_prepare() methods, because those WARN_ON's are assuming that vb->queue is properly initialized as a list head.
+>
+> Which will it be?
 
-mkdir /usr/local/src/dvb
-cd /usr/local/src/dvb
-wget http://tevii.com/100315_Beta_linux_tevii_ds3000.rar
-unrar x 100315_Beta_linux_tevii_ds3000.rar
-cp *.fw /lib/firmware
-tar xjvf linux-tevii-ds3000.tar.bz2
-cd linux-tevii-ds3000
-make && make install
-
-I have the adapter, but I can't use the remote and can't compile SASC.
-
-I want to try the liplianin drivers. Is there any way to get ir
-working on this card?
-
-Thanks and best regards.
-
-2010/11/4 Josu Lazkano <josu.lazkano@gmail.com>:
-> Hello, I am having some problems to get working my Tevii S470 DVB-S2 PCIe card.
->
-> I am using a Debian Squeeze (2.6.32-5-686) system on a Intel Atom 330
-> (Nvidia ION) machine. I read the LinuxTV wiki:
-> http://www.linuxtv.org/wiki/index.php/TeVii_S470#Older_kernels
->
-> These are my steps:
->
-> 1. Donwloas the Tevii driver:
->  wget -c http://tevii.com/tevii_ds3000.tar.gz
->  tar zxfv tevii_ds3000.tar.gz
->  su
->  cp tevii_ds3000/dvb-fe-ds3000.fw /lib/firmware/
->
-> 2. Download s2-liplianin:
->  hg clone http://mercurial.intuxication.org/hg/s2-liplianin
->
-> 3. When I run make I have some warnings and errors: (all the log from
-> make: http://dl.dropbox.com/u/1541853/tevii/s2-liplianin_make)
->  make[5]: *** [/home/lazkano/s2-liplianin/v4l/ir-sysfs.o] Error 1
->  make[4]: *** [_module_/home/lazkano/s2-liplianin/v4l] Error 2
->
-> This is my card info:
->  $ lspci | grep CX23885
->  05:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885
-> PCI Video and Audio Decoder (rev 02)
->
-> Can you help with this?
->
-> Thanks for all your help and best regards
->
->
-> --
-> Josu Lazkano
->
-
-
-
--- 
-Josu Lazkano
+yes, i think those WARN_ONs are no need.
