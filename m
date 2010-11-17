@@ -1,204 +1,2386 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:26703 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758443Ab0KPT7b (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Nov 2010 14:59:31 -0500
-Subject: Re: [RFC PATCH 0/8] V4L BKL removal: first round
-From: Andy Walls <awalls@md.metrocast.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201011161938.11476.hverkuil@xs4all.nl>
-References: <cover.1289740431.git.hverkuil@xs4all.nl>
-	 <201011161701.36982.arnd@arndb.de> <201011161749.05844.hverkuil@xs4all.nl>
-	 <201011161938.11476.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 16 Nov 2010 14:59:41 -0500
-Message-ID: <1289937581.2104.29.camel@morgan.silverblock.net>
+Received: from mx1.redhat.com ([209.132.183.28]:30360 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934924Ab0KQTQS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Nov 2010 14:16:18 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oAHJGI2r014805
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 17 Nov 2010 14:16:18 -0500
+Received: from pedra (vpn-230-120.phx2.redhat.com [10.3.230.120])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id oAHJC5xL007699
+	for <linux-media@vger.kernel.org>; Wed, 17 Nov 2010 14:15:36 -0500
+Date: Wed, 17 Nov 2010 17:08:31 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 08/10] [media] rc: Name RC keymap tables as rc_map_table
+Message-ID: <20101117170831.24272f91@pedra>
+In-Reply-To: <cover.1290020731.git.mchehab@redhat.com>
+References: <cover.1290020731.git.mchehab@redhat.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 2010-11-16 at 19:38 +0100, Hans Verkuil wrote:
-> On Tuesday, November 16, 2010 17:49:05 Hans Verkuil wrote:
-> > On Tuesday, November 16, 2010 17:01:36 Arnd Bergmann wrote:
-> > > On Tuesday 16 November 2010, Hans Verkuil wrote:
-> > > > > I think there is a misunderstanding. One V4L device (e.g. a TV capture
-> > > > > card, a webcam, etc.) has one v4l2_device struct. But it can have multiple
-> > > > > V4L device nodes (/dev/video0, /dev/radio0, etc.), each represented by a
-> > > > > struct video_device (and I really hope I can rename that to v4l2_devnode
-> > > > > soon since that's a very confusing name).
-> > > > >
-> > > > > You typically need to serialize between all the device nodes belonging to
-> > > > > the same video hardware. A mutex in struct video_device doesn't do that,
-> > > > > that just serializes access to that single device node. But a mutex in
-> > > > > v4l2_device is at the right level.
-> > > 
-> > > Ok, got it now.
-> > > 
-> > > > A quick follow-up as I saw I didn't fully answer your question: to my
-> > > > knowledge there are no per-driver data structures that need a BKL for
-> > > > protection. It's definitely not something I am worried about.
-> > > 
-> > > Good. Are you preparing a patch for a per-v4l2_device then? This sounds
-> > > like the right place with your explanation. I would not put in the
-> > > CONFIG_BKL switch, because I tried that for two other subsystems and got
-> > > called back, but I'm not going to stop you.
-> > > 
-> > > As for the fallback to a global mutex, I guess you can set the
-> > > videodev->lock pointer and use unlocked_ioctl for those drivers
-> > > that do not use a v4l2_device yet, if there are only a handful of them.
-> > > 
-> > > 	Arnd
-> > > 
-> > 
-> > I will look into it. I'll try to have something today or tomorrow.
-> 
-> OK, here is my patch adding a mutex to v4l2_device.
-> 
-> I did some tests if we merge this patch then there are three classes of
-> drivers:
-> 
-> 1) Those implementing unlocked_ioctl: these work like a charm.
-> 2) Those implementing v4l2_device: capturing works fine, but calling ioctls
-> at the same time from another process or thread is *exceedingly* slow. But at
-> least there is no interference from other drivers.
-> 3) Those not implementing v4l2_device: using a core lock makes it simply
-> impossible to capture from e.g. two devices at the same time. I tried with two
-> uvc webcams: the capture rate is simply horrible.
-> 
-> Note that this is tested in blocking mode. These problems do not appear if you
-> capture in non-blocking mode.
-> 
-> I consider class 3 unacceptable for commonly seen devices. I did a quick scan
-> of the v4l drivers and the only common driver that falls in that class is uvc.
-> 
-> There is one other option, although it is very dirty: don't take the lock if
-> the ioctl command is VIDIOC_DQBUF.
+Remote keytables had different names all over the place. Part of the fault
+is due to a bad naming when rc subsystem was created, but there were lots
+of old names that were still here.
 
-Is this "in addition to" or "instead of" the mutex lock at
-v4l2_device ? 
+Use a common standard for everything.
 
->  It works and reliably as well for uvc and
-> videobuf (I did a quick code analysis). But I don't know if it works everywhere.
-> 
-> I would like to get the opinion of others before I implement such a check. But
-> frankly, I think this may be our best bet.
+Patch generated by this script:
 
-Opinions? No problem! ;)
+for i in `find drivers/staging -type f -name *.[ch]` `find include/media -type f -name *.[ch]` `find drivers/media -type f -name *.[ch]`; do sed s,ir_scancode,rc_map_table,g <$i >a && mv a $i; done
+for i in `find drivers/staging -type f -name *.[ch]` `find include/media -type f -name *.[ch]` `find drivers/media -type f -name *.[ch]`; do sed s,ir_codes_,rc_map_,g <$i >a && mv a $i; done
+for i in `find drivers/staging -type f -name *.[ch]` `find include/media -type f -name *.[ch]` `find drivers/media -type f -name *.[ch]`; do sed s,rc_key_map,rc_map_table,g <$i >a && mv a $i; done
+for i in `find drivers/staging -type f -name *.[ch]` `find include/media -type f -name *.[ch]` `find drivers/media -type f -name *.[ch]`; do sed s,rc_map_table_size,rc_map_size,g <$i >a && mv a $i; done
 
-<opinions>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-I think it is probably bad.
-
-
-> So the patch below would look like this if I add the check:
-> 
-> -               mutex_lock(&v4l2_ioctl_mutex);
-> +               if (cmd != VIDIOC_DQBUF)
-> +                       mutex_lock(m);
->                 if (video_is_registered(vdev))
->                         ret = vdev->fops->ioctl(filp, cmd, arg);
-> -               mutex_unlock(&v4l2_ioctl_mutex);
-> +               if (cmd != VIDIOC_DQBUF)
-> +                       mutex_unlock(m);
-
-What happens to driver state when VIDIOC_STREAMOFF has the lock held and
-VIDIOC_DQBUF comes through?  I think it is legitimate design for an
-application to have a playback control thread separate from a thread
-that reads in the capture data.
-
-If this quirk of "infrastructure locking" is going in, might I suggest
-that you please document in code comments:
-
-a. The scope of what infrastructure lock is intended to protect.  That
-is obvious right now, but may not be in the future.
+diff --git a/drivers/media/dvb/dvb-usb/a800.c b/drivers/media/dvb/dvb-usb/a800.c
+index a5c3637..53b93a4 100644
+--- a/drivers/media/dvb/dvb-usb/a800.c
++++ b/drivers/media/dvb/dvb-usb/a800.c
+@@ -37,7 +37,7 @@ static int a800_identify_state(struct usb_device *udev, struct dvb_usb_device_pr
+ 	return 0;
+ }
  
-b. Why there is an exception to taking the infrastructure lock or what
-conditions necessitate having the lock ignored/dropped.
-
-c. What code maintenance must be done to remove the exception to taking
-the lock.  A specific bullet-list of problem drivers might be nice.
-
-We won't do future maintainers any favors by letting the operation,
-intended behavior, intended scope, and rationale for this odd locking
-semantic be lost to history.  We just introduce a BKL with smaller
-scope.
-
-
-
-> Comments?
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-> index 03f7f46..026bf38 100644
-> --- a/drivers/media/video/v4l2-dev.c
-> +++ b/drivers/media/video/v4l2-dev.c
-> @@ -247,11 +247,13 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
->  	} else if (vdev->fops->ioctl) {
->  		/* TODO: convert all drivers to unlocked_ioctl */
->  		static DEFINE_MUTEX(v4l2_ioctl_mutex);
-> +		struct mutex *m = vdev->v4l2_dev ?
-> +			&vdev->v4l2_dev->ioctl_lock : &v4l2_ioctl_mutex;
->  
-> -		mutex_lock(&v4l2_ioctl_mutex);
-> +		mutex_lock(m);
->  		if (video_is_registered(vdev))
->  			ret = vdev->fops->ioctl(filp, cmd, arg);
-> -		mutex_unlock(&v4l2_ioctl_mutex);
-> +		mutex_unlock(m);
->  	} else
->  		ret = -ENOTTY;
->  
-> diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
-> index 0b08f96..7fe6f92 100644
-> --- a/drivers/media/video/v4l2-device.c
-> +++ b/drivers/media/video/v4l2-device.c
-> @@ -35,6 +35,7 @@ int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
->  
->  	INIT_LIST_HEAD(&v4l2_dev->subdevs);
->  	spin_lock_init(&v4l2_dev->lock);
-> +	mutex_init(&v4l2_dev->ioctl_lock);
->  	v4l2_dev->dev = dev;
->  	if (dev == NULL) {
->  		/* If dev == NULL, then name must be filled in by the caller */
-> diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-> index 6648036..b16f307 100644
-> --- a/include/media/v4l2-device.h
-> +++ b/include/media/v4l2-device.h
-> @@ -51,6 +51,8 @@ struct v4l2_device {
->  			unsigned int notification, void *arg);
->  	/* The control handler. May be NULL. */
->  	struct v4l2_ctrl_handler *ctrl_handler;
-> +	/* BKL replacement mutex. Temporary solution only. */
-> +	struct mutex ioctl_lock;
-
-Perhaps please add a comment on the specific software maintenance tasks
-that are required to remove this temporary solution in the future.
-Knowing is half the battle for future maintainers.
-
-
-I know an SCM change log comments can capture the rationale, etc., but
-relying on change logs doesn't work when the SCM tool changes. (e.g. the
-transition to git)
-
-</opinions>
-
-:)
-
-Regards,
-Andy
-
->  };
->  
->  /* Initialize v4l2_dev and make dev->driver_data point to v4l2_dev.
-> 
+-static struct ir_scancode ir_codes_a800_table[] = {
++static struct rc_map_table rc_map_a800_table[] = {
+ 	{ 0x0201, KEY_PROG1 },       /* SOURCE */
+ 	{ 0x0200, KEY_POWER },       /* POWER */
+ 	{ 0x0205, KEY_1 },           /* 1 */
+@@ -148,8 +148,8 @@ static struct dvb_usb_device_properties a800_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval      = DEFAULT_RC_INTERVAL,
+-		.rc_key_map       = ir_codes_a800_table,
+-		.rc_key_map_size  = ARRAY_SIZE(ir_codes_a800_table),
++		.rc_map_table     = rc_map_a800_table,
++		.rc_map_size      = ARRAY_SIZE(rc_map_a800_table),
+ 		.rc_query         = a800_rc_query,
+ 	},
+ 
+diff --git a/drivers/media/dvb/dvb-usb/af9005-remote.c b/drivers/media/dvb/dvb-usb/af9005-remote.c
+index 696207f..c3bc64e 100644
+--- a/drivers/media/dvb/dvb-usb/af9005-remote.c
++++ b/drivers/media/dvb/dvb-usb/af9005-remote.c
+@@ -33,7 +33,7 @@ MODULE_PARM_DESC(debug,
+ 
+ #define deb_decode(args...)   dprintk(dvb_usb_af9005_remote_debug,0x01,args)
+ 
+-struct ir_scancode ir_codes_af9005_table[] = {
++struct rc_map_table rc_map_af9005_table[] = {
+ 
+ 	{0x01b7, KEY_POWER},
+ 	{0x01a7, KEY_VOLUMEUP},
+@@ -74,7 +74,7 @@ struct ir_scancode ir_codes_af9005_table[] = {
+ 	{0x00d5, KEY_GOTO},	/* marked jump on the remote */
+ };
+ 
+-int ir_codes_af9005_table_size = ARRAY_SIZE(ir_codes_af9005_table);
++int rc_map_af9005_table_size = ARRAY_SIZE(rc_map_af9005_table);
+ 
+ static int repeatable_keys[] = {
+ 	KEY_VOLUMEUP,
+@@ -130,10 +130,10 @@ int af9005_rc_decode(struct dvb_usb_device *d, u8 * data, int len, u32 * event,
+ 				deb_decode("code != inverted code\n");
+ 				return 0;
+ 			}
+-			for (i = 0; i < ir_codes_af9005_table_size; i++) {
+-				if (rc5_custom(&ir_codes_af9005_table[i]) == cust
+-				    && rc5_data(&ir_codes_af9005_table[i]) == dat) {
+-					*event = ir_codes_af9005_table[i].keycode;
++			for (i = 0; i < rc_map_af9005_table_size; i++) {
++				if (rc5_custom(&rc_map_af9005_table[i]) == cust
++				    && rc5_data(&rc_map_af9005_table[i]) == dat) {
++					*event = rc_map_af9005_table[i].keycode;
+ 					*state = REMOTE_KEY_PRESSED;
+ 					deb_decode
+ 					    ("key pressed, event %x\n", *event);
+@@ -146,8 +146,8 @@ int af9005_rc_decode(struct dvb_usb_device *d, u8 * data, int len, u32 * event,
+ 	return 0;
+ }
+ 
+-EXPORT_SYMBOL(ir_codes_af9005_table);
+-EXPORT_SYMBOL(ir_codes_af9005_table_size);
++EXPORT_SYMBOL(rc_map_af9005_table);
++EXPORT_SYMBOL(rc_map_af9005_table_size);
+ EXPORT_SYMBOL(af9005_rc_decode);
+ 
+ MODULE_AUTHOR("Luca Olivetti <luca@ventoso.org>");
+diff --git a/drivers/media/dvb/dvb-usb/af9005.c b/drivers/media/dvb/dvb-usb/af9005.c
+index 8ecba88..51f6439 100644
+--- a/drivers/media/dvb/dvb-usb/af9005.c
++++ b/drivers/media/dvb/dvb-usb/af9005.c
+@@ -1027,8 +1027,8 @@ static struct dvb_usb_device_properties af9005_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval = 200,
+-		.rc_key_map = NULL,
+-		.rc_key_map_size = 0,
++		.rc_map_table = NULL,
++		.rc_map_size = 0,
+ 		.rc_query = af9005_rc_query,
+ 	},
+ 
+@@ -1070,14 +1070,14 @@ static int __init af9005_usb_module_init(void)
+ 		return result;
+ 	}
+ 	rc_decode = symbol_request(af9005_rc_decode);
+-	rc_keys = symbol_request(ir_codes_af9005_table);
+-	rc_keys_size = symbol_request(ir_codes_af9005_table_size);
++	rc_keys = symbol_request(rc_map_af9005_table);
++	rc_keys_size = symbol_request(rc_map_af9005_table_size);
+ 	if (rc_decode == NULL || rc_keys == NULL || rc_keys_size == NULL) {
+ 		err("af9005_rc_decode function not found, disabling remote");
+ 		af9005_properties.rc.legacy.rc_query = NULL;
+ 	} else {
+-		af9005_properties.rc.legacy.rc_key_map = rc_keys;
+-		af9005_properties.rc.legacy.rc_key_map_size = *rc_keys_size;
++		af9005_properties.rc.legacy.rc_map_table = rc_keys;
++		af9005_properties.rc.legacy.rc_map_size = *rc_keys_size;
+ 	}
+ 
+ 	return 0;
+@@ -1089,9 +1089,9 @@ static void __exit af9005_usb_module_exit(void)
+ 	if (rc_decode != NULL)
+ 		symbol_put(af9005_rc_decode);
+ 	if (rc_keys != NULL)
+-		symbol_put(ir_codes_af9005_table);
++		symbol_put(rc_map_af9005_table);
+ 	if (rc_keys_size != NULL)
+-		symbol_put(ir_codes_af9005_table_size);
++		symbol_put(rc_map_af9005_table_size);
+ 	/* deregister this driver from the USB subsystem */
+ 	usb_deregister(&af9005_usb_driver);
+ }
+diff --git a/drivers/media/dvb/dvb-usb/af9005.h b/drivers/media/dvb/dvb-usb/af9005.h
+index 3c1fbd1..c71c77b 100644
+--- a/drivers/media/dvb/dvb-usb/af9005.h
++++ b/drivers/media/dvb/dvb-usb/af9005.h
+@@ -3490,7 +3490,7 @@ extern u8 regmask[8];
+ /* remote control decoder */
+ extern int af9005_rc_decode(struct dvb_usb_device *d, u8 * data, int len,
+ 			    u32 * event, int *state);
+-extern struct ir_scancode ir_codes_af9005_table[];
+-extern int ir_codes_af9005_table_size;
++extern struct rc_map_table rc_map_af9005_table[];
++extern int rc_map_af9005_table_size;
+ 
+ #endif
+diff --git a/drivers/media/dvb/dvb-usb/az6027.c b/drivers/media/dvb/dvb-usb/az6027.c
+index 62c5828..9a7837f 100644
+--- a/drivers/media/dvb/dvb-usb/az6027.c
++++ b/drivers/media/dvb/dvb-usb/az6027.c
+@@ -386,7 +386,7 @@ static int az6027_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
+ }
+ 
+ /* keys for the enclosed remote control */
+-static struct ir_scancode ir_codes_az6027_table[] = {
++static struct rc_map_table rc_map_az6027_table[] = {
+ 	{ 0x01, KEY_1 },
+ 	{ 0x02, KEY_2 },
+ };
+@@ -1126,8 +1126,8 @@ static struct dvb_usb_device_properties az6027_properties = {
+ 	.read_mac_address = az6027_read_mac_addr,
+  */
+ 	.rc.legacy = {
+-		.rc_key_map       = ir_codes_az6027_table,
+-		.rc_key_map_size  = ARRAY_SIZE(ir_codes_az6027_table),
++		.rc_map_table     = rc_map_az6027_table,
++		.rc_map_size      = ARRAY_SIZE(rc_map_az6027_table),
+ 		.rc_interval      = 400,
+ 		.rc_query         = az6027_rc_query,
+ 	},
+diff --git a/drivers/media/dvb/dvb-usb/cinergyT2-core.c b/drivers/media/dvb/dvb-usb/cinergyT2-core.c
+index 4f5aa83..16f2ce2 100644
+--- a/drivers/media/dvb/dvb-usb/cinergyT2-core.c
++++ b/drivers/media/dvb/dvb-usb/cinergyT2-core.c
+@@ -84,7 +84,7 @@ static int cinergyt2_frontend_attach(struct dvb_usb_adapter *adap)
+ 	return 0;
+ }
+ 
+-static struct ir_scancode ir_codes_cinergyt2_table[] = {
++static struct rc_map_table rc_map_cinergyt2_table[] = {
+ 	{ 0x0401, KEY_POWER },
+ 	{ 0x0402, KEY_1 },
+ 	{ 0x0403, KEY_2 },
+@@ -219,8 +219,8 @@ static struct dvb_usb_device_properties cinergyt2_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval      = 50,
+-		.rc_key_map       = ir_codes_cinergyt2_table,
+-		.rc_key_map_size  = ARRAY_SIZE(ir_codes_cinergyt2_table),
++		.rc_map_table     = rc_map_cinergyt2_table,
++		.rc_map_size      = ARRAY_SIZE(rc_map_cinergyt2_table),
+ 		.rc_query         = cinergyt2_rc_query,
+ 	},
+ 
+diff --git a/drivers/media/dvb/dvb-usb/cxusb.c b/drivers/media/dvb/dvb-usb/cxusb.c
+index cd9f362..acb5fb2 100644
+--- a/drivers/media/dvb/dvb-usb/cxusb.c
++++ b/drivers/media/dvb/dvb-usb/cxusb.c
+@@ -385,7 +385,7 @@ static int cxusb_d680_dmb_streaming_ctrl(
+ 
+ static int cxusb_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ {
+-	struct ir_scancode *keymap = d->props.rc.legacy.rc_key_map;
++	struct rc_map_table *keymap = d->props.rc.legacy.rc_map_table;
+ 	u8 ircode[4];
+ 	int i;
+ 
+@@ -394,7 +394,7 @@ static int cxusb_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ 	*event = 0;
+ 	*state = REMOTE_NO_KEY_PRESSED;
+ 
+-	for (i = 0; i < d->props.rc.legacy.rc_key_map_size; i++) {
++	for (i = 0; i < d->props.rc.legacy.rc_map_size; i++) {
+ 		if (rc5_custom(&keymap[i]) == ircode[2] &&
+ 		    rc5_data(&keymap[i]) == ircode[3]) {
+ 			*event = keymap[i].keycode;
+@@ -410,7 +410,7 @@ static int cxusb_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ static int cxusb_bluebird2_rc_query(struct dvb_usb_device *d, u32 *event,
+ 				    int *state)
+ {
+-	struct ir_scancode *keymap = d->props.rc.legacy.rc_key_map;
++	struct rc_map_table *keymap = d->props.rc.legacy.rc_map_table;
+ 	u8 ircode[4];
+ 	int i;
+ 	struct i2c_msg msg = { .addr = 0x6b, .flags = I2C_M_RD,
+@@ -422,7 +422,7 @@ static int cxusb_bluebird2_rc_query(struct dvb_usb_device *d, u32 *event,
+ 	if (cxusb_i2c_xfer(&d->i2c_adap, &msg, 1) != 1)
+ 		return 0;
+ 
+-	for (i = 0; i < d->props.rc.legacy.rc_key_map_size; i++) {
++	for (i = 0; i < d->props.rc.legacy.rc_map_size; i++) {
+ 		if (rc5_custom(&keymap[i]) == ircode[1] &&
+ 		    rc5_data(&keymap[i]) == ircode[2]) {
+ 			*event = keymap[i].keycode;
+@@ -438,7 +438,7 @@ static int cxusb_bluebird2_rc_query(struct dvb_usb_device *d, u32 *event,
+ static int cxusb_d680_dmb_rc_query(struct dvb_usb_device *d, u32 *event,
+ 		int *state)
+ {
+-	struct ir_scancode *keymap = d->props.rc.legacy.rc_key_map;
++	struct rc_map_table *keymap = d->props.rc.legacy.rc_map_table;
+ 	u8 ircode[2];
+ 	int i;
+ 
+@@ -448,7 +448,7 @@ static int cxusb_d680_dmb_rc_query(struct dvb_usb_device *d, u32 *event,
+ 	if (cxusb_ctrl_msg(d, 0x10, NULL, 0, ircode, 2) < 0)
+ 		return 0;
+ 
+-	for (i = 0; i < d->props.rc.legacy.rc_key_map_size; i++) {
++	for (i = 0; i < d->props.rc.legacy.rc_map_size; i++) {
+ 		if (rc5_custom(&keymap[i]) == ircode[0] &&
+ 		    rc5_data(&keymap[i]) == ircode[1]) {
+ 			*event = keymap[i].keycode;
+@@ -461,7 +461,7 @@ static int cxusb_d680_dmb_rc_query(struct dvb_usb_device *d, u32 *event,
+ 	return 0;
+ }
+ 
+-static struct ir_scancode ir_codes_dvico_mce_table[] = {
++static struct rc_map_table rc_map_dvico_mce_table[] = {
+ 	{ 0xfe02, KEY_TV },
+ 	{ 0xfe0e, KEY_MP3 },
+ 	{ 0xfe1a, KEY_DVD },
+@@ -509,7 +509,7 @@ static struct ir_scancode ir_codes_dvico_mce_table[] = {
+ 	{ 0xfe4e, KEY_POWER },
+ };
+ 
+-static struct ir_scancode ir_codes_dvico_portable_table[] = {
++static struct rc_map_table rc_map_dvico_portable_table[] = {
+ 	{ 0xfc02, KEY_SETUP },       /* Profile */
+ 	{ 0xfc43, KEY_POWER2 },
+ 	{ 0xfc06, KEY_EPG },
+@@ -548,7 +548,7 @@ static struct ir_scancode ir_codes_dvico_portable_table[] = {
+ 	{ 0xfc00, KEY_UNKNOWN },    /* HD */
+ };
+ 
+-static struct ir_scancode ir_codes_d680_dmb_table[] = {
++static struct rc_map_table rc_map_d680_dmb_table[] = {
+ 	{ 0x0038, KEY_UNKNOWN },	/* TV/AV */
+ 	{ 0x080c, KEY_ZOOM },
+ 	{ 0x0800, KEY_0 },
+@@ -923,7 +923,7 @@ static int cxusb_dualdig4_frontend_attach(struct dvb_usb_adapter *adap)
+ 		return -EIO;
+ 
+ 	/* try to determine if there is no IR decoder on the I2C bus */
+-	for (i = 0; adap->dev->props.rc.legacy.rc_key_map != NULL && i < 5; i++) {
++	for (i = 0; adap->dev->props.rc.legacy.rc_map_table != NULL && i < 5; i++) {
+ 		msleep(20);
+ 		if (cxusb_i2c_xfer(&adap->dev->i2c_adap, &msg, 1) != 1)
+ 			goto no_IR;
+@@ -931,7 +931,7 @@ static int cxusb_dualdig4_frontend_attach(struct dvb_usb_adapter *adap)
+ 			continue;
+ 		if (ircode[2] + ircode[3] != 0xff) {
+ no_IR:
+-			adap->dev->props.rc.legacy.rc_key_map = NULL;
++			adap->dev->props.rc.legacy.rc_map_table = NULL;
+ 			info("No IR receiver detected on this device.");
+ 			break;
+ 		}
+@@ -1453,8 +1453,8 @@ static struct dvb_usb_device_properties cxusb_bluebird_lgh064f_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval      = 100,
+-		.rc_key_map       = ir_codes_dvico_portable_table,
+-		.rc_key_map_size  = ARRAY_SIZE(ir_codes_dvico_portable_table),
++		.rc_map_table     = rc_map_dvico_portable_table,
++		.rc_map_size      = ARRAY_SIZE(rc_map_dvico_portable_table),
+ 		.rc_query         = cxusb_rc_query,
+ 	},
+ 
+@@ -1506,8 +1506,8 @@ static struct dvb_usb_device_properties cxusb_bluebird_dee1601_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval      = 150,
+-		.rc_key_map       = ir_codes_dvico_mce_table,
+-		.rc_key_map_size  = ARRAY_SIZE(ir_codes_dvico_mce_table),
++		.rc_map_table     = rc_map_dvico_mce_table,
++		.rc_map_size      = ARRAY_SIZE(rc_map_dvico_mce_table),
+ 		.rc_query         = cxusb_rc_query,
+ 	},
+ 
+@@ -1567,8 +1567,8 @@ static struct dvb_usb_device_properties cxusb_bluebird_lgz201_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval      = 100,
+-		.rc_key_map       = ir_codes_dvico_portable_table,
+-		.rc_key_map_size  = ARRAY_SIZE(ir_codes_dvico_portable_table),
++		.rc_map_table     = rc_map_dvico_portable_table,
++		.rc_map_size      = ARRAY_SIZE(rc_map_dvico_portable_table),
+ 		.rc_query         = cxusb_rc_query,
+ 	},
+ 
+@@ -1619,8 +1619,8 @@ static struct dvb_usb_device_properties cxusb_bluebird_dtt7579_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval      = 100,
+-		.rc_key_map       = ir_codes_dvico_portable_table,
+-		.rc_key_map_size  = ARRAY_SIZE(ir_codes_dvico_portable_table),
++		.rc_map_table     = rc_map_dvico_portable_table,
++		.rc_map_size      = ARRAY_SIZE(rc_map_dvico_portable_table),
+ 		.rc_query         = cxusb_rc_query,
+ 	},
+ 
+@@ -1670,8 +1670,8 @@ static struct dvb_usb_device_properties cxusb_bluebird_dualdig4_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval      = 100,
+-		.rc_key_map       = ir_codes_dvico_mce_table,
+-		.rc_key_map_size  = ARRAY_SIZE(ir_codes_dvico_mce_table),
++		.rc_map_table     = rc_map_dvico_mce_table,
++		.rc_map_size      = ARRAY_SIZE(rc_map_dvico_mce_table),
+ 		.rc_query         = cxusb_bluebird2_rc_query,
+ 	},
+ 
+@@ -1720,8 +1720,8 @@ static struct dvb_usb_device_properties cxusb_bluebird_nano2_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval      = 100,
+-		.rc_key_map       = ir_codes_dvico_portable_table,
+-		.rc_key_map_size  = ARRAY_SIZE(ir_codes_dvico_portable_table),
++		.rc_map_table     = rc_map_dvico_portable_table,
++		.rc_map_size      = ARRAY_SIZE(rc_map_dvico_portable_table),
+ 		.rc_query         = cxusb_bluebird2_rc_query,
+ 	},
+ 
+@@ -1772,8 +1772,8 @@ static struct dvb_usb_device_properties cxusb_bluebird_nano2_needsfirmware_prope
+ 
+ 	.rc.legacy = {
+ 		.rc_interval      = 100,
+-		.rc_key_map       = ir_codes_dvico_portable_table,
+-		.rc_key_map_size  = ARRAY_SIZE(ir_codes_dvico_portable_table),
++		.rc_map_table     = rc_map_dvico_portable_table,
++		.rc_map_size      = ARRAY_SIZE(rc_map_dvico_portable_table),
+ 		.rc_query         = cxusb_rc_query,
+ 	},
+ 
+@@ -1865,8 +1865,8 @@ struct dvb_usb_device_properties cxusb_bluebird_dualdig4_rev2_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval      = 100,
+-		.rc_key_map       = ir_codes_dvico_mce_table,
+-		.rc_key_map_size  = ARRAY_SIZE(ir_codes_dvico_mce_table),
++		.rc_map_table     = rc_map_dvico_mce_table,
++		.rc_map_size      = ARRAY_SIZE(rc_map_dvico_mce_table),
+ 		.rc_query         = cxusb_rc_query,
+ 	},
+ 
+@@ -1915,8 +1915,8 @@ static struct dvb_usb_device_properties cxusb_d680_dmb_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval      = 100,
+-		.rc_key_map       = ir_codes_d680_dmb_table,
+-		.rc_key_map_size  = ARRAY_SIZE(ir_codes_d680_dmb_table),
++		.rc_map_table     = rc_map_d680_dmb_table,
++		.rc_map_size      = ARRAY_SIZE(rc_map_d680_dmb_table),
+ 		.rc_query         = cxusb_d680_dmb_rc_query,
+ 	},
+ 
+@@ -1966,8 +1966,8 @@ static struct dvb_usb_device_properties cxusb_mygica_d689_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval      = 100,
+-		.rc_key_map       = ir_codes_d680_dmb_table,
+-		.rc_key_map_size  = ARRAY_SIZE(ir_codes_d680_dmb_table),
++		.rc_map_table     = rc_map_d680_dmb_table,
++		.rc_map_size      = ARRAY_SIZE(rc_map_d680_dmb_table),
+ 		.rc_query         = cxusb_d680_dmb_rc_query,
+ 	},
+ 
+diff --git a/drivers/media/dvb/dvb-usb/dibusb-common.c b/drivers/media/dvb/dvb-usb/dibusb-common.c
+index ba991aa..956f7ae 100644
+--- a/drivers/media/dvb/dvb-usb/dibusb-common.c
++++ b/drivers/media/dvb/dvb-usb/dibusb-common.c
+@@ -327,7 +327,7 @@ EXPORT_SYMBOL(dibusb_dib3000mc_tuner_attach);
+ /*
+  * common remote control stuff
+  */
+-struct ir_scancode ir_codes_dibusb_table[] = {
++struct rc_map_table rc_map_dibusb_table[] = {
+ 	/* Key codes for the little Artec T1/Twinhan/HAMA/ remote. */
+ 	{ 0x0016, KEY_POWER },
+ 	{ 0x0010, KEY_MUTE },
+@@ -456,7 +456,7 @@ struct ir_scancode ir_codes_dibusb_table[] = {
+ 	{ 0x804e, KEY_ENTER },
+ 	{ 0x804f, KEY_VOLUMEDOWN },
+ };
+-EXPORT_SYMBOL(ir_codes_dibusb_table);
++EXPORT_SYMBOL(rc_map_dibusb_table);
+ 
+ int dibusb_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ {
+diff --git a/drivers/media/dvb/dvb-usb/dibusb-mb.c b/drivers/media/dvb/dvb-usb/dibusb-mb.c
+index 8e3c0d2..04d91bd 100644
+--- a/drivers/media/dvb/dvb-usb/dibusb-mb.c
++++ b/drivers/media/dvb/dvb-usb/dibusb-mb.c
+@@ -213,8 +213,8 @@ static struct dvb_usb_device_properties dibusb1_1_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval      = DEFAULT_RC_INTERVAL,
+-		.rc_key_map       = ir_codes_dibusb_table,
+-		.rc_key_map_size  = 111, /* wow, that is ugly ... I want to load it to the driver dynamically */
++		.rc_map_table     = rc_map_dibusb_table,
++		.rc_map_size      = 111, /* wow, that is ugly ... I want to load it to the driver dynamically */
+ 		.rc_query         = dibusb_rc_query,
+ 	},
+ 
+@@ -299,8 +299,8 @@ static struct dvb_usb_device_properties dibusb1_1_an2235_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval      = DEFAULT_RC_INTERVAL,
+-		.rc_key_map       = ir_codes_dibusb_table,
+-		.rc_key_map_size  = 111, /* wow, that is ugly ... I want to load it to the driver dynamically */
++		.rc_map_table     = rc_map_dibusb_table,
++		.rc_map_size      = 111, /* wow, that is ugly ... I want to load it to the driver dynamically */
+ 		.rc_query         = dibusb_rc_query,
+ 	},
+ 
+@@ -365,8 +365,8 @@ static struct dvb_usb_device_properties dibusb2_0b_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval      = DEFAULT_RC_INTERVAL,
+-		.rc_key_map       = ir_codes_dibusb_table,
+-		.rc_key_map_size  = 111, /* wow, that is ugly ... I want to load it to the driver dynamically */
++		.rc_map_table     = rc_map_dibusb_table,
++		.rc_map_size      = 111, /* wow, that is ugly ... I want to load it to the driver dynamically */
+ 		.rc_query         = dibusb_rc_query,
+ 	},
+ 
+@@ -424,8 +424,8 @@ static struct dvb_usb_device_properties artec_t1_usb2_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval      = DEFAULT_RC_INTERVAL,
+-		.rc_key_map       = ir_codes_dibusb_table,
+-		.rc_key_map_size  = 111, /* wow, that is ugly ... I want to load it to the driver dynamically */
++		.rc_map_table     = rc_map_dibusb_table,
++		.rc_map_size      = 111, /* wow, that is ugly ... I want to load it to the driver dynamically */
+ 		.rc_query         = dibusb_rc_query,
+ 	},
+ 
+diff --git a/drivers/media/dvb/dvb-usb/dibusb-mc.c b/drivers/media/dvb/dvb-usb/dibusb-mc.c
+index 1cbc41c..c1d9094 100644
+--- a/drivers/media/dvb/dvb-usb/dibusb-mc.c
++++ b/drivers/media/dvb/dvb-usb/dibusb-mc.c
+@@ -83,8 +83,8 @@ static struct dvb_usb_device_properties dibusb_mc_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval      = DEFAULT_RC_INTERVAL,
+-		.rc_key_map       = ir_codes_dibusb_table,
+-		.rc_key_map_size  = 111, /* FIXME */
++		.rc_map_table     = rc_map_dibusb_table,
++		.rc_map_size      = 111, /* FIXME */
+ 		.rc_query         = dibusb_rc_query,
+ 	},
+ 
+diff --git a/drivers/media/dvb/dvb-usb/dibusb.h b/drivers/media/dvb/dvb-usb/dibusb.h
+index 61a6bf3..e47c321 100644
+--- a/drivers/media/dvb/dvb-usb/dibusb.h
++++ b/drivers/media/dvb/dvb-usb/dibusb.h
+@@ -124,7 +124,7 @@ extern int dibusb2_0_power_ctrl(struct dvb_usb_device *, int);
+ #define DEFAULT_RC_INTERVAL 150
+ //#define DEFAULT_RC_INTERVAL 100000
+ 
+-extern struct ir_scancode ir_codes_dibusb_table[];
++extern struct rc_map_table rc_map_dibusb_table[];
+ extern int dibusb_rc_query(struct dvb_usb_device *, u32 *, int *);
+ extern int dibusb_read_eeprom_byte(struct dvb_usb_device *, u8, u8 *);
+ 
+diff --git a/drivers/media/dvb/dvb-usb/digitv.c b/drivers/media/dvb/dvb-usb/digitv.c
+index 13d006b..f2dbce7 100644
+--- a/drivers/media/dvb/dvb-usb/digitv.c
++++ b/drivers/media/dvb/dvb-usb/digitv.c
+@@ -161,7 +161,7 @@ static int digitv_tuner_attach(struct dvb_usb_adapter *adap)
+ 	return 0;
+ }
+ 
+-static struct ir_scancode ir_codes_digitv_table[] = {
++static struct rc_map_table rc_map_digitv_table[] = {
+ 	{ 0x5f55, KEY_0 },
+ 	{ 0x6f55, KEY_1 },
+ 	{ 0x9f55, KEY_2 },
+@@ -237,10 +237,10 @@ static int digitv_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ 	/* if something is inside the buffer, simulate key press */
+ 	if (key[1] != 0)
+ 	{
+-		  for (i = 0; i < d->props.rc.legacy.rc_key_map_size; i++) {
+-			if (rc5_custom(&d->props.rc.legacy.rc_key_map[i]) == key[1] &&
+-			    rc5_data(&d->props.rc.legacy.rc_key_map[i]) == key[2]) {
+-				*event = d->props.rc.legacy.rc_key_map[i].keycode;
++		  for (i = 0; i < d->props.rc.legacy.rc_map_size; i++) {
++			if (rc5_custom(&d->props.rc.legacy.rc_map_table[i]) == key[1] &&
++			    rc5_data(&d->props.rc.legacy.rc_map_table[i]) == key[2]) {
++				*event = d->props.rc.legacy.rc_map_table[i].keycode;
+ 				*state = REMOTE_KEY_PRESSED;
+ 				return 0;
+ 			}
+@@ -312,8 +312,8 @@ static struct dvb_usb_device_properties digitv_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval      = 1000,
+-		.rc_key_map       = ir_codes_digitv_table,
+-		.rc_key_map_size  = ARRAY_SIZE(ir_codes_digitv_table),
++		.rc_map_table     = rc_map_digitv_table,
++		.rc_map_size      = ARRAY_SIZE(rc_map_digitv_table),
+ 		.rc_query         = digitv_rc_query,
+ 	},
+ 
+diff --git a/drivers/media/dvb/dvb-usb/dtt200u.c b/drivers/media/dvb/dvb-usb/dtt200u.c
+index ca495e0..ecd86ec 100644
+--- a/drivers/media/dvb/dvb-usb/dtt200u.c
++++ b/drivers/media/dvb/dvb-usb/dtt200u.c
+@@ -57,7 +57,7 @@ static int dtt200u_pid_filter(struct dvb_usb_adapter *adap, int index, u16 pid,
+ 
+ /* remote control */
+ /* key list for the tiny remote control (Yakumo, don't know about the others) */
+-static struct ir_scancode ir_codes_dtt200u_table[] = {
++static struct rc_map_table rc_map_dtt200u_table[] = {
+ 	{ 0x8001, KEY_MUTE },
+ 	{ 0x8002, KEY_CHANNELDOWN },
+ 	{ 0x8003, KEY_VOLUMEDOWN },
+@@ -163,8 +163,8 @@ static struct dvb_usb_device_properties dtt200u_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval     = 300,
+-		.rc_key_map      = ir_codes_dtt200u_table,
+-		.rc_key_map_size = ARRAY_SIZE(ir_codes_dtt200u_table),
++		.rc_map_table    = rc_map_dtt200u_table,
++		.rc_map_size     = ARRAY_SIZE(rc_map_dtt200u_table),
+ 		.rc_query        = dtt200u_rc_query,
+ 	},
+ 
+@@ -210,8 +210,8 @@ static struct dvb_usb_device_properties wt220u_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval     = 300,
+-		.rc_key_map      = ir_codes_dtt200u_table,
+-		.rc_key_map_size = ARRAY_SIZE(ir_codes_dtt200u_table),
++		.rc_map_table      = rc_map_dtt200u_table,
++		.rc_map_size = ARRAY_SIZE(rc_map_dtt200u_table),
+ 		.rc_query        = dtt200u_rc_query,
+ 	},
+ 
+@@ -257,8 +257,8 @@ static struct dvb_usb_device_properties wt220u_fc_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval     = 300,
+-		.rc_key_map      = ir_codes_dtt200u_table,
+-		.rc_key_map_size = ARRAY_SIZE(ir_codes_dtt200u_table),
++		.rc_map_table    = rc_map_dtt200u_table,
++		.rc_map_size     = ARRAY_SIZE(rc_map_dtt200u_table),
+ 		.rc_query        = dtt200u_rc_query,
+ 	},
+ 
+@@ -304,8 +304,8 @@ static struct dvb_usb_device_properties wt220u_zl0353_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval     = 300,
+-		.rc_key_map      = ir_codes_dtt200u_table,
+-		.rc_key_map_size = ARRAY_SIZE(ir_codes_dtt200u_table),
++		.rc_map_table    = rc_map_dtt200u_table,
++		.rc_map_size     = ARRAY_SIZE(rc_map_dtt200u_table),
+ 		.rc_query        = dtt200u_rc_query,
+ 	},
+ 
+diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-remote.c b/drivers/media/dvb/dvb-usb/dvb-usb-remote.c
+index bbba149..c6498f5 100644
+--- a/drivers/media/dvb/dvb-usb/dvb-usb-remote.c
++++ b/drivers/media/dvb/dvb-usb/dvb-usb-remote.c
+@@ -13,11 +13,11 @@ static int legacy_dvb_usb_getkeycode(struct input_dev *dev,
+ {
+ 	struct dvb_usb_device *d = input_get_drvdata(dev);
+ 
+-	struct ir_scancode *keymap = d->props.rc.legacy.rc_key_map;
++	struct rc_map_table *keymap = d->props.rc.legacy.rc_map_table;
+ 	int i;
+ 
+ 	/* See if we can match the raw key code. */
+-	for (i = 0; i < d->props.rc.legacy.rc_key_map_size; i++)
++	for (i = 0; i < d->props.rc.legacy.rc_map_size; i++)
+ 		if (keymap[i].scancode == scancode) {
+ 			*keycode = keymap[i].keycode;
+ 			return 0;
+@@ -28,7 +28,7 @@ static int legacy_dvb_usb_getkeycode(struct input_dev *dev,
+ 	 * otherwise, input core won't let legacy_dvb_usb_setkeycode
+ 	 * to work
+ 	 */
+-	for (i = 0; i < d->props.rc.legacy.rc_key_map_size; i++)
++	for (i = 0; i < d->props.rc.legacy.rc_map_size; i++)
+ 		if (keymap[i].keycode == KEY_RESERVED ||
+ 		    keymap[i].keycode == KEY_UNKNOWN) {
+ 			*keycode = KEY_RESERVED;
+@@ -43,18 +43,18 @@ static int legacy_dvb_usb_setkeycode(struct input_dev *dev,
+ {
+ 	struct dvb_usb_device *d = input_get_drvdata(dev);
+ 
+-	struct ir_scancode *keymap = d->props.rc.legacy.rc_key_map;
++	struct rc_map_table *keymap = d->props.rc.legacy.rc_map_table;
+ 	int i;
+ 
+ 	/* Search if it is replacing an existing keycode */
+-	for (i = 0; i < d->props.rc.legacy.rc_key_map_size; i++)
++	for (i = 0; i < d->props.rc.legacy.rc_map_size; i++)
+ 		if (keymap[i].scancode == scancode) {
+ 			keymap[i].keycode = keycode;
+ 			return 0;
+ 		}
+ 
+ 	/* Search if is there a clean entry. If so, use it */
+-	for (i = 0; i < d->props.rc.legacy.rc_key_map_size; i++)
++	for (i = 0; i < d->props.rc.legacy.rc_map_size; i++)
+ 		if (keymap[i].keycode == KEY_RESERVED ||
+ 		    keymap[i].keycode == KEY_UNKNOWN) {
+ 			keymap[i].scancode = scancode;
+@@ -175,11 +175,11 @@ static int legacy_dvb_usb_remote_init(struct dvb_usb_device *d)
+ 	input_dev->setkeycode = legacy_dvb_usb_setkeycode;
+ 
+ 	/* set the bits for the keys */
+-	deb_rc("key map size: %d\n", d->props.rc.legacy.rc_key_map_size);
+-	for (i = 0; i < d->props.rc.legacy.rc_key_map_size; i++) {
++	deb_rc("key map size: %d\n", d->props.rc.legacy.rc_map_size);
++	for (i = 0; i < d->props.rc.legacy.rc_map_size; i++) {
+ 		deb_rc("setting bit for event %d item %d\n",
+-			d->props.rc.legacy.rc_key_map[i].keycode, i);
+-		set_bit(d->props.rc.legacy.rc_key_map[i].keycode, input_dev->keybit);
++			d->props.rc.legacy.rc_map_table[i].keycode, i);
++		set_bit(d->props.rc.legacy.rc_map_table[i].keycode, input_dev->keybit);
+ 	}
+ 
+ 	/* setting these two values to non-zero, we have to manage key repeats */
+@@ -284,7 +284,7 @@ int dvb_usb_remote_init(struct dvb_usb_device *d)
+ 	if (dvb_usb_disable_rc_polling)
+ 		return 0;
+ 
+-	if (d->props.rc.legacy.rc_key_map && d->props.rc.legacy.rc_query)
++	if (d->props.rc.legacy.rc_map_table && d->props.rc.legacy.rc_query)
+ 		d->props.rc.mode = DVB_RC_LEGACY;
+ 	else if (d->props.rc.core.rc_codes)
+ 		d->props.rc.mode = DVB_RC_CORE;
+@@ -331,7 +331,7 @@ int dvb_usb_nec_rc_key_to_event(struct dvb_usb_device *d,
+ 		u8 keybuf[5], u32 *event, int *state)
+ {
+ 	int i;
+-	struct ir_scancode *keymap = d->props.rc.legacy.rc_key_map;
++	struct rc_map_table *keymap = d->props.rc.legacy.rc_map_table;
+ 	*event = 0;
+ 	*state = REMOTE_NO_KEY_PRESSED;
+ 	switch (keybuf[0]) {
+@@ -344,7 +344,7 @@ int dvb_usb_nec_rc_key_to_event(struct dvb_usb_device *d,
+ 				break;
+ 			}
+ 			/* See if we can match the raw key code. */
+-			for (i = 0; i < d->props.rc.legacy.rc_key_map_size; i++)
++			for (i = 0; i < d->props.rc.legacy.rc_map_size; i++)
+ 				if (rc5_custom(&keymap[i]) == keybuf[1] &&
+ 					rc5_data(&keymap[i]) == keybuf[3]) {
+ 					*event = keymap[i].keycode;
+diff --git a/drivers/media/dvb/dvb-usb/dvb-usb.h b/drivers/media/dvb/dvb-usb/dvb-usb.h
+index 95b1603..65fa926 100644
+--- a/drivers/media/dvb/dvb-usb/dvb-usb.h
++++ b/drivers/media/dvb/dvb-usb/dvb-usb.h
+@@ -75,17 +75,17 @@ struct dvb_usb_device_description {
+ 	struct usb_device_id *warm_ids[DVB_USB_ID_MAX_NUM];
+ };
+ 
+-static inline u8 rc5_custom(struct ir_scancode *key)
++static inline u8 rc5_custom(struct rc_map_table *key)
+ {
+ 	return (key->scancode >> 8) & 0xff;
+ }
+ 
+-static inline u8 rc5_data(struct ir_scancode *key)
++static inline u8 rc5_data(struct rc_map_table *key)
+ {
+ 	return key->scancode & 0xff;
+ }
+ 
+-static inline u8 rc5_scan(struct ir_scancode *key)
++static inline u8 rc5_scan(struct rc_map_table *key)
+ {
+ 	return key->scancode & 0xffff;
+ }
+@@ -159,9 +159,9 @@ struct dvb_usb_adapter_properties {
+ 
+ /**
+  * struct dvb_rc_legacy - old properties of remote controller
+- * @rc_key_map: a hard-wired array of struct ir_scancode (NULL to disable
++ * @rc_map_table: a hard-wired array of struct rc_map_table (NULL to disable
+  *  remote control handling).
+- * @rc_key_map_size: number of items in @rc_key_map.
++ * @rc_map_size: number of items in @rc_map_table.
+  * @rc_query: called to query an event event.
+  * @rc_interval: time in ms between two queries.
+  */
+@@ -170,8 +170,8 @@ struct dvb_rc_legacy {
+ #define REMOTE_NO_KEY_PRESSED      0x00
+ #define REMOTE_KEY_PRESSED         0x01
+ #define REMOTE_KEY_REPEAT          0x02
+-	struct ir_scancode  *rc_key_map;
+-	int rc_key_map_size;
++	struct rc_map_table  *rc_map_table;
++	int rc_map_size;
+ 	int (*rc_query) (struct dvb_usb_device *, u32 *, int *);
+ 	int rc_interval;
+ };
+diff --git a/drivers/media/dvb/dvb-usb/dw2102.c b/drivers/media/dvb/dvb-usb/dw2102.c
+index 774df88..2c307ba 100644
+--- a/drivers/media/dvb/dvb-usb/dw2102.c
++++ b/drivers/media/dvb/dvb-usb/dw2102.c
+@@ -73,8 +73,8 @@
+ 		"Please see linux/Documentation/dvb/ for more details " \
+ 		"on firmware-problems."
+ 
+-struct ir_codes_dvb_usb_table_table {
+-	struct ir_scancode *rc_keys;
++struct rc_map_dvb_usb_table_table {
++	struct rc_map_table *rc_keys;
+ 	int rc_keys_size;
+ };
+ 
+@@ -948,7 +948,7 @@ static int dw3101_tuner_attach(struct dvb_usb_adapter *adap)
+ 	return 0;
+ }
+ 
+-static struct ir_scancode ir_codes_dw210x_table[] = {
++static struct rc_map_table rc_map_dw210x_table[] = {
+ 	{ 0xf80a, KEY_Q },		/*power*/
+ 	{ 0xf80c, KEY_M },		/*mute*/
+ 	{ 0xf811, KEY_1 },
+@@ -982,7 +982,7 @@ static struct ir_scancode ir_codes_dw210x_table[] = {
+ 	{ 0xf81b, KEY_B },		/*recall*/
+ };
+ 
+-static struct ir_scancode ir_codes_tevii_table[] = {
++static struct rc_map_table rc_map_tevii_table[] = {
+ 	{ 0xf80a, KEY_POWER },
+ 	{ 0xf80c, KEY_MUTE },
+ 	{ 0xf811, KEY_1 },
+@@ -1032,7 +1032,7 @@ static struct ir_scancode ir_codes_tevii_table[] = {
+ 	{ 0xf858, KEY_SWITCHVIDEOMODE },
+ };
+ 
+-static struct ir_scancode ir_codes_tbs_table[] = {
++static struct rc_map_table rc_map_tbs_table[] = {
+ 	{ 0xf884, KEY_POWER },
+ 	{ 0xf894, KEY_MUTE },
+ 	{ 0xf887, KEY_1 },
+@@ -1067,16 +1067,16 @@ static struct ir_scancode ir_codes_tbs_table[] = {
+ 	{ 0xf89b, KEY_MODE }
+ };
+ 
+-static struct ir_codes_dvb_usb_table_table keys_tables[] = {
+-	{ ir_codes_dw210x_table, ARRAY_SIZE(ir_codes_dw210x_table) },
+-	{ ir_codes_tevii_table, ARRAY_SIZE(ir_codes_tevii_table) },
+-	{ ir_codes_tbs_table, ARRAY_SIZE(ir_codes_tbs_table) },
++static struct rc_map_dvb_usb_table_table keys_tables[] = {
++	{ rc_map_dw210x_table, ARRAY_SIZE(rc_map_dw210x_table) },
++	{ rc_map_tevii_table, ARRAY_SIZE(rc_map_tevii_table) },
++	{ rc_map_tbs_table, ARRAY_SIZE(rc_map_tbs_table) },
+ };
+ 
+ static int dw2102_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ {
+-	struct ir_scancode *keymap = d->props.rc.legacy.rc_key_map;
+-	int keymap_size = d->props.rc.legacy.rc_key_map_size;
++	struct rc_map_table *keymap = d->props.rc.legacy.rc_map_table;
++	int keymap_size = d->props.rc.legacy.rc_map_size;
+ 	u8 key[2];
+ 	struct i2c_msg msg = {
+ 		.addr = DW2102_RC_QUERY,
+@@ -1185,14 +1185,14 @@ static int dw2102_load_firmware(struct usb_device *dev,
+ 		/* init registers */
+ 		switch (dev->descriptor.idProduct) {
+ 		case USB_PID_PROF_1100:
+-			s6x0_properties.rc.legacy.rc_key_map = ir_codes_tbs_table;
+-			s6x0_properties.rc.legacy.rc_key_map_size =
+-					ARRAY_SIZE(ir_codes_tbs_table);
++			s6x0_properties.rc.legacy.rc_map_table = rc_map_tbs_table;
++			s6x0_properties.rc.legacy.rc_map_size =
++					ARRAY_SIZE(rc_map_tbs_table);
+ 			break;
+ 		case USB_PID_TEVII_S650:
+-			dw2104_properties.rc.legacy.rc_key_map = ir_codes_tevii_table;
+-			dw2104_properties.rc.legacy.rc_key_map_size =
+-					ARRAY_SIZE(ir_codes_tevii_table);
++			dw2104_properties.rc.legacy.rc_map_table = rc_map_tevii_table;
++			dw2104_properties.rc.legacy.rc_map_size =
++					ARRAY_SIZE(rc_map_tevii_table);
+ 		case USB_PID_DW2104:
+ 			reset = 1;
+ 			dw210x_op_rw(dev, 0xc4, 0x0000, 0, &reset, 1,
+@@ -1257,8 +1257,8 @@ static struct dvb_usb_device_properties dw2102_properties = {
+ 	.i2c_algo = &dw2102_serit_i2c_algo,
+ 
+ 	.rc.legacy = {
+-		.rc_key_map = ir_codes_dw210x_table,
+-		.rc_key_map_size = ARRAY_SIZE(ir_codes_dw210x_table),
++		.rc_map_table = rc_map_dw210x_table,
++		.rc_map_size = ARRAY_SIZE(rc_map_dw210x_table),
+ 		.rc_interval = 150,
+ 		.rc_query = dw2102_rc_query,
+ 	},
+@@ -1310,8 +1310,8 @@ static struct dvb_usb_device_properties dw2104_properties = {
+ 
+ 	.i2c_algo = &dw2104_i2c_algo,
+ 	.rc.legacy = {
+-		.rc_key_map = ir_codes_dw210x_table,
+-		.rc_key_map_size = ARRAY_SIZE(ir_codes_dw210x_table),
++		.rc_map_table = rc_map_dw210x_table,
++		.rc_map_size = ARRAY_SIZE(rc_map_dw210x_table),
+ 		.rc_interval = 150,
+ 		.rc_query = dw2102_rc_query,
+ 	},
+@@ -1359,8 +1359,8 @@ static struct dvb_usb_device_properties dw3101_properties = {
+ 
+ 	.i2c_algo = &dw3101_i2c_algo,
+ 	.rc.legacy = {
+-		.rc_key_map = ir_codes_dw210x_table,
+-		.rc_key_map_size = ARRAY_SIZE(ir_codes_dw210x_table),
++		.rc_map_table = rc_map_dw210x_table,
++		.rc_map_size = ARRAY_SIZE(rc_map_dw210x_table),
+ 		.rc_interval = 150,
+ 		.rc_query = dw2102_rc_query,
+ 	},
+@@ -1404,8 +1404,8 @@ static struct dvb_usb_device_properties s6x0_properties = {
+ 
+ 	.i2c_algo = &s6x0_i2c_algo,
+ 	.rc.legacy = {
+-		.rc_key_map = ir_codes_tevii_table,
+-		.rc_key_map_size = ARRAY_SIZE(ir_codes_tevii_table),
++		.rc_map_table = rc_map_tevii_table,
++		.rc_map_size = ARRAY_SIZE(rc_map_tevii_table),
+ 		.rc_interval = 150,
+ 		.rc_query = dw2102_rc_query,
+ 	},
+@@ -1468,8 +1468,8 @@ static int dw2102_probe(struct usb_interface *intf,
+ 	/* fill only different fields */
+ 	p7500->firmware = "dvb-usb-p7500.fw";
+ 	p7500->devices[0] = d7500;
+-	p7500->rc.legacy.rc_key_map = ir_codes_tbs_table;
+-	p7500->rc.legacy.rc_key_map_size = ARRAY_SIZE(ir_codes_tbs_table);
++	p7500->rc.legacy.rc_map_table = rc_map_tbs_table;
++	p7500->rc.legacy.rc_map_size = ARRAY_SIZE(rc_map_tbs_table);
+ 	p7500->adapter->frontend_attach = prof_7500_frontend_attach;
+ 
+ 	if (0 == dvb_usb_device_init(intf, &dw2102_properties,
+diff --git a/drivers/media/dvb/dvb-usb/m920x.c b/drivers/media/dvb/dvb-usb/m920x.c
+index bdef1a1..da9dc91 100644
+--- a/drivers/media/dvb/dvb-usb/m920x.c
++++ b/drivers/media/dvb/dvb-usb/m920x.c
+@@ -142,9 +142,9 @@ static int m920x_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ 	if ((ret = m920x_read(d->udev, M9206_CORE, 0x0, M9206_RC_KEY, rc_state + 1, 1)) != 0)
+ 		goto unlock;
+ 
+-	for (i = 0; i < d->props.rc.legacy.rc_key_map_size; i++)
+-		if (rc5_data(&d->props.rc.legacy.rc_key_map[i]) == rc_state[1]) {
+-			*event = d->props.rc.legacy.rc_key_map[i].keycode;
++	for (i = 0; i < d->props.rc.legacy.rc_map_size; i++)
++		if (rc5_data(&d->props.rc.legacy.rc_map_table[i]) == rc_state[1]) {
++			*event = d->props.rc.legacy.rc_map_table[i].keycode;
+ 
+ 			switch(rc_state[0]) {
+ 			case 0x80:
+@@ -589,7 +589,7 @@ static struct m920x_inits pinnacle310e_init[] = {
+ };
+ 
+ /* ir keymaps */
+-static struct ir_scancode ir_codes_megasky_table[] = {
++static struct rc_map_table rc_map_megasky_table[] = {
+ 	{ 0x0012, KEY_POWER },
+ 	{ 0x001e, KEY_CYCLEWINDOWS }, /* min/max */
+ 	{ 0x0002, KEY_CHANNELUP },
+@@ -608,7 +608,7 @@ static struct ir_scancode ir_codes_megasky_table[] = {
+ 	{ 0x000e, KEY_COFFEE }, /* "MTS" */
+ };
+ 
+-static struct ir_scancode ir_codes_tvwalkertwin_table[] = {
++static struct rc_map_table rc_map_tvwalkertwin_table[] = {
+ 	{ 0x0001, KEY_ZOOM }, /* Full Screen */
+ 	{ 0x0002, KEY_CAMERA }, /* snapshot */
+ 	{ 0x0003, KEY_MUTE },
+@@ -628,7 +628,7 @@ static struct ir_scancode ir_codes_tvwalkertwin_table[] = {
+ 	{ 0x001e, KEY_VOLUMEUP },
+ };
+ 
+-static struct ir_scancode ir_codes_pinnacle310e_table[] = {
++static struct rc_map_table rc_map_pinnacle310e_table[] = {
+ 	{ 0x16, KEY_POWER },
+ 	{ 0x17, KEY_FAVORITES },
+ 	{ 0x0f, KEY_TEXT },
+@@ -786,8 +786,8 @@ static struct dvb_usb_device_properties megasky_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval      = 100,
+-		.rc_key_map       = ir_codes_megasky_table,
+-		.rc_key_map_size  = ARRAY_SIZE(ir_codes_megasky_table),
++		.rc_map_table     = rc_map_megasky_table,
++		.rc_map_size      = ARRAY_SIZE(rc_map_megasky_table),
+ 		.rc_query         = m920x_rc_query,
+ 	},
+ 
+@@ -889,8 +889,8 @@ static struct dvb_usb_device_properties tvwalkertwin_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval      = 100,
+-		.rc_key_map       = ir_codes_tvwalkertwin_table,
+-		.rc_key_map_size  = ARRAY_SIZE(ir_codes_tvwalkertwin_table),
++		.rc_map_table     = rc_map_tvwalkertwin_table,
++		.rc_map_size      = ARRAY_SIZE(rc_map_tvwalkertwin_table),
+ 		.rc_query         = m920x_rc_query,
+ 	},
+ 
+@@ -998,8 +998,8 @@ static struct dvb_usb_device_properties pinnacle_pctv310e_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval      = 100,
+-		.rc_key_map       = ir_codes_pinnacle310e_table,
+-		.rc_key_map_size  = ARRAY_SIZE(ir_codes_pinnacle310e_table),
++		.rc_map_table     = rc_map_pinnacle310e_table,
++		.rc_map_size      = ARRAY_SIZE(rc_map_pinnacle310e_table),
+ 		.rc_query         = m920x_rc_query,
+ 	},
+ 
+diff --git a/drivers/media/dvb/dvb-usb/nova-t-usb2.c b/drivers/media/dvb/dvb-usb/nova-t-usb2.c
+index 181f36a..9d3cd2d 100644
+--- a/drivers/media/dvb/dvb-usb/nova-t-usb2.c
++++ b/drivers/media/dvb/dvb-usb/nova-t-usb2.c
+@@ -21,7 +21,7 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ #define deb_ee(args...) dprintk(debug,0x02,args)
+ 
+ /* Hauppauge NOVA-T USB2 keys */
+-static struct ir_scancode ir_codes_haupp_table[] = {
++static struct rc_map_table rc_map_haupp_table[] = {
+ 	{ 0x1e00, KEY_0 },
+ 	{ 0x1e01, KEY_1 },
+ 	{ 0x1e02, KEY_2 },
+@@ -91,14 +91,14 @@ static int nova_t_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ 
+ 			deb_rc("raw key code 0x%02x, 0x%02x, 0x%02x to c: %02x d: %02x toggle: %d\n",key[1],key[2],key[3],custom,data,toggle);
+ 
+-			for (i = 0; i < ARRAY_SIZE(ir_codes_haupp_table); i++) {
+-				if (rc5_data(&ir_codes_haupp_table[i]) == data &&
+-					rc5_custom(&ir_codes_haupp_table[i]) == custom) {
++			for (i = 0; i < ARRAY_SIZE(rc_map_haupp_table); i++) {
++				if (rc5_data(&rc_map_haupp_table[i]) == data &&
++					rc5_custom(&rc_map_haupp_table[i]) == custom) {
+ 
+-					deb_rc("c: %x, d: %x\n", rc5_data(&ir_codes_haupp_table[i]),
+-								 rc5_custom(&ir_codes_haupp_table[i]));
++					deb_rc("c: %x, d: %x\n", rc5_data(&rc_map_haupp_table[i]),
++								 rc5_custom(&rc_map_haupp_table[i]));
+ 
+-					*event = ir_codes_haupp_table[i].keycode;
++					*event = rc_map_haupp_table[i].keycode;
+ 					*state = REMOTE_KEY_PRESSED;
+ 					if (st->old_toggle == toggle) {
+ 						if (st->last_repeat_count++ < 2)
+@@ -197,8 +197,8 @@ static struct dvb_usb_device_properties nova_t_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval      = 100,
+-		.rc_key_map       = ir_codes_haupp_table,
+-		.rc_key_map_size  = ARRAY_SIZE(ir_codes_haupp_table),
++		.rc_map_table     = rc_map_haupp_table,
++		.rc_map_size      = ARRAY_SIZE(rc_map_haupp_table),
+ 		.rc_query         = nova_t_rc_query,
+ 	},
+ 
+diff --git a/drivers/media/dvb/dvb-usb/opera1.c b/drivers/media/dvb/dvb-usb/opera1.c
+index f896337..1f1b7d6 100644
+--- a/drivers/media/dvb/dvb-usb/opera1.c
++++ b/drivers/media/dvb/dvb-usb/opera1.c
+@@ -35,7 +35,7 @@
+ struct opera1_state {
+ 	u32 last_key_pressed;
+ };
+-struct ir_codes_opera_table {
++struct rc_map_opera_table {
+ 	u32 keycode;
+ 	u32 event;
+ };
+@@ -331,7 +331,7 @@ static int opera1_pid_filter_control(struct dvb_usb_adapter *adap, int onoff)
+ 	return 0;
+ }
+ 
+-static struct ir_scancode ir_codes_opera1_table[] = {
++static struct rc_map_table rc_map_opera1_table[] = {
+ 	{0x5fa0, KEY_1},
+ 	{0x51af, KEY_2},
+ 	{0x5da2, KEY_3},
+@@ -404,12 +404,12 @@ static int opera1_rc_query(struct dvb_usb_device *dev, u32 * event, int *state)
+ 
+ 		send_key = (send_key & 0xffff) | 0x0100;
+ 
+-		for (i = 0; i < ARRAY_SIZE(ir_codes_opera1_table); i++) {
+-			if (rc5_scan(&ir_codes_opera1_table[i]) == (send_key & 0xffff)) {
++		for (i = 0; i < ARRAY_SIZE(rc_map_opera1_table); i++) {
++			if (rc5_scan(&rc_map_opera1_table[i]) == (send_key & 0xffff)) {
+ 				*state = REMOTE_KEY_PRESSED;
+-				*event = ir_codes_opera1_table[i].keycode;
++				*event = rc_map_opera1_table[i].keycode;
+ 				opst->last_key_pressed =
+-					ir_codes_opera1_table[i].keycode;
++					rc_map_opera1_table[i].keycode;
+ 				break;
+ 			}
+ 			opst->last_key_pressed = 0;
+@@ -497,8 +497,8 @@ static struct dvb_usb_device_properties opera1_properties = {
+ 	.i2c_algo = &opera1_i2c_algo,
+ 
+ 	.rc.legacy = {
+-		.rc_key_map = ir_codes_opera1_table,
+-		.rc_key_map_size = ARRAY_SIZE(ir_codes_opera1_table),
++		.rc_map_table = rc_map_opera1_table,
++		.rc_map_size = ARRAY_SIZE(rc_map_opera1_table),
+ 		.rc_interval = 200,
+ 		.rc_query = opera1_rc_query,
+ 	},
+diff --git a/drivers/media/dvb/dvb-usb/vp702x.c b/drivers/media/dvb/dvb-usb/vp702x.c
+index 5c9f327..7890e75 100644
+--- a/drivers/media/dvb/dvb-usb/vp702x.c
++++ b/drivers/media/dvb/dvb-usb/vp702x.c
+@@ -174,7 +174,7 @@ static int vp702x_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
+ }
+ 
+ /* keys for the enclosed remote control */
+-static struct ir_scancode ir_codes_vp702x_table[] = {
++static struct rc_map_table rc_map_vp702x_table[] = {
+ 	{ 0x0001, KEY_1 },
+ 	{ 0x0002, KEY_2 },
+ };
+@@ -197,10 +197,10 @@ static int vp702x_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ 		return 0;
+ 	}
+ 
+-	for (i = 0; i < ARRAY_SIZE(ir_codes_vp702x_table); i++)
+-		if (rc5_custom(&ir_codes_vp702x_table[i]) == key[1]) {
++	for (i = 0; i < ARRAY_SIZE(rc_map_vp702x_table); i++)
++		if (rc5_custom(&rc_map_vp702x_table[i]) == key[1]) {
+ 			*state = REMOTE_KEY_PRESSED;
+-			*event = ir_codes_vp702x_table[i].keycode;
++			*event = rc_map_vp702x_table[i].keycode;
+ 			break;
+ 		}
+ 	return 0;
+@@ -284,8 +284,8 @@ static struct dvb_usb_device_properties vp702x_properties = {
+ 	.read_mac_address = vp702x_read_mac_addr,
+ 
+ 	.rc.legacy = {
+-		.rc_key_map       = ir_codes_vp702x_table,
+-		.rc_key_map_size  = ARRAY_SIZE(ir_codes_vp702x_table),
++		.rc_map_table       = rc_map_vp702x_table,
++		.rc_map_size  = ARRAY_SIZE(rc_map_vp702x_table),
+ 		.rc_interval      = 400,
+ 		.rc_query         = vp702x_rc_query,
+ 	},
+diff --git a/drivers/media/dvb/dvb-usb/vp7045.c b/drivers/media/dvb/dvb-usb/vp7045.c
+index f13791c..ab0ab3c 100644
+--- a/drivers/media/dvb/dvb-usb/vp7045.c
++++ b/drivers/media/dvb/dvb-usb/vp7045.c
+@@ -99,7 +99,7 @@ static int vp7045_power_ctrl(struct dvb_usb_device *d, int onoff)
+ 
+ /* The keymapping struct. Somehow this should be loaded to the driver, but
+  * currently it is hardcoded. */
+-static struct ir_scancode ir_codes_vp7045_table[] = {
++static struct rc_map_table rc_map_vp7045_table[] = {
+ 	{ 0x0016, KEY_POWER },
+ 	{ 0x0010, KEY_MUTE },
+ 	{ 0x0003, KEY_1 },
+@@ -165,10 +165,10 @@ static int vp7045_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ 		return 0;
+ 	}
+ 
+-	for (i = 0; i < ARRAY_SIZE(ir_codes_vp7045_table); i++)
+-		if (rc5_data(&ir_codes_vp7045_table[i]) == key) {
++	for (i = 0; i < ARRAY_SIZE(rc_map_vp7045_table); i++)
++		if (rc5_data(&rc_map_vp7045_table[i]) == key) {
+ 			*state = REMOTE_KEY_PRESSED;
+-			*event = ir_codes_vp7045_table[i].keycode;
++			*event = rc_map_vp7045_table[i].keycode;
+ 			break;
+ 		}
+ 	return 0;
+@@ -261,8 +261,8 @@ static struct dvb_usb_device_properties vp7045_properties = {
+ 
+ 	.rc.legacy = {
+ 		.rc_interval      = 400,
+-		.rc_key_map       = ir_codes_vp7045_table,
+-		.rc_key_map_size  = ARRAY_SIZE(ir_codes_vp7045_table),
++		.rc_map_table       = rc_map_vp7045_table,
++		.rc_map_size  = ARRAY_SIZE(rc_map_vp7045_table),
+ 		.rc_query         = vp7045_rc_query,
+ 	},
+ 
+diff --git a/drivers/media/dvb/mantis/mantis_input.c b/drivers/media/dvb/mantis/mantis_input.c
+index cf5f8ca..572929a 100644
+--- a/drivers/media/dvb/mantis/mantis_input.c
++++ b/drivers/media/dvb/mantis/mantis_input.c
+@@ -34,7 +34,7 @@
+ #define MODULE_NAME "mantis_core"
+ #define RC_MAP_MANTIS "rc-mantis"
+ 
+-static struct ir_scancode mantis_ir_table[] = {
++static struct rc_map_table mantis_ir_table[] = {
+ 	{ 0x29, KEY_POWER	},
+ 	{ 0x28, KEY_FAVORITES	},
+ 	{ 0x30, KEY_TEXT	},
+diff --git a/drivers/media/rc/keymaps/rc-adstech-dvb-t-pci.c b/drivers/media/rc/keymaps/rc-adstech-dvb-t-pci.c
+index 0ea0aee..da6556d 100644
+--- a/drivers/media/rc/keymaps/rc-adstech-dvb-t-pci.c
++++ b/drivers/media/rc/keymaps/rc-adstech-dvb-t-pci.c
+@@ -14,7 +14,7 @@
+ 
+ /* ADS Tech Instant TV DVB-T PCI Remote */
+ 
+-static struct ir_scancode adstech_dvb_t_pci[] = {
++static struct rc_map_table adstech_dvb_t_pci[] = {
+ 	/* Keys 0 to 9 */
+ 	{ 0x4d, KEY_0 },
+ 	{ 0x57, KEY_1 },
+diff --git a/drivers/media/rc/keymaps/rc-alink-dtu-m.c b/drivers/media/rc/keymaps/rc-alink-dtu-m.c
+index b0ec1c8..36e1eb1 100644
+--- a/drivers/media/rc/keymaps/rc-alink-dtu-m.c
++++ b/drivers/media/rc/keymaps/rc-alink-dtu-m.c
+@@ -21,7 +21,7 @@
+ #include <media/rc-map.h>
+ 
+ /* A-Link DTU(m) slim remote, 6 rows, 3 columns. */
+-static struct ir_scancode alink_dtu_m[] = {
++static struct rc_map_table alink_dtu_m[] = {
+ 	{ 0x0800, KEY_VOLUMEUP },
+ 	{ 0x0801, KEY_1 },
+ 	{ 0x0802, KEY_3 },
+diff --git a/drivers/media/rc/keymaps/rc-anysee.c b/drivers/media/rc/keymaps/rc-anysee.c
+index 9bfe60e..6ca91e0 100644
+--- a/drivers/media/rc/keymaps/rc-anysee.c
++++ b/drivers/media/rc/keymaps/rc-anysee.c
+@@ -20,7 +20,7 @@
+ 
+ #include <media/rc-map.h>
+ 
+-static struct ir_scancode anysee[] = {
++static struct rc_map_table anysee[] = {
+ 	{ 0x0800, KEY_0 },
+ 	{ 0x0801, KEY_1 },
+ 	{ 0x0802, KEY_2 },
+diff --git a/drivers/media/rc/keymaps/rc-apac-viewcomp.c b/drivers/media/rc/keymaps/rc-apac-viewcomp.c
+index a32840d..a40a1b6 100644
+--- a/drivers/media/rc/keymaps/rc-apac-viewcomp.c
++++ b/drivers/media/rc/keymaps/rc-apac-viewcomp.c
+@@ -14,7 +14,7 @@
+ 
+ /* Attila Kondoros <attila.kondoros@chello.hu> */
+ 
+-static struct ir_scancode apac_viewcomp[] = {
++static struct rc_map_table apac_viewcomp[] = {
+ 
+ 	{ 0x01, KEY_1 },
+ 	{ 0x02, KEY_2 },
+diff --git a/drivers/media/rc/keymaps/rc-asus-pc39.c b/drivers/media/rc/keymaps/rc-asus-pc39.c
+index f86bfb7..2a58ffe 100644
+--- a/drivers/media/rc/keymaps/rc-asus-pc39.c
++++ b/drivers/media/rc/keymaps/rc-asus-pc39.c
+@@ -18,7 +18,7 @@
+  * which has a label saying is "Model PC-39"
+  */
+ 
+-static struct ir_scancode asus_pc39[] = {
++static struct rc_map_table asus_pc39[] = {
+ 	/* Keys 0 to 9 */
+ 	{ 0x082a, KEY_0 },
+ 	{ 0x0816, KEY_1 },
+diff --git a/drivers/media/rc/keymaps/rc-ati-tv-wonder-hd-600.c b/drivers/media/rc/keymaps/rc-ati-tv-wonder-hd-600.c
+index 0cefe1c..ac0a7d9 100644
+--- a/drivers/media/rc/keymaps/rc-ati-tv-wonder-hd-600.c
++++ b/drivers/media/rc/keymaps/rc-ati-tv-wonder-hd-600.c
+@@ -16,7 +16,7 @@
+    Devin Heitmueller <devin.heitmueller@gmail.com>
+  */
+ 
+-static struct ir_scancode ati_tv_wonder_hd_600[] = {
++static struct rc_map_table ati_tv_wonder_hd_600[] = {
+ 	{ 0x00, KEY_RECORD},		/* Row 1 */
+ 	{ 0x01, KEY_PLAYPAUSE},
+ 	{ 0x02, KEY_STOP},
+diff --git a/drivers/media/rc/keymaps/rc-avermedia-a16d.c b/drivers/media/rc/keymaps/rc-avermedia-a16d.c
+index 43525c8..df3360f 100644
+--- a/drivers/media/rc/keymaps/rc-avermedia-a16d.c
++++ b/drivers/media/rc/keymaps/rc-avermedia-a16d.c
+@@ -12,7 +12,7 @@
+ 
+ #include <media/rc-map.h>
+ 
+-static struct ir_scancode avermedia_a16d[] = {
++static struct rc_map_table avermedia_a16d[] = {
+ 	{ 0x20, KEY_LIST},
+ 	{ 0x00, KEY_POWER},
+ 	{ 0x28, KEY_1},
+diff --git a/drivers/media/rc/keymaps/rc-avermedia-cardbus.c b/drivers/media/rc/keymaps/rc-avermedia-cardbus.c
+index 2d528ca..40f2f2d 100644
+--- a/drivers/media/rc/keymaps/rc-avermedia-cardbus.c
++++ b/drivers/media/rc/keymaps/rc-avermedia-cardbus.c
+@@ -14,7 +14,7 @@
+ 
+ /* Oldrich Jedlicka <oldium.pro@seznam.cz> */
+ 
+-static struct ir_scancode avermedia_cardbus[] = {
++static struct rc_map_table avermedia_cardbus[] = {
+ 	{ 0x00, KEY_POWER },
+ 	{ 0x01, KEY_TUNER },		/* TV/FM */
+ 	{ 0x03, KEY_TEXT },		/* Teletext */
+diff --git a/drivers/media/rc/keymaps/rc-avermedia-dvbt.c b/drivers/media/rc/keymaps/rc-avermedia-dvbt.c
+index e45b67f..b4a1aa1 100644
+--- a/drivers/media/rc/keymaps/rc-avermedia-dvbt.c
++++ b/drivers/media/rc/keymaps/rc-avermedia-dvbt.c
+@@ -14,7 +14,7 @@
+ 
+ /* Matt Jesson <dvb@jesson.eclipse.co.uk */
+ 
+-static struct ir_scancode avermedia_dvbt[] = {
++static struct rc_map_table avermedia_dvbt[] = {
+ 	{ 0x28, KEY_0 },		/* '0' / 'enter' */
+ 	{ 0x22, KEY_1 },		/* '1' */
+ 	{ 0x12, KEY_2 },		/* '2' / 'up arrow' */
+diff --git a/drivers/media/rc/keymaps/rc-avermedia-m135a.c b/drivers/media/rc/keymaps/rc-avermedia-m135a.c
+index d5622c5..971c6f9 100644
+--- a/drivers/media/rc/keymaps/rc-avermedia-m135a.c
++++ b/drivers/media/rc/keymaps/rc-avermedia-m135a.c
+@@ -22,7 +22,7 @@
+  * codes added by Herton Ronaldo Krzesinski <herton@mandriva.com.br>
+  */
+ 
+-static struct ir_scancode avermedia_m135a[] = {
++static struct rc_map_table avermedia_m135a[] = {
+ 	/* RM-JX */
+ 	{ 0x0200, KEY_POWER2 },
+ 	{ 0x022e, KEY_DOT },		/* '.' */
+diff --git a/drivers/media/rc/keymaps/rc-avermedia-m733a-rm-k6.c b/drivers/media/rc/keymaps/rc-avermedia-m733a-rm-k6.c
+index b0e10be..74f3a20 100644
+--- a/drivers/media/rc/keymaps/rc-avermedia-m733a-rm-k6.c
++++ b/drivers/media/rc/keymaps/rc-avermedia-m733a-rm-k6.c
+@@ -16,7 +16,7 @@
+  * Herton Ronaldo Krzesinski <herton@mandriva.com.br>
+  */
+ 
+-static struct ir_scancode avermedia_m733a_rm_k6[] = {
++static struct rc_map_table avermedia_m733a_rm_k6[] = {
+ 	{ 0x0401, KEY_POWER2 },
+ 	{ 0x0406, KEY_MUTE },
+ 	{ 0x0408, KEY_MODE },     /* TV/FM */
+diff --git a/drivers/media/rc/keymaps/rc-avermedia-rm-ks.c b/drivers/media/rc/keymaps/rc-avermedia-rm-ks.c
+index 3348466..dc6a321 100644
+--- a/drivers/media/rc/keymaps/rc-avermedia-rm-ks.c
++++ b/drivers/media/rc/keymaps/rc-avermedia-rm-ks.c
+@@ -23,7 +23,7 @@
+ /* Initial keytable is from Jose Alberto Reguero <jareguero@telefonica.net>
+    and Felipe Morales Moreno <felipe.morales.moreno@gmail.com> */
+ /* FIXME: mappings are not 100% correct? */
+-static struct ir_scancode avermedia_rm_ks[] = {
++static struct rc_map_table avermedia_rm_ks[] = {
+ 	{ 0x0501, KEY_POWER2 },
+ 	{ 0x0502, KEY_CHANNELUP },
+ 	{ 0x0503, KEY_CHANNELDOWN },
+diff --git a/drivers/media/rc/keymaps/rc-avermedia.c b/drivers/media/rc/keymaps/rc-avermedia.c
+index cfde54e..a5ef695 100644
+--- a/drivers/media/rc/keymaps/rc-avermedia.c
++++ b/drivers/media/rc/keymaps/rc-avermedia.c
+@@ -14,7 +14,7 @@
+ 
+ /* Alex Hermann <gaaf@gmx.net> */
+ 
+-static struct ir_scancode avermedia[] = {
++static struct rc_map_table avermedia[] = {
+ 	{ 0x28, KEY_1 },
+ 	{ 0x18, KEY_2 },
+ 	{ 0x38, KEY_3 },
+diff --git a/drivers/media/rc/keymaps/rc-avertv-303.c b/drivers/media/rc/keymaps/rc-avertv-303.c
+index ae58663..386ba59 100644
+--- a/drivers/media/rc/keymaps/rc-avertv-303.c
++++ b/drivers/media/rc/keymaps/rc-avertv-303.c
+@@ -14,7 +14,7 @@
+ 
+ /* AVERTV STUDIO 303 Remote */
+ 
+-static struct ir_scancode avertv_303[] = {
++static struct rc_map_table avertv_303[] = {
+ 	{ 0x2a, KEY_1 },
+ 	{ 0x32, KEY_2 },
+ 	{ 0x3a, KEY_3 },
+diff --git a/drivers/media/rc/keymaps/rc-azurewave-ad-tu700.c b/drivers/media/rc/keymaps/rc-azurewave-ad-tu700.c
+index 579fafe..fbaaba5 100644
+--- a/drivers/media/rc/keymaps/rc-azurewave-ad-tu700.c
++++ b/drivers/media/rc/keymaps/rc-azurewave-ad-tu700.c
+@@ -20,7 +20,7 @@
+ 
+ #include <media/rc-map.h>
+ 
+-static struct ir_scancode azurewave_ad_tu700[] = {
++static struct rc_map_table azurewave_ad_tu700[] = {
+ 	{ 0x0000, KEY_TAB },             /* Tab */
+ 	{ 0x0001, KEY_2 },
+ 	{ 0x0002, KEY_CHANNELDOWN },
+diff --git a/drivers/media/rc/keymaps/rc-behold-columbus.c b/drivers/media/rc/keymaps/rc-behold-columbus.c
+index 6abb712..33accf5 100644
+--- a/drivers/media/rc/keymaps/rc-behold-columbus.c
++++ b/drivers/media/rc/keymaps/rc-behold-columbus.c
+@@ -21,7 +21,7 @@
+  * helps to descide which keycodes to assign to the buttons.
+  */
+ 
+-static struct ir_scancode behold_columbus[] = {
++static struct rc_map_table behold_columbus[] = {
+ 
+ 	/*  0x13   0x11   0x1C   0x12  *
+ 	 *  Mute  Source  TV/FM  Power *
+diff --git a/drivers/media/rc/keymaps/rc-behold.c b/drivers/media/rc/keymaps/rc-behold.c
+index 5694185..4402414 100644
+--- a/drivers/media/rc/keymaps/rc-behold.c
++++ b/drivers/media/rc/keymaps/rc-behold.c
+@@ -24,7 +24,7 @@
+  * helps to descide which keycodes to assign to the buttons.
+  */
+ 
+-static struct ir_scancode behold[] = {
++static struct rc_map_table behold[] = {
+ 
+ 	/*  0x1c            0x12  *
+ 	 *  TV/FM          POWER  *
+diff --git a/drivers/media/rc/keymaps/rc-budget-ci-old.c b/drivers/media/rc/keymaps/rc-budget-ci-old.c
+index 99f7323..e4827a6 100644
+--- a/drivers/media/rc/keymaps/rc-budget-ci-old.c
++++ b/drivers/media/rc/keymaps/rc-budget-ci-old.c
+@@ -18,7 +18,7 @@
+  * This is a "middle of the road" approach, differences are noted
+  */
+ 
+-static struct ir_scancode budget_ci_old[] = {
++static struct rc_map_table budget_ci_old[] = {
+ 	{ 0x00, KEY_0 },
+ 	{ 0x01, KEY_1 },
+ 	{ 0x02, KEY_2 },
+diff --git a/drivers/media/rc/keymaps/rc-cinergy-1400.c b/drivers/media/rc/keymaps/rc-cinergy-1400.c
+index b504ddd..6a69866 100644
+--- a/drivers/media/rc/keymaps/rc-cinergy-1400.c
++++ b/drivers/media/rc/keymaps/rc-cinergy-1400.c
+@@ -14,7 +14,7 @@
+ 
+ /* Cinergy 1400 DVB-T */
+ 
+-static struct ir_scancode cinergy_1400[] = {
++static struct rc_map_table cinergy_1400[] = {
+ 	{ 0x01, KEY_POWER },
+ 	{ 0x02, KEY_1 },
+ 	{ 0x03, KEY_2 },
+diff --git a/drivers/media/rc/keymaps/rc-cinergy.c b/drivers/media/rc/keymaps/rc-cinergy.c
+index 8bf02f1..ba36d14 100644
+--- a/drivers/media/rc/keymaps/rc-cinergy.c
++++ b/drivers/media/rc/keymaps/rc-cinergy.c
+@@ -12,7 +12,7 @@
+ 
+ #include <media/rc-map.h>
+ 
+-static struct ir_scancode cinergy[] = {
++static struct rc_map_table cinergy[] = {
+ 	{ 0x00, KEY_0 },
+ 	{ 0x01, KEY_1 },
+ 	{ 0x02, KEY_2 },
+diff --git a/drivers/media/rc/keymaps/rc-dib0700-nec.c b/drivers/media/rc/keymaps/rc-dib0700-nec.c
+index 47d5476..921230d 100644
+--- a/drivers/media/rc/keymaps/rc-dib0700-nec.c
++++ b/drivers/media/rc/keymaps/rc-dib0700-nec.c
+@@ -17,7 +17,7 @@
+ 
+ #include <media/rc-map.h>
+ 
+-static struct ir_scancode dib0700_nec_table[] = {
++static struct rc_map_table dib0700_nec_table[] = {
+ 	/* Key codes for the Pixelview SBTVD remote */
+ 	{ 0x8613, KEY_MUTE },
+ 	{ 0x8612, KEY_POWER },
+diff --git a/drivers/media/rc/keymaps/rc-dib0700-rc5.c b/drivers/media/rc/keymaps/rc-dib0700-rc5.c
+index 1d09921..9febb72 100644
+--- a/drivers/media/rc/keymaps/rc-dib0700-rc5.c
++++ b/drivers/media/rc/keymaps/rc-dib0700-rc5.c
+@@ -17,7 +17,7 @@
+ 
+ #include <media/rc-map.h>
+ 
+-static struct ir_scancode dib0700_rc5_table[] = {
++static struct rc_map_table dib0700_rc5_table[] = {
+ 	/* Key codes for the tiny Pinnacle remote*/
+ 	{ 0x0700, KEY_MUTE },
+ 	{ 0x0701, KEY_MENU }, /* Pinnacle logo */
+diff --git a/drivers/media/rc/keymaps/rc-digitalnow-tinytwin.c b/drivers/media/rc/keymaps/rc-digitalnow-tinytwin.c
+index 8ae726b..da50d7d 100644
+--- a/drivers/media/rc/keymaps/rc-digitalnow-tinytwin.c
++++ b/drivers/media/rc/keymaps/rc-digitalnow-tinytwin.c
+@@ -20,7 +20,7 @@
+ 
+ #include <media/rc-map.h>
+ 
+-static struct ir_scancode digitalnow_tinytwin[] = {
++static struct rc_map_table digitalnow_tinytwin[] = {
+ 	{ 0x0000, KEY_MUTE },            /* [symbol speaker] */
+ 	{ 0x0001, KEY_VOLUMEUP },
+ 	{ 0x0002, KEY_POWER2 },          /* TV [power button] */
+diff --git a/drivers/media/rc/keymaps/rc-digittrade.c b/drivers/media/rc/keymaps/rc-digittrade.c
+index 206469f..706f95d 100644
+--- a/drivers/media/rc/keymaps/rc-digittrade.c
++++ b/drivers/media/rc/keymaps/rc-digittrade.c
+@@ -25,7 +25,7 @@
+    Initial keytable was from Alain Kalker <miki@dds.nl> */
+ 
+ /* Digittrade DVB-T USB Stick */
+-static struct ir_scancode digittrade[] = {
++static struct rc_map_table digittrade[] = {
+ 	{ 0x0000, KEY_9 },
+ 	{ 0x0001, KEY_EPG },             /* EPG */
+ 	{ 0x0002, KEY_VOLUMEDOWN },      /* Vol Dn */
+diff --git a/drivers/media/rc/keymaps/rc-dm1105-nec.c b/drivers/media/rc/keymaps/rc-dm1105-nec.c
+index ba6fb0b..9023dc9 100644
+--- a/drivers/media/rc/keymaps/rc-dm1105-nec.c
++++ b/drivers/media/rc/keymaps/rc-dm1105-nec.c
+@@ -16,7 +16,7 @@
+    Igor M. Liplianin <liplianin@me.by>
+  */
+ 
+-static struct ir_scancode dm1105_nec[] = {
++static struct rc_map_table dm1105_nec[] = {
+ 	{ 0x0a, KEY_POWER2},		/* power */
+ 	{ 0x0c, KEY_MUTE},		/* mute */
+ 	{ 0x11, KEY_1},
+diff --git a/drivers/media/rc/keymaps/rc-dntv-live-dvb-t.c b/drivers/media/rc/keymaps/rc-dntv-live-dvb-t.c
+index b703937..7fbeaed 100644
+--- a/drivers/media/rc/keymaps/rc-dntv-live-dvb-t.c
++++ b/drivers/media/rc/keymaps/rc-dntv-live-dvb-t.c
+@@ -14,7 +14,7 @@
+ 
+ /* DigitalNow DNTV Live DVB-T Remote */
+ 
+-static struct ir_scancode dntv_live_dvb_t[] = {
++static struct rc_map_table dntv_live_dvb_t[] = {
+ 	{ 0x00, KEY_ESC },		/* 'go up a level?' */
+ 	/* Keys 0 to 9 */
+ 	{ 0x0a, KEY_0 },
+diff --git a/drivers/media/rc/keymaps/rc-dntv-live-dvbt-pro.c b/drivers/media/rc/keymaps/rc-dntv-live-dvbt-pro.c
+index b0126b2..660f2e7 100644
+--- a/drivers/media/rc/keymaps/rc-dntv-live-dvbt-pro.c
++++ b/drivers/media/rc/keymaps/rc-dntv-live-dvbt-pro.c
+@@ -14,7 +14,7 @@
+ 
+ /* DigitalNow DNTV Live! DVB-T Pro Remote */
+ 
+-static struct ir_scancode dntv_live_dvbt_pro[] = {
++static struct rc_map_table dntv_live_dvbt_pro[] = {
+ 	{ 0x16, KEY_POWER },
+ 	{ 0x5b, KEY_HOME },
+ 
+diff --git a/drivers/media/rc/keymaps/rc-em-terratec.c b/drivers/media/rc/keymaps/rc-em-terratec.c
+index 57bcd55..4d0ad8c 100644
+--- a/drivers/media/rc/keymaps/rc-em-terratec.c
++++ b/drivers/media/rc/keymaps/rc-em-terratec.c
+@@ -12,7 +12,7 @@
+ 
+ #include <media/rc-map.h>
+ 
+-static struct ir_scancode em_terratec[] = {
++static struct rc_map_table em_terratec[] = {
+ 	{ 0x01, KEY_CHANNEL },
+ 	{ 0x02, KEY_SELECT },
+ 	{ 0x03, KEY_MUTE },
+diff --git a/drivers/media/rc/keymaps/rc-encore-enltv-fm53.c b/drivers/media/rc/keymaps/rc-encore-enltv-fm53.c
+index 97e01f4..3005d4b 100644
+--- a/drivers/media/rc/keymaps/rc-encore-enltv-fm53.c
++++ b/drivers/media/rc/keymaps/rc-encore-enltv-fm53.c
+@@ -16,7 +16,7 @@
+    Mauro Carvalho Chehab <mchehab@infradead.org>
+  */
+ 
+-static struct ir_scancode encore_enltv_fm53[] = {
++static struct rc_map_table encore_enltv_fm53[] = {
+ 	{ 0x10, KEY_POWER2},
+ 	{ 0x06, KEY_MUTE},
+ 
+diff --git a/drivers/media/rc/keymaps/rc-encore-enltv.c b/drivers/media/rc/keymaps/rc-encore-enltv.c
+index d3030cf..d16db50 100644
+--- a/drivers/media/rc/keymaps/rc-encore-enltv.c
++++ b/drivers/media/rc/keymaps/rc-encore-enltv.c
+@@ -15,7 +15,7 @@
+ /* Encore ENLTV-FM  - black plastic, white front cover with white glowing buttons
+     Juan Pablo Sormani <sorman@gmail.com> */
+ 
+-static struct ir_scancode encore_enltv[] = {
++static struct rc_map_table encore_enltv[] = {
+ 
+ 	/* Power button does nothing, neither in Windows app,
+ 	 although it sends data (used for BIOS wakeup?) */
+diff --git a/drivers/media/rc/keymaps/rc-encore-enltv2.c b/drivers/media/rc/keymaps/rc-encore-enltv2.c
+index 1871b32..a5e07c7 100644
+--- a/drivers/media/rc/keymaps/rc-encore-enltv2.c
++++ b/drivers/media/rc/keymaps/rc-encore-enltv2.c
+@@ -15,7 +15,7 @@
+ /* Encore ENLTV2-FM  - silver plastic - "Wand Media" written at the botton
+     Mauro Carvalho Chehab <mchehab@infradead.org> */
+ 
+-static struct ir_scancode encore_enltv2[] = {
++static struct rc_map_table encore_enltv2[] = {
+ 	{ 0x4c, KEY_POWER2 },
+ 	{ 0x4a, KEY_TUNER },
+ 	{ 0x40, KEY_1 },
+diff --git a/drivers/media/rc/keymaps/rc-evga-indtube.c b/drivers/media/rc/keymaps/rc-evga-indtube.c
+index 192d7f8..e2d0590 100644
+--- a/drivers/media/rc/keymaps/rc-evga-indtube.c
++++ b/drivers/media/rc/keymaps/rc-evga-indtube.c
+@@ -16,7 +16,7 @@
+    Devin Heitmueller <devin.heitmueller@gmail.com>
+  */
+ 
+-static struct ir_scancode evga_indtube[] = {
++static struct rc_map_table evga_indtube[] = {
+ 	{ 0x12, KEY_POWER},
+ 	{ 0x02, KEY_MODE},	/* TV */
+ 	{ 0x14, KEY_MUTE},
+diff --git a/drivers/media/rc/keymaps/rc-eztv.c b/drivers/media/rc/keymaps/rc-eztv.c
+index fe3ab5e..ee134c5 100644
+--- a/drivers/media/rc/keymaps/rc-eztv.c
++++ b/drivers/media/rc/keymaps/rc-eztv.c
+@@ -15,7 +15,7 @@
+ /* Alfons Geser <a.geser@cox.net>
+  * updates from Job D. R. Borges <jobdrb@ig.com.br> */
+ 
+-static struct ir_scancode eztv[] = {
++static struct rc_map_table eztv[] = {
+ 	{ 0x12, KEY_POWER },
+ 	{ 0x01, KEY_TV },	/* DVR */
+ 	{ 0x15, KEY_DVD },	/* DVD */
+diff --git a/drivers/media/rc/keymaps/rc-flydvb.c b/drivers/media/rc/keymaps/rc-flydvb.c
+index f48249e..ef90a05 100644
+--- a/drivers/media/rc/keymaps/rc-flydvb.c
++++ b/drivers/media/rc/keymaps/rc-flydvb.c
+@@ -12,7 +12,7 @@
+ 
+ #include <media/rc-map.h>
+ 
+-static struct ir_scancode flydvb[] = {
++static struct rc_map_table flydvb[] = {
+ 	{ 0x01, KEY_ZOOM },		/* Full Screen */
+ 	{ 0x00, KEY_POWER },		/* Power */
+ 
+diff --git a/drivers/media/rc/keymaps/rc-flyvideo.c b/drivers/media/rc/keymaps/rc-flyvideo.c
+index 59713fb..20a1333 100644
+--- a/drivers/media/rc/keymaps/rc-flyvideo.c
++++ b/drivers/media/rc/keymaps/rc-flyvideo.c
+@@ -12,7 +12,7 @@
+ 
+ #include <media/rc-map.h>
+ 
+-static struct ir_scancode flyvideo[] = {
++static struct rc_map_table flyvideo[] = {
+ 	{ 0x0f, KEY_0 },
+ 	{ 0x03, KEY_1 },
+ 	{ 0x04, KEY_2 },
+diff --git a/drivers/media/rc/keymaps/rc-fusionhdtv-mce.c b/drivers/media/rc/keymaps/rc-fusionhdtv-mce.c
+index e69458d..2687af7 100644
+--- a/drivers/media/rc/keymaps/rc-fusionhdtv-mce.c
++++ b/drivers/media/rc/keymaps/rc-fusionhdtv-mce.c
+@@ -14,7 +14,7 @@
+ 
+ /* DViCO FUSION HDTV MCE remote */
+ 
+-static struct ir_scancode fusionhdtv_mce[] = {
++static struct rc_map_table fusionhdtv_mce[] = {
+ 
+ 	{ 0x0b, KEY_1 },
+ 	{ 0x17, KEY_2 },
+diff --git a/drivers/media/rc/keymaps/rc-gadmei-rm008z.c b/drivers/media/rc/keymaps/rc-gadmei-rm008z.c
+index 13587b8..fb247ba 100644
+--- a/drivers/media/rc/keymaps/rc-gadmei-rm008z.c
++++ b/drivers/media/rc/keymaps/rc-gadmei-rm008z.c
+@@ -16,7 +16,7 @@
+    Shine Liu <shinel@foxmail.com>
+  */
+ 
+-static struct ir_scancode gadmei_rm008z[] = {
++static struct rc_map_table gadmei_rm008z[] = {
+ 	{ 0x14, KEY_POWER2},		/* POWER OFF */
+ 	{ 0x0c, KEY_MUTE},		/* MUTE */
+ 
+diff --git a/drivers/media/rc/keymaps/rc-genius-tvgo-a11mce.c b/drivers/media/rc/keymaps/rc-genius-tvgo-a11mce.c
+index 2304bf6..7e6834a 100644
+--- a/drivers/media/rc/keymaps/rc-genius-tvgo-a11mce.c
++++ b/drivers/media/rc/keymaps/rc-genius-tvgo-a11mce.c
+@@ -17,7 +17,7 @@
+  * Adrian Pardini <pardo.bsso@gmail.com>
+  */
+ 
+-static struct ir_scancode genius_tvgo_a11mce[] = {
++static struct rc_map_table genius_tvgo_a11mce[] = {
+ 	/* Keys 0 to 9 */
+ 	{ 0x48, KEY_0 },
+ 	{ 0x09, KEY_1 },
+diff --git a/drivers/media/rc/keymaps/rc-gotview7135.c b/drivers/media/rc/keymaps/rc-gotview7135.c
+index b5be7bf..54222ca 100644
+--- a/drivers/media/rc/keymaps/rc-gotview7135.c
++++ b/drivers/media/rc/keymaps/rc-gotview7135.c
+@@ -14,7 +14,7 @@
+ 
+ /* Mike Baikov <mike@baikov.com> */
+ 
+-static struct ir_scancode gotview7135[] = {
++static struct rc_map_table gotview7135[] = {
+ 
+ 	{ 0x11, KEY_POWER },
+ 	{ 0x35, KEY_TV },
+diff --git a/drivers/media/rc/keymaps/rc-hauppauge-new.c b/drivers/media/rc/keymaps/rc-hauppauge-new.c
+index c60f845..2396257 100644
+--- a/drivers/media/rc/keymaps/rc-hauppauge-new.c
++++ b/drivers/media/rc/keymaps/rc-hauppauge-new.c
+@@ -16,7 +16,7 @@
+  * slightly different versions), shipped with cx88+ivtv cards.
+  * almost rc5 coding, but some non-standard keys */
+ 
+-static struct ir_scancode hauppauge_new[] = {
++static struct rc_map_table hauppauge_new[] = {
+ 	/* Keys 0 to 9 */
+ 	{ 0x00, KEY_0 },
+ 	{ 0x01, KEY_1 },
+diff --git a/drivers/media/rc/keymaps/rc-imon-mce.c b/drivers/media/rc/keymaps/rc-imon-mce.c
+index 4ce902f..291e5d8 100644
+--- a/drivers/media/rc/keymaps/rc-imon-mce.c
++++ b/drivers/media/rc/keymaps/rc-imon-mce.c
+@@ -12,7 +12,7 @@
+ #include <media/rc-map.h>
+ 
+ /* mce-mode imon mce remote key table */
+-static struct ir_scancode imon_mce[] = {
++static struct rc_map_table imon_mce[] = {
+ 	/* keys sorted mostly by frequency of use to optimize lookups */
+ 	{ 0x800ff415, KEY_REWIND },
+ 	{ 0x800ff414, KEY_FASTFORWARD },
+diff --git a/drivers/media/rc/keymaps/rc-imon-pad.c b/drivers/media/rc/keymaps/rc-imon-pad.c
+index 6d4633a..33f28d4 100644
+--- a/drivers/media/rc/keymaps/rc-imon-pad.c
++++ b/drivers/media/rc/keymaps/rc-imon-pad.c
+@@ -17,7 +17,7 @@
+  * same remote to different hex codes, and the silkscreened names
+  * vary a bit between the SoundGraph and Antec remotes... ugh.
+  */
+-static struct ir_scancode imon_pad[] = {
++static struct rc_map_table imon_pad[] = {
+ 	/* keys sorted mostly by frequency of use to optimize lookups */
+ 	{ 0x2a8195b7, KEY_REWIND },
+ 	{ 0x298315b7, KEY_REWIND },
+diff --git a/drivers/media/rc/keymaps/rc-iodata-bctv7e.c b/drivers/media/rc/keymaps/rc-iodata-bctv7e.c
+index c5208f1..5e5263f 100644
+--- a/drivers/media/rc/keymaps/rc-iodata-bctv7e.c
++++ b/drivers/media/rc/keymaps/rc-iodata-bctv7e.c
+@@ -14,7 +14,7 @@
+ 
+ /* IO-DATA BCTV7E Remote */
+ 
+-static struct ir_scancode iodata_bctv7e[] = {
++static struct rc_map_table iodata_bctv7e[] = {
+ 	{ 0x40, KEY_TV },
+ 	{ 0x20, KEY_RADIO },		/* FM */
+ 	{ 0x60, KEY_EPG },
+diff --git a/drivers/media/rc/keymaps/rc-kaiomy.c b/drivers/media/rc/keymaps/rc-kaiomy.c
+index 1b6da7f..527ab1b 100644
+--- a/drivers/media/rc/keymaps/rc-kaiomy.c
++++ b/drivers/media/rc/keymaps/rc-kaiomy.c
+@@ -16,7 +16,7 @@
+    Mauro Carvalho Chehab <mchehab@infradead.org>
+  */
+ 
+-static struct ir_scancode kaiomy[] = {
++static struct rc_map_table kaiomy[] = {
+ 	{ 0x43, KEY_POWER2},
+ 	{ 0x01, KEY_LIST},
+ 	{ 0x0b, KEY_ZOOM},
+diff --git a/drivers/media/rc/keymaps/rc-kworld-315u.c b/drivers/media/rc/keymaps/rc-kworld-315u.c
+index 3418e07..f58703e 100644
+--- a/drivers/media/rc/keymaps/rc-kworld-315u.c
++++ b/drivers/media/rc/keymaps/rc-kworld-315u.c
+@@ -15,7 +15,7 @@
+ /* Kworld 315U
+  */
+ 
+-static struct ir_scancode kworld_315u[] = {
++static struct rc_map_table kworld_315u[] = {
+ 	{ 0x6143, KEY_POWER },
+ 	{ 0x6101, KEY_TUNER },		/* source */
+ 	{ 0x610b, KEY_ZOOM },
+diff --git a/drivers/media/rc/keymaps/rc-kworld-plus-tv-analog.c b/drivers/media/rc/keymaps/rc-kworld-plus-tv-analog.c
+index 4d681eb..f6235bb 100644
+--- a/drivers/media/rc/keymaps/rc-kworld-plus-tv-analog.c
++++ b/drivers/media/rc/keymaps/rc-kworld-plus-tv-analog.c
+@@ -16,7 +16,7 @@
+    Mauro Carvalho Chehab <mchehab@infradead.org>
+  */
+ 
+-static struct ir_scancode kworld_plus_tv_analog[] = {
++static struct rc_map_table kworld_plus_tv_analog[] = {
+ 	{ 0x0c, KEY_PROG1 },		/* Kworld key */
+ 	{ 0x16, KEY_CLOSECD },		/* -> ) */
+ 	{ 0x1d, KEY_POWER2 },
+diff --git a/drivers/media/rc/keymaps/rc-leadtek-y04g0051.c b/drivers/media/rc/keymaps/rc-leadtek-y04g0051.c
+index ebdd122..e1b8726 100644
+--- a/drivers/media/rc/keymaps/rc-leadtek-y04g0051.c
++++ b/drivers/media/rc/keymaps/rc-leadtek-y04g0051.c
+@@ -20,7 +20,7 @@
+ 
+ #include <media/rc-map.h>
+ 
+-static struct ir_scancode leadtek_y04g0051[] = {
++static struct rc_map_table leadtek_y04g0051[] = {
+ 	{ 0x0300, KEY_POWER2 },
+ 	{ 0x0303, KEY_SCREEN },
+ 	{ 0x0304, KEY_RIGHT },
+diff --git a/drivers/media/rc/keymaps/rc-lirc.c b/drivers/media/rc/keymaps/rc-lirc.c
+index 6d8a641..d4dfee7 100644
+--- a/drivers/media/rc/keymaps/rc-lirc.c
++++ b/drivers/media/rc/keymaps/rc-lirc.c
+@@ -11,7 +11,7 @@
+ 
+ #include <media/rc-core.h>
+ 
+-static struct ir_scancode lirc[] = {
++static struct rc_map_table lirc[] = {
+ 	{ },
+ };
+ 
+diff --git a/drivers/media/rc/keymaps/rc-lme2510.c b/drivers/media/rc/keymaps/rc-lme2510.c
+index ca7e2ac..eb2d396 100644
+--- a/drivers/media/rc/keymaps/rc-lme2510.c
++++ b/drivers/media/rc/keymaps/rc-lme2510.c
+@@ -12,7 +12,7 @@
+ #include <media/rc-map.h>
+ 
+ 
+-static struct ir_scancode lme2510_rc[] = {
++static struct rc_map_table lme2510_rc[] = {
+ 	{ 0xba45, KEY_0 },
+ 	{ 0xa05f, KEY_1 },
+ 	{ 0xaf50, KEY_2 },
+diff --git a/drivers/media/rc/keymaps/rc-manli.c b/drivers/media/rc/keymaps/rc-manli.c
+index 056cf52..b24b082 100644
+--- a/drivers/media/rc/keymaps/rc-manli.c
++++ b/drivers/media/rc/keymaps/rc-manli.c
+@@ -21,7 +21,7 @@
+    helps to descide which keycodes to assign to the buttons.
+  */
+ 
+-static struct ir_scancode manli[] = {
++static struct rc_map_table manli[] = {
+ 
+ 	/*  0x1c            0x12  *
+ 	 * FUNCTION         POWER *
+diff --git a/drivers/media/rc/keymaps/rc-msi-digivox-ii.c b/drivers/media/rc/keymaps/rc-msi-digivox-ii.c
+index 3a14d31..4ad89b7 100644
+--- a/drivers/media/rc/keymaps/rc-msi-digivox-ii.c
++++ b/drivers/media/rc/keymaps/rc-msi-digivox-ii.c
+@@ -20,7 +20,7 @@
+ 
+ #include <media/rc-map.h>
+ 
+-static struct ir_scancode msi_digivox_ii[] = {
++static struct rc_map_table msi_digivox_ii[] = {
+ 	{ 0x0002, KEY_2 },
+ 	{ 0x0003, KEY_UP },              /* up */
+ 	{ 0x0004, KEY_3 },
+diff --git a/drivers/media/rc/keymaps/rc-msi-digivox-iii.c b/drivers/media/rc/keymaps/rc-msi-digivox-iii.c
+index 16c5b0a..d3304e7 100644
+--- a/drivers/media/rc/keymaps/rc-msi-digivox-iii.c
++++ b/drivers/media/rc/keymaps/rc-msi-digivox-iii.c
+@@ -24,7 +24,7 @@
+ /* Uses NEC extended 0x61d6. */
+ /* This remote seems to be same as rc-kworld-315u.c. Anyhow, add new remote
+    since rc-kworld-315u.c lacks NEC extended address byte. */
+-static struct ir_scancode msi_digivox_iii[] = {
++static struct rc_map_table msi_digivox_iii[] = {
+ 	{ 0x61d601, KEY_VIDEO },           /* Source */
+ 	{ 0x61d602, KEY_3 },
+ 	{ 0x61d603, KEY_POWER },           /* ShutDown */
+diff --git a/drivers/media/rc/keymaps/rc-msi-tvanywhere-plus.c b/drivers/media/rc/keymaps/rc-msi-tvanywhere-plus.c
+index d4c9102..51999c4 100644
+--- a/drivers/media/rc/keymaps/rc-msi-tvanywhere-plus.c
++++ b/drivers/media/rc/keymaps/rc-msi-tvanywhere-plus.c
+@@ -26,7 +26,7 @@
+   Some changes to formatting and keycodes by Mark Schultz <n9xmj@yahoo.com>
+ */
+ 
+-static struct ir_scancode msi_tvanywhere_plus[] = {
++static struct rc_map_table msi_tvanywhere_plus[] = {
+ 
+ /*  ---- Remote Button Layout ----
+ 
+diff --git a/drivers/media/rc/keymaps/rc-msi-tvanywhere.c b/drivers/media/rc/keymaps/rc-msi-tvanywhere.c
+index aec064c..619df9d 100644
+--- a/drivers/media/rc/keymaps/rc-msi-tvanywhere.c
++++ b/drivers/media/rc/keymaps/rc-msi-tvanywhere.c
+@@ -14,7 +14,7 @@
+ 
+ /* MSI TV@nywhere MASTER remote */
+ 
+-static struct ir_scancode msi_tvanywhere[] = {
++static struct rc_map_table msi_tvanywhere[] = {
+ 	/* Keys 0 to 9 */
+ 	{ 0x00, KEY_0 },
+ 	{ 0x01, KEY_1 },
+diff --git a/drivers/media/rc/keymaps/rc-nebula.c b/drivers/media/rc/keymaps/rc-nebula.c
+index 2c44b90..8672859 100644
+--- a/drivers/media/rc/keymaps/rc-nebula.c
++++ b/drivers/media/rc/keymaps/rc-nebula.c
+@@ -12,7 +12,7 @@
+ 
+ #include <media/rc-map.h>
+ 
+-static struct ir_scancode nebula[] = {
++static struct rc_map_table nebula[] = {
+ 	{ 0x00, KEY_0 },
+ 	{ 0x01, KEY_1 },
+ 	{ 0x02, KEY_2 },
+diff --git a/drivers/media/rc/keymaps/rc-nec-terratec-cinergy-xs.c b/drivers/media/rc/keymaps/rc-nec-terratec-cinergy-xs.c
+index 929084b..2f560dc 100644
+--- a/drivers/media/rc/keymaps/rc-nec-terratec-cinergy-xs.c
++++ b/drivers/media/rc/keymaps/rc-nec-terratec-cinergy-xs.c
+@@ -16,7 +16,7 @@
+    Mauro Carvalho Chehab <mchehab@redhat.com>
+  */
+ 
+-static struct ir_scancode nec_terratec_cinergy_xs[] = {
++static struct rc_map_table nec_terratec_cinergy_xs[] = {
+ 	{ 0x1441, KEY_HOME},
+ 	{ 0x1401, KEY_POWER2},
+ 
+diff --git a/drivers/media/rc/keymaps/rc-norwood.c b/drivers/media/rc/keymaps/rc-norwood.c
+index 7fe7746..f4a8503 100644
+--- a/drivers/media/rc/keymaps/rc-norwood.c
++++ b/drivers/media/rc/keymaps/rc-norwood.c
+@@ -16,7 +16,7 @@
+    By Peter Naulls <peter@chocky.org>
+    Key comments are the functions given in the manual */
+ 
+-static struct ir_scancode norwood[] = {
++static struct rc_map_table norwood[] = {
+ 	/* Keys 0 to 9 */
+ 	{ 0x20, KEY_0 },
+ 	{ 0x21, KEY_1 },
+diff --git a/drivers/media/rc/keymaps/rc-npgtech.c b/drivers/media/rc/keymaps/rc-npgtech.c
+index a9cbcde..fdfa549 100644
+--- a/drivers/media/rc/keymaps/rc-npgtech.c
++++ b/drivers/media/rc/keymaps/rc-npgtech.c
+@@ -12,7 +12,7 @@
+ 
+ #include <media/rc-map.h>
+ 
+-static struct ir_scancode npgtech[] = {
++static struct rc_map_table npgtech[] = {
+ 	{ 0x1d, KEY_SWITCHVIDEOMODE },	/* switch inputs */
+ 	{ 0x2a, KEY_FRONT },
+ 
+diff --git a/drivers/media/rc/keymaps/rc-pctv-sedna.c b/drivers/media/rc/keymaps/rc-pctv-sedna.c
+index 68b33b3..86c1101 100644
+--- a/drivers/media/rc/keymaps/rc-pctv-sedna.c
++++ b/drivers/media/rc/keymaps/rc-pctv-sedna.c
+@@ -17,7 +17,7 @@
+    Pavel Mihaylov <bin@bash.info>
+    Also for the remote bundled with Kozumi KTV-01C card */
+ 
+-static struct ir_scancode pctv_sedna[] = {
++static struct rc_map_table pctv_sedna[] = {
+ 	{ 0x00, KEY_0 },
+ 	{ 0x01, KEY_1 },
+ 	{ 0x02, KEY_2 },
+diff --git a/drivers/media/rc/keymaps/rc-pinnacle-color.c b/drivers/media/rc/keymaps/rc-pinnacle-color.c
+index 364ccde..d3f4cd4 100644
+--- a/drivers/media/rc/keymaps/rc-pinnacle-color.c
++++ b/drivers/media/rc/keymaps/rc-pinnacle-color.c
+@@ -12,7 +12,7 @@
+ 
+ #include <media/rc-map.h>
+ 
+-static struct ir_scancode pinnacle_color[] = {
++static struct rc_map_table pinnacle_color[] = {
+ 	{ 0x59, KEY_MUTE },
+ 	{ 0x4a, KEY_POWER },
+ 
+diff --git a/drivers/media/rc/keymaps/rc-pinnacle-grey.c b/drivers/media/rc/keymaps/rc-pinnacle-grey.c
+index 993eff7..1f48b43 100644
+--- a/drivers/media/rc/keymaps/rc-pinnacle-grey.c
++++ b/drivers/media/rc/keymaps/rc-pinnacle-grey.c
+@@ -12,7 +12,7 @@
+ 
+ #include <media/rc-map.h>
+ 
+-static struct ir_scancode pinnacle_grey[] = {
++static struct rc_map_table pinnacle_grey[] = {
+ 	{ 0x3a, KEY_0 },
+ 	{ 0x31, KEY_1 },
+ 	{ 0x32, KEY_2 },
+diff --git a/drivers/media/rc/keymaps/rc-pinnacle-pctv-hd.c b/drivers/media/rc/keymaps/rc-pinnacle-pctv-hd.c
+index 56e6a7e..dc7267c 100644
+--- a/drivers/media/rc/keymaps/rc-pinnacle-pctv-hd.c
++++ b/drivers/media/rc/keymaps/rc-pinnacle-pctv-hd.c
+@@ -14,7 +14,7 @@
+ 
+ /* Pinnacle PCTV HD 800i mini remote */
+ 
+-static struct ir_scancode pinnacle_pctv_hd[] = {
++static struct rc_map_table pinnacle_pctv_hd[] = {
+ 
+ 	{ 0x0f, KEY_1 },
+ 	{ 0x15, KEY_2 },
+diff --git a/drivers/media/rc/keymaps/rc-pixelview-mk12.c b/drivers/media/rc/keymaps/rc-pixelview-mk12.c
+index 84f89eb..93f7248 100644
+--- a/drivers/media/rc/keymaps/rc-pixelview-mk12.c
++++ b/drivers/media/rc/keymaps/rc-pixelview-mk12.c
+@@ -16,7 +16,7 @@
+  * Keytable for MK-F12 IR remote provided together with Pixelview
+  * Ultra Pro Remote Controller. Uses NEC extended format.
+  */
+-static struct ir_scancode pixelview_mk12[] = {
++static struct rc_map_table pixelview_mk12[] = {
+ 	{ 0x866b03, KEY_TUNER },	/* Timeshift */
+ 	{ 0x866b1e, KEY_POWER2 },	/* power */
+ 
+diff --git a/drivers/media/rc/keymaps/rc-pixelview-new.c b/drivers/media/rc/keymaps/rc-pixelview-new.c
+index 703f86b..e6d60d2 100644
+--- a/drivers/media/rc/keymaps/rc-pixelview-new.c
++++ b/drivers/media/rc/keymaps/rc-pixelview-new.c
+@@ -17,7 +17,7 @@
+    present on PV MPEG 8000GT
+  */
+ 
+-static struct ir_scancode pixelview_new[] = {
++static struct rc_map_table pixelview_new[] = {
+ 	{ 0x3c, KEY_TIME },		/* Timeshift */
+ 	{ 0x12, KEY_POWER },
+ 
+diff --git a/drivers/media/rc/keymaps/rc-pixelview.c b/drivers/media/rc/keymaps/rc-pixelview.c
+index 5a50aa7..2a76710 100644
+--- a/drivers/media/rc/keymaps/rc-pixelview.c
++++ b/drivers/media/rc/keymaps/rc-pixelview.c
+@@ -12,7 +12,7 @@
+ 
+ #include <media/rc-map.h>
+ 
+-static struct ir_scancode pixelview[] = {
++static struct rc_map_table pixelview[] = {
+ 
+ 	{ 0x1e, KEY_POWER },	/* power */
+ 	{ 0x07, KEY_MEDIA },	/* source */
+diff --git a/drivers/media/rc/keymaps/rc-powercolor-real-angel.c b/drivers/media/rc/keymaps/rc-powercolor-real-angel.c
+index 4eec437..7cc0d57 100644
+--- a/drivers/media/rc/keymaps/rc-powercolor-real-angel.c
++++ b/drivers/media/rc/keymaps/rc-powercolor-real-angel.c
+@@ -17,7 +17,7 @@
+  * Daniel Fraga <fragabr@gmail.com>
+  */
+ 
+-static struct ir_scancode powercolor_real_angel[] = {
++static struct rc_map_table powercolor_real_angel[] = {
+ 	{ 0x38, KEY_SWITCHVIDEOMODE },	/* switch inputs */
+ 	{ 0x0c, KEY_MEDIA },		/* Turn ON/OFF App */
+ 	{ 0x00, KEY_0 },
+diff --git a/drivers/media/rc/keymaps/rc-proteus-2309.c b/drivers/media/rc/keymaps/rc-proteus-2309.c
+index 802c58a..d5e62a5 100644
+--- a/drivers/media/rc/keymaps/rc-proteus-2309.c
++++ b/drivers/media/rc/keymaps/rc-proteus-2309.c
+@@ -14,7 +14,7 @@
+ 
+ /* Michal Majchrowicz <mmajchrowicz@gmail.com> */
+ 
+-static struct ir_scancode proteus_2309[] = {
++static struct rc_map_table proteus_2309[] = {
+ 	/* numeric */
+ 	{ 0x00, KEY_0 },
+ 	{ 0x01, KEY_1 },
+diff --git a/drivers/media/rc/keymaps/rc-purpletv.c b/drivers/media/rc/keymaps/rc-purpletv.c
+index f3e9709..5dbfd91 100644
+--- a/drivers/media/rc/keymaps/rc-purpletv.c
++++ b/drivers/media/rc/keymaps/rc-purpletv.c
+@@ -12,7 +12,7 @@
+ 
+ #include <media/rc-map.h>
+ 
+-static struct ir_scancode purpletv[] = {
++static struct rc_map_table purpletv[] = {
+ 	{ 0x03, KEY_POWER },
+ 	{ 0x6f, KEY_MUTE },
+ 	{ 0x10, KEY_BACKSPACE },	/* Recall */
+diff --git a/drivers/media/rc/keymaps/rc-pv951.c b/drivers/media/rc/keymaps/rc-pv951.c
+index e301ff0..d9c7e2f 100644
+--- a/drivers/media/rc/keymaps/rc-pv951.c
++++ b/drivers/media/rc/keymaps/rc-pv951.c
+@@ -14,7 +14,7 @@
+ 
+ /* Mark Phalan <phalanm@o2.ie> */
+ 
+-static struct ir_scancode pv951[] = {
++static struct rc_map_table pv951[] = {
+ 	{ 0x00, KEY_0 },
+ 	{ 0x01, KEY_1 },
+ 	{ 0x02, KEY_2 },
+diff --git a/drivers/media/rc/keymaps/rc-rc5-hauppauge-new.c b/drivers/media/rc/keymaps/rc-rc5-hauppauge-new.c
+index 91bcab8..eef2e87 100644
+--- a/drivers/media/rc/keymaps/rc-rc5-hauppauge-new.c
++++ b/drivers/media/rc/keymaps/rc-rc5-hauppauge-new.c
+@@ -19,7 +19,7 @@
+  * This table contains the complete RC5 code, instead of just the data part
+  */
+ 
+-static struct ir_scancode rc5_hauppauge_new[] = {
++static struct rc_map_table rc5_hauppauge_new[] = {
+ 	/* Keys 0 to 9 */
+ 	{ 0x1e00, KEY_0 },
+ 	{ 0x1e01, KEY_1 },
+diff --git a/drivers/media/rc/keymaps/rc-rc5-tv.c b/drivers/media/rc/keymaps/rc-rc5-tv.c
+index cda2a2f..efa1488 100644
+--- a/drivers/media/rc/keymaps/rc-rc5-tv.c
++++ b/drivers/media/rc/keymaps/rc-rc5-tv.c
+@@ -16,7 +16,7 @@
+ /* see http://users.pandora.be/nenya/electronics/rc5/codes00.htm */
+ /* used by old (black) Hauppauge remotes                         */
+ 
+-static struct ir_scancode rc5_tv[] = {
++static struct rc_map_table rc5_tv[] = {
+ 	/* Keys 0 to 9 */
+ 	{ 0x00, KEY_0 },
+ 	{ 0x01, KEY_1 },
+diff --git a/drivers/media/rc/keymaps/rc-rc6-mce.c b/drivers/media/rc/keymaps/rc-rc6-mce.c
+index f926477..81f4172 100644
+--- a/drivers/media/rc/keymaps/rc-rc6-mce.c
++++ b/drivers/media/rc/keymaps/rc-rc6-mce.c
+@@ -11,7 +11,7 @@
+ 
+ #include <media/rc-map.h>
+ 
+-static struct ir_scancode rc6_mce[] = {
++static struct rc_map_table rc6_mce[] = {
+ 
+ 	{ 0x800f0400, KEY_NUMERIC_0 },
+ 	{ 0x800f0401, KEY_NUMERIC_1 },
+diff --git a/drivers/media/rc/keymaps/rc-real-audio-220-32-keys.c b/drivers/media/rc/keymaps/rc-real-audio-220-32-keys.c
+index 6781426..884416c 100644
+--- a/drivers/media/rc/keymaps/rc-real-audio-220-32-keys.c
++++ b/drivers/media/rc/keymaps/rc-real-audio-220-32-keys.c
+@@ -14,7 +14,7 @@
+ 
+ /* Zogis Real Audio 220 - 32 keys IR */
+ 
+-static struct ir_scancode real_audio_220_32_keys[] = {
++static struct rc_map_table real_audio_220_32_keys[] = {
+ 	{ 0x1c, KEY_RADIO},
+ 	{ 0x12, KEY_POWER2},
+ 
+diff --git a/drivers/media/rc/keymaps/rc-streamzap.c b/drivers/media/rc/keymaps/rc-streamzap.c
+index bafe5b8..5a86a71 100644
+--- a/drivers/media/rc/keymaps/rc-streamzap.c
++++ b/drivers/media/rc/keymaps/rc-streamzap.c
+@@ -11,7 +11,7 @@
+ 
+ #include <media/rc-map.h>
+ 
+-static struct ir_scancode streamzap[] = {
++static struct rc_map_table streamzap[] = {
+ /*
+  * The Streamzap remote is almost, but not quite, RC-5, as it has an extra
+  * bit in it, which throws the in-kernel RC-5 decoder for a loop. Currently,
+diff --git a/drivers/media/rc/keymaps/rc-tbs-nec.c b/drivers/media/rc/keymaps/rc-tbs-nec.c
+index 4ef4f81..6e2f5b5 100644
+--- a/drivers/media/rc/keymaps/rc-tbs-nec.c
++++ b/drivers/media/rc/keymaps/rc-tbs-nec.c
+@@ -12,7 +12,7 @@
+ 
+ #include <media/rc-map.h>
+ 
+-static struct ir_scancode tbs_nec[] = {
++static struct rc_map_table tbs_nec[] = {
+ 	{ 0x04, KEY_POWER2},	/*power*/
+ 	{ 0x14, KEY_MUTE},	/*mute*/
+ 	{ 0x07, KEY_1},
+diff --git a/drivers/media/rc/keymaps/rc-terratec-cinergy-xs.c b/drivers/media/rc/keymaps/rc-terratec-cinergy-xs.c
+index 4064a32..540020a 100644
+--- a/drivers/media/rc/keymaps/rc-terratec-cinergy-xs.c
++++ b/drivers/media/rc/keymaps/rc-terratec-cinergy-xs.c
+@@ -16,7 +16,7 @@
+    Devin Heitmueller <dheitmueller@linuxtv.org>
+  */
+ 
+-static struct ir_scancode terratec_cinergy_xs[] = {
++static struct rc_map_table terratec_cinergy_xs[] = {
+ 	{ 0x41, KEY_HOME},
+ 	{ 0x01, KEY_POWER},
+ 	{ 0x42, KEY_MENU},
+diff --git a/drivers/media/rc/keymaps/rc-terratec-slim.c b/drivers/media/rc/keymaps/rc-terratec-slim.c
+index c23caf7..a1513f0 100644
+--- a/drivers/media/rc/keymaps/rc-terratec-slim.c
++++ b/drivers/media/rc/keymaps/rc-terratec-slim.c
+@@ -22,7 +22,7 @@
+ 
+ /* TerraTec slim remote, 7 rows, 4 columns. */
+ /* Uses NEC extended 0x02bd. */
+-static struct ir_scancode terratec_slim[] = {
++static struct rc_map_table terratec_slim[] = {
+ 	{ 0x02bd00, KEY_1 },
+ 	{ 0x02bd01, KEY_2 },
+ 	{ 0x02bd02, KEY_3 },
+diff --git a/drivers/media/rc/keymaps/rc-tevii-nec.c b/drivers/media/rc/keymaps/rc-tevii-nec.c
+index eabfb70..6b2fc43 100644
+--- a/drivers/media/rc/keymaps/rc-tevii-nec.c
++++ b/drivers/media/rc/keymaps/rc-tevii-nec.c
+@@ -12,7 +12,7 @@
+ 
+ #include <media/rc-map.h>
+ 
+-static struct ir_scancode tevii_nec[] = {
++static struct rc_map_table tevii_nec[] = {
+ 	{ 0x0a, KEY_POWER2},
+ 	{ 0x0c, KEY_MUTE},
+ 	{ 0x11, KEY_1},
+diff --git a/drivers/media/rc/keymaps/rc-total-media-in-hand.c b/drivers/media/rc/keymaps/rc-total-media-in-hand.c
+index cd39b3d..61a4234 100644
+--- a/drivers/media/rc/keymaps/rc-total-media-in-hand.c
++++ b/drivers/media/rc/keymaps/rc-total-media-in-hand.c
+@@ -21,7 +21,7 @@
+ #include <media/rc-map.h>
+ 
+ /* Uses NEC extended 0x02bd */
+-static struct ir_scancode total_media_in_hand[] = {
++static struct rc_map_table total_media_in_hand[] = {
+ 	{ 0x02bd00, KEY_1 },
+ 	{ 0x02bd01, KEY_2 },
+ 	{ 0x02bd02, KEY_3 },
+diff --git a/drivers/media/rc/keymaps/rc-trekstor.c b/drivers/media/rc/keymaps/rc-trekstor.c
+index 31d6c6c..2d7bbf8 100644
+--- a/drivers/media/rc/keymaps/rc-trekstor.c
++++ b/drivers/media/rc/keymaps/rc-trekstor.c
+@@ -23,7 +23,7 @@
+ /* TrekStor DVB-T USB Stick remote controller. */
+ /* Imported from af9015.h.
+    Initial keytable was from Marc Schneider <macke@macke.org> */
+-static struct ir_scancode trekstor[] = {
++static struct rc_map_table trekstor[] = {
+ 	{ 0x0084, KEY_0 },
+ 	{ 0x0085, KEY_MUTE },            /* Mute */
+ 	{ 0x0086, KEY_HOMEPAGE },        /* Home */
+diff --git a/drivers/media/rc/keymaps/rc-tt-1500.c b/drivers/media/rc/keymaps/rc-tt-1500.c
+index 45a0608..f3fe9f3 100644
+--- a/drivers/media/rc/keymaps/rc-tt-1500.c
++++ b/drivers/media/rc/keymaps/rc-tt-1500.c
+@@ -14,7 +14,7 @@
+ 
+ /* for the Technotrend 1500 bundled remotes (grey and black): */
+ 
+-static struct ir_scancode tt_1500[] = {
++static struct rc_map_table tt_1500[] = {
+ 	{ 0x01, KEY_POWER },
+ 	{ 0x02, KEY_SHUFFLE },		/* ? double-arrow key */
+ 	{ 0x03, KEY_1 },
+diff --git a/drivers/media/rc/keymaps/rc-twinhan1027.c b/drivers/media/rc/keymaps/rc-twinhan1027.c
+index b5def53..67cc6e0 100644
+--- a/drivers/media/rc/keymaps/rc-twinhan1027.c
++++ b/drivers/media/rc/keymaps/rc-twinhan1027.c
+@@ -1,6 +1,6 @@
+ #include <media/rc-map.h>
+ 
+-static struct ir_scancode twinhan_vp1027[] = {
++static struct rc_map_table twinhan_vp1027[] = {
+ 	{ 0x16, KEY_POWER2 },
+ 	{ 0x17, KEY_FAVORITES },
+ 	{ 0x0f, KEY_TEXT },
+diff --git a/drivers/media/rc/keymaps/rc-videomate-s350.c b/drivers/media/rc/keymaps/rc-videomate-s350.c
+index 7c422b4..f8a0d10 100644
+--- a/drivers/media/rc/keymaps/rc-videomate-s350.c
++++ b/drivers/media/rc/keymaps/rc-videomate-s350.c
+@@ -12,7 +12,7 @@
+ 
+ #include <media/rc-map.h>
+ 
+-static struct ir_scancode videomate_s350[] = {
++static struct rc_map_table videomate_s350[] = {
+ 	{ 0x00, KEY_TV},
+ 	{ 0x01, KEY_DVD},
+ 	{ 0x04, KEY_RECORD},
+diff --git a/drivers/media/rc/keymaps/rc-videomate-tv-pvr.c b/drivers/media/rc/keymaps/rc-videomate-tv-pvr.c
+index 4d31b47..04d1024 100644
+--- a/drivers/media/rc/keymaps/rc-videomate-tv-pvr.c
++++ b/drivers/media/rc/keymaps/rc-videomate-tv-pvr.c
+@@ -12,7 +12,7 @@
+ 
+ #include <media/rc-map.h>
+ 
+-static struct ir_scancode videomate_tv_pvr[] = {
++static struct rc_map_table videomate_tv_pvr[] = {
+ 	{ 0x14, KEY_MUTE },
+ 	{ 0x24, KEY_ZOOM },
+ 
+diff --git a/drivers/media/rc/keymaps/rc-winfast-usbii-deluxe.c b/drivers/media/rc/keymaps/rc-winfast-usbii-deluxe.c
+index ade3c14..78fc7da 100644
+--- a/drivers/media/rc/keymaps/rc-winfast-usbii-deluxe.c
++++ b/drivers/media/rc/keymaps/rc-winfast-usbii-deluxe.c
+@@ -16,7 +16,7 @@
+    Magnus Alm <magnus.alm@gmail.com>
+  */
+ 
+-static struct ir_scancode winfast_usbii_deluxe[] = {
++static struct rc_map_table winfast_usbii_deluxe[] = {
+ 	{ 0x62, KEY_0},
+ 	{ 0x75, KEY_1},
+ 	{ 0x76, KEY_2},
+diff --git a/drivers/media/rc/keymaps/rc-winfast.c b/drivers/media/rc/keymaps/rc-winfast.c
+index 502b5f5..a8fbd76 100644
+--- a/drivers/media/rc/keymaps/rc-winfast.c
++++ b/drivers/media/rc/keymaps/rc-winfast.c
+@@ -14,7 +14,7 @@
+ 
+ /* Table for Leadtek Winfast Remote Controls - used by both bttv and cx88 */
+ 
+-static struct ir_scancode winfast[] = {
++static struct rc_map_table winfast[] = {
+ 	/* Keys 0 to 9 */
+ 	{ 0x12, KEY_0 },
+ 	{ 0x05, KEY_1 },
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index caa8d70..b989f5d 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -94,7 +94,7 @@ void ir_unregister_map(struct rc_keymap *map)
+ EXPORT_SYMBOL_GPL(ir_unregister_map);
+ 
+ 
+-static struct ir_scancode empty[] = {
++static struct rc_map_table empty[] = {
+ 	{ 0x2a, KEY_COFFEE },
+ };
+ 
+@@ -123,8 +123,8 @@ static int ir_create_table(struct rc_map *rc_map,
+ {
+ 	rc_map->name = name;
+ 	rc_map->rc_type = rc_type;
+-	rc_map->alloc = roundup_pow_of_two(size * sizeof(struct ir_scancode));
+-	rc_map->size = rc_map->alloc / sizeof(struct ir_scancode);
++	rc_map->alloc = roundup_pow_of_two(size * sizeof(struct rc_map_table));
++	rc_map->size = rc_map->alloc / sizeof(struct rc_map_table);
+ 	rc_map->scan = kmalloc(rc_map->alloc, GFP_KERNEL);
+ 	if (!rc_map->scan)
+ 		return -ENOMEM;
+@@ -161,8 +161,8 @@ static int ir_resize_table(struct rc_map *rc_map, gfp_t gfp_flags)
+ {
+ 	unsigned int oldalloc = rc_map->alloc;
+ 	unsigned int newalloc = oldalloc;
+-	struct ir_scancode *oldscan = rc_map->scan;
+-	struct ir_scancode *newscan;
++	struct rc_map_table *oldscan = rc_map->scan;
++	struct rc_map_table *newscan;
+ 
+ 	if (rc_map->size == rc_map->len) {
+ 		/* All entries in use -> grow keytable */
+@@ -188,10 +188,10 @@ static int ir_resize_table(struct rc_map *rc_map, gfp_t gfp_flags)
+ 		return -ENOMEM;
+ 	}
+ 
+-	memcpy(newscan, rc_map->scan, rc_map->len * sizeof(struct ir_scancode));
++	memcpy(newscan, rc_map->scan, rc_map->len * sizeof(struct rc_map_table));
+ 	rc_map->scan = newscan;
+ 	rc_map->alloc = newalloc;
+-	rc_map->size = rc_map->alloc / sizeof(struct ir_scancode);
++	rc_map->size = rc_map->alloc / sizeof(struct rc_map_table);
+ 	kfree(oldscan);
+ 	return 0;
+ }
+@@ -221,7 +221,7 @@ static unsigned int ir_update_mapping(struct rc_dev *dev,
+ 			   index, rc_map->scan[index].scancode);
+ 		rc_map->len--;
+ 		memmove(&rc_map->scan[index], &rc_map->scan[index+ 1],
+-			(rc_map->len - index) * sizeof(struct ir_scancode));
++			(rc_map->len - index) * sizeof(struct rc_map_table));
+ 	} else {
+ 		IR_dprintk(1, "#%d: %s scan 0x%04x with key 0x%04x\n",
+ 			   index,
+@@ -300,7 +300,7 @@ static unsigned int ir_establish_scancode(struct rc_dev *dev,
+ 	/* i is the proper index to insert our new keycode */
+ 	if (i < rc_map->len)
+ 		memmove(&rc_map->scan[i + 1], &rc_map->scan[i],
+-			(rc_map->len - i) * sizeof(struct ir_scancode));
++			(rc_map->len - i) * sizeof(struct rc_map_table));
+ 	rc_map->scan[i].scancode = scancode;
+ 	rc_map->scan[i].keycode = KEY_RESERVED;
+ 	rc_map->len++;
+@@ -440,7 +440,7 @@ static int ir_getkeycode(struct input_dev *idev,
+ {
+ 	struct rc_dev *rdev = input_get_drvdata(idev);
+ 	struct rc_map *rc_map = &rdev->rc_map;
+-	struct ir_scancode *entry;
++	struct rc_map_table *entry;
+ 	unsigned long flags;
+ 	unsigned int index;
+ 	unsigned int scancode;
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index a6b2738..5e9c06a 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -25,13 +25,13 @@
+ 		     RC_TYPE_JVC | RC_TYPE_SONY | RC_TYPE_LIRC | \
+ 		     RC_TYPE_RC5_SZ | RC_TYPE_OTHER)
+ 
+-struct ir_scancode {
++struct rc_map_table {
+ 	u32	scancode;
+ 	u32	keycode;
+ };
+ 
+ struct rc_map {
+-	struct ir_scancode	*scan;
++	struct rc_map_table	*scan;
+ 	unsigned int		size;	/* Max number of entries */
+ 	unsigned int		len;	/* Used number of entries */
+ 	unsigned int		alloc;	/* Size of *scan in bytes */
+-- 
+1.7.1
 
 
