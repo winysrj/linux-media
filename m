@@ -1,55 +1,79 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:65482 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755546Ab0KBDW3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Nov 2010 23:22:29 -0400
-Date: Tue, 2 Nov 2010 05:22:23 +0200
-From: Dan Carpenter <error27@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Steven Toth <stoth@kernellabs.com>, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [patch] [media] saa7164: make buffer smaller
-Message-ID: <20101102032223.GD14069@bicker>
+Return-path: <mchehab@pedra>
+Received: from tango.tkos.co.il ([62.219.50.35]:39668 "EHLO tango.tkos.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751276Ab0KRG2j (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Nov 2010 01:28:39 -0500
+Date: Thu, 18 Nov 2010 08:28:19 +0200
+From: Baruch Siach <baruch@tkos.co.il>
+To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+Cc: linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 38/51] ARM: imx: move mx25 support to mach-imx
+Message-ID: <20101118062819.GA10415@jasper.tkos.co.il>
+References: <20101117212821.GF8942@pengutronix.de>
+ <1290029419-21435-38-git-send-email-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1290029419-21435-38-git-send-email-u.kleine-koenig@pengutronix.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-This isn't a runtime bug, it's just to make static checkers happy.
+Hi Uwe,
 
-In vidioc_querycap() we copy a saa7164_dev ->name driver array into a
-v4l2_capability -> driver array.  The ->driver array is only 16 chars
-long so ->name also can't be more than 16 characters.
+Tanks for all this work.
 
-The ->name gets set in v4l2_capability() and it always is less than 16
-characters so we can easily make the buffer smaller.
+Once this get merged we can get rid of the ugly '#ifdef CONFIG_MACH_MX27' in 
+drivers/media/video/mx2_camera.c. Should such a patch go via Sascha's tree or 
+the V4L tree?
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
+baruch
 
-diff --git a/drivers/media/video/saa7164/saa7164.h b/drivers/media/video/saa7164/saa7164.h
-index 1d9c5cb..8b3e844 100644
---- a/drivers/media/video/saa7164/saa7164.h
-+++ b/drivers/media/video/saa7164/saa7164.h
-@@ -448,7 +448,7 @@ struct saa7164_dev {
- 	int	nr;
- 	int	hwrevision;
- 	u32	board;
--	char	name[32];
-+	char	name[16];
- 
- 	/* firmware status */
- 	struct saa7164_fw_status	fw_status;
-diff --git a/drivers/media/video/saa7164/saa7164-core.c b/drivers/media/video/saa7164/saa7164-core.c
-index e1bac50..b66f78f 100644
---- a/drivers/media/video/saa7164/saa7164-core.c
-+++ b/drivers/media/video/saa7164/saa7164-core.c
-@@ -1001,7 +1001,7 @@ static int saa7164_dev_setup(struct saa7164_dev *dev)
- 	atomic_inc(&dev->refcount);
- 	dev->nr = saa7164_devcount++;
- 
--	sprintf(dev->name, "saa7164[%d]", dev->nr);
-+	snprintf(dev->name, sizeof(dev->name), "saa7164[%d]", dev->nr);
- 
- 	mutex_lock(&devlist);
- 	list_add_tail(&dev->devlist, &saa7164_devlist);
+On Wed, Nov 17, 2010 at 10:30:06PM +0100, Uwe Kleine-König wrote:
+> Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+> ---
+>  arch/arm/Makefile                              |    2 +-
+>  arch/arm/mach-imx/Kconfig                      |   85 +++++--
+>  arch/arm/mach-imx/Makefile                     |    6 +
+>  arch/arm/mach-imx/Makefile.boot                |    4 +
+>  arch/arm/mach-imx/clock-imx25.c                |  332 ++++++++++++++++++++++++
+>  arch/arm/mach-imx/devices-imx25.h              |   86 ++++++
+>  arch/arm/mach-imx/eukrea_mbimxsd25-baseboard.c |  296 +++++++++++++++++++++
+>  arch/arm/mach-imx/mach-eukrea_cpuimx25.c       |  161 ++++++++++++
+>  arch/arm/mach-imx/mach-mx25_3ds.c              |  223 ++++++++++++++++
+>  arch/arm/mach-imx/mm-imx25.c                   |   62 +++++
+>  arch/arm/mach-mx25/Kconfig                     |   43 ---
+>  arch/arm/mach-mx25/Makefile                    |    5 -
+>  arch/arm/mach-mx25/Makefile.boot               |    3 -
+>  arch/arm/mach-mx25/clock.c                     |  332 ------------------------
+>  arch/arm/mach-mx25/devices-imx25.h             |   86 ------
+>  arch/arm/mach-mx25/eukrea_mbimxsd-baseboard.c  |  296 ---------------------
+>  arch/arm/mach-mx25/mach-cpuimx25.c             |  161 ------------
+>  arch/arm/mach-mx25/mach-mx25_3ds.c             |  223 ----------------
+>  arch/arm/mach-mx25/mm.c                        |   62 -----
+>  arch/arm/plat-mxc/Kconfig                      |    5 -
+>  20 files changed, 1240 insertions(+), 1233 deletions(-)
+>  create mode 100644 arch/arm/mach-imx/clock-imx25.c
+>  create mode 100644 arch/arm/mach-imx/devices-imx25.h
+>  create mode 100644 arch/arm/mach-imx/eukrea_mbimxsd25-baseboard.c
+>  create mode 100644 arch/arm/mach-imx/mach-eukrea_cpuimx25.c
+>  create mode 100644 arch/arm/mach-imx/mach-mx25_3ds.c
+>  create mode 100644 arch/arm/mach-imx/mm-imx25.c
+>  delete mode 100644 arch/arm/mach-mx25/Kconfig
+>  delete mode 100644 arch/arm/mach-mx25/Makefile
+>  delete mode 100644 arch/arm/mach-mx25/Makefile.boot
+>  delete mode 100644 arch/arm/mach-mx25/clock.c
+>  delete mode 100644 arch/arm/mach-mx25/devices-imx25.h
+>  delete mode 100644 arch/arm/mach-mx25/eukrea_mbimxsd-baseboard.c
+>  delete mode 100644 arch/arm/mach-mx25/mach-cpuimx25.c
+>  delete mode 100644 arch/arm/mach-mx25/mach-mx25_3ds.c
+>  delete mode 100644 arch/arm/mach-mx25/mm.c
+
+[snip]
+
+-- 
+                                                     ~. .~   Tk Open Systems
+=}------------------------------------------------ooO--U--Ooo------------{=
+   - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
