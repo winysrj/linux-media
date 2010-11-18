@@ -1,55 +1,94 @@
-Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:50846 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753563Ab0KCTsb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Nov 2010 15:48:31 -0400
-Date: Wed, 3 Nov 2010 15:48:27 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/3] mceusb: fix up reporting of trailing space
-Message-ID: <20101103194827.GD12749@redhat.com>
-References: <20101029030545.GA17238@redhat.com>
- <20101029030810.GC17238@redhat.com>
- <20101029192121.GB12136@hardeman.nu>
- <20101102211214.GC20631@redhat.com>
- <34503d917790f7c21ac4d089e8f8235e@hardeman.nu>
+Return-path: <mchehab@pedra>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:48607 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753575Ab0KRFyR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Nov 2010 00:54:17 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <34503d917790f7c21ac4d089e8f8235e@hardeman.nu>
+In-Reply-To: <AANLkTi=ZT0E=A9ZYAM86qu4P8eStkF2PLep6-DofCX-s@mail.gmail.com>
+References: <1289913494-21590-1-git-send-email-manjunatha_halli@ti.com>
+	<AANLkTi=ZT0E=A9ZYAM86qu4P8eStkF2PLep6-DofCX-s@mail.gmail.com>
+Date: Thu, 18 Nov 2010 11:24:16 +0530
+Message-ID: <AANLkTinyaZ07HBFNHNyR9eK6__QdZtG6O1gQX1F+YRB9@mail.gmail.com>
+Subject: Re: [PATCH v4 0/6] FM V4L2 drivers for WL128x
+From: Pavan Savoy <pavan_savoy@ti.com>
+To: Ohad Ben-Cohen <ohad@wizery.com>, mchehab@infradead.org,
+	hverkuil@xs4all.nl
+Cc: manjunatha_halli@ti.com, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Wed, Nov 03, 2010 at 01:15:30PM +0100, David H�rdeman wrote:
-> On Tue, 2 Nov 2010 17:12:14 -0400, Jarod Wilson <jarod@redhat.com> wrote:
-> > On Fri, Oct 29, 2010 at 09:21:21PM +0200, David H�rdeman wrote:
-> >> I think the driver could be further simplified by using 
-> >> ir_raw_event_store_with_filter(), right?
-> > 
-> > And in fact, it is. I've got a new series of patches redone atop your
-> > rc-core patch series that includes usage of _with_filter in mceusb.
-> 
-> From a quick check, I think the entire PARSE_IRDATA block in
-> mceusb_process_ir_data() could be simplified to:
-> 
-> case PARSE_IRDATA:
->     ir->rem--;
->     rawir.pulse = !!(ir->buf_in[i] & MCE_PULSE_BIT);
->     rawir.duration = (ir->buf_in[i] & MCE_PULSE_MASK)
->                       * MCE_TIME_UNIT * 1000;
->     ir_raw_event_store_with_filter(ir->rc, &rawir);
->     break;
-> 
-> And you can then remove "struct ir_raw_event rawir" from struct
-> mceusb_dev.
+Hans, Mauro, Ohad,
 
-Once again, I think you're correct. :) I'll give this a spin with a few
-mceusb devices, but it does certainly look like that'll work, now that
-we're using _with_filter.
+On Wed, Nov 17, 2010 at 6:32 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> Hi Manjunatha,
+>
+> On Tue, Nov 16, 2010 at 3:18 PM,  <manjunatha_halli@ti.com> wrote:
+>>  drivers/staging/ti-st/Kconfig        |   10 +
+>>  drivers/staging/ti-st/Makefile       |    2 +
+>>  drivers/staging/ti-st/fmdrv.h        |  259 ++++
+>>  drivers/staging/ti-st/fmdrv_common.c | 2141 ++++++++++++++++++++++++++++++++++
+>>  drivers/staging/ti-st/fmdrv_common.h |  458 ++++++++
+>>  drivers/staging/ti-st/fmdrv_rx.c     |  979 ++++++++++++++++
+>>  drivers/staging/ti-st/fmdrv_rx.h     |   59 +
+>>  drivers/staging/ti-st/fmdrv_tx.c     |  461 ++++++++
+>>  drivers/staging/ti-st/fmdrv_tx.h     |   37 +
+>>  drivers/staging/ti-st/fmdrv_v4l2.c   |  757 ++++++++++++
+>>  drivers/staging/ti-st/fmdrv_v4l2.h   |   32 +
+>>  11 files changed, 5195 insertions(+), 0 deletions(-)
+>
+> Usually when a driver is added to staging, it should also have a TODO
+> file specifying what needs to be done before the driver can be taken
+> out of staging (at least as far as the author knows of today).
+>
+> It helps keeping track of the open issues in the driver, which is good
+> for everyone - the author, the random contributor/observer, and
+> probably even the staging maintainer.
+>
+> Can you please add such a TODO file ?
+>
+> Thanks,
+> Ohad.
 
--- 
-Jarod Wilson
-jarod@redhat.com
+Thanks Ohad, for the comments, We do have an internal TODO.
+In terms of functionality we have stuff like TX RDS which already has
+few CIDs in the extended controls.
+extend V4L2 for complete-scan, add in stop search during hw_seek .. etc...
+But I just wanted to ask whether this is good enough to be staged.
+Because as we begin to implement and add in the items in TODO - the
+patch set will keep continuing to grow.
 
+So Hans, Mauro, What do you think ?
+It would be real helpful - if this can be staged, it is becoming
+difficult to maintain for us.
+
+Thanks,
+Pavan
+
+>>  create mode 100644 drivers/staging/ti-st/fmdrv.h
+>>  create mode 100644 drivers/staging/ti-st/fmdrv_common.c
+>>  create mode 100644 drivers/staging/ti-st/fmdrv_common.h
+>>  create mode 100644 drivers/staging/ti-st/fmdrv_rx.c
+>>  create mode 100644 drivers/staging/ti-st/fmdrv_rx.h
+>>  create mode 100644 drivers/staging/ti-st/fmdrv_tx.c
+>>  create mode 100644 drivers/staging/ti-st/fmdrv_tx.h
+>>  create mode 100644 drivers/staging/ti-st/fmdrv_v4l2.c
+>>  create mode 100644 drivers/staging/ti-st/fmdrv_v4l2.h
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Please read the FAQ at  http://www.tux.org/lkml/
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+>
+>
+>
