@@ -1,40 +1,30 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:37492 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757031Ab0KJQwa (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:55106 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758185Ab0KROlA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Nov 2010 11:52:30 -0500
-Date: Wed, 10 Nov 2010 11:52:34 -0500
-Subject: Re: Bounty for the first Open Source driver for Kinect
-Message-ID: <yanpj3usd6gfp0xwdbaxlkni.1289407954066@email.android.com>
-From: Andy Walls <awalls@md.metrocast.net>
-To: Antonio Ospite <ospite@studenti.unina.it>,
-	Mohamed Ikbel Boulabiar <boulabiar@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+	Thu, 18 Nov 2010 09:41:00 -0500
+Received: by yxf34 with SMTP id 34so1837815yxf.19
+        for <linux-media@vger.kernel.org>; Thu, 18 Nov 2010 06:41:00 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <659fdfa774acb1e359cb0c3c3b48b5e26bb3fcc9.1289944160.git.hverkuil@xs4all.nl>
+References: <cover.1289944159.git.hverkuil@xs4all.nl>
+	<659fdfa774acb1e359cb0c3c3b48b5e26bb3fcc9.1289944160.git.hverkuil@xs4all.nl>
+Date: Thu, 18 Nov 2010 09:40:59 -0500
+Message-ID: <AANLkTikH0+hhWwTUAkYS1Z_WpwQvyZrw1sCt1vkjghN3@mail.gmail.com>
+Subject: Re: [RFCv2 PATCH 07/15] dsbr100: convert to unlocked_ioctl.
+From: David Ellingsworth <david@identd.dyndns.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-SUZpeGl0IGhhcyBhIHRlYXIgZG93biBtZW50aW9uaW5nIGFsbCB0aGUgY2hpcHMgYW5kIGEgcmVm
-ZXJlbmNlIGRlc2lnbgoKaHR0cDovL3d3dy5pZml4aXQuY29tL1RlYXJkb3duL01pY3Jvc29mdC1L
-aW5lY3QtVGVhcmRvd24vNDA2Ni8xCgpUaGVyZSdzIHR3byBjYW1lcmEgc2Vuc29ycywgYW4gaXIg
-aWxsdW1pbmF0b3IsIGZvdXIgbWljcm9waG9uZXMsIGEgbW90b3IsIGFuZCBhcHBhcmVudGx5IGEg
-YnVpbHQgaW4gdXNiIGh1Yi4KCkl0IHN1cHBvc2VkbHkgY29uc3VtZXMgbW9yZSBwb3dlciB0aGFu
-IGEgc3RhbmRhcmQgdXNiIHBvcnQgY2FuIHN1cHBseSwgc28geW91IG1heSBuZWVkIGFuIGV4dGVy
-bmFsIHBvd2VyIHN1cHBseS4KCkhhdmUgZnVuLgoKQW5keQoKQW50b25pbyBPc3BpdGUgPG9zcGl0
-ZUBzdHVkZW50aS51bmluYS5pdD4gd3JvdGU6Cgo+T24gV2VkLCAxMCBOb3YgMjAxMCAxNToyMDo0
-MCArMDEwMAo+TW9oYW1lZCBJa2JlbCBCb3VsYWJpYXIgPGJvdWxhYmlhckBnbWFpbC5jb20+IHdy
-b3RlOgo+Cj4+IE1TIEtpbmVjdCBpbnRlcmZhY2luZyB2aWEgbGlidXNiIHJlbGVhc2VkCj4+IGh0
-dHA6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1yS2hXLWN2cGtrcwo+PiAKPj4gaHR0cDovL2dp
-dC5tYXJjYW5zb2Z0LmNvbS8/cD1saWJmcmVlbmVjdC5naXQKPj4gCj4KPkdvb2QsIGlmIGFueW9u
-ZSBpcyB3aWxsaW5nIHRvIHByb3ZpZGUgdGhlIGhhcmR3YXJlIEkgdGhpbmsgSSBjYW4gaGVscAo+
-d2l0aCBhIHByb3BlciBnc3BjYSBkcml2ZXIgKEkgaGVscGVkIHdpdGggdGhlIFBTMyBFeWUgYWxy
-ZWFkeSkuIEFyZQo+dGhlcmUgb3RoZXIgUkdCLURlcHRoIGNhbXMgc3VwcG9ydGVkIGluIGxpbnV4
-PyBBcmUgdGhleSB1c3VhbGx5IGV4cG9zZWQKPmp1c3QgYXMgdHdvIGRpc3RpbmN0IGNhbWVyYXM/
-Cj4KPlJlZ2FyZHMsCj4gICBBbnRvbmlvCj4KPi0tIAo+QW50b25pbyBPc3BpdGUKPmh0dHA6Ly9h
-bzIuaXQKPgo+UEdQIHB1YmxpYyBrZXkgSUQ6IDB4NDU1M0IwMDEKPgo+QTogQmVjYXVzZSBpdCBt
-ZXNzZXMgdXAgdGhlIG9yZGVyIGluIHdoaWNoIHBlb3BsZSBub3JtYWxseSByZWFkIHRleHQuCj4g
-ICBTZWUgaHR0cDovL2VuLndpa2lwZWRpYS5vcmcvd2lraS9Qb3N0aW5nX3N0eWxlCj5ROiBXaHkg
-aXMgdG9wLXBvc3Rpbmcgc3VjaCBhIGJhZCB0aGluZz8K
+This driver has quite a few locking issues that would only be made
+worse by your patch. A much better patch for this can be found here:
 
+http://desource.dyndns.org/~atog/gitweb?p=linux-media.git;a=commitdiff;h=9c5d8ebb602e9af46902c5f3d4d4cc80227d3f7c
+
+Regards,
+
+David Ellingsworth
