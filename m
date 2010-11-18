@@ -1,25 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from moh1-ve3.go2.pl ([193.17.41.134]:55089 "EHLO moh1-ve3.go2.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755462Ab0KLI34 convert rfc822-to-8bit (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:47511 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751532Ab0KRD4w (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Nov 2010 03:29:56 -0500
-Received: from moh1-ve3.go2.pl (unknown [10.0.0.134])
-	by moh1-ve3.go2.pl (Postfix) with ESMTP id CEE9B57026B
-	for <linux-media@vger.kernel.org>; Fri, 12 Nov 2010 09:29:42 +0100 (CET)
-Received: from o2.pl (unknown [10.0.0.33])
-	by moh1-ve3.go2.pl (Postfix) with SMTP
-	for <linux-media@vger.kernel.org>; Fri, 12 Nov 2010 09:29:42 +0100 (CET)
-Subject: =?UTF-8?Q?Diseqc_dish_motor_with_budget-ci_?=
-	=?UTF-8?Q?and_TechniSat_SkyStar_HD_1131:7146_does_not_work.?=
-From: =?UTF-8?Q?Henryk_Rychlik?= <xhakerek@o2.pl>
-To: linux-media@vger.kernel.org
-Mime-Version: 1.0
-Message-ID: <2f801fd2.108528ce.4cdcfaf5.bd5dc@o2.pl>
-Date: Fri, 12 Nov 2010 09:29:41 +0100
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+	Wed, 17 Nov 2010 22:56:52 -0500
+Date: Thu, 18 Nov 2010 06:56:37 +0300
+From: Dan Carpenter <error27@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Devin Heitmueller <dheitmueller@hauppauge.com>,
+	Sri Devi <Srinivasa.Deevi@conexant.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [patch] [media] cx231xx: stray unlock on error path
+Message-ID: <20101118035637.GL31724@bicker>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Dish motor does not work with this card under linux budget-ci driver, even compiled from newest source from project page. What should I post here to help solve that problem? Under MS Windows everything work's fine, with bt8xx card also, this is drivers fault only. Please help me:(
+The lock isn't held here and doesn't need to be unlocked.  The code has
+been like this since the driver was merged. 
+
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+
+diff --git a/drivers/media/video/cx231xx/cx231xx-cards.c b/drivers/media/video/cx231xx/cx231xx-cards.c
+index 56c2d81..b7b905f 100644
+--- a/drivers/media/video/cx231xx/cx231xx-cards.c
++++ b/drivers/media/video/cx231xx/cx231xx-cards.c
+@@ -731,16 +731,12 @@ static int cx231xx_init_dev(struct cx231xx **devhandle, struct usb_device *udev,
+ 	retval = cx231xx_register_analog_devices(dev);
+ 	if (retval < 0) {
+ 		cx231xx_release_resources(dev);
+-		goto fail_reg_devices;
++		return retval;
+ 	}
+ 
+ 	cx231xx_init_extension(dev);
+ 
+ 	return 0;
+-
+-fail_reg_devices:
+-	mutex_unlock(&dev->lock);
+-	return retval;
+ }
+ 
+ #if defined(CONFIG_MODULES) && defined(MODULE)
