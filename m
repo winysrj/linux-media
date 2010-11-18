@@ -1,38 +1,40 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:48519 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751731Ab0KBSrk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Nov 2010 14:47:40 -0400
-Received: by ewy7 with SMTP id 7so4253410ewy.19
-        for <linux-media@vger.kernel.org>; Tue, 02 Nov 2010 11:47:39 -0700 (PDT)
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4601 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758374Ab0KROq5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Nov 2010 09:46:57 -0500
+Message-ID: <e29b49a76577b6eb777d1aa0dba7bd95.squirrel@webmail.xs4all.nl>
+In-Reply-To: <AANLkTikH0+hhWwTUAkYS1Z_WpwQvyZrw1sCt1vkjghN3@mail.gmail.com>
+References: <cover.1289944159.git.hverkuil@xs4all.nl>
+    <659fdfa774acb1e359cb0c3c3b48b5e26bb3fcc9.1289944160.git.hverkuil@xs4all.nl>
+    <AANLkTikH0+hhWwTUAkYS1Z_WpwQvyZrw1sCt1vkjghN3@mail.gmail.com>
+Date: Thu, 18 Nov 2010 15:46:52 +0100
+Subject: Re: [RFCv2 PATCH 07/15] dsbr100: convert to unlocked_ioctl.
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "David Ellingsworth" <david@identd.dyndns.org>
+Cc: linux-media@vger.kernel.org, "Arnd Bergmann" <arnd@arndb.de>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTi=tc_4ZAk20fEamcFQ-VDFkt4tBwFH+uGv9Fw62@mail.gmail.com>
-References: <AANLkTi=tc_4ZAk20fEamcFQ-VDFkt4tBwFH+uGv9Fw62@mail.gmail.com>
-Date: Tue, 2 Nov 2010 14:47:39 -0400
-Message-ID: <AANLkTimYMTa8zigTYbZhH5dN7VGZDBUFmw3PL4jRV9hv@mail.gmail.com>
-Subject: Re: [PULL] http://www.kernellabs.com/hg/~dheitmueller/v4l-dvb-950q-final
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Sat, Oct 9, 2010 at 2:40 PM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> Hello,
->
-> Please pull from the following for some basic fixes related to
-> applications such as tvtime hanging when no video is present, as well
-> as some quality improvements for analog.
->
-> http://www.kernellabs.com/hg/~dheitmueller/v4l-dvb-950q-final
->
-> Please let me know if there are any questions/problems.
 
-<ping>
+> This driver has quite a few locking issues that would only be made
+> worse by your patch. A much better patch for this can be found here:
+>
+> http://desource.dyndns.org/~atog/gitweb?p=linux-media.git;a=commitdiff;h=9c5d8ebb602e9af46902c5f3d4d4cc80227d3f7c
 
+Much too big for 2.6.37. I'll just drop this patch from my patch series.
+Instead it will rely on the new lock in v4l2_device (BKL replacement) that
+serializes all ioctls. For 2.6.38 we can convert it to core assisted
+locking which is much easier.
+
+Regards,
+
+       Hans
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Hans Verkuil - video4linux developer - sponsored by Cisco
+
