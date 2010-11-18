@@ -1,63 +1,37 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:44901 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753776Ab0KFVdn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Nov 2010 17:33:43 -0400
-From: Arnaud Lacombe <lacombar@gmail.com>
-To: linux-kbuild@vger.kernel.org, linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Michal Marek <mmarek@suse.cz>,
-	Arnaud Lacombe <lacombar@gmail.com>
-Subject: [PATCH 3/5] Revert "i2c: Fix Kconfig dependencies"
-Date: Sat,  6 Nov 2010 17:30:25 -0400
-Message-Id: <1289079027-3037-4-git-send-email-lacombar@gmail.com>
-In-Reply-To: <4CD300AC.3010708@redhat.com>
-References: <4CD300AC.3010708@redhat.com>
+Return-path: <mchehab@pedra>
+Received: from adelie.canonical.com ([91.189.90.139]:34817 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754628Ab0KRHbB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Nov 2010 02:31:01 -0500
+From: Jeremy Kerr <jeremy.kerr@canonical.com>
+To: Mariusz =?utf-8?q?Bia=C5=82o=C5=84czyk?= <manio@skyboo.net>
+Subject: Re: [PATCH] V4L/DVB: cx88: Add module parameter to disable IR
+Date: Thu, 18 Nov 2010 15:30:49 +0800
+Cc: linux-media@vger.kernel.org
+References: <1290062581.41867.321546213719.1.gpush@pororo> <4CE4D3D5.5090108@skyboo.net>
+In-Reply-To: <4CE4D3D5.5090108@skyboo.net>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201011181530.49916.jeremy.kerr@canonical.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-This reverts commit 0a57274ea026c2b7670683947b6cc08b195148cf.
+Hi Mariusz,
 
-Signed-off-by: Arnaud Lacombe <lacombar@gmail.com>
----
- drivers/i2c/Kconfig       |    3 +--
- drivers/i2c/algos/Kconfig |   12 ------------
- 2 files changed, 1 insertions(+), 14 deletions(-)
+> AFAIK we have disable support in cx88:
+> http://git.linuxtv.org/media_tree.git?a=commit;h=89c3bc78075042ae1f4452687f
+> 626acce06b3b21
 
-diff --git a/drivers/i2c/Kconfig b/drivers/i2c/Kconfig
-index b923074..30f06e9 100644
---- a/drivers/i2c/Kconfig
-+++ b/drivers/i2c/Kconfig
-@@ -75,8 +75,7 @@ config I2C_HELPER_AUTO
- 	  In doubt, say Y.
- 
- config I2C_SMBUS
--	tristate
--	prompt "SMBus-specific protocols" if !I2C_HELPER_AUTO
-+	tristate "SMBus-specific protocols" if !I2C_HELPER_AUTO
- 	help
- 	  Say Y here if you want support for SMBus extensions to the I2C
- 	  specification. At the moment, the only supported extension is
-diff --git a/drivers/i2c/algos/Kconfig b/drivers/i2c/algos/Kconfig
-index 3998dd6..7b2ce4a 100644
---- a/drivers/i2c/algos/Kconfig
-+++ b/drivers/i2c/algos/Kconfig
-@@ -15,15 +15,3 @@ config I2C_ALGOPCA
- 	tristate "I2C PCA 9564 interfaces"
- 
- endmenu
--
--# In automatic configuration mode, we still have to define the
--# symbols to avoid unmet dependencies.
--
--if I2C_HELPER_AUTO
--config I2C_ALGOBIT
--	tristate
--config I2C_ALGOPCF
--	tristate
--config I2C_ALGOPCA
--	tristate
--endif
--- 
-1.7.2.30.gc37d7.dirty
+Ah, my bad - I was working off Linus' tree, and looks like that patch hasn't 
+hit mainline yet.
 
+As an aside, that patch has a problem: the MODULE_PARAM_DESC line uses 
+'latency', not 'disable_ir'.
+
+Cheers,
+
+
+Jeremy
