@@ -1,108 +1,100 @@
-Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:64243 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752756Ab0KDDTU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Nov 2010 23:19:20 -0400
-Message-ID: <4CD22627.2000607@redhat.com>
-Date: Wed, 03 Nov 2010 23:19:03 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Return-path: <mchehab@pedra>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:39971 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933007Ab0KRXyT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Nov 2010 18:54:19 -0500
+Date: Fri, 19 Nov 2010 00:47:28 +0100
+From: Richard Zidlicky <rz@linux-m68k.org>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: BUG: sleeping function called from invalid context
+	at...mm/fault.c:1074
+Message-ID: <20101118234728.GA1065@linux-m68k.org>
 MIME-Version: 1.0
-To: Arnaud Lacombe <lacombar@gmail.com>
-CC: Michal Marek <mmarek@suse.cz>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	kyle@redhat.com, linux-kbuild@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: REGRESSION: Re: [GIT] kconfig rc fixes
-References: <20101009224041.GA901@sepie.suse.cz>	<4CD1E232.30406@redhat.com> <AANLkTimyh-k8gYwuNi6nZFp3oviQ33+M3fDRzZ+sJN9i@mail.gmail.com>
-In-Reply-To: <AANLkTimyh-k8gYwuNi6nZFp3oviQ33+M3fDRzZ+sJN9i@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Em 03-11-2010 22:31, Arnaud Lacombe escreveu:
-> Hi,
-> 
-> On Wed, Nov 3, 2010 at 6:29 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> Em 09-10-2010 18:40, Michal Marek escreveu:
->>>
->>> Arnaud Lacombe (1):
->>>       kconfig: delay symbol direct dependency initialization
->>
->> This patch generated a regression with V4L build. After applying it,
->> some Kconfig dependencies that used to work with V4L Kconfig broke.
->>
-> of course, but they were all-likely buggy. If a compiler version N
-> outputs a new legitimate warning because of a bug in the code, you do
-> not switch back to the previous version because the warning wasn't
-> there, you fix the code.
-> 
-> That said, please point me to a false positive, eventually with a
-> minimal testcase, and I'll be happy to fix the issue.
+Hi,
 
-Arnaud,
+got this pretty confusing BUG, probably triggered by drivers/media/dvb/siano. I had 
+femon & kaffeine running in parallel. In kaffeine output stopped so I did quit kaffeine, 
+unplugged the DVB stick and reconnected:
 
-In the case of V4L and DVB drivers, what happens is that the same 
-USB (or PCI) bridge driver can be attached to lots of
-different chipsets that do analog/digital/audio decoding/encoding.
+Nov 18 15:00:05 localhost kernel: [116557.045363] usb 5-5: USB disconnect, address 17
+Nov 18 15:00:05 localhost kernel: [116557.045475] smsusb_onresponse: line: 71: error, urb status -108 (-ESHUTDOWN), 0 bytes
+Nov 18 15:00:05 localhost kernel: [116557.045479] smsusb_onresponse: line: 71: error, urb status -108 (-ESHUTDOWN), 0 bytes
+Nov 18 15:00:05 localhost kernel: [116557.045483] smsusb_onresponse: line: 71: error, urb status -108 (-ESHUTDOWN), 0 bytes
+Nov 18 15:00:05 localhost kernel: [116557.045486] smsusb_onresponse: line: 71: error, urb status -108 (-ESHUTDOWN), 0 bytes
+Nov 18 15:00:05 localhost kernel: [116557.045489] smsusb_onresponse: line: 71: error, urb status -108 (-ESHUTDOWN), 0 bytes
+Nov 18 15:00:05 localhost kernel: [116557.045492] smsusb_onresponse: line: 71: error, urb status -108 (-ESHUTDOWN), 0 bytes
+Nov 18 15:00:05 localhost kernel: [116557.045495] smsusb_onresponse: line: 71: error, urb status -108 (-ESHUTDOWN), 0 bytes
+Nov 18 15:00:05 localhost kernel: [116557.045498] smsusb_onresponse: line: 71: error, urb status -108 (-ESHUTDOWN), 0 bytes
+Nov 18 15:00:05 localhost kernel: [116557.045501] smsusb_onresponse: line: 71: error, urb status -108 (-ESHUTDOWN), 0 bytes
+Nov 18 15:00:05 localhost kernel: [116557.045504] smsusb_onresponse: line: 71: error, urb status -108 (-ESHUTDOWN), 0 bytes
+Nov 18 15:00:05 localhost kernel: [116557.060214] sms_ir_exit: 
+Nov 18 15:00:24 localhost kernel: [116575.829453] BUG: sleeping function called from invalid context at /home/rz/rpmbuild/kernels/linux-2.6.36/arch/x8
+6/mm/fault.c:1074
+Nov 18 15:00:24 localhost kernel: [116575.829457] in_atomic(): 0, irqs_disabled(): 1, pid: 22905, name: femon
+Nov 18 15:00:24 localhost kernel: [116575.829459] no locks held by femon/22905.
+Nov 18 15:00:24 localhost kernel: [116575.829461] irq event stamp: 17262
+Nov 18 15:00:24 localhost kernel: [116575.829463] hardirqs last  enabled at (17261): [<c135bd4b>] _raw_spin_unlock_irqrestore+0x3f/0x4c
+Nov 18 15:00:24 localhost kernel: [116575.829472] hardirqs last disabled at (17262): [<c135b8dd>] _raw_spin_lock_irqsave+0x1a/0x3f
+Nov 18 15:00:24 localhost kernel: [116575.829476] softirqs last  enabled at (17052): [<c103ad4a>] __do_softirq+0x168/0x170
+Nov 18 15:00:24 localhost kernel: [116575.829481] softirqs last disabled at (17047): [<c103ad8b>] do_softirq+0x39/0x5e
+Nov 18 15:00:24 localhost kernel: [116575.829486] Pid: 22905, comm: femon Not tainted 2.6.36v1 #2
+Nov 18 15:00:24 localhost kernel: [116575.829488] Call Trace:
+Nov 18 15:00:24 localhost kernel: [116575.829493]  [<c102d8d4>] __might_sleep+0xdb/0xe2
+Nov 18 15:00:24 localhost kernel: [116575.829497]  [<c135ecc8>] do_page_fault+0x1c0/0x304
+Nov 18 15:00:24 localhost kernel: [116575.829500]  [<c135eb08>] ? do_page_fault+0x0/0x304
+Nov 18 15:00:24 localhost kernel: [116575.829504]  [<c135c85f>] error_code+0x5f/0x70
+Nov 18 15:00:24 localhost kernel: [116575.829508]  [<c10500d8>] ? srcu_notifier_chain_register+0x14/0x72
+Nov 18 15:00:24 localhost kernel: [116575.829511]  [<c135eb08>] ? do_page_fault+0x0/0x304
+Nov 18 15:00:24 localhost kernel: [116575.829515]  [<c105bab5>] ? __lock_acquire+0x90/0xc26
+Nov 18 15:00:24 localhost kernel: [116575.829518]  [<c105a125>] ? register_lock_class+0x17/0x295
+Nov 18 15:00:24 localhost kernel: [116575.829521]  [<c105ace9>] ? mark_lock+0x1e/0x1e3
+Nov 18 15:00:24 localhost kernel: [116575.829524]  [<c105bdac>] ? __lock_acquire+0x387/0xc26
+Nov 18 15:00:24 localhost kernel: [116575.829527]  [<c105c6e5>] lock_acquire+0x9a/0xbd
+Nov 18 15:00:24 localhost kernel: [116575.829537]  [<fa8e15a7>] ? smscore_find_client+0x1d/0x70 [smsmdtv]
+Nov 18 15:00:24 localhost kernel: [116575.829540]  [<c135b8f2>] _raw_spin_lock_irqsave+0x2f/0x3f
+Nov 18 15:00:24 localhost kernel: [116575.829544]  [<fa8e15a7>] ? smscore_find_client+0x1d/0x70 [smsmdtv]
+Nov 18 15:00:24 localhost kernel: [116575.829549]  [<fa8e15a7>] smscore_find_client+0x1d/0x70 [smsmdtv]
+Nov 18 15:00:24 localhost kernel: [116575.829552]  [<c105a125>] ? register_lock_class+0x17/0x295
+Nov 18 15:00:24 localhost kernel: [116575.829557]  [<fa8e1711>] smscore_validate_client+0x35/0xab [smsmdtv]
+Nov 18 15:00:24 localhost kernel: [116575.829562]  [<fa8e17e1>] smsclient_sendrequest+0x5a/0x75 [smsmdtv]
+Nov 18 15:00:24 localhost kernel: [116575.829566]  [<fa9991f7>] smsdvb_sendrequest_and_wait+0x1f/0x44 [smsdvb]
+Nov 18 15:00:24 localhost kernel: [116575.829570]  [<fa999250>] smsdvb_send_statistics_request+0x34/0x36 [smsdvb]
+Nov 18 15:00:24 localhost kernel: [116575.829573]  [<fa999372>] smsdvb_read_status+0x17/0x2f [smsdvb]
+Nov 18 15:00:24 localhost kernel: [116575.829582]  [<fa97c453>] dvb_frontend_ioctl_legacy+0x610/0xc0d [dvb_core]
+Nov 18 15:00:24 localhost kernel: [116575.829585]  [<c105ace9>] ? mark_lock+0x1e/0x1e3
+Nov 18 15:00:24 localhost kernel: [116575.829588]  [<c105a125>] ? register_lock_class+0x17/0x295
+Nov 18 15:00:24 localhost kernel: [116575.829593]  [<c11c3f6b>] ? do_raw_spin_lock+0x53/0x104
+Nov 18 15:00:24 localhost kernel: [116575.829596]  [<c135bd4b>] ? _raw_spin_unlock_irqrestore+0x3f/0x4c
+Nov 18 15:00:24 localhost kernel: [116575.829599]  [<c105b165>] ? trace_hardirqs_on_caller+0x10d/0x12e
+Nov 18 15:00:24 localhost kernel: [116575.829602]  [<c105b191>] ? trace_hardirqs_on+0xb/0xd
+Nov 18 15:00:24 localhost kernel: [116575.829606]  [<c104ff37>] ? down_interruptible+0xd/0x37
+Nov 18 15:00:24 localhost kernel: [116575.829609]  [<c104ff5a>] ? down_interruptible+0x30/0x37
+Nov 18 15:00:24 localhost kernel: [116575.829616]  [<fa97d5a6>] dvb_frontend_ioctl+0xb56/0xb88 [dvb_core]
+Nov 18 15:00:24 localhost kernel: [116575.829620]  [<c10b6e52>] ? might_fault+0x7c/0x81
+Nov 18 15:00:24 localhost kernel: [116575.829624]  [<c11c0bf9>] ? _copy_from_user+0x2d/0x106
+Nov 18 15:00:24 localhost kernel: [116575.829627]  [<c135bd03>] ? _raw_spin_unlock_irq+0x22/0x2b
+Nov 18 15:00:24 localhost kernel: [116575.829633]  [<fa9752ee>] dvb_usercopy+0xb5/0x113 [dvb_core]
+Nov 18 15:00:24 localhost kernel: [116575.829636]  [<c11c3f6b>] ? do_raw_spin_lock+0x53/0x104
+Nov 18 15:00:24 localhost kernel: [116575.829640]  [<c135bd4b>] ? _raw_spin_unlock_irqrestore+0x3f/0x4c
+Nov 18 15:00:24 localhost kernel: [116575.829643]  [<c105b165>] ? trace_hardirqs_on_caller+0x10d/0x12e
+Nov 18 15:00:24 localhost kernel: [116575.829646]  [<c11c3f6b>] ? do_raw_spin_lock+0x53/0x104
+Nov 18 15:00:24 localhost kernel: [116575.829649]  [<c105b191>] ? trace_hardirqs_on+0xb/0xd
+Nov 18 15:00:24 localhost kernel: [116575.829652]  [<c135bed4>] ? _lock_kernel+0x69/0x7a
+Nov 18 15:00:24 localhost kernel: [116575.829658]  [<fa97539b>] dvb_generic_ioctl+0x4f/0x70 [dvb_core]
+Nov 18 15:00:24 localhost kernel: [116575.829664]  [<fa97ca50>] ? dvb_frontend_ioctl+0x0/0xb88 [dvb_core]
+Nov 18 15:00:24 localhost kernel: [116575.829670]  [<fa97534c>] ? dvb_generic_ioctl+0x0/0x70 [dvb_core]
+Nov 18 15:00:24 localhost kernel: [116575.829674]  [<c10e44ae>] do_vfs_ioctl+0x4c7/0x508
+Nov 18 15:00:24 localhost kernel: [116575.829677]  [<c104eb42>] ? hrtimer_wakeup+0x0/0x1c
+Nov 18 15:00:24 localhost kernel: [116575.829681]  [<c104f629>] ? hrtimer_start_range_ns+0x10/0x12
+Nov 18 15:00:24 localhost kernel: [116575.829684]  [<c10e452f>] sys_ioctl+0x40/0x5a
+Nov 18 15:00:24 localhost kernel: [116575.829687]  [<c135c015>] syscall_call+0x7/0xb
 
-A normal user won't need to open his USB TV stick just to see TV on it.
-It just needs to select a bridge driver, and all possible options for encoders
-and decoders are auto-selected.
+Can not make much sense out of the backtrace, any ideas?
 
-If you're an advanced user (or are developing an embedded hardware), you
-know exactly what are the components inside the board/stick. So, the
-Kconfig allows to disable the automatic auto-selection, doing manual
-selection.
-
-The logic basically implements it, using Kconfig way, on a logic like:
-
-	auto = ask_user_if_ancillary_drivers_should_be_auto_selected();
-	driver_foo = ask_user_if_driver_foo_should_be_selected();
-	if (driver_foo && auto) {
-		select(bar1);
-		select(bar2);
-		select(bar3);
-		select(bar4);
-	}
-...
-	if (!auto) {
-		open_menu()
-		ask_user_if_bar1_should_be_selected();
-		ask_user_if_bar2_should_be_selected();
-		ask_user_if_bar3_should_be_selected();
-		ask_user_if_bar4_should_be_selected();
-...
-		close_menu()
-	}
-
-Or, on Kconfig language:
-
->> config VIDEO_HELPER_CHIPS_AUTO
->>        bool "Autoselect pertinent encoders/decoders and other helper chips"
->>
->> config VIDEO_IVTV
->>        select VIDEO_WM8739 if VIDEO_HELPER_CHIPS_AUTO
->>
->> menu "Encoders/decoders and other helper chips"
->>        depends on !VIDEO_HELPER_CHIPS_AUTO
->>
->> config VIDEO_WM8739
->>        tristate "Wolfson Microelectronics WM8739 stereo audio ADC"
->>
-
-I don't see anything wrong on such logic. It is valid in C, and it is also valid
-(and works properly) at Kconfig language.
-
-So, the warning is a false positive.
-
-If you want to see the real logic, just look at drivers/media/.../Kconfig stuff.
-You'll see it at almost all Kconfig files. There are hundreds of dependencies
-using this kind of logic. This is used by all tuners (21 Kconfig items, at
-drivers/media/common/Kconfig), by several I2C devices (40+ Kconfig items at
-drivers/media/video/Kconfig), and by almost all bridge drivers.
-
-Mauro.
-
+Richard
