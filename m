@@ -1,62 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:44016 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:23194 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752361Ab0KIVlt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Nov 2010 16:41:49 -0500
-Date: Tue, 9 Nov 2010 16:41:46 -0500
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Subject: [PATCH 2/3 v2] mceusb: buffer parsing fixups for 1st-gen device
-Message-ID: <20101109214146.GF11073@redhat.com>
-References: <20101109213921.GD11073@redhat.com>
+	id S1757063Ab0KRU7s (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Nov 2010 15:59:48 -0500
+Message-ID: <4CE593BF.4010908@redhat.com>
+Date: Thu, 18 Nov 2010 18:59:43 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20101109213921.GD11073@redhat.com>
+To: Jarod Wilson <jarod@redhat.com>
+CC: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
+	Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 0/2] Apple remote support
+References: <37bb20b43afce52964a95a72a725b0e4@hardeman.nu> <AANLkTimAx+D745-VxoUJ25ii+=Dm6rHb8OXs9_D69S1W@mail.gmail.com> <20101104193823.GA9107@hardeman.nu> <4CD30CE5.5030003@redhat.com> <da4aa0687909ae3843c682fbf446e452@hardeman.nu> <AANLkTin1Lu9cdnLeVfA8NDQFWkKzb6k+yCiSBqq6Otz6@mail.gmail.com> <4CE2743D.5040501@redhat.com> <20101116232636.GA28261@hardeman.nu> <20101118163304.GB16899@redhat.com> <20101118204319.GA8213@hardeman.nu> <20101118204952.GC16899@redhat.com>
+In-Reply-To: <20101118204952.GC16899@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-If we pass in an offset, we shouldn't skip 2 bytes. And the first-gen
-hardware generates a constant stream of interrupts, always with two
-header bytes, and if there's been no IR, with nothing else. Bail from
-ir processing without calling ir_handle_raw_event when we get such a
-buffer delivered to us.
+Em 18-11-2010 18:49, Jarod Wilson escreveu:
+> On Thu, Nov 18, 2010 at 09:43:19PM +0100, David Härdeman wrote:
+>> On Thu, Nov 18, 2010 at 11:33:04AM -0500, Jarod Wilson wrote:
+>>> Mauro's suggestion, iirc, was that max scancode size should be a
+>>> property of the keytable uploaded, and something set at load time (and
+>>> probably exposed as a sysfs node, similar to protocols).
+>>
+>> I think that would be a step in the wrong direction. It would make the
+>> keytables less flexible while providing no real advantages.
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/IR/mceusb.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
+We can't simply just change NEC to 32 bits, as we'll break userspace ABI 
+(as current NEC keycode tables use only 16 bits). So, an old table will not
+worky anymore, if we do such change.
 
-diff --git a/drivers/media/IR/mceusb.c b/drivers/media/IR/mceusb.c
-index 1811098..ed151c8 100644
---- a/drivers/media/IR/mceusb.c
-+++ b/drivers/media/IR/mceusb.c
-@@ -446,7 +446,7 @@ static void mceusb_dev_printdata(struct mceusb_dev *ir, char *buf,
- 		return;
- 
- 	/* skip meaningless 0xb1 0x60 header bytes on orig receiver */
--	if (ir->flags.microsoft_gen1 && !out)
-+	if (ir->flags.microsoft_gen1 && !out && !offset)
- 		skip = 2;
- 
- 	if (len <= skip)
-@@ -807,6 +807,10 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
- 	if (ir->flags.microsoft_gen1)
- 		i = 2;
- 
-+	/* if there's no data, just return now */
-+	if (buf_len <= i)
-+		return;
-+
- 	for (; i < buf_len; i++) {
- 		switch (ir->parser_state) {
- 		case SUBCMD:
--- 
-1.7.1
+> I think it was supposed to be something you could update on the fly when
+> uploading new keys, so its not entirely inflexible. Default keymap might
+> be 24-bit NEC, then you upload 32-bit NEC codes, and the max scancode size
+> would get updated at the same time. Of course, it probably wouldn't work
+> terribly well to have a mix of 24-bit and 32-bit NEC codes in the same
+> table.
 
+There's another reason why it may be interesting to have the scancode size
+stored somewhere. With the new flexible scancode size, some devices may have
+bigger scancodes (I remember people mentioned some cases with 128 bits when 
+we've discussed the getkeycodbig patches in the past). So, we'll need to
+address some cases where the scancodes don't have 32 bits. I think that the
+current maximum limit is 31 bits (as the search algorithm uses the signal
+bit for some reason).
 
--- 
-Jarod Wilson
-jarod@redhat.com
-
+Cheers,
+Mauro
