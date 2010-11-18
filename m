@@ -1,59 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from emh01.mail.saunalahti.fi ([62.142.5.107]:52104 "EHLO
-	emh01.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932364Ab0KQTvs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Nov 2010 14:51:48 -0500
-Message-ID: <4CE43049.1030704@kolumbus.fi>
-Date: Wed, 17 Nov 2010 21:43:05 +0200
-From: Marko Ristola <marko.ristola@kolumbus.fi>
+Received: from ozlabs.org ([203.10.76.45]:55501 "EHLO ozlabs.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751569Ab0KRGnP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Nov 2010 01:43:15 -0500
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: =?UTF-8?B?QmrDuHJuIE1vcms=?= <bjorn@mork.no>,
-	linux-media@vger.kernel.org, Manu Abraham <abraham.manu@gmail.com>,
-	Ben Hutchings <ben@decadent.org.uk>,
-	Niklas Claesson <nicke.claesson@gmail.com>,
-	Tuxoholic <tuxoholic@hotmail.de>
-Subject: Re: [GIT PATCHES FOR 2.6.38] mantis for_2.6.38
-References: <4CBB689F.1070100@redhat.com> <874obmiov5.fsf@nemi.mork.no> <4CDEA000.8020104@redhat.com>
-In-Reply-To: <4CDEA000.8020104@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
+Subject: [PATCH] V4L/DVB: cx88: Add module parameter to disable IR
+Message-Id: <1290062581.41867.321546213719.1.gpush@pororo>
+To: <linux-media@vger.kernel.org>
+From: Jeremy Kerr <jeremy.kerr@canonical.com>
+Date: Thu, 18 Nov 2010 14:43:01 +0800
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+From: Jeremy Kerr <jk@ozlabs.org>
 
-Hi Bjørn Mork and Mauro Carvalho Chehab.
+Currently, the cx88-input code unconditionally establishes an input
+device for IR events. On some cards, this sets up a hrtimer to poll the
+IR status frequently - I get around 200 wakeups per second from this
+polling, and don't use the IR ports.
 
-The following patch was an experiment and wasn't actually meant for inclusion into the Kernel.
+Although the hrtimer is only run when the input device is opened, the
+device is actually unconditionally opened by kbd_connect, because we
+have the EV_KEY bit set in the input device descriptor. In effect, the
+IR device is always opened (and so polling) if CONFIG_VT.
 
->>> Jul,10 2010: Mantis driver patch: use interrupt for I2C traffic instead of busy reg http://patchwork.kernel.org/patch/111245  Marko Ristola <marko.ristola@kolumbus.fi>
+This change adds a module parameter, 'ir_disable' to disable the IR
+code, and not register this input device at all. This drastically
+reduces the number of wakeups per second for me.
 
-Would you please drop it from the Patchwork?
-Would you Bjørn remove it from your Git repository?
-The patch is ugly and it doesn't work, the broken part is active only with vp2033.
+Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
 
-I'm sorry for the hassle.
-Cheers, Marko Ristola
+---
+ drivers/media/video/cx88/cx88-input.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-13.11.2010 16:26, Mauro Carvalho Chehab wrote:
-> Em 12-11-2010 12:43, Bjørn Mork escreveu:
->> Hello, 
->>
->> I've been waiting for this list of patchwork patches to be included for
->> quite a while, and have now taken the liberty to clean them up as
->> necessary and add them to a git tree, based on the current media_tree
->> for_v2.6.38 branch, with exceptions as noted below:
->>
->>> 		== mantis patches - Waiting for Manu Abraham <abraham.manu@gmail.com> == 
->>>
->>> Jul,10 2010: Mantis driver patch: use interrupt for I2C traffic instead of busy reg http://patchwork.kernel.org/patch/111245  Marko Ristola <marko.ristola@kolumbus.fi>
-
->> The following changes since commit 
->>
->> af9f14f7fc31f0d7b7cdf8f7f7f15a3c3794aea3    [media] IR: add tv power scancode to rc6 mce keymap
->>
->> are available in the git repository at:
->>
->>   git://git.mork.no/mantis.git for_2.6.38
-> 
+diff --git a/drivers/media/video/cx88/cx88-input.c b/drivers/media/video/cx88/cx88-input.c
+index fc777bc..d49af18 100644
+--- a/drivers/media/video/cx88/cx88-input.c
++++ b/drivers/media/video/cx88/cx88-input.c
+@@ -67,6 +67,10 @@ static int ir_debug;
+ module_param(ir_debug, int, 0644);	/* debug level [IR] */
+ MODULE_PARM_DESC(ir_debug, "enable debug messages [IR]");
+ 
++static int ir_disable;
++module_param(ir_disable, int, 0644);
++MODULE_PARM_DESC(ir_disable, "disable IR support");
++
+ #define ir_dprintk(fmt, arg...)	if (ir_debug) \
+ 	printk(KERN_DEBUG "%s IR: " fmt , ir->core->name , ##arg)
+ 
+@@ -244,6 +248,9 @@ int cx88_ir_init(struct cx88_core *core, struct pci_dev *pci)
+ 				 * used with a full-code IR table
+ 				 */
+ 
++	if (ir_disable)
++		return 0;
++
+ 	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
+ 	input_dev = input_allocate_device();
+ 	if (!ir || !input_dev)
