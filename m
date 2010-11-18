@@ -1,92 +1,91 @@
 Return-path: <mchehab@pedra>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:11998 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753309Ab0KGPyk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Nov 2010 10:54:40 -0500
-Date: Sun, 7 Nov 2010 16:53:44 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michel Ludwig <michel.ludwig@gmail.com>,
-	Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH 1/2] TM6000: Clean-up i2c initialization
-Message-ID: <20101107165344.4243b602@endymion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:18150 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756789Ab0KRLAp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Nov 2010 06:00:45 -0500
+Date: Thu, 18 Nov 2010 06:00:46 -0500
+Subject: Re: [linux-dvb] cx23885 crashes with TeVii S470
+Message-ID: <ku687hpo17bl3c26ogyuaqiy.1290078006370@email.android.com>
+From: Andy Walls <awalls@md.metrocast.net>
+To: Hans Houwaard <hans@ginder.xs4all.nl>, linux-media@vger.kernel.org,
+	frank-info@gmx.de
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Usage of templates for large structures is a bad idea, as it wastes a
-lot of space. Manually initializing the few fields we need is way more
-efficient.
+VHJ5IHJldmVydGluZyB0aGUgY2hhbmdlIHRoYXQgZW5hYmxlZCBNU0kgaW4gY3gyMzg4NS4KClIs
+CkFuZHkKCkhhbnMgSG91d2FhcmQgPGhhbnNAZ2luZGVyLnhzNGFsbC5ubD4gd3JvdGU6Cgo+TXkg
+aXNzdWUgd2FzIHRoYXQgdGhlIG9ubHkgUENJZSAxWCBzbG90IHNoYXJlZCBhbiBJUlEgd2l0aCB0
+aGUgb25ib2FyZCBTb3VuZCBjYXJkIGFuZCB0aGF0IGNhdXNlZCBhbGwga2luZHMgb2YgcHJvYmxl
+bXMuIEFsc28gSSBoYWQgdG8gcG93ZXIgb2ZmIG15IG1hY2hpbmUgaWYgSSBldmVyIGhhZCBwcm9i
+bGVtcyB3aXRoIHRoZSBEVkIgY2FyZHMuIFRoZXkgd291bGQgbm90IGZ1bmN0aW9uIHByb3Blcmx5
+IGFmdGVyIGEgd2FybSByZWJvb3QuCj4KPkdvb2QgbHVjayB3aXRoIHRoZSBpc3N1ZXMsIG15IHN5
+c3RlbSBpcyBub3QgZW50aXJlbHkgc3RhYmxlIGFzIHdlbGwuCj4KPkhhbnMKPgo+LS0tLS0gT29y
+c3Byb25rZWxpamsgYmVyaWNodCAtLS0tLQo+VmFuOiAiRnJhbmsgV29obGZhaHJ0IiA8ZnJhbmst
+aW5mb0BnbXguZGU+Cj5BYW46IGxpbnV4LWR2YkBsaW51eHR2Lm9yZwo+VmVyem9uZGVuOiBEb25k
+ZXJkYWcgMTggbm92ZW1iZXIgMjAxMCAwODozMzozMgo+T25kZXJ3ZXJwOiBbbGludXgtZHZiXSBj
+eDIzODg1IGNyYXNoZXMgd2l0aCBUZVZpaSBTNDcwCj4KPkkgaGF2ZSBhICBUZVZpaSBTNDcwIGlu
+c3RhbGxlZCBvbiB0aGUgb25seSBQQ0llIHNsb3Qgb2YgbXkgTVNJIEg1NU0tRUQ1NS4KPgo+VGhl
+IGRyaXZlciBjcmFzaGVzIGFib3V0IDUwJSBhbHJlYWR5IGltbWVkaWF0ZWx5IGFmdGVyIGJvb3Rp
+bmcsIGJ1dCBhbHNvIHNvbWUgCj50aW1lIGFmdGVyd2FyZHMsIHdvcmtpbmcgcHJvcGVybHkgdW50
+aWwgdGhlbi4KPgo+WyAgMTkwLjc2NDcxMV0gZHMzMDAwX2Zpcm13YXJlX29uZGVtYW5kOiBXYWl0
+aW5nIGZvciBmaXJtd2FyZSB1cGxvYWQgCj4oZHZiLWZlLWRzMzAwMC5mdykuLi4KPlsgIDE5MC43
+NjQ3MjJdIGN4MjM4ODUgMDAwMDowMjowMC4wOiBmaXJtd2FyZTogcmVxdWVzdGluZyBkdmItZmUt
+ZHMzMDAwLmZ3Cj5bICAxOTAuNzY3MTczXSBkczMwMDBfZmlybXdhcmVfb25kZW1hbmQ6IFdhaXRp
+bmcgZm9yIGZpcm13YXJlIHVwbG9hZCgyKS4uLgo+WyAgMTkzLjE1MTQxN10gY3gyMzg4NVswXTog
+bXBlZyByaXNjIG9wIGNvZGUgZXJyb3IKPlsgIDE5My4xNTE0MjddIGN4MjM4ODVbMF06IFRTMSBC
+IC0gZG1hIGNoYW5uZWwgc3RhdHVzIGR1bXAKPlsgIDE5My4xNTE0MzRdIGN4MjM4ODVbMF06ICAg
+Y21kczogaW5pdCByaXNjIGxvICAgOiAweDIzOTBlMDAwCj5bICAxOTMuMTUxNDQwXSBjeDIzODg1
+WzBdOiAgIGNtZHM6IGluaXQgcmlzYyBoaSAgIDogMHgwMDAwMDAwMAo+WyAgMTkzLjE1MTQ0Nl0g
+Y3gyMzg4NVswXTogICBjbWRzOiBjZHQgYmFzZSAgICAgICA6IDB4MDAwMTA1ODAKPlsgIDE5My4x
+NTE0NTFdIGN4MjM4ODVbMF06ICAgY21kczogY2R0IHNpemUgICAgICAgOiAweDAwMDAwMDBhCj5b
+ICAxOTMuMTUxNDU2XSBjeDIzODg1WzBdOiAgIGNtZHM6IGlxIGJhc2UgICAgICAgIDogMHgwMDAx
+MDQwMAo+WyAgMTkzLjE1MTQ2Ml0gY3gyMzg4NVswXTogICBjbWRzOiBpcSBzaXplICAgICAgICA6
+IDB4MDAwMDAwMTAKPlsgIDE5My4xNTE0NjhdIGN4MjM4ODVbMF06ICAgY21kczogcmlzYyBwYyBs
+byAgICAgOiAweDIzOTBlMWNjCj5bICAxOTMuMTUxNDczXSBjeDIzODg1WzBdOiAgIGNtZHM6IHJp
+c2MgcGMgaGkgICAgIDogMHgwMDAwMDAwMAo+WyAgMTkzLjE1MTQ3OF0gY3gyMzg4NVswXTogICBj
+bWRzOiBpcSB3ciBwdHIgICAgICA6IDB4MDAwMDQxMDMKPi4uLgo+Cj5UaGUgcmVsYXRlZCBzb3Vy
+Y2UgbW9kdWxlIGlzIChJIHRoaW5rKTogY3gyMzg4NS1jb3JlLmMKPgo+T25seSB5ZXN0ZXJkYXkg
+SSBoYWQgdGhlIGVycm9yIGR1cmluZyBzaHV0ZG93biAocHJldmVudGluZyB0aGUgc3lzdGVtIHRv
+IAo+c3dpdGNoIG9mZik6Cj4KPlsgNTAyMS4xODgwMTJdIGN4MjM4ODUgMDAwMDowMjowMC4wOiBQ
+Q0kgSU5UIEEgZGlzYWJsZWQKPlsgNTAyMS4yMTE0NDNdIHNhYTcxNDY6IHVucmVnaXN0ZXIgZXh0
+ZW5zaW9uICdkdmInLgo+WyA1MDIxLjI0MzI1Nl0gQlVHOiB1bmFibGUgdG8gaGFuZGxlIGtlcm5l
+bCBOVUxMIHBvaW50ZXIgZGVyZWZlcmVuY2UgYXQgKG51bGwpCj5bIDUwMjEuMjQzMjYyXSBJUDog
+WzxlZjk4MjRjZT5dIHY0bDJfZGV2aWNlX3VucmVnaXN0ZXIrMHgxZS8weDUwIFt2aWRlb2Rldl0K
+PlsgNTAyMS4yNDMyNzJdICpwZGUgPSA3NjE5MDA2NyAKPlsgNTAyMS4yNDMyNzRdIE9vcHM6IDAw
+MDAgWyMxXSBTTVAgCj5bIDUwMjEuMjQzMjc3XSBsYXN0IHN5c2ZzIAo+ZmlsZTogL3N5cy9kZXZp
+Y2VzL3BjaTAwMDA6MDAvMDAwMDowMDoxYy4zLzAwMDA6MDI6MDAuMC9maXJtd2FyZS8wMDAwOjAy
+OjAwLjAvbG9hZGluZwo+Cj5JIGRvbid0IGtub3cgaWYgdGhpcyBmYWlsdXJlIGhhcyBzb21ldGhp
+bmcgdG8gZG8gd2l0aCB0aGUgcHJvYmxlbSBhYm92ZS4KPgo+VGhlIHNvZnR3YXJlIEkgdXNlIGlz
+IFVidW50dSBMdWNpZCAoS2VybmVsIDIuNi4zMi0yNS1nZW5lcmljKSBjb21pbmcgd2l0aCB0aGUg
+Cj5WRFIgZGlzdHJpYnV0aW9uIHlhdmRyIDAuMy4KPgo+VGhlIGZpcm13YXJlIGZvciB0aGUgY2Fy
+ZCBpcyBmcm9tIHBhY2tldCAibGludXgtZmlybXdhcmUteWF2ZHIiIFZlcnNpb246IAo+MS4xLTN5
+YXZkcjEgCj4tcnctci0tci0tICAxIHJvb3Qgcm9vdCAgICA4MTkyIDIwMTAtMDctMTggMjE6NTQg
+ZHZiLWZlLWRzMzAwMC5mdwo+Cj5JIGdldCB0aGUgc2FtZSBwcm9ibGVtcyB1c2luZyB0aGUgb3Jp
+Z2luYWwga2VybmVsIG1vZHVsZSBmcm9tIDIuNi4zMiBvciB0aGUgCj5ES01TIG1vZHVsZXMgZnJv
+bSB2NGwtZHZiLWRrbXMgKDB+MjAxMDEwMTguMTUxMzkpIG9yIHMyLWxpcGxpYW5pbi1ka21zIAo+
+KDB+MjAxMDEwMTYuMTQ2MjkpLgo+Cj5JIHRoaW5rIEkgaGF2ZSBhIGhhcmR3YXJlIHByb2JsZW0g
+YW5kIEkganVzdCBoYXZlIHRvIGtub3cgd2V0aGVyIGl0IGNhbiBiZSAKPmZpeGVkIHdpdGggbWF5
+YmUgQklPUyBzZXR0aW5ncyBvciBpZiBJIGhhdmUgdG8gZ2V0IGEgZGlmZmVyZW50IERWQi1TMiBj
+YXJkLiAKPldoYXQgaXMgdGhlIHJlYXNvbiBmb3IgYSAibXBlZyByaXNjIG9wIGNvZGUgZXJyb3Ii
+ID8KPgo+VGhhbmtzIGluIGFkdmFuY2UgISEKPgo+VGVWaWkgUzQ3MDoKPjAyOjAwLjAgTXVsdGlt
+ZWRpYSB2aWRlbyBjb250cm9sbGVyOiBDb25leGFudCBTeXN0ZW1zLCBJbmMuIENYMjM4ODUgUENJ
+IFZpZGVvIAo+YW5kIEF1ZGlvIERlY29kZXIgKHJldiAwMikKPgo+UmVzdCBvZiB0aGUgc3lzdGVt
+Ogo+SW50ZWwgQ29yZSBpMyA1MzAsKyBIYXVwcGF1Z2UgTmV4dXMtcyAyLjIgKFBDSSBzbG90KQo+
+Cj5jeDIzODg1ICAgICAgICAgICAgICAgMTE3NDAxICA2IAo+Y3gyMzQxeCAgICAgICAgICAgICAg
+ICAxMjQwNCAgMSBjeDIzODg1Cj52NGwyX2NvbW1vbiAgICAgICAgICAgIDE2MzkwICAyIGN4MjM4
+ODUsY3gyMzQxeAo+dmlkZW9kZXYgICAgICAgICAgICAgICAzNjM0NSAgMyBzYWE3MTQ2X3Z2LGN4
+MjM4ODUsdjRsMl9jb21tb24KPnY0bDFfY29tcGF0ICAgICAgICAgICAgMTMyNTEgIDEgdmlkZW9k
+ZXYKPnZpZGVvYnVmX2RtYV9zZyAgICAgICAgMTA3ODIgIDIgc2FhNzE0Nl92dixjeDIzODg1Cj52
+aWRlb2J1Zl9kdmIgICAgICAgICAgICA1MDk2ICAxIGN4MjM4ODUKPgo+RnJhbmsgV29obGZhaHJ0
+Cj4KPl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCj5saW51
+eC1kdmIgdXNlcnMgbWFpbGluZyBsaXN0Cj5Gb3IgVjRML0RWQiBkZXZlbG9wbWVudCwgcGxlYXNl
+IHVzZSBpbnN0ZWFkIGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZwo+bGludXgtZHZiQGxpbnV4
+dHYub3JnCj5odHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9s
+aW51eC1kdmIKPi0tCj5UbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGlu
+ZSAidW5zdWJzY3JpYmUgbGludXgtbWVkaWEiIGluCj50aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8g
+bWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZwo+TW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDov
+L3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sCg==
 
-Also set the algorithm data const, use strlcpy instead of strcpy, fix
-a small race (device data must always be set before registering said
-device) and properly return error on adapter registration failure.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Michel Ludwig <michel.ludwig@gmail.com>
-Cc: Stefan Ringel <stefan.ringel@arcor.de>
----
-Untested, I don't have the hardware.
-
- drivers/staging/tm6000/tm6000-i2c.c |   27 ++++++++++-----------------
- 1 file changed, 10 insertions(+), 17 deletions(-)
-
---- linux-2.6.36-rc7.orig/drivers/staging/tm6000/tm6000-i2c.c	2010-10-13 09:56:21.000000000 +0200
-+++ linux-2.6.36-rc7/drivers/staging/tm6000/tm6000-i2c.c	2010-10-13 10:52:26.000000000 +0200
-@@ -313,21 +313,11 @@ static u32 functionality(struct i2c_adap
- 	msleep(10);							\
- 	}
- 
--static struct i2c_algorithm tm6000_algo = {
-+static const struct i2c_algorithm tm6000_algo = {
- 	.master_xfer   = tm6000_i2c_xfer,
- 	.functionality = functionality,
- };
- 
--static struct i2c_adapter tm6000_adap_template = {
--	.owner = THIS_MODULE,
--	.name = "tm6000",
--	.algo = &tm6000_algo,
--};
--
--static struct i2c_client tm6000_client_template = {
--	.name = "tm6000 internal",
--};
--
- /* ----------------------------------------------------------- */
- 
- /*
-@@ -337,17 +327,20 @@ static struct i2c_client tm6000_client_t
- int tm6000_i2c_register(struct tm6000_core *dev)
- {
- 	unsigned char eedata[256];
-+	int rc;
- 
--	dev->i2c_adap = tm6000_adap_template;
-+	dev->i2c_adap.owner = THIS_MODULE;
-+	dev->i2c_adap.algo = &tm6000_algo;
- 	dev->i2c_adap.dev.parent = &dev->udev->dev;
--	strcpy(dev->i2c_adap.name, dev->name);
-+	strlcpy(dev->i2c_adap.name, dev->name, sizeof(dev->i2c_adap.name));
- 	dev->i2c_adap.algo_data = dev;
--	i2c_add_adapter(&dev->i2c_adap);
-+	i2c_set_adapdata(&dev->i2c_adap, &dev->v4l2_dev);
-+	rc = i2c_add_adapter(&dev->i2c_adap);
-+	if (rc)
-+		return rc;
- 
--	dev->i2c_client = tm6000_client_template;
- 	dev->i2c_client.adapter = &dev->i2c_adap;
--
--	i2c_set_adapdata(&dev->i2c_adap, &dev->v4l2_dev);
-+	strlcpy(dev->i2c_client.name, "tm6000 internal", I2C_NAME_SIZE);
- 
- 	tm6000_i2c_eeprom(dev, eedata, sizeof(eedata));
- 
-
-
--- 
-Jean Delvare
