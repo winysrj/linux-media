@@ -1,42 +1,41 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:32907 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756367Ab0KSSl4 (ORCPT
+Return-path: <mchehab@pedra>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:37510 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754224Ab0KRUnX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 13:41:56 -0500
-From: Vasiliy Kulikov <segoon@openwall.com>
-To: kernel-janitors@vger.kernel.org
-Cc: Mike Isely <isely@pobox.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] media: video: pvrusb2: fix memory leak
-Date: Fri, 19 Nov 2010 21:41:49 +0300
-Message-Id: <1290192109-11611-1-git-send-email-segoon@openwall.com>
+	Thu, 18 Nov 2010 15:43:23 -0500
+Date: Thu, 18 Nov 2010 21:43:19 +0100
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Jarod Wilson <jarod@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 0/2] Apple remote support
+Message-ID: <20101118204319.GA8213@hardeman.nu>
+References: <AANLkTi=c_g7nxCFWsVMYM-tJr68V1iMzhSyJ7=g9VLnR@mail.gmail.com>
+ <37bb20b43afce52964a95a72a725b0e4@hardeman.nu>
+ <AANLkTimAx+D745-VxoUJ25ii+=Dm6rHb8OXs9_D69S1W@mail.gmail.com>
+ <20101104193823.GA9107@hardeman.nu>
+ <4CD30CE5.5030003@redhat.com>
+ <da4aa0687909ae3843c682fbf446e452@hardeman.nu>
+ <AANLkTin1Lu9cdnLeVfA8NDQFWkKzb6k+yCiSBqq6Otz6@mail.gmail.com>
+ <4CE2743D.5040501@redhat.com>
+ <20101116232636.GA28261@hardeman.nu>
+ <20101118163304.GB16899@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20101118163304.GB16899@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Use put_device() instead of kfree() because of device name leak.
+On Thu, Nov 18, 2010 at 11:33:04AM -0500, Jarod Wilson wrote:
+>Mauro's suggestion, iirc, was that max scancode size should be a
+>property of the keytable uploaded, and something set at load time (and
+>probably exposed as a sysfs node, similar to protocols).
 
-Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
----
- Compile tested only.
+I think that would be a step in the wrong direction. It would make the
+keytables less flexible while providing no real advantages.
 
- drivers/media/video/pvrusb2/pvrusb2-sysfs.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c b/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
-index 3d7e5aa..281806b 100644
---- a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
-+++ b/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
-@@ -647,7 +647,7 @@ static void class_dev_create(struct pvr2_sysfs *sfp,
- 	if (ret) {
- 		pvr2_trace(PVR2_TRACE_ERROR_LEGS,
- 			   "device_register failed");
--		kfree(class_dev);
-+		put_device(class_dev);
- 		return;
- 	}
- 
 -- 
-1.7.0.4
-
+David Härdeman
