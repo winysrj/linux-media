@@ -1,599 +1,107 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:23949 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933334Ab0KQIjt (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4562 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753506Ab0KRIYH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Nov 2010 03:39:49 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LC0005UATE9MG00@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 17 Nov 2010 08:39:45 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LC000BTNTE8VW@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 17 Nov 2010 08:39:45 +0000 (GMT)
-Date: Wed, 17 Nov 2010 09:39:32 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 5/7] v4l: videobuf2: add read() and write() emulator
-In-reply-to: <1289983174-2835-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	kyungmin.park@samsung.com
-Message-id: <1289983174-2835-6-git-send-email-m.szyprowski@samsung.com>
-References: <1289983174-2835-1-git-send-email-m.szyprowski@samsung.com>
+	Thu, 18 Nov 2010 03:24:07 -0500
+Date: Thu, 18 Nov 2010 09:23:59 +0100 (CET)
+From: Hans Houwaard <hans@ginder.xs4all.nl>
+To: linux-media@vger.kernel.org, frank-info@gmx.de
+Message-ID: <28623330.44.1290068639763.JavaMail.root@ginder>
+In-Reply-To: <201011180833.32137.frank-info@gmx.de>
+Subject: Re: [linux-dvb] cx23885 crashes with TeVii S470
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add a generic file io (read and write) emulator for videobuf2. It uses
-MMAP memory type buffers and generic vb2 calls: req_bufs, qbuf and
-dqbuf. Video date is being copied from mmap buffers to userspace with
-standard copy_to_user() function. To add support for file io the driver
-needs to provide an additional callback - read_setup or write_setup. It
-should provide the default number of buffers used by emulator and flags.
+My issue was that the only PCIe 1X slot shared an IRQ with the onboard Sound card and that caused all kinds of problems. Also I had to power off my machine if I ever had problems with the DVB cards. They would not function properly after a warm reboot.
 
-With these flags one can detemine the style of read() or write()
-emulation. By default 'streaming' style is used. With
-VB2_FILEIO_READ_ONCE flag one can select 'one shot' mode for read()
-emulator. With VB2_FILEIO_WRITE_IMMEDIATE flag one can select immediate
-conversion of write calls to qbuf for write() emulator, so the vb2 will
-not wait until each buffer is filled completely before queueing it to
-the driver.
+Good luck with the issues, my system is not entirely stable as well.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-CC: Pawel Osciak <pawel@osciak.com>
----
- drivers/media/video/videobuf2-core.c |  397 +++++++++++++++++++++++++++++++++-
- include/media/videobuf2-core.h       |   30 +++
- 2 files changed, 426 insertions(+), 1 deletions(-)
+Hans
 
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index 5c9d3d8..35acfe0 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -503,6 +503,11 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
- 	unsigned int num_buffers, num_planes;
- 	int ret = 0;
- 
-+	if (q->fileio) {
-+		dprintk(1, "reqbufs: file io in progress\n");
-+		return -EBUSY;
-+	}
-+
- 	if (req->memory != V4L2_MEMORY_MMAP
- 			&& req->memory != V4L2_MEMORY_USERPTR) {
- 		dprintk(1, "reqbufs: unsupported memory type\n");
-@@ -846,6 +851,10 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- 	struct vb2_buffer *vb;
- 	int ret = 0;
- 
-+	if (q->fileio) {
-+		dprintk(1, "qbuf: file io in progress\n");
-+		return -EBUSY;
-+	}
- 
- 	if (b->type != q->type) {
- 		dprintk(1, "qbuf: invalid buffer type\n");
-@@ -1019,6 +1028,10 @@ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
- 	struct vb2_buffer *vb = NULL;
- 	int ret;
- 
-+	if (q->fileio) {
-+		dprintk(1, "dqbuf: file io in progress\n");
-+		return -EBUSY;
-+	}
- 
- 	if (b->type != q->type) {
- 		dprintk(1, "dqbuf: invalid buffer type\n");
-@@ -1083,6 +1096,10 @@ int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
- 	struct vb2_buffer *vb;
- 	int ret = 0;
- 
-+	if (q->fileio) {
-+		dprintk(1, "streamon: file io in progress\n");
-+		return -EBUSY;
-+	}
- 
- 	if (type != q->type) {
- 		dprintk(1, "streamon: invalid stream type\n");
-@@ -1174,6 +1191,10 @@ int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
- {
- 	int ret = 0;
- 
-+	if (q->fileio) {
-+		dprintk(1, "streamoff: file io in progress\n");
-+		return -EBUSY;
-+	}
- 
- 	if (type != q->type) {
- 		dprintk(1, "streamoff: invalid stream type\n");
-@@ -1312,6 +1333,9 @@ bool vb2_has_consumers(struct vb2_queue *q)
- }
- EXPORT_SYMBOL_GPL(vb2_has_consumers);
- 
-+static int __vb2_init_fileio(struct vb2_queue *q, int read);
-+static int __vb2_cleanup_fileio(struct vb2_queue *q);
-+
- /**
-  * vb2_poll() - implements poll userspace operation
-  * @q:		videobuf2 queue
-@@ -1334,6 +1358,22 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- 	unsigned int ret = 0;
- 	struct vb2_buffer *vb = NULL;
- 
-+	/*
-+	 * Start file io emulator if streaming api has not been used yet.
-+	 */
-+	if (q->num_buffers == 0 && q->fileio == NULL) {
-+		if (!V4L2_TYPE_IS_OUTPUT(q->type) && q->ops->read_setup) {
-+			ret = __vb2_init_fileio(q, 1);
-+			if (ret)
-+				goto end;
-+		}
-+		if (V4L2_TYPE_IS_OUTPUT(q->type) && q->ops->write_setup) {
-+			ret = __vb2_init_fileio(q, 1);
-+			if (ret == 0)
-+				ret = POLLOUT | POLLWRNORM;
-+			goto end;
-+		}
-+	}
- 
- 	/*
- 	 * There is nothing to wait for if no buffers have already been queued.
-@@ -1424,11 +1464,366 @@ EXPORT_SYMBOL_GPL(vb2_queue_init);
-  */
- void vb2_queue_release(struct vb2_queue *q)
- {
-+	__vb2_cleanup_fileio(q);
- 	__vb2_queue_cancel(q);
- 	__vb2_queue_free(q);
- }
- EXPORT_SYMBOL_GPL(vb2_queue_release);
- 
-+/**
-+ * struct vb2_fileio_buf - buffer context used by file io emulator
-+ *
-+ * vb2 provides a compatibility layer and emulator of file io (read and
-+ * write) calls on top of streaming API. This structure is used for
-+ * tracking context related to the buffers.
-+ */
-+struct vb2_fileio_buf {
-+	void *vaddr;
-+	unsigned int size;
-+	unsigned int pos;
-+	unsigned int queued:1;
-+};
-+
-+/**
-+ * struct vb2_fileio_data - queue context used by file io emulator
-+ *
-+ * vb2 provides a compatibility layer and emulator of file io (read and
-+ * write) calls on top of streaming API. For proper operation it required
-+ * this structure to save the driver state between each call of the read
-+ * or write function.
-+ */
-+struct vb2_fileio_data {
-+	struct v4l2_requestbuffers req;
-+	struct v4l2_buffer b;
-+	struct vb2_fileio_buf bufs[VIDEO_MAX_FRAME];
-+	unsigned int index;
-+	unsigned int q_count;
-+	unsigned int dq_count;
-+	unsigned int flags;
-+};
-+
-+/**
-+ * __vb2_init_fileio() - initialize file io emulator
-+ * @q:		videobuf2 queue
-+ * @read:	mode selector (1 means read, 0 means write)
-+ */
-+static int __vb2_init_fileio(struct vb2_queue *q, int read)
-+{
-+	struct vb2_fileio_data *fileio;
-+	int i, ret;
-+	unsigned int count=0, flags=0;
-+
-+	/*
-+	 * Sanity check
-+	 */
-+	if ((read && !q->ops->read_setup) || (!read && !q->ops->write_setup))
-+		BUG();
-+
-+	/*
-+	 * Check if device supports mapping buffers to kernel virtual space.
-+	 */
-+	if (!q->alloc_ctx[0]->mem_ops->vaddr)
-+		return -EBUSY;
-+
-+	/*
-+	 * Check if steaming api has not been already activated.
-+	 */
-+	if (q->streaming || q->num_buffers > 0)
-+		return -EBUSY;
-+
-+	/*
-+	 * Basic checks done, lets try to set up file io emulator
-+	 */
-+	if (read)
-+		ret = call_qop(q, read_setup, q, &count, &flags);
-+	else
-+		ret = call_qop(q, write_setup, q, &count, &flags);
-+	if (ret)
-+		return ret;
-+
-+	dprintk(3, "setting up file io: mode %s, count %d, flags %08x\n",
-+		(read) ? "read" : "write", count, flags);
-+
-+	fileio = kzalloc(sizeof(struct vb2_fileio_data), GFP_KERNEL);
-+	if (fileio == NULL)
-+		return -ENOMEM;
-+
-+	fileio->flags = flags;
-+
-+	/*
-+	 * Request buffers and use MMAP type to force driver
-+	 * to allocate buffers by itself.
-+	 */
-+	fileio->req.count = count;
-+	fileio->req.memory = V4L2_MEMORY_MMAP;
-+	fileio->req.type = q->type;
-+	ret = vb2_reqbufs(q, &fileio->req);
-+	if (ret)
-+		goto err_kfree;
-+
-+	/*
-+	 * Check if plane_count is correct
-+	 * (multiplane buffers are not supported).
-+	 */
-+	if (q->bufs[0]->num_planes != 1) {
-+		fileio->req.count = 0;
-+		ret = -EBUSY;
-+		goto err_reqbufs;
-+	}
-+
-+	/*
-+	 * Get kernel address of each buffer.
-+	 */
-+	for (i = 0; i < q->num_buffers; i++) {
-+		fileio->bufs[i].vaddr = vb2_plane_vaddr(q->bufs[i], 0);
-+		if (fileio->bufs[i].vaddr == NULL)
-+			goto err_reqbufs;
-+		fileio->bufs[i].size = vb2_plane_size(q->bufs[i], 0);
-+	}
-+
-+	/*
-+	 * Read mode requires pre queuing of all buffers.
-+	 */
-+	if (read) {
-+		/*
-+		 * Queue all buffers.
-+		 */
-+		for (i = 0; i < q->num_buffers; i++) {
-+			struct v4l2_buffer *b = &fileio->b;
-+			memset(b, 0, sizeof(*b));
-+			b->type = q->type;
-+			b->memory = q->memory;
-+			b->index = i;
-+			ret = vb2_qbuf(q, b);
-+			if (ret)
-+				goto err_reqbufs;
-+			fileio->bufs[i].queued = 1;
-+		}
-+
-+		/*
-+		 * Start streaming.
-+		 */
-+		ret = vb2_streamon(q, q->type);
-+		if (ret)
-+			goto err_reqbufs;
-+	}
-+
-+	q->fileio = fileio;
-+
-+	return ret;
-+
-+err_reqbufs:
-+	vb2_reqbufs(q, &fileio->req);
-+
-+err_kfree:
-+	kfree(fileio);
-+	return ret;
-+}
-+
-+/**
-+ * __vb2_cleanup_fileio() - free resourced used by file io emulator
-+ * @q:		videobuf2 queue
-+ */
-+static int __vb2_cleanup_fileio(struct vb2_queue *q)
-+{
-+	struct vb2_fileio_data *fileio = q->fileio;
-+
-+	if (fileio) {
-+		/*
-+		 * Hack fileio context to enable direct calls to vb2 ioctl
-+		 * interface.
-+		 */
-+		q->fileio = NULL;
-+
-+		vb2_streamoff(q, q->type);
-+		fileio->req.count = 0;
-+		vb2_reqbufs(q, &fileio->req);
-+		kfree(fileio);
-+		dprintk(3, "file io emulator closed\n");
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * __vb2_perform_fileio() - free resourced used by read() emulator
-+ * @q:		videobuf2 queue
-+ * @data:	pointed to target userspace buffer
-+ * @count:	number of bytes to read or write
-+ * @ppos:	file handle position tracking pointer
-+ * @nonblock:	mode selector (1 means blocking calls, 0 means nonblocking)
-+ * @read:	access mode selector (1 means read, 0 means write)
-+ */
-+static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_t count,
-+		loff_t *ppos, int nonblock, int read)
-+{
-+	struct vb2_fileio_data *fileio;
-+	struct vb2_fileio_buf *buf;
-+	int ret, index;
-+
-+	dprintk(3, "file io: mode %s, offset %ld, count %d, %sblocking\n",
-+		read ? "read" : "write", (long)*ppos, count,
-+		nonblock ? "non" : "");
-+
-+	if (!data)
-+		return -EINVAL;
-+
-+	/*
-+	 * Initialize emulator on first call.
-+	 */
-+	if (!q->fileio) {
-+		ret = __vb2_init_fileio(q, read);
-+		dprintk(3, "file io: vb2_init_fileio result: %d\n", ret);
-+		if (ret)
-+			return ret;
-+	}
-+	fileio = q->fileio;
-+
-+	/*
-+	 * Hack fileio context to enable direct calls to vb2 ioctl interface.
-+	 * The pointer will be restored before returning from this function.
-+	 */
-+	q->fileio = NULL;
-+
-+	index = fileio->index;
-+	buf = &fileio->bufs[index];
-+
-+	/*
-+	 * Check if we need to dequeue the buffer.
-+	 */
-+	if (buf->queued) {
-+		struct vb2_buffer *vb;
-+
-+		/*
-+		 * Call vb2_dqbuf to get buffer back.
-+		 */
-+		memset(&fileio->b, 0, sizeof(fileio->b));
-+		fileio->b.type = q->type;
-+		fileio->b.memory = q->memory;
-+		fileio->b.index = index;
-+		ret = vb2_dqbuf(q, &fileio->b, nonblock);
-+		dprintk(5, "file io: vb2_dqbuf result: %d\n", ret);
-+		if (ret)
-+			goto end;
-+		fileio->dq_count += 1;
-+
-+		/*
-+		 * Get number of bytes filled by the driver
-+		 */
-+		vb = q->bufs[index];
-+		buf->size = vb2_get_plane_payload(vb, 0);
-+		buf->queued = 0;
-+	}
-+
-+	/*
-+	 * Limit count on last few bytes of the buffer.
-+	 */
-+	if (buf->pos + count > buf->size) {
-+		count = buf->size - buf->pos;
-+		dprintk(5, "reducing read count: %d\n", count);
-+	}
-+
-+	/*
-+	 * Transfer data to userspace.
-+	 */
-+	dprintk(3, "file io: copying %d bytes - buffer %d, offset %d\n",
-+		count, index, buf->pos);
-+	if (read)
-+		ret = copy_to_user(data, buf->vaddr + buf->pos, count);
-+	else
-+		ret = copy_from_user(buf->vaddr + buf->pos, data, count);
-+	if (ret) {
-+		dprintk(3, "file io: error copying data\n");
-+		ret = -EFAULT;
-+		goto end;
-+	}
-+
-+	/*
-+	 * Update counters.
-+	 */
-+	buf->pos += count;
-+	*ppos += count;
-+
-+	/*
-+	 * Queue next buffer if required.
-+	 */
-+	if (buf->pos == buf->size ||
-+	   (!read && (fileio->flags & VB2_FILEIO_WRITE_IMMEDIATE))) {
-+		/*
-+		 * Check if this is the last buffer to read.
-+		 */
-+		if (read && (fileio->flags & VB2_FILEIO_READ_ONCE) &&
-+		    fileio->dq_count == 1) {
-+			dprintk(3, "file io: read limit reached\n");
-+			/*
-+			 * Restore fileio pointer and release the context.
-+			 */
-+			q->fileio = fileio;
-+			return __vb2_cleanup_fileio(q);
-+		}
-+
-+		/*
-+		 * Call vb2_qbuf and give buffer to the driver.
-+		 */
-+		memset(&fileio->b, 0, sizeof(fileio->b));
-+		fileio->b.type = q->type;
-+		fileio->b.memory = q->memory;
-+		fileio->b.index = index;
-+		fileio->b.bytesused = buf->pos;
-+		ret = vb2_qbuf(q, &fileio->b);
-+		dprintk(5, "file io: vb2_dbuf result: %d\n", ret);
-+		if (ret)
-+			goto end;
-+
-+		/*
-+		 * Buffer has been queued, update the status
-+		 */
-+		buf->pos = 0;
-+		buf->queued = 1;
-+		buf->size = q->bufs[0]->v4l2_planes[0].length;
-+		fileio->q_count += 1;
-+
-+		/*
-+		 * Switch to the next buffer
-+		 */
-+		fileio->index = (index + 1) % q->num_buffers;
-+
-+		/*
-+		 * Start streaming if required.
-+		 */
-+		if (!read && !q->streaming) {
-+			ret = vb2_streamon(q, q->type);
-+			if (ret)
-+				goto end;
-+		}
-+	}
-+
-+	/*
-+	 * Return proper number of bytes processed.
-+	 */
-+	if (ret == 0)
-+		ret = count;
-+end:
-+	/*
-+	 * Restore the fileio context and block vb2 ioctl interface.
-+	 */
-+	q->fileio = fileio;
-+	return ret;
-+}
-+
-+size_t vb2_read(struct vb2_queue *q, char __user *data, size_t count,
-+		loff_t *ppos, int nonblocking)
-+{
-+	return __vb2_perform_fileio(q, data, count, ppos, nonblocking, 1);
-+}
-+EXPORT_SYMBOL_GPL(vb2_read);
-+
-+size_t vb2_write(struct vb2_queue *q, char __user *data, size_t count,
-+		loff_t *ppos, int nonblocking)
-+{
-+	return __vb2_perform_fileio(q, data, count, ppos, nonblocking, 0);
-+}
-+EXPORT_SYMBOL_GPL(vb2_write);
-+
- MODULE_DESCRIPTION("Driver helper framework for Video for Linux 2");
--MODULE_AUTHOR("Pawel Osciak");
-+MODULE_AUTHOR("Pawel Osciak, Marek Szyprowski");
- MODULE_LICENSE("GPL");
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 98bc743..62139f9 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -18,6 +18,7 @@
- #include <linux/poll.h>
- 
- struct vb2_alloc_ctx;
-+struct vb2_fileio_data;
- 
- /**
-  * struct vb2_mem_ops - memory handling/memory allocator operations
-@@ -95,6 +96,17 @@ struct vb2_plane {
- };
- 
- /**
-+ * enum vb2_fileio_flags - flags for selecting a mode of the file io emulator,
-+ * by default the 'streaming' style is used by the file io emulator
-+ * @VB2_FILEIO_READ_ONCE:	report EOF after reading the first buffer
-+ * @VB2_FILEIO_WRITE_IMMEDIATE:	queue buffer after each write() call
-+ */
-+enum vb2_fileio_flags {
-+	VB2_FILEIO_READ_ONCE		= (1<<0),
-+	VB2_FILEIO_WRITE_IMMEDIATE	= (1<<1),
-+};
-+
-+/**
-  * enum vb2_buffer_state - current video buffer state
-  * @VB2_BUF_STATE_DEQUEUED:	buffer under userspace control
-  * @VB2_BUF_STATE_QUEUED:	buffer queued in videobuf, but not in driver
-@@ -169,6 +181,12 @@ struct vb2_buffer {
-  * @plane_setup:	called before memory allocation num_planes times;
-  *			driver should return the required size of plane number
-  *			plane_no
-+ * @read_setup:		called before enabling read() style io; asks the driver
-+ *			for the number of buffers and flags used by the
-+ *			emulator; see vb2_fileio_flags for more information
-+ * @write_setup:	called before enabling write() style io; asks the driver
-+ *			for the number of buffers and flags used by the
-+ *			emulator; see vb2_fileio_flags for more information
-  * @lock:		aquire all locks taken before any other calls to vb2;
-  *			required after sleeing in poll_wait function
-  * @unlock:		release any locks taken before calling vb2 function;
-@@ -211,6 +229,11 @@ struct vb2_ops {
- 	int (*plane_setup)(struct vb2_queue *q,
- 			   unsigned int plane_no, unsigned long *plane_size);
- 
-+	int (*read_setup)(struct vb2_queue *q,
-+			  unsigned int *count, unsigned int *flags);
-+	int (*write_setup)(struct vb2_queue *q,
-+			   unsigned int *count, unsigned int *flags);
-+
- 	void (*lock)(struct vb2_queue *q);
- 	void (*unlock)(struct vb2_queue *q);
- 
-@@ -245,6 +268,7 @@ struct vb2_ops {
-  * @streaming:	current streaming state
-  * @userptr_supported: true if queue supports USERPTR types
-  * @mmap_supported: true if queue supports MMAP types
-+ * @fileio:	file io emulator internal data, used only if emulator is active
-  */
- struct vb2_queue {
- 	enum v4l2_buf_type		type;
-@@ -267,6 +291,8 @@ struct vb2_queue {
- 	int				streaming:1;
- 	int				userptr_supported:1;
- 	int				mmap_supported:1;
-+
-+	struct vb2_fileio_data		*fileio;
- };
- 
- void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no);
-@@ -291,6 +317,10 @@ int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type);
- 
- int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma);
- unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait);
-+size_t vb2_read(struct vb2_queue *q, char __user *data, size_t count,
-+		loff_t *ppos, int nonblock);
-+size_t vb2_write(struct vb2_queue *q, char __user *data, size_t count,
-+		loff_t *ppos, int nonblock);
- 
- /**
-  * vb2_is_streaming() - return streaming status of the queue
--- 
-1.7.1.569.g6f426
+----- Oorspronkelijk bericht -----
+Van: "Frank Wohlfahrt" <frank-info@gmx.de>
+Aan: linux-dvb@linuxtv.org
+Verzonden: Donderdag 18 november 2010 08:33:32
+Onderwerp: [linux-dvb] cx23885 crashes with TeVii S470
 
+I have a  TeVii S470 installed on the only PCIe slot of my MSI H55M-ED55.
+
+The driver crashes about 50% already immediately after booting, but also some 
+time afterwards, working properly until then.
+
+[  190.764711] ds3000_firmware_ondemand: Waiting for firmware upload 
+(dvb-fe-ds3000.fw)...
+[  190.764722] cx23885 0000:02:00.0: firmware: requesting dvb-fe-ds3000.fw
+[  190.767173] ds3000_firmware_ondemand: Waiting for firmware upload(2)...
+[  193.151417] cx23885[0]: mpeg risc op code error
+[  193.151427] cx23885[0]: TS1 B - dma channel status dump
+[  193.151434] cx23885[0]:   cmds: init risc lo   : 0x2390e000
+[  193.151440] cx23885[0]:   cmds: init risc hi   : 0x00000000
+[  193.151446] cx23885[0]:   cmds: cdt base       : 0x00010580
+[  193.151451] cx23885[0]:   cmds: cdt size       : 0x0000000a
+[  193.151456] cx23885[0]:   cmds: iq base        : 0x00010400
+[  193.151462] cx23885[0]:   cmds: iq size        : 0x00000010
+[  193.151468] cx23885[0]:   cmds: risc pc lo     : 0x2390e1cc
+[  193.151473] cx23885[0]:   cmds: risc pc hi     : 0x00000000
+[  193.151478] cx23885[0]:   cmds: iq wr ptr      : 0x00004103
+...
+
+The related source module is (I think): cx23885-core.c
+
+Only yesterday I had the error during shutdown (preventing the system to 
+switch off):
+
+[ 5021.188012] cx23885 0000:02:00.0: PCI INT A disabled
+[ 5021.211443] saa7146: unregister extension 'dvb'.
+[ 5021.243256] BUG: unable to handle kernel NULL pointer dereference at (null)
+[ 5021.243262] IP: [<ef9824ce>] v4l2_device_unregister+0x1e/0x50 [videodev]
+[ 5021.243272] *pde = 76190067 
+[ 5021.243274] Oops: 0000 [#1] SMP 
+[ 5021.243277] last sysfs 
+file: /sys/devices/pci0000:00/0000:00:1c.3/0000:02:00.0/firmware/0000:02:00.0/loading
+
+I don't know if this failure has something to do with the problem above.
+
+The software I use is Ubuntu Lucid (Kernel 2.6.32-25-generic) coming with the 
+VDR distribution yavdr 0.3.
+
+The firmware for the card is from packet "linux-firmware-yavdr" Version: 
+1.1-3yavdr1 
+-rw-r--r--  1 root root    8192 2010-07-18 21:54 dvb-fe-ds3000.fw
+
+I get the same problems using the original kernel module from 2.6.32 or the 
+DKMS modules from v4l-dvb-dkms (0~20101018.15139) or s2-liplianin-dkms 
+(0~20101016.14629).
+
+I think I have a hardware problem and I just have to know wether it can be 
+fixed with maybe BIOS settings or if I have to get a different DVB-S2 card. 
+What is the reason for a "mpeg risc op code error" ?
+
+Thanks in advance !!
+
+TeVii S470:
+02:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI Video 
+and Audio Decoder (rev 02)
+
+Rest of the system:
+Intel Core i3 530,+ Hauppauge Nexus-s 2.2 (PCI slot)
+
+cx23885               117401  6 
+cx2341x                12404  1 cx23885
+v4l2_common            16390  2 cx23885,cx2341x
+videodev               36345  3 saa7146_vv,cx23885,v4l2_common
+v4l1_compat            13251  1 videodev
+videobuf_dma_sg        10782  2 saa7146_vv,cx23885
+videobuf_dvb            5096  1 cx23885
+
+Frank Wohlfahrt
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
