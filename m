@@ -1,129 +1,157 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.186]:60167 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934566Ab0KQIXU (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:30380 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759266Ab0KRQw6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Nov 2010 03:23:20 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFCv2 PATCH 14/15] V4L: improve the BKL replacement heuristic
-Date: Wed, 17 Nov 2010 09:23:05 +0100
-Cc: linux-media@vger.kernel.org
-References: <cover.1289944159.git.hverkuil@xs4all.nl> <ce95783505f7de21e3ed43f277c764afad2d8262.1289944160.git.hverkuil@xs4all.nl>
-In-Reply-To: <ce95783505f7de21e3ed43f277c764afad2d8262.1289944160.git.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011170923.06467.arnd@arndb.de>
+	Thu, 18 Nov 2010 11:52:58 -0500
+Received: from epmmp1 (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LC300C55AW95220@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 19 Nov 2010 01:52:57 +0900 (KST)
+Received: from AMDC159 ([106.116.37.153])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LC300EOZAW4RF@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 19 Nov 2010 01:52:57 +0900 (KST)
+Date: Thu, 18 Nov 2010 17:52:51 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH 1/7] v4l: add videobuf2 Video for Linux 2 driver framework
+In-reply-to: <1290083190.2070.24.camel@morgan.silverblock.net>
+To: 'Andy Walls' <awalls@md.metrocast.net>,
+	'Hans Verkuil' <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+	kyungmin.park@samsung.com
+Message-id: <009601cb8741$0cb05da0$261118e0$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1289983174-2835-1-git-send-email-m.szyprowski@samsung.com>
+ <1289983174-2835-2-git-send-email-m.szyprowski@samsung.com>
+ <201011181017.39379.hverkuil@xs4all.nl>
+ <1290083190.2070.24.camel@morgan.silverblock.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday 16 November 2010 22:56:45 Hans Verkuil wrote:
-> The BKL replacement mutex had some serious performance side-effects on
-> V4L drivers. It is replaced by a better heuristic that works around the
-> worst of the side-effects.
-> 
-> Read the v4l2-dev.c comments for the whole sorry story. This is a
-> temporary measure only until we can convert all v4l drivers to use
-> unlocked_ioctl.
-> 
-> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+Hello,
 
-> ---
->  drivers/media/video/v4l2-dev.c    |   37 ++++++++++++++++++++++++++++++++++---
->  drivers/media/video/v4l2-device.c |    1 +
->  include/media/v4l2-dev.h          |    2 +-
->  include/media/v4l2-device.h       |    2 ++
->  4 files changed, 38 insertions(+), 4 deletions(-)
+On Thursday, November 18, 2010 1:27 PM Andy Walls wrote:
+
+> Hi Hans and Marek,
 > 
-> diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-> index 8eb0756..59ef642 100644
-> --- a/drivers/media/video/v4l2-dev.c
-> +++ b/drivers/media/video/v4l2-dev.c
-> @@ -258,11 +258,42 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
->  		if (vdev->lock)
->  			mutex_unlock(vdev->lock);
->  	} else if (vdev->fops->ioctl) {
-> -		/* TODO: convert all drivers to unlocked_ioctl */
-> -		lock_kernel();
-> +		/* This code path is a replacement for the BKL. It is a major
-> +		 * hack but it will have to do for those drivers that are not
-> +		 * yet converted to use unlocked_ioctl.
-> +		 *
-> +		 * There are two options: if the driver implements struct
-> +		 * v4l2_device, then the lock defined there is used to
-> +		 * serialize the ioctls. Otherwise the v4l2 core lock defined
-> +		 * below is used. This lock is really bad since it serializes
-> +		 * completely independent devices.
-> +		 *
-> +		 * Both variants suffer from the same problem: if the driver
-> +		 * sleeps, then it blocks all ioctls since the lock is still
-> +		 * held. This is very common for VIDIOC_DQBUF since that
-> +		 * normally waits for a frame to arrive. As a result any other
-> +		 * ioctl calls will proceed very, very slowly since each call
-> +		 * will have to wait for the VIDIOC_QBUF to finish. Things that
-> +		 * should take 0.01s may now take 10-20 seconds.
-> +		 *
-> +		 * The workaround is to *not* take the lock for VIDIOC_DQBUF.
-> +		 * This actually works OK for videobuf-based drivers, since
-> +		 * videobuf will take its own internal lock.
-> +		 */
-> +		static DEFINE_MUTEX(v4l2_ioctl_mutex);
-> +		struct mutex *m = vdev->v4l2_dev ?
-> +			&vdev->v4l2_dev->ioctl_lock : &v4l2_ioctl_mutex;
-> +
-> +		if (cmd != VIDIOC_DQBUF) {
-> +			int res = mutex_lock_interruptible(m);
-> +
-> +			if (res)
-> +				return res;
-> +		}
->  		if (video_is_registered(vdev))
->  			ret = vdev->fops->ioctl(filp, cmd, arg);
-> -		unlock_kernel();
-> +		if (cmd != VIDIOC_DQBUF)
-> +			mutex_unlock(m);
->  	} else
->  		ret = -ENOTTY;
->  
-> diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
-> index 0b08f96..7fe6f92 100644
-> --- a/drivers/media/video/v4l2-device.c
-> +++ b/drivers/media/video/v4l2-device.c
-> @@ -35,6 +35,7 @@ int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
->  
->  	INIT_LIST_HEAD(&v4l2_dev->subdevs);
->  	spin_lock_init(&v4l2_dev->lock);
-> +	mutex_init(&v4l2_dev->ioctl_lock);
->  	v4l2_dev->dev = dev;
->  	if (dev == NULL) {
->  		/* If dev == NULL, then name must be filled in by the caller */
-> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-> index 15802a0..59dec5a 100644
-> --- a/include/media/v4l2-dev.h
-> +++ b/include/media/v4l2-dev.h
-> @@ -39,7 +39,7 @@ struct v4l2_file_operations {
->  	ssize_t (*read) (struct file *, char __user *, size_t, loff_t *);
->  	ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *);
->  	unsigned int (*poll) (struct file *, struct poll_table_struct *);
-> -	long (*ioctl) (struct file *, unsigned int, unsigned long);
-> +	long (*ioctl __deprecated) (struct file *, unsigned int, unsigned long);
->  	long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
->  	int (*mmap) (struct file *, struct vm_area_struct *);
->  	int (*open) (struct file *);
-> diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-> index 6648036..b16f307 100644
-> --- a/include/media/v4l2-device.h
-> +++ b/include/media/v4l2-device.h
-> @@ -51,6 +51,8 @@ struct v4l2_device {
->  			unsigned int notification, void *arg);
->  	/* The control handler. May be NULL. */
->  	struct v4l2_ctrl_handler *ctrl_handler;
-> +	/* BKL replacement mutex. Temporary solution only. */
-> +	struct mutex ioctl_lock;
->  };
->  
->  /* Initialize v4l2_dev and make dev->driver_data point to v4l2_dev.
+> Some meta-comments below... ;)
 > 
+> On Thu, 2010-11-18 at 10:17 +0100, Hans Verkuil wrote:
+> > Hi Marek!
+> >
+> > Some comments below...
+> >
+> > On Wednesday, November 17, 2010 09:39:28 Marek Szyprowski wrote:
+
+> ...
+
+> > > +/**
+> > > + * vb2_reqbufs() - Initiate streaming
+> > > + * @q:		videobuf2 queue
+> > > + * @req:	struct passed from userspace to vidioc_reqbufs handler in driver
+> > > + *
+> > > + * Should be called from vidioc_reqbufs ioctl handler of a driver.
+> > > + * This function:
+> > > + * 1) verifies streaming parameters passed from the userspace,
+> > > + * 2) sets up the queue,
+> > > + * 3) negotiates number of buffers and planes per buffer with the driver
+> > > + *    to be used during streaming,
+> > > + * 4) allocates internal buffer structures (struct vb2_buffer), according to
+> > > + *    the agreed parameters,
+> > > + * 5) for MMAP memory type, allocates actual video memory, using the
+> > > + *    memory handling/allocation routines provided during queue initialization
+> > > + *
+> > > + * If req->count is 0, all the memory will be freed instead.
+> > > + * If the queue has been allocated previously (by a previous vb2_reqbufs) call
+> > > + * and the queue is not busy, memory will be reallocated.
+> > > + *
+> > > + * The return values from this function are intended to be directly returned
+> > > + * from vidioc_reqbufs handler in driver.
+> > > + */
+> > > +int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+> > > +{
+> > > +	unsigned int num_buffers, num_planes;
+> > > +	int ret = 0;
+> > > +
+> > > +	if (req->memory != V4L2_MEMORY_MMAP
+> > > +			&& req->memory != V4L2_MEMORY_USERPTR) {
+> > > +		dprintk(1, "reqbufs: unsupported memory type\n");
+> > > +		return -EINVAL;
+> > > +	}
+> > > +
+> > > +	if (req->type != q->type) {
+> > > +		dprintk(1, "reqbufs: queue type invalid\n");
+> > > +		return -EINVAL;
+> > > +	}
+> > > +
+> > > +	if (q->streaming) {
+> > > +		dprintk(1, "reqbufs: streaming active\n");
+> > > +		return -EBUSY;
+> > > +	}
+> > > +
+> > > +	if (req->count == 0) {
+> > > +		/* Free/release memory for count = 0, but only if unused */
+> > > +		if (q->memory == V4L2_MEMORY_MMAP && __buffers_in_use(q)) {
+> > > +			dprintk(1, "reqbufs: memory in use, cannot free\n");
+> > > +			ret = -EBUSY;
+> > > +			goto end;
+> > > +		}
+> > > +
+> > > +		ret = __vb2_queue_free(q);
+> >
+> > OK, I have a problem here. How do I detect as an application whether a driver
+> > supports MMAP and/or USERPTR?
+> >
+> > What I am using in qv4l2 (and it doesn't work properly with videobuf) is that
+> > I call REQBUFS with count == 0 for MMAP and for USERPTR and I check whether it
+> > returns 0 or -EINVAL.
+> 
+> 
+> > It seems a reasonable test since it doesn't allocate anything. It would be nice
+> > if vb2 can check for the memory field here based on what the driver supports.
+> >
+> > Ideally we should make this an official part of the spec (or have some other
+> > mechanism to find out what it supported).
+> 
+> Well it seems to be documented, just not clearly:
+> 
+> First paragraph here:
+> http://linuxtv.org/downloads/v4l-dvb-apis/mmap.html
+> 
+> First & second Paragraph here:
+> http://linuxtv.org/downloads/v4l-dvb-apis/userp.html
+> (which mentions not allocating things.)
+> 
+> And in the description here:
+> http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-reqbufs.html
+> 
+> 
+> I suppose  adding flags to VIDIOC_QUERYCAP results would remove all the
+> hokey algorithmic probing of what the driver should already know.
+>  http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-querycap.html
+> 
+> V4L2_CAP_STREAMING            0x04000000
+> V4L2_CAP_STREAMING_MMAP       0x08000000
+> V4L2_CAP_STREAMING_USER_PTR   0x10000000
+
+Good idea! This way querying memory access types will be much less intrusive :)
+
+> ...
+
+> >
+> > Great job! Thanks for all the hard work!
+> 
+> Ditto!
+
+Thx :) 
+
+Best regards
+--
+Marek Szyprowski
+Samsung Poland R&D Center
+
