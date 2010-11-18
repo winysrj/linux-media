@@ -1,126 +1,89 @@
-Return-path: <mchehab@gaivota>
-Received: from bordeaux.papayaltd.net ([82.129.38.124]:37252 "EHLO
-	bordeaux.papayaltd.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751992Ab0KUJrJ (ORCPT
+Return-path: <mchehab@pedra>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:56812 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755376Ab0KRIgR convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Nov 2010 04:47:09 -0500
-Received: from 78-86-181-88.zone2.bethere.co.uk (78-86-181-88.zone2.bethere.co.uk [78.86.181.88])
-	(using TLSv1 with cipher AES128-SHA (128/128 bits))
-	(No client certificate requested)
-	(Authenticated sender: andre)
-	by bordeaux.papayaltd.net (Postfix) with ESMTPSA id 78C0C30036DA3
-	for <linux-media@vger.kernel.org>; Sun, 21 Nov 2010 09:38:34 +0000 (GMT)
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Apple Message framework v1082)
-Subject: Re: ngene & Satix-S2 dual problems
-From: Andre <linux-media@dinkum.org.uk>
-In-Reply-To: <201011202022.43042@orion.escape-edv.de>
-Date: Sun, 21 Nov 2010 09:38:33 +0000
-Content-Transfer-Encoding: 7bit
-Message-Id: <9BA533E3-78CF-4709-9239-EE7FB3AF62E4@dinkum.org.uk>
-References: <4CE7EEC2.3040900@googlemail.com> <201011202022.43042@orion.escape-edv.de>
-To: linux-media@vger.kernel.org
+	Thu, 18 Nov 2010 03:36:17 -0500
+MIME-Version: 1.0
+In-Reply-To: <AANLkTinyaZ07HBFNHNyR9eK6__QdZtG6O1gQX1F+YRB9@mail.gmail.com>
+References: <1289913494-21590-1-git-send-email-manjunatha_halli@ti.com>
+ <AANLkTi=ZT0E=A9ZYAM86qu4P8eStkF2PLep6-DofCX-s@mail.gmail.com> <AANLkTinyaZ07HBFNHNyR9eK6__QdZtG6O1gQX1F+YRB9@mail.gmail.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Date: Thu, 18 Nov 2010 10:35:56 +0200
+Message-ID: <AANLkTimE13JNS2gPhCpdZZk0ANyTgfxeO75pABrKLQDR@mail.gmail.com>
+Subject: Re: [PATCH v4 0/6] FM V4L2 drivers for WL128x
+To: Pavan Savoy <pavan_savoy@ti.com>
+Cc: mchehab@infradead.org, hverkuil@xs4all.nl, manjunatha_halli@ti.com,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Greg KH <greg@kroah.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
+Hi Pavan,
 
-On 20 Nov 2010, at 19:22, Oliver Endriss wrote:
+> On Wed, Nov 17, 2010 at 6:32 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+>>>  drivers/staging/ti-st/Kconfig        |   10 +
+>>>  drivers/staging/ti-st/Makefile       |    2 +
+>>>  drivers/staging/ti-st/fmdrv.h        |  259 ++++
+>>>  drivers/staging/ti-st/fmdrv_common.c | 2141 ++++++++++++++++++++++++++++++++++
+>>>  drivers/staging/ti-st/fmdrv_common.h |  458 ++++++++
+>>>  drivers/staging/ti-st/fmdrv_rx.c     |  979 ++++++++++++++++
+>>>  drivers/staging/ti-st/fmdrv_rx.h     |   59 +
+>>>  drivers/staging/ti-st/fmdrv_tx.c     |  461 ++++++++
+>>>  drivers/staging/ti-st/fmdrv_tx.h     |   37 +
+>>>  drivers/staging/ti-st/fmdrv_v4l2.c   |  757 ++++++++++++
+>>>  drivers/staging/ti-st/fmdrv_v4l2.h   |   32 +
+>>>  11 files changed, 5195 insertions(+), 0 deletions(-)
+>>
+>> Usually when a driver is added to staging, it should also have a TODO
+>> file specifying what needs to be done before the driver can be taken
+>> out of staging (at least as far as the author knows of today).
+>>
+>> It helps keeping track of the open issues in the driver, which is good
+>> for everyone - the author, the random contributor/observer, and
+>> probably even the staging maintainer.
+>>
+>> Can you please add such a TODO file ?
+...
+> Thanks Ohad, for the comments, We do have an internal TODO.
+> In terms of functionality we have stuff like TX RDS which already has
+> few CIDs in the extended controls.
+> extend V4L2 for complete-scan, add in stop search during hw_seek .. etc...
 
-> Hi,
-> 
-> On Saturday 20 November 2010 16:52:34 Robert Longbottom wrote:
->> Hi all,
->> 
->> I have a Satix-S2 Dual that I'm trying to get to work properly so that I 
->> can use it under MythTv however I'm running into a few issues.  I 
->> previously posted about the problems I'm having here to the mythtv 
->> list[1], but didn't really get anywhere.  I've had chance to have a bit 
->> more of a play and I now seem to have a definite repeatable problem.
->> 
->> The problem is when a recording stops on one of the inputs, after about 
->> 40s it causes the other input to loose it's signal lock and stop the 
->> recording as well.
->> 
->> 
->> Steps to demonstrate the problem (My Satix card is adapters 5 and 6)
->> 
->> In 3 seperate terminals set up femon/szap/cat to make a recording from 
->> one of the inputs:
->> 
->> 1 - femon -a 6 -f 0 -H
->> 2 - szap -a 6 -f 0 -d 0 -r -H -p -c scanResult07Oct2010_Satix -l 
->> UNIVERSAL "BBC 1 London"
->> 3 - cat /dev/dvb/adapter6/dvr0 > ad6.mpg
->> 
->> In 2 seperate terminals tune in the other input:
->> 
->> 4 - femon -a 5 -f 0 -H
->> 5 - szap -a 5 -f 0 -d 0 -r -H -p -c scanResult07Oct2010_Satix -l 
->> UNIVERSAL "ITV1 London"
->> 
->> Both inputs are fine, signal is good, recording from adapter 6 works.
->> 
->> 6 - Ctrl-C the szap process created in (5).
->> 
->> femon in (4) still reports status=SCVYL and decent signal strengh as if 
->> the adapter is still tuned and FE_HAS_LOCK.  After approximately 40 
->> seconds, either:
->> 
->> a) the signal drops significantly but the status remains at SCVYL and 
->> FE_HAS_LOCK
->> 
->> or
->> 
->> b) the signal drops and the status goes blank with no lock.
->> 
->> It doesn't seem to matter which of these two happen, but at the same 
->> time the recording on the other tuner looses it signal and stops 
->> recording, despite the fact that szap is still running in (2).  femon in 
->> (1) no longer reports FE_HAS_LOCK.
->> 
->> Strangely if I then try to restart the szap process created in terminal 
->> 2 (to try and retune it) it just waits after printing out "using 
->> '/dev/dvb/....".  However if I then restart the szap process in terminal 
->> 5, the one in terminal 2 suddenly kicks in and gets a lock.
->> 
->> Interestingly I found a link describing a 60s period the card is kept 
->> open for [2], which seems to be similar to my ~40s delay.  So it looks 
->> like when the second input on the card is closed the first input looses 
->> it's lock.
->> 
->> This obviously makes it pretty useless for MythTv and as a result it's 
->> not currently being used, which is a shame!
->> 
->> I'm using the ngene driver from the stock 2.6.35.4 kernel on Gentoo.
->> 
->> Does anyone else see this problem?  Is there anything I can do to try 
->> and fix / debug it?  Are there any bug fixes in the latest kernel that 
->> might help, or in the linux-dvb drivers that would help?
->> 
->> Any help or advice much appreciated.
-> 
-> Please try this driver:
-> http://linuxtv.org/hg/~endriss/ngene-test2
+You need to understand and list the reasons why this driver cannot go
+directly to mainline; missing functionality is usually not the
+culprit.
 
-Great news, I'll give it a try this evening too.
+> But I just wanted to ask whether this is good enough to be staged.
+> Because as we begin to implement and add in the items in TODO - the
+> patch set will keep continuing to grow.
+>
+> So Hans, Mauro, What do you think ?
+> It would be real helpful - if this can be staged, it is becoming
+> difficult to maintain for us.
 
-Andre
+Greg has mentioned that staging acceptance rules are:
 
+1. Code compiles
+2. Is self sustained (does not touch code out of staging)
+3. Has a clear roadmap out of staging (that TODO file)
+4. Is maintained
 
+But I really think you should always prefer to upstream your code
+directly to mainline. Submit the code, have it reviewed by the
+relevant maintainers and upstream developers, and fix it appropriately
+until it is accepted.
 
-> 
-> CU
-> Oliver
-> 
-> -- 
-> ----------------------------------------------------------------
-> VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-> 4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-> Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-> ----------------------------------------------------------------
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Only if you feel (/know) it would take substantial cleanup/redesign
+efforts until it is accepted upstream, then staging is indeed the way
+to go. But then you should know what gates it from upstream merger,
+and focus on that (rather than on adding functionality) until it is
+taken out of staging. IMHO adding functionality will just make it
+harder for you to take it out of staging eventually. Usually the
+opposite road is taken: first get a minimal driver accepted upstream,
+and then gradually add the missing functionality.
 
+Good luck,
+Ohad.
