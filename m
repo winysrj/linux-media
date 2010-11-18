@@ -1,68 +1,47 @@
-Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41032 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752125Ab0KDCf3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Nov 2010 22:35:29 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Bastian Hecht <hechtb@googlemail.com>
-Subject: Re: New media framework user space usage
-Date: Thu, 4 Nov 2010 03:35:35 +0100
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <AANLkTimx6XJKEz9883cwrm977OtXVPVB5K5PjSGFi_AJ@mail.gmail.com> <201011012302.03284.laurent.pinchart@ideasonboard.com> <AANLkTinWo7siGdbmRPNEfOfJHTZLEqxMFHOO9aqijP0d@mail.gmail.com>
-In-Reply-To: <AANLkTinWo7siGdbmRPNEfOfJHTZLEqxMFHOO9aqijP0d@mail.gmail.com>
+Return-path: <mchehab@pedra>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:47809 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752750Ab0KRPKu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Nov 2010 10:10:50 -0500
+Received: by yxf34 with SMTP id 34so1863800yxf.19
+        for <linux-media@vger.kernel.org>; Thu, 18 Nov 2010 07:10:50 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011040335.36118.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <e29b49a76577b6eb777d1aa0dba7bd95.squirrel@webmail.xs4all.nl>
+References: <cover.1289944159.git.hverkuil@xs4all.nl>
+	<659fdfa774acb1e359cb0c3c3b48b5e26bb3fcc9.1289944160.git.hverkuil@xs4all.nl>
+	<AANLkTikH0+hhWwTUAkYS1Z_WpwQvyZrw1sCt1vkjghN3@mail.gmail.com>
+	<e29b49a76577b6eb777d1aa0dba7bd95.squirrel@webmail.xs4all.nl>
+Date: Thu, 18 Nov 2010 10:10:49 -0500
+Message-ID: <AANLkTimuV4ZZEcbrf4a2toHLcKMDAEQF9ZLWkju6zwZ0@mail.gmail.com>
+Subject: Re: [RFCv2 PATCH 07/15] dsbr100: convert to unlocked_ioctl.
+From: David Ellingsworth <david@identd.dyndns.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Bastian,
+On Thu, Nov 18, 2010 at 9:46 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+>> This driver has quite a few locking issues that would only be made
+>> worse by your patch. A much better patch for this can be found here:
+>>
+>> http://desource.dyndns.org/~atog/gitweb?p=linux-media.git;a=commitdiff;h=9c5d8ebb602e9af46902c5f3d4d4cc80227d3f7c
+>
+> Much too big for 2.6.37. I'll just drop this patch from my patch series.
+> Instead it will rely on the new lock in v4l2_device (BKL replacement) that
+> serializes all ioctls. For 2.6.38 we can convert it to core assisted
+> locking which is much easier.
+>
 
-On Tuesday 02 November 2010 11:31:28 Bastian Hecht wrote:
-> >> I am the first guy needing a 12 bit-bus?
-> > 
-> > Yes you are :-) You will need to implement 12 bit support in the ISP
-> > driver, or start by hacking the sensor driver to report a 10 bit format
-> > (2 bits will be lost but you should still be able to capture an image).
-> 
-> Isn't that an "officially" supported procedure to drop the least
-> significant bits?
-> You gave me the isp configuration
-> .bus = { .parallel = {
->                        .data_lane_shift        = 1,
-> ...
-> that instructs the isp to use 10 of the 12 bits.
+I don't see how this patch is really any bigger than some of the
+others in your series. Sure there are a lot of deletions, but the
+number of additions is quite small. There are much worse ways all the
+locking issues in this driver could have been corrected. This patch
+manages to do just that while reducing the overall size of the driver
+at the same time.
 
-If you don't need the full 12 bits, sure, that should work.
-
-> >> Second thing is, the yavta app now gets stuck while dequeuing a buffer.
-> >> 
-> >> strace ./yavta -f SGRBG10 -s 2592x1944 -n 4 --capture=4 --skip 3 -F
-> >> /dev/video2 ...
-> >> ioctl(3, VIDIOC_QBUF, 0xbec111cc)       = 0
-> >> ioctl(3, VIDIOC_QBUF, 0xbec111cc)       = 0
-> >> ioctl(3, VIDIOC_QBUF, 0xbec111cc)       = 0
-> >> ioctl(3, VIDIOC_QBUF, 0xbec111cc)       = 0
-> >> ioctl(3, VIDIOC_STREAMON, 0xbec11154)   = 0
-> >> ioctl(3, VIDIOC_DQBUF
-> >> 
-> >> strace gets stuck in mid of this line.
-> 
-> Somehow the ISP_ENABLE_IRQ register was reset at some point that is
-> unclear to me. When I put it on again manually yavta succeeds to read
-> the frames.
-
-That's weird. Let me know if you can reproduce the problem.
-
-> Unfortunately the image consists of black pixels only. We found out that the
-> 2.8V voltage regulator got broken in the course of development - the 1.8V
-> logic still worked but the ADC did not...
-> 
-> But the heck - I was never that close :)
-
--- 
 Regards,
 
-Laurent Pinchart
+David Ellingsworth
