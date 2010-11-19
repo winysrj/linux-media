@@ -1,121 +1,87 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4507 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752216Ab0KRMqO (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:33742 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757201Ab0KSXoj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Nov 2010 07:46:14 -0500
-Message-ID: <c4b21e96adfbf59d9b89cbcce020c25a.squirrel@webmail.xs4all.nl>
-In-Reply-To: <1290083190.2070.24.camel@morgan.silverblock.net>
-References: <1289983174-2835-1-git-send-email-m.szyprowski@samsung.com>
-    <1289983174-2835-2-git-send-email-m.szyprowski@samsung.com>
-    <201011181017.39379.hverkuil@xs4all.nl>
-    <1290083190.2070.24.camel@morgan.silverblock.net>
-Date: Thu, 18 Nov 2010 13:46:02 +0100
-Subject: Re: [PATCH 1/7] v4l: add videobuf2 Video for Linux 2 driver
- framework
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Andy Walls" <awalls@md.metrocast.net>
-Cc: "Marek Szyprowski" <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org, pawel@osciak.com,
-	kyungmin.park@samsung.com
+	Fri, 19 Nov 2010 18:44:39 -0500
+Subject: [PATCH 08/10] bttv: merge ir decoding timers
+To: linux-media@vger.kernel.org
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: jarod@wilsonet.com, mchehab@infradead.org
+Date: Sat, 20 Nov 2010 00:43:17 +0100
+Message-ID: <20101119234317.3511.48553.stgit@localhost.localdomain>
+In-Reply-To: <20101119233959.3511.91287.stgit@localhost.localdomain>
+References: <20101119233959.3511.91287.stgit@localhost.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
+Similarly to saa7134, bttv_ir has two timers, only one of which is used
+at a time and which serve the same purpose. Merge them.
 
-> Hi Hans and Marek,
->
-> Some meta-comments below... ;)
->
-> On Thu, 2010-11-18 at 10:17 +0100, Hans Verkuil wrote:
->> > +#define mem_ops(q, plane) ((q)->alloc_ctx[plane]->mem_ops)
->> > +
->> > +#define call_memop(q, plane, op, args...)				\
->> > +	(((q)->alloc_ctx[plane]->mem_ops->op) ?				\
->> > +		((q)->alloc_ctx[plane]->mem_ops->op(args)) : 0)
->>
->> Why not use mem_ops in the call_memop macro? That would simplify it a
->> bit.
->
-> I think you meant
->
-> "Why not use the the mem_ops macro in the call_memop macro?"
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/video/bt8xx/bttv-input.c |    8 +++-----
+ drivers/media/video/bt8xx/bttvp.h      |    3 +--
+ 2 files changed, 4 insertions(+), 7 deletions(-)
 
-Yes, that's what I meant.
-
->
-> Asking the user to pass in a mem_ops pointer as an argument to the
-> call_memop() macro isn't a simplification, but that's how I first read
-> your comment.
-
-<snip>
-
->> > +
->> > +	if (req->count == 0) {
->> > +		/* Free/release memory for count = 0, but only if unused */
->> > +		if (q->memory == V4L2_MEMORY_MMAP && __buffers_in_use(q)) {
->> > +			dprintk(1, "reqbufs: memory in use, cannot free\n");
->> > +			ret = -EBUSY;
->> > +			goto end;
->> > +		}
->> > +
->> > +		ret = __vb2_queue_free(q);
->>
->> OK, I have a problem here. How do I detect as an application whether a
->> driver
->> supports MMAP and/or USERPTR?
->>
->> What I am using in qv4l2 (and it doesn't work properly with videobuf) is
->> that
->> I call REQBUFS with count == 0 for MMAP and for USERPTR and I check
->> whether it
->> returns 0 or -EINVAL.
->
->
->> It seems a reasonable test since it doesn't allocate anything. It would
->> be nice
->> if vb2 can check for the memory field here based on what the driver
->> supports.
->>
->> Ideally we should make this an official part of the spec (or have some
->> other
->> mechanism to find out what it supported).
->
-> Well it seems to be documented, just not clearly:
->
-> First paragraph here:
-> http://linuxtv.org/downloads/v4l-dvb-apis/mmap.html
->
-> First & second Paragraph here:
-> http://linuxtv.org/downloads/v4l-dvb-apis/userp.html
-> (which mentions not allocating things.)
->
-> And in the description here:
-> http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-reqbufs.html
-
-As you said, it is documented, sort of.
-
-> I suppose  adding flags to VIDIOC_QUERYCAP results would remove all the
-> hokey algorithmic probing of what the driver should already know.
->  http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-querycap.html
->
-> V4L2_CAP_STREAMING            0x04000000
-> V4L2_CAP_STREAMING_MMAP       0x08000000
-> V4L2_CAP_STREAMING_USER_PTR   0x10000000
-
-I don't think there is any need for yet more cap bits. If I can call
-REQBUFS with count of 0 and it returns -EINVAL if the memory is incorrect,
-then I'm happy. There is a small complication: the memory check should
-happen before the check whether another capture is in progress. Otherwise
-I would get back EBUSY and still not know if my requested memory type is
-ok or not.
-
-Regards,
-
-       Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+diff --git a/drivers/media/video/bt8xx/bttv-input.c b/drivers/media/video/bt8xx/bttv-input.c
+index c8bf423..8013d91 100644
+--- a/drivers/media/video/bt8xx/bttv-input.c
++++ b/drivers/media/video/bt8xx/bttv-input.c
+@@ -283,8 +283,7 @@ static int bttv_rc5_irq(struct bttv *btv)
+ 		ir->base_time = tv;
+ 		ir->last_bit = 0;
+ 
+-		mod_timer(&ir->timer_end,
+-			  current_jiffies + msecs_to_jiffies(30));
++		mod_timer(&ir->timer, current_jiffies + msecs_to_jiffies(30));
+ 	}
+ 
+ 	/* toggle GPIO pin 4 to reset the irq */
+@@ -303,8 +302,7 @@ static void bttv_ir_start(struct bttv *btv, struct bttv_ir *ir)
+ 		add_timer(&ir->timer);
+ 	} else if (ir->rc5_gpio) {
+ 		/* set timer_end for code completion */
+-		setup_timer(&ir->timer_end, bttv_rc5_timer_end,
+-			    (unsigned long)ir);
++		setup_timer(&ir->timer, bttv_rc5_timer_end, (unsigned long)ir);
+ 		ir->shift_by = 1;
+ 		ir->start = 3;
+ 		ir->addr = 0x0;
+@@ -322,7 +320,7 @@ static void bttv_ir_stop(struct bttv *btv)
+ 	if (btv->remote->rc5_gpio) {
+ 		u32 gpio;
+ 
+-		del_timer_sync(&btv->remote->timer_end);
++		del_timer_sync(&btv->remote->timer);
+ 		flush_scheduled_work();
+ 
+ 		gpio = bttv_gpio_read(&btv->c);
+diff --git a/drivers/media/video/bt8xx/bttvp.h b/drivers/media/video/bt8xx/bttvp.h
+index 3d5b2bc..0712320 100644
+--- a/drivers/media/video/bt8xx/bttvp.h
++++ b/drivers/media/video/bt8xx/bttvp.h
+@@ -122,6 +122,7 @@ struct bttv_format {
+ 
+ struct bttv_ir {
+ 	struct rc_dev           *dev;
++	struct timer_list       timer;
+ 
+ 	char                    name[32];
+ 	char                    phys[32];
+@@ -136,11 +137,9 @@ struct bttv_ir {
+ 	int                     start; // What should RC5_START() be
+ 	int                     addr; // What RC5_ADDR() should be.
+ 	int                     rc5_remote_gap;
+-	struct timer_list       timer;
+ 
+ 	/* RC5 gpio */
+ 	u32                     rc5_gpio;
+-	struct timer_list       timer_end;  /* timer_end for code completion */
+ 	u32                     last_bit;   /* last raw bit seen */
+ 	u32                     code;       /* raw code under construction */
+ 	struct timeval          base_time;  /* time of last seen code */
 
