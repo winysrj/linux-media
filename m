@@ -1,57 +1,46 @@
-Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:39242 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756655Ab0KMTjN (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from wolverine02.qualcomm.com ([199.106.114.251]:5387 "EHLO
+	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756907Ab0KSXXD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Nov 2010 14:39:13 -0500
-Message-ID: <4CDEE95C.90601@infradead.org>
-Date: Sat, 13 Nov 2010 17:39:08 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Fri, 19 Nov 2010 18:23:03 -0500
+Received: from SHUZHENW (pdmz-snip-v218.qualcomm.com [192.168.218.1])
+	by mostmsg01.qualcomm.com (Postfix) with ESMTPA id 5C9B810004D5
+	for <linux-media@vger.kernel.org>; Fri, 19 Nov 2010 15:22:56 -0800 (PST)
+From: "Shuzhen Wang" <shuzhenw@codeaurora.org>
+To: <linux-media@vger.kernel.org>
+Subject: Zooming with V4L2
+Date: Fri, 19 Nov 2010 15:22:23 -0800
+Message-ID: <001601cb8840$9ee567b0$dcb03710$@org>
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
-CC: linux-media@vger.kernel.org
-Subject: Re: Raw mode for SAA7134_BOARD_ENCORE_ENLTV_FM53?
-References: <20101112141453.GA15756@hardeman.nu> <4CDD4DFC.4080105@infradead.org> <20101112210656.GB18719@hardeman.nu>
-In-Reply-To: <20101112210656.GB18719@hardeman.nu>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Language: en-us
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 12-11-2010 19:06, David Härdeman escreveu:
-> On Fri, Nov 12, 2010 at 12:23:56PM -0200, Mauro Carvalho Chehab wrote:
->> Em 12-11-2010 12:14, David Härdeman escreveu:
->>> Mauro,
->>>
->>> as far as I could tell, you wrote the initial support for
->>> SAA7134_BOARD_ENCORE_ENLTV_FM53 in
->>> drivers/media/video/saa7134/saa7134-input.c, right?
->>>
->>> It appears to be the only user of ir-functions.c left in that driver and
->>> I'm wondering if it could be converted to use raw_decode with a patch
->>> similar to what you committed for SAA7134_BOARD_ASUSTeK_P7131_ANALOG?
->>>
->> I need to check if I still have this board, or if it were a board that
->> someone borrowed me.
->>
->> I'll put it on my todo list.
-> 
-> Since that list is probably quite long, anyone else who reads this and
-> who has an Encore ENLTV-FM v5.3, feel free to get in touch with me in
-> the meantime.
+Hello, 
 
-Fortunately, the board is here. I received 4 boards almost the same time,
-and I had to return 2 of them. Thankfully, this were not one of them ;)
+I am working on a SOC V4L2 video driver, and need to implement zoom
+functionality. 
 
-OK, I did some tests, and it works properly with the raw decoders. So,
-I'm posting 3 patches converting it to use the raw decoders, and removing
-the legacy code.
+>From application, there are 2 ways to do zooming. The 1st way is to use
+cropping and scaling as described in section 1.11.1. The application calls
+VIDIOC_S_CROP to achieve zoom. The 2nd way is to use V4L2_CID_ZOOM_ABSOLUTE
+and V4L2_CID_ZOOM_RELATIVE as described by Laurent in
+http://video4linux-list.1448896.n2.nabble.com/RFC-Zoom-controls-in-V4L2-td14
+51987.html.
 
-There's still one old board (6+ years) at bttv that uses the raw decoding
-via the old way. For now, I just moved the legacy code into bttv driver.
-I think it won't be easy to find someone with this legacy hardware that
-could help on some tests, so, it may take some time until we can get rid
-of those legacy code there.
+Our camera hardware supports digital zoom. However, it acts LIKE optical
+zoom because it doesn't do upscaling, so no video quality is sacrificed. As
+a driver writter, is it okay to support only V4L2_CID_ZOOM_ABSOLUTE and
+V4L2_CID_ZOOM_RELATIVE? 
 
-Cheers,
-Mauro.
+I guess it also depends on how zooming is done for most of the V4L2 user
+application out there. 
+
+Your comments are appreciated.
+-Shuzhen
+
+
