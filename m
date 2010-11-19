@@ -1,40 +1,209 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:52414 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753753Ab0KCLuJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Nov 2010 07:50:09 -0400
-Received: by eye27 with SMTP id 27so170173eye.19
-        for <linux-media@vger.kernel.org>; Wed, 03 Nov 2010 04:50:08 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4CD14309.60209@redhat.com>
-References: <AANLkTi=tc_4ZAk20fEamcFQ-VDFkt4tBwFH+uGv9Fw62@mail.gmail.com>
-	<AANLkTimYMTa8zigTYbZhH5dN7VGZDBUFmw3PL4jRV9hv@mail.gmail.com>
-	<4CD14309.60209@redhat.com>
-Date: Wed, 3 Nov 2010 07:50:07 -0400
-Message-ID: <AANLkTinn-z-900iws96du0kMbMRnrJa_ozoK_SvMtii3@mail.gmail.com>
-Subject: Re: [PULL] http://www.kernellabs.com/hg/~dheitmueller/v4l-dvb-950q-final
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:25212 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755321Ab0KSP63 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Nov 2010 10:58:29 -0500
+Date: Fri, 19 Nov 2010 16:58:09 +0100
+From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Subject: [RFCv6 11/13] mm: MIGRATE_CMA isolation functions added
+In-reply-to: <cover.1290172312.git.m.nazarewicz@samsung.com>
+To: mina86@mina86.com
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Bryan Huntsman <bryanh@codeaurora.org>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Johan Mossberg <johan.xx.mossberg@stericsson.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	Marcus LORENTZON <marcus.xm.lorentzon@stericsson.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Mel Gorman <mel@csn.ul.ie>, Pawel Osciak <pawel@osciak.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>, dipankar@in.ibm.com,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org
+Message-id: <af6afb66dfbd7b8943b6b65bf2c0cebd63b2e4ef.1290172312.git.m.nazarewicz@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <cover.1290172312.git.m.nazarewicz@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Wed, Nov 3, 2010 at 7:10 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Hi Devin,
->
-> I didn't start to pull any fixes yet. I might eventually have some time
-> during this week, but it is more likely that I'll handle after my
-> return back.
+This commit changes various functions that change pages and
+pageblocks migrate type between MIGRATE_ISOLATE and
+MIGRATE_MOVABLE in such a way as to allow to work with
+MIGRATE_CMA migrate type.
 
-That's fine.  It's been pending for almost a month so I just wanted to
-be sure it didn't get lost.
+Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ include/linux/page-isolation.h |   39 ++++++++++++++++++++++++++-------------
+ mm/page_alloc.c                |    6 +++---
+ mm/page_isolation.c            |   15 ++++++++-------
+ 3 files changed, 37 insertions(+), 23 deletions(-)
 
-Regards,
-
-Devin
-
+diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
+index f1417ed..56f0e13 100644
+--- a/include/linux/page-isolation.h
++++ b/include/linux/page-isolation.h
+@@ -3,35 +3,49 @@
+ 
+ /*
+  * Changes migrate type in [start_pfn, end_pfn) to be MIGRATE_ISOLATE.
+- * If specified range includes migrate types other than MOVABLE,
++ * If specified range includes migrate types other than MOVABLE or CMA,
+  * this will fail with -EBUSY.
+  *
+  * For isolating all pages in the range finally, the caller have to
+  * free all pages in the range. test_page_isolated() can be used for
+  * test it.
+  */
+-extern int
+-start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn);
++int __start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			       unsigned migratetype);
++
++static inline int
++start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
++{
++	return __start_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
++}
++
++int __undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			      unsigned migratetype);
+ 
+ /*
+  * Changes MIGRATE_ISOLATE to MIGRATE_MOVABLE.
+  * target range is [start_pfn, end_pfn)
+  */
+-extern int
+-undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn);
++static inline int
++undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
++{
++	return __undo_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
++}
+ 
+ /*
+- * test all pages in [start_pfn, end_pfn)are isolated or not.
++ * Test all pages in [start_pfn, end_pfn) are isolated or not.
+  */
+-extern int
+-test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
++int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
+ 
+ /*
+- * Internal funcs.Changes pageblock's migrate type.
+- * Please use make_pagetype_isolated()/make_pagetype_movable().
++ * Internal functions. Changes pageblock's migrate type.
+  */
+-extern int set_migratetype_isolate(struct page *page);
+-extern void unset_migratetype_isolate(struct page *page);
++int set_migratetype_isolate(struct page *page);
++void __unset_migratetype_isolate(struct page *page, unsigned migratetype);
++static inline void unset_migratetype_isolate(struct page *page)
++{
++	__unset_migratetype_isolate(page, MIGRATE_MOVABLE);
++}
+ extern unsigned long alloc_contig_freed_pages(unsigned long start,
+ 					      unsigned long end, gfp_t flag);
+ extern void free_contig_pages(struct page *page, int nr_pages);
+@@ -39,7 +53,6 @@ extern void free_contig_pages(struct page *page, int nr_pages);
+ /*
+  * For migration.
+  */
+-
+ int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn);
+ unsigned long scan_lru_pages(unsigned long start, unsigned long end);
+ int do_migrate_range(unsigned long start_pfn, unsigned long end_pfn);
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 91daf22..a24193e 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -5463,7 +5463,7 @@ out:
+ 	return ret;
+ }
+ 
+-void unset_migratetype_isolate(struct page *page)
++void __unset_migratetype_isolate(struct page *page, unsigned migratetype)
+ {
+ 	struct zone *zone;
+ 	unsigned long flags;
+@@ -5471,8 +5471,8 @@ void unset_migratetype_isolate(struct page *page)
+ 	spin_lock_irqsave(&zone->lock, flags);
+ 	if (get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
+ 		goto out;
+-	set_pageblock_migratetype(page, MIGRATE_MOVABLE);
+-	move_freepages_block(zone, page, MIGRATE_MOVABLE);
++	set_pageblock_migratetype(page, migratetype);
++	move_freepages_block(zone, page, migratetype);
+ out:
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ }
+diff --git a/mm/page_isolation.c b/mm/page_isolation.c
+index 077cf19..ea9781e 100644
+--- a/mm/page_isolation.c
++++ b/mm/page_isolation.c
+@@ -23,10 +23,11 @@ __first_valid_page(unsigned long pfn, unsigned long nr_pages)
+ }
+ 
+ /*
+- * start_isolate_page_range() -- make page-allocation-type of range of pages
++ * __start_isolate_page_range() -- make page-allocation-type of range of pages
+  * to be MIGRATE_ISOLATE.
+  * @start_pfn: The lower PFN of the range to be isolated.
+  * @end_pfn: The upper PFN of the range to be isolated.
++ * @migratetype: migrate type to set in error recovery.
+  *
+  * Making page-allocation-type to be MIGRATE_ISOLATE means free pages in
+  * the range will never be allocated. Any free pages and pages freed in the
+@@ -35,8 +36,8 @@ __first_valid_page(unsigned long pfn, unsigned long nr_pages)
+  * start_pfn/end_pfn must be aligned to pageblock_order.
+  * Returns 0 on success and -EBUSY if any part of range cannot be isolated.
+  */
+-int
+-start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
++int __start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			       unsigned migratetype)
+ {
+ 	unsigned long pfn;
+ 	unsigned long undo_pfn;
+@@ -59,7 +60,7 @@ undo:
+ 	for (pfn = start_pfn;
+ 	     pfn < undo_pfn;
+ 	     pfn += pageblock_nr_pages)
+-		unset_migratetype_isolate(pfn_to_page(pfn));
++		__unset_migratetype_isolate(pfn_to_page(pfn), migratetype);
+ 
+ 	return -EBUSY;
+ }
+@@ -67,8 +68,8 @@ undo:
+ /*
+  * Make isolated pages available again.
+  */
+-int
+-undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
++int __undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			      unsigned migratetype)
+ {
+ 	unsigned long pfn;
+ 	struct page *page;
+@@ -80,7 +81,7 @@ undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
+ 		page = __first_valid_page(pfn, pageblock_nr_pages);
+ 		if (!page || get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
+ 			continue;
+-		unset_migratetype_isolate(page);
++		__unset_migratetype_isolate(page, migratetype);
+ 	}
+ 	return 0;
+ }
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.2.3
+
