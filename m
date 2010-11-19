@@ -1,31 +1,24 @@
-Return-path: <mchehab@pedra>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:40481 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753493Ab0KLOO5 (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from avas-mr16.fibertel.com.ar ([24.232.0.248]:52605 "EHLO
+	avas-mr16.fibertel.com.ar" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755461Ab0KTXG2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Nov 2010 09:14:57 -0500
-Date: Fri, 12 Nov 2010 15:14:53 +0100
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org
-Subject: Raw mode for SAA7134_BOARD_ENCORE_ENLTV_FM53?
-Message-ID: <20101112141453.GA15756@hardeman.nu>
+	Sat, 20 Nov 2010 18:06:28 -0500
+Message-ID: <2012.41.138.188.239.1290196603.squirrel@squirrel.jetband.com.ar>
+Date: Fri, 19 Nov 2010 16:56:43 -0300 (ART)
+Subject: Winning Notice.........Congratulations
+From: "ITOCHU Corporation." <info55@mail.com>
+Reply-To: eizokobayashireal@hotmail.com
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Mauro,
+We are please to inform you that your e-mail just won you 1,000.000.00 pounds
+sterlings in the Yahoo/Msn.
+lottery program fill your claim by sending your contact info such as
+Names:Age:Address: occupation:country: Agent Name: Mrs. Rose Elvis
+Email:claimsmicrosoft56@yahoo.com.hk
 
-as far as I could tell, you wrote the initial support for
-SAA7134_BOARD_ENCORE_ENLTV_FM53 in
-drivers/media/video/saa7134/saa7134-input.c, right?
-
-It appears to be the only user of ir-functions.c left in that driver and
-I'm wondering if it could be converted to use raw_decode with a patch
-similar to what you committed for SAA7134_BOARD_ASUSTeK_P7131_ANALOG?
-
--- 
-David Härdeman
