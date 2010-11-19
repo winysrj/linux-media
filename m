@@ -1,61 +1,48 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1042 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751934Ab0KPQtf (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from devils.ext.ti.com ([198.47.26.153]:52311 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756880Ab0KSXYA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Nov 2010 11:49:35 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC PATCH 0/8] V4L BKL removal: first round
-Date: Tue, 16 Nov 2010 17:49:05 +0100
-Cc: "Mauro Carvalho Chehab" <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-References: <cover.1289740431.git.hverkuil@xs4all.nl> <ebc68dfa756290569c3905a79175f65a.squirrel@webmail.xs4all.nl> <201011161701.36982.arnd@arndb.de>
-In-Reply-To: <201011161701.36982.arnd@arndb.de>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011161749.05844.hverkuil@xs4all.nl>
+	Fri, 19 Nov 2010 18:24:00 -0500
+From: Sergio Aguirre <saaguirre@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
+Subject: [omap3isp RFC][PATCH 4/4] omap3isp: csi2: Don't dump ISP main registers
+Date: Fri, 19 Nov 2010 17:23:51 -0600
+Message-Id: <1290209031-12817-5-git-send-email-saaguirre@ti.com>
+In-Reply-To: <1290209031-12817-1-git-send-email-saaguirre@ti.com>
+References: <1290209031-12817-1-git-send-email-saaguirre@ti.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Tuesday, November 16, 2010 17:01:36 Arnd Bergmann wrote:
-> On Tuesday 16 November 2010, Hans Verkuil wrote:
-> > > I think there is a misunderstanding. One V4L device (e.g. a TV capture
-> > > card, a webcam, etc.) has one v4l2_device struct. But it can have multiple
-> > > V4L device nodes (/dev/video0, /dev/radio0, etc.), each represented by a
-> > > struct video_device (and I really hope I can rename that to v4l2_devnode
-> > > soon since that's a very confusing name).
-> > >
-> > > You typically need to serialize between all the device nodes belonging to
-> > > the same video hardware. A mutex in struct video_device doesn't do that,
-> > > that just serializes access to that single device node. But a mutex in
-> > > v4l2_device is at the right level.
-> 
-> Ok, got it now.
-> 
-> > A quick follow-up as I saw I didn't fully answer your question: to my
-> > knowledge there are no per-driver data structures that need a BKL for
-> > protection. It's definitely not something I am worried about.
-> 
-> Good. Are you preparing a patch for a per-v4l2_device then? This sounds
-> like the right place with your explanation. I would not put in the
-> CONFIG_BKL switch, because I tried that for two other subsystems and got
-> called back, but I'm not going to stop you.
-> 
-> As for the fallback to a global mutex, I guess you can set the
-> videodev->lock pointer and use unlocked_ioctl for those drivers
-> that do not use a v4l2_device yet, if there are only a handful of them.
-> 
-> 	Arnd
-> 
+This keeps the driver focused only on accessing CSI2 registers
+only.
 
-I will look into it. I'll try to have something today or tomorrow.
+if the same info is needed, isp_print_status should be called instead.
 
-Regards,
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ drivers/media/video/isp/ispcsi2.c |    7 -------
+ 1 files changed, 0 insertions(+), 7 deletions(-)
 
-	Hans
-
+diff --git a/drivers/media/video/isp/ispcsi2.c b/drivers/media/video/isp/ispcsi2.c
+index 35e3629..13e7e22 100644
+--- a/drivers/media/video/isp/ispcsi2.c
++++ b/drivers/media/video/isp/ispcsi2.c
+@@ -611,13 +611,6 @@ void isp_csi2_regdump(struct isp_csi2_device *csi2)
+ 
+ 	dev_dbg(isp->dev, "-------------CSI2 Register dump-------------\n");
+ 
+-	dev_dbg(isp->dev, "###ISP_CTRL=0x%x\n",
+-		isp_reg_readl(isp, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL));
+-	dev_dbg(isp->dev, "###ISP_IRQ0ENABLE=0x%x\n",
+-		isp_reg_readl(isp, OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE));
+-	dev_dbg(isp->dev, "###ISP_IRQ0STATUS=0x%x\n",
+-		isp_reg_readl(isp, OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATUS));
+-
+ 	CSI2_PRINT_REGISTER(isp, csi2->regs1, SYSCONFIG);
+ 	CSI2_PRINT_REGISTER(isp, csi2->regs1, SYSSTATUS);
+ 	CSI2_PRINT_REGISTER(isp, csi2->regs1, IRQENABLE);
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+1.7.0.4
+
