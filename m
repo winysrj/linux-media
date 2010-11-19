@@ -1,175 +1,88 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2127 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755234Ab0KSVFk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 16:05:40 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 2.6.37]
-Date: Fri, 19 Nov 2010 22:05:23 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp.nokia.com ([147.243.128.24]:19301 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752585Ab0KSN21 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Nov 2010 08:28:27 -0500
+Date: Fri, 19 Nov 2010 15:29:28 +0200
+From: David Cohen <david.cohen@nokia.com>
+To: ext Lane Brooks <lane@brooks.nu>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Translation faults with OMAP ISP
+Message-ID: <20101119132927.GD13490@esdhcp04381.research.nokia.com>
+References: <4CE16AA2.3000208@brooks.nu>
+ <201011160001.10737.laurent.pinchart@ideasonboard.com>
+ <4CE317D3.2020504@brooks.nu>
+ <201011180009.31053.laurent.pinchart@ideasonboard.com>
+ <4CE46281.2010308@brooks.nu>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011192205.23244.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4CE46281.2010308@brooks.nu>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Mauro,
+Hi Lane,
 
-Here is the pull request for the patch series that:
+On Thu, Nov 18, 2010 at 12:17:21AM +0100, ext Lane Brooks wrote:
+> On 11/17/2010 04:09 PM, Laurent Pinchart wrote:
+> > Hi Lane,
+> >
+> > On Wednesday 17 November 2010 00:46:27 Lane Brooks wrote:
+> >> Laurent,
+> >>
+> >> I am getting iommu translation errors when I try to use the CCDC output
+> >> after using the Resizer output.
+> >>
+> >> If I use the CCDC output to stream some video, then close it down,
+> >> switch to the Resizer output and open it up and try to stream, I get the
+> >> following errors spewing out:
+> >>
+> >> omap-iommu omap-iommu.0: omap2_iommu_fault_isr: da:00d0ef00 translation
+> >> fault
+> >> omap-iommu omap-iommu.0: iommu_fault_handler: da:00d0ef00 pgd:ce664034
+> >> *pgd:00000000
+> >>
+> >> and the select times out.
+> >>
+> >>   From a fresh boot, I can stream just fine from the Resizer and then
+> >> switch to the CCDC output just fine. It is only when I go from the CCDC
+> >> to the Resizer that I get this problem. Furthermore, when it gets into
+> >> this state, then anything dev node I try to use has the translation
+> >> errors and the only way to recover is to reboot.
+> >>
+> >> Any ideas on the problem?
+> > Ouch. First of all, could you please make sure you run the latest code ? Many
+> > bugs have been fixed in the last few months
+> 
+> I had a pretty good idea that this would be your response, but I was 
+> hoping otherwise as merging has become more and more difficult to keep 
+> up with. Anyway, until I have a chance to merge in everything, I just 
+> found a work around for our usage needs, and that is to always use the 
+> resizer output and just change the resizer format between full 
+> resolution and preview resolution. This has turned out to be much more 
+> stable than switching between the CCDC and RESIZER dev nodes.
 
-1) Converts 29 drivers to unlocked_ioctl
-2) Improves the v4l core by using mutex_lock_interruptible and fixes
-   incorrect return codes for poll, write and read.
-3) Improves the BKL-replacement code so that VIDIOC_DQBUF is no longer
-   using the core locks (either the static lock or the new per-v4l2_device
-   lock).
+I'm not sure if it's your case, but OMAP3 ISP driver does not support
+pipeline with multiples outputs yet. We have to return error from the
+driver in this case. If you configured CCDC to write to memory and then
+to write to preview/resizer afterwards without deactivating the link to
+write to memory, you may face a similar problem you described.
 
-Three drivers may develop problems by not locking DQBUF: uvc (this must be
-converted for 2.6.37 to unlocked_ioctl due to its popularity), stk-webcam.c
-and usbvision. The stk-webcam driver has no locking whatsoever. I will see if
-I can prepare a patch converting it to core-assisted locking.
+Can you please try a patch I've sent to you (CC'ing linux-media) with subject:
+"[omap3isp][PATCH] omap3isp: does not allow pipeline with multiple video
+outputs yet"?
 
-usbvision has some sort of locking already and is likely to be OK, or at least
-as likely as that driver ever was since it has many problems already.
+Regards,
 
-Regarding point 2: poll didn't return POLLERR in case of an error, and read
-and write returned -EIO for unregistered (i.e. disconnected) device nodes
-whereas elsewhere in the kernel -ENODEV is used for that. That makes more sense
-as well.
+David
 
-I have two possible trees for you to pull from. The first uses
-mutex_lock_interruptible for mmap:
 
-The following changes since commit e53beacd23d9cb47590da6a7a7f6d417b941a994:
-  Linus Torvalds (1):
-        Linux 2.6.37-rc2
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/hverkuil/media_tree.git bkl-lock-int
-
-Hans Verkuil (14):
-      BKL: trivial BKL removal from V4L2 radio drivers
-      cadet: use unlocked_ioctl
-      tea5764: convert to unlocked_ioctl
-      si4713: convert to unlocked_ioctl
-      typhoon: convert to unlocked_ioctl.
-      BKL: trivial ioctl -> unlocked_ioctl video driver conversions
-      sn9c102: convert to unlocked_ioctl.
-      et61x251_core: trivial conversion to unlocked_ioctl.
-      cafe_ccic: replace ioctl by unlocked_ioctl.
-      sh_vou: convert to unlocked_ioctl.
-      radio-timb: convert to unlocked_ioctl.
-      cx18: convert to unlocked_ioctl.
-      v4l2-dev: use mutex_lock_interruptible instead of plain mutex_lock
-      V4L: improve the BKL replacement heuristic
-
- drivers/media/radio/radio-aimslab.c          |   16 +++---
- drivers/media/radio/radio-aztech.c           |    6 +-
- drivers/media/radio/radio-cadet.c            |   12 +++-
- drivers/media/radio/radio-gemtek-pci.c       |    6 +-
- drivers/media/radio/radio-gemtek.c           |   14 ++--
- drivers/media/radio/radio-maestro.c          |   14 ++---
- drivers/media/radio/radio-maxiradio.c        |    2 +-
- drivers/media/radio/radio-miropcm20.c        |    6 +-
- drivers/media/radio/radio-rtrack2.c          |   10 ++--
- drivers/media/radio/radio-sf16fmi.c          |    7 +-
- drivers/media/radio/radio-sf16fmr2.c         |   11 ++--
- drivers/media/radio/radio-si4713.c           |    3 +-
- drivers/media/radio/radio-tea5764.c          |   49 +++------------
- drivers/media/radio/radio-terratec.c         |    8 +-
- drivers/media/radio/radio-timb.c             |    5 +-
- drivers/media/radio/radio-trust.c            |   18 +++---
- drivers/media/radio/radio-typhoon.c          |   16 +++---
- drivers/media/radio/radio-zoltrix.c          |   30 +++++-----
- drivers/media/video/arv.c                    |    2 +-
- drivers/media/video/bw-qcam.c                |    2 +-
- drivers/media/video/c-qcam.c                 |    2 +-
- drivers/media/video/cafe_ccic.c              |    2 +-
- drivers/media/video/cx18/cx18-alsa-pcm.c     |    8 ++-
- drivers/media/video/cx18/cx18-streams.c      |    2 +-
- drivers/media/video/et61x251/et61x251_core.c |    2 +-
- drivers/media/video/meye.c                   |   14 ++--
- drivers/media/video/pms.c                    |    2 +-
- drivers/media/video/sh_vou.c                 |   13 +++--
- drivers/media/video/sn9c102/sn9c102_core.c   |    2 +-
- drivers/media/video/v4l2-dev.c               |   85 ++++++++++++++++++++------
- drivers/media/video/v4l2-device.c            |    1 +
- drivers/media/video/w9966.c                  |    2 +-
- include/media/v4l2-device.h                  |    2 +
- 33 files changed, 207 insertions(+), 167 deletions(-)
-
-And the second uses mutex_lock for mmap():
-
-The following changes since commit e53beacd23d9cb47590da6a7a7f6d417b941a994:
-  Linus Torvalds (1):
-        Linux 2.6.37-rc2
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/hverkuil/media_tree.git bkl-lock
-
-Hans Verkuil (14):
-      BKL: trivial BKL removal from V4L2 radio drivers
-      cadet: use unlocked_ioctl
-      tea5764: convert to unlocked_ioctl
-      si4713: convert to unlocked_ioctl
-      typhoon: convert to unlocked_ioctl.
-      BKL: trivial ioctl -> unlocked_ioctl video driver conversions
-      sn9c102: convert to unlocked_ioctl.
-      et61x251_core: trivial conversion to unlocked_ioctl.
-      cafe_ccic: replace ioctl by unlocked_ioctl.
-      sh_vou: convert to unlocked_ioctl.
-      radio-timb: convert to unlocked_ioctl.
-      cx18: convert to unlocked_ioctl.
-      v4l2-dev: use mutex_lock_interruptible instead of plain mutex_lock
-      V4L: improve the BKL replacement heuristic
-
- drivers/media/radio/radio-aimslab.c          |   16 +++---
- drivers/media/radio/radio-aztech.c           |    6 +-
- drivers/media/radio/radio-cadet.c            |   12 +++-
- drivers/media/radio/radio-gemtek-pci.c       |    6 +-
- drivers/media/radio/radio-gemtek.c           |   14 ++--
- drivers/media/radio/radio-maestro.c          |   14 ++---
- drivers/media/radio/radio-maxiradio.c        |    2 +-
- drivers/media/radio/radio-miropcm20.c        |    6 +-
- drivers/media/radio/radio-rtrack2.c          |   10 ++--
- drivers/media/radio/radio-sf16fmi.c          |    7 +-
- drivers/media/radio/radio-sf16fmr2.c         |   11 ++--
- drivers/media/radio/radio-si4713.c           |    3 +-
- drivers/media/radio/radio-tea5764.c          |   49 +++-------------
- drivers/media/radio/radio-terratec.c         |    8 +-
- drivers/media/radio/radio-timb.c             |    5 +-
- drivers/media/radio/radio-trust.c            |   18 +++---
- drivers/media/radio/radio-typhoon.c          |   16 +++---
- drivers/media/radio/radio-zoltrix.c          |   30 +++++-----
- drivers/media/video/arv.c                    |    2 +-
- drivers/media/video/bw-qcam.c                |    2 +-
- drivers/media/video/c-qcam.c                 |    2 +-
- drivers/media/video/cafe_ccic.c              |    2 +-
- drivers/media/video/cx18/cx18-alsa-pcm.c     |    8 ++-
- drivers/media/video/cx18/cx18-streams.c      |    2 +-
- drivers/media/video/et61x251/et61x251_core.c |    2 +-
- drivers/media/video/meye.c                   |   14 ++--
- drivers/media/video/pms.c                    |    2 +-
- drivers/media/video/sh_vou.c                 |   13 +++--
- drivers/media/video/sn9c102/sn9c102_core.c   |    2 +-
- drivers/media/video/v4l2-dev.c               |   77 ++++++++++++++++++++-----
- drivers/media/video/v4l2-device.c            |    1 +
- drivers/media/video/w9966.c                  |    2 +-
- include/media/v4l2-device.h                  |    2 +
- 33 files changed, 201 insertions(+), 165 deletions(-)
-
-They are otherwise identical. We didn't finish our irc discussion on mmap yesterday,
-so I thought I'd let you choose :-)
-
-Regards.
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+> 
+> Thanks again for your feedback.
+> 
+> Lane
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
