@@ -1,78 +1,121 @@
-Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.8]:58336 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757220Ab0KOOZL (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51389 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754481Ab0KSPHY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Nov 2010 09:25:11 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 02/10] MCDE: Add configuration registers
-Date: Mon, 15 Nov 2010 15:25:54 +0100
-Cc: linux-arm-kernel@lists.infradead.org,
-	Jimmy Rubin <jimmy.rubin@stericsson.com>,
-	Dan Johansson <dan.johansson@stericsson.com>,
-	linux-fbdev@vger.kernel.org,
-	Linus Walleij <linus.walleij@stericsson.com>,
-	linux-media@vger.kernel.org
-References: <1289390653-6111-1-git-send-email-jimmy.rubin@stericsson.com> <201011121614.51528.arnd@arndb.de> <20101112153423.GC3619@n2100.arm.linux.org.uk>
-In-Reply-To: <20101112153423.GC3619@n2100.arm.linux.org.uk>
+	Fri, 19 Nov 2010 10:07:24 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: David Cohen <david.cohen@nokia.com>
+Subject: Re: Translation faults with OMAP ISP
+Date: Fri, 19 Nov 2010 16:07:27 +0100
+Cc: ext Lane Brooks <lane@brooks.nu>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <4CE16AA2.3000208@brooks.nu> <4CE686C9.6070902@brooks.nu> <20101119150620.GB11586@esdhcp04381.research.nokia.com>
+In-Reply-To: <20101119150620.GB11586@esdhcp04381.research.nokia.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201011151525.54380.arnd@arndb.de>
+Message-Id: <201011191607.27568.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Friday 12 November 2010, Russell King - ARM Linux wrote:
-> On Fri, Nov 12, 2010 at 04:14:51PM +0100, Arnd Bergmann wrote:
-> > Some people prefer to express all this in C instead of macros:
-> > 
-> > struct mcde_registers {
-> > 	enum {
-> > 		mcde_cr_dsicmd2_en = 0x00000001,
-> > 		mcde_cr_dsicmd1_en = 0x00000002,
-> > 		...
-> > 	} cr;
-> > 	enum {
-> > 		mcde_conf0_syncmux0 = 0x00000001,
-> > 		...
-> > 	} conf0;
-> > 	...
-> > };
-> > 
-> > This gives you better type safety, but which one you choose is your decision.
+Hi David,
+
+On Friday 19 November 2010 16:06:21 David Cohen wrote:
+> On Fri, Nov 19, 2010 at 03:16:41PM +0100, ext Lane Brooks wrote:
+> > On 11/19/2010 07:13 AM, Laurent Pinchart wrote:
+> > > On Friday 19 November 2010 15:08:38 Lane Brooks wrote:
+> > >> On 11/19/2010 06:29 AM, David Cohen wrote:
+> > >>> On Thu, Nov 18, 2010 at 12:17:21AM +0100, ext Lane Brooks wrote:
+> > >>>> On Wednesday 17 November 2010 00:46:27 Lane Brooks wrote:
+> > >>>>>> Laurent,
+> > >>>>>> 
+> > >>>>>> I am getting iommu translation errors when I try to use the CCDC
+> > >>>>>> output after using the Resizer output.
+> > >>>>>> 
+> > >>>>>> If I use the CCDC output to stream some video, then close it down,
+> > >>>>>> switch to the Resizer output and open it up and try to stream, I
+> > >>>>>> get the following errors spewing out:
+> > >>>>>> 
+> > >>>>>> omap-iommu omap-iommu.0: omap2_iommu_fault_isr: da:00d0ef00
+> > >>>>>> translation fault
+> > >>>>>> omap-iommu omap-iommu.0: iommu_fault_handler: da:00d0ef00
+> > >>>>>> pgd:ce664034 *pgd:00000000
+> > >>>>>> 
+> > >>>>>> and the select times out.
+> > >>>>>> 
+> > >>>>>>     From a fresh boot, I can stream just fine from the Resizer and
+> > >>>>>>     then
+> > >>>>>> 
+> > >>>>>> switch to the CCDC output just fine. It is only when I go from the
+> > >>>>>> CCDC to the Resizer that I get this problem. Furthermore, when it
+> > >>>>>> gets into this state, then anything dev node I try to use has the
+> > >>>>>> translation errors and the only way to recover is to reboot.
+> > >>>>>> 
+> > >>>>>> Any ideas on the problem?
+> > >>> 
+> > >>> I'm not sure if it's your case, but OMAP3 ISP driver does not support
+> > >>> pipeline with multiples outputs yet. We have to return error from the
+> > >>> driver in this case. If you configured CCDC to write to memory and
+> > >>> then to write to preview/resizer afterwards without deactivating the
+> > >>> link to write to memory, you may face a similar problem you
+> > >>> described.
+> > >>> 
+> > >>> Can you please try a patch I've sent to you (CC'ing linux-media) with
+> > >>> subject: "[omap3isp][PATCH] omap3isp: does not allow pipeline with
+> > >>> multiple video outputs yet"?
+> > >>> 
+> > >>> Regards,
+> > >>> 
+> > >>> David
+> > >> 
+> > >> David,
+> > >> 
+> > >> I am not trying to use multiple outputs simultaneously. I get the
+> > >> translation error with the following sequence:
+> > >> 
+> > >> - Open resizer output and setup media links.
+> > >> - Stream some images.
+> > >> - Close resizer.
+> > >> - Reset all media links.
+> > >> - Open CCDC and setup media links.
+> > >> - Try to stream some images but get translation faults.
 > 
-> It is a bad idea to describe device registers using C structures, and
-> especially enums.
+> You're describing some different steps from your previous e-mail, as
+> here the iommu faults come while CCDC outputting to memory and in your
+> comment above it was happening while Resizer outputting to memory.
 > 
-> The only thing C guarantees about structure layout is that the elements
-> are arranged in the same order which you specify them in your definition.
-> It doesn't make any guarantees about placement of those elements within
-> the structure.
+> Which one should I consider as the correct? :)
+> 
+> It would be nice if you could print the values of CCDC_SDR_ADDR and
+> RSZ_SDR_OUTADD just before the bug.
+> 
+> Are you also enabling CCDC's LSC?
+> 
+> > >> Is your patch going to help with this problem?
+> > > 
+> > > If you reset all links before setting them up for the CCDC output,
+> > > probably not (unless you have a bug in your CCDC links setup, but I
+> > > doubt that).
+> 
+> As Laurent said, probably not. But if you want to go ahead to test this
+> patch, that's fine. It's very unlikely we have a bug on CCDC or Resizer
+> link setup, but not completely impossible. :)
+> A new version of this patch fixing the typo I mentioned there is going to
+> be locally applied anyway.
+> 
+> > I can stream just fine from the CCDC output if I do not use the resizer
+> > prior, so I am pretty sure I am setting up the CCDC links correctly.
+> 
+> Well, iommu faults mean bug on kernel side. If you're still doing
+> something wrong, the driver must be able to return and error to
+> userland.
 
-Right, I got carried away when seeing the macro overload. My example
-would work on a given architecture since the ABI is not changing, but
-we should of course not advocate nonportable code.
+Don't forget that Lane is using an older version of the OMAP3 ISP driver. The 
+bug might have been fixed in the latest code.
 
-Normally what I do is to describe the data structure in C and define the
-values in a separate enum. The main advantage of using the struct instead
-of offset defines is that you have a bit more type safety, i.e. you cannot
-accidentally do readw() on a __be32 member.
+-- 
+Regards,
 
-Using #define for the actual values makes it possible to interleave the
-values with the structure definition like 
-
-struct mcde_registers {
- 	__le32 cr;
-#define MCDE_CR_DSICMD2_EN 0x00000001
-#define MCDE_CR_DSICMD1_EN 0x00000002
-	__le32 conf0;
- 	...
-};
-
-whereas the enum has the small advantage of putting the identifiers
-into the C language namespace rather than the preprocessor macro
-namespace.
-
-	Arnd
+Laurent Pinchart
