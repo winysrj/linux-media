@@ -1,115 +1,163 @@
-Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.9]:54752 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756521Ab0KRNTe convert rfc822-to-8bit (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:33749 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757492Ab0KSXom (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Nov 2010 08:19:34 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tyrex.lisa.loc (Postfix) with ESMTP id D36629596919
-	for <linux-media@vger.kernel.org>; Thu, 18 Nov 2010 14:19:30 +0100 (CET)
-From: "Hans-Peter Jansen" <hpj@urpla.net>
+	Fri, 19 Nov 2010 18:44:42 -0500
+Subject: [PATCH 09/10] mceusb: int to bool conversion
 To: linux-media@vger.kernel.org
-Subject: cx24116_cmd_execute() Firmware not responding
-Date: Thu, 18 Nov 2010 14:19:25 +0100
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: jarod@wilsonet.com, mchehab@infradead.org
+Date: Sat, 20 Nov 2010 00:43:22 +0100
+Message-ID: <20101119234322.3511.37384.stgit@localhost.localdomain>
+In-Reply-To: <20101119233959.3511.91287.stgit@localhost.localdomain>
+References: <20101119233959.3511.91287.stgit@localhost.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <201011181419.25737.hpj@urpla.net>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi, 
+Convert boolean variables to use the corresponding data type.
 
-sorry to bother you again, but I'm still in the course to get DVB/VDR
-going _again_. 
+Signed-off-by: David HÃ¤rdeman <david@hardeman.nu>
+---
+ drivers/media/rc/mceusb.c |   62 +++++++++++++++++++--------------------------
+ 1 files changed, 26 insertions(+), 36 deletions(-)
 
-Hardware: 2 * Hauppauge WinTV-HVR4000(Lite), 
-          1 * Hauppauge WinTV Nexus-S
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index ef9bddc..bb6e2dc 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -103,9 +103,9 @@
+ 
+ /* module parameters */
+ #ifdef CONFIG_USB_DEBUG
+-static int debug = 1;
++static bool debug = true;
+ #else
+-static int debug;
++static bool debug;
+ #endif
+ 
+ /* general constants */
+@@ -151,12 +151,12 @@ enum mceusb_model_type {
+ };
+ 
+ struct mceusb_model {
+-	u32 mce_gen1:1;
+-	u32 mce_gen2:1;
+-	u32 mce_gen3:1;
+-	u32 tx_mask_inverted:1;
+-	u32 is_polaris:1;
+-	u32 no_tx:1;
++	bool mce_gen1:1;
++	bool mce_gen2:1;
++	bool mce_gen3:1;
++	bool tx_mask_inverted:1;
++	bool is_polaris:1;
++	bool no_tx:1;
+ 
+ 	const char *rc_map;	/* Allow specify a per-board map */
+ 	const char *name;	/* per-board name */
+@@ -164,22 +164,22 @@ struct mceusb_model {
+ 
+ static const struct mceusb_model mceusb_model[] = {
+ 	[MCE_GEN1] = {
+-		.mce_gen1 = 1,
+-		.tx_mask_inverted = 1,
++		.mce_gen1 = true,
++		.tx_mask_inverted = true,
+ 	},
+ 	[MCE_GEN2] = {
+-		.mce_gen2 = 1,
++		.mce_gen2 = true,
+ 	},
+ 	[MCE_GEN2_TX_INV] = {
+-		.mce_gen2 = 1,
+-		.tx_mask_inverted = 1,
++		.mce_gen2 = true,
++		.tx_mask_inverted = true,
+ 	},
+ 	[MCE_GEN3] = {
+-		.mce_gen3 = 1,
+-		.tx_mask_inverted = 1,
++		.mce_gen3 = true,
++		.tx_mask_inverted = true,
+ 	},
+ 	[POLARIS_EVK] = {
+-		.is_polaris = 1,
++		.is_polaris = true,
+ 		/*
+ 		 * In fact, the EVK is shipped without
+ 		 * remotes, but we should have something handy,
+@@ -189,8 +189,8 @@ static const struct mceusb_model mceusb_model[] = {
+ 		.name = "Conexant Hybrid TV (cx231xx) MCE IR",
+ 	},
+ 	[CX_HYBRID_TV] = {
+-		.is_polaris = 1,
+-		.no_tx = 1, /* tx isn't wired up at all */
++		.is_polaris = true,
++		.no_tx = true, /* tx isn't wired up at all */
+ 		.name = "Conexant Hybrid TV (cx231xx) MCE IR",
+ 	},
+ };
+@@ -344,10 +344,10 @@ struct mceusb_dev {
+ 	u8 cmd, rem;		/* Remaining IR data bytes in packet */
+ 
+ 	struct {
+-		u32 connected:1;
+-		u32 tx_mask_inverted:1;
+-		u32 microsoft_gen1:1;
+-		u32 no_tx:1;
++		bool connected:1;
++		bool tx_mask_inverted:1;
++		bool microsoft_gen1:1;
++		bool no_tx:1;
+ 	} flags;
+ 
+ 	/* transmit support */
+@@ -1090,21 +1090,11 @@ static int __devinit mceusb_dev_probe(struct usb_interface *intf,
+ 	int pipe, maxp, i;
+ 	char buf[63], name[128] = "";
+ 	enum mceusb_model_type model = id->driver_info;
+-	bool is_gen3;
+-	bool is_microsoft_gen1;
+-	bool tx_mask_inverted;
+-	bool is_polaris;
+ 
+ 	dev_dbg(&intf->dev, "%s called\n", __func__);
+-
+ 	idesc  = intf->cur_altsetting;
+ 
+-	is_gen3 = mceusb_model[model].mce_gen3;
+-	is_microsoft_gen1 = mceusb_model[model].mce_gen1;
+-	tx_mask_inverted = mceusb_model[model].tx_mask_inverted;
+-	is_polaris = mceusb_model[model].is_polaris;
+-
+-	if (is_polaris) {
++	if (mceusb_model[model].is_polaris) {
+ 		/* Interface 0 is IR */
+ 		if (idesc->desc.bInterfaceNumber)
+ 			return -ENODEV;
+@@ -1167,8 +1157,8 @@ static int __devinit mceusb_dev_probe(struct usb_interface *intf,
+ 	ir->usbdev = dev;
+ 	ir->dev = &intf->dev;
+ 	ir->len_in = maxp;
+-	ir->flags.microsoft_gen1 = is_microsoft_gen1;
+-	ir->flags.tx_mask_inverted = tx_mask_inverted;
++	ir->flags.microsoft_gen1 = mceusb_model[model].mce_gen1;
++	ir->flags.tx_mask_inverted = mceusb_model[model].tx_mask_inverted;
+ 	ir->flags.no_tx = mceusb_model[model].no_tx;
+ 	ir->model = model;
+ 
+@@ -1203,7 +1193,7 @@ static int __devinit mceusb_dev_probe(struct usb_interface *intf,
+ 	/* initialize device */
+ 	if (ir->flags.microsoft_gen1)
+ 		mceusb_gen1_init(ir);
+-	else if (!is_gen3)
++	else if (!mceusb_model[model].mce_gen3)
+ 		mceusb_gen2_init(ir);
+ 
+ 	mceusb_get_parameters(ir);
 
-Software: openSUSE 11.1/i586 with Kernel:HEAD 2.6.36-94.1
-          VDR 1.6.0-2 
-
-VDR is limited operational, some recordings stutter, and the logs are 
-flodded with:
-
-Nov 18 13:09:03 tyrex kernel: [14180.392584] cx24116_cmd_execute() Firmware not responding
-Nov 18 13:09:10 tyrex kernel: [14186.959970] cx24116_cmd_execute() Firmware not responding
-Nov 18 13:09:19 tyrex kernel: [14196.433715] cx24116_cmd_execute() Firmware not responding
-Nov 18 13:09:24 tyrex kernel: [14201.364116] cx24116_cmd_execute() Firmware not responding
-Nov 18 13:09:31 tyrex kernel: [14207.927543] cx24116_cmd_execute() Firmware not responding
-Nov 18 13:09:40 tyrex kernel: [14217.409232] cx24116_cmd_execute() Firmware not responding
-Nov 18 13:09:50 tyrex kernel: [14226.886942] cx24116_cmd_execute() Firmware not responding
-Nov 18 13:09:52 tyrex kernel: [14228.887018] cx24116_cmd_execute() Firmware not responding
-
-Nov 18 13:09:02 tyrex vdr: [24392] buffer stats: 0 (0%) used
-Nov 18 13:09:02 tyrex vdr: [24384] ERROR (dvbdevice.c,263): Die Wartezeit für die Verbindung ist abgelaufen
-Nov 18 13:09:09 tyrex vdr: [24384] ERROR (dvbdevice.c,263): Die Wartezeit für die Verbindung ist abgelaufen
-Nov 18 13:09:18 tyrex vdr: [24384] frontend 1 timed out while tuning to channel 2, tp 111954
-Nov 18 13:09:18 tyrex vdr: [24384] ERROR (dvbdevice.c,263): Die Wartezeit für die Verbindung ist abgelaufen
-Nov 18 13:09:23 tyrex vdr: [24392] buffer stats: 0 (0%) used
-Nov 18 13:09:23 tyrex vdr: [24384] ERROR (dvbdevice.c,263): Die Wartezeit für die Verbindung ist abgelaufen
-Nov 18 13:09:30 tyrex vdr: [24384] ERROR (dvbdevice.c,263): Die Wartezeit für die Verbindung ist abgelaufen
-Nov 18 13:09:38 tyrex vdr: [24392] streamdev-server: Detaching current receiver
-Nov 18 13:09:38 tyrex vdr: [24392] streamdev-server: Detaching current receiver
-Nov 18 13:09:38 tyrex vdr: [24392] streamdev-server: Detaching current receiver
-Nov 18 13:09:39 tyrex vdr: [24384] frontend 1 timed out while tuning to channel 1330, tp 111992
-Nov 18 13:09:39 tyrex vdr: [24384] ERROR (dvbdevice.c,263): Die Wartezeit für die Verbindung ist abgelaufen
-Nov 18 13:09:44 tyrex vdr: [24392] streamdev-server: Detaching current receiver
-Nov 18 13:09:44 tyrex vdr: [24392] streamdev-server: Detaching current receiver
-Nov 18 13:09:44 tyrex vdr: [24392] streamdev-server: Detaching current receiver
-Nov 18 13:09:49 tyrex vdr: [24384] ERROR (dvbdevice.c,263): Die Wartezeit für die Verbindung ist abgelaufen
-Nov 18 13:09:51 tyrex vdr: [24384] ERROR (dvbdevice.c,263): Die Wartezeit für die Verbindung ist abgelaufen
-Nov 18 13:09:59 tyrex vdr: [24392] streamdev-server: Detaching current receiver
-Nov 18 13:09:59 tyrex vdr: [24392] streamdev-server: Detaching current receiver
-Nov 18 13:09:59 tyrex vdr: [24392] streamdev-server: Detaching current receiver
-
-"Die Wartezeit für die Verbindung ist abgelaufen" is an translated ioctl 
-error from this call: 
-	CHECK(ioctl(fd_frontend, FE_SET_TONE, tone));
-It might be translated with: "timeout for idle time of connection".
-
-Running cx24116 with debugging enabled results in:
-
-	ftp://urpla.net/cx24116-debug.log [One minute, 540 kiB]
-
-vdr log from the same period:
-
-Nov 18 14:00:03 tyrex vdr: [31450] streamdev-server: Detaching current receiver
-Nov 18 14:00:03 tyrex vdr: [31450] streamdev-server: Detaching current receiver
-Nov 18 14:00:03 tyrex vdr: [31450] streamdev-server: Detaching current receiver
-Nov 18 14:00:06 tyrex vdr: [31445] ERROR (dvbdevice.c,263): Die Wartezeit für die Verbindung ist abgelaufen
-Nov 18 14:00:08 tyrex vdr: [31445] ERROR (dvbdevice.c,263): Die Wartezeit für die Verbindung ist abgelaufen
-Nov 18 14:00:08 tyrex vdr: [31443] changing pids of channel 1331 from 151+151:160=hun,161=cze,162=eng,163=eng:0:170 to 1
-51+151:160=hun,161=cze,162=eng,163=eng:171=hun,172=cze:170
-Nov 18 14:00:09 tyrex vdr: [31443] changing pids of channel 1341 from 651+651:660=hun,661=cze:0:0 to 651+651:660=hun,661
-=cze:670=cze,671=hun,672=cze:0
-Nov 18 14:00:17 tyrex vdr: [31445] frontend 2 timed out while tuning to channel 62, tp 112031
-Nov 18 14:00:17 tyrex vdr: [31445] ERROR (dvbdevice.c,263): Die Wartezeit für die Verbindung ist abgelaufen
-Nov 18 14:00:20 tyrex vdr: [31450] streamdev-server: Detaching current receiver
-Nov 18 14:00:20 tyrex vdr: [31450] streamdev-server: Detaching current receiver
-Nov 18 14:00:20 tyrex vdr: [31450] streamdev-server: Detaching current receiver
-Nov 18 14:00:24 tyrex vdr: [31450] streamdev-server: Detaching current receiver
-Nov 18 14:00:24 tyrex vdr: [31450] streamdev-server: Detaching current receiver
-Nov 18 14:00:24 tyrex vdr: [31450] streamdev-server: Detaching current receiver
-Nov 18 14:00:27 tyrex vdr: [31445] ERROR (dvbdevice.c,263): Die Wartezeit für die Verbindung ist abgelaufen
-Nov 18 14:00:29 tyrex vdr: [31445] ERROR (dvbdevice.c,263): Die Wartezeit für die Verbindung ist abgelaufen
-Nov 18 14:00:29 tyrex vdr: [31443] changing name of channel 1293 from '404 - 12:30,;' to '404 - 14:30,;'
-Nov 18 14:00:29 tyrex vdr: [31443] changing name of channel 1296 from '392 - 12:30,;' to '392 - 14:30,;'
-Nov 18 14:00:29 tyrex vdr: [31443] changing name of channel 1299 from '409 - 12:30,;' to '409 - 14:30,;'
-Nov 18 14:00:29 tyrex vdr: [31443] linking channel 702 from 1293 1300 1296 1298 1299 1297 1301 1294 1295 to 1300 1293 12
-98 1296 1297 1299 1301 1294 1295
-Nov 18 14:00:38 tyrex vdr: [31445] frontend 2 timed out while tuning to channel 17, tp 112109
-Nov 18 14:00:38 tyrex vdr: [31445] ERROR (dvbdevice.c,263): Die Wartezeit für die Verbindung ist abgelaufen
-Nov 18 14:00:45 tyrex vdr: [31450] buffer stats: 0 (0%) used
-Nov 18 14:00:48 tyrex vdr: [31445] ERROR (dvbdevice.c,263): Die Wartezeit für die Verbindung ist abgelaufen
-Nov 18 14:00:50 tyrex vdr: [31445] ERROR (dvbdevice.c,263): Die Wartezeit für die Verbindung ist abgelaufen
-Nov 18 14:00:59 tyrex vdr: [31445] frontend 2 timed out while tuning to channel 5, tp 112188
-Nov 18 14:00:59 tyrex vdr: [31445] ERROR (dvbdevice.c,263): Die Wartezeit für die Verbindung ist abgelaufen
-
-Does this make some sense for somebody in the audience, and even more
-important, can it be cured in some way?
-
-Thanks in advance,
-Pete
