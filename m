@@ -1,37 +1,43 @@
-Return-path: <mchehab@pedra>
-Received: from adelie.canonical.com ([91.189.90.139]:34817 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754628Ab0KRHbB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Nov 2010 02:31:01 -0500
-From: Jeremy Kerr <jeremy.kerr@canonical.com>
-To: Mariusz =?utf-8?q?Bia=C5=82o=C5=84czyk?= <manio@skyboo.net>
-Subject: Re: [PATCH] V4L/DVB: cx88: Add module parameter to disable IR
-Date: Thu, 18 Nov 2010 15:30:49 +0800
-Cc: linux-media@vger.kernel.org
-References: <1290062581.41867.321546213719.1.gpush@pororo> <4CE4D3D5.5090108@skyboo.net>
-In-Reply-To: <4CE4D3D5.5090108@skyboo.net>
+Return-path: <mchehab@gaivota>
+Received: from mailout-de.gmx.net ([213.165.64.22]:41191 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1753148Ab0KSNxM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Nov 2010 08:53:12 -0500
+Date: Fri, 19 Nov 2010 14:53:16 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH/RFC] v4l: Add subdev sensor g_skip_frames operation
+In-Reply-To: <201011191442.31982.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1011191452540.20751@axis700.grange>
+References: <1290173202-28769-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <201011191442.31982.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011181530.49916.jeremy.kerr@canonical.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Mariusz,
+On Fri, 19 Nov 2010, Hans Verkuil wrote:
 
-> AFAIK we have disable support in cx88:
-> http://git.linuxtv.org/media_tree.git?a=commit;h=89c3bc78075042ae1f4452687f
-> 626acce06b3b21
+> On Friday 19 November 2010 14:26:42 Laurent Pinchart wrote:
+> > Some buggy sensors generate corrupt frames when the stream is started.
+> > This new operation returns the number of corrupt frames to skip when
+> > starting the stream.
+> 
+> Looks OK, but perhaps the two should be combined to one function?
+> 
+> I also have my doubts about the sensor_ops in general. I expected originally
+> to see a lot of ops here, but apparently there is little or no need for it.
+> 
+> Do we expect to see this grow, or would it make more sense to move the ops
+> to video_ops? I'd be interested to hear what sensor specialists think.
 
-Ah, my bad - I was working off Linus' tree, and looks like that patch hasn't 
-hit mainline yet.
+I would keep the struct.
 
-As an aside, that patch has a problem: the MODULE_PARAM_DESC line uses 
-'latency', not 'disable_ir'.
-
-Cheers,
-
-
-Jeremy
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
