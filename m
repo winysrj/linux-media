@@ -1,40 +1,59 @@
-Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:49911 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755419Ab0KJVO7 convert rfc822-to-8bit (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4698 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752897Ab0KSOVn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Nov 2010 16:14:59 -0500
-Received: by mail-ww0-f44.google.com with SMTP id 39so1209682wwb.1
-        for <linux-media@vger.kernel.org>; Wed, 10 Nov 2010 13:14:58 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20101110221159.8bdcbfd7.ospite@studenti.unina.it>
-References: <yanpj3usd6gfp0xwdbaxlkni.1289407954066@email.android.com>
-	<AANLkTimE-MWjG0JRCenOA4xhammTMS_11uvh7E+qWrNe@mail.gmail.com>
-	<20101110221159.8bdcbfd7.ospite@studenti.unina.it>
-Date: Wed, 10 Nov 2010 18:14:57 -0300
-Message-ID: <AANLkTikbmvGL_aXWPfNhexDJ7isodbwcYsSfGRFfQqed@mail.gmail.com>
-Subject: Re: Bounty for the first Open Source driver for Kinect
-From: Fernando Cassia <fcassia@gmail.com>
-To: Antonio Ospite <ospite@studenti.unina.it>
-Cc: Mohamed Ikbel Boulabiar <boulabiar@gmail.com>,
-	Andy Walls <awalls@md.metrocast.net>,
+	Fri, 19 Nov 2010 09:21:43 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH/RFC] v4l: Add subdev sensor g_skip_frames operation
+Date: Fri, 19 Nov 2010 15:21:36 +0100
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+References: <1290173202-28769-1-git-send-email-laurent.pinchart@ideasonboard.com> <201011191451.44465.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1011191509541.20751@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1011191509541.20751@axis700.grange>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201011191521.36684.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Wed, Nov 10, 2010 at 6:11 PM, Antonio Ospite
-<ospite@studenti.unina.it> wrote:
-> On Wed, 10 Nov 2010 21:54:58 +0100
-> Mohamed Ikbel Boulabiar <boulabiar@gmail.com> wrote:
->
->> The bounty is already taken by that developer.
->>
->
-> Which surely deserves it :)
+On Friday 19 November 2010 15:15:11 Guennadi Liakhovetski wrote:
+> On Fri, 19 Nov 2010, Laurent Pinchart wrote:
+> 
+> > Hi Hans,
+> > 
+> > On Friday 19 November 2010 14:42:31 Hans Verkuil wrote:
+> > > On Friday 19 November 2010 14:26:42 Laurent Pinchart wrote:
+> > > > Some buggy sensors generate corrupt frames when the stream is started.
+> > > > This new operation returns the number of corrupt frames to skip when
+> > > > starting the stream.
+> > > 
+> > > Looks OK, but perhaps the two should be combined to one function?
+> > 
+> > I'm fine with both. Guennadi, any opinion ?
+> 
+> Same as before;) I think, there can be many more such "micro" parameters, 
+> that we'll want to collect from the sensor. So, if we had a good idea - 
+> what those parameters are like, we could implement just one API call to 
+> get them all, or even just pass one object with this information - if it 
+> is constant. If we don't have a good idea yet, what to expect there, it 
+> might be best to wait and first collect a more complete understanding of 
+> this kind of information. In any case I wouldn't convert these two calls 
+> to one like
+> 
+> int (*get_bad_things)(struct v4l2_subdev *sd, u32 *lines, u32 *frames)
+> 
+> ;)
 
-And then there´s the clueless Ziff-Gates writers who call this Piracy...
-http://www.zdnet.com/blog/open-source/is-adafruit-bounty-open-source-or-piracy/7728
+OK, let's go with Laurent's proposal. But I do think this should be reviewed
+at some point in time.
 
-FC
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
