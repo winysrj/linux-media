@@ -1,66 +1,124 @@
-Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:35908 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751614Ab0KQNC3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Nov 2010 08:02:29 -0500
+Return-path: <mchehab@gaivota>
+Received: from smtp.nokia.com ([147.243.1.47]:30155 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752502Ab0KSKS4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Nov 2010 05:18:56 -0500
+Date: Fri, 19 Nov 2010 12:19:44 +0200
+From: David Cohen <david.cohen@nokia.com>
+To: ext Sergio Aguirre <saaguirre@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [omap3isp][PATCH v2 5/9] omap3isp: Remove unused CBUFF
+ register access
+Message-ID: <20101119101944.GC13490@esdhcp04381.research.nokia.com>
+References: <1289831401-593-1-git-send-email-saaguirre@ti.com>
+ <1289831401-593-6-git-send-email-saaguirre@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <1289913494-21590-1-git-send-email-manjunatha_halli@ti.com>
-References: <1289913494-21590-1-git-send-email-manjunatha_halli@ti.com>
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Date: Wed, 17 Nov 2010 15:02:07 +0200
-Message-ID: <AANLkTi=ZT0E=A9ZYAM86qu4P8eStkF2PLep6-DofCX-s@mail.gmail.com>
-Subject: Re: [PATCH v4 0/6] FM V4L2 drivers for WL128x
-To: manjunatha_halli@ti.com
-Cc: mchehab@infradead.org, hverkuil@xs4all.nl,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1289831401-593-6-git-send-email-saaguirre@ti.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Manjunatha,
+Hi Sergio,
 
-On Tue, Nov 16, 2010 at 3:18 PM,  <manjunatha_halli@ti.com> wrote:
->  drivers/staging/ti-st/Kconfig        |   10 +
->  drivers/staging/ti-st/Makefile       |    2 +
->  drivers/staging/ti-st/fmdrv.h        |  259 ++++
->  drivers/staging/ti-st/fmdrv_common.c | 2141 ++++++++++++++++++++++++++++++++++
->  drivers/staging/ti-st/fmdrv_common.h |  458 ++++++++
->  drivers/staging/ti-st/fmdrv_rx.c     |  979 ++++++++++++++++
->  drivers/staging/ti-st/fmdrv_rx.h     |   59 +
->  drivers/staging/ti-st/fmdrv_tx.c     |  461 ++++++++
->  drivers/staging/ti-st/fmdrv_tx.h     |   37 +
->  drivers/staging/ti-st/fmdrv_v4l2.c   |  757 ++++++++++++
->  drivers/staging/ti-st/fmdrv_v4l2.h   |   32 +
->  11 files changed, 5195 insertions(+), 0 deletions(-)
+I have one comment below.
 
-Usually when a driver is added to staging, it should also have a TODO
-file specifying what needs to be done before the driver can be taken
-out of staging (at least as far as the author knows of today).
+On Mon, Nov 15, 2010 at 03:29:57PM +0100, ext Sergio Aguirre wrote:
+> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> ---
+>  drivers/media/video/isp/isp.c    |    2 --
+>  drivers/media/video/isp/isp.h    |    1 -
+>  drivers/media/video/isp/ispreg.h |   25 -------------------------
+>  3 files changed, 0 insertions(+), 28 deletions(-)
+> 
+> diff --git a/drivers/media/video/isp/isp.c b/drivers/media/video/isp/isp.c
+> index a5c02ba..f266e7c 100644
+> --- a/drivers/media/video/isp/isp.c
+> +++ b/drivers/media/video/isp/isp.c
+> @@ -86,7 +86,6 @@ static const struct isp_res_mapping isp_res_maps[] = {
+>  	{
+>  		.isp_rev = ISP_REVISION_2_0,
+>  		.map = 1 << OMAP3_ISP_IOMEM_MAIN |
+> -		       1 << OMAP3_ISP_IOMEM_CBUFF |
+>  		       1 << OMAP3_ISP_IOMEM_CCP2 |
+>  		       1 << OMAP3_ISP_IOMEM_CCDC |
+>  		       1 << OMAP3_ISP_IOMEM_HIST |
+> @@ -100,7 +99,6 @@ static const struct isp_res_mapping isp_res_maps[] = {
+>  	{
+>  		.isp_rev = ISP_REVISION_15_0,
+>  		.map = 1 << OMAP3_ISP_IOMEM_MAIN |
+> -		       1 << OMAP3_ISP_IOMEM_CBUFF |
+>  		       1 << OMAP3_ISP_IOMEM_CCP2 |
+>  		       1 << OMAP3_ISP_IOMEM_CCDC |
+>  		       1 << OMAP3_ISP_IOMEM_HIST |
+> diff --git a/drivers/media/video/isp/isp.h b/drivers/media/video/isp/isp.h
+> index edc029c..b8f63e2 100644
+> --- a/drivers/media/video/isp/isp.h
+> +++ b/drivers/media/video/isp/isp.h
+> @@ -56,7 +56,6 @@
+>  
+>  enum isp_mem_resources {
+>  	OMAP3_ISP_IOMEM_MAIN,
+> -	OMAP3_ISP_IOMEM_CBUFF,
+>  	OMAP3_ISP_IOMEM_CCP2,
+>  	OMAP3_ISP_IOMEM_CCDC,
+>  	OMAP3_ISP_IOMEM_HIST,
+> diff --git a/drivers/media/video/isp/ispreg.h b/drivers/media/video/isp/ispreg.h
+> index 8e4324f..c080980 100644
+> --- a/drivers/media/video/isp/ispreg.h
+> +++ b/drivers/media/video/isp/ispreg.h
+> @@ -37,11 +37,6 @@
+>  #define OMAP3ISP_REG_BASE		OMAP3430_ISP_BASE
+>  #define OMAP3ISP_REG(offset)		(OMAP3ISP_REG_BASE + (offset))
+>  
+> -#define OMAP3ISP_CBUFF_REG_OFFSET	0x0100
+> -#define OMAP3ISP_CBUFF_REG_BASE		(OMAP3ISP_REG_BASE +		\
+> -					 OMAP3ISP_CBUFF_REG_OFFSET)
+> -#define OMAP3ISP_CBUFF_REG(offset)	(OMAP3ISP_CBUFF_REG_BASE + (offset))
+> -
+>  #define OMAP3ISP_CCP2_REG_OFFSET	0x0400
+>  #define OMAP3ISP_CCP2_REG_BASE		(OMAP3ISP_REG_BASE +		\
+>  					 OMAP3ISP_CCP2_REG_OFFSET)
+> @@ -244,26 +239,6 @@
+>  #define ISP_CSIB_SYSCONFIG		ISPCCP2_SYSCONFIG
+>  #define ISP_CSIA_SYSCONFIG		ISPCSI2_SYSCONFIG
+>  
+> -/* ISP_CBUFF Registers */
+> -
+> -#define ISP_CBUFF_SYSCONFIG		(0x010)
+> -#define ISP_CBUFF_IRQENABLE		(0x01C)
+> -
+> -#define ISP_CBUFF0_CTRL			(0x020)
+> -#define ISP_CBUFF1_CTRL			(0x024)
+> -
+> -#define ISP_CBUFF0_START		(0x040)
+> -#define ISP_CBUFF1_START		(0x044)
+> -
+> -#define ISP_CBUFF0_END			(0x050)
+> -#define ISP_CBUFF1_END			(0x054)
+> -
+> -#define ISP_CBUFF0_WINDOWSIZE		(0x060)
+> -#define ISP_CBUFF1_WINDOWSIZE		(0x064)
+> -
+> -#define ISP_CBUFF0_THRESHOLD		(0x070)
+> -#define ISP_CBUFF1_THRESHOLD		(0x074)
+> -
 
-It helps keeping track of the open issues in the driver, which is good
-for everyone - the author, the random contributor/observer, and
-probably even the staging maintainer.
+No need to remove the registers from header file. We're not using them
+on current version, but it doesn't mean we won't use ever. :)
 
-Can you please add such a TODO file ?
+Br,
 
-Thanks,
-Ohad.
+David Cohen
 
->  create mode 100644 drivers/staging/ti-st/fmdrv.h
->  create mode 100644 drivers/staging/ti-st/fmdrv_common.c
->  create mode 100644 drivers/staging/ti-st/fmdrv_common.h
->  create mode 100644 drivers/staging/ti-st/fmdrv_rx.c
->  create mode 100644 drivers/staging/ti-st/fmdrv_rx.h
->  create mode 100644 drivers/staging/ti-st/fmdrv_tx.c
->  create mode 100644 drivers/staging/ti-st/fmdrv_tx.h
->  create mode 100644 drivers/staging/ti-st/fmdrv_v4l2.c
->  create mode 100644 drivers/staging/ti-st/fmdrv_v4l2.h
->
+>  /* CCDC module register offset */
+>  
+>  #define ISPCCDC_PID			(0x000)
+> -- 
+> 1.7.0.4
+> 
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
->
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
