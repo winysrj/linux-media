@@ -1,107 +1,270 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4562 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753506Ab0KRIYH (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from bear.ext.ti.com ([192.94.94.41]:35168 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754300Ab0KSX2l convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Nov 2010 03:24:07 -0500
-Date: Thu, 18 Nov 2010 09:23:59 +0100 (CET)
-From: Hans Houwaard <hans@ginder.xs4all.nl>
-To: linux-media@vger.kernel.org, frank-info@gmx.de
-Message-ID: <28623330.44.1290068639763.JavaMail.root@ginder>
-In-Reply-To: <201011180833.32137.frank-info@gmx.de>
-Subject: Re: [linux-dvb] cx23885 crashes with TeVii S470
+	Fri, 19 Nov 2010 18:28:41 -0500
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: "Aguirre, Sergio" <saaguirre@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Fri, 19 Nov 2010 17:28:37 -0600
+Subject: RE: [omap3isp RFC][PATCH 1/4] omap3isp: Abstract isp subdevs clock
+ control
+Message-ID: <A24693684029E5489D1D202277BE8944850C0D7F@dlee02.ent.ti.com>
+References: <1290209031-12817-1-git-send-email-saaguirre@ti.com>
+ <1290209031-12817-2-git-send-email-saaguirre@ti.com>
+ <A24693684029E5489D1D202277BE8944850C0D7A@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE8944850C0D7A@dlee02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-My issue was that the only PCIe 1X slot shared an IRQ with the onboard Sound card and that caused all kinds of problems. Also I had to power off my machine if I ever had problems with the DVB cards. They would not function properly after a warm reboot.
 
-Good luck with the issues, my system is not entirely stable as well.
 
-Hans
+> -----Original Message-----
+> From: Aguirre, Sergio
+> Sent: Friday, November 19, 2010 5:27 PM
+> To: Aguirre, Sergio; Laurent Pinchart
+> Cc: linux-media@vger.kernel.org
+> Subject: RE: [omap3isp RFC][PATCH 1/4] omap3isp: Abstract isp subdevs
+> clock control
+> 
+> 
+> 
+> > -----Original Message-----
+> > From: Aguirre, Sergio
+> > Sent: Friday, November 19, 2010 5:24 PM
+> > To: Laurent Pinchart
+> > Cc: linux-media@vger.kernel.org; Aguirre, Sergio
+> > Subject: [omap3isp RFC][PATCH 1/4] omap3isp: Abstract isp subdevs clock
+> > control
+> >
+> > Submodules shouldn't be aware of global register bit structure,
+> > specially if the submodules are shared in the future with
+> > other TI architectures (Davinci, future OMAPs, etc)
+> 
+> Oops, I just noticed a bug in this patch in clock disabling...
+> Will resend the updated version.
 
------ Oorspronkelijk bericht -----
-Van: "Frank Wohlfahrt" <frank-info@gmx.de>
-Aan: linux-dvb@linuxtv.org
-Verzonden: Donderdag 18 november 2010 08:33:32
-Onderwerp: [linux-dvb] cx23885 crashes with TeVii S470
+Geez, I'm apologize again. The patch was indeed correct..
 
-I have a  TeVii S470 installed on the only PCIe slot of my MSI H55M-ED55.
+Too much coffee. ;P
 
-The driver crashes about 50% already immediately after booting, but also some 
-time afterwards, working properly until then.
+Regards,
+Sergio
 
-[  190.764711] ds3000_firmware_ondemand: Waiting for firmware upload 
-(dvb-fe-ds3000.fw)...
-[  190.764722] cx23885 0000:02:00.0: firmware: requesting dvb-fe-ds3000.fw
-[  190.767173] ds3000_firmware_ondemand: Waiting for firmware upload(2)...
-[  193.151417] cx23885[0]: mpeg risc op code error
-[  193.151427] cx23885[0]: TS1 B - dma channel status dump
-[  193.151434] cx23885[0]:   cmds: init risc lo   : 0x2390e000
-[  193.151440] cx23885[0]:   cmds: init risc hi   : 0x00000000
-[  193.151446] cx23885[0]:   cmds: cdt base       : 0x00010580
-[  193.151451] cx23885[0]:   cmds: cdt size       : 0x0000000a
-[  193.151456] cx23885[0]:   cmds: iq base        : 0x00010400
-[  193.151462] cx23885[0]:   cmds: iq size        : 0x00000010
-[  193.151468] cx23885[0]:   cmds: risc pc lo     : 0x2390e1cc
-[  193.151473] cx23885[0]:   cmds: risc pc hi     : 0x00000000
-[  193.151478] cx23885[0]:   cmds: iq wr ptr      : 0x00004103
-...
+> 
+> Regards,
+> Sergio
+> 
+> >
+> > Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> > ---
+> >  drivers/media/video/isp/isp.c        |   54
+> > ++++++++++++++++++++++++++++++++++
+> >  drivers/media/video/isp/isp.h        |   12 +++++++
+> >  drivers/media/video/isp/ispccdc.c    |    6 +--
+> >  drivers/media/video/isp/isppreview.c |    6 +--
+> >  drivers/media/video/isp/ispresizer.c |    6 +--
+> >  5 files changed, 72 insertions(+), 12 deletions(-)
+> >
+> > diff --git a/drivers/media/video/isp/isp.c
+> b/drivers/media/video/isp/isp.c
+> > index 30bdc48..2e5030f 100644
+> > --- a/drivers/media/video/isp/isp.c
+> > +++ b/drivers/media/video/isp/isp.c
+> > @@ -991,6 +991,60 @@ void isp_sbl_disable(struct isp_device *isp, enum
+> > isp_sbl_resource res)
+> >   * Clock management
+> >   */
+> >
+> > +void isp_subclk_enable(struct isp_device *isp, enum isp_subclk_resource
+> > res)
+> > +{
+> > +	u32 clk = 0;
+> > +
+> > +	isp->subclk_resources |= res;
+> > +
+> > +	if (isp->subclk_resources & OMAP3_ISP_SUBCLK_H3A)
+> > +		clk |= ISPCTRL_H3A_CLK_EN;
+> > +
+> > +	if (isp->subclk_resources & OMAP3_ISP_SUBCLK_HIST)
+> > +		clk |= ISPCTRL_HIST_CLK_EN;
+> > +
+> > +	if (isp->subclk_resources & OMAP3_ISP_SUBCLK_RESIZER)
+> > +		clk |= ISPCTRL_RSZ_CLK_EN;
+> > +
+> > +	/* NOTE: For CCDC & Preview submodules, we need to affect internal
+> > +	 *       RAM aswell.
+> > +	 */
+> > +	if (isp->subclk_resources & OMAP3_ISP_SUBCLK_CCDC)
+> > +		clk |= ISPCTRL_CCDC_CLK_EN | ISPCTRL_CCDC_RAM_EN;
+> > +
+> > +	if (isp->subclk_resources & OMAP3_ISP_SUBCLK_PREVIEW)
+> > +		clk |= ISPCTRL_PREV_CLK_EN | ISPCTRL_PREV_RAM_EN;
+> > +
+> > +	isp_reg_set(isp, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL, clk);
+> > +}
+> > +
+> > +void isp_subclk_disable(struct isp_device *isp, enum
+> isp_subclk_resource
+> > res)
+> > +{
+> > +	u32 clk = 0;
+> > +
+> > +	isp->subclk_resources &= ~res;
+> > +
+> > +	if (!(isp->subclk_resources & OMAP3_ISP_SUBCLK_H3A))
+> > +		clk |= ISPCTRL_H3A_CLK_EN;
+> > +
+> > +	if (!(isp->subclk_resources & OMAP3_ISP_SUBCLK_HIST))
+> > +		clk |= ISPCTRL_HIST_CLK_EN;
+> > +
+> > +	if (!(isp->subclk_resources & OMAP3_ISP_SUBCLK_RESIZER))
+> > +		clk |= ISPCTRL_RSZ_CLK_EN;
+> > +
+> > +	/* NOTE: For CCDC & Preview submodules, we need to affect internal
+> > +	 *       RAM aswell.
+> > +	 */
+> > +	if (!(isp->subclk_resources & OMAP3_ISP_SUBCLK_CCDC))
+> > +		clk |= ISPCTRL_CCDC_CLK_EN | ISPCTRL_CCDC_RAM_EN;
+> > +
+> > +	if (!(isp->subclk_resources & OMAP3_ISP_SUBCLK_PREVIEW))
+> > +		clk |= ISPCTRL_PREV_CLK_EN | ISPCTRL_PREV_RAM_EN;
+> > +
+> > +	isp_reg_clr(isp, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL, clk);
+> > +}
+> > +
+> >  /*
+> >   * isp_enable_clocks - Enable ISP clocks
+> >   * @isp: OMAP3 ISP device
+> > diff --git a/drivers/media/video/isp/isp.h
+> b/drivers/media/video/isp/isp.h
+> > index b8f63e2..1260e9f 100644
+> > --- a/drivers/media/video/isp/isp.h
+> > +++ b/drivers/media/video/isp/isp.h
+> > @@ -85,6 +85,14 @@ enum isp_sbl_resource {
+> >  	OMAP3_ISP_SBL_RESIZER_WRITE	= 0x200,
+> >  };
+> >
+> > +enum isp_subclk_resource {
+> > +	OMAP3_ISP_SUBCLK_CCDC		= 0x1,
+> > +	OMAP3_ISP_SUBCLK_H3A		= 0x2,
+> > +	OMAP3_ISP_SUBCLK_HIST		= 0x4,
+> > +	OMAP3_ISP_SUBCLK_PREVIEW	= 0x8,
+> > +	OMAP3_ISP_SUBCLK_RESIZER	= 0x10,
+> > +};
+> > +
+> >  enum isp_interface_type {
+> >  	ISP_INTERFACE_PARALLEL,
+> >  	ISP_INTERFACE_CSI2A_PHY2,
+> > @@ -262,6 +270,7 @@ struct isp_device {
+> >  	struct isp_csiphy isp_csiphy2;
+> >
+> >  	unsigned int sbl_resources;
+> > +	unsigned int subclk_resources;
+> >
+> >  	struct iommu *iommu;
+> >  };
+> > @@ -294,6 +303,9 @@ void isp_print_status(struct isp_device *isp);
+> >  void isp_sbl_enable(struct isp_device *isp, enum isp_sbl_resource res);
+> >  void isp_sbl_disable(struct isp_device *isp, enum isp_sbl_resource
+> res);
+> >
+> > +void isp_subclk_enable(struct isp_device *isp, enum isp_subclk_resource
+> > res);
+> > +void isp_subclk_disable(struct isp_device *isp, enum
+> isp_subclk_resource
+> > res);
+> > +
+> >  int omap3isp_register_entities(struct platform_device *pdev,
+> >  			       struct v4l2_device *v4l2_dev);
+> >  void omap3isp_unregister_entities(struct platform_device *pdev);
+> > diff --git a/drivers/media/video/isp/ispccdc.c
+> > b/drivers/media/video/isp/ispccdc.c
+> > index c3d1d7a..4244edf 100644
+> > --- a/drivers/media/video/isp/ispccdc.c
+> > +++ b/drivers/media/video/isp/ispccdc.c
+> > @@ -1687,8 +1687,7 @@ static int ccdc_set_stream(struct v4l2_subdev *sd,
+> > int enable)
+> >  		if (enable == ISP_PIPELINE_STREAM_STOPPED)
+> >  			return 0;
+> >
+> > -		isp_reg_set(isp, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL,
+> > -			    ISPCTRL_CCDC_RAM_EN | ISPCTRL_CCDC_CLK_EN);
+> > +		isp_subclk_enable(isp, OMAP3_ISP_SUBCLK_CCDC);
+> >  		isp_reg_set(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_CFG,
+> >  			    ISPCCDC_CFG_VDLC);
+> >
+> > @@ -1725,8 +1724,7 @@ static int ccdc_set_stream(struct v4l2_subdev *sd,
+> > int enable)
+> >  		ret = ispccdc_disable(ccdc);
+> >  		if (ccdc->output & CCDC_OUTPUT_MEMORY)
+> >  			isp_sbl_disable(isp, OMAP3_ISP_SBL_CCDC_WRITE);
+> > -		isp_reg_clr(isp, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL,
+> > -			    ISPCTRL_CCDC_CLK_EN | ISPCTRL_CCDC_RAM_EN);
+> > +		isp_subclk_disable(isp, OMAP3_ISP_SUBCLK_CCDC);
+> >  		ccdc->underrun = 0;
+> >  		break;
+> >  	}
+> > diff --git a/drivers/media/video/isp/isppreview.c
+> > b/drivers/media/video/isp/isppreview.c
+> > index 74e4f6a..3e55123 100644
+> > --- a/drivers/media/video/isp/isppreview.c
+> > +++ b/drivers/media/video/isp/isppreview.c
+> > @@ -1648,8 +1648,7 @@ static int preview_set_stream(struct v4l2_subdev
+> > *sd, int enable)
+> >  		if (enable == ISP_PIPELINE_STREAM_STOPPED)
+> >  			return 0;
+> >
+> > -		isp_reg_set(isp, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL,
+> > -			    ISPCTRL_PREV_RAM_EN | ISPCTRL_PREV_CLK_EN);
+> > +		isp_subclk_enable(isp, OMAP3_ISP_SUBCLK_PREVIEW);
+> >  		preview_configure(prev);
+> >  		isppreview_print_status(prev);
+> >  	}
+> > @@ -1677,8 +1676,7 @@ static int preview_set_stream(struct v4l2_subdev
+> > *sd, int enable)
+> >  	case ISP_PIPELINE_STREAM_STOPPED:
+> >  		isp_sbl_disable(isp, OMAP3_ISP_SBL_PREVIEW_READ);
+> >  		isp_sbl_disable(isp, OMAP3_ISP_SBL_PREVIEW_WRITE);
+> > -		isp_reg_clr(isp, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL,
+> > -			    ISPCTRL_PREV_CLK_EN | ISPCTRL_PREV_RAM_EN);
+> > +		isp_subclk_disable(isp, OMAP3_ISP_SUBCLK_PREVIEW);
+> >  		prev->underrun = 0;
+> >  		break;
+> >  	}
+> > diff --git a/drivers/media/video/isp/ispresizer.c
+> > b/drivers/media/video/isp/ispresizer.c
+> > index 95c5895..bd33f21 100644
+> > --- a/drivers/media/video/isp/ispresizer.c
+> > +++ b/drivers/media/video/isp/ispresizer.c
+> > @@ -1120,8 +1120,7 @@ static int resizer_set_stream(struct v4l2_subdev
+> > *sd, int enable)
+> >
+> >  	if (enable != ISP_PIPELINE_STREAM_STOPPED &&
+> >  	    res->state == ISP_PIPELINE_STREAM_STOPPED) {
+> > -		isp_reg_set(isp, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL,
+> > -			    ISPCTRL_RSZ_CLK_EN);
+> > +		isp_subclk_enable(isp, OMAP3_ISP_SUBCLK_RESIZER);
+> >  		resizer_configure(res);
+> >  		ispresizer_print_status(res);
+> >  	}
+> > @@ -1146,8 +1145,7 @@ static int resizer_set_stream(struct v4l2_subdev
+> > *sd, int enable)
+> >  	case ISP_PIPELINE_STREAM_STOPPED:
+> >  		isp_sbl_disable(isp, OMAP3_ISP_SBL_RESIZER_READ |
+> >  				OMAP3_ISP_SBL_RESIZER_WRITE);
+> > -		isp_reg_clr(isp, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL,
+> > -			    ISPCTRL_RSZ_CLK_EN);
+> > +		isp_subclk_disable(isp, OMAP3_ISP_SUBCLK_RESIZER);
+> >  		res->underrun = 0;
+> >  		break;
+> >  	}
+> > --
+> > 1.7.0.4
 
-The related source module is (I think): cx23885-core.c
-
-Only yesterday I had the error during shutdown (preventing the system to 
-switch off):
-
-[ 5021.188012] cx23885 0000:02:00.0: PCI INT A disabled
-[ 5021.211443] saa7146: unregister extension 'dvb'.
-[ 5021.243256] BUG: unable to handle kernel NULL pointer dereference at (null)
-[ 5021.243262] IP: [<ef9824ce>] v4l2_device_unregister+0x1e/0x50 [videodev]
-[ 5021.243272] *pde = 76190067 
-[ 5021.243274] Oops: 0000 [#1] SMP 
-[ 5021.243277] last sysfs 
-file: /sys/devices/pci0000:00/0000:00:1c.3/0000:02:00.0/firmware/0000:02:00.0/loading
-
-I don't know if this failure has something to do with the problem above.
-
-The software I use is Ubuntu Lucid (Kernel 2.6.32-25-generic) coming with the 
-VDR distribution yavdr 0.3.
-
-The firmware for the card is from packet "linux-firmware-yavdr" Version: 
-1.1-3yavdr1 
--rw-r--r--  1 root root    8192 2010-07-18 21:54 dvb-fe-ds3000.fw
-
-I get the same problems using the original kernel module from 2.6.32 or the 
-DKMS modules from v4l-dvb-dkms (0~20101018.15139) or s2-liplianin-dkms 
-(0~20101016.14629).
-
-I think I have a hardware problem and I just have to know wether it can be 
-fixed with maybe BIOS settings or if I have to get a different DVB-S2 card. 
-What is the reason for a "mpeg risc op code error" ?
-
-Thanks in advance !!
-
-TeVii S470:
-02:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI Video 
-and Audio Decoder (rev 02)
-
-Rest of the system:
-Intel Core i3 530,+ Hauppauge Nexus-s 2.2 (PCI slot)
-
-cx23885               117401  6 
-cx2341x                12404  1 cx23885
-v4l2_common            16390  2 cx23885,cx2341x
-videodev               36345  3 saa7146_vv,cx23885,v4l2_common
-v4l1_compat            13251  1 videodev
-videobuf_dma_sg        10782  2 saa7146_vv,cx23885
-videobuf_dvb            5096  1 cx23885
-
-Frank Wohlfahrt
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
