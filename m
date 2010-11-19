@@ -1,99 +1,328 @@
-Return-path: <mchehab@pedra>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:41925 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756992Ab0KLMM5 (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:31934 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755451Ab0KSP6d (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Nov 2010 07:12:57 -0500
-Date: Fri, 12 Nov 2010 13:12:53 +0100
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/6] rc-core: ir-core to rc-core conversion
-Message-ID: <20101112121252.GB14033@hardeman.nu>
-References: <4CDA94C6.2010506@infradead.org>
- <0bda4af059880eb492d921728997958c@hardeman.nu>
- <4CDAC730.4060303@infradead.org>
- <20101110220115.GA7302@hardeman.nu>
- <4CDBF596.6030206@infradead.org>
- <02f13638ea24016b5b3673b50940a91c@hardeman.nu>
- <4CDC1326.3030502@infradead.org>
- <20101111203501.GA8276@hardeman.nu>
- <AANLkTinjBOdnYfs=+HVxjaurbwEA33U2YwE0=bdz_Zto@mail.gmail.com>
- <4CDCBBF7.8050702@infradead.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <4CDCBBF7.8050702@infradead.org>
+	Fri, 19 Nov 2010 10:58:33 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Fri, 19 Nov 2010 16:58:08 +0100
+From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Subject: [RFCv6 10/13] mm: MIGRATE_CMA migration type added
+In-reply-to: <cover.1290172312.git.m.nazarewicz@samsung.com>
+To: mina86@mina86.com
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Bryan Huntsman <bryanh@codeaurora.org>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Johan Mossberg <johan.xx.mossberg@stericsson.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	Marcus LORENTZON <marcus.xm.lorentzon@stericsson.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Mel Gorman <mel@csn.ul.ie>, Pawel Osciak <pawel@osciak.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>, dipankar@in.ibm.com,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org
+Message-id: <3ce957fd990a221ee9e9e3047bb564d2ed11eebf.1290172312.git.m.nazarewicz@samsung.com>
+References: <cover.1290172312.git.m.nazarewicz@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Fri, Nov 12, 2010 at 02:00:55AM -0200, Mauro Carvalho Chehab wrote:
->Em 11-11-2010 21:40, Jarod Wilson escreveu:
->> On Thu, Nov 11, 2010 at 3:35 PM, David Härdeman <david@hardeman.nu> wrote:
->>> On Thu, Nov 11, 2010 at 02:00:38PM -0200, Mauro Carvalho Chehab wrote:
->>>> A good exercise would be to port lirc-zilog and see what happens.
->>>
->>> I had a quick look at lirc-zilog and I doubt it would be a good
->>> candidate to integrate with ir-kbd-i2c.c (I assume that's what you were
->>> implying?). Which code from ir-kbd-i2c would it actually be using?
->> 
->> On the receive side, lirc_zilog was pretty similar to lirc_i2c, which
->> we dropped entirely, as ir-kbd-i2c handles receive just fine for all
->> the relevant rx-only devices lirc_i2c worked with. So in theory,
->> ir-kbd-i2c might want to just grow tx support, but I think I'm more
->> inclined to make it a new stand-alone rx and tx capable driver.
->
->It doesn't matter much if we'll grow ir-kbd-i2c or convert lirc_zilog.
->The point is that rc_register_device() should be called inside the i2c
->driver, but several parameters should be passed to it via platform_data,
->in a way that is similar to ir-kbd-i2c.
+The MIGRATE_CMA migration type has two main characteristics:
+(i) only movable and reclaimable pages can be allocated from
+MIGRATE_CMA page blocks and (ii) page allocator will never
+change migration type of MIGRATE_CMA page blocks.
 
-Yes, but if lirc_zilog doesn't use ir-kbd-i2c, there might not be a need
-for the large number of rc-specific members in platform_data?
+This guarantees that page in a MIGRATE_CMA page block can
+always be freed (by reclaiming it or moving somewhere else).
 
->Maybe one solution would be to pass rc_dev via platform_data.
+It is designed to be used with Contiguous Memory Allocator
+(CMA) for allocating big chunks (eg. 10MiB) of physically
+contiguous memory.  Once driver requests contiguous memory,
+CMA will migrate or reclaim pages from MIGRATE_CMA page block.
 
-Shouldn't platform_data be const? And you'll break the refcounting done
-in rc_allocate_device() and rc_free_device() / rc_unregister_device().
-Not to mention the silent bugs that may be introduced if anyone modifies
-rc_allocate_device() without noticing that one driver isn't using it.
+To minimise number of migrations, MIGRATE_CMA migration type
+is the last type tried when page allocator falls back to other
+migration types then requested.
 
->>>> I like the idea of having an inlined function (like
->>>> usb_fill_control_urb), to be sure that all mandatory fields are
->>>> initialized by the drivers.
->>>
->>> I like the idea of having a function, let's call it
->>> rc_register_device(), which makes sure that all mandatory fields are
->>> initialized by the drivers :)
->> 
->> rc_register_device(rc, name, phys, id); to further prevent duplicate
->> struct members? :)
->
->Seems a good idea to me. It is easier and more direct to pass those info
->as parameter, than to have some code inside rc_register_device to check
->for the mandatory data.
+To use this new migration type one can use
+__free_pageblock_cma() function which moves frees a whole page
+block to a buddy allocator marking it (and thus all pages in
+it) as MIGRATE_CMA.
 
-See my reply to Jarod.
+Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ include/linux/mmzone.h |   30 +++++++++++++----
+ mm/Kconfig             |    9 +++++
+ mm/compaction.c        |   10 ++++++
+ mm/internal.h          |    3 ++
+ mm/page_alloc.c        |   83 +++++++++++++++++++++++++++++++++++++++---------
+ 5 files changed, 113 insertions(+), 22 deletions(-)
 
-And also, rc_register_device() is anyway going to check other mandatory
-fields so having it check all of them in one go is just good consistency
-IMHO.
-
->> I still really like this interface change, even if its going to cause
->> short-term issues for i2c devices. I think we just extend this as
->> needed to handle the i2c bits. That said, I haven't really looked all
->> that closely at how much that entails...
->> 
->
->I think I'll apply the cx231xx fixes and then rebase the rc_register_device
->patch on the top of it, doing a minimal change at IR_i2c. Currently, we
->just need to pass one extra parameter. After this, we can work to improve
->it.
-
-Meaning that you'll my patch with the rc_dev API the way it is basically
-and then we can revisit the IR_i2c debate later if necessary? If that's
-what you mean I'm all for it.
-
+diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+index 39c24eb..317da6b 100644
+--- a/include/linux/mmzone.h
++++ b/include/linux/mmzone.h
+@@ -35,13 +35,24 @@
+  */
+ #define PAGE_ALLOC_COSTLY_ORDER 3
+ 
+-#define MIGRATE_UNMOVABLE     0
+-#define MIGRATE_RECLAIMABLE   1
+-#define MIGRATE_MOVABLE       2
+-#define MIGRATE_PCPTYPES      3 /* the number of types on the pcp lists */
+-#define MIGRATE_RESERVE       3
+-#define MIGRATE_ISOLATE       4 /* can't allocate from here */
+-#define MIGRATE_TYPES         5
++enum {
++	MIGRATE_UNMOVABLE,
++	MIGRATE_RECLAIMABLE,
++	MIGRATE_MOVABLE,
++	MIGRATE_PCPTYPES,	/* the number of types on the pcp lists */
++	MIGRATE_RESERVE = MIGRATE_PCPTYPES,
++	MIGRATE_ISOLATE,	/* can't allocate from here */
++#ifdef CONFIG_MIGRATE_CMA
++	MIGRATE_CMA,		/* only movable & reclaimable */
++#endif
++	MIGRATE_TYPES
++};
++
++#ifdef CONFIG_MIGRATE_CMA
++#  define is_migrate_cma(migratetype) unlikely((migratetype) == MIGRATE_CMA)
++#else
++#  define is_migrate_cma(migratetype) false
++#endif
+ 
+ #define for_each_migratetype_order(order, type) \
+ 	for (order = 0; order < MAX_ORDER; order++) \
+@@ -54,6 +65,11 @@ static inline int get_pageblock_migratetype(struct page *page)
+ 	return get_pageblock_flags_group(page, PB_migrate, PB_migrate_end);
+ }
+ 
++static inline bool is_pageblock_cma(struct page *page)
++{
++	return is_migrate_cma(get_pageblock_migratetype(page));
++}
++
+ struct free_area {
+ 	struct list_head	free_list[MIGRATE_TYPES];
+ 	unsigned long		nr_free;
+diff --git a/mm/Kconfig b/mm/Kconfig
+index 5ad2471..4aee3c5 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -1,3 +1,12 @@
++config MIGRATE_CMA
++	bool
++	help
++	  This option should be selected by code that requires MIGRATE_CMA
++	  migration type to be present.  Once a page block has this
++	  migration type, only movable and reclaimable pages can be
++	  allocated from it and the page block never changes it's
++	  migration type.
++
+ config SELECT_MEMORY_MODEL
+ 	def_bool y
+ 	depends on EXPERIMENTAL || ARCH_SELECT_MEMORY_MODEL
+diff --git a/mm/compaction.c b/mm/compaction.c
+index 4d709ee..c5e404b 100644
+--- a/mm/compaction.c
++++ b/mm/compaction.c
+@@ -113,6 +113,16 @@ static bool suitable_migration_target(struct page *page)
+ 	if (migratetype == MIGRATE_ISOLATE || migratetype == MIGRATE_RESERVE)
+ 		return false;
+ 
++	/* Keep MIGRATE_CMA alone as well. */
++	/*
++	 * XXX Revisit.  We currently cannot let compaction touch CMA
++	 * pages since compaction insists on changing their migration
++	 * type to MIGRATE_MOVABLE (see split_free_page() called from
++	 * isolate_freepages_block() above).
++	 */
++	if (is_migrate_cma(migratetype))
++		return false;
++
+ 	/* If the page is a large free page, then allow migration */
+ 	if (PageBuddy(page) && page_order(page) >= pageblock_order)
+ 		return true;
+diff --git a/mm/internal.h b/mm/internal.h
+index dedb0af..cc24e74 100644
+--- a/mm/internal.h
++++ b/mm/internal.h
+@@ -49,6 +49,9 @@ extern void putback_lru_page(struct page *page);
+  * in mm/page_alloc.c
+  */
+ extern void __free_pages_bootmem(struct page *page, unsigned int order);
++#ifdef CONFIG_MIGRATE_CMA
++extern void __free_pageblock_cma(struct page *page);
++#endif
+ extern void prep_compound_page(struct page *page, unsigned long order);
+ #ifdef CONFIG_MEMORY_FAILURE
+ extern bool is_free_buddy_page(struct page *page);
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 6dd2854..91daf22 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -712,6 +712,30 @@ void __meminit __free_pages_bootmem(struct page *page, unsigned int order)
+ 	}
+ }
+ 
++#ifdef CONFIG_MIGRATE_CMA
++
++/*
++ * Free whole pageblock and set it's migration type to MIGRATE_CMA.
++ */
++void __init __free_pageblock_cma(struct page *page)
++{
++	struct page *p = page;
++	unsigned i = pageblock_nr_pages;
++
++	prefetchw(p);
++	do {
++		if (--i)
++			prefetchw(p + 1);
++		__ClearPageReserved(p);
++		set_page_count(p, 0);
++	} while (++p, i);
++
++	set_page_refcounted(page);
++	set_pageblock_migratetype(page, MIGRATE_CMA);
++	__free_pages(page, pageblock_order);
++}
++
++#endif
+ 
+ /*
+  * The order of subdivision here is critical for the IO subsystem.
+@@ -819,11 +843,16 @@ struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
+  * This array describes the order lists are fallen back to when
+  * the free lists for the desirable migrate type are depleted
+  */
+-static int fallbacks[MIGRATE_TYPES][MIGRATE_TYPES-1] = {
++static int fallbacks[MIGRATE_TYPES][4] = {
+ 	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,   MIGRATE_RESERVE },
++#ifdef CONFIG_MIGRATE_CMA
++	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,   MIGRATE_CMA    , MIGRATE_RESERVE },
++	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_CMA    , MIGRATE_RESERVE },
++#else
+ 	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,   MIGRATE_RESERVE },
+ 	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_RESERVE },
+-	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE,     MIGRATE_RESERVE,   MIGRATE_RESERVE }, /* Never used */
++#endif
++	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE }, /* Never used */
+ };
+ 
+ /*
+@@ -919,12 +948,12 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
+ 	/* Find the largest possible block of pages in the other list */
+ 	for (current_order = MAX_ORDER-1; current_order >= order;
+ 						--current_order) {
+-		for (i = 0; i < MIGRATE_TYPES - 1; i++) {
++		for (i = 0; i < ARRAY_SIZE(fallbacks[0]); i++) {
+ 			migratetype = fallbacks[start_migratetype][i];
+ 
+ 			/* MIGRATE_RESERVE handled later if necessary */
+ 			if (migratetype == MIGRATE_RESERVE)
+-				continue;
++				break;
+ 
+ 			area = &(zone->free_area[current_order]);
+ 			if (list_empty(&area->free_list[migratetype]))
+@@ -941,17 +970,28 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
+ 			 * agressive about taking ownership of free pages
+ 			 */
+ 			if (unlikely(current_order >= (pageblock_order >> 1)) ||
+-					start_migratetype == MIGRATE_RECLAIMABLE ||
+-					page_group_by_mobility_disabled) {
+-				unsigned long pages;
++			    start_migratetype == MIGRATE_RECLAIMABLE ||
++			    page_group_by_mobility_disabled) {
++				int pages;
+ 				pages = move_freepages_block(zone, page,
+-								start_migratetype);
++							     start_migratetype);
+ 
+-				/* Claim the whole block if over half of it is free */
+-				if (pages >= (1 << (pageblock_order-1)) ||
+-						page_group_by_mobility_disabled)
++				/*
++				 * Claim the whole block if over half
++				 * of it is free
++				 *
++				 * On the other hand, never change
++				 * migration type of MIGRATE_CMA
++				 * pageblockss.  We don't want
++				 * unmovable or unreclaimable pages to
++				 * be allocated from MIGRATE_CMA
++				 * areas.
++				 */
++				if (!is_pageblock_cma(page) &&
++				    (pages >= (1 << (pageblock_order-1)) ||
++				     page_group_by_mobility_disabled))
+ 					set_pageblock_migratetype(page,
+-								start_migratetype);
++							start_migratetype);
+ 
+ 				migratetype = start_migratetype;
+ 			}
+@@ -961,7 +1001,8 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
+ 			rmv_page_order(page);
+ 
+ 			/* Take ownership for orders >= pageblock_order */
+-			if (current_order >= pageblock_order)
++			if (current_order >= pageblock_order &&
++			    !is_pageblock_cma(page))
+ 				change_pageblock_range(page, current_order,
+ 							start_migratetype);
+ 
+@@ -1176,9 +1217,16 @@ void free_hot_cold_page(struct page *page, int cold)
+ 	 * offlined but treat RESERVE as movable pages so we can get those
+ 	 * areas back if necessary. Otherwise, we may have to free
+ 	 * excessively into the page allocator
++	 *
++	 * Still, do not change migration type of MIGRATE_CMA pages (if
++	 * they'd be recorded as MIGRATE_MOVABLE an unmovable page could
++	 * be allocated from MIGRATE_CMA block and we don't want to allow
++	 * that).  In this respect, treat MIGRATE_CMA like
++	 * MIGRATE_ISOLATE.
+ 	 */
+ 	if (migratetype >= MIGRATE_PCPTYPES) {
+-		if (unlikely(migratetype == MIGRATE_ISOLATE)) {
++		if (unlikely(migratetype == MIGRATE_ISOLATE
++			  || is_migrate_cma(migratetype))) {
+ 			free_one_page(zone, page, 0, migratetype);
+ 			goto out;
+ 		}
+@@ -1267,7 +1315,8 @@ int split_free_page(struct page *page)
+ 	if (order >= pageblock_order - 1) {
+ 		struct page *endpage = page + (1 << order) - 1;
+ 		for (; page < endpage; page += pageblock_nr_pages)
+-			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
++			if (!is_pageblock_cma(page))
++				set_pageblock_migratetype(page, MIGRATE_MOVABLE);
+ 	}
+ 
+ 	return 1 << order;
+@@ -5365,6 +5414,10 @@ int set_migratetype_isolate(struct page *page)
+ 	zone_idx = zone_idx(zone);
+ 
+ 	spin_lock_irqsave(&zone->lock, flags);
++	if (is_pageblock_cma(page)) {
++		ret = 0;
++		goto out;
++	}
+ 
+ 	pfn = page_to_pfn(page);
+ 	arg.start_pfn = pfn;
 -- 
-David Härdeman
+1.7.2.3
+
