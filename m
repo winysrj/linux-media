@@ -1,187 +1,94 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1645 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932233Ab0KPVKl (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41462 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753190Ab0KSQhc convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Nov 2010 16:10:41 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andy Walls <awalls@md.metrocast.net>
-Subject: Re: [RFC PATCH 0/8] V4L BKL removal: first round
-Date: Tue, 16 Nov 2010 22:10:17 +0100
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <cover.1289740431.git.hverkuil@xs4all.nl> <1289937581.2104.29.camel@morgan.silverblock.net> <201011162129.11096.hverkuil@xs4all.nl>
-In-Reply-To: <201011162129.11096.hverkuil@xs4all.nl>
+	Fri, 19 Nov 2010 11:37:32 -0500
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: David Cohen <david.cohen@nokia.com>,
+	ext Lane Brooks <lane@brooks.nu>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Fri, 19 Nov 2010 10:37:24 -0600
+Subject: RE: [omap3isp] Prefered patch base for latest code? (was: "RE:
+ Translation faults with OMAP ISP")
+Message-ID: <A24693684029E5489D1D202277BE8944850C08EA@dlee02.ent.ti.com>
+References: <4CE16AA2.3000208@brooks.nu>
+ <201011191716.23102.laurent.pinchart@ideasonboard.com>
+ <A24693684029E5489D1D202277BE8944850C08AF@dlee02.ent.ti.com>
+ <201011191732.20289.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201011191732.20289.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011162210.18000.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Tuesday, November 16, 2010 21:29:11 Hans Verkuil wrote:
-> On Tuesday, November 16, 2010 20:59:41 Andy Walls wrote:
-> > On Tue, 2010-11-16 at 19:38 +0100, Hans Verkuil wrote:
-> > > On Tuesday, November 16, 2010 17:49:05 Hans Verkuil wrote:
-> > > > On Tuesday, November 16, 2010 17:01:36 Arnd Bergmann wrote:
-> > > > > On Tuesday 16 November 2010, Hans Verkuil wrote:
-> > > > > > > I think there is a misunderstanding. One V4L device (e.g. a TV capture
-> > > > > > > card, a webcam, etc.) has one v4l2_device struct. But it can have multiple
-> > > > > > > V4L device nodes (/dev/video0, /dev/radio0, etc.), each represented by a
-> > > > > > > struct video_device (and I really hope I can rename that to v4l2_devnode
-> > > > > > > soon since that's a very confusing name).
-> > > > > > >
-> > > > > > > You typically need to serialize between all the device nodes belonging to
-> > > > > > > the same video hardware. A mutex in struct video_device doesn't do that,
-> > > > > > > that just serializes access to that single device node. But a mutex in
-> > > > > > > v4l2_device is at the right level.
-> > > > > 
-> > > > > Ok, got it now.
-> > > > > 
-> > > > > > A quick follow-up as I saw I didn't fully answer your question: to my
-> > > > > > knowledge there are no per-driver data structures that need a BKL for
-> > > > > > protection. It's definitely not something I am worried about.
-> > > > > 
-> > > > > Good. Are you preparing a patch for a per-v4l2_device then? This sounds
-> > > > > like the right place with your explanation. I would not put in the
-> > > > > CONFIG_BKL switch, because I tried that for two other subsystems and got
-> > > > > called back, but I'm not going to stop you.
-> > > > > 
-> > > > > As for the fallback to a global mutex, I guess you can set the
-> > > > > videodev->lock pointer and use unlocked_ioctl for those drivers
-> > > > > that do not use a v4l2_device yet, if there are only a handful of them.
-> > > > > 
-> > > > > 	Arnd
-> > > > > 
-> > > > 
-> > > > I will look into it. I'll try to have something today or tomorrow.
-> > > 
-> > > OK, here is my patch adding a mutex to v4l2_device.
-> > > 
-> > > I did some tests if we merge this patch then there are three classes of
-> > > drivers:
-> > > 
-> > > 1) Those implementing unlocked_ioctl: these work like a charm.
-> > > 2) Those implementing v4l2_device: capturing works fine, but calling ioctls
-> > > at the same time from another process or thread is *exceedingly* slow. But at
-> > > least there is no interference from other drivers.
-> 
-> BTW, with 'exceedingly slow' I mean that e.g. a v4l2-ctl --list-ctrls takes 10-20
-> seconds if the device node is streaming at the same time. Something that normally
-> takes less than 0.01s.
-> 
-> > > 3) Those not implementing v4l2_device: using a core lock makes it simply
-> > > impossible to capture from e.g. two devices at the same time. I tried with two
-> > > uvc webcams: the capture rate is simply horrible.
-> > > 
-> > > Note that this is tested in blocking mode. These problems do not appear if you
-> > > capture in non-blocking mode.
-> > > 
-> > > I consider class 3 unacceptable for commonly seen devices. I did a quick scan
-> > > of the v4l drivers and the only common driver that falls in that class is uvc.
-> > > 
-> > > There is one other option, although it is very dirty: don't take the lock if
-> > > the ioctl command is VIDIOC_DQBUF.
-> > 
-> > Is this "in addition to" or "instead of" the mutex lock at
-> > v4l2_device ? 
-> 
-> In addition to.
-> 
-> > >  It works and reliably as well for uvc and
-> > > videobuf (I did a quick code analysis). But I don't know if it works everywhere.
-> > > 
-> > > I would like to get the opinion of others before I implement such a check. But
-> > > frankly, I think this may be our best bet.
-> > 
-> > Opinions? No problem! ;)
-> > 
-> > <opinions>
-> > 
-> > I think it is probably bad.
-> > 
-> > 
-> > > So the patch below would look like this if I add the check:
-> > > 
-> > > -               mutex_lock(&v4l2_ioctl_mutex);
-> > > +               if (cmd != VIDIOC_DQBUF)
-> > > +                       mutex_lock(m);
-> > >                 if (video_is_registered(vdev))
-> > >                         ret = vdev->fops->ioctl(filp, cmd, arg);
-> > > -               mutex_unlock(&v4l2_ioctl_mutex);
-> > > +               if (cmd != VIDIOC_DQBUF)
-> > > +                       mutex_unlock(m);
-> > 
-> > What happens to driver state when VIDIOC_STREAMOFF has the lock held and
-> > VIDIOC_DQBUF comes through?  I think it is legitimate design for an
-> > application to have a playback control thread separate from a thread
-> > that reads in the capture data.
-> 
-> All I can say is that it will work OK for drivers using videobuf since
-> videobuf will take its own lock.
-> 
-> UVC? I'm not sure. But I think that it is probably best to fix uvc for
-> 2.6.37 regardless given the importance of this driver.
-> 
-> It's dirty, but I actually think that it will work fine.
-> 
-> > If this quirk of "infrastructure locking" is going in, might I suggest
-> > that you please document in code comments:
-> > 
-> > a. The scope of what infrastructure lock is intended to protect.  That
-> > is obvious right now, but may not be in the future.
-> >  
-> > b. Why there is an exception to taking the infrastructure lock or what
-> > conditions necessitate having the lock ignored/dropped.
-> > 
-> > c. What code maintenance must be done to remove the exception to taking
-> > the lock.  A specific bullet-list of problem drivers might be nice.
-> 
-> Obviously. The right solution is simply that all drivers should move to
-> unlocked_ioctl. Preferably for 2.6.38. I don't like this hack at all, but
-> circumstances basically force this on us. Not doing this hack leads to
-> unacceptable side-effects.
-> 
-> We can also fast-track for 2.6.37 the set of trivial unlocked_ioctl
-> conversions I did this week. That will reduce the impact as well.
-> 
-> > We won't do future maintainers any favors by letting the operation,
-> > intended behavior, intended scope, and rationale for this odd locking
-> > semantic be lost to history.  We just introduce a BKL with smaller
-> > scope.
-> 
-> We have to aggressively track this and convert all drivers to unlocked_ioctl
-> as soon as possible. There is no other option.
+Hi Laurent,
 
-I did some more analysis: 
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Laurent Pinchart
+> Sent: Friday, November 19, 2010 10:32 AM
+> To: Aguirre, Sergio
+> Cc: David Cohen; ext Lane Brooks; linux-media@vger.kernel.org
+> Subject: Re: [omap3isp] Prefered patch base for latest code? (was: "RE:
+> Translation faults with OMAP ISP")
+> 
+> Hi Sergio,
+> 
+> On Friday 19 November 2010 17:23:45 Aguirre, Sergio wrote:
+> > On Friday, November 19, 2010 10:16 AM Aguirre, Sergio wrote:
+> > > On Friday 19 November 2010 17:07:09 Aguirre, Sergio wrote:
+> 
+> [snip]
+> 
+> > > > How close is this tree from the latest internal version you guys
+> work
+> > > > with?
+> > > >
+> > > > http://meego.gitorious.com/maemo-multimedia/omap3isp-
+> rx51/commits/devel
+> > >
+> > > There's less differences between gitorious and our internal tree than
+> > > between linuxtv and our internal tree.
+> >
+> > Ok, I guess I can treat above tree as an "omap3isp-next" tree then, to
+> have
+> > a sneak preview of what's coming ;)
+> 
+> I haven't expressed myself clearly enough. The gitorious tree is currently
+> more in sync with our internal tree that the linuxtv is for a simple
+> reason:
+> both our internal tree and the gitorious tree are missing modifications
+> made
+> during the public review process.
 
-Not taking the lock for VIDIOC_DQBUF is fine for videobuf-based drivers. So
-this is a good temporary fix for those. So we are left with drivers that:
+Ok. Sorry, I think I didn't quite understood that.
 
-1) do not use unlocked_ioctl
-2) do not use videobuf
-3) no trivial patch converting them to unlocked_ioctl exists (i.e., the patches
-I posted for review this week).
+> 
+> Patches published from our internal tree are always pushed to linuxtv and
+> gitorious at the same time (or mostly). Please don't use the gitorious
+> tree
+> for anything else than trying the driver on the N900.
 
-The set of those is very small:
+I see. So I probably won't worry about this tree at all, since I don't have an N900.
 
-stk-webcam, usbvision and uvc.
+I'm trying this in my Zoom board w/OMAP3630, and I have a Beagleboard xM handy aswell (OMAP3730), so In my tree I'll try to keep support for both of
+These.
 
-Of these three uvc is the only important one for 2.6.37. The others we can tackle
-for 2.6.38.
-
-So I propose to put in this hack (with lots of comments), add the 'trivial BKL
-removal' patch series, and send the whole lot to 2.6.37. Next to that uvc needs
-to be converted to unlocked_ioctl for 2.6.37 as well.
-
-Does anyone have a better idea?
+Also, I'm working on trying to bring this in a very different chip, but that's a secret ;) That's why I'm working in doing cleanups.
 
 Regards,
+Sergio
 
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+> 
+> --
+> Regards,
+> 
+> Laurent Pinchart
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
