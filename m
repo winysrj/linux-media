@@ -1,52 +1,56 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:53197 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750908Ab0KDORB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Nov 2010 10:17:01 -0400
-Received: by bwz11 with SMTP id 11so1694404bwz.19
-        for <linux-media@vger.kernel.org>; Thu, 04 Nov 2010 07:17:00 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53635 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752918Ab0KSOWX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Nov 2010 09:22:23 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH/RFC] v4l: Add subdev sensor g_skip_frames operation
+Date: Fri, 19 Nov 2010 15:22:23 +0100
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <1290173202-28769-1-git-send-email-laurent.pinchart@ideasonboard.com> <201011191451.44465.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1011191509541.20751@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1011191509541.20751@axis700.grange>
 MIME-Version: 1.0
-Date: Thu, 4 Nov 2010 15:16:59 +0100
-Message-ID: <AANLkTimpXwWGJfXRa=_38SKbKyfu_6sEME=in7YESV8x@mail.gmail.com>
-Subject: Tevii S470 on Debian Squeeze
-From: Josu Lazkano <josu.lazkano@gmail.com>
-To: linux-media@vger.kernel.org,
-	Discussion about mythtv <mythtv-users@mythtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201011191522.24360.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hello, I am having some problems to get working my Tevii S470 DVB-S2 PCIe card.
+Hi Guennadi,
 
-I am using a Debian Squeeze (2.6.32-5-686) system on a Intel Atom 330
-(Nvidia ION) machine. I read the LinuxTV wiki:
-http://www.linuxtv.org/wiki/index.php/TeVii_S470#Older_kernels
+On Friday 19 November 2010 15:15:11 Guennadi Liakhovetski wrote:
+> On Fri, 19 Nov 2010, Laurent Pinchart wrote:
+> > On Friday 19 November 2010 14:42:31 Hans Verkuil wrote:
+> > > On Friday 19 November 2010 14:26:42 Laurent Pinchart wrote:
+> > > > Some buggy sensors generate corrupt frames when the stream is
+> > > > started. This new operation returns the number of corrupt frames to
+> > > > skip when starting the stream.
+> > > 
+> > > Looks OK, but perhaps the two should be combined to one function?
+> > 
+> > I'm fine with both. Guennadi, any opinion ?
+> 
+> Same as before;) I think, there can be many more such "micro" parameters,
+> that we'll want to collect from the sensor. So, if we had a good idea -
+> what those parameters are like, we could implement just one API call to
+> get them all, or even just pass one object with this information - if it
+> is constant. If we don't have a good idea yet, what to expect there, it
+> might be best to wait and first collect a more complete understanding of
+> this kind of information.
 
-These are my steps:
+I agree.
 
-1. Donwloas the Tevii driver:
-  wget -c http://tevii.com/tevii_ds3000.tar.gz
-  tar zxfv tevii_ds3000.tar.gz
-  su
-  cp tevii_ds3000/dvb-fe-ds3000.fw /lib/firmware/
-
-2. Download s2-liplianin:
-  hg clone http://mercurial.intuxication.org/hg/s2-liplianin
-
-3. When I run make I have some warnings and errors: (all the log from
-make: http://dl.dropbox.com/u/1541853/tevii/s2-liplianin_make)
-  make[5]: *** [/home/lazkano/s2-liplianin/v4l/ir-sysfs.o] Error 1
-  make[4]: *** [_module_/home/lazkano/s2-liplianin/v4l] Error 2
-
-This is my card info:
-  $ lspci | grep CX23885
-  05:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885
-PCI Video and Audio Decoder (rev 02)
-
-Can you help with this?
-
-Thanks for all your help and best regards
-
+> In any case I wouldn't convert these two calls
+> to one like
+> 
+> int (*get_bad_things)(struct v4l2_subdev *sd, u32 *lines, u32 *frames)
+> 
+> ;)
 
 -- 
-Josu Lazkano
+Regards,
+
+Laurent Pinchart
