@@ -1,45 +1,70 @@
-Return-path: <mchehab@pedra>
-Received: from [120.204.251.227] ([120.204.251.227]:37648 "EHLO
-	LC-SHMAIL-01.SHANGHAI.LEADCORETECH.COM" rhost-flags-FAIL-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1759494Ab0KPIHq (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38464 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752531Ab0KSQHQ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Nov 2010 03:07:46 -0500
-Message-ID: <4CE23A42.1090101@leadcoretech.com>
-Date: Tue, 16 Nov 2010 16:01:06 +0800
-From: "Figo.zhang" <zhangtianfei@leadcoretech.com>
+	Fri, 19 Nov 2010 11:07:16 -0500
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: David Cohen <david.cohen@nokia.com>,
+	ext Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: ext Lane Brooks <lane@brooks.nu>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Fri, 19 Nov 2010 10:07:09 -0600
+Subject: [omap3isp] Prefered patch base for latest code? (was: "RE:
+ Translation faults with OMAP ISP")
+Message-ID: <A24693684029E5489D1D202277BE8944850C085C@dlee02.ent.ti.com>
+References: <4CE16AA2.3000208@brooks.nu> <4CE686C9.6070902@brooks.nu>
+ <20101119150620.GB11586@esdhcp04381.research.nokia.com>
+ <201011191607.27568.laurent.pinchart@ideasonboard.com>
+ <20101119151219.GC11586@esdhcp04381.research.nokia.com>
+In-Reply-To: <20101119151219.GC11586@esdhcp04381.research.nokia.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Andrew Chew <AChew@nvidia.com>,
-	"'linux-media@vger.kernel.org'" <linux-media@vger.kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: Allocating videobuf_buffer, but lists not being initialized
-References: <643E69AA4436674C8F39DCC2C05F763816BB828A36@HQMAIL03.nvidia.com> <643E69AA4436674C8F39DCC2C05F763816BB828A37@HQMAIL03.nvidia.com> <201011160837.32797.hverkuil@xs4all.nl>
-In-Reply-To: <201011160837.32797.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-于 11/16/2010 03:37 PM, Hans Verkuil 写道:
-> On Tuesday, November 16, 2010 02:10:39 Andrew Chew wrote:
->> I'm looking at drivers/media/video/videobuf-dma-contig.c's __videobuf_alloc() routine.  We call kzalloc() to allocate the videobuf_buffer.  However, I don't see where the two lists (vb->stream and vb->queue) that are a part of struct videobuf_buffer get initialized (with, say, INIT_LIST_HEAD).
->
-> Yuck. The videobuf framework doesn't initialize vb-stream at all. It relies on
-> list_add_tail to effectively initialize it for it. It works, but it is not
-> exactly clean programming :-(
->
-> The vb->queue list has to be initialized in the driver. Never understood the
-> reason for that either.
->
-> Marek, can you make sure that videobuf2 will initialize these lists correctly?
-> That is, vb2 should do this initialization instead of the driver.
+Hi David and Laurent,
 
-vb2 have init the list :
-	INIT_LIST_HEAD(&q->queued_list);
-	INIT_LIST_HEAD(&q->done_list);
+<snip>
 
-btw, "queued_list" re-name "grabbing_list" is better?
+> >
+> > Don't forget that Lane is using an older version of the OMAP3 ISP
+> driver. The
+> > bug might have been fixed in the latest code.
+> 
+> Hm. We did fix some iommu faults.
+> Maybe it's better to test a newer version instead.
+> If you still see that bug using an up-to-date version, please report it
+> and I can try to help you. :)
 
+How close is this tree from the latest internal version you guys work with?
 
+http://meego.gitorious.com/maemo-multimedia/omap3isp-rx51/commits/devel
 
+I have been basing my patches on top of this tree:
 
+http://git.linuxtv.org/pinchartl/media.git?h=refs/heads/media-0004-omap3isp
+
+Would it be better to be based on the gitorious tree instead?
+
+What do you think?
+
+Regards,
+Sergio
+
+> 
+> Regards,
+> 
+> David
+> 
+> >
+> > --
+> > Regards,
+> >
+> > Laurent Pinchart
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
