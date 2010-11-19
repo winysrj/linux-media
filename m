@@ -1,64 +1,83 @@
-Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:60375 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750901Ab0KHFne convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Nov 2010 00:43:34 -0500
+Return-path: <mchehab@gaivota>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:64935 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754456Ab0KSOR1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Nov 2010 09:17:27 -0500
+Received: by fxm13 with SMTP id 13so692185fxm.19
+        for <linux-media@vger.kernel.org>; Fri, 19 Nov 2010 06:17:26 -0800 (PST)
+Message-ID: <4CE686C9.6070902@brooks.nu>
+Date: Fri, 19 Nov 2010 07:16:41 -0700
+From: Lane Brooks <lane@brooks.nu>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1011020821300.3804@axis700.grange>
-References: <AANLkTikJNdcnRbNwv4j8zfv4TfSqOgB2K=UD4UFfL=q4@mail.gmail.com>
-	<Pine.LNX.4.64.1011020821300.3804@axis700.grange>
-Date: Sun, 7 Nov 2010 22:43:33 -0700
-Message-ID: <AANLkTikww_o+L0hS8jFhL+u2EGvZMQPogY_F89Kcm1xT@mail.gmail.com>
-Subject: Re: V4L2 and framebuffer for the same controller
-From: Jun Nie <niej0001@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	linux-fbdev@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: David Cohen <david.cohen@nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Translation faults with OMAP ISP
+References: <4CE16AA2.3000208@brooks.nu> <20101119132927.GD13490@esdhcp04381.research.nokia.com> <4CE684E6.6010403@brooks.nu> <201011191513.59622.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201011191513.59622.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-2010/11/2 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
-> Hi Jun
->
-> On Fri, 29 Oct 2010, Jun Nie wrote:
->
->> Hi Guennadi,
->>     I find that your idea of "provide a generic framebuffer driver
->> that could sit on top of a v4l output driver", which may be a good
->> solution of our LCD controller driver, or maybe much more other SOC
->> LCD drivers. V4L2 interface support many features than framebuffer for
->> video playback usage, such as buffer queue/dequeue, quality control,
->> etc. However, framebuffer is common for UI display. Implement two
->> drivers for one controller is a challenge for current architecture.
->>     I am interested in your idea. Could you elaborate it? Or do you
->> think multifunction driver is the right solution for this the
->> scenario?
->
-> Right, we have discussed this idea at the V4L2/MC mini-summit earlier this
-> year, there the outcome was, that the idea is not bad, but it is easy
-> enough to create such framebuffer additions on top of specific v4l2 output
-> drivers anyway, so, noone was interested enough to start designing and
-> implementing such a generic wrapper driver. However, I've heard, that this
-> topic has also been scheduled for discussion at another v4l / kernel
-> meeting (plumbers?), so, someone might be looking into implementing
-> this... If you yourself would like to do that - feel free to propose a
-> design on both mailing lists (fbdev added to cc), then we can discuss it,
-> and you can implement it;)
->
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
->
+On 11/19/2010 07:13 AM, Laurent Pinchart wrote:
+> On Friday 19 November 2010 15:08:38 Lane Brooks wrote:
+>> On 11/19/2010 06:29 AM, David Cohen wrote:
+>>> On Thu, Nov 18, 2010 at 12:17:21AM +0100, ext Lane Brooks wrote:
+>>>> On Wednesday 17 November 2010 00:46:27 Lane Brooks wrote:
+>>>>>> Laurent,
+>>>>>>
+>>>>>> I am getting iommu translation errors when I try to use the CCDC
+>>>>>> output after using the Resizer output.
+>>>>>>
+>>>>>> If I use the CCDC output to stream some video, then close it down,
+>>>>>> switch to the Resizer output and open it up and try to stream, I get
+>>>>>> the following errors spewing out:
+>>>>>>
+>>>>>> omap-iommu omap-iommu.0: omap2_iommu_fault_isr: da:00d0ef00
+>>>>>> translation fault
+>>>>>> omap-iommu omap-iommu.0: iommu_fault_handler: da:00d0ef00 pgd:ce664034
+>>>>>> *pgd:00000000
+>>>>>>
+>>>>>> and the select times out.
+>>>>>>
+>>>>>>     From a fresh boot, I can stream just fine from the Resizer and then
+>>>>>>
+>>>>>> switch to the CCDC output just fine. It is only when I go from the
+>>>>>> CCDC to the Resizer that I get this problem. Furthermore, when it
+>>>>>> gets into this state, then anything dev node I try to use has the
+>>>>>> translation errors and the only way to recover is to reboot.
+>>>>>>
+>>>>>> Any ideas on the problem?
+>>> I'm not sure if it's your case, but OMAP3 ISP driver does not support
+>>> pipeline with multiples outputs yet. We have to return error from the
+>>> driver in this case. If you configured CCDC to write to memory and then
+>>> to write to preview/resizer afterwards without deactivating the link to
+>>> write to memory, you may face a similar problem you described.
+>>>
+>>> Can you please try a patch I've sent to you (CC'ing linux-media) with
+>>> subject: "[omap3isp][PATCH] omap3isp: does not allow pipeline with
+>>> multiple video outputs yet"?
+>>>
+>>> Regards,
+>>>
+>>> David
+>> David,
+>>
+>> I am not trying to use multiple outputs simultaneously. I get the
+>> translation error with the following sequence:
+>>
+>> - Open resizer output and setup media links.
+>> - Stream some images.
+>> - Close resizer.
+>> - Reset all media links.
+>> - Open CCDC and setup media links.
+>> - Try to stream some images but get translation faults.
+>>
+>> Is your patch going to help with this problem?
+> If you reset all links before setting them up for the CCDC output, probably
+> not (unless you have a bug in your CCDC links setup, but I doubt that).
+I can stream just fine from the CCDC output if I do not use the resizer 
+prior, so I am pretty sure I am setting up the CCDC links correctly.
 
-Good to know others are also interested in it. I surely can contribute
-to it. But my concern is how to support Xwindow. Android and Ubuntu
-should both run on our platform. Queue/deque should work well for
-Android UI. I still can not figure out how to support Xwindow, for it
-does not interact with driver after it get the mmaped buffer.
-
-Jun
