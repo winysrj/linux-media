@@ -1,78 +1,52 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:58874 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755670Ab0KKNe1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Nov 2010 08:34:27 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oABDYRJZ013143
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 11 Nov 2010 08:34:27 -0500
-Received: from pedra (vpn-228-194.phx2.redhat.com [10.3.228.194])
-	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id oABDXNjX027735
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 11 Nov 2010 08:34:26 -0500
-Date: Thu, 11 Nov 2010 11:33:14 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/2] [media] rc: Allow specifying properties for i2c IR's
-Message-ID: <20101111113314.505c9e05@pedra>
-In-Reply-To: <cover.1289482268.git.mchehab@redhat.com>
-References: <cover.1289482268.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Return-path: <mchehab@gaivota>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:43393 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753190Ab0KSXzp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Nov 2010 18:55:45 -0500
+Date: Sat, 20 Nov 2010 00:55:42 +0100
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Jarod Wilson <jarod@redhat.com>, Jarod Wilson <jarod@wilsonet.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 0/2] Apple remote support
+Message-ID: <20101119235542.GA4694@hardeman.nu>
+References: <20101104193823.GA9107@hardeman.nu>
+ <4CD30CE5.5030003@redhat.com>
+ <da4aa0687909ae3843c682fbf446e452@hardeman.nu>
+ <AANLkTin1Lu9cdnLeVfA8NDQFWkKzb6k+yCiSBqq6Otz6@mail.gmail.com>
+ <4CE2743D.5040501@redhat.com>
+ <20101116232636.GA28261@hardeman.nu>
+ <20101118163304.GB16899@redhat.com>
+ <20101118204319.GA8213@hardeman.nu>
+ <20101118204952.GC16899@redhat.com>
+ <4CE593BF.4010908@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <4CE593BF.4010908@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Several I2C IR's only provide part of the IR protocol message (in general,
-they provide only the command part). Due to that, some props fields need
-to be specified.
+On Thu, Nov 18, 2010 at 06:59:43PM -0200, Mauro Carvalho Chehab wrote:
+>Em 18-11-2010 18:49, Jarod Wilson escreveu:
+>> On Thu, Nov 18, 2010 at 09:43:19PM +0100, David Härdeman wrote:
+>>> On Thu, Nov 18, 2010 at 11:33:04AM -0500, Jarod Wilson wrote:
+>>>> Mauro's suggestion, iirc, was that max scancode size should be a
+>>>> property of the keytable uploaded, and something set at load time (and
+>>>> probably exposed as a sysfs node, similar to protocols).
+>>>
+>>> I think that would be a step in the wrong direction. It would make the
+>>> keytables less flexible while providing no real advantages.
+>
+>We can't simply just change NEC to 32 bits, as we'll break userspace ABI 
+>(as current NEC keycode tables use only 16 bits). So, an old table will not
+>worky anymore, if we do such change.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+The idea was to do the conversion from <whatever> to 32 bits in
+get/setkeycode.
 
-diff --git a/drivers/media/video/ir-kbd-i2c.c b/drivers/media/video/ir-kbd-i2c.c
-index aee8943..82834ea 100644
---- a/drivers/media/video/ir-kbd-i2c.c
-+++ b/drivers/media/video/ir-kbd-i2c.c
-@@ -270,6 +270,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- {
- 	char *ir_codes = NULL;
- 	const char *name = NULL;
-+	struct ir_dev_props *props = NULL;
- 	u64 ir_type = IR_TYPE_UNKNOWN;
- 	struct IR_i2c *ir;
- 	struct input_dev *input_dev;
-@@ -337,6 +338,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		name = init_data->name;
- 		if (init_data->type)
- 			ir_type = init_data->type;
-+		props = init_data->props;
- 
- 		if (init_data->polling_interval)
- 			ir->polling_interval = init_data->polling_interval;
-@@ -388,7 +390,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	input_dev->name       = ir->name;
- 	input_dev->phys       = ir->phys;
- 
--	err = ir_input_register(ir->input, ir->ir_codes, NULL, MODULE_NAME);
-+	err = ir_input_register(ir->input, ir->ir_codes, props, MODULE_NAME);
- 	if (err)
- 		goto err_out_free;
- 
-diff --git a/include/media/ir-kbd-i2c.h b/include/media/ir-kbd-i2c.h
-index 8c37b5e..19ea5fa 100644
---- a/include/media/ir-kbd-i2c.h
-+++ b/include/media/ir-kbd-i2c.h
-@@ -47,5 +47,7 @@ struct IR_i2c_init_data {
- 	 */
- 	int                    (*get_key)(struct IR_i2c*, u32*, u32*);
- 	enum ir_kbd_get_key_fn internal_get_key_func;
-+
-+	struct ir_dev_props    *props;
- };
- #endif
+
 -- 
-1.7.1
-
-
+David Härdeman
