@@ -1,48 +1,49 @@
 Return-path: <mchehab@gaivota>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:60895 "EHLO
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:33751 "EHLO
 	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750813Ab0J3URs (ORCPT
+	with ESMTP id S1757492Ab0KSXoo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Oct 2010 16:17:48 -0400
-Subject: [PATCH] drivers/media/IR/ir-keytable.c: fix binary search
-To: torvalds@linux-foundation.org
+	Fri, 19 Nov 2010 18:44:44 -0500
+Subject: [PATCH 06/10] saa7134: make module parameters boolean
+To: linux-media@vger.kernel.org
 From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: jarod@wilsonet.com, dmitry.torokhov@gmail.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	mchehab@infradead.org
-Date: Sat, 30 Oct 2010 22:17:44 +0200
-Message-ID: <20101030201744.2964.20624.stgit@localhost.localdomain>
+Cc: jarod@wilsonet.com, mchehab@infradead.org
+Date: Sat, 20 Nov 2010 00:43:07 +0100
+Message-ID: <20101119234307.3511.53565.stgit@localhost.localdomain>
+In-Reply-To: <20101119233959.3511.91287.stgit@localhost.localdomain>
+References: <20101119233959.3511.91287.stgit@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-The input-large-scancode patches changed the binary search in
-drivers/media/IR/ir-keytable.c to use unsigned integers, but
-signed integers are actually necessary for the algorithm to work.
+int to bool conversion for module parameters which are truely boolean.
 
 Signed-off-by: David Härdeman <david@hardeman.nu>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 ---
- drivers/media/IR/ir-keytable.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/video/saa7134/saa7134-input.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
-index 9186b45..647d52b 100644
---- a/drivers/media/IR/ir-keytable.c
-+++ b/drivers/media/IR/ir-keytable.c
-@@ -325,9 +325,9 @@ static int ir_setkeytable(struct ir_input_dev *ir_dev,
- static unsigned int ir_lookup_by_scancode(const struct ir_scancode_table *rc_tab,
- 					  unsigned int scancode)
- {
--	unsigned int start = 0;
--	unsigned int end = rc_tab->len - 1;
--	unsigned int mid;
-+	int start = 0;
-+	int end = rc_tab->len - 1;
-+	int mid;
+diff --git a/drivers/media/video/saa7134/saa7134-input.c b/drivers/media/video/saa7134/saa7134-input.c
+index 8b80efb..aea74e2 100644
+--- a/drivers/media/video/saa7134/saa7134-input.c
++++ b/drivers/media/video/saa7134/saa7134-input.c
+@@ -29,12 +29,12 @@
  
- 	while (start <= end) {
- 		mid = (start + end) / 2;
+ #define MODULE_NAME "saa7134"
+ 
+-static unsigned int disable_ir;
+-module_param(disable_ir, int, 0444);
++static bool disable_ir;
++module_param(disable_ir, bool, 0444);
+ MODULE_PARM_DESC(disable_ir,"disable infrared remote support");
+ 
+-static unsigned int ir_debug;
+-module_param(ir_debug, int, 0644);
++static bool ir_debug;
++module_param(ir_debug, bool, 0644);
+ MODULE_PARM_DESC(ir_debug,"enable debug messages [IR]");
+ 
+ static int pinnacle_remote;
 
