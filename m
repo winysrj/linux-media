@@ -1,2664 +1,751 @@
 Return-path: <mchehab@gaivota>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:47841 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752636Ab0KBUS2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Nov 2010 16:18:28 -0400
-Subject: [PATCH 6/6] rc-core: convert winbond-cir
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:46515 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755296Ab0KSP4A (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Nov 2010 10:56:00 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LC50076A2X9GQ20@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 19 Nov 2010 15:55:57 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LC500IJK2X80K@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 19 Nov 2010 15:55:57 +0000 (GMT)
+Date: Fri, 19 Nov 2010 16:55:43 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 6/7] v4l: vivi: port to videobuf2
+In-reply-to: <1290182144-10878-1-git-send-email-m.szyprowski@samsung.com>
 To: linux-media@vger.kernel.org
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: jarod@wilsonet.com, mchehab@infradead.org
-Date: Tue, 02 Nov 2010 21:18:09 +0100
-Message-ID: <20101102201809.12010.1174.stgit@localhost.localdomain>
-In-Reply-To: <20101102201733.12010.30019.stgit@localhost.localdomain>
-References: <20101102201733.12010.30019.stgit@localhost.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com
+Message-id: <1290182144-10878-7-git-send-email-m.szyprowski@samsung.com>
+References: <1290182144-10878-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Move winbond-cir from drivers/input/misc/ into drivers/media/IR/
-and convert it to use rc-core.
+Make vivi use videobuf2 in place of videobuf.
 
-Signed-off-by: David HÃ¤rdeman <david@hardeman.nu>
-Acked-by: Jarod Wilson <jarod@redhat.com>
+Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+CC: Pawel Osciak <pawel@osciak.com>
 ---
- drivers/input/misc/Kconfig       |   18 
- drivers/input/misc/Makefile      |    1 
- drivers/input/misc/winbond-cir.c | 1608 --------------------------------------
- drivers/media/IR/Kconfig         |   17 
- drivers/media/IR/Makefile        |    1 
- drivers/media/IR/winbond-cir.c   |  932 ++++++++++++++++++++++
- 6 files changed, 950 insertions(+), 1627 deletions(-)
- delete mode 100644 drivers/input/misc/winbond-cir.c
- create mode 100644 drivers/media/IR/winbond-cir.c
+ drivers/media/video/Kconfig |    2 +-
+ drivers/media/video/vivi.c  |  390 ++++++++++++++++++++++++-------------------
+ 2 files changed, 221 insertions(+), 171 deletions(-)
 
-diff --git a/drivers/input/misc/Kconfig b/drivers/input/misc/Kconfig
-index b99b8cb..c1a81bc 100644
---- a/drivers/input/misc/Kconfig
-+++ b/drivers/input/misc/Kconfig
-@@ -294,24 +294,6 @@ config INPUT_SGI_BTNS
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called sgi_btns.
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index e7752ee1..9315c0a 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -557,7 +557,7 @@ config VIDEO_VIVI
+ 	depends on VIDEO_DEV && VIDEO_V4L2 && !SPARC32 && !SPARC64
+ 	depends on FRAMEBUFFER_CONSOLE || STI_CONSOLE
+ 	select FONT_8x16
+-	select VIDEOBUF_VMALLOC
++	select VIDEOBUF2_VMALLOC
+ 	default n
+ 	---help---
+ 	  Enables a virtual video driver. This device shows a color bar
+diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
+index 9797e5a..baaacf3 100644
+--- a/drivers/media/video/vivi.c
++++ b/drivers/media/video/vivi.c
+@@ -7,6 +7,9 @@
+  *      John Sokol <sokol--a.t--videotechnology.com>
+  *      http://v4l.videotechnology.com/
+  *
++ *      Conversion to videobuf2 by Pawel Osciak & Marek Szyprowski
++ *      Copyright (c) 2010 Samsung Electronics
++ *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the BSD Licence, GNU General Public License
+  * as published by the Free Software Foundation; either version 2 of the
+@@ -23,10 +26,8 @@
+ #include <linux/mutex.h>
+ #include <linux/videodev2.h>
+ #include <linux/kthread.h>
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 20)
+ #include <linux/freezer.h>
+-#endif
+-#include <media/videobuf-vmalloc.h>
++#include <media/videobuf2-vmalloc.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-common.h>
+@@ -42,7 +43,7 @@
+ #define MAX_HEIGHT 1200
  
--config INPUT_WINBOND_CIR
--	tristate "Winbond IR remote control"
--	depends on X86 && PNP
--	select NEW_LEDS
--	select LEDS_CLASS
--	select LEDS_TRIGGERS
--	select BITREVERSE
--	help
--	  Say Y here if you want to use the IR remote functionality found
--	  in some Winbond SuperI/O chips. Currently only the WPCD376I
--	  chip is supported (included in some Intel Media series motherboards).
--
--	  IR Receive and wake-on-IR from suspend and power-off is currently
--	  supported.
--
--	  To compile this driver as a module, choose M here: the module will be
--	  called winbond_cir.
--
- config HP_SDC_RTC
- 	tristate "HP SDC Real Time Clock"
- 	depends on (GSC || HP300) && SERIO
-diff --git a/drivers/input/misc/Makefile b/drivers/input/misc/Makefile
-index 1fe1f6c..06b2b51 100644
---- a/drivers/input/misc/Makefile
-+++ b/drivers/input/misc/Makefile
-@@ -38,7 +38,6 @@ obj-$(CONFIG_INPUT_SPARCSPKR)		+= sparcspkr.o
- obj-$(CONFIG_INPUT_TWL4030_PWRBUTTON)	+= twl4030-pwrbutton.o
- obj-$(CONFIG_INPUT_TWL4030_VIBRA)	+= twl4030-vibra.o
- obj-$(CONFIG_INPUT_UINPUT)		+= uinput.o
--obj-$(CONFIG_INPUT_WINBOND_CIR)		+= winbond-cir.o
- obj-$(CONFIG_INPUT_WISTRON_BTNS)	+= wistron_btns.o
- obj-$(CONFIG_INPUT_WM831X_ON)		+= wm831x-on.o
- obj-$(CONFIG_INPUT_YEALINK)		+= yealink.o
-diff --git a/drivers/input/misc/winbond-cir.c b/drivers/input/misc/winbond-cir.c
-deleted file mode 100644
-index 64f1de7..0000000
---- a/drivers/input/misc/winbond-cir.c
-+++ /dev/null
-@@ -1,1608 +0,0 @@
--/*
-- *  winbond-cir.c - Driver for the Consumer IR functionality of Winbond
-- *                  SuperI/O chips.
-- *
-- *  Currently supports the Winbond WPCD376i chip (PNP id WEC1022), but
-- *  could probably support others (Winbond WEC102X, NatSemi, etc)
-- *  with minor modifications.
-- *
-- *  Original Author: David Härdeman <david@hardeman.nu>
-- *     Copyright (C) 2009 David Härdeman <david@hardeman.nu>
-- *
-- *  Dedicated to Matilda, my newborn daughter, without whose loving attention
-- *  this driver would have been finished in half the time and with a fraction
-- *  of the bugs.
-- *
-- *  Written using:
-- *    o Winbond WPCD376I datasheet helpfully provided by Jesse Barnes at Intel
-- *    o NatSemi PC87338/PC97338 datasheet (for the serial port stuff)
-- *    o DSDT dumps
-- *
-- *  Supported features:
-- *    o RC6
-- *    o Wake-On-CIR functionality
-- *
-- *  To do:
-- *    o Test NEC and RC5
-- *
-- *  Left as an exercise for the reader:
-- *    o Learning (I have neither the hardware, nor the need)
-- *    o IR Transmit (ibid)
-- *
-- *  This program is free software; you can redistribute it and/or modify
-- *  it under the terms of the GNU General Public License as published by
-- *  the Free Software Foundation; either version 2 of the License, or
-- *  (at your option) any later version.
-- *
-- *  This program is distributed in the hope that it will be useful,
-- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- *  GNU General Public License for more details.
-- *
-- *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-- */
--
--#include <linux/module.h>
--#include <linux/pnp.h>
--#include <linux/interrupt.h>
--#include <linux/timer.h>
--#include <linux/input.h>
--#include <linux/leds.h>
--#include <linux/list.h>
--#include <linux/spinlock.h>
--#include <linux/pci_ids.h>
--#include <linux/io.h>
--#include <linux/bitrev.h>
--#include <linux/bitops.h>
--#include <linux/slab.h>
--
--#define DRVNAME "winbond-cir"
--
--/* CEIR Wake-Up Registers, relative to data->wbase                      */
--#define WBCIR_REG_WCEIR_CTL	0x03 /* CEIR Receiver Control		*/
--#define WBCIR_REG_WCEIR_STS	0x04 /* CEIR Receiver Status		*/
--#define WBCIR_REG_WCEIR_EV_EN	0x05 /* CEIR Receiver Event Enable	*/
--#define WBCIR_REG_WCEIR_CNTL	0x06 /* CEIR Receiver Counter Low	*/
--#define WBCIR_REG_WCEIR_CNTH	0x07 /* CEIR Receiver Counter High	*/
--#define WBCIR_REG_WCEIR_INDEX	0x08 /* CEIR Receiver Index		*/
--#define WBCIR_REG_WCEIR_DATA	0x09 /* CEIR Receiver Data		*/
--#define WBCIR_REG_WCEIR_CSL	0x0A /* CEIR Re. Compare Strlen		*/
--#define WBCIR_REG_WCEIR_CFG1	0x0B /* CEIR Re. Configuration 1	*/
--#define WBCIR_REG_WCEIR_CFG2	0x0C /* CEIR Re. Configuration 2	*/
--
--/* CEIR Enhanced Functionality Registers, relative to data->ebase       */
--#define WBCIR_REG_ECEIR_CTS	0x00 /* Enhanced IR Control Status	*/
--#define WBCIR_REG_ECEIR_CCTL	0x01 /* Infrared Counter Control	*/
--#define WBCIR_REG_ECEIR_CNT_LO	0x02 /* Infrared Counter LSB		*/
--#define WBCIR_REG_ECEIR_CNT_HI	0x03 /* Infrared Counter MSB		*/
--#define WBCIR_REG_ECEIR_IREM	0x04 /* Infrared Emitter Status		*/
--
--/* SP3 Banked Registers, relative to data->sbase                        */
--#define WBCIR_REG_SP3_BSR	0x03 /* Bank Select, all banks		*/
--				      /* Bank 0				*/
--#define WBCIR_REG_SP3_RXDATA	0x00 /* FIFO RX data (r)		*/
--#define WBCIR_REG_SP3_TXDATA	0x00 /* FIFO TX data (w)		*/
--#define WBCIR_REG_SP3_IER	0x01 /* Interrupt Enable		*/
--#define WBCIR_REG_SP3_EIR	0x02 /* Event Identification (r)	*/
--#define WBCIR_REG_SP3_FCR	0x02 /* FIFO Control (w)		*/
--#define WBCIR_REG_SP3_MCR	0x04 /* Mode Control			*/
--#define WBCIR_REG_SP3_LSR	0x05 /* Link Status			*/
--#define WBCIR_REG_SP3_MSR	0x06 /* Modem Status			*/
--#define WBCIR_REG_SP3_ASCR	0x07 /* Aux Status and Control		*/
--				      /* Bank 2				*/
--#define WBCIR_REG_SP3_BGDL	0x00 /* Baud Divisor LSB		*/
--#define WBCIR_REG_SP3_BGDH	0x01 /* Baud Divisor MSB		*/
--#define WBCIR_REG_SP3_EXCR1	0x02 /* Extended Control 1		*/
--#define WBCIR_REG_SP3_EXCR2	0x04 /* Extended Control 2		*/
--#define WBCIR_REG_SP3_TXFLV	0x06 /* TX FIFO Level			*/
--#define WBCIR_REG_SP3_RXFLV	0x07 /* RX FIFO Level			*/
--				      /* Bank 3				*/
--#define WBCIR_REG_SP3_MRID	0x00 /* Module Identification		*/
--#define WBCIR_REG_SP3_SH_LCR	0x01 /* LCR Shadow			*/
--#define WBCIR_REG_SP3_SH_FCR	0x02 /* FCR Shadow			*/
--				      /* Bank 4				*/
--#define WBCIR_REG_SP3_IRCR1	0x02 /* Infrared Control 1		*/
--				      /* Bank 5				*/
--#define WBCIR_REG_SP3_IRCR2	0x04 /* Infrared Control 2		*/
--				      /* Bank 6				*/
--#define WBCIR_REG_SP3_IRCR3	0x00 /* Infrared Control 3		*/
--#define WBCIR_REG_SP3_SIR_PW	0x02 /* SIR Pulse Width		*/
--				      /* Bank 7				*/
--#define WBCIR_REG_SP3_IRRXDC	0x00 /* IR RX Demod Control		*/
--#define WBCIR_REG_SP3_IRTXMC	0x01 /* IR TX Mod Control		*/
--#define WBCIR_REG_SP3_RCCFG	0x02 /* CEIR Config			*/
--#define WBCIR_REG_SP3_IRCFG1	0x04 /* Infrared Config 1		*/
--#define WBCIR_REG_SP3_IRCFG4	0x07 /* Infrared Config 4		*/
--
--/*
-- * Magic values follow
-- */
--
--/* No interrupts for WBCIR_REG_SP3_IER and WBCIR_REG_SP3_EIR */
--#define WBCIR_IRQ_NONE		0x00
--/* RX data bit for WBCIR_REG_SP3_IER and WBCIR_REG_SP3_EIR */
--#define WBCIR_IRQ_RX		0x01
--/* Over/Under-flow bit for WBCIR_REG_SP3_IER and WBCIR_REG_SP3_EIR */
--#define WBCIR_IRQ_ERR		0x04
--/* Led enable/disable bit for WBCIR_REG_ECEIR_CTS */
--#define WBCIR_LED_ENABLE	0x80
--/* RX data available bit for WBCIR_REG_SP3_LSR */
--#define WBCIR_RX_AVAIL		0x01
--/* RX disable bit for WBCIR_REG_SP3_ASCR */
--#define WBCIR_RX_DISABLE	0x20
--/* Extended mode enable bit for WBCIR_REG_SP3_EXCR1 */
--#define WBCIR_EXT_ENABLE	0x01
--/* Select compare register in WBCIR_REG_WCEIR_INDEX (bits 5 & 6) */
--#define WBCIR_REGSEL_COMPARE	0x10
--/* Select mask register in WBCIR_REG_WCEIR_INDEX (bits 5 & 6) */
--#define WBCIR_REGSEL_MASK	0x20
--/* Starting address of selected register in WBCIR_REG_WCEIR_INDEX */
--#define WBCIR_REG_ADDR0		0x00
--
--/* Valid banks for the SP3 UART */
--enum wbcir_bank {
--	WBCIR_BANK_0          = 0x00,
--	WBCIR_BANK_1          = 0x80,
--	WBCIR_BANK_2          = 0xE0,
--	WBCIR_BANK_3          = 0xE4,
--	WBCIR_BANK_4          = 0xE8,
--	WBCIR_BANK_5          = 0xEC,
--	WBCIR_BANK_6          = 0xF0,
--	WBCIR_BANK_7          = 0xF4,
+ #define VIVI_MAJOR_VERSION 0
+-#define VIVI_MINOR_VERSION 7
++#define VIVI_MINOR_VERSION 8
+ #define VIVI_RELEASE 0
+ #define VIVI_VERSION \
+ 	KERNEL_VERSION(VIVI_MAJOR_VERSION, VIVI_MINOR_VERSION, VIVI_RELEASE)
+@@ -70,6 +71,9 @@ MODULE_PARM_DESC(vid_limit, "capture memory limit in megabytes");
+ /* Global font descriptor */
+ static const u8 *font8x16;
+ 
++/* Videobuf2 allocator/memory handler context */
++static struct vb2_alloc_ctx *alloc_ctx;
++
+ #define dprintk(dev, level, fmt, arg...) \
+ 	v4l2_dbg(level, debug, &dev->v4l2_dev, fmt, ## arg)
+ 
+@@ -133,16 +137,11 @@ static struct vivi_fmt *get_format(struct v4l2_format *f)
+ 	return &formats[k];
+ }
+ 
+-struct sg_to_addr {
+-	int pos;
+-	struct scatterlist *sg;
 -};
 -
--/* Supported IR Protocols */
--enum wbcir_protocol {
--	IR_PROTOCOL_RC5          = 0x0,
--	IR_PROTOCOL_NEC          = 0x1,
--	IR_PROTOCOL_RC6          = 0x2,
--};
+ /* buffer for one video frame */
+ struct vivi_buffer {
+ 	/* common v4l buffer stuff -- must be first */
+-	struct videobuf_buffer vb;
 -
--/* Misc */
--#define WBCIR_NAME	"Winbond CIR"
--#define WBCIR_ID_FAMILY          0xF1 /* Family ID for the WPCD376I	*/
--#define	WBCIR_ID_CHIP            0x04 /* Chip ID for the WPCD376I	*/
--#define IR_KEYPRESS_TIMEOUT       250 /* FIXME: should be per-protocol? */
--#define INVALID_SCANCODE   0x7FFFFFFF /* Invalid with all protos	*/
--#define WAKEUP_IOMEM_LEN         0x10 /* Wake-Up I/O Reg Len		*/
--#define EHFUNC_IOMEM_LEN         0x10 /* Enhanced Func I/O Reg Len	*/
--#define SP_IOMEM_LEN             0x08 /* Serial Port 3 (IR) Reg Len	*/
--#define WBCIR_MAX_IDLE_BYTES       10
++	struct vb2_buffer	vb;
++	struct list_head	list;
+ 	struct vivi_fmt        *fmt;
+ };
+ 
+@@ -190,9 +189,11 @@ struct vivi_dev {
+ 	/* video capture */
+ 	struct vivi_fmt            *fmt;
+ 	unsigned int               width, height;
+-	struct videobuf_queue      vb_vidq;
++	struct vb2_queue	   vb_vidq;
++	enum v4l2_field		   field;
++	unsigned int		   field_count;
+ 
+-	unsigned long 		   generating;
++	unsigned int		   open_count;
+ 	u8 			   bars[9][3];
+ 	u8 			   line[MAX_WIDTH * 4];
+ };
+@@ -443,10 +444,10 @@ static void gen_text(struct vivi_dev *dev, char *basep,
+ 
+ static void vivi_fillbuff(struct vivi_dev *dev, struct vivi_buffer *buf)
+ {
+-	int hmax = buf->vb.height;
+-	int wmax = buf->vb.width;
++	int wmax = dev->width;
++	int hmax = dev->height;
+ 	struct timeval ts;
+-	void *vbuf = videobuf_to_vmalloc(&buf->vb);
++	void *vbuf = vb2_plane_vaddr(&buf->vb, 0);
+ 	unsigned ms;
+ 	char str[100];
+ 	int h, line = 1;
+@@ -483,11 +484,11 @@ static void vivi_fillbuff(struct vivi_dev *dev, struct vivi_buffer *buf)
+ 
+ 	dev->mv_count += 2;
+ 
+-	/* Advice that buffer was filled */
+-	buf->vb.field_count++;
++	buf->vb.v4l2_buf.field = dev->field;
++	dev->field_count++;
++	buf->vb.v4l2_buf.sequence = dev->field_count >> 1;
+ 	do_gettimeofday(&ts);
+-	buf->vb.ts = ts;
+-	buf->vb.state = VIDEOBUF_DONE;
++	buf->vb.v4l2_buf.timestamp = ts;
+ }
+ 
+ static void vivi_thread_tick(struct vivi_dev *dev)
+@@ -504,23 +505,21 @@ static void vivi_thread_tick(struct vivi_dev *dev)
+ 		goto unlock;
+ 	}
+ 
+-	buf = list_entry(dma_q->active.next,
+-			 struct vivi_buffer, vb.queue);
 -
--static DEFINE_SPINLOCK(wbcir_lock);
--static DEFINE_RWLOCK(keytable_lock);
+-	/* Nobody is waiting on this buffer, return */
+-	if (!waitqueue_active(&buf->vb.done))
++	/* If nobody is waiting for a buffer, return */
++	if (!vb2_has_consumers(&dev->vb_vidq))
+ 		goto unlock;
+ 
+-	list_del(&buf->vb.queue);
++	buf = list_entry(dma_q->active.next, struct vivi_buffer, list);
++	list_del(&buf->list);
+ 
+-	do_gettimeofday(&buf->vb.ts);
++	do_gettimeofday(&buf->vb.v4l2_buf.timestamp);
+ 
+ 	/* Fill buffer */
+ 	vivi_fillbuff(dev, buf);
+ 	dprintk(dev, 1, "filled buffer %p\n", buf);
+ 
+-	wake_up(&buf->vb.done);
+-	dprintk(dev, 2, "[%p/%d] wakeup\n", buf, buf->vb. i);
++	vb2_buffer_done(&buf->vb, VB2_BUF_STATE_DONE);
++	dprintk(dev, 2, "[%p/%d] done\n", buf, buf->vb.v4l2_buf.index);
+ unlock:
+ 	spin_unlock_irqrestore(&dev->slock, flags);
+ }
+@@ -571,17 +570,12 @@ static int vivi_thread(void *data)
+ 	return 0;
+ }
+ 
+-static void vivi_start_generating(struct file *file)
++static int vivi_start_generating(struct vivi_dev *dev)
+ {
+-	struct vivi_dev *dev = video_drvdata(file);
+ 	struct vivi_dmaqueue *dma_q = &dev->vidq;
+ 
+ 	dprintk(dev, 1, "%s\n", __func__);
+ 
+-	if (test_and_set_bit(0, &dev->generating))
+-		return;
+-	file->private_data = dev;
 -
--struct wbcir_key {
--	u32 scancode;
--	unsigned int keycode;
--};
+ 	/* Resets frame counters */
+ 	dev->ms = 0;
+ 	dev->mv_count = 0;
+@@ -593,146 +587,217 @@ static void vivi_start_generating(struct file *file)
+ 
+ 	if (IS_ERR(dma_q->kthread)) {
+ 		v4l2_err(&dev->v4l2_dev, "kernel_thread() failed\n");
+-		clear_bit(0, &dev->generating);
+-		return;
++		return PTR_ERR(dma_q->kthread);
+ 	}
+ 	/* Wakes thread */
+ 	wake_up_interruptible(&dma_q->wq);
+ 
+ 	dprintk(dev, 1, "returning from %s\n", __func__);
++	return 0;
+ }
+ 
+-static void vivi_stop_generating(struct file *file)
++static void vivi_stop_generating(struct vivi_dev *dev)
+ {
+-	struct vivi_dev *dev = video_drvdata(file);
+ 	struct vivi_dmaqueue *dma_q = &dev->vidq;
+ 
+ 	dprintk(dev, 1, "%s\n", __func__);
+ 
+-	if (!file->private_data)
+-		return;
+-	if (!test_and_clear_bit(0, &dev->generating))
+-		return;
 -
--struct wbcir_keyentry {
--	struct wbcir_key key;
--	struct list_head list;
--};
--
--static struct wbcir_key rc6_def_keymap[] = {
--	{ 0x800F0400, KEY_NUMERIC_0		},
--	{ 0x800F0401, KEY_NUMERIC_1		},
--	{ 0x800F0402, KEY_NUMERIC_2		},
--	{ 0x800F0403, KEY_NUMERIC_3		},
--	{ 0x800F0404, KEY_NUMERIC_4		},
--	{ 0x800F0405, KEY_NUMERIC_5		},
--	{ 0x800F0406, KEY_NUMERIC_6		},
--	{ 0x800F0407, KEY_NUMERIC_7		},
--	{ 0x800F0408, KEY_NUMERIC_8		},
--	{ 0x800F0409, KEY_NUMERIC_9		},
--	{ 0x800F041D, KEY_NUMERIC_STAR		},
--	{ 0x800F041C, KEY_NUMERIC_POUND		},
--	{ 0x800F0410, KEY_VOLUMEUP		},
--	{ 0x800F0411, KEY_VOLUMEDOWN		},
--	{ 0x800F0412, KEY_CHANNELUP		},
--	{ 0x800F0413, KEY_CHANNELDOWN		},
--	{ 0x800F040E, KEY_MUTE			},
--	{ 0x800F040D, KEY_VENDOR		}, /* Vista Logo Key */
--	{ 0x800F041E, KEY_UP			},
--	{ 0x800F041F, KEY_DOWN			},
--	{ 0x800F0420, KEY_LEFT			},
--	{ 0x800F0421, KEY_RIGHT			},
--	{ 0x800F0422, KEY_OK			},
--	{ 0x800F0423, KEY_ESC			},
--	{ 0x800F040F, KEY_INFO			},
--	{ 0x800F040A, KEY_CLEAR			},
--	{ 0x800F040B, KEY_ENTER			},
--	{ 0x800F045B, KEY_RED			},
--	{ 0x800F045C, KEY_GREEN			},
--	{ 0x800F045D, KEY_YELLOW		},
--	{ 0x800F045E, KEY_BLUE			},
--	{ 0x800F045A, KEY_TEXT			},
--	{ 0x800F0427, KEY_SWITCHVIDEOMODE	},
--	{ 0x800F040C, KEY_POWER			},
--	{ 0x800F0450, KEY_RADIO			},
--	{ 0x800F0448, KEY_PVR			},
--	{ 0x800F0447, KEY_AUDIO			},
--	{ 0x800F0426, KEY_EPG			},
--	{ 0x800F0449, KEY_CAMERA		},
--	{ 0x800F0425, KEY_TV			},
--	{ 0x800F044A, KEY_VIDEO			},
--	{ 0x800F0424, KEY_DVD			},
--	{ 0x800F0416, KEY_PLAY			},
--	{ 0x800F0418, KEY_PAUSE			},
--	{ 0x800F0419, KEY_STOP			},
--	{ 0x800F0414, KEY_FASTFORWARD		},
--	{ 0x800F041A, KEY_NEXT			},
--	{ 0x800F041B, KEY_PREVIOUS		},
--	{ 0x800F0415, KEY_REWIND		},
--	{ 0x800F0417, KEY_RECORD		},
--};
--
--/* Registers and other state is protected by wbcir_lock */
--struct wbcir_data {
--	unsigned long wbase;        /* Wake-Up Baseaddr		*/
--	unsigned long ebase;        /* Enhanced Func. Baseaddr	*/
--	unsigned long sbase;        /* Serial Port Baseaddr	*/
--	unsigned int  irq;          /* Serial Port IRQ		*/
--
--	struct input_dev *input_dev;
--	struct timer_list timer_keyup;
--	struct led_trigger *rxtrigger;
--	struct led_trigger *txtrigger;
--	struct led_classdev led;
--
--	u32 last_scancode;
--	unsigned int last_keycode;
--	u8 last_toggle;
--	u8 keypressed;
--	unsigned long keyup_jiffies;
--	unsigned int idle_count;
--
--	/* RX irdata and parsing state */
--	unsigned long irdata[30];
--	unsigned int irdata_count;
--	unsigned int irdata_idle;
--	unsigned int irdata_off;
--	unsigned int irdata_error;
--
--	/* Protected by keytable_lock */
--	struct list_head keytable;
--};
--
--static enum wbcir_protocol protocol = IR_PROTOCOL_RC6;
--module_param(protocol, uint, 0444);
--MODULE_PARM_DESC(protocol, "IR protocol to use "
--		 "(0 = RC5, 1 = NEC, 2 = RC6A, default)");
--
--static int invert; /* default = 0 */
--module_param(invert, bool, 0444);
--MODULE_PARM_DESC(invert, "Invert the signal from the IR receiver");
--
--static unsigned int wake_sc = 0x800F040C;
--module_param(wake_sc, uint, 0644);
--MODULE_PARM_DESC(wake_sc, "Scancode of the power-on IR command");
--
--static unsigned int wake_rc6mode = 6;
--module_param(wake_rc6mode, uint, 0644);
--MODULE_PARM_DESC(wake_rc6mode, "RC6 mode for the power-on command "
--		 "(0 = 0, 6 = 6A, default)");
--
--
--
--/*****************************************************************************
-- *
-- * UTILITY FUNCTIONS
-- *
-- *****************************************************************************/
--
--/* Caller needs to hold wbcir_lock */
--static void
--wbcir_set_bits(unsigned long addr, u8 bits, u8 mask)
--{
--	u8 val;
--
--	val = inb(addr);
--	val = ((val & ~mask) | (bits & mask));
--	outb(val, addr);
+ 	/* shutdown control thread */
+ 	if (dma_q->kthread) {
+ 		kthread_stop(dma_q->kthread);
+ 		dma_q->kthread = NULL;
+ 	}
+-	videobuf_stop(&dev->vb_vidq);
+-	videobuf_mmap_free(&dev->vb_vidq);
 -}
--
--/* Selects the register bank for the serial port */
--static inline void
--wbcir_select_bank(struct wbcir_data *data, enum wbcir_bank bank)
+ 
+-static int vivi_is_generating(struct vivi_dev *dev)
 -{
--	outb(bank, data->sbase + WBCIR_REG_SP3_BSR);
--}
+-	return test_bit(0, &dev->generating);
++	/*
++	 * Typical driver might need to wait here until dma engine stops.
++	 * In this case we can abort imiedetly, so it's just a noop.
++	 */
++
++	/* Release all active buffers */
++	while (!list_empty(&dma_q->active)) {
++		struct vivi_buffer *buf;
++		buf = list_entry(dma_q->active.next, struct vivi_buffer, list);
++		list_del(&buf->list);
++		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
++		dprintk(dev, 2, "[%p/%d] done\n", buf, buf->vb.v4l2_buf.index);
++	}
+ }
 -
--static enum led_brightness
--wbcir_led_brightness_get(struct led_classdev *led_cdev)
--{
--	struct wbcir_data *data = container_of(led_cdev,
--					       struct wbcir_data,
--					       led);
--
--	if (inb(data->ebase + WBCIR_REG_ECEIR_CTS) & WBCIR_LED_ENABLE)
--		return LED_FULL;
--	else
--		return LED_OFF;
--}
--
--static void
--wbcir_led_brightness_set(struct led_classdev *led_cdev,
--			    enum led_brightness brightness)
--{
--	struct wbcir_data *data = container_of(led_cdev,
--					       struct wbcir_data,
--					       led);
--
--	wbcir_set_bits(data->ebase + WBCIR_REG_ECEIR_CTS,
--		       brightness == LED_OFF ? 0x00 : WBCIR_LED_ENABLE,
--		       WBCIR_LED_ENABLE);
--}
--
--/* Manchester encodes bits to RC6 message cells (see wbcir_parse_rc6) */
--static u8
--wbcir_to_rc6cells(u8 val)
--{
--	u8 coded = 0x00;
--	int i;
--
--	val &= 0x0F;
--	for (i = 0; i < 4; i++) {
--		if (val & 0x01)
--			coded |= 0x02 << (i * 2);
--		else
--			coded |= 0x01 << (i * 2);
--		val >>= 1;
--	}
--
--	return coded;
--}
--
--
--
--/*****************************************************************************
-- *
-- * INPUT FUNCTIONS
-- *
-- *****************************************************************************/
--
--static unsigned int
--wbcir_do_getkeycode(struct wbcir_data *data, u32 scancode)
--{
--	struct wbcir_keyentry *keyentry;
--	unsigned int keycode = KEY_RESERVED;
--	unsigned long flags;
--
--	read_lock_irqsave(&keytable_lock, flags);
--
--	list_for_each_entry(keyentry, &data->keytable, list) {
--		if (keyentry->key.scancode == scancode) {
--			keycode = keyentry->key.keycode;
--			break;
--		}
--	}
--
--	read_unlock_irqrestore(&keytable_lock, flags);
--	return keycode;
--}
--
+ /* ------------------------------------------------------------------
+ 	Videobuf operations
+    ------------------------------------------------------------------*/
 -static int
--wbcir_getkeycode(struct input_dev *dev,
--		 unsigned int scancode, unsigned int *keycode)
--{
--	struct wbcir_data *data = input_get_drvdata(dev);
--
--	*keycode = wbcir_do_getkeycode(data, scancode);
--	return 0;
--}
--
+-buffer_setup(struct videobuf_queue *vq, unsigned int *count, unsigned int *size)
++static int queue_negotiate(struct vb2_queue *vq, unsigned int *num_buffers,
++				unsigned int *num_planes)
+ {
+-	struct vivi_dev *dev = vq->priv_data;
++	struct vivi_dev *dev = vb2_get_drv_priv(vq);
++	unsigned long size;
++
++	size = dev->width * dev->height * 2;
++
++	if (0 == *num_buffers)
++		*num_buffers = 32;
++
++	while (size * *num_buffers > vid_limit * 1024 * 1024)
++		(*num_buffers)--;
++
++	*num_planes = 1;
++
++	dprintk(dev, 1, "%s, count=%d, size=%ld\n", __func__,
++		*num_buffers, size);
+ 
+-	*size = dev->width * dev->height * 2;
++	return 0;
++}
++
++static int plane_setup(struct vb2_queue *vq, unsigned int plane_no,
++			unsigned long *plane_size)
++{
++	struct vivi_dev *dev = vb2_get_drv_priv(vq);
+ 
+-	if (0 == *count)
+-		*count = 32;
++	if (plane_no > 0)
++		return -EINVAL;
+ 
+-	while (*size * *count > vid_limit * 1024 * 1024)
+-		(*count)--;
++	*plane_size = dev->width * dev->height * 2;
+ 
+-	dprintk(dev, 1, "%s, count=%d, size=%d\n", __func__,
+-		*count, *size);
++	dprintk(dev, 1, "%s: plane: %d, size: %ld\n",
++			__func__, plane_no, *plane_size);
+ 
+ 	return 0;
+ }
+ 
+-static void free_buffer(struct videobuf_queue *vq, struct vivi_buffer *buf)
++static struct vb2_buffer *buffer_alloc(struct vb2_queue *q)
++{
++	struct vivi_buffer *buf = kzalloc(sizeof(struct vivi_buffer), GFP_KERNEL);
++	if (buf)
++		return &buf->vb;
++	return NULL;
++}
++
++static void buffer_free(struct vb2_queue *q, struct vb2_buffer *vb)
++{
++	struct vivi_buffer *buf = container_of(vb, struct vivi_buffer, vb);
++	kfree(buf);
++}
++
++static int buffer_init(struct vb2_buffer *vb)
+ {
+-	struct vivi_dev *dev = vq->priv_data;
++	struct vivi_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
+ 
+-	dprintk(dev, 1, "%s, state: %i\n", __func__, buf->vb.state);
++	BUG_ON(NULL == dev->fmt);
++
++	/*
++	 * This callback is called once per buffer, after its allocation.
++	 *
++	 * Vivi does not allow changing format during streaming, but it is
++	 * possible to do so when streaming is paused (i.e. in streamoff state).
++	 * Buffers however are not freed when going into streamoff and so
++	 * buffer size verification has to be done in buffer_prepare, on each
++	 * qbuf.
++	 * It would be best to move verification code here to buf_init and
++	 * s_fmt though.
++	 */
+ 
+-	videobuf_vmalloc_free(&buf->vb);
+-	dprintk(dev, 1, "free_buffer: freed\n");
+-	buf->vb.state = VIDEOBUF_NEEDS_INIT;
++	return 0;
+ }
+ 
 -static int
--wbcir_setkeycode(struct input_dev *dev,
--		 unsigned int scancode, unsigned int keycode)
--{
--	struct wbcir_data *data = input_get_drvdata(dev);
--	struct wbcir_keyentry *keyentry;
--	struct wbcir_keyentry *new_keyentry;
--	unsigned long flags;
--	unsigned int old_keycode = KEY_RESERVED;
--
--	new_keyentry = kmalloc(sizeof(*new_keyentry), GFP_KERNEL);
--	if (!new_keyentry)
--		return -ENOMEM;
--
--	write_lock_irqsave(&keytable_lock, flags);
--
--	list_for_each_entry(keyentry, &data->keytable, list) {
--		if (keyentry->key.scancode != scancode)
--			continue;
--
--		old_keycode = keyentry->key.keycode;
--		keyentry->key.keycode = keycode;
--
--		if (keyentry->key.keycode == KEY_RESERVED) {
--			list_del(&keyentry->list);
--			kfree(keyentry);
--		}
--
--		break;
+-buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
+-						enum v4l2_field field)
++static int buffer_prepare(struct vb2_buffer *vb)
+ {
+-	struct vivi_dev *dev = vq->priv_data;
++	struct vivi_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
+ 	struct vivi_buffer *buf = container_of(vb, struct vivi_buffer, vb);
+-	int rc;
++	unsigned long size;
+ 
+-	dprintk(dev, 1, "%s, field=%d\n", __func__, field);
++	dprintk(dev, 1, "%s, field=%d\n", __func__, vb->v4l2_buf.field);
+ 
+ 	BUG_ON(NULL == dev->fmt);
+ 
++	/*
++	 * Theses properties only change when queue is idle, see s_fmt.
++	 * The below checks should not be performed here, on each
++	 * buffer_prepare (i.e. on each qbuf). Most of the code in this function
++	 * should thus be moved to buffer_init and s_fmt.
++	 */
+ 	if (dev->width  < 48 || dev->width  > MAX_WIDTH ||
+ 	    dev->height < 32 || dev->height > MAX_HEIGHT)
+ 		return -EINVAL;
+ 
+-	buf->vb.size = dev->width * dev->height * 2;
+-	if (0 != buf->vb.baddr && buf->vb.bsize < buf->vb.size)
++	size = dev->width * dev->height * 2;
++	if (vb2_plane_size(vb, 0) < size) {
++		dprintk(dev, 1, "%s data will not fit into plane (%lu < %lu)\n",
++				__func__, vb2_plane_size(vb, 0), size);
+ 		return -EINVAL;
++	}
++
++	vb2_set_plane_payload(&buf->vb, 0, size);
+ 
+-	/* These properties only change when queue is idle, see s_fmt */
+-	buf->fmt       = dev->fmt;
+-	buf->vb.width  = dev->width;
+-	buf->vb.height = dev->height;
+-	buf->vb.field  = field;
++	buf->fmt = dev->fmt;
+ 
+ 	precalculate_bars(dev);
+ 	precalculate_line(dev);
+ 
+-	if (VIDEOBUF_NEEDS_INIT == buf->vb.state) {
+-		rc = videobuf_iolock(vq, &buf->vb, NULL);
+-		if (rc < 0)
+-			goto fail;
 -	}
 -
--	set_bit(keycode, dev->keybit);
+-	buf->vb.state = VIDEOBUF_PREPARED;
+ 	return 0;
 -
--	if (old_keycode == KEY_RESERVED) {
--		new_keyentry->key.scancode = scancode;
--		new_keyentry->key.keycode = keycode;
--		list_add(&new_keyentry->list, &data->keytable);
--	} else {
--		kfree(new_keyentry);
--		clear_bit(old_keycode, dev->keybit);
--		list_for_each_entry(keyentry, &data->keytable, list) {
--			if (keyentry->key.keycode == old_keycode) {
--				set_bit(old_keycode, dev->keybit);
--				break;
--			}
--		}
--	}
--
--	write_unlock_irqrestore(&keytable_lock, flags);
--	return 0;
--}
--
--/*
-- * Timer function to report keyup event some time after keydown is
-- * reported by the ISR.
-- */
+-fail:
+-	free_buffer(vq, buf);
+-	return rc;
+ }
+ 
 -static void
--wbcir_keyup(unsigned long cookie)
--{
--	struct wbcir_data *data = (struct wbcir_data *)cookie;
--	unsigned long flags;
--
--	/*
--	 * data->keyup_jiffies is used to prevent a race condition if a
--	 * hardware interrupt occurs at this point and the keyup timer
--	 * event is moved further into the future as a result.
--	 *
--	 * The timer will then be reactivated and this function called
--	 * again in the future. We need to exit gracefully in that case
--	 * to allow the input subsystem to do its auto-repeat magic or
--	 * a keyup event might follow immediately after the keydown.
--	 */
--
--	spin_lock_irqsave(&wbcir_lock, flags);
--
--	if (time_is_after_eq_jiffies(data->keyup_jiffies) && data->keypressed) {
--		data->keypressed = 0;
--		led_trigger_event(data->rxtrigger, LED_OFF);
--		input_report_key(data->input_dev, data->last_keycode, 0);
--		input_sync(data->input_dev);
--	}
--
--	spin_unlock_irqrestore(&wbcir_lock, flags);
--}
--
--static void
--wbcir_keydown(struct wbcir_data *data, u32 scancode, u8 toggle)
--{
--	unsigned int keycode;
--
--	/* Repeat? */
--	if (data->last_scancode == scancode &&
--	    data->last_toggle == toggle &&
--	    data->keypressed)
--		goto set_timer;
--	data->last_scancode = scancode;
--
--	/* Do we need to release an old keypress? */
--	if (data->keypressed) {
--		input_report_key(data->input_dev, data->last_keycode, 0);
--		input_sync(data->input_dev);
--		data->keypressed = 0;
--	}
--
--	/* Report scancode */
--	input_event(data->input_dev, EV_MSC, MSC_SCAN, (int)scancode);
--
--	/* Do we know this scancode? */
--	keycode = wbcir_do_getkeycode(data, scancode);
--	if (keycode == KEY_RESERVED)
--		goto set_timer;
--
--	/* Register a keypress */
--	input_report_key(data->input_dev, keycode, 1);
--	data->keypressed = 1;
--	data->last_keycode = keycode;
--	data->last_toggle = toggle;
--
--set_timer:
--	input_sync(data->input_dev);
--	led_trigger_event(data->rxtrigger,
--			  data->keypressed ? LED_FULL : LED_OFF);
--	data->keyup_jiffies = jiffies + msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
--	mod_timer(&data->timer_keyup, data->keyup_jiffies);
--}
--
--
--
--/*****************************************************************************
-- *
-- * IR PARSING FUNCTIONS
-- *
-- *****************************************************************************/
--
--/* Resets all irdata */
--static void
--wbcir_reset_irdata(struct wbcir_data *data)
--{
--	memset(data->irdata, 0, sizeof(data->irdata));
--	data->irdata_count = 0;
--	data->irdata_off = 0;
--	data->irdata_error = 0;
--	data->idle_count = 0;
--}
--
--/* Adds one bit of irdata */
--static void
--add_irdata_bit(struct wbcir_data *data, int set)
--{
--	if (data->irdata_count >= sizeof(data->irdata) * 8) {
--		data->irdata_error = 1;
--		return;
--	}
--
--	if (set)
--		__set_bit(data->irdata_count, data->irdata);
--	data->irdata_count++;
--}
--
--/* Gets count bits of irdata */
--static u16
--get_bits(struct wbcir_data *data, int count)
--{
--	u16 val = 0x0;
--
--	if (data->irdata_count - data->irdata_off < count) {
--		data->irdata_error = 1;
--		return 0x0;
--	}
--
--	while (count > 0) {
--		val <<= 1;
--		if (test_bit(data->irdata_off, data->irdata))
--			val |= 0x1;
--		count--;
--		data->irdata_off++;
--	}
--
--	return val;
--}
--
--/* Reads 16 cells and converts them to a byte */
--static u8
--wbcir_rc6cells_to_byte(struct wbcir_data *data)
--{
--	u16 raw = get_bits(data, 16);
--	u8 val = 0x00;
--	int bit;
--
--	for (bit = 0; bit < 8; bit++) {
--		switch (raw & 0x03) {
--		case 0x01:
--			break;
--		case 0x02:
--			val |= (0x01 << bit);
--			break;
--		default:
--			data->irdata_error = 1;
--			break;
--		}
--		raw >>= 2;
--	}
--
--	return val;
--}
--
--/* Decodes a number of bits from raw RC5 data */
--static u8
--wbcir_get_rc5bits(struct wbcir_data *data, unsigned int count)
--{
--	u16 raw = get_bits(data, count * 2);
--	u8 val = 0x00;
--	int bit;
--
--	for (bit = 0; bit < count; bit++) {
--		switch (raw & 0x03) {
--		case 0x01:
--			val |= (0x01 << bit);
--			break;
--		case 0x02:
--			break;
--		default:
--			data->irdata_error = 1;
--			break;
--		}
--		raw >>= 2;
--	}
--
--	return val;
--}
--
--static void
--wbcir_parse_rc6(struct device *dev, struct wbcir_data *data)
--{
--	/*
--	 * Normal bits are manchester coded as follows:
--	 * cell0 + cell1 = logic "0"
--	 * cell1 + cell0 = logic "1"
--	 *
--	 * The IR pulse has the following components:
--	 *
--	 * Leader		- 6 * cell1 - discarded
--	 * Gap    		- 2 * cell0 - discarded
--	 * Start bit		- Normal Coding - always "1"
--	 * Mode Bit 2 - 0	- Normal Coding
--	 * Toggle bit		- Normal Coding with double bit time,
--	 *			  e.g. cell0 + cell0 + cell1 + cell1
--	 *			  means logic "0".
--	 *
--	 * The rest depends on the mode, the following modes are known:
--	 *
--	 * MODE 0:
--	 *  Address Bit 7 - 0	- Normal Coding
--	 *  Command Bit 7 - 0	- Normal Coding
--	 *
--	 * MODE 6:
--	 *  The above Toggle Bit is used as a submode bit, 0 = A, 1 = B.
--	 *  Submode B is for pointing devices, only remotes using submode A
--	 *  are supported.
--	 *
--	 *  Customer range bit	- 0 => Customer = 7 bits, 0...127
--	 *                        1 => Customer = 15 bits, 32768...65535
--	 *  Customer Bits	- Normal Coding
--	 *
--	 *  Customer codes are allocated by Philips. The rest of the bits
--	 *  are customer dependent. The following is commonly used (and the
--	 *  only supported config):
--	 *
--	 *  Toggle Bit		- Normal Coding
--	 *  Address Bit 6 - 0	- Normal Coding
--	 *  Command Bit 7 - 0	- Normal Coding
--	 *
--	 * All modes are followed by at least 6 * cell0.
--	 *
--	 * MODE 0 msglen:
--	 *  1 * 2 (start bit) + 3 * 2 (mode) + 2 * 2 (toggle) +
--	 *  8 * 2 (address) + 8 * 2 (command) =
--	 *  44 cells
--	 *
--	 * MODE 6A msglen:
--	 *  1 * 2 (start bit) + 3 * 2 (mode) + 2 * 2 (submode) +
--	 *  1 * 2 (customer range bit) + 7/15 * 2 (customer bits) +
--	 *  1 * 2 (toggle bit) + 7 * 2 (address) + 8 * 2 (command) =
--	 *  60 - 76 cells
--	 */
--	u8 mode;
--	u8 toggle;
--	u16 customer = 0x0;
--	u8 address;
--	u8 command;
--	u32 scancode;
--
--	/* Leader mark */
--	while (get_bits(data, 1) && !data->irdata_error)
--		/* Do nothing */;
--
--	/* Leader space */
--	if (get_bits(data, 1)) {
--		dev_dbg(dev, "RC6 - Invalid leader space\n");
--		return;
--	}
--
--	/* Start bit */
--	if (get_bits(data, 2) != 0x02) {
--		dev_dbg(dev, "RC6 - Invalid start bit\n");
--		return;
--	}
--
--	/* Mode */
--	mode = get_bits(data, 6);
--	switch (mode) {
--	case 0x15: /* 010101 = b000 */
--		mode = 0;
--		break;
--	case 0x29: /* 101001 = b110 */
--		mode = 6;
--		break;
--	default:
--		dev_dbg(dev, "RC6 - Invalid mode\n");
--		return;
--	}
--
--	/* Toggle bit / Submode bit */
--	toggle = get_bits(data, 4);
--	switch (toggle) {
--	case 0x03:
--		toggle = 0;
--		break;
--	case 0x0C:
--		toggle = 1;
--		break;
--	default:
--		dev_dbg(dev, "RC6 - Toggle bit error\n");
--		break;
--	}
--
--	/* Customer */
--	if (mode == 6) {
--		if (toggle != 0) {
--			dev_dbg(dev, "RC6B - Not Supported\n");
--			return;
--		}
--
--		customer = wbcir_rc6cells_to_byte(data);
--
--		if (customer & 0x80) {
--			/* 15 bit customer value */
--			customer <<= 8;
--			customer |= wbcir_rc6cells_to_byte(data);
--		}
--	}
--
--	/* Address */
--	address = wbcir_rc6cells_to_byte(data);
--	if (mode == 6) {
--		toggle = address >> 7;
--		address &= 0x7F;
--	}
--
--	/* Command */
--	command = wbcir_rc6cells_to_byte(data);
--
--	/* Create scancode */
--	scancode =  command;
--	scancode |= address << 8;
--	scancode |= customer << 16;
--
--	/* Last sanity check */
--	if (data->irdata_error) {
--		dev_dbg(dev, "RC6 - Cell error(s)\n");
--		return;
--	}
--
--	dev_dbg(dev, "IR-RC6 ad 0x%02X cm 0x%02X cu 0x%04X "
--		"toggle %u mode %u scan 0x%08X\n",
--		address,
--		command,
--		customer,
--		(unsigned int)toggle,
--		(unsigned int)mode,
--		scancode);
--
--	wbcir_keydown(data, scancode, toggle);
--}
--
--static void
--wbcir_parse_rc5(struct device *dev, struct wbcir_data *data)
--{
--	/*
--	 * Bits are manchester coded as follows:
--	 * cell1 + cell0 = logic "0"
--	 * cell0 + cell1 = logic "1"
--	 * (i.e. the reverse of RC6)
--	 *
--	 * Start bit 1		- "1" - discarded
--	 * Start bit 2		- Must be inverted to get command bit 6
--	 * Toggle bit
--	 * Address Bit 4 - 0
--	 * Command Bit 5 - 0
--	 */
--	u8 toggle;
--	u8 address;
--	u8 command;
--	u32 scancode;
--
--	/* Start bit 1 */
--	if (!get_bits(data, 1)) {
--		dev_dbg(dev, "RC5 - Invalid start bit\n");
--		return;
--	}
--
--	/* Start bit 2 */
--	if (!wbcir_get_rc5bits(data, 1))
--		command = 0x40;
--	else
--		command = 0x00;
--
--	toggle   = wbcir_get_rc5bits(data, 1);
--	address  = wbcir_get_rc5bits(data, 5);
--	command |= wbcir_get_rc5bits(data, 6);
--	scancode = address << 7 | command;
--
--	/* Last sanity check */
--	if (data->irdata_error) {
--		dev_dbg(dev, "RC5 - Invalid message\n");
--		return;
--	}
--
--	dev_dbg(dev, "IR-RC5 ad %u cm %u t %u s %u\n",
--		(unsigned int)address,
--		(unsigned int)command,
--		(unsigned int)toggle,
--		(unsigned int)scancode);
--
--	wbcir_keydown(data, scancode, toggle);
--}
--
--static void
--wbcir_parse_nec(struct device *dev, struct wbcir_data *data)
--{
--	/*
--	 * Each bit represents 560 us.
--	 *
--	 * Leader		- 9 ms burst
--	 * Gap			- 4.5 ms silence
--	 * Address1 bit 0 - 7	- Address 1
--	 * Address2 bit 0 - 7	- Address 2
--	 * Command1 bit 0 - 7	- Command 1
--	 * Command2 bit 0 - 7	- Command 2
--	 *
--	 * Note the bit order!
--	 *
--	 * With the old NEC protocol, Address2 was the inverse of Address1
--	 * and Command2 was the inverse of Command1 and were used as
--	 * an error check.
--	 *
--	 * With NEC extended, Address1 is the LSB of the Address and
--	 * Address2 is the MSB, Command parsing remains unchanged.
--	 *
--	 * A repeat message is coded as:
--	 * Leader		- 9 ms burst
--	 * Gap			- 2.25 ms silence
--	 * Repeat		- 560 us active
--	 */
--	u8 address1;
--	u8 address2;
--	u8 command1;
--	u8 command2;
--	u16 address;
--	u32 scancode;
--
--	/* Leader mark */
--	while (get_bits(data, 1) && !data->irdata_error)
--		/* Do nothing */;
--
--	/* Leader space */
--	if (get_bits(data, 4)) {
--		dev_dbg(dev, "NEC - Invalid leader space\n");
--		return;
--	}
--
--	/* Repeat? */
--	if (get_bits(data, 1)) {
--		if (!data->keypressed) {
--			dev_dbg(dev, "NEC - Stray repeat message\n");
--			return;
--		}
--
--		dev_dbg(dev, "IR-NEC repeat s %u\n",
--			(unsigned int)data->last_scancode);
--
--		wbcir_keydown(data, data->last_scancode, data->last_toggle);
--		return;
--	}
--
--	/* Remaining leader space */
--	if (get_bits(data, 3)) {
--		dev_dbg(dev, "NEC - Invalid leader space\n");
--		return;
--	}
--
--	address1  = bitrev8(get_bits(data, 8));
--	address2  = bitrev8(get_bits(data, 8));
--	command1  = bitrev8(get_bits(data, 8));
--	command2  = bitrev8(get_bits(data, 8));
--
--	/* Sanity check */
--	if (data->irdata_error) {
--		dev_dbg(dev, "NEC - Invalid message\n");
--		return;
--	}
--
--	/* Check command validity */
--	if (command1 != ~command2) {
--		dev_dbg(dev, "NEC - Command bytes mismatch\n");
--		return;
--	}
--
--	/* Check for extended NEC protocol */
--	address = address1;
--	if (address1 != ~address2)
--		address |= address2 << 8;
--
--	scancode = address << 8 | command1;
--
--	dev_dbg(dev, "IR-NEC ad %u cm %u s %u\n",
--		(unsigned int)address,
--		(unsigned int)command1,
--		(unsigned int)scancode);
--
--	wbcir_keydown(data, scancode, !data->last_toggle);
--}
--
--
--
--/*****************************************************************************
-- *
-- * INTERRUPT FUNCTIONS
-- *
-- *****************************************************************************/
--
--static irqreturn_t
--wbcir_irq_handler(int irqno, void *cookie)
--{
--	struct pnp_dev *device = cookie;
--	struct wbcir_data *data = pnp_get_drvdata(device);
--	struct device *dev = &device->dev;
--	u8 status;
--	unsigned long flags;
--	u8 irdata[8];
--	int i;
--	unsigned int hw;
--
--	spin_lock_irqsave(&wbcir_lock, flags);
--
--	wbcir_select_bank(data, WBCIR_BANK_0);
--
--	status = inb(data->sbase + WBCIR_REG_SP3_EIR);
--
--	if (!(status & (WBCIR_IRQ_RX | WBCIR_IRQ_ERR))) {
--		spin_unlock_irqrestore(&wbcir_lock, flags);
--		return IRQ_NONE;
--	}
--
--	if (status & WBCIR_IRQ_ERR)
--		data->irdata_error = 1;
--
--	if (!(status & WBCIR_IRQ_RX))
+-buffer_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
++static void buffer_queue(struct vb2_buffer *vb)
+ {
+-	struct vivi_dev *dev = vq->priv_data;
++	struct vivi_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
+ 	struct vivi_buffer *buf = container_of(vb, struct vivi_buffer, vb);
+ 	struct vivi_dmaqueue *vidq = &dev->vidq;
++	unsigned long flags = 0;
+ 
+ 	dprintk(dev, 1, "%s\n", __func__);
+ 
+-	buf->vb.state = VIDEOBUF_QUEUED;
+-	list_add_tail(&buf->vb.queue, &vidq->active);
++	spin_lock_irqsave(&dev->slock, flags);
++	list_add_tail(&buf->list, &vidq->active);
++	spin_unlock_irqrestore(&dev->slock, flags);
+ }
+ 
+-static void buffer_release(struct videobuf_queue *vq,
+-			   struct videobuf_buffer *vb)
++static int start_streaming(struct vb2_queue *vq)
+ {
+-	struct vivi_dev *dev = vq->priv_data;
+-	struct vivi_buffer *buf  = container_of(vb, struct vivi_buffer, vb);
++	struct vivi_dev *dev = vb2_get_drv_priv(vq);
++	dprintk(dev, 1, "%s\n", __func__);
++	return vivi_start_generating(dev);
++}
+ 
++/* abort streaming and wait for last buffer */
++static int stop_streaming(struct vb2_queue *vq)
++{
++	struct vivi_dev *dev = vb2_get_drv_priv(vq);
+ 	dprintk(dev, 1, "%s\n", __func__);
++	vivi_stop_generating(dev);
++	return 0;
++}
++
++static int read_setup(struct vb2_queue *vq, unsigned int *count,
++		       unsigned int *flags)
++{
++	*count = 2;
++	return 0;
++}
+ 
+-	free_buffer(vq, buf);
++static void vivi_lock(struct vb2_queue *vq)
++{
++	struct vivi_dev *dev = vb2_get_drv_priv(vq);
++	mutex_lock(&dev->mutex);
+ }
+ 
+-static struct videobuf_queue_ops vivi_video_qops = {
+-	.buf_setup      = buffer_setup,
+-	.buf_prepare    = buffer_prepare,
+-	.buf_queue      = buffer_queue,
+-	.buf_release    = buffer_release,
++static void vivi_unlock(struct vb2_queue *vq)
++{
++	struct vivi_dev *dev = vb2_get_drv_priv(vq);
++	mutex_unlock(&dev->mutex);
++}
++	
++
++static struct vb2_ops vivi_video_qops = {
++	.queue_negotiate	= queue_negotiate,
++	.plane_setup		= plane_setup,
++	.buf_alloc		= buffer_alloc,
++	.buf_free		= buffer_free,
++	.buf_init		= buffer_init,
++	.buf_prepare		= buffer_prepare,
++	.buf_queue		= buffer_queue,
++	.start_streaming	= start_streaming,
++	.stop_streaming		= stop_streaming,
++	.read_setup		= read_setup,
++	.lock			= vivi_lock,
++	.unlock			= vivi_unlock,
+ };
+ 
+ /* ------------------------------------------------------------------
+@@ -774,7 +839,7 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+ 
+ 	f->fmt.pix.width        = dev->width;
+ 	f->fmt.pix.height       = dev->height;
+-	f->fmt.pix.field        = dev->vb_vidq.field;
++	f->fmt.pix.field        = dev->field;
+ 	f->fmt.pix.pixelformat  = dev->fmt->fourcc;
+ 	f->fmt.pix.bytesperline =
+ 		(f->fmt.pix.width * dev->fmt->depth) >> 3;
+@@ -820,91 +885,60 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+ 					struct v4l2_format *f)
+ {
+ 	struct vivi_dev *dev = video_drvdata(file);
++	struct vb2_queue *q = &dev->vb_vidq;
+ 
+ 	int ret = vidioc_try_fmt_vid_cap(file, priv, f);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	if (vivi_is_generating(dev)) {
++	if (vb2_is_streaming(q)) {
+ 		dprintk(dev, 1, "%s device busy\n", __func__);
+-		ret = -EBUSY;
 -		goto out;
--
--	/* Since RXHDLEV is set, at least 8 bytes are in the FIFO */
--	insb(data->sbase + WBCIR_REG_SP3_RXDATA, &irdata[0], 8);
--
--	for (i = 0; i < sizeof(irdata); i++) {
--		hw = hweight8(irdata[i]);
--		if (hw > 4)
--			add_irdata_bit(data, 0);
--		else
--			add_irdata_bit(data, 1);
--
--		if (hw == 8)
--			data->idle_count++;
--		else
--			data->idle_count = 0;
--	}
--
--	if (data->idle_count > WBCIR_MAX_IDLE_BYTES) {
--		/* Set RXINACTIVE... */
--		outb(WBCIR_RX_DISABLE, data->sbase + WBCIR_REG_SP3_ASCR);
--
--		/* ...and drain the FIFO */
--		while (inb(data->sbase + WBCIR_REG_SP3_LSR) & WBCIR_RX_AVAIL)
--			inb(data->sbase + WBCIR_REG_SP3_RXDATA);
--
--		dev_dbg(dev, "IRDATA:\n");
--		for (i = 0; i < data->irdata_count; i += BITS_PER_LONG)
--			dev_dbg(dev, "0x%08lX\n", data->irdata[i/BITS_PER_LONG]);
--
--		switch (protocol) {
--		case IR_PROTOCOL_RC5:
--			wbcir_parse_rc5(dev, data);
--			break;
--		case IR_PROTOCOL_RC6:
--			wbcir_parse_rc6(dev, data);
--			break;
--		case IR_PROTOCOL_NEC:
--			wbcir_parse_nec(dev, data);
--			break;
--		}
--
--		wbcir_reset_irdata(data);
--	}
--
++		return -EBUSY;
+ 	}
+ 
+ 	dev->fmt = get_format(f);
+ 	dev->width = f->fmt.pix.width;
+ 	dev->height = f->fmt.pix.height;
+-	dev->vb_vidq.field = f->fmt.pix.field;
+-	ret = 0;
 -out:
--	spin_unlock_irqrestore(&wbcir_lock, flags);
--	return IRQ_HANDLED;
+-	return ret;
++	dev->field = f->fmt.pix.field;
++
++	return 0;
+ }
+ 
+ static int vidioc_reqbufs(struct file *file, void *priv,
+ 			  struct v4l2_requestbuffers *p)
+ {
+ 	struct vivi_dev *dev = video_drvdata(file);
+-
+-	return videobuf_reqbufs(&dev->vb_vidq, p);
++	return vb2_reqbufs(&dev->vb_vidq, p);
+ }
+ 
+ static int vidioc_querybuf(struct file *file, void *priv, struct v4l2_buffer *p)
+ {
+ 	struct vivi_dev *dev = video_drvdata(file);
+-
+-	return videobuf_querybuf(&dev->vb_vidq, p);
++	return vb2_querybuf(&dev->vb_vidq, p);
+ }
+ 
+ static int vidioc_qbuf(struct file *file, void *priv, struct v4l2_buffer *p)
+ {
+ 	struct vivi_dev *dev = video_drvdata(file);
+-
+-	return videobuf_qbuf(&dev->vb_vidq, p);
++	return vb2_qbuf(&dev->vb_vidq, p);
+ }
+ 
+ static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *p)
+ {
+ 	struct vivi_dev *dev = video_drvdata(file);
+-
+-	return videobuf_dqbuf(&dev->vb_vidq, p,
+-				file->f_flags & O_NONBLOCK);
 -}
 -
--
--
--/*****************************************************************************
-- *
-- * SETUP/INIT/SUSPEND/RESUME FUNCTIONS
-- *
-- *****************************************************************************/
--
--static void
--wbcir_shutdown(struct pnp_dev *device)
+-#ifdef CONFIG_VIDEO_V4L1_COMPAT
+-static int vidiocgmbuf(struct file *file, void *priv, struct video_mbuf *mbuf)
 -{
--	struct device *dev = &device->dev;
--	struct wbcir_data *data = pnp_get_drvdata(device);
--	int do_wake = 1;
--	u8 match[11];
--	u8 mask[11];
--	u8 rc6_csl = 0;
--	int i;
--
--	memset(match, 0, sizeof(match));
--	memset(mask, 0, sizeof(mask));
--
--	if (wake_sc == INVALID_SCANCODE || !device_may_wakeup(dev)) {
--		do_wake = 0;
--		goto finish;
--	}
--
--	switch (protocol) {
--	case IR_PROTOCOL_RC5:
--		if (wake_sc > 0xFFF) {
--			do_wake = 0;
--			dev_err(dev, "RC5 - Invalid wake scancode\n");
--			break;
--		}
--
--		/* Mask = 13 bits, ex toggle */
--		mask[0] = 0xFF;
--		mask[1] = 0x17;
--
--		match[0]  = (wake_sc & 0x003F);      /* 6 command bits */
--		match[0] |= (wake_sc & 0x0180) >> 1; /* 2 address bits */
--		match[1]  = (wake_sc & 0x0E00) >> 9; /* 3 address bits */
--		if (!(wake_sc & 0x0040))             /* 2nd start bit  */
--			match[1] |= 0x10;
--
--		break;
--
--	case IR_PROTOCOL_NEC:
--		if (wake_sc > 0xFFFFFF) {
--			do_wake = 0;
--			dev_err(dev, "NEC - Invalid wake scancode\n");
--			break;
--		}
--
--		mask[0] = mask[1] = mask[2] = mask[3] = 0xFF;
--
--		match[1] = bitrev8((wake_sc & 0xFF));
--		match[0] = ~match[1];
--
--		match[3] = bitrev8((wake_sc & 0xFF00) >> 8);
--		if (wake_sc > 0xFFFF)
--			match[2] = bitrev8((wake_sc & 0xFF0000) >> 16);
--		else
--			match[2] = ~match[3];
--
--		break;
--
--	case IR_PROTOCOL_RC6:
--
--		if (wake_rc6mode == 0) {
--			if (wake_sc > 0xFFFF) {
--				do_wake = 0;
--				dev_err(dev, "RC6 - Invalid wake scancode\n");
--				break;
--			}
--
--			/* Command */
--			match[0] = wbcir_to_rc6cells(wake_sc >>  0);
--			mask[0]  = 0xFF;
--			match[1] = wbcir_to_rc6cells(wake_sc >>  4);
--			mask[1]  = 0xFF;
--
--			/* Address */
--			match[2] = wbcir_to_rc6cells(wake_sc >>  8);
--			mask[2]  = 0xFF;
--			match[3] = wbcir_to_rc6cells(wake_sc >> 12);
--			mask[3]  = 0xFF;
--
--			/* Header */
--			match[4] = 0x50; /* mode1 = mode0 = 0, ignore toggle */
--			mask[4]  = 0xF0;
--			match[5] = 0x09; /* start bit = 1, mode2 = 0 */
--			mask[5]  = 0x0F;
--
--			rc6_csl = 44;
--
--		} else if (wake_rc6mode == 6) {
--			i = 0;
--
--			/* Command */
--			match[i]  = wbcir_to_rc6cells(wake_sc >>  0);
--			mask[i++] = 0xFF;
--			match[i]  = wbcir_to_rc6cells(wake_sc >>  4);
--			mask[i++] = 0xFF;
--
--			/* Address + Toggle */
--			match[i]  = wbcir_to_rc6cells(wake_sc >>  8);
--			mask[i++] = 0xFF;
--			match[i]  = wbcir_to_rc6cells(wake_sc >> 12);
--			mask[i++] = 0x3F;
--
--			/* Customer bits 7 - 0 */
--			match[i]  = wbcir_to_rc6cells(wake_sc >> 16);
--			mask[i++] = 0xFF;
--			match[i]  = wbcir_to_rc6cells(wake_sc >> 20);
--			mask[i++] = 0xFF;
--
--			if (wake_sc & 0x80000000) {
--				/* Customer range bit and bits 15 - 8 */
--				match[i]  = wbcir_to_rc6cells(wake_sc >> 24);
--				mask[i++] = 0xFF;
--				match[i]  = wbcir_to_rc6cells(wake_sc >> 28);
--				mask[i++] = 0xFF;
--				rc6_csl = 76;
--			} else if (wake_sc <= 0x007FFFFF) {
--				rc6_csl = 60;
--			} else {
--				do_wake = 0;
--				dev_err(dev, "RC6 - Invalid wake scancode\n");
--				break;
--			}
--
--			/* Header */
--			match[i]  = 0x93; /* mode1 = mode0 = 1, submode = 0 */
--			mask[i++] = 0xFF;
--			match[i]  = 0x0A; /* start bit = 1, mode2 = 1 */
--			mask[i++] = 0x0F;
--
--		} else {
--			do_wake = 0;
--			dev_err(dev, "RC6 - Invalid wake mode\n");
--		}
--
--		break;
--
--	default:
--		do_wake = 0;
--		break;
--	}
--
--finish:
--	if (do_wake) {
--		/* Set compare and compare mask */
--		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_INDEX,
--			       WBCIR_REGSEL_COMPARE | WBCIR_REG_ADDR0,
--			       0x3F);
--		outsb(data->wbase + WBCIR_REG_WCEIR_DATA, match, 11);
--		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_INDEX,
--			       WBCIR_REGSEL_MASK | WBCIR_REG_ADDR0,
--			       0x3F);
--		outsb(data->wbase + WBCIR_REG_WCEIR_DATA, mask, 11);
--
--		/* RC6 Compare String Len */
--		outb(rc6_csl, data->wbase + WBCIR_REG_WCEIR_CSL);
--
--		/* Clear status bits NEC_REP, BUFF, MSG_END, MATCH */
--		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_STS, 0x17, 0x17);
--
--		/* Clear BUFF_EN, Clear END_EN, Set MATCH_EN */
--		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_EV_EN, 0x01, 0x07);
--
--		/* Set CEIR_EN */
--		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CTL, 0x01, 0x01);
--
--	} else {
--		/* Clear BUFF_EN, Clear END_EN, Clear MATCH_EN */
--		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_EV_EN, 0x00, 0x07);
--
--		/* Clear CEIR_EN */
--		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CTL, 0x00, 0x01);
--	}
--
--	/* Disable interrupts */
--	wbcir_select_bank(data, WBCIR_BANK_0);
--	outb(WBCIR_IRQ_NONE, data->sbase + WBCIR_REG_SP3_IER);
--
--	/*
--	 * ACPI will set the HW disable bit for SP3 which means that the
--	 * output signals are left in an undefined state which may cause
--	 * spurious interrupts which we need to ignore until the hardware
--	 * is reinitialized.
--	 */
--	disable_irq(data->irq);
--}
--
--static int
--wbcir_suspend(struct pnp_dev *device, pm_message_t state)
--{
--	wbcir_shutdown(device);
--	return 0;
--}
--
--static void
--wbcir_init_hw(struct wbcir_data *data)
--{
--	u8 tmp;
--
--	/* Disable interrupts */
--	wbcir_select_bank(data, WBCIR_BANK_0);
--	outb(WBCIR_IRQ_NONE, data->sbase + WBCIR_REG_SP3_IER);
--
--	/* Set PROT_SEL, RX_INV, Clear CEIR_EN (needed for the led) */
--	tmp = protocol << 4;
--	if (invert)
--		tmp |= 0x08;
--	outb(tmp, data->wbase + WBCIR_REG_WCEIR_CTL);
--
--	/* Clear status bits NEC_REP, BUFF, MSG_END, MATCH */
--	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_STS, 0x17, 0x17);
--
--	/* Clear BUFF_EN, Clear END_EN, Clear MATCH_EN */
--	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_EV_EN, 0x00, 0x07);
--
--	/* Set RC5 cell time to correspond to 36 kHz */
--	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CFG1, 0x4A, 0x7F);
--
--	/* Set IRTX_INV */
--	if (invert)
--		outb(0x04, data->ebase + WBCIR_REG_ECEIR_CCTL);
--	else
--		outb(0x00, data->ebase + WBCIR_REG_ECEIR_CCTL);
--
--	/*
--	 * Clear IR LED, set SP3 clock to 24Mhz
--	 * set SP3_IRRX_SW to binary 01, helpfully not documented
--	 */
--	outb(0x10, data->ebase + WBCIR_REG_ECEIR_CTS);
--
--	/* Enable extended mode */
--	wbcir_select_bank(data, WBCIR_BANK_2);
--	outb(WBCIR_EXT_ENABLE, data->sbase + WBCIR_REG_SP3_EXCR1);
--
--	/*
--	 * Configure baud generator, IR data will be sampled at
--	 * a bitrate of: (24Mhz * prescaler) / (divisor * 16).
--	 *
--	 * The ECIR registers include a flag to change the
--	 * 24Mhz clock freq to 48Mhz.
--	 *
--	 * It's not documented in the specs, but fifo levels
--	 * other than 16 seems to be unsupported.
--	 */
--
--	/* prescaler 1.0, tx/rx fifo lvl 16 */
--	outb(0x30, data->sbase + WBCIR_REG_SP3_EXCR2);
--
--	/* Set baud divisor to generate one byte per bit/cell */
--	switch (protocol) {
--	case IR_PROTOCOL_RC5:
--		outb(0xA7, data->sbase + WBCIR_REG_SP3_BGDL);
--		break;
--	case IR_PROTOCOL_RC6:
--		outb(0x53, data->sbase + WBCIR_REG_SP3_BGDL);
--		break;
--	case IR_PROTOCOL_NEC:
--		outb(0x69, data->sbase + WBCIR_REG_SP3_BGDL);
--		break;
--	}
--	outb(0x00, data->sbase + WBCIR_REG_SP3_BGDH);
--
--	/* Set CEIR mode */
--	wbcir_select_bank(data, WBCIR_BANK_0);
--	outb(0xC0, data->sbase + WBCIR_REG_SP3_MCR);
--	inb(data->sbase + WBCIR_REG_SP3_LSR); /* Clear LSR */
--	inb(data->sbase + WBCIR_REG_SP3_MSR); /* Clear MSR */
--
--	/* Disable RX demod, run-length encoding/decoding, set freq span */
--	wbcir_select_bank(data, WBCIR_BANK_7);
--	outb(0x10, data->sbase + WBCIR_REG_SP3_RCCFG);
--
--	/* Disable timer */
--	wbcir_select_bank(data, WBCIR_BANK_4);
--	outb(0x00, data->sbase + WBCIR_REG_SP3_IRCR1);
--
--	/* Enable MSR interrupt, Clear AUX_IRX */
--	wbcir_select_bank(data, WBCIR_BANK_5);
--	outb(0x00, data->sbase + WBCIR_REG_SP3_IRCR2);
--
--	/* Disable CRC */
--	wbcir_select_bank(data, WBCIR_BANK_6);
--	outb(0x20, data->sbase + WBCIR_REG_SP3_IRCR3);
--
--	/* Set RX/TX (de)modulation freq, not really used */
--	wbcir_select_bank(data, WBCIR_BANK_7);
--	outb(0xF2, data->sbase + WBCIR_REG_SP3_IRRXDC);
--	outb(0x69, data->sbase + WBCIR_REG_SP3_IRTXMC);
--
--	/* Set invert and pin direction */
--	if (invert)
--		outb(0x10, data->sbase + WBCIR_REG_SP3_IRCFG4);
--	else
--		outb(0x00, data->sbase + WBCIR_REG_SP3_IRCFG4);
--
--	/* Set FIFO thresholds (RX = 8, TX = 3), reset RX/TX */
--	wbcir_select_bank(data, WBCIR_BANK_0);
--	outb(0x97, data->sbase + WBCIR_REG_SP3_FCR);
--
--	/* Clear AUX status bits */
--	outb(0xE0, data->sbase + WBCIR_REG_SP3_ASCR);
--
--	/* Enable interrupts */
--	wbcir_reset_irdata(data);
--	outb(WBCIR_IRQ_RX | WBCIR_IRQ_ERR, data->sbase + WBCIR_REG_SP3_IER);
--}
--
--static int
--wbcir_resume(struct pnp_dev *device)
--{
--	struct wbcir_data *data = pnp_get_drvdata(device);
--
--	wbcir_init_hw(data);
--	enable_irq(data->irq);
--
--	return 0;
--}
--
--static int __devinit
--wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
--{
--	struct device *dev = &device->dev;
--	struct wbcir_data *data;
--	int err;
--
--	if (!(pnp_port_len(device, 0) == EHFUNC_IOMEM_LEN &&
--	      pnp_port_len(device, 1) == WAKEUP_IOMEM_LEN &&
--	      pnp_port_len(device, 2) == SP_IOMEM_LEN)) {
--		dev_err(dev, "Invalid resources\n");
--		return -ENODEV;
--	}
--
--	data = kzalloc(sizeof(*data), GFP_KERNEL);
--	if (!data) {
--		err = -ENOMEM;
--		goto exit;
--	}
--
--	pnp_set_drvdata(device, data);
--
--	data->ebase = pnp_port_start(device, 0);
--	data->wbase = pnp_port_start(device, 1);
--	data->sbase = pnp_port_start(device, 2);
--	data->irq = pnp_irq(device, 0);
--
--	if (data->wbase == 0 || data->ebase == 0 ||
--	    data->sbase == 0 || data->irq == 0) {
--		err = -ENODEV;
--		dev_err(dev, "Invalid resources\n");
--		goto exit_free_data;
--	}
--
--	dev_dbg(&device->dev, "Found device "
--		"(w: 0x%lX, e: 0x%lX, s: 0x%lX, i: %u)\n",
--		data->wbase, data->ebase, data->sbase, data->irq);
--
--	if (!request_region(data->wbase, WAKEUP_IOMEM_LEN, DRVNAME)) {
--		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
--			data->wbase, data->wbase + WAKEUP_IOMEM_LEN - 1);
--		err = -EBUSY;
--		goto exit_free_data;
--	}
--
--	if (!request_region(data->ebase, EHFUNC_IOMEM_LEN, DRVNAME)) {
--		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
--			data->ebase, data->ebase + EHFUNC_IOMEM_LEN - 1);
--		err = -EBUSY;
--		goto exit_release_wbase;
--	}
--
--	if (!request_region(data->sbase, SP_IOMEM_LEN, DRVNAME)) {
--		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
--			data->sbase, data->sbase + SP_IOMEM_LEN - 1);
--		err = -EBUSY;
--		goto exit_release_ebase;
--	}
--
--	err = request_irq(data->irq, wbcir_irq_handler,
--			  IRQF_DISABLED, DRVNAME, device);
--	if (err) {
--		dev_err(dev, "Failed to claim IRQ %u\n", data->irq);
--		err = -EBUSY;
--		goto exit_release_sbase;
--	}
--
--	led_trigger_register_simple("cir-tx", &data->txtrigger);
--	if (!data->txtrigger) {
--		err = -ENOMEM;
--		goto exit_free_irq;
--	}
--
--	led_trigger_register_simple("cir-rx", &data->rxtrigger);
--	if (!data->rxtrigger) {
--		err = -ENOMEM;
--		goto exit_unregister_txtrigger;
--	}
--
--	data->led.name = "cir::activity";
--	data->led.default_trigger = "cir-rx";
--	data->led.brightness_set = wbcir_led_brightness_set;
--	data->led.brightness_get = wbcir_led_brightness_get;
--	err = led_classdev_register(&device->dev, &data->led);
--	if (err)
--		goto exit_unregister_rxtrigger;
--
--	data->input_dev = input_allocate_device();
--	if (!data->input_dev) {
--		err = -ENOMEM;
--		goto exit_unregister_led;
--	}
--
--	data->input_dev->evbit[0] = BIT(EV_KEY);
--	data->input_dev->name = WBCIR_NAME;
--	data->input_dev->phys = "wbcir/cir0";
--	data->input_dev->id.bustype = BUS_HOST;
--	data->input_dev->id.vendor  = PCI_VENDOR_ID_WINBOND;
--	data->input_dev->id.product = WBCIR_ID_FAMILY;
--	data->input_dev->id.version = WBCIR_ID_CHIP;
--	data->input_dev->getkeycode = wbcir_getkeycode;
--	data->input_dev->setkeycode = wbcir_setkeycode;
--	input_set_capability(data->input_dev, EV_MSC, MSC_SCAN);
--	input_set_drvdata(data->input_dev, data);
--
--	err = input_register_device(data->input_dev);
--	if (err)
--		goto exit_free_input;
--
--	data->last_scancode = INVALID_SCANCODE;
--	INIT_LIST_HEAD(&data->keytable);
--	setup_timer(&data->timer_keyup, wbcir_keyup, (unsigned long)data);
--
--	/* Load default keymaps */
--	if (protocol == IR_PROTOCOL_RC6) {
--		int i;
--		for (i = 0; i < ARRAY_SIZE(rc6_def_keymap); i++) {
--			err = wbcir_setkeycode(data->input_dev,
--					       (int)rc6_def_keymap[i].scancode,
--					       (int)rc6_def_keymap[i].keycode);
--			if (err)
--				goto exit_unregister_keys;
--		}
--	}
--
--	device_init_wakeup(&device->dev, 1);
--
--	wbcir_init_hw(data);
--
--	return 0;
--
--exit_unregister_keys:
--	if (!list_empty(&data->keytable)) {
--		struct wbcir_keyentry *key;
--		struct wbcir_keyentry *keytmp;
--
--		list_for_each_entry_safe(key, keytmp, &data->keytable, list) {
--			list_del(&key->list);
--			kfree(key);
--		}
--	}
--	input_unregister_device(data->input_dev);
--	/* Can't call input_free_device on an unregistered device */
--	data->input_dev = NULL;
--exit_free_input:
--	input_free_device(data->input_dev);
--exit_unregister_led:
--	led_classdev_unregister(&data->led);
--exit_unregister_rxtrigger:
--	led_trigger_unregister_simple(data->rxtrigger);
--exit_unregister_txtrigger:
--	led_trigger_unregister_simple(data->txtrigger);
--exit_free_irq:
--	free_irq(data->irq, device);
--exit_release_sbase:
--	release_region(data->sbase, SP_IOMEM_LEN);
--exit_release_ebase:
--	release_region(data->ebase, EHFUNC_IOMEM_LEN);
--exit_release_wbase:
--	release_region(data->wbase, WAKEUP_IOMEM_LEN);
--exit_free_data:
--	kfree(data);
--	pnp_set_drvdata(device, NULL);
--exit:
--	return err;
--}
--
--static void __devexit
--wbcir_remove(struct pnp_dev *device)
--{
--	struct wbcir_data *data = pnp_get_drvdata(device);
--	struct wbcir_keyentry *key;
--	struct wbcir_keyentry *keytmp;
--
--	/* Disable interrupts */
--	wbcir_select_bank(data, WBCIR_BANK_0);
--	outb(WBCIR_IRQ_NONE, data->sbase + WBCIR_REG_SP3_IER);
--
--	del_timer_sync(&data->timer_keyup);
--
--	free_irq(data->irq, device);
--
--	/* Clear status bits NEC_REP, BUFF, MSG_END, MATCH */
--	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_STS, 0x17, 0x17);
--
--	/* Clear CEIR_EN */
--	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CTL, 0x00, 0x01);
--
--	/* Clear BUFF_EN, END_EN, MATCH_EN */
--	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_EV_EN, 0x00, 0x07);
--
--	/* This will generate a keyup event if necessary */
--	input_unregister_device(data->input_dev);
--
--	led_trigger_unregister_simple(data->rxtrigger);
--	led_trigger_unregister_simple(data->txtrigger);
--	led_classdev_unregister(&data->led);
--
--	/* This is ok since &data->led isn't actually used */
--	wbcir_led_brightness_set(&data->led, LED_OFF);
--
--	release_region(data->wbase, WAKEUP_IOMEM_LEN);
--	release_region(data->ebase, EHFUNC_IOMEM_LEN);
--	release_region(data->sbase, SP_IOMEM_LEN);
--
--	list_for_each_entry_safe(key, keytmp, &data->keytable, list) {
--		list_del(&key->list);
--		kfree(key);
--	}
--
--	kfree(data);
--
--	pnp_set_drvdata(device, NULL);
--}
--
--static const struct pnp_device_id wbcir_ids[] = {
--	{ "WEC1022", 0 },
--	{ "", 0 }
--};
--MODULE_DEVICE_TABLE(pnp, wbcir_ids);
--
--static struct pnp_driver wbcir_driver = {
--	.name     = WBCIR_NAME,
--	.id_table = wbcir_ids,
--	.probe    = wbcir_probe,
--	.remove   = __devexit_p(wbcir_remove),
--	.suspend  = wbcir_suspend,
--	.resume   = wbcir_resume,
--	.shutdown = wbcir_shutdown
--};
--
--static int __init
--wbcir_init(void)
--{
+-	struct vivi_dev *dev = video_drvdata(file);
+-
+-	return videobuf_cgmbuf(&dev->vb_vidq, mbuf, 8);
++	return vb2_dqbuf(&dev->vb_vidq, p, file->f_flags & O_NONBLOCK);
+ }
+-#endif
+ 
+ static int vidioc_streamon(struct file *file, void *priv, enum v4l2_buf_type i)
+ {
+ 	struct vivi_dev *dev = video_drvdata(file);
 -	int ret;
 -
--	switch (protocol) {
--	case IR_PROTOCOL_RC5:
--	case IR_PROTOCOL_NEC:
--	case IR_PROTOCOL_RC6:
--		break;
--	default:
--		printk(KERN_ERR DRVNAME ": Invalid protocol argument\n");
+-	if (i != V4L2_BUF_TYPE_VIDEO_CAPTURE)
 -		return -EINVAL;
--	}
--
--	ret = pnp_register_driver(&wbcir_driver);
+-	ret = videobuf_streamon(&dev->vb_vidq);
 -	if (ret)
--		printk(KERN_ERR DRVNAME ": Unable to register driver\n");
+-		return ret;
 -
--	return ret;
--}
--
--static void __exit
--wbcir_exit(void)
--{
--	pnp_unregister_driver(&wbcir_driver);
--}
--
--MODULE_AUTHOR("David Härdeman <david@hardeman.nu>");
--MODULE_DESCRIPTION("Winbond SuperI/O Consumer IR Driver");
--MODULE_LICENSE("GPL");
--
--module_init(wbcir_init);
--module_exit(wbcir_exit);
--
--
-diff --git a/drivers/media/IR/Kconfig b/drivers/media/IR/Kconfig
-index 20e02a0..7929ea7 100644
---- a/drivers/media/IR/Kconfig
-+++ b/drivers/media/IR/Kconfig
-@@ -164,4 +164,21 @@ config IR_STREAMZAP
- 	   To compile this driver as a module, choose M here: the
- 	   module will be called streamzap.
+-	vivi_start_generating(file);
+-	return 0;
++	return vb2_streamon(&dev->vb_vidq, i);
+ }
  
-+config IR_WINBOND_CIR
-+        tristate "Winbond IR remote control"
-+        depends on X86 && PNP
-+	depends on IR_CORE
-+        select NEW_LEDS
-+        select LEDS_CLASS
-+        select LEDS_TRIGGERS
-+        select BITREVERSE
-+	---help---
-+           Say Y here if you want to use the IR remote functionality found
-+           in some Winbond SuperI/O chips. Currently only the WPCD376I
-+           chip is supported (included in some Intel Media series
-+	   motherboards).
-+
-+           To compile this driver as a module, choose M here: the module will
-+	   be called winbond_cir.
-+
- endif #IR_CORE
-diff --git a/drivers/media/IR/Makefile b/drivers/media/IR/Makefile
-index 1eb24e6..859c12c 100644
---- a/drivers/media/IR/Makefile
-+++ b/drivers/media/IR/Makefile
-@@ -20,3 +20,4 @@ obj-$(CONFIG_IR_MCEUSB) += mceusb.o
- obj-$(CONFIG_IR_NUVOTON) += nuvoton-cir.o
- obj-$(CONFIG_IR_ENE) += ene_ir.o
- obj-$(CONFIG_IR_STREAMZAP) += streamzap.o
-+obj-$(CONFIG_IR_WINBOND_CIR) += winbond-cir.o
-diff --git a/drivers/media/IR/winbond-cir.c b/drivers/media/IR/winbond-cir.c
-new file mode 100644
-index 0000000..0ee16ec
---- /dev/null
-+++ b/drivers/media/IR/winbond-cir.c
-@@ -0,0 +1,932 @@
-+/*
-+ *  winbond-cir.c - Driver for the Consumer IR functionality of Winbond
-+ *                  SuperI/O chips.
-+ *
-+ *  Currently supports the Winbond WPCD376i chip (PNP id WEC1022), but
-+ *  could probably support others (Winbond WEC102X, NatSemi, etc)
-+ *  with minor modifications.
-+ *
-+ *  Original Author: David Härdeman <david@hardeman.nu>
-+ *     Copyright (C) 2009 - 2010 David Härdeman <david@hardeman.nu>
-+ *
-+ *  Dedicated to my daughter Matilda, without whose loving attention this
-+ *  driver would have been finished in half the time and with a fraction
-+ *  of the bugs.
-+ *
-+ *  Written using:
-+ *    o Winbond WPCD376I datasheet helpfully provided by Jesse Barnes at Intel
-+ *    o NatSemi PC87338/PC97338 datasheet (for the serial port stuff)
-+ *    o DSDT dumps
-+ *
-+ *  Supported features:
-+ *    o Wake-On-CIR functionality
-+ *
-+ *  To do:
-+ *    o Learning
-+ *    o IR Transmit
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/pnp.h>
-+#include <linux/interrupt.h>
-+#include <linux/timer.h>
-+#include <linux/leds.h>
-+#include <linux/spinlock.h>
-+#include <linux/pci_ids.h>
-+#include <linux/io.h>
-+#include <linux/bitrev.h>
-+#include <linux/slab.h>
-+#include <media/ir-core.h>
-+
-+#define DRVNAME "winbond-cir"
-+
-+/* CEIR Wake-Up Registers, relative to data->wbase                      */
-+#define WBCIR_REG_WCEIR_CTL	0x03 /* CEIR Receiver Control		*/
-+#define WBCIR_REG_WCEIR_STS	0x04 /* CEIR Receiver Status		*/
-+#define WBCIR_REG_WCEIR_EV_EN	0x05 /* CEIR Receiver Event Enable	*/
-+#define WBCIR_REG_WCEIR_CNTL	0x06 /* CEIR Receiver Counter Low	*/
-+#define WBCIR_REG_WCEIR_CNTH	0x07 /* CEIR Receiver Counter High	*/
-+#define WBCIR_REG_WCEIR_INDEX	0x08 /* CEIR Receiver Index		*/
-+#define WBCIR_REG_WCEIR_DATA	0x09 /* CEIR Receiver Data		*/
-+#define WBCIR_REG_WCEIR_CSL	0x0A /* CEIR Re. Compare Strlen		*/
-+#define WBCIR_REG_WCEIR_CFG1	0x0B /* CEIR Re. Configuration 1	*/
-+#define WBCIR_REG_WCEIR_CFG2	0x0C /* CEIR Re. Configuration 2	*/
-+
-+/* CEIR Enhanced Functionality Registers, relative to data->ebase       */
-+#define WBCIR_REG_ECEIR_CTS	0x00 /* Enhanced IR Control Status	*/
-+#define WBCIR_REG_ECEIR_CCTL	0x01 /* Infrared Counter Control	*/
-+#define WBCIR_REG_ECEIR_CNT_LO	0x02 /* Infrared Counter LSB		*/
-+#define WBCIR_REG_ECEIR_CNT_HI	0x03 /* Infrared Counter MSB		*/
-+#define WBCIR_REG_ECEIR_IREM	0x04 /* Infrared Emitter Status		*/
-+
-+/* SP3 Banked Registers, relative to data->sbase                        */
-+#define WBCIR_REG_SP3_BSR	0x03 /* Bank Select, all banks		*/
-+				      /* Bank 0				*/
-+#define WBCIR_REG_SP3_RXDATA	0x00 /* FIFO RX data (r)		*/
-+#define WBCIR_REG_SP3_TXDATA	0x00 /* FIFO TX data (w)		*/
-+#define WBCIR_REG_SP3_IER	0x01 /* Interrupt Enable		*/
-+#define WBCIR_REG_SP3_EIR	0x02 /* Event Identification (r)	*/
-+#define WBCIR_REG_SP3_FCR	0x02 /* FIFO Control (w)		*/
-+#define WBCIR_REG_SP3_MCR	0x04 /* Mode Control			*/
-+#define WBCIR_REG_SP3_LSR	0x05 /* Link Status			*/
-+#define WBCIR_REG_SP3_MSR	0x06 /* Modem Status			*/
-+#define WBCIR_REG_SP3_ASCR	0x07 /* Aux Status and Control		*/
-+				      /* Bank 2				*/
-+#define WBCIR_REG_SP3_BGDL	0x00 /* Baud Divisor LSB		*/
-+#define WBCIR_REG_SP3_BGDH	0x01 /* Baud Divisor MSB		*/
-+#define WBCIR_REG_SP3_EXCR1	0x02 /* Extended Control 1		*/
-+#define WBCIR_REG_SP3_EXCR2	0x04 /* Extended Control 2		*/
-+#define WBCIR_REG_SP3_TXFLV	0x06 /* TX FIFO Level			*/
-+#define WBCIR_REG_SP3_RXFLV	0x07 /* RX FIFO Level			*/
-+				      /* Bank 3				*/
-+#define WBCIR_REG_SP3_MRID	0x00 /* Module Identification		*/
-+#define WBCIR_REG_SP3_SH_LCR	0x01 /* LCR Shadow			*/
-+#define WBCIR_REG_SP3_SH_FCR	0x02 /* FCR Shadow			*/
-+				      /* Bank 4				*/
-+#define WBCIR_REG_SP3_IRCR1	0x02 /* Infrared Control 1		*/
-+				      /* Bank 5				*/
-+#define WBCIR_REG_SP3_IRCR2	0x04 /* Infrared Control 2		*/
-+				      /* Bank 6				*/
-+#define WBCIR_REG_SP3_IRCR3	0x00 /* Infrared Control 3		*/
-+#define WBCIR_REG_SP3_SIR_PW	0x02 /* SIR Pulse Width			*/
-+				      /* Bank 7				*/
-+#define WBCIR_REG_SP3_IRRXDC	0x00 /* IR RX Demod Control		*/
-+#define WBCIR_REG_SP3_IRTXMC	0x01 /* IR TX Mod Control		*/
-+#define WBCIR_REG_SP3_RCCFG	0x02 /* CEIR Config			*/
-+#define WBCIR_REG_SP3_IRCFG1	0x04 /* Infrared Config 1		*/
-+#define WBCIR_REG_SP3_IRCFG4	0x07 /* Infrared Config 4		*/
-+
-+/*
-+ * Magic values follow
-+ */
-+
-+/* No interrupts for WBCIR_REG_SP3_IER and WBCIR_REG_SP3_EIR */
-+#define WBCIR_IRQ_NONE		0x00
-+/* RX data bit for WBCIR_REG_SP3_IER and WBCIR_REG_SP3_EIR */
-+#define WBCIR_IRQ_RX		0x01
-+/* Over/Under-flow bit for WBCIR_REG_SP3_IER and WBCIR_REG_SP3_EIR */
-+#define WBCIR_IRQ_ERR		0x04
-+/* Led enable/disable bit for WBCIR_REG_ECEIR_CTS */
-+#define WBCIR_LED_ENABLE	0x80
-+/* RX data available bit for WBCIR_REG_SP3_LSR */
-+#define WBCIR_RX_AVAIL		0x01
-+/* RX disable bit for WBCIR_REG_SP3_ASCR */
-+#define WBCIR_RX_DISABLE	0x20
-+/* Extended mode enable bit for WBCIR_REG_SP3_EXCR1 */
-+#define WBCIR_EXT_ENABLE	0x01
-+/* Select compare register in WBCIR_REG_WCEIR_INDEX (bits 5 & 6) */
-+#define WBCIR_REGSEL_COMPARE	0x10
-+/* Select mask register in WBCIR_REG_WCEIR_INDEX (bits 5 & 6) */
-+#define WBCIR_REGSEL_MASK	0x20
-+/* Starting address of selected register in WBCIR_REG_WCEIR_INDEX */
-+#define WBCIR_REG_ADDR0		0x00
-+
-+/* Valid banks for the SP3 UART */
-+enum wbcir_bank {
-+	WBCIR_BANK_0          = 0x00,
-+	WBCIR_BANK_1          = 0x80,
-+	WBCIR_BANK_2          = 0xE0,
-+	WBCIR_BANK_3          = 0xE4,
-+	WBCIR_BANK_4          = 0xE8,
-+	WBCIR_BANK_5          = 0xEC,
-+	WBCIR_BANK_6          = 0xF0,
-+	WBCIR_BANK_7          = 0xF4,
-+};
-+
-+/* Supported power-on IR Protocols */
-+enum wbcir_protocol {
-+	IR_PROTOCOL_RC5          = 0x0,
-+	IR_PROTOCOL_NEC          = 0x1,
-+	IR_PROTOCOL_RC6          = 0x2,
-+};
-+
-+/* Misc */
-+#define WBCIR_NAME	"Winbond CIR"
-+#define WBCIR_ID_FAMILY          0xF1 /* Family ID for the WPCD376I	*/
-+#define	WBCIR_ID_CHIP            0x04 /* Chip ID for the WPCD376I	*/
-+#define INVALID_SCANCODE   0x7FFFFFFF /* Invalid with all protos	*/
-+#define WAKEUP_IOMEM_LEN         0x10 /* Wake-Up I/O Reg Len		*/
-+#define EHFUNC_IOMEM_LEN         0x10 /* Enhanced Func I/O Reg Len	*/
-+#define SP_IOMEM_LEN             0x08 /* Serial Port 3 (IR) Reg Len	*/
-+
-+/* Per-device data */
-+struct wbcir_data {
-+	spinlock_t spinlock;
-+
-+	unsigned long wbase;        /* Wake-Up Baseaddr		*/
-+	unsigned long ebase;        /* Enhanced Func. Baseaddr	*/
-+	unsigned long sbase;        /* Serial Port Baseaddr	*/
-+	unsigned int  irq;          /* Serial Port IRQ		*/
-+
-+	struct rc_dev *dev;
-+
-+	struct led_trigger *rxtrigger;
-+	struct led_trigger *txtrigger;
-+	struct led_classdev led;
-+
-+	/* RX irdata state */
-+	bool irdata_active;
-+	bool irdata_error;
-+	struct ir_raw_event ev;
-+};
-+
-+static enum wbcir_protocol protocol = IR_PROTOCOL_RC6;
-+module_param(protocol, uint, 0444);
-+MODULE_PARM_DESC(protocol, "IR protocol to use for the power-on command "
-+		 "(0 = RC5, 1 = NEC, 2 = RC6A, default)");
-+
-+static int invert; /* default = 0 */
-+module_param(invert, bool, 0444);
-+MODULE_PARM_DESC(invert, "Invert the signal from the IR receiver");
-+
-+static unsigned int wake_sc = 0x800F040C;
-+module_param(wake_sc, uint, 0644);
-+MODULE_PARM_DESC(wake_sc, "Scancode of the power-on IR command");
-+
-+static unsigned int wake_rc6mode = 6;
-+module_param(wake_rc6mode, uint, 0644);
-+MODULE_PARM_DESC(wake_rc6mode, "RC6 mode for the power-on command "
-+		 "(0 = 0, 6 = 6A, default)");
-+
-+
-+
-+/*****************************************************************************
-+ *
-+ * UTILITY FUNCTIONS
-+ *
-+ *****************************************************************************/
-+
-+/* Caller needs to hold wbcir_lock */
-+static void
-+wbcir_set_bits(unsigned long addr, u8 bits, u8 mask)
+ static int vidioc_streamoff(struct file *file, void *priv, enum v4l2_buf_type i)
+ {
+ 	struct vivi_dev *dev = video_drvdata(file);
+-	int ret;
+-
+-	if (i != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+-		return -EINVAL;
+-	ret = videobuf_streamoff(&dev->vb_vidq);
+-	if (!ret)
+-		vivi_stop_generating(file);
+-	return ret;
++	return vb2_streamoff(&dev->vb_vidq, i);
+ }
+ 
+ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *i)
+@@ -1027,26 +1061,33 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
+ 	File operations for the device
+    ------------------------------------------------------------------*/
+ 
++static int vivi_open(struct file *file)
 +{
-+	u8 val;
++	struct vivi_dev *dev = video_drvdata(file);
 +
-+	val = inb(addr);
-+	val = ((val & ~mask) | (bits & mask));
-+	outb(val, addr);
-+}
-+
-+/* Selects the register bank for the serial port */
-+static inline void
-+wbcir_select_bank(struct wbcir_data *data, enum wbcir_bank bank)
-+{
-+	outb(bank, data->sbase + WBCIR_REG_SP3_BSR);
-+}
-+
-+static enum led_brightness
-+wbcir_led_brightness_get(struct led_classdev *led_cdev)
-+{
-+	struct wbcir_data *data = container_of(led_cdev,
-+					       struct wbcir_data,
-+					       led);
-+
-+	if (inb(data->ebase + WBCIR_REG_ECEIR_CTS) & WBCIR_LED_ENABLE)
-+		return LED_FULL;
-+	else
-+		return LED_OFF;
-+}
-+
-+static void
-+wbcir_led_brightness_set(struct led_classdev *led_cdev,
-+			 enum led_brightness brightness)
-+{
-+	struct wbcir_data *data = container_of(led_cdev,
-+					       struct wbcir_data,
-+					       led);
-+
-+	wbcir_set_bits(data->ebase + WBCIR_REG_ECEIR_CTS,
-+		       brightness == LED_OFF ? 0x00 : WBCIR_LED_ENABLE,
-+		       WBCIR_LED_ENABLE);
-+}
-+
-+/* Manchester encodes bits to RC6 message cells (see wbcir_shutdown) */
-+static u8
-+wbcir_to_rc6cells(u8 val)
-+{
-+	u8 coded = 0x00;
-+	int i;
-+
-+	val &= 0x0F;
-+	for (i = 0; i < 4; i++) {
-+		if (val & 0x01)
-+			coded |= 0x02 << (i * 2);
-+		else
-+			coded |= 0x01 << (i * 2);
-+		val >>= 1;
-+	}
-+
-+	return coded;
-+}
-+
-+/*****************************************************************************
-+ *
-+ * INTERRUPT FUNCTIONS
-+ *
-+ *****************************************************************************/
-+
-+static irqreturn_t
-+wbcir_irq_handler(int irqno, void *cookie)
-+{
-+	struct pnp_dev *device = cookie;
-+	struct wbcir_data *data = pnp_get_drvdata(device);
-+	unsigned long flags;
-+	u8 irdata[8];
-+	u8 disable = true;
-+	u8 status;
-+	int i;
-+
-+	spin_lock_irqsave(&data->spinlock, flags);
-+
-+	wbcir_select_bank(data, WBCIR_BANK_0);
-+
-+	status = inb(data->sbase + WBCIR_REG_SP3_EIR);
-+
-+	if (!(status & (WBCIR_IRQ_RX | WBCIR_IRQ_ERR))) {
-+		spin_unlock_irqrestore(&data->spinlock, flags);
-+		return IRQ_NONE;
-+	}
-+
-+	/* Check for e.g. buffer overflow */
-+	if (status & WBCIR_IRQ_ERR) {
-+		data->irdata_error = true;
-+		ir_raw_event_reset(data->dev);
-+	}
-+
-+	if (!(status & WBCIR_IRQ_RX))
-+		goto out;
-+
-+	if (!data->irdata_active) {
-+		data->irdata_active = true;
-+		led_trigger_event(data->rxtrigger, LED_FULL);
-+	}
-+
-+	/* Since RXHDLEV is set, at least 8 bytes are in the FIFO */
-+	insb(data->sbase + WBCIR_REG_SP3_RXDATA, &irdata[0], 8);
-+
-+	for (i = 0; i < 8; i++) {
-+		u8 pulse;
-+		u32 duration;
-+
-+		if (irdata[i] != 0xFF && irdata[i] != 0x00)
-+			disable = false;
-+
-+		if (data->irdata_error)
-+			continue;
-+
-+		pulse = irdata[i] & 0x80 ? false : true;
-+		duration = (irdata[i] & 0x7F) * 10000; /* ns */
-+
-+		if (data->ev.pulse != pulse) {
-+			if (data->ev.duration != 0) {
-+				ir_raw_event_store(data->dev, &data->ev);
-+				data->ev.duration = 0;
-+			}
-+
-+			data->ev.pulse = pulse;
-+		}
-+
-+		data->ev.duration += duration;
-+	}
-+
-+	if (disable) {
-+		if (data->ev.duration != 0 && !data->irdata_error) {
-+			ir_raw_event_store(data->dev, &data->ev);
-+			data->ev.duration = 0;
-+		}
-+
-+		/* Set RXINACTIVE */
-+		outb(WBCIR_RX_DISABLE, data->sbase + WBCIR_REG_SP3_ASCR);
-+
-+		/* Drain the FIFO */
-+		while (inb(data->sbase + WBCIR_REG_SP3_LSR) & WBCIR_RX_AVAIL)
-+			inb(data->sbase + WBCIR_REG_SP3_RXDATA);
-+
-+		ir_raw_event_reset(data->dev);
-+		data->irdata_error = false;
-+		data->irdata_active = false;
-+		led_trigger_event(data->rxtrigger, LED_OFF);
-+	}
-+
-+	ir_raw_event_handle(data->dev);
-+
-+out:
-+	spin_unlock_irqrestore(&data->spinlock, flags);
-+	return IRQ_HANDLED;
-+}
-+
-+
-+
-+/*****************************************************************************
-+ *
-+ * SETUP/INIT/SUSPEND/RESUME FUNCTIONS
-+ *
-+ *****************************************************************************/
-+
-+static void
-+wbcir_shutdown(struct pnp_dev *device)
-+{
-+	struct device *dev = &device->dev;
-+	struct wbcir_data *data = pnp_get_drvdata(device);
-+	int do_wake = 1;
-+	u8 match[11];
-+	u8 mask[11];
-+	u8 rc6_csl = 0;
-+	int i;
-+
-+	memset(match, 0, sizeof(match));
-+	memset(mask, 0, sizeof(mask));
-+
-+	if (wake_sc == INVALID_SCANCODE || !device_may_wakeup(dev)) {
-+		do_wake = 0;
-+		goto finish;
-+	}
-+
-+	switch (protocol) {
-+	case IR_PROTOCOL_RC5:
-+		if (wake_sc > 0xFFF) {
-+			do_wake = 0;
-+			dev_err(dev, "RC5 - Invalid wake scancode\n");
-+			break;
-+		}
-+
-+		/* Mask = 13 bits, ex toggle */
-+		mask[0] = 0xFF;
-+		mask[1] = 0x17;
-+
-+		match[0]  = (wake_sc & 0x003F);      /* 6 command bits */
-+		match[0] |= (wake_sc & 0x0180) >> 1; /* 2 address bits */
-+		match[1]  = (wake_sc & 0x0E00) >> 9; /* 3 address bits */
-+		if (!(wake_sc & 0x0040))             /* 2nd start bit  */
-+			match[1] |= 0x10;
-+
-+		break;
-+
-+	case IR_PROTOCOL_NEC:
-+		if (wake_sc > 0xFFFFFF) {
-+			do_wake = 0;
-+			dev_err(dev, "NEC - Invalid wake scancode\n");
-+			break;
-+		}
-+
-+		mask[0] = mask[1] = mask[2] = mask[3] = 0xFF;
-+
-+		match[1] = bitrev8((wake_sc & 0xFF));
-+		match[0] = ~match[1];
-+
-+		match[3] = bitrev8((wake_sc & 0xFF00) >> 8);
-+		if (wake_sc > 0xFFFF)
-+			match[2] = bitrev8((wake_sc & 0xFF0000) >> 16);
-+		else
-+			match[2] = ~match[3];
-+
-+		break;
-+
-+	case IR_PROTOCOL_RC6:
-+
-+		if (wake_rc6mode == 0) {
-+			if (wake_sc > 0xFFFF) {
-+				do_wake = 0;
-+				dev_err(dev, "RC6 - Invalid wake scancode\n");
-+				break;
-+			}
-+
-+			/* Command */
-+			match[0] = wbcir_to_rc6cells(wake_sc >>  0);
-+			mask[0]  = 0xFF;
-+			match[1] = wbcir_to_rc6cells(wake_sc >>  4);
-+			mask[1]  = 0xFF;
-+
-+			/* Address */
-+			match[2] = wbcir_to_rc6cells(wake_sc >>  8);
-+			mask[2]  = 0xFF;
-+			match[3] = wbcir_to_rc6cells(wake_sc >> 12);
-+			mask[3]  = 0xFF;
-+
-+			/* Header */
-+			match[4] = 0x50; /* mode1 = mode0 = 0, ignore toggle */
-+			mask[4]  = 0xF0;
-+			match[5] = 0x09; /* start bit = 1, mode2 = 0 */
-+			mask[5]  = 0x0F;
-+
-+			rc6_csl = 44;
-+
-+		} else if (wake_rc6mode == 6) {
-+			i = 0;
-+
-+			/* Command */
-+			match[i]  = wbcir_to_rc6cells(wake_sc >>  0);
-+			mask[i++] = 0xFF;
-+			match[i]  = wbcir_to_rc6cells(wake_sc >>  4);
-+			mask[i++] = 0xFF;
-+
-+			/* Address + Toggle */
-+			match[i]  = wbcir_to_rc6cells(wake_sc >>  8);
-+			mask[i++] = 0xFF;
-+			match[i]  = wbcir_to_rc6cells(wake_sc >> 12);
-+			mask[i++] = 0x3F;
-+
-+			/* Customer bits 7 - 0 */
-+			match[i]  = wbcir_to_rc6cells(wake_sc >> 16);
-+			mask[i++] = 0xFF;
-+			match[i]  = wbcir_to_rc6cells(wake_sc >> 20);
-+			mask[i++] = 0xFF;
-+
-+			if (wake_sc & 0x80000000) {
-+				/* Customer range bit and bits 15 - 8 */
-+				match[i]  = wbcir_to_rc6cells(wake_sc >> 24);
-+				mask[i++] = 0xFF;
-+				match[i]  = wbcir_to_rc6cells(wake_sc >> 28);
-+				mask[i++] = 0xFF;
-+				rc6_csl = 76;
-+			} else if (wake_sc <= 0x007FFFFF) {
-+				rc6_csl = 60;
-+			} else {
-+				do_wake = 0;
-+				dev_err(dev, "RC6 - Invalid wake scancode\n");
-+				break;
-+			}
-+
-+			/* Header */
-+			match[i]  = 0x93; /* mode1 = mode0 = 1, submode = 0 */
-+			mask[i++] = 0xFF;
-+			match[i]  = 0x0A; /* start bit = 1, mode2 = 1 */
-+			mask[i++] = 0x0F;
-+
-+		} else {
-+			do_wake = 0;
-+			dev_err(dev, "RC6 - Invalid wake mode\n");
-+		}
-+
-+		break;
-+
-+	default:
-+		do_wake = 0;
-+		break;
-+	}
-+
-+finish:
-+	if (do_wake) {
-+		/* Set compare and compare mask */
-+		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_INDEX,
-+			       WBCIR_REGSEL_COMPARE | WBCIR_REG_ADDR0,
-+			       0x3F);
-+		outsb(data->wbase + WBCIR_REG_WCEIR_DATA, match, 11);
-+		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_INDEX,
-+			       WBCIR_REGSEL_MASK | WBCIR_REG_ADDR0,
-+			       0x3F);
-+		outsb(data->wbase + WBCIR_REG_WCEIR_DATA, mask, 11);
-+
-+		/* RC6 Compare String Len */
-+		outb(rc6_csl, data->wbase + WBCIR_REG_WCEIR_CSL);
-+
-+		/* Clear status bits NEC_REP, BUFF, MSG_END, MATCH */
-+		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_STS, 0x17, 0x17);
-+
-+		/* Clear BUFF_EN, Clear END_EN, Set MATCH_EN */
-+		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_EV_EN, 0x01, 0x07);
-+
-+		/* Set CEIR_EN */
-+		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CTL, 0x01, 0x01);
-+
-+	} else {
-+		/* Clear BUFF_EN, Clear END_EN, Clear MATCH_EN */
-+		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_EV_EN, 0x00, 0x07);
-+
-+		/* Clear CEIR_EN */
-+		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CTL, 0x00, 0x01);
-+	}
-+
-+	/* Disable interrupts */
-+	wbcir_select_bank(data, WBCIR_BANK_0);
-+	outb(WBCIR_IRQ_NONE, data->sbase + WBCIR_REG_SP3_IER);
-+
-+	/* Disable LED */
-+	data->irdata_active = false;
-+	led_trigger_event(data->rxtrigger, LED_OFF);
-+
-+	/*
-+	 * ACPI will set the HW disable bit for SP3 which means that the
-+	 * output signals are left in an undefined state which may cause
-+	 * spurious interrupts which we need to ignore until the hardware
-+	 * is reinitialized.
-+	 */
-+	disable_irq(data->irq);
-+}
-+
-+static int
-+wbcir_suspend(struct pnp_dev *device, pm_message_t state)
-+{
-+	wbcir_shutdown(device);
++	dprintk(dev, 1, "%s, %p\n", __func__, file);
++	dev->open_count++;
 +	return 0;
 +}
 +
-+static void
-+wbcir_init_hw(struct wbcir_data *data)
-+{
-+	u8 tmp;
+ static ssize_t
+ vivi_read(struct file *file, char __user *data, size_t count, loff_t *ppos)
+ {
+ 	struct vivi_dev *dev = video_drvdata(file);
+ 
+-	vivi_start_generating(file);
+-	return videobuf_read_stream(&dev->vb_vidq, data, count, ppos, 0,
+-					file->f_flags & O_NONBLOCK);
++	dprintk(dev, 1, "read called\n");
++	return vb2_read(&dev->vb_vidq, data, count, ppos,
++		       file->f_flags & O_NONBLOCK);
+ }
+ 
+ static unsigned int
+ vivi_poll(struct file *file, struct poll_table_struct *wait)
+ {
+ 	struct vivi_dev *dev = video_drvdata(file);
+-	struct videobuf_queue *q = &dev->vb_vidq;
++	struct vb2_queue *q = &dev->vb_vidq;
+ 
+ 	dprintk(dev, 1, "%s\n", __func__);
+-
+-	vivi_start_generating(file);
+-	return videobuf_poll_stream(file, q, wait);
++	return vb2_poll(q, file, wait);
+ }
+ 
+ static int vivi_close(struct file *file)
+@@ -1054,10 +1095,11 @@ static int vivi_close(struct file *file)
+ 	struct video_device  *vdev = video_devdata(file);
+ 	struct vivi_dev *dev = video_drvdata(file);
+ 
+-	vivi_stop_generating(file);
++	dprintk(dev, 1, "close called (dev=%s), file %p\n",
++		video_device_node_name(vdev), file);
+ 
+-	dprintk(dev, 1, "close called (dev=%s)\n",
+-		video_device_node_name(vdev));
++	if (--dev->open_count == 0)
++		vb2_queue_release(&dev->vb_vidq);
+ 	return 0;
+ }
+ 
+@@ -1068,8 +1110,7 @@ static int vivi_mmap(struct file *file, struct vm_area_struct *vma)
+ 
+ 	dprintk(dev, 1, "mmap called, vma=0x%08lx\n", (unsigned long)vma);
+ 
+-	ret = videobuf_mmap_mapper(&dev->vb_vidq, vma);
+-
++	ret = vb2_mmap(&dev->vb_vidq, vma);
+ 	dprintk(dev, 1, "vma start=0x%08lx, size=%ld, ret=%d\n",
+ 		(unsigned long)vma->vm_start,
+ 		(unsigned long)vma->vm_end - (unsigned long)vma->vm_start,
+@@ -1079,6 +1120,7 @@ static int vivi_mmap(struct file *file, struct vm_area_struct *vma)
+ 
+ static const struct v4l2_file_operations vivi_fops = {
+ 	.owner		= THIS_MODULE,
++	.open		= vivi_open,
+ 	.release        = vivi_close,
+ 	.read           = vivi_read,
+ 	.poll		= vivi_poll,
+@@ -1105,9 +1147,6 @@ static const struct v4l2_ioctl_ops vivi_ioctl_ops = {
+ 	.vidioc_queryctrl     = vidioc_queryctrl,
+ 	.vidioc_g_ctrl        = vidioc_g_ctrl,
+ 	.vidioc_s_ctrl        = vidioc_s_ctrl,
+-#ifdef CONFIG_VIDEO_V4L1_COMPAT
+-	.vidiocgmbuf          = vidiocgmbuf,
+-#endif
+ };
+ 
+ static struct video_device vivi_template = {
+@@ -1141,6 +1180,8 @@ static int vivi_release(void)
+ 		kfree(dev);
+ 	}
+ 
++	vb2_vmalloc_cleanup(alloc_ctx);
 +
-+	/* Disable interrupts */
-+	wbcir_select_bank(data, WBCIR_BANK_0);
-+	outb(WBCIR_IRQ_NONE, data->sbase + WBCIR_REG_SP3_IER);
-+
-+	/* Set PROT_SEL, RX_INV, Clear CEIR_EN (needed for the led) */
-+	tmp = protocol << 4;
-+	if (invert)
-+		tmp |= 0x08;
-+	outb(tmp, data->wbase + WBCIR_REG_WCEIR_CTL);
-+
-+	/* Clear status bits NEC_REP, BUFF, MSG_END, MATCH */
-+	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_STS, 0x17, 0x17);
-+
-+	/* Clear BUFF_EN, Clear END_EN, Clear MATCH_EN */
-+	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_EV_EN, 0x00, 0x07);
-+
-+	/* Set RC5 cell time to correspond to 36 kHz */
-+	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CFG1, 0x4A, 0x7F);
-+
-+	/* Set IRTX_INV */
-+	if (invert)
-+		outb(0x04, data->ebase + WBCIR_REG_ECEIR_CCTL);
-+	else
-+		outb(0x00, data->ebase + WBCIR_REG_ECEIR_CCTL);
+ 	return 0;
+ }
+ 
+@@ -1171,13 +1212,10 @@ static int __init vivi_create_instance(int inst)
+ 
+ 	/* initialize locks */
+ 	spin_lock_init(&dev->slock);
++	vb2_queue_init(&dev->vb_vidq, &vivi_video_qops, alloc_ctx,
++		       V4L2_BUF_TYPE_VIDEO_CAPTURE, dev);
+ 	mutex_init(&dev->mutex);
+ 
+-	videobuf_queue_vmalloc_init(&dev->vb_vidq, &vivi_video_qops,
+-			NULL, &dev->slock, V4L2_BUF_TYPE_VIDEO_CAPTURE,
+-			V4L2_FIELD_INTERLACED,
+-			sizeof(struct vivi_buffer), dev, &dev->mutex);
+-
+ 	/* init video dma queues */
+ 	INIT_LIST_HEAD(&dev->vidq.active);
+ 	init_waitqueue_head(&dev->vidq.wq);
+@@ -1190,6 +1228,11 @@ static int __init vivi_create_instance(int inst)
+ 	*vfd = vivi_template;
+ 	vfd->debug = debug;
+ 	vfd->v4l2_dev = &dev->v4l2_dev;
 +
 +	/*
-+	 * Clear IR LED, set SP3 clock to 24Mhz
-+	 * set SP3_IRRX_SW to binary 01, helpfully not documented
++	 * Provide a mutex to v4l2 core. It will be used to protect
++	 * all fops and v4l2 ioctls.
 +	 */
-+	outb(0x10, data->ebase + WBCIR_REG_ECEIR_CTS);
-+
-+	/* Enable extended mode */
-+	wbcir_select_bank(data, WBCIR_BANK_2);
-+	outb(WBCIR_EXT_ENABLE, data->sbase + WBCIR_REG_SP3_EXCR1);
-+
-+	/*
-+	 * Configure baud generator, IR data will be sampled at
-+	 * a bitrate of: (24Mhz * prescaler) / (divisor * 16).
-+	 *
-+	 * The ECIR registers include a flag to change the
-+	 * 24Mhz clock freq to 48Mhz.
-+	 *
-+	 * It's not documented in the specs, but fifo levels
-+	 * other than 16 seems to be unsupported.
-+	 */
-+
-+	/* prescaler 1.0, tx/rx fifo lvl 16 */
-+	outb(0x30, data->sbase + WBCIR_REG_SP3_EXCR2);
-+
-+	/* Set baud divisor to generate one byte per bit/cell */
-+	switch (protocol) {
-+	case IR_PROTOCOL_RC5:
-+		outb(0xA7, data->sbase + WBCIR_REG_SP3_BGDL);
-+		break;
-+	case IR_PROTOCOL_RC6:
-+		outb(0x53, data->sbase + WBCIR_REG_SP3_BGDL);
-+		break;
-+	case IR_PROTOCOL_NEC:
-+		outb(0x69, data->sbase + WBCIR_REG_SP3_BGDL);
-+		break;
-+	}
-+	outb(0x00, data->sbase + WBCIR_REG_SP3_BGDH);
-+
-+	/* Set CEIR mode */
-+	wbcir_select_bank(data, WBCIR_BANK_0);
-+	outb(0xC0, data->sbase + WBCIR_REG_SP3_MCR);
-+	inb(data->sbase + WBCIR_REG_SP3_LSR); /* Clear LSR */
-+	inb(data->sbase + WBCIR_REG_SP3_MSR); /* Clear MSR */
-+
-+	/* Disable RX demod, run-length encoding/decoding, set freq span */
-+	wbcir_select_bank(data, WBCIR_BANK_7);
-+	outb(0x10, data->sbase + WBCIR_REG_SP3_RCCFG);
-+
-+	/* Disable timer */
-+	wbcir_select_bank(data, WBCIR_BANK_4);
-+	outb(0x00, data->sbase + WBCIR_REG_SP3_IRCR1);
-+
-+	/* Enable MSR interrupt, Clear AUX_IRX */
-+	wbcir_select_bank(data, WBCIR_BANK_5);
-+	outb(0x00, data->sbase + WBCIR_REG_SP3_IRCR2);
-+
-+	/* Disable CRC */
-+	wbcir_select_bank(data, WBCIR_BANK_6);
-+	outb(0x20, data->sbase + WBCIR_REG_SP3_IRCR3);
-+
-+	/* Set RX/TX (de)modulation freq, not really used */
-+	wbcir_select_bank(data, WBCIR_BANK_7);
-+	outb(0xF2, data->sbase + WBCIR_REG_SP3_IRRXDC);
-+	outb(0x69, data->sbase + WBCIR_REG_SP3_IRTXMC);
-+
-+	/* Set invert and pin direction */
-+	if (invert)
-+		outb(0x10, data->sbase + WBCIR_REG_SP3_IRCFG4);
-+	else
-+		outb(0x00, data->sbase + WBCIR_REG_SP3_IRCFG4);
-+
-+	/* Set FIFO thresholds (RX = 8, TX = 3), reset RX/TX */
-+	wbcir_select_bank(data, WBCIR_BANK_0);
-+	outb(0x97, data->sbase + WBCIR_REG_SP3_FCR);
-+
-+	/* Clear AUX status bits */
-+	outb(0xE0, data->sbase + WBCIR_REG_SP3_ASCR);
-+
-+	/* Clear IR decoding state */
-+	data->irdata_active = false;
-+	led_trigger_event(data->rxtrigger, LED_OFF);
-+	data->irdata_error = false;
-+	data->ev.duration = 0;
-+	ir_raw_event_reset(data->dev);
-+	ir_raw_event_handle(data->dev);
-+
-+	/* Enable interrupts */
-+	outb(WBCIR_IRQ_RX | WBCIR_IRQ_ERR, data->sbase + WBCIR_REG_SP3_IER);
-+}
-+
-+static int
-+wbcir_resume(struct pnp_dev *device)
-+{
-+	struct wbcir_data *data = pnp_get_drvdata(device);
-+
-+	wbcir_init_hw(data);
-+	enable_irq(data->irq);
-+
-+	return 0;
-+}
-+
-+static int __devinit
-+wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
-+{
-+	struct device *dev = &device->dev;
-+	struct wbcir_data *data;
-+	int err;
-+
-+	if (!(pnp_port_len(device, 0) == EHFUNC_IOMEM_LEN &&
-+	      pnp_port_len(device, 1) == WAKEUP_IOMEM_LEN &&
-+	      pnp_port_len(device, 2) == SP_IOMEM_LEN)) {
-+		dev_err(dev, "Invalid resources\n");
-+		return -ENODEV;
+ 	vfd->lock = &dev->mutex;
+ 
+ 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, video_nr);
+@@ -1235,6 +1278,13 @@ static int __init vivi_init(void)
+ 	}
+ 	font8x16 = font->data;
+ 
++	/* Initialize vmalloc allocator */
++	alloc_ctx = vb2_vmalloc_init();
++	if (IS_ERR(alloc_ctx)) {
++		printk(KERN_ERR "vivi: allocator init failed\n");
++		return PTR_ERR(alloc_ctx);
 +	}
 +
-+	data = kzalloc(sizeof(*data), GFP_KERNEL);
-+	if (!data) {
-+		err = -ENOMEM;
-+		goto exit;
-+	}
-+
-+	pnp_set_drvdata(device, data);
-+
-+	spin_lock_init(&data->spinlock);
-+	data->ebase = pnp_port_start(device, 0);
-+	data->wbase = pnp_port_start(device, 1);
-+	data->sbase = pnp_port_start(device, 2);
-+	data->irq = pnp_irq(device, 0);
-+
-+	if (data->wbase == 0 || data->ebase == 0 ||
-+	    data->sbase == 0 || data->irq == 0) {
-+		err = -ENODEV;
-+		dev_err(dev, "Invalid resources\n");
-+		goto exit_free_data;
-+	}
-+
-+	dev_dbg(&device->dev, "Found device "
-+		"(w: 0x%lX, e: 0x%lX, s: 0x%lX, i: %u)\n",
-+		data->wbase, data->ebase, data->sbase, data->irq);
-+
-+	if (!request_region(data->wbase, WAKEUP_IOMEM_LEN, DRVNAME)) {
-+		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
-+			data->wbase, data->wbase + WAKEUP_IOMEM_LEN - 1);
-+		err = -EBUSY;
-+		goto exit_free_data;
-+	}
-+
-+	if (!request_region(data->ebase, EHFUNC_IOMEM_LEN, DRVNAME)) {
-+		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
-+			data->ebase, data->ebase + EHFUNC_IOMEM_LEN - 1);
-+		err = -EBUSY;
-+		goto exit_release_wbase;
-+	}
-+
-+	if (!request_region(data->sbase, SP_IOMEM_LEN, DRVNAME)) {
-+		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
-+			data->sbase, data->sbase + SP_IOMEM_LEN - 1);
-+		err = -EBUSY;
-+		goto exit_release_ebase;
-+	}
-+
-+	err = request_irq(data->irq, wbcir_irq_handler,
-+			  IRQF_DISABLED, DRVNAME, device);
-+	if (err) {
-+		dev_err(dev, "Failed to claim IRQ %u\n", data->irq);
-+		err = -EBUSY;
-+		goto exit_release_sbase;
-+	}
-+
-+	led_trigger_register_simple("cir-tx", &data->txtrigger);
-+	if (!data->txtrigger) {
-+		err = -ENOMEM;
-+		goto exit_free_irq;
-+	}
-+
-+	led_trigger_register_simple("cir-rx", &data->rxtrigger);
-+	if (!data->rxtrigger) {
-+		err = -ENOMEM;
-+		goto exit_unregister_txtrigger;
-+	}
-+
-+	data->led.name = "cir::activity";
-+	data->led.default_trigger = "cir-rx";
-+	data->led.brightness_set = wbcir_led_brightness_set;
-+	data->led.brightness_get = wbcir_led_brightness_get;
-+	err = led_classdev_register(&device->dev, &data->led);
-+	if (err)
-+		goto exit_unregister_rxtrigger;
-+
-+	data->dev = rc_allocate_device();
-+	if (!data->dev) {
-+		err = -ENOMEM;
-+		goto exit_unregister_led;
-+	}
-+
-+	data->dev->driver_name = WBCIR_NAME;
-+	data->dev->input_name = WBCIR_NAME;
-+	data->dev->input_phys = "wbcir/cir0";
-+	data->dev->input_id.bustype = BUS_HOST;
-+	data->dev->input_id.vendor = PCI_VENDOR_ID_WINBOND;
-+	data->dev->input_id.product = WBCIR_ID_FAMILY;
-+	data->dev->input_id.version = WBCIR_ID_CHIP;
-+	data->dev->priv = data;
-+	data->dev->dev.parent = &device->dev;
-+
-+	err = rc_register_device(data->dev);
-+	if (err)
-+		goto exit_free_rc;
-+
-+	device_init_wakeup(&device->dev, 1);
-+
-+	wbcir_init_hw(data);
-+
-+	return 0;
-+
-+exit_free_rc:
-+	rc_free_device(data->dev);
-+exit_unregister_led:
-+	led_classdev_unregister(&data->led);
-+exit_unregister_rxtrigger:
-+	led_trigger_unregister_simple(data->rxtrigger);
-+exit_unregister_txtrigger:
-+	led_trigger_unregister_simple(data->txtrigger);
-+exit_free_irq:
-+	free_irq(data->irq, device);
-+exit_release_sbase:
-+	release_region(data->sbase, SP_IOMEM_LEN);
-+exit_release_ebase:
-+	release_region(data->ebase, EHFUNC_IOMEM_LEN);
-+exit_release_wbase:
-+	release_region(data->wbase, WAKEUP_IOMEM_LEN);
-+exit_free_data:
-+	kfree(data);
-+	pnp_set_drvdata(device, NULL);
-+exit:
-+	return err;
-+}
-+
-+static void __devexit
-+wbcir_remove(struct pnp_dev *device)
-+{
-+	struct wbcir_data *data = pnp_get_drvdata(device);
-+
-+	/* Disable interrupts */
-+	wbcir_select_bank(data, WBCIR_BANK_0);
-+	outb(WBCIR_IRQ_NONE, data->sbase + WBCIR_REG_SP3_IER);
-+
-+	free_irq(data->irq, device);
-+
-+	/* Clear status bits NEC_REP, BUFF, MSG_END, MATCH */
-+	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_STS, 0x17, 0x17);
-+
-+	/* Clear CEIR_EN */
-+	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CTL, 0x00, 0x01);
-+
-+	/* Clear BUFF_EN, END_EN, MATCH_EN */
-+	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_EV_EN, 0x00, 0x07);
-+
-+	rc_unregister_device(data->dev);
-+
-+	led_trigger_unregister_simple(data->rxtrigger);
-+	led_trigger_unregister_simple(data->txtrigger);
-+	led_classdev_unregister(&data->led);
-+
-+	/* This is ok since &data->led isn't actually used */
-+	wbcir_led_brightness_set(&data->led, LED_OFF);
-+
-+	release_region(data->wbase, WAKEUP_IOMEM_LEN);
-+	release_region(data->ebase, EHFUNC_IOMEM_LEN);
-+	release_region(data->sbase, SP_IOMEM_LEN);
-+
-+	kfree(data);
-+
-+	pnp_set_drvdata(device, NULL);
-+}
-+
-+static const struct pnp_device_id wbcir_ids[] = {
-+	{ "WEC1022", 0 },
-+	{ "", 0 }
-+};
-+MODULE_DEVICE_TABLE(pnp, wbcir_ids);
-+
-+static struct pnp_driver wbcir_driver = {
-+	.name     = WBCIR_NAME,
-+	.id_table = wbcir_ids,
-+	.probe    = wbcir_probe,
-+	.remove   = __devexit_p(wbcir_remove),
-+	.suspend  = wbcir_suspend,
-+	.resume   = wbcir_resume,
-+	.shutdown = wbcir_shutdown
-+};
-+
-+static int __init
-+wbcir_init(void)
-+{
-+	int ret;
-+
-+	switch (protocol) {
-+	case IR_PROTOCOL_RC5:
-+	case IR_PROTOCOL_NEC:
-+	case IR_PROTOCOL_RC6:
-+		break;
-+	default:
-+		printk(KERN_ERR DRVNAME ": Invalid power-on protocol\n");
-+	}
-+
-+	ret = pnp_register_driver(&wbcir_driver);
-+	if (ret)
-+		printk(KERN_ERR DRVNAME ": Unable to register driver\n");
-+
-+	return ret;
-+}
-+
-+static void __exit
-+wbcir_exit(void)
-+{
-+	pnp_unregister_driver(&wbcir_driver);
-+}
-+
-+module_init(wbcir_init);
-+module_exit(wbcir_exit);
-+
-+MODULE_AUTHOR("David Härdeman <david@hardeman.nu>");
-+MODULE_DESCRIPTION("Winbond SuperI/O Consumer IR Driver");
-+MODULE_LICENSE("GPL");
+ 	if (n_devs <= 0)
+ 		n_devs = 1;
+ 
+-- 
+1.7.1.569.g6f426
 
