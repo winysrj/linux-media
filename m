@@ -1,105 +1,82 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:4035 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755475Ab0KUVSr (ORCPT
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:33746 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757201Ab0KSXol (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Nov 2010 16:18:47 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 1/5] uvcvideo: Lock controls mutex when querying menus
-Date: Sun, 21 Nov 2010 22:18:41 +0100
-Cc: linux-media@vger.kernel.org
-References: <1290371573-14907-1-git-send-email-laurent.pinchart@ideasonboard.com> <1290371573-14907-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1290371573-14907-2-git-send-email-laurent.pinchart@ideasonboard.com>
+	Fri, 19 Nov 2010 18:44:41 -0500
+Subject: [PATCH 04/10] saa7134: merge saa7134_card_ir->timer and
+	saa7134_card_ir->timer_end
+To: linux-media@vger.kernel.org
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: jarod@wilsonet.com, mchehab@infradead.org
+Date: Sat, 20 Nov 2010 00:42:57 +0100
+Message-ID: <20101119234256.3511.56046.stgit@localhost.localdomain>
+In-Reply-To: <20101119233959.3511.91287.stgit@localhost.localdomain>
+References: <20101119233959.3511.91287.stgit@localhost.localdomain>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011212218.41564.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Just one comment:
+Both timers are used for a similar purpose. Merging them allows for some
+minor simplifications.
 
-On Sunday, November 21, 2010 21:32:49 Laurent Pinchart wrote:
-> uvc_find_control() must be called with the controls mutex locked. Fix
-> uvc_query_v4l2_menu() accordingly.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/video/uvc/uvc_ctrl.c |   48 +++++++++++++++++++++++++++++++++++-
->  drivers/media/video/uvc/uvc_v4l2.c |   36 +--------------------------
->  drivers/media/video/uvc/uvcvideo.h |    4 +-
->  3 files changed, 50 insertions(+), 38 deletions(-)
-> 
-> diff --git a/drivers/media/video/uvc/uvc_ctrl.c b/drivers/media/video/uvc/uvc_ctrl.c
-> index f169f77..59f8a9a 100644
-> --- a/drivers/media/video/uvc/uvc_ctrl.c
-> +++ b/drivers/media/video/uvc/uvc_ctrl.c
-> @@ -785,7 +785,7 @@ static void __uvc_find_control(struct uvc_entity *entity, __u32 v4l2_id,
->  	}
->  }
->  
-> -struct uvc_control *uvc_find_control(struct uvc_video_chain *chain,
-> +static struct uvc_control *uvc_find_control(struct uvc_video_chain *chain,
->  	__u32 v4l2_id, struct uvc_control_mapping **mapping)
->  {
->  	struct uvc_control *ctrl = NULL;
-> @@ -944,6 +944,52 @@ done:
->  	return ret;
->  }
->  
-> +/*
-> + * Mapping V4L2 controls to UVC controls can be straighforward if done well.
-> + * Most of the UVC controls exist in V4L2, and can be mapped directly. Some
-> + * must be grouped (for instance the Red Balance, Blue Balance and Do White
-> + * Balance V4L2 controls use the White Balance Component UVC control) or
-> + * otherwise translated. The approach we take here is to use a translation
-> + * table for the controls that can be mapped directly, and handle the others
-> + * manually.
-> + */
-> +int uvc_query_v4l2_menu(struct uvc_video_chain *chain,
-> +	struct v4l2_querymenu *query_menu)
-> +{
-> +	struct uvc_menu_info *menu_info;
-> +	struct uvc_control_mapping *mapping;
-> +	struct uvc_control *ctrl;
-> +	u32 index = query_menu->index;
-> +	u32 id = query_menu->id;
-> +	int ret;
-> +
-> +	memset(query_menu, 0, sizeof(*query_menu));
-> +	query_menu->id = id;
-> +	query_menu->index = index;
-> +
-> +	ret = mutex_lock_interruptible(&chain->ctrl_mutex);
-> +	if (ret < 0)
-> +		return -ERESTARTSYS;
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/video/saa7134/saa7134-input.c |   10 ++++------
+ drivers/media/video/saa7134/saa7134.h       |    1 -
+ 2 files changed, 4 insertions(+), 7 deletions(-)
 
-Just return 'ret' here (which is -EINTR).
+diff --git a/drivers/media/video/saa7134/saa7134-input.c b/drivers/media/video/saa7134/saa7134-input.c
+index d75c307..98678d9 100644
+--- a/drivers/media/video/saa7134/saa7134-input.c
++++ b/drivers/media/video/saa7134/saa7134-input.c
+@@ -420,11 +420,11 @@ static int __saa7134_ir_start(void *priv)
+ 	if (ir->polling) {
+ 		setup_timer(&ir->timer, saa7134_input_timer,
+ 			    (unsigned long)dev);
+-		ir->timer.expires  = jiffies + HZ;
++		ir->timer.expires = jiffies + HZ;
+ 		add_timer(&ir->timer);
+ 	} else if (ir->raw_decode) {
+ 		/* set timer_end for code completion */
+-		setup_timer(&ir->timer_end, ir_raw_decode_timer_end,
++		setup_timer(&ir->timer, ir_raw_decode_timer_end,
+ 			    (unsigned long)dev);
+ 	}
+ 
+@@ -443,10 +443,8 @@ static void __saa7134_ir_stop(void *priv)
+ 	if (!ir->running)
+ 		return;
+ 
+-	if (ir->polling)
++	if (ir->polling || ir->raw_decode)
+ 		del_timer_sync(&ir->timer);
+-	else if (ir->raw_decode)
+-		del_timer_sync(&ir->timer_end);
+ 
+ 	ir->active = false;
+ 	ir->running = false;
+@@ -923,7 +921,7 @@ static int saa7134_raw_decode_irq(struct saa7134_dev *dev)
+ 	 */
+ 	if (!ir->active) {
+ 		timeout = jiffies + jiffies_to_msecs(15);
+-		mod_timer(&ir->timer_end, timeout);
++		mod_timer(&ir->timer, timeout);
+ 		ir->active = true;
+ 	}
+ 
+diff --git a/drivers/media/video/saa7134/saa7134.h b/drivers/media/video/saa7134/saa7134.h
+index f93951a..babfbe7 100644
+--- a/drivers/media/video/saa7134/saa7134.h
++++ b/drivers/media/video/saa7134/saa7134.h
+@@ -134,7 +134,6 @@ struct saa7134_card_ir {
+ 	bool			active;
+ 
+ 	struct timer_list       timer;
+-	struct timer_list	timer_end;    /* timer_end for code completion */
+ 
+ 	/* IR core raw decoding */
+ 	u32                     raw_decode;
 
-> +
-> +	ctrl = uvc_find_control(chain, query_menu->id, &mapping);
-> +	if (ctrl == NULL || mapping->v4l2_type != V4L2_CTRL_TYPE_MENU) {
-> +		ret = -EINVAL;
-> +		goto done;
-> +	}
-> +
-> +	if (query_menu->index >= mapping->menu_count) {
-> +		ret = -EINVAL;
-> +		goto done;
-> +	}
-> +
-> +	menu_info = &mapping->menu_info[query_menu->index];
-> +	strlcpy(query_menu->name, menu_info->name, sizeof query_menu->name);
-> +
-> +done:
-> +	mutex_unlock(&chain->ctrl_mutex);
-> +	return ret;
-> +}
-> +
-
-<snip>
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
