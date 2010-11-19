@@ -1,95 +1,134 @@
-Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:48058 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756004Ab0KJNFR convert rfc822-to-8bit (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from bear.ext.ti.com ([192.94.94.41]:53776 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752004Ab0KSPoY convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Nov 2010 08:05:17 -0500
-Received: by fxm16 with SMTP id 16so303097fxm.19
-        for <linux-media@vger.kernel.org>; Wed, 10 Nov 2010 05:05:16 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1289228045-4512-1-git-send-email-manjunath.hadli@ti.com>
-References: <1289228045-4512-1-git-send-email-manjunath.hadli@ti.com>
-Date: Wed, 10 Nov 2010 08:05:16 -0500
-Message-ID: <AANLkTimmDcxZsNEruFrr+qwnairJRZGCsnOTJBA7BPQu@mail.gmail.com>
-Subject: Re: [PATCH 0/6] davinci vpbe: V4L2 Display driver for DM644X
-From: Muralidharan Karicheri <mkaricheri@gmail.com>
-To: Manjunath Hadli <manjunath.hadli@ti.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 19 Nov 2010 10:44:24 -0500
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: David Cohen <david.cohen@nokia.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Fri, 19 Nov 2010 09:44:17 -0600
+Subject: RE: [omap3isp][PATCH v2 8/9] omap3isp: ccp2: Make SYSCONFIG fields
+ consistent
+Message-ID: <A24693684029E5489D1D202277BE8944850C0800@dlee02.ent.ti.com>
+References: <1289831401-593-1-git-send-email-saaguirre@ti.com>
+ <1289831401-593-9-git-send-email-saaguirre@ti.com>
+ <20101119100613.GA13490@esdhcp04381.research.nokia.com>
+In-Reply-To: <20101119100613.GA13490@esdhcp04381.research.nokia.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
-
-Manjunath,
-
-Thank you for putting up this patch together. I didn't see the 1/6 of
-this series in the mailing list. Also it appears as if the patch came
-from me. Please add my sign-off as second, you being the first.
-
-Murali
-On Mon, Nov 8, 2010 at 9:54 AM, Manjunath Hadli <manjunath.hadli@ti.com> wrote:
-> This driver is written for Texas Instruments's DM644X VPBE IP.
-> This SoC supports 2 video planes and 2 OSD planes as part of its
-> OSD (On Screen Display) block. The OSD lanes predminantly support
-> RGB space and the Video planes support YUV data. Out of these 4,
-> the 2 video planes are supported as part of the V4L2 driver. These
-> would be enumerated as video2 and video3 dev nodes.
-> The blending and video timing generator unit (VENC- for Video Encoder)
-> is the unit which combines/blends the output of these 4 planes
-> into a single stream and this output is given to Video input devices
-> like TV and other digital LCDs. The software for VENC is designed as
-> a subdevice with support for SD(NTSC and PAL) modes and 2 outputs.
-> This SoC forms the iniial implementation of its later additions
-> like DM355 and DM365.
->
-> Muralidharan Karicheri (6):
->  davinci vpbe: V4L2 display driver for DM644X SoC
->  davinci vpbe: VPBE display driver
->  davinci vpbe: OSD(On Screen Display ) block
->  davinci vpbe: VENC( Video Encoder) implementation
->  davinci vpbe: platform specific additions
->  davinci vpbe: Build infrastructure for VPBE driver
->
->  arch/arm/mach-davinci/board-dm644x-evm.c     |   85 +-
->  arch/arm/mach-davinci/dm644x.c               |  181 ++-
->  arch/arm/mach-davinci/include/mach/dm644x.h  |    4 +
->  drivers/media/video/davinci/Kconfig          |   22 +
->  drivers/media/video/davinci/Makefile         |    2 +
->  drivers/media/video/davinci/vpbe.c           |  861 ++++++++++
->  drivers/media/video/davinci/vpbe_display.c   | 2283 ++++++++++++++++++++++++++
->  drivers/media/video/davinci/vpbe_osd.c       | 1208 ++++++++++++++
->  drivers/media/video/davinci/vpbe_osd_regs.h  |  389 +++++
->  drivers/media/video/davinci/vpbe_venc.c      |  617 +++++++
->  drivers/media/video/davinci/vpbe_venc_regs.h |  189 +++
->  include/media/davinci/vpbe.h                 |  187 +++
->  include/media/davinci/vpbe_display.h         |  144 ++
->  include/media/davinci/vpbe_osd.h             |  397 +++++
->  include/media/davinci/vpbe_types.h           |  170 ++
->  include/media/davinci/vpbe_venc.h            |   70 +
->  16 files changed, 6790 insertions(+), 19 deletions(-)
->  create mode 100644 drivers/media/video/davinci/vpbe.c
->  create mode 100644 drivers/media/video/davinci/vpbe_display.c
->  create mode 100644 drivers/media/video/davinci/vpbe_osd.c
->  create mode 100644 drivers/media/video/davinci/vpbe_osd_regs.h
->  create mode 100644 drivers/media/video/davinci/vpbe_venc.c
->  create mode 100644 drivers/media/video/davinci/vpbe_venc_regs.h
->  create mode 100644 include/media/davinci/vpbe.h
->  create mode 100644 include/media/davinci/vpbe_display.h
->  create mode 100644 include/media/davinci/vpbe_osd.h
->  create mode 100644 include/media/davinci/vpbe_types.h
->  create mode 100644 include/media/davinci/vpbe_venc.h
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
 
+> -----Original Message-----
+> From: David Cohen [mailto:david.cohen@nokia.com]
+> Sent: Friday, November 19, 2010 4:06 AM
+> To: Aguirre, Sergio
+> Cc: Laurent Pinchart; linux-media@vger.kernel.org
+> Subject: Re: [omap3isp][PATCH v2 8/9] omap3isp: ccp2: Make SYSCONFIG
+> fields consistent
+> 
+> Hi Sergio,
 
--- 
-Murali Karicheri
-mkaricheri@gmail.com
+Hi David,
+
+Thanks for the review.
+
+> 
+> I've few comments below.
+> 
+> On Mon, Nov 15, 2010 at 03:30:00PM +0100, ext Sergio Aguirre wrote:
+> > Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> > ---
+> >  drivers/media/video/isp/ispccp2.c |    3 +--
+> >  drivers/media/video/isp/ispreg.h  |   14 ++++++++------
+> >  2 files changed, 9 insertions(+), 8 deletions(-)
+> >
+> > diff --git a/drivers/media/video/isp/ispccp2.c
+> b/drivers/media/video/isp/ispccp2.c
+> > index fa23394..3127a74 100644
+> > --- a/drivers/media/video/isp/ispccp2.c
+> > +++ b/drivers/media/video/isp/ispccp2.c
+> > @@ -419,8 +419,7 @@ static void ispccp2_mem_configure(struct
+> isp_ccp2_device *ccp2,
+> >  		config->src_ofst = 0;
+> >  	}
+> >
+> > -	isp_reg_writel(isp, (ISPCSI1_MIDLEMODE_SMARTSTANDBY <<
+> > -		       ISPCSI1_MIDLEMODE_SHIFT),
+> > +	isp_reg_writel(isp, ISPCCP2_SYSCONFIG_MSTANDBY_MODE_SMART,
+> >  		       OMAP3_ISP_IOMEM_CCP2, ISPCCP2_SYSCONFIG);
+> 
+> To make your cleanup even better, you could change isp_reg_clr_set()
+> instead.
+> If CCP2 MSTANDY_MODE is set to NOSTANDY, the result is going to be an
+> invalid 0x3 value. Despite it cannot happen with the current code, it's
+> still better to avoid such situations for future versions. :)
+
+Hmm you're right, I guess I didn't do any real functional changes, just defines renaming.
+
+I can repost an updated patch with this suggestion. No problem.
+
+> 
+> >
+> >  	/* Hsize, Skip */
+> > diff --git a/drivers/media/video/isp/ispreg.h
+> b/drivers/media/video/isp/ispreg.h
+> > index d885541..9b0d3ad 100644
+> > --- a/drivers/media/video/isp/ispreg.h
+> > +++ b/drivers/media/video/isp/ispreg.h
+> > @@ -141,6 +141,14 @@
+> >  #define ISPCCP2_REVISION		(0x000)
+> >  #define ISPCCP2_SYSCONFIG		(0x004)
+> >  #define ISPCCP2_SYSCONFIG_SOFT_RESET	(1 << 1)
+> > +#define ISPCCP2_SYSCONFIG_AUTO_IDLE		0x1
+> > +#define ISPCCP2_SYSCONFIG_MSTANDBY_MODE_SHIFT	12
+> > +#define ISPCCP2_SYSCONFIG_MSTANDBY_MODE_FORCE	\
+> > +	(0x0 << ISPCCP2_SYSCONFIG_MSTANDBY_MODE_SHIFT)
+> > +#define ISPCCP2_SYSCONFIG_MSTANDBY_MODE_NO	\
+> > +	(0x1 << ISPCCP2_SYSCONFIG_MSTANDBY_MODE_SHIFT)
+> > +#define ISPCCP2_SYSCONFIG_MSTANDBY_MODE_SMART	\
+> > +	(0x2 << ISPCCP2_SYSCONFIG_MSTANDBY_MODE_SHIFT)
+> 
+> You can add some ISPCCP2_SYSCONFIG_MSTANDY_MODE_MASK, as 2 bits must be
+> always set together.
+
+Sure, will do.
+
+Thanks and Regards,
+Sergio
+
+> 
+> Regards,
+> 
+> David Cohen
+> 
+> >  #define ISPCCP2_SYSSTATUS		(0x008)
+> >  #define ISPCCP2_SYSSTATUS_RESET_DONE	(1 << 0)
+> >  #define ISPCCP2_LC01_IRQENABLE		(0x00C)
+> > @@ -1309,12 +1317,6 @@
+> >  #define ISPMMU_SIDLEMODE_SMARTIDLE		2
+> >  #define ISPMMU_SIDLEMODE_SHIFT			3
+> >
+> > -#define ISPCSI1_AUTOIDLE			0x1
+> > -#define ISPCSI1_MIDLEMODE_SHIFT			12
+> > -#define ISPCSI1_MIDLEMODE_FORCESTANDBY		0x0
+> > -#define ISPCSI1_MIDLEMODE_NOSTANDBY		0x1
+> > -#define ISPCSI1_MIDLEMODE_SMARTSTANDBY		0x2
+> > -
+> >  /* --------------------------------------------------------------------
+> ---------
+> >   * CSI2 receiver registers (ES2.0)
+> >   */
+> > --
+> > 1.7.0.4
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media"
+> in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
