@@ -1,74 +1,51 @@
-Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35734 "EHLO
+Return-path: <mchehab@gaivota>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56000 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751191Ab0KIPa2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Nov 2010 10:30:28 -0500
-Received: from localhost.localdomain (unknown [91.178.204.79])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 5EF4F35CB2
-	for <linux-media@vger.kernel.org>; Tue,  9 Nov 2010 15:30:27 +0000 (UTC)
+	with ESMTP id S1753108Ab0KSNvl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Nov 2010 08:51:41 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/2] Use modaliases to load I2C modules
-Date: Tue,  9 Nov 2010 16:30:26 +0100
-Message-Id: <1289316628-9394-1-git-send-email-laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH/RFC] v4l: Add subdev sensor g_skip_frames operation
+Date: Fri, 19 Nov 2010 14:51:43 +0100
+Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de
+References: <1290173202-28769-1-git-send-email-laurent.pinchart@ideasonboard.com> <201011191442.31982.hverkuil@xs4all.nl>
+In-Reply-To: <201011191442.31982.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201011191451.44465.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi everybody,
+Hi Hans,
 
-Here are the last two patches that complete the removal of the module_name
-argument from the v4l2_i2c_new_subdev* functions. All the other patches have
-already been merged in 2.6.37-rc1, and the goal was to merge one last patch
-after the end of the merge window to avoid conflicts.
+On Friday 19 November 2010 14:42:31 Hans Verkuil wrote:
+> On Friday 19 November 2010 14:26:42 Laurent Pinchart wrote:
+> > Some buggy sensors generate corrupt frames when the stream is started.
+> > This new operation returns the number of corrupt frames to skip when
+> > starting the stream.
+> 
+> Looks OK, but perhaps the two should be combined to one function?
 
-Unfortunately a few new drivers started using the v4l2_i2c_new_subdev*
-functions (s5p-fimc and via-camera) and part of one previous patch got
-reverted during a merge conflict resolution. I've thus included a patch that
-fixes those drivers.
+I'm fine with both. Guennadi, any opinion ?
 
-I will post a pull request against Mauro's linux-next tree as soon as the bad
-cafe-ccic merge conflict resolution gets there.
+> I also have my doubts about the sensor_ops in general. I expected
+> originally to see a lot of ops here, but apparently there is little or no
+> need for it.
+> 
+> Do we expect to see this grow, or would it make more sense to move the ops
+> to video_ops? I'd be interested to hear what sensor specialists think.
 
-Laurent Pinchart (2):
-  v4l: Remove hardcoded module names passed to v4l2_i2c_new_subdev* (2)
-  v4l: Remove module_name argument to the v4l2_i2c_new_subdev*
-    functions
-
- drivers/media/radio/radio-si4713.c            |    2 +-
- drivers/media/video/au0828/au0828-cards.c     |    4 ++--
- drivers/media/video/bt8xx/bttv-cards.c        |   22 +++++++++++-----------
- drivers/media/video/cafe_ccic.c               |    3 +--
- drivers/media/video/cx18/cx18-i2c.c           |    8 ++++----
- drivers/media/video/cx231xx/cx231xx-cards.c   |    4 ++--
- drivers/media/video/cx23885/cx23885-cards.c   |    2 +-
- drivers/media/video/cx23885/cx23885-video.c   |    4 ++--
- drivers/media/video/cx88/cx88-cards.c         |    9 ++++-----
- drivers/media/video/cx88/cx88-video.c         |    7 +++----
- drivers/media/video/davinci/vpfe_capture.c    |    1 -
- drivers/media/video/davinci/vpif_capture.c    |    1 -
- drivers/media/video/davinci/vpif_display.c    |    2 +-
- drivers/media/video/em28xx/em28xx-cards.c     |   18 +++++++++---------
- drivers/media/video/fsl-viu.c                 |    2 +-
- drivers/media/video/ivtv/ivtv-i2c.c           |   22 +++++++++-------------
- drivers/media/video/mxb.c                     |   12 ++++++------
- drivers/media/video/pvrusb2/pvrusb2-hdw.c     |    6 ++----
- drivers/media/video/s5p-fimc/fimc-capture.c   |    2 +-
- drivers/media/video/saa7134/saa7134-cards.c   |    8 ++++----
- drivers/media/video/saa7134/saa7134-core.c    |    4 ++--
- drivers/media/video/sh_vou.c                  |    2 +-
- drivers/media/video/soc_camera.c              |    2 +-
- drivers/media/video/usbvision/usbvision-i2c.c |    6 +++---
- drivers/media/video/v4l2-common.c             |   15 +++++----------
- drivers/media/video/via-camera.c              |    2 +-
- drivers/media/video/vino.c                    |    4 ++--
- drivers/media/video/zoran/zoran_card.c        |    5 ++---
- drivers/staging/go7007/go7007-driver.c        |    2 +-
- drivers/staging/tm6000/tm6000-cards.c         |    4 ++--
- include/media/v4l2-common.h                   |   16 ++++++----------
- 31 files changed, 90 insertions(+), 111 deletions(-)
+Good question. It won't remove the need for the g_skip_frames operation, but 
+it's certainly worth asking. Standards are emerging for sensors in specific 
+markets (SMIA comes to mind - I'm not sure if the spec is public, but some 
+information can be found online) and there will probably be a need to provide 
+more sensor information to both "bridge" drivers and userspace applications in 
+the future.
 
 -- 
 Regards,
 
 Laurent Pinchart
-
