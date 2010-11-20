@@ -1,194 +1,195 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:51730 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751037Ab0KELJ6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Nov 2010 07:09:58 -0400
-Received: by iwn41 with SMTP id 41so779276iwn.19
-        for <linux-media@vger.kernel.org>; Fri, 05 Nov 2010 04:09:58 -0700 (PDT)
+Received: from smtp.nokia.com ([147.243.128.24]:52478 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752165Ab0KTKs2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Nov 2010 05:48:28 -0500
+Date: Sat, 20 Nov 2010 12:49:28 +0200
+From: David Cohen <david.cohen@nokia.com>
+To: "ext Aguirre, Sergio" <saaguirre@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [omap3isp][PATCH v2 7/9] omap3isp: Cleanup isp_power_settings
+Message-ID: <20101120104928.GD13186@esdhcp04381.research.nokia.com>
+References: <1289831401-593-1-git-send-email-saaguirre@ti.com>
+ <1289831401-593-8-git-send-email-saaguirre@ti.com>
+ <20101119101802.GB13490@esdhcp04381.research.nokia.com>
+ <A24693684029E5489D1D202277BE8944850C0D5C@dlee02.ent.ti.com>
+ <20101120104521.GB13186@esdhcp04381.research.nokia.com>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTinAVyxrEj+vszP=U4KY0mLWrh0D4OZzrFTjST8t@mail.gmail.com>
-References: <AANLkTint8J4NdXQ4v1wmKAKWa7oeSHsdOn8JzjDqCqeY@mail.gmail.com>
-	<4CD161B3.9000709@maxwell.research.nokia.com>
-	<AANLkTikTAo71Kr+Nh8Q8DOMFwWB=gLQSXozgGo8ecYwm@mail.gmail.com>
-	<201011040434.53836.laurent.pinchart@ideasonboard.com>
-	<AANLkTik56opb35vrTnsP=U0F+24uvAWxjtnoGnW18Yta@mail.gmail.com>
-	<AANLkTi=drc6qQeYx_RHOAuQHZ=h6wy6m9fhHsatAjoQU@mail.gmail.com>
-	<AANLkTinAVyxrEj+vszP=U4KY0mLWrh0D4OZzrFTjST8t@mail.gmail.com>
-Date: Fri, 5 Nov 2010 12:09:57 +0100
-Message-ID: <AANLkTinS6O26Nu3vzt45iCeXzc-_VEA8QtUuz9mLKaLj@mail.gmail.com>
-Subject: Re: OMAP3530 ISP irqs disabled
-From: Bastian Hecht <hechtb@googlemail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20101120104521.GB13186@esdhcp04381.research.nokia.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-2010/11/5 Bastian Hecht <hechtb@googlemail.com>:
-> Hello all,
->
-> I got it now!!!
-> After adding debugfs support and observing my isp like a lynx I found
-> out that magically the ISP_CTRL register changes from
-> [  316.903900] omap3isp omap3isp: ###ISP CTRL=0x00200000  to
-> 0x0020c040  after an successful image read :-)
+On Sat, Nov 20, 2010 at 11:45:21AM +0100, Cohen David (Nokia-MS/Helsinki) wrote:
+> On Fri, Nov 19, 2010 at 11:58:32PM +0100, ext Aguirre, Sergio wrote:
+> > 
+> > 
+> > > -----Original Message-----
+> > > From: Aguirre, Sergio
+> > > Sent: Friday, November 19, 2010 9:46 AM
+> > > To: 'David Cohen'
+> > > Cc: Laurent Pinchart; linux-media@vger.kernel.org
+> > > Subject: RE: [omap3isp][PATCH v2 7/9] omap3isp: Cleanup isp_power_settings
+> > > > -----Original Message-----
+> > > > From: David Cohen [mailto:david.cohen@nokia.com]
+> > > > Sent: Friday, November 19, 2010 4:18 AM
+> > > > To: Aguirre, Sergio
+> > > > Cc: Laurent Pinchart; linux-media@vger.kernel.org
+> > > > Subject: Re: [omap3isp][PATCH v2 7/9] omap3isp: Cleanup
+> > > isp_power_settings
+> > > >
+> > > > Hi Sergio,
+> > > >
+> > > > Thanks for the patch.
+> > > 
+> > > Hi David,
+> > > 
+> > > Thanks for the comments.
+> > > 
+> > > >
+> > > > On Mon, Nov 15, 2010 at 03:29:59PM +0100, ext Sergio Aguirre wrote:
+> > > > > 1. Get rid of CSI2 / CCP2 power settings, as they are controlled
+> > > > >    in the receivers code anyways.
+> > > >
+> > > > CCP2 is not correctly handling this. It's setting SMART STANDBY mode one
+> > > > when reading from memory. You should fix it before remove such code from
+> > > > ISP core driver.
+> > > 
+> > > Ok, agreed.
+> > > 
+> > > I'll generate a new patch before this to compensate that. Not a problem.
+> > 
+> > Is N900 seeing any functional difference w/ this patch?
+> > 
+> > Actually, I reanalyzed the patch, and this code should be unexecuted, since
+> > it is conditioned to 3430 ES1.0 chip (omap_rev() == OMAP3430_REV_ES1_0),
+> > which I don't think much people has access. And not definitely any
+> > production quality device.
+> > 
+> > Even the N900 is using ES3.1 or something like that AFAIK.
+> > 
+> > So, It should not make any functional difference, unless you have an ES1.0.
+> 
+> Your patch is correct once the code you're removing does not belong to
+> the ISP core driver, but you're not only getting rid of duplicated code.
+> You're also removing code for an old version.
+> 
+> I'm not much confortable with this, but I won't disagree if you decide
+> to keep this patch, once you're not breaking any compatibility. But then
+> I need to revisit it in future and implement a better way to add the
 
-Sorry false alarm... the bridge gets configured correctly for my 12-
-to 10-bit shift and the isp listens for VS for frame starts. It just
-was 0x00200000 after reset and had to be set correctly.
+s/I need/we need/ :)
 
-> This is the shift configuration that should never be touched and the
-> syn_detect register that changes from "trigger interrupts on HS
-> falling edge" to "VS rising edge".
-> I saw that the these registers get written in the ccdc_configure ->
-> isp_configure_bridge -> write_regs.
->
-> Let's see if I can find out the concrete bug location.
->
-> cheers,
->
->  Bastian
->
->
-> 2010/11/4 Bastian Hecht <hechtb@googlemail.com>:
->> 2010/11/4 Bastian Hecht <hechtb@googlemail.com>:
->>> 2010/11/4 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
->>>> Hi Bastian,
->>>>
->>>> On Wednesday 03 November 2010 14:38:25 Bastian Hecht wrote:
->>>>> 2010/11/3 Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>:
->>>>> > Bastian Hecht wrote:
->>>>> >> 2010/11/3 Bastian Hecht <hechtb@googlemail.com>:
->>>>> >>> Hello ISP team,
->>>>> >>>
->>>>> >>> I succeeded to stream the first images from the sensor to userspace
->>>>> >>> using Laurent's media-ctl and yafta. Unfortunately all images are
->>>>> >>> black (10MB of zeros).
->>>>> >>> Once by chance I streamed some images (1 of 20 about) with content.
->>>>> >>> All values were < 0x400, so that I assume the values were correctly
->>>>> >>> transferred for my 10-bit pixels.
->>>>> >>>
->>>>> >>> I shortly describe my setup:
->>>>> >>> As I need xclk_a activated for my sensor to work (I2C), I activate the
->>>>> >>> xclk in the isp_probe function. Early hack that I want to remove
->>>>> >>> later.
->>>>> >
->>>>> > It _might_ be better to have this in isp_get().
->>>>> >
->>>>> >>> While I placed my activation in mid of the probe function, I had
->>>>> >>> somehow the interrupts disabled when trying to stream using yafta. So
->>>>> >>> I hacked in the reenabling of the interrupts somewhere else in probe()
->>>>> >>> too.
->>>>> >
->>>>> > That should definitely not be necessary. The interrupts are enabled in
->>>>> > isp_get().
->>>>> >
->>>>> >>> As I dug through the isp code I saw that it is better to place the
->>>>> >>> clock activation after the final isp_put in probe() then the
->>>>> >>> interrupts keep working, but this way I never got a valid picture so
->>>>> >>> far. It's all a mess, I know. I try to transfer the activation to my
->>>>> >>> sensor code and board-setup code like in the et8ek8 code.
->>>>> >>
->>>>> >> I enabled isr debugging (#define ISP_ISR_DEBUG) and see that only 1
->>>>> >> HS_VS_event is generated per second. 1fps corresponds to my clocking,
->>>>> >> so 1 vs per second is fine. But shouldn't I see about 2000 hs
->>>>> >> interrupts there too? HS_VS_IRQ is described as "HS or VS synchro
->>>>> >> event".
->>>>> >
->>>>> > Are you getting any other interrupts? Basically every ISP block which is
->>>>> > on the pipe will produce interrupts. Which ISP block is writing the
->>>>> > images to memory for you?
->>>>>
->>>>> I read out the CCDC with this pipeline:
->>>>> ./media-ctl -r -l '"mt9p031 2-005d":0->"OMAP3 ISP CCDC":0[1], "OMAP3
->>>>> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
->>>>> ./media-ctl -f '"mt9p031 2-005d":0[SGRBG10 2592x1944], "OMAP3 ISP
->>>>> CCDC":1[SGRBG10 2592x1944]'
->>>>> ./yavta -f SGRBG10 -s 2592x1944 -n 4 --capture=4 --skip 3 -F /dev/video2
->>>>>
->>>>> I get these interrupts while reading 4 frames:
->>>>>
->>>>> [ 3962.689483] s_stream is it! enable: 1
->>>>> [ 3962.783843] omap3isp omap3isp: CCDC_VD0_IRQ
->>>>> [ 3962.799530] omap3isp omap3isp: HS_VS_IRQ
->>>>> [ 3963.532958] omap3isp omap3isp: CCDC_VD1_IRQ
->>>>> [ 3963.899505] omap3isp omap3isp: CCDC_VD0_IRQ
->>>>> [ 3963.914184] omap3isp omap3isp: HS_VS_IRQ
->>>>> [ 3964.647644] omap3isp omap3isp: CCDC_VD1_IRQ
->>>>> [ 3965.013153] omap3isp omap3isp: CCDC_VD0_IRQ
->>>>> [ 3965.028839] omap3isp omap3isp: HS_VS_IRQ
->>>>> [ 3965.762298] omap3isp omap3isp: CCDC_VD1_IRQ
->>>>> [ 3966.127838] omap3isp omap3isp: CCDC_VD0_IRQ
->>>>> [ 3966.143585] omap3isp omap3isp: HS_VS_IRQ
->>>>> [ 3966.370788] omap3isp omap3isp: OMAP3 ISP AEWB: user wants to disable
->>>>> module. [ 3966.370819] omap3isp omap3isp: OMAP3 ISP AEWB: module is being
->>>>> disabled [ 3966.370849] omap3isp omap3isp: OMAP3 ISP AF: user wants to
->>>>> disable module. [ 3966.370880] omap3isp omap3isp: OMAP3 ISP AF: module is
->>>>> being disabled [ 3966.370880] omap3isp omap3isp: OMAP3 ISP histogram: user
->>>>> wants to disable module.
->>>>> [ 3966.370910] omap3isp omap3isp: OMAP3 ISP histogram: module is being
->>>>> disabled [ 3966.876983] omap3isp omap3isp: CCDC_VD1_IRQ
->>>>> [ 3967.242492] omap3isp omap3isp: CCDC_VD0_IRQ
->>>>> [ 3967.242614] s_stream is it! enable: 0
->>>>>
->>>>> > Maybe a stupid question, but have you set exposure and gain to a
->>>>> > reasonable value? :-)
->>>>>
->>>>> First reaction was - that must be it! But hmmm... the flanks on the
->>>>> data lines of the camera are mostly high. When I press my finger on
->>>>> the sensor they are mostly low. The other values seem to be good too:
->>>>> xclk comes in with 6Mhz and pixelclk comes out with 6Mhz (all within
->>>>> the limits of the datasheets - camera and omap isp). cam_vs raises for
->>>>> about 1 sec goes shortly down and comes up again. cam_hs seems to fit
->>>>> too.
->>>>> Every 20th try I get data from an image sample the other times only zeros.
->>>>
->>>> The CCDC is configured with a DC subtract value of 64 by default, so it
->>>> subtract 64 from every pixel. If your pixel values are lower than or equal to
->>>> 64 you will get a black image. As a quick hack you can replace
->>>>
->>>> ccdc->clamp.dcsubval = 64;
->>>>
->>>> with
->>>>
->>>> ccdc->clamp.dcsubval = 0;
->>>>
->>>> in isp_ccdc_init(). The correct solution is to use the
->>>> VIDIOC_PRIVATE_ISP_CCDC_CFG ioctl to configure the DC subtraction value to 0.
->>>
->>> This is not the problem. The 64 reduction is a nice hint as I was
->>> wondering why I get 0x3BF when the sensor is full in light and I was
->>> lucky and a frame was read. I wondered why it is not 0x3FF - all 10
->>> bits high. When I slightly press my finger on it I get about
->>> 0x045-0x1bf. So the sensor values seem to be ok. The values fill the
->>> whole 10MB image.
->>
->> I want to clarify this:
->>
->> I try to read images with yafta.
->> I read in 4 images with 5MP size (no skipping). All 4 images contain only zeros.
->> I repeat the process some times and keep checking the data. After -
->> let's say the 6th time - the images contain exactly the data I expect.
->> WHEN they are read they are good. I just don't want to read 20 black
->> images before 1 image is transferred right.
->>
->> -Bastian
->>
->>
->>> Can you give me an other media-ctl setup, so that I can read jpegs
->>> from the preview unit, please?
->>>
->>> I want to follow 3 leads now:
->>>
->>> - replace my igep with another one
->>> - check if the isp (code) works better with preview data
->>> - I want to check yafta
->>>
->>> Thank you,
->>>
->>>  Bastian
->>>
->>
->
+David
+
+> missing code again.
+> 
+> Br,
+> 
+> David
+> 
+> > 
+> > Regards,
+> > Sergio
+> > 
+> > > 
+> > > >
+> > > > > 2. Avoid code duplication.
+> > > >
+> > > > Agree. But only after considering the comment above.
+> > > 
+> > > Ok.
+> > > 
+> > > Thanks and Regards,
+> > > Sergio
+> > > 
+> > > >
+> > > > Regards,
+> > > >
+> > > > David
+> > > >
+> > > > >
+> > > > > Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> > > > > ---
+> > > > >  drivers/media/video/isp/isp.c |   49 ++++++--------------------------
+> > > --
+> > > > -------
+> > > > >  1 files changed, 7 insertions(+), 42 deletions(-)
+> > > > >
+> > > > > diff --git a/drivers/media/video/isp/isp.c
+> > > > b/drivers/media/video/isp/isp.c
+> > > > > index de9352b..30bdc48 100644
+> > > > > --- a/drivers/media/video/isp/isp.c
+> > > > > +++ b/drivers/media/video/isp/isp.c
+> > > > > @@ -254,48 +254,13 @@ EXPORT_SYMBOL(isp_set_xclk);
+> > > > >   */
+> > > > >  static void isp_power_settings(struct isp_device *isp, int idle)
+> > > > >  {
+> > > > > -	if (idle) {
+> > > > > -		isp_reg_writel(isp,
+> > > > > -			       (ISP_SYSCONFIG_MIDLEMODE_SMARTSTANDBY <<
+> > > > > -				ISP_SYSCONFIG_MIDLEMODE_SHIFT),
+> > > > > -			       OMAP3_ISP_IOMEM_MAIN, ISP_SYSCONFIG);
+> > > > > -		if (omap_rev() == OMAP3430_REV_ES1_0) {
+> > > > > -			isp_reg_writel(isp, ISPCSI1_AUTOIDLE |
+> > > > > -				       (ISPCSI1_MIDLEMODE_SMARTSTANDBY <<
+> > > > > -					ISPCSI1_MIDLEMODE_SHIFT),
+> > > > > -				       OMAP3_ISP_IOMEM_CSI2A_REGS1,
+> > > > > -				       ISPCSI2_SYSCONFIG);
+> > > > > -			isp_reg_writel(isp, ISPCSI1_AUTOIDLE |
+> > > > > -				       (ISPCSI1_MIDLEMODE_SMARTSTANDBY <<
+> > > > > -					ISPCSI1_MIDLEMODE_SHIFT),
+> > > > > -				       OMAP3_ISP_IOMEM_CCP2,
+> > > > > -				       ISPCCP2_SYSCONFIG);
+> > > > > -		}
+> > > > > -		isp_reg_writel(isp, ISPCTRL_SBL_AUTOIDLE,
+> > > > OMAP3_ISP_IOMEM_MAIN,
+> > > > > -			       ISP_CTRL);
+> > > > > -
+> > > > > -	} else {
+> > > > > -		isp_reg_writel(isp,
+> > > > > -			       (ISP_SYSCONFIG_MIDLEMODE_FORCESTANDBY <<
+> > > > > -				ISP_SYSCONFIG_MIDLEMODE_SHIFT),
+> > > > > -			       OMAP3_ISP_IOMEM_MAIN, ISP_SYSCONFIG);
+> > > > > -		if (omap_rev() == OMAP3430_REV_ES1_0) {
+> > > > > -			isp_reg_writel(isp, ISPCSI1_AUTOIDLE |
+> > > > > -				       (ISPCSI1_MIDLEMODE_FORCESTANDBY <<
+> > > > > -					ISPCSI1_MIDLEMODE_SHIFT),
+> > > > > -				       OMAP3_ISP_IOMEM_CSI2A_REGS1,
+> > > > > -				       ISPCSI2_SYSCONFIG);
+> > > > > -
+> > > > > -			isp_reg_writel(isp, ISPCSI1_AUTOIDLE |
+> > > > > -				       (ISPCSI1_MIDLEMODE_FORCESTANDBY <<
+> > > > > -					ISPCSI1_MIDLEMODE_SHIFT),
+> > > > > -				       OMAP3_ISP_IOMEM_CCP2,
+> > > > > -				       ISPCCP2_SYSCONFIG);
+> > > > > -		}
+> > > > > -
+> > > > > -		isp_reg_writel(isp, ISPCTRL_SBL_AUTOIDLE,
+> > > > OMAP3_ISP_IOMEM_MAIN,
+> > > > > -			       ISP_CTRL);
+> > > > > -	}
+> > > > > +	isp_reg_writel(isp,
+> > > > > +		       ((idle ? ISP_SYSCONFIG_MIDLEMODE_SMARTSTANDBY :
+> > > > > +				ISP_SYSCONFIG_MIDLEMODE_FORCESTANDBY) <<
+> > > > > +			ISP_SYSCONFIG_MIDLEMODE_SHIFT),
+> > > > > +		       OMAP3_ISP_IOMEM_MAIN, ISP_SYSCONFIG);
+> > > > > +	isp_reg_writel(isp, ISPCTRL_SBL_AUTOIDLE, OMAP3_ISP_IOMEM_MAIN,
+> > > > > +		       ISP_CTRL);
+> > > > >  }
+> > > > >
+> > > > >  /*
+> > > > > --
+> > > > > 1.7.0.4
+> > > > >
+> > > > > --
+> > > > > To unsubscribe from this list: send the line "unsubscribe linux-media"
+> > > > in
+> > > > > the body of a message to majordomo@vger.kernel.org
+> > > > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
