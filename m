@@ -1,99 +1,170 @@
 Return-path: <mchehab@gaivota>
-Received: from comal.ext.ti.com ([198.47.26.152]:42080 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753054Ab0KSPyG convert rfc822-to-8bit (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:57515 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755370Ab0KTXvm convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 10:54:06 -0500
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	David Cohen <david.cohen@nokia.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Fri, 19 Nov 2010 09:54:01 -0600
-Subject: RE: [omap3isp][PATCH v2 5/9] omap3isp: Remove unused CBUFF register
- access
-Message-ID: <A24693684029E5489D1D202277BE8944850C0826@dlee02.ent.ti.com>
-References: <1289831401-593-1-git-send-email-saaguirre@ti.com>
- <1289831401-593-6-git-send-email-saaguirre@ti.com>
- <20101119101944.GC13490@esdhcp04381.research.nokia.com>
- <201011191133.19016.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201011191133.19016.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Sat, 20 Nov 2010 18:51:42 -0500
+Received: by eye27 with SMTP id 27so3370687eye.19
+        for <linux-media@vger.kernel.org>; Sat, 20 Nov 2010 15:51:41 -0800 (PST)
+From: Alexey Chernov <4ernov@gmail.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] support of GoTView PCI-E X5 3D Hybrid in cx23885
+Date: Sun, 21 Nov 2010 02:51:36 +0300
+Cc: stoth@kernellabs.com
 MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201011210251.36592.4ernov@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Laurent and David,
+Hello,
+I've added support of GoTView PCI-E X5 3D Hybrid to cx23885 module (thanks to 
+help of Gotview support team). Some details:
+1. Everything initialize properly except radio.
+2. All analog inputs (TV, composite, S-Video) are tested by myself in several 
+TV norms (SECAM-D, PAL, NTSC), everything work fine. DVB isn't tested properly 
+due to absense of DVB signal.
 
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Friday, November 19, 2010 4:33 AM
-> To: David Cohen
-> Cc: Aguirre, Sergio; linux-media@vger.kernel.org
-> Subject: Re: [omap3isp][PATCH v2 5/9] omap3isp: Remove unused CBUFF
-> register access
-> 
-> Hi David,
-> 
-> On Friday 19 November 2010 11:19:44 David Cohen wrote:
-> > On Mon, Nov 15, 2010 at 03:29:57PM +0100, ext Sergio Aguirre wrote:
-> 
-> [snip]
-> 
-> > > @@ -244,26 +239,6 @@
-> > >
-> > >  #define ISP_CSIB_SYSCONFIG		ISPCCP2_SYSCONFIG
-> > >  #define ISP_CSIA_SYSCONFIG		ISPCSI2_SYSCONFIG
-> > >
-> > > -/* ISP_CBUFF Registers */
-> > > -
-> > > -#define ISP_CBUFF_SYSCONFIG		(0x010)
-> > > -#define ISP_CBUFF_IRQENABLE		(0x01C)
-> > > -
-> > > -#define ISP_CBUFF0_CTRL			(0x020)
-> > > -#define ISP_CBUFF1_CTRL			(0x024)
-> > > -
-> > > -#define ISP_CBUFF0_START		(0x040)
-> > > -#define ISP_CBUFF1_START		(0x044)
-> > > -
-> > > -#define ISP_CBUFF0_END			(0x050)
-> > > -#define ISP_CBUFF1_END			(0x054)
-> > > -
-> > > -#define ISP_CBUFF0_WINDOWSIZE		(0x060)
-> > > -#define ISP_CBUFF1_WINDOWSIZE		(0x064)
-> > > -
-> > > -#define ISP_CBUFF0_THRESHOLD		(0x070)
-> > > -#define ISP_CBUFF1_THRESHOLD		(0x074)
-> > > -
-> >
-> > No need to remove the registers from header file. We're not using them
-> > on current version, but it doesn't mean we won't use ever. :)
-> 
-> I would have made the same comment for other registers, but we're not
-> using
-> the CBUFF module at all here, with no plans to use it in the future. It
-> might
-> not be worth it keeping the register definitions. I have no strong feeling
-> about it, I'm fine with both choices.
+So the patch adds general support/detection of the card with working analog 
+part and hopefully working (untested) DVB part. I hope it will be useful.
 
-David,
+Signed-off-by: Alexey Chernov <4ernov@gmail.com>
 
-IMO, we should not introduce dead code/unusued defines in the first omap3isp
-upstream version. I think it's already quite hard to review for somebody
-outside the omap3isp development team.
-
-Having all this just in case will most probably end up in bulk, as we
-might never implement the CBUFF HW block, as Laurent mentions.
-
-I'll be more biased on all this being re-added if we end up implementing a ispcbuff submodule.
-
-Regards,
-Sergio
-
-
-> 
-> --
-> Regards,
-> 
-> Laurent Pinchart
+diff -uprB v4l-dvb.orig/drivers/media/video/cx23885/cx23885-cards.c v4l-
+dvb/drivers/media/video/cx23885/cx23885-cards.c
+--- v4l-dvb.orig/drivers/media/video/cx23885/cx23885-cards.c	2010-11-20 
+22:24:11.000000000 +0300
++++ v4l-dvb/drivers/media/video/cx23885/cx23885-cards.c	2010-11-21 
+02:09:54.000000000 +0300
+@@ -309,6 +309,24 @@ struct cx23885_board cx23885_boards[] = 
+ 				  CX25840_COMPONENT_ON,
+ 		} },
+ 	},
++	[CX23885_BOARD_GOTVIEW_X5_3D_HYBRID] = {
++		.name		= "GoTView X5 3D Hybrid",
++		.tuner_type = TUNER_XC5000,
++		.tuner_addr = 0x64,
++		.porta		= CX23885_ANALOG_VIDEO,
++		.portb		= CX23885_MPEG_DVB,
++		.input          = {{
++			.type   = CX23885_VMUX_TELEVISION,
++			.vmux   = CX25840_VIN2_CH1 | CX25840_VIN5_CH2,
++			.gpio0	= 0x02,
++		}, {
++			.type   = CX23885_VMUX_COMPOSITE1,
++			.vmux   =	CX23885_VMUX_COMPOSITE1,
++		}, {
++			.type   = CX23885_VMUX_SVIDEO,
++			.vmux   =	CX25840_SVIDEO_LUMA3 | CX25840_SVIDEO_CHROMA4,
++	    } },
++	},
+ };
+ const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
+ 
+@@ -496,6 +514,10 @@ struct cx23885_subid cx23885_subids[] = 
+ 		.subvendor = 0x107d,
+ 		.subdevice = 0x6f22,
+ 		.card      = CX23885_BOARD_LEADTEK_WINFAST_PXTV1200,
++	}, {
++		.subvendor = 0x5654,
++		.subdevice = 0x2390,
++		.card      = CX23885_BOARD_GOTVIEW_X5_3D_HYBRID,
+ 	},
+ };
+ const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
+@@ -712,6 +734,10 @@ int cx23885_tuner_callback(void *priv, i
+ 		else if (port->nr == 2)
+ 			bitmask = 0x04;
+ 		break;
++	case CX23885_BOARD_GOTVIEW_X5_3D_HYBRID:
++		/* Tuner Reset Command */
++		bitmask = 0x02;
++		break;
+ 	}
+ 
+ 	if (bitmask) {
+@@ -1218,6 +1244,7 @@ void cx23885_card_setup(struct cx23885_d
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1850:
+ 	case CX23885_BOARD_COMPRO_VIDEOMATE_E800:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1290:
++	case CX23885_BOARD_GOTVIEW_X5_3D_HYBRID:
+ 	default:
+ 		ts2->gen_ctrl_val  = 0xc; /* Serial bus + punctured clock */
+ 		ts2->ts_clk_en_val = 0x1; /* Enable TS_CLK */
+@@ -1245,6 +1272,7 @@ void cx23885_card_setup(struct cx23885_d
+ 	case CX23885_BOARD_MAGICPRO_PROHDTVE2:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1290:
+ 	case CX23885_BOARD_LEADTEK_WINFAST_PXTV1200:
++	case CX23885_BOARD_GOTVIEW_X5_3D_HYBRID:
+ 		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
+ 				&dev->i2c_bus[2].i2c_adap,
+ 				NULL, "cx25840", 0x88 >> 1, NULL);
+Только в v4l-dvb/drivers/media/video/cx23885: cx23885-cards.c~
+diff -uprB v4l-dvb.orig/drivers/media/video/cx23885/cx23885-dvb.c v4l-
+dvb/drivers/media/video/cx23885/cx23885-dvb.c
+--- v4l-dvb.orig/drivers/media/video/cx23885/cx23885-dvb.c	2010-11-20 
+22:24:11.000000000 +0300
++++ v4l-dvb/drivers/media/video/cx23885/cx23885-dvb.c	2010-11-21 
+02:09:54.000000000 +0300
+@@ -460,6 +460,10 @@ static struct xc5000_config mygica_x8506
+ 	.if_khz = 5380,
+ };
+ 
++static struct zl10353_config gotview_x5_3d_hybrid_zl10353_config = {
++	.demod_address         = 0x0F,
++};
++
+ static int cx23885_dvb_set_frontend(struct dvb_frontend *fe,
+ 				    struct dvb_frontend_parameters *param)
+ {
+@@ -484,6 +488,9 @@ static int cx23885_dvb_set_frontend(stru
+ 		/* Select Digital TV */
+ 		cx23885_gpio_set(dev, GPIO_0);
+ 		break;
++	case CX23885_BOARD_GOTVIEW_X5_3D_HYBRID:
++		cx23885_gpio_set(dev, GPIO_1);
++		break;
+ 	}
+ 	return 0;
+ }
+@@ -966,6 +973,24 @@ static int dvb_register(struct cx23885_t
+ 			break;
+ 		}
+ 		break;
++	case CX23885_BOARD_GOTVIEW_X5_3D_HYBRID:
++		i2c_bus = &dev->i2c_bus[port->nr - 1];
++		
++		fe0->dvb.frontend = dvb_attach(zl10353_attach,
++				&gotview_x5_3d_hybrid_zl10353_config,
++				&i2c_bus->i2c_adap);
++		
++		if (fe0->dvb.frontend != NULL) {
++			struct xc5000_config	  cfg;
++			cfg.i2c_address = 0x64;
++
++			i2c_bus = &dev->i2c_bus[port->nr];
++
++			dvb_attach(xc5000_attach, fe0->dvb.frontend,
++					&i2c_bus->i2c_adap,
++					&cfg);
++		}
++		break;
+ 
+ 	default:
+ 		printk(KERN_INFO "%s: The frontend of your DVB/ATSC card "
+diff -uprB v4l-dvb.orig/drivers/media/video/cx23885/cx23885.h v4l-
+dvb/drivers/media/video/cx23885/cx23885.h
+--- v4l-dvb.orig/drivers/media/video/cx23885/cx23885.h	2010-11-20 
+22:24:11.000000000 +0300
++++ v4l-dvb/drivers/media/video/cx23885/cx23885.h	2010-11-21 
+02:09:54.000000000 +0300
+@@ -84,6 +84,7 @@
+ #define CX23885_BOARD_HAUPPAUGE_HVR1290        26
+ #define CX23885_BOARD_MYGICA_X8558PRO          27
+ #define CX23885_BOARD_LEADTEK_WINFAST_PXTV1200 28
++#define CX23885_BOARD_GOTVIEW_X5_3D_HYBRID     29
+ 
+ #define GPIO_0 0x00000001
+ #define GPIO_1 0x00000002
