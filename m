@@ -1,72 +1,184 @@
-Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:45951 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753301Ab0KMWbw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Nov 2010 17:31:52 -0500
-Subject: Re: new_build on ubuntu (dvbdev.c)
-From: Andy Walls <awalls@md.metrocast.net>
-To: Vincent McIntyre <vincent.mcintyre@gmail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <AANLkTimOyNpAatcZb775PPK3uEOXDKXW6-J0kMGis41f@mail.gmail.com>
-References: <AANLkTimOyNpAatcZb775PPK3uEOXDKXW6-J0kMGis41f@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 13 Nov 2010 16:33:49 -0500
-Message-ID: <1289684029.2426.65.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@gaivota>
+Received: from smtp.nokia.com ([147.243.1.48]:25163 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751292Ab0KTKoU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Nov 2010 05:44:20 -0500
+Date: Sat, 20 Nov 2010 12:45:21 +0200
+From: David Cohen <david.cohen@nokia.com>
+To: "ext Aguirre, Sergio" <saaguirre@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [omap3isp][PATCH v2 7/9] omap3isp: Cleanup isp_power_settings
+Message-ID: <20101120104521.GB13186@esdhcp04381.research.nokia.com>
+References: <1289831401-593-1-git-send-email-saaguirre@ti.com>
+ <1289831401-593-8-git-send-email-saaguirre@ti.com>
+ <20101119101802.GB13490@esdhcp04381.research.nokia.com>
+ <A24693684029E5489D1D202277BE8944850C0D5C@dlee02.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <A24693684029E5489D1D202277BE8944850C0D5C@dlee02.ent.ti.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Sun, 2010-11-14 at 09:08 +1100, Vincent McIntyre wrote:
-> Hi,
-> I'm trying to build on 2.6.32 (ubuntu lucid i386).
+On Fri, Nov 19, 2010 at 11:58:32PM +0100, ext Aguirre, Sergio wrote:
 > 
-> I followed the instructions for building from git[1]
-
-Shouldn't you be building from:
-
-	http://git.linuxtv.org/mchehab/new_build.git
-
-for backward compat builds? (I'm not sure myself.)
-
-> but I get an error I don't understand.
 > 
-> make -C /lib/modules/2.6.32-25-3dbc39-generic/build
-> SUBDIRS=/home/me/git/clones/linuxtv.org/new_build/v4l  modules
-> make[3]: Entering directory `/usr/src/linux-headers-2.6.32-25-3dbc39-generic'
->   CC [M]  /home/me/git/clones/linuxtv.org/new_build/v4l/tuner-xc2028.o
->   CC [M]  /home/me/git/clones/linuxtv.org/new_build/v4l/tuner-simple.o
->   CC [M]  /home/me/git/clones/linuxtv.org/new_build/v4l/tuner-types.o
->   CC [M]  /home/me/git/clones/linuxtv.org/new_build/v4l/mt20xx.o
-> ...all ok so far...
->   CC [M]  /home/me/git/clones/linuxtv.org/new_build/v4l/flexcop-dma.o
-> /home/me/git/clones/linuxtv.org/new_build/v4l/dvbdev.c:108: error:
-> 'noop_llseek' undeclared here (not in a function)
-
-noop_llseek() is a newer kernl function that provided a trivial llseek()
-implmenetation for drivers that don't support llseek() but still want to
-provide a successful return code:
-
-http://lkml.org/lkml/2010/4/9/193
-http://lkml.org/lkml/2010/4/9/184
-
-
-> Is it that an additional backport patch may be needed here?
-
-Yup.  It looks like you need something.  You'll need a patch to
-implement the trivial noop_llseek() function available in the links
-above.
-
-> The kernel I am running here is Ubuntu 2.6.32-25.43-generic (2.6.32.21+drm33.7)
-> with one tiny patch, reverting a bad change to drivers/usb/serial/ftdi_sio.c.
+> > -----Original Message-----
+> > From: Aguirre, Sergio
+> > Sent: Friday, November 19, 2010 9:46 AM
+> > To: 'David Cohen'
+> > Cc: Laurent Pinchart; linux-media@vger.kernel.org
+> > Subject: RE: [omap3isp][PATCH v2 7/9] omap3isp: Cleanup isp_power_settings
+> > > -----Original Message-----
+> > > From: David Cohen [mailto:david.cohen@nokia.com]
+> > > Sent: Friday, November 19, 2010 4:18 AM
+> > > To: Aguirre, Sergio
+> > > Cc: Laurent Pinchart; linux-media@vger.kernel.org
+> > > Subject: Re: [omap3isp][PATCH v2 7/9] omap3isp: Cleanup
+> > isp_power_settings
+> > >
+> > > Hi Sergio,
+> > >
+> > > Thanks for the patch.
+> > 
+> > Hi David,
+> > 
+> > Thanks for the comments.
+> > 
+> > >
+> > > On Mon, Nov 15, 2010 at 03:29:59PM +0100, ext Sergio Aguirre wrote:
+> > > > 1. Get rid of CSI2 / CCP2 power settings, as they are controlled
+> > > >    in the receivers code anyways.
+> > >
+> > > CCP2 is not correctly handling this. It's setting SMART STANDBY mode one
+> > > when reading from memory. You should fix it before remove such code from
+> > > ISP core driver.
+> > 
+> > Ok, agreed.
+> > 
+> > I'll generate a new patch before this to compensate that. Not a problem.
 > 
-> Any advice appreciated.
+> Is N900 seeing any functional difference w/ this patch?
+> 
+> Actually, I reanalyzed the patch, and this code should be unexecuted, since
+> it is conditioned to 3430 ES1.0 chip (omap_rev() == OMAP3430_REV_ES1_0),
+> which I don't think much people has access. And not definitely any
+> production quality device.
+> 
+> Even the N900 is using ES3.1 or something like that AFAIK.
+> 
+> So, It should not make any functional difference, unless you have an ES1.0.
 
-Regards,
-Andy
+Your patch is correct once the code you're removing does not belong to
+the ISP core driver, but you're not only getting rid of duplicated code.
+You're also removing code for an old version.
 
-> [1] http://git.linuxtv.org/media_tree.git
-> --
+I'm not much confortable with this, but I won't disagree if you decide
+to keep this patch, once you're not breaking any compatibility. But then
+I need to revisit it in future and implement a better way to add the
+missing code again.
 
+Br,
 
+David
+
+> 
+> Regards,
+> Sergio
+> 
+> > 
+> > >
+> > > > 2. Avoid code duplication.
+> > >
+> > > Agree. But only after considering the comment above.
+> > 
+> > Ok.
+> > 
+> > Thanks and Regards,
+> > Sergio
+> > 
+> > >
+> > > Regards,
+> > >
+> > > David
+> > >
+> > > >
+> > > > Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> > > > ---
+> > > >  drivers/media/video/isp/isp.c |   49 ++++++--------------------------
+> > --
+> > > -------
+> > > >  1 files changed, 7 insertions(+), 42 deletions(-)
+> > > >
+> > > > diff --git a/drivers/media/video/isp/isp.c
+> > > b/drivers/media/video/isp/isp.c
+> > > > index de9352b..30bdc48 100644
+> > > > --- a/drivers/media/video/isp/isp.c
+> > > > +++ b/drivers/media/video/isp/isp.c
+> > > > @@ -254,48 +254,13 @@ EXPORT_SYMBOL(isp_set_xclk);
+> > > >   */
+> > > >  static void isp_power_settings(struct isp_device *isp, int idle)
+> > > >  {
+> > > > -	if (idle) {
+> > > > -		isp_reg_writel(isp,
+> > > > -			       (ISP_SYSCONFIG_MIDLEMODE_SMARTSTANDBY <<
+> > > > -				ISP_SYSCONFIG_MIDLEMODE_SHIFT),
+> > > > -			       OMAP3_ISP_IOMEM_MAIN, ISP_SYSCONFIG);
+> > > > -		if (omap_rev() == OMAP3430_REV_ES1_0) {
+> > > > -			isp_reg_writel(isp, ISPCSI1_AUTOIDLE |
+> > > > -				       (ISPCSI1_MIDLEMODE_SMARTSTANDBY <<
+> > > > -					ISPCSI1_MIDLEMODE_SHIFT),
+> > > > -				       OMAP3_ISP_IOMEM_CSI2A_REGS1,
+> > > > -				       ISPCSI2_SYSCONFIG);
+> > > > -			isp_reg_writel(isp, ISPCSI1_AUTOIDLE |
+> > > > -				       (ISPCSI1_MIDLEMODE_SMARTSTANDBY <<
+> > > > -					ISPCSI1_MIDLEMODE_SHIFT),
+> > > > -				       OMAP3_ISP_IOMEM_CCP2,
+> > > > -				       ISPCCP2_SYSCONFIG);
+> > > > -		}
+> > > > -		isp_reg_writel(isp, ISPCTRL_SBL_AUTOIDLE,
+> > > OMAP3_ISP_IOMEM_MAIN,
+> > > > -			       ISP_CTRL);
+> > > > -
+> > > > -	} else {
+> > > > -		isp_reg_writel(isp,
+> > > > -			       (ISP_SYSCONFIG_MIDLEMODE_FORCESTANDBY <<
+> > > > -				ISP_SYSCONFIG_MIDLEMODE_SHIFT),
+> > > > -			       OMAP3_ISP_IOMEM_MAIN, ISP_SYSCONFIG);
+> > > > -		if (omap_rev() == OMAP3430_REV_ES1_0) {
+> > > > -			isp_reg_writel(isp, ISPCSI1_AUTOIDLE |
+> > > > -				       (ISPCSI1_MIDLEMODE_FORCESTANDBY <<
+> > > > -					ISPCSI1_MIDLEMODE_SHIFT),
+> > > > -				       OMAP3_ISP_IOMEM_CSI2A_REGS1,
+> > > > -				       ISPCSI2_SYSCONFIG);
+> > > > -
+> > > > -			isp_reg_writel(isp, ISPCSI1_AUTOIDLE |
+> > > > -				       (ISPCSI1_MIDLEMODE_FORCESTANDBY <<
+> > > > -					ISPCSI1_MIDLEMODE_SHIFT),
+> > > > -				       OMAP3_ISP_IOMEM_CCP2,
+> > > > -				       ISPCCP2_SYSCONFIG);
+> > > > -		}
+> > > > -
+> > > > -		isp_reg_writel(isp, ISPCTRL_SBL_AUTOIDLE,
+> > > OMAP3_ISP_IOMEM_MAIN,
+> > > > -			       ISP_CTRL);
+> > > > -	}
+> > > > +	isp_reg_writel(isp,
+> > > > +		       ((idle ? ISP_SYSCONFIG_MIDLEMODE_SMARTSTANDBY :
+> > > > +				ISP_SYSCONFIG_MIDLEMODE_FORCESTANDBY) <<
+> > > > +			ISP_SYSCONFIG_MIDLEMODE_SHIFT),
+> > > > +		       OMAP3_ISP_IOMEM_MAIN, ISP_SYSCONFIG);
+> > > > +	isp_reg_writel(isp, ISPCTRL_SBL_AUTOIDLE, OMAP3_ISP_IOMEM_MAIN,
+> > > > +		       ISP_CTRL);
+> > > >  }
+> > > >
+> > > >  /*
+> > > > --
+> > > > 1.7.0.4
+> > > >
+> > > > --
+> > > > To unsubscribe from this list: send the line "unsubscribe linux-media"
+> > > in
+> > > > the body of a message to majordomo@vger.kernel.org
+> > > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
