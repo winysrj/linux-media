@@ -1,25 +1,35 @@
-Return-path: <mchehab@pedra>
+Return-path: <mchehab@gaivota>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <dehqan65@gmail.com>) id 1PF4MT-00007h-Ed
-	for linux-dvb@linuxtv.org; Sun, 07 Nov 2010 13:28:41 +0100
-Received: from mail-qy0-f182.google.com ([209.85.216.182])
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-b) with esmtp
-	for <linux-dvb@linuxtv.org>
-	id 1PF4MS-0003Gr-9e; Sun, 07 Nov 2010 13:28:41 +0100
-Received: by qyk7 with SMTP id 7so4107372qyk.20
-	for <linux-dvb@linuxtv.org>; Sun, 07 Nov 2010 04:28:39 -0800 (PST)
+	(envelope-from <lionteeth@cogweb.net>) id 1PJiEg-0002kH-Ss
+	for linux-dvb@linuxtv.org; Sat, 20 Nov 2010 08:51:51 +0100
+Received: from smtp1.sscnet.ucla.edu ([128.97.229.231])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-a) with esmtps
+	[TLSv1:AES256-SHA:256] for <linux-dvb@linuxtv.org>
+	id 1PJiEg-0007Qw-AM; Sat, 20 Nov 2010 08:51:50 +0100
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by smtp1.sscnet.ucla.edu (8.13.8/8.13.8) with ESMTP id oAK7pmnQ018662
+	for <linux-dvb@linuxtv.org>; Fri, 19 Nov 2010 23:51:48 -0800
+Received: from smtp1.sscnet.ucla.edu ([127.0.0.1])
+	by localhost (smtp1.sscnet.ucla.edu [127.0.0.1]) (amavisd-new,
+	port 10024) with ESMTP id ddRCGyPHZV0r for <linux-dvb@linuxtv.org>;
+	Fri, 19 Nov 2010 23:51:38 -0800 (PST)
+Received: from smtp5.sscnet.ucla.edu (smtp5.sscnet.ucla.edu [128.97.229.235])
+	by smtp1.sscnet.ucla.edu (8.13.8/8.13.8) with ESMTP id oAK7pYmo018650
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-dvb@linuxtv.org>; Fri, 19 Nov 2010 23:51:34 -0800
+Received: from weber.sscnet.ucla.edu (weber.sscnet.ucla.edu [128.97.42.3])
+	by smtp5.sscnet.ucla.edu (8.13.8/8.13.8) with ESMTP id oAK7pP69013093
+	for <linux-dvb@linuxtv.org>; Fri, 19 Nov 2010 23:51:25 -0800
+Received: from [128.97.244.133] (vpn-8061f485.host.ucla.edu [128.97.244.133])
+	by weber.sscnet.ucla.edu (8.14.2/8.14.2) with ESMTP id oAK7pJmi005930
+	for <linux-dvb@linuxtv.org>; Fri, 19 Nov 2010 23:51:19 -0800 (PST)
+Message-ID: <4CE77DF3.8090604@cogweb.net>
+Date: Fri, 19 Nov 2010 23:51:15 -0800
+From: David Liontooth <lionteeth@cogweb.net>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTim9kkFuORZHwtC+Wd2BN8HJRxCtEr+2zP5P9cx3@mail.gmail.com>
-References: <AANLkTim9kkFuORZHwtC+Wd2BN8HJRxCtEr+2zP5P9cx3@mail.gmail.com>
-Date: Sun, 7 Nov 2010 15:58:39 +0330
-Message-ID: <AANLkTik1bC=QL_bq83xp=ptA8opn1p7EzJ9ir-UXtpBJ@mail.gmail.com>
-From: dehqan65 <dehqan65@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>,
-	linux-dvb <linux-dvb@linuxtv.org>, info@bmglobal.tw,
-	Huang Shijie <shijie8@gmail.com>, "Ubuntu user technical support,
-	not for general discussions" <ubuntu-users@lists.ubuntu.com>
-Subject: Re: [linux-dvb] Analog TV shoow has not sound
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] dvbstream fails to tune QAM-256
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -28,51 +38,35 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0013999618=="
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0013999618==
-Content-Type: multipart/alternative; boundary=20cf3005dcd2bf4f3c049475a579
 
---20cf3005dcd2bf4f3c049475a579
-Content-Type: text/plain; charset=ISO-8859-1
+I'm using Debian's dvbstream 0.6+cvs20090621-1 to capture video and 
+closed captioning to file.
 
-In The Name Of God The compassionate merciful
+If I tune with azap, dvbstream works fine, but I can't get it to tune on 
+its own.
 
+In the Debian source code, I activated DVB_ATSC by adding -DDVB_ATSC to 
+CFLAGS in the Makefile.
 
-Hello ;
-Good day
-Solved with :
+dvbstream -f 645000000 -qam 256 -v 49 a 52 -o > test.ts
 
- mplayer -tv alsa:adevice=hw.1,0:immediatemode=0:chanlist=us-bcast tv://
+gives me the error "Unknown FE type".
 
-Regards dehqan
+Suggestions? Is this a problem with an API that has changed since 
+dvbstream's last release?
 
---20cf3005dcd2bf4f3c049475a579
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Cheers,
+Dave
 
-<div dir=3D"ltr">In The Name Of God The compassionate merciful<br>
-<br>
-<br>
-Hello ;<br>
-Good day<br>Solved with :<br><br>=A0mplayer -tv alsa:adevice=3Dhw.1,0:immed=
-iatemode=3D0:chanlist=3Dus-bcast tv:// <br><br>Regards dehqan<br></div>
-
---20cf3005dcd2bf4f3c049475a579--
-
-
---===============0013999618==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0013999618==--
