@@ -1,56 +1,130 @@
-Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.186]:57314 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752929Ab0KPTWa (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39753 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755732Ab0KUUcv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Nov 2010 14:22:30 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC PATCH 0/8] V4L BKL removal: first round
-Date: Tue, 16 Nov 2010 20:23:17 +0100
-Cc: "Mauro Carvalho Chehab" <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <cover.1289740431.git.hverkuil@xs4all.nl> <201011161749.05844.hverkuil@xs4all.nl> <201011161938.11476.hverkuil@xs4all.nl>
-In-Reply-To: <201011161938.11476.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011162023.17671.arnd@arndb.de>
+	Sun, 21 Nov 2010 15:32:51 -0500
+Received: from localhost.localdomain (unknown [91.178.49.10])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 58DE035C96
+	for <linux-media@vger.kernel.org>; Sun, 21 Nov 2010 20:32:50 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 2/5] uvcvideo: Move mutex lock/unlock inside uvc_free_buffers
+Date: Sun, 21 Nov 2010 21:32:50 +0100
+Message-Id: <1290371573-14907-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1290371573-14907-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1290371573-14907-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Tuesday 16 November 2010, Hans Verkuil wrote:
-> I consider class 3 unacceptable for commonly seen devices. I did a quick scan
-> of the v4l drivers and the only common driver that falls in that class is uvc.
+Callers outside uvc_queue.c should not be forced to lock/unlock the
+queue mutex manually. Move the mutex operations inside
+uvc_free_buffers().
 
-If uvc is the only important one, that should be easy enough to fix by adding
-a per-device mutex around uvc_v4l2_do_ioctl() or uvc_v4l2_ioctl().
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/uvc/uvc_queue.c |   57 +++++++++++++++++++++--------------
+ drivers/media/video/uvc/uvc_v4l2.c  |    2 -
+ 2 files changed, 34 insertions(+), 25 deletions(-)
 
-> There is one other option, although it is very dirty: don't take the lock if
-> the ioctl command is VIDIOC_DQBUF. It works and reliably as well for uvc and
-> videobuf (I did a quick code analysis). But I don't know if it works everywhere.
-> 
-> I would like to get the opinion of others before I implement such a check. But
-> frankly, I think this may be our best bet.
-> 
-> So the patch below would look like this if I add the check:
-> 
-> -               mutex_lock(&v4l2_ioctl_mutex);
-> +               if (cmd != VIDIOC_DQBUF)
-> +                       mutex_lock(m);
->                 if (video_is_registered(vdev))
->                         ret = vdev->fops->ioctl(filp, cmd, arg);
-> -               mutex_unlock(&v4l2_ioctl_mutex);
-> +               if (cmd != VIDIOC_DQBUF)
-> +                       mutex_unlock(m);
-> 
+diff --git a/drivers/media/video/uvc/uvc_queue.c b/drivers/media/video/uvc/uvc_queue.c
+index ed6d544..32c1822 100644
+--- a/drivers/media/video/uvc/uvc_queue.c
++++ b/drivers/media/video/uvc/uvc_queue.c
+@@ -90,6 +90,39 @@ void uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
+ }
+ 
+ /*
++ * Free the video buffers.
++ *
++ * This function must be called with the queue lock held.
++ */
++static int __uvc_free_buffers(struct uvc_video_queue *queue)
++{
++	unsigned int i;
++
++	for (i = 0; i < queue->count; ++i) {
++		if (queue->buffer[i].vma_use_count != 0)
++			return -EBUSY;
++	}
++
++	if (queue->count) {
++		vfree(queue->mem);
++		queue->count = 0;
++	}
++
++	return 0;
++}
++
++int uvc_free_buffers(struct uvc_video_queue *queue)
++{
++	int ret;
++
++	mutex_lock(&queue->mutex);
++	ret = __uvc_free_buffers(queue);
++	mutex_unlock(&queue->mutex);
++
++	return ret;
++}
++
++/*
+  * Allocate the video buffers.
+  *
+  * Pages are reserved to make sure they will not be swapped, as they will be
+@@ -110,7 +143,7 @@ int uvc_alloc_buffers(struct uvc_video_queue *queue, unsigned int nbuffers,
+ 
+ 	mutex_lock(&queue->mutex);
+ 
+-	if ((ret = uvc_free_buffers(queue)) < 0)
++	if ((ret = __uvc_free_buffers(queue)) < 0)
+ 		goto done;
+ 
+ 	/* Bail out if no buffers should be allocated. */
+@@ -152,28 +185,6 @@ done:
+ }
+ 
+ /*
+- * Free the video buffers.
+- *
+- * This function must be called with the queue lock held.
+- */
+-int uvc_free_buffers(struct uvc_video_queue *queue)
+-{
+-	unsigned int i;
+-
+-	for (i = 0; i < queue->count; ++i) {
+-		if (queue->buffer[i].vma_use_count != 0)
+-			return -EBUSY;
+-	}
+-
+-	if (queue->count) {
+-		vfree(queue->mem);
+-		queue->count = 0;
+-	}
+-
+-	return 0;
+-}
+-
+-/*
+  * Check if buffers have been allocated.
+  */
+ int uvc_queue_allocated(struct uvc_video_queue *queue)
+diff --git a/drivers/media/video/uvc/uvc_v4l2.c b/drivers/media/video/uvc/uvc_v4l2.c
+index 0f865e9..0fd9848b 100644
+--- a/drivers/media/video/uvc/uvc_v4l2.c
++++ b/drivers/media/video/uvc/uvc_v4l2.c
+@@ -494,11 +494,9 @@ static int uvc_v4l2_release(struct file *file)
+ 	if (uvc_has_privileges(handle)) {
+ 		uvc_video_enable(stream, 0);
+ 
+-		mutex_lock(&stream->queue.mutex);
+ 		if (uvc_free_buffers(&stream->queue) < 0)
+ 			uvc_printk(KERN_ERR, "uvc_v4l2_release: Unable to "
+ 					"free buffers.\n");
+-		mutex_unlock(&stream->queue.mutex);
+ 	}
+ 
+ 	/* Release the file handle. */
+-- 
+1.7.2.2
 
-I was thinking of this as well, but didn't bring it up because I considered
-it too hacky.
-
-The patch you posted looks good, thanks for bringing up the problem with
-my patch and the solution!
-
-Acked-by: Arnd Bergmann <arnd@arndb.de>
