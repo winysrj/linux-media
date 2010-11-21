@@ -1,94 +1,43 @@
-Return-path: <mchehab@pedra>
-Received: from nm18-vm1.bullet.mail.ukl.yahoo.com ([217.146.183.112]:42969
-	"HELO nm18-vm1.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752350Ab0KIUrS convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Nov 2010 15:47:18 -0500
-Message-ID: <110420.78541.qm@web25408.mail.ukl.yahoo.com>
-References: <1268788483.1536.24.camel@destiny> <20101109194904.107230@gmx.net>
-Date: Tue, 9 Nov 2010 20:47:15 +0000 (GMT)
-From: fabio tirapelle <ftirapelle@yahoo.it>
-Subject: Re: Hauppauge WinTV HVR-1400 (XC3028L) firmware loading problem
-To: Alina Friedrichsen <x-alina@gmx.net>, linux-media@vger.kernel.org
-In-Reply-To: <20101109194904.107230@gmx.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Return-path: <mchehab@gaivota>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39750 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755732Ab0KUUct (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Nov 2010 15:32:49 -0500
+Received: from localhost.localdomain (unknown [91.178.49.10])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 5728B35C96
+	for <linux-media@vger.kernel.org>; Sun, 21 Nov 2010 20:32:48 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 0/5] [FOR 2.6.37] uvcvideo: BKL removal
+Date: Sun, 21 Nov 2010 21:32:48 +0100
+Message-Id: <1290371573-14907-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-> 
+Hi everybody,
 
-> Hi,
-> 
-> beginning with kernel 2.6.34.? the HVR-1400 stops working  completely.
-> If I run the scan utility, only the fist tuning works and after  that it fails 
->always. On the next run of the utility it says "Device or resource  busy". 
->Watching TV with vlc works never.
+Here are 5 patches to the uvcvideo driver that implements proper locking where
+it was missing and switch from ioctl to unlocked_ioctl, getting rid of the BKL.
 
-I think that all the WinTV-HVR will be effected by theese problems. See thread 
-"Wintv-HVR-1120 woes"
+As locking can be tricky, patch review would be appreciated.
 
-> 
-> This bug persist up to the  current developer kernel 2.6.37-rc1-git7.
-> 
-> Any ideas? Maybe it's a  PCIe/ExpressCard related problem? Some more
-> popular USB sticks use the same  chipset.
-> 
-> Regards,
-> Alina
-> 
-> -------- Original-Nachricht  --------
-> > Datum: Wed, 17 Mar 2010 02:14:43 +0100
-> > Von: Alina  Friedrichsen <x-alina@gmx.net>
-> > An: linux-media@vger.kernel.org
-> >  Betreff: Hauppauge WinTV HVR-1400 firmware loading problem
-> 
-> > My  kernel is 2.6.33.
-> > When I want to watch DVB-T with VLC, loading the  firmwares stops after
-> > the following and don't see any pictures:
-> > 
-> > cx23885 0000:03:00.0: firmware: requesting xc3028L-v36.fw
-> >  xc2028 3-0064: Loading 81 firmware images from xc3028L-v36.fw, type:
-> >  xc2028 firmware, ver 3.6
-> > xc2028 3-0064: Loading firmware for type=BASE  F8MHZ (3), id
-> > 0000000000000000.
-> > xc2028 3-0064: Loading firmware  for type=D2633 DTV7 (90), id
-> > 0000000000000000.
-> > 
-> > And  hangs forever. Any retries has the same effect.
-> > 
-> > But if I start  "scan /usr/share/dvb/dvb-t/de-Berlin" the tuning fails
-> > two times, then  all firmwares load correctly and scanning works.
-> > 
-> > xc2028 3-0064:  Loading firmware for type=BASE F8MHZ (3), id
-> > 0000000000000000.
-> >  xc2028 3-0064: Loading firmware for type=D2633 DTV7 (90), id
-> >  0000000000000000.
-> > xc2028 3-0064: Loading firmware for type=BASE F8MHZ  (3), id
-> > 0000000000000000.
-> > xc2028 3-0064: Loading firmware for  type=D2633 DTV7 (90), id
-> > 0000000000000000.
-> > xc2028 3-0064:  Loading firmware for type=D2633 DTV78 (110), id
-> >  0000000000000000.
-> > xc2028 3-0064: Loading SCODE for type=DTV78 DTV8  DIBCOM52 SCODE
-> > HAS_IF_5200 (61000300), id 0000000000000000.
-> > 
-> > After that all other firmware loadings works fine and I can watch  TV.
-> > 
-> > Any idea whats goes wrong? Is this a problem of the driver,  or is my
-> > express card broken? I unfortunately has no other card to  test.
-> > 
-> > Thanks!
-> > Alina
-> > 
-> > 
-> > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media"  in
-> the body of a message to majordomo@vger.kernel.org
-> More  majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Laurent Pinchart (5):
+  uvcvideo: Lock controls mutex when querying menus
+  uvcvideo: Move mutex lock/unlock inside uvc_free_buffers
+  uvcvideo: Move mmap() handler to uvc_queue.c
+  uvcvideo: Lock stream mutex when accessing format-related information
+  uvcvideo: Convert to unlocked_ioctl
 
+ drivers/media/video/uvc/uvc_ctrl.c  |   48 +++++++++-
+ drivers/media/video/uvc/uvc_queue.c |  133 +++++++++++++++++++++-----
+ drivers/media/video/uvc/uvc_v4l2.c  |  183 +++++++++++------------------------
+ drivers/media/video/uvc/uvc_video.c |    3 -
+ drivers/media/video/uvc/uvcvideo.h  |   10 ++-
+ 5 files changed, 221 insertions(+), 156 deletions(-)
 
-      
+-- 
+Regards,
+
+Laurent Pinchart
+
