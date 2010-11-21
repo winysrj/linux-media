@@ -1,88 +1,31 @@
-Return-path: <mchehab@pedra>
-Received: from bear.ext.ti.com ([192.94.94.41]:58223 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932380Ab0KLVSJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Nov 2010 16:18:09 -0500
-From: Sergio Aguirre <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
-Subject: [omap3isp RFC][PATCH 08/10] omap3isp: Cleanup isp_power_settings
-Date: Fri, 12 Nov 2010 15:18:11 -0600
-Message-Id: <1289596693-27660-9-git-send-email-saaguirre@ti.com>
-In-Reply-To: <1289596693-27660-1-git-send-email-saaguirre@ti.com>
-References: <1289596693-27660-1-git-send-email-saaguirre@ti.com>
+Return-path: <mchehab@gaivota>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:50368 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753416Ab0KURC6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Nov 2010 12:02:58 -0500
+Received: by fxm13 with SMTP id 13so2002619fxm.19
+        for <linux-media@vger.kernel.org>; Sun, 21 Nov 2010 09:02:56 -0800 (PST)
+MIME-Version: 1.0
+Date: Sun, 21 Nov 2010 17:02:56 +0000
+Message-ID: <AANLkTinAKjPBWMPBoKgvQLpDj29L9T9+aimqhdC29Vos@mail.gmail.com>
+Subject: Problem with HVR 900 (B2C0) and USB detection
+From: Mike Martin <mike@redtux.org.uk>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-1. Get rid of CSI2 / CCP2 power settings, as they are controlled
-   in the receivers code anyways.
-2. Avoid code duplication.
+Hi
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
----
- drivers/media/video/isp/isp.c |   49 ++++++-----------------------------------
- 1 files changed, 7 insertions(+), 42 deletions(-)
+I have been using this device for years using Markuses Driver.
 
-diff --git a/drivers/media/video/isp/isp.c b/drivers/media/video/isp/isp.c
-index de9352b..30bdc48 100644
---- a/drivers/media/video/isp/isp.c
-+++ b/drivers/media/video/isp/isp.c
-@@ -254,48 +254,13 @@ EXPORT_SYMBOL(isp_set_xclk);
-  */
- static void isp_power_settings(struct isp_device *isp, int idle)
- {
--	if (idle) {
--		isp_reg_writel(isp,
--			       (ISP_SYSCONFIG_MIDLEMODE_SMARTSTANDBY <<
--				ISP_SYSCONFIG_MIDLEMODE_SHIFT),
--			       OMAP3_ISP_IOMEM_MAIN, ISP_SYSCONFIG);
--		if (omap_rev() == OMAP3430_REV_ES1_0) {
--			isp_reg_writel(isp, ISPCSI1_AUTOIDLE |
--				       (ISPCSI1_MIDLEMODE_SMARTSTANDBY <<
--					ISPCSI1_MIDLEMODE_SHIFT),
--				       OMAP3_ISP_IOMEM_CSI2A_REGS1,
--				       ISPCSI2_SYSCONFIG);
--			isp_reg_writel(isp, ISPCSI1_AUTOIDLE |
--				       (ISPCSI1_MIDLEMODE_SMARTSTANDBY <<
--					ISPCSI1_MIDLEMODE_SHIFT),
--				       OMAP3_ISP_IOMEM_CCP2,
--				       ISPCCP2_SYSCONFIG);
--		}
--		isp_reg_writel(isp, ISPCTRL_SBL_AUTOIDLE, OMAP3_ISP_IOMEM_MAIN,
--			       ISP_CTRL);
--
--	} else {
--		isp_reg_writel(isp,
--			       (ISP_SYSCONFIG_MIDLEMODE_FORCESTANDBY <<
--				ISP_SYSCONFIG_MIDLEMODE_SHIFT),
--			       OMAP3_ISP_IOMEM_MAIN, ISP_SYSCONFIG);
--		if (omap_rev() == OMAP3430_REV_ES1_0) {
--			isp_reg_writel(isp, ISPCSI1_AUTOIDLE |
--				       (ISPCSI1_MIDLEMODE_FORCESTANDBY <<
--					ISPCSI1_MIDLEMODE_SHIFT),
--				       OMAP3_ISP_IOMEM_CSI2A_REGS1,
--				       ISPCSI2_SYSCONFIG);
--
--			isp_reg_writel(isp, ISPCSI1_AUTOIDLE |
--				       (ISPCSI1_MIDLEMODE_FORCESTANDBY <<
--					ISPCSI1_MIDLEMODE_SHIFT),
--				       OMAP3_ISP_IOMEM_CCP2,
--				       ISPCCP2_SYSCONFIG);
--		}
--
--		isp_reg_writel(isp, ISPCTRL_SBL_AUTOIDLE, OMAP3_ISP_IOMEM_MAIN,
--			       ISP_CTRL);
--	}
-+	isp_reg_writel(isp,
-+		       ((idle ? ISP_SYSCONFIG_MIDLEMODE_SMARTSTANDBY :
-+				ISP_SYSCONFIG_MIDLEMODE_FORCESTANDBY) <<
-+			ISP_SYSCONFIG_MIDLEMODE_SHIFT),
-+		       OMAP3_ISP_IOMEM_MAIN, ISP_SYSCONFIG);
-+	isp_reg_writel(isp, ISPCTRL_SBL_AUTOIDLE, OMAP3_ISP_IOMEM_MAIN,
-+		       ISP_CTRL);
- }
- 
- /*
--- 
-1.7.0.4
+Now for some bizarre reason using both this driver and devins the
+wrong USB driver is being used (ohci rather than ehci), which means it
+is recognised as a USB 1.1 device, which makes it stop working
 
+Anyone know if there is any way to force it to use USB 2
+
+Other usb devices use the correct usb speed
+
+thanks
