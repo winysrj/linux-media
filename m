@@ -1,51 +1,43 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1658 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756964Ab0KNWtG (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39754 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755720Ab0KUUcy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Nov 2010 17:49:06 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC PATCH 0/8] V4L BKL removal: first round
-Date: Sun, 14 Nov 2010 23:48:51 +0100
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-References: <cover.1289740431.git.hverkuil@xs4all.nl> <201011142253.29768.arnd@arndb.de>
-In-Reply-To: <201011142253.29768.arnd@arndb.de>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201011142348.51859.hverkuil@xs4all.nl>
+	Sun, 21 Nov 2010 15:32:54 -0500
+Received: from localhost.localdomain (unknown [91.178.49.10])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 5A21F35CA7
+	for <linux-media@vger.kernel.org>; Sun, 21 Nov 2010 20:32:53 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 5/5] uvcvideo: Convert to unlocked_ioctl
+Date: Sun, 21 Nov 2010 21:32:53 +0100
+Message-Id: <1290371573-14907-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1290371573-14907-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1290371573-14907-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Sunday, November 14, 2010 22:53:29 Arnd Bergmann wrote:
-> On Sunday 14 November 2010, Hans Verkuil wrote:
-> > This patch series converts 24 v4l drivers to unlocked_ioctl. These are low
-> > hanging fruit but you have to start somewhere :-)
-> > 
-> > The first patch replaces mutex_lock in the V4L2 core by mutex_lock_interruptible
-> > for most fops.
-> 
-> The patches all look good as far as I can tell, but I suppose the title is
-> obsolete now that the BKL has been replaced with a v4l-wide mutex, which
-> is what you are removing in the series.
+The uvcvideo driver now locks all ioctls correctly on its own, the BKL
+isn't needed anymore.
 
-I guess I have to rename it, even though strictly speaking the branch I'm
-working in doesn't have your patch merged yet.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/uvc/uvc_v4l2.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-BTW, replacing the BKL with a static mutex is rather scary: the BKL gives up
-the lock whenever you sleep, the mutex doesn't. Since sleeping is very common
-in V4L (calling VIDIOC_DQBUF will typically sleep while waiting for a new frame
-to arrive), this will make it impossible for another process to access *any*
-v4l2 device node while the ioctl is sleeping.
-
-I am not sure whether that is what you intended. Or am I missing something?
-
-Regards,
-
-	Hans
-
+diff --git a/drivers/media/video/uvc/uvc_v4l2.c b/drivers/media/video/uvc/uvc_v4l2.c
+index b4615e2..3349e26 100644
+--- a/drivers/media/video/uvc/uvc_v4l2.c
++++ b/drivers/media/video/uvc/uvc_v4l2.c
+@@ -1088,7 +1088,7 @@ const struct v4l2_file_operations uvc_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= uvc_v4l2_open,
+ 	.release	= uvc_v4l2_release,
+-	.ioctl		= uvc_v4l2_ioctl,
++	.unlocked_ioctl	= uvc_v4l2_ioctl,
+ 	.read		= uvc_v4l2_read,
+ 	.mmap		= uvc_v4l2_mmap,
+ 	.poll		= uvc_v4l2_poll,
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+1.7.2.2
+
