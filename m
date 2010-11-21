@@ -1,124 +1,109 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp.nokia.com ([147.243.1.47]:30155 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752502Ab0KSKS4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Nov 2010 05:18:56 -0500
-Date: Fri, 19 Nov 2010 12:19:44 +0200
-From: David Cohen <david.cohen@nokia.com>
-To: ext Sergio Aguirre <saaguirre@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [omap3isp][PATCH v2 5/9] omap3isp: Remove unused CBUFF
- register access
-Message-ID: <20101119101944.GC13490@esdhcp04381.research.nokia.com>
-References: <1289831401-593-1-git-send-email-saaguirre@ti.com>
- <1289831401-593-6-git-send-email-saaguirre@ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40781 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755838Ab0KUVpr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Nov 2010 16:45:47 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 1/5] uvcvideo: Lock controls mutex when querying menus
+Date: Sun, 21 Nov 2010 22:45:48 +0100
+Cc: linux-media@vger.kernel.org
+References: <1290371573-14907-1-git-send-email-laurent.pinchart@ideasonboard.com> <1290371573-14907-2-git-send-email-laurent.pinchart@ideasonboard.com> <201011212218.41564.hverkuil@xs4all.nl>
+In-Reply-To: <201011212218.41564.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1289831401-593-6-git-send-email-saaguirre@ti.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201011212245.49540.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Sergio,
+Hi Hans,
 
-I have one comment below.
+Thanks for the comment.
 
-On Mon, Nov 15, 2010 at 03:29:57PM +0100, ext Sergio Aguirre wrote:
-> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> ---
->  drivers/media/video/isp/isp.c    |    2 --
->  drivers/media/video/isp/isp.h    |    1 -
->  drivers/media/video/isp/ispreg.h |   25 -------------------------
->  3 files changed, 0 insertions(+), 28 deletions(-)
+On Sunday 21 November 2010 22:18:41 Hans Verkuil wrote:
+> On Sunday, November 21, 2010 21:32:49 Laurent Pinchart wrote:
+> > uvc_find_control() must be called with the controls mutex locked. Fix
+> > uvc_query_v4l2_menu() accordingly.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >  drivers/media/video/uvc/uvc_ctrl.c |   48
+> >  +++++++++++++++++++++++++++++++++++- drivers/media/video/uvc/uvc_v4l2.c
+> >  |   36 +-------------------------- drivers/media/video/uvc/uvcvideo.h |
+> >     4 +-
+> >  3 files changed, 50 insertions(+), 38 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/uvc/uvc_ctrl.c
+> > b/drivers/media/video/uvc/uvc_ctrl.c index f169f77..59f8a9a 100644
+> > --- a/drivers/media/video/uvc/uvc_ctrl.c
+> > +++ b/drivers/media/video/uvc/uvc_ctrl.c
+> > @@ -785,7 +785,7 @@ static void __uvc_find_control(struct uvc_entity
+> > *entity, __u32 v4l2_id,
+> > 
+> >  	}
+> >  
+> >  }
+> > 
+> > -struct uvc_control *uvc_find_control(struct uvc_video_chain *chain,
+> > +static struct uvc_control *uvc_find_control(struct uvc_video_chain
+> > *chain,
+> > 
+> >  	__u32 v4l2_id, struct uvc_control_mapping **mapping)
+> >  
+> >  {
+> >  
+> >  	struct uvc_control *ctrl = NULL;
+> > 
+> > @@ -944,6 +944,52 @@ done:
+> >  	return ret;
+> >  
+> >  }
+> > 
+> > +/*
+> > + * Mapping V4L2 controls to UVC controls can be straighforward if done
+> > well. + * Most of the UVC controls exist in V4L2, and can be mapped
+> > directly. Some + * must be grouped (for instance the Red Balance, Blue
+> > Balance and Do White + * Balance V4L2 controls use the White Balance
+> > Component UVC control) or + * otherwise translated. The approach we take
+> > here is to use a translation + * table for the controls that can be
+> > mapped directly, and handle the others + * manually.
+> > + */
+> > +int uvc_query_v4l2_menu(struct uvc_video_chain *chain,
+> > +	struct v4l2_querymenu *query_menu)
+> > +{
+> > +	struct uvc_menu_info *menu_info;
+> > +	struct uvc_control_mapping *mapping;
+> > +	struct uvc_control *ctrl;
+> > +	u32 index = query_menu->index;
+> > +	u32 id = query_menu->id;
+> > +	int ret;
+> > +
+> > +	memset(query_menu, 0, sizeof(*query_menu));
+> > +	query_menu->id = id;
+> > +	query_menu->index = index;
+> > +
+> > +	ret = mutex_lock_interruptible(&chain->ctrl_mutex);
+> > +	if (ret < 0)
+> > +		return -ERESTARTSYS;
 > 
-> diff --git a/drivers/media/video/isp/isp.c b/drivers/media/video/isp/isp.c
-> index a5c02ba..f266e7c 100644
-> --- a/drivers/media/video/isp/isp.c
-> +++ b/drivers/media/video/isp/isp.c
-> @@ -86,7 +86,6 @@ static const struct isp_res_mapping isp_res_maps[] = {
->  	{
->  		.isp_rev = ISP_REVISION_2_0,
->  		.map = 1 << OMAP3_ISP_IOMEM_MAIN |
-> -		       1 << OMAP3_ISP_IOMEM_CBUFF |
->  		       1 << OMAP3_ISP_IOMEM_CCP2 |
->  		       1 << OMAP3_ISP_IOMEM_CCDC |
->  		       1 << OMAP3_ISP_IOMEM_HIST |
-> @@ -100,7 +99,6 @@ static const struct isp_res_mapping isp_res_maps[] = {
->  	{
->  		.isp_rev = ISP_REVISION_15_0,
->  		.map = 1 << OMAP3_ISP_IOMEM_MAIN |
-> -		       1 << OMAP3_ISP_IOMEM_CBUFF |
->  		       1 << OMAP3_ISP_IOMEM_CCP2 |
->  		       1 << OMAP3_ISP_IOMEM_CCDC |
->  		       1 << OMAP3_ISP_IOMEM_HIST |
-> diff --git a/drivers/media/video/isp/isp.h b/drivers/media/video/isp/isp.h
-> index edc029c..b8f63e2 100644
-> --- a/drivers/media/video/isp/isp.h
-> +++ b/drivers/media/video/isp/isp.h
-> @@ -56,7 +56,6 @@
->  
->  enum isp_mem_resources {
->  	OMAP3_ISP_IOMEM_MAIN,
-> -	OMAP3_ISP_IOMEM_CBUFF,
->  	OMAP3_ISP_IOMEM_CCP2,
->  	OMAP3_ISP_IOMEM_CCDC,
->  	OMAP3_ISP_IOMEM_HIST,
-> diff --git a/drivers/media/video/isp/ispreg.h b/drivers/media/video/isp/ispreg.h
-> index 8e4324f..c080980 100644
-> --- a/drivers/media/video/isp/ispreg.h
-> +++ b/drivers/media/video/isp/ispreg.h
-> @@ -37,11 +37,6 @@
->  #define OMAP3ISP_REG_BASE		OMAP3430_ISP_BASE
->  #define OMAP3ISP_REG(offset)		(OMAP3ISP_REG_BASE + (offset))
->  
-> -#define OMAP3ISP_CBUFF_REG_OFFSET	0x0100
-> -#define OMAP3ISP_CBUFF_REG_BASE		(OMAP3ISP_REG_BASE +		\
-> -					 OMAP3ISP_CBUFF_REG_OFFSET)
-> -#define OMAP3ISP_CBUFF_REG(offset)	(OMAP3ISP_CBUFF_REG_BASE + (offset))
-> -
->  #define OMAP3ISP_CCP2_REG_OFFSET	0x0400
->  #define OMAP3ISP_CCP2_REG_BASE		(OMAP3ISP_REG_BASE +		\
->  					 OMAP3ISP_CCP2_REG_OFFSET)
-> @@ -244,26 +239,6 @@
->  #define ISP_CSIB_SYSCONFIG		ISPCCP2_SYSCONFIG
->  #define ISP_CSIA_SYSCONFIG		ISPCSI2_SYSCONFIG
->  
-> -/* ISP_CBUFF Registers */
-> -
-> -#define ISP_CBUFF_SYSCONFIG		(0x010)
-> -#define ISP_CBUFF_IRQENABLE		(0x01C)
-> -
-> -#define ISP_CBUFF0_CTRL			(0x020)
-> -#define ISP_CBUFF1_CTRL			(0x024)
-> -
-> -#define ISP_CBUFF0_START		(0x040)
-> -#define ISP_CBUFF1_START		(0x044)
-> -
-> -#define ISP_CBUFF0_END			(0x050)
-> -#define ISP_CBUFF1_END			(0x054)
-> -
-> -#define ISP_CBUFF0_WINDOWSIZE		(0x060)
-> -#define ISP_CBUFF1_WINDOWSIZE		(0x064)
-> -
-> -#define ISP_CBUFF0_THRESHOLD		(0x070)
-> -#define ISP_CBUFF1_THRESHOLD		(0x074)
-> -
+> Just return 'ret' here (which is -EINTR).
 
-No need to remove the registers from header file. We're not using them
-on current version, but it doesn't mean we won't use ever. :)
+Hmmm... The uvcvideo driver uses -ERESTARTSYS extensively. What's the 
+rationale behind using -EINTR instead ? Allowing users to interrupt the ioctl 
+with ctrl-C ? If so, I wonder if it's worth it in this case, as the controls 
+mutex will not be locked by another thread for an extensive period of time 
+anyway.
 
-Br,
+ERESTARTSYS is meant to be used to deliver signals to application right away 
+and then restart the system call. With EINTR applications would see an error 
+in response to a VIDIOC_QUERYMENU call if SIGALRM arrives at the same time. I 
+don't think that's something we want.
 
-David Cohen
+-- 
+Regards,
 
->  /* CCDC module register offset */
->  
->  #define ISPCCDC_PID			(0x000)
-> -- 
-> 1.7.0.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Laurent Pinchart
