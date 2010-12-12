@@ -1,88 +1,77 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:28699 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751247Ab0L3N3W (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Dec 2010 08:29:22 -0500
-Message-ID: <4D1C8928.1060200@redhat.com>
-Date: Thu, 30 Dec 2010 11:29:12 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 3/4] [media] ivtv: Add Adaptec Remote Controller
-References: <cover.1293709356.git.mchehab@redhat.com>	 <20101230094509.2ecbf089@gaivota> <1293713183.2056.31.camel@morgan.silverblock.net>
-In-Reply-To: <1293713183.2056.31.camel@morgan.silverblock.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:31713 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752657Ab0LLSqX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Dec 2010 13:46:23 -0500
+Date: Sun, 12 Dec 2010 13:46:33 -0500
+Subject: Re: [RFC/PATCH 03/19] cx18: Use the control framework.
+Message-ID: <dpputt4i632ox8ldodidq3jk.1292179593754@email.android.com>
+From: Andy Walls <awalls@md.metrocast.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 30-12-2010 10:46, Andy Walls escreveu:
-> On Thu, 2010-12-30 at 09:45 -0200, Mauro Carvalho Chehab wrote:
-> 
-> 
-> 
->> As we'll remove lirc_i2c from kernel, move the getkey code to ivtv driver, and
->> use it for AVC2410.
->>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>
->> diff --git a/drivers/media/video/ivtv/ivtv-i2c.c b/drivers/media/video/ivtv/ivtv-i2c.c
->> index 6817092..8d1b016 100644
->> --- a/drivers/media/video/ivtv/ivtv-i2c.c
->> +++ b/drivers/media/video/ivtv/ivtv-i2c.c
->> @@ -94,6 +94,7 @@
->>  #define IVTV_HAUP_INT_IR_RX_I2C_ADDR 	0x18
->>  #define IVTV_Z8F0811_IR_TX_I2C_ADDR	0x70
->>  #define IVTV_Z8F0811_IR_RX_I2C_ADDR	0x71
-> [snip]
-> 
->> @@ -219,7 +252,6 @@ struct i2c_client *ivtv_i2c_new_ir_legacy(struct ivtv *itv)
->>  		0x1a,	/* Hauppauge IR external - collides with WM8739 */
->>  		0x18,	/* Hauppauge IR internal */
->>  		0x71,	/* Hauppauge IR (PVR150) */
->                   ^^^^
-> BTW, since
-> 
-> a. all ivtv cards that have an IR Rx chip at address 0x71 should be
-> accounted for in ivtv-cards.c
-> b. lirc_i2c is going away
-> c. lirc_zilog should not be probing devices labeled "ir_video"
-> d. ir-kbd-i2c doesn't have defaults for address 0x71
-> 
-> Can you remove the 0x71 case here while you are making changes?
+SGkgSGFucywKCkl0IGxvb2tzIGxpa2UgaXQgc2hvdWxkLiAgSSdtIGxvb2tpbmcgYXQgdGhpbmdz
+IG9uIG15IHBob25lICB3aGlsZSBvdXQgYW5kIGFib3V0IC0gbm90IHRoZSBiZXN0IGVudmlyb25t
+ZW50IGZvciBjb2RlIHJldmlldy4KCllvdSBqdXN0IG5lZWQgdG8gZW5zdXJlIGRlZmF1bHQgdm9s
+IGlzID49IDAgYW5kIDw9IDY1NTM1IHdoaWNoIG1heSBub3QgYmUgdGhlIGNhc2UgaWYgcmVnIDhk
+NCBoYXMgYSB2YWx1ZSBuZWFyIDAuIAoKVHdvIG90aGVyIHRvcGljcyB3aGlsZSBJJ20gaGVyZToK
+CjEuIFdoeSBzZXQgdGhlIHZvbCBzdGVwIHRvIDY1NSwgd2hlbiB0aGUgdm9sdW1lIHdpbGwgYWN0
+YXVsbHkgc3RlcCBhdCBpbmNyZW1lbnRzIG9mIDUxMj8KCjIuIFdoeSBzaG91bGQgZmFpbHVyZSB0
+byBpbml0aWFsaXplIGEgZGF0YSBzdHJ1Y3R1cmUgZm9yIHVzZXIgY29udHJvbHMgbWVhbiBmYWls
+dXJlIHRvIGluaXQgb3RoZXJ3aXNlIHdvcmtpbmcgaGFyZHdhcmU/ICBXZSBuZXZlciBsZXQgdXNl
+ciBjb250cm9sIGluaXQgY2F1c2Ugc3ViZGV2IGRyaXZlciBwcm9iZSBmYWlsdXJlIGJlZm9yZSwg
+c28gd2h5IG5vdz8gIEknZCBwcmVmZXIgYSB3b3JraW5nIGRldmljZSB3aXRob3V0IHVzZXIgY29u
+dHJvbHMgaW4gY2FzZSBvZiB1c2VyIGNvbnRyb2wgaW5pdCBmYWlsdXJlLgoKUmVnYXJkcywKQW5k
+eQoKSGFucyBWZXJrdWlsIDxodmVya3VpbEB4czRhbGwubmw+IHdyb3RlOgoKPk9uIFN1bmRheSwg
+RGVjZW1iZXIgMTIsIDIwMTAgMTk6MDk6MzYgQW5keSBXYWxscyB3cm90ZToKPj4gSGFucywKPj4g
+Cj4+IFRoaXMgaGFzIGF0IGxlYXN0IHRoZSBzYW1lIHR3byBwcm9ibGVtcyB0aGUgY2hhbmdlIGZv
+ciBjeDI1ODQwIGhhZDoKPj4gCj4+IDEuIFZvbHVtZSBjb250cm9sIGluaXQgc2hvdWxkIHVzZSA2
+NTUzNSBub3QgNjUzMzUKPj4gCj4+IDIuIFlvdSBjYW5ub3QgdHJ1c3QgcmVnIDB4OGQ0IHRvIGhh
+dmUgYSB2YWx1ZSBpbiBpdCBmb3IgdGhlIGRlZmF1bHQgdm9sdW1lIHRoYXQgd29uJ3QgZ2l2ZSBh
+biBFUkFOR0UgZXJyb3Igd2hlbiB5b3UgZ28gdG8gaW5pdCB0aGUgdm9sdW1lIGNvbnRyb2wuICBT
+dWJkZXYgcHJvYmUgd2lsbCBmYWlsLiBTZWUgbXkgcHJldmlvdXMgY3gyNTg0MCBwYXRjaGVzIHNl
+bnQgdG8gdGhlIGxpc3QsIGF3YWl0aW5nIGFjdGlvbi4KPj4gCj4+IChUaGUgY3gyNTg0MCBjb2Rl
+IHRoYXQgdHJ1c3RzIHRoZSB2b2x1bWUgcmVnaXN0ZXIgdG8gYmUgaW4gcmFuZ2UgaXMgYWxyZWFk
+eSBpbiAyLjYuMzYgYW5kIGJyZWFrcyBJUiBhbmQgYW5hbG9nIGZvciBDWDIzODg1LzcvOCBjaGlw
+cy4pCj4+IAo+PiBJJ2xsIGdpdmUgdGhpcyB3aG9sZSBwYXRjaCBhIGhhcmRlciBsb29rIGxhdGVy
+IHRoaXMgZXZlbmluZyBpZiBJIGNhbi4KPj4gCj4+IFJlZ2FyZHMsCj4+IEFuZHkKPj4gCj4KPldv
+dWxkIHRoZSBwYXRjaCBiZWxvdyBmaXggdGhlc2UgaXNzdWVzPyBJdCBjb21waWxlcywgYnV0IEkg
+ZGlkbid0IHRlc3QgaXQuCj4KPlJlZ2FyZHMsCj4KPglIYW5zCj4KPmRpZmYgLS1naXQgYS9kcml2
+ZXJzL21lZGlhL3ZpZGVvL2N4MTgvY3gxOC1hdi1jb3JlLmMgYi9kcml2ZXJzL21lZGlhL3ZpZGVv
+L2N4MTgvY3gxOC1hdi1jb3JlLmMKPmluZGV4IGUxZjU4ZjEuLjczYjZmNGQgMTAwNjQ0Cj4tLS0g
+YS9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4MTgvY3gxOC1hdi1jb3JlLmMKPisrKyBiL2RyaXZlcnMv
+bWVkaWEvdmlkZW8vY3gxOC9jeDE4LWF2LWNvcmUuYwo+QEAgLTI0OCw4ICsyNDgsMjIgQEAgc3Rh
+dGljIHZvaWQgY3gxOF9hdl9pbml0aWFsaXplKHN0cnVjdCB2NGwyX3N1YmRldiAqc2QpCj4gLyog
+ICAgICAJQ3hEZXZXclJlZyhDWEFERUNfU1JDX0NPTUJfQ0ZHLCAweDY2MjgwMjFGKTsgKi8KPiAv
+KiAgICB9ICovCj4gCWN4MThfYXZfd3JpdGU0KGN4LCBDWEFERUNfU1JDX0NPTUJfQ0ZHLCAweDY2
+MjgwMjFGKTsKPi0JZGVmYXVsdF92b2x1bWUgPSAyMjggLSBjeDE4X2F2X3JlYWQoY3gsIDB4OGQ0
+KTsKPi0JZGVmYXVsdF92b2x1bWUgPSAoKGRlZmF1bHRfdm9sdW1lIC8gMikgKyAyMykgPDwgOTsK
+PisJZGVmYXVsdF92b2x1bWUgPSBjeDE4X2F2X3JlYWQoY3gsIDB4OGQ0KTsKPisJLyoKPisJICog
+RW5mb3JjZSB0aGUgbGVnYWN5IHZvbHVtZSBzY2FsZSBtYXBwaW5nIGxpbWl0cyB0byBhdm9pZCAt
+RVJBTkdFCj4rCSAqIGVycm9ycyB3aGVuIGluaXRpYWxpemluZyB0aGUgdm9sdW1lIGNvbnRyb2wK
+PisJICovCj4rCWlmIChkZWZhdWx0X3ZvbHVtZSA+IDIyOCkgewo+KwkJLyogQm90dG9tIG91dCBh
+dCAtOTYgZEIsIHY0bDIgdm9sIHJhbmdlIDB4MmUwMC0weDJmZmYgKi8KPisJCWRlZmF1bHRfdm9s
+dW1lID0gMjI4Owo+KwkJY3gxOF9hdl93cml0ZShjeCwgMHg4ZDQsIDIyOCk7Cj4rCX0KPisJZWxz
+ZSBpZiAoZGVmYXVsdF92b2x1bWUgPCAyMCkgewo+KwkJLyogVG9wIG91dCBhdCArIDggZEIsIHY0
+bDIgdm9sIHJhbmdlIDB4ZmUwMC0weGZmZmYgKi8KPisJCWRlZmF1bHRfdm9sdW1lID0gMjA7Cj4r
+CQljeDE4X2F2X3dyaXRlKGN4LCAweDhkNCwgMjApOwo+Kwl9Cj4rCWRlZmF1bHRfdm9sdW1lID0g
+KCgoMjI4IC0gZGVmYXVsdF92b2x1bWUpID4+IDEpICsgMjMpIDw8IDk7Cj4gCXN0YXRlLT52b2x1
+bWUtPmN1ci52YWwgPSBzdGF0ZS0+dm9sdW1lLT5kZWZhdWx0X3ZhbHVlID0gZGVmYXVsdF92b2x1
+bWU7Cj4gCXY0bDJfY3RybF9oYW5kbGVyX3NldHVwKCZzdGF0ZS0+aGRsKTsKPiB9Cj5AQCAtMTM1
+OSw3ICsxMzczLDcgQEAgaW50IGN4MThfYXZfcHJvYmUoc3RydWN0IGN4MTggKmN4KQo+IAo+IAlz
+dGF0ZS0+dm9sdW1lID0gdjRsMl9jdHJsX25ld19zdGQoJnN0YXRlLT5oZGwsCj4gCQkJJmN4MThf
+YXZfYXVkaW9fY3RybF9vcHMsIFY0TDJfQ0lEX0FVRElPX1ZPTFVNRSwKPi0JCQkwLCA2NTMzNSwg
+NjU1MzUgLyAxMDAsIDApOwo+KwkJCTAsIDY1NTM1LCA2NTUzNSAvIDEwMCwgMCk7Cj4gCXY0bDJf
+Y3RybF9uZXdfc3RkKCZzdGF0ZS0+aGRsLAo+IAkJCSZjeDE4X2F2X2F1ZGlvX2N0cmxfb3BzLCBW
+NEwyX0NJRF9BVURJT19NVVRFLAo+IAkJCTAsIDEsIDEsIDApOwo+Cj4tLSAKPkhhbnMgVmVya3Vp
+bCAtIHZpZGVvNGxpbnV4IGRldmVsb3BlciAtIHNwb25zb3JlZCBieSBDaXNjbwo+LS0KPlRvIHVu
+c3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51
+eC1tZWRpYSIgaW4KPnRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJu
+ZWwub3JnCj5Nb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21h
+am9yZG9tby1pbmZvLmh0bWwK
 
-Sure. Patch enclosed.
-
-Btw, I think we should remove ivtv_i2c_new_ir_legacy, or rename it.
-The only remaining case there is the standard non-Z8 Hauppauge IR
-I2C decoder.
-
-Thanks,
-Mauro
-
--
-
-commit 615a80d8f744677bc79b33811c5f671fa7fe1976
-Author: Mauro Carvalho Chehab <mchehab@redhat.com>
-Date:   Thu Dec 30 11:25:12 2010 -0200
-
-    ivtv-i2c: Don't use IR legacy mode for Zilog IR
-    
-    The Zilog IR entries are already handled by IR new code. So,
-    remove its usage from the legacy IR support.
-    
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/video/ivtv/ivtv-i2c.c b/drivers/media/video/ivtv/ivtv-i2c.c
-index fb0ac68..d121389 100644
---- a/drivers/media/video/ivtv/ivtv-i2c.c
-+++ b/drivers/media/video/ivtv/ivtv-i2c.c
-@@ -253,7 +253,6 @@ struct i2c_client *ivtv_i2c_new_ir_legacy(struct ivtv *itv)
- 	const unsigned short addr_list[] = {
- 		0x1a,	/* Hauppauge IR external - collides with WM8739 */
- 		0x18,	/* Hauppauge IR internal */
--		0x71,	/* Hauppauge IR (PVR150) */
- 		I2C_CLIENT_END
- 	};
- 
