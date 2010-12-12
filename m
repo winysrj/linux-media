@@ -1,95 +1,110 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4204 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751204Ab0LYJEx (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1656 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752410Ab0LLRcG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Dec 2010 04:04:53 -0500
+	Sun, 12 Dec 2010 12:32:06 -0500
+Received: from localhost.localdomain (159.80-203-19.nextgentel.com [80.203.19.159])
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id oBCHW1M8002236
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 12 Dec 2010 18:32:02 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Rob Clark <robdclark@gmail.com>
-Subject: Re: opinions about non-page-aligned buffers?
-Date: Sat, 25 Dec 2010 10:04:47 +0100
-Cc: linux-media@vger.kernel.org
-References: <AANLkTimMMzxbnXT8nRJYWHmgjX_RJ2goj+j083JB5eLz@mail.gmail.com> <201012250032.18082.hverkuil@xs4all.nl> <AANLkTi=hjsZ=S1OJ1o5Z2xsynBDbi3fRETLFOBfTMhQ8@mail.gmail.com>
-In-Reply-To: <AANLkTi=hjsZ=S1OJ1o5Z2xsynBDbi3fRETLFOBfTMhQ8@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201012251004.47828.hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [RFC/PATCH 00/19] Convert subdevs to the control fw and related fixes
+Date: Sun, 12 Dec 2010 18:31:42 +0100
+Message-Id: <cover.1292174822.git.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Saturday, December 25, 2010 00:47:22 Rob Clark wrote:
-> On Fri, Dec 24, 2010 at 5:32 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > On Friday, December 24, 2010 22:29:37 Rob Clark wrote:
-> >> Hi all,
-> >>
-> >> The request has come up on OMAP4 to support non-page-aligned v4l2
-> >> buffers.  (This is in context of v4l2 display, but the same reasons
-> >> would apply for a camera.)  For most common resolutions, this would
-> >> help us get much better memory utilization for a range of memory (or
-> >> rather address space) used for YUV buffers.
-> >
-> > Can you explain this in more detail? I don't really see how non-page
-> > aligned buffers would lead to 'much better' memory usage. I would expect
-> > that the best savings you could achieve would be PAGE_SIZE-1 per buffer.
-> >
-> 
-> Due to how the buffers are mapped, the savings is actually quite
-> substantial.  What actually happens is the region of memory that the
-> buffers are allocated from has a stride of 16kb or 32kb.  (For NV12, Y
-> has a 16kb stride, and UV is  disjoint is a 32kb stride.)  To keep
-> things somewhat sane for userspace, the Y followed by UV gets mmap'd
-> into consecutive 4kb pages.  So we are actually loosing 1.5 * (4kb -
-> width) per buffer by forcing page alignment.  With non page-aligned
-> buffers we can pack buffers next to each other, ie. so one buffer may
-> exist within the stride of another buffer.
+This patch series converts a number of subdev drivers to use the control
+framework. In addition, it also converts the cx18 and vivi drivers to the control
+framework.
 
-I understand. But what is the size of your buffers and how many are there?
-Fiddling with non-page aligned buffers will only make sense if the savings are
-substantial compared to the total size of the buffers. In my experience the
-buffers are so large that savings of 1-2 pages per buffer aren't worth it.
+This has been tested with the vivi, cx18 and em28xx drivers.
+
+As a result of these tests bugs relating to ENUM_INPUT/OUTPUT and some
+incorrect checks in em28xx and the control framework were fixed.
+
+It would be great if someone can check the tvaudio and tda drivers in
+particular.
 
 Regards,
 
 	Hans
 
-> 
-> 
-> BR,
-> -R
-> 
-> 
-> > Regards,
-> >
-> >        Hans
-> >
-> >> However it would require
-> >> a small change in the client application, since most (all) v4l2 apps
-> >> that I have seen are assuming the offsets they are given to mmap are
-> >> page aligned.
-> >>
-> >> I am curious if anyone has any suggestions about how to enable this.
-> >> Ideally it would be some sort of opt-in feature to avoid breaking apps
-> >> that are not aware the the offsets to mmap may not be page aligned.
-> >>
-> >> BR,
-> >> -R
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> >> the body of a message to majordomo@vger.kernel.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >>
-> >
-> > --
-> > Hans Verkuil - video4linux developer - sponsored by Cisco
-> >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+Hans Verkuil (19):
+  cs5345: use the control framework
+  tvaudio: use the control framework, fix vol/balance bugs
+  cx18: Use the control framework.
+  adv7343: use control framework
+  bt819: use control framework
+  ov7670: use the control framework
+  saa7110: use control framework
+  tda7432: use control framework
+  tda9875: use control framework
+  tlv320aic23b: use control framework
+  tvp514x: use the control framework
+  tvp5150: use the control framework
+  vpx3220: use control framework
+  tvp7002: use control framework
+  v4l2-ctrls: use const char * const * for the menu arrays
+  vivi: convert to the control framework and add test controls.
+  v4l: fix handling of v4l2_input.capabilities
+  em28xx: fix incorrect s_ctrl error code and wrong call to res_free
+  v4l2-ctrls: only check def for menu, integer and boolean controls
 
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+ drivers/media/dvb/ttpci/av7110_v4l.c               |    4 +
+ drivers/media/dvb/ttpci/budget-av.c                |    6 +-
+ drivers/media/video/adv7343.c                      |  167 ++++-------
+ drivers/media/video/adv7343_regs.h                 |    8 +-
+ drivers/media/video/bt819.c                        |  129 ++++------
+ drivers/media/video/cs5345.c                       |   87 ++++--
+ drivers/media/video/cx18/cx18-av-audio.c           |   92 +------
+ drivers/media/video/cx18/cx18-av-core.c            |  162 ++++-------
+ drivers/media/video/cx18/cx18-av-core.h            |   12 +-
+ drivers/media/video/cx18/cx18-cards.c              |    1 -
+ drivers/media/video/cx18/cx18-controls.c           |  285 +++-----------------
+ drivers/media/video/cx18/cx18-controls.h           |    7 +-
+ drivers/media/video/cx18/cx18-driver.c             |   30 ++-
+ drivers/media/video/cx18/cx18-driver.h             |    2 +-
+ drivers/media/video/cx18/cx18-fileops.c            |   32 +--
+ drivers/media/video/cx18/cx18-ioctl.c              |   24 +-
+ drivers/media/video/cx18/cx18-mailbox.c            |    5 +-
+ drivers/media/video/cx18/cx18-mailbox.h            |    5 -
+ drivers/media/video/cx18/cx18-streams.c            |   16 +-
+ drivers/media/video/cx2341x.c                      |    8 +-
+ drivers/media/video/cx23885/cx23885-video.c        |    1 -
+ drivers/media/video/em28xx/em28xx-video.c          |   14 +-
+ drivers/media/video/et61x251/et61x251_core.c       |    1 +
+ drivers/media/video/hexium_gemini.c                |   18 +-
+ drivers/media/video/hexium_orion.c                 |   18 +-
+ drivers/media/video/ivtv/ivtv-cards.c              |    2 -
+ drivers/media/video/mxb.c                          |    8 +-
+ drivers/media/video/ov7670.c                       |  296 ++++++++------------
+ drivers/media/video/pvrusb2/pvrusb2-ctrl.c         |    6 +-
+ drivers/media/video/pvrusb2/pvrusb2-hdw-internal.h |    2 +-
+ drivers/media/video/saa7110.c                      |  115 +++-----
+ drivers/media/video/saa7134/saa7134-video.c        |    1 -
+ drivers/media/video/sn9c102/sn9c102_core.c         |    1 +
+ drivers/media/video/tda7432.c                      |  277 +++++++-----------
+ drivers/media/video/tda9875.c                      |  192 ++++---------
+ drivers/media/video/timblogiw.c                    |    1 -
+ drivers/media/video/tlv320aic23b.c                 |   74 +++--
+ drivers/media/video/tvaudio.c                      |  221 +++++----------
+ drivers/media/video/tvp514x.c                      |  236 ++++------------
+ drivers/media/video/tvp5150.c                      |  157 +++--------
+ drivers/media/video/tvp7002.c                      |  117 +++-----
+ drivers/media/video/v4l2-common.c                  |    6 +-
+ drivers/media/video/v4l2-ctrls.c                   |   55 ++--
+ drivers/media/video/vino.c                         |    3 -
+ drivers/media/video/vivi.c                         |  228 +++++++++------
+ drivers/media/video/vpx3220.c                      |  137 ++++------
+ drivers/media/video/zoran/zoran_driver.c           |    6 -
+ drivers/staging/cx25821/cx25821-video.c            |    2 -
+ include/media/cx2341x.h                            |    2 +-
+ include/media/v4l2-common.h                        |    6 +-
+ include/media/v4l2-ctrls.h                         |    4 +-
+ 51 files changed, 1203 insertions(+), 2086 deletions(-)
+
