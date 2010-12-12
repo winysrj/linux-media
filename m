@@ -1,49 +1,47 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout-de.gmx.net ([213.165.64.23]:39864 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1750873Ab0L0V5G convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Dec 2010 16:57:06 -0500
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: linux-media@vger.kernel.org
-To: Ludovic =?iso-8859-1?q?BOU=C9?= <ludovic.boue@gmail.com>
-Subject: Re: ngene & Satix-S2 dual problems
-Date: Mon, 27 Dec 2010 22:49:51 +0100
-Cc: linux-media@dinkum.org.uk, linux-media@vger.kernel.org
-References: <4D1753CF.9010205@gmail.com>
-In-Reply-To: <4D1753CF.9010205@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:14622 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753815Ab0LLTH0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Dec 2010 14:07:26 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oBCJ7P8b030931
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 12 Dec 2010 14:07:25 -0500
+Received: from shalem.localdomain (vpn1-4-125.ams2.redhat.com [10.36.4.125])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id oBCJ7N0v025002
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 12 Dec 2010 14:07:25 -0500
+Message-ID: <4D051E7F.1080802@redhat.com>
+Date: Sun, 12 Dec 2010 20:11:59 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <201012272249.52358@orion.escape-edv.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PATCHES FOR 2.6.38] gspca_sonixb: Various updates / fixes
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Sunday 26 December 2010 15:40:15 Ludovic BOUÉ wrote:
-> Hi all,
-> 
-> I have a Satix-S2 Dual and I'm trying to get to work without his CI in a first time. I'm trying ngene-test2 
-> from http://linuxtv.org/hg/~endriss/ngene-test2/ under 
-> 2.6.32-21-generic.
-> 
-> It contains too much nodes (extra demuxes, dvrs & nets):
-> ...
-> Is it connected to this commit (http://linuxtv.org/hg/~endriss/ngene-test2/rev/eb4142f0d0ac) about "Support up to 4 tuners for cineS2 v5, duoflex & mystique v2" ?
+Hi Mauro et al,
 
-Yes.
+Some bugfixes and support for a new sensor in the sonixb driver.
 
-Please note that this is an experimental repository.
-This bug will be fixed before the code will be submitted upstream.
-(It is more complicated that it might appear at the first glance.)
+The following changes since commit dedb94adebe0fbdd9cafdbb170337810d8638bc9:
 
-CU
-Oliver
+   [media] timblogiw: Fix a merge conflict with v4l2_i2c_new_subdev_board changes (2010-12-11 09:07:52 -0200)
 
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
+are available in the git repository at:
+   git://linuxtv.org/hgoede/gspca.git gspca-for_v2.6.38
+
+Hans de Goede (3):
+       gspca_sonixb: Make sonixb handle 0c45:6007 instead of sn9c102
+       gspca_sonixb: Rewrite start of frame detection
+       gspca_sonixb: Add support for 0c45:602a
+
+  drivers/media/video/gspca/sonixb.c             |  232 +++++++++++++++++-------
+  drivers/media/video/sn9c102/sn9c102_devtable.h |    4 +-
+  2 files changed, 166 insertions(+), 70 deletions(-)
+
+Thanks & Regards,
+
+Hans
