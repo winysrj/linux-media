@@ -1,74 +1,40 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:27403 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757746Ab0LMN3b (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Dec 2010 08:29:31 -0500
-Message-ID: <4D061FB3.7010305@redhat.com>
-Date: Mon, 13 Dec 2010 11:29:23 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-iw0-f170.google.com ([209.85.214.170]:64900 "EHLO
+	mail-iw0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751676Ab0LLBq5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Dec 2010 20:46:57 -0500
+Received: by iwn6 with SMTP id 6so7305259iwn.1
+        for <linux-media@vger.kernel.org>; Sat, 11 Dec 2010 17:46:56 -0800 (PST)
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 3/6] gspca - sonixj: Add a flag in the driver_info table
-References: <20101213140326.569d150d@tele>
-In-Reply-To: <20101213140326.569d150d@tele>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Date: Sun, 12 Dec 2010 02:40:38 +0100
+Message-ID: <AANLkTik6EnV_OcP7sHm3P4NJRFFqdx1J+69ZqhVOY4jM@mail.gmail.com>
+Subject: Firmware request
+From: Josu Lazkano <josu.lazkano@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 13-12-2010 11:03, Jean-Francois Moine escreveu:
-> 
-> Signed-off-by: Jean-François Moine <moinejf@free.fr>
-> 
-> diff --git a/drivers/media/video/gspca/sonixj.c b/drivers/media/video/gspca/sonixj.c
-> index 5978676..bd5858e 100644
-> --- a/drivers/media/video/gspca/sonixj.c
-> +++ b/drivers/media/video/gspca/sonixj.c
-> @@ -64,6 +64,7 @@ struct sd {
->  	u8 jpegqual;			/* webcam quality */
->  
->  	u8 reg18;
-> +	u8 flags;
->  
->  	s8 ag_cnt;
->  #define AG_CNT_START 13
-> @@ -96,6 +97,9 @@ enum sensors {
->  	SENSOR_SP80708,
->  };
->  
-> +/* device flags */
-> +#define PDN_INV	1		/* inverse pin S_PWR_DN / sn_xxx tables */
-> +
->  /* V4L2 controls supported by the driver */
->  static void setbrightness(struct gspca_dev *gspca_dev);
->  static void setcontrast(struct gspca_dev *gspca_dev);
-> @@ -1763,7 +1767,8 @@ static int sd_config(struct gspca_dev *gspca_dev,
->  	struct cam *cam;
->  
->  	sd->bridge = id->driver_info >> 16;
-> -	sd->sensor = id->driver_info;
-> +	sd->sensor = id->driver_info >> 8;
-> +	sd->flags = id->driver_info;
->  
->  	cam = &gspca_dev->cam;
->  	if (sd->sensor == SENSOR_ADCM1700) {
-> @@ -2947,7 +2952,11 @@ static const struct sd_desc sd_desc = {
->  /* -- module initialisation -- */
->  #define BS(bridge, sensor) \
->  	.driver_info = (BRIDGE_ ## bridge << 16) \
-> -			| SENSOR_ ## sensor
-> +			| (SENSOR_ ## sensor << 8)
-> +#define BSF(bridge, sensor, flags) \
-> +	.driver_info = (BRIDGE_ ## bridge << 16) \
-> +			| (SENSOR_ ## sensor << 8) \
-> +			| flags
+Hello list!
 
-As "flags" come from a macro, please use "(flags)" instead. This will avoid
-the risk of having something bad happening here, if we add some more complex
-flags logic.
+I am getting some firmware request on a MythTV system dmesg:
 
->  static const __devinitdata struct usb_device_id device_table[] = {
->  #if !defined CONFIG_USB_SN9C102 && !defined CONFIG_USB_SN9C102_MODULE
->  	{USB_DEVICE(0x0458, 0x7025), BS(SN9C120, MI0360)},
+[  944.754753] ds3000_firmware_ondemand: Waiting for firmware upload
+(dvb-fe-ds3000.fw)...
+[  944.754766] cx23885 0000:02:00.0: firmware: requesting dvb-fe-ds3000.fw
+[  944.775896] ds3000_firmware_ondemand: Waiting for firmware upload(2)...
 
+I have a Tevii S470 DVB-S2 tuner, is this normal? I have the firmware
+on /lib/firmware:
+
+ls -l /lib/firmware/ | grep ds3000
+-rw-r--r-- 1 root root  8192 dic  6 14:54 dvb-fe-ds3000.fw
+
+I am getting also some player problems, I don't know if it is for the
+firmware request.
+
+Thanks for all your help and best regards.
+
+-- 
+Josu Lazkano
