@@ -1,46 +1,40 @@
 Return-path: <mchehab@gaivota>
-Received: from honeysuckle.london.02.net ([87.194.255.144]:50592 "EHLO
-	honeysuckle.london.02.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932528Ab0LSXlq (ORCPT
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:45996 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751131Ab0LLNP7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Dec 2010 18:41:46 -0500
-From: Adam Baker <linux@baker-net.org.uk>
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-Subject: Re: Power frequency detection.
-Date: Sun, 19 Dec 2010 23:32:37 +0000
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Paulo Assis <pj.assis@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <73wo0g3yy30clob2isac30vm.1292782894810@email.android.com> <alpine.LNX.2.00.1012191423030.23950@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.2.00.1012191423030.23950@banach.math.auburn.edu>
+	Sun, 12 Dec 2010 08:15:59 -0500
+Date: Sun, 12 Dec 2010 21:15:50 +0800
+From: Dave Young <hidave.darkstar@gmail.com>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Chris Clayton <chris2553@googlemail.com>
+Subject: [PATCH] bttv: fix mutex use before init
+Message-ID: <20101212131550.GA2608@darkstar>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201012192332.38060.linux@baker-net.org.uk>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Sunday 19 Dec 2010, Theodore Kilgore wrote:
-> Finally, one concern that I have in the back of my mind is the question of 
-> control settings for a camera which streams in bulk mode and requires the 
-> setup of a workqueue. The owner of the camera says that he has 
-> "encountered no problems" with running the two controls mentioned above. 
-> Clearly, that is not a complete answer which overcomes all possible 
-> objections. Rather, things are OK if and only if we can ensure that these 
-> controls can be run only while the workqueue that does the streaming is 
-> inactive. Somehow, I suspect that the fact that a sensible user would only 
-> run such commands at camera setup is an insufficient guarantee that no 
-> problems will ever be encountered.
-> 
-> So, as I said, the question of interaction of a control and a workqueue is 
-> another problem interesting little problem. Your thoughts on this 
-> interesting little problem would be appreciated.
+oops happen in bttv_open while locking uninitialized mutex fh->cap.vb_lock
+add mutex_init before usage
 
-I don't think you can assume a user won't try to adjust such controls while 
-streaming - if I had one I'd certainly want to try swapping the control while 
-streaming to see if I could see any affect on the output. Even though sq905.c 
-doesn't have any controls on the camera it still ended up needing the locking 
-that would make this safe. See the header comment on sq905_dostream
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+Tested-by: Chris Clayton <chris2553@googlemail.com>
+---
+ drivers/media/video/bt8xx/bttv-driver.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-Adam
+--- linux-2.6.orig/drivers/media/video/bt8xx/bttv-driver.c	2010-11-27 11:21:30.000000000 +0800
++++ linux-2.6/drivers/media/video/bt8xx/bttv-driver.c	2010-12-12 16:31:39.633333338 +0800
+@@ -3291,6 +3291,8 @@ static int bttv_open(struct file *file)
+ 	fh = kmalloc(sizeof(*fh), GFP_KERNEL);
+ 	if (unlikely(!fh))
+ 		return -ENOMEM;
++
++	mutex_init(&fh->cap.vb_lock);
+ 	file->private_data = fh;
+ 
+ 	/*
