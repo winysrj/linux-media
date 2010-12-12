@@ -1,514 +1,220 @@
 Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51222 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757265Ab0LTLgi (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:57201 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752071Ab0LLCsG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Dec 2010 06:36:38 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Cc: broonie@opensource.wolfsonmicro.com, clemens@ladisch.de,
-	gregkh@suse.de, sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v7 01/12] media: Media device node support
-Date: Mon, 20 Dec 2010 12:36:24 +0100
-Message-Id: <1292844995-7900-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1292844995-7900-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1292844995-7900-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Sat, 11 Dec 2010 21:48:06 -0500
+Subject: Re: user accesses in ivtv-fileops.c:ivtv_v4l2_write ?
+From: Andy Walls <awalls@md.metrocast.net>
+To: "Dr. David Alan Gilbert" <linux@treblig.org>
+Cc: hverkuil@xs4all.nl, ivtv-devel@ivtvdriver.org,
+	linux-media@vger.kernel.org
+In-Reply-To: <20101128174022.GA4401@gallifrey>
+References: <20101128174022.GA4401@gallifrey>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 11 Dec 2010 20:49:38 -0500
+Message-ID: <1292118578.21588.13.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-The media_devnode structure provides support for registering and
-unregistering character devices using a dynamic major number. Reference
-counting is handled internally, making device drivers easier to write
-without having to solve the open/disconnect race condition issue over
-and over again.
+On Sun, 2010-11-28 at 17:40 +0000, Dr. David Alan Gilbert wrote:
+> Hi,
+>   Sparse pointed me at the following line in ivtv-fileops.c's ivtv_v4l2_write:
+> 
+>                 ivtv_write_vbi(itv, (const struct v4l2_sliced_vbi_data *)user_buf, elems);
+> 
 
-The code is based on video/v4l2-dev.c.
+Hi David,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/Kconfig         |   13 ++
- drivers/media/Makefile        |   10 +-
- drivers/media/media-devnode.c |  321 +++++++++++++++++++++++++++++++++++++++++
- include/media/media-devnode.h |   97 +++++++++++++
- 4 files changed, 439 insertions(+), 2 deletions(-)
- create mode 100644 drivers/media/media-devnode.c
- create mode 100644 include/media/media-devnode.h
+Let me know if this patch works for your sparse build and adequately
+addresses the problem.
 
-diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-index a28541b..6b946e6 100644
---- a/drivers/media/Kconfig
-+++ b/drivers/media/Kconfig
-@@ -14,6 +14,19 @@ if MEDIA_SUPPORT
- comment "Multimedia core support"
+It might be easiest to review this patch by starting at the bottom and
+working your way up.
+
+Regards,
+Andy
+
+
+ivtv: ivtv_write_vbi() should use copy_from_user() for user data buffers
+
+ivtv_write_vbi() is used to output VBI data to a TV screen using the
+CX23415's decoder.  It was used for both VBI data that came from the
+driver internally and VBI data that came from the user, but did not use
+copy_from_user() for reading the VBI data from the user buffers.
+
+This change adds a new version of the function,
+ivtv_write_vbi_from_user(), that uses copy_from_user() to read the VBI
+data provided via user buffers.
+
+This should resolve an sparse build warning reported by Dave Gilbert.
+
+Reported-by: Dr. David Alan Gilbert <linux@treblig.org>
+Signed-off-by: Andy Walls <awalls@md.metrocast.net>
+
+
+diff --git a/drivers/media/video/ivtv/ivtv-fileops.c b/drivers/media/video/ivtv/ivtv-fileops.c
+index d727485..4f46b00 100644
+--- a/drivers/media/video/ivtv/ivtv-fileops.c
++++ b/drivers/media/video/ivtv/ivtv-fileops.c
+@@ -570,7 +570,8 @@ ssize_t ivtv_v4l2_write(struct file *filp, const char __user *user_buf, size_t c
+ 		int elems = count / sizeof(struct v4l2_sliced_vbi_data);
  
- #
-+# Media controller
-+#
-+
-+config MEDIA_CONTROLLER
-+	bool "Media Controller API (EXPERIMENTAL)"
-+	depends on EXPERIMENTAL
-+	---help---
-+	  Enable the media controller API used to query media devices internal
-+	  topology and configure it dynamically.
-+
-+	  This API is mostly used by camera interfaces in embedded platforms.
-+
-+#
- # V4L core and enabled API's
- #
+ 		set_bit(IVTV_F_S_APPL_IO, &s->s_flags);
+-		ivtv_write_vbi(itv, (const struct v4l2_sliced_vbi_data *)user_buf, elems);
++		ivtv_write_vbi_from_user(itv,
++		   (const struct v4l2_sliced_vbi_data __user *)user_buf, elems);
+ 		return elems * sizeof(struct v4l2_sliced_vbi_data);
+ 	}
  
-diff --git a/drivers/media/Makefile b/drivers/media/Makefile
-index 499b081..3a08991 100644
---- a/drivers/media/Makefile
-+++ b/drivers/media/Makefile
-@@ -2,7 +2,13 @@
- # Makefile for the kernel multimedia device drivers.
- #
+diff --git a/drivers/media/video/ivtv/ivtv-vbi.c b/drivers/media/video/ivtv/ivtv-vbi.c
+index e1c347e..7275f2d 100644
+--- a/drivers/media/video/ivtv/ivtv-vbi.c
++++ b/drivers/media/video/ivtv/ivtv-vbi.c
+@@ -92,54 +92,91 @@ static int odd_parity(u8 c)
+ 	return c & 1;
+ }
  
-+media-objs	:= media-devnode.o
-+
-+ifeq ($(CONFIG_MEDIA_CONTROLLER),y)
-+  obj-$(CONFIG_MEDIA_SUPPORT) += media.o
-+endif
-+
- obj-y += common/ IR/ video/
+-void ivtv_write_vbi(struct ivtv *itv, const struct v4l2_sliced_vbi_data *sliced, size_t cnt)
++static void ivtv_write_vbi_line(struct ivtv *itv,
++				const struct v4l2_sliced_vbi_data *d,
++				struct vbi_cc *cc, int *found_cc)
+ {
+ 	struct vbi_info *vi = &itv->vbi;
+-	struct vbi_cc cc = { .odd = { 0x80, 0x80 }, .even = { 0x80, 0x80 } };
+-	int found_cc = 0;
+-	size_t i;
+-
+-	for (i = 0; i < cnt; i++) {
+-		const struct v4l2_sliced_vbi_data *d = sliced + i;
  
--obj-$(CONFIG_VIDEO_DEV) += radio/
--obj-$(CONFIG_DVB_CORE)  += dvb/
-+obj-$(CONFIG_VIDEO_DEV)		+= radio/
-+obj-$(CONFIG_DVB_CORE)		+= dvb/
-diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-new file mode 100644
-index 0000000..7804b70
---- /dev/null
-+++ b/drivers/media/media-devnode.c
-@@ -0,0 +1,321 @@
-+/*
-+ * Media device node
-+ *
-+ * Copyright (C) 2010 Nokia Corporation
-+ *
-+ * Based on drivers/media/video/v4l2_dev.c code authored by
-+ *	Mauro Carvalho Chehab <mchehab@infradead.org> (version 2)
-+ *	Alan Cox, <alan@lxorguk.ukuu.org.uk> (version 1)
-+ *
-+ * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *	     Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ *
-+ * --
-+ *
-+ * Generic media device node infrastructure to register and unregister
-+ * character devices using a dynamic major number and proper reference
-+ * counting.
-+ */
+-		if (d->id == V4L2_SLICED_CAPTION_525 && d->line == 21) {
+-			if (d->field) {
+-				cc.even[0] = d->data[0];
+-				cc.even[1] = d->data[1];
+-			} else {
+-				cc.odd[0] = d->data[0];
+-				cc.odd[1] = d->data[1];
+-			}
+-			found_cc = 1;
++	if (d->id == V4L2_SLICED_CAPTION_525 && d->line == 21) {
++		if (d->field) {
++			cc->even[0] = d->data[0];
++			cc->even[1] = d->data[1];
++		} else {
++			cc->odd[0] = d->data[0];
++			cc->odd[1] = d->data[1];
+ 		}
+-		else if (d->id == V4L2_SLICED_VPS && d->line == 16 && d->field == 0) {
+-			struct vbi_vps vps;
+-
+-			vps.data[0] = d->data[2];
+-			vps.data[1] = d->data[8];
+-			vps.data[2] = d->data[9];
+-			vps.data[3] = d->data[10];
+-			vps.data[4] = d->data[11];
+-			if (memcmp(&vps, &vi->vps_payload, sizeof(vps))) {
+-				vi->vps_payload = vps;
+-				set_bit(IVTV_F_I_UPDATE_VPS, &itv->i_flags);
+-			}
++		*found_cc = 1;
++	} else if (d->id == V4L2_SLICED_VPS && d->line == 16 && d->field == 0) {
++		struct vbi_vps vps;
 +
-+#include <linux/errno.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/kmod.h>
-+#include <linux/slab.h>
-+#include <linux/mm.h>
-+#include <linux/smp_lock.h>
-+#include <linux/string.h>
-+#include <linux/types.h>
-+#include <linux/uaccess.h>
-+#include <asm/system.h>
-+
-+#include <media/media-devnode.h>
-+
-+#define MEDIA_NUM_DEVICES	256
-+#define MEDIA_NAME		"media"
-+
-+static dev_t media_dev_t;
-+
-+/*
-+ *	Active devices
-+ */
-+static DEFINE_MUTEX(media_devnode_lock);
-+static DECLARE_BITMAP(media_devnode_nums, MEDIA_NUM_DEVICES);
-+
-+/* Called when the last user of the media device exits. */
-+static void media_devnode_release(struct device *cd)
-+{
-+	struct media_devnode *mdev = to_media_devnode(cd);
-+
-+	mutex_lock(&media_devnode_lock);
-+
-+	/* Delete the cdev on this minor as well */
-+	cdev_del(&mdev->cdev);
-+
-+	/* Mark device node number as free */
-+	clear_bit(mdev->minor, media_devnode_nums);
-+
-+	mutex_unlock(&media_devnode_lock);
-+
-+	/* Release media_devnode and perform other cleanups as needed. */
-+	if (mdev->release)
-+		mdev->release(mdev);
++		vps.data[0] = d->data[2];
++		vps.data[1] = d->data[8];
++		vps.data[2] = d->data[9];
++		vps.data[3] = d->data[10];
++		vps.data[4] = d->data[11];
++		if (memcmp(&vps, &vi->vps_payload, sizeof(vps))) {
++			vi->vps_payload = vps;
++			set_bit(IVTV_F_I_UPDATE_VPS, &itv->i_flags);
+ 		}
+-		else if (d->id == V4L2_SLICED_WSS_625 && d->line == 23 && d->field == 0) {
+-			int wss = d->data[0] | d->data[1] << 8;
++	} else if (d->id == V4L2_SLICED_WSS_625 &&
++		   d->line == 23 && d->field == 0) {
++		int wss = d->data[0] | d->data[1] << 8;
+ 
+-			if (vi->wss_payload != wss) {
+-				vi->wss_payload = wss;
+-				set_bit(IVTV_F_I_UPDATE_WSS, &itv->i_flags);
+-			}
++		if (vi->wss_payload != wss) {
++			vi->wss_payload = wss;
++			set_bit(IVTV_F_I_UPDATE_WSS, &itv->i_flags);
+ 		}
+ 	}
+-	if (found_cc && vi->cc_payload_idx < ARRAY_SIZE(vi->cc_payload)) {
+-		vi->cc_payload[vi->cc_payload_idx++] = cc;
 +}
 +
-+static struct bus_type media_bus_type = {
-+	.name = MEDIA_NAME,
-+};
-+
-+static ssize_t media_read(struct file *filp, char __user *buf,
-+		size_t sz, loff_t *off)
++static void ivtv_write_vbi_cc_lines(struct ivtv *itv, const struct vbi_cc *cc)
 +{
-+	struct media_devnode *mdev = media_devnode_data(filp);
++	struct vbi_info *vi = &itv->vbi;
 +
-+	if (!mdev->fops->read)
-+		return -EINVAL;
-+	if (!media_devnode_is_registered(mdev))
-+		return -EIO;
-+	return mdev->fops->read(filp, buf, sz, off);
++	if (vi->cc_payload_idx < ARRAY_SIZE(vi->cc_payload)) {
++		memcpy(&vi->cc_payload[vi->cc_payload_idx], cc,
++		       sizeof(struct vbi_cc));
++		vi->cc_payload_idx++;
+ 		set_bit(IVTV_F_I_UPDATE_CC, &itv->i_flags);
+ 	}
+ }
+ 
++static void ivtv_write_vbi(struct ivtv *itv,
++			   const struct v4l2_sliced_vbi_data *sliced,
++			   size_t cnt)
++{
++	struct vbi_cc cc = { .odd = { 0x80, 0x80 }, .even = { 0x80, 0x80 } };
++	int found_cc = 0;
++	size_t i;
++
++	for (i = 0; i < cnt; i++)
++		ivtv_write_vbi_line(itv, sliced + i, &cc, &found_cc);
++
++	if (found_cc)
++		ivtv_write_vbi_cc_lines(itv, &cc);
 +}
 +
-+static ssize_t media_write(struct file *filp, const char __user *buf,
-+		size_t sz, loff_t *off)
++void ivtv_write_vbi_from_user(struct ivtv *itv,
++			      const struct v4l2_sliced_vbi_data __user *sliced,
++			      size_t cnt)
 +{
-+	struct media_devnode *mdev = media_devnode_data(filp);
++	struct vbi_cc cc = { .odd = { 0x80, 0x80 }, .even = { 0x80, 0x80 } };
++	int found_cc = 0;
++	size_t i;
++	struct v4l2_sliced_vbi_data d;
 +
-+	if (!mdev->fops->write)
-+		return -EINVAL;
-+	if (!media_devnode_is_registered(mdev))
-+		return -EIO;
-+	return mdev->fops->write(filp, buf, sz, off);
-+}
-+
-+static unsigned int media_poll(struct file *filp,
-+			       struct poll_table_struct *poll)
-+{
-+	struct media_devnode *mdev = media_devnode_data(filp);
-+
-+	if (!media_devnode_is_registered(mdev))
-+		return POLLERR | POLLHUP;
-+	if (!mdev->fops->poll)
-+		return DEFAULT_POLLMASK;
-+	return mdev->fops->poll(filp, poll);
-+}
-+
-+static long media_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
-+{
-+	struct media_devnode *mdev = media_devnode_data(filp);
-+
-+	if (!mdev->fops->ioctl)
-+		return -ENOTTY;
-+
-+	if (!media_devnode_is_registered(mdev))
-+		return -EIO;
-+
-+	return mdev->fops->ioctl(filp, cmd, arg);
-+}
-+
-+/* Override for the open function */
-+static int media_open(struct inode *inode, struct file *filp)
-+{
-+	struct media_devnode *mdev;
-+	int ret;
-+
-+	/* Check if the media device is available. This needs to be done with
-+	 * the media_devnode_lock held to prevent an open/unregister race:
-+	 * without the lock, the device could be unregistered and freed between
-+	 * the media_devnode_is_registered() and get_device() calls, leading to
-+	 * a crash.
-+	 */
-+	mutex_lock(&media_devnode_lock);
-+	mdev = container_of(inode->i_cdev, struct media_devnode, cdev);
-+	/* return ENXIO if the media device has been removed
-+	   already or if it is not registered anymore. */
-+	if (!media_devnode_is_registered(mdev)) {
-+		mutex_unlock(&media_devnode_lock);
-+		return -ENXIO;
-+	}
-+	/* and increase the device refcount */
-+	get_device(&mdev->dev);
-+	mutex_unlock(&media_devnode_lock);
-+
-+	filp->private_data = mdev;
-+
-+	if (mdev->fops->open) {
-+		ret = mdev->fops->open(filp);
-+		if (ret) {
-+			put_device(&mdev->dev);
-+			return ret;
-+		}
++	for (i = 0; i < cnt; i++) {
++		if (copy_from_user(&d, sliced + i,
++				   sizeof(struct v4l2_sliced_vbi_data)))
++			break;
++		ivtv_write_vbi_line(itv, sliced + i, &cc, &found_cc);
 +	}
 +
-+	return 0;
++	if (found_cc)
++		ivtv_write_vbi_cc_lines(itv, &cc);
 +}
 +
-+/* Override for the release function */
-+static int media_release(struct inode *inode, struct file *filp)
-+{
-+	struct media_devnode *mdev = media_devnode_data(filp);
-+	int ret = 0;
-+
-+	if (mdev->fops->release)
-+		mdev->fops->release(filp);
-+
-+	/* decrease the refcount unconditionally since the release()
-+	   return value is ignored. */
-+	put_device(&mdev->dev);
-+	filp->private_data = NULL;
-+	return ret;
-+}
-+
-+static const struct file_operations media_devnode_fops = {
-+	.owner = THIS_MODULE,
-+	.read = media_read,
-+	.write = media_write,
-+	.open = media_open,
-+	.unlocked_ioctl = media_ioctl,
-+	.release = media_release,
-+	.poll = media_poll,
-+	.llseek = no_llseek,
-+};
-+
-+/**
-+ * media_devnode_register - register a media device node
-+ * @mdev: media device node structure we want to register
-+ *
-+ * The registration code assigns minor numbers and registers the new device node
-+ * with the kernel. An error is returned if no free minor number can be found,
-+ * or if the registration of the device node fails.
-+ *
-+ * Zero is returned on success.
-+ *
-+ * Note that if the media_devnode_register call fails, the release() callback of
-+ * the media_devnode structure is *not* called, so the caller is responsible for
-+ * freeing any data.
-+ */
-+int __must_check media_devnode_register(struct media_devnode *mdev)
-+{
-+	int minor;
-+	int ret;
-+
-+	/* Part 1: Find a free minor number */
-+	mutex_lock(&media_devnode_lock);
-+	minor = find_next_zero_bit(media_devnode_nums, 0, MEDIA_NUM_DEVICES);
-+	if (minor == MEDIA_NUM_DEVICES) {
-+		mutex_unlock(&media_devnode_lock);
-+		printk(KERN_ERR "could not get a free minor\n");
-+		return -ENFILE;
-+	}
-+
-+	set_bit(mdev->minor, media_devnode_nums);
-+	mutex_unlock(&media_devnode_lock);
-+
-+	mdev->minor = minor;
-+
-+	/* Part 2: Initialize and register the character device */
-+	cdev_init(&mdev->cdev, &media_devnode_fops);
-+	mdev->cdev.owner = mdev->fops->owner;
-+
-+	ret = cdev_add(&mdev->cdev, MKDEV(MAJOR(media_dev_t), mdev->minor), 1);
-+	if (ret < 0) {
-+		printk(KERN_ERR "%s: cdev_add failed\n", __func__);
-+		goto error;
-+	}
-+
-+	/* Part 3: Register the media device */
-+	mdev->dev.bus = &media_bus_type;
-+	mdev->dev.devt = MKDEV(MAJOR(media_dev_t), mdev->minor);
-+	mdev->dev.release = media_devnode_release;
-+	if (mdev->parent)
-+		mdev->dev.parent = mdev->parent;
-+	dev_set_name(&mdev->dev, "media%d", mdev->minor);
-+	ret = device_register(&mdev->dev);
-+	if (ret < 0) {
-+		printk(KERN_ERR "%s: device_register failed\n", __func__);
-+		goto error;
-+	}
-+
-+	/* Part 4: Activate this minor. The char device can now be used. */
-+	set_bit(MEDIA_FLAG_REGISTERED, &mdev->flags);
-+
-+	return 0;
-+
-+error:
-+	cdev_del(&mdev->cdev);
-+	clear_bit(mdev->minor, media_devnode_nums);
-+	return ret;
-+}
-+
-+/**
-+ * media_devnode_unregister - unregister a media device node
-+ * @mdev: the device node to unregister
-+ *
-+ * This unregisters the passed device. Future open calls will be met with
-+ * errors.
-+ *
-+ * This function can safely be called if the device node has never been
-+ * registered or has already been unregistered.
-+ */
-+void media_devnode_unregister(struct media_devnode *mdev)
-+{
-+	/* Check if mdev was ever registered at all */
-+	if (!media_devnode_is_registered(mdev))
-+		return;
-+
-+	mutex_lock(&media_devnode_lock);
-+	clear_bit(MEDIA_FLAG_REGISTERED, &mdev->flags);
-+	mutex_unlock(&media_devnode_lock);
-+	device_unregister(&mdev->dev);
-+}
-+
-+/*
-+ *	Initialise media for linux
-+ */
-+static int __init media_devnode_init(void)
-+{
-+	int ret;
-+
-+	printk(KERN_INFO "Linux media interface: v0.10\n");
-+	ret = alloc_chrdev_region(&media_dev_t, 0, MEDIA_NUM_DEVICES,
-+				  MEDIA_NAME);
-+	if (ret < 0) {
-+		printk(KERN_WARNING "media: unable to allocate major\n");
-+		return ret;
-+	}
-+
-+	ret = bus_register(&media_bus_type);
-+	if (ret < 0) {
-+		unregister_chrdev_region(media_dev_t, MEDIA_NUM_DEVICES);
-+		printk(KERN_WARNING "media: bus_register failed\n");
-+		return -EIO;
-+	}
-+
-+	return 0;
-+}
-+
-+static void __exit media_devnode_exit(void)
-+{
-+	bus_unregister(&media_bus_type);
-+	unregister_chrdev_region(media_dev_t, MEDIA_NUM_DEVICES);
-+}
-+
-+module_init(media_devnode_init)
-+module_exit(media_devnode_exit)
-+
-+MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@ideasonboard.com>");
-+MODULE_DESCRIPTION("Device node registration for media drivers");
-+MODULE_LICENSE("GPL");
-diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
-new file mode 100644
-index 0000000..01cd034
---- /dev/null
-+++ b/include/media/media-devnode.h
-@@ -0,0 +1,97 @@
-+/*
-+ * Media device node
-+ *
-+ * Copyright (C) 2010 Nokia Corporation
-+ *
-+ * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *	     Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ *
-+ * --
-+ *
-+ * Common functions for media-related drivers to register and unregister media
-+ * device nodes.
-+ */
-+
-+#ifndef _MEDIA_DEVNODE_H
-+#define _MEDIA_DEVNODE_H
-+
-+#include <linux/poll.h>
-+#include <linux/fs.h>
-+#include <linux/device.h>
-+#include <linux/cdev.h>
-+
-+/*
-+ * Flag to mark the media_devnode struct as registered. Drivers must not touch
-+ * this flag directly, it will be set and cleared by media_devnode_register and
-+ * media_devnode_unregister.
-+ */
-+#define MEDIA_FLAG_REGISTERED	0
-+
-+struct media_file_operations {
-+	struct module *owner;
-+	ssize_t (*read) (struct file *, char __user *, size_t, loff_t *);
-+	ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *);
-+	unsigned int (*poll) (struct file *, struct poll_table_struct *);
-+	long (*ioctl) (struct file *, unsigned int, unsigned long);
-+	int (*open) (struct file *);
-+	int (*release) (struct file *);
-+};
-+
-+/**
-+ * struct media_devnode - Media device node
-+ * @parent:	parent device
-+ * @minor:	device node minor number
-+ * @flags:	flags, combination of the MEDIA_FLAG_* constants
-+ *
-+ * This structure represents a media-related device node.
-+ *
-+ * The @parent is a physical device. It must be set by core or device drivers
-+ * before registering the node.
-+ */
-+struct media_devnode {
-+	/* device ops */
-+	const struct media_file_operations *fops;
-+
-+	/* sysfs */
-+	struct device dev;		/* media device */
-+	struct cdev cdev;		/* character device */
-+	struct device *parent;		/* device parent */
-+
-+	/* device info */
-+	int minor;
-+	unsigned long flags;		/* Use bitops to access flags */
-+
-+	/* callbacks */
-+	void (*release)(struct media_devnode *mdev);
-+};
-+
-+/* dev to media_devnode */
-+#define to_media_devnode(cd) container_of(cd, struct media_devnode, dev)
-+
-+int __must_check media_devnode_register(struct media_devnode *mdev);
-+void media_devnode_unregister(struct media_devnode *mdev);
-+
-+static inline struct media_devnode *media_devnode_data(struct file *filp)
-+{
-+	return filp->private_data;
-+}
-+
-+static inline int media_devnode_is_registered(struct media_devnode *mdev)
-+{
-+	return test_bit(MEDIA_FLAG_REGISTERED, &mdev->flags);
-+}
-+
-+#endif /* _MEDIA_DEVNODE_H */
--- 
-1.7.2.2
+ static void copy_vbi_data(struct ivtv *itv, int lines, u32 pts_stamp)
+ {
+ 	int line = 0;
+diff --git a/drivers/media/video/ivtv/ivtv-vbi.h b/drivers/media/video/ivtv/ivtv-vbi.h
+index 970567b..eda38d0 100644
+--- a/drivers/media/video/ivtv/ivtv-vbi.h
++++ b/drivers/media/video/ivtv/ivtv-vbi.h
+@@ -20,7 +20,9 @@
+ #ifndef IVTV_VBI_H
+ #define IVTV_VBI_H
+ 
+-void ivtv_write_vbi(struct ivtv *itv, const struct v4l2_sliced_vbi_data *sliced, size_t count);
++void ivtv_write_vbi_from_user(struct ivtv *itv,
++			      const struct v4l2_sliced_vbi_data __user *sliced,
++			      size_t count);
+ void ivtv_process_vbi_data(struct ivtv *itv, struct ivtv_buffer *buf,
+ 			   u64 pts_stamp, int streamtype);
+ int ivtv_used_line(struct ivtv *itv, int line, int field);
+
 
