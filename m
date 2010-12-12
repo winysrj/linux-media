@@ -1,212 +1,75 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:10405 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752736Ab0LOUil (ORCPT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:64215 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752955Ab0LLQNs convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Dec 2010 15:38:41 -0500
-Date: Wed, 15 Dec 2010 21:34:26 +0100
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Subject: [PATCHv8 06/12] mm: alloc_contig_range() added
-In-reply-to: <cover.1292443200.git.m.nazarewicz@samsung.com>
-To: Michal Nazarewicz <mina86@mina86.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mel Gorman <mel@csn.ul.ie>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org
-Message-id: <37264739706c35290be16df4d61b1d2827b72f61.1292443200.git.m.nazarewicz@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <cover.1292443200.git.m.nazarewicz@samsung.com>
+	Sun, 12 Dec 2010 11:13:48 -0500
+MIME-Version: 1.0
+In-Reply-To: <20101212131550.GA2608@darkstar>
+References: <20101212131550.GA2608@darkstar>
+Date: Sun, 12 Dec 2010 17:13:47 +0100
+Message-ID: <AANLkTinaNjPjNbxE+OyRsY_jJxDW-pwehTPgyAWzqfzd@mail.gmail.com>
+Subject: Re: [PATCH] bttv: fix mutex use before init
+From: Torsten Kaiser <just.for.lkml@googlemail.com>
+To: Dave Young <hidave.darkstar@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Chris Clayton <chris2553@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-This commit adds the alloc_contig_range() function which tries
-to allecate given range of pages.  It tries to migrate all
-already allocated pages that fall in the range thus freeing them.
-Once all pages in the range are freed they are removed from the
-buddy system thus allocated for the caller to use.
+On Sun, Dec 12, 2010 at 2:15 PM, Dave Young <hidave.darkstar@gmail.com> wrote:
+> oops happen in bttv_open while locking uninitialized mutex fh->cap.vb_lock
+> add mutex_init before usage
 
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- include/linux/page-isolation.h |    2 +
- mm/page_alloc.c                |  144 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 146 insertions(+), 0 deletions(-)
+I have seen the same problem twice since I switched of the BKL in
+2.6.37-rc2, but only had the time today to search for the cause.
+(It only happend on two boots out of probably more then 50, so I only
+investigated after it happened a second time with -rc5)
 
-diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
-index f1417ed..c5d1a7c 100644
---- a/include/linux/page-isolation.h
-+++ b/include/linux/page-isolation.h
-@@ -34,6 +34,8 @@ extern int set_migratetype_isolate(struct page *page);
- extern void unset_migratetype_isolate(struct page *page);
- extern unsigned long alloc_contig_freed_pages(unsigned long start,
- 					      unsigned long end, gfp_t flag);
-+extern int alloc_contig_range(unsigned long start, unsigned long end,
-+			      gfp_t flags);
- extern void free_contig_pages(struct page *page, int nr_pages);
- 
- /*
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index be240a3..008a6e8 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5463,6 +5463,150 @@ unsigned long alloc_contig_freed_pages(unsigned long start, unsigned long end,
- 	return pfn;
- }
- 
-+static unsigned long pfn_to_maxpage(unsigned long pfn)
-+{
-+	return pfn & ~(MAX_ORDER_NR_PAGES - 1);
-+}
-+
-+static unsigned long pfn_to_maxpage_up(unsigned long pfn)
-+{
-+	return ALIGN(pfn, MAX_ORDER_NR_PAGES);
-+}
-+
-+#define MIGRATION_RETRY	5
-+static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
-+{
-+	int migration_failed = 0, ret;
-+	unsigned long pfn = start;
-+
-+	/*
-+	 * Some code "borrowed" from KAMEZAWA Hiroyuki's
-+	 * __alloc_contig_pages().
-+	 */
-+
-+	for (;;) {
-+		pfn = scan_lru_pages(pfn, end);
-+		if (!pfn || pfn >= end)
-+			break;
-+
-+		ret = do_migrate_range(pfn, end);
-+		if (!ret) {
-+			migration_failed = 0;
-+		} else if (ret != -EBUSY
-+			|| ++migration_failed >= MIGRATION_RETRY) {
-+			return ret;
-+		} else {
-+			/* There are unstable pages.on pagevec. */
-+			lru_add_drain_all();
-+			/*
-+			 * there may be pages on pcplist before
-+			 * we mark the range as ISOLATED.
-+			 */
-+			drain_all_pages();
-+		}
-+		cond_resched();
-+	}
-+
-+	if (!migration_failed) {
-+		/* drop all pages in pagevec and pcp list */
-+		lru_add_drain_all();
-+		drain_all_pages();
-+	}
-+
-+	/* Make sure all pages are isolated */
-+	if (WARN_ON(test_pages_isolated(start, end)))
-+		return -EBUSY;
-+
-+	return 0;
-+}
-+
-+/**
-+ * alloc_contig_range() -- tries to allocate given range of pages
-+ * @start:	start PFN to allocate
-+ * @end:	one-past-the-last PFN to allocate
-+ * @flags:	flags passed to alloc_contig_freed_pages().
-+ *
-+ * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
-+ * aligned, hovewer it's callers responsibility to guarantee that we
-+ * are the only thread that changes migrate type of pageblocks the
-+ * pages fall in.
-+ *
-+ * Returns zero on success or negative error code.  On success all
-+ * pages which PFN is in (start, end) are allocated for the caller and
-+ * need to be freed with free_contig_pages().
-+ */
-+int alloc_contig_range(unsigned long start, unsigned long end,
-+		       gfp_t flags)
-+{
-+	unsigned long _start, _end;
-+	int ret;
-+
-+	/*
-+	 * What we do here is we mark all pageblocks in range as
-+	 * MIGRATE_ISOLATE.  Because of the way page allocator work, we
-+	 * align the range to MAX_ORDER pages so that page allocator
-+	 * won't try to merge buddies from different pageblocks and
-+	 * change MIGRATE_ISOLATE to some other migration type.
-+	 *
-+	 * Once the pageblocks are marked as MIGRATE_ISOLATE, we
-+	 * migrate the pages from an unaligned range (ie. pages that
-+	 * we are interested in).  This will put all the pages in
-+	 * range back to page allocator as MIGRATE_ISOLATE.
-+	 *
-+	 * When this is done, we take the pages in range from page
-+	 * allocator removing them from the buddy system.  This way
-+	 * page allocator will never consider using them.
-+	 *
-+	 * This lets us mark the pageblocks back as
-+	 * MIGRATE_CMA/MIGRATE_MOVABLE so that free pages in the
-+	 * MAX_ORDER aligned range but not in the unaligned, original
-+	 * range are put back to page allocator so that buddy can use
-+	 * them.
-+	 */
-+
-+	ret = start_isolate_page_range(pfn_to_maxpage(start),
-+				       pfn_to_maxpage_up(end));
-+	if (ret)
-+		goto done;
-+
-+	ret = __alloc_contig_migrate_range(start, end);
-+	if (ret)
-+		goto done;
-+
-+	/*
-+	 * Pages from [start, end) are within a MAX_ORDER_NR_PAGES
-+	 * aligned blocks that are marked as MIGRATE_ISOLATE.  What's
-+	 * more, all pages in [start, end) are free in page allocator.
-+	 * What we are going to do is to allocate all pages from
-+	 * [start, end) (that is remove them from page allocater).
-+	 *
-+	 * The only problem is that pages at the beginning and at the
-+	 * end of interesting range may be not aligned with pages that
-+	 * page allocator holds, ie. they can be part of higher order
-+	 * pages.  Because of this, we reserve the bigger range and
-+	 * once this is done free the pages we are not interested in.
-+	 */
-+
-+	ret = 0;
-+	while (!PageBuddy(pfn_to_page(start & (~0UL << ret))))
-+		if (WARN_ON(++ret >= MAX_ORDER))
-+			return -EINVAL;
-+
-+	_start = start & (~0UL << ret);
-+	_end   = alloc_contig_freed_pages(_start, end, flags);
-+
-+	/* Free head and tail (if any) */
-+	if (start != _start)
-+		free_contig_pages(pfn_to_page(_start), start - _start);
-+	if (end != _end)
-+		free_contig_pages(pfn_to_page(end), _end - end);
-+
-+	ret = 0;
-+done:
-+	undo_isolate_page_range(pfn_to_maxpage(start), pfn_to_maxpage_up(end));
-+	return ret;
-+}
-+
- void free_contig_pages(struct page *page, int nr_pages)
- {
- 	for (; nr_pages; --nr_pages, ++page)
--- 
-1.7.2.3
+The cause was making this change to bttv_open() and radio_open() to
+remove the BKL from them:
++	mutex_lock(&fh->cap.vb_lock);
+ 	*fh = btv->init;
++	mutex_unlock(&fh->cap.vb_lock);
 
+This is wrong because of two things:
+First: The fh->cap.vb_lock has not been initialised, as you noted.
+Second: The middle line will overwrite the mutex!
+
+Just adding mutex_init() will not really help the second problem and
+seems to be wrong from the point that cap.vb_lock already has a
+mutex_init() via videobuf_queue_sg_init().
+
+I'm not sure what the correct fix is, but I would rather suggest this:
+
+ * change &fh->cap.vb_lock in bttv_open() AND radio_open() to
+&btv->init.cap.vb_lock
+ * add a mutex_init(&btv->init.cap.vb_lock) to the setup of init in bttv_probe()
+
+> Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+> Tested-by: Chris Clayton <chris2553@googlemail.com>
+> ---
+>  drivers/media/video/bt8xx/bttv-driver.c |    2 ++
+>  1 file changed, 2 insertions(+)
+>
+> --- linux-2.6.orig/drivers/media/video/bt8xx/bttv-driver.c      2010-11-27 11:21:30.000000000 +0800
+> +++ linux-2.6/drivers/media/video/bt8xx/bttv-driver.c   2010-12-12 16:31:39.633333338 +0800
+> @@ -3291,6 +3291,8 @@ static int bttv_open(struct file *file)
+>        fh = kmalloc(sizeof(*fh), GFP_KERNEL);
+>        if (unlikely(!fh))
+>                return -ENOMEM;
+> +
+> +       mutex_init(&fh->cap.vb_lock);
+>        file->private_data = fh;
+>
+>        /*
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+>
