@@ -1,238 +1,353 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout4.samsung.com ([203.254.224.34]:27632 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753671Ab0L0Q2I (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4047 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753578Ab0LLRcI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Dec 2010 11:28:08 -0500
-Date: Mon, 27 Dec 2010 17:27:59 +0100
-From: Kamil Debski <k.debski@samsung.com>
-Subject: RE: [PATCH 1/9] media: Changes in include/linux/videodev2.h for MFC 5.1
-In-reply-to: <201012221342.03713.hverkuil@xs4all.nl>
-To: 'Hans Verkuil' <hverkuil@xs4all.nl>,
-	'Jeongtae Park' <jtp.park@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	jaeryul.oh@samsung.com, kgene.kim@samsung.com, ben-linux@fluff.org,
-	jonghun.han@samsung.com
-Message-id: <003701cba5e3$097f7ba0$1c7e72e0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: en-gb
-Content-transfer-encoding: 7BIT
-References: <1293018885-15239-1-git-send-email-jtp.park@samsung.com>
- <1293018885-15239-2-git-send-email-jtp.park@samsung.com>
- <201012221342.03713.hverkuil@xs4all.nl>
+	Sun, 12 Dec 2010 12:32:08 -0500
+Received: from localhost.localdomain (159.80-203-19.nextgentel.com [80.203.19.159])
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id oBCHW1MJ002236
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 12 Dec 2010 18:32:07 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [RFC/PATCH 11/19] tvp514x: use the control framework
+Date: Sun, 12 Dec 2010 18:31:53 +0100
+Message-Id: <4ea25fba8cc1207adfedd208548deefd6032fe83.1292174822.git.hverkuil@xs4all.nl>
+In-Reply-To: <cover.1292174822.git.hverkuil@xs4all.nl>
+References: <cover.1292174822.git.hverkuil@xs4all.nl>
+In-Reply-To: <cover.1292174822.git.hverkuil@xs4all.nl>
+References: <cover.1292174822.git.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Hans,
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/video/tvp514x.c |  236 ++++++++++-------------------------------
+ 1 files changed, 57 insertions(+), 179 deletions(-)
 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: 22 December 2010 13:42
-> To: Jeongtae Park
-> Cc: linux-media@vger.kernel.org; linux-samsung-soc@vger.kernel.org;
-> k.debski@samsung.com; jaeryul.oh@samsung.com; kgene.kim@samsung.com;
-> ben-linux@fluff.org; jonghun.han@samsung.com
-> Subject: Re: [PATCH 1/9] media: Changes in include/linux/videodev2.h
-> for MFC 5.1
-
-<snip>
+diff --git a/drivers/media/video/tvp514x.c b/drivers/media/video/tvp514x.c
+index 45bcf03..9b3e828 100644
+--- a/drivers/media/video/tvp514x.c
++++ b/drivers/media/video/tvp514x.c
+@@ -37,6 +37,7 @@
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-mediabus.h>
+ #include <media/v4l2-chip-ident.h>
++#include <media/v4l2-ctrls.h>
+ #include <media/tvp514x.h>
  
-> >  #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /*
-> 1394          */
-> >  #define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /*
-> MPEG-1/2/4    */
-> >
-> > +
-> > +#define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /*
-> H264    */
-> > +#define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /*
-> H263    */
-> > +#define V4L2_PIX_FMT_MPEG12   v4l2_fourcc('M', 'P', '1', '2') /*
-> MPEG-1/2  */
-> > +#define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /*
-> MPEG-4  */
-> > +#define V4L2_PIX_FMT_DIVX     v4l2_fourcc('D', 'I', 'V', 'X') /*
-> DivX  */
-> > +#define V4L2_PIX_FMT_DIVX3    v4l2_fourcc('D', 'I', 'V', '3') /*
-> DivX 3.11  */
-> > +#define V4L2_PIX_FMT_DIVX4    v4l2_fourcc('D', 'I', 'V', '4') /*
-> DivX 4.12  */
-> > +#define V4L2_PIX_FMT_DIVX500    v4l2_fourcc('D', 'X', '5', '2') /*
-> DivX 5.00 - 5.02  */
-> > +#define V4L2_PIX_FMT_DIVX503    v4l2_fourcc('D', 'X', '5', '3') /*
-> DivX 5.03 - x  */
-> > +#define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /*
-> Xvid */
-> > +#define V4L2_PIX_FMT_VC1      v4l2_fourcc('V', 'C', '1', 'A') /* VC-
-> 1 */
-> > +#define V4L2_PIX_FMT_VC1_RCV      v4l2_fourcc('V', 'C', '1', 'R') /*
-> VC-1 RCV */
-> 
-> What do these formats describe? Are these container formats or the
-> actual
-> compressed video stream that is normally packaged inside a container?
-
-Apart from VC-1 RCV those are elementary streams. If I understand correctly 
-RCV is a simple semi-container that contains necessary information to play
-the ES. I have asked a person from HW team if all those fourccs are
-necessary.
-I am waiting for reply.
-
-The idea was to have a fourcc for each supported codec (by this I mean the
-elementary stream).
-
-> 
-> > +
-> > +
-> >  /*  Vendor-specific formats   */
-> >  #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /*
-> cpia1 YUV */
-> >  #define V4L2_PIX_FMT_WNVA     v4l2_fourcc('W', 'N', 'V', 'A') /*
-> Winnov hw compress */
-> > @@ -1009,6 +1034,7 @@ struct v4l2_ext_controls {
-> >  #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression
-> controls */
-> >  #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class
-> controls */
-> >  #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control
-> class */
-> > +#define V4L2_CTRL_CLASS_CODEC 0x009c0000	/* Codec control class
-> */
-> >
-> >  #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
-> >  #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-> > @@ -1342,6 +1368,150 @@ enum
-> v4l2_mpeg_cx2341x_video_median_filter_type {
-> >  #define V4L2_CID_MPEG_CX2341X_VIDEO_CHROMA_MEDIAN_FILTER_TOP
-> 	(V4L2_CID_MPEG_CX2341X_BASE+10)
-> >  #define V4L2_CID_MPEG_CX2341X_STREAM_INSERT_NAV_PACKETS
-> 	(V4L2_CID_MPEG_CX2341X_BASE+11)
-> >
-> > +/* For codecs */
-> > +#define V4L2_CID_CODEC_BASE
-(V4L2_CTRL_CLASS_CODEC
-> | 0x900)
-> > +#define V4L2_CID_CODEC_CLASS
-(V4L2_CTRL_CLASS_CODEC
-> | 1)
-> > +
-> > +/* For decoding */
-> > +#define V4L2_CID_CODEC_LOOP_FILTER_MPEG4_ENABLE
-> 	(V4L2_CID_CODEC_BASE + 110)
-> > +#define V4L2_CID_CODEC_DISPLAY_DELAY		(V4L2_CID_CODEC_BASE
+ #include "tvp514x_regs.h"
+@@ -97,6 +98,7 @@ static int tvp514x_s_stream(struct v4l2_subdev *sd, int enable);
+  */
+ struct tvp514x_decoder {
+ 	struct v4l2_subdev sd;
++	struct v4l2_ctrl_handler hdl;
+ 	struct tvp514x_reg tvp514x_regs[ARRAY_SIZE(tvp514x_reg_list_default)];
+ 	const struct tvp514x_platform_data *pdata;
+ 
+@@ -238,6 +240,11 @@ static inline struct tvp514x_decoder *to_decoder(struct v4l2_subdev *sd)
+ 	return container_of(sd, struct tvp514x_decoder, sd);
+ }
+ 
++static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
++{
++	return &container_of(ctrl->handler, struct tvp514x_decoder, hdl)->sd;
++}
 +
-> 137)
-> > +#define V4L2_CID_CODEC_REQ_NUM_BUFS		(V4L2_CID_CODEC_BASE
+ 
+ /**
+  * tvp514x_read_reg() - Read a value from a register in an TVP5146/47.
+@@ -719,213 +726,54 @@ static int tvp514x_s_routing(struct v4l2_subdev *sd,
+ }
+ 
+ /**
+- * tvp514x_queryctrl() - V4L2 decoder interface handler for queryctrl
+- * @sd: pointer to standard V4L2 sub-device structure
+- * @qctrl: standard V4L2 v4l2_queryctrl structure
+- *
+- * If the requested control is supported, returns the control information.
+- * Otherwise, returns -EINVAL if the control is not supported.
+- */
+-static int
+-tvp514x_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qctrl)
+-{
+-	int err = -EINVAL;
+-
+-	if (qctrl == NULL)
+-		return err;
+-
+-	switch (qctrl->id) {
+-	case V4L2_CID_BRIGHTNESS:
+-		/* Brightness supported is (0-255), */
+-		err = v4l2_ctrl_query_fill(qctrl, 0, 255, 1, 128);
+-		break;
+-	case V4L2_CID_CONTRAST:
+-	case V4L2_CID_SATURATION:
+-		/**
+-		 * Saturation and Contrast supported is -
+-		 *	Contrast: 0 - 255 (Default - 128)
+-		 *	Saturation: 0 - 255 (Default - 128)
+-		 */
+-		err = v4l2_ctrl_query_fill(qctrl, 0, 255, 1, 128);
+-		break;
+-	case V4L2_CID_HUE:
+-		/* Hue Supported is -
+-		 *	Hue - -180 - +180 (Default - 0, Step - +180)
+-		 */
+-		err = v4l2_ctrl_query_fill(qctrl, -180, 180, 180, 0);
+-		break;
+-	case V4L2_CID_AUTOGAIN:
+-		/**
+-		 * Auto Gain supported is -
+-		 * 	0 - 1 (Default - 1)
+-		 */
+-		err = v4l2_ctrl_query_fill(qctrl, 0, 1, 1, 1);
+-		break;
+-	default:
+-		v4l2_err(sd, "invalid control id %d\n", qctrl->id);
+-		return err;
+-	}
+-
+-	v4l2_dbg(1, debug, sd, "Query Control:%s: Min - %d, Max - %d, Def - %d\n",
+-			qctrl->name, qctrl->minimum, qctrl->maximum,
+-			qctrl->default_value);
+-
+-	return err;
+-}
+-
+-/**
+- * tvp514x_g_ctrl() - V4L2 decoder interface handler for g_ctrl
+- * @sd: pointer to standard V4L2 sub-device structure
+- * @ctrl: pointer to v4l2_control structure
+- *
+- * If the requested control is supported, returns the control's current
+- * value from the decoder. Otherwise, returns -EINVAL if the control is not
+- * supported.
+- */
+-static int
+-tvp514x_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+-{
+-	struct tvp514x_decoder *decoder = to_decoder(sd);
+-
+-	if (ctrl == NULL)
+-		return -EINVAL;
+-
+-	switch (ctrl->id) {
+-	case V4L2_CID_BRIGHTNESS:
+-		ctrl->value = decoder->tvp514x_regs[REG_BRIGHTNESS].val;
+-		break;
+-	case V4L2_CID_CONTRAST:
+-		ctrl->value = decoder->tvp514x_regs[REG_CONTRAST].val;
+-		break;
+-	case V4L2_CID_SATURATION:
+-		ctrl->value = decoder->tvp514x_regs[REG_SATURATION].val;
+-		break;
+-	case V4L2_CID_HUE:
+-		ctrl->value = decoder->tvp514x_regs[REG_HUE].val;
+-		if (ctrl->value == 0x7F)
+-			ctrl->value = 180;
+-		else if (ctrl->value == 0x80)
+-			ctrl->value = -180;
+-		else
+-			ctrl->value = 0;
+-
+-		break;
+-	case V4L2_CID_AUTOGAIN:
+-		ctrl->value = decoder->tvp514x_regs[REG_AFE_GAIN_CTRL].val;
+-		if ((ctrl->value & 0x3) == 3)
+-			ctrl->value = 1;
+-		else
+-			ctrl->value = 0;
+-
+-		break;
+-	default:
+-		v4l2_err(sd, "invalid control id %d\n", ctrl->id);
+-		return -EINVAL;
+-	}
+-
+-	v4l2_dbg(1, debug, sd, "Get Control: ID - %d - %d\n",
+-			ctrl->id, ctrl->value);
+-	return 0;
+-}
+-
+-/**
+  * tvp514x_s_ctrl() - V4L2 decoder interface handler for s_ctrl
+- * @sd: pointer to standard V4L2 sub-device structure
+- * @ctrl: pointer to v4l2_control structure
++ * @ctrl: pointer to v4l2_ctrl structure
+  *
+  * If the requested control is supported, sets the control's current
+  * value in HW. Otherwise, returns -EINVAL if the control is not supported.
+  */
+-static int
+-tvp514x_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
++static int tvp514x_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
++	struct v4l2_subdev *sd = to_sd(ctrl);
+ 	struct tvp514x_decoder *decoder = to_decoder(sd);
+ 	int err = -EINVAL, value;
+ 
+-	if (ctrl == NULL)
+-		return err;
+-
+-	value = ctrl->value;
++	value = ctrl->val;
+ 
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_BRIGHTNESS:
+-		if (ctrl->value < 0 || ctrl->value > 255) {
+-			v4l2_err(sd, "invalid brightness setting %d\n",
+-					ctrl->value);
+-			return -ERANGE;
+-		}
+-		err = tvp514x_write_reg(sd, REG_BRIGHTNESS,
+-				value);
+-		if (err)
+-			return err;
+-
+-		decoder->tvp514x_regs[REG_BRIGHTNESS].val = value;
++		err = tvp514x_write_reg(sd, REG_BRIGHTNESS, value);
++		if (!err)
++			decoder->tvp514x_regs[REG_BRIGHTNESS].val = value;
+ 		break;
+ 	case V4L2_CID_CONTRAST:
+-		if (ctrl->value < 0 || ctrl->value > 255) {
+-			v4l2_err(sd, "invalid contrast setting %d\n",
+-					ctrl->value);
+-			return -ERANGE;
+-		}
+ 		err = tvp514x_write_reg(sd, REG_CONTRAST, value);
+-		if (err)
+-			return err;
+-
+-		decoder->tvp514x_regs[REG_CONTRAST].val = value;
++		if (!err)
++			decoder->tvp514x_regs[REG_CONTRAST].val = value;
+ 		break;
+ 	case V4L2_CID_SATURATION:
+-		if (ctrl->value < 0 || ctrl->value > 255) {
+-			v4l2_err(sd, "invalid saturation setting %d\n",
+-					ctrl->value);
+-			return -ERANGE;
+-		}
+ 		err = tvp514x_write_reg(sd, REG_SATURATION, value);
+-		if (err)
+-			return err;
+-
+-		decoder->tvp514x_regs[REG_SATURATION].val = value;
++		if (!err)
++			decoder->tvp514x_regs[REG_SATURATION].val = value;
+ 		break;
+ 	case V4L2_CID_HUE:
+ 		if (value == 180)
+ 			value = 0x7F;
+ 		else if (value == -180)
+ 			value = 0x80;
+-		else if (value == 0)
+-			value = 0;
+-		else {
+-			v4l2_err(sd, "invalid hue setting %d\n", ctrl->value);
+-			return -ERANGE;
+-		}
+ 		err = tvp514x_write_reg(sd, REG_HUE, value);
+-		if (err)
+-			return err;
+-
+-		decoder->tvp514x_regs[REG_HUE].val = value;
++		if (!err)
++			decoder->tvp514x_regs[REG_HUE].val = value;
+ 		break;
+ 	case V4L2_CID_AUTOGAIN:
+-		if (value == 1)
+-			value = 0x0F;
+-		else if (value == 0)
+-			value = 0x0C;
+-		else {
+-			v4l2_err(sd, "invalid auto gain setting %d\n",
+-					ctrl->value);
+-			return -ERANGE;
+-		}
+-		err = tvp514x_write_reg(sd, REG_AFE_GAIN_CTRL, value);
+-		if (err)
+-			return err;
+-
+-		decoder->tvp514x_regs[REG_AFE_GAIN_CTRL].val = value;
++		err = tvp514x_write_reg(sd, REG_AFE_GAIN_CTRL, value ? 0x0f : 0x0c);
++		if (!err)
++			decoder->tvp514x_regs[REG_AFE_GAIN_CTRL].val = value;
+ 		break;
+-	default:
+-		v4l2_err(sd, "invalid control id %d\n", ctrl->id);
+-		return err;
+ 	}
+ 
+ 	v4l2_dbg(1, debug, sd, "Set Control: ID - %d - %d\n",
+-			ctrl->id, ctrl->value);
+-
++			ctrl->id, ctrl->val);
+ 	return err;
+ }
+ 
+@@ -1104,10 +952,18 @@ static int tvp514x_s_stream(struct v4l2_subdev *sd, int enable)
+ 	return err;
+ }
+ 
+-static const struct v4l2_subdev_core_ops tvp514x_core_ops = {
+-	.queryctrl = tvp514x_queryctrl,
+-	.g_ctrl = tvp514x_g_ctrl,
++static const struct v4l2_ctrl_ops tvp514x_ctrl_ops = {
+ 	.s_ctrl = tvp514x_s_ctrl,
++};
 +
-> 140)
-> > +#define V4L2_CID_CODEC_SLICE_INTERFACE		(V4L2_CID_CODEC_BASE
++static const struct v4l2_subdev_core_ops tvp514x_core_ops = {
++	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
++	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
++	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
++	.g_ctrl = v4l2_subdev_g_ctrl,
++	.s_ctrl = v4l2_subdev_s_ctrl,
++	.queryctrl = v4l2_subdev_queryctrl,
++	.querymenu = v4l2_subdev_querymenu,
+ 	.s_std = tvp514x_s_std,
+ };
+ 
+@@ -1190,6 +1046,27 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	sd = &decoder->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &tvp514x_ops);
+ 
++	v4l2_ctrl_handler_init(&decoder->hdl, 5);
++	v4l2_ctrl_new_std(&decoder->hdl, &tvp514x_ctrl_ops,
++		V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
++	v4l2_ctrl_new_std(&decoder->hdl, &tvp514x_ctrl_ops,
++		V4L2_CID_CONTRAST, 0, 255, 1, 128);
++	v4l2_ctrl_new_std(&decoder->hdl, &tvp514x_ctrl_ops,
++		V4L2_CID_SATURATION, 0, 255, 1, 128);
++	v4l2_ctrl_new_std(&decoder->hdl, &tvp514x_ctrl_ops,
++		V4L2_CID_HUE, -180, 180, 180, 0);
++	v4l2_ctrl_new_std(&decoder->hdl, &tvp514x_ctrl_ops,
++		V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
++	sd->ctrl_handler = &decoder->hdl;
++	if (decoder->hdl.error) {
++		int err = decoder->hdl.error;
 +
-> 141)
-> > +#define V4L2_CID_CODEC_PACKED_PB		(V4L2_CID_CODEC_BASE + 142)
-> 
-> ??? Weird CODEC_BASE offsets?
-> 
-> Are all these codec controls above general? I.e., applicable to any
-> codec? What
-> do they mean?
-
-My mistake - I forgot to tidy up the offsets. It is difficult for me to
-say which of those controls are MFC specific as I have little experience
-with other codecs. 
-
-Currently PACKED_PB has been replaced with a simple mechanism that can
-detect
-if the stream has packed PB frames. You can read more about such streams
-here:
-http://itsjustonesandzeros.blogspot.com/2007/01/what-is-packed-bitstream.htm
-l
-First approach required the application to set if the stream contained
-packed-PB
-Frames. Now the driver detects it the stream contains packed-PB frames.
-Another
-approach would require the stream parser to detect those frames and divide
-them
-into two buffers queued to MFC.
-
-DISPLAY_DELAY is a number of frames that should be decoded before the first
-frame is
-returned to the application. It is valid for H264 streams.
-
-REQ_NUM_BUFS is the minimum number of CAPTURE buffers required for MFC
-decoder to work.
-This is a read-only control, by reading this value the application can
-adjust count when
-doing REQBUFS. If the application needs 3 dequeued CAPTURE buffers for
-processing it
-should set count when doing REQBUFS to the value of REQ_NUM_BUFS + 3.
-
-When SLICE_INTERFACE the codec expects compressed slices in OUTPUT buffers
-instead of
-full frames.
-
-LOOP_FILTER_MPEG4_ENABLE controls deblocking filter for MPEG4 codec. You are
-right that
-name this should be more general and name is not intuitive.
-DECODING_DEBLOCK_FILTER
-would be way better, as more codec can have this option.
-
-I think that DECODING_DEBLOCK_FILTER (LOOP_FILTER_MPEG4_ENABLE),
-SLICE_INTERFACE and 
-DISPLAY_DELAY should be general. Here I would really welcome comment from
-other
-developers working on codec v4l2 drivers.
-
-> 
-> > +
-> > +/* For encoding */
-> > +#define V4L2_CID_CODEC_LOOP_FILTER_H264
-> 	(V4L2_CID_CODEC_BASE + 9)
-> > +enum v4l2_cid_codec_loop_filter_h264 {
-> > +	V4L2_CID_CODEC_LOOP_FILTER_H264_ENABLE = 0,
-> > +	V4L2_CID_CODEC_LOOP_FILTER_H264_DISABLE = 1,
-> > +	V4L2_CID_CODEC_LOOP_FILTER_H264_DISABLE_AT_BOUNDARY = 2,
-> > +};
-> > +
-> > +/* Codec class control IDs specific to the MFC51 driver */
-> > +#define V4L2_CID_CODEC_MFC51_BASE		(V4L2_CTRL_CLASS_CODEC
-> | 0x1000)
-> 
-> It's probably a good idea to only add this BASE define to videodev2.h
-> (please include a comment describing the control range reserved for the
-> MFC51).
-> All others should go to a public mfc51 header. Which should include
-> documentation
-> for these controls as well.
-
-Great idea.
-
-> 
-> > +
-> > +/* common */
-> > +enum v4l2_codec_mfc5x_enc_switch {
-> > +	V4L2_CODEC_MFC51_ENC_SW_DISABLE	= 0,
-> > +	V4L2_CODEC_MFC51_ENC_SW_ENABLE	= 1,
-> > +};
-> > +enum v4l2_codec_mfc5x_enc_switch_inv {
-> > +	V4L2_CODEC_MFC51_ENC_SW_INV_ENABLE	= 0,
-> > +	V4L2_CODEC_MFC51_ENC_SW_INV_DISABLE	= 1,
-> > +};
-> > +#define V4L2_CID_CODEC_MFC51_ENC_GOP_SIZE
-> 	(V4L2_CID_CODEC_MFC51_BASE+300)
-> 
-> Why the +300?
-
-This is question should be answered by Jeongtae Park, as he did the encoding
-part. Unfortunately our patches got mixed up.
-
-I can only guess that this offset was added to distinguish between decoding
-and encoding.
-
-<snip>
-
++		v4l2_ctrl_handler_free(&decoder->hdl);
++		kfree(decoder);
++		return err;
++	}
++	v4l2_ctrl_handler_setup(&decoder->hdl);
++
+ 	v4l2_info(sd, "%s decoder driver registered !!\n", sd->name);
+ 
+ 	return 0;
+@@ -1209,6 +1086,7 @@ static int tvp514x_remove(struct i2c_client *client)
+ 	struct tvp514x_decoder *decoder = to_decoder(sd);
+ 
+ 	v4l2_device_unregister_subdev(sd);
++	v4l2_ctrl_handler_free(&decoder->hdl);
+ 	kfree(decoder);
+ 	return 0;
+ }
 -- 
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
+1.7.0.4
 
