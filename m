@@ -1,89 +1,321 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:41656 "EHLO mx1.redhat.com"
+Received: from smtp5-g21.free.fr ([212.27.42.5]:33535 "EHLO smtp5-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755821Ab0LTMKs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Dec 2010 07:10:48 -0500
-Message-ID: <4D0F47B8.6040600@redhat.com>
-Date: Mon, 20 Dec 2010 10:10:32 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR 2.6.37] uvcvideo: BKL removal
-References: <201011291115.11061.laurent.pinchart@ideasonboard.com> <4D0B9953.7090202@redhat.com> <201012180154.42363.laurent.pinchart@ideasonboard.com> <201012181145.29681.hverkuil@xs4all.nl>
-In-Reply-To: <201012181145.29681.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1757498Ab0LMNAu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Dec 2010 08:00:50 -0500
+Date: Mon, 13 Dec 2010 14:02:47 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 1/6] gspca - sonixj: Move bridge init to sd start
+Message-ID: <20101213140247.500c97a7@tele>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 18-12-2010 08:45, Hans Verkuil escreveu:
-> On Saturday, December 18, 2010 01:54:41 Laurent Pinchart wrote:
->> Hi Mauro,
->>
->> On Friday 17 December 2010 18:09:39 Mauro Carvalho Chehab wrote:
->>> Em 14-12-2010 08:55, Laurent Pinchart escreveu:
->>>> Hi Mauro,
->>>>
->>>> Please don't forget this pull request for 2.6.37.
->>>
->>> Pull request for upstream sent today.
->>
->> Thank you.
->>
->>> I didn't find any regressions at the BKL removal patches, but I noticed a
->>> few issues with qv4l2, not all related to uvcvideo. The remaining of this
->>> email is an attempt to document them for later fixes.
->>>
->>> They don't seem to be regressions caused by BKL removal, but the better
->>> would be to fix them later.
->>>
->>> - with uvcvideo and two video apps, if qv4l2 is started first, the second
->>> application doesn't start/capture. I suspect that REQBUFS (used by qv4l2
->>> to probe mmap/userptr capabilities) create some resource locking at
->>> uvcvideo. The proper way is to lock the resources only if the driver is
->>> streaming, as other drivers and videobuf do.
->>
->> I don't agree with that. The uvcvideo driver has one buffer queue per device, 
->> so if an application requests buffers on one file handle it will lock other 
->> applications out. If the driver didn't it would be subject to race conditions.
-> 
-> I agree with Laurent. Once an application calls REQBUFS with non-zero count,
-> then it should lock the resources needed for streaming. The reason behind that
-> is that REQBUFS also locks the current selected format in place, since the
-> format determines the amount of memory needed for the buffers.
 
-qv4l2 calls REQBUFS(1), then REQBUFS(0). Well, this is currently wrong, as most
-drivers will only release buffers at VIDIOC_STREAMOFF. Anyway, even replacing 
-REQBUFS(0) with VIDIOC_STREAMOFF at qv4l2 won't help with uvcvideo. It seems that,
-once buffers are requested at uvcvideo, they will release only at close().
+Signed-off-by: Jean-François Moine <moinejf@free.fr>
 
-One consequence on the way uvcvideo is currently doing it is that, if you use qv4l2,
-it is impossible to change the video size, as it returns -EBUSY, if you ask it to
-select a different format (even without streaming):
-	$ ./qv4l2
-	Set Capture Format: Device or resource busy
+diff --git a/drivers/media/video/gspca/sonixj.c b/drivers/media/video/gspca/sonixj.c
+index 2229847..4660cbe 100644
+--- a/drivers/media/video/gspca/sonixj.c
++++ b/drivers/media/video/gspca/sonixj.c
+@@ -1755,141 +1755,6 @@ static void po2030n_probe(struct gspca_dev *gspca_dev)
+ 	}
+ }
+ 
+-static void bridge_init(struct gspca_dev *gspca_dev,
+-			  const u8 *sn9c1xx)
+-{
+-	struct sd *sd = (struct sd *) gspca_dev;
+-	u8 reg0102[2];
+-	const u8 *reg9a;
+-	static const u8 reg9a_def[] =
+-		{0x00, 0x40, 0x20, 0x00, 0x00, 0x00};
+-	static const u8 reg9a_spec[] =
+-		{0x00, 0x40, 0x38, 0x30, 0x00, 0x20};
+-	static const u8 regd4[] = {0x60, 0x00, 0x00};
+-
+-	/* sensor clock already enabled in sd_init */
+-	/* reg_w1(gspca_dev, 0xf1, 0x00); */
+-	reg_w1(gspca_dev, 0x01, sn9c1xx[1]);
+-
+-	/* configure gpio */
+-	reg0102[0] = sn9c1xx[1];
+-	reg0102[1] = sn9c1xx[2];
+-	if (gspca_dev->audio)
+-		reg0102[1] |= 0x04;	/* keep the audio connection */
+-	reg_w(gspca_dev, 0x01, reg0102, 2);
+-	reg_w(gspca_dev, 0x08, &sn9c1xx[8], 2);
+-	reg_w(gspca_dev, 0x17, &sn9c1xx[0x17], 5);
+-	switch (sd->sensor) {
+-	case SENSOR_GC0307:
+-	case SENSOR_OV7660:
+-	case SENSOR_PO1030:
+-	case SENSOR_PO2030N:
+-	case SENSOR_SOI768:
+-	case SENSOR_SP80708:
+-		reg9a = reg9a_spec;
+-		break;
+-	default:
+-		reg9a = reg9a_def;
+-		break;
+-	}
+-	reg_w(gspca_dev, 0x9a, reg9a, 6);
+-
+-	reg_w(gspca_dev, 0xd4, regd4, sizeof regd4);
+-
+-	reg_w(gspca_dev, 0x03, &sn9c1xx[3], 0x0f);
+-
+-	switch (sd->sensor) {
+-	case SENSOR_ADCM1700:
+-		reg_w1(gspca_dev, 0x01, 0x43);
+-		reg_w1(gspca_dev, 0x17, 0x62);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+-		break;
+-	case SENSOR_GC0307:
+-		msleep(50);
+-		reg_w1(gspca_dev, 0x01, 0x61);
+-		reg_w1(gspca_dev, 0x17, 0x22);
+-		reg_w1(gspca_dev, 0x01, 0x60);
+-		reg_w1(gspca_dev, 0x01, 0x40);
+-		msleep(50);
+-		break;
+-	case SENSOR_MI0360B:
+-		reg_w1(gspca_dev, 0x01, 0x61);
+-		reg_w1(gspca_dev, 0x17, 0x60);
+-		reg_w1(gspca_dev, 0x01, 0x60);
+-		reg_w1(gspca_dev, 0x01, 0x40);
+-		break;
+-	case SENSOR_MT9V111:
+-		reg_w1(gspca_dev, 0x01, 0x61);
+-		reg_w1(gspca_dev, 0x17, 0x61);
+-		reg_w1(gspca_dev, 0x01, 0x60);
+-		reg_w1(gspca_dev, 0x01, 0x40);
+-		break;
+-	case SENSOR_OM6802:
+-		msleep(10);
+-		reg_w1(gspca_dev, 0x02, 0x73);
+-		reg_w1(gspca_dev, 0x17, 0x60);
+-		reg_w1(gspca_dev, 0x01, 0x22);
+-		msleep(100);
+-		reg_w1(gspca_dev, 0x01, 0x62);
+-		reg_w1(gspca_dev, 0x17, 0x64);
+-		reg_w1(gspca_dev, 0x17, 0x64);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+-		msleep(10);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+-		i2c_w8(gspca_dev, om6802_init0[0]);
+-		i2c_w8(gspca_dev, om6802_init0[1]);
+-		msleep(15);
+-		reg_w1(gspca_dev, 0x02, 0x71);
+-		msleep(150);
+-		break;
+-	case SENSOR_OV7630:
+-		reg_w1(gspca_dev, 0x01, 0x61);
+-		reg_w1(gspca_dev, 0x17, 0xe2);
+-		reg_w1(gspca_dev, 0x01, 0x60);
+-		reg_w1(gspca_dev, 0x01, 0x40);
+-		break;
+-	case SENSOR_OV7648:
+-		reg_w1(gspca_dev, 0x01, 0x63);
+-		reg_w1(gspca_dev, 0x17, 0x20);
+-		reg_w1(gspca_dev, 0x01, 0x62);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+-		break;
+-	case SENSOR_PO1030:
+-	case SENSOR_SOI768:
+-		reg_w1(gspca_dev, 0x01, 0x61);
+-		reg_w1(gspca_dev, 0x17, 0x20);
+-		reg_w1(gspca_dev, 0x01, 0x60);
+-		reg_w1(gspca_dev, 0x01, 0x40);
+-		break;
+-	case SENSOR_PO2030N:
+-	case SENSOR_OV7660:
+-		reg_w1(gspca_dev, 0x01, 0x63);
+-		reg_w1(gspca_dev, 0x17, 0x20);
+-		reg_w1(gspca_dev, 0x01, 0x62);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+-		break;
+-	case SENSOR_SP80708:
+-		reg_w1(gspca_dev, 0x01, 0x63);
+-		reg_w1(gspca_dev, 0x17, 0x20);
+-		reg_w1(gspca_dev, 0x01, 0x62);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+-		msleep(100);
+-		reg_w1(gspca_dev, 0x02, 0x62);
+-		break;
+-	default:
+-/*	case SENSOR_HV7131R: */
+-/*	case SENSOR_MI0360: */
+-/*	case SENSOR_MO4000: */
+-		reg_w1(gspca_dev, 0x01, 0x43);
+-		reg_w1(gspca_dev, 0x17, 0x61);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+-		if (sd->sensor == SENSOR_HV7131R)
+-			hv7131r_probe(gspca_dev);
+-		break;
+-	}
+-}
+-
+ /* this function is called at probe time */
+ static int sd_config(struct gspca_dev *gspca_dev,
+ 			const struct usb_device_id *id)
+@@ -2423,10 +2288,17 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 	int i;
++	u8 reg0102[2];
++	const u8 *reg9a;
+ 	u8 reg1, reg17;
+ 	const u8 *sn9c1xx;
+ 	const u8 (*init)[8];
+ 	int mode;
++	static const u8 reg9a_def[] =
++		{0x00, 0x40, 0x20, 0x00, 0x00, 0x00};
++	static const u8 reg9a_spec[] =
++		{0x00, 0x40, 0x38, 0x30, 0x00, 0x20};
++	static const u8 regd4[] = {0x60, 0x00, 0x00};
+ 	static const u8 C0[] = { 0x2d, 0x2d, 0x3a, 0x05, 0x04, 0x3f };
+ 	static const u8 CA[] = { 0x28, 0xd8, 0x14, 0xec };
+ 	static const u8 CA_adcm1700[] =
+@@ -2448,7 +2320,128 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 
+ 	/* initialize the bridge */
+ 	sn9c1xx = sn_tb[sd->sensor];
+-	bridge_init(gspca_dev, sn9c1xx);
++
++	/* sensor clock already enabled in sd_init */
++	/* reg_w1(gspca_dev, 0xf1, 0x00); */
++	reg_w1(gspca_dev, 0x01, sn9c1xx[1]);
++
++	/* configure gpio */
++	reg0102[0] = sn9c1xx[1];
++	reg0102[1] = sn9c1xx[2];
++	if (gspca_dev->audio)
++		reg0102[1] |= 0x04;	/* keep the audio connection */
++	reg_w(gspca_dev, 0x01, reg0102, 2);
++	reg_w(gspca_dev, 0x08, &sn9c1xx[8], 2);
++	reg_w(gspca_dev, 0x17, &sn9c1xx[0x17], 5);
++	switch (sd->sensor) {
++	case SENSOR_GC0307:
++	case SENSOR_OV7660:
++	case SENSOR_PO1030:
++	case SENSOR_PO2030N:
++	case SENSOR_SOI768:
++	case SENSOR_SP80708:
++		reg9a = reg9a_spec;
++		break;
++	default:
++		reg9a = reg9a_def;
++		break;
++	}
++	reg_w(gspca_dev, 0x9a, reg9a, 6);
++
++	reg_w(gspca_dev, 0xd4, regd4, sizeof regd4);
++
++	reg_w(gspca_dev, 0x03, &sn9c1xx[3], 0x0f);
++
++	switch (sd->sensor) {
++	case SENSOR_ADCM1700:
++		reg_w1(gspca_dev, 0x01, 0x43);
++		reg_w1(gspca_dev, 0x17, 0x62);
++		reg_w1(gspca_dev, 0x01, 0x42);
++		reg_w1(gspca_dev, 0x01, 0x42);
++		break;
++	case SENSOR_GC0307:
++		msleep(50);
++		reg_w1(gspca_dev, 0x01, 0x61);
++		reg_w1(gspca_dev, 0x17, 0x22);
++		reg_w1(gspca_dev, 0x01, 0x60);
++		reg_w1(gspca_dev, 0x01, 0x40);
++		msleep(50);
++		break;
++	case SENSOR_MI0360B:
++		reg_w1(gspca_dev, 0x01, 0x61);
++		reg_w1(gspca_dev, 0x17, 0x60);
++		reg_w1(gspca_dev, 0x01, 0x60);
++		reg_w1(gspca_dev, 0x01, 0x40);
++		break;
++	case SENSOR_MT9V111:
++		reg_w1(gspca_dev, 0x01, 0x61);
++		reg_w1(gspca_dev, 0x17, 0x61);
++		reg_w1(gspca_dev, 0x01, 0x60);
++		reg_w1(gspca_dev, 0x01, 0x40);
++		break;
++	case SENSOR_OM6802:
++		msleep(10);
++		reg_w1(gspca_dev, 0x02, 0x73);
++		reg_w1(gspca_dev, 0x17, 0x60);
++		reg_w1(gspca_dev, 0x01, 0x22);
++		msleep(100);
++		reg_w1(gspca_dev, 0x01, 0x62);
++		reg_w1(gspca_dev, 0x17, 0x64);
++		reg_w1(gspca_dev, 0x17, 0x64);
++		reg_w1(gspca_dev, 0x01, 0x42);
++		msleep(10);
++		reg_w1(gspca_dev, 0x01, 0x42);
++		i2c_w8(gspca_dev, om6802_init0[0]);
++		i2c_w8(gspca_dev, om6802_init0[1]);
++		msleep(15);
++		reg_w1(gspca_dev, 0x02, 0x71);
++		msleep(150);
++		break;
++	case SENSOR_OV7630:
++		reg_w1(gspca_dev, 0x01, 0x61);
++		reg_w1(gspca_dev, 0x17, 0xe2);
++		reg_w1(gspca_dev, 0x01, 0x60);
++		reg_w1(gspca_dev, 0x01, 0x40);
++		break;
++	case SENSOR_OV7648:
++		reg_w1(gspca_dev, 0x01, 0x63);
++		reg_w1(gspca_dev, 0x17, 0x20);
++		reg_w1(gspca_dev, 0x01, 0x62);
++		reg_w1(gspca_dev, 0x01, 0x42);
++		break;
++	case SENSOR_PO1030:
++	case SENSOR_SOI768:
++		reg_w1(gspca_dev, 0x01, 0x61);
++		reg_w1(gspca_dev, 0x17, 0x20);
++		reg_w1(gspca_dev, 0x01, 0x60);
++		reg_w1(gspca_dev, 0x01, 0x40);
++		break;
++	case SENSOR_PO2030N:
++	case SENSOR_OV7660:
++		reg_w1(gspca_dev, 0x01, 0x63);
++		reg_w1(gspca_dev, 0x17, 0x20);
++		reg_w1(gspca_dev, 0x01, 0x62);
++		reg_w1(gspca_dev, 0x01, 0x42);
++		break;
++	case SENSOR_SP80708:
++		reg_w1(gspca_dev, 0x01, 0x63);
++		reg_w1(gspca_dev, 0x17, 0x20);
++		reg_w1(gspca_dev, 0x01, 0x62);
++		reg_w1(gspca_dev, 0x01, 0x42);
++		msleep(100);
++		reg_w1(gspca_dev, 0x02, 0x62);
++		break;
++	default:
++/*	case SENSOR_HV7131R: */
++/*	case SENSOR_MI0360: */
++/*	case SENSOR_MO4000: */
++		reg_w1(gspca_dev, 0x01, 0x43);
++		reg_w1(gspca_dev, 0x17, 0x61);
++		reg_w1(gspca_dev, 0x01, 0x42);
++		if (sd->sensor == SENSOR_HV7131R)
++			hv7131r_probe(gspca_dev);
++		break;
++	}
+ 
+ 	/* initialize the sensor */
+ 	i2c_w_seq(gspca_dev, sensor_init[sd->sensor]);
+-- 
+1.7.2.3
 
-> The reason a lot of drivers don't do this is partially because for many TV
-> capture drivers it is highly unlikely that the buffer size will change after
-> calling REQBUFS (there are basically only two formats: 720x480 or 720x576 and
-> users will normally never change between the two). However, this is much more
-> likely to happen for webcams and embedded systems supporting HDTV.
-
-What applications do, when they need to change the formats, is to call REQBUFS again.
-
-> The other reason is probably because driver developers simple do not realize
-> they need to lock the resources on REQBUFS. I'm sure many existing drivers will
-> fail miserably if you change the format after calling REQBUFS (particularly
-> with mmap streaming mode).
-
-I didn't make any test, but I don't think they'll fail (at least, on the drivers
-that use videobuf), as streaming format will be stored at the videobuf handling 
-(at buffer_prepare callback).
-
-So, if you change the format, the change will be applied only at the next call
-to REQBUFS.
-
-Cheers,
-Mauro
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
