@@ -1,312 +1,835 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:20175 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754122Ab0L1RDZ (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:61457 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757163Ab0LML1O (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Dec 2010 12:03:25 -0500
-Date: Tue, 28 Dec 2010 18:03:12 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 07/15] [media] s5p-fimc: Rename s3c_fimc* to s5p_fimc*
-In-reply-to: <1293555798-31578-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com
-Message-id: <1293555798-31578-8-git-send-email-s.nawrocki@samsung.com>
+	Mon, 13 Dec 2010 06:27:14 -0500
 MIME-version: 1.0
-Content-type: TEXT/PLAIN
 Content-transfer-encoding: 7BIT
-References: <1293555798-31578-1-git-send-email-s.nawrocki@samsung.com>
+Content-type: TEXT/PLAIN
+Date: Mon, 13 Dec 2010 12:26:50 +0100
+From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Subject: [PATCHv7 09/10] mm: cma: Test device and application added
+In-reply-to: <cover.1292004520.git.m.nazarewicz@samsung.com>
+To: Michal Nazarewicz <mina86@mina86.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Ankita Garg <ankita@in.ibm.com>,
+	BooJin Kim <boojin.kim@samsung.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mel Gorman <mel@csn.ul.ie>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	Michal Nazarewicz <m.nazarewicz@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <b61f8232aacfd0de62e5b140cf24fe03d88d04ad.1292004520.git.m.nazarewicz@samsung.com>
+References: <cover.1292004520.git.m.nazarewicz@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Change s3c_fimc.h header file name to s5p_fimc.h, replace s3c_fimc_*
-names with s5p_fimc_*. s3c_fimc need to be reserved for S3C series
-and s5p-fimc driver will not cover CAMIF devices in S3C SoC series.
+This patch adds a "cma" misc device which lets user space use the
+CMA API.  This device is meant for testing.  A testing application
+is also provided.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
 Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/video/s5p-fimc/fimc-capture.c |   16 ++++----
- drivers/media/video/s5p-fimc/fimc-core.h    |   10 ++--
- drivers/media/video/s5p-fimc/fimc-reg.c     |    8 ++--
- include/media/s3c_fimc.h                    |   60 ---------------------------
- include/media/s5p_fimc.h                    |   60 +++++++++++++++++++++++++++
- 5 files changed, 77 insertions(+), 77 deletions(-)
- delete mode 100644 include/media/s3c_fimc.h
- create mode 100644 include/media/s5p_fimc.h
+ drivers/misc/Kconfig   |   10 +
+ drivers/misc/Makefile  |    1 +
+ drivers/misc/cma-dev.c |  238 ++++++++++++++++++++++++
+ include/linux/cma.h    |   29 +++
+ tools/cma/cma-test.c   |  466 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 744 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/misc/cma-dev.c
+ create mode 100644 tools/cma/cma-test.c
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 4e4441f..431ec8e 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -33,7 +33,7 @@
- #include "fimc-core.h"
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index 1e1a4be..0dd1e8c 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -458,4 +458,14 @@ source "drivers/misc/cb710/Kconfig"
+ source "drivers/misc/iwmc3200top/Kconfig"
+ source "drivers/misc/ti-st/Kconfig"
  
- static struct v4l2_subdev *fimc_subdev_register(struct fimc_dev *fimc,
--					    struct s3c_fimc_isp_info *isp_info)
-+					    struct s5p_fimc_isp_info *isp_info)
- {
- 	struct i2c_adapter *i2c_adap;
- 	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
-@@ -86,8 +86,8 @@ static void fimc_subdev_unregister(struct fimc_dev *fimc)
- static int fimc_subdev_attach(struct fimc_dev *fimc, int index)
- {
- 	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
--	struct s3c_platform_fimc *pdata = fimc->pdata;
--	struct s3c_fimc_isp_info *isp_info;
-+	struct s5p_platform_fimc *pdata = fimc->pdata;
-+	struct s5p_fimc_isp_info *isp_info;
- 	struct v4l2_subdev *sd;
- 	int i;
- 
-@@ -115,7 +115,7 @@ static int fimc_subdev_attach(struct fimc_dev *fimc, int index)
- 
- static int fimc_isp_subdev_init(struct fimc_dev *fimc, int index)
- {
--	struct s3c_fimc_isp_info *isp_info;
-+	struct s5p_fimc_isp_info *isp_info;
- 	int ret;
- 
- 	ret = fimc_subdev_attach(fimc, index);
-@@ -209,7 +209,7 @@ static int start_streaming(struct vb2_queue *q)
- {
- 	struct fimc_ctx *ctx = q->drv_priv;
- 	struct fimc_dev *fimc = ctx->fimc_dev;
--	struct s3c_fimc_isp_info *isp_info;
-+	struct s5p_fimc_isp_info *isp_info;
- 	int ret;
- 
- 	ret = v4l2_subdev_call(fimc->vid_cap.sd, video, s_stream, 1);
-@@ -558,8 +558,8 @@ static int fimc_cap_enum_input(struct file *file, void *priv,
- 				     struct v4l2_input *i)
- {
- 	struct fimc_ctx *ctx = priv;
--	struct s3c_platform_fimc *pldata = ctx->fimc_dev->pdata;
--	struct s3c_fimc_isp_info *isp_info;
-+	struct s5p_platform_fimc *pldata = ctx->fimc_dev->pdata;
-+	struct s5p_fimc_isp_info *isp_info;
- 
- 	if (i->index >= FIMC_MAX_CAMIF_CLIENTS)
- 		return -EINVAL;
-@@ -578,7 +578,7 @@ static int fimc_cap_s_input(struct file *file, void *priv,
- {
- 	struct fimc_ctx *ctx = priv;
- 	struct fimc_dev *fimc = ctx->fimc_dev;
--	struct s3c_platform_fimc *pdata = fimc->pdata;
-+	struct s5p_platform_fimc *pdata = fimc->pdata;
- 
- 	if (fimc_capture_active(ctx->fimc_dev))
- 		return -EBUSY;
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index 1f1beaa..6431d1a 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -21,7 +21,7 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-mem2mem.h>
- #include <media/v4l2-mediabus.h>
--#include <media/s3c_fimc.h>
-+#include <media/s5p_fimc.h>
- 
- #include "regs-fimc.h"
- 
-@@ -422,7 +422,7 @@ struct fimc_dev {
- 	spinlock_t			slock;
- 	struct mutex			lock;
- 	struct platform_device		*pdev;
--	struct s3c_platform_fimc	*pdata;
-+	struct s5p_platform_fimc	*pdata;
- 	struct samsung_fimc_variant	*variant;
- 	int				id;
- 	struct clk			*clock[NUM_FIMC_CLOCKS];
-@@ -584,12 +584,12 @@ void fimc_hw_set_input_addr(struct fimc_dev *fimc, struct fimc_addr *paddr);
- void fimc_hw_set_output_addr(struct fimc_dev *fimc, struct fimc_addr *paddr,
- 			     int index);
- int fimc_hw_set_camera_source(struct fimc_dev *fimc,
--			      struct s3c_fimc_isp_info *cam);
-+			      struct s5p_fimc_isp_info *cam);
- int fimc_hw_set_camera_offset(struct fimc_dev *fimc, struct fimc_frame *f);
- int fimc_hw_set_camera_polarity(struct fimc_dev *fimc,
--				struct s3c_fimc_isp_info *cam);
-+				struct s5p_fimc_isp_info *cam);
- int fimc_hw_set_camera_type(struct fimc_dev *fimc,
--			    struct s3c_fimc_isp_info *cam);
-+			    struct s5p_fimc_isp_info *cam);
- 
- /* -----------------------------------------------------*/
- /* fimc-core.c */
-diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
-index 5ed8f06..ae33bc1 100644
---- a/drivers/media/video/s5p-fimc/fimc-reg.c
-+++ b/drivers/media/video/s5p-fimc/fimc-reg.c
-@@ -13,7 +13,7 @@
- #include <linux/io.h>
- #include <linux/delay.h>
- #include <mach/map.h>
--#include <media/s3c_fimc.h>
-+#include <media/s5p_fimc.h>
- 
- #include "fimc-core.h"
- 
-@@ -532,7 +532,7 @@ void fimc_hw_set_output_addr(struct fimc_dev *dev,
- }
- 
- int fimc_hw_set_camera_polarity(struct fimc_dev *fimc,
--				struct s3c_fimc_isp_info *cam)
-+				struct s5p_fimc_isp_info *cam)
- {
- 	u32 cfg = readl(fimc->regs + S5P_CIGCTRL);
- 
-@@ -557,7 +557,7 @@ int fimc_hw_set_camera_polarity(struct fimc_dev *fimc,
- }
- 
- int fimc_hw_set_camera_source(struct fimc_dev *fimc,
--			      struct s3c_fimc_isp_info *cam)
-+			      struct s5p_fimc_isp_info *cam)
- {
- 	struct fimc_frame *f = &fimc->vid_cap.ctx->s_frame;
- 	u32 cfg = 0;
-@@ -624,7 +624,7 @@ int fimc_hw_set_camera_offset(struct fimc_dev *fimc, struct fimc_frame *f)
- }
- 
- int fimc_hw_set_camera_type(struct fimc_dev *fimc,
--			    struct s3c_fimc_isp_info *cam)
-+			    struct s5p_fimc_isp_info *cam)
- {
- 	u32 cfg, tmp;
- 	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
-diff --git a/include/media/s3c_fimc.h b/include/media/s3c_fimc.h
-deleted file mode 100644
-index ca1b673..0000000
---- a/include/media/s3c_fimc.h
-+++ /dev/null
-@@ -1,60 +0,0 @@
--/*
-- * Samsung S5P SoC camera interface driver header
-- *
-- * Copyright (c) 2010 Samsung Electronics Co., Ltd
-- * Author: Sylwester Nawrocki, <s.nawrocki@samsung.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#ifndef S3C_FIMC_H_
--#define S3C_FIMC_H_
--
--enum cam_bus_type {
--	FIMC_ITU_601 = 1,
--	FIMC_ITU_656,
--	FIMC_MIPI_CSI2,
--	FIMC_LCD_WB, /* FIFO link from LCD mixer */
--};
--
--#define FIMC_CLK_INV_PCLK	(1 << 0)
--#define FIMC_CLK_INV_VSYNC	(1 << 1)
--#define FIMC_CLK_INV_HREF	(1 << 2)
--#define FIMC_CLK_INV_HSYNC	(1 << 3)
--
--struct i2c_board_info;
--
--/**
-- * struct s3c_fimc_isp_info - image sensor information required for host
-- *			      interace configuration.
-- *
-- * @board_info: pointer to I2C subdevice's board info
-- * @bus_type: determines bus type, MIPI, ITU-R BT.601 etc.
-- * @i2c_bus_num: i2c control bus id the sensor is attached to
-- * @mux_id: FIMC camera interface multiplexer index (separate for MIPI and ITU)
-- * @bus_width: camera data bus width in bits
-- * @flags: flags defining bus signals polarity inversion (High by default)
-- */
--struct s3c_fimc_isp_info {
--	struct i2c_board_info *board_info;
--	enum cam_bus_type bus_type;
--	u16 i2c_bus_num;
--	u16 mux_id;
--	u16 bus_width;
--	u16 flags;
--};
--
--
--#define FIMC_MAX_CAMIF_CLIENTS	2
--
--/**
-- * struct s3c_platform_fimc - camera host interface platform data
-- *
-- * @isp_info: properties of camera sensor required for host interface setup
-- */
--struct s3c_platform_fimc {
--	struct s3c_fimc_isp_info *isp_info[FIMC_MAX_CAMIF_CLIENTS];
--};
--#endif /* S3C_FIMC_H_ */
-diff --git a/include/media/s5p_fimc.h b/include/media/s5p_fimc.h
++config CMA_DEVICE
++	tristate "CMA misc device (DEVELOPEMENT)"
++	depends on CMA
++	help
++	  The CMA misc device allows allocating contiguous memory areas
++	  from user space.  This is mostly for testing of the CMA
++	  framework.
++
++	  If unsure, say "n"
++
+ endif # MISC_DEVICES
+diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
+index 98009cc..f8eadd4 100644
+--- a/drivers/misc/Makefile
++++ b/drivers/misc/Makefile
+@@ -42,3 +42,4 @@ obj-$(CONFIG_ARM_CHARLCD)	+= arm-charlcd.o
+ obj-$(CONFIG_PCH_PHUB)		+= pch_phub.o
+ obj-y				+= ti-st/
+ obj-$(CONFIG_AB8500_PWM)	+= ab8500-pwm.o
++obj-$(CONFIG_CMA_DEVICE)	+= cma-dev.o
+diff --git a/drivers/misc/cma-dev.c b/drivers/misc/cma-dev.c
 new file mode 100644
-index 0000000..eb8793f
+index 0000000..6c36064
 --- /dev/null
-+++ b/include/media/s5p_fimc.h
-@@ -0,0 +1,60 @@
++++ b/drivers/misc/cma-dev.c
+@@ -0,0 +1,238 @@
 +/*
-+ * Samsung S5P SoC camera interface driver header
++ * Contiguous Memory Allocator userspace driver
++ * Copyright (c) 2010 by Samsung Electronics.
++ * Written by Michal Nazarewicz (m.nazarewicz@samsung.com)
 + *
-+ * Copyright (c) 2010 Samsung Electronics Co., Ltd
-+ * Author: Sylwester Nawrocki, <s.nawrocki@samsung.com>
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; either version 2 of the
++ * License or (at your optional) any later version of the license.
++ */
++
++#define pr_fmt(fmt) "cma: " fmt
++
++#ifdef CONFIG_CMA_DEBUG
++#  define DEBUG
++#endif
++
++#include <linux/errno.h>       /* Error numbers */
++#include <linux/err.h>         /* IS_ERR_VALUE() */
++#include <linux/fs.h>          /* struct file */
++#include <linux/mm.h>          /* Memory stuff */
++#include <linux/mman.h>
++#include <linux/slab.h>
++#include <linux/module.h>      /* Standard module stuff */
++#include <linux/device.h>      /* struct device, dev_dbg() */
++#include <linux/types.h>       /* Just to be safe ;) */
++#include <linux/uaccess.h>     /* __copy_{to,from}_user */
++#include <linux/miscdevice.h>  /* misc_register() and company */
++
++#include <linux/cma.h>
++
++#include <plat/cma-stub.h>
++
++static int  cma_file_open(struct inode *inode, struct file *file);
++static int  cma_file_release(struct inode *inode, struct file *file);
++static long cma_file_ioctl(struct file *file, unsigned cmd, unsigned long arg);
++static int  cma_file_mmap(struct file *file, struct vm_area_struct *vma);
++
++static struct miscdevice cma_miscdev = {
++	.minor = MISC_DYNAMIC_MINOR,
++	.name  = "cma",
++	.fops  = &(const struct file_operations) {
++		.owner          = THIS_MODULE,
++		.open           = cma_file_open,
++		.release        = cma_file_release,
++		.unlocked_ioctl = cma_file_ioctl,
++		.mmap           = cma_file_mmap,
++	},
++};
++#define cma_dev (cma_miscdev.this_device)
++
++struct cma_private_data {
++	struct cm	*cm;
++	unsigned long	size;
++	unsigned long	phys;
++};
++
++static int  cma_file_open(struct inode *inode, struct file *file)
++{
++	struct cma_private_data *prv;
++
++	dev_dbg(cma_dev, "%s(%p)\n", __func__, (void *)file);
++
++	if (!cma_ctx)
++		return -EOPNOTSUPP;
++
++	prv = kzalloc(sizeof *prv, GFP_KERNEL);
++	if (!prv)
++		return -ENOMEM;
++
++	file->private_data = prv;
++
++	return 0;
++}
++
++static int  cma_file_release(struct inode *inode, struct file *file)
++{
++	struct cma_private_data *prv = file->private_data;
++
++	dev_dbg(cma_dev, "%s(%p)\n", __func__, (void *)file);
++
++	if (prv->cm) {
++		cm_unpin(prv->cm);
++		cm_free(prv->cm);
++	}
++	kfree(prv);
++
++	return 0;
++}
++
++static long cma_file_ioctl_req(struct cma_private_data *prv, unsigned long arg)
++{
++	struct cma_alloc_request req;
++	struct cm *cm;
++
++	dev_dbg(cma_dev, "%s()\n", __func__);
++
++	if (!arg)
++		return -EINVAL;
++
++	if (copy_from_user(&req, (void *)arg, sizeof req))
++		return -EFAULT;
++
++	if (req.magic != CMA_MAGIC)
++		return -ENOTTY;
++
++	/* May happen on 32 bit system. */
++	if (req.size > ~(unsigned long)0 || req.alignment > ~(unsigned long)0)
++		return -EINVAL;
++
++	req.size = PAGE_ALIGN(req.size);
++	if (req.size > ~(unsigned long)0)
++		return -EINVAL;
++
++	cm = cm_alloc(cma_ctx, req.size, req.alignment);
++	if (IS_ERR(cm))
++		return PTR_ERR(cm);
++
++	prv->phys = cm_pin(cm);
++	prv->size = req.size;
++	req.start = prv->phys;
++	if (copy_to_user((void *)arg, &req, sizeof req)) {
++		cm_free(cm);
++		return -EFAULT;
++	}
++	prv->cm    = cm;
++
++	dev_dbg(cma_dev, "allocated %p@%p\n",
++		(void *)prv->size, (void *)prv->phys);
++
++	return 0;
++}
++
++static long
++cma_file_ioctl_pattern(struct cma_private_data *prv, unsigned long arg)
++{
++	unsigned long *_it, *it, *end, v;
++
++	dev_dbg(cma_dev, "%s(%s)\n", __func__, arg ? "fill" : "verify");
++
++	_it = phys_to_virt(prv->phys);
++	end = _it + prv->size / sizeof *_it;
++
++	if (arg)
++		for (v = 0, it = _it; it != end; ++v, ++it)
++			*it = v;
++
++	for (v = 0, it = _it; it != end; ++v, ++it)
++		if (*it != v)
++			goto error;
++
++	return prv->size;
++
++error:
++	dev_dbg(cma_dev, "at %p + %x got %lx, expected %lx\n",
++		(void *)_it, (it - _it) * sizeof *it, *it, v);
++	print_hex_dump(KERN_DEBUG, "cma: ", DUMP_PREFIX_ADDRESS,
++		       16, sizeof *it, it,
++		       min_t(size_t, 128, (end - it) * sizeof *it), 0);
++	return (it - _it) * sizeof *it;
++}
++
++static long cma_file_ioctl_dump(struct cma_private_data *prv, unsigned long len)
++{
++	unsigned long *it;
++
++	dev_dbg(cma_dev, "%s(%p)\n", __func__, (void *)len);
++
++	it    = phys_to_virt(prv->phys);
++	len   = min(len & ~(sizeof *it - 1), prv->size);
++	print_hex_dump(KERN_DEBUG, "cma: ", DUMP_PREFIX_ADDRESS,
++		       16, sizeof *it, it, len, 0);
++
++	return 0;
++}
++
++static long cma_file_ioctl(struct file *file, unsigned cmd, unsigned long arg)
++{
++	struct cma_private_data *prv = file->private_data;
++
++	dev_dbg(cma_dev, "%s(%p)\n", __func__, (void *)file);
++
++	if ((cmd == IOCTL_CMA_ALLOC) != !prv->cm)
++		return -EBADFD;
++
++	switch (cmd) {
++	case IOCTL_CMA_ALLOC:
++		return cma_file_ioctl_req(prv, arg);
++
++	case IOCTL_CMA_PATTERN:
++		return cma_file_ioctl_pattern(prv, arg);
++
++	case IOCTL_CMA_DUMP:
++		return cma_file_ioctl_dump(prv, arg);
++
++	default:
++		return -ENOTTY;
++	}
++}
++
++static int  cma_file_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	struct cma_private_data *prv = file->private_data;
++	unsigned long pgoff, offset, length;
++
++	dev_dbg(cma_dev, "%s(%p)\n", __func__, (void *)file);
++
++	if (!prv->cm)
++		return -EBADFD;
++
++	pgoff  = vma->vm_pgoff;
++	offset = pgoff << PAGE_SHIFT;
++	length = vma->vm_end - vma->vm_start;
++
++	if (offset          >= prv->size
++	 || length          >  prv->size
++	 || offset + length >  prv->size)
++		return -ENOSPC;
++
++	return remap_pfn_range(vma, vma->vm_start,
++			       __phys_to_pfn(prv->phys) + pgoff,
++			       length, vma->vm_page_prot);
++}
++
++static int __init cma_dev_init(void)
++{
++	int ret = misc_register(&cma_miscdev);
++	pr_debug("miscdev: register returned: %d\n", ret);
++	return ret;
++}
++module_init(cma_dev_init);
++
++static void __exit cma_dev_exit(void)
++{
++	dev_dbg(cma_dev, "deregisterring\n");
++	misc_deregister(&cma_miscdev);
++}
++module_exit(cma_dev_exit);
+diff --git a/include/linux/cma.h b/include/linux/cma.h
+index 25728a3..cd03ec0 100644
+--- a/include/linux/cma.h
++++ b/include/linux/cma.h
+@@ -89,6 +89,35 @@
+  *   to be called after SLAB is initialised.
+  */
+ 
++#include <linux/ioctl.h>
++#include <linux/types.h>
++
++
++#define CMA_MAGIC (('c' << 24) | ('M' << 16) | ('a' << 8) | 0x42)
++
++/**
++ * An information about area exportable to user space.
++ * @magic:	must always be CMA_MAGIC.
++ * @_pad:	padding (ignored).
++ * @size:	size of the chunk to allocate.
++ * @alignment:	desired alignment of the chunk (must be power of two or zero).
++ * @start:	when ioctl() finishes this stores physical address of the chunk.
++ */
++struct cma_alloc_request {
++	__u32 magic;
++	__u32 _pad;
++
++	/* __u64 to be compatible accross 32 and 64 bit systems. */
++	__u64 size;
++	__u64 alignment;
++	__u64 start;
++};
++
++#define IOCTL_CMA_ALLOC     _IOWR('p', 0, struct cma_alloc_request)
++#define IOCTL_CMA_PATTERN   _IO('p', 1)
++#define IOCTL_CMA_DUMP      _IO('p', 2)
++
++
+ /***************************** Kernel level API *****************************/
+ 
+ #if defined __KERNEL__ && defined CONFIG_CMA
+diff --git a/tools/cma/cma-test.c b/tools/cma/cma-test.c
+new file mode 100644
+index 0000000..56bff8a
+--- /dev/null
++++ b/tools/cma/cma-test.c
+@@ -0,0 +1,466 @@
++/*
++ * cma-test.c -- CMA testing application
++ *
++ * Copyright (C) 2010 Samsung Electronics
++ *                    Author: Michal Nazarewicz <m.nazarewicz@samsung.com>
 + *
 + * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef S5P_FIMC_H_
-+#define S5P_FIMC_H_
-+
-+enum cam_bus_type {
-+	FIMC_ITU_601 = 1,
-+	FIMC_ITU_656,
-+	FIMC_MIPI_CSI2,
-+	FIMC_LCD_WB, /* FIFO link from LCD mixer */
-+};
-+
-+#define FIMC_CLK_INV_PCLK	(1 << 0)
-+#define FIMC_CLK_INV_VSYNC	(1 << 1)
-+#define FIMC_CLK_INV_HREF	(1 << 2)
-+#define FIMC_CLK_INV_HSYNC	(1 << 3)
-+
-+struct i2c_board_info;
-+
-+/**
-+ * struct s5p_fimc_isp_info - image sensor information required for host
-+ *			      interace configuration.
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
 + *
-+ * @board_info: pointer to I2C subdevice's board info
-+ * @bus_type: determines bus type, MIPI, ITU-R BT.601 etc.
-+ * @i2c_bus_num: i2c control bus id the sensor is attached to
-+ * @mux_id: FIMC camera interface multiplexer index (separate for MIPI and ITU)
-+ * @bus_width: camera data bus width in bits
-+ * @flags: flags defining bus signals polarity inversion (High by default)
-+ */
-+struct s5p_fimc_isp_info {
-+	struct i2c_board_info *board_info;
-+	enum cam_bus_type bus_type;
-+	u16 i2c_bus_num;
-+	u16 mux_id;
-+	u16 bus_width;
-+	u16 flags;
-+};
-+
-+
-+#define FIMC_MAX_CAMIF_CLIENTS	2
-+
-+/**
-+ * struct s5p_platform_fimc - camera host interface platform data
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
 + *
-+ * @isp_info: properties of camera sensor required for host interface setup
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 + */
-+struct s5p_platform_fimc {
-+	struct s5p_fimc_isp_info *isp_info[FIMC_MAX_CAMIF_CLIENTS];
++
++/* $(CROSS_COMPILE)gcc -Wall -Wextra -g -o cma-test cma-test.c  */
++
++#include <sys/ioctl.h>
++#include <sys/stat.h>
++#include <sys/types.h>
++#include <sys/mman.h>
++
++#include <fcntl.h>
++#include <unistd.h>
++
++#include <ctype.h>
++#include <errno.h>
++#include <limits.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <stdint.h>
++
++#include <linux/cma.h>
++
++
++/****************************** Chunks management ******************************/
++
++struct chunk {
++	struct chunk *next, *prev;
++	int fd;
++	unsigned long size;
++	unsigned long start;
 +};
-+#endif /* S5P_FIMC_H_ */
++
++static struct chunk root = {
++	.next = &root,
++	.prev = &root,
++};
++
++#define for_each(a) for (a = root.next; a != &root; a = a->next)
++
++static struct chunk *chunk_create(const char *prefix)
++{
++	struct chunk *chunk;
++	int fd;
++
++	chunk = malloc(sizeof *chunk);
++	if (!chunk) {
++		fprintf(stderr, "%s: %s\n", prefix, strerror(errno));
++		return NULL;
++	}
++
++	fd = open("/dev/cma", O_RDWR);
++	if (fd < 0) {
++		fprintf(stderr, "%s: /dev/cma: %s\n", prefix, strerror(errno));
++		return NULL;
++	}
++
++	chunk->prev = chunk;
++	chunk->next = chunk;
++	chunk->fd   = fd;
++	return chunk;
++}
++
++static void chunk_destroy(struct chunk *chunk)
++{
++	chunk->prev->next = chunk->next;
++	chunk->next->prev = chunk->prev;
++	close(chunk->fd);
++}
++
++static void chunk_add(struct chunk *chunk)
++{
++	chunk->next = &root;
++	chunk->prev = root.prev;
++	root.prev->next = chunk;
++	root.prev = chunk;
++}
++
++
++/****************************** Commands ******************************/
++
++/* Parsing helpers  */
++#define SKIP_SPACE(ch) do { while (isspace(*(ch))) ++(ch); } while (0)
++
++static int memparse(char *ptr, char **retptr, unsigned long *ret)
++{
++	unsigned long val;
++
++	SKIP_SPACE(ptr);
++
++	errno = 0;
++	val = strtoul(ptr, &ptr, 0);
++	if (errno)
++		return -1;
++
++	switch (*ptr) {
++	case 'G':
++	case 'g':
++		val <<= 10;
++	case 'M':
++	case 'm':
++		val <<= 10;
++	case 'K':
++	case 'k':
++		val <<= 10;
++		++ptr;
++	}
++
++	if (retptr) {
++		SKIP_SPACE(ptr);
++		*retptr = ptr;
++	}
++
++	*ret = val;
++	return 0;
++}
++
++static void cmd_list(char *name, char *line, int arg)
++{
++	struct chunk *chunk;
++
++	(void)name; (void)line; (void)arg;
++
++	for_each(chunk)
++		printf("%3d: %p@%p\n", chunk->fd,
++		       (void *)chunk->size, (void *)chunk->start);
++}
++
++static void cmd_alloc(char *name, char *line, int arg)
++{
++	unsigned long size, alignment = 0;
++	struct cma_alloc_request req;
++	struct chunk *chunk;
++	int ret;
++
++	(void)arg;
++
++	if (memparse(line, &line, &size) < 0 || !size) {
++		fprintf(stderr, "%s: invalid size\n", name);
++		return;
++	}
++
++	if (*line == '/')
++		if (memparse(line, &line, &alignment) < 0) {
++			fprintf(stderr, "%s: invalid alignment\n", name);
++			return;
++		}
++
++	SKIP_SPACE(line);
++	if (*line) {
++		fprintf(stderr, "%s: unknown argument(s) at the end: %s\n",
++			name, line);
++		return;
++	}
++
++	chunk = chunk_create(name);
++	if (!chunk)
++		return;
++
++	fprintf(stderr, "%s: allocating %p/%p\n", name,
++		(void *)size, (void *)alignment);
++
++	req.magic     = CMA_MAGIC;
++	req.size      = size;
++	req.alignment = alignment;
++	req.start     = 0;
++
++	ret = ioctl(chunk->fd, IOCTL_CMA_ALLOC, &req);
++	if (ret < 0) {
++		fprintf(stderr, "%s: cma_alloc: %s\n", name, strerror(errno));
++		chunk_destroy(chunk);
++	} else {
++		chunk->size  = req.size;
++		chunk->start = req.start;
++		chunk_add(chunk);
++
++		printf("%3d: %p@%p\n", chunk->fd,
++		       (void *)chunk->size, (void *)chunk->start);
++	}
++}
++
++static struct chunk *_cmd_numbered(char *name, char *line)
++{
++	struct chunk *chunk;
++
++	SKIP_SPACE(line);
++
++	if (*line) {
++		unsigned long num;
++
++		errno = 0;
++		num = strtoul(line, &line, 10);
++
++		if (errno || num > INT_MAX) {
++			fprintf(stderr, "%s: invalid number\n", name);
++			return NULL;
++		}
++
++		SKIP_SPACE(line);
++		if (*line) {
++			fprintf(stderr,
++				"%s: unknown arguments at the end: %s\n",
++				name, line);
++			return NULL;
++		}
++
++		for_each(chunk)
++			if (chunk->fd == (int)num)
++				return chunk;
++		fprintf(stderr, "%s: no chunk %3lu\n", name, num);
++		return NULL;
++
++	} else {
++		chunk = root.prev;
++		if (chunk == &root) {
++			fprintf(stderr, "%s: no chunks\n", name);
++			return NULL;
++		}
++		return chunk;
++	}
++}
++
++static void cmd_free(char *name, char *line, int arg)
++{
++	struct chunk *chunk = _cmd_numbered(name, line);
++	(void)arg;
++	if (chunk) {
++		fprintf(stderr, "%s: freeing %p@%p\n", name,
++			(void *)chunk->size, (void *)chunk->start);
++		chunk_destroy(chunk);
++	}
++}
++
++static void _cmd_pattern(char *name, unsigned long *ptr, unsigned long size,
++			  int arg)
++{
++	unsigned long *end = ptr + size / sizeof *ptr, *it, v;
++
++	if (arg)
++		for (v = 0, it = ptr; it != end; ++v, ++it)
++			*it = v;
++
++	for (v = 0, it = ptr; it != end && *it == v; ++v, ++it)
++		/* nop */;
++
++	if (it != end)
++		fprintf(stderr, "%s: at +[%lx] got %lx, expected %lx\n",
++			name, (unsigned long)(it - ptr) * sizeof *it, *it, v);
++	else
++		fprintf(stderr, "%s: done\n", name);
++}
++
++static void _cmd_dump(char *name, uint32_t *ptr)
++{
++	unsigned lines = 32, groups;
++	uint32_t *it = ptr;
++
++	do {
++		printf("%s: %04lx:", name,
++		       (unsigned long)(it - ptr) * sizeof *it);
++
++		groups = 4;
++		do {
++			printf(" %08lx", (unsigned long)*it);
++			++it;
++		} while (--groups);
++
++		putchar('\n');
++	} while (--lines);
++}
++
++static void cmd_mapped(char *name, char *line, int arg)
++{
++	struct chunk *chunk = _cmd_numbered(name, line);
++	void *ptr;
++
++	if (!chunk)
++		return;
++
++	ptr = mmap(NULL, chunk->size,
++		   arg != 2 ? PROT_READ | PROT_WRITE : PROT_READ,
++		   MAP_SHARED, chunk->fd, 0);
++
++	if (ptr == (void *)-1) {
++		fprintf(stderr, "%s: mapping failed: %s\n", name,
++			strerror(errno));
++		return;
++	}
++
++	switch (arg) {
++	case 0:
++	case 1:
++		_cmd_pattern(name, ptr, chunk->size, arg);
++		break;
++
++	case 2:
++		_cmd_dump(name, ptr);
++	}
++
++	munmap(ptr, chunk->size);
++}
++
++static void cmd_kpattern(char *name, char *line, int arg)
++{
++	struct chunk *chunk = _cmd_numbered(name, line);
++	if (chunk) {
++		int ret;
++
++		fprintf(stderr, "%s: requesting kernel to %s %p@%p\n",
++			name, arg ? "fill" : "verify",
++			(void *)chunk->size, (void *)chunk->start);
++
++		ret = ioctl(chunk->fd, IOCTL_CMA_PATTERN, arg);
++		if (ret < 0)
++			fprintf(stderr, "%s: %s\n", name, strerror(errno));
++		else if ((unsigned long)ret < chunk->size)
++			fprintf(stderr, "%s: failed at +[%x]\n", name, ret);
++		else
++			fprintf(stderr, "%s: done\n", name);
++	}
++}
++
++static void cmd_kdump(char *name, char *line, int arg)
++{
++	struct chunk *chunk = _cmd_numbered(name, line);
++
++	(void)arg;
++
++	if (chunk) {
++		int ret;
++
++		fprintf(stderr, "%s: requesting kernel to dump 256B@%p\n",
++			name, (void *)chunk->start);
++
++		ret = ioctl(chunk->fd, IOCTL_CMA_DUMP, 256);
++		if (ret < 0)
++			fprintf(stderr, "%s: %s\n", name, strerror(errno));
++		else
++			fprintf(stderr, "%s: done\n", name);
++	}
++}
++
++static const struct command {
++	const char short_name;
++	const char name[8];
++	void (*handle)(char *name, char *line, int arg);
++	int arg;
++	const char *help_args, *help;
++} commands[] = {
++	{ 'l', "list",    cmd_list,     0,
++	  "", "list allocated chunks" },
++	{ 'a', "alloc",   cmd_alloc,    0,
++	  "<size>[/<alignment>]", "allocate chunk" },
++	{ 'f', "free",    cmd_free,     0,
++	  "[<num>]", "free an chunk" },
++	{ 'w', "write",   cmd_mapped,   1,
++	  "[<num>]", "write data to chunk" },
++	{ 'W', "kwrite",  cmd_kpattern, 1,
++	  "[<num>]", "let kernel write data to chunk" },
++	{ 'v', "verify",  cmd_mapped,   0,
++	  "[<num>]", "verify chunk's content" },
++	{ 'V', "kverify", cmd_kpattern, 0,
++	  "[<num>]", "let kernel verify chunk's contet" },
++	{ 'd', "dump",    cmd_mapped,   2,
++	  "[<num>]", "dump (some) content" },
++	{ 'D', "kdump",   cmd_kdump,    0,
++	  "[<num>]", "let kernel dump (some) content" },
++	{ '\0', "", NULL, 0, NULL, NULL }
++};
++
++static void handle_command(char *line)
++{
++	static char last_line[1024];
++
++	const struct command *cmd;
++	char *name, short_name = '\0';
++
++	SKIP_SPACE(line);
++	if (*line == '#')
++		return;
++
++	if (!*line)
++		strcpy(line, last_line);
++	else
++		strcpy(last_line, line);
++
++	name = line;
++	while (*line && !isspace(*line))
++		++line;
++
++	if (*line) {
++		*line = '\0';
++		++line;
++	}
++
++	if (!name[1])
++		short_name = name[0];
++
++	for (cmd = commands; *(cmd->name); ++cmd)
++		if (short_name
++		  ? short_name == cmd->short_name
++		  : !strcmp(name, cmd->name)) {
++			cmd->handle(name, line, cmd->arg);
++			return;
++		}
++
++	fprintf(stderr, "%s: unknown command\n", name);
++}
++
++
++/****************************** Main ******************************/
++
++int main(void)
++{
++	const struct command *cmd = commands;
++	unsigned no = 1;
++	char line[1024];
++	int skip = 0;
++
++	fputs("commands:\n", stderr);
++	do {
++		fprintf(stderr, " %c or %-7s  %-10s  %s\n",
++			cmd->short_name, cmd->name, cmd->help_args, cmd->help);
++	} while ((++cmd)->handle);
++	fputs(" # ...                        comment\n"
++	      " <empty line>                 repeat previous\n"
++	      "\n", stderr);
++
++	while (fgets(line, sizeof line, stdin)) {
++		char *nl = strchr(line, '\n');
++		if (nl) {
++			if (skip) {
++				fprintf(stderr, "cma: %d: line too long\n", no);
++				skip = 0;
++			} else {
++				*nl = '\0';
++				handle_command(line);
++			}
++			++no;
++		} else {
++			skip = 1;
++		}
++	}
++
++	if (skip)
++		fprintf(stderr, "cma: %d: no new line at EOF\n", no);
++	return 0;
++}
 -- 
 1.7.2.3
 
