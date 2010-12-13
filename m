@@ -1,348 +1,318 @@
 Return-path: <mchehab@gaivota>
-Received: from comal.ext.ti.com ([198.47.26.152]:52020 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751345Ab0LOJLX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Dec 2010 04:11:23 -0500
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH v6 5/7] davinci vpbe: platform specific additions
-Date: Wed, 15 Dec 2010 14:41:08 +0530
-Message-Id: <1292404268-12517-1-git-send-email-manjunath.hadli@ti.com>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:61457 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757057Ab0LML1D (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Dec 2010 06:27:03 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Mon, 13 Dec 2010 12:26:45 +0100
+From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Subject: [PATCHv7 04/10] mm: move some functions from memory_hotplug.c to
+ page_isolation.c
+In-reply-to: <cover.1292004520.git.m.nazarewicz@samsung.com>
+To: Michal Nazarewicz <mina86@mina86.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Ankita Garg <ankita@in.ibm.com>,
+	BooJin Kim <boojin.kim@samsung.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mel Gorman <mel@csn.ul.ie>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	Michal Nazarewicz <m.nazarewicz@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <26b030da54b10bc98c94a27c1340f2882e1c3129.1292004520.git.m.nazarewicz@samsung.com>
+References: <cover.1292004520.git.m.nazarewicz@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-This patch implements the overall device creation for the Video
-display driver, and addition of tables for the mode and output list.
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+Memory hotplug is a logic for making pages unused in the specified
+range of pfn. So, some of core logics can be used for other purpose
+as allocating a very large contigous memory block.
+
+This patch moves some functions from mm/memory_hotplug.c to
+mm/page_isolation.c. This helps adding a function for large-alloc in
+page_isolation.c with memory-unplug technique.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+[mina86: reworded commit message]
+Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- arch/arm/mach-davinci/board-dm644x-evm.c    |   79 +++++++++++--
- arch/arm/mach-davinci/dm644x.c              |  164 ++++++++++++++++++++++++++-
- arch/arm/mach-davinci/include/mach/dm644x.h |    4 +
- 3 files changed, 228 insertions(+), 19 deletions(-)
+ include/linux/page-isolation.h |    7 +++
+ mm/memory_hotplug.c            |  108 --------------------------------------
+ mm/page_isolation.c            |  111 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 118 insertions(+), 108 deletions(-)
 
-diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-davinci/board-dm644x-evm.c
-index 34c8b41..e9b1243 100644
---- a/arch/arm/mach-davinci/board-dm644x-evm.c
-+++ b/arch/arm/mach-davinci/board-dm644x-evm.c
-@@ -166,18 +166,6 @@ static struct platform_device davinci_evm_nandflash_device = {
- 	.resource	= davinci_evm_nandflash_resource,
- };
+diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
+index 051c1b1..58cdbac 100644
+--- a/include/linux/page-isolation.h
++++ b/include/linux/page-isolation.h
+@@ -33,5 +33,12 @@ test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
+ extern int set_migratetype_isolate(struct page *page);
+ extern void unset_migratetype_isolate(struct page *page);
  
--static u64 davinci_fb_dma_mask = DMA_BIT_MASK(32);
--
--static struct platform_device davinci_fb_device = {
--	.name		= "davincifb",
--	.id		= -1,
--	.dev = {
--		.dma_mask		= &davinci_fb_dma_mask,
--		.coherent_dma_mask      = DMA_BIT_MASK(32),
--	},
--	.num_resources = 0,
--};
--
- static struct tvp514x_platform_data tvp5146_pdata = {
- 	.clk_polarity = 0,
- 	.hs_polarity = 1,
-@@ -606,8 +594,71 @@ static void __init evm_init_i2c(void)
- 	i2c_register_board_info(1, i2c_info, ARRAY_SIZE(i2c_info));
++/*
++ * For migration.
++ */
++
++int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn);
++unsigned long scan_lru_pages(unsigned long start, unsigned long end);
++int do_migrate_range(unsigned long start_pfn, unsigned long end_pfn);
+ 
+ #endif
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 2c6523a..2b18cb5 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -634,114 +634,6 @@ int is_mem_section_removable(unsigned long start_pfn, unsigned long nr_pages)
  }
  
-+#define VENC_STD_ALL    (V4L2_STD_NTSC | V4L2_STD_PAL)
-+/* venc standards timings */
-+static struct vpbe_enc_mode_info vbpe_enc_std_timings[] = {
-+	{"ntsc", VPBE_ENC_STD, {V4L2_STD_525_60}, 1, 720, 480,
-+	{11, 10}, {30000, 1001}, 0x79, 0, 0x10, 0, 0, 0, 0},
-+	{"pal", VPBE_ENC_STD, {V4L2_STD_625_50}, 1, 720, 576,
-+	{54, 59}, {25, 1}, 0x7E, 0, 0x16, 0, 0, 0, 0},
-+};
+ /*
+- * Confirm all pages in a range [start, end) is belongs to the same zone.
+- */
+-static int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn)
+-{
+-	unsigned long pfn;
+-	struct zone *zone = NULL;
+-	struct page *page;
+-	int i;
+-	for (pfn = start_pfn;
+-	     pfn < end_pfn;
+-	     pfn += MAX_ORDER_NR_PAGES) {
+-		i = 0;
+-		/* This is just a CONFIG_HOLES_IN_ZONE check.*/
+-		while ((i < MAX_ORDER_NR_PAGES) && !pfn_valid_within(pfn + i))
+-			i++;
+-		if (i == MAX_ORDER_NR_PAGES)
+-			continue;
+-		page = pfn_to_page(pfn + i);
+-		if (zone && page_zone(page) != zone)
+-			return 0;
+-		zone = page_zone(page);
+-	}
+-	return 1;
+-}
+-
+-/*
+- * Scanning pfn is much easier than scanning lru list.
+- * Scan pfn from start to end and Find LRU page.
+- */
+-static unsigned long scan_lru_pages(unsigned long start, unsigned long end)
+-{
+-	unsigned long pfn;
+-	struct page *page;
+-	for (pfn = start; pfn < end; pfn++) {
+-		if (pfn_valid(pfn)) {
+-			page = pfn_to_page(pfn);
+-			if (PageLRU(page))
+-				return pfn;
+-		}
+-	}
+-	return 0;
+-}
+-
+-static struct page *
+-hotremove_migrate_alloc(struct page *page, unsigned long private, int **x)
+-{
+-	/* This should be improooooved!! */
+-	return alloc_page(GFP_HIGHUSER_MOVABLE);
+-}
+-
+-#define NR_OFFLINE_AT_ONCE_PAGES	(256)
+-static int
+-do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
+-{
+-	unsigned long pfn;
+-	struct page *page;
+-	int move_pages = NR_OFFLINE_AT_ONCE_PAGES;
+-	int not_managed = 0;
+-	int ret = 0;
+-	LIST_HEAD(source);
+-
+-	for (pfn = start_pfn; pfn < end_pfn && move_pages > 0; pfn++) {
+-		if (!pfn_valid(pfn))
+-			continue;
+-		page = pfn_to_page(pfn);
+-		if (!page_count(page))
+-			continue;
+-		/*
+-		 * We can skip free pages. And we can only deal with pages on
+-		 * LRU.
+-		 */
+-		ret = isolate_lru_page(page);
+-		if (!ret) { /* Success */
+-			list_add_tail(&page->lru, &source);
+-			move_pages--;
+-			inc_zone_page_state(page, NR_ISOLATED_ANON +
+-					    page_is_file_cache(page));
+-
+-		} else {
+-#ifdef CONFIG_DEBUG_VM
+-			printk(KERN_ALERT "removing pfn %lx from LRU failed\n",
+-			       pfn);
+-			dump_page(page);
+-#endif
+-			/* Becasue we don't have big zone->lock. we should
+-			   check this again here. */
+-			if (page_count(page)) {
+-				not_managed++;
+-				ret = -EBUSY;
+-				break;
+-			}
+-		}
+-	}
+-	if (!list_empty(&source)) {
+-		if (not_managed) {
+-			putback_lru_pages(&source);
+-			goto out;
+-		}
+-		/* this function returns # of failed pages */
+-		ret = migrate_pages(&source, hotremove_migrate_alloc, 0, 1);
+-		if (ret)
+-			putback_lru_pages(&source);
+-	}
+-out:
+-	return ret;
+-}
+-
+-/*
+  * remove from free_area[] and mark all as Reserved.
+  */
+ static int
+diff --git a/mm/page_isolation.c b/mm/page_isolation.c
+index 4ae42bb..077cf19 100644
+--- a/mm/page_isolation.c
++++ b/mm/page_isolation.c
+@@ -5,6 +5,9 @@
+ #include <linux/mm.h>
+ #include <linux/page-isolation.h>
+ #include <linux/pageblock-flags.h>
++#include <linux/memcontrol.h>
++#include <linux/migrate.h>
++#include <linux/mm_inline.h>
+ #include "internal.h"
+ 
+ static inline struct page *
+@@ -139,3 +142,111 @@ int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn)
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ 	return ret ? 0 : -EBUSY;
+ }
 +
-+/* venc dv preset timings */
-+static struct vpbe_enc_mode_info vbpe_enc_preset_timings[] = {
-+	{"480p59_94", VPBE_ENC_DV_PRESET, {V4L2_DV_480P59_94}, 0, 720, 480,
-+	{1, 1}, {5994, 100}, 0x80, 0, 0x20, 0, 0, 0, 0},
-+	{"576p50", VPBE_ENC_DV_PRESET, {V4L2_DV_576P50}, 0, 720, 576,
-+	{1, 1}, {50, 1}, 0x7E, 0, 0x30, 0, 0, 0, 0},
-+};
 +
 +/*
-+ * The outputs available from VPBE + ecnoders. Keep the
-+ * the order same as that of encoders. First that from venc followed by that
-+ * from encoders. Index in the output refers to index on a particular encoder.
-+ * Driver uses this index to pass it to encoder when it supports more than
-+ * one output. Application uses index of the array to set an output.
++ * Confirm all pages in a range [start, end) is belongs to the same zone.
 + */
-+static struct vpbe_output dm644x_vpbe_outputs[] = {
-+	{
-+		.output = {
-+			.index = 0,
-+			.name = "Composite",
-+			.type = V4L2_OUTPUT_TYPE_ANALOG,
-+			.std = VENC_STD_ALL,
-+			.capabilities = V4L2_OUT_CAP_STD,
-+		},
-+		.subdev_name = VPBE_VENC_SUBDEV_NAME,
-+		.default_mode = "ntsc",
-+		.num_modes = ARRAY_SIZE(vbpe_enc_std_timings),
-+		.modes = vbpe_enc_std_timings,
-+	},
-+	{
-+		.output = {
-+			.index = 1,
-+			.name = "Component",
-+			.type = V4L2_OUTPUT_TYPE_ANALOG,
-+			.capabilities = V4L2_OUT_CAP_PRESETS,
-+		},
-+		.subdev_name = VPBE_VENC_SUBDEV_NAME,
-+		.default_mode = "480p59_94",
-+		.num_modes = ARRAY_SIZE(vbpe_enc_preset_timings),
-+		.modes = vbpe_enc_preset_timings,
-+	},
-+};
-+
-+static struct vpbe_display_config vpbe_display_cfg = {
-+	.module_name = "dm644x-vpbe-display",
-+	.i2c_adapter_id = 1,
-+	.osd = {
-+		.module_name = VPBE_OSD_SUBDEV_NAME,
-+	},
-+	.venc = {
-+		.module_name = VPBE_VENC_SUBDEV_NAME,
-+	},
-+	.num_outputs = ARRAY_SIZE(dm644x_vpbe_outputs),
-+	.outputs = dm644x_vpbe_outputs,
-+};
- static struct platform_device *davinci_evm_devices[] __initdata = {
--	&davinci_fb_device,
- 	&rtc_dev,
- };
- 
-@@ -620,6 +671,8 @@ davinci_evm_map_io(void)
- {
- 	/* setup input configuration for VPFE input devices */
- 	dm644x_set_vpfe_config(&vpfe_cfg);
-+	/* setup configuration for vpbe devices */
-+	dm644x_set_vpbe_display_config(&vpbe_display_cfg);
- 	dm644x_init();
- }
- 
-diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
-index 5e5b0a7..e8b8e94 100644
---- a/arch/arm/mach-davinci/dm644x.c
-+++ b/arch/arm/mach-davinci/dm644x.c
-@@ -640,6 +640,142 @@ void dm644x_set_vpfe_config(struct vpfe_config *cfg)
- 	vpfe_capture_dev.dev.platform_data = cfg;
- }
- 
-+static struct resource dm644x_osd_resources[] = {
-+	{
-+		.start  = 0x01C72600,
-+		.end    = 0x01C72600 + 0x200,
-+		.flags  = IORESOURCE_MEM,
-+	},
-+};
-+
-+static u64 dm644x_osd_dma_mask = DMA_BIT_MASK(32);
-+
-+static struct platform_device dm644x_osd_dev = {
-+	.name           = VPBE_OSD_SUBDEV_NAME,
-+	.id             = -1,
-+	.num_resources  = ARRAY_SIZE(dm644x_osd_resources),
-+	.resource       = dm644x_osd_resources,
-+	.dev = {
-+		.dma_mask               = &dm644x_osd_dma_mask,
-+		.coherent_dma_mask      = DMA_BIT_MASK(32),
-+		.platform_data          = (void *)DM644X_VPBE,
-+	},
-+};
-+
-+static struct resource dm644x_venc_resources[] = {
-+	/* venc registers io space */
-+	{
-+		.start  = 0x01C72400,
-+		.end    = 0x01C72400 + 0x180,
-+		.flags  = IORESOURCE_MEM,
-+	},
-+};
-+
-+static u64 dm644x_venc_dma_mask = DMA_BIT_MASK(32);
-+
-+#define VPSS_CLKCTL     0x01C40044
-+static void __iomem *vpss_clkctl_reg;
-+
-+/* TBD. Check what VENC_CLOCK_SEL settings for HDTV and EDTV */
-+static int dm644x_venc_setup_clock(enum vpbe_enc_timings_type type, __u64 mode)
++int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn)
 +{
-+	int ret = 0;
++	unsigned long pfn;
++	struct zone *zone = NULL;
++	struct page *page;
++	int i;
++	for (pfn = start_pfn;
++	     pfn < end_pfn;
++	     pfn += MAX_ORDER_NR_PAGES) {
++		i = 0;
++		/* This is just a CONFIG_HOLES_IN_ZONE check.*/
++		while ((i < MAX_ORDER_NR_PAGES) && !pfn_valid_within(pfn + i))
++			i++;
++		if (i == MAX_ORDER_NR_PAGES)
++			continue;
++		page = pfn_to_page(pfn + i);
++		if (zone && page_zone(page) != zone)
++			return 0;
++		zone = page_zone(page);
++	}
++	return 1;
++}
 +
-+	if (NULL == vpss_clkctl_reg)
-+		return -EINVAL;
-+	if (type == VPBE_ENC_STD) {
-+		__raw_writel(0x18, vpss_clkctl_reg);
-+	} else if (type == VPBE_ENC_DV_PRESET) {
-+		switch ((unsigned int)mode) {
-+		case V4L2_DV_480P59_94:
-+		case V4L2_DV_576P50:
-+			 __raw_writel(0x19, vpss_clkctl_reg);
-+			break;
-+		case V4L2_DV_720P60:
-+		case V4L2_DV_1080I60:
-+		case V4L2_DV_1080P30:
-+		/*
-+		* For HD, use external clock source since HD requires higher
-+		* clock rate
-+		*/
-+			__raw_writel(0xa, vpss_clkctl_reg);
-+			break;
-+		default:
-+			ret  = -EINVAL;
-+			break;
++/*
++ * Scanning pfn is much easier than scanning lru list.
++ * Scan pfn from start to end and Find LRU page.
++ */
++unsigned long scan_lru_pages(unsigned long start, unsigned long end)
++{
++	unsigned long pfn;
++	struct page *page;
++	for (pfn = start; pfn < end; pfn++) {
++		if (pfn_valid(pfn)) {
++			page = pfn_to_page(pfn);
++			if (PageLRU(page))
++				return pfn;
 +		}
-+	} else
-+		ret  = -EINVAL;
-+
-+	return ret;
-+}
-+
-+
-+static inline u32 dm644x_reg_modify(void *reg, u32 val, u32 mask)
-+{
-+	u32 new_val = (__raw_readl(reg) & ~mask) | (val & mask);
-+	__raw_writel(new_val, reg);
-+	return new_val;
-+}
-+
-+static u64 vpbe_display_dma_mask = DMA_BIT_MASK(32);
-+
-+static struct resource dm644x_v4l2_disp_resources[] = {
-+	{
-+		.start  = IRQ_VENCINT,
-+		.end    = IRQ_VENCINT,
-+		.flags  = IORESOURCE_IRQ,
-+	},
-+	{
-+		.start  = 0x01C72400,
-+		.end    = 0x01C72400 + 0x180,
-+		.flags  = IORESOURCE_MEM,
-+	},
-+
-+};
-+static struct platform_device vpbe_v4l2_display = {
-+	.name           = "vpbe-v4l2",
-+	.id             = -1,
-+	.num_resources  = ARRAY_SIZE(dm644x_v4l2_disp_resources),
-+	.resource       = dm644x_v4l2_disp_resources,
-+	.dev = {
-+		.dma_mask               = &vpbe_display_dma_mask,
-+		.coherent_dma_mask      = DMA_BIT_MASK(32),
-+	},
-+};
-+struct venc_platform_data dm644x_venc_pdata = {
-+	.venc_type = DM644X_VPBE,
-+	.setup_clock = dm644x_venc_setup_clock,
-+};
-+
-+static struct platform_device dm644x_venc_dev = {
-+	.name           = VPBE_VENC_SUBDEV_NAME,
-+	.id             = -1,
-+	.num_resources  = ARRAY_SIZE(dm644x_venc_resources),
-+	.resource       = dm644x_venc_resources,
-+	.dev = {
-+		.dma_mask               = &dm644x_venc_dma_mask,
-+		.coherent_dma_mask      = DMA_BIT_MASK(32),
-+		.platform_data          = (void *)&dm644x_venc_pdata,
-+	},
-+};
-+
-+static u64 dm644x_vpbe_dma_mask = DMA_BIT_MASK(32);
-+
-+static struct platform_device dm644x_vpbe_dev = {
-+	.name           = "vpbe_controller",
-+	.id             = -1,
-+	.dev = {
-+		.dma_mask               = &dm644x_vpbe_dma_mask,
-+		.coherent_dma_mask      = DMA_BIT_MASK(32),
-+	},
-+};
-+
-+void dm644x_set_vpbe_display_config(struct vpbe_display_config *cfg)
-+{
-+	dm644x_vpbe_dev.dev.platform_data = cfg;
-+}
-+
- /*----------------------------------------------------------------------*/
- 
- static struct map_desc dm644x_io_desc[] = {
-@@ -767,20 +903,36 @@ void __init dm644x_init(void)
- 	davinci_common_init(&davinci_soc_info_dm644x);
- }
- 
-+static struct platform_device *dm644x_video_devices[] __initdata = {
-+	&dm644x_vpss_device,
-+	&dm644x_ccdc_dev,
-+	&vpfe_capture_dev,
-+	&dm644x_osd_dev,
-+	&dm644x_venc_dev,
-+	&dm644x_vpbe_dev,
-+	&vpbe_v4l2_display,
-+};
-+
-+static int __init dm644x_init_video(void)
-+{
-+	/* Add ccdc clock aliases */
-+	clk_add_alias("master", dm644x_ccdc_dev.name, "vpss_master", NULL);
-+	clk_add_alias("slave", dm644x_ccdc_dev.name, "vpss_slave", NULL);
-+	vpss_clkctl_reg = ioremap_nocache(VPSS_CLKCTL, 4);
-+	platform_add_devices(dm644x_video_devices,
-+				ARRAY_SIZE(dm644x_video_devices));
++	}
 +	return 0;
 +}
 +
- static int __init dm644x_init_devices(void)
- {
- 	if (!cpu_is_davinci_dm644x())
- 		return 0;
- 
- 	/* Add ccdc clock aliases */
--	clk_add_alias("master", dm644x_ccdc_dev.name, "vpss_master", NULL);
--	clk_add_alias("slave", dm644x_ccdc_dev.name, "vpss_slave", NULL);
- 	platform_device_register(&dm644x_edma_device);
- 	platform_device_register(&dm644x_emac_device);
--	platform_device_register(&dm644x_vpss_device);
--	platform_device_register(&dm644x_ccdc_dev);
--	platform_device_register(&vpfe_capture_dev);
--
-+	dm644x_init_video();
- 	return 0;
- }
- postcore_initcall(dm644x_init_devices);
-diff --git a/arch/arm/mach-davinci/include/mach/dm644x.h b/arch/arm/mach-davinci/include/mach/dm644x.h
-index 6fca568..bf7adcd 100644
---- a/arch/arm/mach-davinci/include/mach/dm644x.h
-+++ b/arch/arm/mach-davinci/include/mach/dm644x.h
-@@ -26,6 +26,9 @@
- #include <mach/hardware.h>
- #include <mach/asp.h>
- #include <media/davinci/vpfe_capture.h>
-+#include <media/davinci/vpbe_types.h>
-+#include <media/davinci/vpbe.h>
-+#include <media/davinci/vpss.h>
- 
- #define DM644X_EMAC_BASE		(0x01C80000)
- #define DM644X_EMAC_CNTRL_OFFSET	(0x0000)
-@@ -43,5 +46,6 @@
- void __init dm644x_init(void);
- void __init dm644x_init_asp(struct snd_platform_data *pdata);
- void dm644x_set_vpfe_config(struct vpfe_config *cfg);
-+void dm644x_set_vpbe_display_config(struct vpbe_display_config *cfg);
- 
- #endif /* __ASM_ARCH_DM644X_H */
++struct page *
++hotremove_migrate_alloc(struct page *page, unsigned long private, int **x)
++{
++	/* This should be improooooved!! */
++	return alloc_page(GFP_HIGHUSER_MOVABLE);
++}
++
++#define NR_OFFLINE_AT_ONCE_PAGES	(256)
++int do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
++{
++	unsigned long pfn;
++	struct page *page;
++	int move_pages = NR_OFFLINE_AT_ONCE_PAGES;
++	int not_managed = 0;
++	int ret = 0;
++	LIST_HEAD(source);
++
++	for (pfn = start_pfn; pfn < end_pfn && move_pages > 0; pfn++) {
++		if (!pfn_valid(pfn))
++			continue;
++		page = pfn_to_page(pfn);
++		if (!page_count(page))
++			continue;
++		/*
++		 * We can skip free pages. And we can only deal with pages on
++		 * LRU.
++		 */
++		ret = isolate_lru_page(page);
++		if (!ret) { /* Success */
++			list_add_tail(&page->lru, &source);
++			move_pages--;
++			inc_zone_page_state(page, NR_ISOLATED_ANON +
++					    page_is_file_cache(page));
++
++		} else {
++#ifdef CONFIG_DEBUG_VM
++			printk(KERN_ALERT "removing pfn %lx from LRU failed\n",
++			       pfn);
++			dump_page(page);
++#endif
++			/* Because we don't have big zone->lock. we should
++			   check this again here. */
++			if (page_count(page)) {
++				not_managed++;
++				ret = -EBUSY;
++				break;
++			}
++		}
++	}
++	if (!list_empty(&source)) {
++		if (not_managed) {
++			putback_lru_pages(&source);
++			goto out;
++		}
++		/* this function returns # of failed pages */
++		ret = migrate_pages(&source, hotremove_migrate_alloc, 0, 1);
++		if (ret)
++			putback_lru_pages(&source);
++	}
++out:
++	return ret;
++}
 -- 
-1.6.2.4
+1.7.2.3
 
