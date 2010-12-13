@@ -1,51 +1,75 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:36572 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753588Ab0L0QXV convert rfc822-to-8bit (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:18501 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757757Ab0LMNal (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Dec 2010 11:23:21 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oBRGNKW2000393
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 27 Dec 2010 11:23:20 -0500
-Received: from gaivota (vpn-11-243.rdu.redhat.com [10.11.11.243])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id oBRGNDpC028091
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 27 Dec 2010 11:23:18 -0500
-Date: Mon, 27 Dec 2010 14:22:42 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 8/8] [media] streamzap: Fix a compilation warning when
- compiled builtin
-Message-ID: <20101227142242.295a3ddf@gaivota>
-In-Reply-To: <cover.1293466891.git.mchehab@redhat.com>
-References: <cover.1293466891.git.mchehab@redhat.com>
+	Mon, 13 Dec 2010 08:30:41 -0500
+Subject: Re: [RFC/PATCH 03/19] cx18: Use the control framework.
+From: Andy Walls <awalls@md.metrocast.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <201012130832.10265.hverkuil@xs4all.nl>
+References: <dpputt4i632ox8ldodidq3jk.1292179593754@email.android.com>
+	 <201012130832.10265.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 13 Dec 2010 08:31:18 -0500
+Message-ID: <1292247078.2054.38.camel@morgan.silverblock.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-drivers/media/rc/streamzap.c: In function ‘streamzap_probe’:
-drivers/media/rc/streamzap.c:460:2: warning: statement with no effect
+On Mon, 2010-12-13 at 08:32 +0100, Hans Verkuil wrote:
+> On Sunday, December 12, 2010 19:46:33 Andy Walls wrote:
 
-Cc: Jarod Wilson <jarod@redhat.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/rc/streamzap.c b/drivers/media/rc/streamzap.c
-index 7f82f55..6e2911c 100644
---- a/drivers/media/rc/streamzap.c
-+++ b/drivers/media/rc/streamzap.c
-@@ -73,7 +73,7 @@ MODULE_DEVICE_TABLE(usb, streamzap_table);
- #ifdef CONFIG_IR_RC5_SZ_DECODER_MODULE
- #define load_rc5_sz_decode()    request_module("ir-rc5-sz-decoder")
- #else
--#define load_rc5_sz_decode()    0
-+#define load_rc5_sz_decode()    {}
- #endif
+Hi Hans,
  
- enum StreamzapDecoderState {
--- 
-1.7.3.4
+> > 1. Why set the vol step to 655, when the volume will actaully step at increments of 512?
+> 
+> The goal of the exercise is to convert to the control framework. I don't like to
+> mix changes like that with lots of other unrelated changes, so I kept this the
+> same as it was.
+
+Sounds fine to me.
+
+
+> > 2. Why should failure to initialize a data structure for user
+> controls mean failure to init otherwise working hardware?  We never
+> let user control init cause subdev driver probe failure before, so why
+> now?  I'd prefer a working device without user controls in case of
+> user control init failure.
+> 
+> Huh? If you fail to allocate the memory for such data structures then I'm
+> pretty sure you will encounter other problems as well.
+
+ENOMEM is not why I bring this up.  The new control framework can also
+return ERANGE and EINVAL.
+
+Granted, both look like they can only result due to subdev driver bugs.
+However, when one is mass converting subdev and bridge drivers, bugs are
+going to get introduced.  In my specific case, the ERANGE error,
+aborting the the init of the CX23888 A/V core in the cx25840 driver,
+meant the CX23888 IR unit doesn't get a good clock.  IR didn't work
+because of a *volume control*!?  That is the only reason I noticed the
+bug.
+
+I perceive a dearth of non-developers testing the changes in the GIT
+trees.  I don't have confidence that the majority of subdev driver bugs
+introduced by the conversion to the new framework will get caught until
+after a kernel release.  As I am discovering, the process for getting
+regressions fixed and into stable kernels is much longer than the time
+to introduce bugs.
+
+I would prefer deployed hardware still be as operational as possible
+under newly released kernels.  That's why I'll still suggest user
+control init failure, for something other than ENOMEM, be a non-fatal
+error.  The move to the new control framework has no immediate,
+user-visible changes, except for symptoms of any introduced bugs.  The
+bugs found so far (msp3400 and cx25840) had pretty severe symptoms, and
+were noticed way too late.
+
+My $0.02.
+
+Regards,
+Andy
 
