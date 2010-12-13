@@ -1,149 +1,210 @@
 Return-path: <mchehab@gaivota>
-Received: from ifup.org ([198.145.64.140]:51178 "EHLO ifup.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754527Ab0LNAic (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Dec 2010 19:38:32 -0500
-Date: Mon, 13 Dec 2010 16:30:24 -0800
-From: Brandon Philips <brandon@ifup.org>
-To: Torsten Kaiser <just.for.lkml@googlemail.com>
-Cc: Dave Young <hidave.darkstar@gmail.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Chris Clayton <chris2553@googlemail.com>
-Subject: Re: [PATCH] bttv: fix mutex use before init
-Message-ID: <20101214003024.GA3575@hanuman.home.ifup.org>
-References: <20101212131550.GA2608@darkstar>
- <AANLkTinaNjPjNbxE+OyRsY_jJxDW-pwehTPgyAWzqfzd@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <AANLkTinaNjPjNbxE+OyRsY_jJxDW-pwehTPgyAWzqfzd@mail.gmail.com>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:57821 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757058Ab0LMKqY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Dec 2010 05:46:24 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=UTF-8
+Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LDD00I724L9H270@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 13 Dec 2010 10:46:21 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LDD00I8U4L8YE@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 13 Dec 2010 10:46:21 +0000 (GMT)
+Date: Mon, 13 Dec 2010 11:46:20 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [RFC][media] s5p-fimc : Need to modify for s5pv310
+In-reply-to: <004701cb9810$e5b2a560$b117f020$%kang@samsung.com>
+To: sungchun.kang@samsung.com
+Cc: linux-media@vger.kernel.org
+Message-id: <4D05F97C.50603@samsung.com>
+References: <00b901cb92bb$e81c75b0$b8556110$%kang@samsung.com>
+ <4CFCB0BE.7050101@samsung.com>
+ <004701cb9810$e5b2a560$b117f020$%kang@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On 17:13 Sun 12 Dec 2010, Torsten Kaiser wrote:
->  * change &fh->cap.vb_lock in bttv_open() AND radio_open() to
-> &btv->init.cap.vb_lock
->  * add a mutex_init(&btv->init.cap.vb_lock) to the setup of init in bttv_probe()
 
-That seems like a reasonable suggestion. An openSUSE user submitted this
-bug to our tracker too. Here is the patch I am having him test.
+Hi Sungchun,
 
-Would you mind testing it?
+On 12/10/2010 03:21 AM, Sungchun Kang wrote:
+> 
+> 
+>> -----Original Message-----
+>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>> owner@vger.kernel.org] On Behalf Of Sylwester Nawrocki
+>> Sent: Monday, December 06, 2010 6:46 PM
+>> To: sungchun.kang@samsung.com
+>> Cc: linux-media@vger.kernel.org
+>> Subject: Re: [RFC][media] s5p-fimc : Need to modify for s5pv310
+>>
+>> Hi Sungchun,
+>>
+>> thanks for your suggestions.
+>> I am planning to improve output DMA handling in the fimc camera
+>> capture driver,
+>> what is done already is only a minimal adaptation to make driver work
+>> on
+>> S5PV310 SoC. We don't even have a platform support (resource and
+>> platform
+>> device definitions) for FIMC@S5PV310 yet though. I think it needs to
+>> be done first.
+>>
+>> Your proposed scheme of presetting output DMA buffer adresses before
+>> streaming
+>> is enabled and then using the CIFCNTSEQ register to mask out buffers
+>> passed
+>> to user space looks reasonable to me. I could imagine adopting such a
+>> method
+>> for buffer of V4L2_MEMORY_MMAP memory type. But do you think it is
+>> going to
+>> work for V4L2_MEMORY_USERPTR? There is no confidence that USERPTR
+>> addresses
+>> passed by applications in subsequent VIDIOC_QBUF calls will not be
+>> changing,
+>> right?
+> 
+> Like V4L2_MEMORY_MMAP, it is possible to use V4L2_MEMORY_USERPTR for memory type.
+> Surely, in case of V4L2_MEMORY_USERPTR, output buffer SFR could be changed.
+> But, it is possible to adjust my concept too.
+> When the VIDIOC_QBUF called, user can set m.userptr field to the address of the buffer, 
+> length to its size, and index field. 
+> 
+> <For example QBUF>
+> 
+> Output DMASFR		index	 	m.userptr		CIFCNTSEQ[bit]
+> CIOYSA1			0		0x40000000		[0] - enable
+> CIOYSA2			1		0x40001000		[1] - enable
+> CIOYSA3			2		0x40002000		[2] - enable
+> CIOYSA4			3		0x40003000		[3] - enable
+> CIOYSA5			4		0x40004000		[4] - enable
+> CIOYSA6			5		0x40005000		[5] - enable
+> CIOYSA1			0		0x40006000		[0] - enable (SFR value change for output buffer)
+> 
+> Because it is possible to regard a index as output DMA SFR, there's no need to use pending queue concept.
 
->From 456dc0ce36db523c4c0c8a269f4eec43a72de1dc Mon Sep 17 00:00:00 2001
-From: Brandon Philips <bphilips@suse.de>
-Date: Mon, 13 Dec 2010 16:21:55 -0800
-Subject: [PATCH] bttv: fix locking for btv->init
+I do not really see much gain in that approach, we still need to obtain
+physical address from video buffer, read the address from registers, compare
+both and then perform write if necessary.
+The code would be different among various SoC revisions and it would increase
+interrupt service routine size.
+I would see CIFCNTSEQ as a means of additional protection preventing the DMA
+engine from writing to a buffer which has been passed to user land.
 
-Fix locking for the btv->init by using btv->init.cap.vb_lock and in the
-process fix uninitialized deref introduced in c37db91fd0d.
+Please note that if user does not queue the buffers in an ascending buffer
+index order, the buffers are going to be dequeued out of order.
+Since we cannot change the order of processing the buffers in hardware,
+we are only able to mask/unmask specific buffer in the DMA engine.
+The processing sequence is always fixed and the buffers would be dequeued
+in an ascending video buffer index order.
+However this kind of operation is possible with videobuf2.
 
-Signed-off-by: Brandon Philips <bphilips@suse.de>
----
- drivers/media/video/bt8xx/bttv-driver.c |   24 +++++++++++++-----------
- 1 files changed, 13 insertions(+), 11 deletions(-)
+The modification for s5pv310 is rather straightforward. I am more concerned
+at the moment with the fact that in s5pv210 output frame index register
+seem to be changing in a non deterministic way when the CIOYSAn address
+registers are being updated in the interrupt handler. So it looks like there is
+no reliable status register in HW to determine which DMA buffer is currently
+being used. This causes trouble when streaming is stopped in the camera capture
+driver when user does not queue buffer on time, and then
+the capturing needs to be resumed. Are you aware of that?
+The only resolution I could come up with so far is to create a parallel counter
+in software, but it is not really reliable.
 
-diff --git a/drivers/media/video/bt8xx/bttv-driver.c b/drivers/media/video/bt8xx/bttv-driver.c
-index a529619..e656424 100644
---- a/drivers/media/video/bt8xx/bttv-driver.c
-+++ b/drivers/media/video/bt8xx/bttv-driver.c
-@@ -2391,16 +2391,11 @@ static int setup_window_lock(struct bttv_fh *fh, struct bttv *btv,
- 	fh->ov.field    = win->field;
- 	fh->ov.setup_ok = 1;
- 
--	/*
--	 * FIXME: btv is protected by btv->lock mutex, while btv->init
--	 *	  is protected by fh->cap.vb_lock. This seems to open the
--	 *	  possibility for some race situations. Maybe the better would
--	 *	  be to unify those locks or to use another way to store the
--	 *	  init values that will be consumed by videobuf callbacks
--	 */
-+	mutex_lock(&btv->init.cap.vb_lock);
- 	btv->init.ov.w.width   = win->w.width;
- 	btv->init.ov.w.height  = win->w.height;
- 	btv->init.ov.field     = win->field;
-+	mutex_unlock(&btv->init.cap.vb_lock);
- 
- 	/* update overlay if needed */
- 	retval = 0;
-@@ -2620,9 +2615,11 @@ static int bttv_s_fmt_vid_cap(struct file *file, void *priv,
- 	fh->cap.last         = V4L2_FIELD_NONE;
- 	fh->width            = f->fmt.pix.width;
- 	fh->height           = f->fmt.pix.height;
-+	mutex_lock(&btv->init.cap.vb_lock);
- 	btv->init.fmt        = fmt;
- 	btv->init.width      = f->fmt.pix.width;
- 	btv->init.height     = f->fmt.pix.height;
-+	mutex_unlock(&btv->init.cap.vb_lock);
- 	mutex_unlock(&fh->cap.vb_lock);
- 
- 	return 0;
-@@ -2855,6 +2852,7 @@ static int bttv_s_fbuf(struct file *file, void *f,
- 
- 	retval = 0;
- 	fh->ovfmt = fmt;
-+	mutex_lock(&btv->init.cap.vb_lock);
- 	btv->init.ovfmt = fmt;
- 	if (fb->flags & V4L2_FBUF_FLAG_OVERLAY) {
- 		fh->ov.w.left   = 0;
-@@ -2876,6 +2874,7 @@ static int bttv_s_fbuf(struct file *file, void *f,
- 			retval = bttv_switch_overlay(btv, fh, new);
- 		}
- 	}
-+	mutex_unlock(&btv->init.cap.vb_lock);
- 	mutex_unlock(&fh->cap.vb_lock);
- 	return retval;
- }
-@@ -3141,6 +3140,7 @@ static int bttv_s_crop(struct file *file, void *f, struct v4l2_crop *crop)
- 	fh->do_crop = 1;
- 
- 	mutex_lock(&fh->cap.vb_lock);
-+	mutex_lock(&btv->init.cap.vb_lock);
- 
- 	if (fh->width < c.min_scaled_width) {
- 		fh->width = c.min_scaled_width;
-@@ -3158,6 +3158,7 @@ static int bttv_s_crop(struct file *file, void *f, struct v4l2_crop *crop)
- 		btv->init.height = c.max_scaled_height;
- 	}
- 
-+	mutex_unlock(&btv->init.cap.vb_lock);
- 	mutex_unlock(&fh->cap.vb_lock);
- 
- 	return 0;
-@@ -3302,9 +3303,9 @@ static int bttv_open(struct file *file)
- 	 * Let's first copy btv->init at fh, holding cap.vb_lock, and then work
- 	 * with the rest of init, holding btv->lock.
- 	 */
--	mutex_lock(&fh->cap.vb_lock);
-+	mutex_lock(&btv->init.cap.vb_lock);
- 	*fh = btv->init;
--	mutex_unlock(&fh->cap.vb_lock);
-+	mutex_unlock(&btv->init.cap.vb_lock);
- 
- 	fh->type = type;
- 	fh->ov.setup_ok = 0;
-@@ -3502,9 +3503,9 @@ static int radio_open(struct file *file)
- 	if (unlikely(!fh))
- 		return -ENOMEM;
- 	file->private_data = fh;
--	mutex_lock(&fh->cap.vb_lock);
-+	mutex_lock(&btv->init.cap.vb_lock);
- 	*fh = btv->init;
--	mutex_unlock(&fh->cap.vb_lock);
-+	mutex_unlock(&btv->init.cap.vb_lock);
- 
- 	mutex_lock(&btv->lock);
- 	v4l2_prio_open(&btv->prio, &fh->prio);
-@@ -4489,6 +4490,7 @@ static int __devinit bttv_probe(struct pci_dev *dev,
- 	btv->opt_coring     = coring;
- 
- 	/* fill struct bttv with some useful defaults */
-+	mutex_init(&btv->init.cap.vb_lock);
- 	btv->init.btv         = btv;
- 	btv->init.ov.w.width  = 320;
- 	btv->init.ov.w.height = 240;
+> 
+> How about this?
+> First I am going to modify output buffer control in V310, and you review that.
+> 
+> I saw the patches vb2(ver. 6) and fimc patch. I will work based on that.
+> 
+> 
+>> So we would have to walk the list of buffers' addresses written into
+>> CIOYSAn
+>> registers and perform a write if our new incoming buffer is not there
+>> anyway.
+>>
+>> Nevertheless I think it would be cleaner and more safe to use your
+>> proposed
+>> method. Did you observe any problems when DMA buffers addresses are
+>> reconfigured within the ISR in S5PV310? I mean are there any good
+>> reasons
+>> against that? I know there are some issues on S5PV210 about that and
+>> I am going fix it too.
+>>
+>> On 12/03/2010 08:30 AM, Sungchun Kang wrote:
+>>> Hi Sylwester Nawrocki,
+>>>
+>>> I have some suggestion about s5p-fimc camera driver.
+>>> As you know, FIMC have 32 ping-pong register(CIOYSA1~CIOYSA32) for
+>> output
+>>> buffer in v310 chip. It is different from v210.
+>>> It is not necessary to change address at ping-pong register.
+>>> If request buffer number is 8, 8 buffer can be set at ping-pong
+>> register.
+>>>
+>>> - active_buf_q / pending_buf_q
+>>>
+>>> The list_head pending_buf_q is not necessary for v310. Because, it
+>> is possible
+>>> to set output buffer until 32.
+>>> There is no case that request buffer number is over 32.
+>>
+>> Ok, I think it is safe to make such assumption.
+>>
+>>> So, I think pending_buf_q is not use in v310. Instead, it can be
+>> used active_buf_q.
+>>> Of course, The use of active_buf_q may be different from the present.
+>>>
+>>> For intstance, ISR may be changed follow.
+>>>
+>>> a. Read FrameCnt_before(CISTATUS2) - This is for what is written
+>> buffer(index) just.
+>>> b. Disable a proper bit of FrameCnt_Seq(CIFCNTSEQ) and send written
+>> buffer to done_list.
+>>> ....
+>> And we we wanted to reschedule same buffer again we would have to
+>> search in
+>> all 32 registers to match the address of a buffer passed back by the
+>> application, right?
+>>
+>>>
+>>> I want to know how about your opinions.
+>>
+>> In general I would like to avoid significant differences of hardware
+>> handling
+>> across various SoC variants as much as possible. However also I
+>> realize that
+>> some differences cannot be avoided for optimal hardware handling.
+>> And please feel free to submit patches, however I think the best time
+>> for those
+>> would be after the driver is adopted to videobuf2. Now it is changing
+>> frequently.
+>>
+>> Regards,
+>> Sylwester
+>>
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-
+>> media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>
+>> --
+>> Sylwester Nawrocki
+>> Samsung Poland R&D Center
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>> in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+Regards,
 -- 
-1.7.3.1
-
+Sylwester Nawrocki
+Samsung Poland R&D Center
