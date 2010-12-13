@@ -1,85 +1,84 @@
 Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55443 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753665Ab0LOASq (ORCPT
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:44448 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932125Ab0LMOEn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Dec 2010 19:18:46 -0500
-To: riverful.kim@samsung.com
-Subject: Re: What if add enumerations at the V4L2_FOCUS_MODE_AUTO?
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Date: Wed, 15 Dec 2010 01:19:43 +0100
+	Mon, 13 Dec 2010 09:04:43 -0500
+Date: Mon, 13 Dec 2010 22:04:21 +0800
+From: Dave Young <hidave.darkstar@gmail.com>
+To: Torsten Kaiser <just.for.lkml@googlemail.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Chris Clayton <chris2553@googlemail.com>
+Subject: Re: [PATCH] bttv: fix mutex use before init
+Message-ID: <20101213140421.GA2826@darkstar>
+References: <20101212131550.GA2608@darkstar>
+ <AANLkTinaNjPjNbxE+OyRsY_jJxDW-pwehTPgyAWzqfzd@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="euc-kr"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201012150119.43918.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <AANLkTinaNjPjNbxE+OyRsY_jJxDW-pwehTPgyAWzqfzd@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi,
+On Sun, Dec 12, 2010 at 05:13:47PM +0100, Torsten Kaiser wrote:
+> On Sun, Dec 12, 2010 at 2:15 PM, Dave Young <hidave.darkstar@gmail.com> wrote:
+> > oops happen in bttv_open while locking uninitialized mutex fh->cap.vb_lock
+> > add mutex_init before usage
+> 
+> I have seen the same problem twice since I switched of the BKL in
+> 2.6.37-rc2, but only had the time today to search for the cause.
+> (It only happend on two boots out of probably more then 50, so I only
+> investigated after it happened a second time with -rc5)
+> 
+> The cause was making this change to bttv_open() and radio_open() to
+> remove the BKL from them:
+> +	mutex_lock(&fh->cap.vb_lock);
+>  	*fh = btv->init;
+> +	mutex_unlock(&fh->cap.vb_lock);
+> 
+> This is wrong because of two things:
+> First: The fh->cap.vb_lock has not been initialised, as you noted.
+> Second: The middle line will overwrite the mutex!
+> 
+> Just adding mutex_init() will not really help the second problem and
+> seems to be wrong from the point that cap.vb_lock already has a
+> mutex_init() via videobuf_queue_sg_init().
 
-(CC'ing linux-media this time, please discard the previous mail)
+Yes, you are right. I wonder if the above lock code in bttv_open and radio_open can be removed or just use btv->lock.
 
-On Tuesday 14 December 2010 12:27:32 Kim, HeungJun wrote:
-> Hi Laurent and Hans,
 > 
-> I am working on V4L2 subdev for M5MOLS by Fujitsu.
-> and I wanna listen your comments about Auto Focus mode of my ideas.
-> the details is in the following link discussed at the past.
-> Although the situation(adding the more various functions at the M5MOLS
-> or any other MEGA camera sensor, I worked.)is changed,
-> so I wanna continue this threads for now.
+> I'm not sure what the correct fix is, but I would rather suggest this:
 > 
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg03543.html
-> 
-> First of all, the at least two more mode of auto-focus exists in the
-> M5MOLS camera sensor. So, considering defined V4L2 controls and the
-> controls in the M5MOLS, I suggest like this:
-> 
-> +enum  v4l2_focus_auto_type {
-> +	V4L2_FOCUS_AUTO_NORMAL = 0,
-> +	V4L2_FOCUS_AUTO_MACRO = 1,
-> +	V4L2_FOCUS_AUTO_POSITION = 2,
-> +};
-> +#define V4L2_CID_FOCUS_POSITION			(V4L2_CID_CAMERA_CLASS_BASE+13)
-> 
-> -#define V4L2_CID_ZOOM_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+13)
-> -#define V4L2_CID_ZOOM_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+14)
-> +#define V4L2_CID_ZOOM_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+14)
-> +#define V4L2_CID_ZOOM_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+15)
-> 
-> 
-> The M5MOLS(or other recent camera sensor) can have at least 2 mode although
-> in any cases : *MACRO* and *NORMAL* mode. plus, M5MOLS supports
-> positioning focus mode, AKA. POSITION AF mode.
-> 
-> The MACRO mode scan short range, and this mode can be used at the
-> circumstance in the short distance with object and camera lens. So, It has
-> fast lens movement, but the command FOCUSING dosen't works well at the
-> long distance object.
-> 
-> On the other hand, NORMAL mode can this. As the words, It's general and
-> normal focus mode. The M5MOLS scan fully in the mode.
-> 
-> In the Position AF mode, the position(expressed x,y) is given at the
-> M5MOLS, and then the M5MOLS focus this area. But, the time given the
-> position, is normally touch the lcd screen at the mobile device, in my
-> case. If the time is given from button, it's no big problem *when*. But,
-> in touch-lcd screen case, the position is read at the touch screen driver,
-> before command FOCUS to camera sensor. It's the why I add another
-> CID(V4L2_CID_FOCUS_POSITION).
+>  * change &fh->cap.vb_lock in bttv_open() AND radio_open() to
+> &btv->init.cap.vb_lock
+>  * add a mutex_init(&btv->init.cap.vb_lock) to the setup of init in bttv_probe()
 
-I'm pretty sure that some devices would require a rectangle instead of 
-coordinates to define the focus point. Even a rectangle might not be enough. 
-It would help if we could get feedback from camera designers here.
+I will test this when the bttv card is available for me tommorrow.
 
-Hans, should we add a new control type to pass coordinates/rectangles ? :-)
-
--- 
-Regards,
-
-Laurent Pinchart
+> 
+> > Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+> > Tested-by: Chris Clayton <chris2553@googlemail.com>
+> > ---
+> >  drivers/media/video/bt8xx/bttv-driver.c |    2 ++
+> >  1 file changed, 2 insertions(+)
+> >
+> > --- linux-2.6.orig/drivers/media/video/bt8xx/bttv-driver.c      2010-11-27 11:21:30.000000000 +0800
+> > +++ linux-2.6/drivers/media/video/bt8xx/bttv-driver.c   2010-12-12 16:31:39.633333338 +0800
+> > @@ -3291,6 +3291,8 @@ static int bttv_open(struct file *file)
+> >        fh = kmalloc(sizeof(*fh), GFP_KERNEL);
+> >        if (unlikely(!fh))
+> >                return -ENOMEM;
+> > +
+> > +       mutex_init(&fh->cap.vb_lock);
+> >        file->private_data = fh;
+> >
+> >        /*
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > Please read the FAQ at  http://www.tux.org/lkml/
+> >
