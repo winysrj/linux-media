@@ -1,48 +1,81 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:50981 "EHLO smtp5-g21.free.fr"
+Received: from mx1.redhat.com ([209.132.183.28]:56292 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757825Ab0LNTO4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Dec 2010 14:14:56 -0500
-Date: Tue, 14 Dec 2010 20:16:58 +0100
-From: =?UTF-8?B?SmVhbi1GcmFuw6dvaXM=?= Moine <moinejf@free.fr>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 5/6] gspca - sonixj: Add the bit definitions of the bridge
- reg 0x01 and 0x17
-Message-ID: <20101214201658.795f96f5@tele>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	id S1754260Ab0LMSbq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Dec 2010 13:31:46 -0500
+Date: Mon, 13 Dec 2010 13:31:28 -0500
+From: Jarod Wilson <jarod@redhat.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Henrik Rydberg <rydberg@euromail.se>,
+	Linux Input <linux-input@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jiri Kosina <jkosina@suse.cz>,
+	David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Subject: Re: [RFC] Input: define separate EVIOCGKEYCODE_V2/EVIOCSKEYCODE_V2
+Message-ID: <20101213183128.GE2531@redhat.com>
+References: <20101209093948.GD8821@core.coreip.homeip.net>
+ <4D012844.3020009@euromail.se>
+ <20101209191647.GC23781@core.coreip.homeip.net>
+ <20101213090559.GH21401@core.coreip.homeip.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20101213090559.GH21401@core.coreip.homeip.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Signed-off-by: Jean-François Moine <moinejf@free.fr>
+On Mon, Dec 13, 2010 at 01:06:00AM -0800, Dmitry Torokhov wrote:
+> On Thu, Dec 09, 2010 at 11:16:47AM -0800, Dmitry Torokhov wrote:
+> > On Thu, Dec 09, 2010 at 08:04:36PM +0100, Henrik Rydberg wrote:
+> > > On 12/09/2010 10:39 AM, Dmitry Torokhov wrote:
+> > > 
+> > > > The desire to keep old names for the EVIOCGKEYCODE/EVIOCSKEYCODE while
+> > > > extending them to support large scancodes was a mistake. While we tried
+> > > > to keep ABI intact (and we succeeded in doing that, programs compiled
+> > > > on older kernels will work on newer ones) there is still a problem with
+> > > > recompiling existing software with newer kernel headers.
+> > > > 
+> > > > New kernel headers will supply updated ioctl numbers and kernel will
+> > > > expect that userspace will use struct input_keymap_entry to set and
+> > > > retrieve keymap data. But since the names of ioctls are still the same
+> > > > userspace will happily compile even if not adjusted to make use of the
+> > > > new structure and will start miraculously fail in the field.
+> > > > 
+> > > > To avoid this issue let's revert EVIOCGKEYCODE/EVIOCSKEYCODE definitions
+> > > > and add EVIOCGKEYCODE_V2/EVIOCSKEYCODE_V2 so that userspace can explicitly
+> > > > select the style of ioctls it wants to employ.
+> > > > 
+> > > > Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+> > > > ---
+> > > 
+> > > 
+> > > Would the header change suffice in itself?
+> > 
+> > We still need to change evdev to return -EINVAL on wrong sizes but yes,
+> > the amount of change there could be more limited. I just thought that
+> > splitting it up explicitly shows the differences in handling better. If
+> > people prefer the previos version we could leave it, I am 50/50 between
+> > them.
+> > 
+> 
+> *ping*
+> 
+> Mauro, Jarod, do you have an opinion on this? I think we need to settle
+> on a solution before 2.6.37 is out.
 
-diff --git a/drivers/media/video/gspca/sonixj.c b/drivers/media/video/gspca/sonixj.c
-index 5deff24..a75f7ec 100644
---- a/drivers/media/video/gspca/sonixj.c
-+++ b/drivers/media/video/gspca/sonixj.c
-@@ -100,6 +100,19 @@ enum sensors {
- /* device flags */
- #define PDN_INV	1		/* inverse pin S_PWR_DN / sn_xxx tables */
- 
-+/* sn9c1xx definitions */
-+/* register 0x01 */
-+#define S_PWR_DN	0x01	/* sensor power down */
-+#define S_PDN_INV	0x02	/* inverse pin S_PWR_DN */
-+#define V_TX_EN		0x04	/* video transfer enable */
-+#define LED		0x08	/* output to pin LED */
-+#define SCL_SEL_OD	0x20	/* open-drain mode */
-+#define SYS_SEL_48M	0x40	/* system clock 0: 24MHz, 1: 48MHz */
-+/* register 0x17 */
-+#define MCK_SIZE_MASK	0x1f	/* sensor master clock */
-+#define SEN_CLK_EN	0x20	/* enable sensor clock */
-+#define DEF_EN		0x80	/* defect pixel by 0: soft, 1: hard */
-+
- /* V4L2 controls supported by the driver */
- static void setbrightness(struct gspca_dev *gspca_dev);
- static void setcontrast(struct gspca_dev *gspca_dev);
+Sorry, been meaning to reply, just been quite tied up with other work...
+I'm of two minds on this as well, but probably leaning slightly in favor
+of going ahead with an explicit _V2 so as to not break existing userspace
+in new and unexpected ways. There presumably isn't much in the way of
+userspace already adapted to the new interface, and its simple to do
+another rev of those that have been. Okay, yeah, this is probably the best
+way to go about it.
+
+Acked-by: Jarod Wilson <jarod@redhat.com>
+
+
 -- 
-1.7.2.3
+Jarod Wilson
+jarod@redhat.com
 
