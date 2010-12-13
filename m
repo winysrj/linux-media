@@ -1,154 +1,68 @@
 Return-path: <mchehab@gaivota>
-Received: from casper.infradead.org ([85.118.1.10]:56423 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755218Ab0LQUL2 (ORCPT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:49549 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752929Ab0LMJGI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Dec 2010 15:11:28 -0500
-Message-ID: <4D0BC3E6.8060100@infradead.org>
-Date: Fri, 17 Dec 2010 18:11:18 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Mon, 13 Dec 2010 04:06:08 -0500
+Date: Mon, 13 Dec 2010 01:06:00 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Henrik Rydberg <rydberg@euromail.se>
+Cc: Linux Input <linux-input@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jiri Kosina <jkosina@suse.cz>, Jarod Wilson <jarod@redhat.com>,
+	David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Subject: Re: [RFC] Input: define separate EVIOCGKEYCODE_V2/EVIOCSKEYCODE_V2
+Message-ID: <20101213090559.GH21401@core.coreip.homeip.net>
+References: <20101209093948.GD8821@core.coreip.homeip.net>
+ <4D012844.3020009@euromail.se>
+ <20101209191647.GC23781@core.coreip.homeip.net>
 MIME-Version: 1.0
-To: Brandon Philips <brandon@ifup.org>
-CC: chris2553@googlemail.com,
-	Torsten Kaiser <just.for.lkml@googlemail.com>,
-	Dave Young <hidave.darkstar@gmail.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] bttv: fix mutex use before init
-References: <20101212131550.GA2608@darkstar> <AANLkTinaNjPjNbxE+OyRsY_jJxDW-pwehTPgyAWzqfzd@mail.gmail.com> <20101214003024.GA3575@hanuman.home.ifup.org> <201012151844.04105.chris2553@googlemail.com> <4D093706.9040401@infradead.org> <20101217160723.GU2028@jenkins.home.ifup.org>
-In-Reply-To: <20101217160723.GU2028@jenkins.home.ifup.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20101209191647.GC23781@core.coreip.homeip.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 17-12-2010 14:07, Brandon Philips escreveu:
-> On 19:45 Wed 15 Dec 2010, Mauro Carvalho Chehab wrote:
->> Em 15-12-2010 16:44, Chris Clayton escreveu:
->>> On Tuesday 14 December 2010, Brandon Philips wrote:
->>>> On 17:13 Sun 12 Dec 2010, Torsten Kaiser wrote:
->>>>>  * change &fh->cap.vb_lock in bttv_open() AND radio_open() to
->>>>>  &btv->init.cap.vb_lock * add a mutex_init(&btv->init.cap.vb_lock)
->>>>>  to the setup of init in bttv_probe()
->>>>
->>>> That seems like a reasonable suggestion. An openSUSE user submitted
->>>> this bug to our tracker too. Here is the patch I am having him
->>>> test.
->>>>
->>>> Would you mind testing it?
->>>>
->>>> From 456dc0ce36db523c4c0c8a269f4eec43a72de1dc Mon Sep 17 00:00:00
->>>> 2001 From: Brandon Philips <bphilips@suse.de> Date: Mon, 13 Dec
->>>> 2010 16:21:55 -0800 Subject: [PATCH] bttv: fix locking for
->>>> btv->init
->>>>
->>>> Fix locking for the btv->init by using btv->init.cap.vb_lock and in
->>>> the process fix uninitialized deref introduced in c37db91fd0d.
->>>>
->>>> Signed-off-by: Brandon Philips <bphilips@suse.de>
->>
->> While your patch fixes the issue, it has some other troubles, like to
->> the presence of lock code at free_btres_lock(). It is possible to fix,
->> but the better is to just use the core-assisted locking schema. This
->> way, V4L2 core will serialize access to all
->> ioctl's/open/close/mmap/read/poll operations, avoiding to have two
->> processes accessing the hardware at the same time. Also, as there's
->> just one lock, instead of 3, there's no risk of dead locks.
+On Thu, Dec 09, 2010 at 11:16:47AM -0800, Dmitry Torokhov wrote:
+> On Thu, Dec 09, 2010 at 08:04:36PM +0100, Henrik Rydberg wrote:
+> > On 12/09/2010 10:39 AM, Dmitry Torokhov wrote:
+> > 
+> > > The desire to keep old names for the EVIOCGKEYCODE/EVIOCSKEYCODE while
+> > > extending them to support large scancodes was a mistake. While we tried
+> > > to keep ABI intact (and we succeeded in doing that, programs compiled
+> > > on older kernels will work on newer ones) there is still a problem with
+> > > recompiling existing software with newer kernel headers.
+> > > 
+> > > New kernel headers will supply updated ioctl numbers and kernel will
+> > > expect that userspace will use struct input_keymap_entry to set and
+> > > retrieve keymap data. But since the names of ioctls are still the same
+> > > userspace will happily compile even if not adjusted to make use of the
+> > > new structure and will start miraculously fail in the field.
+> > > 
+> > > To avoid this issue let's revert EVIOCGKEYCODE/EVIOCSKEYCODE definitions
+> > > and add EVIOCGKEYCODE_V2/EVIOCSKEYCODE_V2 so that userspace can explicitly
+> > > select the style of ioctls it wants to employ.
+> > > 
+> > > Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+> > > ---
+> > 
+> > 
+> > Would the header change suffice in itself?
 > 
-> Thanks, but, why wasn't this done instead of c37db91f?
+> We still need to change evdev to return -EINVAL on wrong sizes but yes,
+> the amount of change there could be more limited. I just thought that
+> splitting it up explicitly shows the differences in handling better. If
+> people prefer the previos version we could leave it, I am 50/50 between
+> them.
+> 
 
-Because c37db91f were a first attempt. I was expecting that it would be enough,
-but, after some discussions at the ML, it seemed to be better to use a different
-approach. As you probably noticed, the locking schema at bttv driver were very
-complex, and it were likely to ask for problems. The new schema is simpler. The
-principle is to serialize the access to the hardware or to the hardware-mirrored
-data. It does that by serializing the access to all file operations for a given
-bttv device.
+*ping*
 
-While this is a little overkill (as there are a very few set of operations that
-won't require locking, like retrieving some static read-only data), there's no
-performance impact at the critical path, as such ioctl's typically happen only
-during hardware discovery phase at the userspace apps.
+Mauro, Jarod, do you have an opinion on this? I think we need to settle
+on a solution before 2.6.37 is out.
 
-> 
-> Will this make it in before 2.6.37 is released? Otherwise 2.6.37 will
-> need to be fixed in -stable immediatly after release.
+Thanks.
 
-I'll intend to add it today for -next, and send upstream by Sunday, hopefully
-in time for .37.
-
-> 
->> The net result is a cleaner code, with just one lock.
-> 
-> Could you take this patch to remove all of the comments about locking
-> order with btv->lock since it doesn't seem to matter any longer.
-
-Yes, sure. Thanks for the patch.
-> 
-> Cheers,
-> 
-> 	Brandon
-> 
-> P.S. Your mail client creates really long lines- somewhere around 90
-> characters. Could you fix that?
-> 
-> From 7643db7bf5e9e557a27e3783786a1abecbdf82a7 Mon Sep 17 00:00:00 2001
-> From: Brandon Philips <brandon@ifup.org>
-> Date: Fri, 17 Dec 2010 07:58:22 -0800
-> Subject: [PATCH] bttv: remove unneeded locking comments
-> 
-> After Mauro's "bttv: Fix locking issues due to BKL removal code" there
-> are a number of comments that are no longer needed about lock ordering.
-> Remove them.
-> 
-> Signed-off-by: Brandon Philips <bphilips@suse.de>
-> ---
->  drivers/media/video/bt8xx/bttv-driver.c |   20 --------------------
->  1 files changed, 0 insertions(+), 20 deletions(-)
-> 
-> diff --git a/drivers/media/video/bt8xx/bttv-driver.c b/drivers/media/video/bt8xx/bttv-driver.c
-> index 25e1ca0..0902ec0 100644
-> --- a/drivers/media/video/bt8xx/bttv-driver.c
-> +++ b/drivers/media/video/bt8xx/bttv-driver.c
-> @@ -2358,13 +2358,6 @@ static int setup_window_lock(struct bttv_fh *fh, struct bttv *btv,
->  	fh->ov.field    = win->field;
->  	fh->ov.setup_ok = 1;
->  
-> -	/*
-> -	 * FIXME: btv is protected by btv->lock mutex, while btv->init
-> -	 *	  is protected by fh->cap.vb_lock. This seems to open the
-> -	 *	  possibility for some race situations. Maybe the better would
-> -	 *	  be to unify those locks or to use another way to store the
-> -	 *	  init values that will be consumed by videobuf callbacks
-> -	 */
->  	btv->init.ov.w.width   = win->w.width;
->  	btv->init.ov.w.height  = win->w.height;
->  	btv->init.ov.field     = win->field;
-> @@ -3219,15 +3212,6 @@ static int bttv_open(struct file *file)
->  		return -ENOMEM;
->  	file->private_data = fh;
->  
-> -	/*
-> -	 * btv is protected by btv->lock mutex, while btv->init and other
-> -	 * streaming vars are protected by fh->cap.vb_lock. We need to take
-> -	 * care of both locks to avoid troubles. However, vb_lock is used also
-> -	 * inside videobuf, without calling buf->lock. So, it is a very bad
-> -	 * idea to hold both locks at the same time.
-> -	 * Let's first copy btv->init at fh, holding cap.vb_lock, and then work
-> -	 * with the rest of init, holding btv->lock.
-> -	 */
->  	*fh = btv->init;
->  
->  	fh->type = type;
-> @@ -3302,10 +3286,6 @@ static int bttv_release(struct file *file)
->  
->  	/* free stuff */
->  
-> -	/*
-> -	 * videobuf uses cap.vb_lock - we should avoid holding btv->lock,
-> -	 * otherwise we may have dead lock conditions
-> -	 */
->  	videobuf_mmap_free(&fh->cap);
->  	videobuf_mmap_free(&fh->vbi);
->  	v4l2_prio_close(&btv->prio, fh->prio);
-
+-- 
+Dmitry
