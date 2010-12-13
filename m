@@ -1,77 +1,200 @@
 Return-path: <mchehab@gaivota>
-Received: from casper.infradead.org ([85.118.1.10]:58951 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753774Ab0LVQcy (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:61457 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757171Ab0LML1G (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Dec 2010 11:32:54 -0500
-Message-ID: <4D12282B.7090103@infradead.org>
-Date: Wed, 22 Dec 2010 14:32:43 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: iceberg <strakh@ispras.ru>
-CC: linux-kernel@vger.kernel.org, kangyong@telegent.com,
-	xbzhang@telegent.com, zyziii@telegent.com, shijie8@gmail.com,
-	linux-media@vger.kernel.org
-Subject: Re: BUG: double mutex_unlock in drivers/media/video/tlg2300/pd-video.c
-References: <201012131859.15152.strakh@ispras.ru>
-In-Reply-To: <201012131859.15152.strakh@ispras.ru>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	Mon, 13 Dec 2010 06:27:06 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Mon, 13 Dec 2010 12:26:51 +0100
+From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Subject: [PATCHv7 10/10] ARM: cma: Added CMA to Aquila,
+ Goni and c210 universal boards
+In-reply-to: <cover.1292004520.git.m.nazarewicz@samsung.com>
+To: Michal Nazarewicz <mina86@mina86.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Ankita Garg <ankita@in.ibm.com>,
+	BooJin Kim <boojin.kim@samsung.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mel Gorman <mel@csn.ul.ie>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	Michal Nazarewicz <m.nazarewicz@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <cb1df81fb822b99ff00d2f4387525f8b07f05e57.1292004520.git.m.nazarewicz@samsung.com>
+References: <cover.1292004520.git.m.nazarewicz@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 13-12-2010 13:59, iceberg escreveu:
-> KERNEL_VERSION: 2.6.36
->         SUBJECT: double mutex_lock in drivers/media/video/tlg2300/pd-video.c 
-> in function vidioc_s_fmt
->         SUBSCRIBE:
-> 	First mutex_unlock in function pd_vidioc_s_fmt in line 767:
-> 
->  764        ret |= send_set_req(pd, VIDEO_ROSOLU_SEL,
->  765                                vid_resol, &cmd_status);
->  766        if (ret || cmd_status) {
->  767                mutex_unlock(&pd->lock);
->  768                return -EBUSY;
->  769        }
-> 
-> 	Second mutex_unlock in function vidioc_s_fmt in line 806:
-> 
->  805        pd_vidioc_s_fmt(pd, &f->fmt.pix);
->  806        mutex_unlock(&pd->lock);
-> 
-> Found by Linux Device Drivers Verification Project
-> 
-> ?hecks the return code of pd_vidioc_s_fm before mutex_unlocking.
-> 
-> Signed-off-by: Alexander Strakh <strakh@ispras.ru>
-> 
-> ---
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> diff --git a/drivers/media/video/tlg2300/pd-video.c 
-> b/drivers/media/video/tlg2300/pd-video.c
-> index a1ffe18..fe6bd2b 100644
-> --- a/drivers/media/video/tlg2300/pd-video.c
-> +++ b/drivers/media/video/tlg2300/pd-video.c
-> @@ -802,8 +802,8 @@ static int vidioc_s_fmt(struct file *file, void *fh, 
-> struct v4l2_format *f)
->  		return -EINVAL;
->  	}
->  
-> -	pd_vidioc_s_fmt(pd, &f->fmt.pix);
-> -	mutex_unlock(&pd->lock);
-> +	if (!pd_vidioc_s_fmt(pd, &f->fmt.pix)) 
-> +		mutex_unlock(&pd->lock);
->  	return 0;
->  }
-> 
+This commit adds CMA memory reservation code to Aquila, Goni and c210
+universal boards.
 
-Thanks for the patch, but the better is to keep the calls to mutex_lock/mutex_unlock
-at the same function. So, instead of adding an "if" at vidioc_s_fmt, please remove
-the mutex_unlock() from pd_vidioc_s_fmt().
+Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ arch/arm/mach-s5pv210/mach-aquila.c         |    2 +
+ arch/arm/mach-s5pv210/mach-goni.c           |    2 +
+ arch/arm/mach-s5pv310/mach-universal_c210.c |    2 +
+ arch/arm/plat-s5p/Makefile                  |    2 +
+ arch/arm/plat-s5p/cma-stub.c                |   49 +++++++++++++++++++++++++++
+ arch/arm/plat-s5p/include/plat/cma-stub.h   |   21 +++++++++++
+ 6 files changed, 78 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/plat-s5p/cma-stub.c
+ create mode 100644 arch/arm/plat-s5p/include/plat/cma-stub.h
 
-Cheers,
-Mauro
+diff --git a/arch/arm/mach-s5pv210/mach-aquila.c b/arch/arm/mach-s5pv210/mach-aquila.c
+index 28677ca..8608a16 100644
+--- a/arch/arm/mach-s5pv210/mach-aquila.c
++++ b/arch/arm/mach-s5pv210/mach-aquila.c
+@@ -39,6 +39,7 @@
+ #include <plat/fb.h>
+ #include <plat/fimc-core.h>
+ #include <plat/sdhci.h>
++#include <plat/cma-stub.h>
+ 
+ /* Following are default values for UCON, ULCON and UFCON UART registers */
+ #define AQUILA_UCON_DEFAULT	(S3C2410_UCON_TXILEVEL |	\
+@@ -690,4 +691,5 @@ MACHINE_START(AQUILA, "Aquila")
+ 	.map_io		= aquila_map_io,
+ 	.init_machine	= aquila_machine_init,
+ 	.timer		= &s3c24xx_timer,
++	.reserve	= cma_mach_reserve,
+ MACHINE_END
+diff --git a/arch/arm/mach-s5pv210/mach-goni.c b/arch/arm/mach-s5pv210/mach-goni.c
+index b1dcf96..b1bf079 100644
+--- a/arch/arm/mach-s5pv210/mach-goni.c
++++ b/arch/arm/mach-s5pv210/mach-goni.c
+@@ -45,6 +45,7 @@
+ #include <plat/keypad.h>
+ #include <plat/sdhci.h>
+ #include <plat/clock.h>
++#include <plat/cma-stub.h>
+ 
+ /* Following are default values for UCON, ULCON and UFCON UART registers */
+ #define GONI_UCON_DEFAULT	(S3C2410_UCON_TXILEVEL |	\
+@@ -865,4 +866,5 @@ MACHINE_START(GONI, "GONI")
+ 	.map_io		= goni_map_io,
+ 	.init_machine	= goni_machine_init,
+ 	.timer		= &s3c24xx_timer,
++	.reserve	= cma_mach_reserve,
+ MACHINE_END
+diff --git a/arch/arm/mach-s5pv310/mach-universal_c210.c b/arch/arm/mach-s5pv310/mach-universal_c210.c
+index 16d8fc0..d65703a 100644
+--- a/arch/arm/mach-s5pv310/mach-universal_c210.c
++++ b/arch/arm/mach-s5pv310/mach-universal_c210.c
+@@ -21,6 +21,7 @@
+ #include <plat/s5pv310.h>
+ #include <plat/cpu.h>
+ #include <plat/devs.h>
++#include <plat/cma-stub.h>
+ 
+ #include <mach/map.h>
+ 
+@@ -152,6 +153,7 @@ MACHINE_START(UNIVERSAL_C210, "UNIVERSAL_C210")
+ 	.boot_params	= S5P_PA_SDRAM + 0x100,
+ 	.init_irq	= s5pv310_init_irq,
+ 	.map_io		= universal_map_io,
++	.reserve	= cma_mach_reserve,
+ 	.init_machine	= universal_machine_init,
+ 	.timer		= &s5pv310_timer,
+ MACHINE_END
+diff --git a/arch/arm/plat-s5p/Makefile b/arch/arm/plat-s5p/Makefile
+index de65238..6fdb6ce 100644
+--- a/arch/arm/plat-s5p/Makefile
++++ b/arch/arm/plat-s5p/Makefile
+@@ -28,3 +28,5 @@ obj-$(CONFIG_S5P_DEV_FIMC0)	+= dev-fimc0.o
+ obj-$(CONFIG_S5P_DEV_FIMC1)	+= dev-fimc1.o
+ obj-$(CONFIG_S5P_DEV_FIMC2)	+= dev-fimc2.o
+ obj-$(CONFIG_S5P_DEV_ONENAND)	+= dev-onenand.o
++
++obj-$(CONFIG_CMA) += cma-stub.o
+diff --git a/arch/arm/plat-s5p/cma-stub.c b/arch/arm/plat-s5p/cma-stub.c
+new file mode 100644
+index 0000000..716e56d
+--- /dev/null
++++ b/arch/arm/plat-s5p/cma-stub.c
+@@ -0,0 +1,49 @@
++/*
++ * This file is just a quick and dirty hack to get CMA testing device
++ * working.  The cma_mach_reserve() should be called as mach's reserve
++ * callback.  CMA testing device will use cma_ctx for allocations.
++ */
++
++#include <plat/cma-stub.h>
++
++#include <linux/cma.h>
++#include <linux/err.h>
++#include <linux/init.h>
++#include <linux/kernel.h>
++
++struct cma *cma_ctx;
++
++#define cma_size (32UL << 20) /* 32 MiB */
++
++static unsigned long cma_start __initdata;
++
++void __init cma_mach_reserve(void)
++{
++	unsigned long start = cma_reserve(0, cma_size, 0);
++	if (IS_ERR_VALUE(start))
++		printk(KERN_WARNING "cma: unable to reserve %lu for CMA: %d\n",
++		       cma_size >> 20, (int)start);
++	else
++		cma_start = start;
++}
++
++static int __init cma_mach_init(void)
++{
++	int ret = -ENOMEM;
++
++	if (cma_start) {
++		struct cma *ctx = cma_create(cma_start, cma_size);
++		if (IS_ERR(ctx)) {
++			ret = PTR_ERR(ctx);
++			printk(KERN_WARNING
++			       "cma: cma_create(%p, %p) failed: %d\n",
++			       (void *)cma_start, (void *)cma_size, ret);
++		} else {
++			cma_ctx = ctx;
++			ret = 0;
++		}
++	}
++
++	return ret;
++}
++device_initcall(cma_mach_init);
+diff --git a/arch/arm/plat-s5p/include/plat/cma-stub.h b/arch/arm/plat-s5p/include/plat/cma-stub.h
+new file mode 100644
+index 0000000..a24a03b
+--- /dev/null
++++ b/arch/arm/plat-s5p/include/plat/cma-stub.h
+@@ -0,0 +1,21 @@
++/*
++ * This file is just a quick and dirty hack to get CMA testing device
++ * working.  The cma_mach_reserve() should be called as mach's reserve
++ * callback.  CMA testing device will use cma_ctx for allocations.
++ */
++
++struct cma;
++
++#ifdef CONFIG_CMA
++
++extern struct cma *cma_ctx;
++
++void cma_mach_reserve(void);
++
++#else
++
++#define cma_ctx ((struct cma *)NULL)
++
++#define cma_mach_reserve NULL
++
++#endif
+-- 
+1.7.2.3
+
