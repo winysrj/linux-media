@@ -1,65 +1,72 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:59047 "EHLO mx1.redhat.com"
+Received: from smtp5-g21.free.fr ([212.27.42.5]:34759 "EHLO smtp5-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753780Ab0L0Q0d convert rfc822-to-8bit (ORCPT
+	id S1757498Ab0LMNB0 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Dec 2010 11:26:33 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oBRGQXas027574
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 27 Dec 2010 11:26:33 -0500
-Received: from gaivota (vpn-11-243.rdu.redhat.com [10.11.11.243])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id oBRGNDpF028091
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 27 Dec 2010 11:26:30 -0500
-Date: Mon, 27 Dec 2010 14:22:45 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 5/8] [media] gspca: Fix a warning for using len before
- filling it
-Message-ID: <20101227142245.6db00c9a@gaivota>
-In-Reply-To: <cover.1293466891.git.mchehab@redhat.com>
-References: <cover.1293466891.git.mchehab@redhat.com>
+	Mon, 13 Dec 2010 08:01:26 -0500
+Date: Mon, 13 Dec 2010 14:03:26 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 3/6] gspca - sonixj: Add a flag in the driver_info table
+Message-ID: <20101213140326.569d150d@tele>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-The check for status errors is now before the check for len. That's
-ok. However, the error printk's for the status error prints the URB
-length. This generates this error:
 
-drivers/media/video/gspca/gspca.c: In function ‘fill_frame’:
-drivers/media/video/gspca/gspca.c:305:9: warning: ‘len’ may be used uninitialized in this function
+Signed-off-by: Jean-François Moine <moinejf@free.fr>
 
-The fix is as simple as moving the len init to happen before the checks.
-
-Cc: Jean-François Moine <moinejf@free.fr>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
-index 92b5dfb..80b31eb 100644
---- a/drivers/media/video/gspca/gspca.c
-+++ b/drivers/media/video/gspca/gspca.c
-@@ -318,6 +318,7 @@ static void fill_frame(struct gspca_dev *gspca_dev,
- 	}
- 	pkt_scan = gspca_dev->sd_desc->pkt_scan;
- 	for (i = 0; i < urb->number_of_packets; i++) {
-+		len = urb->iso_frame_desc[i].actual_length;
+diff --git a/drivers/media/video/gspca/sonixj.c b/drivers/media/video/gspca/sonixj.c
+index 5978676..bd5858e 100644
+--- a/drivers/media/video/gspca/sonixj.c
++++ b/drivers/media/video/gspca/sonixj.c
+@@ -64,6 +64,7 @@ struct sd {
+ 	u8 jpegqual;			/* webcam quality */
  
- 		/* check the packet status and length */
- 		st = urb->iso_frame_desc[i].status;
-@@ -327,7 +328,6 @@ static void fill_frame(struct gspca_dev *gspca_dev,
- 			gspca_dev->last_packet_type = DISCARD_PACKET;
- 			continue;
- 		}
--		len = urb->iso_frame_desc[i].actual_length;
- 		if (len == 0) {
- 			if (gspca_dev->empty_packet == 0)
- 				gspca_dev->empty_packet = 1;
+ 	u8 reg18;
++	u8 flags;
+ 
+ 	s8 ag_cnt;
+ #define AG_CNT_START 13
+@@ -96,6 +97,9 @@ enum sensors {
+ 	SENSOR_SP80708,
+ };
+ 
++/* device flags */
++#define PDN_INV	1		/* inverse pin S_PWR_DN / sn_xxx tables */
++
+ /* V4L2 controls supported by the driver */
+ static void setbrightness(struct gspca_dev *gspca_dev);
+ static void setcontrast(struct gspca_dev *gspca_dev);
+@@ -1763,7 +1767,8 @@ static int sd_config(struct gspca_dev *gspca_dev,
+ 	struct cam *cam;
+ 
+ 	sd->bridge = id->driver_info >> 16;
+-	sd->sensor = id->driver_info;
++	sd->sensor = id->driver_info >> 8;
++	sd->flags = id->driver_info;
+ 
+ 	cam = &gspca_dev->cam;
+ 	if (sd->sensor == SENSOR_ADCM1700) {
+@@ -2947,7 +2952,11 @@ static const struct sd_desc sd_desc = {
+ /* -- module initialisation -- */
+ #define BS(bridge, sensor) \
+ 	.driver_info = (BRIDGE_ ## bridge << 16) \
+-			| SENSOR_ ## sensor
++			| (SENSOR_ ## sensor << 8)
++#define BSF(bridge, sensor, flags) \
++	.driver_info = (BRIDGE_ ## bridge << 16) \
++			| (SENSOR_ ## sensor << 8) \
++			| flags
+ static const __devinitdata struct usb_device_id device_table[] = {
+ #if !defined CONFIG_USB_SN9C102 && !defined CONFIG_USB_SN9C102_MODULE
+ 	{USB_DEVICE(0x0458, 0x7025), BS(SN9C120, MI0360)},
 -- 
-1.7.3.4
+1.7.2.3
 
-
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
