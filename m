@@ -1,46 +1,46 @@
 Return-path: <mchehab@gaivota>
-Received: from casper.infradead.org ([85.118.1.10]:45438 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752919Ab0LaL1u (ORCPT
+Received: from smtp5-g21.free.fr ([212.27.42.5]:35482 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757498Ab0LMNBp convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Dec 2010 06:27:50 -0500
-Message-ID: <4D1DBE2A.5080003@infradead.org>
-Date: Fri, 31 Dec 2010 09:27:38 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "Igor M. Liplianin" <liplianin@me.by>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, aospan@netup.ru
-Subject: Re: [PATCH 01/18] Altera FPGA firmware download module.
-References: <201012310726.31851.liplianin@netup.ru> <201012311212.19715.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201012311212.19715.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Mon, 13 Dec 2010 08:01:45 -0500
+Date: Mon, 13 Dec 2010 14:03:45 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 4/6] gspca - sonixj: Set the flag for some devices
+Message-ID: <20101213140345.55f40fb9@tele>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 31-12-2010 09:12, Laurent Pinchart escreveu:
-> Hi Igor,
-> 
-> On Friday 31 December 2010 06:26:31 Igor M. Liplianin wrote:
->> It uses STAPL files and programs Altera FPGA through JTAG.
->> Interface to JTAG must be provided from main device module,
->> for example through cx23885 GPIO.
-> 
-> It might be a bit late for this comment (sorry for not having noticed the 
-> patch set earlier), but...
-> 
-> Do we really need a complete JTAG implementation in the kernel ? Wouldn't it 
-> better to handle this in userspace with a tiny kernel driver to access the 
-> JTAG signals ?
-> 
-Laurent,
 
-Igor already explained it. From what I understood, the device he is 
-working has a firmware that needs to be loaded via JTAG/FPGA.
+The flag PDN_INV indicates that the sensor pin S_PWR_DN has not the same
+value as other webcams with the same sensor. For now, only two webcams
+have been detected so: the Microsoft's VX1000 and VX3000.
 
-Actually, I liked the idea, as the FPGA programming driver could be
-useful if other drivers have similar usecases.
+Signed-off-by: Jean-François Moine <moinejf@free.fr>
 
-Cheers,
-Mauro
+diff --git a/drivers/media/video/gspca/sonixj.c b/drivers/media/video/gspca/sonixj.c
+index bd5858e..9b7e28a 100644
+--- a/drivers/media/video/gspca/sonixj.c
++++ b/drivers/media/video/gspca/sonixj.c
+@@ -2962,8 +2962,8 @@ static const __devinitdata struct usb_device_id device_table[] = {
+ 	{USB_DEVICE(0x0458, 0x7025), BS(SN9C120, MI0360)},
+ 	{USB_DEVICE(0x0458, 0x702e), BS(SN9C120, OV7660)},
+ #endif
+-	{USB_DEVICE(0x045e, 0x00f5), BS(SN9C105, OV7660)},
+-	{USB_DEVICE(0x045e, 0x00f7), BS(SN9C105, OV7660)},
++	{USB_DEVICE(0x045e, 0x00f5), BSF(SN9C105, OV7660, PDN_INV)},
++	{USB_DEVICE(0x045e, 0x00f7), BSF(SN9C105, OV7660, PDN_INV)},
+ 	{USB_DEVICE(0x0471, 0x0327), BS(SN9C105, MI0360)},
+ 	{USB_DEVICE(0x0471, 0x0328), BS(SN9C105, MI0360)},
+ 	{USB_DEVICE(0x0471, 0x0330), BS(SN9C105, MI0360)},
+-- 
+1.7.2.3
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
