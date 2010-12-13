@@ -1,113 +1,87 @@
 Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51318 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932261Ab0LTLiE (ORCPT
+Received: from mail-out.m-online.net ([212.18.0.10]:58082 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757470Ab0LMSTh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Dec 2010 06:38:04 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Mon, 13 Dec 2010 13:19:37 -0500
+From: Anatolij Gustschin <agust@denx.de>
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v4 5/7] ARM: OMAP3: Update Camera ISP definitions for OMAP3630
-Date: Mon, 20 Dec 2010 12:37:53 +0100
-Message-Id: <1292845075-7991-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1292845075-7991-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1292845075-7991-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Detlev Zundel <dzu@denx.de>
+Subject: [PATCH 2/2] media: fsl_viu: add VIDIOC_QUERYSTD and VIDIOC_G_STD support
+Date: Mon, 13 Dec 2010 19:19:37 +0100
+Message-Id: <1292264377-31877-2-git-send-email-agust@denx.de>
+In-Reply-To: <1292264377-31877-1-git-send-email-agust@denx.de>
+References: <1292264377-31877-1-git-send-email-agust@denx.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-From: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
+VIDIOC_QUERYSTD and VIDIOC_G_STD ioctls are currently not
+supported in the FSL VIU driver. The decoder subdevice
+driver saa7115 extended by previous patch supports QUERYSTD
+for saa7113, so we add the appropriate ioctls to the VIU
+driver to be able to determine the video input's standard.
 
-Add new/changed base address definitions and resources for
-OMAP3630 ISP.
-
-The OMAP3430 CSI2PHY block is same as the OMAP3630 CSIPHY2
-block. But the later name is chosen as it gives more symmetry
-to the names.
-
-Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
-Signed-off-by: Vimarsh Zutshi <vimarsh.zutshi@nokia.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Anatolij Gustschin <agust@denx.de>
 ---
- arch/arm/mach-omap2/devices.c              |   28 ++++++++++++++++++++++++----
- arch/arm/plat-omap/include/plat/omap34xx.h |   16 ++++++++++++----
- 2 files changed, 36 insertions(+), 8 deletions(-)
+ drivers/media/video/fsl-viu.c |   21 +++++++++++++++++++++
+ 1 files changed, 21 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 5a0c148..d5da345 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -109,13 +109,33 @@ static struct resource omap3isp_resources[] = {
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
--		.start		= OMAP3430_ISP_CSI2A_BASE,
--		.end		= OMAP3430_ISP_CSI2A_END,
-+		.start		= OMAP3430_ISP_CSI2A_REGS1_BASE,
-+		.end		= OMAP3430_ISP_CSI2A_REGS1_END,
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
--		.start		= OMAP3430_ISP_CSI2PHY_BASE,
--		.end		= OMAP3430_ISP_CSI2PHY_END,
-+		.start		= OMAP3430_ISP_CSIPHY2_BASE,
-+		.end		= OMAP3430_ISP_CSIPHY2_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3630_ISP_CSI2A_REGS2_BASE,
-+		.end		= OMAP3630_ISP_CSI2A_REGS2_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3630_ISP_CSI2C_REGS1_BASE,
-+		.end		= OMAP3630_ISP_CSI2C_REGS1_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3630_ISP_CSIPHY1_BASE,
-+		.end		= OMAP3630_ISP_CSIPHY1_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3630_ISP_CSI2C_REGS2_BASE,
-+		.end		= OMAP3630_ISP_CSI2C_REGS2_END,
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
-diff --git a/arch/arm/plat-omap/include/plat/omap34xx.h b/arch/arm/plat-omap/include/plat/omap34xx.h
-index 98fc8b4..b9e8588 100644
---- a/arch/arm/plat-omap/include/plat/omap34xx.h
-+++ b/arch/arm/plat-omap/include/plat/omap34xx.h
-@@ -56,8 +56,12 @@
- #define OMAP3430_ISP_RESZ_BASE		(OMAP3430_ISP_BASE + 0x1000)
- #define OMAP3430_ISP_SBL_BASE		(OMAP3430_ISP_BASE + 0x1200)
- #define OMAP3430_ISP_MMU_BASE		(OMAP3430_ISP_BASE + 0x1400)
--#define OMAP3430_ISP_CSI2A_BASE		(OMAP3430_ISP_BASE + 0x1800)
--#define OMAP3430_ISP_CSI2PHY_BASE	(OMAP3430_ISP_BASE + 0x1970)
-+#define OMAP3430_ISP_CSI2A_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1800)
-+#define OMAP3430_ISP_CSIPHY2_BASE	(OMAP3430_ISP_BASE + 0x1970)
-+#define OMAP3630_ISP_CSI2A_REGS2_BASE	(OMAP3430_ISP_BASE + 0x19C0)
-+#define OMAP3630_ISP_CSI2C_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1C00)
-+#define OMAP3630_ISP_CSIPHY1_BASE	(OMAP3430_ISP_BASE + 0x1D70)
-+#define OMAP3630_ISP_CSI2C_REGS2_BASE	(OMAP3430_ISP_BASE + 0x1DC0)
+diff --git a/drivers/media/video/fsl-viu.c b/drivers/media/video/fsl-viu.c
+index b8faff2..04be6eb 100644
+--- a/drivers/media/video/fsl-viu.c
++++ b/drivers/media/video/fsl-viu.c
+@@ -194,6 +194,8 @@ struct viu_dev {
  
- #define OMAP3430_ISP_END		(OMAP3430_ISP_BASE         + 0x06F)
- #define OMAP3430_ISP_CBUFF_END		(OMAP3430_ISP_CBUFF_BASE   + 0x077)
-@@ -69,8 +73,12 @@
- #define OMAP3430_ISP_RESZ_END		(OMAP3430_ISP_RESZ_BASE    + 0x0AB)
- #define OMAP3430_ISP_SBL_END		(OMAP3430_ISP_SBL_BASE     + 0x0FB)
- #define OMAP3430_ISP_MMU_END		(OMAP3430_ISP_MMU_BASE     + 0x06F)
--#define OMAP3430_ISP_CSI2A_END		(OMAP3430_ISP_CSI2A_BASE   + 0x16F)
--#define OMAP3430_ISP_CSI2PHY_END	(OMAP3430_ISP_CSI2PHY_BASE + 0x007)
-+#define OMAP3430_ISP_CSI2A_REGS1_END	(OMAP3430_ISP_CSI2A_REGS1_BASE + 0x16F)
-+#define OMAP3430_ISP_CSIPHY2_END	(OMAP3430_ISP_CSIPHY2_BASE + 0x00B)
-+#define OMAP3630_ISP_CSI2A_REGS2_END	(OMAP3630_ISP_CSI2A_REGS2_BASE + 0x3F)
-+#define OMAP3630_ISP_CSI2C_REGS1_END	(OMAP3630_ISP_CSI2C_REGS1_BASE + 0x16F)
-+#define OMAP3630_ISP_CSIPHY1_END	(OMAP3630_ISP_CSIPHY1_BASE + 0x00B)
-+#define OMAP3630_ISP_CSI2C_REGS2_END	(OMAP3630_ISP_CSI2C_REGS2_BASE + 0x3F)
+ 	/* decoder */
+ 	struct v4l2_subdev	*decoder;
++
++	v4l2_std_id		std;
+ };
  
- #define OMAP34XX_HSUSB_OTG_BASE	(L4_34XX_BASE + 0xAB000)
- #define OMAP34XX_USBTLL_BASE	(L4_34XX_BASE + 0x62000)
+ struct viu_fh {
+@@ -933,14 +935,31 @@ static int vidioc_streamoff(struct file *file, void *priv, enum v4l2_buf_type i)
+ #define decoder_call(viu, o, f, args...) \
+ 	v4l2_subdev_call(viu->decoder, o, f, ##args)
+ 
++static int vidioc_querystd(struct file *file, void *priv, v4l2_std_id *std_id)
++{
++	struct viu_fh *fh = priv;
++
++	decoder_call(fh->dev, video, querystd, std_id);
++	return 0;
++}
++
+ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *id)
+ {
+ 	struct viu_fh *fh = priv;
+ 
++	fh->dev->std = *id;
+ 	decoder_call(fh->dev, core, s_std, *id);
+ 	return 0;
+ }
+ 
++static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *std_id)
++{
++	struct viu_fh *fh = priv;
++
++	*std_id = fh->dev->std;
++	return 0;
++}
++
+ /* only one input in this driver */
+ static int vidioc_enum_input(struct file *file, void *priv,
+ 					struct v4l2_input *inp)
+@@ -1397,7 +1416,9 @@ static const struct v4l2_ioctl_ops viu_ioctl_ops = {
+ 	.vidioc_querybuf      = vidioc_querybuf,
+ 	.vidioc_qbuf          = vidioc_qbuf,
+ 	.vidioc_dqbuf         = vidioc_dqbuf,
++	.vidioc_g_std         = vidioc_g_std,
+ 	.vidioc_s_std         = vidioc_s_std,
++	.vidioc_querystd      = vidioc_querystd,
+ 	.vidioc_enum_input    = vidioc_enum_input,
+ 	.vidioc_g_input       = vidioc_g_input,
+ 	.vidioc_s_input       = vidioc_s_input,
 -- 
-1.7.2.2
+1.7.1
 
