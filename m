@@ -1,119 +1,87 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1583 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755249Ab0LRLbl (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4628 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757641Ab0LMSjn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Dec 2010 06:31:41 -0500
+	Mon, 13 Dec 2010 13:39:43 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: Volunteers needed: BKL removal: replace .ioctl by .unlocked_ioctl
-Date: Sat, 18 Dec 2010 12:31:26 +0100
-Cc: pawel@osciak.com, Marek Szyprowski <m.szyprowski@samsung.com>,
-	Steven Toth <stoth@kernellabs.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	sakari.ailus@maxwell.research.nokia.com,
-	David Cohen <dacohen@gmail.com>, Janne Grunau <j@jannau.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Muralidharan Karicheri <m-karicheri2@ti.com>,
-	Mike Isely <isely@isely.net>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Anatolij Gustschin <agust@denx.de>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pete Eberlein <pete@sensoray.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Subject: Re: [RFC/PATCH 03/19] cx18: Use the control framework.
+Date: Mon, 13 Dec 2010 19:39:45 +0100
+Cc: linux-media@vger.kernel.org
+References: <dpputt4i632ox8ldodidq3jk.1292179593754@email.android.com> <201012130832.10265.hverkuil@xs4all.nl> <1292247078.2054.38.camel@morgan.silverblock.net>
+In-Reply-To: <1292247078.2054.38.camel@morgan.silverblock.net>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="us-ascii"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201012181231.27198.hverkuil@xs4all.nl>
+Message-Id: <201012131939.45550.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi all,
+On Monday, December 13, 2010 14:31:18 Andy Walls wrote:
+> On Mon, 2010-12-13 at 08:32 +0100, Hans Verkuil wrote:
+> > On Sunday, December 12, 2010 19:46:33 Andy Walls wrote:
+> 
+> Hi Hans,
+>  
+> > > 1. Why set the vol step to 655, when the volume will actaully step at increments of 512?
+> > 
+> > The goal of the exercise is to convert to the control framework. I don't like to
+> > mix changes like that with lots of other unrelated changes, so I kept this the
+> > same as it was.
+> 
+> Sounds fine to me.
+> 
+> 
+> > > 2. Why should failure to initialize a data structure for user
+> > controls mean failure to init otherwise working hardware?  We never
+> > let user control init cause subdev driver probe failure before, so why
+> > now?  I'd prefer a working device without user controls in case of
+> > user control init failure.
+> > 
+> > Huh? If you fail to allocate the memory for such data structures then I'm
+> > pretty sure you will encounter other problems as well.
+> 
+> ENOMEM is not why I bring this up.  The new control framework can also
+> return ERANGE and EINVAL.
+> 
+> Granted, both look like they can only result due to subdev driver bugs.
+> However, when one is mass converting subdev and bridge drivers, bugs are
+> going to get introduced.  In my specific case, the ERANGE error,
+> aborting the the init of the CX23888 A/V core in the cx25840 driver,
+> meant the CX23888 IR unit doesn't get a good clock.  IR didn't work
+> because of a *volume control*!?  That is the only reason I noticed the
+> bug.
 
-Now that the BKL patch series has been merged in 2.6.37 it is time to work
-on replacing .ioctl by .unlocked_ioctl in all v4l drivers.
+But would you have noticed it if it would just skip the control due to a
+driver bug? I much rather like to see a clear failure then that a control
+silently disappears.
 
-I've made an inventory of all drivers that still use .ioctl and I am looking
-for volunteers to tackle one or more drivers.
+> I perceive a dearth of non-developers testing the changes in the GIT
+> trees.  I don't have confidence that the majority of subdev driver bugs
+> introduced by the conversion to the new framework will get caught until
+> after a kernel release.  As I am discovering, the process for getting
+> regressions fixed and into stable kernels is much longer than the time
+> to introduce bugs.
+> 
+> I would prefer deployed hardware still be as operational as possible
+> under newly released kernels.  That's why I'll still suggest user
+> control init failure, for something other than ENOMEM, be a non-fatal
+> error.  The move to the new control framework has no immediate,
+> user-visible changes, except for symptoms of any introduced bugs.  The
+> bugs found so far (msp3400 and cx25840) had pretty severe symptoms, and
+> were noticed way too late.
 
-I have CCed this email to the maintainers of the various drivers (if I know
-who it is) in the hope that we can get this conversion done as quickly as
-possible.
+I think this was more bad luck than anything else. From what I can remember,
+these were pretty much the only regressions that we had. Based on other large
+conversions I did in the past (e.g. the conversion to the subdevice API) the
+number of regressions that they caused was surprisingly small.
 
-If I have added your name to a driver, then please confirm if you are able to
-work on it or not. If you can't work on it, but you know someone else, then
-let me know as well.
-
-There is also a list of drivers where I do not know who can do the conversion.
-If you can tackle one or more of those, please respond. Unfortunately, those
-are among the hardest to convert :-(
-
-It would be great if we can tackle most of these drivers for 2.6.38. I think
-we should finish all drivers for 2.6.39 at the latest.
-
-There are two ways of doing the conversion: one is to do all the locking within
-the driver, the other is to use core-assisted locking. How to do the core-assisted
-locking is described in Documentation/video4linux/v4l2-framework.txt, but I'll
-repeat the relevant part here:
-
-v4l2_file_operations and locking
---------------------------------
-
-You can set a pointer to a mutex_lock in struct video_device. Usually this
-will be either a top-level mutex or a mutex per device node. If you want
-finer-grained locking then you have to set it to NULL and do you own locking.
-
-If a lock is specified then all file operations will be serialized on that
-lock. If you use videobuf then you must pass the same lock to the videobuf
-queue initialize function: if videobuf has to wait for a frame to arrive, then
-it will temporarily unlock the lock and relock it afterwards. If your driver
-also waits in the code, then you should do the same to allow other processes
-to access the device node while the first process is waiting for something.
-
-The implementation of a hotplug disconnect should also take the lock before
-calling v4l2_device_disconnect.
-
-
-Driver list:
-
-saa7146 (Hans Verkuil)
-mem2mem_testdev (Pawel Osciak or Marek Szyprowski)
-cx23885 (Steve Toth)
-cx18-alsa (Andy Walls)
-omap24xxcam (Sakari Ailus or David Cohen)
-au0828 (Janne Grunau)
-cpia2 (Andy Walls or Hans Verkuil)
-cx231xx (Mauro Carvalho Chehab)
-davinci (Muralidharan Karicheri)
-saa6588 (Hans Verkuil)
-pvrusb2 (Mike Isely)
-usbvision (Hans Verkuil)
-s5p-fimc (Sylwester Nawrocki)
-fsl-viu (Anatolij Gustschin)
-tlg2300 (Mauro Carvalho Chehab)
-zr364xx (Hans de Goede)
-soc_camera (Guennadi Liakhovetski)
-usbvideo/vicam (Hans de Goede)
-s2255drv (Pete Eberlein)
-bttv (Mauro Carvalho Chehab)
-stk-webcam (Hans de Goede)
-se401 (Hans de Goede)
-si4713-i2c (Hans Verkuil)
-dsbr100 (Hans Verkuil)
-
-Staging driver list:
-
-go7007 (Pete Eberlein)
-tm6000 (Mauro Carvalho Chehab)
-(stradis/cpia: will be removed in 2.6.38, so no need to do anything)
-
-Unassigned drivers:
-
-saa7134
-em28xx
-cx88
-solo6x10 (staging driver)
+The motivation of the move to the control framework is to make drivers
+more predictable for userspace applications. Right now control handling is
+wildly different between drivers. By moving everything over we should have
+better and more consistent drivers in the end.
 
 Regards,
 
