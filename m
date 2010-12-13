@@ -1,71 +1,102 @@
 Return-path: <mchehab@gaivota>
-Received: from ns210619.ovh.net ([188.165.206.83]:59277 "EHLO ns210619.ovh.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753783Ab0LVQUs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Dec 2010 11:20:48 -0500
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by ns210619.ovh.net (Postfix) with ESMTP id 502513D1E35E
-	for <linux-media@vger.kernel.org>; Wed, 22 Dec 2010 17:21:56 +0100 (CET)
-Received: from ns210619.ovh.net ([127.0.0.1])
-	by localhost (ns210619.ovh.net [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id MiGyyUEqJOrB for <linux-media@vger.kernel.org>;
-	Wed, 22 Dec 2010 17:21:54 +0100 (CET)
-Received: from [192.168.1.4] (31.9.18.95.dynamic.jazztel.es [95.18.9.31])
-	by ns210619.ovh.net (Postfix) with ESMTPA id 4A2F43D1E03E
-	for <linux-media@vger.kernel.org>; Wed, 22 Dec 2010 17:21:54 +0100 (CET)
-Message-ID: <4D122557.8080401@linos.es>
-Date: Wed, 22 Dec 2010 17:20:39 +0100
-From: Linos <info@linos.es>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:35823 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751031Ab0LMTGq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Dec 2010 14:06:46 -0500
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Fwd: bttv problem
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20101213140421.GA2826@darkstar>
+References: <20101212131550.GA2608@darkstar>
+	<AANLkTinaNjPjNbxE+OyRsY_jJxDW-pwehTPgyAWzqfzd@mail.gmail.com>
+	<20101213140421.GA2826@darkstar>
+Date: Mon, 13 Dec 2010 20:06:45 +0100
+Message-ID: <AANLkTin7-hSi9mhzU13ekW3ybKt6khCFnofePcw3a3tU@mail.gmail.com>
+Subject: Re: [PATCH] bttv: fix mutex use before init
+From: Torsten Kaiser <just.for.lkml@googlemail.com>
+To: Dave Young <hidave.darkstar@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Chris Clayton <chris2553@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Any possible fix for this problem please?
+On Mon, Dec 13, 2010 at 3:04 PM, Dave Young <hidave.darkstar@gmail.com> wrote:
+> On Sun, Dec 12, 2010 at 05:13:47PM +0100, Torsten Kaiser wrote:
+>> On Sun, Dec 12, 2010 at 2:15 PM, Dave Young <hidave.darkstar@gmail.com> wrote:
+>> > oops happen in bttv_open while locking uninitialized mutex fh->cap.vb_lock
+>> > add mutex_init before usage
+>>
+>> I have seen the same problem twice since I switched of the BKL in
+>> 2.6.37-rc2, but only had the time today to search for the cause.
+>> (It only happend on two boots out of probably more then 50, so I only
+>> investigated after it happened a second time with -rc5)
+>>
+>> The cause was making this change to bttv_open() and radio_open() to
+>> remove the BKL from them:
+>> +     mutex_lock(&fh->cap.vb_lock);
+>>       *fh = btv->init;
+>> +     mutex_unlock(&fh->cap.vb_lock);
+>>
+>> This is wrong because of two things:
+>> First: The fh->cap.vb_lock has not been initialised, as you noted.
+>> Second: The middle line will overwrite the mutex!
+>>
+>> Just adding mutex_init() will not really help the second problem and
+>> seems to be wrong from the point that cap.vb_lock already has a
+>> mutex_init() via videobuf_queue_sg_init().
+>
+> Yes, you are right. I wonder if the above lock code in bttv_open and radio_open can be removed or just use btv->lock.
 
--------- Mensaje original --------
-Asunto: bttv problem
-Fecha: Sun, 19 Dec 2010 13:54:00 +0100
-De: Linos <info@linos.es>
-Para: linux-media@vger.kernel.org
+In bttv_open there is a comment directly above this lock/unlock
+sequence that explains why cap.vb_lock was used. As that comment
+sounded correct, I did not look further into changing it.
+Hmmh: I'm not sure, if I understand how this locking should work. It
+looks like each bttv_open() call will create a bttv_fh structure with
+its own cap.vb_lock. So if there ever is more then one bttv_fh for one
+btv, there is nothing that prevents concurrent access to btv->init,
+because there are two different cap.vb_lock. But if there always is
+only one bttv_fh, then why allocate it at all and not exclusively use
+btv->init, as that one will always be there already.
+Disclaimer: I only started looking into bttv-driver.c yesterday when I
+was trying to find out, why I got these OOPSes. I probably missed
+something there...
 
-Hi,
-	i have 2 Provideo PV150 multi-capture PCI board video cards  (4 bt878 chipsets
-in every board), i have the four ports of the first multi-capture boards used in
-a xorg session with 4 instances of tvtime application showing the realtime of
-the four ports, and the other one recording with Helix producer.
+>> I'm not sure what the correct fix is, but I would rather suggest this:
+>>
+>>  * change &fh->cap.vb_lock in bttv_open() AND radio_open() to
+>> &btv->init.cap.vb_lock
+>>  * add a mutex_init(&btv->init.cap.vb_lock) to the setup of init in bttv_probe()
+>
+> I will test this when the bttv card is available for me tommorrow.
 
-Many times a day i have this errors in kernel:
+I do have a bttv card, so if you want me to test something, I could do this.
+Although: the current version of the code works for me. Even after the
+OOPS during bootup, I was later able to watch TV with that card.
 
-[447547.296022] bttv7: timeout: drop=3276 irq=1957469/35501901, risc=204bb9ac,
-bits: HSYNC OFLOW
-[447547.836020] bttv7: timeout: drop=3287 irq=1957508/35501981, risc=2a9a89ac,
-bits: HSYNC OFLOW
-[448114.536016] bttv6: timeout: drop=4747 irq=26301665/59788770, risc=2050c998,
-bits: HSYNC OFLOW
-[449923.196018] bttv1: timeout: drop=57206 irq=33728690/35680137, risc=19d83acc,
-bits: HSYNC OFLOW FBUS
-[449923.736024] bttv1: timeout: drop=57217 irq=33728729/35680176, risc=344faf20,
-bits: HSYNC OFLOW FBUS
-
-Tvtime seems to survive but the helix producer processess die with this error,
-if i don't load the xorg session with tvtime and at the same time I disable acpi
-in linux i don't get this erros, i have tried to disable acpi because i have
-read about other people having the same problem and fixing this way, but if i
-use tvtime at the same time the problem remains regardless of the acpi status, i
-have now gbuffers at 16 but still the same result.
-
-My system it is using debian squeeze with 2.6.32 kernel in a Asus P5E-V HDMI
-with an intel G-35 chipset.
-
-Any ideas on how i could fix this problem please?
-
-Regards,
-Miguel Angel.
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> > Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+>> > Tested-by: Chris Clayton <chris2553@googlemail.com>
+>> > ---
+>> >  drivers/media/video/bt8xx/bttv-driver.c |    2 ++
+>> >  1 file changed, 2 insertions(+)
+>> >
+>> > --- linux-2.6.orig/drivers/media/video/bt8xx/bttv-driver.c      2010-11-27 11:21:30.000000000 +0800
+>> > +++ linux-2.6/drivers/media/video/bt8xx/bttv-driver.c   2010-12-12 16:31:39.633333338 +0800
+>> > @@ -3291,6 +3291,8 @@ static int bttv_open(struct file *file)
+>> >        fh = kmalloc(sizeof(*fh), GFP_KERNEL);
+>> >        if (unlikely(!fh))
+>> >                return -ENOMEM;
+>> > +
+>> > +       mutex_init(&fh->cap.vb_lock);
+>> >        file->private_data = fh;
+>> >
+>> >        /*
+>> > --
+>> > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+>> > the body of a message to majordomo@vger.kernel.org
+>> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> > Please read the FAQ at  http://www.tux.org/lkml/
+>> >
+>
