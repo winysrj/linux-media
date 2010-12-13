@@ -1,69 +1,74 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1822 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752083Ab0LNOvK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Dec 2010 09:51:10 -0500
-Message-ID: <997f50534838eeb6a31a526e65045635.squirrel@webmail.xs4all.nl>
-In-Reply-To: <4D0771CB.3020809@ladisch.de>
-References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com>
-    <4CEF799E.7060508@ladisch.de> <4D06458B.6080808@ladisch.de>
-    <201012141300.57118.laurent.pinchart@ideasonboard.com>
-    <4D0771CB.3020809@ladisch.de>
-Date: Tue, 14 Dec 2010 15:51:08 +0100
-Subject: Re: [alsa-devel] [RFC/PATCH v6 03/12] media: Entities,
-  pads and links
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Clemens Ladisch" <clemens@ladisch.de>
-Cc: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	alsa-devel@alsa-project.org,
-	sakari.ailus@maxwell.research.nokia.com,
-	broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org,
-	lennart@poettering.net, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org
+Received: from mx1.redhat.com ([209.132.183.28]:27403 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757746Ab0LMN3b (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Dec 2010 08:29:31 -0500
+Message-ID: <4D061FB3.7010305@redhat.com>
+Date: Mon, 13 Dec 2010 11:29:23 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 3/6] gspca - sonixj: Add a flag in the driver_info table
+References: <20101213140326.569d150d@tele>
+In-Reply-To: <20101213140326.569d150d@tele>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-> Laurent Pinchart wrote:
->> On Monday 13 December 2010 17:10:51 Clemens Ladisch wrote:
->>> TYPE_EXT describes entities that represent some interface to the
->>> external world, TYPE_INT those that are internal to the entire device.
->>> (I'm not sure if that distinction is very useful, but TYPE_SUBDEV seems
->>> to be an even more meaningless name.)
->>
->> SUBDEV comes from the V4L2 world, and I agree that it might not be a
->> very good
->> name.
->>
->> I'm not sure I would split entities in internal/external categories. I
->> would
->> create a category for connectors though.
->
-> I'm not disagreeing, but what is actually the distinction between types
-> and subtypes?  ;-)
+Em 13-12-2010 11:03, Jean-Francois Moine escreveu:
+> 
+> Signed-off-by: Jean-François Moine <moinejf@free.fr>
+> 
+> diff --git a/drivers/media/video/gspca/sonixj.c b/drivers/media/video/gspca/sonixj.c
+> index 5978676..bd5858e 100644
+> --- a/drivers/media/video/gspca/sonixj.c
+> +++ b/drivers/media/video/gspca/sonixj.c
+> @@ -64,6 +64,7 @@ struct sd {
+>  	u8 jpegqual;			/* webcam quality */
+>  
+>  	u8 reg18;
+> +	u8 flags;
+>  
+>  	s8 ag_cnt;
+>  #define AG_CNT_START 13
+> @@ -96,6 +97,9 @@ enum sensors {
+>  	SENSOR_SP80708,
+>  };
+>  
+> +/* device flags */
+> +#define PDN_INV	1		/* inverse pin S_PWR_DN / sn_xxx tables */
+> +
+>  /* V4L2 controls supported by the driver */
+>  static void setbrightness(struct gspca_dev *gspca_dev);
+>  static void setcontrast(struct gspca_dev *gspca_dev);
+> @@ -1763,7 +1767,8 @@ static int sd_config(struct gspca_dev *gspca_dev,
+>  	struct cam *cam;
+>  
+>  	sd->bridge = id->driver_info >> 16;
+> -	sd->sensor = id->driver_info;
+> +	sd->sensor = id->driver_info >> 8;
+> +	sd->flags = id->driver_info;
+>  
+>  	cam = &gspca_dev->cam;
+>  	if (sd->sensor == SENSOR_ADCM1700) {
+> @@ -2947,7 +2952,11 @@ static const struct sd_desc sd_desc = {
+>  /* -- module initialisation -- */
+>  #define BS(bridge, sensor) \
+>  	.driver_info = (BRIDGE_ ## bridge << 16) \
+> -			| SENSOR_ ## sensor
+> +			| (SENSOR_ ## sensor << 8)
+> +#define BSF(bridge, sensor, flags) \
+> +	.driver_info = (BRIDGE_ ## bridge << 16) \
+> +			| (SENSOR_ ## sensor << 8) \
+> +			| flags
 
-The type tells what the behavior is of an entity. E.g., type DEVNODE
-represents device node(s) in userspace, V4L2_SUBDEV represents a v4l2
-sub-device, etc. The subtype tells whether a V4L2_SUBDEV is a sensor or a
-receiver or whatever. Nice to know, but it doesn't change the way
-sub-devices work.
+As "flags" come from a macro, please use "(flags)" instead. This will avoid
+the risk of having something bad happening here, if we add some more complex
+flags logic.
 
-In the case of connectors you would create a CONNECTOR type and have a
-bunch of subtypes for all the variations of connectors.
-
-That said, I'm not sure whether the distinction is useful for DEVNODEs.
-You do need to know the subtype in order to interpret the union correctly.
-
-Laurent, does the MC code test against the DEVNODE type? I.e., does the MC
-code ignore the subtype of a DEVNODE, or does it always use it?
-
-Regards,
-
-        Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+>  static const __devinitdata struct usb_device_id device_table[] = {
+>  #if !defined CONFIG_USB_SN9C102 && !defined CONFIG_USB_SN9C102_MODULE
+>  	{USB_DEVICE(0x0458, 0x7025), BS(SN9C120, MI0360)},
 
