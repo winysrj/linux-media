@@ -1,61 +1,439 @@
 Return-path: <mchehab@gaivota>
-Received: from fmmailgate07.web.de ([217.72.192.248]:60767 "EHLO
-	fmmailgate07.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753156Ab0L2WQa convert rfc822-to-8bit (ORCPT
+Received: from smtp5-g21.free.fr ([212.27.42.5]:36886 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757561Ab0LMNCa convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Dec 2010 17:16:30 -0500
-Date: Wed, 29 Dec 2010 23:16:29 +0100 (CET)
-From: devzero@web.de
-To: "Randy Dunlap" <rdunlap@xenotime.net>
-Cc: linux-media@vger.kernel.org, p.osciak@samsung.com
-Message-ID: <1692885560.3809536.1293660989052.JavaMail.fmail@mwmweb063>
-In-Reply-To: <20101229133442.53849184.rdunlap@xenotime.net>
-References: <951502855.3794233.1293658070094.JavaMail.fmail@mwmweb063>,
- <20101229133442.53849184.rdunlap@xenotime.net>
-Subject: Re: bug? oops with mem2mem_testdev module
-MIME-Version: 1.0
+	Mon, 13 Dec 2010 08:02:30 -0500
+Date: Mon, 13 Dec 2010 14:04:30 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 6/6] gspca - sonixj: Better handling of the bridge registers
+ 0x01 and 0x17
+Message-ID: <20101213140430.576c0fc1@tele>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-sorry, that must be the f....n webmailer.
-i chose "text mail" and did nothing but copy/paste from putty....
-rather curious.....will repost
 
-p.osciak@samsung.com (from modinfo) is bouncing, btw.
+The initial values of the registers 0x01 and 0x17 are taken from the
+senso table at capture start and updated according to the flag PDN_INV.
 
------Ursprüngliche Nachricht-----
-Von: "Randy Dunlap"  
-Gesendet: 29.12.2010 22:34:42
-An: "Roland Kletzing"  
-Betreff: Re: bug? oops with mem2mem_testdev module
+Their values are updated at each step of the capture initialization and
+memorized for reuse in capture stop.
 
->On Wed, 29 Dec 2010 22:27:50 +0100 (CET) Roland Kletzing wrote:
->
->> Hello, 
->> 
->> i assume this is not expected behaviour.
->> see below
->> kernel is 2.6.37-rc7
->> 
->> regards
->> roland
->> 
->> 
->> [root@ubuntu]:~# modprobe mem2mem_testdev;modprobe -r mem2mem_testdev;modprobe mem2mem_testdevKilled
->> 
->> [ 80.266552] m2m-testdev m2m-testdev.0: mem2mem-testdevDevice registered as /dev/video0[ 80.292786] m2m-testdev m2m-testdev.0: Removing mem2mem-testdev[ 80.323013] BUG: unable to handle kernel paging request at 7562696c[ 80.323685] IP: [ ] __kmalloc_track_caller+0x95/0x1c0[ 80.324094] *pde = 00000000[ 80.324094] Oops: 0000 [#1] SMP[ 80.324094] last sysfs file: /sys/module/videobuf_vmalloc/refcnt[ 80.324094] Modules linked in: videobuf_core snd_ens1371 gameport snd_rawmidi snd_seq_device snd_ac97_codec ac97_bus snd_pcm snd_timer snd psmouse soundcore snd_page_alloc intel_agp lp ppdev serio_raw parport_pc intel_gtt shpchp vmw_balloon agpgart i2c_piix4 parport pcnet32 mptspi mptscsih floppy mii mptbase scsi_transport_spi [last unloaded: videobuf_vmalloc][ 80.324094][ 80.324094] Pid: 731, comm: modprobe Not tainted 2.6.37-rc7 #3 440BX Desktop Reference Platform/VMware Virtual Platform[ 80.324094] EIP: 0060:[ ] EFLAGS: 00010006 CPU: 0[ 80.324094] EIP is at __kmalloc_track_caller+0x95/0x1c0[ 80.324094] EAX: df406ff8 EBX: 0000013c ECX: 7562696c EDX: 00000000[ 80.324094] ESI: df002500 EDI: 000000d0 EBP: de771e70 ESP: de771e44[ 80.324094] DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068[ 80.324094] Process modprobe (pid: 731, ti=de770000 task=de4d5860 task.ti=de770000)[ 80.324094] Stack:[ 80.324094] ffffffff 00000757 00000000 c04f5d4e de4220c4 c035ef4b 00000246 7562696c[ 80.324094] de50a9c0 000000d0 000000ab de771e90 c04f5d78 df002180 00000000 00000080[ 80.324094] 00000020 df0007b0 de422000 de771ee0 c035ef4b ffffffff c0755692 00000757[ 80.324094] Call Trace:[ 80.324094] [ ] ? __alloc_skb+0x2e/0x100[ 80.324094] [ ] ? kobject_uevent_env+0x29b/0x430[ 80.324094] [ ] ? __alloc_skb+0x58/0x100[ 80.324094] [ ] ? kobject_uevent_env+0x29b/0x430[ 80.324094] [ ] ? kobject_uevent+0xa/0x10[ 80.324094] [ ] ? kobject_release+0x74/0x80[ 80.324094] [ ] ? kobject_release+0x0/0x80[ 80.324094] [ ] ? kref_put+0x2d/0x60[ 80.324094] [ ] ? kobject_put+0x1d/0x50[ 80.324094] [ ] ? free_sect_attrs+0x32/0x40[ 80.324094] [ ] ? free_module+0x143/0x1c0[ 80.324094] [ ] ? sys_delete_module+0x16e/0x200[ 80.324094] [ ] ? sysenter_do_call+0x12/0x28[ 80.324094] Code: 9c 58 8d 44 20 00 89 45 ec fa 8d 44 20 00 90 8b 06 64 03 05 94 80 8c c0 8b 10 85 d2 89 55 f0 0f 84 0b 01 00 00 8b 56 10 8b 4d f0   14 11 89 10 8b 45 ec 50 9d 8d 44 20 00 8b 55 f0 85 d2 75 46[ 80.324094] EIP: [ ] __kmalloc_track_caller+0x95/0x1c0 SS:ESP 0068:de771e44[ 80.324094] CR2: 000000007562696c[ 80.324094] ---[ end trace 1c390fe96c782b4a ]---[ 80.336810] BUG: unable to handle kernel paging request at 7562696c[ 80.337045] IP: [ ] kmem_cache_alloc_notrace+0x52/0xa0[ 80.337207] *pde = 00000000[ 80.337323] Oops: 0000 [#2] SMP[ 80.337454] last sysfs file: /sys/module/videobuf_vmalloc/refcnt[ 80.337596] Modules linked in: videobuf_core snd_ens1371 gameport snd_rawmidi snd_seq_device snd_ac97_codec ac97_bus snd_pcm snd_timer snd psmouse soundcore snd_page_alloc intel_agp lp ppdev serio_raw parport_pc intel_gtt shpchp vmw_balloon agpgart i2c_piix4 parport pcnet32 mptspi mptscsih floppy mii mptbase scsi_transport_spi [last unloaded: videobuf_vmalloc][ 80.338648][ 80.338812] Pid: 706, comm: bash Tainted: G D 2.6.37-rc7 #3 440BX Desktop Reference Platform/VMware Virtual Platform[ 80.339076] EIP: 0060:[ ] EFLAGS: 00010006 CPU: 0[ 80.339208] EIP is at kmem_cache_alloc_notrace+0x52/0xa0[ 80.339336] EAX: df406ff8 EBX: 7562696c ECX: c02258bc EDX: 00000000[ 80.339473] ESI: df002500 EDI: 000080d0 EBP: de51ff18 ESP: de51ff00[ 80.339611] DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068[ 80.339739] Process bash (pid: 706, ti=de51e000 task=de4d25e0 task.ti=de51e000)[ 80.339957] Stack:[ 80.340056] 0871c3c8 c02258bc 00000246 cbe22c40 df002500 de106bd0 de51ff38 c02258bc[ 80.340072] 00000040 000080d0 de51ff38 de106bd0 00000000 0871c3c8 de51ff60 c0225990[ 80.340072] 00000000 00000000 c072e378 cbf5f8f4 de51ffb4 ffffffea 00000000 0871c3c8[ 80.340072] Call Trace:[ 80.340072] [ ] ? alloc_pipe_info+0x6c/0xf0[ 80.340072] [ ] ? alloc_pipe_info+0x6c/0xf0[ 80.340072] [ ] ? create_write_pipe+0x50/0x190[ 80.340072] [ ] ? do_pipe_flags+0x3f/0x110[ 80.340072] [ ] ? sys_pipe2+0x1e/0x60[ 80.340072] [ ] ? sys_rt_sigprocmask+0x99/0xf0[ 80.340072] [ ] ? sys_pipe+0x1e/0x20[ 80.340072] [ ] ? sysenter_do_call+0x12/0x28[ 80.340072] Code: 4d ec e8 12 43 3c 00 8b 4d ec 9c 58 8d 44 20 00 89 45 f0 fa 8d 44 20 00 90 8b 06 64 03 05 94 80 8c c0 8b 18 85 db 74 3c 8b 56 10   14 13 89 10 8b 45 f0 50 9d 8d 44 20 00 85 db 75 14 89 d8 8b[ 80.340072] EIP: [ ] kmem_cache_alloc_notrace+0x52/0xa0 SS:ESP 0068:de51ff00[ 80.340072] CR2: 000000007562696c[ 80.340072] ---[ end trace 1c390fe96c782b4b ]---
->
->
->Ugh, what happened to all of the CRs and/or LFs?
->
->This (and the others that you have posted today) is very unreadable/unusable.
->
->---
->~Randy
->*** Remember to use Documentation/SubmitChecklist when testing your code ***
->desserts:  http://www.xenotime.net/linux/recipes/
-___________________________________________________________
-WEB.DE DSL Doppel-Flat ab 19,99 &euro;/mtl.! Jetzt auch mit 
-gratis Notebook-Flat! http://produkte.web.de/go/DSL_Doppel_Flatrate/2
+This patch also fixed automatically some bad hardcoded values of these
+registers.
+
+Signed-off-by: Jean-François Moine <moinejf@free.fr>
+
+diff --git a/drivers/media/video/gspca/sonixj.c b/drivers/media/video/gspca/sonixj.c
+index 4c10324..880e931 100644
+--- a/drivers/media/video/gspca/sonixj.c
++++ b/drivers/media/video/gspca/sonixj.c
+@@ -63,6 +63,8 @@ struct sd {
+ #define QUALITY_DEF 80
+ 	u8 jpegqual;			/* webcam quality */
+ 
++	u8 reg01;
++	u8 reg17;
+ 	u8 reg18;
+ 	u8 flags;
+ 
+@@ -2306,8 +2308,8 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 	int i;
++	u8 reg01, reg17;
+ 	u8 reg0102[2];
+-	u8 reg1, reg17;
+ 	const u8 *sn9c1xx;
+ 	const u8 (*init)[8];
+ 	const u8 *reg9a;
+@@ -2341,10 +2343,13 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 
+ 	/* sensor clock already enabled in sd_init */
+ 	/* reg_w1(gspca_dev, 0xf1, 0x00); */
+-	reg_w1(gspca_dev, 0x01, sn9c1xx[1]);
++	reg01 = sn9c1xx[1];
++	if (sd->flags & PDN_INV)
++		reg01 ^= S_PDN_INV;		/* power down inverted */
++	reg_w1(gspca_dev, 0x01, reg01);
+ 
+ 	/* configure gpio */
+-	reg0102[0] = sn9c1xx[1];
++	reg0102[0] = reg01;
+ 	reg0102[1] = sn9c1xx[2];
+ 	if (gspca_dev->audio)
+ 		reg0102[1] |= 0x04;	/* keep the audio connection */
+@@ -2370,95 +2375,49 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 
+ 	reg_w(gspca_dev, 0x03, &sn9c1xx[3], 0x0f);
+ 
++	reg17 = sn9c1xx[0x17];
+ 	switch (sd->sensor) {
+-	case SENSOR_ADCM1700:
+-		reg_w1(gspca_dev, 0x01, 0x43);
+-		reg_w1(gspca_dev, 0x17, 0x62);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+-		break;
+ 	case SENSOR_GC0307:
+-		msleep(50);
+-		reg_w1(gspca_dev, 0x01, 0x61);
+-		reg_w1(gspca_dev, 0x17, 0x22);
+-		reg_w1(gspca_dev, 0x01, 0x60);
+-		reg_w1(gspca_dev, 0x01, 0x40);
+-		msleep(50);
+-		break;
+-	case SENSOR_MI0360B:
+-		reg_w1(gspca_dev, 0x01, 0x61);
+-		reg_w1(gspca_dev, 0x17, 0x60);
+-		reg_w1(gspca_dev, 0x01, 0x60);
+-		reg_w1(gspca_dev, 0x01, 0x40);
+-		break;
+-	case SENSOR_MT9V111:
+-		reg_w1(gspca_dev, 0x01, 0x61);
+-		reg_w1(gspca_dev, 0x17, 0x61);
+-		reg_w1(gspca_dev, 0x01, 0x60);
+-		reg_w1(gspca_dev, 0x01, 0x40);
++		msleep(50);		/*fixme: is it useful? */
+ 		break;
+ 	case SENSOR_OM6802:
+ 		msleep(10);
+ 		reg_w1(gspca_dev, 0x02, 0x73);
+-		reg_w1(gspca_dev, 0x17, 0x60);
++		reg17 |= SEN_CLK_EN;
++		reg_w1(gspca_dev, 0x17, reg17);
+ 		reg_w1(gspca_dev, 0x01, 0x22);
+ 		msleep(100);
+-		reg_w1(gspca_dev, 0x01, 0x62);
+-		reg_w1(gspca_dev, 0x17, 0x64);
+-		reg_w1(gspca_dev, 0x17, 0x64);
+-		reg_w1(gspca_dev, 0x01, 0x42);
++		reg01 = SCL_SEL_OD | S_PDN_INV;
++		reg17 &= MCK_SIZE_MASK;
++		reg17 |= 0x04;		/* clock / 4 */
++		break;
++	}
++	reg01 |= SYS_SEL_48M;
++	reg_w1(gspca_dev, 0x01, reg01);
++	reg17 |= SEN_CLK_EN;
++	reg_w1(gspca_dev, 0x17, reg17);
++	reg01 &= ~S_PWR_DN;		/* sensor power on */
++	reg_w1(gspca_dev, 0x01, reg01);
++	reg01 &= ~SYS_SEL_48M;
++	reg_w1(gspca_dev, 0x01, reg01);
++
++	switch (sd->sensor) {
++	case SENSOR_HV7131R:
++		hv7131r_probe(gspca_dev);	/*fixme: is it useful? */
++		break;
++	case SENSOR_OM6802:
+ 		msleep(10);
+-		reg_w1(gspca_dev, 0x01, 0x42);
++		reg_w1(gspca_dev, 0x01, reg01);
+ 		i2c_w8(gspca_dev, om6802_init0[0]);
+ 		i2c_w8(gspca_dev, om6802_init0[1]);
+ 		msleep(15);
+ 		reg_w1(gspca_dev, 0x02, 0x71);
+ 		msleep(150);
+ 		break;
+-	case SENSOR_OV7630:
+-		reg_w1(gspca_dev, 0x01, 0x61);
+-		reg_w1(gspca_dev, 0x17, 0xe2);
+-		reg_w1(gspca_dev, 0x01, 0x60);
+-		reg_w1(gspca_dev, 0x01, 0x40);
+-		break;
+-	case SENSOR_OV7648:
+-		reg_w1(gspca_dev, 0x01, 0x63);
+-		reg_w1(gspca_dev, 0x17, 0x20);
+-		reg_w1(gspca_dev, 0x01, 0x62);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+-		break;
+-	case SENSOR_PO1030:
+-	case SENSOR_SOI768:
+-		reg_w1(gspca_dev, 0x01, 0x61);
+-		reg_w1(gspca_dev, 0x17, 0x20);
+-		reg_w1(gspca_dev, 0x01, 0x60);
+-		reg_w1(gspca_dev, 0x01, 0x40);
+-		break;
+-	case SENSOR_PO2030N:
+-	case SENSOR_OV7660:
+-		reg_w1(gspca_dev, 0x01, 0x63);
+-		reg_w1(gspca_dev, 0x17, 0x20);
+-		reg_w1(gspca_dev, 0x01, 0x62);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+-		break;
+ 	case SENSOR_SP80708:
+-		reg_w1(gspca_dev, 0x01, 0x63);
+-		reg_w1(gspca_dev, 0x17, 0x20);
+-		reg_w1(gspca_dev, 0x01, 0x62);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+ 		msleep(100);
+ 		reg_w1(gspca_dev, 0x02, 0x62);
+ 		break;
+-	default:
+-/*	case SENSOR_HV7131R: */
+-/*	case SENSOR_MI0360: */
+-/*	case SENSOR_MO4000: */
+-		reg_w1(gspca_dev, 0x01, 0x43);
+-		reg_w1(gspca_dev, 0x17, 0x61);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+-		if (sd->sensor == SENSOR_HV7131R)
+-			hv7131r_probe(gspca_dev);
+-		break;
+ 	}
+ 
+ 	/* initialize the sensor */
+@@ -2487,30 +2446,11 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 	}
+ 	reg_w1(gspca_dev, 0x18, sn9c1xx[0x18]);
+ 	switch (sd->sensor) {
+-	case SENSOR_GC0307:
+-		reg17 = 0xa2;
+-		break;
+-	case SENSOR_MT9V111:
+-	case SENSOR_MI0360B:
+-		reg17 = 0xe0;
+-		break;
+-	case SENSOR_ADCM1700:
+-	case SENSOR_OV7630:
+-		reg17 = 0xe2;
+-		break;
+-	case SENSOR_OV7648:
+-		reg17 = 0x20;
+-		break;
+-	case SENSOR_OV7660:
+-	case SENSOR_SOI768:
+-		reg17 = 0xa0;
+-		break;
+-	case SENSOR_PO1030:
+-	case SENSOR_PO2030N:
+-		reg17 = 0xa0;
++	case SENSOR_OM6802:
++/*	case SENSOR_OV7648:		* fixme: sometimes */
+ 		break;
+ 	default:
+-		reg17 = 0x60;
++		reg17 |= DEF_EN;
+ 		break;
+ 	}
+ 	reg_w1(gspca_dev, 0x17, reg17);
+@@ -2557,95 +2497,64 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 
+ 	init = NULL;
+ 	mode = gspca_dev->cam.cam_mode[gspca_dev->curr_mode].priv;
++	reg01 |= V_TX_EN;
+ 	if (mode)
+-		reg1 = 0x46;	/* 320x240: clk 48Mhz, video trf enable */
++		reg01 |= SYS_SEL_48M;	/* 320x240: clk 48Mhz */
+ 	else
+-		reg1 = 0x06;	/* 640x480: clk 24Mhz, video trf enable */
+-	reg17 = 0x61;		/* 0x:20: enable sensor clock */
++		reg01 &= ~SYS_SEL_48M;	/* 640x480: clk 24Mhz */
++	reg17 &= ~MCK_SIZE_MASK;
++	reg17 |= 0x02;			/* clock / 2 */
+ 	switch (sd->sensor) {
+ 	case SENSOR_ADCM1700:
+ 		init = adcm1700_sensor_param1;
+-		reg1 = 0x46;
+-		reg17 = 0xe2;
++		reg01 |= SYS_SEL_48M;
+ 		break;
+ 	case SENSOR_GC0307:
+ 		init = gc0307_sensor_param1;
+-		reg17 = 0xa2;
+-		reg1 = 0x44;
++		reg01 |= SYS_SEL_48M;
+ 		break;
+ 	case SENSOR_MI0360B:
+ 		init = mi0360b_sensor_param1;
+-		reg1 &= ~0x02;		/* don't inverse pin S_PWR_DN */
+-		reg17 = 0xe2;
+ 		break;
+ 	case SENSOR_MO4000:
+ 		if (mode) {
+-/*			reg1 = 0x46;	 * 320 clk 48Mhz 60fp/s */
+-			reg1 = 0x06;	/* clk 24Mz */
++			reg01 &= ~SYS_SEL_48M;	/* clk 24Mz */
+ 		} else {
+-			reg17 = 0x22;	/* 640 MCKSIZE */
+-/*			reg1 = 0x06;	 * 640 clk 24Mz (done) */
++			reg17 = SEN_CLK_EN | 0x02;	/* clock / 2 */
+ 		}
+ 		break;
+ 	case SENSOR_MT9V111:
+ 		init = mt9v111_sensor_param1;
+-		if (mode) {
+-			reg1 = 0x04;	/* 320 clk 48Mhz */
+-		} else {
+-/*			reg1 = 0x06;	 * 640 clk 24Mz (done) */
+-			reg17 = 0xc2;
+-		}
+ 		break;
+ 	case SENSOR_OM6802:
+ 		init = om6802_sensor_param1;
+-		reg17 = 0x64;		/* 640 MCKSIZE */
+ 		break;
+ 	case SENSOR_OV7630:
+ 		init = ov7630_sensor_param1;
+-		reg17 = 0xe2;
+-		reg1 = 0x44;
++		reg01 |= SYS_SEL_48M;
+ 		break;
+ 	case SENSOR_OV7648:
+ 		init = ov7648_sensor_param1;
+-		reg17 = 0x21;
+-/*		reg1 = 0x42;		 * 42 - 46? */
++		reg17 &= ~MCK_SIZE_MASK;
++		reg17 |= 0x01;			/* clock / 1 */
+ 		break;
+ 	case SENSOR_OV7660:
+ 		init = ov7660_sensor_param1;
+-		if (sd->bridge == BRIDGE_SN9C120) {
+-			if (mode) {		/* 320x240 - 160x120 */
+-				reg17 = 0xa2;
+-				reg1 = 0x44;	/* 48 Mhz, video trf eneble */
+-			}
+-		} else {
+-			reg17 = 0x22;
+-			reg1 = 0x06;	/* 24 Mhz, video trf eneble
+-					 * inverse power down */
+-		}
+ 		break;
+ 	case SENSOR_PO1030:
+ 		init = po1030_sensor_param1;
+-		reg17 = 0xa2;
+-		reg1 = 0x44;
++		reg01 |= SYS_SEL_48M;
+ 		break;
+ 	case SENSOR_PO2030N:
+ 		init = po2030n_sensor_param1;
+-		reg1 = 0x46;
+-		reg17 = 0xa2;
++		reg01 |= SYS_SEL_48M;
+ 		break;
+ 	case SENSOR_SOI768:
+ 		init = soi768_sensor_param1;
+-		reg1 = 0x44;
+-		reg17 = 0xa2;
++		reg01 |= SYS_SEL_48M;
+ 		break;
+ 	case SENSOR_SP80708:
+ 		init = sp80708_sensor_param1;
+-		if (mode) {
+-/*??			reg1 = 0x04;	 * 320 clk 48Mhz */
+-		} else {
+-			reg1 = 0x46;	 /* 640 clk 48Mz */
+-			reg17 = 0xa2;
+-		}
+ 		break;
+ 	}
+ 
+@@ -2695,7 +2604,9 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 	setjpegqual(gspca_dev);
+ 
+ 	reg_w1(gspca_dev, 0x17, reg17);
+-	reg_w1(gspca_dev, 0x01, reg1);
++	reg_w1(gspca_dev, 0x01, reg01);
++	sd->reg01 = reg01;
++	sd->reg17 = reg17;
+ 
+ 	sethvflip(gspca_dev);
+ 	setbrightness(gspca_dev);
+@@ -2717,41 +2628,69 @@ static void sd_stopN(struct gspca_dev *gspca_dev)
+ 		{ 0xa1, 0x21, 0x76, 0x20, 0x00, 0x00, 0x00, 0x10 };
+ 	static const u8 stopsoi768[] =
+ 		{ 0xa1, 0x21, 0x12, 0x80, 0x00, 0x00, 0x00, 0x10 };
+-	u8 data;
+-	const u8 *sn9c1xx;
++	u8 reg01;
++	u8 reg17;
+ 
+-	data = 0x0b;
++	reg01 = sd->reg01;
++	reg17 = sd->reg17 & ~SEN_CLK_EN;
+ 	switch (sd->sensor) {
++	case SENSOR_ADCM1700:
++	case SENSOR_PO2030N:
++	case SENSOR_SP80708:
++		reg01 |= LED;
++		reg_w1(gspca_dev, 0x01, reg01);
++		reg01 &= ~(LED | V_TX_EN);
++		reg_w1(gspca_dev, 0x01, reg01);
++/*		reg_w1(gspca_dev, 0x02, 0x??);	 * LED off ? */
++		break;
+ 	case SENSOR_GC0307:
+-		data = 0x29;
++		reg01 |= LED | S_PDN_INV;
++		reg_w1(gspca_dev, 0x01, reg01);
++		reg01 &= ~(LED | V_TX_EN | S_PDN_INV);
++		reg_w1(gspca_dev, 0x01, reg01);
+ 		break;
+ 	case SENSOR_HV7131R:
++		reg01 &= ~V_TX_EN;
++		reg_w1(gspca_dev, 0x01, reg01);
+ 		i2c_w8(gspca_dev, stophv7131);
+-		data = 0x2b;
+ 		break;
+ 	case SENSOR_MI0360:
+ 	case SENSOR_MI0360B:
++		reg01 &= ~V_TX_EN;
++		reg_w1(gspca_dev, 0x01, reg01);
++/*		reg_w1(gspca_dev, 0x02, 0x40);	  * LED off ? */
+ 		i2c_w8(gspca_dev, stopmi0360);
+-		data = 0x29;
+ 		break;
+-	case SENSOR_OV7648:
+-		i2c_w8(gspca_dev, stopov7648);
+-		/* fall thru */
+ 	case SENSOR_MT9V111:
+-	case SENSOR_OV7630:
++	case SENSOR_OM6802:
+ 	case SENSOR_PO1030:
+-		data = 0x29;
++		reg01 &= ~V_TX_EN;
++		reg_w1(gspca_dev, 0x01, reg01);
++		break;
++	case SENSOR_OV7630:
++	case SENSOR_OV7648:
++		reg01 &= ~V_TX_EN;
++		reg_w1(gspca_dev, 0x01, reg01);
++		i2c_w8(gspca_dev, stopov7648);
++		break;
++	case SENSOR_OV7660:
++		reg01 &= ~V_TX_EN;
++		reg_w1(gspca_dev, 0x01, reg01);
+ 		break;
+ 	case SENSOR_SOI768:
+ 		i2c_w8(gspca_dev, stopsoi768);
+-		data = 0x29;
+ 		break;
+ 	}
+-	sn9c1xx = sn_tb[sd->sensor];
+-	reg_w1(gspca_dev, 0x01, sn9c1xx[1]);
+-	reg_w1(gspca_dev, 0x17, sn9c1xx[0x17]);
+-	reg_w1(gspca_dev, 0x01, sn9c1xx[1]);
+-	reg_w1(gspca_dev, 0x01, data);
++
++	reg01 |= SCL_SEL_OD;
++	reg_w1(gspca_dev, 0x01, reg01);
++	reg01 |= S_PWR_DN;		/* sensor power down */
++	reg_w1(gspca_dev, 0x01, reg01);
++	reg_w1(gspca_dev, 0x17, reg17);
++	reg01 &= ~SYS_SEL_48M;		/* clock 24MHz */
++	reg_w1(gspca_dev, 0x01, reg01);
++	reg01 |= LED;
++	reg_w1(gspca_dev, 0x01, reg01);
+ 	/* Don't disable sensor clock as that disables the button on the cam */
+ 	/* reg_w1(gspca_dev, 0xf1, 0x01); */
+ }
+-- 
+1.7.2.3
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
