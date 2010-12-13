@@ -1,32 +1,42 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4322 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751807Ab0L3OmO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Dec 2010 09:42:14 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andy Walls <awalls@md.metrocast.net>
-Subject: Can VIDIOC_INT_RESET be removed?
-Date: Thu, 30 Dec 2010 15:42:08 +0100
-Cc: linux-media@vger.kernel.org
+Received: from smtpout17.ngs.ru ([195.93.186.223]:56591 "EHLO smtpout17.ngs.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757797Ab0LMNwb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Dec 2010 08:52:31 -0500
+Received: from smtpout.ngs.ru (imx2.in.ngs.ru [172.16.0.5])
+	by smtpout17.ngs.ru (smtpout17.ngs.ru) with ESMTP id 454B071D8C42
+	for <linux-media@vger.kernel.org>; Mon, 13 Dec 2010 19:37:25 +0600 (NOVT)
+Received: from [192.168.12.34] (unknown [192.168.12.34])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: aptem@ngs.ru)
+	by mail.ngs.ru (smtp) with ESMTP id 21CE1957CDA6F
+	for <linux-media@vger.kernel.org>; Mon, 13 Dec 2010 19:46:42 +0600 (NOVT)
+Message-ID: <4D062370.8070303@ngs.ru>
+Date: Mon, 13 Dec 2010 19:45:20 +0600
+From: Artem Bokhan <aptem@ngs.ru>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+To: linux-media@vger.kernel.org
+Subject: problems with several saa7134 cards
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201012301542.08706.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Andy,
+  I use several (from three to five) saa7134-based cards on single PC. Currently 
+I'm trying to migrate from 2.6.22 to 2.6.32 (ubuntu lts).
 
-Is there still a reason to keep the VIDIOC_INT_RESET ioctl in cx18 and ivtv?
-I seem to remember that you told me that they are no longer needed.
+I've got problems which I did not have with 2.6.22 kernel:
 
-If so, then I'll make a patch removing this ioctl in the drivers and in v4l-utils.
+1. Depending on configuration load average holds 1 or 2 when saa7134 module is 
+loaded. The reason is kernel process "events/".
 
-Regards,
+   PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND
+    16 root      20   0     0    0    0 S    3  0.0   9:36.89 events/1
+    15 root      20   0     0    0    0 D    3  0.0   9:35.81 events/0
 
-	Hans
+2. Sound and video are not synced when recording with mencoder.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+
+The same problem with 2.6.36 kernel except "events" process have different name 
+(can't remember exact name, sorry)
