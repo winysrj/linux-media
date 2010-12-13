@@ -1,43 +1,56 @@
 Return-path: <mchehab@gaivota>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:31309 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756583Ab0LOAWs (ORCPT
+Received: from mail-ew0-f45.google.com ([209.85.215.45]:38422 "EHLO
+	mail-ew0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754090Ab0LMPwV convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Dec 2010 19:22:48 -0500
-Date: Tue, 14 Dec 2010 19:22:49 -0500
-Subject: Re: Simple request : mini-pcie analog TV capture card
-Message-ID: <gsh97dwf8bv286g5ss2mjom6.1292372310306@email.android.com>
-From: Andy Walls <awalls@md.metrocast.net>
-To: Fernando Laudares Camargos <fernando.laudares.camargos@gmail.com>,
-	video4linux-list@redhat.com, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+	Mon, 13 Dec 2010 10:52:21 -0500
+MIME-Version: 1.0
+In-Reply-To: <20101210170356.GA28472@n2100.arm.linux.org.uk>
+References: <201012051929.07220.jkrzyszt@tis.icnet.pl>
+	<201012101159.21845.jkrzyszt@tis.icnet.pl>
+	<201012101203.09441.jkrzyszt@tis.icnet.pl>
+	<20101210170356.GA28472@n2100.arm.linux.org.uk>
+Date: Mon, 13 Dec 2010 15:52:20 +0000
+Message-ID: <AANLkTimTVWVmVfppAWSosidqLmo6c+8rPhLg=oJAVoYH@mail.gmail.com>
+Subject: Re: [RESEND] [PATCH 1/2] OMAP1: allow reserving memory for camera
+From: Catalin Marinas <catalin.marinas@arm.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
+	Tony Lindgren <tony@atomide.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-RmVybmFuZG8sCgpZb3Ugc2hvdWxkIHNlbmQgcXVlc3Rpb25zIHRvIGxpbnV4LW1lZGlhQHZnZXIu
-a2VybmVsLm9yZyBhcyB0aGUgdmlkZW80bGludXggbGlzdCBpcyBtb3N0bHkgZGVhZC4KClRoZSBZ
-dWFuIE1QQzcxOCBpcyBzdXBwb3J0ZWQgYnkgdGhlIGN4MTggZHJpdmVyLCBidXQgaXQgaXMgbWlu
-aS1wY2kgKG5vdCBtaW5pLXBjaWUpIGFuZCBoYXMgaGFyZHdhcmUgbXBlZzIgZW5jb2RpbmcsIHdo
-aWNoIG1heSBiZSBvdmVya2lsbCBmb3IgeW91ciBuZWVkcy4KClJlZ2FyZHMsCkFuZHkKCkZlcm5h
-bmRvIExhdWRhcmVzIENhbWFyZ29zIDxmZXJuYW5kby5sYXVkYXJlcy5jYW1hcmdvc0BnbWFpbC5j
-b20+IHdyb3RlOgoKPkhlbGxvIExpc3QsCj4KPkknbSBhZnRlciBhIHNvbWVob3cgcXVpdGUgc2lt
-cGxlIGluZm9ybWF0aW9uOiBJJ20gbG9va2luZyBmb3IgYQo+bWluaS1wY2llIFRWIHR1bmVyL2Nh
-cHR1cmUgY2FyZC4gSSBzaW1wbHkgbmVlZCB0byBwbHVnIG15IGNhYmxlIFRWCj5kZWNvZGVyIHRv
-IHN1Y2ggYSBjYXJkIHRvICJ3YXRjaCIgVFYgb24gTGludXguIEkndmUgZ290IHN1Y2Nlc3Mgd2l0
-aCBhCj5IYXVwcGF1Z2UgOTUwUSBVU0Igc3RpY2sgYW5kIFRWIHRpbWUgYnV0IHRoaXMgaXMgbm90
-IGEgb25lLXRpbWUKPnByb2plY3QgYW5kIHdlIHdvdWxkIG5lZWQgdG8gcmVwbGljYXRlIGl0IGlu
-IGEgc29tZWhvdyBsYXJnZSBzY2FsZSwgc28KPmEgbWluaS1wY2llIGNhcmQgd291bGQgZml0IHRo
-ZSBoYXJkd2FyZSBiZXN0Lgo+Cj5Eb2VzIGFueWJvZHkga25vdyBhbnkgbWluaS1wY2llIG1vZGVs
-IGFuYWxvZyBjYXJkIHRoYXQgYXJlIHN0aWxsCj5hdmFpbGFibGUgb24gdGhlIG1hcmtldCBhbmQg
-dGhhdCBpcyBjb21wYXRpYmxlIHdpdGggdGhpcyBuZWVkID8KPgo+SSd2ZSBsb29rZWQgYXQgbGlu
-dXh0di5vcmcgbGlzdHMgYnV0IGNvdWxkbid0IGZpbmQgb25lLgo+Cj5IYWJleSBoYXMgYSBuZXcg
-bW9kZWwsIGJhc2VkIG9uIHRoZSBBVEkgVGhlYXRlciA3NTAgSEQgY2hpcCwgd2hpY2ggaXMKPm5v
-dCBzdXBwb3J0ZWQuCj4KPkFWZXJNZWRpYSBoYXMgc29tZSBtb2RlbHMgdG9vLCBidXQgbm9uZSBz
-ZWVtcyB0byBoYXZlIGFuYWxvZyBtb2RlCj53b3JraW5nIG9uIExpbnV4Lgo+Cj5Bbnkgc3VnZ2Vz
-dGlvbnMgd291bGQgYmUga2luZGx5IGFwcHJlY2lhdGVkLgo+Cj5SZWdhcmRzLAo+Cj5GZXJuYW5k
-bwo+Cj4tLQo+dmlkZW80bGludXgtbGlzdCBtYWlsaW5nIGxpc3QKPlVuc3Vic2NyaWJlIG1haWx0
-bzp2aWRlbzRsaW51eC1saXN0LXJlcXVlc3RAcmVkaGF0LmNvbT9zdWJqZWN0PXVuc3Vic2NyaWJl
-Cj5odHRwczovL3d3dy5yZWRoYXQuY29tL21haWxtYW4vbGlzdGluZm8vdmlkZW80bGludXgtbGlz
-dAo=
+On 10 December 2010 17:03, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Fri, Dec 10, 2010 at 12:03:07PM +0100, Janusz Krzysztofik wrote:
+>>  void __init omap1_camera_init(void *info)
+>>  {
+>>       struct platform_device *dev = &omap1_camera_device;
+>> +     dma_addr_t paddr = omap1_camera_phys_mempool_base;
+>> +     dma_addr_t size = omap1_camera_phys_mempool_size;
+>>       int ret;
+>>
+>>       dev->dev.platform_data = info;
+>>
+>> +     if (paddr) {
+>> +             if (dma_declare_coherent_memory(&dev->dev, paddr, paddr, size,
+>> +                             DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE))
+>
+> Although this works, you're ending up with SDRAM being mapped via
+> ioremap, which uses MT_DEVICE - so what is SDRAM ends up being
+> mapped as if it were a device.
 
+BTW, does the generic dma_declare_coherent_memory() does the correct
+thing in using ioremap()? Maybe some other function that takes a
+pgprot_t would be better (ioremap_page_range) and could pass something
+like pgprot_noncached (though ideally a pgprot_dmacoherent). Or just
+an architecturally-defined function.
+
+-- 
+Catalin
