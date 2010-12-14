@@ -1,66 +1,48 @@
 Return-path: <mchehab@gaivota>
-Received: from banach.math.auburn.edu ([131.204.45.3]:55894 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932543Ab0LSXpy (ORCPT
+Received: from smtp5-g21.free.fr ([212.27.42.5]:50981 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757825Ab0LNTO4 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Dec 2010 18:45:54 -0500
-Date: Sun, 19 Dec 2010 18:21:57 -0600 (CST)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Adam Baker <linux@baker-net.org.uk>
-cc: Andy Walls <awalls@md.metrocast.net>,
-	Paulo Assis <pj.assis@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Power frequency detection.
-In-Reply-To: <201012192332.38060.linux@baker-net.org.uk>
-Message-ID: <alpine.LNX.2.00.1012191814240.24101@banach.math.auburn.edu>
-References: <73wo0g3yy30clob2isac30vm.1292782894810@email.android.com> <alpine.LNX.2.00.1012191423030.23950@banach.math.auburn.edu> <201012192332.38060.linux@baker-net.org.uk>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Tue, 14 Dec 2010 14:14:56 -0500
+Date: Tue, 14 Dec 2010 20:16:58 +0100
+From: =?UTF-8?B?SmVhbi1GcmFuw6dvaXM=?= Moine <moinejf@free.fr>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 5/6] gspca - sonixj: Add the bit definitions of the bridge
+ reg 0x01 and 0x17
+Message-ID: <20101214201658.795f96f5@tele>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
+Signed-off-by: Jean-François Moine <moinejf@free.fr>
 
+diff --git a/drivers/media/video/gspca/sonixj.c b/drivers/media/video/gspca/sonixj.c
+index 5deff24..a75f7ec 100644
+--- a/drivers/media/video/gspca/sonixj.c
++++ b/drivers/media/video/gspca/sonixj.c
+@@ -100,6 +100,19 @@ enum sensors {
+ /* device flags */
+ #define PDN_INV	1		/* inverse pin S_PWR_DN / sn_xxx tables */
+ 
++/* sn9c1xx definitions */
++/* register 0x01 */
++#define S_PWR_DN	0x01	/* sensor power down */
++#define S_PDN_INV	0x02	/* inverse pin S_PWR_DN */
++#define V_TX_EN		0x04	/* video transfer enable */
++#define LED		0x08	/* output to pin LED */
++#define SCL_SEL_OD	0x20	/* open-drain mode */
++#define SYS_SEL_48M	0x40	/* system clock 0: 24MHz, 1: 48MHz */
++/* register 0x17 */
++#define MCK_SIZE_MASK	0x1f	/* sensor master clock */
++#define SEN_CLK_EN	0x20	/* enable sensor clock */
++#define DEF_EN		0x80	/* defect pixel by 0: soft, 1: hard */
++
+ /* V4L2 controls supported by the driver */
+ static void setbrightness(struct gspca_dev *gspca_dev);
+ static void setcontrast(struct gspca_dev *gspca_dev);
+-- 
+1.7.2.3
 
-On Sun, 19 Dec 2010, Adam Baker wrote:
-
-> On Sunday 19 Dec 2010, Theodore Kilgore wrote:
-> > Finally, one concern that I have in the back of my mind is the question of 
-> > control settings for a camera which streams in bulk mode and requires the 
-> > setup of a workqueue. The owner of the camera says that he has 
-> > "encountered no problems" with running the two controls mentioned above. 
-> > Clearly, that is not a complete answer which overcomes all possible 
-> > objections. Rather, things are OK if and only if we can ensure that these 
-> > controls can be run only while the workqueue that does the streaming is 
-> > inactive. Somehow, I suspect that the fact that a sensible user would only 
-> > run such commands at camera setup is an insufficient guarantee that no 
-> > problems will ever be encountered.
-> > 
-> > So, as I said, the question of interaction of a control and a workqueue is 
-> > another problem interesting little problem. Your thoughts on this 
-> > interesting little problem would be appreciated.
-> 
-> I don't think you can assume a user won't try to adjust such controls while 
-> streaming - 
-
-what I said, actually
-
-if I had one I'd certainly want to try swapping the control while 
-> streaming to see if I could see any affect on the output. 
-
-Yeah, I tell people that I like to see if I can hook things together and 
-make something go "bang." Or, that I do research about locating that 
-elusive magic smoke in the hardware, which makes it run. So maybe I 
-would try that too, just for the pure hell of it. But I did say 
-something about a "sensible user"? Neither of us, apparently. And come 
-down to it, if one cannot trust you, and cannot trust me, as much work as 
-we did together, then nobody can be trusted at all. :-}
-
-Even though sq905.c 
-> doesn't have any controls on the camera it still ended up needing the locking 
-> that would make this safe. See the header comment on sq905_dostream
-
-If the controls are locked while the workqueue is doing the streaming, 
-then probably that does fix the problem? Most likely, that is the simplest 
-thing to do. 
-
-Theodore Kilgore
