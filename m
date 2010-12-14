@@ -1,130 +1,158 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-fx0-f43.google.com ([209.85.161.43]:40056 "EHLO
-	mail-fx0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754702Ab0LRQGD (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:55990 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751416Ab0LNHO5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Dec 2010 11:06:03 -0500
-Received: by fxm18 with SMTP id 18so1698581fxm.2
-        for <linux-media@vger.kernel.org>; Sat, 18 Dec 2010 08:06:02 -0800 (PST)
-Message-ID: <4D0CDBE7.30504@gmail.com>
-Date: Sat, 18 Dec 2010 17:05:59 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
-MIME-Version: 1.0
-To: riverful.kim@samsung.com
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, g.liakhovetski@gmx.de,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
-Subject: Re: [PATCH] V4L/DVB: Add support for M5MOLS Mega Pixel camera
-References: <4D01D96B.8040707@samsung.com> <4D0A985A.6010007@gmail.com> <4D0B066B.3000703@samsung.com> <4D0B9146.7050804@samsung.com>
-In-Reply-To: <4D0B9146.7050804@samsung.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Tue, 14 Dec 2010 02:14:57 -0500
+Received: from epmmp2 (mailout3.samsung.com [203.254.224.33])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LDE00MUDPGERG90@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 14 Dec 2010 16:14:38 +0900 (KST)
+Received: from AMDC159 ([106.116.37.153])
+ by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LDE0066TPG91J@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 14 Dec 2010 16:14:38 +0900 (KST)
+Date: Tue, 14 Dec 2010 08:14:32 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH 1/8] v4l: add videobuf2 Video for Linux 2 driver framework
+In-reply-to: <201012111754.37066.hverkuil@xs4all.nl>
+To: 'Hans Verkuil' <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+	kyungmin.park@samsung.com,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <013201cb9b5e$91195a20$b34c0e60$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1291632765-11207-1-git-send-email-m.szyprowski@samsung.com>
+ <1291632765-11207-2-git-send-email-m.szyprowski@samsung.com>
+ <201012111754.37066.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On 12/17/2010 05:35 PM, Sylwester Nawrocki wrote:
->
-> Hi HeungJun,
->
-> On 12/17/2010 07:42 AM, Kim, HeungJun wrote:
->> Hi Sylwester,
->>
->> Thanks for some comments. I'll reflects this comments for the next version
->> patch. It's clear that there is a few things I missed. It's better to let's
->> talk about this rest things, as Mr. Park said.
->>
->> But, I wanna remind one thing, and know your exact thiking. about MACROs.
->>
->> I re-comments of that. look around and re-re-comments it, plz.
->>
->>>> +
->>>> +/* MACRO */
->>>> +#define e_check_w(fn, cat, byte, val, bitwidth)        do {    \
->>>> +    int ret;                        \
->>>> +    ret = (int)(fn);                    \
->>>> +    if ((ret)<   0) {                    \
->>>> +        dev_err(&client->dev, "fail i2c WRITE [%s] - "    \
->>>> +                "category:0x%02x, "        \
->>>> +                "bytes:0x%02x, "        \
->>>> +                "value:0x%02x\n",        \
->>>> +                (bitwidth),            \
->>>> +                (cat), (byte), (u32)val);    \
->>>> +        return ret;                    \
->>>> +    }                            \
->>>> +} while (0)
->>>> +
->>>> +#define e_check_r(fn, cat, byte, val, bitwidth)        do {    \
->>>> +    int ret;                        \
->>>> +    ret = (int)(fn);                    \
->>>> +    if ((ret)<   0) {                    \
->>>> +        dev_err(&client->dev, "fail i2c READ [%s] - "    \
->>>> +                "category:0x%02x, "        \
->>>> +                "bytes:0x%02x, "        \
->>>> +                "value:0x%02x\n",        \
->>>> +                (bitwidth),            \
->>>> +                (cat), (byte), (u32)(*val));    \
->>>> +        return ret;                    \
->>>> +    }                            \
->>>> +} while (0)
->>>> +
->>>> +#define REG_W_8(cat, byte, value)                    \
->>>> +    e_check_w(m5mols_write_reg(sd, M5MOLS_8BIT, cat, byte, value),    \
->>>> +            cat, byte, value, "8bit")
->>>> +#define REG_R_8(cat, byte, value)                    \
->>>> +    e_check_r(m5mols_read_reg(sd, M5MOLS_8BIT, cat, byte, value),    \
->>>> +            cat, byte, value, "8bit")
->>>> +
->>>> +#define e_check_mode(fn, mode)                do {    \
->>>> +    int ret;                        \
->>>> +    ret = (int)(fn);                    \
->>>> +    if (ret<   0) {                        \
->>>> +        dev_err(&client->dev, "Failed to %s mode\n",    \
->>>> +                (mode));            \
->>>> +        return ret;                    \
->>>> +    }                            \
->>>> +} while (0)
->>>
->>> These macros really do not look good. Moreover they all change
->>> the control flow, i.e. return a value. From Documentation/CodingStyle:
->>>
->>> "Things to avoid when using macros:
->>>
->>> 1) macros that affect control flow:
->>>
->>> #define FOO(x)                                  \
->>>          do {                                    \
->>>                  if (blah(x)<  0)                \
->>>                          return -EBUGGERED;      \
->>>          } while(0)
->>>
->>> is a _very_ bad idea.  It looks like a function call but exits the
->>> "calling" function; don't break the internal parsers of those who will
->>> read the code."
->>
->> I know about Documentation/CodingStyle and absolutely know about
->> the risks of MACRO like upper case. I even know the _very_'s meanings.
->> But, I think this case is different any other MACRO cases to be concrete
->> whether use or not. Actually, I've not even found address symbol using T32
->> debuggers cause of MACROs. I have realized danger before long time.
->>
->> I know Documentation/CodingStyle is very strong recommandation.
->> And must keep this style but, it seems to happen the specific case.
->> The specific means, not general and only used in the M5MOLS code.
->> The following is my thinking at past.
->>
->> 1. There are a lot of I2C communication is in M5MOLS driver code.
->>     The M5MOLS has 16 category, and about 50 commands in the each category.
->>     If each command need 1 line on the code, the amount to be charged I2C
->>     communication only is 800 lines. What if each command be plused 3~4
->>     error checking code? The code amount is 3200 lines at least. Moreover,
->>     No guarantiee 1 command only 1 time excuetion. So, 3200 more lines
->>     would be added at the future. (The m5mo driver you've seen and used before,
->>     is not yet inserted all controls.)
->
-> Then this sensor needs careful design and function partitioning.
-> Single *.c file should not exceed 1000 lines.
-> I think we need a separate directory for it, like media/drivers/m5mols/.
+Hello,
 
-ouch, that was supposed to be drivers/media/video/m5mols
+On Saturday, December 11, 2010 5:55 PM Hans Verkuil wrote:
+
+Big thanks for the review! I will fix all these minor issues and resend
+the patches soon. I hope we will manage to get videobuf2 merged soon! :)
+
+> Hi Marek,
+> 
+> Here is my review. I wish I could ack it, but I found a few bugs that need
+> fixing first. Also a bunch of small stuff that's trivial to fix.
+> 
+> On Monday, December 06, 2010 11:52:38 Marek Szyprowski wrote:
+> > From: Pawel Osciak <p.osciak@samsung.com>
+> >
+> > Videobuf2 is a Video for Linux 2 API-compatible driver framework for
+> > multimedia devices. It acts as an intermediate layer between userspace
+> > applications and device drivers. It also provides low-level, modular
+> > memory management functions for drivers.
+> >
+> > Videobuf2 eases driver development, reduces drivers' code size and aids in
+> > proper and consistent implementation of V4L2 API in drivers.
+> >
+> > Videobuf2 memory management backend is fully modular. This allows custom
+> > memory management routines for devices and platforms with non-standard
+> > memory management requirements to be plugged in, without changing the
+> > high-level buffer management functions and API.
+> >
+> > The framework provides:
+> > - implementations of streaming I/O V4L2 ioctls and file operations
+> > - high-level video buffer, video queue and state management functions
+> > - video buffer memory allocation and management
+> >
+> > Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+> > Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > CC: Pawel Osciak <pawel@osciak.com>
+> > ---
+
+<snip>
+
+> > +/**
+> > + * __vb2_wait_for_done_vb() - wait for a buffer to become available
+> > + * for dequeuing
+> > + *
+> > + * Will sleep if required for nonblocking == false.
+> > + */
+> > +static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
+> > +{
+> > +	/*
+> > +	 * All operation on vb_done_list is performed under vb_done_lock
+> > +	 * spinlock protection. However buffers may must be removed from
+> > +	 * it and returned to userspace only while holding both driver's
+> > +	 * lock and the vb_done_lock spinlock. Thus we can be sure that as
+> > +	 * long as we hold lock, the list will remain not empty if this
+> > +	 * check succeeds.
+> > +	 */
+> > +
+> > +	for (;;) {
+> > +		int ret;
+> > +
+> > +		if (!q->streaming) {
+> > +			dprintk(1, "Streaming off, will not wait for buffers\n");
+> > +			return -EINVAL;
+> > +		}
+> > +
+> > +		if (!list_empty(&q->done_list)) {
+> > +			/*
+> > +			 * Found a buffer that we were waiting for.
+> > +			 */
+> > +			break;
+> > +		} else if (nonblocking) {
+> 
+> The 'else' keyword can be removed since the 'if' above always breaks.
+> 
+> > +			dprintk(1, "Nonblocking and no buffers to dequeue, "
+> > +								"will not wait\n");
+> > +			return -EAGAIN;
+> > +		}
+> > +
+> > +		/*
+> > +		 * We are streaming and blocking, wait for another buffer to
+> > +		 * become ready or for streamoff. Driver's lock is released to
+> > +		 * allow streamoff or qbuf to be called while waiting.
+> > +		 */
+> > +		call_qop(q, wait_prepare, q);
+> > +
+> > +		/*
+> > +		 * All locks has been released, it is safe to sleep now.
+> > +		 */
+> > +		dprintk(3, "Will sleep waiting for buffers\n");
+> > +		ret = wait_event_interruptible(q->done_wq,
+> > +				!list_empty(&q->done_list) || !q->streaming);
+> > +
+> > +		/*
+> > +		 * We need to reevaluate both conditions again after reacquiring
+> > +		 * the locks or return an error if it occured. In case of error
+> > +		 * we return -EINTR, because -ERESTARTSYS should not be returned
+> > +		 * to userspace.
+> > +		 */
+> > +		call_qop(q, wait_finish, q);
+> > +		if (ret)
+> > +			return -EINTR;
+> 
+> No, this should be -ERESTARTSYS. This won't be returned to userspace, instead
+> the kernel will handle the signal and restart the system call automatically.
+
+I thought that -ERESTARTSYS should not be returned to userspace, that's why I
+use -EINTR here. What does the comment in linux/errno.h refer to?
+
+> > +	}
+> > +	return 0;
+> > +}
+> > +
+
+Thanks again for your comments!
+
+
+Best regards
+--
+Marek Szyprowski
+Samsung Poland R&D Center
 
