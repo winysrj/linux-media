@@ -1,309 +1,63 @@
 Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34470 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756104Ab0LTLf7 (ORCPT
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:37921 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757219Ab0LNPao (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Dec 2010 06:35:59 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v5 1/7] v4l: Share code between video_usercopy and video_ioctl2
-Date: Mon, 20 Dec 2010 12:35:50 +0100
-Message-Id: <1292844956-7853-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1292844956-7853-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1292844956-7853-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 14 Dec 2010 10:30:44 -0500
+Message-ID: <4D078D9F.1060700@ladisch.de>
+Date: Tue, 14 Dec 2010 16:30:39 +0100
+From: Clemens Ladisch <clemens@ladisch.de>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: alsa-devel@alsa-project.org,
+	sakari.ailus@maxwell.research.nokia.com,
+	broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org,
+	lennart@poettering.net, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [alsa-devel] [RFC/PATCH v6 03/12] media: Entities,	pads and links
+References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com>	<201012141300.57118.laurent.pinchart@ideasonboard.com>	<4D0771CB.3020809@ladisch.de> <201012141525.02463.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201012141525.02463.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-The two functions are mostly identical. They handle the copy_from_user
-and copy_to_user operations related with V4L2 ioctls and call the real
-ioctl handler.
+Laurent Pinchart wrote:
+> On Tuesday 14 December 2010 14:31:55 Clemens Ladisch wrote:
+> > Laurent Pinchart wrote:
+> > > On Monday 13 December 2010 17:10:51 Clemens Ladisch wrote:
+> > >> EXT_SPEAKER also includes headphones; there might be made a case for
+> > >> having those as a separate subtype.
+> > > 
+> > > Shouldn't headphones be represented by an EXT_JACK_ANALOG ?
+> > 
+> > Headphone jacks are jacks; there are also USB headphones.
+> 
+> So EXT_SPEAKER are speakers not connected through a jack (USB, internal
+> analog, ...) ?
 
-Create a __video_usercopy function that implements the core of
-video_usercopy and video_ioctl2, and call that function from both.
+Yes.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/v4l2-ioctl.c |  218 ++++++++++++-------------------------
- 1 files changed, 71 insertions(+), 147 deletions(-)
+When there is jack, the driver often does not know what is connected.
 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index dd9283f..1e01554 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -374,35 +374,62 @@ video_fix_command(unsigned int cmd)
- }
- #endif
- 
--/*
-- * Obsolete usercopy function - Should be removed soon
-- */
--long
--video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
-+/* In some cases, only a few fields are used as input, i.e. when the app sets
-+ * "index" and then the driver fills in the rest of the structure for the thing
-+ * with that index.  We only need to copy up the first non-input field.  */
-+static unsigned long cmd_input_size(unsigned int cmd)
-+{
-+	/* Size of structure up to and including 'field' */
-+#define CMDINSIZE(cmd, type, field)				\
-+	case VIDIOC_##cmd:					\
-+		return offsetof(struct v4l2_##type, field) +	\
-+			sizeof(((struct v4l2_##type *)0)->field);
-+
-+	switch (cmd) {
-+		CMDINSIZE(ENUM_FMT,		fmtdesc,	type);
-+		CMDINSIZE(G_FMT,		format,		type);
-+		CMDINSIZE(QUERYBUF,		buffer,		type);
-+		CMDINSIZE(G_PARM,		streamparm,	type);
-+		CMDINSIZE(ENUMSTD,		standard,	index);
-+		CMDINSIZE(ENUMINPUT,		input,		index);
-+		CMDINSIZE(G_CTRL,		control,	id);
-+		CMDINSIZE(G_TUNER,		tuner,		index);
-+		CMDINSIZE(QUERYCTRL,		queryctrl,	id);
-+		CMDINSIZE(QUERYMENU,		querymenu,	index);
-+		CMDINSIZE(ENUMOUTPUT,		output,		index);
-+		CMDINSIZE(G_MODULATOR,		modulator,	index);
-+		CMDINSIZE(G_FREQUENCY,		frequency,	tuner);
-+		CMDINSIZE(CROPCAP,		cropcap,	type);
-+		CMDINSIZE(G_CROP,		crop,		type);
-+		CMDINSIZE(ENUMAUDIO,		audio,		index);
-+		CMDINSIZE(ENUMAUDOUT,		audioout,	index);
-+		CMDINSIZE(ENCODER_CMD,		encoder_cmd,	flags);
-+		CMDINSIZE(TRY_ENCODER_CMD,	encoder_cmd,	flags);
-+		CMDINSIZE(G_SLICED_VBI_CAP,	sliced_vbi_cap,	type);
-+		CMDINSIZE(ENUM_FRAMESIZES,	frmsizeenum,	pixel_format);
-+		CMDINSIZE(ENUM_FRAMEINTERVALS,	frmivalenum,	height);
-+	default:
-+		return _IOC_SIZE(cmd);
-+	}
-+}
-+
-+static long
-+__video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
- 		v4l2_kioctl func)
- {
- 	char	sbuf[128];
- 	void    *mbuf = NULL;
--	void	*parg = NULL;
-+	void	*parg = (void *)arg;
- 	long	err  = -EINVAL;
- 	int     is_ext_ctrl;
- 	size_t  ctrls_size = 0;
- 	void __user *user_ptr = NULL;
- 
--#ifdef __OLD_VIDIOC_
--	cmd = video_fix_command(cmd);
--#endif
- 	is_ext_ctrl = (cmd == VIDIOC_S_EXT_CTRLS || cmd == VIDIOC_G_EXT_CTRLS ||
- 		       cmd == VIDIOC_TRY_EXT_CTRLS);
- 
- 	/*  Copy arguments into temp kernel buffer  */
--	switch (_IOC_DIR(cmd)) {
--	case _IOC_NONE:
--		parg = NULL;
--		break;
--	case _IOC_READ:
--	case _IOC_WRITE:
--	case (_IOC_WRITE | _IOC_READ):
-+	if (_IOC_DIR(cmd) != _IOC_NONE) {
- 		if (_IOC_SIZE(cmd) <= sizeof(sbuf)) {
- 			parg = sbuf;
- 		} else {
-@@ -414,11 +441,21 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
- 		}
- 
- 		err = -EFAULT;
--		if (_IOC_DIR(cmd) & _IOC_WRITE)
--			if (copy_from_user(parg, (void __user *)arg, _IOC_SIZE(cmd)))
-+		if (_IOC_DIR(cmd) & _IOC_WRITE) {
-+			unsigned long n = cmd_input_size(cmd);
-+
-+			if (copy_from_user(parg, (void __user *)arg, n))
- 				goto out;
--		break;
-+
-+			/* zero out anything we don't copy from userspace */
-+			if (n < _IOC_SIZE(cmd))
-+				memset((u8 *)parg + n, 0, _IOC_SIZE(cmd) - n);
-+		} else {
-+			/* read-only ioctl */
-+			memset(parg, 0, _IOC_SIZE(cmd));
-+		}
- 	}
-+
- 	if (is_ext_ctrl) {
- 		struct v4l2_ext_controls *p = parg;
- 
-@@ -440,7 +477,7 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
- 		}
- 	}
- 
--	/* call driver */
-+	/* Handles IOCTL */
- 	err = func(file, cmd, parg);
- 	if (err == -ENOIOCTLCMD)
- 		err = -EINVAL;
-@@ -469,6 +506,19 @@ out:
- 	kfree(mbuf);
- 	return err;
- }
-+
-+/*
-+ * Obsolete usercopy function - Should be removed soon
-+ */
-+long
-+video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
-+		v4l2_kioctl func)
-+{
-+#ifdef __OLD_VIDIOC_
-+	cmd = video_fix_command(cmd);
-+#endif
-+	return __video_usercopy(file, cmd, arg, func);
-+}
- EXPORT_SYMBOL(video_usercopy);
- 
- static void dbgbuf(unsigned int cmd, struct video_device *vfd,
-@@ -2041,138 +2091,12 @@ static long __video_do_ioctl(struct file *file,
- 	return ret;
- }
- 
--/* In some cases, only a few fields are used as input, i.e. when the app sets
-- * "index" and then the driver fills in the rest of the structure for the thing
-- * with that index.  We only need to copy up the first non-input field.  */
--static unsigned long cmd_input_size(unsigned int cmd)
--{
--	/* Size of structure up to and including 'field' */
--#define CMDINSIZE(cmd, type, field) 				\
--	case VIDIOC_##cmd: 					\
--		return offsetof(struct v4l2_##type, field) + 	\
--			sizeof(((struct v4l2_##type *)0)->field);
--
--	switch (cmd) {
--		CMDINSIZE(ENUM_FMT,		fmtdesc,	type);
--		CMDINSIZE(G_FMT,		format,		type);
--		CMDINSIZE(QUERYBUF,		buffer,		type);
--		CMDINSIZE(G_PARM,		streamparm,	type);
--		CMDINSIZE(ENUMSTD,		standard,	index);
--		CMDINSIZE(ENUMINPUT,		input,		index);
--		CMDINSIZE(G_CTRL,		control,	id);
--		CMDINSIZE(G_TUNER,		tuner,		index);
--		CMDINSIZE(QUERYCTRL,		queryctrl,	id);
--		CMDINSIZE(QUERYMENU,		querymenu,	index);
--		CMDINSIZE(ENUMOUTPUT,		output,		index);
--		CMDINSIZE(G_MODULATOR,		modulator,	index);
--		CMDINSIZE(G_FREQUENCY,		frequency,	tuner);
--		CMDINSIZE(CROPCAP,		cropcap,	type);
--		CMDINSIZE(G_CROP,		crop,		type);
--		CMDINSIZE(ENUMAUDIO,		audio, 		index);
--		CMDINSIZE(ENUMAUDOUT,		audioout, 	index);
--		CMDINSIZE(ENCODER_CMD,		encoder_cmd,	flags);
--		CMDINSIZE(TRY_ENCODER_CMD,	encoder_cmd,	flags);
--		CMDINSIZE(G_SLICED_VBI_CAP,	sliced_vbi_cap,	type);
--		CMDINSIZE(ENUM_FRAMESIZES,	frmsizeenum,	pixel_format);
--		CMDINSIZE(ENUM_FRAMEINTERVALS,	frmivalenum,	height);
--	default:
--		return _IOC_SIZE(cmd);
--	}
--}
--
- long video_ioctl2(struct file *file,
- 	       unsigned int cmd, unsigned long arg)
- {
--	char	sbuf[128];
--	void    *mbuf = NULL;
--	void	*parg = (void *)arg;
--	long	err  = -EINVAL;
--	int     is_ext_ctrl;
--	size_t  ctrls_size = 0;
--	void __user *user_ptr = NULL;
--
- #ifdef __OLD_VIDIOC_
- 	cmd = video_fix_command(cmd);
- #endif
--	is_ext_ctrl = (cmd == VIDIOC_S_EXT_CTRLS || cmd == VIDIOC_G_EXT_CTRLS ||
--		       cmd == VIDIOC_TRY_EXT_CTRLS);
--
--	/*  Copy arguments into temp kernel buffer  */
--	if (_IOC_DIR(cmd) != _IOC_NONE) {
--		if (_IOC_SIZE(cmd) <= sizeof(sbuf)) {
--			parg = sbuf;
--		} else {
--			/* too big to allocate from stack */
--			mbuf = kmalloc(_IOC_SIZE(cmd), GFP_KERNEL);
--			if (NULL == mbuf)
--				return -ENOMEM;
--			parg = mbuf;
--		}
--
--		err = -EFAULT;
--		if (_IOC_DIR(cmd) & _IOC_WRITE) {
--			unsigned long n = cmd_input_size(cmd);
--
--			if (copy_from_user(parg, (void __user *)arg, n))
--				goto out;
--
--			/* zero out anything we don't copy from userspace */
--			if (n < _IOC_SIZE(cmd))
--				memset((u8 *)parg + n, 0, _IOC_SIZE(cmd) - n);
--		} else {
--			/* read-only ioctl */
--			memset(parg, 0, _IOC_SIZE(cmd));
--		}
--	}
--
--	if (is_ext_ctrl) {
--		struct v4l2_ext_controls *p = parg;
--
--		/* In case of an error, tell the caller that it wasn't
--		   a specific control that caused it. */
--		p->error_idx = p->count;
--		user_ptr = (void __user *)p->controls;
--		if (p->count) {
--			ctrls_size = sizeof(struct v4l2_ext_control) * p->count;
--			/* Note: v4l2_ext_controls fits in sbuf[] so mbuf is still NULL. */
--			mbuf = kmalloc(ctrls_size, GFP_KERNEL);
--			err = -ENOMEM;
--			if (NULL == mbuf)
--				goto out_ext_ctrl;
--			err = -EFAULT;
--			if (copy_from_user(mbuf, user_ptr, ctrls_size))
--				goto out_ext_ctrl;
--			p->controls = mbuf;
--		}
--	}
--
--	/* Handles IOCTL */
--	err = __video_do_ioctl(file, cmd, parg);
--	if (err == -ENOIOCTLCMD)
--		err = -EINVAL;
--	if (is_ext_ctrl) {
--		struct v4l2_ext_controls *p = parg;
--
--		p->controls = (void *)user_ptr;
--		if (p->count && err == 0 && copy_to_user(user_ptr, mbuf, ctrls_size))
--			err = -EFAULT;
--		goto out_ext_ctrl;
--	}
--	if (err < 0)
--		goto out;
--
--out_ext_ctrl:
--	/*  Copy results into user buffer  */
--	switch (_IOC_DIR(cmd)) {
--	case _IOC_READ:
--	case (_IOC_WRITE | _IOC_READ):
--		if (copy_to_user((void __user *)arg, parg, _IOC_SIZE(cmd)))
--			err = -EFAULT;
--		break;
--	}
--
--out:
--	kfree(mbuf);
--	return err;
-+	return __video_usercopy(file, cmd, arg, __video_do_ioctl);
- }
- EXPORT_SYMBOL(video_ioctl2);
--- 
-1.7.2.2
+> > >> EXT_BROADCAST represents devices like TV tuners, satellite receivers,
+> > >> cable tuners, or radios.
+> > > 
+> > > There's clearly an overlap with V4L here.
+> > 
+> > These come from the USB audio spec.  Video devices are indeed likely to
+> > be more detailed than just a single audio source. :)
+> 
+> Does EXT_BROADCAST represent the TV tuner (or satellite receiver, cable tuner,
+> radio tuner, ...) itself, or the connection between the tuner and the rest of
+> the device ? Most TV tuner are currently handled by V4L2 and would thus turn
+> up as V4L2 subdevs (I'm not sure if that's what we want in the long term, but
+> it's at least the current situation).
 
+>From the point of view of an audio device, this would be just some audio
+source, much like a connector.  We don't need this if there is some
+better V4L entitity that the USB audio entity can be mapped to.
+
+
+Regards,
+Clemens
