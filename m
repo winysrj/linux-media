@@ -1,59 +1,45 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-out.m-online.net ([212.18.0.10]:33310 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751187Ab0LVUb7 (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:47930 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757562Ab0LNMdt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Dec 2010 15:31:59 -0500
-From: Anatolij Gustschin <agust@denx.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Detlev Zundel <dzu@denx.de>
-Subject: [PATCH v2 1/2] media: saa7115: allow input standard autodetection for more chips
-Date: Wed, 22 Dec 2010 21:31:58 +0100
-Message-Id: <1293049919-9098-1-git-send-email-agust@denx.de>
-In-Reply-To: <4D122C53.4070300@redhat.com>
-References: <4D122C53.4070300@redhat.com>
+	Tue, 14 Dec 2010 07:33:49 -0500
+Message-ID: <4D076425.9050602@infradead.org>
+Date: Tue, 14 Dec 2010 10:33:41 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Dan Carpenter <error27@gmail.com>
+CC: Sergej Pupykin <pupykin.s@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: [patch v2] [media] bttv: take correct lock in bttv_open()
+References: <20101210033304.GX10623@bicker> <4D01D4BE.1080000@gmail.com> <20101212165812.GG10623@bicker> <4D054FE9.80000@gmail.com> <20101214103658.GL1620@bicker>
+In-Reply-To: <20101214103658.GL1620@bicker>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Autodetect input's standard using field frequency detection
-feature (FIDT in status byte at 0x1F) of the chips saa7111/
-saa7111a/saa7113/saa7114/saa7118.
+Em 14-12-2010 08:36, Dan Carpenter escreveu:
+> On Mon, Dec 13, 2010 at 01:42:49AM +0300, Sergej Pupykin wrote:
+>> mutex_lock(&btv->lock);
+>> *fh = btv->init;
+>> mutex_unlock(&btv->lock);
+>>
+>> Probably it is overkill and may be incorrect, but it starts working.
+>>
+> 
+> Mauro would be the one to know for sure.
+>  
+>> Also I found another issue: tvtime hangs on exit in D-state, so it
+>> looks like there is a problem near bttv_release function or
+>> something like this.
+> 
+> Speaking of other bugs in this driver, I submitted a another fix
+> that hasn't been merged yet.  I've attached it.  Don't know if it's
+> related at all to the other bug you noticed but it can't hurt.
 
-Signed-off-by: Anatolij Gustschin <agust@denx.de>
----
-Changes since first patch version:
- - reworked for chips other than saa7115
- - fixed to return V4L2_STD_525_60 / V4L2_STD_625_50
-   instead of V4L2_STD_NTSC / V4L2_STD_PAL
- - adapted the commit message
+I'm preparing one machine in order to test bttv and try to fix the 
+locking issues. Hopefully, I'll have something today.
 
- drivers/media/video/saa7115.c |   11 ++++++++++-
- 1 files changed, 10 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/saa7115.c b/drivers/media/video/saa7115.c
-index 301c62b..f35459d 100644
---- a/drivers/media/video/saa7115.c
-+++ b/drivers/media/video/saa7115.c
-@@ -1348,8 +1348,17 @@ static int saa711x_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
- 	int reg1e;
- 
- 	*std = V4L2_STD_ALL;
--	if (state->ident != V4L2_IDENT_SAA7115)
-+	if (state->ident != V4L2_IDENT_SAA7115) {
-+		int reg1f = saa711x_read(sd, R_1F_STATUS_BYTE_2_VD_DEC);
-+
-+		if (reg1f & 0x20)
-+			*std = V4L2_STD_525_60;
-+		else
-+			*std = V4L2_STD_625_50;
-+
- 		return 0;
-+	}
-+
- 	reg1e = saa711x_read(sd, R_1E_STATUS_BYTE_1_VD_DEC);
- 
- 	switch (reg1e & 0x03) {
--- 
-1.7.1
+Cheers,
+Mauro
 
