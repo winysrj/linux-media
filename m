@@ -1,177 +1,99 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:42705 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751859Ab0LWJK7 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38686 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758339Ab0LNJni (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Dec 2010 04:10:59 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=ISO-8859-1
-Date: Thu, 23 Dec 2010 10:10:56 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v3.2] [media] s5p-fimc: fix the value of YUV422 1-plane
- formats
-In-reply-to: <1293067564-18582-1-git-send-email-khw0178.kim@samsung.com>
-To: Hyunwoong Kim <khw0178.kim@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Message-id: <4D131220.4030602@samsung.com>
-References: <1293067564-18582-1-git-send-email-khw0178.kim@samsung.com>
+	Tue, 14 Dec 2010 04:43:38 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: Re: Translation Faults on OMAP ISP update
+Date: Tue, 14 Dec 2010 10:44:31 +0100
+Cc: Lane Brooks <lane@brooks.nu>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <4CF6CAF7.1090807@brooks.nu> <4CF7D893.1070803@brooks.nu> <A24693684029E5489D1D202277BE8944856314F8@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE8944856314F8@dlee02.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201012141044.32232.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Hyunwoong,
+Hi Sergio,
 
-I am going to handle this patch through my tree.
-Finally it applies cleanly.
+On Friday 03 December 2010 01:32:08 Aguirre, Sergio wrote:
+> On Thursday, December 02, 2010 11:34 AM Lane Brooks wrote:
+> > On 12/02/2010 07:35 AM, Laurent Pinchart wrote:
+> > [snip]
+> > 
+> > > > Any ideas on the problem? Is there a way to force a reset to the CCDC
+> > > > so that it will become IDLE?
+> > > 
+> > > Would you expect the ISP to recover gracefully if you removed the
+> > > OMAP3530 or the RAM from the board and plugged it back ? The same
+> > > applies to the sensor :-)
+> > > 
+> > > Long story short, once started, the CCDC can't be stopped before the
+> > > end of the image. When you unplug the sensor the CCDC will wait forever
+> > > for the end of frame. When restarted it will resume working to the
+> > > previous, no longer mapped buffer, leading to IOMMU faults.
+> > > The CCDC, like most ISP blocks, can't be reset individually. You need
+> > > to reset the whole ISP to recover from this (blame whoever decided that
+> > > individual block resets were not useful). This was done before on
+> > > streamoff, but now that the ISP driver supports running multiple
+> > > pipelines in parallel we can't do it anymore.
+> > > 
+> > > It might be possible to write a clean patch to reset the ISP when all
+> > > streams are stopped. In the meantime you can rmmod/modprobe the driver.
+> > 
+> > Laurent,
+> > 
+> > Thanks for the feedback. The behavior makes perfect sense now. I can
+> > take it from here. Given the user *can* unplug the sensor module in our
+> > hardware, I need to do something, as locking up the kernel is not
+> > acceptable. I will first look to see if an ISP reset on stream off
+> > works, as we can sacrifice multiple pipeline support (for now).
+> 
+> Laurent,
+> 
+> Just a question on this:
+> 
+> Do we ever plan to support dynamic v4l2_subdevs
+> registration/unregistration?
+> 
+> I guess we'll require to "notify" the media controller device, so we add
+> it, (or remove it) from the pipeline, and refresh the links.
+> 
+> I think that is going to become an important requirement, as like Lane is
+> doing (unloading a module).
+> 
+> It's very likely that we can interchange camera modules, like in the
+> Beagleboard xM, and we don't have a real reason to really not support
+> that.
+> 
+> It would be very cool to be able to:
+> 
+> 1. Plug Aptina 5MP camera sensor.
+> 2. Load the kernel module
+> 3. Use the camera
+> 4. Unload the kernel module
+> 5. Interchange the camera board for a VGA sensor
+> 6. Load the appropriate sensor driver.
+> 
+> All that without needing to restart the board.
+> 
+> Does that really sound _that_ crazy to everyone? :)
 
-Thanks,
-Sylwester
+Totally :-)
 
-On 12/23/2010 02:26 AM, Hyunwoong Kim wrote:
-> Some color formats are mismatched in s5p-fimc driver.
-> CIOCTRL[1:0], order422_out, should be set 2b'00 not 2b'11
-> to use V4L2_PIX_FMT_YUYV. Because in V4L2 standard V4L2_PIX_FMT_YUYV means
-> "start + 0: Y'00 Cb00 Y'01 Cr00 Y'02 Cb01 Y'03 Cr01". According to datasheet
-> 2b'00 is right value for V4L2_PIX_FMT_YUYV.
-> 
-> ---------------------------------------------------------
-> bit |    MSB                                        LSB
-> ---------------------------------------------------------
-> 00  |  Cr1    Y3    Cb1    Y2    Cr0    Y1    Cb0    Y0
-> ---------------------------------------------------------
-> 01  |  Cb1    Y3    Cr1    Y2    Cb0    Y1    Cr0    Y0
-> ---------------------------------------------------------
-> 10  |  Y3    Cr1    Y2    Cb1    Y1    Cr0    Y0    Cb0
-> ---------------------------------------------------------
-> 11  |  Y3    Cb1    Y2    Cr1    Y1    Cb0    Y0    Cr0
-> ---------------------------------------------------------
-> 
-> V4L2_PIX_FMT_YVYU, V4L2_PIX_FMT_UYVY, V4L2_PIX_FMT_VYUY are also mismatched
-> with datasheet. MSCTRL[17:16], order2p_in, is also mismatched
-> in V4L2_PIX_FMT_UYVY, V4L2_PIX_FMT_YVYU.
-> 
-> Reviewed-by: Jonghun Han <jonghun.han@samsung.com>
-> Signed-off-by: Hyunwoong Kim <khw0178.kim@samsung.com>
-> ---
-> Changes since V3:
-> - Code sync with http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/heads/vb2-mfc-fimc
-> 
-> Changes since V2:
-> - Correct the name of Output DMA control register
-> - Change definitions of YUV422 input/outut format with datasheet
->   commented by Sylwester Nawrocki.
-> 
-> Changes since V1:
-> - make corrections directly in function fimc_set_yuv_order
->   commented by Sylwester Nawrocki.
-> - remove S5P_FIMC_IN_* and S5P_FIMC_OUT_* definitions from fimc-core.h
-> 
->  drivers/media/video/s5p-fimc/fimc-core.c |   16 ++++++++--------
->  drivers/media/video/s5p-fimc/fimc-core.h |   12 ------------
->  drivers/media/video/s5p-fimc/regs-fimc.h |   12 ++++++------
->  3 files changed, 14 insertions(+), 26 deletions(-)
-> 
-> diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-> index 2374fd8..6e388ff 100644
-> --- a/drivers/media/video/s5p-fimc/fimc-core.c
-> +++ b/drivers/media/video/s5p-fimc/fimc-core.c
-> @@ -448,34 +448,34 @@ static void fimc_set_yuv_order(struct fimc_ctx *ctx)
->  	/* Set order for 1 plane input formats. */
->  	switch (ctx->s_frame.fmt->color) {
->  	case S5P_FIMC_YCRYCB422:
-> -		ctx->in_order_1p = S5P_FIMC_IN_YCRYCB;
-> +		ctx->in_order_1p = S5P_MSCTRL_ORDER422_CBYCRY;
->  		break;
->  	case S5P_FIMC_CBYCRY422:
-> -		ctx->in_order_1p = S5P_FIMC_IN_CBYCRY;
-> +		ctx->in_order_1p = S5P_MSCTRL_ORDER422_YCRYCB;
->  		break;
->  	case S5P_FIMC_CRYCBY422:
-> -		ctx->in_order_1p = S5P_FIMC_IN_CRYCBY;
-> +		ctx->in_order_1p = S5P_MSCTRL_ORDER422_YCBYCR;
->  		break;
->  	case S5P_FIMC_YCBYCR422:
->  	default:
-> -		ctx->in_order_1p = S5P_FIMC_IN_YCBYCR;
-> +		ctx->in_order_1p = S5P_MSCTRL_ORDER422_CRYCBY;
->  		break;
->  	}
->  	dbg("ctx->in_order_1p= %d", ctx->in_order_1p);
->  
->  	switch (ctx->d_frame.fmt->color) {
->  	case S5P_FIMC_YCRYCB422:
-> -		ctx->out_order_1p = S5P_FIMC_OUT_YCRYCB;
-> +		ctx->out_order_1p = S5P_CIOCTRL_ORDER422_CBYCRY;
->  		break;
->  	case S5P_FIMC_CBYCRY422:
-> -		ctx->out_order_1p = S5P_FIMC_OUT_CBYCRY;
-> +		ctx->out_order_1p = S5P_CIOCTRL_ORDER422_YCRYCB;
->  		break;
->  	case S5P_FIMC_CRYCBY422:
-> -		ctx->out_order_1p = S5P_FIMC_OUT_CRYCBY;
-> +		ctx->out_order_1p = S5P_CIOCTRL_ORDER422_YCBYCR;
->  		break;
->  	case S5P_FIMC_YCBYCR422:
->  	default:
-> -		ctx->out_order_1p = S5P_FIMC_OUT_YCBYCR;
-> +		ctx->out_order_1p = S5P_CIOCTRL_ORDER422_CRYCBY;
->  		break;
->  	}
->  	dbg("ctx->out_order_1p= %d", ctx->out_order_1p);
-> diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-> index 1f1beaa..d684138 100644
-> --- a/drivers/media/video/s5p-fimc/fimc-core.h
-> +++ b/drivers/media/video/s5p-fimc/fimc-core.h
-> @@ -94,18 +94,6 @@ enum fimc_color_fmt {
->  
->  #define fimc_fmt_is_rgb(x) ((x) & 0x10)
->  
-> -/* Y/Cb/Cr components order at DMA output for 1 plane YCbCr 4:2:2 formats. */
-> -#define	S5P_FIMC_OUT_CRYCBY	S5P_CIOCTRL_ORDER422_CRYCBY
-> -#define	S5P_FIMC_OUT_CBYCRY	S5P_CIOCTRL_ORDER422_YCRYCB
-> -#define	S5P_FIMC_OUT_YCRYCB	S5P_CIOCTRL_ORDER422_CBYCRY
-> -#define	S5P_FIMC_OUT_YCBYCR	S5P_CIOCTRL_ORDER422_YCBYCR
-> -
-> -/* Input Y/Cb/Cr components order for 1 plane YCbCr 4:2:2 color formats. */
-> -#define	S5P_FIMC_IN_CRYCBY	S5P_MSCTRL_ORDER422_CRYCBY
-> -#define	S5P_FIMC_IN_CBYCRY	S5P_MSCTRL_ORDER422_YCRYCB
-> -#define	S5P_FIMC_IN_YCRYCB	S5P_MSCTRL_ORDER422_CBYCRY
-> -#define	S5P_FIMC_IN_YCBYCR	S5P_MSCTRL_ORDER422_YCBYCR
-> -
->  /* Cb/Cr chrominance components order for 2 plane Y/CbCr 4:2:2 formats. */
->  #define	S5P_FIMC_LSB_CRCB	S5P_CIOCTRL_ORDER422_2P_LSB_CRCB
->  
-> diff --git a/drivers/media/video/s5p-fimc/regs-fimc.h b/drivers/media/video/s5p-fimc/regs-fimc.h
-> index 57e33f8..cd86c18 100644
-> --- a/drivers/media/video/s5p-fimc/regs-fimc.h
-> +++ b/drivers/media/video/s5p-fimc/regs-fimc.h
-> @@ -98,8 +98,8 @@
->  #define S5P_CIOCTRL			0x4c
->  #define S5P_CIOCTRL_ORDER422_MASK	(3 << 0)
->  #define S5P_CIOCTRL_ORDER422_CRYCBY	(0 << 0)
-> -#define S5P_CIOCTRL_ORDER422_YCRYCB	(1 << 0)
-> -#define S5P_CIOCTRL_ORDER422_CBYCRY	(2 << 0)
-> +#define S5P_CIOCTRL_ORDER422_CBYCRY	(1 << 0)
-> +#define S5P_CIOCTRL_ORDER422_YCRYCB	(2 << 0)
->  #define S5P_CIOCTRL_ORDER422_YCBYCR	(3 << 0)
->  #define S5P_CIOCTRL_LASTIRQ_ENABLE	(1 << 2)
->  #define S5P_CIOCTRL_YCBCR_3PLANE	(0 << 3)
-> @@ -223,10 +223,10 @@
->  #define S5P_MSCTRL_FLIP_Y_MIRROR	(2 << 13)
->  #define S5P_MSCTRL_FLIP_180		(3 << 13)
->  #define S5P_MSCTRL_ORDER422_SHIFT	4
-> -#define S5P_MSCTRL_ORDER422_CRYCBY	(0 << 4)
-> -#define S5P_MSCTRL_ORDER422_YCRYCB	(1 << 4)
-> -#define S5P_MSCTRL_ORDER422_CBYCRY	(2 << 4)
-> -#define S5P_MSCTRL_ORDER422_YCBYCR	(3 << 4)
-> +#define S5P_MSCTRL_ORDER422_YCBYCR	(0 << 4)
-> +#define S5P_MSCTRL_ORDER422_CBYCRY	(1 << 4)
-> +#define S5P_MSCTRL_ORDER422_YCRYCB	(2 << 4)
-> +#define S5P_MSCTRL_ORDER422_CRYCBY	(3 << 4)
->  #define S5P_MSCTRL_ORDER422_MASK	(3 << 4)
->  #define S5P_MSCTRL_INPUT_EXTCAM		(0 << 3)
->  #define S5P_MSCTRL_INPUT_MEMORY		(1 << 3)
+One good reason not to support that is that the busses used by the sensors 
+(I2C and CCDC parallel interface) are not hot-pluggable. You can't get 
+connect/disconnect events, you can't discover devices dynamically, and 
+connecting/disconnected a sensor while the system is powered on might damage 
+both the sensor and the processor. Is that a good enough reason ? :-)
 
 -- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+Regards,
+
+Laurent Pinchart
