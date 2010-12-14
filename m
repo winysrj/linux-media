@@ -1,100 +1,64 @@
 Return-path: <mchehab@gaivota>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:36948 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932403Ab0LSWnL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Dec 2010 17:43:11 -0500
-Subject: Re: Power frequency detection.
-From: Andy Walls <awalls@md.metrocast.net>
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-Cc: Paulo Assis <pj.assis@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <1292796033.2052.111.camel@morgan.silverblock.net>
-References: <73wo0g3yy30clob2isac30vm.1292782894810@email.android.com>
-	 <alpine.LNX.2.00.1012191423030.23950@banach.math.auburn.edu>
-	 <1292796033.2052.111.camel@morgan.silverblock.net>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 19 Dec 2010 17:43:54 -0500
-Message-ID: <1292798634.2052.143.camel@morgan.silverblock.net>
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:56752 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759554Ab0LNQ2h (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Dec 2010 11:28:37 -0500
+Message-ID: <4D079B30.3010605@redhat.com>
+Date: Tue, 14 Dec 2010 17:28:32 +0100
+From: Gerd Hoffmann <kraxel@redhat.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Subject: Re: Hauppauge USB Live 2
+References: <4D073F83.8010301@redhat.com> <AANLkTimuS+O1rv1GL_ujj4D=gSXw+VLKh0vMc2mXx1Cd@mail.gmail.com> <4D0779A7.5090807@redhat.com>
+In-Reply-To: <4D0779A7.5090807@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Sun, 2010-12-19 at 17:00 -0500, Andy Walls wrote:
-> On Sun, 2010-12-19 at 14:51 -0600, Theodore Kilgore wrote:
+On 12/14/10 15:05, Mauro Carvalho Chehab wrote:
+> Hi Devin,
+>
+> Em 14-12-2010 08:06, Devin Heitmueller escreveu:
+>> On Tue, Dec 14, 2010 at 4:57 AM, Gerd Hoffmann<kraxel@redhat.com>  wrote:
+>>>   Hi folks,
+>>>
+>>> Got a "Hauppauge USB Live 2" after google found me that there is a linux
+>>> driver for it.  Unfortunaly linux doesn't manage to initialize the device.
+>>>
+>>> I've connected the device to a Thinkpad T60.  It runs a 2.6.37-rc5 kernel
+>>> with the linuxtv/staging/for_v2.6.38 branch merged in.
+>>>
+>>> Kernel log and lsusb output are attached.
+>>>
+>>> Ideas anyone?
+>>
+>> Looks like a regression got introduced since I submitted the original
+>> support for the device.
+>>
+>> Mauro?
+>
+> No idea what happened. The driver is working here with the devices I have.
+> Unfortunately, I don't have any USB Live 2 here for testing.
+>
+> Based on the logs, maybe the driver is directing the I2C commands to the
+> wrong bus.
+>
+> The better would be to bisect the kernel and see what patch broke it.
+> The support for USB live2 were added on changeset 4270c3ca.
+>
+> There aren't many changes on it (45 changes), so, bisecting it shouldn't be hard:
+>
+> $ git log --oneline --no-merges 4270c3ca.. drivers/media/video/cx231xx
+> f5db33f [media] cx231xx: stray unlock on error path
 
-Just a few more details...
+Using that commit directly looks better.  I still see the 
+UsbInterface::sendCommand failures, but the driver seems to finish the 
+initialization and looks for the firmware.  So it seems something 
+between -rc2 and -rc5 in mainline made it regress ...
 
-> So I might not be able to provide too much help.  I have 2 ideas for you
-> coming from the perspective of me being a USB idiot:
-> 
-> 
-> 1. Since the jlj_dostream() work handler function is essentially just a
-> synchronous poll loop on the device, you could just have it process the
-> ioctl() requests to change a control synchronously. 
-> 
-> a. The ioctl() call for the v4l2 control would submit a command to some
-> queue you set up for the purpose, and then sleep on a wait queue. 
-> 
-> b. The jlj_dostream() function would check the command queue at its
-> convenience, process any control command, and then wake up the wait
-> queue that the ioctl() is waiting on.
-> 
-> For this idea, don't forget to implement the command queue with proper
-> locking or other mutual exclusion.  You'll also need to think about how
-> to place ioctl() callers on the wait_queue and how to wake them up in
-> FIFO order, if you use this idea and allow multiple v4l2 control ioctl()
-> to be queued.
-> 
-> 
-> 
-> 2. Restructure the workqueue function, jlj_dostream(), to handle a work
-> object in one pass (e.g. no loop to read more than one frame), handle
-> two different types of work objects (one for stream polling and one for
-> control ioctl() requests), and have it automatically reschedule the
-> stream polling work object.
-> 
-> a. When streaming, the current, single work object would still be used
-> and jlj_dostream() must be able to check that the work object is the one
-> indicating streaming work.  jlj_dostream() would only perform work
-> required to read one whole frame, unless you want to get fancy and deal
-> with partial frames.  The jlj_dostream() handler would then reschedule
-> the work object for streaming - maybe with a sensible delay.
-> 
-> b. For a V4L2 control ioctl() that needs to send a command to the
-> device, the ioctl() fills out the needed parameters in a scratch-pad
-> location and queues a different work object, associated with those
-> scratchpad parameters.  The ioctl() then sleeps on a wait queue
-> associated with that work object.  When the work handler function,
-> jlj_dostream(), gets called it must be able to determine the work object
-> is the one associated with an ioctl() control.  jlj_dostream() then
-> performs the actions required for the ioctl() and the wakes up the
-> wait_queue on which the ioctl() is waiting.  The work object is not
-> rescheduled by the work handler function.
-> 
-> 
-> For this idea, you'll be relying on the single-threaded workqueue to
-> provide mutual exclusion between processing of the two different types
-> of work objects (streaming and v4l2 control ioctl).  You can structure
-> things to have more than 1 work object for V4L2 control ioctl()
-> processing, if you like, since the workqueue can queue any number of
-> work objects.  But if you allow more than one ioctl() related work
-> object to be queued, you'll have to be careful about how things are
-> placed on the wait_queue and how they are awakened.
-> 
-> 
-
-For implementing either of these ideas, you may also wish to investigate
-the use of completions instead of wait_queues.  I've never used
-completions myself, so I'm not sure if they'll work.
-
-With a quick grep through the kernel, I only find the cx18 driver and
-libsas as examples using multiple work objects for a work handler
-function.  In both of those, the purpose of the of work object is
-indicated with a field in the structure that also contains the work
-object.
-
-Regards,
-Andy
+cheers,
+   Gerd
 
