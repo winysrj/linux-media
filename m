@@ -1,53 +1,54 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-bw0-f45.google.com ([209.85.214.45]:57599 "EHLO
-	mail-bw0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752460Ab0LUSeJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Dec 2010 13:34:09 -0500
-MIME-Version: 1.0
-In-Reply-To: <201012211925.38201.arnd@arndb.de>
-References: <d21ad74592c295d59f5806f30a053745b5765397.1292894256.git.tfransosi@gmail.com>
-	<201012211925.38201.arnd@arndb.de>
-Date: Tue, 21 Dec 2010 16:34:04 -0200
-Message-ID: <AANLkTikbvST_B+4x3Xt=gxFhM1TBOrXVc1HjZT3zTXrt@mail.gmail.com>
-Subject: Re: [PATCH] drivers/media/video/v4l2-compat-ioctl32.c: Check the
- return value of copy_to_user
-From: Thiago Farina <tfransosi@gmail.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-kernel@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+Received: from ifup.org ([198.145.64.140]:35767 "EHLO ifup.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753573Ab0LNVsw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Dec 2010 16:48:52 -0500
+Date: Tue, 14 Dec 2010 13:43:06 -0800
+From: Brandon Philips <brandon@ifup.org>
+To: Torsten Kaiser <just.for.lkml@googlemail.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Dave Young <hidave.darkstar@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Chris Clayton <chris2553@googlemail.com>
+Subject: Re: [PATCH] bttv: fix mutex use before init
+Message-ID: <20101214214306.GC5900@hanuman.home.ifup.org>
+References: <20101212131550.GA2608@darkstar>
+ <AANLkTinaNjPjNbxE+OyRsY_jJxDW-pwehTPgyAWzqfzd@mail.gmail.com>
+ <20101214003024.GA3575@hanuman.home.ifup.org>
+ <AANLkTi=ic4i+whV7-gtA7jvWJkPE+bizLdra6OMDf6Cp@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <AANLkTi=ic4i+whV7-gtA7jvWJkPE+bizLdra6OMDf6Cp@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Tue, Dec 21, 2010 at 4:25 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Tuesday 21 December 2010 02:18:06 Thiago Farina wrote:
->> diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
->> index e30e8df..55825ec 100644
->> --- a/drivers/media/video/v4l2-compat-ioctl32.c
->> +++ b/drivers/media/video/v4l2-compat-ioctl32.c
->> @@ -206,7 +206,9 @@ static struct video_code __user *get_microcode32(struct video_code32 *kp)
->>          * user address is invalid, the native ioctl will do
->>          * the error handling for us
->>          */
->> -       (void) copy_to_user(up->loadwhat, kp->loadwhat, sizeof(up->loadwhat));
->> +       if (copy_to_user(up->loadwhat, kp->loadwhat, sizeof(up->loadwhat)))
->> +               return NULL;
->> +
->>         (void) put_user(kp->datasize, &up->datasize);
->>         (void) put_user(compat_ptr(kp->data), &up->data);
->>         return up;
->
-> Did you read the comment above the code you changed?
->
-Yes, I read, but I went ahead.
+On 21:56 Tue 14 Dec 2010, Torsten Kaiser wrote:
+> On Tue, Dec 14, 2010 at 1:30 AM, Brandon Philips <brandon@ifup.org> wrote:
+> > On 17:13 Sun 12 Dec 2010, Torsten Kaiser wrote:
+> >> �* change &fh->cap.vb_lock in bttv_open() AND radio_open() to
+> >> &btv->init.cap.vb_lock
+> >> �* add a mutex_init(&btv->init.cap.vb_lock) to the setup of init in bttv_probe()
+> >
+> > That seems like a reasonable suggestion. An openSUSE user submitted this
+> > bug to our tracker too. Here is the patch I am having him test.
+> >
+> > Would you mind testing it?
+> 
+> No. :-)
+> 
+> Without this patch (==vanilla 2.6.37-rc5) I got 2 more OOPSe by
+> restarting hal around 20 times.
+> After applying this patch, I did not see a single OOPS after 100 restarts.
+> So it looks like the fix is correct.
 
-> You can probably change this function to look at the return code of
-> copy_to_user, but then you need to treat the put_user return code
-> the same, and change the comment.
->
+Dave, Torsten- Great thanks for testing, can I get both you and Dave's
+Tested-by then?
 
-Right, I will do the same with put_user, but I'm afraid of changing the comment.
+Mauro- can you please pick up this patch?
+
+Cheers,
+
+	Brandon
