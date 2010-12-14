@@ -1,174 +1,188 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2479 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753571Ab0LLRcI (ORCPT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:41102 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758723Ab0LNVDl convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Dec 2010 12:32:08 -0500
-Received: from localhost.localdomain (159.80-203-19.nextgentel.com [80.203.19.159])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id oBCHW1MI002236
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 12 Dec 2010 18:32:06 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [RFC/PATCH 10/19] tlv320aic23b: use control framework
-Date: Sun, 12 Dec 2010 18:31:52 +0100
-Message-Id: <9e51eb65344636245392a06996eaa7d3c0eef0b5.1292174822.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1292174822.git.hverkuil@xs4all.nl>
-References: <cover.1292174822.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1292174822.git.hverkuil@xs4all.nl>
-References: <cover.1292174822.git.hverkuil@xs4all.nl>
+	Tue, 14 Dec 2010 16:03:41 -0500
+MIME-Version: 1.0
+In-Reply-To: <20101214003024.GA3575@hanuman.home.ifup.org>
+References: <20101212131550.GA2608@darkstar>
+	<AANLkTinaNjPjNbxE+OyRsY_jJxDW-pwehTPgyAWzqfzd@mail.gmail.com>
+	<20101214003024.GA3575@hanuman.home.ifup.org>
+Date: Tue, 14 Dec 2010 21:56:33 +0100
+Message-ID: <AANLkTi=ic4i+whV7-gtA7jvWJkPE+bizLdra6OMDf6Cp@mail.gmail.com>
+Subject: Re: [PATCH] bttv: fix mutex use before init
+From: Torsten Kaiser <just.for.lkml@googlemail.com>
+To: Brandon Philips <brandon@ifup.org>
+Cc: Dave Young <hidave.darkstar@gmail.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Chris Clayton <chris2553@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/tlv320aic23b.c |   74 +++++++++++++++++++++++-------------
- 1 files changed, 47 insertions(+), 27 deletions(-)
+On Tue, Dec 14, 2010 at 1:30 AM, Brandon Philips <brandon@ifup.org> wrote:
+> On 17:13 Sun 12 Dec 2010, Torsten Kaiser wrote:
+>>  * change &fh->cap.vb_lock in bttv_open() AND radio_open() to
+>> &btv->init.cap.vb_lock
+>>  * add a mutex_init(&btv->init.cap.vb_lock) to the setup of init in bttv_probe()
+>
+> That seems like a reasonable suggestion. An openSUSE user submitted this
+> bug to our tracker too. Here is the patch I am having him test.
+>
+> Would you mind testing it?
 
-diff --git a/drivers/media/video/tlv320aic23b.c b/drivers/media/video/tlv320aic23b.c
-index dfc4dd7..286ec7e 100644
---- a/drivers/media/video/tlv320aic23b.c
-+++ b/drivers/media/video/tlv320aic23b.c
-@@ -31,6 +31,7 @@
- #include <linux/i2c.h>
- #include <linux/videodev2.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-ctrls.h>
- 
- MODULE_DESCRIPTION("tlv320aic23b driver");
- MODULE_AUTHOR("Scott Alfter, Ulf Eklund, Hans Verkuil");
-@@ -41,7 +42,7 @@ MODULE_LICENSE("GPL");
- 
- struct tlv320aic23b_state {
- 	struct v4l2_subdev sd;
--	u8 muted;
-+	struct v4l2_ctrl_handler hdl;
- };
- 
- static inline struct tlv320aic23b_state *to_state(struct v4l2_subdev *sd)
-@@ -49,6 +50,11 @@ static inline struct tlv320aic23b_state *to_state(struct v4l2_subdev *sd)
- 	return container_of(sd, struct tlv320aic23b_state, sd);
- }
- 
-+static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
-+{
-+	return &container_of(ctrl->handler, struct tlv320aic23b_state, hdl)->sd;
-+}
-+
- static int tlv320aic23b_write(struct v4l2_subdev *sd, int reg, u16 val)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
-@@ -85,44 +91,44 @@ static int tlv320aic23b_s_clock_freq(struct v4l2_subdev *sd, u32 freq)
- 	return 0;
- }
- 
--static int tlv320aic23b_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
--{
--	struct tlv320aic23b_state *state = to_state(sd);
--
--	if (ctrl->id != V4L2_CID_AUDIO_MUTE)
--		return -EINVAL;
--	ctrl->value = state->muted;
--	return 0;
--}
--
--static int tlv320aic23b_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-+static int tlv320aic23b_s_ctrl(struct v4l2_ctrl *ctrl)
- {
--	struct tlv320aic23b_state *state = to_state(sd);
--
--	if (ctrl->id != V4L2_CID_AUDIO_MUTE)
--		return -EINVAL;
--	state->muted = ctrl->value;
--	tlv320aic23b_write(sd, 0, 0x180); /* mute both channels */
--	/* set gain on both channels to +3.0 dB */
--	if (!state->muted)
--		tlv320aic23b_write(sd, 0, 0x119);
--	return 0;
-+	struct v4l2_subdev *sd = to_sd(ctrl);
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_AUDIO_MUTE:
-+		tlv320aic23b_write(sd, 0, 0x180); /* mute both channels */
-+		/* set gain on both channels to +3.0 dB */
-+		if (!ctrl->val)
-+			tlv320aic23b_write(sd, 0, 0x119);
-+		return 0;
-+	}
-+	return -EINVAL;
- }
- 
- static int tlv320aic23b_log_status(struct v4l2_subdev *sd)
- {
- 	struct tlv320aic23b_state *state = to_state(sd);
- 
--	v4l2_info(sd, "Input: %s\n", state->muted ? "muted" : "active");
-+	v4l2_ctrl_handler_log_status(&state->hdl, sd->name);
- 	return 0;
- }
- 
- /* ----------------------------------------------------------------------- */
- 
-+static const struct v4l2_ctrl_ops tlv320aic23b_ctrl_ops = {
-+	.s_ctrl = tlv320aic23b_s_ctrl,
-+};
-+
- static const struct v4l2_subdev_core_ops tlv320aic23b_core_ops = {
- 	.log_status = tlv320aic23b_log_status,
--	.g_ctrl = tlv320aic23b_g_ctrl,
--	.s_ctrl = tlv320aic23b_s_ctrl,
-+	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
-+	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
-+	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
-+	.g_ctrl = v4l2_subdev_g_ctrl,
-+	.s_ctrl = v4l2_subdev_s_ctrl,
-+	.queryctrl = v4l2_subdev_queryctrl,
-+	.querymenu = v4l2_subdev_querymenu,
- };
- 
- static const struct v4l2_subdev_audio_ops tlv320aic23b_audio_ops = {
-@@ -161,7 +167,6 @@ static int tlv320aic23b_probe(struct i2c_client *client,
- 		return -ENOMEM;
- 	sd = &state->sd;
- 	v4l2_i2c_subdev_init(sd, client, &tlv320aic23b_ops);
--	state->muted = 0;
- 
- 	/* Initialize tlv320aic23b */
- 
-@@ -177,15 +182,30 @@ static int tlv320aic23b_probe(struct i2c_client *client,
- 	tlv320aic23b_write(sd, 8, 0x000);
- 	/* activate digital interface */
- 	tlv320aic23b_write(sd, 9, 0x001);
-+
-+	v4l2_ctrl_handler_init(&state->hdl, 1);
-+	v4l2_ctrl_new_std(&state->hdl, &tlv320aic23b_ctrl_ops,
-+			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 0);
-+	sd->ctrl_handler = &state->hdl;
-+	if (state->hdl.error) {
-+		int err = state->hdl.error;
-+
-+		v4l2_ctrl_handler_free(&state->hdl);
-+		kfree(state);
-+		return err;
-+	}
-+	v4l2_ctrl_handler_setup(&state->hdl);
- 	return 0;
- }
- 
- static int tlv320aic23b_remove(struct i2c_client *client)
- {
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct tlv320aic23b_state *state = to_state(sd);
- 
- 	v4l2_device_unregister_subdev(sd);
--	kfree(to_state(sd));
-+	v4l2_ctrl_handler_free(&state->hdl);
-+	kfree(state);
- 	return 0;
- }
- 
--- 
-1.7.0.4
+No. :-)
 
+Without this patch (==vanilla 2.6.37-rc5) I got 2 more OOPSe by
+restarting hal around 20 times.
+After applying this patch, I did not see a single OOPS after 100 restarts.
+So it looks like the fix is correct.
+
+Using the card also still works, but I think I found out what was
+causing sporadic shutdown problems with 37-rc kernels: When I try to
+exit tvtime it gets stuck in an uninterruptible D state and can't be
+killed. And that seems to mess up the shutdown.
+
+But this happens independent with or without your patch and looks like
+different problem.
+
+SysRQ+W provided this stack trace, maybe someone seens an obvious bug...:
+[  274.772528]  ffff8800dec69680 0000000000000086 ffffffff81089d73
+ffff8800729d05a0
+[  274.778599]  0000000000011480 ffff8800df923fd8 0000000000011480
+ffff8800df922000
+[  274.778599]  ffff8800df923fd8 0000000000011480 ffff8800dec69680
+0000000000011480
+[  274.778599] Call Trace:
+[  274.778599]  [<ffffffff81089d73>] ? free_pcppages_bulk+0x343/0x3b0
+[  274.778599]  [<ffffffff8156d0e1>] ? __mutex_lock_slowpath+0xe1/0x160
+[  274.778599]  [<ffffffff8156cd8a>] ? mutex_lock+0x1a/0x40
+[  274.778599]  [<ffffffff8141ab7f>] ? free_btres_lock.clone.19+0x3f/0x100
+[  274.778599]  [<ffffffff8141d311>] ? bttv_release+0x1c1/0x1e0
+[  274.778599]  [<ffffffff813fe4ba>] ? v4l2_release+0x4a/0x70
+[  274.778599]  [<ffffffff810c5291>] ? fput+0xe1/0x250
+[  274.778599]  [<ffffffff810c1d59>] ? filp_close+0x59/0x80
+[  274.778599]  [<ffffffff810c1e0b>] ? sys_close+0x8b/0xe0
+[  274.778599]  [<ffffffff8100253b>] ? system_call_fastpath+0x16/0x1b
+
+
+> From 456dc0ce36db523c4c0c8a269f4eec43a72de1dc Mon Sep 17 00:00:00 2001
+> From: Brandon Philips <bphilips@suse.de>
+> Date: Mon, 13 Dec 2010 16:21:55 -0800
+> Subject: [PATCH] bttv: fix locking for btv->init
+>
+> Fix locking for the btv->init by using btv->init.cap.vb_lock and in the
+> process fix uninitialized deref introduced in c37db91fd0d.
+>
+> Signed-off-by: Brandon Philips <bphilips@suse.de>
+> ---
+>  drivers/media/video/bt8xx/bttv-driver.c |   24 +++++++++++++-----------
+>  1 files changed, 13 insertions(+), 11 deletions(-)
+>
+> diff --git a/drivers/media/video/bt8xx/bttv-driver.c b/drivers/media/video/bt8xx/bttv-driver.c
+> index a529619..e656424 100644
+> --- a/drivers/media/video/bt8xx/bttv-driver.c
+> +++ b/drivers/media/video/bt8xx/bttv-driver.c
+> @@ -2391,16 +2391,11 @@ static int setup_window_lock(struct bttv_fh *fh, struct bttv *btv,
+>        fh->ov.field    = win->field;
+>        fh->ov.setup_ok = 1;
+>
+> -       /*
+> -        * FIXME: btv is protected by btv->lock mutex, while btv->init
+> -        *        is protected by fh->cap.vb_lock. This seems to open the
+> -        *        possibility for some race situations. Maybe the better would
+> -        *        be to unify those locks or to use another way to store the
+> -        *        init values that will be consumed by videobuf callbacks
+> -        */
+> +       mutex_lock(&btv->init.cap.vb_lock);
+>        btv->init.ov.w.width   = win->w.width;
+>        btv->init.ov.w.height  = win->w.height;
+>        btv->init.ov.field     = win->field;
+> +       mutex_unlock(&btv->init.cap.vb_lock);
+>
+>        /* update overlay if needed */
+>        retval = 0;
+> @@ -2620,9 +2615,11 @@ static int bttv_s_fmt_vid_cap(struct file *file, void *priv,
+>        fh->cap.last         = V4L2_FIELD_NONE;
+>        fh->width            = f->fmt.pix.width;
+>        fh->height           = f->fmt.pix.height;
+> +       mutex_lock(&btv->init.cap.vb_lock);
+>        btv->init.fmt        = fmt;
+>        btv->init.width      = f->fmt.pix.width;
+>        btv->init.height     = f->fmt.pix.height;
+> +       mutex_unlock(&btv->init.cap.vb_lock);
+>        mutex_unlock(&fh->cap.vb_lock);
+>
+>        return 0;
+> @@ -2855,6 +2852,7 @@ static int bttv_s_fbuf(struct file *file, void *f,
+>
+>        retval = 0;
+>        fh->ovfmt = fmt;
+> +       mutex_lock(&btv->init.cap.vb_lock);
+>        btv->init.ovfmt = fmt;
+>        if (fb->flags & V4L2_FBUF_FLAG_OVERLAY) {
+>                fh->ov.w.left   = 0;
+> @@ -2876,6 +2874,7 @@ static int bttv_s_fbuf(struct file *file, void *f,
+>                        retval = bttv_switch_overlay(btv, fh, new);
+>                }
+>        }
+> +       mutex_unlock(&btv->init.cap.vb_lock);
+>        mutex_unlock(&fh->cap.vb_lock);
+>        return retval;
+>  }
+> @@ -3141,6 +3140,7 @@ static int bttv_s_crop(struct file *file, void *f, struct v4l2_crop *crop)
+>        fh->do_crop = 1;
+>
+>        mutex_lock(&fh->cap.vb_lock);
+> +       mutex_lock(&btv->init.cap.vb_lock);
+>
+>        if (fh->width < c.min_scaled_width) {
+>                fh->width = c.min_scaled_width;
+> @@ -3158,6 +3158,7 @@ static int bttv_s_crop(struct file *file, void *f, struct v4l2_crop *crop)
+>                btv->init.height = c.max_scaled_height;
+>        }
+>
+> +       mutex_unlock(&btv->init.cap.vb_lock);
+>        mutex_unlock(&fh->cap.vb_lock);
+>
+>        return 0;
+> @@ -3302,9 +3303,9 @@ static int bttv_open(struct file *file)
+>         * Let's first copy btv->init at fh, holding cap.vb_lock, and then work
+>         * with the rest of init, holding btv->lock.
+>         */
+> -       mutex_lock(&fh->cap.vb_lock);
+> +       mutex_lock(&btv->init.cap.vb_lock);
+>        *fh = btv->init;
+> -       mutex_unlock(&fh->cap.vb_lock);
+> +       mutex_unlock(&btv->init.cap.vb_lock);
+>
+>        fh->type = type;
+>        fh->ov.setup_ok = 0;
+> @@ -3502,9 +3503,9 @@ static int radio_open(struct file *file)
+>        if (unlikely(!fh))
+>                return -ENOMEM;
+>        file->private_data = fh;
+> -       mutex_lock(&fh->cap.vb_lock);
+> +       mutex_lock(&btv->init.cap.vb_lock);
+>        *fh = btv->init;
+> -       mutex_unlock(&fh->cap.vb_lock);
+> +       mutex_unlock(&btv->init.cap.vb_lock);
+>
+>        mutex_lock(&btv->lock);
+>        v4l2_prio_open(&btv->prio, &fh->prio);
+> @@ -4489,6 +4490,7 @@ static int __devinit bttv_probe(struct pci_dev *dev,
+>        btv->opt_coring     = coring;
+>
+>        /* fill struct bttv with some useful defaults */
+> +       mutex_init(&btv->init.cap.vb_lock);
+>        btv->init.btv         = btv;
+>        btv->init.ov.w.width  = 320;
+>        btv->init.ov.w.height = 240;
+> --
+> 1.7.3.1
+>
+>
