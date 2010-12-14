@@ -1,48 +1,52 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-pz0-f66.google.com ([209.85.210.66]:52337 "EHLO
-	mail-pz0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750872Ab0LaGzB (ORCPT
+Received: from smtp5-g21.free.fr ([212.27.42.5]:49558 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757120Ab0LNTOO convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Dec 2010 01:55:01 -0500
-Message-ID: <4D1D7A74.3030803@gmail.com>
-Date: Thu, 30 Dec 2010 22:38:44 -0800
-From: "Justin P. Mattock" <justinmattock@gmail.com>
-MIME-Version: 1.0
-To: Dan Carpenter <error27@gmail.com>, trivial@kernel.org,
-	devel@driverdev.osuosl.org, linux-scsi@vger.kernel.org,
-	netdev@vger.kernel.org, linux-usb@vger.kernel.org,
-	linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org, linux-m68k@lists.linux-m68k.org,
-	spi-devel-general@lists.sourceforge.net,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 15/15]drivers:spi:dw_spi.c Typo change diable to disable.
-References: <1293750484-1161-6-git-send-email-justinmattock@gmail.com> <1293750484-1161-7-git-send-email-justinmattock@gmail.com> <1293750484-1161-8-git-send-email-justinmattock@gmail.com> <1293750484-1161-9-git-send-email-justinmattock@gmail.com> <1293750484-1161-10-git-send-email-justinmattock@gmail.com> <1293750484-1161-11-git-send-email-justinmattock@gmail.com> <1293750484-1161-12-git-send-email-justinmattock@gmail.com> <1293750484-1161-13-git-send-email-justinmattock@gmail.com> <1293750484-1161-14-git-send-email-justinmattock@gmail.com> <1293750484-1161-15-git-send-email-justinmattock@gmail.com> <20101231063433.GB1886@bicker>
-In-Reply-To: <20101231063433.GB1886@bicker>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Tue, 14 Dec 2010 14:14:14 -0500
+Date: Tue, 14 Dec 2010 20:16:16 +0100
+From: =?UTF-8?B?SmVhbi1GcmFuw6dvaXM=?= Moine <moinejf@free.fr>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 4/6] gspca - sonixj: Set the flag for some devices
+Message-ID: <20101214201616.2089b408@tele>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On 12/30/2010 10:34 PM, Dan Carpenter wrote:
-> On Thu, Dec 30, 2010 at 03:08:04PM -0800, Justin P. Mattock wrote:
->> The below patch fixes a typo "diable" to "disable". Please let me know if this
->> is correct or not.
->>
->> Signed-off-by: Justin P. Mattock<justinmattock@gmail.com>
->>
->> ---
->>   drivers/spi/dw_spi.c |    6 +++---
->
-> You missed one from this file:
->
-> /* Set the interrupt mask, for poll mode just diable all int */
->                                                ^^^^^^
-> regards,
-> dan carpenter
->
->
+The flag PDN_INV indicates that the sensor pin S_PWR_DN has not the same
+value as other webcams with the same sensor. For now, only two webcams have
+been so detected: the Microsoft's VX1000 and VX3000.
 
-oh-man... my grepping wasn't so grepping after all.. thanks for that 
-I'll resend this one
+Signed-off-by: Jean-François Moine <moinejf@free.fr>
 
-Justin P. Mattock
+diff --git a/drivers/media/video/gspca/sonixj.c b/drivers/media/video/gspca/sonixj.c
+index ed7349b..5deff24 100644
+--- a/drivers/media/video/gspca/sonixj.c
++++ b/drivers/media/video/gspca/sonixj.c
+@@ -97,6 +97,9 @@ enum sensors {
+ 	SENSOR_SP80708,
+ };
+ 
++/* device flags */
++#define PDN_INV	1		/* inverse pin S_PWR_DN / sn_xxx tables */
++
+ /* V4L2 controls supported by the driver */
+ static void setbrightness(struct gspca_dev *gspca_dev);
+ static void setcontrast(struct gspca_dev *gspca_dev);
+@@ -2959,8 +2962,8 @@ static const __devinitdata struct usb_device_id device_table[] = {
+ 	{USB_DEVICE(0x0458, 0x7025), BS(SN9C120, MI0360)},
+ 	{USB_DEVICE(0x0458, 0x702e), BS(SN9C120, OV7660)},
+ #endif
+-	{USB_DEVICE(0x045e, 0x00f5), BS(SN9C105, OV7660)},
+-	{USB_DEVICE(0x045e, 0x00f7), BS(SN9C105, OV7660)},
++	{USB_DEVICE(0x045e, 0x00f5), BSF(SN9C105, OV7660, PDN_INV)},
++	{USB_DEVICE(0x045e, 0x00f7), BSF(SN9C105, OV7660, PDN_INV)},
+ 	{USB_DEVICE(0x0471, 0x0327), BS(SN9C105, MI0360)},
+ 	{USB_DEVICE(0x0471, 0x0328), BS(SN9C105, MI0360)},
+ 	{USB_DEVICE(0x0471, 0x0330), BS(SN9C105, MI0360)},
+-- 
+1.7.2.3
+
