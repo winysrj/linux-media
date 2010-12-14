@@ -1,64 +1,53 @@
 Return-path: <mchehab@gaivota>
-Received: from moutng.kundenserver.de ([212.227.17.10]:60253 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751073Ab0L1Hzp (ORCPT
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:39308 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750906Ab0LNX4u (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Dec 2010 02:55:45 -0500
-Date: Tue, 28 Dec 2010 08:55:41 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Charles D. Krebs" <ckrebs@therealtimegroup.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-i2c@vger.kernel.org
-Subject: Re: soc_camera Client Driver with Multiple I2C Addresses
-In-Reply-To: <E58C9D0E73364C3EB14B6D0A0EBB5433@RSI50>
-Message-ID: <Pine.LNX.4.64.1012280810140.21647@axis700.grange>
-References: <E58C9D0E73364C3EB14B6D0A0EBB5433@RSI50>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Tue, 14 Dec 2010 18:56:50 -0500
+Date: Wed, 15 Dec 2010 08:50:47 +0900
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+To: Michal Nazarewicz <mina86@mina86.com>
+Cc: Michal Nazarewicz <m.nazarewicz@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Ankita Garg <ankita@in.ibm.com>,
+	BooJin Kim <boojin.kim@samsung.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mel Gorman <mel@csn.ul.ie>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCHv7 08/10] mm: cma: Contiguous Memory Allocator added
+Message-Id: <20101215085047.251778be.kamezawa.hiroyu@jp.fujitsu.com>
+In-Reply-To: <87zks8fyb0.fsf@erwin.mina86.com>
+References: <cover.1292004520.git.m.nazarewicz@samsung.com>
+	<fc8aa07ac71d554ba10af4943fdb05197c681fa2.1292004520.git.m.nazarewicz@samsung.com>
+	<20101214102401.37bf812d.kamezawa.hiroyu@jp.fujitsu.com>
+	<87zks8fyb0.fsf@erwin.mina86.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Charles
+On Tue, 14 Dec 2010 11:23:15 +0100
+Michal Nazarewicz <mina86@mina86.com> wrote:
 
-(linux-i2c added to cc)
-
-On Mon, 27 Dec 2010, Charles D. Krebs wrote:
-
-> Guennadi,
+> > Hmm, it seems __cm_alloc() and __cm_migrate() has no special codes for CMA.
+> > I'd like reuse this for my own contig page allocator.
+> > So, could you make these function be more generic (name) ?
+> > as
+> > 	__alloc_range(start, size, mirate_type);
+> >
+> > Then, what I have to do is only to add "search range" functions.
 > 
-> I'm developing a driver for a video receiver chip that has register 
-> banks on multiple I2C addresses on the same bus.  The data output is 
-> parallel and I will be connecting it to the sh host interface.  
-> Overall, the device appears to be suitable as a client driver to 
-> soc_camera.
+> Sure thing.  I'll post it tomorrow or Friday. How about
+> alloc_contig_range() maybe?
 > 
-> I'm following the model for the MT9T112 driver, and this works just fine 
-> for communicating to any one of the device's I2C addresses.
-> 
-> How would you recommend registering more than one I2C address to an 
-> soc_camera client driver?
 
-Honestly - don't know. The soc-camera model for now is pretty simple and 
-in some senses restrictive. But in principle, it should be possible to 
-code your case within its scope too. One of the possibilities would be to 
-register your platform data with one "main" i2c unit / address, and then 
-let the sensor register the rest in its probe. Is your chip configuration 
-fixed? Always the same number of i2c units with the same addresses? Or can 
-it vary? Maybe something like a multi-function device (drivers/mfd) would 
-suit your purpose well?
+That sounds great. Thank you.
 
-In fact, I think, it shouldn't be too complicated. As suggested above, 
-provide (but don't register, just follow other soc-camera platforms) one 
-main i2c device in the platform data, register the rest in your main 
-probe(), which will call your further probe()s. The easiest would be to 
-keep just one soc-camera instance and one v4l2-subdeice, but if you want, 
-you can explore the possibility of creating several v4l2-subdevices.
+-Kame
 
-Hope, this helps.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
