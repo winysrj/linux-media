@@ -1,100 +1,56 @@
 Return-path: <mchehab@gaivota>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54649 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752040Ab0LVOKA convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43263 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754669Ab0LNK7f (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Dec 2010 09:10:00 -0500
-From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-To: "'Sergei Shtylyov'" <sshtylyov@mvista.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Date: Wed, 22 Dec 2010 19:39:41 +0530
-Subject: RE: [PATCH v8 6/8] davinci vpbe: board specific additions
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930247F9A80F@dbde02.ent.ti.com>
-In-Reply-To: <4D1092E2.7070900@mvista.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Tue, 14 Dec 2010 05:59:35 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jonghun Han <jonghun.han@samsung.com>
+Subject: Re: Should a index be passed on the fly with the VIDIOC_QBUF ioctl in V4L2_MEMORY_USERPTR case ?
+Date: Tue, 14 Dec 2010 12:00:29 +0100
+Cc: linux-media@vger.kernel.org, "'Hans Verkuil'" <hverkuil@xs4all.nl>,
+	mchehab@redhat.com
+References: <AANLkTinzO2BN7AbRgqoKzO7-2ay385CZHAaNGZB2fcKO@mail.gmail.com> <01bb01cb9b7c$d885f9e0$8991eda0$%han@samsung.com>
+In-Reply-To: <01bb01cb9b7c$d885f9e0$8991eda0$%han@samsung.com>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201012141200.29925.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Sergei,
- Only one comment. For others I have done the fixes.
-Thanks and Regards,
--Manju
+Hi Jonghun,
 
-Others On Tue, Dec 21, 2010 at 17:13:30, Sergei Shtylyov wrote:
-> Hello.
+On Tuesday 14 December 2010 11:51:17 Jonghun Han wrote:
+> Hi,
 > 
-> On 20-12-2010 16:54, Manjunath Hadli wrote:
+> Any comment for this ?
 > 
-> > This patch implements tables for display timings,outputs and other 
-> > board related functionalities.
+> In my opinion v4l2 spec is not accurate in this topic.
+> Because VIDIOC_REQBUFS describes count is only used in V4L2_MEMORY_MMAP as
+> below.
+> __u32	count	The number of buffers requested or granted. This field is
+> only used when memory is set to V4L2_MEMORY_MMAP.
 > 
-> > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> > Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-> > Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
-> [...]
-> 
-> > diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c 
-> > b/arch/arm/mach-davinci/board-dm644x-evm.c
-> > index 34c8b41..e9b1243 100644
-> > --- a/arch/arm/mach-davinci/board-dm644x-evm.c
-> > +++ b/arch/arm/mach-davinci/board-dm644x-evm.c
-> [...]
-> > @@ -606,8 +594,71 @@ static void __init evm_init_i2c(void)
-> >   	i2c_register_board_info(1, i2c_info, ARRAY_SIZE(i2c_info));
-> >   }
-> >
-> > +#define VENC_STD_ALL    (V4L2_STD_NTSC | V4L2_STD_PAL)
-> 
->     Insert an empty line here, please.
-> 
-> > +/* venc standards timings */
-> > +static struct vpbe_enc_mode_info vbpe_enc_std_timings[] = {
-> > +	{"ntsc", VPBE_ENC_STD, {V4L2_STD_525_60}, 1, 720, 480,
-> > +	{11, 10}, {30000, 1001}, 0x79, 0, 0x10, 0, 0, 0, 0},
-> > +	{"pal", VPBE_ENC_STD, {V4L2_STD_625_50}, 1, 720, 576,
-> > +	{54, 59}, {25, 1}, 0x7E, 0, 0x16, 0, 0, 0, 0}, };
-> > +
-> > +/* venc dv preset timings */
-> > +static struct vpbe_enc_mode_info vbpe_enc_preset_timings[] = {
-> > +	{"480p59_94", VPBE_ENC_DV_PRESET, {V4L2_DV_480P59_94}, 0, 720, 480,
-> > +	{1, 1}, {5994, 100}, 0x80, 0, 0x20, 0, 0, 0, 0},
-> > +	{"576p50", VPBE_ENC_DV_PRESET, {V4L2_DV_576P50}, 0, 720, 576,
-> > +	{1, 1}, {50, 1}, 0x7E, 0, 0x30, 0, 0, 0, 0}, };
-> > +
-> > +/*
-> > + * The outputs available from VPBE + ecnoders. Keep the
-> > + * the  order same as that of encoders. First that from venc followed 
-> > +by that
->        ^^^ duplicate
-These are actually 2 different structures, the second one holding high def
-Standards - 480p and 576p and use DV_PRESETS whicle the first is used for
-SD modes. 
-> 
-> > +static struct vpbe_display_config vpbe_display_cfg = {
-> > +	.module_name = "dm644x-vpbe-display",
-> > +	.i2c_adapter_id = 1,
-> > +	.osd = {
-> > +		.module_name = VPBE_OSD_SUBDEV_NAME,
-> > +	},
-> > +	.venc = {
-> > +		.module_name = VPBE_VENC_SUBDEV_NAME,
-> > +	},
-> > +	.num_outputs = ARRAY_SIZE(dm644x_vpbe_outputs),
-> > +	.outputs = dm644x_vpbe_outputs,
-> > +};
-> 
->     Insert an empty line here, please.
-> 
-> >   static struct platform_device *davinci_evm_devices[] __initdata = {
-> > -	&davinci_fb_device,
-> >   	&rtc_dev,
-> >   };
-> 
-> WBR, Sergei
-> 
+> But there is no comment in QBUF and DQBUF part about index.
+> So I am confused. If an index isn't needed, how to driver handle it ?
 
+The spec should be fixed. VIDIOC_REQBUFS needs to be called for USERPTR as 
+well, and the buffer count is definitely used.
+
+> On Saturday, December 11, 2010 2:10 PM Jonghun Han wrote:
+> > 
+> > I wonder that a index should be passed on the fly with the VIDIOC_QBUF
+> > ioctl in V4L2_MEMORY_USERPTR case.
+> > If it isn't needed, should driver return virtual address gotten from
+> > application on the fly with the VIDIOC_DQBUF ioctl ?
+
+VIDIOC_DQBUF is supposed to fill the v4l2_buffer structure with the index and 
+the userspace virtual address (among other information). If it doesn't, it's a 
+driver bug.
+
+-- 
+Regards,
+
+Laurent Pinchart
