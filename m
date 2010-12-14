@@ -1,20 +1,21 @@
 Return-path: <mchehab@gaivota>
-Received: from mx2.redhat.com (ext-mx01.rdu.redhat.com [10.11.45.6])
-	by int-mx12.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP
-	id oBS8ae6O028545
-	for <video4linux-list@redhat.com>; Tue, 28 Dec 2010 03:36:40 -0500
-Received: from smtp5-g21.free.fr (smtp5-g21.free.fr [212.27.42.5])
-	by mx2.redhat.com (8.13.8/8.13.8) with ESMTP id oBS8aaNF017921
-	for <video4linux-list@redhat.com>; Tue, 28 Dec 2010 03:36:38 -0500
-Date: Tue, 28 Dec 2010 09:38:51 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: "Anthony Hilton" <ajh@tinshill.f9.co.uk>
-Subject: Re: Setting up Philips SPC 200NC webcam
-Message-ID: <20101228093851.06fe9e72@tele>
-In-Reply-To: <4209e98c6d38ac56dfa55e254b65b6ab.squirrel@webmail.plus.net>
-References: <4209e98c6d38ac56dfa55e254b65b6ab.squirrel@webmail.plus.net>
-Mime-Version: 1.0
-Cc: video4linux-list@redhat.com
+Received: from mx1.redhat.com (ext-mx02.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.6])
+	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP
+	id oBELgVBw004613
+	for <video4linux-list@redhat.com>; Tue, 14 Dec 2010 16:42:31 -0500
+Received: from mail-qw0-f46.google.com (mail-qw0-f46.google.com
+	[209.85.216.46])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oBELgLQC020068
+	for <video4linux-list@redhat.com>; Tue, 14 Dec 2010 16:42:21 -0500
+Received: by qwa26 with SMTP id 26so1202779qwa.33
+	for <video4linux-list@redhat.com>; Tue, 14 Dec 2010 13:42:20 -0800 (PST)
+MIME-Version: 1.0
+Date: Tue, 14 Dec 2010 19:42:20 -0200
+Message-ID: <AANLkTikjw80EUP=GMfWWnWE0EvFvst+krak+s2rS-wVY@mail.gmail.com>
+Subject: Simple request : mini-pcie analog TV capture card
+From: Fernando Laudares Camargos <fernando.laudares.camargos@gmail.com>
+To: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -22,44 +23,39 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: video4linux-list-bounces@redhat.com
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 List-ID: <video4linux-list@redhat.com>
 
-T24gTW9uLCAyNyBEZWMgMjAxMCAxNTozMzozMCAtMDAwMAoiQW50aG9ueSBIaWx0b24iIDxhamhA
-dGluc2hpbGwuZjkuY28udWs+IHdyb3RlOgoKPiBBcG9sb2dpZXMgaWYgdGhpcyBpcyB0b28gYmFz
-aWMgZm9yIGhlcmUgLSBwbGVhc2UgcmVkaXJlY3QgbWUgdG8KPiBkb2N1bWVudGF0aW9uIG9yIGFu
-b3RoZXIgbWFpbCBsaXN0IGlmIGFwcHJvcHJpYXRlLgoKSGkgQW50aG9ueSwKClRoaXMgbGlzdCBp
-cyBub3QgdXNlZCBhbnltb3JlLiBUaGUgTGludXggdmlkZW8gc3R1ZmYgaXMgbm93IGRpc2N1c3Nl
-ZCBpbgpsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcgKGxvb2sgYXQgaHR0cDovL3d3dy5saW51
-eHR2Lm9yZy8pLgoKCVtzbmlwXQo+IEkgaGF2ZSBhIFBoaWxpcHMgU1BDIDIwME5DIFVTQiB3ZWJj
-YW0gY29ubmVjdGVkIHRvIG15IE9wZW5TdVNFIHN5c3RlbSwKPiB3aGljaCBJIHdhbnQgdG8gdXNl
-IHdpdGggU2t5cGUuCglbc25pcF0KPiB4YXd0di0zLjk1IHJ1bm5pbmcgb24gTGludXMvaTY4NiAo
-Mi42LjMxLjE0LTAuNC1kZWZhdWx0KSB3aWxsIGRpc3BsYXkKPiB3ZWJjYW0gdmlkZW8gaW4gYSB3
-aW5kb3cgc28gSSdtIG5lYXJseSB0aGVyZS4gT24gc3RhcnR1cCBpdCByZXBvcnRzOgoJW3NuaXBd
-Cj4gdGhlIHhhd3R2IG1lbnUgc2hvd3MgdmlkZW8gc291cmNlIHpjM3h4Cj4gCj4gQ2hlZXNlIDIu
-MjguMSBmbGlja2VycyB0aGUgd2ViY2FtIGluZGljYXRvciB3aGVuIGxvYWRpbmcgYnV0IG9ubHkg
-ZXZlcgo+IGRpc3BsYXlzIHRoZSB0ZXN0IHBhdHRlcm4uCj4gCj4gU2t5cGUgKDIuMSBiZXRhKSBh
-bHNvIGZsaWNrZXJzIHRoZSB3ZWJjYW0gaW5kaWNhdG9yIHdoZW4gIEkgYXR0ZW1wdCB0bwo+IHRl
-c3QgdGhlIHdlYmNhbSBidXQgSSBkb24ndCBzZWUgYW55IGltYWdlLgo+IAo+IEknbSBob3Bpbmcg
-dGhhdCBpZiBJIGdldCBDaGVlc2Ugd29ya2luZyBTa3lwZSB3aWxsIGFsc28gd29yay4KCkZpcnN0
-LCB5b3VyIGtlcm5lbCBtYXkgYmUgc29tZXdoYXQgb2xkLCBiZWNhdXNlIHRoZSBkcml2ZXIgb2Yg
-eW91cgp3ZWJjYW0gaXMgemMzeHggKHdoaWNoIGlzIHBhcnQgb2YgdGhlIGdzcGNhIGZyYW1ld29y
-aykgYW5kIHRoZXJlIHdlcmUKbWFueSBidWcgZml4ZXMgc2luY2UgdGhpcyB0aW1lLiBJZiB5b3Ug
-Y2Fubm90IGdldCBhIG5ld2VyIGtlcm5lbCwgeW91Cm1heSBnZXQgdGhlIGdzcGNhIHRlc3QgdmVy
-c2lvbiBmcm9tIG15IHdlYiBwYWdlIChzZWUgYmVsb3cpLgoKVGhlbiwgYWxsIHRoZSB2aWRlbyBk
-cml2ZXJzIG1vdmVkIGZyb20gdGhlIHY0bDEgdG8gdGhlIHY0bDIgQVBJLCB3aGlsZQpub3QgYWxs
-IGFwcGxpY2F0aW9ucyBkaWQuIEZvciB0aGVzZSBvbmVzLCB0aGUgdjRsIGxpYnJhcnkgaXMgcmVx
-dWlyZWQKKGluIGZhY3QsIGl0IGlzIGFsd2F5cyByZXF1aXJlZCBiZWNhdXNlIGl0IGNvbnRhaW5z
-IHRoZSBpbWFnZSBjb252ZXJzaW9uCnJvdXRpbmVzKS4gVGhlIHNpbXBsZXN0IHdheSB0byBkbyBp
-dCBpcyB0byB1c2UgYSB3cmFwcGVyIGNvbnRhaW5pbmc6CgoJZXhwb3J0IExEX1BSRUxPQUQ9L3Vz
-ci9saWIvbGlidjRsL3Y0bDFjb21wYXQuc28KCXNreXBlCSMgb3IgYW55IHY0bCBhcHBsaWNhdGlv
-bgoKKGJldHRlciB1c2UgYSBzY3JpcHQgb3RoZXJ3aXNlLCB0aGUgZXhwb3J0IGNvbW1hbmQgc2xv
-d3MgYSBiaXQgdGhlIG5vbgp2aWRlbyBhcHBsaWNhdGlvbnMpCgpSZWdhcmRzLgoKLS0gCktlbiBh
-ciBjJ2hlbnRhw7EJfAkgICAgICAqKiBCcmVpemggaGEgTGludXggYXRhdiEgKioKSmVmCQl8CQlo
-dHRwOi8vbW9pbmVqZi5mcmVlLmZyLwoKLS0KdmlkZW80bGludXgtbGlzdCBtYWlsaW5nIGxpc3QK
-VW5zdWJzY3JpYmUgbWFpbHRvOnZpZGVvNGxpbnV4LWxpc3QtcmVxdWVzdEByZWRoYXQuY29tP3N1
-YmplY3Q9dW5zdWJzY3JpYmUKaHR0cHM6Ly93d3cucmVkaGF0LmNvbS9tYWlsbWFuL2xpc3RpbmZv
-L3ZpZGVvNGxpbnV4LWxpc3Q=
+Hello List,
+
+I'm after a somehow quite simple information: I'm looking for a
+mini-pcie TV tuner/capture card. I simply need to plug my cable TV
+decoder to such a card to "watch" TV on Linux. I've got success with a
+Hauppauge 950Q USB stick and TV time but this is not a one-time
+project and we would need to replicate it in a somehow large scale, so
+a mini-pcie card would fit the hardware best.
+
+Does anybody know any mini-pcie model analog card that are still
+available on the market and that is compatible with this need ?
+
+I've looked at linuxtv.org lists but couldn't find one.
+
+Habey has a new model, based on the ATI Theater 750 HD chip, which is
+not supported.
+
+AVerMedia has some models too, but none seems to have analog mode
+working on Linux.
+
+Any suggestions would be kindly appreciated.
+
+Regards,
+
+Fernando
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
