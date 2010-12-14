@@ -1,254 +1,149 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3177 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751235Ab0LLRcG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Dec 2010 12:32:06 -0500
-Received: from localhost.localdomain (159.80-203-19.nextgentel.com [80.203.19.159])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id oBCHW1MD002236
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 12 Dec 2010 18:32:04 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [RFC/PATCH 05/19] bt819: use control framework
-Date: Sun, 12 Dec 2010 18:31:47 +0100
-Message-Id: <35fdf7748872d3b6ea38695a9dd1c013a384593c.1292174822.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1292174822.git.hverkuil@xs4all.nl>
-References: <cover.1292174822.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1292174822.git.hverkuil@xs4all.nl>
-References: <cover.1292174822.git.hverkuil@xs4all.nl>
+Received: from ifup.org ([198.145.64.140]:51178 "EHLO ifup.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754527Ab0LNAic (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Dec 2010 19:38:32 -0500
+Date: Mon, 13 Dec 2010 16:30:24 -0800
+From: Brandon Philips <brandon@ifup.org>
+To: Torsten Kaiser <just.for.lkml@googlemail.com>
+Cc: Dave Young <hidave.darkstar@gmail.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Chris Clayton <chris2553@googlemail.com>
+Subject: Re: [PATCH] bttv: fix mutex use before init
+Message-ID: <20101214003024.GA3575@hanuman.home.ifup.org>
+References: <20101212131550.GA2608@darkstar>
+ <AANLkTinaNjPjNbxE+OyRsY_jJxDW-pwehTPgyAWzqfzd@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <AANLkTinaNjPjNbxE+OyRsY_jJxDW-pwehTPgyAWzqfzd@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/bt819.c |  129 ++++++++++++++++--------------------------
- 1 files changed, 49 insertions(+), 80 deletions(-)
+On 17:13 Sun 12 Dec 2010, Torsten Kaiser wrote:
+>  * change &fh->cap.vb_lock in bttv_open() AND radio_open() to
+> &btv->init.cap.vb_lock
+>  * add a mutex_init(&btv->init.cap.vb_lock) to the setup of init in bttv_probe()
 
-diff --git a/drivers/media/video/bt819.c b/drivers/media/video/bt819.c
-index c38300f..f872044 100644
---- a/drivers/media/video/bt819.c
-+++ b/drivers/media/video/bt819.c
-@@ -37,6 +37,7 @@
- #include <linux/slab.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-chip-ident.h>
-+#include <media/v4l2-ctrls.h>
- #include <media/bt819.h>
+That seems like a reasonable suggestion. An openSUSE user submitted this
+bug to our tracker too. Here is the patch I am having him test.
+
+Would you mind testing it?
+
+>From 456dc0ce36db523c4c0c8a269f4eec43a72de1dc Mon Sep 17 00:00:00 2001
+From: Brandon Philips <bphilips@suse.de>
+Date: Mon, 13 Dec 2010 16:21:55 -0800
+Subject: [PATCH] bttv: fix locking for btv->init
+
+Fix locking for the btv->init by using btv->init.cap.vb_lock and in the
+process fix uninitialized deref introduced in c37db91fd0d.
+
+Signed-off-by: Brandon Philips <bphilips@suse.de>
+---
+ drivers/media/video/bt8xx/bttv-driver.c |   24 +++++++++++++-----------
+ 1 files changed, 13 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/media/video/bt8xx/bttv-driver.c b/drivers/media/video/bt8xx/bttv-driver.c
+index a529619..e656424 100644
+--- a/drivers/media/video/bt8xx/bttv-driver.c
++++ b/drivers/media/video/bt8xx/bttv-driver.c
+@@ -2391,16 +2391,11 @@ static int setup_window_lock(struct bttv_fh *fh, struct bttv *btv,
+ 	fh->ov.field    = win->field;
+ 	fh->ov.setup_ok = 1;
  
- MODULE_DESCRIPTION("Brooktree-819 video decoder driver");
-@@ -52,16 +53,13 @@ MODULE_PARM_DESC(debug, "Debug level (0-1)");
+-	/*
+-	 * FIXME: btv is protected by btv->lock mutex, while btv->init
+-	 *	  is protected by fh->cap.vb_lock. This seems to open the
+-	 *	  possibility for some race situations. Maybe the better would
+-	 *	  be to unify those locks or to use another way to store the
+-	 *	  init values that will be consumed by videobuf callbacks
+-	 */
++	mutex_lock(&btv->init.cap.vb_lock);
+ 	btv->init.ov.w.width   = win->w.width;
+ 	btv->init.ov.w.height  = win->w.height;
+ 	btv->init.ov.field     = win->field;
++	mutex_unlock(&btv->init.cap.vb_lock);
  
- struct bt819 {
- 	struct v4l2_subdev sd;
-+	struct v4l2_ctrl_handler hdl;
- 	unsigned char reg[32];
+ 	/* update overlay if needed */
+ 	retval = 0;
+@@ -2620,9 +2615,11 @@ static int bttv_s_fmt_vid_cap(struct file *file, void *priv,
+ 	fh->cap.last         = V4L2_FIELD_NONE;
+ 	fh->width            = f->fmt.pix.width;
+ 	fh->height           = f->fmt.pix.height;
++	mutex_lock(&btv->init.cap.vb_lock);
+ 	btv->init.fmt        = fmt;
+ 	btv->init.width      = f->fmt.pix.width;
+ 	btv->init.height     = f->fmt.pix.height;
++	mutex_unlock(&btv->init.cap.vb_lock);
+ 	mutex_unlock(&fh->cap.vb_lock);
  
- 	v4l2_std_id norm;
- 	int ident;
- 	int input;
- 	int enable;
--	int bright;
--	int contrast;
--	int hue;
--	int sat;
- };
- 
- static inline struct bt819 *to_bt819(struct v4l2_subdev *sd)
-@@ -69,6 +67,11 @@ static inline struct bt819 *to_bt819(struct v4l2_subdev *sd)
- 	return container_of(sd, struct bt819, sd);
- }
- 
-+static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
-+{
-+	return &container_of(ctrl->handler, struct bt819, hdl)->sd;
-+}
-+
- struct timing {
- 	int hactive;
- 	int hdelay;
-@@ -333,71 +336,35 @@ static int bt819_s_stream(struct v4l2_subdev *sd, int enable)
  	return 0;
+@@ -2855,6 +2852,7 @@ static int bttv_s_fbuf(struct file *file, void *f,
+ 
+ 	retval = 0;
+ 	fh->ovfmt = fmt;
++	mutex_lock(&btv->init.cap.vb_lock);
+ 	btv->init.ovfmt = fmt;
+ 	if (fb->flags & V4L2_FBUF_FLAG_OVERLAY) {
+ 		fh->ov.w.left   = 0;
+@@ -2876,6 +2874,7 @@ static int bttv_s_fbuf(struct file *file, void *f,
+ 			retval = bttv_switch_overlay(btv, fh, new);
+ 		}
+ 	}
++	mutex_unlock(&btv->init.cap.vb_lock);
+ 	mutex_unlock(&fh->cap.vb_lock);
+ 	return retval;
  }
+@@ -3141,6 +3140,7 @@ static int bttv_s_crop(struct file *file, void *f, struct v4l2_crop *crop)
+ 	fh->do_crop = 1;
  
--static int bt819_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc)
--{
--	switch (qc->id) {
--	case V4L2_CID_BRIGHTNESS:
--		v4l2_ctrl_query_fill(qc, -128, 127, 1, 0);
--		break;
--
--	case V4L2_CID_CONTRAST:
--		v4l2_ctrl_query_fill(qc, 0, 511, 1, 256);
--		break;
--
--	case V4L2_CID_SATURATION:
--		v4l2_ctrl_query_fill(qc, 0, 511, 1, 256);
--		break;
--
--	case V4L2_CID_HUE:
--		v4l2_ctrl_query_fill(qc, -128, 127, 1, 0);
--		break;
--
--	default:
--		return -EINVAL;
--	}
--	return 0;
--}
--
--static int bt819_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-+static int bt819_s_ctrl(struct v4l2_ctrl *ctrl)
- {
-+	struct v4l2_subdev *sd = to_sd(ctrl);
- 	struct bt819 *decoder = to_bt819(sd);
- 	int temp;
+ 	mutex_lock(&fh->cap.vb_lock);
++	mutex_lock(&btv->init.cap.vb_lock);
  
- 	switch (ctrl->id) {
- 	case V4L2_CID_BRIGHTNESS:
--		if (decoder->bright == ctrl->value)
--			break;
--		decoder->bright = ctrl->value;
--		bt819_write(decoder, 0x0a, decoder->bright);
-+		bt819_write(decoder, 0x0a, ctrl->val);
- 		break;
+ 	if (fh->width < c.min_scaled_width) {
+ 		fh->width = c.min_scaled_width;
+@@ -3158,6 +3158,7 @@ static int bttv_s_crop(struct file *file, void *f, struct v4l2_crop *crop)
+ 		btv->init.height = c.max_scaled_height;
+ 	}
  
- 	case V4L2_CID_CONTRAST:
--		if (decoder->contrast == ctrl->value)
--			break;
--		decoder->contrast = ctrl->value;
--		bt819_write(decoder, 0x0c, decoder->contrast & 0xff);
--		bt819_setbit(decoder, 0x0b, 2, ((decoder->contrast >> 8) & 0x01));
-+		bt819_write(decoder, 0x0c, ctrl->val & 0xff);
-+		bt819_setbit(decoder, 0x0b, 2, ((ctrl->val >> 8) & 0x01));
- 		break;
++	mutex_unlock(&btv->init.cap.vb_lock);
+ 	mutex_unlock(&fh->cap.vb_lock);
  
- 	case V4L2_CID_SATURATION:
--		if (decoder->sat == ctrl->value)
--			break;
--		decoder->sat = ctrl->value;
--		bt819_write(decoder, 0x0d, (decoder->sat >> 7) & 0xff);
--		bt819_setbit(decoder, 0x0b, 1, ((decoder->sat >> 15) & 0x01));
-+		bt819_write(decoder, 0x0d, (ctrl->val >> 7) & 0xff);
-+		bt819_setbit(decoder, 0x0b, 1, ((ctrl->val >> 15) & 0x01));
- 
- 		/* Ratio between U gain and V gain must stay the same as
- 		   the ratio between the default U and V gain values. */
--		temp = (decoder->sat * 180) / 254;
-+		temp = (ctrl->val * 180) / 254;
- 		bt819_write(decoder, 0x0e, (temp >> 7) & 0xff);
- 		bt819_setbit(decoder, 0x0b, 0, (temp >> 15) & 0x01);
- 		break;
- 
- 	case V4L2_CID_HUE:
--		if (decoder->hue == ctrl->value)
--			break;
--		decoder->hue = ctrl->value;
--		bt819_write(decoder, 0x0f, decoder->hue);
-+		bt819_write(decoder, 0x0f, ctrl->val);
- 		break;
- 
- 	default:
-@@ -406,29 +373,6 @@ static int bt819_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
  	return 0;
- }
+@@ -3302,9 +3303,9 @@ static int bttv_open(struct file *file)
+ 	 * Let's first copy btv->init at fh, holding cap.vb_lock, and then work
+ 	 * with the rest of init, holding btv->lock.
+ 	 */
+-	mutex_lock(&fh->cap.vb_lock);
++	mutex_lock(&btv->init.cap.vb_lock);
+ 	*fh = btv->init;
+-	mutex_unlock(&fh->cap.vb_lock);
++	mutex_unlock(&btv->init.cap.vb_lock);
  
--static int bt819_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
--{
--	struct bt819 *decoder = to_bt819(sd);
--
--	switch (ctrl->id) {
--	case V4L2_CID_BRIGHTNESS:
--		ctrl->value = decoder->bright;
--		break;
--	case V4L2_CID_CONTRAST:
--		ctrl->value = decoder->contrast;
--		break;
--	case V4L2_CID_SATURATION:
--		ctrl->value = decoder->sat;
--		break;
--	case V4L2_CID_HUE:
--		ctrl->value = decoder->hue;
--		break;
--	default:
--		return -EINVAL;
--	}
--	return 0;
--}
--
- static int bt819_g_chip_ident(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident *chip)
- {
- 	struct bt819 *decoder = to_bt819(sd);
-@@ -439,11 +383,19 @@ static int bt819_g_chip_ident(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident
+ 	fh->type = type;
+ 	fh->ov.setup_ok = 0;
+@@ -3502,9 +3503,9 @@ static int radio_open(struct file *file)
+ 	if (unlikely(!fh))
+ 		return -ENOMEM;
+ 	file->private_data = fh;
+-	mutex_lock(&fh->cap.vb_lock);
++	mutex_lock(&btv->init.cap.vb_lock);
+ 	*fh = btv->init;
+-	mutex_unlock(&fh->cap.vb_lock);
++	mutex_unlock(&btv->init.cap.vb_lock);
  
- /* ----------------------------------------------------------------------- */
+ 	mutex_lock(&btv->lock);
+ 	v4l2_prio_open(&btv->prio, &fh->prio);
+@@ -4489,6 +4490,7 @@ static int __devinit bttv_probe(struct pci_dev *dev,
+ 	btv->opt_coring     = coring;
  
-+static const struct v4l2_ctrl_ops bt819_ctrl_ops = {
-+	.s_ctrl = bt819_s_ctrl,
-+};
-+
- static const struct v4l2_subdev_core_ops bt819_core_ops = {
- 	.g_chip_ident = bt819_g_chip_ident,
--	.g_ctrl = bt819_g_ctrl,
--	.s_ctrl = bt819_s_ctrl,
--	.queryctrl = bt819_queryctrl,
-+	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
-+	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
-+	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
-+	.g_ctrl = v4l2_subdev_g_ctrl,
-+	.s_ctrl = v4l2_subdev_s_ctrl,
-+	.queryctrl = v4l2_subdev_queryctrl,
-+	.querymenu = v4l2_subdev_querymenu,
- 	.s_std = bt819_s_std,
- };
- 
-@@ -505,23 +457,40 @@ static int bt819_probe(struct i2c_client *client,
- 	decoder->norm = V4L2_STD_NTSC;
- 	decoder->input = 0;
- 	decoder->enable = 1;
--	decoder->bright = 0;
--	decoder->contrast = 0xd8;	/* 100% of original signal */
--	decoder->hue = 0;
--	decoder->sat = 0xfe;		/* 100% of original signal */
- 
- 	i = bt819_init(sd);
- 	if (i < 0)
- 		v4l2_dbg(1, debug, sd, "init status %d\n", i);
-+
-+	v4l2_ctrl_handler_init(&decoder->hdl, 4);
-+	v4l2_ctrl_new_std(&decoder->hdl, &bt819_ctrl_ops,
-+			V4L2_CID_BRIGHTNESS, -128, 127, 1, 0);
-+	v4l2_ctrl_new_std(&decoder->hdl, &bt819_ctrl_ops,
-+			V4L2_CID_CONTRAST, 0, 511, 1, 0xd8);
-+	v4l2_ctrl_new_std(&decoder->hdl, &bt819_ctrl_ops,
-+			V4L2_CID_SATURATION, 0, 511, 1, 0xfe);
-+	v4l2_ctrl_new_std(&decoder->hdl, &bt819_ctrl_ops,
-+			V4L2_CID_HUE, -128, 127, 1, 0);
-+	sd->ctrl_handler = &decoder->hdl;
-+	if (decoder->hdl.error) {
-+		int err = decoder->hdl.error;
-+
-+		v4l2_ctrl_handler_free(&decoder->hdl);
-+		kfree(decoder);
-+		return err;
-+	}
-+	v4l2_ctrl_handler_setup(&decoder->hdl);
- 	return 0;
- }
- 
- static int bt819_remove(struct i2c_client *client)
- {
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct bt819 *decoder = to_bt819(sd);
- 
- 	v4l2_device_unregister_subdev(sd);
--	kfree(to_bt819(sd));
-+	v4l2_ctrl_handler_free(&decoder->hdl);
-+	kfree(decoder);
- 	return 0;
- }
- 
+ 	/* fill struct bttv with some useful defaults */
++	mutex_init(&btv->init.cap.vb_lock);
+ 	btv->init.btv         = btv;
+ 	btv->init.ov.w.width  = 320;
+ 	btv->init.ov.w.height = 240;
 -- 
-1.7.0.4
+1.7.3.1
 
