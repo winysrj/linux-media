@@ -1,118 +1,82 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2339 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755491Ab0LTM2Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Dec 2010 07:28:24 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [GIT PULL FOR 2.6.37] uvcvideo: BKL removal
-Date: Mon, 20 Dec 2010 13:28:06 +0100
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-References: <201011291115.11061.laurent.pinchart@ideasonboard.com> <201012181145.29681.hverkuil@xs4all.nl> <4D0F47B8.6040600@redhat.com>
-In-Reply-To: <4D0F47B8.6040600@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:51250 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758964Ab0LNByn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Dec 2010 20:54:43 -0500
+Message-ID: <4D06CE4C.3070003@redhat.com>
+Date: Mon, 13 Dec 2010 23:54:20 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Jarod Wilson <jarod@redhat.com>
+CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Henrik Rydberg <rydberg@euromail.se>,
+	Linux Input <linux-input@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
+	Jiri Kosina <jkosina@suse.cz>,
+	=?UTF-8?B?RGF2aWQgSMOkcmRlbWFu?= <david@hardeman.nu>
+Subject: Re: [RFC] Input: define separate EVIOCGKEYCODE_V2/EVIOCSKEYCODE_V2
+References: <20101209093948.GD8821@core.coreip.homeip.net> <4D012844.3020009@euromail.se> <20101209191647.GC23781@core.coreip.homeip.net> <20101213090559.GH21401@core.coreip.homeip.net> <20101213183128.GE2531@redhat.com>
+In-Reply-To: <20101213183128.GE2531@redhat.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201012201328.06493.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Monday, December 20, 2010 13:10:32 Mauro Carvalho Chehab wrote:
-> Em 18-12-2010 08:45, Hans Verkuil escreveu:
-> > On Saturday, December 18, 2010 01:54:41 Laurent Pinchart wrote:
-> >> Hi Mauro,
-> >>
-> >> On Friday 17 December 2010 18:09:39 Mauro Carvalho Chehab wrote:
-> >>> Em 14-12-2010 08:55, Laurent Pinchart escreveu:
-> >>>> Hi Mauro,
-> >>>>
-> >>>> Please don't forget this pull request for 2.6.37.
-> >>>
-> >>> Pull request for upstream sent today.
-> >>
-> >> Thank you.
-> >>
-> >>> I didn't find any regressions at the BKL removal patches, but I noticed a
-> >>> few issues with qv4l2, not all related to uvcvideo. The remaining of this
-> >>> email is an attempt to document them for later fixes.
-> >>>
-> >>> They don't seem to be regressions caused by BKL removal, but the better
-> >>> would be to fix them later.
-> >>>
-> >>> - with uvcvideo and two video apps, if qv4l2 is started first, the second
-> >>> application doesn't start/capture. I suspect that REQBUFS (used by qv4l2
-> >>> to probe mmap/userptr capabilities) create some resource locking at
-> >>> uvcvideo. The proper way is to lock the resources only if the driver is
-> >>> streaming, as other drivers and videobuf do.
-> >>
-> >> I don't agree with that. The uvcvideo driver has one buffer queue per device, 
-> >> so if an application requests buffers on one file handle it will lock other 
-> >> applications out. If the driver didn't it would be subject to race conditions.
-> > 
-> > I agree with Laurent. Once an application calls REQBUFS with non-zero count,
-> > then it should lock the resources needed for streaming. The reason behind that
-> > is that REQBUFS also locks the current selected format in place, since the
-> > format determines the amount of memory needed for the buffers.
+Em 13-12-2010 16:31, Jarod Wilson escreveu:
+> On Mon, Dec 13, 2010 at 01:06:00AM -0800, Dmitry Torokhov wrote:
+>> On Thu, Dec 09, 2010 at 11:16:47AM -0800, Dmitry Torokhov wrote:
+>>> On Thu, Dec 09, 2010 at 08:04:36PM +0100, Henrik Rydberg wrote:
+>>>> On 12/09/2010 10:39 AM, Dmitry Torokhov wrote:
+>>>>
+>>>>> The desire to keep old names for the EVIOCGKEYCODE/EVIOCSKEYCODE while
+>>>>> extending them to support large scancodes was a mistake. While we tried
+>>>>> to keep ABI intact (and we succeeded in doing that, programs compiled
+>>>>> on older kernels will work on newer ones) there is still a problem with
+>>>>> recompiling existing software with newer kernel headers.
+>>>>>
+>>>>> New kernel headers will supply updated ioctl numbers and kernel will
+>>>>> expect that userspace will use struct input_keymap_entry to set and
+>>>>> retrieve keymap data. But since the names of ioctls are still the same
+>>>>> userspace will happily compile even if not adjusted to make use of the
+>>>>> new structure and will start miraculously fail in the field.
+>>>>>
+>>>>> To avoid this issue let's revert EVIOCGKEYCODE/EVIOCSKEYCODE definitions
+>>>>> and add EVIOCGKEYCODE_V2/EVIOCSKEYCODE_V2 so that userspace can explicitly
+>>>>> select the style of ioctls it wants to employ.
+>>>>>
+>>>>> Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+>>>>> ---
+>>>>
+>>>>
+>>>> Would the header change suffice in itself?
+>>>
+>>> We still need to change evdev to return -EINVAL on wrong sizes but yes,
+>>> the amount of change there could be more limited. I just thought that
+>>> splitting it up explicitly shows the differences in handling better. If
+>>> people prefer the previos version we could leave it, I am 50/50 between
+>>> them.
+>>>
+>>
+>> *ping*
+>>
+>> Mauro, Jarod, do you have an opinion on this? I think we need to settle
+>> on a solution before 2.6.37 is out.
 > 
-> qv4l2 calls REQBUFS(1), then REQBUFS(0). Well, this is currently wrong, as most
-> drivers will only release buffers at VIDIOC_STREAMOFF.
-
-qv4l2 first calls STREAMOFF, then REQBUFS(1), then REQBUFS(0). In the hope that one
-of these will actually free any buffers. It's random at the moment when drivers
-release buffers, one of the reasons for using vb2.
-
-> Anyway, even replacing 
-> REQBUFS(0) with VIDIOC_STREAMOFF at qv4l2 won't help with uvcvideo. It seems that,
-> once buffers are requested at uvcvideo, they will release only at close().
+> Sorry, been meaning to reply, just been quite tied up with other work...
+> I'm of two minds on this as well, but probably leaning slightly in favor
+> of going ahead with an explicit _V2 so as to not break existing userspace
+> in new and unexpected ways. There presumably isn't much in the way of
+> userspace already adapted to the new interface, and its simple to do
+> another rev of those that have been. Okay, yeah, this is probably the best
+> way to go about it.
 > 
-> One consequence on the way uvcvideo is currently doing it is that, if you use qv4l2,
-> it is impossible to change the video size, as it returns -EBUSY, if you ask it to
-> select a different format (even without streaming):
-> 	$ ./qv4l2
-> 	Set Capture Format: Device or resource busy
+> Acked-by: Jarod Wilson <jarod@redhat.com>
 > 
-> > The reason a lot of drivers don't do this is partially because for many TV
-> > capture drivers it is highly unlikely that the buffer size will change after
-> > calling REQBUFS (there are basically only two formats: 720x480 or 720x576 and
-> > users will normally never change between the two). However, this is much more
-> > likely to happen for webcams and embedded systems supporting HDTV.
 > 
-> What applications do, when they need to change the formats, is to call REQBUFS again.
-> 
-> > The other reason is probably because driver developers simple do not realize
-> > they need to lock the resources on REQBUFS. I'm sure many existing drivers will
-> > fail miserably if you change the format after calling REQBUFS (particularly
-> > with mmap streaming mode).
-> 
-> I didn't make any test, but I don't think they'll fail (at least, on the drivers
-> that use videobuf), as streaming format will be stored at the videobuf handling 
-> (at buffer_prepare callback).
-> 
-> So, if you change the format, the change will be applied only at the next call
-> to REQBUFS.
+I'm with some email troubles here. Not sure if you got my answer. I'm OK with
+those changes.
 
-This behavior isn't according to the spec. G/S_FMT relate to the current format,
-not to some future format. Most non-videobuf drivers will not support this
-behavior.
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com
 
-It should be simple, really:
-
-STREAMOFF
-REQBUFS(0)
-
-That's all that should be needed to stop streaming and return all buffers to the
-app. This is what uvc should also support (and I actually thought it did).
-
-Attempts to change formats while buffers have been requested should be blocked
-with EBUSY. It's all perfectly reasonable. Well, perhaps next year we might
-succeed in having all drivers behave consistently...
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Cheers,
+Mauro
