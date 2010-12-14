@@ -1,151 +1,99 @@
 Return-path: <mchehab@gaivota>
-Received: from d1.icnet.pl ([212.160.220.21]:57179 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752021Ab0LXBJr convert rfc822-to-8bit (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:52453 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757121Ab0LNSwp convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Dec 2010 20:09:47 -0500
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] dma_declare_coherent_memory: push ioremap() up to caller
-Date: Fri, 24 Dec 2010 02:08:03 +0100
-Cc: linux-arch@vger.kernel.org, "Greg Kroah-Hartman" <gregkh@suse.de>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Arnd Bergmann <arnd@arndb.de>,
-	Dan Williams <dan.j.williams@intel.com>,
-	linux-sh@vger.kernel.org, Paul Mundt <lethal@linux-sh.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-usb@vger.kernel.org,
-	David Brownell <dbrownell@users.sourceforge.net>,
-	linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-scsi@vger.kernel.org,
-	"James E.J. Bottomley" <James.Bottomley@suse.de>,
-	Catalin Marinas <catalin.marinas@arm.com>
-References: <201012240020.37208.jkrzyszt@tis.icnet.pl> <20101223235434.GA20587@n2100.arm.linux.org.uk>
-In-Reply-To: <20101223235434.GA20587@n2100.arm.linux.org.uk>
+	Tue, 14 Dec 2010 13:52:45 -0500
+Received: by wwa36 with SMTP id 36so803323wwa.1
+        for <linux-media@vger.kernel.org>; Tue, 14 Dec 2010 10:52:44 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+In-Reply-To: <20101210115124.57ccd43e@tele>
+References: <cover.1291926689.git.mchehab@redhat.com>
+	<20101209184236.53824f09@pedra>
+	<20101210115124.57ccd43e@tele>
+Date: Tue, 14 Dec 2010 20:52:43 +0200
+Message-ID: <AANLkTim7iGe=tZXniHXG_33hCyiKFPZVuVDRLu43C3BQ@mail.gmail.com>
+Subject: Re: [PATCH 3/6] [media] gspca core: Fix regressions gspca breaking
+ devices with audio
+From: Anca Emanuel <anca.emanuel@gmail.com>
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Brian Johnson <brijohn@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <201012240208.08365.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Friday 24 December 2010 00:54:34 Russell King - ARM Linux napisaÅ‚(a):
-> On Fri, Dec 24, 2010 at 12:20:32AM +0100, Janusz Krzysztofik wrote:
-> > The patch tries to implement a solution suggested by Russell King,
-> > http://lists.infradead.org/pipermail/linux-arm-kernel/2010-December
-> >/035264.html. It is expected to solve video buffer allocation issues
-> > for at least a few soc_camera I/O memory less host interface
-> > drivers, designed around the videobuf_dma_contig layer, which
-> > allocates video buffers using dma_alloc_coherent().
-> >
-> > Created against linux-2.6.37-rc5.
-> >
-> > Tested on ARM OMAP1 based Amstrad Delta with a WIP OMAP1 camera
-> > patch, patterned upon two mach-mx3 machine types which already try
-> > to use the dma_declare_coherent_memory() method for reserving a
-> > region of system RAM preallocated with another
-> > dma_alloc_coherent(). Compile tested for all modified files except
-> > arch/sh/drivers/pci/fixups-dreamcast.c.
-> >
-> > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> > ---
-> > I intended to quote Russell in my commit message and even asked him
-> > for his permission, but since he didn't respond, I decided to
-> > include a link to his original message only.
+On Fri, Dec 10, 2010 at 12:51 PM, Jean-Francois Moine <moinejf@free.fr> wrote:
+> On Thu, 9 Dec 2010 18:42:36 -0200
+> Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
 >
-> There's no problem quoting messages which were sent to public mailing
-> lists, especially when there's a record of what was said in public
-> archives too.
+>> Changeset 35680ba broke several devices:
+>>       - Sony Playstation Eye (1415:2000);
+>>       - Gigaware model 25-234 (0c45:628f);
+>>       - Logitech Messenger Plus (046d:08f6).
+>>
+>> Probably more devices were broken by this change.
+>>
+>> What happens is that several devices don't need to save some bandwidth
+>> for audio.
+>>
+>> Also, as pointed by Hans de Goede <hdegoede@redhat.com>, the logic
+>> that implements the bandwidth reservation for audio is broken, since
+>> it will reduce the alt number twice, on devices with audio.
+>>
+>> So, let's just revert the broken logic, and think on a better solution
+>> for usb 1.1 devices with audio that can't use the maximum packetsize.
 >
-> I think this is definitely a step forward.
+> Acked-by: Jean-Francois Moine <moinejf@free.fr>
 >
-> > ---
-> > linux-2.6.37-rc5/arch/arm/mach-mx3/mach-pcm037.c.orig	2010-12-09
-> > 23:07:34.000000000 +0100 +++
-> > linux-2.6.37-rc5/arch/arm/mach-mx3/mach-pcm037.c	2010-12-23
-> > 18:32:24.000000000 +0100 @@ -431,7 +431,7 @@ static int __init
-> > pcm037_camera_alloc_dm memset(buf, 0, buf_size);
-> >
-> >  	dma = dma_declare_coherent_memory(&mx3_camera.dev,
-> > -					dma_handle, dma_handle, buf_size,
-> > +					buf, dma_handle, buf_size,
-> >  					DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
-> >
-> >  	/* The way we call dma_declare_coherent_memory only a malloc can
-> > fail */ ---
-> > linux-2.6.37-rc5/arch/arm/mach-mx3/mach-mx31moboard.c.orig	2010-12-
-> >09 23:07:34.000000000 +0100 +++
-> > linux-2.6.37-rc5/arch/arm/mach-mx3/mach-mx31moboard.c	2010-12-23
-> > 18:32:24.000000000 +0100 @@ -486,7 +486,7 @@ static int __init
-> > mx31moboard_cam_alloc_ memset(buf, 0, buf_size);
-> >
-> >  	dma = dma_declare_coherent_memory(&mx3_camera.dev,
-> > -					dma_handle, dma_handle, buf_size,
-> > +					buf, dma_handle, buf_size,
-> >  					DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
-> >
-> >  	/* The way we call dma_declare_coherent_memory only a malloc can
-> > fail */
->
-> A side note for the mx3 folk: although it's not specified in DMA-API,
-> memory allocated from dma_alloc_coherent() on ARM is already memset
-> to zero by the allocation function.
->
-> > --- linux-2.6.37-rc5/drivers/base/dma-coherent.c.orig	2010-12-09
-> > 23:08:03.000000000 +0100 +++
-> > linux-2.6.37-rc5/drivers/base/dma-coherent.c	2010-12-23
-> > 18:32:24.000000000 +0100 @@ -14,10 +14,9 @@ struct dma_coherent_mem
-> > {
-> >  	unsigned long	*bitmap;
-> >  };
-> >
-> > -int dma_declare_coherent_memory(struct device *dev, dma_addr_t
-> > bus_addr, +int dma_declare_coherent_memory(struct device *dev, void
-> > *virt_addr, dma_addr_t device_addr, size_t size, int flags)
-> >  {
-> > -	void __iomem *mem_base = NULL;
-> >  	int pages = size >> PAGE_SHIFT;
-> >  	int bitmap_size = BITS_TO_LONGS(pages) * sizeof(long);
-> >
-> > @@ -30,10 +29,6 @@ int dma_declare_coherent_memory(struct d
-> >
-> >  	/* FIXME: this routine just ignores DMA_MEMORY_INCLUDES_CHILDREN
-> > */
-> >
-> > -	mem_base = ioremap(bus_addr, size);
-> > -	if (!mem_base)
-> > -		goto out;
-> > -
-> >  	dev->dma_mem = kzalloc(sizeof(struct dma_coherent_mem),
-> > GFP_KERNEL); if (!dev->dma_mem)
-> >  		goto out;
-> > @@ -41,7 +36,7 @@ int dma_declare_coherent_memory(struct d
-> >  	if (!dev->dma_mem->bitmap)
-> >  		goto free1_out;
-> >
-> > -	dev->dma_mem->virt_base = mem_base;
-> > +	dev->dma_mem->virt_base = virt_addr;
->
-> I didn't see anything changing the dev->dma_mem->virt_base type to
-> drop the __iomem attribute (which I suspect shouldn't be there -
-> we're returning it via a void pointer anyway, so I think the whole
-> coherent part of the DMA API should be __iomem-less.
-
-There was no __iomem attribute specified for the .virt_base member of 
-the struct dma_coherent_mem, pure (void *), so nothing to be changed 
-there.
-
-Thanks,
-Janusz
-
-> It also pushes the sparse address space warnings to the right place
-> IMHO too.
 > --
-> To unsubscribe from this list: send the line "unsubscribe
-> linux-media" in the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Ken ar c'hentañ |             ** Breizh ha Linux atav! **
+> Jef             |               http://moinejf.free.fr/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
+How can I disable the noise from camera ?
+There is no physical microphone in it.
+( mute do not work )
 
+[  139.656021] usb 8-1: new full speed USB device using uhci_hcd and address 2
+[  139.788024] usb 8-1: ep0 maxpacket = 8
+[  139.824840] usb 8-1: skipped 3 descriptors after interface
+[  139.824846] usb 8-1: skipped 2 descriptors after interface
+[  139.824851] usb 8-1: skipped 1 descriptor after endpoint
+[  139.829822] usb 8-1: default language 0x0409
+[  139.848810] usb 8-1: udev 2, busnum 8, minor = 897
+[  139.848816] usb 8-1: New USB device found, idVendor=05a9, idProduct=4519
+[  139.848821] usb 8-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[  139.848826] usb 8-1: Product: USB Camera
+[  139.848830] usb 8-1: Manufacturer: OmniVision Technologies, Inc.
+[  139.848996] usb 8-1: usb_probe_device
+[  139.849003] usb 8-1: configuration #1 chosen from 1 choice
+[  139.851825] usb 8-1: adding 8-1:1.0 (config #1, interface 0)
+[  139.851932] usb 8-1: adding 8-1:1.1 (config #1, interface 1)
+[  139.851992] usb 8-1: adding 8-1:1.2 (config #1, interface 2)
+[  139.898020] gspca: v2.11.0 registered
+[  139.904357] ov519 8-1:1.0: usb_probe_interface
+[  139.904362] ov519 8-1:1.0: usb_probe_interface - got id
+[  139.904367] gspca: probing 05a9:4519
+[  140.088677] ov519: I2C synced in 0 attempt(s)
+[  140.088683] ov519: starting OV7xx0 configuration
+[  140.100673] ov519: Sensor is a OV7660
+[  141.530010] input: ov519 as
+/devices/pci0000:00/0000:00:1d.3/usb8/8-1/input/input5
+[  141.530188] gspca: video0 created
+[  141.530205] ov519 8-1:1.1: usb_probe_interface
+[  141.530210] ov519 8-1:1.1: usb_probe_interface - got id
+[  141.530227] ov519 8-1:1.2: usb_probe_interface
+[  141.530231] ov519 8-1:1.2: usb_probe_interface - got id
+[  141.530267] usbcore: registered new interface driver ov519
+[  141.643983] snd-usb-audio 8-1:1.1: usb_probe_interface
+[  141.643990] snd-usb-audio 8-1:1.1: usb_probe_interface - got id
+[  141.651156] usbcore: registered new interface driver snd-usb-audio
+[  141.758522] uhci_hcd 0000:00:1d.3: reserve dev 2 ep82-ISO, period
+1, phase 0, 40 us
