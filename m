@@ -1,74 +1,155 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2510 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753913Ab0L2Vn1 (ORCPT
+Received: from mail-fx0-f43.google.com ([209.85.161.43]:63643 "EHLO
+	mail-fx0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754875Ab0LNKXT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Dec 2010 16:43:27 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id oBTLhQch046857
-	for <linux-media@vger.kernel.org>; Wed, 29 Dec 2010 22:43:26 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Message-Id: <05f9b24918aaa009885961423728d43de77b841f.1293657717.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1293657717.git.hverkuil@xs4all.nl>
-References: <cover.1293657717.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Wed, 29 Dec 2010 22:43:25 +0100
-Subject: [PATCH 08/10] [RFC] v4l2-framework: update documentation for new prio field
-To: linux-media@vger.kernel.org
+	Tue, 14 Dec 2010 05:23:19 -0500
+From: Michal Nazarewicz <mina86@mina86.com>
+To: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michal Nazarewicz <m.nazarewicz@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Ankita Garg <ankita@in.ibm.com>,
+	BooJin Kim <boojin.kim@samsung.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mel Gorman <mel@csn.ul.ie>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCHv7 08/10] mm: cma: Contiguous Memory Allocator added
+References: <cover.1292004520.git.m.nazarewicz@samsung.com>
+	<fc8aa07ac71d554ba10af4943fdb05197c681fa2.1292004520.git.m.nazarewicz@samsung.com>
+	<20101214102401.37bf812d.kamezawa.hiroyu@jp.fujitsu.com>
+Date: Tue, 14 Dec 2010 11:23:15 +0100
+In-Reply-To: <20101214102401.37bf812d.kamezawa.hiroyu@jp.fujitsu.com>
+	(KAMEZAWA Hiroyuki's message of "Tue, 14 Dec 2010 10:24:01 +0900")
+Message-ID: <87zks8fyb0.fsf@erwin.mina86.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- Documentation/video4linux/v4l2-framework.txt |   19 +++++++++++++++++--
- 1 files changed, 17 insertions(+), 2 deletions(-)
+> On Mon, 13 Dec 2010 12:26:49 +0100
+> Michal Nazarewicz <m.nazarewicz@samsung.com> wrote:
+>> +/************************* Initialise CMA *************************/
+>> +
+>> +static struct cma_grabbed {
+>> +	unsigned long start;
+>> +	unsigned long size;
+>> +} cma_grabbed[8] __initdata;
+>> +static unsigned cma_grabbed_count __initdata;
+>> +
+>> +int cma_init(unsigned long start, unsigned long size)
+>> +{
+>> +	pr_debug("%s(%p+%p)\n", __func__, (void *)start, (void *)size);
+>> +
+>> +	if (!size)
+>> +		return -EINVAL;
+>> +	if ((start | size) & ((MAX_ORDER_NR_PAGES << PAGE_SHIFT) - 1))
+>> +		return -EINVAL;
+>> +	if (start + size < start)
+>> +		return -EOVERFLOW;
+>> +
+>> +	if (cma_grabbed_count == ARRAY_SIZE(cma_grabbed))
+>> +		return -ENOSPC;
+>> +
+>> +	cma_grabbed[cma_grabbed_count].start = start;
+>> +	cma_grabbed[cma_grabbed_count].size  = size;
+>> +	++cma_grabbed_count;
+>> +	return 0;
+>> +}
+>> +
 
-diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index f22f35c..7739705 100644
---- a/Documentation/video4linux/v4l2-framework.txt
-+++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -448,15 +448,20 @@ allocated memory.
- You should also set these fields:
- 
- - v4l2_dev: set to the v4l2_device parent device.
-+
- - name: set to something descriptive and unique.
-+
- - fops: set to the v4l2_file_operations struct.
-+
- - ioctl_ops: if you use the v4l2_ioctl_ops to simplify ioctl maintenance
-   (highly recommended to use this and it might become compulsory in the
-   future!), then set this to your v4l2_ioctl_ops struct.
-+
- - lock: leave to NULL if you want to do all the locking in the driver.
-   Otherwise you give it a pointer to a struct mutex_lock and before any
-   of the v4l2_file_operations is called this lock will be taken by the
-   core and released afterwards.
-+
- - parent: you only set this if v4l2_device was registered with NULL as
-   the parent device struct. This only happens in cases where one hardware
-   device has multiple PCI devices that all share the same v4l2_device core.
-@@ -467,8 +472,18 @@ You should also set these fields:
-   PCI device it is setup without a parent device. But when the struct
-   video_device is setup you do know which parent PCI device to use.
- 
--If you use v4l2_ioctl_ops, then you should set either .unlocked_ioctl or
--.ioctl to video_ioctl2 in your v4l2_file_operations struct.
-+- prio: if left to NULL, then the prio state in struct v4l2_device will be
-+  used, otherwise you can point it to your own struct v4l2_prio_state.
-+  This field is used for checking priorities (see VIDIOC_S_PRIORITY). In most
-+  cases this field remains NULL.
-+
-+  Only if the driver has multiple device nodes and some of those can be used
-+  independently from others (e.g. capture and display nodes are often
-+  independent), then you need to have multiple v4l2_prio_state structs and
-+  point this field to the correct one.
-+
-+If you use v4l2_ioctl_ops, then you should set .unlocked_ioctl to video_ioctl2
-+in your v4l2_file_operations struct.
- 
- The v4l2_file_operations struct is a subset of file_operations. The main
- difference is that the inode argument is omitted since it is never used.
+KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com> writes:
+> Is it guaranteed that there are no memory holes, or zone overlap
+> in the range ? I think correctness of the range must be checked.
+
+I keep thinking about it myself.  The idea is that you get memory range
+reserved using memblock (or some such) thus it should not contain any
+memory holes.  I'm not entirely sure about spanning different zones.
+I'll add the checking code.
+
+>> +#define MIGRATION_RETRY	5
+>> +static int __cm_migrate(unsigned long start, unsigned long end)
+>> +{
+[...]
+>> +}
+>> +
+>> +static int __cm_alloc(unsigned long start, unsigned long size)
+>> +{
+>> +	unsigned long end, _start, _end;
+>> +	int ret;
+>> +
+[...]
+>> +
+>> +	start = phys_to_pfn(start);
+>> +	end   = start + (size >> PAGE_SHIFT);
+>> +
+>> +	pr_debug("\tisolate range(%lx, %lx)\n",
+>> +		 pfn_to_maxpage(start), pfn_to_maxpage_up(end));
+>> +	ret = __start_isolate_page_range(pfn_to_maxpage(start),
+>> +					 pfn_to_maxpage_up(end), MIGRATE_CMA);
+>> +	if (ret)
+>> +		goto done;
+>> +
+>> +	pr_debug("\tmigrate range(%lx, %lx)\n", start, end);
+>> +	ret = __cm_migrate(start, end);
+>> +	if (ret)
+>> +		goto done;
+>> +
+[...]
+>> +
+>> +	pr_debug("\tfinding buddy\n");
+>> +	ret = 0;
+>> +	while (!PageBuddy(pfn_to_page(start & (~0UL << ret))))
+>> +		if (WARN_ON(++ret >= MAX_ORDER))
+>> +			return -EINVAL;
+>> +
+>> +	_start = start & (~0UL << ret);
+>> +	pr_debug("\talloc freed(%lx, %lx)\n", _start, end);
+>> +	_end   = alloc_contig_freed_pages(_start, end, 0);
+>> +
+>> +	/* Free head and tail (if any) */
+>> +	pr_debug("\tfree contig(%lx, %lx)\n", _start, start);
+>> +	free_contig_pages(pfn_to_page(_start), start - _start);
+>> +	pr_debug("\tfree contig(%lx, %lx)\n", end, _end);
+>> +	free_contig_pages(pfn_to_page(end), _end - end);
+>> +
+>> +	ret = 0;
+>> +
+>> +done:
+>> +	pr_debug("\tundo isolate range(%lx, %lx)\n",
+>> +		 pfn_to_maxpage(start), pfn_to_maxpage_up(end));
+>> +	__undo_isolate_page_range(pfn_to_maxpage(start),
+>> +				  pfn_to_maxpage_up(end), MIGRATE_CMA);
+>> +
+>> +	pr_debug("ret = %d\n", ret);
+>> +	return ret;
+>> +}
+>> +
+>> +static void __cm_free(unsigned long start, unsigned long size)
+>> +{
+>> +	pr_debug("%s(%p+%p)\n", __func__, (void *)start, (void *)size);
+>> +
+>> +	free_contig_pages(pfn_to_page(phys_to_pfn(start)),
+>> +			  size >> PAGE_SHIFT);
+>> +}
+
+> Hmm, it seems __cm_alloc() and __cm_migrate() has no special codes for CMA.
+> I'd like reuse this for my own contig page allocator.
+> So, could you make these function be more generic (name) ?
+> as
+> 	__alloc_range(start, size, mirate_type);
+>
+> Then, what I have to do is only to add "search range" functions.
+
+Sure thing.  I'll post it tomorrow or Friday. How about
+alloc_contig_range() maybe?
+
 -- 
-1.6.4.2
-
+Pozdrawiam                                            _     _
+ .o. | Wasal Jasnie Oswieconej Pani Informatyki     o' \,=./ `o
+ ..o | Michal "mina86" Nazarewicz  <mina86*tlen.pl>    (o o)
+ ooo +---<jid:mina86-jabber.org>---<tlen:mina86>---ooO--(_)--Ooo--
