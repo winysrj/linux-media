@@ -1,49 +1,168 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:64019 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752309Ab0L3XIM (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:56239 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751674Ab0LNIIb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Dec 2010 18:08:12 -0500
-From: "Justin P. Mattock" <justinmattock@gmail.com>
-To: trivial@kernel.org
-Cc: linux-m68k@lists.linux-m68k.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, ivtv-devel@ivtvdriver.org,
-	linux-media@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-scsi@vger.kernel.org,
-	spi-devel-general@lists.sourceforge.net,
-	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org,
-	"Justin P. Mattock" <justinmattock@gmail.com>
-Subject: [PATCH 03/15]drivers:staging:rtl8187se:r8180_hw.h Typo change diable to disable.
-Date: Thu, 30 Dec 2010 15:07:52 -0800
-Message-Id: <1293750484-1161-3-git-send-email-justinmattock@gmail.com>
-In-Reply-To: <1293750484-1161-2-git-send-email-justinmattock@gmail.com>
-References: <1293750484-1161-1-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-2-git-send-email-justinmattock@gmail.com>
+	Tue, 14 Dec 2010 03:08:31 -0500
+Received: from epmmp1 (mailout2.samsung.com [203.254.224.25])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LDE00KLWRY49GB0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 14 Dec 2010 17:08:29 +0900 (KST)
+Received: from AMDC159 ([106.116.37.153])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LDE001VURY0FT@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 14 Dec 2010 17:08:28 +0900 (KST)
+Date: Tue, 14 Dec 2010 09:08:23 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH 1/8] v4l: add videobuf2 Video for Linux 2 driver framework
+In-reply-to: <201012140857.35474.hverkuil@xs4all.nl>
+To: 'Hans Verkuil' <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+	kyungmin.park@samsung.com,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <013d01cb9b66$16bdfb70$4439f250$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1291632765-11207-1-git-send-email-m.szyprowski@samsung.com>
+ <201012111754.37066.hverkuil@xs4all.nl>
+ <013201cb9b5e$91195a20$b34c0e60$%szyprowski@samsung.com>
+ <201012140857.35474.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-The below patch fixes a typo "diable" to "disable". Please let me know if this 
-is correct or not.
+Hello,
 
-Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
+On Tuesday, December 14, 2010 8:58 AM Hans Verkuil wrote:
 
----
- drivers/staging/rtl8187se/r8180_hw.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+> On Tuesday, December 14, 2010 08:14:32 Marek Szyprowski wrote:
+> > Hello,
+> >
+> > On Saturday, December 11, 2010 5:55 PM Hans Verkuil wrote:
+> >
+> > Big thanks for the review! I will fix all these minor issues and resend
+> > the patches soon. I hope we will manage to get videobuf2 merged soon! :)
+> >
+> > > Hi Marek,
+> > >
+> > > Here is my review. I wish I could ack it, but I found a few bugs that need
+> > > fixing first. Also a bunch of small stuff that's trivial to fix.
+> > >
+> > > On Monday, December 06, 2010 11:52:38 Marek Szyprowski wrote:
+> > > > From: Pawel Osciak <p.osciak@samsung.com>
+> > > >
+> > > > Videobuf2 is a Video for Linux 2 API-compatible driver framework for
+> > > > multimedia devices. It acts as an intermediate layer between userspace
+> > > > applications and device drivers. It also provides low-level, modular
+> > > > memory management functions for drivers.
+> > > >
+> > > > Videobuf2 eases driver development, reduces drivers' code size and aids in
+> > > > proper and consistent implementation of V4L2 API in drivers.
+> > > >
+> > > > Videobuf2 memory management backend is fully modular. This allows custom
+> > > > memory management routines for devices and platforms with non-standard
+> > > > memory management requirements to be plugged in, without changing the
+> > > > high-level buffer management functions and API.
+> > > >
+> > > > The framework provides:
+> > > > - implementations of streaming I/O V4L2 ioctls and file operations
+> > > > - high-level video buffer, video queue and state management functions
+> > > > - video buffer memory allocation and management
+> > > >
+> > > > Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+> > > > Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> > > > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > > > CC: Pawel Osciak <pawel@osciak.com>
+> > > > ---
+> >
+> > <snip>
+> >
+> > > > +/**
+> > > > + * __vb2_wait_for_done_vb() - wait for a buffer to become available
+> > > > + * for dequeuing
+> > > > + *
+> > > > + * Will sleep if required for nonblocking == false.
+> > > > + */
+> > > > +static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
+> > > > +{
+> > > > +	/*
+> > > > +	 * All operation on vb_done_list is performed under vb_done_lock
+> > > > +	 * spinlock protection. However buffers may must be removed from
+> > > > +	 * it and returned to userspace only while holding both driver's
+> > > > +	 * lock and the vb_done_lock spinlock. Thus we can be sure that as
+> > > > +	 * long as we hold lock, the list will remain not empty if this
+> > > > +	 * check succeeds.
+> > > > +	 */
+> > > > +
+> > > > +	for (;;) {
+> > > > +		int ret;
+> > > > +
+> > > > +		if (!q->streaming) {
+> > > > +			dprintk(1, "Streaming off, will not wait for buffers\n");
+> > > > +			return -EINVAL;
+> > > > +		}
+> > > > +
+> > > > +		if (!list_empty(&q->done_list)) {
+> > > > +			/*
+> > > > +			 * Found a buffer that we were waiting for.
+> > > > +			 */
+> > > > +			break;
+> > > > +		} else if (nonblocking) {
+> > >
+> > > The 'else' keyword can be removed since the 'if' above always breaks.
+> > >
+> > > > +			dprintk(1, "Nonblocking and no buffers to dequeue, "
+> > > > +								"will not wait\n");
+> > > > +			return -EAGAIN;
+> > > > +		}
+> > > > +
+> > > > +		/*
+> > > > +		 * We are streaming and blocking, wait for another buffer to
+> > > > +		 * become ready or for streamoff. Driver's lock is released to
+> > > > +		 * allow streamoff or qbuf to be called while waiting.
+> > > > +		 */
+> > > > +		call_qop(q, wait_prepare, q);
+> > > > +
+> > > > +		/*
+> > > > +		 * All locks has been released, it is safe to sleep now.
+> > > > +		 */
+> > > > +		dprintk(3, "Will sleep waiting for buffers\n");
+> > > > +		ret = wait_event_interruptible(q->done_wq,
+> > > > +				!list_empty(&q->done_list) || !q->streaming);
+> > > > +
+> > > > +		/*
+> > > > +		 * We need to reevaluate both conditions again after reacquiring
+> > > > +		 * the locks or return an error if it occured. In case of error
+> > > > +		 * we return -EINTR, because -ERESTARTSYS should not be returned
+> > > > +		 * to userspace.
+> > > > +		 */
+> > > > +		call_qop(q, wait_finish, q);
+> > > > +		if (ret)
+> > > > +			return -EINTR;
+> > >
+> > > No, this should be -ERESTARTSYS. This won't be returned to userspace, instead
+> > > the kernel will handle the signal and restart the system call automatically.
+> >
+> > I thought that -ERESTARTSYS should not be returned to userspace, that's why I
+> > use -EINTR here. What does the comment in linux/errno.h refer to?
+> 
+> Actually, I looked at the wait_event_interruptible code and it already returns
+> -ERESTARTSYS in case of a signal. So you can just do 'return ret' here.
+> 
+> Anyway, the idea is that if a signal arrived then the driver can return -ERESTARTSYS
+> to tell the kernel that it should handle the signal and afterwards call the system
+> call again (restart it). The error code is never returned to userspace.
+> 
+> So userspace should never see this error, instead the kernel will silently handle
+> this.
 
-diff --git a/drivers/staging/rtl8187se/r8180_hw.h b/drivers/staging/rtl8187se/r8180_hw.h
-index 3fca144..2911d40 100644
---- a/drivers/staging/rtl8187se/r8180_hw.h
-+++ b/drivers/staging/rtl8187se/r8180_hw.h
-@@ -554,7 +554,7 @@
- /* by amy for power save		*/
- /* by amy for antenna			*/
- #define EEPROM_SW_REVD_OFFSET 0x3f
--/*  BIT[8-9] is for SW Antenna Diversity. Only the value EEPROM_SW_AD_ENABLE means enable, other values are diable.					*/
-+/*  BIT[8-9] is for SW Antenna Diversity. Only the value EEPROM_SW_AD_ENABLE means enable, other values are disabled.					*/
- #define EEPROM_SW_AD_MASK			0x0300
- #define EEPROM_SW_AD_ENABLE			0x0100
- 
--- 
-1.6.5.2.180.gc5b3e
+Ok, I understand, thanks for clarification! I will fix this issue as well.
+
+Best regards
+--
+Marek Szyprowski
+Samsung Poland R&D Center
 
