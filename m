@@ -1,178 +1,135 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-ey0-f171.google.com ([209.85.215.171]:36831 "EHLO
-	mail-ey0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750849Ab0LUL6a (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Dec 2010 06:58:30 -0500
-Received: by eyg5 with SMTP id 5so1994898eyg.2
-        for <linux-media@vger.kernel.org>; Tue, 21 Dec 2010 03:58:29 -0800 (PST)
-Message-ID: <4D109625.6050301@mvista.com>
-Date: Tue, 21 Dec 2010 14:57:25 +0300
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-MIME-Version: 1.0
-To: Manjunath Hadli <manjunath.hadli@ti.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH v8 5/8] davinci vpbe: platform specific additions
-References: <1292853280-2617-1-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1292853280-2617-1-git-send-email-manjunath.hadli@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp209.alice.it ([82.57.200.105]:47287 "EHLO smtp209.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751778Ab0LOQL6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Dec 2010 11:11:58 -0500
+Received: from jcn (82.61.82.13) by smtp209.alice.it (8.5.124.08) (authenticated as fospite@alice.it)
+        id 4C1A27590CBB9451 for linux-media@vger.kernel.org; Wed, 15 Dec 2010 17:11:57 +0100
+Date: Wed, 15 Dec 2010 17:11:39 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Subject: Question about libv4lconvert.
+Message-Id: <20101215171139.b6c1f03a.ospite@studenti.unina.it>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Wed__15_Dec_2010_17_11_39_+0100_6q1XD/+JuO6Eul2W"
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hello.
+--Signature=_Wed__15_Dec_2010_17_11_39_+0100_6q1XD/+JuO6Eul2W
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 20-12-2010 16:54, Manjunath Hadli wrote:
+Hi,
 
-> This patch implements the overall device creation for the Video
-> display driver
+I am taking a look at libv4lconvert, and I have a question about the
+logic in v4lconvert_convert_pixfmt(), in some conversion switches there
+is code like this:
 
-> Signed-off-by: Manjunath Hadli<manjunath.hadli@ti.com>
-> Acked-by: Muralidharan Karicheri<m-karicheri2@ti.com>
-> Acked-by: Hans Verkuil<hverkuil@xs4all.nl>
-[...]
+	case V4L2_PIX_FMT_GREY:
+		switch (dest_pix_fmt) {
+		case V4L2_PIX_FMT_RGB24:
+	        case V4L2_PIX_FMT_BGR24:
+			v4lconvert_grey_to_rgb24(src, dest, width, height);
+			break;
+		case V4L2_PIX_FMT_YUV420:
+		case V4L2_PIX_FMT_YVU420:
+			v4lconvert_grey_to_yuv420(src, dest, fmt);
+			break;
+		}
+		if (src_size < (width * height)) {
+			V4LCONVERT_ERR("short grey data frame\n");
+			errno =3D EPIPE;
+			result =3D -1;
+		}
+		break;
 
-> diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
-> index 5e5b0a7..e8b8e94 100644
-> --- a/arch/arm/mach-davinci/dm644x.c
-> +++ b/arch/arm/mach-davinci/dm644x.c
-> @@ -640,6 +640,142 @@ void dm644x_set_vpfe_config(struct vpfe_config *cfg)
->   	vpfe_capture_dev.dev.platform_data = cfg;
->   }
->
-> +static struct resource dm644x_osd_resources[] = {
-> +	{
-> +		.start  = 0x01C72600,
-> +		.end    = 0x01C72600 + 0x200,
-                                        ^^^^^^
-    Rather 0x1ff? Else it looks like off-by-one error.
+However the conversion routines which are going to be called seem to
+assume that the buffers, in particular the source buffer, are of the
+correct full frame size when looping over them.
 
-> +		.flags  = IORESOURCE_MEM,
-> +	},
-> +};
-[...]
-> +static struct resource dm644x_venc_resources[] = {
-> +	/* venc registers io space */
-> +	{
-> +		.start  = 0x01C72400,
-> +		.end    = 0x01C72400 + 0x180,
+My question is: shouldn't the size check now at the end of the case
+block be at the _beginning_ of it instead, so to detect a short frame
+before conversion and avoid a possible out of bound access inside the
+conversion routine?
 
-    Same here...
+Some patches to show what I am saying:
 
-> +		.flags  = IORESOURCE_MEM,
-> +	},
-> +};
-> +
-> +static u64 dm644x_venc_dma_mask = DMA_BIT_MASK(32);
-> +
-> +#define VPSS_CLKCTL     0x01C40044
+diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lco=
+nvert.c
+index 26a0978..46e6500 100644
+--- a/lib/libv4lconvert/libv4lconvert.c
++++ b/lib/libv4lconvert/libv4lconvert.c
+@@ -854,7 +854,7 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_=
+data *data,
+ 		if (src_size < (width * height)) {
+ 			V4LCONVERT_ERR("short grey data frame\n");
+ 			errno =3D EPIPE;
+-			result =3D -1;
++			return -1;
+ 		}
+ 		break;
+ 	case V4L2_PIX_FMT_RGB565:
 
-    Empty line here, please.
+And:
 
-> +static void __iomem *vpss_clkctl_reg;
-> +
-> +/* TBD. Check what VENC_CLOCK_SEL settings for HDTV and EDTV */
-> +static int dm644x_venc_setup_clock(enum vpbe_enc_timings_type type, __u64 mode)
-> +{
-> +	int ret = 0;
-> +
-> +	if (NULL == vpss_clkctl_reg)
-> +		return -EINVAL;
-> +	if (type == VPBE_ENC_STD) {
+diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lco=
+nvert.c
+index 46e6500..a1a4858 100644
+--- a/lib/libv4lconvert/libv4lconvert.c
++++ b/lib/libv4lconvert/libv4lconvert.c
+@@ -841,6 +841,11 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert=
+_data *data,
+ 		break;
+=20
+ 	case V4L2_PIX_FMT_GREY:
++		if (src_size < (width * height)) {
++			V4LCONVERT_ERR("short grey data frame\n");
++			errno =3D EPIPE;
++			return -1;
++		}
+ 		switch (dest_pix_fmt) {
+ 		case V4L2_PIX_FMT_RGB24:
+ 	        case V4L2_PIX_FMT_BGR24:
+@@ -851,11 +856,6 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert=
+_data *data,
+ 			v4lconvert_grey_to_yuv420(src, dest, fmt);
+ 			break;
+ 		}
+-		if (src_size < (width * height)) {
+-			V4LCONVERT_ERR("short grey data frame\n");
+-			errno =3D EPIPE;
+-			return -1;
+-		}
+ 		break;
+ 	case V4L2_PIX_FMT_RGB565:
+ 		switch (dest_pix_fmt) {
 
-    *switch* would look more natural here.
 
-> +		__raw_writel(0x18, vpss_clkctl_reg);
-> +	} else if (type == VPBE_ENC_DV_PRESET) {
-> +		switch ((unsigned int)mode) {
-> +		case V4L2_DV_480P59_94:
-> +		case V4L2_DV_576P50:
-> +			 __raw_writel(0x19, vpss_clkctl_reg);
-> +			break;
-> +		case V4L2_DV_720P60:
-> +		case V4L2_DV_1080I60:
-> +		case V4L2_DV_1080P30:
-> +		/*
-> +		* For HD, use external clock source since HD requires higher
-> +		* clock rate
-> +		*/
+Regards,
+   Antonio
 
-    Please indent the comment properly. And the preferred style is this:
+--=20
+Antonio Ospite
+http://ao2.it
 
-			/*
-			 * For HD, use external clock source since HD
-			 * requires higher clock rate
-			 */
+PGP public key ID: 0x4553B001
 
-> +			__raw_writel(0xa, vpss_clkctl_reg);
-> +			break;
-> +		default:
-> +			ret  = -EINVAL;
-> +			break;
-> +		}
-> +	} else
-> +		ret  = -EINVAL;
-> +
-> +	return ret;
-> +}
-> +
-> +
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
 
-    One empty line too many?
+--Signature=_Wed__15_Dec_2010_17_11_39_+0100_6q1XD/+JuO6Eul2W
+Content-Type: application/pgp-signature
 
-> +static inline u32 dm644x_reg_modify(void *reg, u32 val, u32 mask)
-> +{
-> +	u32 new_val = (__raw_readl(reg) & ~mask) | (val & mask);
-> +	__raw_writel(new_val, reg);
-> +	return new_val;
-> +}
-> +
-> +static u64 vpbe_display_dma_mask = DMA_BIT_MASK(32);
-> +
-> +static struct resource dm644x_v4l2_disp_resources[] = {
-> +	{
-> +		.start  = IRQ_VENCINT,
-> +		.end    = IRQ_VENCINT,
-> +		.flags  = IORESOURCE_IRQ,
-> +	},
-> +	{
-> +		.start  = 0x01C72400,
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
 
-    Haven't you already declared resources with the same base address?
+iEYEARECAAYFAk0I6LsACgkQ5xr2akVTsAFelwCffUuFY4Qjbp0/c8U/nUOjUNiw
+F48Ani5cBiSul1rgdmgWxdfgLue9b+P5
+=ZmRy
+-----END PGP SIGNATURE-----
 
-> +		.end    = 0x01C72400 + 0x180,
-                                        ^^^^^ 0x17f?
-
-> +		.flags  = IORESOURCE_MEM,
-> +	},
-> +
-> +};
-
-    Empty line wouldn't hurt here...
-
-> +static struct platform_device dm644x_venc_dev = {
-> +	.name           = VPBE_VENC_SUBDEV_NAME,
-> +	.id             = -1,
-> +	.num_resources  = ARRAY_SIZE(dm644x_venc_resources),
-> +	.resource       = dm644x_venc_resources,
-> +	.dev = {
-> +		.dma_mask               =&dm644x_venc_dma_mask,
-> +		.coherent_dma_mask      = DMA_BIT_MASK(32),
-> +		.platform_data          = (void *)&dm644x_venc_pdata,
-
-    There's no need to cast to 'void *' explicitly.
-
-> @@ -767,20 +903,36 @@ void __init dm644x_init(void)
-[...]
-> +static int __init dm644x_init_video(void)
-> +{
-> +	/* Add ccdc clock aliases */
-> +	clk_add_alias("master", dm644x_ccdc_dev.name, "vpss_master", NULL);
-> +	clk_add_alias("slave", dm644x_ccdc_dev.name, "vpss_slave", NULL);
-> +	vpss_clkctl_reg = ioremap_nocache(VPSS_CLKCTL, 4);
-
-    ioremap_nocache() can fail -- you should check the result.
-
-WBR, Sergei
+--Signature=_Wed__15_Dec_2010_17_11_39_+0100_6q1XD/+JuO6Eul2W--
