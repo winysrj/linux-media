@@ -1,86 +1,112 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:54968 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932252Ab0LSPjm (ORCPT
+Received: from mail-ey0-f171.google.com ([209.85.215.171]:54177 "EHLO
+	mail-ey0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752650Ab0LOGqh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Dec 2010 10:39:42 -0500
-Received: by wyb28 with SMTP id 28so2142627wyb.19
-        for <linux-media@vger.kernel.org>; Sun, 19 Dec 2010 07:39:41 -0800 (PST)
-From: Chris Clayton <chris2553@googlemail.com>
-Reply-To: chris2553@googlemail.com
-To: linux-media@vger.kernel.org
-Subject: Re: Problem with sound on SAA7134 TV card
-Date: Sun, 19 Dec 2010 15:39:36 +0000
-References: <201012172109.06744.chris2553@googlemail.com> <201012181243.00576.chris2553@googlemail.com>
-In-Reply-To: <201012181243.00576.chris2553@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+	Wed, 15 Dec 2010 01:46:37 -0500
+Received: by eyg5 with SMTP id 5so951911eyg.2
+        for <linux-media@vger.kernel.org>; Tue, 14 Dec 2010 22:46:36 -0800 (PST)
+Date: Wed, 15 Dec 2010 16:46:34 +0900
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: Stefan Ringel <stefan.ringel@arcor.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Felipe Sanches <juca@members.fsf.org>,
+	Bee Hock Goh <beehock@gmail.com>,
+	Luis Henrique Fagundes <lhfagundes@hacklab.com.br>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: tm6000 and IR
+Message-ID: <20101215164634.44846128@glory.local>
+In-Reply-To: <4D079ADF.2000705@arcor.de>
+References: <4CAD5A78.3070803@redhat.com>
+	<20101008150301.2e3ceaff@glory.local>
+	<4CAF0602.6050002@redhat.com>
+	<20101012142856.2b4ee637@glory.local>
+	<4CB492D4.1000609@arcor.de>
+	<20101129174412.08f2001c@glory.local>
+	<4CF51C9E.6040600@arcor.de>
+	<20101201144704.43b58f2c@glory.local>
+	<4CF67AB9.6020006@arcor.de>
+	<20101202134128.615bbfa0@glory.local>
+	<4CF71CF6.7080603@redhat.com>
+	<20101206010934.55d07569@glory.local>
+	<4CFBF62D.7010301@arcor.de>
+	<20101206190230.2259d7ab@glory.local>
+	<4CFEA3D2.4050309@arcor.de>
+	<20101208125539.739e2ed2@glory.local>
+	<4CFFAD1E.7040004@arcor.de>
+	<20101214122325.5cdea67e@glory.local>
+	<4D079ADF.2000705@arcor.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201012191539.36842.chris2553@googlemail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Saturday 18 December 2010, Chris Clayton wrote:
+Hi Stefan
 
-<snip>
+> Am 14.12.2010 04:23, schrieb Dmitri Belimov:
+> > Hi
+> >
+> > What about my last patch?? This is OK or bad?
+> > Our customers kick me every day with IR remotes.
+> >
+> > With my best regards, Dmitry.
+> I think, you use the second variant, Dmitry.
+> Why you doesn't use this key map - RCMAP_BEHOLD.
 
-> [chris:~]$ dmesg | grep saa7
-> saa7130/34: v4l2 driver version 0.2.16 loaded
-> saa7134 0000:03:00.0: PCI INT A -> GSI 20 (level, low) -> IRQ 20
-> saa7133[0]: found at 0000:03:00.0, rev: 209, irq: 20, latency: 32, mmio:
-> 0xe1605000
-> saa7133[0]: subsystem: 0070:6707, board: Hauppauge WinTV-HVR1120
-> DVB-T/Hybrid [card=156,autodetected]
-> saa7133[0]: board init: gpio is 440100
-> saa7133[0]: i2c eeprom 00: 70 00 07 67 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
-> saa7133[0]: i2c eeprom 10: ff ff ff 0e ff 20 ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom 20: 01 40 01 32 32 01 01 33 88 ff 00 b0 ff ff ff ff
-> saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom 40: ff 35 00 c0 96 10 06 32 97 04 00 20 00 ff ff ff
-> saa7133[0]: i2c eeprom 50: ff 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> saa7133[0]: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> saa7133[0]: i2c eeprom 70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> saa7133[0]: i2c eeprom 80: 84 09 00 04 20 77 00 40 c4 ce 6e f0 73 05 29 00
-> saa7133[0]: i2c eeprom 90: 84 08 00 06 89 06 01 00 95 39 8d 72 07 70 73 09
-> saa7133[0]: i2c eeprom a0: 23 5f 73 0a f4 9b 72 0b 2f 72 0e 01 72 0f 45 72
-> saa7133[0]: i2c eeprom b0: 10 01 72 11 ff 73 13 a2 69 79 95 00 00 00 00 00
-> saa7133[0]: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> saa7133[0]: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> saa7133[0]: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> saa7133[0]: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> saa7133[0]: hauppauge eeprom: model=67209
-> tuner 1-004b: chip found @ 0x96 (saa7133[0])
-> saa7133[0]: dsp access error
-> saa7133[0]: dsp access error
-> saa7133[0]: registered device video1 [v4l2]
-> saa7133[0]: registered device vbi0
-> saa7133[0]: registered device radio0
-> DVB: registering new adapter (saa7133[0])
-> saa7134 ALSA driver for DMA sound loaded
-> saa7133[0]/alsa: saa7133[0] at 0xe1605000 irq 20 registered as card -1
->
-> That last line looks a little suspicious to me with the card being
-> registered as -1. The two "dsp access error" lines might mean something
-> too.
->
+No this remotes is different. RCMAP_BEHOLD has more buttons and some other scancodes.
+People from linux community who was made this keymap and function for reading data from
+IR decoder has error with scancode. 
+Our true address of scancode is
+0x86 0x6B
+They wrote 
+0x6B 0x86
+Need fix some code of the saa7134-input and RCMAP_BEHOLD keytable.
 
-After looking at the code I see that the report that the card is registered 
-as -1 isn't actually a problem, although the message is a bit deceptive.
+RCMAP_BEHOLD_WANDER same as RCMAP_BEHOLD_COLUMBUS but
+from IR decoder the saa7134 received only one byte of scancode.
+Need rework saa7134-input too for get address and restore full scancodes for extended NEC full
+scancodes.
 
-The two dsp access error message are emitted by saa_dsp_wait_bit() in 
-saa7134_tvaudio.c, but the message sdon't appear every boot and even when they 
-don't the sound output is of the poor quality that I have reported.
+I'll make it after some time.
 
-I shoulfd also mention that  I get the same problem with 2.6.37-rc{5,6}+ or 
-2.6.36.2. With 2 6 .35.9, mplayer reports an error opening a device.
+> The power led we can change to a separate function, right. 
 
-That's the end of my debugging capablities reached, so I would be grateful for 
-any help that can be offered.
+Ok
 
-<snip>
+> The nec initiation looks right and must adding code for tm5600/6000 (going
+> over message pipe).
 
--- 
-The more I see, the more I know. The more I know, the less I understand. 
-Changing Man - Paul Weller
+I haven't USB stick with tm5600/6000 for test. Need people with this TV cards.
+
+> rc5 need some code for tm6010 (for tm5600/6000 are the hack).
+
+I didn't touch this code because I haven't RC5 remotes and tm5600/6000
+
+> And the logic for your remote control is unused  for
+> the second variant, but ir->rc_type = rc_type are o.k..
+
+I think your mean is wrong. Our IR remotes send extended NEC it is 4 bytes.
+We removed inverted 4 byte and now we have 3 bytes from remotes. I think we
+must have full RCMAP with this 3 bytes from remotes. And use this remotes with some
+different IR recievers like some TV cards and LIRC-hardware and other.
+No need different RCMAP for the same remotes to different IR recievers like now.
+
+If we use second variant I can't use RCMAP_BEHOLD because it has full 3 bytes scancodes. 
+As you wrote.
+
+> Then the function call usb_set_interface in tm6000_video, can write
+> for example:
+> 
+> stop_ir_pipe
+> usb_set_interface
+> start_ir_pipe
+
+Ok, I'll try.
+
+> I will adding vbi_buffer and device in the next, and isoc calculating 
+> without video_buffer size.
+
+I try add radio.
+ 
+With my best regards, Dmitry.
