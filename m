@@ -1,420 +1,670 @@
 Return-path: <mchehab@gaivota>
-Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:59168 "EHLO
-	fgwmail7.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758790Ab0LNBVL (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:51751 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752948Ab0LOVpy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Dec 2010 20:21:11 -0500
-Date: Tue, 14 Dec 2010 10:15:08 +0900
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-To: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Ankita Garg <ankita@in.ibm.com>,
-	BooJin Kim <boojin.kim@samsung.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mel Gorman <mel@csn.ul.ie>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCHv7 06/10] mm: MIGRATE_CMA migration type added
-Message-Id: <20101214101508.4199a3dd.kamezawa.hiroyu@jp.fujitsu.com>
-In-Reply-To: <25250c1c5fb3ffd0c33ce744965bc8e958220f58.1292004520.git.m.nazarewicz@samsung.com>
-References: <cover.1292004520.git.m.nazarewicz@samsung.com>
-	<25250c1c5fb3ffd0c33ce744965bc8e958220f58.1292004520.git.m.nazarewicz@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Wed, 15 Dec 2010 16:45:54 -0500
+Message-ID: <4D093706.9040401@infradead.org>
+Date: Wed, 15 Dec 2010 19:45:42 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Brandon Philips <brandon@ifup.org>
+CC: chris2553@googlemail.com,
+	Torsten Kaiser <just.for.lkml@googlemail.com>,
+	Dave Young <hidave.darkstar@gmail.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] bttv: fix mutex use before init
+References: <20101212131550.GA2608@darkstar> <AANLkTinaNjPjNbxE+OyRsY_jJxDW-pwehTPgyAWzqfzd@mail.gmail.com> <20101214003024.GA3575@hanuman.home.ifup.org> <201012151844.04105.chris2553@googlemail.com>
+In-Reply-To: <201012151844.04105.chris2553@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Mon, 13 Dec 2010 12:26:47 +0100
-Michal Nazarewicz <m.nazarewicz@samsung.com> wrote:
+Em 15-12-2010 16:44, Chris Clayton escreveu:
+> On Tuesday 14 December 2010, Brandon Philips wrote:
+>> On 17:13 Sun 12 Dec 2010, Torsten Kaiser wrote:
+>>>  * change &fh->cap.vb_lock in bttv_open() AND radio_open() to
+>>> &btv->init.cap.vb_lock
+>>>  * add a mutex_init(&btv->init.cap.vb_lock) to the setup of init in
+>>> bttv_probe()
+>>
+>> That seems like a reasonable suggestion. An openSUSE user submitted this
+>> bug to our tracker too. Here is the patch I am having him test.
+>>
+>> Would you mind testing it?
+>>
+>> From 456dc0ce36db523c4c0c8a269f4eec43a72de1dc Mon Sep 17 00:00:00 2001
+>> From: Brandon Philips <bphilips@suse.de>
+>> Date: Mon, 13 Dec 2010 16:21:55 -0800
+>> Subject: [PATCH] bttv: fix locking for btv->init
+>>
+>> Fix locking for the btv->init by using btv->init.cap.vb_lock and in the
+>> process fix uninitialized deref introduced in c37db91fd0d.
+>>
+>> Signed-off-by: Brandon Philips <bphilips@suse.de>
 
-> The MIGRATE_CMA migration type has two main characteristics:
-> (i) only movable pages can be allocated from MIGRATE_CMA
-> pageblocks and (ii) page allocator will never change migration
-> type of MIGRATE_CMA pageblocks.
-> 
-> This guarantees that page in a MIGRATE_CMA page block can
-> always be migrated somewhere else (unless there's no memory left
-> in the system).
-> 
-> It is designed to be used with Contiguous Memory Allocator
-> (CMA) for allocating big chunks (eg. 10MiB) of physically
-> contiguous memory.  Once driver requests contiguous memory,
-> CMA will migrate pages from MIGRATE_CMA pageblocks.
-> 
-> To minimise number of migrations, MIGRATE_CMA migration type
-> is the last type tried when page allocator falls back to other
-> migration types then requested.
-> 
-> Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  include/linux/mmzone.h |   30 +++++++++++---
->  mm/Kconfig             |    8 ++++
->  mm/compaction.c        |   10 +++++
->  mm/internal.h          |    3 +
->  mm/page_alloc.c        |   97 +++++++++++++++++++++++++++++++++++++++--------
->  5 files changed, 124 insertions(+), 24 deletions(-)
-> 
-> diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-> index 39c24eb..1b95899 100644
-> --- a/include/linux/mmzone.h
-> +++ b/include/linux/mmzone.h
-> @@ -35,13 +35,24 @@
->   */
->  #define PAGE_ALLOC_COSTLY_ORDER 3
->  
-> -#define MIGRATE_UNMOVABLE     0
-> -#define MIGRATE_RECLAIMABLE   1
-> -#define MIGRATE_MOVABLE       2
-> -#define MIGRATE_PCPTYPES      3 /* the number of types on the pcp lists */
-> -#define MIGRATE_RESERVE       3
-> -#define MIGRATE_ISOLATE       4 /* can't allocate from here */
-> -#define MIGRATE_TYPES         5
-> +enum {
-> +	MIGRATE_UNMOVABLE,
-> +	MIGRATE_RECLAIMABLE,
-> +	MIGRATE_MOVABLE,
-> +	MIGRATE_PCPTYPES,	/* the number of types on the pcp lists */
-> +	MIGRATE_RESERVE = MIGRATE_PCPTYPES,
-> +	MIGRATE_ISOLATE,	/* can't allocate from here */
-> +#ifdef CONFIG_MIGRATE_CMA
-> +	MIGRATE_CMA,		/* only movable */
-> +#endif
-> +	MIGRATE_TYPES
-> +};
+Hi Brandon & all,
 
-A nitpick.
+While your patch fixes the issue, it has some other troubles, like to the presence of
+lock code at free_btres_lock(). It is possible to fix, but the better is to just
+use the core-assisted locking schema. This way, V4L2 core will serialize access to all
+ioctl's/open/close/mmap/read/poll operations, avoiding to have two processes accessing
+the hardware at the same time. Also, as there's just one lock, instead of 3, there's no
+risk of dead locks.
 
-I personaly would like to put MIGRATE_ISOLATE to be bottom of enum because it
-means _not_for_allocation.
+The net result is a cleaner code, with just one lock.
 
+I tested the patch here with an bttv-based STB board (card=3, tuner=6), and it worked fine for me. 
+Could you please test if this fixes the issue? 
 
-> +
-> +#ifdef CONFIG_MIGRATE_CMA
-> +#  define is_migrate_cma(migratetype) unlikely((migratetype) == MIGRATE_CMA)
-> +#else
-> +#  define is_migrate_cma(migratetype) false
-> +#endif
->  
->  #define for_each_migratetype_order(order, type) \
->  	for (order = 0; order < MAX_ORDER; order++) \
-> @@ -54,6 +65,11 @@ static inline int get_pageblock_migratetype(struct page *page)
->  	return get_pageblock_flags_group(page, PB_migrate, PB_migrate_end);
->  }
->  
-> +static inline bool is_pageblock_cma(struct page *page)
-> +{
-> +	return is_migrate_cma(get_pageblock_migratetype(page));
-> +}
-> +
->  struct free_area {
->  	struct list_head	free_list[MIGRATE_TYPES];
->  	unsigned long		nr_free;
-> diff --git a/mm/Kconfig b/mm/Kconfig
-> index b911ad3..7818b07 100644
-> --- a/mm/Kconfig
-> +++ b/mm/Kconfig
-> @@ -1,3 +1,11 @@
-> +config MIGRATE_CMA
-> +	bool
-> +	help
-> +	  This option should be selected by code that requires MIGRATE_CMA
-> +	  migration type to be present.  Once a page block has this
-> +	  migration type, only movable pages can be allocated from it and
-> +	  the page block never changes it's migration type.
-> +
->  config SELECT_MEMORY_MODEL
->  	def_bool y
->  	depends on EXPERIMENTAL || ARCH_SELECT_MEMORY_MODEL
-> diff --git a/mm/compaction.c b/mm/compaction.c
-> index 4d709ee..c5e404b 100644
-> --- a/mm/compaction.c
-> +++ b/mm/compaction.c
-> @@ -113,6 +113,16 @@ static bool suitable_migration_target(struct page *page)
->  	if (migratetype == MIGRATE_ISOLATE || migratetype == MIGRATE_RESERVE)
->  		return false;
->  
-> +	/* Keep MIGRATE_CMA alone as well. */
-> +	/*
-> +	 * XXX Revisit.  We currently cannot let compaction touch CMA
-> +	 * pages since compaction insists on changing their migration
-> +	 * type to MIGRATE_MOVABLE (see split_free_page() called from
-> +	 * isolate_freepages_block() above).
-> +	 */
-> +	if (is_migrate_cma(migratetype))
-> +		return false;
-> +
->  	/* If the page is a large free page, then allow migration */
->  	if (PageBuddy(page) && page_order(page) >= pageblock_order)
->  		return true;
-> diff --git a/mm/internal.h b/mm/internal.h
-> index dedb0af..cc24e74 100644
-> --- a/mm/internal.h
-> +++ b/mm/internal.h
-> @@ -49,6 +49,9 @@ extern void putback_lru_page(struct page *page);
->   * in mm/page_alloc.c
->   */
->  extern void __free_pages_bootmem(struct page *page, unsigned int order);
-> +#ifdef CONFIG_MIGRATE_CMA
-> +extern void __free_pageblock_cma(struct page *page);
-> +#endif
->  extern void prep_compound_page(struct page *page, unsigned long order);
->  #ifdef CONFIG_MEMORY_FAILURE
->  extern bool is_free_buddy_page(struct page *page);
-> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-> index 997f6c8..537d1f6 100644
-> --- a/mm/page_alloc.c
-> +++ b/mm/page_alloc.c
-> @@ -717,6 +717,30 @@ void __meminit __free_pages_bootmem(struct page *page, unsigned int order)
->  	}
->  }
->  
-> +#ifdef CONFIG_MIGRATE_CMA
-> +
-> +/*
-> + * Free whole pageblock and set it's migration type to MIGRATE_CMA.
-> + */
-> +void __init __free_pageblock_cma(struct page *page)
-> +{
-> +	struct page *p = page;
-> +	unsigned i = pageblock_nr_pages;
-> +
-> +	prefetchw(p);
-> +	do {
-> +		if (--i)
-> +			prefetchw(p + 1);
-> +		__ClearPageReserved(p);
-> +		set_page_count(p, 0);
-> +	} while (++p, i);
-> +
-> +	set_page_refcounted(page);
-> +	set_pageblock_migratetype(page, MIGRATE_CMA);
-> +	__free_pages(page, pageblock_order);
-> +}
-> +
-> +#endif
->  
->  /*
->   * The order of subdivision here is critical for the IO subsystem.
-> @@ -824,11 +848,15 @@ struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
->   * This array describes the order lists are fallen back to when
->   * the free lists for the desirable migrate type are depleted
->   */
-> -static int fallbacks[MIGRATE_TYPES][MIGRATE_TYPES-1] = {
-> +static int fallbacks[MIGRATE_TYPES][4] = {
->  	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,   MIGRATE_RESERVE },
->  	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,   MIGRATE_RESERVE },
-> +#ifdef CONFIG_MIGRATE_CMA
-> +	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_CMA    , MIGRATE_RESERVE },
-> +#else
->  	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_RESERVE },
-> -	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE,     MIGRATE_RESERVE,   MIGRATE_RESERVE }, /* Never used */
-> +#endif
-> +	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE }, /* Never used */
->  };
->  
->  /*
-> @@ -924,12 +952,12 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
->  	/* Find the largest possible block of pages in the other list */
->  	for (current_order = MAX_ORDER-1; current_order >= order;
->  						--current_order) {
-> -		for (i = 0; i < MIGRATE_TYPES - 1; i++) {
-> +		for (i = 0; i < ARRAY_SIZE(fallbacks[0]); i++) {
+PS.: The patch is based against the bkl_removal patches, at my linux-next tree:
 
-Why fallbacks[0] ? and why do you need to change this ?
+http://git.kernel.org/?p=linux/kernel/git/mchehab/linux-next.git;a=commit;h=673eb9ff33e26ee6f4278cdab06749aef1bbef5b
 
->  			migratetype = fallbacks[start_migratetype][i];
->  
->  			/* MIGRATE_RESERVE handled later if necessary */
->  			if (migratetype == MIGRATE_RESERVE)
-> -				continue;
-> +				break;
->  
-Isn't this change enough for your purpose ?
+(I just created the bkl_removal branch, so, it may take some time for you to see at the kernel.org
+mirrors, but it is basically changeset 673eb9ff. You may also just apply it on the top of the master
+branch of my linux-next tree).
 
+---
 
->  			area = &(zone->free_area[current_order]);
->  			if (list_empty(&area->free_list[migratetype]))
-> @@ -944,19 +972,29 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
->  			 * pages to the preferred allocation list. If falling
->  			 * back for a reclaimable kernel allocation, be more
->  			 * agressive about taking ownership of free pages
-> +			 *
-> +			 * On the other hand, never change migration
-> +			 * type of MIGRATE_CMA pageblocks nor move CMA
-> +			 * pages on different free lists. We don't
-> +			 * want unmovable pages to be allocated from
-> +			 * MIGRATE_CMA areas.
->  			 */
-> -			if (unlikely(current_order >= (pageblock_order >> 1)) ||
-> -					start_migratetype == MIGRATE_RECLAIMABLE ||
-> -					page_group_by_mobility_disabled) {
-> -				unsigned long pages;
-> +			if (!is_pageblock_cma(page) &&
-> +			    (unlikely(current_order >= (pageblock_order >> 1)) ||
-> +			     start_migratetype == MIGRATE_RECLAIMABLE ||
-> +			     page_group_by_mobility_disabled)) {
-> +				int pages;
->  				pages = move_freepages_block(zone, page,
-> -								start_migratetype);
-> +							     start_migratetype);
->  
-> -				/* Claim the whole block if over half of it is free */
-> +				/*
-> +				 * Claim the whole block if over half
-> +				 * of it is free
-> +				 */
->  				if (pages >= (1 << (pageblock_order-1)) ||
-> -						page_group_by_mobility_disabled)
-> +				    page_group_by_mobility_disabled)
->  					set_pageblock_migratetype(page,
-> -								start_migratetype);
-> +							start_migratetype);
->  
->  				migratetype = start_migratetype;
->  			}
-> @@ -966,11 +1004,14 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
->  			rmv_page_order(page);
->  
->  			/* Take ownership for orders >= pageblock_order */
-> -			if (current_order >= pageblock_order)
-> +			if (current_order >= pageblock_order &&
-> +			    !is_pageblock_cma(page))
->  				change_pageblock_range(page, current_order,
->  							start_migratetype);
->  
-> -			expand(zone, page, order, current_order, area, migratetype);
-> +			expand(zone, page, order, current_order, area,
-> +			       is_migrate_cma(start_migratetype)
-> +			     ? start_migratetype : migratetype);
->  
->  			trace_mm_page_alloc_extfrag(page, order, current_order,
->  				start_migratetype, migratetype);
-> @@ -1042,7 +1083,12 @@ static int rmqueue_bulk(struct zone *zone, unsigned int order,
->  			list_add(&page->lru, list);
->  		else
->  			list_add_tail(&page->lru, list);
-> -		set_page_private(page, migratetype);
-> +#ifdef CONFIG_MIGRATE_CMA
-> +		if (is_pageblock_cma(page))
-> +			set_page_private(page, MIGRATE_CMA);
-> +		else
-> +#endif
-> +			set_page_private(page, migratetype);
+[media] bttv: Fix locking issues due to BKL removal code
 
-Hmm, doesn't this meet your changes which makes MIGRATE_CMA > MIGRATE_PCPLIST ?
-And I think putting mixture of pages marked of MIGRATE_TYPE onto a pcplist is ugly.
-Could you make this cleaner ?
+The BKL removal patch added a condition where the code would try to use a non-initialized 
+lock. While a patch just addressing the issue is possible, there are some other troubles, 
+like to the presence of lock code at free_btres_lock(), called on some places with the lock
+already taken. It is possible to fix, but the better is to just use the core-assisted 
+locking schema. 
 
+This way, V4L2 core will serialize access to all ioctl's/open/close/mmap/read/poll 
+operations, avoiding to have two processes accessing the hardware at the same time. 
+Also, as there's just one lock, instead of 3, there's no risk of dead locks.
 
->  		list = &page->lru;
->  	}
->  	__mod_zone_page_state(zone, NR_FREE_PAGES, -(i << order));
-> @@ -1181,9 +1227,16 @@ void free_hot_cold_page(struct page *page, int cold)
->  	 * offlined but treat RESERVE as movable pages so we can get those
->  	 * areas back if necessary. Otherwise, we may have to free
->  	 * excessively into the page allocator
-> +	 *
-> +	 * Still, do not change migration type of MIGRATE_CMA pages (if
-> +	 * they'd be recorded as MIGRATE_MOVABLE an unmovable page could
-> +	 * be allocated from MIGRATE_CMA block and we don't want to allow
-> +	 * that).  In this respect, treat MIGRATE_CMA like
-> +	 * MIGRATE_ISOLATE.
->  	 */
->  	if (migratetype >= MIGRATE_PCPTYPES) {
-> -		if (unlikely(migratetype == MIGRATE_ISOLATE)) {
-> +		if (unlikely(migratetype == MIGRATE_ISOLATE
-> +			  || is_migrate_cma(migratetype))) {
->  			free_one_page(zone, page, 0, migratetype);
->  			goto out;
->  		}
+Tested with bttv STB, Gateway P/N 6000699 (card 3, tuner 6).
 
-Doesn't this add *BAD* performance impact for usual use of pages marked as
-MIGRATE_CMA ? IIUC, All pcp pages must be _drained_ at page migration after
-making migrate_type as ISOLATED. So, this change should be unnecessary.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-BTW, How about changing MIGRATE_CMA < MIGRATE_PCPTYPES ? and allow to have
-it's own pcp list ?
-
-I think
-==
- again:
-         if (likely(order == 0)) {
-                 struct per_cpu_pages *pcp;
-                 struct list_head *list; 
+diff --git a/drivers/media/video/bt8xx/bttv-driver.c b/drivers/media/video/bt8xx/bttv-driver.c
+index a529619..25e1ca0 100644
+--- a/drivers/media/video/bt8xx/bttv-driver.c
++++ b/drivers/media/video/bt8xx/bttv-driver.c
+@@ -854,7 +854,6 @@ int check_alloc_btres_lock(struct bttv *btv, struct bttv_fh *fh, int bit)
+ 		xbits |= RESOURCE_VIDEO_READ | RESOURCE_VIDEO_STREAM;
  
-                 local_irq_save(flags);
-                 pcp = &this_cpu_ptr(zone->pageset)->pcp;
-                 list = &pcp->lists[migratetype];
-                 if (list_empty(list)) {
-                         pcp->count += rmqueue_bulk(zone, 0,
-                                         pcp->batch, list,
-                                         migratetype, cold);
-                         if (unlikely(list_empty(list))) {
-+				 if (migrate_type == MIGRATE_MOVABLE) { /*allow extra fallback*/
-+					migrate_type == MIGRATE_CMA
-+					goto again;
-+			 	}
-+			 }
-                                 goto failed;
-                 }
-
-                if (cold)
-                        page = list_entry(list->prev, struct page, lru);
-                else
-                        page = list_entry(list->next, struct page, lru);
-
-                list_del(&page->lru);
-                pcp->count--;
-==
-Will work enough as a fallback path which allows to allocate a memory from CMA area
-if there aren't enough free pages. (and makes FALLBACK type as)
-
-fallbacks[MIGRATE_CMA] = {?????},
-
-for no fallbacks.
-
-
-> @@ -1272,7 +1325,8 @@ int split_free_page(struct page *page)
->  	if (order >= pageblock_order - 1) {
->  		struct page *endpage = page + (1 << order) - 1;
->  		for (; page < endpage; page += pageblock_nr_pages)
-> -			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
-> +			if (!is_pageblock_cma(page))
-> +				set_pageblock_migratetype(page, MIGRATE_MOVABLE);
->  	}
->  
->  	return 1 << order;
-> @@ -5366,6 +5420,15 @@ int set_migratetype_isolate(struct page *page)
->  	zone_idx = zone_idx(zone);
->  
->  	spin_lock_irqsave(&zone->lock, flags);
-> +	/*
-> +	 * Treat MIGRATE_CMA specially since it may contain immobile
-> +	 * CMA pages -- that's fine.  CMA is likely going to touch
-> +	 * only the mobile pages in the pageblokc.
-> +	 */
-> +	if (is_pageblock_cma(page)) {
-> +		ret = 0;
-> +		goto out;
-> +	}
->  
->  	pfn = page_to_pfn(page);
->  	arg.start_pfn = pfn;
-
-Hmm, I'm not sure why you dont' have any change in __free_one_page() which overwrite
-pageblock type. Is MIGRATE_CMA range is aligned to MAX_ORDER ? If so, please mention
-about it in patch description or comment because of the patch order.
-
-
-Thanks,
--Kame
-
-
-
+ 	/* is it free? */
+-	mutex_lock(&btv->lock);
+ 	if (btv->resources & xbits) {
+ 		/* no, someone else uses it */
+ 		goto fail;
+@@ -884,11 +883,9 @@ int check_alloc_btres_lock(struct bttv *btv, struct bttv_fh *fh, int bit)
+ 	/* it's free, grab it */
+ 	fh->resources  |= bit;
+ 	btv->resources |= bit;
+-	mutex_unlock(&btv->lock);
+ 	return 1;
+ 
+  fail:
+-	mutex_unlock(&btv->lock);
+ 	return 0;
+ }
+ 
+@@ -940,7 +937,6 @@ void free_btres_lock(struct bttv *btv, struct bttv_fh *fh, int bits)
+ 		/* trying to free ressources not allocated by us ... */
+ 		printk("bttv: BUG! (btres)\n");
+ 	}
+-	mutex_lock(&btv->lock);
+ 	fh->resources  &= ~bits;
+ 	btv->resources &= ~bits;
+ 
+@@ -951,8 +947,6 @@ void free_btres_lock(struct bttv *btv, struct bttv_fh *fh, int bits)
+ 
+ 	if (0 == (bits & VBI_RESOURCES))
+ 		disclaim_vbi_lines(btv);
+-
+-	mutex_unlock(&btv->lock);
+ }
+ 
+ /* ----------------------------------------------------------------------- */
+@@ -1713,28 +1707,20 @@ static int bttv_prepare_buffer(struct videobuf_queue *q,struct bttv *btv,
+ 
+ 		/* Make sure tvnorm and vbi_end remain consistent
+ 		   until we're done. */
+-		mutex_lock(&btv->lock);
+ 
+ 		norm = btv->tvnorm;
+ 
+ 		/* In this mode capturing always starts at defrect.top
+ 		   (default VDELAY), ignoring cropping parameters. */
+ 		if (btv->vbi_end > bttv_tvnorms[norm].cropcap.defrect.top) {
+-			mutex_unlock(&btv->lock);
+ 			return -EINVAL;
+ 		}
+ 
+-		mutex_unlock(&btv->lock);
+-
+ 		c.rect = bttv_tvnorms[norm].cropcap.defrect;
+ 	} else {
+-		mutex_lock(&btv->lock);
+-
+ 		norm = btv->tvnorm;
+ 		c = btv->crop[!!fh->do_crop];
+ 
+-		mutex_unlock(&btv->lock);
+-
+ 		if (width < c.min_scaled_width ||
+ 		    width > c.max_scaled_width ||
+ 		    height < c.min_scaled_height)
+@@ -1858,7 +1844,6 @@ static int bttv_s_std(struct file *file, void *priv, v4l2_std_id *id)
+ 	unsigned int i;
+ 	int err;
+ 
+-	mutex_lock(&btv->lock);
+ 	err = v4l2_prio_check(&btv->prio, fh->prio);
+ 	if (err)
+ 		goto err;
+@@ -1874,7 +1859,6 @@ static int bttv_s_std(struct file *file, void *priv, v4l2_std_id *id)
+ 	set_tvnorm(btv, i);
+ 
+ err:
+-	mutex_unlock(&btv->lock);
+ 
+ 	return err;
+ }
+@@ -1898,7 +1882,6 @@ static int bttv_enum_input(struct file *file, void *priv,
+ 	struct bttv *btv = fh->btv;
+ 	int rc = 0;
+ 
+-	mutex_lock(&btv->lock);
+ 	if (i->index >= bttv_tvcards[btv->c.type].video_inputs) {
+ 		rc = -EINVAL;
+ 		goto err;
+@@ -1928,7 +1911,6 @@ static int bttv_enum_input(struct file *file, void *priv,
+ 	i->std = BTTV_NORMS;
+ 
+ err:
+-	mutex_unlock(&btv->lock);
+ 
+ 	return rc;
+ }
+@@ -1938,9 +1920,7 @@ static int bttv_g_input(struct file *file, void *priv, unsigned int *i)
+ 	struct bttv_fh *fh = priv;
+ 	struct bttv *btv = fh->btv;
+ 
+-	mutex_lock(&btv->lock);
+ 	*i = btv->input;
+-	mutex_unlock(&btv->lock);
+ 
+ 	return 0;
+ }
+@@ -1952,7 +1932,6 @@ static int bttv_s_input(struct file *file, void *priv, unsigned int i)
+ 
+ 	int err;
+ 
+-	mutex_lock(&btv->lock);
+ 	err = v4l2_prio_check(&btv->prio, fh->prio);
+ 	if (unlikely(err))
+ 		goto err;
+@@ -1965,7 +1944,6 @@ static int bttv_s_input(struct file *file, void *priv, unsigned int i)
+ 	set_input(btv, i, btv->tvnorm);
+ 
+ err:
+-	mutex_unlock(&btv->lock);
+ 	return 0;
+ }
+ 
+@@ -1979,7 +1957,6 @@ static int bttv_s_tuner(struct file *file, void *priv,
+ 	if (unlikely(0 != t->index))
+ 		return -EINVAL;
+ 
+-	mutex_lock(&btv->lock);
+ 	if (unlikely(btv->tuner_type == TUNER_ABSENT)) {
+ 		err = -EINVAL;
+ 		goto err;
+@@ -1995,7 +1972,6 @@ static int bttv_s_tuner(struct file *file, void *priv,
+ 		btv->audio_mode_gpio(btv, t, 1);
+ 
+ err:
+-	mutex_unlock(&btv->lock);
+ 
+ 	return 0;
+ }
+@@ -2006,10 +1982,8 @@ static int bttv_g_frequency(struct file *file, void *priv,
+ 	struct bttv_fh *fh  = priv;
+ 	struct bttv *btv = fh->btv;
+ 
+-	mutex_lock(&btv->lock);
+ 	f->type = btv->radio_user ? V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+ 	f->frequency = btv->freq;
+-	mutex_unlock(&btv->lock);
+ 
+ 	return 0;
+ }
+@@ -2024,7 +1998,6 @@ static int bttv_s_frequency(struct file *file, void *priv,
+ 	if (unlikely(f->tuner != 0))
+ 		return -EINVAL;
+ 
+-	mutex_lock(&btv->lock);
+ 	err = v4l2_prio_check(&btv->prio, fh->prio);
+ 	if (unlikely(err))
+ 		goto err;
+@@ -2039,7 +2012,6 @@ static int bttv_s_frequency(struct file *file, void *priv,
+ 	if (btv->has_matchbox && btv->radio_user)
+ 		tea5757_set_freq(btv, btv->freq);
+ err:
+-	mutex_unlock(&btv->lock);
+ 
+ 	return 0;
+ }
+@@ -2172,7 +2144,6 @@ limit_scaled_size_lock       (struct bttv_fh *               fh,
+ 
+ 	/* Make sure tvnorm, vbi_end and the current cropping parameters
+ 	   remain consistent until we're done. */
+-	mutex_lock(&btv->lock);
+ 
+ 	b = &bttv_tvnorms[btv->tvnorm].cropcap.bounds;
+ 
+@@ -2250,7 +2221,6 @@ limit_scaled_size_lock       (struct bttv_fh *               fh,
+ 	rc = 0; /* success */
+ 
+  fail:
+-	mutex_unlock(&btv->lock);
+ 
+ 	return rc;
+ }
+@@ -2282,9 +2252,7 @@ verify_window_lock		(struct bttv_fh *               fh,
+ 	if (V4L2_FIELD_ANY == field) {
+ 		__s32 height2;
+ 
+-		mutex_lock(&fh->btv->lock);
+ 		height2 = fh->btv->crop[!!fh->do_crop].rect.height >> 1;
+-		mutex_unlock(&fh->btv->lock);
+ 		field = (win->w.height > height2)
+ 			? V4L2_FIELD_INTERLACED
+ 			: V4L2_FIELD_TOP;
+@@ -2360,7 +2328,6 @@ static int setup_window_lock(struct bttv_fh *fh, struct bttv *btv,
+ 		}
+ 	}
+ 
+-	mutex_lock(&fh->cap.vb_lock);
+ 	/* clip against screen */
+ 	if (NULL != btv->fbuf.base)
+ 		n = btcx_screen_clips(btv->fbuf.fmt.width, btv->fbuf.fmt.height,
+@@ -2412,7 +2379,6 @@ static int setup_window_lock(struct bttv_fh *fh, struct bttv *btv,
+ 		bttv_overlay_risc(btv, &fh->ov, fh->ovfmt, new);
+ 		retval = bttv_switch_overlay(btv,fh,new);
+ 	}
+-	mutex_unlock(&fh->cap.vb_lock);
+ 	return retval;
+ }
+ 
+@@ -2526,9 +2492,7 @@ static int bttv_try_fmt_vid_cap(struct file *file, void *priv,
+ 	if (V4L2_FIELD_ANY == field) {
+ 		__s32 height2;
+ 
+-		mutex_lock(&btv->lock);
+ 		height2 = btv->crop[!!fh->do_crop].rect.height >> 1;
+-		mutex_unlock(&btv->lock);
+ 		field = (f->fmt.pix.height > height2)
+ 			? V4L2_FIELD_INTERLACED
+ 			: V4L2_FIELD_BOTTOM;
+@@ -2614,7 +2578,6 @@ static int bttv_s_fmt_vid_cap(struct file *file, void *priv,
+ 	fmt = format_by_fourcc(f->fmt.pix.pixelformat);
+ 
+ 	/* update our state informations */
+-	mutex_lock(&fh->cap.vb_lock);
+ 	fh->fmt              = fmt;
+ 	fh->cap.field        = f->fmt.pix.field;
+ 	fh->cap.last         = V4L2_FIELD_NONE;
+@@ -2623,7 +2586,6 @@ static int bttv_s_fmt_vid_cap(struct file *file, void *priv,
+ 	btv->init.fmt        = fmt;
+ 	btv->init.width      = f->fmt.pix.width;
+ 	btv->init.height     = f->fmt.pix.height;
+-	mutex_unlock(&fh->cap.vb_lock);
+ 
+ 	return 0;
+ }
+@@ -2649,11 +2611,9 @@ static int vidiocgmbuf(struct file *file, void *priv, struct video_mbuf *mbuf)
+ 	unsigned int i;
+ 	struct bttv_fh *fh = priv;
+ 
+-	mutex_lock(&fh->cap.vb_lock);
+ 	retval = __videobuf_mmap_setup(&fh->cap, gbuffers, gbufsize,
+ 				     V4L2_MEMORY_MMAP);
+ 	if (retval < 0) {
+-		mutex_unlock(&fh->cap.vb_lock);
+ 		return retval;
+ 	}
+ 
+@@ -2665,7 +2625,6 @@ static int vidiocgmbuf(struct file *file, void *priv, struct video_mbuf *mbuf)
+ 	for (i = 0; i < gbuffers; i++)
+ 		mbuf->offsets[i] = i * gbufsize;
+ 
+-	mutex_unlock(&fh->cap.vb_lock);
+ 	return 0;
+ }
+ #endif
+@@ -2775,10 +2734,8 @@ static int bttv_overlay(struct file *file, void *f, unsigned int on)
+ 	int retval = 0;
+ 
+ 	if (on) {
+-		mutex_lock(&fh->cap.vb_lock);
+ 		/* verify args */
+ 		if (unlikely(!btv->fbuf.base)) {
+-			mutex_unlock(&fh->cap.vb_lock);
+ 			return -EINVAL;
+ 		}
+ 		if (unlikely(!fh->ov.setup_ok)) {
+@@ -2787,13 +2744,11 @@ static int bttv_overlay(struct file *file, void *f, unsigned int on)
+ 		}
+ 		if (retval)
+ 			return retval;
+-		mutex_unlock(&fh->cap.vb_lock);
+ 	}
+ 
+ 	if (!check_alloc_btres_lock(btv, fh, RESOURCE_OVERLAY))
+ 		return -EBUSY;
+ 
+-	mutex_lock(&fh->cap.vb_lock);
+ 	if (on) {
+ 		fh->ov.tvnorm = btv->tvnorm;
+ 		new = videobuf_sg_alloc(sizeof(*new));
+@@ -2805,7 +2760,6 @@ static int bttv_overlay(struct file *file, void *f, unsigned int on)
+ 
+ 	/* switch over */
+ 	retval = bttv_switch_overlay(btv, fh, new);
+-	mutex_unlock(&fh->cap.vb_lock);
+ 	return retval;
+ }
+ 
+@@ -2844,7 +2798,6 @@ static int bttv_s_fbuf(struct file *file, void *f,
+ 	}
+ 
+ 	/* ok, accept it */
+-	mutex_lock(&fh->cap.vb_lock);
+ 	btv->fbuf.base       = fb->base;
+ 	btv->fbuf.fmt.width  = fb->fmt.width;
+ 	btv->fbuf.fmt.height = fb->fmt.height;
+@@ -2876,7 +2829,6 @@ static int bttv_s_fbuf(struct file *file, void *f,
+ 			retval = bttv_switch_overlay(btv, fh, new);
+ 		}
+ 	}
+-	mutex_unlock(&fh->cap.vb_lock);
+ 	return retval;
+ }
+ 
+@@ -2955,7 +2907,6 @@ static int bttv_queryctrl(struct file *file, void *priv,
+ 	     c->id >= V4L2_CID_PRIVATE_LASTP1))
+ 		return -EINVAL;
+ 
+-	mutex_lock(&btv->lock);
+ 	if (!btv->volume_gpio && (c->id == V4L2_CID_AUDIO_VOLUME))
+ 		*c = no_ctl;
+ 	else {
+@@ -2963,7 +2914,6 @@ static int bttv_queryctrl(struct file *file, void *priv,
+ 
+ 		*c = (NULL != ctrl) ? *ctrl : no_ctl;
+ 	}
+-	mutex_unlock(&btv->lock);
+ 
+ 	return 0;
+ }
+@@ -2974,10 +2924,8 @@ static int bttv_g_parm(struct file *file, void *f,
+ 	struct bttv_fh *fh = f;
+ 	struct bttv *btv = fh->btv;
+ 
+-	mutex_lock(&btv->lock);
+ 	v4l2_video_std_frame_period(bttv_tvnorms[btv->tvnorm].v4l2_id,
+ 				    &parm->parm.capture.timeperframe);
+-	mutex_unlock(&btv->lock);
+ 
+ 	return 0;
+ }
+@@ -2993,7 +2941,6 @@ static int bttv_g_tuner(struct file *file, void *priv,
+ 	if (0 != t->index)
+ 		return -EINVAL;
+ 
+-	mutex_lock(&btv->lock);
+ 	t->rxsubchans = V4L2_TUNER_SUB_MONO;
+ 	bttv_call_all(btv, tuner, g_tuner, t);
+ 	strcpy(t->name, "Television");
+@@ -3005,7 +2952,6 @@ static int bttv_g_tuner(struct file *file, void *priv,
+ 	if (btv->audio_mode_gpio)
+ 		btv->audio_mode_gpio(btv, t, 0);
+ 
+-	mutex_unlock(&btv->lock);
+ 	return 0;
+ }
+ 
+@@ -3014,9 +2960,7 @@ static int bttv_g_priority(struct file *file, void *f, enum v4l2_priority *p)
+ 	struct bttv_fh *fh = f;
+ 	struct bttv *btv = fh->btv;
+ 
+-	mutex_lock(&btv->lock);
+ 	*p = v4l2_prio_max(&btv->prio);
+-	mutex_unlock(&btv->lock);
+ 
+ 	return 0;
+ }
+@@ -3028,9 +2972,7 @@ static int bttv_s_priority(struct file *file, void *f,
+ 	struct bttv *btv = fh->btv;
+ 	int	rc;
+ 
+-	mutex_lock(&btv->lock);
+ 	rc = v4l2_prio_change(&btv->prio, &fh->prio, prio);
+-	mutex_unlock(&btv->lock);
+ 
+ 	return rc;
+ }
+@@ -3045,9 +2987,7 @@ static int bttv_cropcap(struct file *file, void *priv,
+ 	    cap->type != V4L2_BUF_TYPE_VIDEO_OVERLAY)
+ 		return -EINVAL;
+ 
+-	mutex_lock(&btv->lock);
+ 	*cap = bttv_tvnorms[btv->tvnorm].cropcap;
+-	mutex_unlock(&btv->lock);
+ 
+ 	return 0;
+ }
+@@ -3065,9 +3005,7 @@ static int bttv_g_crop(struct file *file, void *f, struct v4l2_crop *crop)
+ 	   inconsistent with fh->width or fh->height and apps
+ 	   do not expect a change here. */
+ 
+-	mutex_lock(&btv->lock);
+ 	crop->c = btv->crop[!!fh->do_crop].rect;
+-	mutex_unlock(&btv->lock);
+ 
+ 	return 0;
+ }
+@@ -3091,17 +3029,14 @@ static int bttv_s_crop(struct file *file, void *f, struct v4l2_crop *crop)
+ 	/* Make sure tvnorm, vbi_end and the current cropping
+ 	   parameters remain consistent until we're done. Note
+ 	   read() may change vbi_end in check_alloc_btres_lock(). */
+-	mutex_lock(&btv->lock);
+ 	retval = v4l2_prio_check(&btv->prio, fh->prio);
+ 	if (0 != retval) {
+-		mutex_unlock(&btv->lock);
+ 		return retval;
+ 	}
+ 
+ 	retval = -EBUSY;
+ 
+ 	if (locked_btres(fh->btv, VIDEO_RESOURCES)) {
+-		mutex_unlock(&btv->lock);
+ 		return retval;
+ 	}
+ 
+@@ -3113,7 +3048,6 @@ static int bttv_s_crop(struct file *file, void *f, struct v4l2_crop *crop)
+ 
+ 	b_top = max(b->top, btv->vbi_end);
+ 	if (b_top + 32 >= b_bottom) {
+-		mutex_unlock(&btv->lock);
+ 		return retval;
+ 	}
+ 
+@@ -3136,12 +3070,8 @@ static int bttv_s_crop(struct file *file, void *f, struct v4l2_crop *crop)
+ 
+ 	btv->crop[1] = c;
+ 
+-	mutex_unlock(&btv->lock);
+-
+ 	fh->do_crop = 1;
+ 
+-	mutex_lock(&fh->cap.vb_lock);
+-
+ 	if (fh->width < c.min_scaled_width) {
+ 		fh->width = c.min_scaled_width;
+ 		btv->init.width = c.min_scaled_width;
+@@ -3158,8 +3088,6 @@ static int bttv_s_crop(struct file *file, void *f, struct v4l2_crop *crop)
+ 		btv->init.height = c.max_scaled_height;
+ 	}
+ 
+-	mutex_unlock(&fh->cap.vb_lock);
+-
+ 	return 0;
+ }
+ 
+@@ -3227,7 +3155,6 @@ static unsigned int bttv_poll(struct file *file, poll_table *wait)
+ 		return videobuf_poll_stream(file, &fh->vbi, wait);
+ 	}
+ 
+-	mutex_lock(&fh->cap.vb_lock);
+ 	if (check_btres(fh,RESOURCE_VIDEO_STREAM)) {
+ 		/* streaming capture */
+ 		if (list_empty(&fh->cap.stream))
+@@ -3262,7 +3189,6 @@ static unsigned int bttv_poll(struct file *file, poll_table *wait)
+ 	else
+ 		rc = 0;
+ err:
+-	mutex_unlock(&fh->cap.vb_lock);
+ 	return rc;
+ }
+ 
+@@ -3302,14 +3228,11 @@ static int bttv_open(struct file *file)
+ 	 * Let's first copy btv->init at fh, holding cap.vb_lock, and then work
+ 	 * with the rest of init, holding btv->lock.
+ 	 */
+-	mutex_lock(&fh->cap.vb_lock);
+ 	*fh = btv->init;
+-	mutex_unlock(&fh->cap.vb_lock);
+ 
+ 	fh->type = type;
+ 	fh->ov.setup_ok = 0;
+ 
+-	mutex_lock(&btv->lock);
+ 	v4l2_prio_open(&btv->prio, &fh->prio);
+ 
+ 	videobuf_queue_sg_init(&fh->cap, &bttv_video_qops,
+@@ -3317,13 +3240,13 @@ static int bttv_open(struct file *file)
+ 			    V4L2_BUF_TYPE_VIDEO_CAPTURE,
+ 			    V4L2_FIELD_INTERLACED,
+ 			    sizeof(struct bttv_buffer),
+-			    fh, NULL);
++			    fh, &btv->lock);
+ 	videobuf_queue_sg_init(&fh->vbi, &bttv_vbi_qops,
+ 			    &btv->c.pci->dev, &btv->s_lock,
+ 			    V4L2_BUF_TYPE_VBI_CAPTURE,
+ 			    V4L2_FIELD_SEQ_TB,
+ 			    sizeof(struct bttv_buffer),
+-			    fh, NULL);
++			    fh, &btv->lock);
+ 	set_tvnorm(btv,btv->tvnorm);
+ 	set_input(btv, btv->input, btv->tvnorm);
+ 
+@@ -3346,7 +3269,6 @@ static int bttv_open(struct file *file)
+ 	bttv_vbi_fmt_reset(&fh->vbi_fmt, btv->tvnorm);
+ 
+ 	bttv_field_count(btv);
+-	mutex_unlock(&btv->lock);
+ 	return 0;
+ }
+ 
+@@ -3355,7 +3277,6 @@ static int bttv_release(struct file *file)
+ 	struct bttv_fh *fh = file->private_data;
+ 	struct bttv *btv = fh->btv;
+ 
+-	mutex_lock(&btv->lock);
+ 	/* turn off overlay */
+ 	if (check_btres(fh, RESOURCE_OVERLAY))
+ 		bttv_switch_overlay(btv,fh,NULL);
+@@ -3385,10 +3306,8 @@ static int bttv_release(struct file *file)
+ 	 * videobuf uses cap.vb_lock - we should avoid holding btv->lock,
+ 	 * otherwise we may have dead lock conditions
+ 	 */
+-	mutex_unlock(&btv->lock);
+ 	videobuf_mmap_free(&fh->cap);
+ 	videobuf_mmap_free(&fh->vbi);
+-	mutex_lock(&btv->lock);
+ 	v4l2_prio_close(&btv->prio, fh->prio);
+ 	file->private_data = NULL;
+ 	kfree(fh);
+@@ -3398,7 +3317,6 @@ static int bttv_release(struct file *file)
+ 
+ 	if (!btv->users)
+ 		audio_mute(btv, 1);
+-	mutex_unlock(&btv->lock);
+ 
+ 	return 0;
+ }
+@@ -3502,11 +3420,8 @@ static int radio_open(struct file *file)
+ 	if (unlikely(!fh))
+ 		return -ENOMEM;
+ 	file->private_data = fh;
+-	mutex_lock(&fh->cap.vb_lock);
+ 	*fh = btv->init;
+-	mutex_unlock(&fh->cap.vb_lock);
+ 
+-	mutex_lock(&btv->lock);
+ 	v4l2_prio_open(&btv->prio, &fh->prio);
+ 
+ 	btv->radio_user++;
+@@ -3514,7 +3429,6 @@ static int radio_open(struct file *file)
+ 	bttv_call_all(btv, tuner, s_radio);
+ 	audio_input(btv,TVAUDIO_INPUT_RADIO);
+ 
+-	mutex_unlock(&btv->lock);
+ 	return 0;
+ }
+ 
+@@ -3524,7 +3438,6 @@ static int radio_release(struct file *file)
+ 	struct bttv *btv = fh->btv;
+ 	struct rds_command cmd;
+ 
+-	mutex_lock(&btv->lock);
+ 	v4l2_prio_close(&btv->prio, fh->prio);
+ 	file->private_data = NULL;
+ 	kfree(fh);
+@@ -3532,7 +3445,6 @@ static int radio_release(struct file *file)
+ 	btv->radio_user--;
+ 
+ 	bttv_call_all(btv, core, ioctl, RDS_CMD_CLOSE, &cmd);
+-	mutex_unlock(&btv->lock);
+ 
+ 	return 0;
+ }
+@@ -3561,7 +3473,6 @@ static int radio_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
+ 		return -EINVAL;
+ 	if (0 != t->index)
+ 		return -EINVAL;
+-	mutex_lock(&btv->lock);
+ 	strcpy(t->name, "Radio");
+ 	t->type = V4L2_TUNER_RADIO;
+ 
+@@ -3570,8 +3481,6 @@ static int radio_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
+ 	if (btv->audio_mode_gpio)
+ 		btv->audio_mode_gpio(btv, t, 0);
+ 
+-	mutex_unlock(&btv->lock);
+-
+ 	return 0;
+ }
+ 
+@@ -3692,7 +3601,7 @@ static const struct v4l2_file_operations radio_fops =
+ 	.open	  = radio_open,
+ 	.read     = radio_read,
+ 	.release  = radio_release,
+-	.ioctl	  = video_ioctl2,
++	.unlocked_ioctl = video_ioctl2,
+ 	.poll     = radio_poll,
+ };
+ 
