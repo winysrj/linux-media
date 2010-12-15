@@ -1,53 +1,70 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:60907 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752903Ab0L1Kk3 convert rfc822-to-8bit (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:55325 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754467Ab0LOPy6 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Dec 2010 05:40:29 -0500
-Received: from tele (unknown [82.245.201.222])
-	by smtp5-g21.free.fr (Postfix) with ESMTP id 24022D4802F
-	for <linux-media@vger.kernel.org>; Tue, 28 Dec 2010 11:40:22 +0100 (CET)
-Date: Tue, 28 Dec 2010 11:42:48 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 2.6.38] gspca for_2.6.38
-Message-ID: <20101228114248.5e6c9b44@tele>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+	Wed, 15 Dec 2010 10:54:58 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Sergei Shtylyov <sshtylyov@mvista.com>,
+	"Hadli, Manjunath" <manjunath.hadli@ti.com>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>
+Date: Wed, 15 Dec 2010 09:54:44 -0600
+Subject: RE: [PATCH v6 5/7] davinci vpbe: platform specific additions
+Message-ID: <A69FA2915331DC488A831521EAE36FE401BE4AC794@dlee06.ent.ti.com>
+References: <1292404268-12517-1-git-send-email-manjunath.hadli@ti.com>
+ <4D08A475.6080703@mvista.com>
+In-Reply-To: <4D08A475.6080703@mvista.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-The following changes since commit
-fc43dd115e1c07af122440971177451cef5c45c0:
+Sergei,
 
-  [media] MEDIA: RC: Provide full scancodes for TT-1500 remote control (2010-12-27 19:26:56 -0200)
+>I think the DM644x EVM board changes should be in a separate patch.
 
-are available in the git repository at:
-  git://linuxtv.org/jfrancois/gspca.git for_2.6.38
+Any reason?
 
-Jean-François Moine (9):
-      gspca - main: Fix some warnings
-      gspca - pac7302/pac7311: Fix some warnings
-      gspca: Bad comment
-      gspca - zc3xx: Keep sorted the device table
-      gspca - zc3xx: Use the new video control mechanism
-      gspca - zc3xx: The sensor of the VF0250 is a GC0303
-      gspca - vc032x: Cleanup source
-      gspca - stv06xx/st6422: Use the new video control mechanism
-      gspca - sonixj: Bad clock for om6802 in 640x480
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
 
- drivers/media/video/gspca/gspca.c                  |   10 +-
- drivers/media/video/gspca/gspca.h                  |    2 +-
- drivers/media/video/gspca/pac7302.c                |    2 +-
- drivers/media/video/gspca/pac7311.c                |    2 +-
- drivers/media/video/gspca/sonixj.c                 |    2 +-
- drivers/media/video/gspca/stv06xx/stv06xx_st6422.c |  272 ++++++++-----------
- drivers/media/video/gspca/stv06xx/stv06xx_st6422.h |   10 -
- drivers/media/video/gspca/vc032x.c                 |   74 +++---
- drivers/media/video/gspca/zc3xx.c                  |  290 ++++++--------------
- 9 files changed, 251 insertions(+), 413 deletions(-)
-
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+>-----Original Message-----
+>From: davinci-linux-open-source-bounces@linux.davincidsp.com
+>[mailto:davinci-linux-open-source-bounces@linux.davincidsp.com] On Behalf
+>Of Sergei Shtylyov
+>Sent: Wednesday, December 15, 2010 6:20 AM
+>To: Hadli, Manjunath
+>Cc: dlos; Mauro Carvalho Chehab; LMML
+>Subject: Re: [PATCH v6 5/7] davinci vpbe: platform specific additions
+>
+>Hello.
+>
+>On 15-12-2010 12:11, Manjunath Hadli wrote:
+>
+>> This patch implements the overall device creation for the Video
+>> display driver, and addition of tables for the mode and output list.
+>
+>> Signed-off-by: Manjunath Hadli<manjunath.hadli@ti.com>
+>> Acked-by: Muralidharan Karicheri<m-karicheri2@ti.com>
+>> Acked-by: Hans Verkuil<hverkuil@xs4all.nl>
+>[...]
+>
+>> diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-
+>davinci/board-dm644x-evm.c
+>> index 34c8b41..e9b1243 100644
+>> --- a/arch/arm/mach-davinci/board-dm644x-evm.c
+>> +++ b/arch/arm/mach-davinci/board-dm644x-evm.c
+>
+>    I think the DM644x EVM board changes should be in a separate patch.
+>
+>WBR, Sergei
+>_______________________________________________
+>Davinci-linux-open-source mailing list
+>Davinci-linux-open-source@linux.davincidsp.com
+>http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
