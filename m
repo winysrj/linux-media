@@ -1,99 +1,98 @@
 Return-path: <mchehab@gaivota>
-Received: from cnxtsmtp2.conexant.com ([198.62.9.253]:39501 "EHLO
-	cnxtsmtp2.conexant.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751738Ab0LWT5t convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33113 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751456Ab0LOJgh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Dec 2010 14:57:49 -0500
-Received: from nbwsmx1.bbnet.ad (nbwsmx1.bbnet.ad [157.152.183.211]) (using TLSv1 with cipher
- RC4-MD5 (128/128 bits)) (No client certificate requested) by cnxtsmtp2.conexant.com (Tumbleweed
- MailGate 3.7.1) with ESMTP id 2581D2508FB for <linux-media@vger.kernel.org>; Thu, 23 Dec 2010
- 11:40:23 -0800 (PST)
-From: "Sri Deevi" <Srinivasa.Deevi@conexant.com>
-To: "'Dan Carpenter'" <error27@gmail.com>
-cc: "'Andy Walls'" <awalls@md.metrocast.net>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"mchehab@infradead.org" <mchehab@infradead.org>
-Date: Thu, 23 Dec 2010 11:40:22 -0800
-Subject: RE: [patch] [media] cx231xxx: fix typo in saddr_len check
-Message-ID: <34B38BE41EDBA046A4AFBB591FA31132024A7F38D1@NBMBX01.bbnet.ad>
-References: <20101223164347.GA16612@bicker> <1293129292.24752.9.camel@morgan.silverblock.net>
- <34B38BE41EDBA046A4AFBB591FA311320249B057C6@NBMBX01.bbnet.ad> <20101223193853.GN1936@bicker>
-In-Reply-To: <20101223193853.GN1936@bicker>
-Content-Language: en-US
-Content-Type: text/plain;
- charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+	Wed, 15 Dec 2010 04:36:37 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: What if add enumerations at the V4L2_FOCUS_MODE_AUTO?
+Date: Wed, 15 Dec 2010 10:37:34 +0100
+Cc: riverful.kim@samsung.com,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org
+References: <201012150119.43918.laurent.pinchart@ideasonboard.com> <201012150857.29099.hverkuil@xs4all.nl>
+In-Reply-To: <201012150857.29099.hverkuil@xs4all.nl>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="euc-kr"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201012151037.35243.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-I am ok with the changes.
+Hi Hans,
 
-Signed-off-by: Srinivasa Deevi <Srinivasa.deevi@conexant.com>
+On Wednesday 15 December 2010 08:57:29 Hans Verkuil wrote:
+> On Wednesday, December 15, 2010 01:19:43 Laurent Pinchart wrote:
+> > On Tuesday 14 December 2010 12:27:32 Kim, HeungJun wrote:
+> > > Hi Laurent and Hans,
+> > > 
+> > > I am working on V4L2 subdev for M5MOLS by Fujitsu.
+> > > and I wanna listen your comments about Auto Focus mode of my ideas.
+> > > the details is in the following link discussed at the past.
+> > > Although the situation(adding the more various functions at the M5MOLS
+> > > or any other MEGA camera sensor, I worked.)is changed,
+> > > so I wanna continue this threads for now.
+> > > 
+> > > http://www.mail-archive.com/linux-media@vger.kernel.org/msg03543.html
+> > > 
+> > > First of all, the at least two more mode of auto-focus exists in the
+> > > M5MOLS camera sensor. So, considering defined V4L2 controls and the
+> > > controls in the M5MOLS, I suggest like this:
+> > > 
+> > > +enum  v4l2_focus_auto_type {
+> > > +	V4L2_FOCUS_AUTO_NORMAL = 0,
+> > > +	V4L2_FOCUS_AUTO_MACRO = 1,
+> > > +	V4L2_FOCUS_AUTO_POSITION = 2,
+> > > +};
+> > > +#define V4L2_CID_FOCUS_POSITION			(V4L2_CID_CAMERA_CLASS_BASE+13)
+> > > 
+> > > -#define V4L2_CID_ZOOM_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+13)
+> > > -#define V4L2_CID_ZOOM_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+14)
+> > > +#define V4L2_CID_ZOOM_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+14)
+> > > +#define V4L2_CID_ZOOM_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+15)
+> > > 
+> > > 
+> > > The M5MOLS(or other recent camera sensor) can have at least 2 mode
+> > > although in any cases : *MACRO* and *NORMAL* mode. plus, M5MOLS
+> > > supports positioning focus mode, AKA. POSITION AF mode.
+> > > 
+> > > The MACRO mode scan short range, and this mode can be used at the
+> > > circumstance in the short distance with object and camera lens. So, It
+> > > has fast lens movement, but the command FOCUSING dosen't works well at
+> > > the long distance object.
+> > > 
+> > > On the other hand, NORMAL mode can this. As the words, It's general and
+> > > normal focus mode. The M5MOLS scan fully in the mode.
+> > > 
+> > > In the Position AF mode, the position(expressed x,y) is given at the
+> > > M5MOLS, and then the M5MOLS focus this area. But, the time given the
+> > > position, is normally touch the lcd screen at the mobile device, in my
+> > > case. If the time is given from button, it's no big problem *when*.
+> > > But, in touch-lcd screen case, the position is read at the touch
+> > > screen driver, before command FOCUS to camera sensor. It's the why I
+> > > add another CID(V4L2_CID_FOCUS_POSITION).
+> > 
+> > I'm pretty sure that some devices would require a rectangle instead of
+> > coordinates to define the focus point. Even a rectangle might not be
+> > enough. It would help if we could get feedback from camera designers
+> > here.
+> > 
+> > Hans, should we add a new control type to pass coordinates/rectangles ?
+> > :-)
+> 
+> It's a bit tricky actually since QUERYCTRL can return only one set of
+> min/max values. For coordinates/rectangles we need two sets (horizontal
+> and vertical).
+> 
+> And I think it is important to know the min/max values.
 
-Sri
+Hence my question, should we add a way to pass rectangles (basically a struct 
+v4l2_rect) through the control ioctls ? It would make sense.
 
------Original Message-----
-From: Dan Carpenter [mailto:error27@gmail.com] 
-Sent: Thursday, December 23, 2010 11:39 AM
-To: Sri Deevi
-Cc: 'Andy Walls'; linux-media@vger.kernel.org; mchehab@infradead.org
-Subject: [patch] [media] cx231xxx: fix typo in saddr_len check
+-- 
+Regards,
 
-The original code compared "saddr_len" with zero twice in a nonsensical
-way.  I asked the list, and Andy Walls and Sri Deevi say that the second
-check should be if "saddr_len == 1".
-
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-
-diff --git a/drivers/media/video/cx231xx/cx231xx-core.c b/drivers/media/video/cx231xx/cx231xx-core.c
-index 44d124c..7d62d58 100644
---- a/drivers/media/video/cx231xx/cx231xx-core.c
-+++ b/drivers/media/video/cx231xx/cx231xx-core.c
-@@ -1515,7 +1515,7 @@ int cx231xx_read_i2c_master(struct cx231xx *dev, u8 dev_addr, u16 saddr,
- 
- 	if (saddr_len == 0)
- 		saddr = 0;
--	else if (saddr_len == 0)
-+	else if (saddr_len == 1)
- 		saddr &= 0xff;
- 
- 	/* prepare xfer_data struct */
-@@ -1566,7 +1566,7 @@ int cx231xx_write_i2c_master(struct cx231xx *dev, u8 dev_addr, u16 saddr,
- 
- 	if (saddr_len == 0)
- 		saddr = 0;
--	else if (saddr_len == 0)
-+	else if (saddr_len == 1)
- 		saddr &= 0xff;
- 
- 	/* prepare xfer_data struct */
-@@ -1600,7 +1600,7 @@ int cx231xx_read_i2c_data(struct cx231xx *dev, u8 dev_addr, u16 saddr,
- 
- 	if (saddr_len == 0)
- 		saddr = 0;
--	else if (saddr_len == 0)
-+	else if (saddr_len == 1)
- 		saddr &= 0xff;
- 
- 	/* prepare xfer_data struct */
-@@ -1641,7 +1641,7 @@ int cx231xx_write_i2c_data(struct cx231xx *dev, u8 dev_addr, u16 saddr,
- 
- 	if (saddr_len == 0)
- 		saddr = 0;
--	else if (saddr_len == 0)
-+	else if (saddr_len == 1)
- 		saddr &= 0xff;
- 
- 	/* prepare xfer_data struct */
-
-Conexant E-mail Firewall (Conexant.Com) made the following annotations
----------------------------------------------------------------------
-********************** Legal Disclaimer **************************** 
-
-"This email may contain confidential and privileged material for the sole use of the intended recipient. Any unauthorized review, use or distribution by others is strictly prohibited. If you have received the message in error, please advise the sender by reply email and delete the message. Thank you." 
-
-********************************************************************** 
-
----------------------------------------------------------------------
-
+Laurent Pinchart
