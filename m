@@ -1,52 +1,123 @@
 Return-path: <mchehab@gaivota>
-Received: from bordeaux.papayaltd.net ([82.129.38.124]:38369 "EHLO
-	bordeaux.papayaltd.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754033Ab0L1RZa convert rfc822-to-8bit (ORCPT
+Received: from ganesha.gnumonks.org ([213.95.27.120]:47492 "EHLO
+	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754676Ab0LOClB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Dec 2010 12:25:30 -0500
-Subject: Re: ngene & Satix-S2 dual problems
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=iso-8859-1
-From: Andre <linux-media@dinkum.org.uk>
-In-Reply-To: <4D19D8A0.6010606@gmail.com>
-Date: Tue, 28 Dec 2010 17:25:27 +0000
-Cc: linux-media@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <9F1CEDCB-8BB0-4C54-8410-FC554E9E4F6D@dinkum.org.uk>
-References: <4D1753CF.9010205@gmail.com> <55B5612B-5E2B-4C2E-AD5E-B0D5A7AC865B@dinkum.org.uk> <4D19D8A0.6010606@gmail.com>
-To: =?iso-8859-1?Q?Ludovic_BOU=C9?= <ludovic.boue@gmail.com>
+	Tue, 14 Dec 2010 21:41:01 -0500
+From: Hyunwoong Kim <khw0178.kim@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: s.nawrocki@samsung.com, Hyunwoong Kim <khw0178.kim@samsung.com>
+Subject: [PATCH v2] [media] s5p-fimc: fix the value of YUV422 1-plane formats
+Date: Wed, 15 Dec 2010 11:18:48 +0900
+Message-Id: <1292379528-16994-1-git-send-email-khw0178.kim@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
+Some color formats are mismatched in s5p-fimc driver.
+CICICTRL[1:0], order422_out, should be set 2b'00 not 2b'11
+to use V4L2_PIX_FMT_YUYV. Because in V4L2 standard V4L2_PIX_FMT_YUYV means
+"start + 0: Y'00 Cb00 Y'01 Cr00 Y'02 Cb01 Y'03 Cr01". According to datasheet
+2b'00 is right value for V4L2_PIX_FMT_YUYV.
 
-On 28 Dec 2010, at 12:31, Ludovic BOUÉ wrote:
+---------------------------------------------------------
+bit |    MSB                                        LSB
+---------------------------------------------------------
+00  |  Cr1    Y3    Cb1    Y2    Cr0    Y1    Cb0    Y0
+---------------------------------------------------------
+01  |  Cb1    Y3    Cr1    Y2    Cb0    Y1    Cr0    Y0
+---------------------------------------------------------
+10  |  Y3    Cr1    Y2    Cb1    Y1    Cr0    Y0    Cb0
+---------------------------------------------------------
+11  |  Y3    Cb1    Y2    Cr1    Y1    Cb0    Y0    Cr0
+---------------------------------------------------------
 
-> 
-> 
-> Le 27/12/2010 10:07, Andre a écrit :
->> On 26 Dec 2010, at 14:40, Ludovic BOUÉ wrote:
->> 
->>> Hi all,
->>> 
->>> I have a Satix-S2 Dual and I'm trying to get to work without his CI in a first time. I'm trying ngene-test2 
->>> from http://linuxtv.org/hg/~endriss/ngene-test2/ under 
->>> 2.6.32-21-generic.
->>> 
->>> It contains too much nodes (extra demuxes, dvrs & nets):
->> Yes, if you read this thread back you will see why and that it doesn't prevent anything working.
->> 
->>> was working with stable driver dans 1.5 firmware.
->> Again back in the thread you will see that with the in kernel driver (I hesitate to use the description stable) there is a serious problem when both tuners are in use, this work in progress driver fixes that problem.
->> 
->> The extra nodes are a pain, especially when you have a lot of tuners in one machine but tuners that stop working mid recording are much more of a pain!
-> 
-> I seems to work with the last patch commited by Oliver Endriss. Did you
-> try with a CI ?
+V4L2_PIX_FMT_YVYU, V4L2_PIX_FMT_UYVY, V4L2_PIX_FMT_VYUY are also mismatched
+with datasheet. MSCTRL[17:16], order2p_in, is also mismatched
+in V4L2_PIX_FMT_UYVY, V4L2_PIX_FMT_YVYU.
 
-No I didn't, I don't have a CI.
+Signed-off-by: Hyunwoong Kim <khw0178.kim@samsung.com>
+Reviewed-by: Jonghun han <jonghun.han@samsung.com>
+---
+Changes since V1:
+=================
+- make corrections directly in function fimc_set_yuv_order
+  commented by Sylwester Nawrocki.
+- remove S5P_FIMC_IN_* and S5P_FIMC_OUT_* definitions from fimc-core.h
 
-I'll try Olivers latest commit in a few days, I'm a long way from my Myth system right now :-)
+ drivers/media/video/s5p-fimc/fimc-core.c |   16 ++++++++--------
+ drivers/media/video/s5p-fimc/fimc-core.h |   12 ------------
+ 2 files changed, 8 insertions(+), 20 deletions(-)
 
-Thanks again Oliver, much appreciated.
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index 7f56987..71e1536 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -448,34 +448,34 @@ static void fimc_set_yuv_order(struct fimc_ctx *ctx)
+ 	/* Set order for 1 plane input formats. */
+ 	switch (ctx->s_frame.fmt->color) {
+ 	case S5P_FIMC_YCRYCB422:
+-		ctx->in_order_1p = S5P_FIMC_IN_YCRYCB;
++		ctx->in_order_1p = S5P_MSCTRL_ORDER422_YCRYCB;
+ 		break;
+ 	case S5P_FIMC_CBYCRY422:
+-		ctx->in_order_1p = S5P_FIMC_IN_CBYCRY;
++		ctx->in_order_1p = S5P_MSCTRL_ORDER422_CBYCRY;
+ 		break;
+ 	case S5P_FIMC_CRYCBY422:
+-		ctx->in_order_1p = S5P_FIMC_IN_CRYCBY;
++		ctx->in_order_1p = S5P_MSCTRL_ORDER422_CRYCBY;
+ 		break;
+ 	case S5P_FIMC_YCBYCR422:
+ 	default:
+-		ctx->in_order_1p = S5P_FIMC_IN_YCBYCR;
++		ctx->in_order_1p = S5P_MSCTRL_ORDER422_YCBYCR;
+ 		break;
+ 	}
+ 	dbg("ctx->in_order_1p= %d", ctx->in_order_1p);
+ 
+ 	switch (ctx->d_frame.fmt->color) {
+ 	case S5P_FIMC_YCRYCB422:
+-		ctx->out_order_1p = S5P_FIMC_OUT_YCRYCB;
++		ctx->out_order_1p = S5P_CIOCTRL_ORDER422_YCRYCB;
+ 		break;
+ 	case S5P_FIMC_CBYCRY422:
+-		ctx->out_order_1p = S5P_FIMC_OUT_CBYCRY;
++		ctx->out_order_1p = S5P_CIOCTRL_ORDER422_CBYCRY;
+ 		break;
+ 	case S5P_FIMC_CRYCBY422:
+-		ctx->out_order_1p = S5P_FIMC_OUT_CRYCBY;
++		ctx->out_order_1p = S5P_CIOCTRL_ORDER422_YCBYCR;
+ 		break;
+ 	case S5P_FIMC_YCBYCR422:
+ 	default:
+-		ctx->out_order_1p = S5P_FIMC_OUT_YCBYCR;
++		ctx->out_order_1p = S5P_CIOCTRL_ORDER422_CRYCBY;
+ 		break;
+ 	}
+ 	dbg("ctx->out_order_1p= %d", ctx->out_order_1p);
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+index 4efc1a1..92cca62 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.h
++++ b/drivers/media/video/s5p-fimc/fimc-core.h
+@@ -95,18 +95,6 @@ enum fimc_color_fmt {
+ 
+ #define fimc_fmt_is_rgb(x) ((x) & 0x10)
+ 
+-/* Y/Cb/Cr components order at DMA output for 1 plane YCbCr 4:2:2 formats. */
+-#define	S5P_FIMC_OUT_CRYCBY	S5P_CIOCTRL_ORDER422_YCBYCR
+-#define	S5P_FIMC_OUT_CBYCRY	S5P_CIOCTRL_ORDER422_CBYCRY
+-#define	S5P_FIMC_OUT_YCRYCB	S5P_CIOCTRL_ORDER422_YCRYCB
+-#define	S5P_FIMC_OUT_YCBYCR	S5P_CIOCTRL_ORDER422_CRYCBY
+-
+-/* Input Y/Cb/Cr components order for 1 plane YCbCr 4:2:2 color formats. */
+-#define	S5P_FIMC_IN_CRYCBY	S5P_MSCTRL_ORDER422_CRYCBY
+-#define	S5P_FIMC_IN_CBYCRY	S5P_MSCTRL_ORDER422_CBYCRY
+-#define	S5P_FIMC_IN_YCRYCB	S5P_MSCTRL_ORDER422_YCRYCB
+-#define	S5P_FIMC_IN_YCBYCR	S5P_MSCTRL_ORDER422_YCBYCR
+-
+ /* Cb/Cr chrominance components order for 2 plane Y/CbCr 4:2:2 formats. */
+ #define	S5P_FIMC_LSB_CRCB	S5P_CIOCTRL_ORDER422_2P_LSB_CRCB
+ 
+-- 
+1.6.2.5
 
-Andre
