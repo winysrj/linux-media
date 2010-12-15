@@ -1,428 +1,399 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:43200 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758886Ab0LNJ52 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Dec 2010 04:57:28 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oBE9vSZ7006751
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 14 Dec 2010 04:57:28 -0500
-Received: from rincewind.home.kraxel.org (vpn1-4-240.ams2.redhat.com [10.36.4.240])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id oBE9vOVi025721
-	for <linux-media@vger.kernel.org>; Tue, 14 Dec 2010 04:57:25 -0500
-Message-ID: <4D073F83.8010301@redhat.com>
-Date: Tue, 14 Dec 2010 10:57:23 +0100
-From: Gerd Hoffmann <kraxel@redhat.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Hauppauge USB Live 2
-Content-Type: multipart/mixed;
- boundary="------------000803050109010901080606"
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:10405 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751707Ab0LOUip (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Dec 2010 15:38:45 -0500
+Date: Wed, 15 Dec 2010 21:34:30 +0100
+From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Subject: [PATCHv8 10/12] mm: MIGRATE_CMA support added to CMA
+In-reply-to: <cover.1292443200.git.m.nazarewicz@samsung.com>
+To: Michal Nazarewicz <mina86@mina86.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mel Gorman <mel@csn.ul.ie>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org
+Message-id: <c3a36b3a91e1c06dbb0538b5410f632024114604.1292443200.git.m.nazarewicz@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <cover.1292443200.git.m.nazarewicz@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-This is a multi-part message in MIME format.
---------------000803050109010901080606
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+This commit adds MIGRATE_CMA migratetype support to the CMA.
+The advantage is that an (almost) arbitrary memory range can
+be marked as MIGRATE_CMA which may not be the case with
+ZONE_MOVABLE.
 
-   Hi folks,
+Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ include/linux/cma.h |   58 ++++++++++++++++---
+ mm/cma.c            |  161 +++++++++++++++++++++++++++++++++++++++++++++------
+ 2 files changed, 194 insertions(+), 25 deletions(-)
 
-Got a "Hauppauge USB Live 2" after google found me that there is a linux 
-driver for it.  Unfortunaly linux doesn't manage to initialize the device.
+diff --git a/include/linux/cma.h b/include/linux/cma.h
+index e9575fd..8952531 100644
+--- a/include/linux/cma.h
++++ b/include/linux/cma.h
+@@ -71,9 +71,14 @@
+  *   a platform/machine specific function.  For the former CMA
+  *   provides the following functions:
+  *
++ *     cma_init_migratetype()
+  *     cma_reserve()
+  *     cma_create()
+  *
++ *   The first one initialises a portion of reserved memory so that it
++ *   can be used with CMA.  The second first tries to reserve memory
++ *   (using memblock) and then initialise it.
++ *
+  *   The cma_reserve() function must be called when memblock is still
+  *   operational and reserving memory with it is still possible.  On
+  *   ARM platform the "reserve" machine callback is a perfect place to
+@@ -93,21 +98,56 @@ struct cma;
+ /* Contiguous Memory chunk */
+ struct cm;
+ 
++#ifdef CONFIG_MIGRATE_CMA
++
++/**
++ * cma_init_migratetype() - initialises range of physical memory to be used
++ *		with CMA context.
++ * @start:	start address of the memory range in bytes.
++ * @size:	size of the memory range in bytes.
++ *
++ * The range must be MAX_ORDER_NR_PAGES aligned and it must have been
++ * already reserved (eg. with memblock).
++ *
++ * The actual initialisation is deferred until subsys initcalls are
++ * evaluated (unless this has already happened).
++ *
++ * Returns zero on success or negative error.
++ */
++int cma_init_migratetype(unsigned long start, unsigned long end);
++
++#else
++
++static inline int cma_init_migratetype(unsigned long start, unsigned long end)
++{
++	(void)start; (void)end;
++	return -EOPNOTSUPP;
++}
++
++#endif
++
+ /**
+  * cma_reserve() - reserves memory.
+  * @start:	start address of the memory range in bytes hint; if unsure
+  *		pass zero.
+  * @size:	size of the memory to reserve in bytes.
+  * @alignment:	desired alignment in bytes (must be power of two or zero).
++ * @init_migratetype:	whether to initialise pageblocks.
++ *
++ * It will use memblock to allocate memory.  If @init_migratetype is
++ * true, the function will also call cma_init_migratetype() on
++ * reserved region so that a non-private CMA context can be created on
++ * given range.
+  *
+- * It will use memblock to allocate memory.  @start and @size will be
+- * aligned to PAGE_SIZE.
++ * @start and @size will be aligned to PAGE_SIZE if @init_migratetype
++ * is false or to (MAX_ORDER_NR_PAGES << PAGE_SHIFT) if
++ * @init_migratetype is true.
+  *
+  * Returns reserved's area physical address or value that yields true
+  * when checked with IS_ERR_VALUE().
+  */
+ unsigned long cma_reserve(unsigned long start, unsigned long size,
+-			  unsigned long alignment);
++			  unsigned long alignment, _Bool init_migratetype);
+ 
+ /**
+  * cma_create() - creates a CMA context.
+@@ -118,12 +158,14 @@ unsigned long cma_reserve(unsigned long start, unsigned long size,
+  *
+  * The range must be page aligned.  Different contexts cannot overlap.
+  *
+- * Unless @private is true the memory range must lay in ZONE_MOVABLE.
+- * If @private is true no underlaying memory checking is done and
+- * during allocation no pages migration will be performed - it is
+- * assumed that the memory is reserved and only CMA manages it.
++ * Unless @private is true the memory range must either lay in
++ * ZONE_MOVABLE or must have been initialised with
++ * cma_init_migratetype() function.  If @private is true no
++ * underlaying memory checking is done and during allocation no pages
++ * migration will be performed - it is assumed that the memory is
++ * reserved and only CMA manages it.
+  *
+- * @start and @size must be page and @min_alignment alignment.
++ * @start and @size must be page and @min_alignment aligned.
+  * @min_alignment specifies the minimal alignment that user will be
+  * able to request through cm_alloc() function.  In most cases one
+  * will probably pass zero as @min_alignment but if the CMA context
+diff --git a/mm/cma.c b/mm/cma.c
+index d82361b..4017dee 100644
+--- a/mm/cma.c
++++ b/mm/cma.c
+@@ -57,21 +57,130 @@ static unsigned long phys_to_pfn(phys_addr_t phys)
+ 
+ /************************* Initialise CMA *************************/
+ 
++#ifdef CONFIG_MIGRATE_CMA
++
++static struct cma_grabbed {
++	unsigned long start;
++	unsigned long size;
++} cma_grabbed[8] __initdata;
++static unsigned cma_grabbed_count __initdata;
++
++#ifdef CONFIG_DEBUG_VM
++
++static int __cma_give_back(unsigned long start, unsigned long size)
++{
++	unsigned long pfn = phys_to_pfn(start);
++	unsigned i = size >> PAGE_SHIFT;
++	struct zone *zone;
++
++	pr_debug("%s(%p+%p)\n", __func__, (void *)start, (void *)size);
++
++	VM_BUG_ON(!pfn_valid(pfn));
++	zone = page_zone(pfn_to_page(pfn));
++
++	do {
++		VM_BUG_ON(!pfn_valid(pfn));
++		VM_BUG_ON(page_zone(pfn_to_page(pfn)) != zone);
++		if (!(pfn & (pageblock_nr_pages - 1)))
++			__free_pageblock_cma(pfn_to_page(pfn));
++		++pfn;
++	} while (--i);
++
++	return 0;
++}
++
++#else
++
++static int __cma_give_back(unsigned long start, unsigned long size)
++{
++	unsigned i = size >> (PAGE_SHIFT + pageblock_order);
++	struct page *p = phys_to_page(start);
++
++	pr_debug("%s(%p+%p)\n", __func__, (void *)start, (void *)size);
++
++	do {
++		__free_pageblock_cma(p);
++		p += pageblock_nr_pages;
++	} while (--i);
++
++	return 0;
++}
++
++#endif
++
++static int __init __cma_queue_give_back(unsigned long start, unsigned long size)
++{
++	if (cma_grabbed_count == ARRAY_SIZE(cma_grabbed))
++		return -ENOSPC;
++
++	cma_grabbed[cma_grabbed_count].start = start;
++	cma_grabbed[cma_grabbed_count].size  = size;
++	++cma_grabbed_count;
++	return 0;
++}
++
++static int (*cma_give_back)(unsigned long start, unsigned long size) =
++	__cma_queue_give_back;
++
++static int __init cma_give_back_queued(void)
++{
++	struct cma_grabbed *r = cma_grabbed;
++	unsigned i = cma_grabbed_count;
++
++	pr_debug("%s(): will give %u range(s)\n", __func__, i);
++
++	cma_give_back = __cma_give_back;
++
++	for (; i; --i, ++r)
++		__cma_give_back(r->start, r->size);
++
++	return 0;
++}
++subsys_initcall(cma_give_back_queued);
++
++int __ref cma_init_migratetype(unsigned long start, unsigned long size)
++{
++	pr_debug("%s(%p+%p)\n", __func__, (void *)start, (void *)size);
++
++	if (!size)
++		return -EINVAL;
++	if ((start | size) & ((MAX_ORDER_NR_PAGES << PAGE_SHIFT) - 1))
++		return -EINVAL;
++	if (start + size < start)
++		return -EOVERFLOW;
++
++	return cma_give_back(start, size);
++}
++
++#endif
++
+ unsigned long cma_reserve(unsigned long start, unsigned long size,
+-			  unsigned long alignment)
++			  unsigned long alignment, bool init_migratetype)
+ {
+ 	pr_debug("%s(%p+%p/%p)\n", __func__, (void *)start, (void *)size,
+ 		 (void *)alignment);
+ 
++#ifndef CONFIG_MIGRATE_CMA
++	if (init_migratetype)
++		return -EOPNOTSUPP;
++#endif
++
+ 	/* Sanity checks */
+ 	if (!size || (alignment & (alignment - 1)))
+ 		return (unsigned long)-EINVAL;
+ 
+ 	/* Sanitise input arguments */
+-	start = PAGE_ALIGN(start);
+-	size  = PAGE_ALIGN(size);
+-	if (alignment < PAGE_SIZE)
+-		alignment = PAGE_SIZE;
++	if (init_migratetype) {
++		start = ALIGN(start, MAX_ORDER_NR_PAGES << PAGE_SHIFT);
++		size  = ALIGN(size , MAX_ORDER_NR_PAGES << PAGE_SHIFT);
++		if (alignment < (MAX_ORDER_NR_PAGES << PAGE_SHIFT))
++			alignment = MAX_ORDER_NR_PAGES << PAGE_SHIFT;
++	} else {
++		start = PAGE_ALIGN(start);
++		size  = PAGE_ALIGN(size);
++		if (alignment < PAGE_SIZE)
++			alignment = PAGE_SIZE;
++	}
+ 
+ 	/* Reserve memory */
+ 	if (start) {
+@@ -94,6 +203,15 @@ unsigned long cma_reserve(unsigned long start, unsigned long size,
+ 		}
+ 	}
+ 
++	/* CMA Initialise */
++	if (init_migratetype) {
++		int ret = cma_init_migratetype(start, size);
++		if (ret < 0) {
++			memblock_free(start, size);
++			return ret;
++		}
++	}
++
+ 	return start;
+ }
+ 
+@@ -101,12 +219,13 @@ unsigned long cma_reserve(unsigned long start, unsigned long size,
+ /************************** CMA context ***************************/
+ 
+ struct cma {
+-	bool migrate;
++	int migratetype;
+ 	struct gen_pool *pool;
+ };
+ 
+ static int __cma_check_range(unsigned long start, unsigned long size)
+ {
++	int migratetype = MIGRATE_MOVABLE;
+ 	unsigned long pfn, count;
+ 	struct page *page;
+ 	struct zone *zone;
+@@ -115,8 +234,13 @@ static int __cma_check_range(unsigned long start, unsigned long size)
+ 	if (WARN_ON(!pfn_valid(start)))
+ 		return -EINVAL;
+ 
++#ifdef CONFIG_MIGRATE_CMA
++	if (page_zonenum(pfn_to_page(start)) != ZONE_MOVABLE)
++		migratetype = MIGRATE_CMA;
++#else
+ 	if (WARN_ON(page_zonenum(pfn_to_page(start)) != ZONE_MOVABLE))
+ 		return -EINVAL;
++#endif
+ 
+ 	/* First check if all pages are valid and in the same zone */
+ 	zone  = page_zone(pfn_to_page(start));
+@@ -134,20 +258,20 @@ static int __cma_check_range(unsigned long start, unsigned long size)
+ 	page  = pfn_to_page(start);
+ 	count = (pfn - start) >> PAGE_SHIFT;
+ 	do {
+-		if (WARN_ON(get_pageblock_migratetype(page) != MIGRATE_MOVABLE))
++		if (WARN_ON(get_pageblock_migratetype(page) != migratetype))
+ 			return -EINVAL;
+ 		page += pageblock_nr_pages;
+ 	} while (--count);
+ 
+-	return 0;
++	return migratetype;
+ }
+ 
+ struct cma *cma_create(unsigned long start, unsigned long size,
+ 		       unsigned long min_alignment, bool private)
+ {
+ 	struct gen_pool *pool;
++	int migratetype, ret;
+ 	struct cma *cma;
+-	int ret;
+ 
+ 	pr_debug("%s(%p+%p)\n", __func__, (void *)start, (void *)size);
+ 
+@@ -162,10 +286,12 @@ struct cma *cma_create(unsigned long start, unsigned long size,
+ 	if (start + size < start)
+ 		return ERR_PTR(-EOVERFLOW);
+ 
+-	if (!private) {
+-		ret = __cma_check_range(start, size);
+-		if (ret < 0)
+-			return ERR_PTR(ret);
++	if (private) {
++		migratetype = 0;
++	} else {
++		migratetype = __cma_check_range(start, size);
++		if (migratetype < 0)
++			return ERR_PTR(migratetype);
+ 	}
+ 
+ 	cma = kmalloc(sizeof *cma, GFP_KERNEL);
+@@ -182,7 +308,7 @@ struct cma *cma_create(unsigned long start, unsigned long size,
+ 	if (unlikely(ret))
+ 		goto error2;
+ 
+-	cma->migrate = !private;
++	cma->migratetype = migratetype;
+ 	cma->pool = pool;
+ 
+ 	pr_debug("%s: returning <%p>\n", __func__, (void *)cma);
+@@ -238,9 +364,10 @@ struct cm *cm_alloc(struct cma *cma, unsigned long size,
+ 	if (!start)
+ 		goto error1;
+ 
+-	if (cma->migrate) {
++	if (cma->migratetype) {
+ 		unsigned long pfn = phys_to_pfn(start);
+-		ret = alloc_contig_range(pfn, pfn + (size >> PAGE_SHIFT), 0);
++		ret = alloc_contig_range(pfn, pfn + (size >> PAGE_SHIFT),
++					 0, cma->migratetype);
+ 		if (ret)
+ 			goto error2;
+ 	}
+@@ -275,7 +402,7 @@ void cm_free(struct cm *cm)
+ 	mutex_lock(&cma_mutex);
+ 
+ 	gen_pool_free(cm->cma->pool, cm->phys, cm->size);
+-	if (cm->cma->migrate)
++	if (cm->cma->migratetype)
+ 		free_contig_pages(phys_to_page(cm->phys),
+ 				  cm->size >> PAGE_SHIFT);
+ 
+-- 
+1.7.2.3
 
-I've connected the device to a Thinkpad T60.  It runs a 2.6.37-rc5 
-kernel with the linuxtv/staging/for_v2.6.38 branch merged in.
-
-Kernel log and lsusb output are attached.
-
-Ideas anyone?
-
-cheers,
-   Gerd
-
---------------000803050109010901080606
-Content-Type: text/plain;
- name="live2-dmesg.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="live2-dmesg.txt"
-
-[  231.994065] usb 1-2: new high speed USB device using ehci_hcd and address 5
-[  232.110991] usb 1-2: New USB device found, idVendor=2040, idProduct=c200
-[  232.110998] usb 1-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-[  232.111023] usb 1-2: Product: Hauppauge Device
-[  232.111029] usb 1-2: Manufacturer: Hauppauge
-[  232.111033] usb 1-2: SerialNumber: 0013566174
-[  232.465523] IR NEC protocol handler initialized
-[  232.489573] Linux video capture interface: v2.00
-[  232.499834] IR RC5(x) protocol handler initialized
-[  232.518668] IR RC6 protocol handler initialized
-[  232.541743] IR JVC protocol handler initialized
-[  232.579260] IR Sony protocol handler initialized
-[  232.614172] lirc_dev: IR Remote Control driver registered, major 250 
-[  232.643778] IR LIRC bridge handler initialized
-[  232.656779] cx231xx v4l2 driver loaded.
-[  232.656844] cx231xx #0: New device Hauppauge Hauppauge Device @ 480 Mbps (2040:c200) with 5 interfaces
-[  232.656848] cx231xx #0: registering interface 1
-[  232.659017] cx231xx #0: can't change interface 3 alt no. to 3: Max. Pkt size = 0
-[  232.660130] cx231xx #0: can't change interface 4 alt no. to 1: Max. Pkt size = 0
-[  232.661252] cx231xx #0: Identified as Hauppauge USB Live 2 (card=9)
-[  232.686363] cx231xx #0: UsbInterface::sendCommand, failed with status --32
-[  232.686726] cx231xx #0: UsbInterface::sendCommand, failed with status --32
-[  232.687166] cx231xx #0: UsbInterface::sendCommand, failed with status --32
-[  232.687479] cx231xx #0: UsbInterface::sendCommand, failed with status --32
-[  232.687853] cx231xx #0: UsbInterface::sendCommand, failed with status --32
-[  232.688348] cx231xx #0: UsbInterface::sendCommand, failed with status --32
-[  232.688727] cx231xx #0: UsbInterface::sendCommand, failed with status --32
-[  232.688731] cx231xx #0: cx231xx_dev_init: cx231xx_afe init super block - errCode [-32]!
-[  232.688845] cx231xx #0: cx231xx_init_dev: cx231xx_i2c_register - errCode [-32]!
-[  232.688859] cx231xx: probe of 1-2:1.1 failed with error -32
-[  232.688915] usbcore: registered new interface driver cx231xx
-
---------------000803050109010901080606
-Content-Type: text/plain;
- name="live2-lsusb.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="live2-lsusb.txt"
-
-
-Bus 001 Device 005: ID 2040:c200 Hauppauge 
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass          239 Miscellaneous Device
-  bDeviceSubClass         2 ?
-  bDeviceProtocol         1 Interface Association
-  bMaxPacketSize0        64
-  idVendor           0x2040 Hauppauge
-  idProduct          0xc200 
-  bcdDevice           40.01
-  iManufacturer           1 Hauppauge
-  iProduct                2 Hauppauge Device
-  iSerial                 3 0013566174
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength          248
-    bNumInterfaces          6
-    bConfigurationValue     1
-    iConfiguration          4 Hauppauge Device
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower              340mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           2
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface             32 Hauppauge Device
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x8e  EP 14 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0020  1x 32 bytes
-        bInterval               4
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x0e  EP 14 OUT
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0020  1x 32 bytes
-        bInterval               4
-    Interface Association:
-      bLength                 8
-      bDescriptorType        11
-      bFirstInterface         1
-      bInterfaceCount         5
-      bFunctionClass        255 Vendor Specific Class
-      bFunctionSubClass     255 Vendor Specific Subclass
-      bFunctionProtocol     255 Vendor Specific Protocol
-      iFunction               0 
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       0
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface              7 Hauppauge Device
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x8f  EP 15 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0008  1x 8 bytes
-        bInterval               7
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        2
-      bAlternateSetting       0
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface             20 Hauppauge Device
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        2
-      bAlternateSetting       1
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface             21 Hauppauge Device
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x001c  1x 28 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        2
-      bAlternateSetting       2
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface             22 Hauppauge Device
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x0034  1x 52 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        3
-      bAlternateSetting       0
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface             23 Hauppauge Device
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        3
-      bAlternateSetting       1
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface             24 Hauppauge Device
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x00b8  1x 184 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        3
-      bAlternateSetting       2
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface             25 Hauppauge Device
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x02d8  1x 728 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        3
-      bAlternateSetting       3
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface             26 Hauppauge Device
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x13c4  3x 964 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        3
-      bAlternateSetting       4
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface             27 Hauppauge Device
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x0b84  2x 900 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        4
-      bAlternateSetting       0
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface             28 Hauppauge Device
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x85  EP 5 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        4
-      bAlternateSetting       1
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface             31 Hauppauge Device
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x05  EP 5 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        5
-      bAlternateSetting       0
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface             29 Hauppauge Device
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x86  EP 6 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        5
-      bAlternateSetting       1
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface             30 Hauppauge Device
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x86  EP 6 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x0240  1x 576 bytes
-        bInterval               1
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass          239 Miscellaneous Device
-  bDeviceSubClass         2 ?
-  bDeviceProtocol         1 Interface Association
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0000
-  (Bus Powered)
-
---------------000803050109010901080606--
