@@ -1,125 +1,313 @@
 Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60199 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756919Ab0LTMf1 (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:10405 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751819Ab0LOUik (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Dec 2010 07:35:27 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [GIT PULL FOR 2.6.37] uvcvideo: BKL removal
-Date: Mon, 20 Dec 2010 13:35:28 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-References: <201011291115.11061.laurent.pinchart@ideasonboard.com> <4D0F47B8.6040600@redhat.com> <201012201328.06493.hverkuil@xs4all.nl>
-In-Reply-To: <201012201328.06493.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201012201335.29747.laurent.pinchart@ideasonboard.com>
+	Wed, 15 Dec 2010 15:38:40 -0500
+Date: Wed, 15 Dec 2010 21:34:24 +0100
+From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Subject: [PATCHv8 04/12] mm: move some functions from memory_hotplug.c to
+ page_isolation.c
+In-reply-to: <cover.1292443200.git.m.nazarewicz@samsung.com>
+To: Michal Nazarewicz <mina86@mina86.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mel Gorman <mel@csn.ul.ie>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org
+Message-id: <1cf6647fda064822bafea967513394373f456c57.1292443200.git.m.nazarewicz@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <cover.1292443200.git.m.nazarewicz@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Hans,
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-On Monday 20 December 2010 13:28:06 Hans Verkuil wrote:
-> On Monday, December 20, 2010 13:10:32 Mauro Carvalho Chehab wrote:
-> > Em 18-12-2010 08:45, Hans Verkuil escreveu:
-> > > On Saturday, December 18, 2010 01:54:41 Laurent Pinchart wrote:
-> > >> On Friday 17 December 2010 18:09:39 Mauro Carvalho Chehab wrote:
-> > >>>
-> > >>> I didn't find any regressions at the BKL removal patches, but I
-> > >>> noticed a few issues with qv4l2, not all related to uvcvideo. The
-> > >>> remaining of this email is an attempt to document them for later
-> > >>> fixes.
-> > >>> 
-> > >>> They don't seem to be regressions caused by BKL removal, but the
-> > >>> better would be to fix them later.
-> > >>> 
-> > >>> - with uvcvideo and two video apps, if qv4l2 is started first, the
-> > >>> second application doesn't start/capture. I suspect that REQBUFS
-> > >>> (used by qv4l2 to probe mmap/userptr capabilities) create some
-> > >>> resource locking at uvcvideo. The proper way is to lock the
-> > >>> resources only if the driver is streaming, as other drivers and
-> > >>> videobuf do.
-> > >> 
-> > >> I don't agree with that. The uvcvideo driver has one buffer queue per
-> > >> device, so if an application requests buffers on one file handle it
-> > >> will lock other applications out. If the driver didn't it would be
-> > >> subject to race conditions.
-> > > 
-> > > I agree with Laurent. Once an application calls REQBUFS with non-zero
-> > > count, then it should lock the resources needed for streaming. The
-> > > reason behind that is that REQBUFS also locks the current selected
-> > > format in place, since the format determines the amount of memory
-> > > needed for the buffers.
-> > 
-> > qv4l2 calls REQBUFS(1), then REQBUFS(0). Well, this is currently wrong,
-> > as most drivers will only release buffers at VIDIOC_STREAMOFF.
-> 
-> qv4l2 first calls STREAMOFF, then REQBUFS(1), then REQBUFS(0). In the hope
-> that one of these will actually free any buffers. It's random at the
-> moment when drivers release buffers, one of the reasons for using vb2.
-> 
-> > Anyway, even replacing
-> > REQBUFS(0) with VIDIOC_STREAMOFF at qv4l2 won't help with uvcvideo. It
-> > seems that, once buffers are requested at uvcvideo, they will release
-> > only at close().
+Memory hotplug is a logic for making pages unused in the specified
+range of pfn. So, some of core logics can be used for other purpose
+as allocating a very large contigous memory block.
 
-That's not correct. Buffers are released when calling REQBUFS(0). However, the 
-file handle is still marked as owning the device for streaming purpose, so 
-other applications can't change the format or request buffers.
+This patch moves some functions from mm/memory_hotplug.c to
+mm/page_isolation.c. This helps adding a function for large-alloc in
+page_isolation.c with memory-unplug technique.
 
-> > One consequence on the way uvcvideo is currently doing it is that, if you
-> > use qv4l2, it is impossible to change the video size, as it returns
-> > -EBUSY, if you ask it to
-> > 
-> > select a different format (even without streaming):
-> > 	$ ./qv4l2
-> > 	Set Capture Format: Device or resource busy
-> > 	
-> > > The reason a lot of drivers don't do this is partially because for many
-> > > TV capture drivers it is highly unlikely that the buffer size will
-> > > change after calling REQBUFS (there are basically only two formats:
-> > > 720x480 or 720x576 and users will normally never change between the
-> > > two). However, this is much more likely to happen for webcams and
-> > > embedded systems supporting HDTV.
-> > 
-> > What applications do, when they need to change the formats, is to call
-> > REQBUFS again.
-> > 
-> > > The other reason is probably because driver developers simple do not
-> > > realize they need to lock the resources on REQBUFS. I'm sure many
-> > > existing drivers will fail miserably if you change the format after
-> > > calling REQBUFS (particularly with mmap streaming mode).
-> > 
-> > I didn't make any test, but I don't think they'll fail (at least, on the
-> > drivers that use videobuf), as streaming format will be stored at the
-> > videobuf handling (at buffer_prepare callback).
-> > 
-> > So, if you change the format, the change will be applied only at the next
-> > call to REQBUFS.
-> 
-> This behavior isn't according to the spec. G/S_FMT relate to the current
-> format, not to some future format. Most non-videobuf drivers will not
-> support this behavior.
-> 
-> It should be simple, really:
-> 
-> STREAMOFF
-> REQBUFS(0)
-> 
-> That's all that should be needed to stop streaming and return all buffers
-> to the app. This is what uvc should also support (and I actually thought
-> it did).
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+[mina86: reworded commit message]
+Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+---
+ include/linux/page-isolation.h |    7 +++
+ mm/memory_hotplug.c            |  108 --------------------------------------
+ mm/page_isolation.c            |  111 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 118 insertions(+), 108 deletions(-)
 
-That's what uvcvideo does.
-
-> Attempts to change formats while buffers have been requested should be
-> blocked with EBUSY. It's all perfectly reasonable. Well, perhaps next year
-> we might succeed in having all drivers behave consistently...
-
+diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
+index 051c1b1..58cdbac 100644
+--- a/include/linux/page-isolation.h
++++ b/include/linux/page-isolation.h
+@@ -33,5 +33,12 @@ test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
+ extern int set_migratetype_isolate(struct page *page);
+ extern void unset_migratetype_isolate(struct page *page);
+ 
++/*
++ * For migration.
++ */
++
++int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn);
++unsigned long scan_lru_pages(unsigned long start, unsigned long end);
++int do_migrate_range(unsigned long start_pfn, unsigned long end_pfn);
+ 
+ #endif
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 2c6523a..2b18cb5 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -634,114 +634,6 @@ int is_mem_section_removable(unsigned long start_pfn, unsigned long nr_pages)
+ }
+ 
+ /*
+- * Confirm all pages in a range [start, end) is belongs to the same zone.
+- */
+-static int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn)
+-{
+-	unsigned long pfn;
+-	struct zone *zone = NULL;
+-	struct page *page;
+-	int i;
+-	for (pfn = start_pfn;
+-	     pfn < end_pfn;
+-	     pfn += MAX_ORDER_NR_PAGES) {
+-		i = 0;
+-		/* This is just a CONFIG_HOLES_IN_ZONE check.*/
+-		while ((i < MAX_ORDER_NR_PAGES) && !pfn_valid_within(pfn + i))
+-			i++;
+-		if (i == MAX_ORDER_NR_PAGES)
+-			continue;
+-		page = pfn_to_page(pfn + i);
+-		if (zone && page_zone(page) != zone)
+-			return 0;
+-		zone = page_zone(page);
+-	}
+-	return 1;
+-}
+-
+-/*
+- * Scanning pfn is much easier than scanning lru list.
+- * Scan pfn from start to end and Find LRU page.
+- */
+-static unsigned long scan_lru_pages(unsigned long start, unsigned long end)
+-{
+-	unsigned long pfn;
+-	struct page *page;
+-	for (pfn = start; pfn < end; pfn++) {
+-		if (pfn_valid(pfn)) {
+-			page = pfn_to_page(pfn);
+-			if (PageLRU(page))
+-				return pfn;
+-		}
+-	}
+-	return 0;
+-}
+-
+-static struct page *
+-hotremove_migrate_alloc(struct page *page, unsigned long private, int **x)
+-{
+-	/* This should be improooooved!! */
+-	return alloc_page(GFP_HIGHUSER_MOVABLE);
+-}
+-
+-#define NR_OFFLINE_AT_ONCE_PAGES	(256)
+-static int
+-do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
+-{
+-	unsigned long pfn;
+-	struct page *page;
+-	int move_pages = NR_OFFLINE_AT_ONCE_PAGES;
+-	int not_managed = 0;
+-	int ret = 0;
+-	LIST_HEAD(source);
+-
+-	for (pfn = start_pfn; pfn < end_pfn && move_pages > 0; pfn++) {
+-		if (!pfn_valid(pfn))
+-			continue;
+-		page = pfn_to_page(pfn);
+-		if (!page_count(page))
+-			continue;
+-		/*
+-		 * We can skip free pages. And we can only deal with pages on
+-		 * LRU.
+-		 */
+-		ret = isolate_lru_page(page);
+-		if (!ret) { /* Success */
+-			list_add_tail(&page->lru, &source);
+-			move_pages--;
+-			inc_zone_page_state(page, NR_ISOLATED_ANON +
+-					    page_is_file_cache(page));
+-
+-		} else {
+-#ifdef CONFIG_DEBUG_VM
+-			printk(KERN_ALERT "removing pfn %lx from LRU failed\n",
+-			       pfn);
+-			dump_page(page);
+-#endif
+-			/* Becasue we don't have big zone->lock. we should
+-			   check this again here. */
+-			if (page_count(page)) {
+-				not_managed++;
+-				ret = -EBUSY;
+-				break;
+-			}
+-		}
+-	}
+-	if (!list_empty(&source)) {
+-		if (not_managed) {
+-			putback_lru_pages(&source);
+-			goto out;
+-		}
+-		/* this function returns # of failed pages */
+-		ret = migrate_pages(&source, hotremove_migrate_alloc, 0, 1);
+-		if (ret)
+-			putback_lru_pages(&source);
+-	}
+-out:
+-	return ret;
+-}
+-
+-/*
+  * remove from free_area[] and mark all as Reserved.
+  */
+ static int
+diff --git a/mm/page_isolation.c b/mm/page_isolation.c
+index 4ae42bb..077cf19 100644
+--- a/mm/page_isolation.c
++++ b/mm/page_isolation.c
+@@ -5,6 +5,9 @@
+ #include <linux/mm.h>
+ #include <linux/page-isolation.h>
+ #include <linux/pageblock-flags.h>
++#include <linux/memcontrol.h>
++#include <linux/migrate.h>
++#include <linux/mm_inline.h>
+ #include "internal.h"
+ 
+ static inline struct page *
+@@ -139,3 +142,111 @@ int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn)
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ 	return ret ? 0 : -EBUSY;
+ }
++
++
++/*
++ * Confirm all pages in a range [start, end) is belongs to the same zone.
++ */
++int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn)
++{
++	unsigned long pfn;
++	struct zone *zone = NULL;
++	struct page *page;
++	int i;
++	for (pfn = start_pfn;
++	     pfn < end_pfn;
++	     pfn += MAX_ORDER_NR_PAGES) {
++		i = 0;
++		/* This is just a CONFIG_HOLES_IN_ZONE check.*/
++		while ((i < MAX_ORDER_NR_PAGES) && !pfn_valid_within(pfn + i))
++			i++;
++		if (i == MAX_ORDER_NR_PAGES)
++			continue;
++		page = pfn_to_page(pfn + i);
++		if (zone && page_zone(page) != zone)
++			return 0;
++		zone = page_zone(page);
++	}
++	return 1;
++}
++
++/*
++ * Scanning pfn is much easier than scanning lru list.
++ * Scan pfn from start to end and Find LRU page.
++ */
++unsigned long scan_lru_pages(unsigned long start, unsigned long end)
++{
++	unsigned long pfn;
++	struct page *page;
++	for (pfn = start; pfn < end; pfn++) {
++		if (pfn_valid(pfn)) {
++			page = pfn_to_page(pfn);
++			if (PageLRU(page))
++				return pfn;
++		}
++	}
++	return 0;
++}
++
++struct page *
++hotremove_migrate_alloc(struct page *page, unsigned long private, int **x)
++{
++	/* This should be improooooved!! */
++	return alloc_page(GFP_HIGHUSER_MOVABLE);
++}
++
++#define NR_OFFLINE_AT_ONCE_PAGES	(256)
++int do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
++{
++	unsigned long pfn;
++	struct page *page;
++	int move_pages = NR_OFFLINE_AT_ONCE_PAGES;
++	int not_managed = 0;
++	int ret = 0;
++	LIST_HEAD(source);
++
++	for (pfn = start_pfn; pfn < end_pfn && move_pages > 0; pfn++) {
++		if (!pfn_valid(pfn))
++			continue;
++		page = pfn_to_page(pfn);
++		if (!page_count(page))
++			continue;
++		/*
++		 * We can skip free pages. And we can only deal with pages on
++		 * LRU.
++		 */
++		ret = isolate_lru_page(page);
++		if (!ret) { /* Success */
++			list_add_tail(&page->lru, &source);
++			move_pages--;
++			inc_zone_page_state(page, NR_ISOLATED_ANON +
++					    page_is_file_cache(page));
++
++		} else {
++#ifdef CONFIG_DEBUG_VM
++			printk(KERN_ALERT "removing pfn %lx from LRU failed\n",
++			       pfn);
++			dump_page(page);
++#endif
++			/* Because we don't have big zone->lock. we should
++			   check this again here. */
++			if (page_count(page)) {
++				not_managed++;
++				ret = -EBUSY;
++				break;
++			}
++		}
++	}
++	if (!list_empty(&source)) {
++		if (not_managed) {
++			putback_lru_pages(&source);
++			goto out;
++		}
++		/* this function returns # of failed pages */
++		ret = migrate_pages(&source, hotremove_migrate_alloc, 0, 1);
++		if (ret)
++			putback_lru_pages(&source);
++	}
++out:
++	return ret;
++}
 -- 
-Regards,
+1.7.2.3
 
-Laurent Pinchart
