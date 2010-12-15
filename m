@@ -1,34 +1,89 @@
 Return-path: <mchehab@gaivota>
-Received: from fmmailgate06.web.de ([217.72.192.247]:46524 "EHLO
-	fmmailgate06.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753804Ab0L2V1v convert rfc822-to-8bit (ORCPT
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:57611 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752461Ab0LORC6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Dec 2010 16:27:51 -0500
-Date: Wed, 29 Dec 2010 22:27:50 +0100 (CET)
-From: "Roland Kletzing" <devzero@web.de>
-To: linux-media@vger.kernel.org
-Cc: p.osciak@samsung.com
-Message-ID: <951502855.3794233.1293658070094.JavaMail.fmail@mwmweb063>
-Subject: bug? oops with mem2mem_testdev module
+	Wed, 15 Dec 2010 12:02:58 -0500
+Date: Wed, 15 Dec 2010 17:01:42 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
+	Tony Lindgren <tony@atomide.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RESEND] [PATCH 1/2] OMAP1: allow reserving memory for camera
+Message-ID: <20101215170142.GA10883@n2100.arm.linux.org.uk>
+References: <201012051929.07220.jkrzyszt@tis.icnet.pl> <201012101159.21845.jkrzyszt@tis.icnet.pl> <201012101203.09441.jkrzyszt@tis.icnet.pl> <20101210170356.GA28472@n2100.arm.linux.org.uk> <AANLkTimTVWVmVfppAWSosidqLmo6c+8rPhLg=oJAVoYH@mail.gmail.com> <20101213162947.GA11730@n2100.arm.linux.org.uk> <AANLkTi=ZYi=12k2vZMGp9AWNX8zofp6C-FnMu2egQOA1@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <AANLkTi=ZYi=12k2vZMGp9AWNX8zofp6C-FnMu2egQOA1@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hello, 
+On Wed, Dec 15, 2010 at 12:39:20PM +0000, Catalin Marinas wrote:
+> On 13 December 2010 16:29, Russell King - ARM Linux
+> <linux@arm.linux.org.uk> wrote:
+> > On Mon, Dec 13, 2010 at 03:52:20PM +0000, Catalin Marinas wrote:
+> >> On 10 December 2010 17:03, Russell King - ARM Linux
+> >> <linux@arm.linux.org.uk> wrote:
+> >> > On Fri, Dec 10, 2010 at 12:03:07PM +0100, Janusz Krzysztofik wrote:
+> >> >>  void __init omap1_camera_init(void *info)
+> >> >>  {
+> >> >>       struct platform_device *dev = &omap1_camera_device;
+> >> >> +     dma_addr_t paddr = omap1_camera_phys_mempool_base;
+> >> >> +     dma_addr_t size = omap1_camera_phys_mempool_size;
+> >> >>       int ret;
+> >> >>
+> >> >>       dev->dev.platform_data = info;
+> >> >>
+> >> >> +     if (paddr) {
+> >> >> +             if (dma_declare_coherent_memory(&dev->dev, paddr, paddr, size,
+> >> >> +                             DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE))
+> >> >
+> >> > Although this works, you're ending up with SDRAM being mapped via
+> >> > ioremap, which uses MT_DEVICE - so what is SDRAM ends up being
+> >> > mapped as if it were a device.
+> >>
+> >> BTW, does the generic dma_declare_coherent_memory() does the correct
+> >> thing in using ioremap()?
+> >
+> > I argue it doesn't, as I said above.  It means we map SDRAM as device
+> > memory, and as I understand the way interconnects work, it's entirely
+> > possible that this may not result in the SDRAM being accessible.
+> [...]
+> > So, not only does this fail the kernel's own rules, but as we already know,
+> > it fails the architecture's restrictions with multiple mappings of memory
+> > when used with SDRAM, and it also maps main memory as a device.  I wonder
+> > how many more things this broken API needs to do wrong before it's current
+> > implementation is consigned to the circular filing cabinet.
+> 
+> Should we not try to fix the generic code and still allow platforms to
+> use dma_declare_coherent_memory() in a safer way? I guess it may need
+> some arguing/explanation on linux-arch.
 
-i assume this is not expected behaviour.
-see below
-kernel is 2.6.37-rc7
+I think so - one of the issues with dma_declare_coherent_memory() is that
+it's original intention (as I understand it) was to allow drivers to use
+on-device dma coherent memory.
 
-regards
-roland
+Eg, a network controller with its own local SRAM which it can fetch DMA
+descriptors from, which tells it where in the bus address space to fetch
+packets from.  This SRAM is not part of the hosts memory, but is on the
+peripheral's bus, and so ioremap() (or maybe ioremap_wc()) would be
+appropriate for it.
 
+However, ioremap() on system RAM (even that which has been taken out on
+the memory map) may be problematical.
 
-[root@ubuntu]:~# modprobe mem2mem_testdev;modprobe -r mem2mem_testdev;modprobe mem2mem_testdevKilled
+I think the correct solution would be to revise the interface so it takes
+a void * pointer, which can be handed out by dma_alloc_coherent() directly
+without the API having to worry about how to map the memory.  IOW, push
+the mapping of that memory up a level to the caller of
+dma_declare_coherent_memory().
 
-[ 80.266552] m2m-testdev m2m-testdev.0: mem2mem-testdevDevice registered as /dev/video0[ 80.292786] m2m-testdev m2m-testdev.0: Removing mem2mem-testdev[ 80.323013] BUG: unable to handle kernel paging request at 7562696c[ 80.323685] IP: [ ] __kmalloc_track_caller+0x95/0x1c0[ 80.324094] *pde = 00000000[ 80.324094] Oops: 0000 [#1] SMP[ 80.324094] last sysfs file: /sys/module/videobuf_vmalloc/refcnt[ 80.324094] Modules linked in: videobuf_core snd_ens1371 gameport snd_rawmidi snd_seq_device snd_ac97_codec ac97_bus snd_pcm snd_timer snd psmouse soundcore snd_page_alloc intel_agp lp ppdev serio_raw parport_pc intel_gtt shpchp vmw_balloon agpgart i2c_piix4 parport pcnet32 mptspi mptscsih floppy mii mptbase scsi_transport_spi [last unloaded: videobuf_vmalloc][ 80.324094][ 80.324094] Pid: 731, comm: modprobe Not tainted 2.6.37-rc7 #3 440BX Desktop Reference Platform/VMware Virtual Platform[ 80.324094] EIP: 0060:[ ] EFLAGS: 00010006 CPU: 0[ 80.324094] EIP is at __kmalloc_track_caller+0x95/0x1c0[ 80.324094] EAX: df406ff8 EBX: 0000013c ECX: 7562696c EDX: 00000000[ 80.324094] ESI: df002500 EDI: 000000d0 EBP: de771e70 ESP: de771e44[ 80.324094] DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068[ 80.324094] Process modprobe (pid: 731, ti=de770000 task=de4d5860 task.ti=de770000)[ 80.324094] Stack:[ 80.324094] ffffffff 00000757 00000000 c04f5d4e de4220c4 c035ef4b 00000246 7562696c[ 80.324094] de50a9c0 000000d0 000000ab de771e90 c04f5d78 df002180 00000000 00000080[ 80.324094] 00000020 df0007b0 de422000 de771ee0 c035ef4b ffffffff c0755692 00000757[ 80.324094] Call Trace:[ 80.324094] [ ] ? __alloc_skb+0x2e/0x100[ 80.324094] [ ] ? kobject_uevent_env+0x29b/0x430[ 80.324094] [ ] ? __alloc_skb+0x58/0x100[ 80.324094] [ ] ? kobject_uevent_env+0x29b/0x430[ 80.324094] [ ] ? kobject_uevent+0xa/0x10[ 80.324094] [ ] ? kobject_release+0x74/0x80[ 80.324094] [ ] ? kobject_release+0x0/0x80[ 80.324094] [ ] ? kref_put+0x2d/0x60[ 80.324094] [ ] ? kobject_put+0x1d/0x50[ 80.324094] [ ] ? free_sect_attrs+0x32/0x40[ 80.324094] [ ] ? free_module+0x143/0x1c0[ 80.324094] [ ] ? sys_delete_module+0x16e/0x200[ 80.324094] [ ] ? sysenter_do_call+0x12/0x28[ 80.324094] Code: 9c 58 8d 44 20 00 89 45 ec fa 8d 44 20 00 90 8b 06 64 03 05 94 80 8c c0 8b 10 85 d2 89 55 f0 0f 84 0b 01 00 00 8b 56 10 8b 4d f0   14 11 89 10 8b 45 ec 50 9d 8d 44 20 00 8b 55 f0 85 d2 75 46[ 80.324094] EIP: [ ] __kmalloc_track_caller+0x95/0x1c0 SS:ESP 0068:de771e44[ 80.324094] CR2: 000000007562696c[ 80.324094] ---[ end trace 1c390fe96c782b4a ]---[ 80.336810] BUG: unable to handle kernel paging request at 7562696c[ 80.337045] IP: [ ] kmem_cache_alloc_notrace+0x52/0xa0[ 80.337207] *pde = 00000000[ 80.337323] Oops: 0000 [#2] SMP[ 80.337454] last sysfs file: /sys/module/videobuf_vmalloc/refcnt[ 80.337596] Modules linked in: videobuf_core snd_ens1371 gameport snd_rawmidi snd_seq_device snd_ac97_codec ac97_bus snd_pcm snd_timer snd psmouse soundcore snd_page_alloc intel_agp lp ppdev serio_raw parport_pc intel_gtt shpchp vmw_balloon agpgart i2c_piix4 parport pcnet32 mptspi mptscsih floppy mii mptbase scsi_transport_spi [last unloaded: videobuf_vmalloc][ 80.338648][ 80.338812] Pid: 706, comm: bash Tainted: G D 2.6.37-rc7 #3 440BX Desktop Reference Platform/VMware Virtual Platform[ 80.339076] EIP: 0060:[ ] EFLAGS: 00010006 CPU: 0[ 80.339208] EIP is at kmem_cache_alloc_notrace+0x52/0xa0[ 80.339336] EAX: df406ff8 EBX: 7562696c ECX: c02258bc EDX: 00000000[ 80.339473] ESI: df002500 EDI: 000080d0 EBP: de51ff18 ESP: de51ff00[ 80.339611] DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068[ 80.339739] Process bash (pid: 706, ti=de51e000 task=de4d25e0 task.ti=de51e000)[ 80.339957] Stack:[ 80.340056] 0871c3c8 c02258bc 00000246 cbe22c40 df002500 de106bd0 de51ff38 c02258bc[ 80.340072] 00000040 000080d0 de51ff38 de106bd0 00000000 0871c3c8 de51ff60 c0225990[ 80.340072] 00000000 00000000 c072e378 cbf5f8f4 de51ffb4 ffffffea 00000000 0871c3c8[ 80.340072] Call Trace:[ 80.340072] [ ] ? alloc_pipe_info+0x6c/0xf0[ 80.340072] [ ] ? alloc_pipe_info+0x6c/0xf0[ 80.340072] [ ] ? create_write_pipe+0x50/0x190[ 80.340072] [ ] ? do_pipe_flags+0x3f/0x110[ 80.340072] [ ] ? sys_pipe2+0x1e/0x60[ 80.340072] [ ] ? sys_rt_sigprocmask+0x99/0xf0[ 80.340072] [ ] ? sys_pipe+0x1e/0x20[ 80.340072] [ ] ? sysenter_do_call+0x12/0x28[ 80.340072] Code: 4d ec e8 12 43 3c 00 8b 4d ec 9c 58 8d 44 20 00 89 45 f0 fa 8d 44 20 00 90 8b 06 64 03 05 94 80 8c c0 8b 18 85 db 74 3c 8b 56 10   14 13 89 10 8b 45 f0 50 9d 8d 44 20 00 85 db 75 14 89 d8 8b[ 80.340072] EIP: [ ] kmem_cache_alloc_notrace+0x52/0xa0 SS:ESP 0068:de51ff00[ 80.340072] CR2: 000000007562696c[ 80.340072] ---[ end trace 1c390fe96c782b4b ]---
-___________________________________________________________
-NEU: FreePhone - kostenlos mobil telefonieren und surfen!				
-Jetzt informieren: http://produkte.web.de/go/webdefreephone
+We can then sanely do preallocations via dma_coherent_alloc() and caching
+them back into dma_declare_coherent_memory() without creating additional
+mappings which cause architectural violations.
