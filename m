@@ -1,314 +1,650 @@
 Return-path: <mchehab@gaivota>
-Received: from moutng.kundenserver.de ([212.227.17.10]:59570 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756308Ab0LRQY6 convert rfc822-to-8bit (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:10693 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753240Ab0LOUin (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Dec 2010 11:24:58 -0500
-Date: Sat, 18 Dec 2010 17:24:46 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Alberto Panizzo <alberto.panizzo@gmail.com>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Magnus Damm <damm@opensource.se>,
-	=?ISO-8859-1?Q?M=E1rton_N=E9meth?= <nm127@freemail.hu>,
-	linux-media@vger.kernel.org,
-	linux-kernel <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH 2/3] mx3_camera: Support correctly the YUV222 and BAYER
- configurations of CSI
-In-Reply-To: <Pine.LNX.4.64.1012011832430.28110@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1012181722200.18515@axis700.grange>
-References: <1290964687.3016.5.camel@realization> <1290965045.3016.11.camel@realization>
- <Pine.LNX.4.64.1012011832430.28110@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Wed, 15 Dec 2010 15:38:43 -0500
+Date: Wed, 15 Dec 2010 21:34:27 +0100
+From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Subject: [PATCHv8 07/12] mm: cma: Contiguous Memory Allocator added
+In-reply-to: <cover.1292443200.git.m.nazarewicz@samsung.com>
+To: Michal Nazarewicz <mina86@mina86.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mel Gorman <mel@csn.ul.ie>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org
+Message-id: <eb8f43235c8ff2816ada7b56ffe371ea6140cae8.1292443200.git.m.nazarewicz@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <cover.1292443200.git.m.nazarewicz@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Alberto
+The Contiguous Memory Allocator is a set of functions that lets
+one initialise a region of memory which then can be used to perform
+allocations of contiguous memory chunks from.
 
-it would be slowly on the time to address my comments and submit updates. 
-While at it, also, please update the subject - you probably meant "YUV422" 
-or "YUV444" there, also below:
+CMA allows for creation of private and non-private contexts.
+The former is reserved for CMA and no other kernel subsystem can
+use it.  The latter allows for movable pages to be allocated within
+CMA's managed memory so that it can be used for page cache when
+CMA devices do not use it.
 
-On Wed, 1 Dec 2010, Guennadi Liakhovetski wrote:
-
-> On Sun, 28 Nov 2010, Alberto Panizzo wrote:
-> 
-> > This patch is tested and works with the OV2640 camera that output
-> > YUV422 (UYVY) and RGB565 data.
-> > 
-> > The YUV422 format is managed to be converted in IPU internal YUV444 format
-> > so this stream could be used in the future to feed directly other IPU
-> > blocks.
-> > The RGB565 format is managed as GENERIC and can be moved only from CSI
-> > to memory.
-> > 
-> > Signed-off-by: Alberto Panizzo <maramaopercheseimorto@gmail.com>
-> > ---
-> > 
-> > Before applying, please give me feedback if this break in some way other
-> > pixel formats!
-> > 
-> > 
-> >  drivers/media/video/mx3_camera.c |  126 +++++++++++++++++++++++++++++++++-----
-> >  1 files changed, 110 insertions(+), 16 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
-> > index 29c5fc3..6811d6f 100644
-> > --- a/drivers/media/video/mx3_camera.c
-> > +++ b/drivers/media/video/mx3_camera.c
-> > @@ -55,6 +55,31 @@
-> >  #define CSI_SENS_CONF_EXT_VSYNC_SHIFT		15
-> >  #define CSI_SENS_CONF_DIVRATIO_SHIFT		16
-> >  
-> > +/*
-> > + * IPU support the following data formatting (44.1.1.3 Data Flows and Formats):
-> > + * 1 YUV 4:4:4 or RGB—8 bits per color component
-> > + * 2 YUV 4:4:4 or RGB—10 bits per color component
-
-don't know what characters are those. Please, replace with ASCII.
-
-Thanks
-Guennadi
-
-> > + * 3 Generic data (from sensor to the system memory only)
-> > + * The formats 1 and 2 are aligned in words of 32 bits, 3 is free and not
-> > + * recognized by IPU blocks.
-> > + *
-> > + * Taking the value of SENS_DATA_FORMAT and DATA_WIDTH, the CSI tries to
-> > + * align (or rearrange) the sampled data to fit the IPU supported formats
-> > + * as follows:
-> > + * - CSI_SENS_CONF_DATA_FMT_RGB_YUV444: It consider the pixel as a sequence of
-> > + *	3 components of width DATA_WIDTH aligning these to a 32 bit word.
-> > + *	The CSI output in this case can feed other IPU blocks.
-> > + * - CSI_SENS_CONF_DATA_FMT_YUV422: It consider the pixel as a sequence of
-> > + *	2 components of width DATA_WIDTH were the first is the alternating U V
-> 
-> s/were/where/
-> 
-> > + *	components and the second is Y. It construct the YUV444 word repeating
-> > + *	the previous U, V samples aligning the results to a 32 bit word.
-> > + *	The CSI output in this case can feed other IPU blocks.
-> > + * - CSI_SENS_CONF_DATA_FMT_BAYER: No rework is performed in this case.
-> > + *	The sensor data is given as is, considering _every sample_ as a pixel
-> > + *	data. This format (combined with the GENERIC IPU pixel formats) can
-> > + *	carry all the other sensor pixel formats to the system memory.
-> > + *	The CSI output in this case _can not_ feed other IPU blocks.
-> > + */
-> >  #define CSI_SENS_CONF_DATA_FMT_RGB_YUV444	(0UL << CSI_SENS_CONF_DATA_FMT_SHIFT)
-> >  #define CSI_SENS_CONF_DATA_FMT_YUV422		(2UL << CSI_SENS_CONF_DATA_FMT_SHIFT)
-> >  #define CSI_SENS_CONF_DATA_FMT_BAYER		(3UL << CSI_SENS_CONF_DATA_FMT_SHIFT)
-> > @@ -323,14 +348,12 @@ static enum pixel_fmt fourcc_to_ipu_pix(__u32 fourcc)
-> >  {
-> >  	/* Add more formats as need arises and test possibilities appear... */
-> >  	switch (fourcc) {
-> > -	case V4L2_PIX_FMT_RGB565:
-> > -		return IPU_PIX_FMT_RGB565;
-> >  	case V4L2_PIX_FMT_RGB24:
-> >  		return IPU_PIX_FMT_RGB24;
-> > +	case V4L2_PIX_FMT_UYVY:
-> > +		return IPU_PIX_FMT_UYVY;
-> > +	case V4L2_PIX_FMT_RGB565:
-> >  	case V4L2_PIX_FMT_RGB332:
-> > -		return IPU_PIX_FMT_RGB332;
-> > -	case V4L2_PIX_FMT_YUV422P:
-> > -		return IPU_PIX_FMT_YVU422P;
-> >  	default:
-> >  		return IPU_PIX_FMT_GENERIC;
-> >  	}
-> 
-> Ok, so far mx3_camera has only been used with mt9m022 and mt9t031 sensors 
-> (from what I can see in the mainline), both are bayer. It can also work 
-> with monochrome cameras, and that would be the IPU_PIX_FMT_GENERIC case 
-> too. So, I wouldn't mind removing the rest, and only adding / fixing what 
-> you've now tested / implemented with your omnivision sensor. If anyone is 
-> using mx3_camera with any other formats and thinks, that they work - 
-> please, shout now. I'll probably also post a separate mail with this 
-> warning.
-> 
-> > @@ -358,9 +381,25 @@ static void mx3_videobuf_queue(struct videobuf_queue *vq,
-> >  
-> >  	/* This is the configuration of one sg-element */
-> >  	video->out_pixel_fmt	= fourcc_to_ipu_pix(fourcc);
-> > -	video->out_width	= icd->user_width;
-> > -	video->out_height	= icd->user_height;
-> > -	video->out_stride	= icd->user_width;
-> > +
-> > +	if (video->out_pixel_fmt == IPU_PIX_FMT_GENERIC) {
-> > +		/*
-> > +		 * IPU_PIX_FMT_GENERIC transport bytes, not pixels. So convert
-> > +		 * video->out_width and stride to the correct unit.
-> > +		 */
-> > +		int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
-> > +						icd->current_fmt->host_fmt);
-> > +		BUG_ON(bytes_per_line <= 0);
-> > +
-> > +		video->out_width	= bytes_per_line;
-> > +		video->out_height	= icd->user_height;
-> > +		video->out_stride	= bytes_per_line;
-> > +	} else {
-> > +		/* For IPU known formats the pixel unit is OK */
-> > +		video->out_width	= icd->user_width;
-> > +		video->out_height	= icd->user_height;
-> > +		video->out_stride	= icd->user_width;
-> > +	}
-> >  
-> >  #ifdef DEBUG
-> >  	/* helps to see what DMA actually has written */
-> > @@ -730,18 +769,68 @@ static int mx3_camera_get_formats(struct soc_camera_device *icd, unsigned int id
-> >  	if (xlate) {
-> >  		xlate->host_fmt	= fmt;
-> >  		xlate->code	= code;
-> > +		dev_dbg(dev, "Providing format %c%c%c%c in pass-through mode\n",
-> > +			(xlate->host_fmt->fourcc >> (0*8)) & 0xFF,
-> > +			(xlate->host_fmt->fourcc >> (1*8)) & 0xFF,
-> > +			(xlate->host_fmt->fourcc >> (2*8)) & 0xFF,
-> > +			(xlate->host_fmt->fourcc >> (3*8)) & 0xFF);
-> >  		xlate++;
-> > -		dev_dbg(dev, "Providing format %x in pass-through mode\n",
-> > -			xlate->host_fmt->fourcc);
-> 
-> make it even simpler: s/xlate->host_fmt/fmt/g
-> 
-> >  	}
-> >  
-> >  	return formats;
-> >  }
-> >  
-> > +static int samples_per_pixel(enum v4l2_mbus_pixelcode mcode)
-> > +{
-> > +	switch (mcode) {
-> > +	case V4L2_MBUS_FMT_YUYV8_2X8:
-> > +	case V4L2_MBUS_FMT_YVYU8_2X8:
-> > +	case V4L2_MBUS_FMT_VYUY8_2X8:
-> > +	case V4L2_MBUS_FMT_YVYU10_2X10:
-> > +	case V4L2_MBUS_FMT_YUYV10_2X10:
-> > +	case V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE:
-> > +	case V4L2_MBUS_FMT_RGB444_2X8_PADHI_BE:
-> > +	case V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE:
-> > +	case V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE:
-> > +	case V4L2_MBUS_FMT_RGB565_2X8_LE:
-> > +	case V4L2_MBUS_FMT_RGB565_2X8_BE:
-> > +	case V4L2_MBUS_FMT_BGR565_2X8_LE:
-> > +	case V4L2_MBUS_FMT_BGR565_2X8_BE:
-> > +		return 2;
-> > +	case V4L2_MBUS_FMT_SBGGR8_1X8:
-> > +	case V4L2_MBUS_FMT_SBGGR10_1X10:
-> > +	case V4L2_MBUS_FMT_GREY8_1X8:
-> > +	case V4L2_MBUS_FMT_Y10_1X10:
-> > +	case V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE:
-> > +	case V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE:
-> 
-> Are these two really 1 sample per pixel?
-> 
-> > +	case V4L2_MBUS_FMT_SGRBG8_1X8:
-> > +		return 1;
-> > +	default:
-> > +		/* Add other pixel codes as needed */
-> > +		return 0;
-> > +	}
-> > +}
-> 
-> Let's just do the following:
-> 
-> s32 soc_mbus_samples_per_pixel(const struct soc_mbus_pixelfmt *mf)
-> {
-> 	switch (mf->packing) {
-> 	case SOC_MBUS_PACKING_NONE:
-> 	case SOC_MBUS_PACKING_EXTEND16:
-> 		return 1;
-> 	case SOC_MBUS_PACKING_2X8_PADHI:
-> 	case SOC_MBUS_PACKING_2X8_PADLO:
-> 		return 2;
-> 	}
-> 	return -EINVAL;
-> }
-> EXPORT_SYMBOL(soc_mbus_samples_per_pixel);
-> 
-> in drivers/media/video/soc_mediabus.c, agree?
-> 
-> > +
-> >  static void configure_geometry(struct mx3_camera_dev *mx3_cam,
-> > -			       unsigned int width, unsigned int height)
-> > +			       unsigned int width, unsigned int height,
-> > +			       enum v4l2_mbus_pixelcode code)
-> >  {
-> >  	u32 ctrl, width_field, height_field;
-> > +	const struct soc_mbus_pixelfmt *fmt;
-> > +
-> > +	fmt = soc_mbus_get_fmtdesc(code);
-> > +	BUG_ON(!fmt);
-> > +
-> > +	if (fourcc_to_ipu_pix(fmt->fourcc) == IPU_PIX_FMT_GENERIC) {
-> > +		/*
-> > +		 * As we don't have an IPU native format, the CSI will be
-> > +		 * configured to output BAYER and here we need to convert
-> > +		 * geometry unit from pixels to samples.
-> > +		 * TODO: Support vertical down sampling (YUV420)
-> > +		 */
-> > +		width = width * samples_per_pixel(code);
-> > +		BUG_ON(!width);
-> > +	}
-> 
-> 		width *= soc_mbus_samples_per_pixel(fmt);
-> 		BUG_ON((int)width < 0);
-> 
-> >  
-> >  	/* Setup frame size - this cannot be changed on-the-fly... */
-> >  	width_field = width - 1;
-> > @@ -850,7 +939,7 @@ static int mx3_camera_set_crop(struct soc_camera_device *icd,
-> >  				return ret;
-> >  		}
-> >  
-> > -		configure_geometry(mx3_cam, mf.width, mf.height);
-> > +		configure_geometry(mx3_cam, mf.width, mf.height, mf.code);
-> >  	}
-> >  
-> >  	dev_dbg(icd->dev.parent, "Sensor cropped %dx%d\n",
-> > @@ -893,7 +982,7 @@ static int mx3_camera_set_fmt(struct soc_camera_device *icd,
-> >  	 * mxc_v4l2_s_fmt()
-> >  	 */
-> >  
-> > -	configure_geometry(mx3_cam, pix->width, pix->height);
-> > +	configure_geometry(mx3_cam, pix->width, pix->height, xlate->code);
-> >  
-> >  	mf.width	= pix->width;
-> >  	mf.height	= pix->height;
-> > @@ -1112,10 +1201,15 @@ static int mx3_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
-> >  		  (3 << CSI_SENS_CONF_DATA_FMT_SHIFT) |
-> >  		  (3 << CSI_SENS_CONF_DATA_WIDTH_SHIFT));
-> >  
-> > -	/* TODO: Support RGB and YUV formats */
-> > +	/* TODO: Support RGB_YUV444 formats */
-> >  
-> > -	/* This has been set in mx3_camera_activate(), but we clear it above */
-> > -	sens_conf |= CSI_SENS_CONF_DATA_FMT_BAYER;
-> > +	switch (xlate->code) {
-> > +	case V4L2_MBUS_FMT_UYVY8_2X8:
-> > +		sens_conf |= CSI_SENS_CONF_DATA_FMT_YUV422;
-> > +		break;
-> > +	default:
-> > +		sens_conf |= CSI_SENS_CONF_DATA_FMT_BAYER;
-> > +	}
-> >  
-> >  	if (common_flags & SOCAM_PCLK_SAMPLE_FALLING)
-> >  		sens_conf |= 1 << CSI_SENS_CONF_PIX_CLK_POL_SHIFT;
-> > -- 
-> > 1.6.3.3
-> 
-> If after all the above changed your set up still works, we're cool!;)
-> 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> 
-
+Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ include/linux/cma.h |  219 ++++++++++++++++++++++++++++++++++
+ mm/Kconfig          |   22 ++++
+ mm/Makefile         |    1 +
+ mm/cma.c            |  328 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 570 insertions(+), 0 deletions(-)
+ create mode 100644 include/linux/cma.h
+ create mode 100644 mm/cma.c
+
+diff --git a/include/linux/cma.h b/include/linux/cma.h
+new file mode 100644
+index 0000000..e9575fd
+--- /dev/null
++++ b/include/linux/cma.h
+@@ -0,0 +1,219 @@
++#ifndef __LINUX_CMA_H
++#define __LINUX_CMA_H
++
++/*
++ * Contiguous Memory Allocator
++ * Copyright (c) 2010 by Samsung Electronics.
++ * Written by Michal Nazarewicz (m.nazarewicz@samsung.com)
++ */
++
++/*
++ * Contiguous Memory Allocator
++ *
++ *   The Contiguous Memory Allocator (CMA) makes it possible for
++ *   device drivers to allocate big contiguous chunks of memory after
++ *   the system has booted.
++ *
++ *   It requires some machine- and/or platform-specific initialisation
++ *   code which prepares memory ranges to be used with CMA and later,
++ *   device drivers can allocate memory from those ranges.
++ *
++ * Why is it needed?
++ *
++ *   Various devices on embedded systems have no scatter-getter and/or
++ *   IO map support and require contiguous blocks of memory to
++ *   operate.  They include devices such as cameras, hardware video
++ *   coders, etc.
++ *
++ *   Such devices often require big memory buffers (a full HD frame
++ *   is, for instance, more then 2 mega pixels large, i.e. more than 6
++ *   MB of memory), which makes mechanisms such as kmalloc() or
++ *   alloc_page() ineffective.
++ *
++ *   At the same time, a solution where a big memory region is
++ *   reserved for a device is suboptimal since often more memory is
++ *   reserved then strictly required and, moreover, the memory is
++ *   inaccessible to page system even if device drivers don't use it.
++ *
++ *   CMA tries to solve this issue by operating on memory regions
++ *   where only movable pages can be allocated from.  This way, kernel
++ *   can use the memory for pagecache and when device driver requests
++ *   it, allocated pages can be migrated.
++ *
++ * Driver usage
++ *
++ *   For device driver to use CMA it needs to have a pointer to a CMA
++ *   context represented by a struct cma (which is an opaque data
++ *   type).
++ *
++ *   Once such pointer is obtained, device driver may allocate
++ *   contiguous memory chunk using the following function:
++ *
++ *     cm_alloc()
++ *
++ *   This function returns a pointer to struct cm (another opaque data
++ *   type) which represent a contiguous memory chunk.  This pointer
++ *   may be used with the following functions:
++ *
++ *     cm_free()    -- frees allocated contiguous memory
++ *     cm_pin()     -- pins memory
++ *     cm_unpin()   -- unpins memory
++ *     cm_vmap()    -- maps memory in kernel space
++ *     cm_vunmap()  -- unmaps memory from kernel space
++ *
++ *   See the respective functions for more information.
++ *
++ * Platform/machine integration
++ *
++ *   For device drivers to be able to use CMA platform or machine
++ *   initialisation code must create a CMA context and pass it to
++ *   device drivers.  The latter may be done by a global variable or
++ *   a platform/machine specific function.  For the former CMA
++ *   provides the following functions:
++ *
++ *     cma_reserve()
++ *     cma_create()
++ *
++ *   The cma_reserve() function must be called when memblock is still
++ *   operational and reserving memory with it is still possible.  On
++ *   ARM platform the "reserve" machine callback is a perfect place to
++ *   call it.
++ *
++ *   The last function creates a CMA context on a range of previously
++ *   initialised memory addresses.  Because it uses kmalloc() it needs
++ *   to be called after SLAB is initialised.
++ */
++
++/***************************** Kernel level API *****************************/
++
++#if defined __KERNEL__ && defined CONFIG_CMA
++
++/* CMA context */
++struct cma;
++/* Contiguous Memory chunk */
++struct cm;
++
++/**
++ * cma_reserve() - reserves memory.
++ * @start:	start address of the memory range in bytes hint; if unsure
++ *		pass zero.
++ * @size:	size of the memory to reserve in bytes.
++ * @alignment:	desired alignment in bytes (must be power of two or zero).
++ *
++ * It will use memblock to allocate memory.  @start and @size will be
++ * aligned to PAGE_SIZE.
++ *
++ * Returns reserved's area physical address or value that yields true
++ * when checked with IS_ERR_VALUE().
++ */
++unsigned long cma_reserve(unsigned long start, unsigned long size,
++			  unsigned long alignment);
++
++/**
++ * cma_create() - creates a CMA context.
++ * @start:	start address of the context in bytes.
++ * @size:	size of the context in bytes.
++ * @min_alignment:	minimal desired alignment or zero.
++ * @private:	whether to create private context.
++ *
++ * The range must be page aligned.  Different contexts cannot overlap.
++ *
++ * Unless @private is true the memory range must lay in ZONE_MOVABLE.
++ * If @private is true no underlaying memory checking is done and
++ * during allocation no pages migration will be performed - it is
++ * assumed that the memory is reserved and only CMA manages it.
++ *
++ * @start and @size must be page and @min_alignment alignment.
++ * @min_alignment specifies the minimal alignment that user will be
++ * able to request through cm_alloc() function.  In most cases one
++ * will probably pass zero as @min_alignment but if the CMA context
++ * will be used only for, say, 1 MiB blocks passing 1 << 20 as
++ * @min_alignment may increase performance and reduce memory usage
++ * slightly.
++ *
++ * Because this function uses kmalloc() it must be called after SLAB
++ * is initialised.  This in particular means that it cannot be called
++ * just after cma_reserve() since the former needs to be run way
++ * earlier.
++ *
++ * Returns pointer to CMA context or a pointer-error on error.
++ */
++struct cma *cma_create(unsigned long start, unsigned long size,
++		       unsigned long min_alignment, _Bool private);
++
++/**
++ * cma_destroy() - destroys CMA context.
++ * @cma:	context to destroy.
++ */
++void cma_destroy(struct cma *cma);
++
++/**
++ * cm_alloc() - allocates contiguous memory.
++ * @cma:	CMA context to use.
++ * @size:	desired chunk size in bytes (must be non-zero).
++ * @alignent:	desired minimal alignment in bytes (must be power of two
++ *		or zero).
++ *
++ * Returns pointer to structure representing contiguous memory or
++ * a pointer-error on error.
++ */
++struct cm *cm_alloc(struct cma *cma, unsigned long size,
++		    unsigned long alignment);
++
++/**
++ * cm_free() - frees contiguous memory.
++ * @cm:	contiguous memory to free.
++ *
++ * The contiguous memory must be not be pinned (see cma_pin()) and
++ * must not be mapped to kernel space (cma_vmap()).
++ */
++void cm_free(struct cm *cm);
++
++/**
++ * cm_pin() - pins contiguous memory.
++ * @cm: contiguous memory to pin.
++ *
++ * Pinning is required to obtain contiguous memory's physical address.
++ * While memory is pinned the memory will remain valid it may change
++ * if memory is unpinned and then pinned again.  This facility is
++ * provided so that memory defragmentation can be implemented inside
++ * CMA.
++ *
++ * Each call to cm_pin() must be accompanied by call to cm_unpin() and
++ * the calls may be nested.
++ *
++ * Returns chunk's physical address or a value that yields true when
++ * tested with IS_ERR_VALUE().
++ */
++unsigned long cm_pin(struct cm *cm);
++
++/**
++ * cm_unpin() - unpins contiguous memory.
++ * @cm: contiguous memory to unpin.
++ *
++ * See cm_pin().
++ */
++void cm_unpin(struct cm *cm);
++
++/**
++ * cm_vmap() - maps memory to kernel space (or returns existing mapping).
++ * @cm: contiguous memory to map.
++ *
++ * Each call to cm_vmap() must be accompanied with call to cm_vunmap()
++ * and the calls may be nested.
++ *
++ * Returns kernel virtual address or a pointer-error.
++ */
++void *cm_vmap(struct cm *cm);
++
++/**
++ * cm_vunmap() - unmpas memory from kernel space.
++ * @cm:	contiguous memory to unmap.
++ *
++ * See cm_vmap().
++ */
++void cm_vunmap(struct cm *cm);
++
++#endif
++
++#endif
+diff --git a/mm/Kconfig b/mm/Kconfig
+index b911ad3..2beab4d 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -331,3 +331,25 @@ config CLEANCACHE
+ 	  in a negligible performance hit.
+ 
+ 	  If unsure, say Y to enable cleancache
++
++config CMA
++	bool "Contiguous Memory Allocator"
++	select MIGRATION
++	select GENERIC_ALLOCATOR
++	help
++	  This enables the Contiguous Memory Allocator which allows drivers
++	  to allocate big physically-contiguous blocks of memory for use with
++	  hardware components that do not support I/O map nor scatter-gather.
++
++	  For more information see <include/linux/cma.h>.  If unsure, say "n".
++
++config CMA_DEBUG
++	bool "CMA debug messages (DEVELOPEMENT)"
++	depends on CMA
++	help
++	  Turns on debug messages in CMA.  This produces KERN_DEBUG
++	  messages for every CMA call as well as various messages while
++	  processing calls such as cma_alloc().  This option does not
++	  affect warning and error messages.
++
++	  This is mostly used during development.  If unsure, say "n".
+diff --git a/mm/Makefile b/mm/Makefile
+index 0b08d1c..c6a84f1 100644
+--- a/mm/Makefile
++++ b/mm/Makefile
+@@ -43,3 +43,4 @@ obj-$(CONFIG_HWPOISON_INJECT) += hwpoison-inject.o
+ obj-$(CONFIG_DEBUG_KMEMLEAK) += kmemleak.o
+ obj-$(CONFIG_DEBUG_KMEMLEAK_TEST) += kmemleak-test.o
+ obj-$(CONFIG_CLEANCACHE) += cleancache.o
++obj-$(CONFIG_CMA) += cma.o
+diff --git a/mm/cma.c b/mm/cma.c
+new file mode 100644
+index 0000000..d82361b
+--- /dev/null
++++ b/mm/cma.c
+@@ -0,0 +1,328 @@
++/*
++ * Contiguous Memory Allocator framework
++ * Copyright (c) 2010 by Samsung Electronics.
++ * Written by Michal Nazarewicz (m.nazarewicz@samsung.com)
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; either version 2 of the
++ * License or (at your optional) any later version of the license.
++ */
++
++/*
++ * See include/linux/cma.h for details.
++ */
++
++#define pr_fmt(fmt) "cma: " fmt
++
++#ifdef CONFIG_CMA_DEBUG
++#  define DEBUG
++#endif
++
++#include <linux/cma.h>
++
++#ifndef CONFIG_NO_BOOTMEM
++#  include <linux/bootmem.h>
++#endif
++#ifdef CONFIG_HAVE_MEMBLOCK
++#  include <linux/memblock.h>
++#endif
++
++#include <linux/err.h>
++#include <linux/genalloc.h>
++#include <linux/mm.h>
++#include <linux/module.h>
++#include <linux/mutex.h>
++#include <linux/page-isolation.h>
++#include <linux/slab.h>
++#include <linux/swap.h>
++
++#include <asm/page.h>
++
++#include "internal.h"
++
++/* XXX Revisit */
++#ifdef phys_to_pfn
++/* nothing to do */
++#elif defined __phys_to_pfn
++#  define phys_to_pfn __phys_to_pfn
++#else
++#  warning correct phys_to_pfn implementation needed
++static unsigned long phys_to_pfn(phys_addr_t phys)
++{
++	return virt_to_pfn(phys_to_virt(phys));
++}
++#endif
++
++
++/************************* Initialise CMA *************************/
++
++unsigned long cma_reserve(unsigned long start, unsigned long size,
++			  unsigned long alignment)
++{
++	pr_debug("%s(%p+%p/%p)\n", __func__, (void *)start, (void *)size,
++		 (void *)alignment);
++
++	/* Sanity checks */
++	if (!size || (alignment & (alignment - 1)))
++		return (unsigned long)-EINVAL;
++
++	/* Sanitise input arguments */
++	start = PAGE_ALIGN(start);
++	size  = PAGE_ALIGN(size);
++	if (alignment < PAGE_SIZE)
++		alignment = PAGE_SIZE;
++
++	/* Reserve memory */
++	if (start) {
++		if (memblock_is_region_reserved(start, size) ||
++		    memblock_reserve(start, size) < 0)
++			return (unsigned long)-EBUSY;
++	} else {
++		/*
++		 * Use __memblock_alloc_base() since
++		 * memblock_alloc_base() panic()s.
++		 */
++		u64 addr = __memblock_alloc_base(size, alignment, 0);
++		if (!addr) {
++			return (unsigned long)-ENOMEM;
++		} else if (addr + size > ~(unsigned long)0) {
++			memblock_free(addr, size);
++			return (unsigned long)-EOVERFLOW;
++		} else {
++			start = addr;
++		}
++	}
++
++	return start;
++}
++
++
++/************************** CMA context ***************************/
++
++struct cma {
++	bool migrate;
++	struct gen_pool *pool;
++};
++
++static int __cma_check_range(unsigned long start, unsigned long size)
++{
++	unsigned long pfn, count;
++	struct page *page;
++	struct zone *zone;
++
++	start = phys_to_pfn(start);
++	if (WARN_ON(!pfn_valid(start)))
++		return -EINVAL;
++
++	if (WARN_ON(page_zonenum(pfn_to_page(start)) != ZONE_MOVABLE))
++		return -EINVAL;
++
++	/* First check if all pages are valid and in the same zone */
++	zone  = page_zone(pfn_to_page(start));
++	count = size >> PAGE_SHIFT;
++	pfn   = start;
++	while (++pfn, --count) {
++		if (WARN_ON(!pfn_valid(pfn)) ||
++		    WARN_ON(page_zone(pfn_to_page(pfn)) != zone))
++			return -EINVAL;
++	}
++
++	/* Now check migratetype of their pageblocks. */
++	start = start & ~(pageblock_nr_pages - 1);
++	pfn   = ALIGN(pfn, pageblock_nr_pages);
++	page  = pfn_to_page(start);
++	count = (pfn - start) >> PAGE_SHIFT;
++	do {
++		if (WARN_ON(get_pageblock_migratetype(page) != MIGRATE_MOVABLE))
++			return -EINVAL;
++		page += pageblock_nr_pages;
++	} while (--count);
++
++	return 0;
++}
++
++struct cma *cma_create(unsigned long start, unsigned long size,
++		       unsigned long min_alignment, bool private)
++{
++	struct gen_pool *pool;
++	struct cma *cma;
++	int ret;
++
++	pr_debug("%s(%p+%p)\n", __func__, (void *)start, (void *)size);
++
++	if (!size)
++		return ERR_PTR(-EINVAL);
++	if (min_alignment & (min_alignment - 1))
++		return ERR_PTR(-EINVAL);
++	if (min_alignment < PAGE_SIZE)
++		min_alignment = PAGE_SIZE;
++	if ((start | size) & (min_alignment - 1))
++		return ERR_PTR(-EINVAL);
++	if (start + size < start)
++		return ERR_PTR(-EOVERFLOW);
++
++	if (!private) {
++		ret = __cma_check_range(start, size);
++		if (ret < 0)
++			return ERR_PTR(ret);
++	}
++
++	cma = kmalloc(sizeof *cma, GFP_KERNEL);
++	if (!cma)
++		return ERR_PTR(-ENOMEM);
++
++	pool = gen_pool_create(ffs(min_alignment) - 1, -1);
++	if (!pool) {
++		ret = -ENOMEM;
++		goto error1;
++	}
++
++	ret = gen_pool_add(pool, start, size, -1);
++	if (unlikely(ret))
++		goto error2;
++
++	cma->migrate = !private;
++	cma->pool = pool;
++
++	pr_debug("%s: returning <%p>\n", __func__, (void *)cma);
++	return cma;
++
++error2:
++	gen_pool_destroy(pool);
++error1:
++	kfree(cma);
++	return ERR_PTR(ret);
++}
++
++void cma_destroy(struct cma *cma)
++{
++	pr_debug("%s(<%p>)\n", __func__, (void *)cma);
++	gen_pool_destroy((void *)cma);
++}
++
++
++/************************* Allocate and free *************************/
++
++struct cm {
++	struct cma *cma;
++	unsigned long phys, size;
++	atomic_t pinned, mapped;
++};
++
++/* Protects cm_alloc(), cm_free() as well as gen_pools of each cm. */
++static DEFINE_MUTEX(cma_mutex);
++
++struct cm *cm_alloc(struct cma *cma, unsigned long size,
++		    unsigned long alignment)
++{
++	unsigned long start;
++	int ret = -ENOMEM;
++	struct cm *cm;
++
++	pr_debug("%s(<%p>, %p/%p)\n", __func__, (void *)cma,
++		 (void *)size, (void *)alignment);
++
++	if (!size || (alignment & (alignment - 1)))
++		return ERR_PTR(-EINVAL);
++	size = PAGE_ALIGN(size);
++
++	cm = kmalloc(sizeof *cm, GFP_KERNEL);
++	if (!cm)
++		return ERR_PTR(-ENOMEM);
++
++	mutex_lock(&cma_mutex);
++
++	start = gen_pool_alloc_aligned(cma->pool, size,
++				       alignment ? ffs(alignment) - 1 : 0);
++	if (!start)
++		goto error1;
++
++	if (cma->migrate) {
++		unsigned long pfn = phys_to_pfn(start);
++		ret = alloc_contig_range(pfn, pfn + (size >> PAGE_SHIFT), 0);
++		if (ret)
++			goto error2;
++	}
++
++	mutex_unlock(&cma_mutex);
++
++	cm->cma         = cma;
++	cm->phys        = start;
++	cm->size        = size;
++	atomic_set(&cm->pinned, 0);
++	atomic_set(&cm->mapped, 0);
++
++	pr_debug("%s(): returning [%p]\n", __func__, (void *)cm);
++	return cm;
++
++error2:
++	gen_pool_free((void *)cma, start, size);
++error1:
++	mutex_unlock(&cma_mutex);
++	kfree(cm);
++	return ERR_PTR(ret);
++}
++EXPORT_SYMBOL_GPL(cm_alloc);
++
++void cm_free(struct cm *cm)
++{
++	pr_debug("%s([%p])\n", __func__, (void *)cm);
++
++	if (WARN_ON(atomic_read(&cm->pinned) || atomic_read(&cm->mapped)))
++		return;
++
++	mutex_lock(&cma_mutex);
++
++	gen_pool_free(cm->cma->pool, cm->phys, cm->size);
++	if (cm->cma->migrate)
++		free_contig_pages(phys_to_page(cm->phys),
++				  cm->size >> PAGE_SHIFT);
++
++	mutex_unlock(&cma_mutex);
++
++	kfree(cm);
++}
++EXPORT_SYMBOL_GPL(cm_free);
++
++
++/************************* Mapping and addresses *************************/
++
++/*
++ * Currently no-operations but keep reference counters for error
++ * checking.
++ */
++
++unsigned long cm_pin(struct cm *cm)
++{
++	pr_debug("%s([%p])\n", __func__, (void *)cm);
++	atomic_inc(&cm->pinned);
++	return cm->phys;
++}
++EXPORT_SYMBOL_GPL(cm_pin);
++
++void cm_unpin(struct cm *cm)
++{
++	pr_debug("%s([%p])\n", __func__, (void *)cm);
++	WARN_ON(!atomic_add_unless(&cm->pinned, -1, 0));
++}
++EXPORT_SYMBOL_GPL(cm_unpin);
++
++void *cm_vmap(struct cm *cm)
++{
++	pr_debug("%s([%p])\n", __func__, (void *)cm);
++	atomic_inc(&cm->mapped);
++	/*
++	 * XXX We should probably do something more clever in the
++	 * future.  The memory might be highmem after all.
++	 */
++	return phys_to_virt(cm->phys);
++}
++EXPORT_SYMBOL_GPL(cm_vmap);
++
++void cm_vunmap(struct cm *cm)
++{
++	pr_debug("%s([%p])\n", __func__, (void *)cm);
++	WARN_ON(!atomic_add_unless(&cm->mapped, -1, 0));
++}
++EXPORT_SYMBOL_GPL(cm_vunmap);
+-- 
+1.7.2.3
+
