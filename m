@@ -1,57 +1,62 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:49159 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752079Ab0LaK1M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Dec 2010 05:27:12 -0500
-Message-ID: <4D1DAFF5.3090108@gmail.com>
-Date: Fri, 31 Dec 2010 08:27:01 -0200
-From: Mauro Carvalho Chehab <maurochehab@gmail.com>
-MIME-Version: 1.0
-To: "Justin P. Mattock" <justinmattock@gmail.com>
-CC: trivial@kernel.org, linux-m68k@lists.linux-m68k.org,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
-	linux-wireless@vger.kernel.org, linux-scsi@vger.kernel.org,
-	spi-devel-general@lists.sourceforge.net,
-	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
-Subject: Re: [PATCH 14/15]include:media:davinci:vpss.h Typo change diable
- to disable.
-References: <1293750484-1161-1-git-send-email-justinmattock@gmail.com> <1293750484-1161-2-git-send-email-justinmattock@gmail.com> <1293750484-1161-3-git-send-email-justinmattock@gmail.com> <1293750484-1161-4-git-send-email-justinmattock@gmail.com> <1293750484-1161-5-git-send-email-justinmattock@gmail.com> <1293750484-1161-6-git-send-email-justinmattock@gmail.com> <1293750484-1161-7-git-send-email-justinmattock@gmail.com> <1293750484-1161-8-git-send-email-justinmattock@gmail.com> <1293750484-1161-9-git-send-email-justinmattock@gmail.com> <1293750484-1161-10-git-send-email-justinmattock@gmail.com> <1293750484-1161-11-git-send-email-justinmattock@gmail.com> <1293750484-1161-12-git-send-email-justinmattock@gmail.com> <1293750484-1161-13-git-send-email-justinmattock@gmail.com> <1293750484-1161-14-git-send-email-justinmattock@gmail.com>
-In-Reply-To: <1293750484-1161-14-git-send-email-justinmattock@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from bear.ext.ti.com ([192.94.94.41]:54080 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751237Ab0LOJJr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Dec 2010 04:09:47 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v6 0/7] davinci vpbe: dm6446 v4l2 driver
+Date: Wed, 15 Dec 2010 14:39:22 +0530
+Message-Id: <1292404162-11734-1-git-send-email-manjunath.hadli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 30-12-2010 21:08, Justin P. Mattock escreveu:
-> The below patch fixes a typo "diable" to "disable". Please let me know if this 
-> is correct or not.
-> 
-> Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+version6 : addressed Sergei's and Murali's comments
+on:
+1. Fixed Murali's comments on moving README.davinci-vpbe to Documentation directory.
+2. Fixed Sergei's comments on indentation.
 
-PS.: Next time, please c/c linux-media ONLY on patches related to media
-drivers (/drivers/video and the corresponding include files). Having to
-dig into a series of 15 patches to just actually look on 3 patches 
-is not nice.
+Manjunath Hadli (7):
+  davinci vpbe: V4L2 display driver for DM644X SoC
+  davinci vpbe: VPBE display driver
+  davinci vpbe: OSD(On Screen Display) block
+  davinci vpbe: VENC( Video Encoder) implementation
+  davinci vpbe: platform specific additions
+  davinci vpbe: Build infrastructure for VPBE driver
+  davinci vpbe: Readme text for Dm6446 vpbe
 
-> 
-> ---
->  include/media/davinci/vpss.h |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/include/media/davinci/vpss.h b/include/media/davinci/vpss.h
-> index c59cc02..b586495 100644
-> --- a/include/media/davinci/vpss.h
-> +++ b/include/media/davinci/vpss.h
-> @@ -44,7 +44,7 @@ struct vpss_pg_frame_size {
->  	short pplen;
->  };
->  
-> -/* Used for enable/diable VPSS Clock */
-> +/* Used for enable/disable VPSS Clock */
->  enum vpss_clock_sel {
->  	/* DM355/DM365 */
->  	VPSS_CCDC_CLOCK,
+ Documentation/video4linux/README.davinci-vpbe |  100 ++
+ arch/arm/mach-davinci/board-dm644x-evm.c      |   79 +-
+ arch/arm/mach-davinci/dm644x.c                |  164 ++-
+ arch/arm/mach-davinci/include/mach/dm644x.h   |    4 +
+ drivers/media/video/davinci/Kconfig           |   22 +
+ drivers/media/video/davinci/Makefile          |    2 +
+ drivers/media/video/davinci/vpbe.c            |  837 ++++++++++
+ drivers/media/video/davinci/vpbe_display.c    | 2099 +++++++++++++++++++++++++
+ drivers/media/video/davinci/vpbe_osd.c        | 1211 ++++++++++++++
+ drivers/media/video/davinci/vpbe_osd_regs.h   |  389 +++++
+ drivers/media/video/davinci/vpbe_venc.c       |  574 +++++++
+ drivers/media/video/davinci/vpbe_venc_regs.h  |  189 +++
+ include/media/davinci/vpbe.h                  |  186 +++
+ include/media/davinci/vpbe_display.h          |  146 ++
+ include/media/davinci/vpbe_osd.h              |  397 +++++
+ include/media/davinci/vpbe_types.h            |   93 ++
+ include/media/davinci/vpbe_venc.h             |   38 +
+ 17 files changed, 6511 insertions(+), 19 deletions(-)
+ create mode 100644 Documentation/video4linux/README.davinci-vpbe
+ create mode 100644 drivers/media/video/davinci/vpbe.c
+ create mode 100644 drivers/media/video/davinci/vpbe_display.c
+ create mode 100644 drivers/media/video/davinci/vpbe_osd.c
+ create mode 100644 drivers/media/video/davinci/vpbe_osd_regs.h
+ create mode 100644 drivers/media/video/davinci/vpbe_venc.c
+ create mode 100644 drivers/media/video/davinci/vpbe_venc_regs.h
+ create mode 100644 include/media/davinci/vpbe.h
+ create mode 100644 include/media/davinci/vpbe_display.h
+ create mode 100644 include/media/davinci/vpbe_osd.h
+ create mode 100644 include/media/davinci/vpbe_types.h
+ create mode 100644 include/media/davinci/vpbe_venc.h
 
