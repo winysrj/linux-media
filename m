@@ -1,64 +1,56 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3937 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751809Ab0L2MDk (ORCPT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:36832 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752650Ab0LOGrf convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Dec 2010 07:03:40 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Deti Fliegl <deti@fliegl.de>
-Subject: Re: [PATCH] [media] dabusb: Move it to staging to be deprecated
-Date: Wed, 29 Dec 2010 13:03:22 +0100
-Cc: Felipe Sanches <juca@members.fsf.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <4D19037B.6060904@redhat.com> <201012291224.25864.hverkuil@xs4all.nl> <4D1B1D11.6030505@fliegl.de>
-In-Reply-To: <4D1B1D11.6030505@fliegl.de>
+	Wed, 15 Dec 2010 01:47:35 -0500
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201012291303.22716.hverkuil@xs4all.nl>
+In-Reply-To: <20101214214306.GC5900@hanuman.home.ifup.org>
+References: <20101212131550.GA2608@darkstar>
+	<AANLkTinaNjPjNbxE+OyRsY_jJxDW-pwehTPgyAWzqfzd@mail.gmail.com>
+	<20101214003024.GA3575@hanuman.home.ifup.org>
+	<AANLkTi=ic4i+whV7-gtA7jvWJkPE+bizLdra6OMDf6Cp@mail.gmail.com>
+	<20101214214306.GC5900@hanuman.home.ifup.org>
+Date: Wed, 15 Dec 2010 07:47:34 +0100
+Message-ID: <AANLkTi=nMXmXc01RNezRcws7Tqc66PzODSk8JFy14kNM@mail.gmail.com>
+Subject: Re: [PATCH] bttv: fix mutex use before init
+From: Torsten Kaiser <just.for.lkml@googlemail.com>
+To: Brandon Philips <brandon@ifup.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Dave Young <hidave.darkstar@gmail.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Chris Clayton <chris2553@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Wednesday, December 29, 2010 12:35:45 Deti Fliegl wrote:
-> On 12/29/10 12:24 PM, Hans Verkuil wrote:
->  >> No, it should support the Terratec hardware as well but it's outdated
->  >> and unstable. Therefor I agreed to remove the driver from the current
->  >> kernel as I am not willing to continue support for the code.
->  >
->  > I don't think it supports the Terratec hardware since the list of USB ids
->  > doesn't include the Terratec products:
-> Yes you are right - there you see - our driver is quite different - out 
-> latest changes are of october 2010 - and the kernel driver is somehow 
-> stone aged.
-> 
->  > Unless someone will pick up this source code and starts to work with 
-> us on
->  > designing an API it will probably be forgotten :-(
->  >
->  > As far as I can tell (please correct me if I am wrong) the hardware 
-> either no
->  > longer available or very hard to get hold off.
-> The product has been discontinued a couple of years ago. AFAIK about 50k 
-> to 100k pieces have been sold.
-> 
->  > I did see that Terratec still sells some DAB receivers, but they are 
-> all based
->  > on different hardware.
-> Yes you are right. We currently do not develop any DAB products and I 
-> don't think there will be DAB Linux support from other companies. DAB 
-> and even DAB+ is dead.
+On Tue, Dec 14, 2010 at 10:43 PM, Brandon Philips <brandon@ifup.org> wrote:
+> On 21:56 Tue 14 Dec 2010, Torsten Kaiser wrote:
+>> On Tue, Dec 14, 2010 at 1:30 AM, Brandon Philips <brandon@ifup.org> wrote:
+>> > On 17:13 Sun 12 Dec 2010, Torsten Kaiser wrote:
+>> >>  * change &fh->cap.vb_lock in bttv_open() AND radio_open() to
+>> >> &btv->init.cap.vb_lock
+>> >>  * add a mutex_init(&btv->init.cap.vb_lock) to the setup of init in bttv_probe()
+>> >
+>> > That seems like a reasonable suggestion. An openSUSE user submitted this
+>> > bug to our tracker too. Here is the patch I am having him test.
+>> >
+>> > Would you mind testing it?
+>>
+>> No. :-)
+>>
+>> Without this patch (==vanilla 2.6.37-rc5) I got 2 more OOPSe by
+>> restarting hal around 20 times.
+>> After applying this patch, I did not see a single OOPS after 100 restarts.
+>> So it looks like the fix is correct.
+>
+> Dave, Torsten- Great thanks for testing, can I get both you and Dave's
+> Tested-by then?
 
-I agree. Thank you for your help!
+Tested-by: Torsten Kaiser <just.for.lkml@googlemail.com>
 
-Mauro, do you think we can remove it for 2.6.38 based on the information
-provided (i.e. that there is no commercial product that is supported by
-this driver), or do you want to deprecate it first and remove it in 2.6.39?
+Thanks for providing this patch.
 
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Torsten
