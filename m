@@ -1,75 +1,49 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-px0-f194.google.com ([209.85.212.194]:41709 "EHLO
-	mail-px0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750738Ab0LaGwL (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44391 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760278Ab0LOBAg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Dec 2010 01:52:11 -0500
-Message-ID: <4D1D7DAE.7060504@gmail.com>
-Date: Thu, 30 Dec 2010 22:52:30 -0800
-From: "Justin P. Mattock" <justinmattock@gmail.com>
+	Tue, 14 Dec 2010 20:00:36 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Martin Hostettler <martin@neutronstar.dyndns.org>
+Subject: Re: [PATCH] v4l: OMAP3 ISP CCDC: Add support for 8bit greyscale sensors
+Date: Wed, 15 Dec 2010 02:01:31 +0100
+Cc: linux-media@vger.kernel.org
+References: <1292337823-15994-1-git-send-email-martin@neutronstar.dyndns.org>
+In-Reply-To: <1292337823-15994-1-git-send-email-martin@neutronstar.dyndns.org>
 MIME-Version: 1.0
-To: Grant Likely <grant.likely@secretlab.ca>
-CC: trivial@kernel.org, devel@driverdev.osuosl.org,
-	linux-scsi@vger.kernel.org, netdev@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-kernel@vger.kernel.org, ivtv-devel@ivtvdriver.org,
-	linux-m68k@lists.linux-m68k.org,
-	spi-devel-general@lists.sourceforge.net,
-	linux-media@vger.kernel.org, Dan Carpenter <error27@gmail.com>
-Subject: Re: [PATCH 02/15]drivers:spi:dw_spi.c Typo change diable to disable.
-References: <1293750484-1161-1-git-send-email-justinmattock@gmail.com> <1293750484-1161-2-git-send-email-justinmattock@gmail.com> <20101231064515.GC3733@angua.secretlab.ca>
-In-Reply-To: <20101231064515.GC3733@angua.secretlab.ca>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201012150201.31635.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On 12/30/2010 10:45 PM, Grant Likely wrote:
-> On Thu, Dec 30, 2010 at 03:07:51PM -0800, Justin P. Mattock wrote:
->> The below patch fixes a typo "diable" to "disable". Please let me know if this
->> is correct or not.
->>
->> Signed-off-by: Justin P. Mattock<justinmattock@gmail.com>
->
-> applied, thanks.
->
-> g.
+Hi Martin,
 
-ahh.. thanks.. just cleared up the left out diabled that I had thought I 
-forgotten(ended up separating comments and code and forgot)
->
->>
->> ---
->>   drivers/spi/dw_spi.c |    2 +-
->>   1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/spi/dw_spi.c b/drivers/spi/dw_spi.c
->> index 0838c79..7c3cf21 100644
->> --- a/drivers/spi/dw_spi.c
->> +++ b/drivers/spi/dw_spi.c
->> @@ -592,7 +592,7 @@ static void pump_transfers(unsigned long data)
->>   		spi_set_clk(dws, clk_div ? clk_div : chip->clk_div);
->>   		spi_chip_sel(dws, spi->chip_select);
->>
->> -		/* Set the interrupt mask, for poll mode just diable all int */
->> +		/* Set the interrupt mask, for poll mode just disable all int */
->>   		spi_mask_intr(dws, 0xff);
->>   		if (imask)
->>   			spi_umask_intr(dws, imask);
->> --
->> 1.6.5.2.180.gc5b3e
->>
->>
->> ------------------------------------------------------------------------------
->> Learn how Oracle Real Application Clusters (RAC) One Node allows customers
->> to consolidate database storage, standardize their database environment, and,
->> should the need arise, upgrade to a full multi-node Oracle RAC database
->> without downtime or disruption
->> http://p.sf.net/sfu/oracle-sfdevnl
->> _______________________________________________
->> spi-devel-general mailing list
->> spi-devel-general@lists.sourceforge.net
->> https://lists.sourceforge.net/lists/listinfo/spi-devel-general
->
+Thanks for the patch.
 
-Justin P. Mattock
+On Tuesday 14 December 2010 15:43:43 Martin Hostettler wrote:
+> Adds support for V4L2_MBUS_FMT_Y8_1X8 format and 8bit data width in
+> syncronous interface.
+> 
+> The data width is configured in the parallel interface part of the isp
+> platform data, defaulting to 10bit as before this commit. When i 8bit mode
+> don't apply DC substraction of 64 per default as this would remove 1/4 of
+> the sensor range.
+> 
+> When using V4L2_MBUS_FMT_Y8_1X8 (or possibly another 8bit per pixel) mode
+> set the CDCC to output 8bit per pixel instead of 16bit.
+> 
+> Signed-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
+
+I got a similar patch for 12bit support. I'll try to push a new version of the 
+ISP driver with that patch included in the next few days (it needs to go 
+through internal review first), could you then rebase your patch on top of it 
+? The core infrastructure will be set up, you will just have to add 8-bit 
+support.
+
+-- 
+Regards,
+
+Laurent Pinchart
