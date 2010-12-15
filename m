@@ -1,53 +1,71 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:50703 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752238Ab0LWNld (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Dec 2010 08:41:33 -0500
-From: Michal Nazarewicz <mina86@mina86.com>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Kyungmin Park <kmpark@infradead.org>,
-	linux-arm-kernel@lists.infradead.org,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
-	Mel Gorman <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
-	linux-mm@kvack.org, Ankita Garg <ankita@in.ibm.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-media@vger.kernel.org,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCHv8 00/12] Contiguous Memory Allocator
-References: <cover.1292443200.git.m.nazarewicz@samsung.com>
-	<AANLkTim8_=0+-zM5z4j0gBaw3PF3zgpXQNetEn-CfUGb@mail.gmail.com>
-	<20101223100642.GD3636@n2100.arm.linux.org.uk>
-Date: Thu, 23 Dec 2010 14:41:26 +0100
-In-Reply-To: <20101223100642.GD3636@n2100.arm.linux.org.uk> (Russell King's
-	message of "Thu, 23 Dec 2010 10:06:42 +0000")
-Message-ID: <87k4j0ehdl.fsf@erwin.mina86.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from comal.ext.ti.com ([198.47.26.152]:52141 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751789Ab0LOJLh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Dec 2010 04:11:37 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v6 6/7] davinci vpbe: Build infrastructure for VPBE driver
+Date: Wed, 15 Dec 2010 14:41:29 +0530
+Message-Id: <1292404289-12655-1-git-send-email-manjunath.hadli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
-> Has anyone addressed my issue with it that this is wide-open for
-> abuse by allocating large chunks of memory, and then remapping
-> them in some way with different attributes, thereby violating the
-> ARM architecture specification?
->
-> In other words, do we _actually_ have a use for this which doesn't
-> involve doing something like allocating 32MB of memory from it,
-> remapping it so that it's DMA coherent, and then performing DMA
-> on the resulting buffer?
+This patch adds the build infra-structure for Davinci
+VPBE dislay driver
 
-Huge pages.
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/video/davinci/Kconfig  |   22 ++++++++++++++++++++++
+ drivers/media/video/davinci/Makefile |    2 ++
+ 2 files changed, 24 insertions(+), 0 deletions(-)
 
-Also, don't treat it as coherent memory and just flush/clear/invalidate
-cache before and after each DMA transaction.  I never understood what's
-wrong with that approach.
-
+diff --git a/drivers/media/video/davinci/Kconfig b/drivers/media/video/davinci/Kconfig
+index 6b19540..a7f11e7 100644
+--- a/drivers/media/video/davinci/Kconfig
++++ b/drivers/media/video/davinci/Kconfig
+@@ -91,3 +91,25 @@ config VIDEO_ISIF
+ 
+ 	   To compile this driver as a module, choose M here: the
+ 	   module will be called vpfe.
++
++config VIDEO_DM644X_VPBE
++	tristate "DM644X VPBE HW module"
++	select VIDEO_VPSS_SYSTEM
++	select VIDEOBUF_DMA_CONTIG
++	help
++	    Enables VPBE modules used for display on a DM644x
++	    SoC.
++
++	    To compile this driver as a module, choose M here: the
++	    module will be called vpbe.
++
++
++config VIDEO_VPBE_DISPLAY
++	tristate "VPBE V4L2 Display driver"
++	select VIDEO_DM644X_VPBE
++	default y
++	help
++	    Enables VPBE V4L2 Display driver on a DMXXX device
++
++	    To compile this driver as a module, choose M here: the
++	    module will be called vpbe_display.
+diff --git a/drivers/media/video/davinci/Makefile b/drivers/media/video/davinci/Makefile
+index a379557..ae7dafb 100644
+--- a/drivers/media/video/davinci/Makefile
++++ b/drivers/media/video/davinci/Makefile
+@@ -16,3 +16,5 @@ obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
+ obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
+ obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
+ obj-$(CONFIG_VIDEO_ISIF) += isif.o
++obj-$(CONFIG_VIDEO_DM644X_VPBE) += vpbe.o vpbe_osd.o vpbe_venc.o
++obj-$(CONFIG_VIDEO_VPBE_DISPLAY) += vpbe_display.o
 -- 
-Best regards,                                         _     _
- .o. | Liege of Serenly Enlightened Majesty of      o' \,=./ `o
- ..o | Computer Science,  Michal "mina86" Nazarewicz   (o o)
- ooo +--<mina86-tlen.pl>--<jid:mina86-jabber.org>--ooO--(_)--Ooo--
+1.6.2.4
+
