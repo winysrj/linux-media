@@ -1,82 +1,45 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:51250 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758964Ab0LNByn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Dec 2010 20:54:43 -0500
-Message-ID: <4D06CE4C.3070003@redhat.com>
-Date: Mon, 13 Dec 2010 23:54:20 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from chybek.jannau.net ([83.169.20.219]:58289 "EHLO
+	chybek.jannau.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753200Ab0LOMJy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Dec 2010 07:09:54 -0500
+Date: Wed, 15 Dec 2010 13:03:46 +0100
+From: Janne Grunau <j@jannau.net>
+To: Schubert Andreas <andreas.schubert@die-einrichtung.org>
+Cc: linux-media@vger.kernel.org
+Subject: Re: budget_av and high load
+Message-ID: <20101215120346.GV8381@aniel.fritz.box>
+References: <E337B607-FA77-46A4-BB16-1A1700BFC7C3@die-einrichtung.org>
 MIME-Version: 1.0
-To: Jarod Wilson <jarod@redhat.com>
-CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Henrik Rydberg <rydberg@euromail.se>,
-	Linux Input <linux-input@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
-	Jiri Kosina <jkosina@suse.cz>,
-	=?UTF-8?B?RGF2aWQgSMOkcmRlbWFu?= <david@hardeman.nu>
-Subject: Re: [RFC] Input: define separate EVIOCGKEYCODE_V2/EVIOCSKEYCODE_V2
-References: <20101209093948.GD8821@core.coreip.homeip.net> <4D012844.3020009@euromail.se> <20101209191647.GC23781@core.coreip.homeip.net> <20101213090559.GH21401@core.coreip.homeip.net> <20101213183128.GE2531@redhat.com>
-In-Reply-To: <20101213183128.GE2531@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <E337B607-FA77-46A4-BB16-1A1700BFC7C3@die-einrichtung.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 13-12-2010 16:31, Jarod Wilson escreveu:
-> On Mon, Dec 13, 2010 at 01:06:00AM -0800, Dmitry Torokhov wrote:
->> On Thu, Dec 09, 2010 at 11:16:47AM -0800, Dmitry Torokhov wrote:
->>> On Thu, Dec 09, 2010 at 08:04:36PM +0100, Henrik Rydberg wrote:
->>>> On 12/09/2010 10:39 AM, Dmitry Torokhov wrote:
->>>>
->>>>> The desire to keep old names for the EVIOCGKEYCODE/EVIOCSKEYCODE while
->>>>> extending them to support large scancodes was a mistake. While we tried
->>>>> to keep ABI intact (and we succeeded in doing that, programs compiled
->>>>> on older kernels will work on newer ones) there is still a problem with
->>>>> recompiling existing software with newer kernel headers.
->>>>>
->>>>> New kernel headers will supply updated ioctl numbers and kernel will
->>>>> expect that userspace will use struct input_keymap_entry to set and
->>>>> retrieve keymap data. But since the names of ioctls are still the same
->>>>> userspace will happily compile even if not adjusted to make use of the
->>>>> new structure and will start miraculously fail in the field.
->>>>>
->>>>> To avoid this issue let's revert EVIOCGKEYCODE/EVIOCSKEYCODE definitions
->>>>> and add EVIOCGKEYCODE_V2/EVIOCSKEYCODE_V2 so that userspace can explicitly
->>>>> select the style of ioctls it wants to employ.
->>>>>
->>>>> Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
->>>>> ---
->>>>
->>>>
->>>> Would the header change suffice in itself?
->>>
->>> We still need to change evdev to return -EINVAL on wrong sizes but yes,
->>> the amount of change there could be more limited. I just thought that
->>> splitting it up explicitly shows the differences in handling better. If
->>> people prefer the previos version we could leave it, I am 50/50 between
->>> them.
->>>
->>
->> *ping*
->>
->> Mauro, Jarod, do you have an opinion on this? I think we need to settle
->> on a solution before 2.6.37 is out.
+On Fri, Dec 10, 2010 at 01:15:14PM +0100, Schubert Andreas wrote:
+> Hello everybody on the list,
 > 
-> Sorry, been meaning to reply, just been quite tied up with other work...
-> I'm of two minds on this as well, but probably leaning slightly in favor
-> of going ahead with an explicit _V2 so as to not break existing userspace
-> in new and unexpected ways. There presumably isn't much in the way of
-> userspace already adapted to the new interface, and its simple to do
-> another rev of those that have been. Okay, yeah, this is probably the best
-> way to go about it.
+> I have a KNC-1 DVB-S card running under kernel 2.6.36 and mythtv. I experience high load values in top like mentioned ages ago in this thread: http://www.linuxtv.org/pipermail/linux-dvb/2008-June/026509.html. 
+> My card has no CI-Module installed and the high load was CI-Module related, so I decided to give it a try and completely disable ciintf_init() in the kernel module which helped a lot. Load decreased by 50-80%. So I decided to add a module parameter to disable ciintf_init() on demand. Here is the diff:
 > 
-> Acked-by: Jarod Wilson <jarod@redhat.com>
+> 65,69d64
+> < 
+> < int budget_init_ci=1;
+> < module_param_named(init_ci, budget_init_ci, int, 0644);
+> < MODULE_PARM_DESC(init_ci, "Turn on(1)/off(0) ci initializing (default:on).");
+> < 
+> 1519,1520c1514
+> < 	if (budget_init_ci)
+> < 	  ciintf_init(budget_av);
+> ---
+> > 	ciintf_init(budget_av);
 > 
-> 
-I'm with some email troubles here. Not sure if you got my answer. I'm OK with
-those changes.
+> I don't know if this is useful at all so please be patient with me.
 
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com
+It's useful as bug report. I don't think the module parameter makes
+sense we should simply fix the bug. I'll look if I can reproduce this
+with one of my budget_av DVB-C cards.
 
-Cheers,
-Mauro
+Janne
