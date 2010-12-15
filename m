@@ -1,80 +1,85 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:64143 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752075Ab0LaLTb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Dec 2010 06:19:31 -0500
-Message-ID: <4D1DBC22.1030404@redhat.com>
-Date: Fri, 31 Dec 2010 09:18:58 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:59996 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751301Ab0LOFjr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Dec 2010 00:39:47 -0500
+Received: by gyb11 with SMTP id 11so825407gyb.19
+        for <linux-media@vger.kernel.org>; Tue, 14 Dec 2010 21:39:47 -0800 (PST)
 MIME-Version: 1.0
-To: Stefan Kriwanek <mail@stefankriwanek.de>
-CC: linux-media@vger.kernel.org, Douglas Landgraf <dougsland@gmail.com>
-Subject: Re: support for IR remote TerraTec Cinergy T USB XXS
-References: <4D1B4A7E.20503@stefankriwanek.de>
-In-Reply-To: <4D1B4A7E.20503@stefankriwanek.de>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <AANLkTinmeTuFC5VWgGTxTr43MO8=p8F2OF2phoOCnS_E@mail.gmail.com>
+References: <AANLkTik-ek+KT73+jU251h3o5HEV4WU-7g36nnys5xC3@mail.gmail.com>
+	<AANLkTinmeTuFC5VWgGTxTr43MO8=p8F2OF2phoOCnS_E@mail.gmail.com>
+Date: Wed, 15 Dec 2010 06:39:46 +0100
+Message-ID: <AANLkTikpQgwwS=_GMTRmSQMjd0daonrwXrEYzH7oXM4p@mail.gmail.com>
+Subject: Re: Simple request : mini-pcie analog TV capture card
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Fernando Laudares Camargos <fernando.laudares.camargos@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 29-12-2010 12:49, Stefan Kriwanek escreveu:
-> Dear linux-media developers,
-> 
-> I think I found a bug in the support of the  TerraTec Cinergy T USB XXS
-> remote control, or maybe just a new hardware revision appeared.
-> 
-> When I recently bought such a USB-stick I found the remote not working,
-> instead 'dib0700: Unknown remote controller key' lines appearing in
-> syslog on each keypress. The dvb_usb_dib0700 kernel module got
-> autoloaded by my Ubuntu 10.10. I am using current hg revision of v4l-dvb
-> and load the kernel module using the 'dvb_usb_dib0700_ir_proto=0'
-> option. Simply adding the keycodes to the driver file
-> (linux/drivers/media/dvb/dvb-usb/dib0700_devices.c,
-> patch appended) made things work.
+On Wed, Dec 15, 2010 at 6:33 AM, Markus Rechberger
+<mrechberger@gmail.com> wrote:
+> Hi,
+>
+> On Wed, Dec 15, 2010 at 1:25 AM, Fernando Laudares Camargos
+> <fernando.laudares.camargos@gmail.com> wrote:
+>>
+>> Hello List,
+>>
+>> I'm after a somehow quite simple information: I'm looking for a
+>> mini-pcie TV tuner/capture card. I simply need to plug my cable TV
+>> decoder to such a card to "watch" TV on Linux. I've got success with a
+>> Hauppauge 950Q USB stick and TV time but this is not a one-time
+>> project and we would need to replicate it in a somehow large scale, so
+>> a mini-pcie card would fit the hardware best.
+>>
+>> Does anybody know any mini-pcie model analog card that are still
+>> available on the market and that is compatible with this need ?
+>>
+>> I've looked at linuxtv.org lists but couldn't find one.
+>>
+>> Habey has a new model, based on the ATI Theater 750 HD chip, which is
+>> not supported.
+>>
+>> AVerMedia has some models too, but none seems to have analog mode
+>> working on Linux.
+>>
+>> Any suggestions would be kindly appreciated.
+>>
+>
+> We have MiniPCIe AnalogTV devices which are very well supported.
+>
+> Basically those devices are using the USB Pins of the MiniPCIe Bus.
+> All worldwide standards are supported, we have
+> ATSC/clearQAM/analogTV(NTSC)/VBI/FM-Radio/composite and s-video
+> are available through reserved pin routing.
+> A European version is also available.
+>
+> Tested applications
+> * http://tvtime.sourceforge.net tvtime
+> * http://www.videolan.org/vlc/ VLC
+> * http://www.mplayerhq.hu/design7/news.html Linux mplayer
+> * http://www.mythtv.org/ MythTV
+> * http://linux.bytesex.org/xawtv/ XawTV
+> * http://zapping.sourceforge.net/Zapping/index.html Zapping
+> * http://ekiga.org/ Ekiga VOIP (Channel 0: TV Channel 1: Composite
+> Channel 2: S-Video)
+> * http://www.lavrsen.dk/twiki/bin/view/Motion/WebHome Motion detection Software
+>
+> http://support.sundtek.com/index.php/topic,4.0.html
 
-Don't use a legacy, obsoleted, discontinued tree when writing patches. The
-mercurial tree is obsolete, and it is there just to preserve the tree history.
+Sent the wrong link, this one is for ATSC (the other one is the
+european version):
+http://support.sundtek.com/index.php/topic,87.0.html
 
-Instead, you should use the git tree. The media_build tree[1] provides a
-feature similar to the old hg tree.
-
-[1] http://git.linuxtv.org/media_build.git
-
-The IR code has changed _a_lot_ since the last update in -hg. Basically, the
-entire support were rewritten, and now the protocol is (or should) be
-auto-detected.
-
-Douglas,
-
-It would be a good idea to write a patch for the legacy mercurial tree warning
-people about that.
-
-> 
-> However, by incident I found those very keycodes are already defined in
-> the linux/drivers/media/IR/keymaps/rc-nec-terratec-cinergy-xs.c file, so
-> maybe the issue is just about loading it?
-> 
-> 'lsusb' lists my device as
-> Bus 001 Device 006: ID 0ccd:00ab TerraTec Electronic GmbH
-> despite I do not own the 'HD' version of the device, your wiki
-> http://linuxtv.org/wiki/index.php/TerraTec_Cinergy_T_USB_XXS
-> says that ID corresponds to. The output of 'lsusb -v' is appended to
-> this mail.
-> 
-> 'cat /proc/bus/input/devices' lists the input device as
-> I: Bus=0003 Vendor=0ccd Product=00ab Version=0100
-> N: Name="IR-receiver inside an USB DVB receiver"
-> P: Phys=usb-0000:00:12.2-2/ir0
-> S: Sysfs=/devices/pci0000:00/0000:00:12.2/usb1/1-2/input/input13
-> U: Uniq=
-> H: Handlers=kbd event8
-> B: EV=3
-> B: KEY=14afc336 2b4285f00000000 0 480158000 219040000801 9e96c000000000
-> 90024010004ffc
-> 
-> I hope you could add support for my stick; I'd be happy to provide
-> further information if necessary.
-> 
-> Best regards
-> Stefan
-
+> http://sundtek.com/images/vivi.png (some virtual driver emulation for testing)
+>
+> Setup shouldn't take longer than a few seconds
+>
+> Best Regards,
+> Markus
+>
