@@ -1,59 +1,43 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1594 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753357Ab0L2Q4j convert rfc822-to-8bit (ORCPT
+Received: from mail-gw0-f42.google.com ([74.125.83.42]:34076 "EHLO
+	mail-gw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752653Ab0LOKpf convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Dec 2010 11:56:39 -0500
-Received: from durdane.localnet (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id oBTGubY4091701
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 29 Dec 2010 17:56:37 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PATCHES FOR 2.6.38] usbvision BKL removal and cleanup
-Date: Wed, 29 Dec 2010 17:56:36 +0100
+	Wed, 15 Dec 2010 05:45:35 -0500
+Received: by gwb20 with SMTP id 20so1334715gwb.1
+        for <linux-media@vger.kernel.org>; Wed, 15 Dec 2010 02:45:35 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Reply-To: debarshi.ray@gmail.com
+In-Reply-To: <AANLkTik=rJ0Q5ssdBOaRTvsENEKCRHKj8wyVMexnH=DY@mail.gmail.com>
+References: <AANLkTi=FMQQCq1ojFnm1YzteVvC7TB90XiQvxK21F8EG@mail.gmail.com>
+	<AANLkTik=rJ0Q5ssdBOaRTvsENEKCRHKj8wyVMexnH=DY@mail.gmail.com>
+Date: Wed, 15 Dec 2010 12:45:35 +0200
+Message-ID: <AANLkTikA15vMEcKq9jvJ59xg0OS633sHfFnJ16o0qNPZ@mail.gmail.com>
+Subject: Re: technisat cablestar hd2, cinergy C pci hd, 2.6.35, no remote (VP2040)
+From: Debarshi Ray <debarshi.ray@gmail.com>
+To: Manu Abraham <abraham.manu@gmail.com>
+Cc: "Igor M. Liplianin" <liplianin@me.by>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
-Message-Id: <201012291756.37115.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Mauro,
+> AFAIR, the code originated from these changesets:
+> http://jusst.de/hg/mantis-v4l-dvb.old/rev/9cb8ffc573a2
+> http://jusst.de/hg/mantis-v4l-dvb.old/rev/c2391fa88112
+>
+> later on, it was moved to another repository
+> http://jusst.de/hg/mantis-v4l-dvb/rev/ad8b00c9edc2
 
-The first patch converts usbvision to core-assisted locking, the others do
-a big coding style cleanup.
+But the code in Igor's s2-liplianin tree has evolved further than the
+one in the mantis-v4l-dvb tree. eg., the keymaps are now split into
+separate files in drivers/media/IR/keymaps. Is there any Git tree with
+the latest state of the code or is the s2-liplianin tree the one I am
+looking for?
 
-I want to clean up this driver in the future, so the first step is to fix all
-the coding style violations first. That way I can actually read the source code :-)
-
-Regards,
-
-	Hans
-
-The following changes since commit e017301e47ff356ed52a91259bfe4d200b8a628a:
-  Jean-Fran�ois Moine (1):
-        [media] gspca - sonixj: Bad clock for om6802 in 640x480
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/hverkuil/media_tree.git usbvision2
-
-Hans Verkuil (4):
-      usbvision: convert to unlocked_ioctl
-      usbvision: get rid of camelCase.
-      usbvision: convert // to /* */
-      usbvision: coding style
-
- drivers/media/video/usbvision/usbvision-cards.c | 1860 +++++++++++-----------
- drivers/media/video/usbvision/usbvision-core.c  | 1635 ++++++++++-----------
- drivers/media/video/usbvision/usbvision-i2c.c   |   55 +-
- drivers/media/video/usbvision/usbvision-video.c |  622 ++++-----
- drivers/media/video/usbvision/usbvision.h       |  267 ++--
- 5 files changed, 2137 insertions(+), 2302 deletions(-)
+Thanks,
+Debarshi
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+The camera is to the brush what Java is to assembly.
+   -- Sougata Santra
