@@ -1,456 +1,388 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:15650 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754063Ab0L1RDY (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:14089 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756066Ab0LPOYV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Dec 2010 12:03:24 -0500
+	Thu, 16 Dec 2010 09:24:21 -0500
 MIME-version: 1.0
 Content-transfer-encoding: 7BIT
 Content-type: TEXT/PLAIN
-Date: Tue, 28 Dec 2010 18:03:07 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 02/15] v4l: mem2mem: port m2m_testdev to vb2
-In-reply-to: <1293555798-31578-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com
-Message-id: <1293555798-31578-3-git-send-email-s.nawrocki@samsung.com>
-References: <1293555798-31578-1-git-send-email-s.nawrocki@samsung.com>
+Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LDI00L0OYOF1A00@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Dec 2010 14:24:16 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LDI00A2YYOEJY@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Dec 2010 14:24:15 +0000 (GMT)
+Date: Thu, 16 Dec 2010 15:23:57 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH v7 0/8] Videobuf2 framework
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, andrzej.p@samsung.com
+Message-id: <1292509445-15100-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-This patch ports mem2mem test device to videobuf2 framework.
+Hello,
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/video/Kconfig           |    2 +-
- drivers/media/video/mem2mem_testdev.c |  227 +++++++++++++++-----------------
- 2 files changed, 107 insertions(+), 122 deletions(-)
+This is yet another update of the videobuf2 patch series (I hope this is
+the final one). I've fixed all the style issues reported by Hans
+Verkuil. I've also managed to kill yet another bug in userptr handling
+code. Previous version crashed badly if aquiring user memory failed.
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 8e5116e..38fc077 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -992,7 +992,7 @@ if V4L_MEM2MEM_DRIVERS
- config VIDEO_MEM2MEM_TESTDEV
- 	tristate "Virtual test device for mem2mem framework"
- 	depends on VIDEO_DEV && VIDEO_V4L2
--	select VIDEOBUF_VMALLOC
-+	select VIDEOBUF2_VMALLOC
- 	select V4L2_MEM2MEM_DEV
- 	default n
- 	---help---
-diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
-index c179041..6ab2d4f 100644
---- a/drivers/media/video/mem2mem_testdev.c
-+++ b/drivers/media/video/mem2mem_testdev.c
-@@ -28,7 +28,7 @@
- #include <media/v4l2-mem2mem.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
--#include <media/videobuf-vmalloc.h>
-+#include <media/videobuf2-vmalloc.h>
- 
- #define MEM2MEM_TEST_MODULE_NAME "mem2mem-testdev"
- 
-@@ -201,11 +201,6 @@ struct m2mtest_ctx {
- 	struct v4l2_m2m_ctx	*m2m_ctx;
- };
- 
--struct m2mtest_buffer {
--	/* vb must be first! */
--	struct videobuf_buffer	vb;
--};
--
- static struct v4l2_queryctrl *get_ctrl(int id)
- {
- 	int i;
-@@ -219,37 +214,41 @@ static struct v4l2_queryctrl *get_ctrl(int id)
- }
- 
- static int device_process(struct m2mtest_ctx *ctx,
--			  struct m2mtest_buffer *in_buf,
--			  struct m2mtest_buffer *out_buf)
-+			  struct vb2_buffer *in_vb,
-+			  struct vb2_buffer *out_vb)
- {
- 	struct m2mtest_dev *dev = ctx->dev;
-+	struct m2mtest_q_data *q_data;
- 	u8 *p_in, *p_out;
- 	int x, y, t, w;
- 	int tile_w, bytes_left;
--	struct videobuf_queue *src_q;
--	struct videobuf_queue *dst_q;
-+	int width, height, bytesperline;
- 
--	src_q = v4l2_m2m_get_src_vq(ctx->m2m_ctx);
--	dst_q = v4l2_m2m_get_dst_vq(ctx->m2m_ctx);
--	p_in = videobuf_queue_to_vaddr(src_q, &in_buf->vb);
--	p_out = videobuf_queue_to_vaddr(dst_q, &out_buf->vb);
-+	q_data = get_q_data(V4L2_BUF_TYPE_VIDEO_OUTPUT);
-+
-+	width	= q_data->width;
-+	height	= q_data->height;
-+	bytesperline	= (q_data->width * q_data->fmt->depth) >> 3;
-+
-+	p_in = vb2_plane_vaddr(in_vb, 0);
-+	p_out = vb2_plane_vaddr(out_vb, 0);
- 	if (!p_in || !p_out) {
- 		v4l2_err(&dev->v4l2_dev,
- 			 "Acquiring kernel pointers to buffers failed\n");
- 		return -EFAULT;
- 	}
- 
--	if (in_buf->vb.size > out_buf->vb.size) {
-+	if (vb2_plane_size(in_vb, 0) > vb2_plane_size(out_vb, 0)) {
- 		v4l2_err(&dev->v4l2_dev, "Output buffer is too small\n");
- 		return -EINVAL;
- 	}
- 
--	tile_w = (in_buf->vb.width * (q_data[V4L2_M2M_DST].fmt->depth >> 3))
-+	tile_w = (width * (q_data[V4L2_M2M_DST].fmt->depth >> 3))
- 		/ MEM2MEM_NUM_TILES;
--	bytes_left = in_buf->vb.bytesperline - tile_w * MEM2MEM_NUM_TILES;
-+	bytes_left = bytesperline - tile_w * MEM2MEM_NUM_TILES;
- 	w = 0;
- 
--	for (y = 0; y < in_buf->vb.height; ++y) {
-+	for (y = 0; y < height; ++y) {
- 		for (t = 0; t < MEM2MEM_NUM_TILES; ++t) {
- 			if (w & 0x1) {
- 				for (x = 0; x < tile_w; ++x)
-@@ -301,6 +300,21 @@ static void job_abort(void *priv)
- 	ctx->aborting = 1;
- }
- 
-+static void m2mtest_lock(void *priv)
-+{
-+	struct m2mtest_ctx *ctx = priv;
-+	struct m2mtest_dev *dev = ctx->dev;
-+	mutex_lock(&dev->dev_mutex);
-+}
-+
-+static void m2mtest_unlock(void *priv)
-+{
-+	struct m2mtest_ctx *ctx = priv;
-+	struct m2mtest_dev *dev = ctx->dev;
-+	mutex_unlock(&dev->dev_mutex);
-+}
-+
-+
- /* device_run() - prepares and starts the device
-  *
-  * This simulates all the immediate preparations required before starting
-@@ -311,7 +325,7 @@ static void device_run(void *priv)
- {
- 	struct m2mtest_ctx *ctx = priv;
- 	struct m2mtest_dev *dev = ctx->dev;
--	struct m2mtest_buffer *src_buf, *dst_buf;
-+	struct vb2_buffer *src_buf, *dst_buf;
- 
- 	src_buf = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
- 	dst_buf = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
-@@ -322,12 +336,11 @@ static void device_run(void *priv)
- 	schedule_irq(dev, ctx->transtime);
- }
- 
--
- static void device_isr(unsigned long priv)
- {
- 	struct m2mtest_dev *m2mtest_dev = (struct m2mtest_dev *)priv;
- 	struct m2mtest_ctx *curr_ctx;
--	struct m2mtest_buffer *src_buf, *dst_buf;
-+	struct vb2_buffer *src_vb, *dst_vb;
- 	unsigned long flags;
- 
- 	curr_ctx = v4l2_m2m_get_curr_priv(m2mtest_dev->m2m_dev);
-@@ -338,31 +351,26 @@ static void device_isr(unsigned long priv)
- 		return;
- 	}
- 
--	src_buf = v4l2_m2m_src_buf_remove(curr_ctx->m2m_ctx);
--	dst_buf = v4l2_m2m_dst_buf_remove(curr_ctx->m2m_ctx);
-+	src_vb = v4l2_m2m_src_buf_remove(curr_ctx->m2m_ctx);
-+	dst_vb = v4l2_m2m_dst_buf_remove(curr_ctx->m2m_ctx);
-+
- 	curr_ctx->num_processed++;
- 
-+	spin_lock_irqsave(&m2mtest_dev->irqlock, flags);
-+	v4l2_m2m_buf_done(src_vb, VB2_BUF_STATE_DONE);
-+	v4l2_m2m_buf_done(dst_vb, VB2_BUF_STATE_DONE);
-+	spin_unlock_irqrestore(&m2mtest_dev->irqlock, flags);
-+
- 	if (curr_ctx->num_processed == curr_ctx->translen
- 	    || curr_ctx->aborting) {
- 		dprintk(curr_ctx->dev, "Finishing transaction\n");
- 		curr_ctx->num_processed = 0;
--		spin_lock_irqsave(&m2mtest_dev->irqlock, flags);
--		src_buf->vb.state = dst_buf->vb.state = VIDEOBUF_DONE;
--		wake_up(&src_buf->vb.done);
--		wake_up(&dst_buf->vb.done);
--		spin_unlock_irqrestore(&m2mtest_dev->irqlock, flags);
- 		v4l2_m2m_job_finish(m2mtest_dev->m2m_dev, curr_ctx->m2m_ctx);
- 	} else {
--		spin_lock_irqsave(&m2mtest_dev->irqlock, flags);
--		src_buf->vb.state = dst_buf->vb.state = VIDEOBUF_DONE;
--		wake_up(&src_buf->vb.done);
--		wake_up(&dst_buf->vb.done);
--		spin_unlock_irqrestore(&m2mtest_dev->irqlock, flags);
- 		device_run(curr_ctx);
- 	}
- }
- 
--
- /*
-  * video ioctls
-  */
-@@ -423,7 +431,7 @@ static int vidioc_enum_fmt_vid_out(struct file *file, void *priv,
- 
- static int vidioc_g_fmt(struct m2mtest_ctx *ctx, struct v4l2_format *f)
- {
--	struct videobuf_queue *vq;
-+	struct vb2_queue *vq;
- 	struct m2mtest_q_data *q_data;
- 
- 	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
-@@ -434,7 +442,7 @@ static int vidioc_g_fmt(struct m2mtest_ctx *ctx, struct v4l2_format *f)
- 
- 	f->fmt.pix.width	= q_data->width;
- 	f->fmt.pix.height	= q_data->height;
--	f->fmt.pix.field	= vq->field;
-+	f->fmt.pix.field	= V4L2_FIELD_NONE;
- 	f->fmt.pix.pixelformat	= q_data->fmt->fourcc;
- 	f->fmt.pix.bytesperline	= (q_data->width * q_data->fmt->depth) >> 3;
- 	f->fmt.pix.sizeimage	= q_data->sizeimage;
-@@ -523,7 +531,7 @@ static int vidioc_try_fmt_vid_out(struct file *file, void *priv,
- static int vidioc_s_fmt(struct m2mtest_ctx *ctx, struct v4l2_format *f)
- {
- 	struct m2mtest_q_data *q_data;
--	struct videobuf_queue *vq;
-+	struct vb2_queue *vq;
- 
- 	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
- 	if (!vq)
-@@ -533,7 +541,7 @@ static int vidioc_s_fmt(struct m2mtest_ctx *ctx, struct v4l2_format *f)
- 	if (!q_data)
- 		return -EINVAL;
- 
--	if (videobuf_queue_is_busy(vq)) {
-+	if (vb2_is_busy(vq)) {
- 		v4l2_err(&ctx->dev->v4l2_dev, "%s queue busy\n", __func__);
- 		return -EBUSY;
- 	}
-@@ -543,7 +551,6 @@ static int vidioc_s_fmt(struct m2mtest_ctx *ctx, struct v4l2_format *f)
- 	q_data->height		= f->fmt.pix.height;
- 	q_data->sizeimage	= q_data->width * q_data->height
- 				* q_data->fmt->depth >> 3;
--	vq->field		= f->fmt.pix.field;
- 
- 	dprintk(ctx->dev,
- 		"Setting format for type %d, wxh: %dx%d, fmt: %d\n",
-@@ -733,120 +740,94 @@ static const struct v4l2_ioctl_ops m2mtest_ioctl_ops = {
-  * Queue operations
-  */
- 
--static void m2mtest_buf_release(struct videobuf_queue *vq,
--				struct videobuf_buffer *vb)
--{
--	struct m2mtest_ctx *ctx = vq->priv_data;
--
--	dprintk(ctx->dev, "type: %d, index: %d, state: %d\n",
--		vq->type, vb->i, vb->state);
--
--	videobuf_vmalloc_free(vb);
--	vb->state = VIDEOBUF_NEEDS_INIT;
--}
--
--static int m2mtest_buf_setup(struct videobuf_queue *vq, unsigned int *count,
--			  unsigned int *size)
-+static int m2mtest_queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
-+				unsigned int *nplanes, unsigned long sizes[],
-+				void *alloc_ctxs[])
- {
--	struct m2mtest_ctx *ctx = vq->priv_data;
-+	struct m2mtest_ctx *ctx = vb2_get_drv_priv(vq);
- 	struct m2mtest_q_data *q_data;
-+	unsigned int size, count = *nbuffers;
- 
- 	q_data = get_q_data(vq->type);
- 
--	*size = q_data->width * q_data->height * q_data->fmt->depth >> 3;
--	dprintk(ctx->dev, "size:%d, w/h %d/%d, depth: %d\n",
--		*size, q_data->width, q_data->height, q_data->fmt->depth);
-+	size = q_data->width * q_data->height * q_data->fmt->depth >> 3;
- 
--	if (0 == *count)
--		*count = MEM2MEM_DEF_NUM_BUFS;
-+	while (size * count > MEM2MEM_VID_MEM_LIMIT)
-+		(count)--;
- 
--	while (*size * *count > MEM2MEM_VID_MEM_LIMIT)
--		(*count)--;
-+	*nplanes = 1;
-+	*nbuffers = count;
-+	sizes[0] = size;
- 
--	v4l2_info(&ctx->dev->v4l2_dev,
--		  "%d buffers of size %d set up.\n", *count, *size);
-+	/*
-+	 * videobuf2-vmalloc allocator is context-less so no need to set
-+	 * alloc_ctxs array.
-+	 */
-+
-+	dprintk(ctx->dev, "get %d buffer(s) of size %d each.\n", count, size);
- 
- 	return 0;
- }
- 
--static int m2mtest_buf_prepare(struct videobuf_queue *vq,
--			       struct videobuf_buffer *vb,
--			       enum v4l2_field field)
-+static int m2mtest_buf_prepare(struct vb2_buffer *vb)
- {
--	struct m2mtest_ctx *ctx = vq->priv_data;
-+	struct m2mtest_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
- 	struct m2mtest_q_data *q_data;
--	int ret;
- 
--	dprintk(ctx->dev, "type: %d, index: %d, state: %d\n",
--		vq->type, vb->i, vb->state);
-+	dprintk(ctx->dev, "type: %d\n", vb->vb2_queue->type);
- 
--	q_data = get_q_data(vq->type);
-+	q_data = get_q_data(vb->vb2_queue->type);
- 
--	if (vb->baddr) {
--		/* User-provided buffer */
--		if (vb->bsize < q_data->sizeimage) {
--			/* Buffer too small to fit a frame */
--			v4l2_err(&ctx->dev->v4l2_dev,
--				 "User-provided buffer too small\n");
--			return -EINVAL;
--		}
--	} else if (vb->state != VIDEOBUF_NEEDS_INIT
--			&& vb->bsize < q_data->sizeimage) {
--		/* We provide the buffer, but it's already been initialized
--		 * and is too small */
-+	if (vb2_plane_size(vb, 0) < q_data->sizeimage) {
-+		dprintk(ctx->dev, "%s data will not fit into plane (%lu < %lu)\n",
-+				__func__, vb2_plane_size(vb, 0), (long)q_data->sizeimage);
- 		return -EINVAL;
- 	}
- 
--	vb->width	= q_data->width;
--	vb->height	= q_data->height;
--	vb->bytesperline = (q_data->width * q_data->fmt->depth) >> 3;
--	vb->size	= q_data->sizeimage;
--	vb->field	= field;
--
--	if (VIDEOBUF_NEEDS_INIT == vb->state) {
--		ret = videobuf_iolock(vq, vb, NULL);
--		if (ret) {
--			v4l2_err(&ctx->dev->v4l2_dev,
--				 "Iolock failed\n");
--			goto fail;
--		}
--	}
--
--	vb->state = VIDEOBUF_PREPARED;
-+	vb2_set_plane_payload(vb, 0, q_data->sizeimage);
- 
- 	return 0;
--fail:
--	m2mtest_buf_release(vq, vb);
--	return ret;
- }
- 
--static void m2mtest_buf_queue(struct videobuf_queue *vq,
--			   struct videobuf_buffer *vb)
-+static void m2mtest_buf_queue(struct vb2_buffer *vb)
- {
--	struct m2mtest_ctx *ctx = vq->priv_data;
--
--	v4l2_m2m_buf_queue(ctx->m2m_ctx, vq, vb);
-+	struct m2mtest_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
-+	v4l2_m2m_buf_queue(ctx->m2m_ctx, vb);
- }
- 
--static struct videobuf_queue_ops m2mtest_qops = {
--	.buf_setup	= m2mtest_buf_setup,
--	.buf_prepare	= m2mtest_buf_prepare,
--	.buf_queue	= m2mtest_buf_queue,
--	.buf_release	= m2mtest_buf_release,
-+static struct vb2_ops m2mtest_qops = {
-+	.queue_setup	 = m2mtest_queue_setup,
-+	.buf_prepare	 = m2mtest_buf_prepare,
-+	.buf_queue	 = m2mtest_buf_queue,
- };
- 
--static void queue_init(void *priv, struct videobuf_queue *vq,
--		       enum v4l2_buf_type type)
-+static int queue_init(void *priv, struct vb2_queue *src_vq, struct vb2_queue *dst_vq)
- {
- 	struct m2mtest_ctx *ctx = priv;
--	struct m2mtest_dev *dev = ctx->dev;
-+	int ret;
- 
--	videobuf_queue_vmalloc_init(vq, &m2mtest_qops, dev->v4l2_dev.dev,
--				    &dev->irqlock, type, V4L2_FIELD_NONE,
--				    sizeof(struct m2mtest_buffer), priv,
--				    &dev->dev_mutex);
--}
-+	memset(src_vq, 0, sizeof(*src_vq));
-+	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+	src_vq->io_modes = VB2_MMAP;
-+	src_vq->drv_priv = ctx;
-+	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
-+	src_vq->ops = &m2mtest_qops;
-+	src_vq->mem_ops = &vb2_vmalloc_memops;
- 
-+	ret = vb2_queue_init(src_vq);
-+	if (ret)
-+		return ret;
-+
-+	memset(dst_vq, 0, sizeof(*dst_vq));
-+	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	dst_vq->io_modes = VB2_MMAP;
-+	dst_vq->drv_priv = ctx;
-+	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
-+	dst_vq->ops = &m2mtest_qops;
-+	dst_vq->mem_ops = &vb2_vmalloc_memops;
-+
-+	return vb2_queue_init(dst_vq);
-+}
- 
- /*
-  * File operations
-@@ -866,7 +847,8 @@ static int m2mtest_open(struct file *file)
- 	ctx->transtime = MEM2MEM_DEF_TRANSTIME;
- 	ctx->num_processed = 0;
- 
--	ctx->m2m_ctx = v4l2_m2m_ctx_init(ctx, dev->m2m_dev, queue_init);
-+	ctx->m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx, &queue_init);
-+
- 	if (IS_ERR(ctx->m2m_ctx)) {
- 		int ret = PTR_ERR(ctx->m2m_ctx);
- 
-@@ -932,6 +914,8 @@ static struct v4l2_m2m_ops m2m_ops = {
- 	.device_run	= device_run,
- 	.job_ready	= job_ready,
- 	.job_abort	= job_abort,
-+	.lock		= m2mtest_lock,
-+	.unlock		= m2mtest_unlock,
- };
- 
- static int m2mtest_probe(struct platform_device *pdev)
-@@ -990,6 +974,7 @@ static int m2mtest_probe(struct platform_device *pdev)
- 
- 	return 0;
- 
-+	v4l2_m2m_release(dev->m2m_dev);
- err_m2m:
- 	video_unregister_device(dev->vfd);
- rel_vdev:
+Please read the changelog for more details.
+
+Since v6 the there are important API changes. Allocators interface has
+been slightly redesigned: memory related callbacks has been separated
+from the allocator context itself. This simplified a lot of things in
+videobuf2 queue initialization with almost no inpact on the drivers.
+Also the queue initialization has been redesigned, so some driver
+callback has been changed into static initializers in the queue
+structure.
+
+Since v4 the vb2 contains a complete file IO emulator. It provides 2
+modes for both read and write. By default both read and write are
+implemented in 'streaming' style (like old videobuf_read_stream() call).
+By setting VB2_FILEIO_READ_ONCE flag one can request 'one shot' mode
+(like videobuf_read_one() from the original videobuf). For write
+emulator one can set VB2_FILEIO_WRITE_IMMEDIATE flag, what will make
+each write() call to transform directly into a q_buf() with aproperiate
+bytesused entry set, without waiting until the buffer is filled
+completely.
+
+Best regards
+--
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
+
+Changes since V6.1:
+==================
+- fixed style issues reported by Hans Verkuil
+- fixed bug that caused kernel ops if acquiring userptr buffer failed
+- added vaddr() method to dma-contig allocator
+
+Changes since V6:
+=================
+- fixed ugly off-by-one error in get_contig_userptr() function
+- updated comments in videobuf2-memops.c
+
+Changes since V5:
+=================
+- added support for DMA Scatter-Gather allocator
+- fixed a lots of coding style issues spotted by Laurent Pinchart
+- reworked queue initialization, now queue_init() has only one argument
+  (queue pointer), everything else should be set in the queue structure
+  before calling queue_init()
+- removed buf_alloc() and buf_free() callbacks, buffer structure size can
+  be set directly in the queue structure
+- merged queue_negotiate and plane_setup callbacks into a single
+  queue_setup callback
+- removed setup_read() and setup_write() callbacks, file io flags can be
+  set directly in the queue structure before calling queue_init()
+- introduced io mode flags, so the driver can decide which io modes are
+  supported
+- reworked memory allocator context handling: separated memory related
+  callbacks from the allocator's driver specific context
+- changed the order of checks in the reqbufs() so REQBUF(0) can be also
+  used to probe support for mmap/userptr modes
+- renamed DMA Coherent allocator to DMA Contig (so it matched the old
+  name from videobuf1)
+- extracted common buffer reference counting code to memops (used for
+  mmaped buffers)
+- changed the type of buffer refcount field to atomic_t
+- renamed lock/unlock callbacks to wait_finish/wait_prepare 
+- added vb2_wait_all_buffers() function, usefull for stop_streaming()
+- minor cleanup here and there
+
+Changes since V4:
+=================
+- fixed coding style issues reported by Hans Verkuil
+- fixed __queue_cancel function to reinitialize all buffers
+- included proper version of dma_coherent allocator (previous series
+  contained only an outdated version)
+- updated comment here and there
+
+Changes since V3:
+=================
+- rebased onto 2.6.37-rc2
+- new locking policy: vb2 has no internal/hidden locks, the driver takes
+  all the responsibility to ensure proper locking: removed vb2_lock and
+  introduced new entries in qops: lock and unlock
+- added buf_alloc and buf_free callback, it was very hard to add driver
+  dependent custom data to buffers without them (and erlier version of VIVI
+  driver silently trashed memory with its vivi_buffer structures - now fixed)
+- added a new macro 'call_qop' to the core, simplified code
+- fixed bytesused entry handling in core (it is now always stored in planes[0])
+- changed the paddr callback into a cookie (required for the new upcoming dma
+  sg and iommu memory allocators), see include/media/videobuf2-dma-coherent.h
+  for more details
+- added generic write() support!
+
+Changes since V2:
+=================
+- added read() emulator (see patch #5/7)
+- fixed lack of parentheses in macro definitions (caused side effects
+  in some places)
+- added a separate check for VM_READ or VM_WRITE in vb2_mmap()
+- added vb2_is_streaming(), vb2_lock and vb2_unlock inlines
+- updated vivi driver with the new read() emulator 
+
+Changes since V1:
+=================
+- removed drv_lock, added start_streaming and stop_streaming callbacks
+
+
+Here is the original Videobuf2 introduction prepared by Pawel
+(might be outdated in a few places):
+=======================================================================
+
+These patches add a new driver framework for Video for Linux 2 driver
+- Videobuf2.
+
+Videobuf2 is intended as a replacement for videobuf, the current driver
+framework, which will be referred to as "videobuf1" for the remainder
+of this document.
+
+================================
+What is videobuf2?
+================================
+Videobuf2 is a Video for Linux 2 API-compatible driver framework for
+multimedia devices. It acts as an intermediate layer between userspace
+applications and device drivers. It also provides low-level, modular
+memory management functions for drivers.
+
+Videobuf2 eases driver development, reduces drivers' code size and aids in
+proper and consistent implementation of V4L2 API in drivers.
+
+Videobuf2 memory management backend is fully modular. This allows custom
+memory management routines for devices and platforms with non-standard
+memory management requirements to be plugged in, without changing the
+high-level buffer management functions and API.
+
+The framework provides:
+- implementations of streaming I/O V4L2 ioctls and file operations
+- high-level video buffer, video queue and state management functions
+- video buffer memory allocation and management
+
+================================
+Why a new framework?
+================================
+There have been many discussions in the V4L2 community about the feasibility
+of writing a new framework, as opposed to fixing the existing one. It has been
+agreed though that:
+- videobuf1 has major flaws and an attempt to fix it would end up in rewriting
+most of the code
+- many drivers depend on videobuf1 and since the changes would be major,
+an effort to adapt and test them all would not be realistically possible
+
+Due to the problems with videobuf most new drivers cannot use it. This leads
+to code replication and overcomplicated drivers.
+
+================================
+What is wrong with videobuf1?
+================================
+There are many problems with the current videobuf implementation. During a V4L2
+mini-summit in Helsinki in June 2010, two presentations were delivered
+on this topic:
+- Laurent Pinchart "videobuf - the good, the bad and the ugly"
+http://linuxtv.org/downloads/presentations/summit_jun_2010/20100614-v4l2_summit-videobuf.pdf
+- Pawel Osciak "Future of the videobuf framework"
+http://linuxtv.org/downloads/presentations/summit_jun_2010/Videobuf_Helsinki_June2010.pdf
+
+These presentations highlighted many problems with videobuf. The most prominent
+include:
+
+- V4L2 API violations and wrong memory management design
+  - it is impossible to pause streaming (buffers are freed on streamoff)
+  - VIDIOC_REQBUFS(0) does not free memory
+  - it is impossible to reallocate memory with VIDIOC_REQBUFS
+  - video memory is allocated on mmap, qbuf or even on page fault,
+    freed on unmap, streamoff or explicitly by drivers
+  - per-buffer waitqueues
+- not extensible enough and thus not ready for new platforms and uses,
+  especially considering embedded multimedia devices
+  - very hard to add new memory handling routines and custom memory allocators
+  - no or poor support for handling cache coherency, IOMMUs, 
+  - poor flexibility - only one do-it-all function for handling memory pinning,
+    cache, sg-list creation, etc...
+- unused fields, code duplication, vague/inconsistent naming, obscure usage in
+  some places...
+
+Many driver authors expressed their frustration with videobuf. Developers
+acknowledge its merits and would like to use it, but due mostly to its
+inflexible memory allocation schemes they are unable to do so.
+
+================================
+Main goals of the redesign
+================================
+- correct V4L2 API implementation, fixing videobuf1 problems and shortcomings
+- full separation between queue management and memory management
+- fully flexible, pluggable memory allocators and memory handling routines
+- more specialized driver callbacks, called at different points
+- support for new V4L2 API extensions, such as multi-planar video buffers
+
+================================
+Driver callbacks
+================================
+Driver callbacks have been redesigned for symmetry:
+- buf_init - called once, after memory is allocated or after a new USERPTR
+  buffer is queued; can be used e.g. to pin pages, verify contiguity, set up
+  IOMMU mappings, etc.
+- buf_prepare - called on each QBUF; can be used e.g. for cache sync, copying
+  to bounce buffers, etc.
+- buf_finish - called on each DQBUF; can be used e.g. for cache sync, copying
+  back from bounce buffers, etc.
+- buf_cleanup - called before freeing/releasing memory; can be used e.g. for
+  unmapping memory, etc.
+
+The remaining driver callbacks have been slightly redesigned:
+- queue_negotiate - now incorporates multi-planar extensions; drivers return
+  required number of buffers and planes per buffer
+- plane_setup - drivers return plane sizes
+Those two callbacks replace the old buf_setup.
+
+- buf_queue - basically stays the same
+
+================================
+Memory allocators and handling
+================================
+Memory handling has been designed to allow more customization than in the
+original videobuf. For this memory allocation ops have been slightly redesigned,
+and have become fully replaceable and an allocator context struct have been
+introduced.
+
+Allocator context is intended to provide memory operations to videobuf and also
+for storing allocator private data, if required, although simpler allocators
+do not have to use this feature. Private data can be added by embedding the
+context struct inside their own structures:
+
+struct vb2_alloc_ctx {
+        const struct vb2_mem_ops        *mem_ops;
+};
+
+struct vb2_foo_alloc_conf {
+        struct vb2_alloc_ctx    alloc_ctx;                          
+	/* Allocator private data here */
+};
+
+Moreover, a buffer context structure concept has been introduced. Allocators
+return their own, custom, per-buffer structures on every allocation. This
+structure is then used as a "cookie" and passed to other memory handling
+methods called for its corresponding buffer.
+
+Memory operations, stored in the allocator context, can be replaced if
+needed by drivers on a per-function basis and functions from other allocators
+or drivers can be reused as well. A full list with documentation can be found
+in the videobuf2-core.h file.
+
+It is also possible, although not required, to assign different contexts per
+plane. This may be useful for drivers that need to use different memory types
+for different planes. An example may be a driver that stores video data in the
+first plane, which has to be allocated from a device-accessible memory area,
+and metadata in the second plane, which does not have to be stored in
+a device-accessible memory.
+
+An good example of integrating a more advanced allocator, the recently discussed
+on this list CMA (contiguous memory allocator), can be found in videobuf2-cma.*.
+
+================================
+Other changes
+================================
+The changes described above are the main changes in videobuf2. Most of the core
+API has remained the same or very similar, although its implementation has been
+fully rewritten. Some more visible changes include:
+
+- Memory is now properly allocated on REQBUFS and can be freed and reallocated
+  there as well.
+- It is now possible to pause and resume streaming with streamon/streamoff,
+  without freeing the buffers.
+- V4L2 API-related, userspace-visible metadata, such as inputs, timestamps, etc.
+  are no longer stored in videobuf buffer structure, but in an actual
+  v4l2_buffer struct (idea borrowed from Laurent Pinchart). I felt that driver
+  authors would prefer to use V4L2 API-based structures of videobuf custom
+  structures where possible. It also eases copying v4l2_buffer-related data
+  from/to userspace.
+- Buffers do not include waitqueues anymore. One, global, per-queue waitqueue
+  for done buffers has been introduced instead. Per-buffer waitqueues were not
+  very useful and introduced additional complications in code.
+  With this, drivers have gained the ability of dequeuing buffers out-of-order
+  as well.
+- Buffer states are not handled jointly by both videobuf and driver anymore,
+  I felt it was not required and confusing for driver authors
+- Some fields that were less useful have been removed and naming of others
+  have been changed to better reflect their function.
+- Other then reqbufs, ioctl implementations have remained almost the same
+  and behave in the same way, 
+  
+
+Please see documentation in videobuf2-core.c and videobuf2-core.h for more
+details and the patch porting vivi to videobuf2 for how to port existing
+drivers to videobuf2.
+
+This is a preliminary version intended for review, but has already been tested
+for multiple drivers and different memory handling implementations.
+
+The CMA allocator patches are attached for reference, to show how a more
+complicated allocator can be integrated into the framework.
+
+Any comments will be very much appreciated!
+
+Best regards,
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center 
+
+=======================================================================
+
+Patch summary:
+
+Andrzej Pietrasiewicz (1):
+  v4l: videobuf2: add DMA scatter/gather allocator
+
+Marek Szyprowski (3):
+  v4l: videobuf2: add generic memory handling routines
+  v4l: videobuf2: add read() and write() emulator
+  v4l: vivi: port to videobuf2
+
+Pawel Osciak (4):
+  v4l: add videobuf2 Video for Linux 2 driver framework
+  v4l: videobuf2: add vmalloc allocator
+  v4l: videobuf2: add DMA coherent allocator
+  v4l: videobuf2: add CMA allocator
+
+ drivers/media/video/Kconfig                |   30 +-
+ drivers/media/video/Makefile               |    7 +
+ drivers/media/video/videobuf2-cma.c        |  224 ++++
+ drivers/media/video/videobuf2-core.c       | 1806 ++++++++++++++++++++++++++++
+ drivers/media/video/videobuf2-dma-contig.c |  186 +++
+ drivers/media/video/videobuf2-dma-sg.c     |  292 +++++
+ drivers/media/video/videobuf2-memops.c     |  233 ++++
+ drivers/media/video/videobuf2-vmalloc.c    |  132 ++
+ drivers/media/video/vivi.c                 |  369 +++---
+ include/media/videobuf2-cma.h              |   39 +
+ include/media/videobuf2-core.h             |  377 ++++++
+ include/media/videobuf2-dma-contig.h       |   29 +
+ include/media/videobuf2-dma-sg.h           |   32 +
+ include/media/videobuf2-memops.h           |   45 +
+ include/media/videobuf2-vmalloc.h          |   20 +
+ 15 files changed, 3650 insertions(+), 171 deletions(-)
+ create mode 100644 drivers/media/video/videobuf2-cma.c
+ create mode 100644 drivers/media/video/videobuf2-core.c
+ create mode 100644 drivers/media/video/videobuf2-dma-contig.c
+ create mode 100644 drivers/media/video/videobuf2-dma-sg.c
+ create mode 100644 drivers/media/video/videobuf2-memops.c
+ create mode 100644 drivers/media/video/videobuf2-vmalloc.c
+ create mode 100644 include/media/videobuf2-cma.h
+ create mode 100644 include/media/videobuf2-core.h
+ create mode 100644 include/media/videobuf2-dma-contig.h
+ create mode 100644 include/media/videobuf2-dma-sg.h
+ create mode 100644 include/media/videobuf2-memops.h
+ create mode 100644 include/media/videobuf2-vmalloc.h
+
 -- 
-1.7.2.3
+1.7.1.569.g6f426
 
