@@ -1,107 +1,130 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2440 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753752Ab0L2VnR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Dec 2010 16:43:17 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id oBTLhCuw002049
-	for <linux-media@vger.kernel.org>; Wed, 29 Dec 2010 22:43:16 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Message-Id: <82612284712306ca50a34849688ba4c51f97b7f2.1293657717.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1293657717.git.hverkuil@xs4all.nl>
-References: <cover.1293657717.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Wed, 29 Dec 2010 22:43:11 +0100
-Subject: [PATCH 04/10] [RFC] v4l2-dev: add and support flag V4L2_FH_USE_PRIO.
-To: linux-media@vger.kernel.org
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45473 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753670Ab0LPN5P (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Dec 2010 08:57:15 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v7 8/8] davinci vpbe: Readme text for Dm6446 vpbe
+Date: Thu, 16 Dec 2010 19:26:26 +0530
+Message-Id: <1292507786-1270-1-git-send-email-manjunath.hadli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Flag V4L2_FH_USE_PRIO is set if we can safely store the priority level
-in file->private_data. Support this flag for the open and release file
-operations.
+Please refer to this file for detailed documentation of
+davinci vpbe v4l2 driver
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
 ---
- drivers/media/video/v4l2-dev.c |   23 +++++++++++++++++++++--
- include/media/v4l2-dev.h       |    6 ++++++
- 2 files changed, 27 insertions(+), 2 deletions(-)
+ Documentation/video4linux/README.davinci-vpbe |   93 +++++++++++++++++++++++++
+ 1 files changed, 93 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/video4linux/README.davinci-vpbe
 
-diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-index c8f6ae1..96ec954 100644
---- a/drivers/media/video/v4l2-dev.c
-+++ b/drivers/media/video/v4l2-dev.c
-@@ -380,6 +380,15 @@ static int v4l2_open(struct inode *inode, struct file *filp)
- 	/* and increase the device refcount */
- 	video_get(vdev);
- 	mutex_unlock(&videodev_lock);
+diff --git a/Documentation/video4linux/README.davinci-vpbe b/Documentation/video4linux/README.davinci-vpbe
+new file mode 100644
+index 0000000..7a460b0
+--- /dev/null
++++ b/Documentation/video4linux/README.davinci-vpbe
+@@ -0,0 +1,93 @@
 +
-+	if (test_bit(V4L2_FL_USES_V4L2_PRIO, &vdev->flags)) {
-+		enum v4l2_priority prio =
-+			(enum v4l2_priority)filp->private_data;
++                VPBE V4L2 driver design
++ ======================================================================
 +
-+		v4l2_prio_open(vdev->prio, &prio);
-+		filp->private_data = (void *)prio;
-+	}
++ File partitioning
++ -----------------
++ V4L2 display device driver
++         drivers/media/video/davinci/vpbe_display.c
++         drivers/media/video/davinci/vpbe_display.h
 +
- 	if (vdev->fops->open) {
- 		if (vdev->lock && mutex_lock_interruptible(vdev->lock)) {
- 			ret = -ERESTARTSYS;
-@@ -404,8 +413,13 @@ err:
- static int v4l2_release(struct inode *inode, struct file *filp)
- {
- 	struct video_device *vdev = video_devdata(filp);
--	int ret = 0;
- 
-+	if (test_bit(V4L2_FL_USES_V4L2_PRIO, &vdev->flags)) {
-+		enum v4l2_priority prio =
-+			(enum v4l2_priority)filp->private_data;
++ VPBE display controller
++         drivers/media/video/davinci/vpbe.c
++         drivers/media/video/davinci/vpbe.h
 +
-+		v4l2_prio_close(vdev->prio, prio);
-+	}
- 	if (vdev->fops->release) {
- 		if (vdev->lock)
- 			mutex_lock(vdev->lock);
-@@ -417,7 +431,7 @@ static int v4l2_release(struct inode *inode, struct file *filp)
- 	/* decrease the refcount unconditionally since the release()
- 	   return value is ignored. */
- 	video_put(vdev);
--	return ret;
-+	return 0;
- }
- 
- static const struct file_operations v4l2_fops = {
-@@ -612,6 +626,11 @@ static int __video_register_device(struct video_device *vdev, int type, int nr,
- 	vdev->index = get_index(vdev);
- 	mutex_unlock(&videodev_lock);
- 
-+	/* Determine if we can store v4l2_priority in file->private_data */
-+	if (vdev->fops->open == NULL && vdev->fops->release == NULL &&
-+	    vdev->prio != NULL)
-+		set_bit(V4L2_FL_USES_V4L2_PRIO, &vdev->flags);
++ VPBE venc sub device driver
++         drivers/media/video/davinci/vpbe_venc.c
++         drivers/media/video/davinci/vpbe_venc.h
++         drivers/media/video/davinci/vpbe_venc_regs.h
 +
- 	/* Part 3: Initialize the character device */
- 	vdev->cdev = cdev_alloc();
- 	if (vdev->cdev == NULL) {
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index 15dd756..045dffa 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -32,7 +32,13 @@ struct v4l2_ctrl_handler;
-    Drivers can clear this flag if they want to block all future
-    device access. It is cleared by video_unregister_device. */
- #define V4L2_FL_REGISTERED	(0)
-+/* Flag to mark that the driver stores a pointer to struct v4l2_fh in
-+   file->private_data. Is automatically detected. */
- #define V4L2_FL_USES_V4L2_FH	(1)
-+/* Flag to mark that the driver stores the local v4l2_priority in
-+   file->private_data. Will be set if open and release are both NULL.
-+   Drivers can also set it manually. */
-+#define V4L2_FL_USES_V4L2_PRIO	(2)
- 
- /* Priority helper functions */
- 
++ VPBE osd driver
++         drivers/media/video/davinci/vpbe_osd.c
++         drivers/media/video/davinci/vpbe_osd.h
++         drivers/media/video/davinci/vpbe_osd_regs.h
++
++ Functional partitioning
++ -----------------------
++
++ Consists of the following (in the same order as the list under file
++ partitioning):-
++
++ 1. V4L2 display driver
++    Implements creation of video2 and video3 device nodes and
++    provides v4l2 device interface to manage VID0 and VID1 layers.
++
++ 2. Display controller
++    Loads up VENC, OSD and external encoders such as ths8200. It provides
++    a set of API calls to V4L2 drivers to set the output/standards
++    in the VENC or external sub devices. It also provides
++    a device object to access the services from OSD subdevice
++    using sub device ops. The connection of external encoders to VENC LCD
++    controller port is done at init time based on default output and standard
++    selection or at run time when application change the output through
++    V4L2 IOCTLs.
++
++    When connected to an external encoder, vpbe controller is also responsible
++    for setting up the interface between VENC and external encoders based on
++    board specific settings (specified in board-xxx-evm.c). This allows
++    interfacing external encoders such as ths8200. The setup_if_config()
++    is implemented for this as well as configure_venc() (part of the next patch)
++    API to set timings in VENC for a specific display resolution. As of this
++    patch series, the interconnection and enabling and setting of the external
++    encoders is not present, and would be a part of the next patch series.
++
++ 3. VENC subdevice module
++    Responsible for setting outputs provided through internal DACs and also
++    setting timings at LCD controller port when external encoders are connected
++    at the port or LCD panel timings required. When external encoder/LCD panel
++    is connected, the timings for a specific standard/preset is retrieved from
++    the board specific table and the values are used to set the timings in
++    venc using non-standard timing mode.
++
++    Support LCD Panel displays using the VENC. For example to support a Logic
++    PD display, it requires setting up the LCD controller port with a set of
++    timings for the resolution supported and setting the dot clock. So we could
++    add the available outputs as a board specific entry (i.e add the "LogicPD"
++    output name to board-xxx-evm.c). A table of timings for various LCDs
++    supported can be maintained in the board specific setup file to support
++    various LCD displays.As of this patch a basic driver is present, and this
++    support for external encoders and displays forms a part of the next
++    patch series.
++
++ 4. OSD module
++    OSD module implements all OSD layer management and hardware specific
++    features. The VPBE module interacts with the OSD for enabling and
++    disabling appropriate features of the OSD.
++
++ Current status:-
++
++ A fully functional working version of the V4L2 driver is available. This
++ driver has been tested with NTSC and PAL standards and buffer streaming.
++
++ Following are TBDs.
++
++ vpbe display controller
++    - Add support for external encoders.
++    - add support for selecting external encoder as default at probe time.
++
++ vpbe venc sub device
++    - add timings for supporting ths8200
++    - add support for LogicPD LCD.
++
++ FB drivers
++    - Add support for fbdev drivers.- Ready and part of subsequent patches.
 -- 
-1.6.4.2
+1.6.2.4
 
