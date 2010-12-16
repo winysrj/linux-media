@@ -1,30 +1,38 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:49177 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750942Ab0LQGGs (ORCPT
+Received: from smtp5-g21.free.fr ([212.27.42.5]:33333 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753964Ab0LPKNx convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Dec 2010 01:06:48 -0500
-Received: by wwa36 with SMTP id 36so333723wwa.1
-        for <linux-media@vger.kernel.org>; Thu, 16 Dec 2010 22:06:47 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTinUQiUnET8K8xR_m8EVc9h6-vev1cKRe=F+yh6S@mail.gmail.com>
-References: <AANLkTi=_Wc-A2f2emjXrP1bwWF4T+esJfLkdeNXqDr74@mail.gmail.com>
-	<AANLkTinUQiUnET8K8xR_m8EVc9h6-vev1cKRe=F+yh6S@mail.gmail.com>
-Date: Fri, 17 Dec 2010 16:06:47 +1000
-Message-ID: <AANLkTinu6+3Ep=58ephY9TOCBV+4Z9RSO9F0NP6ooiKg@mail.gmail.com>
-Subject: Re: [mythtv-users] Leadtek DTV2000DS - no channel lock
-From: David Whyte <david.whyte@gmail.com>
-To: Discussion about MythTV <mythtv-users@mythtv.org>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 16 Dec 2010 05:13:53 -0500
+Date: Thu, 16 Dec 2010 11:15:55 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Anca Emanuel <anca.emanuel@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 3/6] [media] gspca core: Fix regressions gspca breaking
+ devices with audio
+Message-ID: <20101216111555.329df4fd@tele>
+In-Reply-To: <AANLkTimeLZwRhP8GfyZbNRiv3JduKJg8ZA3XZ6q7r2uQ@mail.gmail.com>
+References: <cover.1291926689.git.mchehab@redhat.com>
+	<20101209184236.53824f09@pedra>
+	<20101210115124.57ccd43e@tele>
+	<AANLkTim7iGe=tZXniHXG_33hCyiKFPZVuVDRLu43C3BQ@mail.gmail.com>
+	<20101214200817.045422e7@tele>
+	<AANLkTimeLZwRhP8GfyZbNRiv3JduKJg8ZA3XZ6q7r2uQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
->
-> I've had another bash at this, and I think that the 4.95.0 firmware
-> makes it work. Or at least, one of the 4 tuners is working.
->
+On Tue, 14 Dec 2010 22:05:37 +0200
+Anca Emanuel <anca.emanuel@gmail.com> wrote:
 
-For my K-World tuners, which use the same firmware (from the top of my
-head) I reverted to 4.65 (the default for Ubuntu 9.10) and found I had
-better success.  4.95 and 5.10 would take forever to lock for me.
+> The same bizzzzzzzzz ...
+
+Does this noise exist with all image resolutions?
+Also, does it change when changing the frame rate or the light
+frequency?
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
