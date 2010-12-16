@@ -1,63 +1,66 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:35863 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751799Ab0LUXs7 (ORCPT
+Received: from rcsinet10.oracle.com ([148.87.113.121]:52269 "EHLO
+	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757083Ab0LPSEd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Dec 2010 18:48:59 -0500
-From: Thiago Farina <tfransosi@gmail.com>
-To: linux-kernel@vger.kernel.org
-Cc: arnd@arndb.de, Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Thu, 16 Dec 2010 13:04:33 -0500
+Date: Thu, 16 Dec 2010 10:03:55 -0800
+From: Randy Dunlap <randy.dunlap@oracle.com>
+To: linux-media@vger.kernel.org
+Cc: Alexey Dobriyan <adobriyan@gmail.com>,
+	Zimny Lech <napohybelskurwysynom2010@gmail.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: [PATCH v2] drivers/media/video/v4l2-compat-ioctl32.c: Check the return value of copy_to_user
-Date: Tue, 21 Dec 2010 21:48:45 -0200
-Message-Id: <83948188cda2388c2e22a50119dfb0023fba759a.1292975147.git.tfransosi@gmail.com>
-In-Reply-To: <201012212003.11446.arnd@arndb.de>
-References: <201012212003.11446.arnd@arndb.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH -next v2] media: fix em28xx build, needs hardirq.h
+Message-Id: <20101216100355.cd76fc70.randy.dunlap@oracle.com>
+In-Reply-To: <20101207105009.7d634c7b.randy.dunlap@oracle.com>
+References: <20101206140055.34289498.sfr@canb.auug.org.au>
+	<AANLkTi=XkxnHZGTEsrrRmPGQePitzb=akyS99_Qd6ROy@mail.gmail.com>
+	<20101207103815.26054c38.randy.dunlap@oracle.com>
+	<20101207184453.GA30998@core2.telecom.by>
+	<20101207105009.7d634c7b.randy.dunlap@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-This fix the following warning:
-drivers/media/video/v4l2-compat-ioctl32.c: In function ‘get_microcode32’:
-drivers/media/video/v4l2-compat-ioctl32.c:209: warning: ignoring return value of ‘copy_to_user’, declared with attribute warn_unused_result
+On Tue, 7 Dec 2010 10:50:09 -0800 Randy Dunlap wrote:
 
-Signed-off-by: Thiago Farina <tfransosi@gmail.com>
+ping.
+
+
+> ---
+> From: Randy Dunlap <randy.dunlap@oracle.com>
+> 
+> Fix em28xx build by adding hardirq.h header file:
+> 
+> drivers/media/video/em28xx/em28xx-vbi.c:49: error: implicit declaration of function 'in_interrupt'
+> 
+> Reported-by: Zimny Lech <napohybelskurwysynom2010@gmail.com>
+> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+> ---
+>  drivers/media/video/em28xx/em28xx-vbi.c |    1 +
+>  1 file changed, 1 insertion(+)
+> 
+> --- linux-next-20101207.orig/drivers/media/video/em28xx/em28xx-vbi.c
+> +++ linux-next-20101207/drivers/media/video/em28xx/em28xx-vbi.c
+> @@ -23,6 +23,7 @@
+>  
+>  #include <linux/kernel.h>
+>  #include <linux/module.h>
+> +#include <linux/hardirq.h>
+>  #include <linux/init.h>
+>  
+>  #include "em28xx.h"
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+
+
 ---
- Changes from v1:
- - Check the return code of put_user too.
- - Remove the obsolete comment.
-
- drivers/media/video/v4l2-compat-ioctl32.c |   14 ++++++--------
- 1 files changed, 6 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-index e30e8df..6f2a022 100644
---- a/drivers/media/video/v4l2-compat-ioctl32.c
-+++ b/drivers/media/video/v4l2-compat-ioctl32.c
-@@ -201,14 +201,12 @@ static struct video_code __user *get_microcode32(struct video_code32 *kp)
- 
- 	up = compat_alloc_user_space(sizeof(*up));
- 
--	/*
--	 * NOTE! We don't actually care if these fail. If the
--	 * user address is invalid, the native ioctl will do
--	 * the error handling for us
--	 */
--	(void) copy_to_user(up->loadwhat, kp->loadwhat, sizeof(up->loadwhat));
--	(void) put_user(kp->datasize, &up->datasize);
--	(void) put_user(compat_ptr(kp->data), &up->data);
-+	if (copy_to_user(up->loadwhat, kp->loadwhat, sizeof(up->loadwhat)))
-+		return NULL;
-+	if (put_user(kp->datasize, &up->datasize))
-+		return NULL;
-+	if (put_user(compat_ptr(kp->data), &up->data))
-+		return NULL;
- 	return up;
- }
- 
--- 
-1.7.3.2.343.g7d43d
-
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
