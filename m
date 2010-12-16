@@ -1,241 +1,243 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2024 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753582Ab0LLRcJ (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:62162 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753857Ab0LPOYS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Dec 2010 12:32:09 -0500
-Received: from localhost.localdomain (159.80-203-19.nextgentel.com [80.203.19.159])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id oBCHW1ML002236
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 12 Dec 2010 18:32:08 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 16 Dec 2010 09:24:18 -0500
+Received: from spt2.w1.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LDI00856YOFME@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Dec 2010 14:24:15 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LDI00JJ6YOE4G@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Dec 2010 14:24:15 +0000 (GMT)
+Date: Thu, 16 Dec 2010 15:24:00 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 3/8] v4l: videobuf2: add vmalloc allocator
+In-reply-to: <1292509445-15100-1-git-send-email-m.szyprowski@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: [RFC/PATCH 13/19] vpx3220: use control framework
-Date: Sun, 12 Dec 2010 18:31:55 +0100
-Message-Id: <fbf27320f01643b6bc08f84dc66cb1fdc95ca30a.1292174822.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1292174822.git.hverkuil@xs4all.nl>
-References: <cover.1292174822.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1292174822.git.hverkuil@xs4all.nl>
-References: <cover.1292174822.git.hverkuil@xs4all.nl>
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, andrzej.p@samsung.com
+Message-id: <1292509445-15100-4-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1292509445-15100-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/vpx3220.c |  137 +++++++++++++++--------------------------
- 1 files changed, 51 insertions(+), 86 deletions(-)
+From: Pawel Osciak <p.osciak@samsung.com>
 
-diff --git a/drivers/media/video/vpx3220.c b/drivers/media/video/vpx3220.c
-index 91a01b3..75301d1 100644
---- a/drivers/media/video/vpx3220.c
-+++ b/drivers/media/video/vpx3220.c
-@@ -28,6 +28,7 @@
- #include <linux/videodev2.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-chip-ident.h>
-+#include <media/v4l2-ctrls.h>
+Add an implementation of contiguous virtual memory allocator and handling
+routines for videobuf2, implemented on top of vmalloc()/vfree() calls.
+
+Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+CC: Pawel Osciak <pawel@osciak.com>
+---
+ drivers/media/video/Kconfig             |    5 +
+ drivers/media/video/Makefile            |    1 +
+ drivers/media/video/videobuf2-vmalloc.c |  132 +++++++++++++++++++++++++++++++
+ include/media/videobuf2-vmalloc.h       |   20 +++++
+ 4 files changed, 158 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/videobuf2-vmalloc.c
+ create mode 100644 include/media/videobuf2-vmalloc.h
+
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 3c239fa..2606f49 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -55,6 +55,11 @@ config VIDEOBUF2_CORE
+ config VIDEOBUF2_MEMOPS
+ 	tristate
  
- MODULE_DESCRIPTION("vpx3220a/vpx3216b/vpx3214c video decoder driver");
- MODULE_AUTHOR("Laurent Pinchart");
-@@ -44,16 +45,13 @@ MODULE_PARM_DESC(debug, "Debug level (0-1)");
- 
- struct vpx3220 {
- 	struct v4l2_subdev sd;
-+	struct v4l2_ctrl_handler hdl;
- 	unsigned char reg[255];
- 
- 	v4l2_std_id norm;
- 	int ident;
- 	int input;
- 	int enable;
--	int bright;
--	int contrast;
--	int hue;
--	int sat;
- };
- 
- static inline struct vpx3220 *to_vpx3220(struct v4l2_subdev *sd)
-@@ -61,6 +59,11 @@ static inline struct vpx3220 *to_vpx3220(struct v4l2_subdev *sd)
- 	return container_of(sd, struct vpx3220, sd);
- }
- 
-+static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
-+{
-+	return &container_of(ctrl->handler, struct vpx3220, hdl)->sd;
-+}
++config VIDEOBUF2_VMALLOC
++	select VIDEOBUF2_CORE
++	select VIDEOBUF2_MEMOPS
++	tristate
 +
- static char *inputs[] = { "internal", "composite", "svideo" };
+ #
+ # Multimedia Video device configuration
+ #
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index a97a2a0..538bee9 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -116,6 +116,7 @@ obj-$(CONFIG_VIDEO_BTCX)  += btcx-risc.o
  
- /* ----------------------------------------------------------------------- */
-@@ -417,88 +420,26 @@ static int vpx3220_s_stream(struct v4l2_subdev *sd, int enable)
- 	return 0;
- }
+ obj-$(CONFIG_VIDEOBUF2_CORE)		+= videobuf2-core.o
+ obj-$(CONFIG_VIDEOBUF2_MEMOPS)		+= videobuf2-memops.o
++obj-$(CONFIG_VIDEOBUF2_VMALLOC)		+= videobuf2-vmalloc.o
  
--static int vpx3220_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc)
--{
--	switch (qc->id) {
--	case V4L2_CID_BRIGHTNESS:
--		v4l2_ctrl_query_fill(qc, -128, 127, 1, 0);
--		break;
--
--	case V4L2_CID_CONTRAST:
--		v4l2_ctrl_query_fill(qc, 0, 63, 1, 32);
--		break;
--
--	case V4L2_CID_SATURATION:
--		v4l2_ctrl_query_fill(qc, 0, 4095, 1, 2048);
--		break;
--
--	case V4L2_CID_HUE:
--		v4l2_ctrl_query_fill(qc, -512, 511, 1, 0);
--		break;
--
--	default:
--		return -EINVAL;
--	}
--	return 0;
--}
--
--static int vpx3220_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-+static int vpx3220_s_ctrl(struct v4l2_ctrl *ctrl)
- {
--	struct vpx3220 *decoder = to_vpx3220(sd);
-+	struct v4l2_subdev *sd = to_sd(ctrl);
+ obj-$(CONFIG_V4L2_MEM2MEM_DEV) += v4l2-mem2mem.o
  
- 	switch (ctrl->id) {
- 	case V4L2_CID_BRIGHTNESS:
--		ctrl->value = decoder->bright;
--		break;
-+		vpx3220_write(sd, 0xe6, ctrl->val);
-+		return 0;
- 	case V4L2_CID_CONTRAST:
--		ctrl->value = decoder->contrast;
--		break;
-+		/* Bit 7 and 8 is for noise shaping */
-+		vpx3220_write(sd, 0xe7, ctrl->val + 192);
-+		return 0;
- 	case V4L2_CID_SATURATION:
--		ctrl->value = decoder->sat;
--		break;
-+		vpx3220_fp_write(sd, 0xa0, ctrl->val);
-+		return 0;
- 	case V4L2_CID_HUE:
--		ctrl->value = decoder->hue;
--		break;
--	default:
--		return -EINVAL;
-+		vpx3220_fp_write(sd, 0x1c, ctrl->val);
-+		return 0;
- 	}
--	return 0;
--}
--
--static int vpx3220_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
--{
--	struct vpx3220 *decoder = to_vpx3220(sd);
--
--	switch (ctrl->id) {
--	case V4L2_CID_BRIGHTNESS:
--		if (decoder->bright != ctrl->value) {
--			decoder->bright = ctrl->value;
--			vpx3220_write(sd, 0xe6, decoder->bright);
--		}
--		break;
--	case V4L2_CID_CONTRAST:
--		if (decoder->contrast != ctrl->value) {
--			/* Bit 7 and 8 is for noise shaping */
--			decoder->contrast = ctrl->value;
--			vpx3220_write(sd, 0xe7, decoder->contrast + 192);
--		}
--		break;
--	case V4L2_CID_SATURATION:
--		if (decoder->sat != ctrl->value) {
--			decoder->sat = ctrl->value;
--			vpx3220_fp_write(sd, 0xa0, decoder->sat);
--		}
--		break;
--	case V4L2_CID_HUE:
--		if (decoder->hue != ctrl->value) {
--			decoder->hue = ctrl->value;
--			vpx3220_fp_write(sd, 0x1c, decoder->hue);
--		}
--		break;
--	default:
--		return -EINVAL;
--	}
--	return 0;
-+	return -EINVAL;
- }
- 
- static int vpx3220_g_chip_ident(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident *chip)
-@@ -511,12 +452,20 @@ static int vpx3220_g_chip_ident(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ide
- 
- /* ----------------------------------------------------------------------- */
- 
-+static const struct v4l2_ctrl_ops vpx3220_ctrl_ops = {
-+	.s_ctrl = vpx3220_s_ctrl,
+diff --git a/drivers/media/video/videobuf2-vmalloc.c b/drivers/media/video/videobuf2-vmalloc.c
+new file mode 100644
+index 0000000..b5e6936
+--- /dev/null
++++ b/drivers/media/video/videobuf2-vmalloc.c
+@@ -0,0 +1,132 @@
++/*
++ * videobuf2-vmalloc.c - vmalloc memory allocator for videobuf2
++ *
++ * Copyright (C) 2010 Samsung Electronics
++ *
++ * Author: Pawel Osciak <p.osciak@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation.
++ */
++
++#include <linux/module.h>
++#include <linux/mm.h>
++#include <linux/slab.h>
++#include <linux/vmalloc.h>
++
++#include <media/videobuf2-core.h>
++#include <media/videobuf2-memops.h>
++
++struct vb2_vmalloc_buf {
++	void				*vaddr;
++	unsigned long			size;
++	atomic_t			refcount;
++	struct vb2_vmarea_handler	handler;
 +};
 +
- static const struct v4l2_subdev_core_ops vpx3220_core_ops = {
- 	.g_chip_ident = vpx3220_g_chip_ident,
- 	.init = vpx3220_init,
--	.g_ctrl = vpx3220_g_ctrl,
--	.s_ctrl = vpx3220_s_ctrl,
--	.queryctrl = vpx3220_queryctrl,
-+	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
-+	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
-+	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
-+	.g_ctrl = v4l2_subdev_g_ctrl,
-+	.s_ctrl = v4l2_subdev_s_ctrl,
-+	.queryctrl = v4l2_subdev_queryctrl,
-+	.querymenu = v4l2_subdev_querymenu,
- 	.s_std = vpx3220_s_std,
- };
- 
-@@ -558,10 +507,24 @@ static int vpx3220_probe(struct i2c_client *client,
- 	decoder->norm = V4L2_STD_PAL;
- 	decoder->input = 0;
- 	decoder->enable = 1;
--	decoder->bright = 32768;
--	decoder->contrast = 32768;
--	decoder->hue = 32768;
--	decoder->sat = 32768;
-+	v4l2_ctrl_handler_init(&decoder->hdl, 4);
-+	v4l2_ctrl_new_std(&decoder->hdl, &vpx3220_ctrl_ops,
-+		V4L2_CID_BRIGHTNESS, -128, 127, 1, 0);
-+	v4l2_ctrl_new_std(&decoder->hdl, &vpx3220_ctrl_ops,
-+		V4L2_CID_CONTRAST, 0, 63, 1, 32);
-+	v4l2_ctrl_new_std(&decoder->hdl, &vpx3220_ctrl_ops,
-+		V4L2_CID_SATURATION, 0, 4095, 1, 2048);
-+	v4l2_ctrl_new_std(&decoder->hdl, &vpx3220_ctrl_ops,
-+		V4L2_CID_HUE, -512, 511, 1, 0);
-+	sd->ctrl_handler = &decoder->hdl;
-+	if (decoder->hdl.error) {
-+		int err = decoder->hdl.error;
++static void vb2_vmalloc_put(void *buf_priv);
 +
-+		v4l2_ctrl_handler_free(&decoder->hdl);
-+		kfree(decoder);
-+		return err;
++static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size)
++{
++	struct vb2_vmalloc_buf *buf;
++
++	buf = kzalloc(sizeof *buf, GFP_KERNEL);
++	if (!buf)
++		return NULL;
++
++	buf->size = size;
++	buf->vaddr = vmalloc_user(buf->size);
++	buf->handler.refcount = &buf->refcount;
++	buf->handler.put = vb2_vmalloc_put;
++	buf->handler.arg = buf;
++
++	if (!buf->vaddr) {
++		printk(KERN_ERR "vmalloc of size %ld failed\n", buf->size);
++		kfree(buf);
++		return NULL;
 +	}
-+	v4l2_ctrl_handler_setup(&decoder->hdl);
- 
- 	ver = i2c_smbus_read_byte_data(client, 0x00);
- 	pn = (i2c_smbus_read_byte_data(client, 0x02) << 8) +
-@@ -599,9 +562,11 @@ static int vpx3220_probe(struct i2c_client *client,
- static int vpx3220_remove(struct i2c_client *client)
- {
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct vpx3220 *decoder = to_vpx3220(sd);
- 
- 	v4l2_device_unregister_subdev(sd);
--	kfree(to_vpx3220(sd));
-+	v4l2_ctrl_handler_free(&decoder->hdl);
-+	kfree(decoder);
- 	return 0;
- }
- 
++
++	atomic_inc(&buf->refcount);
++	printk(KERN_DEBUG "Allocated vmalloc buffer of size %ld at vaddr=%p\n",
++			buf->size, buf->vaddr);
++
++	return buf;
++}
++
++static void vb2_vmalloc_put(void *buf_priv)
++{
++	struct vb2_vmalloc_buf *buf = buf_priv;
++
++	if (atomic_dec_and_test(&buf->refcount)) {
++		printk(KERN_DEBUG "%s: Freeing vmalloc mem at vaddr=%p\n",
++			__func__, buf->vaddr);
++		vfree(buf->vaddr);
++		kfree(buf);
++	}
++}
++
++static void *vb2_vmalloc_vaddr(void *buf_priv)
++{
++	struct vb2_vmalloc_buf *buf = buf_priv;
++
++	BUG_ON(!buf);
++
++	if (!buf->vaddr) {
++		printk(KERN_ERR "Address of an unallocated plane requested\n");
++		return NULL;
++	}
++
++	return buf->vaddr;
++}
++
++static unsigned int vb2_vmalloc_num_users(void *buf_priv)
++{
++	struct vb2_vmalloc_buf *buf = buf_priv;
++	return atomic_read(&buf->refcount);
++}
++
++static int vb2_vmalloc_mmap(void *buf_priv, struct vm_area_struct *vma)
++{
++	struct vb2_vmalloc_buf *buf = buf_priv;
++	int ret;
++
++	if (!buf) {
++		printk(KERN_ERR "No memory to map\n");
++		return -EINVAL;
++	}
++
++	ret = remap_vmalloc_range(vma, buf->vaddr, 0);
++	if (ret) {
++		printk(KERN_ERR "Remapping vmalloc memory, error: %d\n", ret);
++		return ret;
++	}
++
++	/*
++	 * Make sure that vm_areas for 2 buffers won't be merged together
++	 */
++	vma->vm_flags		|= VM_DONTEXPAND;
++
++	/*
++	 * Use common vm_area operations to track buffer refcount.
++	 */
++	vma->vm_private_data	= &buf->handler;
++	vma->vm_ops		= &vb2_common_vm_ops;
++
++	vma->vm_ops->open(vma);
++
++	return 0;
++}
++
++const struct vb2_mem_ops vb2_vmalloc_memops = {
++	.alloc		= vb2_vmalloc_alloc,
++	.put		= vb2_vmalloc_put,
++	.vaddr		= vb2_vmalloc_vaddr,
++	.mmap		= vb2_vmalloc_mmap,
++	.num_users	= vb2_vmalloc_num_users,
++};
++EXPORT_SYMBOL_GPL(vb2_vmalloc_memops);
++
++MODULE_DESCRIPTION("vmalloc memory handling routines for videobuf2");
++MODULE_AUTHOR("Pawel Osciak");
++MODULE_LICENSE("GPL");
+diff --git a/include/media/videobuf2-vmalloc.h b/include/media/videobuf2-vmalloc.h
+new file mode 100644
+index 0000000..a76b8af
+--- /dev/null
++++ b/include/media/videobuf2-vmalloc.h
+@@ -0,0 +1,20 @@
++/*
++ * videobuf2-vmalloc.h - vmalloc memory allocator for videobuf2
++ *
++ * Copyright (C) 2010 Samsung Electronics
++ *
++ * Author: Pawel Osciak <p.osciak@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation.
++ */
++
++#ifndef _MEDIA_VIDEOBUF2_VMALLOC_H
++#define _MEDIA_VIDEOBUF2_VMALLOC_H
++
++#include <media/videobuf2-core.h>
++
++extern const struct vb2_mem_ops vb2_vmalloc_memops;
++
++#endif
 -- 
-1.7.0.4
+1.7.1.569.g6f426
 
