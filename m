@@ -1,76 +1,158 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:59254 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750967Ab0L3XI6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Dec 2010 18:08:58 -0500
-From: "Justin P. Mattock" <justinmattock@gmail.com>
-To: trivial@kernel.org
-Cc: linux-m68k@lists.linux-m68k.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, ivtv-devel@ivtvdriver.org,
-	linux-media@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-scsi@vger.kernel.org,
-	spi-devel-general@lists.sourceforge.net,
-	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org,
-	"Justin P. Mattock" <justinmattock@gmail.com>
-Subject: [PATCH 15/15]drivers:spi:dw_spi.c Typo change diable to disable.
-Date: Thu, 30 Dec 2010 15:08:04 -0800
-Message-Id: <1293750484-1161-15-git-send-email-justinmattock@gmail.com>
-In-Reply-To: <1293750484-1161-14-git-send-email-justinmattock@gmail.com>
-References: <1293750484-1161-1-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-2-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-3-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-4-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-5-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-6-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-7-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-8-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-9-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-10-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-11-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-12-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-13-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-14-git-send-email-justinmattock@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:36073 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757349Ab0LPTBO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Dec 2010 14:01:14 -0500
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: [PATCH 3/4] rc: conversion is to microseconds, not nanoseconds
+Date: Thu, 16 Dec 2010 14:00:36 -0500
+Message-Id: <1292526037-21491-4-git-send-email-jarod@redhat.com>
+In-Reply-To: <1292526037-21491-1-git-send-email-jarod@redhat.com>
+References: <1292526037-21491-1-git-send-email-jarod@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-The below patch fixes a typo "diable" to "disable". Please let me know if this
-is correct or not.
+Fix a thinko, and move macro definition to a common header so it can be
+shared amongst all drivers, as ms to us conversion is something that
+multiple drivers need to do. We probably ought to have its inverse
+available as well.
 
-Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
-
+Reported-by: David Härdeman <david@hardeman.nu>
+CC: Maxim Levitsky <maximlevitsky@gmail.com>
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
 ---
- drivers/spi/dw_spi.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/rc/ene_ir.c |   16 ++++++++--------
+ drivers/media/rc/ene_ir.h |    2 --
+ drivers/media/rc/mceusb.c |    7 +++----
+ include/media/rc-core.h   |    1 +
+ 4 files changed, 12 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/spi/dw_spi.c b/drivers/spi/dw_spi.c
-index 7c3cf21..a3a065f 100644
---- a/drivers/spi/dw_spi.c
-+++ b/drivers/spi/dw_spi.c
-@@ -910,12 +910,12 @@ int __devinit dw_spi_add_host(struct dw_spi *dws)
- 	ret = init_queue(dws);
- 	if (ret) {
- 		dev_err(&master->dev, "problem initializing queue\n");
--		goto err_diable_hw;
-+		goto err_disable_hw;
- 	}
- 	ret = start_queue(dws);
- 	if (ret) {
- 		dev_err(&master->dev, "problem starting queue\n");
--		goto err_diable_hw;
-+		goto err_disable_hw;
+diff --git a/drivers/media/rc/ene_ir.c b/drivers/media/rc/ene_ir.c
+index 80b3c31..1203d4f 100644
+--- a/drivers/media/rc/ene_ir.c
++++ b/drivers/media/rc/ene_ir.c
+@@ -446,27 +446,27 @@ static void ene_rx_setup(struct ene_device *dev)
+ 
+ select_timeout:
+ 	if (dev->rx_fan_input_inuse) {
+-		dev->rdev->rx_resolution = MS_TO_NS(ENE_FW_SAMPLE_PERIOD_FAN);
++		dev->rdev->rx_resolution = MS_TO_US(ENE_FW_SAMPLE_PERIOD_FAN);
+ 
+ 		/* Fan input doesn't support timeouts, it just ends the
+ 			input with a maximum sample */
+ 		dev->rdev->min_timeout = dev->rdev->max_timeout =
+-			MS_TO_NS(ENE_FW_SMPL_BUF_FAN_MSK *
++			MS_TO_US(ENE_FW_SMPL_BUF_FAN_MSK *
+ 				ENE_FW_SAMPLE_PERIOD_FAN);
+ 	} else {
+-		dev->rdev->rx_resolution = MS_TO_NS(sample_period);
++		dev->rdev->rx_resolution = MS_TO_US(sample_period);
+ 
+ 		/* Theoreticly timeout is unlimited, but we cap it
+ 		 * because it was seen that on one device, it
+ 		 * would stop sending spaces after around 250 msec.
+ 		 * Besides, this is close to 2^32 anyway and timeout is u32.
+ 		 */
+-		dev->rdev->min_timeout = MS_TO_NS(127 * sample_period);
+-		dev->rdev->max_timeout = MS_TO_NS(200000);
++		dev->rdev->min_timeout = MS_TO_US(127 * sample_period);
++		dev->rdev->max_timeout = MS_TO_US(200000);
  	}
  
- 	spi_master_set_devdata(master, dws);
-@@ -930,7 +930,7 @@ int __devinit dw_spi_add_host(struct dw_spi *dws)
+ 	if (dev->hw_learning_and_tx_capable)
+-		dev->rdev->tx_resolution = MS_TO_NS(sample_period);
++		dev->rdev->tx_resolution = MS_TO_US(sample_period);
  
- err_queue_alloc:
- 	destroy_queue(dws);
--err_diable_hw:
-+err_disable_hw:
- 	spi_enable_chip(dws, 0);
- 	free_irq(dws->irq, dws);
- err_free_master:
+ 	if (dev->rdev->timeout > dev->rdev->max_timeout)
+ 		dev->rdev->timeout = dev->rdev->max_timeout;
+@@ -801,7 +801,7 @@ static irqreturn_t ene_isr(int irq, void *data)
+ 
+ 		dbg("RX: %d (%s)", hw_sample, pulse ? "pulse" : "space");
+ 
+-		ev.duration = MS_TO_NS(hw_sample);
++		ev.duration = MS_TO_US(hw_sample);
+ 		ev.pulse = pulse;
+ 		ir_raw_event_store_with_filter(dev->rdev, &ev);
+ 	}
+@@ -821,7 +821,7 @@ static void ene_setup_default_settings(struct ene_device *dev)
+ 	dev->learning_mode_enabled = learning_mode_force;
+ 
+ 	/* Set reasonable default timeout */
+-	dev->rdev->timeout = MS_TO_NS(150000);
++	dev->rdev->timeout = MS_TO_US(150000);
+ }
+ 
+ /* Upload all hardware settings at once. Used at load and resume time */
+diff --git a/drivers/media/rc/ene_ir.h b/drivers/media/rc/ene_ir.h
+index c179baf..337a41d 100644
+--- a/drivers/media/rc/ene_ir.h
++++ b/drivers/media/rc/ene_ir.h
+@@ -201,8 +201,6 @@
+ #define dbg_verbose(format, ...)	__dbg(2, format, ## __VA_ARGS__)
+ #define dbg_regs(format, ...)		__dbg(3, format, ## __VA_ARGS__)
+ 
+-#define MS_TO_NS(msec) ((msec) * 1000)
+-
+ struct ene_device {
+ 	struct pnp_dev *pnp_dev;
+ 	struct rc_dev *rdev;
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index 94b95d4..9c55e32 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -48,7 +48,6 @@
+ #define USB_BUFLEN		32 /* USB reception buffer length */
+ #define USB_CTRL_MSG_SZ		2  /* Size of usb ctrl msg on gen1 hw */
+ #define MCE_G1_INIT_MSGS	40 /* Init messages on gen1 hw to throw out */
+-#define MS_TO_NS(msec)		((msec) * 1000)
+ 
+ /* MCE constants */
+ #define MCE_CMDBUF_SIZE		384  /* MCE Command buffer length */
+@@ -815,7 +814,7 @@ static void mceusb_handle_command(struct mceusb_dev *ir, int index)
+ 	switch (ir->buf_in[index]) {
+ 	/* 2-byte return value commands */
+ 	case MCE_CMD_S_TIMEOUT:
+-		ir->rc->timeout = MS_TO_NS((hi << 8 | lo) / 2);
++		ir->rc->timeout = MS_TO_US((hi << 8 | lo) / 2);
+ 		break;
+ 
+ 	/* 1-byte return value commands */
+@@ -856,7 +855,7 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
+ 			ir->rem--;
+ 			rawir.pulse = ((ir->buf_in[i] & MCE_PULSE_BIT) != 0);
+ 			rawir.duration = (ir->buf_in[i] & MCE_PULSE_MASK)
+-					 * MS_TO_NS(MCE_TIME_UNIT);
++					 * MS_TO_US(MCE_TIME_UNIT);
+ 
+ 			dev_dbg(ir->dev, "Storing %s with duration %d\n",
+ 				rawir.pulse ? "pulse" : "space",
+@@ -1059,7 +1058,7 @@ static struct rc_dev *mceusb_init_rc_dev(struct mceusb_dev *ir)
+ 	rc->priv = ir;
+ 	rc->driver_type = RC_DRIVER_IR_RAW;
+ 	rc->allowed_protos = RC_TYPE_ALL;
+-	rc->timeout = MS_TO_NS(1000);
++	rc->timeout = MS_TO_US(1000);
+ 	if (!ir->flags.no_tx) {
+ 		rc->s_tx_mask = mceusb_set_tx_mask;
+ 		rc->s_tx_carrier = mceusb_set_tx_carrier;
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index ffc93dd..830666d 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -185,6 +185,7 @@ static inline void init_ir_raw_event(struct ir_raw_event *ev)
+ }
+ 
+ #define IR_MAX_DURATION         0xFFFFFFFF      /* a bit more than 4 seconds */
++#define MS_TO_US(msec)		((msec) * 1000)
+ 
+ void ir_raw_event_handle(struct rc_dev *dev);
+ int ir_raw_event_store(struct rc_dev *dev, struct ir_raw_event *ev);
 -- 
-1.6.5.2.180.gc5b3e
+1.7.1
 
