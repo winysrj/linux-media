@@ -1,57 +1,41 @@
 Return-path: <mchehab@gaivota>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:46443 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752238Ab0LWNtq (ORCPT
+Received: from mail-ew0-f45.google.com ([209.85.215.45]:55552 "EHLO
+	mail-ew0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754715Ab0LPLPR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Dec 2010 08:49:46 -0500
-Date: Thu, 23 Dec 2010 13:48:38 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Tomasz Fujak <t.fujak@samsung.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Kyungmin Park' <kmpark@infradead.org>,
-	'Mel Gorman' <mel@csn.ul.ie>,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
-	Michal Nazarewicz <mina86@mina86.com>,
-	linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-	linux-arm-kernel@lists.infradead.org,
-	'Andrew Morton' <akpm@linux-foundation.org>,
-	linux-media@vger.kernel.org,
-	'Johan MOSSBERG' <johan.xx.mossberg@stericsson.com>,
-	'Ankita Garg' <ankita@in.ibm.com>
-Subject: Re: [PATCHv8 00/12] Contiguous Memory Allocator
-Message-ID: <20101223134838.GK3636@n2100.arm.linux.org.uk>
-References: <cover.1292443200.git.m.nazarewicz@samsung.com> <AANLkTim8_=0+-zM5z4j0gBaw3PF3zgpXQNetEn-CfUGb@mail.gmail.com> <20101223100642.GD3636@n2100.arm.linux.org.uk> <00ea01cba290$4d67f500$e837df00$%szyprowski@samsung.com> <20101223121917.GG3636@n2100.arm.linux.org.uk> <4D135004.3070904@samsung.com>
+	Thu, 16 Dec 2010 06:15:17 -0500
+Received: by ewy10 with SMTP id 10so1842633ewy.4
+        for <linux-media@vger.kernel.org>; Thu, 16 Dec 2010 03:15:15 -0800 (PST)
+Message-ID: <4D09F487.4010906@mvista.com>
+Date: Thu, 16 Dec 2010 14:14:15 +0300
+From: Sergei Shtylyov <sshtylyov@mvista.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4D135004.3070904@samsung.com>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+CC: "Hadli, Manjunath" <manjunath.hadli@ti.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v6 5/7] davinci vpbe: platform specific additions
+References: <1292404268-12517-1-git-send-email-manjunath.hadli@ti.com>	<4D08A475.6080703@mvista.com> <A69FA2915331DC488A831521EAE36FE401BE4AC794@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE401BE4AC794@dlee06.ent.ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Thu, Dec 23, 2010 at 02:35:00PM +0100, Tomasz Fujak wrote:
-> Dear Mr. King,
-> 
-> AFAIK the CMA is the fourth attempt since 2008 taken to solve the
-> multimedia memory allocation issue on some embedded devices. Most
-> notably on ARM, that happens to be present in the SoCs we care about
-> along the IOMMU-incapable multimedia IPs.
-> 
-> I understand that you have your guidelines taken from the ARM
-> specification, but this approach is not helping us.
+Hello.
 
-I'm sorry you feel like that, but I'm living in reality.  If we didn't
-have these architecture restrictions then we wouldn't have this problem
-in the first place.
+On 15-12-2010 18:54, Karicheri, Muralidharan wrote:
 
-What I'm trying to do here is to ensure that we remain _legal_ to the
-architecture specification - which for this issue means that we avoid
-corrupting people's data.
+>> I think the DM644x EVM board changes should be in a separate patch.
 
-Maybe you like having a system which randomly corrupts people's data?
-I most certainly don't.  But that's the way CMA is heading at the moment
-on ARM.
+> Any reason?
 
-It is not up to me to solve these problems - that's for the proposer of
-the new API to do so.  So, please, don't try to lump this problem on
-my shoulders.  It's not my problem to sort out.
+    The resaon is simple: you shouldn't mix SoC-level and board-level changes.
+
+> Murali Karicheri
+> Software Design Engineer
+> Texas Instruments Inc.
+> Germantown, MD 20874
+
+WBR, Sergei
