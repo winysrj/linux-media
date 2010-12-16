@@ -1,125 +1,255 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-in-02.arcor-online.net ([151.189.21.42]:44301 "EHLO
-	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756710Ab0LRPzu (ORCPT
+Received: from rtp-iport-2.cisco.com ([64.102.122.149]:2718 "EHLO
+	rtp-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756377Ab0LPP1Q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Dec 2010 10:55:50 -0500
-Message-ID: <4D0CD983.9010701@arcor.de>
-Date: Sat, 18 Dec 2010 16:55:47 +0100
-From: Stefan Ringel <stefan.ringel@arcor.de>
-MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Dmitri Belimov <d.belimov@gmail.com>,
-	Felipe Sanches <juca@members.fsf.org>,
-	Bee Hock Goh <beehock@gmail.com>,
-	Luis Henrique Fagundes <lhfagundes@hacklab.com.br>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jarod Wilson <jarod@redhat.com>
-Subject: Re: tm6000 and IR
-References: <4CAD5A78.3070803@redhat.com>	 <20101008150301.2e3ceaff@glory.local>	<4CAF0602.6050002@redhat.com>	 <20101012142856.2b4ee637@glory.local>	<4CB492D4.1000609@arcor.de>	 <20101129174412.08f2001c@glory.local>	<4CF51C9E.6040600@arcor.de>	 <20101201144704.43b58f2c@glory.local>	<4CF67AB9.6020006@arcor.de>	 <20101202134128.615bbfa0@glory.local>	<4CF71CF6.7080603@redhat.com>	 <20101206010934.55d07569@glory.local>	<4CFBF62D.7010301@arcor.de>	 <20101206190230.2259d7ab@glory.local>	<4CFEA3D2.4050309@arcor.de>	 <20101208125539.739e2ed2@glory.local>	<4CFFAD1E.7040004@arcor.de>	 <20101214122325.5cdea67e@glory.local>	<4D079ADF.2000705@arcor.de>	 <20101215164634.44846128@glory.local>	<4D08E43C.8080002@arcor.de>	 <20101216183844.6258734e@glory.local>	<4D0A4883.20804@arcor.de>	 <20101217104633.7c9d10d7@glory.local>	<4D0AF2A7.6080100@arcor.de>	 <20101217160854.16a1f754@glory.local>  <4D0BFF4B.3060001@redhat.com> <1292680595.2061.37.camel@morgan.silverblock.net>
-In-Reply-To: <1292680595.2061.37.camel@morgan.silverblock.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Thu, 16 Dec 2010 10:27:16 -0500
+From: mats.randgaard@cisco.com
+To: linux-media@vger.kernel.org
+Cc: mats.randgaard@cisco.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/5] vpif_cap/disp: Add debug functionality
+Date: Thu, 16 Dec 2010 16:17:41 +0100
+Message-Id: <1292512665-22538-2-git-send-email-mats.randgaard@cisco.com>
+In-Reply-To: <1292512665-22538-1-git-send-email-mats.randgaard@cisco.com>
+References: <1292512665-22538-1-git-send-email-mats.randgaard@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Am 18.12.2010 14:56, schrieb Andy Walls:
-> On Fri, 2010-12-17 at 22:24 -0200, Mauro Carvalho Chehab wrote:
->
->
->> Despite all discussions, we didn't reach an agreement yet.
->>
->> There are some points to consider whatever solution we do:
->>
->> 1) A keycode table should be able to work with a generic raw decoder. So, on all
->> drivers, the bit order and the number of bits for a given protocol should be the same;
->>
->> 2) we should avoid to cause regressions on the existing definitions.
->>
->> That's said, suggestions to meet the needs are welcome.
-> Just to throw out some ideas:
->
-> It appears to me that what you are looking at are communications
-> protocols with
->
-> a. a common Physical layer (PHY): a pulse distance protocol with a
-> common carrier freq, bit symbol encoding, leader pulse, trailer pulse,
-> and repeat sequence.  The number of bits (and the leader pulse length?)
-> is allowed to vary.
->
-> b. differing Data Link layers (LL): the data link address can be
-> different lengths and in different places; so can the data payload, so
-> can the checks on address and data payload.
->
-> For the end user, I would present each PHY/LL combination a different
-> protocol.  How the kernel implements it internally doesn't matter much.
-> It could be one raw decoder handling all the PHY/LL combinations that it
-> can, or one PHY decoder and several LL decoders.
->
-> The keytables should probably be working on cooked LL output from the
-> raw decoder.  I think that will handle a lot of the issues you mention.
-> The output from a LL could include
->
-> 	destination address (from the transmitted code),
-> 	source address (useful if different remotes can be detected),
-> 	payload length,
-> 	payload, and
-> 	maybe button up/down.
->
-> The LL could swallow the automatic repeats, since they are just part of
-> the button up/down scheme.
->
-> Aside from backward compatibility with existing keytables, I don't see
-> much point in a decoder trying to flip bits from the PHY layer around to
-> present a pseudo-PHY layer output.  Don't keytables get updated with the
-> kernel release anyway, or did they all move to userspace utils?
->
->
-> Anyway, just some thoughts.
->
-> Regards,
-> Andy
->
->
->> Thanks,
->> Mauro
->
-TM5600, TM6000 and TM6010 IR
-==========================
+From: Mats Randgaard <mats.randgaard@cisco.com>
 
-It give two ways to receive data
+The following functions are added to the drivers:
+    - vpif_g_chip_ident
+    - vpif_dbg_g_register
+    - vpif_dbg_s_register
+    - vpif_log_status
 
-1. over the control pipe (ep0)
-- polling must stop if it loads firmware
-- data length are a byte (command)
+Signed-off-by: Mats Randgaard <mats.randgaard@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ drivers/media/video/davinci/vpif_capture.c |   83 +++++++++++++++++++++++++++
+ drivers/media/video/davinci/vpif_display.c |   86 ++++++++++++++++++++++++++++
+ 2 files changed, 169 insertions(+), 0 deletions(-)
 
-2. over interrupt pipe (only TM6010)
-- data length are two bytes (address << 8 | command)
+diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
+index 6ac6acd..3b5c98b 100644
+--- a/drivers/media/video/davinci/vpif_capture.c
++++ b/drivers/media/video/davinci/vpif_capture.c
+@@ -37,6 +37,7 @@
+ #include <linux/slab.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-chip-ident.h>
+ 
+ #include "vpif_capture.h"
+ #include "vpif.h"
+@@ -1807,6 +1808,82 @@ static int vpif_cropcap(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
++/*
++ * vpif_g_chip_ident() - Identify the chip
++ * @file: file ptr
++ * @priv: file handle
++ * @chip: chip identity
++ *
++ * Returns zero or -EINVAL if read operations fails.
++ */
++static int vpif_g_chip_ident(struct file *file, void *priv,
++		struct v4l2_dbg_chip_ident *chip)
++{
++	chip->ident = V4L2_IDENT_NONE;
++	chip->revision = 0;
++	if (chip->match.type != V4L2_CHIP_MATCH_I2C_DRIVER &&
++			chip->match.type != V4L2_CHIP_MATCH_I2C_ADDR) {
++		vpif_dbg(2, debug, "match_type is invalid.\n");
++		return -EINVAL;
++	}
++
++	return v4l2_device_call_until_err(&vpif_obj.v4l2_dev, 0, core,
++			g_chip_ident, chip);
++}
++
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++/*
++ * vpif_dbg_g_register() - Read register
++ * @file: file ptr
++ * @priv: file handle
++ * @reg: register to be read
++ *
++ * Debugging only
++ * Returns zero or -EINVAL if read operations fails.
++ */
++static int vpif_dbg_g_register(struct file *file, void *priv,
++		struct v4l2_dbg_register *reg){
++	struct vpif_fh *fh = priv;
++	struct channel_obj *ch = fh->channel;
++
++	return v4l2_subdev_call(vpif_obj.sd[ch->curr_sd_index], core,
++			g_register, reg);
++}
++
++/*
++ * vpif_dbg_s_register() - Write to register
++ * @file: file ptr
++ * @priv: file handle
++ * @reg: register to be modified
++ *
++ * Debugging only
++ * Returns zero or -EINVAL if write operations fails.
++ */
++static int vpif_dbg_s_register(struct file *file, void *priv,
++		struct v4l2_dbg_register *reg){
++	struct vpif_fh *fh = priv;
++	struct channel_obj *ch = fh->channel;
++
++	return v4l2_subdev_call(vpif_obj.sd[ch->curr_sd_index], core,
++			s_register, reg);
++}
++#endif
++
++/*
++ * vpif_log_status() - Status information
++ * @file: file ptr
++ * @priv: file handle
++ *
++ * Returns zero.
++ */
++static int vpif_log_status(struct file *filep, void *priv)
++{
++	/* status for sub devices */
++	v4l2_device_call_all(&vpif_obj.v4l2_dev, 0, core, log_status);
++
++	return 0;
++}
++
+ /* vpif capture ioctl operations */
+ static const struct v4l2_ioctl_ops vpif_ioctl_ops = {
+ 	.vidioc_querycap        	= vpif_querycap,
+@@ -1829,6 +1906,12 @@ static const struct v4l2_ioctl_ops vpif_ioctl_ops = {
+ 	.vidioc_streamon        	= vpif_streamon,
+ 	.vidioc_streamoff       	= vpif_streamoff,
+ 	.vidioc_cropcap         	= vpif_cropcap,
++	.vidioc_g_chip_ident		= vpif_g_chip_ident,
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++	.vidioc_g_register		= vpif_dbg_g_register,
++	.vidioc_s_register		= vpif_dbg_s_register,
++#endif
++	.vidioc_log_status		= vpif_log_status,
+ };
+ 
+ /* vpif file operations */
+diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
+index 685f6a6..57b206c 100644
+--- a/drivers/media/video/davinci/vpif_display.c
++++ b/drivers/media/video/davinci/vpif_display.c
+@@ -38,6 +38,7 @@
+ #include <media/adv7343.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-chip-ident.h>
+ 
+ #include <mach/dm646x.h>
+ 
+@@ -1315,6 +1316,85 @@ static int vpif_s_priority(struct file *file, void *priv, enum v4l2_priority p)
+ 	return v4l2_prio_change(&ch->prio, &fh->prio, p);
+ }
+ 
++
++/*
++ * vpif_g_chip_ident() - Identify the chip
++ * @file: file ptr
++ * @priv: file handle
++ * @chip: chip identity
++ *
++ * Returns zero or -EINVAL if read operations fails.
++ */
++static int vpif_g_chip_ident(struct file *file, void *priv,
++		struct v4l2_dbg_chip_ident *chip)
++{
++	chip->ident = V4L2_IDENT_NONE;
++	chip->revision = 0;
++	if (chip->match.type != V4L2_CHIP_MATCH_I2C_DRIVER &&
++			chip->match.type != V4L2_CHIP_MATCH_I2C_ADDR) {
++		vpif_dbg(2, debug, "match_type is invalid.\n");
++		return -EINVAL;
++	}
++
++	return v4l2_device_call_until_err(&vpif_obj.v4l2_dev, 0, core,
++			g_chip_ident, chip);
++}
++
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++/*
++ * vpif_dbg_g_register() - Read register
++ * @file: file ptr
++ * @priv: file handle
++ * @reg: register to be read
++ *
++ * Debugging only
++ * Returns zero or -EINVAL if read operations fails.
++ */
++static int vpif_dbg_g_register(struct file *file, void *priv,
++		struct v4l2_dbg_register *reg){
++	struct vpif_fh *fh = priv;
++	struct channel_obj *ch = fh->channel;
++	struct video_obj *vid_ch = &ch->video;
++
++	return v4l2_subdev_call(vpif_obj.sd[vid_ch->output_id], core,
++			g_register, reg);
++}
++
++/*
++ * vpif_dbg_s_register() - Write to register
++ * @file: file ptr
++ * @priv: file handle
++ * @reg: register to be modified
++ *
++ * Debugging only
++ * Returns zero or -EINVAL if write operations fails.
++ */
++static int vpif_dbg_s_register(struct file *file, void *priv,
++		struct v4l2_dbg_register *reg){
++	struct vpif_fh *fh = priv;
++	struct channel_obj *ch = fh->channel;
++	struct video_obj *vid_ch = &ch->video;
++
++	return v4l2_subdev_call(vpif_obj.sd[vid_ch->output_id], core,
++			s_register, reg);
++}
++#endif
++
++/*
++ * vpif_log_status() - Status information
++ * @file: file ptr
++ * @priv: file handle
++ *
++ * Returns zero.
++ */
++static int vpif_log_status(struct file *filep, void *priv)
++{
++	/* status for sub devices */
++	v4l2_device_call_all(&vpif_obj.v4l2_dev, 0, core, log_status);
++
++	return 0;
++}
++
+ /* vpif display ioctl operations */
+ static const struct v4l2_ioctl_ops vpif_ioctl_ops = {
+ 	.vidioc_querycap        	= vpif_querycap,
+@@ -1336,6 +1416,12 @@ static const struct v4l2_ioctl_ops vpif_ioctl_ops = {
+ 	.vidioc_s_output		= vpif_s_output,
+ 	.vidioc_g_output		= vpif_g_output,
+ 	.vidioc_cropcap         	= vpif_cropcap,
++	.vidioc_g_chip_ident		= vpif_g_chip_ident,
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++	.vidioc_g_register		= vpif_dbg_g_register,
++	.vidioc_s_register		= vpif_dbg_s_register,
++#endif
++	.vidioc_log_status		= vpif_log_status,
+ };
+ 
+ static const struct v4l2_file_operations vpif_fops = {
+-- 
+1.7.1
 
-It has any control registers to configure IR (protocol ...)
-
-TM6010_REQ07_RD8_IR
-??, we use 0x2f
-
-TM6010_REQ07_RD8_IR_BSIZE
-??
-
-TM6010_REQ07_RD8_IR_WAKEUP_SEL
-command mask, I think,   we use here 0xff
-
-TM6010_REQ07_RD8_IR_WAKEUP_ADD
-address mask, we use 0xff
-
-TM6010_REQ07_RD8_IR_LEADER1
-TM6010_REQ07_RD8_IR_LEADER0
-is a 16bit register
-for NEC 0xaa30
-
-TM6010_REQ07_RD8_IR_PULSE_CNT1
-TM6010_REQ07_RD8_IR_PULSE_CNT0
-is a 16bit register
-for NEC 0x20d0
-
-
-Stefan Ringel
