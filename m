@@ -1,42 +1,136 @@
 Return-path: <mchehab@gaivota>
-Received: from smtpout17.ngs.ru ([195.93.186.223]:56591 "EHLO smtpout17.ngs.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757797Ab0LMNwb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Dec 2010 08:52:31 -0500
-Received: from smtpout.ngs.ru (imx2.in.ngs.ru [172.16.0.5])
-	by smtpout17.ngs.ru (smtpout17.ngs.ru) with ESMTP id 454B071D8C42
-	for <linux-media@vger.kernel.org>; Mon, 13 Dec 2010 19:37:25 +0600 (NOVT)
-Received: from [192.168.12.34] (unknown [192.168.12.34])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	(Authenticated sender: aptem@ngs.ru)
-	by mail.ngs.ru (smtp) with ESMTP id 21CE1957CDA6F
-	for <linux-media@vger.kernel.org>; Mon, 13 Dec 2010 19:46:42 +0600 (NOVT)
-Message-ID: <4D062370.8070303@ngs.ru>
-Date: Mon, 13 Dec 2010 19:45:20 +0600
-From: Artem Bokhan <aptem@ngs.ru>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: problems with several saa7134 cards
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from devils.ext.ti.com ([198.47.26.153]:34095 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753670Ab0LPNzx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Dec 2010 08:55:53 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v7 5/8] davinci vpbe: board specific additions
+Date: Thu, 16 Dec 2010 19:25:37 +0530
+Message-Id: <1292507737-32739-1-git-send-email-manjunath.hadli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-  I use several (from three to five) saa7134-based cards on single PC. Currently 
-I'm trying to migrate from 2.6.22 to 2.6.32 (ubuntu lts).
+This patch implements tables for display timings,outputs and
+other board related functionalities.
 
-I've got problems which I did not have with 2.6.22 kernel:
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ arch/arm/mach-davinci/board-dm644x-evm.c |   79 +++++++++++++++++++++++++-----
+ 1 files changed, 66 insertions(+), 13 deletions(-)
 
-1. Depending on configuration load average holds 1 or 2 when saa7134 module is 
-loaded. The reason is kernel process "events/".
+diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-davinci/board-dm644x-evm.c
+index 34c8b41..e9b1243 100644
+--- a/arch/arm/mach-davinci/board-dm644x-evm.c
++++ b/arch/arm/mach-davinci/board-dm644x-evm.c
+@@ -166,18 +166,6 @@ static struct platform_device davinci_evm_nandflash_device = {
+ 	.resource	= davinci_evm_nandflash_resource,
+ };
+ 
+-static u64 davinci_fb_dma_mask = DMA_BIT_MASK(32);
+-
+-static struct platform_device davinci_fb_device = {
+-	.name		= "davincifb",
+-	.id		= -1,
+-	.dev = {
+-		.dma_mask		= &davinci_fb_dma_mask,
+-		.coherent_dma_mask      = DMA_BIT_MASK(32),
+-	},
+-	.num_resources = 0,
+-};
+-
+ static struct tvp514x_platform_data tvp5146_pdata = {
+ 	.clk_polarity = 0,
+ 	.hs_polarity = 1,
+@@ -606,8 +594,71 @@ static void __init evm_init_i2c(void)
+ 	i2c_register_board_info(1, i2c_info, ARRAY_SIZE(i2c_info));
+ }
+ 
++#define VENC_STD_ALL    (V4L2_STD_NTSC | V4L2_STD_PAL)
++/* venc standards timings */
++static struct vpbe_enc_mode_info vbpe_enc_std_timings[] = {
++	{"ntsc", VPBE_ENC_STD, {V4L2_STD_525_60}, 1, 720, 480,
++	{11, 10}, {30000, 1001}, 0x79, 0, 0x10, 0, 0, 0, 0},
++	{"pal", VPBE_ENC_STD, {V4L2_STD_625_50}, 1, 720, 576,
++	{54, 59}, {25, 1}, 0x7E, 0, 0x16, 0, 0, 0, 0},
++};
++
++/* venc dv preset timings */
++static struct vpbe_enc_mode_info vbpe_enc_preset_timings[] = {
++	{"480p59_94", VPBE_ENC_DV_PRESET, {V4L2_DV_480P59_94}, 0, 720, 480,
++	{1, 1}, {5994, 100}, 0x80, 0, 0x20, 0, 0, 0, 0},
++	{"576p50", VPBE_ENC_DV_PRESET, {V4L2_DV_576P50}, 0, 720, 576,
++	{1, 1}, {50, 1}, 0x7E, 0, 0x30, 0, 0, 0, 0},
++};
++
++/*
++ * The outputs available from VPBE + ecnoders. Keep the
++ * the order same as that of encoders. First that from venc followed by that
++ * from encoders. Index in the output refers to index on a particular encoder.
++ * Driver uses this index to pass it to encoder when it supports more than
++ * one output. Application uses index of the array to set an output.
++ */
++static struct vpbe_output dm644x_vpbe_outputs[] = {
++	{
++		.output = {
++			.index = 0,
++			.name = "Composite",
++			.type = V4L2_OUTPUT_TYPE_ANALOG,
++			.std = VENC_STD_ALL,
++			.capabilities = V4L2_OUT_CAP_STD,
++		},
++		.subdev_name = VPBE_VENC_SUBDEV_NAME,
++		.default_mode = "ntsc",
++		.num_modes = ARRAY_SIZE(vbpe_enc_std_timings),
++		.modes = vbpe_enc_std_timings,
++	},
++	{
++		.output = {
++			.index = 1,
++			.name = "Component",
++			.type = V4L2_OUTPUT_TYPE_ANALOG,
++			.capabilities = V4L2_OUT_CAP_PRESETS,
++		},
++		.subdev_name = VPBE_VENC_SUBDEV_NAME,
++		.default_mode = "480p59_94",
++		.num_modes = ARRAY_SIZE(vbpe_enc_preset_timings),
++		.modes = vbpe_enc_preset_timings,
++	},
++};
++
++static struct vpbe_display_config vpbe_display_cfg = {
++	.module_name = "dm644x-vpbe-display",
++	.i2c_adapter_id = 1,
++	.osd = {
++		.module_name = VPBE_OSD_SUBDEV_NAME,
++	},
++	.venc = {
++		.module_name = VPBE_VENC_SUBDEV_NAME,
++	},
++	.num_outputs = ARRAY_SIZE(dm644x_vpbe_outputs),
++	.outputs = dm644x_vpbe_outputs,
++};
+ static struct platform_device *davinci_evm_devices[] __initdata = {
+-	&davinci_fb_device,
+ 	&rtc_dev,
+ };
+ 
+@@ -620,6 +671,8 @@ davinci_evm_map_io(void)
+ {
+ 	/* setup input configuration for VPFE input devices */
+ 	dm644x_set_vpfe_config(&vpfe_cfg);
++	/* setup configuration for vpbe devices */
++	dm644x_set_vpbe_display_config(&vpbe_display_cfg);
+ 	dm644x_init();
+ }
+ 
+-- 
+1.6.2.4
 
-   PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND
-    16 root      20   0     0    0    0 S    3  0.0   9:36.89 events/1
-    15 root      20   0     0    0    0 D    3  0.0   9:35.81 events/0
-
-2. Sound and video are not synced when recording with mencoder.
-
-
-The same problem with 2.6.36 kernel except "events" process have different name 
-(can't remember exact name, sorry)
