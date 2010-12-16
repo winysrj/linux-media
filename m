@@ -1,468 +1,421 @@
 Return-path: <mchehab@gaivota>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:37581 "EHLO
-	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751803Ab0LQEQi (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:14089 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756158Ab0LPOYZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Dec 2010 23:16:38 -0500
-From: KyongHo Cho <pullip.cho@samsung.com>
-To: KyongHo Cho <pullip.cho@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Inho Lee <ilho215.lee@samsung.com>,
-	Inki Dae <inki.dae@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mel Gorman <mel@csn.ul.ie>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linux-samsung-soc@vger.kernel.org,
-	Michal Nazarewicz <m.nazarewicz@samsung.com>
-Subject: [RFCv2,3/8] mm: vcm: physical memory allocator added
-Date: Fri, 17 Dec 2010 12:56:22 +0900
-Message-Id: <1292558187-17348-4-git-send-email-pullip.cho@samsung.com>
-In-Reply-To: <1292558187-17348-3-git-send-email-pullip.cho@samsung.com>
-References: <1292558187-17348-1-git-send-email-pullip.cho@samsung.com>
- <1292558187-17348-2-git-send-email-pullip.cho@samsung.com>
- <1292558187-17348-3-git-send-email-pullip.cho@samsung.com>
+	Thu, 16 Dec 2010 09:24:25 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LDI00L0OYOF1A00@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Dec 2010 14:24:17 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LDI00A3AYOFJY@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Dec 2010 14:24:16 +0000 (GMT)
+Date: Thu, 16 Dec 2010 15:24:02 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 5/8] v4l: videobuf2: add DMA scatter/gather allocator
+In-reply-to: <1292509445-15100-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, andrzej.p@samsung.com
+Message-id: <1292509445-15100-6-git-send-email-m.szyprowski@samsung.com>
+References: <1292509445-15100-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 
-This commits adds vcm_phys_alloc() function with some
-accompanying functions which allocates physical memory.  This
-should be used from withing alloc or phys callback of a VCM
-driver if one does not want to provide its own allocator.
+Add an implementation of DMA scatter/gather allocator and handling
+routines for videobuf2.
 
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+For mmap operation mode it is implemented on top of
+alloc_page + sg_set_page/_free_page.
+
+For userptr operation mode it is impelmented on top of
+get_user_pages + sg_set_page/put_page.
+
+Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+CC: Pawel Osciak <pawel@osciak.com>
 ---
- Documentation/virtual-contiguous-memory.txt |   31 ++++
- include/linux/vcm-drv.h                     |   88 ++++++++++
- mm/Kconfig                                  |    9 +
- mm/vcm.c                                    |  249 +++++++++++++++++++++++++++
- 4 files changed, 377 insertions(+), 0 deletions(-)
+ drivers/media/video/Kconfig            |    6 +
+ drivers/media/video/Makefile           |    1 +
+ drivers/media/video/videobuf2-dma-sg.c |  292 ++++++++++++++++++++++++++++++++
+ include/media/videobuf2-dma-sg.h       |   32 ++++
+ 4 files changed, 331 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/videobuf2-dma-sg.c
+ create mode 100644 include/media/videobuf2-dma-sg.h
 
-diff --git a/Documentation/virtual-contiguous-memory.txt b/Documentation/virtual-contiguous-memory.txt
-index 2008465..10a0638 100644
---- a/Documentation/virtual-contiguous-memory.txt
-+++ b/Documentation/virtual-contiguous-memory.txt
-@@ -672,6 +672,37 @@ Both phys and alloc callbacks need to provide a free callbakc along
- with the vc_phys structure, which will, as one may imagine, free
- allocated space when user calls vcm_free().
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 0e1c166..e015dfc 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -65,6 +65,12 @@ config VIDEOBUF2_VMALLOC
+ 	select VIDEOBUF2_MEMOPS
+ 	tristate
  
-+Unless VCM driver needs some special handling of physical memory, the
-+vcm_phys_alloc() function can be used:
 +
-+	struct vcm_phys *__must_check
-+	vcm_phys_alloc(resource_size_t size, unsigned flags,
-+		       const unsigned char *orders);
-+
-+The last argument of this function (orders) is an array of orders of
-+page sizes that function should try to allocate.  This array must be
-+sorted from highest order to lowest and the last entry must be zero.
-+
-+For instance, an array { 8, 4, 0 } means that the function should try
-+and allocate 1MiB, 64KiB and 4KiB pages (this is assuming PAGE_SIZE is
-+4KiB which is true for all supported architectures).  For example, if
-+requested size is 2MiB and 68 KiB, the function will try to allocate
-+two 1MiB pages, one 64KiB page and one 4KiB page.  This may be useful
-+when the mapping is written to the MMU since the largest possible
-+pages will be used reducing the number of entries.
-+
-+The function allocates memory from DMA32 zone.  If driver has some
-+other requirements (that is require different GFP flags) it can use
-+__vcm_phys_alloc() function which, besides arguments that
-+vcm_phys_alloc() accepts, take GFP flags as the last argument:
-+
-+	struct vcm_phys *__must_check
-+	__vcm_phys_alloc(resource_size_t size, unsigned flags,
-+			 const unsigned char *orders, gfp_t gfp);
-+
-+However, if those functions are used, VCM driver needs to select an
-+VCM_PHYS Kconfig option or oterwise they won't be available.
-+
- All those operations may assume that size is a non-zero and divisible
- by PAGE_SIZE.
- 
-diff --git a/include/linux/vcm-drv.h b/include/linux/vcm-drv.h
-index d7ae660..536b051 100644
---- a/include/linux/vcm-drv.h
-+++ b/include/linux/vcm-drv.h
-@@ -114,4 +114,92 @@ struct vcm_phys {
-  */
- struct vcm *__must_check vcm_init(struct vcm *vcm);
- 
-+#ifdef CONFIG_VCM_PHYS
-+
-+/**
-+ * __vcm_phys_alloc() - allocates physical discontiguous space
-+ * @size:	size of the block to allocate.
-+ * @flags:	additional allocation flags; XXX FIXME: document
-+ * @orders:	array of orders of pages supported by the MMU sorted from
-+ *		the largest to the smallest.  The last element is always
-+ *		zero (which means 4K page).
-+ * @gfp:	the gfp flags for pages to allocate.
-+ *
-+ * This function tries to allocate a physical discontiguous space in
-+ * such a way that it allocates the largest possible blocks from the
-+ * sizes donated by the @orders array.  So if @orders is { 8, 0 }
-+ * (which means 1MiB and 4KiB pages are to be used) and requested
-+ * @size is 2MiB and 12KiB the function will try to allocate two 1MiB
-+ * pages and three 4KiB pages (in that order).  If big page cannot be
-+ * allocated the function will still try to allocate more smaller
-+ * pages.
-+ */
-+struct vcm_phys *__must_check
-+__vcm_phys_alloc(resource_size_t size, unsigned flags,
-+		 const unsigned char *orders, gfp_t gfp);
-+
-+/**
-+ * vcm_phys_alloc() - allocates physical discontiguous space
-+ * @size:	size of the block to allocate.
-+ * @flags:	additional allocation flags; XXX FIXME: document
-+ * @orders:	array of orders of pages supported by the MMU sorted from
-+ *		the largest to the smallest.  The last element is always
-+ *		zero (which means 4K page).
-+ *
-+ * This function tries to allocate a physical discontiguous space in
-+ * such a way that it allocates the largest possible blocks from the
-+ * sizes donated by the @orders array.  So if @orders is { 8, 0 }
-+ * (which means 1MiB and 4KiB pages are to be used) and requested
-+ * @size is 2MiB and 12KiB the function will try to allocate two 1MiB
-+ * pages and three 4KiB pages (in that order).  If big page cannot be
-+ * allocated the function will still try to allocate more smaller
-+ * pages.
-+ */
-+static inline struct vcm_phys *__must_check
-+vcm_phys_alloc(resource_size_t size, unsigned flags,
-+	       const unsigned char *orders) {
-+	return __vcm_phys_alloc(size, flags, orders, GFP_DMA32);
-+}
-+
-+/**
-+ * vcm_phys_walk() - helper function for mapping physical pages
-+ * @vaddr:	virtual address to map/unmap physical space to/from
-+ * @phys:	physical space
-+ * @orders:	array of orders of pages supported by the MMU sorted from
-+ *		the largest to the smallest.  The last element is always
-+ *		zero (which means 4K page).
-+ * @callback:	function called for each page.
-+ * @recover:	function called for each page when @callback returns
-+ *		negative number; if it also returns negative number
-+ *		function terminates; may be NULL.
-+ * @priv:	private data for the callbacks.
-+ *
-+ * This function walks through @phys trying to mach largest possible
-+ * page size donated by @orders.  For each such page @callback is
-+ * called.  If @callback returns negative number the function calls
-+ * @recover for each page @callback was called successfully.
-+ *
-+ * So, for instance, if we have a physical memory which consist of
-+ * 1Mib part and 8KiB part and @orders is { 8, 0 } (which means 1MiB
-+ * and 4KiB pages are to be used), @callback will be called first with
-+ * 1MiB page and then two times with 4KiB page.  This is of course
-+ * provided that @vaddr has correct alignment.
-+ *
-+ * The idea is for hardware MMU drivers to call this function and
-+ * provide a callbacks for mapping/unmapping a single page.  The
-+ * function divides the region into pages that the MMU can handle.
-+ *
-+ * If @callback at one point returns a negative number this is the
-+ * return value of the function; otherwise zero is returned.
-+ */
-+int vcm_phys_walk(dma_addr_t vaddr, const struct vcm_phys *phys,
-+		  const unsigned char *orders,
-+		  int (*callback)(dma_addr_t vaddr, dma_addr_t paddr,
-+				  unsigned order, void *priv),
-+		  int (*recovery)(dma_addr_t vaddr, dma_addr_t paddr,
-+				  unsigned order, void *priv),
-+		  void *priv);
-+
-+#endif
-+
- #endif
-diff --git a/mm/Kconfig b/mm/Kconfig
-index b937f32..00d975e 100644
---- a/mm/Kconfig
-+++ b/mm/Kconfig
-@@ -360,6 +360,15 @@ config VCM_RES_REFCNT
- 	  This enables reference counting on a reservation to make sharing
- 	  and migrating the ownership of the reservation easier.
- 
-+config VCM_PHYS
-+	bool "VCM physical allocation wrappers"
-+	depends on VCM && MODULES
-+	help
-+	  This enables the vcm_phys family of functions provided for VCM
-+	  drivers.  If a VCM driver is built that requires this option, it
-+	  will be automatically selected.  You select it if you are going to
-+	  build external modules that will use this functionality.
-+
++config VIDEOBUF2_DMA_SG
++	#depends on HAS_DMA
++	select VIDEOBUF2_CORE
++	select VIDEOBUF2_MEMOPS
++	tristate
  #
- # UP and nommu archs use km based percpu allocator
+ # Multimedia Video device configuration
  #
-diff --git a/mm/vcm.c b/mm/vcm.c
-index 5819f0f..6804114 100644
---- a/mm/vcm.c
-+++ b/mm/vcm.c
-@@ -319,3 +319,252 @@ struct vcm *__must_check vcm_init(struct vcm *vcm)
- 	return vcm;
- }
- EXPORT_SYMBOL_GPL(vcm_init);
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index 8eb7973..5d7f3c1 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -118,6 +118,7 @@ obj-$(CONFIG_VIDEOBUF2_CORE)		+= videobuf2-core.o
+ obj-$(CONFIG_VIDEOBUF2_MEMOPS)		+= videobuf2-memops.o
+ obj-$(CONFIG_VIDEOBUF2_VMALLOC)		+= videobuf2-vmalloc.o
+ obj-$(CONFIG_VIDEOBUF2_DMA_CONTIG)	+= videobuf2-dma-contig.o
++obj-$(CONFIG_VIDEOBUF2_DMA_SG)		+= videobuf2-dma-sg.o
+ 
+ obj-$(CONFIG_V4L2_MEM2MEM_DEV) += v4l2-mem2mem.o
+ 
+diff --git a/drivers/media/video/videobuf2-dma-sg.c b/drivers/media/video/videobuf2-dma-sg.c
+new file mode 100644
+index 0000000..20b5c5d
+--- /dev/null
++++ b/drivers/media/video/videobuf2-dma-sg.c
+@@ -0,0 +1,292 @@
++/*
++ * videobuf2-dma-sg.c - dma scatter/gather memory allocator for videobuf2
++ *
++ * Copyright (C) 2010 Samsung Electronics
++ *
++ * Author: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation.
++ */
 +
++#include <linux/module.h>
++#include <linux/mm.h>
++#include <linux/scatterlist.h>
++#include <linux/sched.h>
++#include <linux/slab.h>
++#include <linux/vmalloc.h>
 +
-+/************************ Physical memory management ************************/
++#include <media/videobuf2-core.h>
++#include <media/videobuf2-memops.h>
++#include <media/videobuf2-dma-sg.h>
 +
-+#ifdef CONFIG_VCM_PHYS
-+
-+struct vcm_phys_list {
-+	struct vcm_phys_list	*next;
-+	unsigned		count;
-+	struct vcm_phys_part	parts[31];
++struct vb2_dma_sg_buf {
++	void				*vaddr;
++	struct page			**pages;
++	int				write;
++	int				offset;
++	struct vb2_dma_sg_desc		sg_desc;
++	atomic_t			refcount;
++	struct vb2_vmarea_handler	handler;
 +};
 +
-+static struct vcm_phys_list *__must_check
-+vcm_phys_alloc_list_order(struct vcm_phys_list *last, resource_size_t *pages,
-+			  unsigned flags, unsigned order, unsigned *total,
-+			  gfp_t gfp)
-+{
-+	unsigned count;
++static void vb2_dma_sg_put(void *buf_priv);
 +
-+	count	= *pages >> order;
++static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size)
++{
++	struct vb2_dma_sg_buf *buf;
++	int i;
++
++	buf = kzalloc(sizeof *buf, GFP_KERNEL);
++	if (!buf)
++		return NULL;
++
++	buf->vaddr = NULL;
++	buf->write = 0;
++	buf->offset = 0;
++	buf->sg_desc.size = size;
++	buf->sg_desc.num_pages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
++
++	buf->sg_desc.sglist = vmalloc(buf->sg_desc.num_pages *
++				      sizeof(*buf->sg_desc.sglist));
++	if (!buf->sg_desc.sglist)
++		goto fail_sglist_alloc;
++	memset(buf->sg_desc.sglist, 0, buf->sg_desc.num_pages *
++	       sizeof(*buf->sg_desc.sglist));
++	sg_init_table(buf->sg_desc.sglist, buf->sg_desc.num_pages);
++
++	buf->pages = kzalloc(buf->sg_desc.num_pages * sizeof(struct page *),
++			     GFP_KERNEL);
++	if (!buf->pages)
++		goto fail_pages_array_alloc;
++
++	for (i = 0; i < buf->sg_desc.num_pages; ++i) {
++		buf->pages[i] = alloc_page(GFP_KERNEL);
++		if (NULL == buf->pages[i])
++			goto fail_pages_alloc;
++		sg_set_page(&buf->sg_desc.sglist[i],
++			    buf->pages[i], PAGE_SIZE, 0);
++	}
++
++	buf->handler.refcount = &buf->refcount;
++	buf->handler.put = vb2_dma_sg_put;
++	buf->handler.arg = buf;
++
++	atomic_inc(&buf->refcount);
++
++	printk(KERN_DEBUG "%s: Allocated buffer of %d pages\n",
++		__func__, buf->sg_desc.num_pages);
++
++	if (!buf->vaddr)
++		buf->vaddr = vm_map_ram(buf->pages,
++					buf->sg_desc.num_pages,
++					-1,
++					PAGE_KERNEL);
++	return buf;
++
++fail_pages_alloc:
++	while (--i >= 0)
++		__free_page(buf->pages[i]);
++
++fail_pages_array_alloc:
++	vfree(buf->sg_desc.sglist);
++
++fail_sglist_alloc:
++	kfree(buf);
++	return NULL;
++}
++
++static void vb2_dma_sg_put(void *buf_priv)
++{
++	struct vb2_dma_sg_buf *buf = buf_priv;
++	int i = buf->sg_desc.num_pages;
++
++	if (atomic_dec_and_test(&buf->refcount)) {
++		printk(KERN_DEBUG "%s: Freeing buffer of %d pages\n", __func__,
++			buf->sg_desc.num_pages);
++		if (buf->vaddr)
++			vm_unmap_ram(buf->vaddr, buf->sg_desc.num_pages);
++		vfree(buf->sg_desc.sglist);
++		while (--i >= 0)
++			__free_page(buf->pages[i]);
++		kfree(buf->pages);
++		kfree(buf);
++	}
++}
++
++static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
++				    unsigned long size, int write)
++{
++	struct vb2_dma_sg_buf *buf;
++	unsigned long first, last;
++	int num_pages_from_user, i;
++
++	buf = kzalloc(sizeof *buf, GFP_KERNEL);
++	if (!buf)
++		return NULL;
++
++	buf->vaddr = NULL;
++	buf->write = write;
++	buf->offset = vaddr & ~PAGE_MASK;
++	buf->sg_desc.size = size;
++
++	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
++	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
++	buf->sg_desc.num_pages = last - first + 1;
++
++	buf->sg_desc.sglist = vmalloc(
++		buf->sg_desc.num_pages * sizeof(*buf->sg_desc.sglist));
++	if (!buf->sg_desc.sglist)
++		goto userptr_fail_sglist_alloc;
++
++	memset(buf->sg_desc.sglist, 0,
++		buf->sg_desc.num_pages * sizeof(*buf->sg_desc.sglist));
++	sg_init_table(buf->sg_desc.sglist, buf->sg_desc.num_pages);
++
++	buf->pages = kzalloc(buf->sg_desc.num_pages * sizeof(struct page *),
++			     GFP_KERNEL);
++	if (!buf->pages)
++		goto userptr_fail_pages_array_alloc;
++
++	down_read(&current->mm->mmap_sem);
++	num_pages_from_user = get_user_pages(current, current->mm,
++					     vaddr & PAGE_MASK,
++					     buf->sg_desc.num_pages,
++					     write,
++					     1, /* force */
++					     buf->pages,
++					     NULL);
++	up_read(&current->mm->mmap_sem);
++	if (num_pages_from_user != buf->sg_desc.num_pages)
++		goto userptr_fail_get_user_pages;
++
++	sg_set_page(&buf->sg_desc.sglist[0], buf->pages[0],
++		    PAGE_SIZE - buf->offset, buf->offset);
++	size -= PAGE_SIZE - buf->offset;
++	for (i = 1; i < buf->sg_desc.num_pages; ++i) {
++		sg_set_page(&buf->sg_desc.sglist[i], buf->pages[i],
++			    min_t(size_t, PAGE_SIZE, size), 0);
++		size -= min_t(size_t, PAGE_SIZE, size);
++	}
++	return buf;
++
++userptr_fail_get_user_pages:
++	printk(KERN_DEBUG "get_user_pages requested/got: %d/%d]\n",
++	       num_pages_from_user, buf->sg_desc.num_pages);
++	while (--num_pages_from_user >= 0)
++		put_page(buf->pages[num_pages_from_user]);
++
++userptr_fail_pages_array_alloc:
++	vfree(buf->sg_desc.sglist);
++
++userptr_fail_sglist_alloc:
++	kfree(buf);
++	return NULL;
++}
++
++/*
++ * @put_userptr: inform the allocator that a USERPTR buffer will no longer
++ *		 be used
++ */
++static void vb2_dma_sg_put_userptr(void *buf_priv)
++{
++	struct vb2_dma_sg_buf *buf = buf_priv;
++	int i = buf->sg_desc.num_pages;
++
++	printk(KERN_DEBUG "%s: Releasing userspace buffer of %d pages\n",
++	       __func__, buf->sg_desc.num_pages);
++	if (buf->vaddr)
++		vm_unmap_ram(buf->vaddr, buf->sg_desc.num_pages);
++	while (--i >= 0) {
++		if (buf->write)
++			set_page_dirty_lock(buf->pages[i]);
++		put_page(buf->pages[i]);
++	}
++	vfree(buf->sg_desc.sglist);
++	kfree(buf->pages);
++	kfree(buf);
++}
++
++static void *vb2_dma_sg_vaddr(void *buf_priv)
++{
++	struct vb2_dma_sg_buf *buf = buf_priv;
++
++	BUG_ON(!buf);
++
++	if (!buf->vaddr)
++		buf->vaddr = vm_map_ram(buf->pages,
++					buf->sg_desc.num_pages,
++					-1,
++					PAGE_KERNEL);
++
++	/* add offset in case userptr is not page-aligned */
++	return buf->vaddr + buf->offset;
++}
++
++static unsigned int vb2_dma_sg_num_users(void *buf_priv)
++{
++	struct vb2_dma_sg_buf *buf = buf_priv;
++
++	return atomic_read(&buf->refcount);
++}
++
++static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
++{
++	struct vb2_dma_sg_buf *buf = buf_priv;
++	unsigned long uaddr = vma->vm_start;
++	unsigned long usize = vma->vm_end - vma->vm_start;
++	int i = 0;
++
++	if (!buf) {
++		printk(KERN_ERR "No memory to map\n");
++		return -EINVAL;
++	}
 +
 +	do {
-+		struct page *page = alloc_pages(gfp, order);
-+
-+		if (!page)
-+			/*
-+			 * If allocation failed we may still
-+			 * try to continua allocating smaller
-+			 * pages.
-+			 */
-+			break;
-+
-+		if (last->count == ARRAY_SIZE(last->parts)) {
-+			struct vcm_phys_list *l;
-+			l = kmalloc(sizeof *l, GFP_KERNEL);
-+			if (!l)
-+				return NULL;
-+
-+			l->next = NULL;
-+			l->count = 0;
-+			last->next = l;
-+			last = l;
-+		}
-+
-+		last->parts[last->count].start = page_to_phys(page);
-+		last->parts[last->count].size  = (1 << order);
-+		last->parts[last->count].page  = page;
-+		++last->count;
-+		++*total;
-+		*pages -= 1 << order;
-+	} while (--count);
-+
-+	return last;
-+}
-+
-+static unsigned __must_check
-+vcm_phys_alloc_list(struct vcm_phys_list *first,
-+		    resource_size_t size, unsigned flags,
-+		    const unsigned char *orders, gfp_t gfp)
-+{
-+	struct vcm_phys_list *last = first;
-+	unsigned total_parts = 0;
-+	resource_size_t pages;
-+
-+	/*
-+	 * We are trying to allocate as large pages as possible but
-+	 * not larger then pages that MMU driver that called us
-+	 * supports (ie. the ones provided by page_sizes).  This makes
-+	 * it possible to map the region using fewest possible number
-+	 * of entries.
-+	 */
-+	pages = size >> PAGE_SHIFT;
-+	do {
-+		while (!(pages >> *orders))
-+			++orders;
-+
-+		last = vcm_phys_alloc_list_order(last, &pages, flags, *orders,
-+						 &total_parts, gfp);
-+		if (!last)
-+			return 0;
-+
-+	} while (*orders++ && pages);
-+
-+	if (pages)
-+		return 0;
-+
-+	return total_parts;
-+}
-+
-+static void vcm_phys_free_parts(struct vcm_phys_part *parts, unsigned count)
-+{
-+	do {
-+		__free_pages(parts->page, ffs(parts->size) - 1 - PAGE_SHIFT);
-+	} while (++parts, --count);
-+}
-+
-+static void vcm_phys_free(struct vcm_phys *phys)
-+{
-+	vcm_phys_free_parts(phys->parts, phys->count);
-+	kfree(phys);
-+}
-+
-+struct vcm_phys *__must_check
-+__vcm_phys_alloc(resource_size_t size, unsigned flags,
-+		 const unsigned char *orders, gfp_t gfp)
-+{
-+	struct vcm_phys_list *lst, *n;
-+	struct vcm_phys_part *out;
-+	struct vcm_phys *phys;
-+	unsigned count;
-+
-+	if (WARN_ON((size & (PAGE_SIZE - 1)) || !size || !orders))
-+		return ERR_PTR(-EINVAL);
-+
-+	lst = kmalloc(sizeof *lst, GFP_KERNEL);
-+	if (!lst)
-+		return ERR_PTR(-ENOMEM);
-+
-+	lst->next = NULL;
-+	lst->count = 0;
-+
-+	count = vcm_phys_alloc_list(lst, size, flags, orders, gfp);
-+	if (!count)
-+		goto error;
-+
-+	phys = kmalloc(sizeof *phys + count * sizeof *phys->parts, GFP_KERNEL);
-+	if (!phys)
-+		goto error;
-+
-+	phys->free  = vcm_phys_free;
-+	phys->count = count;
-+	phys->size  = size;
-+
-+	out = phys->parts;
-+	do {
-+		memcpy(out, lst->parts, lst->count * sizeof *out);
-+		out += lst->count;
-+
-+		n = lst->next;
-+		kfree(lst);
-+		lst = n;
-+	} while (lst);
-+
-+	return phys;
-+
-+error:
-+	do {
-+		vcm_phys_free_parts(lst->parts, lst->count);
-+
-+		n = lst->next;
-+		kfree(lst);
-+		lst = n;
-+	} while (lst);
-+
-+	return ERR_PTR(-ENOMEM);
-+}
-+EXPORT_SYMBOL_GPL(__vcm_phys_alloc);
-+
-+static inline bool is_of_order(dma_addr_t size, unsigned order)
-+{
-+	return !(size & (((dma_addr_t)PAGE_SIZE << order) - 1));
-+}
-+
-+static int
-+__vcm_phys_walk_part(dma_addr_t vaddr, const struct vcm_phys_part *part,
-+		     const unsigned char *orders,
-+		     int (*callback)(dma_addr_t vaddr, dma_addr_t paddr,
-+				     unsigned order, void *priv), void *priv,
-+		     unsigned *limit)
-+{
-+	resource_size_t size = part->size;
-+	dma_addr_t paddr = part->start;
-+	resource_size_t ps;
-+
-+	while (!is_of_order(vaddr, *orders))
-+		++orders;
-+	while (!is_of_order(paddr, *orders))
-+		++orders;
-+
-+	ps = PAGE_SIZE << *orders;
-+	for (; *limit && size; --*limit) {
 +		int ret;
 +
-+		while (ps > size)
-+			ps = PAGE_SIZE << *++orders;
-+
-+		ret = callback(vaddr, paddr, *orders, priv);
-+		if (ret < 0)
++		ret = vm_insert_page(vma, uaddr, buf->pages[i++]);
++		if (ret) {
++			printk(KERN_ERR "Remapping memory, error: %d\n", ret);
 +			return ret;
++		}
 +
-+		ps = PAGE_SIZE << *orders;
-+		vaddr += ps;
-+		paddr += ps;
-+		size  -= ps;
-+	}
++		uaddr += PAGE_SIZE;
++		usize -= PAGE_SIZE;
++	} while (usize > 0);
++
++
++	/*
++	 * Use common vm_area operations to track buffer refcount.
++	 */
++	vma->vm_private_data	= &buf->handler;
++	vma->vm_ops		= &vb2_common_vm_ops;
++
++	vma->vm_ops->open(vma);
 +
 +	return 0;
 +}
 +
-+int vcm_phys_walk(dma_addr_t _vaddr, const struct vcm_phys *phys,
-+		  const unsigned char *orders,
-+		  int (*callback)(dma_addr_t vaddr, dma_addr_t paddr,
-+				  unsigned order, void *arg),
-+		  int (*recovery)(dma_addr_t vaddr, dma_addr_t paddr,
-+				  unsigned order, void *arg),
-+		  void *priv)
++static void *vb2_dma_sg_cookie(void *buf_priv)
 +{
-+	unsigned limit = ~0;
-+	int r = 0;
++	struct vb2_dma_sg_buf *buf = buf_priv;
 +
-+	if (WARN_ON(!phys || ((_vaddr | phys->size) & (PAGE_SIZE - 1)) ||
-+		    !phys->size || !orders || !callback))
-+		return -EINVAL;
-+
-+	for (;;) {
-+		const struct vcm_phys_part *part = phys->parts;
-+		unsigned count = phys->count;
-+		dma_addr_t vaddr = _vaddr;
-+		int ret = 0;
-+
-+		for (; count && limit; --count, ++part) {
-+			ret = __vcm_phys_walk_part(vaddr, part, orders,
-+						   callback, priv, &limit);
-+			if (ret)
-+				break;
-+
-+			vaddr += part->size;
-+		}
-+
-+		if (r)
-+			/* We passed error recovery */
-+			return r;
-+
-+		/*
-+		 * Either operation suceeded or we were not provided
-+		 * with a recovery callback -- return.
-+		 */
-+		if (!ret || !recovery)
-+			return ret;
-+
-+		/* Switch to recovery */
-+		limit = ~0 - limit;
-+		callback = recovery;
-+		r = ret;
-+	}
++	return &buf->sg_desc;
 +}
-+EXPORT_SYMBOL_GPL(vcm_phys_walk);
++
++const struct vb2_mem_ops vb2_dma_sg_memops = {
++	.alloc		= vb2_dma_sg_alloc,
++	.put		= vb2_dma_sg_put,
++	.get_userptr	= vb2_dma_sg_get_userptr,
++	.put_userptr	= vb2_dma_sg_put_userptr,
++	.vaddr		= vb2_dma_sg_vaddr,
++	.mmap		= vb2_dma_sg_mmap,
++	.num_users	= vb2_dma_sg_num_users,
++	.cookie		= vb2_dma_sg_cookie,
++};
++EXPORT_SYMBOL_GPL(vb2_dma_sg_memops);
++
++MODULE_DESCRIPTION("dma scatter/gather memory handling routines for videobuf2");
++MODULE_AUTHOR("Andrzej Pietrasiewicz");
++MODULE_LICENSE("GPL");
+diff --git a/include/media/videobuf2-dma-sg.h b/include/media/videobuf2-dma-sg.h
+new file mode 100644
+index 0000000..0038526
+--- /dev/null
++++ b/include/media/videobuf2-dma-sg.h
+@@ -0,0 +1,32 @@
++/*
++ * videobuf2-dma-sg.h - DMA scatter/gather memory allocator for videobuf2
++ *
++ * Copyright (C) 2010 Samsung Electronics
++ *
++ * Author: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation.
++ */
++
++#ifndef _MEDIA_VIDEOBUF2_DMA_SG_H
++#define _MEDIA_VIDEOBUF2_DMA_SG_H
++
++#include <media/videobuf2-core.h>
++
++struct vb2_dma_sg_desc {
++	unsigned long		size;
++	unsigned int		num_pages;
++	struct scatterlist	*sglist;
++};
++
++static inline struct vb2_dma_sg_desc *vb2_dma_sg_plane_desc(
++		struct vb2_buffer *vb, unsigned int plane_no)
++{
++	return (struct vb2_dma_sg_desc *)vb2_plane_cookie(vb, plane_no);
++}
++
++extern const struct vb2_mem_ops vb2_dma_sg_memops;
 +
 +#endif
 -- 
-1.6.2.5
+1.7.1.569.g6f426
 
