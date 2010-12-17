@@ -1,45 +1,135 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:62492 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752056Ab0LaFcM (ORCPT
+Received: from mail-ew0-f45.google.com ([209.85.215.45]:43225 "EHLO
+	mail-ew0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751928Ab0LQGI6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Dec 2010 00:32:12 -0500
-Message-ID: <4d1d6ada.857a0e0a.45e5.ffffd91d@mx.google.com>
-From: Abylay Ospan <liplianin@me.by>
-Date: Sat, 28 Aug 2010 15:45:14 +0300
-Subject: [PATCH 11/18] stv0367: change default value for AGC register.
-To: <mchehab@infradead.org>, linux-media@vger.kernel.org,
-	<linux-kernel@vger.kernel.org>, <aospan@netup.ru>
+	Fri, 17 Dec 2010 01:08:58 -0500
+Received: by ewy10 with SMTP id 10so146162ewy.4
+        for <linux-media@vger.kernel.org>; Thu, 16 Dec 2010 22:08:56 -0800 (PST)
+Date: Fri, 17 Dec 2010 16:08:54 +0900
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: Stefan Ringel <stefan.ringel@arcor.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Felipe Sanches <juca@members.fsf.org>,
+	Bee Hock Goh <beehock@gmail.com>,
+	Luis Henrique Fagundes <lhfagundes@hacklab.com.br>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: tm6000 and IR
+Message-ID: <20101217160854.16a1f754@glory.local>
+In-Reply-To: <4D0AF2A7.6080100@arcor.de>
+References: <4CAD5A78.3070803@redhat.com>
+	<20101008150301.2e3ceaff@glory.local>
+	<4CAF0602.6050002@redhat.com>
+	<20101012142856.2b4ee637@glory.local>
+	<4CB492D4.1000609@arcor.de>
+	<20101129174412.08f2001c@glory.local>
+	<4CF51C9E.6040600@arcor.de>
+	<20101201144704.43b58f2c@glory.local>
+	<4CF67AB9.6020006@arcor.de>
+	<20101202134128.615bbfa0@glory.local>
+	<4CF71CF6.7080603@redhat.com>
+	<20101206010934.55d07569@glory.local>
+	<4CFBF62D.7010301@arcor.de>
+	<20101206190230.2259d7ab@glory.local>
+	<4CFEA3D2.4050309@arcor.de>
+	<20101208125539.739e2ed2@glory.local>
+	<4CFFAD1E.7040004@arcor.de>
+	<20101214122325.5cdea67e@glory.local>
+	<4D079ADF.2000705@arcor.de>
+	<20101215164634.44846128@glory.local>
+	<4D08E43C.8080002@arcor.de>
+	<20101216183844.6258734e@glory.local>
+	<4D0A4883.20804@arcor.de>
+	<20101217104633.7c9d10d7@glory.local>
+	<4D0AF2A7.6080100@arcor.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Signed-off-by: Abylay Ospan <aospan@netup.ru>
----
- drivers/media/dvb/frontends/stv0367.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+On Fri, 17 Dec 2010 06:18:31 +0100
+Stefan Ringel <stefan.ringel@arcor.de> wrote:
 
-diff --git a/drivers/media/dvb/frontends/stv0367.c b/drivers/media/dvb/frontends/stv0367.c
-index e6bee7f..9439388 100644
---- a/drivers/media/dvb/frontends/stv0367.c
-+++ b/drivers/media/dvb/frontends/stv0367.c
-@@ -286,7 +286,7 @@ static struct st_register def0367ter[STV0367TER_NBREGS] = {
- 	{R367TER_PLLMDIV,	0x01},/* for xc5000; was 0x0c */
- 	{R367TER_PLLNDIV,	0x06},/* for xc5000; was 0x55 */
- 	{R367TER_PLLSETUP,	0x18},
--	{R367TER_DUAL_AD12,	0x04},/* for xc5000; was 0x00 */
-+	{R367TER_DUAL_AD12,	0x0C},/* for xc5000 AGC voltage 1.6V */
- 	{R367TER_TSTBIST,	0x00},
- 	{R367TER_PAD_COMP_CTRL,	0x00},
- 	{R367TER_PAD_COMP_WR,	0x00},
-@@ -599,7 +599,7 @@ static struct st_register def0367cab[STV0367CAB_NBREGS] = {
- 	{R367CAB_PLLMDIV,	0x01},
- 	{R367CAB_PLLNDIV,	0x08},
- 	{R367CAB_PLLSETUP,	0x18},
--	{R367CAB_DUAL_AD12,	0x04},
-+	{R367CAB_DUAL_AD12,	0x0C}, /* for xc5000 AGC voltage 1.6V */
- 	{R367CAB_TSTBIST,	0x00},
- 	{R367CAB_CTRL_1,	0x00},
- 	{R367CAB_CTRL_2,	0x03},
--- 
-1.7.1
+> Am 17.12.2010 02:46, schrieb Dmitri Belimov:
+> > Hi Stefan
+> >
+> >> Am 16.12.2010 10:38, schrieb Dmitri Belimov:
+> >>> Hi
+> >>>
+> >>>>> I think your mean is wrong. Our IR remotes send extended NEC it
+> >>>>> is 4 bytes. We removed inverted 4 byte and now we have 3 bytes
+> >>>>> from remotes. I think we must have full RCMAP with this 3 bytes
+> >>>>> from remotes. And use this remotes with some different IR
+> >>>>> recievers like some TV cards and LIRC-hardware and other. No
+> >>>>> need different RCMAP for the same remotes to different IR
+> >>>>> recievers like now.
+> >>>> Your change doesn't work with my terratec remote control !!
+> >>> I found what happens. Try my new patch.
+> >>>
+> >>> What about NEC. Original NEC send
+> >>> address (inverted address) key (inverted key)
+> >>> this is realy old standart now all remotes use extended NEC
+> >>> (adress high) (address low) key (inverted key)
+> >>> The trident 5600/6000/6010 use old protocol but didn't test
+> >>> inverted address byte.
+> >>>
+> >>> I think much better discover really address value and write it to
+> >>> keytable. For your remotes I add low address byte. This value is
+> >>> incorrent but usefull for tm6000. When you found correct value
+> >>> update keytable.
+> >>>
+> >> That is not acceptable. Have you forgotten what Mauro have written?
+> >> The Terratec rc map are use from other devices.
+> > NO
+> > The RC_MAP_NEC_TERRATEC_CINERGY_XS used only in tm6000 module.
+> > My patch didn't kill support any other devices.
+> That is not true.
 
+I search "RC_MAP_NEC_TERRATEC_CINERGY_XS" on FULL linux kernel sources.
+And found this string in:
+include/media/rc-map.h
+drivers/staging//tm6000/tm6000-cards.c
+drivers/media/rc/keymaps/rc-nec-terratec-cinergy-xs.c
+
+No any other devices didn't use this keymap.
+
+> >> The best are only the
+> >> received data without additional data. And I think the Trident chip
+> >> send only compatibly data (send all extended data like standard
+> >> data). The device decoded the protocols not the driver.
+> > You can't use this remotes with normal working IR receivers because
+> > this receivers returned FULL scancodes. Need add one more keytable.
+> >
+> > 1. With my variant we have one keytable of remote and some
+> > workaround in device drivers. And can switch keytable and remotes
+> > on the fly (of course when keytable has really value and device
+> > driver has workaround)
+> >
+> > 2. With your variant we have some keytables for one remote for
+> > different IR recevers. Can't use incompatible keytable with other
+> > IR recievers. It is black magic for understanding what remotes is
+> > working with this hardware.
+> >
+> > I think my variant much better.
+> >
+> > With my best regards, Dmitry.
+> >
+> I think your variant is bad.
+
+Mauro we need your opinion about this question.
+
+With my best regards, Dmitry.
+
+> >>>>>> Then the function call usb_set_interface in tm6000_video, can
+> >>>>>> write for example:
+> >>>>>>
+> >>>>>> stop_ir_pipe
+> >>>>>> usb_set_interface
+> >>>>>> start_ir_pipe
+> >>>>> Ok, I'll try.
+> >>> See dmesg. I was add function for start/stop interrupt urbs
+> >>> All works well.
+> >>>
+> >>> With my best regards, Dmitry.
+> 
