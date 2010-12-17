@@ -1,97 +1,264 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:29488 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753484Ab0L2Rc7 (ORCPT
+Received: from ganesha.gnumonks.org ([213.95.27.120]:37584 "EHLO
+	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752064Ab0LQEQi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Dec 2010 12:32:59 -0500
-Date: Wed, 29 Dec 2010 18:32:42 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 0/15] V4L2 mem-to-mem framework and s5p-fimc driver conversion
- for videobuf2
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com
-Message-id: <1293643975-4528-1-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
+	Thu, 16 Dec 2010 23:16:38 -0500
+From: KyongHo Cho <pullip.cho@samsung.com>
+To: KyongHo Cho <pullip.cho@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Inho Lee <ilho215.lee@samsung.com>,
+	Inki Dae <inki.dae@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mel Gorman <mel@csn.ul.ie>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linux-samsung-soc@vger.kernel.org,
+	Michal Nazarewicz <m.nazarewicz@samsung.com>
+Subject: [RFCv2,7/8] mm: vcm: vcm-cma: VCM CMA driver added
+Date: Fri, 17 Dec 2010 12:56:26 +0900
+Message-Id: <1292558187-17348-8-git-send-email-pullip.cho@samsung.com>
+In-Reply-To: <1292558187-17348-7-git-send-email-pullip.cho@samsung.com>
+References: <1292558187-17348-1-git-send-email-pullip.cho@samsung.com>
+ <1292558187-17348-2-git-send-email-pullip.cho@samsung.com>
+ <1292558187-17348-3-git-send-email-pullip.cho@samsung.com>
+ <1292558187-17348-4-git-send-email-pullip.cho@samsung.com>
+ <1292558187-17348-5-git-send-email-pullip.cho@samsung.com>
+ <1292558187-17348-6-git-send-email-pullip.cho@samsung.com>
+ <1292558187-17348-7-git-send-email-pullip.cho@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hello,
+From: Michal Nazarewicz <m.nazarewicz@samsung.com>
 
+This commit adds a VCM driver that instead of using real
+hardware MMU emulates one and uses CMA for allocating
+contiguous memory chunks.
 
-This is basically resend of my previous changeset including minor fixes
-in s5p-fimc and adresing comments on the LMML from the past.
+Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ Documentation/virtual-contiguous-memory.txt |   12 +++-
+ include/linux/vcm-cma.h                     |   38 ++++++++++
+ mm/Kconfig                                  |   14 ++++
+ mm/Makefile                                 |    1 +
+ mm/vcm-cma.c                                |   99 +++++++++++++++++++++++++++
+ 5 files changed, 163 insertions(+), 1 deletions(-)
+ create mode 100644 include/linux/vcm-cma.h
+ create mode 100644 mm/vcm-cma.c
 
-Changes since v1:
-- check if color format is set in STREAMON separately for each buffer type (05/15)
-- add releasing of buffer's from driver's queue in stop_streaming (04/15)
-- fix errors in patches 08/15, 12/15
+diff --git a/Documentation/virtual-contiguous-memory.txt b/Documentation/virtual-contiguous-memory.txt
+index 070685b..46edaee 100644
+--- a/Documentation/virtual-contiguous-memory.txt
++++ b/Documentation/virtual-contiguous-memory.txt
+@@ -552,7 +552,17 @@ well:
+ If one uses vcm_unbind() then vcm_bind() on the same reservation,
+ physical memory pair should also work.
+ 
+-There are no One-to-One drivers at this time.
++*** VCM CMA
++
++VCM CMA driver is a One-to-One driver which uses CMA (see
++[[file:contiguous-memory.txt][contiguous-memory.txt]]) to allocate physically contiguous memory.  VCM
++CMA context is created by calling:
++
++	struct vcm *__must_check
++	vcm_cma_create(const char *regions, dma_addr_t alignment);
++
++Its first argument is the list of regions that CMA should try to
++allocate memory from.  The second argument is required alignment.
+ 
+ * Writing a VCM driver
+ 
+diff --git a/include/linux/vcm-cma.h b/include/linux/vcm-cma.h
+new file mode 100644
+index 0000000..57c2cc9
+--- /dev/null
++++ b/include/linux/vcm-cma.h
+@@ -0,0 +1,38 @@
++/*
++ * Virtual Contiguous Memory driver for CMA header
++ * Copyright (c) 2010 by Samsung Electronics.
++ * Written by Michal Nazarewicz (m.nazarewicz@samsung.com)
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; either version 2 of the
++ * License or (at your optional) any later version of the license.
++ */
++
++/*
++ * See Documentation/virtual-contiguous-memory.txt for details.
++ */
++
++#ifndef __LINUX_VCM_CMA_H
++#define __LINUX_VCM_CMA_H
++
++#include <linux/types.h>
++
++struct vcm;
++
++/**
++ * vcm_cma_create() - creates a VCM context that fakes a hardware MMU
++ * @ctx:	the cma context that is defined by the machine's implementation.
++ *		from.
++ * @alignment:	required alignment of allocations.
++ *
++ * This creates VCM context that can be used on platforms with no
++ * hardware MMU or for devices that aro conected to the bus directly.
++ * Because it does not represent real MMU it has some limitations:
++ * basically, vcm_alloc(), vcm_reserve() and vcm_bind() are likely to
++ * fail so vcm_make_binding() should be used instead.
++ */
++struct vcm *__must_check
++vcm_cma_create(struct cma *ctx, unsigned long alignment);
++
++#endif
+diff --git a/mm/Kconfig b/mm/Kconfig
+index 53328d2..5cd25e7 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -390,6 +390,20 @@ config VCM_O2O
+ 	  it if you are going to build external modules that will use this
+ 	  functionality.
+ 
++config VCM_CMA
++	bool "VCM CMA driver"
++	depends on VCM && CMA
++	select VCM_O2O
++	help
++	  This enables VCM driver that instead of using a real hardware
++	  MMU fakes one and uses a direct mapping.  It provides a subset
++	  of functionalities of a real MMU but if drivers limits their
++	  use of VCM to only supported operations they can work on
++	  both systems with and without MMU with no changes.
++
++	  For more information see
++	  <Documentation/virtual-contiguous-memory.txt>.  If unsure, say "n".
++
+ #
+ # UP and nommu archs use km based percpu allocator
+ #
+diff --git a/mm/Makefile b/mm/Makefile
+index b96a6cb..6663fc2 100644
+--- a/mm/Makefile
++++ b/mm/Makefile
+@@ -44,3 +44,4 @@ obj-$(CONFIG_DEBUG_KMEMLEAK) += kmemleak.o
+ obj-$(CONFIG_DEBUG_KMEMLEAK_TEST) += kmemleak-test.o
+ obj-$(CONFIG_CMA) += cma.o
+ obj-$(CONFIG_VCM) += vcm.o
++obj-$(CONFIG_VCM_CMA) += vcm-cma.o
+diff --git a/mm/vcm-cma.c b/mm/vcm-cma.c
+new file mode 100644
+index 0000000..dcdc751
+--- /dev/null
++++ b/mm/vcm-cma.c
+@@ -0,0 +1,99 @@
++/*
++ * Virtual Contiguous Memory driver for CMA
++ * Copyright (c) 2010 by Samsung Electronics.
++ * Written by Michal Nazarewicz (m.nazarewicz@samsung.com)
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; either version 2 of the
++ * License or (at your optional) any later version of the license.
++ */
++
++/*
++ * See Documentation/virtual-contiguous-memory.txt for details.
++ */
++
++#include <linux/vcm-drv.h>
++#include <linux/cma.h>
++#include <linux/module.h>
++#include <linux/err.h>
++#include <linux/errno.h>
++#include <linux/slab.h>
++
++struct vcm_cma {
++	struct vcm_o2o	o2o;
++	struct cma	*ctx;
++	unsigned long	alignment;
++};
++
++struct vcm_cma_phys {
++	struct cm		*chunk;
++	struct vcm_phys		phys;
++};
++
++static void vcm_cma_free(struct vcm_phys *_phys)
++{
++	struct vcm_cma_phys *phys =
++		container_of(_phys, struct vcm_cma_phys, phys);
++	cm_unpin(phys->chunk);
++	cm_free(phys->chunk);
++	kfree(phys);
++}
++
++static struct vcm_phys *
++vcm_cma_phys(struct vcm *vcm, resource_size_t size, unsigned flags)
++{
++	struct vcm_cma *cma = container_of(vcm, struct vcm_cma, o2o.vcm);
++	struct vcm_cma_phys *phys;
++	struct cm *chunk;
++
++	phys = kmalloc(sizeof *phys + sizeof *phys->phys.parts, GFP_KERNEL);
++	if (!phys)
++		return ERR_PTR(-ENOMEM);
++
++	chunk = cm_alloc(cma->ctx, size, cma->alignment);
++	if (IS_ERR(chunk)) {
++		kfree(phys);
++		return ERR_CAST(chunk);
++	}
++
++	phys->chunk = chunk;
++	phys->phys.count = 1;
++	phys->phys.free = vcm_cma_free;
++	phys->phys.parts->start = cm_pin(chunk);
++	phys->phys.parts->size  = size;
++	return &phys->phys;
++}
++
++struct vcm *__must_check
++vcm_cma_create(struct cma *ctx, unsigned long alignment)
++{
++	static const struct vcm_o2o_driver driver = {
++		.phys	= vcm_cma_phys,
++	};
++
++	struct vcm_cma *cma;
++	struct vcm *vcm;
++
++	if (alignment & (alignment - 1))
++		return ERR_PTR(-EINVAL);
++
++	cma = kmalloc(sizeof *cma, GFP_KERNEL);
++	if (!cma)
++		return ERR_PTR(-ENOMEM);
++
++	cma->o2o.driver    = &driver;
++	/* dummy size and start address!
++	 * to be accepted by vcm_init()
++	 * vcm_cma does not use these members.
++	 */
++	cma->o2o.vcm.start = 0;
++	cma->o2o.vcm.size  = PAGE_SIZE;
++	cma->ctx	   = ctx;
++	cma->alignment     = alignment;
++	vcm = vcm_o2o_init(&cma->o2o);
++	if (IS_ERR(vcm))
++		kfree(cma);
++	return vcm;
++}
++EXPORT_SYMBOL_GPL(vcm_cma_create);
+-- 
+1.6.2.5
 
-The patch series is a continuation of patch series from Marek addding 
-the videobuf2 framework. Please see this thread for reference:
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg25988.html
-
-The first and second patch converts v4l2-mem2mem framework and the mem2mem testdev
-to use videobuf2.
-
-Patch 04/15 converts s5p-fimc, both m2m and camera capture interface drivers.
-Except that it creates separate videobuf queue operation callback set for
-the m2m and capture video nodes.
-
-Patch 05/15 converts s5p-fimc driver so it supports multiplanar formats 
-and thus can be used for hardware assisted video playback together with
-S5P MFC (multi-format codec) driver.
-
-The driver implements only *_mplane ioctl handlers so in case of
-standard non-multiplane V4L2 application the buffers are converted
-in v4l2 ioctl handling code.
-
-Patch 06/15 just cleans up the driver by removing all locking from 
-ioctl and file operation handlers and using v4l core lock.
-
-Patches 07..15/15 are various s5p-fimc driver improvements and fixes.
-Patch 15/15 introduces little changes for what was introduced by
-HyounWoong Kim patches.
-
-
-The patch series contains:
-
-[PATCH 01/15] v4l: mem2mem: port to videobuf2
-[PATCH 02/15] v4l: mem2mem: port m2m_testdev to vb2
-[PATCH 03/15] v4l: Add multiplanar format fourccs for s5p-fimc driver
-[PATCH 04/15] [media] s5p-fimc: Porting to videobuf 2
-[PATCH 05/15] [media] s5p-fimc: Conversion to multiplanar formats
-[PATCH 06/15] [media] s5p-fimc: Use v4l core mutex in ioctl and file operations
-[PATCH 07/15] [media] s5p-fimc: Rename s3c_fimc* to s5p_fimc*
-[PATCH 08/15] [media] s5p-fimc: Derive camera bus width from mediabus pixelcode
-[PATCH 09/15] [media] s5p-fimc: Enable interworking without subdev s_stream
-[PATCH 10/15] [media] s5p-fimc: Use default input DMA burst count
-[PATCH 11/15] [media] s5p-fimc: Enable simultaneous rotation and flipping
-[PATCH 12/15] [media] s5p-fimc: Add control of the external sensor clock
-[PATCH 15/15] [media] s5p-fimc: Move scaler details handling to the register API file
-
-
-Patches 13/15, 14/15 from HyounWoong Kim can be found here:
-
-https://patchwork.kernel.org/patch/428901/
-https://patchwork.kernel.org/patch/428891/
-
-Full source tree containing the last Videobuf2, multiplanar extension patches
-together with vivi, v4l2-mem2mem framework, mem2mem testdev and s5p-fimc driver
-conversion to vb2 patches will be available within few hours at:
-
-The tree is based on git://linuxtv.org/media_tree.git staging/for_v2.6.38.
-
-There are still the DocBook entries missing for new non-contiguous multiplanar
-fourccs introduced in patch 03/15 and I am going to provide them in New Year. 
-
-
-Regards,
-Sylwester 
-
-
---
-Sylwester Nawrocki
-Samsung Poland R&D Center
