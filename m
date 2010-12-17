@@ -1,92 +1,45 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:16265 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752829Ab0LWPfd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Dec 2010 10:35:33 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=ISO-8859-1
-Date: Thu, 23 Dec 2010 16:35:30 +0100
-From: Tomasz Fujak <t.fujak@samsung.com>
-Subject: Re: [PATCHv8 00/12] Contiguous Memory Allocator
-In-reply-to: <20101223142053.GN3636@n2100.arm.linux.org.uk>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kmpark@infradead.org>,
-	linux-arm-kernel@lists.infradead.org,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
-	Mel Gorman <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
-	linux-mm@kvack.org, Ankita Garg <ankita@in.ibm.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-media@vger.kernel.org,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <4D136C42.6090601@samsung.com>
-References: <cover.1292443200.git.m.nazarewicz@samsung.com>
- <AANLkTim8_=0+-zM5z4j0gBaw3PF3zgpXQNetEn-CfUGb@mail.gmail.com>
- <20101223100642.GD3636@n2100.arm.linux.org.uk>
- <87k4j0ehdl.fsf@erwin.mina86.com>
- <20101223135120.GL3636@n2100.arm.linux.org.uk> <4D1357D5.9000507@samsung.com>
- <20101223142053.GN3636@n2100.arm.linux.org.uk>
+Received: from mx1.redhat.com ([209.132.183.28]:54293 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755454Ab0LQSMD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Dec 2010 13:12:03 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oBHIC2Gi028030
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 17 Dec 2010 13:12:02 -0500
+Received: from pedra (vpn-232-172.phx2.redhat.com [10.3.232.172])
+	by int-mx12.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id oBHIC0ww009397
+	for <linux-media@vger.kernel.org>; Fri, 17 Dec 2010 13:12:01 -0500
+Date: Fri, 17 Dec 2010 16:11:54 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/2] [media] cx231xx: Fix IR keymap for Pixelview SBTVD
+ Hybrid
+Message-ID: <20101217161154.3b04240f@pedra>
+In-Reply-To: <82a22bd7fd5218d7c3fd51d9c41815f511549373.1292609429.git.mchehab@redhat.com>
+References: <82a22bd7fd5218d7c3fd51d9c41815f511549373.1292609429.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On 2010-12-23 15:20, Russell King - ARM Linux wrote:
-> On Thu, Dec 23, 2010 at 03:08:21PM +0100, Tomasz Fujak wrote:
->> On 2010-12-23 14:51, Russell King - ARM Linux wrote:
->>> On Thu, Dec 23, 2010 at 02:41:26PM +0100, Michal Nazarewicz wrote:
->>>> Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
->>>>> Has anyone addressed my issue with it that this is wide-open for
->>>>> abuse by allocating large chunks of memory, and then remapping
->>>>> them in some way with different attributes, thereby violating the
->>>>> ARM architecture specification?
->>>>>
->>>>> In other words, do we _actually_ have a use for this which doesn't
->>>>> involve doing something like allocating 32MB of memory from it,
->>>>> remapping it so that it's DMA coherent, and then performing DMA
->>>>> on the resulting buffer?
->>>> Huge pages.
->>>>
->>>> Also, don't treat it as coherent memory and just flush/clear/invalidate
->>>> cache before and after each DMA transaction.  I never understood what's
->>>> wrong with that approach.
->>> If you've ever used an ARM system with a VIVT cache, you'll know what's
->>> wrong with this approach.
->>>
->>> ARM systems with VIVT caches have extremely poor task switching
->>> performance because they flush the entire data cache at every task switch
->>> - to the extent that it makes system performance drop dramatically when
->>> they become loaded.
->>>
->>> Doing that for every DMA operation will kill the advantage we've gained
->>> from having VIPT caches and ASIDs stone dead.
->> This statement effectively means: don't map dma-able memory to the CPU
->> unless it's uncached. Have I missed anything?
-> I'll give you another solution to the problem - lobby ARM Ltd to have
-> this restriction lifted from the architecture specification, which
-> will probably result in the speculative prefetching also having to be
-> removed.
->
-Isn't disabling Speculative Accesses forwarding to the AXI bus the
-solution to our woes?
-At least on the A8, which happens to be paired with non-IOMMU capable
-IPs on our SoCs.
-On A9 the bit is gone (or has it moved?), but we have IOMMU here so the
-CMA isn't needed.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-http://infocenter.arm.com/
-Cortex-A8 Technical Reference Manual    Revision: r3p2
-3.2.26. c1, Auxiliary Control Register
-CP15, c1, c0, bit 4: Enables speculative accesses on AXI
-
-> That would be my preferred solution if I had the power to do so, but
-> I have to live with what ARM Ltd (and their partners such as yourselves)
-> decide should end up in the architecture specification.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+diff --git a/drivers/media/video/cx231xx/cx231xx-cards.c b/drivers/media/video/cx231xx/cx231xx-cards.c
+index 6175650..6905607 100644
+--- a/drivers/media/video/cx231xx/cx231xx-cards.c
++++ b/drivers/media/video/cx231xx/cx231xx-cards.c
+@@ -412,7 +412,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.tuner_i2c_master = 2,
+ 		.demod_i2c_master = 1,
+ 		.ir_i2c_master = 2,
+-		.rc_map_name = RC_MAP_PIXELVIEW_NEW,
++		.rc_map_name = RC_MAP_PIXELVIEW_002T,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x10,
+ 		.norm = V4L2_STD_PAL_M,
+-- 
+1.7.1
 
