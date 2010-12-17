@@ -1,120 +1,84 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout1.samsung.com ([203.254.224.24]:47460 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753228Ab0LOIOS (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:38489 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754051Ab0LQNMO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Dec 2010 03:14:18 -0500
-MIME-version: 1.0
-Content-type: text/plain; charset=EUC-KR
-Received: from epmmp2 (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LDG0076VMVS6UD0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Dec 2010 17:14:17 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LDG00GMCMVTOV@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Dec 2010 17:14:17 +0900 (KST)
-Date: Wed, 15 Dec 2010 17:14:16 +0900
-From: "Kim, HeungJun" <riverful.kim@samsung.com>
-Subject: Re: What if add enumerations at the V4L2_FOCUS_MODE_AUTO?
-In-reply-to: <201012150857.29099.hverkuil@xs4all.nl>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org
-Reply-to: riverful.kim@samsung.com
-Message-id: <4D0878D8.9010803@samsung.com>
-Content-transfer-encoding: 8BIT
-References: <201012150119.43918.laurent.pinchart@ideasonboard.com>
- <201012150857.29099.hverkuil@xs4all.nl>
+	Fri, 17 Dec 2010 08:12:14 -0500
+Subject: Re: TeVii S470 dvb-s2 issues - 2nd try ,)
+From: Andy Walls <awalls@md.metrocast.net>
+To: me@boris64.net
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <201012171219.29473.me@boris64.net>
+References: <201012161429.32658.me@boris64.net>
+	 <AANLkTi=X-xn+iSmp5OLGP-FK8dqvyRgEcX-HjTQF5dHn@mail.gmail.com>
+	 <201012171219.29473.me@boris64.net>
+Content-Type: text/plain; charset="UTF-8"
+Date: Fri, 17 Dec 2010 08:12:56 -0500
+Message-ID: <1292591576.2077.19.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-2010-12-15 오후 4:57, Hans Verkuil 쓴 글:
-> On Wednesday, December 15, 2010 01:19:43 Laurent Pinchart wrote:
->> Hi,
->>
->> (CC'ing linux-media this time, please discard the previous mail)
->>
->> On Tuesday 14 December 2010 12:27:32 Kim, HeungJun wrote:
->>> Hi Laurent and Hans,
->>>
->>> I am working on V4L2 subdev for M5MOLS by Fujitsu.
->>> and I wanna listen your comments about Auto Focus mode of my ideas.
->>> the details is in the following link discussed at the past.
->>> Although the situation(adding the more various functions at the M5MOLS
->>> or any other MEGA camera sensor, I worked.)is changed,
->>> so I wanna continue this threads for now.
->>>
->>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg03543.html
->>>
->>> First of all, the at least two more mode of auto-focus exists in the
->>> M5MOLS camera sensor. So, considering defined V4L2 controls and the
->>> controls in the M5MOLS, I suggest like this:
->>>
->>> +enum  v4l2_focus_auto_type {
->>> +	V4L2_FOCUS_AUTO_NORMAL = 0,
->>> +	V4L2_FOCUS_AUTO_MACRO = 1,
->>> +	V4L2_FOCUS_AUTO_POSITION = 2,
->>> +};
->>> +#define V4L2_CID_FOCUS_POSITION			(V4L2_CID_CAMERA_CLASS_BASE+13)
->>>
->>> -#define V4L2_CID_ZOOM_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+13)
->>> -#define V4L2_CID_ZOOM_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+14)
->>> +#define V4L2_CID_ZOOM_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+14)
->>> +#define V4L2_CID_ZOOM_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+15)
->>>
->>>
->>> The M5MOLS(or other recent camera sensor) can have at least 2 mode although
->>> in any cases : *MACRO* and *NORMAL* mode. plus, M5MOLS supports
->>> positioning focus mode, AKA. POSITION AF mode.
->>>
->>> The MACRO mode scan short range, and this mode can be used at the
->>> circumstance in the short distance with object and camera lens. So, It has
->>> fast lens movement, but the command FOCUSING dosen't works well at the
->>> long distance object.
->>>
->>> On the other hand, NORMAL mode can this. As the words, It's general and
->>> normal focus mode. The M5MOLS scan fully in the mode.
->>>
->>> In the Position AF mode, the position(expressed x,y) is given at the
->>> M5MOLS, and then the M5MOLS focus this area. But, the time given the
->>> position, is normally touch the lcd screen at the mobile device, in my
->>> case. If the time is given from button, it's no big problem *when*. But,
->>> in touch-lcd screen case, the position is read at the touch screen driver,
->>> before command FOCUS to camera sensor. It's the why I add another
->>> CID(V4L2_CID_FOCUS_POSITION).
->>
->> I'm pretty sure that some devices would require a rectangle instead of 
->> coordinates to define the focus point. Even a rectangle might not be enough. 
->> It would help if we could get feedback from camera designers here.
->>
->> Hans, should we add a new control type to pass coordinates/rectangles ? :-)
+On Fri, 2010-12-17 at 12:19 +0100, Boris Cuber wrote:
+> Hello linux-media people!
 > 
-> It's a bit tricky actually since QUERYCTRL can return only one set of min/max
-> values. For coordinates/rectangles we need two sets (horizontal and vertical).
+> I have to problems with my dvb card ("TeVii S470"). I already
+> filed 2 bug reports some time ago, but no one seems to have
+> noticed/read them, so i'm trying it here now.
+> If you need a "full" dmesg, then please take a look at
+> https://bugzilla.kernel.org/attachment.cgi?id=40552
 > 
-> And I think it is important to know the min/max values.
+> 1) "TeVii S470 dvbs-2 card (cx23885) is not usable after
+> pm-suspend/resume" https://bugzilla.kernel.org/show_bug.cgi?id=16467
+
+The cx23885 driver does not implement power management.  It would likely
+take many, many hours of coding and testing to implement it properly.
+
+If you need resume/suspend, use the power management scripts on your
+machine to kill all the applications using the TeVii S470, and then
+unload the cx23885 module just before suspend.
+
+On resume, have the power management scripts reload the cx23885 module.
+
+
+
+> 2) "cx23885: ds3000_writereg: writereg error on =kernel-2.6.36-rc with
+> TeVii" S470 dvb-s2 card
+> -> https://bugzilla.kernel.org/show_bug.cgi?id=18832
 > 
-> Regards,
-> 
-> 	Hans
-> 
+> These error messages show up in dmesg while switching channels in 
+> mplayer/kaffeine.
+> [dmesg output]
+> [  919.789976] ds3000_writereg: writereg error(err == -6, reg == 0x03,
+> value == 0x11)
 
-I agree with that.
+They look like I2C bus errors; error -6 is ENXIO, which is probably
+coming from cx23885-i2c.c.
 
-So, IMHO, my real ideas is that:
+The device handled by the ds3000 driver is not responding properly to
+the CX23885.  It could be that some other device on that I2C bus is hung
+up or the ds3000 device itself.  Maybe some GPIO settings are set wrong?
 
-1. It aparts two cid for focus POSITIONING.
-   (e.g., V4L2_CID_FOCUS_POSX, V4L2_CID_FOCUS_POSY. )
-2. The min/max is changed, responsible for current camera sensor operating mode & size.
+The cx23885 module supports an i2c_probe and i2c_debug module option
+that will turn on some messages related to i2c.
 
-The rectangle case is possible for focus mode. But, It can be dealt with this in
-the subdev driver, although the camera sensor support rectangle focus.
 
-Thanks.
+I really have no other advice, except that if you do a git bisect
+process, you may find the commit(s) that caused the problem.
 
 Regards,
-HeungJun Kim
+Andy
+
+> Are these issues known? If so, are there any fixes yet? When will these
+> get into mainline? Could somebody point me into the right direction.
+> Can i help somehow to debug these problems?
+> 
+> Thank you in advance.
+> 
+> Regards,
+> 	Boris Cuber
+> 
+> PS: Thank Emanuel for helping me out with this mail ,)
+
+
