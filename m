@@ -1,94 +1,101 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:37654 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755231Ab0LOUGA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Dec 2010 15:06:00 -0500
-Message-ID: <4D0920CC.7060004@redhat.com>
-Date: Wed, 15 Dec 2010 21:10:52 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Antonio Ospite <ospite@studenti.unina.it>
-CC: linux-media@vger.kernel.org
-Subject: Re: Question about libv4lconvert.
-References: <20101215171139.b6c1f03a.ospite@studenti.unina.it>
-In-Reply-To: <20101215171139.b6c1f03a.ospite@studenti.unina.it>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from ganesha.gnumonks.org ([213.95.27.120]:37594 "EHLO
+	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752220Ab0LQEQi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Dec 2010 23:16:38 -0500
+From: KyongHo Cho <pullip.cho@samsung.com>
+To: KyongHo Cho <pullip.cho@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Inho Lee <ilho215.lee@samsung.com>,
+	Inki Dae <inki.dae@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mel Gorman <mel@csn.ul.ie>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linux-samsung-soc@vger.kernel.org
+Subject: [RFCv2,0/8] mm: vcm: The Virtual Memory Manager for multiple IOMMUs
+Date: Fri, 17 Dec 2010 12:56:19 +0900
+Message-Id: <1292558187-17348-1-git-send-email-pullip.cho@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi,
+Hello,
 
-On 12/15/2010 05:11 PM, Antonio Ospite wrote:
-> Hi,
->
-> I am taking a look at libv4lconvert, and I have a question about the
-> logic in v4lconvert_convert_pixfmt(), in some conversion switches there
-> is code like this:
->
-> 	case V4L2_PIX_FMT_GREY:
-> 		switch (dest_pix_fmt) {
-> 		case V4L2_PIX_FMT_RGB24:
-> 	        case V4L2_PIX_FMT_BGR24:
-> 			v4lconvert_grey_to_rgb24(src, dest, width, height);
-> 			break;
-> 		case V4L2_PIX_FMT_YUV420:
-> 		case V4L2_PIX_FMT_YVU420:
-> 			v4lconvert_grey_to_yuv420(src, dest, fmt);
-> 			break;
-> 		}
-> 		if (src_size<  (width * height)) {
-> 			V4LCONVERT_ERR("short grey data frame\n");
-> 			errno = EPIPE;
-> 			result = -1;
-> 		}
-> 		break;
->
-> However the conversion routines which are going to be called seem to
-> assume that the buffers, in particular the source buffer, are of the
-> correct full frame size when looping over them.
->
+The VCM is a framework to deal with multiple IOMMUs in a system 
+with intuitive and abstract objects
+These patches are the bugfix and enhanced version of previous RFC by Michal Nazarewicz.
+(https://patchwork.kernel.org/patch/157451/)
 
-Correct, because they trust that the kernel drivers have allocated large
-enough buffers to hold a valid frame which is a safe assumption.
+It is introduced by Zach Pfeffer and implemented by Michal Nazarewicz.
+These patches include entirely new implementation of VCM than the one submitted by Zach Pfeffer.
 
- > My question is: shouldn't the size check now at the end of the case
- > block be at the _beginning_ of it instead, so to detect a short frame
- > before conversion and avoid a possible out of bound access inside the
- > conversion routine?
+The prerequisites of these patches are the followings by Michal Nazarewicz:
+https://patchwork.kernel.org/patch/340281/
+https://patchwork.kernel.org/patch/414381/
+https://patchwork.kernel.org/patch/414541/
 
-This is done this way deliberately, this has to do with how the EPIPE
-errno variable is used in a special way.
+In addition to the above patches, 
+the prerequisites of "[RFCv2,7/8] mm: vcm: vcm-cma: VCM CMA driver added" is
+CMA RFCv8 introduced by Michal Nazarewicz:
+https://patchwork.kernel.org/patch/414351/
 
-An error return from v4lconvert_convert with an errno of EPIPE means
-I managed to get some data for you but not an entire frame. The upper
-layers of libv4l will respond to this by retrying (getting another frame),
-but only a limited number of times. Once the retries are exceeded they
-will simply pass along whatever they did manage to get.
+The VCM also works correctly without "[RFC,6/7] mm: vcm: vcm-cma: VCM CMA driver added"
 
-The reason for this is that there can be bus errors or vsync issues (*),
-which lead to a short frame, which are intermittent errors. So detecting
-them and getting another frame is a good thing to do because usually the
-next frame will be fine. However sometimes there are cases where every
-single frame is a short frame, for example the zc3xx driver used to
-deliver jpeg's with only 224 lines of data when running at 320x240 with
-some sensors. Now one can argue that this is a driver issue, and it is
-but it still happens in this case it is much better to pass along
-the 224 lines which we did get, then to make this a fatal error.
+The last patch, "[RFC,7/7] mm: vcm: Sample driver added" is not the one to be submitted
+but is an example to show how to use the VCM.
 
-Note that due to the retries the user will get a much lower framerate,
-which together with the missing lines at the bottom + printing
-of error messages will hopefully be enough for the user to report
-a bug to us, despite him/her getting some picture.
+The VCM provides generic interfaces and objects to deal with IOMMUs in various architectures
+especially the ones that embed multiple IOMMUs including GART.
 
-I hope this explains.
+Chagelog:
+v2:  1. Added reference counting on a reservation.
+	When vcm_reserve() creates a reservation, it sets the reference counter
+	of the reservation to 1. The ownership of the reservation is only owned by
+	the caller of vcm_reserve. If the caller passes the reservation to another
+	callee functions, the callee functions must increment the reference counter
+	with vcm_ref_reserve() to set the ownership of the reservation.
+	To release the ownership, just call vcm_unreserve(). vcm_unreserve decrements
+	the reference counter of the given reservation. vcm_unreserve() eventually
+	unreserves the reservation when its reference counter becomes 0.
+     2. Applied the design changes of CMA by Michal Nazarewicz.
+	Since it is dramatically changed, vcm-cma also followed.
 
-Regards,
+Patch list:
+[RFCv2,1/8] mm: vcm: Virtual Contiguous Memory framework added
+[RFCv2,2/8] mm: vcm: reference counting on a reservation added
+[RFCv2,3/8] mm: vcm: physical memory allocator added
+[RFCv2,4/8] mm: vcm: VCM VMM driver added
+[RFCv2,5/8] mm: vcm: VCM MMU wrapper added
+[RFCv2,6/8] mm: vcm: VCM One-to-One wrapper added
+[RFCv2,7/8] mm: vcm: vcm-cma: VCM CMA driver added
+[RFCv2,8/8] mm: vcm: Sample driver added
 
-Hans
-
-
-*) While starting the stream it may take several frames for vsync to
-properly lock in some cases.
-
+Summery:
+Documentation/00-INDEX                      |    2 +
+Documentation/virtual-contiguous-memory.txt |  940 +++++++++++++++++++++++++
+include/linux/vcm-cma.h                     |   38 +
+include/linux/vcm-drv.h                     |  326 +++++++++
+include/linux/vcm-sample.h                  |   30 +
+include/linux/vcm.h                         |  311 +++++++++
+mm/Kconfig                                  |   79 +++
+mm/Makefile                                 |    3 +
+mm/vcm-cma.c                                |   99 +++
+mm/vcm-sample.c                             |  119 ++++
+mm/vcm.c                                    |  987 +++++++++++++++++++++++++++
+11 files changed, 2934 insertions(+), 0 deletions(-)
+create mode 100644 Documentation/virtual-contiguous-memory.txt
+create mode 100644 include/linux/vcm-cma.h
+create mode 100644 include/linux/vcm-drv.h
+create mode 100644 include/linux/vcm-sample.h
+create mode 100644 include/linux/vcm.h
+create mode 100644 mm/vcm-cma.c
+create mode 100644 mm/vcm-sample.c
+create mode 100644 mm/vcm.c
 
