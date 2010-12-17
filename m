@@ -1,49 +1,30 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:40391 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751892Ab0LaQS4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Dec 2010 11:18:56 -0500
-Message-ID: <4D1E0263.8050206@redhat.com>
-Date: Fri, 31 Dec 2010 14:18:43 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:49177 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750942Ab0LQGGs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Dec 2010 01:06:48 -0500
+Received: by wwa36 with SMTP id 36so333723wwa.1
+        for <linux-media@vger.kernel.org>; Thu, 16 Dec 2010 22:06:47 -0800 (PST)
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Hans de Goede <hdegoede@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: nasty bug at qv4l2
-References: <4D11E170.6050500@redhat.com> <201012241520.01460.hverkuil@xs4all.nl> <4D1DF072.7080408@redhat.com> <201012311608.25285.hverkuil@xs4all.nl>
-In-Reply-To: <201012311608.25285.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <AANLkTinUQiUnET8K8xR_m8EVc9h6-vev1cKRe=F+yh6S@mail.gmail.com>
+References: <AANLkTi=_Wc-A2f2emjXrP1bwWF4T+esJfLkdeNXqDr74@mail.gmail.com>
+	<AANLkTinUQiUnET8K8xR_m8EVc9h6-vev1cKRe=F+yh6S@mail.gmail.com>
+Date: Fri, 17 Dec 2010 16:06:47 +1000
+Message-ID: <AANLkTinu6+3Ep=58ephY9TOCBV+4Z9RSO9F0NP6ooiKg@mail.gmail.com>
+Subject: Re: [mythtv-users] Leadtek DTV2000DS - no channel lock
+From: David Whyte <david.whyte@gmail.com>
+To: Discussion about MythTV <mythtv-users@mythtv.org>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 31-12-2010 13:08, Hans Verkuil escreveu:
-> On Friday, December 31, 2010 16:02:10 Hans de Goede wrote:
->> Hi,
->>
->> Hans V. I've tested your patch for avoiding the double
->> conversion problem, and I can report it fixes the issue seen with
->> webcameras which need 90 degrees rotation.
->>
->> While testing I found a bug in gspca, which gets triggered by
->> qv4l2 which makes it impossible to switch between userptr and
->> mmap mode. While fixing that I also found some locking issues in
->> gspca. As these all touch the gscpa core I'll send a patch set
->> to Jean Francois Moine for this.
->>
->> With the issues in gspca fixed, I found a bug in qv4l2 when using
->> read mode in raw mode (not passing the correct src_size to
->> libv4lconvert_convert).
->>
->> I've attached 2 patches to qv4l2, fixing the read issue and a similar
->> issue in mmap / userptr mode. These apply on top of your patch.
-> 
-> Thanks for testing this! I've committed mine and your patches for qv4l2.
+>
+> I've had another bash at this, and I think that the 4.95.0 firmware
+> makes it work. Or at least, one of the 4 tuners is working.
+>
 
-Ok, I did some tests here too. The applied patches fix the bugs I've
-reported: the pac7302 driver formats are properly reported (the emulated ones),
-and it is now possible to change resolution/format with the uvc driver.
-
-Cheers,
-Mauro
+For my K-World tuners, which use the same firmware (from the top of my
+head) I reverted to 4.65 (the default for Ubuntu 9.10) and found I had
+better success.  4.95 and 5.10 would take forever to lock for me.
