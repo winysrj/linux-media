@@ -1,133 +1,111 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:43721 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754873Ab0LPTAy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Dec 2010 14:00:54 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oBGJ0rlU004240
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 16 Dec 2010 14:00:53 -0500
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH 1/4] mceusb: fix inverted mask inversion logic
-Date: Thu, 16 Dec 2010 14:00:34 -0500
-Message-Id: <1292526037-21491-2-git-send-email-jarod@redhat.com>
-In-Reply-To: <1292526037-21491-1-git-send-email-jarod@redhat.com>
-References: <1292526037-21491-1-git-send-email-jarod@redhat.com>
+Received: from mail-ew0-f45.google.com ([209.85.215.45]:37281 "EHLO
+	mail-ew0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751081Ab0LQAqh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Dec 2010 19:46:37 -0500
+Received: by ewy10 with SMTP id 10so67163ewy.4
+        for <linux-media@vger.kernel.org>; Thu, 16 Dec 2010 16:46:36 -0800 (PST)
+Date: Fri, 17 Dec 2010 10:46:33 +0900
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: Stefan Ringel <stefan.ringel@arcor.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Felipe Sanches <juca@members.fsf.org>,
+	Bee Hock Goh <beehock@gmail.com>,
+	Luis Henrique Fagundes <lhfagundes@hacklab.com.br>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: tm6000 and IR
+Message-ID: <20101217104633.7c9d10d7@glory.local>
+In-Reply-To: <4D0A4883.20804@arcor.de>
+References: <4CAD5A78.3070803@redhat.com>
+	<20101008150301.2e3ceaff@glory.local>
+	<4CAF0602.6050002@redhat.com>
+	<20101012142856.2b4ee637@glory.local>
+	<4CB492D4.1000609@arcor.de>
+	<20101129174412.08f2001c@glory.local>
+	<4CF51C9E.6040600@arcor.de>
+	<20101201144704.43b58f2c@glory.local>
+	<4CF67AB9.6020006@arcor.de>
+	<20101202134128.615bbfa0@glory.local>
+	<4CF71CF6.7080603@redhat.com>
+	<20101206010934.55d07569@glory.local>
+	<4CFBF62D.7010301@arcor.de>
+	<20101206190230.2259d7ab@glory.local>
+	<4CFEA3D2.4050309@arcor.de>
+	<20101208125539.739e2ed2@glory.local>
+	<4CFFAD1E.7040004@arcor.de>
+	<20101214122325.5cdea67e@glory.local>
+	<4D079ADF.2000705@arcor.de>
+	<20101215164634.44846128@glory.local>
+	<4D08E43C.8080002@arcor.de>
+	<20101216183844.6258734e@glory.local>
+	<4D0A4883.20804@arcor.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-As it turns out, somewhere along the way, we managed to invert the
-meaning of the tx_mask_inverted flag. Looking back over the old lirc
-driver, tx_mask_inverted was set to 0 if the device was in tx_mask_list.
-Now we have a tx_mask_inverted flag set to 1 for all the devices that
-were in the list, and set tx_mask_inverted to that flag value, which is
-actually the opposite of what we used to set, causing set_tx_mask to use
-the wrong mask setting option. Since there seem to be more devices with
-inverted masks than not (using the original device as the baseline for
-inverted vs. normal), lets just call the ones currently marked as
-inverted normal instead, and flip the if/else actions that key off of
-the inverted flag.
+Hi Stefan
 
-Note: the problem only cropped up if a call to set_tx_mask was made, if
-no mask was set, the device would work just fine, which is why this
-managed to slip though w/o getting noticed until now.
+> Am 16.12.2010 10:38, schrieb Dmitri Belimov:
+> > Hi
+> >
+> >>> I think your mean is wrong. Our IR remotes send extended NEC it is
+> >>> 4 bytes. We removed inverted 4 byte and now we have 3 bytes from
+> >>> remotes. I think we must have full RCMAP with this 3 bytes from
+> >>> remotes. And use this remotes with some different IR recievers
+> >>> like some TV cards and LIRC-hardware and other. No need different
+> >>> RCMAP for the same remotes to different IR recievers like now.
+> >> Your change doesn't work with my terratec remote control !!
+> > I found what happens. Try my new patch.
+> >
+> > What about NEC. Original NEC send
+> > address (inverted address) key (inverted key)
+> > this is realy old standart now all remotes use extended NEC
+> > (adress high) (address low) key (inverted key)
+> > The trident 5600/6000/6010 use old protocol but didn't test
+> > inverted address byte.
+> >
+> > I think much better discover really address value and write it to
+> > keytable. For your remotes I add low address byte. This value is
+> > incorrent but usefull for tm6000. When you found correct value
+> > update keytable.
+> >
+> That is not acceptable. Have you forgotten what Mauro have written?
+> The Terratec rc map are use from other devices.
 
-Tested successfully by myself and Dennis Gilmore.
+NO
+The RC_MAP_NEC_TERRATEC_CINERGY_XS used only in tm6000 module.
+My patch didn't kill support any other devices.
 
-Reported-by: Dennis Gilmore <dgilmore@redhat.com>
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/rc/mceusb.c |   22 +++++++++++-----------
- 1 files changed, 11 insertions(+), 11 deletions(-)
+> The best are only the 
+> received data without additional data. And I think the Trident chip
+> send only compatibly data (send all extended data like standard
+> data). The device decoded the protocols not the driver.
 
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index 33c0147..0739dee 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -155,7 +155,7 @@ struct mceusb_model {
- 	u32 mce_gen1:1;
- 	u32 mce_gen2:1;
- 	u32 mce_gen3:1;
--	u32 tx_mask_inverted:1;
-+	u32 tx_mask_normal:1;
- 	u32 is_polaris:1;
- 	u32 no_tx:1;
- 
-@@ -166,18 +166,18 @@ struct mceusb_model {
- static const struct mceusb_model mceusb_model[] = {
- 	[MCE_GEN1] = {
- 		.mce_gen1 = 1,
--		.tx_mask_inverted = 1,
-+		.tx_mask_normal = 1,
- 	},
- 	[MCE_GEN2] = {
- 		.mce_gen2 = 1,
- 	},
- 	[MCE_GEN2_TX_INV] = {
- 		.mce_gen2 = 1,
--		.tx_mask_inverted = 1,
-+		.tx_mask_normal = 1,
- 	},
- 	[MCE_GEN3] = {
- 		.mce_gen3 = 1,
--		.tx_mask_inverted = 1,
-+		.tx_mask_normal = 1,
- 	},
- 	[POLARIS_EVK] = {
- 		.is_polaris = 1,
-@@ -346,7 +346,7 @@ struct mceusb_dev {
- 
- 	struct {
- 		u32 connected:1;
--		u32 tx_mask_inverted:1;
-+		u32 tx_mask_normal:1;
- 		u32 microsoft_gen1:1;
- 		u32 no_tx:1;
- 	} flags;
-@@ -749,11 +749,11 @@ static int mceusb_set_tx_mask(struct rc_dev *dev, u32 mask)
- {
- 	struct mceusb_dev *ir = dev->priv;
- 
--	if (ir->flags.tx_mask_inverted)
-+	if (ir->flags.tx_mask_normal)
-+		ir->tx_mask = mask;
-+	else
- 		ir->tx_mask = (mask != MCE_DEFAULT_TX_MASK ?
- 				mask ^ MCE_DEFAULT_TX_MASK : mask) << 1;
--	else
--		ir->tx_mask = mask;
- 
- 	return 0;
- }
-@@ -1095,7 +1095,7 @@ static int __devinit mceusb_dev_probe(struct usb_interface *intf,
- 	enum mceusb_model_type model = id->driver_info;
- 	bool is_gen3;
- 	bool is_microsoft_gen1;
--	bool tx_mask_inverted;
-+	bool tx_mask_normal;
- 	bool is_polaris;
- 
- 	dev_dbg(&intf->dev, "%s called\n", __func__);
-@@ -1104,7 +1104,7 @@ static int __devinit mceusb_dev_probe(struct usb_interface *intf,
- 
- 	is_gen3 = mceusb_model[model].mce_gen3;
- 	is_microsoft_gen1 = mceusb_model[model].mce_gen1;
--	tx_mask_inverted = mceusb_model[model].tx_mask_inverted;
-+	tx_mask_normal = mceusb_model[model].tx_mask_normal;
- 	is_polaris = mceusb_model[model].is_polaris;
- 
- 	if (is_polaris) {
-@@ -1171,7 +1171,7 @@ static int __devinit mceusb_dev_probe(struct usb_interface *intf,
- 	ir->dev = &intf->dev;
- 	ir->len_in = maxp;
- 	ir->flags.microsoft_gen1 = is_microsoft_gen1;
--	ir->flags.tx_mask_inverted = tx_mask_inverted;
-+	ir->flags.tx_mask_normal = tx_mask_normal;
- 	ir->flags.no_tx = mceusb_model[model].no_tx;
- 	ir->model = model;
- 
--- 
-1.7.1
+You can't use this remotes with normal working IR receivers because this receivers
+returned FULL scancodes. Need add one more keytable.
 
+1. With my variant we have one keytable of remote and some workaround in device drivers. 
+    And can switch keytable and remotes on the fly (of course when keytable has really value and device driver has workaround)
+    
+2. With your variant we have some keytables for one remote for different IR recevers. 
+    Can't use incompatible keytable with other IR recievers. It is black magic for understanding what remotes is working with this hardware.
+
+I think my variant much better.
+
+With my best regards, Dmitry.
+
+> >>>> Then the function call usb_set_interface in tm6000_video, can
+> >>>> write for example:
+> >>>>
+> >>>> stop_ir_pipe
+> >>>> usb_set_interface
+> >>>> start_ir_pipe
+> >>> Ok, I'll try.
+> > See dmesg. I was add function for start/stop interrupt urbs
+> > All works well.
+> >
+> > With my best regards, Dmitry.
+> 
