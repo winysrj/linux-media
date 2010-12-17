@@ -1,157 +1,79 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:45625 "EHLO mx1.redhat.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48206 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751665Ab0L2LJb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Dec 2010 06:09:31 -0500
-Message-ID: <4D1B16C9.6070502@redhat.com>
-Date: Wed, 29 Dec 2010 09:08:57 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: linux-media@vger.kernel.org, Jean Delvare <khali@linux-fr.org>,
-	Jarod Wilson <jarod@redhat.com>, Janne Grunau <j@jannau.net>
-Subject: Re: [PATCH 1/3] hdpvr: Add I2C and ir-kdb-i2c registration of the
- Zilog Z8 IR chip
-References: <1293587067.3098.10.camel@localhost> <1293587173.3098.12.camel@localhost>
-In-Reply-To: <1293587173.3098.12.camel@localhost>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	id S1751183Ab0LQKnu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Dec 2010 05:43:50 -0500
+From: manjunatha_halli@ti.com
+To: mchehab@infradead.org, hverkuil@xs4all.nl
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Manjunatha Halli <manjunatha_halli@ti.com>
+Subject: [PATCH v7 0/7] FM V4L2 drivers for WL128x
+Date: Fri, 17 Dec 2010 06:06:29 -0500
+Message-Id: <1292583996-4440-1-git-send-email-manjunatha_halli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 28-12-2010 23:46, Andy Walls escreveu:
-> 
-> Add I2C registration of the Zilog Z8F0811 IR microcontroller for either
-> lirc_zilog or ir-kbd-i2c to use.  This is a required step in removing
-> lirc_zilog's use of the deprecated struct i2c_adapter.id field.
-> 
-> Signed-off-by: Andy Walls <awalls@md.metrocast.net>
-> ---
->  drivers/media/video/hdpvr/hdpvr-core.c |    5 +++
->  drivers/media/video/hdpvr/hdpvr-i2c.c  |   53 ++++++++++++++++++++++++++++++++
->  drivers/media/video/hdpvr/hdpvr.h      |    6 +++
->  3 files changed, 64 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/hdpvr/hdpvr-core.c b/drivers/media/video/hdpvr/hdpvr-core.c
-> index b70d6af..f7d1ee5 100644
-> --- a/drivers/media/video/hdpvr/hdpvr-core.c
-> +++ b/drivers/media/video/hdpvr/hdpvr-core.c
-> @@ -385,6 +385,11 @@ static int hdpvr_probe(struct usb_interface *interface,
->  		v4l2_err(&dev->v4l2_dev, "registering i2c adapter failed\n");
->  		goto error;
->  	}
-> +
-> +	/* until i2c is working properly */
-> +	retval = 0; /* hdpvr_register_i2c_ir(dev); */
+From: Manjunatha Halli <manjunatha_halli@ti.com>
 
-Hmm... It seems that this will just disable the IR logic... Why do you need it?
-Your comment is not clear to me.
+Mauro and the list,
 
-> +	if (retval < 0)
-> +		v4l2_err(&dev->v4l2_dev, "registering i2c IR devices failed\n");
->  #endif /* CONFIG_I2C */
->  
->  	/* let the user know what node this device is now attached to */
-> diff --git a/drivers/media/video/hdpvr/hdpvr-i2c.c b/drivers/media/video/hdpvr/hdpvr-i2c.c
-> index 409de11..24966aa 100644
-> --- a/drivers/media/video/hdpvr/hdpvr-i2c.c
-> +++ b/drivers/media/video/hdpvr/hdpvr-i2c.c
-> @@ -4,6 +4,9 @@
->   *
->   * Copyright (C) 2008      Janne Grunau (j@jannau.net)
->   *
-> + * IR device registration code is
-> + * Copyright (C) 2010	Andy Walls <awalls@md.metrocast.net>
-> + *
->   *	This program is free software; you can redistribute it and/or
->   *	modify it under the terms of the GNU General Public License as
->   *	published by the Free Software Foundation, version 2.
-> @@ -22,6 +25,56 @@
->  #define REQTYPE_I2C_WRITE	0xb0
->  #define REQTYPE_I2C_WRITE_STATT	0xd0
->  
-> +#define Z8F0811_IR_TX_I2C_ADDR	0x70
-> +#define Z8F0811_IR_RX_I2C_ADDR	0x71
-> +
-> +static const u8 ir_i2c_addrs[] = {
-> +	Z8F0811_IR_TX_I2C_ADDR,
-> +	Z8F0811_IR_RX_I2C_ADDR,
-> +};
-> +
-> +static const char * const ir_devicenames[] = {
-> +	"ir_tx_z8f0811_hdpvr",
-> +	"ir_rx_z8f0811_hdpvr",
-> +};
-> +
-> +static int hdpvr_new_i2c_ir(struct hdpvr_device *dev, struct i2c_adapter *adap,
-> +			    const char *type, u8 addr)
-> +{
-> +	struct i2c_board_info info;
-> +	struct IR_i2c_init_data *init_data = &dev->ir_i2c_init_data;
-> +	unsigned short addr_list[2] = { addr, I2C_CLIENT_END };
-> +
-> +	memset(&info, 0, sizeof(struct i2c_board_info));
-> +	strlcpy(info.type, type, I2C_NAME_SIZE);
-> +
-> +	/* Our default information for ir-kbd-i2c.c to use */
-> +	switch (addr) {
-> +	case Z8F0811_IR_RX_I2C_ADDR:
-> +		init_data->ir_codes = RC_MAP_HAUPPAUGE_NEW;
-> +		init_data->internal_get_key_func = IR_KBD_GET_KEY_HAUP_XVR;
-> +		init_data->type = RC_TYPE_RC5;
-> +		init_data->name = "HD PVR";
-> +		info.platform_data = init_data;
-> +		break;
-> +	}
-> +
-> +	return i2c_new_probed_device(adap, &info, addr_list, NULL) == NULL ?
-> +	       -1 : 0;
-> +}
-> +
-> +int hdpvr_register_i2c_ir(struct hdpvr_device *dev)
-> +{
-> +	int i;
-> +	int ret = 0;
-> +
-> +	for (i = 0; i < ARRAY_SIZE(ir_i2c_addrs); i++)
-> +		ret += hdpvr_new_i2c_ir(dev, dev->i2c_adapter,
-> +					ir_devicenames[i], ir_i2c_addrs[i]);
-> +
-> +	return ret;
-> +}
-> +
->  static int hdpvr_i2c_read(struct hdpvr_device *dev, unsigned char addr,
->  			  char *data, int len)
->  {
-> diff --git a/drivers/media/video/hdpvr/hdpvr.h b/drivers/media/video/hdpvr/hdpvr.h
-> index 5efc963..37f1e4c 100644
-> --- a/drivers/media/video/hdpvr/hdpvr.h
-> +++ b/drivers/media/video/hdpvr/hdpvr.h
-> @@ -16,6 +16,7 @@
->  #include <linux/videodev2.h>
->  
->  #include <media/v4l2-device.h>
-> +#include <media/ir-kbd-i2c.h>
->  
->  #define HDPVR_MAJOR_VERSION 0
->  #define HDPVR_MINOR_VERSION 2
-> @@ -109,6 +110,9 @@ struct hdpvr_device {
->  	/* I2C lock */
->  	struct mutex		i2c_mutex;
->  
-> +	/* For passing data to ir-kbd-i2c */
-> +	struct IR_i2c_init_data	ir_i2c_init_data;
-> +
->  	/* usb control transfer buffer and lock */
->  	struct mutex		usbc_mutex;
->  	u8			*usbc_buf;
-> @@ -306,6 +310,8 @@ int hdpvr_cancel_queue(struct hdpvr_device *dev);
->  /* i2c adapter registration */
->  int hdpvr_register_i2c_adapter(struct hdpvr_device *dev);
->  
-> +int hdpvr_register_i2c_ir(struct hdpvr_device *dev);
-> +
->  /*========================================================================*/
->  /* buffer management */
->  int hdpvr_free_buffers(struct hdpvr_device *dev);
+This is the v7 version of the TI WL128x FM V4L2 drivers patchset.
+This introduces wl128x folder under the drivers/media/radio which cater
+to FM core on Texas Instrument's WL128x (also compatible with WL127x)
+WiLink chipsets.
+WL128x's FM can work in either Rx or Tx mode, and V4L2 interfaces are
+provided for both.
+
+** patch description **
+
+Texas Instrument's WL128x chipset packs BT, FM, GPS and WLAN in a single
+die with BT, FM and GPS being interfaced over a single UART.
+This driver works on top of the shared transport line discipline driver.
+This driver can also be made use for the WL127x version of the chip which packs
+BT, FM and WLAN only.
+
+Comments on the last version of the patches have been taken care,
+such as,
+- Now using the v4l2 control framework to support all the v4l2 controls.
+- re-arranged the error handling in IRQ handlers.
+
+Thanks & Regards,
+Manjunatha Halli
+
+Manjunatha Halli (7):
+  drivers:media:radio: wl128x: fmdrv common header file
+  drivers:media:radio: wl128x: fmdrv_v4l2 sources
+  drivers:media:radio: wl128x: fmdrv_common sources
+  drivers:media:radio: wl128x: FM driver RX sources
+  drivers:media:radio: wl128x: FM driver TX sources
+  drivers:media:radio: wl128x: Kconfig & Makefile added for wl128x
+    driver
+  drivers:media:radio: Update Kconfig and Makefile for supporting
+    wl128x
+
+ drivers/media/radio/Kconfig               |    3 +
+ drivers/media/radio/Makefile              |    1 +
+ drivers/media/radio/wl128x/Kconfig        |   17 +
+ drivers/media/radio/wl128x/Makefile       |    6 +
+ drivers/media/radio/wl128x/fmdrv.h        |  245 ++++
+ drivers/media/radio/wl128x/fmdrv_common.c | 1970 +++++++++++++++++++++++++++++
+ drivers/media/radio/wl128x/fmdrv_common.h |  402 ++++++
+ drivers/media/radio/wl128x/fmdrv_rx.c     |  904 +++++++++++++
+ drivers/media/radio/wl128x/fmdrv_rx.h     |   59 +
+ drivers/media/radio/wl128x/fmdrv_tx.c     |  438 +++++++
+ drivers/media/radio/wl128x/fmdrv_tx.h     |   37 +
+ drivers/media/radio/wl128x/fmdrv_v4l2.c   |  588 +++++++++
+ drivers/media/radio/wl128x/fmdrv_v4l2.h   |   33 +
+ 13 files changed, 4703 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/radio/wl128x/Kconfig
+ create mode 100644 drivers/media/radio/wl128x/Makefile
+ create mode 100644 drivers/media/radio/wl128x/fmdrv.h
+ create mode 100644 drivers/media/radio/wl128x/fmdrv_common.c
+ create mode 100644 drivers/media/radio/wl128x/fmdrv_common.h
+ create mode 100644 drivers/media/radio/wl128x/fmdrv_rx.c
+ create mode 100644 drivers/media/radio/wl128x/fmdrv_rx.h
+ create mode 100644 drivers/media/radio/wl128x/fmdrv_tx.c
+ create mode 100644 drivers/media/radio/wl128x/fmdrv_tx.h
+ create mode 100644 drivers/media/radio/wl128x/fmdrv_v4l2.c
+ create mode 100644 drivers/media/radio/wl128x/fmdrv_v4l2.h
 
