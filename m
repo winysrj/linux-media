@@ -1,143 +1,108 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:10405 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750864Ab0LOUij (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Dec 2010 15:38:39 -0500
-Date: Wed, 15 Dec 2010 21:34:22 +0100
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Subject: [PATCHv8 02/12] lib: bitmap: Added alignment offset for
- bitmap_find_next_zero_area()
-In-reply-to: <cover.1292443200.git.m.nazarewicz@samsung.com>
-To: Michal Nazarewicz <mina86@mina86.com>
+Received: from mx1.redhat.com ([209.132.183.28]:44003 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753352Ab0LQQuz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Dec 2010 11:50:55 -0500
+Date: Fri, 17 Dec 2010 14:50:03 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mel Gorman <mel@csn.ul.ie>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org
-Message-id: <b3b40d00b4b304be3eff4abb88d3f6df5a8a82a0.1292443200.git.m.nazarewicz@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <cover.1292443200.git.m.nazarewicz@samsung.com>
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v2.6.37-rc6] V4L/DVB BKL fixes
+Message-ID: <20101217145003.75852ba3@pedra>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-From: Michal Nazarewicz <mina86@mina86.com>
+Hi Linus,
 
-This commit adds a bitmap_find_next_zero_area_off() function which
-works like bitmap_find_next_zero_area() function expect it allows an
-offset to be specified when alignment is checked.  This lets caller
-request a bit such that its number plus the offset is aligned
-according to the mask.
+Please pull from:
+  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git bkl_removal
 
-Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+For a series of BKL removal fixes that are needed in order to allow making V4L core
+non-dependent of CONFIG_BKL. Several patches on this series are trivial.
+
+There's still one bug left with bttv driver. I have a patch for it already. I'll be
+adding it at -next and let it cook there for a couple days before sending you a pull
+request.
+
+Cheers,
+Mauro.
+
 ---
- include/linux/bitmap.h |   24 +++++++++++++++++++-----
- lib/bitmap.c           |   22 ++++++++++++----------
- 2 files changed, 31 insertions(+), 15 deletions(-)
 
-diff --git a/include/linux/bitmap.h b/include/linux/bitmap.h
-index daf8c48..c0528d1 100644
---- a/include/linux/bitmap.h
-+++ b/include/linux/bitmap.h
-@@ -45,6 +45,7 @@
-  * bitmap_set(dst, pos, nbits)			Set specified bit area
-  * bitmap_clear(dst, pos, nbits)		Clear specified bit area
-  * bitmap_find_next_zero_area(buf, len, pos, n, mask)	Find bit free area
-+ * bitmap_find_next_zero_area_off(buf, len, pos, n, mask)	as above
-  * bitmap_shift_right(dst, src, n, nbits)	*dst = *src >> n
-  * bitmap_shift_left(dst, src, n, nbits)	*dst = *src << n
-  * bitmap_remap(dst, src, old, new, nbits)	*dst = map(old, new)(src)
-@@ -113,11 +114,24 @@ extern int __bitmap_weight(const unsigned long *bitmap, int bits);
- 
- extern void bitmap_set(unsigned long *map, int i, int len);
- extern void bitmap_clear(unsigned long *map, int start, int nr);
--extern unsigned long bitmap_find_next_zero_area(unsigned long *map,
--					 unsigned long size,
--					 unsigned long start,
--					 unsigned int nr,
--					 unsigned long align_mask);
-+
-+extern unsigned long bitmap_find_next_zero_area_off(unsigned long *map,
-+						    unsigned long size,
-+						    unsigned long start,
-+						    unsigned int nr,
-+						    unsigned long align_mask,
-+						    unsigned long align_offset);
-+
-+static inline unsigned long
-+bitmap_find_next_zero_area(unsigned long *map,
-+			   unsigned long size,
-+			   unsigned long start,
-+			   unsigned int nr,
-+			   unsigned long align_mask)
-+{
-+	return bitmap_find_next_zero_area_off(map, size, start, nr,
-+					      align_mask, 0);
-+}
- 
- extern int bitmap_scnprintf(char *buf, unsigned int len,
- 			const unsigned long *src, int nbits);
-diff --git a/lib/bitmap.c b/lib/bitmap.c
-index 741fae9..8e75a6f 100644
---- a/lib/bitmap.c
-+++ b/lib/bitmap.c
-@@ -315,30 +315,32 @@ void bitmap_clear(unsigned long *map, int start, int nr)
- }
- EXPORT_SYMBOL(bitmap_clear);
- 
--/*
-+/**
-  * bitmap_find_next_zero_area - find a contiguous aligned zero area
-  * @map: The address to base the search on
-  * @size: The bitmap size in bits
-  * @start: The bitnumber to start searching at
-  * @nr: The number of zeroed bits we're looking for
-  * @align_mask: Alignment mask for zero area
-+ * @align_offset: Alignment offset for zero area.
-  *
-  * The @align_mask should be one less than a power of 2; the effect is that
-- * the bit offset of all zero areas this function finds is multiples of that
-- * power of 2. A @align_mask of 0 means no alignment is required.
-+ * the bit offset of all zero areas this function finds plus @align_offset
-+ * is multiple of that power of 2.
-  */
--unsigned long bitmap_find_next_zero_area(unsigned long *map,
--					 unsigned long size,
--					 unsigned long start,
--					 unsigned int nr,
--					 unsigned long align_mask)
-+unsigned long bitmap_find_next_zero_area_off(unsigned long *map,
-+					     unsigned long size,
-+					     unsigned long start,
-+					     unsigned int nr,
-+					     unsigned long align_mask,
-+					     unsigned long align_offset)
- {
- 	unsigned long index, end, i;
- again:
- 	index = find_next_zero_bit(map, size, start);
- 
- 	/* Align allocation */
--	index = __ALIGN_MASK(index, align_mask);
-+	index = __ALIGN_MASK(index + align_offset, align_mask) - align_offset;
- 
- 	end = index + nr;
- 	if (end > size)
-@@ -350,7 +352,7 @@ again:
- 	}
- 	return index;
- }
--EXPORT_SYMBOL(bitmap_find_next_zero_area);
-+EXPORT_SYMBOL(bitmap_find_next_zero_area_off);
- 
- /*
-  * Bitmap printing & parsing functions: first version by Bill Irwin,
--- 
-1.7.2.3
+
+The following changes since commit e53beacd23d9cb47590da6a7a7f6d417b941a994:
+
+  Linux 2.6.37-rc2 (2010-11-15 18:31:02 -0800)
+
+are available in the git repository at:
+  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git bkl_removal
+
+Hans Verkuil (15):
+      [media] BKL: trivial BKL removal from V4L2 radio drivers
+      [media] cadet: use unlocked_ioctl
+      [media] tea5764: convert to unlocked_ioctl
+      [media] si4713: convert to unlocked_ioctl
+      [media] typhoon: convert to unlocked_ioctl
+      [media] BKL: trivial ioctl -> unlocked_ioctl video driver conversions
+      [media] sn9c102: convert to unlocked_ioctl
+      [media] et61x251_core: trivial conversion to unlocked_ioctl
+      [media] cafe_ccic: replace ioctl by unlocked_ioctl
+      [media] sh_vou: convert to unlocked_ioctl
+      [media] radio-timb: convert to unlocked_ioctl
+      [media] cx18: convert to unlocked_ioctl
+      [media] v4l2-dev: use mutex_lock_interruptible instead of plain mutex_lock
+      [media] V4L: improve the BKL replacement heuristic
+      [media] v4l2-dev: fix race condition
+
+Laurent Pinchart (5):
+      [media] uvcvideo: Lock controls mutex when querying menus
+      [media] uvcvideo: Move mutex lock/unlock inside uvc_free_buffers
+      [media] uvcvideo: Move mmap() handler to uvc_queue.c
+      [media] uvcvideo: Lock stream mutex when accessing format-related information
+      [media] uvcvideo: Convert to unlocked_ioctl
+
+ drivers/media/radio/radio-aimslab.c          |   16 +-
+ drivers/media/radio/radio-aztech.c           |    6 +-
+ drivers/media/radio/radio-cadet.c            |   12 ++-
+ drivers/media/radio/radio-gemtek-pci.c       |    6 +-
+ drivers/media/radio/radio-gemtek.c           |   14 +-
+ drivers/media/radio/radio-maestro.c          |   14 +-
+ drivers/media/radio/radio-maxiradio.c        |    2 +-
+ drivers/media/radio/radio-miropcm20.c        |    6 +-
+ drivers/media/radio/radio-rtrack2.c          |   10 +-
+ drivers/media/radio/radio-sf16fmi.c          |    7 +-
+ drivers/media/radio/radio-sf16fmr2.c         |   11 +-
+ drivers/media/radio/radio-si4713.c           |    3 +-
+ drivers/media/radio/radio-tea5764.c          |   49 ++------
+ drivers/media/radio/radio-terratec.c         |    8 +-
+ drivers/media/radio/radio-timb.c             |    5 +-
+ drivers/media/radio/radio-trust.c            |   18 ++--
+ drivers/media/radio/radio-typhoon.c          |   16 +-
+ drivers/media/radio/radio-zoltrix.c          |   30 ++--
+ drivers/media/video/arv.c                    |    2 +-
+ drivers/media/video/bw-qcam.c                |    2 +-
+ drivers/media/video/c-qcam.c                 |    2 +-
+ drivers/media/video/cafe_ccic.c              |    2 +-
+ drivers/media/video/cx18/cx18-alsa-pcm.c     |    8 +-
+ drivers/media/video/cx18/cx18-streams.c      |    2 +-
+ drivers/media/video/et61x251/et61x251_core.c |    2 +-
+ drivers/media/video/meye.c                   |   14 +-
+ drivers/media/video/pms.c                    |    2 +-
+ drivers/media/video/sh_vou.c                 |   13 +-
+ drivers/media/video/sn9c102/sn9c102_core.c   |    2 +-
+ drivers/media/video/uvc/uvc_ctrl.c           |   48 +++++++-
+ drivers/media/video/uvc/uvc_queue.c          |  133 +++++++++++++++---
+ drivers/media/video/uvc/uvc_v4l2.c           |  185 ++++++++------------------
+ drivers/media/video/uvc/uvc_video.c          |    3 -
+ drivers/media/video/uvc/uvcvideo.h           |   10 +-
+ drivers/media/video/v4l2-dev.c               |   69 +++++++---
+ drivers/media/video/v4l2-device.c            |    1 +
+ drivers/media/video/w9966.c                  |    2 +-
+ include/media/v4l2-device.h                  |    2 +
+ 38 files changed, 413 insertions(+), 324 deletions(-)
 
