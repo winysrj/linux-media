@@ -1,64 +1,54 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp.ispras.ru ([83.149.198.201]:36692 "EHLO smtp.ispras.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750917Ab0LMP7Y convert rfc822-to-8bit (ORCPT
+Received: from mail-ew0-f45.google.com ([209.85.215.45]:53139 "EHLO
+	mail-ew0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753998Ab0LQQap (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Dec 2010 10:59:24 -0500
-From: Alexander Strakh <strakh@ispras.ru>
-To: linux-kernel@vger.kernel.org, kangyong@telegent.com,
-	xbzhang@telegent.com, zyziii@telegent.com, shijie8@gmail.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: BUG: double mutex_unlock in drivers/media/video/tlg2300/pd-video.c
-Date: Mon, 13 Dec 2010 18:59:14 +0300
+	Fri, 17 Dec 2010 11:30:45 -0500
+Received: by ewy10 with SMTP id 10so410166ewy.4
+        for <linux-media@vger.kernel.org>; Fri, 17 Dec 2010 08:30:44 -0800 (PST)
+Message-ID: <4D0B8FE3.3080502@mvista.com>
+Date: Fri, 17 Dec 2010 19:29:23 +0300
+From: Sergei Shtylyov <sshtylyov@mvista.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201012131859.15152.strakh@ispras.ru>
+To: Manjunath Hadli <manjunath.hadli@ti.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH v7 5/8] davinci vpbe: board specific additions
+References: <1292507737-32739-1-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1292507737-32739-1-git-send-email-manjunath.hadli@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-        KERNEL_VERSION: 2.6.36
-        SUBJECT: double mutex_lock in drivers/media/video/tlg2300/pd-video.c 
-in function vidioc_s_fmt
-        SUBSCRIBE:
-	First mutex_unlock in function pd_vidioc_s_fmt in line 767:
+Hello.
 
- 764        ret |= send_set_req(pd, VIDEO_ROSOLU_SEL,
- 765                                vid_resol, &cmd_status);
- 766        if (ret || cmd_status) {
- 767                mutex_unlock(&pd->lock);
- 768                return -EBUSY;
- 769        }
+Manjunath Hadli wrote:
 
-	Second mutex_unlock in function vidioc_s_fmt in line 806:
+> This patch implements tables for display timings,outputs and
+> other board related functionalities.
 
- 805        pd_vidioc_s_fmt(pd, &f->fmt.pix);
- 806        mutex_unlock(&pd->lock);
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+[...]
 
-Found by Linux Device Drivers Verification Project
+> diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-davinci/board-dm644x-evm.c
+> index 34c8b41..e9b1243 100644
+> --- a/arch/arm/mach-davinci/board-dm644x-evm.c
+> +++ b/arch/arm/mach-davinci/board-dm644x-evm.c
+[...]
+> @@ -620,6 +671,8 @@ davinci_evm_map_io(void)
+>  {
+>  	/* setup input configuration for VPFE input devices */
+>  	dm644x_set_vpfe_config(&vpfe_cfg);
+> +	/* setup configuration for vpbe devices */
+> +	dm644x_set_vpbe_display_config(&vpbe_display_cfg);
+>  	dm644x_init();
+>  }
 
-Сhecks the return code of pd_vidioc_s_fm before mutex_unlocking.
+    This patch should *follow* the platform patch (where 
+dm644x_set_vpbe_display_config() is defined), not precede it.
 
-Signed-off-by: Alexander Strakh <strakh@ispras.ru>
-
----
-diff --git a/drivers/media/video/tlg2300/pd-video.c 
-b/drivers/media/video/tlg2300/pd-video.c
-index a1ffe18..fe6bd2b 100644
---- a/drivers/media/video/tlg2300/pd-video.c
-+++ b/drivers/media/video/tlg2300/pd-video.c
-@@ -802,8 +802,8 @@ static int vidioc_s_fmt(struct file *file, void *fh, 
-struct v4l2_format *f)
- 		return -EINVAL;
- 	}
- 
--	pd_vidioc_s_fmt(pd, &f->fmt.pix);
--	mutex_unlock(&pd->lock);
-+	if(!pd_vidioc_s_fmt(pd, &f->fmt.pix)) 
-+		mutex_unlock(&pd->lock);
- 	return 0;
- }
- 
-
+WBR, Sergei
