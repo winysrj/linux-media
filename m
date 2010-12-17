@@ -1,806 +1,1011 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:13422 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754121Ab0L1RDZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Dec 2010 12:03:25 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Tue, 28 Dec 2010 18:03:11 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 06/15] [media] s5p-fimc: Use v4l core mutex in ioctl and file
- operations
-In-reply-to: <1293555798-31578-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com
-Message-id: <1293555798-31578-7-git-send-email-s.nawrocki@samsung.com>
-References: <1293555798-31578-1-git-send-email-s.nawrocki@samsung.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48240 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753786Ab0LQKoK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Dec 2010 05:44:10 -0500
+From: manjunatha_halli@ti.com
+To: mchehab@infradead.org, hverkuil@xs4all.nl
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Manjunatha Halli <manjunatha_halli@ti.com>
+Subject: [PATCH v7 4/7] drivers:media:radio: wl128x: FM driver RX sources
+Date: Fri, 17 Dec 2010 06:06:33 -0500
+Message-Id: <1292583996-4440-5-git-send-email-manjunatha_halli@ti.com>
+In-Reply-To: <1292583996-4440-4-git-send-email-manjunatha_halli@ti.com>
+References: <1292583996-4440-1-git-send-email-manjunatha_halli@ti.com>
+ <1292583996-4440-2-git-send-email-manjunatha_halli@ti.com>
+ <1292583996-4440-3-git-send-email-manjunatha_halli@ti.com>
+ <1292583996-4440-4-git-send-email-manjunatha_halli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-capture.c |  208 ++++-----------------------
- drivers/media/video/s5p-fimc/fimc-core.c    |  115 ++++-----------
- 2 files changed, 58 insertions(+), 265 deletions(-)
+From: Manjunatha Halli <manjunatha_halli@ti.com>
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index a2368cf..4e4441f 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -394,29 +394,23 @@ static int fimc_capture_open(struct file *file)
- 	if (fimc_m2m_active(fimc))
- 		return -EBUSY;
- 
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
--
- 	if (++fimc->vid_cap.refcnt == 1) {
- 		ret = fimc_isp_subdev_init(fimc, -1);
- 		if (ret) {
- 			fimc->vid_cap.refcnt--;
--			ret = -EIO;
-+			return -EIO;
- 		}
- 	}
- 
- 	file->private_data = fimc->vid_cap.ctx;
- 
--	mutex_unlock(&fimc->lock);
--	return ret;
-+	return 0;
- }
- 
- static int fimc_capture_close(struct file *file)
- {
- 	struct fimc_dev *fimc = video_drvdata(file);
- 
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
- 	dbg("pid: %d, state: 0x%lx", task_pid_nr(current), fimc->state);
- 
- 	if (--fimc->vid_cap.refcnt == 0) {
-@@ -429,7 +423,6 @@ static int fimc_capture_close(struct file *file)
- 		fimc_subdev_unregister(fimc);
- 	}
- 
--	mutex_unlock(&fimc->lock);
- 	return 0;
- }
- 
-@@ -438,30 +431,16 @@ static unsigned int fimc_capture_poll(struct file *file,
- {
- 	struct fimc_ctx *ctx = file->private_data;
- 	struct fimc_dev *fimc = ctx->fimc_dev;
--	int ret;
- 
--	if (mutex_lock_interruptible(&fimc->lock))
--		return POLLERR;
--
--	ret = vb2_poll(&fimc->vid_cap.vbq, file, wait);
--	mutex_unlock(&fimc->lock);
--
--	return ret;
-+	return vb2_poll(&fimc->vid_cap.vbq, file, wait);
- }
- 
- static int fimc_capture_mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	struct fimc_ctx *ctx = file->private_data;
- 	struct fimc_dev *fimc = ctx->fimc_dev;
--	int ret;
--
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
- 
--	ret = vb2_mmap(&fimc->vid_cap.vbq, vma);
--	mutex_unlock(&fimc->lock);
--
--	return ret;
-+	return vb2_mmap(&fimc->vid_cap.vbq, vma);
- }
- 
- /* video device file operations */
-@@ -543,13 +522,6 @@ static int fimc_cap_s_fmt_mplane(struct file *file, void *priv,
- 	if (ret)
- 		return ret;
- 
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
--
--	if (fimc_capture_active(fimc)) {
--		ret = -EBUSY;
--		goto sf_unlock;
--	}
- 	if (vb2_is_streaming(&fimc->vid_cap.vbq) || fimc_capture_active(fimc))
- 		return -EBUSY;
- 
-@@ -559,8 +531,7 @@ static int fimc_cap_s_fmt_mplane(struct file *file, void *priv,
- 	frame->fmt = find_format(f, FMT_FLAGS_M2M | FMT_FLAGS_CAM);
- 	if (!frame->fmt) {
- 		err("fimc target format not found\n");
--		ret = -EINVAL;
--		goto sf_unlock;
-+		return -EINVAL;
- 	}
- 
- 	for (i = 0; i < frame->fmt->colplanes; i++)
-@@ -577,12 +548,9 @@ static int fimc_cap_s_fmt_mplane(struct file *file, void *priv,
- 	frame->offs_h	= 0;
- 	frame->offs_v	= 0;
- 
--	ret = sync_capture_fmt(ctx);
--
- 	ctx->state |= (FIMC_PARAMS | FIMC_DST_FMT);
- 
--sf_unlock:
--	mutex_unlock(&fimc->lock);
-+	ret = sync_capture_fmt(ctx);
- 	return ret;
- }
- 
-@@ -611,21 +579,16 @@ static int fimc_cap_s_input(struct file *file, void *priv,
- 	struct fimc_ctx *ctx = priv;
- 	struct fimc_dev *fimc = ctx->fimc_dev;
- 	struct s3c_platform_fimc *pdata = fimc->pdata;
--	int ret;
- 
- 	if (fimc_capture_active(ctx->fimc_dev))
- 		return -EBUSY;
- 
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
-+	if (i >= FIMC_MAX_CAMIF_CLIENTS || !pdata->isp_info[i])
-+		return -EINVAL;
- 
--	if (i >= FIMC_MAX_CAMIF_CLIENTS || !pdata->isp_info[i]) {
--		ret = -EINVAL;
--		goto si_unlock;
--	}
- 
- 	if (fimc->vid_cap.sd) {
--		ret = v4l2_subdev_call(fimc->vid_cap.sd, core, s_power, 0);
-+		int ret = v4l2_subdev_call(fimc->vid_cap.sd, core, s_power, 0);
- 		if (ret)
- 			err("s_power failed: %d", ret);
- 	}
-@@ -633,11 +596,7 @@ static int fimc_cap_s_input(struct file *file, void *priv,
- 	/* Release the attached sensor subdevice. */
- 	fimc_subdev_unregister(fimc);
- 
--	ret = fimc_isp_subdev_init(fimc, i);
--
--si_unlock:
--	mutex_unlock(&fimc->lock);
--	return ret;
-+	return fimc_isp_subdev_init(fimc, i);
- }
- 
- static int fimc_cap_g_input(struct file *file, void *priv,
-@@ -653,112 +612,41 @@ static int fimc_cap_g_input(struct file *file, void *priv,
- static int fimc_cap_streamon(struct file *file, void *priv,
- 			     enum v4l2_buf_type type)
- {
--	struct s3c_fimc_isp_info *isp_info;
- 	struct fimc_ctx *ctx = priv;
- 	struct fimc_dev *fimc = ctx->fimc_dev;
--	int ret = -EBUSY;
--
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
- 
- 	if (fimc_capture_active(fimc) || !fimc->vid_cap.sd)
--		goto s_unlock;
-+		return -EBUSY;
- 
- 	if (!(ctx->state & FIMC_DST_FMT)) {
- 		v4l2_err(&fimc->vid_cap.v4l2_dev, "Format is not set\n");
--		ret = -EINVAL;
--		goto s_unlock;
--	}
--
--	ret = v4l2_subdev_call(fimc->vid_cap.sd, video, s_stream, 1);
--	if (ret && ret != -ENOIOCTLCMD)
--		goto s_unlock;
--
--	ret = fimc_prepare_config(ctx, ctx->state);
--	if (ret)
--		goto s_unlock;
--
--	isp_info = fimc->pdata->isp_info[fimc->vid_cap.input_index];
--	fimc_hw_set_camera_type(fimc, isp_info);
--	fimc_hw_set_camera_source(fimc, isp_info);
--	fimc_hw_set_camera_offset(fimc, &ctx->s_frame);
--
--	if (ctx->state & FIMC_PARAMS) {
--		ret = fimc_set_scaler_info(ctx);
--		if (ret) {
--			err("Scaler setup error");
--			goto s_unlock;
--		}
--		fimc_hw_set_input_path(ctx);
--		fimc_hw_set_scaler(ctx);
--		fimc_hw_set_target_format(ctx);
--		fimc_hw_set_rotation(ctx);
--		fimc_hw_set_effect(ctx);
-+		return -EINVAL;
- 	}
- 
--	fimc_hw_set_output_path(ctx);
--	fimc_hw_set_out_dma(ctx);
--
--	INIT_LIST_HEAD(&fimc->vid_cap.pending_buf_q);
--	INIT_LIST_HEAD(&fimc->vid_cap.active_buf_q);
--	fimc->vid_cap.active_buf_cnt = 0;
--	fimc->vid_cap.frame_count = 0;
--	fimc->vid_cap.buf_index = fimc_hw_get_frame_index(fimc);
--
--	set_bit(ST_CAPT_PEND, &fimc->state);
--	ret = vb2_streamon(&fimc->vid_cap.vbq, type);
--
--s_unlock:
--	mutex_unlock(&fimc->lock);
--	return ret;
-+	return vb2_streamon(&fimc->vid_cap.vbq, type);
- }
- 
- static int fimc_cap_streamoff(struct file *file, void *priv,
--			      enum v4l2_buf_type type)
-+			    enum v4l2_buf_type type)
- {
- 	struct fimc_ctx *ctx = priv;
- 	struct fimc_dev *fimc = ctx->fimc_dev;
--	struct fimc_vid_cap *cap = &fimc->vid_cap;
--	unsigned long flags;
--	int ret;
--
--	spin_lock_irqsave(&fimc->slock, flags);
--	if (!fimc_capture_running(fimc) && !fimc_capture_pending(fimc)) {
--		spin_unlock_irqrestore(&fimc->slock, flags);
--		dbg("state: 0x%lx", fimc->state);
--		return -EINVAL;
--	}
--	spin_unlock_irqrestore(&fimc->slock, flags);
--
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
- 
--	fimc_stop_capture(fimc);
--	ret = vb2_streamoff(&cap->vbq, type);
--
--	mutex_unlock(&fimc->lock);
--	return ret;
-+	return vb2_streamoff(&fimc->vid_cap.vbq, type);
- }
- 
- static int fimc_cap_reqbufs(struct file *file, void *priv,
- 			    struct v4l2_requestbuffers *reqbufs)
- {
- 	struct fimc_ctx *ctx = priv;
--	struct fimc_dev *fimc = ctx->fimc_dev;
--	struct fimc_vid_cap *cap = &fimc->vid_cap;
-+	struct fimc_vid_cap *cap = &ctx->fimc_dev->vid_cap;
- 	int ret;
- 
--	if (fimc_capture_active(ctx->fimc_dev))
--		return -EBUSY;
--
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
- 
- 	ret = vb2_reqbufs(&cap->vbq, reqbufs);
- 	if (!ret)
- 		cap->reqbufs_count = reqbufs->count;
- 
--	mutex_unlock(&fimc->lock);
- 	return ret;
- }
- 
-@@ -768,9 +656,6 @@ static int fimc_cap_querybuf(struct file *file, void *priv,
- 	struct fimc_ctx *ctx = priv;
- 	struct fimc_vid_cap *cap = &ctx->fimc_dev->vid_cap;
- 
--	if (fimc_capture_active(ctx->fimc_dev))
--		return -EBUSY;
--
- 	return vb2_querybuf(&cap->vbq, buf);
- }
- 
-@@ -778,33 +663,16 @@ static int fimc_cap_qbuf(struct file *file, void *priv,
- 			  struct v4l2_buffer *buf)
- {
- 	struct fimc_ctx *ctx = priv;
--	struct fimc_dev *fimc = ctx->fimc_dev;
--	struct fimc_vid_cap *cap = &fimc->vid_cap;
--	int ret;
--
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
--
--	ret = vb2_qbuf(&cap->vbq, buf);
--
--	mutex_unlock(&fimc->lock);
--	return ret;
-+	struct fimc_vid_cap *cap = &ctx->fimc_dev->vid_cap;
-+	return vb2_qbuf(&cap->vbq, buf);
- }
- 
- static int fimc_cap_dqbuf(struct file *file, void *priv,
- 			   struct v4l2_buffer *buf)
- {
- 	struct fimc_ctx *ctx = priv;
--	int ret;
--
--	if (mutex_lock_interruptible(&ctx->fimc_dev->lock))
--		return -ERESTARTSYS;
--
--	ret = vb2_dqbuf(&ctx->fimc_dev->vid_cap.vbq, buf,
-+	return vb2_dqbuf(&ctx->fimc_dev->vid_cap.vbq, buf,
- 		file->f_flags & O_NONBLOCK);
--
--	mutex_unlock(&ctx->fimc_dev->lock);
--	return ret;
- }
- 
- static int fimc_cap_s_ctrl(struct file *file, void *priv,
-@@ -813,9 +681,6 @@ static int fimc_cap_s_ctrl(struct file *file, void *priv,
- 	struct fimc_ctx *ctx = priv;
- 	int ret = -EINVAL;
- 
--	if (mutex_lock_interruptible(&ctx->fimc_dev->lock))
--		return -ERESTARTSYS;
--
- 	/* Allow any controls but 90/270 rotation while streaming */
- 	if (!fimc_capture_active(ctx->fimc_dev) ||
- 	    ctrl->id != V4L2_CID_ROTATE ||
-@@ -830,8 +695,6 @@ static int fimc_cap_s_ctrl(struct file *file, void *priv,
- 	if (ret == -EINVAL)
- 		ret = v4l2_subdev_call(ctx->fimc_dev->vid_cap.sd,
- 				       core, s_ctrl, ctrl);
--
--	mutex_unlock(&ctx->fimc_dev->lock);
- 	return ret;
- }
- 
-@@ -840,13 +703,10 @@ static int fimc_cap_cropcap(struct file *file, void *fh,
- {
- 	struct fimc_frame *f;
- 	struct fimc_ctx *ctx = fh;
--	struct fimc_dev *fimc = ctx->fimc_dev;
- 
- 	if (cr->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
- 		return -EINVAL;
- 
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
- 	f = &ctx->s_frame;
- 
- 	cr->bounds.left		= 0;
-@@ -855,7 +715,6 @@ static int fimc_cap_cropcap(struct file *file, void *fh,
- 	cr->bounds.height	= f->o_height;
- 	cr->defrect		= cr->bounds;
- 
--	mutex_unlock(&fimc->lock);
- 	return 0;
- }
- 
-@@ -863,19 +722,14 @@ static int fimc_cap_g_crop(struct file *file, void *fh, struct v4l2_crop *cr)
- {
- 	struct fimc_frame *f;
- 	struct fimc_ctx *ctx = file->private_data;
--	struct fimc_dev *fimc = ctx->fimc_dev;
--
--
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
- 
- 	f = &ctx->s_frame;
+This has implementation for FM RX functionality.
+It communicates with FM V4l2 module and FM common module.
+
+Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
+---
+ drivers/media/radio/wl128x/fmdrv_rx.c |  904 +++++++++++++++++++++++++++++++++
+ drivers/media/radio/wl128x/fmdrv_rx.h |   59 +++
+ 2 files changed, 963 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/radio/wl128x/fmdrv_rx.c
+ create mode 100644 drivers/media/radio/wl128x/fmdrv_rx.h
+
+diff --git a/drivers/media/radio/wl128x/fmdrv_rx.c b/drivers/media/radio/wl128x/fmdrv_rx.c
+new file mode 100644
+index 0000000..c0a29e7
+--- /dev/null
++++ b/drivers/media/radio/wl128x/fmdrv_rx.c
+@@ -0,0 +1,904 @@
++/*
++ *  FM Driver for Connectivity chip of Texas Instruments.
++ *  This sub-module of FM driver implements FM RX functionality.
++ *
++ *  Copyright (C) 2010 Texas Instruments
++ *  Author: Raja Mani <raja_mani@ti.com>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License version 2 as
++ *  published by the Free Software Foundation.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ */
 +
- 	cr->c.left	= f->offs_h;
- 	cr->c.top	= f->offs_v;
- 	cr->c.width	= f->width;
- 	cr->c.height	= f->height;
- 
--	mutex_unlock(&fimc->lock);
- 	return 0;
- }
- 
-@@ -894,13 +748,10 @@ static int fimc_cap_s_crop(struct file *file, void *fh,
- 	if (ret)
- 		return ret;
- 
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
--
- 	if (!(ctx->state & FIMC_DST_FMT)) {
- 		v4l2_err(&fimc->vid_cap.v4l2_dev,
- 			 "Capture color format not set\n");
--		goto sc_unlock;
-+		return -EINVAL; /* TODO: make sure this is the right value */
- 	}
- 
- 	f = &ctx->s_frame;
-@@ -908,17 +759,15 @@ static int fimc_cap_s_crop(struct file *file, void *fh,
- 	ret = fimc_check_scaler_ratio(&cr->c, &ctx->d_frame);
- 	if (ret) {
- 		v4l2_err(&fimc->vid_cap.v4l2_dev, "Out of the scaler range");
--	} else {
--		ret = 0;
--		f->offs_h = cr->c.left;
--		f->offs_v = cr->c.top;
--		f->width  = cr->c.width;
--		f->height = cr->c.height;
++#include "fmdrv.h"
++#include "fmdrv_common.h"
++#include "fmdrv_rx.h"
++
++void fm_rx_reset_rds_cache(struct fmdrv_ops *fmdev)
++{
++	fmdev->rx.rds.flag = FM_RDS_DISABLE;
++	fmdev->rx.rds.last_block_index = 0;
++	fmdev->rx.rds.wr_index = 0;
++	fmdev->rx.rds.rd_index = 0;
++
++	if (fmdev->rx.af_mode == FM_RX_RDS_AF_SWITCH_MODE_ON)
++		fmdev->irq_info.mask |= FM_LEV_EVENT;
++}
++
++void fm_rx_reset_curr_station_info(struct fmdrv_ops *fmdev)
++{
++	fmdev->rx.cur_station_info.picode = FM_NO_PI_CODE;
++	fmdev->rx.cur_station_info.no_of_items_in_afcache = 0;
++	fmdev->rx.cur_station_info.af_list_max = 0;
++}
++
++int fm_rx_set_frequency(struct fmdrv_ops *fmdev, unsigned int freq_to_set)
++{
++	unsigned long timeleft;
++	unsigned short payload, curr_frq, frq_index, intr_flag;
++	unsigned int curr_frq_in_khz;
++	int ret, resp_len;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (freq_to_set < fmdev->rx.region.bottom_frequency ||
++		freq_to_set > fmdev->rx.region.top_frequency) {
++		pr_err("(fmdrv): Invalid frequency %d\n", freq_to_set);
++		return -EINVAL;
++	}
++
++	/* Set audio enable */
++	payload = FM_RX_FM_AUDIO_ENABLE_I2S_AND_ANALOG;
++
++	ret = fmc_send_cmd(fmdev, AUDIO_ENABLE_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
 +		return ret;
- 	}
- 
--sc_unlock:
--	mutex_unlock(&fimc->lock);
--	return ret;
-+	f->offs_h = cr->c.left;
-+	f->offs_v = cr->c.top;
-+	f->width  = cr->c.width;
-+	f->height = cr->c.height;
 +
-+	return 0;
- }
- 
- 
-@@ -1001,6 +850,7 @@ int fimc_register_capture_device(struct fimc_dev *fimc)
- 	vfd->ioctl_ops	= &fimc_capture_ioctl_ops;
- 	vfd->minor	= -1;
- 	vfd->release	= video_device_release;
-+	vfd->lock	= &fimc->lock;
- 	video_set_drvdata(vfd, fimc);
- 
- 	vid_cap = &fimc->vid_cap;
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index 3cad345..7899814 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -741,22 +741,17 @@ int fimc_vidioc_g_fmt_mplane(struct file *file, void *priv,
- 			     struct v4l2_format *f)
- {
- 	struct fimc_ctx *ctx = priv;
--	struct fimc_dev *fimc = ctx->fimc_dev;
- 	struct fimc_frame *frame;
- 
- 	frame = ctx_get_frame(ctx, f->type);
- 	if (IS_ERR(frame))
- 		return PTR_ERR(frame);
- 
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
--
- 	f->fmt.pix.width	= frame->width;
- 	f->fmt.pix.height	= frame->height;
- 	f->fmt.pix.field	= V4L2_FIELD_NONE;
- 	f->fmt.pix.pixelformat	= frame->fmt->fourcc;
- 
--	mutex_unlock(&fimc->lock);
- 	return 0;
- }
- 
-@@ -800,7 +795,8 @@ int fimc_vidioc_try_fmt_mplane(struct file *file, void *priv,
- 	struct v4l2_pix_format_mplane *pix = &f->fmt.pix_mp;
- 	struct fimc_fmt *fmt;
- 	u32 max_width, mod_x, mod_y, mask;
--	int ret, i, is_output = 0;
-+	int i, is_output = 0;
++	/* Set hilo to automatic selection */
++	payload = FM_RX_IFFREQ_HILO_AUTOMATIC;
++	ret = fmc_send_cmd(fmdev, HILO_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
 +
- 
- 	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
- 		if (ctx->state & FIMC_CTX_CAP)
-@@ -810,8 +806,6 @@ int fimc_vidioc_try_fmt_mplane(struct file *file, void *priv,
- 		return -EINVAL;
- 	}
- 
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
- 	dbg("w: %d, h: %d", pix->width, pix->height);
- 
- 	mask = is_output ? FMT_FLAGS_M2M : FMT_FLAGS_M2M | FMT_FLAGS_CAM;
-@@ -819,13 +813,13 @@ int fimc_vidioc_try_fmt_mplane(struct file *file, void *priv,
- 	if (!fmt) {
- 		v4l2_err(&fimc->m2m.v4l2_dev, "Fourcc format (0x%X) invalid.\n",
- 			 pix->pixelformat);
--		goto tf_out;
++	/* Calculate frequency index to write */
++	frq_index = (freq_to_set - fmdev->rx.region.bottom_frequency) /
++				FM_FREQ_MUL;
++
++	/* Set frequency index */
++	payload = frq_index;
++	ret = fmc_send_cmd(fmdev, FREQ_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	/* Read flags - just to clear any pending interrupts if we had */
++	ret = fmc_send_cmd(fmdev, FLAG_GET, REG_RD, NULL, 2,
++			NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	/* Enable FR, BL interrupts */
++	intr_flag = fmdev->irq_info.mask;
++	fmdev->irq_info.mask = (FM_FR_EVENT | FM_BL_EVENT);
++	payload = fmdev->irq_info.mask;
++	ret = fmc_send_cmd(fmdev, INT_MASK_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	/* Start tune */
++	payload = FM_TUNER_PRESET_MODE;
++	ret = fmc_send_cmd(fmdev, TUNER_MODE_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	/* Wait for tune ended interrupt */
++	init_completion(&fmdev->maintask_completion);
++	timeleft = wait_for_completion_timeout(&fmdev->maintask_completion,
++					       FM_DRV_TX_TIMEOUT);
++	if (!timeleft) {
++		pr_err("(fmdrv): Timeout(%d sec),didn't get tune ended int\n",
++			   jiffies_to_msecs(FM_DRV_TX_TIMEOUT) / 1000);
++		return -ETIMEDOUT;
++	}
++
++	/* Read freq back to confirm */
++	ret = fmc_send_cmd(fmdev, FREQ_SET, REG_RD, NULL, 2,
++			&curr_frq, &resp_len);
++	if (ret < 0)
++		return ret;
++
++	curr_frq = be16_to_cpu(curr_frq);
++	curr_frq_in_khz = (fmdev->rx.region.bottom_frequency
++		+ ((unsigned int)curr_frq * FM_FREQ_MUL));
++
++	/* Re-enable default FM interrupts */
++	fmdev->irq_info.mask = intr_flag;
++	payload = fmdev->irq_info.mask;
++	ret = fmc_send_cmd(fmdev, INT_MASK_SET, REG_WR, &payload,
++		sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	if (curr_frq_in_khz != freq_to_set) {
++		pr_info("(fmdrv): Frequency is set to (%d) but"
++			   " requested frequency is (%d)\n", curr_frq_in_khz,
++			   freq_to_set);
++	}
++
++	/* Update local cache  */
++	fmdev->rx.curr_freq = curr_frq_in_khz;
++
++	/* Reset RDS cache and current station pointers */
++	fm_rx_reset_rds_cache(fmdev);
++	fm_rx_reset_curr_station_info(fmdev);
++
++	/* Do we need to reset anything else? */
++
++	return ret;
++}
++
++static int fm_rx_set_channel_spacing(struct fmdrv_ops *fmdev,
++		unsigned int spacing)
++{
++	unsigned short payload;
++	int ret;
++
++	if (spacing == 0)
++		spacing = FM_CHANNEL_SPACING_50KHZ;
++	else if (spacing > 0 && spacing <= 50000)
++		spacing = FM_CHANNEL_SPACING_50KHZ;
++	else if (spacing > 50000 && spacing <= 100000)
++		spacing = FM_CHANNEL_SPACING_100KHZ;
++	else
++		spacing = FM_CHANNEL_SPACING_200KHZ;
++
++	/* set channel spacing */
++	payload = spacing;
++	ret = fmc_send_cmd(fmdev, CHANL_BW_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	fmdev->rx.region.channel_spacing = spacing * FM_FREQ_MUL;
++
++	return ret;
++}
++
++int fm_rx_seek(struct fmdrv_ops *fmdev, unsigned int seek_upward,
++		unsigned int wrap_around, unsigned int spacing)
++{
++	int resp_len;
++	unsigned short curr_frq, next_frq, last_frq;
++	unsigned short payload, int_reason, intr_flag;
++	char offset, spacing_index;
++	unsigned long timeleft;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	/* Set channel spacing */
++	ret = fm_rx_set_channel_spacing(fmdev, spacing);
++	if (ret < 0) {
++		pr_err("(fmdrv): Failed to set channel spacing\n");
++		return ret;
++	}
++
++	/* Read the current frequency from chip */
++	ret = fmc_send_cmd(fmdev, FREQ_SET, REG_RD, NULL,
++			sizeof(curr_frq), &curr_frq, &resp_len);
++	if (ret < 0)
++		return ret;
++
++	curr_frq = be16_to_cpu(curr_frq);
++	last_frq = (fmdev->rx.region.top_frequency -
++	   fmdev->rx.region.bottom_frequency) / FM_FREQ_MUL;
++
++	/* Check the offset in order to be aligned to the channel spacing*/
++	spacing_index = fmdev->rx.region.channel_spacing / FM_FREQ_MUL;
++	offset = curr_frq % spacing_index;
++
++	next_frq = seek_upward ? curr_frq + spacing_index /* Seek Up */ :
++				curr_frq - spacing_index /* Seek Down */ ;
++
++	/*
++	 * Add or subtract offset in order to stay aligned to the channel
++	 * spacing.
++	 */
++	if ((short)next_frq < 0)
++		next_frq = last_frq - offset;
++	else if (next_frq > last_frq)
++		next_frq = 0 + offset;
++
++again:
++	/* Set calculated next frequency to perform seek */
++	payload = next_frq;
++	ret = fmc_send_cmd(fmdev, FREQ_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	/* Set search direction (0:Seek Down, 1:Seek Up) */
++	payload = (seek_upward ? FM_SEARCH_DIRECTION_UP :
++					FM_SEARCH_DIRECTION_DOWN);
++	ret = fmc_send_cmd(fmdev, SEARCH_DIR_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	/* Read flags - just to clear any pending interrupts if we had */
++	ret = fmc_send_cmd(fmdev, FLAG_GET, REG_RD, NULL, 2,
++			NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	/* Enable FR, BL interrupts */
++	intr_flag = fmdev->irq_info.mask;
++	fmdev->irq_info.mask = (FM_FR_EVENT | FM_BL_EVENT);
++	payload = fmdev->irq_info.mask;
++	ret = fmc_send_cmd(fmdev, INT_MASK_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	/* Start seek */
++	payload = FM_TUNER_AUTONOMOUS_SEARCH_MODE;
++	ret = fmc_send_cmd(fmdev, TUNER_MODE_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	/* Wait for tune ended/band limit reached interrupt */
++	init_completion(&fmdev->maintask_completion);
++	timeleft = wait_for_completion_timeout(&fmdev->maintask_completion,
++					       FM_DRV_RX_SEEK_TIMEOUT);
++	if (!timeleft) {
++		pr_err("(fmdrv): Timeout(%d sec),didn't get tune ended int\n",
++			   jiffies_to_msecs(FM_DRV_RX_SEEK_TIMEOUT) / 1000);
++		return -ETIMEDOUT;
++	}
++
++	int_reason = fmdev->irq_info.flag & (FM_TUNE_COMPLETE | FM_BAND_LIMIT);
++
++	/* Re-enable default FM interrupts */
++	fmdev->irq_info.mask = intr_flag;
++	payload = fmdev->irq_info.mask;
++	ret = fmc_send_cmd(fmdev, INT_MASK_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	if (int_reason & FM_BL_EVENT) {
++		if (wrap_around == 0) {
++			fmdev->rx.curr_freq = seek_upward ?
++				fmdev->rx.region.top_frequency :
++				fmdev->rx.region.bottom_frequency;
++		} else {
++			fmdev->rx.curr_freq = seek_upward ?
++				fmdev->rx.region.bottom_frequency :
++				fmdev->rx.region.top_frequency;
++			/* Calculate frequency index to write */
++			next_frq = (fmdev->rx.curr_freq -
++					fmdev->rx.region.bottom_frequency) /
++					FM_FREQ_MUL;
++			goto again;
++		}
++	} else {
++		/* Read freq to know where operation tune operation stopped */
++		ret = fmc_send_cmd(fmdev, FREQ_SET, REG_RD, NULL, 2,
++				&curr_frq, &resp_len);
++		if (ret < 0)
++			return ret;
++
++		curr_frq = be16_to_cpu(curr_frq);
++		fmdev->rx.curr_freq = (fmdev->rx.region.bottom_frequency +
++				((unsigned int)curr_frq * FM_FREQ_MUL));
++
++	}
++	/* Reset RDS cache and current station pointers */
++	fm_rx_reset_rds_cache(fmdev);
++	fm_rx_reset_curr_station_info(fmdev);
++
++	return ret;
++}
++
++int fm_rx_set_volume(struct fmdrv_ops *fmdev, unsigned short vol_to_set)
++{
++	unsigned short payload;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (vol_to_set < FM_RX_VOLUME_MIN || vol_to_set > FM_RX_VOLUME_MAX) {
++		pr_err("(fmdrv): Volume is not within(%d-%d) range\n",
++			   FM_RX_VOLUME_MIN, FM_RX_VOLUME_MAX);
 +		return -EINVAL;
- 	}
- 
- 	if (pix->field == V4L2_FIELD_ANY)
- 		pix->field = V4L2_FIELD_NONE;
- 	else if (V4L2_FIELD_NONE != pix->field)
--		goto tf_out;
-+		return -EINVAL;
- 
- 	if (is_output) {
- 		max_width = variant->pix_limit->scaler_dis_w;
-@@ -871,11 +865,7 @@ int fimc_vidioc_try_fmt_mplane(struct file *file, void *priv,
- 		    pix->plane_fmt[i].sizeimage);
- 	}
- 
--	ret = 0;
--
--tf_out:
--	mutex_unlock(&fimc->lock);
--	return ret;
-+	return 0;
- }
- 
- static int fimc_m2m_s_fmt_mplane(struct file *file, void *priv,
-@@ -888,45 +878,33 @@ static int fimc_m2m_s_fmt_mplane(struct file *file, void *priv,
- 	struct v4l2_pix_format_mplane *pix;
- 	unsigned long flags;
- 	int i, ret = 0;
-+	u32 tmp;
- 
- 	ret = fimc_vidioc_try_fmt_mplane(file, priv, f);
- 	if (ret)
- 		return ret;
- 
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
--
- 	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
- 
- 	if (vb2_is_streaming(vq)) {
--		v4l2_err(&fimc->vid_cap.v4l2_dev, "%s: queue (%d) busy\n",
--			 __func__, f->type);
--		ret = -EBUSY;
--		goto sf_out;
-+		v4l2_err(&fimc->m2m.v4l2_dev, "queue (%d) busy\n", f->type);
-+		return -EBUSY;
- 	}
- 
--	spin_lock_irqsave(&ctx->slock, flags);
- 	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
- 		frame = &ctx->s_frame;
--		ctx->state |= FIMC_SRC_FMT;
- 	} else if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
- 		frame = &ctx->d_frame;
--		ctx->state |= FIMC_DST_FMT;
- 	} else {
--		spin_unlock_irqrestore(&ctx->slock, flags);
- 		v4l2_err(&fimc->m2m.v4l2_dev,
- 			 "Wrong buffer/video queue type (%d)\n", f->type);
--		ret = -EINVAL;
--		goto sf_out;
-+		return -EINVAL;
- 	}
--	spin_unlock_irqrestore(&ctx->slock, flags);
- 
- 	pix = &f->fmt.pix_mp;
- 	frame->fmt = find_format(f, FMT_FLAGS_M2M);
--	if (!frame->fmt) {
--		ret = -EINVAL;
--		goto sf_out;
--	}
-+	if (!frame->fmt)
-+		return -EINVAL;
- 
- 	for (i = 0; i < frame->fmt->colplanes; i++)
- 		frame->payload[i] = pix->plane_fmt[i].bytesperline * pix->height;
-@@ -942,14 +920,13 @@ static int fimc_m2m_s_fmt_mplane(struct file *file, void *priv,
- 	frame->offs_v	= 0;
- 
- 	spin_lock_irqsave(&ctx->slock, flags);
--	ctx->state |= FIMC_PARAMS;
-+	tmp = (frame == &ctx->d_frame) ? FIMC_DST_FMT : FIMC_SRC_FMT;
-+	ctx->state |= FIMC_PARAMS | tmp;
- 	spin_unlock_irqrestore(&ctx->slock, flags);
- 
- 	dbg("f_w: %d, f_h: %d", frame->f_width, frame->f_height);
- 
--sf_out:
--	mutex_unlock(&fimc->lock);
--	return ret;
-+	return 0;
- }
- 
- static int fimc_m2m_reqbufs(struct file *file, void *priv,
-@@ -1014,11 +991,8 @@ int fimc_vidioc_queryctrl(struct file *file, void *priv,
- 	}
- 
- 	if (ctx->state & FIMC_CTX_CAP) {
--		if (mutex_lock_interruptible(&ctx->fimc_dev->lock))
--			return -ERESTARTSYS;
--		ret = v4l2_subdev_call(ctx->fimc_dev->vid_cap.sd,
-+		return v4l2_subdev_call(ctx->fimc_dev->vid_cap.sd,
- 					core, queryctrl, qc);
--		mutex_unlock(&ctx->fimc_dev->lock);
- 	}
- 	return ret;
- }
-@@ -1028,10 +1002,6 @@ int fimc_vidioc_g_ctrl(struct file *file, void *priv,
- {
- 	struct fimc_ctx *ctx = priv;
- 	struct fimc_dev *fimc = ctx->fimc_dev;
--	int ret = 0;
--
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_HFLIP:
-@@ -1045,18 +1015,17 @@ int fimc_vidioc_g_ctrl(struct file *file, void *priv,
- 		break;
- 	default:
- 		if (ctx->state & FIMC_CTX_CAP) {
--			ret = v4l2_subdev_call(fimc->vid_cap.sd, core,
--				       g_ctrl, ctrl);
-+			return v4l2_subdev_call(fimc->vid_cap.sd, core,
-+						g_ctrl, ctrl);
- 		} else {
- 			v4l2_err(&fimc->m2m.v4l2_dev,
- 				 "Invalid control\n");
--			ret = -EINVAL;
-+			return -EINVAL;
- 		}
- 	}
- 	dbg("ctrl->value= %d", ctrl->value);
- 
--	mutex_unlock(&fimc->lock);
--	return ret;
-+	return 0;
- }
- 
- int check_ctrl_val(struct fimc_ctx *ctx,  struct v4l2_control *ctrl)
-@@ -1147,22 +1116,17 @@ static int fimc_m2m_cropcap(struct file *file, void *fh,
- {
- 	struct fimc_frame *frame;
- 	struct fimc_ctx *ctx = fh;
--	struct fimc_dev *fimc = ctx->fimc_dev;
- 
- 	frame = ctx_get_frame(ctx, cr->type);
- 	if (IS_ERR(frame))
- 		return PTR_ERR(frame);
- 
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
--
- 	cr->bounds.left		= 0;
- 	cr->bounds.top		= 0;
- 	cr->bounds.width	= frame->f_width;
- 	cr->bounds.height	= frame->f_height;
- 	cr->defrect		= cr->bounds;
- 
--	mutex_unlock(&fimc->lock);
- 	return 0;
- }
- 
-@@ -1170,21 +1134,16 @@ static int fimc_m2m_g_crop(struct file *file, void *fh, struct v4l2_crop *cr)
- {
- 	struct fimc_frame *frame;
- 	struct fimc_ctx *ctx = file->private_data;
--	struct fimc_dev *fimc = ctx->fimc_dev;
- 
- 	frame = ctx_get_frame(ctx, cr->type);
- 	if (IS_ERR(frame))
- 		return PTR_ERR(frame);
- 
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
--
- 	cr->c.left = frame->offs_h;
- 	cr->c.top = frame->offs_v;
- 	cr->c.width = frame->width;
- 	cr->c.height = frame->height;
- 
--	mutex_unlock(&fimc->lock);
- 	return 0;
- }
- 
-@@ -1264,9 +1223,6 @@ static int fimc_m2m_s_crop(struct file *file, void *fh, struct v4l2_crop *cr)
- 	f = (cr->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) ?
- 		&ctx->s_frame : &ctx->d_frame;
- 
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
--
- 	spin_lock_irqsave(&ctx->slock, flags);
- 	if (~ctx->state & (FIMC_SRC_FMT | FIMC_DST_FMT)) {
- 		/* Check to see if scaling ratio is within supported range */
-@@ -1276,8 +1232,8 @@ static int fimc_m2m_s_crop(struct file *file, void *fh, struct v4l2_crop *cr)
- 			ret = fimc_check_scaler_ratio(&cr->c, &ctx->s_frame);
- 		if (ret) {
- 			v4l2_err(&fimc->m2m.v4l2_dev, "Out of scaler range");
--			ret = -EINVAL;
--			goto scr_unlock;
-+			spin_unlock_irqrestore(&ctx->slock, flags);
-+			return -EINVAL;
- 		}
- 	}
- 	ctx->state |= FIMC_PARAMS;
-@@ -1287,9 +1243,7 @@ static int fimc_m2m_s_crop(struct file *file, void *fh, struct v4l2_crop *cr)
- 	f->width  = cr->c.width;
- 	f->height = cr->c.height;
- 
--scr_unlock:
- 	spin_unlock_irqrestore(&ctx->slock, flags);
--	mutex_unlock(&fimc->lock);
- 	return 0;
- }
- 
-@@ -1360,10 +1314,6 @@ static int fimc_m2m_open(struct file *file)
- {
- 	struct fimc_dev *fimc = video_drvdata(file);
- 	struct fimc_ctx *ctx = NULL;
--	int err = 0;
--
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
- 
- 	dbg("pid: %d, state: 0x%lx, refcnt: %d",
- 		task_pid_nr(current), fimc->state, fimc->vid_cap.refcnt);
-@@ -1372,19 +1322,15 @@ static int fimc_m2m_open(struct file *file)
- 	 * Return if the corresponding video capture node
- 	 * is already opened.
- 	 */
--	if (fimc->vid_cap.refcnt > 0) {
--		err = -EBUSY;
--		goto err_unlock;
--	}
-+	if (fimc->vid_cap.refcnt > 0)
-+		return -EBUSY;
- 
- 	fimc->m2m.refcnt++;
- 	set_bit(ST_OUTDMA_RUN, &fimc->state);
- 
- 	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
--	if (!ctx) {
--		err = -ENOMEM;
--		goto err_unlock;
--	}
-+	if (!ctx)
++	}
++	vol_to_set *= FM_RX_VOLUME_GAIN_STEP;
++
++	payload = vol_to_set;
++	ret = fmc_send_cmd(fmdev, VOLUME_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	fmdev->rx.curr_volume = vol_to_set;
++	return ret;
++}
++
++/* Get volume */
++int fm_rx_get_volume(struct fmdrv_ops *fmdev, unsigned short *curr_vol)
++{
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (curr_vol == NULL) {
++		pr_err("(fmdrv): Invalid memory\n");
 +		return -ENOMEM;
- 
- 	file->private_data = ctx;
- 	ctx->fimc_dev = fimc;
-@@ -1400,13 +1346,12 @@ static int fimc_m2m_open(struct file *file)
- 
- 	ctx->m2m_ctx = v4l2_m2m_ctx_init(fimc->m2m.m2m_dev, ctx, queue_init);
- 	if (IS_ERR(ctx->m2m_ctx)) {
--		err = PTR_ERR(ctx->m2m_ctx);
-+		int err = PTR_ERR(ctx->m2m_ctx);
- 		kfree(ctx);
-+		return err;
- 	}
- 
--err_unlock:
--	mutex_unlock(&fimc->lock);
--	return err;
++	}
++
++	*curr_vol = fmdev->rx.curr_volume / FM_RX_VOLUME_GAIN_STEP;
++
 +	return 0;
- }
- 
- static int fimc_m2m_release(struct file *file)
-@@ -1414,8 +1359,6 @@ static int fimc_m2m_release(struct file *file)
- 	struct fimc_ctx *ctx = file->private_data;
- 	struct fimc_dev *fimc = ctx->fimc_dev;
- 
--	mutex_lock(&fimc->lock);
--
- 	dbg("pid: %d, state: 0x%lx, refcnt= %d",
- 		task_pid_nr(current), fimc->state, fimc->m2m.refcnt);
- 
-@@ -1424,7 +1367,6 @@ static int fimc_m2m_release(struct file *file)
- 	if (--fimc->m2m.refcnt <= 0)
- 		clear_bit(ST_OUTDMA_RUN, &fimc->state);
- 
--	mutex_unlock(&fimc->lock);
- 	return 0;
- }
- 
-@@ -1490,6 +1432,7 @@ static int fimc_register_m2m_device(struct fimc_dev *fimc)
- 	vfd->ioctl_ops	= &fimc_m2m_ioctl_ops;
- 	vfd->minor	= -1;
- 	vfd->release	= video_device_release;
-+	vfd->lock	= &fimc->lock;
- 
- 	snprintf(vfd->name, sizeof(vfd->name), "%s:m2m", dev_name(&pdev->dev));
- 
++}
++
++/* To get current band's bottom and top frequency */
++int fm_rx_get_currband_freq_range(struct fmdrv_ops *fmdev,
++					unsigned int *bottom_frequency,
++					unsigned int *top_frequency)
++{
++	if (bottom_frequency != NULL)
++		*bottom_frequency = fmdev->rx.region.bottom_frequency;
++
++	if (top_frequency != NULL)
++		*top_frequency = fmdev->rx.region.top_frequency;
++
++	return 0;
++}
++
++/* Returns current band index (0-Europe/US; 1-Japan) */
++void fm_rx_get_region(struct fmdrv_ops *fmdev, unsigned char *region)
++{
++	*region = fmdev->rx.region.region_index;
++}
++
++/* Sets band (0-Europe/US; 1-Japan) */
++int fm_rx_set_region(struct fmdrv_ops *fmdev,
++			unsigned char region_to_set)
++{
++	unsigned short payload;
++	unsigned int new_frq = 0;
++	int ret = -EPERM;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return ret;
++
++	if (region_to_set != FM_BAND_EUROPE_US &&
++	    region_to_set != FM_BAND_JAPAN) {
++		pr_err("(fmdrv): Invalid band\n");
++		return -EINVAL;
++	}
++
++	if (fmdev->rx.region.region_index == region_to_set) {
++		pr_err("(fmdrv): Requested band is already configured\n");
++		return ret;
++	}
++
++	/* Send cmd to set the band  */
++	payload = (unsigned short)region_to_set;
++	ret = fmc_send_cmd(fmdev, BAND_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	fmc_update_region_info(fmdev, region_to_set);
++
++	/* Check whether current RX frequency is within band boundary */
++	if (fmdev->rx.curr_freq < fmdev->rx.region.bottom_frequency)
++		new_frq = fmdev->rx.region.bottom_frequency;
++	else if (fmdev->rx.curr_freq > fmdev->rx.region.top_frequency)
++		new_frq = fmdev->rx.region.top_frequency;
++
++	if (new_frq) {
++		pr_debug("(fmdrv): "
++		     "Current freq is not within band limit boundary,"
++		     "switching to %d KHz\n", new_frq);
++		/*
++		 * Current RX frequency is not within boundary. So,
++		 * update it.
++		 */
++		ret = fm_rx_set_frequency(fmdev, new_frq);
++	}
++
++	return ret;
++}
++
++/* Reads current mute mode (Mute Off/On/Attenuate)*/
++int fm_rx_get_mute_mode(struct fmdrv_ops *fmdev,
++			unsigned char *curr_mute_mode)
++{
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (curr_mute_mode == NULL) {
++		pr_err("(fmdrv): Invalid memory\n");
++		return -ENOMEM;
++	}
++
++	*curr_mute_mode = fmdev->rx.curr_mute_mode;
++
++	return 0;
++}
++
++static int __fm_config_rx_mute_reg(struct fmdrv_ops *fmdev)
++{
++	unsigned short payload, muteval;
++	int ret;
++
++	muteval = 0;
++	switch (fmdev->rx.curr_mute_mode) {
++	case FM_MUTE_ON:
++		muteval = FM_RX_MUTE_AC_MUTE_MODE;
++		break;
++
++	case FM_MUTE_OFF:
++		muteval = FM_RX_MUTE_UNMUTE_MODE;
++		break;
++
++	case FM_MUTE_ATTENUATE:
++		muteval = FM_RX_MUTE_SOFT_MUTE_FORCE_MODE;
++		break;
++	}
++	if (fmdev->rx.curr_rf_depend_mute == FM_RX_RF_DEPENDENT_MUTE_ON)
++		muteval |= FM_RX_MUTE_RF_DEP_MODE;
++	else
++		muteval &= ~FM_RX_MUTE_RF_DEP_MODE;
++
++	payload = muteval;
++	ret = fmc_send_cmd(fmdev, MUTE_STATUS_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	return 0;
++}
++
++/* Configures mute mode (Mute Off/On/Attenuate) */
++int fm_rx_set_mute_mode(struct fmdrv_ops *fmdev,
++			unsigned char mute_mode_toset)
++{
++	unsigned char org_state;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (fmdev->rx.curr_mute_mode == mute_mode_toset)
++		return 0;
++
++	org_state = fmdev->rx.curr_mute_mode;
++	fmdev->rx.curr_mute_mode = mute_mode_toset;
++
++	ret = __fm_config_rx_mute_reg(fmdev);
++	if (ret < 0) {
++		fmdev->rx.curr_mute_mode = org_state;
++		return ret;
++	}
++
++	return 0;
++}
++
++/* Gets RF dependent soft mute mode enable/disable status */
++int fm_rx_get_rfdepend_softmute(struct fmdrv_ops *fmdev,
++				unsigned char *curr_mute_mode)
++{
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (curr_mute_mode == NULL) {
++		pr_err("(fmdrv): Invalid memory\n");
++		return -ENOMEM;
++	}
++
++	*curr_mute_mode = fmdev->rx.curr_rf_depend_mute;
++
++	return 0;
++}
++
++/* Sets RF dependent soft mute mode */
++int fm_rx_set_rfdepend_softmute(struct fmdrv_ops *fmdev,
++				unsigned char rfdepend_mute)
++{
++	unsigned char org_state;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (rfdepend_mute != FM_RX_RF_DEPENDENT_MUTE_ON &&
++	    rfdepend_mute != FM_RX_RF_DEPENDENT_MUTE_OFF) {
++		pr_err("(fmdrv): Invalid RF dependent soft mute\n");
++		return -EINVAL;
++	}
++	if (fmdev->rx.curr_rf_depend_mute == rfdepend_mute)
++		return 0;
++
++	org_state = fmdev->rx.curr_rf_depend_mute;
++	fmdev->rx.curr_rf_depend_mute = rfdepend_mute;
++
++	ret = __fm_config_rx_mute_reg(fmdev);
++	if (ret < 0) {
++		fmdev->rx.curr_rf_depend_mute = org_state;
++		return ret;
++	}
++
++	return 0;
++}
++
++/* Returns the signal strength level of current channel */
++int fm_rx_get_rssi_level(struct fmdrv_ops *fmdev,
++				unsigned short *rssilvl)
++{
++	unsigned short curr_rssi_lel;
++	int resp_len;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (rssilvl == NULL) {
++		pr_err("(fmdrv): Invalid memory\n");
++		return -ENOMEM;
++	}
++	/* Read current RSSI level */
++	ret = fmc_send_cmd(fmdev, RSSI_LVL_GET, REG_RD, NULL, 2,
++			&curr_rssi_lel, &resp_len);
++	if (ret < 0)
++		return ret;
++
++	*rssilvl = be16_to_cpu(curr_rssi_lel);
++
++	return 0;
++}
++
++/*
++ * Sets the signal strength level that once reached
++ * will stop the auto search process
++ */
++int fm_rx_set_rssi_threshold(struct fmdrv_ops *fmdev,
++				short rssi_lvl_toset)
++{
++	unsigned short payload;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (rssi_lvl_toset < FM_RX_RSSI_THRESHOLD_MIN ||
++	    rssi_lvl_toset > FM_RX_RSSI_THRESHOLD_MAX) {
++		pr_err("(fmdrv): Invalid RSSI threshold level\n");
++		return -EINVAL;
++	}
++	payload = (unsigned short)rssi_lvl_toset;
++	ret = fmc_send_cmd(fmdev, SEARCH_LVL_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	fmdev->rx.curr_rssi_threshold = rssi_lvl_toset;
++	return 0;
++}
++
++/* Returns current RX RSSI threshold value */
++int fm_rx_get_rssi_threshold(struct fmdrv_ops *fmdev, short *curr_rssi_lvl)
++{
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (curr_rssi_lvl == NULL) {
++		pr_err("(fmdrv): Invalid memory\n");
++		return -ENOMEM;
++	}
++
++	*curr_rssi_lvl = fmdev->rx.curr_rssi_threshold;
++
++	return 0;
++}
++
++/* Sets RX stereo/mono modes */
++int fm_rx_set_stereo_mono(struct fmdrv_ops *fmdev, unsigned short mode)
++{
++	unsigned short payload;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (mode != FM_STEREO_MODE && mode != FM_MONO_MODE) {
++		pr_err("(fmdrv): Invalid mode\n");
++		return -EINVAL;
++	}
++
++	/* Set stereo/mono mode */
++	payload = (unsigned short)mode;
++	ret = fmc_send_cmd(fmdev, MOST_MODE_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	/* Set stereo blending mode */
++	payload = FM_STEREO_SOFT_BLEND;
++	ret = fmc_send_cmd(fmdev, MOST_BLEND_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	return 0;
++}
++
++/* Gets current RX stereo/mono mode */
++int fm_rx_get_stereo_mono(struct fmdrv_ops *fmdev, unsigned short *mode)
++{
++	unsigned short curr_mode;
++	int ret, resp_len;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (mode == NULL) {
++		pr_err("(fmdrv): Invalid memory\n");
++		return -ENOMEM;
++	}
++
++	ret = fmc_send_cmd(fmdev, MOST_MODE_SET, REG_RD, NULL, 2,
++			&curr_mode, &resp_len);
++	if (ret < 0)
++		return ret;
++
++	*mode = be16_to_cpu(curr_mode);
++
++	return 0;
++}
++
++/* Choose RX de-emphasis filter mode (50us/75us) */
++int fm_rx_set_deemphasis_mode(struct fmdrv_ops *fmdev, unsigned short mode)
++{
++	unsigned short payload;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (mode != FM_RX_EMPHASIS_FILTER_50_USEC &&
++	    mode != FM_RX_EMPHASIS_FILTER_75_USEC) {
++		pr_err("(fmdrv): Invalid rx de-emphasis mode (%d)\n", mode);
++		return -EINVAL;
++	}
++
++	payload = mode;
++	ret = fmc_send_cmd(fmdev, DEMPH_MODE_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	fmdev->rx.curr_deemphasis_mode = mode;
++	return 0;
++}
++
++/* Gets current RX de-emphasis filter mode */
++int fm_rx_get_deemphasis_mode(struct fmdrv_ops *fmdev,
++				unsigned short *curr_deemphasis_mode)
++{
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (curr_deemphasis_mode == NULL) {
++		pr_err("(fmdrv): Invalid memory\n");
++		return -ENOMEM;
++	}
++
++	*curr_deemphasis_mode = fmdev->rx.curr_deemphasis_mode;
++
++	return 0;
++}
++
++/* Enable/Disable RX RDS */
++int fm_rx_set_rds_mode(struct fmdrv_ops *fmdev, unsigned char rds_en_dis)
++{
++	unsigned short payload;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (rds_en_dis != FM_RDS_ENABLE && rds_en_dis != FM_RDS_DISABLE) {
++		pr_err("(fmdrv): Invalid rds option\n");
++		return -EINVAL;
++	}
++
++	if (rds_en_dis == FM_RDS_ENABLE
++	    && fmdev->rx.rds.flag == FM_RDS_DISABLE) {
++		/* Turn on RX RDS and RDS circuit */
++		payload = FM_RX_POWET_SET_FM_AND_RDS_BLK_ON;
++		ret = fmc_send_cmd(fmdev, POWER_SET, REG_WR, &payload,
++				sizeof(payload), NULL, NULL);
++		if (ret < 0)
++			return ret;
++
++		/* Clear and reset RDS FIFO */
++		payload = FM_RX_RDS_FLUSH_FIFO;
++		ret = fmc_send_cmd(fmdev, RDS_CNTRL_SET, REG_WR, &payload,
++		sizeof(payload), NULL, NULL);
++		if (ret < 0)
++			return ret;
++
++		/* Read flags - just to clear any pending interrupts. */
++		ret = fmc_send_cmd(fmdev, FLAG_GET, REG_RD, NULL, 2,
++				NULL, NULL);
++		if (ret < 0)
++			return ret;
++
++		/* Set RDS FIFO threshold value */
++		payload = FM_RX_RDS_FIFO_THRESHOLD;
++		ret = fmc_send_cmd(fmdev, RDS_MEM_SET, REG_WR, &payload,
++		sizeof(payload), NULL, NULL);
++		if (ret < 0)
++			return ret;
++
++		/* Enable RDS interrupt */
++		fmdev->irq_info.mask |= FM_RDS_EVENT;
++		payload = fmdev->irq_info.mask;
++		ret = fmc_send_cmd(fmdev, INT_MASK_SET, REG_WR, &payload,
++				sizeof(payload), NULL, NULL);
++		if (ret < 0) {
++			fmdev->irq_info.mask &= ~FM_RDS_EVENT;
++			return ret;
++		}
++
++		/* Update our local flag */
++		fmdev->rx.rds.flag = FM_RDS_ENABLE;
++	} else if (rds_en_dis == FM_RDS_DISABLE
++		   && fmdev->rx.rds.flag == FM_RDS_ENABLE) {
++		/* Turn off RX RDS */
++		/* Turn off RDS circuit */
++		payload = FM_RX_POWER_SET_FM_ON_RDS_OFF;
++		ret = fmc_send_cmd(fmdev, POWER_SET, REG_WR, &payload,
++				sizeof(payload), NULL, NULL);
++		if (ret < 0)
++			return ret;
++
++		/* Reset RDS pointers */
++		fmdev->rx.rds.last_block_index = 0;
++		fmdev->rx.rds.wr_index = 0;
++		fmdev->rx.rds.rd_index = 0;
++		fm_rx_reset_curr_station_info(fmdev);
++
++		/* Update RDS local cache */
++		fmdev->irq_info.mask &= ~(FM_RDS_EVENT);
++		fmdev->rx.rds.flag = FM_RDS_DISABLE;
++	}
++
++	return 0;
++}
++
++/* Returns current RX RDS enable/disable status */
++int fm_rx_get_rds_mode(struct fmdrv_ops *fmdev,
++			unsigned char *curr_rds_en_dis)
++{
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (curr_rds_en_dis == NULL) {
++		pr_err("(fmdrv): Invalid memory\n");
++		return -ENOMEM;
++	}
++
++	*curr_rds_en_dis = fmdev->rx.rds.flag;
++
++	return 0;
++}
++
++/* Sets RDS operation mode (RDS/RDBS) */
++int fm_rx_set_rds_system(struct fmdrv_ops *fmdev, unsigned char rds_mode)
++{
++	unsigned short payload;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (rds_mode != FM_RDS_SYSTEM_RDS && rds_mode != FM_RDS_SYSTEM_RBDS) {
++		pr_err("(fmdrv): Invalid rds mode\n");
++		return -EINVAL;
++	}
++	/* Set RDS operation mode */
++	payload = (unsigned short)rds_mode;
++	ret = fmc_send_cmd(fmdev, RDS_SYSTEM_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	fmdev->rx.rds_mode = rds_mode;
++
++	return 0;
++}
++
++/* Returns current RDS operation mode */
++int fm_rx_get_rds_system(struct fmdrv_ops *fmdev,
++				unsigned char *rds_mode)
++{
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (rds_mode == NULL) {
++		pr_err("(fmdrv): Invalid memory\n");
++		return -ENOMEM;
++	}
++
++	*rds_mode = fmdev->rx.rds_mode;
++
++	return 0;
++}
++
++/* Configures Alternate Frequency switch mode */
++int fm_rx_set_af_switch(struct fmdrv_ops *fmdev, unsigned char af_mode)
++{
++	unsigned short payload;
++	int ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (af_mode != FM_RX_RDS_AF_SWITCH_MODE_ON &&
++	    af_mode != FM_RX_RDS_AF_SWITCH_MODE_OFF) {
++		pr_err("(fmdrv): Invalid af mode\n");
++		return -EINVAL;
++	}
++	/* Enable/disable low RSSI interrupt based on af_mode */
++	if (af_mode == FM_RX_RDS_AF_SWITCH_MODE_ON)
++		fmdev->irq_info.mask |= FM_LEV_EVENT;
++	else
++		fmdev->irq_info.mask &= ~FM_LEV_EVENT;
++
++	payload = fmdev->irq_info.mask;
++	ret = fmc_send_cmd(fmdev, INT_MASK_SET, REG_WR, &payload,
++		sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	fmdev->rx.af_mode = af_mode;
++
++	return 0;
++}
++
++/* Returns Alternate Frequency switch status */
++int fm_rx_get_af_switch(struct fmdrv_ops *fmdev, unsigned char *af_mode)
++{
++	if (fmdev->curr_fmmode != FM_MODE_RX)
++		return -EPERM;
++
++	if (af_mode == NULL) {
++		pr_err("(fmdrv): Invalid memory\n");
++		return -ENOMEM;
++	}
++
++	*af_mode = fmdev->rx.af_mode;
++
++	return 0;
++}
+diff --git a/drivers/media/radio/wl128x/fmdrv_rx.h b/drivers/media/radio/wl128x/fmdrv_rx.h
+new file mode 100644
+index 0000000..3e4ba17
+--- /dev/null
++++ b/drivers/media/radio/wl128x/fmdrv_rx.h
+@@ -0,0 +1,59 @@
++/*
++ *  FM Driver for Connectivity chip of Texas Instruments.
++ *  FM RX module header.
++ *
++ *  Copyright (C) 2010 Texas Instruments
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License version 2 as
++ *  published by the Free Software Foundation.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ */
++
++#ifndef _FMDRV_RX_H
++#define _FMDRV_RX_H
++
++int fm_rx_set_frequency(struct fmdrv_ops *, unsigned int);
++int fm_rx_set_mute_mode(struct fmdrv_ops *, unsigned char);
++int fm_rx_set_stereo_mono(struct fmdrv_ops *, unsigned short);
++int fm_rx_set_rds_mode(struct fmdrv_ops *, unsigned char);
++int fm_rx_set_rds_system(struct fmdrv_ops *, unsigned char);
++int fm_rx_set_volume(struct fmdrv_ops *, unsigned short);
++int fm_rx_set_rssi_threshold(struct fmdrv_ops *, short);
++int fm_rx_set_region(struct fmdrv_ops *, unsigned char);
++int fm_rx_set_rfdepend_softmute(struct fmdrv_ops *, unsigned char);
++int fm_rx_set_deemphasis_mode(struct fmdrv_ops *, unsigned short);
++int fm_rx_set_af_switch(struct fmdrv_ops *, unsigned char);
++
++void fm_rx_reset_rds_cache(struct fmdrv_ops *);
++void fm_rx_reset_curr_station_info(struct fmdrv_ops *);
++
++int fm_rx_seek(struct fmdrv_ops *, unsigned int, unsigned int, unsigned int);
++
++int fm_rx_get_rds_mode(struct fmdrv_ops *, unsigned char *);
++int fm_rx_get_rds_system(struct fmdrv_ops *, unsigned char *);
++int fm_rx_get_mute_mode(struct fmdrv_ops *, unsigned char *);
++int fm_rx_get_volume(struct fmdrv_ops *, unsigned short *);
++int fm_rx_get_currband_freq_range(struct fmdrv_ops *,
++					unsigned int *, unsigned int *);
++int fm_rx_get_stereo_mono(struct fmdrv_ops *, unsigned short *);
++int fm_rx_get_rssi_level(struct fmdrv_ops *, unsigned short *);
++int fm_rx_get_rssi_threshold(struct fmdrv_ops *, short *);
++int fm_rx_get_rfdepend_softmute(struct fmdrv_ops *, unsigned char *);
++int fm_rx_get_deemphasis_mode(struct fmdrv_ops *, unsigned short *);
++int fm_rx_get_af_switch(struct fmdrv_ops *, unsigned char *);
++void fm_rx_get_region(struct fmdrv_ops *, unsigned char *);
++
++int fm_rx_set_chanl_spacing(struct fmdrv_ops *, unsigned char);
++int fm_rx_get_chanl_spacing(struct fmdrv_ops *, unsigned char *);
++#endif
++
 -- 
-1.7.2.3
+1.5.6.3
 
