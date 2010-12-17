@@ -1,45 +1,57 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp.ispras.ru ([83.149.198.201]:36730 "EHLO smtp.ispras.ru"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48214 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757858Ab0LMQRU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Dec 2010 11:17:20 -0500
-From: Alexander Strakh <strakh@ispras.ru>
-To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Andy Walls <awalls@md.metrocast.net>
-Subject: BUG: return from function without mutex_unlock   in drivers/media/video/cx231xx/cx231xx-core.c
-Date: Mon, 13 Dec 2010 19:35:22 +0300
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201012131936.13172.strakh@ispras.ru>
+	id S1752047Ab0LQKnx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Dec 2010 05:43:53 -0500
+From: manjunatha_halli@ti.com
+To: mchehab@infradead.org, hverkuil@xs4all.nl
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Manjunatha Halli <manjunatha_halli@ti.com>
+Subject: [PATCH v7 7/7] drivers:media:radio: Update Kconfig and Makefile for supporting wl128x
+Date: Fri, 17 Dec 2010 06:06:36 -0500
+Message-Id: <1292583996-4440-8-git-send-email-manjunatha_halli@ti.com>
+In-Reply-To: <1292583996-4440-7-git-send-email-manjunatha_halli@ti.com>
+References: <1292583996-4440-1-git-send-email-manjunatha_halli@ti.com>
+ <1292583996-4440-2-git-send-email-manjunatha_halli@ti.com>
+ <1292583996-4440-3-git-send-email-manjunatha_halli@ti.com>
+ <1292583996-4440-4-git-send-email-manjunatha_halli@ti.com>
+ <1292583996-4440-5-git-send-email-manjunatha_halli@ti.com>
+ <1292583996-4440-6-git-send-email-manjunatha_halli@ti.com>
+ <1292583996-4440-7-git-send-email-manjunatha_halli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-	KERNEL_VERSION: 2.6.36
-        SUBJECT: return from function without mutex_unlock   in 
-drivers/media/video/cx231xx/cx231xx-core.c 
+From: Manjunatha Halli <manjunatha_halli@ti.com>
 
-        SUBSCRIBE:
-1.  In line 282 in function cx231xx_read_ctrl_reg mutex was locked.
-2.  If usb_control_msg returns ret<0 then we exit from function 
-cx231xx_read_ctrl_reg without unlocking mutex. In other (ret>=0) case mutex 
-has been unlocked before exiting in line 295.
+Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
+---
+ drivers/media/radio/Kconfig  |    3 +++
+ drivers/media/radio/Makefile |    1 +
+ 2 files changed, 4 insertions(+), 0 deletions(-)
 
- 282        mutex_lock(&dev->ctrl_urb_lock);
- 283        ret = usb_control_msg(dev->udev, pipe, req,
- 284                              USB_DIR_IN | USB_TYPE_VENDOR | 
-USB_RECIP_DEVICE,
- 285                              val, reg, dev->urb_buf, len, HZ);
- 286        if (ret < 0) {
- 287                cx231xx_isocdbg(" failed!\n");
- 288                /* mutex_unlock(&dev->ctrl_urb_lock); */
- 289                return ret;
- 290        }
- 291
- 292        if (len)
- 293                memcpy(buf, dev->urb_buf, len);
- 294
- 295        mutex_unlock(&dev->ctrl_urb_lock);
+diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+index 83567b8..4529bc7 100644
+--- a/drivers/media/radio/Kconfig
++++ b/drivers/media/radio/Kconfig
+@@ -452,4 +452,7 @@ config RADIO_TIMBERDALE
+ 	  found behind the Timberdale FPGA on the Russellville board.
+ 	  Enabling this driver will automatically select the DSP and tuner.
+ 
++# TI's ST based wl128x FM radio
++source "drivers/media/radio/wl128x/Kconfig"
++
+ endif # RADIO_ADAPTERS
+diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
+index f615583..b71f448 100644
+--- a/drivers/media/radio/Makefile
++++ b/drivers/media/radio/Makefile
+@@ -26,5 +26,6 @@ obj-$(CONFIG_RADIO_TEA5764) += radio-tea5764.o
+ obj-$(CONFIG_RADIO_SAA7706H) += saa7706h.o
+ obj-$(CONFIG_RADIO_TEF6862) += tef6862.o
+ obj-$(CONFIG_RADIO_TIMBERDALE) += radio-timb.o
++obj-$(CONFIG_RADIO_WL128X) += wl128x/
+ 
+ EXTRA_CFLAGS += -Isound
+-- 
+1.5.6.3
 
-Found by Linux Device Drivers Verification Project
