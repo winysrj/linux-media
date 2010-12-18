@@ -1,65 +1,147 @@
 Return-path: <mchehab@gaivota>
-Received: from banach.math.auburn.edu ([131.204.45.3]:37441 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932137Ab0LSRrH (ORCPT
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:65477 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754621Ab0LRPia convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Dec 2010 12:47:07 -0500
-Date: Sun, 19 Dec 2010 12:23:11 -0600 (CST)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Paulo Assis <pj.assis@gmail.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Power frequency detection.
-In-Reply-To: <AANLkTinGnhmEg3zbkhmUGH_+bsqdDmkp24_-Of9e3XN1@mail.gmail.com>
-Message-ID: <alpine.LNX.2.00.1012191217360.23860@banach.math.auburn.edu>
-References: <alpine.LNX.2.00.1012181550500.22984@banach.math.auburn.edu> <AANLkTinGnhmEg3zbkhmUGH_+bsqdDmkp24_-Of9e3XN1@mail.gmail.com>
+	Sat, 18 Dec 2010 10:38:30 -0500
+Received: by iwn9 with SMTP id 9so1745149iwn.19
+        for <linux-media@vger.kernel.org>; Sat, 18 Dec 2010 07:38:29 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <201012181231.27198.hverkuil@xs4all.nl>
+References: <201012181231.27198.hverkuil@xs4all.nl>
+Date: Sat, 18 Dec 2010 10:38:29 -0500
+Message-ID: <AANLkTimr+=Z=zfv+rQLryF2xGAfJdbVEsUvEE3PZc-o8@mail.gmail.com>
+Subject: Re: Volunteers needed: BKL removal: replace .ioctl by .unlocked_ioctl
+From: Muralidharan Karicheri <mkaricheri@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Steven Toth <stoth@kernellabs.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	sakari.ailus@maxwell.research.nokia.com,
+	David Cohen <dacohen@gmail.com>, Janne Grunau <j@jannau.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>,
+	Mike Isely <isely@isely.net>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Anatolij Gustschin <agust@denx.de>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pete Eberlein <pete@sensoray.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
+Hans,
 
+For davinci drivers, I will be able to do this for vpfe_capture driver
+(DM355/6446/365). For DM6467, will someone from your company be able
+to take care of this?
 
-On Sun, 19 Dec 2010, Paulo Assis wrote:
+Murali
 
-> Hi,
-> 
-> 2010/12/18 Theodore Kilgore <kilgota@banach.math.auburn.edu>:
-> >
-> > Does anyone know whether, somewhere in the kernel, there exists a scheme
-> > for detecting whether the external power supply of the computer is using
-> > 50hz or 60hz?
-> >
-> > The reason I ask:
-> >
-> > A certain camera is marketed with Windows software which requests the user
-> > to set up the option of 50hz or 60hz power during the setup.
-> >
-> > Judging by what exists in videodev2.h, for example, it is evidently
-> > possible to set up this as a control setting in a Linux driver. I am not
-> > aware of any streaming app which knows how to access such an option.
-> >
-> 
-> Most uvc cameras present this as a control, so any v4l2 control app
-> should let you access it.
-> If your camera driver also supports this control then this shouldn't
-> be a problem for any generci v4l2 app.
-> here are a couple of ones:
-> 
-> v4l2ucp (control panel)
-> guvcview ("guvcview --control_only" will work along side other apps
-> just like v4l2ucp)
-> uvcdynctrl from libwebcam for command line control utility .
-> 
+On Sat, Dec 18, 2010 at 6:31 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi all,
+>
+> Now that the BKL patch series has been merged in 2.6.37 it is time to work
+> on replacing .ioctl by .unlocked_ioctl in all v4l drivers.
+>
+> I've made an inventory of all drivers that still use .ioctl and I am looking
+> for volunteers to tackle one or more drivers.
+>
+> I have CCed this email to the maintainers of the various drivers (if I know
+> who it is) in the hope that we can get this conversion done as quickly as
+> possible.
+>
+> If I have added your name to a driver, then please confirm if you are able to
+> work on it or not. If you can't work on it, but you know someone else, then
+> let me know as well.
+>
+> There is also a list of drivers where I do not know who can do the conversion.
+> If you can tackle one or more of those, please respond. Unfortunately, those
+> are among the hardest to convert :-(
+>
+> It would be great if we can tackle most of these drivers for 2.6.38. I think
+> we should finish all drivers for 2.6.39 at the latest.
+>
+> There are two ways of doing the conversion: one is to do all the locking within
+> the driver, the other is to use core-assisted locking. How to do the core-assisted
+> locking is described in Documentation/video4linux/v4l2-framework.txt, but I'll
+> repeat the relevant part here:
+>
+> v4l2_file_operations and locking
+> --------------------------------
+>
+> You can set a pointer to a mutex_lock in struct video_device. Usually this
+> will be either a top-level mutex or a mutex per device node. If you want
+> finer-grained locking then you have to set it to NULL and do you own locking.
+>
+> If a lock is specified then all file operations will be serialized on that
+> lock. If you use videobuf then you must pass the same lock to the videobuf
+> queue initialize function: if videobuf has to wait for a frame to arrive, then
+> it will temporarily unlock the lock and relock it afterwards. If your driver
+> also waits in the code, then you should do the same to allow other processes
+> to access the device node while the first process is waiting for something.
+>
+> The implementation of a hotplug disconnect should also take the lock before
+> calling v4l2_device_disconnect.
+>
+>
+> Driver list:
+>
+> saa7146 (Hans Verkuil)
+> mem2mem_testdev (Pawel Osciak or Marek Szyprowski)
+> cx23885 (Steve Toth)
+> cx18-alsa (Andy Walls)
+> omap24xxcam (Sakari Ailus or David Cohen)
+> au0828 (Janne Grunau)
+> cpia2 (Andy Walls or Hans Verkuil)
+> cx231xx (Mauro Carvalho Chehab)
+> davinci (Muralidharan Karicheri)
+> saa6588 (Hans Verkuil)
+> pvrusb2 (Mike Isely)
+> usbvision (Hans Verkuil)
+> s5p-fimc (Sylwester Nawrocki)
+> fsl-viu (Anatolij Gustschin)
+> tlg2300 (Mauro Carvalho Chehab)
+> zr364xx (Hans de Goede)
+> soc_camera (Guennadi Liakhovetski)
+> usbvideo/vicam (Hans de Goede)
+> s2255drv (Pete Eberlein)
+> bttv (Mauro Carvalho Chehab)
+> stk-webcam (Hans de Goede)
+> se401 (Hans de Goede)
+> si4713-i2c (Hans Verkuil)
+> dsbr100 (Hans Verkuil)
+>
+> Staging driver list:
+>
+> go7007 (Pete Eberlein)
+> tm6000 (Mauro Carvalho Chehab)
+> (stradis/cpia: will be removed in 2.6.38, so no need to do anything)
+>
+> Unassigned drivers:
+>
+> saa7134
+> em28xx
+> cx88
+> solo6x10 (staging driver)
+>
 > Regards,
-> Paulo
+>
+>        Hans
+>
+> --
+> Hans Verkuil - video4linux developer - sponsored by Cisco
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-Thank you. 
 
-I still think that it would be even more clever to detect the line 
-frequency automatically and then just to set the proper setting, if needed 
-or desirable. That was one of the parts of my question about it, after 
-all. But if nobody has ever had a reason to do such detection already it 
-would perhaps be much more trouble than it is worth just do support a 
-cheap camera.
 
-Theodore Kilgore
+-- 
+Murali Karicheri
+mkaricheri@gmail.com
