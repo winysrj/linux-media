@@ -1,62 +1,59 @@
 Return-path: <mchehab@gaivota>
-Received: from bear.ext.ti.com ([192.94.94.41]:54080 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751237Ab0LOJJr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Dec 2010 04:09:47 -0500
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH v6 0/7] davinci vpbe: dm6446 v4l2 driver
-Date: Wed, 15 Dec 2010 14:39:22 +0530
-Message-Id: <1292404162-11734-1-git-send-email-manjunath.hadli@ti.com>
+Received: from banach.math.auburn.edu ([131.204.45.3]:45972 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750943Ab0LRWCu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 18 Dec 2010 17:02:50 -0500
+Received: from banach.math.auburn.edu (localhost [127.0.0.1])
+	by banach.math.auburn.edu (8.14.4/8.14.2) with ESMTP id oBIMAAG8023008
+	for <linux-media@vger.kernel.org>; Sat, 18 Dec 2010 16:10:10 -0600
+Received: from localhost (kilgota@localhost)
+	by banach.math.auburn.edu (8.14.4/8.14.2/Submit) with ESMTP id oBIMA9ex023004
+	for <linux-media@vger.kernel.org>; Sat, 18 Dec 2010 16:10:10 -0600
+Date: Sat, 18 Dec 2010 16:10:09 -0600 (CST)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: linux-media@vger.kernel.org
+Subject: Power frequency detection.
+Message-ID: <alpine.LNX.2.00.1012181550500.22984@banach.math.auburn.edu>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-version6 : addressed Sergei's and Murali's comments
-on:
-1. Fixed Murali's comments on moving README.davinci-vpbe to Documentation directory.
-2. Fixed Sergei's comments on indentation.
 
-Manjunath Hadli (7):
-  davinci vpbe: V4L2 display driver for DM644X SoC
-  davinci vpbe: VPBE display driver
-  davinci vpbe: OSD(On Screen Display) block
-  davinci vpbe: VENC( Video Encoder) implementation
-  davinci vpbe: platform specific additions
-  davinci vpbe: Build infrastructure for VPBE driver
-  davinci vpbe: Readme text for Dm6446 vpbe
+Does anyone know whether, somewhere in the kernel, there exists a scheme 
+for detecting whether the external power supply of the computer is using 
+50hz or 60hz?
 
- Documentation/video4linux/README.davinci-vpbe |  100 ++
- arch/arm/mach-davinci/board-dm644x-evm.c      |   79 +-
- arch/arm/mach-davinci/dm644x.c                |  164 ++-
- arch/arm/mach-davinci/include/mach/dm644x.h   |    4 +
- drivers/media/video/davinci/Kconfig           |   22 +
- drivers/media/video/davinci/Makefile          |    2 +
- drivers/media/video/davinci/vpbe.c            |  837 ++++++++++
- drivers/media/video/davinci/vpbe_display.c    | 2099 +++++++++++++++++++++++++
- drivers/media/video/davinci/vpbe_osd.c        | 1211 ++++++++++++++
- drivers/media/video/davinci/vpbe_osd_regs.h   |  389 +++++
- drivers/media/video/davinci/vpbe_venc.c       |  574 +++++++
- drivers/media/video/davinci/vpbe_venc_regs.h  |  189 +++
- include/media/davinci/vpbe.h                  |  186 +++
- include/media/davinci/vpbe_display.h          |  146 ++
- include/media/davinci/vpbe_osd.h              |  397 +++++
- include/media/davinci/vpbe_types.h            |   93 ++
- include/media/davinci/vpbe_venc.h             |   38 +
- 17 files changed, 6511 insertions(+), 19 deletions(-)
- create mode 100644 Documentation/video4linux/README.davinci-vpbe
- create mode 100644 drivers/media/video/davinci/vpbe.c
- create mode 100644 drivers/media/video/davinci/vpbe_display.c
- create mode 100644 drivers/media/video/davinci/vpbe_osd.c
- create mode 100644 drivers/media/video/davinci/vpbe_osd_regs.h
- create mode 100644 drivers/media/video/davinci/vpbe_venc.c
- create mode 100644 drivers/media/video/davinci/vpbe_venc_regs.h
- create mode 100644 include/media/davinci/vpbe.h
- create mode 100644 include/media/davinci/vpbe_display.h
- create mode 100644 include/media/davinci/vpbe_osd.h
- create mode 100644 include/media/davinci/vpbe_types.h
- create mode 100644 include/media/davinci/vpbe_venc.h
+The reason I ask:
 
+A certain camera is marketed with Windows software which requests the user 
+to set up the option of 50hz or 60hz power during the setup.
+
+Judging by what exists in videodev2.h, for example, it is evidently 
+possible to set up this as a control setting in a Linux driver. I am not 
+aware of any streaming app which knows how to access such an option.
+
+Information about which streaming app ought to be used which could take 
+advantage of a setting for line frequency would be welcome, too, of 
+course. As I said, I do not know of a single one and would therefore have 
+trouble with testing any such control setting unless I could find the 
+software which can actually present the choice to the user.
+
+But my main question is whether the kernel already does detect the line 
+frequency anywhere else, for whatever reason. For, it occurs to me that a 
+far more elegant solution -- if the camera really does need to have the 
+line frequency detected -- would be do do the job automatically and not to 
+bother the user about such a thing.
+
+In other news, in case anyone has any children who are in love with Lego, 
+the "Lego Bionicle" camera which is currently on sale has an SQ905C type 
+chip in it. I just added its Product number to the Gphoto driver last 
+night. And it works perfectly in webcam mode if one adds its product 
+number in gspca/sq905c.c. I will get around to doing that formally, of 
+course, when I get time. But if anyone wants just to add the number and 
+re-compile the Vendor:Product number for the new camera is 0x2770:0x9051.
+
+Merry Christmas.
+
+Theodore Kilgore
