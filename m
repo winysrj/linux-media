@@ -1,101 +1,185 @@
 Return-path: <mchehab@gaivota>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:37594 "EHLO
-	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752220Ab0LQEQi (ORCPT
+Received: from mail-fx0-f43.google.com ([209.85.161.43]:49005 "EHLO
+	mail-fx0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753439Ab0LRKyq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Dec 2010 23:16:38 -0500
-From: KyongHo Cho <pullip.cho@samsung.com>
-To: KyongHo Cho <pullip.cho@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Inho Lee <ilho215.lee@samsung.com>,
-	Inki Dae <inki.dae@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mel Gorman <mel@csn.ul.ie>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linux-samsung-soc@vger.kernel.org
-Subject: [RFCv2,0/8] mm: vcm: The Virtual Memory Manager for multiple IOMMUs
-Date: Fri, 17 Dec 2010 12:56:19 +0900
-Message-Id: <1292558187-17348-1-git-send-email-pullip.cho@samsung.com>
+	Sat, 18 Dec 2010 05:54:46 -0500
+Message-ID: <4D0C92F2.90901@gmail.com>
+Date: Sat, 18 Dec 2010 11:54:42 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
+MIME-Version: 1.0
+To: Hyunwoong Kim <khw0178.kim@samsung.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	linux-samsung-soc@vger.kernel.org, s.nawrocki@samsung.com
+Subject: Re: [PATCH v3] [media] s5p-fimc: fix the value of YUV422 1-plane
+ formats
+References: <1292559855-2977-1-git-send-email-khw0178.kim@samsung.com>
+In-Reply-To: <1292559855-2977-1-git-send-email-khw0178.kim@samsung.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hello,
+Hi Hyunwoong,
 
-The VCM is a framework to deal with multiple IOMMUs in a system 
-with intuitive and abstract objects
-These patches are the bugfix and enhanced version of previous RFC by Michal Nazarewicz.
-(https://patchwork.kernel.org/patch/157451/)
+I wish I could apply and test the patch but there are still some
+problems with it. Now it doesn't apply and it seem to be mangled
+somehow. Even the patchwork didn't accept it, and v2 looks strange:
+https://patchwork.kernel.org/patch/412231/
+It is better avoided using "==...==" separators in the change log.
 
-It is introduced by Zach Pfeffer and implemented by Michal Nazarewicz.
-These patches include entirely new implementation of VCM than the one submitted by Zach Pfeffer.
+Please also make sure it is rebased onto staging/for_v2.6.37-rc1
+branch from repository git://linuxtv.org/media_tree.git
+or better onto s5p_fimc_fixes_for_2.6.37 branch in repository
+git://git.infradead.org/users/kmpark/linux-2.6-samsung
 
-The prerequisites of these patches are the followings by Michal Nazarewicz:
-https://patchwork.kernel.org/patch/340281/
-https://patchwork.kernel.org/patch/414381/
-https://patchwork.kernel.org/patch/414541/
+Your second patch
+[PATCH][media] s5p-fimc: fix main scaler SFRs depends on FIMC version
+looks OK, except it is created against wrong source tree.
+Was there any difference in your environment setup while sending those
+2 patches?
 
-In addition to the above patches, 
-the prerequisites of "[RFCv2,7/8] mm: vcm: vcm-cma: VCM CMA driver added" is
-CMA RFCv8 introduced by Michal Nazarewicz:
-https://patchwork.kernel.org/patch/414351/
+On 12/17/2010 05:24 AM, Hyunwoong Kim wrote:
+> Some color formats are mismatched in s5p-fimc driver.
+> CIOCTRL[1:0], order422_out, should be set 2b'00 not 2b'11
+> to use V4L2_PIX_FMT_YUYV. Because in V4L2 standard V4L2_PIX_FMT_YUYV means
+> "start + 0: Y'00 Cb00 Y'01 Cr00 Y'02 Cb01 Y'03 Cr01". According to datasheet
+> 2b'00 is right value for V4L2_PIX_FMT_YUYV.
+>
+> ---------------------------------------------------------
+> bit |    MSB                                        LSB
+> ---------------------------------------------------------
+> 00  |  Cr1    Y3    Cb1    Y2    Cr0    Y1    Cb0    Y0
+> ---------------------------------------------------------
+> 01  |  Cb1    Y3    Cr1    Y2    Cb0    Y1    Cr0    Y0
+> ---------------------------------------------------------
+> 10  |  Y3    Cr1    Y2    Cb1    Y1    Cr0    Y0    Cb0
+> ---------------------------------------------------------
+> 11  |  Y3    Cb1    Y2    Cr1    Y1    Cb0    Y0    Cr0
+> ---------------------------------------------------------
+>
+> V4L2_PIX_FMT_YVYU, V4L2_PIX_FMT_UYVY, V4L2_PIX_FMT_VYUY are also mismatched
+> with datasheet. MSCTRL[17:16], order2p_in, is also mismatched
 
-The VCM also works correctly without "[RFC,6/7] mm: vcm: vcm-cma: VCM CMA driver added"
-
-The last patch, "[RFC,7/7] mm: vcm: Sample driver added" is not the one to be submitted
-but is an example to show how to use the VCM.
-
-The VCM provides generic interfaces and objects to deal with IOMMUs in various architectures
-especially the ones that embed multiple IOMMUs including GART.
-
-Chagelog:
-v2:  1. Added reference counting on a reservation.
-	When vcm_reserve() creates a reservation, it sets the reference counter
-	of the reservation to 1. The ownership of the reservation is only owned by
-	the caller of vcm_reserve. If the caller passes the reservation to another
-	callee functions, the callee functions must increment the reference counter
-	with vcm_ref_reserve() to set the ownership of the reservation.
-	To release the ownership, just call vcm_unreserve(). vcm_unreserve decrements
-	the reference counter of the given reservation. vcm_unreserve() eventually
-	unreserves the reservation when its reference counter becomes 0.
-     2. Applied the design changes of CMA by Michal Nazarewicz.
-	Since it is dramatically changed, vcm-cma also followed.
-
-Patch list:
-[RFCv2,1/8] mm: vcm: Virtual Contiguous Memory framework added
-[RFCv2,2/8] mm: vcm: reference counting on a reservation added
-[RFCv2,3/8] mm: vcm: physical memory allocator added
-[RFCv2,4/8] mm: vcm: VCM VMM driver added
-[RFCv2,5/8] mm: vcm: VCM MMU wrapper added
-[RFCv2,6/8] mm: vcm: VCM One-to-One wrapper added
-[RFCv2,7/8] mm: vcm: vcm-cma: VCM CMA driver added
-[RFCv2,8/8] mm: vcm: Sample driver added
-
-Summery:
-Documentation/00-INDEX                      |    2 +
-Documentation/virtual-contiguous-memory.txt |  940 +++++++++++++++++++++++++
-include/linux/vcm-cma.h                     |   38 +
-include/linux/vcm-drv.h                     |  326 +++++++++
-include/linux/vcm-sample.h                  |   30 +
-include/linux/vcm.h                         |  311 +++++++++
-mm/Kconfig                                  |   79 +++
-mm/Makefile                                 |    3 +
-mm/vcm-cma.c                                |   99 +++
-mm/vcm-sample.c                             |  119 ++++
-mm/vcm.c                                    |  987 +++++++++++++++++++++++++++
-11 files changed, 2934 insertions(+), 0 deletions(-)
-create mode 100644 Documentation/virtual-contiguous-memory.txt
-create mode 100644 include/linux/vcm-cma.h
-create mode 100644 include/linux/vcm-drv.h
-create mode 100644 include/linux/vcm-sample.h
-create mode 100644 include/linux/vcm.h
-create mode 100644 mm/vcm-cma.c
-create mode 100644 mm/vcm-sample.c
-create mode 100644 mm/vcm.c
-
+> in V4L2_PIX_FMT_UYVY, V4L2_PIX_FMT_YVYU.
+>
+> Signed-off-by: Hyunwoong Kim<khw0178.kim@samsung.com>
+> Reviewed-by: Jonghun Han<jonghun.han@samsung.com>
+> ---
+> Changes since V2:
+> =================
+> - Correct the name of Output DMA control register
+> - Change definitions of YUV422 input/outut format with datasheet
+>    commented by Sylwester Nawrocki.
+>
+> Changes since V1:
+> =================
+> - make corrections directly in function fimc_set_yuv_order
+>    commented by Sylwester Nawrocki.
+> - remove S5P_FIMC_IN_* and S5P_FIMC_OUT_* definitions from fimc-core.h
+>
+>   drivers/media/video/s5p-fimc/fimc-core.c |   16 ++++++++--------
+>   drivers/media/video/s5p-fimc/fimc-core.h |   12 ------------
+>   drivers/media/video/s5p-fimc/regs-fimc.h |   12 ++++++------
+>   3 files changed, 14 insertions(+), 26 deletions(-)
+>
+> diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+> index 7f56987..e2b3db1 100644
+> --- a/drivers/media/video/s5p-fimc/fimc-core.c
+> +++ b/drivers/media/video/s5p-fimc/fimc-core.c
+> @@ -448,34 +448,34 @@ static void fimc_set_yuv_order(struct fimc_ctx *ctx)
+>   	/* Set order for 1 plane input formats. */
+>   	switch (ctx->s_frame.fmt->color) {
+>   	case S5P_FIMC_YCRYCB422:
+> -		ctx->in_order_1p = S5P_FIMC_IN_YCRYCB;
+> +		ctx->in_order_1p = S5P_MSCTRL_ORDER422_CBYCRY;
+>   		break;
+>   	case S5P_FIMC_CBYCRY422:
+> -		ctx->in_order_1p = S5P_FIMC_IN_CBYCRY;
+> +		ctx->in_order_1p = S5P_MSCTRL_ORDER422_YCRYCB;
+>   		break;
+>   	case S5P_FIMC_CRYCBY422:
+> -		ctx->in_order_1p = S5P_FIMC_IN_CRYCBY;
+> +		ctx->in_order_1p = S5P_MSCTRL_ORDER422_YCBYCR;
+>   		break;
+>   	case S5P_FIMC_YCBYCR422:
+>   	default:
+> -		ctx->in_order_1p = S5P_FIMC_IN_YCBYCR;
+> +		ctx->in_order_1p = S5P_MSCTRL_ORDER422_CRYCBY;
+>   		break;
+>   	}
+>   	dbg("ctx->in_order_1p= %d", ctx->in_order_1p);
+>
+>   	switch (ctx->d_frame.fmt->color) {
+>   	case S5P_FIMC_YCRYCB422:
+> -		ctx->out_order_1p = S5P_FIMC_OUT_YCRYCB;
+> +		ctx->out_order_1p = S5P_CIOCTRL_ORDER422_CBYCRY;
+>   		break;
+>   	case S5P_FIMC_CBYCRY422:
+> -		ctx->out_order_1p = S5P_FIMC_OUT_CBYCRY;
+> +		ctx->out_order_1p = S5P_CIOCTRL_ORDER422_YCRYCB;
+>   		break;
+>   	case S5P_FIMC_CRYCBY422:
+> -		ctx->out_order_1p = S5P_FIMC_OUT_CRYCBY;
+> +		ctx->out_order_1p = S5P_CIOCTRL_ORDER422_YCBYCR;
+>   		break;
+>   	case S5P_FIMC_YCBYCR422:
+>   	default:
+> -		ctx->out_order_1p = S5P_FIMC_OUT_YCBYCR;
+> +		ctx->out_order_1p = S5P_CIOCTRL_ORDER422_CRYCBY;
+>   		break;
+>   	}
+>   	dbg("ctx->out_order_1p= %d", ctx->out_order_1p);
+> diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+> index 4efc1a1..92cca62 100644
+> --- a/drivers/media/video/s5p-fimc/fimc-core.h
+> +++ b/drivers/media/video/s5p-fimc/fimc-core.h
+> @@ -95,18 +95,6 @@ enum fimc_color_fmt {
+>
+>   #define fimc_fmt_is_rgb(x) ((x)&  0x10)
+>
+> -/* Y/Cb/Cr components order at DMA output for 1 plane YCbCr 4:2:2 formats. */
+> -#define	S5P_FIMC_OUT_CRYCBY	S5P_CIOCTRL_ORDER422_YCBYCR
+> -#define	S5P_FIMC_OUT_CBYCRY	S5P_CIOCTRL_ORDER422_CBYCRY
+> -#define	S5P_FIMC_OUT_YCRYCB	S5P_CIOCTRL_ORDER422_YCRYCB
+> -#define	S5P_FIMC_OUT_YCBYCR	S5P_CIOCTRL_ORDER422_CRYCBY
+> -
+> -/* Input Y/Cb/Cr components order for 1 plane YCbCr 4:2:2 color formats. */
+> -#define	S5P_FIMC_IN_CRYCBY	S5P_MSCTRL_ORDER422_CRYCBY
+> -#define	S5P_FIMC_IN_CBYCRY	S5P_MSCTRL_ORDER422_CBYCRY
+> -#define	S5P_FIMC_IN_YCRYCB	S5P_MSCTRL_ORDER422_YCRYCB
+> -#define	S5P_FIMC_IN_YCBYCR	S5P_MSCTRL_ORDER422_YCBYCR
+> -
+>   /* Cb/Cr chrominance components order for 2 plane Y/CbCr 4:2:2 formats. */
+>   #define	S5P_FIMC_LSB_CRCB	S5P_CIOCTRL_ORDER422_2P_LSB_CRCB
+>
+> diff --git a/drivers/media/video/s5p-fimc/regs-fimc.h b/drivers/media/video/s5p-fimc/regs-fimc.h
+> index 57e33f8..cd86c18 100644
+> --- a/drivers/media/video/s5p-fimc/regs-fimc.h
+> +++ b/drivers/media/video/s5p-fimc/regs-fimc.h
+> @@ -98,8 +98,8 @@
+>   #define S5P_CIOCTRL			0x4c
+>   #define S5P_CIOCTRL_ORDER422_MASK	(3<<  0)
+>   #define S5P_CIOCTRL_ORDER422_CRYCBY	(0<<  0)
+> -#define S5P_CIOCTRL_ORDER422_YCRYCB	(1<<  0)
+> -#define S5P_CIOCTRL_ORDER422_CBYCRY	(2<<  0)
+> +#define S5P_CIOCTRL_ORDER422_CBYCRY	(1<<  0)
+> +#define S5P_CIOCTRL_ORDER422_YCRYCB	(2<<  0)
+>   #define S5P_CIOCTRL_ORDER422_YCBYCR	(3<<  0)
+>   #define S5P_CIOCTRL_LASTIRQ_ENABLE	(1<<  2)
+>   #define S5P_CIOCTRL_YCBCR_3PLANE	(0<<  3)
+> @@ -223,10 +223,10 @@
+>   #define S5P_MSCTRL_FLIP_Y_MIRROR	(2<<  13)
+>   #define S5P_MSCTRL_FLIP_180		(3<<  13)
+>   #define S5P_MSCTRL_ORDER422_SHIFT	4
+> -#define S5P_MSCTRL_ORDER422_CRYCBY	(0<<  4)
+> -#define S5P_MSCTRL_ORDER422_YCRYCB	(1<<  4)
+> -#define S5P_MSCTRL_ORDER422_CBYCRY	(2<<  4)
+> -#define S5P_MSCTRL_ORDER422_YCBYCR	(3<<  4)
+> +#define S5P_MSCTRL_ORDER422_YCBYCR	(0<<  4)
+> +#define S5P_MSCTRL_ORDER422_CBYCRY	(1<<  4)
+> +#define S5P_MSCTRL_ORDER422_YCRYCB	(2<<  4)
+> +#define S5P_MSCTRL_ORDER422_CRYCBY	(3<<  4)
+>   #define S5P_MSCTRL_ORDER422_MASK	(3<<  4)
+>   #define S5P_MSCTRL_INPUT_EXTCAM		(0<<  3)
+>   #define S5P_MSCTRL_INPUT_MEMORY		(1<<  3)
