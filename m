@@ -1,123 +1,314 @@
 Return-path: <mchehab@gaivota>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:47492 "EHLO
-	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754676Ab0LOClB (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:59570 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756308Ab0LRQY6 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Dec 2010 21:41:01 -0500
-From: Hyunwoong Kim <khw0178.kim@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: s.nawrocki@samsung.com, Hyunwoong Kim <khw0178.kim@samsung.com>
-Subject: [PATCH v2] [media] s5p-fimc: fix the value of YUV422 1-plane formats
-Date: Wed, 15 Dec 2010 11:18:48 +0900
-Message-Id: <1292379528-16994-1-git-send-email-khw0178.kim@samsung.com>
+	Sat, 18 Dec 2010 11:24:58 -0500
+Date: Sat, 18 Dec 2010 17:24:46 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Alberto Panizzo <alberto.panizzo@gmail.com>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Magnus Damm <damm@opensource.se>,
+	=?ISO-8859-1?Q?M=E1rton_N=E9meth?= <nm127@freemail.hu>,
+	linux-media@vger.kernel.org,
+	linux-kernel <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 2/3] mx3_camera: Support correctly the YUV222 and BAYER
+ configurations of CSI
+In-Reply-To: <Pine.LNX.4.64.1012011832430.28110@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1012181722200.18515@axis700.grange>
+References: <1290964687.3016.5.camel@realization> <1290965045.3016.11.camel@realization>
+ <Pine.LNX.4.64.1012011832430.28110@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Some color formats are mismatched in s5p-fimc driver.
-CICICTRL[1:0], order422_out, should be set 2b'00 not 2b'11
-to use V4L2_PIX_FMT_YUYV. Because in V4L2 standard V4L2_PIX_FMT_YUYV means
-"start + 0: Y'00 Cb00 Y'01 Cr00 Y'02 Cb01 Y'03 Cr01". According to datasheet
-2b'00 is right value for V4L2_PIX_FMT_YUYV.
+Alberto
 
----------------------------------------------------------
-bit |    MSB                                        LSB
----------------------------------------------------------
-00  |  Cr1    Y3    Cb1    Y2    Cr0    Y1    Cb0    Y0
----------------------------------------------------------
-01  |  Cb1    Y3    Cr1    Y2    Cb0    Y1    Cr0    Y0
----------------------------------------------------------
-10  |  Y3    Cr1    Y2    Cb1    Y1    Cr0    Y0    Cb0
----------------------------------------------------------
-11  |  Y3    Cb1    Y2    Cr1    Y1    Cb0    Y0    Cr0
----------------------------------------------------------
+it would be slowly on the time to address my comments and submit updates. 
+While at it, also, please update the subject - you probably meant "YUV422" 
+or "YUV444" there, also below:
 
-V4L2_PIX_FMT_YVYU, V4L2_PIX_FMT_UYVY, V4L2_PIX_FMT_VYUY are also mismatched
-with datasheet. MSCTRL[17:16], order2p_in, is also mismatched
-in V4L2_PIX_FMT_UYVY, V4L2_PIX_FMT_YVYU.
+On Wed, 1 Dec 2010, Guennadi Liakhovetski wrote:
 
-Signed-off-by: Hyunwoong Kim <khw0178.kim@samsung.com>
-Reviewed-by: Jonghun han <jonghun.han@samsung.com>
+> On Sun, 28 Nov 2010, Alberto Panizzo wrote:
+> 
+> > This patch is tested and works with the OV2640 camera that output
+> > YUV422 (UYVY) and RGB565 data.
+> > 
+> > The YUV422 format is managed to be converted in IPU internal YUV444 format
+> > so this stream could be used in the future to feed directly other IPU
+> > blocks.
+> > The RGB565 format is managed as GENERIC and can be moved only from CSI
+> > to memory.
+> > 
+> > Signed-off-by: Alberto Panizzo <maramaopercheseimorto@gmail.com>
+> > ---
+> > 
+> > Before applying, please give me feedback if this break in some way other
+> > pixel formats!
+> > 
+> > 
+> >  drivers/media/video/mx3_camera.c |  126 +++++++++++++++++++++++++++++++++-----
+> >  1 files changed, 110 insertions(+), 16 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
+> > index 29c5fc3..6811d6f 100644
+> > --- a/drivers/media/video/mx3_camera.c
+> > +++ b/drivers/media/video/mx3_camera.c
+> > @@ -55,6 +55,31 @@
+> >  #define CSI_SENS_CONF_EXT_VSYNC_SHIFT		15
+> >  #define CSI_SENS_CONF_DIVRATIO_SHIFT		16
+> >  
+> > +/*
+> > + * IPU support the following data formatting (44.1.1.3 Data Flows and Formats):
+> > + * 1 YUV 4:4:4 or RGB—8 bits per color component
+> > + * 2 YUV 4:4:4 or RGB—10 bits per color component
+
+don't know what characters are those. Please, replace with ASCII.
+
+Thanks
+Guennadi
+
+> > + * 3 Generic data (from sensor to the system memory only)
+> > + * The formats 1 and 2 are aligned in words of 32 bits, 3 is free and not
+> > + * recognized by IPU blocks.
+> > + *
+> > + * Taking the value of SENS_DATA_FORMAT and DATA_WIDTH, the CSI tries to
+> > + * align (or rearrange) the sampled data to fit the IPU supported formats
+> > + * as follows:
+> > + * - CSI_SENS_CONF_DATA_FMT_RGB_YUV444: It consider the pixel as a sequence of
+> > + *	3 components of width DATA_WIDTH aligning these to a 32 bit word.
+> > + *	The CSI output in this case can feed other IPU blocks.
+> > + * - CSI_SENS_CONF_DATA_FMT_YUV422: It consider the pixel as a sequence of
+> > + *	2 components of width DATA_WIDTH were the first is the alternating U V
+> 
+> s/were/where/
+> 
+> > + *	components and the second is Y. It construct the YUV444 word repeating
+> > + *	the previous U, V samples aligning the results to a 32 bit word.
+> > + *	The CSI output in this case can feed other IPU blocks.
+> > + * - CSI_SENS_CONF_DATA_FMT_BAYER: No rework is performed in this case.
+> > + *	The sensor data is given as is, considering _every sample_ as a pixel
+> > + *	data. This format (combined with the GENERIC IPU pixel formats) can
+> > + *	carry all the other sensor pixel formats to the system memory.
+> > + *	The CSI output in this case _can not_ feed other IPU blocks.
+> > + */
+> >  #define CSI_SENS_CONF_DATA_FMT_RGB_YUV444	(0UL << CSI_SENS_CONF_DATA_FMT_SHIFT)
+> >  #define CSI_SENS_CONF_DATA_FMT_YUV422		(2UL << CSI_SENS_CONF_DATA_FMT_SHIFT)
+> >  #define CSI_SENS_CONF_DATA_FMT_BAYER		(3UL << CSI_SENS_CONF_DATA_FMT_SHIFT)
+> > @@ -323,14 +348,12 @@ static enum pixel_fmt fourcc_to_ipu_pix(__u32 fourcc)
+> >  {
+> >  	/* Add more formats as need arises and test possibilities appear... */
+> >  	switch (fourcc) {
+> > -	case V4L2_PIX_FMT_RGB565:
+> > -		return IPU_PIX_FMT_RGB565;
+> >  	case V4L2_PIX_FMT_RGB24:
+> >  		return IPU_PIX_FMT_RGB24;
+> > +	case V4L2_PIX_FMT_UYVY:
+> > +		return IPU_PIX_FMT_UYVY;
+> > +	case V4L2_PIX_FMT_RGB565:
+> >  	case V4L2_PIX_FMT_RGB332:
+> > -		return IPU_PIX_FMT_RGB332;
+> > -	case V4L2_PIX_FMT_YUV422P:
+> > -		return IPU_PIX_FMT_YVU422P;
+> >  	default:
+> >  		return IPU_PIX_FMT_GENERIC;
+> >  	}
+> 
+> Ok, so far mx3_camera has only been used with mt9m022 and mt9t031 sensors 
+> (from what I can see in the mainline), both are bayer. It can also work 
+> with monochrome cameras, and that would be the IPU_PIX_FMT_GENERIC case 
+> too. So, I wouldn't mind removing the rest, and only adding / fixing what 
+> you've now tested / implemented with your omnivision sensor. If anyone is 
+> using mx3_camera with any other formats and thinks, that they work - 
+> please, shout now. I'll probably also post a separate mail with this 
+> warning.
+> 
+> > @@ -358,9 +381,25 @@ static void mx3_videobuf_queue(struct videobuf_queue *vq,
+> >  
+> >  	/* This is the configuration of one sg-element */
+> >  	video->out_pixel_fmt	= fourcc_to_ipu_pix(fourcc);
+> > -	video->out_width	= icd->user_width;
+> > -	video->out_height	= icd->user_height;
+> > -	video->out_stride	= icd->user_width;
+> > +
+> > +	if (video->out_pixel_fmt == IPU_PIX_FMT_GENERIC) {
+> > +		/*
+> > +		 * IPU_PIX_FMT_GENERIC transport bytes, not pixels. So convert
+> > +		 * video->out_width and stride to the correct unit.
+> > +		 */
+> > +		int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
+> > +						icd->current_fmt->host_fmt);
+> > +		BUG_ON(bytes_per_line <= 0);
+> > +
+> > +		video->out_width	= bytes_per_line;
+> > +		video->out_height	= icd->user_height;
+> > +		video->out_stride	= bytes_per_line;
+> > +	} else {
+> > +		/* For IPU known formats the pixel unit is OK */
+> > +		video->out_width	= icd->user_width;
+> > +		video->out_height	= icd->user_height;
+> > +		video->out_stride	= icd->user_width;
+> > +	}
+> >  
+> >  #ifdef DEBUG
+> >  	/* helps to see what DMA actually has written */
+> > @@ -730,18 +769,68 @@ static int mx3_camera_get_formats(struct soc_camera_device *icd, unsigned int id
+> >  	if (xlate) {
+> >  		xlate->host_fmt	= fmt;
+> >  		xlate->code	= code;
+> > +		dev_dbg(dev, "Providing format %c%c%c%c in pass-through mode\n",
+> > +			(xlate->host_fmt->fourcc >> (0*8)) & 0xFF,
+> > +			(xlate->host_fmt->fourcc >> (1*8)) & 0xFF,
+> > +			(xlate->host_fmt->fourcc >> (2*8)) & 0xFF,
+> > +			(xlate->host_fmt->fourcc >> (3*8)) & 0xFF);
+> >  		xlate++;
+> > -		dev_dbg(dev, "Providing format %x in pass-through mode\n",
+> > -			xlate->host_fmt->fourcc);
+> 
+> make it even simpler: s/xlate->host_fmt/fmt/g
+> 
+> >  	}
+> >  
+> >  	return formats;
+> >  }
+> >  
+> > +static int samples_per_pixel(enum v4l2_mbus_pixelcode mcode)
+> > +{
+> > +	switch (mcode) {
+> > +	case V4L2_MBUS_FMT_YUYV8_2X8:
+> > +	case V4L2_MBUS_FMT_YVYU8_2X8:
+> > +	case V4L2_MBUS_FMT_VYUY8_2X8:
+> > +	case V4L2_MBUS_FMT_YVYU10_2X10:
+> > +	case V4L2_MBUS_FMT_YUYV10_2X10:
+> > +	case V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE:
+> > +	case V4L2_MBUS_FMT_RGB444_2X8_PADHI_BE:
+> > +	case V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE:
+> > +	case V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE:
+> > +	case V4L2_MBUS_FMT_RGB565_2X8_LE:
+> > +	case V4L2_MBUS_FMT_RGB565_2X8_BE:
+> > +	case V4L2_MBUS_FMT_BGR565_2X8_LE:
+> > +	case V4L2_MBUS_FMT_BGR565_2X8_BE:
+> > +		return 2;
+> > +	case V4L2_MBUS_FMT_SBGGR8_1X8:
+> > +	case V4L2_MBUS_FMT_SBGGR10_1X10:
+> > +	case V4L2_MBUS_FMT_GREY8_1X8:
+> > +	case V4L2_MBUS_FMT_Y10_1X10:
+> > +	case V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE:
+> > +	case V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE:
+> 
+> Are these two really 1 sample per pixel?
+> 
+> > +	case V4L2_MBUS_FMT_SGRBG8_1X8:
+> > +		return 1;
+> > +	default:
+> > +		/* Add other pixel codes as needed */
+> > +		return 0;
+> > +	}
+> > +}
+> 
+> Let's just do the following:
+> 
+> s32 soc_mbus_samples_per_pixel(const struct soc_mbus_pixelfmt *mf)
+> {
+> 	switch (mf->packing) {
+> 	case SOC_MBUS_PACKING_NONE:
+> 	case SOC_MBUS_PACKING_EXTEND16:
+> 		return 1;
+> 	case SOC_MBUS_PACKING_2X8_PADHI:
+> 	case SOC_MBUS_PACKING_2X8_PADLO:
+> 		return 2;
+> 	}
+> 	return -EINVAL;
+> }
+> EXPORT_SYMBOL(soc_mbus_samples_per_pixel);
+> 
+> in drivers/media/video/soc_mediabus.c, agree?
+> 
+> > +
+> >  static void configure_geometry(struct mx3_camera_dev *mx3_cam,
+> > -			       unsigned int width, unsigned int height)
+> > +			       unsigned int width, unsigned int height,
+> > +			       enum v4l2_mbus_pixelcode code)
+> >  {
+> >  	u32 ctrl, width_field, height_field;
+> > +	const struct soc_mbus_pixelfmt *fmt;
+> > +
+> > +	fmt = soc_mbus_get_fmtdesc(code);
+> > +	BUG_ON(!fmt);
+> > +
+> > +	if (fourcc_to_ipu_pix(fmt->fourcc) == IPU_PIX_FMT_GENERIC) {
+> > +		/*
+> > +		 * As we don't have an IPU native format, the CSI will be
+> > +		 * configured to output BAYER and here we need to convert
+> > +		 * geometry unit from pixels to samples.
+> > +		 * TODO: Support vertical down sampling (YUV420)
+> > +		 */
+> > +		width = width * samples_per_pixel(code);
+> > +		BUG_ON(!width);
+> > +	}
+> 
+> 		width *= soc_mbus_samples_per_pixel(fmt);
+> 		BUG_ON((int)width < 0);
+> 
+> >  
+> >  	/* Setup frame size - this cannot be changed on-the-fly... */
+> >  	width_field = width - 1;
+> > @@ -850,7 +939,7 @@ static int mx3_camera_set_crop(struct soc_camera_device *icd,
+> >  				return ret;
+> >  		}
+> >  
+> > -		configure_geometry(mx3_cam, mf.width, mf.height);
+> > +		configure_geometry(mx3_cam, mf.width, mf.height, mf.code);
+> >  	}
+> >  
+> >  	dev_dbg(icd->dev.parent, "Sensor cropped %dx%d\n",
+> > @@ -893,7 +982,7 @@ static int mx3_camera_set_fmt(struct soc_camera_device *icd,
+> >  	 * mxc_v4l2_s_fmt()
+> >  	 */
+> >  
+> > -	configure_geometry(mx3_cam, pix->width, pix->height);
+> > +	configure_geometry(mx3_cam, pix->width, pix->height, xlate->code);
+> >  
+> >  	mf.width	= pix->width;
+> >  	mf.height	= pix->height;
+> > @@ -1112,10 +1201,15 @@ static int mx3_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
+> >  		  (3 << CSI_SENS_CONF_DATA_FMT_SHIFT) |
+> >  		  (3 << CSI_SENS_CONF_DATA_WIDTH_SHIFT));
+> >  
+> > -	/* TODO: Support RGB and YUV formats */
+> > +	/* TODO: Support RGB_YUV444 formats */
+> >  
+> > -	/* This has been set in mx3_camera_activate(), but we clear it above */
+> > -	sens_conf |= CSI_SENS_CONF_DATA_FMT_BAYER;
+> > +	switch (xlate->code) {
+> > +	case V4L2_MBUS_FMT_UYVY8_2X8:
+> > +		sens_conf |= CSI_SENS_CONF_DATA_FMT_YUV422;
+> > +		break;
+> > +	default:
+> > +		sens_conf |= CSI_SENS_CONF_DATA_FMT_BAYER;
+> > +	}
+> >  
+> >  	if (common_flags & SOCAM_PCLK_SAMPLE_FALLING)
+> >  		sens_conf |= 1 << CSI_SENS_CONF_PIX_CLK_POL_SHIFT;
+> > -- 
+> > 1.6.3.3
+> 
+> If after all the above changed your set up still works, we're cool!;)
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> 
+
 ---
-Changes since V1:
-=================
-- make corrections directly in function fimc_set_yuv_order
-  commented by Sylwester Nawrocki.
-- remove S5P_FIMC_IN_* and S5P_FIMC_OUT_* definitions from fimc-core.h
-
- drivers/media/video/s5p-fimc/fimc-core.c |   16 ++++++++--------
- drivers/media/video/s5p-fimc/fimc-core.h |   12 ------------
- 2 files changed, 8 insertions(+), 20 deletions(-)
-
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index 7f56987..71e1536 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -448,34 +448,34 @@ static void fimc_set_yuv_order(struct fimc_ctx *ctx)
- 	/* Set order for 1 plane input formats. */
- 	switch (ctx->s_frame.fmt->color) {
- 	case S5P_FIMC_YCRYCB422:
--		ctx->in_order_1p = S5P_FIMC_IN_YCRYCB;
-+		ctx->in_order_1p = S5P_MSCTRL_ORDER422_YCRYCB;
- 		break;
- 	case S5P_FIMC_CBYCRY422:
--		ctx->in_order_1p = S5P_FIMC_IN_CBYCRY;
-+		ctx->in_order_1p = S5P_MSCTRL_ORDER422_CBYCRY;
- 		break;
- 	case S5P_FIMC_CRYCBY422:
--		ctx->in_order_1p = S5P_FIMC_IN_CRYCBY;
-+		ctx->in_order_1p = S5P_MSCTRL_ORDER422_CRYCBY;
- 		break;
- 	case S5P_FIMC_YCBYCR422:
- 	default:
--		ctx->in_order_1p = S5P_FIMC_IN_YCBYCR;
-+		ctx->in_order_1p = S5P_MSCTRL_ORDER422_YCBYCR;
- 		break;
- 	}
- 	dbg("ctx->in_order_1p= %d", ctx->in_order_1p);
- 
- 	switch (ctx->d_frame.fmt->color) {
- 	case S5P_FIMC_YCRYCB422:
--		ctx->out_order_1p = S5P_FIMC_OUT_YCRYCB;
-+		ctx->out_order_1p = S5P_CIOCTRL_ORDER422_YCRYCB;
- 		break;
- 	case S5P_FIMC_CBYCRY422:
--		ctx->out_order_1p = S5P_FIMC_OUT_CBYCRY;
-+		ctx->out_order_1p = S5P_CIOCTRL_ORDER422_CBYCRY;
- 		break;
- 	case S5P_FIMC_CRYCBY422:
--		ctx->out_order_1p = S5P_FIMC_OUT_CRYCBY;
-+		ctx->out_order_1p = S5P_CIOCTRL_ORDER422_YCBYCR;
- 		break;
- 	case S5P_FIMC_YCBYCR422:
- 	default:
--		ctx->out_order_1p = S5P_FIMC_OUT_YCBYCR;
-+		ctx->out_order_1p = S5P_CIOCTRL_ORDER422_CRYCBY;
- 		break;
- 	}
- 	dbg("ctx->out_order_1p= %d", ctx->out_order_1p);
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index 4efc1a1..92cca62 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -95,18 +95,6 @@ enum fimc_color_fmt {
- 
- #define fimc_fmt_is_rgb(x) ((x) & 0x10)
- 
--/* Y/Cb/Cr components order at DMA output for 1 plane YCbCr 4:2:2 formats. */
--#define	S5P_FIMC_OUT_CRYCBY	S5P_CIOCTRL_ORDER422_YCBYCR
--#define	S5P_FIMC_OUT_CBYCRY	S5P_CIOCTRL_ORDER422_CBYCRY
--#define	S5P_FIMC_OUT_YCRYCB	S5P_CIOCTRL_ORDER422_YCRYCB
--#define	S5P_FIMC_OUT_YCBYCR	S5P_CIOCTRL_ORDER422_CRYCBY
--
--/* Input Y/Cb/Cr components order for 1 plane YCbCr 4:2:2 color formats. */
--#define	S5P_FIMC_IN_CRYCBY	S5P_MSCTRL_ORDER422_CRYCBY
--#define	S5P_FIMC_IN_CBYCRY	S5P_MSCTRL_ORDER422_CBYCRY
--#define	S5P_FIMC_IN_YCRYCB	S5P_MSCTRL_ORDER422_YCRYCB
--#define	S5P_FIMC_IN_YCBYCR	S5P_MSCTRL_ORDER422_YCBYCR
--
- /* Cb/Cr chrominance components order for 2 plane Y/CbCr 4:2:2 formats. */
- #define	S5P_FIMC_LSB_CRCB	S5P_CIOCTRL_ORDER422_2P_LSB_CRCB
- 
--- 
-1.6.2.5
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
