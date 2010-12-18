@@ -1,40 +1,56 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:41444 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757588Ab0LMNbm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Dec 2010 08:31:42 -0500
-Message-ID: <4D062037.7040303@redhat.com>
-Date: Mon, 13 Dec 2010 11:31:35 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3734 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756042Ab0LRNNA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 18 Dec 2010 08:13:00 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: Re: Volunteers needed: BKL removal: replace .ioctl by .unlocked_ioctl
+Date: Sat, 18 Dec 2010 14:12:49 +0100
+Cc: pawel@osciak.com, Marek Szyprowski <m.szyprowski@samsung.com>,
+	Steven Toth <stoth@kernellabs.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	sakari.ailus@maxwell.research.nokia.com,
+	David Cohen <dacohen@gmail.com>, Janne Grunau <j@jannau.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>,
+	Mike Isely <isely@isely.net>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Anatolij Gustschin <agust@denx.de>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pete Eberlein <pete@sensoray.com>
+References: <201012181231.27198.hverkuil@xs4all.nl>
+In-Reply-To: <201012181231.27198.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 0/6] gspca sonixj better handling of reg 01 and 17
-References: <20101213140229.6379b78d@tele>
-In-Reply-To: <20101213140229.6379b78d@tele>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201012181412.49972.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 13-12-2010 11:02, Jean-Francois Moine escreveu:
-> Here is an other way to fix the inv powerdown bug.
+On Saturday, December 18, 2010 12:31:26 Hans Verkuil wrote:
+> Unassigned drivers:
+> 
+> saa7134
+> em28xx
 
-Didn't test yet, but it seems that this series will properly address the issue.
+em28xx was a trivial fix, so this can be removed from the list.
+
+Regards,
+
+	Hans
+
+> cx88
+> solo6x10 (staging driver)
 > 
-> These patches are not tested yet.
+> Regards,
 > 
-> Jean-François Moine (6):
->       gspca - sonixj: Move bridge init to sd start
->       gspca - sonixj: Fix a bad probe exchange
->       gspca - sonixj: Add a flag in the driver_info table
->       gspca - sonixj: Set the flag for some devices
->       gspca - sonixj: Add the bit definitions of the bridge reg 0x01 and 0x17
->       gspca - sonixj: Better handling of the bridge registers 0x01 and 0x17
+> 	Hans
 > 
->  drivers/media/video/gspca/sonixj.c |  410 ++++++++++++++++--------------------
->  1 files changed, 182 insertions(+), 228 deletions(-)
 > 
 
-Cheers,
-Mauro
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
