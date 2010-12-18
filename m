@@ -1,50 +1,95 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:49579 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751690Ab0LQDVl (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4406 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932210Ab0LRVMQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Dec 2010 22:21:41 -0500
-Received: by vws16 with SMTP id 16so91244vws.19
-        for <linux-media@vger.kernel.org>; Thu, 16 Dec 2010 19:21:41 -0800 (PST)
-Subject: Re: [PATCH 3/4] rc: conversion is to microseconds, not nanoseconds
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=us-ascii
-From: Jarod Wilson <jarod@wilsonet.com>
-In-Reply-To: <1292534935.19587.5.camel@maxim-laptop>
-Date: Thu, 16 Dec 2010 22:21:38 -0500
-Cc: Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org
+	Sat, 18 Dec 2010 16:12:16 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mike Isely <isely@isely.net>
+Subject: Re: Volunteers needed: BKL removal: replace .ioctl by .unlocked_ioctl
+Date: Sat, 18 Dec 2010 22:11:58 +0100
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Steven Toth <stoth@kernellabs.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	sakari.ailus@maxwell.research.nokia.com,
+	David Cohen <dacohen@gmail.com>, Janne Grunau <j@jannau.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Anatolij Gustschin <agust@denx.de>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pete Eberlein <pete@sensoray.com>
+References: <201012181231.27198.hverkuil@xs4all.nl> <201012181246.09823.hverkuil@xs4all.nl> <alpine.DEB.1.10.1012181233240.8489@ivanova.isely.net>
+In-Reply-To: <alpine.DEB.1.10.1012181233240.8489@ivanova.isely.net>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <2B8222AA-9648-42F0-A08C-8BA7EC506E35@wilsonet.com>
-References: <1292526037-21491-1-git-send-email-jarod@redhat.com> <1292526037-21491-4-git-send-email-jarod@redhat.com> <1292534935.19587.5.camel@maxim-laptop>
-To: Maxim Levitsky <maximlevitsky@gmail.com>
+Message-Id: <201012182211.58379.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Dec 16, 2010, at 4:28 PM, Maxim Levitsky wrote:
+On Saturday, December 18, 2010 19:34:00 Mike Isely wrote:
+> 
+> I'll take care of the pvrusb2 driver.  How soon does this need to be 
+> completed?
 
-> On Thu, 2010-12-16 at 14:00 -0500, Jarod Wilson wrote:
->> Fix a thinko, and move macro definition to a common header so it can be
->> shared amongst all drivers, as ms to us conversion is something that
->> multiple drivers need to do. We probably ought to have its inverse
->> available as well.
+It would be great if we can finish this in time for 2.6.38. So that's in the
+next three weeks.
+
+I have to say that switching drivers to use the core-assisted lock tends to be
+pretty easy. So I am hopeful that it is less work than it looks at first sight.
+
+Regards,
+
+	hans
+
+> 
+>   -Mike
 > 
 > 
-> Nope, at least ENE gets 'us' samples, that is 10^-6 seconds, and I
-> multiply that by 1000, and that gives nanoseconds (10^-9).
-
-Huh, okay. I'd have expected it to be US_TO_NS then. I basically
-hijacked a copy over to mceusb and was using it for ms to us
-conversions.
-
-> I have nothing against moving MS_TO_NS to common code of course.
-
-I'll throw together something new in the relatively near future, will
-probably just add macros for both conversions and both directions.
-
+> On Sat, 18 Dec 2010, Hans Verkuil wrote:
+> 
+> > On Saturday, December 18, 2010 12:31:26 Hans Verkuil wrote:
+> > > Driver list:
+> > > 
+> > > saa7146 (Hans Verkuil)
+> > > mem2mem_testdev (Pawel Osciak or Marek Szyprowski)
+> > > cx23885 (Steve Toth)
+> > > cx18-alsa (Andy Walls)
+> > > omap24xxcam (Sakari Ailus or David Cohen)
+> > > au0828 (Janne Grunau)
+> > > cpia2 (Andy Walls or Hans Verkuil)
+> > > cx231xx (Mauro Carvalho Chehab)
+> > > davinci (Muralidharan Karicheri)
+> > > saa6588 (Hans Verkuil)
+> > > pvrusb2 (Mike Isely)
+> > > usbvision (Hans Verkuil)
+> > > s5p-fimc (Sylwester Nawrocki)
+> > > fsl-viu (Anatolij Gustschin)
+> > > tlg2300 (Mauro Carvalho Chehab)
+> > > zr364xx (Hans de Goede)
+> > > soc_camera (Guennadi Liakhovetski)
+> > > usbvideo/vicam (Hans de Goede)
+> > > s2255drv (Pete Eberlein)
+> > > bttv (Mauro Carvalho Chehab)
+> > > stk-webcam (Hans de Goede)
+> > > se401 (Hans de Goede)
+> > > si4713-i2c (Hans Verkuil)
+> > > dsbr100 (Hans Verkuil)
+> > 
+> > Oops, si4713-i2c and saa6588 are subdevs, so those two can be removed from
+> > this list.
+> > 
+> > Regards,
+> > 
+> > 	Hans
+> > 
+> > 
+> 
+> 
 
 -- 
-Jarod Wilson
-jarod@wilsonet.com
-
-
-
+Hans Verkuil - video4linux developer - sponsored by Cisco
