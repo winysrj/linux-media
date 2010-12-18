@@ -1,50 +1,67 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:46733 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753605Ab0LaPES (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4350 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755882Ab0LRMXY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Dec 2010 10:04:18 -0500
-From: Ben Gamari <bgamari.foss@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "Igor M. Liplianin" <liplianin@me.by>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, aospan@netup.ru
-Subject: Re: [PATCH 01/18] Altera FPGA firmware download module.
-In-Reply-To: <4D1DC2DD.6050400@infradead.org>
-References: <201012310726.31851.liplianin@netup.ru> <201012311212.19715.laurent.pinchart@ideasonboard.com> <4D1DBE2A.5080003@infradead.org> <201012311230.51903.laurent.pinchart@ideasonboard.com> <4D1DC2DD.6050400@infradead.org>
-Date: Fri, 31 Dec 2010 10:04:13 -0500
-Message-ID: <8739pec7bm.fsf@gmail.com>
+	Sat, 18 Dec 2010 07:23:24 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Janne Grunau <j@jannau.net>
+Subject: Re: Volunteers needed: BKL removal: replace .ioctl by .unlocked_ioctl
+Date: Sat, 18 Dec 2010 13:23:21 +0100
+Cc: linux-media@vger.kernel.org, Steven Toth <stoth@kernellabs.com>,
+	Michael Krufky <mkrufky@kernellabs.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+References: <201012181231.27198.hverkuil@xs4all.nl> <20101218122040.GI8381@aniel.fritz.box>
+In-Reply-To: <20101218122040.GI8381@aniel.fritz.box>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201012181323.21950.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Fri, 31 Dec 2010 09:47:41 -0200, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
-> > I understand this. However, a complete JTAG state machine in the kernel, plus 
-> > an Altera firmware parser, seems to be a lot of code that could live in 
-> > userspace.
+On Saturday, December 18, 2010 13:20:40 Janne Grunau wrote:
+> Hi,
 > 
-> Moving it to userspace would mean a kernel driver that would depend on an
-> userspace daemon^Wfirmware loader to work. I would NAK such designs.
-> 
-Why? I agree that JTAG is a lot to place in the kernel and is much
-better suited to be in user space. What exactly is your objection to
-depending on a userspace utility? There is no shortage of precedent for
-loading firmware in userspace (e.g. fx2 usb devices).
-
-> > If I understand it correctly the driver assumes the firmware is in an Altera 
-> > proprietary format. If we really want JTAG code in the kernel we should at 
-> > least split the file parser and the TAP access code.
+> On Sat, Dec 18, 2010 at 12:31:26PM +0100, Hans Verkuil wrote:
 > > 
+> > Now that the BKL patch series has been merged in 2.6.37 it is time to work
+> > on replacing .ioctl by .unlocked_ioctl in all v4l drivers.
+> > 
+> > I've made an inventory of all drivers that still use .ioctl and I am looking
+> > for volunteers to tackle one or more drivers.
+> > 
+> > I have CCed this email to the maintainers of the various drivers (if I know
+> > who it is) in the hope that we can get this conversion done as quickly as
+> > possible.
+> > 
+> > If I have added your name to a driver, then please confirm if you are able to
+> > work on it or not. If you can't work on it, but you know someone else, then
+> > let me know as well.
 > 
-> Agreed, but I don't think this would be a good reason to block the code merge
-> for .38.
+> ...
 > 
-I agree with the above isn't good reason to block it but if there is
-still debate about the general architecture of the code (see above),
-then it seems aren't ready yet. The code looks very nice, but I'm not at
-all convinced that it needs to be in the kernel. Just my two-tenths of a
-cent.
+> > Driver list:
+> 
+> ...
+> 
+> > au0828 (Janne Grunau)
+> 
+> I did only two minor cleanups and don't have the hardware. Steven Toth,
+> Devin Heitmueller or Michael Krufky have done major changes to the
+> driver.
+> 
+> Added to CC and trimmed
 
-Cheers,
-- Ben
+Hi Janne,
+
+My apologies, for some reason I had it in my head that you maintained that
+driver. But I confused au0828 with hdpvr :-(
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
