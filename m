@@ -1,45 +1,74 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout08.t-online.de ([194.25.134.20]:46453 "EHLO
-	mailout08.t-online.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752609Ab0LZVob (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3908 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754790Ab0LRKpo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Dec 2010 16:44:31 -0500
-From: Heino Goldenstein <heino.goldenstein@t-online.de>
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH] cx88-dvb.c: DVB net latency using Hauppauge HVR4000
-Date: Sun, 26 Dec 2010 21:51:34 +0100
-References: <4D14325E.9000505@sfc.wide.ad.jp> <20101224222845.47edf47d@bk.ru>
-In-Reply-To: <20101224222845.47edf47d@bk.ru>
+	Sat, 18 Dec 2010 05:45:44 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [GIT PULL FOR 2.6.37] uvcvideo: BKL removal
+Date: Sat, 18 Dec 2010 11:45:29 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+References: <201011291115.11061.laurent.pinchart@ideasonboard.com> <4D0B9953.7090202@redhat.com> <201012180154.42363.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201012180154.42363.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
+Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201012262151.35026.heino.goldenstein@t-online.de>
+Message-Id: <201012181145.29681.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hello,
+On Saturday, December 18, 2010 01:54:41 Laurent Pinchart wrote:
+> Hi Mauro,
+> 
+> On Friday 17 December 2010 18:09:39 Mauro Carvalho Chehab wrote:
+> > Em 14-12-2010 08:55, Laurent Pinchart escreveu:
+> > > Hi Mauro,
+> > > 
+> > > Please don't forget this pull request for 2.6.37.
+> > 
+> > Pull request for upstream sent today.
+> 
+> Thank you.
+> 
+> > I didn't find any regressions at the BKL removal patches, but I noticed a
+> > few issues with qv4l2, not all related to uvcvideo. The remaining of this
+> > email is an attempt to document them for later fixes.
+> > 
+> > They don't seem to be regressions caused by BKL removal, but the better
+> > would be to fix them later.
+> > 
+> > - with uvcvideo and two video apps, if qv4l2 is started first, the second
+> > application doesn't start/capture. I suspect that REQBUFS (used by qv4l2
+> > to probe mmap/userptr capabilities) create some resource locking at
+> > uvcvideo. The proper way is to lock the resources only if the driver is
+> > streaming, as other drivers and videobuf do.
+> 
+> I don't agree with that. The uvcvideo driver has one buffer queue per device, 
+> so if an application requests buffers on one file handle it will lock other 
+> applications out. If the driver didn't it would be subject to race conditions.
 
-Am Freitag, 24. Dezember 2010 20:28 schrieb Goga777:
+I agree with Laurent. Once an application calls REQBUFS with non-zero count,
+then it should lock the resources needed for streaming. The reason behind that
+is that REQBUFS also locks the current selected format in place, since the
+format determines the amount of memory needed for the buffers.
 
-> will your patch useful for dvb sat tv ?
->
-> >      We are from School On Internet Asia (SOI Asia) project that uses
-> > satellite communication to deliver educational content. We used Hauppauge
-> > HVR 4000 to carry IP traffic over ULE. However, there is an issue with
-> > high latency jitter. My boss, Husni, identified the problem and provided
-> > a patch for this problem. We have tested this patch since kernel 2.6.30
-> > on our partner sites and it hasn't cause any issue. The default buffer
-> > size of 32 TS frames on cx88 causes the high latency, so our deployment
-> > changes that to 6 TS frames. This patch made the buffer size tunable,
-> > while keeping the default buffer size of 32 TS frames unchanged. Sorry, I
+The reason a lot of drivers don't do this is partially because for many TV
+capture drivers it is highly unlikely that the buffer size will change after
+calling REQBUFS (there are basically only two formats: 720x480 or 720x576 and
+users will normally never change between the two). However, this is much more
+likely to happen for webcams and embedded systems supporting HDTV.
 
-FWIW in the DVBlast subversion is a similar patch [1] touching the same
-value. See the reason for this in the README [2].
+The other reason is probably because driver developers simple do not realize
+they need to lock the resources on REQBUFS. I'm sure many existing drivers will
+fail miserably if you change the format after calling REQBUFS (particularly
+with mmap streaming mode).
 
-Tjuess
-  Heino
+Regards,
 
-[1]http://svn.videolan.org/filedetails.php?repname=DVBlast&path=%2Ftrunk%2Fextra%2Fkernel-patches%2F03-cx88.patch
-[2]http://svn.videolan.org/filedetails.php?repname=DVBlast&path=%2Ftrunk%2Fextra%2Fkernel-patches%2FREADME
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
