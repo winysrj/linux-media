@@ -1,45 +1,38 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp.work.de ([212.12.45.188]:54454 "EHLO smtp2.work.de"
+Received: from smtp01.frii.com ([216.17.135.167]:59387 "EHLO smtp01.frii.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752766Ab0LOHEy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Dec 2010 02:04:54 -0500
-Subject: Re: Hauppauge HVR-2200 analog
-Mime-Version: 1.0 (Apple Message framework v1082)
+	id S1752652Ab0LRWvx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 18 Dec 2010 17:51:53 -0500
+Received: from io.frii.com (io.frii.com [216.17.222.1])
+	by smtp01.frii.com (FRII) with ESMTP id 2552EE8006
+	for <linux-media@vger.kernel.org>; Sat, 18 Dec 2010 15:51:53 -0700 (MST)
+Date: Sat, 18 Dec 2010 15:51:53 -0700
+From: Mark Zimmerman <markzimm@frii.com>
+To: linux-media@vger.kernel.org
+Subject: Re: Lost remote after kernel/v4l update cx23885 chipset
+Message-ID: <20101218225153.GA11825@io.frii.com>
+References: <20100214215041.GA61131@io.frii.com>
+MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-From: Julian Scheel <julian@jusst.de>
-In-Reply-To: <4D07CAA6.3030300@kernellabs.com>
-Date: Wed, 15 Dec 2010 08:04:50 +0100
-Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <67DB049D-B91E-4457-93CE-2CE0164C5B54@jusst.de>
-References: <4CFE14A1.3040801@jusst.de> <1291726869.2073.5.camel@morgan.silverblock.net> <4D07A829.6080406@jusst.de> <4D07CAA6.3030300@kernellabs.com>
-To: Steven Toth <stoth@kernellabs.com>
+Content-Disposition: inline
+In-Reply-To: <20100214215041.GA61131@io.frii.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Am 14.12.2010 um 20:51 schrieb Steven Toth:
+For the archives: Working again in 2.6.35
 
-> On 12/14/10 12:23 PM, Julian Scheel wrote:
->> Is there any reason, why the additional card-information found here:
->> http://www.kernellabs.com/hg/~stoth/saa7164-dev/
->> is not yet in the kernel tree?
+
+On Sun, Feb 14, 2010 at 02:50:41PM -0700, Mark Zimmerman wrote:
+> Greetings:
 > 
-> On my todo list.
-
-Ok, fine.
-
-> I validate each board before I add its profile to the core tree. If certain
-> boards are missing then its because that board is considered experimental or is
-> pending testing and merge.
+> I found this <http://www.spinics.net/lists/linux-media/msg15421.html>
+> in the archives and I am having the exact same problem. Everything
+> worked in 2.6.31. Let me know if there is any testing I could do to
+> help solve this.
 > 
-> PAL encoder support is broken in the current tree and it currently getting my
-> love and attention. Point me at the specific boards you think are missing and
-> I'll also add these to my todo list, they'll likely get merged at the same time.
-
-Actually this is the board I am testing with:
-http://www.kernellabs.com/hg/~stoth/saa7164-dev/rev/cf2d7530d676
-
-Should it work with your testing tree or is the encoder part broken there as well?
-
-Julian
+> -- Mark
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
