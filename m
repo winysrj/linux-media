@@ -1,133 +1,137 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3899 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751345Ab0LOKDl (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:53597 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932158Ab0LRVPP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Dec 2010 05:03:41 -0500
-Message-ID: <88f9541c1108ad1e1770049359cc166c.squirrel@webmail.xs4all.nl>
-In-Reply-To: <201012151037.35243.laurent.pinchart@ideasonboard.com>
-References: <201012150119.43918.laurent.pinchart@ideasonboard.com>
-    <201012150857.29099.hverkuil@xs4all.nl>
-    <201012151037.35243.laurent.pinchart@ideasonboard.com>
-Date: Wed, 15 Dec 2010 11:03:37 +0100
-Subject: Re: What if add enumerations at the V4L2_FOCUS_MODE_AUTO?
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
-Cc: riverful.kim@samsung.com,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	"Sylwester Nawrocki" <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org
+	Sat, 18 Dec 2010 16:15:15 -0500
+Date: Sat, 18 Dec 2010 22:14:32 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: linux-media@vger.kernel.org, pawel@osciak.com,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Steven Toth <stoth@kernellabs.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	sakari.ailus@maxwell.research.nokia.com,
+	David Cohen <dacohen@gmail.com>, Janne Grunau <j@jannau.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>,
+	Mike Isely <isely@isely.net>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Anatolij Gustschin <agust@denx.de>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Pete Eberlein <pete@sensoray.com>
+Subject: Re: Volunteers needed: BKL removal: replace .ioctl by .unlocked_ioctl
+In-Reply-To: <201012181231.27198.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1012182214140.18515@axis700.grange>
+References: <201012181231.27198.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-> Hi Hans,
->
-> On Wednesday 15 December 2010 08:57:29 Hans Verkuil wrote:
->> On Wednesday, December 15, 2010 01:19:43 Laurent Pinchart wrote:
->> > On Tuesday 14 December 2010 12:27:32 Kim, HeungJun wrote:
->> > > Hi Laurent and Hans,
->> > >
->> > > I am working on V4L2 subdev for M5MOLS by Fujitsu.
->> > > and I wanna listen your comments about Auto Focus mode of my ideas.
->> > > the details is in the following link discussed at the past.
->> > > Although the situation(adding the more various functions at the
->> M5MOLS
->> > > or any other MEGA camera sensor, I worked.)is changed,
->> > > so I wanna continue this threads for now.
->> > >
->> > > http://www.mail-archive.com/linux-media@vger.kernel.org/msg03543.html
->> > >
->> > > First of all, the at least two more mode of auto-focus exists in the
->> > > M5MOLS camera sensor. So, considering defined V4L2 controls and the
->> > > controls in the M5MOLS, I suggest like this:
->> > >
->> > > +enum  v4l2_focus_auto_type {
->> > > +	V4L2_FOCUS_AUTO_NORMAL = 0,
->> > > +	V4L2_FOCUS_AUTO_MACRO = 1,
->> > > +	V4L2_FOCUS_AUTO_POSITION = 2,
->> > > +};
->> > > +#define V4L2_CID_FOCUS_POSITION			(V4L2_CID_CAMERA_CLASS_BASE+13)
->> > >
->> > > -#define V4L2_CID_ZOOM_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+13)
->> > > -#define V4L2_CID_ZOOM_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+14)
->> > > +#define V4L2_CID_ZOOM_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+14)
->> > > +#define V4L2_CID_ZOOM_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+15)
->> > >
->> > >
->> > > The M5MOLS(or other recent camera sensor) can have at least 2 mode
->> > > although in any cases : *MACRO* and *NORMAL* mode. plus, M5MOLS
->> > > supports positioning focus mode, AKA. POSITION AF mode.
->> > >
->> > > The MACRO mode scan short range, and this mode can be used at the
->> > > circumstance in the short distance with object and camera lens. So,
->> It
->> > > has fast lens movement, but the command FOCUSING dosen't works well
->> at
->> > > the long distance object.
->> > >
->> > > On the other hand, NORMAL mode can this. As the words, It's general
->> and
->> > > normal focus mode. The M5MOLS scan fully in the mode.
->> > >
->> > > In the Position AF mode, the position(expressed x,y) is given at the
->> > > M5MOLS, and then the M5MOLS focus this area. But, the time given the
->> > > position, is normally touch the lcd screen at the mobile device, in
->> my
->> > > case. If the time is given from button, it's no big problem *when*.
->> > > But, in touch-lcd screen case, the position is read at the touch
->> > > screen driver, before command FOCUS to camera sensor. It's the why I
->> > > add another CID(V4L2_CID_FOCUS_POSITION).
->> >
->> > I'm pretty sure that some devices would require a rectangle instead of
->> > coordinates to define the focus point. Even a rectangle might not be
->> > enough. It would help if we could get feedback from camera designers
->> > here.
->> >
->> > Hans, should we add a new control type to pass coordinates/rectangles
->> ?
->> > :-)
->>
->> It's a bit tricky actually since QUERYCTRL can return only one set of
->> min/max values. For coordinates/rectangles we need two sets (horizontal
->> and vertical).
->>
->> And I think it is important to know the min/max values.
->
-> Hence my question, should we add a way to pass rectangles (basically a
-> struct
-> v4l2_rect) through the control ioctls ? It would make sense.
+On Sat, 18 Dec 2010, Hans Verkuil wrote:
 
-I thought it over and came to the conclusion that we should not do that.
-Instead we can create four separate controls.
+> Hi all,
+> 
+> Now that the BKL patch series has been merged in 2.6.37 it is time to work
+> on replacing .ioctl by .unlocked_ioctl in all v4l drivers.
+> 
+> I've made an inventory of all drivers that still use .ioctl and I am looking
+> for volunteers to tackle one or more drivers.
+> 
+> I have CCed this email to the maintainers of the various drivers (if I know
+> who it is) in the hope that we can get this conversion done as quickly as
+> possible.
+> 
+> If I have added your name to a driver, then please confirm if you are able to
+> work on it or not. If you can't work on it, but you know someone else, then
+> let me know as well.
+> 
+> There is also a list of drivers where I do not know who can do the conversion.
+> If you can tackle one or more of those, please respond. Unfortunately, those
+> are among the hardest to convert :-(
+> 
+> It would be great if we can tackle most of these drivers for 2.6.38. I think
+> we should finish all drivers for 2.6.39 at the latest.
+> 
+> There are two ways of doing the conversion: one is to do all the locking within
+> the driver, the other is to use core-assisted locking. How to do the core-assisted
+> locking is described in Documentation/video4linux/v4l2-framework.txt, but I'll
+> repeat the relevant part here:
+> 
+> v4l2_file_operations and locking
+> --------------------------------
+> 
+> You can set a pointer to a mutex_lock in struct video_device. Usually this
+> will be either a top-level mutex or a mutex per device node. If you want
+> finer-grained locking then you have to set it to NULL and do you own locking.
+> 
+> If a lock is specified then all file operations will be serialized on that
+> lock. If you use videobuf then you must pass the same lock to the videobuf
+> queue initialize function: if videobuf has to wait for a frame to arrive, then
+> it will temporarily unlock the lock and relock it afterwards. If your driver
+> also waits in the code, then you should do the same to allow other processes
+> to access the device node while the first process is waiting for something.
+> 
+> The implementation of a hotplug disconnect should also take the lock before
+> calling v4l2_device_disconnect.
+> 
+> 
+> Driver list:
+> 
+> saa7146 (Hans Verkuil)
+> mem2mem_testdev (Pawel Osciak or Marek Szyprowski)
+> cx23885 (Steve Toth)
+> cx18-alsa (Andy Walls)
+> omap24xxcam (Sakari Ailus or David Cohen)
+> au0828 (Janne Grunau)
+> cpia2 (Andy Walls or Hans Verkuil)
+> cx231xx (Mauro Carvalho Chehab)
+> davinci (Muralidharan Karicheri)
+> saa6588 (Hans Verkuil)
+> pvrusb2 (Mike Isely)
+> usbvision (Hans Verkuil)
+> s5p-fimc (Sylwester Nawrocki)
+> fsl-viu (Anatolij Gustschin)
+> tlg2300 (Mauro Carvalho Chehab)
+> zr364xx (Hans de Goede)
+> soc_camera (Guennadi Liakhovetski)
 
-The problem we run into when adding more complex types is that we can no
-longer communicate min and max values (something that we definitely want
-when dealing with coordinates).
+Will have a look.
 
-Another reason is how the control mechanism is designed: they only support
-the basic types (int, bool, string, enum, int64 and a 'button' aka
-action). And the controls are grouped into classes which are named through
-the 'ctrl_class' control.
+Thanks
+Guennadi
 
-So effectively controls represent a field in a class (or struct) and each
-class can be presented as a tab page in a control panel.
+> usbvideo/vicam (Hans de Goede)
+> s2255drv (Pete Eberlein)
+> bttv (Mauro Carvalho Chehab)
+> stk-webcam (Hans de Goede)
+> se401 (Hans de Goede)
+> si4713-i2c (Hans Verkuil)
+> dsbr100 (Hans Verkuil)
+> 
+> Staging driver list:
+> 
+> go7007 (Pete Eberlein)
+> tm6000 (Mauro Carvalho Chehab)
+> (stradis/cpia: will be removed in 2.6.38, so no need to do anything)
+> 
+> Unassigned drivers:
+> 
+> saa7134
+> em28xx
+> cx88
+> solo6x10 (staging driver)
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> -- 
+> Hans Verkuil - video4linux developer - sponsored by Cisco
+> 
 
-Simple and straightforward.
-
-If we start to add complex types, then it becomes really hard to define
-the meta data of the control since you are really defining a 'mini-class'.
-
-It sounds nice initially, but we really should not do this since I believe
-it will lead to chaos later on. You want complex types, then use ioctls,
-not controls. Or split up the complex type into multiple simple types.
-
-Regards,
-
-        Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
-
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
