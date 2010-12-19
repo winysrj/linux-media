@@ -1,260 +1,192 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:44167 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753212Ab0LVNkx (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:23602 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756436Ab0LSV7v (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Dec 2010 08:40:53 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from spt2.w1.samsung.com ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LDU00C9E0O2EB70@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 22 Dec 2010 13:40:50 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LDU00LU30O12C@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 22 Dec 2010 13:40:50 +0000 (GMT)
-Date: Wed, 22 Dec 2010 14:40:31 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 01/13] v4l: Add multi-planar API definitions to the V4L2 API
-In-reply-to: <1293025239-9977-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	andrzej.p@samsung.com
-Message-id: <1293025239-9977-2-git-send-email-m.szyprowski@samsung.com>
-References: <1293025239-9977-1-git-send-email-m.szyprowski@samsung.com>
+	Sun, 19 Dec 2010 16:59:51 -0500
+Subject: Re: Power frequency detection.
+From: Andy Walls <awalls@md.metrocast.net>
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+Cc: Paulo Assis <pj.assis@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <alpine.LNX.2.00.1012191423030.23950@banach.math.auburn.edu>
+References: <73wo0g3yy30clob2isac30vm.1292782894810@email.android.com>
+	 <alpine.LNX.2.00.1012191423030.23950@banach.math.auburn.edu>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 19 Dec 2010 17:00:33 -0500
+Message-ID: <1292796033.2052.111.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-From: Pawel Osciak <p.osciak@samsung.com>
+On Sun, 2010-12-19 at 14:51 -0600, Theodore Kilgore wrote:
+> 
+> On Sun, 19 Dec 2010, Andy Walls wrote:
+> 
+> > Theodore,
+> > 
+> > Aside from detect measurment of the power line, isn't a camera the best sort of sensor for this measurment anyway?
+> > 
+> > Just compute the average image luminosity over several frames and look for (10 Hz ?) periodic variation (beats), indicating a mismatch.
+> > 
+> > Sure you could just ask the user, but where's the challenge in that. ;)
+> > 
+> > Regards,
+> > Andy
+> 
+> Well, if it is "established policy" to go with doing this as a control, I 
+> guess we can just go ahead instead of doing something fancy.
 
-Multi-planar API is as a backwards-compatible extension of the V4L2 API,
-which allows video buffers to consist of one or more planes. Planes are
-separate memory buffers; each has its own mapping, backed by usually
-separate physical memory buffers.
+My policy is let computers do what computers do well, and let people do
+what people do well.  Looking at an image, recognizing flicker, and
+twiddling knobs to make it go away (to one's own satisfaction) is much
+better left to a person for one time adjustments.
 
-Many different uses for the multi-planar API are possible, examples
-include:
-- embedded devices requiring video components to be placed in physically
-separate buffers, e.g. for Samsung S3C/S5P SoC series' video codec,
-Y and interleaved Cb/Cr components reside in buffers in different
-memory banks;
-- applications may receive (or choose to store) video data of one video
-buffer in separate memory buffers; such data would have to be temporarily
-copied together into one buffer before passing it to a V4L2 device;
-- applications or drivers may want to pass metadata related to a buffer and
-it may not be possible to place it in the same buffer, together with video
-data.
 
-Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Reviewed-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/video/v4l2-ioctl.c |    2 +
- include/linux/videodev2.h        |  124 +++++++++++++++++++++++++++++++++++++-
- 2 files changed, 124 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index dd9283f..8516669 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -169,6 +169,8 @@ const char *v4l2_type_names[] = {
- 	[V4L2_BUF_TYPE_SLICED_VBI_CAPTURE] = "sliced-vbi-cap",
- 	[V4L2_BUF_TYPE_SLICED_VBI_OUTPUT]  = "sliced-vbi-out",
- 	[V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY] = "vid-out-overlay",
-+	[V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE] = "vid-cap-mplane",
-+	[V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE] = "vid-out-mplane",
- };
- EXPORT_SYMBOL(v4l2_type_names);
- 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 5f6f470..d30c98d 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -70,6 +70,7 @@
-  * Moved from videodev.h
-  */
- #define VIDEO_MAX_FRAME               32
-+#define VIDEO_MAX_PLANES               8
- 
- #ifndef __KERNEL__
- 
-@@ -157,9 +158,23 @@ enum v4l2_buf_type {
- 	/* Experimental */
- 	V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY = 8,
- #endif
-+	V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,
-+	V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
- 	V4L2_BUF_TYPE_PRIVATE              = 0x80,
- };
- 
-+#define V4L2_TYPE_IS_MULTIPLANAR(type)			\
-+	((type) == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE	\
-+	 || (type) == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-+
-+#define V4L2_TYPE_IS_OUTPUT(type)				\
-+	((type) == V4L2_BUF_TYPE_VIDEO_OUTPUT			\
-+	 || (type) == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE		\
-+	 || (type) == V4L2_BUF_TYPE_VIDEO_OVERLAY		\
-+	 || (type) == V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY	\
-+	 || (type) == V4L2_BUF_TYPE_VBI_OUTPUT			\
-+	 || (type) == V4L2_BUF_TYPE_SLICED_VBI_OUTPUT)
-+
- enum v4l2_tuner_type {
- 	V4L2_TUNER_RADIO	     = 1,
- 	V4L2_TUNER_ANALOG_TV	     = 2,
-@@ -245,6 +260,11 @@ struct v4l2_capability {
- #define V4L2_CAP_HW_FREQ_SEEK		0x00000400  /* Can do hardware frequency seek  */
- #define V4L2_CAP_RDS_OUTPUT		0x00000800  /* Is an RDS encoder */
- 
-+/* Is a video capture device that supports multiplanar formats */
-+#define V4L2_CAP_VIDEO_CAPTURE_MPLANE	0x00001000
-+/* Is a video output device that supports multiplanar formats */
-+#define V4L2_CAP_VIDEO_OUTPUT_MPLANE	0x00002000
-+
- #define V4L2_CAP_TUNER			0x00010000  /* has a tuner */
- #define V4L2_CAP_AUDIO			0x00020000  /* has audio support */
- #define V4L2_CAP_RADIO			0x00040000  /* is a radio device */
-@@ -517,6 +537,62 @@ struct v4l2_requestbuffers {
- 	__u32			reserved[2];
- };
- 
-+/**
-+ * struct v4l2_plane - plane info for multi-planar buffers
-+ * @bytesused:		number of bytes occupied by data in the plane (payload)
-+ * @length:		size of this plane (NOT the payload) in bytes
-+ * @mem_offset:		when memory in the associated struct v4l2_buffer is
-+ * 			V4L2_MEMORY_MMAP, equals the offset from the start of
-+ * 			the device memory for this plane (or is a "cookie" that
-+ * 			should be passed to mmap() called on the video node)
-+ * @userptr:		when memory is V4L2_MEMORY_USERPTR, a userspace pointer
-+ * 			pointing to this plane
-+ * @data_offset:	offset in the plane to the start of data; usually 0,
-+ * 			unless there is a header in front of the data
-+ *
-+ * Multi-planar buffers consist of one or more planes, e.g. an YCbCr buffer
-+ * with two planes can have one plane for Y, and another for interleaved CbCr
-+ * components. Each plane can reside in a separate memory buffer, or even in
-+ * a completely separate memory node (e.g. in embedded devices).
-+ */
-+struct v4l2_plane {
-+	__u32			bytesused;
-+	__u32			length;
-+	union {
-+		__u32		mem_offset;
-+		unsigned long	userptr;
-+	} m;
-+	__u32			data_offset;
-+	__u32			reserved[11];
-+};
-+
-+/**
-+ * struct v4l2_buffer - video buffer info
-+ * @index:	id number of the buffer
-+ * @type:	buffer type (type == *_MPLANE for multiplanar buffers)
-+ * @bytesused:	number of bytes occupied by data in the buffer (payload);
-+ * 		unused (set to 0) for multiplanar buffers
-+ * @flags:	buffer informational flags
-+ * @field:	field order of the image in the buffer
-+ * @timestamp:	frame timestamp
-+ * @timecode:	frame timecode
-+ * @sequence:	sequence count of this frame
-+ * @memory:	the method, in which the actual video data is passed
-+ * @offset:	for non-multiplanar buffers with memory == V4L2_MEMORY_MMAP;
-+ * 		offset from the start of the device memory for this plane,
-+ * 		(or a "cookie" that should be passed to mmap() as offset)
-+ * @userptr:	for non-multiplanar buffers with memory == V4L2_MEMORY_USERPTR;
-+ * 		a userspace pointer pointing to this buffer
-+ * @planes:	for multiplanar buffers; userspace pointer to the array of plane
-+ * 		info structs for this buffer
-+ * @length:	size in bytes of the buffer (NOT its payload) for single-plane
-+ * 		buffers (when type != *_MPLANE); number of elements in the
-+ * 		planes array for multi-plane buffers
-+ * @input:	input number from which the video data has has been captured
-+ *
-+ * Contains data exchanged by application and driver using one of the Streaming
-+ * I/O methods.
-+ */
- struct v4l2_buffer {
- 	__u32			index;
- 	enum v4l2_buf_type      type;
-@@ -532,6 +608,7 @@ struct v4l2_buffer {
- 	union {
- 		__u32           offset;
- 		unsigned long   userptr;
-+		struct v4l2_plane *planes;
- 	} m;
- 	__u32			length;
- 	__u32			input;
-@@ -1622,12 +1699,56 @@ struct v4l2_mpeg_vbi_fmt_ivtv {
-  *	A G G R E G A T E   S T R U C T U R E S
-  */
- 
--/*	Stream data format
-+/**
-+ * struct v4l2_plane_pix_format - additional, per-plane format definition
-+ * @sizeimage:		maximum size in bytes required for data, for which
-+ * 			this plane will be used
-+ * @bytesperline:	distance in bytes between the leftmost pixels in two
-+ * 			adjacent lines
-+ */
-+struct v4l2_plane_pix_format {
-+	__u32		sizeimage;
-+	__u16		bytesperline;
-+	__u16		reserved[7];
-+} __attribute__ ((packed));
-+
-+/**
-+ * struct v4l2_pix_format_mplane - multiplanar format definition
-+ * @width:		image width in pixels
-+ * @height:		image height in pixels
-+ * @pixelformat:	little endian four character code (fourcc)
-+ * @field:		field order (for interlaced video)
-+ * @colorspace:		supplemental to pixelformat
-+ * @plane_fmt:		per-plane information
-+ * @num_planes:		number of planes for this format
-+ */
-+struct v4l2_pix_format_mplane {
-+	__u32				width;
-+	__u32				height;
-+	__u32				pixelformat;
-+	enum v4l2_field			field;
-+	enum v4l2_colorspace		colorspace;
-+
-+	struct v4l2_plane_pix_format	plane_fmt[VIDEO_MAX_PLANES];
-+	__u8				num_planes;
-+	__u8				reserved[11];
-+} __attribute__ ((packed));
-+
-+/**
-+ * struct v4l2_format - stream data format
-+ * @type:	type of the data stream
-+ * @pix:	definition of an image format
-+ * @pix_mp:	definition of a multiplanar image format
-+ * @win:	definition of an overlaid image
-+ * @vbi:	raw VBI capture or output parameters
-+ * @sliced:	sliced VBI capture or output parameters
-+ * @raw_data:	placeholder for future extensions and custom formats
-  */
- struct v4l2_format {
- 	enum v4l2_buf_type type;
- 	union {
- 		struct v4l2_pix_format		pix;     /* V4L2_BUF_TYPE_VIDEO_CAPTURE */
-+		struct v4l2_pix_format_mplane	pix_mp;  /* V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE */
- 		struct v4l2_window		win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
- 		struct v4l2_vbi_format		vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
- 		struct v4l2_sliced_vbi_format	sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
-@@ -1635,7 +1756,6 @@ struct v4l2_format {
- 	} fmt;
- };
- 
--
- /*	Stream type-dependent parameters
-  */
- struct v4l2_streamparm {
--- 
-1.7.1.569.g6f426
+> But it is nice to hear from you. Here is why.
+> 
+> The camera in question is another jeilinj camera. Its OEM software for 
+> that other OS does present the option to choose line frequency. It also 
+> asks for the user to specify an image quality index. I can not recall that 
+> the software I got with my camera did any such thing. As I recall, it 
+> merely let the camera to start streaming. Bur at the moment I have no idea 
+> where I put that old CD.
+
+The Software for our Sakar branded Jeilin camera was a little smarter.
+I seem to recall image size adjustments.  I also recall the driver
+binary contained multiple different MJPEG headers that I guess it could
+have tack back on to the incoming stream.
+
+However, the camera suffered such love/abuse at the hands of my 11 year
+old daughter that it no longer functions, even with the electrical tape
+that still holds the case together. ;)
+
+
+> So, while I have you on the line, do you recall whether or not the OEM 
+> software for the camera you bought for your daughter present any such 
+> setup options?
+
+I cannot.
+
+
+> The new camera may be different in some particulars from the ones we have. 
+> It does have a new Product number, so apparently Jeilin might not have 
+> thought it is identical to the other ones. It does use a slightly 
+> different initialization sequence. Therefore, the quick-and-dirty way to 
+> support it would be just to introduce a patch which has switch statements 
+> or conditionals all over the place, and just to support whatever the 
+> camera was observed to do. However, that is obviously dirty as well as 
+> quick.
+> 
+> While playing around with the code a bit, I have managed to make my 
+> old camera work with essentially the same init sequence that the new 
+> one is using. If this can be done right, it would clear a lot of crud out 
+> of the driver code. Unfortunately, doing it right involves testing...
+
+When researching Jeilin's offerings on their website long ago I recall a
+few different chipsets, but only one that matched the MJPEG type camera
+application.  It's probably just the difference between different
+firmware versions in the camera with the same Jeilin camera chipset.
+
+
+> Finally, one concern that I have in the back of my mind is the question of 
+> control settings for a camera which streams in bulk mode and requires the 
+> setup of a workqueue. The owner of the camera says that he has 
+> "encountered no problems" with running the two controls mentioned above. 
+> Clearly, that is not a complete answer which overcomes all possible 
+> objections. Rather, things are OK if and only if we can ensure that these 
+> controls can be run only while the workqueue that does the streaming is 
+> inactive. Somehow, I suspect that the fact that a sensible user would only 
+> run such commands at camera setup is an insufficient guarantee that no 
+> problems will ever be encountered.
+> 
+> So, as I said, the question of interaction of a control and a workqueue is 
+> another problem interesting little problem. Your thoughts on this 
+> interesting little problem would be appreciated.
+
+I am unfamiliar with:
+
+1. Any USB interface mutual exclusions the kernel USB API and subsystem
+provides as well as what the GSPCA framework provides.
+
+2. Any USB transaction buffering and tracking the kernel USB subsystem
+provides.
+
+3. Whether the kernel and Jeilin chip allow USB sends and receives to be
+interleaved to different bulk endpoints.
+
+
+
+
+So I might not be able to provide too much help.  I have 2 ideas for you
+coming from the perspective of me being a USB idiot:
+
+
+1. Since the jlj_dostream() work handler function is essentially just a
+synchronous poll loop on the device, you could just have it process the
+ioctl() requests to change a control synchronously. 
+
+a. The ioctl() call for the v4l2 control would submit a command to some
+queue you set up for the purpose, and then sleep on a wait queue. 
+
+b. The jlj_dostream() function would check the command queue at its
+convenience, process any control command, and then wake up the wait
+queue that the ioctl() is waiting on.
+
+For this idea, don't forget to implement the command queue with proper
+locking or other mutual exclusion.  You'll also need to think about how
+to place ioctl() callers on the wait_queue and how to wake them up in
+FIFO order, if you use this idea and allow multiple v4l2 control ioctl()
+to be queued.
+
+
+
+2. Restructure the workqueue function, jlj_dostream(), to handle a work
+object in one pass (e.g. no loop to read more than one frame), handle
+two different types of work objects (one for stream polling and one for
+control ioctl() requests), and have it automatically reschedule the
+stream polling work object.
+
+a. When streaming, the current, single work object would still be used
+and jlj_dostream() must be able to check that the work object is the one
+indicating streaming work.  jlj_dostream() would only perform work
+required to read one whole frame, unless you want to get fancy and deal
+with partial frames.  The jlj_dostream() handler would then reschedule
+the work object for streaming - maybe with a sensible delay.
+
+b. For a V4L2 control ioctl() that needs to send a command to the
+device, the ioctl() fills out the needed parameters in a scratch-pad
+location and queues a different work object, associated with those
+scratchpad parameters.  The ioctl() then sleeps on a wait queue
+associated with that work object.  When the work handler function,
+jlj_dostream(), gets called it must be able to determine the work object
+is the one associated with an ioctl() control.  jlj_dostream() then
+performs the actions required for the ioctl() and the wakes up the
+wait_queue on which the ioctl() is waiting.  The work object is not
+rescheduled by the work handler function.
+
+
+For this idea, you'll be relying on the single-threaded workqueue to
+provide mutual exclusion between processing of the two different types
+of work objects (streaming and v4l2 control ioctl).  You can structure
+things to have more than 1 work object for V4L2 control ioctl()
+processing, if you like, since the workqueue can queue any number of
+work objects.  But if you allow more than one ioctl() related work
+object to be queued, you'll have to be careful about how things are
+placed on the wait_queue and how they are awakened.
+
+
+
+> As I said, Merry Christmas :-)
+
+
+Merry Christmas.
+
+Regards,
+Andy
+
+> Theodore Kilgore
+
 
