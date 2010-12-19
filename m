@@ -1,129 +1,100 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:56990 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753822Ab0L0OCK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Dec 2010 09:02:10 -0500
-Message-ID: <4D189C5D.9090203@redhat.com>
-Date: Mon, 27 Dec 2010 12:02:05 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 3/6] Documentation/ioctl/ioctl-number.txt: Remove some
- now freed ioctl ranges
-References: <cover.1293449547.git.mchehab@redhat.com> <201012271301.21722.hverkuil@xs4all.nl> <4D188E87.9010700@redhat.com> <201012271423.26288.hverkuil@xs4all.nl>
-In-Reply-To: <201012271423.26288.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:36948 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932403Ab0LSWnL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Dec 2010 17:43:11 -0500
+Subject: Re: Power frequency detection.
+From: Andy Walls <awalls@md.metrocast.net>
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+Cc: Paulo Assis <pj.assis@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <1292796033.2052.111.camel@morgan.silverblock.net>
+References: <73wo0g3yy30clob2isac30vm.1292782894810@email.android.com>
+	 <alpine.LNX.2.00.1012191423030.23950@banach.math.auburn.edu>
+	 <1292796033.2052.111.camel@morgan.silverblock.net>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 19 Dec 2010 17:43:54 -0500
+Message-ID: <1292798634.2052.143.camel@morgan.silverblock.net>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 27-12-2010 11:23, Hans Verkuil escreveu:
-> On Monday, December 27, 2010 14:03:03 Mauro Carvalho Chehab wrote:
->> Em 27-12-2010 10:01, Hans Verkuil escreveu:
->>> On Monday, December 27, 2010 12:38:39 Mauro Carvalho Chehab wrote:
->>>> The V4L1 removal patches removed a few ioctls. Update it at the docspace.
->>>>
->>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>>>
->>>> diff --git a/Documentation/ioctl/ioctl-number.txt b/Documentation/ioctl/ioctl-number.txt
->>>> index 63ffd78..49d7f00 100644
->>>> --- a/Documentation/ioctl/ioctl-number.txt
->>>> +++ b/Documentation/ioctl/ioctl-number.txt
->>>> @@ -260,14 +260,11 @@ Code  Seq#(hex)	Include File		Comments
->>>>  't'	80-8F	linux/isdn_ppp.h
->>>>  't'	90	linux/toshiba.h
->>>>  'u'	00-1F	linux/smb_fs.h		gone
->>>> -'v'	all	linux/videodev.h	conflict!
->>>>  'v'	00-1F	linux/ext2_fs.h		conflict!
->>>>  'v'	00-1F	linux/fs.h		conflict!
->>>>  'v'	00-0F	linux/sonypi.h		conflict!
->>>> -'v'	C0-CF	drivers/media/video/ov511.h	conflict!
->>>>  'v'	C0-DF	media/pwc-ioctl.h	conflict!
->>>>  'v'	C0-FF	linux/meye.h		conflict!
->>>> -'v'	C0-CF	drivers/media/video/zoran/zoran.h	conflict!
->>>>  'v'	D0-DF	drivers/media/video/cpia2/cpia2dev.h	conflict!
->>>>  'w'	all				CERN SCI driver
->>>>  'y'	00-1F				packet based user level communications
->>>>
->>>
->>> There is also a line for media/ovcamchip.h in this file that can be removed.
->>
->> Ok, I'll do that.
->>
->>> The media/rds.h line can also be removed (this is kernel internal only).
->>
->> There are two rds.h, related to V4L:
->> ./include/linux/rds.h
+On Sun, 2010-12-19 at 17:00 -0500, Andy Walls wrote:
+> On Sun, 2010-12-19 at 14:51 -0600, Theodore Kilgore wrote:
+
+Just a few more details...
+
+> So I might not be able to provide too much help.  I have 2 ideas for you
+> coming from the perspective of me being a USB idiot:
 > 
-> Not related to V4L, this is something from Oracle. It is this header that is public,
-> not the media/rds.h header.
-
-Ah, ok.
-
->> ./include/media/rds.h
->>
->> One of them is at the public api:
->>
->> include/linux/Kbuild:header-y += rds.h
->>
->> Btw, that's weird:
->>
->> $ git grep RDS_CMD_OPEN
->> drivers/media/video/saa6588.c:    case RDS_CMD_OPEN:
->> include/media/rds.h:#define RDS_CMD_OPEN  _IOW('R',1,int)
->>
->> as saa6588 is a subdev.
->>
->> IMO, we should remove or rename the internal header first.
 > 
-> media/rds.h should be renamed to media/saa6588.h. It is also included in
-> drivers/media/radio/si470x/radio-si470x.h, but that's obsolete and can be
-> removed.
-
-The rds file were the old RDS API, before we add it at V4L2. We should, instead,
-convert saa6588 to use the new way, and remove the legacy stuff.
-
->>> Ditto for media/bt819.h.
->>
->> There are also some issues there related to videodev2 stuff.
->>
->> I prefer to apply the path as-is (just removing the ovcamchip.h) and,
->> on some later cleanup, check and fix the remaining stuff.
+> 1. Since the jlj_dostream() work handler function is essentially just a
+> synchronous poll loop on the device, you could just have it process the
+> ioctl() requests to change a control synchronously. 
 > 
-> I can make a patch fixing the rds.h header usage. It's all internal stuff
-> and the weird naming is just historical and should be changed.
-
-It would be nice if you can do it.
-
->>>
->>> All other patches in this series:
->>>
->>> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
->>
->> Thanks!
->>>
->>> BTW, it is probably also a good idea to move the dabusb driver to staging and
->>> mark it for removal in 2.6.39.
->>
->> Not sure about that. I don't see any good reason to remove dabusb driver, as
->> nobody reported that it is broken.
+> a. The ioctl() call for the v4l2 control would submit a command to some
+> queue you set up for the purpose, and then sleep on a wait queue. 
 > 
-> Nobody has the hardware :-)
-
-This is too strong :) Are you absolutely sure that there's absolutely nobody in
-the World with that hardware? ;)
+> b. The jlj_dostream() function would check the command queue at its
+> convenience, process any control command, and then wake up the wait
+> queue that the ioctl() is waiting on.
 > 
-> I know you have asked the authors about a possible removal of this driver a few
-> months ago. Did you get any reply from them?
+> For this idea, don't forget to implement the command queue with proper
+> locking or other mutual exclusion.  You'll also need to think about how
+> to place ioctl() callers on the wait_queue and how to wake them up in
+> FIFO order, if you use this idea and allow multiple v4l2 control ioctl()
+> to be queued.
+> 
+> 
+> 
+> 2. Restructure the workqueue function, jlj_dostream(), to handle a work
+> object in one pass (e.g. no loop to read more than one frame), handle
+> two different types of work objects (one for stream polling and one for
+> control ioctl() requests), and have it automatically reschedule the
+> stream polling work object.
+> 
+> a. When streaming, the current, single work object would still be used
+> and jlj_dostream() must be able to check that the work object is the one
+> indicating streaming work.  jlj_dostream() would only perform work
+> required to read one whole frame, unless you want to get fancy and deal
+> with partial frames.  The jlj_dostream() handler would then reschedule
+> the work object for streaming - maybe with a sensible delay.
+> 
+> b. For a V4L2 control ioctl() that needs to send a command to the
+> device, the ioctl() fills out the needed parameters in a scratch-pad
+> location and queues a different work object, associated with those
+> scratchpad parameters.  The ioctl() then sleeps on a wait queue
+> associated with that work object.  When the work handler function,
+> jlj_dostream(), gets called it must be able to determine the work object
+> is the one associated with an ioctl() control.  jlj_dostream() then
+> performs the actions required for the ioctl() and the wakes up the
+> wait_queue on which the ioctl() is waiting.  The work object is not
+> rescheduled by the work handler function.
+> 
+> 
+> For this idea, you'll be relying on the single-threaded workqueue to
+> provide mutual exclusion between processing of the two different types
+> of work objects (streaming and v4l2 control ioctl).  You can structure
+> things to have more than 1 work object for V4L2 control ioctl()
+> processing, if you like, since the workqueue can queue any number of
+> work objects.  But if you allow more than one ioctl() related work
+> object to be queued, you'll have to be careful about how things are
+> placed on the wait_queue and how they are awakened.
+> 
+> 
 
-Nope.
+For implementing either of these ideas, you may also wish to investigate
+the use of completions instead of wait_queues.  I've never used
+completions myself, so I'm not sure if they'll work.
 
-> It seems to be a demonstration driver only and I've never seen anyone with the
-> hardware.
+With a quick grep through the kernel, I only find the cx18 driver and
+libsas as examples using multiple work objects for a work handler
+function.  In both of those, the purpose of the of work object is
+indicated with a field in the structure that also contains the work
+object.
 
-It seems so, but I can't see any technical reason for its removal. The BKL fix were
-applied on it, as someone wrote a patch for it.
+Regards,
+Andy
 
-Cheers,
-Mauro
