@@ -1,128 +1,82 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2380 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752114Ab0LVL4m (ORCPT
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:37815 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932256Ab0LSPcX convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Dec 2010 06:56:42 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: halli manjunatha <manjunatha_halli@ti.com>
-Subject: Re: [PATCH v7 2/7] drivers:media:radio: wl128x: fmdrv_v4l2 sources
-Date: Wed, 22 Dec 2010 12:56:34 +0100
-Cc: mchehab@infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-References: <1292583996-4440-1-git-send-email-manjunatha_halli@ti.com> <201012181238.56021.hverkuil@xs4all.nl> <AANLkTinLy_NBFDLyR9yKP72GFR0M2sCV42FnQemJ2D84@mail.gmail.com>
-In-Reply-To: <AANLkTinLy_NBFDLyR9yKP72GFR0M2sCV42FnQemJ2D84@mail.gmail.com>
+	Sun, 19 Dec 2010 10:32:23 -0500
+Received: by iwn9 with SMTP id 9so2375586iwn.19
+        for <linux-media@vger.kernel.org>; Sun, 19 Dec 2010 07:32:23 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201012221256.34611.hverkuil@xs4all.nl>
+In-Reply-To: <alpine.LNX.2.00.1012181550500.22984@banach.math.auburn.edu>
+References: <alpine.LNX.2.00.1012181550500.22984@banach.math.auburn.edu>
+From: Paulo Assis <pj.assis@gmail.com>
+Date: Sun, 19 Dec 2010 15:32:02 +0000
+Message-ID: <AANLkTinGnhmEg3zbkhmUGH_+bsqdDmkp24_-Of9e3XN1@mail.gmail.com>
+Subject: Re: Power frequency detection.
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Wednesday, December 22, 2010 07:19:54 halli manjunatha wrote:
-> 10 at 5:08 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > On Friday, December 17, 2010 12:06:31 manjunatha_halli@ti.com wrote:
-> >> From: Manjunatha Halli <manjunatha_halli@ti.com>
-> >>
-> >> This module interfaces V4L2 subsystem and FM common module.
-> >> It registers itself with V4L2 as Radio module.
-> >>
-> >> Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
-> >> ---
-> >>  drivers/media/radio/wl128x/fmdrv_v4l2.c |  588 +++++++++++++++++++++++++++++++
-> >>  drivers/media/radio/wl128x/fmdrv_v4l2.h |   33 ++
-> >>  2 files changed, 621 insertions(+), 0 deletions(-)
-> >>  create mode 100644 drivers/media/radio/wl128x/fmdrv_v4l2.c
-> >>  create mode 100644 drivers/media/radio/wl128x/fmdrv_v4l2.h
-> >>
-> >> diff --git a/drivers/media/radio/wl128x/fmdrv_v4l2.c b/drivers/media/radio/wl128x/fmdrv_v4l2.c
-> >> new file mode 100644
-> >> index 0000000..623102f
-> >> --- /dev/null
-> >> +++ b/drivers/media/radio/wl128x/fmdrv_v4l2.c
-> >
-> > <snip>
-> >
-> >> +static const struct v4l2_file_operations fm_drv_fops = {
-> >> +     .owner = THIS_MODULE,
-> >> +     .read = fm_v4l2_fops_read,
-> >> +     .write = fm_v4l2_fops_write,
-> >> +     .poll = fm_v4l2_fops_poll,
-> >> +     .ioctl = video_ioctl2,
-> >
-> > Please use unlocked_ioctl. The .ioctl call is deprecated since it relied on the
-> > Big Kernel Lock which is in the process of being removed from the kernel. The
-> > BKL serialized all ioctl calls, unlocked_ioctl relies on the driver to serialize
-> > where necessary.
-> >
-> > There are two ways of doing the conversion: one is to do all the locking within
-> > the driver, the other is to use core-assisted locking. How to do the core-assisted
-> > locking is described in Documentation/video4linux/v4l2-framework.txt, but I'll
-> > repeat the relevant part here:
-> >
-> > v4l2_file_operations and locking
-> > --------------------------------
-> >
-> > You can set a pointer to a mutex_lock in struct video_device. Usually this
-> > will be either a top-level mutex or a mutex per device node. If you want
-> > finer-grained locking then you have to set it to NULL and do you own locking.
-> >
-> > If a lock is specified then all file operations will be serialized on that
-> > lock. If you use videobuf then you must pass the same lock to the videobuf
-> > queue initialize function: if videobuf has to wait for a frame to arrive, then
-> > it will temporarily unlock the lock and relock it afterwards. If your driver
-> > also waits in the code, then you should do the same to allow other processes
-> > to access the device node while the first process is waiting for something.
-> >
-> > The implementation of a hotplug disconnect should also take the lock before
-> > calling v4l2_device_disconnect.
-> >
-> >> +     .open = fm_v4l2_fops_open,
-> >> +     .release = fm_v4l2_fops_release,
-> >> +};
-> 
-> Hans,
-> 
-> I did this in my driver,
-> --- a/drivers/media/radio/wl128x/fmdrv_v4l2.c
-> +++ b/drivers/media/radio/wl128x/fmdrv_v4l2.c
-> @@ -477,7 +477,7 @@ static const struct v4l2_file_operations fm_drv_fops = {
->         .read = fm_v4l2_fops_read,
->         .write = fm_v4l2_fops_write,
->         .poll = fm_v4l2_fops_poll,
-> -       .ioctl = video_ioctl2,
-> +       .unlocked_ioctl = video_ioctl2,
->         .open = fm_v4l2_fops_open,
->         .release = fm_v4l2_fops_release,
-> 
-> and apparently didn't face any issues during regression.. (related to
-> concurrency...)
-> and more-over all of my ioctls from the application being called in
-> process context are all synchronous, i.e
-> application calls and waits for it to finish before calling another ioctl.
-> 
-> So is this approach alright?
-> Is there a reason to opt for the .ioctl ? The locked approach?
-> Or have mutex locks inside the unlocked handlers?
-> 
-> If not I will go ahead and submit v8 using the unlocked_ioctl....
+Hi,
 
-The old use of .ioctl would serialize all ioctl calls. So if multiple processes
-opened the video device node and made ioctl calls, then the Big Kernel Lock would
-serialize those ioctls. Switching to .unlocked_ioctl will no longer serialize
-those calls and so you will have to do something to prevent race conditions.
+2010/12/18 Theodore Kilgore <kilgota@banach.math.auburn.edu>:
+>
+> Does anyone know whether, somewhere in the kernel, there exists a scheme
+> for detecting whether the external power supply of the computer is using
+> 50hz or 60hz?
+>
+> The reason I ask:
+>
+> A certain camera is marketed with Windows software which requests the user
+> to set up the option of 50hz or 60hz power during the setup.
+>
+> Judging by what exists in videodev2.h, for example, it is evidently
+> possible to set up this as a control setting in a Linux driver. I am not
+> aware of any streaming app which knows how to access such an option.
+>
 
-Either identify the critical sections and lock them manually, or use the core
-assisted locking scheme that V4L2 provides to serialize all file operations.
+Most uvc cameras present this as a control, so any v4l2 control app
+should let you access it.
+If your camera driver also supports this control then this shouldn't
+be a problem for any generci v4l2 app.
+here are a couple of ones:
 
-I recommend the latter since it is very simple to implement and it does the
-job. Since there is no locking whatsoever in the driver I think that manually
-adding locking is too much work (and too hard to verify correctness).
+v4l2ucp (control panel)
+guvcview ("guvcview --control_only" will work along side other apps
+just like v4l2ucp)
+uvcdynctrl from libwebcam for command line control utility .
 
 Regards,
+Paulo
 
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+> Information about which streaming app ought to be used which could take
+> advantage of a setting for line frequency would be welcome, too, of
+> course. As I said, I do not know of a single one and would therefore have
+> trouble with testing any such control setting unless I could find the
+> software which can actually present the choice to the user.
+>
+> But my main question is whether the kernel already does detect the line
+> frequency anywhere else, for whatever reason. For, it occurs to me that a
+> far more elegant solution -- if the camera really does need to have the
+> line frequency detected -- would be do do the job automatically and not to
+> bother the user about such a thing.
+>
+> In other news, in case anyone has any children who are in love with Lego,
+> the "Lego Bionicle" camera which is currently on sale has an SQ905C type
+> chip in it. I just added its Product number to the Gphoto driver last
+> night. And it works perfectly in webcam mode if one adds its product
+> number in gspca/sq905c.c. I will get around to doing that formally, of
+> course, when I get time. But if anyone wants just to add the number and
+> re-compile the Vendor:Product number for the new camera is 0x2770:0x9051.
+>
+> Merry Christmas.
+>
+> Theodore Kilgore
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
