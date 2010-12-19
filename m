@@ -1,104 +1,114 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:54417 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751042Ab0LUSbg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Dec 2010 13:31:36 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oBLIVZff015230
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 21 Dec 2010 13:31:36 -0500
-Date: Tue, 21 Dec 2010 13:31:35 -0500
-From: Jarod Wilson <jarod@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from spectre.t3rror.net ([188.40.142.143]:57693 "EHLO
+	mail.t3rror.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754915Ab0LSMbn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Dec 2010 07:31:43 -0500
+From: Boris Cuber <me@boris64.net>
+Reply-To: me@boris64.net
+To: Andy Walls <awalls@md.metrocast.net>
+Subject: Re: TeVii S470 dvb-s2 issues - 2nd try ,)
+Date: Sun, 19 Dec 2010 13:31:25 +0100
+References: <201012161429.32658.me@boris64.net> <201012181440.56078.me@boris64.net> <1292682185.2397.16.camel@morgan.silverblock.net>
+In-Reply-To: <1292682185.2397.16.camel@morgan.silverblock.net>
 Cc: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL] IR fixups for 2.6.37
-Message-ID: <20101221183135.GC29880@redhat.com>
-References: <20101216190302.GA25148@redhat.com>
- <4D10ADB5.80405@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <4D10ADB5.80405@redhat.com>
+Content-Type: multipart/signed;
+  boundary="nextPart1431295.Cyx4UVbxea";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Message-Id: <201012191331.40801.me@boris64.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Tue, Dec 21, 2010 at 11:37:57AM -0200, Mauro Carvalho Chehab wrote:
-> Em 16-12-2010 17:03, Jarod Wilson escreveu:
-> > Hey Mauro,
-> > 
-> > As previously discussed, here's a handful of IR patches I'd like to see
-> > make it into 2.6.37 still, as they fix a number of issues with the
-> > mceusb, streamzap, nuvoton and lirc_dev drivers.
-> > 
-> > The last three mceusb patches are not yet in the v4l/dvb tree, but I've
-> > just posted them.
-> > 
-> > The following changes since commit b0c3844d8af6b9f3f18f31e1b0502fbefa2166be:
-> > 
-> >   Linux 2.6.37-rc6 (2010-12-15 17:24:48 -0800)
-> > 
-> > are available in the git repository at:
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/jarod/linux-2.6-ir.git for-2.6.37
-> > 
-> > Dan Carpenter (2):
-> >       [media] lirc_dev: stray unlock in lirc_dev_fop_poll()
-> >       [media] lirc_dev: fixes in lirc_dev_fop_read()
-> > 
-> > Jarod Wilson (10):
-> >       [media] mceusb: add support for Conexant Hybrid TV RDU253S
-> >       [media] nuvoton-cir: improve buffer parsing responsiveness
-> >       [media] mceusb: fix up reporting of trailing space
-> >       [media] mceusb: buffer parsing fixups for 1st-gen device
-> >       [media] IR: add tv power scancode to rc6 mce keymap
-> >       [media] mceusb: fix keybouce issue after parser simplification
-> >       [media] streamzap: merge timeout space with trailing space
-> >       mceusb: add another Fintek device ID
-> >       mceusb: fix inverted mask inversion logic
-> >       mceusb: set a default rx timeout
-> > 
-> > Paul Bender (1):
-> >       rc: fix sysfs entry for mceusb and streamzap
-> > 
-> >  drivers/media/IR/keymaps/rc-rc6-mce.c |   21 ++--
-> >  drivers/media/IR/lirc_dev.c           |   29 +++---
-> >  drivers/media/IR/mceusb.c             |  174 ++++++++++++++++++++------------
-> >  drivers/media/IR/nuvoton-cir.c        |   10 ++-
-> >  drivers/media/IR/streamzap.c          |   21 +++--
-> >  5 files changed, 156 insertions(+), 99 deletions(-)
-> > 
-> 
-> Hi Jarod,
-> 
-> I've pulled from your tree and added them at the master branch of my -next tree, at:
-> 	http://git.kernel.org/?p=linux/kernel/git/mchehab/linux-next.git
-> 
-> As we've discussed on #lirc channel, I solved the conflicts at mceusb and streamzap
-> by just doing a diff between the merged tree and:
-> 	ssh://linuxtv.org/git/jarod/linux-2.6-ir.git for-2.6.38
-> 
-> The merge patch had a weird diff, as it just showed the mceusb.c driver as a new one,
-> so I suspect that it might have something wrong at the conflict resolution.
+--nextPart1431295.Cyx4UVbxea
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hrm, yeah, diff is a bit odd, but the resulting mceusb.c looks correct.
+Am Saturday 18 December 2010 schrieben Sie:
+> On Sat, 2010-12-18 at 14:40 +0100, Boris Cuber wrote:
+> > Am Friday 17 December 2010 schrieben Sie:
+> > > On Fri, 2010-12-17 at 12:19 +0100, Boris Cuber wrote:
+> > > > Hello linux-media people!
+> > > >=20
+> > > > I have to problems with my dvb card ("TeVii S470"). I already
+> > > > filed 2 bug reports some time ago, but no one seems to have
+> > > > noticed/read them, so i'm trying it here now.
+> > > > If you need a "full" dmesg, then please take a look at
+> > > > https://bugzilla.kernel.org/attachment.cgi?id=3D40552
+> > > >=20
+> > > > 1) "TeVii S470 dvbs-2 card (cx23885) is not usable after
+> > > > pm-suspend/resume" https://bugzilla.kernel.org/show_bug.cgi?id=3D16=
+467
+> > >=20
+> > > The cx23885 driver does not implement power management.  It would
+> > > likely take many, many hours of coding and testing to implement it
+> > > properly.
+> > >=20
+> > > If you need resume/suspend, use the power management scripts on your
+> > > machine to kill all the applications using the TeVii S470, and then
+> > > unload the cx23885 module just before suspend.
+> > >=20
+> > > On resume, have the power management scripts reload the cx23885 modul=
+e.
+> >=20
+> > Well, this doesn't work. If i did tune a channel before or used the dvb
+> > card somehow for watching tv, unloading and reloading the cx23885
+> > module also makes the card unuseable.
+> > In dmesg there's lots of "do_IRQ: 1.161 No irq handler for vector (irq
+> > -1)" messages then. This can only be fixed by rebooting the computer.
+>=20
+> That is s a known issue with the CX2388[578] chip and PCIe MSI.
+>=20
+> The CX2388[578] will not accept a different value for its "MSI Data"
+> field in its PCI config space, when MSI has been enabled on the hardware
+> once.
+>=20
+> The kernel will always try to give a different value for the "MSI Data"
+> field to the CX2388[578] chip, on cx23885 module unload and reload.
+>=20
+> So suspend and then resume didn't reset the chip hardware?
+>=20
+> You can set "pci=3Dnomsi" on your kernel command line to prevent the
+> cx23885 driver, and your whole system unfortunately, from using MSI.
+>=20
+Ah, now i got it. Simply reloading the module kills the card with that nasty
+do_IRQ thing (until reboot), but
+=2D> 1) unloading module 2) suspending 3) resuming 4) loading module=20
+actually works. It's kinda dirty solution (with some hackish script in
+/etc/pm/sleep.d/), but it works somehow.
+Perhaps someday there will be a better solution (power management?).
 
-> Also, there's one small error generated with allyesconfig:
-> 
-> drivers/media/rc/streamzap.c: In function ‘streamzap_probe’:
-> drivers/media/rc/streamzap.c:460:2: warning: statement with no effect
+> Regards,
+> Andy
+Thanks for your time,
+Boris
 
-Hm. That's pointing at the line that loads the rc5-sz decoder. With an
-allyesconfig, that does become a no-op, since the decoder would already be
-built in, so I think that should be fine. At least, it should be no
-different than any of the other decoders, except for where they're loaded
-from.
+=2D-=20
+http://boris64.net 20xx ;)
 
-> Could you please take a look on both things, to double check if everything is ok?
+--nextPart1431295.Cyx4UVbxea
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-Looks good to me.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.16 (GNU/Linux)
 
+iQIcBAABAgAGBQJNDfssAAoJEONrv02ePEYN7fEP/i5aOgZtTvjpc7NpNf7auxNc
+GJh76SzZzoqouCpLfTBg2ps8E9MGpo4SDT8PQ4YjtYLH1/lMTPoghUjRG3CFVr2i
+IY9oOCo0yPj25qBequTf7EShHso8qvYo49S7UfQtm7MpcjtwRz7j2MrDWmJGBTQR
+1lzdvnCv1v+EAyX8TAq9TY9WUD7YoQKN54G+A5LZcHJcqTpddzKhUzx1783nVxSV
+7Ewe27ohTt1cKGy0c4ZVZWLuqhjUAG1m+FH5iGymputggDibF6GWlbjR6CFbtxpv
+x5sTu6um8UwMLeVd1G2yQbE+BAFFL+95YVzWNChevmprziwycW22afh/hwWPlm8Q
+mycL1+vcdee9kM13E37qnQx0Rb3cuUKrbRCHy8TOuX6aBHpD9RBOMvY1r+Gamy3/
+aV4QsQEhl9ZzC9tGb7eA2BPLuzbZvKUnFEEKKQz4OKNBl8EAGPuSBQZ13diDUuIH
+PutF0RFiiZBruACRSgESRqK5BV5A/IkvLpEuwTIlnTynHsZATEvQBm4F9EIOxOJr
+vkW7g2tEyTDuCZtGMoeLOdMWZH9EAYS5dcsu1YwIic1xS8sk7QAZmRe9kAGCmCab
+2bHVzrmXAkJtxFHEdNdCgwrA/8bxeq785TCT8rmlM2+szFIwwHUWx0Oa229oahbw
+lXqOLunzZZKQfj42VY4I
+=Jqc/
+-----END PGP SIGNATURE-----
 
--- 
-Jarod Wilson
-jarod@redhat.com
-
+--nextPart1431295.Cyx4UVbxea--
