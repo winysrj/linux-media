@@ -1,135 +1,110 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp209.alice.it ([82.57.200.105]:47287 "EHLO smtp209.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751778Ab0LOQL6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Dec 2010 11:11:58 -0500
-Received: from jcn (82.61.82.13) by smtp209.alice.it (8.5.124.08) (authenticated as fospite@alice.it)
-        id 4C1A27590CBB9451 for linux-media@vger.kernel.org; Wed, 15 Dec 2010 17:11:57 +0100
-Date: Wed, 15 Dec 2010 17:11:39 +0100
-From: Antonio Ospite <ospite@studenti.unina.it>
+Received: from mailout-de.gmx.net ([213.165.64.23]:33659 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S932425Ab0LSUBe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Dec 2010 15:01:34 -0500
+From: Martin Dauskardt <martin.dauskardt@gmx.de>
 To: linux-media@vger.kernel.org
-Subject: Question about libv4lconvert.
-Message-Id: <20101215171139.b6c1f03a.ospite@studenti.unina.it>
-Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Wed__15_Dec_2010_17_11_39_+0100_6q1XD/+JuO6Eul2W"
+Subject: lot of bugs in cx88-blackbird
+Date: Sun, 19 Dec 2010 21:01:27 +0100
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201012192101.27700.martin.dauskardt@gmx.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
---Signature=_Wed__15_Dec_2010_17_11_39_+0100_6q1XD/+JuO6Eul2W
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The HVR1300 driver has several bugs:
 
-Hi,
+1.
+When executing VIDIOC_S_EXT_CTRLS or VIDIOC_S_FREQUENCY on the mpeg device 
+while the mpeg device is active (capturing), the driver calls 
+blackbird_stop_codec(). This stops the encoder (API call 
+CX2341X_ENC_STOP_CAPTURE).
+Unfortunately, the encoder gets never restarted after the ioctl is finished. 
 
-I am taking a look at libv4lconvert, and I have a question about the
-logic in v4lconvert_convert_pixfmt(), in some conversion switches there
-is code like this:
+To restart the encoder, we now need to stop capturing and restart reading.
+But if this is required anyway, the code could be much easier when the driver 
+would simply return EBUSY.
 
-	case V4L2_PIX_FMT_GREY:
-		switch (dest_pix_fmt) {
-		case V4L2_PIX_FMT_RGB24:
-	        case V4L2_PIX_FMT_BGR24:
-			v4lconvert_grey_to_rgb24(src, dest, width, height);
-			break;
-		case V4L2_PIX_FMT_YUV420:
-		case V4L2_PIX_FMT_YVU420:
-			v4lconvert_grey_to_yuv420(src, dest, fmt);
-			break;
-		}
-		if (src_size < (width * height)) {
-			V4LCONVERT_ERR("short grey data frame\n");
-			errno =3D EPIPE;
-			result =3D -1;
-		}
-		break;
+I think the bug was introduced in May 2007 (!) with this patch:
+(V4L/DVB (6828): cx88-blackbird: audio improvements)
+http://git.linuxtv.org/media_tree.git?a=commitdiff;h=f9e54e0c84da869ad9bc372fb4eab26d558dbfc2
 
-However the conversion routines which are going to be called seem to
-assume that the buffers, in particular the source buffer, are of the
-correct full frame size when looping over them.
+The necessary CX2341X_ENC_START_CAPTURE API command to restart the encoder was 
+moved with this patch from blackbird_initialize_codec() to a new function 
+blackbird_start_codec(), but this new function is not called.
 
-My question is: shouldn't the size check now at the end of the case
-block be at the _beginning_ of it instead, so to detect a short frame
-before conversion and avoid a possible out of bound access inside the
-conversion routine?
+For vidioc_s_ext_ctrls the patch ("Stop the mpeg encoder when changing 
+parameters ") totally misses a solution to restart the encoder.
 
-Some patches to show what I am saying:
+The different methods to switch channels with mpeg encoder cards have been 
+discussed in the ivtv-devel list lately:
+http://www.gossamer-threads.com/lists/ivtv/devel/41154
 
-diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lco=
-nvert.c
-index 26a0978..46e6500 100644
---- a/lib/libv4lconvert/libv4lconvert.c
-+++ b/lib/libv4lconvert/libv4lconvert.c
-@@ -854,7 +854,7 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_=
-data *data,
- 		if (src_size < (width * height)) {
- 			V4LCONVERT_ERR("short grey data frame\n");
- 			errno =3D EPIPE;
--			result =3D -1;
-+			return -1;
- 		}
- 		break;
- 	case V4L2_PIX_FMT_RGB565:
+My suggestion is that the driver should return EBUSY for VIDIOC_S_FREQUENCY 
+and all critical settings (standard, bitrate, format, ...) while a capture is 
+in progess. This should happen not only on the mpeg device but also on the 
+analogue device.
 
-And:
+ 
+2.
+On this hybrid card, we have an analogue and an mpeg device. As far as I  know 
+there is still no application which knows how to handle this. 
+If the User Controls (Brightness, Contrast, Saturation, Hue, Volume) are 
+executed on the analogue device while the mpeg device is active, the result is 
+static on audio+video. We need to stop reading and re-tune the current 
+frequency by executing VIDIOC_S_FREQUENCY on the mpeg device. 
 
-diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lco=
-nvert.c
-index 46e6500..a1a4858 100644
---- a/lib/libv4lconvert/libv4lconvert.c
-+++ b/lib/libv4lconvert/libv4lconvert.c
-@@ -841,6 +841,11 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert=
-_data *data,
- 		break;
-=20
- 	case V4L2_PIX_FMT_GREY:
-+		if (src_size < (width * height)) {
-+			V4LCONVERT_ERR("short grey data frame\n");
-+			errno =3D EPIPE;
-+			return -1;
-+		}
- 		switch (dest_pix_fmt) {
- 		case V4L2_PIX_FMT_RGB24:
- 	        case V4L2_PIX_FMT_BGR24:
-@@ -851,11 +856,6 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert=
-_data *data,
- 			v4lconvert_grey_to_yuv420(src, dest, fmt);
- 			break;
- 		}
--		if (src_size < (width * height)) {
--			V4LCONVERT_ERR("short grey data frame\n");
--			errno =3D EPIPE;
--			return -1;
--		}
- 		break;
- 	case V4L2_PIX_FMT_RGB565:
- 		switch (dest_pix_fmt) {
+3.
+When executing VIDIOC_S_FREQENCY or any other ioctl on the analogue device, 
+the result is always static video+audio. v4l2-ctl --get-freq still shows the 
+right frequency, but the tuner is obviously on another frequency.
+
+4.
+If we use VIDIOC_S_STD on the analogue device, a following "v4l2-ctl --get-
+standard" (executed on the mpeg device) shows still the previous standard.
+
+5.
+The default video size for mpeg is 720x480 (which is right for the default 
+standard NTSC-M). If we change the standard to PAL-BG, the size is still 
+720x480. As far as I remember, the cx2341x does only work properly with height 
+576 when the video standard is 50Hz. The ivtv driver adjustes this 
+automatically.
+
+6.
+Setting the video size with VIDIOC_S_FMT for V4L2_BUF_TYPE_VIDEO_CAPTURE works 
+only when executed on the mpeg device. How should an application know this? 
+(for cards with saa7134-empress it is vice versa, VIDIOC_S_FMT works only on 
+the analogue device...)
+
+7.
+switching from an external input back to TV (input 0) often results in audio 
+static. Re-setting the video standard helps.
+
+8. 
+The external input "S-Video" has no colour although an Y/C signal is supplied.
+
+9.
+reading from mpeg device fails randomly with Input/output error. Even a driver 
+reload is not sufficient - I have to reboot my machine to get it working 
+again.
+
+10.
+vidioc_s_ext_ctrls  only supports V4L2_CTRL_CLASS_MPEG,  but not 
+V4L2_CTRL_CLASS_USER. The driver should internally pass these to vidioc_s_ctrl 
+instead of returning EINVAL.
+
+11.
+When switching from input Television to Input Composite1 , then switching to a 
+radio channel and switching back to Composite 1, the video comes from 
+Composite1 but the audio from Television (previous TV channel). Directly 
+switching from Television to radio and then to Composite1 has no problems.
 
 
-Regards,
-   Antonio
+I am not a driver developer and can't fix this myself. But I could do testings 
+and hope there is a developer who is willing to have a look at these problems.
 
---=20
-Antonio Ospite
-http://ao2.it
-
-PGP public key ID: 0x4553B001
-
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
-
---Signature=_Wed__15_Dec_2010_17_11_39_+0100_6q1XD/+JuO6Eul2W
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iEYEARECAAYFAk0I6LsACgkQ5xr2akVTsAFelwCffUuFY4Qjbp0/c8U/nUOjUNiw
-F48Ani5cBiSul1rgdmgWxdfgLue9b+P5
-=ZmRy
------END PGP SIGNATURE-----
-
---Signature=_Wed__15_Dec_2010_17_11_39_+0100_6q1XD/+JuO6Eul2W--
+Greets,
+Martin
