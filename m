@@ -1,89 +1,70 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-ew0-f45.google.com ([209.85.215.45]:62045 "EHLO
-	mail-ew0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753794Ab0LVSsR (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:6221 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932434Ab0LSXHw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Dec 2010 13:48:17 -0500
-Received: by ewy10 with SMTP id 10so2752129ewy.4
-        for <linux-media@vger.kernel.org>; Wed, 22 Dec 2010 10:48:16 -0800 (PST)
-Message-ID: <4D1247A0.5000002@mvista.com>
-Date: Wed, 22 Dec 2010 21:46:56 +0300
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-MIME-Version: 1.0
-To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH v8 6/8] davinci vpbe: board specific additions
-References: <B85A65D85D7EB246BE421B3FB0FBB5930247F9A80F@dbde02.ent.ti.com>
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB5930247F9A80F@dbde02.ent.ti.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	Sun, 19 Dec 2010 18:07:52 -0500
+Subject: [RESEND] [PATCH for 2.6.37 REGRESSION] cx25840: Prevent device
+ probe failure due to volume control ERANGE error
+From: Andy Walls <awalls@md.metrocast.net>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 19 Dec 2010 18:08:27 -0500
+Message-ID: <1292800107.3710.2.camel@morgan.silverblock.net>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hello.
+(Resending because Mauro reported losing some emails on IRC.)
 
-Hadli, Manjunath wrote:
+This patch was created and tested against linux-next
+( git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git ),
+tag next-20101203, and fixes a regression that crept into 2.6.36.
 
-> Sergei,
->  Only one comment. For others I have done the fixes.
-> Thanks and Regards,
-> -Manju
+The volume control scale in the cx25840 driver has an unusual mapping
+from register values to v4l2 volume control values.  Enforce the mapping
+limits, so that the default volume control setting does not fall out of
+bounds to prevent the cx25840 module device probe from failing.
 
-> Others On Tue, Dec 21, 2010 at 17:13:30, Sergei Shtylyov wrote:
+Signed-off-by: Andy Walls <awalls@md.metrocast.net>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/video/cx25840/cx25840-core.c |   19 +++++++++++++++++--
+ 1 files changed, 17 insertions(+), 2 deletions(-)
 
->> Hello.
+diff --git a/drivers/media/video/cx25840/cx25840-core.c b/drivers/media/video/cx25840/cx25840-core.c
+index dfb198d..f164618 100644
+--- a/drivers/media/video/cx25840/cx25840-core.c
++++ b/drivers/media/video/cx25840/cx25840-core.c
+@@ -1989,8 +1989,23 @@ static int cx25840_probe(struct i2c_client *client,
+ 	v4l2_ctrl_new_std(&state->hdl, &cx25840_ctrl_ops,
+ 			V4L2_CID_HUE, -128, 127, 1, 0);
+ 	if (!is_cx2583x(state)) {
+-		default_volume = 228 - cx25840_read(client, 0x8d4);
+-		default_volume = ((default_volume / 2) + 23) << 9;
++		default_volume = cx25840_read(client, 0x8d4);
++		/*
++		 * Enforce the legacy PVR-350/MSP3400 to PVR-150/CX25843 volume
++		 * scale mapping limits to avoid -ERANGE errors when
++		 * initializing the volume control
++		 */
++		if (default_volume > 228) {
++			/* Bottom out at -96 dB, v4l2 vol range 0x2e00-0x2fff */
++			default_volume = 228;
++			cx25840_write(client, 0x8d4, 228);
++		}
++		else if (default_volume < 20) {
++			/* Top out at + 8 dB, v4l2 vol range 0xfe00-0xffff */
++			default_volume = 20;
++			cx25840_write(client, 0x8d4, 20);
++		}
++		default_volume = (((228 - default_volume) >> 1) + 23) << 9;
+ 
+ 		state->volume = v4l2_ctrl_new_std(&state->hdl,
+ 			&cx25840_audio_ctrl_ops, V4L2_CID_AUDIO_VOLUME,
 
->> On 20-12-2010 16:54, Manjunath Hadli wrote:
-
->>> This patch implements tables for display timings,outputs and other 
->>> board related functionalities.
->>> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
->>> Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
->>> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
-
->> [...]
-
->>> diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c 
->>> b/arch/arm/mach-davinci/board-dm644x-evm.c
->>> index 34c8b41..e9b1243 100644
->>> --- a/arch/arm/mach-davinci/board-dm644x-evm.c
->>> +++ b/arch/arm/mach-davinci/board-dm644x-evm.c
->> [...]
->>> @@ -606,8 +594,71 @@ static void __init evm_init_i2c(void)
->>>   	i2c_register_board_info(1, i2c_info, ARRAY_SIZE(i2c_info));
->>>   }
->>>
->>> +#define VENC_STD_ALL    (V4L2_STD_NTSC | V4L2_STD_PAL)
-
->>     Insert an empty line here, please.
-
->>> +/* venc standards timings */
->>> +static struct vpbe_enc_mode_info vbpe_enc_std_timings[] = {
->>> +	{"ntsc", VPBE_ENC_STD, {V4L2_STD_525_60}, 1, 720, 480,
->>> +	{11, 10}, {30000, 1001}, 0x79, 0, 0x10, 0, 0, 0, 0},
->>> +	{"pal", VPBE_ENC_STD, {V4L2_STD_625_50}, 1, 720, 576,
->>> +	{54, 59}, {25, 1}, 0x7E, 0, 0x16, 0, 0, 0, 0}, };
->>> +
->>> +/* venc dv preset timings */
->>> +static struct vpbe_enc_mode_info vbpe_enc_preset_timings[] = {
->>> +	{"480p59_94", VPBE_ENC_DV_PRESET, {V4L2_DV_480P59_94}, 0, 720, 480,
->>> +	{1, 1}, {5994, 100}, 0x80, 0, 0x20, 0, 0, 0, 0},
->>> +	{"576p50", VPBE_ENC_DV_PRESET, {V4L2_DV_576P50}, 0, 720, 576,
->>> +	{1, 1}, {50, 1}, 0x7E, 0, 0x30, 0, 0, 0, 0}, };
->>> +
->>> +/*
->>> + * The outputs available from VPBE + ecnoders. Keep the
->>> + * the  order same as that of encoders. First that from venc followed 
->>> +by that
->>        ^^^ duplicate
-
-> These are actually 2 different structures, the second one holding high def
-> Standards - 480p and 576p and use DV_PRESETS whicle the first is used for
-> SD modes.
-
-    Still, could you fix the duplicate "the"? :-)
-
-WBR, Sergei
 
