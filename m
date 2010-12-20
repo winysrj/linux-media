@@ -1,133 +1,1006 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:12844 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750835Ab0LULLZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Dec 2010 06:11:25 -0500
-Message-ID: <4D108B1A.6060004@redhat.com>
-Date: Tue, 21 Dec 2010 09:10:18 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-bw0-f45.google.com ([209.85.214.45]:38920 "EHLO
+	mail-bw0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933273Ab0LTXcs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Dec 2010 18:32:48 -0500
+Received: by bwz16 with SMTP id 16so3929618bwz.4
+        for <linux-media@vger.kernel.org>; Mon, 20 Dec 2010 15:32:46 -0800 (PST)
+Message-ID: <4D0FE79A.9020506@gmail.com>
+Date: Tue, 21 Dec 2010 00:32:42 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
 To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR 2.6.37] uvcvideo: BKL removal
-References: <201011291115.11061.laurent.pinchart@ideasonboard.com> <201012181145.29681.hverkuil@xs4all.nl> <4D0F47B8.6040600@redhat.com> <201012201328.06493.hverkuil@xs4all.nl>
-In-Reply-To: <201012201328.06493.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com
+Subject: Re: [PATCH 2/2 v2] [media] Add v4l2 subdev driver for NOON010PC30L
+ image sensor
+References: <1291638298-31926-1-git-send-email-s.nawrocki@samsung.com> <1291638298-31926-3-git-send-email-s.nawrocki@samsung.com> <201012201401.09935.hverkuil@xs4all.nl>
+In-Reply-To: <201012201401.09935.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 20-12-2010 10:28, Hans Verkuil escreveu:
-> On Monday, December 20, 2010 13:10:32 Mauro Carvalho Chehab wrote:
->> Em 18-12-2010 08:45, Hans Verkuil escreveu:
->>> On Saturday, December 18, 2010 01:54:41 Laurent Pinchart wrote:
->>>> Hi Mauro,
->>>>
->>>> On Friday 17 December 2010 18:09:39 Mauro Carvalho Chehab wrote:
->>>>> Em 14-12-2010 08:55, Laurent Pinchart escreveu:
->>>>>> Hi Mauro,
->>>>>>
->>>>>> Please don't forget this pull request for 2.6.37.
->>>>>
->>>>> Pull request for upstream sent today.
->>>>
->>>> Thank you.
->>>>
->>>>> I didn't find any regressions at the BKL removal patches, but I noticed a
->>>>> few issues with qv4l2, not all related to uvcvideo. The remaining of this
->>>>> email is an attempt to document them for later fixes.
->>>>>
->>>>> They don't seem to be regressions caused by BKL removal, but the better
->>>>> would be to fix them later.
->>>>>
->>>>> - with uvcvideo and two video apps, if qv4l2 is started first, the second
->>>>> application doesn't start/capture. I suspect that REQBUFS (used by qv4l2
->>>>> to probe mmap/userptr capabilities) create some resource locking at
->>>>> uvcvideo. The proper way is to lock the resources only if the driver is
->>>>> streaming, as other drivers and videobuf do.
->>>>
->>>> I don't agree with that. The uvcvideo driver has one buffer queue per device, 
->>>> so if an application requests buffers on one file handle it will lock other 
->>>> applications out. If the driver didn't it would be subject to race conditions.
->>>
->>> I agree with Laurent. Once an application calls REQBUFS with non-zero count,
->>> then it should lock the resources needed for streaming. The reason behind that
->>> is that REQBUFS also locks the current selected format in place, since the
->>> format determines the amount of memory needed for the buffers.
->>
->> qv4l2 calls REQBUFS(1), then REQBUFS(0). Well, this is currently wrong, as most
->> drivers will only release buffers at VIDIOC_STREAMOFF.
-> 
-> qv4l2 first calls STREAMOFF, then REQBUFS(1), then REQBUFS(0). In the hope that one
-> of these will actually free any buffers. It's random at the moment when drivers
-> release buffers, one of the reasons for using vb2.
 
-This won't free buffers. REQBUFS(0) is not honored. so, what you're doing is really
-STREAMOFF/REQBUFS(1).
+Hi Hans,
 
-It would work fine if you change the order to:
-REQBUFS(1)
-REQBUFS(0)
-STREAMOFF
+Thanks for this quick albeit helpful review.
+I had no objections to your comments so they all
+are considered in the patch version 3.
 
->> Anyway, even replacing 
->> REQBUFS(0) with VIDIOC_STREAMOFF at qv4l2 won't help with uvcvideo. It seems that,
->> once buffers are requested at uvcvideo, they will release only at close().
+On 12/20/2010 02:01 PM, Hans Verkuil wrote:
+> Hi Sylwester,
+>
+> Here is a quick review of this second patch version.
+>
+> Reviewed-by: Hans Verkuil<hverkuil@xs4all.nl>
+>
+> On Monday, December 06, 2010 13:24:58 Sylwester Nawrocki wrote:
+>> Add I2C/V4L2 subdev driver for Siliconfile NOON010PC30 CIF camera.
+>> The driver implements basic functionality, i.e. CIF/QCIF/QQCIF
+>> resolution and color format selection, automatic/manual color
+>> balance control. Other functions like cropping, rotation/flip,
+>> exposure etc. can be easily implemented if needed.
 >>
->> One consequence on the way uvcvideo is currently doing it is that, if you use qv4l2,
->> it is impossible to change the video size, as it returns -EBUSY, if you ask it to
->> select a different format (even without streaming):
->> 	$ ./qv4l2
->> 	Set Capture Format: Device or resource busy
+>> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
+>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+>> ---
+>>   drivers/media/video/Kconfig       |    6 +
+>>   drivers/media/video/Makefile      |    1 +
+>>   drivers/media/video/noon010pc30.c |  805 +++++++++++++++++++++++++++++++++++++
+>>   include/media/noon010pc30.h       |   28 ++
+>>   4 files changed, 840 insertions(+), 0 deletions(-)
+>>   create mode 100644 drivers/media/video/noon010pc30.c
+>>   create mode 100644 include/media/noon010pc30.h
 >>
->>> The reason a lot of drivers don't do this is partially because for many TV
->>> capture drivers it is highly unlikely that the buffer size will change after
->>> calling REQBUFS (there are basically only two formats: 720x480 or 720x576 and
->>> users will normally never change between the two). However, this is much more
->>> likely to happen for webcams and embedded systems supporting HDTV.
+>> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+>> index da08267..1f4b418 100644
+>> --- a/drivers/media/video/Kconfig
+>> +++ b/drivers/media/video/Kconfig
+>> @@ -732,6 +732,12 @@ config VIDEO_VIA_CAMERA
+>>   	   Chrome9 chipsets.  Currently only tested on OLPC xo-1.5 systems
+>>   	   with ov7670 sensors.
 >>
->> What applications do, when they need to change the formats, is to call REQBUFS again.
+>> +config VIDEO_NOON010PC30
+>> +	tristate "NOON010PC30 CIF camera sensor support"
+>> +	depends on I2C&&  VIDEO_V4L2
+>> +	---help---
+>> +	  This driver supports NOON010PC30 CIF camera from Siliconfile
+>> +
+>>   config SOC_CAMERA
+>>   	tristate "SoC camera support"
+>>   	depends on VIDEO_V4L2&&  HAS_DMA&&  I2C
+>> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+>> index 482f14b..fcc0644 100644
+>> --- a/drivers/media/video/Makefile
+>> +++ b/drivers/media/video/Makefile
+>> @@ -72,6 +72,7 @@ obj-$(CONFIG_VIDEO_TCM825X) += tcm825x.o
+>>   obj-$(CONFIG_VIDEO_TVEEPROM) += tveeprom.o
+>>   obj-$(CONFIG_VIDEO_MT9V011) += mt9v011.o
+>>   obj-$(CONFIG_VIDEO_SR030PC30)	+= sr030pc30.o
+>> +obj-$(CONFIG_VIDEO_NOON010PC30)	+= noon010pc30.o
 >>
->>> The other reason is probably because driver developers simple do not realize
->>> they need to lock the resources on REQBUFS. I'm sure many existing drivers will
->>> fail miserably if you change the format after calling REQBUFS (particularly
->>> with mmap streaming mode).
->>
->> I didn't make any test, but I don't think they'll fail (at least, on the drivers
->> that use videobuf), as streaming format will be stored at the videobuf handling 
->> (at buffer_prepare callback).
->>
->> So, if you change the format, the change will be applied only at the next call
->> to REQBUFS.
-> 
-> This behavior isn't according to the spec. G/S_FMT relate to the current format,
-> not to some future format. Most non-videobuf drivers will not support this
-> behavior.
-> 
-> It should be simple, really:
-> 
-> STREAMOFF
-> REQBUFS(0)
-> 
-> That's all that should be needed to stop streaming and return all buffers to the
-> app. This is what uvc should also support (and I actually thought it did).
-> 
-> Attempts to change formats while buffers have been requested should be blocked
-> with EBUSY. It's all perfectly reasonable. Well, perhaps next year we might
-> succeed in having all drivers behave consistently...
+>>   obj-$(CONFIG_SOC_CAMERA_IMX074)		+= imx074.o
+>>   obj-$(CONFIG_SOC_CAMERA_MT9M001)	+= mt9m001.o
+>> diff --git a/drivers/media/video/noon010pc30.c b/drivers/media/video/noon010pc30.c
+>> new file mode 100644
+>> index 0000000..22eead3
+>> --- /dev/null
+>> +++ b/drivers/media/video/noon010pc30.c
+>> @@ -0,0 +1,805 @@
+>> +/*
+>> + * Driver for SiliconFile NOON010PC30 CIF (1/11") Image Sensor with ISP
+>> + *
+>> + * Copyright (C) 2010 Samsung Electronics
+>> + * Contact: Sylwester Nawrocki,<s.nawrocki@samsung.com>
+>> + *
+>> + * Initial register configuration based on a driver authored by
+>> + * HeungJun Kim<riverful.kim@samsung.com>.
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License as published by
+>> + * the Free Software Foundation; either version 2 of the License, or
+>> + * (at your option) any later vergsion.
+>> + */
+>> +
+>> +#include<linux/delay.h>
+>> +#include<linux/gpio.h>
+>> +#include<linux/i2c.h>
+>> +#include<linux/slab.h>
+>> +#include<linux/regulator/consumer.h>
+>> +#include<media/noon010pc30.h>
+>> +#include<media/v4l2-chip-ident.h>
+>> +#include<linux/videodev2.h>
+>> +#include<media/v4l2-ctrls.h>
+>> +#include<media/v4l2-device.h>
+>> +#include<media/v4l2-mediabus.h>
+>> +#include<media/v4l2-subdev.h>
+>> +
+>> +static int debug;
+>> +module_param(debug, int, 0644);
+>> +MODULE_PARM_DESC(debug, "Enable module debug trace. Set to 1 to enable.");
+>> +
+>> +#define MODULE_NAME		"NOON010PC30"
+>> +#define NOON010_NUM_SUPPLIES	3
+>> +
+>> +/*
+>> + * Register offsets within a page
+>> + * b15..b8 - page id, b7..b0 - register address
+>> + */
+>> +#define POWER_CTRL_REG		0x0001
+>> +#define PAGEMODE_REG		0x03
+>> +#define DEVICE_ID_REG		0x0004
+>> +#define NOON010PC30_ID		0x86
+>> +#define VDO_CTL_REG(n)		(0x0010 + (n))
+>> +#define SYNC_CTL_REG		0x0012
+>> +/* Window size and position */
+>> +#define WIN_ROWH_REG		0x0013
+>> +#define WIN_ROWL_REG		0x0014
+>> +#define WIN_COLH_REG		0x0015
+>> +#define WIN_COLL_REG		0x0016
+>> +#define WIN_HEIGHTH_REG		0x0017
+>> +#define WIN_HEIGHTL_REG		0x0018
+>> +#define WIN_WIDTHH_REG		0x0019
+>> +#define WIN_WIDTHL_REG		0x001A
+>> +#define HBLANKH_REG		0x001B
+>> +#define HBLANKL_REG		0x001C
+>> +#define VSYNCH_REG		0x001D
+>> +#define VSYNCL_REG		0x001E
+>> +/* VSYNC control */
+>> +#define VS_CTL_REG(n)		(0x00A1 + (n))
+>> +/* page 1 */
+>> +#define ISP_CTL_REG(n)		(0x0110 + (n))
+>> +#define YOFS_REG		0x0119
+>> +#define DARK_YOFS_REG		0x011A
+>> +#define SAT_CTL_REG		0x0120
+>> +#define BSAT_REG		0x0121
+>> +#define RSAT_REG		0x0122
+>> +/* Color correction */
+>> +#define CMC_CTL_REG		0x0130
+>> +#define CMC_OFSGH_REG		0x0133
+>> +#define CMC_OFSGL_REG		0x0135
+>> +#define CMC_SIGN_REG		0x0136
+>> +#define CMC_GOFS_REG		0x0137
+>> +#define CMC_COEF_REG(n)		(0x0138 + (n))
+>> +#define CMC_OFS_REG(n)		(0x0141 + (n))
+>> +/* Gamma correction */
+>> +#define GMA_CTL_REG		0x0160
+>> +#define GMA_COEF_REG(n)		(0x0161 + (n))
+>> +/* Lens Shading */
+>> +#define LENS_CTRL_REG		0x01D0
+>> +#define LENS_XCEN_REG		0x01D1
+>> +#define LENS_YCEN_REG		0x01D2
+>> +#define LENS_RC_REG		0x01D3
+>> +#define LENS_GC_REG		0x01D4
+>> +#define LENS_BC_REG		0x01D5
+>> +#define L_AGON_REG		0x01D6
+>> +#define L_AGOFF_REG		0x01D7
+>> +/* Page 3 - Auto Exposure */
+>> +#define AE_CTL_REG(n)		(0x0310 + (n))
+>> +#define AE_CTL9_REG		0x032C
+>> +#define AE_CTL10_REG		0x032D
+>> +#define AE_YLVL_REG		0x031C
+>> +#define AE_YTH_REG(n)		(0x031D + (n))
+>> +#define AE_WGT_REG		0x0326
+>> +#define EXP_TIMEH_REG		0x0333
+>> +#define EXP_TIMEM_REG		0x0334
+>> +#define EXP_TIMEL_REG		0x0335
+>> +#define EXP_MMINH_REG		0x0336
+>> +#define EXP_MMINL_REG		0x0337
+>> +#define EXP_MMAXH_REG		0x0338
+>> +#define EXP_MMAXM_REG		0x0339
+>> +#define EXP_MMAXL_REG		0x033A
+>> +/* Page 4 - Auto White Balance */
+>> +#define AWB_CTL_REG(n)		(0x0410 + (n))
+>> +#define AWB_ENABE		0x80
+>> +#define AWB_WGHT_REG		0x0419
+>> +#define BGAIN_PAR_REG(n)	(0x044F + (n))
+>> +/* Manual white balance, when AWB_CTL2[0]=1 */
+>> +#define MWB_RGAIN_REG		0x0466
+>> +#define MWB_BGAIN_REG		0x0467
+>> +
+>> +/* The token to mark an array end */
+>> +#define REG_TERM		0xFFFF
+>> +
+>> +struct noon010_format {
+>> +	enum v4l2_mbus_pixelcode code;
+>> +	enum v4l2_colorspace colorspace;
+>> +	u16 ispctl1_reg;
+>> +};
+>> +
+>> +struct noon010_frmsize {
+>> +	u16 width;
+>> +	u16 height;
+>> +	int vid_ctl1;
+>> +};
+>> +
+>> +struct noon010_info {
+>> +	struct v4l2_subdev sd;
+>> +	struct v4l2_ctrl_handler hdl;
+>> +	struct v4l2_ctrl *awb;
+>> +	struct v4l2_ctrl *red_bal;
+>> +	struct v4l2_ctrl *blue_bal;
+>
+> As mentioned earlier, these three pointers are no longer used.
+>
+>> +
+>> +	const struct noon010pc30_platform_data *pdata;
+>> +	const struct noon010_format *curr_fmt;
+>> +	const struct noon010_frmsize *curr_win;
+>> +	unsigned int hflip:1;
+>> +	unsigned int vflip:1;
+>> +	unsigned int power:1;
+>> +	u8 i2c_reg_page;
+>> +	struct regulator_bulk_data supply[NOON010_NUM_SUPPLIES];
+>> +	u32 gpio_nreset;
+>> +	u32 gpio_nstby;
+>> +};
+>> +
+>> +struct i2c_regval {
+>> +	u16 addr;
+>> +	u16 val;
+>> +};
+>> +
+>> +static const char *supply_name[NOON010_NUM_SUPPLIES] = {
+>> +	"vdd_core", "vddio", "vdda"
+>> +};
+>> +
+>> +/* Supported resolutions. */
+>> +static const struct noon010_frmsize noon010_sizes[] = {
+>> +	{
+>> +		.width		= 352,
+>> +		.height		= 288,
+>> +		.vid_ctl1	= 0,
+>> +	}, {
+>> +		.width		= 176,
+>> +		.height		= 144,
+>> +		.vid_ctl1	= 0x10,
+>> +	}, {
+>> +		.width		= 88,
+>> +		.height		= 72,
+>> +		.vid_ctl1	= 0x20,
+>> +	},
+>> +};
+>> +
+>> +/* Supported pixel formats. */
+>> +static const struct noon010_format noon010_formats[] = {
+>> +	{
+>> +		.code		= V4L2_MBUS_FMT_YUYV8_2X8,
+>> +		.colorspace	= V4L2_COLORSPACE_JPEG,
+>> +		.ispctl1_reg	= 0x03,
+>> +	}, {
+>> +		.code		= V4L2_MBUS_FMT_YVYU8_2X8,
+>> +		.colorspace	= V4L2_COLORSPACE_JPEG,
+>> +		.ispctl1_reg	= 0x02,
+>> +	}, {
+>> +		.code		= V4L2_MBUS_FMT_VYUY8_2X8,
+>> +		.colorspace	= V4L2_COLORSPACE_JPEG,
+>> +		.ispctl1_reg	= 0,
+>> +	}, {
+>> +		.code		= V4L2_MBUS_FMT_UYVY8_2X8,
+>> +		.colorspace	= V4L2_COLORSPACE_JPEG,
+>> +		.ispctl1_reg	= 0x01,
+>> +	}, {
+>> +		.code		= V4L2_MBUS_FMT_RGB565_2X8_BE,
+>> +		.colorspace	= V4L2_COLORSPACE_JPEG,
+>> +		.ispctl1_reg	= 0x40,
+>> +	},
+>> +};
+>> +
+>> +static const struct i2c_regval noon010_base_regs[] = {
+>> +	{ WIN_COLL_REG,		0x06 },	{ HBLANKL_REG,		0x7C },
+>> +	/* Color corection and saturation */
+>> +	{ ISP_CTL_REG(0),	0x30 }, { ISP_CTL_REG(2),	0x30 },
+>> +	{ YOFS_REG,		0x80 }, { DARK_YOFS_REG,	0x04 },
+>> +	{ SAT_CTL_REG,		0x1F }, { BSAT_REG,		0x90 },
+>> +	{ CMC_CTL_REG,		0x0F }, { CMC_OFSGH_REG,	0x3C },
+>> +	{ CMC_OFSGL_REG,	0x2C }, { CMC_SIGN_REG,		0x3F },
+>> +	{ CMC_COEF_REG(0),	0x79 }, { CMC_OFS_REG(0),	0x00 },
+>> +	{ CMC_COEF_REG(1),	0x39 }, { CMC_OFS_REG(1),	0x00 },
+>> +	{ CMC_COEF_REG(2),	0x00 }, { CMC_OFS_REG(2),	0x00 },
+>> +	{ CMC_COEF_REG(3),	0x11 }, { CMC_OFS_REG(3),	0x8B },
+>> +	{ CMC_COEF_REG(4),	0x65 }, { CMC_OFS_REG(4),	0x07 },
+>> +	{ CMC_COEF_REG(5),	0x14 }, { CMC_OFS_REG(5),	0x04 },
+>> +	{ CMC_COEF_REG(6),	0x01 }, { CMC_OFS_REG(6),	0x9C },
+>> +	{ CMC_COEF_REG(7),	0x33 }, { CMC_OFS_REG(7),	0x89 },
+>> +	{ CMC_COEF_REG(8),	0x74 }, { CMC_OFS_REG(8),	0x25 },
+>> +	/* Automatic white balance */
+>> +	{ AWB_CTL_REG(0),	0x78 }, { AWB_CTL_REG(1),	0x2E },
+>> +	{ AWB_CTL_REG(2),	0x20 }, { AWB_CTL_REG(3),	0x85 },
+>> +	/* Auto exposure */
+>> +	{ AE_CTL_REG(0),	0xDC }, { AE_CTL_REG(1),	0x81 },
+>> +	{ AE_CTL_REG(2),	0x30 }, { AE_CTL_REG(3),	0xA5 },
+>> +	{ AE_CTL_REG(4),	0x40 }, { AE_CTL_REG(5),	0x51 },
+>> +	{ AE_CTL_REG(6),	0x33 }, { AE_CTL_REG(7),	0x7E },
+>> +	{ AE_CTL9_REG,		0x00 }, { AE_CTL10_REG,		0x02 },
+>> +	{ AE_YLVL_REG,		0x44 },	{ AE_YTH_REG(0),	0x34 },
+>> +	{ AE_YTH_REG(1),	0x30 },	{ AE_WGT_REG,		0xD5 },
+>> +	/* Lens shading compensation */
+>> +	{ LENS_CTRL_REG,	0x01 }, { LENS_XCEN_REG,	0x80 },
+>> +	{ LENS_YCEN_REG,	0x70 }, { LENS_RC_REG,		0x53 },
+>> +	{ LENS_GC_REG,		0x40 }, { LENS_BC_REG,		0x3E },
+>> +	{ REG_TERM,		0 },
+>> +};
+>> +
+>> +static inline struct noon010_info *to_noon010(struct v4l2_subdev *sd)
+>> +{
+>> +	return container_of(sd, struct noon010_info, sd);
+>> +}
+>> +
+>> +static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
+>> +{
+>> +	return&container_of(ctrl->handler, struct noon010_info, hdl)->sd;
+>> +}
+>> +
+>> +static inline int set_i2c_page(struct noon010_info *info,
+>> +			       struct i2c_client *client, unsigned int reg)
+>> +{
+>> +	u32 page = reg>>  8&  0xFF;
+>> +	int ret = 0;
+>> +
+>> +	if (info->i2c_reg_page != page&&  (reg&  0xFF) != 0x03) {
+>> +		ret = i2c_smbus_write_byte_data(client, PAGEMODE_REG, page);
+>> +		if (!ret)
+>> +			info->i2c_reg_page = page;
+>> +	}
+>> +	return ret;
+>> +}
+>> +
+>> +static int cam_i2c_read(struct v4l2_subdev *sd, u32 reg_addr)
+>> +{
+>> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>> +	struct noon010_info *info = to_noon010(sd);
+>> +
+>> +	int ret = set_i2c_page(info, client, reg_addr);
+>
+> Swap the two lines above. Looks better that way with all the local
+> variables before the empty line.
+>
+>> +	if (ret)
+>> +		return ret;
+>> +	return i2c_smbus_read_byte_data(client, reg_addr&  0xFF);
+>> +}
+>> +
+>> +static int cam_i2c_write(struct v4l2_subdev *sd, u32 reg_addr, u32 val)
+>> +{
+>> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>> +	struct noon010_info *info = to_noon010(sd);
+>> +
+>> +	int ret = set_i2c_page(info, client, reg_addr);
+>
+> ditto
+>
+>> +	if (ret)
+>> +		return ret;
+>> +	return i2c_smbus_write_byte_data(client, reg_addr&  0xFF, val);
+>> +}
+>> +
+>> +static inline int noon010_bulk_write_reg(struct v4l2_subdev *sd,
+>> +					 const struct i2c_regval *msg)
+>> +{
+>> +	while (msg->addr != REG_TERM) {
+>> +		int ret = cam_i2c_write(sd, msg->addr, msg->val);
+>
+> add empty line.
+>
+>> +		if (ret)
+>> +			return ret;
+>> +		msg++;
+>> +	}
+>> +	return 0;
+>> +}
+>> +
+>> +/* Device reset and sleep mode control */
+>> +static int noon010_power_ctrl(struct v4l2_subdev *sd, bool reset, bool sleep)
+>> +{
+>> +	struct noon010_info *info = to_noon010(sd);
+>> +	u8 reg = sleep ? 0xF1 : 0xF0;
+>> +	int ret = 0;
+>> +
+>> +	if (reset)
+>> +		ret = cam_i2c_write(sd, POWER_CTRL_REG, reg | 0x02);
+>> +	if (!ret) {
+>> +		ret = cam_i2c_write(sd, POWER_CTRL_REG, reg);
+>> +		if (reset&&  !ret)
+>> +			info->i2c_reg_page = -1;
+>> +	}
+>> +	return ret;
+>> +}
+>> +
+>> +/* Automatic white balance control */
+>> +static int noon010_enable_autowhitebalance(struct v4l2_subdev *sd, int on)
+>> +{
+>> +	int ret;
+>> +
+>> +	ret = cam_i2c_write(sd, AWB_CTL_REG(1), on ? 0x2E : 0x2F);
+>> +	if (!ret)
+>> +		ret = cam_i2c_write(sd, AWB_CTL_REG(0), on ? 0xFB : 0x7B);
+>> +	return ret;
+>> +}
+>> +
+>> +static int noon010_set_flip(struct v4l2_subdev *sd, int hflip, int vflip)
+>> +{
+>> +	struct noon010_info *info = to_noon010(sd);
+>> +	int reg, ret;
+>> +
+>> +	reg = cam_i2c_read(sd, VDO_CTL_REG(1));
+>> +	if (reg<  0)
+>> +		return reg;
+>> +
+>> +	reg&= 0x7C;
+>> +	if (hflip)
+>> +		reg |= 0x01;
+>> +	if (vflip)
+>> +		reg |= 0x02;
+>> +
+>> +	ret = cam_i2c_write(sd, VDO_CTL_REG(1), reg | 0x80);
+>> +	if (!ret) {
+>> +		info->hflip = hflip;
+>> +		info->vflip = vflip;
+>> +	}
+>> +	return ret;
+>> +}
+>> +
+>> +/* Configure resolution and color format */
+>> +static int noon010_set_params(struct v4l2_subdev *sd)
+>> +{
+>> +	struct noon010_info *info = to_noon010(sd);
+>> +	int ret;
+>> +
+>> +	if (!info->curr_win)
+>> +		return -EINVAL;
+>> +
+>> +	ret = cam_i2c_write(sd, VDO_CTL_REG(0), info->curr_win->vid_ctl1);
+>> +
+>> +	if (!ret&&  info->curr_fmt)
+>> +		ret = cam_i2c_write(sd, ISP_CTL_REG(0),
+>> +				info->curr_fmt->ispctl1_reg);
+>> +	return ret;
+>> +}
+>> +
+>> +/* Find nearest matching image pixel size. */
+>> +static int noon010_try_frame_size(struct v4l2_mbus_framefmt *mf)
+>> +{
+>> +	unsigned int min_err = ~0;
+>> +	int i = ARRAY_SIZE(noon010_sizes);
+>> +	const struct noon010_frmsize *fsize =&noon010_sizes[0],
+>> +		*match = NULL;
+>> +
+>> +	while (i--) {
+>> +		int err = abs(fsize->width - mf->width)
+>> +				+ abs(fsize->height - mf->height);
+>
+> Empty line.
+>
+>> +		if (err<  min_err) {
+>> +			min_err = err;
+>> +			match = fsize;
+>> +		}
+>> +		fsize++;
+>> +	}
+>> +	if (match) {
+>> +		mf->width  = match->width;
+>> +		mf->height = match->height;
+>> +		return 0;
+>> +	}
+>> +	return -EINVAL;
+>> +}
+>> +
+>> +static int power_enable(struct noon010_info *info)
+>> +{
+>> +	int ret;
+>> +
+>> +	if (info->power) {
+>> +		v4l2_info(&info->sd, "%s: sensor is already on\n", __func__);
+>> +		return 0;
+>> +	}
+>> +
+>> +	if (gpio_is_valid(info->gpio_nstby))
+>> +		gpio_set_value(info->gpio_nstby, 0);
+>> +
+>> +	if (gpio_is_valid(info->gpio_nreset))
+>> +		gpio_set_value(info->gpio_nreset, 0);
+>> +
+>> +	ret = regulator_bulk_enable(NOON010_NUM_SUPPLIES, info->supply);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>> +	if (gpio_is_valid(info->gpio_nreset)) {
+>> +		msleep(50);
+>> +		gpio_set_value(info->gpio_nreset, 1);
+>> +	}
+>> +	if (gpio_is_valid(info->gpio_nstby)) {
+>> +		udelay(1000);
+>> +		gpio_set_value(info->gpio_nstby, 1);
+>> +	}
+>> +	if (gpio_is_valid(info->gpio_nreset)) {
+>> +		udelay(1000);
+>> +		gpio_set_value(info->gpio_nreset, 0);
+>> +		msleep(100);
+>> +		gpio_set_value(info->gpio_nreset, 1);
+>> +		msleep(20);
+>> +	}
+>> +	info->power = 1;
+>> +
+>> +	v4l2_dbg(1, debug,&info->sd,  "%s: sensor is on\n", __func__);
+>> +	return 0;
+>> +}
+>> +
+>> +static int power_disable(struct noon010_info *info)
+>> +{
+>> +	int ret;
+>> +
+>> +	if (!info->power) {
+>> +		v4l2_info(&info->sd, "%s: sensor is already off\n", __func__);
+>> +		return 0;
+>> +	}
+>> +
+>> +	ret = regulator_bulk_disable(NOON010_NUM_SUPPLIES, info->supply);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>> +	if (gpio_is_valid(info->gpio_nstby))
+>> +		gpio_set_value(info->gpio_nstby, 0);
+>> +
+>> +	if (gpio_is_valid(info->gpio_nreset))
+>> +		gpio_set_value(info->gpio_nreset, 0);
+>> +
+>> +	info->power = 0;
+>> +
+>> +	v4l2_dbg(1, debug,&info->sd,  "%s: sensor is off\n", __func__);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int noon010_s_ctrl(struct v4l2_ctrl *ctrl)
+>> +{
+>> +	struct v4l2_subdev *sd = to_sd(ctrl);
+>> +	int ret;
+>> +
+>> +	v4l2_dbg(1, debug, sd, "%s: ctrl_id: %d, value: %d\n",
+>> +		 __func__, ctrl->id, ctrl->val);
+>> +
+>> +	switch (ctrl->id) {
+>> +	case V4L2_CID_AUTO_WHITE_BALANCE:
+>> +		ret = noon010_enable_autowhitebalance(sd, ctrl->val);
+>
+> Just do:
+>
+> 		return noon010_enable_autowhitebalance(sd, ctrl->val);
+>
+> Ditto for the lines below. This removes the need for the ret variable.
 
-You didn't understand me: uvcvideo is returning -EBUSY to format changes with
-buffers freed.
+Yes, that's much better.
 
-If I understood well, during probe time, qv4l2 calls REQBUFS(1)/REQBUFS(0) for both
-userptr and mmap, in order to detect what the device supports. This takes some locking
-schema inside uvcvideo, but, as uvcvideo is only releasing such lock at close(),
-it is impossible to change the video format. I even added an extra STREAMOFF at qv4l2
-code, but this didn't solve the issue.
+>
+>> +		break;
+>> +	case V4L2_CID_BLUE_BALANCE:
+>> +		ret = cam_i2c_write(sd, MWB_BGAIN_REG, ctrl->val);
+>> +		break;
+>> +	case V4L2_CID_RED_BALANCE:
+>> +		ret = cam_i2c_write(sd, MWB_RGAIN_REG, ctrl->val);
+>> +		break;
+>> +	default:
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	return ret;
+>> +}
+>> +
+>> +static int noon010_enum_fmt(struct v4l2_subdev *sd, unsigned int index,
+>> +			    enum v4l2_mbus_pixelcode *code)
+>> +{
+>> +	if (!code || index>= ARRAY_SIZE(noon010_formats))
+>> +		return -EINVAL;
+>> +
+>> +	*code = noon010_formats[index].code;
+>> +	return 0;
+>> +}
+>> +
+>> +static int noon010_g_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
+>> +{
+>> +	struct noon010_info *info = to_noon010(sd);
+>> +	int ret;
+>> +
+>> +	if (!mf)
+>> +		return -EINVAL;
+>> +
+>> +	if (!info->curr_win || !info->curr_fmt) {
+>> +		ret = noon010_set_params(sd);
+>> +		if (ret)
+>> +			return ret;
+>> +	}
+>> +
+>> +	mf->width	= info->curr_win->width;
+>> +	mf->height	= info->curr_win->height;
+>> +	mf->code	= info->curr_fmt->code;
+>> +	mf->colorspace	= info->curr_fmt->colorspace;
+>> +	mf->field	= V4L2_FIELD_NONE;
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +/* Return nearest media bus frame format. */
+>> +static const struct noon010_format *try_fmt(struct v4l2_subdev *sd,
+>> +					    struct v4l2_mbus_framefmt *mf)
+>> +{
+>> +	int i = ARRAY_SIZE(noon010_formats);
+>> +
+>> +	noon010_try_frame_size(mf);
+>> +
+>> +	while (i--)
+>> +		if (mf->code == noon010_formats[i].code)
+>> +			break;
+>> +
+>> +	mf->code = noon010_formats[i].code;
+>> +
+>> +	return&noon010_formats[i];
+>> +}
+>> +
+>> +static int noon010_try_fmt(struct v4l2_subdev *sd,
+>> +			   struct v4l2_mbus_framefmt *mf)
+>> +{
+>> +	if (!sd || !mf)
+>> +		return -EINVAL;
+>> +
+>> +	try_fmt(sd, mf);
+>> +	return 0;
+>> +}
+>> +
+>> +static int noon010_s_fmt(struct v4l2_subdev *sd,
+>> +			 struct v4l2_mbus_framefmt *mf)
+>> +{
+>> +	struct noon010_info *info = to_noon010(sd);
+>> +
+>> +	if (!sd || !mf)
+>> +		return -EINVAL;
+>> +
+>> +	info->curr_fmt = try_fmt(sd, mf);
+>> +
+>> +	return noon010_set_params(sd);
+>> +}
+>> +
+>> +static int noon010_base_config(struct v4l2_subdev *sd)
+>> +{
+>> +	struct noon010_info *info = to_noon010(sd);
+>> +	int ret;
+>> +
+>> +	ret = noon010_bulk_write_reg(sd, noon010_base_regs);
+>> +	if (!ret) {
+>> +		info->curr_fmt =&noon010_formats[0];
+>> +		info->curr_win =&noon010_sizes[0];
+>> +		ret = noon010_set_params(sd);
+>> +	}
+>> +	if (!ret)
+>> +		ret = noon010_set_flip(sd, 1, 0);
+>> +	if (!ret)
+>> +		ret = noon010_power_ctrl(sd, false, false);
+>> +
+>> +	/* sync the handler and the registers state */
+>> +	v4l2_ctrl_handler_setup(&to_noon010(sd)->hdl);
+>> +	return ret;
+>> +}
+>> +
+>> +static int noon010_s_config(struct v4l2_subdev *sd,
+>> +			    int irq, void *platform_data)
+>> +{
+>> +	struct noon010_info *info = to_noon010(sd);
+>> +
+>> +	info->pdata = platform_data;
+>> +	return 0;
+>> +}
+>
+> Why do you need this? This shouldn't be used in new drivers. It's for
+> backwards compatibility with older kernels and it should probably be
+> removed altogether.
 
-Well, maybe better than explaining it, you should try to change the video image size
-or format with qv4l2 and an uvc camera ;)
+I do not need it for anything special. Just don't know why I was
+thinking it is needed for v4l2_new_i2c_subdev_board() to work.
 
-Cheers,
-Mauro
+>
+>> +static int noon010_s_stream(struct v4l2_subdev *sd, int enable)
+>> +{
+>> +	return 0;
+>> +}
+>
+> This doesn't do anything, so you can just drop this function.
+
+Thanks for pointing this out. Just added a check for -ENOIOCTLCMD
+in the host driver so it doesn't fail when s_stream is null.
+
+>
+>> +static int noon010_s_power(struct v4l2_subdev *sd, int on)
+>> +{
+>> +	struct noon010_info *info = to_noon010(sd);
+>> +	const struct noon010pc30_platform_data *pdata = info->pdata;
+>> +	int ret = 0;
+>> +
+>> +	if (WARN(pdata == NULL, "No platform data!\n"))
+>> +		return -ENOMEM;
+>> +
+>> +	if (on) {
+>> +		noon010_power_ctrl(sd, false, true);
+>> +		ret = power_enable(info);
+>> +		if (ret)
+>> +			return ret;
+>> +		ret = noon010_base_config(sd);
+>> +	} else {
+>> +		ret = power_disable(info);
+>> +		info->curr_win = NULL;
+>> +		info->curr_fmt = NULL;
+>> +	}
+>> +
+>> +	return ret;
+>> +}
+>> +
+>> +static int noon010_g_chip_ident(struct v4l2_subdev *sd,
+>> +				struct v4l2_dbg_chip_ident *chip)
+>> +{
+>> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>> +
+>> +	return v4l2_chip_ident_i2c_client(client, chip,
+>> +					  V4L2_IDENT_NOON010PC30, 0);
+>> +}
+>> +
+>> +static int noon010_log_status(struct v4l2_subdev *sd)
+>> +{
+>> +	struct noon010_info *info = to_noon010(sd);
+>> +
+>> +	v4l2_ctrl_handler_log_status(&info->hdl, sd->name);
+>> +	return 0;
+>> +}
+>> +
+>> +static const struct v4l2_ctrl_ops noon010_ctrl_ops = {
+>> +	.s_ctrl = noon010_s_ctrl,
+>> +};
+>> +
+>> +static const struct v4l2_subdev_core_ops noon010_core_ops = {
+>> +	.g_chip_ident	= noon010_g_chip_ident,
+>> +	.s_config	= noon010_s_config,
+>> +	.s_power	= noon010_s_power,
+>> +	.g_ctrl		= v4l2_subdev_g_ctrl,
+>> +	.s_ctrl		= v4l2_subdev_s_ctrl,
+>> +	.queryctrl	= v4l2_subdev_queryctrl,
+>> +	.querymenu	= v4l2_subdev_querymenu,
+>
+> Also add:
+>
+>          .g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
+>          .try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
+>          .s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
+>
+>> +	.log_status	= noon010_log_status,
+>> +};
+>> +
+>> +static const struct v4l2_subdev_video_ops noon010_video_ops = {
+>> +	.s_stream	= noon010_s_stream,
+>> +	.g_mbus_fmt	= noon010_g_fmt,
+>> +	.s_mbus_fmt	= noon010_s_fmt,
+>> +	.try_mbus_fmt	= noon010_try_fmt,
+>> +	.enum_mbus_fmt	= noon010_enum_fmt,
+>> +};
+>> +
+>> +static const struct v4l2_subdev_ops noon010_ops = {
+>> +	.core	=&noon010_core_ops,
+>> +	.video	=&noon010_video_ops,
+>> +};
+>> +
+>> +/* Return 0 if NOON010PC30L sensor type was detected or -ENODEV otherwise. */
+>> +static int noon010_detect(struct i2c_client *client, struct noon010_info *info)
+>> +{
+>> +	int ret;
+>> +
+>> +	ret = power_enable(info);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>> +	ret = i2c_smbus_read_byte_data(client, DEVICE_ID_REG);
+>> +	if (ret<  0)
+>> +		dev_err(&client->dev, "I2C read failed: 0x%X\n", ret);
+>> +
+>> +	power_disable(info);
+>> +
+>> +	return ret == NOON010PC30_ID ? 0 : -ENODEV;
+>> +}
+>> +
+>> +static int noon010_probe(struct i2c_client *client,
+>> +			 const struct i2c_device_id *id)
+>> +{
+>> +	struct noon010_info *info;
+>> +	struct v4l2_subdev *sd;
+>> +	const struct noon010pc30_platform_data *pdata
+>> +		= client->dev.platform_data;
+>> +	int ret;
+>> +	int i;
+>> +
+>> +	if (!pdata) {
+>> +		dev_err(&client->dev, "No platform data!\n");
+>> +		return -EIO;
+>> +	}
+>> +
+>> +	info = kzalloc(sizeof(*info), GFP_KERNEL);
+>> +	if (!info)
+>> +		return -ENOMEM;
+>> +
+>> +	sd =&info->sd;
+>> +	strcpy(sd->name, MODULE_NAME);
+>
+> strlcpy
+>
+>> +	v4l2_i2c_subdev_init(sd, client,&noon010_ops);
+>> +
+>> +	v4l2_ctrl_handler_init(&info->hdl, 3);
+>> +
+>> +	v4l2_ctrl_new_std(&info->hdl,&noon010_ctrl_ops,
+>> +			  V4L2_CID_AUTO_WHITE_BALANCE, 0, 1, 1, 1);
+>> +	v4l2_ctrl_new_std(&info->hdl,&noon010_ctrl_ops,
+>> +			  V4L2_CID_RED_BALANCE, 0, 127, 1, 64);
+>> +	v4l2_ctrl_new_std(&info->hdl,&noon010_ctrl_ops,
+>> +			  V4L2_CID_BLUE_BALANCE, 0, 127, 1, 64);
+>> +
+>> +	sd->ctrl_handler =&info->hdl;
+>> +
+>> +	ret = info->hdl.error;
+>> +	if (ret) {
+>> +		v4l2_ctrl_handler_free(&info->hdl);
+>
+> The v4l2_ctrl_handler_free call should be part of the 'exit' labels at the end...
+
+Oh, that's bad :/ Thanks.
+
+>
+>> +		goto np_err;
+>> +	}
+>> +
+>> +	info->pdata		= client->dev.platform_data;
+>> +	info->i2c_reg_page	= -1;
+>> +	info->gpio_nreset	= -EINVAL;
+>> +	info->gpio_nstby	= -EINVAL;
+>> +
+>> +	if (gpio_is_valid(pdata->gpio_nreset)) {
+>> +		ret = gpio_request(pdata->gpio_nreset, "NOON010PC30 NRST");
+>> +		if (ret) {
+>> +			dev_err(&client->dev, "GPIO request error: %d\n", ret);
+>> +			goto np_err;
+>
+> ...because otherwise it will never be freed here and in the other exit paths
+> below.
+>
+>> +		}
+>> +		info->gpio_nreset = pdata->gpio_nreset;
+>> +		gpio_direction_output(info->gpio_nreset, 0);
+>> +		gpio_export(info->gpio_nreset, 0);
+>> +	}
+>> +
+>> +	if (gpio_is_valid(pdata->gpio_nstby)) {
+>> +		ret = gpio_request(pdata->gpio_nstby, "NOON010PC30 NSTBY");
+>> +		if (ret) {
+>> +			dev_err(&client->dev, "GPIO request error: %d\n", ret);
+>> +			goto gpio_stby_err;
+>> +		}
+>> +		info->gpio_nstby = pdata->gpio_nstby;
+>> +		gpio_direction_output(info->gpio_nstby, 0);
+>> +		gpio_export(info->gpio_nstby, 0);
+>> +	}
+>> +
+>> +	for (i = 0; i<  NOON010_NUM_SUPPLIES; i++)
+>> +		info->supply[i].supply = supply_name[i];
+>> +
+>> +	ret = regulator_bulk_get(&client->dev, NOON010_NUM_SUPPLIES,
+>> +			info->supply);
+>
+> ret is assigned but not checked?
+
+Hmm, that must have been two lines deleted too much ;)
+
+>
+>> +	ret = noon010_detect(client, info);
+>> +	if (!ret)
+>> +		return 0;
+>> +
+>> +	/* the sensor detection failed */
+>> +	regulator_bulk_free(NOON010_NUM_SUPPLIES, info->supply);
+>> +	if (gpio_is_valid(info->gpio_nstby))
+>> +		gpio_free(info->gpio_nstby);
+>> +gpio_stby_err:
+>> +	if (gpio_is_valid(info->gpio_nreset))
+>> +		gpio_free(info->gpio_nreset);
+>> +np_err:
+>> +	v4l2_device_unregister_subdev(sd);
+>> +	kfree(info);
+>> +	return ret;
+>> +}
+>> +
+>> +static int noon010_remove(struct i2c_client *client)
+>> +{
+>> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+>> +	struct noon010_info *info = to_noon010(sd);
+>> +
+>> +	v4l2_device_unregister_subdev(sd);
+>
+> Missing v4l2_ctrl_handler_free.
+>
+>> +	regulator_bulk_free(NOON010_NUM_SUPPLIES, info->supply);
+>> +	if (gpio_is_valid(info->gpio_nreset))
+>> +		gpio_free(info->gpio_nreset);
+>> +	if (gpio_is_valid(info->gpio_nstby))
+>> +		gpio_free(info->gpio_nstby);
+>> +	kfree(info);
+>> +	return 0;
+>> +}
+>> +
+>> +static const struct i2c_device_id noon010_id[] = {
+>> +	{ MODULE_NAME, 0 },
+>> +	{ },
+>> +};
+>> +MODULE_DEVICE_TABLE(i2c, noon010_id);
+>> +
+>> +
+>> +static struct i2c_driver noon010_i2c_driver = {
+>> +	.driver = {
+>> +		.name = MODULE_NAME
+>> +	},
+>> +	.probe		= noon010_probe,
+>> +	.remove		= noon010_remove,
+>> +	.id_table	= noon010_id,
+>> +};
+>> +
+>> +static int __init noon010_init(void)
+>> +{
+>> +	return i2c_add_driver(&noon010_i2c_driver);
+>> +}
+>> +
+>> +static void __exit noon010_exit(void)
+>> +{
+>> +	i2c_del_driver(&noon010_i2c_driver);
+>> +}
+>> +
+>> +module_init(noon010_init);
+>> +module_exit(noon010_exit);
+>> +
+>> +MODULE_DESCRIPTION("Siliconfile NOON010PC30 camera driver");
+>> +MODULE_AUTHOR("Sylwester Nawrocki<s.nawrocki@samsung.com>");
+>> +MODULE_LICENSE("GPL");
+>> diff --git a/include/media/noon010pc30.h b/include/media/noon010pc30.h
+>> new file mode 100644
+>> index 0000000..58eafee
+>> --- /dev/null
+>> +++ b/include/media/noon010pc30.h
+>> @@ -0,0 +1,28 @@
+>> +/*
+>> + * Driver header for NOON010PC30L camera sensor chip.
+>> + *
+>> + * Copyright (c) 2010 Samsung Electronics, Co. Ltd
+>> + * Contact: Sylwester Nawrocki<s.nawrocki@samsung.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License as published by
+>> + * the Free Software Foundation; either version 2 of the License, or
+>> + * (at your option) any later version.
+>> + */
+>> +
+>> +#ifndef NOON010PC30_H
+>> +#define NOON010PC30_H
+>> +
+>> +/**
+>> + * @clk_rate: the clock frequency in Hz
+>> + * @gpio_nreset: GPIO driving nRESET pin
+>> + * @gpio_nstby: GPIO driving nSTBY pin
+>> + */
+>> +
+>> +struct noon010pc30_platform_data {
+>> +	unsigned long clk_rate;
+>> +	int gpio_nreset;
+>> +	int gpio_nstby;
+>> +};
+>> +
+>> +#endif /* NOON010PC30_H */
+>>
+>
+> Regards,
+>
+> 	Hans
+>
+
