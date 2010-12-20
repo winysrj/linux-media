@@ -1,139 +1,114 @@
 Return-path: <mchehab@gaivota>
-Received: from banach.math.auburn.edu ([131.204.45.3]:55648 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756148Ab0LSXUP (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51213 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757180Ab0LTLgg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Dec 2010 18:20:15 -0500
-Date: Sun, 19 Dec 2010 17:56:10 -0600 (CST)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Hans de Goede <hdegoede@redhat.com>
-cc: linux-media@vger.kernel.org
-Subject: problems with using the -rc kernel in the git tree
-In-Reply-To: <4D091B75.6090003@redhat.com>
-Message-ID: <alpine.LNX.2.00.1012191716210.24101@banach.math.auburn.edu>
-References: <30370.90722.qm@web84204.mail.re3.yahoo.com> <4D034D67.1050806@redhat.com> <alpine.LNX.2.00.1012141235210.18793@banach.math.auburn.edu> <4D07D977.8010801@redhat.com> <alpine.LNX.2.00.1012151324190.19893@banach.math.auburn.edu>
- <4D091B75.6090003@redhat.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Mon, 20 Dec 2010 06:36:36 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Cc: broonie@opensource.wolfsonmicro.com, clemens@ladisch.de,
+	gregkh@suse.de, sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v7 00/12] Media controller (core and V4L2)
+Date: Mon, 20 Dec 2010 12:36:23 +0100
+Message-Id: <1292844995-7900-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
+Hi everybody,
 
-Hans, 
+Here is the seventh version of the media controller core and V4L2 patches.
+the first one to be sent outside of the linux-media mailing list.
 
-Thanks for the helpful advice about how to set up a git tree for current 
-development so that I can get back into things. 
+Quick reminder for those who missed the previous version. let me quote the
+documentation (Documentation/DocBook/v4l/media-controller.xml).
 
-However, there is a problem with that -rc kernel, at least as far as my 
-hardware is concerned. So if I am supposed to use it to work on camera 
-stuff there is an obstacle.
+"Discovering a [media] device internal topology, and configuring it at runtime,
+is one of the goals of the media controller API. To achieve this, hardware
+devices are modelled as an oriented graph of building blocks called entities
+connected through pads."
 
-I started by copying my .config file over to the tree, and then running 
-make oldconfig (as you said and as I would have done anyway).
+The code has been extensively reviewed by the V4L community, and this version
+is the first one to incorporate comments from the ALSA community (big thanks
+to Mark Brown and Clemens Ladisch). Two issues are not fully addressed yet,
+namely power management (I need to discuss this some more with the ALSA
+developers to really understand their requirements) and entities type names.
+I'm still posting this for review, as other developers have showed interest in
+commenting on the code.
 
-The problem seems to be centered right here (couple of lines 
-from .config follow)
+I want to emphasize once again that the media controller API does not replace
+the V4L, DVB or ALSA APIs. It complements them.
 
-CONFIG_DRM_RADEON=m
-# CONFIG_DRM_RADEON_KMS is not set
+The first user of the media controller API is the OMAP3 ISP driver. You can
+find it (as well as these patches and other V4L-specific patches) in a git tree
+at http://git.linuxtv.org/pinchartl/media.git (media-0004-omap3isp branch). The
+OMAP3 ISP driver patches are regularly posted for review on the linux-media
+list.
 
-I have a Radeon video card, obviously. Specifically, it is (extract from X 
-config file follows)
+Laurent Pinchart (10):
+  media: Media device node support
+  media: Media device
+  media: Entities, pads and links
+  media: Media device information query
+  media: Entities, pads and links enumeration
+  media: Links setup
+  media: Pipelines and media streams
+  v4l: Add a media_device pointer to the v4l2_device structure
+  v4l: Make video_device inherit from media_entity
+  v4l: Make v4l2_subdev inherit from media_entity
 
-# Device configured by xorgconfig:
+Sakari Ailus (2):
+  media: Entity graph traversal
+  media: Reference count and power handling
 
-Section "Device"
-    Identifier  "ATI Radeon HD 3200"
-    Driver      "radeon"
+ Documentation/DocBook/media-entities.tmpl          |   24 +
+ Documentation/DocBook/media.tmpl                   |    3 +
+ Documentation/DocBook/v4l/media-controller.xml     |   89 +++
+ Documentation/DocBook/v4l/media-func-close.xml     |   59 ++
+ Documentation/DocBook/v4l/media-func-ioctl.xml     |  116 ++++
+ Documentation/DocBook/v4l/media-func-open.xml      |   94 +++
+ .../DocBook/v4l/media-ioc-device-info.xml          |  133 ++++
+ .../DocBook/v4l/media-ioc-enum-entities.xml        |  308 +++++++++
+ Documentation/DocBook/v4l/media-ioc-enum-links.xml |  207 ++++++
+ Documentation/DocBook/v4l/media-ioc-setup-link.xml |   93 +++
+ Documentation/media-framework.txt                  |  383 +++++++++++
+ Documentation/video4linux/v4l2-framework.txt       |   72 ++-
+ drivers/media/Kconfig                              |   13 +
+ drivers/media/Makefile                             |   10 +-
+ drivers/media/media-device.c                       |  382 +++++++++++
+ drivers/media/media-devnode.c                      |  321 +++++++++
+ drivers/media/media-entity.c                       |  690 ++++++++++++++++++++
+ drivers/media/video/v4l2-dev.c                     |   49 ++-
+ drivers/media/video/v4l2-device.c                  |   52 ++-
+ drivers/media/video/v4l2-subdev.c                  |   41 ++-
+ include/linux/Kbuild                               |    1 +
+ include/linux/media.h                              |  132 ++++
+ include/media/media-device.h                       |   92 +++
+ include/media/media-devnode.h                      |   97 +++
+ include/media/media-entity.h                       |  148 +++++
+ include/media/v4l2-dev.h                           |    7 +
+ include/media/v4l2-device.h                        |    4 +
+ include/media/v4l2-subdev.h                        |   10 +
+ 28 files changed, 3603 insertions(+), 27 deletions(-)
+ create mode 100644 Documentation/DocBook/v4l/media-controller.xml
+ create mode 100644 Documentation/DocBook/v4l/media-func-close.xml
+ create mode 100644 Documentation/DocBook/v4l/media-func-ioctl.xml
+ create mode 100644 Documentation/DocBook/v4l/media-func-open.xml
+ create mode 100644 Documentation/DocBook/v4l/media-ioc-device-info.xml
+ create mode 100644 Documentation/DocBook/v4l/media-ioc-enum-entities.xml
+ create mode 100644 Documentation/DocBook/v4l/media-ioc-enum-links.xml
+ create mode 100644 Documentation/DocBook/v4l/media-ioc-setup-link.xml
+ create mode 100644 Documentation/media-framework.txt
+ create mode 100644 drivers/media/media-device.c
+ create mode 100644 drivers/media/media-devnode.c
+ create mode 100644 drivers/media/media-entity.c
+ create mode 100644 include/linux/media.h
+ create mode 100644 include/media/media-device.h
+ create mode 100644 include/media/media-devnode.h
+ create mode 100644 include/media/media-entity.h
 
-Now, what happens is that with the kernel configuration (see above) I 
-cannot start X in the -rc kernel. I get bumped out with an error 
-message (details below) whereas that _was_ my previous configuration 
-setting. 
+-- 
+Regards,
 
-But if in the config for the -rc kernel I change the second line by 
-turning on CONFIG_DRM_RADEON_KMS the situation is even worse. Namely, the 
-video cuts off during the boot process, with the monitor going blank and 
-flashing up a message that it lost signal. After that the only thing to do 
-is a hard reset, which strangely does not result in any check for a dirty 
-file system, showing that things _really_ got screwed. These problems wit 
-the video cutting off at boot are with booting into the _terminal_, BTW. I 
-do not and never have made a practice of booting into X. I start X from 
-the command line after boot. Thus, the video cutting off during boot has 
-nothing to do with X at all, AFAICT.
+Laurent Pinchart
 
-So as I said there are two alternatives, both of them quite unpleasant.
-
-Here is what the crash message is on the screen from the attempt to start 
-up X, followed by what seem to be the relevant lines from the log file, 
-with slightly more detail.
-
-Markers: (--) probed, (**) from config file, (==) default setting,
-        (++) from command line, (!!) notice, (II) informational,
-        (WW) warning, (EE) error, (NI) not implemented, (??) unknown.
-(==) Log file: "/var/log/Xorg.0.log", Time: Sun Dec 19 14:32:12 2010
-(==) Using config file: "/etc/X11/xorg.conf"
-(==) Using system config directory "/usr/share/X11/xorg.conf.d"
-(II) [KMS] drm report modesetting isn't supported.
-(EE) RADEON(0): Unable to map MMIO aperture. Invalid argument (22)
-(EE) RADEON(0): Memory map the MMIO region failed
-(EE) Screen(s) found, but none have a usable configuration.
-
-Fatal server error:
-no screens found
-
-Please consult the The X.Org Foundation support
-         at http://wiki.x.org
- for help.
-Please also check the log file at "/var/log/Xorg.0.log" for additional
-information.
-
-xinit: giving up
-xinit: unable to connect to X server: Connection refused
-xinit: server error
-xinit: unable to connect to X server: Connection refused
-xinit: server error
-kilgota@khayyam:~$
-
-And the following, too, from the log file, which perhaps contains one or 
-two
-more details:
-
-[    48.050] (--) using VT number 7
-
-[    48.052] (II) [KMS] drm report modesetting isn't supported.
-[    48.052] (II) RADEON(0): TOTO SAYS 00000000feaf0000
-[    48.052] (II) RADEON(0): MMIO registers at 0x00000000feaf0000: size 
-64KB
-[    48.052] (EE) RADEON(0): Unable to map MMIO aperture. Invalid argument 
-(22)
-[    48.052] (EE) RADEON(0): Memory map the MMIO region failed
-[    48.052] (II) UnloadModule: "radeon"
-[    48.052] (EE) Screen(s) found, but none have a usable configuration.
-[    48.052]
-Fatal server error:
-[    48.052] no screens found
-[    48.052]
-
-There are a couple of suggestions about things to try, such as compiling 
-with CONFIG_DRM_RADEON_KMS and then passing the parameter modeset=0 to the 
-radeon module. But that does not seem to help, either.
-
-The help screens in make menuconfig do not seem to praise the 
-CONFIG_DRM_RADEON_KMS very highly, and seem to indicate that this is still 
-a very experimental feature.
-
-There are no such equivalent problems with my current kernel, which is a 
-home-compiled 2.6.35.7.
-
-I realize that this is a done decision, but it is exactly this kind of 
-thing that I had in mind when we had the Great Debate on the linux-media 
-list about whether to use hg or git. My position was to let hardware 
-support people to run hg with the compatibility layer for recent kernels 
-(and 2.6.35.7 is certainly recent!). Well, the people who had such a 
-position did not win. So now here is unfortunately the foreseeable result. 
-An experimental kernel with some totally unrelated bug which affects my 
-hardware and meanwhile stops all progress.
-
-
-Theodore Kilgore
