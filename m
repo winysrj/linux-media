@@ -1,414 +1,163 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:20556 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753225Ab0LVNky (ORCPT
+Received: from mail-fx0-f43.google.com ([209.85.161.43]:48681 "EHLO
+	mail-fx0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753363Ab0LTGji convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Dec 2010 08:40:54 -0500
-Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LDU002LA0O2N1@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 22 Dec 2010 13:40:51 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LDU000910O20G@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 22 Dec 2010 13:40:50 +0000 (GMT)
-Date: Wed, 22 Dec 2010 14:40:35 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 05/13] v4l: v4l2-ioctl: add buffer type conversion for
- multi-planar-aware ioctls
-In-reply-to: <1293025239-9977-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	andrzej.p@samsung.com
-Message-id: <1293025239-9977-6-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1293025239-9977-1-git-send-email-m.szyprowski@samsung.com>
+	Mon, 20 Dec 2010 01:39:38 -0500
+Received: by fxm18 with SMTP id 18so2667163fxm.2
+        for <linux-media@vger.kernel.org>; Sun, 19 Dec 2010 22:39:37 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <alpine.LNX.2.00.1012191716210.24101@banach.math.auburn.edu>
+References: <30370.90722.qm@web84204.mail.re3.yahoo.com>
+	<4D034D67.1050806@redhat.com>
+	<alpine.LNX.2.00.1012141235210.18793@banach.math.auburn.edu>
+	<4D07D977.8010801@redhat.com>
+	<alpine.LNX.2.00.1012151324190.19893@banach.math.auburn.edu>
+	<4D091B75.6090003@redhat.com>
+	<alpine.LNX.2.00.1012191716210.24101@banach.math.auburn.edu>
+Date: Mon, 20 Dec 2010 01:39:34 -0500
+Message-ID: <AANLkTinjtT4Ki1=+-04GbEkw4e8+W7F=aC0c4xpv3Qqc@mail.gmail.com>
+Subject: Re: problems with using the -rc kernel in the git tree
+From: Alex Deucher <alexdeucher@gmail.com>
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-From: Pawel Osciak <pawel@osciak.com>
+On Sun, Dec 19, 2010 at 6:56 PM, Theodore Kilgore
+<kilgota@banach.math.auburn.edu> wrote:
+>
+> Hans,
+>
+> Thanks for the helpful advice about how to set up a git tree for current
+> development so that I can get back into things.
+>
+> However, there is a problem with that -rc kernel, at least as far as my
+> hardware is concerned. So if I am supposed to use it to work on camera
+> stuff there is an obstacle.
+>
+> I started by copying my .config file over to the tree, and then running
+> make oldconfig (as you said and as I would have done anyway).
+>
+> The problem seems to be centered right here (couple of lines
+> from .config follow)
+>
+> CONFIG_DRM_RADEON=m
+> # CONFIG_DRM_RADEON_KMS is not set
+>
+> I have a Radeon video card, obviously. Specifically, it is (extract from X
+> config file follows)
+>
+> # Device configured by xorgconfig:
+>
+> Section "Device"
+>    Identifier  "ATI Radeon HD 3200"
+>    Driver      "radeon"
+>
+> Now, what happens is that with the kernel configuration (see above) I
+> cannot start X in the -rc kernel. I get bumped out with an error
+> message (details below) whereas that _was_ my previous configuration
+> setting.
+>
+> But if in the config for the -rc kernel I change the second line by
+> turning on CONFIG_DRM_RADEON_KMS the situation is even worse. Namely, the
+> video cuts off during the boot process, with the monitor going blank and
+> flashing up a message that it lost signal. After that the only thing to do
+> is a hard reset, which strangely does not result in any check for a dirty
+> file system, showing that things _really_ got screwed. These problems wit
+> the video cutting off at boot are with booting into the _terminal_, BTW. I
+> do not and never have made a practice of booting into X. I start X from
+> the command line after boot. Thus, the video cutting off during boot has
+> nothing to do with X at all, AFAICT.
+>
+> So as I said there are two alternatives, both of them quite unpleasant.
+>
+> Here is what the crash message is on the screen from the attempt to start
+> up X, followed by what seem to be the relevant lines from the log file,
+> with slightly more detail.
+>
+> Markers: (--) probed, (**) from config file, (==) default setting,
+>        (++) from command line, (!!) notice, (II) informational,
+>        (WW) warning, (EE) error, (NI) not implemented, (??) unknown.
+> (==) Log file: "/var/log/Xorg.0.log", Time: Sun Dec 19 14:32:12 2010
+> (==) Using config file: "/etc/X11/xorg.conf"
+> (==) Using system config directory "/usr/share/X11/xorg.conf.d"
+> (II) [KMS] drm report modesetting isn't supported.
+> (EE) RADEON(0): Unable to map MMIO aperture. Invalid argument (22)
+> (EE) RADEON(0): Memory map the MMIO region failed
+> (EE) Screen(s) found, but none have a usable configuration.
+>
+> Fatal server error:
+> no screens found
+>
+> Please consult the The X.Org Foundation support
+>         at http://wiki.x.org
+>  for help.
+> Please also check the log file at "/var/log/Xorg.0.log" for additional
+> information.
+>
+> xinit: giving up
+> xinit: unable to connect to X server: Connection refused
+> xinit: server error
+> xinit: unable to connect to X server: Connection refused
+> xinit: server error
+> kilgota@khayyam:~$
+>
+> And the following, too, from the log file, which perhaps contains one or
+> two
+> more details:
+>
+> [    48.050] (--) using VT number 7
+>
+> [    48.052] (II) [KMS] drm report modesetting isn't supported.
+> [    48.052] (II) RADEON(0): TOTO SAYS 00000000feaf0000
+> [    48.052] (II) RADEON(0): MMIO registers at 0x00000000feaf0000: size
+> 64KB
+> [    48.052] (EE) RADEON(0): Unable to map MMIO aperture. Invalid argument
+> (22)
+> [    48.052] (EE) RADEON(0): Memory map the MMIO region failed
+> [    48.052] (II) UnloadModule: "radeon"
+> [    48.052] (EE) Screen(s) found, but none have a usable configuration.
+> [    48.052]
+> Fatal server error:
+> [    48.052] no screens found
+> [    48.052]
+>
+> There are a couple of suggestions about things to try, such as compiling
+> with CONFIG_DRM_RADEON_KMS and then passing the parameter modeset=0 to the
+> radeon module. But that does not seem to help, either.
+>
+> The help screens in make menuconfig do not seem to praise the
+> CONFIG_DRM_RADEON_KMS very highly, and seem to indicate that this is still
+> a very experimental feature.
+>
+> There are no such equivalent problems with my current kernel, which is a
+> home-compiled 2.6.35.7.
+>
+> I realize that this is a done decision, but it is exactly this kind of
+> thing that I had in mind when we had the Great Debate on the linux-media
+> list about whether to use hg or git. My position was to let hardware
+> support people to run hg with the compatibility layer for recent kernels
+> (and 2.6.35.7 is certainly recent!). Well, the people who had such a
+> position did not win. So now here is unfortunately the foreseeable result.
+> An experimental kernel with some totally unrelated bug which affects my
+> hardware and meanwhile stops all progress.
 
-Drivers that support only one variant of API - single- or multi-planar -
-can still be used by applications that support the other variant in most
-cases. This adds a conversion layer for buffer types for such situations.
+If you enable radeon KMS, you need to enable fbcon in your kernel or
+you will lose video when the radeon kms driver loads since it controls
+the video device and provide a legacy kernel fbdev interface.  As for
+X, you need a ddx (xf86-video-ati) built with kms support (6.13.x
+series).
 
-Signed-off-by: Pawel Osciak <pawel@osciak.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/video/v4l2-ioctl.c |  206 +++++++++++++++++++++++++++++++++----
- 1 files changed, 183 insertions(+), 23 deletions(-)
+Alex
 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 5d46aa2..fee8b94 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -605,27 +605,21 @@ static int check_fmt(const struct v4l2_ioctl_ops *ops, enum v4l2_buf_type type)
- 
- 	switch (type) {
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
- 		if (ops->vidioc_g_fmt_vid_cap ||
- 				ops->vidioc_g_fmt_vid_cap_mplane)
- 			return 0;
- 		break;
--	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
--		if (ops->vidioc_g_fmt_vid_cap_mplane)
--			return 0;
--		break;
- 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
- 		if (ops->vidioc_g_fmt_vid_overlay)
- 			return 0;
- 		break;
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
- 		if (ops->vidioc_g_fmt_vid_out ||
- 				ops->vidioc_g_fmt_vid_out_mplane)
- 			return 0;
- 		break;
--	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
--		if (ops->vidioc_g_fmt_vid_out_mplane)
--			return 0;
--		break;
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
- 		if (ops->vidioc_g_fmt_vid_out_overlay)
- 			return 0;
-@@ -654,6 +648,64 @@ static int check_fmt(const struct v4l2_ioctl_ops *ops, enum v4l2_buf_type type)
- 	return -EINVAL;
- }
- 
-+static enum v4l2_buf_type convert_type(const struct v4l2_ioctl_ops *ops,
-+					enum v4l2_buf_type type)
-+{
-+	if (ops == NULL)
-+		return type;
-+
-+	switch (type) {
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-+		if (!ops->vidioc_g_fmt_vid_cap
-+				&& ops->vidioc_g_fmt_vid_cap_mplane)
-+			return V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-+		break;
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-+		if (!ops->vidioc_g_fmt_vid_cap_mplane
-+				&& ops->vidioc_g_fmt_vid_cap)
-+			return V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+		break;
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-+		if (!ops->vidioc_g_fmt_vid_out
-+				&& ops->vidioc_g_fmt_vid_out_mplane)
-+			return V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
-+		break;
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-+		if (!ops->vidioc_g_fmt_vid_out_mplane
-+				&& ops->vidioc_g_fmt_vid_out)
-+			return V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return type;
-+}
-+
-+static int type_sp_to_mp(enum v4l2_buf_type t_sp, enum v4l2_buf_type *t_mp)
-+{
-+	if (t_sp == V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		*t_mp = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-+	else if (t_sp == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-+		*t_mp = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
-+	else
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+static int type_mp_to_sp(enum v4l2_buf_type t_mp, enum v4l2_buf_type *t_sp)
-+{
-+	if (t_mp == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-+		*t_sp = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	else if (t_mp == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-+		*t_sp = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+	else
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
- /**
-  * fmt_sp_to_mp() - Convert a single-plane format to its multi-planar 1-plane
-  * equivalent
-@@ -663,13 +715,11 @@ static int fmt_sp_to_mp(const struct v4l2_format *f_sp,
- {
- 	struct v4l2_pix_format_mplane *pix_mp = &f_mp->fmt.pix_mp;
- 	const struct v4l2_pix_format *pix = &f_sp->fmt.pix;
-+	int ret;
- 
--	if (f_sp->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
--		f_mp->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
--	else if (f_sp->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
--		f_mp->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
--	else
--		return -EINVAL;
-+	ret = type_sp_to_mp(f_sp->type, &f_mp->type);
-+	if (ret)
-+		return ret;
- 
- 	pix_mp->width = pix->width;
- 	pix_mp->height = pix->height;
-@@ -692,13 +742,11 @@ static int fmt_mp_to_sp(const struct v4l2_format *f_mp,
- {
- 	const struct v4l2_pix_format_mplane *pix_mp = &f_mp->fmt.pix_mp;
- 	struct v4l2_pix_format *pix = &f_sp->fmt.pix;
-+	int ret;
- 
--	if (f_mp->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
--		f_sp->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
--	else if (f_mp->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
--		f_sp->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
--	else
--		return -EINVAL;
-+	ret = type_mp_to_sp(f_mp->type, &f_sp->type);
-+	if (ret)
-+		return ret;
- 
- 	pix->width = pix_mp->width;
- 	pix->height = pix_mp->height;
-@@ -711,6 +759,48 @@ static int fmt_mp_to_sp(const struct v4l2_format *f_mp,
- 	return 0;
- }
- 
-+static int buf_sp_to_mp(const struct v4l2_buffer *b_sp,
-+			struct v4l2_buffer *b_mp)
-+{
-+	int ret;
-+
-+	memcpy(b_mp, b_sp, sizeof *b_mp);
-+	ret = type_sp_to_mp(b_sp->type, &b_mp->type);
-+	if (ret)
-+		return ret;
-+	b_mp->m.planes[0].length = b_sp->length;
-+	b_mp->m.planes[0].bytesused = b_mp->bytesused;
-+	b_mp->length = 1;
-+	memcpy(&b_mp->m.planes[0].m, &b_sp->m, sizeof(struct v4l2_plane));
-+
-+	return 0;
-+}
-+
-+static int buf_mp_to_sp(const struct v4l2_buffer *b_mp,
-+			struct v4l2_buffer *b_sp)
-+{
-+	int ret;
-+
-+	memcpy(b_sp, b_mp, sizeof *b_sp);
-+	ret = type_mp_to_sp(b_mp->type, &b_sp->type);
-+	if (ret)
-+		return ret;
-+	b_sp->length = b_mp->m.planes[0].length;
-+	b_sp->bytesused = b_mp->m.planes[0].bytesused;
-+	memcpy(&b_sp->m, &b_mp->m.planes[0].m, sizeof(struct v4l2_plane));
-+
-+	return 0;
-+}
-+
-+static int convert_buffer(const struct v4l2_buffer *b_src,
-+				struct v4l2_buffer *b_dst)
-+{
-+	if (V4L2_TYPE_IS_MULTIPLANAR(b_src->type))
-+		return buf_mp_to_sp(b_src, b_dst);
-+	else
-+		return buf_sp_to_mp(b_src, b_dst);
-+}
-+
- static long __video_do_ioctl(struct file *file,
- 		unsigned int cmd, void *arg)
- {
-@@ -718,6 +808,9 @@ static long __video_do_ioctl(struct file *file,
- 	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
- 	void *fh = file->private_data;
- 	struct v4l2_format f_copy;
-+	enum v4l2_buf_type old_type;
-+	struct v4l2_buffer buf_copy;
-+	struct v4l2_plane buf_copy_planes[VIDEO_MAX_PLANES];
- 	long ret = -EINVAL;
- 
- 	if (ops == NULL) {
-@@ -726,6 +819,8 @@ static long __video_do_ioctl(struct file *file,
- 		return -EINVAL;
- 	}
- 
-+	buf_copy.m.planes = buf_copy_planes;
-+
- #ifdef CONFIG_VIDEO_V4L1_COMPAT
- 	/********************************************************
- 	 All other V4L1 calls are handled by v4l1_compat module.
-@@ -1241,11 +1336,15 @@ static long __video_do_ioctl(struct file *file,
- 		if (p->type < V4L2_BUF_TYPE_PRIVATE)
- 			CLEAR_AFTER_FIELD(p, memory);
- 
-+		old_type = p->type;
-+		p->type = convert_type(ops, p->type);
-+
- 		ret = ops->vidioc_reqbufs(file, fh, p);
- 		dbgarg(cmd, "count=%d, type=%s, memory=%s\n",
- 				p->count,
- 				prt_names(p->type, v4l2_type_names),
- 				prt_names(p->memory, v4l2_memory_names));
-+		p->type = old_type;
- 		break;
- 	}
- 	case VIDIOC_QUERYBUF:
-@@ -1258,7 +1357,17 @@ static long __video_do_ioctl(struct file *file,
- 		if (ret)
- 			break;
- 
--		ret = ops->vidioc_querybuf(file, fh, p);
-+		buf_copy.type = convert_type(ops, p->type);
-+		if (p->type != buf_copy.type) {
-+			ret = convert_buffer(p, &buf_copy);
-+			if (ret)
-+				break;
-+			ret = ops->vidioc_querybuf(file, fh, &buf_copy);
-+			if (!ret)
-+				ret = convert_buffer(&buf_copy, p);
-+		} else {
-+			ret = ops->vidioc_querybuf(file, fh, p);
-+		}
- 		if (!ret)
- 			dbgbuf(cmd, vfd, p);
- 		break;
-@@ -1273,7 +1382,17 @@ static long __video_do_ioctl(struct file *file,
- 		if (ret)
- 			break;
- 
--		ret = ops->vidioc_qbuf(file, fh, p);
-+		buf_copy.type = convert_type(ops, p->type);
-+		if (p->type != buf_copy.type) {
-+			ret = convert_buffer(p, &buf_copy);
-+			if (ret)
-+				break;
-+			ret = ops->vidioc_qbuf(file, fh, &buf_copy);
-+			if (!ret)
-+				ret = convert_buffer(&buf_copy, p);
-+		} else {
-+			ret = ops->vidioc_qbuf(file, fh, p);
-+		}
- 		if (!ret)
- 			dbgbuf(cmd, vfd, p);
- 		break;
-@@ -1288,7 +1407,17 @@ static long __video_do_ioctl(struct file *file,
- 		if (ret)
- 			break;
- 
--		ret = ops->vidioc_dqbuf(file, fh, p);
-+		buf_copy.type = convert_type(ops, p->type);
-+		if (p->type != buf_copy.type) {
-+			ret = convert_buffer(p, &buf_copy);
-+			if (ret)
-+				break;
-+			ret = ops->vidioc_dqbuf(file, fh, &buf_copy);
-+			if (!ret)
-+				ret = convert_buffer(&buf_copy, p);
-+		} else {
-+			ret = ops->vidioc_dqbuf(file, fh, p);
-+		}
- 		if (!ret)
- 			dbgbuf(cmd, vfd, p);
- 		break;
-@@ -1337,6 +1466,9 @@ static long __video_do_ioctl(struct file *file,
- 		if (!ops->vidioc_streamon)
- 			break;
- 		dbgarg(cmd, "type=%s\n", prt_names(i, v4l2_type_names));
-+
-+		i = convert_type(ops, i);
-+
- 		ret = ops->vidioc_streamon(file, fh, i);
- 		break;
- 	}
-@@ -1347,6 +1479,9 @@ static long __video_do_ioctl(struct file *file,
- 		if (!ops->vidioc_streamoff)
- 			break;
- 		dbgarg(cmd, "type=%s\n", prt_names(i, v4l2_type_names));
-+
-+		i = convert_type(ops, i);
-+
- 		ret = ops->vidioc_streamoff(file, fh, i);
- 		break;
- 	}
-@@ -1811,9 +1946,14 @@ static long __video_do_ioctl(struct file *file,
- 			break;
- 
- 		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
-+
-+		old_type = p->type;
-+		p->type = convert_type(ops, p->type);
-+
- 		ret = ops->vidioc_g_crop(file, fh, p);
- 		if (!ret)
- 			dbgrect(vfd, "", &p->c);
-+		p->type = old_type;
- 		break;
- 	}
- 	case VIDIOC_S_CROP:
-@@ -1824,7 +1964,12 @@ static long __video_do_ioctl(struct file *file,
- 			break;
- 		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
- 		dbgrect(vfd, "", &p->c);
-+
-+		old_type = p->type;
-+		p->type = convert_type(ops, p->type);
-+
- 		ret = ops->vidioc_s_crop(file, fh, p);
-+		p->type = old_type;
- 		break;
- 	}
- 	case VIDIOC_CROPCAP:
-@@ -1836,11 +1981,16 @@ static long __video_do_ioctl(struct file *file,
- 			break;
- 
- 		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
-+
-+		old_type = p->type;
-+		p->type = convert_type(ops, p->type);
-+
- 		ret = ops->vidioc_cropcap(file, fh, p);
- 		if (!ret) {
- 			dbgrect(vfd, "bounds ", &p->bounds);
- 			dbgrect(vfd, "defrect ", &p->defrect);
- 		}
-+		p->type = old_type;
- 		break;
- 	}
- 	case VIDIOC_G_JPEGCOMP:
-@@ -1914,7 +2064,12 @@ static long __video_do_ioctl(struct file *file,
- 			ret = check_fmt(ops, p->type);
- 			if (ret)
- 				break;
-+
-+			old_type = p->type;
-+			p->type = convert_type(ops, p->type);
-+
- 			ret = ops->vidioc_g_parm(file, fh, p);
-+			p->type = old_type;
- 		} else {
- 			v4l2_std_id std = vfd->current_norm;
- 
-@@ -1945,7 +2100,12 @@ static long __video_do_ioctl(struct file *file,
- 			break;
- 
- 		dbgarg(cmd, "type=%d\n", p->type);
-+
-+		old_type = p->type;
-+		p->type = convert_type(ops, p->type);
-+
- 		ret = ops->vidioc_s_parm(file, fh, p);
-+		p->type = old_type;
- 		break;
- 	}
- 	case VIDIOC_G_TUNER:
--- 
-1.7.1.569.g6f426
-
+>
+>
+> Theodore Kilgore
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
