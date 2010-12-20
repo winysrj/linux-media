@@ -1,179 +1,125 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4317 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758337Ab0LNMkW (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60199 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756919Ab0LTMf1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Dec 2010 07:40:22 -0500
-Message-ID: <e629c78fffa0f709d743473f10334fd7.squirrel@webmail.xs4all.nl>
-In-Reply-To: <201012141300.57118.laurent.pinchart@ideasonboard.com>
-References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com>
-    <4CEF799E.7060508@ladisch.de> <4D06458B.6080808@ladisch.de>
-    <201012141300.57118.laurent.pinchart@ideasonboard.com>
-Date: Tue, 14 Dec 2010 13:40:21 +0100
-Subject: Re: [alsa-devel] [RFC/PATCH v6 03/12] media: Entities,
-  pads and links
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
-Cc: "Clemens Ladisch" <clemens@ladisch.de>,
-	alsa-devel@alsa-project.org,
-	sakari.ailus@maxwell.research.nokia.com,
-	broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org,
-	lennart@poettering.net, linux-omap@vger.kernel.org,
+	Mon, 20 Dec 2010 07:35:27 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [GIT PULL FOR 2.6.37] uvcvideo: BKL removal
+Date: Mon, 20 Dec 2010 13:35:28 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	linux-media@vger.kernel.org
+References: <201011291115.11061.laurent.pinchart@ideasonboard.com> <4D0F47B8.6040600@redhat.com> <201012201328.06493.hverkuil@xs4all.nl>
+In-Reply-To: <201012201328.06493.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201012201335.29747.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-> Hi Clemens,
->
-> On Monday 13 December 2010 17:10:51 Clemens Ladisch wrote:
->> I wrote:
->> > I'll see if I can draw up the ALSA-specific media stuff over the
->> weekend.
->>
->> Sorry, wrong weekend.
->>
->> Anyway, below are some remarks and a patch.
->
-> Thank you. Please see my comments inline.
->
->> * Entity types
->>
->> TYPE_NODE was renamed to TYPE_DEVICE because "node" sounds like a node
->> in a graph, which does not distinguish it from other entity types
->> because all entities are part of the topology graph.  I chose "device"
->> as this type describes entities that are visible as some device node to
->> other software.
->
-> What this type describes is a device node. Both NODE and DEVICE can be
-> confusing in my opinion, but DEVICE_NODE is a bit long.
+Hi Hans,
 
-What about DEVNODE? I think that would be a good alternative.
+On Monday 20 December 2010 13:28:06 Hans Verkuil wrote:
+> On Monday, December 20, 2010 13:10:32 Mauro Carvalho Chehab wrote:
+> > Em 18-12-2010 08:45, Hans Verkuil escreveu:
+> > > On Saturday, December 18, 2010 01:54:41 Laurent Pinchart wrote:
+> > >> On Friday 17 December 2010 18:09:39 Mauro Carvalho Chehab wrote:
+> > >>>
+> > >>> I didn't find any regressions at the BKL removal patches, but I
+> > >>> noticed a few issues with qv4l2, not all related to uvcvideo. The
+> > >>> remaining of this email is an attempt to document them for later
+> > >>> fixes.
+> > >>> 
+> > >>> They don't seem to be regressions caused by BKL removal, but the
+> > >>> better would be to fix them later.
+> > >>> 
+> > >>> - with uvcvideo and two video apps, if qv4l2 is started first, the
+> > >>> second application doesn't start/capture. I suspect that REQBUFS
+> > >>> (used by qv4l2 to probe mmap/userptr capabilities) create some
+> > >>> resource locking at uvcvideo. The proper way is to lock the
+> > >>> resources only if the driver is streaming, as other drivers and
+> > >>> videobuf do.
+> > >> 
+> > >> I don't agree with that. The uvcvideo driver has one buffer queue per
+> > >> device, so if an application requests buffers on one file handle it
+> > >> will lock other applications out. If the driver didn't it would be
+> > >> subject to race conditions.
+> > > 
+> > > I agree with Laurent. Once an application calls REQBUFS with non-zero
+> > > count, then it should lock the resources needed for streaming. The
+> > > reason behind that is that REQBUFS also locks the current selected
+> > > format in place, since the format determines the amount of memory
+> > > needed for the buffers.
+> > 
+> > qv4l2 calls REQBUFS(1), then REQBUFS(0). Well, this is currently wrong,
+> > as most drivers will only release buffers at VIDIOC_STREAMOFF.
+> 
+> qv4l2 first calls STREAMOFF, then REQBUFS(1), then REQBUFS(0). In the hope
+> that one of these will actually free any buffers. It's random at the
+> moment when drivers release buffers, one of the reasons for using vb2.
+> 
+> > Anyway, even replacing
+> > REQBUFS(0) with VIDIOC_STREAMOFF at qv4l2 won't help with uvcvideo. It
+> > seems that, once buffers are requested at uvcvideo, they will release
+> > only at close().
 
->> TYPE_EXT describes entities that represent some interface to the
->> external world, TYPE_INT those that are internal to the entire device.
->> (I'm not sure if that distinction is very useful, but TYPE_SUBDEV seems
->> to be an even more meaningless name.)
->
-> SUBDEV comes from the V4L2 world, and I agree that it might not be a very
-> good
-> name.
+That's not correct. Buffers are released when calling REQBUFS(0). However, the 
+file handle is still marked as owning the device for streaming purpose, so 
+other applications can't change the format or request buffers.
 
-SUBDEV refers to a specific type of driver. Within the v4l world it is
-well defined. So I prefer to keep this. Perhaps some additional comments
-or documentation can be added to clarify this.
+> > One consequence on the way uvcvideo is currently doing it is that, if you
+> > use qv4l2, it is impossible to change the video size, as it returns
+> > -EBUSY, if you ask it to
+> > 
+> > select a different format (even without streaming):
+> > 	$ ./qv4l2
+> > 	Set Capture Format: Device or resource busy
+> > 	
+> > > The reason a lot of drivers don't do this is partially because for many
+> > > TV capture drivers it is highly unlikely that the buffer size will
+> > > change after calling REQBUFS (there are basically only two formats:
+> > > 720x480 or 720x576 and users will normally never change between the
+> > > two). However, this is much more likely to happen for webcams and
+> > > embedded systems supporting HDTV.
+> > 
+> > What applications do, when they need to change the formats, is to call
+> > REQBUFS again.
+> > 
+> > > The other reason is probably because driver developers simple do not
+> > > realize they need to lock the resources on REQBUFS. I'm sure many
+> > > existing drivers will fail miserably if you change the format after
+> > > calling REQBUFS (particularly with mmap streaming mode).
+> > 
+> > I didn't make any test, but I don't think they'll fail (at least, on the
+> > drivers that use videobuf), as streaming format will be stored at the
+> > videobuf handling (at buffer_prepare callback).
+> > 
+> > So, if you change the format, the change will be applied only at the next
+> > call to REQBUFS.
+> 
+> This behavior isn't according to the spec. G/S_FMT relate to the current
+> format, not to some future format. Most non-videobuf drivers will not
+> support this behavior.
+> 
+> It should be simple, really:
+> 
+> STREAMOFF
+> REQBUFS(0)
+> 
+> That's all that should be needed to stop streaming and return all buffers
+> to the app. This is what uvc should also support (and I actually thought
+> it did).
 
-> I'm not sure I would split entities in internal/external categories. I
-> would
-> create a category for connectors though.
+That's what uvcvideo does.
 
-I agree. It was always the plan to eventually add connectors, but v4l
-didn't really need it (it already has an API to enumerate connectors).
-
->> ALSA mixer controls are not directly represented; a better fit for the
->> architecture of actual devices is that one or more mixer controls can be
->> associated with an entity.  (This can be done with a field of the mixer
->> control.)
->
-> Agreed.
->
->> * Entity properties
->>
->> There needs to be a mechanism to associate meta-information (properties)
->> with entities.  This information should be optional and extensible, but,
->> when being handled inside the kernel, doesn't need to be more than
->> a read-only blob.  I think that something like ALSA's TLV format (used
->> for mixer controls) can be used here.  (I'm not mentioning the X-word
->> here, except to note that the "M" stands for "markup".)
->
-> I've been thinking of adding a new ioctl for that. It's something we need
-> to
-> draft. The UVC driver will need it, and I'm pretty sure other V4L2 drivers
-> would find it useful as well.
->
->> * Entity subtypes
->>
->> EXT_JACK_ANALOG represents any analog audio and/or video connector.
->> Properties for audio jacks would be jack type (TRS/RCA), color code,
->> line level, position, etc.
->>
->> EXT_JACK_DIGITAL represents a digital connector like S/PDIF (coax/
->> TOSLINK), ADAT, TDIF, or MADI.
->>
->> EXT_JACK_BUS represents a bus like FireWire and comes from the USB audio
->> spec.  (I doubt that any devices with this entitiy will ever exist.)
->>
->> EXT_INSTRUMENT represents something like an e-guitar, keyboard, or MIDI
->> controller.  (Instrument entities are typically audio sources and MIDI
->> sources and sinks, but can also be audio sinks.)
->>
->> EXT_SPEAKER also includes headphones; there might be made a case for
->> having those as a separate subtype.
->
-> Shouldn't headphones be represented by an EXT_JACK_ANALOG ?
->
->> EXT_PLAYER represents a device like a CD/DVD/tape player.  Recorders can
->> also write to that device, so "player" might not be an ideal name.
->>
->> EXT_BROADCAST represents devices like TV tuners, satellite receivers,
->> cable tuners, or radios.
-
-I don't think it is right to talk about 'represents devices'. I'd rephrase
-it to 'connects to devices'.
-
-> There's clearly an overlap with V4L here. Hopefully someone from the
-> linux-
-> media list can comment on this.
-
-I don't think this will be a problem. Initially we probably won't be
-enumerating connectors for V4L since it already has its own API for that.
-
->> INT_SYNTHESIZER converts MIDI to audio.
->>
->> INT_NOISE_SOURCE comes from the USB audio spec; this is not an attempt
->> to describe the characteristics of consumer-grade devices :-) , but
->> represents an internal noise source for level calibration or
->> measurements.
->>
->> INT_CONTROLS may have multiple independent controls (this is USB's
->> Feature Unit); INT_EFFECT may have multiple controls that affect one
->> single algorithm.
->
-> I'd describe this as a feature unit/processing unit then.
->
->> INT_CHANNEL_SPLIT/MERGE are needed for HDAudio devices, whose topology
->> information has only stereo links.
->
-> Some of those INT entities could also be implemented in dedicated chips,
-> so I
-> really think the EXT/INT split doesn't make too much sense. Should we have
-> an
-> AUDIO category ?
->
->> * Entity specifications
->>
->> While TYPE_DEVICE entities can be identified by their device node, other
->> entities typcially have just a numeric ID.
->
-> In V4L2 sub-devices have (or rather will have once the media controller
-> patches will be integrated) device nodes as well, so exposing that
-> information
-> is required.
->
->> For that, it would be useful to make do without separate identification
->> and
->> let the driver choose the entity ID.
->
-> How would drivers do that ? What if you have two instances of the same
-> chip (a
-> video sensor, audio mixer, ...) on the same board ?
-
-Regards,
-
-       Hans
+> Attempts to change formats while buffers have been requested should be
+> blocked with EBUSY. It's all perfectly reasonable. Well, perhaps next year
+> we might succeed in having all drivers behave consistently...
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Regards,
 
+Laurent Pinchart
