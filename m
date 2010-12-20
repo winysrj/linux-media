@@ -1,47 +1,103 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:54538 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757309Ab0LPTBB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Dec 2010 14:01:01 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oBGJ1080030146
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 16 Dec 2010 14:01:00 -0500
-From: Jarod Wilson <jarod@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51317 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932176Ab0LTLiF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Dec 2010 06:38:05 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH 2/4] mceusb: set a default rx timeout
-Date: Thu, 16 Dec 2010 14:00:35 -0500
-Message-Id: <1292526037-21491-3-git-send-email-jarod@redhat.com>
-In-Reply-To: <1292526037-21491-1-git-send-email-jarod@redhat.com>
-References: <1292526037-21491-1-git-send-email-jarod@redhat.com>
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v4 6/7] omap3: Add function to register omap3isp platform device structure
+Date: Mon, 20 Dec 2010 12:37:54 +0100
+Message-Id: <1292845075-7991-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1292845075-7991-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1292845075-7991-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Its possible for the call to read rx timeout from the hardware to fail,
-in which case we end up with a bogus rx timeout value. Set a default one
-when filling in the rc struct, and we'll just overwrite it later w/the
-value from hardware, but if that read fails, we've at least got a sane
-rx timeout value to work with (1000ms is the default value I've seen
-returned on most if not all mceusb hardware).
+The omap3isp platform device requires platform data. Instead of
+registering the device in omap2_init_devices(), export an
+omap3_init_camera() function to fill the device structure with the
+platform data pointer and register the device.
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/media/rc/mceusb.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/devices.c |   20 +++++++++++---------
+ arch/arm/mach-omap2/devices.h |   17 +++++++++++++++++
+ 2 files changed, 28 insertions(+), 9 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/devices.h
 
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index 0739dee..94b95d4 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -1059,6 +1059,7 @@ static struct rc_dev *mceusb_init_rc_dev(struct mceusb_dev *ir)
- 	rc->priv = ir;
- 	rc->driver_type = RC_DRIVER_IR_RAW;
- 	rc->allowed_protos = RC_TYPE_ALL;
-+	rc->timeout = MS_TO_NS(1000);
- 	if (!ir->flags.no_tx) {
- 		rc->s_tx_mask = mceusb_set_tx_mask;
- 		rc->s_tx_carrier = mceusb_set_tx_carrier;
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index d5da345..886c01b 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -34,6 +34,8 @@
+ #include "mux.h"
+ #include "control.h"
+ 
++#include "devices.h"
++
+ #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
+ 
+ static struct resource cam_resources[] = {
+@@ -59,8 +61,11 @@ static inline void omap_init_camera(void)
+ {
+ 	platform_device_register(&omap_cam_device);
+ }
+-
+-#elif defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
++#else
++static inline void omap_init_camera(void)
++{
++}
++#endif
+ 
+ static struct resource omap3isp_resources[] = {
+ 	{
+@@ -151,15 +156,12 @@ static struct platform_device omap3isp_device = {
+ 	.resource	= omap3isp_resources,
+ };
+ 
+-static inline void omap_init_camera(void)
+-{
+-	platform_device_register(&omap3isp_device);
+-}
+-#else
+-static inline void omap_init_camera(void)
++int omap3_init_camera(void *pdata)
+ {
++	omap3isp_device.dev.platform_data = pdata;
++	return platform_device_register(&omap3isp_device);
+ }
+-#endif
++EXPORT_SYMBOL_GPL(omap3_init_camera);
+ 
+ #if defined(CONFIG_OMAP_MBOX_FWK) || defined(CONFIG_OMAP_MBOX_FWK_MODULE)
+ 
+diff --git a/arch/arm/mach-omap2/devices.h b/arch/arm/mach-omap2/devices.h
+new file mode 100644
+index 0000000..12ddb8a
+--- /dev/null
++++ b/arch/arm/mach-omap2/devices.h
+@@ -0,0 +1,17 @@
++/*
++ * arch/arm/mach-omap2/devices.h
++ *
++ * OMAP2 platform device setup/initialization
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#ifndef __ARCH_ARM_MACH_OMAP_DEVICES_H
++#define __ARCH_ARM_MACH_OMAP_DEVICES_H
++
++int omap3_init_camera(void *pdata);
++
++#endif
 -- 
-1.7.1
+1.7.2.2
 
