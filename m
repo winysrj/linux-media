@@ -1,58 +1,58 @@
 Return-path: <mchehab@gaivota>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:40342 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751876Ab0LWNkK (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51318 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757459Ab0LTLiD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Dec 2010 08:40:10 -0500
-Subject: [GIT PULL for 2.6.38] ivtv and cx18 fixes
-From: Andy Walls <awalls@md.metrocast.net>
+	Mon, 20 Dec 2010 06:38:03 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 23 Dec 2010 08:40:45 -0500
-Message-ID: <1293111645.4900.6.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v4 1/7] v4l: subdev: Generic ioctl support
+Date: Mon, 20 Dec 2010 12:37:49 +0100
+Message-Id: <1292845075-7991-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1292845075-7991-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1292845075-7991-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Mauro,
+Instead of returning an error when receiving an ioctl call with an
+unsupported command, forward the call to the subdev core::ioctl handler.
 
-Please PULL what few changes I have presently for 2.6.38.  Any patches I
-work over the Holidays, I don't think I can reasonably target for
-2.6.38.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/video4linux/v4l2-framework.txt |    5 +++++
+ drivers/media/video/v4l2-subdev.c            |    2 +-
+ 2 files changed, 6 insertions(+), 1 deletions(-)
 
-Merry Christmas.
-
-Regards,
-Andy
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index d0fb880..1bb5f22 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -407,6 +407,11 @@ VIDIOC_UNSUBSCRIBE_EVENT
+ 	To properly support events, the poll() file operation is also
+ 	implemented.
  
-
-The following changes since commit dedb94adebe0fbdd9cafdbb170337810d8638bc9:
-
-  [media] timblogiw: Fix a merge conflict with v4l2_i2c_new_subdev_board changes (2010-12-11 09:07:52 -0200)
-
-are available in the git repository at:
-  ssh://linuxtv.org/git/awalls/media_tree.git ivtv-cx18-for-38
-
-Andy Walls (4):
-      ivtv, cx18: Make ioremap failure messages more useful for users
-      cx18: Only allocate a struct cx18_dvb for the DVB TS stream
-      ivtv: ivtv_write_vbi() should use copy_from_user() for user data buffers
-      ivtv: Return EFAULT when copy_from_user() fails in ivtv_write_vbi_from_user()
-
- drivers/media/video/cx18/cx18-driver.c  |    9 ++-
- drivers/media/video/cx18/cx18-driver.h  |    9 ++-
- drivers/media/video/cx18/cx18-dvb.c     |   32 +++++----
- drivers/media/video/cx18/cx18-mailbox.c |    6 +-
- drivers/media/video/cx18/cx18-streams.c |   45 ++++++++----
- drivers/media/video/cx18/cx18-streams.h |    3 +-
- drivers/media/video/ivtv/ivtv-driver.c  |   28 ++++++--
- drivers/media/video/ivtv/ivtv-fileops.c |    4 +-
- drivers/media/video/ivtv/ivtv-vbi.c     |  115 +++++++++++++++++++++----------
- drivers/media/video/ivtv/ivtv-vbi.h     |    5 +-
- 10 files changed, 174 insertions(+), 82 deletions(-)
-
-
++Private ioctls
++
++	All ioctls not in the above list are passed directly to the sub-device
++	driver through the core::ioctl operation.
++
+ 
+ I2C sub-device drivers
+ ----------------------
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index 09d1db0..2d4a6fd 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -278,7 +278,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 	}
+ #endif
+ 	default:
+-		return -ENOIOCTLCMD;
++		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
+ 	}
+ 
+ 	return 0;
+-- 
+1.7.2.2
 
