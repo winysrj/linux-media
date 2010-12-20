@@ -1,68 +1,72 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:31873 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750708Ab0LYJUe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Dec 2010 04:20:34 -0500
-Message-ID: <4D15B75C.80405@redhat.com>
-Date: Sat, 25 Dec 2010 07:20:28 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Adds the Lego Bionicle to existing sq905c
-References: <4D11E170.6050500@redhat.com> <4D14ABEE.40206@redhat.com> <alpine.LNX.2.00.1012241358210.29054@banach.math.auburn.edu> <4D14FAB2.2090907@redhat.com>
-In-Reply-To: <4D14FAB2.2090907@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51295 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755645Ab0LTLhc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Dec 2010 06:37:32 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v5 05/13] v4l: Add 8-bit YUYV on 16-bit bus and SGRBG10 media bus pixel codes
+Date: Mon, 20 Dec 2010 12:37:17 +0100
+Message-Id: <1292845045-7945-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1292845045-7945-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1292845045-7945-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 24-12-2010 17:55, Hans de Goede escreveu:
-> Mauro,
-> 
-> Will you pick up this patch directly or should I put it in my tree ?
+Add the following media bus format code definitions:
 
-Either way works for me (but I prefer if one of the gspca maintainers/sub-mainainers
-pick). If you don't pick it, please reply with your ack.
-> 
-> Regards,
-> 
-> Hans
-> 
-> 
-> On 12/24/2010 09:06 PM, Theodore Kilgore wrote:
->> This patch adds the Vendor:Product number of the Lego Bionicle camera to
->> the existing gspca/sq905c.c and also a line for the camera in gspca.txt.
->> The camera works "out of the box" with these small changes. So this is
->> just in time for Christmas. Think of the children.
->>
->> Signed-off-by: Theodore Kilgore<kilgota@auburn.edu>
->>
->> ---------------------------------------------
->> diff --git a/Documentation/video4linux/gspca.txt b/Documentation/video4linux/gspca.txt
->> index 6a562ee..261776e 100644
->> --- a/Documentation/video4linux/gspca.txt
->> +++ b/Documentation/video4linux/gspca.txt
->> @@ -366,6 +366,7 @@ t613        17a1:0128    TASCORP JPEG Webcam, NGS Cyclops
->>   vc032x        17ef:4802    Lenovo Vc0323+MI1310_SOC
->>   pac207        2001:f115    D-Link DSB-C120
->>   sq905c        2770:9050    Disney pix micro (CIF)
->> +sq905c        2770:9051    Lego Bionicle
->>   sq905c        2770:9052    Disney pix micro 2 (VGA)
->>   sq905c        2770:905c    All 11 known cameras with this ID
->>   sq905        2770:9120    All 24 known cameras with this ID
->> diff --git a/drivers/media/video/gspca/sq905c.c b/drivers/media/video/gspca/sq905c.c
->> index c2e88b5..8ba1995 100644
->> --- a/drivers/media/video/gspca/sq905c.c
->> +++ b/drivers/media/video/gspca/sq905c.c
->> @@ -301,6 +301,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
->>   static const __devinitdata struct usb_device_id device_table[] = {
->>       {USB_DEVICE(0x2770, 0x905c)},
->>       {USB_DEVICE(0x2770, 0x9050)},
->> +    {USB_DEVICE(0x2770, 0x9051)},
->>       {USB_DEVICE(0x2770, 0x9052)},
->>       {USB_DEVICE(0x2770, 0x913d)},
->>       {}
->>
+- V4L2_MBUS_FMT_SGRBG10_1X10 for 10-bit GRBG Bayer
+- V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 for 10-bit DPCM compressed GRBG Bayer
+- V4L2_MBUS_FMT_YUYV16_1X16 for 8-bit YUYV on 16-bit bus
+- V4L2_MBUS_FMT_UYVY16_1X16 for 8-bit UYVY on 16-bit bus
+- V4L2_MBUS_FMT_YVYU16_1X16 for 8-bit YVYU on 16-bit bus
+- V4L2_MBUS_FMT_VYUY16_1X16 for 8-bit VYUY on 16-bit bus
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/linux/v4l2-mediabus.h |   10 ++++++++--
+ 1 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+index ed5ac25..b091366 100644
+--- a/include/linux/v4l2-mediabus.h
++++ b/include/linux/v4l2-mediabus.h
+@@ -47,7 +47,7 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_RGB565_2X8_BE = 0x1007,
+ 	V4L2_MBUS_FMT_RGB565_2X8_LE = 0x1008,
+ 
+-	/* YUV (including grey) - next is 0x200f */
++	/* YUV (including grey) - next is 0x2013 */
+ 	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
+ 	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
+ 	V4L2_MBUS_FMT_VYUY8_1_5X8 = 0x2003,
+@@ -60,17 +60,23 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_Y10_1X10 = 0x200a,
+ 	V4L2_MBUS_FMT_YUYV10_2X10 = 0x200b,
+ 	V4L2_MBUS_FMT_YVYU10_2X10 = 0x200c,
++	V4L2_MBUS_FMT_UYVY8_1X16 = 0x200f,
++	V4L2_MBUS_FMT_VYUY8_1X16 = 0x2010,
++	V4L2_MBUS_FMT_YUYV8_1X16 = 0x2011,
++	V4L2_MBUS_FMT_YVYU8_1X16 = 0x2012,
+ 	V4L2_MBUS_FMT_YUYV10_1X20 = 0x200d,
+ 	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
+ 
+-	/* Bayer - next is 0x3009 */
++	/* Bayer - next is 0x300b */
+ 	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
+ 	V4L2_MBUS_FMT_SGRBG8_1X8 = 0x3002,
++	V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 = 0x3009,
+ 	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE = 0x3003,
+ 	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE = 0x3004,
+ 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE = 0x3005,
+ 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE = 0x3006,
+ 	V4L2_MBUS_FMT_SBGGR10_1X10 = 0x3007,
++	V4L2_MBUS_FMT_SGRBG10_1X10 = 0x300a,
+ 	V4L2_MBUS_FMT_SBGGR12_1X12 = 0x3008,
+ };
+ 
+-- 
+1.7.2.2
 
