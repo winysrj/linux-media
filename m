@@ -1,242 +1,232 @@
 Return-path: <mchehab@gaivota>
-Received: from bear.ext.ti.com ([192.94.94.41]:56273 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753670Ab0LPN4K (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Dec 2010 08:56:10 -0500
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH v7 6/8] davinci vpbe: platform specific additions
-Date: Thu, 16 Dec 2010 19:25:55 +0530
-Message-Id: <1292507755-664-1-git-send-email-manjunath.hadli@ti.com>
+Received: from banach.math.auburn.edu ([131.204.45.3]:48031 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932345Ab0LSXhc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Dec 2010 18:37:32 -0500
+Date: Sun, 19 Dec 2010 18:13:35 -0600 (CST)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Andy Walls <awalls@md.metrocast.net>
+cc: Paulo Assis <pj.assis@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Power frequency detection.
+In-Reply-To: <1292796033.2052.111.camel@morgan.silverblock.net>
+Message-ID: <alpine.LNX.2.00.1012191759030.24101@banach.math.auburn.edu>
+References: <73wo0g3yy30clob2isac30vm.1292782894810@email.android.com>  <alpine.LNX.2.00.1012191423030.23950@banach.math.auburn.edu> <1292796033.2052.111.camel@morgan.silverblock.net>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-This patch implements the overall device creation for the Video
-display driver
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- arch/arm/mach-davinci/dm644x.c              |  164 ++++++++++++++++++++++++++-
- arch/arm/mach-davinci/include/mach/dm644x.h |    4 +
- 2 files changed, 162 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
-index 5e5b0a7..e8b8e94 100644
---- a/arch/arm/mach-davinci/dm644x.c
-+++ b/arch/arm/mach-davinci/dm644x.c
-@@ -640,6 +640,142 @@ void dm644x_set_vpfe_config(struct vpfe_config *cfg)
- 	vpfe_capture_dev.dev.platform_data = cfg;
- }
- 
-+static struct resource dm644x_osd_resources[] = {
-+	{
-+		.start  = 0x01C72600,
-+		.end    = 0x01C72600 + 0x200,
-+		.flags  = IORESOURCE_MEM,
-+	},
-+};
-+
-+static u64 dm644x_osd_dma_mask = DMA_BIT_MASK(32);
-+
-+static struct platform_device dm644x_osd_dev = {
-+	.name           = VPBE_OSD_SUBDEV_NAME,
-+	.id             = -1,
-+	.num_resources  = ARRAY_SIZE(dm644x_osd_resources),
-+	.resource       = dm644x_osd_resources,
-+	.dev = {
-+		.dma_mask               = &dm644x_osd_dma_mask,
-+		.coherent_dma_mask      = DMA_BIT_MASK(32),
-+		.platform_data          = (void *)DM644X_VPBE,
-+	},
-+};
-+
-+static struct resource dm644x_venc_resources[] = {
-+	/* venc registers io space */
-+	{
-+		.start  = 0x01C72400,
-+		.end    = 0x01C72400 + 0x180,
-+		.flags  = IORESOURCE_MEM,
-+	},
-+};
-+
-+static u64 dm644x_venc_dma_mask = DMA_BIT_MASK(32);
-+
-+#define VPSS_CLKCTL     0x01C40044
-+static void __iomem *vpss_clkctl_reg;
-+
-+/* TBD. Check what VENC_CLOCK_SEL settings for HDTV and EDTV */
-+static int dm644x_venc_setup_clock(enum vpbe_enc_timings_type type, __u64 mode)
-+{
-+	int ret = 0;
-+
-+	if (NULL == vpss_clkctl_reg)
-+		return -EINVAL;
-+	if (type == VPBE_ENC_STD) {
-+		__raw_writel(0x18, vpss_clkctl_reg);
-+	} else if (type == VPBE_ENC_DV_PRESET) {
-+		switch ((unsigned int)mode) {
-+		case V4L2_DV_480P59_94:
-+		case V4L2_DV_576P50:
-+			 __raw_writel(0x19, vpss_clkctl_reg);
-+			break;
-+		case V4L2_DV_720P60:
-+		case V4L2_DV_1080I60:
-+		case V4L2_DV_1080P30:
-+		/*
-+		* For HD, use external clock source since HD requires higher
-+		* clock rate
-+		*/
-+			__raw_writel(0xa, vpss_clkctl_reg);
-+			break;
-+		default:
-+			ret  = -EINVAL;
-+			break;
-+		}
-+	} else
-+		ret  = -EINVAL;
-+
-+	return ret;
-+}
-+
-+
-+static inline u32 dm644x_reg_modify(void *reg, u32 val, u32 mask)
-+{
-+	u32 new_val = (__raw_readl(reg) & ~mask) | (val & mask);
-+	__raw_writel(new_val, reg);
-+	return new_val;
-+}
-+
-+static u64 vpbe_display_dma_mask = DMA_BIT_MASK(32);
-+
-+static struct resource dm644x_v4l2_disp_resources[] = {
-+	{
-+		.start  = IRQ_VENCINT,
-+		.end    = IRQ_VENCINT,
-+		.flags  = IORESOURCE_IRQ,
-+	},
-+	{
-+		.start  = 0x01C72400,
-+		.end    = 0x01C72400 + 0x180,
-+		.flags  = IORESOURCE_MEM,
-+	},
-+
-+};
-+static struct platform_device vpbe_v4l2_display = {
-+	.name           = "vpbe-v4l2",
-+	.id             = -1,
-+	.num_resources  = ARRAY_SIZE(dm644x_v4l2_disp_resources),
-+	.resource       = dm644x_v4l2_disp_resources,
-+	.dev = {
-+		.dma_mask               = &vpbe_display_dma_mask,
-+		.coherent_dma_mask      = DMA_BIT_MASK(32),
-+	},
-+};
-+struct venc_platform_data dm644x_venc_pdata = {
-+	.venc_type = DM644X_VPBE,
-+	.setup_clock = dm644x_venc_setup_clock,
-+};
-+
-+static struct platform_device dm644x_venc_dev = {
-+	.name           = VPBE_VENC_SUBDEV_NAME,
-+	.id             = -1,
-+	.num_resources  = ARRAY_SIZE(dm644x_venc_resources),
-+	.resource       = dm644x_venc_resources,
-+	.dev = {
-+		.dma_mask               = &dm644x_venc_dma_mask,
-+		.coherent_dma_mask      = DMA_BIT_MASK(32),
-+		.platform_data          = (void *)&dm644x_venc_pdata,
-+	},
-+};
-+
-+static u64 dm644x_vpbe_dma_mask = DMA_BIT_MASK(32);
-+
-+static struct platform_device dm644x_vpbe_dev = {
-+	.name           = "vpbe_controller",
-+	.id             = -1,
-+	.dev = {
-+		.dma_mask               = &dm644x_vpbe_dma_mask,
-+		.coherent_dma_mask      = DMA_BIT_MASK(32),
-+	},
-+};
-+
-+void dm644x_set_vpbe_display_config(struct vpbe_display_config *cfg)
-+{
-+	dm644x_vpbe_dev.dev.platform_data = cfg;
-+}
-+
- /*----------------------------------------------------------------------*/
- 
- static struct map_desc dm644x_io_desc[] = {
-@@ -767,20 +903,36 @@ void __init dm644x_init(void)
- 	davinci_common_init(&davinci_soc_info_dm644x);
- }
- 
-+static struct platform_device *dm644x_video_devices[] __initdata = {
-+	&dm644x_vpss_device,
-+	&dm644x_ccdc_dev,
-+	&vpfe_capture_dev,
-+	&dm644x_osd_dev,
-+	&dm644x_venc_dev,
-+	&dm644x_vpbe_dev,
-+	&vpbe_v4l2_display,
-+};
-+
-+static int __init dm644x_init_video(void)
-+{
-+	/* Add ccdc clock aliases */
-+	clk_add_alias("master", dm644x_ccdc_dev.name, "vpss_master", NULL);
-+	clk_add_alias("slave", dm644x_ccdc_dev.name, "vpss_slave", NULL);
-+	vpss_clkctl_reg = ioremap_nocache(VPSS_CLKCTL, 4);
-+	platform_add_devices(dm644x_video_devices,
-+				ARRAY_SIZE(dm644x_video_devices));
-+	return 0;
-+}
-+
- static int __init dm644x_init_devices(void)
- {
- 	if (!cpu_is_davinci_dm644x())
- 		return 0;
- 
- 	/* Add ccdc clock aliases */
--	clk_add_alias("master", dm644x_ccdc_dev.name, "vpss_master", NULL);
--	clk_add_alias("slave", dm644x_ccdc_dev.name, "vpss_slave", NULL);
- 	platform_device_register(&dm644x_edma_device);
- 	platform_device_register(&dm644x_emac_device);
--	platform_device_register(&dm644x_vpss_device);
--	platform_device_register(&dm644x_ccdc_dev);
--	platform_device_register(&vpfe_capture_dev);
--
-+	dm644x_init_video();
- 	return 0;
- }
- postcore_initcall(dm644x_init_devices);
-diff --git a/arch/arm/mach-davinci/include/mach/dm644x.h b/arch/arm/mach-davinci/include/mach/dm644x.h
-index 6fca568..bf7adcd 100644
---- a/arch/arm/mach-davinci/include/mach/dm644x.h
-+++ b/arch/arm/mach-davinci/include/mach/dm644x.h
-@@ -26,6 +26,9 @@
- #include <mach/hardware.h>
- #include <mach/asp.h>
- #include <media/davinci/vpfe_capture.h>
-+#include <media/davinci/vpbe_types.h>
-+#include <media/davinci/vpbe.h>
-+#include <media/davinci/vpss.h>
- 
- #define DM644X_EMAC_BASE		(0x01C80000)
- #define DM644X_EMAC_CNTRL_OFFSET	(0x0000)
-@@ -43,5 +46,6 @@
- void __init dm644x_init(void);
- void __init dm644x_init_asp(struct snd_platform_data *pdata);
- void dm644x_set_vpfe_config(struct vpfe_config *cfg);
-+void dm644x_set_vpbe_display_config(struct vpbe_display_config *cfg);
- 
- #endif /* __ASM_ARCH_DM644X_H */
--- 
-1.6.2.4
+On Sun, 19 Dec 2010, Andy Walls wrote:
 
+> On Sun, 2010-12-19 at 14:51 -0600, Theodore Kilgore wrote:
+> > 
+> > On Sun, 19 Dec 2010, Andy Walls wrote:
+> > 
+> > > Theodore,
+> > > 
+> > > Aside from detect measurment of the power line, isn't a camera the best sort of sensor for this measurment anyway?
+> > > 
+> > > Just compute the average image luminosity over several frames and look for (10 Hz ?) periodic variation (beats), indicating a mismatch.
+> > > 
+> > > Sure you could just ask the user, but where's the challenge in that. ;)
+> > > 
+> > > Regards,
+> > > Andy
+> > 
+> > Well, if it is "established policy" to go with doing this as a control, I 
+> > guess we can just go ahead instead of doing something fancy.
+> 
+> My policy is let computers do what computers do well, and let people do
+> what people do well.  Looking at an image, recognizing flicker, and
+> twiddling knobs to make it go away (to one's own satisfaction) is much
+> better left to a person for one time adjustments.
+
+OK.
+
+
+> > But it is nice to hear from you. Here is why.
+> > 
+> > The camera in question is another jeilinj camera. Its OEM software for 
+> > that other OS does present the option to choose line frequency. It also 
+> > asks for the user to specify an image quality index. I can not recall that 
+> > the software I got with my camera did any such thing. As I recall, it 
+> > merely let the camera to start streaming. Bur at the moment I have no idea 
+> > where I put that old CD.
+> 
+> The Software for our Sakar branded Jeilin camera was a little smarter.
+
+Oh. So _you_ had a Sakar branded camera. This was one of the things that 
+causes problems recently. In gspca.txt we have the supported camera listed 
+as 
+
+jeilinj         0979:0280       Sakar 57379
+
+which seemed to me to be quite wrong, as (unless I have made a bad 
+mistake) the Sakar 57379 has a Jeilin 2005C or D chip inside (proprietary 
+interface camera, Product number 0x227, definitely not one of these guys) 
+and AFAICT the Jeilin 2005C-D cameras can not be made to stream at all, 
+operating only in stillcam mode. So, when I was contacted about this new 
+camera I saw that listing and thought it had to be wrong!
+
+Hoping that you still have some way to check what the Sakar product number 
+of your cam really was...
+
+
+> I seem to recall image size adjustments.  
+
+Yes, the new one does. And these adjustments do seem to work with my old 
+one, too. 
+
+
+I also recall the driver
+> binary contained multiple different MJPEG headers that I guess it could
+> have tack back on to the incoming stream.
+
+Hmmm. Probably that had something to do with the "quality" setting?
+
+> 
+> However, the camera suffered such love/abuse at the hands of my 11 year
+> old daughter that it no longer functions, even with the electrical tape
+> that still holds the case together. ;)
+> 
+> 
+> > So, while I have you on the line, do you recall whether or not the OEM 
+> > software for the camera you bought for your daughter present any such 
+> > setup options?
+> 
+> I cannot.
+> 
+> 
+> > The new camera may be different in some particulars from the ones we have. 
+> > It does have a new Product number, so apparently Jeilin might not have 
+> > thought it is identical to the other ones. It does use a slightly 
+> > different initialization sequence. Therefore, the quick-and-dirty way to 
+> > support it would be just to introduce a patch which has switch statements 
+> > or conditionals all over the place, and just to support whatever the 
+> > camera was observed to do. However, that is obviously dirty as well as 
+> > quick.
+> > 
+> > While playing around with the code a bit, I have managed to make my 
+> > old camera work with essentially the same init sequence that the new 
+> > one is using. If this can be done right, it would clear a lot of crud out 
+> > of the driver code. Unfortunately, doing it right involves testing...
+> 
+> When researching Jeilin's offerings on their website long ago I recall a
+> few different chipsets, but only one that matched the MJPEG type camera
+> application.  It's probably just the difference between different
+> firmware versions in the camera with the same Jeilin camera chipset.
+> 
+> 
+> > Finally, one concern that I have in the back of my mind is the question of 
+> > control settings for a camera which streams in bulk mode and requires the 
+> > setup of a workqueue. The owner of the camera says that he has 
+> > "encountered no problems" with running the two controls mentioned above. 
+> > Clearly, that is not a complete answer which overcomes all possible 
+> > objections. Rather, things are OK if and only if we can ensure that these 
+> > controls can be run only while the workqueue that does the streaming is 
+> > inactive. Somehow, I suspect that the fact that a sensible user would only 
+> > run such commands at camera setup is an insufficient guarantee that no 
+> > problems will ever be encountered.
+> > 
+> > So, as I said, the question of interaction of a control and a workqueue is 
+> > another problem interesting little problem. Your thoughts on this 
+> > interesting little problem would be appreciated.
+> 
+> I am unfamiliar with:
+> 
+> 1. Any USB interface mutual exclusions the kernel USB API and subsystem
+> provides as well as what the GSPCA framework provides.
+> 
+> 2. Any USB transaction buffering and tracking the kernel USB subsystem
+> provides.
+> 
+> 3. Whether the kernel and Jeilin chip allow USB sends and receives to be
+> interleaved to different bulk endpoints.
+
+Hmmm. Oh, that is right. The camera is using different endpoints for 
+commands from what it uses for data. Good question what the kernel and the 
+camera are doing, though.
+
+> 
+> 
+> 
+> 
+> So I might not be able to provide too much help.  I have 2 ideas for you
+> coming from the perspective of me being a USB idiot:
+> 
+> 
+> 1. Since the jlj_dostream() work handler function is essentially just a
+> synchronous poll loop on the device, you could just have it process the
+> ioctl() requests to change a control synchronously. 
+> 
+> a. The ioctl() call for the v4l2 control would submit a command to some
+> queue you set up for the purpose, and then sleep on a wait queue. 
+> 
+> b. The jlj_dostream() function would check the command queue at its
+> convenience, process any control command, and then wake up the wait
+> queue that the ioctl() is waiting on.
+> 
+> For this idea, don't forget to implement the command queue with proper
+> locking or other mutual exclusion.  You'll also need to think about how
+> to place ioctl() callers on the wait_queue and how to wake them up in
+> FIFO order, if you use this idea and allow multiple v4l2 control ioctl()
+> to be queued.
+> 
+> 
+> 
+> 2. Restructure the workqueue function, jlj_dostream(), to handle a work
+> object in one pass (e.g. no loop to read more than one frame), handle
+> two different types of work objects (one for stream polling and one for
+> control ioctl() requests), and have it automatically reschedule the
+> stream polling work object.
+> 
+> a. When streaming, the current, single work object would still be used
+> and jlj_dostream() must be able to check that the work object is the one
+> indicating streaming work.  jlj_dostream() would only perform work
+> required to read one whole frame, unless you want to get fancy and deal
+> with partial frames.  The jlj_dostream() handler would then reschedule
+> the work object for streaming - maybe with a sensible delay.
+> 
+> b. For a V4L2 control ioctl() that needs to send a command to the
+> device, the ioctl() fills out the needed parameters in a scratch-pad
+> location and queues a different work object, associated with those
+> scratchpad parameters.  The ioctl() then sleeps on a wait queue
+> associated with that work object.  When the work handler function,
+> jlj_dostream(), gets called it must be able to determine the work object
+> is the one associated with an ioctl() control.  jlj_dostream() then
+> performs the actions required for the ioctl() and the wakes up the
+> wait_queue on which the ioctl() is waiting.  The work object is not
+> rescheduled by the work handler function.
+> 
+> 
+> For this idea, you'll be relying on the single-threaded workqueue to
+> provide mutual exclusion between processing of the two different types
+> of work objects (streaming and v4l2 control ioctl).  You can structure
+> things to have more than 1 work object for V4L2 control ioctl()
+> processing, if you like, since the workqueue can queue any number of
+> work objects.  But if you allow more than one ioctl() related work
+> object to be queued, you'll have to be careful about how things are
+> placed on the wait_queue and how they are awakened.
+> 
+> 
+> 
+> > As I said, Merry Christmas :-)
+> 
+> 
+> Merry Christmas.
+> 
+> Regards,
+> Andy
+> 
+> > Theodore Kilgore
+> 
+> 
+
+I will try to digest the rest of this and the next letter, later.
+
+
+Theodore Kilgore
