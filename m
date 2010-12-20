@@ -1,50 +1,100 @@
 Return-path: <mchehab@gaivota>
-Received: from bear.ext.ti.com ([192.94.94.41]:50137 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752478Ab0LQGnL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Dec 2010 01:43:11 -0500
-From: Archit Taneja <archit@ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34479 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756716Ab0LTLgF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Dec 2010 06:36:05 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
-Subject: [PATCH v4 0/2] OMAP_VOUT: Allow omap_vout to build without VRFB
-Date: Fri, 17 Dec 2010 12:13:26 +0530
-Message-Id: <1292568208-16049-1-git-send-email-archit@ti.com>
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v5 6/7] v4l: subdev: Control ioctls support
+Date: Mon, 20 Dec 2010 12:35:55 +0100
+Message-Id: <1292844956-7853-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1292844956-7853-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1292844956-7853-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Introduce omap_vout_vrfb.c and omap_vout_vrfb.h, for all VRFB related API's,
-making OMAP_VOUT driver independent from VRFB. This is required for OMAP4 DSS,
-since OMAP4 doesn't have VRFB block.
+Pass the control-related ioctls to the subdev driver through the control
+framework.
 
-A new enum called vout_rotation_type is introduced to differentiate between no
-rotation and vrfb rotation. A member rotation_type is introduced in omapvideo_info,
-this allows to call vrfb specific functions only if the rotation type is VOUT_ROT_VRFB
-When the rotation_type is set to VOUT_ROT_NONE, the S_CTRL ioctl prevents the user setting
-a non zero rotation or non zero mirror value.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/video4linux/v4l2-framework.txt |   16 ++++++++++++++++
+ drivers/media/video/v4l2-subdev.c            |   25 +++++++++++++++++++++++++
+ 2 files changed, 41 insertions(+), 0 deletions(-)
 
-Archit Taneja (2):
-  OMAP_VOUT: CLEANUP: Move some functions and macros from omap_vout
-  OMAP_VOUT: Create separate file for VRFB related API's
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index 4c9185a..f683f63 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -336,6 +336,22 @@ argument to 0. Setting the argument to 1 will only enable device node
+ registration if the sub-device driver has set the V4L2_SUBDEV_FL_HAS_DEVNODE
+ flag.
+ 
++The device node handles a subset of the V4L2 API.
++
++VIDIOC_QUERYCTRL
++VIDIOC_QUERYMENU
++VIDIOC_G_CTRL
++VIDIOC_S_CTRL
++VIDIOC_G_EXT_CTRLS
++VIDIOC_S_EXT_CTRLS
++VIDIOC_TRY_EXT_CTRLS
++
++	The controls ioctls are identical to the ones defined in V4L2. They
++	behave identically, with the only exception that they deal only with
++	controls implemented in the sub-device. Depending on the driver, those
++	controls can be also be accessed through one (or several) V4L2 device
++	nodes.
++
+ 
+ I2C sub-device drivers
+ ----------------------
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index 0deff78..fc57ce7 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -24,6 +24,7 @@
+ #include <linux/ioctl.h>
+ #include <linux/videodev2.h>
+ 
++#include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ 
+@@ -45,7 +46,31 @@ static int subdev_close(struct file *file)
+ 
+ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ {
++	struct video_device *vdev = video_devdata(file);
++	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
++
+ 	switch (cmd) {
++	case VIDIOC_QUERYCTRL:
++		return v4l2_subdev_queryctrl(sd, arg);
++
++	case VIDIOC_QUERYMENU:
++		return v4l2_subdev_querymenu(sd, arg);
++
++	case VIDIOC_G_CTRL:
++		return v4l2_subdev_g_ctrl(sd, arg);
++
++	case VIDIOC_S_CTRL:
++		return v4l2_subdev_s_ctrl(sd, arg);
++
++	case VIDIOC_G_EXT_CTRLS:
++		return v4l2_subdev_g_ext_ctrls(sd, arg);
++
++	case VIDIOC_S_EXT_CTRLS:
++		return v4l2_subdev_s_ext_ctrls(sd, arg);
++
++	case VIDIOC_TRY_EXT_CTRLS:
++		return v4l2_subdev_try_ext_ctrls(sd, arg);
++
+ 	default:
+ 		return -ENOIOCTLCMD;
+ 	}
+-- 
+1.7.2.2
 
- drivers/media/video/omap/Kconfig          |    2 +-
- drivers/media/video/omap/Makefile         |    1 +
- drivers/media/video/omap/omap_vout.c      |  566 +++++------------------------
- drivers/media/video/omap/omap_vout_vrfb.c |  390 ++++++++++++++++++++
- drivers/media/video/omap/omap_vout_vrfb.h |   40 ++
- drivers/media/video/omap/omap_voutdef.h   |   78 ++++
- drivers/media/video/omap/omap_voutlib.c   |   44 +++
- drivers/media/video/omap/omap_voutlib.h   |    2 +
- 8 files changed, 640 insertions(+), 483 deletions(-)
- create mode 100644 drivers/media/video/omap/omap_vout_vrfb.c
- create mode 100644 drivers/media/video/omap/omap_vout_vrfb.h
---
-Version 4:
- - Some minor fixes, renaming of git commits, patches 2 and 3 merged into 1.
-Version 3:
- - Introduce a new enum at V4L2 driver level which cleanly differentiates
-   between vrfb rotation and no rotation, incorporate comments given for v2
-Version 2:
- - Don't try to enable SDRAM rotation , return an error if non zero rotation
-   is attempted when rotation_type is set to SDMA rotation.
-Version 1:
-   http://www.mail-archive.com/linux-media@vger.kernel.org/msg21937.html
