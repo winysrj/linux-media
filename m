@@ -1,62 +1,98 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:40672 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751719Ab0LaKdw convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51301 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755629Ab0LTLhf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Dec 2010 05:33:52 -0500
-MIME-Version: 1.0
-In-Reply-To: <1293750484-1161-1-git-send-email-justinmattock@gmail.com>
-References: <1293750484-1161-1-git-send-email-justinmattock@gmail.com>
-Date: Fri, 31 Dec 2010 11:33:49 +0100
-Message-ID: <AANLkTins7rj1o4rEcEFmVSA2=1yXZSfLdO000gqQP7cg@mail.gmail.com>
-Subject: Re: [PATCH 01/15]arch:m68k:ifpsp060:src:fpsp.S Typo change diable to disable.
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: "Justin P. Mattock" <justinmattock@gmail.com>
-Cc: trivial@kernel.org, linux-m68k@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
-	linux-wireless@vger.kernel.org, linux-scsi@vger.kernel.org,
-	spi-devel-general@lists.sourceforge.net,
-	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Mon, 20 Dec 2010 06:37:35 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v5 08/13] v4l: subdev: Add a new file operations class
+Date: Mon, 20 Dec 2010 12:37:20 +0100
+Message-Id: <1292845045-7945-9-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1292845045-7945-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1292845045-7945-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Fri, Dec 31, 2010 at 00:07, Justin P. Mattock
-<justinmattock@gmail.com> wrote:
-> The below patch fixes a typo "diable" to "disable". Please let me know if this
-> is correct or not.
->
-> Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
+V4L2 sub-devices store pad formats and crop settings in the file handle.
+To let drivers initialize those settings properly, add a file::open
+operation that is called when the subdev is opened as well as a
+corresponding file::close operation.
 
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/v4l2-subdev.c |   11 ++++++++++-
+ include/media/v4l2-subdev.h       |   10 ++++++++++
+ 2 files changed, 20 insertions(+), 1 deletions(-)
 
-> ---
->  arch/m68k/ifpsp060/src/fpsp.S |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/m68k/ifpsp060/src/fpsp.S b/arch/m68k/ifpsp060/src/fpsp.S
-> index 73613b5..26e85e2 100644
-> --- a/arch/m68k/ifpsp060/src/fpsp.S
-> +++ b/arch/m68k/ifpsp060/src/fpsp.S
-> @@ -3881,7 +3881,7 @@ _fpsp_fline:
->  # FP Unimplemented Instruction stack frame and jump to that entry
->  # point.
->  #
-> -# but, if the FPU is disabled, then we need to jump to the FPU diabled
-> +# but, if the FPU is disabled, then we need to jump to the FPU disabled
->  # entry point.
->        movc            %pcr,%d0
->        btst            &0x1,%d0
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index d389b44..de10a1d 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -61,7 +61,7 @@ static int subdev_open(struct file *file)
+ 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
+ 	struct v4l2_subdev_fh *subdev_fh;
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+-	struct media_entity *entity;
++	struct media_entity *entity = NULL;
+ #endif
+ 	int ret;
+ 
+@@ -104,9 +104,17 @@ static int subdev_open(struct file *file)
+ 	}
+ #endif
+ 
++	ret = v4l2_subdev_call(sd, file, open, subdev_fh);
++	if (ret < 0 && ret != -ENOIOCTLCMD)
++		goto err;
++
+ 	return 0;
+ 
+ err:
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	if (entity)
++		media_entity_put(entity);
++#endif
+ 	v4l2_fh_del(&subdev_fh->vfh);
+ 	v4l2_fh_exit(&subdev_fh->vfh);
+ 	subdev_fh_free(subdev_fh);
+@@ -124,6 +132,7 @@ static int subdev_close(struct file *file)
+ 	struct v4l2_fh *vfh = file->private_data;
+ 	struct v4l2_subdev_fh *subdev_fh = to_v4l2_subdev_fh(vfh);
+ 
++	v4l2_subdev_call(sd, file, close, subdev_fh);
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	if (sd->v4l2_dev->mdev)
+ 		media_entity_put(&sd->entity);
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index f8704ff..af704df 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -175,6 +175,15 @@ struct v4l2_subdev_core_ops {
+ 				 struct v4l2_event_subscription *sub);
+ };
+ 
++/* open: called when the subdev device node is opened by an application.
++
++   close: called when the subdev device node is close.
++ */
++struct v4l2_subdev_file_ops {
++	int (*open)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh);
++	int (*close)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh);
++};
++
+ /* s_mode: switch the tuner to a specific tuner mode. Replacement of s_radio.
+ 
+    s_radio: v4l device was opened in Radio mode, to be replaced by s_mode.
+@@ -416,6 +425,7 @@ struct v4l2_subdev_ir_ops {
+ 
+ struct v4l2_subdev_ops {
+ 	const struct v4l2_subdev_core_ops	*core;
++	const struct v4l2_subdev_file_ops	*file;
+ 	const struct v4l2_subdev_tuner_ops	*tuner;
+ 	const struct v4l2_subdev_audio_ops	*audio;
+ 	const struct v4l2_subdev_video_ops	*video;
+-- 
+1.7.2.2
 
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
