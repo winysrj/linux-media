@@ -1,234 +1,111 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-fx0-f43.google.com ([209.85.161.43]:33533 "EHLO
-	mail-fx0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757391Ab0LTSmp convert rfc822-to-8bit (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:64106 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757673Ab0LTRkK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Dec 2010 13:42:45 -0500
-Received: by fxm18 with SMTP id 18so3390299fxm.2
-        for <linux-media@vger.kernel.org>; Mon, 20 Dec 2010 10:42:44 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <alpine.LNX.2.00.1012201154080.24997@banach.math.auburn.edu>
-References: <30370.90722.qm@web84204.mail.re3.yahoo.com>
-	<4D034D67.1050806@redhat.com>
-	<alpine.LNX.2.00.1012141235210.18793@banach.math.auburn.edu>
-	<4D07D977.8010801@redhat.com>
-	<alpine.LNX.2.00.1012151324190.19893@banach.math.auburn.edu>
-	<4D091B75.6090003@redhat.com>
-	<alpine.LNX.2.00.1012191716210.24101@banach.math.auburn.edu>
-	<AANLkTinjtT4Ki1=+-04GbEkw4e8+W7F=aC0c4xpv3Qqc@mail.gmail.com>
-	<alpine.LNX.2.00.1012201154080.24997@banach.math.auburn.edu>
-Date: Mon, 20 Dec 2010 13:42:43 -0500
-Message-ID: <AANLkTingQ-RekeCML+upqtanEpiKf5pVyfnZq7U9bxQ9@mail.gmail.com>
-Subject: Re: problems with using the -rc kernel in the git tree
-From: Alex Deucher <alexdeucher@gmail.com>
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Mon, 20 Dec 2010 12:40:10 -0500
+Received: from spt2.w1.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LDQ00DIZMETD3@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 20 Dec 2010 17:40:05 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LDQ0081VMETIS@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 20 Dec 2010 17:40:05 +0000 (GMT)
+Date: Mon, 20 Dec 2010 18:39:25 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH] v4l: mem2mem_testdev: remove BKL usage
+In-reply-to: <201012181231.27198.hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl
+Message-id: <1292866765-21163-1-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <201012181231.27198.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Mon, Dec 20, 2010 at 1:54 PM, Theodore Kilgore
-<kilgota@banach.math.auburn.edu> wrote:
->
->
-> On Mon, 20 Dec 2010, Alex Deucher wrote:
->
->> On Sun, Dec 19, 2010 at 6:56 PM, Theodore Kilgore
->> <kilgota@banach.math.auburn.edu> wrote:
->> >
->> > Hans,
->> >
->> > Thanks for the helpful advice about how to set up a git tree for current
->> > development so that I can get back into things.
->> >
->> > However, there is a problem with that -rc kernel, at least as far as my
->> > hardware is concerned. So if I am supposed to use it to work on camera
->> > stuff there is an obstacle.
->> >
->> > I started by copying my .config file over to the tree, and then running
->> > make oldconfig (as you said and as I would have done anyway).
->> >
->> > The problem seems to be centered right here (couple of lines
->> > from .config follow)
->> >
->> > CONFIG_DRM_RADEON=m
->> > # CONFIG_DRM_RADEON_KMS is not set
->> >
->> > I have a Radeon video card, obviously. Specifically, it is (extract from X
->> > config file follows)
->> >
->> > # Device configured by xorgconfig:
->> >
->> > Section "Device"
->> >    Identifier  "ATI Radeon HD 3200"
->> >    Driver      "radeon"
->> >
->> > Now, what happens is that with the kernel configuration (see above) I
->> > cannot start X in the -rc kernel. I get bumped out with an error
->> > message (details below) whereas that _was_ my previous configuration
->> > setting.
->> >
->> > But if in the config for the -rc kernel I change the second line by
->> > turning on CONFIG_DRM_RADEON_KMS the situation is even worse. Namely, the
->> > video cuts off during the boot process, with the monitor going blank and
->> > flashing up a message that it lost signal. After that the only thing to do
->> > is a hard reset, which strangely does not result in any check for a dirty
->> > file system, showing that things _really_ got screwed. These problems wit
->> > the video cutting off at boot are with booting into the _terminal_, BTW. I
->> > do not and never have made a practice of booting into X. I start X from
->> > the command line after boot. Thus, the video cutting off during boot has
->> > nothing to do with X at all, AFAICT.
->> >
->> > So as I said there are two alternatives, both of them quite unpleasant.
->> >
->> > Here is what the crash message is on the screen from the attempt to start
->> > up X, followed by what seem to be the relevant lines from the log file,
->> > with slightly more detail.
->> >
->> > Markers: (--) probed, (**) from config file, (==) default setting,
->> >        (++) from command line, (!!) notice, (II) informational,
->> >        (WW) warning, (EE) error, (NI) not implemented, (??) unknown.
->> > (==) Log file: "/var/log/Xorg.0.log", Time: Sun Dec 19 14:32:12 2010
->> > (==) Using config file: "/etc/X11/xorg.conf"
->> > (==) Using system config directory "/usr/share/X11/xorg.conf.d"
->> > (II) [KMS] drm report modesetting isn't supported.
->> > (EE) RADEON(0): Unable to map MMIO aperture. Invalid argument (22)
->> > (EE) RADEON(0): Memory map the MMIO region failed
->> > (EE) Screen(s) found, but none have a usable configuration.
->> >
->> > Fatal server error:
->> > no screens found
->> >
->> > Please consult the The X.Org Foundation support
->> >         at http://wiki.x.org
->> >  for help.
->> > Please also check the log file at "/var/log/Xorg.0.log" for additional
->> > information.
->> >
->> > xinit: giving up
->> > xinit: unable to connect to X server: Connection refused
->> > xinit: server error
->> > xinit: unable to connect to X server: Connection refused
->> > xinit: server error
->> > kilgota@khayyam:~$
->> >
->> > And the following, too, from the log file, which perhaps contains one or
->> > two
->> > more details:
->> >
->> > [    48.050] (--) using VT number 7
->> >
->> > [    48.052] (II) [KMS] drm report modesetting isn't supported.
->> > [    48.052] (II) RADEON(0): TOTO SAYS 00000000feaf0000
->> > [    48.052] (II) RADEON(0): MMIO registers at 0x00000000feaf0000: size
->> > 64KB
->> > [    48.052] (EE) RADEON(0): Unable to map MMIO aperture. Invalid argument
->> > (22)
->> > [    48.052] (EE) RADEON(0): Memory map the MMIO region failed
->> > [    48.052] (II) UnloadModule: "radeon"
->> > [    48.052] (EE) Screen(s) found, but none have a usable configuration.
->> > [    48.052]
->> > Fatal server error:
->> > [    48.052] no screens found
->> > [    48.052]
->> >
->> > There are a couple of suggestions about things to try, such as compiling
->> > with CONFIG_DRM_RADEON_KMS and then passing the parameter modeset=0 to the
->> > radeon module. But that does not seem to help, either.
->> >
->> > The help screens in make menuconfig do not seem to praise the
->> > CONFIG_DRM_RADEON_KMS very highly, and seem to indicate that this is still
->> > a very experimental feature.
->> >
->> > There are no such equivalent problems with my current kernel, which is a
->> > home-compiled 2.6.35.7.
->> >
->> > I realize that this is a done decision, but it is exactly this kind of
->> > thing that I had in mind when we had the Great Debate on the linux-media
->> > list about whether to use hg or git. My position was to let hardware
->> > support people to run hg with the compatibility layer for recent kernels
->> > (and 2.6.35.7 is certainly recent!). Well, the people who had such a
->> > position did not win. So now here is unfortunately the foreseeable result.
->> > An experimental kernel with some totally unrelated bug which affects my
->> > hardware and meanwhile stops all progress.
->>
->> If you enable radeon KMS, you need to enable fbcon in your kernel or
->> you will lose video when the radeon kms driver loads since it controls
->> the video device and provide a legacy kernel fbdev interface.  As for
->> X, you need a ddx (xf86-video-ati) built with kms support (6.13.x
->> series).
->>
->> Alex
->
-> OK, I will try to pursue this. But, first to be clear about the sequence
-> of events:
->
-> In my previous setup using 2.6.35.7 the radeon KMS was *not* enabled and
-> things worked just fine. When I ran through "make oldconfig" I did not
-> change that (see above). Then I was able to boot, but not able to start
-> and X session.
->
-> After rebooting with my old kernel, I did some searching for the error
-> messages that I got (again, see above) and tried to follow the suggestion
-> of turning that KMS config option on, experimenting with various things
-> such as passing an option to the module to disable the KMS when loading.
-> But with the KMS config option things were even worse than without it, in
-> that I could not even boot the machine.
->
-> So I am glad to let things remain as they were and not to use this
-> new-fangled option. Therefore one rather meaningful question is, why did
-> things not continue to work when I did not change anything about my
-> configuration?
->
-> Now, as to which version of the X drivers that I am running, it does not
-> seem to be a problem:
->
-> kilgota@khayyam:~/slackware64-current/slackware64/x$ ls | grep ati
-> [...]
-> xf86-video-ati-6.13.2-x86_64-1.txt
-> xf86-video-ati-6.13.2-x86_64-1.txz
-> xf86-video-ati-6.13.2-x86_64-1.txz.asc
-> kilgota@khayyam:~/slackware64-current/slackware64/x$
->
+Remove usage of BKL by usign per-device mutex.
 
-IIRC, slackware does not handle KMS properly.
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+CC: Pawel Osciak <pawel@osciak.com>
+---
+ drivers/media/video/mem2mem_testdev.c |   21 +++++++++------------
+ 1 files changed, 9 insertions(+), 12 deletions(-)
 
-Alex
+diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
+index 3b19f5b..c179041 100644
+--- a/drivers/media/video/mem2mem_testdev.c
++++ b/drivers/media/video/mem2mem_testdev.c
+@@ -524,7 +524,6 @@ static int vidioc_s_fmt(struct m2mtest_ctx *ctx, struct v4l2_format *f)
+ {
+ 	struct m2mtest_q_data *q_data;
+ 	struct videobuf_queue *vq;
+-	int ret = 0;
+ 
+ 	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
+ 	if (!vq)
+@@ -534,12 +533,9 @@ static int vidioc_s_fmt(struct m2mtest_ctx *ctx, struct v4l2_format *f)
+ 	if (!q_data)
+ 		return -EINVAL;
+ 
+-	mutex_lock(&vq->vb_lock);
+-
+ 	if (videobuf_queue_is_busy(vq)) {
+ 		v4l2_err(&ctx->dev->v4l2_dev, "%s queue busy\n", __func__);
+-		ret = -EBUSY;
+-		goto out;
++		return -EBUSY;
+ 	}
+ 
+ 	q_data->fmt		= find_format(f);
+@@ -553,9 +549,7 @@ static int vidioc_s_fmt(struct m2mtest_ctx *ctx, struct v4l2_format *f)
+ 		"Setting format for type %d, wxh: %dx%d, fmt: %d\n",
+ 		f->type, q_data->width, q_data->height, q_data->fmt->fourcc);
+ 
+-out:
+-	mutex_unlock(&vq->vb_lock);
+-	return ret;
++	return 0;
+ }
+ 
+ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+@@ -845,10 +839,12 @@ static void queue_init(void *priv, struct videobuf_queue *vq,
+ 		       enum v4l2_buf_type type)
+ {
+ 	struct m2mtest_ctx *ctx = priv;
++	struct m2mtest_dev *dev = ctx->dev;
+ 
+-	videobuf_queue_vmalloc_init(vq, &m2mtest_qops, ctx->dev->v4l2_dev.dev,
+-				    &ctx->dev->irqlock, type, V4L2_FIELD_NONE,
+-				    sizeof(struct m2mtest_buffer), priv, NULL);
++	videobuf_queue_vmalloc_init(vq, &m2mtest_qops, dev->v4l2_dev.dev,
++				    &dev->irqlock, type, V4L2_FIELD_NONE,
++				    sizeof(struct m2mtest_buffer), priv,
++				    &dev->dev_mutex);
+ }
+ 
+ 
+@@ -920,7 +916,7 @@ static const struct v4l2_file_operations m2mtest_fops = {
+ 	.open		= m2mtest_open,
+ 	.release	= m2mtest_release,
+ 	.poll		= m2mtest_poll,
+-	.ioctl		= video_ioctl2,
++	.unlocked_ioctl	= video_ioctl2,
+ 	.mmap		= m2mtest_mmap,
+ };
+ 
+@@ -965,6 +961,7 @@ static int m2mtest_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	*vfd = m2mtest_videodev;
++	vfd->lock = &dev->dev_mutex;
+ 
+ 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
+ 	if (ret) {
+-- 
+1.7.1.569.g6f426
 
-> and
->
-> kilgota@khayyam:/var/log/packages$ ls | grep ati
-> [...]
-> xf86-video-ati-6.13.2-x86_64-1
-> kilgota@khayyam:/var/log/packages$
->
-> As to
->
->> If you enable radeon KMS, you need to enable fbcon in your kernel or
->> you will lose video when the radeon kms driver loads since it controls
->> the video device and provide a legacy kernel fbdev interface.
->
-> Again, thanks for the suggestions. I will see what happens if I put in the
-> framebuffer console option. I am sure it is not there; I have otherwise
-> not particularly enjoyed using it and have usually tried to avoid its use.
-> It requires still another option: to use a font which is large enough. I
-> cannot use a console with some kind of 8x8 or 4x6 font, or whatever. So to
-> hunt for a good font is already extra trouble for nothing. But also when
-> the framebuffer console kicks in the bootup messages disappear in the
-> middle of the boot procedure. Thanks, I would much rather see what is
-> happening than to look at pretty pictures while booting or to have the
-> messages go into a black hole halfway through. Some of us are just a
-> little bit old-fashioned that way and really do not give a hoot whether
-> the bootup looks sexy or not. In other words, I find myself confronted
-> with one of those situations where not all movement is progress.
->
-> Thus, again, why did things collapse now and refuse to work properly
-> without the KMS option, when without the KMS option things worked
-> perfectly well in 2.6.35.7 ? Judging from what the error messages are
-> saying, it appears to me that in the presence of the new kernel
-> there seems to be an attempt to use the KMS option regardless of
-> whether it is present, and when it is not present one is bumped out with
-> an "error" which in the previous environment was no error at all. Weird.
->
-> Theodore Kilgore
