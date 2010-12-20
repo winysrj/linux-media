@@ -1,75 +1,38 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3561 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751356Ab0L3PVg (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:37138 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752775Ab0LTMxi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Dec 2010 10:21:36 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] [media] ivtv-i2c: Fix two wanrings
-Date: Thu, 30 Dec 2010 16:21:21 +0100
-References: <20101230130041.71357141@gaivota>
-In-Reply-To: <20101230130041.71357141@gaivota>
+	Mon, 20 Dec 2010 07:53:38 -0500
+Date: Mon, 20 Dec 2010 15:53:16 +0300
+From: Dan Carpenter <error27@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Richard =?iso-8859-1?Q?R=F6jfors?=
+	<richard.rojfors@pelagicore.com>, linux-media@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [patch -next] [media] timblogiw: too large value for strncpy()
+Message-ID: <20101220125316.GW1936@bicker>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201012301621.21746.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Thursday, December 30, 2010 16:00:41 Mauro Carvalho Chehab wrote:
-> Fix two gcc warnings:
-> 
-> drivers/media/video/ivtv/ivtv-i2c.c:170: warning: cast from pointer to integer of different size
-> drivers/media/video/ivtv/ivtv-i2c.c:171: warning: cast from pointer to integer of different size
-> $ gcc --version
-> gcc (GCC) 4.1.2 20080704 (Red Hat 4.1.2-48)
-> 
-> They seem bogus, but, as the original code also has problems with
-> LE/BE, just change its implementation to be clear.
+This is a copy and paste error.  It should be using sizeof(cap->driver)
+instead of sizeof(cap->card).
 
-Definitely not bogus:
+Signed-off-by: Dan Carpenter <error27@gmail.com>
 
-unsigned char keybuf[4];
-
-..
-
-*ir_key = (u32) keybuf;
-
-Here keybuf == &keybuf[0]. So you put the address of keybuf in *ir_key. Which is
-indeed of a different size in the case of a 64-bit architecture.
-
-What you probably meant to do is:
-
-*ir_key = *(u32 *)keybuf;
-
-Note that the code in your patch assumes that keybuf is in big-endian order. I assume
-that's what it should be?
-
-Regards,
-
-	Hans
-
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> diff --git a/drivers/media/video/ivtv/ivtv-i2c.c b/drivers/media/video/ivtv/ivtv-i2c.c
-> index 2bed430..e103b8f 100644
-> --- a/drivers/media/video/ivtv/ivtv-i2c.c
-> +++ b/drivers/media/video/ivtv/ivtv-i2c.c
-> @@ -167,8 +167,8 @@ static int get_key_adaptec(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
->  	keybuf[2] &= 0x7f;
->  	keybuf[3] |= 0x80;
->  
-> -	*ir_key = (u32) keybuf;
-> -	*ir_raw = (u32) keybuf;
-> +	*ir_key = keybuf[3] | keybuf[2] << 8 | keybuf[1] << 16 |keybuf[0] << 24;
-> +	*ir_raw = *ir_key;
->  
->  	return 1;
->  }
-> 
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+diff --git a/drivers/media/video/timblogiw.c b/drivers/media/video/timblogiw.c
+index cf48aa9..ef1b7a5 100644
+--- a/drivers/media/video/timblogiw.c
++++ b/drivers/media/video/timblogiw.c
+@@ -241,7 +241,7 @@ static int timblogiw_querycap(struct file *file, void  *priv,
+ 	dev_dbg(&vdev->dev, "%s: Entry\n",  __func__);
+ 	memset(cap, 0, sizeof(*cap));
+ 	strncpy(cap->card, TIMBLOGIWIN_NAME, sizeof(cap->card)-1);
+-	strncpy(cap->driver, DRIVER_NAME, sizeof(cap->card)-1);
++	strncpy(cap->driver, DRIVER_NAME, sizeof(cap->driver) - 1);
+ 	strlcpy(cap->bus_info, vdev->name, sizeof(cap->bus_info));
+ 	cap->version = TIMBLOGIW_VERSION_CODE;
+ 	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
