@@ -1,60 +1,58 @@
 Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40569 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753213Ab0LaLaY (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:39163 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757686Ab0LTNkN convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Dec 2010 06:30:24 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 01/18] Altera FPGA firmware download module.
-Date: Fri, 31 Dec 2010 12:30:51 +0100
-Cc: "Igor M. Liplianin" <liplianin@me.by>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, aospan@netup.ru
-References: <201012310726.31851.liplianin@netup.ru> <201012311212.19715.laurent.pinchart@ideasonboard.com> <4D1DBE2A.5080003@infradead.org>
-In-Reply-To: <4D1DBE2A.5080003@infradead.org>
+	Mon, 20 Dec 2010 08:40:13 -0500
+From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+To: Sergei Shtylyov <sshtylyov@mvista.com>,
+	"Hadli, Manjunath" <manjunath.hadli@ti.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Date: Mon, 20 Dec 2010 19:09:55 +0530
+Subject: RE: [PATCH v7 5/8] davinci vpbe: board specific additions
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930247ECB7E6@dbde02.ent.ti.com>
+In-Reply-To: <4D0B8FE3.3080502@mvista.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201012311230.51903.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Mauro,
-
-On Friday 31 December 2010 12:27:38 Mauro Carvalho Chehab wrote:
-> Em 31-12-2010 09:12, Laurent Pinchart escreveu:
-> > Hi Igor,
-> > 
-> > On Friday 31 December 2010 06:26:31 Igor M. Liplianin wrote:
-> >> It uses STAPL files and programs Altera FPGA through JTAG.
-> >> Interface to JTAG must be provided from main device module,
-> >> for example through cx23885 GPIO.
-> > 
-> > It might be a bit late for this comment (sorry for not having noticed the
-> > patch set earlier), but...
-> > 
-> > Do we really need a complete JTAG implementation in the kernel ? Wouldn't
-> > it better to handle this in userspace with a tiny kernel driver to
-> > access the JTAG signals ?
+On Fri, Dec 17, 2010 at 21:59:23, Sergei Shtylyov wrote:
+> Hello.
 > 
-> Laurent,
+> Manjunath Hadli wrote:
 > 
-> Igor already explained it. From what I understood, the device he is
-> working has a firmware that needs to be loaded via JTAG/FPGA.
+> > This patch implements tables for display timings,outputs and other 
+> > board related functionalities.
+> 
+> > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> > Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+> > Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+> [...]
+> 
+> > diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c 
+> > b/arch/arm/mach-davinci/board-dm644x-evm.c
+> > index 34c8b41..e9b1243 100644
+> > --- a/arch/arm/mach-davinci/board-dm644x-evm.c
+> > +++ b/arch/arm/mach-davinci/board-dm644x-evm.c
+> [...]
+> > @@ -620,6 +671,8 @@ davinci_evm_map_io(void)  {
+> >  	/* setup input configuration for VPFE input devices */
+> >  	dm644x_set_vpfe_config(&vpfe_cfg);
+> > +	/* setup configuration for vpbe devices */
+> > +	dm644x_set_vpbe_display_config(&vpbe_display_cfg);
+> >  	dm644x_init();
+> >  }
+> 
+>     This patch should *follow* the platform patch (where
+> dm644x_set_vpbe_display_config() is defined), not precede it.
+Thanks. Will update the patch series.
+-Manju
+> 
+> WBR, Sergei
+> 
 
-I understand this. However, a complete JTAG state machine in the kernel, plus 
-an Altera firmware parser, seems to be a lot of code that could live in 
-userspace.
-
-> Actually, I liked the idea, as the FPGA programming driver could be
-> useful if other drivers have similar usecases.
-
-If I understand it correctly the driver assumes the firmware is in an Altera 
-proprietary format. If we really want JTAG code in the kernel we should at 
-least split the file parser and the TAP access code.
-
--- 
-Regards,
-
-Laurent Pinchart
