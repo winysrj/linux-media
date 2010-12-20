@@ -1,52 +1,100 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:35359 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751265Ab0LPL6e (ORCPT
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:4755 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751750Ab0LTNJy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Dec 2010 06:58:34 -0500
-Received: by wwa36 with SMTP id 36so2336909wwa.1
-        for <linux-media@vger.kernel.org>; Thu, 16 Dec 2010 03:58:33 -0800 (PST)
+	Mon, 20 Dec 2010 08:09:54 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [GIT PULL FOR 2.6.37] uvcvideo: BKL removal
+Date: Mon, 20 Dec 2010 14:09:40 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+References: <201011291115.11061.laurent.pinchart@ideasonboard.com> <201012201345.45284.hverkuil@xs4all.nl> <201012201348.51845.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201012201348.51845.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <20101216111555.329df4fd@tele>
-References: <cover.1291926689.git.mchehab@redhat.com>
-	<20101209184236.53824f09@pedra>
-	<20101210115124.57ccd43e@tele>
-	<AANLkTim7iGe=tZXniHXG_33hCyiKFPZVuVDRLu43C3BQ@mail.gmail.com>
-	<20101214200817.045422e7@tele>
-	<AANLkTimeLZwRhP8GfyZbNRiv3JduKJg8ZA3XZ6q7r2uQ@mail.gmail.com>
-	<20101216111555.329df4fd@tele>
-Date: Thu, 16 Dec 2010 13:58:32 +0200
-Message-ID: <AANLkTi=Non7GUken7gZy9LB2GpWziHYkaqEiZLSC3i4t@mail.gmail.com>
-Subject: Re: [PATCH 3/6] [media] gspca core: Fix regressions gspca breaking
- devices with audio
-From: Anca Emanuel <anca.emanuel@gmail.com>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201012201409.40799.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Thu, Dec 16, 2010 at 12:15 PM, Jean-Francois Moine <moinejf@free.fr> wrote:
-> On Tue, 14 Dec 2010 22:05:37 +0200
-> Anca Emanuel <anca.emanuel@gmail.com> wrote:
->
->> The same bizzzzzzzzz ...
->
-> Does this noise exist with all image resolutions?
+On Monday, December 20, 2010 13:48:51 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Monday 20 December 2010 13:45:45 Hans Verkuil wrote:
+> > On Monday, December 20, 2010 13:35:28 Laurent Pinchart wrote:
+> > > On Monday 20 December 2010 13:28:06 Hans Verkuil wrote:
+> > > > On Monday, December 20, 2010 13:10:32 Mauro Carvalho Chehab wrote:
+> > > > > Em 18-12-2010 08:45, Hans Verkuil escreveu:
+> > > > > > On Saturday, December 18, 2010 01:54:41 Laurent Pinchart wrote:
+> > > > > >> On Friday 17 December 2010 18:09:39 Mauro Carvalho Chehab wrote:
+> > > > > >>> I didn't find any regressions at the BKL removal patches, but I
+> > > > > >>> noticed a few issues with qv4l2, not all related to uvcvideo. The
+> > > > > >>> remaining of this email is an attempt to document them for later
+> > > > > >>> fixes.
+> > > > > >>> 
+> > > > > >>> They don't seem to be regressions caused by BKL removal, but the
+> > > > > >>> better would be to fix them later.
+> > > > > >>> 
+> > > > > >>> - with uvcvideo and two video apps, if qv4l2 is started first,
+> > > > > >>> the second application doesn't start/capture. I suspect that
+> > > > > >>> REQBUFS (used by qv4l2 to probe mmap/userptr capabilities)
+> > > > > >>> create some resource locking at uvcvideo. The proper way is to
+> > > > > >>> lock the resources only if the driver is streaming, as other
+> > > > > >>> drivers and videobuf do.
+> > > > > >> 
+> > > > > >> I don't agree with that. The uvcvideo driver has one buffer queue
+> > > > > >> per device, so if an application requests buffers on one file
+> > > > > >> handle it will lock other applications out. If the driver didn't
+> > > > > >> it would be subject to race conditions.
+> > > > > > 
+> > > > > > I agree with Laurent. Once an application calls REQBUFS with
+> > > > > > non-zero count, then it should lock the resources needed for
+> > > > > > streaming. The reason behind that is that REQBUFS also locks the
+> > > > > > current selected format in place, since the format determines the
+> > > > > > amount of memory needed for the buffers.
+> > > > > 
+> > > > > qv4l2 calls REQBUFS(1), then REQBUFS(0). Well, this is currently
+> > > > > wrong, as most drivers will only release buffers at
+> > > > > VIDIOC_STREAMOFF.
+> > > > 
+> > > > qv4l2 first calls STREAMOFF, then REQBUFS(1), then REQBUFS(0). In the
+> > > > hope that one of these will actually free any buffers. It's random at
+> > > > the moment when drivers release buffers, one of the reasons for using
+> > > > vb2.
+> > > > 
+> > > > > Anyway, even replacing
+> > > > > REQBUFS(0) with VIDIOC_STREAMOFF at qv4l2 won't help with uvcvideo.
+> > > > > It seems that, once buffers are requested at uvcvideo, they will
+> > > > > release only at close().
+> > > 
+> > > That's not correct. Buffers are released when calling REQBUFS(0).
+> > > However, the file handle is still marked as owning the device for
+> > > streaming purpose, so other applications can't change the format or
+> > > request buffers.
+> > 
+> > Why? After REQBUFS(0) any filehandle ownership should be dropped.
+> 
+> What if the application wants to change the resolution during capture ? It 
+> will have to stop capture, call REQBUFS(0), change the format, request buffers 
+> and restart capture. If filehandle ownership is dropped after REQBUFS(0) that 
+> will open the door to a race condition.
 
-Yes.
+That's why S_PRIORITY was invented.
 
-> Also, does it change when changing the frame rate or the light
-> frequency?
+One of the nice properties of V4L2 is the ability to allow multiple processes to
+access the same device at the same time and even make modifications where possible.
 
-Today, I can not reproduce the same noise. Only when I put my hand
-near the camera. I tried to record it, but there is no sound.
-The sound is only on the speakers.
-I muted the output and disabled the "Webcam Classic", the same interference.
-The camera don't have an microphone,
-[ 2395.093550] usb 8-1: adding 8-1:1.1 (config #1, interface 1)
-[ 2395.093621] ov519 8-1:1.1: usb_probe_interface
-[ 2395.093627] ov519 8-1:1.1: usb_probe_interface - got id
-[ 2395.093646] snd-usb-audio 8-1:1.1: usb_probe_interface
-[ 2395.093653] snd-usb-audio 8-1:1.1: usb_probe_interface - got id
-there is no need for snd-usb-audio on this model.
+To prevent unwanted modifications the priority scheme was created. Unfortunately,
+too many drivers do not support it. It really should be core functionality. I did
+work on it earlier in the year, but never finished it, although it shouldn't be
+hard to do.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
