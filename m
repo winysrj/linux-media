@@ -1,135 +1,63 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-ew0-f45.google.com ([209.85.215.45]:43225 "EHLO
-	mail-ew0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751928Ab0LQGI6 (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:40119 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752945Ab0LTNx6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Dec 2010 01:08:58 -0500
-Received: by ewy10 with SMTP id 10so146162ewy.4
-        for <linux-media@vger.kernel.org>; Thu, 16 Dec 2010 22:08:56 -0800 (PST)
-Date: Fri, 17 Dec 2010 16:08:54 +0900
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: Stefan Ringel <stefan.ringel@arcor.de>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Felipe Sanches <juca@members.fsf.org>,
-	Bee Hock Goh <beehock@gmail.com>,
-	Luis Henrique Fagundes <lhfagundes@hacklab.com.br>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: tm6000 and IR
-Message-ID: <20101217160854.16a1f754@glory.local>
-In-Reply-To: <4D0AF2A7.6080100@arcor.de>
-References: <4CAD5A78.3070803@redhat.com>
-	<20101008150301.2e3ceaff@glory.local>
-	<4CAF0602.6050002@redhat.com>
-	<20101012142856.2b4ee637@glory.local>
-	<4CB492D4.1000609@arcor.de>
-	<20101129174412.08f2001c@glory.local>
-	<4CF51C9E.6040600@arcor.de>
-	<20101201144704.43b58f2c@glory.local>
-	<4CF67AB9.6020006@arcor.de>
-	<20101202134128.615bbfa0@glory.local>
-	<4CF71CF6.7080603@redhat.com>
-	<20101206010934.55d07569@glory.local>
-	<4CFBF62D.7010301@arcor.de>
-	<20101206190230.2259d7ab@glory.local>
-	<4CFEA3D2.4050309@arcor.de>
-	<20101208125539.739e2ed2@glory.local>
-	<4CFFAD1E.7040004@arcor.de>
-	<20101214122325.5cdea67e@glory.local>
-	<4D079ADF.2000705@arcor.de>
-	<20101215164634.44846128@glory.local>
-	<4D08E43C.8080002@arcor.de>
-	<20101216183844.6258734e@glory.local>
-	<4D0A4883.20804@arcor.de>
-	<20101217104633.7c9d10d7@glory.local>
-	<4D0AF2A7.6080100@arcor.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Mon, 20 Dec 2010 08:53:58 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v8 0/8] davinci vpbe: dm6446 v4l2 driver
+Date: Mon, 20 Dec 2010 19:23:36 +0530
+Message-Id: <1292853216-2216-1-git-send-email-manjunath.hadli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Fri, 17 Dec 2010 06:18:31 +0100
-Stefan Ringel <stefan.ringel@arcor.de> wrote:
+version8 : addressed on Sergei's comments
+on:
+1.Interchanged platform and board specific patches due to dependencies.
 
-> Am 17.12.2010 02:46, schrieb Dmitri Belimov:
-> > Hi Stefan
-> >
-> >> Am 16.12.2010 10:38, schrieb Dmitri Belimov:
-> >>> Hi
-> >>>
-> >>>>> I think your mean is wrong. Our IR remotes send extended NEC it
-> >>>>> is 4 bytes. We removed inverted 4 byte and now we have 3 bytes
-> >>>>> from remotes. I think we must have full RCMAP with this 3 bytes
-> >>>>> from remotes. And use this remotes with some different IR
-> >>>>> recievers like some TV cards and LIRC-hardware and other. No
-> >>>>> need different RCMAP for the same remotes to different IR
-> >>>>> recievers like now.
-> >>>> Your change doesn't work with my terratec remote control !!
-> >>> I found what happens. Try my new patch.
-> >>>
-> >>> What about NEC. Original NEC send
-> >>> address (inverted address) key (inverted key)
-> >>> this is realy old standart now all remotes use extended NEC
-> >>> (adress high) (address low) key (inverted key)
-> >>> The trident 5600/6000/6010 use old protocol but didn't test
-> >>> inverted address byte.
-> >>>
-> >>> I think much better discover really address value and write it to
-> >>> keytable. For your remotes I add low address byte. This value is
-> >>> incorrent but usefull for tm6000. When you found correct value
-> >>> update keytable.
-> >>>
-> >> That is not acceptable. Have you forgotten what Mauro have written?
-> >> The Terratec rc map are use from other devices.
-> > NO
-> > The RC_MAP_NEC_TERRATEC_CINERGY_XS used only in tm6000 module.
-> > My patch didn't kill support any other devices.
-> That is not true.
+Manjunath Hadli (8):
+  davinci vpbe: V4L2 display driver for DM644X SoC
+  davinci vpbe: VPBE display driver
+  davinci vpbe: OSD(On Screen Display) block
+  davinci vpbe: VENC( Video Encoder) implementation
+  davinci vpbe: platform specific additions
+  davinci vpbe: board specific additions
+  davinci vpbe: Build infrastructure for VPBE driver
+  davinci vpbe: Readme text for Dm6446 vpbe
 
-I search "RC_MAP_NEC_TERRATEC_CINERGY_XS" on FULL linux kernel sources.
-And found this string in:
-include/media/rc-map.h
-drivers/staging//tm6000/tm6000-cards.c
-drivers/media/rc/keymaps/rc-nec-terratec-cinergy-xs.c
+ Documentation/video4linux/README.davinci-vpbe |   93 ++
+ arch/arm/mach-davinci/board-dm644x-evm.c      |   79 +-
+ arch/arm/mach-davinci/dm644x.c                |  164 ++-
+ arch/arm/mach-davinci/include/mach/dm644x.h   |    4 +
+ drivers/media/video/davinci/Kconfig           |   22 +
+ drivers/media/video/davinci/Makefile          |    2 +
+ drivers/media/video/davinci/vpbe.c            |  837 ++++++++++
+ drivers/media/video/davinci/vpbe_display.c    | 2099 +++++++++++++++++++++++++
+ drivers/media/video/davinci/vpbe_osd.c        | 1211 ++++++++++++++
+ drivers/media/video/davinci/vpbe_osd_regs.h   |  389 +++++
+ drivers/media/video/davinci/vpbe_venc.c       |  574 +++++++
+ drivers/media/video/davinci/vpbe_venc_regs.h  |  189 +++
+ include/media/davinci/vpbe.h                  |  186 +++
+ include/media/davinci/vpbe_display.h          |  146 ++
+ include/media/davinci/vpbe_osd.h              |  397 +++++
+ include/media/davinci/vpbe_types.h            |   93 ++
+ include/media/davinci/vpbe_venc.h             |   38 +
+ 17 files changed, 6504 insertions(+), 19 deletions(-)
+ create mode 100644 Documentation/video4linux/README.davinci-vpbe
+ create mode 100644 drivers/media/video/davinci/vpbe.c
+ create mode 100644 drivers/media/video/davinci/vpbe_display.c
+ create mode 100644 drivers/media/video/davinci/vpbe_osd.c
+ create mode 100644 drivers/media/video/davinci/vpbe_osd_regs.h
+ create mode 100644 drivers/media/video/davinci/vpbe_venc.c
+ create mode 100644 drivers/media/video/davinci/vpbe_venc_regs.h
+ create mode 100644 include/media/davinci/vpbe.h
+ create mode 100644 include/media/davinci/vpbe_display.h
+ create mode 100644 include/media/davinci/vpbe_osd.h
+ create mode 100644 include/media/davinci/vpbe_types.h
+ create mode 100644 include/media/davinci/vpbe_venc.h
 
-No any other devices didn't use this keymap.
-
-> >> The best are only the
-> >> received data without additional data. And I think the Trident chip
-> >> send only compatibly data (send all extended data like standard
-> >> data). The device decoded the protocols not the driver.
-> > You can't use this remotes with normal working IR receivers because
-> > this receivers returned FULL scancodes. Need add one more keytable.
-> >
-> > 1. With my variant we have one keytable of remote and some
-> > workaround in device drivers. And can switch keytable and remotes
-> > on the fly (of course when keytable has really value and device
-> > driver has workaround)
-> >
-> > 2. With your variant we have some keytables for one remote for
-> > different IR recevers. Can't use incompatible keytable with other
-> > IR recievers. It is black magic for understanding what remotes is
-> > working with this hardware.
-> >
-> > I think my variant much better.
-> >
-> > With my best regards, Dmitry.
-> >
-> I think your variant is bad.
-
-Mauro we need your opinion about this question.
-
-With my best regards, Dmitry.
-
-> >>>>>> Then the function call usb_set_interface in tm6000_video, can
-> >>>>>> write for example:
-> >>>>>>
-> >>>>>> stop_ir_pipe
-> >>>>>> usb_set_interface
-> >>>>>> start_ir_pipe
-> >>>>> Ok, I'll try.
-> >>> See dmesg. I was add function for start/stop interrupt urbs
-> >>> All works well.
-> >>>
-> >>> With my best regards, Dmitry.
-> 
