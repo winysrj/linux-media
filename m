@@ -1,110 +1,124 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout-de.gmx.net ([213.165.64.23]:33659 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S932425Ab0LSUBe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Dec 2010 15:01:34 -0500
-From: Martin Dauskardt <martin.dauskardt@gmx.de>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51317 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757460Ab0LTLiD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Dec 2010 06:38:03 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Subject: lot of bugs in cx88-blackbird
-Date: Sun, 19 Dec 2010 21:01:27 +0100
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201012192101.27700.martin.dauskardt@gmx.de>
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v4 0/7] OMAP3 ISP driver
+Date: Mon, 20 Dec 2010 12:37:48 +0100
+Message-Id: <1292845075-7991-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-The HVR1300 driver has several bugs:
+Hi everybody,
 
-1.
-When executing VIDIOC_S_EXT_CTRLS or VIDIOC_S_FREQUENCY on the mpeg device 
-while the mpeg device is active (capturing), the driver calls 
-blackbird_stop_codec(). This stops the encoder (API call 
-CX2341X_ENC_STOP_CAPTURE).
-Unfortunately, the encoder gets never restarted after the ioctl is finished. 
+Here's the fourth version of the OMAP3 ISP driver patches, updated to
+2.6.37-rc6 and the latest changes in the media controller and sub-device APIs.
 
-To restart the encoder, we now need to stop capturing and restart reading.
-But if this is required anyway, the code could be much easier when the driver 
-would simply return EBUSY.
+You can find the patches in http://git.linuxtv.org/pinchartl/media.git as
+usual (media-0004-omap3isp).
 
-I think the bug was introduced in May 2007 (!) with this patch:
-(V4L/DVB (6828): cx88-blackbird: audio improvements)
-http://git.linuxtv.org/media_tree.git?a=commitdiff;h=f9e54e0c84da869ad9bc372fb4eab26d558dbfc2
+The "v4l: Fix a use-before-set in the control framework" and
+"v4l: Add subdev sensor g_skip_frames operation" patches have been discussed
+on the linux-media mailing list and acked.
 
-The necessary CX2341X_ENC_START_CAPTURE API command to restart the encoder was 
-moved with this patch from blackbird_initialize_codec() to a new function 
-blackbird_start_codec(), but this new function is not called.
+The "v4l: subdev: Generic ioctl support" will be discussed separately on the
+list in the near future.
 
-For vidioc_s_ext_ctrls the patch ("Stop the mpeg encoder when changing 
-parameters ") totally misses a solution to restart the encoder.
+Laurent Pinchart (6):
+  v4l: subdev: Generic ioctl support
+  v4l: Add subdev sensor g_skip_frames operation
+  v4l: Include linux/videodev2.h in media/v4l2-ctrls.h
+  v4l: Fix a use-before-set in the control framework
+  omap3: Add function to register omap3isp platform device structure
+  OMAP3 ISP driver
 
-The different methods to switch channels with mpeg encoder cards have been 
-discussed in the ivtv-devel list lately:
-http://www.gossamer-threads.com/lists/ivtv/devel/41154
+Tuukka Toivonen (1):
+  ARM: OMAP3: Update Camera ISP definitions for OMAP3630
 
-My suggestion is that the driver should return EBUSY for VIDIOC_S_FREQUENCY 
-and all critical settings (standard, bitrate, format, ...) while a capture is 
-in progess. This should happen not only on the mpeg device but also on the 
-analogue device.
+ Documentation/video4linux/v4l2-framework.txt |    5 +
+ arch/arm/mach-omap2/devices.c                |   48 +-
+ arch/arm/mach-omap2/devices.h                |   17 +
+ arch/arm/plat-omap/include/plat/omap34xx.h   |   16 +-
+ drivers/media/video/Kconfig                  |   13 +
+ drivers/media/video/Makefile                 |    2 +
+ drivers/media/video/isp/Makefile             |   13 +
+ drivers/media/video/isp/cfa_coef_table.h     |  601 +++++++
+ drivers/media/video/isp/gamma_table.h        |   90 +
+ drivers/media/video/isp/isp.c                | 1980 +++++++++++++++++++++++
+ drivers/media/video/isp/isp.h                |  407 +++++
+ drivers/media/video/isp/ispccdc.c            | 2236 ++++++++++++++++++++++++++
+ drivers/media/video/isp/ispccdc.h            |  221 +++
+ drivers/media/video/isp/ispccp2.c            | 1110 +++++++++++++
+ drivers/media/video/isp/ispccp2.h            |  101 ++
+ drivers/media/video/isp/ispcsi2.c            | 1278 +++++++++++++++
+ drivers/media/video/isp/ispcsi2.h            |  169 ++
+ drivers/media/video/isp/ispcsiphy.c          |  247 +++
+ drivers/media/video/isp/ispcsiphy.h          |   74 +
+ drivers/media/video/isp/isph3a.h             |  117 ++
+ drivers/media/video/isp/isph3a_aewb.c        |  356 ++++
+ drivers/media/video/isp/isph3a_af.c          |  410 +++++
+ drivers/media/video/isp/isphist.c            |  505 ++++++
+ drivers/media/video/isp/isphist.h            |   40 +
+ drivers/media/video/isp/isppreview.c         | 2112 ++++++++++++++++++++++++
+ drivers/media/video/isp/isppreview.h         |  214 +++
+ drivers/media/video/isp/ispqueue.c           | 1135 +++++++++++++
+ drivers/media/video/isp/ispqueue.h           |  184 +++
+ drivers/media/video/isp/ispreg.h             | 1655 +++++++++++++++++++
+ drivers/media/video/isp/ispresizer.c         | 1721 ++++++++++++++++++++
+ drivers/media/video/isp/ispresizer.h         |  149 ++
+ drivers/media/video/isp/ispstat.c            | 1093 +++++++++++++
+ drivers/media/video/isp/ispstat.h            |  168 ++
+ drivers/media/video/isp/ispvideo.c           | 1200 ++++++++++++++
+ drivers/media/video/isp/ispvideo.h           |  183 +++
+ drivers/media/video/isp/luma_enhance_table.h |  154 ++
+ drivers/media/video/isp/noise_filter_table.h |   90 +
+ drivers/media/video/v4l2-ctrls.c             |    2 +-
+ drivers/media/video/v4l2-subdev.c            |    2 +-
+ include/linux/Kbuild                         |    1 +
+ include/linux/omap3isp.h                     |  631 ++++++++
+ include/media/v4l2-ctrls.h                   |    1 +
+ include/media/v4l2-subdev.h                  |    4 +
+ 43 files changed, 20736 insertions(+), 19 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/devices.h
+ create mode 100644 drivers/media/video/isp/Makefile
+ create mode 100644 drivers/media/video/isp/cfa_coef_table.h
+ create mode 100644 drivers/media/video/isp/gamma_table.h
+ create mode 100644 drivers/media/video/isp/isp.c
+ create mode 100644 drivers/media/video/isp/isp.h
+ create mode 100644 drivers/media/video/isp/ispccdc.c
+ create mode 100644 drivers/media/video/isp/ispccdc.h
+ create mode 100644 drivers/media/video/isp/ispccp2.c
+ create mode 100644 drivers/media/video/isp/ispccp2.h
+ create mode 100644 drivers/media/video/isp/ispcsi2.c
+ create mode 100644 drivers/media/video/isp/ispcsi2.h
+ create mode 100644 drivers/media/video/isp/ispcsiphy.c
+ create mode 100644 drivers/media/video/isp/ispcsiphy.h
+ create mode 100644 drivers/media/video/isp/isph3a.h
+ create mode 100644 drivers/media/video/isp/isph3a_aewb.c
+ create mode 100644 drivers/media/video/isp/isph3a_af.c
+ create mode 100644 drivers/media/video/isp/isphist.c
+ create mode 100644 drivers/media/video/isp/isphist.h
+ create mode 100644 drivers/media/video/isp/isppreview.c
+ create mode 100644 drivers/media/video/isp/isppreview.h
+ create mode 100644 drivers/media/video/isp/ispqueue.c
+ create mode 100644 drivers/media/video/isp/ispqueue.h
+ create mode 100644 drivers/media/video/isp/ispreg.h
+ create mode 100644 drivers/media/video/isp/ispresizer.c
+ create mode 100644 drivers/media/video/isp/ispresizer.h
+ create mode 100644 drivers/media/video/isp/ispstat.c
+ create mode 100644 drivers/media/video/isp/ispstat.h
+ create mode 100644 drivers/media/video/isp/ispvideo.c
+ create mode 100644 drivers/media/video/isp/ispvideo.h
+ create mode 100644 drivers/media/video/isp/luma_enhance_table.h
+ create mode 100644 drivers/media/video/isp/noise_filter_table.h
+ create mode 100644 include/linux/omap3isp.h
 
- 
-2.
-On this hybrid card, we have an analogue and an mpeg device. As far as I  know 
-there is still no application which knows how to handle this. 
-If the User Controls (Brightness, Contrast, Saturation, Hue, Volume) are 
-executed on the analogue device while the mpeg device is active, the result is 
-static on audio+video. We need to stop reading and re-tune the current 
-frequency by executing VIDIOC_S_FREQUENCY on the mpeg device. 
+-- 
+Regards,
 
-3.
-When executing VIDIOC_S_FREQENCY or any other ioctl on the analogue device, 
-the result is always static video+audio. v4l2-ctl --get-freq still shows the 
-right frequency, but the tuner is obviously on another frequency.
+Laurent Pinchart
 
-4.
-If we use VIDIOC_S_STD on the analogue device, a following "v4l2-ctl --get-
-standard" (executed on the mpeg device) shows still the previous standard.
-
-5.
-The default video size for mpeg is 720x480 (which is right for the default 
-standard NTSC-M). If we change the standard to PAL-BG, the size is still 
-720x480. As far as I remember, the cx2341x does only work properly with height 
-576 when the video standard is 50Hz. The ivtv driver adjustes this 
-automatically.
-
-6.
-Setting the video size with VIDIOC_S_FMT for V4L2_BUF_TYPE_VIDEO_CAPTURE works 
-only when executed on the mpeg device. How should an application know this? 
-(for cards with saa7134-empress it is vice versa, VIDIOC_S_FMT works only on 
-the analogue device...)
-
-7.
-switching from an external input back to TV (input 0) often results in audio 
-static. Re-setting the video standard helps.
-
-8. 
-The external input "S-Video" has no colour although an Y/C signal is supplied.
-
-9.
-reading from mpeg device fails randomly with Input/output error. Even a driver 
-reload is not sufficient - I have to reboot my machine to get it working 
-again.
-
-10.
-vidioc_s_ext_ctrls  only supports V4L2_CTRL_CLASS_MPEG,  but not 
-V4L2_CTRL_CLASS_USER. The driver should internally pass these to vidioc_s_ctrl 
-instead of returning EINVAL.
-
-11.
-When switching from input Television to Input Composite1 , then switching to a 
-radio channel and switching back to Composite 1, the video comes from 
-Composite1 but the audio from Television (previous TV channel). Directly 
-switching from Television to radio and then to Composite1 has no problems.
-
-
-I am not a driver developer and can't fix this myself. But I could do testings 
-and hope there is a developer who is willing to have a look at these problems.
-
-Greets,
-Martin
