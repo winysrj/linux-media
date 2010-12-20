@@ -1,115 +1,60 @@
 Return-path: <mchehab@gaivota>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:51226 "EHLO
-	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750899Ab0L2IJI (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51297 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757401Ab0LTLhd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Dec 2010 03:09:08 -0500
-From: Hyunwoong Kim <khw0178.kim@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: s.nawrocki@samsung.com, Hyunwoong Kim <khw0178.kim@samsung.com>
-Subject: [PATCH v2] [media] s5p-fimc: Support stop_streaming and job_abort
-Date: Wed, 29 Dec 2010 16:47:49 +0900
-Message-Id: <1293608869-31794-1-git-send-email-khw0178.kim@samsung.com>
+	Mon, 20 Dec 2010 06:37:33 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v5 06/13] v4l: Add remaining RAW10 patterns w DPCM pixel code variants
+Date: Mon, 20 Dec 2010 12:37:18 +0100
+Message-Id: <1292845045-7945-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1292845045-7945-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1292845045-7945-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-This patch adds callback functions, stop_streaming and job_abort,
-to abort or finish any DMA in progress. stop_streaming is called
-by videobuf2 framework and job_abort is called by m2m framework.
-ST_M2M_PEND state is added to discard the next job.
+This adds following formats:
+- V4L2_MBUS_FMT_SRGGB10_1X10
+- V4L2_MBUS_FMT_SGBRG10_1X10
+- V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8
+- V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8
+- V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8
 
-Reviewed-by: Jonghun Han <jonghun.han@samsung.com>
-Signed-off-by: Hyunwoong Kim <khw0178.kim@samsung.com>
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
-Changes since V1:
-- remove the spinlock protections and unnecessay variables
+ include/linux/v4l2-mediabus.h |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
 
-This patch is depended on Hyunwoong Kim's last patch.
-- [PATCH v2] [media] s5p-fimc: update checking scaling ratio range
-
- drivers/media/video/s5p-fimc/fimc-core.c |   35 ++++++++++++++++++++++++++++-
- drivers/media/video/s5p-fimc/fimc-core.h |    1 +
- 2 files changed, 34 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index e608fb8..953a8c1 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -305,6 +305,23 @@ int fimc_set_scaler_info(struct fimc_ctx *ctx)
- 	return 0;
- }
+diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+index b091366..99cfd38 100644
+--- a/include/linux/v4l2-mediabus.h
++++ b/include/linux/v4l2-mediabus.h
+@@ -67,16 +67,21 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_YUYV10_1X20 = 0x200d,
+ 	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
  
-+static int stop_streaming(struct vb2_queue *q)
-+{
-+	struct fimc_ctx *ctx = q->drv_priv;
-+	struct fimc_dev *fimc = ctx->fimc_dev;
-+
-+	if (!fimc_m2m_pending(fimc))
-+		return 0;
-+
-+	set_bit(ST_M2M_SHUT, &fimc->state);
-+
-+	wait_event_timeout(fimc->irq_queue,
-+			   !test_bit(ST_M2M_SHUT, &fimc->state),
-+			   FIMC_SHUTDOWN_TIMEOUT);
-+
-+	return 0;
-+}
-+
- static void fimc_capture_handler(struct fimc_dev *fimc)
- {
- 	struct fimc_vid_cap *cap = &fimc->vid_cap;
-@@ -356,7 +373,10 @@ static irqreturn_t fimc_isr(int irq, void *priv)
- 
- 	spin_lock(&fimc->slock);
- 
--	if (test_and_clear_bit(ST_M2M_PEND, &fimc->state)) {
-+	if (test_and_clear_bit(ST_M2M_SHUT, &fimc->state)) {
-+		wake_up(&fimc->irq_queue);
-+		goto isr_unlock;
-+	} else if (test_and_clear_bit(ST_M2M_PEND, &fimc->state)) {
- 		struct vb2_buffer *src_vb, *dst_vb;
- 		struct fimc_ctx *ctx = v4l2_m2m_get_curr_priv(fimc->m2m.m2m_dev);
- 
-@@ -636,7 +656,17 @@ dma_unlock:
- 
- static void fimc_job_abort(void *priv)
- {
--	/* Nothing done in job_abort. */
-+	struct fimc_ctx *ctx = priv;
-+	struct fimc_dev *fimc = ctx->fimc_dev;
-+
-+	if (!fimc_m2m_pending(fimc))
-+		return;
-+
-+	set_bit(ST_M2M_SHUT, &fimc->state);
-+
-+	wait_event_timeout(fimc->irq_queue,
-+			   !test_bit(ST_M2M_SHUT, &fimc->state),
-+			   FIMC_SHUTDOWN_TIMEOUT);
- }
- 
- static int fimc_queue_setup(struct vb2_queue *vq, unsigned int *num_buffers,
-@@ -713,6 +743,7 @@ struct vb2_ops fimc_qops = {
- 	.buf_queue	 = fimc_buf_queue,
- 	.wait_prepare	 = fimc_unlock,
- 	.wait_finish	 = fimc_lock,
-+	.stop_streaming	 = stop_streaming,
+-	/* Bayer - next is 0x300b */
++	/* Bayer - next is 0x3010 */
+ 	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
+ 	V4L2_MBUS_FMT_SGRBG8_1X8 = 0x3002,
++	V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8 = 0x300b,
++	V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8 = 0x300c,
+ 	V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 = 0x3009,
++	V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8 = 0x300d,
+ 	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE = 0x3003,
+ 	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE = 0x3004,
+ 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE = 0x3005,
+ 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE = 0x3006,
+ 	V4L2_MBUS_FMT_SBGGR10_1X10 = 0x3007,
++	V4L2_MBUS_FMT_SGBRG10_1X10 = 0x300e,
+ 	V4L2_MBUS_FMT_SGRBG10_1X10 = 0x300a,
++	V4L2_MBUS_FMT_SRGGB10_1X10 = 0x300f,
+ 	V4L2_MBUS_FMT_SBGGR12_1X12 = 0x3008,
  };
  
- static int fimc_m2m_querycap(struct file *file, void *priv,
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index b442fed..b938b41 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -51,6 +51,7 @@ enum fimc_dev_flags {
- 	ST_IDLE,
- 	ST_OUTDMA_RUN,
- 	ST_M2M_PEND,
-+	ST_M2M_SHUT,
- 	/* for capture node */
- 	ST_CAPT_PEND,
- 	ST_CAPT_RUN,
 -- 
-1.6.2.5
+1.7.2.2
 
