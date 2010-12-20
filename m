@@ -1,101 +1,237 @@
 Return-path: <mchehab@gaivota>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47653 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752397Ab0LWOSA (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34481 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757021Ab0LTLgG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Dec 2010 09:18:00 -0500
-Date: Thu, 23 Dec 2010 14:16:08 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Tomasz Fujak <t.fujak@samsung.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Kyungmin Park' <kmpark@infradead.org>,
-	'Mel Gorman' <mel@csn.ul.ie>,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
-	Michal Nazarewicz <mina86@mina86.com>,
-	linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-	linux-arm-kernel@lists.infradead.org,
-	'Andrew Morton' <akpm@linux-foundation.org>,
-	linux-media@vger.kernel.org,
-	'Johan MOSSBERG' <johan.xx.mossberg@stericsson.com>,
-	'Ankita Garg' <ankita@in.ibm.com>
-Subject: Re: [PATCHv8 00/12] Contiguous Memory Allocator
-Message-ID: <20101223141608.GM3636@n2100.arm.linux.org.uk>
-References: <cover.1292443200.git.m.nazarewicz@samsung.com> <AANLkTim8_=0+-zM5z4j0gBaw3PF3zgpXQNetEn-CfUGb@mail.gmail.com> <20101223100642.GD3636@n2100.arm.linux.org.uk> <00ea01cba290$4d67f500$e837df00$%szyprowski@samsung.com> <20101223121917.GG3636@n2100.arm.linux.org.uk> <4D135004.3070904@samsung.com> <20101223134838.GK3636@n2100.arm.linux.org.uk> <4D1356D7.2000008@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4D1356D7.2000008@samsung.com>
+	Mon, 20 Dec 2010 06:36:06 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v5 7/7] v4l: subdev: Events support
+Date: Mon, 20 Dec 2010 12:35:56 +0100
+Message-Id: <1292844956-7853-8-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1292844956-7853-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1292844956-7853-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Thu, Dec 23, 2010 at 03:04:07PM +0100, Tomasz Fujak wrote:
-> On 2010-12-23 14:48, Russell King - ARM Linux wrote:
-> > On Thu, Dec 23, 2010 at 02:35:00PM +0100, Tomasz Fujak wrote:
-> >> Dear Mr. King,
-> >>
-> >> AFAIK the CMA is the fourth attempt since 2008 taken to solve the
-> >> multimedia memory allocation issue on some embedded devices. Most
-> >> notably on ARM, that happens to be present in the SoCs we care about
-> >> along the IOMMU-incapable multimedia IPs.
-> >>
-> >> I understand that you have your guidelines taken from the ARM
-> >> specification, but this approach is not helping us.
-> > I'm sorry you feel like that, but I'm living in reality.  If we didn't
-> > have these architecture restrictions then we wouldn't have this problem
-> > in the first place.
-> Do we really have them, or just the documents say they exist?
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 
-Yes.  We have seen CPUs which lockup or crash as a result of mismatched
-attributes in the page tables.
+Provide v4l2_subdevs with v4l2_event support. Subdev drivers only need very
+little to support events.
 
-> > What I'm trying to do here is to ensure that we remain _legal_ to the
-> > architecture specification - which for this issue means that we avoid
-> > corrupting people's data.
-> As legal as the mentioned dma_coherent?
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Signed-off-by: David Cohen <david.cohen@nokia.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/video4linux/v4l2-framework.txt |   18 ++++++
+ drivers/media/video/v4l2-subdev.c            |   75 +++++++++++++++++++++++++-
+ include/media/v4l2-subdev.h                  |   10 ++++
+ 3 files changed, 102 insertions(+), 1 deletions(-)
 
-See my other comment in an earlier email.  See the patch which prevents
-ioremap() being used on system memory.  There is active movement at the
-present time to sorting these violations out and find solutions for
-them.
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index f683f63..4db1def 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -352,6 +352,24 @@ VIDIOC_TRY_EXT_CTRLS
+ 	controls can be also be accessed through one (or several) V4L2 device
+ 	nodes.
+ 
++VIDIOC_DQEVENT
++VIDIOC_SUBSCRIBE_EVENT
++VIDIOC_UNSUBSCRIBE_EVENT
++
++	The events ioctls are identical to the ones defined in V4L2. They
++	behave identically, with the only exception that they deal only with
++	events generated by the sub-device. Depending on the driver, those
++	events can also be reported by one (or several) V4L2 device nodes.
++
++	Sub-device drivers that want to use events need to set the
++	V4L2_SUBDEV_USES_EVENTS v4l2_subdev::flags and initialize
++	v4l2_subdev::nevents to events queue depth before registering the
++	sub-device. After registration events can be queued as usual on the
++	v4l2_subdev::devnode device node.
++
++	To properly support events, the poll() file operation is also
++	implemented.
++
+ 
+ I2C sub-device drivers
+ ----------------------
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index fc57ce7..fbccefd 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -20,27 +20,69 @@
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  */
+ 
+-#include <linux/types.h>
+ #include <linux/ioctl.h>
++#include <linux/slab.h>
++#include <linux/types.h>
+ #include <linux/videodev2.h>
+ 
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-fh.h>
++#include <media/v4l2-event.h>
+ 
+ static int subdev_open(struct file *file)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
++	struct v4l2_fh *vfh;
++	int ret;
+ 
+ 	if (!sd->initialized)
+ 		return -EAGAIN;
+ 
++	if (sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS) {
++		vfh = kzalloc(sizeof(*vfh), GFP_KERNEL);
++		if (vfh == NULL)
++			return -ENOMEM;
++
++		ret = v4l2_fh_init(vfh, vdev);
++		if (ret)
++			goto err;
++
++		ret = v4l2_event_init(vfh);
++		if (ret)
++			goto err;
++
++		ret = v4l2_event_alloc(vfh, sd->nevents);
++		if (ret)
++			goto err;
++
++		v4l2_fh_add(vfh);
++		file->private_data = vfh;
++	}
++
+ 	return 0;
++
++err:
++	if (vfh != NULL) {
++		v4l2_fh_exit(vfh);
++		kfree(vfh);
++	}
++
++	return ret;
+ }
+ 
+ static int subdev_close(struct file *file)
+ {
++	struct v4l2_fh *vfh = file->private_data;
++
++	if (vfh != NULL) {
++		v4l2_fh_del(vfh);
++		v4l2_fh_exit(vfh);
++		kfree(vfh);
++	}
++
+ 	return 0;
+ }
+ 
+@@ -48,6 +90,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
++	struct v4l2_fh *fh = file->private_data;
+ 
+ 	switch (cmd) {
+ 	case VIDIOC_QUERYCTRL:
+@@ -71,6 +114,18 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 	case VIDIOC_TRY_EXT_CTRLS:
+ 		return v4l2_subdev_try_ext_ctrls(sd, arg);
+ 
++	case VIDIOC_DQEVENT:
++		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS))
++			return -ENOIOCTLCMD;
++
++		return v4l2_event_dequeue(fh, arg, file->f_flags & O_NONBLOCK);
++
++	case VIDIOC_SUBSCRIBE_EVENT:
++		return v4l2_subdev_call(sd, core, subscribe_event, fh, arg);
++
++	case VIDIOC_UNSUBSCRIBE_EVENT:
++		return v4l2_subdev_call(sd, core, unsubscribe_event, fh, arg);
++
+ 	default:
+ 		return -ENOIOCTLCMD;
+ 	}
+@@ -84,11 +139,29 @@ static long subdev_ioctl(struct file *file, unsigned int cmd,
+ 	return __video_usercopy(file, cmd, arg, subdev_do_ioctl);
+ }
+ 
++static unsigned int subdev_poll(struct file *file, poll_table *wait)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
++	struct v4l2_fh *fh = file->private_data;
++
++	if (!(sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS))
++		return POLLERR;
++
++	poll_wait(file, &fh->events->wait, wait);
++
++	if (v4l2_event_pending(fh))
++		return POLLPRI;
++
++	return 0;
++}
++
+ const struct v4l2_file_operations v4l2_subdev_fops = {
+ 	.owner = THIS_MODULE,
+ 	.open = subdev_open,
+ 	.unlocked_ioctl = subdev_ioctl,
+ 	.release = subdev_close,
++	.poll = subdev_poll,
+ };
+ 
+ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 90022f5..68cbe48 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -37,6 +37,8 @@
+ 
+ struct v4l2_device;
+ struct v4l2_ctrl_handler;
++struct v4l2_event_subscription;
++struct v4l2_fh;
+ struct v4l2_subdev;
+ struct tuner_setup;
+ 
+@@ -165,6 +167,10 @@ struct v4l2_subdev_core_ops {
+ 	int (*s_power)(struct v4l2_subdev *sd, int on);
+ 	int (*interrupt_service_routine)(struct v4l2_subdev *sd,
+ 						u32 status, bool *handled);
++	int (*subscribe_event)(struct v4l2_subdev *sd, struct v4l2_fh *fh,
++			       struct v4l2_event_subscription *sub);
++	int (*unsubscribe_event)(struct v4l2_subdev *sd, struct v4l2_fh *fh,
++				 struct v4l2_event_subscription *sub);
+ };
+ 
+ /* s_mode: switch the tuner to a specific tuner mode. Replacement of s_radio.
+@@ -424,6 +430,8 @@ struct v4l2_subdev_ops {
+ #define V4L2_SUBDEV_FL_IS_SPI			(1U << 1)
+ /* Set this flag if this subdev needs a device node. */
+ #define V4L2_SUBDEV_FL_HAS_DEVNODE		(1U << 2)
++/* Set this flag if this subdev generates events. */
++#define V4L2_SUBDEV_FL_HAS_EVENTS		(1U << 3)
+ 
+ /* Each instance of a subdev driver should create this struct, either
+    stand-alone or embedded in a larger struct.
+@@ -446,6 +454,8 @@ struct v4l2_subdev {
+ 	/* subdev device node */
+ 	struct video_device devnode;
+ 	unsigned int initialized;
++	/* number of events to be allocated on open */
++	unsigned int nevents;
+ };
+ 
+ #define vdev_to_v4l2_subdev(vdev) \
+-- 
+1.7.2.2
 
-The last thing we need is a new API which introduces new violations.
-
-> > Maybe you like having a system which randomly corrupts people's data?
-> > I most certainly don't.  But that's the way CMA is heading at the moment
-> > on ARM.
-> Has this been experienced? I had some ARM-compatible boards on my desk
-> (xscale, v6 and v7) and none of them crashed due to this behavior. And
-> we *do* have multiple memory mappings, with different attributes.
-
-Xscale doesn't suffer from the problem.  V6 doesn't aggressively speculate.
-V7 speculates more aggressively, and corruption has been seen there.
-
-> > It is not up to me to solve these problems - that's for the proposer of
-> > the new API to do so.  So, please, don't try to lump this problem on
-> > my shoulders.  It's not my problem to sort out.
-> Just great. Nothing short of spectacular - this way the IA32 is going to
-> take the embedded market piece by piece once the big two advance their
-> foundry processes.
-
-Look, I've been pointing out this problem ever since the very _first_
-CMA patches were posted to the list, yet the CMA proponents have decided
-to brush those problems aside each and every time I've raised them.
-
-So, you should be asking _why_ the CMA proponents are choosing to ignore
-this issue completely, rather than working to resolve it.
-
-If it's resolved, then the problem goes away.
-
-> In other words, should we take your response as yet another NAK?
-> Or would you try harder and at least point us to some direction that
-> would not doom the effort from the very beginning.
-
-What the fsck do you think I've been doing?  This is NOT THE FIRST time
-I've raised this issue.  I gave up raising it after the first couple
-of attempts because I wasn't being listened to.
-
-You say about _me_ not being very helpful.  How about the CMA proponents
-start taking the issue I've raised seriously, and try to work out how
-to solve it?  And how about blaming them for the months of wasted time
-on this issue _because_ _they_ have chosen to ignore it?
