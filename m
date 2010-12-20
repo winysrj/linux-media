@@ -1,158 +1,627 @@
 Return-path: <mchehab@gaivota>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:29873 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752258Ab0L2CoK (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34476 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756830Ab0LTLgD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Dec 2010 21:44:10 -0500
-Subject: [PATCH 1/3] hdpvr: Add I2C and ir-kdb-i2c registration of the
- Zilog Z8 IR chip
-From: Andy Walls <awalls@md.metrocast.net>
+	Mon, 20 Dec 2010 06:36:03 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Jean Delvare <khali@linux-fr.org>, Jarod Wilson <jarod@redhat.com>,
-	Janne Grunau <j@jannau.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-In-Reply-To: <1293587067.3098.10.camel@localhost>
-References: <1293587067.3098.10.camel@localhost>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 28 Dec 2010 20:46:13 -0500
-Message-ID: <1293587173.3098.12.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v5 4/7] v4l: subdev: Add device node support
+Date: Mon, 20 Dec 2010 12:35:53 +0100
+Message-Id: <1292844956-7853-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1292844956-7853-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1292844956-7853-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
+Create a device node named subdevX for every registered subdev.
 
-Add I2C registration of the Zilog Z8F0811 IR microcontroller for either
-lirc_zilog or ir-kbd-i2c to use.  This is a required step in removing
-lirc_zilog's use of the deprecated struct i2c_adapter.id field.
+As the device node is registered before the subdev core::s_config
+function is called, return -EGAIN on open until initialization
+completes.
 
-Signed-off-by: Andy Walls <awalls@md.metrocast.net>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Vimarsh Zutshi <vimarsh.zutshi@nokia.com>
 ---
- drivers/media/video/hdpvr/hdpvr-core.c |    5 +++
- drivers/media/video/hdpvr/hdpvr-i2c.c  |   53 ++++++++++++++++++++++++++++++++
- drivers/media/video/hdpvr/hdpvr.h      |    6 +++
- 3 files changed, 64 insertions(+), 0 deletions(-)
+ Documentation/video4linux/v4l2-framework.txt |   18 +++++++
+ drivers/media/radio/radio-si4713.c           |    2 +-
+ drivers/media/video/Makefile                 |    2 +-
+ drivers/media/video/cafe_ccic.c              |    2 +-
+ drivers/media/video/davinci/vpfe_capture.c   |    2 +-
+ drivers/media/video/davinci/vpif_capture.c   |    2 +-
+ drivers/media/video/davinci/vpif_display.c   |    2 +-
+ drivers/media/video/ivtv/ivtv-i2c.c          |    2 +-
+ drivers/media/video/s5p-fimc/fimc-capture.c  |    2 +-
+ drivers/media/video/sh_vou.c                 |    2 +-
+ drivers/media/video/soc_camera.c             |    2 +-
+ drivers/media/video/v4l2-common.c            |   15 +++++-
+ drivers/media/video/v4l2-dev.c               |   27 ++++------
+ drivers/media/video/v4l2-device.c            |   24 +++++++++-
+ drivers/media/video/v4l2-ioctl.c             |    2 +-
+ drivers/media/video/v4l2-subdev.c            |   66 ++++++++++++++++++++++++++
+ include/media/v4l2-common.h                  |    5 +-
+ include/media/v4l2-dev.h                     |   18 ++++++-
+ include/media/v4l2-ioctl.h                   |    3 +
+ include/media/v4l2-subdev.h                  |   16 ++++++-
+ 20 files changed, 176 insertions(+), 38 deletions(-)
+ create mode 100644 drivers/media/video/v4l2-subdev.c
 
-diff --git a/drivers/media/video/hdpvr/hdpvr-core.c b/drivers/media/video/hdpvr/hdpvr-core.c
-index b70d6af..f7d1ee5 100644
---- a/drivers/media/video/hdpvr/hdpvr-core.c
-+++ b/drivers/media/video/hdpvr/hdpvr-core.c
-@@ -385,6 +385,11 @@ static int hdpvr_probe(struct usb_interface *interface,
- 		v4l2_err(&dev->v4l2_dev, "registering i2c adapter failed\n");
- 		goto error;
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index f22f35c..4c9185a 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -319,6 +319,24 @@ controlled through GPIO pins. This distinction is only relevant when setting
+ up the device, but once the subdev is registered it is completely transparent.
+ 
+ 
++V4L2 sub-device userspace API
++-----------------------------
++
++Beside exposing a kernel API through the v4l2_subdev_ops structure, V4L2
++sub-devices can also be controlled directly by userspace applications.
++
++When a sub-device is registered, a device node named v4l-subdevX can be created
++in /dev. If the sub-device supports direct userspace configuration it must set
++the V4L2_SUBDEV_FL_HAS_DEVNODE flag before being registered.
++
++For I2C and SPI sub-devices, the v4l2_device driver can disable registration of
++the device node if it wants to control the sub-device on its own. In that case
++it must set the v4l2_i2c_new_subdev_board or v4l2_spi_new_subdev enable_devnode
++argument to 0. Setting the argument to 1 will only enable device node
++registration if the sub-device driver has set the V4L2_SUBDEV_FL_HAS_DEVNODE
++flag.
++
++
+ I2C sub-device drivers
+ ----------------------
+ 
+diff --git a/drivers/media/radio/radio-si4713.c b/drivers/media/radio/radio-si4713.c
+index 03829e6..24c9947 100644
+--- a/drivers/media/radio/radio-si4713.c
++++ b/drivers/media/radio/radio-si4713.c
+@@ -292,7 +292,7 @@ static int radio_si4713_pdriver_probe(struct platform_device *pdev)
  	}
-+
-+	/* until i2c is working properly */
-+	retval = 0; /* hdpvr_register_i2c_ir(dev); */
-+	if (retval < 0)
-+		v4l2_err(&dev->v4l2_dev, "registering i2c IR devices failed\n");
- #endif /* CONFIG_I2C */
  
- 	/* let the user know what node this device is now attached to */
-diff --git a/drivers/media/video/hdpvr/hdpvr-i2c.c b/drivers/media/video/hdpvr/hdpvr-i2c.c
-index 409de11..24966aa 100644
---- a/drivers/media/video/hdpvr/hdpvr-i2c.c
-+++ b/drivers/media/video/hdpvr/hdpvr-i2c.c
-@@ -4,6 +4,9 @@
+ 	sd = v4l2_i2c_new_subdev_board(&rsdev->v4l2_dev, adapter,
+-					pdata->subdev_board_info, NULL);
++					pdata->subdev_board_info, NULL, 0);
+ 	if (!sd) {
+ 		dev_err(&pdev->dev, "Cannot get v4l2 subdevice\n");
+ 		rval = -ENODEV;
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index af79d47..adc1bd5 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -11,7 +11,7 @@ stkwebcam-objs	:=	stk-webcam.o stk-sensor.o
+ omap2cam-objs	:=	omap24xxcam.o omap24xxcam-dma.o
+ 
+ videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
+-			v4l2-event.o v4l2-ctrls.o
++			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o
+ 
+ # V4L2 core modules
+ 
+diff --git a/drivers/media/video/cafe_ccic.c b/drivers/media/video/cafe_ccic.c
+index d4ca0fa..0abebe5 100644
+--- a/drivers/media/video/cafe_ccic.c
++++ b/drivers/media/video/cafe_ccic.c
+@@ -2073,7 +2073,7 @@ static int cafe_pci_probe(struct pci_dev *pdev,
+ 	info.platform_data = &sensor_cfg;
+ 
+ 	cam->sensor = v4l2_i2c_new_subdev_board(&cam->v4l2_dev,
+-			&cam->i2c_adapter, &info, NULL);
++			&cam->i2c_adapter, &info, NULL, 0);
+ 	if (cam->sensor == NULL) {
+ 		ret = -ENODEV;
+ 		goto out_smbus;
+diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
+index 7333a9b..bfc2a47 100644
+--- a/drivers/media/video/davinci/vpfe_capture.c
++++ b/drivers/media/video/davinci/vpfe_capture.c
+@@ -1987,7 +1987,7 @@ static __init int vpfe_probe(struct platform_device *pdev)
+ 			v4l2_i2c_new_subdev_board(&vpfe_dev->v4l2_dev,
+ 						  i2c_adap,
+ 						  &sdinfo->board_info,
+-						  NULL);
++						  NULL, 0);
+ 		if (vpfe_dev->sd[i]) {
+ 			v4l2_info(&vpfe_dev->v4l2_dev,
+ 				  "v4l2 sub device %s registered\n",
+diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
+index 193abab..d2228e0 100644
+--- a/drivers/media/video/davinci/vpif_capture.c
++++ b/drivers/media/video/davinci/vpif_capture.c
+@@ -2014,7 +2014,7 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 			v4l2_i2c_new_subdev_board(&vpif_obj.v4l2_dev,
+ 						  i2c_adap,
+ 						  &subdevdata->board_info,
+-						  NULL);
++						  NULL, 0);
+ 
+ 		if (!vpif_obj.sd[i]) {
+ 			vpif_err("Error registering v4l2 subdevice\n");
+diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
+index 412c65d..060c049 100644
+--- a/drivers/media/video/davinci/vpif_display.c
++++ b/drivers/media/video/davinci/vpif_display.c
+@@ -1555,7 +1555,7 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 		vpif_obj.sd[i] = v4l2_i2c_new_subdev_board(&vpif_obj.v4l2_dev,
+ 						i2c_adap,
+ 						&subdevdata[i].board_info,
+-						NULL);
++						NULL, 0);
+ 		if (!vpif_obj.sd[i]) {
+ 			vpif_err("Error registering v4l2 subdevice\n");
+ 			goto probe_subdev_out;
+diff --git a/drivers/media/video/ivtv/ivtv-i2c.c b/drivers/media/video/ivtv/ivtv-i2c.c
+index 6651a6c..3d3b62d 100644
+--- a/drivers/media/video/ivtv/ivtv-i2c.c
++++ b/drivers/media/video/ivtv/ivtv-i2c.c
+@@ -277,7 +277,7 @@ int ivtv_i2c_register(struct ivtv *itv, unsigned idx)
+ 		info.platform_data = &pdata;
+ 
+ 		sd = v4l2_i2c_new_subdev_board(&itv->v4l2_dev, adap, &info,
+-					       NULL);
++					       NULL, 0);
+ 	} else {
+ 		sd = v4l2_i2c_new_subdev(&itv->v4l2_dev,
+ 				adap, type, hw_addrs[idx], NULL);
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index 1b93207..dbbfabe 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -44,7 +44,7 @@ static struct v4l2_subdev *fimc_subdev_register(struct fimc_dev *fimc,
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	sd = v4l2_i2c_new_subdev_board(&vid_cap->v4l2_dev, i2c_adap,
+-				       isp_info->board_info, NULL);
++				       isp_info->board_info, NULL, 0);
+ 	if (!sd) {
+ 		v4l2_err(&vid_cap->v4l2_dev, "failed to acquire subdev\n");
+ 		return NULL;
+diff --git a/drivers/media/video/sh_vou.c b/drivers/media/video/sh_vou.c
+index 4e5a8cf..5dcad09 100644
+--- a/drivers/media/video/sh_vou.c
++++ b/drivers/media/video/sh_vou.c
+@@ -1406,7 +1406,7 @@ static int __devinit sh_vou_probe(struct platform_device *pdev)
+ 		goto ereset;
+ 
+ 	subdev = v4l2_i2c_new_subdev_board(&vou_dev->v4l2_dev, i2c_adap,
+-			vou_pdata->board_info, NULL);
++			vou_pdata->board_info, NULL, 0);
+ 	if (!subdev) {
+ 		ret = -ENOMEM;
+ 		goto ei2cnd;
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index 335120c..6315e09 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -896,7 +896,7 @@ static int soc_camera_init_i2c(struct soc_camera_device *icd,
+ 	icl->board_info->platform_data = icd;
+ 
+ 	subdev = v4l2_i2c_new_subdev_board(&ici->v4l2_dev, adap,
+-				icl->board_info, NULL);
++				icl->board_info, NULL, 0);
+ 	if (!subdev)
+ 		goto ei2cnd;
+ 
+diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
+index e007e61..ffee794 100644
+--- a/drivers/media/video/v4l2-common.c
++++ b/drivers/media/video/v4l2-common.c
+@@ -369,7 +369,7 @@ EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_init);
+ /* Load an i2c sub-device. */
+ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
+ 		struct i2c_adapter *adapter, struct i2c_board_info *info,
+-		const unsigned short *probe_addrs)
++		const unsigned short *probe_addrs, int enable_devnode)
+ {
+ 	struct v4l2_subdev *sd = NULL;
+ 	struct i2c_client *client;
+@@ -399,9 +399,12 @@ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
+ 	if (!try_module_get(client->driver->driver.owner))
+ 		goto error;
+ 	sd = i2c_get_clientdata(client);
++	if (!enable_devnode)
++		sd->flags &= ~V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 
+ 	/* Register with the v4l2_device which increases the module's
+ 	   use count as well. */
++	sd->initialized = 0;
+ 	if (v4l2_device_register_subdev(v4l2_dev, sd))
+ 		sd = NULL;
+ 	/* Decrease the module use count to match the first try_module_get. */
+@@ -416,6 +419,8 @@ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
+ 		if (err && err != -ENOIOCTLCMD) {
+ 			v4l2_device_unregister_subdev(sd);
+ 			sd = NULL;
++		} else {
++			sd->initialized = 1;
+ 		}
+ 	}
+ 
+@@ -440,7 +445,8 @@ struct v4l2_subdev *v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
+ 	strlcpy(info.type, client_type, sizeof(info.type));
+ 	info.addr = addr;
+ 
+-	return v4l2_i2c_new_subdev_board(v4l2_dev, adapter, &info, probe_addrs);
++	return v4l2_i2c_new_subdev_board(v4l2_dev, adapter, &info, probe_addrs,
++					 0);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_i2c_new_subdev);
+ 
+@@ -510,7 +516,8 @@ void v4l2_spi_subdev_init(struct v4l2_subdev *sd, struct spi_device *spi,
+ EXPORT_SYMBOL_GPL(v4l2_spi_subdev_init);
+ 
+ struct v4l2_subdev *v4l2_spi_new_subdev(struct v4l2_device *v4l2_dev,
+-		struct spi_master *master, struct spi_board_info *info)
++		struct spi_master *master, struct spi_board_info *info,
++		int enable_devnode)
+ {
+ 	struct v4l2_subdev *sd = NULL;
+ 	struct spi_device *spi = NULL;
+@@ -529,6 +536,8 @@ struct v4l2_subdev *v4l2_spi_new_subdev(struct v4l2_device *v4l2_dev,
+ 		goto error;
+ 
+ 	sd = spi_get_drvdata(spi);
++	if (!enable_devnode)
++		sd->flags &= ~V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 
+ 	/* Register with the v4l2_device which increases the module's
+ 	   use count as well. */
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index 03f7f46..035db52 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -380,13 +380,14 @@ static int get_index(struct video_device *vdev)
+ }
+ 
+ /**
+- *	video_register_device - register video4linux devices
++ *	__video_register_device - register video4linux devices
+  *	@vdev: video device structure we want to register
+  *	@type: type of device to register
+  *	@nr:   which device node number (0 == /dev/video0, 1 == /dev/video1, ...
+  *             -1 == first free)
+  *	@warn_if_nr_in_use: warn if the desired device node number
+  *	       was already in use and another number was chosen instead.
++ *	@owner: module that owns the video device node
   *
-  * Copyright (C) 2008      Janne Grunau (j@jannau.net)
+  *	The registration code assigns minor numbers and device node numbers
+  *	based on the requested type and registers the new device node with
+@@ -403,9 +404,11 @@ static int get_index(struct video_device *vdev)
+  *	%VFL_TYPE_VBI - Vertical blank data (undecoded)
   *
-+ * IR device registration code is
-+ * Copyright (C) 2010	Andy Walls <awalls@md.metrocast.net>
+  *	%VFL_TYPE_RADIO - A radio card
 + *
-  *	This program is free software; you can redistribute it and/or
-  *	modify it under the terms of the GNU General Public License as
-  *	published by the Free Software Foundation, version 2.
-@@ -22,6 +25,56 @@
- #define REQTYPE_I2C_WRITE	0xb0
- #define REQTYPE_I2C_WRITE_STATT	0xd0
- 
-+#define Z8F0811_IR_TX_I2C_ADDR	0x70
-+#define Z8F0811_IR_RX_I2C_ADDR	0x71
-+
-+static const u8 ir_i2c_addrs[] = {
-+	Z8F0811_IR_TX_I2C_ADDR,
-+	Z8F0811_IR_RX_I2C_ADDR,
-+};
-+
-+static const char * const ir_devicenames[] = {
-+	"ir_tx_z8f0811_hdpvr",
-+	"ir_rx_z8f0811_hdpvr",
-+};
-+
-+static int hdpvr_new_i2c_ir(struct hdpvr_device *dev, struct i2c_adapter *adap,
-+			    const char *type, u8 addr)
-+{
-+	struct i2c_board_info info;
-+	struct IR_i2c_init_data *init_data = &dev->ir_i2c_init_data;
-+	unsigned short addr_list[2] = { addr, I2C_CLIENT_END };
-+
-+	memset(&info, 0, sizeof(struct i2c_board_info));
-+	strlcpy(info.type, type, I2C_NAME_SIZE);
-+
-+	/* Our default information for ir-kbd-i2c.c to use */
-+	switch (addr) {
-+	case Z8F0811_IR_RX_I2C_ADDR:
-+		init_data->ir_codes = RC_MAP_HAUPPAUGE_NEW;
-+		init_data->internal_get_key_func = IR_KBD_GET_KEY_HAUP_XVR;
-+		init_data->type = RC_TYPE_RC5;
-+		init_data->name = "HD PVR";
-+		info.platform_data = init_data;
++ *	%VFL_TYPE_SUBDEV - A subdevice
+  */
+-static int __video_register_device(struct video_device *vdev, int type, int nr,
+-		int warn_if_nr_in_use)
++int __video_register_device(struct video_device *vdev, int type, int nr,
++		int warn_if_nr_in_use, struct module *owner)
+ {
+ 	int i = 0;
+ 	int ret;
+@@ -438,6 +441,9 @@ static int __video_register_device(struct video_device *vdev, int type, int nr,
+ 	case VFL_TYPE_RADIO:
+ 		name_base = "radio";
+ 		break;
++	case VFL_TYPE_SUBDEV:
++		name_base = "v4l-subdev";
 +		break;
+ 	default:
+ 		printk(KERN_ERR "%s called with unknown type: %d\n",
+ 		       __func__, type);
+@@ -521,7 +527,7 @@ static int __video_register_device(struct video_device *vdev, int type, int nr,
+ 		goto cleanup;
+ 	}
+ 	vdev->cdev->ops = &v4l2_fops;
+-	vdev->cdev->owner = vdev->fops->owner;
++	vdev->cdev->owner = owner;
+ 	ret = cdev_add(vdev->cdev, MKDEV(VIDEO_MAJOR, vdev->minor), 1);
+ 	if (ret < 0) {
+ 		printk(KERN_ERR "%s: cdev_add failed\n", __func__);
+@@ -570,18 +576,7 @@ cleanup:
+ 	vdev->minor = -1;
+ 	return ret;
+ }
+-
+-int video_register_device(struct video_device *vdev, int type, int nr)
+-{
+-	return __video_register_device(vdev, type, nr, 1);
+-}
+-EXPORT_SYMBOL(video_register_device);
+-
+-int video_register_device_no_warn(struct video_device *vdev, int type, int nr)
+-{
+-	return __video_register_device(vdev, type, nr, 0);
+-}
+-EXPORT_SYMBOL(video_register_device_no_warn);
++EXPORT_SYMBOL(__video_register_device);
+ 
+ /**
+  *	video_unregister_device - unregister a video4linux device
+diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
+index 0b08f96..318e911 100644
+--- a/drivers/media/video/v4l2-device.c
++++ b/drivers/media/video/v4l2-device.c
+@@ -116,24 +116,43 @@ EXPORT_SYMBOL_GPL(v4l2_device_unregister);
+ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ 						struct v4l2_subdev *sd)
+ {
++	struct video_device *vdev;
+ 	int err;
+ 
+ 	/* Check for valid input */
+ 	if (v4l2_dev == NULL || sd == NULL || !sd->name[0])
+ 		return -EINVAL;
++
+ 	/* Warn if we apparently re-register a subdev */
+ 	WARN_ON(sd->v4l2_dev != NULL);
++
+ 	if (!try_module_get(sd->owner))
+ 		return -ENODEV;
++
+ 	/* This just returns 0 if either of the two args is NULL */
+ 	err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd->ctrl_handler);
+ 	if (err)
+ 		return err;
++
+ 	sd->v4l2_dev = v4l2_dev;
+ 	spin_lock(&v4l2_dev->lock);
+ 	list_add_tail(&sd->list, &v4l2_dev->subdevs);
+ 	spin_unlock(&v4l2_dev->lock);
+-	return 0;
++
++	/* Register the device node. */
++	vdev = &sd->devnode;
++	strlcpy(vdev->name, sd->name, sizeof(vdev->name));
++	vdev->parent = v4l2_dev->dev;
++	vdev->fops = &v4l2_subdev_fops;
++	vdev->release = video_device_release_empty;
++	if (sd->flags & V4L2_SUBDEV_FL_HAS_DEVNODE) {
++		err = __video_register_device(vdev, VFL_TYPE_SUBDEV, -1, 1,
++					      sd->owner);
++		if (err < 0)
++			v4l2_device_unregister_subdev(sd);
 +	}
 +
-+	return i2c_new_probed_device(adap, &info, addr_list, NULL) == NULL ?
-+	       -1 : 0;
-+}
++	return err;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
+ 
+@@ -142,10 +161,13 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
+ 	/* return if it isn't registered */
+ 	if (sd == NULL || sd->v4l2_dev == NULL)
+ 		return;
 +
-+int hdpvr_register_i2c_ir(struct hdpvr_device *dev)
-+{
-+	int i;
-+	int ret = 0;
+ 	spin_lock(&sd->v4l2_dev->lock);
+ 	list_del(&sd->list);
+ 	spin_unlock(&sd->v4l2_dev->lock);
+ 	sd->v4l2_dev = NULL;
 +
-+	for (i = 0; i < ARRAY_SIZE(ir_i2c_addrs); i++)
-+		ret += hdpvr_new_i2c_ir(dev, dev->i2c_adapter,
-+					ir_devicenames[i], ir_i2c_addrs[i]);
-+
-+	return ret;
-+}
-+
- static int hdpvr_i2c_read(struct hdpvr_device *dev, unsigned char addr,
- 			  char *data, int len)
+ 	module_put(sd->owner);
++	video_unregister_device(&sd->devnode);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_unregister_subdev);
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 1e01554..4137e4c 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -413,7 +413,7 @@ static unsigned long cmd_input_size(unsigned int cmd)
+ 	}
+ }
+ 
+-static long
++long
+ __video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+ 		v4l2_kioctl func)
  {
-diff --git a/drivers/media/video/hdpvr/hdpvr.h b/drivers/media/video/hdpvr/hdpvr.h
-index 5efc963..37f1e4c 100644
---- a/drivers/media/video/hdpvr/hdpvr.h
-+++ b/drivers/media/video/hdpvr/hdpvr.h
-@@ -16,6 +16,7 @@
- #include <linux/videodev2.h>
- 
- #include <media/v4l2-device.h>
-+#include <media/ir-kbd-i2c.h>
- 
- #define HDPVR_MAJOR_VERSION 0
- #define HDPVR_MINOR_VERSION 2
-@@ -109,6 +110,9 @@ struct hdpvr_device {
- 	/* I2C lock */
- 	struct mutex		i2c_mutex;
- 
-+	/* For passing data to ir-kbd-i2c */
-+	struct IR_i2c_init_data	ir_i2c_init_data;
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+new file mode 100644
+index 0000000..00bd4b1
+--- /dev/null
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -0,0 +1,66 @@
++/*
++ *  V4L2 subdevice support.
++ *
++ *  Copyright (C) 2010 Nokia Corporation
++ *
++ *  Contact: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
 +
- 	/* usb control transfer buffer and lock */
- 	struct mutex		usbc_mutex;
- 	u8			*usbc_buf;
-@@ -306,6 +310,8 @@ int hdpvr_cancel_queue(struct hdpvr_device *dev);
- /* i2c adapter registration */
- int hdpvr_register_i2c_adapter(struct hdpvr_device *dev);
- 
-+int hdpvr_register_i2c_ir(struct hdpvr_device *dev);
++#include <linux/types.h>
++#include <linux/ioctl.h>
++#include <linux/videodev2.h>
 +
- /*========================================================================*/
- /* buffer management */
- int hdpvr_free_buffers(struct hdpvr_device *dev);
++#include <media/v4l2-device.h>
++#include <media/v4l2-ioctl.h>
++
++static int subdev_open(struct file *file)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
++
++	if (!sd->initialized)
++		return -EAGAIN;
++
++	return 0;
++}
++
++static int subdev_close(struct file *file)
++{
++	return 0;
++}
++
++static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
++{
++	switch (cmd) {
++	default:
++		return -ENOIOCTLCMD;
++	}
++
++	return 0;
++}
++
++static long subdev_ioctl(struct file *file, unsigned int cmd,
++	unsigned long arg)
++{
++	return __video_usercopy(file, cmd, arg, subdev_do_ioctl);
++}
++
++const struct v4l2_file_operations v4l2_subdev_fops = {
++	.owner = THIS_MODULE,
++	.open = subdev_open,
++	.unlocked_ioctl = subdev_ioctl,
++	.release = subdev_close,
++};
+diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+index 565fb32..ef8965d 100644
+--- a/include/media/v4l2-common.h
++++ b/include/media/v4l2-common.h
+@@ -146,7 +146,7 @@ struct i2c_board_info;
+ 
+ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
+ 		struct i2c_adapter *adapter, struct i2c_board_info *info,
+-		const unsigned short *probe_addrs);
++		const unsigned short *probe_addrs, int enable_devnode);
+ 
+ /* Initialize an v4l2_subdev with data from an i2c_client struct */
+ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
+@@ -179,7 +179,8 @@ struct spi_device;
+ /* Load an spi module and return an initialized v4l2_subdev struct.
+    The client_type argument is the name of the chip that's on the adapter. */
+ struct v4l2_subdev *v4l2_spi_new_subdev(struct v4l2_device *v4l2_dev,
+-		struct spi_master *master, struct spi_board_info *info);
++		struct spi_master *master, struct spi_board_info *info,
++		int enable_devnode);
+ 
+ /* Initialize an v4l2_subdev with data from an spi_device struct */
+ void v4l2_spi_subdev_init(struct v4l2_subdev *sd, struct spi_device *spi,
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 15802a0..4fe6831 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -21,7 +21,8 @@
+ #define VFL_TYPE_GRABBER	0
+ #define VFL_TYPE_VBI		1
+ #define VFL_TYPE_RADIO		2
+-#define VFL_TYPE_MAX		3
++#define VFL_TYPE_SUBDEV		3
++#define VFL_TYPE_MAX		4
+ 
+ struct v4l2_ioctl_callbacks;
+ struct video_device;
+@@ -102,15 +103,26 @@ struct video_device
+ /* dev to video-device */
+ #define to_video_device(cd) container_of(cd, struct video_device, dev)
+ 
++int __must_check __video_register_device(struct video_device *vdev, int type,
++		int nr, int warn_if_nr_in_use, struct module *owner);
++
+ /* Register video devices. Note that if video_register_device fails,
+    the release() callback of the video_device structure is *not* called, so
+    the caller is responsible for freeing any data. Usually that means that
+    you call video_device_release() on failure. */
+-int __must_check video_register_device(struct video_device *vdev, int type, int nr);
++static inline int __must_check video_register_device(struct video_device *vdev,
++		int type, int nr)
++{
++	return __video_register_device(vdev, type, nr, 1, vdev->fops->owner);
++}
+ 
+ /* Same as video_register_device, but no warning is issued if the desired
+    device node number was already in use. */
+-int __must_check video_register_device_no_warn(struct video_device *vdev, int type, int nr);
++static inline int __must_check video_register_device_no_warn(
++		struct video_device *vdev, int type, int nr)
++{
++	return __video_register_device(vdev, type, nr, 0, vdev->fops->owner);
++}
+ 
+ /* Unregister video devices. Will do nothing if vdev == NULL or
+    video_is_registered() returns false. */
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index 06daa6e..abb64d0 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -316,6 +316,9 @@ extern long v4l2_compat_ioctl32(struct file *file, unsigned int cmd,
+ 				unsigned long arg);
+ #endif
+ 
++extern long __video_usercopy(struct file *file, unsigned int cmd,
++				unsigned long arg, v4l2_kioctl func);
++
+ /* Include support for obsoleted stuff */
+ extern long video_usercopy(struct file *file, unsigned int cmd,
+ 				unsigned long arg, v4l2_kioctl func);
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index b636444..de181db 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -22,6 +22,7 @@
+ #define _V4L2_SUBDEV_H
+ 
+ #include <media/v4l2-common.h>
++#include <media/v4l2-dev.h>
+ #include <media/v4l2-mediabus.h>
+ 
+ /* generic v4l2_device notify callback notification values */
+@@ -418,9 +419,11 @@ struct v4l2_subdev_ops {
+ #define V4L2_SUBDEV_NAME_SIZE 32
+ 
+ /* Set this flag if this subdev is a i2c device. */
+-#define V4L2_SUBDEV_FL_IS_I2C (1U << 0)
++#define V4L2_SUBDEV_FL_IS_I2C			(1U << 0)
+ /* Set this flag if this subdev is a spi device. */
+-#define V4L2_SUBDEV_FL_IS_SPI (1U << 1)
++#define V4L2_SUBDEV_FL_IS_SPI			(1U << 1)
++/* Set this flag if this subdev needs a device node. */
++#define V4L2_SUBDEV_FL_HAS_DEVNODE		(1U << 2)
+ 
+ /* Each instance of a subdev driver should create this struct, either
+    stand-alone or embedded in a larger struct.
+@@ -440,8 +443,16 @@ struct v4l2_subdev {
+ 	/* pointer to private data */
+ 	void *dev_priv;
+ 	void *host_priv;
++	/* subdev device node */
++	struct video_device devnode;
++	unsigned int initialized;
+ };
+ 
++#define vdev_to_v4l2_subdev(vdev) \
++	container_of(vdev, struct v4l2_subdev, devnode)
++
++extern const struct v4l2_file_operations v4l2_subdev_fops;
++
+ static inline void v4l2_set_subdevdata(struct v4l2_subdev *sd, void *p)
+ {
+ 	sd->dev_priv = p;
+@@ -474,6 +485,7 @@ static inline void v4l2_subdev_init(struct v4l2_subdev *sd,
+ 	sd->grp_id = 0;
+ 	sd->dev_priv = NULL;
+ 	sd->host_priv = NULL;
++	sd->initialized = 1;
+ }
+ 
+ /* Call an ops of a v4l2_subdev, doing the right checks against
 -- 
-1.7.2.1
-
-
+1.7.2.2
 
