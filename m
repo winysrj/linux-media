@@ -1,53 +1,66 @@
 Return-path: <mchehab@gaivota>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:39308 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750906Ab0LNX4u (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:9021 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751701Ab0LTAVH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Dec 2010 18:56:50 -0500
-Date: Wed, 15 Dec 2010 08:50:47 +0900
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-To: Michal Nazarewicz <mina86@mina86.com>
-Cc: Michal Nazarewicz <m.nazarewicz@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Ankita Garg <ankita@in.ibm.com>,
-	BooJin Kim <boojin.kim@samsung.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mel Gorman <mel@csn.ul.ie>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCHv7 08/10] mm: cma: Contiguous Memory Allocator added
-Message-Id: <20101215085047.251778be.kamezawa.hiroyu@jp.fujitsu.com>
-In-Reply-To: <87zks8fyb0.fsf@erwin.mina86.com>
-References: <cover.1292004520.git.m.nazarewicz@samsung.com>
-	<fc8aa07ac71d554ba10af4943fdb05197c681fa2.1292004520.git.m.nazarewicz@samsung.com>
-	<20101214102401.37bf812d.kamezawa.hiroyu@jp.fujitsu.com>
-	<87zks8fyb0.fsf@erwin.mina86.com>
+	Sun, 19 Dec 2010 19:21:07 -0500
+Subject: Re: Power frequency detection.
+From: Andy Walls <awalls@md.metrocast.net>
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+Cc: Paulo Assis <pj.assis@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <alpine.LNX.2.00.1012191759030.24101@banach.math.auburn.edu>
+References: <73wo0g3yy30clob2isac30vm.1292782894810@email.android.com>
+	 <alpine.LNX.2.00.1012191423030.23950@banach.math.auburn.edu>
+	 <1292796033.2052.111.camel@morgan.silverblock.net>
+	 <alpine.LNX.2.00.1012191759030.24101@banach.math.auburn.edu>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 19 Dec 2010 19:21:42 -0500
+Message-ID: <1292804502.3710.22.camel@morgan.silverblock.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Tue, 14 Dec 2010 11:23:15 +0100
-Michal Nazarewicz <mina86@mina86.com> wrote:
-
-> > Hmm, it seems __cm_alloc() and __cm_migrate() has no special codes for CMA.
-> > I'd like reuse this for my own contig page allocator.
-> > So, could you make these function be more generic (name) ?
-> > as
-> > 	__alloc_range(start, size, mirate_type);
-> >
-> > Then, what I have to do is only to add "search range" functions.
+On Sun, 2010-12-19 at 18:13 -0600, Theodore Kilgore wrote:
 > 
-> Sure thing.  I'll post it tomorrow or Friday. How about
-> alloc_contig_range() maybe?
+> On Sun, 19 Dec 2010, Andy Walls wrote:
+
+> > The Software for our Sakar branded Jeilin camera was a little smarter.
 > 
+> Oh. So _you_ had a Sakar branded camera. This was one of the things that 
+> causes problems recently. In gspca.txt we have the supported camera listed 
+> as 
+> 
+> jeilinj         0979:0280       Sakar 57379
+> 
+> which seemed to me to be quite wrong, as (unless I have made a bad 
+> mistake) the Sakar 57379 has a Jeilin 2005C or D chip inside (proprietary 
+> interface camera, Product number 0x227, definitely not one of these guys) 
+> and AFAICT the Jeilin 2005C-D cameras can not be made to stream at all, 
+> operating only in stillcam mode. So, when I was contacted about this new 
+> camera I saw that listing and thought it had to be wrong!
+> 
+> Hoping that you still have some way to check what the Sakar product number 
+> of your cam really was...
 
-That sounds great. Thank you.
+The Internet never forgets:
 
--Kame
+http://www.spinics.net/lists/linux-media/msg07025.html
+
+http://www.spinics.net/lists/linux-media/msg07127.html
+
+It looks like I hypothesized my camera had a JL2008 chips given the AVI
+files it created had "JL2008V2C" in it.
+
+I hope that email thread archive has the information you need.
+
+Also there is this thread where Jean-Francois talked about the contents
+of gspca.txt:
+
+http://www.spinics.net/lists/linux-media/msg08477.html
+
+
+Regards,
+Andy
 
