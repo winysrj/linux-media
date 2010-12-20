@@ -1,64 +1,66 @@
 Return-path: <mchehab@gaivota>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:38395 "EHLO
-	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752609Ab0LVMMr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Dec 2010 07:12:47 -0500
-From: Jeongtae Park <jtp.park@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: k.debski@samsung.com, jaeryul.oh@samsung.com,
-	kgene.kim@samsung.com, ben-linux@fluff.org,
-	jonghun.han@samsung.com, Jeongtae Park <jtp.park@samsung.com>
-Subject: [PATCH 8/9] ARM: S5PV310: Add MFC v5.1 platform device support for SMDKC210
-Date: Wed, 22 Dec 2010 20:54:44 +0900
-Message-Id: <1293018885-15239-9-git-send-email-jtp.park@samsung.com>
-In-Reply-To: <1293018885-15239-8-git-send-email-jtp.park@samsung.com>
-References: <1293018885-15239-1-git-send-email-jtp.park@samsung.com>
- <1293018885-15239-2-git-send-email-jtp.park@samsung.com>
- <1293018885-15239-3-git-send-email-jtp.park@samsung.com>
- <1293018885-15239-4-git-send-email-jtp.park@samsung.com>
- <1293018885-15239-5-git-send-email-jtp.park@samsung.com>
- <1293018885-15239-6-git-send-email-jtp.park@samsung.com>
- <1293018885-15239-7-git-send-email-jtp.park@samsung.com>
- <1293018885-15239-8-git-send-email-jtp.park@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:25046 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933009Ab0LTS1r (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Dec 2010 13:27:47 -0500
+Message-ID: <4D0FA00E.6010701@redhat.com>
+Date: Mon, 20 Dec 2010 16:27:26 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for 2.6.37-rc7] V4L/DVB fixes
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-This patch adds MFC v5.1 platform device support for SMDKC210.
+Hi Linus,
 
-Reviewed-by: Peter Oh <jaeryul.oh@samsung.com>
-Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
+Please pull from:
+  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
+
+For a series of fixes at v4l2 drivers. They fix an OOPS at bttv due to BKL
+patches, a series of regressions that happened at gspca sonixj driver, 
+affecting most of the sonix Jpeg cams and a duplicated symbol, noticed by
+enabling allyesconfig + staging/cx23821.
+
+Thanks!
+Mauro
+
 ---
- arch/arm/mach-s5pv310/Kconfig         |    1 +
- arch/arm/mach-s5pv310/mach-smdkc210.c |    3 +++
- 2 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-s5pv310/Kconfig b/arch/arm/mach-s5pv310/Kconfig
-index 7e5dfe3..d1296f4 100644
---- a/arch/arm/mach-s5pv310/Kconfig
-+++ b/arch/arm/mach-s5pv310/Kconfig
-@@ -86,6 +86,7 @@ config MACH_SMDKC210
- 	select S5PV310_SETUP_SDHCI
- 	select S5P_DEV_FB
- 	select S5PV310_SETUP_FB
-+	select S5P_DEV_MFC
- 	help
- 	  Machine support for Samsung SMDKC210
- 	  S5PC210(MCP) is one of package option of S5PV310
-diff --git a/arch/arm/mach-s5pv310/mach-smdkc210.c b/arch/arm/mach-s5pv310/mach-smdkc210.c
-index 7de3092..81e338a 100644
---- a/arch/arm/mach-s5pv310/mach-smdkc210.c
-+++ b/arch/arm/mach-s5pv310/mach-smdkc210.c
-@@ -273,6 +273,9 @@ static struct platform_device *smdkc210_devices[] __initdata = {
- 	&smdkc210_smsc911x,
- 	&s5pv310_device_fb0,
- 	&s3c_device_spi_gpio,
-+#ifdef CONFIG_VIDEO_SAMSUNG_S5P_MFC
-+	&s5p_device_mfc,
-+#endif
- };
- 
- static void __init smdkc210_smsc911x_init(void)
--- 
-1.6.2.5
+
+The following changes since commit cf7d7e5a1980d1116ee152d25dac382b112b9c17:
+
+  Linux 2.6.37-rc5 (2010-12-06 20:09:04 -0800)
+
+are available in the git repository at:
+  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
+
+Brandon Philips (1):
+      [media] bttv: remove unneeded locking comments
+
+Jean-Francois Moine (6):
+      [media] gspca - sonixj: Move bridge init to sd start
+      [media] gspca - sonixj: Fix a bad probe exchange
+      [media] gspca - sonixj: Add a flag in the driver_info table
+      [media] gspca - sonixj: Set the flag for some devices
+      [media] gspca - sonixj: Add the bit definitions of the bridge reg 0x01 and 0x17
+      [media] gspca - sonixj: Better handling of the bridge registers 0x01 and 0x17
+
+Mauro Carvalho Chehab (2):
+      [media] Don't export format_by_forcc on two different drivers
+      [media] bttv: fix mutex use before init (BZ#24602)
+
+ drivers/media/common/saa7146_hlp.c      |    8 +-
+ drivers/media/common/saa7146_video.c    |   16 +-
+ drivers/media/video/bt8xx/bttv-driver.c |  117 +---------
+ drivers/media/video/gspca/sonixj.c      |  416 ++++++++++++++-----------------
+ drivers/staging/cx25821/cx25821-video.c |    8 +-
+ drivers/staging/cx25821/cx25821-video.h |    2 +-
+ include/media/saa7146.h                 |    2 +-
+ 7 files changed, 205 insertions(+), 364 deletions(-)
 
