@@ -1,70 +1,59 @@
 Return-path: <mchehab@gaivota>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:34400 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751530Ab0L0XzK (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:59563 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758023Ab0LTP6I (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Dec 2010 18:55:10 -0500
-Date: Mon, 27 Dec 2010 18:55:09 -0500
-Subject: Re: [PATCH 0/8] Fix V4L/DVB/RC warnings
-Message-ID: <e95cvd7ycvmoq6jolupfigs0.1293494109547@email.android.com>
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+	Mon, 20 Dec 2010 10:58:08 -0500
+Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LDQ002LVHOTSL@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 20 Dec 2010 15:58:05 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LDQ00AIGHOTUO@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 20 Dec 2010 15:58:05 +0000 (GMT)
+Date: Mon, 20 Dec 2010 16:58:00 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH/RFC 0/2 v3] I2C/subdev driver for NOON010PC30 camera chip
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com
+Message-id: <1292860682-12014-1-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-SSBoYXZlIGhhcmR3YXJlIGZvciBsaXJjX3ppbG9nLiAgSSBjYW4gbG9vayBsYXRlciB0aGlzIHdl
-ZWsuCkkgYWxzbyBoYXZlIGhhcmR3YXJlIHRoYXQgbGlyY19pMmMgaGFuZGxlcyBidXQgbm90IGFs
-bCB0aGUgaGFyZHdhcmUgaXQgaGFuZGxlcy4KCiBJSVJDIGxpcmNfaTJjIGlzIHZlcnkgbXVjaCBs
-aWtlIGlyLWtiZC1pMmMsIHNvIGRvIHdlIG5lZWQgaXQgYW55bW9yZT8gIEknbSBub3QgYWJsZSB0
-byBjaGVjayBmb3IgbXlzZWxmIGF0IHRoZSBtb21lbnQuCgpSZWdhcmRzLApBbmR5CgpNYXVybyBD
-YXJ2YWxobyBDaGVoYWIgPG1jaGVoYWJAcmVkaGF0LmNvbT4gd3JvdGU6Cgo+Cj5UaGVyZSB3ZXJl
-IHNldmVyYWwgd2FybmluZ3MgYXQgdGhlIHN1YnN5c3RlbSwgdGhhdCB3ZXJlIGNhdGNoZWQgd2l0
-aAo+Z2NjIHZlcnNpb24gNC41LjEuIEFsbCBvZiB0aGVtIGFyZSBmaXhlZCBvbiB0aG9zZSBwYXRj
-aGVzIGJ5IGEgCj50cml2aWFsIHBhdGNoLiBTbywgbGV0J3MgZml4IHRoZW0gOykKPgo+Tm93LCB0
-aGUgb25seSByZW1haW5pbmcgcGF0Y2hlcyBhcmUgdGhlIG9uZXMgd2Ugd2FudCB0byBiZSB0aGVy
-ZToKPgo+ZHJpdmVycy9zdGFnaW5nL2xpcmMvbGlyY19pMmMuYzogSW4gZnVuY3Rpb24g4oCYaXJf
-cHJvYmXigJk6Cj5kcml2ZXJzL3N0YWdpbmcvbGlyYy9saXJjX2kyYy5jOjQzMTozOiB3YXJuaW5n
-OiDigJhpZOKAmSBpcyBkZXByZWNhdGVkIChkZWNsYXJlZCBhdCBpbmNsdWRlL2xpbnV4L2kyYy5o
-OjM1NikKPmRyaXZlcnMvc3RhZ2luZy9saXJjL2xpcmNfaTJjLmM6NDUwOjM6IHdhcm5pbmc6IOKA
-mGlk4oCZIGlzIGRlcHJlY2F0ZWQgKGRlY2xhcmVkIGF0IGluY2x1ZGUvbGludXgvaTJjLmg6MzU2
-KQo+ZHJpdmVycy9zdGFnaW5nL2xpcmMvbGlyY19pMmMuYzo0Nzk6OTogd2FybmluZzog4oCYaWTi
-gJkgaXMgZGVwcmVjYXRlZCAoZGVjbGFyZWQgYXQgaW5jbHVkZS9saW51eC9pMmMuaDozNTYpCj5k
-cml2ZXJzL3N0YWdpbmcvbGlyYy9saXJjX3ppbG9nLmM6IEluIGZ1bmN0aW9uIOKAmGlyX3Byb2Jl
-4oCZOgo+ZHJpdmVycy9zdGFnaW5nL2xpcmMvbGlyY196aWxvZy5jOjExOTk6Mjogd2FybmluZzog
-4oCYaWTigJkgaXMgZGVwcmVjYXRlZCAoZGVjbGFyZWQgYXQgaW5jbHVkZS9saW51eC9pMmMuaDoz
-NTYpCj5kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1pMmMuYzogSW4gZnVuY3Rpb24g4oCY
-Y3g4OF9pMmNfaW5pdOKAmToKPmRyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LWkyYy5jOjE0
-OToyOiB3YXJuaW5nOiDigJhpZOKAmSBpcyBkZXByZWNhdGVkIChkZWNsYXJlZCBhdCBpbmNsdWRl
-L2xpbnV4L2kyYy5oOjM1NikKPmRyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LXZwMzA1NC1p
-MmMuYzogSW4gZnVuY3Rpb24g4oCYdnAzMDU0X2kyY19wcm9iZeKAmToKPmRyaXZlcnMvbWVkaWEv
-dmlkZW8vY3g4OC9jeDg4LXZwMzA1NC1pMmMuYzoxMjg6Mjogd2FybmluZzog4oCYaWTigJkgaXMg
-ZGVwcmVjYXRlZCAoZGVjbGFyZWQgYXQgaW5jbHVkZS9saW51eC9pMmMuaDozNTYpCj4KPlRoZXkg
-YXJlIGJhc2ljYWxseSBjYXVzZWQgYnkgbGlyY19pMmMgYW5kIGxpcmNfemlsb2csIHRoYXQgc3Rp
-bGwgbmVlZHMKPnRvIHVzZSB0aGUgbGVnYWN5IC5pZCBmaWVsZCBhdCB0aGUgSTJDIHN0cnVjdHMu
-IFNvbWVib2R5IHdpdGggdGhvc2UKPmhhcmR3YXJlLCBwbGVhc2UgZml4IGl0Lgo+Cj5UaGFua3Ms
-Cj5NYXVybwo+Cj4tCj4KPk1hdXJvIENhcnZhbGhvIENoZWhhYiAoOCk6Cj4gIFttZWRpYV0gZG14
-ZGV2OiBGaXggYSBjb21waWxhdGlvbiB3YXJuaW5nIGR1ZSB0byBhIGJhZCB0eXBlCj4gIFttZWRp
-YV0gcmFkaW8td2wxMjczOiBGaXggdHdvIHdhcm5pbmdzCj4gIFttZWRpYV0gbGlyY196aWxvZzog
-Rml4IGEgd2FybmluZwo+ICBbbWVkaWFdIGRpYjcwMDBtL2RpYjcwMDBwOiBBZGQgc3VwcG9ydCBm
-b3IgVFJBTlNNSVNTSU9OX01PREVfNEsKPiAgW21lZGlhXSBnc3BjYTogRml4IGEgd2FybmluZyBm
-b3IgdXNpbmcgbGVuIGJlZm9yZSBmaWxsaW5nIGl0Cj4gIFttZWRpYV0gc3R2MDkweDogRml4IHNv
-bWUgY29tcGlsYXRpb24gd2FybmluZ3MKPiAgW21lZGlhXSBhZjkwMTM6IEZpeCBhIGNvbXBpbGF0
-aW9uIHdhcm5pbmcKPiAgW21lZGlhXSBzdHJlYW16YXA6IEZpeCBhIGNvbXBpbGF0aW9uIHdhcm5p
-bmcgd2hlbiBjb21waWxlZCBidWlsdGluCj4KPiBkcml2ZXJzL21lZGlhL2R2Yi9kdmItY29yZS9k
-bXhkZXYuYyAgICB8ICAgIDQgKystLQo+IGRyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy9hZjkw
-MTMuYyAgIHwgICAgMiArLQo+IGRyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy9kaWI3MDAwbS5j
-IHwgICAxMCArKysrKy0tLS0tCj4gZHJpdmVycy9tZWRpYS9kdmIvZnJvbnRlbmRzL2RpYjcwMDBw
-LmMgfCAgIDEwICsrKysrLS0tLS0KPiBkcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvc3R2MDkw
-eC5jICB8ICAgIDYgKysrLS0tCj4gZHJpdmVycy9tZWRpYS9yYWRpby9yYWRpby13bDEyNzMuYyAg
-ICAgfCAgICAzICstLQo+IGRyaXZlcnMvbWVkaWEvcmMvc3RyZWFtemFwLmMgICAgICAgICAgIHwg
-ICAgMiArLQo+IGRyaXZlcnMvbWVkaWEvdmlkZW8vZ3NwY2EvZ3NwY2EuYyAgICAgIHwgICAgMiAr
-LQo+IGRyaXZlcnMvc3RhZ2luZy9saXJjL2xpcmNfemlsb2cuYyAgICAgIHwgICAgMSAtCj4gOSBm
-aWxlcyBjaGFuZ2VkLCAxOSBpbnNlcnRpb25zKCspLCAyMSBkZWxldGlvbnMoLSkKPgo+LS0gCj4x
-LjcuMy40Cj4KPi0tCj5UbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGlu
-ZSAidW5zdWJzY3JpYmUgbGludXgtbWVkaWEiIGluCj50aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8g
-bWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZwo+TW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDov
-L3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sCg==
+Hi all,
 
+following is a third version of patches adding the I2C/subdev driver
+for Siliconfile NOON010PC30 camera sensor with integrated ISP.
+It includes mostly corrections after the review by Hans. Hopefully 
+it can be merged into 2.6.38 in the current form.
+
+Changes since v1:
+- reworked to new v4l2-controls framework (-8% LOC)
+
+Changes since v2:
+- removed unneeded struct v4l2_ctrl * entries, CodingStyle cleanup,
+  fixed error paths in probe, added missing v4l2_ctrl_handler_free
+  on driver unload
+- removed s_config and an empty s_stream subdev callback implementations
+
+The patch series contains:
+
+[PATCH 1/2 v3] [media] Add chip identity for NOON010PC30 camera sensor
+[PATCH 2/2 v3] [media] Add v4l2 subdev driver for NOON010PC30L image sensor
+
+It has been rebased onto linuxtv/staging/for_v2.6.38 branch
+at git://linuxtv.org/media_tree.git.
+
+
+Regards,
+Sylwester
+
+
+--
+Sylwester Nawrocki
+Samsung Poland R&D Center
