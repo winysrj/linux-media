@@ -1,395 +1,81 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:61457 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757163Ab0LML1E (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4857 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757345Ab0LTMqD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Dec 2010 06:27:04 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Mon, 13 Dec 2010 12:26:44 +0100
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Subject: [PATCHv7 03/10] lib: genalloc: Generic allocator improvements
-In-reply-to: <cover.1292004520.git.m.nazarewicz@samsung.com>
-To: Michal Nazarewicz <mina86@mina86.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Ankita Garg <ankita@in.ibm.com>,
-	BooJin Kim <boojin.kim@samsung.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mel Gorman <mel@csn.ul.ie>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	Michal Nazarewicz <m.nazarewicz@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <7c188e0e2e52975af134d567127ad47132325948.1292004520.git.m.nazarewicz@samsung.com>
-References: <cover.1292004520.git.m.nazarewicz@samsung.com>
+	Mon, 20 Dec 2010 07:46:03 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [GIT PULL FOR 2.6.37] uvcvideo: BKL removal
+Date: Mon, 20 Dec 2010 13:45:45 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+References: <201011291115.11061.laurent.pinchart@ideasonboard.com> <201012201328.06493.hverkuil@xs4all.nl> <201012201335.29747.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201012201335.29747.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201012201345.45284.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-This commit adds a gen_pool_alloc_aligned() function to the
-generic allocator API.  It allows specifying alignment for the
-allocated block.  This feature uses
-the bitmap_find_next_zero_area_off() function.
+On Monday, December 20, 2010 13:35:28 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Monday 20 December 2010 13:28:06 Hans Verkuil wrote:
+> > On Monday, December 20, 2010 13:10:32 Mauro Carvalho Chehab wrote:
+> > > Em 18-12-2010 08:45, Hans Verkuil escreveu:
+> > > > On Saturday, December 18, 2010 01:54:41 Laurent Pinchart wrote:
+> > > >> On Friday 17 December 2010 18:09:39 Mauro Carvalho Chehab wrote:
+> > > >>>
+> > > >>> I didn't find any regressions at the BKL removal patches, but I
+> > > >>> noticed a few issues with qv4l2, not all related to uvcvideo. The
+> > > >>> remaining of this email is an attempt to document them for later
+> > > >>> fixes.
+> > > >>> 
+> > > >>> They don't seem to be regressions caused by BKL removal, but the
+> > > >>> better would be to fix them later.
+> > > >>> 
+> > > >>> - with uvcvideo and two video apps, if qv4l2 is started first, the
+> > > >>> second application doesn't start/capture. I suspect that REQBUFS
+> > > >>> (used by qv4l2 to probe mmap/userptr capabilities) create some
+> > > >>> resource locking at uvcvideo. The proper way is to lock the
+> > > >>> resources only if the driver is streaming, as other drivers and
+> > > >>> videobuf do.
+> > > >> 
+> > > >> I don't agree with that. The uvcvideo driver has one buffer queue per
+> > > >> device, so if an application requests buffers on one file handle it
+> > > >> will lock other applications out. If the driver didn't it would be
+> > > >> subject to race conditions.
+> > > > 
+> > > > I agree with Laurent. Once an application calls REQBUFS with non-zero
+> > > > count, then it should lock the resources needed for streaming. The
+> > > > reason behind that is that REQBUFS also locks the current selected
+> > > > format in place, since the format determines the amount of memory
+> > > > needed for the buffers.
+> > > 
+> > > qv4l2 calls REQBUFS(1), then REQBUFS(0). Well, this is currently wrong,
+> > > as most drivers will only release buffers at VIDIOC_STREAMOFF.
+> > 
+> > qv4l2 first calls STREAMOFF, then REQBUFS(1), then REQBUFS(0). In the hope
+> > that one of these will actually free any buffers. It's random at the
+> > moment when drivers release buffers, one of the reasons for using vb2.
+> > 
+> > > Anyway, even replacing
+> > > REQBUFS(0) with VIDIOC_STREAMOFF at qv4l2 won't help with uvcvideo. It
+> > > seems that, once buffers are requested at uvcvideo, they will release
+> > > only at close().
+> 
+> That's not correct. Buffers are released when calling REQBUFS(0). However, the 
+> file handle is still marked as owning the device for streaming purpose, so 
+> other applications can't change the format or request buffers.
 
-It also fixes possible issue with bitmap's last element being
-not fully allocated (ie. space allocated for chunk->bits is
-not a multiple of sizeof(long)).
+Why? After REQBUFS(0) any filehandle ownership should be dropped.
 
-It also makes some other smaller changes:
-- moves structure definitions out of the header file,
-- adds __must_check to functions returning value,
-- makes gen_pool_add() return -ENOMEM rater than -1 on error,
-- changes list_for_each to list_for_each_entry, and
-- makes use of bitmap_clear().
+Regards,
 
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- include/linux/genalloc.h |   46 ++++++------
- lib/genalloc.c           |  182 ++++++++++++++++++++++++++-------------------
- 2 files changed, 129 insertions(+), 99 deletions(-)
+	Hans
 
-diff --git a/include/linux/genalloc.h b/include/linux/genalloc.h
-index 9869ef3..8ac7337 100644
---- a/include/linux/genalloc.h
-+++ b/include/linux/genalloc.h
-@@ -8,29 +8,31 @@
-  * Version 2.  See the file COPYING for more details.
-  */
- 
-+struct gen_pool;
- 
--/*
-- *  General purpose special memory pool descriptor.
-- */
--struct gen_pool {
--	rwlock_t lock;
--	struct list_head chunks;	/* list of chunks in this pool */
--	int min_alloc_order;		/* minimum allocation order */
--};
-+struct gen_pool *__must_check gen_pool_create(unsigned order, int nid);
- 
--/*
-- *  General purpose special memory pool chunk descriptor.
-+int __must_check gen_pool_add(struct gen_pool *pool, unsigned long addr,
-+			      size_t size, int nid);
-+
-+void gen_pool_destroy(struct gen_pool *pool);
-+
-+unsigned long __must_check
-+gen_pool_alloc_aligned(struct gen_pool *pool, size_t size,
-+		       unsigned alignment_order);
-+
-+/**
-+ * gen_pool_alloc() - allocate special memory from the pool
-+ * @pool:	Pool to allocate from.
-+ * @size:	Number of bytes to allocate from the pool.
-+ *
-+ * Allocate the requested number of bytes from the specified pool.
-+ * Uses a first-fit algorithm.
-  */
--struct gen_pool_chunk {
--	spinlock_t lock;
--	struct list_head next_chunk;	/* next chunk in pool */
--	unsigned long start_addr;	/* starting address of memory chunk */
--	unsigned long end_addr;		/* ending address of memory chunk */
--	unsigned long bits[0];		/* bitmap for allocating memory chunk */
--};
-+static inline unsigned long __must_check
-+gen_pool_alloc(struct gen_pool *pool, size_t size)
-+{
-+	return gen_pool_alloc_aligned(pool, size, 0);
-+}
- 
--extern struct gen_pool *gen_pool_create(int, int);
--extern int gen_pool_add(struct gen_pool *, unsigned long, size_t, int);
--extern void gen_pool_destroy(struct gen_pool *);
--extern unsigned long gen_pool_alloc(struct gen_pool *, size_t);
--extern void gen_pool_free(struct gen_pool *, unsigned long, size_t);
-+void gen_pool_free(struct gen_pool *pool, unsigned long addr, size_t size);
-diff --git a/lib/genalloc.c b/lib/genalloc.c
-index 1923f14..0761079 100644
---- a/lib/genalloc.c
-+++ b/lib/genalloc.c
-@@ -16,53 +16,80 @@
- #include <linux/genalloc.h>
- 
- 
-+/* General purpose special memory pool descriptor. */
-+struct gen_pool {
-+	rwlock_t lock;			/* protects chunks list */
-+	struct list_head chunks;	/* list of chunks in this pool */
-+	unsigned order;			/* minimum allocation order */
-+};
-+
-+/* General purpose special memory pool chunk descriptor. */
-+struct gen_pool_chunk {
-+	spinlock_t lock;		/* protects bits */
-+	struct list_head next_chunk;	/* next chunk in pool */
-+	unsigned long start;		/* start of memory chunk */
-+	unsigned long size;		/* number of bits */
-+	unsigned long bits[0];		/* bitmap for allocating memory chunk */
-+};
-+
-+
- /**
-- * gen_pool_create - create a new special memory pool
-- * @min_alloc_order: log base 2 of number of bytes each bitmap bit represents
-- * @nid: node id of the node the pool structure should be allocated on, or -1
-+ * gen_pool_create() - create a new special memory pool
-+ * @order:	Log base 2 of number of bytes each bitmap bit
-+ *		represents.
-+ * @nid:	Node id of the node the pool structure should be allocated
-+ *		on, or -1.  This will be also used for other allocations.
-  *
-  * Create a new special memory pool that can be used to manage special purpose
-  * memory not managed by the regular kmalloc/kfree interface.
-  */
--struct gen_pool *gen_pool_create(int min_alloc_order, int nid)
-+struct gen_pool *__must_check gen_pool_create(unsigned order, int nid)
- {
- 	struct gen_pool *pool;
- 
--	pool = kmalloc_node(sizeof(struct gen_pool), GFP_KERNEL, nid);
--	if (pool != NULL) {
-+	if (WARN_ON(order >= BITS_PER_LONG))
-+		return NULL;
-+
-+	pool = kmalloc_node(sizeof *pool, GFP_KERNEL, nid);
-+	if (pool) {
- 		rwlock_init(&pool->lock);
- 		INIT_LIST_HEAD(&pool->chunks);
--		pool->min_alloc_order = min_alloc_order;
-+		pool->order = order;
- 	}
- 	return pool;
- }
- EXPORT_SYMBOL(gen_pool_create);
- 
- /**
-- * gen_pool_add - add a new chunk of special memory to the pool
-- * @pool: pool to add new memory chunk to
-- * @addr: starting address of memory chunk to add to pool
-- * @size: size in bytes of the memory chunk to add to pool
-- * @nid: node id of the node the chunk structure and bitmap should be
-- *       allocated on, or -1
-+ * gen_pool_add() - add a new chunk of special memory to the pool
-+ * @pool:	Pool to add new memory chunk to.
-+ * @addr:	Starting address of memory chunk to add to pool.
-+ * @size:	Size in bytes of the memory chunk to add to pool.
-  *
-  * Add a new chunk of special memory to the specified pool.
-  */
--int gen_pool_add(struct gen_pool *pool, unsigned long addr, size_t size,
--		 int nid)
-+int __must_check
-+gen_pool_add(struct gen_pool *pool, unsigned long addr, size_t size, int nid)
- {
- 	struct gen_pool_chunk *chunk;
--	int nbits = size >> pool->min_alloc_order;
--	int nbytes = sizeof(struct gen_pool_chunk) +
--				(nbits + BITS_PER_BYTE - 1) / BITS_PER_BYTE;
-+	size_t nbytes;
-+
-+	if (WARN_ON(!addr || addr + size < addr ||
-+		    (addr & ((1 << pool->order) - 1))))
-+		return -EINVAL;
- 
--	chunk = kmalloc_node(nbytes, GFP_KERNEL | __GFP_ZERO, nid);
--	if (unlikely(chunk == NULL))
--		return -1;
-+	size = size >> pool->order;
-+	if (WARN_ON(!size))
-+		return -EINVAL;
-+
-+	nbytes = sizeof *chunk + BITS_TO_LONGS(size) * sizeof *chunk->bits;
-+	chunk = kzalloc_node(nbytes, GFP_KERNEL, nid);
-+	if (!chunk)
-+		return -ENOMEM;
- 
- 	spin_lock_init(&chunk->lock);
--	chunk->start_addr = addr;
--	chunk->end_addr = addr + size;
-+	chunk->start = addr >> pool->order;
-+	chunk->size  = size;
- 
- 	write_lock(&pool->lock);
- 	list_add(&chunk->next_chunk, &pool->chunks);
-@@ -73,115 +100,116 @@ int gen_pool_add(struct gen_pool *pool, unsigned long addr, size_t size,
- EXPORT_SYMBOL(gen_pool_add);
- 
- /**
-- * gen_pool_destroy - destroy a special memory pool
-- * @pool: pool to destroy
-+ * gen_pool_destroy() - destroy a special memory pool
-+ * @pool:	Pool to destroy.
-  *
-  * Destroy the specified special memory pool. Verifies that there are no
-  * outstanding allocations.
-  */
- void gen_pool_destroy(struct gen_pool *pool)
- {
--	struct list_head *_chunk, *_next_chunk;
- 	struct gen_pool_chunk *chunk;
--	int order = pool->min_alloc_order;
--	int bit, end_bit;
--
-+	int bit;
- 
--	list_for_each_safe(_chunk, _next_chunk, &pool->chunks) {
--		chunk = list_entry(_chunk, struct gen_pool_chunk, next_chunk);
-+	while (!list_empty(&pool->chunks)) {
-+		chunk = list_entry(pool->chunks.next, struct gen_pool_chunk,
-+				   next_chunk);
- 		list_del(&chunk->next_chunk);
- 
--		end_bit = (chunk->end_addr - chunk->start_addr) >> order;
--		bit = find_next_bit(chunk->bits, end_bit, 0);
--		BUG_ON(bit < end_bit);
-+		bit = find_next_bit(chunk->bits, chunk->size, 0);
-+		BUG_ON(bit < chunk->size);
- 
- 		kfree(chunk);
- 	}
- 	kfree(pool);
--	return;
- }
- EXPORT_SYMBOL(gen_pool_destroy);
- 
- /**
-- * gen_pool_alloc - allocate special memory from the pool
-- * @pool: pool to allocate from
-- * @size: number of bytes to allocate from the pool
-+ * gen_pool_alloc_aligned() - allocate special memory from the pool
-+ * @pool:	Pool to allocate from.
-+ * @size:	Number of bytes to allocate from the pool.
-+ * @alignment_order:	Order the allocated space should be
-+ *			aligned to (eg. 20 means allocated space
-+ *			must be aligned to 1MiB).
-  *
-  * Allocate the requested number of bytes from the specified pool.
-  * Uses a first-fit algorithm.
-  */
--unsigned long gen_pool_alloc(struct gen_pool *pool, size_t size)
-+unsigned long __must_check
-+gen_pool_alloc_aligned(struct gen_pool *pool, size_t size,
-+		       unsigned alignment_order)
- {
--	struct list_head *_chunk;
-+	unsigned long addr, align_mask = 0, flags, start;
- 	struct gen_pool_chunk *chunk;
--	unsigned long addr, flags;
--	int order = pool->min_alloc_order;
--	int nbits, start_bit, end_bit;
- 
- 	if (size == 0)
- 		return 0;
- 
--	nbits = (size + (1UL << order) - 1) >> order;
-+	if (alignment_order > pool->order)
-+		align_mask = (1 << (alignment_order - pool->order)) - 1;
- 
--	read_lock(&pool->lock);
--	list_for_each(_chunk, &pool->chunks) {
--		chunk = list_entry(_chunk, struct gen_pool_chunk, next_chunk);
-+	size = (size + (1UL << pool->order) - 1) >> pool->order;
- 
--		end_bit = (chunk->end_addr - chunk->start_addr) >> order;
-+	read_lock(&pool->lock);
-+	list_for_each_entry(chunk, &pool->chunks, next_chunk) {
-+		if (chunk->size < size)
-+			continue;
- 
- 		spin_lock_irqsave(&chunk->lock, flags);
--		start_bit = bitmap_find_next_zero_area(chunk->bits, end_bit, 0,
--						nbits, 0);
--		if (start_bit >= end_bit) {
-+		start = bitmap_find_next_zero_area_off(chunk->bits, chunk->size,
-+						       0, size, align_mask,
-+						       chunk->start);
-+		if (start >= chunk->size) {
- 			spin_unlock_irqrestore(&chunk->lock, flags);
- 			continue;
- 		}
- 
--		addr = chunk->start_addr + ((unsigned long)start_bit << order);
--
--		bitmap_set(chunk->bits, start_bit, nbits);
-+		bitmap_set(chunk->bits, start, size);
- 		spin_unlock_irqrestore(&chunk->lock, flags);
--		read_unlock(&pool->lock);
--		return addr;
-+		addr = (chunk->start + start) << pool->order;
-+		goto done;
- 	}
-+
-+	addr = 0;
-+done:
- 	read_unlock(&pool->lock);
--	return 0;
-+	return addr;
- }
--EXPORT_SYMBOL(gen_pool_alloc);
-+EXPORT_SYMBOL(gen_pool_alloc_aligned);
- 
- /**
-- * gen_pool_free - free allocated special memory back to the pool
-- * @pool: pool to free to
-- * @addr: starting address of memory to free back to pool
-- * @size: size in bytes of memory to free
-+ * gen_pool_free() - free allocated special memory back to the pool
-+ * @pool:	Pool to free to.
-+ * @addr:	Starting address of memory to free back to pool.
-+ * @size:	Size in bytes of memory to free.
-  *
-  * Free previously allocated special memory back to the specified pool.
-  */
- void gen_pool_free(struct gen_pool *pool, unsigned long addr, size_t size)
- {
--	struct list_head *_chunk;
- 	struct gen_pool_chunk *chunk;
- 	unsigned long flags;
--	int order = pool->min_alloc_order;
--	int bit, nbits;
- 
--	nbits = (size + (1UL << order) - 1) >> order;
-+	if (!size)
-+		return;
- 
--	read_lock(&pool->lock);
--	list_for_each(_chunk, &pool->chunks) {
--		chunk = list_entry(_chunk, struct gen_pool_chunk, next_chunk);
-+	addr = addr >> pool->order;
-+	size = (size + (1UL << pool->order) - 1) >> pool->order;
-+
-+	BUG_ON(addr + size < addr);
- 
--		if (addr >= chunk->start_addr && addr < chunk->end_addr) {
--			BUG_ON(addr + size > chunk->end_addr);
-+	read_lock(&pool->lock);
-+	list_for_each_entry(chunk, &pool->chunks, next_chunk)
-+		if (addr >= chunk->start &&
-+		    addr + size <= chunk->start + chunk->size) {
- 			spin_lock_irqsave(&chunk->lock, flags);
--			bit = (addr - chunk->start_addr) >> order;
--			while (nbits--)
--				__clear_bit(bit++, chunk->bits);
-+			bitmap_clear(chunk->bits, addr - chunk->start, size);
- 			spin_unlock_irqrestore(&chunk->lock, flags);
--			break;
-+			goto done;
- 		}
--	}
--	BUG_ON(nbits > 0);
-+	BUG_ON(1);
-+done:
- 	read_unlock(&pool->lock);
- }
- EXPORT_SYMBOL(gen_pool_free);
 -- 
-1.7.2.3
-
+Hans Verkuil - video4linux developer - sponsored by Cisco
