@@ -1,66 +1,217 @@
 Return-path: <mchehab@gaivota>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:9021 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751701Ab0LTAVH (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51287 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755629Ab0LTLh1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Dec 2010 19:21:07 -0500
-Subject: Re: Power frequency detection.
-From: Andy Walls <awalls@md.metrocast.net>
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-Cc: Paulo Assis <pj.assis@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <alpine.LNX.2.00.1012191759030.24101@banach.math.auburn.edu>
-References: <73wo0g3yy30clob2isac30vm.1292782894810@email.android.com>
-	 <alpine.LNX.2.00.1012191423030.23950@banach.math.auburn.edu>
-	 <1292796033.2052.111.camel@morgan.silverblock.net>
-	 <alpine.LNX.2.00.1012191759030.24101@banach.math.auburn.edu>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 19 Dec 2010 19:21:42 -0500
-Message-ID: <1292804502.3710.22.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Mon, 20 Dec 2010 06:37:27 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v5 01/13] v4l: Move the media/v4l2-mediabus.h header to include/linux
+Date: Mon, 20 Dec 2010 12:37:13 +0100
+Message-Id: <1292845045-7945-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1292845045-7945-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1292845045-7945-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Sun, 2010-12-19 at 18:13 -0600, Theodore Kilgore wrote:
-> 
-> On Sun, 19 Dec 2010, Andy Walls wrote:
+The header defines the v4l2_mbus_framefmt structure which will be used
+by the V4L2 subdevs userspace API.
 
-> > The Software for our Sakar branded Jeilin camera was a little smarter.
-> 
-> Oh. So _you_ had a Sakar branded camera. This was one of the things that 
-> causes problems recently. In gspca.txt we have the supported camera listed 
-> as 
-> 
-> jeilinj         0979:0280       Sakar 57379
-> 
-> which seemed to me to be quite wrong, as (unless I have made a bad 
-> mistake) the Sakar 57379 has a Jeilin 2005C or D chip inside (proprietary 
-> interface camera, Product number 0x227, definitely not one of these guys) 
-> and AFAICT the Jeilin 2005C-D cameras can not be made to stream at all, 
-> operating only in stillcam mode. So, when I was contacted about this new 
-> camera I saw that listing and thought it had to be wrong!
-> 
-> Hoping that you still have some way to check what the Sakar product number 
-> of your cam really was...
+Change the type of the v4l2_mbus_framefmt::code field to __u32, as enum
+sizes can differ between different ABIs on the same architectures.
 
-The Internet never forgets:
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/linux/Kbuild          |    1 +
+ include/linux/v4l2-mediabus.h |   78 +++++++++++++++++++++++++++++++++++++++++
+ include/media/soc_mediabus.h  |    3 +-
+ include/media/v4l2-mediabus.h |   61 +-------------------------------
+ 4 files changed, 81 insertions(+), 62 deletions(-)
+ create mode 100644 include/linux/v4l2-mediabus.h
 
-http://www.spinics.net/lists/linux-media/msg07025.html
-
-http://www.spinics.net/lists/linux-media/msg07127.html
-
-It looks like I hypothesized my camera had a JL2008 chips given the AVI
-files it created had "JL2008V2C" in it.
-
-I hope that email thread archive has the information you need.
-
-Also there is this thread where Jean-Francois talked about the contents
-of gspca.txt:
-
-http://www.spinics.net/lists/linux-media/msg08477.html
-
-
-Regards,
-Andy
+diff --git a/include/linux/Kbuild b/include/linux/Kbuild
+index 26e0a7f..796e1d8 100644
+--- a/include/linux/Kbuild
++++ b/include/linux/Kbuild
+@@ -366,6 +366,7 @@ header-y += unistd.h
+ header-y += usbdevice_fs.h
+ header-y += utime.h
+ header-y += utsname.h
++header-y += v4l2-mediabus.h
+ header-y += veth.h
+ header-y += vhost.h
+ header-y += videodev.h
+diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+new file mode 100644
+index 0000000..a62cd64
+--- /dev/null
++++ b/include/linux/v4l2-mediabus.h
+@@ -0,0 +1,78 @@
++/*
++ * Media Bus API header
++ *
++ * Copyright (C) 2009, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef __LINUX_V4L2_MEDIABUS_H
++#define __LINUX_V4L2_MEDIABUS_H
++
++#include <linux/types.h>
++#include <linux/videodev2.h>
++
++/*
++ * These pixel codes uniquely identify data formats on the media bus. Mostly
++ * they correspond to similarly named V4L2_PIX_FMT_* formats, format 0 is
++ * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client pairs, where the
++ * data format is fixed. Additionally, "2X8" means that one pixel is transferred
++ * in two 8-bit samples, "BE" or "LE" specify in which order those samples are
++ * transferred over the bus: "LE" means that the least significant bits are
++ * transferred first, "BE" means that the most significant bits are transferred
++ * first, and "PADHI" and "PADLO" define which bits - low or high, in the
++ * incomplete high byte, are filled with padding bits.
++ */
++enum v4l2_mbus_pixelcode {
++	V4L2_MBUS_FMT_FIXED = 1,
++	V4L2_MBUS_FMT_YUYV8_2X8,
++	V4L2_MBUS_FMT_YVYU8_2X8,
++	V4L2_MBUS_FMT_UYVY8_2X8,
++	V4L2_MBUS_FMT_VYUY8_2X8,
++	V4L2_MBUS_FMT_YVYU10_2X10,
++	V4L2_MBUS_FMT_YUYV10_2X10,
++	V4L2_MBUS_FMT_YVYU10_1X20,
++	V4L2_MBUS_FMT_YUYV10_1X20,
++	V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE,
++	V4L2_MBUS_FMT_RGB444_2X8_PADHI_BE,
++	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
++	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
++	V4L2_MBUS_FMT_RGB565_2X8_LE,
++	V4L2_MBUS_FMT_RGB565_2X8_BE,
++	V4L2_MBUS_FMT_BGR565_2X8_LE,
++	V4L2_MBUS_FMT_BGR565_2X8_BE,
++	V4L2_MBUS_FMT_SBGGR8_1X8,
++	V4L2_MBUS_FMT_SBGGR10_1X10,
++	V4L2_MBUS_FMT_GREY8_1X8,
++	V4L2_MBUS_FMT_Y10_1X10,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
++	V4L2_MBUS_FMT_SGRBG8_1X8,
++	V4L2_MBUS_FMT_SBGGR12_1X12,
++	V4L2_MBUS_FMT_YUYV8_1_5X8,
++	V4L2_MBUS_FMT_YVYU8_1_5X8,
++	V4L2_MBUS_FMT_UYVY8_1_5X8,
++	V4L2_MBUS_FMT_VYUY8_1_5X8,
++};
++
++/**
++ * struct v4l2_mbus_framefmt - frame format on the media bus
++ * @width:	frame width
++ * @height:	frame height
++ * @code:	data format code
++ * @field:	used interlacing type
++ * @colorspace:	colorspace of the data
++ */
++struct v4l2_mbus_framefmt {
++	__u32				width;
++	__u32				height;
++	__u32				code;
++	enum v4l2_field			field;
++	enum v4l2_colorspace		colorspace;
++};
++
++#endif
+diff --git a/include/media/soc_mediabus.h b/include/media/soc_mediabus.h
+index 037cd7b..6243147 100644
+--- a/include/media/soc_mediabus.h
++++ b/include/media/soc_mediabus.h
+@@ -12,8 +12,7 @@
+ #define SOC_MEDIABUS_H
+ 
+ #include <linux/videodev2.h>
+-
+-#include <media/v4l2-mediabus.h>
++#include <linux/v4l2-mediabus.h>
+ 
+ /**
+  * enum soc_mbus_packing - data packing types on the media-bus
+diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+index 8e65598..971c7fa 100644
+--- a/include/media/v4l2-mediabus.h
++++ b/include/media/v4l2-mediabus.h
+@@ -11,66 +11,7 @@
+ #ifndef V4L2_MEDIABUS_H
+ #define V4L2_MEDIABUS_H
+ 
+-/*
+- * These pixel codes uniquely identify data formats on the media bus. Mostly
+- * they correspond to similarly named V4L2_PIX_FMT_* formats, format 0 is
+- * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client pairs, where the
+- * data format is fixed. Additionally, "2X8" means that one pixel is transferred
+- * in two 8-bit samples, "BE" or "LE" specify in which order those samples are
+- * transferred over the bus: "LE" means that the least significant bits are
+- * transferred first, "BE" means that the most significant bits are transferred
+- * first, and "PADHI" and "PADLO" define which bits - low or high, in the
+- * incomplete high byte, are filled with padding bits.
+- */
+-enum v4l2_mbus_pixelcode {
+-	V4L2_MBUS_FMT_FIXED = 1,
+-	V4L2_MBUS_FMT_YUYV8_2X8,
+-	V4L2_MBUS_FMT_YVYU8_2X8,
+-	V4L2_MBUS_FMT_UYVY8_2X8,
+-	V4L2_MBUS_FMT_VYUY8_2X8,
+-	V4L2_MBUS_FMT_YVYU10_2X10,
+-	V4L2_MBUS_FMT_YUYV10_2X10,
+-	V4L2_MBUS_FMT_YVYU10_1X20,
+-	V4L2_MBUS_FMT_YUYV10_1X20,
+-	V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE,
+-	V4L2_MBUS_FMT_RGB444_2X8_PADHI_BE,
+-	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
+-	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
+-	V4L2_MBUS_FMT_RGB565_2X8_LE,
+-	V4L2_MBUS_FMT_RGB565_2X8_BE,
+-	V4L2_MBUS_FMT_BGR565_2X8_LE,
+-	V4L2_MBUS_FMT_BGR565_2X8_BE,
+-	V4L2_MBUS_FMT_SBGGR8_1X8,
+-	V4L2_MBUS_FMT_SBGGR10_1X10,
+-	V4L2_MBUS_FMT_GREY8_1X8,
+-	V4L2_MBUS_FMT_Y10_1X10,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
+-	V4L2_MBUS_FMT_SGRBG8_1X8,
+-	V4L2_MBUS_FMT_SBGGR12_1X12,
+-	V4L2_MBUS_FMT_YUYV8_1_5X8,
+-	V4L2_MBUS_FMT_YVYU8_1_5X8,
+-	V4L2_MBUS_FMT_UYVY8_1_5X8,
+-	V4L2_MBUS_FMT_VYUY8_1_5X8,
+-};
+-
+-/**
+- * struct v4l2_mbus_framefmt - frame format on the media bus
+- * @width:	frame width
+- * @height:	frame height
+- * @code:	data format code
+- * @field:	used interlacing type
+- * @colorspace:	colorspace of the data
+- */
+-struct v4l2_mbus_framefmt {
+-	__u32				width;
+-	__u32				height;
+-	enum v4l2_mbus_pixelcode	code;
+-	enum v4l2_field			field;
+-	enum v4l2_colorspace		colorspace;
+-};
++#include <linux/v4l2-mediabus.h>
+ 
+ static inline void v4l2_fill_pix_format(struct v4l2_pix_format *pix_fmt,
+ 				const struct v4l2_mbus_framefmt *mbus_fmt)
+-- 
+1.7.2.2
 
