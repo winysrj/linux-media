@@ -1,65 +1,113 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:53810 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760007Ab0LNVN2 convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51318 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932261Ab0LTLiE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Dec 2010 16:13:28 -0500
-MIME-Version: 1.0
-In-Reply-To: <AANLkTi=ic4i+whV7-gtA7jvWJkPE+bizLdra6OMDf6Cp@mail.gmail.com>
-References: <20101212131550.GA2608@darkstar>
-	<AANLkTinaNjPjNbxE+OyRsY_jJxDW-pwehTPgyAWzqfzd@mail.gmail.com>
-	<20101214003024.GA3575@hanuman.home.ifup.org>
-	<AANLkTi=ic4i+whV7-gtA7jvWJkPE+bizLdra6OMDf6Cp@mail.gmail.com>
-Date: Tue, 14 Dec 2010 22:13:11 +0100
-Message-ID: <AANLkTimZ=cdu--GsVWotAir-2QpuXQQBg+7UtkVvKzO=@mail.gmail.com>
-Subject: Re: [PATCH] bttv: fix mutex use before init
-From: Torsten Kaiser <just.for.lkml@googlemail.com>
-To: Brandon Philips <brandon@ifup.org>
-Cc: Dave Young <hidave.darkstar@gmail.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Chris Clayton <chris2553@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Mon, 20 Dec 2010 06:38:04 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v4 5/7] ARM: OMAP3: Update Camera ISP definitions for OMAP3630
+Date: Mon, 20 Dec 2010 12:37:53 +0100
+Message-Id: <1292845075-7991-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1292845075-7991-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1292845075-7991-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Tue, Dec 14, 2010 at 9:56 PM, Torsten Kaiser
-<just.for.lkml@googlemail.com> wrote:
-> Using the card also still works, but I think I found out what was
-> causing sporadic shutdown problems with 37-rc kernels: When I try to
-> exit tvtime it gets stuck in an uninterruptible D state and can't be
-> killed. And that seems to mess up the shutdown.
->
-> But this happens independent with or without your patch and looks like
-> different problem.
->
-> SysRQ+W provided this stack trace, maybe someone seens an obvious bug...:
-> [  274.772528]  ffff8800dec69680 0000000000000086 ffffffff81089d73
-> ffff8800729d05a0
-> [  274.778599]  0000000000011480 ffff8800df923fd8 0000000000011480
-> ffff8800df922000
-> [  274.778599]  ffff8800df923fd8 0000000000011480 ffff8800dec69680
-> 0000000000011480
-> [  274.778599] Call Trace:
-> [  274.778599]  [<ffffffff81089d73>] ? free_pcppages_bulk+0x343/0x3b0
-> [  274.778599]  [<ffffffff8156d0e1>] ? __mutex_lock_slowpath+0xe1/0x160
-> [  274.778599]  [<ffffffff8156cd8a>] ? mutex_lock+0x1a/0x40
-> [  274.778599]  [<ffffffff8141ab7f>] ? free_btres_lock.clone.19+0x3f/0x100
-> [  274.778599]  [<ffffffff8141d311>] ? bttv_release+0x1c1/0x1e0
-> [  274.778599]  [<ffffffff813fe4ba>] ? v4l2_release+0x4a/0x70
-> [  274.778599]  [<ffffffff810c5291>] ? fput+0xe1/0x250
-> [  274.778599]  [<ffffffff810c1d59>] ? filp_close+0x59/0x80
-> [  274.778599]  [<ffffffff810c1e0b>] ? sys_close+0x8b/0xe0
-> [  274.778599]  [<ffffffff8100253b>] ? system_call_fastpath+0x16/0x1b
+From: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
 
-Hmm:bttv_release() does mutex_lock(&btv->lock), then calls into
-free_btres_lock(...) that also first does mutex_lock(&btv->lock);
+Add new/changed base address definitions and resources for
+OMAP3630 ISP.
 
-The calls to lock btv->lock in bttv_release() where added as part of
-the BKL removal, but I do not understand enough to fix this.
-Can this be dropped from bttv_release() completely, or would an
-unlocked version of free_btres_lock() be better?
+The OMAP3430 CSI2PHY block is same as the OMAP3630 CSIPHY2
+block. But the later name is chosen as it gives more symmetry
+to the names.
 
-Torsten
+Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
+Signed-off-by: Vimarsh Zutshi <vimarsh.zutshi@nokia.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/devices.c              |   28 ++++++++++++++++++++++++----
+ arch/arm/plat-omap/include/plat/omap34xx.h |   16 ++++++++++++----
+ 2 files changed, 36 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 5a0c148..d5da345 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -109,13 +109,33 @@ static struct resource omap3isp_resources[] = {
+ 		.flags		= IORESOURCE_MEM,
+ 	},
+ 	{
+-		.start		= OMAP3430_ISP_CSI2A_BASE,
+-		.end		= OMAP3430_ISP_CSI2A_END,
++		.start		= OMAP3430_ISP_CSI2A_REGS1_BASE,
++		.end		= OMAP3430_ISP_CSI2A_REGS1_END,
+ 		.flags		= IORESOURCE_MEM,
+ 	},
+ 	{
+-		.start		= OMAP3430_ISP_CSI2PHY_BASE,
+-		.end		= OMAP3430_ISP_CSI2PHY_END,
++		.start		= OMAP3430_ISP_CSIPHY2_BASE,
++		.end		= OMAP3430_ISP_CSIPHY2_END,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP3630_ISP_CSI2A_REGS2_BASE,
++		.end		= OMAP3630_ISP_CSI2A_REGS2_END,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP3630_ISP_CSI2C_REGS1_BASE,
++		.end		= OMAP3630_ISP_CSI2C_REGS1_END,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP3630_ISP_CSIPHY1_BASE,
++		.end		= OMAP3630_ISP_CSIPHY1_END,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP3630_ISP_CSI2C_REGS2_BASE,
++		.end		= OMAP3630_ISP_CSI2C_REGS2_END,
+ 		.flags		= IORESOURCE_MEM,
+ 	},
+ 	{
+diff --git a/arch/arm/plat-omap/include/plat/omap34xx.h b/arch/arm/plat-omap/include/plat/omap34xx.h
+index 98fc8b4..b9e8588 100644
+--- a/arch/arm/plat-omap/include/plat/omap34xx.h
++++ b/arch/arm/plat-omap/include/plat/omap34xx.h
+@@ -56,8 +56,12 @@
+ #define OMAP3430_ISP_RESZ_BASE		(OMAP3430_ISP_BASE + 0x1000)
+ #define OMAP3430_ISP_SBL_BASE		(OMAP3430_ISP_BASE + 0x1200)
+ #define OMAP3430_ISP_MMU_BASE		(OMAP3430_ISP_BASE + 0x1400)
+-#define OMAP3430_ISP_CSI2A_BASE		(OMAP3430_ISP_BASE + 0x1800)
+-#define OMAP3430_ISP_CSI2PHY_BASE	(OMAP3430_ISP_BASE + 0x1970)
++#define OMAP3430_ISP_CSI2A_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1800)
++#define OMAP3430_ISP_CSIPHY2_BASE	(OMAP3430_ISP_BASE + 0x1970)
++#define OMAP3630_ISP_CSI2A_REGS2_BASE	(OMAP3430_ISP_BASE + 0x19C0)
++#define OMAP3630_ISP_CSI2C_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1C00)
++#define OMAP3630_ISP_CSIPHY1_BASE	(OMAP3430_ISP_BASE + 0x1D70)
++#define OMAP3630_ISP_CSI2C_REGS2_BASE	(OMAP3430_ISP_BASE + 0x1DC0)
+ 
+ #define OMAP3430_ISP_END		(OMAP3430_ISP_BASE         + 0x06F)
+ #define OMAP3430_ISP_CBUFF_END		(OMAP3430_ISP_CBUFF_BASE   + 0x077)
+@@ -69,8 +73,12 @@
+ #define OMAP3430_ISP_RESZ_END		(OMAP3430_ISP_RESZ_BASE    + 0x0AB)
+ #define OMAP3430_ISP_SBL_END		(OMAP3430_ISP_SBL_BASE     + 0x0FB)
+ #define OMAP3430_ISP_MMU_END		(OMAP3430_ISP_MMU_BASE     + 0x06F)
+-#define OMAP3430_ISP_CSI2A_END		(OMAP3430_ISP_CSI2A_BASE   + 0x16F)
+-#define OMAP3430_ISP_CSI2PHY_END	(OMAP3430_ISP_CSI2PHY_BASE + 0x007)
++#define OMAP3430_ISP_CSI2A_REGS1_END	(OMAP3430_ISP_CSI2A_REGS1_BASE + 0x16F)
++#define OMAP3430_ISP_CSIPHY2_END	(OMAP3430_ISP_CSIPHY2_BASE + 0x00B)
++#define OMAP3630_ISP_CSI2A_REGS2_END	(OMAP3630_ISP_CSI2A_REGS2_BASE + 0x3F)
++#define OMAP3630_ISP_CSI2C_REGS1_END	(OMAP3630_ISP_CSI2C_REGS1_BASE + 0x16F)
++#define OMAP3630_ISP_CSIPHY1_END	(OMAP3630_ISP_CSIPHY1_BASE + 0x00B)
++#define OMAP3630_ISP_CSI2C_REGS2_END	(OMAP3630_ISP_CSI2C_REGS2_BASE + 0x3F)
+ 
+ #define OMAP34XX_HSUSB_OTG_BASE	(L4_34XX_BASE + 0xAB000)
+ #define OMAP34XX_USBTLL_BASE	(L4_34XX_BASE + 0x62000)
+-- 
+1.7.2.2
+
