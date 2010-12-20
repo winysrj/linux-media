@@ -1,70 +1,257 @@
 Return-path: <mchehab@gaivota>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:6221 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932434Ab0LSXHw (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51299 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757431Ab0LTLhe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Dec 2010 18:07:52 -0500
-Subject: [RESEND] [PATCH for 2.6.37 REGRESSION] cx25840: Prevent device
- probe failure due to volume control ERANGE error
-From: Andy Walls <awalls@md.metrocast.net>
+	Mon, 20 Dec 2010 06:37:34 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 19 Dec 2010 18:08:27 -0500
-Message-ID: <1292800107.3710.2.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v5 07/13] v4l: Create v4l2 subdev file handle structure
+Date: Mon, 20 Dec 2010 12:37:19 +0100
+Message-Id: <1292845045-7945-8-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1292845045-7945-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1292845045-7945-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-(Resending because Mauro reported losing some emails on IRC.)
+From: Stanimir Varbanov <svarbanov@mm-sol.com>
 
-This patch was created and tested against linux-next
-( git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git ),
-tag next-20101203, and fixes a regression that crept into 2.6.36.
+Used for storing subdev information per file handle and hold V4L2 file
+handle.
 
-The volume control scale in the cx25840 driver has an unusual mapping
-from register values to v4l2 volume control values.  Enforce the mapping
-limits, so that the default volume control setting does not fall out of
-bounds to prevent the cx25840 module device probe from failing.
-
-Signed-off-by: Andy Walls <awalls@md.metrocast.net>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
+Signed-off-by: Antti Koskipaa <antti.koskipaa@nokia.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/video/cx25840/cx25840-core.c |   19 +++++++++++++++++--
- 1 files changed, 17 insertions(+), 2 deletions(-)
+ drivers/media/Kconfig             |    9 ++++
+ drivers/media/video/v4l2-subdev.c |   85 +++++++++++++++++++++++++------------
+ include/media/v4l2-subdev.h       |   29 +++++++++++++
+ 3 files changed, 96 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/media/video/cx25840/cx25840-core.c b/drivers/media/video/cx25840/cx25840-core.c
-index dfb198d..f164618 100644
---- a/drivers/media/video/cx25840/cx25840-core.c
-+++ b/drivers/media/video/cx25840/cx25840-core.c
-@@ -1989,8 +1989,23 @@ static int cx25840_probe(struct i2c_client *client,
- 	v4l2_ctrl_new_std(&state->hdl, &cx25840_ctrl_ops,
- 			V4L2_CID_HUE, -128, 127, 1, 0);
- 	if (!is_cx2583x(state)) {
--		default_volume = 228 - cx25840_read(client, 0x8d4);
--		default_volume = ((default_volume / 2) + 23) << 9;
-+		default_volume = cx25840_read(client, 0x8d4);
-+		/*
-+		 * Enforce the legacy PVR-350/MSP3400 to PVR-150/CX25843 volume
-+		 * scale mapping limits to avoid -ERANGE errors when
-+		 * initializing the volume control
-+		 */
-+		if (default_volume > 228) {
-+			/* Bottom out at -96 dB, v4l2 vol range 0x2e00-0x2fff */
-+			default_volume = 228;
-+			cx25840_write(client, 0x8d4, 228);
-+		}
-+		else if (default_volume < 20) {
-+			/* Top out at + 8 dB, v4l2 vol range 0xfe00-0xffff */
-+			default_volume = 20;
-+			cx25840_write(client, 0x8d4, 20);
-+		}
-+		default_volume = (((228 - default_volume) >> 1) + 23) << 9;
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index 6b946e6..eaf4734 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -82,6 +82,15 @@ config VIDEO_V4L1_COMPAT
  
- 		state->volume = v4l2_ctrl_new_std(&state->hdl,
- 			&cx25840_audio_ctrl_ops, V4L2_CID_AUDIO_VOLUME,
-
+ 	  If you are unsure as to whether this is required, answer Y.
+ 
++config VIDEO_V4L2_SUBDEV_API
++	bool "V4L2 sub-device userspace API (EXPERIMENTAL)"
++	depends on VIDEO_DEV && MEDIA_CONTROLLER && EXPERIMENTAL
++	---help---
++	  Enables the V4L2 sub-device pad-level userspace API used to configure
++	  video format, size and frame rate between hardware blocks.
++
++	  This API is mostly used by camera interfaces in embedded platforms.
++
+ #
+ # DVB Core
+ #
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index 5e19136..d389b44 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -31,39 +31,69 @@
+ #include <media/v4l2-fh.h>
+ #include <media/v4l2-event.h>
+ 
++static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
++{
++#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
++	/* Allocate try format and crop in the same memory block */
++	fh->try_fmt = kzalloc((sizeof(*fh->try_fmt) + sizeof(*fh->try_crop))
++			      * sd->entity.num_pads, GFP_KERNEL);
++	if (fh->try_fmt == NULL)
++		return -ENOMEM;
++
++	fh->try_crop = (struct v4l2_rect *)
++		(fh->try_fmt + sd->entity.num_pads);
++#endif
++	return 0;
++}
++
++static void subdev_fh_free(struct v4l2_subdev_fh *fh)
++{
++#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
++	kfree(fh->try_fmt);
++	fh->try_fmt = NULL;
++	fh->try_crop = NULL;
++#endif
++}
++
+ static int subdev_open(struct file *file)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
++	struct v4l2_subdev_fh *subdev_fh;
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	struct media_entity *entity;
+ #endif
+-	struct v4l2_fh *vfh = NULL;
+ 	int ret;
+ 
+ 	if (!sd->initialized)
+ 		return -EAGAIN;
+ 
+-	if (sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS) {
+-		vfh = kzalloc(sizeof(*vfh), GFP_KERNEL);
+-		if (vfh == NULL)
+-			return -ENOMEM;
++	subdev_fh = kzalloc(sizeof(*subdev_fh), GFP_KERNEL);
++	if (subdev_fh == NULL)
++		return -ENOMEM;
+ 
+-		ret = v4l2_fh_init(vfh, vdev);
+-		if (ret)
+-			goto err;
++	ret = subdev_fh_init(subdev_fh, sd);
++	if (ret) {
++		kfree(subdev_fh);
++		return ret;
++	}
++
++	ret = v4l2_fh_init(&subdev_fh->vfh, vdev);
++	if (ret)
++		goto err;
+ 
+-		ret = v4l2_event_init(vfh);
++	if (sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS) {
++		ret = v4l2_event_init(&subdev_fh->vfh);
+ 		if (ret)
+ 			goto err;
+ 
+-		ret = v4l2_event_alloc(vfh, sd->nevents);
++		ret = v4l2_event_alloc(&subdev_fh->vfh, sd->nevents);
+ 		if (ret)
+ 			goto err;
+-
+-		v4l2_fh_add(vfh);
+-		file->private_data = vfh;
+ 	}
++
++	v4l2_fh_add(&subdev_fh->vfh);
++	file->private_data = &subdev_fh->vfh;
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	if (sd->v4l2_dev->mdev) {
+ 		entity = media_entity_get(&sd->entity);
+@@ -73,14 +103,14 @@ static int subdev_open(struct file *file)
+ 		}
+ 	}
+ #endif
++
+ 	return 0;
+ 
+ err:
+-	if (vfh != NULL) {
+-		v4l2_fh_del(vfh);
+-		v4l2_fh_exit(vfh);
+-		kfree(vfh);
+-	}
++	v4l2_fh_del(&subdev_fh->vfh);
++	v4l2_fh_exit(&subdev_fh->vfh);
++	subdev_fh_free(subdev_fh);
++	kfree(subdev_fh);
+ 
+ 	return ret;
+ }
+@@ -92,16 +122,17 @@ static int subdev_close(struct file *file)
+ 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
+ #endif
+ 	struct v4l2_fh *vfh = file->private_data;
++	struct v4l2_subdev_fh *subdev_fh = to_v4l2_subdev_fh(vfh);
+ 
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	if (sd->v4l2_dev->mdev)
+ 		media_entity_put(&sd->entity);
+ #endif
+-	if (vfh != NULL) {
+-		v4l2_fh_del(vfh);
+-		v4l2_fh_exit(vfh);
+-		kfree(vfh);
+-	}
++	v4l2_fh_del(vfh);
++	v4l2_fh_exit(vfh);
++	subdev_fh_free(subdev_fh);
++	kfree(subdev_fh);
++	file->private_data = NULL;
+ 
+ 	return 0;
+ }
+@@ -110,7 +141,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
+-	struct v4l2_fh *fh = file->private_data;
++	struct v4l2_fh *vfh = file->private_data;
+ 
+ 	switch (cmd) {
+ 	case VIDIOC_QUERYCTRL:
+@@ -138,13 +169,13 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS))
+ 			return -ENOIOCTLCMD;
+ 
+-		return v4l2_event_dequeue(fh, arg, file->f_flags & O_NONBLOCK);
++		return v4l2_event_dequeue(vfh, arg, file->f_flags & O_NONBLOCK);
+ 
+ 	case VIDIOC_SUBSCRIBE_EVENT:
+-		return v4l2_subdev_call(sd, core, subscribe_event, fh, arg);
++		return v4l2_subdev_call(sd, core, subscribe_event, vfh, arg);
+ 
+ 	case VIDIOC_UNSUBSCRIBE_EVENT:
+-		return v4l2_subdev_call(sd, core, unsubscribe_event, fh, arg);
++		return v4l2_subdev_call(sd, core, unsubscribe_event, vfh, arg);
+ 
+ 	default:
+ 		return -ENOIOCTLCMD;
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 7d55b0c..f8704ff 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -24,6 +24,7 @@
+ #include <media/media-entity.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-dev.h>
++#include <media/v4l2-fh.h>
+ #include <media/v4l2-mediabus.h>
+ 
+ /* generic v4l2_device notify callback notification values */
+@@ -467,6 +468,34 @@ struct v4l2_subdev {
+ #define vdev_to_v4l2_subdev(vdev) \
+ 	container_of(vdev, struct v4l2_subdev, devnode)
+ 
++/*
++ * Used for storing subdev information per file handle
++ */
++struct v4l2_subdev_fh {
++	struct v4l2_fh vfh;
++#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
++	struct v4l2_mbus_framefmt *try_fmt;
++	struct v4l2_rect *try_crop;
++#endif
++};
++
++#define to_v4l2_subdev_fh(fh)	\
++	container_of(fh, struct v4l2_subdev_fh, vfh)
++
++#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
++static inline struct v4l2_mbus_framefmt *
++v4l2_subdev_get_try_format(struct v4l2_subdev_fh *fh, unsigned int pad)
++{
++	return &fh->try_fmt[pad];
++}
++
++static inline struct v4l2_rect *
++v4l2_subdev_get_try_crop(struct v4l2_subdev_fh *fh, unsigned int pad)
++{
++	return &fh->try_crop[pad];
++}
++#endif
++
+ extern const struct v4l2_file_operations v4l2_subdev_fops;
+ 
+ static inline void v4l2_set_subdevdata(struct v4l2_subdev *sd, void *p)
+-- 
+1.7.2.2
 
