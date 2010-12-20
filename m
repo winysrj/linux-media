@@ -1,71 +1,115 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:60854 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753281Ab0LWOm6 convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34478 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756849Ab0LTLgE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Dec 2010 09:42:58 -0500
-MIME-Version: 1.0
-In-Reply-To: <20101223141608.GM3636@n2100.arm.linux.org.uk>
-References: <cover.1292443200.git.m.nazarewicz@samsung.com>
-	<AANLkTim8_=0+-zM5z4j0gBaw3PF3zgpXQNetEn-CfUGb@mail.gmail.com>
-	<20101223100642.GD3636@n2100.arm.linux.org.uk>
-	<00ea01cba290$4d67f500$e837df00$%szyprowski@samsung.com>
-	<20101223121917.GG3636@n2100.arm.linux.org.uk>
-	<4D135004.3070904@samsung.com>
-	<20101223134838.GK3636@n2100.arm.linux.org.uk>
-	<4D1356D7.2000008@samsung.com>
-	<20101223141608.GM3636@n2100.arm.linux.org.uk>
-Date: Thu, 23 Dec 2010 16:42:57 +0200
-Message-ID: <AANLkTinzsOom5awOr6Y8e7PKRbCWYQOqEbdw9is6HroR@mail.gmail.com>
-Subject: Re: [PATCHv8 00/12] Contiguous Memory Allocator
-From: Felipe Contreras <felipe.contreras@gmail.com>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tomasz Fujak <t.fujak@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Kyungmin Park <kmpark@infradead.org>,
-	Mel Gorman <mel@csn.ul.ie>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Michal Nazarewicz <mina86@mina86.com>,
-	linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-	linux-arm-kernel@lists.infradead.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-media@vger.kernel.org,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
-	Ankita Garg <ankita@in.ibm.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Mon, 20 Dec 2010 06:36:04 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v5 5/7] v4l: subdev: Uninline the v4l2_subdev_init function
+Date: Mon, 20 Dec 2010 12:35:54 +0100
+Message-Id: <1292844956-7853-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1292844956-7853-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1292844956-7853-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Thu, Dec 23, 2010 at 4:16 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Thu, Dec 23, 2010 at 03:04:07PM +0100, Tomasz Fujak wrote:
->> In other words, should we take your response as yet another NAK?
->> Or would you try harder and at least point us to some direction that
->> would not doom the effort from the very beginning.
->
-> What the fsck do you think I've been doing?  This is NOT THE FIRST time
-> I've raised this issue.  I gave up raising it after the first couple
-> of attempts because I wasn't being listened to.
->
-> You say about _me_ not being very helpful.  How about the CMA proponents
-> start taking the issue I've raised seriously, and try to work out how
-> to solve it?  And how about blaming them for the months of wasted time
-> on this issue _because_ _they_ have chosen to ignore it?
+The function isn't small or performance sensitive enough to be inlined.
 
-I've also raised the issue for ARM. However, I don't see what is the
-big problem.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/v4l2-subdev.c |   42 +++++++++++++++++++++++++-----------
+ include/media/v4l2-subdev.h       |   16 +------------
+ 2 files changed, 31 insertions(+), 27 deletions(-)
 
-A generic solution (that I think I already proposed) would be to
-reserve a chunk of memory for the CMA that can be removed from the
-normally mapped kernel memory through memblock at boot time. The size
-of this memory region would be configurable through kconfig. Then, the
-CMA would have a "dma" flag or something, and take chunks out of it
-until there's no more, and then return errors. That would work for
-ARM.
-
-Cheers.
-
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index 00bd4b1..0deff78 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -1,22 +1,23 @@
+ /*
+- *  V4L2 subdevice support.
++ * V4L2 sub-device
+  *
+- *  Copyright (C) 2010 Nokia Corporation
++ * Copyright (C) 2010 Nokia Corporation
+  *
+- *  Contact: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
++ * Contact: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
++ *	    Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+  *
+- *  This program is free software; you can redistribute it and/or modify
+- *  it under the terms of the GNU General Public License as published by
+- *  the Free Software Foundation.
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
+  *
+- *  This program is distributed in the hope that it will be useful,
+- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- *  GNU General Public License for more details.
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
+  *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  */
+ 
+ #include <linux/types.h>
+@@ -64,3 +65,18 @@ const struct v4l2_file_operations v4l2_subdev_fops = {
+ 	.unlocked_ioctl = subdev_ioctl,
+ 	.release = subdev_close,
+ };
++
++void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
++{
++	INIT_LIST_HEAD(&sd->list);
++	BUG_ON(!ops);
++	sd->ops = ops;
++	sd->v4l2_dev = NULL;
++	sd->flags = 0;
++	sd->name[0] = '\0';
++	sd->grp_id = 0;
++	sd->dev_priv = NULL;
++	sd->host_priv = NULL;
++	sd->initialized = 1;
++}
++EXPORT_SYMBOL(v4l2_subdev_init);
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index de181db..90022f5 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -473,20 +473,8 @@ static inline void *v4l2_get_subdev_hostdata(const struct v4l2_subdev *sd)
+ 	return sd->host_priv;
+ }
+ 
+-static inline void v4l2_subdev_init(struct v4l2_subdev *sd,
+-					const struct v4l2_subdev_ops *ops)
+-{
+-	INIT_LIST_HEAD(&sd->list);
+-	BUG_ON(!ops);
+-	sd->ops = ops;
+-	sd->v4l2_dev = NULL;
+-	sd->flags = 0;
+-	sd->name[0] = '\0';
+-	sd->grp_id = 0;
+-	sd->dev_priv = NULL;
+-	sd->host_priv = NULL;
+-	sd->initialized = 1;
+-}
++void v4l2_subdev_init(struct v4l2_subdev *sd,
++		      const struct v4l2_subdev_ops *ops);
+ 
+ /* Call an ops of a v4l2_subdev, doing the right checks against
+    NULL pointers.
 -- 
-Felipe Contreras
+1.7.2.2
+
