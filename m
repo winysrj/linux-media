@@ -1,75 +1,279 @@
 Return-path: <mchehab@gaivota>
-Received: from fmmailgate04.web.de ([217.72.192.242]:47104 "EHLO
-	fmmailgate04.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754123Ab0L3An7 convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51282 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757287Ab0LTLhC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Dec 2010 19:43:59 -0500
-From: devzero@web.de
-To: "Randy Dunlap" <rdunlap@xenotime.net>
-Cc: linux-media@vger.kernel.org
-Message-ID: <203751429.3829655.1293669837835.JavaMail.fmail@mwmweb063>
-In-Reply-To: <511456980.3809534.1293660988971.JavaMail.fmail@mwmweb063>
-References: <951502855.3794233.1293658070094.JavaMail.fmail@mwmweb063>,
- <20101229133442.53849184.rdunlap@xenotime.net>,
- <511456980.3809534.1293660988971.JavaMail.fmail@mwmweb063>
-Subject: Re: bug? oops with mem2mem_testdev module
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Date: Thu, 30 Dec 2010 01:43:57 +0100 (CET)
+	Mon, 20 Dec 2010 06:37:02 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Cc: broonie@opensource.wolfsonmicro.com, clemens@ladisch.de,
+	gregkh@suse.de, sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v7 12/12] v4l: Make v4l2_subdev inherit from media_entity
+Date: Mon, 20 Dec 2010 12:36:35 +0100
+Message-Id: <1292844995-7900-13-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1292844995-7900-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1292844995-7900-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
->sorry, that must be the f....n webmailer.
-apparently, it seems related to IE8.... sadly, i have no linux desktop where i`m at for the moment ....
+V4L2 subdevices are media entities. As such they need to inherit from
+(include) the media_entity structure.
 
-so, i added my findings to bugzilla - except the mem2mem one, as this got a response and the cause seems to be already known.....
+When registering/unregistering the subdevice, the media entity is
+automatically registered/unregistered. The entity is acquired on device
+open and released on device close.
 
-here they are for reference:
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ Documentation/video4linux/v4l2-framework.txt |   23 ++++++++++++++
+ drivers/media/video/v4l2-device.c            |   39 ++++++++++++++++++++----
+ drivers/media/video/v4l2-subdev.c            |   41 ++++++++++++++++++++++++-
+ include/media/v4l2-subdev.h                  |   10 ++++++
+ 4 files changed, 104 insertions(+), 9 deletions(-)
 
-system freeze when loading g_webcam gadget driver -> https://bugzilla.kernel.org/show_bug.cgi?id=25892
-g_printer oops on module unload  -> https://bugzilla.kernel.org/show_bug.cgi?id=25882 
-spi_butterfly oops -> https://bugzilla.kernel.org/show_bug.cgi?id=25872
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index f231bc20..d0fb880 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -268,6 +268,26 @@ A sub-device driver initializes the v4l2_subdev struct using:
+ Afterwards you need to initialize subdev->name with a unique name and set the
+ module owner. This is done for you if you use the i2c helper functions.
+ 
++If integration with the media framework is needed, you must initialize the
++media_entity struct embedded in the v4l2_subdev struct (entity field) by
++calling media_entity_init():
++
++	struct media_pad *pads = &my_sd->pads;
++	int err;
++
++	err = media_entity_init(&sd->entity, npads, pads, 0);
++
++The pads array must have been previously initialized. There is no need to
++manually set the struct media_entity type and name fields, but the revision
++field must be initialized if needed.
++
++A reference to the entity will be automatically acquired/released when the
++subdev device node (if any) is opened/closed.
++
++Don't forget to cleanup the media entity before the sub-device is destroyed:
++
++	media_entity_cleanup(&sd->entity);
++
+ A device (bridge) driver needs to register the v4l2_subdev with the
+ v4l2_device:
+ 
+@@ -277,6 +297,9 @@ This can fail if the subdev module disappeared before it could be registered.
+ After this function was called successfully the subdev->dev field points to
+ the v4l2_device.
+ 
++If the v4l2_device parent device has a non-NULL mdev field, the sub-device
++entity will be automatically registered with the media device.
++
+ You can unregister a sub-device using:
+ 
+ 	v4l2_device_unregister_subdev(sd);
+diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
+index 8447466..7ac4d0f 100644
+--- a/drivers/media/video/v4l2-device.c
++++ b/drivers/media/video/v4l2-device.c
+@@ -115,8 +115,11 @@ void v4l2_device_unregister(struct v4l2_device *v4l2_dev)
+ EXPORT_SYMBOL_GPL(v4l2_device_unregister);
+ 
+ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+-						struct v4l2_subdev *sd)
++				struct v4l2_subdev *sd)
+ {
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_entity *entity = &sd->entity;
++#endif
+ 	struct video_device *vdev;
+ 	int err;
+ 
+@@ -134,7 +137,16 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ 	err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd->ctrl_handler);
+ 	if (err)
+ 		return err;
+-
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	/* Register the entity. */
++	if (v4l2_dev->mdev) {
++		err = media_device_register_entity(v4l2_dev->mdev, entity);
++		if (err < 0) {
++			module_put(sd->owner);
++			return err;
++		}
++	}
++#endif
+ 	sd->v4l2_dev = v4l2_dev;
+ 	spin_lock(&v4l2_dev->lock);
+ 	list_add_tail(&sd->list, &v4l2_dev->subdevs);
+@@ -149,26 +161,39 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ 	if (sd->flags & V4L2_SUBDEV_FL_HAS_DEVNODE) {
+ 		err = __video_register_device(vdev, VFL_TYPE_SUBDEV, -1, 1,
+ 					      sd->owner);
+-		if (err < 0)
++		if (err < 0) {
+ 			v4l2_device_unregister_subdev(sd);
++			return err;
++		}
+ 	}
+-
+-	return err;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	entity->v4l.major = VIDEO_MAJOR;
++	entity->v4l.minor = vdev->minor;
++#endif
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
+ 
+ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
+ {
++	struct v4l2_device *v4l2_dev;
++
+ 	/* return if it isn't registered */
+ 	if (sd == NULL || sd->v4l2_dev == NULL)
+ 		return;
+ 
+-	spin_lock(&sd->v4l2_dev->lock);
++	v4l2_dev = sd->v4l2_dev;
++
++	spin_lock(&v4l2_dev->lock);
+ 	list_del(&sd->list);
+-	spin_unlock(&sd->v4l2_dev->lock);
++	spin_unlock(&v4l2_dev->lock);
+ 	sd->v4l2_dev = NULL;
+ 
+ 	module_put(sd->owner);
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	if (v4l2_dev->mdev)
++		media_device_unregister_entity(&sd->entity);
++#endif
+ 	video_unregister_device(&sd->devnode);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_unregister_subdev);
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index fbccefd..5e19136 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -35,7 +35,10 @@ static int subdev_open(struct file *file)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
+-	struct v4l2_fh *vfh;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_entity *entity;
++#endif
++	struct v4l2_fh *vfh = NULL;
+ 	int ret;
+ 
+ 	if (!sd->initialized)
+@@ -61,11 +64,20 @@ static int subdev_open(struct file *file)
+ 		v4l2_fh_add(vfh);
+ 		file->private_data = vfh;
+ 	}
+-
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	if (sd->v4l2_dev->mdev) {
++		entity = media_entity_get(&sd->entity);
++		if (!entity) {
++			ret = -EBUSY;
++			goto err;
++		}
++	}
++#endif
+ 	return 0;
+ 
+ err:
+ 	if (vfh != NULL) {
++		v4l2_fh_del(vfh);
+ 		v4l2_fh_exit(vfh);
+ 		kfree(vfh);
+ 	}
+@@ -75,8 +87,16 @@ err:
+ 
+ static int subdev_close(struct file *file)
+ {
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct video_device *vdev = video_devdata(file);
++	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
++#endif
+ 	struct v4l2_fh *vfh = file->private_data;
+ 
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	if (sd->v4l2_dev->mdev)
++		media_entity_put(&sd->entity);
++#endif
+ 	if (vfh != NULL) {
+ 		v4l2_fh_del(vfh);
+ 		v4l2_fh_exit(vfh);
+@@ -176,5 +196,22 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+ 	sd->dev_priv = NULL;
+ 	sd->host_priv = NULL;
+ 	sd->initialized = 1;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	sd->entity.name = sd->name;
++	sd->entity.type = MEDIA_ENTITY_TYPE_V4L2_SUBDEV;
++#endif
+ }
+ EXPORT_SYMBOL(v4l2_subdev_init);
++
++#if defined(CONFIG_MEDIA_CONTROLLER)
++int v4l2_subdev_set_power(struct media_entity *entity, int power)
++{
++	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
++
++	dev_dbg(entity->parent->dev,
++		"%s power%s\n", entity->name, power ? "on" : "off");
++
++	return v4l2_subdev_call(sd, core, s_power, power);
++}
++EXPORT_SYMBOL_GPL(v4l2_subdev_set_power);
++#endif
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 68cbe48..7d55b0c 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -21,6 +21,7 @@
+ #ifndef _V4L2_SUBDEV_H
+ #define _V4L2_SUBDEV_H
+ 
++#include <media/media-entity.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-mediabus.h>
+@@ -437,6 +438,9 @@ struct v4l2_subdev_ops {
+    stand-alone or embedded in a larger struct.
+  */
+ struct v4l2_subdev {
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_entity entity;
++#endif
+ 	struct list_head list;
+ 	struct module *owner;
+ 	u32 flags;
+@@ -458,6 +462,8 @@ struct v4l2_subdev {
+ 	unsigned int nevents;
+ };
+ 
++#define media_entity_to_v4l2_subdev(ent) \
++	container_of(ent, struct v4l2_subdev, entity)
+ #define vdev_to_v4l2_subdev(vdev) \
+ 	container_of(vdev, struct v4l2_subdev, devnode)
+ 
+@@ -486,6 +492,10 @@ static inline void *v4l2_get_subdev_hostdata(const struct v4l2_subdev *sd)
+ void v4l2_subdev_init(struct v4l2_subdev *sd,
+ 		      const struct v4l2_subdev_ops *ops);
+ 
++#if defined(CONFIG_MEDIA_CONTROLLER)
++int v4l2_subdev_set_power(struct media_entity *entity, int power);
++#endif
++
+ /* Call an ops of a v4l2_subdev, doing the right checks against
+    NULL pointers.
+ 
+-- 
+1.7.2.2
 
-regards
-roland
-
->i chose "text mail" and did nothing but copy/paste from putty....
->rather curious.....will repost
->
->p.osciak@samsung.com (from modinfo) is bouncing, btw.
->
->-----Ursprüngliche Nachricht-----
->Von: "Randy Dunlap"  
->Gesendet: 29.12.2010 22:34:42
->An: "Roland Kletzing"  
->Betreff: Re: bug? oops with mem2mem_testdev module
->
->>On Wed, 29 Dec 2010 22:27:50 +0100 (CET) Roland Kletzing wrote:
->>
->>> Hello, 
->>> 
->>> i assume this is not expected behaviour.
->>> see below
->>> kernel is 2.6.37-rc7
->>> 
->>> regards
->>> roland
->>> 
->>> 
->>> [root@ubuntu]:~# modprobe mem2mem_testdev;modprobe -r mem2mem_testdev;modprobe mem2mem_testdevKilled
->>> 
->>> [ 80.266552] m2m-testdev m2m-testdev.0: mem2mem-testdevDevice registered as /dev/video0[ 80.292786] m2m-testdev m2m-testdev.0: Removing mem2mem-testdev[ 80.323013] BUG: unable to handle kernel paging request at 7562696c[ 80.323685] IP: [ ] __kmalloc_track_caller+0x95/0x1c0[ 80.324094] *pde = 00000000[ 80.324094] Oops: 0000 [#1] SMP[ 80.324094] last sysfs file: /sys/module/videobuf_vmalloc/refcnt[ 80.324094] Modules linked in: videobuf_core snd_ens1371 gameport snd_rawmidi snd_seq_device snd_ac97_codec ac97_bus snd_pcm snd_timer snd psmouse soundcore snd_page_alloc intel_agp lp ppdev serio_raw parport_pc intel_gtt shpchp vmw_balloon agpgart i2c_piix4 parport pcnet32 mptspi mptscsih floppy mii mptbase scsi_transport_spi [last unloaded: videobuf_vmalloc][ 80.324094][ 80.324094] Pid: 731, comm: modprobe Not tainted 2.6.37-rc7 #3 440BX Desktop Reference Platform/VMware Virtual Platform[ 80.324094] EIP: 0060:[ ] EFLAGS: 00010006 CPU: 0[ 80.324094] EIP is at __kmalloc_track_caller+0x95/0x1c0[ 80.324094] EAX: df406ff8 EBX: 0000013c ECX: 7562696c EDX: 00000000[ 80.324094] ESI: df002500 EDI: 000000d0 EBP: de771e70 ESP: de771e44[ 80.324094] DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068[ 80.324094] Process modprobe (pid: 731, ti=de770000 task=de4d5860 task.ti=de770000)[ 80.324094] Stack:[ 80.324094] ffffffff 00000757 00000000 c04f5d4e de4220c4 c035ef4b 00000246 7562696c[ 80.324094] de50a9c0 000000d0 000000ab de771e90 c04f5d78 df002180 00000000 00000080[ 80.324094] 00000020 df0007b0 de422000 de771ee0 c035ef4b ffffffff c0755692 00000757[ 80.324094] Call Trace:[ 80.324094] [ ] ? __alloc_skb+0x2e/0x100[ 80.324094] [ ] ? kobject_uevent_env+0x29b/0x430[ 80.324094] [ ] ? __alloc_skb+0x58/0x100[ 80.324094] [ ] ? kobject_uevent_env+0x29b/0x430[ 80.324094] [ ] ? kobject_uevent+0xa/0x10[ 80.324094] [ ] ? kobject_release+0x74/0x80[ 80.324094] [ ] ? kobject_release+0x0/0x80[ 80.324094] [ ] ? kref_put+0x2d/0x60[ 80.324094] [ ] ? kobject_put+0x1d/0x50[ 80.324094] [ ] ? free_sect_attrs+0x32/0x40[ 80.324094] [ ] ? free_module+0x143/0x1c0[ 80.324094] [ ] ? sys_delete_module+0x16e/0x200[ 80.324094] [ ] ? sysenter_do_call+0x12/0x28[ 80.324094] Code: 9c 58 8d 44 20 00 89 45 ec fa 8d 44 20 00 90 8b 06 64 03 05 94 80 8c c0 8b 10 85 d2 89 55 f0 0f 84 0b 01 00 00 8b 56 10 8b 4d f0   14 11 89 10 8b 45 ec 50 9d 8d 44 20 00 8b 55 f0 85 d2 75 46[ 80.324094] EIP: [ ] __kmalloc_track_caller+0x95/0x1c0 SS:ESP 0068:de771e44[ 80.324094] CR2: 000000007562696c[ 80.324094] ---[ end trace 1c390fe96c782b4a ]---[ 80.336810] BUG: unable to handle kernel paging request at 7562696c[ 80.337045] IP: [ ] kmem_cache_alloc_notrace+0x52/0xa0[ 80.337207] *pde = 00000000[ 80.337323] Oops: 0000 [#2] SMP[ 80.337454] last sysfs file: /sys/module/videobuf_vmalloc/refcnt[ 80.337596] Modules linked in: videobuf_core snd_ens1371 gameport snd_rawmidi snd_seq_device snd_ac97_codec ac97_bus snd_pcm snd_timer snd psmouse soundcore snd_page_alloc intel_agp lp ppdev serio_raw parport_pc intel_gtt shpchp vmw_balloon agpgart i2c_piix4 parport pcnet32 mptspi mptscsih floppy mii mptbase scsi_transport_spi [last unloaded: videobuf_vmalloc][ 80.338648][ 80.338812] Pid: 706, comm: bash Tainted: G D 2.6.37-rc7 #3 440BX Desktop Reference Platform/VMware Virtual Platform[ 80.339076] EIP: 0060:[ ] EFLAGS: 00010006 CPU: 0[ 80.339208] EIP is at kmem_cache_alloc_notrace+0x52/0xa0[ 80.339336] EAX: df406ff8 EBX: 7562696c ECX: c02258bc EDX: 00000000[ 80.339473] ESI: df002500 EDI: 000080d0 EBP: de51ff18 ESP: de51ff00[ 80.339611] DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068[ 80.339739] Process bash (pid: 706, ti=de51e000 task=de4d25e0 task.ti=de51e000)[ 80.339957] Stack:[ 80.340056] 0871c3c8 c02258bc 00000246 cbe22c40 df002500 de106bd0 de51ff38 c02258bc[ 80.340072] 00000040 000080d0 de51ff38 de106bd0 00000000 0871c3c8 de51ff60 c0225990[ 80.340072] 00000000 00000000 c072e378 cbf5f8f4 de51ffb4 ffffffea 00000000 0871c3c8[ 80.340072] Call Trace:[ 80.340072] [ ] ? alloc_pipe_info+0x6c/0xf0[ 80.340072] [ ] ? alloc_pipe_info+0x6c/0xf0[ 80.340072] [ ] ? create_write_pipe+0x50/0x190[ 80.340072] [ ] ? do_pipe_flags+0x3f/0x110[ 80.340072] [ ] ? sys_pipe2+0x1e/0x60[ 80.340072] [ ] ? sys_rt_sigprocmask+0x99/0xf0[ 80.340072] [ ] ? sys_pipe+0x1e/0x20[ 80.340072] [ ] ? sysenter_do_call+0x12/0x28[ 80.340072] Code: 4d ec e8 12 43 3c 00 8b 4d ec 9c 58 8d 44 20 00 89 45 f0 fa 8d 44 20 00 90 8b 06 64 03 05 94 80 8c c0 8b 18 85 db 74 3c 8b 56 10   14 13 89 10 8b 45 f0 50 9d 8d 44 20 00 85 db 75 14 89 d8 8b[ 80.340072] EIP: [ ] kmem_cache_alloc_notrace+0x52/0xa0 SS:ESP 0068:de51ff00[ 80.340072] CR2: 000000007562696c[ 80.340072] ---[ end trace 1c390fe96c782b4b ]---
->>
->>
->>Ugh, what happened to all of the CRs and/or LFs?
->>
->>This (and the others that you have posted today) is very unreadable/unusable.
->>
->>---
->>~Randy
->>*** Remember to use Documentation/SubmitChecklist when testing your code ***
->>desserts:  http://www.xenotime.net/linux/recipes/
-___________________________________________________________
-Empfehlen Sie WEB.DE DSL Ihren Freunden und Bekannten und wir
-belohnen Sie mit bis zu 100,- Euro! https://freundschaftswerbung.web.de
