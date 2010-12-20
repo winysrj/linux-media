@@ -1,163 +1,87 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-fx0-f43.google.com ([209.85.161.43]:48681 "EHLO
-	mail-fx0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753363Ab0LTGji convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60104 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757277Ab0LTMtG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Dec 2010 01:39:38 -0500
-Received: by fxm18 with SMTP id 18so2667163fxm.2
-        for <linux-media@vger.kernel.org>; Sun, 19 Dec 2010 22:39:37 -0800 (PST)
+	Mon, 20 Dec 2010 07:49:06 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [GIT PULL FOR 2.6.37] uvcvideo: BKL removal
+Date: Mon, 20 Dec 2010 13:48:51 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+References: <201011291115.11061.laurent.pinchart@ideasonboard.com> <201012201335.29747.laurent.pinchart@ideasonboard.com> <201012201345.45284.hverkuil@xs4all.nl>
+In-Reply-To: <201012201345.45284.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <alpine.LNX.2.00.1012191716210.24101@banach.math.auburn.edu>
-References: <30370.90722.qm@web84204.mail.re3.yahoo.com>
-	<4D034D67.1050806@redhat.com>
-	<alpine.LNX.2.00.1012141235210.18793@banach.math.auburn.edu>
-	<4D07D977.8010801@redhat.com>
-	<alpine.LNX.2.00.1012151324190.19893@banach.math.auburn.edu>
-	<4D091B75.6090003@redhat.com>
-	<alpine.LNX.2.00.1012191716210.24101@banach.math.auburn.edu>
-Date: Mon, 20 Dec 2010 01:39:34 -0500
-Message-ID: <AANLkTinjtT4Ki1=+-04GbEkw4e8+W7F=aC0c4xpv3Qqc@mail.gmail.com>
-Subject: Re: problems with using the -rc kernel in the git tree
-From: Alex Deucher <alexdeucher@gmail.com>
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201012201348.51845.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Sun, Dec 19, 2010 at 6:56 PM, Theodore Kilgore
-<kilgota@banach.math.auburn.edu> wrote:
->
-> Hans,
->
-> Thanks for the helpful advice about how to set up a git tree for current
-> development so that I can get back into things.
->
-> However, there is a problem with that -rc kernel, at least as far as my
-> hardware is concerned. So if I am supposed to use it to work on camera
-> stuff there is an obstacle.
->
-> I started by copying my .config file over to the tree, and then running
-> make oldconfig (as you said and as I would have done anyway).
->
-> The problem seems to be centered right here (couple of lines
-> from .config follow)
->
-> CONFIG_DRM_RADEON=m
-> # CONFIG_DRM_RADEON_KMS is not set
->
-> I have a Radeon video card, obviously. Specifically, it is (extract from X
-> config file follows)
->
-> # Device configured by xorgconfig:
->
-> Section "Device"
->    Identifier  "ATI Radeon HD 3200"
->    Driver      "radeon"
->
-> Now, what happens is that with the kernel configuration (see above) I
-> cannot start X in the -rc kernel. I get bumped out with an error
-> message (details below) whereas that _was_ my previous configuration
-> setting.
->
-> But if in the config for the -rc kernel I change the second line by
-> turning on CONFIG_DRM_RADEON_KMS the situation is even worse. Namely, the
-> video cuts off during the boot process, with the monitor going blank and
-> flashing up a message that it lost signal. After that the only thing to do
-> is a hard reset, which strangely does not result in any check for a dirty
-> file system, showing that things _really_ got screwed. These problems wit
-> the video cutting off at boot are with booting into the _terminal_, BTW. I
-> do not and never have made a practice of booting into X. I start X from
-> the command line after boot. Thus, the video cutting off during boot has
-> nothing to do with X at all, AFAICT.
->
-> So as I said there are two alternatives, both of them quite unpleasant.
->
-> Here is what the crash message is on the screen from the attempt to start
-> up X, followed by what seem to be the relevant lines from the log file,
-> with slightly more detail.
->
-> Markers: (--) probed, (**) from config file, (==) default setting,
->        (++) from command line, (!!) notice, (II) informational,
->        (WW) warning, (EE) error, (NI) not implemented, (??) unknown.
-> (==) Log file: "/var/log/Xorg.0.log", Time: Sun Dec 19 14:32:12 2010
-> (==) Using config file: "/etc/X11/xorg.conf"
-> (==) Using system config directory "/usr/share/X11/xorg.conf.d"
-> (II) [KMS] drm report modesetting isn't supported.
-> (EE) RADEON(0): Unable to map MMIO aperture. Invalid argument (22)
-> (EE) RADEON(0): Memory map the MMIO region failed
-> (EE) Screen(s) found, but none have a usable configuration.
->
-> Fatal server error:
-> no screens found
->
-> Please consult the The X.Org Foundation support
->         at http://wiki.x.org
->  for help.
-> Please also check the log file at "/var/log/Xorg.0.log" for additional
-> information.
->
-> xinit: giving up
-> xinit: unable to connect to X server: Connection refused
-> xinit: server error
-> xinit: unable to connect to X server: Connection refused
-> xinit: server error
-> kilgota@khayyam:~$
->
-> And the following, too, from the log file, which perhaps contains one or
-> two
-> more details:
->
-> [    48.050] (--) using VT number 7
->
-> [    48.052] (II) [KMS] drm report modesetting isn't supported.
-> [    48.052] (II) RADEON(0): TOTO SAYS 00000000feaf0000
-> [    48.052] (II) RADEON(0): MMIO registers at 0x00000000feaf0000: size
-> 64KB
-> [    48.052] (EE) RADEON(0): Unable to map MMIO aperture. Invalid argument
-> (22)
-> [    48.052] (EE) RADEON(0): Memory map the MMIO region failed
-> [    48.052] (II) UnloadModule: "radeon"
-> [    48.052] (EE) Screen(s) found, but none have a usable configuration.
-> [    48.052]
-> Fatal server error:
-> [    48.052] no screens found
-> [    48.052]
->
-> There are a couple of suggestions about things to try, such as compiling
-> with CONFIG_DRM_RADEON_KMS and then passing the parameter modeset=0 to the
-> radeon module. But that does not seem to help, either.
->
-> The help screens in make menuconfig do not seem to praise the
-> CONFIG_DRM_RADEON_KMS very highly, and seem to indicate that this is still
-> a very experimental feature.
->
-> There are no such equivalent problems with my current kernel, which is a
-> home-compiled 2.6.35.7.
->
-> I realize that this is a done decision, but it is exactly this kind of
-> thing that I had in mind when we had the Great Debate on the linux-media
-> list about whether to use hg or git. My position was to let hardware
-> support people to run hg with the compatibility layer for recent kernels
-> (and 2.6.35.7 is certainly recent!). Well, the people who had such a
-> position did not win. So now here is unfortunately the foreseeable result.
-> An experimental kernel with some totally unrelated bug which affects my
-> hardware and meanwhile stops all progress.
+Hi Hans,
 
-If you enable radeon KMS, you need to enable fbcon in your kernel or
-you will lose video when the radeon kms driver loads since it controls
-the video device and provide a legacy kernel fbdev interface.  As for
-X, you need a ddx (xf86-video-ati) built with kms support (6.13.x
-series).
+On Monday 20 December 2010 13:45:45 Hans Verkuil wrote:
+> On Monday, December 20, 2010 13:35:28 Laurent Pinchart wrote:
+> > On Monday 20 December 2010 13:28:06 Hans Verkuil wrote:
+> > > On Monday, December 20, 2010 13:10:32 Mauro Carvalho Chehab wrote:
+> > > > Em 18-12-2010 08:45, Hans Verkuil escreveu:
+> > > > > On Saturday, December 18, 2010 01:54:41 Laurent Pinchart wrote:
+> > > > >> On Friday 17 December 2010 18:09:39 Mauro Carvalho Chehab wrote:
+> > > > >>> I didn't find any regressions at the BKL removal patches, but I
+> > > > >>> noticed a few issues with qv4l2, not all related to uvcvideo. The
+> > > > >>> remaining of this email is an attempt to document them for later
+> > > > >>> fixes.
+> > > > >>> 
+> > > > >>> They don't seem to be regressions caused by BKL removal, but the
+> > > > >>> better would be to fix them later.
+> > > > >>> 
+> > > > >>> - with uvcvideo and two video apps, if qv4l2 is started first,
+> > > > >>> the second application doesn't start/capture. I suspect that
+> > > > >>> REQBUFS (used by qv4l2 to probe mmap/userptr capabilities)
+> > > > >>> create some resource locking at uvcvideo. The proper way is to
+> > > > >>> lock the resources only if the driver is streaming, as other
+> > > > >>> drivers and videobuf do.
+> > > > >> 
+> > > > >> I don't agree with that. The uvcvideo driver has one buffer queue
+> > > > >> per device, so if an application requests buffers on one file
+> > > > >> handle it will lock other applications out. If the driver didn't
+> > > > >> it would be subject to race conditions.
+> > > > > 
+> > > > > I agree with Laurent. Once an application calls REQBUFS with
+> > > > > non-zero count, then it should lock the resources needed for
+> > > > > streaming. The reason behind that is that REQBUFS also locks the
+> > > > > current selected format in place, since the format determines the
+> > > > > amount of memory needed for the buffers.
+> > > > 
+> > > > qv4l2 calls REQBUFS(1), then REQBUFS(0). Well, this is currently
+> > > > wrong, as most drivers will only release buffers at
+> > > > VIDIOC_STREAMOFF.
+> > > 
+> > > qv4l2 first calls STREAMOFF, then REQBUFS(1), then REQBUFS(0). In the
+> > > hope that one of these will actually free any buffers. It's random at
+> > > the moment when drivers release buffers, one of the reasons for using
+> > > vb2.
+> > > 
+> > > > Anyway, even replacing
+> > > > REQBUFS(0) with VIDIOC_STREAMOFF at qv4l2 won't help with uvcvideo.
+> > > > It seems that, once buffers are requested at uvcvideo, they will
+> > > > release only at close().
+> > 
+> > That's not correct. Buffers are released when calling REQBUFS(0).
+> > However, the file handle is still marked as owning the device for
+> > streaming purpose, so other applications can't change the format or
+> > request buffers.
+> 
+> Why? After REQBUFS(0) any filehandle ownership should be dropped.
 
-Alex
+What if the application wants to change the resolution during capture ? It 
+will have to stop capture, call REQBUFS(0), change the format, request buffers 
+and restart capture. If filehandle ownership is dropped after REQBUFS(0) that 
+will open the door to a race condition.
 
->
->
-> Theodore Kilgore
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+-- 
+Regards,
+
+Laurent Pinchart
