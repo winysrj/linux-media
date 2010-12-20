@@ -1,115 +1,95 @@
 Return-path: <mchehab@gaivota>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:56186 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750945Ab0L3NqN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Dec 2010 08:46:13 -0500
-Subject: Re: [PATCH 3/4] [media] ivtv: Add Adaptec Remote Controller
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <4D1C8928.1060200@redhat.com>
-References: <cover.1293709356.git.mchehab@redhat.com>
-	 <20101230094509.2ecbf089@gaivota>
-	 <1293713183.2056.31.camel@morgan.silverblock.net>
-	 <4D1C8928.1060200@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 30 Dec 2010 08:46:58 -0500
-Message-ID: <1293716818.4084.23.camel@morgan.silverblock.net>
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:4283 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756515Ab0LTLXn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Dec 2010 06:23:43 -0500
+Message-ID: <4D0F3CAB.5090501@redhat.com>
+Date: Mon, 20 Dec 2010 09:23:23 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Warren, Christina" <cawarren@ti.com>,
+	"Boateng, Akwasi" <akwasi.boateng@ti.com>,
+	Russell King <rmk@arm.linux.org.uk>
+Subject: Re: [Query][videobuf-dma-sg] Pages in Highmem handling
+References: <A24693684029E5489D1D202277BE8944719829DB@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE8944719829DB@dlee02.ent.ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Thu, 2010-12-30 at 11:29 -0200, Mauro Carvalho Chehab wrote:
-> Em 30-12-2010 10:46, Andy Walls escreveu:
-> > On Thu, 2010-12-30 at 09:45 -0200, Mauro Carvalho Chehab wrote:
-> > 
-> > 
-> > 
-> >> As we'll remove lirc_i2c from kernel, move the getkey code to ivtv driver, and
-> >> use it for AVC2410.
-> >>
-> >> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> >>
-> >> diff --git a/drivers/media/video/ivtv/ivtv-i2c.c b/drivers/media/video/ivtv/ivtv-i2c.c
-> >> index 6817092..8d1b016 100644
-> >> --- a/drivers/media/video/ivtv/ivtv-i2c.c
-> >> +++ b/drivers/media/video/ivtv/ivtv-i2c.c
-> >> @@ -94,6 +94,7 @@
-> >>  #define IVTV_HAUP_INT_IR_RX_I2C_ADDR 	0x18
-> >>  #define IVTV_Z8F0811_IR_TX_I2C_ADDR	0x70
-> >>  #define IVTV_Z8F0811_IR_RX_I2C_ADDR	0x71
-> > [snip]
-> > 
-> >> @@ -219,7 +252,6 @@ struct i2c_client *ivtv_i2c_new_ir_legacy(struct ivtv *itv)
-> >>  		0x1a,	/* Hauppauge IR external - collides with WM8739 */
-> >>  		0x18,	/* Hauppauge IR internal */
-> >>  		0x71,	/* Hauppauge IR (PVR150) */
-> >                   ^^^^
-> > BTW, since
-> > 
-> > a. all ivtv cards that have an IR Rx chip at address 0x71 should be
-> > accounted for in ivtv-cards.c
-> > b. lirc_i2c is going away
-> > c. lirc_zilog should not be probing devices labeled "ir_video"
-> > d. ir-kbd-i2c doesn't have defaults for address 0x71
-> > 
-> > Can you remove the 0x71 case here while you are making changes?
+Hi Sergio,
+
+Em 27-08-2010 11:57, Aguirre, Sergio escreveu:
+> Hi,
 > 
-> Sure. Patch enclosed.
+> I see that in current videobuf library, for DMA SG code, these functions fail when
+> Detecting a page in Highmem region:
 > 
-> Btw, I think we should remove ivtv_i2c_new_ir_legacy, or rename it.
-> The only remaining case there is the standard non-Z8 Hauppauge IR
-> I2C decoder.
-
-The "i2c_new_ir" portion of the name means "register a new I2C connected
-IR controller".
- 
-The "_legacy" portion of the name means "probe for an IR device that
-might exist".
-
-The ivtv driver only does it for ivtv-cards.c entries that don't mention
-any IR device.
-
-I can't remove it, since some deployed cards models still might need it.
-
-For a rename maybe "ivtv_i2c_probe_unlisted_ir()"?
-
-> Thanks,
-> Mauro
+> - videobuf_pages_to_sg
+> - videobuf_vmalloc_to_sg
 > 
-> -
+> Now, what's the real reason to not allow handling of Highmem pages?
+> Is it an assumption that _always_ HighMem is not reachable by DMA?
 > 
-> commit 615a80d8f744677bc79b33811c5f671fa7fe1976
-> Author: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Date:   Thu Dec 30 11:25:12 2010 -0200
+> I guess my point is, OMAP platform (and maybe other platforms) can handle
+> Highmem pages without any problem. I commented these validations:
 > 
->     ivtv-i2c: Don't use IR legacy mode for Zilog IR
->     
->     The Zilog IR entries are already handled by IR new code. So,
->     remove its usage from the legacy IR support.
->     
->     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 65 static struct scatterlist *videobuf_vmalloc_to_sg(unsigned char *virt,
+> 66                                                   int nr_pages)
+> 67 {
+> 
+> ...
+> 
+> 77         for (i = 0; i < nr_pages; i++, virt += PAGE_SIZE) {
+> 78                 pg = vmalloc_to_page(virt);
+> 79                 if (NULL == pg)
+> 80                         goto err;
+> 81                 /* BUG_ON(PageHighMem(pg)); */
+> 
+> ...
+> 
+> 96 static struct scatterlist *videobuf_pages_to_sg(struct page **pages,
+> 97                                                 int nr_pages, int offset)
+> 98 {
+> 
+> ...
+> 
+> 109         /* if (PageHighMem(pages[0])) */
+> 110                 /* DMA to highmem pages might not work */
+> 111                 /* goto highmem; */
+> 112         sg_set_page(&sglist[0], pages[0], PAGE_SIZE - offset, offset);
+> 113         for (i = 1; i < nr_pages; i++) {
+> 114                 if (NULL == pages[i])
+> 115                         goto nopage;
+> 116                 /* if (PageHighMem(pages[i]))
+> 117                         goto highmem; */
+> 118                 sg_set_page(&sglist[i], pages[i], PAGE_SIZE, 0);
+> 119         }
+> 
+> Can somebody shed any light on this?
 
-Looks good.
+Sorry for taking so long to answer you.
 
-Acked-by: Andy Walls <awalls@md.metrocast.net>
+Basically, videobuf code were written at Linux 2.4 days, to be used by
+bttv driver (and later used by cx88 and saa7134). At that time, there where
+a hack for the usage of highmem (I think it was called bigmem or something 
+like that).
 
-Regards,
-Andy
+As I was not maintaining the code on that time, I'm not really sure what where
+the issues, but I suspect that this were an arch-implementation limit 
+related to DMA transfers at highmem, on that time, due to x86 intrinsic
+limits. I'm not sure about the current limits of newer x86 chips, on 32
+and on 64 bits mode, but i think that this limit doesn't exist anymore.
 
-> diff --git a/drivers/media/video/ivtv/ivtv-i2c.c b/drivers/media/video/ivtv/ivtv-i2c.c
-> index fb0ac68..d121389 100644
-> --- a/drivers/media/video/ivtv/ivtv-i2c.c
-> +++ b/drivers/media/video/ivtv/ivtv-i2c.c
-> @@ -253,7 +253,6 @@ struct i2c_client *ivtv_i2c_new_ir_legacy(struct ivtv *itv)
->  	const unsigned short addr_list[] = {
->  		0x1a,	/* Hauppauge IR external - collides with WM8739 */
->  		0x18,	/* Hauppauge IR internal */
-> -		0x71,	/* Hauppauge IR (PVR150) */
->  		I2C_CLIENT_END
->  	};
->  
+So, I suspect that just converting it to a call to dma_capable() should 
+be enough to fix the issue.
 
+Yet, as videobuf2 is almost ready for merge, maybe the best is to take 
+some efforts on testing it, and to be sure that it doesn't contain any
+arch-specific limits inside its code.
 
+Cheers,
+Mauro 
