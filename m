@@ -1,156 +1,184 @@
 Return-path: <mchehab@gaivota>
-Received: from gateway04.websitewelcome.com ([67.18.39.3]:41610 "HELO
-	gateway04.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753898Ab0LTW2g (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:23107 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751345Ab0LUNU2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Dec 2010 17:28:36 -0500
-Subject: [PATCH] s2255drv: remove BKL
-From: Pete Eberlein <pete@sensoray.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: linux-dev@sensoray.com
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 20 Dec 2010 14:18:59 -0800
-Message-ID: <1292883539.2767.20.camel@pete-desktop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 21 Dec 2010 08:20:28 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Tue, 21 Dec 2010 14:20:09 +0100
+From: Kamil Debski <k.debski@samsung.com>
+Subject: [RFC/PATCH v5 2/4] MFC: Add MFC 5.1 driver to plat-s5p
+In-reply-to: <1292937611-3362-1-git-send-email-k.debski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, k.debski@samsung.com,
+	jaeryul.oh@samsung.com, kgene.kim@samsung.com
+Message-id: <1292937611-3362-3-git-send-email-k.debski@samsung.com>
+References: <1292937611-3362-1-git-send-email-k.debski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Remove BKL ioctl and use unlocked_ioctl with core-assisted locking instead.
+This patch adds platform support for Multi Format Codec 5.1.
+MFC 5.1 is capable of handling a range of video codecs and this driver
+provides V4L2 interface for video decoding.
 
-Signed-off-by: Pete Eberlein <pete@sensoray.com>
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ arch/arm/mach-s5pv210/clock.c                   |    6 +++
+ arch/arm/mach-s5pv210/include/mach/map.h        |    4 ++
+ arch/arm/plat-s5p/Kconfig                       |    5 ++
+ arch/arm/plat-s5p/Makefile                      |    2 +-
+ arch/arm/plat-s5p/dev-mfc.c                     |   49 +++++++++++++++++++++++
+ arch/arm/plat-samsung/include/plat/devs.h       |    2 +
+ 9 files changed, 116 insertions(+), 2 deletions(-)
+ create mode 100644 arch/arm/plat-s5p/dev-mfc.c
 
-diff --git a/drivers/media/video/s2255drv.c b/drivers/media/video/s2255drv.c
-index f5a46c4..a216d62 100644
---- a/drivers/media/video/s2255drv.c
-+++ b/drivers/media/video/s2255drv.c
-@@ -269,7 +269,7 @@ struct s2255_dev {
- 	struct v4l2_device 	v4l2_dev;
- 	atomic_t                num_channels;
- 	int			frames;
--	struct mutex		lock;
-+	struct mutex		lock;	/* channels[].vdev.lock */
- 	struct mutex		open_lock;
- 	struct usb_device	*udev;
- 	struct usb_interface	*interface;
-@@ -781,20 +781,14 @@ static struct videobuf_queue_ops s2255_video_qops = {
+diff --git a/arch/arm/mach-s5pv210/clock.c b/arch/arm/mach-s5pv210/clock.c
+index 5014b62..f7d742d 100644
+--- a/arch/arm/mach-s5pv210/clock.c
++++ b/arch/arm/mach-s5pv210/clock.c
+@@ -364,6 +364,12 @@ static struct clk init_clocks_disable[] = {
+ 		.enable		= s5pv210_clk_ip0_ctrl,
+ 		.ctrlbit	= (1 << 26),
+ 	}, {
++		.name		= "mfc",
++		.id		= -1,
++		.parent		= &clk_pclk_psys.clk,
++		.enable		= s5pv210_clk_ip0_ctrl,
++		.ctrlbit	= (1 << 16),
++	}, {
+ 		.name		= "nfcon",
+ 		.id		= -1,
+ 		.parent		= &clk_hclk_psys.clk,
+diff --git a/arch/arm/mach-s5pv210/include/mach/map.h b/arch/arm/mach-s5pv210/include/mach/map.h
+index 0982443..d56db00 100644
+--- a/arch/arm/mach-s5pv210/include/mach/map.h
++++ b/arch/arm/mach-s5pv210/include/mach/map.h
+@@ -73,6 +73,8 @@
+ #define S5PV210_PA_FIMC1	(0xFB300000)
+ #define S5PV210_PA_FIMC2	(0xFB400000)
  
- static int res_get(struct s2255_fh *fh)
- {
--	struct s2255_dev *dev = fh->dev;
--	/* is it free? */
- 	struct s2255_channel *channel = fh->channel;
--	mutex_lock(&dev->lock);
--	if (channel->resources) {
--		/* no, someone else uses it */
--		mutex_unlock(&dev->lock);
--		return 0;
--	}
-+	/* is it free? */
-+	if (channel->resources)
-+		return 0; /* no, someone else uses it */
- 	/* it's free, grab it */
- 	channel->resources = 1;
- 	fh->resources = 1;
- 	dprintk(1, "s2255: res: get\n");
--	mutex_unlock(&dev->lock);
- 	return 1;
- }
++#define S5PV210_PA_MFC		(0xF1700000)
++
+ #define S5PV210_PA_HSMMC(x)	(0xEB000000 + ((x) * 0x100000))
  
-@@ -812,11 +806,8 @@ static int res_check(struct s2255_fh *fh)
- static void res_free(struct s2255_fh *fh)
- {
- 	struct s2255_channel *channel = fh->channel;
--	struct s2255_dev *dev = fh->dev;
--	mutex_lock(&dev->lock);
- 	channel->resources = 0;
- 	fh->resources = 0;
--	mutex_unlock(&dev->lock);
- 	dprintk(1, "res: put\n");
- }
+ #define S5PV210_PA_HSOTG	(0xEC000000)
+@@ -107,6 +109,7 @@
+ #define S5PV210_PA_DMC0		(0xF0000000)
+ #define S5PV210_PA_DMC1		(0xF1400000)
  
-@@ -1219,7 +1210,6 @@ static int s2255_set_mode(struct s2255_channel *channel,
- 	__le32 *buffer;
- 	unsigned long chn_rev;
- 	struct s2255_dev *dev = to_s2255_dev(channel->vdev.v4l2_dev);
--	mutex_lock(&dev->lock);
- 	chn_rev = G_chnmap[channel->idx];
- 	dprintk(3, "%s channel: %d\n", __func__, channel->idx);
- 	/* if JPEG, set the quality */
-@@ -1236,7 +1226,6 @@ static int s2255_set_mode(struct s2255_channel *channel,
- 	buffer = kzalloc(512, GFP_KERNEL);
- 	if (buffer == NULL) {
- 		dev_err(&dev->udev->dev, "out of mem\n");
--		mutex_unlock(&dev->lock);
- 		return -ENOMEM;
- 	}
- 	/* set the mode */
-@@ -1261,7 +1250,6 @@ static int s2255_set_mode(struct s2255_channel *channel,
- 	}
- 	/* clear the restart flag */
- 	channel->mode.restart = 0;
--	mutex_unlock(&dev->lock);
- 	dprintk(1, "%s chn %d, result: %d\n", __func__, channel->idx, res);
- 	return res;
- }
-@@ -1272,13 +1260,11 @@ static int s2255_cmd_status(struct s2255_channel *channel, u32 *pstatus)
- 	__le32 *buffer;
- 	u32 chn_rev;
- 	struct s2255_dev *dev = to_s2255_dev(channel->vdev.v4l2_dev);
--	mutex_lock(&dev->lock);
- 	chn_rev = G_chnmap[channel->idx];
- 	dprintk(4, "%s chan %d\n", __func__, channel->idx);
- 	buffer = kzalloc(512, GFP_KERNEL);
- 	if (buffer == NULL) {
- 		dev_err(&dev->udev->dev, "out of mem\n");
--		mutex_unlock(&dev->lock);
- 		return -ENOMEM;
- 	}
- 	/* form the get vid status command */
-@@ -1298,7 +1284,6 @@ static int s2255_cmd_status(struct s2255_channel *channel, u32 *pstatus)
- 	}
- 	*pstatus = channel->vidstatus;
- 	dprintk(4, "%s, vid status %d\n", __func__, *pstatus);
--	mutex_unlock(&dev->lock);
- 	return res;
- }
++
+ /* compatibiltiy defines. */
+ #define S3C_PA_UART		S5PV210_PA_UART
+ #define S3C_PA_HSMMC0		S5PV210_PA_HSMMC(0)
+@@ -123,6 +126,7 @@
+ #define S5P_PA_FIMC0		S5PV210_PA_FIMC0
+ #define S5P_PA_FIMC1		S5PV210_PA_FIMC1
+ #define S5P_PA_FIMC2		S5PV210_PA_FIMC2
++#define S5P_PA_MFC		S5PV210_PA_MFC
  
-@@ -1817,7 +1802,8 @@ static int s2255_open(struct file *file)
- 				    NULL, &dev->slock,
- 				    fh->type,
- 				    V4L2_FIELD_INTERLACED,
--				    sizeof(struct s2255_buffer), fh, NULL);
-+				    sizeof(struct s2255_buffer),
-+				    fh, vdev->lock);
- 	return 0;
- }
+ #define SAMSUNG_PA_ADC		S5PV210_PA_ADC
+ #define SAMSUNG_PA_CFCON	S5PV210_PA_CFCON
+diff --git a/arch/arm/plat-s5p/Kconfig b/arch/arm/plat-s5p/Kconfig
+index 9755df9..c7a048e 100644
+--- a/arch/arm/plat-s5p/Kconfig
++++ b/arch/arm/plat-s5p/Kconfig
+@@ -5,6 +5,11 @@
+ #
+ # Licensed under GPLv2
  
-@@ -1900,7 +1886,7 @@ static const struct v4l2_file_operations s2255_fops_v4l = {
- 	.open = s2255_open,
- 	.release = s2255_release,
- 	.poll = s2255_poll,
--	.ioctl = video_ioctl2,	/* V4L2 ioctl handler */
-+	.unlocked_ioctl = video_ioctl2,	/* V4L2 ioctl handler */
- 	.mmap = s2255_mmap_v4l,
- };
++config S5P_DEV_MFC
++	bool
++	help
++	  Compile in platform device definitions for MFC 
++	  
+ config PLAT_S5P
+ 	bool
+ 	depends on (ARCH_S5P64X0 || ARCH_S5P6442 || ARCH_S5PC100 || ARCH_S5PV210 || ARCH_S5PV310)
+diff --git a/arch/arm/plat-s5p/Makefile b/arch/arm/plat-s5p/Makefile
+index df65cb7..8c1c97c 100644
+--- a/arch/arm/plat-s5p/Makefile
++++ b/arch/arm/plat-s5p/Makefile
+@@ -23,7 +23,7 @@ obj-$(CONFIG_PM)		+= pm.o
+ obj-$(CONFIG_PM)		+= irq-pm.o
  
-@@ -1970,6 +1956,7 @@ static int s2255_probe_v4l(struct s2255_dev *dev)
- 		channel->vidq.dev = dev;
- 		/* register 4 video devices */
- 		channel->vdev = template;
-+		channel->vdev.lock = &dev->lock;
- 		channel->vdev.v4l2_dev = &dev->v4l2_dev;
- 		video_set_drvdata(&channel->vdev, channel);
- 		if (video_nr == -1)
-@@ -2676,7 +2663,9 @@ static void s2255_disconnect(struct usb_interface *interface)
- 	struct s2255_dev *dev = to_s2255_dev(usb_get_intfdata(interface));
- 	int i;
- 	int channels = atomic_read(&dev->num_channels);
-+	mutex_lock(&dev->lock);
- 	v4l2_device_disconnect(&dev->v4l2_dev);
-+	mutex_unlock(&dev->lock);
- 	/*see comments in the uvc_driver.c usb disconnect function */
- 	atomic_inc(&dev->num_channels);
- 	/* unregister each video device. */
-
+ # devices
+-
++obj-$(CONFIG_S5P_DEV_MFC)	+= dev-mfc.o
+ obj-$(CONFIG_S5P_DEV_FIMC0)	+= dev-fimc0.o
+ obj-$(CONFIG_S5P_DEV_FIMC1)	+= dev-fimc1.o
+ obj-$(CONFIG_S5P_DEV_FIMC2)	+= dev-fimc2.o
+diff --git a/arch/arm/plat-s5p/dev-mfc.c b/arch/arm/plat-s5p/dev-mfc.c
+new file mode 100644
+index 0000000..0dfcb1a
+--- /dev/null
++++ b/arch/arm/plat-s5p/dev-mfc.c
+@@ -0,0 +1,49 @@
++/* linux/arch/arm/plat-s5p/dev-mfc.c
++ *
++ * Copyright (c) 2010 Samsung Electronics
++ *
++ * Base S5P MFC 5.1 resource and device definitions
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++
++#include <linux/kernel.h>
++#include <linux/interrupt.h>
++#include <linux/platform_device.h>
++#include <linux/dma-mapping.h>
++#include <linux/ioport.h>
++
++#include <mach/map.h>
++#include <plat/devs.h>
++#include <plat/irqs.h>
++
++static struct resource s5p_mfc_resource[] = {
++	[0] = {
++		.start  = S5P_PA_MFC,
++		.end    = S5P_PA_MFC + SZ_64K - 1,
++		.flags  = IORESOURCE_MEM,
++	},
++	[1] = {
++		.start  = IRQ_MFC,
++		.end    = IRQ_MFC,
++		.flags  = IORESOURCE_IRQ,
++	}
++};
++
++static u64 s5p_mfc_dma_mask = DMA_BIT_MASK(32);
++
++struct platform_device s5p_device_mfc = {
++	.name          = "s5p-mfc",
++	.id            = -1,
++	.num_resources = ARRAY_SIZE(s5p_mfc_resource),
++	.resource      = s5p_mfc_resource,
++	.dev		= {
++		.dma_mask		= &s5p_mfc_dma_mask,
++		.coherent_dma_mask	= DMA_BIT_MASK(32),
++	},
++};
++
++EXPORT_SYMBOL(s5p_device_mfc);
+diff --git a/arch/arm/plat-samsung/include/plat/devs.h b/arch/arm/plat-samsung/include/plat/devs.h
+index 628b331..67594e2 100644
+--- a/arch/arm/plat-samsung/include/plat/devs.h
++++ b/arch/arm/plat-samsung/include/plat/devs.h
+@@ -124,6 +124,8 @@ extern struct platform_device s5p_device_fimc2;
+ extern struct platform_device s5p_device_fimc3;
+ extern struct platform_device s5pv310_device_fb0;
+ 
++extern struct platform_device s5p_device_mfc;
++
+ /* s3c2440 specific devices */
+ 
+ #ifdef CONFIG_CPU_S3C2440
+-- 
+1.6.3.3
 
