@@ -1,61 +1,87 @@
 Return-path: <mchehab@gaivota>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:9691 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752616Ab0L3Nws (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Dec 2010 08:52:48 -0500
-Subject: Re: [PATCH 3/4] [media] ivtv: Add Adaptec Remote Controller
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <4D1C8972.4050907@redhat.com>
-References: <cover.1293709356.git.mchehab@redhat.com>
-	 <20101230094509.2ecbf089@gaivota>
-	 <1293712568.2056.25.camel@morgan.silverblock.net>
-	 <4D1C8972.4050907@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 30 Dec 2010 08:53:21 -0500
-Message-ID: <1293717201.4084.29.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:55384 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751237Ab0LUNiD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Dec 2010 08:38:03 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oBLDc2tQ005330
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 21 Dec 2010 08:38:02 -0500
+Message-ID: <4D10ADB5.80405@redhat.com>
+Date: Tue, 21 Dec 2010 11:37:57 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Jarod Wilson <jarod@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL] IR fixups for 2.6.37
+References: <20101216190302.GA25148@redhat.com>
+In-Reply-To: <20101216190302.GA25148@redhat.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Thu, 2010-12-30 at 11:30 -0200, Mauro Carvalho Chehab wrote:
-> Em 30-12-2010 10:36, Andy Walls escreveu:
-
-
-> Thanks for the review. Version 3 of the patch enclosed.
-
-Still one little mistake that matters, otherwise it looks good.
-See below...
-
-> commit 8576bd14361ec75c91ddfb49cc2df389143cf06a
-> Author: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Date:   Thu Dec 30 09:31:10 2010 -0200
+Em 16-12-2010 17:03, Jarod Wilson escreveu:
+> Hey Mauro,
 > 
->     [media] ivtv: Add Adaptec Remote Controller
->     
+> As previously discussed, here's a handful of IR patches I'd like to see
+> make it into 2.6.37 still, as they fix a number of issues with the
+> mceusb, streamzap, nuvoton and lirc_dev drivers.
+> 
+> The last three mceusb patches are not yet in the v4l/dvb tree, but I've
+> just posted them.
+> 
+> The following changes since commit b0c3844d8af6b9f3f18f31e1b0502fbefa2166be:
+> 
+>   Linux 2.6.37-rc6 (2010-12-15 17:24:48 -0800)
+> 
+> are available in the git repository at:
+>   git://git.kernel.org/pub/scm/linux/kernel/git/jarod/linux-2.6-ir.git for-2.6.37
+> 
+> Dan Carpenter (2):
+>       [media] lirc_dev: stray unlock in lirc_dev_fop_poll()
+>       [media] lirc_dev: fixes in lirc_dev_fop_read()
+> 
+> Jarod Wilson (10):
+>       [media] mceusb: add support for Conexant Hybrid TV RDU253S
+>       [media] nuvoton-cir: improve buffer parsing responsiveness
+>       [media] mceusb: fix up reporting of trailing space
+>       [media] mceusb: buffer parsing fixups for 1st-gen device
+>       [media] IR: add tv power scancode to rc6 mce keymap
+>       [media] mceusb: fix keybouce issue after parser simplification
+>       [media] streamzap: merge timeout space with trailing space
+>       mceusb: add another Fintek device ID
+>       mceusb: fix inverted mask inversion logic
+>       mceusb: set a default rx timeout
+> 
+> Paul Bender (1):
+>       rc: fix sysfs entry for mceusb and streamzap
+> 
+>  drivers/media/IR/keymaps/rc-rc6-mce.c |   21 ++--
+>  drivers/media/IR/lirc_dev.c           |   29 +++---
+>  drivers/media/IR/mceusb.c             |  174 ++++++++++++++++++++------------
+>  drivers/media/IR/nuvoton-cir.c        |   10 ++-
+>  drivers/media/IR/streamzap.c          |   21 +++--
+>  5 files changed, 156 insertions(+), 99 deletions(-)
+> 
 
->  
->  /* This array should match the IVTV_HW_ defines */
-> @@ -143,8 +145,34 @@ static const char * const hw_devicenames[] = {
->  	"ir_video",		/* IVTV_HW_I2C_IR_RX_HAUP_INT */
->  	"ir_tx_z8f0811_haup",	/* IVTV_HW_Z8F0811_IR_TX_HAUP */
->  	"ir_rx_z8f0811_haup",	/* IVTV_HW_Z8F0811_IR_RX_HAUP */
-> +	"ir_adaptec",		/* IVTV_HW_I2C_IR_RX_ADAPTEC */
->  };
- 
-This either needs to be "ir_video", or you need to add "ir_adaptec" to
-the i2c_device_id[] array in ir-kbd-i2c.c.  Otherwise ir-kbd-i2c.c won't
-claim the device and use it.
+Hi Jarod,
 
-Upon fixing that
+I've pulled from your tree and added them at the master branch of my -next tree, at:
+	http://git.kernel.org/?p=linux/kernel/git/mchehab/linux-next.git
 
-Reviewed-by: Andy Walls <awalls@md.metrocast.net>
-Acked-by: Andy Walls <awalls@md.metrocast.net>
+As we've discussed on #lirc channel, I solved the conflicts at mceusb and streamzap
+by just doing a diff between the merged tree and:
+	ssh://linuxtv.org/git/jarod/linux-2.6-ir.git for-2.6.38
 
+The merge patch had a weird diff, as it just showed the mceusb.c driver as a new one,
+so I suspect that it might have something wrong at the conflict resolution.
+Also, there's one small error generated with allyesconfig:
 
-Regards,
-Andy
+drivers/media/rc/streamzap.c: In function ‘streamzap_probe’:
+drivers/media/rc/streamzap.c:460:2: warning: statement with no effect
 
+Could you please take a look on both things, to double check if everything is ok?
+
+Thanks!
+Mauro
