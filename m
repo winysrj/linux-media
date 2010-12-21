@@ -1,66 +1,68 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:25046 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933009Ab0LTS1r (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Dec 2010 13:27:47 -0500
-Message-ID: <4D0FA00E.6010701@redhat.com>
-Date: Mon, 20 Dec 2010 16:27:26 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Linus Torvalds <torvalds@linux-foundation.org>
-CC: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for 2.6.37-rc7] V4L/DVB fixes
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:45843 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758123Ab0LUJzr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Dec 2010 04:55:47 -0500
+Date: Tue, 21 Dec 2010 10:55:18 +0100
+From: Kamil Debski <k.debski@samsung.com>
+Subject: [RFC/PATCH v5 4/4] s5pv210: Enable MFC on Goni
+In-reply-to: <1292925318-2911-1-git-send-email-k.debski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, k.debski@samsung.com,
+	jaeryul.oh@samsung.com, kgene.kim@samsung.com
+Message-id: <1292925318-2911-5-git-send-email-k.debski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1292925318-2911-1-git-send-email-k.debski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Linus,
+This patch enables MFC 5.1 on Goni board. Multi Format Codec 5.1 is capable
+of handling a range of video codecs.
 
-Please pull from:
-  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
-
-For a series of fixes at v4l2 drivers. They fix an OOPS at bttv due to BKL
-patches, a series of regressions that happened at gspca sonixj driver, 
-affecting most of the sonix Jpeg cams and a duplicated symbol, noticed by
-enabling allyesconfig + staging/cx23821.
-
-Thanks!
-Mauro
-
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
+ arch/arm/mach-s5pv210/Kconfig     |    1 +
+ arch/arm/mach-s5pv210/mach-goni.c |    3 ++-
+ 2 files changed, 3 insertions(+), 1 deletions(-)
 
-
-The following changes since commit cf7d7e5a1980d1116ee152d25dac382b112b9c17:
-
-  Linux 2.6.37-rc5 (2010-12-06 20:09:04 -0800)
-
-are available in the git repository at:
-  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
-
-Brandon Philips (1):
-      [media] bttv: remove unneeded locking comments
-
-Jean-Francois Moine (6):
-      [media] gspca - sonixj: Move bridge init to sd start
-      [media] gspca - sonixj: Fix a bad probe exchange
-      [media] gspca - sonixj: Add a flag in the driver_info table
-      [media] gspca - sonixj: Set the flag for some devices
-      [media] gspca - sonixj: Add the bit definitions of the bridge reg 0x01 and 0x17
-      [media] gspca - sonixj: Better handling of the bridge registers 0x01 and 0x17
-
-Mauro Carvalho Chehab (2):
-      [media] Don't export format_by_forcc on two different drivers
-      [media] bttv: fix mutex use before init (BZ#24602)
-
- drivers/media/common/saa7146_hlp.c      |    8 +-
- drivers/media/common/saa7146_video.c    |   16 +-
- drivers/media/video/bt8xx/bttv-driver.c |  117 +---------
- drivers/media/video/gspca/sonixj.c      |  416 ++++++++++++++-----------------
- drivers/staging/cx25821/cx25821-video.c |    8 +-
- drivers/staging/cx25821/cx25821-video.h |    2 +-
- include/media/saa7146.h                 |    2 +-
- 7 files changed, 205 insertions(+), 364 deletions(-)
+diff --git a/arch/arm/mach-s5pv210/Kconfig b/arch/arm/mach-s5pv210/Kconfig
+index c45a1b7..43f408d 100644
+--- a/arch/arm/mach-s5pv210/Kconfig
++++ b/arch/arm/mach-s5pv210/Kconfig
+@@ -85,6 +85,7 @@ config MACH_GONI
+ 	select S3C_DEV_HSMMC2
+ 	select S3C_DEV_I2C1
+ 	select S3C_DEV_I2C2
++	select S5P_DEV_MFC
+ 	select S3C_DEV_USB_HSOTG
+ 	select S5P_DEV_ONENAND
+ 	select SAMSUNG_DEV_KEYPAD
+diff --git a/arch/arm/mach-s5pv210/mach-goni.c b/arch/arm/mach-s5pv210/mach-goni.c
+index 8d19ead..553a60e 100644
+--- a/arch/arm/mach-s5pv210/mach-goni.c
++++ b/arch/arm/mach-s5pv210/mach-goni.c
+@@ -810,6 +810,7 @@ static struct platform_device *goni_devices[] __initdata = {
+ 	&goni_i2c_gpio5,
+ 	&mmc2_fixed_voltage,
+ 	&goni_device_gpiokeys,
++	&s5p_device_mfc,
+ 	&s5p_device_fimc0,
+ 	&s5p_device_fimc1,
+ 	&s5p_device_fimc2,
+@@ -857,7 +858,7 @@ static void __init goni_reserve(void)
+ 	};
+ 
+ 	static const char map[] __initconst =
+-		"s5p-mfc5/f=fw;s5p-mfc5/a=b1;s5p-mfc5/b=b2;*=b1,b2";
++		"s5p-mfc/f=fw;s5p-mfc/a=b1;s5p-mfc/b=b2;*=b1,b2";
+ 
+ 	cma_set_defaults(regions, map);
+ 	cma_early_regions_reserve(NULL);
+-- 
+1.6.3.3
 
