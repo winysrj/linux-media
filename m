@@ -1,176 +1,133 @@
 Return-path: <mchehab@gaivota>
-Received: from adelie.canonical.com ([91.189.90.139]:46805 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754300Ab0L0PyX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Dec 2010 10:54:23 -0500
-Message-ID: <4D18B6AC.2040506@canonical.com>
-Date: Mon, 27 Dec 2010 16:54:20 +0100
-From: David Henningsson <david.henningsson@canonical.com>
+Received: from mx1.redhat.com ([209.132.183.28]:12844 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750835Ab0LULLZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Dec 2010 06:11:25 -0500
+Message-ID: <4D108B1A.6060004@redhat.com>
+Date: Tue, 21 Dec 2010 09:10:18 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] DVB: TechnoTrend CT-3650 IR support
-References: <4D170785.1070306@canonical.com> <4D1729DB.80406@infradead.org> <4D17999E.4000500@canonical.com> <4D18623C.8080006@infradead.org>
-In-Reply-To: <4D18623C.8080006@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [GIT PULL FOR 2.6.37] uvcvideo: BKL removal
+References: <201011291115.11061.laurent.pinchart@ideasonboard.com> <201012181145.29681.hverkuil@xs4all.nl> <4D0F47B8.6040600@redhat.com> <201012201328.06493.hverkuil@xs4all.nl>
+In-Reply-To: <201012201328.06493.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On 2010-12-27 10:54, Mauro Carvalho Chehab wrote:
-> Em 26-12-2010 17:38, David Henningsson escreveu:
->> On 2010-12-26 12:41, Mauro Carvalho Chehab wrote:
->>> Hi David,
+Em 20-12-2010 10:28, Hans Verkuil escreveu:
+> On Monday, December 20, 2010 13:10:32 Mauro Carvalho Chehab wrote:
+>> Em 18-12-2010 08:45, Hans Verkuil escreveu:
+>>> On Saturday, December 18, 2010 01:54:41 Laurent Pinchart wrote:
+>>>> Hi Mauro,
+>>>>
+>>>> On Friday 17 December 2010 18:09:39 Mauro Carvalho Chehab wrote:
+>>>>> Em 14-12-2010 08:55, Laurent Pinchart escreveu:
+>>>>>> Hi Mauro,
+>>>>>>
+>>>>>> Please don't forget this pull request for 2.6.37.
+>>>>>
+>>>>> Pull request for upstream sent today.
+>>>>
+>>>> Thank you.
+>>>>
+>>>>> I didn't find any regressions at the BKL removal patches, but I noticed a
+>>>>> few issues with qv4l2, not all related to uvcvideo. The remaining of this
+>>>>> email is an attempt to document them for later fixes.
+>>>>>
+>>>>> They don't seem to be regressions caused by BKL removal, but the better
+>>>>> would be to fix them later.
+>>>>>
+>>>>> - with uvcvideo and two video apps, if qv4l2 is started first, the second
+>>>>> application doesn't start/capture. I suspect that REQBUFS (used by qv4l2
+>>>>> to probe mmap/userptr capabilities) create some resource locking at
+>>>>> uvcvideo. The proper way is to lock the resources only if the driver is
+>>>>> streaming, as other drivers and videobuf do.
+>>>>
+>>>> I don't agree with that. The uvcvideo driver has one buffer queue per device, 
+>>>> so if an application requests buffers on one file handle it will lock other 
+>>>> applications out. If the driver didn't it would be subject to race conditions.
 >>>
->>> Em 26-12-2010 07:14, David Henningsson escreveu:
->>>> Hi Linux-media,
->>>>
->>>> As a spare time project I bought myself a TT CT-3650, to see if I could get it working. Waling Dijkstra did write a IR&   CI patch for this model half a year ago, so I was hopeful. (Reference: http://www.mail-archive.com/linux-media@vger.kernel.org/msg19860.html )
->>>>
->>>> Having tested the patch, the IR is working (tested all keys via the "evtest" tool), however descrambling is NOT working.
->>>>
->>>> Waling's patch was reviewed but never merged. So I have taken the IR part of the patch, cleaned it up a little, and hopefully this part is ready for merging now. Patch is against linux-2.6.git.
->>>
->>> Could you please rebase it to work with the rc_core support? I suspect that you
->>> based it on a kernel older than .36, as the dvb_usb rc struct changed.
+>>> I agree with Laurent. Once an application calls REQBUFS with non-zero count,
+>>> then it should lock the resources needed for streaming. The reason behind that
+>>> is that REQBUFS also locks the current selected format in place, since the
+>>> format determines the amount of memory needed for the buffers.
 >>
->> Ok, I have now done this, but I'm not completely satisfied, perhaps you can help out a little? I'm new to IR/RC stuff,
->> but I feel I'm missing correct "repeat" functionality, i e, if you keep a key pressed it appears as separate key presses
->> with whatever interval set as .rc_interval. (This was probably a problem with the old patch as well.) Is there any
->> support for this is rc_core?
->
->  From your decode logic, I suspect that the IR hardware decoder has its own logic for repeat.
-> In this case, there's not much you can do, as it probably uses a very high time for repeat.
->
->> I'm attaching a temporary patch (just for review) so you know what I'm talking about.
+>> qv4l2 calls REQBUFS(1), then REQBUFS(0). Well, this is currently wrong, as most
+>> drivers will only release buffers at VIDIOC_STREAMOFF.
+> 
+> qv4l2 first calls STREAMOFF, then REQBUFS(1), then REQBUFS(0). In the hope that one
+> of these will actually free any buffers. It's random at the moment when drivers
+> release buffers, one of the reasons for using vb2.
+
+This won't free buffers. REQBUFS(0) is not honored. so, what you're doing is really
+STREAMOFF/REQBUFS(1).
+
+It would work fine if you change the order to:
+REQBUFS(1)
+REQBUFS(0)
+STREAMOFF
+
+>> Anyway, even replacing 
+>> REQBUFS(0) with VIDIOC_STREAMOFF at qv4l2 won't help with uvcvideo. It seems that,
+>> once buffers are requested at uvcvideo, they will release only at close().
 >>
->>> The better is to base it over the latest V4L/DVB/RC development git, available at:
->>>      http://git.linuxtv.org/media_tree.git
+>> One consequence on the way uvcvideo is currently doing it is that, if you use qv4l2,
+>> it is impossible to change the video size, as it returns -EBUSY, if you ask it to
+>> select a different format (even without streaming):
+>> 	$ ./qv4l2
+>> 	Set Capture Format: Device or resource busy
 >>
->> Ok. I was probably confused with this entry: http://linuxtv.org/news.php?entry=2010-01-19.mchehab
->> telling me to base it on v4l-dvb.git, which is not updated for four months. However, http://git.linuxtv.org/ correctly lists the media_tree.git as the repository of choice.
->
-> Ah... yeah, old news;)
->
->> Thanks for the review!
+>>> The reason a lot of drivers don't do this is partially because for many TV
+>>> capture drivers it is highly unlikely that the buffer size will change after
+>>> calling REQBUFS (there are basically only two formats: 720x480 or 720x576 and
+>>> users will normally never change between the two). However, this is much more
+>>> likely to happen for webcams and embedded systems supporting HDTV.
 >>
-> Em 26-12-2010 17:38, David Henningsson escreveu:
->>  From 8c42121a08c5dabbd1a943cc1e5726ed99f0d957 Mon Sep 17 00:00:00 2001
->> From: David Henningsson<david.henningsson@canonical.com>
->> Date: Sun, 26 Dec 2010 14:23:58 +0100
->> Subject: [PATCH] DVB: IR support for CT-3650
+>> What applications do, when they need to change the formats, is to call REQBUFS again.
 >>
->> Signed-off-by: David Henningsson<david.henningsson@canonical.com>
->> ---
->>   drivers/media/dvb/dvb-usb/ttusb2.c |   28 ++++++++++++++++++++++++++++
->>   1 files changed, 28 insertions(+), 0 deletions(-)
->>   mode change 100644 =>  100755 debian/rules
+>>> The other reason is probably because driver developers simple do not realize
+>>> they need to lock the resources on REQBUFS. I'm sure many existing drivers will
+>>> fail miserably if you change the format after calling REQBUFS (particularly
+>>> with mmap streaming mode).
 >>
->> diff --git a/debian/rules b/debian/rules
->> old mode 100644
->> new mode 100755
->> diff --git a/drivers/media/dvb/dvb-usb/ttusb2.c b/drivers/media/dvb/dvb-usb/ttusb2.c
->> index a6de489..ded8a4b 100644
->> --- a/drivers/media/dvb/dvb-usb/ttusb2.c
->> +++ b/drivers/media/dvb/dvb-usb/ttusb2.c
->> @@ -128,6 +128,27 @@ static struct i2c_algorithm ttusb2_i2c_algo = {
->>   	.functionality = ttusb2_i2c_func,
->>   };
+>> I didn't make any test, but I don't think they'll fail (at least, on the drivers
+>> that use videobuf), as streaming format will be stored at the videobuf handling 
+>> (at buffer_prepare callback).
 >>
->> +/* command to poll IR receiver (copied from pctv452e.c) */
->> +#define CMD_GET_IR_CODE     0x1b
->> +
->> +/* IR */
->> +static int tt3650_rc_query(struct dvb_usb_device *d)
->> +{
->> +	int ret;
->> +	u8 rx[9]; /* A CMD_GET_IR_CODE reply is 9 bytes long */
->> +	ret = ttusb2_msg(d, CMD_GET_IR_CODE, NULL, 0, rx, sizeof(rx));
->> +	if (ret != 0)
->> +		return ret;
->> +
->> +	if (rx[8]&  0x01) {
->
-> Maybe (rx[8]&  0x01) == 0 indicates a keyup event. If so, if you map both keydown
-> and keyup events, the in-kernel repeat logic will work.
+>> So, if you change the format, the change will be applied only at the next call
+>> to REQBUFS.
+> 
+> This behavior isn't according to the spec. G/S_FMT relate to the current format,
+> not to some future format. Most non-videobuf drivers will not support this
+> behavior.
+> 
+> It should be simple, really:
+> 
+> STREAMOFF
+> REQBUFS(0)
+> 
+> That's all that should be needed to stop streaming and return all buffers to the
+> app. This is what uvc should also support (and I actually thought it did).
+> 
+> Attempts to change formats while buffers have been requested should be blocked
+> with EBUSY. It's all perfectly reasonable. Well, perhaps next year we might
+> succeed in having all drivers behave consistently...
 
-Hmm. If I should fix keyup events, the most reliable version would 
-probably be something like:
+You didn't understand me: uvcvideo is returning -EBUSY to format changes with
+buffers freed.
 
-if (rx[8] & 0x01) {
-   int currentkey = rx[2]; // or (rx[3]<<  8) | rx[2];
-   if (currentkey == lastkey)
-     rc_repeat(lastkey);
-   else {
-     if (lastkey)
-       rc_keyup(lastkey);
-     lastkey = currentkey;
-     rc_keydown(currentkey);
-   }
-}
-else if (lastkey) {
-   rc_keyup(lastkey);
-   lastkey = 0;
-}
+If I understood well, during probe time, qv4l2 calls REQBUFS(1)/REQBUFS(0) for both
+userptr and mmap, in order to detect what the device supports. This takes some locking
+schema inside uvcvideo, but, as uvcvideo is only releasing such lock at close(),
+it is impossible to change the video format. I even added an extra STREAMOFF at qv4l2
+code, but this didn't solve the issue.
 
-Does this sound reasonable to you?
+Well, maybe better than explaining it, you should try to change the video image size
+or format with qv4l2 and an uvc camera ;)
 
->
->> +		/* got a "press" event */
->> +		deb_info("%s: cmd=0x%02x sys=0x%02x\n", __func__, rx[2], rx[3]);
->> +		rc_keydown(d->rc_dev, rx[2], 0);
->> +	}
->
-> As you're receiving both command+address, please use the complete code:
-> 	rc_keydown(d->rc_dev, (rx[3]<<  8) | rx[2], 0);
-
-I've tried this, but it stops working. evtest shows only scancode 
-events, so my guess is that this makes it incompatible with 
-RC_MAP_TT_1500, which lists only the lower byte.
-
-> Also as it is receiving 8 bytes from the device, maybe the IR decoding logic is
-> capable of decoding more than just one protocol. Such feature is nice, as it
-> allows replacing the original keycode table by a more complete one.
-
-I've tried dumping all nine bytes but I can't make much out of it as I'm 
-unfamiliar with RC protocols and decoders.
-
-Typical reply is (no key pressed):
-
-cc 35 0b 15 00 03 00 00 00
-
-Does this tell you anything?
-
-> One of the most interesting features of the new RC code is that it offers
-> a sysfs class and some additional logic to allow dynamically change/replace
-> the keymaps and keycodes via userspace. The idea is to remove all in-kernel
-> keymaps in the future, using, instead, the userspace way, via ir-keytable
-> tool, available at:
-> 	http://git.linuxtv.org/v4l-utils.git
->
-> The tool already supports auto-loading the keymap via udev.
->
-> For IR's where we don't know the protocol or that we don't have the full scancode,
-> loading the keymap via userspace will not bring any new feature. But, for those
-> devices where we can be sure about the protocol and for those that also allow
-> using other protocols, users can just replace the device-provided IR with a more
-> powerful remote controller with more keys.
-
-Yeah, that sounds like a really nice feature.
-
-> So, it would be wonderful if you could identify what's the supported protocol(s)
-> instead of using RC_TYPE_UNKNOWN. You can double check the protocol if you have
-> with you another RC device that supports raw decoding. The rc-core internal decoders
-> will tell you what protocol was used to decode a keycode, if you enable debug.
-
-I don't have any such RC receiver device. I do have a Logitech Harmony 
-525, so I tried pointing that one towards the CT 3650, but 
-CMD_GET_IR_CODE didn't change for any of the devices I've currently told 
-my Harmony to emulate.
-
-So I don't really see how I can help further in this case?
-
--- 
-David Henningsson, Canonical Ltd.
-http://launchpad.net/~diwic
+Cheers,
+Mauro
