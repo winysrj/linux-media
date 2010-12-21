@@ -1,65 +1,58 @@
 Return-path: <mchehab@gaivota>
-Received: from moutng.kundenserver.de ([212.227.17.10]:64125 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752304Ab0LZRpF (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:42250 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752862Ab0LUXzv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Dec 2010 12:45:05 -0500
-Date: Sun, 26 Dec 2010 18:45:00 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	linux-arch@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Arnd Bergmann <arnd@arndb.de>,
-	Dan Williams <dan.j.williams@intel.com>,
-	linux-sh@vger.kernel.org, Paul Mundt <lethal@linux-sh.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-usb@vger.kernel.org,
-	David Brownell <dbrownell@users.sourceforge.net>,
-	linux-media@vger.kernel.org, linux-scsi@vger.kernel.org,
-	"James E.J. Bottomley" <James.Bottomley@suse.de>,
-	Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH] dma_declare_coherent_memory: push ioremap() up to caller
-In-Reply-To: <201012250024.38576.jkrzyszt@tis.icnet.pl>
-Message-ID: <Pine.LNX.4.64.1012261837450.20458@axis700.grange>
-References: <201012240020.37208.jkrzyszt@tis.icnet.pl>
- <201012241455.30430.jkrzyszt@tis.icnet.pl> <20101224154120.GH20587@n2100.arm.linux.org.uk>
- <201012250024.38576.jkrzyszt@tis.icnet.pl>
+	Tue, 21 Dec 2010 18:55:51 -0500
+Message-ID: <4D113E7C.7000307@infradead.org>
+Date: Tue, 21 Dec 2010 21:55:40 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Thiago Farina <tfransosi@gmail.com>
+CC: Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] drivers/media/video/v4l2-compat-ioctl32.c: Check the
+ return value of copy_to_user
+References: <d21ad74592c295d59f5806f30a053745b5765397.1292894256.git.tfransosi@gmail.com>	<201012211925.38201.arnd@arndb.de> <AANLkTikbvST_B+4x3Xt=gxFhM1TBOrXVc1HjZT3zTXrt@mail.gmail.com>
+In-Reply-To: <AANLkTikbvST_B+4x3Xt=gxFhM1TBOrXVc1HjZT3zTXrt@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Sat, 25 Dec 2010, Janusz Krzysztofik wrote:
-
-[snip]
-
-> > Passing the virtual address allows the API to become much more
-> > flexible. Not only that, it allows it to be used on ARM, rather than
-> > becoming (as it currently stands) prohibited on ARM.
-> >
-> > I believe that putting ioremap() inside this API was the wrong thing
-> > to do, and moving it outside makes the API much more flexible and
-> > usable. It's something I still fully support.
+Em 21-12-2010 16:34, Thiago Farina escreveu:
+> On Tue, Dec 21, 2010 at 4:25 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+>> On Tuesday 21 December 2010 02:18:06 Thiago Farina wrote:
+>>> diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
+>>> index e30e8df..55825ec 100644
+>>> --- a/drivers/media/video/v4l2-compat-ioctl32.c
+>>> +++ b/drivers/media/video/v4l2-compat-ioctl32.c
+>>> @@ -206,7 +206,9 @@ static struct video_code __user *get_microcode32(struct video_code32 *kp)
+>>>          * user address is invalid, the native ioctl will do
+>>>          * the error handling for us
+>>>          */
+>>> -       (void) copy_to_user(up->loadwhat, kp->loadwhat, sizeof(up->loadwhat));
+>>> +       if (copy_to_user(up->loadwhat, kp->loadwhat, sizeof(up->loadwhat)))
+>>> +               return NULL;
+>>> +
+>>>         (void) put_user(kp->datasize, &up->datasize);
+>>>         (void) put_user(compat_ptr(kp->data), &up->data);
+>>>         return up;
+>>
+>> Did you read the comment above the code you changed?
+>>
+> Yes, I read, but I went ahead.
 > 
-> Thanks, this is what I was missing, having my point of view rather my 
-> machine centric, with not much wider experience. I'll quote your 
-> argumentation in next iteration of this patch if required.
+>> You can probably change this function to look at the return code of
+>> copy_to_user, but then you need to treat the put_user return code
+>> the same, and change the comment.
+>>
+> 
+> Right, I will do the same with put_user, but I'm afraid of changing the comment.
 
-AFAIU, this patch is similar to the previous two attempts:
+Well, we should just remove all V4L1 stuff for .38, so I don't see much sense on keeping
+the VIDIOCGMICROCODE32 compat stuff.
 
-http://www.spinics.net/lists/linux-sh/msg05482.html
-and
-http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/22271
-
-but is even more intrusive, because those two previous attempts added new 
-functions, whereas this one is modifying an existing one. Both those two 
-attempts have been NACKed by FUJITA Tomonori, btw, he is not on the 
-otherwise extensive CC list for this patch.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Cheers,
+Mauro
