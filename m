@@ -1,44 +1,70 @@
 Return-path: <mchehab@gaivota>
-Received: from 124x34x33x190.ap124.ftth.ucom.ne.jp ([124.34.33.190]:44375 "EHLO
-	master.linux-sh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752533Ab0LXCAf (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3922 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751777Ab0LUQWy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Dec 2010 21:00:35 -0500
-Date: Fri, 24 Dec 2010 10:58:59 +0900
-From: Paul Mundt <lethal@linux-sh.org>
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: linux-arch@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Dan Williams <dan.j.williams@intel.com>,
-	linux-sh@vger.kernel.org, Sascha Hauer <kernel@pengutronix.de>,
-	linux-usb@vger.kernel.org,
-	David Brownell <dbrownell@users.sourceforge.net>,
-	linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-scsi@vger.kernel.org,
-	"James E.J. Bottomley" <James.Bottomley@suse.de>,
-	Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH] dma_declare_coherent_memory: push ioremap() up to caller
-Message-ID: <20101224015858.GG28151@linux-sh.org>
-References: <201012240020.37208.jkrzyszt@tis.icnet.pl>
+	Tue, 21 Dec 2010 11:22:54 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC/PATCH v7 03/12] media: Entities, pads and links
+Date: Tue, 21 Dec 2010 17:22:39 +0100
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
+	clemens@ladisch.de, gregkh@suse.de,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1292844995-7900-1-git-send-email-laurent.pinchart@ideasonboard.com> <1292844995-7900-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1292844995-7900-4-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201012240020.37208.jkrzyszt@tis.icnet.pl>
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201012211722.39810.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Fri, Dec 24, 2010 at 12:20:32AM +0100, Janusz Krzysztofik wrote:
-> Tested on ARM OMAP1 based Amstrad Delta with a WIP OMAP1 camera patch, 
-> patterned upon two mach-mx3 machine types which already try to use the 
-> dma_declare_coherent_memory() method for reserving a region of system 
-> RAM preallocated with another dma_alloc_coherent(). Compile tested for 
-> all modified files except arch/sh/drivers/pci/fixups-dreamcast.c.
-> 
-> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Hi Laurent,
 
-The arch/sh/drivers/pci/fixups-dreamcast.c build fine.
+I promised to look at the new type names, so here is my opinion:
 
-Acked-by: Paul Mundt <lethal@linux-sh.org>
+On Monday, December 20, 2010 12:36:26 Laurent Pinchart wrote:
+
+<snip>
+
+> +
+> +#define MEDIA_ENTITY_TYPE_SHIFT			16
+> +#define MEDIA_ENTITY_TYPE_MASK			0x00ff0000
+> +#define MEDIA_ENTITY_SUBTYPE_MASK		0x0000ffff
+> +
+> +#define MEDIA_ENTITY_TYPE_DEVNODE		(1 << MEDIA_ENTITY_TYPE_SHIFT)
+> +#define MEDIA_ENTITY_TYPE_DEVNODE_V4L		(MEDIA_ENTITY_TYPE_DEVNODE + 1)
+> +#define MEDIA_ENTITY_TYPE_DEVNODE_FB		(MEDIA_ENTITY_TYPE_DEVNODE + 2)
+> +#define MEDIA_ENTITY_TYPE_DEVNODE_ALSA		(MEDIA_ENTITY_TYPE_DEVNODE + 3)
+> +#define MEDIA_ENTITY_TYPE_DEVNODE_DVB		(MEDIA_ENTITY_TYPE_DEVNODE + 4)
+> +
+> +#define MEDIA_ENTITY_TYPE_V4L2_SUBDEV		(2 << MEDIA_ENTITY_TYPE_SHIFT)
+> +#define MEDIA_ENTITY_TYPE_V4L2_SUBDEV_SENSOR	(MEDIA_ENTITY_TYPE_V4L2_SUBDEV + 1)
+> +#define MEDIA_ENTITY_TYPE_V4L2_SUBDEV_FLASH	(MEDIA_ENTITY_TYPE_V4L2_SUBDEV + 2)
+> +#define MEDIA_ENTITY_TYPE_V4L2_SUBDEV_LENS	(MEDIA_ENTITY_TYPE_V4L2_SUBDEV + 3)
+> +
+> +#define MEDIA_ENTITY_FLAG_DEFAULT		(1 << 0)
+> +
+> +#define MEDIA_LINK_FLAG_ENABLED			(1 << 0)
+> +#define MEDIA_LINK_FLAG_IMMUTABLE		(1 << 1)
+> +
+> +#define MEDIA_PAD_FLAG_INPUT			(1 << 0)
+> +#define MEDIA_PAD_FLAG_OUTPUT			(1 << 1)
+
+Using V4L2_SUBDEV instead of just SUBDEV is definitely an improvement.
+
+However, I think the defines are getting way too long and I would propose
+to use the ME_ prefix instead of MEDIA_ENTITY_. Also ML_ instead of MEDIA_LINK_
+and MP_ instead of MEDIA_PAD_.
+
+That way it is less of an alphabet soup when reading code.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
