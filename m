@@ -1,44 +1,49 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:41675 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751535Ab0L1K1T (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Dec 2010 05:27:19 -0500
-Message-ID: <4D19BB7D.2050304@redhat.com>
-Date: Tue, 28 Dec 2010 08:27:09 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Linus Torvalds <torvalds@linux-foundation.org>
-CC: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for 2.6.37-rc7] V4L fix
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.samsung.com ([203.254.224.24]:19807 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750742Ab0LULOG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Dec 2010 06:14:06 -0500
+Date: Tue, 21 Dec 2010 11:52:22 +0100
+From: Kamil Debski <k.debski@samsung.com>
+Subject: RE: [RFC/PATCH v5 0/4] Multi Format Codec 5.1 driver for S5PC110 SoC
+In-reply-to: <1292925318-2911-1-git-send-email-k.debski@samsung.com>
+To: 'Kamil Debski' <k.debski@samsung.com>, linux-media@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>, pawel@osciak.com,
+	kyungmin.park@samsung.com, jaeryul.oh@samsung.com,
+	kgene.kim@samsung.com
+Message-id: <000d01cba0fd$28db6cb0$7a924610$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: en-gb
+Content-transfer-encoding: 7BIT
+References: <1292925318-2911-1-git-send-email-k.debski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Linus,
+Hi,
 
-Please pull from:
-  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
+I have attached wrong patches, please ignore this patch set (the sent driver
+was still using older videobuf2).
+I will resend proper patches soon.
 
-It is a regression fix for soc_camera driver.
+Sorry for any trouble it might have caused.
 
-Thanks!
-Mauro
+Best wishes,
+Kamil Debski
 
--
+> 
+> I have applied changes suggested by Kukjin Kim. Also cache handling has
+> been
+> improved.
+> 
+> I would be grateful for your comments. Original cover letter ant
+> detailed change
+> log has been attached below.
+> 
+> Best regards,
+> Kamil Debski
 
-The following changes since commit 501aaa110a4269c99eff9736a81b5f93bb8b59be:
-
-  [media] mceusb: set a default rx timeout (2010-12-20 14:11:18 -0200)
-
-are available in the git repository at:
-  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
-
-Guennadi Liakhovetski (1):
-      [media] v4l: soc-camera: fix multiple simultaneous user case
-
- drivers/media/video/soc_camera.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+[snip]
 
