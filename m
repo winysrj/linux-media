@@ -1,135 +1,104 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:58191 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752618Ab0L1Xdy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Dec 2010 18:33:54 -0500
-Message-ID: <4D1A73DE.2030900@gmail.com>
-Date: Wed, 29 Dec 2010 00:33:50 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:54417 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751042Ab0LUSbg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Dec 2010 13:31:36 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oBLIVZff015230
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 21 Dec 2010 13:31:36 -0500
+Date: Tue, 21 Dec 2010 13:31:35 -0500
+From: Jarod Wilson <jarod@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL] IR fixups for 2.6.37
+Message-ID: <20101221183135.GC29880@redhat.com>
+References: <20101216190302.GA25148@redhat.com>
+ <4D10ADB5.80405@redhat.com>
 MIME-Version: 1.0
-To: Hyunwoong Kim <khw0178.kim@samsung.com>
-CC: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	s.nawrocki@samsung.com
-Subject: Re: [PATCH] [media] s5p-fimc: Support stop_streaming and job_abort
-References: <1293523616-27421-1-git-send-email-khw0178.kim@samsung.com>
-In-Reply-To: <1293523616-27421-1-git-send-email-khw0178.kim@samsung.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <4D10ADB5.80405@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On 12/28/2010 09:06 AM, Hyunwoong Kim wrote:
-> This patch adds callback functions, stop_streaming and job_abort,
-> to abort or finish any DMA in progress. stop_streaming is called
-> by videobuf2 framework and job_abort is called by m2m framework.
-> ST_M2M_PEND state is added to discard the next job.
->
-> Reviewed-by: Jonghun Han<jonghun.han@samsung.com>
-> Signed-off-by: Hyunwoong Kim<khw0178.kim@samsung.com>
-> ---
-> This patch is depended on Hyunwoong Kim's last patch.
-> - [PATCH v2] [media] s5p-fimc: Configure scaler registers depending on FIMC version
->
->   drivers/media/video/s5p-fimc/fimc-core.c |   41 ++++++++++++++++++++++++++++-
->   drivers/media/video/s5p-fimc/fimc-core.h |    1 +
->   2 files changed, 40 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-> index 2b65961..0eeb6a5 100644
-> --- a/drivers/media/video/s5p-fimc/fimc-core.c
-> +++ b/drivers/media/video/s5p-fimc/fimc-core.c
-> @@ -308,6 +308,26 @@ int fimc_set_scaler_info(struct fimc_ctx *ctx)
->   	return 0;
->   }
->
-> +static int stop_streaming(struct vb2_queue *q)
-> +{
-> +	struct fimc_ctx *ctx = q->drv_priv;
-> +	struct fimc_dev *fimc = ctx->fimc_dev;
-> +	unsigned long flags;
-> +
-> +	if (!fimc_m2m_pending(fimc))
-> +		return 0;
-> +
-> +	spin_lock_irqsave(&fimc->slock, flags);
-> +	set_bit(ST_M2M_SHUT,&fimc->state);
-> +	spin_unlock_irqrestore(&fimc->slock, flags);
+On Tue, Dec 21, 2010 at 11:37:57AM -0200, Mauro Carvalho Chehab wrote:
+> Em 16-12-2010 17:03, Jarod Wilson escreveu:
+> > Hey Mauro,
+> > 
+> > As previously discussed, here's a handful of IR patches I'd like to see
+> > make it into 2.6.37 still, as they fix a number of issues with the
+> > mceusb, streamzap, nuvoton and lirc_dev drivers.
+> > 
+> > The last three mceusb patches are not yet in the v4l/dvb tree, but I've
+> > just posted them.
+> > 
+> > The following changes since commit b0c3844d8af6b9f3f18f31e1b0502fbefa2166be:
+> > 
+> >   Linux 2.6.37-rc6 (2010-12-15 17:24:48 -0800)
+> > 
+> > are available in the git repository at:
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/jarod/linux-2.6-ir.git for-2.6.37
+> > 
+> > Dan Carpenter (2):
+> >       [media] lirc_dev: stray unlock in lirc_dev_fop_poll()
+> >       [media] lirc_dev: fixes in lirc_dev_fop_read()
+> > 
+> > Jarod Wilson (10):
+> >       [media] mceusb: add support for Conexant Hybrid TV RDU253S
+> >       [media] nuvoton-cir: improve buffer parsing responsiveness
+> >       [media] mceusb: fix up reporting of trailing space
+> >       [media] mceusb: buffer parsing fixups for 1st-gen device
+> >       [media] IR: add tv power scancode to rc6 mce keymap
+> >       [media] mceusb: fix keybouce issue after parser simplification
+> >       [media] streamzap: merge timeout space with trailing space
+> >       mceusb: add another Fintek device ID
+> >       mceusb: fix inverted mask inversion logic
+> >       mceusb: set a default rx timeout
+> > 
+> > Paul Bender (1):
+> >       rc: fix sysfs entry for mceusb and streamzap
+> > 
+> >  drivers/media/IR/keymaps/rc-rc6-mce.c |   21 ++--
+> >  drivers/media/IR/lirc_dev.c           |   29 +++---
+> >  drivers/media/IR/mceusb.c             |  174 ++++++++++++++++++++------------
+> >  drivers/media/IR/nuvoton-cir.c        |   10 ++-
+> >  drivers/media/IR/streamzap.c          |   21 +++--
+> >  5 files changed, 156 insertions(+), 99 deletions(-)
+> > 
+> 
+> Hi Jarod,
+> 
+> I've pulled from your tree and added them at the master branch of my -next tree, at:
+> 	http://git.kernel.org/?p=linux/kernel/git/mchehab/linux-next.git
+> 
+> As we've discussed on #lirc channel, I solved the conflicts at mceusb and streamzap
+> by just doing a diff between the merged tree and:
+> 	ssh://linuxtv.org/git/jarod/linux-2.6-ir.git for-2.6.38
+> 
+> The merge patch had a weird diff, as it just showed the mceusb.c driver as a new one,
+> so I suspect that it might have something wrong at the conflict resolution.
 
-I think you can safely remove the spinlock protection there.
-IMHO it doesn't earn as anything when set_bit is atomic.
+Hrm, yeah, diff is a bit odd, but the resulting mceusb.c looks correct.
 
-> +
-> +	wait_event_timeout(fimc->irq_queue,
-> +			!test_bit(ST_M2M_SHUT,&fimc->state),
-> +			FIMC_SHUTDOWN_TIMEOUT);
-> +
-> +	return 0;
-> +}
-> +
->   static void fimc_capture_handler(struct fimc_dev *fimc)
->   {
->   	struct fimc_vid_cap *cap =&fimc->vid_cap;
-> @@ -359,7 +379,10 @@ static irqreturn_t fimc_isr(int irq, void *priv)
->
->   	spin_lock(&fimc->slock);
->
-> -	if (test_and_clear_bit(ST_M2M_PEND,&fimc->state)) {
-> +	if (test_and_clear_bit(ST_M2M_SHUT,&fimc->state)) {
-> +		wake_up(&fimc->irq_queue);
-> +		goto isr_unlock;
-> +	} else if (test_and_clear_bit(ST_M2M_PEND,&fimc->state)) {
->   		struct vb2_buffer *src_vb, *dst_vb;
->   		struct fimc_ctx *ctx = v4l2_m2m_get_curr_priv(fimc->m2m.m2m_dev);
->
-> @@ -639,7 +662,20 @@ dma_unlock:
->
->   static void fimc_job_abort(void *priv)
->   {
-> -	/* Nothing done in job_abort. */
-> +	struct fimc_ctx *ctx = priv;
-> +	struct fimc_dev *fimc = ctx->fimc_dev;
-> +	unsigned long flags;
-> +
-> +	if (!fimc_m2m_pending(fimc))
-> +		return;
-> +
-> +	spin_lock_irqsave(&fimc->slock, flags);
-> +	set_bit(ST_M2M_SHUT,&fimc->state);
-> +	spin_unlock_irqrestore(&fimc->slock, flags);
+> Also, there's one small error generated with allyesconfig:
+> 
+> drivers/media/rc/streamzap.c: In function ‘streamzap_probe’:
+> drivers/media/rc/streamzap.c:460:2: warning: statement with no effect
 
-Ditto.
+Hm. That's pointing at the line that loads the rc5-sz decoder. With an
+allyesconfig, that does become a no-op, since the decoder would already be
+built in, so I think that should be fine. At least, it should be no
+different than any of the other decoders, except for where they're loaded
+from.
 
-Otherwise looks good.
+> Could you please take a look on both things, to double check if everything is ok?
 
-> +
-> +	wait_event_timeout(fimc->irq_queue,
-> +			!test_bit(ST_M2M_SHUT,&fimc->state),
-> +			FIMC_SHUTDOWN_TIMEOUT);
->   }
->
->   static int fimc_queue_setup(struct vb2_queue *vq, unsigned int *num_buffers,
-> @@ -716,6 +752,7 @@ struct vb2_ops fimc_qops = {
->   	.buf_queue	 = fimc_buf_queue,
->   	.wait_prepare	 = fimc_unlock,
->   	.wait_finish	 = fimc_lock,
-> +	.stop_streaming	 = stop_streaming,
->   };
->
->   static int fimc_m2m_querycap(struct file *file, void *priv,
-> diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-> index d690398..150792d 100644
-> --- a/drivers/media/video/s5p-fimc/fimc-core.h
-> +++ b/drivers/media/video/s5p-fimc/fimc-core.h
-> @@ -51,6 +51,7 @@ enum fimc_dev_flags {
->   	ST_IDLE,
->   	ST_OUTDMA_RUN,
->   	ST_M2M_PEND,
-> +	ST_M2M_SHUT,
->   	/* for capture node */
->   	ST_CAPT_PEND,
->   	ST_CAPT_RUN,
+Looks good to me.
 
---
-Thanks,
-Sylwester
+
+-- 
+Jarod Wilson
+jarod@redhat.com
+
