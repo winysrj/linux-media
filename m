@@ -1,43 +1,68 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:62492 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751050Ab0LaFcI (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:23107 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751846Ab0LUNUd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Dec 2010 00:32:08 -0500
-Message-ID: <4d1d6ad7.857a0e0a.45e5.ffffd91b@mx.google.com>
-From: "Igor M. Liplianin" <liplianin@me.by>
-Date: Fri, 27 Aug 2010 14:43:07 +0400
-Subject: [PATCH 09/18] stv0367: Fix potential divide error
-To: <mchehab@infradead.org>, linux-media@vger.kernel.org,
-	<linux-kernel@vger.kernel.org>, <aospan@netup.ru>
+	Tue, 21 Dec 2010 08:20:33 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Tue, 21 Dec 2010 14:20:11 +0100
+From: Kamil Debski <k.debski@samsung.com>
+Subject: [RFC/PATCH v5 4/4] s5pv210: Enable MFC on Goni
+In-reply-to: <1292937611-3362-1-git-send-email-k.debski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, k.debski@samsung.com,
+	jaeryul.oh@samsung.com, kgene.kim@samsung.com
+Message-id: <1292937611-3362-5-git-send-email-k.debski@samsung.com>
+References: <1292937611-3362-1-git-send-email-k.debski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Signed-off-by: Igor M. Liplianin <liplianin@netup.ru>
----
- drivers/media/dvb/frontends/stv0367.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+This patch enables MFC 5.1 on Goni board. Multi Format Codec 5.1 is capable
+of handling a range of video codecs.
 
-diff --git a/drivers/media/dvb/frontends/stv0367.c b/drivers/media/dvb/frontends/stv0367.c
-index 0575741..e6bee7f 100644
---- a/drivers/media/dvb/frontends/stv0367.c
-+++ b/drivers/media/dvb/frontends/stv0367.c
-@@ -3275,12 +3275,14 @@ static int stv0367cab_read_snr(struct dvb_frontend *fe, u16 *snr)
- 		power = 1;
- 		break;
- 	}
-+
- 	for (i = 0; i < 10; i++) {
- 		regval += (stv0367_readbits(state, F367CAB_SNR_LO)
- 			+ 256 * stv0367_readbits(state, F367CAB_SNR_HI));
- 	}
-+
-+	regval /= 10; /*for average over 10 times in for loop above*/
- 	if (regval != 0) {
--		regval /= 10; /*for average over 10 times in for loop above*/
- 		temp = power
- 			* (1 << (3 + stv0367_readbits(state, F367CAB_SNR_PER)));
- 		temp /= regval;
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ arch/arm/mach-s5pv210/Kconfig     |    1 +
+ arch/arm/mach-s5pv210/mach-goni.c |    3 ++-
+ 2 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-s5pv210/Kconfig b/arch/arm/mach-s5pv210/Kconfig
+index c45a1b7..43f408d 100644
+--- a/arch/arm/mach-s5pv210/Kconfig
++++ b/arch/arm/mach-s5pv210/Kconfig
+@@ -85,6 +85,7 @@ config MACH_GONI
+ 	select S3C_DEV_HSMMC2
+ 	select S3C_DEV_I2C1
+ 	select S3C_DEV_I2C2
++	select S5P_DEV_MFC
+ 	select S3C_DEV_USB_HSOTG
+ 	select S5P_DEV_ONENAND
+ 	select SAMSUNG_DEV_KEYPAD
+diff --git a/arch/arm/mach-s5pv210/mach-goni.c b/arch/arm/mach-s5pv210/mach-goni.c
+index 8d19ead..553a60e 100644
+--- a/arch/arm/mach-s5pv210/mach-goni.c
++++ b/arch/arm/mach-s5pv210/mach-goni.c
+@@ -810,6 +810,7 @@ static struct platform_device *goni_devices[] __initdata = {
+ 	&goni_i2c_gpio5,
+ 	&mmc2_fixed_voltage,
+ 	&goni_device_gpiokeys,
++	&s5p_device_mfc,
+ 	&s5p_device_fimc0,
+ 	&s5p_device_fimc1,
+ 	&s5p_device_fimc2,
+@@ -857,7 +858,7 @@ static void __init goni_reserve(void)
+ 	};
+ 
+ 	static const char map[] __initconst =
+-		"s5p-mfc5/f=fw;s5p-mfc5/a=b1;s5p-mfc5/b=b2;*=b1,b2";
++		"s5p-mfc/f=fw;s5p-mfc/a=b1;s5p-mfc/b=b2;*=b1,b2";
+ 
+ 	cma_set_defaults(regions, map);
+ 	cma_early_regions_reserve(NULL);
 -- 
-1.7.1
+1.6.3.3
 
