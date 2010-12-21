@@ -1,48 +1,165 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:62663 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752108Ab0L0LlL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Dec 2010 06:41:11 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oBRBfBYw014371
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 27 Dec 2010 06:41:11 -0500
-Received: from gaivota (vpn-11-156.rdu.redhat.com [10.11.11.156])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id oBRBd1iO001764
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 27 Dec 2010 06:41:09 -0500
-Date: Mon, 27 Dec 2010 09:38:29 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 6/6] [media] omap_vout: Remove an obsolete comment
-Message-ID: <20101227093829.4a5d60ca@gaivota>
-In-Reply-To: <cover.1293449547.git.mchehab@redhat.com>
-References: <cover.1293449547.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from ganesha.gnumonks.org ([213.95.27.120]:44009 "EHLO
+	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750907Ab0LUMC1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Dec 2010 07:02:27 -0500
+From: Hyunwoong Kim <khw0178.kim@samsung.com>
+To: s.nawrocki@samsung.com
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	Hyunwoong Kim <khw0178.kim@samsung.com>
+Subject: [PATCH v3.1] [media] s5p-fimc: fix the value of YUV422 1-plane formats
+Date: Tue, 21 Dec 2010 20:40:59 +0900
+Message-Id: <1292931659-5116-1-git-send-email-khw0178.kim@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-This comment mentions a field that doesn't exist, and talks about
-videodev.h that got removed. So, it doesn't make any sense to keep
-it.
+Some color formats are mismatched in s5p-fimc driver.
+CIOCTRL[1:0], order422_out, should be set 2b'00 not 2b'11
+to use V4L2_PIX_FMT_YUYV. Because in V4L2 standard V4L2_PIX_FMT_YUYV means
+"start + 0: Y'00 Cb00 Y'01 Cr00 Y'02 Cb01 Y'03 Cr01". According to datasheet
+2b'00 is right value for V4L2_PIX_FMT_YUYV.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---------------------------------------------------------
+bit |    MSB                                        LSB
+---------------------------------------------------------
+00  |  Cr1    Y3    Cb1    Y2    Cr0    Y1    Cb0    Y0
+---------------------------------------------------------
+01  |  Cb1    Y3    Cr1    Y2    Cb0    Y1    Cr0    Y0
+---------------------------------------------------------
+10  |  Y3    Cr1    Y2    Cb1    Y1    Cr0    Y0    Cb0
+---------------------------------------------------------
+11  |  Y3    Cb1    Y2    Cr1    Y1    Cb0    Y0    Cr0
+---------------------------------------------------------
 
-diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
-index 15f8793..83de97a 100644
---- a/drivers/media/video/omap/omap_vout.c
-+++ b/drivers/media/video/omap/omap_vout.c
-@@ -2230,7 +2230,6 @@ static int __init omap_vout_setup_video_data(struct omap_vout_device *vout)
+V4L2_PIX_FMT_YVYU, V4L2_PIX_FMT_UYVY, V4L2_PIX_FMT_VYUY are also mismatched
+with datasheet. MSCTRL[17:16], order2p_in, is also mismatched
+in V4L2_PIX_FMT_UYVY, V4L2_PIX_FMT_YVYU.
+
+Reviewed-by: Jonghun Han <jonghun.han@samsung.com>
+Signed-off-by: Hyunwoong Kim <khw0178.kim@samsung.com>
+---
+This patch is depended on Marek's patches.
+- [PATCH 1/4] v4l: mem2mem: port to videobuf2
+- [PATCH 2/4] [media] s5p-fimc: Porting to videobuf 2
+- [PATCH 3/4] [media] s5p-fimc: Conversion to multiplanar formats
+- [PATCH 4/4] [media] s5p-fimc: Use v4l core mutex in ioctl and file operations 
  
- 	strlcpy(vfd->name, VOUT_NAME, sizeof(vfd->name));
+Changes since V2:
+- Correct the name of Output DMA control register
+- Change definitions of YUV422 input/outut format with datasheet
+  commented by Sylwester Nawrocki.
+
+Changes since V1:
+- make corrections directly in function fimc_set_yuv_order
+  commented by Sylwester Nawrocki.
+- remove S5P_FIMC_IN_* and S5P_FIMC_OUT_* definitions from fimc-core.h
+
+drivers/media/video/s5p-fimc/fimc-core.c |   16 ++++++++--------
+ drivers/media/video/s5p-fimc/fimc-core.h |   12 ------------
+ drivers/media/video/s5p-fimc/regs-fimc.h |   12 ++++++------
+ 3 files changed, 14 insertions(+), 26 deletions(-)
+
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index 7f56987..e2b3db1 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -448,34 +448,34 @@ static void fimc_set_yuv_order(struct fimc_ctx *ctx)
+ 	/* Set order for 1 plane input formats. */
+ 	switch (ctx->s_frame.fmt->color) {
+ 	case S5P_FIMC_YCRYCB422:
+-		ctx->in_order_1p = S5P_FIMC_IN_YCRYCB;
++		ctx->in_order_1p = S5P_MSCTRL_ORDER422_CBYCRY;
+ 		break;
+ 	case S5P_FIMC_CBYCRY422:
+-		ctx->in_order_1p = S5P_FIMC_IN_CBYCRY;
++		ctx->in_order_1p = S5P_MSCTRL_ORDER422_YCRYCB;
+ 		break;
+ 	case S5P_FIMC_CRYCBY422:
+-		ctx->in_order_1p = S5P_FIMC_IN_CRYCBY;
++		ctx->in_order_1p = S5P_MSCTRL_ORDER422_YCBYCR;
+ 		break;
+ 	case S5P_FIMC_YCBYCR422:
+ 	default:
+-		ctx->in_order_1p = S5P_FIMC_IN_YCBYCR;
++		ctx->in_order_1p = S5P_MSCTRL_ORDER422_CRYCBY;
+ 		break;
+ 	}
+ 	dbg("ctx->in_order_1p= %d", ctx->in_order_1p);
  
--	/* need to register for a VID_HARDWARE_* ID in videodev.h */
- 	vfd->fops = &omap_vout_fops;
- 	vfd->v4l2_dev = &vout->vid_dev->v4l2_dev;
- 	mutex_init(&vout->lock);
+ 	switch (ctx->d_frame.fmt->color) {
+ 	case S5P_FIMC_YCRYCB422:
+-		ctx->out_order_1p = S5P_FIMC_OUT_YCRYCB;
++		ctx->out_order_1p = S5P_CIOCTRL_ORDER422_CBYCRY;
+ 		break;
+ 	case S5P_FIMC_CBYCRY422:
+-		ctx->out_order_1p = S5P_FIMC_OUT_CBYCRY;
++		ctx->out_order_1p = S5P_CIOCTRL_ORDER422_YCRYCB;
+ 		break;
+ 	case S5P_FIMC_CRYCBY422:
+-		ctx->out_order_1p = S5P_FIMC_OUT_CRYCBY;
++		ctx->out_order_1p = S5P_CIOCTRL_ORDER422_YCBYCR;
+ 		break;
+ 	case S5P_FIMC_YCBYCR422:
+ 	default:
+-		ctx->out_order_1p = S5P_FIMC_OUT_YCBYCR;
++		ctx->out_order_1p = S5P_CIOCTRL_ORDER422_CRYCBY;
+ 		break;
+ 	}
+ 	dbg("ctx->out_order_1p= %d", ctx->out_order_1p);
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+index 4efc1a1..92cca62 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.h
++++ b/drivers/media/video/s5p-fimc/fimc-core.h
+@@ -95,18 +95,6 @@ enum fimc_color_fmt {
+ 
+ #define fimc_fmt_is_rgb(x) ((x) & 0x10)
+ 
+-/* Y/Cb/Cr components order at DMA output for 1 plane YCbCr 4:2:2 formats. */
+-#define	S5P_FIMC_OUT_CRYCBY	S5P_CIOCTRL_ORDER422_YCBYCR
+-#define	S5P_FIMC_OUT_CBYCRY	S5P_CIOCTRL_ORDER422_CBYCRY
+-#define	S5P_FIMC_OUT_YCRYCB	S5P_CIOCTRL_ORDER422_YCRYCB
+-#define	S5P_FIMC_OUT_YCBYCR	S5P_CIOCTRL_ORDER422_CRYCBY
+-
+-/* Input Y/Cb/Cr components order for 1 plane YCbCr 4:2:2 color formats. */
+-#define	S5P_FIMC_IN_CRYCBY	S5P_MSCTRL_ORDER422_CRYCBY
+-#define	S5P_FIMC_IN_CBYCRY	S5P_MSCTRL_ORDER422_CBYCRY
+-#define	S5P_FIMC_IN_YCRYCB	S5P_MSCTRL_ORDER422_YCRYCB
+-#define	S5P_FIMC_IN_YCBYCR	S5P_MSCTRL_ORDER422_YCBYCR
+-
+ /* Cb/Cr chrominance components order for 2 plane Y/CbCr 4:2:2 formats. */
+ #define	S5P_FIMC_LSB_CRCB	S5P_CIOCTRL_ORDER422_2P_LSB_CRCB
+ 
+diff --git a/drivers/media/video/s5p-fimc/regs-fimc.h b/drivers/media/video/s5p-fimc/regs-fimc.h
+index 57e33f8..cd86c18 100644
+--- a/drivers/media/video/s5p-fimc/regs-fimc.h
++++ b/drivers/media/video/s5p-fimc/regs-fimc.h
+@@ -98,8 +98,8 @@
+ #define S5P_CIOCTRL			0x4c
+ #define S5P_CIOCTRL_ORDER422_MASK	(3 << 0)
+ #define S5P_CIOCTRL_ORDER422_CRYCBY	(0 << 0)
+-#define S5P_CIOCTRL_ORDER422_YCRYCB	(1 << 0)
+-#define S5P_CIOCTRL_ORDER422_CBYCRY	(2 << 0)
++#define S5P_CIOCTRL_ORDER422_CBYCRY	(1 << 0)
++#define S5P_CIOCTRL_ORDER422_YCRYCB	(2 << 0)
+ #define S5P_CIOCTRL_ORDER422_YCBYCR	(3 << 0)
+ #define S5P_CIOCTRL_LASTIRQ_ENABLE	(1 << 2)
+ #define S5P_CIOCTRL_YCBCR_3PLANE	(0 << 3)
+@@ -223,10 +223,10 @@
+ #define S5P_MSCTRL_FLIP_Y_MIRROR	(2 << 13)
+ #define S5P_MSCTRL_FLIP_180		(3 << 13)
+ #define S5P_MSCTRL_ORDER422_SHIFT	4
+-#define S5P_MSCTRL_ORDER422_CRYCBY	(0 << 4)
+-#define S5P_MSCTRL_ORDER422_YCRYCB	(1 << 4)
+-#define S5P_MSCTRL_ORDER422_CBYCRY	(2 << 4)
+-#define S5P_MSCTRL_ORDER422_YCBYCR	(3 << 4)
++#define S5P_MSCTRL_ORDER422_YCBYCR	(0 << 4)
++#define S5P_MSCTRL_ORDER422_CBYCRY	(1 << 4)
++#define S5P_MSCTRL_ORDER422_YCRYCB	(2 << 4)
++#define S5P_MSCTRL_ORDER422_CRYCBY	(3 << 4)
+ #define S5P_MSCTRL_ORDER422_MASK	(3 << 4)
+ #define S5P_MSCTRL_INPUT_EXTCAM		(0 << 3)
+ #define S5P_MSCTRL_INPUT_MEMORY		(1 << 3)
 -- 
-1.7.3.4
+1.6.2.5
 
