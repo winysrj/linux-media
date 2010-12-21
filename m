@@ -1,172 +1,81 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-fx0-f43.google.com ([209.85.161.43]:62925 "EHLO
-	mail-fx0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756806Ab0LRP4g (ORCPT
+Received: from fep20.mx.upcmail.net ([62.179.121.40]:56940 "EHLO
+	fep20.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752829Ab0LUSph (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Dec 2010 10:56:36 -0500
-Received: by fxm18 with SMTP id 18so1691936fxm.2
-        for <linux-media@vger.kernel.org>; Sat, 18 Dec 2010 07:56:34 -0800 (PST)
-Message-ID: <4D0CD9AD.5050209@gmail.com>
-Date: Sat, 18 Dec 2010 16:56:29 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
+	Tue, 21 Dec 2010 13:45:37 -0500
+Received: from edge03.upcmail.net ([192.168.13.238])
+          by viefep20-int.chello.at
+          (InterMail vM.8.01.02.02 201-2260-120-106-20100312) with ESMTP
+          id <20101221184535.CLFL1667.viefep20-int.chello.at@edge03.upcmail.net>
+          for <linux-media@vger.kernel.org>;
+          Tue, 21 Dec 2010 19:45:35 +0100
+Received: from pc13 (pc13 [10.1.1.13])
+	by minerva12.dnsalias.com (8.13.8/8.13.8) with ESMTP id oBLIjVi4003965
+	for <linux-media@vger.kernel.org>; Tue, 21 Dec 2010 19:45:31 +0100
+From: "PC12 Ching" <ching@hispeed.ch>
+To: <linux-media@vger.kernel.org>
+References: <AANLkTim2oKhS_GLCf8sv1=6ia2GzbYV4Yh9KHnkTY6Pk@mail.gmail.com> <033c01cb9e0f$2f0efac0$8d2cf040$@ch> <D0728591-0878-42BA-BCD1-08FBFD362F6C@dinkum.org.uk>
+In-Reply-To: <D0728591-0878-42BA-BCD1-08FBFD362F6C@dinkum.org.uk>
+Subject: RE: DuoFlex CT PCIe
+Date: Tue, 21 Dec 2010 19:45:36 +0100
+Message-ID: <05c101cba13f$41861930$c4924b90$@ch>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, pawel@osciak.com,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Steven Toth <stoth@kernellabs.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	sakari.ailus@maxwell.research.nokia.com,
-	David Cohen <dacohen@gmail.com>, Janne Grunau <j@jannau.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Muralidharan Karicheri <m-karicheri2@ti.com>,
-	Mike Isely <isely@isely.net>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Anatolij Gustschin <agust@denx.de>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pete Eberlein <pete@sensoray.com>
-Subject: Re: Volunteers needed: BKL removal: replace .ioctl by .unlocked_ioctl
-References: <201012181231.27198.hverkuil@xs4all.nl>
-In-Reply-To: <201012181231.27198.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-language: en-gb
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Hans,
+Thanks Andre for your reply. The Digital Devices DuoFlex CT is a DVB-C/T card. 
+Looking at the Mystique CaBiX-C2 DVB-C Card, they do not look in similar.
 
-On 12/18/2010 12:31 PM, Hans Verkuil wrote:
-> Hi all,
->
-> Now that the BKL patch series has been merged in 2.6.37 it is time to work
-> on replacing .ioctl by .unlocked_ioctl in all v4l drivers.
->
-> I've made an inventory of all drivers that still use .ioctl and I am looking
-> for volunteers to tackle one or more drivers.
->
-> I have CCed this email to the maintainers of the various drivers (if I know
-> who it is) in the hope that we can get this conversion done as quickly as
-> possible.
->
-> If I have added your name to a driver, then please confirm if you are able to
-> work on it or not. If you can't work on it, but you know someone else, then
-> let me know as well.
->
-> There is also a list of drivers where I do not know who can do the conversion.
-> If you can tackle one or more of those, please respond. Unfortunately, those
-> are among the hardest to convert :-(
->
-> It would be great if we can tackle most of these drivers for 2.6.38. I think
-> we should finish all drivers for 2.6.39 at the latest.
->
-> There are two ways of doing the conversion: one is to do all the locking within
-> the driver, the other is to use core-assisted locking. How to do the core-assisted
-> locking is described in Documentation/video4linux/v4l2-framework.txt, but I'll
-> repeat the relevant part here:
->
-> v4l2_file_operations and locking
-> --------------------------------
->
-> You can set a pointer to a mutex_lock in struct video_device. Usually this
-> will be either a top-level mutex or a mutex per device node. If you want
-> finer-grained locking then you have to set it to NULL and do you own locking.
->
-> If a lock is specified then all file operations will be serialized on that
-> lock. If you use videobuf then you must pass the same lock to the videobuf
-> queue initialize function: if videobuf has to wait for a frame to arrive, then
-> it will temporarily unlock the lock and relock it afterwards. If your driver
-> also waits in the code, then you should do the same to allow other processes
-> to access the device node while the first process is waiting for something.
->
-> The implementation of a hotplug disconnect should also take the lock before
-> calling v4l2_device_disconnect.
->
->
-> Driver list:
->
-> saa7146 (Hans Verkuil)
-> mem2mem_testdev (Pawel Osciak or Marek Szyprowski)
-> cx23885 (Steve Toth)
-> cx18-alsa (Andy Walls)
-> omap24xxcam (Sakari Ailus or David Cohen)
-> au0828 (Janne Grunau)
-> cpia2 (Andy Walls or Hans Verkuil)
-> cx231xx (Mauro Carvalho Chehab)
-> davinci (Muralidharan Karicheri)
-> saa6588 (Hans Verkuil)
-> pvrusb2 (Mike Isely)
-> usbvision (Hans Verkuil)
-> s5p-fimc (Sylwester Nawrocki)
+Does anybody else have experience with the Digital Devices DuoFlex CT card ?
 
-I've done a conversion of s5p-fimc already. The relevant patch
-is included in my last pull request of the driver bugfix changeset
-for 2.6.37.
+Cheers
+Eckhard
 
-I am not sure what are Mauro's plans about this changeset, I hope it is 
-not too late to have it in 2.6.37. If it is, then it would be good to 
-pick up at least the commit
-7db545a [media] s5p-fimc: BKL lock removal - compilation fix
-because without it the driver is not even compiling. The above commit
-fixes some integration problem, i.e. I submitted the camera capture
-support patches and in parallel there were changes in the v4l core.
 
-Then I have also prepared further patch converting from driver's own
-to the core assisted locking, but it's on my queue for 2.6.38.
-That was submitted together with the videobuf 2 patches
+> -----Original Message-----
+> From: Andre [mailto:linux-media@dinkum.org.uk]
+> Sent: 19 December 2010 11:29
+> To: PC12 Ching
+> Cc: linux-media@vger.kernel.org
+> Subject: Re: DuoFlex CT PCIe
+> 
+> 
+> On 17 Dec 2010, at 18:23, PC12 Ching wrote:
+> 
+> > Hello Bert
+> >
+> > I raised the same question two weeks ago, I only got an offline answer, see below.$
+> > I hope to get some more replies too.
+> >
+> > ------------------------------------------------------------------------------
+> > I wanted to know if the Digital Devices DuoFlex CT PCIe TWIN Combo DVB-C DVB-T card is supported.
+> 
+> I think this is related to the SatixS2 I have and uses the same driver, if so there is some support working,
+> have a look at this thread:
+> 
+> http://www.spinics.net/lists/linux-media/msg25462.html
+> 
+> When I asked why the newer driver made 5 devices for a dual tuner the answer was because of support for the
+> digital devices duoflex adaptors.
+> 
+> Andre
+> 
+> 
+> > This card has 2 Ports, using one PCIe slot. Additionally it can be extended by 2 tuners to a total of 4
+> tuners, still using only one
+> > PCIe slot.
+> > There is also a Octopus version who is able to run 8 tuners using only one PCIe slot.
+> >
+> > Is this card supported, is it performing well with 2/4 tuners ?
+> > Will it be able to stream 4 HD channels at once via one PCIe slot ?
+> 
+> The Satix S2 is happy to record 6 HD channels across two tuners, there are some small glitches when the second
+> tuner changes freq but it's minor. I don't have any more channels in my subscription to test 8 HD!
+> 
+> Andre=
 
-http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/heads/vb2-mfc-fimc
-
-> fsl-viu (Anatolij Gustschin)
-> tlg2300 (Mauro Carvalho Chehab)
-> zr364xx (Hans de Goede)
-> soc_camera (Guennadi Liakhovetski)
-> usbvideo/vicam (Hans de Goede)
-> s2255drv (Pete Eberlein)
-> bttv (Mauro Carvalho Chehab)
-> stk-webcam (Hans de Goede)
-> se401 (Hans de Goede)
-> si4713-i2c (Hans Verkuil)
-> dsbr100 (Hans Verkuil)
->
-> Staging driver list:
->
-> go7007 (Pete Eberlein)
-> tm6000 (Mauro Carvalho Chehab)
-> (stradis/cpia: will be removed in 2.6.38, so no need to do anything)
->
-> Unassigned drivers:
->
-> saa7134
-
-I could try converting saa7134 in my spare time, but it is rather
-a huge driver and I have no experience with it.
-If there is really nobody more familiar to take care of it I would
-try it.
-
-I have avermedia E506 TV card on hand, would it be enough for basic testing?
-
-snawrocki@thinkpad:~/linux/v4l-dvb$ sudo lspci -vv
-16:00.0 Multimedia controller: Philips Semiconductors 
-SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d1)
-	Subsystem: Avermedia Technologies Inc Device f436
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- 
-Stepping- SERR- FastB2B- DisINTx-
-	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- 
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-	Latency: 64
-	Interrupt: pin A routed to IRQ 16
-	Region 0: Memory at 44000000 (32-bit, non-prefetchable) [size=2K]
-	Capabilities: [40] Power Management version 2
-		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
-		Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
-	Kernel driver in use: saa7134
-	Kernel modules: saa7134
-
-> em28xx
-> cx88
-> solo6x10 (staging driver)
->
-> Regards,
->
-> 	Hans
->
