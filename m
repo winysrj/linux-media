@@ -1,188 +1,121 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:28507 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757641Ab0LMSjd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Dec 2010 13:39:33 -0500
-Message-ID: <4D06697C.3020902@redhat.com>
-Date: Mon, 13 Dec 2010 19:44:12 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2322 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750936Ab0LUQtm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Dec 2010 11:49:42 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [alsa-devel] [RFC/PATCH v6 03/12] media: Entities, pads and links
+Date: Tue, 21 Dec 2010 17:49:22 +0100
+Cc: Clemens Ladisch <clemens@ladisch.de>, alsa-devel@alsa-project.org,
+	sakari.ailus@maxwell.research.nokia.com,
+	broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org,
+	lennart@poettering.net, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org
+References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com> <4D0775DB.2020902@ladisch.de> <201012150050.44885.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201012150050.44885.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Jean-Francois Moine <moinejf@free.fr>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 6/6] gspca - sonixj: Better handling of the bridge registers
- 0x01 and 0x17
-References: <20101213140430.576c0fc1@tele> <4D061F3C.8060101@redhat.com>
-In-Reply-To: <4D061F3C.8060101@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201012211749.22393.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi,
+On Wednesday, December 15, 2010 00:50:44 Laurent Pinchart wrote:
+> Hi Clemens,
+> 
+> On Tuesday 14 December 2010 14:49:15 Clemens Ladisch wrote:
+> > Laurent Pinchart wrote:
+> > > On Tuesday 14 December 2010 13:40:21 Hans Verkuil wrote:
+> > >> > On Monday 13 December 2010 17:10:51 Clemens Ladisch wrote:
+> > >> >> * Entity types
+> > >> >> 
+> > >> >> TYPE_NODE was renamed to TYPE_DEVICE because "node" sounds like a
+> > >> >> node in a graph, which does not distinguish it from other entity
+> > >> >> types because all entities are part of the topology graph.  I chose
+> > >> >> "device" as this type describes entities that are visible as some
+> > >> >> device node to other software.
+> > >> > 
+> > >> > What this type describes is a device node. Both NODE and DEVICE can be
+> > >> > confusing in my opinion, but DEVICE_NODE is a bit long.
+> > >> 
+> > >> What about DEVNODE? I think that would be a good alternative.
+> > > 
+> > > Fine with me. Clemens, any opinion on that ?
+> > 
+> > Fine with me too.
+> 
+> OK I'll use that name.
+> 
+> > > > >> TYPE_EXT describes entities that represent some interface to the
+> > > > >> external world, TYPE_INT those that are internal to the entire
+> > > > >> device. (I'm not sure if that distinction is very useful, but
+> > > > >> TYPE_SUBDEV seems to be an even more meaningless name.)
+> > > > > 
+> > > > > SUBDEV comes from the V4L2 world, and I agree that it might not be a
+> > > > > very good name.
+> > > > 
+> > > > SUBDEV refers to a specific type of driver. Within the v4l world it is
+> > > > well defined. So I prefer to keep this. Perhaps some additional
+> > > > comments or documentation can be added to clarify this.
+> > > 
+> > > Should this be clarified by using V4L2_SUBDEV instead then ?
+> > 
+> > If the "SUBDEV" concept doesn't exist outside V4L, that would indeed be
+> > better.
+> > 
+> > I don't want to rename things that come out of existing frameworks; this
+> > naming discussion makes sense only for those entity (sub)types that can
+> > be shared between them.  Are there any, besides jacks?
+> 
+> Some entities like TV tuners play a dual audio/video role. I'm not sure how to 
+> handle them, I lack experience in that field.
 
-On 12/13/2010 02:27 PM, Mauro Carvalho Chehab wrote:
-> Em 13-12-2010 11:04, Jean-Francois Moine escreveu:
->>
-> I'm not sure about this... On my tests with the two devices I have with ov7660
-> (sn9c105 and sn9c120), the original driver uses 48 MHz for all resolutions.
->
+It is very important to distinguish between the actual tuner device and the
+physical connector. ALSA doesn't program a tuner device, that's the domain
+of V4L and DVB. ALSA just sees an input pin.
 
-My 2 cents:
+Regarding tuners there are roughly two types of hardware: one where the audio
+goes to an output jack (and the user has to use a loopback cable to hook it up
+to an audio input), or it goes to memory using DMA and an ALSA driver.
 
-In my experience when (windows) drivers tend to play with the clockrate / clock
-dividers on the basis of the mode / resolution this is because of bandwidth
-constrains. So the question is what framerate does the 48 Mhz clock give us and
-(assuming the highest alt setting, here we go again) what framerate can the
-bridge / usb bus handle at the highest resolution (assuming worst case
-compression).
+In the first scenario the MC would model a TV_ANTENNA connector and an AUDIO_OUT
+connector. The TV_ANTENNA connector would typically link to a V4L2_SUBDEV_TUNER,
+which would link to a V4L2_SUBDEV_AUDIO_DEMOD (in turn linked to the AUDIO_OUT
+connector). The tuner would also link to a V4L2_SUBDEV_VIDEO_DIGITIZER (in turn
+linked to a DEVNODE_V4L).
+
+In the second scenario there is no AUDIO_OUT connector, instead there is a
+DEVNODE_ALSA.
+
+It can get more complex: in the case of MPEG encoders the audio from the tuner
+goes to an audio demod, the video goes to a digitizer, and the output of those
+subdevs both go into the same MPEG encoder subdev.
+
+When modeling hardware like audio or video devices it is important to remember
+to separate I/O pins from actually physical connectors. E.g. an audio device may
+have many possible input pins, but how they are hooked up to which physical
+connectors is something that is board specific and not part of the audio driver
+itself.
+
+Anyway, what we need is a 'connector' entity. And just like the other entities,
+connectors can have multiple input pads so I don't see any problems in modeling
+antenna connectors.
 
 Regards,
 
-Hans
+	Hans
 
+> > > What about ALSA entities, should they use MEDIA_ENTITY_TYPE_ALSA_* ?
+> > 
+> > The entity types representing ALSA devices are already named "ALSA".
+> 
+> I was talking about the INT_* types. They're ALSA-specific, but have no ALSA 
+> in the type name.
+> 
+> 
 
-
-
->>   		break;
->>   	case SENSOR_PO1030:
->>   		init = po1030_sensor_param1;
->> -		reg17 = 0xa2;
->> -		reg1 = 0x44;
->> +		reg01 |= SYS_SEL_48M;
->>   		break;
->>   	case SENSOR_PO2030N:
->>   		init = po2030n_sensor_param1;
->> -		reg1 = 0x46;
->> -		reg17 = 0xa2;
->> +		reg01 |= SYS_SEL_48M;
->>   		break;
->>   	case SENSOR_SOI768:
->>   		init = soi768_sensor_param1;
->> -		reg1 = 0x44;
->> -		reg17 = 0xa2;
->> +		reg01 |= SYS_SEL_48M;
->>   		break;
->>   	case SENSOR_SP80708:
->>   		init = sp80708_sensor_param1;
->> -		if (mode) {
->> -/*??			reg1 = 0x04;	 * 320 clk 48Mhz */
->> -		} else {
->> -			reg1 = 0x46;	 /* 640 clk 48Mz */
->> -			reg17 = 0xa2;
->> -		}
->>   		break;
->>   	}
->>
->> @@ -2695,7 +2604,9 @@ static int sd_start(struct gspca_dev *gspca_dev)
->>   	setjpegqual(gspca_dev);
->>
->>   	reg_w1(gspca_dev, 0x17, reg17);
->> -	reg_w1(gspca_dev, 0x01, reg1);
->> +	reg_w1(gspca_dev, 0x01, reg01);
->> +	sd->reg01 = reg01;
->> +	sd->reg17 = reg17;
->>
->>   	sethvflip(gspca_dev);
->>   	setbrightness(gspca_dev);
->> @@ -2717,41 +2628,69 @@ static void sd_stopN(struct gspca_dev *gspca_dev)
->>   		{ 0xa1, 0x21, 0x76, 0x20, 0x00, 0x00, 0x00, 0x10 };
->>   	static const u8 stopsoi768[] =
->>   		{ 0xa1, 0x21, 0x12, 0x80, 0x00, 0x00, 0x00, 0x10 };
->> -	u8 data;
->> -	const u8 *sn9c1xx;
->> +	u8 reg01;
->> +	u8 reg17;
->>
->> -	data = 0x0b;
->> +	reg01 = sd->reg01;
->> +	reg17 = sd->reg17&  ~SEN_CLK_EN;
->>   	switch (sd->sensor) {
->> +	case SENSOR_ADCM1700:
->> +	case SENSOR_PO2030N:
->> +	case SENSOR_SP80708:
->> +		reg01 |= LED;
->> +		reg_w1(gspca_dev, 0x01, reg01);
->> +		reg01&= ~(LED | V_TX_EN);
->> +		reg_w1(gspca_dev, 0x01, reg01);
->> +/*		reg_w1(gspca_dev, 0x02, 0x??);	 * LED off ? */
->> +		break;
->>   	case SENSOR_GC0307:
->> -		data = 0x29;
->> +		reg01 |= LED | S_PDN_INV;
->> +		reg_w1(gspca_dev, 0x01, reg01);
->> +		reg01&= ~(LED | V_TX_EN | S_PDN_INV);
->
-> Touching at S_PDN_INV here seems wrong. sd->reg01 has already the S_PDN_INV
-> value stored there, for devices that require it.
->
-> The right thing would be to use S_PWR_DN. If you got this from the original
-> driver USB dump, my guess is that the developer of the original driver got
-> the wrong bit by mistake. Of course, I may be wrong here.
->
->
->> +		reg_w1(gspca_dev, 0x01, reg01);
->>   		break;
->>   	case SENSOR_HV7131R:
->> +		reg01&= ~V_TX_EN;
->> +		reg_w1(gspca_dev, 0x01, reg01);
->>   		i2c_w8(gspca_dev, stophv7131);
->> -		data = 0x2b;
->>   		break;
->>   	case SENSOR_MI0360:
->>   	case SENSOR_MI0360B:
->> +		reg01&= ~V_TX_EN;
->> +		reg_w1(gspca_dev, 0x01, reg01);
->> +/*		reg_w1(gspca_dev, 0x02, 0x40);	  * LED off ? */
->>   		i2c_w8(gspca_dev, stopmi0360);
->> -		data = 0x29;
->>   		break;
->> -	case SENSOR_OV7648:
->> -		i2c_w8(gspca_dev, stopov7648);
->> -		/* fall thru */
->>   	case SENSOR_MT9V111:
->> -	case SENSOR_OV7630:
->> +	case SENSOR_OM6802:
->>   	case SENSOR_PO1030:
->> -		data = 0x29;
->> +		reg01&= ~V_TX_EN;
->> +		reg_w1(gspca_dev, 0x01, reg01);
->> +		break;
->> +	case SENSOR_OV7630:
->> +	case SENSOR_OV7648:
->> +		reg01&= ~V_TX_EN;
->> +		reg_w1(gspca_dev, 0x01, reg01);
->> +		i2c_w8(gspca_dev, stopov7648);
->> +		break;
->> +	case SENSOR_OV7660:
->> +		reg01&= ~V_TX_EN;
->> +		reg_w1(gspca_dev, 0x01, reg01);
->>   		break;
->>   	case SENSOR_SOI768:
->>   		i2c_w8(gspca_dev, stopsoi768);
->> -		data = 0x29;
->>   		break;
->>   	}
->> -	sn9c1xx = sn_tb[sd->sensor];
->> -	reg_w1(gspca_dev, 0x01, sn9c1xx[1]);
->> -	reg_w1(gspca_dev, 0x17, sn9c1xx[0x17]);
->> -	reg_w1(gspca_dev, 0x01, sn9c1xx[1]);
->> -	reg_w1(gspca_dev, 0x01, data);
->> +
->> +	reg01 |= SCL_SEL_OD;
->> +	reg_w1(gspca_dev, 0x01, reg01);
->> +	reg01 |= S_PWR_DN;		/* sensor power down */
->> +	reg_w1(gspca_dev, 0x01, reg01);
->> +	reg_w1(gspca_dev, 0x17, reg17);
->> +	reg01&= ~SYS_SEL_48M;		/* clock 24MHz */
->> +	reg_w1(gspca_dev, 0x01, reg01);
->> +	reg01 |= LED;
->> +	reg_w1(gspca_dev, 0x01, reg01);
->>   	/* Don't disable sensor clock as that disables the button on the cam */
->>   	/* reg_w1(gspca_dev, 0xf1, 0x01); */
->>   }
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
