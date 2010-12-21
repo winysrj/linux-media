@@ -1,249 +1,121 @@
 Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46274 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751695Ab0LXL72 (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:63357 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751258Ab0LUNUZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Dec 2010 06:59:28 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Greg KH <gregkh@suse.de>
-Subject: Re: [RFC/PATCH v7 01/12] media: Media device node support
-Date: Fri, 24 Dec 2010 12:59:38 +0100
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
-	clemens@ladisch.de, sakari.ailus@maxwell.research.nokia.com
-References: <1292844995-7900-1-git-send-email-laurent.pinchart@ideasonboard.com> <1292844995-7900-2-git-send-email-laurent.pinchart@ideasonboard.com> <20101223033253.GA14692@suse.de>
-In-Reply-To: <20101223033253.GA14692@suse.de>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201012241259.39148.laurent.pinchart@ideasonboard.com>
+	Tue, 21 Dec 2010 08:20:25 -0500
+Date: Tue, 21 Dec 2010 14:20:08 +0100
+From: Kamil Debski <k.debski@samsung.com>
+Subject: [RFC/PATCH v5 1/4] Changes in include/linux/videodev2.h for MFC 5.1
+In-reply-to: <1292937611-3362-1-git-send-email-k.debski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, k.debski@samsung.com,
+	jaeryul.oh@samsung.com, kgene.kim@samsung.com
+Message-id: <1292937611-3362-2-git-send-email-k.debski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1292937611-3362-1-git-send-email-k.debski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Greg,
+This patch adds fourcc values for compressed video stream formats and
+V4L2_CTRL_CLASS_CODEC. Also adds controls used by MFC 5.1 driver.
 
-Thank you for the review.
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ include/linux/videodev2.h |   48 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 48 insertions(+), 0 deletions(-)
 
-On Thursday 23 December 2010 04:32:53 Greg KH wrote:
-> On Mon, Dec 20, 2010 at 12:36:24PM +0100, Laurent Pinchart wrote:
-> > The media_devnode structure provides support for registering and
-> > unregistering character devices using a dynamic major number. Reference
-> > counting is handled internally, making device drivers easier to write
-> > without having to solve the open/disconnect race condition issue over
-> > and over again.
-> 
-> What race condition are you referring to?
-
-In a nutshell, the race between device disconnection, which results in the 
-device instance being delete (if not in use of course), and open() calls from 
-userspace. The problem has been solved in V4L a couple of releases ago after 
-suffering from this race for a too long time. As V4L devices (and now media 
-devices) need to create both a struct device and a struct cdev instance, 
-careful locking is needed.
-
-> > +config MEDIA_CONTROLLER
-> > +	bool "Media Controller API (EXPERIMENTAL)"
-> > +	depends on EXPERIMENTAL
-> > +	---help---
-> > +	  Enable the media controller API used to query media devices internal
-> > +	  topology and configure it dynamically.
-> > +
-> > +	  This API is mostly used by camera interfaces in embedded platforms.
-> 
-> That's nice, but why should I enable this?  Or will drivers enable it
-> automatically?
-
-Drivers depending on the media controller API will enable this, yes. The 
-option will probably removed later when the API won't be deemed as 
-experimental anymore.
-
-> > +#define MEDIA_NUM_DEVICES	256
-> 
-> Why this limit?
-
-Because I'm using a bitmap to store the used minor numbers, and I thus need a 
-limit. I could get rid of it of it by using a linked list, but that will not 
-be efficient (you could argue that the list will hold a few entries only most 
-of the time, but in that case a limit of 256 minors wouldn't be a problem 
-:-)).
-
-> > +#define MEDIA_NAME		"media"
-> 
-> Are you sure this is a good name for a camera?
-
-It's not just camera. Media devices are... well, media devices. Basically 
-anything that can handle audio and/or video streams. The media controller API 
-can be used by plain audio devices.
-
-> > +static dev_t media_dev_t;
-> 
-> Only one major number?  Is it always dynamic?
-
-Yes, one major and (for now) 256 minors. Is there a problem with it being 
-dynamic ?
-
-> > +
-> > +/*
-> > + *	Active devices
-> > + */
-> > +static DEFINE_MUTEX(media_devnode_lock);
-> > +static DECLARE_BITMAP(media_devnode_nums, MEDIA_NUM_DEVICES);
-> > +
-> > +/* Called when the last user of the media device exits. */
-> > +static void media_devnode_release(struct device *cd)
-> > +{
-> > +	struct media_devnode *mdev = to_media_devnode(cd);
-> > +
-> > +	mutex_lock(&media_devnode_lock);
-> > +
-> > +	/* Delete the cdev on this minor as well */
-> > +	cdev_del(&mdev->cdev);
-> > +
-> > +	/* Mark device node number as free */
-> > +	clear_bit(mdev->minor, media_devnode_nums);
-> > +
-> > +	mutex_unlock(&media_devnode_lock);
-> > +
-> > +	/* Release media_devnode and perform other cleanups as needed. */
-> > +	if (mdev->release)
-> > +		mdev->release(mdev);
-> > +}
-> 
-> You forgot to free the device structure here as well, right?
-
-That will be done by the release callback. The media_devnode structure is 
-embedded in the media_device structure, which will be embedded in driver-
-specific structures.
-
-> > +static ssize_t media_read(struct file *filp, char __user *buf,
-> > +		size_t sz, loff_t *off)
-> > +{
-> > +	struct media_devnode *mdev = media_devnode_data(filp);
-> > +
-> > +	if (!mdev->fops->read)
-> > +		return -EINVAL;
-> > +	if (!media_devnode_is_registered(mdev))
-> > +		return -EIO;
-> 
-> How could this happen?
-
-This can happen when a USB device is disconnected for instance.
-
-> And are you sure -EIO is correct?
-
--ENXIO is probably better (I always confuse that with -ENODEV).
-
-> > +	return mdev->fops->read(filp, buf, sz, off);
-> > +}
-> > +
-> > +static ssize_t media_write(struct file *filp, const char __user *buf,
-> > +		size_t sz, loff_t *off)
-> > +{
-> > +	struct media_devnode *mdev = media_devnode_data(filp);
-> > +
-> > +	if (!mdev->fops->write)
-> > +		return -EINVAL;
-> > +	if (!media_devnode_is_registered(mdev))
-> > +		return -EIO;
-> 
-> Same as above, and same comment in other places (poll, ioctl.)
-
-OK.
-
-> > +/* Override for the open function */
-> > +static int media_open(struct inode *inode, struct file *filp)
-> > +{
-> > +	struct media_devnode *mdev;
-> > +	int ret;
-> > +
-> > +	/* Check if the media device is available. This needs to be done with
-> > +	 * the media_devnode_lock held to prevent an open/unregister race:
-> > +	 * without the lock, the device could be unregistered and freed between
-> > +	 * the media_devnode_is_registered() and get_device() calls, leading to
-> > +	 * a crash.
-> > +	 */
-> > +	mutex_lock(&media_devnode_lock);
-> > +	mdev = container_of(inode->i_cdev, struct media_devnode, cdev);
-> 
-> By virtue of having the reference to the module held by the vfs, this
-> shouldn't ever go away, even if the lock is not held.
-
-inode->i_cdev is set to NULL by cdev_default_release() which can be called 
-from media_devnode_unregister(). I could move to container_of outside the 
-lock, but in that case I would have to check for mdev == NULL || 
-!mdev_devnode_is_registered(mdev) (or move the NULL check inside 
-mdev_devnode_is_registered). Is that what you would like ?
-
-> > +	/* return ENXIO if the media device has been removed
-> > +	   already or if it is not registered anymore. */
-> > +	if (!media_devnode_is_registered(mdev)) {
-> > +		mutex_unlock(&media_devnode_lock);
-> > +		return -ENXIO;
-> > +	}
-> 
-> So you can unregister a device at any time, even if the device is open,
-> or about to be opened?
-
-That's correct. That way drivers don't need to care about unregister/open 
-races, media_devnode will handle it for them.
-
-> Then that's fine, but you can put the lock after the container_of(), right?
-
-If I add a NULL check (as explained above), yes.
-
-> > +	/* and increase the device refcount */
-> > +	get_device(&mdev->dev);
-> 
-> How is that holding anything into memory?
-
-That will prevent the device instance from being freed until the device is 
-closed, thereby holding both the device instance and the cdev instance in 
-memory.
-
-> Don't you want to keep the module that the fops pointer in the device in
-> memory, not necessarily the device itself?
-
-The cdev owner pointer is set to the fops owner. Unless I'm mistaken it will 
-keep the module in memory. I need to keep the device in memory (or rather the 
-media_devnode structure that embeds it) to handle file operations on a device 
-that gets unregistered after it has been opened.
-
-> > +	mutex_unlock(&media_devnode_lock);
-> > +
-> > +	filp->private_data = mdev;
-> > +
-> > +	if (mdev->fops->open) {
-> > +		ret = mdev->fops->open(filp);
-> > +		if (ret) {
-> > +			put_device(&mdev->dev);
-> > +			return ret;
-> > +		}
-> > +	}
-> > +
-> > +	return 0;
-> > +}
-> 
-> No reference counting for the fops?  Why not?
-
-Because cdev already increments the owner refcount on open().
-
-> Anyway, it looks like what you really want is an "easier" way to handle
-> a cdev and a struct device that will export the proper information to
-> userspace, right?
-> 
-> Why not do this generically, fixing up the cdev interface (which really
-> needs it) and not tie it to media devices at all, making it possible for
-> _everyone_ to use this type of infrastructure?
-> 
-> That seems like the better thing to do here.
-
-Sounds like a good idea. You're a better cdev expert than me, so could you 
-give me a few pointers ? Do you want me to create a new object that will hold 
-a struct cdev and a struct device together, or to embed the device structure 
-into the existing cdev structure ?
-
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index d30c98d..c89f019 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -339,6 +339,14 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_NV16    v4l2_fourcc('N', 'V', '1', '6') /* 16  Y/CbCr 4:2:2  */
+ #define V4L2_PIX_FMT_NV61    v4l2_fourcc('N', 'V', '6', '1') /* 16  Y/CrCb 4:2:2  */
+ 
++/* two non contiguous planes -- one Y, one Cr + Cb interleaved  */
++#define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
++/* 12  Y/CbCr 4:2:0 64x32 macroblocks */
++#define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2')
++
++/* three non contiguous planes -- Y, Cb, Cr */
++#define V4L2_PIX_FMT_YUV420M v4l2_fourcc('Y', 'M', '1', '2') /* 12  YUV420 planar */
++
+ /* Bayer formats - see http://www.siliconimaging.com/RGB%20Bayer.htm */
+ #define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B', 'A', '8', '1') /*  8  BGBG.. GRGR.. */
+ #define V4L2_PIX_FMT_SGBRG8  v4l2_fourcc('G', 'B', 'R', 'G') /*  8  GBGB.. RGRG.. */
+@@ -362,6 +370,21 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /* 1394          */
+ #define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-1/2/4    */
+ 
++
++#define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H264    */
++#define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /* H263    */
++#define V4L2_PIX_FMT_MPEG12   v4l2_fourcc('M', 'P', '1', '2') /* MPEG-1/2  */
++#define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /* MPEG-4  */
++#define V4L2_PIX_FMT_DIVX     v4l2_fourcc('D', 'I', 'V', 'X') /* DivX  */
++#define V4L2_PIX_FMT_DIVX3    v4l2_fourcc('D', 'I', 'V', '3') /* DivX 3.11  */
++#define V4L2_PIX_FMT_DIVX4    v4l2_fourcc('D', 'I', 'V', '4') /* DivX 4.12  */
++#define V4L2_PIX_FMT_DIVX500    v4l2_fourcc('D', 'X', '5', '2') /* DivX 5.00 - 5.02  */
++#define V4L2_PIX_FMT_DIVX503    v4l2_fourcc('D', 'X', '5', '3') /* DivX 5.03 - x  */
++#define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /* Xvid */
++#define V4L2_PIX_FMT_VC1      v4l2_fourcc('V', 'C', '1', 'A') /* VC-1 */
++#define V4L2_PIX_FMT_VC1_RCV      v4l2_fourcc('V', 'C', '1', 'R') /* VC-1 RCV */
++
++
+ /*  Vendor-specific formats   */
+ #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
+ #define V4L2_PIX_FMT_WNVA     v4l2_fourcc('W', 'N', 'V', 'A') /* Winnov hw compress */
+@@ -972,6 +995,7 @@ struct v4l2_output {
+ #define V4L2_OUTPUT_TYPE_ANALOG			2
+ #define V4L2_OUTPUT_TYPE_ANALOGVGAOVERLAY	3
+ 
++
+ /* capabilities flags */
+ #define V4L2_OUT_CAP_PRESETS		0x00000001 /* Supports S_DV_PRESET */
+ #define V4L2_OUT_CAP_CUSTOM_TIMINGS	0x00000002 /* Supports S_DV_TIMINGS */
+@@ -1009,6 +1033,7 @@ struct v4l2_ext_controls {
+ #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
+ #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
+ #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
++#define V4L2_CTRL_CLASS_CODEC 0x009c0000	/* Codec control class */
+ 
+ #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+ #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+@@ -1342,6 +1367,29 @@ enum v4l2_mpeg_cx2341x_video_median_filter_type {
+ #define V4L2_CID_MPEG_CX2341X_VIDEO_CHROMA_MEDIAN_FILTER_TOP 	(V4L2_CID_MPEG_CX2341X_BASE+10)
+ #define V4L2_CID_MPEG_CX2341X_STREAM_INSERT_NAV_PACKETS 	(V4L2_CID_MPEG_CX2341X_BASE+11)
+ 
++/* For codecs */
++
++#define V4L2_CID_CODEC_BASE 			(V4L2_CTRL_CLASS_CODEC | 0x900)
++#define V4L2_CID_CODEC_CLASS 			(V4L2_CTRL_CLASS_CODEC | 1)
++
++/* For both decoding and encoding */
++
++/* For encoding */
++#define V4L2_CID_CODEC_LOOP_FILTER_H264		(V4L2_CID_CODEC_BASE + 9)
++enum v4l2_cid_codec_loop_filter_h264 {
++	V4L2_CID_CODEC_LOOP_FILTER_H264_ENABLE = 0,
++	V4L2_CID_CODEC_LOOP_FILTER_H264_DISABLE = 1,
++	V4L2_CID_CODEC_LOOP_FILTER_H264_DISABLE_AT_BOUNDARY = 2,
++};
++
++/* For decoding */
++
++#define V4L2_CID_CODEC_LOOP_FILTER_MPEG4_ENABLE	(V4L2_CID_CODEC_BASE + 110)
++#define V4L2_CID_CODEC_DISPLAY_DELAY		(V4L2_CID_CODEC_BASE + 137)
++#define V4L2_CID_CODEC_REQ_NUM_BUFS		(V4L2_CID_CODEC_BASE + 140)
++#define V4L2_CID_CODEC_SLICE_INTERFACE		(V4L2_CID_CODEC_BASE + 141)
++#define V4L2_CID_CODEC_PACKED_PB		(V4L2_CID_CODEC_BASE + 142)
++
+ /*  Camera class control IDs */
+ #define V4L2_CID_CAMERA_CLASS_BASE 	(V4L2_CTRL_CLASS_CAMERA | 0x900)
+ #define V4L2_CID_CAMERA_CLASS 		(V4L2_CTRL_CLASS_CAMERA | 1)
 -- 
-Regards,
+1.6.3.3
 
-Laurent Pinchart
