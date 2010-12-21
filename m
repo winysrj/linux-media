@@ -1,121 +1,91 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2491 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752799Ab0L3LBz (ORCPT
+Received: from mail-ey0-f171.google.com ([209.85.215.171]:44991 "EHLO
+	mail-ey0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750849Ab0LULog (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Dec 2010 06:01:55 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: manjunatha_halli@ti.com
-Subject: Re: [RFC V8 1/7] drivers:media:radio: wl128x: fmdrv common header file
-Date: Thu, 30 Dec 2010 12:01:46 +0100
-Cc: mchehab@infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-References: <1293707507-3376-1-git-send-email-manjunatha_halli@ti.com> <1293707507-3376-2-git-send-email-manjunatha_halli@ti.com>
-In-Reply-To: <1293707507-3376-2-git-send-email-manjunatha_halli@ti.com>
+	Tue, 21 Dec 2010 06:44:36 -0500
+Received: by eyg5 with SMTP id 5so1989837eyg.2
+        for <linux-media@vger.kernel.org>; Tue, 21 Dec 2010 03:44:35 -0800 (PST)
+Message-ID: <4D1092E2.7070900@mvista.com>
+Date: Tue, 21 Dec 2010 14:43:30 +0300
+From: Sergei Shtylyov <sshtylyov@mvista.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Manjunath Hadli <manjunath.hadli@ti.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH v8 6/8] davinci vpbe: board specific additions
+References: <1292853289-2688-1-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1292853289-2688-1-git-send-email-manjunath.hadli@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201012301201.46449.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Thursday, December 30, 2010 12:11:41 manjunatha_halli@ti.com wrote:
-> From: Manjunatha Halli <manjunatha_halli@ti.com>
-> 
-> These are common headers used in FM submodules (FM V4L2,
-> FM common, FM Rx,and FM TX).
-> 
-> Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
-> ---
->  drivers/media/radio/wl128x/fmdrv.h |  248 ++++++++++++++++++++++++++++++++++++
->  1 files changed, 248 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/radio/wl128x/fmdrv.h
-> 
-> diff --git a/drivers/media/radio/wl128x/fmdrv.h b/drivers/media/radio/wl128x/fmdrv.h
-> new file mode 100644
-> index 0000000..3d73f76
-> --- /dev/null
-> +++ b/drivers/media/radio/wl128x/fmdrv.h
-> @@ -0,0 +1,248 @@
-> +/*
-> + *  FM Driver for Connectivity chip of Texas Instruments.
-> + *
-> + *  Common header for all FM driver sub-modules.
-> + *
-> + *  Copyright (C) 2009 Texas Instruments
-> + *
-> + *  This program is free software; you can redistribute it and/or modify
-> + *  it under the terms of the GNU General Public License version 2 as
-> + *  published by the Free Software Foundation.
-> + *
-> + *  This program is distributed in the hope that it will be useful,
-> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + *  GNU General Public License for more details.
-> + *
-> + *  You should have received a copy of the GNU General Public License
-> + *  along with this program; if not, write to the Free Software
-> + *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-> + *
-> + */
-> +
-> +#ifndef _FM_DRV_H
-> +#define _FM_DRV_H
-> +
-> +#include <linux/skbuff.h>
-> +#include <linux/interrupt.h>
-> +#include <sound/core.h>
-> +#include <sound/initval.h>
-> +#include <linux/timer.h>
-> +#include <linux/version.h>
-> +#include <media/v4l2-ioctl.h>
-> +#include <media/v4l2-common.h>
-> +#include <media/v4l2-ctrls.h>
-> +
-> +#define FM_DRV_VERSION            "0.01"
-> +/* Should match with FM_DRV_VERSION */
-> +#define FM_DRV_RADIO_VERSION      KERNEL_VERSION(0, 0, 1)
-> +#define FM_DRV_NAME               "ti_fmdrv"
-> +#define FM_DRV_CARD_SHORT_NAME    "TI FM Radio"
-> +#define FM_DRV_CARD_LONG_NAME     "Texas Instruments FM Radio"
-> +
-> +/* Flag info */
-> +#define FM_INTTASK_RUNNING            0
-> +#define FM_INTTASK_SCHEDULE_PENDING   1
-> +#define FM_FIRMWARE_DW_INPROGRESS     2
-> +#define FM_CORE_READY                 3
-> +#define FM_CORE_TRANSPORT_READY       4
-> +#define FM_AF_SWITCH_INPROGRESS	      5
-> +#define FM_CORE_TX_XMITING	      6
-> +
-> +#define FM_TUNE_COMPLETE	      0x1
-> +#define FM_BAND_LIMIT		      0x2
-> +
-> +#define FM_DRV_TX_TIMEOUT      (5*HZ)	/* 5 seconds */
-> +#define FM_DRV_RX_SEEK_TIMEOUT (20*HZ)	/* 20 seconds */
-> +
-> +#define NO_OF_ENTRIES_IN_ARRAY(array) (sizeof(array) / sizeof(array[0]))
-> +
-> +enum {
-> +	FM_MODE_OFF,
-> +	FM_MODE_TX,
-> +	FM_MODE_RX,
-> +	FM_MODE_ENTRY_MAX
+Hello.
+
+On 20-12-2010 16:54, Manjunath Hadli wrote:
+
+> This patch implements tables for display timings,outputs and
+> other board related functionalities.
+
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+[...]
+
+> diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-davinci/board-dm644x-evm.c
+> index 34c8b41..e9b1243 100644
+> --- a/arch/arm/mach-davinci/board-dm644x-evm.c
+> +++ b/arch/arm/mach-davinci/board-dm644x-evm.c
+[...]
+> @@ -606,8 +594,71 @@ static void __init evm_init_i2c(void)
+>   	i2c_register_board_info(1, i2c_info, ARRAY_SIZE(i2c_info));
+>   }
+>
+> +#define VENC_STD_ALL    (V4L2_STD_NTSC | V4L2_STD_PAL)
+
+    Insert an empty line here, please.
+
+> +/* venc standards timings */
+> +static struct vpbe_enc_mode_info vbpe_enc_std_timings[] = {
+> +	{"ntsc", VPBE_ENC_STD, {V4L2_STD_525_60}, 1, 720, 480,
+> +	{11, 10}, {30000, 1001}, 0x79, 0, 0x10, 0, 0, 0, 0},
+> +	{"pal", VPBE_ENC_STD, {V4L2_STD_625_50}, 1, 720, 576,
+> +	{54, 59}, {25, 1}, 0x7E, 0, 0x16, 0, 0, 0, 0},
 > +};
 > +
-> +#define FM_RX_RDS_INFO_FIELD_MAX	8	/* 4 Group * 2 Bytes */
+> +/* venc dv preset timings */
+> +static struct vpbe_enc_mode_info vbpe_enc_preset_timings[] = {
+> +	{"480p59_94", VPBE_ENC_DV_PRESET, {V4L2_DV_480P59_94}, 0, 720, 480,
+> +	{1, 1}, {5994, 100}, 0x80, 0, 0x20, 0, 0, 0, 0},
+> +	{"576p50", VPBE_ENC_DV_PRESET, {V4L2_DV_576P50}, 0, 720, 576,
+> +	{1, 1}, {50, 1}, 0x7E, 0, 0x30, 0, 0, 0, 0},
+> +};
 > +
 > +/*
-> + * define private CIDs for V4L2
-> + */
-> +#define V4L2_CID_CHANNEL_SPACING (V4L2_CID_PRIVATE_BASE + 0)
+> + * The outputs available from VPBE + ecnoders. Keep the
+> + * the  order same as that of encoders. First that from venc followed by that
+       ^^^ duplicate
 
-This define seems to be a leftover from previous versions and should be removed.
+> +static struct vpbe_display_config vpbe_display_cfg = {
+> +	.module_name = "dm644x-vpbe-display",
+> +	.i2c_adapter_id = 1,
+> +	.osd = {
+> +		.module_name = VPBE_OSD_SUBDEV_NAME,
+> +	},
+> +	.venc = {
+> +		.module_name = VPBE_VENC_SUBDEV_NAME,
+> +	},
+> +	.num_outputs = ARRAY_SIZE(dm644x_vpbe_outputs),
+> +	.outputs = dm644x_vpbe_outputs,
+> +};
 
-Regards,
+    Insert an empty line here, please.
 
-	Hans
+>   static struct platform_device *davinci_evm_devices[] __initdata = {
+> -	&davinci_fb_device,
+>   	&rtc_dev,
+>   };
 
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+WBR, Sergei
