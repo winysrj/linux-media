@@ -1,187 +1,132 @@
 Return-path: <mchehab@gaivota>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:36619 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750986Ab0L2Bhw (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:45369 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751417Ab0LVBHR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Dec 2010 20:37:52 -0500
-Subject: Re: [PATCH 0/8] Fix V4L/DVB/RC warnings
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <4D19F809.3010409@redhat.com>
-References: <e95cvd7ycvmoq6jolupfigs0.1293494109547@email.android.com>
-	 <4D195584.6020409@redhat.com>
-	 <1293545649.2728.28.camel@morgan.silverblock.net>
-	 <4D19F809.3010409@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 28 Dec 2010 17:18:11 -0500
-Message-ID: <1293574691.7187.6.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 21 Dec 2010 20:07:17 -0500
+Received: by wwa36 with SMTP id 36so4776807wwa.1
+        for <linux-media@vger.kernel.org>; Tue, 21 Dec 2010 17:07:16 -0800 (PST)
+MIME-Version: 1.0
+Date: Wed, 22 Dec 2010 01:07:14 +0000
+Message-ID: <AANLkTim-GBA+q+-pMYz8HR5syHNPG_2EgS3cKy5H_geu@mail.gmail.com>
+Subject: Avermedia A700 failing with 2.6.32, worked with 2.6.30
+From: Mikhail Ramendik <mr@ramendik.ru>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Tue, 2010-12-28 at 12:45 -0200, Mauro Carvalho Chehab wrote:
-> Em 28-12-2010 12:14, Andy Walls escreveu:
-> > On Tue, 2010-12-28 at 01:12 -0200, Mauro Carvalho Chehab wrote:
-> >> Em 27-12-2010 21:55, Andy Walls escreveu:
-> >>> I have hardware for lirc_zilog.  I can look later this week.
-> >>
-> >> That would be great!
-> > 
-> > It shouldn't be hard to fix up the lirc_zilog.c use of adap->id but it
-> > may require a change to the hdpvr driver as well.
-> > 
-> > As I was looking, I noticed this commit is incomplete:
-> > 
-> > http://git.linuxtv.org/media_tree.git?a=commitdiff;h=07cc65d4f4a21a104269ff7e4e7be42bd26d7acb
-> > 
-> > The "goto" was missed in the conditional compilation for the HD-PVR:
-> > 
-> > http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/staging/lirc/lirc_zilog.c;h=f0076eb025f1a0e9d412080caab87f627dda4970#l844
-> > 
-> > You might want to revert the trivial commit that removed the "done:"
-> > label.  When I clean up the dependence on adap->id, I may need the
-> > "done:" label back again.
-> > 
-> > 
-> Argh! this is not a very nice code at all...
-> 
-> I think that the proper way is to apply the enclosed patch. After having it
-> fixed, the dont_wait parameter can be passed to the driver via platform_data.
-> So, we should add a field at struct IR for it.
+Hello.
 
-Well there is one more exception in lirc_zilog for the HD-PVR that also
-relies on adapter->id.
+I have Avermedia A700, a DVB-S card. I also have Debian lenny, which,
+with kernel
+2.6.30 from backports.org, displayed satelite video successfully.
 
-lirc_zilog only handles Hauppauge adapters with that Z8 microcontroller
-(PVR-150's, HVR-1600's, etc.) and the HD-PVR is the only device that
-requires these quirky exceptions AFAIK.
+However, once I installed kernel 2.6.32 from backports.org (which I
+needed for certain network hardware), DVB no longer works, even though
+the card is unchanged.
 
-It's probably better just to let lirc_zilog cleanly know it is dealing
-with an HD-PVR and let it handle.  I'm working on it this evening and
-will post something soon.
+/dev/dvb* does not exist, even though I load saa7134_dvb via /etc/modules .
 
-Regards,
-Andy
+$ dvbscan
+Failed to open frontend
 
-> Cheers,
-> Mauro
-> 
-> lirc_zilog: Fix the TX logic for hd-pvr
-> 
-> The dont_wait parameter should be passed to the driver via platform_data, in order
-> to allow removing the usage of the legacy i2c_adapter.id field.
-> 
-> So, we should add a field at struct IR for it.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> diff --git a/drivers/staging/lirc/lirc_zilog.c b/drivers/staging/lirc/lirc_zilog.c
-> index 52be6de..8486b66 100644
-> --- a/drivers/staging/lirc/lirc_zilog.c
-> +++ b/drivers/staging/lirc/lirc_zilog.c
-> @@ -88,6 +88,7 @@ struct IR {
->  	struct i2c_client c_tx;
->  	int need_boot;
->  	int have_tx;
-> +	bool dont_wait;
->  };
->  
->  /* Minor -> data mapping */
-> @@ -841,46 +842,43 @@ static int send_code(struct IR *ir, unsigned int code, unsigned int key)
->  		return ret < 0 ? ret : -EFAULT;
->  	}
->  
-> -#ifdef I2C_HW_B_HDPVR
->  	/*
->  	 * The sleep bits aren't necessary on the HD PVR, and in fact, the
->  	 * last i2c_master_recv always fails with a -5, so for now, we're
->  	 * going to skip this whole mess and say we're done on the HD PVR
->  	 */
-> -	if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR)
-> -		goto done;
-> -#endif
-> -
-> -	/*
-> -	 * This bit NAKs until the device is ready, so we retry it
-> -	 * sleeping a bit each time.  This seems to be what the windows
-> -	 * driver does, approximately.
-> -	 * Try for up to 1s.
-> -	 */
-> -	for (i = 0; i < 20; ++i) {
-> -		set_current_state(TASK_UNINTERRUPTIBLE);
-> -		schedule_timeout((50 * HZ + 999) / 1000);
-> -		ret = i2c_master_send(&ir->c_tx, buf, 1);
-> -		if (ret == 1)
-> -			break;
-> -		dprintk("NAK expected: i2c_master_send "
-> -			"failed with %d (try %d)\n", ret, i+1);
-> -	}
-> -	if (ret != 1) {
-> -		zilog_error("IR TX chip never got ready: last i2c_master_send "
-> -			    "failed with %d\n", ret);
-> -		return ret < 0 ? ret : -EFAULT;
-> -	}
-> +	if (!ir->dont_wait) {
-> +		/*
-> +		 * This bit NAKs until the device is ready, so we retry it
-> +		 * sleeping a bit each time.  This seems to be what the
-> +		 *  windows driver does, approximately.
-> +		 * Try for up to 1s.
-> +		 */
-> +		for (i = 0; i < 20; ++i) {
-> +			set_current_state(TASK_UNINTERRUPTIBLE);
-> +			schedule_timeout((50 * HZ + 999) / 1000);
-> +			ret = i2c_master_send(&ir->c_tx, buf, 1);
-> +			if (ret == 1)
-> +				break;
-> +			dprintk("NAK expected: i2c_master_send "
-> +				"failed with %d (try %d)\n", ret, i+1);
-> +		}
-> +		if (ret != 1) {
-> +			zilog_error("IR TX chip never got ready: last i2c_master_send "
-> +				    "failed with %d\n", ret);
-> +			return ret < 0 ? ret : -EFAULT;
-> +		}
->  
-> -	/* Seems to be an 'ok' response */
-> -	i = i2c_master_recv(&ir->c_tx, buf, 1);
-> -	if (i != 1) {
-> -		zilog_error("i2c_master_recv failed with %d\n", ret);
-> -		return -EFAULT;
-> -	}
-> -	if (buf[0] != 0x80) {
-> -		zilog_error("unexpected IR TX response #2: %02x\n", buf[0]);
-> -		return -EFAULT;
-> +		/* Seems to be an 'ok' response */
-> +		i = i2c_master_recv(&ir->c_tx, buf, 1);
-> +		if (i != 1) {
-> +			zilog_error("i2c_master_recv failed with %d\n", ret);
-> +			return -EFAULT;
-> +		}
-> +		if (buf[0] != 0x80) {
-> +			zilog_error("unexpected IR TX response #2: %02x\n", buf[0]);
-> +			return -EFAULT;
-> +		}
->  	}
->  
->  	/* Oh good, it worked */
-> @@ -1278,6 +1276,11 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
->  		strlcpy(ir->c_tx.name, ZILOG_HAUPPAUGE_IR_TX_NAME,
->  			I2C_NAME_SIZE);
->  		ir->have_tx = 1;
-> +
-> +#ifdef I2C_HW_B_HDPVR
-> +		if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR)
-> +			ir->dont_wait = true;
-> +#endif
->  	}
->  
->  	/* set lirc_dev stuff */
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+$  su
+# dvbscan
+Failed to open frontend
+
+# lsmod | grep 7134
+saa7134_dvb            16549  0
+videobuf_dvb            3390  1 saa7134_dvb
+saa7134_alsa            7867  0
+snd_pcm                47202  4
+snd_intel8x0,saa7134_alsa,snd_pcm_oss,snd_ac97_codec
+saa7134               120032  2 saa7134_dvb,saa7134_alsa
+ir_common              22187  1 saa7134
+v4l2_common             9836  2 tuner,saa7134
+videodev               25569  3 tuner,saa7134,v4l2_common
+videobuf_dma_sg         7235  3 saa7134_dvb,saa7134_alsa,saa7134
+videobuf_core          10484  3 videobuf_dvb,saa7134,videobuf_dma_sg
+tveeprom                9393  1 saa7134
+snd                    34395  10
+snd_intel8x0,saa7134_alsa,snd_pcm_oss,snd_mixer_oss,snd_ac97_codec,snd_pcm,snd_rawmidi,snd_seq,snd_timer,snd_seq_device
+i2c_core               12700  7
+nvidia,saa7134_dvb,tuner,saa7134,v4l2_common,videodev,tveeprom
+
+# dpkg -l | grep firmware
+ii  firmware-linux-free                   2.6.32-28~bpo50+1
+        Binary firmware for various drivers in the Linux kernel
+ii  firmware-linux-nonfree                0.24~bpo50+1
+        Binary firmware for various drivers in the Linux kernel
+ii  firmware-ralink                       0.24~bpo50+1
+        Binary firmware for Ralink RT2561, RT2571, RT2661 and RT2671
+wir
+
+/var/log/dmesg, the only mentioning of 7134:
+
+[   10.569399] saa7134 0000:00:0a.0: PCI INT A -> GSI 19 (level, low) -> IRQ 19
+[   10.569411] saa7133[0]: found at 0000:00:0a.0, rev: 209, irq: 19,
+latency: 32, mmio: 0xeb034000
+[   10.569422] saa7133[0]: subsystem: 1461:a7a1, board: AverMedia
+AverTV/305 [card=52,insmod option]
+[   10.569448] saa7133[0]: board init: gpio is 202b600
+[   10.569602] input: saa7134 IR (AverMedia AverTV/30 as
+/devices/pci0000:00/0000:00:0a.0/input/input6
+[   10.569696] IRQ 19/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+[   10.673687] parport_pc 00:0a: reported by Plug and Play ACPI
+[   10.673754] parport0: PC-style at 0x378 (0x778), irq 7 [PCSPP,TRISTATE]
+[   11.020045] saa7133[0]: i2c eeprom 00: 61 14 a1 a7 ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   11.020069] saa7133[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   11.020089] saa7133[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   11.020110] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   11.020130] saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   11.020151] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   11.020171] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   11.020192] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   11.020213] saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   11.020233] saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   11.020253] saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   11.020273] saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   11.020293] saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   11.020311] saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   11.020331] saa7133[0]: i2c eeprom e0: 00 01 81 b0 3e 3f ff ff ff
+ff ff ff ff ff ff ff
+[   11.020350] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   11.020374] i2c i2c-0: Invalid 7-bit address 0x7a
+[   11.892321] saa7133[0]: registered device video0 [v4l2]
+[   11.892373] saa7133[0]: registered device vbi0
+[   13.298227] saa7134 ALSA driver for DMA sound loaded
+[   13.298247] IRQ 19/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+[   13.298287] saa7133[0]/alsa: saa7133[0] at 0xeb034000 irq 19
+registered as card -2
 
 
+I have set the following options in /etc/modprobe.d/saa7134 :
+
+options saa7134 card=52 tuner=38
+options saa7134-alsa index=-2
+
+The first line is unchanged from the 2.6.30 setup where it worked. The
+second line was added to make ALSA sound work, as under 2.6.32
+saa7134-a;sa became the default device without it.
+
+-- 
+Yours, Mikhail Ramendik
+
+Unless explicitly stated, all opinions in my mail are my own and do
+not reflect the views of any organization
