@@ -1,22 +1,23 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com (ext-mx06.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.10])
+Received: from mx1.redhat.com (ext-mx10.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.14])
 	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP
-	id oBM5eY4q018427
-	for <video4linux-list@redhat.com>; Wed, 22 Dec 2010 00:40:34 -0500
-Received: from sam.nabble.com (sam.nabble.com [216.139.236.26])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oBM5eOx0002939
-	for <video4linux-list@redhat.com>; Wed, 22 Dec 2010 00:40:25 -0500
-Received: from jim.nabble.com ([192.168.236.80])
-	by sam.nabble.com with esmtp (Exim 4.69)
-	(envelope-from <sudhindra.nayak@gmail.com>) id 1PVH8Z-0006r5-MX
-	for video4linux-list@redhat.com; Tue, 21 Dec 2010 21:21:19 -0800
-Date: Tue, 21 Dec 2010 21:21:19 -0800 (PST)
+	id oBM5FQMY013249
+	for <video4linux-list@redhat.com>; Wed, 22 Dec 2010 00:15:26 -0500
+Received: from mail-qw0-f46.google.com (mail-qw0-f46.google.com
+	[209.85.216.46])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oBM5FF1o000717
+	for <video4linux-list@redhat.com>; Wed, 22 Dec 2010 00:15:16 -0500
+Received: by qwa26 with SMTP id 26so4585548qwa.33
+	for <video4linux-list@redhat.com>; Tue, 21 Dec 2010 21:15:15 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <AANLkTinwrr=vphwVq+dSi2ceL2+qBG_-GMGZHHYujYW4@mail.gmail.com>
+References: <AANLkTinwrr=vphwVq+dSi2ceL2+qBG_-GMGZHHYujYW4@mail.gmail.com>
+Date: Wed, 22 Dec 2010 10:45:14 +0530
+Message-ID: <AANLkTikjOG14Db=S3Dk6AC53zTpv=fyY4X+HtC16sa_+@mail.gmail.com>
+Subject: Quickcam express: Not able to capture video
 From: Sudhindra Nayak <sudhindra.nayak@gmail.com>
 To: video4linux-list@redhat.com
-Message-ID: <1292995279644-5856387.post@n2.nabble.com>
-Subject: Quickcam express: Not able to capture video
-MIME-Version: 1.0
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,13 +31,12 @@ Errors-To: video4linux-list-bounces@redhat.com
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 List-ID: <video4linux-list@redhat.com>
 
-
-Hi all, 
+Hi all,
 
 I'm using a 'Logitech Quickcam Express' (046d:0840) camera to capture video.
 I'm using the STV06xx driver for this camera. I'm using a v4l2 example code
 as my application along with the above mentioned driver. The example code
-can be found at the below link: 
+can be found at the below link:
 
 http://v4l2spec.bytesex.org/spec/capture-example.html
 
@@ -218,14 +218,10 @@ Exception stack(0xc03b5f70 to 0xc03b5fb8)
 
 Any suggestions??
 
------
+-- 
 Regards,
 
 Sudhindra Nayak
--- 
-View this message in context: http://video4linux-list.1448896.n2.nabble.com/Quickcam-express-Not-able-to-capture-video-tp5856387p5856387.html
-Sent from the video4linux-list mailing list archive at Nabble.com.
-
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
