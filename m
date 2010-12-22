@@ -1,62 +1,167 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:3580 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751142Ab0LYIy3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Dec 2010 03:54:29 -0500
-Message-ID: <4D15B140.4090300@redhat.com>
-Date: Sat, 25 Dec 2010 06:54:24 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: nasty bug at qv4l2
-References: <4D11E170.6050500@redhat.com> <4D14ABEE.40206@redhat.com> <201012241520.01460.hverkuil@xs4all.nl> <4D14B106.2000502@redhat.com>
-In-Reply-To: <4D14B106.2000502@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from ganesha.gnumonks.org ([213.95.27.120]:38392 "EHLO
+	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752661Ab0LVMMr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Dec 2010 07:12:47 -0500
+From: Jeongtae Park <jtp.park@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, jaeryul.oh@samsung.com,
+	kgene.kim@samsung.com, ben-linux@fluff.org,
+	jonghun.han@samsung.com, Jeongtae Park <jtp.park@samsung.com>
+Subject: [PATCH 2/9] ARM: S5PV310: Add clock support for MFC v5.1
+Date: Wed, 22 Dec 2010 20:54:38 +0900
+Message-Id: <1293018885-15239-3-git-send-email-jtp.park@samsung.com>
+In-Reply-To: <1293018885-15239-2-git-send-email-jtp.park@samsung.com>
+References: <1293018885-15239-1-git-send-email-jtp.park@samsung.com>
+ <1293018885-15239-2-git-send-email-jtp.park@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 24-12-2010 12:41, Hans de Goede escreveu:
-> Hi,
-> 
-> On 12/24/2010 03:20 PM, Hans Verkuil wrote:
->> On Friday, December 24, 2010 15:19:26 Hans de Goede wrote:
->>> Hi,
->>>
->>> On 12/22/2010 12:30 PM, Mauro Carvalho Chehab wrote:
->>>> Hans V/Hans G,
->>>>
->>>> There's a nasty bug at qv4l2 or at libv4l: it is not properly updating
->>>> all info, if you change the video device. On my tests with uvcvideo (video0)
->>>> and a gspca camera (pac7302, video1), it was showing the supported formats
->>>> for the uvcvideo camera when I changed from video0 to video1.
->>>>
->>>> The net result is that the image were handled with the wrong decoder
->>>> (instead of using fourcc V4L2_PIX_FMT_PJPG, it were using BGR3), producing
->>>> a wrong decoding.
->>>>
->>>> Could you please take a look on it?
->>>
->>> I'm pretty sure this is not a libv4l issue (other apps which allows witching
->>> the source work fine), but rather a qv4l2 problem, esp. as it uses libv4lconvert
->>> directly rather then going through libv4l (iirc).
->>
->> And I'm pretty sure it isn't a qv4l2 issue :-)
->>
->> For the record: qv4l2 can open a device node either in 'raw' mode bypassing libv4l
->> and using v4lconvert to convert unsupported pixformats, or in 'wrapped' mode where
->> libv4l is used for all device node accesses.
->>
-> 
-> Interesting, how does it switch between the modes? Mauro were you using wrapped mode
-> or raw mode when you saw this ?
+This patch adds clock support for MFC v5.1.
 
-I have no idea, as I also didn't know about this feature, nor how to switch from one
-mode to the other ;)
-> 
-> Regards,
-> 
-> hans
+Reviewed-by: Peter Oh <jaeryul.oh@samsung.com>
+Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
+---
+ arch/arm/mach-s5pv310/clock.c                   |   68 +++++++++++++++++++++++
+ arch/arm/mach-s5pv310/include/mach/regs-clock.h |    3 +
+ 2 files changed, 71 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-s5pv310/clock.c b/arch/arm/mach-s5pv310/clock.c
+index a109bc1..158ccd0 100644
+--- a/arch/arm/mach-s5pv310/clock.c
++++ b/arch/arm/mach-s5pv310/clock.c
+@@ -56,6 +56,11 @@ static int s5pv310_clksrc_mask_cam_ctrl(struct clk *clk, int enable)
+ 	return s5p_gatectrl(S5P_CLKSRC_MASK_CAM, clk, enable);
+ }
+ 
++static int s5pv310_clk_ip_mfc_ctrl(struct clk *clk, int enable)
++{
++	return s5p_gatectrl(S5P_CLKGATE_IP_MFC, clk, enable);
++}
++
+ static int s5pv310_clksrc_mask_lcd0_ctrl(struct clk *clk, int enable)
+ {
+ 	return s5p_gatectrl(S5P_CLKSRC_MASK_LCD0, clk, enable);
+@@ -422,6 +427,11 @@ static struct clk init_clocks_disable[] = {
+ 		.enable		= s5pv310_clk_ip_cam_ctrl,
+ 		.ctrlbit	= (1 << 3),
+ 	}, {
++		.name		= "mfc",
++		.id		= -1,
++		.enable		= s5pv310_clk_ip_mfc_ctrl,
++		.ctrlbit	= (1 << 0),
++	}, {
+ 		.name		= "fimd0",
+ 		.id		= -1,
+ 		.enable		= s5pv310_clk_ip_lcd0_ctrl,
+@@ -613,6 +623,54 @@ static struct clksrc_sources clkset_group = {
+ 	.nr_sources	= ARRAY_SIZE(clkset_group_list),
+ };
+ 
++static struct clk *clkset_mout_mfc0_list[] = {
++	[0] = &clk_mout_mpll.clk,
++	[1] = &clk_sclk_apll.clk,
++};
++
++static struct clksrc_sources clkset_mout_mfc0 = {
++	.sources	= clkset_mout_mfc0_list,
++	.nr_sources	= ARRAY_SIZE(clkset_mout_mfc0_list),
++};
++
++static struct clksrc_clk clk_mout_mfc0 = {
++	.clk	= {
++		.name		= "mout_mfc0",
++		.id		= -1,
++	},
++	.sources	= &clkset_mout_mfc0,
++	.reg_src	= { .reg = S5P_CLKSRC_MFC, .shift = 0, .size = 1 },
++};
++
++static struct clk *clkset_mout_mfc1_list[] = {
++	[0] = &clk_mout_epll.clk,
++	[1] = &clk_sclk_vpll.clk,
++};
++
++static struct clksrc_sources clkset_mout_mfc1 = {
++	.sources	= clkset_mout_mfc1_list,
++	.nr_sources	= ARRAY_SIZE(clkset_mout_mfc1_list),
++};
++
++static struct clksrc_clk clk_mout_mfc1 = {
++	.clk	= {
++		.name		= "mout_mfc1",
++		.id		= -1,
++	},
++	.sources	= &clkset_mout_mfc1,
++	.reg_src	= { .reg = S5P_CLKSRC_MFC, .shift = 4, .size = 1 },
++};
++
++static struct clk *clkset_mout_mfc_list[] = {
++	[0] = &clk_mout_mfc0.clk,
++	[1] = &clk_mout_mfc1.clk,
++};
++
++static struct clksrc_sources clkset_mout_mfc = {
++	.sources	= clkset_mout_mfc_list,
++	.nr_sources	= ARRAY_SIZE(clkset_mout_mfc_list),
++};
++
+ static struct clk *clkset_mout_g2d0_list[] = {
+ 	[0] = &clk_mout_mpll.clk,
+ 	[1] = &clk_sclk_apll.clk,
+@@ -844,6 +902,14 @@ static struct clksrc_clk clksrcs[] = {
+ 		.reg_div = { .reg = S5P_CLKDIV_CAM, .shift = 12, .size = 4 },
+ 	}, {
+ 		.clk		= {
++			.name		= "sclk_mfc",
++			.id		= -1,
++		},
++		.sources = &clkset_mout_mfc,
++		.reg_src = { .reg = S5P_CLKSRC_MFC, .shift = 8, .size = 1 },
++		.reg_div = { .reg = S5P_CLKDIV_MFC, .shift = 0, .size = 4 },
++	}, {
++		.clk		= {
+ 			.name		= "sclk_fimd0",
+ 			.id		= -1,
+ 			.enable		= s5pv310_clksrc_mask_lcd0_ctrl,
+@@ -988,6 +1054,8 @@ static struct clksrc_clk *sysclks[] = {
+ 	&clk_dout_mmc2,
+ 	&clk_dout_mmc3,
+ 	&clk_dout_mmc4,
++	&clk_mout_mfc0,
++	&clk_mout_mfc1,
+ };
+ 
+ void __init_or_cpufreq s5pv310_setup_clocks(void)
+diff --git a/arch/arm/mach-s5pv310/include/mach/regs-clock.h b/arch/arm/mach-s5pv310/include/mach/regs-clock.h
+index f1028ca..0222aff 100644
+--- a/arch/arm/mach-s5pv310/include/mach/regs-clock.h
++++ b/arch/arm/mach-s5pv310/include/mach/regs-clock.h
+@@ -27,6 +27,7 @@
+ #define S5P_CLKSRC_TOP0			S5P_CLKREG(0x0C210)
+ #define S5P_CLKSRC_TOP1			S5P_CLKREG(0x0C214)
+ #define S5P_CLKSRC_CAM			S5P_CLKREG(0x0C220)
++#define S5P_CLKSRC_MFC			S5P_CLKREG(0x0C228)
+ #define S5P_CLKSRC_IMAGE		S5P_CLKREG(0x0C230)
+ #define S5P_CLKSRC_LCD0			S5P_CLKREG(0x0C234)
+ #define S5P_CLKSRC_LCD1			S5P_CLKREG(0x0C238)
+@@ -36,6 +37,7 @@
+ 
+ #define S5P_CLKDIV_TOP			S5P_CLKREG(0x0C510)
+ #define S5P_CLKDIV_CAM			S5P_CLKREG(0x0C520)
++#define S5P_CLKDIV_MFC			S5P_CLKREG(0x0C528)
+ #define S5P_CLKDIV_IMAGE		S5P_CLKREG(0x0C530)
+ #define S5P_CLKDIV_LCD0			S5P_CLKREG(0x0C534)
+ #define S5P_CLKDIV_LCD1			S5P_CLKREG(0x0C538)
+@@ -59,6 +61,7 @@
+ #define S5P_CLKSRC_MASK_PERIL1		S5P_CLKREG(0x0C354)
+ 
+ #define S5P_CLKGATE_IP_CAM		S5P_CLKREG(0x0C920)
++#define S5P_CLKGATE_IP_MFC		S5P_CLKREG(0x0C928)
+ #define S5P_CLKGATE_IP_IMAGE		S5P_CLKREG(0x0C930)
+ #define S5P_CLKGATE_IP_LCD0		S5P_CLKREG(0x0C934)
+ #define S5P_CLKGATE_IP_LCD1		S5P_CLKREG(0x0C938)
+-- 
+1.6.2.5
 
