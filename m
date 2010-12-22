@@ -1,89 +1,83 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:52701 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750846Ab0L0VI0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Dec 2010 16:08:26 -0500
-Message-ID: <4D19002B.8020103@redhat.com>
-Date: Mon, 27 Dec 2010 19:07:55 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Deti Fliegl <deti@fliegl.de>
-CC: archer@in.tum.de,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: RFC: removal of dabusb driver from Linux Kernel
-References: <4C95FCD7.5060001@redhat.com> <4D18B325.7020904@redhat.com> <4D18EDCA.7000700@fliegl.de>
-In-Reply-To: <4D18EDCA.7000700@fliegl.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:13370 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753307Ab0LVNk6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Dec 2010 08:40:58 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LDU00CMG0O2I250@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 22 Dec 2010 13:40:50 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LDU000920O20G@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 22 Dec 2010 13:40:50 +0000 (GMT)
+Date: Wed, 22 Dec 2010 14:40:36 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 06/13] v4l: v4l2-ioctl: Fix conversion between multiplane and
+ singleplane buffers
+In-reply-to: <1293025239-9977-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	andrzej.p@samsung.com
+Message-id: <1293025239-9977-7-git-send-email-m.szyprowski@samsung.com>
+References: <1293025239-9977-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 27-12-2010 17:49, Deti Fliegl escreveu:
-> Hello,
-> 
-> sorry for not answering in time. Please feel free to remove this piece of unusable code from the kernel.
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-Hi Deti,
+Fix copying unions and preserve pointer to the plane array
+in buf_sp_to_mp() and buf_mp_to_sp().
 
-Thanks for your answer. I'll be moving it to staging and scheduling its removal
-on 2.6.39.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ drivers/media/video/v4l2-ioctl.c |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
 
-If you have instead an update for it for some devices that are/were actually
-deployed, please feel free to send us the patches.
-
-Thanks!
-Mauro
-> 
-> Deti
-> 
-> On 12/27/2010 04:39 PM, Mauro Carvalho Chehab wrote:
->> Hi,
->>
->> I'm responsible for the multimedia support at Linux Kernel. I tried to contact the
->> authors of the DABUSB driver back in september some time ago without any luck.
->>
->> We're considering the removal of dabusb driver from Linux Kernel, due to a few
->> reasons:
->>
->> 1) The driver is for an engineering sample only which was never sold as a commercial
->>     product.
->> 2) The DAB API is completely undocumented and was never reviewed. Should other DAB
->>     drivers ever appear, then I'd rather start from scratch defining an API then
->>     continue this dubious API.
->>
->>  From our research, it seems that a variant of the driver is/where used on some hardware
->> developed by you and used on some Terratec hardware (Dr Box 1).
->>
->> If we don't have any answer from you, we'll schedule the driver to be removed from
->> Linux kernel on the next version, as we were unable to identify anyone using the
->> hardware supported at the kernel driver.
->>
->> Thanks,
->> Mauro
->>
->>
->> Em 19-09-2010 09:06, Mauro Carvalho Chehab escreveu:
->>> Hi Deti and Georg,
->>>
->>> The dabusb driver at the Linux kernel seems to be pretty much unmaintained. Since 2006, when I
->>> moved it to /drivers/media, I received no patches from the driver authors. All the patches
->>> we've got since then were usual trivial fixes and a few other drivers correcting some core
->>> API changes.
->>>
->>> Also, I never found anyone with the hardware, in order to test if the driver keeps working.
->>> Is there any commercial hardware using it?
->>>
->>> With the removal of BKL, the driver will need fixes or will likely be removed.
->>>
->>> So, if you still care about the driver, please contact me asap. Otherwise, I'll move it to
->>> drivers/staging and mark it to die for 2.6.38.
->>>
->>> Thanks,
->>> Mauro
->>
-> 
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index fee8b94..60793d6 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -762,16 +762,20 @@ static int fmt_mp_to_sp(const struct v4l2_format *f_mp,
+ static int buf_sp_to_mp(const struct v4l2_buffer *b_sp,
+ 			struct v4l2_buffer *b_mp)
+ {
++	struct v4l2_plane *planes;
+ 	int ret;
+ 
++	planes = b_mp->m.planes;
+ 	memcpy(b_mp, b_sp, sizeof *b_mp);
++	b_mp->m.planes = planes;
++
+ 	ret = type_sp_to_mp(b_sp->type, &b_mp->type);
+ 	if (ret)
+ 		return ret;
+ 	b_mp->m.planes[0].length = b_sp->length;
+ 	b_mp->m.planes[0].bytesused = b_mp->bytesused;
+ 	b_mp->length = 1;
+-	memcpy(&b_mp->m.planes[0].m, &b_sp->m, sizeof(struct v4l2_plane));
++	memcpy(&b_mp->m.planes[0].m, &b_sp->m, sizeof(b_mp->m.planes[0].m));
+ 
+ 	return 0;
+ }
+@@ -785,9 +789,10 @@ static int buf_mp_to_sp(const struct v4l2_buffer *b_mp,
+ 	ret = type_mp_to_sp(b_mp->type, &b_sp->type);
+ 	if (ret)
+ 		return ret;
++
+ 	b_sp->length = b_mp->m.planes[0].length;
+ 	b_sp->bytesused = b_mp->m.planes[0].bytesused;
+-	memcpy(&b_sp->m, &b_mp->m.planes[0].m, sizeof(struct v4l2_plane));
++	memcpy(&b_sp->m, &b_mp->m.planes[0].m, sizeof(b_sp->m));
+ 
+ 	return 0;
+ }
+-- 
+1.7.1.569.g6f426
 
