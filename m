@@ -1,54 +1,80 @@
 Return-path: <mchehab@gaivota>
-Received: from web32404.mail.mud.yahoo.com ([68.142.207.197]:37529 "HELO
-	web32404.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752373Ab0LVQMk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Dec 2010 11:12:40 -0500
-Message-ID: <512671.44577.qm@web32404.mail.mud.yahoo.com>
-References: <29060.37144.qm@web32407.mail.mud.yahoo.com> <201012221639.49893.laurent.pinchart@ideasonboard.com>
-Date: Wed, 22 Dec 2010 08:12:38 -0800 (PST)
-From: Adrian Sandor <aditsu@yahoo.com>
-Subject: Fw: Logitech C310
-To: linux-media@vger.kernel.org
-In-Reply-To: <201012221639.49893.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:11939 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751860Ab0LVQui (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Dec 2010 11:50:38 -0500
+Message-ID: <4D122C53.4070300@redhat.com>
+Date: Wed, 22 Dec 2010 14:50:27 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: Anatolij Gustschin <agust@denx.de>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Detlev Zundel <dzu@denx.de>
+Subject: Re: [1/2] media: saa7115: allow input standard autodetection for
+ SAA7113
+References: <1292264377-31877-1-git-send-email-agust@denx.de>
+In-Reply-To: <1292264377-31877-1-git-send-email-agust@denx.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Oops, it doesn't go to the list automatically. Forwarding...
-
-
------ Forwarded Message ----
-> From: Adrian Sandor <aditsu@yahoo.com>
-> ----- Original Message ----
-> > From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > 
-> > Hi Adrian,
-> > 
-> > On Wednesday 22 December 2010 13:56:41  Adrian Sandor  wrote:
-> > > Hi, I bought a Logitech C310 webcam.  According to the box, it  supports 5
-> > > megapixel photos and 720p  video.
-> > > How can I take  high-resolution photos from it? Does it  work through v4l 
->or
-> > > a separate  interface?
-> > > The  camera is working well in mplayer (showing 1280*720  video).
-> > 
-> > The camera sensor has a native 1280x960 resolution. You won't be   able to 
-> > capture higher resolution images. If you look at the box,  there  should be 
->an 
->
-> > "achieved by software interpolation" or  similar comment in a  very small 
-> > footprint.
+Em 13-12-2010 16:19, Anatolij Gustschin escreveu:
+> Autodetect input's standard using field frequency detection
+> feature (FIDT in status byte at 0x1F) of the SAA7113.
 > 
-> Oh my God, it's  "software enhanced"! You bastards! </southpark>
-> I saw it now on their  website. Hadn't noticed it on the box (and I don't have 
-
-> the box anymore).  I'll check next time I go to a shop.
-> Anyway, it has pretty good quality, so I  don't feel that bad.
+> Signed-off-by: Anatolij Gustschin <agust@denx.de>
 > 
-> Thanks a lot for the  revelation!
-> Adrian
+> ---
+> drivers/media/video/saa7115.c |   12 ++++++++++++
+>  1 files changed, 12 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/saa7115.c b/drivers/media/video/saa7115.c
+> index 301c62b..f28a4c7 100644
+> --- a/drivers/media/video/saa7115.c
+> +++ b/drivers/media/video/saa7115.c
+> @@ -1348,6 +1348,18 @@ static int saa711x_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
+>  	int reg1e;
+>  
+>  	*std = V4L2_STD_ALL;
+> +
+> +	if (state->ident == V4L2_IDENT_SAA7113) {
+> +		int reg1f = saa711x_read(sd, R_1F_STATUS_BYTE_2_VD_DEC);
+> +
+> +		if (reg1f & 0x20)
+> +			*std = V4L2_STD_NTSC;
+> +		else
+> +			*std = V4L2_STD_PAL;
 
+This is wrong. The meaning of bit 5 of reg 0x1f is if the standard is 50Hz
+or 60Hz based (so, it detects the monocromatic standard, not the color
+standard). So, instead, it should be doing:
 
-      
+	if (reg1f & 0x20)
+		*std = V4L2_STD_525_60;
+	else
+		*std = V4L2_STD_625_50;
+
+Also, this kind of detection could be used also for the other supported chips
+on this driver (I checked datasheets of saa7111/saa7111a/saa7114/saa7118).
+
+So, the better is to code it as: 
+
+ 	if (state->ident != V4L2_IDENT_SAA7115) {
+		int reg1f = saa711x_read(sd, R_1F_STATUS_BYTE_2_VD_DEC);
+		if (reg1f & 0x20)
+			*std = V4L2_STD_525_60;
+		else
+			*std = V4L2_STD_625_50;
+ 		return 0;
+	}
+
+> +
+> +		return 0;
+> +	}
+> +
+>  	if (state->ident != V4L2_IDENT_SAA7115)
+>  		return 0;
+>  	reg1e = saa711x_read(sd, R_1E_STATUS_BYTE_1_VD_DEC);
+> 
+
