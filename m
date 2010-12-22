@@ -1,161 +1,59 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:36364 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751404Ab0LOSo0 (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2658 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751818Ab0LVUi5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Dec 2010 13:44:26 -0500
-From: Chris Clayton <chris2553@googlemail.com>
-Reply-To: chris2553@googlemail.com
-To: Brandon Philips <brandon@ifup.org>
-Subject: Re: [PATCH] bttv: fix mutex use before init
-Date: Wed, 15 Dec 2010 18:44:04 +0000
-Cc: Torsten Kaiser <just.for.lkml@googlemail.com>,
-	Dave Young <hidave.darkstar@gmail.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <20101212131550.GA2608@darkstar> <AANLkTinaNjPjNbxE+OyRsY_jJxDW-pwehTPgyAWzqfzd@mail.gmail.com> <20101214003024.GA3575@hanuman.home.ifup.org>
-In-Reply-To: <20101214003024.GA3575@hanuman.home.ifup.org>
+	Wed, 22 Dec 2010 15:38:57 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Pawel Osciak <pawel@osciak.com>
+Subject: Re: [PATCH 02/13] v4l: Add multi-planar ioctl handling code
+Date: Wed, 22 Dec 2010 21:38:43 +0100
+Cc: m.szyprowski@samsung.com, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	andrzej.p@samsung.com
+References: <201012221601.37554.hverkuil@xs4all.nl> <1293037826-13420-1-git-send-email-pawel@osciak.com>
+In-Reply-To: <1293037826-13420-1-git-send-email-pawel@osciak.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201012151844.04105.chris2553@googlemail.com>
+Message-Id: <201012222138.43382.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Tuesday 14 December 2010, Brandon Philips wrote:
-> On 17:13 Sun 12 Dec 2010, Torsten Kaiser wrote:
-> >  * change &fh->cap.vb_lock in bttv_open() AND radio_open() to
-> > &btv->init.cap.vb_lock
-> >  * add a mutex_init(&btv->init.cap.vb_lock) to the setup of init in
-> > bttv_probe()
->
-> That seems like a reasonable suggestion. An openSUSE user submitted this
-> bug to our tracker too. Here is the patch I am having him test.
->
-> Would you mind testing it?
->
-> From 456dc0ce36db523c4c0c8a269f4eec43a72de1dc Mon Sep 17 00:00:00 2001
-> From: Brandon Philips <bphilips@suse.de>
-> Date: Mon, 13 Dec 2010 16:21:55 -0800
-> Subject: [PATCH] bttv: fix locking for btv->init
->
-> Fix locking for the btv->init by using btv->init.cap.vb_lock and in the
-> process fix uninitialized deref introduced in c37db91fd0d.
->
-> Signed-off-by: Brandon Philips <bphilips@suse.de>
+On Wednesday, December 22, 2010 18:10:26 Pawel Osciak wrote:
+> From: Pawel Osciak <p.osciak@samsung.com>
+> 
+> Add multi-planar API core ioctl handling and conversion functions.
+> 
+> Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Reviewed-by: Marek Szyprowski <m.szyprowski@samsung.com>
 > ---
->  drivers/media/video/bt8xx/bttv-driver.c |   24 +++++++++++++-----------
->  1 files changed, 13 insertions(+), 11 deletions(-)
->
-> diff --git a/drivers/media/video/bt8xx/bttv-driver.c
-> b/drivers/media/video/bt8xx/bttv-driver.c index a529619..e656424 100644
-> --- a/drivers/media/video/bt8xx/bttv-driver.c
-> +++ b/drivers/media/video/bt8xx/bttv-driver.c
-> @@ -2391,16 +2391,11 @@ static int setup_window_lock(struct bttv_fh *fh,
-> struct bttv *btv, fh->ov.field    = win->field;
->  	fh->ov.setup_ok = 1;
->
-> -	/*
-> -	 * FIXME: btv is protected by btv->lock mutex, while btv->init
-> -	 *	  is protected by fh->cap.vb_lock. This seems to open the
-> -	 *	  possibility for some race situations. Maybe the better would
-> -	 *	  be to unify those locks or to use another way to store the
-> -	 *	  init values that will be consumed by videobuf callbacks
-> -	 */
-> +	mutex_lock(&btv->init.cap.vb_lock);
->  	btv->init.ov.w.width   = win->w.width;
->  	btv->init.ov.w.height  = win->w.height;
->  	btv->init.ov.field     = win->field;
-> +	mutex_unlock(&btv->init.cap.vb_lock);
->
->  	/* update overlay if needed */
->  	retval = 0;
-> @@ -2620,9 +2615,11 @@ static int bttv_s_fmt_vid_cap(struct file *file,
-> void *priv, fh->cap.last         = V4L2_FIELD_NONE;
->  	fh->width            = f->fmt.pix.width;
->  	fh->height           = f->fmt.pix.height;
-> +	mutex_lock(&btv->init.cap.vb_lock);
->  	btv->init.fmt        = fmt;
->  	btv->init.width      = f->fmt.pix.width;
->  	btv->init.height     = f->fmt.pix.height;
-> +	mutex_unlock(&btv->init.cap.vb_lock);
->  	mutex_unlock(&fh->cap.vb_lock);
->
->  	return 0;
-> @@ -2855,6 +2852,7 @@ static int bttv_s_fbuf(struct file *file, void *f,
->
->  	retval = 0;
->  	fh->ovfmt = fmt;
-> +	mutex_lock(&btv->init.cap.vb_lock);
->  	btv->init.ovfmt = fmt;
->  	if (fb->flags & V4L2_FBUF_FLAG_OVERLAY) {
->  		fh->ov.w.left   = 0;
-> @@ -2876,6 +2874,7 @@ static int bttv_s_fbuf(struct file *file, void *f,
->  			retval = bttv_switch_overlay(btv, fh, new);
->  		}
->  	}
-> +	mutex_unlock(&btv->init.cap.vb_lock);
->  	mutex_unlock(&fh->cap.vb_lock);
->  	return retval;
->  }
-> @@ -3141,6 +3140,7 @@ static int bttv_s_crop(struct file *file, void *f,
-> struct v4l2_crop *crop) fh->do_crop = 1;
->
->  	mutex_lock(&fh->cap.vb_lock);
-> +	mutex_lock(&btv->init.cap.vb_lock);
->
->  	if (fh->width < c.min_scaled_width) {
->  		fh->width = c.min_scaled_width;
-> @@ -3158,6 +3158,7 @@ static int bttv_s_crop(struct file *file, void *f,
-> struct v4l2_crop *crop) btv->init.height = c.max_scaled_height;
->  	}
->
-> +	mutex_unlock(&btv->init.cap.vb_lock);
->  	mutex_unlock(&fh->cap.vb_lock);
->
->  	return 0;
-> @@ -3302,9 +3303,9 @@ static int bttv_open(struct file *file)
->  	 * Let's first copy btv->init at fh, holding cap.vb_lock, and then work
->  	 * with the rest of init, holding btv->lock.
->  	 */
-> -	mutex_lock(&fh->cap.vb_lock);
-> +	mutex_lock(&btv->init.cap.vb_lock);
->  	*fh = btv->init;
-> -	mutex_unlock(&fh->cap.vb_lock);
-> +	mutex_unlock(&btv->init.cap.vb_lock);
->
->  	fh->type = type;
->  	fh->ov.setup_ok = 0;
-> @@ -3502,9 +3503,9 @@ static int radio_open(struct file *file)
->  	if (unlikely(!fh))
->  		return -ENOMEM;
->  	file->private_data = fh;
-> -	mutex_lock(&fh->cap.vb_lock);
-> +	mutex_lock(&btv->init.cap.vb_lock);
->  	*fh = btv->init;
-> -	mutex_unlock(&fh->cap.vb_lock);
-> +	mutex_unlock(&btv->init.cap.vb_lock);
->
->  	mutex_lock(&btv->lock);
->  	v4l2_prio_open(&btv->prio, &fh->prio);
-> @@ -4489,6 +4490,7 @@ static int __devinit bttv_probe(struct pci_dev *dev,
->  	btv->opt_coring     = coring;
->
->  	/* fill struct bttv with some useful defaults */
-> +	mutex_init(&btv->init.cap.vb_lock);
->  	btv->init.btv         = btv;
->  	btv->init.ov.w.width  = 320;
->  	btv->init.ov.w.height = 240;
+>  drivers/media/video/v4l2-ioctl.c |  453 ++++++++++++++++++++++++++++++++++----
+>  include/media/v4l2-ioctl.h       |   16 ++
+>  2 files changed, 425 insertions(+), 44 deletions(-)
+> 
+> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+> index 8516669..e2f6abb 100644
+> --- a/drivers/media/video/v4l2-ioctl.c
+> +++ b/drivers/media/video/v4l2-ioctl.c
 
-The patch is good here too. Thanks.
+<snip>
 
-Tested-by: Chris Clayton <chris2553@googlemail.com>
+OK, looks good.
 
+Marek, this patch + the other patches from your v8 patch series are good to
+go as far as I am concerned. So you can add my tag to the whole series:
 
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+
+The only note I want to make is that the V4L2 DocBook spec needs to be updated
+for the multiplanar API. But in my opinion that patch can be done in January.
+
+Regards,
+
+	Hans
 
 -- 
-The more I see, the more I know. The more I know, the less I understand. 
-Changing Man - Paul Weller
+Hans Verkuil - video4linux developer - sponsored by Cisco
