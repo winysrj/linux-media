@@ -1,815 +1,571 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:61457 "EHLO
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:20598 "EHLO
 	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757205Ab0LML1M (ORCPT
+	with ESMTP id S1753044Ab0LVOab (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Dec 2010 06:27:12 -0500
+	Wed, 22 Dec 2010 09:30:31 -0500
 MIME-version: 1.0
 Content-transfer-encoding: 7BIT
 Content-type: TEXT/PLAIN
-Date: Mon, 13 Dec 2010 12:26:49 +0100
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Subject: [PATCHv7 08/10] mm: cma: Contiguous Memory Allocator added
-In-reply-to: <cover.1292004520.git.m.nazarewicz@samsung.com>
-To: Michal Nazarewicz <mina86@mina86.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Ankita Garg <ankita@in.ibm.com>,
-	BooJin Kim <boojin.kim@samsung.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mel Gorman <mel@csn.ul.ie>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	Michal Nazarewicz <m.nazarewicz@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <fc8aa07ac71d554ba10af4943fdb05197c681fa2.1292004520.git.m.nazarewicz@samsung.com>
-References: <cover.1292004520.git.m.nazarewicz@samsung.com>
+Received: from spt2.w1.samsung.com ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LDU00AIG2YTJP70@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 22 Dec 2010 14:30:29 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LDU003JN2YSWR@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 22 Dec 2010 14:30:29 +0000 (GMT)
+Date: Wed, 22 Dec 2010 15:30:16 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 12/13] v4l: videobuf2: add read() and write() emulator
+In-reply-to: <1293025239-9977-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	andrzej.p@samsung.com
+Message-id: <1293028217-23151-3-git-send-email-m.szyprowski@samsung.com>
+References: <1293025239-9977-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-The Contiguous Memory Allocator is a set of functions that lets
-one initialise a region of memory which then can be used to perform
-allocations of contiguous memory chunks from.  The implementation
-uses MIGRATE_CMA migration type which means that the memory is
-shared with standard page allocator, ie. when CMA is not using
-the memory, page allocator can allocate movable pages from the
-region.
+Add a generic file io (read and write) emulator for videobuf2. It uses
+MMAP memory type buffers and generic vb2 calls: req_bufs, qbuf and
+dqbuf. Video date is being copied from mmap buffers to userspace with
+standard copy_to_user() function. To add support for file io the driver
+needs to provide an additional callback - read_setup or write_setup. It
+should provide the default number of buffers used by emulator and flags.
 
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+With these flags one can detemine the style of read() or write()
+emulation. By default 'streaming' style is used. With
+VB2_FILEIO_READ_ONCE flag one can select 'one shot' mode for read()
+emulator. With VB2_FILEIO_WRITE_IMMEDIATE flag one can select immediate
+conversion of write calls to qbuf for write() emulator, so the vb2 will
+not wait until each buffer is filled completely before queueing it to
+the driver.
+
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+CC: Pawel Osciak <pawel@osciak.com>
 ---
- include/linux/cma.h |  223 ++++++++++++++++++++++++
- mm/Kconfig          |   32 ++++
- mm/Makefile         |    1 +
- mm/cma.c            |  477 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 733 insertions(+), 0 deletions(-)
- create mode 100644 include/linux/cma.h
- create mode 100644 mm/cma.c
+ drivers/media/video/videobuf2-core.c |  399 ++++++++++++++++++++++++++++++++++
+ include/media/videobuf2-core.h       |    9 +
+ 2 files changed, 408 insertions(+), 0 deletions(-)
 
-diff --git a/include/linux/cma.h b/include/linux/cma.h
-new file mode 100644
-index 0000000..25728a3
---- /dev/null
-+++ b/include/linux/cma.h
-@@ -0,0 +1,223 @@
-+#ifndef __LINUX_CMA_H
-+#define __LINUX_CMA_H
-+
-+/*
-+ * Contiguous Memory Allocator
-+ * Copyright (c) 2010 by Samsung Electronics.
-+ * Written by Michal Nazarewicz (m.nazarewicz@samsung.com)
-+ */
-+
-+/*
-+ * Contiguous Memory Allocator
-+ *
-+ *   The Contiguous Memory Allocator (CMA) makes it possible for
-+ *   device drivers to allocate big contiguous chunks of memory after
-+ *   the system has booted.
-+ *
-+ *   It requires some machine- and/or platform-specific initialisation
-+ *   code which prepares memory ranges to be used with CMA and later,
-+ *   device drivers can allocate memory from those ranges.
-+ *
-+ * Why is it needed?
-+ *
-+ *   Various devices on embedded systems have no scatter-getter and/or
-+ *   IO map support and require contiguous blocks of memory to
-+ *   operate.  They include devices such as cameras, hardware video
-+ *   coders, etc.
-+ *
-+ *   Such devices often require big memory buffers (a full HD frame
-+ *   is, for instance, more then 2 mega pixels large, i.e. more than 6
-+ *   MB of memory), which makes mechanisms such as kmalloc() or
-+ *   alloc_page() ineffective.
-+ *
-+ *   At the same time, a solution where a big memory region is
-+ *   reserved for a device is suboptimal since often more memory is
-+ *   reserved then strictly required and, moreover, the memory is
-+ *   inaccessible to page system even if device drivers don't use it.
-+ *
-+ *   CMA tries to solve this issue by operating on memory regions
-+ *   where only movable pages can be allocated from.  This way, kernel
-+ *   can use the memory for pagecache and when device driver requests
-+ *   it, allocated pages can be migrated.
-+ *
-+ * Driver usage
-+ *
-+ *   For device driver to use CMA it needs to have a pointer to a CMA
-+ *   context represented by a struct cma (which is an opaque data
-+ *   type).
-+ *
-+ *   Once such pointer is obtained, device driver may allocate
-+ *   contiguous memory chunk using the following function:
-+ *
-+ *     cm_alloc()
-+ *
-+ *   This function returns a pointer to struct cm (another opaque data
-+ *   type) which represent a contiguous memory chunk.  This pointer
-+ *   may be used with the following functions:
-+ *
-+ *     cm_free()    -- frees allocated contiguous memory
-+ *     cm_pin()     -- pins memory
-+ *     cm_unpin()   -- unpins memory
-+ *     cm_vmap()    -- maps memory in kernel space
-+ *     cm_vunmap()  -- unmaps memory from kernel space
-+ *
-+ *   See the respective functions for more information.
-+ *
-+ * Platform/machine integration
-+ *
-+ *   For device drivers to be able to use CMA platform or machine
-+ *   initialisation code must create a CMA context and pass it to
-+ *   device drivers.  The latter may be done by a global variable or
-+ *   a platform/machine specific function.  For the former CMA
-+ *   provides the following functions:
-+ *
-+ *     cma_init()
-+ *     cma_reserve()
-+ *     cma_create()
-+ *
-+ *   The first one initialises a portion of reserved memory so that it
-+ *   can be used with CMA.  The second first tries to reserve memory
-+ *   (using memblock) and then initialise it.
-+ *
-+ *   The cma_reserve() function must be called when memblock is still
-+ *   operational and reserving memory with it is still possible.  On
-+ *   ARM platform the "reserve" machine callback is a perfect place to
-+ *   call it.
-+ *
-+ *   The last function creates a CMA context on a range of previously
-+ *   initialised memory addresses.  Because it uses kmalloc() it needs
-+ *   to be called after SLAB is initialised.
-+ */
-+
-+/***************************** Kernel level API *****************************/
-+
-+#if defined __KERNEL__ && defined CONFIG_CMA
-+
-+/* CMA context */
-+struct cma;
-+/* Contiguous Memory chunk */
-+struct cm;
-+
-+/**
-+ * cma_init() - initialises range of physical memory to be used with CMA.
-+ * @start:	start address of the memory range in bytes.
-+ * @size:	size of the memory range in bytes.
-+ *
-+ * The range must be MAX_ORDER-1 aligned and it must have been already
-+ * reserved (eg. with memblock).
-+ *
-+ * Returns zero on success or negative error.
-+ */
-+int cma_init(unsigned long start, unsigned long end);
-+
-+/**
-+ * cma_reserve() - reserves and initialises memory to be used with CMA.
-+ * @start:	start address of the memory range in bytes hint; if unsure
-+ *		pass zero (will be down-aligned to MAX_ORDER-1).
-+ * @size:	size of the memory to reserve in bytes (will be up-aligned
-+ *		to MAX_ORDER-1).
-+ * @alignment:	desired alignment in bytes (must be power of two or zero).
-+ *
-+ * It will use memblock to allocate memory and then initialise it for
-+ * use with CMA by invoking cma_init().  It must be called early in
-+ * boot process while memblock is still operational.
-+ *
-+ * Returns reserved's area physical address or value that yields true
-+ * when checked with IS_ERR_VALUE().
-+ */
-+unsigned long cma_reserve(unsigned long start, unsigned long size,
-+			  unsigned long alignment);
-+
-+/**
-+ * cma_create() - creates CMA context.
-+ * @start:	start address of the context in bytes.
-+ * @size:	size of the context in bytes.
-+ *
-+ * The range must be page aligned.  The range must have been already
-+ * initialised with cma_init().  Different contexts cannot overlap.
-+ *
-+ * Because this function uses kmalloc() it must be called after SLAB
-+ * is initialised.  This in particular means that it cannot be called
-+ * just after cma_reserve() since the former needs to be run way
-+ * earlier.
-+ *
-+ * Returns pointer to CMA context or a pointer-error on error.
-+ */
-+struct cma *cma_create(unsigned long start, unsigned long size);
-+
-+/**
-+ * cma_destroy() - destroys CMA context.
-+ * @cma:	context to destroy.
-+ */
-+void cma_destroy(struct cma *cma);
-+
-+/**
-+ * cm_alloc() - allocates contiguous memory.
-+ * @cma:	CMA context to use.
-+ * @size:	desired chunk size in bytes (must be non-zero).
-+ * @alignent:	desired minimal alignment in bytes (must be power of two
-+ *		or zero).
-+ *
-+ * Returns pointer to structure representing contiguous memory or
-+ * a pointer-error on error.
-+ */
-+struct cm *cm_alloc(struct cma *cma, unsigned long size,
-+		    unsigned long alignment);
-+
-+/**
-+ * cm_free() - frees contiguous memory.
-+ * @cm:	contiguous memory to free.
-+ *
-+ * The contiguous memory must be not be pinned (see cma_pin()) and
-+ * must not be mapped to kernel space (cma_vmap()).
-+ */
-+void cm_free(struct cm *cm);
-+
-+/**
-+ * cm_pin() - pins contiguous memory.
-+ * @cm: contiguous memory to pin.
-+ *
-+ * Pinning is required to obtain contiguous memory's physical address.
-+ * While memory is pinned the memory will remain valid it may change
-+ * if memory is unpinned and then pinned again.  This facility is
-+ * provided so that memory defragmentation can be implemented inside
-+ * CMA.
-+ *
-+ * Each call to cm_pin() must be accompanied by call to cm_unpin() and
-+ * the calls may be nested.
-+ *
-+ * Returns chunk's physical address or a value that yields true when
-+ * tested with IS_ERR_VALUE().
-+ */
-+unsigned long cm_pin(struct cm *cm);
-+
-+/**
-+ * cm_unpin() - unpins contiguous memory.
-+ * @cm: contiguous memory to unpin.
-+ *
-+ * See cm_pin().
-+ */
-+void cm_unpin(struct cm *cm);
-+
-+/**
-+ * cm_vmap() - maps memory to kernel space (or returns existing mapping).
-+ * @cm: contiguous memory to map.
-+ *
-+ * Each call to cm_vmap() must be accompanied with call to cm_vunmap()
-+ * and the calls may be nested.
-+ *
-+ * Returns kernel virtual address or a pointer-error.
-+ */
-+void *cm_vmap(struct cm *cm);
-+
-+/**
-+ * cm_vunmap() - unmpas memory from kernel space.
-+ * @cm:	contiguous memory to unmap.
-+ *
-+ * See cm_vmap().
-+ */
-+void cm_vunmap(struct cm *cm);
-+
-+#endif
-+
-+#endif
-diff --git a/mm/Kconfig b/mm/Kconfig
-index 7818b07..743893b 100644
---- a/mm/Kconfig
-+++ b/mm/Kconfig
-@@ -339,3 +339,35 @@ config CLEANCACHE
- 	  in a negligible performance hit.
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index b856bd1..094ac6b 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -453,6 +453,11 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+ 	unsigned long plane_sizes[VIDEO_MAX_PLANES];
+ 	int ret = 0;
  
- 	  If unsure, say Y to enable cleancache
++	if (q->fileio) {
++		dprintk(1, "reqbufs: file io in progress\n");
++		return -EBUSY;
++	}
 +
+ 	if (req->memory != V4L2_MEMORY_MMAP
+ 			&& req->memory != V4L2_MEMORY_USERPTR) {
+ 		dprintk(1, "reqbufs: unsupported memory type\n");
+@@ -824,6 +829,11 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 	struct vb2_buffer *vb;
+ 	int ret = 0;
+ 
++	if (q->fileio) {
++		dprintk(1, "qbuf: file io in progress\n");
++		return -EBUSY;
++	}
 +
-+config CMA
-+	bool "Contiguous Memory Allocator framework"
-+	# Currently there is only one allocator so force it on
-+	select MIGRATION
-+	select MIGRATE_CMA
-+	select GENERIC_ALLOCATOR
-+	help
-+	  This enables the Contiguous Memory Allocator framework which
-+	  allows drivers to allocate big physically-contiguous blocks of
-+	  memory for use with hardware components that do not support I/O
-+	  map nor scatter-gather.
+ 	if (b->type != q->type) {
+ 		dprintk(1, "qbuf: invalid buffer type\n");
+ 		return -EINVAL;
+@@ -1028,6 +1038,11 @@ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
+ 	struct vb2_buffer *vb = NULL;
+ 	int ret;
+ 
++	if (q->fileio) {
++		dprintk(1, "dqbuf: file io in progress\n");
++		return -EBUSY;
++	}
 +
-+	  If you select this option you will also have to select at least
-+	  one allocator algorithm below.
+ 	if (b->type != q->type) {
+ 		dprintk(1, "dqbuf: invalid buffer type\n");
+ 		return -EINVAL;
+@@ -1087,6 +1102,11 @@ int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
+ {
+ 	struct vb2_buffer *vb;
+ 
++	if (q->fileio) {
++		dprintk(1, "streamon: file io in progress\n");
++		return -EBUSY;
++	}
 +
-+	  To make use of CMA you need to specify the regions and
-+	  driver->region mapping on command line when booting the kernel.
+ 	if (type != q->type) {
+ 		dprintk(1, "streamon: invalid stream type\n");
+ 		return -EINVAL;
+@@ -1180,6 +1200,11 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+  */
+ int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
+ {
++	if (q->fileio) {
++		dprintk(1, "streamoff: file io in progress\n");
++		return -EBUSY;
++	}
 +
-+	  For more information see <include/linux/cma.h>.  If unsure, say "n".
-+
-+config CMA_DEBUG
-+	bool "CMA debug messages (DEVELOPEMENT)"
-+	depends on CMA
-+	help
-+	  Turns on debug messages in CMA.  This produces KERN_DEBUG
-+	  messages for every CMA call as well as various messages while
-+	  processing calls such as cma_alloc().  This option does not
-+	  affect warning and error messages.
-+
-+	  This is mostly used during development.  If unsure, say "n".
-diff --git a/mm/Makefile b/mm/Makefile
-index 0b08d1c..c6a84f1 100644
---- a/mm/Makefile
-+++ b/mm/Makefile
-@@ -43,3 +43,4 @@ obj-$(CONFIG_HWPOISON_INJECT) += hwpoison-inject.o
- obj-$(CONFIG_DEBUG_KMEMLEAK) += kmemleak.o
- obj-$(CONFIG_DEBUG_KMEMLEAK_TEST) += kmemleak-test.o
- obj-$(CONFIG_CLEANCACHE) += cleancache.o
-+obj-$(CONFIG_CMA) += cma.o
-diff --git a/mm/cma.c b/mm/cma.c
-new file mode 100644
-index 0000000..401e604
---- /dev/null
-+++ b/mm/cma.c
-@@ -0,0 +1,477 @@
-+/*
-+ * Contiguous Memory Allocator framework
-+ * Copyright (c) 2010 by Samsung Electronics.
-+ * Written by Michal Nazarewicz (m.nazarewicz@samsung.com)
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation; either version 2 of the
-+ * License or (at your optional) any later version of the license.
-+ */
-+
-+/*
-+ * See include/linux/cma.h for details.
-+ */
-+
-+#define pr_fmt(fmt) "cma: " fmt
-+
-+#ifdef CONFIG_CMA_DEBUG
-+#  define DEBUG
-+#endif
-+
-+#include <linux/cma.h>
-+
-+#ifndef CONFIG_NO_BOOTMEM
-+#  include <linux/bootmem.h>
-+#endif
-+#ifdef CONFIG_HAVE_MEMBLOCK
-+#  include <linux/memblock.h>
-+#endif
-+
-+#include <linux/err.h>
-+#include <linux/genalloc.h>
-+#include <linux/mm.h>
-+#include <linux/module.h>
-+#include <linux/mutex.h>
-+#include <linux/page-isolation.h>
-+#include <linux/slab.h>
-+#include <linux/swap.h>
-+
-+#include <asm/page.h>
-+
-+#include "internal.h"
-+
-+
-+/************************* Initialise CMA *************************/
-+
-+static struct cma_grabbed {
-+	unsigned long start;
-+	unsigned long size;
-+} cma_grabbed[8] __initdata;
-+static unsigned cma_grabbed_count __initdata;
-+
-+int cma_init(unsigned long start, unsigned long size)
-+{
-+	pr_debug("%s(%p+%p)\n", __func__, (void *)start, (void *)size);
-+
-+	if (!size)
-+		return -EINVAL;
-+	if ((start | size) & ((MAX_ORDER_NR_PAGES << PAGE_SHIFT) - 1))
-+		return -EINVAL;
-+	if (start + size < start)
-+		return -EOVERFLOW;
-+
-+	if (cma_grabbed_count == ARRAY_SIZE(cma_grabbed))
-+		return -ENOSPC;
-+
-+	cma_grabbed[cma_grabbed_count].start = start;
-+	cma_grabbed[cma_grabbed_count].size  = size;
-+	++cma_grabbed_count;
-+	return 0;
-+}
-+
-+unsigned long cma_reserve(unsigned long start, unsigned long size,
-+			  unsigned long alignment)
-+{
-+	u64 addr;
-+	int ret;
-+
-+	pr_debug("%s(%p+%p/%p)\n", __func__, (void *)start, (void *)size,
-+		 (void *)alignment);
-+
-+	/* Sanity checks */
-+	if (!size || (alignment & (alignment - 1)))
-+		return (unsigned long)-EINVAL;
-+
-+	/* Sanitise input arguments */
-+	start = ALIGN(start, MAX_ORDER_NR_PAGES << PAGE_SHIFT);
-+	size &= ~((MAX_ORDER_NR_PAGES << PAGE_SHIFT) - 1);
-+	if (alignment < (MAX_ORDER_NR_PAGES << PAGE_SHIFT))
-+		alignment = MAX_ORDER_NR_PAGES << PAGE_SHIFT;
-+
-+	/* Reserve memory */
-+	if (start) {
-+		if (memblock_is_region_reserved(start, size) ||
-+		    memblock_reserve(start, size) < 0)
-+			return (unsigned long)-EBUSY;
-+	} else {
-+		/*
-+		 * Use __memblock_alloc_base() since
-+		 * memblock_alloc_base() panic()s.
-+		 */
-+		addr = __memblock_alloc_base(size, alignment, 0);
-+		if (!addr) {
-+			return (unsigned long)-ENOMEM;
-+		} else if (addr + size > ~(unsigned long)0) {
-+			memblock_free(addr, size);
-+			return (unsigned long)-EOVERFLOW;
-+		} else {
-+			start = addr;
+ 	if (type != q->type) {
+ 		dprintk(1, "streamoff: invalid stream type\n");
+ 		return -EINVAL;
+@@ -1303,6 +1328,8 @@ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma)
+ }
+ EXPORT_SYMBOL_GPL(vb2_mmap);
+ 
++static int __vb2_init_fileio(struct vb2_queue *q, int read);
++static int __vb2_cleanup_fileio(struct vb2_queue *q);
+ 
+ /**
+  * vb2_poll() - implements poll userspace operation
+@@ -1323,9 +1350,30 @@ EXPORT_SYMBOL_GPL(vb2_mmap);
+ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ {
+ 	unsigned long flags;
++	unsigned int ret;
+ 	struct vb2_buffer *vb = NULL;
+ 
+ 	/*
++	 * Start file io emulator if streaming api has not been used yet.
++	 */
++	if (q->num_buffers == 0 && q->fileio == NULL) {
++		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ)) {
++			ret = __vb2_init_fileio(q, 1);
++			if (ret)
++				return ret;
++		}
++		if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE)) {
++			ret = __vb2_init_fileio(q, 0);
++			if (ret)
++				return ret;
++			/*
++			 * Write to OUTPUT queue can be done immediately.
++			 */
++			return POLLOUT | POLLWRNORM;
 +		}
 +	}
 +
-+	/* CMA Initialise */
-+	ret = cma_init(start, size);
-+	if (ret < 0) {
-+		memblock_free(start, size);
-+		return ret;
-+	}
-+	return start;
-+}
-+
-+static int __init cma_give_back(void)
-+{
-+	struct cma_grabbed *r = cma_grabbed;
-+	unsigned i = cma_grabbed_count;
-+
-+	pr_debug("%s(): will give %u range(s)\n", __func__, i);
-+
-+	for (; i; --i, ++r) {
-+		struct page *p = phys_to_page(r->start);
-+		unsigned j = r->size >> (PAGE_SHIFT + pageblock_order);
-+
-+		pr_debug("%s():   giving (%p+%p)\n", __func__,
-+			 (void *)r->start, (void *)r->size);
-+
-+		do {
-+			__free_pageblock_cma(p);
-+			p += pageblock_nr_pages;
-+		} while (--j);
-+	}
-+
-+	return 0;
-+}
-+subsys_initcall(cma_give_back);
-+
-+
-+/************************** CMA context ***************************/
-+
-+/* struct cma is just an alias for struct gen_alloc */
-+
-+struct cma *cma_create(unsigned long start, unsigned long size)
-+{
-+	struct gen_pool *pool;
-+	int ret;
-+
-+	pr_debug("%s(%p+%p)\n", __func__, (void *)start, (void *)size);
-+
-+	if (!size)
-+		return ERR_PTR(-EINVAL);
-+	if ((start | size) & (PAGE_SIZE - 1))
-+		return ERR_PTR(-EINVAL);
-+	if (start + size < start)
-+		return ERR_PTR(-EOVERFLOW);
-+
-+	pool = gen_pool_create(PAGE_SHIFT, -1);
-+	if (unlikely(!pool))
-+		return ERR_PTR(-ENOMEM);
-+
-+	ret = gen_pool_add(pool, start, size, -1);
-+	if (unlikely(ret)) {
-+		gen_pool_destroy(pool);
-+		return ERR_PTR(ret);
-+	}
-+
-+	pr_debug("%s: returning <%p>\n", __func__, (void *)pool);
-+	return (void *)pool;
-+}
-+
-+void cma_destroy(struct cma *cma)
-+{
-+	pr_debug("%s(<%p>)\n", __func__, (void *)cma);
-+	gen_pool_destroy((void *)cma);
-+}
-+
-+
-+/************************* Allocate and free *************************/
-+
-+struct cm {
-+	struct gen_pool *pool;
-+	unsigned long phys, size;
-+	atomic_t pinned, mapped;
++	/*
+ 	 * There is nothing to wait for if no buffers have already been queued.
+ 	 */
+ 	if (list_empty(&q->queued_list))
+@@ -1395,11 +1443,362 @@ EXPORT_SYMBOL_GPL(vb2_queue_init);
+  */
+ void vb2_queue_release(struct vb2_queue *q)
+ {
++	__vb2_cleanup_fileio(q);
+ 	__vb2_queue_cancel(q);
+ 	__vb2_queue_free(q);
+ }
+ EXPORT_SYMBOL_GPL(vb2_queue_release);
+ 
++/**
++ * struct vb2_fileio_buf - buffer context used by file io emulator
++ *
++ * vb2 provides a compatibility layer and emulator of file io (read and
++ * write) calls on top of streaming API. This structure is used for
++ * tracking context related to the buffers.
++ */
++struct vb2_fileio_buf {
++	void *vaddr;
++	unsigned int size;
++	unsigned int pos;
++	unsigned int queued:1;
 +};
 +
-+/* Protects cm_alloc(), cm_free(), __cm_alloc() and __cm_free(). */
-+static DEFINE_MUTEX(cma_mutex);
-+
-+/* Must hold cma_mutex to call these. */
-+static int  __cm_alloc(unsigned long start, unsigned long size);
-+static void __cm_free(unsigned long start, unsigned long size);
-+
-+struct cm *cm_alloc(struct cma *cma, unsigned long size,
-+		    unsigned long alignment)
-+{
-+	unsigned long start;
-+	int ret = -ENOMEM;
-+	struct cm *cm;
-+
-+	pr_debug("%s(<%p>, %p/%p)\n", __func__, (void *)cma,
-+		 (void *)size, (void *)alignment);
-+
-+	if (!size || (alignment & (alignment - 1)))
-+		return ERR_PTR(-EINVAL);
-+	size = PAGE_ALIGN(size);
-+
-+	cm = kmalloc(sizeof *cm, GFP_KERNEL);
-+	if (!cm)
-+		return ERR_PTR(-ENOMEM);
-+
-+	mutex_lock(&cma_mutex);
-+
-+	start = gen_pool_alloc_aligned((void *)cma, size,
-+				       alignment ? ffs(alignment) - 1 : 0);
-+	if (!start)
-+		goto error1;
-+
-+	ret = __cm_alloc(start, size);
-+	if (ret)
-+		goto error2;
-+
-+	mutex_unlock(&cma_mutex);
-+
-+	cm->pool = (void *)cma;
-+	cm->phys = start;
-+	cm->size = size;
-+	atomic_set(&cm->pinned, 0);
-+	atomic_set(&cm->mapped, 0);
-+
-+	pr_debug("%s(): returning [%p]\n", __func__, (void *)cm);
-+	return cm;
-+
-+error2:
-+	gen_pool_free((void *)cma, start, size);
-+error1:
-+	mutex_unlock(&cma_mutex);
-+	kfree(cm);
-+	return ERR_PTR(ret);
-+}
-+EXPORT_SYMBOL_GPL(cm_alloc);
-+
-+void cm_free(struct cm *cm)
-+{
-+	pr_debug("%s([%p])\n", __func__, (void *)cm);
-+
-+	if (WARN_ON(atomic_read(&cm->pinned) || atomic_read(&cm->mapped)))
-+		return;
-+
-+	mutex_lock(&cma_mutex);
-+
-+	gen_pool_free(cm->pool, cm->phys, cm->size);
-+	__cm_free(cm->phys, cm->size);
-+
-+	mutex_unlock(&cma_mutex);
-+
-+	kfree(cm);
-+}
-+EXPORT_SYMBOL_GPL(cm_free);
-+
-+
-+/************************* Mapping and addresses *************************/
-+
-+/*
-+ * Currently no-operations but keep reference counters for error
-+ * checking.
++/**
++ * struct vb2_fileio_data - queue context used by file io emulator
++ *
++ * vb2 provides a compatibility layer and emulator of file io (read and
++ * write) calls on top of streaming API. For proper operation it required
++ * this structure to save the driver state between each call of the read
++ * or write function.
 + */
++struct vb2_fileio_data {
++	struct v4l2_requestbuffers req;
++	struct v4l2_buffer b;
++	struct vb2_fileio_buf bufs[VIDEO_MAX_FRAME];
++	unsigned int index;
++	unsigned int q_count;
++	unsigned int dq_count;
++	unsigned int flags;
++};
 +
-+unsigned long cm_pin(struct cm *cm)
++/**
++ * __vb2_init_fileio() - initialize file io emulator
++ * @q:		videobuf2 queue
++ * @read:	mode selector (1 means read, 0 means write)
++ */
++static int __vb2_init_fileio(struct vb2_queue *q, int read)
 +{
-+	pr_debug("%s([%p])\n", __func__, (void *)cm);
-+	atomic_inc(&cm->pinned);
-+	return cm->phys;
-+}
-+EXPORT_SYMBOL_GPL(cm_pin);
-+
-+void cm_unpin(struct cm *cm)
-+{
-+	pr_debug("%s([%p])\n", __func__, (void *)cm);
-+	WARN_ON(!atomic_add_unless(&cm->pinned, -1, 0));
-+}
-+EXPORT_SYMBOL_GPL(cm_unpin);
-+
-+void *cm_vmap(struct cm *cm)
-+{
-+	pr_debug("%s([%p])\n", __func__, (void *)cm);
-+	atomic_inc(&cm->mapped);
-+	/*
-+	 * Keep it simple...  We should do something more clever in
-+	 * the future.
-+	 */
-+	return phys_to_virt(cm->phys);
-+}
-+EXPORT_SYMBOL_GPL(cm_vmap);
-+
-+void cm_vunmap(struct cm *cm)
-+{
-+	pr_debug("%s([%p])\n", __func__, (void *)cm);
-+	WARN_ON(!atomic_add_unless(&cm->mapped, -1, 0));
-+}
-+EXPORT_SYMBOL_GPL(cm_vunmap);
-+
-+
-+/************************* Migration stuff *************************/
-+
-+/* XXX Revisit */
-+#ifdef phys_to_pfn
-+/* nothing to do */
-+#elif defined __phys_to_pfn
-+#  define phys_to_pfn __phys_to_pfn
-+#else
-+#  warning correct phys_to_pfn implementation needed
-+static unsigned long phys_to_pfn(phys_addr_t phys)
-+{
-+	return virt_to_pfn(phys_to_virt(phys));
-+}
-+#endif
-+
-+static unsigned long pfn_to_maxpage(unsigned long pfn)
-+{
-+	return pfn & ~(MAX_ORDER_NR_PAGES - 1);
-+}
-+
-+static unsigned long pfn_to_maxpage_up(unsigned long pfn)
-+{
-+	return ALIGN(pfn, MAX_ORDER_NR_PAGES);
-+}
-+
-+#define MIGRATION_RETRY	5
-+static int __cm_migrate(unsigned long start, unsigned long end)
-+{
-+	int migration_failed = 0, ret;
-+	unsigned long pfn = start;
-+
-+	pr_debug("%s(%p..%p)\n", __func__, (void *)start, (void *)end);
++	struct vb2_fileio_data *fileio;
++	int i, ret;
++	unsigned int count = 0;
 +
 +	/*
-+	 * Some code "borrowed" from KAMEZAWA Hiroyuki's
-+	 * __alloc_contig_pages().
++	 * Sanity check
 +	 */
++	if ((read && !(q->io_modes & VB2_READ)) ||
++	   (!read && !(q->io_modes & VB2_WRITE)))
++		BUG();
 +
-+	for (;;) {
-+		pfn = scan_lru_pages(pfn, end);
-+		if (!pfn || pfn >= end)
-+			break;
-+
-+		ret = do_migrate_range(pfn, end);
-+		if (!ret) {
-+			migration_failed = 0;
-+		} else if (ret != -EBUSY
-+			|| ++migration_failed >= MIGRATION_RETRY) {
-+			return ret;
-+		} else {
-+			/* There are unstable pages.on pagevec. */
-+			lru_add_drain_all();
-+			/*
-+			 * there may be pages on pcplist before
-+			 * we mark the range as ISOLATED.
-+			 */
-+			drain_all_pages();
-+		}
-+		cond_resched();
-+	}
-+
-+	if (!migration_failed) {
-+		/* drop all pages in pagevec and pcp list */
-+		lru_add_drain_all();
-+		drain_all_pages();
-+	}
-+
-+	/* Make sure all pages are isolated */
-+	if (WARN_ON(test_pages_isolated(start, end)))
++	/*
++	 * Check if device supports mapping buffers to kernel virtual space.
++	 */
++	if (!q->mem_ops->vaddr)
 +		return -EBUSY;
 +
-+	return 0;
-+}
-+
-+static int __cm_alloc(unsigned long start, unsigned long size)
-+{
-+	unsigned long end, _start, _end;
-+	int ret;
-+
-+	pr_debug("%s(%p+%p)\n", __func__, (void *)start, (void *)size);
++	/*
++	 * Check if streaming api has not been already activated.
++	 */
++	if (q->streaming || q->num_buffers > 0)
++		return -EBUSY;
 +
 +	/*
-+	 * What we do here is we mark all pageblocks in range as
-+	 * MIGRATE_ISOLATE.  Because of the way page allocator work, we
-+	 * align the range to MAX_ORDER pages so that page allocator
-+	 * won't try to merge buddies from different pageblocks and
-+	 * change MIGRATE_ISOLATE to some other migration type.
-+	 *
-+	 * Once the pageblocks are marked as MIGRATE_ISOLATE, we
-+	 * migrate the pages from an unaligned range (ie. pages that
-+	 * we are interested in).  This will put all the pages in
-+	 * range back to page allocator as MIGRATE_ISOLATE.
-+	 *
-+	 * When this is done, we take the pages in range from page
-+	 * allocator removing them from the buddy system.  This way
-+	 * page allocator will never consider using them.
-+	 *
-+	 * This lets us mark the pageblocks back as MIGRATE_CMA so
-+	 * that free pages in the MAX_ORDER aligned range but not in
-+	 * the unaligned, original range are put back to page
-+	 * allocator so that buddy can use them.
++	 * Start with count 1, driver can increase it in queue_setup()
 +	 */
++	count = 1;
 +
-+	start = phys_to_pfn(start);
-+	end   = start + (size >> PAGE_SHIFT);
++	dprintk(3, "setting up file io: mode %s, count %d, flags %08x\n",
++		(read) ? "read" : "write", count, q->io_flags);
 +
-+	pr_debug("\tisolate range(%lx, %lx)\n",
-+		 pfn_to_maxpage(start), pfn_to_maxpage_up(end));
-+	ret = __start_isolate_page_range(pfn_to_maxpage(start),
-+					 pfn_to_maxpage_up(end), MIGRATE_CMA);
-+	if (ret)
-+		goto done;
++	fileio = kzalloc(sizeof(struct vb2_fileio_data), GFP_KERNEL);
++	if (fileio == NULL)
++		return -ENOMEM;
 +
-+	pr_debug("\tmigrate range(%lx, %lx)\n", start, end);
-+	ret = __cm_migrate(start, end);
-+	if (ret)
-+		goto done;
++	fileio->flags = q->io_flags;
 +
 +	/*
-+	 * Pages from [start, end) are within a MAX_ORDER aligned
-+	 * blocks that are marked as MIGRATE_ISOLATE.  What's more,
-+	 * all pages in [start, end) are free in page allocator.  What
-+	 * we are going to do is to allocate all pages from [start,
-+	 * end) (that is remove them from page allocater).
-+	 *
-+	 * The only problem is that pages at the beginning and at the
-+	 * end of interesting range may be not aligned with pages that
-+	 * page allocator holds, ie. they can be part of higher order
-+	 * pages.  Because of this, we reserve the bigger range and
-+	 * once this is done free the pages we are not interested in.
++	 * Request buffers and use MMAP type to force driver
++	 * to allocate buffers by itself.
 +	 */
++	fileio->req.count = count;
++	fileio->req.memory = V4L2_MEMORY_MMAP;
++	fileio->req.type = q->type;
++	ret = vb2_reqbufs(q, &fileio->req);
++	if (ret)
++		goto err_kfree;
 +
-+	pr_debug("\tfinding buddy\n");
-+	ret = 0;
-+	while (!PageBuddy(pfn_to_page(start & (~0UL << ret))))
-+		if (WARN_ON(++ret >= MAX_ORDER))
-+			return -EINVAL;
++	/*
++	 * Check if plane_count is correct
++	 * (multiplane buffers are not supported).
++	 */
++	if (q->bufs[0]->num_planes != 1) {
++		fileio->req.count = 0;
++		ret = -EBUSY;
++		goto err_reqbufs;
++	}
 +
-+	_start = start & (~0UL << ret);
-+	pr_debug("\talloc freed(%lx, %lx)\n", _start, end);
-+	_end   = alloc_contig_freed_pages(_start, end, 0);
++	/*
++	 * Get kernel address of each buffer.
++	 */
++	for (i = 0; i < q->num_buffers; i++) {
++		fileio->bufs[i].vaddr = vb2_plane_vaddr(q->bufs[i], 0);
++		if (fileio->bufs[i].vaddr == NULL)
++			goto err_reqbufs;
++		fileio->bufs[i].size = vb2_plane_size(q->bufs[i], 0);
++	}
 +
-+	/* Free head and tail (if any) */
-+	pr_debug("\tfree contig(%lx, %lx)\n", _start, start);
-+	free_contig_pages(pfn_to_page(_start), start - _start);
-+	pr_debug("\tfree contig(%lx, %lx)\n", end, _end);
-+	free_contig_pages(pfn_to_page(end), _end - end);
++	/*
++	 * Read mode requires pre queuing of all buffers.
++	 */
++	if (read) {
++		/*
++		 * Queue all buffers.
++		 */
++		for (i = 0; i < q->num_buffers; i++) {
++			struct v4l2_buffer *b = &fileio->b;
++			memset(b, 0, sizeof(*b));
++			b->type = q->type;
++			b->memory = q->memory;
++			b->index = i;
++			ret = vb2_qbuf(q, b);
++			if (ret)
++				goto err_reqbufs;
++			fileio->bufs[i].queued = 1;
++		}
 +
-+	ret = 0;
++		/*
++		 * Start streaming.
++		 */
++		ret = vb2_streamon(q, q->type);
++		if (ret)
++			goto err_reqbufs;
++	}
 +
-+done:
-+	pr_debug("\tundo isolate range(%lx, %lx)\n",
-+		 pfn_to_maxpage(start), pfn_to_maxpage_up(end));
-+	__undo_isolate_page_range(pfn_to_maxpage(start),
-+				  pfn_to_maxpage_up(end), MIGRATE_CMA);
++	q->fileio = fileio;
 +
-+	pr_debug("ret = %d\n", ret);
++	return ret;
++
++err_reqbufs:
++	vb2_reqbufs(q, &fileio->req);
++
++err_kfree:
++	kfree(fileio);
 +	return ret;
 +}
 +
-+static void __cm_free(unsigned long start, unsigned long size)
++/**
++ * __vb2_cleanup_fileio() - free resourced used by file io emulator
++ * @q:		videobuf2 queue
++ */
++static int __vb2_cleanup_fileio(struct vb2_queue *q)
 +{
-+	pr_debug("%s(%p+%p)\n", __func__, (void *)start, (void *)size);
++	struct vb2_fileio_data *fileio = q->fileio;
 +
-+	free_contig_pages(pfn_to_page(phys_to_pfn(start)),
-+			  size >> PAGE_SHIFT);
++	if (fileio) {
++		/*
++		 * Hack fileio context to enable direct calls to vb2 ioctl
++		 * interface.
++		 */
++		q->fileio = NULL;
++
++		vb2_streamoff(q, q->type);
++		fileio->req.count = 0;
++		vb2_reqbufs(q, &fileio->req);
++		kfree(fileio);
++		dprintk(3, "file io emulator closed\n");
++	}
++	return 0;
 +}
++
++/**
++ * __vb2_perform_fileio() - perform a single file io (read or write) operation
++ * @q:		videobuf2 queue
++ * @data:	pointed to target userspace buffer
++ * @count:	number of bytes to read or write
++ * @ppos:	file handle position tracking pointer
++ * @nonblock:	mode selector (1 means blocking calls, 0 means nonblocking)
++ * @read:	access mode selector (1 means read, 0 means write)
++ */
++static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_t count,
++		loff_t *ppos, int nonblock, int read)
++{
++	struct vb2_fileio_data *fileio;
++	struct vb2_fileio_buf *buf;
++	int ret, index;
++
++	dprintk(3, "file io: mode %s, offset %ld, count %d, %sblocking\n",
++		read ? "read" : "write", (long)*ppos, count,
++		nonblock ? "non" : "");
++
++	if (!data)
++		return -EINVAL;
++
++	/*
++	 * Initialize emulator on first call.
++	 */
++	if (!q->fileio) {
++		ret = __vb2_init_fileio(q, read);
++		dprintk(3, "file io: vb2_init_fileio result: %d\n", ret);
++		if (ret)
++			return ret;
++	}
++	fileio = q->fileio;
++
++	/*
++	 * Hack fileio context to enable direct calls to vb2 ioctl interface.
++	 * The pointer will be restored before returning from this function.
++	 */
++	q->fileio = NULL;
++
++	index = fileio->index;
++	buf = &fileio->bufs[index];
++
++	/*
++	 * Check if we need to dequeue the buffer.
++	 */
++	if (buf->queued) {
++		struct vb2_buffer *vb;
++
++		/*
++		 * Call vb2_dqbuf to get buffer back.
++		 */
++		memset(&fileio->b, 0, sizeof(fileio->b));
++		fileio->b.type = q->type;
++		fileio->b.memory = q->memory;
++		fileio->b.index = index;
++		ret = vb2_dqbuf(q, &fileio->b, nonblock);
++		dprintk(5, "file io: vb2_dqbuf result: %d\n", ret);
++		if (ret)
++			goto end;
++		fileio->dq_count += 1;
++
++		/*
++		 * Get number of bytes filled by the driver
++		 */
++		vb = q->bufs[index];
++		buf->size = vb2_get_plane_payload(vb, 0);
++		buf->queued = 0;
++	}
++
++	/*
++	 * Limit count on last few bytes of the buffer.
++	 */
++	if (buf->pos + count > buf->size) {
++		count = buf->size - buf->pos;
++		dprintk(5, "reducing read count: %d\n", count);
++	}
++
++	/*
++	 * Transfer data to userspace.
++	 */
++	dprintk(3, "file io: copying %d bytes - buffer %d, offset %d\n",
++		count, index, buf->pos);
++	if (read)
++		ret = copy_to_user(data, buf->vaddr + buf->pos, count);
++	else
++		ret = copy_from_user(buf->vaddr + buf->pos, data, count);
++	if (ret) {
++		dprintk(3, "file io: error copying data\n");
++		ret = -EFAULT;
++		goto end;
++	}
++
++	/*
++	 * Update counters.
++	 */
++	buf->pos += count;
++	*ppos += count;
++
++	/*
++	 * Queue next buffer if required.
++	 */
++	if (buf->pos == buf->size ||
++	   (!read && (fileio->flags & VB2_FILEIO_WRITE_IMMEDIATELY))) {
++		/*
++		 * Check if this is the last buffer to read.
++		 */
++		if (read && (fileio->flags & VB2_FILEIO_READ_ONCE) &&
++		    fileio->dq_count == 1) {
++			dprintk(3, "file io: read limit reached\n");
++			/*
++			 * Restore fileio pointer and release the context.
++			 */
++			q->fileio = fileio;
++			return __vb2_cleanup_fileio(q);
++		}
++
++		/*
++		 * Call vb2_qbuf and give buffer to the driver.
++		 */
++		memset(&fileio->b, 0, sizeof(fileio->b));
++		fileio->b.type = q->type;
++		fileio->b.memory = q->memory;
++		fileio->b.index = index;
++		fileio->b.bytesused = buf->pos;
++		ret = vb2_qbuf(q, &fileio->b);
++		dprintk(5, "file io: vb2_dbuf result: %d\n", ret);
++		if (ret)
++			goto end;
++
++		/*
++		 * Buffer has been queued, update the status
++		 */
++		buf->pos = 0;
++		buf->queued = 1;
++		buf->size = q->bufs[0]->v4l2_planes[0].length;
++		fileio->q_count += 1;
++
++		/*
++		 * Switch to the next buffer
++		 */
++		fileio->index = (index + 1) % q->num_buffers;
++
++		/*
++		 * Start streaming if required.
++		 */
++		if (!read && !q->streaming) {
++			ret = vb2_streamon(q, q->type);
++			if (ret)
++				goto end;
++		}
++	}
++
++	/*
++	 * Return proper number of bytes processed.
++	 */
++	if (ret == 0)
++		ret = count;
++end:
++	/*
++	 * Restore the fileio context and block vb2 ioctl interface.
++	 */
++	q->fileio = fileio;
++	return ret;
++}
++
++size_t vb2_read(struct vb2_queue *q, char __user *data, size_t count,
++		loff_t *ppos, int nonblocking)
++{
++	return __vb2_perform_fileio(q, data, count, ppos, nonblocking, 1);
++}
++EXPORT_SYMBOL_GPL(vb2_read);
++
++size_t vb2_write(struct vb2_queue *q, char __user *data, size_t count,
++		loff_t *ppos, int nonblocking)
++{
++	return __vb2_perform_fileio(q, data, count, ppos, nonblocking, 0);
++}
++EXPORT_SYMBOL_GPL(vb2_write);
++
+ MODULE_DESCRIPTION("Driver helper framework for Video for Linux 2");
+ MODULE_AUTHOR("Pawel Osciak, Marek Szyprowski");
+ MODULE_LICENSE("GPL");
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 1dafac0..0d71fc5 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -18,6 +18,7 @@
+ #include <linux/videodev2.h>
+ 
+ struct vb2_alloc_ctx;
++struct vb2_fileio_data;
+ 
+ /**
+  * struct vb2_mem_ops - memory handling/memory allocator operations
+@@ -54,6 +55,7 @@ struct vb2_alloc_ctx;
+  *
+  * Required ops for USERPTR types: get_userptr, put_userptr.
+  * Required ops for MMAP types: alloc, put, num_users, mmap.
++ * Required ops for read/write access types: alloc, put, num_users, vaddr
+  */
+ struct vb2_mem_ops {
+ 	void		*(*alloc)(void *alloc_ctx, unsigned long size);
+@@ -249,6 +251,7 @@ struct vb2_ops {
+  * @done_wq:	waitqueue for processes waiting for buffers ready to be dequeued
+  * @alloc_ctx:	memory type/allocator-specific contexts for each plane
+  * @streaming:	current streaming state
++ * @fileio:	file io emulator internal data, used only if emulator is active
+  */
+ struct vb2_queue {
+ 	enum v4l2_buf_type		type;
+@@ -275,6 +278,8 @@ struct vb2_queue {
+ 	void				*alloc_ctx[VIDEO_MAX_PLANES];
+ 
+ 	unsigned int			streaming:1;
++
++	struct vb2_fileio_data		*fileio;
+ };
+ 
+ void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no);
+@@ -298,6 +303,10 @@ int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type);
+ 
+ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma);
+ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait);
++size_t vb2_read(struct vb2_queue *q, char __user *data, size_t count,
++		loff_t *ppos, int nonblock);
++size_t vb2_write(struct vb2_queue *q, char __user *data, size_t count,
++		loff_t *ppos, int nonblock);
+ 
+ /**
+  * vb2_is_streaming() - return streaming status of the queue
 -- 
-1.7.2.3
+1.7.1.569.g6f426
 
