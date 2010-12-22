@@ -1,109 +1,414 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:41042 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752796Ab0LWMFI (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:20556 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753225Ab0LVNky (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Dec 2010 07:05:08 -0500
-Received: by ewy5 with SMTP id 5so3047382ewy.19
-        for <linux-media@vger.kernel.org>; Thu, 23 Dec 2010 04:05:06 -0800 (PST)
-Message-ID: <4D133AB2.40207@mvista.com>
-Date: Thu, 23 Dec 2010 15:04:02 +0300
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-MIME-Version: 1.0
-To: Manjunath Hadli <manjunath.hadli@ti.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	Kevin Hilman <khilman@deeprootsystems.com>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH v10 5/8] davinci vpbe: platform specific additions-khilman
-References: <1293105284-17380-1-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1293105284-17380-1-git-send-email-manjunath.hadli@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Wed, 22 Dec 2010 08:40:54 -0500
+Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LDU002LA0O2N1@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 22 Dec 2010 13:40:51 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LDU000910O20G@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 22 Dec 2010 13:40:50 +0000 (GMT)
+Date: Wed, 22 Dec 2010 14:40:35 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 05/13] v4l: v4l2-ioctl: add buffer type conversion for
+ multi-planar-aware ioctls
+In-reply-to: <1293025239-9977-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	andrzej.p@samsung.com
+Message-id: <1293025239-9977-6-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1293025239-9977-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hello.
+From: Pawel Osciak <pawel@osciak.com>
 
-On 23-12-2010 14:54, Manjunath Hadli wrote:
+Drivers that support only one variant of API - single- or multi-planar -
+can still be used by applications that support the other variant in most
+cases. This adds a conversion layer for buffer types for such situations.
 
-> This patch implements the overall device creation for the Video
-> display driver
+Signed-off-by: Pawel Osciak <pawel@osciak.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ drivers/media/video/v4l2-ioctl.c |  206 +++++++++++++++++++++++++++++++++----
+ 1 files changed, 183 insertions(+), 23 deletions(-)
 
-> Signed-off-by: Manjunath Hadli<manjunath.hadli@ti.com>
-> Acked-by: Muralidharan Karicheri<m-karicheri2@ti.com>
-> Acked-by: Hans Verkuil<hverkuil@xs4all.nl>
-[...]
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 5d46aa2..fee8b94 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -605,27 +605,21 @@ static int check_fmt(const struct v4l2_ioctl_ops *ops, enum v4l2_buf_type type)
+ 
+ 	switch (type) {
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+ 		if (ops->vidioc_g_fmt_vid_cap ||
+ 				ops->vidioc_g_fmt_vid_cap_mplane)
+ 			return 0;
+ 		break;
+-	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+-		if (ops->vidioc_g_fmt_vid_cap_mplane)
+-			return 0;
+-		break;
+ 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+ 		if (ops->vidioc_g_fmt_vid_overlay)
+ 			return 0;
+ 		break;
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+ 		if (ops->vidioc_g_fmt_vid_out ||
+ 				ops->vidioc_g_fmt_vid_out_mplane)
+ 			return 0;
+ 		break;
+-	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+-		if (ops->vidioc_g_fmt_vid_out_mplane)
+-			return 0;
+-		break;
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
+ 		if (ops->vidioc_g_fmt_vid_out_overlay)
+ 			return 0;
+@@ -654,6 +648,64 @@ static int check_fmt(const struct v4l2_ioctl_ops *ops, enum v4l2_buf_type type)
+ 	return -EINVAL;
+ }
+ 
++static enum v4l2_buf_type convert_type(const struct v4l2_ioctl_ops *ops,
++					enum v4l2_buf_type type)
++{
++	if (ops == NULL)
++		return type;
++
++	switch (type) {
++	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++		if (!ops->vidioc_g_fmt_vid_cap
++				&& ops->vidioc_g_fmt_vid_cap_mplane)
++			return V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
++		break;
++	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
++		if (!ops->vidioc_g_fmt_vid_cap_mplane
++				&& ops->vidioc_g_fmt_vid_cap)
++			return V4L2_BUF_TYPE_VIDEO_CAPTURE;
++		break;
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++		if (!ops->vidioc_g_fmt_vid_out
++				&& ops->vidioc_g_fmt_vid_out_mplane)
++			return V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
++		break;
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
++		if (!ops->vidioc_g_fmt_vid_out_mplane
++				&& ops->vidioc_g_fmt_vid_out)
++			return V4L2_BUF_TYPE_VIDEO_OUTPUT;
++		break;
++	default:
++		break;
++	}
++
++	return type;
++}
++
++static int type_sp_to_mp(enum v4l2_buf_type t_sp, enum v4l2_buf_type *t_mp)
++{
++	if (t_sp == V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		*t_mp = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
++	else if (t_sp == V4L2_BUF_TYPE_VIDEO_OUTPUT)
++		*t_mp = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
++	else
++		return -EINVAL;
++
++	return 0;
++}
++
++static int type_mp_to_sp(enum v4l2_buf_type t_mp, enum v4l2_buf_type *t_sp)
++{
++	if (t_mp == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
++		*t_sp = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	else if (t_mp == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
++		*t_sp = V4L2_BUF_TYPE_VIDEO_OUTPUT;
++	else
++		return -EINVAL;
++
++	return 0;
++}
++
+ /**
+  * fmt_sp_to_mp() - Convert a single-plane format to its multi-planar 1-plane
+  * equivalent
+@@ -663,13 +715,11 @@ static int fmt_sp_to_mp(const struct v4l2_format *f_sp,
+ {
+ 	struct v4l2_pix_format_mplane *pix_mp = &f_mp->fmt.pix_mp;
+ 	const struct v4l2_pix_format *pix = &f_sp->fmt.pix;
++	int ret;
+ 
+-	if (f_sp->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+-		f_mp->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+-	else if (f_sp->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+-		f_mp->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+-	else
+-		return -EINVAL;
++	ret = type_sp_to_mp(f_sp->type, &f_mp->type);
++	if (ret)
++		return ret;
+ 
+ 	pix_mp->width = pix->width;
+ 	pix_mp->height = pix->height;
+@@ -692,13 +742,11 @@ static int fmt_mp_to_sp(const struct v4l2_format *f_mp,
+ {
+ 	const struct v4l2_pix_format_mplane *pix_mp = &f_mp->fmt.pix_mp;
+ 	struct v4l2_pix_format *pix = &f_sp->fmt.pix;
++	int ret;
+ 
+-	if (f_mp->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+-		f_sp->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-	else if (f_mp->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+-		f_sp->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+-	else
+-		return -EINVAL;
++	ret = type_mp_to_sp(f_mp->type, &f_sp->type);
++	if (ret)
++		return ret;
+ 
+ 	pix->width = pix_mp->width;
+ 	pix->height = pix_mp->height;
+@@ -711,6 +759,48 @@ static int fmt_mp_to_sp(const struct v4l2_format *f_mp,
+ 	return 0;
+ }
+ 
++static int buf_sp_to_mp(const struct v4l2_buffer *b_sp,
++			struct v4l2_buffer *b_mp)
++{
++	int ret;
++
++	memcpy(b_mp, b_sp, sizeof *b_mp);
++	ret = type_sp_to_mp(b_sp->type, &b_mp->type);
++	if (ret)
++		return ret;
++	b_mp->m.planes[0].length = b_sp->length;
++	b_mp->m.planes[0].bytesused = b_mp->bytesused;
++	b_mp->length = 1;
++	memcpy(&b_mp->m.planes[0].m, &b_sp->m, sizeof(struct v4l2_plane));
++
++	return 0;
++}
++
++static int buf_mp_to_sp(const struct v4l2_buffer *b_mp,
++			struct v4l2_buffer *b_sp)
++{
++	int ret;
++
++	memcpy(b_sp, b_mp, sizeof *b_sp);
++	ret = type_mp_to_sp(b_mp->type, &b_sp->type);
++	if (ret)
++		return ret;
++	b_sp->length = b_mp->m.planes[0].length;
++	b_sp->bytesused = b_mp->m.planes[0].bytesused;
++	memcpy(&b_sp->m, &b_mp->m.planes[0].m, sizeof(struct v4l2_plane));
++
++	return 0;
++}
++
++static int convert_buffer(const struct v4l2_buffer *b_src,
++				struct v4l2_buffer *b_dst)
++{
++	if (V4L2_TYPE_IS_MULTIPLANAR(b_src->type))
++		return buf_mp_to_sp(b_src, b_dst);
++	else
++		return buf_sp_to_mp(b_src, b_dst);
++}
++
+ static long __video_do_ioctl(struct file *file,
+ 		unsigned int cmd, void *arg)
+ {
+@@ -718,6 +808,9 @@ static long __video_do_ioctl(struct file *file,
+ 	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
+ 	void *fh = file->private_data;
+ 	struct v4l2_format f_copy;
++	enum v4l2_buf_type old_type;
++	struct v4l2_buffer buf_copy;
++	struct v4l2_plane buf_copy_planes[VIDEO_MAX_PLANES];
+ 	long ret = -EINVAL;
+ 
+ 	if (ops == NULL) {
+@@ -726,6 +819,8 @@ static long __video_do_ioctl(struct file *file,
+ 		return -EINVAL;
+ 	}
+ 
++	buf_copy.m.planes = buf_copy_planes;
++
+ #ifdef CONFIG_VIDEO_V4L1_COMPAT
+ 	/********************************************************
+ 	 All other V4L1 calls are handled by v4l1_compat module.
+@@ -1241,11 +1336,15 @@ static long __video_do_ioctl(struct file *file,
+ 		if (p->type < V4L2_BUF_TYPE_PRIVATE)
+ 			CLEAR_AFTER_FIELD(p, memory);
+ 
++		old_type = p->type;
++		p->type = convert_type(ops, p->type);
++
+ 		ret = ops->vidioc_reqbufs(file, fh, p);
+ 		dbgarg(cmd, "count=%d, type=%s, memory=%s\n",
+ 				p->count,
+ 				prt_names(p->type, v4l2_type_names),
+ 				prt_names(p->memory, v4l2_memory_names));
++		p->type = old_type;
+ 		break;
+ 	}
+ 	case VIDIOC_QUERYBUF:
+@@ -1258,7 +1357,17 @@ static long __video_do_ioctl(struct file *file,
+ 		if (ret)
+ 			break;
+ 
+-		ret = ops->vidioc_querybuf(file, fh, p);
++		buf_copy.type = convert_type(ops, p->type);
++		if (p->type != buf_copy.type) {
++			ret = convert_buffer(p, &buf_copy);
++			if (ret)
++				break;
++			ret = ops->vidioc_querybuf(file, fh, &buf_copy);
++			if (!ret)
++				ret = convert_buffer(&buf_copy, p);
++		} else {
++			ret = ops->vidioc_querybuf(file, fh, p);
++		}
+ 		if (!ret)
+ 			dbgbuf(cmd, vfd, p);
+ 		break;
+@@ -1273,7 +1382,17 @@ static long __video_do_ioctl(struct file *file,
+ 		if (ret)
+ 			break;
+ 
+-		ret = ops->vidioc_qbuf(file, fh, p);
++		buf_copy.type = convert_type(ops, p->type);
++		if (p->type != buf_copy.type) {
++			ret = convert_buffer(p, &buf_copy);
++			if (ret)
++				break;
++			ret = ops->vidioc_qbuf(file, fh, &buf_copy);
++			if (!ret)
++				ret = convert_buffer(&buf_copy, p);
++		} else {
++			ret = ops->vidioc_qbuf(file, fh, p);
++		}
+ 		if (!ret)
+ 			dbgbuf(cmd, vfd, p);
+ 		break;
+@@ -1288,7 +1407,17 @@ static long __video_do_ioctl(struct file *file,
+ 		if (ret)
+ 			break;
+ 
+-		ret = ops->vidioc_dqbuf(file, fh, p);
++		buf_copy.type = convert_type(ops, p->type);
++		if (p->type != buf_copy.type) {
++			ret = convert_buffer(p, &buf_copy);
++			if (ret)
++				break;
++			ret = ops->vidioc_dqbuf(file, fh, &buf_copy);
++			if (!ret)
++				ret = convert_buffer(&buf_copy, p);
++		} else {
++			ret = ops->vidioc_dqbuf(file, fh, p);
++		}
+ 		if (!ret)
+ 			dbgbuf(cmd, vfd, p);
+ 		break;
+@@ -1337,6 +1466,9 @@ static long __video_do_ioctl(struct file *file,
+ 		if (!ops->vidioc_streamon)
+ 			break;
+ 		dbgarg(cmd, "type=%s\n", prt_names(i, v4l2_type_names));
++
++		i = convert_type(ops, i);
++
+ 		ret = ops->vidioc_streamon(file, fh, i);
+ 		break;
+ 	}
+@@ -1347,6 +1479,9 @@ static long __video_do_ioctl(struct file *file,
+ 		if (!ops->vidioc_streamoff)
+ 			break;
+ 		dbgarg(cmd, "type=%s\n", prt_names(i, v4l2_type_names));
++
++		i = convert_type(ops, i);
++
+ 		ret = ops->vidioc_streamoff(file, fh, i);
+ 		break;
+ 	}
+@@ -1811,9 +1946,14 @@ static long __video_do_ioctl(struct file *file,
+ 			break;
+ 
+ 		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
++
++		old_type = p->type;
++		p->type = convert_type(ops, p->type);
++
+ 		ret = ops->vidioc_g_crop(file, fh, p);
+ 		if (!ret)
+ 			dbgrect(vfd, "", &p->c);
++		p->type = old_type;
+ 		break;
+ 	}
+ 	case VIDIOC_S_CROP:
+@@ -1824,7 +1964,12 @@ static long __video_do_ioctl(struct file *file,
+ 			break;
+ 		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+ 		dbgrect(vfd, "", &p->c);
++
++		old_type = p->type;
++		p->type = convert_type(ops, p->type);
++
+ 		ret = ops->vidioc_s_crop(file, fh, p);
++		p->type = old_type;
+ 		break;
+ 	}
+ 	case VIDIOC_CROPCAP:
+@@ -1836,11 +1981,16 @@ static long __video_do_ioctl(struct file *file,
+ 			break;
+ 
+ 		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
++
++		old_type = p->type;
++		p->type = convert_type(ops, p->type);
++
+ 		ret = ops->vidioc_cropcap(file, fh, p);
+ 		if (!ret) {
+ 			dbgrect(vfd, "bounds ", &p->bounds);
+ 			dbgrect(vfd, "defrect ", &p->defrect);
+ 		}
++		p->type = old_type;
+ 		break;
+ 	}
+ 	case VIDIOC_G_JPEGCOMP:
+@@ -1914,7 +2064,12 @@ static long __video_do_ioctl(struct file *file,
+ 			ret = check_fmt(ops, p->type);
+ 			if (ret)
+ 				break;
++
++			old_type = p->type;
++			p->type = convert_type(ops, p->type);
++
+ 			ret = ops->vidioc_g_parm(file, fh, p);
++			p->type = old_type;
+ 		} else {
+ 			v4l2_std_id std = vfd->current_norm;
+ 
+@@ -1945,7 +2100,12 @@ static long __video_do_ioctl(struct file *file,
+ 			break;
+ 
+ 		dbgarg(cmd, "type=%d\n", p->type);
++
++		old_type = p->type;
++		p->type = convert_type(ops, p->type);
++
+ 		ret = ops->vidioc_s_parm(file, fh, p);
++		p->type = old_type;
+ 		break;
+ 	}
+ 	case VIDIOC_G_TUNER:
+-- 
+1.7.1.569.g6f426
 
-> diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
-> index 9a2376b..02ec74b 100644
-> --- a/arch/arm/mach-davinci/dm644x.c
-> +++ b/arch/arm/mach-davinci/dm644x.c
-> @@ -654,6 +654,146 @@ void dm644x_set_vpfe_config(struct vpfe_config *cfg)
-[...]
-> +/* TBD. Check what VENC_CLOCK_SEL settings for HDTV and EDTV */
-> +static int dm644x_venc_setup_clock(enum vpbe_enc_timings_type type, __u64 mode)
-> +{
-> +	int ret = 0;
-> +
-> +	if (NULL == vpss_clkctl_reg)
-> +		return -EINVAL;
-> +	switch (type) {
-> +	case VPBE_ENC_STD:
-> +		__raw_writel(0x18, vpss_clkctl_reg);
-> +		break;
-> +	case VPBE_ENC_DV_PRESET:
-> +		switch ((unsigned int)mode) {
-> +		case V4L2_DV_480P59_94:
-> +		case V4L2_DV_576P50:
-> +			 __raw_writel(0x19, vpss_clkctl_reg);
-> +			break;
-> +		case V4L2_DV_720P60:
-> +		case V4L2_DV_1080I60:
-> +		case V4L2_DV_1080P30:
-> +		/*
-> +		 * For HD, use external clock source since HD requires higher
-> +		 * clock rate
-> +		 */
-
-    Indent the comment correctly, please.
-
-> +			__raw_writel(0xa, vpss_clkctl_reg);
-> +			break;
-> +		default:
-> +			ret  = -EINVAL;
-> +			break;
-> +		}
-> +		break;
-> +	default:
-> +		ret  = -EINVAL;
-> +	}
-> +	return ret;
-> +}
-[...]
-> +static struct resource dm644x_v4l2_disp_resources[] = {
-> +	{
-> +		.start  = IRQ_VENCINT,
-> +		.end    = IRQ_VENCINT,
-> +		.flags  = IORESOURCE_IRQ,
-> +	},
-> +	{
-> +		.start  = 0x01C724B8,
-> +		.end    = 0x01C724B8 + 0x4,
-
-    s/0x4/0x3/?
-
-[...]
-> +static struct platform_device dm644x_venc_dev = {
-> +	.name           = VPBE_VENC_SUBDEV_NAME,
-> +	.id             = -1,
-> +	.num_resources  = ARRAY_SIZE(dm644x_venc_resources),
-> +	.resource       = dm644x_venc_resources,
-> +	.dev = {
-> +		.dma_mask               =&dm644x_venc_dma_mask,
-> +		.coherent_dma_mask      = DMA_BIT_MASK(32),
-> +		.platform_data          = (void *)&dm644x_venc_pdata,
-
-    There's no need to explicitly cast to 'void *'.
-
-WBR, Sergei
