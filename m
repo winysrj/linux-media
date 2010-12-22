@@ -1,137 +1,269 @@
 Return-path: <mchehab@gaivota>
-Received: from moutng.kundenserver.de ([212.227.126.186]:53597 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932158Ab0LRVPP (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:65279 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751567Ab0LVTvf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Dec 2010 16:15:15 -0500
-Date: Sat, 18 Dec 2010 22:14:32 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: linux-media@vger.kernel.org, pawel@osciak.com,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Steven Toth <stoth@kernellabs.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	sakari.ailus@maxwell.research.nokia.com,
-	David Cohen <dacohen@gmail.com>, Janne Grunau <j@jannau.net>,
+	Wed, 22 Dec 2010 14:51:35 -0500
+Received: by yxt3 with SMTP id 3so2343579yxt.19
+        for <linux-media@vger.kernel.org>; Wed, 22 Dec 2010 11:51:34 -0800 (PST)
+From: Kevin Hilman <khilman@deeprootsystems.com>
+To: Manjunath Hadli <manjunath.hadli@ti.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
 	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Muralidharan Karicheri <m-karicheri2@ti.com>,
-	Mike Isely <isely@isely.net>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Anatolij Gustschin <agust@denx.de>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Pete Eberlein <pete@sensoray.com>
-Subject: Re: Volunteers needed: BKL removal: replace .ioctl by .unlocked_ioctl
-In-Reply-To: <201012181231.27198.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1012182214140.18515@axis700.grange>
-References: <201012181231.27198.hverkuil@xs4all.nl>
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v9 5/8] davinci vpbe: platform specific additions
+References: <1293027090-17783-1-git-send-email-manjunath.hadli@ti.com>
+Date: Wed, 22 Dec 2010 11:51:30 -0800
+In-Reply-To: <1293027090-17783-1-git-send-email-manjunath.hadli@ti.com>
+	(Manjunath Hadli's message of "Wed, 22 Dec 2010 19:41:30 +0530")
+Message-ID: <87pqstsi0t.fsf@deeprootsystems.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Sat, 18 Dec 2010, Hans Verkuil wrote:
+Manjunath Hadli <manjunath.hadli@ti.com> writes:
 
-> Hi all,
-> 
-> Now that the BKL patch series has been merged in 2.6.37 it is time to work
-> on replacing .ioctl by .unlocked_ioctl in all v4l drivers.
-> 
-> I've made an inventory of all drivers that still use .ioctl and I am looking
-> for volunteers to tackle one or more drivers.
-> 
-> I have CCed this email to the maintainers of the various drivers (if I know
-> who it is) in the hope that we can get this conversion done as quickly as
-> possible.
-> 
-> If I have added your name to a driver, then please confirm if you are able to
-> work on it or not. If you can't work on it, but you know someone else, then
-> let me know as well.
-> 
-> There is also a list of drivers where I do not know who can do the conversion.
-> If you can tackle one or more of those, please respond. Unfortunately, those
-> are among the hardest to convert :-(
-> 
-> It would be great if we can tackle most of these drivers for 2.6.38. I think
-> we should finish all drivers for 2.6.39 at the latest.
-> 
-> There are two ways of doing the conversion: one is to do all the locking within
-> the driver, the other is to use core-assisted locking. How to do the core-assisted
-> locking is described in Documentation/video4linux/v4l2-framework.txt, but I'll
-> repeat the relevant part here:
-> 
-> v4l2_file_operations and locking
-> --------------------------------
-> 
-> You can set a pointer to a mutex_lock in struct video_device. Usually this
-> will be either a top-level mutex or a mutex per device node. If you want
-> finer-grained locking then you have to set it to NULL and do you own locking.
-> 
-> If a lock is specified then all file operations will be serialized on that
-> lock. If you use videobuf then you must pass the same lock to the videobuf
-> queue initialize function: if videobuf has to wait for a frame to arrive, then
-> it will temporarily unlock the lock and relock it afterwards. If your driver
-> also waits in the code, then you should do the same to allow other processes
-> to access the device node while the first process is waiting for something.
-> 
-> The implementation of a hotplug disconnect should also take the lock before
-> calling v4l2_device_disconnect.
-> 
-> 
-> Driver list:
-> 
-> saa7146 (Hans Verkuil)
-> mem2mem_testdev (Pawel Osciak or Marek Szyprowski)
-> cx23885 (Steve Toth)
-> cx18-alsa (Andy Walls)
-> omap24xxcam (Sakari Ailus or David Cohen)
-> au0828 (Janne Grunau)
-> cpia2 (Andy Walls or Hans Verkuil)
-> cx231xx (Mauro Carvalho Chehab)
-> davinci (Muralidharan Karicheri)
-> saa6588 (Hans Verkuil)
-> pvrusb2 (Mike Isely)
-> usbvision (Hans Verkuil)
-> s5p-fimc (Sylwester Nawrocki)
-> fsl-viu (Anatolij Gustschin)
-> tlg2300 (Mauro Carvalho Chehab)
-> zr364xx (Hans de Goede)
-> soc_camera (Guennadi Liakhovetski)
+> This patch implements the overall device creation for the Video
+> display driver
+>
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
 
-Will have a look.
+This one still conflicts with other changes in davinci-next queued for
+2.6.38.
 
-Thanks
-Guennadi
+Please separate this out from the rest of the series, and ensure it
+applies on davinci-next branch.
 
-> usbvideo/vicam (Hans de Goede)
-> s2255drv (Pete Eberlein)
-> bttv (Mauro Carvalho Chehab)
-> stk-webcam (Hans de Goede)
-> se401 (Hans de Goede)
-> si4713-i2c (Hans Verkuil)
-> dsbr100 (Hans Verkuil)
-> 
-> Staging driver list:
-> 
-> go7007 (Pete Eberlein)
-> tm6000 (Mauro Carvalho Chehab)
-> (stradis/cpia: will be removed in 2.6.38, so no need to do anything)
-> 
-> Unassigned drivers:
-> 
-> saa7134
-> em28xx
-> cx88
-> solo6x10 (staging driver)
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> -- 
-> Hans Verkuil - video4linux developer - sponsored by Cisco
-> 
+Also, minor comment below...
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+> ---
+>  arch/arm/mach-davinci/dm644x.c              |  170 ++++++++++++++++++++++++++-
+>  arch/arm/mach-davinci/include/mach/dm644x.h |    4 +
+>  2 files changed, 168 insertions(+), 6 deletions(-)
+>
+> diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+> index 5e5b0a7..9940032 100644
+> --- a/arch/arm/mach-davinci/dm644x.c
+> +++ b/arch/arm/mach-davinci/dm644x.c
+> @@ -640,6 +640,146 @@ void dm644x_set_vpfe_config(struct vpfe_config *cfg)
+>  	vpfe_capture_dev.dev.platform_data = cfg;
+>  }
+>  
+> +static struct resource dm644x_osd_resources[] = {
+> +	{
+> +		.start  = 0x01C72600,
+> +		.end    = 0x01C72600 + 0x1ff,
+> +		.flags  = IORESOURCE_MEM,
+> +	},
+> +};
+> +
+> +static u64 dm644x_osd_dma_mask = DMA_BIT_MASK(32);
+> +
+> +static struct platform_device dm644x_osd_dev = {
+> +	.name           = VPBE_OSD_SUBDEV_NAME,
+> +	.id             = -1,
+> +	.num_resources  = ARRAY_SIZE(dm644x_osd_resources),
+> +	.resource       = dm644x_osd_resources,
+> +	.dev = {
+> +		.dma_mask               = &dm644x_osd_dma_mask,
+> +		.coherent_dma_mask      = DMA_BIT_MASK(32),
+> +		.platform_data          = (void *)DM644X_VPBE,
+> +	},
+> +};
+> +
+> +static struct resource dm644x_venc_resources[] = {
+> +	/* venc registers io space */
+> +	{
+> +		.start  = 0x01C72400,
+> +		.end    = 0x01C72400 + 0x17f,
+> +		.flags  = IORESOURCE_MEM,
+> +	},
+> +};
+> +
+> +static u64 dm644x_venc_dma_mask = DMA_BIT_MASK(32);
+> +
+> +#define VPSS_CLKCTL     0x01C40044
+> +
+> +static void __iomem *vpss_clkctl_reg;
+> +
+> +/* TBD. Check what VENC_CLOCK_SEL settings for HDTV and EDTV */
+> +static int dm644x_venc_setup_clock(enum vpbe_enc_timings_type type, __u64 mode)
+> +{
+> +	int ret = 0;
+> +
+> +	if (NULL == vpss_clkctl_reg)
+> +		return -EINVAL;
+> +	switch (type) {
+> +	case VPBE_ENC_STD:
+> +		__raw_writel(0x18, vpss_clkctl_reg);
+> +		break;
+> +	case VPBE_ENC_DV_PRESET:
+> +		switch ((unsigned int)mode) {
+> +		case V4L2_DV_480P59_94:
+> +		case V4L2_DV_576P50:
+> +			 __raw_writel(0x19, vpss_clkctl_reg);
+> +			break;
+> +		case V4L2_DV_720P60:
+> +		case V4L2_DV_1080I60:
+> +		case V4L2_DV_1080P30:
+> +		/*
+> +		 * For HD, use external clock source since HD requires higher
+> +		 * clock rate
+> +		 */
+> +			__raw_writel(0xa, vpss_clkctl_reg);
+> +			break;
+> +		default:
+> +			ret  = -EINVAL;
+> +			break;
+> +		}
+> +		break;
+> +	default:
+> +		ret  = -EINVAL;
+> +	}
+> +	return ret;
+> +}
+> +
+> +static inline u32 dm644x_reg_modify(void *reg, u32 val, u32 mask)
+> +{
+> +	u32 new_val = (__raw_readl(reg) & ~mask) | (val & mask);
+> +	__raw_writel(new_val, reg);
+> +	return new_val;
+> +}
+> +
+> +static u64 vpbe_display_dma_mask = DMA_BIT_MASK(32);
+> +
+> +static struct resource dm644x_v4l2_disp_resources[] = {
+> +	{
+> +		.start  = IRQ_VENCINT,
+> +		.end    = IRQ_VENCINT,
+> +		.flags  = IORESOURCE_IRQ,
+> +	},
+> +	{
+> +		.start  = 0x01C724B8,
+> +		.end    = 0x01C724B8 + 0x4,
+> +		.flags  = IORESOURCE_MEM,
+> +	},
+> +
+> +};
+> +
+> +static struct platform_device vpbe_v4l2_display = {
+> +	.name           = "vpbe-v4l2",
+> +	.id             = -1,
+> +	.num_resources  = ARRAY_SIZE(dm644x_v4l2_disp_resources),
+> +	.resource       = dm644x_v4l2_disp_resources,
+> +	.dev = {
+> +		.dma_mask               = &vpbe_display_dma_mask,
+> +		.coherent_dma_mask      = DMA_BIT_MASK(32),
+> +	},
+> +};
+> +struct venc_platform_data dm644x_venc_pdata = {
+> +	.venc_type = DM644X_VPBE,
+> +	.setup_clock = dm644x_venc_setup_clock,
+> +};
+> +
+> +static struct platform_device dm644x_venc_dev = {
+> +	.name           = VPBE_VENC_SUBDEV_NAME,
+> +	.id             = -1,
+> +	.num_resources  = ARRAY_SIZE(dm644x_venc_resources),
+> +	.resource       = dm644x_venc_resources,
+> +	.dev = {
+> +		.dma_mask               = &dm644x_venc_dma_mask,
+> +		.coherent_dma_mask      = DMA_BIT_MASK(32),
+> +		.platform_data          = (void *)&dm644x_venc_pdata,
+> +	},
+> +};
+> +
+> +static u64 dm644x_vpbe_dma_mask = DMA_BIT_MASK(32);
+> +
+> +static struct platform_device dm644x_vpbe_dev = {
+> +	.name           = "vpbe_controller",
+> +	.id             = -1,
+> +	.dev = {
+> +		.dma_mask               = &dm644x_vpbe_dma_mask,
+> +		.coherent_dma_mask      = DMA_BIT_MASK(32),
+> +	},
+> +};
+> +
+> +void dm644x_set_vpbe_display_config(struct vpbe_display_config *cfg)
+> +{
+> +	dm644x_vpbe_dev.dev.platform_data = cfg;
+> +}
+> +
+>  /*----------------------------------------------------------------------*/
+>  
+>  static struct map_desc dm644x_io_desc[] = {
+> @@ -767,20 +907,38 @@ void __init dm644x_init(void)
+>  	davinci_common_init(&davinci_soc_info_dm644x);
+>  }
+>  
+> +static struct platform_device *dm644x_video_devices[] __initdata = {
+> +	&dm644x_vpss_device,
+> +	&dm644x_ccdc_dev,
+> +	&vpfe_capture_dev,
+> +	&dm644x_osd_dev,
+> +	&dm644x_venc_dev,
+> +	&dm644x_vpbe_dev,
+> +	&vpbe_v4l2_display,
+> +};
+> +
+> +static int __init dm644x_init_video(void)
+> +{
+> +	/* Add ccdc clock aliases */
+> +	clk_add_alias("master", dm644x_ccdc_dev.name, "vpss_master", NULL);
+> +	clk_add_alias("slave", dm644x_ccdc_dev.name, "vpss_slave", NULL);
+> +	vpss_clkctl_reg = ioremap_nocache(VPSS_CLKCTL, 4);
+> +	if (!vpss_clkctl_reg)
+> +		return -ENODEV;
+> +	platform_add_devices(dm644x_video_devices,
+> +				ARRAY_SIZE(dm644x_video_devices));
+> +	return 0;
+> +}
+> +
+>  static int __init dm644x_init_devices(void)
+>  {
+>  	if (!cpu_is_davinci_dm644x())
+>  		return 0;
+>  
+>  	/* Add ccdc clock aliases */
+
+This comment should be removed too.
+
+> -	clk_add_alias("master", dm644x_ccdc_dev.name, "vpss_master", NULL);
+> -	clk_add_alias("slave", dm644x_ccdc_dev.name, "vpss_slave", NULL);
+>  	platform_device_register(&dm644x_edma_device);
+>  	platform_device_register(&dm644x_emac_device);
+> -	platform_device_register(&dm644x_vpss_device);
+> -	platform_device_register(&dm644x_ccdc_dev);
+> -	platform_device_register(&vpfe_capture_dev);
+> -
+> +	dm644x_init_video();
+>  	return 0;
+>  }
+>  postcore_initcall(dm644x_init_devices);
+> diff --git a/arch/arm/mach-davinci/include/mach/dm644x.h b/arch/arm/mach-davinci/include/mach/dm644x.h
+> index 6fca568..bf7adcd 100644
+> --- a/arch/arm/mach-davinci/include/mach/dm644x.h
+> +++ b/arch/arm/mach-davinci/include/mach/dm644x.h
+> @@ -26,6 +26,9 @@
+>  #include <mach/hardware.h>
+>  #include <mach/asp.h>
+>  #include <media/davinci/vpfe_capture.h>
+> +#include <media/davinci/vpbe_types.h>
+> +#include <media/davinci/vpbe.h>
+> +#include <media/davinci/vpss.h>
+>  
+>  #define DM644X_EMAC_BASE		(0x01C80000)
+>  #define DM644X_EMAC_CNTRL_OFFSET	(0x0000)
+> @@ -43,5 +46,6 @@
+>  void __init dm644x_init(void);
+>  void __init dm644x_init_asp(struct snd_platform_data *pdata);
+>  void dm644x_set_vpfe_config(struct vpfe_config *cfg);
+> +void dm644x_set_vpbe_display_config(struct vpbe_display_config *cfg);
+>  
+>  #endif /* __ASM_ARCH_DM644X_H */
+
+Kevin
