@@ -1,979 +1,1882 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3267 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751750Ab0LTNBQ (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:21618 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753213Ab0LVNk5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Dec 2010 08:01:16 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH 2/2 v2] [media] Add v4l2 subdev driver for NOON010PC30L image sensor
-Date: Mon, 20 Dec 2010 14:01:09 +0100
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com
-References: <1291638298-31926-1-git-send-email-s.nawrocki@samsung.com> <1291638298-31926-3-git-send-email-s.nawrocki@samsung.com>
-In-Reply-To: <1291638298-31926-3-git-send-email-s.nawrocki@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201012201401.09935.hverkuil@xs4all.nl>
+	Wed, 22 Dec 2010 08:40:57 -0500
+Received: from spt2.w1.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LDU004HY0O25Q@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 22 Dec 2010 13:40:51 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LDU00LUK0O22C@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 22 Dec 2010 13:40:50 +0000 (GMT)
+Date: Wed, 22 Dec 2010 14:40:37 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 07/13] v4l: add videobuf2 Video for Linux 2 driver framework
+In-reply-to: <1293025239-9977-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	andrzej.p@samsung.com
+Message-id: <1293025239-9977-8-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1293025239-9977-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Sylwester,
+From: Pawel Osciak <p.osciak@samsung.com>
 
-Here is a quick review of this second patch version.
+Videobuf2 is a Video for Linux 2 API-compatible driver framework for
+multimedia devices. It acts as an intermediate layer between userspace
+applications and device drivers. It also provides low-level, modular
+memory management functions for drivers.
 
-Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+Videobuf2 eases driver development, reduces drivers' code size and aids in
+proper and consistent implementation of V4L2 API in drivers.
 
-On Monday, December 06, 2010 13:24:58 Sylwester Nawrocki wrote:
-> Add I2C/V4L2 subdev driver for Siliconfile NOON010PC30 CIF camera.
-> The driver implements basic functionality, i.e. CIF/QCIF/QQCIF
-> resolution and color format selection, automatic/manual color
-> balance control. Other functions like cropping, rotation/flip,
-> exposure etc. can be easily implemented if needed.
-> 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  drivers/media/video/Kconfig       |    6 +
->  drivers/media/video/Makefile      |    1 +
->  drivers/media/video/noon010pc30.c |  805 +++++++++++++++++++++++++++++++++++++
->  include/media/noon010pc30.h       |   28 ++
->  4 files changed, 840 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/noon010pc30.c
->  create mode 100644 include/media/noon010pc30.h
-> 
-> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> index da08267..1f4b418 100644
-> --- a/drivers/media/video/Kconfig
-> +++ b/drivers/media/video/Kconfig
-> @@ -732,6 +732,12 @@ config VIDEO_VIA_CAMERA
->  	   Chrome9 chipsets.  Currently only tested on OLPC xo-1.5 systems
->  	   with ov7670 sensors.
->  
-> +config VIDEO_NOON010PC30
-> +	tristate "NOON010PC30 CIF camera sensor support"
-> +	depends on I2C && VIDEO_V4L2
-> +	---help---
-> +	  This driver supports NOON010PC30 CIF camera from Siliconfile
-> +
->  config SOC_CAMERA
->  	tristate "SoC camera support"
->  	depends on VIDEO_V4L2 && HAS_DMA && I2C
-> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-> index 482f14b..fcc0644 100644
-> --- a/drivers/media/video/Makefile
-> +++ b/drivers/media/video/Makefile
-> @@ -72,6 +72,7 @@ obj-$(CONFIG_VIDEO_TCM825X) += tcm825x.o
->  obj-$(CONFIG_VIDEO_TVEEPROM) += tveeprom.o
->  obj-$(CONFIG_VIDEO_MT9V011) += mt9v011.o
->  obj-$(CONFIG_VIDEO_SR030PC30)	+= sr030pc30.o
-> +obj-$(CONFIG_VIDEO_NOON010PC30)	+= noon010pc30.o
->  
->  obj-$(CONFIG_SOC_CAMERA_IMX074)		+= imx074.o
->  obj-$(CONFIG_SOC_CAMERA_MT9M001)	+= mt9m001.o
-> diff --git a/drivers/media/video/noon010pc30.c b/drivers/media/video/noon010pc30.c
-> new file mode 100644
-> index 0000000..22eead3
-> --- /dev/null
-> +++ b/drivers/media/video/noon010pc30.c
-> @@ -0,0 +1,805 @@
-> +/*
-> + * Driver for SiliconFile NOON010PC30 CIF (1/11") Image Sensor with ISP
-> + *
-> + * Copyright (C) 2010 Samsung Electronics
-> + * Contact: Sylwester Nawrocki, <s.nawrocki@samsung.com>
-> + *
-> + * Initial register configuration based on a driver authored by
-> + * HeungJun Kim <riverful.kim@samsung.com>.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later vergsion.
-> + */
-> +
-> +#include <linux/delay.h>
-> +#include <linux/gpio.h>
-> +#include <linux/i2c.h>
-> +#include <linux/slab.h>
-> +#include <linux/regulator/consumer.h>
-> +#include <media/noon010pc30.h>
-> +#include <media/v4l2-chip-ident.h>
-> +#include <linux/videodev2.h>
-> +#include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-mediabus.h>
-> +#include <media/v4l2-subdev.h>
-> +
-> +static int debug;
-> +module_param(debug, int, 0644);
-> +MODULE_PARM_DESC(debug, "Enable module debug trace. Set to 1 to enable.");
-> +
-> +#define MODULE_NAME		"NOON010PC30"
-> +#define NOON010_NUM_SUPPLIES	3
-> +
-> +/*
-> + * Register offsets within a page
-> + * b15..b8 - page id, b7..b0 - register address
-> + */
-> +#define POWER_CTRL_REG		0x0001
-> +#define PAGEMODE_REG		0x03
-> +#define DEVICE_ID_REG		0x0004
-> +#define NOON010PC30_ID		0x86
-> +#define VDO_CTL_REG(n)		(0x0010 + (n))
-> +#define SYNC_CTL_REG		0x0012
-> +/* Window size and position */
-> +#define WIN_ROWH_REG		0x0013
-> +#define WIN_ROWL_REG		0x0014
-> +#define WIN_COLH_REG		0x0015
-> +#define WIN_COLL_REG		0x0016
-> +#define WIN_HEIGHTH_REG		0x0017
-> +#define WIN_HEIGHTL_REG		0x0018
-> +#define WIN_WIDTHH_REG		0x0019
-> +#define WIN_WIDTHL_REG		0x001A
-> +#define HBLANKH_REG		0x001B
-> +#define HBLANKL_REG		0x001C
-> +#define VSYNCH_REG		0x001D
-> +#define VSYNCL_REG		0x001E
-> +/* VSYNC control */
-> +#define VS_CTL_REG(n)		(0x00A1 + (n))
-> +/* page 1 */
-> +#define ISP_CTL_REG(n)		(0x0110 + (n))
-> +#define YOFS_REG		0x0119
-> +#define DARK_YOFS_REG		0x011A
-> +#define SAT_CTL_REG		0x0120
-> +#define BSAT_REG		0x0121
-> +#define RSAT_REG		0x0122
-> +/* Color correction */
-> +#define CMC_CTL_REG		0x0130
-> +#define CMC_OFSGH_REG		0x0133
-> +#define CMC_OFSGL_REG		0x0135
-> +#define CMC_SIGN_REG		0x0136
-> +#define CMC_GOFS_REG		0x0137
-> +#define CMC_COEF_REG(n)		(0x0138 + (n))
-> +#define CMC_OFS_REG(n)		(0x0141 + (n))
-> +/* Gamma correction */
-> +#define GMA_CTL_REG		0x0160
-> +#define GMA_COEF_REG(n)		(0x0161 + (n))
-> +/* Lens Shading */
-> +#define LENS_CTRL_REG		0x01D0
-> +#define LENS_XCEN_REG		0x01D1
-> +#define LENS_YCEN_REG		0x01D2
-> +#define LENS_RC_REG		0x01D3
-> +#define LENS_GC_REG		0x01D4
-> +#define LENS_BC_REG		0x01D5
-> +#define L_AGON_REG		0x01D6
-> +#define L_AGOFF_REG		0x01D7
-> +/* Page 3 - Auto Exposure */
-> +#define AE_CTL_REG(n)		(0x0310 + (n))
-> +#define AE_CTL9_REG		0x032C
-> +#define AE_CTL10_REG		0x032D
-> +#define AE_YLVL_REG		0x031C
-> +#define AE_YTH_REG(n)		(0x031D + (n))
-> +#define AE_WGT_REG		0x0326
-> +#define EXP_TIMEH_REG		0x0333
-> +#define EXP_TIMEM_REG		0x0334
-> +#define EXP_TIMEL_REG		0x0335
-> +#define EXP_MMINH_REG		0x0336
-> +#define EXP_MMINL_REG		0x0337
-> +#define EXP_MMAXH_REG		0x0338
-> +#define EXP_MMAXM_REG		0x0339
-> +#define EXP_MMAXL_REG		0x033A
-> +/* Page 4 - Auto White Balance */
-> +#define AWB_CTL_REG(n)		(0x0410 + (n))
-> +#define AWB_ENABE		0x80
-> +#define AWB_WGHT_REG		0x0419
-> +#define BGAIN_PAR_REG(n)	(0x044F + (n))
-> +/* Manual white balance, when AWB_CTL2[0]=1 */
-> +#define MWB_RGAIN_REG		0x0466
-> +#define MWB_BGAIN_REG		0x0467
-> +
-> +/* The token to mark an array end */
-> +#define REG_TERM		0xFFFF
-> +
-> +struct noon010_format {
-> +	enum v4l2_mbus_pixelcode code;
-> +	enum v4l2_colorspace colorspace;
-> +	u16 ispctl1_reg;
-> +};
-> +
-> +struct noon010_frmsize {
-> +	u16 width;
-> +	u16 height;
-> +	int vid_ctl1;
-> +};
-> +
-> +struct noon010_info {
-> +	struct v4l2_subdev sd;
-> +	struct v4l2_ctrl_handler hdl;
-> +	struct v4l2_ctrl *awb;
-> +	struct v4l2_ctrl *red_bal;
-> +	struct v4l2_ctrl *blue_bal;
+Videobuf2 memory management backend is fully modular. This allows custom
+memory management routines for devices and platforms with non-standard
+memory management requirements to be plugged in, without changing the
+high-level buffer management functions and API.
 
-As mentioned earlier, these three pointers are no longer used.
+The framework provides:
+- implementations of streaming I/O V4L2 ioctls and file operations
+- high-level video buffer, video queue and state management functions
+- video buffer memory allocation and management
 
-> +
-> +	const struct noon010pc30_platform_data *pdata;
-> +	const struct noon010_format *curr_fmt;
-> +	const struct noon010_frmsize *curr_win;
-> +	unsigned int hflip:1;
-> +	unsigned int vflip:1;
-> +	unsigned int power:1;
-> +	u8 i2c_reg_page;
-> +	struct regulator_bulk_data supply[NOON010_NUM_SUPPLIES];
-> +	u32 gpio_nreset;
-> +	u32 gpio_nstby;
-> +};
-> +
-> +struct i2c_regval {
-> +	u16 addr;
-> +	u16 val;
-> +};
-> +
-> +static const char *supply_name[NOON010_NUM_SUPPLIES] = {
-> +	"vdd_core", "vddio", "vdda"
-> +};
-> +
-> +/* Supported resolutions. */
-> +static const struct noon010_frmsize noon010_sizes[] = {
-> +	{
-> +		.width		= 352,
-> +		.height		= 288,
-> +		.vid_ctl1	= 0,
-> +	}, {
-> +		.width		= 176,
-> +		.height		= 144,
-> +		.vid_ctl1	= 0x10,
-> +	}, {
-> +		.width		= 88,
-> +		.height		= 72,
-> +		.vid_ctl1	= 0x20,
-> +	},
-> +};
-> +
-> +/* Supported pixel formats. */
-> +static const struct noon010_format noon010_formats[] = {
-> +	{
-> +		.code		= V4L2_MBUS_FMT_YUYV8_2X8,
-> +		.colorspace	= V4L2_COLORSPACE_JPEG,
-> +		.ispctl1_reg	= 0x03,
-> +	}, {
-> +		.code		= V4L2_MBUS_FMT_YVYU8_2X8,
-> +		.colorspace	= V4L2_COLORSPACE_JPEG,
-> +		.ispctl1_reg	= 0x02,
-> +	}, {
-> +		.code		= V4L2_MBUS_FMT_VYUY8_2X8,
-> +		.colorspace	= V4L2_COLORSPACE_JPEG,
-> +		.ispctl1_reg	= 0,
-> +	}, {
-> +		.code		= V4L2_MBUS_FMT_UYVY8_2X8,
-> +		.colorspace	= V4L2_COLORSPACE_JPEG,
-> +		.ispctl1_reg	= 0x01,
-> +	}, {
-> +		.code		= V4L2_MBUS_FMT_RGB565_2X8_BE,
-> +		.colorspace	= V4L2_COLORSPACE_JPEG,
-> +		.ispctl1_reg	= 0x40,
-> +	},
-> +};
-> +
-> +static const struct i2c_regval noon010_base_regs[] = {
-> +	{ WIN_COLL_REG,		0x06 },	{ HBLANKL_REG,		0x7C },
-> +	/* Color corection and saturation */
-> +	{ ISP_CTL_REG(0),	0x30 }, { ISP_CTL_REG(2),	0x30 },
-> +	{ YOFS_REG,		0x80 }, { DARK_YOFS_REG,	0x04 },
-> +	{ SAT_CTL_REG,		0x1F }, { BSAT_REG,		0x90 },
-> +	{ CMC_CTL_REG,		0x0F }, { CMC_OFSGH_REG,	0x3C },
-> +	{ CMC_OFSGL_REG,	0x2C }, { CMC_SIGN_REG,		0x3F },
-> +	{ CMC_COEF_REG(0),	0x79 }, { CMC_OFS_REG(0),	0x00 },
-> +	{ CMC_COEF_REG(1),	0x39 }, { CMC_OFS_REG(1),	0x00 },
-> +	{ CMC_COEF_REG(2),	0x00 }, { CMC_OFS_REG(2),	0x00 },
-> +	{ CMC_COEF_REG(3),	0x11 }, { CMC_OFS_REG(3),	0x8B },
-> +	{ CMC_COEF_REG(4),	0x65 }, { CMC_OFS_REG(4),	0x07 },
-> +	{ CMC_COEF_REG(5),	0x14 }, { CMC_OFS_REG(5),	0x04 },
-> +	{ CMC_COEF_REG(6),	0x01 }, { CMC_OFS_REG(6),	0x9C },
-> +	{ CMC_COEF_REG(7),	0x33 }, { CMC_OFS_REG(7),	0x89 },
-> +	{ CMC_COEF_REG(8),	0x74 }, { CMC_OFS_REG(8),	0x25 },
-> +	/* Automatic white balance */
-> +	{ AWB_CTL_REG(0),	0x78 }, { AWB_CTL_REG(1),	0x2E },
-> +	{ AWB_CTL_REG(2),	0x20 }, { AWB_CTL_REG(3),	0x85 },
-> +	/* Auto exposure */
-> +	{ AE_CTL_REG(0),	0xDC }, { AE_CTL_REG(1),	0x81 },
-> +	{ AE_CTL_REG(2),	0x30 }, { AE_CTL_REG(3),	0xA5 },
-> +	{ AE_CTL_REG(4),	0x40 }, { AE_CTL_REG(5),	0x51 },
-> +	{ AE_CTL_REG(6),	0x33 }, { AE_CTL_REG(7),	0x7E },
-> +	{ AE_CTL9_REG,		0x00 }, { AE_CTL10_REG,		0x02 },
-> +	{ AE_YLVL_REG,		0x44 },	{ AE_YTH_REG(0),	0x34 },
-> +	{ AE_YTH_REG(1),	0x30 },	{ AE_WGT_REG,		0xD5 },
-> +	/* Lens shading compensation */
-> +	{ LENS_CTRL_REG,	0x01 }, { LENS_XCEN_REG,	0x80 },
-> +	{ LENS_YCEN_REG,	0x70 }, { LENS_RC_REG,		0x53 },
-> +	{ LENS_GC_REG,		0x40 }, { LENS_BC_REG,		0x3E },
-> +	{ REG_TERM,		0 },
-> +};
-> +
-> +static inline struct noon010_info *to_noon010(struct v4l2_subdev *sd)
-> +{
-> +	return container_of(sd, struct noon010_info, sd);
-> +}
-> +
-> +static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
-> +{
-> +	return &container_of(ctrl->handler, struct noon010_info, hdl)->sd;
-> +}
-> +
-> +static inline int set_i2c_page(struct noon010_info *info,
-> +			       struct i2c_client *client, unsigned int reg)
-> +{
-> +	u32 page = reg >> 8 & 0xFF;
-> +	int ret = 0;
-> +
-> +	if (info->i2c_reg_page != page && (reg & 0xFF) != 0x03) {
-> +		ret = i2c_smbus_write_byte_data(client, PAGEMODE_REG, page);
-> +		if (!ret)
-> +			info->i2c_reg_page = page;
-> +	}
-> +	return ret;
-> +}
-> +
-> +static int cam_i2c_read(struct v4l2_subdev *sd, u32 reg_addr)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +	struct noon010_info *info = to_noon010(sd);
-> +
-> +	int ret = set_i2c_page(info, client, reg_addr);
+Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+CC: Pawel Osciak <pawel@osciak.com>
+---
+ drivers/media/video/Kconfig          |    3 +
+ drivers/media/video/Makefile         |    2 +
+ drivers/media/video/videobuf2-core.c | 1405 ++++++++++++++++++++++++++++++++++
+ include/media/videobuf2-core.h       |  371 +++++++++
+ 4 files changed, 1781 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/videobuf2-core.c
+ create mode 100644 include/media/videobuf2-core.h
 
-Swap the two lines above. Looks better that way with all the local
-variables before the empty line.
-
-> +	if (ret)
-> +		return ret;
-> +	return i2c_smbus_read_byte_data(client, reg_addr & 0xFF);
-> +}
-> +
-> +static int cam_i2c_write(struct v4l2_subdev *sd, u32 reg_addr, u32 val)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +	struct noon010_info *info = to_noon010(sd);
-> +
-> +	int ret = set_i2c_page(info, client, reg_addr);
-
-ditto
-
-> +	if (ret)
-> +		return ret;
-> +	return i2c_smbus_write_byte_data(client, reg_addr & 0xFF, val);
-> +}
-> +
-> +static inline int noon010_bulk_write_reg(struct v4l2_subdev *sd,
-> +					 const struct i2c_regval *msg)
-> +{
-> +	while (msg->addr != REG_TERM) {
-> +		int ret = cam_i2c_write(sd, msg->addr, msg->val);
-
-add empty line.
-
-> +		if (ret)
-> +			return ret;
-> +		msg++;
-> +	}
-> +	return 0;
-> +}
-> +
-> +/* Device reset and sleep mode control */
-> +static int noon010_power_ctrl(struct v4l2_subdev *sd, bool reset, bool sleep)
-> +{
-> +	struct noon010_info *info = to_noon010(sd);
-> +	u8 reg = sleep ? 0xF1 : 0xF0;
-> +	int ret = 0;
-> +
-> +	if (reset)
-> +		ret = cam_i2c_write(sd, POWER_CTRL_REG, reg | 0x02);
-> +	if (!ret) {
-> +		ret = cam_i2c_write(sd, POWER_CTRL_REG, reg);
-> +		if (reset && !ret)
-> +			info->i2c_reg_page = -1;
-> +	}
-> +	return ret;
-> +}
-> +
-> +/* Automatic white balance control */
-> +static int noon010_enable_autowhitebalance(struct v4l2_subdev *sd, int on)
-> +{
-> +	int ret;
-> +
-> +	ret = cam_i2c_write(sd, AWB_CTL_REG(1), on ? 0x2E : 0x2F);
-> +	if (!ret)
-> +		ret = cam_i2c_write(sd, AWB_CTL_REG(0), on ? 0xFB : 0x7B);
-> +	return ret;
-> +}
-> +
-> +static int noon010_set_flip(struct v4l2_subdev *sd, int hflip, int vflip)
-> +{
-> +	struct noon010_info *info = to_noon010(sd);
-> +	int reg, ret;
-> +
-> +	reg = cam_i2c_read(sd, VDO_CTL_REG(1));
-> +	if (reg < 0)
-> +		return reg;
-> +
-> +	reg &= 0x7C;
-> +	if (hflip)
-> +		reg |= 0x01;
-> +	if (vflip)
-> +		reg |= 0x02;
-> +
-> +	ret = cam_i2c_write(sd, VDO_CTL_REG(1), reg | 0x80);
-> +	if (!ret) {
-> +		info->hflip = hflip;
-> +		info->vflip = vflip;
-> +	}
-> +	return ret;
-> +}
-> +
-> +/* Configure resolution and color format */
-> +static int noon010_set_params(struct v4l2_subdev *sd)
-> +{
-> +	struct noon010_info *info = to_noon010(sd);
-> +	int ret;
-> +
-> +	if (!info->curr_win)
-> +		return -EINVAL;
-> +
-> +	ret = cam_i2c_write(sd, VDO_CTL_REG(0), info->curr_win->vid_ctl1);
-> +
-> +	if (!ret && info->curr_fmt)
-> +		ret = cam_i2c_write(sd, ISP_CTL_REG(0),
-> +				info->curr_fmt->ispctl1_reg);
-> +	return ret;
-> +}
-> +
-> +/* Find nearest matching image pixel size. */
-> +static int noon010_try_frame_size(struct v4l2_mbus_framefmt *mf)
-> +{
-> +	unsigned int min_err = ~0;
-> +	int i = ARRAY_SIZE(noon010_sizes);
-> +	const struct noon010_frmsize *fsize = &noon010_sizes[0],
-> +		*match = NULL;
-> +
-> +	while (i--) {
-> +		int err = abs(fsize->width - mf->width)
-> +				+ abs(fsize->height - mf->height);
-
-Empty line.
-
-> +		if (err < min_err) {
-> +			min_err = err;
-> +			match = fsize;
-> +		}
-> +		fsize++;
-> +	}
-> +	if (match) {
-> +		mf->width  = match->width;
-> +		mf->height = match->height;
-> +		return 0;
-> +	}
-> +	return -EINVAL;
-> +}
-> +
-> +static int power_enable(struct noon010_info *info)
-> +{
-> +	int ret;
-> +
-> +	if (info->power) {
-> +		v4l2_info(&info->sd, "%s: sensor is already on\n", __func__);
-> +		return 0;
-> +	}
-> +
-> +	if (gpio_is_valid(info->gpio_nstby))
-> +		gpio_set_value(info->gpio_nstby, 0);
-> +
-> +	if (gpio_is_valid(info->gpio_nreset))
-> +		gpio_set_value(info->gpio_nreset, 0);
-> +
-> +	ret = regulator_bulk_enable(NOON010_NUM_SUPPLIES, info->supply);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (gpio_is_valid(info->gpio_nreset)) {
-> +		msleep(50);
-> +		gpio_set_value(info->gpio_nreset, 1);
-> +	}
-> +	if (gpio_is_valid(info->gpio_nstby)) {
-> +		udelay(1000);
-> +		gpio_set_value(info->gpio_nstby, 1);
-> +	}
-> +	if (gpio_is_valid(info->gpio_nreset)) {
-> +		udelay(1000);
-> +		gpio_set_value(info->gpio_nreset, 0);
-> +		msleep(100);
-> +		gpio_set_value(info->gpio_nreset, 1);
-> +		msleep(20);
-> +	}
-> +	info->power = 1;
-> +
-> +	v4l2_dbg(1, debug, &info->sd,  "%s: sensor is on\n", __func__);
-> +	return 0;
-> +}
-> +
-> +static int power_disable(struct noon010_info *info)
-> +{
-> +	int ret;
-> +
-> +	if (!info->power) {
-> +		v4l2_info(&info->sd, "%s: sensor is already off\n", __func__);
-> +		return 0;
-> +	}
-> +
-> +	ret = regulator_bulk_disable(NOON010_NUM_SUPPLIES, info->supply);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (gpio_is_valid(info->gpio_nstby))
-> +		gpio_set_value(info->gpio_nstby, 0);
-> +
-> +	if (gpio_is_valid(info->gpio_nreset))
-> +		gpio_set_value(info->gpio_nreset, 0);
-> +
-> +	info->power = 0;
-> +
-> +	v4l2_dbg(1, debug, &info->sd,  "%s: sensor is off\n", __func__);
-> +
-> +	return 0;
-> +}
-> +
-> +static int noon010_s_ctrl(struct v4l2_ctrl *ctrl)
-> +{
-> +	struct v4l2_subdev *sd = to_sd(ctrl);
-> +	int ret;
-> +
-> +	v4l2_dbg(1, debug, sd, "%s: ctrl_id: %d, value: %d\n",
-> +		 __func__, ctrl->id, ctrl->val);
-> +
-> +	switch (ctrl->id) {
-> +	case V4L2_CID_AUTO_WHITE_BALANCE:
-> +		ret = noon010_enable_autowhitebalance(sd, ctrl->val);
-
-Just do:
-
-		return noon010_enable_autowhitebalance(sd, ctrl->val);
-
-Ditto for the lines below. This removes the need for the ret variable.
-
-> +		break;
-> +	case V4L2_CID_BLUE_BALANCE:
-> +		ret = cam_i2c_write(sd, MWB_BGAIN_REG, ctrl->val);
-> +		break;
-> +	case V4L2_CID_RED_BALANCE:
-> +		ret = cam_i2c_write(sd, MWB_RGAIN_REG, ctrl->val);
-> +		break;
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +
-> +	return ret;
-> +}
-> +
-> +static int noon010_enum_fmt(struct v4l2_subdev *sd, unsigned int index,
-> +			    enum v4l2_mbus_pixelcode *code)
-> +{
-> +	if (!code || index >= ARRAY_SIZE(noon010_formats))
-> +		return -EINVAL;
-> +
-> +	*code = noon010_formats[index].code;
-> +	return 0;
-> +}
-> +
-> +static int noon010_g_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
-> +{
-> +	struct noon010_info *info = to_noon010(sd);
-> +	int ret;
-> +
-> +	if (!mf)
-> +		return -EINVAL;
-> +
-> +	if (!info->curr_win || !info->curr_fmt) {
-> +		ret = noon010_set_params(sd);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
-> +	mf->width	= info->curr_win->width;
-> +	mf->height	= info->curr_win->height;
-> +	mf->code	= info->curr_fmt->code;
-> +	mf->colorspace	= info->curr_fmt->colorspace;
-> +	mf->field	= V4L2_FIELD_NONE;
-> +
-> +	return 0;
-> +}
-> +
-> +/* Return nearest media bus frame format. */
-> +static const struct noon010_format *try_fmt(struct v4l2_subdev *sd,
-> +					    struct v4l2_mbus_framefmt *mf)
-> +{
-> +	int i = ARRAY_SIZE(noon010_formats);
-> +
-> +	noon010_try_frame_size(mf);
-> +
-> +	while (i--)
-> +		if (mf->code == noon010_formats[i].code)
-> +			break;
-> +
-> +	mf->code = noon010_formats[i].code;
-> +
-> +	return &noon010_formats[i];
-> +}
-> +
-> +static int noon010_try_fmt(struct v4l2_subdev *sd,
-> +			   struct v4l2_mbus_framefmt *mf)
-> +{
-> +	if (!sd || !mf)
-> +		return -EINVAL;
-> +
-> +	try_fmt(sd, mf);
-> +	return 0;
-> +}
-> +
-> +static int noon010_s_fmt(struct v4l2_subdev *sd,
-> +			 struct v4l2_mbus_framefmt *mf)
-> +{
-> +	struct noon010_info *info = to_noon010(sd);
-> +
-> +	if (!sd || !mf)
-> +		return -EINVAL;
-> +
-> +	info->curr_fmt = try_fmt(sd, mf);
-> +
-> +	return noon010_set_params(sd);
-> +}
-> +
-> +static int noon010_base_config(struct v4l2_subdev *sd)
-> +{
-> +	struct noon010_info *info = to_noon010(sd);
-> +	int ret;
-> +
-> +	ret = noon010_bulk_write_reg(sd, noon010_base_regs);
-> +	if (!ret) {
-> +		info->curr_fmt = &noon010_formats[0];
-> +		info->curr_win = &noon010_sizes[0];
-> +		ret = noon010_set_params(sd);
-> +	}
-> +	if (!ret)
-> +		ret = noon010_set_flip(sd, 1, 0);
-> +	if (!ret)
-> +		ret = noon010_power_ctrl(sd, false, false);
-> +
-> +	/* sync the handler and the registers state */
-> +	v4l2_ctrl_handler_setup(&to_noon010(sd)->hdl);
-> +	return ret;
-> +}
-> +
-> +static int noon010_s_config(struct v4l2_subdev *sd,
-> +			    int irq, void *platform_data)
-> +{
-> +	struct noon010_info *info = to_noon010(sd);
-> +
-> +	info->pdata = platform_data;
-> +	return 0;
-> +}
-
-Why do you need this? This shouldn't be used in new drivers. It's for
-backwards compatibility with older kernels and it should probably be
-removed altogether.
-
-> +static int noon010_s_stream(struct v4l2_subdev *sd, int enable)
-> +{
-> +	return 0;
-> +}
-
-This doesn't do anything, so you can just drop this function.
-
-> +static int noon010_s_power(struct v4l2_subdev *sd, int on)
-> +{
-> +	struct noon010_info *info = to_noon010(sd);
-> +	const struct noon010pc30_platform_data *pdata = info->pdata;
-> +	int ret = 0;
-> +
-> +	if (WARN(pdata == NULL, "No platform data!\n"))
-> +		return -ENOMEM;
-> +
-> +	if (on) {
-> +		noon010_power_ctrl(sd, false, true);
-> +		ret = power_enable(info);
-> +		if (ret)
-> +			return ret;
-> +		ret = noon010_base_config(sd);
-> +	} else {
-> +		ret = power_disable(info);
-> +		info->curr_win = NULL;
-> +		info->curr_fmt = NULL;
-> +	}
-> +
-> +	return ret;
-> +}
-> +
-> +static int noon010_g_chip_ident(struct v4l2_subdev *sd,
-> +				struct v4l2_dbg_chip_ident *chip)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +
-> +	return v4l2_chip_ident_i2c_client(client, chip,
-> +					  V4L2_IDENT_NOON010PC30, 0);
-> +}
-> +
-> +static int noon010_log_status(struct v4l2_subdev *sd)
-> +{
-> +	struct noon010_info *info = to_noon010(sd);
-> +
-> +	v4l2_ctrl_handler_log_status(&info->hdl, sd->name);
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_ctrl_ops noon010_ctrl_ops = {
-> +	.s_ctrl = noon010_s_ctrl,
-> +};
-> +
-> +static const struct v4l2_subdev_core_ops noon010_core_ops = {
-> +	.g_chip_ident	= noon010_g_chip_ident,
-> +	.s_config	= noon010_s_config,
-> +	.s_power	= noon010_s_power,
-> +	.g_ctrl		= v4l2_subdev_g_ctrl,
-> +	.s_ctrl		= v4l2_subdev_s_ctrl,
-> +	.queryctrl	= v4l2_subdev_queryctrl,
-> +	.querymenu	= v4l2_subdev_querymenu,
-
-Also add:
-
-        .g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
-        .try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
-        .s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
-
-> +	.log_status	= noon010_log_status,
-> +};
-> +
-> +static const struct v4l2_subdev_video_ops noon010_video_ops = {
-> +	.s_stream	= noon010_s_stream,
-> +	.g_mbus_fmt	= noon010_g_fmt,
-> +	.s_mbus_fmt	= noon010_s_fmt,
-> +	.try_mbus_fmt	= noon010_try_fmt,
-> +	.enum_mbus_fmt	= noon010_enum_fmt,
-> +};
-> +
-> +static const struct v4l2_subdev_ops noon010_ops = {
-> +	.core	= &noon010_core_ops,
-> +	.video	= &noon010_video_ops,
-> +};
-> +
-> +/* Return 0 if NOON010PC30L sensor type was detected or -ENODEV otherwise. */
-> +static int noon010_detect(struct i2c_client *client, struct noon010_info *info)
-> +{
-> +	int ret;
-> +
-> +	ret = power_enable(info);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret = i2c_smbus_read_byte_data(client, DEVICE_ID_REG);
-> +	if (ret < 0)
-> +		dev_err(&client->dev, "I2C read failed: 0x%X\n", ret);
-> +
-> +	power_disable(info);
-> +
-> +	return ret == NOON010PC30_ID ? 0 : -ENODEV;
-> +}
-> +
-> +static int noon010_probe(struct i2c_client *client,
-> +			 const struct i2c_device_id *id)
-> +{
-> +	struct noon010_info *info;
-> +	struct v4l2_subdev *sd;
-> +	const struct noon010pc30_platform_data *pdata
-> +		= client->dev.platform_data;
-> +	int ret;
-> +	int i;
-> +
-> +	if (!pdata) {
-> +		dev_err(&client->dev, "No platform data!\n");
-> +		return -EIO;
-> +	}
-> +
-> +	info = kzalloc(sizeof(*info), GFP_KERNEL);
-> +	if (!info)
-> +		return -ENOMEM;
-> +
-> +	sd = &info->sd;
-> +	strcpy(sd->name, MODULE_NAME);
-
-strlcpy
-
-> +	v4l2_i2c_subdev_init(sd, client, &noon010_ops);
-> +
-> +	v4l2_ctrl_handler_init(&info->hdl, 3);
-> +
-> +	v4l2_ctrl_new_std(&info->hdl, &noon010_ctrl_ops,
-> +			  V4L2_CID_AUTO_WHITE_BALANCE, 0, 1, 1, 1);
-> +	v4l2_ctrl_new_std(&info->hdl, &noon010_ctrl_ops,
-> +			  V4L2_CID_RED_BALANCE, 0, 127, 1, 64);
-> +	v4l2_ctrl_new_std(&info->hdl, &noon010_ctrl_ops,
-> +			  V4L2_CID_BLUE_BALANCE, 0, 127, 1, 64);
-> +
-> +	sd->ctrl_handler = &info->hdl;
-> +
-> +	ret = info->hdl.error;
-> +	if (ret) {
-> +		v4l2_ctrl_handler_free(&info->hdl);
-
-The v4l2_ctrl_handler_free call should be part of the 'exit' labels at the end...
-
-> +		goto np_err;
-> +	}
-> +
-> +	info->pdata		= client->dev.platform_data;
-> +	info->i2c_reg_page	= -1;
-> +	info->gpio_nreset	= -EINVAL;
-> +	info->gpio_nstby	= -EINVAL;
-> +
-> +	if (gpio_is_valid(pdata->gpio_nreset)) {
-> +		ret = gpio_request(pdata->gpio_nreset, "NOON010PC30 NRST");
-> +		if (ret) {
-> +			dev_err(&client->dev, "GPIO request error: %d\n", ret);
-> +			goto np_err;
-
-...because otherwise it will never be freed here and in the other exit paths
-below.
-
-> +		}
-> +		info->gpio_nreset = pdata->gpio_nreset;
-> +		gpio_direction_output(info->gpio_nreset, 0);
-> +		gpio_export(info->gpio_nreset, 0);
-> +	}
-> +
-> +	if (gpio_is_valid(pdata->gpio_nstby)) {
-> +		ret = gpio_request(pdata->gpio_nstby, "NOON010PC30 NSTBY");
-> +		if (ret) {
-> +			dev_err(&client->dev, "GPIO request error: %d\n", ret);
-> +			goto gpio_stby_err;
-> +		}
-> +		info->gpio_nstby = pdata->gpio_nstby;
-> +		gpio_direction_output(info->gpio_nstby, 0);
-> +		gpio_export(info->gpio_nstby, 0);
-> +	}
-> +
-> +	for (i = 0; i < NOON010_NUM_SUPPLIES; i++)
-> +		info->supply[i].supply = supply_name[i];
-> +
-> +	ret = regulator_bulk_get(&client->dev, NOON010_NUM_SUPPLIES,
-> +			info->supply);
-
-ret is assigned but not checked?
-
-> +	ret = noon010_detect(client, info);
-> +	if (!ret)
-> +		return 0;
-> +
-> +	/* the sensor detection failed */
-> +	regulator_bulk_free(NOON010_NUM_SUPPLIES, info->supply);
-> +	if (gpio_is_valid(info->gpio_nstby))
-> +		gpio_free(info->gpio_nstby);
-> +gpio_stby_err:
-> +	if (gpio_is_valid(info->gpio_nreset))
-> +		gpio_free(info->gpio_nreset);
-> +np_err:
-> +	v4l2_device_unregister_subdev(sd);
-> +	kfree(info);
-> +	return ret;
-> +}
-> +
-> +static int noon010_remove(struct i2c_client *client)
-> +{
-> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> +	struct noon010_info *info = to_noon010(sd);
-> +
-> +	v4l2_device_unregister_subdev(sd);
-
-Missing v4l2_ctrl_handler_free.
-
-> +	regulator_bulk_free(NOON010_NUM_SUPPLIES, info->supply);
-> +	if (gpio_is_valid(info->gpio_nreset))
-> +		gpio_free(info->gpio_nreset);
-> +	if (gpio_is_valid(info->gpio_nstby))
-> +		gpio_free(info->gpio_nstby);
-> +	kfree(info);
-> +	return 0;
-> +}
-> +
-> +static const struct i2c_device_id noon010_id[] = {
-> +	{ MODULE_NAME, 0 },
-> +	{ },
-> +};
-> +MODULE_DEVICE_TABLE(i2c, noon010_id);
-> +
-> +
-> +static struct i2c_driver noon010_i2c_driver = {
-> +	.driver = {
-> +		.name = MODULE_NAME
-> +	},
-> +	.probe		= noon010_probe,
-> +	.remove		= noon010_remove,
-> +	.id_table	= noon010_id,
-> +};
-> +
-> +static int __init noon010_init(void)
-> +{
-> +	return i2c_add_driver(&noon010_i2c_driver);
-> +}
-> +
-> +static void __exit noon010_exit(void)
-> +{
-> +	i2c_del_driver(&noon010_i2c_driver);
-> +}
-> +
-> +module_init(noon010_init);
-> +module_exit(noon010_exit);
-> +
-> +MODULE_DESCRIPTION("Siliconfile NOON010PC30 camera driver");
-> +MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
-> +MODULE_LICENSE("GPL");
-> diff --git a/include/media/noon010pc30.h b/include/media/noon010pc30.h
-> new file mode 100644
-> index 0000000..58eafee
-> --- /dev/null
-> +++ b/include/media/noon010pc30.h
-> @@ -0,0 +1,28 @@
-> +/*
-> + * Driver header for NOON010PC30L camera sensor chip.
-> + *
-> + * Copyright (c) 2010 Samsung Electronics, Co. Ltd
-> + * Contact: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + */
-> +
-> +#ifndef NOON010PC30_H
-> +#define NOON010PC30_H
-> +
-> +/**
-> + * @clk_rate: the clock frequency in Hz
-> + * @gpio_nreset: GPIO driving nRESET pin
-> + * @gpio_nstby: GPIO driving nSTBY pin
-> + */
-> +
-> +struct noon010pc30_platform_data {
-> +	unsigned long clk_rate;
-> +	int gpio_nreset;
-> +	int gpio_nstby;
-> +};
-> +
-> +#endif /* NOON010PC30_H */
-> 
-
-Regards,
-
-	Hans
-
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index da08267..d4bb61f 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -49,6 +49,9 @@ config V4L2_MEM2MEM_DEV
+ 	tristate
+ 	depends on VIDEOBUF_GEN
+ 
++config VIDEOBUF2_CORE
++	tristate
++
+ #
+ # Multimedia Video device configuration
+ #
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index 482f14b..67b49af 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -115,6 +115,8 @@ obj-$(CONFIG_VIDEOBUF_VMALLOC) += videobuf-vmalloc.o
+ obj-$(CONFIG_VIDEOBUF_DVB) += videobuf-dvb.o
+ obj-$(CONFIG_VIDEO_BTCX)  += btcx-risc.o
+ 
++obj-$(CONFIG_VIDEOBUF2_CORE)		+= videobuf2-core.o
++
+ obj-$(CONFIG_V4L2_MEM2MEM_DEV) += v4l2-mem2mem.o
+ 
+ obj-$(CONFIG_VIDEO_M32R_AR_M64278) += arv.o
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+new file mode 100644
+index 0000000..b856bd1
+--- /dev/null
++++ b/drivers/media/video/videobuf2-core.c
+@@ -0,0 +1,1405 @@
++/*
++ * videobuf2-core.c - V4L2 driver helper framework
++ *
++ * Copyright (C) 2010 Samsung Electronics
++ *
++ * Author: Pawel Osciak <p.osciak@samsung.com>
++ *	   Marek Szyprowski <m.szyprowski@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation.
++ */
++
++#include <linux/err.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/mm.h>
++#include <linux/poll.h>
++#include <linux/slab.h>
++#include <linux/sched.h>
++
++#include <media/videobuf2-core.h>
++
++static int debug;
++module_param(debug, int, 0644);
++
++#define dprintk(level, fmt, arg...)					\
++	do {								\
++		if (debug >= level)					\
++			printk(KERN_DEBUG "vb2: " fmt, ## arg);		\
++	} while (0)
++
++#define call_memop(q, plane, op, args...)				\
++	(((q)->mem_ops->op) ?						\
++		((q)->mem_ops->op(args)) : 0)
++
++#define call_qop(q, op, args...)					\
++	(((q)->ops->op) ? ((q)->ops->op(args)) : 0)
++
++/**
++ * __vb2_buf_mem_alloc() - allocate video memory for the given buffer
++ */
++static int __vb2_buf_mem_alloc(struct vb2_buffer *vb,
++				unsigned long *plane_sizes)
++{
++	struct vb2_queue *q = vb->vb2_queue;
++	void *mem_priv;
++	int plane;
++
++	/* Allocate memory for all planes in this buffer */
++	for (plane = 0; plane < vb->num_planes; ++plane) {
++		mem_priv = call_memop(q, plane, alloc, q->alloc_ctx[plane],
++					plane_sizes[plane]);
++		if (!mem_priv)
++			goto free;
++
++		/* Associate allocator private data with this plane */
++		vb->planes[plane].mem_priv = mem_priv;
++		vb->v4l2_planes[plane].length = plane_sizes[plane];
++	}
++
++	return 0;
++free:
++	/* Free already allocated memory if one of the allocations failed */
++	for (; plane > 0; --plane)
++		call_memop(q, plane, put, vb->planes[plane - 1].mem_priv);
++
++	return -ENOMEM;
++}
++
++/**
++ * __vb2_buf_mem_free() - free memory of the given buffer
++ */
++static void __vb2_buf_mem_free(struct vb2_buffer *vb)
++{
++	struct vb2_queue *q = vb->vb2_queue;
++	unsigned int plane;
++
++	for (plane = 0; plane < vb->num_planes; ++plane) {
++		call_memop(q, plane, put, vb->planes[plane].mem_priv);
++		vb->planes[plane].mem_priv = NULL;
++		dprintk(3, "Freed plane %d of buffer %d\n",
++				plane, vb->v4l2_buf.index);
++	}
++}
++
++/**
++ * __vb2_buf_userptr_put() - release userspace memory associated with
++ * a USERPTR buffer
++ */
++static void __vb2_buf_userptr_put(struct vb2_buffer *vb)
++{
++	struct vb2_queue *q = vb->vb2_queue;
++	unsigned int plane;
++
++	for (plane = 0; plane < vb->num_planes; ++plane) {
++		void *mem_priv = vb->planes[plane].mem_priv;
++
++		if (mem_priv) {
++			call_memop(q, plane, put_userptr, mem_priv);
++			vb->planes[plane].mem_priv = NULL;
++		}
++	}
++}
++
++/**
++ * __setup_offsets() - setup unique offsets ("cookies") for every plane in
++ * every buffer on the queue
++ */
++static void __setup_offsets(struct vb2_queue *q)
++{
++	unsigned int buffer, plane;
++	struct vb2_buffer *vb;
++	unsigned long off = 0;
++
++	for (buffer = 0; buffer < q->num_buffers; ++buffer) {
++		vb = q->bufs[buffer];
++		if (!vb)
++			continue;
++
++		for (plane = 0; plane < vb->num_planes; ++plane) {
++			vb->v4l2_planes[plane].m.mem_offset = off;
++
++			dprintk(3, "Buffer %d, plane %d offset 0x%08lx\n",
++					buffer, plane, off);
++
++			off += vb->v4l2_planes[plane].length;
++			off = PAGE_ALIGN(off);
++		}
++	}
++}
++
++/**
++ * __vb2_queue_alloc() - allocate videobuf buffer structures and (for MMAP type)
++ * video buffer memory for all buffers/planes on the queue and initializes the
++ * queue
++ *
++ * Returns the number of buffers successfully allocated.
++ */
++static int __vb2_queue_alloc(struct vb2_queue *q, enum v4l2_memory memory,
++			     unsigned int num_buffers, unsigned int num_planes,
++			     unsigned long plane_sizes[])
++{
++	unsigned int buffer;
++	struct vb2_buffer *vb;
++	int ret;
++
++	for (buffer = 0; buffer < num_buffers; ++buffer) {
++		/* Allocate videobuf buffer structures */
++		vb = kzalloc(q->buf_struct_size, GFP_KERNEL);
++		if (!vb) {
++			dprintk(1, "Memory alloc for buffer struct failed\n");
++			break;
++		}
++
++		/* Length stores number of planes for multiplanar buffers */
++		if (V4L2_TYPE_IS_MULTIPLANAR(q->type))
++			vb->v4l2_buf.length = num_planes;
++
++		vb->state = VB2_BUF_STATE_DEQUEUED;
++		vb->vb2_queue = q;
++		vb->num_planes = num_planes;
++		vb->v4l2_buf.index = buffer;
++		vb->v4l2_buf.type = q->type;
++		vb->v4l2_buf.memory = memory;
++
++		/* Allocate video buffer memory for the MMAP type */
++		if (memory == V4L2_MEMORY_MMAP) {
++			ret = __vb2_buf_mem_alloc(vb, plane_sizes);
++			if (ret) {
++				dprintk(1, "Failed allocating memory for "
++						"buffer %d\n", buffer);
++				kfree(vb);
++				break;
++			}
++			/*
++			 * Call the driver-provided buffer initialization
++			 * callback, if given. An error in initialization
++			 * results in queue setup failure.
++			 */
++			ret = call_qop(q, buf_init, vb);
++			if (ret) {
++				dprintk(1, "Buffer %d %p initialization"
++					" failed\n", buffer, vb);
++				__vb2_buf_mem_free(vb);
++				kfree(vb);
++				break;
++			}
++		}
++
++		q->bufs[buffer] = vb;
++	}
++
++	q->num_buffers = buffer;
++
++	__setup_offsets(q);
++
++	dprintk(1, "Allocated %d buffers, %d plane(s) each\n",
++			q->num_buffers, num_planes);
++
++	return buffer;
++}
++
++/**
++ * __vb2_free_mem() - release all video buffer memory for a given queue
++ */
++static void __vb2_free_mem(struct vb2_queue *q)
++{
++	unsigned int buffer;
++	struct vb2_buffer *vb;
++
++	for (buffer = 0; buffer < q->num_buffers; ++buffer) {
++		vb = q->bufs[buffer];
++		if (!vb)
++			continue;
++
++		/* Free MMAP buffers or release USERPTR buffers */
++		if (q->memory == V4L2_MEMORY_MMAP)
++			__vb2_buf_mem_free(vb);
++		else
++			__vb2_buf_userptr_put(vb);
++	}
++}
++
++/**
++ * __vb2_queue_free() - free the queue - video memory and related information
++ * and return the queue to an uninitialized state. Might be called even if the
++ * queue has already been freed.
++ */
++static int __vb2_queue_free(struct vb2_queue *q)
++{
++	unsigned int buffer;
++
++	/* Call driver-provided cleanup function for each buffer, if provided */
++	if (q->ops->buf_cleanup) {
++		for (buffer = 0; buffer < q->num_buffers; ++buffer) {
++			if (NULL == q->bufs[buffer])
++				continue;
++			q->ops->buf_cleanup(q->bufs[buffer]);
++		}
++	}
++
++	/* Release video buffer memory */
++	__vb2_free_mem(q);
++
++	/* Free videobuf buffers */
++	for (buffer = 0; buffer < q->num_buffers; ++buffer) {
++		kfree(q->bufs[buffer]);
++		q->bufs[buffer] = NULL;
++	}
++
++	q->num_buffers = 0;
++	q->memory = 0;
++
++	return 0;
++}
++
++/**
++ * __verify_planes_array() - verify that the planes array passed in struct
++ * v4l2_buffer from userspace can be safely used
++ */
++static int __verify_planes_array(struct vb2_buffer *vb, struct v4l2_buffer *b)
++{
++	/* Is memory for copying plane information present? */
++	if (NULL == b->m.planes) {
++		dprintk(1, "Multi-planar buffer passed but "
++			   "planes array not provided\n");
++		return -EINVAL;
++	}
++
++	if (b->length < vb->num_planes || b->length > VIDEO_MAX_PLANES) {
++		dprintk(1, "Incorrect planes array length, "
++			   "expected %d, got %d\n", vb->num_planes, b->length);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++/**
++ * __fill_v4l2_buffer() - fill in a struct v4l2_buffer with information to be
++ * returned to userspace
++ */
++static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
++{
++	struct vb2_queue *q = vb->vb2_queue;
++	int ret = 0;
++
++	/* Copy back data such as timestamp, input, etc. */
++	memcpy(b, &vb->v4l2_buf, offsetof(struct v4l2_buffer, m));
++	b->input = vb->v4l2_buf.input;
++	b->reserved = vb->v4l2_buf.reserved;
++
++	if (V4L2_TYPE_IS_MULTIPLANAR(q->type)) {
++		ret = __verify_planes_array(vb, b);
++		if (ret)
++			return ret;
++
++		/*
++		 * Fill in plane-related data if userspace provided an array
++		 * for it. The memory and size is verified above.
++		 */
++		memcpy(b->m.planes, vb->v4l2_planes,
++			b->length * sizeof(struct v4l2_plane));
++	} else {
++		/*
++		 * We use length and offset in v4l2_planes array even for
++		 * single-planar buffers, but userspace does not.
++		 */
++		b->length = vb->v4l2_planes[0].length;
++		b->bytesused = vb->v4l2_planes[0].bytesused;
++		if (q->memory == V4L2_MEMORY_MMAP)
++			b->m.offset = vb->v4l2_planes[0].m.mem_offset;
++		else if (q->memory == V4L2_MEMORY_USERPTR)
++			b->m.userptr = vb->v4l2_planes[0].m.userptr;
++	}
++
++	b->flags = 0;
++
++	switch (vb->state) {
++	case VB2_BUF_STATE_QUEUED:
++	case VB2_BUF_STATE_ACTIVE:
++		b->flags |= V4L2_BUF_FLAG_QUEUED;
++		break;
++	case VB2_BUF_STATE_ERROR:
++		b->flags |= V4L2_BUF_FLAG_ERROR;
++		/* fall through */
++	case VB2_BUF_STATE_DONE:
++		b->flags |= V4L2_BUF_FLAG_DONE;
++		break;
++	case VB2_BUF_STATE_DEQUEUED:
++		/* nothing */
++		break;
++	}
++
++	if (vb->num_planes_mapped == vb->num_planes)
++		b->flags |= V4L2_BUF_FLAG_MAPPED;
++
++	return ret;
++}
++
++/**
++ * vb2_querybuf() - query video buffer information
++ * @q:		videobuf queue
++ * @b:		buffer struct passed from userspace to vidioc_querybuf handler
++ *		in driver
++ *
++ * Should be called from vidioc_querybuf ioctl handler in driver.
++ * This function will verify the passed v4l2_buffer structure and fill the
++ * relevant information for the userspace.
++ *
++ * The return values from this function are intended to be directly returned
++ * from vidioc_querybuf handler in driver.
++ */
++int vb2_querybuf(struct vb2_queue *q, struct v4l2_buffer *b)
++{
++	struct vb2_buffer *vb;
++
++	if (b->type != q->type) {
++		dprintk(1, "querybuf: wrong buffer type\n");
++		return -EINVAL;
++	}
++
++	if (b->index >= q->num_buffers) {
++		dprintk(1, "querybuf: buffer index out of range\n");
++		return -EINVAL;
++	}
++	vb = q->bufs[b->index];
++
++	return __fill_v4l2_buffer(vb, b);
++}
++EXPORT_SYMBOL(vb2_querybuf);
++
++/**
++ * __verify_userptr_ops() - verify that all memory operations required for
++ * USERPTR queue type have been provided
++ */
++static int __verify_userptr_ops(struct vb2_queue *q)
++{
++	if (!(q->io_modes & VB2_USERPTR) || !q->mem_ops->get_userptr ||
++	    !q->mem_ops->put_userptr)
++		return -EINVAL;
++
++	return 0;
++}
++
++/**
++ * __verify_mmap_ops() - verify that all memory operations required for
++ * MMAP queue type have been provided
++ */
++static int __verify_mmap_ops(struct vb2_queue *q)
++{
++	if (!(q->io_modes & VB2_MMAP) || !q->mem_ops->alloc ||
++	    !q->mem_ops->put || !q->mem_ops->mmap)
++		return -EINVAL;
++
++	return 0;
++}
++
++/**
++ * __buffers_in_use() - return true if any buffers on the queue are in use and
++ * the queue cannot be freed (by the means of REQBUFS(0)) call
++ */
++static bool __buffers_in_use(struct vb2_queue *q)
++{
++	unsigned int buffer, plane;
++	struct vb2_buffer *vb;
++
++	for (buffer = 0; buffer < q->num_buffers; ++buffer) {
++		vb = q->bufs[buffer];
++		for (plane = 0; plane < vb->num_planes; ++plane) {
++			/*
++			 * If num_users() has not been provided, call_memop
++			 * will return 0, apparently nobody cares about this
++			 * case anyway. If num_users() returns more than 1,
++			 * we are not the only user of the plane's memory.
++			 */
++			if (call_memop(q, plane, num_users,
++					vb->planes[plane].mem_priv) > 1)
++				return true;
++		}
++	}
++
++	return false;
++}
++
++/**
++ * vb2_reqbufs() - Initiate streaming
++ * @q:		videobuf2 queue
++ * @req:	struct passed from userspace to vidioc_reqbufs handler in driver
++ *
++ * Should be called from vidioc_reqbufs ioctl handler of a driver.
++ * This function:
++ * 1) verifies streaming parameters passed from the userspace,
++ * 2) sets up the queue,
++ * 3) negotiates number of buffers and planes per buffer with the driver
++ *    to be used during streaming,
++ * 4) allocates internal buffer structures (struct vb2_buffer), according to
++ *    the agreed parameters,
++ * 5) for MMAP memory type, allocates actual video memory, using the
++ *    memory handling/allocation routines provided during queue initialization
++ *
++ * If req->count is 0, all the memory will be freed instead.
++ * If the queue has been allocated previously (by a previous vb2_reqbufs) call
++ * and the queue is not busy, memory will be reallocated.
++ *
++ * The return values from this function are intended to be directly returned
++ * from vidioc_reqbufs handler in driver.
++ */
++int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
++{
++	unsigned int num_buffers, num_planes;
++	unsigned long plane_sizes[VIDEO_MAX_PLANES];
++	int ret = 0;
++
++	if (req->memory != V4L2_MEMORY_MMAP
++			&& req->memory != V4L2_MEMORY_USERPTR) {
++		dprintk(1, "reqbufs: unsupported memory type\n");
++		return -EINVAL;
++	}
++
++	if (req->type != q->type) {
++		dprintk(1, "reqbufs: requested type is incorrect\n");
++		return -EINVAL;
++	}
++
++	if (q->streaming) {
++		dprintk(1, "reqbufs: streaming active\n");
++		return -EBUSY;
++	}
++
++	/*
++	 * Make sure all the required memory ops for given memory type
++	 * are available.
++	 */
++	if (req->memory == V4L2_MEMORY_MMAP && __verify_mmap_ops(q)) {
++		dprintk(1, "reqbufs: MMAP for current setup unsupported\n");
++		return -EINVAL;
++	}
++
++	if (req->memory == V4L2_MEMORY_USERPTR && __verify_userptr_ops(q)) {
++		dprintk(1, "reqbufs: USERPTR for current setup unsupported\n");
++		return -EINVAL;
++	}
++
++	if (req->count == 0 || q->num_buffers != 0) {
++		/*
++		 * We already have buffers allocated, so first check if they
++		 * are not in use and can be freed.
++		 */
++		if (q->memory == V4L2_MEMORY_MMAP && __buffers_in_use(q)) {
++			dprintk(1, "reqbufs: memory in use, cannot free\n");
++			return -EBUSY;
++		}
++
++		ret = __vb2_queue_free(q);
++		if (ret != 0)
++			return ret;
++	}
++
++	/*
++	 * Make sure the requested values and current defaults are sane.
++	 */
++	num_buffers = min_t(unsigned int, req->count, VIDEO_MAX_FRAME);
++	memset(plane_sizes, 0, sizeof(plane_sizes));
++	memset(q->alloc_ctx, 0, sizeof(q->alloc_ctx));
++
++	/*
++	 * Ask the driver how many buffers and planes per buffer it requires.
++	 * Driver also sets the size and allocator context for each plane.
++	 */
++	ret = call_qop(q, queue_setup, q, &num_buffers, &num_planes,
++		       plane_sizes, q->alloc_ctx);
++	if (ret)
++		return ret;
++
++	/* Finally, allocate buffers and video memory */
++	ret = __vb2_queue_alloc(q, req->memory, num_buffers, num_planes,
++				plane_sizes);
++	if (ret < 0) {
++		dprintk(1, "Memory allocation failed with error: %d\n", ret);
++		return ret;
++	}
++
++	/*
++	 * Check if driver can handle the allocated number of buffers.
++	 */
++	if (ret < num_buffers) {
++		unsigned int orig_num_buffers;
++
++		orig_num_buffers = num_buffers = ret;
++		ret = call_qop(q, queue_setup, q, &num_buffers, &num_planes,
++			       plane_sizes, q->alloc_ctx);
++		if (ret)
++			goto free_mem;
++
++		if (orig_num_buffers < num_buffers) {
++			ret = -ENOMEM;
++			goto free_mem;
++		}
++
++		/*
++		 * Ok, driver accepted smaller number of buffers.
++		 */
++		ret = num_buffers;
++	}
++
++	q->memory = req->memory;
++
++	/*
++	 * Return the number of successfully allocated buffers
++	 * to the userspace.
++	 */
++	req->count = ret;
++
++	return 0;
++
++free_mem:
++	__vb2_queue_free(q);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(vb2_reqbufs);
++
++/**
++ * vb2_plane_vaddr() - Return a kernel virtual address of a given plane
++ * @vb:		vb2_buffer to which the plane in question belongs to
++ * @plane_no:	plane number for which the address is to be returned
++ *
++ * This function returns a kernel virtual address of a given plane if
++ * such a mapping exist, NULL otherwise.
++ */
++void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no)
++{
++	struct vb2_queue *q = vb->vb2_queue;
++
++	if (plane_no > vb->num_planes)
++		return NULL;
++
++	return call_memop(q, plane_no, vaddr, vb->planes[plane_no].mem_priv);
++
++}
++EXPORT_SYMBOL_GPL(vb2_plane_vaddr);
++
++/**
++ * vb2_plane_cookie() - Return allocator specific cookie for the given plane
++ * @vb:		vb2_buffer to which the plane in question belongs to
++ * @plane_no:	plane number for which the cookie is to be returned
++ *
++ * This function returns an allocator specific cookie for a given plane if
++ * available, NULL otherwise. The allocator should provide some simple static
++ * inline function, which would convert this cookie to the allocator specific
++ * type that can be used directly by the driver to access the buffer. This can
++ * be for example physical address, pointer to scatter list or IOMMU mapping.
++ */
++void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no)
++{
++	struct vb2_queue *q = vb->vb2_queue;
++
++	if (plane_no > vb->num_planes)
++		return NULL;
++
++	return call_memop(q, plane_no, cookie, vb->planes[plane_no].mem_priv);
++}
++EXPORT_SYMBOL_GPL(vb2_plane_cookie);
++
++/**
++ * vb2_buffer_done() - inform videobuf that an operation on a buffer is finished
++ * @vb:		vb2_buffer returned from the driver
++ * @state:	either VB2_BUF_STATE_DONE if the operation finished successfully
++ *		or VB2_BUF_STATE_ERROR if the operation finished with an error
++ *
++ * This function should be called by the driver after a hardware operation on
++ * a buffer is finished and the buffer may be returned to userspace. The driver
++ * cannot use this buffer anymore until it is queued back to it by videobuf
++ * by the means of buf_queue callback. Only buffers previously queued to the
++ * driver by buf_queue can be passed to this function.
++ */
++void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
++{
++	struct vb2_queue *q = vb->vb2_queue;
++	unsigned long flags;
++
++	if (vb->state != VB2_BUF_STATE_ACTIVE)
++		return;
++
++	if (state != VB2_BUF_STATE_DONE && state != VB2_BUF_STATE_ERROR)
++		return;
++
++	dprintk(4, "Done processing on buffer %d, state: %d\n",
++			vb->v4l2_buf.index, vb->state);
++
++	/* Add the buffer to the done buffers list */
++	spin_lock_irqsave(&q->done_lock, flags);
++	vb->state = state;
++	list_add_tail(&vb->done_entry, &q->done_list);
++	atomic_dec(&q->queued_count);
++	spin_unlock_irqrestore(&q->done_lock, flags);
++
++	/* Inform any processes that may be waiting for buffers */
++	wake_up(&q->done_wq);
++}
++EXPORT_SYMBOL_GPL(vb2_buffer_done);
++
++/**
++ * __fill_vb2_buffer() - fill a vb2_buffer with information provided in
++ * a v4l2_buffer by the userspace
++ */
++static int __fill_vb2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b,
++				struct v4l2_plane *v4l2_planes)
++{
++	unsigned int plane;
++	int ret;
++
++	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
++		/*
++		 * Verify that the userspace gave us a valid array for
++		 * plane information.
++		 */
++		ret = __verify_planes_array(vb, b);
++		if (ret)
++			return ret;
++
++		/* Fill in driver-provided information for OUTPUT types */
++		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
++			/*
++			 * Will have to go up to b->length when API starts
++			 * accepting variable number of planes.
++			 */
++			for (plane = 0; plane < vb->num_planes; ++plane) {
++				v4l2_planes[plane].bytesused =
++					b->m.planes[plane].bytesused;
++				v4l2_planes[plane].data_offset =
++					b->m.planes[plane].data_offset;
++			}
++		}
++
++		if (b->memory == V4L2_MEMORY_USERPTR) {
++			for (plane = 0; plane < vb->num_planes; ++plane) {
++				v4l2_planes[plane].m.userptr =
++					b->m.planes[plane].m.userptr;
++				v4l2_planes[plane].length =
++					b->m.planes[plane].length;
++			}
++		}
++	} else {
++		/*
++		 * Single-planar buffers do not use planes array,
++		 * so fill in relevant v4l2_buffer struct fields instead.
++		 * In videobuf we use our internal V4l2_planes struct for
++		 * single-planar buffers as well, for simplicity.
++		 */
++		if (V4L2_TYPE_IS_OUTPUT(b->type))
++			v4l2_planes[0].bytesused = b->bytesused;
++
++		if (b->memory == V4L2_MEMORY_USERPTR) {
++			v4l2_planes[0].m.userptr = b->m.userptr;
++			v4l2_planes[0].length = b->length;
++		}
++	}
++
++	vb->v4l2_buf.field = b->field;
++	vb->v4l2_buf.timestamp = b->timestamp;
++
++	return 0;
++}
++
++/**
++ * __qbuf_userptr() - handle qbuf of a USERPTR buffer
++ */
++static int __qbuf_userptr(struct vb2_buffer *vb, struct v4l2_buffer *b)
++{
++	struct v4l2_plane planes[VIDEO_MAX_PLANES];
++	struct vb2_queue *q = vb->vb2_queue;
++	void *mem_priv;
++	unsigned int plane;
++	int ret;
++	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
++
++	/* Verify and copy relevant information provided by the userspace */
++	ret = __fill_vb2_buffer(vb, b, planes);
++	if (ret)
++		return ret;
++
++	for (plane = 0; plane < vb->num_planes; ++plane) {
++		/* Skip the plane if already verified */
++		if (vb->v4l2_planes[plane].m.userptr == planes[plane].m.userptr
++		    && vb->v4l2_planes[plane].length == planes[plane].length)
++			continue;
++
++		dprintk(3, "qbuf: userspace address for plane %d changed, "
++				"reacquiring memory\n", plane);
++
++		/* Release previously acquired memory if present */
++		if (vb->planes[plane].mem_priv)
++			call_memop(q, plane, put_userptr,
++					vb->planes[plane].mem_priv);
++
++		vb->planes[plane].mem_priv = NULL;
++
++		/* Acquire each plane's memory */
++		if (q->mem_ops->get_userptr) {
++			mem_priv = q->mem_ops->get_userptr(q->alloc_ctx[plane],
++							planes[plane].m.userptr,
++							planes[plane].length,
++							write);
++			if (IS_ERR(mem_priv)) {
++				dprintk(1, "qbuf: failed acquiring userspace "
++						"memory for plane %d\n", plane);
++				ret = PTR_ERR(mem_priv);
++				goto err;
++			}
++			vb->planes[plane].mem_priv = mem_priv;
++		}
++	}
++
++	/*
++	 * Call driver-specific initialization on the newly acquired buffer,
++	 * if provided.
++	 */
++	ret = call_qop(q, buf_init, vb);
++	if (ret) {
++		dprintk(1, "qbuf: buffer initialization failed\n");
++		goto err;
++	}
++
++	/*
++	 * Now that everything is in order, copy relevant information
++	 * provided by userspace.
++	 */
++	for (plane = 0; plane < vb->num_planes; ++plane)
++		vb->v4l2_planes[plane] = planes[plane];
++
++	return 0;
++err:
++	/* In case of errors, release planes that were already acquired */
++	for (; plane > 0; --plane) {
++		call_memop(q, plane, put_userptr,
++				vb->planes[plane - 1].mem_priv);
++		vb->planes[plane - 1].mem_priv = NULL;
++	}
++
++	return ret;
++}
++
++/**
++ * __qbuf_mmap() - handle qbuf of an MMAP buffer
++ */
++static int __qbuf_mmap(struct vb2_buffer *vb, struct v4l2_buffer *b)
++{
++	return __fill_vb2_buffer(vb, b, vb->v4l2_planes);
++}
++
++/**
++ * __enqueue_in_driver() - enqueue a vb2_buffer in driver for processing
++ */
++static void __enqueue_in_driver(struct vb2_buffer *vb)
++{
++	struct vb2_queue *q = vb->vb2_queue;
++
++	vb->state = VB2_BUF_STATE_ACTIVE;
++	atomic_inc(&q->queued_count);
++	q->ops->buf_queue(vb);
++}
++
++/**
++ * vb2_qbuf() - Queue a buffer from userspace
++ * @q:		videobuf2 queue
++ * @b:		buffer structure passed from userspace to vidioc_qbuf handler
++ *		in driver
++ *
++ * Should be called from vidioc_qbuf ioctl handler of a driver.
++ * This function:
++ * 1) verifies the passed buffer,
++ * 2) calls buf_prepare callback in the driver (if provided), in which
++ *    driver-specific buffer initialization can be performed,
++ * 3) if streaming is on, queues the buffer in driver by the means of buf_queue
++ *    callback for processing.
++ *
++ * The return values from this function are intended to be directly returned
++ * from vidioc_qbuf handler in driver.
++ */
++int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
++{
++	struct vb2_buffer *vb;
++	int ret = 0;
++
++	if (b->type != q->type) {
++		dprintk(1, "qbuf: invalid buffer type\n");
++		return -EINVAL;
++	}
++
++	if (b->index >= q->num_buffers) {
++		dprintk(1, "qbuf: buffer index out of range\n");
++		return -EINVAL;
++	}
++
++	vb = q->bufs[b->index];
++	if (NULL == vb) {
++		/* Should never happen */
++		dprintk(1, "qbuf: buffer is NULL\n");
++		return -EINVAL;
++	}
++
++	if (b->memory != q->memory) {
++		dprintk(1, "qbuf: invalid memory type\n");
++		return -EINVAL;
++	}
++
++	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
++		dprintk(1, "qbuf: buffer already in use\n");
++		return -EINVAL;
++	}
++
++	if (q->memory == V4L2_MEMORY_MMAP)
++		ret = __qbuf_mmap(vb, b);
++	else if (q->memory == V4L2_MEMORY_USERPTR)
++		ret = __qbuf_userptr(vb, b);
++	else {
++		WARN(1, "Invalid queue type\n");
++		return -EINVAL;
++	}
++
++	if (ret)
++		return ret;
++
++	ret = call_qop(q, buf_prepare, vb);
++	if (ret) {
++		dprintk(1, "qbuf: buffer preparation failed\n");
++		return ret;
++	}
++
++	/*
++	 * Add to the queued buffers list, a buffer will stay on it until
++	 * dequeued in dqbuf.
++	 */
++	list_add_tail(&vb->queued_entry, &q->queued_list);
++	vb->state = VB2_BUF_STATE_QUEUED;
++
++	/*
++	 * If already streaming, give the buffer to driver for processing.
++	 * If not, the buffer will be given to driver on next streamon.
++	 */
++	if (q->streaming)
++		__enqueue_in_driver(vb);
++
++	dprintk(1, "qbuf of buffer %d succeeded\n", vb->v4l2_buf.index);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(vb2_qbuf);
++
++/**
++ * __vb2_wait_for_done_vb() - wait for a buffer to become available
++ * for dequeuing
++ *
++ * Will sleep if required for nonblocking == false.
++ */
++static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
++{
++	/*
++	 * All operations on vb_done_list are performed under done_lock
++	 * spinlock protection. However, buffers may be removed from
++	 * it and returned to userspace only while holding both driver's
++	 * lock and the done_lock spinlock. Thus we can be sure that as
++	 * long as we hold the driver's lock, the list will remain not
++	 * empty if list_empty() check succeeds.
++	 */
++
++	for (;;) {
++		int ret;
++
++		if (!q->streaming) {
++			dprintk(1, "Streaming off, will not wait for buffers\n");
++			return -EINVAL;
++		}
++
++		if (!list_empty(&q->done_list)) {
++			/*
++			 * Found a buffer that we were waiting for.
++			 */
++			break;
++		}
++
++		if (nonblocking) {
++			dprintk(1, "Nonblocking and no buffers to dequeue, "
++								"will not wait\n");
++			return -EAGAIN;
++		}
++
++		/*
++		 * We are streaming and blocking, wait for another buffer to
++		 * become ready or for streamoff. Driver's lock is released to
++		 * allow streamoff or qbuf to be called while waiting.
++		 */
++		call_qop(q, wait_prepare, q);
++
++		/*
++		 * All locks have been released, it is safe to sleep now.
++		 */
++		dprintk(3, "Will sleep waiting for buffers\n");
++		ret = wait_event_interruptible(q->done_wq,
++				!list_empty(&q->done_list) || !q->streaming);
++
++		/*
++		 * We need to reevaluate both conditions again after reacquiring
++		 * the locks or return an error if one occurred.
++		 */
++		call_qop(q, wait_finish, q);
++		if (ret)
++			return ret;
++	}
++	return 0;
++}
++
++/**
++ * __vb2_get_done_vb() - get a buffer ready for dequeuing
++ *
++ * Will sleep if required for nonblocking == false.
++ */
++static int __vb2_get_done_vb(struct vb2_queue *q, struct vb2_buffer **vb,
++				int nonblocking)
++{
++	unsigned long flags;
++	int ret;
++
++	/*
++	 * Wait for at least one buffer to become available on the done_list.
++	 */
++	ret = __vb2_wait_for_done_vb(q, nonblocking);
++	if (ret)
++		return ret;
++
++	/*
++	 * Driver's lock has been held since we last verified that done_list
++	 * is not empty, so no need for another list_empty(done_list) check.
++	 */
++	spin_lock_irqsave(&q->done_lock, flags);
++	*vb = list_first_entry(&q->done_list, struct vb2_buffer, done_entry);
++	list_del(&(*vb)->done_entry);
++	spin_unlock_irqrestore(&q->done_lock, flags);
++
++	return 0;
++}
++
++/**
++ * vb2_wait_for_all_buffers() - wait until all buffers are given back to vb2
++ * @q:		videobuf2 queue
++ *
++ * This function will wait until all buffers that have been given to the driver
++ * by buf_queue() are given back to vb2 with vb2_buffer_done(). It doesn't call
++ * wait_prepare, wait_finish pair. It is intended to be called with all locks
++ * taken, for example from stop_streaming() callback.
++ */
++int vb2_wait_for_all_buffers(struct vb2_queue *q)
++{
++	if (!q->streaming) {
++		dprintk(1, "Streaming off, will not wait for buffers\n");
++		return -EINVAL;
++	}
++
++	wait_event(q->done_wq, !atomic_read(&q->queued_count));
++	return 0;
++}
++EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
++
++/**
++ * vb2_dqbuf() - Dequeue a buffer to the userspace
++ * @q:		videobuf2 queue
++ * @b:		buffer structure passed from userspace to vidioc_dqbuf handler
++ *		in driver
++ * @nonblocking: if true, this call will not sleep waiting for a buffer if no
++ *		 buffers ready for dequeuing are present. Normally the driver
++ *		 would be passing (file->f_flags & O_NONBLOCK) here
++ *
++ * Should be called from vidioc_dqbuf ioctl handler of a driver.
++ * This function:
++ * 1) verifies the passed buffer,
++ * 2) calls buf_finish callback in the driver (if provided), in which
++ *    driver can perform any additional operations that may be required before
++ *    returning the buffer to userspace, such as cache sync,
++ * 3) the buffer struct members are filled with relevant information for
++ *    the userspace.
++ *
++ * The return values from this function are intended to be directly returned
++ * from vidioc_dqbuf handler in driver.
++ */
++int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
++{
++	struct vb2_buffer *vb = NULL;
++	int ret;
++
++	if (b->type != q->type) {
++		dprintk(1, "dqbuf: invalid buffer type\n");
++		return -EINVAL;
++	}
++
++	ret = __vb2_get_done_vb(q, &vb, nonblocking);
++	if (ret < 0) {
++		dprintk(1, "dqbuf: error getting next done buffer\n");
++		return ret;
++	}
++
++	ret = call_qop(q, buf_finish, vb);
++	if (ret) {
++		dprintk(1, "dqbuf: buffer finish failed\n");
++		return ret;
++	}
++
++	switch (vb->state) {
++	case VB2_BUF_STATE_DONE:
++		dprintk(3, "dqbuf: Returning done buffer\n");
++		break;
++	case VB2_BUF_STATE_ERROR:
++		dprintk(3, "dqbuf: Returning done buffer with errors\n");
++		break;
++	default:
++		dprintk(1, "dqbuf: Invalid buffer state\n");
++		return -EINVAL;
++	}
++
++	/* Fill buffer information for the userspace */
++	__fill_v4l2_buffer(vb, b);
++	/* Remove from videobuf queue */
++	list_del(&vb->queued_entry);
++
++	dprintk(1, "dqbuf of buffer %d, with state %d\n",
++			vb->v4l2_buf.index, vb->state);
++
++	vb->state = VB2_BUF_STATE_DEQUEUED;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(vb2_dqbuf);
++
++/**
++ * vb2_streamon - start streaming
++ * @q:		videobuf2 queue
++ * @type:	type argument passed from userspace to vidioc_streamon handler
++ *
++ * Should be called from vidioc_streamon handler of a driver.
++ * This function:
++ * 1) verifies current state
++ * 2) starts streaming and passes any previously queued buffers to the driver
++ *
++ * The return values from this function are intended to be directly returned
++ * from vidioc_streamon handler in the driver.
++ */
++int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
++{
++	struct vb2_buffer *vb;
++
++	if (type != q->type) {
++		dprintk(1, "streamon: invalid stream type\n");
++		return -EINVAL;
++	}
++
++	if (q->streaming) {
++		dprintk(1, "streamon: already streaming\n");
++		return -EBUSY;
++	}
++
++	/*
++	 * Cannot start streaming on an OUTPUT device if no buffers have
++	 * been queued yet.
++	 */
++	if (V4L2_TYPE_IS_OUTPUT(q->type)) {
++		if (list_empty(&q->queued_list)) {
++			dprintk(1, "streamon: no output buffers queued\n");
++			return -EINVAL;
++		}
++	}
++
++	q->streaming = 1;
++
++	/*
++	 * Let driver notice that streaming state has been enabled.
++	 */
++	call_qop(q, start_streaming, q);
++
++	/*
++	 * If any buffers were queued before streamon,
++	 * we can now pass them to driver for processing.
++	 */
++	list_for_each_entry(vb, &q->queued_list, queued_entry)
++		__enqueue_in_driver(vb);
++
++	dprintk(3, "Streamon successful\n");
++	return 0;
++}
++EXPORT_SYMBOL_GPL(vb2_streamon);
++
++/**
++ * __vb2_queue_cancel() - cancel and stop (pause) streaming
++ *
++ * Removes all queued buffers from driver's queue and all buffers queued by
++ * userspace from videobuf's queue. Returns to state after reqbufs.
++ */
++static void __vb2_queue_cancel(struct vb2_queue *q)
++{
++	unsigned int i;
++
++	/*
++	 * Tell driver to stop all transactions and release all queued
++	 * buffers.
++	 */
++	if (q->streaming)
++		call_qop(q, stop_streaming, q);
++	q->streaming = 0;
++
++	/*
++	 * Remove all buffers from videobuf's list...
++	 */
++	INIT_LIST_HEAD(&q->queued_list);
++	/*
++	 * ...and done list; userspace will not receive any buffers it
++	 * has not already dequeued before initiating cancel.
++	 */
++	INIT_LIST_HEAD(&q->done_list);
++	wake_up_all(&q->done_wq);
++
++	/*
++	 * Reinitialize all buffers for next use.
++	 */
++	for (i = 0; i < q->num_buffers; ++i)
++		q->bufs[i]->state = VB2_BUF_STATE_DEQUEUED;
++}
++
++/**
++ * vb2_streamoff - stop streaming
++ * @q:		videobuf2 queue
++ * @type:	type argument passed from userspace to vidioc_streamoff handler
++ *
++ * Should be called from vidioc_streamoff handler of a driver.
++ * This function:
++ * 1) verifies current state,
++ * 2) stop streaming and dequeues any queued buffers, including those previously
++ *    passed to the driver (after waiting for the driver to finish).
++ *
++ * This call can be used for pausing playback.
++ * The return values from this function are intended to be directly returned
++ * from vidioc_streamoff handler in the driver
++ */
++int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
++{
++	if (type != q->type) {
++		dprintk(1, "streamoff: invalid stream type\n");
++		return -EINVAL;
++	}
++
++	if (!q->streaming) {
++		dprintk(1, "streamoff: not streaming\n");
++		return -EINVAL;
++	}
++
++	/*
++	 * Cancel will pause streaming and remove all buffers from the driver
++	 * and videobuf, effectively returning control over them to userspace.
++	 */
++	__vb2_queue_cancel(q);
++
++	dprintk(3, "Streamoff successful\n");
++	return 0;
++}
++EXPORT_SYMBOL_GPL(vb2_streamoff);
++
++/**
++ * __find_plane_by_offset() - find plane associated with the given offset off
++ */
++static int __find_plane_by_offset(struct vb2_queue *q, unsigned long off,
++			unsigned int *_buffer, unsigned int *_plane)
++{
++	struct vb2_buffer *vb;
++	unsigned int buffer, plane;
++
++	/*
++	 * Go over all buffers and their planes, comparing the given offset
++	 * with an offset assigned to each plane. If a match is found,
++	 * return its buffer and plane numbers.
++	 */
++	for (buffer = 0; buffer < q->num_buffers; ++buffer) {
++		vb = q->bufs[buffer];
++
++		for (plane = 0; plane < vb->num_planes; ++plane) {
++			if (vb->v4l2_planes[plane].m.mem_offset == off) {
++				*_buffer = buffer;
++				*_plane = plane;
++				return 0;
++			}
++		}
++	}
++
++	return -EINVAL;
++}
++
++/**
++ * vb2_mmap() - map video buffers into application address space
++ * @q:		videobuf2 queue
++ * @vma:	vma passed to the mmap file operation handler in the driver
++ *
++ * Should be called from mmap file operation handler of a driver.
++ * This function maps one plane of one of the available video buffers to
++ * userspace. To map whole video memory allocated on reqbufs, this function
++ * has to be called once per each plane per each buffer previously allocated.
++ *
++ * When the userspace application calls mmap, it passes to it an offset returned
++ * to it earlier by the means of vidioc_querybuf handler. That offset acts as
++ * a "cookie", which is then used to identify the plane to be mapped.
++ * This function finds a plane with a matching offset and a mapping is performed
++ * by the means of a provided memory operation.
++ *
++ * The return values from this function are intended to be directly returned
++ * from the mmap handler in driver.
++ */
++int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma)
++{
++	unsigned long off = vma->vm_pgoff << PAGE_SHIFT;
++	struct vb2_plane *vb_plane;
++	struct vb2_buffer *vb;
++	unsigned int buffer, plane;
++	int ret;
++
++	if (q->memory != V4L2_MEMORY_MMAP) {
++		dprintk(1, "Queue is not currently set up for mmap\n");
++		return -EINVAL;
++	}
++
++	/*
++	 * Check memory area access mode.
++	 */
++	if (!(vma->vm_flags & VM_SHARED)) {
++		dprintk(1, "Invalid vma flags, VM_SHARED needed\n");
++		return -EINVAL;
++	}
++	if (V4L2_TYPE_IS_OUTPUT(q->type)) {
++		if (!(vma->vm_flags & VM_WRITE)) {
++			dprintk(1, "Invalid vma flags, VM_WRITE needed\n");
++			return -EINVAL;
++		}
++	} else {
++		if (!(vma->vm_flags & VM_READ)) {
++			dprintk(1, "Invalid vma flags, VM_READ needed\n");
++			return -EINVAL;
++		}
++	}
++
++	/*
++	 * Find the plane corresponding to the offset passed by userspace.
++	 */
++	ret = __find_plane_by_offset(q, off, &buffer, &plane);
++	if (ret)
++		return ret;
++
++	vb = q->bufs[buffer];
++	vb_plane = &vb->planes[plane];
++
++	ret = q->mem_ops->mmap(vb_plane->mem_priv, vma);
++	if (ret)
++		return ret;
++
++	vb_plane->mapped = 1;
++	vb->num_planes_mapped++;
++
++	dprintk(3, "Buffer %d, plane %d successfully mapped\n", buffer, plane);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(vb2_mmap);
++
++
++/**
++ * vb2_poll() - implements poll userspace operation
++ * @q:		videobuf2 queue
++ * @file:	file argument passed to the poll file operation handler
++ * @wait:	wait argument passed to the poll file operation handler
++ *
++ * This function implements poll file operation handler for a driver.
++ * For CAPTURE queues, if a buffer is ready to be dequeued, the userspace will
++ * be informed that the file descriptor of a video device is available for
++ * reading.
++ * For OUTPUT queues, if a buffer is ready to be dequeued, the file descriptor
++ * will be reported as available for writing.
++ *
++ * The return values from this function are intended to be directly returned
++ * from poll handler in driver.
++ */
++unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
++{
++	unsigned long flags;
++	struct vb2_buffer *vb = NULL;
++
++	/*
++	 * There is nothing to wait for if no buffers have already been queued.
++	 */
++	if (list_empty(&q->queued_list))
++		return POLLERR;
++
++	poll_wait(file, &q->done_wq, wait);
++
++	/*
++	 * Take first buffer available for dequeuing.
++	 */
++	spin_lock_irqsave(&q->done_lock, flags);
++	if (!list_empty(&q->done_list))
++		vb = list_first_entry(&q->done_list, struct vb2_buffer,
++					done_entry);
++	spin_unlock_irqrestore(&q->done_lock, flags);
++
++	if (vb && (vb->state == VB2_BUF_STATE_DONE
++			|| vb->state == VB2_BUF_STATE_ERROR)) {
++		return (V4L2_TYPE_IS_OUTPUT(q->type)) ? POLLOUT | POLLWRNORM :
++			POLLIN | POLLRDNORM;
++	}
++	return 0;
++}
++EXPORT_SYMBOL_GPL(vb2_poll);
++
++/**
++ * vb2_queue_init() - initialize a videobuf2 queue
++ * @q:		videobuf2 queue; this structure should be allocated in driver
++ *
++ * The vb2_queue structure should be allocated by the driver. The driver is
++ * responsible of clearing it's content and setting initial values for some
++ * required entries before calling this function.
++ * q->ops, q->mem_ops, q->type and q->io_modes are mandatory. Please refer
++ * to the struct vb2_queue description in include/media/videobuf2-core.h
++ * for more information.
++ */
++int vb2_queue_init(struct vb2_queue *q)
++{
++	BUG_ON(!q);
++	BUG_ON(!q->ops);
++	BUG_ON(!q->mem_ops);
++	BUG_ON(!q->type);
++	BUG_ON(!q->io_modes);
++
++	BUG_ON(!q->ops->queue_setup);
++	BUG_ON(!q->ops->buf_queue);
++
++	INIT_LIST_HEAD(&q->queued_list);
++	INIT_LIST_HEAD(&q->done_list);
++	spin_lock_init(&q->done_lock);
++	init_waitqueue_head(&q->done_wq);
++
++	if (q->buf_struct_size == 0)
++		q->buf_struct_size = sizeof(struct vb2_buffer);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(vb2_queue_init);
++
++/**
++ * vb2_queue_release() - stop streaming, release the queue and free memory
++ * @q:		videobuf2 queue
++ *
++ * This function stops streaming and performs necessary clean ups, including
++ * freeing video buffer memory. The driver is responsible for freeing
++ * the vb2_queue structure itself.
++ */
++void vb2_queue_release(struct vb2_queue *q)
++{
++	__vb2_queue_cancel(q);
++	__vb2_queue_free(q);
++}
++EXPORT_SYMBOL_GPL(vb2_queue_release);
++
++MODULE_DESCRIPTION("Driver helper framework for Video for Linux 2");
++MODULE_AUTHOR("Pawel Osciak, Marek Szyprowski");
++MODULE_LICENSE("GPL");
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+new file mode 100644
+index 0000000..1dafac0
+--- /dev/null
++++ b/include/media/videobuf2-core.h
+@@ -0,0 +1,371 @@
++/*
++ * videobuf2-core.h - V4L2 driver helper framework
++ *
++ * Copyright (C) 2010 Samsung Electronics
++ *
++ * Author: Pawel Osciak <p.osciak@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation.
++ */
++#ifndef _MEDIA_VIDEOBUF2_CORE_H
++#define _MEDIA_VIDEOBUF2_CORE_H
++
++#include <linux/mm_types.h>
++#include <linux/mutex.h>
++#include <linux/poll.h>
++#include <linux/videodev2.h>
++
++struct vb2_alloc_ctx;
++
++/**
++ * struct vb2_mem_ops - memory handling/memory allocator operations
++ * @alloc:	allocate video memory and, optionally, allocator private data,
++ *		return NULL on failure or a pointer to allocator private,
++ *		per-buffer data on success; the returned private structure
++ *		will then be passed as buf_priv argument to other ops in this
++ *		structure
++ * @put:	inform the allocator that the buffer will no longer be used;
++ *		usually will result in the allocator freeing the buffer (if
++ *		no other users of this buffer are present); the buf_priv
++ *		argument is the allocator private per-buffer structure
++ *		previously returned from the alloc callback
++ * @get_userptr: acquire userspace memory for a hardware operation; used for
++ *		 USERPTR memory types; vaddr is the address passed to the
++ *		 videobuf layer when queuing a video buffer of USERPTR type;
++ *		 should return an allocator private per-buffer structure
++ *		 associated with the buffer on success, NULL on failure;
++ *		 the returned private structure will then be passed as buf_priv
++ *		 argument to other ops in this structure
++ * @put_userptr: inform the allocator that a USERPTR buffer will no longer
++ *		 be used
++ * @vaddr:	return a kernel virtual address to a given memory buffer
++ *		associated with the passed private structure or NULL if no
++ *		such mapping exists
++ * @cookie:	return allocator specific cookie for a given memory buffer
++ *		associated with the passed private structure or NULL if not
++ *		available
++ * @num_users:	return the current number of users of a memory buffer;
++ *		return 1 if the videobuf layer (or actually the driver using
++ *		it) is the only user
++ * @mmap:	setup a userspace mapping for a given memory buffer under
++ *		the provided virtual memory region
++ *
++ * Required ops for USERPTR types: get_userptr, put_userptr.
++ * Required ops for MMAP types: alloc, put, num_users, mmap.
++ */
++struct vb2_mem_ops {
++	void		*(*alloc)(void *alloc_ctx, unsigned long size);
++	void		(*put)(void *buf_priv);
++
++	void		*(*get_userptr)(void *alloc_ctx, unsigned long vaddr,
++					unsigned long size, int write);
++	void		(*put_userptr)(void *buf_priv);
++
++	void		*(*vaddr)(void *buf_priv);
++	void		*(*cookie)(void *buf_priv);
++
++	unsigned int	(*num_users)(void *buf_priv);
++
++	int		(*mmap)(void *buf_priv, struct vm_area_struct *vma);
++};
++
++struct vb2_plane {
++	void			*mem_priv;
++	int			mapped:1;
++};
++
++/**
++ * enum vb2_io_modes - queue access methods
++ * @VB2_MMAP:		driver supports MMAP with streaming API
++ * @VB2_USERPTR:	driver supports USERPTR with streaming API
++ * @VB2_READ:		driver supports read() style access
++ * @VB2_WRITE:		driver supports write() style access
++ */
++enum vb2_io_modes {
++	VB2_MMAP	= (1 << 0),
++	VB2_USERPTR	= (1 << 1),
++	VB2_READ	= (1 << 2),
++	VB2_WRITE	= (1 << 3),
++};
++
++/**
++ * enum vb2_fileio_flags - flags for selecting a mode of the file io emulator,
++ * by default the 'streaming' style is used by the file io emulator
++ * @VB2_FILEIO_READ_ONCE:	report EOF after reading the first buffer
++ * @VB2_FILEIO_WRITE_IMMEDIATELY:	queue buffer after each write() call
++ */
++enum vb2_fileio_flags {
++	VB2_FILEIO_READ_ONCE		= (1 << 0),
++	VB2_FILEIO_WRITE_IMMEDIATELY	= (1 << 1),
++};
++
++/**
++ * enum vb2_buffer_state - current video buffer state
++ * @VB2_BUF_STATE_DEQUEUED:	buffer under userspace control
++ * @VB2_BUF_STATE_QUEUED:	buffer queued in videobuf, but not in driver
++ * @VB2_BUF_STATE_ACTIVE:	buffer queued in driver and possibly used
++ *				in a hardware operation
++ * @VB2_BUF_STATE_DONE:		buffer returned from driver to videobuf, but
++ *				not yet dequeued to userspace
++ * @VB2_BUF_STATE_ERROR:	same as above, but the operation on the buffer
++ *				has ended with an error, which will be reported
++ *				to the userspace when it is dequeued
++ */
++enum vb2_buffer_state {
++	VB2_BUF_STATE_DEQUEUED,
++	VB2_BUF_STATE_QUEUED,
++	VB2_BUF_STATE_ACTIVE,
++	VB2_BUF_STATE_DONE,
++	VB2_BUF_STATE_ERROR,
++};
++
++struct vb2_queue;
++
++/**
++ * struct vb2_buffer - represents a video buffer
++ * @v4l2_buf:		struct v4l2_buffer associated with this buffer; can
++ *			be read by the driver and relevant entries can be
++ *			changed by the driver in case of CAPTURE types
++ *			(such as timestamp)
++ * @v4l2_planes:	struct v4l2_planes associated with this buffer; can
++ *			be read by the driver and relevant entries can be
++ *			changed by the driver in case of CAPTURE types
++ *			(such as bytesused); NOTE that even for single-planar
++ *			types, the v4l2_planes[0] struct should be used
++ *			instead of v4l2_buf for filling bytesused - drivers
++ *			should use the vb2_set_plane_payload() function for that
++ * @vb2_queue:		the queue to which this driver belongs
++ * @num_planes:		number of planes in the buffer
++ *			on an internal driver queue
++ * @state:		current buffer state; do not change
++ * @queued_entry:	entry on the queued buffers list, which holds all
++ *			buffers queued from userspace
++ * @done_entry:		entry on the list that stores all buffers ready to
++ *			be dequeued to userspace
++ * @planes:		private per-plane information; do not change
++ * @num_planes_mapped:	number of mapped planes; do not change
++ */
++struct vb2_buffer {
++	struct v4l2_buffer	v4l2_buf;
++	struct v4l2_plane	v4l2_planes[VIDEO_MAX_PLANES];
++
++	struct vb2_queue	*vb2_queue;
++
++	unsigned int		num_planes;
++
++/* Private: internal use only */
++	enum vb2_buffer_state	state;
++
++	struct list_head	queued_entry;
++	struct list_head	done_entry;
++
++	struct vb2_plane	planes[VIDEO_MAX_PLANES];
++	unsigned int		num_planes_mapped;
++};
++
++/**
++ * struct vb2_ops - driver-specific callbacks
++ *
++ * @queue_setup:	called from a VIDIOC_REQBUFS handler, before
++ *			memory allocation; driver should return the required
++ *			number of buffers in num_buffers, the required number
++ *			of planes per buffer in num_planes; the size of each
++ *			plane should be set in the sizes[] array and optional
++ *			per-plane allocator specific context in alloc_ctxs[]
++ *			array
++ * @wait_prepare:	release any locks taken while calling vb2 functions;
++ *			it is called before an ioctl needs to wait for a new
++ *			buffer to arrive; required to avoid a deadlock in
++ *			blocking access type
++ * @wait_finish:	reacquire all locks released in the previous callback;
++ *			required to continue operation after sleeping while
++ *			waiting for a new buffer to arrive
++ * @buf_init:		called once after allocating a buffer (in MMAP case)
++ *			or after acquiring a new USERPTR buffer; drivers may
++ *			perform additional buffer-related initialization;
++ *			initialization failure (return != 0) will prevent
++ *			queue setup from completing successfully; optional
++ * @buf_prepare:	called every time the buffer is queued from userspace;
++ *			drivers may perform any initialization required before
++ *			each hardware operation in this callback;
++ *			if an error is returned, the buffer will not be queued
++ *			in driver; optional
++ * @buf_finish:		called before every dequeue of the buffer back to
++ *			userspace; drivers may perform any operations required
++ *			before userspace accesses the buffer; optional
++ * @buf_cleanup:	called once before the buffer is freed; drivers may
++ *			perform any additional cleanup; optional
++ * @start_streaming:	called once before entering 'streaming' state; enables
++ *			driver to receive buffers over buf_queue() callback
++ * @stop_streaming:	called when 'streaming' state must be disabled; driver
++ *			should stop any DMA transactions or wait until they
++ *			finish and give back all buffers it got from buf_queue()
++ *			callback; may use vb2_wait_for_all_buffers() function
++ * @buf_queue:		passes buffer vb to the driver; driver may start
++ *			hardware operation on this buffer; driver should give
++ *			the buffer back by calling vb2_buffer_done() function
++ */
++struct vb2_ops {
++	int (*queue_setup)(struct vb2_queue *q, unsigned int *num_buffers,
++			   unsigned int *num_planes, unsigned long sizes[],
++			   void *alloc_ctxs[]);
++
++	void (*wait_prepare)(struct vb2_queue *q);
++	void (*wait_finish)(struct vb2_queue *q);
++
++	int (*buf_init)(struct vb2_buffer *vb);
++	int (*buf_prepare)(struct vb2_buffer *vb);
++	int (*buf_finish)(struct vb2_buffer *vb);
++	void (*buf_cleanup)(struct vb2_buffer *vb);
++
++	int (*start_streaming)(struct vb2_queue *q);
++	int (*stop_streaming)(struct vb2_queue *q);
++
++	void (*buf_queue)(struct vb2_buffer *vb);
++};
++
++/**
++ * struct vb2_queue - a videobuf queue
++ *
++ * @type:	queue type (see V4L2_BUF_TYPE_* in linux/videodev2.h
++ * @io_modes:	supported io methods (see vb2_io_modes enum)
++ * @io_flags:	additional io flags (see vb2_fileio_flags enum)
++ * @ops:	driver-specific callbacks
++ * @mem_ops:	memory allocator specific callbacks
++ * @drv_priv:	driver private data
++ * @buf_struct_size: size of the driver-specific buffer structure;
++ *		"0" indicates the driver doesn't want to use a custom buffer
++ *		structure type, so sizeof(struct vb2_buffer) will is used
++ *
++ * @memory:	current memory type used
++ * @bufs:	videobuf buffer structures
++ * @num_buffers: number of allocated/used buffers
++ * @queued_list: list of buffers currently queued from userspace
++ * @queued_count: number of buffers owned by the driver
++ * @done_list:	list of buffers ready to be dequeued to userspace
++ * @done_lock:	lock to protect done_list list
++ * @done_wq:	waitqueue for processes waiting for buffers ready to be dequeued
++ * @alloc_ctx:	memory type/allocator-specific contexts for each plane
++ * @streaming:	current streaming state
++ */
++struct vb2_queue {
++	enum v4l2_buf_type		type;
++	unsigned int			io_modes;
++	unsigned int			io_flags;
++
++	const struct vb2_ops		*ops;
++	const struct vb2_mem_ops	*mem_ops;
++	void				*drv_priv;
++	unsigned int			buf_struct_size;
++
++/* private: internal use only */
++	enum v4l2_memory		memory;
++	struct vb2_buffer		*bufs[VIDEO_MAX_FRAME];
++	unsigned int			num_buffers;
++
++	struct list_head		queued_list;
++
++	atomic_t			queued_count;
++	struct list_head		done_list;
++	spinlock_t			done_lock;
++	wait_queue_head_t		done_wq;
++
++	void				*alloc_ctx[VIDEO_MAX_PLANES];
++
++	unsigned int			streaming:1;
++};
++
++void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no);
++void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no);
++
++void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state);
++int vb2_wait_for_all_buffers(struct vb2_queue *q);
++
++int vb2_querybuf(struct vb2_queue *q, struct v4l2_buffer *b);
++int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req);
++
++int vb2_queue_init(struct vb2_queue *q);
++
++void vb2_queue_release(struct vb2_queue *q);
++
++int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b);
++int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking);
++
++int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type);
++int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type);
++
++int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma);
++unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait);
++
++/**
++ * vb2_is_streaming() - return streaming status of the queue
++ * @q:		videobuf queue
++ */
++static inline bool vb2_is_streaming(struct vb2_queue *q)
++{
++	return q->streaming;
++}
++
++/**
++ * vb2_is_busy() - return busy status of the queue
++ * @q:		videobuf queue
++ *
++ * This function checks if queue has any buffers allocated.
++ */
++static inline bool vb2_is_busy(struct vb2_queue *q)
++{
++	return (q->num_buffers > 0);
++}
++
++/**
++ * vb2_get_drv_priv() - return driver private data associated with the queue
++ * @q:		videobuf queue
++ */
++static inline void *vb2_get_drv_priv(struct vb2_queue *q)
++{
++	return q->drv_priv;
++}
++
++/**
++ * vb2_set_plane_payload() - set bytesused for the plane plane_no
++ * @vb:		buffer for which plane payload should be set
++ * @plane_no:	plane number for which payload should be set
++ * @size:	payload in bytes
++ */
++static inline void vb2_set_plane_payload(struct vb2_buffer *vb,
++				 unsigned int plane_no, unsigned long size)
++{
++	if (plane_no < vb->num_planes)
++		vb->v4l2_planes[plane_no].bytesused = size;
++}
++
++/**
++ * vb2_get_plane_payload() - set bytesused for the plane plane_no
++ * @vb:		buffer for which plane payload should be set
++ * @plane_no:	plane number for which payload should be set
++ * @size:	payload in bytes
++ */
++static inline unsigned long vb2_get_plane_payload(struct vb2_buffer *vb,
++				 unsigned int plane_no)
++{
++	if (plane_no < vb->num_planes)
++		return vb->v4l2_planes[plane_no].bytesused;
++	return 0;
++}
++
++/**
++ * vb2_plane_size() - return plane size in bytes
++ * @vb:		buffer for which plane size should be returned
++ * @plane_no:	plane number for which size should be returned
++ */
++static inline unsigned long
++vb2_plane_size(struct vb2_buffer *vb, unsigned int plane_no)
++{
++	if (plane_no < vb->num_planes)
++		return vb->v4l2_planes[plane_no].length;
++	return 0;
++}
++
++#endif /* _MEDIA_VIDEOBUF2_CORE_H */
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+1.7.1.569.g6f426
+
