@@ -1,670 +1,716 @@
 Return-path: <mchehab@gaivota>
-Received: from casper.infradead.org ([85.118.1.10]:51751 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752948Ab0LOVpy (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:50091 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752455Ab0LVOad (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Dec 2010 16:45:54 -0500
-Message-ID: <4D093706.9040401@infradead.org>
-Date: Wed, 15 Dec 2010 19:45:42 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Brandon Philips <brandon@ifup.org>
-CC: chris2553@googlemail.com,
-	Torsten Kaiser <just.for.lkml@googlemail.com>,
-	Dave Young <hidave.darkstar@gmail.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] bttv: fix mutex use before init
-References: <20101212131550.GA2608@darkstar> <AANLkTinaNjPjNbxE+OyRsY_jJxDW-pwehTPgyAWzqfzd@mail.gmail.com> <20101214003024.GA3575@hanuman.home.ifup.org> <201012151844.04105.chris2553@googlemail.com>
-In-Reply-To: <201012151844.04105.chris2553@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Wed, 22 Dec 2010 09:30:33 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LDU0064W2YU6Z40@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 22 Dec 2010 14:30:30 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LDU00LR22YTWA@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 22 Dec 2010 14:30:30 +0000 (GMT)
+Date: Wed, 22 Dec 2010 15:30:17 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 13/13] v4l: vivi: port to videobuf2
+In-reply-to: <1293025239-9977-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	andrzej.p@samsung.com
+Message-id: <1293028217-23151-4-git-send-email-m.szyprowski@samsung.com>
+References: <1293025239-9977-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 15-12-2010 16:44, Chris Clayton escreveu:
-> On Tuesday 14 December 2010, Brandon Philips wrote:
->> On 17:13 Sun 12 Dec 2010, Torsten Kaiser wrote:
->>>  * change &fh->cap.vb_lock in bttv_open() AND radio_open() to
->>> &btv->init.cap.vb_lock
->>>  * add a mutex_init(&btv->init.cap.vb_lock) to the setup of init in
->>> bttv_probe()
->>
->> That seems like a reasonable suggestion. An openSUSE user submitted this
->> bug to our tracker too. Here is the patch I am having him test.
->>
->> Would you mind testing it?
->>
->> From 456dc0ce36db523c4c0c8a269f4eec43a72de1dc Mon Sep 17 00:00:00 2001
->> From: Brandon Philips <bphilips@suse.de>
->> Date: Mon, 13 Dec 2010 16:21:55 -0800
->> Subject: [PATCH] bttv: fix locking for btv->init
->>
->> Fix locking for the btv->init by using btv->init.cap.vb_lock and in the
->> process fix uninitialized deref introduced in c37db91fd0d.
->>
->> Signed-off-by: Brandon Philips <bphilips@suse.de>
+Make vivi use videobuf2 in place of videobuf.
 
-Hi Brandon & all,
-
-While your patch fixes the issue, it has some other troubles, like to the presence of
-lock code at free_btres_lock(). It is possible to fix, but the better is to just
-use the core-assisted locking schema. This way, V4L2 core will serialize access to all
-ioctl's/open/close/mmap/read/poll operations, avoiding to have two processes accessing
-the hardware at the same time. Also, as there's just one lock, instead of 3, there's no
-risk of dead locks.
-
-The net result is a cleaner code, with just one lock.
-
-I tested the patch here with an bttv-based STB board (card=3, tuner=6), and it worked fine for me. 
-Could you please test if this fixes the issue? 
-
-PS.: The patch is based against the bkl_removal patches, at my linux-next tree:
-
-http://git.kernel.org/?p=linux/kernel/git/mchehab/linux-next.git;a=commit;h=673eb9ff33e26ee6f4278cdab06749aef1bbef5b
-
-(I just created the bkl_removal branch, so, it may take some time for you to see at the kernel.org
-mirrors, but it is basically changeset 673eb9ff. You may also just apply it on the top of the master
-branch of my linux-next tree).
-
+Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+CC: Pawel Osciak <pawel@osciak.com>
 ---
+ drivers/media/video/Kconfig |    2 +-
+ drivers/media/video/vivi.c  |  369 +++++++++++++++++++++++--------------------
+ 2 files changed, 200 insertions(+), 171 deletions(-)
 
-[media] bttv: Fix locking issues due to BKL removal code
-
-The BKL removal patch added a condition where the code would try to use a non-initialized 
-lock. While a patch just addressing the issue is possible, there are some other troubles, 
-like to the presence of lock code at free_btres_lock(), called on some places with the lock
-already taken. It is possible to fix, but the better is to just use the core-assisted 
-locking schema. 
-
-This way, V4L2 core will serialize access to all ioctl's/open/close/mmap/read/poll 
-operations, avoiding to have two processes accessing the hardware at the same time. 
-Also, as there's just one lock, instead of 3, there's no risk of dead locks.
-
-Tested with bttv STB, Gateway P/N 6000699 (card 3, tuner 6).
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/video/bt8xx/bttv-driver.c b/drivers/media/video/bt8xx/bttv-driver.c
-index a529619..25e1ca0 100644
---- a/drivers/media/video/bt8xx/bttv-driver.c
-+++ b/drivers/media/video/bt8xx/bttv-driver.c
-@@ -854,7 +854,6 @@ int check_alloc_btres_lock(struct bttv *btv, struct bttv_fh *fh, int bit)
- 		xbits |= RESOURCE_VIDEO_READ | RESOURCE_VIDEO_STREAM;
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index d193125..a1b2412 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -563,7 +563,7 @@ config VIDEO_VIVI
+ 	depends on VIDEO_DEV && VIDEO_V4L2 && !SPARC32 && !SPARC64
+ 	depends on FRAMEBUFFER_CONSOLE || STI_CONSOLE
+ 	select FONT_8x16
+-	select VIDEOBUF_VMALLOC
++	select VIDEOBUF2_VMALLOC
+ 	default n
+ 	---help---
+ 	  Enables a virtual video driver. This device shows a color bar
+diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
+index 9797e5a..9ed3831b 100644
+--- a/drivers/media/video/vivi.c
++++ b/drivers/media/video/vivi.c
+@@ -7,6 +7,9 @@
+  *      John Sokol <sokol--a.t--videotechnology.com>
+  *      http://v4l.videotechnology.com/
+  *
++ *      Conversion to videobuf2 by Pawel Osciak & Marek Szyprowski
++ *      Copyright (c) 2010 Samsung Electronics
++ *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the BSD Licence, GNU General Public License
+  * as published by the Free Software Foundation; either version 2 of the
+@@ -23,10 +26,8 @@
+ #include <linux/mutex.h>
+ #include <linux/videodev2.h>
+ #include <linux/kthread.h>
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 20)
+ #include <linux/freezer.h>
+-#endif
+-#include <media/videobuf-vmalloc.h>
++#include <media/videobuf2-vmalloc.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-common.h>
+@@ -42,7 +43,7 @@
+ #define MAX_HEIGHT 1200
  
- 	/* is it free? */
--	mutex_lock(&btv->lock);
- 	if (btv->resources & xbits) {
- 		/* no, someone else uses it */
- 		goto fail;
-@@ -884,11 +883,9 @@ int check_alloc_btres_lock(struct bttv *btv, struct bttv_fh *fh, int bit)
- 	/* it's free, grab it */
- 	fh->resources  |= bit;
- 	btv->resources |= bit;
--	mutex_unlock(&btv->lock);
- 	return 1;
- 
-  fail:
--	mutex_unlock(&btv->lock);
- 	return 0;
+ #define VIVI_MAJOR_VERSION 0
+-#define VIVI_MINOR_VERSION 7
++#define VIVI_MINOR_VERSION 8
+ #define VIVI_RELEASE 0
+ #define VIVI_VERSION \
+ 	KERNEL_VERSION(VIVI_MAJOR_VERSION, VIVI_MINOR_VERSION, VIVI_RELEASE)
+@@ -133,16 +134,11 @@ static struct vivi_fmt *get_format(struct v4l2_format *f)
+ 	return &formats[k];
  }
  
-@@ -940,7 +937,6 @@ void free_btres_lock(struct bttv *btv, struct bttv_fh *fh, int bits)
- 		/* trying to free ressources not allocated by us ... */
- 		printk("bttv: BUG! (btres)\n");
- 	}
--	mutex_lock(&btv->lock);
- 	fh->resources  &= ~bits;
- 	btv->resources &= ~bits;
- 
-@@ -951,8 +947,6 @@ void free_btres_lock(struct bttv *btv, struct bttv_fh *fh, int bits)
- 
- 	if (0 == (bits & VBI_RESOURCES))
- 		disclaim_vbi_lines(btv);
+-struct sg_to_addr {
+-	int pos;
+-	struct scatterlist *sg;
+-};
 -
--	mutex_unlock(&btv->lock);
- }
- 
- /* ----------------------------------------------------------------------- */
-@@ -1713,28 +1707,20 @@ static int bttv_prepare_buffer(struct videobuf_queue *q,struct bttv *btv,
- 
- 		/* Make sure tvnorm and vbi_end remain consistent
- 		   until we're done. */
--		mutex_lock(&btv->lock);
- 
- 		norm = btv->tvnorm;
- 
- 		/* In this mode capturing always starts at defrect.top
- 		   (default VDELAY), ignoring cropping parameters. */
- 		if (btv->vbi_end > bttv_tvnorms[norm].cropcap.defrect.top) {
--			mutex_unlock(&btv->lock);
- 			return -EINVAL;
- 		}
- 
--		mutex_unlock(&btv->lock);
+ /* buffer for one video frame */
+ struct vivi_buffer {
+ 	/* common v4l buffer stuff -- must be first */
+-	struct videobuf_buffer vb;
 -
- 		c.rect = bttv_tvnorms[norm].cropcap.defrect;
- 	} else {
--		mutex_lock(&btv->lock);
--
- 		norm = btv->tvnorm;
- 		c = btv->crop[!!fh->do_crop];
- 
--		mutex_unlock(&btv->lock);
--
- 		if (width < c.min_scaled_width ||
- 		    width > c.max_scaled_width ||
- 		    height < c.min_scaled_height)
-@@ -1858,7 +1844,6 @@ static int bttv_s_std(struct file *file, void *priv, v4l2_std_id *id)
- 	unsigned int i;
- 	int err;
- 
--	mutex_lock(&btv->lock);
- 	err = v4l2_prio_check(&btv->prio, fh->prio);
- 	if (err)
- 		goto err;
-@@ -1874,7 +1859,6 @@ static int bttv_s_std(struct file *file, void *priv, v4l2_std_id *id)
- 	set_tvnorm(btv, i);
- 
- err:
--	mutex_unlock(&btv->lock);
- 
- 	return err;
- }
-@@ -1898,7 +1882,6 @@ static int bttv_enum_input(struct file *file, void *priv,
- 	struct bttv *btv = fh->btv;
- 	int rc = 0;
- 
--	mutex_lock(&btv->lock);
- 	if (i->index >= bttv_tvcards[btv->c.type].video_inputs) {
- 		rc = -EINVAL;
- 		goto err;
-@@ -1928,7 +1911,6 @@ static int bttv_enum_input(struct file *file, void *priv,
- 	i->std = BTTV_NORMS;
- 
- err:
--	mutex_unlock(&btv->lock);
- 
- 	return rc;
- }
-@@ -1938,9 +1920,7 @@ static int bttv_g_input(struct file *file, void *priv, unsigned int *i)
- 	struct bttv_fh *fh = priv;
- 	struct bttv *btv = fh->btv;
- 
--	mutex_lock(&btv->lock);
- 	*i = btv->input;
--	mutex_unlock(&btv->lock);
- 
- 	return 0;
- }
-@@ -1952,7 +1932,6 @@ static int bttv_s_input(struct file *file, void *priv, unsigned int i)
- 
- 	int err;
- 
--	mutex_lock(&btv->lock);
- 	err = v4l2_prio_check(&btv->prio, fh->prio);
- 	if (unlikely(err))
- 		goto err;
-@@ -1965,7 +1944,6 @@ static int bttv_s_input(struct file *file, void *priv, unsigned int i)
- 	set_input(btv, i, btv->tvnorm);
- 
- err:
--	mutex_unlock(&btv->lock);
- 	return 0;
- }
- 
-@@ -1979,7 +1957,6 @@ static int bttv_s_tuner(struct file *file, void *priv,
- 	if (unlikely(0 != t->index))
- 		return -EINVAL;
- 
--	mutex_lock(&btv->lock);
- 	if (unlikely(btv->tuner_type == TUNER_ABSENT)) {
- 		err = -EINVAL;
- 		goto err;
-@@ -1995,7 +1972,6 @@ static int bttv_s_tuner(struct file *file, void *priv,
- 		btv->audio_mode_gpio(btv, t, 1);
- 
- err:
--	mutex_unlock(&btv->lock);
- 
- 	return 0;
- }
-@@ -2006,10 +1982,8 @@ static int bttv_g_frequency(struct file *file, void *priv,
- 	struct bttv_fh *fh  = priv;
- 	struct bttv *btv = fh->btv;
- 
--	mutex_lock(&btv->lock);
- 	f->type = btv->radio_user ? V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
- 	f->frequency = btv->freq;
--	mutex_unlock(&btv->lock);
- 
- 	return 0;
- }
-@@ -2024,7 +1998,6 @@ static int bttv_s_frequency(struct file *file, void *priv,
- 	if (unlikely(f->tuner != 0))
- 		return -EINVAL;
- 
--	mutex_lock(&btv->lock);
- 	err = v4l2_prio_check(&btv->prio, fh->prio);
- 	if (unlikely(err))
- 		goto err;
-@@ -2039,7 +2012,6 @@ static int bttv_s_frequency(struct file *file, void *priv,
- 	if (btv->has_matchbox && btv->radio_user)
- 		tea5757_set_freq(btv, btv->freq);
- err:
--	mutex_unlock(&btv->lock);
- 
- 	return 0;
- }
-@@ -2172,7 +2144,6 @@ limit_scaled_size_lock       (struct bttv_fh *               fh,
- 
- 	/* Make sure tvnorm, vbi_end and the current cropping parameters
- 	   remain consistent until we're done. */
--	mutex_lock(&btv->lock);
- 
- 	b = &bttv_tvnorms[btv->tvnorm].cropcap.bounds;
- 
-@@ -2250,7 +2221,6 @@ limit_scaled_size_lock       (struct bttv_fh *               fh,
- 	rc = 0; /* success */
- 
-  fail:
--	mutex_unlock(&btv->lock);
- 
- 	return rc;
- }
-@@ -2282,9 +2252,7 @@ verify_window_lock		(struct bttv_fh *               fh,
- 	if (V4L2_FIELD_ANY == field) {
- 		__s32 height2;
- 
--		mutex_lock(&fh->btv->lock);
- 		height2 = fh->btv->crop[!!fh->do_crop].rect.height >> 1;
--		mutex_unlock(&fh->btv->lock);
- 		field = (win->w.height > height2)
- 			? V4L2_FIELD_INTERLACED
- 			: V4L2_FIELD_TOP;
-@@ -2360,7 +2328,6 @@ static int setup_window_lock(struct bttv_fh *fh, struct bttv *btv,
- 		}
- 	}
- 
--	mutex_lock(&fh->cap.vb_lock);
- 	/* clip against screen */
- 	if (NULL != btv->fbuf.base)
- 		n = btcx_screen_clips(btv->fbuf.fmt.width, btv->fbuf.fmt.height,
-@@ -2412,7 +2379,6 @@ static int setup_window_lock(struct bttv_fh *fh, struct bttv *btv,
- 		bttv_overlay_risc(btv, &fh->ov, fh->ovfmt, new);
- 		retval = bttv_switch_overlay(btv,fh,new);
- 	}
--	mutex_unlock(&fh->cap.vb_lock);
- 	return retval;
- }
- 
-@@ -2526,9 +2492,7 @@ static int bttv_try_fmt_vid_cap(struct file *file, void *priv,
- 	if (V4L2_FIELD_ANY == field) {
- 		__s32 height2;
- 
--		mutex_lock(&btv->lock);
- 		height2 = btv->crop[!!fh->do_crop].rect.height >> 1;
--		mutex_unlock(&btv->lock);
- 		field = (f->fmt.pix.height > height2)
- 			? V4L2_FIELD_INTERLACED
- 			: V4L2_FIELD_BOTTOM;
-@@ -2614,7 +2578,6 @@ static int bttv_s_fmt_vid_cap(struct file *file, void *priv,
- 	fmt = format_by_fourcc(f->fmt.pix.pixelformat);
- 
- 	/* update our state informations */
--	mutex_lock(&fh->cap.vb_lock);
- 	fh->fmt              = fmt;
- 	fh->cap.field        = f->fmt.pix.field;
- 	fh->cap.last         = V4L2_FIELD_NONE;
-@@ -2623,7 +2586,6 @@ static int bttv_s_fmt_vid_cap(struct file *file, void *priv,
- 	btv->init.fmt        = fmt;
- 	btv->init.width      = f->fmt.pix.width;
- 	btv->init.height     = f->fmt.pix.height;
--	mutex_unlock(&fh->cap.vb_lock);
- 
- 	return 0;
- }
-@@ -2649,11 +2611,9 @@ static int vidiocgmbuf(struct file *file, void *priv, struct video_mbuf *mbuf)
- 	unsigned int i;
- 	struct bttv_fh *fh = priv;
- 
--	mutex_lock(&fh->cap.vb_lock);
- 	retval = __videobuf_mmap_setup(&fh->cap, gbuffers, gbufsize,
- 				     V4L2_MEMORY_MMAP);
- 	if (retval < 0) {
--		mutex_unlock(&fh->cap.vb_lock);
- 		return retval;
- 	}
- 
-@@ -2665,7 +2625,6 @@ static int vidiocgmbuf(struct file *file, void *priv, struct video_mbuf *mbuf)
- 	for (i = 0; i < gbuffers; i++)
- 		mbuf->offsets[i] = i * gbufsize;
- 
--	mutex_unlock(&fh->cap.vb_lock);
- 	return 0;
- }
- #endif
-@@ -2775,10 +2734,8 @@ static int bttv_overlay(struct file *file, void *f, unsigned int on)
- 	int retval = 0;
- 
- 	if (on) {
--		mutex_lock(&fh->cap.vb_lock);
- 		/* verify args */
- 		if (unlikely(!btv->fbuf.base)) {
--			mutex_unlock(&fh->cap.vb_lock);
- 			return -EINVAL;
- 		}
- 		if (unlikely(!fh->ov.setup_ok)) {
-@@ -2787,13 +2744,11 @@ static int bttv_overlay(struct file *file, void *f, unsigned int on)
- 		}
- 		if (retval)
- 			return retval;
--		mutex_unlock(&fh->cap.vb_lock);
- 	}
- 
- 	if (!check_alloc_btres_lock(btv, fh, RESOURCE_OVERLAY))
- 		return -EBUSY;
- 
--	mutex_lock(&fh->cap.vb_lock);
- 	if (on) {
- 		fh->ov.tvnorm = btv->tvnorm;
- 		new = videobuf_sg_alloc(sizeof(*new));
-@@ -2805,7 +2760,6 @@ static int bttv_overlay(struct file *file, void *f, unsigned int on)
- 
- 	/* switch over */
- 	retval = bttv_switch_overlay(btv, fh, new);
--	mutex_unlock(&fh->cap.vb_lock);
- 	return retval;
- }
- 
-@@ -2844,7 +2798,6 @@ static int bttv_s_fbuf(struct file *file, void *f,
- 	}
- 
- 	/* ok, accept it */
--	mutex_lock(&fh->cap.vb_lock);
- 	btv->fbuf.base       = fb->base;
- 	btv->fbuf.fmt.width  = fb->fmt.width;
- 	btv->fbuf.fmt.height = fb->fmt.height;
-@@ -2876,7 +2829,6 @@ static int bttv_s_fbuf(struct file *file, void *f,
- 			retval = bttv_switch_overlay(btv, fh, new);
- 		}
- 	}
--	mutex_unlock(&fh->cap.vb_lock);
- 	return retval;
- }
- 
-@@ -2955,7 +2907,6 @@ static int bttv_queryctrl(struct file *file, void *priv,
- 	     c->id >= V4L2_CID_PRIVATE_LASTP1))
- 		return -EINVAL;
- 
--	mutex_lock(&btv->lock);
- 	if (!btv->volume_gpio && (c->id == V4L2_CID_AUDIO_VOLUME))
- 		*c = no_ctl;
- 	else {
-@@ -2963,7 +2914,6 @@ static int bttv_queryctrl(struct file *file, void *priv,
- 
- 		*c = (NULL != ctrl) ? *ctrl : no_ctl;
- 	}
--	mutex_unlock(&btv->lock);
- 
- 	return 0;
- }
-@@ -2974,10 +2924,8 @@ static int bttv_g_parm(struct file *file, void *f,
- 	struct bttv_fh *fh = f;
- 	struct bttv *btv = fh->btv;
- 
--	mutex_lock(&btv->lock);
- 	v4l2_video_std_frame_period(bttv_tvnorms[btv->tvnorm].v4l2_id,
- 				    &parm->parm.capture.timeperframe);
--	mutex_unlock(&btv->lock);
- 
- 	return 0;
- }
-@@ -2993,7 +2941,6 @@ static int bttv_g_tuner(struct file *file, void *priv,
- 	if (0 != t->index)
- 		return -EINVAL;
- 
--	mutex_lock(&btv->lock);
- 	t->rxsubchans = V4L2_TUNER_SUB_MONO;
- 	bttv_call_all(btv, tuner, g_tuner, t);
- 	strcpy(t->name, "Television");
-@@ -3005,7 +2952,6 @@ static int bttv_g_tuner(struct file *file, void *priv,
- 	if (btv->audio_mode_gpio)
- 		btv->audio_mode_gpio(btv, t, 0);
- 
--	mutex_unlock(&btv->lock);
- 	return 0;
- }
- 
-@@ -3014,9 +2960,7 @@ static int bttv_g_priority(struct file *file, void *f, enum v4l2_priority *p)
- 	struct bttv_fh *fh = f;
- 	struct bttv *btv = fh->btv;
- 
--	mutex_lock(&btv->lock);
- 	*p = v4l2_prio_max(&btv->prio);
--	mutex_unlock(&btv->lock);
- 
- 	return 0;
- }
-@@ -3028,9 +2972,7 @@ static int bttv_s_priority(struct file *file, void *f,
- 	struct bttv *btv = fh->btv;
- 	int	rc;
- 
--	mutex_lock(&btv->lock);
- 	rc = v4l2_prio_change(&btv->prio, &fh->prio, prio);
--	mutex_unlock(&btv->lock);
- 
- 	return rc;
- }
-@@ -3045,9 +2987,7 @@ static int bttv_cropcap(struct file *file, void *priv,
- 	    cap->type != V4L2_BUF_TYPE_VIDEO_OVERLAY)
- 		return -EINVAL;
- 
--	mutex_lock(&btv->lock);
- 	*cap = bttv_tvnorms[btv->tvnorm].cropcap;
--	mutex_unlock(&btv->lock);
- 
- 	return 0;
- }
-@@ -3065,9 +3005,7 @@ static int bttv_g_crop(struct file *file, void *f, struct v4l2_crop *crop)
- 	   inconsistent with fh->width or fh->height and apps
- 	   do not expect a change here. */
- 
--	mutex_lock(&btv->lock);
- 	crop->c = btv->crop[!!fh->do_crop].rect;
--	mutex_unlock(&btv->lock);
- 
- 	return 0;
- }
-@@ -3091,17 +3029,14 @@ static int bttv_s_crop(struct file *file, void *f, struct v4l2_crop *crop)
- 	/* Make sure tvnorm, vbi_end and the current cropping
- 	   parameters remain consistent until we're done. Note
- 	   read() may change vbi_end in check_alloc_btres_lock(). */
--	mutex_lock(&btv->lock);
- 	retval = v4l2_prio_check(&btv->prio, fh->prio);
- 	if (0 != retval) {
--		mutex_unlock(&btv->lock);
- 		return retval;
- 	}
- 
- 	retval = -EBUSY;
- 
- 	if (locked_btres(fh->btv, VIDEO_RESOURCES)) {
--		mutex_unlock(&btv->lock);
- 		return retval;
- 	}
- 
-@@ -3113,7 +3048,6 @@ static int bttv_s_crop(struct file *file, void *f, struct v4l2_crop *crop)
- 
- 	b_top = max(b->top, btv->vbi_end);
- 	if (b_top + 32 >= b_bottom) {
--		mutex_unlock(&btv->lock);
- 		return retval;
- 	}
- 
-@@ -3136,12 +3070,8 @@ static int bttv_s_crop(struct file *file, void *f, struct v4l2_crop *crop)
- 
- 	btv->crop[1] = c;
- 
--	mutex_unlock(&btv->lock);
--
- 	fh->do_crop = 1;
- 
--	mutex_lock(&fh->cap.vb_lock);
--
- 	if (fh->width < c.min_scaled_width) {
- 		fh->width = c.min_scaled_width;
- 		btv->init.width = c.min_scaled_width;
-@@ -3158,8 +3088,6 @@ static int bttv_s_crop(struct file *file, void *f, struct v4l2_crop *crop)
- 		btv->init.height = c.max_scaled_height;
- 	}
- 
--	mutex_unlock(&fh->cap.vb_lock);
--
- 	return 0;
- }
- 
-@@ -3227,7 +3155,6 @@ static unsigned int bttv_poll(struct file *file, poll_table *wait)
- 		return videobuf_poll_stream(file, &fh->vbi, wait);
- 	}
- 
--	mutex_lock(&fh->cap.vb_lock);
- 	if (check_btres(fh,RESOURCE_VIDEO_STREAM)) {
- 		/* streaming capture */
- 		if (list_empty(&fh->cap.stream))
-@@ -3262,7 +3189,6 @@ static unsigned int bttv_poll(struct file *file, poll_table *wait)
- 	else
- 		rc = 0;
- err:
--	mutex_unlock(&fh->cap.vb_lock);
- 	return rc;
- }
- 
-@@ -3302,14 +3228,11 @@ static int bttv_open(struct file *file)
- 	 * Let's first copy btv->init at fh, holding cap.vb_lock, and then work
- 	 * with the rest of init, holding btv->lock.
- 	 */
--	mutex_lock(&fh->cap.vb_lock);
- 	*fh = btv->init;
--	mutex_unlock(&fh->cap.vb_lock);
- 
- 	fh->type = type;
- 	fh->ov.setup_ok = 0;
- 
--	mutex_lock(&btv->lock);
- 	v4l2_prio_open(&btv->prio, &fh->prio);
- 
- 	videobuf_queue_sg_init(&fh->cap, &bttv_video_qops,
-@@ -3317,13 +3240,13 @@ static int bttv_open(struct file *file)
- 			    V4L2_BUF_TYPE_VIDEO_CAPTURE,
- 			    V4L2_FIELD_INTERLACED,
- 			    sizeof(struct bttv_buffer),
--			    fh, NULL);
-+			    fh, &btv->lock);
- 	videobuf_queue_sg_init(&fh->vbi, &bttv_vbi_qops,
- 			    &btv->c.pci->dev, &btv->s_lock,
- 			    V4L2_BUF_TYPE_VBI_CAPTURE,
- 			    V4L2_FIELD_SEQ_TB,
- 			    sizeof(struct bttv_buffer),
--			    fh, NULL);
-+			    fh, &btv->lock);
- 	set_tvnorm(btv,btv->tvnorm);
- 	set_input(btv, btv->input, btv->tvnorm);
- 
-@@ -3346,7 +3269,6 @@ static int bttv_open(struct file *file)
- 	bttv_vbi_fmt_reset(&fh->vbi_fmt, btv->tvnorm);
- 
- 	bttv_field_count(btv);
--	mutex_unlock(&btv->lock);
- 	return 0;
- }
- 
-@@ -3355,7 +3277,6 @@ static int bttv_release(struct file *file)
- 	struct bttv_fh *fh = file->private_data;
- 	struct bttv *btv = fh->btv;
- 
--	mutex_lock(&btv->lock);
- 	/* turn off overlay */
- 	if (check_btres(fh, RESOURCE_OVERLAY))
- 		bttv_switch_overlay(btv,fh,NULL);
-@@ -3385,10 +3306,8 @@ static int bttv_release(struct file *file)
- 	 * videobuf uses cap.vb_lock - we should avoid holding btv->lock,
- 	 * otherwise we may have dead lock conditions
- 	 */
--	mutex_unlock(&btv->lock);
- 	videobuf_mmap_free(&fh->cap);
- 	videobuf_mmap_free(&fh->vbi);
--	mutex_lock(&btv->lock);
- 	v4l2_prio_close(&btv->prio, fh->prio);
- 	file->private_data = NULL;
- 	kfree(fh);
-@@ -3398,7 +3317,6 @@ static int bttv_release(struct file *file)
- 
- 	if (!btv->users)
- 		audio_mute(btv, 1);
--	mutex_unlock(&btv->lock);
- 
- 	return 0;
- }
-@@ -3502,11 +3420,8 @@ static int radio_open(struct file *file)
- 	if (unlikely(!fh))
- 		return -ENOMEM;
- 	file->private_data = fh;
--	mutex_lock(&fh->cap.vb_lock);
- 	*fh = btv->init;
--	mutex_unlock(&fh->cap.vb_lock);
- 
--	mutex_lock(&btv->lock);
- 	v4l2_prio_open(&btv->prio, &fh->prio);
- 
- 	btv->radio_user++;
-@@ -3514,7 +3429,6 @@ static int radio_open(struct file *file)
- 	bttv_call_all(btv, tuner, s_radio);
- 	audio_input(btv,TVAUDIO_INPUT_RADIO);
- 
--	mutex_unlock(&btv->lock);
- 	return 0;
- }
- 
-@@ -3524,7 +3438,6 @@ static int radio_release(struct file *file)
- 	struct bttv *btv = fh->btv;
- 	struct rds_command cmd;
- 
--	mutex_lock(&btv->lock);
- 	v4l2_prio_close(&btv->prio, fh->prio);
- 	file->private_data = NULL;
- 	kfree(fh);
-@@ -3532,7 +3445,6 @@ static int radio_release(struct file *file)
- 	btv->radio_user--;
- 
- 	bttv_call_all(btv, core, ioctl, RDS_CMD_CLOSE, &cmd);
--	mutex_unlock(&btv->lock);
- 
- 	return 0;
- }
-@@ -3561,7 +3473,6 @@ static int radio_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
- 		return -EINVAL;
- 	if (0 != t->index)
- 		return -EINVAL;
--	mutex_lock(&btv->lock);
- 	strcpy(t->name, "Radio");
- 	t->type = V4L2_TUNER_RADIO;
- 
-@@ -3570,8 +3481,6 @@ static int radio_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
- 	if (btv->audio_mode_gpio)
- 		btv->audio_mode_gpio(btv, t, 0);
- 
--	mutex_unlock(&btv->lock);
--
- 	return 0;
- }
- 
-@@ -3692,7 +3601,7 @@ static const struct v4l2_file_operations radio_fops =
- 	.open	  = radio_open,
- 	.read     = radio_read,
- 	.release  = radio_release,
--	.ioctl	  = video_ioctl2,
-+	.unlocked_ioctl = video_ioctl2,
- 	.poll     = radio_poll,
++	struct vb2_buffer	vb;
++	struct list_head	list;
+ 	struct vivi_fmt        *fmt;
  };
  
+@@ -190,9 +186,11 @@ struct vivi_dev {
+ 	/* video capture */
+ 	struct vivi_fmt            *fmt;
+ 	unsigned int               width, height;
+-	struct videobuf_queue      vb_vidq;
++	struct vb2_queue	   vb_vidq;
++	enum v4l2_field		   field;
++	unsigned int		   field_count;
+ 
+-	unsigned long 		   generating;
++	unsigned int		   open_count;
+ 	u8 			   bars[9][3];
+ 	u8 			   line[MAX_WIDTH * 4];
+ };
+@@ -443,10 +441,10 @@ static void gen_text(struct vivi_dev *dev, char *basep,
+ 
+ static void vivi_fillbuff(struct vivi_dev *dev, struct vivi_buffer *buf)
+ {
+-	int hmax = buf->vb.height;
+-	int wmax = buf->vb.width;
++	int wmax = dev->width;
++	int hmax = dev->height;
+ 	struct timeval ts;
+-	void *vbuf = videobuf_to_vmalloc(&buf->vb);
++	void *vbuf = vb2_plane_vaddr(&buf->vb, 0);
+ 	unsigned ms;
+ 	char str[100];
+ 	int h, line = 1;
+@@ -483,11 +481,11 @@ static void vivi_fillbuff(struct vivi_dev *dev, struct vivi_buffer *buf)
+ 
+ 	dev->mv_count += 2;
+ 
+-	/* Advice that buffer was filled */
+-	buf->vb.field_count++;
++	buf->vb.v4l2_buf.field = dev->field;
++	dev->field_count++;
++	buf->vb.v4l2_buf.sequence = dev->field_count >> 1;
+ 	do_gettimeofday(&ts);
+-	buf->vb.ts = ts;
+-	buf->vb.state = VIDEOBUF_DONE;
++	buf->vb.v4l2_buf.timestamp = ts;
+ }
+ 
+ static void vivi_thread_tick(struct vivi_dev *dev)
+@@ -504,23 +502,17 @@ static void vivi_thread_tick(struct vivi_dev *dev)
+ 		goto unlock;
+ 	}
+ 
+-	buf = list_entry(dma_q->active.next,
+-			 struct vivi_buffer, vb.queue);
+-
+-	/* Nobody is waiting on this buffer, return */
+-	if (!waitqueue_active(&buf->vb.done))
+-		goto unlock;
++	buf = list_entry(dma_q->active.next, struct vivi_buffer, list);
++	list_del(&buf->list);
+ 
+-	list_del(&buf->vb.queue);
+-
+-	do_gettimeofday(&buf->vb.ts);
++	do_gettimeofday(&buf->vb.v4l2_buf.timestamp);
+ 
+ 	/* Fill buffer */
+ 	vivi_fillbuff(dev, buf);
+ 	dprintk(dev, 1, "filled buffer %p\n", buf);
+ 
+-	wake_up(&buf->vb.done);
+-	dprintk(dev, 2, "[%p/%d] wakeup\n", buf, buf->vb. i);
++	vb2_buffer_done(&buf->vb, VB2_BUF_STATE_DONE);
++	dprintk(dev, 2, "[%p/%d] done\n", buf, buf->vb.v4l2_buf.index);
+ unlock:
+ 	spin_unlock_irqrestore(&dev->slock, flags);
+ }
+@@ -571,17 +563,12 @@ static int vivi_thread(void *data)
+ 	return 0;
+ }
+ 
+-static void vivi_start_generating(struct file *file)
++static int vivi_start_generating(struct vivi_dev *dev)
+ {
+-	struct vivi_dev *dev = video_drvdata(file);
+ 	struct vivi_dmaqueue *dma_q = &dev->vidq;
+ 
+ 	dprintk(dev, 1, "%s\n", __func__);
+ 
+-	if (test_and_set_bit(0, &dev->generating))
+-		return;
+-	file->private_data = dev;
+-
+ 	/* Resets frame counters */
+ 	dev->ms = 0;
+ 	dev->mv_count = 0;
+@@ -593,146 +580,200 @@ static void vivi_start_generating(struct file *file)
+ 
+ 	if (IS_ERR(dma_q->kthread)) {
+ 		v4l2_err(&dev->v4l2_dev, "kernel_thread() failed\n");
+-		clear_bit(0, &dev->generating);
+-		return;
++		return PTR_ERR(dma_q->kthread);
+ 	}
+ 	/* Wakes thread */
+ 	wake_up_interruptible(&dma_q->wq);
+ 
+ 	dprintk(dev, 1, "returning from %s\n", __func__);
++	return 0;
+ }
+ 
+-static void vivi_stop_generating(struct file *file)
++static void vivi_stop_generating(struct vivi_dev *dev)
+ {
+-	struct vivi_dev *dev = video_drvdata(file);
+ 	struct vivi_dmaqueue *dma_q = &dev->vidq;
+ 
+ 	dprintk(dev, 1, "%s\n", __func__);
+ 
+-	if (!file->private_data)
+-		return;
+-	if (!test_and_clear_bit(0, &dev->generating))
+-		return;
+-
+ 	/* shutdown control thread */
+ 	if (dma_q->kthread) {
+ 		kthread_stop(dma_q->kthread);
+ 		dma_q->kthread = NULL;
+ 	}
+-	videobuf_stop(&dev->vb_vidq);
+-	videobuf_mmap_free(&dev->vb_vidq);
+-}
+ 
+-static int vivi_is_generating(struct vivi_dev *dev)
+-{
+-	return test_bit(0, &dev->generating);
++	/*
++	 * Typical driver might need to wait here until dma engine stops.
++	 * In this case we can abort imiedetly, so it's just a noop.
++	 */
++
++	/* Release all active buffers */
++	while (!list_empty(&dma_q->active)) {
++		struct vivi_buffer *buf;
++		buf = list_entry(dma_q->active.next, struct vivi_buffer, list);
++		list_del(&buf->list);
++		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
++		dprintk(dev, 2, "[%p/%d] done\n", buf, buf->vb.v4l2_buf.index);
++	}
+ }
+-
+ /* ------------------------------------------------------------------
+ 	Videobuf operations
+    ------------------------------------------------------------------*/
+-static int
+-buffer_setup(struct videobuf_queue *vq, unsigned int *count, unsigned int *size)
++static int queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
++				unsigned int *nplanes, unsigned long sizes[],
++				void *alloc_ctxs[])
+ {
+-	struct vivi_dev *dev = vq->priv_data;
++	struct vivi_dev *dev = vb2_get_drv_priv(vq);
++	unsigned long size;
++
++	size = dev->width * dev->height * 2;
++
++	if (0 == *nbuffers)
++		*nbuffers = 32;
+ 
+-	*size = dev->width * dev->height * 2;
++	while (size * *nbuffers > vid_limit * 1024 * 1024)
++		(*nbuffers)--;
+ 
+-	if (0 == *count)
+-		*count = 32;
++	*nplanes = 1;
+ 
+-	while (*size * *count > vid_limit * 1024 * 1024)
+-		(*count)--;
++	sizes[0] = size;
+ 
+-	dprintk(dev, 1, "%s, count=%d, size=%d\n", __func__,
+-		*count, *size);
++	/*
++	 * videobuf2-vmalloc allocator is context-less so no need to set
++	 * alloc_ctxs array.
++	 */
++
++	dprintk(dev, 1, "%s, count=%d, size=%ld\n", __func__,
++		*nbuffers, size);
+ 
+ 	return 0;
+ }
+ 
+-static void free_buffer(struct videobuf_queue *vq, struct vivi_buffer *buf)
++static int buffer_init(struct vb2_buffer *vb)
+ {
+-	struct vivi_dev *dev = vq->priv_data;
++	struct vivi_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
++
++	BUG_ON(NULL == dev->fmt);
+ 
+-	dprintk(dev, 1, "%s, state: %i\n", __func__, buf->vb.state);
++	/*
++	 * This callback is called once per buffer, after its allocation.
++	 *
++	 * Vivi does not allow changing format during streaming, but it is
++	 * possible to do so when streaming is paused (i.e. in streamoff state).
++	 * Buffers however are not freed when going into streamoff and so
++	 * buffer size verification has to be done in buffer_prepare, on each
++	 * qbuf.
++	 * It would be best to move verification code here to buf_init and
++	 * s_fmt though.
++	 */
+ 
+-	videobuf_vmalloc_free(&buf->vb);
+-	dprintk(dev, 1, "free_buffer: freed\n");
+-	buf->vb.state = VIDEOBUF_NEEDS_INIT;
++	return 0;
+ }
+ 
+-static int
+-buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
+-						enum v4l2_field field)
++static int buffer_prepare(struct vb2_buffer *vb)
+ {
+-	struct vivi_dev *dev = vq->priv_data;
++	struct vivi_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
+ 	struct vivi_buffer *buf = container_of(vb, struct vivi_buffer, vb);
+-	int rc;
++	unsigned long size;
+ 
+-	dprintk(dev, 1, "%s, field=%d\n", __func__, field);
++	dprintk(dev, 1, "%s, field=%d\n", __func__, vb->v4l2_buf.field);
+ 
+ 	BUG_ON(NULL == dev->fmt);
+ 
++	/*
++	 * Theses properties only change when queue is idle, see s_fmt.
++	 * The below checks should not be performed here, on each
++	 * buffer_prepare (i.e. on each qbuf). Most of the code in this function
++	 * should thus be moved to buffer_init and s_fmt.
++	 */
+ 	if (dev->width  < 48 || dev->width  > MAX_WIDTH ||
+ 	    dev->height < 32 || dev->height > MAX_HEIGHT)
+ 		return -EINVAL;
+ 
+-	buf->vb.size = dev->width * dev->height * 2;
+-	if (0 != buf->vb.baddr && buf->vb.bsize < buf->vb.size)
++	size = dev->width * dev->height * 2;
++	if (vb2_plane_size(vb, 0) < size) {
++		dprintk(dev, 1, "%s data will not fit into plane (%lu < %lu)\n",
++				__func__, vb2_plane_size(vb, 0), size);
+ 		return -EINVAL;
++	}
++
++	vb2_set_plane_payload(&buf->vb, 0, size);
+ 
+-	/* These properties only change when queue is idle, see s_fmt */
+-	buf->fmt       = dev->fmt;
+-	buf->vb.width  = dev->width;
+-	buf->vb.height = dev->height;
+-	buf->vb.field  = field;
++	buf->fmt = dev->fmt;
+ 
+ 	precalculate_bars(dev);
+ 	precalculate_line(dev);
+ 
+-	if (VIDEOBUF_NEEDS_INIT == buf->vb.state) {
+-		rc = videobuf_iolock(vq, &buf->vb, NULL);
+-		if (rc < 0)
+-			goto fail;
+-	}
++	return 0;
++}
+ 
+-	buf->vb.state = VIDEOBUF_PREPARED;
++static int buffer_finish(struct vb2_buffer *vb)
++{
++	struct vivi_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
++	dprintk(dev, 1, "%s\n", __func__);
+ 	return 0;
++}
++
++static void buffer_cleanup(struct vb2_buffer *vb)
++{
++	struct vivi_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
++	dprintk(dev, 1, "%s\n", __func__);
+ 
+-fail:
+-	free_buffer(vq, buf);
+-	return rc;
+ }
+ 
+-static void
+-buffer_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
++static void buffer_queue(struct vb2_buffer *vb)
+ {
+-	struct vivi_dev *dev = vq->priv_data;
++	struct vivi_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
+ 	struct vivi_buffer *buf = container_of(vb, struct vivi_buffer, vb);
+ 	struct vivi_dmaqueue *vidq = &dev->vidq;
++	unsigned long flags = 0;
+ 
+ 	dprintk(dev, 1, "%s\n", __func__);
+ 
+-	buf->vb.state = VIDEOBUF_QUEUED;
+-	list_add_tail(&buf->vb.queue, &vidq->active);
++	spin_lock_irqsave(&dev->slock, flags);
++	list_add_tail(&buf->list, &vidq->active);
++	spin_unlock_irqrestore(&dev->slock, flags);
+ }
+ 
+-static void buffer_release(struct videobuf_queue *vq,
+-			   struct videobuf_buffer *vb)
++static int start_streaming(struct vb2_queue *vq)
+ {
+-	struct vivi_dev *dev = vq->priv_data;
+-	struct vivi_buffer *buf  = container_of(vb, struct vivi_buffer, vb);
++	struct vivi_dev *dev = vb2_get_drv_priv(vq);
++	dprintk(dev, 1, "%s\n", __func__);
++	return vivi_start_generating(dev);
++}
+ 
++/* abort streaming and wait for last buffer */
++static int stop_streaming(struct vb2_queue *vq)
++{
++	struct vivi_dev *dev = vb2_get_drv_priv(vq);
+ 	dprintk(dev, 1, "%s\n", __func__);
++	vivi_stop_generating(dev);
++	return 0;
++}
++
++static void vivi_lock(struct vb2_queue *vq)
++{
++	struct vivi_dev *dev = vb2_get_drv_priv(vq);
++	mutex_lock(&dev->mutex);
++}
+ 
+-	free_buffer(vq, buf);
++static void vivi_unlock(struct vb2_queue *vq)
++{
++	struct vivi_dev *dev = vb2_get_drv_priv(vq);
++	mutex_unlock(&dev->mutex);
+ }
+ 
+-static struct videobuf_queue_ops vivi_video_qops = {
+-	.buf_setup      = buffer_setup,
+-	.buf_prepare    = buffer_prepare,
+-	.buf_queue      = buffer_queue,
+-	.buf_release    = buffer_release,
++
++static struct vb2_ops vivi_video_qops = {
++	.queue_setup		= queue_setup,
++	.buf_init		= buffer_init,
++	.buf_prepare		= buffer_prepare,
++	.buf_finish		= buffer_finish,
++	.buf_cleanup		= buffer_cleanup,
++	.buf_queue		= buffer_queue,
++	.start_streaming	= start_streaming,
++	.stop_streaming		= stop_streaming,
++	.wait_prepare		= vivi_unlock,
++	.wait_finish		= vivi_lock,
+ };
+ 
+ /* ------------------------------------------------------------------
+@@ -774,7 +815,7 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+ 
+ 	f->fmt.pix.width        = dev->width;
+ 	f->fmt.pix.height       = dev->height;
+-	f->fmt.pix.field        = dev->vb_vidq.field;
++	f->fmt.pix.field        = dev->field;
+ 	f->fmt.pix.pixelformat  = dev->fmt->fourcc;
+ 	f->fmt.pix.bytesperline =
+ 		(f->fmt.pix.width * dev->fmt->depth) >> 3;
+@@ -820,91 +861,60 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+ 					struct v4l2_format *f)
+ {
+ 	struct vivi_dev *dev = video_drvdata(file);
++	struct vb2_queue *q = &dev->vb_vidq;
+ 
+ 	int ret = vidioc_try_fmt_vid_cap(file, priv, f);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	if (vivi_is_generating(dev)) {
++	if (vb2_is_streaming(q)) {
+ 		dprintk(dev, 1, "%s device busy\n", __func__);
+-		ret = -EBUSY;
+-		goto out;
++		return -EBUSY;
+ 	}
+ 
+ 	dev->fmt = get_format(f);
+ 	dev->width = f->fmt.pix.width;
+ 	dev->height = f->fmt.pix.height;
+-	dev->vb_vidq.field = f->fmt.pix.field;
+-	ret = 0;
+-out:
+-	return ret;
++	dev->field = f->fmt.pix.field;
++
++	return 0;
+ }
+ 
+ static int vidioc_reqbufs(struct file *file, void *priv,
+ 			  struct v4l2_requestbuffers *p)
+ {
+ 	struct vivi_dev *dev = video_drvdata(file);
+-
+-	return videobuf_reqbufs(&dev->vb_vidq, p);
++	return vb2_reqbufs(&dev->vb_vidq, p);
+ }
+ 
+ static int vidioc_querybuf(struct file *file, void *priv, struct v4l2_buffer *p)
+ {
+ 	struct vivi_dev *dev = video_drvdata(file);
+-
+-	return videobuf_querybuf(&dev->vb_vidq, p);
++	return vb2_querybuf(&dev->vb_vidq, p);
+ }
+ 
+ static int vidioc_qbuf(struct file *file, void *priv, struct v4l2_buffer *p)
+ {
+ 	struct vivi_dev *dev = video_drvdata(file);
+-
+-	return videobuf_qbuf(&dev->vb_vidq, p);
++	return vb2_qbuf(&dev->vb_vidq, p);
+ }
+ 
+ static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *p)
+ {
+ 	struct vivi_dev *dev = video_drvdata(file);
+-
+-	return videobuf_dqbuf(&dev->vb_vidq, p,
+-				file->f_flags & O_NONBLOCK);
++	return vb2_dqbuf(&dev->vb_vidq, p, file->f_flags & O_NONBLOCK);
+ }
+ 
+-#ifdef CONFIG_VIDEO_V4L1_COMPAT
+-static int vidiocgmbuf(struct file *file, void *priv, struct video_mbuf *mbuf)
+-{
+-	struct vivi_dev *dev = video_drvdata(file);
+-
+-	return videobuf_cgmbuf(&dev->vb_vidq, mbuf, 8);
+-}
+-#endif
+-
+ static int vidioc_streamon(struct file *file, void *priv, enum v4l2_buf_type i)
+ {
+ 	struct vivi_dev *dev = video_drvdata(file);
+-	int ret;
+-
+-	if (i != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+-		return -EINVAL;
+-	ret = videobuf_streamon(&dev->vb_vidq);
+-	if (ret)
+-		return ret;
+-
+-	vivi_start_generating(file);
+-	return 0;
++	return vb2_streamon(&dev->vb_vidq, i);
+ }
+ 
+ static int vidioc_streamoff(struct file *file, void *priv, enum v4l2_buf_type i)
+ {
+ 	struct vivi_dev *dev = video_drvdata(file);
+-	int ret;
+-
+-	if (i != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+-		return -EINVAL;
+-	ret = videobuf_streamoff(&dev->vb_vidq);
+-	if (!ret)
+-		vivi_stop_generating(file);
+-	return ret;
++	return vb2_streamoff(&dev->vb_vidq, i);
+ }
+ 
+ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *i)
+@@ -1027,26 +1037,33 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
+ 	File operations for the device
+    ------------------------------------------------------------------*/
+ 
++static int vivi_open(struct file *file)
++{
++	struct vivi_dev *dev = video_drvdata(file);
++
++	dprintk(dev, 1, "%s, %p\n", __func__, file);
++	dev->open_count++;
++	return 0;
++}
++
+ static ssize_t
+ vivi_read(struct file *file, char __user *data, size_t count, loff_t *ppos)
+ {
+ 	struct vivi_dev *dev = video_drvdata(file);
+ 
+-	vivi_start_generating(file);
+-	return videobuf_read_stream(&dev->vb_vidq, data, count, ppos, 0,
+-					file->f_flags & O_NONBLOCK);
++	dprintk(dev, 1, "read called\n");
++	return vb2_read(&dev->vb_vidq, data, count, ppos,
++		       file->f_flags & O_NONBLOCK);
+ }
+ 
+ static unsigned int
+ vivi_poll(struct file *file, struct poll_table_struct *wait)
+ {
+ 	struct vivi_dev *dev = video_drvdata(file);
+-	struct videobuf_queue *q = &dev->vb_vidq;
++	struct vb2_queue *q = &dev->vb_vidq;
+ 
+ 	dprintk(dev, 1, "%s\n", __func__);
+-
+-	vivi_start_generating(file);
+-	return videobuf_poll_stream(file, q, wait);
++	return vb2_poll(q, file, wait);
+ }
+ 
+ static int vivi_close(struct file *file)
+@@ -1054,10 +1071,11 @@ static int vivi_close(struct file *file)
+ 	struct video_device  *vdev = video_devdata(file);
+ 	struct vivi_dev *dev = video_drvdata(file);
+ 
+-	vivi_stop_generating(file);
++	dprintk(dev, 1, "close called (dev=%s), file %p\n",
++		video_device_node_name(vdev), file);
+ 
+-	dprintk(dev, 1, "close called (dev=%s)\n",
+-		video_device_node_name(vdev));
++	if (--dev->open_count == 0)
++		vb2_queue_release(&dev->vb_vidq);
+ 	return 0;
+ }
+ 
+@@ -1068,8 +1086,7 @@ static int vivi_mmap(struct file *file, struct vm_area_struct *vma)
+ 
+ 	dprintk(dev, 1, "mmap called, vma=0x%08lx\n", (unsigned long)vma);
+ 
+-	ret = videobuf_mmap_mapper(&dev->vb_vidq, vma);
+-
++	ret = vb2_mmap(&dev->vb_vidq, vma);
+ 	dprintk(dev, 1, "vma start=0x%08lx, size=%ld, ret=%d\n",
+ 		(unsigned long)vma->vm_start,
+ 		(unsigned long)vma->vm_end - (unsigned long)vma->vm_start,
+@@ -1079,6 +1096,7 @@ static int vivi_mmap(struct file *file, struct vm_area_struct *vma)
+ 
+ static const struct v4l2_file_operations vivi_fops = {
+ 	.owner		= THIS_MODULE,
++	.open		= vivi_open,
+ 	.release        = vivi_close,
+ 	.read           = vivi_read,
+ 	.poll		= vivi_poll,
+@@ -1105,9 +1123,6 @@ static const struct v4l2_ioctl_ops vivi_ioctl_ops = {
+ 	.vidioc_queryctrl     = vidioc_queryctrl,
+ 	.vidioc_g_ctrl        = vidioc_g_ctrl,
+ 	.vidioc_s_ctrl        = vidioc_s_ctrl,
+-#ifdef CONFIG_VIDEO_V4L1_COMPAT
+-	.vidiocgmbuf          = vidiocgmbuf,
+-#endif
+ };
+ 
+ static struct video_device vivi_template = {
+@@ -1148,6 +1163,7 @@ static int __init vivi_create_instance(int inst)
+ {
+ 	struct vivi_dev *dev;
+ 	struct video_device *vfd;
++	struct vb2_queue *q;
+ 	int ret;
+ 
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+@@ -1171,12 +1187,20 @@ static int __init vivi_create_instance(int inst)
+ 
+ 	/* initialize locks */
+ 	spin_lock_init(&dev->slock);
+-	mutex_init(&dev->mutex);
+ 
+-	videobuf_queue_vmalloc_init(&dev->vb_vidq, &vivi_video_qops,
+-			NULL, &dev->slock, V4L2_BUF_TYPE_VIDEO_CAPTURE,
+-			V4L2_FIELD_INTERLACED,
+-			sizeof(struct vivi_buffer), dev, &dev->mutex);
++	/* initialize queue */
++	q = &dev->vb_vidq;
++	memset(q, 0, sizeof(dev->vb_vidq));
++	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
++	q->drv_priv = dev;
++	q->buf_struct_size = sizeof(struct vivi_buffer);
++	q->ops = &vivi_video_qops;
++	q->mem_ops = &vb2_vmalloc_memops;
++
++	vb2_queue_init(q);
++
++	mutex_init(&dev->mutex);
+ 
+ 	/* init video dma queues */
+ 	INIT_LIST_HEAD(&dev->vidq.active);
+@@ -1190,6 +1214,11 @@ static int __init vivi_create_instance(int inst)
+ 	*vfd = vivi_template;
+ 	vfd->debug = debug;
+ 	vfd->v4l2_dev = &dev->v4l2_dev;
++
++	/*
++	 * Provide a mutex to v4l2 core. It will be used to protect
++	 * all fops and v4l2 ioctls.
++	 */
+ 	vfd->lock = &dev->mutex;
+ 
+ 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, video_nr);
+-- 
+1.7.1.569.g6f426
+
