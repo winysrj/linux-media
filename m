@@ -1,43 +1,67 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:63846 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751171Ab0LYPHw convert rfc822-to-8bit (ORCPT
+Received: from smtp5-g21.free.fr ([212.27.42.5]:54262 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752128Ab0LVIpu convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Dec 2010 10:07:52 -0500
-Received: by iyi12 with SMTP id 12so6407045iyi.19
-        for <linux-media@vger.kernel.org>; Sat, 25 Dec 2010 07:07:51 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4D0256DB.2070303@iki.fi>
-References: <4D0256DB.2070303@iki.fi>
-Date: Sat, 25 Dec 2010 16:07:51 +0100
-Message-ID: <AANLkTinOW7+5Rbf8YmRhq4VMB=DxgDC0HQ5zC8YrULRO@mail.gmail.com>
-Subject: Re: dvb-apps: update DVB-T intial tuning files for Finland (fi-*)
-From: Christoph Pfister <christophpfister@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+	Wed, 22 Dec 2010 03:45:50 -0500
+Date: Wed, 22 Dec 2010 09:47:52 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Sudhindra Nayak <sudhindra.nayak@gmail.com>
+Cc: video4linux-list@redhat.com, linux-media@vger.kernel.org
+Subject: Re: Quickcam express: Not able to capture video
+Message-ID: <20101222094752.0802a578@tele>
+In-Reply-To: <AANLkTikjOG14Db=S3Dk6AC53zTpv=fyY4X+HtC16sa_+@mail.gmail.com>
+References: <AANLkTinwrr=vphwVq+dSi2ceL2+qBG_-GMGZHHYujYW4@mail.gmail.com>
+	<AANLkTikjOG14Db=S3Dk6AC53zTpv=fyY4X+HtC16sa_+@mail.gmail.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-2010/12/10 Antti Palosaari <crope@iki.fi>:
-> Moi Christoph,
-> Updates all Finnish channels as today.
+On Wed, 22 Dec 2010 10:45:14 +0530
+Sudhindra Nayak <sudhindra.nayak@gmail.com> wrote:
 
-Committed, thanks (commit message is messed up a bit because I
-misinterpreted your patch as a hg changeset :-).
+> Hi all,
+> 
+> I'm using a 'Logitech Quickcam Express' (046d:0840) camera to capture
+> video. I'm using the STV06xx driver for this camera. I'm using a v4l2
+> example code as my application along with the above mentioned driver.
+	[snip]
+> When I run the application, the kernel crashes. I'm running the
+> application on the AT91 linux4sam kernel running on an
+> AT91SAM9G45-EKES board. I've included the error messages below:
+> 
+> gspca: [a.out] open
+> gspca: frame alloc frsz: 106560
+> gspca: reqbufs st:0 c:4
+	[snip]
+> gspca: packet [0] o:0 l:847
+> STV06xx: Packet of length 0 arrived
+> gspca: packet [1] o:1023 l:63
+> STV06xx: Packet of length 1023 arrived
+> Unable to handle kernel NULL pointer dereference at virtual address
+> 00000040 pgd = c0004000
+> [00000040] *pgd=00000000
+> Internal error: Oops: 17 [#1]
+> Modules linked in:
+> CPU: 0    Not tainted  (2.6.30 #17)
+> PC is at stv06xx_pkt_scan+0x3c/0x1e0
+> LR is at stv06xx_pkt_scan+0x20/0x1e0
+	[snip]
+> Any suggestions??
 
-> I accidentally removed first fi-Smedsbole file since that was not generated
-> by my scripts. Actually it is for the autonomy island named Åland [1]
-> between Finland and Sweden. They have even own top level domain - ax. I
-> think correct name for that is ax-Smedsbole instead of fi.
->
-> [1] http://en.wikipedia.org/wiki/%C3%85land_Islands
+Hi,
 
-Ok, I've changed that.
+(do not use the mailing list at redhat.com. The new one is linux-media
+- see Cc:)
 
-> Antti
-> --
-> http://palosaari.fi/
+Your kernel is rather old. If you cannot change to a newer one (at
+least 2.6.32 or, better, 2.6.34), may you get and try the last gspca
+test version from my web page (see below)?
 
-Christoph
+Regards.
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
