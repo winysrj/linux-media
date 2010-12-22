@@ -1,62 +1,90 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:56504 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751248Ab0LYJLg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Dec 2010 04:11:36 -0500
-Message-ID: <4D15B542.30401@redhat.com>
-Date: Sat, 25 Dec 2010 07:11:30 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: Removal of V4L1 drivers
-References: <201012241442.39702.hverkuil@xs4all.nl> <4D14B29D.3080002@redhat.com>
-In-Reply-To: <4D14B29D.3080002@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-out.m-online.net ([212.18.0.10]:59945 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751311Ab0LVUcA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Dec 2010 15:32:00 -0500
+From: Anatolij Gustschin <agust@denx.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Detlev Zundel <dzu@denx.de>
+Subject: [PATCH v2 2/2] media: fsl_viu: add VIDIOC_QUERYSTD and VIDIOC_G_STD support
+Date: Wed, 22 Dec 2010 21:31:59 +0100
+Message-Id: <1293049919-9098-2-git-send-email-agust@denx.de>
+In-Reply-To: <4D122C53.4070300@redhat.com>
+References: <4D122C53.4070300@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 24-12-2010 12:47, Hans de Goede escreveu:
-> Hi,
-> 
-> On 12/24/2010 02:42 PM, Hans Verkuil wrote:
->> Hi Hans, Mauro,
->>
->> The se401, vicam, ibmcam and konicawc drivers are the only V4L1 drivers left in
->> 2.6.37. The others are either converted or moved to staging (stradis and cpia),
->> ready to be removed.
->>
->> Hans, what is the status of those four drivers?
-> 
-> se401:
-> I have hardware I have taken a look at the driver, converting it is a bit
-> of a pain because it uses a really ugly written statefull decompressor inside
-> the kernel code. The cameras have an uncompressed mode too. I can start doing
-> a conversion to / rewrite as gspca subdriver supporting only the uncompressed
-> mode for now:
+VIDIOC_QUERYSTD and VIDIOC_G_STD ioctls are currently not
+supported in the FSL VIU driver. The decoder subdevice
+driver saa7115 extended by previous patch supports QUERYSTD
+for saa711x, so we add the appropriate ioctls to the VIU
+driver to be able to determine the video input's standard.
 
-Seems fine for me.
+Signed-off-by: Anatolij Gustschin <agust@denx.de>
+---
+Changes since first patch version:
+ - fixed the commit message and rebased
 
-> vicam:
-> Devin Heitmueller (added to the CC) has one such a camera, which he still needs
-> to get into my hands, once I have it I can convert the driver.
-> 
-> ibmcam and konicawc:
-> Both drivers were converted by me recently and the new gspca subdrivers for these
-> have been pulled by Mauro for 2.6.37 .
-> 
-> <snip>
-> 
->> There are two drivers that need more work: stk-webcam has some controls under sysfs
->> that are enabled when CONFIG_VIDEO_V4L1_COMPAT is set. These controls should be
->> rewritten as V4L2 controls. Hans, didn't you have hardware to test this driver?
-> 
-> No I don't have any Syntek DC1125 based webcams.
+ drivers/media/video/fsl-viu.c |   21 +++++++++++++++++++++
+ 1 files changed, 21 insertions(+), 0 deletions(-)
 
-The three controls there seem trivial to be ported to the standard API. So, let's 
-just do the patch and apply, asking the community to test.
+diff --git a/drivers/media/video/fsl-viu.c b/drivers/media/video/fsl-viu.c
+index 693e9c0..e4bba88 100644
+--- a/drivers/media/video/fsl-viu.c
++++ b/drivers/media/video/fsl-viu.c
+@@ -194,6 +194,8 @@ struct viu_dev {
+ 
+ 	/* decoder */
+ 	struct v4l2_subdev	*decoder;
++
++	v4l2_std_id		std;
+ };
+ 
+ struct viu_fh {
+@@ -937,14 +939,31 @@ static int vidioc_streamoff(struct file *file, void *priv, enum v4l2_buf_type i)
+ #define decoder_call(viu, o, f, args...) \
+ 	v4l2_subdev_call(viu->decoder, o, f, ##args)
+ 
++static int vidioc_querystd(struct file *file, void *priv, v4l2_std_id *std_id)
++{
++	struct viu_fh *fh = priv;
++
++	decoder_call(fh->dev, video, querystd, std_id);
++	return 0;
++}
++
+ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *id)
+ {
+ 	struct viu_fh *fh = priv;
+ 
++	fh->dev->std = *id;
+ 	decoder_call(fh->dev, core, s_std, *id);
+ 	return 0;
+ }
+ 
++static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *std_id)
++{
++	struct viu_fh *fh = priv;
++
++	*std_id = fh->dev->std;
++	return 0;
++}
++
+ /* only one input in this driver */
+ static int vidioc_enum_input(struct file *file, void *priv,
+ 					struct v4l2_input *inp)
+@@ -1402,7 +1421,9 @@ static const struct v4l2_ioctl_ops viu_ioctl_ops = {
+ 	.vidioc_querybuf      = vidioc_querybuf,
+ 	.vidioc_qbuf          = vidioc_qbuf,
+ 	.vidioc_dqbuf         = vidioc_dqbuf,
++	.vidioc_g_std         = vidioc_g_std,
+ 	.vidioc_s_std         = vidioc_s_std,
++	.vidioc_querystd      = vidioc_querystd,
+ 	.vidioc_enum_input    = vidioc_enum_input,
+ 	.vidioc_g_input       = vidioc_g_input,
+ 	.vidioc_s_input       = vidioc_s_input,
+-- 
+1.7.1
 
-Cheers,
-Mauro
