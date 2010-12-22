@@ -1,43 +1,59 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-ew0-f45.google.com ([209.85.215.45]:55445 "EHLO
-	mail-ew0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751767Ab0LLWmy (ORCPT
+Received: from mail-out.m-online.net ([212.18.0.10]:33310 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751187Ab0LVUb7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Dec 2010 17:42:54 -0500
-Received: by ewy10 with SMTP id 10so3588953ewy.4
-        for <linux-media@vger.kernel.org>; Sun, 12 Dec 2010 14:42:52 -0800 (PST)
-Message-ID: <4D054FE9.80000@gmail.com>
-Date: Mon, 13 Dec 2010 01:42:49 +0300
-From: Sergej Pupykin <pupykin.s@gmail.com>
-MIME-Version: 1.0
-To: Dan Carpenter <error27@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [patch v2] [media] bttv: take correct lock in bttv_open()
-References: <20101210033304.GX10623@bicker> <4D01D4BE.1080000@gmail.com> <20101212165812.GG10623@bicker>
-In-Reply-To: <20101212165812.GG10623@bicker>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Wed, 22 Dec 2010 15:31:59 -0500
+From: Anatolij Gustschin <agust@denx.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Detlev Zundel <dzu@denx.de>
+Subject: [PATCH v2 1/2] media: saa7115: allow input standard autodetection for more chips
+Date: Wed, 22 Dec 2010 21:31:58 +0100
+Message-Id: <1293049919-9098-1-git-send-email-agust@denx.de>
+In-Reply-To: <4D122C53.4070300@redhat.com>
+References: <4D122C53.4070300@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On 12.12.2010 19:58, Dan Carpenter wrote:
-> We're trying to make sure that no one is writing to the btv->init struct
-> while we copy it over to the newly allocated "fh" struct.  The original
-> code doesn't make sense because "fh->cap.vb_lock" hasn't been
-> initialized and no one else can be writing to it anyway.
->
-This patch also crashes the system. Unfortunately machine hangs, so I 
-can not copy-paste trace. It was something about nosemaphore called from 
-bttv_open. (something like previous reports)
+Autodetect input's standard using field frequency detection
+feature (FIDT in status byte at 0x1F) of the chips saa7111/
+saa7111a/saa7113/saa7114/saa7118.
 
-I replace lock with btv->lock:
+Signed-off-by: Anatolij Gustschin <agust@denx.de>
+---
+Changes since first patch version:
+ - reworked for chips other than saa7115
+ - fixed to return V4L2_STD_525_60 / V4L2_STD_625_50
+   instead of V4L2_STD_NTSC / V4L2_STD_PAL
+ - adapted the commit message
 
-mutex_lock(&btv->lock);
-*fh = btv->init;
-mutex_unlock(&btv->lock);
+ drivers/media/video/saa7115.c |   11 ++++++++++-
+ 1 files changed, 10 insertions(+), 1 deletions(-)
 
-Probably it is overkill and may be incorrect, but it starts working.
+diff --git a/drivers/media/video/saa7115.c b/drivers/media/video/saa7115.c
+index 301c62b..f35459d 100644
+--- a/drivers/media/video/saa7115.c
++++ b/drivers/media/video/saa7115.c
+@@ -1348,8 +1348,17 @@ static int saa711x_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
+ 	int reg1e;
+ 
+ 	*std = V4L2_STD_ALL;
+-	if (state->ident != V4L2_IDENT_SAA7115)
++	if (state->ident != V4L2_IDENT_SAA7115) {
++		int reg1f = saa711x_read(sd, R_1F_STATUS_BYTE_2_VD_DEC);
++
++		if (reg1f & 0x20)
++			*std = V4L2_STD_525_60;
++		else
++			*std = V4L2_STD_625_50;
++
+ 		return 0;
++	}
++
+ 	reg1e = saa711x_read(sd, R_1E_STATUS_BYTE_1_VD_DEC);
+ 
+ 	switch (reg1e & 0x03) {
+-- 
+1.7.1
 
-Also I found another issue: tvtime hangs on exit in D-state, so it looks 
-like there is a problem near bttv_release function or something like this.
