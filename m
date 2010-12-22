@@ -1,128 +1,64 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:61457 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753967Ab0LML1G (ORCPT
+Received: from ganesha.gnumonks.org ([213.95.27.120]:38395 "EHLO
+	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752609Ab0LVMMr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Dec 2010 06:27:06 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Mon, 13 Dec 2010 12:26:46 +0100
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Subject: [PATCHv7 05/10] mm: alloc_contig_free_pages() added
-In-reply-to: <cover.1292004520.git.m.nazarewicz@samsung.com>
-To: Michal Nazarewicz <mina86@mina86.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Ankita Garg <ankita@in.ibm.com>,
-	BooJin Kim <boojin.kim@samsung.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mel Gorman <mel@csn.ul.ie>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	Michal Nazarewicz <m.nazarewicz@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <f94d1c5a7b4265c4cf537226e584f48583c82c67.1292004520.git.m.nazarewicz@samsung.com>
-References: <cover.1292004520.git.m.nazarewicz@samsung.com>
+	Wed, 22 Dec 2010 07:12:47 -0500
+From: Jeongtae Park <jtp.park@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, jaeryul.oh@samsung.com,
+	kgene.kim@samsung.com, ben-linux@fluff.org,
+	jonghun.han@samsung.com, Jeongtae Park <jtp.park@samsung.com>
+Subject: [PATCH 8/9] ARM: S5PV310: Add MFC v5.1 platform device support for SMDKC210
+Date: Wed, 22 Dec 2010 20:54:44 +0900
+Message-Id: <1293018885-15239-9-git-send-email-jtp.park@samsung.com>
+In-Reply-To: <1293018885-15239-8-git-send-email-jtp.park@samsung.com>
+References: <1293018885-15239-1-git-send-email-jtp.park@samsung.com>
+ <1293018885-15239-2-git-send-email-jtp.park@samsung.com>
+ <1293018885-15239-3-git-send-email-jtp.park@samsung.com>
+ <1293018885-15239-4-git-send-email-jtp.park@samsung.com>
+ <1293018885-15239-5-git-send-email-jtp.park@samsung.com>
+ <1293018885-15239-6-git-send-email-jtp.park@samsung.com>
+ <1293018885-15239-7-git-send-email-jtp.park@samsung.com>
+ <1293018885-15239-8-git-send-email-jtp.park@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+This patch adds MFC v5.1 platform device support for SMDKC210.
 
-This commit introduces alloc_contig_free_pages() function
-which allocates (ie. removes from buddy system) free pages
-in range.  Caller has to guarantee that all pages in range
-are in buddy system.
-
-Along with alloc_contig_free_pages(), a free_contig_pages()
-function is provided which frees (or a subset of) pages
-allocated with alloc_contig_free_pages().
-
-I, Michal Nazarewicz, have modified the
-alloc_contig_free_pages() function slightly from the original
-version, mostly to make it easier to allocate note MAX_ORDER
-aligned pages.  This is done by making the function return
-a pfn of a page one past the one allocated which may be
-further then caller requested.
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Reviewed-by: Peter Oh <jaeryul.oh@samsung.com>
+Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
 ---
- include/linux/page-isolation.h |    3 ++
- mm/page_alloc.c                |   42 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 45 insertions(+), 0 deletions(-)
+ arch/arm/mach-s5pv310/Kconfig         |    1 +
+ arch/arm/mach-s5pv310/mach-smdkc210.c |    3 +++
+ 2 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
-index 58cdbac..f1417ed 100644
---- a/include/linux/page-isolation.h
-+++ b/include/linux/page-isolation.h
-@@ -32,6 +32,9 @@ test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
-  */
- extern int set_migratetype_isolate(struct page *page);
- extern void unset_migratetype_isolate(struct page *page);
-+extern unsigned long alloc_contig_freed_pages(unsigned long start,
-+					      unsigned long end, gfp_t flag);
-+extern void free_contig_pages(struct page *page, int nr_pages);
+diff --git a/arch/arm/mach-s5pv310/Kconfig b/arch/arm/mach-s5pv310/Kconfig
+index 7e5dfe3..d1296f4 100644
+--- a/arch/arm/mach-s5pv310/Kconfig
++++ b/arch/arm/mach-s5pv310/Kconfig
+@@ -86,6 +86,7 @@ config MACH_SMDKC210
+ 	select S5PV310_SETUP_SDHCI
+ 	select S5P_DEV_FB
+ 	select S5PV310_SETUP_FB
++	select S5P_DEV_MFC
+ 	help
+ 	  Machine support for Samsung SMDKC210
+ 	  S5PC210(MCP) is one of package option of S5PV310
+diff --git a/arch/arm/mach-s5pv310/mach-smdkc210.c b/arch/arm/mach-s5pv310/mach-smdkc210.c
+index 7de3092..81e338a 100644
+--- a/arch/arm/mach-s5pv310/mach-smdkc210.c
++++ b/arch/arm/mach-s5pv310/mach-smdkc210.c
+@@ -273,6 +273,9 @@ static struct platform_device *smdkc210_devices[] __initdata = {
+ 	&smdkc210_smsc911x,
+ 	&s5pv310_device_fb0,
+ 	&s3c_device_spi_gpio,
++#ifdef CONFIG_VIDEO_SAMSUNG_S5P_MFC
++	&s5p_device_mfc,
++#endif
+ };
  
- /*
-  * For migration.
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 826ba69..997f6c8 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5425,6 +5425,48 @@ out:
- 	spin_unlock_irqrestore(&zone->lock, flags);
- }
- 
-+unsigned long alloc_contig_freed_pages(unsigned long start,
-+				       unsigned long end, gfp_t flag)
-+{
-+	unsigned long pfn = start, count;
-+	struct page *page;
-+	struct zone *zone;
-+	int order;
-+
-+	VM_BUG_ON(!pfn_valid(pfn));
-+	page = pfn_to_page(pfn);
-+
-+	zone = page_zone(page);
-+	spin_lock_irq(&zone->lock);
-+	for (;;) {
-+		VM_BUG_ON(page_count(page) || !PageBuddy(page));
-+		list_del(&page->lru);
-+		order = page_order(page);
-+		zone->free_area[order].nr_free--;
-+		rmv_page_order(page);
-+		__mod_zone_page_state(zone, NR_FREE_PAGES, -(1UL << order));
-+		pfn  += 1 << order;
-+		if (pfn >= end)
-+			break;
-+		VM_BUG_ON(!pfn_valid(pfn));
-+		page += 1 << order;
-+	}
-+	spin_unlock_irq(&zone->lock);
-+
-+	/* After this, pages in the range can be freed one be one */
-+	page = pfn_to_page(start);
-+	for (count = pfn - start; count; --count, ++page)
-+		prep_new_page(page, 0, flag);
-+
-+	return pfn;
-+}
-+
-+void free_contig_pages(struct page *page, int nr_pages)
-+{
-+	for (; nr_pages; --nr_pages, ++page)
-+		__free_page(page);
-+}
-+
- #ifdef CONFIG_MEMORY_HOTREMOVE
- /*
-  * All pages in the range must be isolated before calling this.
+ static void __init smdkc210_smsc911x_init(void)
 -- 
-1.7.2.3
+1.6.2.5
 
