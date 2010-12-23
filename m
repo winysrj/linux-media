@@ -1,184 +1,140 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:23107 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751345Ab0LUNU2 (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:45713 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752703Ab0LWLzK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Dec 2010 08:20:28 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Tue, 21 Dec 2010 14:20:09 +0100
-From: Kamil Debski <k.debski@samsung.com>
-Subject: [RFC/PATCH v5 2/4] MFC: Add MFC 5.1 driver to plat-s5p
-In-reply-to: <1292937611-3362-1-git-send-email-k.debski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	kyungmin.park@samsung.com, k.debski@samsung.com,
-	jaeryul.oh@samsung.com, kgene.kim@samsung.com
-Message-id: <1292937611-3362-3-git-send-email-k.debski@samsung.com>
-References: <1292937611-3362-1-git-send-email-k.debski@samsung.com>
+	Thu, 23 Dec 2010 06:55:10 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v10 6/8] davinci vpbe: board specific additions
+Date: Thu, 23 Dec 2010 17:24:59 +0530
+Message-Id: <1293105299-17520-1-git-send-email-manjunath.hadli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-This patch adds platform support for Multi Format Codec 5.1.
-MFC 5.1 is capable of handling a range of video codecs and this driver
-provides V4L2 interface for video decoding.
+This patch implements tables for display timings,outputs and
+other board related functionalities.
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+
 ---
- arch/arm/mach-s5pv210/clock.c                   |    6 +++
- arch/arm/mach-s5pv210/include/mach/map.h        |    4 ++
- arch/arm/plat-s5p/Kconfig                       |    5 ++
- arch/arm/plat-s5p/Makefile                      |    2 +-
- arch/arm/plat-s5p/dev-mfc.c                     |   49 +++++++++++++++++++++++
- arch/arm/plat-samsung/include/plat/devs.h       |    2 +
- 9 files changed, 116 insertions(+), 2 deletions(-)
- create mode 100644 arch/arm/plat-s5p/dev-mfc.c
+ arch/arm/mach-davinci/board-dm644x-evm.c |   81 +++++++++++++++++++++++++-----
+ 1 files changed, 68 insertions(+), 13 deletions(-)
 
-diff --git a/arch/arm/mach-s5pv210/clock.c b/arch/arm/mach-s5pv210/clock.c
-index 5014b62..f7d742d 100644
---- a/arch/arm/mach-s5pv210/clock.c
-+++ b/arch/arm/mach-s5pv210/clock.c
-@@ -364,6 +364,12 @@ static struct clk init_clocks_disable[] = {
- 		.enable		= s5pv210_clk_ip0_ctrl,
- 		.ctrlbit	= (1 << 26),
- 	}, {
-+		.name		= "mfc",
-+		.id		= -1,
-+		.parent		= &clk_pclk_psys.clk,
-+		.enable		= s5pv210_clk_ip0_ctrl,
-+		.ctrlbit	= (1 << 16),
-+	}, {
- 		.name		= "nfcon",
- 		.id		= -1,
- 		.parent		= &clk_hclk_psys.clk,
-diff --git a/arch/arm/mach-s5pv210/include/mach/map.h b/arch/arm/mach-s5pv210/include/mach/map.h
-index 0982443..d56db00 100644
---- a/arch/arm/mach-s5pv210/include/mach/map.h
-+++ b/arch/arm/mach-s5pv210/include/mach/map.h
-@@ -73,6 +73,8 @@
- #define S5PV210_PA_FIMC1	(0xFB300000)
- #define S5PV210_PA_FIMC2	(0xFB400000)
+diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-davinci/board-dm644x-evm.c
+index 0ca90b8..27facba 100644
+--- a/arch/arm/mach-davinci/board-dm644x-evm.c
++++ b/arch/arm/mach-davinci/board-dm644x-evm.c
+@@ -176,18 +176,6 @@ static struct platform_device davinci_evm_nandflash_device = {
+ 	.resource	= davinci_evm_nandflash_resource,
+ };
  
-+#define S5PV210_PA_MFC		(0xF1700000)
-+
- #define S5PV210_PA_HSMMC(x)	(0xEB000000 + ((x) * 0x100000))
- 
- #define S5PV210_PA_HSOTG	(0xEC000000)
-@@ -107,6 +109,7 @@
- #define S5PV210_PA_DMC0		(0xF0000000)
- #define S5PV210_PA_DMC1		(0xF1400000)
- 
-+
- /* compatibiltiy defines. */
- #define S3C_PA_UART		S5PV210_PA_UART
- #define S3C_PA_HSMMC0		S5PV210_PA_HSMMC(0)
-@@ -123,6 +126,7 @@
- #define S5P_PA_FIMC0		S5PV210_PA_FIMC0
- #define S5P_PA_FIMC1		S5PV210_PA_FIMC1
- #define S5P_PA_FIMC2		S5PV210_PA_FIMC2
-+#define S5P_PA_MFC		S5PV210_PA_MFC
- 
- #define SAMSUNG_PA_ADC		S5PV210_PA_ADC
- #define SAMSUNG_PA_CFCON	S5PV210_PA_CFCON
-diff --git a/arch/arm/plat-s5p/Kconfig b/arch/arm/plat-s5p/Kconfig
-index 9755df9..c7a048e 100644
---- a/arch/arm/plat-s5p/Kconfig
-+++ b/arch/arm/plat-s5p/Kconfig
-@@ -5,6 +5,11 @@
- #
- # Licensed under GPLv2
- 
-+config S5P_DEV_MFC
-+	bool
-+	help
-+	  Compile in platform device definitions for MFC 
-+	  
- config PLAT_S5P
- 	bool
- 	depends on (ARCH_S5P64X0 || ARCH_S5P6442 || ARCH_S5PC100 || ARCH_S5PV210 || ARCH_S5PV310)
-diff --git a/arch/arm/plat-s5p/Makefile b/arch/arm/plat-s5p/Makefile
-index df65cb7..8c1c97c 100644
---- a/arch/arm/plat-s5p/Makefile
-+++ b/arch/arm/plat-s5p/Makefile
-@@ -23,7 +23,7 @@ obj-$(CONFIG_PM)		+= pm.o
- obj-$(CONFIG_PM)		+= irq-pm.o
- 
- # devices
+-static u64 davinci_fb_dma_mask = DMA_BIT_MASK(32);
 -
-+obj-$(CONFIG_S5P_DEV_MFC)	+= dev-mfc.o
- obj-$(CONFIG_S5P_DEV_FIMC0)	+= dev-fimc0.o
- obj-$(CONFIG_S5P_DEV_FIMC1)	+= dev-fimc1.o
- obj-$(CONFIG_S5P_DEV_FIMC2)	+= dev-fimc2.o
-diff --git a/arch/arm/plat-s5p/dev-mfc.c b/arch/arm/plat-s5p/dev-mfc.c
-new file mode 100644
-index 0000000..0dfcb1a
---- /dev/null
-+++ b/arch/arm/plat-s5p/dev-mfc.c
-@@ -0,0 +1,49 @@
-+/* linux/arch/arm/plat-s5p/dev-mfc.c
-+ *
-+ * Copyright (c) 2010 Samsung Electronics
-+ *
-+ * Base S5P MFC 5.1 resource and device definitions
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
+-static struct platform_device davinci_fb_device = {
+-	.name		= "davincifb",
+-	.id		= -1,
+-	.dev = {
+-		.dma_mask		= &davinci_fb_dma_mask,
+-		.coherent_dma_mask      = DMA_BIT_MASK(32),
+-	},
+-	.num_resources = 0,
+-};
+-
+ static struct tvp514x_platform_data tvp5146_pdata = {
+ 	.clk_polarity = 0,
+ 	.hs_polarity = 1,
+@@ -616,8 +604,73 @@ static void __init evm_init_i2c(void)
+ 	i2c_register_board_info(1, i2c_info, ARRAY_SIZE(i2c_info));
+ }
+ 
++#define VENC_STD_ALL    (V4L2_STD_NTSC | V4L2_STD_PAL)
++
++/* venc standards timings */
++static struct vpbe_enc_mode_info vbpe_enc_std_timings[] = {
++	{"ntsc", VPBE_ENC_STD, {V4L2_STD_525_60}, 1, 720, 480,
++	{11, 10}, {30000, 1001}, 0x79, 0, 0x10, 0, 0, 0, 0},
++	{"pal", VPBE_ENC_STD, {V4L2_STD_625_50}, 1, 720, 576,
++	{54, 59}, {25, 1}, 0x7E, 0, 0x16, 0, 0, 0, 0},
++};
++
++/* venc dv preset timings */
++static struct vpbe_enc_mode_info vbpe_enc_preset_timings[] = {
++	{"480p59_94", VPBE_ENC_DV_PRESET, {V4L2_DV_480P59_94}, 0, 720, 480,
++	{1, 1}, {5994, 100}, 0x80, 0, 0x20, 0, 0, 0, 0},
++	{"576p50", VPBE_ENC_DV_PRESET, {V4L2_DV_576P50}, 0, 720, 576,
++	{1, 1}, {50, 1}, 0x7E, 0, 0x30, 0, 0, 0, 0},
++};
++
++/*
++ * The outputs available from VPBE + encoders. Keep the order same
++ * as that of encoders. First that from venc followed by that from
++ * encoders. Index in the output refers to index on a particular encoder.
++ * Driver uses this index to pass it to encoder when it supports more than
++ * one output. Application uses index of the array to set an output.
 + */
-+
-+
-+#include <linux/kernel.h>
-+#include <linux/interrupt.h>
-+#include <linux/platform_device.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/ioport.h>
-+
-+#include <mach/map.h>
-+#include <plat/devs.h>
-+#include <plat/irqs.h>
-+
-+static struct resource s5p_mfc_resource[] = {
-+	[0] = {
-+		.start  = S5P_PA_MFC,
-+		.end    = S5P_PA_MFC + SZ_64K - 1,
-+		.flags  = IORESOURCE_MEM,
++static struct vpbe_output dm644x_vpbe_outputs[] = {
++	{
++		.output = {
++			.index = 0,
++			.name = "Composite",
++			.type = V4L2_OUTPUT_TYPE_ANALOG,
++			.std = VENC_STD_ALL,
++			.capabilities = V4L2_OUT_CAP_STD,
++		},
++		.subdev_name = VPBE_VENC_SUBDEV_NAME,
++		.default_mode = "ntsc",
++		.num_modes = ARRAY_SIZE(vbpe_enc_std_timings),
++		.modes = vbpe_enc_std_timings,
 +	},
-+	[1] = {
-+		.start  = IRQ_MFC,
-+		.end    = IRQ_MFC,
-+		.flags  = IORESOURCE_IRQ,
-+	}
-+};
-+
-+static u64 s5p_mfc_dma_mask = DMA_BIT_MASK(32);
-+
-+struct platform_device s5p_device_mfc = {
-+	.name          = "s5p-mfc",
-+	.id            = -1,
-+	.num_resources = ARRAY_SIZE(s5p_mfc_resource),
-+	.resource      = s5p_mfc_resource,
-+	.dev		= {
-+		.dma_mask		= &s5p_mfc_dma_mask,
-+		.coherent_dma_mask	= DMA_BIT_MASK(32),
++	{
++		.output = {
++			.index = 1,
++			.name = "Component",
++			.type = V4L2_OUTPUT_TYPE_ANALOG,
++			.capabilities = V4L2_OUT_CAP_PRESETS,
++		},
++		.subdev_name = VPBE_VENC_SUBDEV_NAME,
++		.default_mode = "480p59_94",
++		.num_modes = ARRAY_SIZE(vbpe_enc_preset_timings),
++		.modes = vbpe_enc_preset_timings,
 +	},
 +};
 +
-+EXPORT_SYMBOL(s5p_device_mfc);
-diff --git a/arch/arm/plat-samsung/include/plat/devs.h b/arch/arm/plat-samsung/include/plat/devs.h
-index 628b331..67594e2 100644
---- a/arch/arm/plat-samsung/include/plat/devs.h
-+++ b/arch/arm/plat-samsung/include/plat/devs.h
-@@ -124,6 +124,8 @@ extern struct platform_device s5p_device_fimc2;
- extern struct platform_device s5p_device_fimc3;
- extern struct platform_device s5pv310_device_fb0;
- 
-+extern struct platform_device s5p_device_mfc;
++static struct vpbe_display_config vpbe_display_cfg = {
++	.module_name = "dm644x-vpbe-display",
++	.i2c_adapter_id = 1,
++	.osd = {
++		.module_name = VPBE_OSD_SUBDEV_NAME,
++	},
++	.venc = {
++		.module_name = VPBE_VENC_SUBDEV_NAME,
++	},
++	.num_outputs = ARRAY_SIZE(dm644x_vpbe_outputs),
++	.outputs = dm644x_vpbe_outputs,
++};
 +
- /* s3c2440 specific devices */
+ static struct platform_device *davinci_evm_devices[] __initdata = {
+-	&davinci_fb_device,
+ 	&rtc_dev,
+ };
  
- #ifdef CONFIG_CPU_S3C2440
+@@ -630,6 +683,8 @@ davinci_evm_map_io(void)
+ {
+ 	/* setup input configuration for VPFE input devices */
+ 	dm644x_set_vpfe_config(&vpfe_cfg);
++	/* setup configuration for vpbe devices */
++	dm644x_set_vpbe_display_config(&vpbe_display_cfg);
+ 	dm644x_init();
+ }
+ 
 -- 
-1.6.3.3
+1.6.2.4
 
