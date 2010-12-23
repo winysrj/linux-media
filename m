@@ -1,68 +1,46 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:45843 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758123Ab0LUJzr (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56820 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752021Ab0LWIeR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Dec 2010 04:55:47 -0500
-Date: Tue, 21 Dec 2010 10:55:18 +0100
-From: Kamil Debski <k.debski@samsung.com>
-Subject: [RFC/PATCH v5 4/4] s5pv210: Enable MFC on Goni
-In-reply-to: <1292925318-2911-1-git-send-email-k.debski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	kyungmin.park@samsung.com, k.debski@samsung.com,
-	jaeryul.oh@samsung.com, kgene.kim@samsung.com
-Message-id: <1292925318-2911-5-git-send-email-k.debski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1292925318-2911-1-git-send-email-k.debski@samsung.com>
+	Thu, 23 Dec 2010 03:34:17 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [GIT PULL FOR 2.6.37] uvcvideo: BKL removal
+Date: Thu, 23 Dec 2010 09:34:27 +0100
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <201011291115.11061.laurent.pinchart@ideasonboard.com> <201012201328.06493.hverkuil@xs4all.nl> <4D108B1A.6060004@redhat.com>
+In-Reply-To: <4D108B1A.6060004@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201012230934.28933.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-This patch enables MFC 5.1 on Goni board. Multi Format Codec 5.1 is capable
-of handling a range of video codecs.
+Hi Mauro,
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- arch/arm/mach-s5pv210/Kconfig     |    1 +
- arch/arm/mach-s5pv210/mach-goni.c |    3 ++-
- 2 files changed, 3 insertions(+), 1 deletions(-)
+On Tuesday 21 December 2010 12:10:18 Mauro Carvalho Chehab wrote:
+>
+> You didn't understand me: uvcvideo is returning -EBUSY to format changes
+> with buffers freed.
 
-diff --git a/arch/arm/mach-s5pv210/Kconfig b/arch/arm/mach-s5pv210/Kconfig
-index c45a1b7..43f408d 100644
---- a/arch/arm/mach-s5pv210/Kconfig
-+++ b/arch/arm/mach-s5pv210/Kconfig
-@@ -85,6 +85,7 @@ config MACH_GONI
- 	select S3C_DEV_HSMMC2
- 	select S3C_DEV_I2C1
- 	select S3C_DEV_I2C2
-+	select S5P_DEV_MFC
- 	select S3C_DEV_USB_HSOTG
- 	select S5P_DEV_ONENAND
- 	select SAMSUNG_DEV_KEYPAD
-diff --git a/arch/arm/mach-s5pv210/mach-goni.c b/arch/arm/mach-s5pv210/mach-goni.c
-index 8d19ead..553a60e 100644
---- a/arch/arm/mach-s5pv210/mach-goni.c
-+++ b/arch/arm/mach-s5pv210/mach-goni.c
-@@ -810,6 +810,7 @@ static struct platform_device *goni_devices[] __initdata = {
- 	&goni_i2c_gpio5,
- 	&mmc2_fixed_voltage,
- 	&goni_device_gpiokeys,
-+	&s5p_device_mfc,
- 	&s5p_device_fimc0,
- 	&s5p_device_fimc1,
- 	&s5p_device_fimc2,
-@@ -857,7 +858,7 @@ static void __init goni_reserve(void)
- 	};
- 
- 	static const char map[] __initconst =
--		"s5p-mfc5/f=fw;s5p-mfc5/a=b1;s5p-mfc5/b=b2;*=b1,b2";
-+		"s5p-mfc/f=fw;s5p-mfc/a=b1;s5p-mfc/b=b2;*=b1,b2";
- 
- 	cma_set_defaults(regions, map);
- 	cma_early_regions_reserve(NULL);
+As explained in my answer to Hans, that's on purpose.
+
+The uvcvideo driver releases buffers when calling REQBUFS(0). However, the 
+file handle is still marked as owning the device for streaming purpose, so 
+other applications can't change the format or request buffers.
+
+The reason for that is to avoid race conditions when an application wants to 
+change the resolution during capture. As the application has to stop capture, 
+call REQBUFS(0), change the format, request buffers  and restart capture, it 
+prevents another application from racing it after REQBUFS(0).
+
+As Hans correctly pointed out, this should be implemented using the priority 
+ioctls. I will fix that.
+
 -- 
-1.6.3.3
+Regards,
 
+Laurent Pinchart
