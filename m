@@ -1,100 +1,90 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-bw0-f45.google.com ([209.85.214.45]:52717 "EHLO
-	mail-bw0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754312Ab0LNKhL (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:65233 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751493Ab0LWNJy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Dec 2010 05:37:11 -0500
-Received: by bwz16 with SMTP id 16so585044bwz.4
-        for <linux-media@vger.kernel.org>; Tue, 14 Dec 2010 02:37:10 -0800 (PST)
-Date: Tue, 14 Dec 2010 13:36:58 +0300
-From: Dan Carpenter <error27@gmail.com>
-To: Sergej Pupykin <pupykin.s@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [patch v2] [media] bttv: take correct lock in bttv_open()
-Message-ID: <20101214103658.GL1620@bicker>
-References: <20101210033304.GX10623@bicker>
- <4D01D4BE.1080000@gmail.com>
- <20101212165812.GG10623@bicker>
- <4D054FE9.80000@gmail.com>
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="MfFXiAuoTsnnDAfZ"
-Content-Disposition: inline
-In-Reply-To: <4D054FE9.80000@gmail.com>
+	Thu, 23 Dec 2010 08:09:54 -0500
+Date: Thu, 23 Dec 2010 14:09:44 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCHv8 00/12] Contiguous Memory Allocator
+In-reply-to: <20101223121917.GG3636@n2100.arm.linux.org.uk>
+To: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>
+Cc: 'Kyungmin Park' <kmpark@infradead.org>,
+	'Michal Nazarewicz' <m.nazarewicz@samsung.com>,
+	linux-arm-kernel@lists.infradead.org,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Johan MOSSBERG' <johan.xx.mossberg@stericsson.com>,
+	'Mel Gorman' <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
+	'Michal Nazarewicz' <mina86@mina86.com>, linux-mm@kvack.org,
+	'Ankita Garg' <ankita@in.ibm.com>,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	linux-media@vger.kernel.org,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <00ec01cba2a2$af20b8b0$0d622a10$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <cover.1292443200.git.m.nazarewicz@samsung.com>
+ <AANLkTim8_=0+-zM5z4j0gBaw3PF3zgpXQNetEn-CfUGb@mail.gmail.com>
+ <20101223100642.GD3636@n2100.arm.linux.org.uk>
+ <00ea01cba290$4d67f500$e837df00$%szyprowski@samsung.com>
+ <20101223121917.GG3636@n2100.arm.linux.org.uk>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
+Hello,
 
---MfFXiAuoTsnnDAfZ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Thursday, December 23, 2010 1:19 PM Russell King - ARM Linux wrote:
 
-On Mon, Dec 13, 2010 at 01:42:49AM +0300, Sergej Pupykin wrote:
-> mutex_lock(&btv->lock);
-> *fh = btv->init;
-> mutex_unlock(&btv->lock);
+> On Thu, Dec 23, 2010 at 11:58:08AM +0100, Marek Szyprowski wrote:
+> > Actually this contiguous memory allocator is a better replacement for
+> > alloc_pages() which is used by dma_alloc_coherent(). It is a generic
+> > framework that is not tied only to ARM architecture.
 > 
-> Probably it is overkill and may be incorrect, but it starts working.
->
+> ... which is open to abuse.  What I'm trying to find out is - if it
+> can't be used for DMA, what is it to be used for?
+> 
+> Or are we inventing an everything-but-ARM framework?
 
-Mauro would be the one to know for sure.
- 
-> Also I found another issue: tvtime hangs on exit in D-state, so it
-> looks like there is a problem near bttv_release function or
-> something like this.
+We are trying to get something that really works and SOLVES some of the
+problems with real devices that require contiguous memory for DMA.
 
-Speaking of other bugs in this driver, I submitted a another fix
-that hasn't been merged yet.  I've attached it.  Don't know if it's
-related at all to the other bug you noticed but it can't hurt.
+> > > In other words, do we _actually_ have a use for this which doesn't
+> > > involve doing something like allocating 32MB of memory from it,
+> > > remapping it so that it's DMA coherent, and then performing DMA
+> > > on the resulting buffer?
+> >
+> > This is an arm specific problem, also related to dma_alloc_coherent()
+> > allocator. To be 100% conformant with ARM specification we would
+> > probably need to unmap all pages used by the dma_coherent allocator
+> > from the LOW MEM area. This is doable, but completely not related
+> > to the CMA and this patch series.
+> 
+> You've already been told why we can't unmap pages from the kernel
+> direct mapping.
 
-regards,
-dan carpenter
+It requires some amount of work but I see no reason why we shouldn't be
+able to unmap that pages to stay 100% conformant with ARM spec.
 
---MfFXiAuoTsnnDAfZ
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="bt8xx.diff"
+Please notice that there are also use cases where the memory will not be
+accessed by the CPU at all (like DMA transfers between multimedia devices
+and the system memory).
 
->From error27@gmail.com Thu Nov 18 07:19:15 2010
-Date: Thu, 18 Nov 2010 06:55:59 +0300
-From: Dan Carpenter <error27@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch] [media] bt8xx: missing unlock in bttv_overlay()
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset=utf-8
-Status: RO
+> Okay, so I'm just going to assume that CMA has _no_ _business_ being
+> used on ARM, and is not something that should interest anyone in the
+> ARM community.
 
-There is a missing unlock here.  This was introduced as part of BKL
-removal in c37db91fd0d4 "V4L/DVB: bttv: fix driver lock and remove
-explicit calls to BKL"
-
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-
-diff --git a/drivers/media/video/bt8xx/bttv-driver.c b/drivers/media/video/bt8xx/bttv-driver.c
-index 3da6e80..aca755c 100644
---- a/drivers/media/video/bt8xx/bttv-driver.c
-+++ b/drivers/media/video/bt8xx/bttv-driver.c
-@@ -2779,16 +2779,14 @@ static int bttv_overlay(struct file *file, void *f, unsigned int on)
- 		mutex_lock(&fh->cap.vb_lock);
- 		/* verify args */
- 		if (unlikely(!btv->fbuf.base)) {
--			mutex_unlock(&fh->cap.vb_lock);
--			return -EINVAL;
--		}
--		if (unlikely(!fh->ov.setup_ok)) {
-+			retval = -EINVAL;
-+		} else if (unlikely(!fh->ov.setup_ok)) {
- 			dprintk("bttv%d: overlay: !setup_ok\n", btv->c.nr);
- 			retval = -EINVAL;
- 		}
-+		mutex_unlock(&fh->cap.vb_lock);
- 		if (retval)
- 			return retval;
--		mutex_unlock(&fh->cap.vb_lock);
- 	}
- 
- 	if (!check_alloc_btres_lock(btv, fh, RESOURCE_OVERLAY))
+Go ahead! Remeber to remove dma_coherent because it also breaks the spec. :)
+Oh, I forgot. We can also remove all device drivers that might use DMA. :)
 
 
---MfFXiAuoTsnnDAfZ--
+
+Merry Christmas and Happy New Year for everyone! :)
+
+Best regards
+--
+Marek Szyprowski
+Samsung Poland R&D Center
+
