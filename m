@@ -1,114 +1,92 @@
 Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51213 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757180Ab0LTLgg (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:16265 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752829Ab0LWPfd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Dec 2010 06:36:36 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Cc: broonie@opensource.wolfsonmicro.com, clemens@ladisch.de,
-	gregkh@suse.de, sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v7 00/12] Media controller (core and V4L2)
-Date: Mon, 20 Dec 2010 12:36:23 +0100
-Message-Id: <1292844995-7900-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Thu, 23 Dec 2010 10:35:33 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-1
+Date: Thu, 23 Dec 2010 16:35:30 +0100
+From: Tomasz Fujak <t.fujak@samsung.com>
+Subject: Re: [PATCHv8 00/12] Contiguous Memory Allocator
+In-reply-to: <20101223142053.GN3636@n2100.arm.linux.org.uk>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kmpark@infradead.org>,
+	linux-arm-kernel@lists.infradead.org,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
+	Mel Gorman <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
+	linux-mm@kvack.org, Ankita Garg <ankita@in.ibm.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-media@vger.kernel.org,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <4D136C42.6090601@samsung.com>
+References: <cover.1292443200.git.m.nazarewicz@samsung.com>
+ <AANLkTim8_=0+-zM5z4j0gBaw3PF3zgpXQNetEn-CfUGb@mail.gmail.com>
+ <20101223100642.GD3636@n2100.arm.linux.org.uk>
+ <87k4j0ehdl.fsf@erwin.mina86.com>
+ <20101223135120.GL3636@n2100.arm.linux.org.uk> <4D1357D5.9000507@samsung.com>
+ <20101223142053.GN3636@n2100.arm.linux.org.uk>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi everybody,
+On 2010-12-23 15:20, Russell King - ARM Linux wrote:
+> On Thu, Dec 23, 2010 at 03:08:21PM +0100, Tomasz Fujak wrote:
+>> On 2010-12-23 14:51, Russell King - ARM Linux wrote:
+>>> On Thu, Dec 23, 2010 at 02:41:26PM +0100, Michal Nazarewicz wrote:
+>>>> Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
+>>>>> Has anyone addressed my issue with it that this is wide-open for
+>>>>> abuse by allocating large chunks of memory, and then remapping
+>>>>> them in some way with different attributes, thereby violating the
+>>>>> ARM architecture specification?
+>>>>>
+>>>>> In other words, do we _actually_ have a use for this which doesn't
+>>>>> involve doing something like allocating 32MB of memory from it,
+>>>>> remapping it so that it's DMA coherent, and then performing DMA
+>>>>> on the resulting buffer?
+>>>> Huge pages.
+>>>>
+>>>> Also, don't treat it as coherent memory and just flush/clear/invalidate
+>>>> cache before and after each DMA transaction.  I never understood what's
+>>>> wrong with that approach.
+>>> If you've ever used an ARM system with a VIVT cache, you'll know what's
+>>> wrong with this approach.
+>>>
+>>> ARM systems with VIVT caches have extremely poor task switching
+>>> performance because they flush the entire data cache at every task switch
+>>> - to the extent that it makes system performance drop dramatically when
+>>> they become loaded.
+>>>
+>>> Doing that for every DMA operation will kill the advantage we've gained
+>>> from having VIPT caches and ASIDs stone dead.
+>> This statement effectively means: don't map dma-able memory to the CPU
+>> unless it's uncached. Have I missed anything?
+> I'll give you another solution to the problem - lobby ARM Ltd to have
+> this restriction lifted from the architecture specification, which
+> will probably result in the speculative prefetching also having to be
+> removed.
+>
+Isn't disabling Speculative Accesses forwarding to the AXI bus the
+solution to our woes?
+At least on the A8, which happens to be paired with non-IOMMU capable
+IPs on our SoCs.
+On A9 the bit is gone (or has it moved?), but we have IOMMU here so the
+CMA isn't needed.
 
-Here is the seventh version of the media controller core and V4L2 patches.
-the first one to be sent outside of the linux-media mailing list.
+http://infocenter.arm.com/
+Cortex-A8 Technical Reference Manual    Revision: r3p2
+3.2.26. c1, Auxiliary Control Register
+CP15, c1, c0, bit 4: Enables speculative accesses on AXI
 
-Quick reminder for those who missed the previous version. let me quote the
-documentation (Documentation/DocBook/v4l/media-controller.xml).
-
-"Discovering a [media] device internal topology, and configuring it at runtime,
-is one of the goals of the media controller API. To achieve this, hardware
-devices are modelled as an oriented graph of building blocks called entities
-connected through pads."
-
-The code has been extensively reviewed by the V4L community, and this version
-is the first one to incorporate comments from the ALSA community (big thanks
-to Mark Brown and Clemens Ladisch). Two issues are not fully addressed yet,
-namely power management (I need to discuss this some more with the ALSA
-developers to really understand their requirements) and entities type names.
-I'm still posting this for review, as other developers have showed interest in
-commenting on the code.
-
-I want to emphasize once again that the media controller API does not replace
-the V4L, DVB or ALSA APIs. It complements them.
-
-The first user of the media controller API is the OMAP3 ISP driver. You can
-find it (as well as these patches and other V4L-specific patches) in a git tree
-at http://git.linuxtv.org/pinchartl/media.git (media-0004-omap3isp branch). The
-OMAP3 ISP driver patches are regularly posted for review on the linux-media
-list.
-
-Laurent Pinchart (10):
-  media: Media device node support
-  media: Media device
-  media: Entities, pads and links
-  media: Media device information query
-  media: Entities, pads and links enumeration
-  media: Links setup
-  media: Pipelines and media streams
-  v4l: Add a media_device pointer to the v4l2_device structure
-  v4l: Make video_device inherit from media_entity
-  v4l: Make v4l2_subdev inherit from media_entity
-
-Sakari Ailus (2):
-  media: Entity graph traversal
-  media: Reference count and power handling
-
- Documentation/DocBook/media-entities.tmpl          |   24 +
- Documentation/DocBook/media.tmpl                   |    3 +
- Documentation/DocBook/v4l/media-controller.xml     |   89 +++
- Documentation/DocBook/v4l/media-func-close.xml     |   59 ++
- Documentation/DocBook/v4l/media-func-ioctl.xml     |  116 ++++
- Documentation/DocBook/v4l/media-func-open.xml      |   94 +++
- .../DocBook/v4l/media-ioc-device-info.xml          |  133 ++++
- .../DocBook/v4l/media-ioc-enum-entities.xml        |  308 +++++++++
- Documentation/DocBook/v4l/media-ioc-enum-links.xml |  207 ++++++
- Documentation/DocBook/v4l/media-ioc-setup-link.xml |   93 +++
- Documentation/media-framework.txt                  |  383 +++++++++++
- Documentation/video4linux/v4l2-framework.txt       |   72 ++-
- drivers/media/Kconfig                              |   13 +
- drivers/media/Makefile                             |   10 +-
- drivers/media/media-device.c                       |  382 +++++++++++
- drivers/media/media-devnode.c                      |  321 +++++++++
- drivers/media/media-entity.c                       |  690 ++++++++++++++++++++
- drivers/media/video/v4l2-dev.c                     |   49 ++-
- drivers/media/video/v4l2-device.c                  |   52 ++-
- drivers/media/video/v4l2-subdev.c                  |   41 ++-
- include/linux/Kbuild                               |    1 +
- include/linux/media.h                              |  132 ++++
- include/media/media-device.h                       |   92 +++
- include/media/media-devnode.h                      |   97 +++
- include/media/media-entity.h                       |  148 +++++
- include/media/v4l2-dev.h                           |    7 +
- include/media/v4l2-device.h                        |    4 +
- include/media/v4l2-subdev.h                        |   10 +
- 28 files changed, 3603 insertions(+), 27 deletions(-)
- create mode 100644 Documentation/DocBook/v4l/media-controller.xml
- create mode 100644 Documentation/DocBook/v4l/media-func-close.xml
- create mode 100644 Documentation/DocBook/v4l/media-func-ioctl.xml
- create mode 100644 Documentation/DocBook/v4l/media-func-open.xml
- create mode 100644 Documentation/DocBook/v4l/media-ioc-device-info.xml
- create mode 100644 Documentation/DocBook/v4l/media-ioc-enum-entities.xml
- create mode 100644 Documentation/DocBook/v4l/media-ioc-enum-links.xml
- create mode 100644 Documentation/DocBook/v4l/media-ioc-setup-link.xml
- create mode 100644 Documentation/media-framework.txt
- create mode 100644 drivers/media/media-device.c
- create mode 100644 drivers/media/media-devnode.c
- create mode 100644 drivers/media/media-entity.c
- create mode 100644 include/linux/media.h
- create mode 100644 include/media/media-device.h
- create mode 100644 include/media/media-devnode.h
- create mode 100644 include/media/media-entity.h
-
--- 
-Regards,
-
-Laurent Pinchart
+> That would be my preferred solution if I had the power to do so, but
+> I have to live with what ARM Ltd (and their partners such as yourselves)
+> decide should end up in the architecture specification.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
