@@ -1,667 +1,263 @@
 Return-path: <mchehab@gaivota>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48219 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752097Ab0LQKnz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Dec 2010 05:43:55 -0500
-From: manjunatha_halli@ti.com
-To: mchehab@infradead.org, hverkuil@xs4all.nl
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Manjunatha Halli <manjunatha_halli@ti.com>
-Subject: [PATCH v7 2/7] drivers:media:radio: wl128x: fmdrv_v4l2 sources
-Date: Fri, 17 Dec 2010 06:06:31 -0500
-Message-Id: <1292583996-4440-3-git-send-email-manjunatha_halli@ti.com>
-In-Reply-To: <1292583996-4440-2-git-send-email-manjunatha_halli@ti.com>
-References: <1292583996-4440-1-git-send-email-manjunatha_halli@ti.com>
- <1292583996-4440-2-git-send-email-manjunatha_halli@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:56618 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753048Ab0LWOn2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Dec 2010 09:43:28 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v10 5/8] davinci vpbe: platform specific additions
+Date: Thu, 23 Dec 2010 20:13:12 +0530
+Message-Id: <1293115392-21131-1-git-send-email-manjunath.hadli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-From: Manjunatha Halli <manjunatha_halli@ti.com>
+This patch implements the overall device creation for the Video
+display driver
 
-This module interfaces V4L2 subsystem and FM common module.
-It registers itself with V4L2 as Radio module.
-
-Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
 ---
- drivers/media/radio/wl128x/fmdrv_v4l2.c |  588 +++++++++++++++++++++++++++++++
- drivers/media/radio/wl128x/fmdrv_v4l2.h |   33 ++
- 2 files changed, 621 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/radio/wl128x/fmdrv_v4l2.c
- create mode 100644 drivers/media/radio/wl128x/fmdrv_v4l2.h
+ arch/arm/mach-davinci/dm644x.c              |  173 +++++++++++++++++++++++++--
+ arch/arm/mach-davinci/include/mach/dm644x.h |    4 +
+ 2 files changed, 169 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/radio/wl128x/fmdrv_v4l2.c b/drivers/media/radio/wl128x/fmdrv_v4l2.c
-new file mode 100644
-index 0000000..623102f
---- /dev/null
-+++ b/drivers/media/radio/wl128x/fmdrv_v4l2.c
-@@ -0,0 +1,588 @@
-+/*
-+ *  FM Driver for Connectivity chip of Texas Instruments.
-+ *  This file provides interfaces to V4L2 subsystem.
-+ *
-+ *  This module registers with V4L2 subsystem as Radio
-+ *  data system interface (/dev/radio). During the registration,
-+ *  it will expose two set of function pointers.
-+ *
-+ *    1) File operation related API (open, close, read, write, poll...etc).
-+ *    2) Set of V4L2 IOCTL complaint API.
-+ *
-+ *  Copyright (C) 2010 Texas Instruments
-+ *  Author: Raja Mani <raja_mani@ti.com>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2 as
-+ *  published by the Free Software Foundation.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ *
-+ */
+diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+index 9a2376b..eb87867 100644
+--- a/arch/arm/mach-davinci/dm644x.c
++++ b/arch/arm/mach-davinci/dm644x.c
+@@ -370,6 +370,7 @@ static struct platform_device dm644x_mdio_device = {
+  *	soc	description	mux  mode   mode  mux	 dbg
+  *				reg  offset mask  mode
+  */
 +
-+#include "fmdrv.h"
-+#include "fmdrv_v4l2.h"
-+#include "fmdrv_common.h"
-+#include "fmdrv_rx.h"
-+#include "fmdrv_tx.h"
+ static const struct mux_config dm644x_pins[] = {
+ #ifdef CONFIG_DAVINCI_MUX
+ MUX_CFG(DM644X, HDIREN,		0,   16,    1,	  1,	 true)
+@@ -654,6 +655,146 @@ void dm644x_set_vpfe_config(struct vpfe_config *cfg)
+ 	vpfe_capture_dev.dev.platform_data = cfg;
+ }
+ 
++static struct resource dm644x_osd_resources[] = {
++	{
++		.start  = 0x01C72600,
++		.end    = 0x01C72600 + 0x1ff,
++		.flags  = IORESOURCE_MEM,
++	},
++};
 +
-+static struct video_device *gradio_dev;
-+static unsigned char radio_disconnected;
++static u64 dm644x_osd_dma_mask = DMA_BIT_MASK(32);
 +
-+/* -- V4L2 RADIO (/dev/radioX) device file operation interfaces --- */
++static struct platform_device dm644x_osd_dev = {
++	.name           = VPBE_OSD_SUBDEV_NAME,
++	.id             = -1,
++	.num_resources  = ARRAY_SIZE(dm644x_osd_resources),
++	.resource       = dm644x_osd_resources,
++	.dev = {
++		.dma_mask               = &dm644x_osd_dma_mask,
++		.coherent_dma_mask      = DMA_BIT_MASK(32),
++		.platform_data          = DM644X_VPBE,
++	},
++};
 +
-+/* Read RX RDS data */
-+static ssize_t fm_v4l2_fops_read(struct file *file, char __user * buf,
-+					size_t count, loff_t *ppos)
-+{
-+	unsigned char rds_mode;
-+	int ret;
-+	struct fmdrv_ops *fmdev;
++static struct resource dm644x_venc_resources[] = {
++	/* venc registers io space */
++	{
++		.start  = 0x01C72400,
++		.end    = 0x01C72400 + 0x17f,
++		.flags  = IORESOURCE_MEM,
++	},
++};
 +
-+	fmdev = video_drvdata(file);
++static u64 dm644x_venc_dma_mask = DMA_BIT_MASK(32);
 +
-+	if (!radio_disconnected) {
-+		pr_err("(fmdrv): FM device is already disconnected\n");
-+		return -EIO;
-+	}
++#define VPSS_CLKCTL     0x01C40044
 +
-+	/* Turn on RDS mode , if it is disabled */
-+	ret = fm_rx_get_rds_mode(fmdev, &rds_mode);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Unable to read current rds mode\n");
-+		return ret;
-+	}
++static void __iomem *vpss_clkctl_reg;
 +
-+	if (rds_mode == FM_RDS_DISABLE) {
-+		ret = fmc_set_rds_mode(fmdev, FM_RDS_ENABLE);
-+		if (ret < 0) {
-+			pr_err("(fmdrv): Failed to enable rds mode\n");
-+			return ret;
-+		}
-+	}
-+
-+	/* Copy RDS data from internal buffer to user buffer */
-+	ret = fmc_transfer_rds_from_internal_buff(fmdev, file, buf, count);
-+
-+	return ret;
-+}
-+
-+/* Write TX RDS data */
-+static ssize_t fm_v4l2_fops_write(struct file *file, const char __user * buf,
-+					size_t count, loff_t *ppos)
-+{
-+	struct tx_rds rds;
-+	int ret;
-+	struct fmdrv_ops *fmdev;
-+
-+	ret = copy_from_user(&rds, buf, sizeof(rds));
-+	pr_debug("(fmdrv): (%d)type: %d, text %s, af %d\n",
-+		   ret, rds.text_type, rds.text, rds.af_freq);
-+
-+	fmdev = video_drvdata(file);
-+	fm_tx_set_radio_text(fmdev, rds.text, rds.text_type);
-+	fm_tx_set_af(fmdev, rds.af_freq);
-+
-+	return 0;
-+}
-+
-+static unsigned int fm_v4l2_fops_poll(struct file *file,
-+				      struct poll_table_struct *pts)
-+{
-+	int ret;
-+	struct fmdrv_ops *fmdev;
-+
-+	fmdev = video_drvdata(file);
-+	ret = fmc_is_rds_data_available(fmdev, file, pts);
-+	if (ret < 0)
-+		return POLLIN | POLLRDNORM;
-+
-+	return 0;
-+}
-+
-+/*
-+ * Handle open request for "/dev/radioX" device.
-+ * Start with FM RX mode as default.
-+ */
-+static int fm_v4l2_fops_open(struct file *file)
-+{
-+	int ret;
-+	struct fmdrv_ops *fmdev = NULL;
-+
-+	/* Don't allow multiple open */
-+	if (radio_disconnected) {
-+		pr_err("(fmdrv): FM device is already opened\n");
-+		return -EBUSY;
-+	}
-+
-+	fmdev = video_drvdata(file);
-+
-+	ret = fmc_prepare(fmdev);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Unable to prepare FM CORE\n");
-+		return ret;
-+	}
-+
-+	pr_debug("(fmdrv): Load FM RX firmware..\n");
-+
-+	ret = fmc_set_mode(fmdev, FM_MODE_RX);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Unable to load FM RX firmware\n");
-+		return ret;
-+	}
-+	radio_disconnected = 1;
-+
-+	return ret;
-+}
-+
-+static int fm_v4l2_fops_release(struct file *file)
++/* TBD. Check what VENC_CLOCK_SEL settings for HDTV and EDTV */
++static int dm644x_venc_setup_clock(enum vpbe_enc_timings_type type, __u64 mode)
 +{
 +	int ret = 0;
-+	struct fmdrv_ops *fmdev;
 +
-+	fmdev = video_drvdata(file);
-+	if (!radio_disconnected) {
-+		pr_debug("(fmdrv): FM device is already closed\n");
-+		return ret;
-+	}
-+
-+	ret = fmc_set_mode(fmdev, FM_MODE_OFF);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Unable to turn off the chip\n");
-+		return ret;
-+	}
-+
-+	ret = fmc_release(fmdev);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): FM CORE release failed\n");
-+		return ret;
-+	}
-+	radio_disconnected = 0;
-+
-+	return ret;
-+}
-+
-+/* V4L2 RADIO (/dev/radioX) device IOCTL interfaces */
-+static int fm_v4l2_vidioc_querycap(struct file *file, void *priv,
-+		struct v4l2_capability *capability)
-+{
-+	strlcpy(capability->driver, FM_DRV_NAME, sizeof(capability->driver));
-+	strlcpy(capability->card, FM_DRV_CARD_SHORT_NAME,
-+			sizeof(capability->card));
-+	sprintf(capability->bus_info, "UART");
-+	capability->version = FM_DRV_RADIO_VERSION;
-+	capability->capabilities = V4L2_CAP_HW_FREQ_SEEK | V4L2_CAP_TUNER |
-+		V4L2_CAP_RADIO | V4L2_CAP_MODULATOR |
-+		V4L2_CAP_AUDIO | V4L2_CAP_READWRITE |
-+		V4L2_CAP_RDS_CAPTURE;
-+
-+	return 0;
-+}
-+
-+static int fm_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct fmdrv_ops *fmdev = container_of(ctrl->handler,
-+			struct fmdrv_ops, ctrl_handler);
-+
-+	switch (ctrl->id) {
-+	case  V4L2_CID_TUNE_ANTENNA_CAPACITOR:
-+		ctrl->val = fm_tx_get_tune_cap_val(fmdev);
++	if (NULL == vpss_clkctl_reg)
++		return -EINVAL;
++	switch (type) {
++	case VPBE_ENC_STD:
++		__raw_writel(0x18, vpss_clkctl_reg);
++		break;
++	case VPBE_ENC_DV_PRESET:
++		switch ((unsigned int)mode) {
++		case V4L2_DV_480P59_94:
++		case V4L2_DV_576P50:
++			 __raw_writel(0x19, vpss_clkctl_reg);
++			break;
++		case V4L2_DV_720P60:
++		case V4L2_DV_1080I60:
++		case V4L2_DV_1080P30:
++			/*
++			 * For HD, use external clock source since
++			 * HD requires higher clock rate
++			 */
++			__raw_writel(0xa, vpss_clkctl_reg);
++			break;
++		default:
++			ret  = -EINVAL;
++			break;
++		}
 +		break;
 +	default:
-+		pr_warn("(fmdev): %s: Unknown IOCTL: %d\n",
-+				__func__, ctrl->id);
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+static int fm_v4l2_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct fmdrv_ops *fmdev = container_of(ctrl->handler,
-+			struct fmdrv_ops, ctrl_handler);
-+	int ret = -EINVAL;
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_AUDIO_VOLUME:	/* set volume */
-+		ret = fm_rx_set_volume(fmdev,
-+				(unsigned short)ctrl->val);
-+		break;
-+	case V4L2_CID_AUDIO_MUTE:	/* set mute */
-+		ret = fmc_set_mute_mode(fmdev,
-+				(unsigned char)ctrl->val);
-+		break;
-+	case V4L2_CID_TUNE_POWER_LEVEL:
-+		/* set TX power level - ext control */
-+		ret = fm_tx_set_pwr_lvl(fmdev,
-+				(unsigned char)ctrl->val);
-+		break;
-+	case V4L2_CID_TUNE_PREEMPHASIS:
-+		ret = fm_tx_set_preemph_filter(fmdev,
-+				(unsigned char) ctrl->val);
-+		break;
++		ret  = -EINVAL;
 +	}
 +	return ret;
 +}
 +
-+static int fm_v4l2_vidioc_g_audio(struct file *file, void *priv,
-+					struct v4l2_audio *audio)
++static inline u32 dm644x_reg_modify(void *reg, u32 val, u32 mask)
 +{
-+	memset(audio, 0, sizeof(*audio));
-+	audio->index = 0;
-+	strcpy(audio->name, "Radio");
-+	audio->capability = V4L2_AUDCAP_STEREO;
-+
-+	return 0;
++	u32 new_val = (__raw_readl(reg) & ~mask) | (val & mask);
++	__raw_writel(new_val, reg);
++	return new_val;
 +}
 +
-+static int fm_v4l2_vidioc_s_audio(struct file *file, void *priv,
-+					struct v4l2_audio *audio)
-+{
-+	if (audio->index != 0)
-+		return -EINVAL;
++static u64 vpbe_display_dma_mask = DMA_BIT_MASK(32);
 +
-+	return 0;
-+}
-+
-+/* Get tuner attributes. If current mode is NOT RX, return error */
-+static int fm_v4l2_vidioc_g_tuner(struct file *file, void *priv,
-+					struct v4l2_tuner *tuner)
-+{
-+	struct fmdrv_ops *fmdev = video_drvdata(file);
-+	unsigned int bottom_frequency;
-+	unsigned int top_frequency;
-+	unsigned short stereo_mono_mode;
-+	unsigned short rssilvl;
-+	int ret = -EINVAL;
-+
-+	if (tuner->index != 0)
-+		return ret;
-+
-+	if (fmdev->curr_fmmode != FM_MODE_RX)
-+		return -EPERM;
-+
-+	ret = fm_rx_get_currband_freq_range(fmdev, &bottom_frequency,
-+						 &top_frequency);
-+	if (ret != 0)
-+		return ret;
-+
-+	ret = fm_rx_get_stereo_mono(fmdev, &stereo_mono_mode);
-+	if (ret != 0)
-+		return ret;
-+
-+	ret = fm_rx_get_rssi_level(fmdev, &rssilvl);
-+	if (ret != 0)
-+		return ret;
-+
-+	strcpy(tuner->name, "FM");
-+	tuner->type = V4L2_TUNER_RADIO;
-+	/* Store rangelow and rangehigh freq in unit of 62.5 Hz */
-+	tuner->rangelow = bottom_frequency * 16;
-+	tuner->rangehigh = top_frequency * 16;
-+	tuner->rxsubchans = V4L2_TUNER_SUB_MONO | V4L2_TUNER_SUB_STEREO |
-+	((fmdev->rx.rds.flag == FM_RDS_ENABLE) ? V4L2_TUNER_SUB_RDS : 0);
-+	tuner->capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS |
-+			    V4L2_TUNER_CAP_LOW;
-+	tuner->audmode = (stereo_mono_mode ?
-+			  V4L2_TUNER_MODE_MONO : V4L2_TUNER_MODE_STEREO);
-+
-+	/*
-+	 * Actual rssi value lies in between -128 to +127.
-+	 * Convert this range from 0 to 255 by adding +128
-+	 */
-+	rssilvl += 128;
-+
-+	/*
-+	 * Return signal strength value should be within 0 to 65535.
-+	 * Find out correct signal radio by multiplying (65535/255) = 257
-+	 */
-+	tuner->signal = rssilvl * 257;
-+	tuner->afc = 0;
-+
-+	return ret;
-+}
-+
-+/*
-+ * Set tuner attributes. If current mode is NOT RX, set to RX.
-+ * Currently, we set only audio mode (mono/stereo) and RDS state (on/off).
-+ * Should we set other tuner attributes, too?
-+ */
-+static int fm_v4l2_vidioc_s_tuner(struct file *file, void *priv,
-+					struct v4l2_tuner *tuner)
-+{
-+	struct fmdrv_ops *fmdev = video_drvdata(file);
-+	unsigned short aud_mode;
-+	unsigned char rds_mode;
-+	int ret = -EINVAL;
-+
-+	if (tuner->index != 0)
-+		return ret;
-+
-+	aud_mode = (tuner->audmode == V4L2_TUNER_MODE_STEREO) ?
-+			FM_STEREO_MODE : FM_MONO_MODE;
-+	rds_mode = (tuner->rxsubchans & V4L2_TUNER_SUB_RDS) ?
-+			FM_RDS_ENABLE : FM_RDS_DISABLE;
-+
-+	if (fmdev->curr_fmmode != FM_MODE_RX) {
-+		ret = fmc_set_mode(fmdev, FM_MODE_RX);
-+		if (ret < 0) {
-+			pr_err("(fmdrv): Failed to set RX mode; unable to "
-+					"write tuner attributes\n");
-+			return ret;
-+		}
-+	}
-+
-+	ret = fmc_set_stereo_mono(fmdev, aud_mode);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Failed to set RX stereo/mono mode\n");
-+		return ret;
-+	}
-+
-+	ret = fmc_set_rds_mode(fmdev, rds_mode);
-+	if (ret < 0)
-+		pr_err("(fmdrv): Failed to set RX RDS mode\n");
-+
-+	return ret;
-+}
-+
-+/* Get tuner or modulator radio frequency */
-+static int fm_v4l2_vidioc_g_frequency(struct file *file, void *priv,
-+					struct v4l2_frequency *freq)
-+{
-+	int ret;
-+	struct fmdrv_ops *fmdev = video_drvdata(file);
-+
-+	ret = fmc_get_frequency(fmdev, &freq->frequency);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Failed to get frequency\n");
-+		return ret;
-+	}
-+
-+	/* Frequency unit of 62.5 Hz*/
-+	freq->frequency = (unsigned int) freq->frequency * 16;
-+
-+	return 0;
-+}
-+
-+/* Set tuner or modulator radio frequency */
-+static int fm_v4l2_vidioc_s_frequency(struct file *file, void *priv,
-+					struct v4l2_frequency *freq)
-+{
-+	struct fmdrv_ops *fmdev = video_drvdata(file);
-+	int ret;
-+
-+	/*
-+	 * As V4L2_TUNER_CAP_LOW is set 1 user sends the frequency
-+	 * in units of 62.5 Hz.
-+	 */
-+	freq->frequency = (unsigned int)(freq->frequency / 16);
-+
-+	ret = fmc_set_frequency(fmdev, freq->frequency);
-+
-+	return ret;
-+}
-+
-+/* Set hardware frequency seek. If current mode is NOT RX, set it RX. */
-+static int fm_v4l2_vidioc_s_hw_freq_seek(struct file *file, void *priv,
-+					struct v4l2_hw_freq_seek *seek)
-+{
-+	struct fmdrv_ops *fmdev = video_drvdata(file);
-+	int ret;
-+
-+	if (fmdev->curr_fmmode != FM_MODE_RX) {
-+		ret = fmc_set_mode(fmdev, FM_MODE_RX);
-+		if (ret != 0) {
-+			pr_err("(fmdrv): Failed to set RX mode; unable to "
-+					"start HW frequency seek\n");
-+			return ret;
-+		}
-+	}
-+
-+	ret = fm_rx_seek(fmdev, seek->seek_upward, seek->wrap_around,
-+			seek->spacing);
-+	if (ret < 0)
-+		pr_err("(fmdrv): RX seek failed - %d\n", ret);
-+
-+	return ret;
-+}
-+/* Get modulator attributes. If mode is not TX, return no attributes. */
-+static int fm_v4l2_vidioc_g_modulator(struct file *file, void *priv,
-+					struct v4l2_modulator *mod)
-+{
-+	struct fmdrv_ops *fmdev = video_drvdata(file);;
-+
-+	if (mod->index != 0)
-+		return -EINVAL;
-+
-+	if (fmdev->curr_fmmode != FM_MODE_TX)
-+		return -EPERM;
-+
-+	mod->txsubchans = ((fmdev->tx_data.aud_mode == FM_STEREO_MODE) ?
-+	V4L2_TUNER_SUB_STEREO : V4L2_TUNER_SUB_MONO) |
-+	((fmdev->tx_data.rds.flag == FM_RDS_ENABLE) ? V4L2_TUNER_SUB_RDS : 0);
-+
-+	mod->capability = V4L2_TUNER_CAP_STEREO |
-+		V4L2_TUNER_CAP_RDS | V4L2_TUNER_CAP_LOW;
-+
-+	return 0;
-+}
-+
-+/* Set modulator attributes. If mode is not TX, set to TX. */
-+static int fm_v4l2_vidioc_s_modulator(struct file *file, void *priv,
-+					struct v4l2_modulator *mod)
-+{
-+	struct fmdrv_ops *fmdev = video_drvdata(file);
-+	unsigned char rds_mode;
-+	unsigned short aud_mode;
-+	int ret;
-+
-+	if (mod->index != 0)
-+		return -EINVAL;
-+
-+	if (fmdev->curr_fmmode != FM_MODE_TX) {
-+		ret = fmc_set_mode(fmdev, FM_MODE_TX);
-+		if (ret != 0) {
-+			pr_err("(fmdrv): Failed to set TX mode; unable to "
-+					"set modulator attributes\n");
-+			return ret;
-+		}
-+	}
-+
-+	aud_mode = (mod->txsubchans & V4L2_TUNER_SUB_STEREO) ?
-+			FM_STEREO_MODE : FM_MONO_MODE;
-+	rds_mode = (mod->txsubchans & V4L2_TUNER_SUB_RDS) ?
-+			FM_RDS_ENABLE : FM_RDS_DISABLE;
-+	ret = fm_tx_set_stereo_mono(fmdev, aud_mode);
-+	if (ret < 0) {
-+		pr_err("(fmdrv): Failed to set mono/stereo mode for TX\n");
-+		return ret;
-+	}
-+	ret = fm_tx_set_rds_mode(fmdev, rds_mode);
-+	if (ret < 0)
-+		pr_err("(fmdrv): Failed to set rds mode for TX\n");
-+
-+	return ret;
-+}
-+
-+static const struct v4l2_file_operations fm_drv_fops = {
-+	.owner = THIS_MODULE,
-+	.read = fm_v4l2_fops_read,
-+	.write = fm_v4l2_fops_write,
-+	.poll = fm_v4l2_fops_poll,
-+	.ioctl = video_ioctl2,
-+	.open = fm_v4l2_fops_open,
-+	.release = fm_v4l2_fops_release,
++static struct resource dm644x_v4l2_disp_resources[] = {
++	{
++		.start  = IRQ_VENCINT,
++		.end    = IRQ_VENCINT,
++		.flags  = IORESOURCE_IRQ,
++	},
++	{
++		.start  = 0x01C724B8,
++		.end    = 0x01C724B8 + 0x3,
++		.flags  = IORESOURCE_MEM,
++	},
 +};
 +
-+static const struct v4l2_ctrl_ops fm_ctrl_ops = {
-+	.s_ctrl = fm_v4l2_s_ctrl,
-+	.g_volatile_ctrl = fm_g_volatile_ctrl,
-+};
-+static const struct v4l2_ioctl_ops fm_drv_ioctl_ops = {
-+	.vidioc_querycap = fm_v4l2_vidioc_querycap,
-+	.vidioc_g_audio = fm_v4l2_vidioc_g_audio,
-+	.vidioc_s_audio = fm_v4l2_vidioc_s_audio,
-+	.vidioc_g_tuner = fm_v4l2_vidioc_g_tuner,
-+	.vidioc_s_tuner = fm_v4l2_vidioc_s_tuner,
-+	.vidioc_g_frequency = fm_v4l2_vidioc_g_frequency,
-+	.vidioc_s_frequency = fm_v4l2_vidioc_s_frequency,
-+	.vidioc_s_hw_freq_seek = fm_v4l2_vidioc_s_hw_freq_seek,
-+	.vidioc_g_modulator = fm_v4l2_vidioc_g_modulator,
-+	.vidioc_s_modulator = fm_v4l2_vidioc_s_modulator
++static struct platform_device vpbe_v4l2_display = {
++	.name           = "vpbe-v4l2",
++	.id             = -1,
++	.num_resources  = ARRAY_SIZE(dm644x_v4l2_disp_resources),
++	.resource       = dm644x_v4l2_disp_resources,
++	.dev = {
++		.dma_mask               = &vpbe_display_dma_mask,
++		.coherent_dma_mask      = DMA_BIT_MASK(32),
++	},
 +};
 +
-+/* V4L2 RADIO device parent structure */
-+static struct video_device fm_viddev_template = {
-+	.fops = &fm_drv_fops,
-+	.ioctl_ops = &fm_drv_ioctl_ops,
-+	.name = FM_DRV_NAME,
-+	.release = video_device_release,
++struct venc_platform_data dm644x_venc_pdata = {
++	.venc_type	= DM644X_VPBE,
++	.setup_clock	= dm644x_venc_setup_clock,
 +};
 +
-+int fm_v4l2_init_video_device(struct fmdrv_ops *fmdev, int radio_nr)
++static struct platform_device dm644x_venc_dev = {
++	.name           = VPBE_VENC_SUBDEV_NAME,
++	.id             = -1,
++	.num_resources  = ARRAY_SIZE(dm644x_venc_resources),
++	.resource       = dm644x_venc_resources,
++	.dev = {
++		.dma_mask               = &dm644x_venc_dma_mask,
++		.coherent_dma_mask      = DMA_BIT_MASK(32),
++		.platform_data          = &dm644x_venc_pdata,
++	},
++};
++
++static u64 dm644x_vpbe_dma_mask = DMA_BIT_MASK(32);
++
++static struct platform_device dm644x_vpbe_dev = {
++	.name           = "vpbe_controller",
++	.id             = -1,
++	.dev = {
++		.dma_mask               = &dm644x_vpbe_dma_mask,
++		.coherent_dma_mask      = DMA_BIT_MASK(32),
++	},
++};
++
++void dm644x_set_vpbe_display_config(struct vpbe_display_config *cfg)
 +{
-+	struct v4l2_ctrl *ctrl;
-+	int ret;
++	dm644x_vpbe_dev.dev.platform_data = cfg;
++}
 +
-+	/* Allocate new video device */
-+	gradio_dev = video_device_alloc();
-+	if (NULL == gradio_dev) {
-+		pr_err("(fmdrv): Can't allocate video device\n");
-+		return -ENOMEM;
-+	}
+ /*----------------------------------------------------------------------*/
+ 
+ static struct map_desc dm644x_io_desc[] = {
+@@ -781,25 +922,41 @@ void __init dm644x_init(void)
+ 	davinci_common_init(&davinci_soc_info_dm644x);
+ }
+ 
++static struct platform_device *dm644x_video_devices[] __initdata = {
++	&dm644x_vpss_device,
++	&dm644x_ccdc_dev,
++	&vpfe_capture_dev,
++	&dm644x_osd_dev,
++	&dm644x_venc_dev,
++	&dm644x_vpbe_dev,
++	&vpbe_v4l2_display,
++};
 +
-+	/* Setup FM driver's V4L2 properties */
-+	memcpy(gradio_dev, &fm_viddev_template, sizeof(fm_viddev_template));
-+
-+	video_set_drvdata(gradio_dev, fmdev);
-+
-+	/* Register with V4L2 subsystem as RADIO device */
-+	if (video_register_device(gradio_dev, VFL_TYPE_RADIO, radio_nr)) {
-+		video_device_release(gradio_dev);
-+		pr_err("(fmdrv): Could not register video device\n");
-+		return -ENOMEM;
-+	}
-+
-+	fmdev->radio_dev = gradio_dev;
-+
-+	/* Register to v4l2 ctrl handler framework */
-+	fmdev->radio_dev->ctrl_handler = &fmdev->ctrl_handler;
-+
-+	ret = v4l2_ctrl_handler_init(&fmdev->ctrl_handler, 5);
-+	if (ret < 0) {
-+		pr_err("(fmdev): Can't init ctrl handler\n");
-+		v4l2_ctrl_handler_free(&fmdev->ctrl_handler);
-+		return -EBUSY;
-+	}
-+
-+	/* Following controls are handled by V4L2 control framework.
-+	 * Add in ascending ID order.
-+	 * */
-+	v4l2_ctrl_new_std(&fmdev->ctrl_handler, &fm_ctrl_ops,
-+			V4L2_CID_AUDIO_VOLUME, FM_RX_VOLUME_MIN,
-+			FM_RX_VOLUME_MAX, 1, FM_RX_VOLUME_MAX);
-+
-+	v4l2_ctrl_new_std(&fmdev->ctrl_handler, &fm_ctrl_ops,
-+			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
-+
-+	v4l2_ctrl_new_std_menu(&fmdev->ctrl_handler, &fm_ctrl_ops,
-+			V4L2_CID_TUNE_PREEMPHASIS, V4L2_PREEMPHASIS_75_uS,
-+			0, V4L2_PREEMPHASIS_75_uS);
-+
-+	v4l2_ctrl_new_std(&fmdev->ctrl_handler, &fm_ctrl_ops,
-+			V4L2_CID_TUNE_POWER_LEVEL, FM_PWR_LVL_LOW,
-+			FM_PWR_LVL_HIGH, 1, FM_PWR_LVL_HIGH);
-+
-+	ctrl = v4l2_ctrl_new_std(&fmdev->ctrl_handler, &fm_ctrl_ops,
-+			V4L2_CID_TUNE_ANTENNA_CAPACITOR, 0,
-+			255, 1, 255);
-+
-+	if (ctrl)
-+		ctrl->is_volatile = 1;
-+
++static int __init dm644x_init_video(void)
++{
++	/* Add ccdc clock aliases */
++	clk_add_alias("master", dm644x_ccdc_dev.name, "vpss_master", NULL);
++	clk_add_alias("slave", dm644x_ccdc_dev.name, "vpss_slave", NULL);
++	vpss_clkctl_reg = ioremap_nocache(VPSS_CLKCTL, 4);
++	if (!vpss_clkctl_reg)
++		return -ENODEV;
++	platform_add_devices(dm644x_video_devices,
++				ARRAY_SIZE(dm644x_video_devices));
 +	return 0;
 +}
 +
-+void *fm_v4l2_deinit_video_device(void)
-+{
-+	struct fmdrv_ops *fmdev;
-+
-+
-+	fmdev = video_get_drvdata(gradio_dev);
-+
-+	/* Unregister to v4l2 ctrl handler framework*/
-+	v4l2_ctrl_handler_free(&fmdev->ctrl_handler);
-+
-+	/* Unregister RADIO device from V4L2 subsystem */
-+	video_unregister_device(gradio_dev);
-+
-+	return fmdev;
-+}
-diff --git a/drivers/media/radio/wl128x/fmdrv_v4l2.h b/drivers/media/radio/wl128x/fmdrv_v4l2.h
-new file mode 100644
-index 0000000..485cb93
---- /dev/null
-+++ b/drivers/media/radio/wl128x/fmdrv_v4l2.h
-@@ -0,0 +1,33 @@
-+/*
-+ *  FM Driver for Connectivity chip of Texas Instruments.
-+ *
-+ *  FM V4L2 module header.
-+ *
-+ *  Copyright (C) 2010 Texas Instruments
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2 as
-+ *  published by the Free Software Foundation.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ *
-+ */
-+
-+#ifndef _FMDRV_V4L2_H
-+#define _FMDRV_V4L2_H
-+
-+#include <media/v4l2-ioctl.h>
-+#include <media/v4l2-common.h>
-+#include <media/v4l2-ctrls.h>
-+
-+int fm_v4l2_init_video_device(struct fmdrv_ops *, int);
-+void *fm_v4l2_deinit_video_device(void);
-+
-+#endif
+ static int __init dm644x_init_devices(void)
+ {
+ 	if (!cpu_is_davinci_dm644x())
+ 		return 0;
+ 
+-	/* Add ccdc clock aliases */
+-	clk_add_alias("master", dm644x_ccdc_dev.name, "vpss_master", NULL);
+-	clk_add_alias("slave", dm644x_ccdc_dev.name, "vpss_slave", NULL);
+ 	platform_device_register(&dm644x_edma_device);
+-
+ 	platform_device_register(&dm644x_mdio_device);
+ 	platform_device_register(&dm644x_emac_device);
+ 	clk_add_alias(NULL, dev_name(&dm644x_mdio_device.dev),
+ 		      NULL, &dm644x_emac_device.dev);
+ 
+-	platform_device_register(&dm644x_vpss_device);
+-	platform_device_register(&dm644x_ccdc_dev);
+-	platform_device_register(&vpfe_capture_dev);
+-
++	dm644x_init_video();
+ 	return 0;
+ }
+ postcore_initcall(dm644x_init_devices);
+diff --git a/arch/arm/mach-davinci/include/mach/dm644x.h b/arch/arm/mach-davinci/include/mach/dm644x.h
+index 5a1b26d..8c0fad2 100644
+--- a/arch/arm/mach-davinci/include/mach/dm644x.h
++++ b/arch/arm/mach-davinci/include/mach/dm644x.h
+@@ -26,6 +26,9 @@
+ #include <mach/hardware.h>
+ #include <mach/asp.h>
+ #include <media/davinci/vpfe_capture.h>
++#include <media/davinci/vpbe_types.h>
++#include <media/davinci/vpbe.h>
++#include <media/davinci/vpss.h>
+ 
+ #define DM644X_EMAC_BASE		(0x01C80000)
+ #define DM644X_EMAC_MDIO_BASE		(DM644X_EMAC_BASE + 0x4000)
+@@ -43,5 +46,6 @@
+ void __init dm644x_init(void);
+ void __init dm644x_init_asp(struct snd_platform_data *pdata);
+ void dm644x_set_vpfe_config(struct vpfe_config *cfg);
++void dm644x_set_vpbe_display_config(struct vpbe_display_config *cfg);
+ 
+ #endif /* __ASM_ARCH_DM644X_H */
 -- 
-1.5.6.3
+1.6.2.4
 
