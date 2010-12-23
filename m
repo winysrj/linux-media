@@ -1,112 +1,109 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1434 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751795Ab0LWNI0 (ORCPT
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:41042 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752796Ab0LWMFI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Dec 2010 08:08:26 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andy Walls <awalls@md.metrocast.net>
-Subject: Re: [GIT PULL FOR 2.6.37] uvcvideo: BKL removal
-Date: Thu, 23 Dec 2010 14:08:06 +0100
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-References: <201011291115.11061.laurent.pinchart@ideasonboard.com> <201012231002.34251.laurent.pinchart@ideasonboard.com> <1293109478.2092.29.camel@morgan.silverblock.net>
-In-Reply-To: <1293109478.2092.29.camel@morgan.silverblock.net>
+	Thu, 23 Dec 2010 07:05:08 -0500
+Received: by ewy5 with SMTP id 5so3047382ewy.19
+        for <linux-media@vger.kernel.org>; Thu, 23 Dec 2010 04:05:06 -0800 (PST)
+Message-ID: <4D133AB2.40207@mvista.com>
+Date: Thu, 23 Dec 2010 15:04:02 +0300
+From: Sergei Shtylyov <sshtylyov@mvista.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: Manjunath Hadli <manjunath.hadli@ti.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH v10 5/8] davinci vpbe: platform specific additions-khilman
+References: <1293105284-17380-1-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1293105284-17380-1-git-send-email-manjunath.hadli@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201012231408.06817.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Thursday, December 23, 2010 14:04:38 Andy Walls wrote:
-> On Thu, 2010-12-23 at 10:02 +0100, Laurent Pinchart wrote:
-> > Hi Hans,
-> > 
-> > On Monday 20 December 2010 14:09:40 Hans Verkuil wrote:
-> > > On Monday, December 20, 2010 13:48:51 Laurent Pinchart wrote:
-> > > >
-> > > > What if the application wants to change the resolution during capture ?
-> > > > It will have to stop capture, call REQBUFS(0), change the format,
-> > > > request buffers and restart capture. If filehandle ownership is dropped
-> > > > after REQBUFS(0) that will open the door to a race condition.
-> > > 
-> > > That's why S_PRIORITY was invented.
-> > 
-> > Right, I should implement that. I think the documentation isn't clear though. 
-> > What is the background priority for exactly ? 
-> 
-> http://linuxtv.org/downloads/v4l-dvb-apis/app-pri.html
-> 
-> "Another objective is to permit low priority applications working in
-> background, which can be preempted by user controlled applications and
-> automatically regain control of the device at a later time."
-> 
-> <contrived examples>
-> A use case would be for a daemon that does background channel scanning
-> or VBI data collection when the user isn't doing something else with the
-> video device.
-> 
-> For a camera, maybe it would be an application that does device health
-> monitoring, some sort of continuous calibration, or motion detection
-> when the device isn't in use by the user for viewing.
-> </contrived examples>
-> 
-> > And the "unset" priority ?
-> 
-> When checking for the maximum priority in use, it indicates that no
-> nodes have any priorities. See v4l2_prio_max().  For a driver that
-> supports priorities, it means no device nodes are opened, since any
-> device node being open would get a priority of
-> V4L2_PRIORITY_INTERACTIVE/_DEFAULT by default in v4l2_prio_open().
-> 
-> V4L2_PRIORITY_UNSET is also used to indicate to the v4l2_prio_*()
-> functions that a struct v4l2_prio_state hasn't been initialized (i.e.
-> has just been kzalloc()'ed).
-> 
-> > Are 
-> > other applications allowed to change controls when an application has the 
-> > record priority ?
-> 
-> According to the spec, no:
-> 
-> "V4L2_PRIORITY_RECORD 3 Highest priority. Only one file descriptor can
-> have this priority, it blocks any other fd from changing device
-> properties."
-> 
-> Once an automated, scheduled-recording process is recording, one really
-> wouldn't want another process changing them.  I personally would not
-> like unpredictable volume level variations on my TV show recordings.
-> 
-> 
-> In cx18-controls.c one can find an implementation example for the old
-> control framework:
-> 
->         int cx18_s_ext_ctrls(struct file *file, void *fh, struct v4l2_ext_controls *c)
->         {       
->                 struct cx18_open_id *id = fh;   
->                 struct cx18 *cx = id->cx;       
->                 int ret;
->                 struct v4l2_control ctrl;       
->         
->                 ret = v4l2_prio_check(&cx->prio, id->prio);
->                 if (ret)
->                         return ret;
->     [...]
-> 
-> However, the new control framework in v4l2-ctrl.c seems to be missing
-> any v4l2_prio_check() calls. The ioctl() handling in v4l2-ioctl.c
-> doesn't have any either.
+Hello.
 
-Oops, I'd forgotten about that. The priority support really should be
-moved into the v4l2 core framework where it belongs. I'll see if I can spend
-some time on that after Christmas.
+On 23-12-2010 14:54, Manjunath Hadli wrote:
 
-Regards,
+> This patch implements the overall device creation for the Video
+> display driver
 
-	Hans
+> Signed-off-by: Manjunath Hadli<manjunath.hadli@ti.com>
+> Acked-by: Muralidharan Karicheri<m-karicheri2@ti.com>
+> Acked-by: Hans Verkuil<hverkuil@xs4all.nl>
+[...]
 
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+> diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+> index 9a2376b..02ec74b 100644
+> --- a/arch/arm/mach-davinci/dm644x.c
+> +++ b/arch/arm/mach-davinci/dm644x.c
+> @@ -654,6 +654,146 @@ void dm644x_set_vpfe_config(struct vpfe_config *cfg)
+[...]
+> +/* TBD. Check what VENC_CLOCK_SEL settings for HDTV and EDTV */
+> +static int dm644x_venc_setup_clock(enum vpbe_enc_timings_type type, __u64 mode)
+> +{
+> +	int ret = 0;
+> +
+> +	if (NULL == vpss_clkctl_reg)
+> +		return -EINVAL;
+> +	switch (type) {
+> +	case VPBE_ENC_STD:
+> +		__raw_writel(0x18, vpss_clkctl_reg);
+> +		break;
+> +	case VPBE_ENC_DV_PRESET:
+> +		switch ((unsigned int)mode) {
+> +		case V4L2_DV_480P59_94:
+> +		case V4L2_DV_576P50:
+> +			 __raw_writel(0x19, vpss_clkctl_reg);
+> +			break;
+> +		case V4L2_DV_720P60:
+> +		case V4L2_DV_1080I60:
+> +		case V4L2_DV_1080P30:
+> +		/*
+> +		 * For HD, use external clock source since HD requires higher
+> +		 * clock rate
+> +		 */
+
+    Indent the comment correctly, please.
+
+> +			__raw_writel(0xa, vpss_clkctl_reg);
+> +			break;
+> +		default:
+> +			ret  = -EINVAL;
+> +			break;
+> +		}
+> +		break;
+> +	default:
+> +		ret  = -EINVAL;
+> +	}
+> +	return ret;
+> +}
+[...]
+> +static struct resource dm644x_v4l2_disp_resources[] = {
+> +	{
+> +		.start  = IRQ_VENCINT,
+> +		.end    = IRQ_VENCINT,
+> +		.flags  = IORESOURCE_IRQ,
+> +	},
+> +	{
+> +		.start  = 0x01C724B8,
+> +		.end    = 0x01C724B8 + 0x4,
+
+    s/0x4/0x3/?
+
+[...]
+> +static struct platform_device dm644x_venc_dev = {
+> +	.name           = VPBE_VENC_SUBDEV_NAME,
+> +	.id             = -1,
+> +	.num_resources  = ARRAY_SIZE(dm644x_venc_resources),
+> +	.resource       = dm644x_venc_resources,
+> +	.dev = {
+> +		.dma_mask               =&dm644x_venc_dma_mask,
+> +		.coherent_dma_mask      = DMA_BIT_MASK(32),
+> +		.platform_data          = (void *)&dm644x_venc_pdata,
+
+    There's no need to explicitly cast to 'void *'.
+
+WBR, Sergei
