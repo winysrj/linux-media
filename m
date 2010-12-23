@@ -1,59 +1,73 @@
 Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35450 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754755Ab0LNKy0 (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:45873 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752664Ab0LWLza (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Dec 2010 05:54:26 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "'Mauro Carvalho Chehab'" <mchehab@redhat.com>
-Subject: Re: [GIT PULL FOR 2.6.37] uvcvideo: BKL removal
-Date: Tue, 14 Dec 2010 11:55:20 +0100
-Cc: linux-media@vger.kernel.org
-References: <201011291115.11061.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201011291115.11061.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201012141155.20714.laurent.pinchart@ideasonboard.com>
+	Thu, 23 Dec 2010 06:55:30 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v10 7/8] davinci vpbe: Build infrastructure for VPBE driver
+Date: Thu, 23 Dec 2010 17:25:14 +0530
+Message-Id: <1293105314-17627-1-git-send-email-manjunath.hadli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Mauro,
+This patch adds the build infra-structure for Davinci
+VPBE dislay driver
 
-Please don't forget this pull request for 2.6.37.
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/video/davinci/Kconfig  |   22 ++++++++++++++++++++++
+ drivers/media/video/davinci/Makefile |    2 ++
+ 2 files changed, 24 insertions(+), 0 deletions(-)
 
-On Monday 29 November 2010 11:15:10 Laurent Pinchart wrote:
-> Hi Mauro,
-> 
-> The following changes since commit
-> c796e203229c8c08250f9d372ae4e10c466b1787:
-> 
->   [media] kconfig: add an option to determine a menu's visibility
-> (2010-11-22 10:37:56 -0200)
-> 
-> are available in the git repository at:
->   git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-stable
-> 
-> They complete the BKL removal from the uvcvideo driver. Feedback received
-> from Hans during review has been integrated.
-> 
-> Laurent Pinchart (5):
->       uvcvideo: Lock controls mutex when querying menus
->       uvcvideo: Move mutex lock/unlock inside uvc_free_buffers
->       uvcvideo: Move mmap() handler to uvc_queue.c
->       uvcvideo: Lock stream mutex when accessing format-related information
->       uvcvideo: Convert to unlocked_ioctl
-> 
->  drivers/media/video/uvc/uvc_ctrl.c  |   48 +++++++++-
->  drivers/media/video/uvc/uvc_queue.c |  133 +++++++++++++++++++++-----
->  drivers/media/video/uvc/uvc_v4l2.c  |  185
-> +++++++++++----------------------- drivers/media/video/uvc/uvc_video.c |  
->  3 -
->  drivers/media/video/uvc/uvcvideo.h  |   10 ++-
->  5 files changed, 222 insertions(+), 157 deletions(-)
-
+diff --git a/drivers/media/video/davinci/Kconfig b/drivers/media/video/davinci/Kconfig
+index 6b19540..a7f11e7 100644
+--- a/drivers/media/video/davinci/Kconfig
++++ b/drivers/media/video/davinci/Kconfig
+@@ -91,3 +91,25 @@ config VIDEO_ISIF
+ 
+ 	   To compile this driver as a module, choose M here: the
+ 	   module will be called vpfe.
++
++config VIDEO_DM644X_VPBE
++	tristate "DM644X VPBE HW module"
++	select VIDEO_VPSS_SYSTEM
++	select VIDEOBUF_DMA_CONTIG
++	help
++	    Enables VPBE modules used for display on a DM644x
++	    SoC.
++
++	    To compile this driver as a module, choose M here: the
++	    module will be called vpbe.
++
++
++config VIDEO_VPBE_DISPLAY
++	tristate "VPBE V4L2 Display driver"
++	select VIDEO_DM644X_VPBE
++	default y
++	help
++	    Enables VPBE V4L2 Display driver on a DMXXX device
++
++	    To compile this driver as a module, choose M here: the
++	    module will be called vpbe_display.
+diff --git a/drivers/media/video/davinci/Makefile b/drivers/media/video/davinci/Makefile
+index a379557..ae7dafb 100644
+--- a/drivers/media/video/davinci/Makefile
++++ b/drivers/media/video/davinci/Makefile
+@@ -16,3 +16,5 @@ obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
+ obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
+ obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
+ obj-$(CONFIG_VIDEO_ISIF) += isif.o
++obj-$(CONFIG_VIDEO_DM644X_VPBE) += vpbe.o vpbe_osd.o vpbe_venc.o
++obj-$(CONFIG_VIDEO_VPBE_DISPLAY) += vpbe_display.o
 -- 
-Regards,
+1.6.2.4
 
-Laurent Pinchart
