@@ -1,60 +1,254 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:12871 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751216Ab0L2JsW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Dec 2010 04:48:22 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from spt2.w1.samsung.com ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LE6001LGOKKBJ10@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 29 Dec 2010 09:48:20 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LE600IHQOKJUS@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 29 Dec 2010 09:48:20 +0000 (GMT)
-Date: Wed, 29 Dec 2010 10:48:15 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 0/2] Videobuf2 tests with SAA7134 driver
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com
-Message-id: <1293616097-24167-1-git-send-email-s.nawrocki@samsung.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:47092 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752951Ab0LWLzA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Dec 2010 06:55:00 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v10 5/8] davinci vpbe: platform specific additions-khilman
+Date: Thu, 23 Dec 2010 17:24:44 +0530
+Message-Id: <1293105284-17380-1-git-send-email-manjunath.hadli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hello,
+This patch implements the overall device creation for the Video
+display driver
 
-here are the very initial patches for testing videbuf2 with the saa7134 driver.
-I am sending them on behalf of Andrzej who is currently on holiday.
-Hopefully we can provide real conversion patches of a v4l2 driver of hardware
-which is widely available in the near future. Unfortunately except the Samsung 
-S5P FIMC and S5P MFC drivers now it's all we can provide for vb2 testing.  
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ arch/arm/mach-davinci/dm644x.c              |  172 +++++++++++++++++++++++++--
+ arch/arm/mach-davinci/include/mach/dm644x.h |    4 +
+ 2 files changed, 168 insertions(+), 8 deletions(-)
 
-The patches were created against git://linuxtv.org/media_tree.git staging/for_v2.6.38. 
-
-on top of my previous changeset:
-
-"V4L2 mem-to-mem framework and s5p-fimc driver conversion for videobuf2"
-
-The patch series contains:
-[PATCH 1/2] v4l: saa7134: remove radio, vbi, mpeg, input, alsa, tvaudio, saa6752hs support
-[PATCH 2/2] v4l: saa7134: quick and dirty port to videobuf2
-
-The full GIT tree should soon be available at:
-git://git.infradead.org/users/kmpark/linux-2.6-samsung vb2 branch.
-
-Gitweb:
-http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/heads/vb2
-
-
-Regards,
-Sylwester 
-
-
---
-Sylwester Nawrocki
-Samsung Poland R&D Center
+diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+index 9a2376b..02ec74b 100644
+--- a/arch/arm/mach-davinci/dm644x.c
++++ b/arch/arm/mach-davinci/dm644x.c
+@@ -654,6 +654,146 @@ void dm644x_set_vpfe_config(struct vpfe_config *cfg)
+ 	vpfe_capture_dev.dev.platform_data = cfg;
+ }
+ 
++static struct resource dm644x_osd_resources[] = {
++	{
++		.start  = 0x01C72600,
++		.end    = 0x01C72600 + 0x1ff,
++		.flags  = IORESOURCE_MEM,
++	},
++};
++
++static u64 dm644x_osd_dma_mask = DMA_BIT_MASK(32);
++
++static struct platform_device dm644x_osd_dev = {
++	.name           = VPBE_OSD_SUBDEV_NAME,
++	.id             = -1,
++	.num_resources  = ARRAY_SIZE(dm644x_osd_resources),
++	.resource       = dm644x_osd_resources,
++	.dev = {
++		.dma_mask               = &dm644x_osd_dma_mask,
++		.coherent_dma_mask      = DMA_BIT_MASK(32),
++		.platform_data          = (void *)DM644X_VPBE,
++	},
++};
++
++static struct resource dm644x_venc_resources[] = {
++	/* venc registers io space */
++	{
++		.start  = 0x01C72400,
++		.end    = 0x01C72400 + 0x17f,
++		.flags  = IORESOURCE_MEM,
++	},
++};
++
++static u64 dm644x_venc_dma_mask = DMA_BIT_MASK(32);
++
++#define VPSS_CLKCTL     0x01C40044
++
++static void __iomem *vpss_clkctl_reg;
++
++/* TBD. Check what VENC_CLOCK_SEL settings for HDTV and EDTV */
++static int dm644x_venc_setup_clock(enum vpbe_enc_timings_type type, __u64 mode)
++{
++	int ret = 0;
++
++	if (NULL == vpss_clkctl_reg)
++		return -EINVAL;
++	switch (type) {
++	case VPBE_ENC_STD:
++		__raw_writel(0x18, vpss_clkctl_reg);
++		break;
++	case VPBE_ENC_DV_PRESET:
++		switch ((unsigned int)mode) {
++		case V4L2_DV_480P59_94:
++		case V4L2_DV_576P50:
++			 __raw_writel(0x19, vpss_clkctl_reg);
++			break;
++		case V4L2_DV_720P60:
++		case V4L2_DV_1080I60:
++		case V4L2_DV_1080P30:
++		/*
++		 * For HD, use external clock source since HD requires higher
++		 * clock rate
++		 */
++			__raw_writel(0xa, vpss_clkctl_reg);
++			break;
++		default:
++			ret  = -EINVAL;
++			break;
++		}
++		break;
++	default:
++		ret  = -EINVAL;
++	}
++	return ret;
++}
++
++static inline u32 dm644x_reg_modify(void *reg, u32 val, u32 mask)
++{
++	u32 new_val = (__raw_readl(reg) & ~mask) | (val & mask);
++	__raw_writel(new_val, reg);
++	return new_val;
++}
++
++static u64 vpbe_display_dma_mask = DMA_BIT_MASK(32);
++
++static struct resource dm644x_v4l2_disp_resources[] = {
++	{
++		.start  = IRQ_VENCINT,
++		.end    = IRQ_VENCINT,
++		.flags  = IORESOURCE_IRQ,
++	},
++	{
++		.start  = 0x01C724B8,
++		.end    = 0x01C724B8 + 0x4,
++		.flags  = IORESOURCE_MEM,
++	},
++
++};
++
++static struct platform_device vpbe_v4l2_display = {
++	.name           = "vpbe-v4l2",
++	.id             = -1,
++	.num_resources  = ARRAY_SIZE(dm644x_v4l2_disp_resources),
++	.resource       = dm644x_v4l2_disp_resources,
++	.dev = {
++		.dma_mask               = &vpbe_display_dma_mask,
++		.coherent_dma_mask      = DMA_BIT_MASK(32),
++	},
++};
++struct venc_platform_data dm644x_venc_pdata = {
++	.venc_type = DM644X_VPBE,
++	.setup_clock = dm644x_venc_setup_clock,
++};
++
++static struct platform_device dm644x_venc_dev = {
++	.name           = VPBE_VENC_SUBDEV_NAME,
++	.id             = -1,
++	.num_resources  = ARRAY_SIZE(dm644x_venc_resources),
++	.resource       = dm644x_venc_resources,
++	.dev = {
++		.dma_mask               = &dm644x_venc_dma_mask,
++		.coherent_dma_mask      = DMA_BIT_MASK(32),
++		.platform_data          = (void *)&dm644x_venc_pdata,
++	},
++};
++
++static u64 dm644x_vpbe_dma_mask = DMA_BIT_MASK(32);
++
++static struct platform_device dm644x_vpbe_dev = {
++	.name           = "vpbe_controller",
++	.id             = -1,
++	.dev = {
++		.dma_mask               = &dm644x_vpbe_dma_mask,
++		.coherent_dma_mask      = DMA_BIT_MASK(32),
++	},
++};
++
++void dm644x_set_vpbe_display_config(struct vpbe_display_config *cfg)
++{
++	dm644x_vpbe_dev.dev.platform_data = cfg;
++}
++
+ /*----------------------------------------------------------------------*/
+ 
+ static struct map_desc dm644x_io_desc[] = {
+@@ -781,25 +921,41 @@ void __init dm644x_init(void)
+ 	davinci_common_init(&davinci_soc_info_dm644x);
+ }
+ 
++static struct platform_device *dm644x_video_devices[] __initdata = {
++	&dm644x_vpss_device,
++	&dm644x_ccdc_dev,
++	&vpfe_capture_dev,
++	&dm644x_osd_dev,
++	&dm644x_venc_dev,
++	&dm644x_vpbe_dev,
++	&vpbe_v4l2_display,
++};
++
++static int __init dm644x_init_video(void)
++{
++	/* Add ccdc clock aliases */
++	clk_add_alias("master", dm644x_ccdc_dev.name, "vpss_master", NULL);
++	clk_add_alias("slave", dm644x_ccdc_dev.name, "vpss_slave", NULL);
++	vpss_clkctl_reg = ioremap_nocache(VPSS_CLKCTL, 4);
++	if (!vpss_clkctl_reg)
++		return -ENODEV;
++	platform_add_devices(dm644x_video_devices,
++				ARRAY_SIZE(dm644x_video_devices));
++	return 0;
++}
++
+ static int __init dm644x_init_devices(void)
+ {
+ 	if (!cpu_is_davinci_dm644x())
+ 		return 0;
+ 
+-	/* Add ccdc clock aliases */
+-	clk_add_alias("master", dm644x_ccdc_dev.name, "vpss_master", NULL);
+-	clk_add_alias("slave", dm644x_ccdc_dev.name, "vpss_slave", NULL);
+ 	platform_device_register(&dm644x_edma_device);
+-
+ 	platform_device_register(&dm644x_mdio_device);
+ 	platform_device_register(&dm644x_emac_device);
+ 	clk_add_alias(NULL, dev_name(&dm644x_mdio_device.dev),
+ 		      NULL, &dm644x_emac_device.dev);
+ 
+-	platform_device_register(&dm644x_vpss_device);
+-	platform_device_register(&dm644x_ccdc_dev);
+-	platform_device_register(&vpfe_capture_dev);
+-
++	dm644x_init_video();
+ 	return 0;
+ }
+ postcore_initcall(dm644x_init_devices);
+diff --git a/arch/arm/mach-davinci/include/mach/dm644x.h b/arch/arm/mach-davinci/include/mach/dm644x.h
+index 5a1b26d..8c0fad2 100644
+--- a/arch/arm/mach-davinci/include/mach/dm644x.h
++++ b/arch/arm/mach-davinci/include/mach/dm644x.h
+@@ -26,6 +26,9 @@
+ #include <mach/hardware.h>
+ #include <mach/asp.h>
+ #include <media/davinci/vpfe_capture.h>
++#include <media/davinci/vpbe_types.h>
++#include <media/davinci/vpbe.h>
++#include <media/davinci/vpss.h>
+ 
+ #define DM644X_EMAC_BASE		(0x01C80000)
+ #define DM644X_EMAC_MDIO_BASE		(DM644X_EMAC_BASE + 0x4000)
+@@ -43,5 +46,6 @@
+ void __init dm644x_init(void);
+ void __init dm644x_init_asp(struct snd_platform_data *pdata);
+ void dm644x_set_vpfe_config(struct vpfe_config *cfg);
++void dm644x_set_vpbe_display_config(struct vpbe_display_config *cfg);
+ 
+ #endif /* __ASM_ARCH_DM644X_H */
+-- 
+1.6.2.4
 
