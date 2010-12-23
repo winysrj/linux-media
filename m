@@ -1,55 +1,38 @@
 Return-path: <mchehab@gaivota>
-Received: from moutng.kundenserver.de ([212.227.17.8]:54408 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751660Ab0LYV35 (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:60793 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752973Ab0LWQoE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Dec 2010 16:29:57 -0500
-Date: Sat, 25 Dec 2010 22:29:52 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] v4l: soc-camera: fix multiple simultaneous user case
-Message-ID: <Pine.LNX.4.64.1012252201520.5248@axis700.grange>
+	Thu, 23 Dec 2010 11:44:04 -0500
+Received: by fxm20 with SMTP id 20so7262554fxm.19
+        for <linux-media@vger.kernel.org>; Thu, 23 Dec 2010 08:44:02 -0800 (PST)
+Date: Thu, 23 Dec 2010 19:43:47 +0300
+From: Dan Carpenter <error27@gmail.com>
+To: Srinivasa.Deevi@conexant.com
+Cc: linux-media@vger.kernel.org
+Subject: smatch report: cx231xx: incorrect check in cx231xx_write_i2c_data()
+Message-ID: <20101223164347.GA16612@bicker>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-A recent patch has introduced a regression, whereby a second open of an
-soc-camera video device breaks the running capture. This patch fixes this bug
-by guaranteeing, that video buffers get initialised only during the first open
-of the device node.
+Hi,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+I was doing an audit and I came across this.
 
-Mauro, please, let's try to get it in 2.6.37, or we'll have to push it to 
-stable after 2.6.37 is out. I'm just posting it quickly and will push it 
-to linuxtv.org like tomorrow or on Monday...
+drivers/media/video/cx231xx/cx231xx-core.c +1644 cx231xx_write_i2c_data(14)
+	warn: 'saddr_len' is non-zero. Did you mean 'saddr'
 
- drivers/media/video/soc_camera.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+  1642          if (saddr_len == 0)
+  1643                  saddr = 0;
+  1644          else if (saddr_len == 0)
+  1645                  saddr &= 0xff;
 
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index 335120c..052bd6d 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -405,13 +405,13 @@ static int soc_camera_open(struct file *file)
- 		ret = soc_camera_set_fmt(icd, &f);
- 		if (ret < 0)
- 			goto esfmt;
-+
-+		ici->ops->init_videobuf(&icd->vb_vidq, icd);
- 	}
- 
- 	file->private_data = icd;
- 	dev_dbg(&icd->dev, "camera device open\n");
- 
--	ici->ops->init_videobuf(&icd->vb_vidq, icd);
--
- 	mutex_unlock(&icd->video_lock);
- 
- 	return 0;
--- 
-1.7.2.3
+We check "saddr_len == 0" twice which doesn't make sense.  I'm not sure
+what the correct fix is though.  It's been this way since the driver was
+merged.
 
+regards,
+dan carpenter
