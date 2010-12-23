@@ -1,83 +1,45 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:50282 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752222Ab0LPHju (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Dec 2010 02:39:50 -0500
-Message-ID: <4D09C36F.2060003@redhat.com>
-Date: Thu, 16 Dec 2010 08:44:47 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60998 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752434Ab0LWKIg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Dec 2010 05:08:36 -0500
+Date: Thu, 23 Dec 2010 10:06:42 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Kyungmin Park <kmpark@infradead.org>
+Cc: Michal Nazarewicz <m.nazarewicz@samsung.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
+	Mel Gorman <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
+	Michal Nazarewicz <mina86@mina86.com>, linux-mm@kvack.org,
+	Ankita Garg <ankita@in.ibm.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-media@vger.kernel.org,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCHv8 00/12] Contiguous Memory Allocator
+Message-ID: <20101223100642.GD3636@n2100.arm.linux.org.uk>
+References: <cover.1292443200.git.m.nazarewicz@samsung.com> <AANLkTim8_=0+-zM5z4j0gBaw3PF3zgpXQNetEn-CfUGb@mail.gmail.com>
 MIME-Version: 1.0
-To: Antonio Ospite <ospite@studenti.unina.it>
-CC: linux-media@vger.kernel.org
-Subject: Re: Question about libv4lconvert.
-References: <20101215171139.b6c1f03a.ospite@studenti.unina.it>	<4D0920CC.7060004@redhat.com> <20101216004927.48944e00.ospite@studenti.unina.it>
-In-Reply-To: <20101216004927.48944e00.ospite@studenti.unina.it>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <AANLkTim8_=0+-zM5z4j0gBaw3PF3zgpXQNetEn-CfUGb@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi,
+On Thu, Dec 23, 2010 at 06:30:57PM +0900, Kyungmin Park wrote:
+> Hi Andrew,
+> 
+> any comments? what's the next step to merge it for 2.6.38 kernel. we
+> want to use this feature at mainline kernel.
 
-On 12/16/2010 12:49 AM, Antonio Ospite wrote:
-> On Wed, 15 Dec 2010 21:10:52 +0100
-> Hans de Goede<hdegoede@redhat.com>  wrote:
->
->> Hi,
->>
->
-> Hi Hans, thanks for the quick reply.
->
->> On 12/15/2010 05:11 PM, Antonio Ospite wrote:
->>> Hi,
->>>
->>> I am taking a look at libv4lconvert, and I have a question about the
->>> logic in v4lconvert_convert_pixfmt(), in some conversion switches there
->>> is code like this:
->>>
->>> 	case V4L2_PIX_FMT_GREY:
->>> 		switch (dest_pix_fmt) {
->>> 		case V4L2_PIX_FMT_RGB24:
->>> 	        case V4L2_PIX_FMT_BGR24:
->>> 			v4lconvert_grey_to_rgb24(src, dest, width, height);
->>> 			break;
->>> 		case V4L2_PIX_FMT_YUV420:
->>> 		case V4L2_PIX_FMT_YVU420:
->>> 			v4lconvert_grey_to_yuv420(src, dest, fmt);
->>> 			break;
->>> 		}
->>> 		if (src_size<   (width * height)) {
->>> 			V4LCONVERT_ERR("short grey data frame\n");
->>> 			errno = EPIPE;
->>> 			result = -1;
->>> 		}
->>> 		break;
->>>
->>> However the conversion routines which are going to be called seem to
->>> assume that the buffers, in particular the source buffer, are of the
->>> correct full frame size when looping over them.
->>>
->>
->> Correct, because they trust that the kernel drivers have allocated large
->> enough buffers to hold a valid frame which is a safe assumption.
->>
->
-> Maybe this was the piece I was missing: even a partial (useful) frame
-> comes in a full size buffer, right?
+Has anyone addressed my issue with it that this is wide-open for
+abuse by allocating large chunks of memory, and then remapping
+them in some way with different attributes, thereby violating the
+ARM architecture specification?
 
-Right.
-
-> If so then the current logic is sane
-> indeed; and if the current assumption in conversion routines is
-> contradicted then it must be due to a defect related to the kernel
-> driver.
->
-
-Correct, if the kernel allocates (and thus we mmap) too small buffers for
-the current video fmt + dimensions then that is a kernel bug.
-
-<snip>
-
-Regards,
-
-Hans
+In other words, do we _actually_ have a use for this which doesn't
+involve doing something like allocating 32MB of memory from it,
+remapping it so that it's DMA coherent, and then performing DMA
+on the resulting buffer?
