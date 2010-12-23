@@ -1,57 +1,63 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:55893 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754677Ab0LML1A (ORCPT
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:55865 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751081Ab0LWGes convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Dec 2010 06:27:00 -0500
-Date: Mon, 13 Dec 2010 12:26:42 +0100
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Subject: [PATCHv7 01/10] mm: migrate.c: fix compilation error
-In-reply-to: <cover.1292004520.git.m.nazarewicz@samsung.com>
-To: Michal Nazarewicz <mina86@mina86.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Ankita Garg <ankita@in.ibm.com>,
-	BooJin Kim <boojin.kim@samsung.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mel Gorman <mel@csn.ul.ie>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	Michal Nazarewicz <m.nazarewicz@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <86d353f4d141c83492cff9f946d382234aac3c77.1292004520.git.m.nazarewicz@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <cover.1292004520.git.m.nazarewicz@samsung.com>
+	Thu, 23 Dec 2010 01:34:48 -0500
+Received: by wwi17 with SMTP id 17so5845482wwi.1
+        for <linux-media@vger.kernel.org>; Wed, 22 Dec 2010 22:34:47 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <201012222138.43382.hverkuil@xs4all.nl>
+References: <201012221601.37554.hverkuil@xs4all.nl> <1293037826-13420-1-git-send-email-pawel@osciak.com>
+ <201012222138.43382.hverkuil@xs4all.nl>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Wed, 22 Dec 2010 22:34:26 -0800
+Message-ID: <AANLkTinr9oH0UfL82ZW8pgZBhww_xdcuHKuTdB6e1ehq@mail.gmail.com>
+Subject: Re: [PATCH 02/13] v4l: Add multi-planar ioctl handling code
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: m.szyprowski@samsung.com, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	andrzej.p@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-GCC complained about update_mmu_cache() not being defined
-in migrate.c.  Including <asm/tlbflush.h> seems to solve the problem.
+On Wed, Dec 22, 2010 at 12:38, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Wednesday, December 22, 2010 18:10:26 Pawel Osciak wrote:
+>> From: Pawel Osciak <p.osciak@samsung.com>
+>>
+>> Add multi-planar API core ioctl handling and conversion functions.
+>>
+>> Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> Reviewed-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>> ---
+>>  drivers/media/video/v4l2-ioctl.c |  453 ++++++++++++++++++++++++++++++++++----
+>>  include/media/v4l2-ioctl.h       |   16 ++
+>>  2 files changed, 425 insertions(+), 44 deletions(-)
+>>
+>> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+>> index 8516669..e2f6abb 100644
+>> --- a/drivers/media/video/v4l2-ioctl.c
+>> +++ b/drivers/media/video/v4l2-ioctl.c
+>
+> <snip>
+>
+> OK, looks good.
+>
+> Marek, this patch + the other patches from your v8 patch series are good to
+> go as far as I am concerned. So you can add my tag to the whole series:
+>
+> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+>
+> The only note I want to make is that the V4L2 DocBook spec needs to be updated
+> for the multiplanar API. But in my opinion that patch can be done in January.
 
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- mm/migrate.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+Thanks.
+Yes, I have the DocBook update on my todo list, will take care of it
+as soon as possible.
 
-diff --git a/mm/migrate.c b/mm/migrate.c
-index fe5a3c6..6ae8a66 100644
---- a/mm/migrate.c
-+++ b/mm/migrate.c
-@@ -35,6 +35,8 @@
- #include <linux/hugetlb.h>
- #include <linux/gfp.h>
- 
-+#include <asm/tlbflush.h>
-+
- #include "internal.h"
- 
- #define lru_to_page(_head) (list_entry((_head)->prev, struct page, lru))
 -- 
-1.7.2.3
-
+Best regards,
+Pawel Osciak
