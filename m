@@ -1,119 +1,57 @@
 Return-path: <mchehab@gaivota>
-Received: from wolverine01.qualcomm.com ([199.106.114.254]:9852 "EHLO
-	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751007Ab0L0Gpg (ORCPT
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:46443 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752238Ab0LWNtq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Dec 2010 01:45:36 -0500
-From: "Shuzhen Wang" <shuzhenw@codeaurora.org>
-To: "'Hans Verkuil'" <hverkuil@xs4all.nl>
-Cc: <linux-media@vger.kernel.org>, <hzhong@codeaurora.org>,
-	<yyan@codeaurora.org>
-References: <000601cba2d8$eaedcdc0$c0c96940$@org> <201012241219.31754.hverkuil@xs4all.nl>
-In-Reply-To: <201012241219.31754.hverkuil@xs4all.nl>
-Subject: RE: RFC: V4L2 driver for Qualcomm MSM camera.
-Date: Sun, 26 Dec 2010 22:45:01 -0800
-Message-ID: <000f01cba591$95fda4a0$c1f8ede0$@org>
+	Thu, 23 Dec 2010 08:49:46 -0500
+Date: Thu, 23 Dec 2010 13:48:38 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Tomasz Fujak <t.fujak@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Kyungmin Park' <kmpark@infradead.org>,
+	'Mel Gorman' <mel@csn.ul.ie>,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
+	Michal Nazarewicz <mina86@mina86.com>,
+	linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+	linux-arm-kernel@lists.infradead.org,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	linux-media@vger.kernel.org,
+	'Johan MOSSBERG' <johan.xx.mossberg@stericsson.com>,
+	'Ankita Garg' <ankita@in.ibm.com>
+Subject: Re: [PATCHv8 00/12] Contiguous Memory Allocator
+Message-ID: <20101223134838.GK3636@n2100.arm.linux.org.uk>
+References: <cover.1292443200.git.m.nazarewicz@samsung.com> <AANLkTim8_=0+-zM5z4j0gBaw3PF3zgpXQNetEn-CfUGb@mail.gmail.com> <20101223100642.GD3636@n2100.arm.linux.org.uk> <00ea01cba290$4d67f500$e837df00$%szyprowski@samsung.com> <20101223121917.GG3636@n2100.arm.linux.org.uk> <4D135004.3070904@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-Content-Language: en-us
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4D135004.3070904@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hello, Hans,
-
-Thank you very much for the comments!
-
-I don't have answers to all of your comments, but will reply as much as I
-can.
-Since a lot of folks are on break here, we will have feedbacks for the other
-ones 
-after the holiday.
-
-
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Hans Verkuil
+On Thu, Dec 23, 2010 at 02:35:00PM +0100, Tomasz Fujak wrote:
+> Dear Mr. King,
 > 
-> Does config control the sensor or the main msm subsystem? Or both?
+> AFAIK the CMA is the fourth attempt since 2008 taken to solve the
+> multimedia memory allocation issue on some embedded devices. Most
+> notably on ARM, that happens to be present in the SoCs we care about
+> along the IOMMU-incapable multimedia IPs.
 > 
+> I understand that you have your guidelines taken from the ARM
+> specification, but this approach is not helping us.
 
-It controls both. 
+I'm sorry you feel like that, but I'm living in reality.  If we didn't
+have these architecture restrictions then we wouldn't have this problem
+in the first place.
 
-> Just to repeat what I have discussed with Qualcomm before (so that
-> everyone knows):
-> I have no problem with proprietary code as long as:
-> 
-> 1) the hardware and driver APIs are clearly documented allowing someone
-> else to
-> make their own algorithms.
->
+What I'm trying to do here is to ensure that we remain _legal_ to the
+architecture specification - which for this issue means that we avoid
+corrupting people's data.
 
-Yes, we will have the APIs clearly documented for the hardware and driver. 
- 
-> 2) the initial state of the hardware as set up by the driver is good
-> enough to
-> capture video in normal lighting conditions. In other words: the daemon
-> should not
-> be needed for testing the driver. I compare this with cheap webcams
-> that often
-> need software white balancing to get a decent picture. They still work
-> without
-> that, but the picture simply doesn't look very good.
-> 
+Maybe you like having a system which randomly corrupts people's data?
+I most certainly don't.  But that's the way CMA is heading at the moment
+on ARM.
 
-I agree that it's a very good idea to be able to run the driver without
-daemon.
-Our challenge is that we have all the hardware pipeline configuration in the
-daemon. The driver doesn't know how to configure the pipeline as a whole
-based on
-user specification, it only cares about the configuration of each individual
-component. 
-
-> We also discussed the daemon in the past. The idea was that it should
-> be called
-> from libv4l2. Is this still the plan?
->
-
-[to be commented on later]
-
-> Take a look at the new core-assisted locking scheme implemented for
-> 2.6.37.
-> This might simplify your driver. Just FYI.
-> 
-
-We will take a look at this.
-
-> Laurent Pinchart has a patch series adding support for device nodes for
-> sub-devices. The only reason that series isn't merged yet is that there
-> are
-> no merged drivers that need it. You should use those patches to
-> implement
-> these ioctls in sub-devices. I guess you probably want to create a
-> subdev
-> for the VFE hardware. The SENSOR_INFO ioctl seems like something that
-> can
-> be implemented using the upcoming media controller framework.
-> 
-> My guess is that these ioctls will need some work.
-> 
-> 
-> It's more likely that the private ioctls will go through subdev device
-> nodes.
-> 
-> That's really what they were designed for.
-> 
-
-Agreed. We will make the sensor and VFE hardware related calls go through 
-subdebv device nodes.
-
-
-Thanks,
-Shuzhen
-
---
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
---
-
+It is not up to me to solve these problems - that's for the proposer of
+the new API to do so.  So, please, don't try to lump this problem on
+my shoulders.  It's not my problem to sort out.
