@@ -1,50 +1,87 @@
 Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42378 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752453Ab0LWJCV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Dec 2010 04:02:21 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [GIT PULL FOR 2.6.37] uvcvideo: BKL removal
-Date: Thu, 23 Dec 2010 10:02:33 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-References: <201011291115.11061.laurent.pinchart@ideasonboard.com> <201012201348.51845.laurent.pinchart@ideasonboard.com> <201012201409.40799.hverkuil@xs4all.nl>
-In-Reply-To: <201012201409.40799.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:17767 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753158Ab0LWOnH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Dec 2010 09:43:07 -0500
+Message-ID: <4D135FF3.1090903@redhat.com>
+Date: Thu, 23 Dec 2010 12:42:59 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for 2.6.37-rc8] V4L/RC fixes
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201012231002.34251.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Hans,
+Linus,
 
-On Monday 20 December 2010 14:09:40 Hans Verkuil wrote:
-> On Monday, December 20, 2010 13:48:51 Laurent Pinchart wrote:
-> >
-> > What if the application wants to change the resolution during capture ?
-> > It will have to stop capture, call REQBUFS(0), change the format,
-> > request buffers and restart capture. If filehandle ownership is dropped
-> > after REQBUFS(0) that will open the door to a race condition.
-> 
-> That's why S_PRIORITY was invented.
+Please pull from:
+  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
 
-Right, I should implement that. I think the documentation isn't clear though. 
-What is the background priority for exactly ? And the "unset" priority ? Are 
-other applications allowed to change controls when an application has the 
-record priority ?
+For a series of fixes for V4L and RC. Most of the patches are due to a bug 
+at the mceusb parser that weren't working with some MCE Remote Controller variants.
+There are also some regressions and bugs at s5p-fimc driver and a few other
+bugs at soc_camera/mx2_camera, nuvoton, lirc and streamzap drivers. 
 
-In general I find the priority ioctls underspecified, that's why I haven't 
-implemented them yet.
+Thanks!
+Mauro
 
-On a side note, I've just tested the latest uvcvideo driver, and I've 
-successfully captured video using a second application after calling 
-REQBUFS(0) in a first application.
+-
 
--- 
-Regards,
+The following changes since commit 90a8a73c06cc32b609a880d48449d7083327e11a:
 
-Laurent Pinchart
+  Linux 2.6.37-rc7 (2010-12-21 11:26:40 -0800)
+
+are available in the git repository at:
+  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
+
+Baruch Siach (1):
+      [media] mx2_camera: fix pixel clock polarity configuration
+
+Dan Carpenter (2):
+      [media] lirc_dev: stray unlock in lirc_dev_fop_poll()
+      [media] lirc_dev: fixes in lirc_dev_fop_read()
+
+Guennadi Liakhovetski (1):
+      [media] soc-camera: fix static build of the sh_mobile_csi2.c driver
+
+Jarod Wilson (10):
+      [media] mceusb: add support for Conexant Hybrid TV RDU253S
+      [media] nuvoton-cir: improve buffer parsing responsiveness
+      [media] mceusb: fix up reporting of trailing space
+      [media] mceusb: buffer parsing fixups for 1st-gen device
+      [media] IR: add tv power scancode to rc6 mce keymap
+      [media] mceusb: fix keybouce issue after parser simplification
+      [media] streamzap: merge timeout space with trailing space
+      [media] mceusb: add another Fintek device ID
+      [media] mceusb: fix inverted mask inversion logic
+      [media] mceusb: set a default rx timeout
+
+Paul Bender (1):
+      [media] rc: fix sysfs entry for mceusb and streamzap
+
+Sylwester Nawrocki (6):
+      [media] s5p-fimc: BKL lock removal - compilation fix
+      [media] s5p-fimc: Fix vidioc_g_crop/cropcap on camera sensor
+      [media] s5p-fimc: Explicitly add required header file
+      [media] s5p-fimc: Convert m2m driver to unlocked_ioctl
+      [media] s5p-fimc: Use correct fourcc code for 32-bit RGB format
+      [media] s5p-fimc: Fix output DMA handling in S5PV310 IP revisions
+
+ drivers/media/IR/keymaps/rc-rc6-mce.c       |   21 ++--
+ drivers/media/IR/lirc_dev.c                 |   29 +++--
+ drivers/media/IR/mceusb.c                   |  174 +++++++++++++++++----------
+ drivers/media/IR/nuvoton-cir.c              |   10 ++-
+ drivers/media/IR/streamzap.c                |   21 ++--
+ drivers/media/video/mx2_camera.c            |    2 -
+ drivers/media/video/s5p-fimc/fimc-capture.c |   51 ++++++++-
+ drivers/media/video/s5p-fimc/fimc-core.c    |   54 +++++----
+ drivers/media/video/s5p-fimc/fimc-core.h    |   24 +++--
+ drivers/media/video/s5p-fimc/regs-fimc.h    |    3 +
+ drivers/media/video/sh_mobile_ceu_camera.c  |    2 +-
+ 11 files changed, 257 insertions(+), 134 deletions(-)
+
