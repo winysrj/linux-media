@@ -1,48 +1,127 @@
 Return-path: <mchehab@gaivota>
-Received: from mx.treblig.org ([80.68.94.177]:34274 "EHLO mx.treblig.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751861Ab0LLR5n (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Dec 2010 12:57:43 -0500
-Date: Sun, 12 Dec 2010 17:57:37 +0000
-From: "Dr. David Alan Gilbert" <linux@treblig.org>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: hverkuil@xs4all.nl, ivtv-devel@ivtvdriver.org,
-	linux-media@vger.kernel.org
-Subject: Re: user accesses in ivtv-fileops.c:ivtv_v4l2_write ?
-Message-ID: <20101212175737.GA30695@gallifrey>
-References: <20101128174022.GA4401@gallifrey> <1292118578.21588.13.camel@localhost>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:57794 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752171Ab0LWX4B (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Dec 2010 18:56:01 -0500
+Date: Thu, 23 Dec 2010 23:54:34 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: linux-arch@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Arnd Bergmann <arnd@arndb.de>,
+	Dan Williams <dan.j.williams@intel.com>,
+	linux-sh@vger.kernel.org, Paul Mundt <lethal@linux-sh.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-usb@vger.kernel.org,
+	David Brownell <dbrownell@users.sourceforge.net>,
+	linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-scsi@vger.kernel.org,
+	"James E.J. Bottomley" <James.Bottomley@suse.de>,
+	Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH] dma_declare_coherent_memory: push ioremap() up to
+	caller
+Message-ID: <20101223235434.GA20587@n2100.arm.linux.org.uk>
+References: <201012240020.37208.jkrzyszt@tis.icnet.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1292118578.21588.13.camel@localhost>
+In-Reply-To: <201012240020.37208.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-* Andy Walls (awalls@md.metrocast.net) wrote:
-> On Sun, 2010-11-28 at 17:40 +0000, Dr. David Alan Gilbert wrote:
-> > Hi,
-> >   Sparse pointed me at the following line in ivtv-fileops.c's ivtv_v4l2_write:
-> > 
-> >                 ivtv_write_vbi(itv, (const struct v4l2_sliced_vbi_data *)user_buf, elems);
-> > 
+On Fri, Dec 24, 2010 at 12:20:32AM +0100, Janusz Krzysztofik wrote:
+> The patch tries to implement a solution suggested by Russell King, 
+> http://lists.infradead.org/pipermail/linux-arm-kernel/2010-December/035264.html. 
+> It is expected to solve video buffer allocation issues for at least a 
+> few soc_camera I/O memory less host interface drivers, designed around 
+> the videobuf_dma_contig layer, which allocates video buffers using 
+> dma_alloc_coherent().
 > 
-> Hi David,
+> Created against linux-2.6.37-rc5.
 > 
-> Let me know if this patch works for your sparse build and adequately
-> addresses the problem.
+> Tested on ARM OMAP1 based Amstrad Delta with a WIP OMAP1 camera patch, 
+> patterned upon two mach-mx3 machine types which already try to use the 
+> dma_declare_coherent_memory() method for reserving a region of system 
+> RAM preallocated with another dma_alloc_coherent(). Compile tested for 
+> all modified files except arch/sh/drivers/pci/fixups-dreamcast.c.
+> 
+> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> ---
+> I intended to quote Russell in my commit message and even asked him for 
+> his permission, but since he didn't respond, I decided to include a link 
+> to his original message only.
 
-Hi Andy,
-  Yes that seems to fix it.
-The only other comment I have is that it would probably be better if
-ivtv_write_vbi_from_user() were to return an error if the copy_from_user
-were to fail and then pass that all the way back up so that if an app passed
-a bad pointer in it would get an EFAULT or the like.
+There's no problem quoting messages which were sent to public mailing
+lists, especially when there's a record of what was said in public
+archives too.
 
-Thanks,
+I think this is definitely a step forward.
 
-Dave
--- 
- -----Open up your eyes, open up your mind, open up your code -------   
-/ Dr. David Alan Gilbert    |       Running GNU/Linux       | Happy  \ 
-\ gro.gilbert @ treblig.org |                               | In Hex /
- \ _________________________|_____ http://www.treblig.org   |_______/
+> --- linux-2.6.37-rc5/arch/arm/mach-mx3/mach-pcm037.c.orig	2010-12-09 23:07:34.000000000 +0100
+> +++ linux-2.6.37-rc5/arch/arm/mach-mx3/mach-pcm037.c	2010-12-23 18:32:24.000000000 +0100
+> @@ -431,7 +431,7 @@ static int __init pcm037_camera_alloc_dm
+>  	memset(buf, 0, buf_size);
+>  
+>  	dma = dma_declare_coherent_memory(&mx3_camera.dev,
+> -					dma_handle, dma_handle, buf_size,
+> +					buf, dma_handle, buf_size,
+>  					DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
+>  
+>  	/* The way we call dma_declare_coherent_memory only a malloc can fail */
+> --- linux-2.6.37-rc5/arch/arm/mach-mx3/mach-mx31moboard.c.orig	2010-12-09 23:07:34.000000000 +0100
+> +++ linux-2.6.37-rc5/arch/arm/mach-mx3/mach-mx31moboard.c	2010-12-23 18:32:24.000000000 +0100
+> @@ -486,7 +486,7 @@ static int __init mx31moboard_cam_alloc_
+>  	memset(buf, 0, buf_size);
+>  
+>  	dma = dma_declare_coherent_memory(&mx3_camera.dev,
+> -					dma_handle, dma_handle, buf_size,
+> +					buf, dma_handle, buf_size,
+>  					DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
+>  
+>  	/* The way we call dma_declare_coherent_memory only a malloc can fail */
+
+A side note for the mx3 folk: although it's not specified in DMA-API,
+memory allocated from dma_alloc_coherent() on ARM is already memset
+to zero by the allocation function.
+
+> --- linux-2.6.37-rc5/drivers/base/dma-coherent.c.orig	2010-12-09 23:08:03.000000000 +0100
+> +++ linux-2.6.37-rc5/drivers/base/dma-coherent.c	2010-12-23 18:32:24.000000000 +0100
+> @@ -14,10 +14,9 @@ struct dma_coherent_mem {
+>  	unsigned long	*bitmap;
+>  };
+>  
+> -int dma_declare_coherent_memory(struct device *dev, dma_addr_t bus_addr,
+> +int dma_declare_coherent_memory(struct device *dev, void *virt_addr,
+>  				dma_addr_t device_addr, size_t size, int flags)
+>  {
+> -	void __iomem *mem_base = NULL;
+>  	int pages = size >> PAGE_SHIFT;
+>  	int bitmap_size = BITS_TO_LONGS(pages) * sizeof(long);
+>  
+> @@ -30,10 +29,6 @@ int dma_declare_coherent_memory(struct d
+>  
+>  	/* FIXME: this routine just ignores DMA_MEMORY_INCLUDES_CHILDREN */
+>  
+> -	mem_base = ioremap(bus_addr, size);
+> -	if (!mem_base)
+> -		goto out;
+> -
+>  	dev->dma_mem = kzalloc(sizeof(struct dma_coherent_mem), GFP_KERNEL);
+>  	if (!dev->dma_mem)
+>  		goto out;
+> @@ -41,7 +36,7 @@ int dma_declare_coherent_memory(struct d
+>  	if (!dev->dma_mem->bitmap)
+>  		goto free1_out;
+>  
+> -	dev->dma_mem->virt_base = mem_base;
+> +	dev->dma_mem->virt_base = virt_addr;
+
+I didn't see anything changing the dev->dma_mem->virt_base type to
+drop the __iomem attribute (which I suspect shouldn't be there - we're
+returning it via a void pointer anyway, so I think the whole coherent
+part of the DMA API should be __iomem-less.
+
+It also pushes the sparse address space warnings to the right place
+IMHO too.
