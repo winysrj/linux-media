@@ -1,209 +1,87 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:54897 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753527Ab0L0K4z (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:59287 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751489Ab0LWOEK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Dec 2010 05:56:55 -0500
-Date: Mon, 27 Dec 2010 11:56:52 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH] [media] s5p-fimc: update checking scaling ratio range
-In-reply-to: <1293441471-23257-1-git-send-email-khw0178.kim@samsung.com>
-To: Hyunwoong Kim <khw0178.kim@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Message-id: <4D1870F4.60209@samsung.com>
+	Thu, 23 Dec 2010 09:04:10 -0500
 MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1
 Content-transfer-encoding: 7BIT
-References: <1293441471-23257-1-git-send-email-khw0178.kim@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1
+Date: Thu, 23 Dec 2010 15:04:07 +0100
+From: Tomasz Fujak <t.fujak@samsung.com>
+Subject: Re: [PATCHv8 00/12] Contiguous Memory Allocator
+In-reply-to: <20101223134838.GK3636@n2100.arm.linux.org.uk>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Kyungmin Park' <kmpark@infradead.org>,
+	'Mel Gorman' <mel@csn.ul.ie>,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
+	Michal Nazarewicz <mina86@mina86.com>,
+	linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+	linux-arm-kernel@lists.infradead.org,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	linux-media@vger.kernel.org,
+	'Johan MOSSBERG' <johan.xx.mossberg@stericsson.com>,
+	'Ankita Garg' <ankita@in.ibm.com>
+Message-id: <4D1356D7.2000008@samsung.com>
+References: <cover.1292443200.git.m.nazarewicz@samsung.com>
+ <AANLkTim8_=0+-zM5z4j0gBaw3PF3zgpXQNetEn-CfUGb@mail.gmail.com>
+ <20101223100642.GD3636@n2100.arm.linux.org.uk>
+ <00ea01cba290$4d67f500$e837df00$%szyprowski@samsung.com>
+ <20101223121917.GG3636@n2100.arm.linux.org.uk> <4D135004.3070904@samsung.com>
+ <20101223134838.GK3636@n2100.arm.linux.org.uk>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Hyunwoong,
+On 2010-12-23 14:48, Russell King - ARM Linux wrote:
+> On Thu, Dec 23, 2010 at 02:35:00PM +0100, Tomasz Fujak wrote:
+>> Dear Mr. King,
+>>
+>> AFAIK the CMA is the fourth attempt since 2008 taken to solve the
+>> multimedia memory allocation issue on some embedded devices. Most
+>> notably on ARM, that happens to be present in the SoCs we care about
+>> along the IOMMU-incapable multimedia IPs.
+>>
+>> I understand that you have your guidelines taken from the ARM
+>> specification, but this approach is not helping us.
+> I'm sorry you feel like that, but I'm living in reality.  If we didn't
+> have these architecture restrictions then we wouldn't have this problem
+> in the first place.
+Do we really have them, or just the documents say they exist?
+> What I'm trying to do here is to ensure that we remain _legal_ to the
+> architecture specification - which for this issue means that we avoid
+> corrupting people's data.
+As legal as the mentioned dma_coherent?
+> Maybe you like having a system which randomly corrupts people's data?
+> I most certainly don't.  But that's the way CMA is heading at the moment
+> on ARM.
+Has this been experienced? I had some ARM-compatible boards on my desk
+(xscale, v6 and v7) and none of them crashed due to this behavior. And
+we *do* have multiple memory mappings, with different attributes.
+> It is not up to me to solve these problems - that's for the proposer of
+> the new API to do so.  So, please, don't try to lump this problem on
+> my shoulders.  It's not my problem to sort out.
+Just great. Nothing short of spectacular - this way the IA32 is going to
+take the embedded market piece by piece once the big two advance their
+foundry processes.
+Despite having the translator, so much burden in the legacy ISA and the
+fact that most of the embedded engineers from the high end are
+accustomed to the ARM.
 
-On 12/27/2010 10:17 AM, Hyunwoong Kim wrote:
-> Horizontal and vertical scaling range are according to the following equations.
-> If (SRC_Width >= 64 x DST_Width) { Exit(-1);  /* Out of Horizontal scale range}
-> If (SRC_Height >= 64 x DST_Height) { Exit(-1);  /* Out of Vertical scale range}
-> 
-> fimc_check_scaler_ratio() is used to check if horizontal and vertical
-> scale range are valid or not. To use fimc_check_scaler_ratio,
-> source and destination format should be set by VIDIOC_S_FMT.
-> And in case of scaling up, it doesn't have to check the scale range.
-> 
-> Reviewed-by: Jonghun Han <jonghun.han@samsung.com>
-> Signed-off-by: Hyunwoong Kim <khw0178.kim@samsung.com>
-> ---
-> This patch is depended on Hyunwoong Kim's last patch.
-> - [PATCH v2] [media] s5p-fimc: Configure scaler registers depending on FIMC version
-> 
->  drivers/media/video/s5p-fimc/fimc-capture.c |    5 ++-
->  drivers/media/video/s5p-fimc/fimc-core.c    |   66 +++++++++++++++++++--------
->  drivers/media/video/s5p-fimc/fimc-core.h    |    2 +-
->  3 files changed, 52 insertions(+), 21 deletions(-)
-> 
-> diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-> index b1cb937..078e5ab 100644
-> --- a/drivers/media/video/s5p-fimc/fimc-capture.c
-> +++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-> @@ -744,6 +744,7 @@ static int fimc_cap_s_crop(struct file *file, void *fh,
->  	struct fimc_frame *f;
->  	struct fimc_ctx *ctx = file->private_data;
->  	struct fimc_dev *fimc = ctx->fimc_dev;
-> +	struct v4l2_rect r;
->  	int ret = -EINVAL;
->  
->  	if (fimc_capture_active(fimc))
-> @@ -761,7 +762,9 @@ static int fimc_cap_s_crop(struct file *file, void *fh,
->  
->  	f = &ctx->s_frame;
->  	/* Check for the pixel scaling ratio when cropping input image. */
-> -	ret = fimc_check_scaler_ratio(&cr->c, &ctx->d_frame);
-> +	r.width = ctx->d_frame.width;
-> +	r.height = ctx->d_frame.height;
-> +	ret = fimc_check_scaler_ratio(&cr->c, &r,  ctx->rotation);
->  	if (ret) {
->  		v4l2_err(&fimc->vid_cap.v4l2_dev, "Out of the scaler range");
->  		return ret;
-> diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-> index 2b65961..cc5c28f 100644
-> --- a/drivers/media/video/s5p-fimc/fimc-core.c
-> +++ b/drivers/media/video/s5p-fimc/fimc-core.c
-> @@ -198,24 +198,24 @@ static struct v4l2_queryctrl *get_ctrl(int id)
->  	return NULL;
->  }
->  
-> -int fimc_check_scaler_ratio(struct v4l2_rect *r, struct fimc_frame *f)
-> +int fimc_check_scaler_ratio(struct v4l2_rect *s, struct v4l2_rect *d, int rot)
->  {
-> -	if (r->width > f->width) {
-> -		if (f->width > (r->width * SCALER_MAX_HRATIO))
-> -			return -EINVAL;
-> -	} else {
-> -		if ((f->width * SCALER_MAX_HRATIO) < r->width)
-> -			return -EINVAL;
-> -	}
-> +	int tx, ty, sx, sy;
->  
-> -	if (r->height > f->height) {
-> -		if (f->height > (r->height * SCALER_MAX_VRATIO))
-> -			return -EINVAL;
-> +	sx = s->width;
-> +	sy = s->height;
-> +
-> +	if (rot == 90 || rot == 270) {
-> +		ty = d->width;
-> +		tx = d->height;
->  	} else {
-> -		if ((f->height * SCALER_MAX_VRATIO) < r->height)
-> -			return -EINVAL;
-> +		tx = d->width;
-> +		ty = d->height;
->  	}
->  
-> +	if ((sx >= SCALER_MAX_HRATIO * tx) || (sy >= SCALER_MAX_VRATIO * ty))
-> +		return -EINVAL;
-> +
->  	return 0;
->  }
->  
-> @@ -1062,7 +1062,9 @@ int fimc_s_ctrl(struct fimc_ctx *ctx, struct v4l2_control *ctrl)
->  {
->  	struct samsung_fimc_variant *variant = ctx->fimc_dev->variant;
->  	struct fimc_dev *fimc = ctx->fimc_dev;
-> +	struct v4l2_rect s, d;
->  	unsigned long flags;
-> +	int ret = 0;
->  
->  	if (ctx->rotation != 0 &&
->  	    (ctrl->id == V4L2_CID_HFLIP || ctrl->id == V4L2_CID_VFLIP)) {
-> @@ -1089,6 +1091,21 @@ int fimc_s_ctrl(struct fimc_ctx *ctx, struct v4l2_control *ctrl)
->  		break;
->  
->  	case V4L2_CID_ROTATE:
-> +		if (!(~ctx->state & (FIMC_DST_FMT | FIMC_SRC_FMT))) {
-> +			s.width = ctx->s_frame.width;
-> +			s.height = ctx->s_frame.height;
-> +
-> +			d.width = ctx->d_frame.width;
-> +			d.height = ctx->d_frame.height;
-> +
-> +			ret = fimc_check_scaler_ratio(&s, &d, ctrl->value);
-> +			if (ret) {
-> +				v4l2_err(&fimc->m2m.v4l2_dev, "Out of scaler range");
-> +				spin_unlock_irqrestore(&ctx->slock, flags);
-> +				return -EINVAL;
-> +			}
-> +		}
-> +
->  		/* Check for the output rotator availability */
->  		if ((ctrl->value == 90 || ctrl->value == 270) &&
->  		    (ctx->in_path == FIMC_DMA && !variant->has_out_rot)) {
-> @@ -1227,6 +1244,7 @@ static int fimc_m2m_s_crop(struct file *file, void *fh, struct v4l2_crop *cr)
->  	struct fimc_dev *fimc = ctx->fimc_dev;
->  	unsigned long flags;
->  	struct fimc_frame *f;
-> +	struct v4l2_rect s, d;
->  	int ret;
->  
->  	ret = fimc_try_crop(ctx, cr);
-> @@ -1237,18 +1255,28 @@ static int fimc_m2m_s_crop(struct file *file, void *fh, struct v4l2_crop *cr)
->  		&ctx->s_frame : &ctx->d_frame;
->  
->  	spin_lock_irqsave(&ctx->slock, flags);
-> -	if (~ctx->state & (FIMC_SRC_FMT | FIMC_DST_FMT)) {
-> -		/* Check to see if scaling ratio is within supported range */
-> -		if (cr->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-> -			ret = fimc_check_scaler_ratio(&cr->c, &ctx->d_frame);
-> -		else
-> -			ret = fimc_check_scaler_ratio(&cr->c, &ctx->s_frame);
-> +	/* Check to see if scaling ratio is within supported range */
-> +	if (!(~ctx->state & (FIMC_DST_FMT | FIMC_SRC_FMT))) {
-> +		if (cr->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-> +			s.width = cr->c.width;
-> +			s.height = cr->c.height;
-> +			d.width = ctx->d_frame.width;
-> +			d.height = ctx->d_frame.height;
-> +		} else {
-> +			s.width = ctx->s_frame.width;
-> +			s.height = ctx->s_frame.height;
-> +			d.width = cr->c.width;
-> +			d.height = cr->c.height;
-> +		}
-> +
-> +		ret = fimc_check_scaler_ratio(&s, &d, ctx->rotation);
->  		if (ret) {
->  			v4l2_err(&fimc->m2m.v4l2_dev, "Out of scaler range");
->  			spin_unlock_irqrestore(&ctx->slock, flags);
->  			return -EINVAL;
->  		}
->  	}
-> +
->  	ctx->state |= FIMC_PARAMS;
->  
->  	f->offs_h = cr->c.left;
-> diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-> index d690398..f7a72a3 100644
-> --- a/drivers/media/video/s5p-fimc/fimc-core.h
-> +++ b/drivers/media/video/s5p-fimc/fimc-core.h
-> @@ -605,7 +605,7 @@ struct fimc_fmt *find_format(struct v4l2_format *f, unsigned int mask);
->  struct fimc_fmt *find_mbus_format(struct v4l2_mbus_framefmt *f,
->  				  unsigned int mask);
->  
-> -int fimc_check_scaler_ratio(struct v4l2_rect *r, struct fimc_frame *f);
-> +int fimc_check_scaler_ratio(struct v4l2_rect *s, struct v4l2_rect *d, int rot);
+In other words, should we take your response as yet another NAK?
+Or would you try harder and at least point us to some direction that
+would not doom the effort from the very beginning.
+I understand that the role of an oracle is so much easier, but the time
+is running and devising subsequent solutions is not the use of
+engineers' time.
 
-This function always compares 2 width/height pairs, don't you think it could
-be better to do something like:
-int fimc_check_scaler_ratio(int sw, int sh, int dw, int dh, int rot);
-considering your changed usage?
-That could let us avoid copying arguments before each function call.
+Best regards
+---
+Tomasz Fujak
 
-Otherwise looks good to me.
->  int fimc_set_scaler_info(struct fimc_ctx *ctx);
->  int fimc_prepare_config(struct fimc_ctx *ctx, u32 flags);
->  int fimc_prepare_addr(struct fimc_ctx *ctx, struct vb2_buffer *vb,
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-Regards,
--- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
