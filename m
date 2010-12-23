@@ -1,40 +1,99 @@
 Return-path: <mchehab@gaivota>
-Received: from bordeaux.papayaltd.net ([82.129.38.124]:39081 "EHLO
-	bordeaux.papayaltd.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752523Ab0L0JIC convert rfc822-to-8bit (ORCPT
+Received: from cnxtsmtp2.conexant.com ([198.62.9.253]:39501 "EHLO
+	cnxtsmtp2.conexant.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751738Ab0LWT5t convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Dec 2010 04:08:02 -0500
-Subject: Re: ngene & Satix-S2 dual problems
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=iso-8859-1
-From: Andre <linux-media@dinkum.org.uk>
-In-Reply-To: <4D1753CF.9010205@gmail.com>
-Date: Mon, 27 Dec 2010 09:07:59 +0000
-Cc: linux-media@vger.kernel.org
+	Thu, 23 Dec 2010 14:57:49 -0500
+Received: from nbwsmx1.bbnet.ad (nbwsmx1.bbnet.ad [157.152.183.211]) (using TLSv1 with cipher
+ RC4-MD5 (128/128 bits)) (No client certificate requested) by cnxtsmtp2.conexant.com (Tumbleweed
+ MailGate 3.7.1) with ESMTP id 2581D2508FB for <linux-media@vger.kernel.org>; Thu, 23 Dec 2010
+ 11:40:23 -0800 (PST)
+From: "Sri Deevi" <Srinivasa.Deevi@conexant.com>
+To: "'Dan Carpenter'" <error27@gmail.com>
+cc: "'Andy Walls'" <awalls@md.metrocast.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"mchehab@infradead.org" <mchehab@infradead.org>
+Date: Thu, 23 Dec 2010 11:40:22 -0800
+Subject: RE: [patch] [media] cx231xxx: fix typo in saddr_len check
+Message-ID: <34B38BE41EDBA046A4AFBB591FA31132024A7F38D1@NBMBX01.bbnet.ad>
+References: <20101223164347.GA16612@bicker> <1293129292.24752.9.camel@morgan.silverblock.net>
+ <34B38BE41EDBA046A4AFBB591FA311320249B057C6@NBMBX01.bbnet.ad> <20101223193853.GN1936@bicker>
+In-Reply-To: <20101223193853.GN1936@bicker>
+Content-Language: en-US
+Content-Type: text/plain;
+ charset=us-ascii
 Content-Transfer-Encoding: 8BIT
-Message-Id: <55B5612B-5E2B-4C2E-AD5E-B0D5A7AC865B@dinkum.org.uk>
-References: <4D1753CF.9010205@gmail.com>
-To: =?iso-8859-1?Q?Ludovic_BOU=C9?= <ludovic.boue@gmail.com>
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
+I am ok with the changes.
 
-On 26 Dec 2010, at 14:40, Ludovic BOUÉ wrote:
+Signed-off-by: Srinivasa Deevi <Srinivasa.deevi@conexant.com>
 
-> Hi all,
-> 
-> I have a Satix-S2 Dual and I'm trying to get to work without his CI in a first time. I'm trying ngene-test2 
-> from http://linuxtv.org/hg/~endriss/ngene-test2/ under 
-> 2.6.32-21-generic.
-> 
-> It contains too much nodes (extra demuxes, dvrs & nets):
+Sri
 
-Yes, if you read this thread back you will see why and that it doesn't prevent anything working.
+-----Original Message-----
+From: Dan Carpenter [mailto:error27@gmail.com] 
+Sent: Thursday, December 23, 2010 11:39 AM
+To: Sri Deevi
+Cc: 'Andy Walls'; linux-media@vger.kernel.org; mchehab@infradead.org
+Subject: [patch] [media] cx231xxx: fix typo in saddr_len check
 
-> was working with stable driver dans 1.5 firmware.
+The original code compared "saddr_len" with zero twice in a nonsensical
+way.  I asked the list, and Andy Walls and Sri Deevi say that the second
+check should be if "saddr_len == 1".
 
-Again back in the thread you will see that with the in kernel driver (I hesitate to use the description stable) there is a serious problem when both tuners are in use, this work in progress driver fixes that problem.
+Signed-off-by: Dan Carpenter <error27@gmail.com>
 
-The extra nodes are a pain, especially when you have a lot of tuners in one machine but tuners that stop working mid recording are much more of a pain!
+diff --git a/drivers/media/video/cx231xx/cx231xx-core.c b/drivers/media/video/cx231xx/cx231xx-core.c
+index 44d124c..7d62d58 100644
+--- a/drivers/media/video/cx231xx/cx231xx-core.c
++++ b/drivers/media/video/cx231xx/cx231xx-core.c
+@@ -1515,7 +1515,7 @@ int cx231xx_read_i2c_master(struct cx231xx *dev, u8 dev_addr, u16 saddr,
+ 
+ 	if (saddr_len == 0)
+ 		saddr = 0;
+-	else if (saddr_len == 0)
++	else if (saddr_len == 1)
+ 		saddr &= 0xff;
+ 
+ 	/* prepare xfer_data struct */
+@@ -1566,7 +1566,7 @@ int cx231xx_write_i2c_master(struct cx231xx *dev, u8 dev_addr, u16 saddr,
+ 
+ 	if (saddr_len == 0)
+ 		saddr = 0;
+-	else if (saddr_len == 0)
++	else if (saddr_len == 1)
+ 		saddr &= 0xff;
+ 
+ 	/* prepare xfer_data struct */
+@@ -1600,7 +1600,7 @@ int cx231xx_read_i2c_data(struct cx231xx *dev, u8 dev_addr, u16 saddr,
+ 
+ 	if (saddr_len == 0)
+ 		saddr = 0;
+-	else if (saddr_len == 0)
++	else if (saddr_len == 1)
+ 		saddr &= 0xff;
+ 
+ 	/* prepare xfer_data struct */
+@@ -1641,7 +1641,7 @@ int cx231xx_write_i2c_data(struct cx231xx *dev, u8 dev_addr, u16 saddr,
+ 
+ 	if (saddr_len == 0)
+ 		saddr = 0;
+-	else if (saddr_len == 0)
++	else if (saddr_len == 1)
+ 		saddr &= 0xff;
+ 
+ 	/* prepare xfer_data struct */
 
-Andre
+Conexant E-mail Firewall (Conexant.Com) made the following annotations
+---------------------------------------------------------------------
+********************** Legal Disclaimer **************************** 
+
+"This email may contain confidential and privileged material for the sole use of the intended recipient. Any unauthorized review, use or distribution by others is strictly prohibited. If you have received the message in error, please advise the sender by reply email and delete the message. Thank you." 
+
+********************************************************************** 
+
+---------------------------------------------------------------------
+
