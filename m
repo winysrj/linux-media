@@ -1,205 +1,64 @@
 Return-path: <mchehab@gaivota>
-Received: from rtp-iport-2.cisco.com ([64.102.122.149]:2711 "EHLO
-	rtp-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756403Ab0LPP1M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Dec 2010 10:27:12 -0500
-From: mats.randgaard@cisco.com
-To: linux-media@vger.kernel.org
-Cc: mats.randgaard@cisco.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/5] vpif: Consolidate formats from capture and display
-Date: Thu, 16 Dec 2010 16:17:42 +0100
-Message-Id: <1292512665-22538-3-git-send-email-mats.randgaard@cisco.com>
-In-Reply-To: <1292512665-22538-1-git-send-email-mats.randgaard@cisco.com>
-References: <1292512665-22538-1-git-send-email-mats.randgaard@cisco.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:46742 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752951Ab0LWLyD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Dec 2010 06:54:03 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v10 0/8] davinci vpbe: dm6446 v4l2 driver
+Date: Thu, 23 Dec 2010 17:23:37 +0530
+Message-Id: <1293105217-16735-1-git-send-email-manjunath.hadli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-From: Mats Randgaard <mats.randgaard@cisco.com>
+version10: addressed Kevin's and Sergei's comments
+on:
+1.Lines spacing.
+2.language errors now based on Kevin Hilman's tree
 
-- The ch_params tables in vpif_capture.c and vpif_display.c are moved to a common
-  table in vpif.c. Then it is easier to maintain the table.
-- The field "fps" is removed from the struct vpif_channel_config_params because it
-  is not used.
+Manjunath Hadli (8):
+  davinci vpbe: V4L2 display driver for DM644X SoC
+  davinci vpbe: VPBE display driver
+  davinci vpbe: OSD(On Screen Display) block
+  davinci vpbe: VENC( Video Encoder) implementation
+  davinci vpbe: platform specific additions-khilman
+  davinci vpbe: board specific additions
+  davinci vpbe: Build infrastructure for VPBE driver
+  davinci vpbe: Readme text for Dm6446 vpbe
 
-Signed-off-by: Mats Randgaard <mats.randgaard@cisco.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by : Murali Karicheri <mkaricheri@gmail.com>
----
- drivers/media/video/davinci/vpif.c         |   50 ++++++++++++++++++++++++++++
- drivers/media/video/davinci/vpif.h         |    4 ++-
- drivers/media/video/davinci/vpif_capture.c |   18 +---------
- drivers/media/video/davinci/vpif_display.c |   17 ++--------
- 4 files changed, 58 insertions(+), 31 deletions(-)
-
-diff --git a/drivers/media/video/davinci/vpif.c b/drivers/media/video/davinci/vpif.c
-index 1f532e3..54cc0da 100644
---- a/drivers/media/video/davinci/vpif.c
-+++ b/drivers/media/video/davinci/vpif.c
-@@ -41,6 +41,56 @@ spinlock_t vpif_lock;
- 
- void __iomem *vpif_base;
- 
-+/**
-+ * ch_params: video standard configuration parameters for vpif
-+ * The table must include all presets from supported subdevices.
-+ */
-+const struct vpif_channel_config_params ch_params[] = {
-+	/* SDTV formats */
-+	{
-+		.name = "NTSC_M",
-+		.width = 720,
-+		.height = 480,
-+		.frm_fmt = 0,
-+		.ycmux_mode = 1,
-+		.eav2sav = 268,
-+		.sav2eav = 1440,
-+		.l1 = 1,
-+		.l3 = 23,
-+		.l5 = 263,
-+		.l7 = 266,
-+		.l9 = 286,
-+		.l11 = 525,
-+		.vsize = 525,
-+		.capture_format = 0,
-+		.vbi_supported = 1,
-+		.hd_sd = 0,
-+		.stdid = V4L2_STD_525_60,
-+	},
-+	{
-+		.name = "PAL_BDGHIK",
-+		.width = 720,
-+		.height = 576,
-+		.frm_fmt = 0,
-+		.ycmux_mode = 1,
-+		.eav2sav = 280,
-+		.sav2eav = 1440,
-+		.l1 = 1,
-+		.l3 = 23,
-+		.l5 = 311,
-+		.l7 = 313,
-+		.l9 = 336,
-+		.l11 = 624,
-+		.vsize = 625,
-+		.capture_format = 0,
-+		.vbi_supported = 1,
-+		.hd_sd = 0,
-+		.stdid = V4L2_STD_625_50,
-+	},
-+};
-+
-+const unsigned int vpif_ch_params_count = ARRAY_SIZE(ch_params);
-+
- static inline void vpif_wr_bit(u32 reg, u32 bit, u32 val)
- {
- 	if (val)
-diff --git a/drivers/media/video/davinci/vpif.h b/drivers/media/video/davinci/vpif.h
-index 188841b..940c30f 100644
---- a/drivers/media/video/davinci/vpif.h
-+++ b/drivers/media/video/davinci/vpif.h
-@@ -577,7 +577,6 @@ struct vpif_channel_config_params {
- 	char name[VPIF_MAX_NAME];	/* Name of the mode */
- 	u16 width;			/* Indicates width of the image */
- 	u16 height;			/* Indicates height of the image */
--	u8 fps;
- 	u8 frm_fmt;			/* Indicates whether this is interlaced
- 					 * or progressive format */
- 	u8 ycmux_mode;			/* Indicates whether this mode requires
-@@ -594,6 +593,9 @@ struct vpif_channel_config_params {
- 	v4l2_std_id stdid;
- };
- 
-+extern const unsigned int vpif_ch_params_count;
-+extern const struct vpif_channel_config_params ch_params[];
-+
- struct vpif_video_params;
- struct vpif_params;
- struct vpif_vbi_params;
-diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
-index 3b5c98b..4768f79 100644
---- a/drivers/media/video/davinci/vpif_capture.c
-+++ b/drivers/media/video/davinci/vpif_capture.c
-@@ -82,20 +82,6 @@ static struct vpif_device vpif_obj = { {NULL} };
- static struct device *vpif_dev;
- 
- /**
-- * ch_params: video standard configuration parameters for vpif
-- */
--static const struct vpif_channel_config_params ch_params[] = {
--	{
--		"NTSC_M", 720, 480, 30, 0, 1, 268, 1440, 1, 23, 263, 266,
--		286, 525, 525, 0, 1, 0, V4L2_STD_525_60,
--	},
--	{
--		"PAL_BDGHIK", 720, 576, 25, 0, 1, 280, 1440, 1, 23, 311, 313,
--		336, 624, 625, 0, 1, 0, V4L2_STD_625_50,
--	},
--};
--
--/**
-  * vpif_uservirt_to_phys : translate user/virtual address to phy address
-  * @virtp: user/virtual address
-  *
-@@ -444,7 +430,7 @@ static int vpif_update_std_info(struct channel_obj *ch)
- 
- 	std_info = &vpifparams->std_info;
- 
--	for (index = 0; index < ARRAY_SIZE(ch_params); index++) {
-+	for (index = 0; index < vpif_ch_params_count; index++) {
- 		config = &ch_params[index];
- 		if (config->stdid & vid_ch->stdid) {
- 			memcpy(std_info, config, sizeof(*config));
-@@ -453,7 +439,7 @@ static int vpif_update_std_info(struct channel_obj *ch)
- 	}
- 
- 	/* standard not found */
--	if (index == ARRAY_SIZE(ch_params))
-+	if (index == vpif_ch_params_count)
- 		return -EINVAL;
- 
- 	common->fmt.fmt.pix.width = std_info->width;
-diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
-index 57b206c..be3fa2e 100644
---- a/drivers/media/video/davinci/vpif_display.c
-+++ b/drivers/media/video/davinci/vpif_display.c
-@@ -85,17 +85,6 @@ static struct vpif_config_params config_params = {
- static struct vpif_device vpif_obj = { {NULL} };
- static struct device *vpif_dev;
- 
--static const struct vpif_channel_config_params ch_params[] = {
--	{
--		"NTSC", 720, 480, 30, 0, 1, 268, 1440, 1, 23, 263, 266,
--		286, 525, 525, 0, 1, 0, V4L2_STD_525_60,
--	},
--	{
--		"PAL", 720, 576, 25, 0, 1, 280, 1440, 1, 23, 311, 313,
--		336, 624, 625, 0, 1, 0, V4L2_STD_625_50,
--	},
--};
--
- /*
-  * vpif_uservirt_to_phys: This function is used to convert user
-  * space virtual address to physical address.
-@@ -388,7 +377,7 @@ static int vpif_get_std_info(struct channel_obj *ch)
- 	if (!std_info->stdid)
- 		return -1;
- 
--	for (index = 0; index < ARRAY_SIZE(ch_params); index++) {
-+	for (index = 0; index < vpif_ch_params_count; index++) {
- 		config = &ch_params[index];
- 		if (config->stdid & std_info->stdid) {
- 			memcpy(std_info, config, sizeof(*config));
-@@ -396,8 +385,8 @@ static int vpif_get_std_info(struct channel_obj *ch)
- 		}
- 	}
- 
--	if (index == ARRAY_SIZE(ch_params))
--		return -1;
-+	if (index == vpif_ch_params_count)
-+		return -EINVAL;
- 
- 	common->fmt.fmt.pix.width = std_info->width;
- 	common->fmt.fmt.pix.height = std_info->height;
--- 
-1.7.1
+ Documentation/video4linux/README.davinci-vpbe |   93 ++
+ arch/arm/mach-davinci/board-dm644x-evm.c      |   81 +-
+ arch/arm/mach-davinci/dm644x.c                |  172 ++-
+ arch/arm/mach-davinci/include/mach/dm644x.h   |    4 +
+ drivers/media/video/davinci/Kconfig           |   22 +
+ drivers/media/video/davinci/Makefile          |    2 +
+ drivers/media/video/davinci/vpbe.c            |  836 ++++++++++
+ drivers/media/video/davinci/vpbe_display.c    | 2099 +++++++++++++++++++++++++
+ drivers/media/video/davinci/vpbe_osd.c        | 1211 ++++++++++++++
+ drivers/media/video/davinci/vpbe_osd_regs.h   |  389 +++++
+ drivers/media/video/davinci/vpbe_venc.c       |  568 +++++++
+ drivers/media/video/davinci/vpbe_venc_regs.h  |  189 +++
+ include/media/davinci/vpbe.h                  |  186 +++
+ include/media/davinci/vpbe_display.h          |  146 ++
+ include/media/davinci/vpbe_osd.h              |  397 +++++
+ include/media/davinci/vpbe_types.h            |   93 ++
+ include/media/davinci/vpbe_venc.h             |   38 +
+ 17 files changed, 6505 insertions(+), 21 deletions(-)
+ create mode 100644 Documentation/video4linux/README.davinci-vpbe
+ create mode 100644 drivers/media/video/davinci/vpbe.c
+ create mode 100644 drivers/media/video/davinci/vpbe_display.c
+ create mode 100644 drivers/media/video/davinci/vpbe_osd.c
+ create mode 100644 drivers/media/video/davinci/vpbe_osd_regs.h
+ create mode 100644 drivers/media/video/davinci/vpbe_venc.c
+ create mode 100644 drivers/media/video/davinci/vpbe_venc_regs.h
+ create mode 100644 include/media/davinci/vpbe.h
+ create mode 100644 include/media/davinci/vpbe_display.h
+ create mode 100644 include/media/davinci/vpbe_osd.h
+ create mode 100644 include/media/davinci/vpbe_types.h
+ create mode 100644 include/media/davinci/vpbe_venc.h
 
