@@ -1,82 +1,71 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-bw0-f66.google.com ([209.85.214.66]:41231 "EHLO
-	mail-bw0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758865Ab0LNBer convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1795 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751660Ab0LWJUh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Dec 2010 20:34:47 -0500
-MIME-Version: 1.0
-In-Reply-To: <201012131859.15152.strakh@ispras.ru>
-References: <201012131859.15152.strakh@ispras.ru>
-Date: Tue, 14 Dec 2010 09:34:46 +0800
-Message-ID: <AANLkTi=4CZ2LD8cj_cjnb5yyyML+M6T=57EjT_hD4TBn@mail.gmail.com>
-Subject: Re: BUG: double mutex_unlock in drivers/media/video/tlg2300/pd-video.c
-From: Huang Shijie <shijie8@gmail.com>
-To: Alexander Strakh <strakh@ispras.ru>
-Cc: linux-kernel@vger.kernel.org, kangyong@telegent.com,
-	xbzhang@telegent.com, zyziii@telegent.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Thu, 23 Dec 2010 04:20:37 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [GIT PULL FOR 2.6.37] uvcvideo: BKL removal
+Date: Thu, 23 Dec 2010 10:20:17 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+References: <201011291115.11061.laurent.pinchart@ideasonboard.com> <201012201409.40799.hverkuil@xs4all.nl> <201012231002.34251.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201012231002.34251.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201012231020.17558.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Strakh:
+On Thursday, December 23, 2010 10:02:33 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Monday 20 December 2010 14:09:40 Hans Verkuil wrote:
+> > On Monday, December 20, 2010 13:48:51 Laurent Pinchart wrote:
+> > >
+> > > What if the application wants to change the resolution during capture ?
+> > > It will have to stop capture, call REQBUFS(0), change the format,
+> > > request buffers and restart capture. If filehandle ownership is dropped
+> > > after REQBUFS(0) that will open the door to a race condition.
+> > 
+> > That's why S_PRIORITY was invented.
+> 
+> Right, I should implement that. I think the documentation isn't clear though. 
+> What is the background priority for exactly ?
 
-Thanks for your patch.
+As the documentation mentions, it can be used for background processes monitoring
+VBI (e.g. teletext) transmissions. I'm not aware of any such applications, though.
 
-But I prefer to remove the mutex_unlock() in the pd_vidioc_s_fmt(),
-since the pd_vidioc_s_fmt() is also called in restore_v4l2_context().
+PRIORITY_DEFAULT and PRIORITY_RECORD are the only two relevant prios in practice.
 
-would you please change the patch?
-I will ack it.
+> And the "unset" priority ?
 
-Best Regards
-Huang Shijie
+Internal prio only. I think it's the value when no file handle is open.
 
+> Are 
+> other applications allowed to change controls when an application has the 
+> record priority ?
 
-2010/12/13 Alexander Strakh <strakh@ispras.ru>:
->        KERNEL_VERSION: 2.6.36
->        SUBJECT: double mutex_lock in drivers/media/video/tlg2300/pd-video.c
-> in function vidioc_s_fmt
->        SUBSCRIBE:
->        First mutex_unlock in function pd_vidioc_s_fmt in line 767:
->
->  764        ret |= send_set_req(pd, VIDEO_ROSOLU_SEL,
->  765                                vid_resol, &cmd_status);
->  766        if (ret || cmd_status) {
->  767                mutex_unlock(&pd->lock);
->  768                return -EBUSY;
->  769        }
->
->        Second mutex_unlock in function vidioc_s_fmt in line 806:
->
->  805        pd_vidioc_s_fmt(pd, &f->fmt.pix);
->  806        mutex_unlock(&pd->lock);
->
-> Found by Linux Device Drivers Verification Project
->
-> Сhecks the return code of pd_vidioc_s_fm before mutex_unlocking.
->
-> Signed-off-by: Alexander Strakh <strakh@ispras.ru>
->
-> ---
-> diff --git a/drivers/media/video/tlg2300/pd-video.c
-> b/drivers/media/video/tlg2300/pd-video.c
-> index a1ffe18..fe6bd2b 100644
-> --- a/drivers/media/video/tlg2300/pd-video.c
-> +++ b/drivers/media/video/tlg2300/pd-video.c
-> @@ -802,8 +802,8 @@ static int vidioc_s_fmt(struct file *file, void *fh,
-> struct v4l2_format *f)
->                return -EINVAL;
->        }
->
-> -       pd_vidioc_s_fmt(pd, &f->fmt.pix);
-> -       mutex_unlock(&pd->lock);
-> +       if(!pd_vidioc_s_fmt(pd, &f->fmt.pix))
-> +               mutex_unlock(&pd->lock);
->        return 0;
->  }
->
->
->
+No. Only read-only ioctls can be executed.
+
+> In general I find the priority ioctls underspecified, that's why I haven't 
+> implemented them yet.
+
+Use the prio support functions in v4l2-common. They are easy to use and do the
+job.
+
+Regards,
+
+	Hans
+
+> On a side note, I've just tested the latest uvcvideo driver, and I've 
+> successfully captured video using a second application after calling 
+> REQBUFS(0) in a first application.
+> 
+> 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
