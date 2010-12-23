@@ -1,100 +1,72 @@
 Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34479 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756716Ab0LTLgF (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:46419 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751258Ab0LWTjF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Dec 2010 06:36:05 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v5 6/7] v4l: subdev: Control ioctls support
-Date: Mon, 20 Dec 2010 12:35:55 +0100
-Message-Id: <1292844956-7853-7-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1292844956-7853-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1292844956-7853-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Thu, 23 Dec 2010 14:39:05 -0500
+Received: by fxm20 with SMTP id 20so7401156fxm.19
+        for <linux-media@vger.kernel.org>; Thu, 23 Dec 2010 11:39:04 -0800 (PST)
+Date: Thu, 23 Dec 2010 22:38:53 +0300
+From: Dan Carpenter <error27@gmail.com>
+To: Sri Deevi <Srinivasa.Deevi@conexant.com>
+Cc: 'Andy Walls' <awalls@md.metrocast.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	mchehab@infradead.org
+Subject: [patch] [media] cx231xxx: fix typo in saddr_len check
+Message-ID: <20101223193853.GN1936@bicker>
+References: <20101223164347.GA16612@bicker>
+ <1293129292.24752.9.camel@morgan.silverblock.net>
+ <34B38BE41EDBA046A4AFBB591FA311320249B057C6@NBMBX01.bbnet.ad>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <34B38BE41EDBA046A4AFBB591FA311320249B057C6@NBMBX01.bbnet.ad>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Pass the control-related ioctls to the subdev driver through the control
-framework.
+The original code compared "saddr_len" with zero twice in a nonsensical
+way.  I asked the list, and Andy Walls and Sri Deevi say that the second
+check should be if "saddr_len == 1".
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/video4linux/v4l2-framework.txt |   16 ++++++++++++++++
- drivers/media/video/v4l2-subdev.c            |   25 +++++++++++++++++++++++++
- 2 files changed, 41 insertions(+), 0 deletions(-)
+Signed-off-by: Dan Carpenter <error27@gmail.com>
 
-diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index 4c9185a..f683f63 100644
---- a/Documentation/video4linux/v4l2-framework.txt
-+++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -336,6 +336,22 @@ argument to 0. Setting the argument to 1 will only enable device node
- registration if the sub-device driver has set the V4L2_SUBDEV_FL_HAS_DEVNODE
- flag.
+diff --git a/drivers/media/video/cx231xx/cx231xx-core.c b/drivers/media/video/cx231xx/cx231xx-core.c
+index 44d124c..7d62d58 100644
+--- a/drivers/media/video/cx231xx/cx231xx-core.c
++++ b/drivers/media/video/cx231xx/cx231xx-core.c
+@@ -1515,7 +1515,7 @@ int cx231xx_read_i2c_master(struct cx231xx *dev, u8 dev_addr, u16 saddr,
  
-+The device node handles a subset of the V4L2 API.
-+
-+VIDIOC_QUERYCTRL
-+VIDIOC_QUERYMENU
-+VIDIOC_G_CTRL
-+VIDIOC_S_CTRL
-+VIDIOC_G_EXT_CTRLS
-+VIDIOC_S_EXT_CTRLS
-+VIDIOC_TRY_EXT_CTRLS
-+
-+	The controls ioctls are identical to the ones defined in V4L2. They
-+	behave identically, with the only exception that they deal only with
-+	controls implemented in the sub-device. Depending on the driver, those
-+	controls can be also be accessed through one (or several) V4L2 device
-+	nodes.
-+
+ 	if (saddr_len == 0)
+ 		saddr = 0;
+-	else if (saddr_len == 0)
++	else if (saddr_len == 1)
+ 		saddr &= 0xff;
  
- I2C sub-device drivers
- ----------------------
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index 0deff78..fc57ce7 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -24,6 +24,7 @@
- #include <linux/ioctl.h>
- #include <linux/videodev2.h>
+ 	/* prepare xfer_data struct */
+@@ -1566,7 +1566,7 @@ int cx231xx_write_i2c_master(struct cx231xx *dev, u8 dev_addr, u16 saddr,
  
-+#include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
+ 	if (saddr_len == 0)
+ 		saddr = 0;
+-	else if (saddr_len == 0)
++	else if (saddr_len == 1)
+ 		saddr &= 0xff;
  
-@@ -45,7 +46,31 @@ static int subdev_close(struct file *file)
+ 	/* prepare xfer_data struct */
+@@ -1600,7 +1600,7 @@ int cx231xx_read_i2c_data(struct cx231xx *dev, u8 dev_addr, u16 saddr,
  
- static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- {
-+	struct video_device *vdev = video_devdata(file);
-+	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
-+
- 	switch (cmd) {
-+	case VIDIOC_QUERYCTRL:
-+		return v4l2_subdev_queryctrl(sd, arg);
-+
-+	case VIDIOC_QUERYMENU:
-+		return v4l2_subdev_querymenu(sd, arg);
-+
-+	case VIDIOC_G_CTRL:
-+		return v4l2_subdev_g_ctrl(sd, arg);
-+
-+	case VIDIOC_S_CTRL:
-+		return v4l2_subdev_s_ctrl(sd, arg);
-+
-+	case VIDIOC_G_EXT_CTRLS:
-+		return v4l2_subdev_g_ext_ctrls(sd, arg);
-+
-+	case VIDIOC_S_EXT_CTRLS:
-+		return v4l2_subdev_s_ext_ctrls(sd, arg);
-+
-+	case VIDIOC_TRY_EXT_CTRLS:
-+		return v4l2_subdev_try_ext_ctrls(sd, arg);
-+
- 	default:
- 		return -ENOIOCTLCMD;
- 	}
--- 
-1.7.2.2
-
+ 	if (saddr_len == 0)
+ 		saddr = 0;
+-	else if (saddr_len == 0)
++	else if (saddr_len == 1)
+ 		saddr &= 0xff;
+ 
+ 	/* prepare xfer_data struct */
+@@ -1641,7 +1641,7 @@ int cx231xx_write_i2c_data(struct cx231xx *dev, u8 dev_addr, u16 saddr,
+ 
+ 	if (saddr_len == 0)
+ 		saddr = 0;
+-	else if (saddr_len == 0)
++	else if (saddr_len == 1)
+ 		saddr &= 0xff;
+ 
+ 	/* prepare xfer_data struct */
