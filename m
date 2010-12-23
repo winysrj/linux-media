@@ -1,312 +1,177 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:28519 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753538Ab0L2RdD (ORCPT
+Received: from wolverine02.qualcomm.com ([199.106.114.251]:59029 "EHLO
+	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751258Ab0LWTjH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Dec 2010 12:33:03 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Wed, 29 Dec 2010 18:32:54 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 12/15 v2] [media] s5p-fimc: Add control of the external sensor
- clock
-In-reply-to: <1293643975-4528-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com
-Message-id: <1293643975-4528-13-git-send-email-s.nawrocki@samsung.com>
-References: <1293643975-4528-1-git-send-email-s.nawrocki@samsung.com>
+	Thu, 23 Dec 2010 14:39:07 -0500
+From: "Shuzhen Wang" <shuzhenw@codeaurora.org>
+To: <linux-media@vger.kernel.org>
+Cc: <hzhong@codeaurora.org>
+Subject: RFC: V4L2 driver for Qualcomm MSM camera.
+Date: Thu, 23 Dec 2010 11:38:04 -0800
+Message-ID: <000601cba2d8$eaedcdc0$c0c96940$@org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-language: en-us
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Manage the camera sensor clock in the host driver rather than
-leaving this task for sensor drivers. The clock frequency
-must be passed in the sensor's and host driver's platform data.
+Hello, 
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-capture.c |   45 ++++++++++++++------
- drivers/media/video/s5p-fimc/fimc-core.c    |   59 ++++++++++++++++----------
- drivers/media/video/s5p-fimc/fimc-core.h    |   18 ++++++--
- include/media/s5p_fimc.h                    |    2 +
- 4 files changed, 82 insertions(+), 42 deletions(-)
+This is the architecture overview we put together for Qualcomm MSM camera
+support in linux-media tree. Your comments are very much appreciated!
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 8165eb1..9490e48 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -113,26 +113,43 @@ static int fimc_subdev_attach(struct fimc_dev *fimc, int index)
- 	return -ENODEV;
- }
- 
--static int fimc_isp_subdev_init(struct fimc_dev *fimc, int index)
-+static int fimc_isp_subdev_init(struct fimc_dev *fimc, unsigned int index)
- {
- 	struct s5p_fimc_isp_info *isp_info;
- 	int ret;
- 
-+	if (index >= FIMC_MAX_CAMIF_CLIENTS)
-+		return -EINVAL;
-+
-+	isp_info = fimc->pdata->isp_info[index];
-+	if (!isp_info)
-+		return -EINVAL;
-+
-+	if (isp_info->clk_frequency)
-+		clk_set_rate(fimc->clock[CLK_CAM], isp_info->clk_frequency);
-+
-+	ret = clk_enable(fimc->clock[CLK_CAM]);
-+	if (ret)
-+		return ret;
-+
- 	ret = fimc_subdev_attach(fimc, index);
- 	if (ret)
- 		return ret;
- 
--	isp_info = fimc->pdata->isp_info[fimc->vid_cap.input_index];
- 	ret = fimc_hw_set_camera_polarity(fimc, isp_info);
--	if (!ret) {
--		ret = v4l2_subdev_call(fimc->vid_cap.sd, core,
--				       s_power, 1);
--		if (!ret)
--			return ret;
--	}
-+	if (ret)
-+		return ret;
-+
-+	ret = v4l2_subdev_call(fimc->vid_cap.sd, core, s_power, 1);
-+	if (!ret)
-+		return ret;
- 
-+	/* enabling power failed so unregister subdev */
- 	fimc_subdev_unregister(fimc);
--	err("ISP initialization failed: %d", ret);
-+
-+	v4l2_err(&fimc->vid_cap.v4l2_dev, "ISP initialization failed: %d\n",
-+		 ret);
-+
- 	return ret;
- }
- 
-@@ -191,10 +208,7 @@ static int fimc_stop_capture(struct fimc_dev *fimc)
- 			   test_bit(ST_CAPT_SHUT, &fimc->state),
- 			   FIMC_SHUTDOWN_TIMEOUT);
- 
--	ret = v4l2_subdev_call(cap->sd, video, s_stream, 0);
--
--	if (ret && ret != -ENOIOCTLCMD)
--		v4l2_err(&fimc->vid_cap.v4l2_dev, "s_stream(0) failed\n");
-+	v4l2_subdev_call(cap->sd, video, s_stream, 0);
- 
- 	spin_lock_irqsave(&fimc->slock, flags);
- 	fimc->state &= ~(1 << ST_CAPT_RUN | 1 << ST_CAPT_PEND |
-@@ -409,7 +423,7 @@ static int fimc_capture_open(struct file *file)
- 		return -EBUSY;
- 
- 	if (++fimc->vid_cap.refcnt == 1) {
--		ret = fimc_isp_subdev_init(fimc, -1);
-+		ret = fimc_isp_subdev_init(fimc, 0);
- 		if (ret) {
- 			fimc->vid_cap.refcnt--;
- 			return -EIO;
-@@ -434,6 +448,7 @@ static int fimc_capture_close(struct file *file)
- 		v4l2_err(&fimc->vid_cap.v4l2_dev, "releasing ISP\n");
- 
- 		v4l2_subdev_call(fimc->vid_cap.sd, core, s_power, 0);
-+		clk_disable(fimc->clock[CLK_CAM]);
- 		fimc_subdev_unregister(fimc);
- 	}
- 
-@@ -605,6 +620,8 @@ static int fimc_cap_s_input(struct file *file, void *priv,
- 		int ret = v4l2_subdev_call(fimc->vid_cap.sd, core, s_power, 0);
- 		if (ret)
- 			err("s_power failed: %d", ret);
-+
-+		clk_disable(fimc->clock[CLK_CAM]);
- 	}
- 
- 	/* Release the attached sensor subdevice. */
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index b273fe1..0775bc7 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -30,7 +30,9 @@
- 
- #include "fimc-core.h"
- 
--static char *fimc_clock_name[NUM_FIMC_CLOCKS] = { "sclk_fimc", "fimc" };
-+static char *fimc_clocks[MAX_FIMC_CLOCKS] = {
-+	"sclk_fimc", "fimc", "sclk_cam"
-+};
- 
- static struct fimc_fmt fimc_formats[] = {
- 	{
-@@ -1474,7 +1476,7 @@ static void fimc_unregister_m2m_device(struct fimc_dev *fimc)
- static void fimc_clk_release(struct fimc_dev *fimc)
- {
- 	int i;
--	for (i = 0; i < NUM_FIMC_CLOCKS; i++) {
-+	for (i = 0; i < fimc->num_clocks; i++) {
- 		if (fimc->clock[i]) {
- 			clk_disable(fimc->clock[i]);
- 			clk_put(fimc->clock[i]);
-@@ -1485,15 +1487,16 @@ static void fimc_clk_release(struct fimc_dev *fimc)
- static int fimc_clk_get(struct fimc_dev *fimc)
- {
- 	int i;
--	for (i = 0; i < NUM_FIMC_CLOCKS; i++) {
--		fimc->clock[i] = clk_get(&fimc->pdev->dev, fimc_clock_name[i]);
--		if (IS_ERR(fimc->clock[i])) {
--			dev_err(&fimc->pdev->dev,
--				"failed to get fimc clock: %s\n",
--				fimc_clock_name[i]);
--			return -ENXIO;
-+	for (i = 0; i < fimc->num_clocks; i++) {
-+		fimc->clock[i] = clk_get(&fimc->pdev->dev, fimc_clocks[i]);
-+
-+		if (!IS_ERR_OR_NULL(fimc->clock[i])) {
-+			clk_enable(fimc->clock[i]);
-+			continue;
- 		}
--		clk_enable(fimc->clock[i]);
-+		dev_err(&fimc->pdev->dev, "failed to get fimc clock: %s\n",
-+			fimc_clocks[i]);
-+		return -ENXIO;
- 	}
- 	return 0;
- }
-@@ -1504,6 +1507,7 @@ static int fimc_probe(struct platform_device *pdev)
- 	struct resource *res;
- 	struct samsung_fimc_driverdata *drv_data;
- 	int ret = 0;
-+	int cap_input_index = -1;
- 
- 	dev_dbg(&pdev->dev, "%s():\n", __func__);
- 
-@@ -1553,10 +1557,26 @@ static int fimc_probe(struct platform_device *pdev)
- 		goto err_req_region;
- 	}
- 
-+	fimc->num_clocks = MAX_FIMC_CLOCKS - 1;
-+	/*
-+	 * Check if vide capture node needs to be registered for this device
-+	 * instance.
-+	 */
-+	if (fimc->pdata) {
-+		int i;
-+		for (i = 0; i < FIMC_MAX_CAMIF_CLIENTS; ++i)
-+			if (fimc->pdata->isp_info[i])
-+				break;
-+		if (i < FIMC_MAX_CAMIF_CLIENTS) {
-+			cap_input_index = i;
-+			fimc->num_clocks++;
-+		}
-+	}
-+
- 	ret = fimc_clk_get(fimc);
- 	if (ret)
- 		goto err_regs_unmap;
--	clk_set_rate(fimc->clock[0], drv_data->lclk_frequency);
-+	clk_set_rate(fimc->clock[CLK_BUS], drv_data->lclk_frequency);
- 
- 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
- 	if (!res) {
-@@ -1586,19 +1606,12 @@ static int fimc_probe(struct platform_device *pdev)
- 		goto err_irq;
- 
- 	/* At least one camera sensor is required to register capture node */
--	if (fimc->pdata) {
--		int i;
--		for (i = 0; i < FIMC_MAX_CAMIF_CLIENTS; ++i)
--			if (fimc->pdata->isp_info[i])
--				break;
--
--		if (i < FIMC_MAX_CAMIF_CLIENTS) {
--			ret = fimc_register_capture_device(fimc);
--			if (ret)
--				goto err_m2m;
--		}
-+	if (cap_input_index >= 0) {
-+		ret = fimc_register_capture_device(fimc);
-+		if (ret)
-+			goto err_m2m;
-+		clk_disable(fimc->clock[CLK_BUS]);
- 	}
--
- 	/*
- 	 * Exclude the additional output DMA address registers by masking
- 	 * them out on HW revisions that provide extended capabilites.
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index 6431d1a..9be5135 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -37,7 +37,7 @@
- 
- /* Time to wait for next frame VSYNC interrupt while stopping operation. */
- #define FIMC_SHUTDOWN_TIMEOUT	((100*HZ)/1000)
--#define NUM_FIMC_CLOCKS		2
-+#define MAX_FIMC_CLOCKS		3
- #define MODULE_NAME		"s5p-fimc"
- #define FIMC_MAX_DEVS		4
- #define FIMC_MAX_OUT_BUFS	4
-@@ -45,7 +45,13 @@
- #define SCALER_MAX_VRATIO	64
- #define DMA_MIN_SIZE		8
- 
--/* FIMC device state flags */
-+/* indices to the clocks array */
-+enum {
-+	CLK_BUS,
-+	CLK_GATE,
-+	CLK_CAM,
-+};
-+
- enum fimc_dev_flags {
- 	/* for m2m node */
- 	ST_IDLE,
-@@ -408,7 +414,8 @@ struct fimc_ctx;
-  * @lock:	the mutex protecting this data structure
-  * @pdev:	pointer to the FIMC platform device
-  * @pdata:	pointer to the device platform data
-- * @id:		FIMC device index (0..2)
-+ * @id:		FIMC device index (0..FIMC_MAX_DEVS)
-+ * @num_clocks: the number of clocks managed by this device instance
-  * @clock[]:	the clocks required for FIMC operation
-  * @regs:	the mapped hardware registers
-  * @regs_res:	the resource claimed for IO registers
-@@ -424,8 +431,9 @@ struct fimc_dev {
- 	struct platform_device		*pdev;
- 	struct s5p_platform_fimc	*pdata;
- 	struct samsung_fimc_variant	*variant;
--	int				id;
--	struct clk			*clock[NUM_FIMC_CLOCKS];
-+	u16				id;
-+	u16				num_clocks;
-+	struct clk			*clock[MAX_FIMC_CLOCKS];
- 	void __iomem			*regs;
- 	struct resource			*regs_res;
- 	int				irq;
-diff --git a/include/media/s5p_fimc.h b/include/media/s5p_fimc.h
-index d30b9dee..0d457ca 100644
---- a/include/media/s5p_fimc.h
-+++ b/include/media/s5p_fimc.h
-@@ -31,6 +31,7 @@ struct i2c_board_info;
-  *			      interace configuration.
-  *
-  * @board_info: pointer to I2C subdevice's board info
-+ * @clk_frequency: frequency of the clock the host interface provides to sensor
-  * @bus_type: determines bus type, MIPI, ITU-R BT.601 etc.
-  * @i2c_bus_num: i2c control bus id the sensor is attached to
-  * @mux_id: FIMC camera interface multiplexer index (separate for MIPI and ITU)
-@@ -38,6 +39,7 @@ struct i2c_board_info;
-  */
- struct s5p_fimc_isp_info {
- 	struct i2c_board_info *board_info;
-+	unsigned long clk_frequency;
- 	enum cam_bus_type bus_type;
- 	u16 i2c_bus_num;
- 	u16 mux_id;
--- 
-1.7.2.3
+
+Introduction
+============
+
+This is the video4linux driver for Qualcomm MSM (Mobile Station Modem)
+camera.
+
+The driver supports video and camera functionality on Qualcomm MSM SoC.
+It supports camera sensors provided by OEMs with parallel/MIPI
+interfaces, and operates in continuous streaming, snapshot, or video
+recording modes.
+
+Hardware description
+====================
+
+MSM camera hardware contains the following components:
+1. One or more camera sensors controlled via I2C bus, and data outputs
+on AXI or MIPI bus.
+2. Video Front End (VFE) core is an image signal processing hardware
+pipeline that takes the sensor output, does the necessary processing,
+and outputs to a buffer for V4L2 application. VFE is clocked by PCLK
+(pixel clock) from the sensor.
+
+Software description
+====================
+
+The driver encapsulates the low-level hardware management and aligns
+the interface to V4L2 driver framework. There is also a user space
+camera service daemon which handles events from driver and changes
+settings accordingly.
+
+During boot-up, the sensor is probed for and if the probe succeeds
+/dev/video0 and /dev/msm_camera/config0 device nodes are created. The
+/dev/video0 node is used for video buffer allocation in the kernel and for
+receiving V4L2 ioctls for controlling the camera hardware (VFE, sensors).
+The /dev/msm_camera/config0 node is used for sending commands and other
+statistics available from the hardware to the camera service daemon. Note
+that if more than one camera sensor is detected, there will be /dev/video1
+and /dev/msm_camera/config1 device nodes created as well.
+
+Design
+======
+
+For MSM camera IC, significant portion of image processing and optimization
+codes are proprietary, so they cannot sit in kernel space. This plays an
+important role when making design decisions.
+
+Our design is to have a light-weighted kernel driver, and put the
+proprietary code in a user space daemon. The daemon polls on events
+from /dev/msm_camera/config0 device in the form of v4l2_event. The events
+could either be asynchronous (generated by the hardware), or synchronous
+(control command from the application). Based on the events it receives,
+the daemon will send appropriate control commands to the hardware.
+
+   +-------------+        +----------------+
+   | Application |        | Service Daemon |
+   +-------------+        +----------------+     User Space
+ ..........................................................
+   +--------------------------------------+      Kernel Space
+   |                V4L2                  |
+   +--------------------------------------+
+   +---------+     +--------+     +-------+
+   | VFE/ISP |     | Sensor |     | Flash |
+   +---------+     +--------+     +-------+
+
+Power Management
+================
+
+None at this point.
+
+SMP/multi-core
+==============
+
+Mutex is used for synchronization of threads accessing the driver
+simultaneously. Between hardware interrupt handler and threads,
+we use spinlock to make sure locking is done properly.
+
+Security
+========
+
+None.
+
+Interface
+=========
+
+The driver uses V4L2 API for user kernel interaction. Refer to
+http://v4l2spec.bytesex.org/spec-single/v4l2.html.
+
+Between camera service daemon and the driver, we have customized IOCTL
+commands associated with /dev/msm_camera/config0 node, that controls MSM
+camera hardware. The list of IOCTLs are (declarations can be found in
+include/media/msm_camera.h):
+
+MSM_CAM_IOCTL_GET_SENSOR_INFO
+        Get the basic information such as name, flash support for the
+        detected sensor.
+MSM_CAM_IOCTL_SENSOR_IO_CFG
+        Get or set sensor configurations: fps, line_pf, pixels_pl,
+        exposure and gain, etc. The setting is stored in sensor_cfg_data
+        structure.
+MSM_CAM_IOCTL_CONFIG_VFE
+        Change settings of different components of VFE hardware.
+MSM_CAM_IOCTL_CTRL_CMD_DONE
+        Notify the driver that the ctrl command is finished.
+MSM_CAM_IOCTL_RELEASE_STATS_BUFFER
+        Notify the driver that the service daemon has done processing the
+        stats buffer, and is returning it to the driver.
+MSM_CAM_IOCTL_AXI_CONFIG
+        Configure AXI bus parameters (frame buffer addresses, offsets) to
+        the VFE hardware.
+
+Driver parameters
+=================
+
+None.
+
+Config options
+==============
+
+MSM_CAMERA in drivers/media/video/msm/Kconfig file
+
+Dependencies
+============
+
+PMIC, I2C, Clock, GPIO
+
+User space utilities
+====================
+
+A daemon process in the user space called mm-qcamera-daemon is polling
+on events from the driver. This daemon is required in order for the V4L2
+client application to run, and it's started by the init script.
+
+Other
+=====
+
+To do
+=====
+
+1. Eliminate creation of /dev/msm_camera/config0 by routing private
+ioctls through /dev/video0.
+2. Create sub devices for sensor and VFE.
+
+
+
+--
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+--
+
+
 
