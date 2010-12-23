@@ -1,68 +1,90 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:49549 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752929Ab0LMJGI (ORCPT
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:40967 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752286Ab0LWRuu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Dec 2010 04:06:08 -0500
-Date: Mon, 13 Dec 2010 01:06:00 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Henrik Rydberg <rydberg@euromail.se>
-Cc: Linux Input <linux-input@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jiri Kosina <jkosina@suse.cz>, Jarod Wilson <jarod@redhat.com>,
-	David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Subject: Re: [RFC] Input: define separate EVIOCGKEYCODE_V2/EVIOCSKEYCODE_V2
-Message-ID: <20101213090559.GH21401@core.coreip.homeip.net>
-References: <20101209093948.GD8821@core.coreip.homeip.net>
- <4D012844.3020009@euromail.se>
- <20101209191647.GC23781@core.coreip.homeip.net>
+	Thu, 23 Dec 2010 12:50:50 -0500
+Received: by ewy5 with SMTP id 5so3183249ewy.19
+        for <linux-media@vger.kernel.org>; Thu, 23 Dec 2010 09:50:49 -0800 (PST)
+Message-ID: <4D138BAA.3060500@mvista.com>
+Date: Thu, 23 Dec 2010 20:49:30 +0300
+From: Sergei Shtylyov <sshtylyov@mvista.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20101209191647.GC23781@core.coreip.homeip.net>
+To: Manjunath Hadli <manjunath.hadli@ti.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH v10 5/8] davinci vpbe: platform specific additions
+References: <1293115392-21131-1-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1293115392-21131-1-git-send-email-manjunath.hadli@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Thu, Dec 09, 2010 at 11:16:47AM -0800, Dmitry Torokhov wrote:
-> On Thu, Dec 09, 2010 at 08:04:36PM +0100, Henrik Rydberg wrote:
-> > On 12/09/2010 10:39 AM, Dmitry Torokhov wrote:
-> > 
-> > > The desire to keep old names for the EVIOCGKEYCODE/EVIOCSKEYCODE while
-> > > extending them to support large scancodes was a mistake. While we tried
-> > > to keep ABI intact (and we succeeded in doing that, programs compiled
-> > > on older kernels will work on newer ones) there is still a problem with
-> > > recompiling existing software with newer kernel headers.
-> > > 
-> > > New kernel headers will supply updated ioctl numbers and kernel will
-> > > expect that userspace will use struct input_keymap_entry to set and
-> > > retrieve keymap data. But since the names of ioctls are still the same
-> > > userspace will happily compile even if not adjusted to make use of the
-> > > new structure and will start miraculously fail in the field.
-> > > 
-> > > To avoid this issue let's revert EVIOCGKEYCODE/EVIOCSKEYCODE definitions
-> > > and add EVIOCGKEYCODE_V2/EVIOCSKEYCODE_V2 so that userspace can explicitly
-> > > select the style of ioctls it wants to employ.
-> > > 
-> > > Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-> > > ---
-> > 
-> > 
-> > Would the header change suffice in itself?
-> 
-> We still need to change evdev to return -EINVAL on wrong sizes but yes,
-> the amount of change there could be more limited. I just thought that
-> splitting it up explicitly shows the differences in handling better. If
-> people prefer the previos version we could leave it, I am 50/50 between
-> them.
-> 
+Hello.
 
-*ping*
+Manjunath Hadli wrote:
 
-Mauro, Jarod, do you have an opinion on this? I think we need to settle
-on a solution before 2.6.37 is out.
+> This patch implements the overall device creation for the Video
+> display driver
 
-Thanks.
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+[...]
 
--- 
-Dmitry
+> diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+> index 9a2376b..eb87867 100644
+> --- a/arch/arm/mach-davinci/dm644x.c
+> +++ b/arch/arm/mach-davinci/dm644x.c
+> @@ -370,6 +370,7 @@ static struct platform_device dm644x_mdio_device = {
+>   *	soc	description	mux  mode   mode  mux	 dbg
+>   *				reg  offset mask  mode
+>   */
+> +
+
+    Stray newline?
+
+[...]
+> +static struct resource dm644x_venc_resources[] = {
+> +	/* venc registers io space */
+> +	{
+> +		.start  = 0x01C72400,
+> +		.end    = 0x01C72400 + 0x17f,
+> +		.flags  = IORESOURCE_MEM,
+> +	},
+> +};
+> +
+[...]
+> +static struct resource dm644x_v4l2_disp_resources[] = {
+> +	{
+> +		.start  = IRQ_VENCINT,
+> +		.end    = IRQ_VENCINT,
+> +		.flags  = IORESOURCE_IRQ,
+> +	},
+> +	{
+> +		.start  = 0x01C724B8,
+> +		.end    = 0x01C724B8 + 0x3,
+> +		.flags  = IORESOURCE_MEM,
+> +	},
+> +};
+
+    Still intersects with dm644x_venc_resources[]. Is it intended?
+
+>  static int __init dm644x_init_devices(void)
+>  {
+>  	if (!cpu_is_davinci_dm644x())
+>  		return 0;
+>  
+> -	/* Add ccdc clock aliases */
+> -	clk_add_alias("master", dm644x_ccdc_dev.name, "vpss_master", NULL);
+> -	clk_add_alias("slave", dm644x_ccdc_dev.name, "vpss_slave", NULL);
+>  	platform_device_register(&dm644x_edma_device);
+> -
+
+    Should've left this newline alone...
+
+WBR, Sergei
+
