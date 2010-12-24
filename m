@@ -1,52 +1,60 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:57500 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752498Ab0L3XIY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Dec 2010 18:08:24 -0500
-From: "Justin P. Mattock" <justinmattock@gmail.com>
-To: trivial@kernel.org
-Cc: linux-m68k@lists.linux-m68k.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, ivtv-devel@ivtvdriver.org,
-	linux-media@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-scsi@vger.kernel.org,
-	spi-devel-general@lists.sourceforge.net,
-	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org,
-	"Justin P. Mattock" <justinmattock@gmail.com>
-Subject: [PATCH 06/15]drivers:staging:xgifb:vb_setmode.c Typo change diable to disable.
-Date: Thu, 30 Dec 2010 15:07:55 -0800
-Message-Id: <1293750484-1161-6-git-send-email-justinmattock@gmail.com>
-In-Reply-To: <1293750484-1161-5-git-send-email-justinmattock@gmail.com>
-References: <1293750484-1161-1-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-2-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-3-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-4-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-5-git-send-email-justinmattock@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:38695 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752616Ab0LXOmG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Dec 2010 09:42:06 -0500
+Message-ID: <4D14B29D.3080002@redhat.com>
+Date: Fri, 24 Dec 2010 15:47:57 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: Removal of V4L1 drivers
+References: <201012241442.39702.hverkuil@xs4all.nl>
+In-Reply-To: <201012241442.39702.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-The below patch fixes a typo "diable" to "disable". Please let me know if this 
-is correct or not.
+Hi,
 
-Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
+On 12/24/2010 02:42 PM, Hans Verkuil wrote:
+> Hi Hans, Mauro,
+>
+> The se401, vicam, ibmcam and konicawc drivers are the only V4L1 drivers left in
+> 2.6.37. The others are either converted or moved to staging (stradis and cpia),
+> ready to be removed.
+>
+> Hans, what is the status of those four drivers?
 
----
- drivers/staging/xgifb/vb_setmode.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+se401:
+I have hardware I have taken a look at the driver, converting it is a bit
+of a pain because it uses a really ugly written statefull decompressor inside
+the kernel code. The cameras have an uncompressed mode too. I can start doing
+a conversion to / rewrite as gspca subdriver supporting only the uncompressed
+mode for now:
 
-diff --git a/drivers/staging/xgifb/vb_setmode.c b/drivers/staging/xgifb/vb_setmode.c
-index 7016fdd..fb49641 100644
---- a/drivers/staging/xgifb/vb_setmode.c
-+++ b/drivers/staging/xgifb/vb_setmode.c
-@@ -1920,7 +1920,7 @@ void XGI_SetCRT1FIFO(unsigned short ModeNo,
- 
- 	data = XGINew_GetReg1(pVBInfo->P3c4, 0x3D);
- 	data &= 0xfe;
--	XGINew_SetReg1(pVBInfo->P3c4, 0x3D, data); /* diable auto-threshold */
-+	XGINew_SetReg1(pVBInfo->P3c4, 0x3D, data); /* disable auto-threshold */
- 
- 	if (ModeNo > 0x13) {
- 		XGINew_SetReg1(pVBInfo->P3c4, 0x08, 0x34);
--- 
-1.6.5.2.180.gc5b3e
+vicam:
+Devin Heitmueller (added to the CC) has one such a camera, which he still needs
+to get into my hands, once I have it I can convert the driver.
 
+ibmcam and konicawc:
+Both drivers were converted by me recently and the new gspca subdrivers for these
+have been pulled by Mauro for 2.6.37 .
+
+<snip>
+
+> There are two drivers that need more work: stk-webcam has some controls under sysfs
+> that are enabled when CONFIG_VIDEO_V4L1_COMPAT is set. These controls should be
+> rewritten as V4L2 controls. Hans, didn't you have hardware to test this driver?
+
+No I don't have any Syntek DC1125 based webcams.
+
+<snip>
+
+Regards,
+
+Hans
