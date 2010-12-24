@@ -1,236 +1,125 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2816 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753559Ab0L2VnJ (ORCPT
+Received: from d1.icnet.pl ([212.160.220.21]:45960 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752848Ab0LXX0S convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Dec 2010 16:43:09 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id oBTLh7Os086308
-	for <linux-media@vger.kernel.org>; Wed, 29 Dec 2010 22:43:08 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Message-Id: <d8e4dd6dd3321cdbca90dca98c05ff44f57f2d58.1293657717.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1293657717.git.hverkuil@xs4all.nl>
-References: <cover.1293657717.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Wed, 29 Dec 2010 22:43:07 +0100
-Subject: [PATCH 01/10] [RFC] v4l2_prio: move from v4l2-common to v4l2-dev.
-To: linux-media@vger.kernel.org
+	Fri, 24 Dec 2010 18:26:18 -0500
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] dma_declare_coherent_memory: push ioremap() up to caller
+Date: Sat, 25 Dec 2010 00:24:34 +0100
+Cc: linux-arch@vger.kernel.org, "Greg Kroah-Hartman" <gregkh@suse.de>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Arnd Bergmann <arnd@arndb.de>,
+	Dan Williams <dan.j.williams@intel.com>,
+	linux-sh@vger.kernel.org, Paul Mundt <lethal@linux-sh.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-usb@vger.kernel.org,
+	David Brownell <dbrownell@users.sourceforge.net>,
+	linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-scsi@vger.kernel.org,
+	"James E.J. Bottomley" <James.Bottomley@suse.de>,
+	Catalin Marinas <catalin.marinas@arm.com>
+References: <201012240020.37208.jkrzyszt@tis.icnet.pl> <201012241455.30430.jkrzyszt@tis.icnet.pl> <20101224154120.GH20587@n2100.arm.linux.org.uk>
+In-Reply-To: <20101224154120.GH20587@n2100.arm.linux.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <201012250024.38576.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-We are going to move priority handling into the v4l2 core. As a consequence
-the v4l2_prio helper functions need to be moved into the core videodev
-module as well to prevent circular dependencies.
+Friday 24 December 2010 16:41:20 Russell King - ARM Linux napisał(a):
+> On Fri, Dec 24, 2010 at 02:55:25PM +0100, Janusz Krzysztofik wrote:
+> > Friday 24 December 2010 14:02:00 Russell King - ARM Linux wrote:
+> > > On Fri, Dec 24, 2010 at 12:20:32AM +0100, Janusz Krzysztofik 
+wrote:
+> > > > The patch tries to implement a solution suggested by Russell
+> > > > King,
+> > > > http://lists.infradead.org/pipermail/linux-arm-kernel/2010-Dece
+> > > >mber /035264.html. It is expected to solve video buffer
+> > > > allocation issues for at least a few soc_camera I/O memory less
+> > > > host interface drivers, designed around the videobuf_dma_contig
+> > > > layer, which allocates video buffers using
+> > > > dma_alloc_coherent().
+> > > >
+> > > > Created against linux-2.6.37-rc5.
+> > > >
+> > > > Tested on ARM OMAP1 based Amstrad Delta with a WIP OMAP1 camera
+> > > > patch, patterned upon two mach-mx3 machine types which already
+> > > > try to use the dma_declare_coherent_memory() method for
+> > > > reserving a region of system RAM preallocated with another
+> > > > dma_alloc_coherent(). Compile tested for all modified files
+> > > > except arch/sh/drivers/pci/fixups-dreamcast.c.
+> > >
+> > > Another note: with the pair of patches I've sent to the
+> > > linux-arm-kernel list earlier today changing the DMA coherent
+> > > allocator to steal memory from the system at boot.
+> > >
+> > > This means there's less need to pre-allocate DMA memory - if
+> > > there's sufficient contiguous space in the DMA region to satisfy
+> > > the allocation, then the allocation will succeed.  It's also
+> > > independent of the maximum page size from the kernel's memory
+> > > allocators too.
+> > >
+> > > So I suspect that mach-mx3 (and others) no longer need to do
+> > > their own pre-allocation anymore if both of these patches go in.
+> >
+> > Then, my rationale will no longer be valid. So, either drop my
+> > patch if you think you have finally come out with a better solution
+> > which doesn't touch any system-wide API, or suggest a new
+> > justification for use in the commit log if you think still the
+> > patch solves something important.
+>
+> No.  It's not clear whether my pair of patches are both going to make
+> it into the kernel, or even what timeframe they're going to make it
+> in.
+>
+> Irrespective of that, we do need a solution to this problem so that
+> this stuff starts working again.
+>
+> In any case, your patch makes complete sense through and through:
+>
+> 1. if other architecture/machine wants to reserve a chunk of DMA-able
+>    memory for a specific device (eg, because of a restriction on the
+>    number of DMA address bits available) and it's completely DMA
+>    coherent, it shouldn't have to go through the pains of having that
+>    memory unconditionally ioremap'd.
+>
+> 2. What if the memory being provided from some source where you
+> already have the mapping setup in a specific way for a reason?
+>
+> For example, say I have an ARM design, and all peripherals are in a
+> single 256MB memory region, which includes a chunk of SRAM set aside
+> for DMA purposes.  Let's say I can map that really efficiently by a
+> few page table entries, which means relatively little TLB usage for
+> accessing this region.
+>
+> With the current API, it becomes difficult to pass that mapping
+> through the dma_declare_coherent_memory() because the physical
+> address goes through ioremap(), which obfuscates what's going on. 
+> However, if I could pass the bus and virtual address, then there's no
+> ambiguity over what I want to do.
+>
+> What if I want to declare memory to the DMA coherent allocator with
+> attributes different from what ioremap() gives me, maybe with write
+> combining properties (because it happens to be safe for the specific
+> device) ?
+>
+> Passing the virtual address allows the API to become much more
+> flexible. Not only that, it allows it to be used on ARM, rather than
+> becoming (as it currently stands) prohibited on ARM.
+>
+> I believe that putting ioremap() inside this API was the wrong thing
+> to do, and moving it outside makes the API much more flexible and
+> usable. It's something I still fully support.
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/v4l2-common.c |   63 ------------------------------------
- drivers/media/video/v4l2-dev.c    |   64 +++++++++++++++++++++++++++++++++++++
- include/media/v4l2-common.h       |   15 ---------
- include/media/v4l2-dev.h          |   15 +++++++++
- 4 files changed, 79 insertions(+), 78 deletions(-)
+Thanks, this is what I was missing, having my point of view rather my 
+machine centric, with not much wider experience. I'll quote your 
+argumentation in next iteration of this patch if required.
 
-diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
-index b5eb1f3..c3ccd47 100644
---- a/drivers/media/video/v4l2-common.c
-+++ b/drivers/media/video/v4l2-common.c
-@@ -81,69 +81,6 @@ MODULE_LICENSE("GPL");
-  *  Video Standard Operations (contributed by Michael Schimek)
-  */
- 
--
--/* ----------------------------------------------------------------- */
--/* priority handling                                                 */
--
--#define V4L2_PRIO_VALID(val) (val == V4L2_PRIORITY_BACKGROUND   || \
--			      val == V4L2_PRIORITY_INTERACTIVE  || \
--			      val == V4L2_PRIORITY_RECORD)
--
--void v4l2_prio_init(struct v4l2_prio_state *global)
--{
--	memset(global, 0, sizeof(*global));
--}
--EXPORT_SYMBOL(v4l2_prio_init);
--
--int v4l2_prio_change(struct v4l2_prio_state *global, enum v4l2_priority *local,
--		     enum v4l2_priority new)
--{
--	if (!V4L2_PRIO_VALID(new))
--		return -EINVAL;
--	if (*local == new)
--		return 0;
--
--	atomic_inc(&global->prios[new]);
--	if (V4L2_PRIO_VALID(*local))
--		atomic_dec(&global->prios[*local]);
--	*local = new;
--	return 0;
--}
--EXPORT_SYMBOL(v4l2_prio_change);
--
--void v4l2_prio_open(struct v4l2_prio_state *global, enum v4l2_priority *local)
--{
--	v4l2_prio_change(global, local, V4L2_PRIORITY_DEFAULT);
--}
--EXPORT_SYMBOL(v4l2_prio_open);
--
--void v4l2_prio_close(struct v4l2_prio_state *global, enum v4l2_priority local)
--{
--	if (V4L2_PRIO_VALID(local))
--		atomic_dec(&global->prios[local]);
--}
--EXPORT_SYMBOL(v4l2_prio_close);
--
--enum v4l2_priority v4l2_prio_max(struct v4l2_prio_state *global)
--{
--	if (atomic_read(&global->prios[V4L2_PRIORITY_RECORD]) > 0)
--		return V4L2_PRIORITY_RECORD;
--	if (atomic_read(&global->prios[V4L2_PRIORITY_INTERACTIVE]) > 0)
--		return V4L2_PRIORITY_INTERACTIVE;
--	if (atomic_read(&global->prios[V4L2_PRIORITY_BACKGROUND]) > 0)
--		return V4L2_PRIORITY_BACKGROUND;
--	return V4L2_PRIORITY_UNSET;
--}
--EXPORT_SYMBOL(v4l2_prio_max);
--
--int v4l2_prio_check(struct v4l2_prio_state *global, enum v4l2_priority local)
--{
--	return (local < v4l2_prio_max(global)) ? -EBUSY : 0;
--}
--EXPORT_SYMBOL(v4l2_prio_check);
--
--/* ----------------------------------------------------------------- */
--
- /* Helper functions for control handling			     */
- 
- /* Check for correctness of the ctrl's value based on the data from
-diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-index 359e232..8698fe4 100644
---- a/drivers/media/video/v4l2-dev.c
-+++ b/drivers/media/video/v4l2-dev.c
-@@ -182,6 +182,70 @@ struct video_device *video_devdata(struct file *file)
- }
- EXPORT_SYMBOL(video_devdata);
- 
-+
-+/* Priority handling */
-+
-+static inline bool prio_is_valid(enum v4l2_priority prio)
-+{
-+	return prio == V4L2_PRIORITY_BACKGROUND ||
-+	       prio == V4L2_PRIORITY_INTERACTIVE ||
-+	       prio == V4L2_PRIORITY_RECORD;
-+}
-+
-+void v4l2_prio_init(struct v4l2_prio_state *global)
-+{
-+	memset(global, 0, sizeof(*global));
-+}
-+EXPORT_SYMBOL(v4l2_prio_init);
-+
-+int v4l2_prio_change(struct v4l2_prio_state *global, enum v4l2_priority *local,
-+		     enum v4l2_priority new)
-+{
-+	if (!prio_is_valid(new))
-+		return -EINVAL;
-+	if (*local == new)
-+		return 0;
-+
-+	atomic_inc(&global->prios[new]);
-+	if (prio_is_valid(*local))
-+		atomic_dec(&global->prios[*local]);
-+	*local = new;
-+	return 0;
-+}
-+EXPORT_SYMBOL(v4l2_prio_change);
-+
-+void v4l2_prio_open(struct v4l2_prio_state *global, enum v4l2_priority *local)
-+{
-+	v4l2_prio_change(global, local, V4L2_PRIORITY_DEFAULT);
-+}
-+EXPORT_SYMBOL(v4l2_prio_open);
-+
-+void v4l2_prio_close(struct v4l2_prio_state *global, enum v4l2_priority local)
-+{
-+	if (prio_is_valid(local))
-+		atomic_dec(&global->prios[local]);
-+}
-+EXPORT_SYMBOL(v4l2_prio_close);
-+
-+enum v4l2_priority v4l2_prio_max(struct v4l2_prio_state *global)
-+{
-+	if (atomic_read(&global->prios[V4L2_PRIORITY_RECORD]) > 0)
-+		return V4L2_PRIORITY_RECORD;
-+	if (atomic_read(&global->prios[V4L2_PRIORITY_INTERACTIVE]) > 0)
-+		return V4L2_PRIORITY_INTERACTIVE;
-+	if (atomic_read(&global->prios[V4L2_PRIORITY_BACKGROUND]) > 0)
-+		return V4L2_PRIORITY_BACKGROUND;
-+	return V4L2_PRIORITY_UNSET;
-+}
-+EXPORT_SYMBOL(v4l2_prio_max);
-+
-+int v4l2_prio_check(struct v4l2_prio_state *global, enum v4l2_priority local)
-+{
-+	return (local < v4l2_prio_max(global)) ? -EBUSY : 0;
-+}
-+EXPORT_SYMBOL(v4l2_prio_check);
-+
-+
- static ssize_t v4l2_read(struct file *filp, char __user *buf,
- 		size_t sz, loff_t *off)
- {
-diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-index 239125a..4c70d15 100644
---- a/include/media/v4l2-common.h
-+++ b/include/media/v4l2-common.h
-@@ -80,21 +80,6 @@
- 
- /* ------------------------------------------------------------------------- */
- 
--/* Priority helper functions */
--
--struct v4l2_prio_state {
--	atomic_t prios[4];
--};
--void v4l2_prio_init(struct v4l2_prio_state *global);
--int v4l2_prio_change(struct v4l2_prio_state *global, enum v4l2_priority *local,
--		     enum v4l2_priority new);
--void v4l2_prio_open(struct v4l2_prio_state *global, enum v4l2_priority *local);
--void v4l2_prio_close(struct v4l2_prio_state *global, enum v4l2_priority local);
--enum v4l2_priority v4l2_prio_max(struct v4l2_prio_state *global);
--int v4l2_prio_check(struct v4l2_prio_state *global, enum v4l2_priority local);
--
--/* ------------------------------------------------------------------------- */
--
- /* Control helper functions */
- 
- int v4l2_ctrl_check(struct v4l2_ext_control *ctrl, struct v4l2_queryctrl *qctrl,
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index 15802a0..861f323 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -34,6 +34,21 @@ struct v4l2_ctrl_handler;
- #define V4L2_FL_REGISTERED	(0)
- #define V4L2_FL_USES_V4L2_FH	(1)
- 
-+/* Priority helper functions */
-+
-+struct v4l2_prio_state {
-+	atomic_t prios[4];
-+};
-+
-+void v4l2_prio_init(struct v4l2_prio_state *global);
-+int v4l2_prio_change(struct v4l2_prio_state *global, enum v4l2_priority *local,
-+		     enum v4l2_priority new);
-+void v4l2_prio_open(struct v4l2_prio_state *global, enum v4l2_priority *local);
-+void v4l2_prio_close(struct v4l2_prio_state *global, enum v4l2_priority local);
-+enum v4l2_priority v4l2_prio_max(struct v4l2_prio_state *global);
-+int v4l2_prio_check(struct v4l2_prio_state *global, enum v4l2_priority local);
-+
-+
- struct v4l2_file_operations {
- 	struct module *owner;
- 	ssize_t (*read) (struct file *, char __user *, size_t, loff_t *);
--- 
-1.6.4.2
-
+Thanks,
+Janusz
