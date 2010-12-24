@@ -1,285 +1,223 @@
 Return-path: <mchehab@gaivota>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42791 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753538Ab0L3Kso (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Dec 2010 05:48:44 -0500
-From: manjunatha_halli@ti.com
-To: mchehab@infradead.org, hverkuil@xs4all.nl
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Manjunatha Halli <manjunatha_halli@ti.com>
-Subject: [RFC V8 1/7] drivers:media:radio: wl128x: fmdrv common header file
-Date: Thu, 30 Dec 2010 06:11:41 -0500
-Message-Id: <1293707507-3376-2-git-send-email-manjunatha_halli@ti.com>
-In-Reply-To: <1293707507-3376-1-git-send-email-manjunatha_halli@ti.com>
-References: <1293707507-3376-1-git-send-email-manjunatha_halli@ti.com>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2256 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751922Ab0LXLTg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Dec 2010 06:19:36 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Shuzhen Wang" <shuzhenw@codeaurora.org>
+Subject: Re: RFC: V4L2 driver for Qualcomm MSM camera.
+Date: Fri, 24 Dec 2010 12:19:31 +0100
+Cc: linux-media@vger.kernel.org, hzhong@codeaurora.org
+References: <000601cba2d8$eaedcdc0$c0c96940$@org>
+In-Reply-To: <000601cba2d8$eaedcdc0$c0c96940$@org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201012241219.31754.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-From: Manjunatha Halli <manjunatha_halli@ti.com>
+Good to hear from Qualcomm!
 
-These are common headers used in FM submodules (FM V4L2,
-FM common, FM Rx,and FM TX).
+I've made some comments below:
 
-Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
----
- drivers/media/radio/wl128x/fmdrv.h |  248 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 248 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/radio/wl128x/fmdrv.h
+On Thursday, December 23, 2010 20:38:04 Shuzhen Wang wrote:
+> Hello, 
+> 
+> This is the architecture overview we put together for Qualcomm MSM camera
+> support in linux-media tree. Your comments are very much appreciated!
+> 
+> 
+> Introduction
+> ============
+> 
+> This is the video4linux driver for Qualcomm MSM (Mobile Station Modem)
+> camera.
+> 
+> The driver supports video and camera functionality on Qualcomm MSM SoC.
+> It supports camera sensors provided by OEMs with parallel/MIPI
+> interfaces, and operates in continuous streaming, snapshot, or video
+> recording modes.
+> 
+> Hardware description
+> ====================
+> 
+> MSM camera hardware contains the following components:
+> 1. One or more camera sensors controlled via I2C bus, and data outputs
+> on AXI or MIPI bus.
+> 2. Video Front End (VFE) core is an image signal processing hardware
+> pipeline that takes the sensor output, does the necessary processing,
+> and outputs to a buffer for V4L2 application. VFE is clocked by PCLK
+> (pixel clock) from the sensor.
+> 
+> Software description
+> ====================
+> 
+> The driver encapsulates the low-level hardware management and aligns
+> the interface to V4L2 driver framework. There is also a user space
+> camera service daemon which handles events from driver and changes
+> settings accordingly.
+> 
+> During boot-up, the sensor is probed for and if the probe succeeds
+> /dev/video0 and /dev/msm_camera/config0 device nodes are created. The
+> /dev/video0 node is used for video buffer allocation in the kernel and for
+> receiving V4L2 ioctls for controlling the camera hardware (VFE, sensors).
+> The /dev/msm_camera/config0 node is used for sending commands and other
+> statistics available from the hardware to the camera service daemon. Note
+> that if more than one camera sensor is detected, there will be /dev/video1
+> and /dev/msm_camera/config1 device nodes created as well.
 
-diff --git a/drivers/media/radio/wl128x/fmdrv.h b/drivers/media/radio/wl128x/fmdrv.h
-new file mode 100644
-index 0000000..3d73f76
---- /dev/null
-+++ b/drivers/media/radio/wl128x/fmdrv.h
-@@ -0,0 +1,248 @@
-+/*
-+ *  FM Driver for Connectivity chip of Texas Instruments.
-+ *
-+ *  Common header for all FM driver sub-modules.
-+ *
-+ *  Copyright (C) 2009 Texas Instruments
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2 as
-+ *  published by the Free Software Foundation.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ *
-+ */
-+
-+#ifndef _FM_DRV_H
-+#define _FM_DRV_H
-+
-+#include <linux/skbuff.h>
-+#include <linux/interrupt.h>
-+#include <sound/core.h>
-+#include <sound/initval.h>
-+#include <linux/timer.h>
-+#include <linux/version.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/v4l2-common.h>
-+#include <media/v4l2-ctrls.h>
-+
-+#define FM_DRV_VERSION            "0.01"
-+/* Should match with FM_DRV_VERSION */
-+#define FM_DRV_RADIO_VERSION      KERNEL_VERSION(0, 0, 1)
-+#define FM_DRV_NAME               "ti_fmdrv"
-+#define FM_DRV_CARD_SHORT_NAME    "TI FM Radio"
-+#define FM_DRV_CARD_LONG_NAME     "Texas Instruments FM Radio"
-+
-+/* Flag info */
-+#define FM_INTTASK_RUNNING            0
-+#define FM_INTTASK_SCHEDULE_PENDING   1
-+#define FM_FIRMWARE_DW_INPROGRESS     2
-+#define FM_CORE_READY                 3
-+#define FM_CORE_TRANSPORT_READY       4
-+#define FM_AF_SWITCH_INPROGRESS	      5
-+#define FM_CORE_TX_XMITING	      6
-+
-+#define FM_TUNE_COMPLETE	      0x1
-+#define FM_BAND_LIMIT		      0x2
-+
-+#define FM_DRV_TX_TIMEOUT      (5*HZ)	/* 5 seconds */
-+#define FM_DRV_RX_SEEK_TIMEOUT (20*HZ)	/* 20 seconds */
-+
-+#define NO_OF_ENTRIES_IN_ARRAY(array) (sizeof(array) / sizeof(array[0]))
-+
-+enum {
-+	FM_MODE_OFF,
-+	FM_MODE_TX,
-+	FM_MODE_RX,
-+	FM_MODE_ENTRY_MAX
-+};
-+
-+#define FM_RX_RDS_INFO_FIELD_MAX	8	/* 4 Group * 2 Bytes */
-+
-+/*
-+ * define private CIDs for V4L2
-+ */
-+#define V4L2_CID_CHANNEL_SPACING (V4L2_CID_PRIVATE_BASE + 0)
-+
-+/* RX RDS data format */
-+struct fm_rdsdata_format {
-+	union {
-+		struct {
-+			unsigned char rdsbuff[FM_RX_RDS_INFO_FIELD_MAX];
-+		} groupdatabuff;
-+		struct {
-+			unsigned short pidata;
-+			unsigned char block_b_byte1;
-+			unsigned char block_b_byte2;
-+			unsigned char block_c_byte1;
-+			unsigned char block_c_byte2;
-+			unsigned char block_d_byte1;
-+			unsigned char block_d_byte2;
-+		} groupgeneral;
-+		struct {
-+			unsigned short pidata;
-+			unsigned char block_b_byte1;
-+			unsigned char block_b_byte2;
-+			unsigned char firstaf;
-+			unsigned char secondaf;
-+			unsigned char firstpsbyte;
-+			unsigned char secondpsbyte;
-+		} group0A;
-+
-+		struct {
-+			unsigned short pidata;
-+			unsigned char block_b_byte1;
-+			unsigned char block_b_byte2;
-+			unsigned short pidata2;
-+			unsigned char firstpsbyte;
-+			unsigned char secondpsbyte;
-+		} group0B;
-+	} rdsdata;
-+};
-+
-+/* FM region (Europe/US, Japan) info */
-+struct region_info {
-+	unsigned int channel_spacing;
-+	unsigned int bottom_frequency;
-+	unsigned int top_frequency;
-+	unsigned char region_index;
-+};
-+
-+typedef void (*int_handler_prototype) (void *);
-+
-+/* FM Interrupt processing related info */
-+struct fm_irq {
-+	unsigned char stage_index;
-+	unsigned short flag;	/* FM interrupt flag */
-+	unsigned short mask;	/* FM interrupt mask */
-+	/* Interrupt process timeout handler */
-+	struct timer_list int_timeout_timer;
-+	unsigned char irq_service_timeout_retry;
-+	int_handler_prototype *fm_int_handlers;
-+};
-+
-+/* RDS info */
-+struct fm_rds {
-+	unsigned char flag;	/* RX RDS on/off status */
-+	unsigned char last_block_index;	/* Last received RDS block */
-+
-+	/* RDS buffer */
-+	wait_queue_head_t read_queue;
-+	unsigned int buf_size;	/* Size is always multiple of 3 */
-+	unsigned int wr_index;
-+	unsigned int rd_index;
-+	unsigned char *buffer;
-+};
-+
-+#define FM_RDS_MAX_AF_LIST		25
-+
-+/*
-+ * Current RX channel Alternate Frequency cache.
-+ * This info is used to switch to other freq (AF)
-+ * when current channel signal strengh is below RSSI threshold.
-+ */
-+struct tuned_station_info {
-+	unsigned short picode;
-+	unsigned int af_cache[FM_RDS_MAX_AF_LIST];
-+	unsigned char no_of_items_in_afcache;
-+	unsigned char af_list_max;
-+};
-+
-+/* FM RX mode info */
-+struct fm_rx {
-+	struct region_info region;	/* Current selected band */
-+	unsigned int curr_freq;	/* Current RX frquency */
-+	unsigned char curr_mute_mode;	/* Current mute mode */
-+	unsigned char curr_deemphasis_mode; /* Current deemphasis mode */
-+	/* RF dependent soft mute mode */
-+	unsigned char curr_rf_depend_mute;
-+	unsigned short curr_volume;	/* Current volume level */
-+	short curr_rssi_threshold;	/* Current RSSI threshold level */
-+	/* Holds the index of the current AF jump */
-+	unsigned char cur_afjump_index;
-+	/* Will hold the frequency before the jump */
-+	unsigned int freq_before_jump;
-+	unsigned char rds_mode;	/* RDS operation mode (RDS/RDBS) */
-+	unsigned char af_mode;	/* Alternate frequency on/off */
-+	struct tuned_station_info cur_station_info;
-+	struct fm_rds rds;
-+};
-+
-+/*
-+ * FM TX RDS data
-+ *
-+ * @ text_type: is the text following PS or RT
-+ * @ text: radio text string which could either be PS or RT
-+ * @ af_freq: alternate frequency for Tx
-+ * TODO: to be declared in application
-+ */
-+struct tx_rds {
-+	unsigned char text_type;
-+	unsigned char text[25];
-+	unsigned char flag;
-+	unsigned int af_freq;
-+};
-+/*
-+ * FM TX global data
-+ *
-+ * @ pwr_lvl: Power Level of the Transmission from mixer control
-+ * @ xmit_state: Transmission state = Updated locally upon Start/Stop
-+ * @ audio_io: i2S/Analog
-+ * @ tx_frq: Transmission frequency
-+ */
-+struct fmtx_data {
-+	unsigned char pwr_lvl;
-+	unsigned char xmit_state;
-+	unsigned char audio_io;
-+	unsigned char region;
-+	unsigned short aud_mode;
-+	unsigned int preemph;
-+	unsigned long tx_frq;
-+	struct tx_rds rds;
-+};
-+
-+/* FM driver operation structure */
-+struct fmdrv_ops {
-+	struct video_device *radio_dev;	/* V4L2 video device pointer */
-+	struct snd_card *card;	/* Card which holds FM mixer controls */
-+	unsigned short asci_id;
-+	spinlock_t rds_buff_lock; /* To protect access to RDS buffer */
-+	spinlock_t resp_skb_lock; /* To protect access to received SKB */
-+
-+	long flag;		/*  FM driver state machine info */
-+	char streg_cbdata; /* status of ST registration */
-+
-+	struct sk_buff_head rx_q;	/* RX queue */
-+	struct tasklet_struct rx_task;	/* RX Tasklet */
-+
-+	struct sk_buff_head tx_q;	/* TX queue */
-+	struct tasklet_struct tx_task;	/* TX Tasklet */
-+	unsigned long last_tx_jiffies;	/* Timestamp of last pkt sent */
-+	atomic_t tx_cnt;	/* Number of packets can send at a time */
-+
-+	struct sk_buff *response_skb;	/* Response from the chip */
-+	/* Main task completion handler */
-+	struct completion maintask_completion;
-+	/* Opcode of last command sent to the chip */
-+	unsigned char last_sent_pkt_opcode;
-+	/* Handler used for wakeup when response packet is received */
-+	struct completion *response_completion;
-+	struct fm_irq irq_info;
-+	unsigned char curr_fmmode; /* Current FM chip mode (TX, RX, OFF) */
-+	struct fm_rx rx;	/* FM receiver info */
-+	struct fmtx_data tx_data;
-+
-+	/* V4L2 ctrl framwork handler*/
-+	struct v4l2_ctrl_handler ctrl_handler;
-+
-+	/* For core assisted locking */
-+	struct mutex mutex;
-+};
-+#endif
+Does config control the sensor or the main msm subsystem? Or both?
+
+> 
+> Design
+> ======
+> 
+> For MSM camera IC, significant portion of image processing and optimization
+> codes are proprietary, so they cannot sit in kernel space. This plays an
+> important role when making design decisions.
+> 
+> Our design is to have a light-weighted kernel driver, and put the
+> proprietary code in a user space daemon. The daemon polls on events
+> from /dev/msm_camera/config0 device in the form of v4l2_event. The events
+> could either be asynchronous (generated by the hardware), or synchronous
+> (control command from the application). Based on the events it receives,
+> the daemon will send appropriate control commands to the hardware.
+> 
+>    +-------------+        +----------------+
+>    | Application |        | Service Daemon |
+>    +-------------+        +----------------+     User Space
+>  ..........................................................
+>    +--------------------------------------+      Kernel Space
+>    |                V4L2                  |
+>    +--------------------------------------+
+>    +---------+     +--------+     +-------+
+>    | VFE/ISP |     | Sensor |     | Flash |
+>    +---------+     +--------+     +-------+
+
+Just to repeat what I have discussed with Qualcomm before (so that everyone knows):
+I have no problem with proprietary code as long as:
+
+1) the hardware and driver APIs are clearly documented allowing someone else to
+make their own algorithms.
+
+2) the initial state of the hardware as set up by the driver is good enough to
+capture video in normal lighting conditions. In other words: the daemon should not
+be needed for testing the driver. I compare this with cheap webcams that often
+need software white balancing to get a decent picture. They still work without
+that, but the picture simply doesn't look very good.
+
+We also discussed the daemon in the past. The idea was that it should be called
+from libv4l2. Is this still the plan?
+
+> Power Management
+> ================
+> 
+> None at this point.
+> 
+> SMP/multi-core
+> ==============
+> 
+> Mutex is used for synchronization of threads accessing the driver
+> simultaneously. Between hardware interrupt handler and threads,
+> we use spinlock to make sure locking is done properly.
+
+Take a look at the new core-assisted locking scheme implemented for 2.6.37.
+This might simplify your driver. Just FYI.
+ 
+> Security
+> ========
+> 
+> None.
+> 
+> Interface
+> =========
+> 
+> The driver uses V4L2 API for user kernel interaction. Refer to
+> http://v4l2spec.bytesex.org/spec-single/v4l2.html.
+
+That's really, really old. This is much more up to date:
+
+http://linuxtv.org/downloads/v4l-dvb-apis/
+
+And the very latest build every day is always available here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
+
+> 
+> Between camera service daemon and the driver, we have customized IOCTL
+> commands associated with /dev/msm_camera/config0 node, that controls MSM
+> camera hardware. The list of IOCTLs are (declarations can be found in
+> include/media/msm_camera.h):
+> 
+> MSM_CAM_IOCTL_GET_SENSOR_INFO
+>         Get the basic information such as name, flash support for the
+>         detected sensor.
+> MSM_CAM_IOCTL_SENSOR_IO_CFG
+>         Get or set sensor configurations: fps, line_pf, pixels_pl,
+>         exposure and gain, etc. The setting is stored in sensor_cfg_data
+>         structure.
+> MSM_CAM_IOCTL_CONFIG_VFE
+>         Change settings of different components of VFE hardware.
+> MSM_CAM_IOCTL_CTRL_CMD_DONE
+>         Notify the driver that the ctrl command is finished.
+> MSM_CAM_IOCTL_RELEASE_STATS_BUFFER
+>         Notify the driver that the service daemon has done processing the
+>         stats buffer, and is returning it to the driver.
+> MSM_CAM_IOCTL_AXI_CONFIG
+>         Configure AXI bus parameters (frame buffer addresses, offsets) to
+>         the VFE hardware.
+
+Laurent Pinchart has a patch series adding support for device nodes for
+sub-devices. The only reason that series isn't merged yet is that there are
+no merged drivers that need it. You should use those patches to implement
+these ioctls in sub-devices. I guess you probably want to create a subdev
+for the VFE hardware. The SENSOR_INFO ioctl seems like something that can
+be implemented using the upcoming media controller framework.
+
+My guess is that these ioctls will need some work.
+ 
+> Driver parameters
+> =================
+> 
+> None.
+> 
+> Config options
+> ==============
+> 
+> MSM_CAMERA in drivers/media/video/msm/Kconfig file
+> 
+> Dependencies
+> ============
+> 
+> PMIC, I2C, Clock, GPIO
+> 
+> User space utilities
+> ====================
+> 
+> A daemon process in the user space called mm-qcamera-daemon is polling
+> on events from the driver. This daemon is required in order for the V4L2
+> client application to run, and it's started by the init script.
+> 
+> Other
+> =====
+> 
+> To do
+> =====
+> 
+> 1. Eliminate creation of /dev/msm_camera/config0 by routing private
+> ioctls through /dev/video0.
+> 2. Create sub devices for sensor and VFE.
+
+It's more likely that the private ioctls will go through subdev device nodes.
+
+That's really what they were designed for.
+
+Regards,
+
+	Hans
+
 -- 
-1.5.6.3
-
+Hans Verkuil - video4linux developer - sponsored by Cisco
