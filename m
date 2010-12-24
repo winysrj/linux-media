@@ -1,60 +1,63 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:38695 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752616Ab0LXOmG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Dec 2010 09:42:06 -0500
-Message-ID: <4D14B29D.3080002@redhat.com>
-Date: Fri, 24 Dec 2010 15:47:57 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+Received: from 124x34x33x190.ap124.ftth.ucom.ne.jp ([124.34.33.190]:59351 "EHLO
+	master.linux-sh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751481Ab0LXADq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Dec 2010 19:03:46 -0500
+Date: Fri, 24 Dec 2010 09:02:10 +0900
+From: Paul Mundt <lethal@linux-sh.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
+	linux-arch@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Arnd Bergmann <arnd@arndb.de>,
+	Dan Williams <dan.j.williams@intel.com>,
+	linux-sh@vger.kernel.org, Sascha Hauer <kernel@pengutronix.de>,
+	linux-usb@vger.kernel.org,
+	David Brownell <dbrownell@users.sourceforge.net>,
 	linux-media@vger.kernel.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: Removal of V4L1 drivers
-References: <201012241442.39702.hverkuil@xs4all.nl>
-In-Reply-To: <201012241442.39702.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-scsi@vger.kernel.org,
+	"James E.J. Bottomley" <James.Bottomley@suse.de>,
+	Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH] dma_declare_coherent_memory: push ioremap() up to caller
+Message-ID: <20101224000210.GD28151@linux-sh.org>
+References: <201012240020.37208.jkrzyszt@tis.icnet.pl> <20101223235434.GA20587@n2100.arm.linux.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20101223235434.GA20587@n2100.arm.linux.org.uk>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi,
-
-On 12/24/2010 02:42 PM, Hans Verkuil wrote:
-> Hi Hans, Mauro,
->
-> The se401, vicam, ibmcam and konicawc drivers are the only V4L1 drivers left in
-> 2.6.37. The others are either converted or moved to staging (stradis and cpia),
-> ready to be removed.
->
-> Hans, what is the status of those four drivers?
-
-se401:
-I have hardware I have taken a look at the driver, converting it is a bit
-of a pain because it uses a really ugly written statefull decompressor inside
-the kernel code. The cameras have an uncompressed mode too. I can start doing
-a conversion to / rewrite as gspca subdriver supporting only the uncompressed
-mode for now:
-
-vicam:
-Devin Heitmueller (added to the CC) has one such a camera, which he still needs
-to get into my hands, once I have it I can convert the driver.
-
-ibmcam and konicawc:
-Both drivers were converted by me recently and the new gspca subdrivers for these
-have been pulled by Mauro for 2.6.37 .
-
-<snip>
-
-> There are two drivers that need more work: stk-webcam has some controls under sysfs
-> that are enabled when CONFIG_VIDEO_V4L1_COMPAT is set. These controls should be
-> rewritten as V4L2 controls. Hans, didn't you have hardware to test this driver?
-
-No I don't have any Syntek DC1125 based webcams.
-
-<snip>
-
-Regards,
-
-Hans
+On Thu, Dec 23, 2010 at 11:54:34PM +0000, Russell King - ARM Linux wrote:
+> On Fri, Dec 24, 2010 at 12:20:32AM +0100, Janusz Krzysztofik wrote:
+> > The patch tries to implement a solution suggested by Russell King, 
+> > http://lists.infradead.org/pipermail/linux-arm-kernel/2010-December/035264.html. 
+> > It is expected to solve video buffer allocation issues for at least a 
+> > few soc_camera I/O memory less host interface drivers, designed around 
+> > the videobuf_dma_contig layer, which allocates video buffers using 
+> > dma_alloc_coherent().
+> > 
+> > Created against linux-2.6.37-rc5.
+> > 
+> > Tested on ARM OMAP1 based Amstrad Delta with a WIP OMAP1 camera patch, 
+> > patterned upon two mach-mx3 machine types which already try to use the 
+> > dma_declare_coherent_memory() method for reserving a region of system 
+> > RAM preallocated with another dma_alloc_coherent(). Compile tested for 
+> > all modified files except arch/sh/drivers/pci/fixups-dreamcast.c.
+> > 
+> > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> > ---
+> > I intended to quote Russell in my commit message and even asked him for 
+> > his permission, but since he didn't respond, I decided to include a link 
+> > to his original message only.
+> 
+> There's no problem quoting messages which were sent to public mailing
+> lists, especially when there's a record of what was said in public
+> archives too.
+> 
+> I think this is definitely a step forward.
+> 
+The -tip folks have started using LKML-Reference tags to help with this,
+although I don't believe its usage is officially documented anywhere.
