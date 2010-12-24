@@ -1,67 +1,131 @@
 Return-path: <mchehab@gaivota>
-Received: from casper.infradead.org ([85.118.1.10]:55032 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752179Ab0LaLr6 (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:43288 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752021Ab0LXBtu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Dec 2010 06:47:58 -0500
-Message-ID: <4D1DC2DD.6050400@infradead.org>
-Date: Fri, 31 Dec 2010 09:47:41 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "Igor M. Liplianin" <liplianin@me.by>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, aospan@netup.ru
-Subject: Re: [PATCH 01/18] Altera FPGA firmware download module.
-References: <201012310726.31851.liplianin@netup.ru> <201012311212.19715.laurent.pinchart@ideasonboard.com> <4D1DBE2A.5080003@infradead.org> <201012311230.51903.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201012311230.51903.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 23 Dec 2010 20:49:50 -0500
+Subject: [RFC/PATCH] v4l2-ctrls: eliminate lockdep false alarms for struct
+ v4l2_ctrl_handler.lock
+From: Andy Walls <awalls@md.metrocast.net>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 23 Dec 2010 20:50:27 -0500
+Message-ID: <1293155427.2456.31.camel@morgan.silverblock.net>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 31-12-2010 09:30, Laurent Pinchart escreveu:
-> Hi Mauro,
-> 
-> On Friday 31 December 2010 12:27:38 Mauro Carvalho Chehab wrote:
->> Em 31-12-2010 09:12, Laurent Pinchart escreveu:
->>> Hi Igor,
->>>
->>> On Friday 31 December 2010 06:26:31 Igor M. Liplianin wrote:
->>>> It uses STAPL files and programs Altera FPGA through JTAG.
->>>> Interface to JTAG must be provided from main device module,
->>>> for example through cx23885 GPIO.
->>>
->>> It might be a bit late for this comment (sorry for not having noticed the
->>> patch set earlier), but...
->>>
->>> Do we really need a complete JTAG implementation in the kernel ? Wouldn't
->>> it better to handle this in userspace with a tiny kernel driver to
->>> access the JTAG signals ?
->>
->> Laurent,
->>
->> Igor already explained it. From what I understood, the device he is
->> working has a firmware that needs to be loaded via JTAG/FPGA.
-> 
-> I understand this. However, a complete JTAG state machine in the kernel, plus 
-> an Altera firmware parser, seems to be a lot of code that could live in 
-> userspace.
+When calling v4l2_ctrl_add_handler(), lockdep would detect a potential
+recursive locking problem on a situation that is by design intended and
+not a recursive lock.  This happened because all struct
+v4l2_ctrl_handler.lock mutexes were created as members of the same lock
+class in v4l2_ctrl_handler_init(), and v4l2_ctrl_add_handler() takes the
+hdl->lock on two different v4l2_ctrl_handler instances.
 
-Moving it to userspace would mean a kernel driver that would depend on an
-userspace daemon^Wfirmware loader to work. I would NAK such designs.
+This change breaks the large lockdep lock class for struct
+v4l2_ctrl_handler.lock and breaks it into v4l2_ctrl_handler
+instantiation specific lock classes with meaningful class names.
 
-The way it is is fine from my POV.
+This will validly eliminate lockdep alarms for v4l2_ctrl_handler locking
+validation, as long as the relationships between drivers adding v4l2
+controls to their own handler from other v4l2 drivers' control handlers
+remains straightforward.
 
->> Actually, I liked the idea, as the FPGA programming driver could be
->> useful if other drivers have similar usecases.
-> 
-> If I understand it correctly the driver assumes the firmware is in an Altera 
-> proprietary format. If we really want JTAG code in the kernel we should at 
-> least split the file parser and the TAP access code.
-> 
+struct v4l2_ctrl_handler.lock lock classes are created with names such
+that the output of cat /proc/lockdep indicates where in the v4l2 driver
+code v4l2_ctrl_handle_init() is being called on instantiations:
 
-Agreed, but I don't think this would be a good reason to block the code merge
-for .38.
+ffffffffa045f490 FD:   10 BD:    8 +.+...: cx2341x:1534:(hdl)->lock
+ffffffffa0497d20 FD:   12 BD:    2 +.+.+.: saa7115:1581:(hdl)->lock
+ffffffffa04ac660 FD:   14 BD:    2 +.+.+.: msp3400_driver:756:(hdl)->lock
+ffffffffa0484b90 FD:   12 BD:    1 +.+.+.: ivtv_gpio:366:(&itv->hdl_gpio)->lock
+ffffffffa04eb530 FD:   11 BD:    2 +.+.+.: cx25840_core:1982:(&state->hdl)->lock
+ffffffffa04fbc80 FD:   11 BD:    3 +.+.+.: wm8775:246:(&state->hdl)->lock
 
-Cheers,
-Mauro
+Some lock chains, that were previously causing the recursion alarms, are
+now visible in the output of cat /proc/lockdep_chains:
+
+irq_context: 0
+[ffffffffa0497d20] saa7115:1581:(hdl)->lock
+[ffffffffa045f490] cx2341x:1534:(hdl)->lock
+
+irq_context: 0
+[ffffffffa04ac660] msp3400_driver:756:(hdl)->lock
+[ffffffffa045f490] cx2341x:1534:(hdl)->lock
+
+irq_context: 0
+[ffffffffa0484b90] ivtv_gpio:366:(&itv->hdl_gpio)->lock
+[ffffffffa045f490] cx2341x:1534:(hdl)->lock
+
+irq_context: 0
+[ffffffffa04eb530] cx25840_core:1982:(&state->hdl)->lock
+[ffffffffa045f490] cx2341x:1534:(hdl)->lock
+
+irq_context: 0
+[ffffffffa04fbc80] wm8775:246:(&state->hdl)->lock
+[ffffffffa045f490] cx2341x:1534:(hdl)->lock
+
+
+Signed-off-by: Andy Walls <awalls@md.metrocast.net>
+
+
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 9d2502c..8b7de34 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -761,10 +761,9 @@ static inline int handler_set_err(struct v4l2_ctrl_handler *hdl, int err)
+ }
+ 
+ /* Initialize the handler */
+-int v4l2_ctrl_handler_init(struct v4l2_ctrl_handler *hdl,
+-			   unsigned nr_of_controls_hint)
++int _v4l2_ctrl_handler_init(struct v4l2_ctrl_handler *hdl,
++			    unsigned nr_of_controls_hint)
+ {
+-	mutex_init(&hdl->lock);
+ 	INIT_LIST_HEAD(&hdl->ctrls);
+ 	INIT_LIST_HEAD(&hdl->ctrl_refs);
+ 	hdl->nr_of_buckets = 1 + nr_of_controls_hint / 8;
+@@ -773,7 +772,7 @@ int v4l2_ctrl_handler_init(struct v4l2_ctrl_handler *hdl,
+ 	hdl->error = hdl->buckets ? 0 : -ENOMEM;
+ 	return hdl->error;
+ }
+-EXPORT_SYMBOL(v4l2_ctrl_handler_init);
++EXPORT_SYMBOL(_v4l2_ctrl_handler_init);
+ 
+ /* Free all controls and control refs */
+ void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl)
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 9b7bea9..3bc0f69 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -238,8 +238,21 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+   * Returns an error if the buckets could not be allocated. This error will
+   * also be stored in @hdl->error.
+   */
+-int v4l2_ctrl_handler_init(struct v4l2_ctrl_handler *hdl,
+-			   unsigned nr_of_controls_hint);
++int _v4l2_ctrl_handler_init(struct v4l2_ctrl_handler *hdl,
++			    unsigned nr_of_controls_hint);
++
++#define v4l2_ctrl_handler_init(hdl, nr_of_controls_hint)		\
++(									\
++	({								\
++		static struct lock_class_key _key;			\
++		mutex_init(&(hdl)->lock);				\
++		lockdep_set_class_and_name(&(hdl)->lock, &_key,		\
++					   KBUILD_BASENAME ":"		\
++					   __stringify(__LINE__) ":"	\
++					   "(" #hdl ")->lock");		\
++	}),								\
++	_v4l2_ctrl_handler_init(hdl, nr_of_controls_hint)		\
++)
+ 
+ /** v4l2_ctrl_handler_free() - Free all controls owned by the handler and free
+   * the control list.
+
+
