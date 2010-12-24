@@ -1,121 +1,77 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp204.alice.it ([82.57.200.100]:55061 "EHLO smtp204.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753128Ab0L1LiF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Dec 2010 06:38:05 -0500
-Date: Tue, 28 Dec 2010 12:37:56 +0100
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: linux-media@vger.kernel.org
-Cc: Antonio Ospite <ospite@studenti.unina.it>,
-	openkinect@googlegroups.com, Steven Toth <stoth@kernellabs.com>
-Subject: Re: [RFC, PATCH] Add 10 bit packed greyscale format.
-Message-Id: <20101228123756.e95dc546.ospite@studenti.unina.it>
-In-Reply-To: <1292498984-9198-1-git-send-email-ospite@studenti.unina.it>
-References: <1292498984-9198-1-git-send-email-ospite@studenti.unina.it>
-Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Tue__28_Dec_2010_12_37_56_+0100_B.NWfmUIJ/L/_MKG"
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:54499 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753028Ab0LXXrY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Dec 2010 18:47:24 -0500
+Received: by bwz15 with SMTP id 15so8506655bwz.19
+        for <linux-media@vger.kernel.org>; Fri, 24 Dec 2010 15:47:23 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <201012250032.18082.hverkuil@xs4all.nl>
+References: <AANLkTimMMzxbnXT8nRJYWHmgjX_RJ2goj+j083JB5eLz@mail.gmail.com>
+	<201012250032.18082.hverkuil@xs4all.nl>
+Date: Fri, 24 Dec 2010 17:47:22 -0600
+Message-ID: <AANLkTi=hjsZ=S1OJ1o5Z2xsynBDbi3fRETLFOBfTMhQ8@mail.gmail.com>
+Subject: Re: opinions about non-page-aligned buffers?
+From: Rob Clark <robdclark@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
---Signature=_Tue__28_Dec_2010_12_37_56_+0100_B.NWfmUIJ/L/_MKG
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Thu, 16 Dec 2010 12:29:44 +0100
-Antonio Ospite <ospite@studenti.unina.it> wrote:
-
-> A 10 bits per pixel greyscale format in a packed array representation is
-> supplied for instance by Kinect sensor device.
->=20
-> Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
-> ---
+On Fri, Dec 24, 2010 at 5:32 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Friday, December 24, 2010 22:29:37 Rob Clark wrote:
+>> Hi all,
+>>
+>> The request has come up on OMAP4 to support non-page-aligned v4l2
+>> buffers.  (This is in context of v4l2 display, but the same reasons
+>> would apply for a camera.)  For most common resolutions, this would
+>> help us get much better memory utilization for a range of memory (or
+>> rather address space) used for YUV buffers.
+>
+> Can you explain this in more detail? I don't really see how non-page
+> aligned buffers would lead to 'much better' memory usage. I would expect
+> that the best savings you could achieve would be PAGE_SIZE-1 per buffer.
 >
 
-Ping.
+Due to how the buffers are mapped, the savings is actually quite
+substantial.  What actually happens is the region of memory that the
+buffers are allocated from has a stride of 16kb or 32kb.  (For NV12, Y
+has a 16kb stride, and UV is  disjoint is a 32kb stride.)  To keep
+things somewhat sane for userspace, the Y followed by UV gets mmap'd
+into consecutive 4kb pages.  So we are actually loosing 1.5 * (4kb -
+width) per buffer by forcing page alignment.  With non page-aligned
+buffers we can pack buffers next to each other, ie. so one buffer may
+exist within the stride of another buffer.
 
-> Hi,
->=20
-> This is the first attempt to add v4l support for the 10bpp packed array f=
-ormat
-> used by the Kinect sensor device for depth data and for IR mode (in this =
-mode
-> the device streams the image as seen by the monochrome sensor).
->=20
-> This version is mainly to start the discussion about the format and how it
-> should be seen by v4l, the doubts I still have are about:
->=20
->   1. The name of the format: is Y10P OK? Moreover, "packed" here is used =
-in a
->      _stronger_ meaning compared to the other packed formats, and I also =
-saw the
->      name "compact array" used somewhere for these kind of objects.
->=20
->   2. The actual order of the bits, please check the documentation below t=
-o see
->      if I got it right.
->      And maybe I should not mention the unpacked version of the data as t=
-his
->      depends on the unpacking algorithm, what do you think?
+
+BR,
+-R
+
+
+> Regards,
 >
-
-Ok, I checked that the order of the bits in the packed representation
-used on the kinect is the natural one (most significant bits come
-first from the left). And about the unpacking, well, if we called this
-format Y10P, are we implying that the unpacked format is Y10, hence
-with little-endian order? Or should we consider the two formats
-independent even if the names are so similar?
-
->   3. The way to illustrate the packed array concept in the documentation:=
- I
->      used a bit-field syntax like in hardware registers docs, does this l=
-ook
->      meaningful to you? Or should I find a way to clearly show the differ=
-ence
->      between _byte_alignment_ and _element_alignment_.
+>        Hans
 >
-
-Now that I've checked the actual data format I am dealing with, I think
-I can improve the illustration as well.
-
-> If you could point to some literature about packed array representations =
-I'd be
-> happy to take a look at it.
->=20
-> After these issues are addressed, I am going to submit changes to libv4l =
-as
-> well.
->=20
-> Thanks,
->   Antonio Ospite
->   http://ao2.it
->=20
-[...]
-
-Thanks,
-   Antonio
-
---=20
-Antonio Ospite
-http://ao2.it
-
-PGP public key ID: 0x4553B001
-
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
-
---Signature=_Tue__28_Dec_2010_12_37_56_+0100_B.NWfmUIJ/L/_MKG
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iEYEARECAAYFAk0ZzBQACgkQ5xr2akVTsAFfJgCfXtcGKrw3M5/Na/KMS3+1mKEh
-xPoAoJLB5lZjKU4MqbcqAdVlG2hjmzYz
-=IDNK
------END PGP SIGNATURE-----
-
---Signature=_Tue__28_Dec_2010_12_37_56_+0100_B.NWfmUIJ/L/_MKG--
+>> However it would require
+>> a small change in the client application, since most (all) v4l2 apps
+>> that I have seen are assuming the offsets they are given to mmap are
+>> page aligned.
+>>
+>> I am curious if anyone has any suggestions about how to enable this.
+>> Ideally it would be some sort of opt-in feature to avoid breaking apps
+>> that are not aware the the offsets to mmap may not be page aligned.
+>>
+>> BR,
+>> -R
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+> --
+> Hans Verkuil - video4linux developer - sponsored by Cisco
+>
