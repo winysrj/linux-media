@@ -1,194 +1,151 @@
 Return-path: <mchehab@gaivota>
-Received: from eu1sys200aog111.obsmtp.com ([207.126.144.131]:51357 "EHLO
-	eu1sys200aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752943Ab0LQMDm (ORCPT
+Received: from d1.icnet.pl ([212.160.220.21]:57179 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752021Ab0LXBJr convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Dec 2010 07:03:42 -0500
-Message-ID: <4D0B515F.4070500@stericsson.com>
-Date: Fri, 17 Dec 2010 13:02:39 +0100
-From: Marcus Lorentzon <marcus.xm.lorentzon@stericsson.com>
+	Thu, 23 Dec 2010 20:09:47 -0500
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] dma_declare_coherent_memory: push ioremap() up to caller
+Date: Fri, 24 Dec 2010 02:08:03 +0100
+Cc: linux-arch@vger.kernel.org, "Greg Kroah-Hartman" <gregkh@suse.de>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Arnd Bergmann <arnd@arndb.de>,
+	Dan Williams <dan.j.williams@intel.com>,
+	linux-sh@vger.kernel.org, Paul Mundt <lethal@linux-sh.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-usb@vger.kernel.org,
+	David Brownell <dbrownell@users.sourceforge.net>,
+	linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-scsi@vger.kernel.org,
+	"James E.J. Bottomley" <James.Bottomley@suse.de>,
+	Catalin Marinas <catalin.marinas@arm.com>
+References: <201012240020.37208.jkrzyszt@tis.icnet.pl> <20101223235434.GA20587@n2100.arm.linux.org.uk>
+In-Reply-To: <20101223235434.GA20587@n2100.arm.linux.org.uk>
 MIME-Version: 1.0
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Jimmy RUBIN <jimmy.rubin@stericsson.com>,
-	Dan JOHANSSON <dan.johansson@stericsson.com>,
-	Linus WALLEIJ <linus.walleij@stericsson.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 09/10] MCDE: Add build files and bus
-References: <F45880696056844FA6A73F415B568C6953604E802E@EXDCVYMBSTM006.EQ1STM.local> <201011261224.59490.arnd@arndb.de> <4D0A59DD.5060707@stericsson.com> <201012171222.55444.arnd@arndb.de>
-In-Reply-To: <201012171222.55444.arnd@arndb.de>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <201012240208.08365.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On 12/17/2010 12:22 PM, Arnd Bergmann wrote:
->>> * When I talk about a bus, I mean 'struct bus_type', which identifies
->>>     all devices with a uniform bus interface to their parent device
->>>     (think: PCI, USB, I2C). You seem to think of a bus as a specific
->>>     instance of that bus type, i.e. the device that is the parent of
->>>     all the connected devices. If you have only one instance of a bus
->>>     in any system, and they are all using the same driver, do not add
->>>     a bus_type for it.
->>>     A good reason to add a bus_type would be e.g. if the "display"
->>>     driver uses interfaces to the dss that are common among multiple
->>>     dss drivers from different vendors, but the actual display drivers
->>>     are identical. This does not seem to be the case.
->>>
->>>        
->> Correct, I refer to the device, not type or driver. I used a bus type
->> since it allowed me to setup a default implementation for each driver
->> callback. So all drivers get generic implementation by default, and
->> override when that is not enough. Meybe you have a better way of getting
->> the same behavior.
->>      
-> One solution that I like is to write a module with the common code as
-> a library, exporting all the default actions. The specific drivers
-> can then fill their operations structure by listing the defaults
-> or by providing their own functions to replace them, which in turn
-> can call the default functions. This is e.g. what libata does.
+Friday 24 December 2010 00:54:34 Russell King - ARM Linux napisał(a):
+> On Fri, Dec 24, 2010 at 12:20:32AM +0100, Janusz Krzysztofik wrote:
+> > The patch tries to implement a solution suggested by Russell King,
+> > http://lists.infradead.org/pipermail/linux-arm-kernel/2010-December
+> >/035264.html. It is expected to solve video buffer allocation issues
+> > for at least a few soc_camera I/O memory less host interface
+> > drivers, designed around the videobuf_dma_contig layer, which
+> > allocates video buffers using dma_alloc_coherent().
+> >
+> > Created against linux-2.6.37-rc5.
+> >
+> > Tested on ARM OMAP1 based Amstrad Delta with a WIP OMAP1 camera
+> > patch, patterned upon two mach-mx3 machine types which already try
+> > to use the dma_declare_coherent_memory() method for reserving a
+> > region of system RAM preallocated with another
+> > dma_alloc_coherent(). Compile tested for all modified files except
+> > arch/sh/drivers/pci/fixups-dreamcast.c.
+> >
+> > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> > ---
+> > I intended to quote Russell in my commit message and even asked him
+> > for his permission, but since he didn't respond, I decided to
+> > include a link to his original message only.
 >
->    
-Will do.
+> There's no problem quoting messages which were sent to public mailing
+> lists, especially when there's a record of what was said in public
+> archives too.
 >
->> We are now taking a step back and start "all over". We were almost as
->> fresh on this HW block as you are now when we started implementing the
->> driver earlier this year. I think all of us benefit from now having a
->> better understanding of customer requirements and the HW itself, there
->> are some nice quirks ;). Anyway, we will restart the patches and RFC
->> only the MCDE HW part of the driver, implementing basic fb support for
->> one display board as you suggested initially. It's a nice step towards
->> making the patches easier to review and give us some time to prepare the
->> DSS stuff. That remake was done today, so I think the patch will be sent
->> out soon. (I'm going on vacation for 3 weeks btw).
->>      
-> Ok, sounds great! I'm also starting a 3 week vacation, but will be at the
-> Linaro sprint in Dallas.
+> I think this is definitely a step forward.
 >
-> My feeling now, after understanding about it some more, is that it would
-> actually be better to start with a KMS implementation instead of a classic
-> frame buffer. Ideally you wouldn't even need the frame buffer driver or
-> the multiplexing between the two then, but still get all the benefits
-> from the new KMS infrastructure.
+> > ---
+> > linux-2.6.37-rc5/arch/arm/mach-mx3/mach-pcm037.c.orig	2010-12-09
+> > 23:07:34.000000000 +0100 +++
+> > linux-2.6.37-rc5/arch/arm/mach-mx3/mach-pcm037.c	2010-12-23
+> > 18:32:24.000000000 +0100 @@ -431,7 +431,7 @@ static int __init
+> > pcm037_camera_alloc_dm memset(buf, 0, buf_size);
+> >
+> >  	dma = dma_declare_coherent_memory(&mx3_camera.dev,
+> > -					dma_handle, dma_handle, buf_size,
+> > +					buf, dma_handle, buf_size,
+> >  					DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
+> >
+> >  	/* The way we call dma_declare_coherent_memory only a malloc can
+> > fail */ ---
+> > linux-2.6.37-rc5/arch/arm/mach-mx3/mach-mx31moboard.c.orig	2010-12-
+> >09 23:07:34.000000000 +0100 +++
+> > linux-2.6.37-rc5/arch/arm/mach-mx3/mach-mx31moboard.c	2010-12-23
+> > 18:32:24.000000000 +0100 @@ -486,7 +486,7 @@ static int __init
+> > mx31moboard_cam_alloc_ memset(buf, 0, buf_size);
+> >
+> >  	dma = dma_declare_coherent_memory(&mx3_camera.dev,
+> > -					dma_handle, dma_handle, buf_size,
+> > +					buf, dma_handle, buf_size,
+> >  					DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
+> >
+> >  	/* The way we call dma_declare_coherent_memory only a malloc can
+> > fail */
 >
->    
-I will look at it, we might still post a fb->mcde_hw first though, since 
-it's so little work.
+> A side note for the mx3 folk: although it's not specified in DMA-API,
+> memory allocated from dma_alloc_coherent() on ARM is already memset
+> to zero by the allocation function.
 >
->>>> DSS give access to all display devices probed on the virtual mcde
->>>> dss bus, or platform bus with specific type of devices if you like.
->>>> All calls to DSS operate on a display device, like create an
->>>> overlay(=framebuffer), request an update, set power mode, etc.
->>>> All calls to DSS related to display itself and not only framebuffer
->>>> scanout, will be passed on to the display driver of the display
->>>> device in question. All calls DSS only related to overlays, like
->>>> buffer pointers, position, rotation etc is handled directly by DSS
->>>> calling mcde_hw.
->>>>
->>>> You could see mcde_hw as a physical level driver and mcde_dss closer
->>>> to a logical driver, delegating display specific decisions to the
->>>> display driver. Another analogy is mcde_hw is host driver and display
->>>> drivers are client device drivers. And DSS is a collection of logic
->>>> to manage the interaction between host and client devices.
->>>>
->>>>          
->>> The way you describe it, I would picture it differently:
->>>
->>> +----------+ +----+-----+-----+ +-------+
->>> | mcde_hw  | | fb | kms | v4l | | displ |
->>> +----+----------------------------------+
->>> | HW |            mcde_dss              |
->>> +----+----------------------------------+
->>>
->>> In this model, the dss is the core module that everything else
->>> links to. The hw driver talks to the actual hardware and to the
->>> dss. The three front-ends only talk to the dss, but not to the
->>> individual display drivers or to the hw code directly (i.e. they
->>> don't use their exported symbols or internal data structures.
->>> The display drivers only talk to the dss, but not to the front-ends
->>> or the hw drivers.
->>>
->>> Would this be a correct representation of your modules?
->>>
->>>        
->> Hmm, mcde_hw does not link to dss. It should be FB->DSS->Display
->> driver->MCDE_HW->HW IO (+ DSS->MCDE_HW). My picture is how code should
->> be used. Anything else you find in code is a violation of that layering.
->>      
-> I don't think it makes any sense to have the DSS sit on top of the
-> display drivers, since that means it has to know about all of them
-> and loading the DSS module would implicitly have to load all the
-> display modules below it, even for the displays that are not present.
+> > --- linux-2.6.37-rc5/drivers/base/dma-coherent.c.orig	2010-12-09
+> > 23:08:03.000000000 +0100 +++
+> > linux-2.6.37-rc5/drivers/base/dma-coherent.c	2010-12-23
+> > 18:32:24.000000000 +0100 @@ -14,10 +14,9 @@ struct dma_coherent_mem
+> > {
+> >  	unsigned long	*bitmap;
+> >  };
+> >
+> > -int dma_declare_coherent_memory(struct device *dev, dma_addr_t
+> > bus_addr, +int dma_declare_coherent_memory(struct device *dev, void
+> > *virt_addr, dma_addr_t device_addr, size_t size, int flags)
+> >  {
+> > -	void __iomem *mem_base = NULL;
+> >  	int pages = size >> PAGE_SHIFT;
+> >  	int bitmap_size = BITS_TO_LONGS(pages) * sizeof(long);
+> >
+> > @@ -30,10 +29,6 @@ int dma_declare_coherent_memory(struct d
+> >
+> >  	/* FIXME: this routine just ignores DMA_MEMORY_INCLUDES_CHILDREN
+> > */
+> >
+> > -	mem_base = ioremap(bus_addr, size);
+> > -	if (!mem_base)
+> > -		goto out;
+> > -
+> >  	dev->dma_mem = kzalloc(sizeof(struct dma_coherent_mem),
+> > GFP_KERNEL); if (!dev->dma_mem)
+> >  		goto out;
+> > @@ -41,7 +36,7 @@ int dma_declare_coherent_memory(struct d
+> >  	if (!dev->dma_mem->bitmap)
+> >  		goto free1_out;
+> >
+> > -	dev->dma_mem->virt_base = mem_base;
+> > +	dev->dma_mem->virt_base = virt_addr;
 >
->    
-DSS does not have a static dependency on display drivers. DSS is just a 
-"convenience library" for handling the correct display driver call 
-sequences, instead of each user (fbdev/KMS/V4L2) having to duplicate 
-this code.
+> I didn't see anything changing the dev->dma_mem->virt_base type to
+> drop the __iomem attribute (which I suspect shouldn't be there -
+> we're returning it via a void pointer anyway, so I think the whole
+> coherent part of the DMA API should be __iomem-less.
 
-> Moreover, I don't yet see the reason for the split between mcde_hw and
-> dss. If dss is the only user of the hardware module (aside from stuff
-> using dss), and dss is written against the hw module as a low-level
-> implementation, they can simply be the same module.
->
->    
-They are the same module, just split into two files.
->
->> The other "issue" is the usual, 3D vendors don't upstream their drivers.
->> Which means we have to integrate with drivers not in mainline kernel ...
->> and we still want to open all our drivers, even if some external IPs
->> don't.
->>      
-> This will be a lot tougher for you. External modules are generally
-> not accepted as a reason for designing code one way vs. another.
-> Whatever the solution is, you have to convince people that it would
-> still make sense if all drivers were part of the kernel itself.
-> Bonus points to you if you define it in a way that forces the 3d driver
-> people to put their code under the GPL in order to work with yours ;-)
->
->    
-I see this as a side effect of DRM putting a dependency between 3D HW 
-and KMS HW driver. In most embedded systems, these two are no more 
-coupled than any other HW block on the SoC. So by "fixing" this 
-_possible_ flaw. I see no reason why a KMS driver can't stand on it's 
-own. There's no reason not to support display in the kernel just because 
-there's no 3D HW driver, right?
->
->>>>> What does the v4l2 driver do? In my simple world, displays are for
->>>>> output
->>>>> and v4l is for input, so I must have missed something here.
->>>>>
->>>>>            
->>>> Currently nothing, since it is not finished. But the idea (and
->>>> requirement) is that normal graphics will use framebuffer and
->>>> video/camera overlays will use v4l2 overlays. Both using same
->>>> mcde channel and display. Some users might also configure their
->>>> board to use two framebuffers instead. Or maybe only use KMS etc ...
->>>>
->>>>          
->>> I still don't understand, sorry for being slow. Why does a camera
->>> use a display?
->>>
->>>        
->> Sorry, camera _application_ use V4L2 overlays for pushing YUV camera
->> preview or video buffers to screen composition in MCDE. V4L2 have output
->> devices too, it's not only for capturing, even if that is what most
->> desktops use it for.
->>      
-> Ok, I'm starting to remember this from the 90's when I used bttv on the
-> console framebuffer ;-).
->
-> Could you simply define a v4l overlay device for every display device,
-> even if you might not want to use it?
-> That might simplify the setup considerably.
->    
-Sure, but that is currently up to board init code. Just as for frame 
-buffers, mcde_fb_create(display, ...), we will have a 
-"createV4L2device(display, ...)".
+There was no __iomem attribute specified for the .virt_base member of 
+the struct dma_coherent_mem, pure (void *), so nothing to be changed 
+there.
 
-/BR
-/Marcus
+Thanks,
+Janusz
+
+> It also pushes the sparse address space warnings to the right place
+> IMHO too.
+> --
+> To unsubscribe from this list: send the line "unsubscribe
+> linux-media" in the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 
