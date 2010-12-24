@@ -1,52 +1,93 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:48660 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750811Ab0LaGer (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:53955 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750804Ab0LXJ6p convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Dec 2010 01:34:47 -0500
-Date: Fri, 31 Dec 2010 09:34:33 +0300
-From: Dan Carpenter <error27@gmail.com>
-To: "Justin P. Mattock" <justinmattock@gmail.com>
-Cc: trivial@kernel.org, devel@driverdev.osuosl.org,
-	linux-scsi@vger.kernel.org, netdev@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-kernel@vger.kernel.org, ivtv-devel@ivtvdriver.org,
-	linux-m68k@lists.linux-m68k.org,
-	spi-devel-general@lists.sourceforge.net,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 15/15]drivers:spi:dw_spi.c Typo change diable to
- disable.
-Message-ID: <20101231063433.GB1886@bicker>
-References: <1293750484-1161-6-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-7-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-8-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-9-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-10-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-11-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-12-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-13-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-14-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-15-git-send-email-justinmattock@gmail.com>
+	Fri, 24 Dec 2010 04:58:45 -0500
+From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+To: "'Sergei Shtylyov'" <sshtylyov@mvista.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Date: Fri, 24 Dec 2010 15:28:22 +0530
+Subject: RE: [PATCH v10 5/8] davinci vpbe: platform specific additions
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930247F9A811@dbde02.ent.ti.com>
+In-Reply-To: <4D138BAA.3060500@mvista.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1293750484-1161-15-git-send-email-justinmattock@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Thu, Dec 30, 2010 at 03:08:04PM -0800, Justin P. Mattock wrote:
-> The below patch fixes a typo "diable" to "disable". Please let me know if this
-> is correct or not.
+Sergei,
+On Thu, Dec 23, 2010 at 23:19:30, Sergei Shtylyov wrote:
+> Hello.
 > 
-> Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
+> Manjunath Hadli wrote:
 > 
-> ---
->  drivers/spi/dw_spi.c |    6 +++---
-
-You missed one from this file:
-
-/* Set the interrupt mask, for poll mode just diable all int */
-                                              ^^^^^^
-regards,
-dan carpenter
+> > This patch implements the overall device creation for the Video 
+> > display driver
+> 
+> > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> > Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+> > Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+> [...]
+> 
+> > diff --git a/arch/arm/mach-davinci/dm644x.c 
+> > b/arch/arm/mach-davinci/dm644x.c index 9a2376b..eb87867 100644
+> > --- a/arch/arm/mach-davinci/dm644x.c
+> > +++ b/arch/arm/mach-davinci/dm644x.c
+> > @@ -370,6 +370,7 @@ static struct platform_device dm644x_mdio_device = {
+> >   *	soc	description	mux  mode   mode  mux	 dbg
+> >   *				reg  offset mask  mode
+> >   */
+> > +
+> 
+>     Stray newline?
+> 
+> [...]
+> > +static struct resource dm644x_venc_resources[] = {
+> > +	/* venc registers io space */
+> > +	{
+> > +		.start  = 0x01C72400,
+> > +		.end    = 0x01C72400 + 0x17f,
+> > +		.flags  = IORESOURCE_MEM,
+> > +	},
+> > +};
+> > +
+> [...]
+> > +static struct resource dm644x_v4l2_disp_resources[] = {
+> > +	{
+> > +		.start  = IRQ_VENCINT,
+> > +		.end    = IRQ_VENCINT,
+> > +		.flags  = IORESOURCE_IRQ,
+> > +	},
+> > +	{
+> > +		.start  = 0x01C724B8,
+> > +		.end    = 0x01C724B8 + 0x3,
+> > +		.flags  = IORESOURCE_MEM,
+> > +	},
+> > +};
+> 
+>     Still intersects with dm644x_venc_resources[]. Is it intended?
+Yes. We need one VENC register in the display ISR to check the field status.
+I have reduced the access  of the full range to only one reg.
+> 
+> >  static int __init dm644x_init_devices(void)  {
+> >  	if (!cpu_is_davinci_dm644x())
+> >  		return 0;
+> >  
+> > -	/* Add ccdc clock aliases */
+> > -	clk_add_alias("master", dm644x_ccdc_dev.name, "vpss_master", NULL);
+> > -	clk_add_alias("slave", dm644x_ccdc_dev.name, "vpss_slave", NULL);
+> >  	platform_device_register(&dm644x_edma_device);
+> > -
+> 
+>     Should've left this newline alone...
+> 
+> WBR, Sergei
+> 
+> 
 
