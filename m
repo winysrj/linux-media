@@ -1,55 +1,63 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:32629 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:30633 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750945Ab0L3Njz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Dec 2010 08:39:55 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oBUDdsUP018961
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 30 Dec 2010 08:39:54 -0500
-Received: from gaivota (vpn-8-93.rdu.redhat.com [10.11.8.93])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id oBUDcVPf021334
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 30 Dec 2010 08:39:48 -0500
-Date: Thu, 30 Dec 2010 11:38:25 -0200
+	id S1751248Ab0LYJH4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Dec 2010 04:07:56 -0500
+Message-ID: <4D15B467.90004@redhat.com>
+Date: Sat, 25 Dec 2010 07:07:51 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/2] [media] cx88: Remove the obsolete i2c_adapter.id field
-Message-ID: <20101230113825.6fdbe2bb@gaivota>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org
+Subject: Re: Removal of V4L1 drivers
+References: <201012241442.39702.hverkuil@xs4all.nl>
+In-Reply-To: <201012241442.39702.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Em 24-12-2010 11:42, Hans Verkuil escreveu:
+> Hi Hans, Mauro,
+> 
+> The se401, vicam, ibmcam and konicawc drivers are the only V4L1 drivers left in
+> 2.6.37. The others are either converted or moved to staging (stradis and cpia),
+> ready to be removed.
+> 
+> Hans, what is the status of those four drivers? How likely is it that they will be
+> converted to V4L2?
+> 
+> If we can't convert them to V4L2 for 2.6.38, then we can at least remove the
+> V4L1_COMPAT code throughout the v4l drivers and move those four drivers to staging.
+> 
+> For 2.6.39 we either remove them or when they are converted to V4L2 they are moved
+> out of staging again (probably to gspca).
+> 
+> As an illustration I have removed the V4L1_COMPAT mode in this branch:
+> 
+> http://git.linuxtv.org/hverkuil/media_tree.git?a=shortlog;h=refs/heads/v4l1
 
-diff --git a/drivers/media/video/cx88/cx88-i2c.c b/drivers/media/video/cx88/cx88-i2c.c
-index f53836b..a1fe0ab 100644
---- a/drivers/media/video/cx88/cx88-i2c.c
-+++ b/drivers/media/video/cx88/cx88-i2c.c
-@@ -146,7 +146,6 @@ int cx88_i2c_init(struct cx88_core *core, struct pci_dev *pci)
- 	core->i2c_adap.dev.parent = &pci->dev;
- 	strlcpy(core->i2c_adap.name,core->name,sizeof(core->i2c_adap.name));
- 	core->i2c_adap.owner = THIS_MODULE;
--	core->i2c_adap.id = I2C_HW_B_CX2388x;
- 	core->i2c_algo.udelay = i2c_udelay;
- 	core->i2c_algo.data = core;
- 	i2c_set_adapdata(&core->i2c_adap, &core->v4l2_dev);
-diff --git a/drivers/media/video/cx88/cx88-vp3054-i2c.c b/drivers/media/video/cx88/cx88-vp3054-i2c.c
-index ec5476d..d77f8ec 100644
---- a/drivers/media/video/cx88/cx88-vp3054-i2c.c
-+++ b/drivers/media/video/cx88/cx88-vp3054-i2c.c
-@@ -125,7 +125,6 @@ int vp3054_i2c_probe(struct cx8802_dev *dev)
- 	strlcpy(vp3054_i2c->adap.name, core->name,
- 		sizeof(vp3054_i2c->adap.name));
- 	vp3054_i2c->adap.owner = THIS_MODULE;
--	vp3054_i2c->adap.id = I2C_HW_B_CX2388x;
- 	vp3054_i2c->algo.data = dev;
- 	i2c_set_adapdata(&vp3054_i2c->adap, dev);
- 	vp3054_i2c->adap.algo_data = &vp3054_i2c->algo;
--- 
-1.7.3.4
+Seems ok for me.
 
+> 
+> There are two drivers that need more work: stk-webcam has some controls under sysfs
+> that are enabled when CONFIG_VIDEO_V4L1_COMPAT is set. These controls should be
+> rewritten as V4L2 controls. Hans, didn't you have hardware to test this driver?
+> I should be able to make a patch that you can test.
 
+The conversion seems trivial. Even knowing that none of us have that hardware, I think
+we should just convert it and apply the patch. We'll have the entire .38 kernel cycle for
+people to test.
+
+> The other driver is the zoran driver which has a bunch of zoran-specific ioctls
+> under CONFIG_VIDEO_V4L1_COMPAT. I think I can just delete the lot since they are
+> all replaced by V4L2 counterparts AFAIK. But it would be good if someone else can
+> also take a look at that.
+
+They seem to mimic v4l2. Also, they implement their own private API, and this is a bad
+thing. I doubt that most applications would use that API. So, if the driver works fine
+with just V4L2, I think it is ok to just remove that old code. So let's go ahead and 
+remove, asking people to test it. I'll do some tests also in Jan.
+
+Cheers,
+Mauro
