@@ -1,70 +1,55 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:34224 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751363Ab0LaGpT (ORCPT
+Received: from smtp5-g21.free.fr ([212.27.42.5]:47165 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751333Ab0LYJud convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Dec 2010 01:45:19 -0500
-Date: Thu, 30 Dec 2010 23:45:15 -0700
-From: Grant Likely <grant.likely@secretlab.ca>
-To: "Justin P. Mattock" <justinmattock@gmail.com>
-Cc: trivial@kernel.org, devel@driverdev.osuosl.org,
-	linux-scsi@vger.kernel.org, netdev@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-kernel@vger.kernel.org, ivtv-devel@ivtvdriver.org,
-	linux-m68k@lists.linux-m68k.org,
-	spi-devel-general@lists.sourceforge.net,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 02/15]drivers:spi:dw_spi.c Typo change diable to
- disable.
-Message-ID: <20101231064515.GC3733@angua.secretlab.ca>
-References: <1293750484-1161-1-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-2-git-send-email-justinmattock@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1293750484-1161-2-git-send-email-justinmattock@gmail.com>
+	Sat, 25 Dec 2010 04:50:33 -0500
+Date: Sat, 25 Dec 2010 10:52:45 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Adds the Lego Bionicle to existing sq905c
+Message-ID: <20101225105245.6bd5497d@tele>
+In-Reply-To: <4D15BB14.3010601@redhat.com>
+References: <4D11E170.6050500@redhat.com>
+	<4D14ABEE.40206@redhat.com>
+	<alpine.LNX.2.00.1012241358210.29054@banach.math.auburn.edu>
+	<4D14FAB2.2090907@redhat.com>
+	<4D15B75C.80405@redhat.com>
+	<4D15BB14.3010601@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Thu, Dec 30, 2010 at 03:07:51PM -0800, Justin P. Mattock wrote:
-> The below patch fixes a typo "diable" to "disable". Please let me know if this 
-> is correct or not.
+On Sat, 25 Dec 2010 10:36:20 +0100
+Hans de Goede <hdegoede@redhat.com> wrote:
+> On 12/25/2010 10:20 AM, Mauro Carvalho Chehab wrote:
+> > Em 24-12-2010 17:55, Hans de Goede escreveu:
+> >> Mauro,
+> >>
+> >> Will you pick up this patch directly or should I put it in my
+> >> tree ?
+> >
+> > Either way works for me (but I prefer if one of the gspca
+> > maintainers/sub-mainainers pick). If you don't pick it, please
+> > reply with your ack.
 > 
-> Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
+> Given that nothing else is going into my tree at the moment I would
+> prefer for you to pick it up directly, so:
+> 
+> Acked-by: Hans de Goede <hdegoede@redhat.com>
 
-applied, thanks.
+Hi Mauro and Hans,
 
-g.
+As I have some changes to do in this driver, I may also apply
+Theodore's patch.
 
-> 
-> ---
->  drivers/spi/dw_spi.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/spi/dw_spi.c b/drivers/spi/dw_spi.c
-> index 0838c79..7c3cf21 100644
-> --- a/drivers/spi/dw_spi.c
-> +++ b/drivers/spi/dw_spi.c
-> @@ -592,7 +592,7 @@ static void pump_transfers(unsigned long data)
->  		spi_set_clk(dws, clk_div ? clk_div : chip->clk_div);
->  		spi_chip_sel(dws, spi->chip_select);
->  
-> -		/* Set the interrupt mask, for poll mode just diable all int */
-> +		/* Set the interrupt mask, for poll mode just disable all int */
->  		spi_mask_intr(dws, 0xff);
->  		if (imask)
->  			spi_umask_intr(dws, imask);
-> -- 
-> 1.6.5.2.180.gc5b3e
-> 
-> 
-> ------------------------------------------------------------------------------
-> Learn how Oracle Real Application Clusters (RAC) One Node allows customers
-> to consolidate database storage, standardize their database environment, and, 
-> should the need arise, upgrade to a full multi-node Oracle RAC database 
-> without downtime or disruption
-> http://p.sf.net/sfu/oracle-sfdevnl
-> _______________________________________________
-> spi-devel-general mailing list
-> spi-devel-general@lists.sourceforge.net
-> https://lists.sourceforge.net/lists/listinfo/spi-devel-general
+Cheers.
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
