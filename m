@@ -1,84 +1,121 @@
 Return-path: <mchehab@gaivota>
-Received: from banach.math.auburn.edu ([131.204.45.3]:50008 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752232Ab0LTBEy (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:39127 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751833Ab0LYP6Q convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Dec 2010 20:04:54 -0500
-Date: Sun, 19 Dec 2010 19:40:58 -0600 (CST)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Andy Walls <awalls@md.metrocast.net>
-cc: Paulo Assis <pj.assis@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Power frequency detection.
-In-Reply-To: <1292804502.3710.22.camel@morgan.silverblock.net>
-Message-ID: <alpine.LNX.2.00.1012191930020.24263@banach.math.auburn.edu>
-References: <73wo0g3yy30clob2isac30vm.1292782894810@email.android.com>  <alpine.LNX.2.00.1012191423030.23950@banach.math.auburn.edu>  <1292796033.2052.111.camel@morgan.silverblock.net>  <alpine.LNX.2.00.1012191759030.24101@banach.math.auburn.edu>
- <1292804502.3710.22.camel@morgan.silverblock.net>
+	Sat, 25 Dec 2010 10:58:16 -0500
+Received: by bwz15 with SMTP id 15so8757524bwz.19
+        for <linux-media@vger.kernel.org>; Sat, 25 Dec 2010 07:58:15 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <201012251004.47828.hverkuil@xs4all.nl>
+References: <AANLkTimMMzxbnXT8nRJYWHmgjX_RJ2goj+j083JB5eLz@mail.gmail.com>
+	<201012250032.18082.hverkuil@xs4all.nl>
+	<AANLkTi=hjsZ=S1OJ1o5Z2xsynBDbi3fRETLFOBfTMhQ8@mail.gmail.com>
+	<201012251004.47828.hverkuil@xs4all.nl>
+Date: Sat, 25 Dec 2010 09:58:12 -0600
+Message-ID: <AANLkTikOqV1j2KaOS6A80--U0BrMghG5me=Cc5w0aPV+@mail.gmail.com>
+Subject: Re: opinions about non-page-aligned buffers?
+From: Rob Clark <robdclark@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
+On Sat, Dec 25, 2010 at 3:04 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Saturday, December 25, 2010 00:47:22 Rob Clark wrote:
+>> On Fri, Dec 24, 2010 at 5:32 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> > On Friday, December 24, 2010 22:29:37 Rob Clark wrote:
+>> >> Hi all,
+>> >>
+>> >> The request has come up on OMAP4 to support non-page-aligned v4l2
+>> >> buffers.  (This is in context of v4l2 display, but the same reasons
+>> >> would apply for a camera.)  For most common resolutions, this would
+>> >> help us get much better memory utilization for a range of memory (or
+>> >> rather address space) used for YUV buffers.
+>> >
+>> > Can you explain this in more detail? I don't really see how non-page
+>> > aligned buffers would lead to 'much better' memory usage. I would expect
+>> > that the best savings you could achieve would be PAGE_SIZE-1 per buffer.
+>> >
+>>
+>> Due to how the buffers are mapped, the savings is actually quite
+>> substantial.  What actually happens is the region of memory that the
+>> buffers are allocated from has a stride of 16kb or 32kb.  (For NV12, Y
+>> has a 16kb stride, and UV is  disjoint is a 32kb stride.)  To keep
+>> things somewhat sane for userspace, the Y followed by UV gets mmap'd
+>> into consecutive 4kb pages.  So we are actually loosing 1.5 * (4kb -
+>> width) per buffer by forcing page alignment.  With non page-aligned
+>> buffers we can pack buffers next to each other, ie. so one buffer may
+>> exist within the stride of another buffer.
+>
+> I understand. But what is the size of your buffers and how many are there?
+> Fiddling with non-page aligned buffers will only make sense if the savings are
+> substantial compared to the total size of the buffers. In my experience the
+> buffers are so large that savings of 1-2 pages per buffer aren't worth it.
+>
 
+The buffers can be, for example 1080p (2048x1156 once you add in codec
+borders)..  and for h264 there can be a lot.. it varies based on the
+max_num_ref_frames of the clip you are decoding, but when you add up
+the minimum # of buffers the codec requires, plus a few for a queue,
+and a couple for the display to have enough to flip buffers, you could
+end up with something with 10+ large buffers, which because of the way
+the buffers are mapped are consuming 2x the amount of address space as
+packed buffers will.  With buffers this size we'd be saving 578 pages
+per buffer, times 10 buffers.  Add in concurrent use cases, like video
+tele-conf where you are both encoding and decoding simultaneously and
+it gets even more significant.
 
-On Sun, 19 Dec 2010, Andy Walls wrote:
+So it isn't a matter of just saving a couple pages per buffer.  It is
+really a very significant savings.  If it weren't, we wouldn't be
+considering this ;-)
 
-> On Sun, 2010-12-19 at 18:13 -0600, Theodore Kilgore wrote:
-> > 
-> > On Sun, 19 Dec 2010, Andy Walls wrote:
-> 
-> > > The Software for our Sakar branded Jeilin camera was a little smarter.
-> > 
-> > Oh. So _you_ had a Sakar branded camera. This was one of the things that 
-> > causes problems recently. In gspca.txt we have the supported camera listed 
-> > as 
-> > 
-> > jeilinj         0979:0280       Sakar 57379
-> > 
-> > which seemed to me to be quite wrong, as (unless I have made a bad 
-> > mistake) the Sakar 57379 has a Jeilin 2005C or D chip inside (proprietary 
-> > interface camera, Product number 0x227, definitely not one of these guys) 
-> > and AFAICT the Jeilin 2005C-D cameras can not be made to stream at all, 
-> > operating only in stillcam mode. So, when I was contacted about this new 
-> > camera I saw that listing and thought it had to be wrong!
+BR,
+-R
 
-OK, I looked again more closely in libgphoto2/camlibs/jl2005c/library.c, 
-in which one sees 
-
-Sakar no. 75379
-
-If you are my age you _do_ need to look twice. Then three times. Then have 
-a friend point out that you did not see something right. In case you are 
-missing it, too
-
-57379 != 75379
-
-So, thanks.
-
-At least that is one thing I do not need to fix.
-
-> > 
-> > Hoping that you still have some way to check what the Sakar product number 
-> > of your cam really was...
-> 
-> The Internet never forgets:
-> 
-> http://www.spinics.net/lists/linux-media/msg07025.html
-> 
-> http://www.spinics.net/lists/linux-media/msg07127.html
-
-Yes, I guess that clears it all up. I _do_ still have those messages 
-somewhere, but it is every so much easier to do it this way.
-
-> 
-> It looks like I hypothesized my camera had a JL2008 chips given the AVI
-> files it created had "JL2008V2C" in it.
-
-This appears to be a very reasonable hypothesis. I never thought the 
-camera has a JL2005C chip in it. I just thought I had erroneously listed a 
-camera in gspca.txt which was in fact some other kind of camera. But, as I 
-said, 57379 != 75379 and they are not the same camera, either.
-
-Thanks again.
-
-Theodore Kilgore
+> Regards,
+>
+>        Hans
+>
+>>
+>>
+>> BR,
+>> -R
+>>
+>>
+>> > Regards,
+>> >
+>> >        Hans
+>> >
+>> >> However it would require
+>> >> a small change in the client application, since most (all) v4l2 apps
+>> >> that I have seen are assuming the offsets they are given to mmap are
+>> >> page aligned.
+>> >>
+>> >> I am curious if anyone has any suggestions about how to enable this.
+>> >> Ideally it would be some sort of opt-in feature to avoid breaking apps
+>> >> that are not aware the the offsets to mmap may not be page aligned.
+>> >>
+>> >> BR,
+>> >> -R
+>> >> --
+>> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> >> the body of a message to majordomo@vger.kernel.org
+>> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> >>
+>> >
+>> > --
+>> > Hans Verkuil - video4linux developer - sponsored by Cisco
+>> >
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+>
+> --
+> Hans Verkuil - video4linux developer - sponsored by Cisco
+>
