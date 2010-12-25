@@ -1,67 +1,103 @@
 Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54945 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756582Ab0LRAyn (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:65006 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751107Ab0LYXs7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Dec 2010 19:54:43 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [GIT PULL FOR 2.6.37] uvcvideo: BKL removal
-Date: Sat, 18 Dec 2010 01:54:41 +0100
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-References: <201011291115.11061.laurent.pinchart@ideasonboard.com> <201012141155.20714.laurent.pinchart@ideasonboard.com> <4D0B9953.7090202@redhat.com>
-In-Reply-To: <4D0B9953.7090202@redhat.com>
+	Sat, 25 Dec 2010 18:48:59 -0500
+Date: Sun, 26 Dec 2010 00:48:51 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+Subject: [PATCH v2] v4l: ov772x: simplify pointer dereference
+In-Reply-To: <Pine.LNX.4.64.1012252246270.5248@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1012260047271.5248@axis700.grange>
+References: <Pine.LNX.4.64.1012252246270.5248@axis700.grange>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201012180154.42363.laurent.pinchart@ideasonboard.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Mauro,
+Use a more direct way to obtain a pointer to struct ov772x_priv, where the
+subdevice is available.
 
-On Friday 17 December 2010 18:09:39 Mauro Carvalho Chehab wrote:
-> Em 14-12-2010 08:55, Laurent Pinchart escreveu:
-> > Hi Mauro,
-> > 
-> > Please don't forget this pull request for 2.6.37.
-> 
-> Pull request for upstream sent today.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-Thank you.
+v2: do not introduce unused variables
 
-> I didn't find any regressions at the BKL removal patches, but I noticed a
-> few issues with qv4l2, not all related to uvcvideo. The remaining of this
-> email is an attempt to document them for later fixes.
-> 
-> They don't seem to be regressions caused by BKL removal, but the better
-> would be to fix them later.
-> 
-> - with uvcvideo and two video apps, if qv4l2 is started first, the second
-> application doesn't start/capture. I suspect that REQBUFS (used by qv4l2
-> to probe mmap/userptr capabilities) create some resource locking at
-> uvcvideo. The proper way is to lock the resources only if the driver is
-> streaming, as other drivers and videobuf do.
+ drivers/media/video/ov772x.c |   17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
-I don't agree with that. The uvcvideo driver has one buffer queue per device, 
-so if an application requests buffers on one file handle it will lock other 
-applications out. If the driver didn't it would be subject to race conditions.
-
-> - with saa7134 and qv4l2 (and after a fix for input capabilities): saa7134
-> and/or qv4l2 doesn't seem to work fine if video format is changed to a
-> 60HZ format (NTSC or PAL/M). It keeps trying to use 576 lines, but the
-> driver only works with 480 lines for those formats. So, if qv4l2 tries to
-> capture with STD/M, it fails, except if the number of lines is manually
-> fixed by the user.
-> 
-> - at least with the saa7134 board I used for test, video capture fails on
-> some conditions. This is not related to BKL patches. I suspect it may be
-> some initialization failure with the tuner (tda8275/tda8290), but I didn't
-> have time to dig into it, nor to test with a simpler saa7134 device. The
-> device I used was an Avermedia m135.
-
+diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
+index a84b770..48895ef 100644
+--- a/drivers/media/video/ov772x.c
++++ b/drivers/media/video/ov772x.c
+@@ -600,7 +600,7 @@ static int ov772x_reset(struct i2c_client *client)
+ static int ov772x_s_stream(struct v4l2_subdev *sd, int enable)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct ov772x_priv *priv = to_ov772x(client);
++	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
+ 
+ 	if (!enable) {
+ 		ov772x_mask_set(client, COM2, SOFT_SLEEP_MODE, SOFT_SLEEP_MODE);
+@@ -645,8 +645,7 @@ static unsigned long ov772x_query_bus_param(struct soc_camera_device *icd)
+ 
+ static int ov772x_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+ {
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct ov772x_priv *priv = to_ov772x(client);
++	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
+ 
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_VFLIP:
+@@ -665,7 +664,7 @@ static int ov772x_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+ static int ov772x_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct ov772x_priv *priv = to_ov772x(client);
++	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
+ 	int ret = 0;
+ 	u8 val;
+ 
+@@ -715,8 +714,7 @@ static int ov772x_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+ static int ov772x_g_chip_ident(struct v4l2_subdev *sd,
+ 			       struct v4l2_dbg_chip_ident *id)
+ {
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct ov772x_priv *priv = to_ov772x(client);
++	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
+ 
+ 	id->ident    = priv->model;
+ 	id->revision = 0;
+@@ -955,7 +953,7 @@ static int ov772x_g_fmt(struct v4l2_subdev *sd,
+ 			struct v4l2_mbus_framefmt *mf)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct ov772x_priv *priv = to_ov772x(client);
++	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
+ 
+ 	if (!priv->win || !priv->cfmt) {
+ 		u32 width = VGA_WIDTH, height = VGA_HEIGHT;
+@@ -978,7 +976,7 @@ static int ov772x_s_fmt(struct v4l2_subdev *sd,
+ 			struct v4l2_mbus_framefmt *mf)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct ov772x_priv *priv = to_ov772x(client);
++	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
+ 	int ret = ov772x_set_params(client, &mf->width, &mf->height,
+ 				    mf->code);
+ 
+@@ -991,8 +989,7 @@ static int ov772x_s_fmt(struct v4l2_subdev *sd,
+ static int ov772x_try_fmt(struct v4l2_subdev *sd,
+ 			  struct v4l2_mbus_framefmt *mf)
+ {
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct ov772x_priv *priv = to_ov772x(client);
++	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
+ 	const struct ov772x_win_size *win;
+ 	int i;
+ 
 -- 
-Regards,
+1.7.2.3
 
-Laurent Pinchart
