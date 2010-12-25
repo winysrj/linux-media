@@ -1,36 +1,43 @@
 Return-path: <mchehab@gaivota>
-Received: from web32407.mail.mud.yahoo.com ([68.142.207.200]:38686 "HELO
-	web32407.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751501Ab0LVNDW (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:63846 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751171Ab0LYPHw convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Dec 2010 08:03:22 -0500
-Message-ID: <29060.37144.qm@web32407.mail.mud.yahoo.com>
-Date: Wed, 22 Dec 2010 04:56:41 -0800 (PST)
-From: Adrian Sandor <aditsu@yahoo.com>
-Subject: Logitech C310
-To: linux-media@vger.kernel.org
+	Sat, 25 Dec 2010 10:07:52 -0500
+Received: by iyi12 with SMTP id 12so6407045iyi.19
+        for <linux-media@vger.kernel.org>; Sat, 25 Dec 2010 07:07:51 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+In-Reply-To: <4D0256DB.2070303@iki.fi>
+References: <4D0256DB.2070303@iki.fi>
+Date: Sat, 25 Dec 2010 16:07:51 +0100
+Message-ID: <AANLkTinOW7+5Rbf8YmRhq4VMB=DxgDC0HQ5zC8YrULRO@mail.gmail.com>
+Subject: Re: dvb-apps: update DVB-T intial tuning files for Finland (fi-*)
+From: Christoph Pfister <christophpfister@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi, I bought a Logitech C310 webcam. According to the box, it supports 5 
-megapixel photos and 720p video.
-How can I take high-resolution photos from it? Does it work through v4l or a 
-separate interface?
-The camera is working well in mplayer (showing 1280*720 video).
+2010/12/10 Antti Palosaari <crope@iki.fi>:
+> Moi Christoph,
+> Updates all Finnish channels as today.
 
-Thanks
-Adrian
+Committed, thanks (commit message is messed up a bit because I
+misinterpreted your patch as a hg changeset :-).
 
-P.S. I had originally sent this email to video4linux-list@redhat.com more than a 
-month ago and got no reply. I have just found out now about this list at 
-vger.kernel.org, and that the redhat one is obsolete.
-I think v4l needs a webpage that clearly gives the current information. 
-http://linux.bytesex.org/v4l2/ is apparently outdated, and the wiki front page 
-is not very helpful.
-Also, the old mailing list should automatically forward to this list / 
-automatically reply with info about this list / be closed down.
+> I accidentally removed first fi-Smedsbole file since that was not generated
+> by my scripts. Actually it is for the autonomy island named Åland [1]
+> between Finland and Sweden. They have even own top level domain - ax. I
+> think correct name for that is ax-Smedsbole instead of fi.
+>
+> [1] http://en.wikipedia.org/wiki/%C3%85land_Islands
 
+Ok, I've changed that.
 
-      
+> Antti
+> --
+> http://palosaari.fi/
+
+Christoph
