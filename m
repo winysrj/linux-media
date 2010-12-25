@@ -1,185 +1,297 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-fx0-f43.google.com ([209.85.161.43]:49005 "EHLO
-	mail-fx0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753439Ab0LRKyq (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:49757 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751103Ab0LYVq1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Dec 2010 05:54:46 -0500
-Message-ID: <4D0C92F2.90901@gmail.com>
-Date: Sat, 18 Dec 2010 11:54:42 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
+	Sat, 25 Dec 2010 16:46:27 -0500
+Date: Sat, 25 Dec 2010 22:46:25 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] v4l: soc-camera: switch to .unlocked_ioctl
+Message-ID: <Pine.LNX.4.64.1012252245070.5248@axis700.grange>
 MIME-Version: 1.0
-To: Hyunwoong Kim <khw0178.kim@samsung.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	linux-samsung-soc@vger.kernel.org, s.nawrocki@samsung.com
-Subject: Re: [PATCH v3] [media] s5p-fimc: fix the value of YUV422 1-plane
- formats
-References: <1292559855-2977-1-git-send-email-khw0178.kim@samsung.com>
-In-Reply-To: <1292559855-2977-1-git-send-email-khw0178.kim@samsung.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Hyunwoong,
+Use the V4L mutex infrastructure in soc-camera core and drivers and switch to
+.unlocked_ioctl.
 
-I wish I could apply and test the patch but there are still some
-problems with it. Now it doesn't apply and it seem to be mangled
-somehow. Even the patchwork didn't accept it, and v2 looks strange:
-https://patchwork.kernel.org/patch/412231/
-It is better avoided using "==...==" separators in the change log.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/mx1_camera.c           |    7 ++--
+ drivers/media/video/mx2_camera.c           |    3 +-
+ drivers/media/video/mx3_camera.c           |    2 +-
+ drivers/media/video/omap1_camera.c         |    4 +-
+ drivers/media/video/pxa_camera.c           |    2 +-
+ drivers/media/video/sh_mobile_ceu_camera.c |    2 +-
+ drivers/media/video/soc_camera.c           |   47 +++++----------------------
+ 7 files changed, 19 insertions(+), 48 deletions(-)
 
-Please also make sure it is rebased onto staging/for_v2.6.37-rc1
-branch from repository git://linuxtv.org/media_tree.git
-or better onto s5p_fimc_fixes_for_2.6.37 branch in repository
-git://git.infradead.org/users/kmpark/linux-2.6-samsung
+diff --git a/drivers/media/video/mx1_camera.c b/drivers/media/video/mx1_camera.c
+index 5e486a8..bc0c23a 100644
+--- a/drivers/media/video/mx1_camera.c
++++ b/drivers/media/video/mx1_camera.c
+@@ -382,10 +382,9 @@ static void mx1_camera_init_videobuf(struct videobuf_queue *q,
+ 	struct mx1_camera_dev *pcdev = ici->priv;
+ 
+ 	videobuf_queue_dma_contig_init(q, &mx1_videobuf_ops, icd->dev.parent,
+-					&pcdev->lock,
+-					V4L2_BUF_TYPE_VIDEO_CAPTURE,
+-					V4L2_FIELD_NONE,
+-					sizeof(struct mx1_buffer), icd, NULL);
++				&pcdev->lock, V4L2_BUF_TYPE_VIDEO_CAPTURE,
++				V4L2_FIELD_NONE,
++				sizeof(struct mx1_buffer), icd, &icd->video_lock);
+ }
+ 
+ static int mclk_get_divisor(struct mx1_camera_dev *pcdev)
+diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+index 13565cb..4eab1c6 100644
+--- a/drivers/media/video/mx2_camera.c
++++ b/drivers/media/video/mx2_camera.c
+@@ -683,7 +683,8 @@ static void mx2_camera_init_videobuf(struct videobuf_queue *q,
+ 
+ 	videobuf_queue_dma_contig_init(q, &mx2_videobuf_ops, pcdev->dev,
+ 			&pcdev->lock, V4L2_BUF_TYPE_VIDEO_CAPTURE,
+-			V4L2_FIELD_NONE, sizeof(struct mx2_buffer), icd, NULL);
++			V4L2_FIELD_NONE, sizeof(struct mx2_buffer),
++			icd, &icd->video_lock);
+ }
+ 
+ #define MX2_BUS_FLAGS	(SOCAM_DATAWIDTH_8 | \
+diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
+index 330d42e..b9cb4a4 100644
+--- a/drivers/media/video/mx3_camera.c
++++ b/drivers/media/video/mx3_camera.c
+@@ -443,7 +443,7 @@ static void mx3_camera_init_videobuf(struct videobuf_queue *q,
+ 				       V4L2_BUF_TYPE_VIDEO_CAPTURE,
+ 				       V4L2_FIELD_NONE,
+ 				       sizeof(struct mx3_camera_buffer), icd,
+-				       NULL);
++				       &icd->video_lock);
+ }
+ 
+ /* First part of ipu_csi_init_interface() */
+diff --git a/drivers/media/video/omap1_camera.c b/drivers/media/video/omap1_camera.c
+index cbfd07f..0a2fb2b 100644
+--- a/drivers/media/video/omap1_camera.c
++++ b/drivers/media/video/omap1_camera.c
+@@ -1365,12 +1365,12 @@ static void omap1_cam_init_videobuf(struct videobuf_queue *q,
+ 		videobuf_queue_dma_contig_init(q, &omap1_videobuf_ops,
+ 				icd->dev.parent, &pcdev->lock,
+ 				V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FIELD_NONE,
+-				sizeof(struct omap1_cam_buf), icd, NULL);
++				sizeof(struct omap1_cam_buf), icd, &icd->video_lock);
+ 	else
+ 		videobuf_queue_sg_init(q, &omap1_videobuf_ops,
+ 				icd->dev.parent, &pcdev->lock,
+ 				V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FIELD_NONE,
+-				sizeof(struct omap1_cam_buf), icd, NULL);
++				sizeof(struct omap1_cam_buf), icd, &icd->video_lock);
+ 
+ 	/* use videobuf mode (auto)selected with the module parameter */
+ 	pcdev->vb_mode = sg_mode ? OMAP1_CAM_DMA_SG : OMAP1_CAM_DMA_CONTIG;
+diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+index c143ed0..0268677 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -852,7 +852,7 @@ static void pxa_camera_init_videobuf(struct videobuf_queue *q,
+ 	 */
+ 	videobuf_queue_sg_init(q, &pxa_videobuf_ops, NULL, &pcdev->lock,
+ 				V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FIELD_NONE,
+-				sizeof(struct pxa_buffer), icd, NULL);
++				sizeof(struct pxa_buffer), icd, &icd->video_lock);
+ }
+ 
+ static u32 mclk_get_divisor(struct platform_device *pdev,
+diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+index 5c209af..e826923 100644
+--- a/drivers/media/video/sh_mobile_ceu_camera.c
++++ b/drivers/media/video/sh_mobile_ceu_camera.c
+@@ -1786,7 +1786,7 @@ static void sh_mobile_ceu_init_videobuf(struct videobuf_queue *q,
+ 				       V4L2_BUF_TYPE_VIDEO_CAPTURE,
+ 				       pcdev->field,
+ 				       sizeof(struct sh_mobile_ceu_buffer),
+-				       icd, NULL);
++				       icd, &icd->video_lock);
+ }
+ 
+ static int sh_mobile_ceu_get_ctrl(struct soc_camera_device *icd,
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index 052bd6d..e3927b5 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -352,12 +352,6 @@ static int soc_camera_open(struct file *file)
+ 		return -EINVAL;
+ 	}
+ 
+-	/*
+-	 * Protect against icd->ops->remove() until we module_get() both
+-	 * drivers.
+-	 */
+-	mutex_lock(&icd->video_lock);
+-
+ 	icd->use_count++;
+ 
+ 	/* Now we really have to activate the camera */
+@@ -412,8 +406,6 @@ static int soc_camera_open(struct file *file)
+ 	file->private_data = icd;
+ 	dev_dbg(&icd->dev, "camera device open\n");
+ 
+-	mutex_unlock(&icd->video_lock);
+-
+ 	return 0;
+ 
+ 	/*
+@@ -429,7 +421,6 @@ eiciadd:
+ 		icl->power(icd->pdev, 0);
+ epower:
+ 	icd->use_count--;
+-	mutex_unlock(&icd->video_lock);
+ 	module_put(ici->ops->owner);
+ 
+ 	return ret;
+@@ -440,7 +431,6 @@ static int soc_camera_close(struct file *file)
+ 	struct soc_camera_device *icd = file->private_data;
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+ 
+-	mutex_lock(&icd->video_lock);
+ 	icd->use_count--;
+ 	if (!icd->use_count) {
+ 		struct soc_camera_link *icl = to_soc_camera_link(icd);
+@@ -457,8 +447,6 @@ static int soc_camera_close(struct file *file)
+ 	if (icd->streamer == file)
+ 		icd->streamer = NULL;
+ 
+-	mutex_unlock(&icd->video_lock);
+-
+ 	module_put(ici->ops->owner);
+ 
+ 	dev_dbg(&icd->dev, "camera device close\n");
+@@ -517,7 +505,7 @@ static struct v4l2_file_operations soc_camera_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= soc_camera_open,
+ 	.release	= soc_camera_close,
+-	.ioctl		= video_ioctl2,
++	.unlocked_ioctl	= video_ioctl2,
+ 	.read		= soc_camera_read,
+ 	.mmap		= soc_camera_mmap,
+ 	.poll		= soc_camera_poll,
+@@ -534,12 +522,9 @@ static int soc_camera_s_fmt_vid_cap(struct file *file, void *priv,
+ 	if (icd->streamer && icd->streamer != file)
+ 		return -EBUSY;
+ 
+-	mutex_lock(&icd->vb_vidq.vb_lock);
+-
+ 	if (icd->vb_vidq.bufs[0]) {
+ 		dev_err(&icd->dev, "S_FMT denied: queue initialised\n");
+-		ret = -EBUSY;
+-		goto unlock;
++		return -EBUSY;
+ 	}
+ 
+ 	ret = soc_camera_set_fmt(icd, f);
+@@ -547,9 +532,6 @@ static int soc_camera_s_fmt_vid_cap(struct file *file, void *priv,
+ 	if (!ret && !icd->streamer)
+ 		icd->streamer = file;
+ 
+-unlock:
+-	mutex_unlock(&icd->vb_vidq.vb_lock);
+-
+ 	return ret;
+ }
+ 
+@@ -622,15 +604,11 @@ static int soc_camera_streamon(struct file *file, void *priv,
+ 	if (icd->streamer != file)
+ 		return -EBUSY;
+ 
+-	mutex_lock(&icd->video_lock);
+-
+ 	v4l2_subdev_call(sd, video, s_stream, 1);
+ 
+ 	/* This calls buf_queue from host driver's videobuf_queue_ops */
+ 	ret = videobuf_streamon(&icd->vb_vidq);
+ 
+-	mutex_unlock(&icd->video_lock);
+-
+ 	return ret;
+ }
+ 
+@@ -648,8 +626,6 @@ static int soc_camera_streamoff(struct file *file, void *priv,
+ 	if (icd->streamer != file)
+ 		return -EBUSY;
+ 
+-	mutex_lock(&icd->video_lock);
+-
+ 	/*
+ 	 * This calls buf_release from host driver's videobuf_queue_ops for all
+ 	 * remaining buffers. When the last buffer is freed, stop capture
+@@ -658,8 +634,6 @@ static int soc_camera_streamoff(struct file *file, void *priv,
+ 
+ 	v4l2_subdev_call(sd, video, s_stream, 0);
+ 
+-	mutex_unlock(&icd->video_lock);
+-
+ 	return 0;
+ }
+ 
+@@ -748,9 +722,7 @@ static int soc_camera_g_crop(struct file *file, void *fh,
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+ 	int ret;
+ 
+-	mutex_lock(&icd->vb_vidq.vb_lock);
+ 	ret = ici->ops->get_crop(icd, a);
+-	mutex_unlock(&icd->vb_vidq.vb_lock);
+ 
+ 	return ret;
+ }
+@@ -775,9 +747,6 @@ static int soc_camera_s_crop(struct file *file, void *fh,
+ 	dev_dbg(&icd->dev, "S_CROP(%ux%u@%u:%u)\n",
+ 		rect->width, rect->height, rect->left, rect->top);
+ 
+-	/* Cropping is allowed during a running capture, guard consistency */
+-	mutex_lock(&icd->vb_vidq.vb_lock);
+-
+ 	/* If get_crop fails, we'll let host and / or client drivers decide */
+ 	ret = ici->ops->get_crop(icd, &current_crop);
+ 
+@@ -795,8 +764,6 @@ static int soc_camera_s_crop(struct file *file, void *fh,
+ 		ret = ici->ops->set_crop(icd, a);
+ 	}
+ 
+-	mutex_unlock(&icd->vb_vidq.vb_lock);
+-
+ 	return ret;
+ }
+ 
+@@ -998,7 +965,13 @@ static int soc_camera_probe(struct device *dev)
+ 
+ 	icd->field = V4L2_FIELD_ANY;
+ 
+-	/* ..._video_start() will create a device node, so we have to protect */
++	icd->vdev->lock = &icd->video_lock;
++
++	/*
++	 * ..._video_start() will create a device node, video_register_device()
++	 * itself is protected against concurrent open() calls, but we also have
++	 * to protect our data.
++	 */
+ 	mutex_lock(&icd->video_lock);
+ 
+ 	ret = soc_camera_video_start(icd);
+@@ -1063,10 +1036,8 @@ static int soc_camera_remove(struct device *dev)
+ 	BUG_ON(!dev->parent);
+ 
+ 	if (vdev) {
+-		mutex_lock(&icd->video_lock);
+ 		video_unregister_device(vdev);
+ 		icd->vdev = NULL;
+-		mutex_unlock(&icd->video_lock);
+ 	}
+ 
+ 	if (icl->board_info) {
+-- 
+1.7.2.3
 
-Your second patch
-[PATCH][media] s5p-fimc: fix main scaler SFRs depends on FIMC version
-looks OK, except it is created against wrong source tree.
-Was there any difference in your environment setup while sending those
-2 patches?
-
-On 12/17/2010 05:24 AM, Hyunwoong Kim wrote:
-> Some color formats are mismatched in s5p-fimc driver.
-> CIOCTRL[1:0], order422_out, should be set 2b'00 not 2b'11
-> to use V4L2_PIX_FMT_YUYV. Because in V4L2 standard V4L2_PIX_FMT_YUYV means
-> "start + 0: Y'00 Cb00 Y'01 Cr00 Y'02 Cb01 Y'03 Cr01". According to datasheet
-> 2b'00 is right value for V4L2_PIX_FMT_YUYV.
->
-> ---------------------------------------------------------
-> bit |    MSB                                        LSB
-> ---------------------------------------------------------
-> 00  |  Cr1    Y3    Cb1    Y2    Cr0    Y1    Cb0    Y0
-> ---------------------------------------------------------
-> 01  |  Cb1    Y3    Cr1    Y2    Cb0    Y1    Cr0    Y0
-> ---------------------------------------------------------
-> 10  |  Y3    Cr1    Y2    Cb1    Y1    Cr0    Y0    Cb0
-> ---------------------------------------------------------
-> 11  |  Y3    Cb1    Y2    Cr1    Y1    Cb0    Y0    Cr0
-> ---------------------------------------------------------
->
-> V4L2_PIX_FMT_YVYU, V4L2_PIX_FMT_UYVY, V4L2_PIX_FMT_VYUY are also mismatched
-> with datasheet. MSCTRL[17:16], order2p_in, is also mismatched
-
-> in V4L2_PIX_FMT_UYVY, V4L2_PIX_FMT_YVYU.
->
-> Signed-off-by: Hyunwoong Kim<khw0178.kim@samsung.com>
-> Reviewed-by: Jonghun Han<jonghun.han@samsung.com>
-> ---
-> Changes since V2:
-> =================
-> - Correct the name of Output DMA control register
-> - Change definitions of YUV422 input/outut format with datasheet
->    commented by Sylwester Nawrocki.
->
-> Changes since V1:
-> =================
-> - make corrections directly in function fimc_set_yuv_order
->    commented by Sylwester Nawrocki.
-> - remove S5P_FIMC_IN_* and S5P_FIMC_OUT_* definitions from fimc-core.h
->
->   drivers/media/video/s5p-fimc/fimc-core.c |   16 ++++++++--------
->   drivers/media/video/s5p-fimc/fimc-core.h |   12 ------------
->   drivers/media/video/s5p-fimc/regs-fimc.h |   12 ++++++------
->   3 files changed, 14 insertions(+), 26 deletions(-)
->
-> diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-> index 7f56987..e2b3db1 100644
-> --- a/drivers/media/video/s5p-fimc/fimc-core.c
-> +++ b/drivers/media/video/s5p-fimc/fimc-core.c
-> @@ -448,34 +448,34 @@ static void fimc_set_yuv_order(struct fimc_ctx *ctx)
->   	/* Set order for 1 plane input formats. */
->   	switch (ctx->s_frame.fmt->color) {
->   	case S5P_FIMC_YCRYCB422:
-> -		ctx->in_order_1p = S5P_FIMC_IN_YCRYCB;
-> +		ctx->in_order_1p = S5P_MSCTRL_ORDER422_CBYCRY;
->   		break;
->   	case S5P_FIMC_CBYCRY422:
-> -		ctx->in_order_1p = S5P_FIMC_IN_CBYCRY;
-> +		ctx->in_order_1p = S5P_MSCTRL_ORDER422_YCRYCB;
->   		break;
->   	case S5P_FIMC_CRYCBY422:
-> -		ctx->in_order_1p = S5P_FIMC_IN_CRYCBY;
-> +		ctx->in_order_1p = S5P_MSCTRL_ORDER422_YCBYCR;
->   		break;
->   	case S5P_FIMC_YCBYCR422:
->   	default:
-> -		ctx->in_order_1p = S5P_FIMC_IN_YCBYCR;
-> +		ctx->in_order_1p = S5P_MSCTRL_ORDER422_CRYCBY;
->   		break;
->   	}
->   	dbg("ctx->in_order_1p= %d", ctx->in_order_1p);
->
->   	switch (ctx->d_frame.fmt->color) {
->   	case S5P_FIMC_YCRYCB422:
-> -		ctx->out_order_1p = S5P_FIMC_OUT_YCRYCB;
-> +		ctx->out_order_1p = S5P_CIOCTRL_ORDER422_CBYCRY;
->   		break;
->   	case S5P_FIMC_CBYCRY422:
-> -		ctx->out_order_1p = S5P_FIMC_OUT_CBYCRY;
-> +		ctx->out_order_1p = S5P_CIOCTRL_ORDER422_YCRYCB;
->   		break;
->   	case S5P_FIMC_CRYCBY422:
-> -		ctx->out_order_1p = S5P_FIMC_OUT_CRYCBY;
-> +		ctx->out_order_1p = S5P_CIOCTRL_ORDER422_YCBYCR;
->   		break;
->   	case S5P_FIMC_YCBYCR422:
->   	default:
-> -		ctx->out_order_1p = S5P_FIMC_OUT_YCBYCR;
-> +		ctx->out_order_1p = S5P_CIOCTRL_ORDER422_CRYCBY;
->   		break;
->   	}
->   	dbg("ctx->out_order_1p= %d", ctx->out_order_1p);
-> diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-> index 4efc1a1..92cca62 100644
-> --- a/drivers/media/video/s5p-fimc/fimc-core.h
-> +++ b/drivers/media/video/s5p-fimc/fimc-core.h
-> @@ -95,18 +95,6 @@ enum fimc_color_fmt {
->
->   #define fimc_fmt_is_rgb(x) ((x)&  0x10)
->
-> -/* Y/Cb/Cr components order at DMA output for 1 plane YCbCr 4:2:2 formats. */
-> -#define	S5P_FIMC_OUT_CRYCBY	S5P_CIOCTRL_ORDER422_YCBYCR
-> -#define	S5P_FIMC_OUT_CBYCRY	S5P_CIOCTRL_ORDER422_CBYCRY
-> -#define	S5P_FIMC_OUT_YCRYCB	S5P_CIOCTRL_ORDER422_YCRYCB
-> -#define	S5P_FIMC_OUT_YCBYCR	S5P_CIOCTRL_ORDER422_CRYCBY
-> -
-> -/* Input Y/Cb/Cr components order for 1 plane YCbCr 4:2:2 color formats. */
-> -#define	S5P_FIMC_IN_CRYCBY	S5P_MSCTRL_ORDER422_CRYCBY
-> -#define	S5P_FIMC_IN_CBYCRY	S5P_MSCTRL_ORDER422_CBYCRY
-> -#define	S5P_FIMC_IN_YCRYCB	S5P_MSCTRL_ORDER422_YCRYCB
-> -#define	S5P_FIMC_IN_YCBYCR	S5P_MSCTRL_ORDER422_YCBYCR
-> -
->   /* Cb/Cr chrominance components order for 2 plane Y/CbCr 4:2:2 formats. */
->   #define	S5P_FIMC_LSB_CRCB	S5P_CIOCTRL_ORDER422_2P_LSB_CRCB
->
-> diff --git a/drivers/media/video/s5p-fimc/regs-fimc.h b/drivers/media/video/s5p-fimc/regs-fimc.h
-> index 57e33f8..cd86c18 100644
-> --- a/drivers/media/video/s5p-fimc/regs-fimc.h
-> +++ b/drivers/media/video/s5p-fimc/regs-fimc.h
-> @@ -98,8 +98,8 @@
->   #define S5P_CIOCTRL			0x4c
->   #define S5P_CIOCTRL_ORDER422_MASK	(3<<  0)
->   #define S5P_CIOCTRL_ORDER422_CRYCBY	(0<<  0)
-> -#define S5P_CIOCTRL_ORDER422_YCRYCB	(1<<  0)
-> -#define S5P_CIOCTRL_ORDER422_CBYCRY	(2<<  0)
-> +#define S5P_CIOCTRL_ORDER422_CBYCRY	(1<<  0)
-> +#define S5P_CIOCTRL_ORDER422_YCRYCB	(2<<  0)
->   #define S5P_CIOCTRL_ORDER422_YCBYCR	(3<<  0)
->   #define S5P_CIOCTRL_LASTIRQ_ENABLE	(1<<  2)
->   #define S5P_CIOCTRL_YCBCR_3PLANE	(0<<  3)
-> @@ -223,10 +223,10 @@
->   #define S5P_MSCTRL_FLIP_Y_MIRROR	(2<<  13)
->   #define S5P_MSCTRL_FLIP_180		(3<<  13)
->   #define S5P_MSCTRL_ORDER422_SHIFT	4
-> -#define S5P_MSCTRL_ORDER422_CRYCBY	(0<<  4)
-> -#define S5P_MSCTRL_ORDER422_YCRYCB	(1<<  4)
-> -#define S5P_MSCTRL_ORDER422_CBYCRY	(2<<  4)
-> -#define S5P_MSCTRL_ORDER422_YCBYCR	(3<<  4)
-> +#define S5P_MSCTRL_ORDER422_YCBYCR	(0<<  4)
-> +#define S5P_MSCTRL_ORDER422_CBYCRY	(1<<  4)
-> +#define S5P_MSCTRL_ORDER422_YCRYCB	(2<<  4)
-> +#define S5P_MSCTRL_ORDER422_CRYCBY	(3<<  4)
->   #define S5P_MSCTRL_ORDER422_MASK	(3<<  4)
->   #define S5P_MSCTRL_INPUT_EXTCAM		(0<<  3)
->   #define S5P_MSCTRL_INPUT_MEMORY		(1<<  3)
