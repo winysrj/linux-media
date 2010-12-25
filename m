@@ -1,71 +1,50 @@
 Return-path: <mchehab@gaivota>
-Received: from comal.ext.ti.com ([198.47.26.152]:51523 "EHLO comal.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:28022 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757705Ab0LTNz3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Dec 2010 08:55:29 -0500
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH v8 7/8] davinci vpbe: Build infrastructure for VPBE driver
-Date: Mon, 20 Dec 2010 19:25:13 +0530
-Message-Id: <1292853313-2821-1-git-send-email-manjunath.hadli@ti.com>
+	id S1750741Ab0LYKY7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Dec 2010 05:24:59 -0500
+Message-ID: <4D15C671.6050808@redhat.com>
+Date: Sat, 25 Dec 2010 08:24:49 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: Hans de Goede <hdegoede@redhat.com>,
+	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Adds the Lego Bionicle to existing sq905c
+References: <4D11E170.6050500@redhat.com>	<4D14ABEE.40206@redhat.com>	<alpine.LNX.2.00.1012241358210.29054@banach.math.auburn.edu>	<4D14FAB2.2090907@redhat.com>	<4D15B75C.80405@redhat.com>	<4D15BB14.3010601@redhat.com> <20101225105245.6bd5497d@tele>
+In-Reply-To: <20101225105245.6bd5497d@tele>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-This patch adds the build infra-structure for Davinci
-VPBE dislay driver
+Em 25-12-2010 07:52, Jean-Francois Moine escreveu:
+> On Sat, 25 Dec 2010 10:36:20 +0100
+> Hans de Goede <hdegoede@redhat.com> wrote:
+>> On 12/25/2010 10:20 AM, Mauro Carvalho Chehab wrote:
+>>> Em 24-12-2010 17:55, Hans de Goede escreveu:
+>>>> Mauro,
+>>>>
+>>>> Will you pick up this patch directly or should I put it in my
+>>>> tree ?
+>>>
+>>> Either way works for me (but I prefer if one of the gspca
+>>> maintainers/sub-mainainers pick). If you don't pick it, please
+>>> reply with your ack.
+>>
+>> Given that nothing else is going into my tree at the moment I would
+>> prefer for you to pick it up directly, so:
+>>
+>> Acked-by: Hans de Goede <hdegoede@redhat.com>
+> 
+> Hi Mauro and Hans,
+> 
+> As I have some changes to do in this driver, I may also apply
+> Theodore's patch.
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/davinci/Kconfig  |   22 ++++++++++++++++++++++
- drivers/media/video/davinci/Makefile |    2 ++
- 2 files changed, 24 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/davinci/Kconfig b/drivers/media/video/davinci/Kconfig
-index 6b19540..a7f11e7 100644
---- a/drivers/media/video/davinci/Kconfig
-+++ b/drivers/media/video/davinci/Kconfig
-@@ -91,3 +91,25 @@ config VIDEO_ISIF
- 
- 	   To compile this driver as a module, choose M here: the
- 	   module will be called vpfe.
-+
-+config VIDEO_DM644X_VPBE
-+	tristate "DM644X VPBE HW module"
-+	select VIDEO_VPSS_SYSTEM
-+	select VIDEOBUF_DMA_CONTIG
-+	help
-+	    Enables VPBE modules used for display on a DM644x
-+	    SoC.
-+
-+	    To compile this driver as a module, choose M here: the
-+	    module will be called vpbe.
-+
-+
-+config VIDEO_VPBE_DISPLAY
-+	tristate "VPBE V4L2 Display driver"
-+	select VIDEO_DM644X_VPBE
-+	default y
-+	help
-+	    Enables VPBE V4L2 Display driver on a DMXXX device
-+
-+	    To compile this driver as a module, choose M here: the
-+	    module will be called vpbe_display.
-diff --git a/drivers/media/video/davinci/Makefile b/drivers/media/video/davinci/Makefile
-index a379557..ae7dafb 100644
---- a/drivers/media/video/davinci/Makefile
-+++ b/drivers/media/video/davinci/Makefile
-@@ -16,3 +16,5 @@ obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
- obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
- obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
- obj-$(CONFIG_VIDEO_ISIF) += isif.o
-+obj-$(CONFIG_VIDEO_DM644X_VPBE) += vpbe.o vpbe_osd.o vpbe_venc.o
-+obj-$(CONFIG_VIDEO_VPBE_DISPLAY) += vpbe_display.o
--- 
-1.6.2.4
+Ok, thanks!
+> 
+> Cheers.
+> 
 
