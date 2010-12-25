@@ -1,21 +1,22 @@
 Return-path: <mchehab@gaivota>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <jean.bruenn@ip-minds.de>) id 1PUSmE-0000iS-UQ
-	for linux-dvb@linuxtv.org; Mon, 20 Dec 2010 00:34:55 +0100
-Received: from alia.ip-minds.de ([84.201.38.2])
-	by mail.tu-berlin.de (exim-4.72/mailfrontend-d) with esmtp
-	for <linux-dvb@linuxtv.org>
-	id 1PUSmE-00051a-1x; Mon, 20 Dec 2010 00:34:54 +0100
-Received: from localhost (pD9E18ED5.dip.t-dialin.net [217.225.142.213])
-	by alia.ip-minds.de (Postfix) with ESMTPA id 453431BE898E
-	for <linux-dvb@linuxtv.org>; Mon, 20 Dec 2010 00:35:24 +0100 (CET)
-Date: Mon, 20 Dec 2010 00:34:52 +0100
-From: Jean-Michel Bruenn <jean.bruenn@ip-minds.de>
+	(envelope-from <ramon.rebersak@gmail.com>) id 1PWahu-0002pV-Mw
+	for linux-dvb@linuxtv.org; Sat, 25 Dec 2010 21:27:15 +0100
+Received: from mail-qy0-f175.google.com ([209.85.216.175])
+	by mail.tu-berlin.de (exim-4.72/mailfrontend-d) with esmtps
+	[TLSv1:RC4-MD5:128] for <linux-dvb@linuxtv.org>
+	id 1PWahu-0001e1-0b; Sat, 25 Dec 2010 21:27:14 +0100
+Received: by qyk8 with SMTP id 8so8911758qyk.20
+	for <linux-dvb@linuxtv.org>; Sat, 25 Dec 2010 12:27:12 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <mailman.388.1293295848.2569.linux-dvb@linuxtv.org>
+References: <mailman.388.1293295848.2569.linux-dvb@linuxtv.org>
+Date: Sat, 25 Dec 2010 21:27:11 +0100
+Message-ID: <AANLkTim1eHMpktaJSPjw+fUQWJ2G-19B72j+qBUN9E98@mail.gmail.com>
+From: =?UTF-8?Q?Ramon=2DTomislav_Reber=C5=A1ak?= <ramon.rebersak@gmail.com>
 To: linux-dvb@linuxtv.org
-Message-Id: <20101220003452.49a9dffd.jean.bruenn@ip-minds.de>
-Mime-Version: 1.0
-Subject: [linux-dvb] General Question regarding SNR
+Subject: [linux-dvb] dvb-ca driver problem
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -24,66 +25,91 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1536004379=="
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+--===============1536004379==
+Content-Type: multipart/alternative; boundary=0016e64b03b6842210049841edd0
 
-i hope it's okay to ask here. I'm wondering how the SNR is calculated,
-and how someone can calculate the "real" snr in db. This caused me a
-lot of nerves and i don't seem to be able to calculate the correct snr.
-For that some examples. I'm using DVB-T and a Hauppauge WinTV-HVR1200
-(Conexant Systems, Inc. CX23885 PCI Video and Audio Decoder (rev 02))
+--0016e64b03b6842210049841edd0
+Content-Type: text/plain; charset=ISO-8859-1
 
-dvbsnoop reports 
-cycle: 1  d_time: 0.001 s  Sig: 63993  SNR: 185  BER: 9999839
-UBLK: 11  Stat: 0x00 []
-cycle: 2  d_time: 0.003 s  Sig: 64507 SNR: 185  BER: 9999839  UBLK: 18
-Stat: 0x00 []
-cycle: 3 d_time: 0.003 s  Sig: 63993  SNR: 168 BER: 9999839  UBLK: 28
-Stat: 0x00 []
+Hello
+I am trying to port bcm's 97325 framebuffer.
+When insmod driver, got following errors:
 
-WITHOUT a antenna connected, WITHOUT a sender tuned. I guess it's quite
-unlikely that i have 185 db snr, without anything connected nor tuned.
-Alright. With a 42 db amplified antenna connected, i get SNRs between
-143 and 178 (calculated with bash and tzap.. e.g.: 
+> dvb: Unknown symbol dvb_ca_link_open
+>
+> dvb: Unknown symbol dvb_ca_link_write
+>
+> dvb: Unknown symbol dvb_ca_link_read
+>
+> dvb: Unknown symbol dvb_ca_link_poll
+>
+Any idea what I was missed to include?
+As I see from log, there's common access driver, but I cannot figured which
+one?
+Is it bcm's or linux?
+>From google no luck.
+Any help is really appreciated.
 
-((snr_in_db=16#$snr_from_tzap))
-->
-	((var=16#0092))
-	echo $var
-	146 (should be db)
+-- 
+-----BEGIN PGP SIGNATURE-----
+Ramon-Tomislav Rebersak
+Version: GnuPG v2.0.10 (Darwin)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
-Doing so, reports also db values of 215 which should be quite unlikely
-even when using cable (correct me if i'm wrong). So let's assume that
-the value which is reported needs to be subtracted from the above
-value. Then we would have:
+iEYEARECAAYFAknObc8ACgkQH7oLVaEQq2wlTgCdEEPzkMD3iSs6L3x1fNqLMJZ3
+dKUAnR8TQuwHSZlhcuSMygznwgpaolh/
+=S4EG
+-----END PGP SIGNATURE-----
 
-	215 - 185 = 30 db (sounds resonable)
-	146 - 185 = -39 db (errm... ok.. so this can't be)
+--0016e64b03b6842210049841edd0
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-AAaaaanother try, some guy reported to calculate the snr (reported snr
-= 0f1f1 (though seems to be for dvb-s, and i'm dealing with dvb-t) like
-this:
-	0xf1 / 8 = 30.125 db (sounds reasonable)
+Hello<br>I am trying to port bcm&#39;s 97325 framebuffer.<br><div class=3D"=
+gmail_quote">When insmod driver, got following errors:<br>
 
-But why did he removed the last two parts? (0xf1 = 0f1f1 ???) ok.. so
-let's try agaaaaain:
+<blockquote style=3D"margin: 0pt 0pt 0pt 0.8ex; border-left: 1px solid rgb(=
+204, 204, 204); padding-left: 1ex;" class=3D"gmail_quote"><p style=3D"margi=
+n: 0px; text-indent: 0px;">dvb: Unknown symbol dvb_ca_link_open</p><p style=
+=3D"margin: 0px; text-indent: 0px;">
 
-	0092 .. =>  146. 146 / 8 = 18. So 18 db, sounds reasonable,
-though remember dvbsnoop reports 185 snr without anything connected,
-if i take this as "noise" and want to remove it to get the real value
-i'd have: 185 = 23 and 18 db - 23 db = -5 db.
+dvb: Unknown symbol dvb_ca_link_write</p><p style=3D"margin: 0px; text-inde=
+nt: 0px;">dvb: Unknown symbol dvb_ca_link_read</p><p style=3D"margin: 0px; =
+text-indent: 0px;">dvb: Unknown symbol dvb_ca_link_poll</p></blockquote>
 
-So.. errm. WTF?
 
-Who can enlighten me?
+
+Any idea what I was missed to include?<br>As I see from log, there&#39;s co=
+mmon access driver, but I cannot figured which one?<br>Is it bcm&#39;s or l=
+inux?<br>From google no luck.<br>Any help is really appreciated.<br clear=
+=3D"all">
+<br>-- <br>-----BEGIN PGP SIGNATURE-----<br>
+Ramon-Tomislav Rebersak<br>Version: GnuPG v2.0.10 (Darwin)<br>Comment: Usin=
+g GnuPG with Mozilla - <a href=3D"http://enigmail.mozdev.org" target=3D"_bl=
+ank">http://enigmail.mozdev.org</a><br><br>iEYEARECAAYFAknObc8ACgkQH7oLVaEQ=
+q2wlTgCdEEPzkMD3iSs6L3x1fNqLMJZ3<br>
+
+dKUAnR8TQuwHSZlhcuSMygznwgpaolh/<br>=3DS4EG<br>-----END PGP SIGNATURE-----<=
+br>
+</div><br>
+
+--0016e64b03b6842210049841edd0--
+
+
+--===============1536004379==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1536004379==--
