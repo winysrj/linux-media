@@ -1,74 +1,67 @@
 Return-path: <mchehab@gaivota>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:56722 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752676Ab0LWSeJ (ORCPT
+Received: from banach.math.auburn.edu ([131.204.45.3]:54932 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751038Ab0LYRiS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Dec 2010 13:34:09 -0500
-Subject: Re: smatch report: cx231xx: incorrect check in
- cx231xx_write_i2c_data()
-From: Andy Walls <awalls@md.metrocast.net>
-To: Dan Carpenter <error27@gmail.com>
-Cc: Srinivasa.Deevi@conexant.com, linux-media@vger.kernel.org
-In-Reply-To: <20101223164347.GA16612@bicker>
-References: <20101223164347.GA16612@bicker>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 23 Dec 2010 13:34:52 -0500
-Message-ID: <1293129292.24752.9.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Sat, 25 Dec 2010 12:38:18 -0500
+Date: Sat, 25 Dec 2010 12:14:25 -0600 (CST)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Jean-Francois Moine <moinejf@free.fr>
+cc: Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Adds the Lego Bionicle to existing sq905c
+In-Reply-To: <20101225105245.6bd5497d@tele>
+Message-ID: <alpine.LNX.2.00.1012251200450.29925@banach.math.auburn.edu>
+References: <4D11E170.6050500@redhat.com> <4D14ABEE.40206@redhat.com> <alpine.LNX.2.00.1012241358210.29054@banach.math.auburn.edu> <4D14FAB2.2090907@redhat.com> <4D15B75C.80405@redhat.com> <4D15BB14.3010601@redhat.com> <20101225105245.6bd5497d@tele>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Thu, 2010-12-23 at 19:43 +0300, Dan Carpenter wrote:
-> Hi,
+
+
+On Sat, 25 Dec 2010, Jean-Francois Moine wrote:
+
+> On Sat, 25 Dec 2010 10:36:20 +0100
+> Hans de Goede <hdegoede@redhat.com> wrote:
+> > On 12/25/2010 10:20 AM, Mauro Carvalho Chehab wrote:
+> > > Em 24-12-2010 17:55, Hans de Goede escreveu:
+> > >> Mauro,
+> > >>
+> > >> Will you pick up this patch directly or should I put it in my
+> > >> tree ?
+> > >
+> > > Either way works for me (but I prefer if one of the gspca
+> > > maintainers/sub-mainainers pick). If you don't pick it, please
+> > > reply with your ack.
+> > 
+> > Given that nothing else is going into my tree at the moment I would
+> > prefer for you to pick it up directly, so:
+> > 
+> > Acked-by: Hans de Goede <hdegoede@redhat.com>
 > 
-> I was doing an audit and I came across this.
+> Hi Mauro and Hans,
 > 
-> drivers/media/video/cx231xx/cx231xx-core.c +1644 cx231xx_write_i2c_data(14)
-> 	warn: 'saddr_len' is non-zero. Did you mean 'saddr'
-> 
->   1642          if (saddr_len == 0)
->   1643                  saddr = 0;
->   1644          else if (saddr_len == 0)
->   1645                  saddr &= 0xff;
-> 
-> We check "saddr_len == 0" twice which doesn't make sense.  I'm not sure
-> what the correct fix is though.
+> As I have some changes to do in this driver, 
 
-Given that "saddr" probably means "sub-address", that "saddr_len"
-probably means "sub-address length", that saddr is only a 16 bit value,
-and this switch in cx231xx_send_usb_command():
+...
 
-        /* set index value */
-        switch (saddr_len) {
-        case 0:
-                ven_req.wIndex = 0;     /* need check */
-                break;
-        case 1:
-                ven_req.wIndex = (req_data->saddr_dat & 0xff);
-                break;
-        case 2:
-                ven_req.wIndex = req_data->saddr_dat;
-                break;
-        }
+Jean-Francois, 
 
-and noting that "req_data->saddr_dat" holds what was "saddr";
-the if statement, and the many others like it, should probably be:
+If you do not mind, tell me more about the "some changes." More cameras? 
+Or something else? 
 
-	if (saddr_len == 0)
-		saddr = 0;
-	else if (saddr_len == 1)       <----- == 1
-		saddr &= 0xff;
+Someone in the family has been quite sick for the last several months, 
+which has taken a lot of my time and energy and may do so in the future, 
+too. I have not had the time to do much more than to look at the mail I 
+get every day, much less to continue work on related projects. Several 
+things that I wanted to do months ago are sitting incomplete and in limbo 
+waiting for me to be less busy and preoccupied.
 
+But I have not lost interest.
 
-Regards,
-Andy
+Wishing for you and for all of us a peaceful and prosperous year 2011.
 
->   It's been this way since the driver was
-> merged.
-> 
-> regards,
-> dan carpenter
-
-
+Theodore Kilgore
 
