@@ -1,72 +1,44 @@
 Return-path: <mchehab@gaivota>
-Received: from mail.tu-berlin.de ([130.149.7.33])
-	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <lionteeth@cogweb.net>) id 1PJiEg-0002kH-Ss
-	for linux-dvb@linuxtv.org; Sat, 20 Nov 2010 08:51:51 +0100
-Received: from smtp1.sscnet.ucla.edu ([128.97.229.231])
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-a) with esmtps
-	[TLSv1:AES256-SHA:256] for <linux-dvb@linuxtv.org>
-	id 1PJiEg-0007Qw-AM; Sat, 20 Nov 2010 08:51:50 +0100
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by smtp1.sscnet.ucla.edu (8.13.8/8.13.8) with ESMTP id oAK7pmnQ018662
-	for <linux-dvb@linuxtv.org>; Fri, 19 Nov 2010 23:51:48 -0800
-Received: from smtp1.sscnet.ucla.edu ([127.0.0.1])
-	by localhost (smtp1.sscnet.ucla.edu [127.0.0.1]) (amavisd-new,
-	port 10024) with ESMTP id ddRCGyPHZV0r for <linux-dvb@linuxtv.org>;
-	Fri, 19 Nov 2010 23:51:38 -0800 (PST)
-Received: from smtp5.sscnet.ucla.edu (smtp5.sscnet.ucla.edu [128.97.229.235])
-	by smtp1.sscnet.ucla.edu (8.13.8/8.13.8) with ESMTP id oAK7pYmo018650
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-dvb@linuxtv.org>; Fri, 19 Nov 2010 23:51:34 -0800
-Received: from weber.sscnet.ucla.edu (weber.sscnet.ucla.edu [128.97.42.3])
-	by smtp5.sscnet.ucla.edu (8.13.8/8.13.8) with ESMTP id oAK7pP69013093
-	for <linux-dvb@linuxtv.org>; Fri, 19 Nov 2010 23:51:25 -0800
-Received: from [128.97.244.133] (vpn-8061f485.host.ucla.edu [128.97.244.133])
-	by weber.sscnet.ucla.edu (8.14.2/8.14.2) with ESMTP id oAK7pJmi005930
-	for <linux-dvb@linuxtv.org>; Fri, 19 Nov 2010 23:51:19 -0800 (PST)
-Message-ID: <4CE77DF3.8090604@cogweb.net>
-Date: Fri, 19 Nov 2010 23:51:15 -0800
-From: David Liontooth <lionteeth@cogweb.net>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] dvbstream fails to tune QAM-256
-Reply-To: linux-media@vger.kernel.org
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Received: from smtp5-g21.free.fr ([212.27.42.5]:60049 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751550Ab0LYSmA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Dec 2010 13:42:00 -0500
+Date: Sat, 25 Dec 2010 19:44:12 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Adds the Lego Bionicle to existing sq905c
+Message-ID: <20101225194412.5f1a3dcd@tele>
+In-Reply-To: <alpine.LNX.2.00.1012251200450.29925@banach.math.auburn.edu>
+References: <4D11E170.6050500@redhat.com>
+	<4D14ABEE.40206@redhat.com>
+	<alpine.LNX.2.00.1012241358210.29054@banach.math.auburn.edu>
+	<4D14FAB2.2090907@redhat.com>
+	<4D15B75C.80405@redhat.com>
+	<4D15BB14.3010601@redhat.com>
+	<20101225105245.6bd5497d@tele>
+	<alpine.LNX.2.00.1012251200450.29925@banach.math.auburn.edu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
-List-ID: <linux-dvb@linuxtv.org>
 
+On Sat, 25 Dec 2010 12:14:25 -0600 (CST)
+Theodore Kilgore <kilgota@banach.math.auburn.edu> wrote:
 
-I'm using Debian's dvbstream 0.6+cvs20090621-1 to capture video and 
-closed captioning to file.
+> > As I have some changes to do in this driver,   
+>  
+> If you do not mind, tell me more about the "some changes." More
+> cameras? Or something else? 
 
-If I tune with azap, dvbstream works fine, but I can't get it to tune on 
-its own.
+Hi Theodore,
 
-In the Debian source code, I activated DVB_ATSC by adding -DDVB_ATSC to 
-CFLAGS in the Makefile.
+Sorry, I made a mistake. I had changes for the sq930x instead...
 
-dvbstream -f 645000000 -qam 256 -v 49 a 52 -o > test.ts
+The best also for you and for everybody for 2011.
 
-gives me the error "Unknown FE type".
-
-Suggestions? Is this a problem with an API that has changed since 
-dvbstream's last release?
-
-Cheers,
-Dave
-
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
