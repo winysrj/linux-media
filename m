@@ -1,110 +1,181 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:3301 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752075Ab0LaLBX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Dec 2010 06:01:23 -0500
-Message-ID: <4D1DB7FD.1040601@redhat.com>
-Date: Fri, 31 Dec 2010 09:01:17 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from adelie.canonical.com ([91.189.90.139]:58210 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751641Ab0LZJOq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Dec 2010 04:14:46 -0500
+Message-ID: <4D170785.1070306@canonical.com>
+Date: Sun, 26 Dec 2010 10:14:45 +0100
+From: David Henningsson <david.henningsson@canonical.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 00/10] [RFC] Prio handling and v4l2_device release callback
-References: <cover.1293657717.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1293657717.git.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+CC: mchehab@infradead.org
+Subject: [PATCH] DVB: TechnoTrend CT-3650 IR support
+Content-Type: multipart/mixed;
+ boundary="------------030803060803030709080709"
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 29-12-2010 19:43, Hans Verkuil escreveu:
-> This patch series adds two new features to the V4L2 framework.
-> 
-> The first 5 patches add support for VIDIOC_G/S_PRIORITY. All prio handling
-> will be done in the core for any driver that either uses struct v4l2_fh
-> (ivtv only at the moment) or has no open and release file operations (true
-> for many simple (radio) drivers). In all other cases the driver will have
-> to do the work.
+This is a multi-part message in MIME format.
+--------------030803060803030709080709
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-It doesn't make sense to implement this at core, and for some this will happen
-automatically, while, for others, drivers need to do something.
+Hi Linux-media,
 
-> Eventually all drivers should either use v4l2_fh or never set filp->private_data.
+As a spare time project I bought myself a TT CT-3650, to see if I could 
+get it working. Waling Dijkstra did write a IR & CI patch for this model 
+half a year ago, so I was hopeful. (Reference: 
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg19860.html )
 
-I made a series of patches, due to BKL stuff converting the core to always
-use v4l2_fh on all drivers. This seems to be the right solution for it.
+Having tested the patch, the IR is working (tested all keys via the 
+"evtest" tool), however descrambling is NOT working.
 
-> All drivers that use the control framework must also use core-prio handling
-> since control handling is no longer done through v4l2_ioctl_ops, so the driver
-> doesn't have an easy way of checking the priority before changing a control.
-> 
-> By default all device nodes use the same priority state in v4l2_device, but
-> drivers can assign the prio field in video_device to a different priority state,
-> allowing e.g. all capture device nodes to use a different priority from all
-> the display device nodes.
-> 
-> The v4l2_ioctl.c code will check the ioctls whether or not they are allowed
-> based on the current priority. The vidioc_default callback has a new argument
-> that just tells the driver whether the prio is OK or not. The driver can use
-> this argument to return -EBUSY for those commands that modify state of the driver.
-> 
-> The following three patches implement this in ivtv and update the documentation.
-> 
-> The last two patches add a release callback in v4l2_device which will be called
-> when the last registered device node is removed. This is very useful for
-> implementing the hotplug disconnect functionality as it provides a single clean
-> up callback when the last user of any of the unregistered device nodes has
-> closed its filehandle. For drivers with just a single device node this is not
-> very relevant since the video_device release() does the same job, but for
-> drivers that create multiple device nodes (e.g. usbvision) this is a must-have.
-> 
-> An example of how this would be used can be found in the dsbr100 patches in
-> this branch:
-> 
-> http://git.linuxtv.org/hverkuil/media_tree.git?a=shortlog;h=refs/heads/usbvision
-> 
-> Comments?
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> Hans Verkuil (10):
->   v4l2_prio: move from v4l2-common to v4l2-dev.
->   v4l2: add v4l2_prio_state to v4l2_device and video_device
->   v4l2-fh: implement v4l2_priority support.
->   v4l2-dev: add and support flag V4L2_FH_USE_PRIO.
->   v4l2-ioctl: add priority handling support.
->   ivtv: convert to core priority handling.
->   ivtv: use core-assisted locking.
->   v4l2-framework: update documentation for new prio field
->   v4l2-device: add kref and a release function
->   v4l2-framework.txt: document new v4l2_device release() callback
-> 
->  Documentation/video4linux/v4l2-framework.txt |   34 ++++++++-
->  drivers/media/radio/radio-si4713.c           |    3 +-
->  drivers/media/video/cx18/cx18-ioctl.c        |    3 +-
->  drivers/media/video/davinci/vpfe_capture.c   |    2 +-
->  drivers/media/video/ivtv/ivtv-driver.h       |    2 -
->  drivers/media/video/ivtv/ivtv-fileops.c      |   17 +----
->  drivers/media/video/ivtv/ivtv-ioctl.c        |   77 +++++---------------
->  drivers/media/video/ivtv/ivtv-streams.c      |    1 +
->  drivers/media/video/meye.c                   |    3 +-
->  drivers/media/video/mxb.c                    |    3 +-
->  drivers/media/video/v4l2-common.c            |   63 ----------------
->  drivers/media/video/v4l2-dev.c               |  101 +++++++++++++++++++++++++-
->  drivers/media/video/v4l2-device.c            |   16 ++++
->  drivers/media/video/v4l2-fh.c                |    4 +
->  drivers/media/video/v4l2-ioctl.c             |   73 +++++++++++++++++--
->  include/media/v4l2-common.h                  |   15 ----
->  include/media/v4l2-dev.h                     |   24 ++++++
->  include/media/v4l2-device.h                  |   14 ++++
->  include/media/v4l2-fh.h                      |    1 +
->  include/media/v4l2-ioctl.h                   |    2 +-
->  20 files changed, 286 insertions(+), 172 deletions(-)
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Waling's patch was reviewed but never merged. So I have taken the IR 
+part of the patch, cleaned it up a little, and hopefully this part is 
+ready for merging now. Patch is against linux-2.6.git.
 
+As for the descrambling/CI/CAM part, that'll be the next assignment. 
+I'll be happy for some mentoring as I haven't done anything in this part 
+of the kernel before - whether I can debug some of it here or if I'll 
+have to install Windows and an USB sniffer to see what it does?
+
+
+-- 
+David Henningsson, Canonical Ltd.
+http://launchpad.net/~diwic
+
+--------------030803060803030709080709
+Content-Type: text/x-patch;
+ name="0001-DVB-TechnoTrend-CT-3650-IR-support.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="0001-DVB-TechnoTrend-CT-3650-IR-support.patch"
+
+>From 705adeab4da152cf24cede069b724765b8a07d55 Mon Sep 17 00:00:00 2001
+From: David Henningsson <david.henningsson@canonical.com>
+Date: Sun, 26 Dec 2010 07:55:57 +0100
+Subject: [PATCH] DVB: TechnoTrend CT-3650 IR support
+
+This patch enables IR support on the TechnoTrend CT-3650 device,
+and is half of Waling Dijkstra's patch posted earlier this year,
+cleaned up a little.
+
+Signed-off-by: David Henningsson <david.henningsson@canonical.com>
+---
+ drivers/media/dvb/dvb-usb/ttusb2.c |   75 ++++++++++++++++++++++++++++++++++++
+ drivers/media/dvb/dvb-usb/ttusb2.h |    3 +
+ 2 files changed, 78 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/dvb/dvb-usb/ttusb2.c b/drivers/media/dvb/dvb-usb/ttusb2.c
+index a6de489..1bacfc8 100644
+--- a/drivers/media/dvb/dvb-usb/ttusb2.c
++++ b/drivers/media/dvb/dvb-usb/ttusb2.c
+@@ -128,6 +128,76 @@ static struct i2c_algorithm ttusb2_i2c_algo = {
+ 	.functionality = ttusb2_i2c_func,
+ };
+ 
++/* IR */
++/* Remote Control Stuff for CT-3650 (copied from TT-S1500): */
++static struct dvb_usb_rc_key tt_connect_CT_3650_rc_key[] = {
++	{0x1501, KEY_POWER},
++	{0x1502, KEY_SHUFFLE}, /* ? double-arrow key */
++	{0x1503, KEY_1},
++	{0x1504, KEY_2},
++	{0x1505, KEY_3},
++	{0x1506, KEY_4},
++	{0x1507, KEY_5},
++	{0x1508, KEY_6},
++	{0x1509, KEY_7},
++	{0x150a, KEY_8},
++	{0x150b, KEY_9},
++	{0x150c, KEY_0},
++	{0x150d, KEY_UP},
++	{0x150e, KEY_LEFT},
++	{0x150f, KEY_OK},
++	{0x1510, KEY_RIGHT},
++	{0x1511, KEY_DOWN},
++	{0x1512, KEY_INFO},
++	{0x1513, KEY_EXIT},
++	{0x1514, KEY_RED},
++	{0x1515, KEY_GREEN},
++	{0x1516, KEY_YELLOW},
++	{0x1517, KEY_BLUE},
++	{0x1518, KEY_MUTE},
++	{0x1519, KEY_TEXT},
++	{0x151a, KEY_MODE},  /* ? TV/Radio */
++	{0x1521, KEY_OPTION},
++	{0x1522, KEY_EPG},
++	{0x1523, KEY_CHANNELUP},
++	{0x1524, KEY_CHANNELDOWN},
++	{0x1525, KEY_VOLUMEUP},
++	{0x1526, KEY_VOLUMEDOWN},
++	{0x1527, KEY_SETUP},
++	{0x153a, KEY_RECORD},/* these keys are only in the black remote */
++	{0x153b, KEY_PLAY},
++	{0x153c, KEY_STOP},
++	{0x153d, KEY_REWIND},
++	{0x153e, KEY_PAUSE},
++	{0x153f, KEY_FORWARD}
++};
++
++/* Copy-pasted from dvb-usb-remote.c */
++#define DVB_USB_RC_NEC_KEY_PRESSED     0x01
++
++static int tt3650_rc_query(struct dvb_usb_device *d, u32 *keyevent, int *keystate)
++{
++	u8 keybuf[5];
++	int ret;
++	u8 rx[9]; /* A CMD_GET_IR_CODE reply is 9 bytes long */
++	ret = ttusb2_msg(d, CMD_GET_IR_CODE, NULL, 0, rx, sizeof(rx));
++	if (ret != 0)
++		return ret;
++
++	if (rx[8] & 0x01) {
++		/* got a "press" event */
++		deb_info("%s: cmd=0x%02x sys=0x%02x\n", __func__, rx[2], rx[3]);
++		keybuf[0] = DVB_USB_RC_NEC_KEY_PRESSED;
++		keybuf[1] = rx[3];
++		keybuf[2] = ~keybuf[1]; /* fake checksum */
++		keybuf[3] = rx[2];
++		keybuf[4] = ~keybuf[3]; /* fake checksum */
++		dvb_usb_nec_rc_key_to_event(d, keybuf, keyevent, keystate);
++	}
++	return 0;
++}
++
++
+ /* Callbacks for DVB USB */
+ static int ttusb2_identify_state (struct usb_device *udev, struct
+ 		dvb_usb_device_properties *props, struct dvb_usb_device_description **desc,
+@@ -345,6 +415,11 @@ static struct dvb_usb_device_properties ttusb2_properties_ct3650 = {
+ 
+ 	.size_of_priv = sizeof(struct ttusb2_state),
+ 
++	.rc_key_map = tt_connect_CT_3650_rc_key,
++	.rc_key_map_size = ARRAY_SIZE(tt_connect_CT_3650_rc_key),
++	.rc_query = tt3650_rc_query,
++	.rc_interval = 500,
++
+ 	.num_adapters = 1,
+ 	.adapter = {
+ 		{
+diff --git a/drivers/media/dvb/dvb-usb/ttusb2.h b/drivers/media/dvb/dvb-usb/ttusb2.h
+index 52a63af..1bd5d54 100644
+--- a/drivers/media/dvb/dvb-usb/ttusb2.h
++++ b/drivers/media/dvb/dvb-usb/ttusb2.h
+@@ -45,6 +45,9 @@
+ #define CMD_DISEQC          0x18
+ /* out data: <master=0xff/burst=??> <cmdlen> <cmdbytes>[cmdlen] */
+ 
++/* command to poll IR receiver (copied from pctv452e.c) */
++#define CMD_GET_IR_CODE     0x1b
++
+ #define CMD_PID_ENABLE      0x22
+ /* out data: <index> <type: ts=1/sec=2> <pid msb> <pid lsb> */
+ 
+-- 
+1.7.1
+
+
+--------------030803060803030709080709--
