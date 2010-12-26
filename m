@@ -1,121 +1,169 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:63570 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754099Ab0LUJzo (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:62607 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752020Ab0LZOkW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Dec 2010 04:55:44 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Tue, 21 Dec 2010 10:55:15 +0100
-From: Kamil Debski <k.debski@samsung.com>
-Subject: [RFC/PATCH v5 1/4] Changes in include/linux/videodev2.h for MFC 5.1
-In-reply-to: <1292925318-2911-1-git-send-email-k.debski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	kyungmin.park@samsung.com, k.debski@samsung.com,
-	jaeryul.oh@samsung.com, kgene.kim@samsung.com
-Message-id: <1292925318-2911-2-git-send-email-k.debski@samsung.com>
-References: <1292925318-2911-1-git-send-email-k.debski@samsung.com>
+	Sun, 26 Dec 2010 09:40:22 -0500
+Received: by wyb28 with SMTP id 28so7917192wyb.19
+        for <linux-media@vger.kernel.org>; Sun, 26 Dec 2010 06:40:21 -0800 (PST)
+Message-ID: <4D1753CF.9010205@gmail.com>
+Date: Sun, 26 Dec 2010 15:40:15 +0100
+From: =?ISO-8859-1?Q?Ludovic_BOU=C9?= <ludovic.boue@gmail.com>
+MIME-Version: 1.0
+To: linux-media@dinkum.org.uk, linux-media@vger.kernel.org
+CC: o.endriss@gmx.de
+Subject: Re: ngene & Satix-S2 dual problems
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-This patch adds fourcc values for compressed video stream formats and
-V4L2_CTRL_CLASS_CODEC. Also adds controls used by MFC 5.1 driver.
+Hi all,
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- include/linux/videodev2.h |   48 +++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 48 insertions(+), 0 deletions(-)
+I have a Satix-S2 Dual and I'm trying to get to work without his CI in a first time. I'm trying ngene-test2 
+from http://linuxtv.org/hg/~endriss/ngene-test2/ under 
+2.6.32-21-generic.
 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index d30c98d..c89f019 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -339,6 +339,14 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_NV16    v4l2_fourcc('N', 'V', '1', '6') /* 16  Y/CbCr 4:2:2  */
- #define V4L2_PIX_FMT_NV61    v4l2_fourcc('N', 'V', '6', '1') /* 16  Y/CrCb 4:2:2  */
- 
-+/* two non contiguous planes -- one Y, one Cr + Cb interleaved  */
-+#define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
-+/* 12  Y/CbCr 4:2:0 64x32 macroblocks */
-+#define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2')
-+
-+/* three non contiguous planes -- Y, Cb, Cr */
-+#define V4L2_PIX_FMT_YUV420M v4l2_fourcc('Y', 'M', '1', '2') /* 12  YUV420 planar */
-+
- /* Bayer formats - see http://www.siliconimaging.com/RGB%20Bayer.htm */
- #define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B', 'A', '8', '1') /*  8  BGBG.. GRGR.. */
- #define V4L2_PIX_FMT_SGBRG8  v4l2_fourcc('G', 'B', 'R', 'G') /*  8  GBGB.. RGRG.. */
-@@ -362,6 +370,21 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /* 1394          */
- #define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-1/2/4    */
- 
-+
-+#define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H264    */
-+#define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /* H263    */
-+#define V4L2_PIX_FMT_MPEG12   v4l2_fourcc('M', 'P', '1', '2') /* MPEG-1/2  */
-+#define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /* MPEG-4  */
-+#define V4L2_PIX_FMT_DIVX     v4l2_fourcc('D', 'I', 'V', 'X') /* DivX  */
-+#define V4L2_PIX_FMT_DIVX3    v4l2_fourcc('D', 'I', 'V', '3') /* DivX 3.11  */
-+#define V4L2_PIX_FMT_DIVX4    v4l2_fourcc('D', 'I', 'V', '4') /* DivX 4.12  */
-+#define V4L2_PIX_FMT_DIVX500    v4l2_fourcc('D', 'X', '5', '2') /* DivX 5.00 - 5.02  */
-+#define V4L2_PIX_FMT_DIVX503    v4l2_fourcc('D', 'X', '5', '3') /* DivX 5.03 - x  */
-+#define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /* Xvid */
-+#define V4L2_PIX_FMT_VC1      v4l2_fourcc('V', 'C', '1', 'A') /* VC-1 */
-+#define V4L2_PIX_FMT_VC1_RCV      v4l2_fourcc('V', 'C', '1', 'R') /* VC-1 RCV */
-+
-+
- /*  Vendor-specific formats   */
- #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
- #define V4L2_PIX_FMT_WNVA     v4l2_fourcc('W', 'N', 'V', 'A') /* Winnov hw compress */
-@@ -972,6 +995,7 @@ struct v4l2_output {
- #define V4L2_OUTPUT_TYPE_ANALOG			2
- #define V4L2_OUTPUT_TYPE_ANALOGVGAOVERLAY	3
- 
-+
- /* capabilities flags */
- #define V4L2_OUT_CAP_PRESETS		0x00000001 /* Supports S_DV_PRESET */
- #define V4L2_OUT_CAP_CUSTOM_TIMINGS	0x00000002 /* Supports S_DV_TIMINGS */
-@@ -1009,6 +1033,7 @@ struct v4l2_ext_controls {
- #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
- #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
- #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
-+#define V4L2_CTRL_CLASS_CODEC 0x009c0000	/* Codec control class */
- 
- #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
- #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-@@ -1342,6 +1367,29 @@ enum v4l2_mpeg_cx2341x_video_median_filter_type {
- #define V4L2_CID_MPEG_CX2341X_VIDEO_CHROMA_MEDIAN_FILTER_TOP 	(V4L2_CID_MPEG_CX2341X_BASE+10)
- #define V4L2_CID_MPEG_CX2341X_STREAM_INSERT_NAV_PACKETS 	(V4L2_CID_MPEG_CX2341X_BASE+11)
- 
-+/* For codecs */
-+
-+#define V4L2_CID_CODEC_BASE 			(V4L2_CTRL_CLASS_CODEC | 0x900)
-+#define V4L2_CID_CODEC_CLASS 			(V4L2_CTRL_CLASS_CODEC | 1)
-+
-+/* For both decoding and encoding */
-+
-+/* For encoding */
-+#define V4L2_CID_CODEC_LOOP_FILTER_H264		(V4L2_CID_CODEC_BASE + 9)
-+enum v4l2_cid_codec_loop_filter_h264 {
-+	V4L2_CID_CODEC_LOOP_FILTER_H264_ENABLE = 0,
-+	V4L2_CID_CODEC_LOOP_FILTER_H264_DISABLE = 1,
-+	V4L2_CID_CODEC_LOOP_FILTER_H264_DISABLE_AT_BOUNDARY = 2,
-+};
-+
-+/* For decoding */
-+
-+#define V4L2_CID_CODEC_LOOP_FILTER_MPEG4_ENABLE	(V4L2_CID_CODEC_BASE + 110)
-+#define V4L2_CID_CODEC_DISPLAY_DELAY		(V4L2_CID_CODEC_BASE + 137)
-+#define V4L2_CID_CODEC_REQ_NUM_BUFS		(V4L2_CID_CODEC_BASE + 140)
-+#define V4L2_CID_CODEC_SLICE_INTERFACE		(V4L2_CID_CODEC_BASE + 141)
-+#define V4L2_CID_CODEC_PACKED_PB		(V4L2_CID_CODEC_BASE + 142)
-+
- /*  Camera class control IDs */
- #define V4L2_CID_CAMERA_CLASS_BASE 	(V4L2_CTRL_CLASS_CAMERA | 0x900)
- #define V4L2_CID_CAMERA_CLASS 		(V4L2_CTRL_CLASS_CAMERA | 1)
+It contains too much nodes (extra demuxes, dvrs & nets):
+
+> ubuntu@ubuntu:~/ngene-test2/v4l$ ls -l /dev/dvb/adapter*
+> total 0
+> crw-rw----+ 1 root video 212,  0 2010-12-26 13:08 demux0
+> crw-rw----+ 1 root video 212,  4 2010-12-26 13:08 demux1
+> crw-rw----+ 1 root video 212,  8 2010-12-26 13:08 demux2
+> crw-rw----+ 1 root video 212, 11 2010-12-26 13:08 demux3
+> crw-rw----+ 1 root video 212, 14 2010-12-26 13:08 demux4
+> crw-rw----+ 1 root video 212,  1 2010-12-26 13:08 dvr0
+> crw-rw----+ 1 root video 212,  5 2010-12-26 13:08 dvr1
+> crw-rw----+ 1 root video 212,  9 2010-12-26 13:08 dvr2
+> crw-rw----+ 1 root video 212, 12 2010-12-26 13:08 dvr3
+> crw-rw----+ 1 root video 212, 15 2010-12-26 13:08 dvr4
+> crw-rw----+ 1 root video 212,  3 2010-12-26 13:08 frontend0
+> crw-rw----+ 1 root video 212,  7 2010-12-26 13:08 frontend1
+> crw-rw----+ 1 root video 212,  2 2010-12-26 13:08 net0
+> crw-rw----+ 1 root video 212,  6 2010-12-26 13:08 net1
+> crw-rw----+ 1 root video 212, 10 2010-12-26 13:08 net2
+> crw-rw----+ 1 root video 212, 13 2010-12-26 13:08 net3
+> crw-rw----+ 1 root video 212, 16 2010-12-26 13:08 net4
+Is it connected to this commit (http://linuxtv.org/hg/~endriss/ngene-test2/rev/eb4142f0d0ac) about "Support up to 4 tuners for cineS2 v5, duoflex & mystique v2" ?
+
+Here is what dmesg reports I do 'modprobe ngene'
+
+> [ 3248.072496] nGene PCIE bridge driver, Copyright (C) 2005-2007 Micronas
+> [ 3248.072533] ngene 0000:02:00.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
+> [ 3248.072548] ngene: Found Mystique SaTiX-S2 Dual (v2)
+> [ 3248.075765] ngene 0000:02:00.0: setting latency timer to 64
+> [ 3248.075926] ngene: Device version 1
+> [ 3248.075938] ngene 0000:02:00.0: firmware: requesting ngene_18.fw
+> [ 3248.079319] ngene: Loading firmware file ngene_18.fw.
+> [ 3248.090194]   alloc irq_desc for 28 on node -1
+> [ 3248.090197]   alloc kstat_irqs on node -1
+> [ 3248.090212] ngene 0000:02:00.0: irq 28 for MSI/MSI-X
+> [ 3248.091778] error in i2c_read_reg
+> [ 3248.091781] No CXD2099 detected at 40	<---- No dedicated ASIC is a
+> Sony CXD2099AR
+> [ 3248.091943] DVB: registering new adapter (nGene)
+> [ 3248.414997] LNBx2x attached on addr=a
+> [ 3248.421091] stv6110x_attach: Attaching STV6110x
+> [ 3248.421095] DVB: registering adapter 0 frontend 0 (STV090x Multistandard)...
+> [ 3248.422500] LNBx2x attached on addr=8
+> [ 3248.422568] stv6110x_attach: Attaching STV6110x
+> [ 3248.422571] DVB: registering adapter 0 frontend 0 (STV090x Multistandard)...
+About the module :
+> ubuntu@ubuntu:~/ngene-test2/v4l$ modinfo ngene
+> filename:
+> /lib/modules/2.6.32-21-generic/kernel/drivers/media/dvb/ngene/ngene.ko
+> license:        GPL
+> author:         Micronas, Ralph Metzler, Manfred Voelkel
+> description:    nGene
+> license:        GPL
+> author:         Ralph Metzler <rjkm@metzlerbros.de>
+> description:    cxd2099
+> srcversion:     AC815F965A079912E969015
+> alias:          pci:v000018C3d00000720sv00001461sd0000062Ebc*sc*i*
+> alias:          pci:v000018C3d00000720sv000018C3sd0000DD20bc*sc*i*
+> alias:          pci:v000018C3d00000720sv000018C3sd0000DD10bc*sc*i*
+> alias:          pci:v000018C3d00000720sv000018C3sd0000DD00bc*sc*i*
+> alias:          pci:v000018C3d00000720sv000018C3sd0000DB02bc*sc*i*
+> alias:          pci:v000018C3d00000720sv000018C3sd0000DB01bc*sc*i*
+> alias:          pci:v000018C3d00000720sv000018C3sd0000ABC4bc*sc*i*
+> alias:          pci:v000018C3d00000720sv000018C3sd0000ABC3bc*sc*i*
+> depends:        dvb-core
+> vermagic:       2.6.32-21-generic SMP mod_unload modversions 586
+> parm:           one_adapter:Use only one adapter. (int)
+> parm:           shutdown_workaround:Activate workaround for shutdown
+> problem with some chipsets. (int)
+> parm:           debug:Print debugging information. (int)
+> parm:           adapter_nr:DVB adapter numbers (array of short)
+
+When I put the option "one_adapter=0" :
+
+> sudo modprobe ngene debug=1 one_adapter=0
+
+> [ 6077.066311] ngene 0000:02:00.0: PCI INT A disabled
+> [ 6101.525377] nGene PCIE bridge driver, Copyright (C) 2005-2007 Micronas
+> [ 6101.525405] ngene 0000:02:00.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
+> [ 6101.525418] ngene: Found Mystique SaTiX-S2 Dual (v2)
+> [ 6101.530520] ngene 0000:02:00.0: setting latency timer to 64
+> [ 6101.530683] ngene: Device version 1
+> [ 6101.530692] ngene 0000:02:00.0: firmware: requesting ngene_18.fw
+> [ 6101.532043] ngene: Loading firmware file ngene_18.fw.
+> [ 6101.542919] ngene 0000:02:00.0: irq 28 for MSI/MSI-X
+> [ 6101.545199] error in i2c_read_reg
+> [ 6101.545206] No CXD2099 detected at 40
+> [ 6101.545374] DVB: registering new adapter (nGene)
+> [ 6101.844886] LNBx2x attached on addr=a
+> [ 6101.845092] stv6110x_attach: Attaching STV6110x
+> [ 6101.845101] DVB: registering adapter 0 frontend 0 (STV090x Multistandard)...
+> [ 6101.846175] DVB: registering new adapter (nGene)
+> [ 6101.850023] LNBx2x attached on addr=8
+> [ 6101.850231] stv6110x_attach: Attaching STV6110x
+> [ 6101.850238] DVB: registering adapter 1 frontend 0 (STV090x Multistandard)...
+> [ 6101.850584] DVB: registering new adapter (nGene) <---- No need to register this 
+> adapter
+> [ 6101.852948] DVB: registering new adapter (nGene) <---- No need to register this 
+> adapter 
+> [ 6101.855690] DVB: registering new adapter (nGene) <---- No need to register this 
+> adapter
+You can see that adapter 2, 3 and 4 are registering and the is no need to.
+> ubuntu@ubuntu:~/ngene-test2/v4l$ ls -l /dev/dvb/adapter*
+> /dev/dvb/adapter0:
+> total 0
+> crw-rw----+ 1 root video 212, 0 2010-12-26 12:52 demux0
+> crw-rw----+ 1 root video 212, 1 2010-12-26 12:52 dvr0
+> crw-rw----+ 1 root video 212, 3 2010-12-26 12:52 frontend0
+> crw-rw----+ 1 root video 212, 2 2010-12-26 12:52 net0
+>
+> /dev/dvb/adapter1:
+> total 0
+> crw-rw----+ 1 root video 212, 4 2010-12-26 12:52 demux0
+> crw-rw----+ 1 root video 212, 5 2010-12-26 12:52 dvr0
+> crw-rw----+ 1 root video 212, 7 2010-12-26 12:52 frontend0
+> crw-rw----+ 1 root video 212, 6 2010-12-26 12:52 net0
+>
+> /dev/dvb/adapter2:
+> total 0
+> crw-rw----+ 1 root video 212,  8 2010-12-26 12:52 demux0
+> crw-rw----+ 1 root video 212,  9 2010-12-26 12:52 dvr0
+> crw-rw----+ 1 root video 212, 10 2010-12-26 12:52 net0
+>
+> /dev/dvb/adapter3:
+> total 0
+> crw-rw----+ 1 root video 212, 11 2010-12-26 12:52 demux0
+> crw-rw----+ 1 root video 212, 12 2010-12-26 12:52 dvr0
+> crw-rw----+ 1 root video 212, 13 2010-12-26 12:52 net0
+>
+> /dev/dvb/adapter4:
+> total 0
+> crw-rw----+ 1 root video 212, 14 2010-12-26 12:52 demux0
+> crw-rw----+ 1 root video 212, 15 2010-12-26 12:52 dvr0
+> crw-rw----+ 1 root video 212, 16 2010-12-26 12:52 net0
+Is the no test to check how many andapters are needed with the card ? I
+was working with stable driver dans 1.5 firmware.
+
+Ludovic,
+
+
 -- 
-1.6.3.3
+Ludovic BOUÉ
 
