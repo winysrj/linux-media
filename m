@@ -1,282 +1,63 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:61457 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757163Ab0LML1J (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:54045 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751333Ab0LZA62 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Dec 2010 06:27:09 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Mon, 13 Dec 2010 12:26:41 +0100
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Subject: [PATCHv7 00/10] Contiguous Memory Allocator
-To: Michal Nazarewicz <mina86@mina86.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Ankita Garg <ankita@in.ibm.com>,
-	BooJin Kim <boojin.kim@samsung.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mel Gorman <mel@csn.ul.ie>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	Michal Nazarewicz <m.nazarewicz@samsung.com>
-Message-id: <cover.1292004520.git.m.nazarewicz@samsung.com>
+	Sat, 25 Dec 2010 19:58:28 -0500
+Message-ID: <4D16932D.7030902@infradead.org>
+Date: Sat, 25 Dec 2010 22:58:21 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] v4l: soc-camera: fix multiple simultaneous user case
+References: <Pine.LNX.4.64.1012252201520.5248@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1012252201520.5248@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hello everyone,
-
-This is yet another version of CMA this time stripped from a lot of
-code and with working migration implementation.
-
-   The Contiguous Memory Allocator (CMA) makes it possible for
-   device drivers to allocate big contiguous chunks of memory after
-   the system has booted.
-
-For more information see 8th patch in the set.
-
-
-The current version is just an allocator that handles allocation of
-contiguous memory blocks.  The difference between this patchset and
-Kamezawa's alloc_contig_pages() are:
-
-1. alloc_contig_pages() requires MAX_ORDER alignment of allocations
-   which may be unsuitable for embeded where a few MiBs are required.
-
-2. CMA uses its own migratetype (MIGRATE_CMA) as it was suggested
-   during one of previous iterations.  The migrate type behaves
-   similarly to ZONE_MOVABLE but can be put in arbitrary places.
-
-   This is required for us since we need to define two disjoint memory
-   ranges inside system's RAM.  (ie. in two memory banks (do not
-   confuse with nodes)).
-
-3. alloc_contig_pages() scans memory in search for range that could be
-   migrated.  CMA on the other hand maintains its own allocator to
-   decide where to allocate memory for device drivers and then tries
-   to migrate pages from that part if needed.  This is not strictly
-   required but I somehow feel it might be faster.
-
-
-Links to previous versions of the patchset:
-v6: <http://article.gmane.org/gmane.linux.kernel.mm/55626/>
-v5: (intentionally left out as CMA v5 was identical to CMA v4)
-v4: <http://article.gmane.org/gmane.linux.kernel.mm/52010/>
-v3: <http://article.gmane.org/gmane.linux.kernel.mm/51573/>
-v2: <http://article.gmane.org/gmane.linux.kernel.mm/50986/>
-v1: <http://article.gmane.org/gmane.linux.kernel.mm/50669/>
-
-
-Changelog:
-
-v7: 1. A lot of functionality that handled driver->allocator_context
-       mapping has been removed from the patchset.  This is not to say
-       that this code is not needed, it's just not worth posting
-       everything in one patchset.
-
-       Currently, CMA is "just" an allocator.  It uses it's own
-       migratetype (MIGRATE_CMA) for defining ranges of pageblokcs
-       which behave just like ZONE_MOVABLE but dispite the latter can
-       be put in arbitrary places.
-
-    2. The migration code that was introduced in the previous version
-       actually started working.
-
-
-v6: 1. Most importantly, v6 introduces support for memory migration.
-       The implementation is not yet complete though.
-
-       Migration support means that when CMA is not using memory
-       reserved for it, page allocator can allocate pages from it.
-       When CMA wants to use the memory, the pages have to be moved
-       and/or evicted as to make room for CMA.
-
-       To make it possible it must be guaranteed that only movable and
-       reclaimable pages are allocated in CMA controlled regions.
-       This is done by introducing a MIGRATE_CMA migrate type that
-       guarantees exactly that.
-
-       Some of the migration code is "borrowed" from Kamezawa
-       Hiroyuki's alloc_contig_pages() implementation.  The main
-       difference is that thanks to MIGRATE_CMA migrate type CMA
-       assumes that memory controlled by CMA are is always movable or
-       reclaimable so that it makes allocation decisions regardless of
-       the whether some pages are actually allocated and migrates them
-       if needed.
-
-       The most interesting patches from the patchset that implement
-       the functionality are:
-
-         09/13: mm: alloc_contig_free_pages() added
-         10/13: mm: MIGRATE_CMA migration type added
-         11/13: mm: MIGRATE_CMA isolation functions added
-         12/13: mm: cma: Migration support added [wip]
-
-       Currently, kernel panics in some situations which I am trying
-       to investigate.
-
-    2. cma_pin() and cma_unpin() functions has been added (after
-       a conversation with Johan Mossberg).  The idea is that whenever
-       hardware does not use the memory (no transaction is on) the
-       chunk can be moved around.  This would allow defragmentation to
-       be implemented if desired.  No defragmentation algorithm is
-       provided at this time.
-
-    3. Sysfs support has been replaced with debugfs.  I always felt
-       unsure about the sysfs interface and when Greg KH pointed it
-       out I finally got to rewrite it to debugfs.
-
-
-v5: (intentionally left out as CMA v5 was identical to CMA v4)
-
-
-v4: 1. The "asterisk" flag has been removed in favour of requiring
-       that platform will provide a "*=<regions>" rule in the map
-       attribute.
-
-    2. The terminology has been changed slightly renaming "kind" to
-       "type" of memory.  In the previous revisions, the documentation
-       indicated that device drivers define memory kinds and now,
-
-v3: 1. The command line parameters have been removed (and moved to
-       a separate patch, the fourth one).  As a consequence, the
-       cma_set_defaults() function has been changed -- it no longer
-       accepts a string with list of regions but an array of regions.
-
-    2. The "asterisk" attribute has been removed.  Now, each region
-       has an "asterisk" flag which lets one specify whether this
-       region should by considered "asterisk" region.
-
-    3. SysFS support has been moved to a separate patch (the third one
-       in the series) and now also includes list of regions.
-
-v2: 1. The "cma_map" command line have been removed.  In exchange,
-       a SysFS entry has been created under kernel/mm/contiguous.
-
-       The intended way of specifying the attributes is
-       a cma_set_defaults() function called by platform initialisation
-       code.  "regions" attribute (the string specified by "cma"
-       command line parameter) can be overwritten with command line
-       parameter; the other attributes can be changed during run-time
-       using the SysFS entries.
-
-    2. The behaviour of the "map" attribute has been modified
-       slightly.  Currently, if no rule matches given device it is
-       assigned regions specified by the "asterisk" attribute.  It is
-       by default built from the region names given in "regions"
-       attribute.
-
-    3. Devices can register private regions as well as regions that
-       can be shared but are not reserved using standard CMA
-       mechanisms.  A private region has no name and can be accessed
-       only by devices that have the pointer to it.
-
-    4. The way allocators are registered has changed.  Currently,
-       a cma_allocator_register() function is used for that purpose.
-       Moreover, allocators are attached to regions the first time
-       memory is registered from the region or when allocator is
-       registered which means that allocators can be dynamic modules
-       that are loaded after the kernel booted (of course, it won't be
-       possible to allocate a chunk of memory from a region if
-       allocator is not loaded).
-
-    5. Index of new functions:
-
-    +static inline dma_addr_t __must_check
-    +cma_alloc_from(const char *regions, size_t size,
-    +               dma_addr_t alignment)
-
-    +static inline int
-    +cma_info_about(struct cma_info *info, const const char *regions)
-
-    +int __must_check cma_region_register(struct cma_region *reg);
-
-    +dma_addr_t __must_check
-    +cma_alloc_from_region(struct cma_region *reg,
-    +                      size_t size, dma_addr_t alignment);
-
-    +static inline dma_addr_t __must_check
-    +cma_alloc_from(const char *regions,
-    +               size_t size, dma_addr_t alignment);
-
-    +int cma_allocator_register(struct cma_allocator *alloc);
-
-
-Patches in this patchset:
-
-  mm: migrate.c: fix compilation error
-
-    I had some strange compilation error; this patch fixed them.
-
-  lib: bitmap: Added alignment offset for bitmap_find_next_zero_area()
-  lib: genalloc: Generic allocator improvements
-
-    Some improvements to genalloc API (most importantly possibility to
-    allocate memory with alignment requirement).
-
-  mm: move some functions from memory_hotplug.c to page_isolation.c
-  mm: alloc_contig_free_pages() added
-
-    Code "stolen" from Kamezawa.  The first patch just moves code
-    around and the second provide function for "allocates" already
-    freed memory.
-
-  mm: MIGRATE_CMA migration type added
-  mm: MIGRATE_CMA isolation functions added
-
-    Introduction of a new migratetype.
-
-  mm: cma: Contiguous Memory Allocator added
-
-    The CMA code.
-
-  mm: cma: Test device and application added
-
-    Test device and application.  Not really for merging; just for
-    testing really.  Maybe the whole thing should be moved to tools?
-
-  ARM: cma: Added CMA to Aquila, Goni and c210 universal boards
-
-    A stub integration with some ARM machines.  Mostly to get the cma
-    testing device working.  Again, not for merging.
-
- arch/arm/mach-s5pv210/mach-aquila.c         |    2 +
- arch/arm/mach-s5pv210/mach-goni.c           |    2 +
- arch/arm/mach-s5pv310/mach-universal_c210.c |    2 +
- arch/arm/plat-s5p/Makefile                  |    2 +
- arch/arm/plat-s5p/cma-stub.c                |   49 +++
- arch/arm/plat-s5p/include/plat/cma-stub.h   |   21 ++
- drivers/misc/Kconfig                        |   10 +
- drivers/misc/Makefile                       |    1 +
- drivers/misc/cma-dev.c                      |  238 +++++++++++++
- include/linux/bitmap.h                      |   24 +-
- include/linux/cma.h                         |  252 ++++++++++++++
- include/linux/genalloc.h                    |   46 ++--
- include/linux/mmzone.h                      |   30 ++-
- include/linux/page-isolation.h              |   47 ++-
- lib/bitmap.c                                |   22 +-
- lib/genalloc.c                              |  182 ++++++-----
- mm/Kconfig                                  |   40 +++
- mm/Makefile                                 |    1 +
- mm/cma.c                                    |  477 +++++++++++++++++++++++++++
- mm/compaction.c                             |   10 +
- mm/internal.h                               |    3 +
- mm/memory_hotplug.c                         |  108 ------
- mm/migrate.c                                |    2 +
- mm/page_alloc.c                             |  145 +++++++--
- mm/page_isolation.c                         |  126 +++++++-
- tools/cma/cma-test.c                        |  466 ++++++++++++++++++++++++++
- 26 files changed, 2040 insertions(+), 268 deletions(-)
- create mode 100644 arch/arm/plat-s5p/cma-stub.c
- create mode 100644 arch/arm/plat-s5p/include/plat/cma-stub.h
- create mode 100644 drivers/misc/cma-dev.c
- create mode 100644 include/linux/cma.h
- create mode 100644 mm/cma.c
- create mode 100644 tools/cma/cma-test.c
-
--- 
-1.7.2.3
+Em 25-12-2010 19:29, Guennadi Liakhovetski escreveu:
+> A recent patch has introduced a regression, whereby a second open of an
+> soc-camera video device breaks the running capture. This patch fixes this bug
+> by guaranteeing, that video buffers get initialised only during the first open
+> of the device node.
+> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+> 
+> Mauro, please, let's try to get it in 2.6.37, or we'll have to push it to 
+> stable after 2.6.37 is out. I'm just posting it quickly and will push it 
+> to linuxtv.org like tomorrow or on Monday...
+
+Ok, I've applied it and sent it today to my linux-next tree. Stephen will only 
+pull from it at Dec, 27/28, likely in time for the last pull request for .37.
+
+Cheers,
+Mauro
+> 
+>  drivers/media/video/soc_camera.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+> index 335120c..052bd6d 100644
+> --- a/drivers/media/video/soc_camera.c
+> +++ b/drivers/media/video/soc_camera.c
+> @@ -405,13 +405,13 @@ static int soc_camera_open(struct file *file)
+>  		ret = soc_camera_set_fmt(icd, &f);
+>  		if (ret < 0)
+>  			goto esfmt;
+> +
+> +		ici->ops->init_videobuf(&icd->vb_vidq, icd);
+>  	}
+>  
+>  	file->private_data = icd;
+>  	dev_dbg(&icd->dev, "camera device open\n");
+>  
+> -	ici->ops->init_videobuf(&icd->vb_vidq, icd);
+> -
+>  	mutex_unlock(&icd->video_lock);
+>  
+>  	return 0;
 
