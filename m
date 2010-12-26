@@ -1,84 +1,109 @@
 Return-path: <mchehab@gaivota>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:38489 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754051Ab0LQNMO (ORCPT
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:43131 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751729Ab0LZKdO convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Dec 2010 08:12:14 -0500
-Subject: Re: TeVii S470 dvb-s2 issues - 2nd try ,)
-From: Andy Walls <awalls@md.metrocast.net>
-To: me@boris64.net
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <201012171219.29473.me@boris64.net>
-References: <201012161429.32658.me@boris64.net>
-	 <AANLkTi=X-xn+iSmp5OLGP-FK8dqvyRgEcX-HjTQF5dHn@mail.gmail.com>
-	 <201012171219.29473.me@boris64.net>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 17 Dec 2010 08:12:56 -0500
-Message-ID: <1292591576.2077.19.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Sun, 26 Dec 2010 05:33:14 -0500
+Received: by iwn9 with SMTP id 9so7955912iwn.19
+        for <linux-media@vger.kernel.org>; Sun, 26 Dec 2010 02:33:13 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1293105242-16979-1-git-send-email-manjunath.hadli@ti.com>
+References: <1293105242-16979-1-git-send-email-manjunath.hadli@ti.com>
+Date: Sun, 26 Dec 2010 18:33:12 +0800
+Message-ID: <AANLkTimXUpy9hB9dFLixsusQetan6HuHzoX=4yqFRE-b@mail.gmail.com>
+Subject: Re: [PATCH v10 2/8] davinci vpbe: VPBE display driver
+From: Kaspter Ju <nigh0st3018@gmail.com>
+To: Manjunath Hadli <manjunath.hadli@ti.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Fri, 2010-12-17 at 12:19 +0100, Boris Cuber wrote:
-> Hello linux-media people!
-> 
-> I have to problems with my dvb card ("TeVii S470"). I already
-> filed 2 bug reports some time ago, but no one seems to have
-> noticed/read them, so i'm trying it here now.
-> If you need a "full" dmesg, then please take a look at
-> https://bugzilla.kernel.org/attachment.cgi?id=40552
-> 
-> 1) "TeVii S470 dvbs-2 card (cx23885) is not usable after
-> pm-suspend/resume" https://bugzilla.kernel.org/show_bug.cgi?id=16467
+Hello,Hadli,
 
-The cx23885 driver does not implement power management.  It would likely
-take many, many hours of coding and testing to implement it properly.
+On Thu, Dec 23, 2010 at 7:54 PM, Manjunath Hadli <manjunath.hadli@ti.com> wrote:
+> This patch implements the coe functionality of the dislay driver,
+> mainly controlling the VENC and other encoders, and acting as
+> the one point interface for the man V4L2 driver.This implements
+> the cre of each of the V4L2 IOCTLs.
+>
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+> ---
+>  drivers/media/video/davinci/vpbe.c |  836 ++++++++++++++++++++++++++++++++++++
+>  include/media/davinci/vpbe.h       |  186 ++++++++
+>  2 files changed, 1022 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/video/davinci/vpbe.c
+>  create mode 100644 include/media/davinci/vpbe.h
+>
+> diff --git a/drivers/media/video/davinci/vpbe.c b/drivers/media/video/davinci/vpbe.c
+> new file mode 100644
+> index 0000000..aa0aac9
+> --- /dev/null
+> +++ b/drivers/media/video/davinci/vpbe.c
 
-If you need resume/suspend, use the power management scripts on your
-machine to kill all the applications using the TeVii S470, and then
-unload the cx23885 module just before suspend.
+...
 
-On resume, have the power management scripts reload the cx23885 module.
+> +static __init int vpbe_probe(struct platform_device *pdev)
+> +{
+> +       struct vpbe_display_config *vpbe_config;
+> +       struct vpbe_device *vpbe_dev;
+> +
+> +       int ret = -EINVAL;
+> +
+> +       if (NULL == pdev->dev.platform_data) {
+> +               v4l2_err(pdev->dev.driver, "Unable to get vpbe config\n");
+> +               return -ENODEV;
+> +       }
+> +
+> +       if (pdev->dev.platform_data == NULL) {
+> +               v4l2_err(pdev->dev.driver, "No platform data\n");
+> +               return -ENODEV;
+> +       }
+
+code duplicate?
+
+> +       vpbe_config = pdev->dev.platform_data;
+> +
+> +       if (!vpbe_config->module_name[0] ||
+> +           !vpbe_config->osd.module_name[0] ||
+> +           !vpbe_config->venc.module_name[0]) {
+> +               v4l2_err(pdev->dev.driver, "vpbe display module names not"
+> +                        " defined\n");
+> +               return ret;
+> +       }
+> +
+> +       vpbe_dev = kzalloc(sizeof(*vpbe_dev), GFP_KERNEL);
+> +       if (vpbe_dev == NULL) {
+> +               v4l2_err(pdev->dev.driver, "Unable to allocate memory"
+> +                        " for vpbe_device\n");
+> +               return -ENOMEM;
+> +       }
+> +       vpbe_dev->cfg = vpbe_config;
+> +       vpbe_dev->ops = vpbe_dev_ops;
+> +       vpbe_dev->pdev = &pdev->dev;
+> +
+> +       if (vpbe_config->outputs->num_modes > 0)
+> +               vpbe_dev->current_timings = vpbe_dev->cfg->outputs[0].modes[0];
+> +       else
+> +               return -ENODEV;
+> +
+> +       /* set the driver data in platform device */
+> +       platform_set_drvdata(pdev, vpbe_dev);
+> +       mutex_init(&vpbe_dev->lock);
+> +       return 0;
+> +}
+> +
 
 
+> _______________________________________________
+> Davinci-linux-open-source mailing list
+> Davinci-linux-open-source@linux.davincidsp.com
+> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
+>
 
-> 2) "cx23885: ds3000_writereg: writereg error on =kernel-2.6.36-rc with
-> TeVii" S470 dvb-s2 card
-> -> https://bugzilla.kernel.org/show_bug.cgi?id=18832
-> 
-> These error messages show up in dmesg while switching channels in 
-> mplayer/kaffeine.
-> [dmesg output]
-> [  919.789976] ds3000_writereg: writereg error(err == -6, reg == 0x03,
-> value == 0x11)
-
-They look like I2C bus errors; error -6 is ENXIO, which is probably
-coming from cx23885-i2c.c.
-
-The device handled by the ds3000 driver is not responding properly to
-the CX23885.  It could be that some other device on that I2C bus is hung
-up or the ds3000 device itself.  Maybe some GPIO settings are set wrong?
-
-The cx23885 module supports an i2c_probe and i2c_debug module option
-that will turn on some messages related to i2c.
-
-
-I really have no other advice, except that if you do a git bisect
-process, you may find the commit(s) that caused the problem.
-
-Regards,
-Andy
-
-> Are these issues known? If so, are there any fixes yet? When will these
-> get into mainline? Could somebody point me into the right direction.
-> Can i help somehow to debug these problems?
-> 
-> Thank you in advance.
-> 
-> Regards,
-> 	Boris Cuber
-> 
-> PS: Thank Emanuel for helping me out with this mail ,)
-
-
+-- 
+Kaspter
