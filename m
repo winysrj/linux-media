@@ -1,164 +1,73 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:29488 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753570Ab0L2RdG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Dec 2010 12:33:06 -0500
-Date: Wed, 29 Dec 2010 18:32:55 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 15/15 v2] [media] s5p-fimc: Move scaler details handling to the
- register API file
-In-reply-to: <1293643975-4528-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com
-Message-id: <1293643975-4528-14-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1293643975-4528-1-git-send-email-s.nawrocki@samsung.com>
+Received: from ns1.baycom.de ([109.125.67.67]:55005 "EHLO mail.baycom.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754071Ab0L0T7W (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Dec 2010 14:59:22 -0500
+Message-ID: <4D18EDCA.7000700@fliegl.de>
+Date: Mon, 27 Dec 2010 20:49:30 +0100
+From: Deti Fliegl <deti@fliegl.de>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: archer@in.tum.de,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: RFC: removal of dabusb driver from Linux Kernel
+References: <4C95FCD7.5060001@redhat.com> <4D18B325.7020904@redhat.com>
+In-Reply-To: <4D18B325.7020904@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-capture.c |    6 +---
- drivers/media/video/s5p-fimc/fimc-core.c    |    6 +---
- drivers/media/video/s5p-fimc/fimc-core.h    |    1 -
- drivers/media/video/s5p-fimc/fimc-reg.c     |   49 ++++++++++-----------------
- 4 files changed, 20 insertions(+), 42 deletions(-)
+Hello,
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index a948c7c..aadbee1 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -238,7 +238,6 @@ static int start_streaming(struct vb2_queue *q)
- 	struct fimc_ctx *ctx = q->drv_priv;
- 	struct fimc_dev *fimc = ctx->fimc_dev;
- 	struct s5p_fimc_isp_info *isp_info;
--	struct samsung_fimc_variant *variant = ctx->fimc_dev->variant;
- 	int ret;
- 
- 	ret = v4l2_subdev_call(fimc->vid_cap.sd, video, s_stream, 1);
-@@ -262,10 +261,7 @@ static int start_streaming(struct vb2_queue *q)
- 		}
- 		fimc_hw_set_input_path(ctx);
- 		fimc_hw_set_prescaler(ctx);
--		if (variant->has_mainscaler_ext)
--			fimc_hw_set_mainscaler_ext(ctx);
--		else
--			fimc_hw_set_mainscaler(ctx);
-+		fimc_hw_set_mainscaler(ctx);
- 		fimc_hw_set_target_format(ctx);
- 		fimc_hw_set_rotation(ctx);
- 		fimc_hw_set_effect(ctx);
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index 8296646..a6b3d49 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -578,7 +578,6 @@ static void fimc_dma_run(void *priv)
- {
- 	struct fimc_ctx *ctx = priv;
- 	struct fimc_dev *fimc;
--	struct samsung_fimc_variant *variant = ctx->fimc_dev->variant;
- 	unsigned long flags;
- 	u32 ret;
- 
-@@ -613,10 +612,7 @@ static void fimc_dma_run(void *priv)
- 		}
- 
- 		fimc_hw_set_prescaler(ctx);
--		if (variant->has_mainscaler_ext)
--			fimc_hw_set_mainscaler_ext(ctx);
--		else
--			fimc_hw_set_mainscaler(ctx);
-+		fimc_hw_set_mainscaler(ctx);
- 		fimc_hw_set_target_format(ctx);
- 		fimc_hw_set_rotation(ctx);
- 		fimc_hw_set_effect(ctx);
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index 5ad2762..20144d6 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -575,7 +575,6 @@ void fimc_hw_en_lastirq(struct fimc_dev *fimc, int enable);
- void fimc_hw_en_irq(struct fimc_dev *fimc, int enable);
- void fimc_hw_set_prescaler(struct fimc_ctx *ctx);
- void fimc_hw_set_mainscaler(struct fimc_ctx *ctx);
--void fimc_hw_set_mainscaler_ext(struct fimc_ctx *ctx);
- void fimc_hw_en_capture(struct fimc_ctx *ctx);
- void fimc_hw_set_effect(struct fimc_ctx *ctx);
- void fimc_hw_set_in_dma(struct fimc_ctx *ctx);
-diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
-index a4ea838..68866ea 100644
---- a/drivers/media/video/s5p-fimc/fimc-reg.c
-+++ b/drivers/media/video/s5p-fimc/fimc-reg.c
-@@ -314,6 +314,7 @@ static void fimc_hw_set_scaler(struct fimc_ctx *ctx)
- void fimc_hw_set_mainscaler(struct fimc_ctx *ctx)
- {
- 	struct fimc_dev *dev = ctx->fimc_dev;
-+	struct samsung_fimc_variant *variant = dev->variant;
- 	struct fimc_scaler *sc = &ctx->scaler;
- 	u32 cfg;
- 
-@@ -323,40 +324,26 @@ void fimc_hw_set_mainscaler(struct fimc_ctx *ctx)
- 	fimc_hw_set_scaler(ctx);
- 
- 	cfg = readl(dev->regs + S5P_CISCCTRL);
--	cfg &= ~S5P_CISCCTRL_MHRATIO_MASK;
--	cfg &= ~S5P_CISCCTRL_MVRATIO_MASK;
--	cfg |= S5P_CISCCTRL_MHRATIO(sc->main_hratio);
--	cfg |= S5P_CISCCTRL_MVRATIO(sc->main_vratio);
- 
--	writel(cfg, dev->regs + S5P_CISCCTRL);
--}
-+	if (variant->has_mainscaler_ext) {
-+		cfg &= ~(S5P_CISCCTRL_MHRATIO_MASK | S5P_CISCCTRL_MVRATIO_MASK);
-+		cfg |= S5P_CISCCTRL_MHRATIO_EXT(sc->main_hratio);
-+		cfg |= S5P_CISCCTRL_MVRATIO_EXT(sc->main_vratio);
-+		writel(cfg, dev->regs + S5P_CISCCTRL);
- 
--void fimc_hw_set_mainscaler_ext(struct fimc_ctx *ctx)
--{
--	struct fimc_dev *dev = ctx->fimc_dev;
--	struct fimc_scaler *sc = &ctx->scaler;
--	u32 cfg, cfg_ext;
-+		cfg = readl(dev->regs + S5P_CIEXTEN);
- 
--	dbg("main_hratio= 0x%X  main_vratio= 0x%X",
--		sc->main_hratio, sc->main_vratio);
--
--	fimc_hw_set_scaler(ctx);
--
--	cfg = readl(dev->regs + S5P_CISCCTRL);
--	cfg &= ~S5P_CISCCTRL_MHRATIO_MASK;
--	cfg &= ~S5P_CISCCTRL_MVRATIO_MASK;
--	cfg |= S5P_CISCCTRL_MHRATIO_EXT(sc->main_hratio);
--	cfg |= S5P_CISCCTRL_MVRATIO_EXT(sc->main_vratio);
--
--	writel(cfg, dev->regs + S5P_CISCCTRL);
--
--	cfg_ext = readl(dev->regs + S5P_CIEXTEN);
--	cfg_ext &= ~S5P_CIEXTEN_MHRATIO_EXT_MASK;
--	cfg_ext &= ~S5P_CIEXTEN_MVRATIO_EXT_MASK;
--	cfg_ext |= S5P_CIEXTEN_MHRATIO_EXT(sc->main_hratio);
--	cfg_ext |= S5P_CIEXTEN_MVRATIO_EXT(sc->main_vratio);
--
--	writel(cfg_ext, dev->regs + S5P_CIEXTEN);
-+		cfg &= ~(S5P_CIEXTEN_MVRATIO_EXT_MASK |
-+			 S5P_CIEXTEN_MHRATIO_EXT_MASK);
-+		cfg |= S5P_CIEXTEN_MHRATIO_EXT(sc->main_hratio);
-+		cfg |= S5P_CIEXTEN_MVRATIO_EXT(sc->main_vratio);
-+		writel(cfg, dev->regs + S5P_CIEXTEN);
-+	} else {
-+		cfg &= ~(S5P_CISCCTRL_MHRATIO_MASK | S5P_CISCCTRL_MVRATIO_MASK);
-+		cfg |= S5P_CISCCTRL_MHRATIO(sc->main_hratio);
-+		cfg |= S5P_CISCCTRL_MVRATIO(sc->main_vratio);
-+		writel(cfg, dev->regs + S5P_CISCCTRL);
-+	}
- }
- 
- void fimc_hw_en_capture(struct fimc_ctx *ctx)
--- 
-1.7.2.3
+sorry for not answering in time. Please feel free to remove this piece 
+of unusable code from the kernel.
+
+Deti
+
+On 12/27/2010 04:39 PM, Mauro Carvalho Chehab wrote:
+> Hi,
+>
+> I'm responsible for the multimedia support at Linux Kernel. I tried to contact the
+> authors of the DABUSB driver back in september some time ago without any luck.
+>
+> We're considering the removal of dabusb driver from Linux Kernel, due to a few
+> reasons:
+>
+> 1) The driver is for an engineering sample only which was never sold as a commercial
+>     product.
+> 2) The DAB API is completely undocumented and was never reviewed. Should other DAB
+>     drivers ever appear, then I'd rather start from scratch defining an API then
+>     continue this dubious API.
+>
+>  From our research, it seems that a variant of the driver is/where used on some hardware
+> developed by you and used on some Terratec hardware (Dr Box 1).
+>
+> If we don't have any answer from you, we'll schedule the driver to be removed from
+> Linux kernel on the next version, as we were unable to identify anyone using the
+> hardware supported at the kernel driver.
+>
+> Thanks,
+> Mauro
+>
+>
+> Em 19-09-2010 09:06, Mauro Carvalho Chehab escreveu:
+>> Hi Deti and Georg,
+>>
+>> The dabusb driver at the Linux kernel seems to be pretty much unmaintained. Since 2006, when I
+>> moved it to /drivers/media, I received no patches from the driver authors. All the patches
+>> we've got since then were usual trivial fixes and a few other drivers correcting some core
+>> API changes.
+>>
+>> Also, I never found anyone with the hardware, in order to test if the driver keeps working.
+>> Is there any commercial hardware using it?
+>>
+>> With the removal of BKL, the driver will need fixes or will likely be removed.
+>>
+>> So, if you still care about the driver, please contact me asap. Otherwise, I'll move it to
+>> drivers/staging and mark it to die for 2.6.38.
+>>
+>> Thanks,
+>> Mauro
+>
 
