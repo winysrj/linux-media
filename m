@@ -1,108 +1,48 @@
 Return-path: <mchehab@gaivota>
-Received: from out3.smtp.messagingengine.com ([66.111.4.27]:41632 "EHLO
-	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758023Ab0LNNcA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Dec 2010 08:32:00 -0500
-Message-ID: <4D0771CB.3020809@ladisch.de>
-Date: Tue, 14 Dec 2010 14:31:55 +0100
-From: Clemens Ladisch <clemens@ladisch.de>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: alsa-devel@alsa-project.org,
-	sakari.ailus@maxwell.research.nokia.com,
-	broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org,
-	lennart@poettering.net, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [alsa-devel] [RFC/PATCH v6 03/12] media: Entities, pads and links
-References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com> <4CEF799E.7060508@ladisch.de> <4D06458B.6080808@ladisch.de> <201012141300.57118.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201012141300.57118.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=us-ascii
+Received: from mx1.redhat.com ([209.132.183.28]:62663 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752108Ab0L0LlL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Dec 2010 06:41:11 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oBRBfBYw014371
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 27 Dec 2010 06:41:11 -0500
+Received: from gaivota (vpn-11-156.rdu.redhat.com [10.11.11.156])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id oBRBd1iO001764
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 27 Dec 2010 06:41:09 -0500
+Date: Mon, 27 Dec 2010 09:38:29 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 6/6] [media] omap_vout: Remove an obsolete comment
+Message-ID: <20101227093829.4a5d60ca@gaivota>
+In-Reply-To: <cover.1293449547.git.mchehab@redhat.com>
+References: <cover.1293449547.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Laurent Pinchart wrote:
-> On Monday 13 December 2010 17:10:51 Clemens Ladisch wrote:
->> TYPE_EXT describes entities that represent some interface to the
->> external world, TYPE_INT those that are internal to the entire device.
->> (I'm not sure if that distinction is very useful, but TYPE_SUBDEV seems
->> to be an even more meaningless name.)
-> 
-> SUBDEV comes from the V4L2 world, and I agree that it might not be a very good 
-> name.
-> 
-> I'm not sure I would split entities in internal/external categories. I would
-> create a category for connectors though.
+This comment mentions a field that doesn't exist, and talks about
+videodev.h that got removed. So, it doesn't make any sense to keep
+it.
 
-I'm not disagreeing, but what is actually the distinction between types
-and subtypes?  ;-)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
->> * Entity properties
->> 
->> There needs to be a mechanism to associate meta-information (properties)
->> with entities.  This information should be optional and extensible, but,
->> when being handled inside the kernel, doesn't need to be more than
->> a read-only blob.  I think that something like ALSA's TLV format (used
->> for mixer controls) can be used here.  (I'm not mentioning the X-word
->> here, except to note that the "M" stands for "markup".)
-> 
-> I've been thinking of adding a new ioctl for that. It's something we need to
-> draft. The UVC driver will need it, and I'm pretty sure other V4L2 drivers
-> would find it useful as well.
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+index 15f8793..83de97a 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -2230,7 +2230,6 @@ static int __init omap_vout_setup_video_data(struct omap_vout_device *vout)
+ 
+ 	strlcpy(vfd->name, VOUT_NAME, sizeof(vfd->name));
+ 
+-	/* need to register for a VID_HARDWARE_* ID in videodev.h */
+ 	vfd->fops = &omap_vout_fops;
+ 	vfd->v4l2_dev = &vout->vid_dev->v4l2_dev;
+ 	mutex_init(&vout->lock);
+-- 
+1.7.3.4
 
-I'm imagining a "read-the-properties" ioctl that just returns the
-entity's blob.
-
->> EXT_SPEAKER also includes headphones; there might be made a case for
->> having those as a separate subtype.
-> 
-> Shouldn't headphones be represented by an EXT_JACK_ANALOG ?
-
-Headphone jacks are jacks; there are also USB headphones.
-
->> EXT_BROADCAST represents devices like TV tuners, satellite receivers,
->> cable tuners, or radios.
-> 
-> There's clearly an overlap with V4L here.
-
-These come from the USB audio spec.  Video devices are indeed likely to
-be more detailed than just a single audio source. :)
-
->> INT_CONTROLS may have multiple independent controls (this is USB's
->> Feature Unit); INT_EFFECT may have multiple controls that affect one
->> single algorithm.
-> 
-> I'd describe this as a feature unit/processing unit then.
-
-I was aiming for more descriptive names, but I agree that the original
-names might be more useful.
-
-> Should we have an AUDIO category ?
-
-Probably not, because there are combined audio/video jacks, any maybe
-other entities.
-
->> * Entity specifications
->> 
->> While TYPE_DEVICE entities can be identified by their device node, other
->> entities typcially have just a numeric ID.
-> 
-> In V4L2 sub-devices have (or rather will have once the media controller
-> patches will be integrated) device nodes as well, so exposing that information
-> is required.
-
-USB and HDA entities already have numeric IDs.
-
->> For that, it would be useful to make do without separate identification and
->> let the driver choose the entity ID.
-> 
-> How would drivers do that ? What if you have two instances of the same chip
-> (a video sensor, audio mixer, ...) on the same board ?
-
-Then those would get different IDs; USB descriptors always describe the
-entire device.
-
-
-Regards,
-Clemens
