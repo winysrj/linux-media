@@ -1,317 +1,138 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:47097 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758518Ab0LNTMI convert rfc822-to-8bit (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:40287 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753623Ab0L0Qvw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Dec 2010 14:12:08 -0500
-Date: Tue, 14 Dec 2010 20:14:10 +0100
-From: =?UTF-8?B?SmVhbi1GcmFuw6dvaXM=?= Moine <moinejf@free.fr>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 1/6] gspca - sonixj: Move bridge init to sd start
-Message-ID: <20101214201410.09dc1cb9@tele>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Mon, 27 Dec 2010 11:51:52 -0500
+Message-ID: <4D18C413.3020300@infradead.org>
+Date: Mon, 27 Dec 2010 14:51:31 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: David Henningsson <david.henningsson@canonical.com>
+CC: linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>
+Subject: Re: [PATCH] DVB: TechnoTrend CT-3650 IR support
+References: <4D170785.1070306@canonical.com> <4D1729DB.80406@infradead.org> <4D17999E.4000500@canonical.com> <4D18623C.8080006@infradead.org> <4D18B6AC.2040506@canonical.com>
+In-Reply-To: <4D18B6AC.2040506@canonical.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Signed-off-by: Jean-François Moine <moinejf@free.fr>
+Em 27-12-2010 13:54, David Henningsson escreveu:
+> On 2010-12-27 10:54, Mauro Carvalho Chehab wrote:
+>> Em 26-12-2010 17:38, David Henningsson escreveu:
+>>> On 2010-12-26 12:41, Mauro Carvalho Chehab wrote:
 
-diff --git a/drivers/media/video/gspca/sonixj.c b/drivers/media/video/gspca/sonixj.c
-index 2229847..4660cbe 100644
---- a/drivers/media/video/gspca/sonixj.c
-+++ b/drivers/media/video/gspca/sonixj.c
-@@ -1755,141 +1755,6 @@ static void po2030n_probe(struct gspca_dev *gspca_dev)
- 	}
- }
- 
--static void bridge_init(struct gspca_dev *gspca_dev,
--			  const u8 *sn9c1xx)
--{
--	struct sd *sd = (struct sd *) gspca_dev;
--	u8 reg0102[2];
--	const u8 *reg9a;
--	static const u8 reg9a_def[] =
--		{0x00, 0x40, 0x20, 0x00, 0x00, 0x00};
--	static const u8 reg9a_spec[] =
--		{0x00, 0x40, 0x38, 0x30, 0x00, 0x20};
--	static const u8 regd4[] = {0x60, 0x00, 0x00};
--
--	/* sensor clock already enabled in sd_init */
--	/* reg_w1(gspca_dev, 0xf1, 0x00); */
--	reg_w1(gspca_dev, 0x01, sn9c1xx[1]);
--
--	/* configure gpio */
--	reg0102[0] = sn9c1xx[1];
--	reg0102[1] = sn9c1xx[2];
--	if (gspca_dev->audio)
--		reg0102[1] |= 0x04;	/* keep the audio connection */
--	reg_w(gspca_dev, 0x01, reg0102, 2);
--	reg_w(gspca_dev, 0x08, &sn9c1xx[8], 2);
--	reg_w(gspca_dev, 0x17, &sn9c1xx[0x17], 5);
--	switch (sd->sensor) {
--	case SENSOR_GC0307:
--	case SENSOR_OV7660:
--	case SENSOR_PO1030:
--	case SENSOR_PO2030N:
--	case SENSOR_SOI768:
--	case SENSOR_SP80708:
--		reg9a = reg9a_spec;
--		break;
--	default:
--		reg9a = reg9a_def;
--		break;
--	}
--	reg_w(gspca_dev, 0x9a, reg9a, 6);
--
--	reg_w(gspca_dev, 0xd4, regd4, sizeof regd4);
--
--	reg_w(gspca_dev, 0x03, &sn9c1xx[3], 0x0f);
--
--	switch (sd->sensor) {
--	case SENSOR_ADCM1700:
--		reg_w1(gspca_dev, 0x01, 0x43);
--		reg_w1(gspca_dev, 0x17, 0x62);
--		reg_w1(gspca_dev, 0x01, 0x42);
--		reg_w1(gspca_dev, 0x01, 0x42);
--		break;
--	case SENSOR_GC0307:
--		msleep(50);
--		reg_w1(gspca_dev, 0x01, 0x61);
--		reg_w1(gspca_dev, 0x17, 0x22);
--		reg_w1(gspca_dev, 0x01, 0x60);
--		reg_w1(gspca_dev, 0x01, 0x40);
--		msleep(50);
--		break;
--	case SENSOR_MI0360B:
--		reg_w1(gspca_dev, 0x01, 0x61);
--		reg_w1(gspca_dev, 0x17, 0x60);
--		reg_w1(gspca_dev, 0x01, 0x60);
--		reg_w1(gspca_dev, 0x01, 0x40);
--		break;
--	case SENSOR_MT9V111:
--		reg_w1(gspca_dev, 0x01, 0x61);
--		reg_w1(gspca_dev, 0x17, 0x61);
--		reg_w1(gspca_dev, 0x01, 0x60);
--		reg_w1(gspca_dev, 0x01, 0x40);
--		break;
--	case SENSOR_OM6802:
--		msleep(10);
--		reg_w1(gspca_dev, 0x02, 0x73);
--		reg_w1(gspca_dev, 0x17, 0x60);
--		reg_w1(gspca_dev, 0x01, 0x22);
--		msleep(100);
--		reg_w1(gspca_dev, 0x01, 0x62);
--		reg_w1(gspca_dev, 0x17, 0x64);
--		reg_w1(gspca_dev, 0x17, 0x64);
--		reg_w1(gspca_dev, 0x01, 0x42);
--		msleep(10);
--		reg_w1(gspca_dev, 0x01, 0x42);
--		i2c_w8(gspca_dev, om6802_init0[0]);
--		i2c_w8(gspca_dev, om6802_init0[1]);
--		msleep(15);
--		reg_w1(gspca_dev, 0x02, 0x71);
--		msleep(150);
--		break;
--	case SENSOR_OV7630:
--		reg_w1(gspca_dev, 0x01, 0x61);
--		reg_w1(gspca_dev, 0x17, 0xe2);
--		reg_w1(gspca_dev, 0x01, 0x60);
--		reg_w1(gspca_dev, 0x01, 0x40);
--		break;
--	case SENSOR_OV7648:
--		reg_w1(gspca_dev, 0x01, 0x63);
--		reg_w1(gspca_dev, 0x17, 0x20);
--		reg_w1(gspca_dev, 0x01, 0x62);
--		reg_w1(gspca_dev, 0x01, 0x42);
--		break;
--	case SENSOR_PO1030:
--	case SENSOR_SOI768:
--		reg_w1(gspca_dev, 0x01, 0x61);
--		reg_w1(gspca_dev, 0x17, 0x20);
--		reg_w1(gspca_dev, 0x01, 0x60);
--		reg_w1(gspca_dev, 0x01, 0x40);
--		break;
--	case SENSOR_PO2030N:
--	case SENSOR_OV7660:
--		reg_w1(gspca_dev, 0x01, 0x63);
--		reg_w1(gspca_dev, 0x17, 0x20);
--		reg_w1(gspca_dev, 0x01, 0x62);
--		reg_w1(gspca_dev, 0x01, 0x42);
--		break;
--	case SENSOR_SP80708:
--		reg_w1(gspca_dev, 0x01, 0x63);
--		reg_w1(gspca_dev, 0x17, 0x20);
--		reg_w1(gspca_dev, 0x01, 0x62);
--		reg_w1(gspca_dev, 0x01, 0x42);
--		msleep(100);
--		reg_w1(gspca_dev, 0x02, 0x62);
--		break;
--	default:
--/*	case SENSOR_HV7131R: */
--/*	case SENSOR_MI0360: */
--/*	case SENSOR_MO4000: */
--		reg_w1(gspca_dev, 0x01, 0x43);
--		reg_w1(gspca_dev, 0x17, 0x61);
--		reg_w1(gspca_dev, 0x01, 0x42);
--		if (sd->sensor == SENSOR_HV7131R)
--			hv7131r_probe(gspca_dev);
--		break;
--	}
--}
--
- /* this function is called at probe time */
- static int sd_config(struct gspca_dev *gspca_dev,
- 			const struct usb_device_id *id)
-@@ -2423,10 +2288,17 @@ static int sd_start(struct gspca_dev *gspca_dev)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
- 	int i;
-+	u8 reg0102[2];
-+	const u8 *reg9a;
- 	u8 reg1, reg17;
- 	const u8 *sn9c1xx;
- 	const u8 (*init)[8];
- 	int mode;
-+	static const u8 reg9a_def[] =
-+		{0x00, 0x40, 0x20, 0x00, 0x00, 0x00};
-+	static const u8 reg9a_spec[] =
-+		{0x00, 0x40, 0x38, 0x30, 0x00, 0x20};
-+	static const u8 regd4[] = {0x60, 0x00, 0x00};
- 	static const u8 C0[] = { 0x2d, 0x2d, 0x3a, 0x05, 0x04, 0x3f };
- 	static const u8 CA[] = { 0x28, 0xd8, 0x14, 0xec };
- 	static const u8 CA_adcm1700[] =
-@@ -2448,7 +2320,128 @@ static int sd_start(struct gspca_dev *gspca_dev)
- 
- 	/* initialize the bridge */
- 	sn9c1xx = sn_tb[sd->sensor];
--	bridge_init(gspca_dev, sn9c1xx);
-+
-+	/* sensor clock already enabled in sd_init */
-+	/* reg_w1(gspca_dev, 0xf1, 0x00); */
-+	reg_w1(gspca_dev, 0x01, sn9c1xx[1]);
-+
-+	/* configure gpio */
-+	reg0102[0] = sn9c1xx[1];
-+	reg0102[1] = sn9c1xx[2];
-+	if (gspca_dev->audio)
-+		reg0102[1] |= 0x04;	/* keep the audio connection */
-+	reg_w(gspca_dev, 0x01, reg0102, 2);
-+	reg_w(gspca_dev, 0x08, &sn9c1xx[8], 2);
-+	reg_w(gspca_dev, 0x17, &sn9c1xx[0x17], 5);
-+	switch (sd->sensor) {
-+	case SENSOR_GC0307:
-+	case SENSOR_OV7660:
-+	case SENSOR_PO1030:
-+	case SENSOR_PO2030N:
-+	case SENSOR_SOI768:
-+	case SENSOR_SP80708:
-+		reg9a = reg9a_spec;
-+		break;
-+	default:
-+		reg9a = reg9a_def;
-+		break;
-+	}
-+	reg_w(gspca_dev, 0x9a, reg9a, 6);
-+
-+	reg_w(gspca_dev, 0xd4, regd4, sizeof regd4);
-+
-+	reg_w(gspca_dev, 0x03, &sn9c1xx[3], 0x0f);
-+
-+	switch (sd->sensor) {
-+	case SENSOR_ADCM1700:
-+		reg_w1(gspca_dev, 0x01, 0x43);
-+		reg_w1(gspca_dev, 0x17, 0x62);
-+		reg_w1(gspca_dev, 0x01, 0x42);
-+		reg_w1(gspca_dev, 0x01, 0x42);
-+		break;
-+	case SENSOR_GC0307:
-+		msleep(50);
-+		reg_w1(gspca_dev, 0x01, 0x61);
-+		reg_w1(gspca_dev, 0x17, 0x22);
-+		reg_w1(gspca_dev, 0x01, 0x60);
-+		reg_w1(gspca_dev, 0x01, 0x40);
-+		msleep(50);
-+		break;
-+	case SENSOR_MI0360B:
-+		reg_w1(gspca_dev, 0x01, 0x61);
-+		reg_w1(gspca_dev, 0x17, 0x60);
-+		reg_w1(gspca_dev, 0x01, 0x60);
-+		reg_w1(gspca_dev, 0x01, 0x40);
-+		break;
-+	case SENSOR_MT9V111:
-+		reg_w1(gspca_dev, 0x01, 0x61);
-+		reg_w1(gspca_dev, 0x17, 0x61);
-+		reg_w1(gspca_dev, 0x01, 0x60);
-+		reg_w1(gspca_dev, 0x01, 0x40);
-+		break;
-+	case SENSOR_OM6802:
-+		msleep(10);
-+		reg_w1(gspca_dev, 0x02, 0x73);
-+		reg_w1(gspca_dev, 0x17, 0x60);
-+		reg_w1(gspca_dev, 0x01, 0x22);
-+		msleep(100);
-+		reg_w1(gspca_dev, 0x01, 0x62);
-+		reg_w1(gspca_dev, 0x17, 0x64);
-+		reg_w1(gspca_dev, 0x17, 0x64);
-+		reg_w1(gspca_dev, 0x01, 0x42);
-+		msleep(10);
-+		reg_w1(gspca_dev, 0x01, 0x42);
-+		i2c_w8(gspca_dev, om6802_init0[0]);
-+		i2c_w8(gspca_dev, om6802_init0[1]);
-+		msleep(15);
-+		reg_w1(gspca_dev, 0x02, 0x71);
-+		msleep(150);
-+		break;
-+	case SENSOR_OV7630:
-+		reg_w1(gspca_dev, 0x01, 0x61);
-+		reg_w1(gspca_dev, 0x17, 0xe2);
-+		reg_w1(gspca_dev, 0x01, 0x60);
-+		reg_w1(gspca_dev, 0x01, 0x40);
-+		break;
-+	case SENSOR_OV7648:
-+		reg_w1(gspca_dev, 0x01, 0x63);
-+		reg_w1(gspca_dev, 0x17, 0x20);
-+		reg_w1(gspca_dev, 0x01, 0x62);
-+		reg_w1(gspca_dev, 0x01, 0x42);
-+		break;
-+	case SENSOR_PO1030:
-+	case SENSOR_SOI768:
-+		reg_w1(gspca_dev, 0x01, 0x61);
-+		reg_w1(gspca_dev, 0x17, 0x20);
-+		reg_w1(gspca_dev, 0x01, 0x60);
-+		reg_w1(gspca_dev, 0x01, 0x40);
-+		break;
-+	case SENSOR_PO2030N:
-+	case SENSOR_OV7660:
-+		reg_w1(gspca_dev, 0x01, 0x63);
-+		reg_w1(gspca_dev, 0x17, 0x20);
-+		reg_w1(gspca_dev, 0x01, 0x62);
-+		reg_w1(gspca_dev, 0x01, 0x42);
-+		break;
-+	case SENSOR_SP80708:
-+		reg_w1(gspca_dev, 0x01, 0x63);
-+		reg_w1(gspca_dev, 0x17, 0x20);
-+		reg_w1(gspca_dev, 0x01, 0x62);
-+		reg_w1(gspca_dev, 0x01, 0x42);
-+		msleep(100);
-+		reg_w1(gspca_dev, 0x02, 0x62);
-+		break;
-+	default:
-+/*	case SENSOR_HV7131R: */
-+/*	case SENSOR_MI0360: */
-+/*	case SENSOR_MO4000: */
-+		reg_w1(gspca_dev, 0x01, 0x43);
-+		reg_w1(gspca_dev, 0x17, 0x61);
-+		reg_w1(gspca_dev, 0x01, 0x42);
-+		if (sd->sensor == SENSOR_HV7131R)
-+			hv7131r_probe(gspca_dev);
-+		break;
-+	}
- 
- 	/* initialize the sensor */
- 	i2c_w_seq(gspca_dev, sensor_init[sd->sensor]);
--- 
-1.7.2.3
+>>> +/* command to poll IR receiver (copied from pctv452e.c) */
+>>> +#define CMD_GET_IR_CODE     0x1b
+>>> +
+>>> +/* IR */
+>>> +static int tt3650_rc_query(struct dvb_usb_device *d)
+>>> +{
+>>> +    int ret;
+>>> +    u8 rx[9]; /* A CMD_GET_IR_CODE reply is 9 bytes long */
+>>> +    ret = ttusb2_msg(d, CMD_GET_IR_CODE, NULL, 0, rx, sizeof(rx));
+>>> +    if (ret != 0)
+>>> +        return ret;
+>>> +
+>>> +    if (rx[8]&  0x01) {
+>>
+>> Maybe (rx[8]&  0x01) == 0 indicates a keyup event. If so, if you map both keydown
+>> and keyup events, the in-kernel repeat logic will work.
+> 
+> Hmm. If I should fix keyup events, the most reliable version would probably be something like:
+> 
+> if (rx[8] & 0x01) {
+>   int currentkey = rx[2]; // or (rx[3]<<  8) | rx[2];
+>   if (currentkey == lastkey)
+>     rc_repeat(lastkey);
+>   else {
+>     if (lastkey)
+>       rc_keyup(lastkey);
+>     lastkey = currentkey;
+>     rc_keydown(currentkey);
+>   }
 
+rc_keydown() already handles repeat events (see ir_do_keydown and rc_keydown, at
+rc-main.c), so, you don't need it.
+
+> }
+> else if (lastkey) {
+>   rc_keyup(lastkey);
+>   lastkey = 0;
+> }
+
+Yeah, this makes sense, if bit 1 of rx[8] indicates keyup/keydown or repeat.
+
+You need to double check if you are not receiving any packet with this bit unset,
+when you press and hold a key, as some devices use a bit to just indicate that
+the info there is valid or not (a "done" bit).
+
+> 
+> Does this sound reasonable to you?
+> 
+>>
+>>> +        /* got a "press" event */
+>>> +        deb_info("%s: cmd=0x%02x sys=0x%02x\n", __func__, rx[2], rx[3]);
+>>> +        rc_keydown(d->rc_dev, rx[2], 0);
+>>> +    }
+>>
+>> As you're receiving both command+address, please use the complete code:
+>>     rc_keydown(d->rc_dev, (rx[3]<<  8) | rx[2], 0);
+> 
+> I've tried this, but it stops working. evtest shows only scancode events, so my guess is that this makes it incompatible with RC_MAP_TT_1500, which lists only the lower byte.
+
+yeah, you'll need either to create another table or to fix it. The better is to fix
+the table and to use .scanmask = 0xff at the old drivers. This way, the same table
+will work for both the legacy/incomplete get_scancode function and for the new one.
+
+>> Also as it is receiving 8 bytes from the device, maybe the IR decoding logic is
+>> capable of decoding more than just one protocol. Such feature is nice, as it
+>> allows replacing the original keycode table by a more complete one.
+> 
+> I've tried dumping all nine bytes but I can't make much out of it as I'm unfamiliar with RC protocols and decoders.
+> 
+> Typical reply is (no key pressed):
+> 
+> cc 35 0b 15 00 03 00 00 00
+> 
+> Does this tell you anything?
+
+This means nothing to me, but the only way to double check is to test the device
+with other remote controllers. On several hardware, it is possible to use
+RC5 remote controllers as well. As there are some empty (zero) fields, maybe
+this device also supports RC6 protocols (that have more than 16 bits) and
+NEC extended (24 bits or 32 bits, on a few variants).
+
+>> One of the most interesting features of the new RC code is that it offers
+>> a sysfs class and some additional logic to allow dynamically change/replace
+>> the keymaps and keycodes via userspace. The idea is to remove all in-kernel
+>> keymaps in the future, using, instead, the userspace way, via ir-keytable
+>> tool, available at:
+>>     http://git.linuxtv.org/v4l-utils.git
+>>
+>> The tool already supports auto-loading the keymap via udev.
+>>
+>> For IR's where we don't know the protocol or that we don't have the full scancode,
+>> loading the keymap via userspace will not bring any new feature. But, for those
+>> devices where we can be sure about the protocol and for those that also allow
+>> using other protocols, users can just replace the device-provided IR with a more
+>> powerful remote controller with more keys.
+> 
+> Yeah, that sounds like a really nice feature.
+> 
+>> So, it would be wonderful if you could identify what's the supported protocol(s)
+>> instead of using RC_TYPE_UNKNOWN. You can double check the protocol if you have
+>> with you another RC device that supports raw decoding. The rc-core internal decoders
+>> will tell you what protocol was used to decode a keycode, if you enable debug.
+> 
+> I don't have any such RC receiver device. I do have a Logitech Harmony 525, so I tried pointing that one towards the CT 3650, but CMD_GET_IR_CODE didn't change for any of the devices I've currently told my Harmony to emulate.
+> 
+> So I don't really see how I can help further in this case?
+> 
+
+I don't have a Logitech Harmony, so I'm not sure about it. Maybe Jarod may have some
+info about it.
+
+Cheers,
+Mauro
