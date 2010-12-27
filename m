@@ -1,34 +1,38 @@
 Return-path: <mchehab@gaivota>
-Received: from cantor2.suse.de ([195.135.220.15]:33063 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753001Ab0LWDes (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Dec 2010 22:34:48 -0500
-Date: Wed, 22 Dec 2010 19:33:46 -0800
-From: Greg KH <gregkh@suse.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
-	clemens@ladisch.de, sakari.ailus@maxwell.research.nokia.com
-Subject: Re: [RFC/PATCH v7 02/12] media: Media device
-Message-ID: <20101223033346.GB14692@suse.de>
-References: <1292844995-7900-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1292844995-7900-3-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1292844995-7900-3-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from bordeaux.papayaltd.net ([82.129.38.124]:55213 "EHLO
+	bordeaux.papayaltd.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750972Ab0L0MOS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Dec 2010 07:14:18 -0500
+Subject: Re: ngene & Satix-S2 dual problems
+Mime-Version: 1.0 (Apple Message framework v1082)
+Content-Type: text/plain; charset=windows-1252
+From: Andre <linux-media@dinkum.org.uk>
+In-Reply-To: <AANLkTik4-U7oEAvDgyKe+ptM1B3Q14h5we0TUXh5txip@mail.gmail.com>
+Date: Mon, 27 Dec 2010 12:14:16 +0000
+Cc: linux-media@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Message-Id: <7C2F665C-6EA3-4C28-9B38-76BEF416B32B@dinkum.org.uk>
+References: <4D1753CF.9010205@gmail.com> <55B5612B-5E2B-4C2E-AD5E-B0D5A7AC865B@dinkum.org.uk> <AANLkTik4-U7oEAvDgyKe+ptM1B3Q14h5we0TUXh5txip@mail.gmail.com>
+To: Ludovic BOUE <ludovic.boue@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Mon, Dec 20, 2010 at 12:36:25PM +0100, Laurent Pinchart wrote:
-> The media_device structure abstracts functions common to all kind of
-> media devices (v4l2, dvb, alsa, ...). It manages media entities and
-> offers a userspace API to discover and configure the media device
-> internal topology.
 
-As you create sysfs files, please also create Documentation/ABI/ entries
-for those sysfs files at the same time.
+On 27 Dec 2010, at 11:12, Ludovic BOUE wrote:
 
-thanks,
+> Hi,
+> 
+> About the CI part, from what I’ve read, it seems that the stream must be get from
+> dvr0, than passed to sec0. And the final decrypted stream must be read
+> from sec0.
+> 
+> I use Mumudvb and will not be able to handle this setup.
 
-greg k-h
+I hadn't found mumudvb before, interesting software, thanks.
+
+The mumudvb pages on scrambled channels makes some suggestions, sounds like sasc-ng would be a better fit for this type of software, it's much more stable than a year ago too!
+
+The rest I don't know about.
+
+Andre
