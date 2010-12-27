@@ -1,119 +1,64 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:33601 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753059Ab0L1MWN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Dec 2010 07:22:13 -0500
-Received: by wwa36 with SMTP id 36so9762948wwa.1
-        for <linux-media@vger.kernel.org>; Tue, 28 Dec 2010 04:22:11 -0800 (PST)
-Message-ID: <4D19D66D.4040108@gmail.com>
-Date: Tue, 28 Dec 2010 13:22:05 +0100
-From: =?ISO-8859-1?Q?Ludovic_BOU=C9?= <ludovic.boue@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:61605 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753880Ab0L0OSA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Dec 2010 09:18:00 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oBREHxNQ015634
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 27 Dec 2010 09:17:59 -0500
+Received: from [10.11.11.201] (vpn-11-201.rdu.redhat.com [10.11.11.201])
+	by int-mx12.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id oBREHu66002719
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 27 Dec 2010 09:17:58 -0500
+Message-ID: <4D18A00C.50509@redhat.com>
+Date: Mon, 27 Dec 2010 12:17:48 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Oliver Endriss <o.endriss@gmx.de>
-CC: linux-media@vger.kernel.org, linux-media@dinkum.org.uk
-Subject: Re: ngene & Satix-S2 dual problems
-References: <4D1753CF.9010205@gmail.com> <201012272249.52358@orion.escape-edv.de> <201012280857.35664@orion.escape-edv.de>
-In-Reply-To: <201012280857.35664@orion.escape-edv.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] feature_removal_schedule.txt: mark VIDIOC_*_OLD ioctls to
+ die
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Fist of all, I would thank you about your work.
-I have done a test again and it seems to work with your last change. I
-didn't found any major issue.
+There are some old broken definitions of ioctl's, where the
+read/write arguments were marked wrong. The last one were added
+on 2.6.6 kernel. Remove them, in order to cleanup some
+copy_from_user/copy_to_user logic done inside V4L core.
 
-14:14 root@telstar /home/lboue # modprobe ngene one_adapter=0 debug=1
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-[  584.013474] nGene PCIE bridge driver, Copyright (C) 2005-2007 Micronas
-[  584.013495] ngene 0000:04:00.0: PCI INT A -> GSI 16 (level, low) ->
-IRQ 16
-[  584.013503] ngene: Found Mystique SaTiX-S2 Dual (v2)
-[  584.014226] ngene 0000:04:00.0: setting latency timer to 64
-[  584.014305] ngene: Device version 1
-[  584.014339] ngene 0000:04:00.0: firmware: requesting ngene_18.fw
-[  584.016649] ngene: Loading firmware file ngene_18.fw.
-[  584.027625] ngene 0000:04:00.0: irq 33 for MSI/MSI-X
-[  584.029106] error in i2c_read_reg
-[  584.029179] No CXD2099 detected at 40
-[  584.342566] LNBx2x attached on addr=a
-[  584.342659] stv6110x_attach: Attaching STV6110x
-[  584.342662] DVB: registering new adapter (nGene)
-[  584.342667] DVB: registering adapter 0 frontend 0 (STV090x
-Multistandard)...
-[  584.343681] LNBx2x attached on addr=8
-[  584.343774] stv6110x_attach: Attaching STV6110x
-[  584.343777] DVB: registering new adapter (nGene)
-[  584.343782] DVB: registering adapter 1 frontend 0 (STV090x
-Multistandard)...
-
-There is two adapters with one frontend into each:
-14:06 lboue@telstar ~ % ls /dev/dvb/adapter0
-demux0  dvr0  frontend0  net0
-14:06 lboue@telstar ~ % ls /dev/dvb/adapter1
-demux0  dvr0  frontend0  net0
-
-
-14:12 root@telstar /home/lboue # modprobe ngene one_adapter=1
-
-[  403.560150] nGene PCIE bridge driver, Copyright (C) 2005-2007 Micronas
-[  403.560169] ngene 0000:04:00.0: PCI INT A -> GSI 16 (level, low) ->
-IRQ 16
-[  403.560177] ngene: Found Mystique SaTiX-S2 Dual (v2)
-[  403.560873] ngene 0000:04:00.0: setting latency timer to 64
-[  403.560952] ngene: Device version 1
-[  403.560963] ngene 0000:04:00.0: firmware: requesting ngene_18.fw
-[  403.563416] ngene: Loading firmware file ngene_18.fw.
-[  403.574393] ngene 0000:04:00.0: irq 33 for MSI/MSI-X
-[  403.575874] error in i2c_read_reg
-[  403.575948] No CXD2099 detected at 40
-[  403.893231] LNBx2x attached on addr=a
-[  403.893323] stv6110x_attach: Attaching STV6110x
-[  403.893327] DVB: registering new adapter (nGene)
-[  403.893332] DVB: registering adapter 0 frontend 0 (STV090x
-Multistandard)...
-[  403.894359] LNBx2x attached on addr=8
-[  403.894451] stv6110x_attach: Attaching STV6110x
-[  403.894456] DVB: registering adapter 0 frontend 0 (STV090x
-Multistandard)...
-
-14:13 root@telstar /home/lboue # ls /dev/dvb/adapter0/
-demux0  demux1  dvr0  dvr1  frontend0  frontend1  net0  net1
-
-The is only the needed adapters but I think there is a errror about the
-frontend number. It should be
-DVB: registering adapter 0 frontend 1 (STV090x Multistandard)
-instead of: DVB: registering adapter 0 frontend 0 (STV090x Multistandard)
-
-Best Regards
-
-Le 28/12/2010 08:57, Oliver Endriss a écrit :
-> On Monday 27 December 2010 22:49:51 Oliver Endriss wrote:
->> On Sunday 26 December 2010 15:40:15 Ludovic BOUÉ wrote:
->>> Hi all,
->>>
->>> I have a Satix-S2 Dual and I'm trying to get to work without his CI in a first time. I'm trying ngene-test2 
->>> from http://linuxtv.org/hg/~endriss/ngene-test2/ under 
->>> 2.6.32-21-generic.
->>>
->>> It contains too much nodes (extra demuxes, dvrs & nets):
->>> ...
->>> Is it connected to this commit (http://linuxtv.org/hg/~endriss/ngene-test2/rev/eb4142f0d0ac) about "Support up to 4 tuners for cineS2 v5, duoflex & mystique v2" ?
->> Yes.
->>
->> Please note that this is an experimental repository.
->> This bug will be fixed before the code will be submitted upstream.
->> (It is more complicated that it might appear at the first glance.)
-> Meanwhile I reworked channel initialisation and shutdown,
-> and the device nodes should be correct for all configurations.
->
-> Please re-test and report any remaining problems.
->
-> CU
-> Oliver
->
-
--- 
-Ludovic BOUÉ
-
+diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
+index e348b7e..f2742e1 100644
+--- a/Documentation/feature-removal-schedule.txt
++++ b/Documentation/feature-removal-schedule.txt
+@@ -112,6 +112,27 @@ Who:	Mauro Carvalho Chehab <mchehab@infradead.org>
+ 
+ ---------------------------
+ 
++What:	Video4Linux: Remove obsolete ioctl's
++When:	kernel 2.6.39
++Files:	include/media/videodev2.h
++Why:	Some ioctl's were defined wrong on 2.6.2 and 2.6.6, using the wrong
++	type of R/W arguments. They were fixed, but the old ioctl names are
++	still there, maintained to avoid breaking binary compatibility:
++	  #define VIDIOC_OVERLAY_OLD   	_IOWR('V', 14, int)
++	  #define VIDIOC_S_PARM_OLD	_IOW('V', 22, struct v4l2_streamparm)
++	  #define VIDIOC_S_CTRL_OLD	_IOW('V', 28, struct v4l2_control)
++	  #define VIDIOC_G_AUDIO_OLD	_IOWR('V', 33, struct v4l2_audio)
++	  #define VIDIOC_G_AUDOUT_OLD	_IOWR('V', 49, struct v4l2_audioout)
++	  #define VIDIOC_CROPCAP_OLD	_IOR('V', 58, struct v4l2_cropcap)
++	There's no sense on preserving those forever, as it is very doubtful
++	that someone would try to use a such old binary with a modern kernel.
++	Removing them will allow us to remove some magic done at the V4L ioctl
++	handler.
++
++Who:	Mauro Carvalho Chehab <mchehab@infradead.org>
++
++---------------------------
++
+ What:	sys_sysctl
+ When:	September 2010
+ Option: CONFIG_SYSCTL_SYSCALL
