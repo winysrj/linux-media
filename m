@@ -1,167 +1,238 @@
 Return-path: <mchehab@gaivota>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:38392 "EHLO
-	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752661Ab0LVMMr (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:27632 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753671Ab0L0Q2I (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Dec 2010 07:12:47 -0500
-From: Jeongtae Park <jtp.park@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: k.debski@samsung.com, jaeryul.oh@samsung.com,
-	kgene.kim@samsung.com, ben-linux@fluff.org,
-	jonghun.han@samsung.com, Jeongtae Park <jtp.park@samsung.com>
-Subject: [PATCH 2/9] ARM: S5PV310: Add clock support for MFC v5.1
-Date: Wed, 22 Dec 2010 20:54:38 +0900
-Message-Id: <1293018885-15239-3-git-send-email-jtp.park@samsung.com>
-In-Reply-To: <1293018885-15239-2-git-send-email-jtp.park@samsung.com>
+	Mon, 27 Dec 2010 11:28:08 -0500
+Date: Mon, 27 Dec 2010 17:27:59 +0100
+From: Kamil Debski <k.debski@samsung.com>
+Subject: RE: [PATCH 1/9] media: Changes in include/linux/videodev2.h for MFC 5.1
+In-reply-to: <201012221342.03713.hverkuil@xs4all.nl>
+To: 'Hans Verkuil' <hverkuil@xs4all.nl>,
+	'Jeongtae Park' <jtp.park@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	jaeryul.oh@samsung.com, kgene.kim@samsung.com, ben-linux@fluff.org,
+	jonghun.han@samsung.com
+Message-id: <003701cba5e3$097f7ba0$1c7e72e0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: en-gb
+Content-transfer-encoding: 7BIT
 References: <1293018885-15239-1-git-send-email-jtp.park@samsung.com>
  <1293018885-15239-2-git-send-email-jtp.park@samsung.com>
+ <201012221342.03713.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-This patch adds clock support for MFC v5.1.
+Hi Hans,
 
-Reviewed-by: Peter Oh <jaeryul.oh@samsung.com>
-Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
----
- arch/arm/mach-s5pv310/clock.c                   |   68 +++++++++++++++++++++++
- arch/arm/mach-s5pv310/include/mach/regs-clock.h |    3 +
- 2 files changed, 71 insertions(+), 0 deletions(-)
+> -----Original Message-----
+> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> Sent: 22 December 2010 13:42
+> To: Jeongtae Park
+> Cc: linux-media@vger.kernel.org; linux-samsung-soc@vger.kernel.org;
+> k.debski@samsung.com; jaeryul.oh@samsung.com; kgene.kim@samsung.com;
+> ben-linux@fluff.org; jonghun.han@samsung.com
+> Subject: Re: [PATCH 1/9] media: Changes in include/linux/videodev2.h
+> for MFC 5.1
 
-diff --git a/arch/arm/mach-s5pv310/clock.c b/arch/arm/mach-s5pv310/clock.c
-index a109bc1..158ccd0 100644
---- a/arch/arm/mach-s5pv310/clock.c
-+++ b/arch/arm/mach-s5pv310/clock.c
-@@ -56,6 +56,11 @@ static int s5pv310_clksrc_mask_cam_ctrl(struct clk *clk, int enable)
- 	return s5p_gatectrl(S5P_CLKSRC_MASK_CAM, clk, enable);
- }
+<snip>
  
-+static int s5pv310_clk_ip_mfc_ctrl(struct clk *clk, int enable)
-+{
-+	return s5p_gatectrl(S5P_CLKGATE_IP_MFC, clk, enable);
-+}
+> >  #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /*
+> 1394          */
+> >  #define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /*
+> MPEG-1/2/4    */
+> >
+> > +
+> > +#define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /*
+> H264    */
+> > +#define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /*
+> H263    */
+> > +#define V4L2_PIX_FMT_MPEG12   v4l2_fourcc('M', 'P', '1', '2') /*
+> MPEG-1/2  */
+> > +#define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /*
+> MPEG-4  */
+> > +#define V4L2_PIX_FMT_DIVX     v4l2_fourcc('D', 'I', 'V', 'X') /*
+> DivX  */
+> > +#define V4L2_PIX_FMT_DIVX3    v4l2_fourcc('D', 'I', 'V', '3') /*
+> DivX 3.11  */
+> > +#define V4L2_PIX_FMT_DIVX4    v4l2_fourcc('D', 'I', 'V', '4') /*
+> DivX 4.12  */
+> > +#define V4L2_PIX_FMT_DIVX500    v4l2_fourcc('D', 'X', '5', '2') /*
+> DivX 5.00 - 5.02  */
+> > +#define V4L2_PIX_FMT_DIVX503    v4l2_fourcc('D', 'X', '5', '3') /*
+> DivX 5.03 - x  */
+> > +#define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /*
+> Xvid */
+> > +#define V4L2_PIX_FMT_VC1      v4l2_fourcc('V', 'C', '1', 'A') /* VC-
+> 1 */
+> > +#define V4L2_PIX_FMT_VC1_RCV      v4l2_fourcc('V', 'C', '1', 'R') /*
+> VC-1 RCV */
+> 
+> What do these formats describe? Are these container formats or the
+> actual
+> compressed video stream that is normally packaged inside a container?
+
+Apart from VC-1 RCV those are elementary streams. If I understand correctly 
+RCV is a simple semi-container that contains necessary information to play
+the ES. I have asked a person from HW team if all those fourccs are
+necessary.
+I am waiting for reply.
+
+The idea was to have a fourcc for each supported codec (by this I mean the
+elementary stream).
+
+> 
+> > +
+> > +
+> >  /*  Vendor-specific formats   */
+> >  #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /*
+> cpia1 YUV */
+> >  #define V4L2_PIX_FMT_WNVA     v4l2_fourcc('W', 'N', 'V', 'A') /*
+> Winnov hw compress */
+> > @@ -1009,6 +1034,7 @@ struct v4l2_ext_controls {
+> >  #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression
+> controls */
+> >  #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class
+> controls */
+> >  #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control
+> class */
+> > +#define V4L2_CTRL_CLASS_CODEC 0x009c0000	/* Codec control class
+> */
+> >
+> >  #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+> >  #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+> > @@ -1342,6 +1368,150 @@ enum
+> v4l2_mpeg_cx2341x_video_median_filter_type {
+> >  #define V4L2_CID_MPEG_CX2341X_VIDEO_CHROMA_MEDIAN_FILTER_TOP
+> 	(V4L2_CID_MPEG_CX2341X_BASE+10)
+> >  #define V4L2_CID_MPEG_CX2341X_STREAM_INSERT_NAV_PACKETS
+> 	(V4L2_CID_MPEG_CX2341X_BASE+11)
+> >
+> > +/* For codecs */
+> > +#define V4L2_CID_CODEC_BASE
+(V4L2_CTRL_CLASS_CODEC
+> | 0x900)
+> > +#define V4L2_CID_CODEC_CLASS
+(V4L2_CTRL_CLASS_CODEC
+> | 1)
+> > +
+> > +/* For decoding */
+> > +#define V4L2_CID_CODEC_LOOP_FILTER_MPEG4_ENABLE
+> 	(V4L2_CID_CODEC_BASE + 110)
+> > +#define V4L2_CID_CODEC_DISPLAY_DELAY		(V4L2_CID_CODEC_BASE
 +
- static int s5pv310_clksrc_mask_lcd0_ctrl(struct clk *clk, int enable)
- {
- 	return s5p_gatectrl(S5P_CLKSRC_MASK_LCD0, clk, enable);
-@@ -422,6 +427,11 @@ static struct clk init_clocks_disable[] = {
- 		.enable		= s5pv310_clk_ip_cam_ctrl,
- 		.ctrlbit	= (1 << 3),
- 	}, {
-+		.name		= "mfc",
-+		.id		= -1,
-+		.enable		= s5pv310_clk_ip_mfc_ctrl,
-+		.ctrlbit	= (1 << 0),
-+	}, {
- 		.name		= "fimd0",
- 		.id		= -1,
- 		.enable		= s5pv310_clk_ip_lcd0_ctrl,
-@@ -613,6 +623,54 @@ static struct clksrc_sources clkset_group = {
- 	.nr_sources	= ARRAY_SIZE(clkset_group_list),
- };
- 
-+static struct clk *clkset_mout_mfc0_list[] = {
-+	[0] = &clk_mout_mpll.clk,
-+	[1] = &clk_sclk_apll.clk,
-+};
+> 137)
+> > +#define V4L2_CID_CODEC_REQ_NUM_BUFS		(V4L2_CID_CODEC_BASE
 +
-+static struct clksrc_sources clkset_mout_mfc0 = {
-+	.sources	= clkset_mout_mfc0_list,
-+	.nr_sources	= ARRAY_SIZE(clkset_mout_mfc0_list),
-+};
+> 140)
+> > +#define V4L2_CID_CODEC_SLICE_INTERFACE		(V4L2_CID_CODEC_BASE
 +
-+static struct clksrc_clk clk_mout_mfc0 = {
-+	.clk	= {
-+		.name		= "mout_mfc0",
-+		.id		= -1,
-+	},
-+	.sources	= &clkset_mout_mfc0,
-+	.reg_src	= { .reg = S5P_CLKSRC_MFC, .shift = 0, .size = 1 },
-+};
-+
-+static struct clk *clkset_mout_mfc1_list[] = {
-+	[0] = &clk_mout_epll.clk,
-+	[1] = &clk_sclk_vpll.clk,
-+};
-+
-+static struct clksrc_sources clkset_mout_mfc1 = {
-+	.sources	= clkset_mout_mfc1_list,
-+	.nr_sources	= ARRAY_SIZE(clkset_mout_mfc1_list),
-+};
-+
-+static struct clksrc_clk clk_mout_mfc1 = {
-+	.clk	= {
-+		.name		= "mout_mfc1",
-+		.id		= -1,
-+	},
-+	.sources	= &clkset_mout_mfc1,
-+	.reg_src	= { .reg = S5P_CLKSRC_MFC, .shift = 4, .size = 1 },
-+};
-+
-+static struct clk *clkset_mout_mfc_list[] = {
-+	[0] = &clk_mout_mfc0.clk,
-+	[1] = &clk_mout_mfc1.clk,
-+};
-+
-+static struct clksrc_sources clkset_mout_mfc = {
-+	.sources	= clkset_mout_mfc_list,
-+	.nr_sources	= ARRAY_SIZE(clkset_mout_mfc_list),
-+};
-+
- static struct clk *clkset_mout_g2d0_list[] = {
- 	[0] = &clk_mout_mpll.clk,
- 	[1] = &clk_sclk_apll.clk,
-@@ -844,6 +902,14 @@ static struct clksrc_clk clksrcs[] = {
- 		.reg_div = { .reg = S5P_CLKDIV_CAM, .shift = 12, .size = 4 },
- 	}, {
- 		.clk		= {
-+			.name		= "sclk_mfc",
-+			.id		= -1,
-+		},
-+		.sources = &clkset_mout_mfc,
-+		.reg_src = { .reg = S5P_CLKSRC_MFC, .shift = 8, .size = 1 },
-+		.reg_div = { .reg = S5P_CLKDIV_MFC, .shift = 0, .size = 4 },
-+	}, {
-+		.clk		= {
- 			.name		= "sclk_fimd0",
- 			.id		= -1,
- 			.enable		= s5pv310_clksrc_mask_lcd0_ctrl,
-@@ -988,6 +1054,8 @@ static struct clksrc_clk *sysclks[] = {
- 	&clk_dout_mmc2,
- 	&clk_dout_mmc3,
- 	&clk_dout_mmc4,
-+	&clk_mout_mfc0,
-+	&clk_mout_mfc1,
- };
- 
- void __init_or_cpufreq s5pv310_setup_clocks(void)
-diff --git a/arch/arm/mach-s5pv310/include/mach/regs-clock.h b/arch/arm/mach-s5pv310/include/mach/regs-clock.h
-index f1028ca..0222aff 100644
---- a/arch/arm/mach-s5pv310/include/mach/regs-clock.h
-+++ b/arch/arm/mach-s5pv310/include/mach/regs-clock.h
-@@ -27,6 +27,7 @@
- #define S5P_CLKSRC_TOP0			S5P_CLKREG(0x0C210)
- #define S5P_CLKSRC_TOP1			S5P_CLKREG(0x0C214)
- #define S5P_CLKSRC_CAM			S5P_CLKREG(0x0C220)
-+#define S5P_CLKSRC_MFC			S5P_CLKREG(0x0C228)
- #define S5P_CLKSRC_IMAGE		S5P_CLKREG(0x0C230)
- #define S5P_CLKSRC_LCD0			S5P_CLKREG(0x0C234)
- #define S5P_CLKSRC_LCD1			S5P_CLKREG(0x0C238)
-@@ -36,6 +37,7 @@
- 
- #define S5P_CLKDIV_TOP			S5P_CLKREG(0x0C510)
- #define S5P_CLKDIV_CAM			S5P_CLKREG(0x0C520)
-+#define S5P_CLKDIV_MFC			S5P_CLKREG(0x0C528)
- #define S5P_CLKDIV_IMAGE		S5P_CLKREG(0x0C530)
- #define S5P_CLKDIV_LCD0			S5P_CLKREG(0x0C534)
- #define S5P_CLKDIV_LCD1			S5P_CLKREG(0x0C538)
-@@ -59,6 +61,7 @@
- #define S5P_CLKSRC_MASK_PERIL1		S5P_CLKREG(0x0C354)
- 
- #define S5P_CLKGATE_IP_CAM		S5P_CLKREG(0x0C920)
-+#define S5P_CLKGATE_IP_MFC		S5P_CLKREG(0x0C928)
- #define S5P_CLKGATE_IP_IMAGE		S5P_CLKREG(0x0C930)
- #define S5P_CLKGATE_IP_LCD0		S5P_CLKREG(0x0C934)
- #define S5P_CLKGATE_IP_LCD1		S5P_CLKREG(0x0C938)
+> 141)
+> > +#define V4L2_CID_CODEC_PACKED_PB		(V4L2_CID_CODEC_BASE + 142)
+> 
+> ??? Weird CODEC_BASE offsets?
+> 
+> Are all these codec controls above general? I.e., applicable to any
+> codec? What
+> do they mean?
+
+My mistake - I forgot to tidy up the offsets. It is difficult for me to
+say which of those controls are MFC specific as I have little experience
+with other codecs. 
+
+Currently PACKED_PB has been replaced with a simple mechanism that can
+detect
+if the stream has packed PB frames. You can read more about such streams
+here:
+http://itsjustonesandzeros.blogspot.com/2007/01/what-is-packed-bitstream.htm
+l
+First approach required the application to set if the stream contained
+packed-PB
+Frames. Now the driver detects it the stream contains packed-PB frames.
+Another
+approach would require the stream parser to detect those frames and divide
+them
+into two buffers queued to MFC.
+
+DISPLAY_DELAY is a number of frames that should be decoded before the first
+frame is
+returned to the application. It is valid for H264 streams.
+
+REQ_NUM_BUFS is the minimum number of CAPTURE buffers required for MFC
+decoder to work.
+This is a read-only control, by reading this value the application can
+adjust count when
+doing REQBUFS. If the application needs 3 dequeued CAPTURE buffers for
+processing it
+should set count when doing REQBUFS to the value of REQ_NUM_BUFS + 3.
+
+When SLICE_INTERFACE the codec expects compressed slices in OUTPUT buffers
+instead of
+full frames.
+
+LOOP_FILTER_MPEG4_ENABLE controls deblocking filter for MPEG4 codec. You are
+right that
+name this should be more general and name is not intuitive.
+DECODING_DEBLOCK_FILTER
+would be way better, as more codec can have this option.
+
+I think that DECODING_DEBLOCK_FILTER (LOOP_FILTER_MPEG4_ENABLE),
+SLICE_INTERFACE and 
+DISPLAY_DELAY should be general. Here I would really welcome comment from
+other
+developers working on codec v4l2 drivers.
+
+> 
+> > +
+> > +/* For encoding */
+> > +#define V4L2_CID_CODEC_LOOP_FILTER_H264
+> 	(V4L2_CID_CODEC_BASE + 9)
+> > +enum v4l2_cid_codec_loop_filter_h264 {
+> > +	V4L2_CID_CODEC_LOOP_FILTER_H264_ENABLE = 0,
+> > +	V4L2_CID_CODEC_LOOP_FILTER_H264_DISABLE = 1,
+> > +	V4L2_CID_CODEC_LOOP_FILTER_H264_DISABLE_AT_BOUNDARY = 2,
+> > +};
+> > +
+> > +/* Codec class control IDs specific to the MFC51 driver */
+> > +#define V4L2_CID_CODEC_MFC51_BASE		(V4L2_CTRL_CLASS_CODEC
+> | 0x1000)
+> 
+> It's probably a good idea to only add this BASE define to videodev2.h
+> (please include a comment describing the control range reserved for the
+> MFC51).
+> All others should go to a public mfc51 header. Which should include
+> documentation
+> for these controls as well.
+
+Great idea.
+
+> 
+> > +
+> > +/* common */
+> > +enum v4l2_codec_mfc5x_enc_switch {
+> > +	V4L2_CODEC_MFC51_ENC_SW_DISABLE	= 0,
+> > +	V4L2_CODEC_MFC51_ENC_SW_ENABLE	= 1,
+> > +};
+> > +enum v4l2_codec_mfc5x_enc_switch_inv {
+> > +	V4L2_CODEC_MFC51_ENC_SW_INV_ENABLE	= 0,
+> > +	V4L2_CODEC_MFC51_ENC_SW_INV_DISABLE	= 1,
+> > +};
+> > +#define V4L2_CID_CODEC_MFC51_ENC_GOP_SIZE
+> 	(V4L2_CID_CODEC_MFC51_BASE+300)
+> 
+> Why the +300?
+
+This is question should be answered by Jeongtae Park, as he did the encoding
+part. Unfortunately our patches got mixed up.
+
+I can only guess that this offset was added to distinguish between decoding
+and encoding.
+
+<snip>
+
 -- 
-1.6.2.5
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
 
