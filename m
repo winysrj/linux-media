@@ -1,102 +1,70 @@
 Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57613 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752228Ab0LWJiT (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:34400 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751530Ab0L0XzK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Dec 2010 04:38:19 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: What if add enumerations at the V4L2_FOCUS_MODE_AUTO?
-Date: Thu, 23 Dec 2010 10:38:31 +0100
-Cc: riverful.kim@samsung.com,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	"Sylwester Nawrocki" <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org
-References: <201012150119.43918.laurent.pinchart@ideasonboard.com> <201012231019.38840.laurent.pinchart@ideasonboard.com> <201012231031.19672.hverkuil@xs4all.nl>
-In-Reply-To: <201012231031.19672.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201012231038.31856.laurent.pinchart@ideasonboard.com>
+	Mon, 27 Dec 2010 18:55:10 -0500
+Date: Mon, 27 Dec 2010 18:55:09 -0500
+Subject: Re: [PATCH 0/8] Fix V4L/DVB/RC warnings
+Message-ID: <e95cvd7ycvmoq6jolupfigs0.1293494109547@email.android.com>
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Hans,
+SSBoYXZlIGhhcmR3YXJlIGZvciBsaXJjX3ppbG9nLiAgSSBjYW4gbG9vayBsYXRlciB0aGlzIHdl
+ZWsuCkkgYWxzbyBoYXZlIGhhcmR3YXJlIHRoYXQgbGlyY19pMmMgaGFuZGxlcyBidXQgbm90IGFs
+bCB0aGUgaGFyZHdhcmUgaXQgaGFuZGxlcy4KCiBJSVJDIGxpcmNfaTJjIGlzIHZlcnkgbXVjaCBs
+aWtlIGlyLWtiZC1pMmMsIHNvIGRvIHdlIG5lZWQgaXQgYW55bW9yZT8gIEknbSBub3QgYWJsZSB0
+byBjaGVjayBmb3IgbXlzZWxmIGF0IHRoZSBtb21lbnQuCgpSZWdhcmRzLApBbmR5CgpNYXVybyBD
+YXJ2YWxobyBDaGVoYWIgPG1jaGVoYWJAcmVkaGF0LmNvbT4gd3JvdGU6Cgo+Cj5UaGVyZSB3ZXJl
+IHNldmVyYWwgd2FybmluZ3MgYXQgdGhlIHN1YnN5c3RlbSwgdGhhdCB3ZXJlIGNhdGNoZWQgd2l0
+aAo+Z2NjIHZlcnNpb24gNC41LjEuIEFsbCBvZiB0aGVtIGFyZSBmaXhlZCBvbiB0aG9zZSBwYXRj
+aGVzIGJ5IGEgCj50cml2aWFsIHBhdGNoLiBTbywgbGV0J3MgZml4IHRoZW0gOykKPgo+Tm93LCB0
+aGUgb25seSByZW1haW5pbmcgcGF0Y2hlcyBhcmUgdGhlIG9uZXMgd2Ugd2FudCB0byBiZSB0aGVy
+ZToKPgo+ZHJpdmVycy9zdGFnaW5nL2xpcmMvbGlyY19pMmMuYzogSW4gZnVuY3Rpb24g4oCYaXJf
+cHJvYmXigJk6Cj5kcml2ZXJzL3N0YWdpbmcvbGlyYy9saXJjX2kyYy5jOjQzMTozOiB3YXJuaW5n
+OiDigJhpZOKAmSBpcyBkZXByZWNhdGVkIChkZWNsYXJlZCBhdCBpbmNsdWRlL2xpbnV4L2kyYy5o
+OjM1NikKPmRyaXZlcnMvc3RhZ2luZy9saXJjL2xpcmNfaTJjLmM6NDUwOjM6IHdhcm5pbmc6IOKA
+mGlk4oCZIGlzIGRlcHJlY2F0ZWQgKGRlY2xhcmVkIGF0IGluY2x1ZGUvbGludXgvaTJjLmg6MzU2
+KQo+ZHJpdmVycy9zdGFnaW5nL2xpcmMvbGlyY19pMmMuYzo0Nzk6OTogd2FybmluZzog4oCYaWTi
+gJkgaXMgZGVwcmVjYXRlZCAoZGVjbGFyZWQgYXQgaW5jbHVkZS9saW51eC9pMmMuaDozNTYpCj5k
+cml2ZXJzL3N0YWdpbmcvbGlyYy9saXJjX3ppbG9nLmM6IEluIGZ1bmN0aW9uIOKAmGlyX3Byb2Jl
+4oCZOgo+ZHJpdmVycy9zdGFnaW5nL2xpcmMvbGlyY196aWxvZy5jOjExOTk6Mjogd2FybmluZzog
+4oCYaWTigJkgaXMgZGVwcmVjYXRlZCAoZGVjbGFyZWQgYXQgaW5jbHVkZS9saW51eC9pMmMuaDoz
+NTYpCj5kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1pMmMuYzogSW4gZnVuY3Rpb24g4oCY
+Y3g4OF9pMmNfaW5pdOKAmToKPmRyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LWkyYy5jOjE0
+OToyOiB3YXJuaW5nOiDigJhpZOKAmSBpcyBkZXByZWNhdGVkIChkZWNsYXJlZCBhdCBpbmNsdWRl
+L2xpbnV4L2kyYy5oOjM1NikKPmRyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LXZwMzA1NC1p
+MmMuYzogSW4gZnVuY3Rpb24g4oCYdnAzMDU0X2kyY19wcm9iZeKAmToKPmRyaXZlcnMvbWVkaWEv
+dmlkZW8vY3g4OC9jeDg4LXZwMzA1NC1pMmMuYzoxMjg6Mjogd2FybmluZzog4oCYaWTigJkgaXMg
+ZGVwcmVjYXRlZCAoZGVjbGFyZWQgYXQgaW5jbHVkZS9saW51eC9pMmMuaDozNTYpCj4KPlRoZXkg
+YXJlIGJhc2ljYWxseSBjYXVzZWQgYnkgbGlyY19pMmMgYW5kIGxpcmNfemlsb2csIHRoYXQgc3Rp
+bGwgbmVlZHMKPnRvIHVzZSB0aGUgbGVnYWN5IC5pZCBmaWVsZCBhdCB0aGUgSTJDIHN0cnVjdHMu
+IFNvbWVib2R5IHdpdGggdGhvc2UKPmhhcmR3YXJlLCBwbGVhc2UgZml4IGl0Lgo+Cj5UaGFua3Ms
+Cj5NYXVybwo+Cj4tCj4KPk1hdXJvIENhcnZhbGhvIENoZWhhYiAoOCk6Cj4gIFttZWRpYV0gZG14
+ZGV2OiBGaXggYSBjb21waWxhdGlvbiB3YXJuaW5nIGR1ZSB0byBhIGJhZCB0eXBlCj4gIFttZWRp
+YV0gcmFkaW8td2wxMjczOiBGaXggdHdvIHdhcm5pbmdzCj4gIFttZWRpYV0gbGlyY196aWxvZzog
+Rml4IGEgd2FybmluZwo+ICBbbWVkaWFdIGRpYjcwMDBtL2RpYjcwMDBwOiBBZGQgc3VwcG9ydCBm
+b3IgVFJBTlNNSVNTSU9OX01PREVfNEsKPiAgW21lZGlhXSBnc3BjYTogRml4IGEgd2FybmluZyBm
+b3IgdXNpbmcgbGVuIGJlZm9yZSBmaWxsaW5nIGl0Cj4gIFttZWRpYV0gc3R2MDkweDogRml4IHNv
+bWUgY29tcGlsYXRpb24gd2FybmluZ3MKPiAgW21lZGlhXSBhZjkwMTM6IEZpeCBhIGNvbXBpbGF0
+aW9uIHdhcm5pbmcKPiAgW21lZGlhXSBzdHJlYW16YXA6IEZpeCBhIGNvbXBpbGF0aW9uIHdhcm5p
+bmcgd2hlbiBjb21waWxlZCBidWlsdGluCj4KPiBkcml2ZXJzL21lZGlhL2R2Yi9kdmItY29yZS9k
+bXhkZXYuYyAgICB8ICAgIDQgKystLQo+IGRyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy9hZjkw
+MTMuYyAgIHwgICAgMiArLQo+IGRyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy9kaWI3MDAwbS5j
+IHwgICAxMCArKysrKy0tLS0tCj4gZHJpdmVycy9tZWRpYS9kdmIvZnJvbnRlbmRzL2RpYjcwMDBw
+LmMgfCAgIDEwICsrKysrLS0tLS0KPiBkcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvc3R2MDkw
+eC5jICB8ICAgIDYgKysrLS0tCj4gZHJpdmVycy9tZWRpYS9yYWRpby9yYWRpby13bDEyNzMuYyAg
+ICAgfCAgICAzICstLQo+IGRyaXZlcnMvbWVkaWEvcmMvc3RyZWFtemFwLmMgICAgICAgICAgIHwg
+ICAgMiArLQo+IGRyaXZlcnMvbWVkaWEvdmlkZW8vZ3NwY2EvZ3NwY2EuYyAgICAgIHwgICAgMiAr
+LQo+IGRyaXZlcnMvc3RhZ2luZy9saXJjL2xpcmNfemlsb2cuYyAgICAgIHwgICAgMSAtCj4gOSBm
+aWxlcyBjaGFuZ2VkLCAxOSBpbnNlcnRpb25zKCspLCAyMSBkZWxldGlvbnMoLSkKPgo+LS0gCj4x
+LjcuMy40Cj4KPi0tCj5UbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGlu
+ZSAidW5zdWJzY3JpYmUgbGludXgtbWVkaWEiIGluCj50aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8g
+bWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZwo+TW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDov
+L3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sCg==
 
-On Thursday 23 December 2010 10:31:19 Hans Verkuil wrote:
-> On Thursday, December 23, 2010 10:19:38 Laurent Pinchart wrote:
-> > On Wednesday 15 December 2010 11:03:37 Hans Verkuil wrote:
-> > > > On Wednesday 15 December 2010 08:57:29 Hans Verkuil wrote:
-> > > > 
-> > > > Hence my question, should we add a way to pass rectangles (basically
-> > > > a structv4l2_rect) through the control ioctls ? It would make sense.
-> > > 
-> > > I thought it over and came to the conclusion that we should not do
-> > > that. Instead we can create four separate controls.
-> > 
-> > That's not very clean, is it ?
-> 
-> Why not? It's perfectly consistent with the way controls work.
-
-Because it multiplies the number of required controls by 4. There's also no 
-way for applications to know that the controls are grouped together.
-
-> > > The problem we run into when adding more complex types is that we can
-> > > no longer communicate min and max values (something that we definitely
-> > > want when dealing with coordinates).
-> > 
-> > Why not ? We should still support querying min/max/def values on a struct
-> > v4l2_ctrl. This would of course require an extended queryctrl ioctl.
-> 
-> Which will make apps even more complicated. I thought about this as well,
-> but it's a road that will lead to chaos.
-
-Sorry, I don't see why a v4l2_rect type will lead to chaos. That doesn't mean 
-we need to support any data structure as control data, just a very limited 
-number V4L2 standard ones.
-
-> > > Another reason is how the control mechanism is designed: they only
-> > > support the basic types (int, bool, string, enum, int64 and a 'button'
-> > > aka action). And the controls are grouped into classes which are named
-> > > through the 'ctrl_class' control.
-> > > 
-> > > So effectively controls represent a field in a class (or struct) and
-> > > each class can be presented as a tab page in a control panel.
-> > > 
-> > > Simple and straightforward.
-> > > 
-> > > If we start to add complex types, then it becomes really hard to define
-> > > the meta data of the control since you are really defining a
-> > > 'mini-class'.
-> > 
-> > I agree that arbitrary complex controls might not be a good idea, but
-> > v4l2_rect is a pretty standard data structure in V4L2 and something that
-> > can be useful for different controls.
-> > 
-> > > It sounds nice initially, but we really should not do this since I
-> > > believe it will lead to chaos later on. You want complex types, then
-> > > use ioctls, not controls. Or split up the complex type into multiple
-> > > simple types.
-> > 
-> > Then let's use an ioctl for focus control. I don't like it.
-> 
-> I would vote for 4 controls. Since FOCUS_MODE_AUTO is a control it makes no
-> sense to make an ioctl to set the rectangle. That would be a strange mix.
-> 
-> And having 4 controls for the rectangle will actually look good in GUIs,
-
-Applications will display the controls without knowing they are related. 
-Having a v4l2_rect type would actually allow applications to display the 
-control better.
-
-> and with S_EXT_CTRLS you can set all focus-related controls in one call.
-
-Then don't tell me that an extended queryctrl ioctl would make apps even more 
-complicated, when you advocate using four separate values to change a single 
-control ;-)
-
--- 
-Regards,
-
-Laurent Pinchart
