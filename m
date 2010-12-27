@@ -1,121 +1,137 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2322 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750936Ab0LUQtm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Dec 2010 11:49:42 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [alsa-devel] [RFC/PATCH v6 03/12] media: Entities, pads and links
-Date: Tue, 21 Dec 2010 17:49:22 +0100
-Cc: Clemens Ladisch <clemens@ladisch.de>, alsa-devel@alsa-project.org,
-	sakari.ailus@maxwell.research.nokia.com,
-	broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org,
-	lennart@poettering.net, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org
-References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com> <4D0775DB.2020902@ladisch.de> <201012150050.44885.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201012150050.44885.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:11748 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753774Ab0L0O0p (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Dec 2010 09:26:45 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oBREQjpQ021707
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 27 Dec 2010 09:26:45 -0500
+Received: from [10.11.11.201] (vpn-11-201.rdu.redhat.com [10.11.11.201])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id oBREQfr2004280
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 27 Dec 2010 09:26:44 -0500
+Message-ID: <4D18A220.804@redhat.com>
+Date: Mon, 27 Dec 2010 12:26:40 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] [media] staging/lirc: Fix compilation when LIRC=m
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201012211749.22393.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Wednesday, December 15, 2010 00:50:44 Laurent Pinchart wrote:
-> Hi Clemens,
-> 
-> On Tuesday 14 December 2010 14:49:15 Clemens Ladisch wrote:
-> > Laurent Pinchart wrote:
-> > > On Tuesday 14 December 2010 13:40:21 Hans Verkuil wrote:
-> > >> > On Monday 13 December 2010 17:10:51 Clemens Ladisch wrote:
-> > >> >> * Entity types
-> > >> >> 
-> > >> >> TYPE_NODE was renamed to TYPE_DEVICE because "node" sounds like a
-> > >> >> node in a graph, which does not distinguish it from other entity
-> > >> >> types because all entities are part of the topology graph.  I chose
-> > >> >> "device" as this type describes entities that are visible as some
-> > >> >> device node to other software.
-> > >> > 
-> > >> > What this type describes is a device node. Both NODE and DEVICE can be
-> > >> > confusing in my opinion, but DEVICE_NODE is a bit long.
-> > >> 
-> > >> What about DEVNODE? I think that would be a good alternative.
-> > > 
-> > > Fine with me. Clemens, any opinion on that ?
-> > 
-> > Fine with me too.
-> 
-> OK I'll use that name.
-> 
-> > > > >> TYPE_EXT describes entities that represent some interface to the
-> > > > >> external world, TYPE_INT those that are internal to the entire
-> > > > >> device. (I'm not sure if that distinction is very useful, but
-> > > > >> TYPE_SUBDEV seems to be an even more meaningless name.)
-> > > > > 
-> > > > > SUBDEV comes from the V4L2 world, and I agree that it might not be a
-> > > > > very good name.
-> > > > 
-> > > > SUBDEV refers to a specific type of driver. Within the v4l world it is
-> > > > well defined. So I prefer to keep this. Perhaps some additional
-> > > > comments or documentation can be added to clarify this.
-> > > 
-> > > Should this be clarified by using V4L2_SUBDEV instead then ?
-> > 
-> > If the "SUBDEV" concept doesn't exist outside V4L, that would indeed be
-> > better.
-> > 
-> > I don't want to rename things that come out of existing frameworks; this
-> > naming discussion makes sense only for those entity (sub)types that can
-> > be shared between them.  Are there any, besides jacks?
-> 
-> Some entities like TV tuners play a dual audio/video role. I'm not sure how to 
-> handle them, I lack experience in that field.
+drivers/staging/lirc/lirc_bt829.c:141: undefined reference to `lirc_register_driver'
+drivers/built-in.o:(.rodata+0x20f68): undefined reference to `lirc_dev_fop_read'
+drivers/built-in.o:(.rodata+0x20f7c): undefined reference to `lirc_dev_fop_poll'
+drivers/built-in.o:(.rodata+0x20f8c): undefined reference to `lirc_dev_fop_open'
+drivers/built-in.o:(.rodata+0x20f94): undefined reference to `lirc_dev_fop_close'
+drivers/built-in.o:(.rodata+0x21030): undefined reference to `lirc_dev_fop_open'
+drivers/built-in.o:(.rodata+0x21038): undefined reference to `lirc_dev_fop_close'
 
-It is very important to distinguish between the actual tuner device and the
-physical connector. ALSA doesn't program a tuner device, that's the domain
-of V4L and DVB. ALSA just sees an input pin.
+This happens when .config is like:
+	CONFIG_LIRC=m
+	CONFIG_IR_LIRC_CODEC=m
+	CONFIG_LIRC_STAGING=y
+	CONFIG_LIRC_BT829=y
 
-Regarding tuners there are roughly two types of hardware: one where the audio
-goes to an output jack (and the user has to use a loopback cable to hook it up
-to an audio input), or it goes to memory using DMA and an ALSA driver.
+Don't allow that.
 
-In the first scenario the MC would model a TV_ANTENNA connector and an AUDIO_OUT
-connector. The TV_ANTENNA connector would typically link to a V4L2_SUBDEV_TUNER,
-which would link to a V4L2_SUBDEV_AUDIO_DEMOD (in turn linked to the AUDIO_OUT
-connector). The tuner would also link to a V4L2_SUBDEV_VIDEO_DIGITIZER (in turn
-linked to a DEVNODE_V4L).
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-In the second scenario there is no AUDIO_OUT connector, instead there is a
-DEVNODE_ALSA.
-
-It can get more complex: in the case of MPEG encoders the audio from the tuner
-goes to an audio demod, the video goes to a digitizer, and the output of those
-subdevs both go into the same MPEG encoder subdev.
-
-When modeling hardware like audio or video devices it is important to remember
-to separate I/O pins from actually physical connectors. E.g. an audio device may
-have many possible input pins, but how they are hooked up to which physical
-connectors is something that is board specific and not part of the audio driver
-itself.
-
-Anyway, what we need is a 'connector' entity. And just like the other entities,
-connectors can have multiple input pads so I don't see any problems in modeling
-antenna connectors.
-
-Regards,
-
-	Hans
-
-> > > What about ALSA entities, should they use MEDIA_ENTITY_TYPE_ALSA_* ?
-> > 
-> > The entity types representing ALSA devices are already named "ALSA".
-> 
-> I was talking about the INT_* types. They're ALSA-specific, but have no ALSA 
-> in the type name.
-> 
-> 
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+diff --git a/drivers/staging/lirc/Kconfig b/drivers/staging/lirc/Kconfig
+index fa790db..be97f7b 100644
+--- a/drivers/staging/lirc/Kconfig
++++ b/drivers/staging/lirc/Kconfig
+@@ -14,26 +14,26 @@ if LIRC_STAGING
+ 
+ config LIRC_BT829
+         tristate "BT829 based hardware"
+-	depends on LIRC_STAGING && PCI
++	depends on LIRC && PCI
+ 	help
+ 	  Driver for the IR interface on BT829-based hardware
+ 
+ config LIRC_I2C
+ 	tristate "I2C Based IR Receivers"
+-	depends on LIRC_STAGING && I2C
++	depends on LIRC && I2C
+ 	help
+ 	  Driver for I2C-based IR receivers, such as those commonly
+ 	  found onboard Hauppauge PVR-150/250/350 video capture cards
+ 
+ config LIRC_IGORPLUGUSB
+ 	tristate "Igor Cesko's USB IR Receiver"
+-	depends on LIRC_STAGING && USB
++	depends on LIRC && USB
+ 	help
+ 	  Driver for Igor Cesko's USB IR Receiver
+ 
+ config LIRC_IMON
+ 	tristate "Legacy SoundGraph iMON Receiver and Display"
+-	depends on LIRC_STAGING && USB
++	depends on LIRC && USB
+ 	help
+ 	  Driver for the original SoundGraph iMON IR Receiver and Display
+ 
+@@ -41,31 +41,31 @@ config LIRC_IMON
+ 
+ config LIRC_IT87
+ 	tristate "ITE IT87XX CIR Port Receiver"
+-	depends on LIRC_STAGING && PNP
++	depends on LIRC && PNP
+ 	help
+ 	  Driver for the ITE IT87xx IR Receiver
+ 
+ config LIRC_ITE8709
+ 	tristate "ITE8709 CIR Port Receiver"
+-	depends on LIRC_STAGING && PNP
++	depends on LIRC && PNP
+ 	help
+ 	  Driver for the ITE8709 IR Receiver
+ 
+ config LIRC_PARALLEL
+ 	tristate "Homebrew Parallel Port Receiver"
+-	depends on LIRC_STAGING && PARPORT
++	depends on LIRC && PARPORT
+ 	help
+ 	  Driver for Homebrew Parallel Port Receivers
+ 
+ config LIRC_SASEM
+ 	tristate "Sasem USB IR Remote"
+-	depends on LIRC_STAGING && USB
++	depends on LIRC && USB
+ 	help
+ 	  Driver for the Sasem OnAir Remocon-V or Dign HV5 HTPC IR/VFD Module
+ 
+ config LIRC_SERIAL
+ 	tristate "Homebrew Serial Port Receiver"
+-	depends on LIRC_STAGING
++	depends on LIRC
+ 	help
+ 	  Driver for Homebrew Serial Port Receivers
+ 
+@@ -78,19 +78,19 @@ config LIRC_SERIAL_TRANSMITTER
+ 
+ config LIRC_SIR
+ 	tristate "Built-in SIR IrDA port"
+-	depends on LIRC_STAGING
++	depends on LIRC
+ 	help
+ 	  Driver for the SIR IrDA port
+ 
+ config LIRC_TTUSBIR
+ 	tristate "Technotrend USB IR Receiver"
+-	depends on LIRC_STAGING && USB
++	depends on LIRC && USB
+ 	help
+ 	  Driver for the Technotrend USB IR Receiver
+ 
+ config LIRC_ZILOG
+ 	tristate "Zilog/Hauppauge IR Transmitter"
+-	depends on LIRC_STAGING && I2C
++	depends on LIRC && I2C
+ 	help
+ 	  Driver for the Zilog/Hauppauge IR Transmitter, found on
+ 	  PVR-150/500, HVR-1200/1250/1700/1800, HD-PVR and other cards
