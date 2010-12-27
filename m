@@ -1,56 +1,107 @@
 Return-path: <mchehab@gaivota>
-Received: from casper.infradead.org ([85.118.1.10]:36399 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751784Ab0LZLlX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Dec 2010 06:41:23 -0500
-Message-ID: <4D1729DB.80406@infradead.org>
-Date: Sun, 26 Dec 2010 09:41:15 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from flokli.de ([78.46.104.9]:55389 "EHLO asterix.flokli.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753822Ab0L0Ny5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Dec 2010 08:54:57 -0500
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: em28xx: Terratec Grabby no sound
 MIME-Version: 1.0
-To: David Henningsson <david.henningsson@canonical.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] DVB: TechnoTrend CT-3650 IR support
-References: <4D170785.1070306@canonical.com>
-In-Reply-To: <4D170785.1070306@canonical.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
 Content-Transfer-Encoding: 7bit
+Date: Mon, 27 Dec 2010 14:54:56 +0100
+From: Florian Klink <flokli@flokli.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Message-ID: <a2525f2e78a9eedccbe9c761de0685a8@flokli.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi David,
+ Hi Mauro,
 
-Em 26-12-2010 07:14, David Henningsson escreveu:
-> Hi Linux-media,
-> 
-> As a spare time project I bought myself a TT CT-3650, to see if I could get it working. Waling Dijkstra did write a IR & CI patch for this model half a year ago, so I was hopeful. (Reference: http://www.mail-archive.com/linux-media@vger.kernel.org/msg19860.html )
-> 
-> Having tested the patch, the IR is working (tested all keys via the "evtest" tool), however descrambling is NOT working.
-> 
-> Waling's patch was reviewed but never merged. So I have taken the IR part of the patch, cleaned it up a little, and hopefully this part is ready for merging now. Patch is against linux-2.6.git.
+ with the help of Bernd Spaeth, I finally managed to get the Terratec 
+ Grabby
+ working by using
 
-Could you please rebase it to work with the rc_core support? I suspect that you
-based it on a kernel older than .36, as the dvb_usb rc struct changed.
+ mplayer -v -tv
+ driver=v4l2:input=0:device=/dev/video1:alsa:adevice=hw.2,0:audiorate=48000:forceaudio:immediatemode=0
+ tv://
 
-The better is to base it over the latest V4L/DVB/RC development git, available at:
-	http://git.linuxtv.org/media_tree.git
+ and your patch
 
-Basically, the keyboard map, if not already available, should be at:
-	/driver/media/rc/keymaps/
+ diff --git a/drivers/media/video/em28xx/em28xx-cards.c
+ b/drivers/media/video/em28xx/em28xx-cards.c
+ index e7efb4b..6e80376 100644
+ --- a/drivers/media/video/em28xx/em28xx-cards.c
+ +++ b/drivers/media/video/em28xx/em28xx-cards.c
+ @@ -1621,11 +1621,11 @@ struct em28xx_board em28xx_boards[] = {
+  .input = { {
+  .type = EM28XX_VMUX_COMPOSITE1,
+  .vmux = SAA7115_COMPOSITE0,
+ - .amux = EM28XX_AMUX_VIDEO2,
+ + .amux = EM28XX_AMUX_LINE_IN,
+  }, {
+  .type = EM28XX_VMUX_SVIDEO,
+  .vmux = SAA7115_SVIDEO3,
+ - .amux = EM28XX_AMUX_VIDEO2,
+ + .amux = EM28XX_AMUX_LINE_IN,
+  } },
+  },
+  [EM2860_BOARD_TERRATEC_AV350] = {
 
-And the rc description should be something like:
+ Working video and audio!
 
-.rc.core = {
-			.rc_interval      = DEFAULT_RC_INTERVAL,
-			.rc_codes         = RC_MAP_DIB0700_RC5_TABLE,
-			.rc_query         = dib0700_rc_query_old_firmware,
-			.allowed_protos   = RC_TYPE_RC5 |
-					    RC_TYPE_RC6 |
-					    RC_TYPE_NEC,
-			.change_protocol = dib0700_change_protocol,
-		},
+ I wasn't able to test it with s-video, only composite.
 
-There are a few dvb drivers already converted to the new way (like dib0700).
+ But I think it's still safe to commit the patch, because s-video is 
+ only
+ another video input, the audio output stays the same.
 
-Cheers,
-Mauro.
+ Florian
+
+ On Tue, 09 Nov 2010 08:56:32 -0200, Mauro Carvalho Chehab wrote:
+
+> Em 26-10-2010 10:58, Florian Klink escreveu:
+>> Hi,
+>>
+>>> The sound comes from alsa device. Several em28xx types provide
+>>> standard USB audio. So, snd-usb-audio handles it. That's why you 
+>>> need
+>>> alsa:adevice=hw.2,0:forceaudio at mplayer.
+>> ... but thats my problem. sound doesn't appear inside mplayer, even
+>> with the command line options set to use the "external" alsa device.
+>> However, "arecord -D hw:2,0 -r 32000 -c 2 -f S16_LE | aplay -" plays
+>> the sound, but only before mplayer tried to access the sound card
+> Have you tried my patch? If you're using 
+> alsa:adevice=hw.2,0:forceaudio
+> at mplayer, you should not be running arecord/aplay. You need to use 
+> one
+> solution or the other.
+>
+>> When trying to play sound with arecord again after mplayer tried to
+>> access it, I have to re-plug the card to get it playing sound over
+>> arecord again, video only seems to not break it. There is no error
+>> message or something in arecord when it's not playing anything, just
+>> silence and the same command line output. Is there maybe anything 
+>> with
+>> the sample format S16_LE or something that confuses mplayer/the
+>> driver/whatever? Strange problem... mplayer output (mplayer -v -tv
+>> 
+>> driver=v4l2:input=0:device=/dev/video1:alsa:adevice=hw.2,0:forceaudio
+>> tv://): http://pastebin.com/yTV300iG [1] Florian -- To unsubscribe 
+>> from
+>> this list: send the line "unsubscribe linux-media" in the body of a
+>> message to majordomo@vger.kernel.org [2] More majordomo info at
+>> http://vger.kernel.org/majordomo-info.html [3]
+> -- To unsubscribe from this list: send the line "unsubscribe
+> linux-media" in the body of a message to majordomo@vger.kernel.org 
+> [4]
+> More majordomo info at http://vger.kernel.org/majordomo-info.html [5]
+
+
+ Links:
+ ------
+ [1] http://pastebin.com/yTV300iG
+ [2] mailto:majordomo@vger.kernel.org
+ [3] http://vger.kernel.org/majordomo-info.html
+ [4] mailto:majordomo@vger.kernel.org
+ [5] http://vger.kernel.org/majordomo-info.html
