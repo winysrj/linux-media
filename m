@@ -1,167 +1,175 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout4.samsung.com ([203.254.224.34]:56690 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751859Ab0LQGm7 (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3274 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753865Ab0L0PIt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Dec 2010 01:42:59 -0500
-Received: from epmmp1 (mailout4.samsung.com [203.254.224.34])
- by mailout4.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LDK002SZ7ZFPR30@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Fri, 17 Dec 2010 15:42:51 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LDK00HLU7ZF6O@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 17 Dec 2010 15:42:51 +0900 (KST)
-Date: Fri, 17 Dec 2010 15:42:51 +0900
-From: "Kim, HeungJun" <riverful.kim@samsung.com>
-Subject: Re: [PATCH] V4L/DVB: Add support for M5MOLS Mega Pixel camera
-In-reply-to: <4D0A985A.6010007@gmail.com>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, g.liakhovetski@gmx.de,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
-Reply-to: riverful.kim@samsung.com
-Message-id: <4D0B066B.3000703@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7BIT
-References: <4D01D96B.8040707@samsung.com> <4D0A985A.6010007@gmail.com>
+	Mon, 27 Dec 2010 10:08:49 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 3/6] Documentation/ioctl/ioctl-number.txt: Remove some now freed ioctl ranges
+Date: Mon, 27 Dec 2010 16:08:32 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <cover.1293449547.git.mchehab@redhat.com> <201012271423.26288.hverkuil@xs4all.nl> <4D189C5D.9090203@redhat.com>
+In-Reply-To: <4D189C5D.9090203@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201012271608.32402.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Sylwester,
-
-Thanks for some comments. I'll reflects this comments for the next version
-patch. It's clear that there is a few things I missed. It's better to let's
-talk about this rest things, as Mr. Park said.
-
-But, I wanna remind one thing, and know your exact thiking. about MACROs.
-
-I re-comments of that. look around and re-re-comments it, plz.
-
->> +
->> +/* MACRO */
->> +#define e_check_w(fn, cat, byte, val, bitwidth)        do {    \
->> +    int ret;                        \
->> +    ret = (int)(fn);                    \
->> +    if ((ret)<  0) {                    \
->> +        dev_err(&client->dev, "fail i2c WRITE [%s] - "    \
->> +                "category:0x%02x, "        \
->> +                "bytes:0x%02x, "        \
->> +                "value:0x%02x\n",        \
->> +                (bitwidth),            \
->> +                (cat), (byte), (u32)val);    \
->> +        return ret;                    \
->> +    }                            \
->> +} while (0)
->> +
->> +#define e_check_r(fn, cat, byte, val, bitwidth)        do {    \
->> +    int ret;                        \
->> +    ret = (int)(fn);                    \
->> +    if ((ret)<  0) {                    \
->> +        dev_err(&client->dev, "fail i2c READ [%s] - "    \
->> +                "category:0x%02x, "        \
->> +                "bytes:0x%02x, "        \
->> +                "value:0x%02x\n",        \
->> +                (bitwidth),            \
->> +                (cat), (byte), (u32)(*val));    \
->> +        return ret;                    \
->> +    }                            \
->> +} while (0)
->> +
->> +#define REG_W_8(cat, byte, value)                    \
->> +    e_check_w(m5mols_write_reg(sd, M5MOLS_8BIT, cat, byte, value),    \
->> +            cat, byte, value, "8bit")
->> +#define REG_R_8(cat, byte, value)                    \
->> +    e_check_r(m5mols_read_reg(sd, M5MOLS_8BIT, cat, byte, value),    \
->> +            cat, byte, value, "8bit")
->> +
->> +#define e_check_mode(fn, mode)                do {    \
->> +    int ret;                        \
->> +    ret = (int)(fn);                    \
->> +    if (ret<  0) {                        \
->> +        dev_err(&client->dev, "Failed to %s mode\n",    \
->> +                (mode));            \
->> +        return ret;                    \
->> +    }                            \
->> +} while (0)
+On Monday, December 27, 2010 15:02:05 Mauro Carvalho Chehab wrote:
+> Em 27-12-2010 11:23, Hans Verkuil escreveu:
+> > On Monday, December 27, 2010 14:03:03 Mauro Carvalho Chehab wrote:
+> >> Em 27-12-2010 10:01, Hans Verkuil escreveu:
+> >>> On Monday, December 27, 2010 12:38:39 Mauro Carvalho Chehab wrote:
+> >>>> The V4L1 removal patches removed a few ioctls. Update it at the docspace.
+> >>>>
+> >>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> >>>>
+> >>>> diff --git a/Documentation/ioctl/ioctl-number.txt b/Documentation/ioctl/ioctl-number.txt
+> >>>> index 63ffd78..49d7f00 100644
+> >>>> --- a/Documentation/ioctl/ioctl-number.txt
+> >>>> +++ b/Documentation/ioctl/ioctl-number.txt
+> >>>> @@ -260,14 +260,11 @@ Code  Seq#(hex)	Include File		Comments
+> >>>>  't'	80-8F	linux/isdn_ppp.h
+> >>>>  't'	90	linux/toshiba.h
+> >>>>  'u'	00-1F	linux/smb_fs.h		gone
+> >>>> -'v'	all	linux/videodev.h	conflict!
+> >>>>  'v'	00-1F	linux/ext2_fs.h		conflict!
+> >>>>  'v'	00-1F	linux/fs.h		conflict!
+> >>>>  'v'	00-0F	linux/sonypi.h		conflict!
+> >>>> -'v'	C0-CF	drivers/media/video/ov511.h	conflict!
+> >>>>  'v'	C0-DF	media/pwc-ioctl.h	conflict!
+> >>>>  'v'	C0-FF	linux/meye.h		conflict!
+> >>>> -'v'	C0-CF	drivers/media/video/zoran/zoran.h	conflict!
+> >>>>  'v'	D0-DF	drivers/media/video/cpia2/cpia2dev.h	conflict!
+> >>>>  'w'	all				CERN SCI driver
+> >>>>  'y'	00-1F				packet based user level communications
+> >>>>
+> >>>
+> >>> There is also a line for media/ovcamchip.h in this file that can be removed.
+> >>
+> >> Ok, I'll do that.
+> >>
+> >>> The media/rds.h line can also be removed (this is kernel internal only).
+> >>
+> >> There are two rds.h, related to V4L:
+> >> ./include/linux/rds.h
+> > 
+> > Not related to V4L, this is something from Oracle. It is this header that is public,
+> > not the media/rds.h header.
 > 
-> These macros really do not look good. Moreover they all change
-> the control flow, i.e. return a value. From Documentation/CodingStyle:
+> Ah, ok.
 > 
-> "Things to avoid when using macros:
+> >> ./include/media/rds.h
+> >>
+> >> One of them is at the public api:
+> >>
+> >> include/linux/Kbuild:header-y += rds.h
+> >>
+> >> Btw, that's weird:
+> >>
+> >> $ git grep RDS_CMD_OPEN
+> >> drivers/media/video/saa6588.c:    case RDS_CMD_OPEN:
+> >> include/media/rds.h:#define RDS_CMD_OPEN  _IOW('R',1,int)
+> >>
+> >> as saa6588 is a subdev.
+> >>
+> >> IMO, we should remove or rename the internal header first.
+> > 
+> > media/rds.h should be renamed to media/saa6588.h. It is also included in
+> > drivers/media/radio/si470x/radio-si470x.h, but that's obsolete and can be
+> > removed.
 > 
-> 1) macros that affect control flow:
+> The rds file were the old RDS API, before we add it at V4L2. We should, instead,
+> convert saa6588 to use the new way, and remove the legacy stuff.
+
+No, this was never the RDS API. It is the saa6588 kernel-internal API.
+There is nothing wrong with it, except for the fact that the name suggests
+that this is a generic RDS API, when in fact it is saa6588 specific.
+
+> >>> Ditto for media/bt819.h.
+> >>
+> >> There are also some issues there related to videodev2 stuff.
+> >>
+> >> I prefer to apply the path as-is (just removing the ovcamchip.h) and,
+> >> on some later cleanup, check and fix the remaining stuff.
+> > 
+> > I can make a patch fixing the rds.h header usage. It's all internal stuff
+> > and the weird naming is just historical and should be changed.
 > 
-> #define FOO(x)                                  \
->         do {                                    \
->                 if (blah(x) < 0)                \
->                         return -EBUGGERED;      \
->         } while(0)
+> It would be nice if you can do it.
+
+Will do.
+
 > 
-> is a _very_ bad idea.  It looks like a function call but exits the
-> "calling" function; don't break the internal parsers of those who will
-> read the code."
+> >>>
+> >>> All other patches in this series:
+> >>>
+> >>> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+> >>
+> >> Thanks!
+> >>>
+> >>> BTW, it is probably also a good idea to move the dabusb driver to staging and
+> >>> mark it for removal in 2.6.39.
+> >>
+> >> Not sure about that. I don't see any good reason to remove dabusb driver, as
+> >> nobody reported that it is broken.
+> > 
+> > Nobody has the hardware :-)
+> 
+> This is too strong :) Are you absolutely sure that there's absolutely nobody in
+> the World with that hardware? ;)
 
-I know about Documentation/CodingStyle and absolutely know about 
-the risks of MACRO like upper case. I even know the _very_'s meanings.
-But, I think this case is different any other MACRO cases to be concrete
-whether use or not. Actually, I've not even found address symbol using T32
-debuggers cause of MACROs. I have realized danger before long time.
+I did some digging and found out the following:
 
-I know Documentation/CodingStyle is very strong recommandation.
-And must keep this style but, it seems to happen the specific case.
-The specific means, not general and only used in the M5MOLS code.
-The following is my thinking at past.
+The hardware in question was only an engineering sample which was later licensed
+to Terratec for their 'Dr Box 1' product.
 
-1. There are a lot of I2C communication is in M5MOLS driver code.
-   The M5MOLS has 16 category, and about 50 commands in the each category.
-   If each command need 1 line on the code, the amount to be charged I2C
-   communication only is 800 lines. What if each command be plused 3~4
-   error checking code? The code amount is 3200 lines at least. Moreover,
-   No guarantiee 1 command only 1 time excuetion. So, 3200 more lines
-   would be added at the future. (The m5mo driver you've seen and used before,
-   is not yet inserted all controls.)
+See:
 
-   For now, this driver supports only small function. But, If any all other
-   controls inserted this code, I can guarantee. it seems so hard to catch
-   the flow of code and operation. And, it seems to cause more problems for
-   functionalities and hiding bugs, rather than keep using CodingStyle.
+http://www.baycom.de/wiki/index.php/Products::dabusbhw
+http://www.baycom.de/wiki/index.php/Products::dabusb
 
-2. m5mols I2C communications, namely m5mols_read_reg/write_reg is needed
-   many arguments. It violates to do checkpatch.pl 80 characters frequently.
-   So, I inserted next lines the rest of m5mols_read_reg(), it effects more
-   line added, consequently it looks like upper case.
+The authors of the driver seemed to have developed the driver a bit more. The
+latest source I've been able to find it here:
 
-3. Any other reason is discussed with Hans. And he explained alternative method.
-   so, I'll follow this because I think he is right.
+http://www.baycom.de/download/dabusb/beta/dabusb-linux-i386.tgz
 
-I thought, exact when the wrong MACRO usage case told at CodingStyle is happened.
-(I don't believe that wrong MACRO usage must keep all the time in the kernel code.)
-And concluded If another code(like a general function used in various driver,
-kernel core. etc.) use dangerous MACROs, the developer do not know well MACROs,
-it would happen the problems. 
+The driver in the kernel only supports the engineering samples. The newer driver
+on baycom.de also supports the Terratec product (which is no longer sold either).
 
-But, this MACROs in M5MOLS driver is only use in this code itself.
+> > I know you have asked the authors about a possible removal of this driver a few
+> > months ago. Did you get any reply from them?
+> 
+> Nope.
 
-Then, I wanna ask Sylwester.
-Can you explain to me exact reasonable why "don't look good" in the M5MOLS case,
-rather than the truth enumerating Documentaion, to be kept by linux driver developers?
+You should try again, but use their baycom email:
 
-Actually I already was working another version of driver. and removed this MACRO's.
-Because It's not to declare in the CodingStyle, said not to do that.
-Because I know and hear the another reasonable why.
+http://www.baycom.de/wiki/index.php/Contact
+ 
+> > It seems to be a demonstration driver only and I've never seen anyone with the
+> > hardware.
+> 
+> It seems so, but I can't see any technical reason for its removal. The BKL fix were
+> applied on it, as someone wrote a patch for it.
 
-I wanna just know resonable why of you thinking.
+There are a few reasons why I would like to remove this driver:
 
-If you check this reasons and tell me, I reflects your opinions straightly.
+1) The driver is for an engineering sample only which was never sold as a commercial
+   product.
+2) The DAB API is completely undocumented and was never reviewed. Should other DAB
+   drivers ever appear, then I'd rather start from scratch defining an API then
+   continue this dubious API.
 
-< snip >
-
-Very thanks to review one more time. and Welcome any time :)
+Perhaps baycom themselves might even be interested in working with us to design
+something better.
 
 Regards,
-Heungjun Kim
 
+	Hans
 
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
