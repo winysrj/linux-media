@@ -1,95 +1,71 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:1154 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:61643 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752988Ab0L1DMa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Dec 2010 22:12:30 -0500
-Message-ID: <4D195584.6020409@redhat.com>
-Date: Tue, 28 Dec 2010 01:12:04 -0200
+	id S1753714Ab0L0NKU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Dec 2010 08:10:20 -0500
+Message-ID: <4D189037.2000506@redhat.com>
+Date: Mon, 27 Dec 2010 11:10:15 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
 CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 0/8] Fix V4L/DVB/RC warnings
-References: <e95cvd7ycvmoq6jolupfigs0.1293494109547@email.android.com>
-In-Reply-To: <e95cvd7ycvmoq6jolupfigs0.1293494109547@email.android.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH 3/6] Documentation/ioctl/ioctl-number.txt: Remove some
+ now freed ioctl ranges
+References: <cover.1293449547.git.mchehab@redhat.com> <20101227093839.09aebd15@gaivota> <201012271301.21722.hverkuil@xs4all.nl>
+In-Reply-To: <201012271301.21722.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 27-12-2010 21:55, Andy Walls escreveu:
-> I have hardware for lirc_zilog.  I can look later this week.
+Em 27-12-2010 10:01, Hans Verkuil escreveu:
+> On Monday, December 27, 2010 12:38:39 Mauro Carvalho Chehab wrote:
+>> The V4L1 removal patches removed a few ioctls. Update it at the docspace.
+>>
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>
 
-That would be great!
+Reviewed version, removing also ovcamchip.h.
 
-> I also have hardware that lirc_i2c handles but not all the hardware it handles.
-> 
->  IIRC lirc_i2c is very much like ir-kbd-i2c, so do we need it anymore?  I'm not able to check for myself at the moment.
+Cheers,
+Mauro
 
-Both ir-kbd-i2c and lirc_i2c have almost the same features. We need to
-double-check if all I2C addresses supported by lirc_i2c are also supported
-by ir-kbd-i2c and if all I2C chipsets are supported.
 
-> 
-> Regards,
-> Andy
-> 
-> Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> 
->>
->> There were several warnings at the subsystem, that were catched with
->> gcc version 4.5.1. All of them are fixed on those patches by a 
->> trivial patch. So, let's fix them ;)
->>
->> Now, the only remaining patches are the ones we want to be there:
->>
->> drivers/staging/lirc/lirc_i2c.c: In function ‘ir_probe’:
->> drivers/staging/lirc/lirc_i2c.c:431:3: warning: ‘id’ is deprecated (declared at include/linux/i2c.h:356)
->> drivers/staging/lirc/lirc_i2c.c:450:3: warning: ‘id’ is deprecated (declared at include/linux/i2c.h:356)
->> drivers/staging/lirc/lirc_i2c.c:479:9: warning: ‘id’ is deprecated (declared at include/linux/i2c.h:356)
->> drivers/staging/lirc/lirc_zilog.c: In function ‘ir_probe’:
->> drivers/staging/lirc/lirc_zilog.c:1199:2: warning: ‘id’ is deprecated (declared at include/linux/i2c.h:356)
->> drivers/media/video/cx88/cx88-i2c.c: In function ‘cx88_i2c_init’:
->> drivers/media/video/cx88/cx88-i2c.c:149:2: warning: ‘id’ is deprecated (declared at include/linux/i2c.h:356)
->> drivers/media/video/cx88/cx88-vp3054-i2c.c: In function ‘vp3054_i2c_probe’:
->> drivers/media/video/cx88/cx88-vp3054-i2c.c:128:2: warning: ‘id’ is deprecated (declared at include/linux/i2c.h:356)
->>
->> They are basically caused by lirc_i2c and lirc_zilog, that still needs
->> to use the legacy .id field at the I2C structs. Somebody with those
->> hardware, please fix it.
->>
->> Thanks,
->> Mauro
->>
->> -
->>
->> Mauro Carvalho Chehab (8):
->>  [media] dmxdev: Fix a compilation warning due to a bad type
->>  [media] radio-wl1273: Fix two warnings
->>  [media] lirc_zilog: Fix a warning
->>  [media] dib7000m/dib7000p: Add support for TRANSMISSION_MODE_4K
->>  [media] gspca: Fix a warning for using len before filling it
->>  [media] stv090x: Fix some compilation warnings
->>  [media] af9013: Fix a compilation warning
->>  [media] streamzap: Fix a compilation warning when compiled builtin
->>
->> drivers/media/dvb/dvb-core/dmxdev.c    |    4 ++--
->> drivers/media/dvb/frontends/af9013.c   |    2 +-
->> drivers/media/dvb/frontends/dib7000m.c |   10 +++++-----
->> drivers/media/dvb/frontends/dib7000p.c |   10 +++++-----
->> drivers/media/dvb/frontends/stv090x.c  |    6 +++---
->> drivers/media/radio/radio-wl1273.c     |    3 +--
->> drivers/media/rc/streamzap.c           |    2 +-
->> drivers/media/video/gspca/gspca.c      |    2 +-
->> drivers/staging/lirc/lirc_zilog.c      |    1 -
->> 9 files changed, 19 insertions(+), 21 deletions(-)
->>
->> -- 
->> 1.7.3.4
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> N�����r��y���b�X��ǧv�^�)޺{.n�+����{���bj)���w*jg��������ݢj/���z�ޖ��2�ޙ���&�)ߡ�a�����G���h��j:+v���w�٥
+commit 49962bb3d96c7b174198dc6fe7103426512ac2aa
+Author: Mauro Carvalho Chehab <mchehab@redhat.com>
+Date:   Mon Dec 27 09:13:12 2010 -0200
+
+    Documentation/ioctl/ioctl-number.txt: Remove some now freed ioctl ranges
+    
+    The V4L1 removal patches removed a few ioctls. Update it at the docspace.
+    
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/Documentation/ioctl/ioctl-number.txt b/Documentation/ioctl/ioctl-number.txt
+index 63ffd78..b2400d7 100644
+--- a/Documentation/ioctl/ioctl-number.txt
++++ b/Documentation/ioctl/ioctl-number.txt
+@@ -260,14 +260,11 @@ Code  Seq#(hex)	Include File		Comments
+ 't'	80-8F	linux/isdn_ppp.h
+ 't'	90	linux/toshiba.h
+ 'u'	00-1F	linux/smb_fs.h		gone
+-'v'	all	linux/videodev.h	conflict!
+ 'v'	00-1F	linux/ext2_fs.h		conflict!
+ 'v'	00-1F	linux/fs.h		conflict!
+ 'v'	00-0F	linux/sonypi.h		conflict!
+-'v'	C0-CF	drivers/media/video/ov511.h	conflict!
+ 'v'	C0-DF	media/pwc-ioctl.h	conflict!
+ 'v'	C0-FF	linux/meye.h		conflict!
+-'v'	C0-CF	drivers/media/video/zoran/zoran.h	conflict!
+ 'v'	D0-DF	drivers/media/video/cpia2/cpia2dev.h	conflict!
+ 'w'	all				CERN SCI driver
+ 'y'	00-1F				packet based user level communications
+@@ -278,7 +275,6 @@ Code  Seq#(hex)	Include File		Comments
+ 					<mailto:oe@port.de>
+ 'z'	10-4F	drivers/s390/crypto/zcrypt_api.h	conflict!
+ 0x80	00-1F	linux/fb.h
+-0x88	00-3F	media/ovcamchip.h
+ 0x89	00-06	arch/x86/include/asm/sockios.h
+ 0x89	0B-DF	linux/sockios.h
+ 0x89	E0-EF	linux/sockios.h		SIOCPROTOPRIVATE range
 
