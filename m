@@ -1,243 +1,130 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:62162 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753857Ab0LPOYS (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1800 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753746Ab0L0NXn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Dec 2010 09:24:18 -0500
-Received: from spt2.w1.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LDI00856YOFME@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 16 Dec 2010 14:24:15 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LDI00JJ6YOE4G@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 16 Dec 2010 14:24:15 +0000 (GMT)
-Date: Thu, 16 Dec 2010 15:24:00 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 3/8] v4l: videobuf2: add vmalloc allocator
-In-reply-to: <1292509445-15100-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	kyungmin.park@samsung.com, andrzej.p@samsung.com
-Message-id: <1292509445-15100-4-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1292509445-15100-1-git-send-email-m.szyprowski@samsung.com>
+	Mon, 27 Dec 2010 08:23:43 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 3/6] Documentation/ioctl/ioctl-number.txt: Remove some now freed ioctl ranges
+Date: Mon, 27 Dec 2010 14:23:26 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <cover.1293449547.git.mchehab@redhat.com> <201012271301.21722.hverkuil@xs4all.nl> <4D188E87.9010700@redhat.com>
+In-Reply-To: <4D188E87.9010700@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201012271423.26288.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-From: Pawel Osciak <p.osciak@samsung.com>
+On Monday, December 27, 2010 14:03:03 Mauro Carvalho Chehab wrote:
+> Em 27-12-2010 10:01, Hans Verkuil escreveu:
+> > On Monday, December 27, 2010 12:38:39 Mauro Carvalho Chehab wrote:
+> >> The V4L1 removal patches removed a few ioctls. Update it at the docspace.
+> >>
+> >> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> >>
+> >> diff --git a/Documentation/ioctl/ioctl-number.txt b/Documentation/ioctl/ioctl-number.txt
+> >> index 63ffd78..49d7f00 100644
+> >> --- a/Documentation/ioctl/ioctl-number.txt
+> >> +++ b/Documentation/ioctl/ioctl-number.txt
+> >> @@ -260,14 +260,11 @@ Code  Seq#(hex)	Include File		Comments
+> >>  't'	80-8F	linux/isdn_ppp.h
+> >>  't'	90	linux/toshiba.h
+> >>  'u'	00-1F	linux/smb_fs.h		gone
+> >> -'v'	all	linux/videodev.h	conflict!
+> >>  'v'	00-1F	linux/ext2_fs.h		conflict!
+> >>  'v'	00-1F	linux/fs.h		conflict!
+> >>  'v'	00-0F	linux/sonypi.h		conflict!
+> >> -'v'	C0-CF	drivers/media/video/ov511.h	conflict!
+> >>  'v'	C0-DF	media/pwc-ioctl.h	conflict!
+> >>  'v'	C0-FF	linux/meye.h		conflict!
+> >> -'v'	C0-CF	drivers/media/video/zoran/zoran.h	conflict!
+> >>  'v'	D0-DF	drivers/media/video/cpia2/cpia2dev.h	conflict!
+> >>  'w'	all				CERN SCI driver
+> >>  'y'	00-1F				packet based user level communications
+> >>
+> > 
+> > There is also a line for media/ovcamchip.h in this file that can be removed.
+> 
+> Ok, I'll do that.
+> 
+> > The media/rds.h line can also be removed (this is kernel internal only).
+> 
+> There are two rds.h, related to V4L:
+> ./include/linux/rds.h
 
-Add an implementation of contiguous virtual memory allocator and handling
-routines for videobuf2, implemented on top of vmalloc()/vfree() calls.
+Not related to V4L, this is something from Oracle. It is this header that is public,
+not the media/rds.h header.
 
-Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: Pawel Osciak <pawel@osciak.com>
----
- drivers/media/video/Kconfig             |    5 +
- drivers/media/video/Makefile            |    1 +
- drivers/media/video/videobuf2-vmalloc.c |  132 +++++++++++++++++++++++++++++++
- include/media/videobuf2-vmalloc.h       |   20 +++++
- 4 files changed, 158 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/videobuf2-vmalloc.c
- create mode 100644 include/media/videobuf2-vmalloc.h
+> ./include/media/rds.h
+> 
+> One of them is at the public api:
+> 
+> include/linux/Kbuild:header-y += rds.h
+> 
+> Btw, that's weird:
+> 
+> $ git grep RDS_CMD_OPEN
+> drivers/media/video/saa6588.c:    case RDS_CMD_OPEN:
+> include/media/rds.h:#define RDS_CMD_OPEN  _IOW('R',1,int)
+> 
+> as saa6588 is a subdev.
+> 
+> IMO, we should remove or rename the internal header first.
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 3c239fa..2606f49 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -55,6 +55,11 @@ config VIDEOBUF2_CORE
- config VIDEOBUF2_MEMOPS
- 	tristate
+media/rds.h should be renamed to media/saa6588.h. It is also included in
+drivers/media/radio/si470x/radio-si470x.h, but that's obsolete and can be
+removed.
  
-+config VIDEOBUF2_VMALLOC
-+	select VIDEOBUF2_CORE
-+	select VIDEOBUF2_MEMOPS
-+	tristate
-+
- #
- # Multimedia Video device configuration
- #
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index a97a2a0..538bee9 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -116,6 +116,7 @@ obj-$(CONFIG_VIDEO_BTCX)  += btcx-risc.o
- 
- obj-$(CONFIG_VIDEOBUF2_CORE)		+= videobuf2-core.o
- obj-$(CONFIG_VIDEOBUF2_MEMOPS)		+= videobuf2-memops.o
-+obj-$(CONFIG_VIDEOBUF2_VMALLOC)		+= videobuf2-vmalloc.o
- 
- obj-$(CONFIG_V4L2_MEM2MEM_DEV) += v4l2-mem2mem.o
- 
-diff --git a/drivers/media/video/videobuf2-vmalloc.c b/drivers/media/video/videobuf2-vmalloc.c
-new file mode 100644
-index 0000000..b5e6936
---- /dev/null
-+++ b/drivers/media/video/videobuf2-vmalloc.c
-@@ -0,0 +1,132 @@
-+/*
-+ * videobuf2-vmalloc.c - vmalloc memory allocator for videobuf2
-+ *
-+ * Copyright (C) 2010 Samsung Electronics
-+ *
-+ * Author: Pawel Osciak <p.osciak@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/mm.h>
-+#include <linux/slab.h>
-+#include <linux/vmalloc.h>
-+
-+#include <media/videobuf2-core.h>
-+#include <media/videobuf2-memops.h>
-+
-+struct vb2_vmalloc_buf {
-+	void				*vaddr;
-+	unsigned long			size;
-+	atomic_t			refcount;
-+	struct vb2_vmarea_handler	handler;
-+};
-+
-+static void vb2_vmalloc_put(void *buf_priv);
-+
-+static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size)
-+{
-+	struct vb2_vmalloc_buf *buf;
-+
-+	buf = kzalloc(sizeof *buf, GFP_KERNEL);
-+	if (!buf)
-+		return NULL;
-+
-+	buf->size = size;
-+	buf->vaddr = vmalloc_user(buf->size);
-+	buf->handler.refcount = &buf->refcount;
-+	buf->handler.put = vb2_vmalloc_put;
-+	buf->handler.arg = buf;
-+
-+	if (!buf->vaddr) {
-+		printk(KERN_ERR "vmalloc of size %ld failed\n", buf->size);
-+		kfree(buf);
-+		return NULL;
-+	}
-+
-+	atomic_inc(&buf->refcount);
-+	printk(KERN_DEBUG "Allocated vmalloc buffer of size %ld at vaddr=%p\n",
-+			buf->size, buf->vaddr);
-+
-+	return buf;
-+}
-+
-+static void vb2_vmalloc_put(void *buf_priv)
-+{
-+	struct vb2_vmalloc_buf *buf = buf_priv;
-+
-+	if (atomic_dec_and_test(&buf->refcount)) {
-+		printk(KERN_DEBUG "%s: Freeing vmalloc mem at vaddr=%p\n",
-+			__func__, buf->vaddr);
-+		vfree(buf->vaddr);
-+		kfree(buf);
-+	}
-+}
-+
-+static void *vb2_vmalloc_vaddr(void *buf_priv)
-+{
-+	struct vb2_vmalloc_buf *buf = buf_priv;
-+
-+	BUG_ON(!buf);
-+
-+	if (!buf->vaddr) {
-+		printk(KERN_ERR "Address of an unallocated plane requested\n");
-+		return NULL;
-+	}
-+
-+	return buf->vaddr;
-+}
-+
-+static unsigned int vb2_vmalloc_num_users(void *buf_priv)
-+{
-+	struct vb2_vmalloc_buf *buf = buf_priv;
-+	return atomic_read(&buf->refcount);
-+}
-+
-+static int vb2_vmalloc_mmap(void *buf_priv, struct vm_area_struct *vma)
-+{
-+	struct vb2_vmalloc_buf *buf = buf_priv;
-+	int ret;
-+
-+	if (!buf) {
-+		printk(KERN_ERR "No memory to map\n");
-+		return -EINVAL;
-+	}
-+
-+	ret = remap_vmalloc_range(vma, buf->vaddr, 0);
-+	if (ret) {
-+		printk(KERN_ERR "Remapping vmalloc memory, error: %d\n", ret);
-+		return ret;
-+	}
-+
-+	/*
-+	 * Make sure that vm_areas for 2 buffers won't be merged together
-+	 */
-+	vma->vm_flags		|= VM_DONTEXPAND;
-+
-+	/*
-+	 * Use common vm_area operations to track buffer refcount.
-+	 */
-+	vma->vm_private_data	= &buf->handler;
-+	vma->vm_ops		= &vb2_common_vm_ops;
-+
-+	vma->vm_ops->open(vma);
-+
-+	return 0;
-+}
-+
-+const struct vb2_mem_ops vb2_vmalloc_memops = {
-+	.alloc		= vb2_vmalloc_alloc,
-+	.put		= vb2_vmalloc_put,
-+	.vaddr		= vb2_vmalloc_vaddr,
-+	.mmap		= vb2_vmalloc_mmap,
-+	.num_users	= vb2_vmalloc_num_users,
-+};
-+EXPORT_SYMBOL_GPL(vb2_vmalloc_memops);
-+
-+MODULE_DESCRIPTION("vmalloc memory handling routines for videobuf2");
-+MODULE_AUTHOR("Pawel Osciak");
-+MODULE_LICENSE("GPL");
-diff --git a/include/media/videobuf2-vmalloc.h b/include/media/videobuf2-vmalloc.h
-new file mode 100644
-index 0000000..a76b8af
---- /dev/null
-+++ b/include/media/videobuf2-vmalloc.h
-@@ -0,0 +1,20 @@
-+/*
-+ * videobuf2-vmalloc.h - vmalloc memory allocator for videobuf2
-+ *
-+ * Copyright (C) 2010 Samsung Electronics
-+ *
-+ * Author: Pawel Osciak <p.osciak@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation.
-+ */
-+
-+#ifndef _MEDIA_VIDEOBUF2_VMALLOC_H
-+#define _MEDIA_VIDEOBUF2_VMALLOC_H
-+
-+#include <media/videobuf2-core.h>
-+
-+extern const struct vb2_mem_ops vb2_vmalloc_memops;
-+
-+#endif
+> > Ditto for media/bt819.h.
+> 
+> There are also some issues there related to videodev2 stuff.
+> 
+> I prefer to apply the path as-is (just removing the ovcamchip.h) and,
+> on some later cleanup, check and fix the remaining stuff.
+
+I can make a patch fixing the rds.h header usage. It's all internal stuff
+and the weird naming is just historical and should be changed.
+
+> > 
+> > All other patches in this series:
+> > 
+> > Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+> 
+> Thanks!
+> > 
+> > BTW, it is probably also a good idea to move the dabusb driver to staging and
+> > mark it for removal in 2.6.39.
+> 
+> Not sure about that. I don't see any good reason to remove dabusb driver, as
+> nobody reported that it is broken.
+
+Nobody has the hardware :-)
+
+I know you have asked the authors about a possible removal of this driver a few
+months ago. Did you get any reply from them?
+
+It seems to be a demonstration driver only and I've never seen anyone with the
+hardware.
+
+Regards,
+
+	Hans
+
+> > 
+> > Regards,
+> > 
+> > 	Hans
+> > 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
 -- 
-1.7.1.569.g6f426
-
+Hans Verkuil - video4linux developer - sponsored by Cisco
