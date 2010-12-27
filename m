@@ -1,39 +1,75 @@
 Return-path: <mchehab@gaivota>
-Received: from cantor.suse.de ([195.135.220.2]:42570 "EHLO mx1.suse.de"
+Received: from d1.icnet.pl ([212.160.220.21]:50666 "EHLO d1.icnet.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753021Ab0LWDew (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Dec 2010 22:34:52 -0500
-Date: Wed, 22 Dec 2010 19:34:54 -0800
-From: Greg KH <gregkh@suse.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
-	clemens@ladisch.de, sakari.ailus@maxwell.research.nokia.com
-Subject: Re: [RFC/PATCH v7 01/12] media: Media device node support
-Message-ID: <20101223033454.GC14692@suse.de>
-References: <1292844995-7900-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1292844995-7900-2-git-send-email-laurent.pinchart@ideasonboard.com>
+	id S1753043Ab0L0KdT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Dec 2010 05:33:19 -0500
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] dma_declare_coherent_memory: push ioremap() up to caller
+Date: Mon, 27 Dec 2010 11:29:36 +0100
+Cc: "Russell King - ARM Linux" <linux@arm.linux.org.uk>,
+	linux-arch@vger.kernel.org, "Greg Kroah-Hartman" <gregkh@suse.de>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Arnd Bergmann <arnd@arndb.de>,
+	Dan Williams <dan.j.williams@intel.com>,
+	linux-sh@vger.kernel.org, Paul Mundt <lethal@linux-sh.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-usb@vger.kernel.org,
+	David Brownell <dbrownell@users.sourceforge.net>,
+	linux-media@vger.kernel.org, linux-scsi@vger.kernel.org,
+	"James E.J. Bottomley" <James.Bottomley@suse.de>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+References: <201012240020.37208.jkrzyszt@tis.icnet.pl> <201012250024.38576.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1012261837450.20458@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1012261837450.20458@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-In-Reply-To: <1292844995-7900-2-git-send-email-laurent.pinchart@ideasonboard.com>
+Message-Id: <201012271129.44434.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Mon, Dec 20, 2010 at 12:36:24PM +0100, Laurent Pinchart wrote:
-> +/*
-> + * Flag to mark the media_devnode struct as registered. Drivers must not touch
-> + * this flag directly, it will be set and cleared by media_devnode_register and
-> + * media_devnode_unregister.
-> + */
-> +#define MEDIA_FLAG_REGISTERED	0
+Sunday 26 December 2010 18:45:00 Guennadi Liakhovetski wrote:
+> On Sat, 25 Dec 2010, Janusz Krzysztofik wrote:
+>
+> [snip]
+>
+> > > Passing the virtual address allows the API to become much more
+> > > flexible. Not only that, it allows it to be used on ARM, rather
+> > > than becoming (as it currently stands) prohibited on ARM.
+> > >
+> > > I believe that putting ioremap() inside this API was the wrong
+> > > thing to do, and moving it outside makes the API much more
+> > > flexible and usable. It's something I still fully support.
+> >
+> > Thanks, this is what I was missing, having my point of view rather
+> > my machine centric, with not much wider experience. I'll quote your
+> > argumentation in next iteration of this patch if required.
+>
+> AFAIU, this patch is similar to the previous two attempts:
+>
+> http://www.spinics.net/lists/linux-sh/msg05482.html
+> and
+> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructur
+>e/22271
+>
+> but is even more intrusive, because those two previous attempts added
+> new functions, whereas this one is modifying an existing one. Both
+> those two attempts have been NACKed by FUJITA Tomonori, btw, he is 
+> not on the otherwise extensive CC list for this patch.
 
-It's a define, not a flag, or anything that any driver could touch.
+Hi Guennadi,
+I composed that extensive CC list based on what I was able to find in 
+MAINTAINERS for any files being modified, additionally adding Catalin 
+Marinas as one of the idea promoters. FUJITA Tomonori's name was not 
+specified there, nor was he mentioned as an author of any of those 
+files. Adding him per your advice.
 
-And if you don't want anyone to touch the thing, then make it private
-and unable to be touched by anyone else.  Otherwise it will be
-touched...
+NB, the rationale quoted above is provided by courtesy of Russell King, 
+and not of my authoriship, as it may look like at a first glance from 
+your snip result.
 
-thanks,
-
-greg k-h
+Thanks,
+Janusz
