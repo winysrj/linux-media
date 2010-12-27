@@ -1,64 +1,51 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4567 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753331Ab0L0MB2 (ORCPT
+Received: from mx1.redhat.com ([209.132.183.28]:36572 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753588Ab0L0QXV convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Dec 2010 07:01:28 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 3/6] Documentation/ioctl/ioctl-number.txt: Remove some now freed ioctl ranges
-Date: Mon, 27 Dec 2010 13:01:21 +0100
-References: <cover.1293449547.git.mchehab@redhat.com> <20101227093839.09aebd15@gaivota>
-In-Reply-To: <20101227093839.09aebd15@gaivota>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201012271301.21722.hverkuil@xs4all.nl>
+	Mon, 27 Dec 2010 11:23:21 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oBRGNKW2000393
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 27 Dec 2010 11:23:20 -0500
+Received: from gaivota (vpn-11-243.rdu.redhat.com [10.11.11.243])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id oBRGNDpC028091
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 27 Dec 2010 11:23:18 -0500
+Date: Mon, 27 Dec 2010 14:22:42 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 8/8] [media] streamzap: Fix a compilation warning when
+ compiled builtin
+Message-ID: <20101227142242.295a3ddf@gaivota>
+In-Reply-To: <cover.1293466891.git.mchehab@redhat.com>
+References: <cover.1293466891.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Monday, December 27, 2010 12:38:39 Mauro Carvalho Chehab wrote:
-> The V4L1 removal patches removed a few ioctls. Update it at the docspace.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> diff --git a/Documentation/ioctl/ioctl-number.txt b/Documentation/ioctl/ioctl-number.txt
-> index 63ffd78..49d7f00 100644
-> --- a/Documentation/ioctl/ioctl-number.txt
-> +++ b/Documentation/ioctl/ioctl-number.txt
-> @@ -260,14 +260,11 @@ Code  Seq#(hex)	Include File		Comments
->  't'	80-8F	linux/isdn_ppp.h
->  't'	90	linux/toshiba.h
->  'u'	00-1F	linux/smb_fs.h		gone
-> -'v'	all	linux/videodev.h	conflict!
->  'v'	00-1F	linux/ext2_fs.h		conflict!
->  'v'	00-1F	linux/fs.h		conflict!
->  'v'	00-0F	linux/sonypi.h		conflict!
-> -'v'	C0-CF	drivers/media/video/ov511.h	conflict!
->  'v'	C0-DF	media/pwc-ioctl.h	conflict!
->  'v'	C0-FF	linux/meye.h		conflict!
-> -'v'	C0-CF	drivers/media/video/zoran/zoran.h	conflict!
->  'v'	D0-DF	drivers/media/video/cpia2/cpia2dev.h	conflict!
->  'w'	all				CERN SCI driver
->  'y'	00-1F				packet based user level communications
-> 
+drivers/media/rc/streamzap.c: In function ‘streamzap_probe’:
+drivers/media/rc/streamzap.c:460:2: warning: statement with no effect
 
-There is also a line for media/ovcamchip.h in this file that can be removed.
-The media/rds.h line can also be removed (this is kernel internal only).
-Ditto for media/bt819.h.
+Cc: Jarod Wilson <jarod@redhat.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-All other patches in this series:
-
-Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
-
-BTW, it is probably also a good idea to move the dabusb driver to staging and
-mark it for removal in 2.6.39.
-
-Regards,
-
-	Hans
-
+diff --git a/drivers/media/rc/streamzap.c b/drivers/media/rc/streamzap.c
+index 7f82f55..6e2911c 100644
+--- a/drivers/media/rc/streamzap.c
++++ b/drivers/media/rc/streamzap.c
+@@ -73,7 +73,7 @@ MODULE_DEVICE_TABLE(usb, streamzap_table);
+ #ifdef CONFIG_IR_RC5_SZ_DECODER_MODULE
+ #define load_rc5_sz_decode()    request_module("ir-rc5-sz-decoder")
+ #else
+-#define load_rc5_sz_decode()    0
++#define load_rc5_sz_decode()    {}
+ #endif
+ 
+ enum StreamzapDecoderState {
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+1.7.3.4
+
