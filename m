@@ -1,445 +1,247 @@
 Return-path: <mchehab@gaivota>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:39182 "EHLO
-	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750744Ab0L3FOW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Dec 2010 00:14:22 -0500
-From: Jeongtae Park <jtp.park@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: k.debski@samsung.com, jaeryul.oh@samsung.com,
-	jonghun.han@samsung.com, m.szyprowski@samsung.com,
-	kgene.kim@samsung.com, Jeongtae Park <jtp.park@samsung.com>
-Subject: [PATCH 1/1] v4l: videobuf2: Add DMA pool allocator
-Date: Thu, 30 Dec 2010 13:55:07 +0900
-Message-Id: <1293684907-7272-2-git-send-email-jtp.park@samsung.com>
-In-Reply-To: <1293684907-7272-1-git-send-email-jtp.park@samsung.com>
-References: <1293684907-7272-1-git-send-email-jtp.park@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:56276 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752475Ab0L0LmN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Dec 2010 06:42:13 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oBRBgDbB026915
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 27 Dec 2010 06:42:13 -0500
+Received: from gaivota (vpn-11-156.rdu.redhat.com [10.11.11.156])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id oBRBd1iP001764
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 27 Dec 2010 06:42:12 -0500
+Date: Mon, 27 Dec 2010 09:38:32 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 5/6] [media] Remove the old V4L1 v4lgrab.c file
+Message-ID: <20101227093832.6f363f55@gaivota>
+In-Reply-To: <cover.1293449547.git.mchehab@redhat.com>
+References: <cover.1293449547.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Add an implementation of DMA pool memory allocator and handling
-routines for videobuf2. The DMA pool allocator allocates a memory
-using dma_alloc_coherent(), creates a pool using generic allocator
-in the initialization. For every allocation requests, the allocator
-returns a part of its memory pool using generic allocator instead
-of new memory allocation.
+This example file uses the old V4L1 API. It also doesn't use libv4l.
+So, it is completely obsolete. A good example already exists at
+v4l-utils (v4l2grab.c):
+	http://git.linuxtv.org/v4l-utils.git
 
-This allocator used for devices have below limitations.
-- the start address should be aligned
-- the range of memory access limited to the offset from the start
-  address (= the allocation address should be existed in a
-  constant offset from the start address)
-- the allocation address should be aligned
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Reviewed-by: Jonghun Han <jonghun.han@samsung.com>
-Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Kamil Debski <k.debski@samsung.com>
----
-This allocator used for s5p-mfc. s5p-mfc has above limitations.
-The CMA and CMA allocator for videobuf2 can be resolve all of
-described limitations, but the CMA merge schedule is not fixed yet.
-Therefore CMA allocator for videobuf2 also cannot be used in the
-driver currently. The s5p-mfc v4l2 driver can be validated with
-the DMA pool allocator without CMA dependency.
+ delete mode 100644 Documentation/video4linux/v4lgrab.c
 
- drivers/media/video/Kconfig              |    7 +
- drivers/media/video/Makefile             |    1 +
- drivers/media/video/videobuf2-dma-pool.c |  310 ++++++++++++++++++++++++++++++
- include/media/videobuf2-dma-pool.h       |   37 ++++
- 4 files changed, 355 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/videobuf2-dma-pool.c
- create mode 100644 include/media/videobuf2-dma-pool.h
-
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index a1b2412..cee5b0a 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -71,6 +71,13 @@ config VIDEOBUF2_DMA_SG
- 	select VIDEOBUF2_CORE
- 	select VIDEOBUF2_MEMOPS
- 	tristate
-+
-+config VIDEOBUF2_DMA_POOL
-+	select VIDEOBUF2_CORE
-+	select VIDEOBUF2_MEMOPS
-+	select GENERIC_ALLOCATOR
-+	tristate
-+
- #
- # Multimedia Video device configuration
- #
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index af33c30..eb53da3 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -120,6 +120,7 @@ obj-$(CONFIG_VIDEOBUF2_MEMOPS)		+= videobuf2-memops.o
- obj-$(CONFIG_VIDEOBUF2_VMALLOC)		+= videobuf2-vmalloc.o
- obj-$(CONFIG_VIDEOBUF2_DMA_CONTIG)	+= videobuf2-dma-contig.o
- obj-$(CONFIG_VIDEOBUF2_DMA_SG)		+= videobuf2-dma-sg.o
-+obj-$(CONFIG_VIDEOBUF2_DMA_POOL)	+= videobuf2-dma-pool.o
- 
- obj-$(CONFIG_V4L2_MEM2MEM_DEV) += v4l2-mem2mem.o
- 
-diff --git a/drivers/media/video/videobuf2-dma-pool.c b/drivers/media/video/videobuf2-dma-pool.c
-new file mode 100644
-index 0000000..59f4cba
---- /dev/null
-+++ b/drivers/media/video/videobuf2-dma-pool.c
-@@ -0,0 +1,310 @@
-+/*
-+ * videobuf2-dma-pool.c - DMA pool memory allocator for videobuf2
-+ *
-+ * Copyright (c) 2010 Samsung Electronics Co., Ltd.
-+ *		http://www.samsung.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/genalloc.h>
-+
-+#include <media/videobuf2-core.h>
-+#include <media/videobuf2-memops.h>
-+
-+#define DMA_POOL_MAGIC	0x706F6F6C
-+#define MAGIC_CHECK(is, should)					\
-+	if (unlikely((is) != (should))) {			\
-+		pr_err("magic mismatch: %x (expected %x)\n",	\
-+				(is), (should));		\
-+		BUG();						\
-+	}
-+
-+static int debug;
-+module_param(debug, int, 0644);
-+
-+#define dprintk(level, fmt, arg...)					\
-+	do {								\
-+		if (debug >= level)					\
-+			printk(KERN_DEBUG "vb2_dp: " fmt, ## arg);	\
-+	} while (0)
-+
-+struct vb2_dma_pool_conf {
-+	struct device		*dev;
-+	struct gen_pool		*pool;
-+	dma_addr_t		paddr;
-+	void			*vaddr;
-+	unsigned long		size;
-+	u32			magic;
-+};
-+
-+struct vb2_dma_pool_buf {
-+	struct vb2_dma_pool_conf	*conf;
-+	void				*vaddr;
-+	dma_addr_t			paddr;
-+	unsigned long			size;
-+	struct vm_area_struct		*vma;
-+	atomic_t			refcount;
-+	struct vb2_vmarea_handler	handler;
-+};
-+
-+static void vb2_dma_pool_put(void *buf_priv);
-+
-+static void *vb2_dma_pool_alloc(void *alloc_ctx, unsigned long size)
-+{
-+	struct vb2_dma_pool_conf *conf = alloc_ctx;
-+	struct vb2_dma_pool_buf *buf;
-+
-+	BUG_ON(!conf);
-+	MAGIC_CHECK(conf->magic, DMA_POOL_MAGIC);
-+
-+	buf = kzalloc(sizeof *buf, GFP_KERNEL);
-+	if (!buf)
-+		return ERR_PTR(-ENOMEM);
-+
-+	buf->paddr = gen_pool_alloc(conf->pool, size);
-+	if (!buf->paddr) {
-+		dev_err(conf->dev, "failed to get buffer from pool: %ld\n",
-+			size);
-+		kfree(buf);
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	buf->conf = conf;
-+	buf->vaddr = conf->vaddr + (buf->paddr - conf->paddr);
-+	buf->size = size;
-+
-+	buf->handler.refcount = &buf->refcount;
-+	buf->handler.put = vb2_dma_pool_put;
-+	buf->handler.arg = buf;
-+
-+	atomic_inc(&buf->refcount);
-+
-+	dprintk(2, "alloc-> vaddr: %p, paddr: 0x%08x, size: %ld\n",
-+		buf->vaddr, buf->paddr, size);
-+
-+	return buf;
-+}
-+
-+static void vb2_dma_pool_put(void *buf_priv)
-+{
-+	struct vb2_dma_pool_buf *buf = buf_priv;
-+
-+	dprintk(3, "put-> refcount: %d\n", atomic_read(&buf->refcount));
-+
-+	if (atomic_dec_and_test(&buf->refcount)) {
-+		dprintk(2, "put-> paddr: 0x%08x, size: %ld\n",
-+			buf->paddr, buf->size);
-+
-+		gen_pool_free(buf->conf->pool, buf->paddr, buf->size);
-+		kfree(buf);
-+	}
-+}
-+
-+static void *vb2_dma_pool_cookie(void *buf_priv)
-+{
-+	struct vb2_dma_pool_buf *buf = buf_priv;
-+
-+	if (!buf) {
-+		pr_err("failed to get buffer\n");
-+		return NULL;
-+	}
-+
-+	return (void *)buf->paddr;
-+}
-+
-+static void *vb2_dma_pool_vaddr(void *buf_priv)
-+{
-+	struct vb2_dma_pool_buf *buf = buf_priv;
-+
-+	if (!buf) {
-+		pr_err("failed to get buffer\n");
-+		return NULL;
-+	}
-+
-+	return buf->vaddr;
-+}
-+
-+static unsigned int vb2_dma_pool_num_users(void *buf_priv)
-+{
-+	struct vb2_dma_pool_buf *buf = buf_priv;
-+
-+	if (!buf) {
-+		pr_err("failed to get buffer\n");
-+		return 0;
-+	}
-+
-+	return atomic_read(&buf->refcount);
-+}
-+
-+static int vb2_dma_pool_mmap(void *buf_priv, struct vm_area_struct *vma)
-+{
-+	struct vb2_dma_pool_buf *buf = buf_priv;
-+
-+	if (!buf) {
-+		pr_err("no buffer to map\n");
-+		return -EINVAL;
-+	}
-+
-+	return vb2_mmap_pfn_range(vma, buf->paddr, buf->size,
-+				  &vb2_common_vm_ops, &buf->handler);
-+}
-+
-+const struct vb2_mem_ops vb2_dma_pool_memops = {
-+	.alloc		= vb2_dma_pool_alloc,
-+	.put		= vb2_dma_pool_put,
-+	.cookie		= vb2_dma_pool_cookie,
-+	.vaddr		= vb2_dma_pool_vaddr,
-+	.mmap		= vb2_dma_pool_mmap,
-+	.num_users	= vb2_dma_pool_num_users,
-+};
-+EXPORT_SYMBOL_GPL(vb2_dma_pool_memops);
-+
-+void *vb2_dma_pool_init(struct device *dev, unsigned long base_order,
-+			unsigned long alloc_order, unsigned long size)
-+{
-+	struct vb2_dma_pool_conf *conf;
-+	int ret;
-+	unsigned long margin, margin_order;
-+
-+	if (!(size >> alloc_order))
-+		return ERR_PTR(-EINVAL);
-+
-+	conf = kzalloc(sizeof *conf, GFP_KERNEL);
-+	if (!conf)
-+		return ERR_PTR(-ENOMEM);
-+
-+	conf->magic = DMA_POOL_MAGIC;
-+	conf->dev = dev;
-+	conf->size = size;
-+
-+	conf->vaddr = dma_alloc_coherent(conf->dev, conf->size,
-+					 &conf->paddr, GFP_KERNEL);
-+	if (!conf->vaddr) {
-+		dev_err(dev, "dma_alloc_coherent of size %ld failed\n",
-+			size);
-+		ret = -ENOMEM;
-+		goto fail_dma_alloc;
-+	}
-+
-+	dprintk(1, "init-> vaddr: %p, paddr: 0x%08x, size: %ld\n",
-+		conf->vaddr, conf->paddr, conf->size);
-+
-+	margin_order = (base_order > alloc_order) ? base_order : alloc_order;
-+	margin = ALIGN(conf->paddr, (1 << margin_order)) - conf->paddr;
-+
-+	dprintk(1, "init-> margin_order: %ld, margin: %ld\n",
-+		margin_order, margin);
-+
-+	if (margin >= conf->size) {
-+		ret = -ENOMEM;
-+		goto fail_base_align;
-+	}
-+
-+	if (!((conf->size - margin) >> alloc_order)) {
-+		ret = -ENOMEM;
-+		goto fail_base_align;
-+	}
-+
-+	conf->pool = gen_pool_create(alloc_order, -1);
-+	if (!conf->pool) {
-+		dev_err(conf->dev, "failed to create pool\n");
-+		ret = -ENOMEM;
-+		goto fail_pool_create;
-+	}
-+
-+	ret = gen_pool_add(conf->pool, (conf->paddr + margin),
-+			   (conf->size - margin), -1);
-+	if (ret) {
-+		dev_err(conf->dev, "could not add buffer to pool");
-+		goto fail_pool_add;
-+	}
-+
-+	return conf;
-+
-+fail_pool_add:
-+	gen_pool_destroy(conf->pool);
-+fail_base_align:
-+fail_pool_create:
-+	dma_free_coherent(conf->dev, conf->size, conf->vaddr, conf->paddr);
-+fail_dma_alloc:
-+	kfree(conf);
-+
-+	return ERR_PTR(ret);
-+}
-+EXPORT_SYMBOL_GPL(vb2_dma_pool_init);
-+
-+void vb2_dma_pool_cleanup(void *conf)
-+{
-+	struct vb2_dma_pool_conf *_conf;
-+
-+	_conf = (struct vb2_dma_pool_conf *)conf;
-+
-+	BUG_ON(!_conf);
-+	MAGIC_CHECK(_conf->magic, DMA_POOL_MAGIC);
-+
-+	gen_pool_destroy(_conf->pool);
-+	dma_free_coherent(_conf->dev, _conf->size, _conf->vaddr,
-+			  _conf->paddr);
-+
-+	kfree(conf);
-+}
-+EXPORT_SYMBOL_GPL(vb2_dma_pool_cleanup);
-+
-+void **vb2_dma_pool_init_multi(struct device *dev, unsigned int num_planes,
-+			       unsigned long base_orders[],
-+			       unsigned long alloc_orders[],
-+			       unsigned long sizes[])
-+{
-+	struct vb2_dma_pool_conf *conf;
-+	void **alloc_ctxes;
-+	int i, j;
-+
-+	alloc_ctxes = kzalloc(sizeof *alloc_ctxes * num_planes, GFP_KERNEL);
-+	if (!alloc_ctxes)
-+		return ERR_PTR(-ENOMEM);
-+
-+	conf = (void *)(alloc_ctxes + num_planes);
-+
-+	for (i = 0; i < num_planes; ++i, ++conf) {
-+		dprintk(1, "init_multi-> index: %d, orders: %ld, %ld\n",
-+			i, base_orders[i], alloc_orders[i]);
-+
-+		conf = vb2_dma_pool_init(dev, base_orders[i],
-+					 alloc_orders[i], sizes[i]);
-+		if (IS_ERR(conf)) {
-+			for (j = i - 1; j >= 0; j--)
-+				vb2_dma_pool_cleanup(alloc_ctxes[j]);
-+
-+			kfree(alloc_ctxes);
-+			return ERR_PTR(PTR_ERR(conf));
-+		}
-+
-+		alloc_ctxes[i] = conf;
-+	}
-+
-+	return alloc_ctxes;
-+}
-+EXPORT_SYMBOL_GPL(vb2_dma_pool_init_multi);
-+
-+void vb2_dma_pool_cleanup_multi(void **alloc_ctxes, unsigned int num_planes)
-+{
-+	int i;
-+
-+	for (i = 0; i < num_planes; i++)
-+		vb2_dma_pool_cleanup(alloc_ctxes[i]);
-+
-+	kfree(alloc_ctxes);
-+}
-+EXPORT_SYMBOL_GPL(vb2_dma_pool_cleanup_multi);
-+
-+MODULE_DESCRIPTION("DMA-pool handling routines for videobuf2");
-+MODULE_AUTHOR("Jeongtae Park");
-+MODULE_LICENSE("GPL");
-+
-diff --git a/include/media/videobuf2-dma-pool.h b/include/media/videobuf2-dma-pool.h
-new file mode 100644
-index 0000000..3cad846
---- /dev/null
-+++ b/include/media/videobuf2-dma-pool.h
-@@ -0,0 +1,37 @@
-+/*
-+ * videobuf2-dma-pool.h - DMA pool memory allocator for videobuf2
-+ *
-+ * Copyright (c) 2010 Samsung Electronics Co., Ltd.
-+ *		http://www.samsung.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#ifndef _MEDIA_VIDEOBUF2_DMA_POOL_H
-+#define _MEDIA_VIDEOBUF2_DMA_POOL_H
-+
-+#include <media/videobuf2-core.h>
-+
-+static inline unsigned long vb2_dma_pool_plane_paddr(struct vb2_buffer *vb,
-+						     unsigned int plane_no)
-+{
-+	return (unsigned long)vb2_plane_cookie(vb, plane_no);
-+}
-+
-+void *vb2_dma_pool_init(struct device *dev, unsigned long base_order,
-+			unsigned long alloc_order, unsigned long size);
-+void vb2_dma_pool_cleanup(struct vb2_alloc_ctx *alloc_ctx);
-+
-+void **vb2_dma_pool_init_multi(struct device *dev, unsigned int num_planes,
-+			       unsigned long base_orders[],
-+			       unsigned long alloc_orders[],
-+			       unsigned long sizes[]);
-+void vb2_dma_pool_cleanup_multi(void **alloc_ctxes,
-+				unsigned int num_planes);
-+
-+extern const struct vb2_mem_ops vb2_dma_pool_memops;
-+
-+#endif /* _MEDIA_VIDEOBUF2_DMA_POOL_H */
+diff --git a/Documentation/video4linux/v4lgrab.c b/Documentation/video4linux/v4lgrab.c
+deleted file mode 100644
+index c8ded17..0000000
+--- a/Documentation/video4linux/v4lgrab.c
++++ /dev/null
+@@ -1,201 +0,0 @@
+-/* Simple Video4Linux image grabber. */
+-/*
+- *	Video4Linux Driver Test/Example Framegrabbing Program
+- *
+- *	Compile with:
+- *		gcc -s -Wall -Wstrict-prototypes v4lgrab.c -o v4lgrab
+- *	Use as:
+- *		v4lgrab >image.ppm
+- *
+- *	Copyright (C) 1998-05-03, Phil Blundell <philb@gnu.org>
+- *	Copied from http://www.tazenda.demon.co.uk/phil/vgrabber.c
+- *	with minor modifications (Dave Forrest, drf5n@virginia.edu).
+- *
+- *
+- *	For some cameras you may need to pre-load libv4l to perform
+- *	the necessary decompression, e.g.:
+- *
+- *	export LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so
+- *	./v4lgrab >image.ppm
+- *
+- *	see http://hansdegoede.livejournal.com/3636.html for details.
+- *
+- */
+-
+-#include <unistd.h>
+-#include <sys/types.h>
+-#include <sys/stat.h>
+-#include <fcntl.h>
+-#include <stdio.h>
+-#include <sys/ioctl.h>
+-#include <stdlib.h>
+-
+-#include <linux/types.h>
+-#include <linux/videodev.h>
+-
+-#define VIDEO_DEV "/dev/video0"
+-
+-/* Stole this from tvset.c */
+-
+-#define READ_VIDEO_PIXEL(buf, format, depth, r, g, b)                   \
+-{                                                                       \
+-	switch (format)                                                 \
+-	{                                                               \
+-		case VIDEO_PALETTE_GREY:                                \
+-			switch (depth)                                  \
+-			{                                               \
+-				case 4:                                 \
+-				case 6:                                 \
+-				case 8:                                 \
+-					(r) = (g) = (b) = (*buf++ << 8);\
+-					break;                          \
+-									\
+-				case 16:                                \
+-					(r) = (g) = (b) =               \
+-						*((unsigned short *) buf);      \
+-					buf += 2;                       \
+-					break;                          \
+-			}                                               \
+-			break;                                          \
+-									\
+-									\
+-		case VIDEO_PALETTE_RGB565:                              \
+-		{                                                       \
+-			unsigned short tmp = *(unsigned short *)buf;    \
+-			(r) = tmp&0xF800;                               \
+-			(g) = (tmp<<5)&0xFC00;                          \
+-			(b) = (tmp<<11)&0xF800;                         \
+-			buf += 2;                                       \
+-		}                                                       \
+-		break;                                                  \
+-									\
+-		case VIDEO_PALETTE_RGB555:                              \
+-			(r) = (buf[0]&0xF8)<<8;                         \
+-			(g) = ((buf[0] << 5 | buf[1] >> 3)&0xF8)<<8;    \
+-			(b) = ((buf[1] << 2 ) & 0xF8)<<8;               \
+-			buf += 2;                                       \
+-			break;                                          \
+-									\
+-		case VIDEO_PALETTE_RGB24:                               \
+-			(r) = buf[0] << 8; (g) = buf[1] << 8;           \
+-			(b) = buf[2] << 8;                              \
+-			buf += 3;                                       \
+-			break;                                          \
+-									\
+-		default:                                                \
+-			fprintf(stderr,                                 \
+-				"Format %d not yet supported\n",        \
+-				format);                                \
+-	}                                                               \
+-}
+-
+-static int get_brightness_adj(unsigned char *image, long size, int *brightness) {
+-  long i, tot = 0;
+-  for (i=0;i<size*3;i++)
+-    tot += image[i];
+-  *brightness = (128 - tot/(size*3))/3;
+-  return !((tot/(size*3)) >= 126 && (tot/(size*3)) <= 130);
+-}
+-
+-int main(int argc, char ** argv)
+-{
+-  int fd = open(VIDEO_DEV, O_RDONLY), f;
+-  struct video_capability cap;
+-  struct video_window win;
+-  struct video_picture vpic;
+-
+-  unsigned char *buffer, *src;
+-  int bpp = 24, r = 0, g = 0, b = 0;
+-  unsigned int i, src_depth = 16;
+-
+-  if (fd < 0) {
+-    perror(VIDEO_DEV);
+-    exit(1);
+-  }
+-
+-  if (ioctl(fd, VIDIOCGCAP, &cap) < 0) {
+-    perror("VIDIOGCAP");
+-    fprintf(stderr, "(" VIDEO_DEV " not a video4linux device?)\n");
+-    close(fd);
+-    exit(1);
+-  }
+-
+-  if (ioctl(fd, VIDIOCGWIN, &win) < 0) {
+-    perror("VIDIOCGWIN");
+-    close(fd);
+-    exit(1);
+-  }
+-
+-  if (ioctl(fd, VIDIOCGPICT, &vpic) < 0) {
+-    perror("VIDIOCGPICT");
+-    close(fd);
+-    exit(1);
+-  }
+-
+-  if (cap.type & VID_TYPE_MONOCHROME) {
+-    vpic.depth=8;
+-    vpic.palette=VIDEO_PALETTE_GREY;    /* 8bit grey */
+-    if(ioctl(fd, VIDIOCSPICT, &vpic) < 0) {
+-      vpic.depth=6;
+-      if(ioctl(fd, VIDIOCSPICT, &vpic) < 0) {
+-	vpic.depth=4;
+-	if(ioctl(fd, VIDIOCSPICT, &vpic) < 0) {
+-	  fprintf(stderr, "Unable to find a supported capture format.\n");
+-	  close(fd);
+-	  exit(1);
+-	}
+-      }
+-    }
+-  } else {
+-    vpic.depth=24;
+-    vpic.palette=VIDEO_PALETTE_RGB24;
+-
+-    if(ioctl(fd, VIDIOCSPICT, &vpic) < 0) {
+-      vpic.palette=VIDEO_PALETTE_RGB565;
+-      vpic.depth=16;
+-
+-      if(ioctl(fd, VIDIOCSPICT, &vpic)==-1) {
+-	vpic.palette=VIDEO_PALETTE_RGB555;
+-	vpic.depth=15;
+-
+-	if(ioctl(fd, VIDIOCSPICT, &vpic)==-1) {
+-	  fprintf(stderr, "Unable to find a supported capture format.\n");
+-	  return -1;
+-	}
+-      }
+-    }
+-  }
+-
+-  buffer = malloc(win.width * win.height * bpp);
+-  if (!buffer) {
+-    fprintf(stderr, "Out of memory.\n");
+-    exit(1);
+-  }
+-
+-  do {
+-    int newbright;
+-    read(fd, buffer, win.width * win.height * bpp);
+-    f = get_brightness_adj(buffer, win.width * win.height, &newbright);
+-    if (f) {
+-      vpic.brightness += (newbright << 8);
+-      if(ioctl(fd, VIDIOCSPICT, &vpic)==-1) {
+-	perror("VIDIOSPICT");
+-	break;
+-      }
+-    }
+-  } while (f);
+-
+-  fprintf(stdout, "P6\n%d %d 255\n", win.width, win.height);
+-
+-  src = buffer;
+-
+-  for (i = 0; i < win.width * win.height; i++) {
+-    READ_VIDEO_PIXEL(src, vpic.palette, src_depth, r, g, b);
+-    fputc(r>>8, stdout);
+-    fputc(g>>8, stdout);
+-    fputc(b>>8, stdout);
+-  }
+-
+-  close(fd);
+-  return 0;
+-}
 -- 
-1.6.2.5
+1.7.3.4
+
 
