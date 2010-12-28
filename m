@@ -1,50 +1,54 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:12771 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755337Ab0LNNsM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Dec 2010 08:48:12 -0500
-Message-ID: <4D077581.9060008@redhat.com>
-Date: Tue, 14 Dec 2010 11:47:45 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55929 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751646Ab0L1Pjp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Dec 2010 10:39:45 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: martin@neutronstar.dyndns.org
+Subject: Re: [PATCH] v4l: OMAP3 ISP CCDC: Add support for 8bit greyscale sensors
+Date: Tue, 28 Dec 2010 16:40:04 +0100
+Cc: linux-media@vger.kernel.org
+References: <1292337823-15994-1-git-send-email-martin@neutronstar.dyndns.org> <201012150201.31635.laurent.pinchart@ideasonboard.com> <20101215095136.GI32435@neutronstar.dyndns.org>
+In-Reply-To: <20101215095136.GI32435@neutronstar.dyndns.org>
 MIME-Version: 1.0
-To: Artem Bokhan <aptem@ngs.ru>
-CC: linux-media@vger.kernel.org
-Subject: Re: problems with several saa7134 cards
-References: <4D062370.8070303@ngs.ru>
-In-Reply-To: <4D062370.8070303@ngs.ru>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201012281640.05998.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 13-12-2010 11:45, Artem Bokhan escreveu:
->  I use several (from three to five) saa7134-based cards on single PC. Currently I'm trying to migrate from 2.6.22 to 2.6.32 (ubuntu lts).
-> 
-> I've got problems which I did not have with 2.6.22 kernel:
-> 
-> 1. Depending on configuration load average holds 1 or 2 when saa7134 module is loaded. The reason is kernel process "events/".
-> 
->   PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND
->    16 root      20   0     0    0    0 S    3  0.0   9:36.89 events/1
->    15 root      20   0     0    0    0 D    3  0.0   9:35.81 events/0
+Hi Martin,
 
-Probably, it is IR polling. You may disable IR via modprobe parameter:
-$ modinfo saa7134|grep ir
-parm:           disable_ir:disable infrared remote support (int)
-
-Not sure if this parameter is on .32 kernel of if it were added on a newer one.
-
-> 2. Sound and video are not synced when recording with mencoder.
-
-I think that there are some parameters at mencoder to adjust the sync between video
-and audio (-delay?). Basically, it needs to delay either audio or video, in order to sync.
-The delay time is empiric, as the audio API doesn't provide any way to pass audio
-timestamps, currently.
+On Wednesday 15 December 2010 10:51:36 martin@neutronstar.dyndns.org wrote:
+> On Wed, Dec 15, 2010 at 02:01:31AM +0100, Laurent Pinchart wrote:
+> > Hi Martin,
+> > 
+> > Thanks for the patch.
+> > 
+> > On Tuesday 14 December 2010 15:43:43 Martin Hostettler wrote:
+> > > Adds support for V4L2_MBUS_FMT_Y8_1X8 format and 8bit data width in
+> > > syncronous interface.
 > 
+> [...]
 > 
-> The same problem with 2.6.36 kernel except "events" process have different name (can't remember exact name, sorry)
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > I got a similar patch for 12bit support. I'll try to push a new version
+> > of the ISP driver with that patch included in the next few days (it
+> > needs to go through internal review first), could you then rebase your
+> > patch on top of it ? The core infrastructure will be set up, you will
+> > just have to add 8-bit support.
+> 
+> Will do, i'll have a look at it when the new version is out.
 
+Sorry the the long delay.
+
+12-bit support is now available in http://git.linuxtv.org/pinchartl/media.git 
+(in the usual media-0004-omap3isp branch).
+
+Could you please rebase your patches on top of that ?
+
+-- 
+Regards,
+
+Laurent Pinchart
