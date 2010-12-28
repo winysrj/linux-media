@@ -1,118 +1,122 @@
 Return-path: <mchehab@gaivota>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:44655 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756110Ab0LROMA (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:21853 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754073Ab0L1RDZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Dec 2010 09:12:00 -0500
-Subject: Re: Volunteers needed: BKL removal: replace .ioctl by
- .unlocked_ioctl
-From: Andy Walls <awalls@md.metrocast.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, pawel@osciak.com,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Steven Toth <stoth@kernellabs.com>,
-	sakari.ailus@maxwell.research.nokia.com,
-	David Cohen <dacohen@gmail.com>, Janne Grunau <j@jannau.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Muralidharan Karicheri <m-karicheri2@ti.com>,
-	Mike Isely <isely@isely.net>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Anatolij Gustschin <agust@denx.de>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pete Eberlein <pete@sensoray.com>
-In-Reply-To: <201012181231.27198.hverkuil@xs4all.nl>
-References: <201012181231.27198.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 18 Dec 2010 09:11:35 -0500
-Message-ID: <1292681495.2397.6.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 28 Dec 2010 12:03:25 -0500
+Date: Tue, 28 Dec 2010 18:03:13 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 08/15] [media] s5p-fimc: Derive camera bus width from mediabus
+ pixelcode
+In-reply-to: <1293555798-31578-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com
+Message-id: <1293555798-31578-9-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1293555798-31578-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Sat, 2010-12-18 at 12:31 +0100, Hans Verkuil wrote:
-> Hi all,
-> 
-> Now that the BKL patch series has been merged in 2.6.37 it is time to work
-> on replacing .ioctl by .unlocked_ioctl in all v4l drivers.
-> 
-> I've made an inventory of all drivers that still use .ioctl and I am looking
-> for volunteers to tackle one or more drivers.
+Remove bus_width from s5p_fimc_isp_info data structure.
+Determine camera data bus width based on mediabus pixel format.
 
-> If I have added your name to a driver, then please confirm if you are able to
-> work on it or not. If you can't work on it, but you know someone else, then
-> let me know as well.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-reg.c |   44 +++++++++++++++++-------------
+ include/media/s5p_fimc.h                |    2 -
+ 2 files changed, 25 insertions(+), 21 deletions(-)
 
-> There is also a list of drivers where I do not know who can do the conversion.
-> If you can tackle one or more of those, please respond. Unfortunately, those
-> are among the hardest to convert :-(
-
-
-> Driver list:
-> 
-> saa7146 (Hans Verkuil)
-> mem2mem_testdev (Pawel Osciak or Marek Szyprowski)
-> cx23885 (Steve Toth)
-> cx18-alsa (Andy Walls)
-
-Ack.  This thing has locking problems between ALSA and /dev/video24
-anyway.
-
-> omap24xxcam (Sakari Ailus or David Cohen)
-> au0828 (Janne Grunau)
-> cpia2 (Andy Walls or Hans Verkuil)
-
-Ack.  But -ENOHARWARE; I only have a cpia1 based device on hand.
-
-The driver is small enough:
-
-        $ wc -l *.[ch]
-          2534 cpia2_core.c
-            50 cpia2dev.h
-           494 cpia2.h
-           476 cpia2_registers.h
-           914 cpia2_usb.c
-          1776 cpia2_v4l.c
-          6244 total
-        
-and has a pretty clean coding style, so conversion shouldn't be hard.
-It would be nice to have a tester.
-
-> cx231xx (Mauro Carvalho Chehab)
-> davinci (Muralidharan Karicheri)
-> saa6588 (Hans Verkuil)
-> pvrusb2 (Mike Isely)
-> usbvision (Hans Verkuil)
-> s5p-fimc (Sylwester Nawrocki)
-> fsl-viu (Anatolij Gustschin)
-> tlg2300 (Mauro Carvalho Chehab)
-> zr364xx (Hans de Goede)
-> soc_camera (Guennadi Liakhovetski)
-> usbvideo/vicam (Hans de Goede)
-> s2255drv (Pete Eberlein)
-> bttv (Mauro Carvalho Chehab)
-> stk-webcam (Hans de Goede)
-> se401 (Hans de Goede)
-> si4713-i2c (Hans Verkuil)
-> dsbr100 (Hans Verkuil)
-> 
-> Staging driver list:
-> 
-> go7007 (Pete Eberlein)
-> tm6000 (Mauro Carvalho Chehab)
-> (stradis/cpia: will be removed in 2.6.38, so no need to do anything)
-> 
-> Unassigned drivers:
-> 
-> saa7134
-> em28xx
-> cx88
-> solo6x10 (staging driver)
-> 
-> Regards,
-> 
-> 	Hans
-> 
-
+diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
+index ae33bc1..41a6a72 100644
+--- a/drivers/media/video/s5p-fimc/fimc-reg.c
++++ b/drivers/media/video/s5p-fimc/fimc-reg.c
+@@ -561,37 +561,43 @@ int fimc_hw_set_camera_source(struct fimc_dev *fimc,
+ {
+ 	struct fimc_frame *f = &fimc->vid_cap.ctx->s_frame;
+ 	u32 cfg = 0;
++	u32 bus_width = 8;
++	int i;
++
++	static const struct {
++		u32 pixelcode;
++		u32 cisrcfmt;
++		u16 bus_width;
++	} pix_desc[] = {
++		{ V4L2_MBUS_FMT_YUYV8_2X8, S5P_CISRCFMT_ORDER422_YCBYCR, 8 },
++		{ V4L2_MBUS_FMT_YVYU8_2X8, S5P_CISRCFMT_ORDER422_YCRYCB, 8 },
++		{ V4L2_MBUS_FMT_VYUY8_2X8, S5P_CISRCFMT_ORDER422_CRYCBY, 8 },
++		{ V4L2_MBUS_FMT_UYVY8_2X8, S5P_CISRCFMT_ORDER422_CBYCRY, 8 },
++		/* TODO: Add pixel codes for 16-bit bus width */
++	};
+ 
+ 	if (cam->bus_type == FIMC_ITU_601 || cam->bus_type == FIMC_ITU_656) {
+ 
+-		switch (fimc->vid_cap.fmt.code) {
+-		case V4L2_MBUS_FMT_YUYV8_2X8:
+-			cfg = S5P_CISRCFMT_ORDER422_YCBYCR;
+-			break;
+-		case V4L2_MBUS_FMT_YVYU8_2X8:
+-			cfg = S5P_CISRCFMT_ORDER422_YCRYCB;
+-			break;
+-		case V4L2_MBUS_FMT_VYUY8_2X8:
+-			cfg = S5P_CISRCFMT_ORDER422_CRYCBY;
+-			break;
+-		case V4L2_MBUS_FMT_UYVY8_2X8:
+-			cfg = S5P_CISRCFMT_ORDER422_CBYCRY;
+-			break;
+-		default:
++		for (i = 0; i < ARRAY_SIZE(pix_desc); i++) {
++			if (fimc->vid_cap.fmt.code == pix_desc[i].pixelcode) {
++				cfg = pix_desc[i].cisrcfmt;
++				bus_width = pix_desc[i].bus_width;
++				break;
++			}
++		}
++		if (i == ARRAY_SIZE(pix_desc)) {
+ 			err("camera image format not supported: %d",
+ 			    fimc->vid_cap.fmt.code);
+ 			return -EINVAL;
+ 		}
+ 
+ 		if (cam->bus_type == FIMC_ITU_601) {
+-			if (cam->bus_width == 8) {
++			if (bus_width == 8)
+ 				cfg |= S5P_CISRCFMT_ITU601_8BIT;
+-			} else if (cam->bus_width == 16) {
++			else if (bus_width == 16)
+ 				cfg |= S5P_CISRCFMT_ITU601_16BIT;
+-			} else {
+-				err("invalid bus width: %d", cam->bus_width);
++			else
+ 				return -EINVAL;
+-			}
+ 		} /* else defaults to ITU-R BT.656 8-bit */
+ 	}
+ 
+diff --git a/include/media/s5p_fimc.h b/include/media/s5p_fimc.h
+index eb8793f..d30b9dee 100644
+--- a/include/media/s5p_fimc.h
++++ b/include/media/s5p_fimc.h
+@@ -34,7 +34,6 @@ struct i2c_board_info;
+  * @bus_type: determines bus type, MIPI, ITU-R BT.601 etc.
+  * @i2c_bus_num: i2c control bus id the sensor is attached to
+  * @mux_id: FIMC camera interface multiplexer index (separate for MIPI and ITU)
+- * @bus_width: camera data bus width in bits
+  * @flags: flags defining bus signals polarity inversion (High by default)
+  */
+ struct s5p_fimc_isp_info {
+@@ -42,7 +41,6 @@ struct s5p_fimc_isp_info {
+ 	enum cam_bus_type bus_type;
+ 	u16 i2c_bus_num;
+ 	u16 mux_id;
+-	u16 bus_width;
+ 	u16 flags;
+ };
+ 
+-- 
+1.7.2.3
 
