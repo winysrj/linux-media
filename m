@@ -1,117 +1,121 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:61965 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752291Ab0LLLPX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Dec 2010 06:15:23 -0500
-From: Chris Clayton <chris2553@googlemail.com>
-Reply-To: chris2553@googlemail.com
-To: Dave Young <hidave.darkstar@gmail.com>
-Subject: Re: Oops in 2.6.37-rc{3,4,5}
-Date: Sun, 12 Dec 2010 11:15:02 +0000
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-References: <201012102234.06446.chris2553@googlemail.com> <20101212084504.GA27059@darkstar>
-In-Reply-To: <20101212084504.GA27059@darkstar>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201012121115.02874.chris2553@googlemail.com>
+Received: from smtp204.alice.it ([82.57.200.100]:55061 "EHLO smtp204.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753128Ab0L1LiF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Dec 2010 06:38:05 -0500
+Date: Tue, 28 Dec 2010 12:37:56 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Cc: Antonio Ospite <ospite@studenti.unina.it>,
+	openkinect@googlegroups.com, Steven Toth <stoth@kernellabs.com>
+Subject: Re: [RFC, PATCH] Add 10 bit packed greyscale format.
+Message-Id: <20101228123756.e95dc546.ospite@studenti.unina.it>
+In-Reply-To: <1292498984-9198-1-git-send-email-ospite@studenti.unina.it>
+References: <1292498984-9198-1-git-send-email-ospite@studenti.unina.it>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Tue__28_Dec_2010_12_37_56_+0100_B.NWfmUIJ/L/_MKG"
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Sunday 12 December 2010, Dave Young wrote:
-> On Fri, Dec 10, 2010 at 10:34:06PM +0000, Chris Clayton wrote:
-> > I'm not subscribed, so please cc me on any reply.
-> >
-> > With rc kernels from 2.6.37, X frequently (approx 3 boots out of every 4)
-> > fails to start. dmesg shows the oops below. I can bisect over the weekend
-> > - probably Sunday - if no answer comes up in the meantime. I get the same
-> > oops with rc3, rc and rc5. rc2 doesn't get as far as trying to start X.
-> > Happy to test patches or provide additional diagnostics, but I'll be off
-> > line soon until 20:00 or so UK time tomorrow.
+--Signature=_Tue__28_Dec_2010_12_37_56_+0100_B.NWfmUIJ/L/_MKG
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-<snip>
+On Thu, 16 Dec 2010 12:29:44 +0100
+Antonio Ospite <ospite@studenti.unina.it> wrote:
 
-> >
-> > [drm] Initialized i915 1.6.0 20080730 for 0000:00:02.0 on minor 0
-> > BUG: unable to handle kernel NULL pointer dereference at   (null)
-> > IP: [<c13229ef>] __mutex_lock_slowpath+0x9f/0x170
-> > *pdpt = 0000000034676001 *pde = 0000000000000000
-> > Oops: 0002 [#1] PREEMPT SMP
-> > last sysfs file: /sys/module/drm_kms_helper/initstate
-> > Modules linked in: i915 drm_kms_helper drm fb fbdev cfbcopyarea video
-> > backlight output cfbimgblt cfbfillrect xt_state iptable_filter
-> > ipt_MASQUERADE iptable_nat nf_nat nf_conntrack_ipv4 nf_conntrack
-> > nf_defrag_ipv4 saa7134_alsa tda10048 saa7134_dvb videobuf_dvb dvb_core
-> > mt20xx tea5767 tda9887 msp3400 gspca_zc3xx gspca_main tda18271 tda8290
-> > ir_lirc_codec tuner lirc_dev bttv i2c_algo_bit btcx_risc snd_bt87x
-> > ir_common uhci_hcd ir_core saa7134 v4l2_common videodev v4l1_compat
-> > ehci_hcd videobuf_dma_sg videobuf_core tveeprom evdev [last unloaded:
-> > floppy]
-> >
-> > Pid: 1725, comm: X Not tainted 2.6.37-rc5+ #476 EG41MF-US2H/EG41MF-US2H
-> > EIP: 0060:[<c13229ef>] EFLAGS: 00013246 CPU: 3
-> > EIP is at __mutex_lock_slowpath+0x9f/0x170
-> > EAX: 00000000 EBX: f4403410 ECX: f4403420 EDX: f4641dd8
-> > ESI: f4403414 EDI: 00000000 EBP: f4403418 ESP: f4641dd4
-> >  DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
-> > Process X (pid: 1725, ti=f4640000 task=f3c67390 task.ti=f4640000)
-> > Stack:
-> >  f3c67390 f4403418 00000000 f46a3800 f4403410 f4fd14f0 f425f600 f4403400
-> >  c13228a6 f4fd1000 f4fd14f0 f8841b6c c10aabb2 ffffffff 05100004 f4c34000
-> >  f4df72c0 c10aabf7 f4403410 00000001 f425f600 ffffffed f425f604 f46bfe40
-> > Call Trace:
-> >  [<c13228a6>] ? mutex_lock+0x16/0x30
-> >  [<f8841b6c>] ? bttv_open+0xac/0x280 [bttv]
-> >  [<c10aabb2>] ? cdev_get+0x52/0x90
-> >  [<c10aabf7>] ? exact_lock+0x7/0x10
-> >  [<f87095a7>] ? v4l2_open+0xb7/0xd0 [videodev]
-> >  [<c10ab2ea>] ? chrdev_open+0xda/0x1b0
-> >  [<c10a5f25>] ? __dentry_open+0xd5/0x280
-> >  [<c10a7068>] ? nameidata_to_filp+0x68/0x70
-> >  [<c10ab210>] ? chrdev_open+0x0/0x1b0
-> >  [<c10b351f>] ? do_last.clone.32+0x34f/0x5a0
-> >  [<c10b3af3>] ? do_filp_open+0x383/0x550
-> >  [<c10b1e58>] ? getname+0x28/0xf0
-> >  [<c10a70c8>] ? do_sys_open+0x58/0x110
-> >  [<c10a5d09>] ? filp_close+0x49/0x70
-> >  [<c10a71ac>] ? sys_open+0x2c/0x40
-> >  [<c1002d10>] ? sysenter_do_call+0x12/0x26
-> >  [<c1320000>] ? timer_cpu_notify+0x1b4/0x233
-> > Code: 83 78 18 63 7f b6 8d b6 00 00 00 00 8d 73 04 8d 6b 08 89 f0 e8 f3
-> > 10 00 00 8b 43 0c 8d 54 24 04 89 44 24 08 89 53 0c 89 6c 24 04 <89> 10 8b
-> > 04 24 ba ff ff ff ff 89 44 24 0c 89 d0 87 03 83 f8 01
-> > EIP: [<c13229ef>] __mutex_lock_slowpath+0x9f/0x170 SS:ESP 0068:f4641dd4
-> > CR2: 0000000000000000
-> > ---[ end trace 5ac4e44ad0dc7959 ]---
-
-<snip>
-
-> Could you try following patch?
+> A 10 bits per pixel greyscale format in a packed array representation is
+> supplied for instance by Kinect sensor device.
+>=20
+> Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+> ---
 >
-> --- linux-2.6.orig/drivers/media/video/bt8xx/bttv-driver.c	2010-11-27
-> 11:21:30.000000000 +0800 +++
-> linux-2.6/drivers/media/video/bt8xx/bttv-driver.c	2010-12-12
-> 16:31:39.633333338 +0800 @@ -3291,6 +3291,8 @@ static int bttv_open(struct
-> file *file)
->  	fh = kmalloc(sizeof(*fh), GFP_KERNEL);
->  	if (unlikely(!fh))
->  		return -ENOMEM;
-> +
-> +	mutex_init(&fh->cap.vb_lock);
->  	file->private_data = fh;
+
+Ping.
+
+> Hi,
+>=20
+> This is the first attempt to add v4l support for the 10bpp packed array f=
+ormat
+> used by the Kinect sensor device for depth data and for IR mode (in this =
+mode
+> the device streams the image as seen by the monochrome sensor).
+>=20
+> This version is mainly to start the discussion about the format and how it
+> should be seen by v4l, the doubts I still have are about:
+>=20
+>   1. The name of the format: is Y10P OK? Moreover, "packed" here is used =
+in a
+>      _stronger_ meaning compared to the other packed formats, and I also =
+saw the
+>      name "compact array" used somewhere for these kind of objects.
+>=20
+>   2. The actual order of the bits, please check the documentation below t=
+o see
+>      if I got it right.
+>      And maybe I should not mention the unpacked version of the data as t=
+his
+>      depends on the unpacking algorithm, what do you think?
 >
->  	/*
 
-Yes Dave, that's fixed it thanks. Six successful boots, which never happened 
-without the patch.
+Ok, I checked that the order of the bits in the packed representation
+used on the kinect is the natural one (most significant bits come
+first from the left). And about the unpacking, well, if we called this
+format Y10P, are we implying that the unpacked format is Y10, hence
+with little-endian order? Or should we consider the two formats
+independent even if the names are so similar?
 
-Tested-by: Chris Clayton <chris2553@googlemail.com>
+>   3. The way to illustrate the packed array concept in the documentation:=
+ I
+>      used a bit-field syntax like in hardware registers docs, does this l=
+ook
+>      meaningful to you? Or should I find a way to clearly show the differ=
+ence
+>      between _byte_alignment_ and _element_alignment_.
+>
 
--- 
-The more I see, the more I know. The more I know, the less I understand. 
-Changing Man - Paul Weller
+Now that I've checked the actual data format I am dealing with, I think
+I can improve the illustration as well.
+
+> If you could point to some literature about packed array representations =
+I'd be
+> happy to take a look at it.
+>=20
+> After these issues are addressed, I am going to submit changes to libv4l =
+as
+> well.
+>=20
+> Thanks,
+>   Antonio Ospite
+>   http://ao2.it
+>=20
+[...]
+
+Thanks,
+   Antonio
+
+--=20
+Antonio Ospite
+http://ao2.it
+
+PGP public key ID: 0x4553B001
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+
+--Signature=_Tue__28_Dec_2010_12_37_56_+0100_B.NWfmUIJ/L/_MKG
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAk0ZzBQACgkQ5xr2akVTsAFfJgCfXtcGKrw3M5/Na/KMS3+1mKEh
+xPoAoJLB5lZjKU4MqbcqAdVlG2hjmzYz
+=IDNK
+-----END PGP SIGNATURE-----
+
+--Signature=_Tue__28_Dec_2010_12_37_56_+0100_B.NWfmUIJ/L/_MKG--
