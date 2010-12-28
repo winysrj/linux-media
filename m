@@ -1,103 +1,53 @@
 Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51317 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932176Ab0LTLiF (ORCPT
+Received: from smtp5-g21.free.fr ([212.27.42.5]:60907 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752903Ab0L1Kk3 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Dec 2010 06:38:05 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Tue, 28 Dec 2010 05:40:29 -0500
+Received: from tele (unknown [82.245.201.222])
+	by smtp5-g21.free.fr (Postfix) with ESMTP id 24022D4802F
+	for <linux-media@vger.kernel.org>; Tue, 28 Dec 2010 11:40:22 +0100 (CET)
+Date: Tue, 28 Dec 2010 11:42:48 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v4 6/7] omap3: Add function to register omap3isp platform device structure
-Date: Mon, 20 Dec 2010 12:37:54 +0100
-Message-Id: <1292845075-7991-7-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1292845075-7991-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1292845075-7991-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: [GIT PATCHES FOR 2.6.38] gspca for_2.6.38
+Message-ID: <20101228114248.5e6c9b44@tele>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-The omap3isp platform device requires platform data. Instead of
-registering the device in omap2_init_devices(), export an
-omap3_init_camera() function to fill the device structure with the
-platform data pointer and register the device.
+The following changes since commit
+fc43dd115e1c07af122440971177451cef5c45c0:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/devices.c |   20 +++++++++++---------
- arch/arm/mach-omap2/devices.h |   17 +++++++++++++++++
- 2 files changed, 28 insertions(+), 9 deletions(-)
- create mode 100644 arch/arm/mach-omap2/devices.h
+  [media] MEDIA: RC: Provide full scancodes for TT-1500 remote control (2010-12-27 19:26:56 -0200)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index d5da345..886c01b 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -34,6 +34,8 @@
- #include "mux.h"
- #include "control.h"
- 
-+#include "devices.h"
-+
- #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
- 
- static struct resource cam_resources[] = {
-@@ -59,8 +61,11 @@ static inline void omap_init_camera(void)
- {
- 	platform_device_register(&omap_cam_device);
- }
--
--#elif defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
-+#else
-+static inline void omap_init_camera(void)
-+{
-+}
-+#endif
- 
- static struct resource omap3isp_resources[] = {
- 	{
-@@ -151,15 +156,12 @@ static struct platform_device omap3isp_device = {
- 	.resource	= omap3isp_resources,
- };
- 
--static inline void omap_init_camera(void)
--{
--	platform_device_register(&omap3isp_device);
--}
--#else
--static inline void omap_init_camera(void)
-+int omap3_init_camera(void *pdata)
- {
-+	omap3isp_device.dev.platform_data = pdata;
-+	return platform_device_register(&omap3isp_device);
- }
--#endif
-+EXPORT_SYMBOL_GPL(omap3_init_camera);
- 
- #if defined(CONFIG_OMAP_MBOX_FWK) || defined(CONFIG_OMAP_MBOX_FWK_MODULE)
- 
-diff --git a/arch/arm/mach-omap2/devices.h b/arch/arm/mach-omap2/devices.h
-new file mode 100644
-index 0000000..12ddb8a
---- /dev/null
-+++ b/arch/arm/mach-omap2/devices.h
-@@ -0,0 +1,17 @@
-+/*
-+ * arch/arm/mach-omap2/devices.h
-+ *
-+ * OMAP2 platform device setup/initialization
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#ifndef __ARCH_ARM_MACH_OMAP_DEVICES_H
-+#define __ARCH_ARM_MACH_OMAP_DEVICES_H
-+
-+int omap3_init_camera(void *pdata);
-+
-+#endif
+are available in the git repository at:
+  git://linuxtv.org/jfrancois/gspca.git for_2.6.38
+
+Jean-François Moine (9):
+      gspca - main: Fix some warnings
+      gspca - pac7302/pac7311: Fix some warnings
+      gspca: Bad comment
+      gspca - zc3xx: Keep sorted the device table
+      gspca - zc3xx: Use the new video control mechanism
+      gspca - zc3xx: The sensor of the VF0250 is a GC0303
+      gspca - vc032x: Cleanup source
+      gspca - stv06xx/st6422: Use the new video control mechanism
+      gspca - sonixj: Bad clock for om6802 in 640x480
+
+ drivers/media/video/gspca/gspca.c                  |   10 +-
+ drivers/media/video/gspca/gspca.h                  |    2 +-
+ drivers/media/video/gspca/pac7302.c                |    2 +-
+ drivers/media/video/gspca/pac7311.c                |    2 +-
+ drivers/media/video/gspca/sonixj.c                 |    2 +-
+ drivers/media/video/gspca/stv06xx/stv06xx_st6422.c |  272 ++++++++-----------
+ drivers/media/video/gspca/stv06xx/stv06xx_st6422.h |   10 -
+ drivers/media/video/gspca/vc032x.c                 |   74 +++---
+ drivers/media/video/gspca/zc3xx.c                  |  290 ++++++--------------
+ 9 files changed, 251 insertions(+), 413 deletions(-)
+
 -- 
-1.7.2.2
-
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
