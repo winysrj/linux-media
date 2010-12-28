@@ -1,63 +1,115 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48]:40575 "EHLO
-	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755100Ab0LPRMi (ORCPT
+Received: from wolverine02.qualcomm.com ([199.106.114.251]:1067 "EHLO
+	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753891Ab0L1Sgr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Dec 2010 12:12:38 -0500
-Message-ID: <4D0A4883.20804@arcor.de>
-Date: Thu, 16 Dec 2010 18:12:35 +0100
-From: Stefan Ringel <stefan.ringel@arcor.de>
+	Tue, 28 Dec 2010 13:36:47 -0500
+From: "Shuzhen Wang" <shuzhenw@codeaurora.org>
+To: "'Mauro Carvalho Chehab'" <mchehab@redhat.com>,
+	"'Hans Verkuil'" <hverkuil@xs4all.nl>
+Cc: <linux-media@vger.kernel.org>, <hzhong@codeaurora.org>,
+	"Yan, Yupeng" <yyan@quicinc.com>
+References: <000601cba2d8$eaedcdc0$c0c96940$@org> <201012241219.31754.hverkuil@xs4all.nl> <4D188285.8090603@redhat.com>
+In-Reply-To: <4D188285.8090603@redhat.com>
+Subject: RE: RFC: V4L2 driver for Qualcomm MSM camera.
+Date: Tue, 28 Dec 2010 10:35:05 -0800
+Message-ID: <000001cba6bd$f2c94ea0$d85bebe0$@org>
 MIME-Version: 1.0
-To: Dmitri Belimov <d.belimov@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Felipe Sanches <juca@members.fsf.org>,
-	Bee Hock Goh <beehock@gmail.com>,
-	Luis Henrique Fagundes <lhfagundes@hacklab.com.br>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: tm6000 and IR
-References: <4CAD5A78.3070803@redhat.com>	<20101008150301.2e3ceaff@glory.local>	<4CAF0602.6050002@redhat.com>	<20101012142856.2b4ee637@glory.local>	<4CB492D4.1000609@arcor.de>	<20101129174412.08f2001c@glory.local>	<4CF51C9E.6040600@arcor.de>	<20101201144704.43b58f2c@glory.local>	<4CF67AB9.6020006@arcor.de>	<20101202134128.615bbfa0@glory.local>	<4CF71CF6.7080603@redhat.com>	<20101206010934.55d07569@glory.local>	<4CFBF62D.7010301@arcor.de>	<20101206190230.2259d7ab@glory.local>	<4CFEA3D2.4050309@arcor.de>	<20101208125539.739e2ed2@glory.local>	<4CFFAD1E.7040004@arcor.de>	<20101214122325.5cdea67e@glory.local>	<4D079ADF.2000705@arcor.de>	<20101215164634.44846128@glory.local>	<4D08E43C.8080002@arcor.de> <20101216183844.6258734e@glory.local>
-In-Reply-To: <20101216183844.6258734e@glory.local>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-language: en-us
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Am 16.12.2010 10:38, schrieb Dmitri Belimov:
-> Hi
->
->>> I think your mean is wrong. Our IR remotes send extended NEC it is
->>> 4 bytes. We removed inverted 4 byte and now we have 3 bytes from
->>> remotes. I think we must have full RCMAP with this 3 bytes from
->>> remotes. And use this remotes with some different IR recievers like
->>> some TV cards and LIRC-hardware and other. No need different RCMAP
->>> for the same remotes to different IR recievers like now.
->> Your change doesn't work with my terratec remote control !!
-> I found what happens. Try my new patch.
->
-> What about NEC. Original NEC send
-> address (inverted address) key (inverted key)
-> this is realy old standart now all remotes use extended NEC
-> (adress high) (address low) key (inverted key)
-> The trident 5600/6000/6010 use old protocol but didn't test inverted address byte.
->
-> I think much better discover really address value and write it to keytable.
-> For your remotes I add low address byte. This value is incorrent but usefull for tm6000.
-> When you found correct value update keytable.
->
-That is not acceptable. Have you forgotten what Mauro have written? The 
-Terratec rc map are use from other devices. The best are only the 
-received data without additional data. And I think the Trident chip send 
-only compatibly data (send all extended data like standard data). The 
-device decoded the protocols not the driver.
->>>> Then the function call usb_set_interface in tm6000_video, can write
->>>> for example:
->>>>
->>>> stop_ir_pipe
->>>> usb_set_interface
->>>> start_ir_pipe
->>> Ok, I'll try.
-> See dmesg. I was add function for start/stop interrupt urbs
-> All works well.
->
-> With my best regards, Dmitry.
+> -----Original Message-----
+> From: Mauro Carvalho Chehab [mailto:mchehab@redhat.com]
+> Sent: Monday, December 27, 2010 4:12 AM
+> To: Hans Verkuil
+> Cc: Shuzhen Wang; linux-media@vger.kernel.org; hzhong@codeaurora.org
+> Subject: Re: RFC: V4L2 driver for Qualcomm MSM camera.
+> 
+> Em 24-12-2010 09:19, Hans Verkuil escreveu:
+> >> MSM_CAM_IOCTL_SENSOR_IO_CFG
+> >>         Get or set sensor configurations: fps, line_pf, pixels_pl,
+> >>         exposure and gain, etc. The setting is stored in
+> sensor_cfg_data
+> >>         structure.
+> 
+> This doesn't make much sense to me as-is. The V4L2 API can set fps,
+> exposure,
+> gain and other things. Please only use private ioctl's for those things
+> that
+> aren't provided elsewhere and can't be mapped into some CTRL.
+> 
+
+In our design, all these private ioctls are only called from the service
+daemon, so they are transparent to the application. For example, when a
+standard V4L2 API is called from the app to change fps, it gets translated
+to MSM_CAM_IOCTL_SENSOR_IO_CFG in the daemon, and sent to the sensor
+hardware.
+
+> >> MSM_CAM_IOCTL_CONFIG_VFE
+> >>         Change settings of different components of VFE hardware.
+> 
+> Hard to analyze it, as you didn't provide any details ;)
+> 
+> Maybe the media controller API will be the right place for it. As Hans
+> pointed,
+> the hardware should be able to work without private ioctl's and/or
+> media
+> controller stuff.
+> 
+
+Because all the private ioctl's are only called from daemon, they are not
+very big concern here IMHO. The fact that a lot of stuff is done in daemon
+does make it harder to decouple. 
+
+MSM_CAM_IOCTL_CONFIG_VFE ioctl calls pass in a structure like this:
+struct msm_vfe_cfg_cmd {
+        int cmd_type;
+        uint16_t length;
+        void *value;
+};
+Where cmd_type indicates what component of the VFE pipeline to configure,
+For example, enable/disable stats, VFE buffers configuration, demosaic,
+color conversion/correction, etc. The value field will contain the
+appropriate data for the said cmd_type.
+
+> >> MSM_CAM_IOCTL_CTRL_CMD_DONE
+> >>         Notify the driver that the ctrl command is finished.
+> 
+> Just looking at the ioctl name, this doesn't make much sense. If you
+> open a
+> device on normal way, the ioctl it will block until the operation is
+> completed.
+> 
+> Could you please provide more details about it?
+
+The idea is that the kernel driver delegates the control command to the
+service daemon ( by means of v4l2_event ). The V4L2 control command call
+from the app is blocked until the service daemon is done with operation.
+
+For example, for a VIDIOC_S_CTRL, the driver wraps the v4l2_ctrl structure
+in a v4l2_event, publishes it to the daemon, and blocks. The daemon then
+calls either MSM_CAM_IOCTL_CONFIG_VFE or MSM_CAM_IOCTL_SENSOR_IO_CFG or
+both to configure the hardware. Once thoese ioctls return, it then call 
+MSM_CAM_IOCTL_CTRL_CMD_DONE to notify the driver so that it can wake up
+the application.
+
+> >> MSM_CAM_IOCTL_AXI_CONFIG
+> >>         Configure AXI bus parameters (frame buffer addresses,
+> offsets) to
+> >>         the VFE hardware.
+> 
+> Hard to analyze it, as you didn't provide any details ;)
+> 
+> The same comments I did for MSM_CAM_IOCTL_CONFIG_VFE apply here.
+
+This registers buffers with VFE hardware. Like all other private ioctls, 
+It's called from the daemon. 
+
+
+Thanks!
+-Shuzhen
 
