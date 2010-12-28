@@ -1,92 +1,58 @@
 Return-path: <mchehab@gaivota>
-Received: from xenotime.net ([72.52.115.56]:46235 "HELO xenotime.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750870Ab0LaFjQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Dec 2010 00:39:16 -0500
-Received: from chimera.site ([173.50.240.230]) by xenotime.net for <linux-media@vger.kernel.org>; Thu, 30 Dec 2010 21:39:15 -0800
-Date: Thu, 30 Dec 2010 21:39:15 -0800
-From: Randy Dunlap <rdunlap@xenotime.net>
-To: "Igor M. Liplianin" <liplianin@me.by>
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, aospan@netup.ru
-Subject: Re: [PATCH 01/18] Altera FPGA firmware download module.
-Message-Id: <20101230213915.3842b3ca.rdunlap@xenotime.net>
-In-Reply-To: <201012310726.31851.liplianin@netup.ru>
-References: <201012310726.31851.liplianin@netup.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout-de.gmx.net ([213.165.64.22]:47083 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1751043Ab0L1PWe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Dec 2010 10:22:34 -0500
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: linux-media@vger.kernel.org
+To: Ludovic =?iso-8859-1?q?BOU=C9?= <ludovic.boue@gmail.com>
+Subject: Re: ngene & Satix-S2 dual problems
+Date: Tue, 28 Dec 2010 16:01:05 +0100
+Cc: linux-media@vger.kernel.org, linux-media@dinkum.org.uk
+References: <4D1753CF.9010205@gmail.com> <201012280857.35664@orion.escape-edv.de> <4D19D66D.4040108@gmail.com>
+In-Reply-To: <4D19D66D.4040108@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <201012281601.06586@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Fri, 31 Dec 2010 08:26:31 +0300 Igor M. Liplianin wrote:
+Hi,
 
-> It uses STAPL files and programs Altera FPGA through JTAG.
-> Interface to JTAG must be provided from main device module,
-> for example through cx23885 GPIO.
+On Tuesday 28 December 2010 13:22:05 Ludovic BOUÉ wrote:
+> ...
+> [  403.893231] LNBx2x attached on addr=a
+> [  403.893323] stv6110x_attach: Attaching STV6110x
+> [  403.893327] DVB: registering new adapter (nGene)
+> [  403.893332] DVB: registering adapter 0 frontend 0 (STV090x
+> Multistandard)...
+> [  403.894359] LNBx2x attached on addr=8
+> [  403.894451] stv6110x_attach: Attaching STV6110x
+> [  403.894456] DVB: registering adapter 0 frontend 0 (STV090x
+> Multistandard)...
 > 
-> Signed-off-by: Igor M. Liplianin <liplianin@netup.ru>
-> ---
->  drivers/misc/Kconfig                     |    1 +
->  drivers/misc/Makefile                    |    1 +
->  drivers/misc/altera-stapl/Kconfig        |    8 +
->  drivers/misc/altera-stapl/Makefile       |    3 +
->  drivers/misc/altera-stapl/altera-comp.c  |  142 ++
->  drivers/misc/altera-stapl/altera-exprt.h |   33 +
->  drivers/misc/altera-stapl/altera-jtag.c  | 1010 ++++++++++++
->  drivers/misc/altera-stapl/altera-jtag.h  |  113 ++
->  drivers/misc/altera-stapl/altera-lpt.c   |   70 +
->  drivers/misc/altera-stapl/altera.c       | 2484 ++++++++++++++++++++++++++++++
->  include/misc/altera.h                    |   49 +
->  11 files changed, 3914 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/misc/altera-stapl/Kconfig
->  create mode 100644 drivers/misc/altera-stapl/Makefile
->  create mode 100644 drivers/misc/altera-stapl/altera-comp.c
->  create mode 100644 drivers/misc/altera-stapl/altera-exprt.h
->  create mode 100644 drivers/misc/altera-stapl/altera-jtag.c
->  create mode 100644 drivers/misc/altera-stapl/altera-jtag.h
->  create mode 100644 drivers/misc/altera-stapl/altera-lpt.c
->  create mode 100644 drivers/misc/altera-stapl/altera.c
->  create mode 100644 include/misc/altera.h
+> 14:13 root@telstar /home/lboue # ls /dev/dvb/adapter0/
+> demux0  demux1  dvr0  dvr1  frontend0  frontend1  net0  net1
 > 
-> diff --git a/drivers/misc/altera-stapl/Kconfig b/drivers/misc/altera-stapl/Kconfig
-> new file mode 100644
-> index 0000000..711a4a2
-> --- /dev/null
-> +++ b/drivers/misc/altera-stapl/Kconfig
-> @@ -0,0 +1,8 @@
-> +comment "Altera FPGA firmware download module"
-> +
-> +config ALTERA_STAPL
-> +	tristate "Altera FPGA firmware download module"
-> +	depends on I2C
-> +	default m
-> +	help
+> The is only the needed adapters but I think there is a errror about the
+> frontend number. It should be
+> DVB: registering adapter 0 frontend 1 (STV090x Multistandard)
+> instead of: DVB: registering adapter 0 frontend 0 (STV090x Multistandard)
 
-Please do not enable random drivers to build by default.
+Confirmed. There is a harmless bug in dvb_core:
+The message is printed before the frontend number has been assigned.
+I will commit a fix for that later.
 
+CU
+Oliver
 
-> +static int altera_get_note(u8 *p, s32 program_size,
-> +			s32 *offset, char *key, char *value, int length)
-> +/*
-> +Gets key and value of NOTE fields in the JBC file.
-> +Can be called in two modes:  if offset pointer is NULL,
-> +then the function searches for note fields which match
-> +the key string provided.  If offset is not NULL, then
-> +the function finds the next note field of any key,
-> +starting at the offset specified by the offset pointer.
-> +Returns 0 for success, else appropriate error code	*/
-> +{
-
-
-/*
- * Throughout all source files:
- * The multi-line comment format for Linux kernel is like this multi-line comment.
- */
-
-
-
----
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-desserts:  http://www.xenotime.net/linux/recipes/
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
