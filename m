@@ -1,358 +1,93 @@
 Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51318 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757457Ab0LTLiB (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:16466 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753242Ab0L1RWi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Dec 2010 06:38:01 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v5 13/13] v4l: v4l2_subdev userspace crop API
-Date: Mon, 20 Dec 2010 12:37:25 +0100
-Message-Id: <1292845045-7945-14-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1292845045-7945-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1292845045-7945-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 28 Dec 2010 12:22:38 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=windows-1252
+Date: Tue, 28 Dec 2010 18:22:35 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH] [media] s5p-fimc: update checking scaling ratio range
+In-reply-to: <004301cba631$4094e820$c1beb860$%kim@samsung.com>
+To: Hyunwoong Kim <khw0178.kim@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Message-id: <4D1A1CDB.4080409@samsung.com>
+References: <1293441471-23257-1-git-send-email-khw0178.kim@samsung.com>
+ <4D1870F4.60209@samsung.com> <004301cba631$4094e820$c1beb860$%kim@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-From: Antti Koskipaa <antti.koskipaa@nokia.com>
 
-This patch adds the VIDIOC_SUBDEV_S_CROP and G_CROP ioctls to the
-userland API. CROPCAP is not implemented because it's redundant.
 
-Signed-off-by: Antti Koskipaa <antti.koskipaa@nokia.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/DocBook/media-entities.tmpl          |    4 +
- Documentation/DocBook/v4l/dev-subdev.xml           |   33 +++++
- Documentation/DocBook/v4l/v4l2.xml                 |    1 +
- Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml |  143 ++++++++++++++++++++
- drivers/media/video/v4l2-subdev.c                  |   26 ++++
- include/linux/v4l2-subdev.h                        |   15 ++
- include/media/v4l2-subdev.h                        |    4 +
- 7 files changed, 226 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml
+On 12/28/2010 02:47 AM, Hyunwoong Kim wrote:
+> Sylwester Nawrocki wrote:
+> 
+>> -----Original Message-----
+>> From: linux-samsung-soc-owner@vger.kernel.org [mailto:linux-samsung-soc-
+>> owner@vger.kernel.org] On Behalf Of Sylwester Nawrocki
+>> Sent: Monday, December 27, 2010 7:57 PM
+>> To: Hyunwoong Kim
+>> Cc: linux-media@vger.kernel.org; linux-samsung-soc@vger.kernel.org
+>> Subject: Re: [PATCH] [media] s5p-fimc: update checking scaling ratio range
+>>
+>> Hi Hyunwoong,
+>>
+>> On 12/27/2010 10:17 AM, Hyunwoong Kim wrote:
+>>> Horizontal and vertical scaling range are according to the following
+>> equations.
+>>> If (SRC_Width >= 64 x DST_Width) { Exit(-1);  /* Out of Horizontal scale
+>> range}
+>>> If (SRC_Height >= 64 x DST_Height) { Exit(-1);  /* Out of Vertical scale
+>> range}
+> 
+> <snip>
+> 
+>>> -int fimc_check_scaler_ratio(struct v4l2_rect *r, struct fimc_frame *f);
+>>> +int fimc_check_scaler_ratio(struct v4l2_rect *s, struct v4l2_rect *d,
+>> int rot);
+>>
+>> This function always compares 2 width/height pairs, don't you think it
+>> could
+>> be better to do something like:
+>> int fimc_check_scaler_ratio(int sw, int sh, int dw, int dh, int rot);
+>> considering your changed usage?
+>> That could let us avoid copying arguments before each function call.
+> 
+> If we use the 5 parameters as you commented, we can avoid copying arguments.
+> However, according to ATPCS(The ARM-THUMB Procedure Call Standard), 
+> 4 registers from r0 to r3 is used for function's parameters and return
+> value.
+> If the number of parameters is more than 4, e.g. 5 parameters.
+> Four of the parameters are passed by register from r0 to r3. and the fifth
+> parameter is pushed in stack.
+> That could affect system performance compared to the case that the number of
+> parameter is below 4.
+> So, I think it's the better way to use 3 parameters according to ATPCS.
 
-diff --git a/Documentation/DocBook/media-entities.tmpl b/Documentation/DocBook/media-entities.tmpl
-index 4af3c2e..157d147 100644
---- a/Documentation/DocBook/media-entities.tmpl
-+++ b/Documentation/DocBook/media-entities.tmpl
-@@ -88,8 +88,10 @@
- <!ENTITY VIDIOC-S-TUNER "<link linkend='vidioc-g-tuner'><constant>VIDIOC_S_TUNER</constant></link>">
- <!ENTITY VIDIOC-SUBDEV-ENUM-FRAME-SIZE "<link linkend='vidioc-subdev-enum-frame-size'><constant>VIDIOC_SUBDEV_ENUM_FRAME_SIZE</constant></link>">
- <!ENTITY VIDIOC-SUBDEV-ENUM-MBUS-CODE "<link linkend='vidioc-subdev-enum-mbus-code'><constant>VIDIOC_SUBDEV_ENUM_MBUS_CODE</constant></link>">
-+<!ENTITY VIDIOC-SUBDEV-G-CROP "<link linkend='vidioc-subdev-g-crop'><constant>VIDIOC_SUBDEV_G_CROP</constant></link>">
- <!ENTITY VIDIOC-SUBDEV-G-FMT "<link linkend='vidioc-subdev-g-fmt'><constant>VIDIOC_SUBDEV_G_FMT</constant></link>">
- <!ENTITY VIDIOC-SUBDEV-G-FRAME-INTERVAL "<link linkend='vidioc-subdev-g-frame-interval'><constant>VIDIOC_SUBDEV_G_FRAME_INTERVAL</constant></link>">
-+<!ENTITY VIDIOC-SUBDEV-S-CROP "<link linkend='vidioc-subdev-g-crop'><constant>VIDIOC_SUBDEV_S_CROP</constant></link>">
- <!ENTITY VIDIOC-SUBDEV-S-FMT "<link linkend='vidioc-subdev-g-fmt'><constant>VIDIOC_SUBDEV_S_FMT</constant></link>">
- <!ENTITY VIDIOC-SUBDEV-S-FRAME-INTERVAL "<link linkend='vidioc-subdev-g-frame-interval'><constant>VIDIOC_SUBDEV_S_FRAME_INTERVAL</constant></link>">
- <!ENTITY VIDIOC-TRY-ENCODER-CMD "<link linkend='vidioc-encoder-cmd'><constant>VIDIOC_TRY_ENCODER_CMD</constant></link>">
-@@ -195,6 +197,7 @@
- <!ENTITY v4l2-subdev-frame-interval "struct&nbsp;<link linkend='v4l2-subdev-frame-interval'>v4l2_subdev_frame_interval</link>">
- <!ENTITY v4l2-subdev-frame-interval-enum "struct&nbsp;<link linkend='v4l2-subdev-frame-interval-enum'>v4l2_subdev_frame_interval_enum</link>">
- <!ENTITY v4l2-subdev-frame-size-enum "struct&nbsp;<link linkend='v4l2-subdev-frame-size-enum'>v4l2_subdev_frame_size_enum</link>">
-+<!ENTITY v4l2-subdev-crop "struct&nbsp;<link linkend='v4l2-subdev-crop'>v4l2_subdev_crop</link>">
- <!ENTITY v4l2-subdev-format "struct&nbsp;<link linkend='v4l2-subdev-format'>v4l2_subdev_format</link>">
- <!ENTITY v4l2-subdev-mbus-code-enum "struct&nbsp;<link linkend='v4l2-subdev-mbus-code-enum'>v4l2_subdev_mbus_code_enum</link>">
- <!ENTITY v4l2-standard "struct&nbsp;<link linkend='v4l2-standard'>v4l2_standard</link>">
-@@ -333,6 +336,7 @@
- <!ENTITY sub-subdev-enum-frame-size SYSTEM "v4l/vidioc-subdev-enum-frame-size.xml">
- <!ENTITY sub-subdev-enum-mbus-code SYSTEM "v4l/vidioc-subdev-enum-mbus-code.xml">
- <!ENTITY sub-subdev-formats SYSTEM "v4l/subdev-formats.xml">
-+<!ENTITY sub-subdev-g-crop SYSTEM "v4l/vidioc-subdev-g-crop.xml">
- <!ENTITY sub-subdev-g-fmt SYSTEM "v4l/vidioc-subdev-g-fmt.xml">
- <!ENTITY sub-subdev-g-frame-interval SYSTEM "v4l/vidioc-subdev-g-frame-interval.xml">
- <!ENTITY sub-capture-c SYSTEM "v4l/capture.c.xml">
-diff --git a/Documentation/DocBook/v4l/dev-subdev.xml b/Documentation/DocBook/v4l/dev-subdev.xml
-index 12fdca4..a8da916 100644
---- a/Documentation/DocBook/v4l/dev-subdev.xml
-+++ b/Documentation/DocBook/v4l/dev-subdev.xml
-@@ -269,6 +269,39 @@
-       </para>
-     </section>
- 
-+    <section>
-+      <title>Cropping and scaling</title>
-+
-+      <para>Many sub-devices support cropping frames on their input or output
-+      pads (or possible even on both). Cropping is used to select the area of
-+      interest in an image, typically on a video sensor or video decoder. It can
-+      also be used as part of digital zoom implementations to select the area of
-+      the image that will be scaled up.</para>
-+
-+      <para>Crop settings are defined by a crop rectangle and represented in a
-+      &v4l2-rect; by the coordinates of the top left corner and the rectangle
-+      size. Both the coordinates and sizes are expressed in pixels.</para>
-+
-+      <para>The crop rectangle is retrieved and set using the
-+      &VIDIOC-SUBDEV-G-CROP; and &VIDIOC-SUBDEV-S-CROP; ioctls. Like for pad
-+      formats, drivers store try and active crop rectangles. The format
-+      negotiation mechanism applies to crop settings as well.</para>
-+
-+      <para>On input pads, cropping is applied relatively to the current pad
-+      format. The pad format represents the image size as received by the
-+      sub-device from the previous block in the pipeline, and the crop rectangle
-+      represents the sub-image that will be transmitted further inside the
-+      sub-device for processing. The crop rectangle be entirely containted
-+      inside the input image size.</para>
-+
-+      <para>Input crop rectangle are reset to their default value when the input
-+      image format is modified. Drivers should use the input image size as the
-+      crop rectangle default value, but hardware requirements may prevent this.
-+      </para>
-+
-+      <para>Cropping behaviour on output pads is not defined.</para>
-+
-+    </section>
-   </section>
- 
-   &sub-subdev-formats;
-diff --git a/Documentation/DocBook/v4l/v4l2.xml b/Documentation/DocBook/v4l/v4l2.xml
-index e6225e0..5e640ca 100644
---- a/Documentation/DocBook/v4l/v4l2.xml
-+++ b/Documentation/DocBook/v4l/v4l2.xml
-@@ -481,6 +481,7 @@ and discussions on the V4L mailing list.</revremark>
-     &sub-subdev-enum-frame-interval;
-     &sub-subdev-enum-frame-size;
-     &sub-subdev-enum-mbus-code;
-+    &sub-subdev-g-crop;
-     &sub-subdev-g-fmt;
-     &sub-subdev-g-frame-interval;
-     &sub-subscribe-event;
-diff --git a/Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml b/Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml
-new file mode 100644
-index 0000000..b71c9a3
---- /dev/null
-+++ b/Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml
-@@ -0,0 +1,143 @@
-+<refentry id="vidioc-subdev-g-crop">
-+  <refmeta>
-+    <refentrytitle>ioctl VIDIOC_SUBDEV_G_CROP, VIDIOC_SUBDEV_S_CROP</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>VIDIOC_SUBDEV_G_CROP</refname>
-+    <refname>VIDIOC_SUBDEV_S_CROP</refname>
-+    <refpurpose>Get or set the crop rectangle on a subdev pad</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>struct v4l2_subdev_crop *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>const struct v4l2_subdev_crop *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>&fd;</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>VIDIOC_SUBDEV_G_CROP, VIDIOC_SUBDEV_S_CROP</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>To retrieve the current crop rectangle applications set the
-+    <structfield>pad</structfield> field of a &v4l2-subdev-crop; to the
-+    desired pad number as reported by the media API and the
-+    <structfield>which</structfield> field to
-+    <constant>V4L2_SUBDEV_FORMAT_ACTIVE</constant>. They then call the
-+    <constant>VIDIOC_SUBDEV_G_CROP</constant> ioctl with a pointer to this
-+    structure. The driver fills the members of the <structfield>rect</structfield>
-+    field or returns &EINVAL; if the input arguments are invalid, or if cropping
-+    is not supported on the given pad.</para>
-+
-+    <para>To change the current crop rectangle applications set both the
-+    <structfield>pad</structfield> and <structfield>which</structfield> fields
-+    and all members of the <structfield>rect</structfield> field. They then call
-+    the <constant>VIDIOC_SUBDEV_S_CROP</constant> ioctl with a pointer to this
-+    structure. The driver verifies the requested crop rectangle, adjusts it
-+    based on the hardware capabilities and configures the device. Upon return
-+    the &v4l2-subdev-crop; contains the current format as would be returned
-+    by a <constant>VIDIOC_SUBDEV_G_CROP</constant> call.</para>
-+
-+    <para>Applications can query the device capabilities by setting the
-+    <structfield>which</structfield> to
-+    <constant>V4L2_SUBDEV_FORMAT_TRY</constant>. When set, 'try' crop
-+    rectangles are not applied to the device by the driver, but are mangled
-+    exactly as active crop rectangles and stored in the sub-device file handle.
-+    Two applications querying the same sub-device would thus not interact with
-+    each other.</para>
-+
-+    <para>Drivers must not return an error solely because the requested crop
-+    rectangle doesn't match the device capabilities. They must instead modify
-+    the rectangle to match what the hardware can provide. The modified format
-+    should be as close as possible to the original request.</para>
-+
-+    <table pgwide="1" frame="none" id="v4l2-subdev-crop">
-+      <title>struct <structname>v4l2_subdev_crop</structname></title>
-+      <tgroup cols="3">
-+        &cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>pad</structfield></entry>
-+	    <entry>Pad number as reported by the media framework.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>which</structfield></entry>
-+	    <entry>Crop rectangle to get or set, from
-+	    &v4l2-subdev-format-whence;.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>&v4l2-rect;</entry>
-+	    <entry><structfield>rect</structfield></entry>
-+	    <entry>Crop rectangle boundaries, in pixels.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+  </refsect1>
-+
-+  <refsect1>
-+    &return-value;
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><errorcode>EBUSY</errorcode></term>
-+	<listitem>
-+	  <para>The crop rectangle can't be changed because the pad is currently
-+	  busy. This can be caused, for instance, by an active video stream on
-+	  the pad. The ioctl must not be retried without performing another
-+	  action to fix the problem first. Only returned by
-+	  <constant>VIDIOC_SUBDEV_S_CROP</constant></para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>EINVAL</errorcode></term>
-+	<listitem>
-+	  <para>The &v4l2-subdev-crop; <structfield>pad</structfield>
-+	  references a non-existing pad, the <structfield>which</structfield>
-+	  field references a non-existing format, or cropping is not supported
-+	  on the given subdev pad.</para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+</refentry>
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index 8f9001c..09d1db0 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -215,6 +215,32 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		return v4l2_subdev_call(sd, pad, set_fmt, subdev_fh, format);
- 	}
- 
-+	case VIDIOC_SUBDEV_G_CROP: {
-+		struct v4l2_subdev_crop *crop = arg;
-+
-+		if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
-+		    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+			return -EINVAL;
-+
-+		if (crop->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(sd, pad, get_crop, subdev_fh, crop);
-+	}
-+
-+	case VIDIOC_SUBDEV_S_CROP: {
-+		struct v4l2_subdev_crop *crop = arg;
-+
-+		if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
-+		    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+			return -EINVAL;
-+
-+		if (crop->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(sd, pad, set_crop, subdev_fh, crop);
-+	}
-+
- 	case VIDIOC_SUBDEV_ENUM_MBUS_CODE: {
- 		struct v4l2_subdev_mbus_code_enum *code = arg;
- 
-diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
-index 7af0c34..e084200 100644
---- a/include/linux/v4l2-subdev.h
-+++ b/include/linux/v4l2-subdev.h
-@@ -51,6 +51,19 @@ struct v4l2_subdev_format {
- };
- 
- /**
-+ * struct v4l2_subdev_crop - Pad-level crop settings
-+ * @which: format type (from enum v4l2_subdev_format_whence)
-+ * @pad: pad number, as reported by the media API
-+ * @rect: pad crop rectangle boundaries
-+ */
-+struct v4l2_subdev_crop {
-+	__u32 which;
-+	__u32 pad;
-+	struct v4l2_rect rect;
-+	__u32 reserved[10];
-+};
-+
-+/**
-  * struct v4l2_subdev_mbus_code_enum - Media bus format enumeration
-  * @pad: pad number, as reported by the media API
-  * @index: format index during enumeration
-@@ -122,5 +135,7 @@ struct v4l2_subdev_frame_interval_enum {
- 			_IOWR('V', 74, struct v4l2_subdev_frame_size_enum)
- #define VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL \
- 			_IOWR('V', 75, struct v4l2_subdev_frame_interval_enum)
-+#define VIDIOC_SUBDEV_G_CROP	_IOWR('V', 59, struct v4l2_subdev_crop)
-+#define VIDIOC_SUBDEV_S_CROP	_IOWR('V', 60, struct v4l2_subdev_crop)
- 
- #endif
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 9c8bcd3..a02663e 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -442,6 +442,10 @@ struct v4l2_subdev_pad_ops {
- 		       struct v4l2_subdev_format *format);
- 	int (*set_fmt)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 		       struct v4l2_subdev_format *format);
-+	int (*set_crop)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-+		       struct v4l2_subdev_crop *crop);
-+	int (*get_crop)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-+		       struct v4l2_subdev_crop *crop);
- };
- 
- struct v4l2_subdev_ops {
+IIRC passing and argument by a pointer rather than by value leaves less
+possibilities to the compiler for optimization.
+By creating a local copy of the function arguments you most likely passing
+them *all* through the stack. I think we should not try to over-optimize
+the code, the function is not used in fast paths anyway.
+Let's make the code simple and let the compiler do the optimization work
+what he is best at.
+
+Thank you
+Sylwester
+
+> If you don't agree with my opinion, 
+> I will send the second patch after modifying the definition of function as
+> you mentioned.
+> 
+> Thank you for your comment.
+> 
+>> Otherwise looks good to me.
+>>>  int fimc_set_scaler_info(struct fimc_ctx *ctx);
+>>>  int fimc_prepare_config(struct fimc_ctx *ctx, u32 flags);
+>>>  int fimc_prepare_addr(struct fimc_ctx *ctx, struct vb2_buffer *vb,
+>>
 -- 
-1.7.2.2
-
+Sylwester Nawrocki
+Samsung Poland R&D Center
