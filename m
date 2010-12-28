@@ -1,41 +1,56 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:18981 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757352Ab0LPTBR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Dec 2010 14:01:17 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oBGJ1Hxp001429
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 16 Dec 2010 14:01:17 -0500
-From: Jarod Wilson <jarod@redhat.com>
+Received: from mailout-de.gmx.net ([213.165.64.23]:37300 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1752169Ab0L1IsQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Dec 2010 03:48:16 -0500
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: linux-media@vger.kernel.org
 To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH 4/4] mceusb: add another Fintek device ID
-Date: Thu, 16 Dec 2010 14:00:37 -0500
-Message-Id: <1292526037-21491-5-git-send-email-jarod@redhat.com>
-In-Reply-To: <1292526037-21491-1-git-send-email-jarod@redhat.com>
-References: <1292526037-21491-1-git-send-email-jarod@redhat.com>
+Subject: Re: ngene & Satix-S2 dual problems
+Date: Tue, 28 Dec 2010 08:57:34 +0100
+Cc: Ludovic =?iso-8859-1?q?BOU=C9?= <ludovic.boue@gmail.com>,
+	linux-media@dinkum.org.uk
+References: <4D1753CF.9010205@gmail.com> <201012272249.52358@orion.escape-edv.de>
+In-Reply-To: <201012272249.52358@orion.escape-edv.de>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <201012280857.35664@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/rc/mceusb.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+On Monday 27 December 2010 22:49:51 Oliver Endriss wrote:
+> On Sunday 26 December 2010 15:40:15 Ludovic BOUÉ wrote:
+> > Hi all,
+> > 
+> > I have a Satix-S2 Dual and I'm trying to get to work without his CI in a first time. I'm trying ngene-test2 
+> > from http://linuxtv.org/hg/~endriss/ngene-test2/ under 
+> > 2.6.32-21-generic.
+> > 
+> > It contains too much nodes (extra demuxes, dvrs & nets):
+> > ...
+> > Is it connected to this commit (http://linuxtv.org/hg/~endriss/ngene-test2/rev/eb4142f0d0ac) about "Support up to 4 tuners for cineS2 v5, duoflex & mystique v2" ?
+> 
+> Yes.
+> 
+> Please note that this is an experimental repository.
+> This bug will be fixed before the code will be submitted upstream.
+> (It is more complicated that it might appear at the first glance.)
 
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index 9c55e32..2d91134 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -281,6 +281,8 @@ static struct usb_device_id mceusb_dev_table[] = {
- 	{ USB_DEVICE(VENDOR_FORMOSA, 0xe03c) },
- 	/* Formosa Industrial Computing */
- 	{ USB_DEVICE(VENDOR_FORMOSA, 0xe03e) },
-+	/* Fintek eHome Infrared Transceiver (HP branded) */
-+	{ USB_DEVICE(VENDOR_FINTEK, 0x5168) },
- 	/* Fintek eHome Infrared Transceiver */
- 	{ USB_DEVICE(VENDOR_FINTEK, 0x0602) },
- 	/* Fintek eHome Infrared Transceiver (in the AOpen MP45) */
+Meanwhile I reworked channel initialisation and shutdown,
+and the device nodes should be correct for all configurations.
+
+Please re-test and report any remaining problems.
+
+CU
+Oliver
+
 -- 
-1.7.1
-
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
