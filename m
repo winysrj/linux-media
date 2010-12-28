@@ -1,130 +1,119 @@
 Return-path: <mchehab@gaivota>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45473 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753670Ab0LPN5P (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Dec 2010 08:57:15 -0500
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH v7 8/8] davinci vpbe: Readme text for Dm6446 vpbe
-Date: Thu, 16 Dec 2010 19:26:26 +0530
-Message-Id: <1292507786-1270-1-git-send-email-manjunath.hadli@ti.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:33601 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753059Ab0L1MWN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Dec 2010 07:22:13 -0500
+Received: by wwa36 with SMTP id 36so9762948wwa.1
+        for <linux-media@vger.kernel.org>; Tue, 28 Dec 2010 04:22:11 -0800 (PST)
+Message-ID: <4D19D66D.4040108@gmail.com>
+Date: Tue, 28 Dec 2010 13:22:05 +0100
+From: =?ISO-8859-1?Q?Ludovic_BOU=C9?= <ludovic.boue@gmail.com>
+MIME-Version: 1.0
+To: Oliver Endriss <o.endriss@gmx.de>
+CC: linux-media@vger.kernel.org, linux-media@dinkum.org.uk
+Subject: Re: ngene & Satix-S2 dual problems
+References: <4D1753CF.9010205@gmail.com> <201012272249.52358@orion.escape-edv.de> <201012280857.35664@orion.escape-edv.de>
+In-Reply-To: <201012280857.35664@orion.escape-edv.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Please refer to this file for detailed documentation of
-davinci vpbe v4l2 driver
+Fist of all, I would thank you about your work.
+I have done a test again and it seems to work with your last change. I
+didn't found any major issue.
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- Documentation/video4linux/README.davinci-vpbe |   93 +++++++++++++++++++++++++
- 1 files changed, 93 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/video4linux/README.davinci-vpbe
+14:14 root@telstar /home/lboue # modprobe ngene one_adapter=0 debug=1
 
-diff --git a/Documentation/video4linux/README.davinci-vpbe b/Documentation/video4linux/README.davinci-vpbe
-new file mode 100644
-index 0000000..7a460b0
---- /dev/null
-+++ b/Documentation/video4linux/README.davinci-vpbe
-@@ -0,0 +1,93 @@
-+
-+                VPBE V4L2 driver design
-+ ======================================================================
-+
-+ File partitioning
-+ -----------------
-+ V4L2 display device driver
-+         drivers/media/video/davinci/vpbe_display.c
-+         drivers/media/video/davinci/vpbe_display.h
-+
-+ VPBE display controller
-+         drivers/media/video/davinci/vpbe.c
-+         drivers/media/video/davinci/vpbe.h
-+
-+ VPBE venc sub device driver
-+         drivers/media/video/davinci/vpbe_venc.c
-+         drivers/media/video/davinci/vpbe_venc.h
-+         drivers/media/video/davinci/vpbe_venc_regs.h
-+
-+ VPBE osd driver
-+         drivers/media/video/davinci/vpbe_osd.c
-+         drivers/media/video/davinci/vpbe_osd.h
-+         drivers/media/video/davinci/vpbe_osd_regs.h
-+
-+ Functional partitioning
-+ -----------------------
-+
-+ Consists of the following (in the same order as the list under file
-+ partitioning):-
-+
-+ 1. V4L2 display driver
-+    Implements creation of video2 and video3 device nodes and
-+    provides v4l2 device interface to manage VID0 and VID1 layers.
-+
-+ 2. Display controller
-+    Loads up VENC, OSD and external encoders such as ths8200. It provides
-+    a set of API calls to V4L2 drivers to set the output/standards
-+    in the VENC or external sub devices. It also provides
-+    a device object to access the services from OSD subdevice
-+    using sub device ops. The connection of external encoders to VENC LCD
-+    controller port is done at init time based on default output and standard
-+    selection or at run time when application change the output through
-+    V4L2 IOCTLs.
-+
-+    When connected to an external encoder, vpbe controller is also responsible
-+    for setting up the interface between VENC and external encoders based on
-+    board specific settings (specified in board-xxx-evm.c). This allows
-+    interfacing external encoders such as ths8200. The setup_if_config()
-+    is implemented for this as well as configure_venc() (part of the next patch)
-+    API to set timings in VENC for a specific display resolution. As of this
-+    patch series, the interconnection and enabling and setting of the external
-+    encoders is not present, and would be a part of the next patch series.
-+
-+ 3. VENC subdevice module
-+    Responsible for setting outputs provided through internal DACs and also
-+    setting timings at LCD controller port when external encoders are connected
-+    at the port or LCD panel timings required. When external encoder/LCD panel
-+    is connected, the timings for a specific standard/preset is retrieved from
-+    the board specific table and the values are used to set the timings in
-+    venc using non-standard timing mode.
-+
-+    Support LCD Panel displays using the VENC. For example to support a Logic
-+    PD display, it requires setting up the LCD controller port with a set of
-+    timings for the resolution supported and setting the dot clock. So we could
-+    add the available outputs as a board specific entry (i.e add the "LogicPD"
-+    output name to board-xxx-evm.c). A table of timings for various LCDs
-+    supported can be maintained in the board specific setup file to support
-+    various LCD displays.As of this patch a basic driver is present, and this
-+    support for external encoders and displays forms a part of the next
-+    patch series.
-+
-+ 4. OSD module
-+    OSD module implements all OSD layer management and hardware specific
-+    features. The VPBE module interacts with the OSD for enabling and
-+    disabling appropriate features of the OSD.
-+
-+ Current status:-
-+
-+ A fully functional working version of the V4L2 driver is available. This
-+ driver has been tested with NTSC and PAL standards and buffer streaming.
-+
-+ Following are TBDs.
-+
-+ vpbe display controller
-+    - Add support for external encoders.
-+    - add support for selecting external encoder as default at probe time.
-+
-+ vpbe venc sub device
-+    - add timings for supporting ths8200
-+    - add support for LogicPD LCD.
-+
-+ FB drivers
-+    - Add support for fbdev drivers.- Ready and part of subsequent patches.
+[  584.013474] nGene PCIE bridge driver, Copyright (C) 2005-2007 Micronas
+[  584.013495] ngene 0000:04:00.0: PCI INT A -> GSI 16 (level, low) ->
+IRQ 16
+[  584.013503] ngene: Found Mystique SaTiX-S2 Dual (v2)
+[  584.014226] ngene 0000:04:00.0: setting latency timer to 64
+[  584.014305] ngene: Device version 1
+[  584.014339] ngene 0000:04:00.0: firmware: requesting ngene_18.fw
+[  584.016649] ngene: Loading firmware file ngene_18.fw.
+[  584.027625] ngene 0000:04:00.0: irq 33 for MSI/MSI-X
+[  584.029106] error in i2c_read_reg
+[  584.029179] No CXD2099 detected at 40
+[  584.342566] LNBx2x attached on addr=a
+[  584.342659] stv6110x_attach: Attaching STV6110x
+[  584.342662] DVB: registering new adapter (nGene)
+[  584.342667] DVB: registering adapter 0 frontend 0 (STV090x
+Multistandard)...
+[  584.343681] LNBx2x attached on addr=8
+[  584.343774] stv6110x_attach: Attaching STV6110x
+[  584.343777] DVB: registering new adapter (nGene)
+[  584.343782] DVB: registering adapter 1 frontend 0 (STV090x
+Multistandard)...
+
+There is two adapters with one frontend into each:
+14:06 lboue@telstar ~ % ls /dev/dvb/adapter0
+demux0  dvr0  frontend0  net0
+14:06 lboue@telstar ~ % ls /dev/dvb/adapter1
+demux0  dvr0  frontend0  net0
+
+
+14:12 root@telstar /home/lboue # modprobe ngene one_adapter=1
+
+[  403.560150] nGene PCIE bridge driver, Copyright (C) 2005-2007 Micronas
+[  403.560169] ngene 0000:04:00.0: PCI INT A -> GSI 16 (level, low) ->
+IRQ 16
+[  403.560177] ngene: Found Mystique SaTiX-S2 Dual (v2)
+[  403.560873] ngene 0000:04:00.0: setting latency timer to 64
+[  403.560952] ngene: Device version 1
+[  403.560963] ngene 0000:04:00.0: firmware: requesting ngene_18.fw
+[  403.563416] ngene: Loading firmware file ngene_18.fw.
+[  403.574393] ngene 0000:04:00.0: irq 33 for MSI/MSI-X
+[  403.575874] error in i2c_read_reg
+[  403.575948] No CXD2099 detected at 40
+[  403.893231] LNBx2x attached on addr=a
+[  403.893323] stv6110x_attach: Attaching STV6110x
+[  403.893327] DVB: registering new adapter (nGene)
+[  403.893332] DVB: registering adapter 0 frontend 0 (STV090x
+Multistandard)...
+[  403.894359] LNBx2x attached on addr=8
+[  403.894451] stv6110x_attach: Attaching STV6110x
+[  403.894456] DVB: registering adapter 0 frontend 0 (STV090x
+Multistandard)...
+
+14:13 root@telstar /home/lboue # ls /dev/dvb/adapter0/
+demux0  demux1  dvr0  dvr1  frontend0  frontend1  net0  net1
+
+The is only the needed adapters but I think there is a errror about the
+frontend number. It should be
+DVB: registering adapter 0 frontend 1 (STV090x Multistandard)
+instead of: DVB: registering adapter 0 frontend 0 (STV090x Multistandard)
+
+Best Regards
+
+Le 28/12/2010 08:57, Oliver Endriss a écrit :
+> On Monday 27 December 2010 22:49:51 Oliver Endriss wrote:
+>> On Sunday 26 December 2010 15:40:15 Ludovic BOUÉ wrote:
+>>> Hi all,
+>>>
+>>> I have a Satix-S2 Dual and I'm trying to get to work without his CI in a first time. I'm trying ngene-test2 
+>>> from http://linuxtv.org/hg/~endriss/ngene-test2/ under 
+>>> 2.6.32-21-generic.
+>>>
+>>> It contains too much nodes (extra demuxes, dvrs & nets):
+>>> ...
+>>> Is it connected to this commit (http://linuxtv.org/hg/~endriss/ngene-test2/rev/eb4142f0d0ac) about "Support up to 4 tuners for cineS2 v5, duoflex & mystique v2" ?
+>> Yes.
+>>
+>> Please note that this is an experimental repository.
+>> This bug will be fixed before the code will be submitted upstream.
+>> (It is more complicated that it might appear at the first glance.)
+> Meanwhile I reworked channel initialisation and shutdown,
+> and the device nodes should be correct for all configurations.
+>
+> Please re-test and report any remaining problems.
+>
+> CU
+> Oliver
+>
+
 -- 
-1.6.2.4
+Ludovic BOUÉ
 
