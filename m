@@ -1,297 +1,162 @@
 Return-path: <mchehab@gaivota>
-Received: from moutng.kundenserver.de ([212.227.126.171]:49757 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751103Ab0LYVq1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Dec 2010 16:46:27 -0500
-Date: Sat, 25 Dec 2010 22:46:25 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] v4l: soc-camera: switch to .unlocked_ioctl
-Message-ID: <Pine.LNX.4.64.1012252245070.5248@axis700.grange>
+Received: from mx1.redhat.com ([209.132.183.28]:20884 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753242Ab0L1Opj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Dec 2010 09:45:39 -0500
+Message-ID: <4D19F809.3010409@redhat.com>
+Date: Tue, 28 Dec 2010 12:45:29 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Andy Walls <awalls@md.metrocast.net>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 0/8] Fix V4L/DVB/RC warnings
+References: <e95cvd7ycvmoq6jolupfigs0.1293494109547@email.android.com>	 <4D195584.6020409@redhat.com> <1293545649.2728.28.camel@morgan.silverblock.net>
+In-Reply-To: <1293545649.2728.28.camel@morgan.silverblock.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Use the V4L mutex infrastructure in soc-camera core and drivers and switch to
-.unlocked_ioctl.
+Em 28-12-2010 12:14, Andy Walls escreveu:
+> On Tue, 2010-12-28 at 01:12 -0200, Mauro Carvalho Chehab wrote:
+>> Em 27-12-2010 21:55, Andy Walls escreveu:
+>>> I have hardware for lirc_zilog.  I can look later this week.
+>>
+>> That would be great!
+> 
+> It shouldn't be hard to fix up the lirc_zilog.c use of adap->id but it
+> may require a change to the hdpvr driver as well.
+> 
+> As I was looking, I noticed this commit is incomplete:
+> 
+> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=07cc65d4f4a21a104269ff7e4e7be42bd26d7acb
+> 
+> The "goto" was missed in the conditional compilation for the HD-PVR:
+> 
+> http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/staging/lirc/lirc_zilog.c;h=f0076eb025f1a0e9d412080caab87f627dda4970#l844
+> 
+> You might want to revert the trivial commit that removed the "done:"
+> label.  When I clean up the dependence on adap->id, I may need the
+> "done:" label back again.
+> 
+> 
+Argh! this is not a very nice code at all...
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/mx1_camera.c           |    7 ++--
- drivers/media/video/mx2_camera.c           |    3 +-
- drivers/media/video/mx3_camera.c           |    2 +-
- drivers/media/video/omap1_camera.c         |    4 +-
- drivers/media/video/pxa_camera.c           |    2 +-
- drivers/media/video/sh_mobile_ceu_camera.c |    2 +-
- drivers/media/video/soc_camera.c           |   47 +++++----------------------
- 7 files changed, 19 insertions(+), 48 deletions(-)
+I think that the proper way is to apply the enclosed patch. After having it
+fixed, the dont_wait parameter can be passed to the driver via platform_data.
+So, we should add a field at struct IR for it.
 
-diff --git a/drivers/media/video/mx1_camera.c b/drivers/media/video/mx1_camera.c
-index 5e486a8..bc0c23a 100644
---- a/drivers/media/video/mx1_camera.c
-+++ b/drivers/media/video/mx1_camera.c
-@@ -382,10 +382,9 @@ static void mx1_camera_init_videobuf(struct videobuf_queue *q,
- 	struct mx1_camera_dev *pcdev = ici->priv;
+Cheers,
+Mauro
+
+lirc_zilog: Fix the TX logic for hd-pvr
+
+The dont_wait parameter should be passed to the driver via platform_data, in order
+to allow removing the usage of the legacy i2c_adapter.id field.
+
+So, we should add a field at struct IR for it.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/staging/lirc/lirc_zilog.c b/drivers/staging/lirc/lirc_zilog.c
+index 52be6de..8486b66 100644
+--- a/drivers/staging/lirc/lirc_zilog.c
++++ b/drivers/staging/lirc/lirc_zilog.c
+@@ -88,6 +88,7 @@ struct IR {
+ 	struct i2c_client c_tx;
+ 	int need_boot;
+ 	int have_tx;
++	bool dont_wait;
+ };
  
- 	videobuf_queue_dma_contig_init(q, &mx1_videobuf_ops, icd->dev.parent,
--					&pcdev->lock,
--					V4L2_BUF_TYPE_VIDEO_CAPTURE,
--					V4L2_FIELD_NONE,
--					sizeof(struct mx1_buffer), icd, NULL);
-+				&pcdev->lock, V4L2_BUF_TYPE_VIDEO_CAPTURE,
-+				V4L2_FIELD_NONE,
-+				sizeof(struct mx1_buffer), icd, &icd->video_lock);
- }
+ /* Minor -> data mapping */
+@@ -841,46 +842,43 @@ static int send_code(struct IR *ir, unsigned int code, unsigned int key)
+ 		return ret < 0 ? ret : -EFAULT;
+ 	}
  
- static int mclk_get_divisor(struct mx1_camera_dev *pcdev)
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index 13565cb..4eab1c6 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -683,7 +683,8 @@ static void mx2_camera_init_videobuf(struct videobuf_queue *q,
- 
- 	videobuf_queue_dma_contig_init(q, &mx2_videobuf_ops, pcdev->dev,
- 			&pcdev->lock, V4L2_BUF_TYPE_VIDEO_CAPTURE,
--			V4L2_FIELD_NONE, sizeof(struct mx2_buffer), icd, NULL);
-+			V4L2_FIELD_NONE, sizeof(struct mx2_buffer),
-+			icd, &icd->video_lock);
- }
- 
- #define MX2_BUS_FLAGS	(SOCAM_DATAWIDTH_8 | \
-diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
-index 330d42e..b9cb4a4 100644
---- a/drivers/media/video/mx3_camera.c
-+++ b/drivers/media/video/mx3_camera.c
-@@ -443,7 +443,7 @@ static void mx3_camera_init_videobuf(struct videobuf_queue *q,
- 				       V4L2_BUF_TYPE_VIDEO_CAPTURE,
- 				       V4L2_FIELD_NONE,
- 				       sizeof(struct mx3_camera_buffer), icd,
--				       NULL);
-+				       &icd->video_lock);
- }
- 
- /* First part of ipu_csi_init_interface() */
-diff --git a/drivers/media/video/omap1_camera.c b/drivers/media/video/omap1_camera.c
-index cbfd07f..0a2fb2b 100644
---- a/drivers/media/video/omap1_camera.c
-+++ b/drivers/media/video/omap1_camera.c
-@@ -1365,12 +1365,12 @@ static void omap1_cam_init_videobuf(struct videobuf_queue *q,
- 		videobuf_queue_dma_contig_init(q, &omap1_videobuf_ops,
- 				icd->dev.parent, &pcdev->lock,
- 				V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FIELD_NONE,
--				sizeof(struct omap1_cam_buf), icd, NULL);
-+				sizeof(struct omap1_cam_buf), icd, &icd->video_lock);
- 	else
- 		videobuf_queue_sg_init(q, &omap1_videobuf_ops,
- 				icd->dev.parent, &pcdev->lock,
- 				V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FIELD_NONE,
--				sizeof(struct omap1_cam_buf), icd, NULL);
-+				sizeof(struct omap1_cam_buf), icd, &icd->video_lock);
- 
- 	/* use videobuf mode (auto)selected with the module parameter */
- 	pcdev->vb_mode = sg_mode ? OMAP1_CAM_DMA_SG : OMAP1_CAM_DMA_CONTIG;
-diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
-index c143ed0..0268677 100644
---- a/drivers/media/video/pxa_camera.c
-+++ b/drivers/media/video/pxa_camera.c
-@@ -852,7 +852,7 @@ static void pxa_camera_init_videobuf(struct videobuf_queue *q,
+-#ifdef I2C_HW_B_HDPVR
+ 	/*
+ 	 * The sleep bits aren't necessary on the HD PVR, and in fact, the
+ 	 * last i2c_master_recv always fails with a -5, so for now, we're
+ 	 * going to skip this whole mess and say we're done on the HD PVR
  	 */
- 	videobuf_queue_sg_init(q, &pxa_videobuf_ops, NULL, &pcdev->lock,
- 				V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FIELD_NONE,
--				sizeof(struct pxa_buffer), icd, NULL);
-+				sizeof(struct pxa_buffer), icd, &icd->video_lock);
- }
- 
- static u32 mclk_get_divisor(struct platform_device *pdev,
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index 5c209af..e826923 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -1786,7 +1786,7 @@ static void sh_mobile_ceu_init_videobuf(struct videobuf_queue *q,
- 				       V4L2_BUF_TYPE_VIDEO_CAPTURE,
- 				       pcdev->field,
- 				       sizeof(struct sh_mobile_ceu_buffer),
--				       icd, NULL);
-+				       icd, &icd->video_lock);
- }
- 
- static int sh_mobile_ceu_get_ctrl(struct soc_camera_device *icd,
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index 052bd6d..e3927b5 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -352,12 +352,6 @@ static int soc_camera_open(struct file *file)
- 		return -EINVAL;
- 	}
- 
+-	if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR)
+-		goto done;
+-#endif
+-
 -	/*
--	 * Protect against icd->ops->remove() until we module_get() both
--	 * drivers.
+-	 * This bit NAKs until the device is ready, so we retry it
+-	 * sleeping a bit each time.  This seems to be what the windows
+-	 * driver does, approximately.
+-	 * Try for up to 1s.
 -	 */
--	mutex_lock(&icd->video_lock);
--
- 	icd->use_count++;
+-	for (i = 0; i < 20; ++i) {
+-		set_current_state(TASK_UNINTERRUPTIBLE);
+-		schedule_timeout((50 * HZ + 999) / 1000);
+-		ret = i2c_master_send(&ir->c_tx, buf, 1);
+-		if (ret == 1)
+-			break;
+-		dprintk("NAK expected: i2c_master_send "
+-			"failed with %d (try %d)\n", ret, i+1);
+-	}
+-	if (ret != 1) {
+-		zilog_error("IR TX chip never got ready: last i2c_master_send "
+-			    "failed with %d\n", ret);
+-		return ret < 0 ? ret : -EFAULT;
+-	}
++	if (!ir->dont_wait) {
++		/*
++		 * This bit NAKs until the device is ready, so we retry it
++		 * sleeping a bit each time.  This seems to be what the
++		 *  windows driver does, approximately.
++		 * Try for up to 1s.
++		 */
++		for (i = 0; i < 20; ++i) {
++			set_current_state(TASK_UNINTERRUPTIBLE);
++			schedule_timeout((50 * HZ + 999) / 1000);
++			ret = i2c_master_send(&ir->c_tx, buf, 1);
++			if (ret == 1)
++				break;
++			dprintk("NAK expected: i2c_master_send "
++				"failed with %d (try %d)\n", ret, i+1);
++		}
++		if (ret != 1) {
++			zilog_error("IR TX chip never got ready: last i2c_master_send "
++				    "failed with %d\n", ret);
++			return ret < 0 ? ret : -EFAULT;
++		}
  
- 	/* Now we really have to activate the camera */
-@@ -412,8 +406,6 @@ static int soc_camera_open(struct file *file)
- 	file->private_data = icd;
- 	dev_dbg(&icd->dev, "camera device open\n");
- 
--	mutex_unlock(&icd->video_lock);
--
- 	return 0;
- 
- 	/*
-@@ -429,7 +421,6 @@ eiciadd:
- 		icl->power(icd->pdev, 0);
- epower:
- 	icd->use_count--;
--	mutex_unlock(&icd->video_lock);
- 	module_put(ici->ops->owner);
- 
- 	return ret;
-@@ -440,7 +431,6 @@ static int soc_camera_close(struct file *file)
- 	struct soc_camera_device *icd = file->private_data;
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
- 
--	mutex_lock(&icd->video_lock);
- 	icd->use_count--;
- 	if (!icd->use_count) {
- 		struct soc_camera_link *icl = to_soc_camera_link(icd);
-@@ -457,8 +447,6 @@ static int soc_camera_close(struct file *file)
- 	if (icd->streamer == file)
- 		icd->streamer = NULL;
- 
--	mutex_unlock(&icd->video_lock);
--
- 	module_put(ici->ops->owner);
- 
- 	dev_dbg(&icd->dev, "camera device close\n");
-@@ -517,7 +505,7 @@ static struct v4l2_file_operations soc_camera_fops = {
- 	.owner		= THIS_MODULE,
- 	.open		= soc_camera_open,
- 	.release	= soc_camera_close,
--	.ioctl		= video_ioctl2,
-+	.unlocked_ioctl	= video_ioctl2,
- 	.read		= soc_camera_read,
- 	.mmap		= soc_camera_mmap,
- 	.poll		= soc_camera_poll,
-@@ -534,12 +522,9 @@ static int soc_camera_s_fmt_vid_cap(struct file *file, void *priv,
- 	if (icd->streamer && icd->streamer != file)
- 		return -EBUSY;
- 
--	mutex_lock(&icd->vb_vidq.vb_lock);
--
- 	if (icd->vb_vidq.bufs[0]) {
- 		dev_err(&icd->dev, "S_FMT denied: queue initialised\n");
--		ret = -EBUSY;
--		goto unlock;
-+		return -EBUSY;
+-	/* Seems to be an 'ok' response */
+-	i = i2c_master_recv(&ir->c_tx, buf, 1);
+-	if (i != 1) {
+-		zilog_error("i2c_master_recv failed with %d\n", ret);
+-		return -EFAULT;
+-	}
+-	if (buf[0] != 0x80) {
+-		zilog_error("unexpected IR TX response #2: %02x\n", buf[0]);
+-		return -EFAULT;
++		/* Seems to be an 'ok' response */
++		i = i2c_master_recv(&ir->c_tx, buf, 1);
++		if (i != 1) {
++			zilog_error("i2c_master_recv failed with %d\n", ret);
++			return -EFAULT;
++		}
++		if (buf[0] != 0x80) {
++			zilog_error("unexpected IR TX response #2: %02x\n", buf[0]);
++			return -EFAULT;
++		}
  	}
  
- 	ret = soc_camera_set_fmt(icd, f);
-@@ -547,9 +532,6 @@ static int soc_camera_s_fmt_vid_cap(struct file *file, void *priv,
- 	if (!ret && !icd->streamer)
- 		icd->streamer = file;
- 
--unlock:
--	mutex_unlock(&icd->vb_vidq.vb_lock);
--
- 	return ret;
- }
- 
-@@ -622,15 +604,11 @@ static int soc_camera_streamon(struct file *file, void *priv,
- 	if (icd->streamer != file)
- 		return -EBUSY;
- 
--	mutex_lock(&icd->video_lock);
--
- 	v4l2_subdev_call(sd, video, s_stream, 1);
- 
- 	/* This calls buf_queue from host driver's videobuf_queue_ops */
- 	ret = videobuf_streamon(&icd->vb_vidq);
- 
--	mutex_unlock(&icd->video_lock);
--
- 	return ret;
- }
- 
-@@ -648,8 +626,6 @@ static int soc_camera_streamoff(struct file *file, void *priv,
- 	if (icd->streamer != file)
- 		return -EBUSY;
- 
--	mutex_lock(&icd->video_lock);
--
- 	/*
- 	 * This calls buf_release from host driver's videobuf_queue_ops for all
- 	 * remaining buffers. When the last buffer is freed, stop capture
-@@ -658,8 +634,6 @@ static int soc_camera_streamoff(struct file *file, void *priv,
- 
- 	v4l2_subdev_call(sd, video, s_stream, 0);
- 
--	mutex_unlock(&icd->video_lock);
--
- 	return 0;
- }
- 
-@@ -748,9 +722,7 @@ static int soc_camera_g_crop(struct file *file, void *fh,
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
- 	int ret;
- 
--	mutex_lock(&icd->vb_vidq.vb_lock);
- 	ret = ici->ops->get_crop(icd, a);
--	mutex_unlock(&icd->vb_vidq.vb_lock);
- 
- 	return ret;
- }
-@@ -775,9 +747,6 @@ static int soc_camera_s_crop(struct file *file, void *fh,
- 	dev_dbg(&icd->dev, "S_CROP(%ux%u@%u:%u)\n",
- 		rect->width, rect->height, rect->left, rect->top);
- 
--	/* Cropping is allowed during a running capture, guard consistency */
--	mutex_lock(&icd->vb_vidq.vb_lock);
--
- 	/* If get_crop fails, we'll let host and / or client drivers decide */
- 	ret = ici->ops->get_crop(icd, &current_crop);
- 
-@@ -795,8 +764,6 @@ static int soc_camera_s_crop(struct file *file, void *fh,
- 		ret = ici->ops->set_crop(icd, a);
- 	}
- 
--	mutex_unlock(&icd->vb_vidq.vb_lock);
--
- 	return ret;
- }
- 
-@@ -998,7 +965,13 @@ static int soc_camera_probe(struct device *dev)
- 
- 	icd->field = V4L2_FIELD_ANY;
- 
--	/* ..._video_start() will create a device node, so we have to protect */
-+	icd->vdev->lock = &icd->video_lock;
+ 	/* Oh good, it worked */
+@@ -1278,6 +1276,11 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		strlcpy(ir->c_tx.name, ZILOG_HAUPPAUGE_IR_TX_NAME,
+ 			I2C_NAME_SIZE);
+ 		ir->have_tx = 1;
 +
-+	/*
-+	 * ..._video_start() will create a device node, video_register_device()
-+	 * itself is protected against concurrent open() calls, but we also have
-+	 * to protect our data.
-+	 */
- 	mutex_lock(&icd->video_lock);
- 
- 	ret = soc_camera_video_start(icd);
-@@ -1063,10 +1036,8 @@ static int soc_camera_remove(struct device *dev)
- 	BUG_ON(!dev->parent);
- 
- 	if (vdev) {
--		mutex_lock(&icd->video_lock);
- 		video_unregister_device(vdev);
- 		icd->vdev = NULL;
--		mutex_unlock(&icd->video_lock);
++#ifdef I2C_HW_B_HDPVR
++		if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR)
++			ir->dont_wait = true;
++#endif
  	}
  
- 	if (icl->board_info) {
--- 
-1.7.2.3
-
+ 	/* set lirc_dev stuff */
