@@ -1,266 +1,262 @@
 Return-path: <mchehab@gaivota>
-Received: from mfe5.msomt.modwest.com ([204.11.245.169]:54297 "EHLO
-	mfe5.msomt.modwest.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752259Ab0LZVoE (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:41247 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751073Ab0L1IY2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Dec 2010 16:44:04 -0500
-Date: Sun, 26 Dec 2010 18:13:30 -0300
-From: Ramiro Morales <ramiro@rmorales.net>
-To: linux-media@vger.kernel.org
-Cc: pvosnova@gmail.com
-Subject: Re: [PATCH] saa7134: Add support for Compro VideoMate Vista M1F
-Message-ID: <20101226211329.GA4037@fao>
-References: <20100612215757.GA4796@fao>
- <4C328641.1000106@redhat.com>
- <20101226210011.GA3849@fao>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20101226210011.GA3849@fao>
+	Tue, 28 Dec 2010 03:24:28 -0500
+Date: Tue, 28 Dec 2010 17:24:17 +0900
+From: Jaeryul Oh <jaeryul.oh@samsung.com>
+Subject: RE: [PATCH 1/9] media: Changes in include/linux/videodev2.h for MFC 5.1
+In-reply-to: <003701cba5e3$097f7ba0$1c7e72e0$%debski@samsung.com>
+To: 'Kamil Debski' <k.debski@samsung.com>,
+	'Hans Verkuil' <hverkuil@xs4all.nl>,
+	'Jeongtae Park' <jtp.park@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	kgene.kim@samsung.com, ben-linux@fluff.org, jonghun.han@samsung.com
+Reply-to: jaeryul.oh@samsung.com
+Message-id: <009701cba668$a0adb7a0$e20926e0$%oh@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=windows-1252
+Content-language: ko
+Content-transfer-encoding: 7BIT
+References: <1293018885-15239-1-git-send-email-jtp.park@samsung.com>
+ <1293018885-15239-2-git-send-email-jtp.park@samsung.com>
+ <201012221342.03713.hverkuil@xs4all.nl>
+ <003701cba5e3$097f7ba0$1c7e72e0$%debski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Mon, Jul 05, 2010 at 10:26:25PM -0300, Mauro Carvalho Chehab wrote:
-> I need the patch author Signed-off-by, in order to be able to apply it.
-> As you're sending me the patches, I need your SOB also. Please c/c the
-> author's email on the email you send me submitting his patches.
+Hi, Kamil
+
+k.debski@samsung.com wrote: 
+> Hi Hans,
 > 
+> > -----Original Message-----
+> > From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> > Sent: 22 December 2010 13:42
+> > To: Jeongtae Park
+> > Cc: linux-media@vger.kernel.org; linux-samsung-soc@vger.kernel.org;
+> > k.debski@samsung.com; jaeryul.oh@samsung.com; kgene.kim@samsung.com;
+> > ben-linux@fluff.org; jonghun.han@samsung.com
+> > Subject: Re: [PATCH 1/9] media: Changes in include/linux/videodev2.h
+> > for MFC 5.1
+> 
+> <snip>
+> 
+> > >  #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /*
+> > 1394          */
+> > >  #define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /*
+> > MPEG-1/2/4    */
+> > >
+> > > +
+> > > +#define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /*
+> > H264    */
+> > > +#define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /*
+> > H263    */
+> > > +#define V4L2_PIX_FMT_MPEG12   v4l2_fourcc('M', 'P', '1', '2') /*
+> > MPEG-1/2  */
+> > > +#define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /*
+> > MPEG-4  */
+> > > +#define V4L2_PIX_FMT_DIVX     v4l2_fourcc('D', 'I', 'V', 'X') /*
+> > DivX  */
+> > > +#define V4L2_PIX_FMT_DIVX3    v4l2_fourcc('D', 'I', 'V', '3') /*
+> > DivX 3.11  */
+> > > +#define V4L2_PIX_FMT_DIVX4    v4l2_fourcc('D', 'I', 'V', '4') /*
+> > DivX 4.12  */
+> > > +#define V4L2_PIX_FMT_DIVX500    v4l2_fourcc('D', 'X', '5', '2') /*
+> > DivX 5.00 - 5.02  */
+> > > +#define V4L2_PIX_FMT_DIVX503    v4l2_fourcc('D', 'X', '5', '3') /*
+> > DivX 5.03 - x  */
+> > > +#define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /*
+> > Xvid */
+> > > +#define V4L2_PIX_FMT_VC1      v4l2_fourcc('V', 'C', '1', 'A') /* VC-
+> > 1 */
+> > > +#define V4L2_PIX_FMT_VC1_RCV      v4l2_fourcc('V', 'C', '1', 'R') /*
+> > VC-1 RCV */
+> >
+> > What do these formats describe? Are these container formats or the
+> > actual
+> > compressed video stream that is normally packaged inside a container?
+> 
+> Apart from VC-1 RCV those are elementary streams. If I understand
+> correctly
+> RCV is a simple semi-container that contains necessary information to play
+> the ES. I have asked a person from HW team if all those fourccs are
+> necessary.
+> I am waiting for reply.
+> 
+> The idea was to have a fourcc for each supported codec (by this I mean the
+> elementary stream).
 
-Hi again,
+I'm reviewing what we really should add for MFC except for  previously
+defined FOURCC type 
+based on http://www.fourcc.org/fourcc.php
+FOURCC there seems that there is  a little bit different from codec
+supported by MFC(HW codec)
 
-Find attached the patch upated to remotes/linuxtv/staging/for_v2.6.38
-as of now.
+> 
+> >
+> > > +
+> > > +
+> > >  /*  Vendor-specific formats   */
+> > >  #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /*
+> > cpia1 YUV */
+> > >  #define V4L2_PIX_FMT_WNVA     v4l2_fourcc('W', 'N', 'V', 'A') /*
+> > Winnov hw compress */
+> > > @@ -1009,6 +1034,7 @@ struct v4l2_ext_controls {
+> > >  #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression
+> > controls */
+> > >  #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class
+> > controls */
+> > >  #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control
+> > class */
+> > > +#define V4L2_CTRL_CLASS_CODEC 0x009c0000	/* Codec control class
+> > */
+> > >
+> > >  #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+> > >  #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+> > > @@ -1342,6 +1368,150 @@ enum
+> > v4l2_mpeg_cx2341x_video_median_filter_type {
+> > >  #define V4L2_CID_MPEG_CX2341X_VIDEO_CHROMA_MEDIAN_FILTER_TOP
+> > 	(V4L2_CID_MPEG_CX2341X_BASE+10)
+> > >  #define V4L2_CID_MPEG_CX2341X_STREAM_INSERT_NAV_PACKETS
+> > 	(V4L2_CID_MPEG_CX2341X_BASE+11)
+> > >
+> > > +/* For codecs */
+> > > +#define V4L2_CID_CODEC_BASE
+> (V4L2_CTRL_CLASS_CODEC
+> > | 0x900)
+> > > +#define V4L2_CID_CODEC_CLASS
+> (V4L2_CTRL_CLASS_CODEC
+> > | 1)
+> > > +
+> > > +/* For decoding */
+> > > +#define V4L2_CID_CODEC_LOOP_FILTER_MPEG4_ENABLE
+> > 	(V4L2_CID_CODEC_BASE + 110)
+> > > +#define V4L2_CID_CODEC_DISPLAY_DELAY		(V4L2_CID_CODEC_BASE
+> +
+> > 137)
+> > > +#define V4L2_CID_CODEC_REQ_NUM_BUFS		(V4L2_CID_CODEC_BASE
+> +
+> > 140)
+> > > +#define V4L2_CID_CODEC_SLICE_INTERFACE		(V4L2_CID_CODEC_BASE
+> +
+> > 141)
+> > > +#define V4L2_CID_CODEC_PACKED_PB		(V4L2_CID_CODEC_BASE + 142)
+> >
+> > ??? Weird CODEC_BASE offsets?
+> >
+> > Are all these codec controls above general? I.e., applicable to any
+> > codec? What
+> > do they mean?
+> 
+> My mistake - I forgot to tidy up the offsets. It is difficult for me to
+> say which of those controls are MFC specific as I have little experience
+> with other codecs.
+> 
+> Currently PACKED_PB has been replaced with a simple mechanism that can
+> detect
+> if the stream has packed PB frames. You can read more about such streams
+> here:
+> http://itsjustonesandzeros.blogspot.com/2007/01/what-is-packed-
+> bitstream.htm
+> l
+> First approach required the application to set if the stream contained
+> packed-PB
+> Frames. Now the driver detects it the stream contains packed-PB frames.
+> Another
+> approach would require the stream parser to detect those frames and divide
+> them
+> into two buffers queued to MFC.
+> 
+> DISPLAY_DELAY is a number of frames that should be decoded before the
+> first
+> frame is
+> returned to the application. It is valid for H264 streams.
+> 
+> REQ_NUM_BUFS is the minimum number of CAPTURE buffers required for MFC
+> decoder to work.
+> This is a read-only control, by reading this value the application can
+> adjust count when
+> doing REQBUFS. If the application needs 3 dequeued CAPTURE buffers for
+> processing it
+> should set count when doing REQBUFS to the value of REQ_NUM_BUFS + 3.
+> 
+> When SLICE_INTERFACE the codec expects compressed slices in OUTPUT buffers
+> instead of
+> full frames.
+> 
+> LOOP_FILTER_MPEG4_ENABLE controls deblocking filter for MPEG4 codec. You
+> are
+> right that
+> name this should be more general and name is not intuitive.
+> DECODING_DEBLOCK_FILTER
+> would be way better, as more codec can have this option.
+> 
+> I think that DECODING_DEBLOCK_FILTER (LOOP_FILTER_MPEG4_ENABLE),
+> SLICE_INTERFACE and
+> DISPLAY_DELAY should be general. Here I would really welcome comment from
+> other
+> developers working on codec v4l2 drivers.
+> 
+> >
+> > > +
+> > > +/* For encoding */
+> > > +#define V4L2_CID_CODEC_LOOP_FILTER_H264
+> > 	(V4L2_CID_CODEC_BASE + 9)
+> > > +enum v4l2_cid_codec_loop_filter_h264 {
+> > > +	V4L2_CID_CODEC_LOOP_FILTER_H264_ENABLE = 0,
+> > > +	V4L2_CID_CODEC_LOOP_FILTER_H264_DISABLE = 1,
+> > > +	V4L2_CID_CODEC_LOOP_FILTER_H264_DISABLE_AT_BOUNDARY = 2,
+> > > +};
+> > > +
+> > > +/* Codec class control IDs specific to the MFC51 driver */
+> > > +#define V4L2_CID_CODEC_MFC51_BASE
+(V4L2_CTRL_CLASS_CODEC
+> > | 0x1000)
+> >
+> > It's probably a good idea to only add this BASE define to videodev2.h
+> > (please include a comment describing the control range reserved for the
+> > MFC51).
+> > All others should go to a public mfc51 header. Which should include
+> > documentation
+> > for these controls as well.
+> 
+> Great idea.
+> 
+> >
+> > > +
+> > > +/* common */
+> > > +enum v4l2_codec_mfc5x_enc_switch {
+> > > +	V4L2_CODEC_MFC51_ENC_SW_DISABLE	= 0,
+> > > +	V4L2_CODEC_MFC51_ENC_SW_ENABLE	= 1,
+> > > +};
+> > > +enum v4l2_codec_mfc5x_enc_switch_inv {
+> > > +	V4L2_CODEC_MFC51_ENC_SW_INV_ENABLE	= 0,
+> > > +	V4L2_CODEC_MFC51_ENC_SW_INV_DISABLE	= 1,
+> > > +};
+> > > +#define V4L2_CID_CODEC_MFC51_ENC_GOP_SIZE
+> > 	(V4L2_CID_CODEC_MFC51_BASE+300)
+> >
+> > Why the +300?
+> 
+> This is question should be answered by Jeongtae Park, as he did the
+> encoding
+> part. Unfortunately our patches got mixed up.
+> 
+> I can only guess that this offset was added to distinguish between
+> decoding
+> and encoding.
+> 
+> <snip>
+> 
+> --
+> Kamil Debski
+> Linux Platform Group
+> Samsung Poland R&D Center
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-The card ID is 183 now.
-
-I'm c/c'ing Pavel Osnova and I've added my SOB as requested.
-
-Regards,
-
-diff --git a/Documentation/video4linux/CARDLIST.saa7134 b/Documentation/video4linux/CARDLIST.saa7134
-index 8d9afc7..8db1a94 100644
---- a/Documentation/video4linux/CARDLIST.saa7134
-+++ b/Documentation/video4linux/CARDLIST.saa7134
-@@ -180,3 +180,4 @@
- 179 -> Beholder BeholdTV A7                     [5ace:7090]
- 180 -> Avermedia PCI M733A                      [1461:4155,1461:4255]
- 181 -> TechoTrend TT-budget T-3000              [13c2:2804]
-+183 -> Compro VideoMate Vista M1F               [185b:c900]
-diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
-index 148900f..0659e9f 100644
---- a/drivers/media/rc/keymaps/Makefile
-+++ b/drivers/media/rc/keymaps/Makefile
-@@ -81,6 +81,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
- 			rc-trekstor.o \
- 			rc-tt-1500.o \
- 			rc-twinhan1027.o \
-+			rc-videomate-m1f.o \
- 			rc-videomate-s350.o \
- 			rc-videomate-tv-pvr.o \
- 			rc-winfast.o \
-diff --git a/drivers/media/rc/keymaps/rc-videomate-m1f.c b/drivers/media/rc/keymaps/rc-videomate-m1f.c
-new file mode 100644
-index 0000000..4994d40
---- /dev/null
-+++ b/drivers/media/rc/keymaps/rc-videomate-m1f.c
-@@ -0,0 +1,92 @@
-+/* videomate-m1f.h - Keytable for videomate_m1f Remote Controller
-+ *
-+ * keymap imported from ir-keymaps.c
-+ *
-+ * Copyright (c) 2010 by Pavel Osnova <pvosnova@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <media/rc-map.h>
-+
-+static struct rc_map_table videomate_m1f[] = {
-+	{ 0x01, KEY_POWER },
-+	{ 0x31, KEY_TUNER },
-+	{ 0x33, KEY_VIDEO },
-+	{ 0x2f, KEY_RADIO },
-+	{ 0x30, KEY_CAMERA },
-+	{ 0x2d, KEY_NEW }, /* TV record button */
-+	{ 0x17, KEY_CYCLEWINDOWS },
-+	{ 0x2c, KEY_ANGLE },
-+	{ 0x2b, KEY_LANGUAGE },
-+	{ 0x32, KEY_SEARCH }, /* '...' button */
-+	{ 0x11, KEY_UP },
-+	{ 0x13, KEY_LEFT },
-+	{ 0x15, KEY_OK },
-+	{ 0x14, KEY_RIGHT },
-+	{ 0x12, KEY_DOWN },
-+	{ 0x16, KEY_BACKSPACE },
-+	{ 0x02, KEY_ZOOM }, /* WIN key */
-+	{ 0x04, KEY_INFO },
-+	{ 0x05, KEY_VOLUMEUP },
-+	{ 0x03, KEY_MUTE },
-+	{ 0x07, KEY_CHANNELUP },
-+	{ 0x06, KEY_VOLUMEDOWN },
-+	{ 0x08, KEY_CHANNELDOWN },
-+	{ 0x0c, KEY_RECORD },
-+	{ 0x0e, KEY_STOP },
-+	{ 0x0a, KEY_BACK },
-+	{ 0x0b, KEY_PLAY },
-+	{ 0x09, KEY_FORWARD },
-+	{ 0x10, KEY_PREVIOUS },
-+	{ 0x0d, KEY_PAUSE },
-+	{ 0x0f, KEY_NEXT },
-+	{ 0x1e, KEY_1 },
-+	{ 0x1f, KEY_2 },
-+	{ 0x20, KEY_3 },
-+	{ 0x21, KEY_4 },
-+	{ 0x22, KEY_5 },
-+	{ 0x23, KEY_6 },
-+	{ 0x24, KEY_7 },
-+	{ 0x25, KEY_8 },
-+	{ 0x26, KEY_9 },
-+	{ 0x2a, KEY_NUMERIC_STAR }, /* * key */
-+	{ 0x1d, KEY_0 },
-+	{ 0x29, KEY_SUBTITLE }, /* # key */
-+	{ 0x27, KEY_CLEAR },
-+	{ 0x34, KEY_SCREEN },
-+	{ 0x28, KEY_ENTER },
-+	{ 0x19, KEY_RED },
-+	{ 0x1a, KEY_GREEN },
-+	{ 0x1b, KEY_YELLOW },
-+	{ 0x1c, KEY_BLUE },
-+	{ 0x18, KEY_TEXT },
-+};
-+
-+static struct rc_map_list videomate_m1f_map = {
-+	.map = {
-+		.scan    = videomate_m1f,
-+		.size    = ARRAY_SIZE(videomate_m1f),
-+		.rc_type = RC_TYPE_UNKNOWN,     /* Legacy IR type */
-+		.name    = RC_MAP_VIDEOMATE_M1F,
-+	}
-+};
-+
-+static int __init init_rc_map_videomate_m1f(void)
-+{
-+	return rc_map_register(&videomate_m1f_map);
-+}
-+
-+static void __exit exit_rc_map_videomate_m1f(void)
-+{
-+	rc_map_unregister(&videomate_m1f_map);
-+}
-+
-+module_init(init_rc_map_videomate_m1f)
-+module_exit(exit_rc_map_videomate_m1f)
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Pavel Osnova <pvosnova@gmail.com>");
-diff --git a/drivers/media/video/saa7134/saa7134-cards.c b/drivers/media/video/saa7134/saa7134-cards.c
-index ff23e6e..e7aa588 100644
---- a/drivers/media/video/saa7134/saa7134-cards.c
-+++ b/drivers/media/video/saa7134/saa7134-cards.c
-@@ -5538,6 +5538,37 @@ struct saa7134_board saa7134_boards[] = {
- 			.amux   = LINE2,
- 		} },
- 	},
-+	[SAA7134_BOARD_VIDEOMATE_M1F] = {
-+		/* Pavel Osnova <pvosnova@gmail.com> */
-+		.name           = "Compro VideoMate Vista M1F",
-+		.audio_clock    = 0x00187de7,
-+		.tuner_type     = TUNER_LG_PAL_NEW_TAPC,
-+		.radio_type     = TUNER_TEA5767,
-+		.tuner_addr     = ADDR_UNSET,
-+		.radio_addr     = 0x60,
-+		.inputs         = { {
-+			.name = name_tv,
-+			.vmux = 1,
-+			.amux = TV,
-+			.tv   = 1,
-+		}, {
-+			.name = name_comp1,
-+			.vmux = 3,
-+			.amux = LINE2,
-+		}, {
-+			.name = name_svideo,
-+			.vmux = 8,
-+			.amux = LINE2,
-+		} },
-+		.radio = {
-+			.name = name_radio,
-+			.amux = LINE1,
-+		},
-+		.mute = {
-+			.name = name_mute,
-+			.amux = TV,
-+		},
-+	},
- 
- };
- 
-@@ -6731,6 +6762,12 @@ struct pci_device_id saa7134_pci_tbl[] = {
- 		.subdevice    = 0x7090,
- 		.driver_data  = SAA7134_BOARD_BEHOLD_A7,
- 	}, {
-+		.vendor       = PCI_VENDOR_ID_PHILIPS,
-+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7135,
-+		.subvendor    = 0x185b,
-+		.subdevice    = 0xc900,
-+		.driver_data  = SAA7134_BOARD_VIDEOMATE_M1F,
-+	}, {
- 		/* --- boards without eeprom + subsystem ID --- */
- 		.vendor       = PCI_VENDOR_ID_PHILIPS,
- 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
-@@ -7046,6 +7083,7 @@ int saa7134_board_init1(struct saa7134_dev *dev)
- 	case SAA7134_BOARD_VIDEOMATE_TV_PVR:
- 	case SAA7134_BOARD_VIDEOMATE_GOLD_PLUS:
- 	case SAA7134_BOARD_VIDEOMATE_TV_GOLD_PLUSII:
-+	case SAA7134_BOARD_VIDEOMATE_M1F:
- 	case SAA7134_BOARD_VIDEOMATE_DVBT_300:
- 	case SAA7134_BOARD_VIDEOMATE_DVBT_200:
- 	case SAA7134_BOARD_VIDEOMATE_DVBT_200A:
-diff --git a/drivers/media/video/saa7134/saa7134-input.c b/drivers/media/video/saa7134/saa7134-input.c
-index 98678d9..dc646e6 100644
---- a/drivers/media/video/saa7134/saa7134-input.c
-+++ b/drivers/media/video/saa7134/saa7134-input.c
-@@ -721,6 +721,11 @@ int saa7134_input_init1(struct saa7134_dev *dev)
- 		mask_keyup   = 0x020000;
- 		polling      = 50; /* ms */
- 		break;
-+	case SAA7134_BOARD_VIDEOMATE_M1F:
-+		ir_codes     = RC_MAP_VIDEOMATE_M1F;
-+		mask_keycode = 0x0ff00;
-+		mask_keyup   = 0x040000;
-+		break;
- 	}
- 	if (NULL == ir_codes) {
- 		printk("%s: Oops: IR config error [card=%d]\n",
-diff --git a/drivers/media/video/saa7134/saa7134.h b/drivers/media/video/saa7134/saa7134.h
-index babfbe7..5b0a347 100644
---- a/drivers/media/video/saa7134/saa7134.h
-+++ b/drivers/media/video/saa7134/saa7134.h
-@@ -326,6 +326,7 @@ struct saa7134_card_ir {
- #define SAA7134_BOARD_AVERMEDIA_M733A       180
- #define SAA7134_BOARD_TECHNOTREND_BUDGET_T3000 181
- #define SAA7134_BOARD_KWORLD_PCI_SBTVD_FULLSEG 182
-+#define SAA7134_BOARD_VIDEOMATE_M1F         183
- 
- #define SAA7134_MAXBOARDS 32
- #define SAA7134_INPUT_MAX 8
-diff --git a/include/media/rc-map.h b/include/media/rc-map.h
-index 5d3a457..ee9e2f7 100644
---- a/include/media/rc-map.h
-+++ b/include/media/rc-map.h
-@@ -138,6 +138,7 @@ void rc_map_init(void);
- #define RC_MAP_TREKSTOR                  "rc-trekstor"
- #define RC_MAP_TT_1500                   "rc-tt-1500"
- #define RC_MAP_TWINHAN_VP1027_DVBS       "rc-twinhan1027"
-+#define RC_MAP_VIDEOMATE_M1F             "rc-videomate-m1f"
- #define RC_MAP_VIDEOMATE_S350            "rc-videomate-s350"
- #define RC_MAP_VIDEOMATE_TV_PVR          "rc-videomate-tv-pvr"
- #define RC_MAP_WINFAST                   "rc-winfast"
-Signed-off-by: Pavel Osnova <pvosnova@gmail.com>
-Signed-off-by: Ramiro Morales <ramiro@rmorales.net>
-
--- 
-Ramiro Morales
