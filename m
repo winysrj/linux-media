@@ -1,236 +1,138 @@
 Return-path: <mchehab@gaivota>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:37618 "EHLO
-	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752386Ab0LQEQi (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46920 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751136Ab0L1UXh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Dec 2010 23:16:38 -0500
-From: KyongHo Cho <pullip.cho@samsung.com>
-To: KyongHo Cho <pullip.cho@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Inho Lee <ilho215.lee@samsung.com>,
-	Inki Dae <inki.dae@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mel Gorman <mel@csn.ul.ie>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linux-samsung-soc@vger.kernel.org,
-	Michal Nazarewicz <m.nazarewicz@samsung.com>
-Subject: [RFCv2,4/8] mm: vcm: VCM VMM driver added
-Date: Fri, 17 Dec 2010 12:56:23 +0900
-Message-Id: <1292558187-17348-5-git-send-email-pullip.cho@samsung.com>
-In-Reply-To: <1292558187-17348-4-git-send-email-pullip.cho@samsung.com>
-References: <1292558187-17348-1-git-send-email-pullip.cho@samsung.com>
- <1292558187-17348-2-git-send-email-pullip.cho@samsung.com>
- <1292558187-17348-3-git-send-email-pullip.cho@samsung.com>
- <1292558187-17348-4-git-send-email-pullip.cho@samsung.com>
+	Tue, 28 Dec 2010 15:23:37 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Shuzhen Wang" <shuzhenw@codeaurora.org>
+Subject: Re: RFC: V4L2 driver for Qualcomm MSM camera.
+Date: Tue, 28 Dec 2010 21:23:57 +0100
+Cc: "'Mauro Carvalho Chehab'" <mchehab@redhat.com>,
+	"'Hans Verkuil'" <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	hzhong@codeaurora.org, "Yan, Yupeng" <yyan@quicinc.com>
+References: <000601cba2d8$eaedcdc0$c0c96940$@org> <4D188285.8090603@redhat.com> <000001cba6bd$f2c94ea0$d85bebe0$@org>
+In-Reply-To: <000001cba6bd$f2c94ea0$d85bebe0$@org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201012282123.58775.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Hi,
 
-This commit adds a VCM VMM driver that handles kernl virtual
-address space mappings.  The VCM context is available as a static
-object vcm_vmm.  It is mostly just a wrapper around vmap()
-function.
+On Tuesday 28 December 2010 19:35:05 Shuzhen Wang wrote:
+> > -----Original Message-----
+> > From: Mauro Carvalho Chehab [mailto:mchehab@redhat.com]
+> > Sent: Monday, December 27, 2010 4:12 AM
+> > To: Hans Verkuil
+> > Cc: Shuzhen Wang; linux-media@vger.kernel.org; hzhong@codeaurora.org
+> > Subject: Re: RFC: V4L2 driver for Qualcomm MSM camera.
+> > 
+> > Em 24-12-2010 09:19, Hans Verkuil escreveu:
+> > >> MSM_CAM_IOCTL_SENSOR_IO_CFG
+> > >> 
+> > >>         Get or set sensor configurations: fps, line_pf, pixels_pl,
+> > >>         exposure and gain, etc. The setting is stored in
+> > 
+> > sensor_cfg_data
+> > 
+> > >>         structure.
+> > 
+> > This doesn't make much sense to me as-is. The V4L2 API can set fps,
+> > exposure,
+> > gain and other things. Please only use private ioctl's for those things
+> > that
+> > aren't provided elsewhere and can't be mapped into some CTRL.
+> 
+> In our design, all these private ioctls are only called from the service
+> daemon, so they are transparent to the application. For example, when a
+> standard V4L2 API is called from the app to change fps, it gets translated
+> to MSM_CAM_IOCTL_SENSOR_IO_CFG in the daemon, and sent to the sensor
+> hardware.
 
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
----
- Documentation/virtual-contiguous-memory.txt |   22 +++++-
- include/linux/vcm.h                         |   13 +++
- mm/vcm.c                                    |  108 +++++++++++++++++++++++++++
- 3 files changed, 140 insertions(+), 3 deletions(-)
+Please don't do that. The daemon should use the standard V4L2 API. 
+Applications must be able to use those APIs directly if they wish to do so. 
+Using the daemon must be completely optional for applications that don't want 
+software-assisted algorithms such as 3A.
 
-diff --git a/Documentation/virtual-contiguous-memory.txt b/Documentation/virtual-contiguous-memory.txt
-index 10a0638..c830b69 100644
---- a/Documentation/virtual-contiguous-memory.txt
-+++ b/Documentation/virtual-contiguous-memory.txt
-@@ -510,6 +510,25 @@ state.
- 
- The following VCM drivers are provided:
- 
-+** Virtual Memory Manager driver
-+
-+Virtual Memory Manager driver is available as vcm_vmm and lets one map
-+VCM managed physical memory into kernel space.  The calls that this
-+driver supports are:
-+
-+	vcm_make_binding()
-+	vcm_destroy_binding()
-+
-+	vcm_alloc()
-+
-+	vcm_map()
-+	vcm_unmap()
-+
-+vcm_map() is likely to work with physical memory allocated in context
-+of other drivers as well (the only requirement is that "page" field of
-+struct vcm_phys_part will be set for all physically contiguous parts
-+and that each part's size will be multiply of PAGE_SIZE).
-+
- ** Real hardware drivers
- 
- There are no real hardware drivers at this time.
-@@ -793,6 +812,3 @@ rewritten by Michal Nazarewicz <m.nazarewicz@samsung.com>.
- The new version is still lacking a few important features.  Most
- notably, no real hardware MMU has been implemented yet.  This may be
- ported from original Zach's proposal.
--
--Also, support for VMM is lacking.  This is another thing that can be
--ported from Zach's proposal.
-diff --git a/include/linux/vcm.h b/include/linux/vcm.h
-index 3d54f18..800b5a0 100644
---- a/include/linux/vcm.h
-+++ b/include/linux/vcm.h
-@@ -295,4 +295,17 @@ int  __must_check vcm_activate(struct vcm *vcm);
-  */
- void vcm_deactivate(struct vcm *vcm);
- 
-+/**
-+ * vcm_vmm - VMM context
-+ *
-+ * Context for manipulating kernel virtual mappings.  Reserve as well
-+ * as rebinding is not supported by this driver.  Also, all mappings
-+ * are always active (till unbound) regardless of calls to
-+ * vcm_activate().
-+ *
-+ * After mapping, the start field of struct vcm_res should be cast to
-+ * pointer to void and interpreted as a valid kernel space pointer.
-+ */
-+extern struct vcm vcm_vmm[1];
-+
- #endif
-diff --git a/mm/vcm.c b/mm/vcm.c
-index 6804114..cd9f4ee 100644
---- a/mm/vcm.c
-+++ b/mm/vcm.c
-@@ -16,6 +16,7 @@
- #include <linux/vcm-drv.h>
- #include <linux/module.h>
- #include <linux/mm.h>
-+#include <linux/vmalloc.h>
- #include <linux/err.h>
- #include <linux/slab.h>
- 
-@@ -305,6 +306,113 @@ void vcm_deactivate(struct vcm *vcm)
- EXPORT_SYMBOL_GPL(vcm_deactivate);
- 
- 
-+/****************************** VCM VMM driver ******************************/
-+
-+static void vcm_vmm_cleanup(struct vcm *vcm)
-+{
-+	/* This should never be called.  vcm_vmm is a static object. */
-+	BUG_ON(1);
-+}
-+
-+static struct vcm_phys *
-+vcm_vmm_phys(struct vcm *vcm, resource_size_t size, unsigned flags)
-+{
-+	static const unsigned char orders[] = { 0 };
-+	return vcm_phys_alloc(size, flags, orders);
-+}
-+
-+static void vcm_vmm_unreserve(struct vcm_res *res)
-+{
-+	kfree(res);
-+}
-+
-+struct vcm_res *vcm_vmm_map(struct vcm *vcm, struct vcm_phys *phys,
-+			    unsigned flags)
-+{
-+	/*
-+	 * Original implementation written by Cho KyongHo
-+	 * (pullip.cho@samsung.com).  Later rewritten by mina86.
-+	 */
-+	struct vcm_phys_part *part;
-+	struct page **pages, **p;
-+	struct vcm_res *res;
-+	int ret = -ENOMEM;
-+	unsigned i;
-+
-+	pages = kmalloc((phys->size >> PAGE_SHIFT) * sizeof *pages, GFP_KERNEL);
-+	if (!pages)
-+		return ERR_PTR(-ENOMEM);
-+	p = pages;
-+
-+	res = kmalloc(sizeof *res, GFP_KERNEL);
-+	if (!res)
-+		goto error_pages;
-+
-+	i    = phys->count;
-+	part = phys->parts;
-+	do {
-+		unsigned j = part->size >> PAGE_SHIFT;
-+		struct page *page = part->page;
-+		if (!page)
-+			goto error_notsupp;
-+		do {
-+			*p++ = page++;
-+		} while (--j);
-+	} while (++part, --i);
-+
-+	res->start = (dma_addr_t)vmap(pages, p - pages, VM_ALLOC, PAGE_KERNEL);
-+	if (!res->start)
-+		goto error_res;
-+
-+	kfree(pages);
-+	res->res_size = phys->size;
-+	return res;
-+
-+error_notsupp:
-+	ret = -EOPNOTSUPP;
-+error_res:
-+	kfree(res);
-+error_pages:
-+	kfree(pages);
-+	return ERR_PTR(ret);
-+}
-+
-+static void vcm_vmm_unbind(struct vcm_res *res)
-+{
-+	vunmap((void *)res->start);
-+}
-+
-+static int vcm_vmm_activate(struct vcm *vcm)
-+{
-+	/* no operation, all bindings are immediately active */
-+	return 0;
-+}
-+
-+static void vcm_vmm_deactivate(struct vcm *vcm)
-+{
-+	/*
-+	 * no operation, all bindings are immediately active and
-+	 * cannot be deactivated unless unbound.
-+	 */
-+}
-+
-+struct vcm vcm_vmm[1] = { {
-+	.start       = 0,
-+	.size        = ~(resource_size_t)0,
-+	/* prevent activate/deactivate from being called */
-+	.activations = ATOMIC_INIT(1),
-+	.driver      = &(const struct vcm_driver) {
-+		.cleanup	= vcm_vmm_cleanup,
-+		.phys		= vcm_vmm_phys,
-+		.unbind		= vcm_vmm_unbind,
-+		.unreserve	= vcm_vmm_unreserve,
-+		.activate	= vcm_vmm_activate,
-+		.deactivate	= vcm_vmm_deactivate,
-+	}
-+} };
-+EXPORT_SYMBOL_GPL(vcm_vmm);
-+
-+
- /****************************** VCM Drivers API *****************************/
- 
- struct vcm *__must_check vcm_init(struct vcm *vcm)
+> > >> MSM_CAM_IOCTL_CONFIG_VFE
+> > >> 
+> > >>         Change settings of different components of VFE hardware.
+> > 
+> > Hard to analyze it, as you didn't provide any details ;)
+> > 
+> > Maybe the media controller API will be the right place for it. As Hans
+> > pointed,
+> > the hardware should be able to work without private ioctl's and/or
+> > media
+> > controller stuff.
+> 
+> Because all the private ioctl's are only called from daemon, they are not
+> very big concern here IMHO. The fact that a lot of stuff is done in daemon
+> does make it harder to decouple.
+> 
+> MSM_CAM_IOCTL_CONFIG_VFE ioctl calls pass in a structure like this:
+> struct msm_vfe_cfg_cmd {
+>         int cmd_type;
+>         uint16_t length;
+>         void *value;
+> };
+> Where cmd_type indicates what component of the VFE pipeline to configure,
+> For example, enable/disable stats, VFE buffers configuration, demosaic,
+> color conversion/correction, etc. The value field will contain the
+> appropriate data for the said cmd_type.
+> 
+> > >> MSM_CAM_IOCTL_CTRL_CMD_DONE
+> > >> 
+> > >>         Notify the driver that the ctrl command is finished.
+> > 
+> > Just looking at the ioctl name, this doesn't make much sense. If you
+> > open a
+> > device on normal way, the ioctl it will block until the operation is
+> > completed.
+> > 
+> > Could you please provide more details about it?
+> 
+> The idea is that the kernel driver delegates the control command to the
+> service daemon ( by means of v4l2_event ). The V4L2 control command call
+> from the app is blocked until the service daemon is done with operation.
+
+-EINVAL. No, no and no again. That's a completely broken design. Go back to 
+the black board and create a real Linux driver.
+
+If you want a daemon to isolate proprietary code, fine, but it must be totally 
+optional. Make the application communicate with the daemon (through a libv4l 
+plugin for instance), and have the daemon use the V4L2 API to communicate with 
+the hardware.
+
+I will strongly NAK any implementation that requires a daemon.
+
+> For example, for a VIDIOC_S_CTRL, the driver wraps the v4l2_ctrl structure
+> in a v4l2_event, publishes it to the daemon, and blocks. The daemon then
+> calls either MSM_CAM_IOCTL_CONFIG_VFE or MSM_CAM_IOCTL_SENSOR_IO_CFG or
+> both to configure the hardware. Once thoese ioctls return, it then call
+> MSM_CAM_IOCTL_CTRL_CMD_DONE to notify the driver so that it can wake up
+> the application.
+> 
+> > >> MSM_CAM_IOCTL_AXI_CONFIG
+> > >> 
+> > >>         Configure AXI bus parameters (frame buffer addresses,
+> > 
+> > offsets) to
+> > 
+> > >>         the VFE hardware.
+> > 
+> > Hard to analyze it, as you didn't provide any details ;)
+> > 
+> > The same comments I did for MSM_CAM_IOCTL_CONFIG_VFE apply here.
+> 
+> This registers buffers with VFE hardware. Like all other private ioctls,
+> It's called from the daemon.
+
 -- 
-1.6.2.5
+Regards,
 
+Laurent Pinchart
