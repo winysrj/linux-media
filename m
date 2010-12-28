@@ -1,81 +1,130 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout4.samsung.com ([203.254.224.34]:35620 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752981Ab0LWLT7 (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:30153 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753038Ab0L1ONe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Dec 2010 06:19:59 -0500
-Received: from epmmp2 (mailout4.samsung.com [203.254.224.34])
- by mailout4.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LDV00D34OTAP220@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Thu, 23 Dec 2010 20:19:58 +0900 (KST)
-Received: from AMDC159 ([106.116.37.153])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LDV00F8XOT4JW@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 23 Dec 2010 20:19:58 +0900 (KST)
-Date: Thu, 23 Dec 2010 12:19:51 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH 02/13] v4l: Add multi-planar ioctl handling code
-In-reply-to: <201012222138.43382.hverkuil@xs4all.nl>
-To: 'Hans Verkuil' <hverkuil@xs4all.nl>,
-	'Pawel Osciak' <pawel@osciak.com>
-Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <00eb01cba293$550711d0$ff153570$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <201012221601.37554.hverkuil@xs4all.nl>
- <1293037826-13420-1-git-send-email-pawel@osciak.com>
- <201012222138.43382.hverkuil@xs4all.nl>
+	Tue, 28 Dec 2010 09:13:34 -0500
+Subject: Re: [PATCH 0/8] Fix V4L/DVB/RC warnings
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <4D195584.6020409@redhat.com>
+References: <e95cvd7ycvmoq6jolupfigs0.1293494109547@email.android.com>
+	 <4D195584.6020409@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 28 Dec 2010 09:14:09 -0500
+Message-ID: <1293545649.2728.28.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hello,
+On Tue, 2010-12-28 at 01:12 -0200, Mauro Carvalho Chehab wrote:
+> Em 27-12-2010 21:55, Andy Walls escreveu:
+> > I have hardware for lirc_zilog.  I can look later this week.
+> 
+> That would be great!
 
-On Wednesday, December 22, 2010 9:39 PM Hans Verkuil wrote:
+It shouldn't be hard to fix up the lirc_zilog.c use of adap->id but it
+may require a change to the hdpvr driver as well.
 
-> On Wednesday, December 22, 2010 18:10:26 Pawel Osciak wrote:
-> > From: Pawel Osciak <p.osciak@samsung.com>
-> >
-> > Add multi-planar API core ioctl handling and conversion functions.
-> >
-> > Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> > Reviewed-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> > ---
-> >  drivers/media/video/v4l2-ioctl.c |  453 ++++++++++++++++++++++++++++++++++----
-> >  include/media/v4l2-ioctl.h       |   16 ++
-> >  2 files changed, 425 insertions(+), 44 deletions(-)
-> >
-> > diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-> > index 8516669..e2f6abb 100644
-> > --- a/drivers/media/video/v4l2-ioctl.c
-> > +++ b/drivers/media/video/v4l2-ioctl.c
-> 
-> <snip>
-> 
-> OK, looks good.
-> 
-> Marek, this patch + the other patches from your v8 patch series are good to
-> go as far as I am concerned. So you can add my tag to the whole series:
-> 
-> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
-> 
-> The only note I want to make is that the V4L2 DocBook spec needs to be updated
-> for the multiplanar API. But in my opinion that patch can be done in January.
+As I was looking, I noticed this commit is incomplete:
 
-Thanks for your review and help! I've uploaded a new version with your tag to:
-git://git.infradead.org/users/kmpark/linux-2.6-samsung vb2 branch.
-You can quickly access it here:
-http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/heads/vb2
-(it should be available in a few hours).
+http://git.linuxtv.org/media_tree.git?a=commitdiff;h=07cc65d4f4a21a104269ff7e4e7be42bd26d7acb
 
-Best regards
---
-Marek Szyprowski
-Samsung Poland R&D Center
+The "goto" was missed in the conditional compilation for the HD-PVR:
+
+http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/staging/lirc/lirc_zilog.c;h=f0076eb025f1a0e9d412080caab87f627dda4970#l844
+
+You might want to revert the trivial commit that removed the "done:"
+label.  When I clean up the dependence on adap->id, I may need the
+"done:" label back again.
+
+
+
+> > I also have hardware that lirc_i2c handles but not all the hardware it handles.
+> > 
+> >  IIRC lirc_i2c is very much like ir-kbd-i2c, so do we need it
+> anymore?  I'm not able to check for myself at the moment.
+> 
+> Both ir-kbd-i2c and lirc_i2c have almost the same features. We need to
+> double-check if all I2C addresses supported by lirc_i2c are also supported
+> by ir-kbd-i2c and if all I2C chipsets are supported.
+
+I'll modify lirc_i2c.c in three stages to do this:
+
+1. get rid of adapter->id use
+	- Trivial for I2C address 0x71 (the Zilog Z8F0811 chip's IR Rx)
+	- Requires modifications to cx88 for the LeadTek PVR2000.
+2. drop support for ir already handled by bridge drivers + ir-kbd-i2c
+3. move support for remainders in lirc_i2c to ir-kbd-i2c and bridge
+drivers
+
+Regards,
+Andy
+
+> > 
+> > Regards,
+> > Andy
+> > 
+> > Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+> > 
+> >>
+> >> There were several warnings at the subsystem, that were catched with
+> >> gcc version 4.5.1. All of them are fixed on those patches by a 
+> >> trivial patch. So, let's fix them ;)
+> >>
+> >> Now, the only remaining patches are the ones we want to be there:
+> >>
+> >> drivers/staging/lirc/lirc_i2c.c: In function ‘ir_probe’:
+> >> drivers/staging/lirc/lirc_i2c.c:431:3: warning: ‘id’ is deprecated (declared at include/linux/i2c.h:356)
+> >> drivers/staging/lirc/lirc_i2c.c:450:3: warning: ‘id’ is deprecated (declared at include/linux/i2c.h:356)
+> >> drivers/staging/lirc/lirc_i2c.c:479:9: warning: ‘id’ is deprecated (declared at include/linux/i2c.h:356)
+> >> drivers/staging/lirc/lirc_zilog.c: In function ‘ir_probe’:
+> >> drivers/staging/lirc/lirc_zilog.c:1199:2: warning: ‘id’ is deprecated (declared at include/linux/i2c.h:356)
+> >> drivers/media/video/cx88/cx88-i2c.c: In function ‘cx88_i2c_init’:
+> >> drivers/media/video/cx88/cx88-i2c.c:149:2: warning: ‘id’ is deprecated (declared at include/linux/i2c.h:356)
+> >> drivers/media/video/cx88/cx88-vp3054-i2c.c: In function ‘vp3054_i2c_probe’:
+> >> drivers/media/video/cx88/cx88-vp3054-i2c.c:128:2: warning: ‘id’ is deprecated (declared at include/linux/i2c.h:356)
+> >>
+> >> They are basically caused by lirc_i2c and lirc_zilog, that still needs
+> >> to use the legacy .id field at the I2C structs. Somebody with those
+> >> hardware, please fix it.
+> >>
+> >> Thanks,
+> >> Mauro
+> >>
+> >> -
+> >>
+> >> Mauro Carvalho Chehab (8):
+> >>  [media] dmxdev: Fix a compilation warning due to a bad type
+> >>  [media] radio-wl1273: Fix two warnings
+> >>  [media] lirc_zilog: Fix a warning
+> >>  [media] dib7000m/dib7000p: Add support for TRANSMISSION_MODE_4K
+> >>  [media] gspca: Fix a warning for using len before filling it
+> >>  [media] stv090x: Fix some compilation warnings
+> >>  [media] af9013: Fix a compilation warning
+> >>  [media] streamzap: Fix a compilation warning when compiled builtin
+> >>
+> >> drivers/media/dvb/dvb-core/dmxdev.c    |    4 ++--
+> >> drivers/media/dvb/frontends/af9013.c   |    2 +-
+> >> drivers/media/dvb/frontends/dib7000m.c |   10 +++++-----
+> >> drivers/media/dvb/frontends/dib7000p.c |   10 +++++-----
+> >> drivers/media/dvb/frontends/stv090x.c  |    6 +++---
+> >> drivers/media/radio/radio-wl1273.c     |    3 +--
+> >> drivers/media/rc/streamzap.c           |    2 +-
+> >> drivers/media/video/gspca/gspca.c      |    2 +-
+> >> drivers/staging/lirc/lirc_zilog.c      |    1 -
+> >> 9 files changed, 19 insertions(+), 21 deletions(-)
+> >>
+> >> -- 
+> >> 1.7.3.4
+> >>
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> >> the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > N�����r��y���b�X��ǧv�^�)޺{.n�+����{���bj)���w*jg��������ݢj/���z�ޖ��2�ޙ���&�)ߡ�a�����G���h��j:+v���w�٥
+> 
+
 
