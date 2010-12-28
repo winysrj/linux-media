@@ -1,129 +1,187 @@
 Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51271 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757287Ab0LTLg5 (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:36619 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750986Ab0L2Bhw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Dec 2010 06:36:57 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Cc: broonie@opensource.wolfsonmicro.com, clemens@ladisch.de,
-	gregkh@suse.de, sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v7 10/12] v4l: Add a media_device pointer to the v4l2_device structure
-Date: Mon, 20 Dec 2010 12:36:33 +0100
-Message-Id: <1292844995-7900-11-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1292844995-7900-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1292844995-7900-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 28 Dec 2010 20:37:52 -0500
+Subject: Re: [PATCH 0/8] Fix V4L/DVB/RC warnings
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <4D19F809.3010409@redhat.com>
+References: <e95cvd7ycvmoq6jolupfigs0.1293494109547@email.android.com>
+	 <4D195584.6020409@redhat.com>
+	 <1293545649.2728.28.camel@morgan.silverblock.net>
+	 <4D19F809.3010409@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 28 Dec 2010 17:18:11 -0500
+Message-ID: <1293574691.7187.6.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-The pointer will later be used to register/unregister media entities
-when registering/unregistering a v4l2_subdev or a video_device.
+On Tue, 2010-12-28 at 12:45 -0200, Mauro Carvalho Chehab wrote:
+> Em 28-12-2010 12:14, Andy Walls escreveu:
+> > On Tue, 2010-12-28 at 01:12 -0200, Mauro Carvalho Chehab wrote:
+> >> Em 27-12-2010 21:55, Andy Walls escreveu:
+> >>> I have hardware for lirc_zilog.  I can look later this week.
+> >>
+> >> That would be great!
+> > 
+> > It shouldn't be hard to fix up the lirc_zilog.c use of adap->id but it
+> > may require a change to the hdpvr driver as well.
+> > 
+> > As I was looking, I noticed this commit is incomplete:
+> > 
+> > http://git.linuxtv.org/media_tree.git?a=commitdiff;h=07cc65d4f4a21a104269ff7e4e7be42bd26d7acb
+> > 
+> > The "goto" was missed in the conditional compilation for the HD-PVR:
+> > 
+> > http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/staging/lirc/lirc_zilog.c;h=f0076eb025f1a0e9d412080caab87f627dda4970#l844
+> > 
+> > You might want to revert the trivial commit that removed the "done:"
+> > label.  When I clean up the dependence on adap->id, I may need the
+> > "done:" label back again.
+> > 
+> > 
+> Argh! this is not a very nice code at all...
+> 
+> I think that the proper way is to apply the enclosed patch. After having it
+> fixed, the dont_wait parameter can be passed to the driver via platform_data.
+> So, we should add a field at struct IR for it.
 
-With the introduction of media devices, device drivers need to store a
-pointer to a driver-specific structure in the device's drvdata.
-v4l2_device can't claim ownership of the drvdata anymore.
+Well there is one more exception in lirc_zilog for the HD-PVR that also
+relies on adapter->id.
 
-To maintain compatibility with drivers that rely on v4l2_device storing
-a pointer to itself in the device's drvdata, v4l2_device_register() will
-keep doing so if the drvdata is NULL.
+lirc_zilog only handles Hauppauge adapters with that Z8 microcontroller
+(PVR-150's, HVR-1600's, etc.) and the HD-PVR is the only device that
+requires these quirky exceptions AFAIK.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/video4linux/v4l2-framework.txt |   17 ++++++++++++-----
- drivers/media/video/v4l2-device.c            |   13 +++++++------
- include/media/v4l2-device.h                  |    4 ++++
- 3 files changed, 23 insertions(+), 11 deletions(-)
+It's probably better just to let lirc_zilog cleanly know it is dealing
+with an HD-PVR and let it handle.  I'm working on it this evening and
+will post something soon.
 
-diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index 4db1def..aeb2a22 100644
---- a/Documentation/video4linux/v4l2-framework.txt
-+++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -83,11 +83,17 @@ You must register the device instance:
- 
- 	v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev);
- 
--Registration will initialize the v4l2_device struct and link dev->driver_data
--to v4l2_dev. If v4l2_dev->name is empty then it will be set to a value derived
--from dev (driver name followed by the bus_id, to be precise). If you set it
--up before calling v4l2_device_register then it will be untouched. If dev is
--NULL, then you *must* setup v4l2_dev->name before calling v4l2_device_register.
-+Registration will initialize the v4l2_device struct. If the dev->driver_data
-+field is NULL, it will be linked to v4l2_dev. Drivers that use the media
-+device framework in addition to the V4L2 framework need to set
-+dev->driver_data manually to point to the driver-specific device structure
-+that embed the struct v4l2_device instance. This is achieved by a
-+dev_set_drvdata() call before registering the V4L2 device instance.
-+
-+If v4l2_dev->name is empty then it will be set to a value derived from dev
-+(driver name followed by the bus_id, to be precise). If you set it up before
-+calling v4l2_device_register then it will be untouched. If dev is NULL, then
-+you *must* setup v4l2_dev->name before calling v4l2_device_register.
- 
- You can use v4l2_device_set_name() to set the name based on a driver name and
- a driver-global atomic_t instance. This will generate names like ivtv0, ivtv1,
-@@ -108,6 +114,7 @@ You unregister with:
- 
- 	v4l2_device_unregister(struct v4l2_device *v4l2_dev);
- 
-+If the dev->driver_data field points to v4l2_dev, it will be reset to NULL.
- Unregistering will also automatically unregister all subdevs from the device.
- 
- If you have a hotpluggable device (e.g. a USB device), then when a disconnect
-diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
-index 318e911..8447466 100644
---- a/drivers/media/video/v4l2-device.c
-+++ b/drivers/media/video/v4l2-device.c
-@@ -46,9 +46,8 @@ int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
- 	if (!v4l2_dev->name[0])
- 		snprintf(v4l2_dev->name, sizeof(v4l2_dev->name), "%s %s",
- 			dev->driver->name, dev_name(dev));
--	if (dev_get_drvdata(dev))
--		v4l2_warn(v4l2_dev, "Non-NULL drvdata on register\n");
--	dev_set_drvdata(dev, v4l2_dev);
-+	if (!dev_get_drvdata(dev))
-+		dev_set_drvdata(dev, v4l2_dev);
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(v4l2_device_register);
-@@ -71,10 +70,12 @@ EXPORT_SYMBOL_GPL(v4l2_device_set_name);
- 
- void v4l2_device_disconnect(struct v4l2_device *v4l2_dev)
- {
--	if (v4l2_dev->dev) {
-+	if (v4l2_dev->dev == NULL)
-+		return;
-+
-+	if (dev_get_drvdata(v4l2_dev->dev) == v4l2_dev)
- 		dev_set_drvdata(v4l2_dev->dev, NULL);
--		v4l2_dev->dev = NULL;
--	}
-+	v4l2_dev->dev = NULL;
- }
- EXPORT_SYMBOL_GPL(v4l2_device_disconnect);
- 
-diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-index 6648036..b649c74 100644
---- a/include/media/v4l2-device.h
-+++ b/include/media/v4l2-device.h
-@@ -21,6 +21,7 @@
- #ifndef _V4L2_DEVICE_H
- #define _V4L2_DEVICE_H
- 
-+#include <media/media-device.h>
- #include <media/v4l2-subdev.h>
- 
- /* Each instance of a V4L2 device should create the v4l2_device struct,
-@@ -39,6 +40,9 @@ struct v4l2_device {
- 	   Note: dev might be NULL if there is no parent device
- 	   as is the case with e.g. ISA devices. */
- 	struct device *dev;
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	struct media_device *mdev;
-+#endif
- 	/* used to keep track of the registered subdevs */
- 	struct list_head subdevs;
- 	/* lock this struct; can be used by the driver as well if this
--- 
-1.7.2.2
+Regards,
+Andy
+
+> Cheers,
+> Mauro
+> 
+> lirc_zilog: Fix the TX logic for hd-pvr
+> 
+> The dont_wait parameter should be passed to the driver via platform_data, in order
+> to allow removing the usage of the legacy i2c_adapter.id field.
+> 
+> So, we should add a field at struct IR for it.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+> diff --git a/drivers/staging/lirc/lirc_zilog.c b/drivers/staging/lirc/lirc_zilog.c
+> index 52be6de..8486b66 100644
+> --- a/drivers/staging/lirc/lirc_zilog.c
+> +++ b/drivers/staging/lirc/lirc_zilog.c
+> @@ -88,6 +88,7 @@ struct IR {
+>  	struct i2c_client c_tx;
+>  	int need_boot;
+>  	int have_tx;
+> +	bool dont_wait;
+>  };
+>  
+>  /* Minor -> data mapping */
+> @@ -841,46 +842,43 @@ static int send_code(struct IR *ir, unsigned int code, unsigned int key)
+>  		return ret < 0 ? ret : -EFAULT;
+>  	}
+>  
+> -#ifdef I2C_HW_B_HDPVR
+>  	/*
+>  	 * The sleep bits aren't necessary on the HD PVR, and in fact, the
+>  	 * last i2c_master_recv always fails with a -5, so for now, we're
+>  	 * going to skip this whole mess and say we're done on the HD PVR
+>  	 */
+> -	if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR)
+> -		goto done;
+> -#endif
+> -
+> -	/*
+> -	 * This bit NAKs until the device is ready, so we retry it
+> -	 * sleeping a bit each time.  This seems to be what the windows
+> -	 * driver does, approximately.
+> -	 * Try for up to 1s.
+> -	 */
+> -	for (i = 0; i < 20; ++i) {
+> -		set_current_state(TASK_UNINTERRUPTIBLE);
+> -		schedule_timeout((50 * HZ + 999) / 1000);
+> -		ret = i2c_master_send(&ir->c_tx, buf, 1);
+> -		if (ret == 1)
+> -			break;
+> -		dprintk("NAK expected: i2c_master_send "
+> -			"failed with %d (try %d)\n", ret, i+1);
+> -	}
+> -	if (ret != 1) {
+> -		zilog_error("IR TX chip never got ready: last i2c_master_send "
+> -			    "failed with %d\n", ret);
+> -		return ret < 0 ? ret : -EFAULT;
+> -	}
+> +	if (!ir->dont_wait) {
+> +		/*
+> +		 * This bit NAKs until the device is ready, so we retry it
+> +		 * sleeping a bit each time.  This seems to be what the
+> +		 *  windows driver does, approximately.
+> +		 * Try for up to 1s.
+> +		 */
+> +		for (i = 0; i < 20; ++i) {
+> +			set_current_state(TASK_UNINTERRUPTIBLE);
+> +			schedule_timeout((50 * HZ + 999) / 1000);
+> +			ret = i2c_master_send(&ir->c_tx, buf, 1);
+> +			if (ret == 1)
+> +				break;
+> +			dprintk("NAK expected: i2c_master_send "
+> +				"failed with %d (try %d)\n", ret, i+1);
+> +		}
+> +		if (ret != 1) {
+> +			zilog_error("IR TX chip never got ready: last i2c_master_send "
+> +				    "failed with %d\n", ret);
+> +			return ret < 0 ? ret : -EFAULT;
+> +		}
+>  
+> -	/* Seems to be an 'ok' response */
+> -	i = i2c_master_recv(&ir->c_tx, buf, 1);
+> -	if (i != 1) {
+> -		zilog_error("i2c_master_recv failed with %d\n", ret);
+> -		return -EFAULT;
+> -	}
+> -	if (buf[0] != 0x80) {
+> -		zilog_error("unexpected IR TX response #2: %02x\n", buf[0]);
+> -		return -EFAULT;
+> +		/* Seems to be an 'ok' response */
+> +		i = i2c_master_recv(&ir->c_tx, buf, 1);
+> +		if (i != 1) {
+> +			zilog_error("i2c_master_recv failed with %d\n", ret);
+> +			return -EFAULT;
+> +		}
+> +		if (buf[0] != 0x80) {
+> +			zilog_error("unexpected IR TX response #2: %02x\n", buf[0]);
+> +			return -EFAULT;
+> +		}
+>  	}
+>  
+>  	/* Oh good, it worked */
+> @@ -1278,6 +1276,11 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+>  		strlcpy(ir->c_tx.name, ZILOG_HAUPPAUGE_IR_TX_NAME,
+>  			I2C_NAME_SIZE);
+>  		ir->have_tx = 1;
+> +
+> +#ifdef I2C_HW_B_HDPVR
+> +		if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR)
+> +			ir->dont_wait = true;
+> +#endif
+>  	}
+>  
+>  	/* set lirc_dev stuff */
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 
