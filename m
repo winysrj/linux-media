@@ -1,137 +1,271 @@
 Return-path: <mchehab@gaivota>
-Received: from bear.ext.ti.com ([192.94.94.41]:33413 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752968Ab0LVOMG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Dec 2010 09:12:06 -0500
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH v9 6/8] davinci vpbe: board specific additions
-Date: Wed, 22 Dec 2010 19:41:50 +0530
-Message-Id: <1293027110-17944-1-git-send-email-manjunath.hadli@ti.com>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:13422 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754063Ab0L1RD1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Dec 2010 12:03:27 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Tue, 28 Dec 2010 18:03:17 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 12/15] [media] s5p-fimc: Add control of the external sensor
+ clock
+In-reply-to: <1293555798-31578-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com
+Message-id: <1293555798-31578-13-git-send-email-s.nawrocki@samsung.com>
+References: <1293555798-31578-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-This patch implements tables for display timings,outputs and
-other board related functionalities.
+Manage the camera sensor clock in the host driver rather than
+leaving this task for sensor drivers. The clock frequency
+must be passed in the sensor's and host driver's platform data.
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- arch/arm/mach-davinci/board-dm644x-evm.c |   81 +++++++++++++++++++++++++-----
- 1 files changed, 68 insertions(+), 13 deletions(-)
+ drivers/media/video/s5p-fimc/fimc-capture.c |   28 ++++++++++---
+ drivers/media/video/s5p-fimc/fimc-core.c    |   58 ++++++++++++++++-----------
+ drivers/media/video/s5p-fimc/fimc-core.h    |   18 ++++++--
+ include/media/s5p_fimc.h                    |    2 +
+ 4 files changed, 71 insertions(+), 35 deletions(-)
 
-diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-davinci/board-dm644x-evm.c
-index 34c8b41..a15ece1 100644
---- a/arch/arm/mach-davinci/board-dm644x-evm.c
-+++ b/arch/arm/mach-davinci/board-dm644x-evm.c
-@@ -166,18 +166,6 @@ static struct platform_device davinci_evm_nandflash_device = {
- 	.resource	= davinci_evm_nandflash_resource,
- };
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index fc48368..6c9356f 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -124,15 +124,26 @@ static int fimc_isp_subdev_init(struct fimc_dev *fimc, int index)
  
--static u64 davinci_fb_dma_mask = DMA_BIT_MASK(32);
--
--static struct platform_device davinci_fb_device = {
--	.name		= "davincifb",
--	.id		= -1,
--	.dev = {
--		.dma_mask		= &davinci_fb_dma_mask,
--		.coherent_dma_mask      = DMA_BIT_MASK(32),
--	},
--	.num_resources = 0,
--};
--
- static struct tvp514x_platform_data tvp5146_pdata = {
- 	.clk_polarity = 0,
- 	.hs_polarity = 1,
-@@ -606,8 +594,73 @@ static void __init evm_init_i2c(void)
- 	i2c_register_board_info(1, i2c_info, ARRAY_SIZE(i2c_info));
+ 	isp_info = fimc->pdata->isp_info[fimc->vid_cap.input_index];
+ 	ret = fimc_hw_set_camera_polarity(fimc, isp_info);
+-	if (!ret) {
+-		ret = v4l2_subdev_call(fimc->vid_cap.sd, core,
+-				       s_power, 1);
+-		if (!ret)
+-			return ret;
+-	}
++	if (ret)
++		return ret;
++
++	if (isp_info->clk_frequency)
++		clk_set_rate(fimc->clock[CLK_CAM], isp_info->clk_frequency);
++
++	clk_enable(fimc->clock[CLK_CAM]);
++	if (ret)
++		return ret;
++
++	ret = v4l2_subdev_call(fimc->vid_cap.sd, core, s_power, 1);
++	if (!ret)
++		return ret;
+ 
++	/* enabling power failed so unregister subdev */
+ 	fimc_subdev_unregister(fimc);
+-	err("ISP initialization failed: %d", ret);
++
++	v4l2_err(&fimc->vid_cap.v4l2_dev, "ISP initialization failed: %d\n",
++		 ret);
++
+ 	return ret;
  }
  
-+#define VENC_STD_ALL    (V4L2_STD_NTSC | V4L2_STD_PAL)
-+
-+/* venc standards timings */
-+static struct vpbe_enc_mode_info vbpe_enc_std_timings[] = {
-+	{"ntsc", VPBE_ENC_STD, {V4L2_STD_525_60}, 1, 720, 480,
-+	{11, 10}, {30000, 1001}, 0x79, 0, 0x10, 0, 0, 0, 0},
-+	{"pal", VPBE_ENC_STD, {V4L2_STD_625_50}, 1, 720, 576,
-+	{54, 59}, {25, 1}, 0x7E, 0, 0x16, 0, 0, 0, 0},
-+};
-+
-+/* venc dv preset timings */
-+static struct vpbe_enc_mode_info vbpe_enc_preset_timings[] = {
-+	{"480p59_94", VPBE_ENC_DV_PRESET, {V4L2_DV_480P59_94}, 0, 720, 480,
-+	{1, 1}, {5994, 100}, 0x80, 0, 0x20, 0, 0, 0, 0},
-+	{"576p50", VPBE_ENC_DV_PRESET, {V4L2_DV_576P50}, 0, 720, 576,
-+	{1, 1}, {50, 1}, 0x7E, 0, 0x30, 0, 0, 0, 0},
-+};
-+
-+/*
-+ * The outputs available from VPBE + ecnoders. Keep the
-+ * the order same as that of encoders. First that from venc followed by that
-+ * from encoders. Index in the output refers to index on a particular encoder.
-+ * Driver uses this index to pass it to encoder when it supports more than
-+ * one output. Application uses index of the array to set an output.
-+ */
-+static struct vpbe_output dm644x_vpbe_outputs[] = {
-+	{
-+		.output = {
-+			.index = 0,
-+			.name = "Composite",
-+			.type = V4L2_OUTPUT_TYPE_ANALOG,
-+			.std = VENC_STD_ALL,
-+			.capabilities = V4L2_OUT_CAP_STD,
-+		},
-+		.subdev_name = VPBE_VENC_SUBDEV_NAME,
-+		.default_mode = "ntsc",
-+		.num_modes = ARRAY_SIZE(vbpe_enc_std_timings),
-+		.modes = vbpe_enc_std_timings,
-+	},
-+	{
-+		.output = {
-+			.index = 1,
-+			.name = "Component",
-+			.type = V4L2_OUTPUT_TYPE_ANALOG,
-+			.capabilities = V4L2_OUT_CAP_PRESETS,
-+		},
-+		.subdev_name = VPBE_VENC_SUBDEV_NAME,
-+		.default_mode = "480p59_94",
-+		.num_modes = ARRAY_SIZE(vbpe_enc_preset_timings),
-+		.modes = vbpe_enc_preset_timings,
-+	},
-+};
-+
-+static struct vpbe_display_config vpbe_display_cfg = {
-+	.module_name = "dm644x-vpbe-display",
-+	.i2c_adapter_id = 1,
-+	.osd = {
-+		.module_name = VPBE_OSD_SUBDEV_NAME,
-+	},
-+	.venc = {
-+		.module_name = VPBE_VENC_SUBDEV_NAME,
-+	},
-+	.num_outputs = ARRAY_SIZE(dm644x_vpbe_outputs),
-+	.outputs = dm644x_vpbe_outputs,
-+};
-+
- static struct platform_device *davinci_evm_devices[] __initdata = {
--	&davinci_fb_device,
- 	&rtc_dev,
- };
+@@ -421,6 +432,7 @@ static int fimc_capture_close(struct file *file)
  
-@@ -620,6 +673,8 @@ davinci_evm_map_io(void)
+ 		v4l2_err(&fimc->vid_cap.v4l2_dev, "releasing ISP\n");
+ 		v4l2_subdev_call(fimc->vid_cap.sd, core, s_power, 0);
++		clk_disable(fimc->clock[CLK_CAM]);
+ 		fimc_subdev_unregister(fimc);
+ 	}
+ 
+@@ -592,6 +604,8 @@ static int fimc_cap_s_input(struct file *file, void *priv,
+ 		int ret = v4l2_subdev_call(fimc->vid_cap.sd, core, s_power, 0);
+ 		if (ret)
+ 			err("s_power failed: %d", ret);
++
++		clk_disable(fimc->clock[CLK_CAM]);
+ 	}
+ 
+ 	/* Release the attached sensor subdevice. */
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index b273fe1..30cfe41 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -30,7 +30,9 @@
+ 
+ #include "fimc-core.h"
+ 
+-static char *fimc_clock_name[NUM_FIMC_CLOCKS] = { "sclk_fimc", "fimc" };
++static char *fimc_clocks[MAX_FIMC_CLOCKS] = {
++	"sclk_fimc", "fimc", "sclk_cam"
++};
+ 
+ static struct fimc_fmt fimc_formats[] = {
+ 	{
+@@ -1474,7 +1476,7 @@ static void fimc_unregister_m2m_device(struct fimc_dev *fimc)
+ static void fimc_clk_release(struct fimc_dev *fimc)
  {
- 	/* setup input configuration for VPFE input devices */
- 	dm644x_set_vpfe_config(&vpfe_cfg);
-+	/* setup configuration for vpbe devices */
-+	dm644x_set_vpbe_display_config(&vpbe_display_cfg);
- 	dm644x_init();
+ 	int i;
+-	for (i = 0; i < NUM_FIMC_CLOCKS; i++) {
++	for (i = 0; i < fimc->num_clocks; i++) {
+ 		if (fimc->clock[i]) {
+ 			clk_disable(fimc->clock[i]);
+ 			clk_put(fimc->clock[i]);
+@@ -1485,15 +1487,16 @@ static void fimc_clk_release(struct fimc_dev *fimc)
+ static int fimc_clk_get(struct fimc_dev *fimc)
+ {
+ 	int i;
+-	for (i = 0; i < NUM_FIMC_CLOCKS; i++) {
+-		fimc->clock[i] = clk_get(&fimc->pdev->dev, fimc_clock_name[i]);
+-		if (IS_ERR(fimc->clock[i])) {
+-			dev_err(&fimc->pdev->dev,
+-				"failed to get fimc clock: %s\n",
+-				fimc_clock_name[i]);
+-			return -ENXIO;
++	for (i = 0; i < fimc->num_clocks; i++) {
++		fimc->clock[i] = clk_get(&fimc->pdev->dev, fimc_clocks[i]);
++
++		if (!IS_ERR_OR_NULL(fimc->clock[i])) {
++			clk_enable(fimc->clock[i]);
++			continue;
+ 		}
+-		clk_enable(fimc->clock[i]);
++		dev_err(&fimc->pdev->dev, "failed to get fimc clock: %s\n",
++			fimc_clocks[i]);
++		return -ENXIO;
+ 	}
+ 	return 0;
  }
+@@ -1504,6 +1507,7 @@ static int fimc_probe(struct platform_device *pdev)
+ 	struct resource *res;
+ 	struct samsung_fimc_driverdata *drv_data;
+ 	int ret = 0;
++	int cap_input_index = -1;
  
+ 	dev_dbg(&pdev->dev, "%s():\n", __func__);
+ 
+@@ -1553,10 +1557,26 @@ static int fimc_probe(struct platform_device *pdev)
+ 		goto err_req_region;
+ 	}
+ 
++	fimc->num_clocks = MAX_FIMC_CLOCKS - 1;
++	/*
++	 * Check if vide capture node needs to be registered for this device
++	 * instance.
++	 */
++	if (fimc->pdata) {
++		int i;
++		for (i = 0; i < FIMC_MAX_CAMIF_CLIENTS; ++i)
++			if (fimc->pdata->isp_info[i])
++				break;
++		if (i < FIMC_MAX_CAMIF_CLIENTS) {
++			cap_input_index = i;
++			fimc->num_clocks++;
++		}
++	}
++
+ 	ret = fimc_clk_get(fimc);
+ 	if (ret)
+ 		goto err_regs_unmap;
+-	clk_set_rate(fimc->clock[0], drv_data->lclk_frequency);
++	clk_set_rate(fimc->clock[CLK_BUS], drv_data->lclk_frequency);
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+ 	if (!res) {
+@@ -1586,19 +1606,11 @@ static int fimc_probe(struct platform_device *pdev)
+ 		goto err_irq;
+ 
+ 	/* At least one camera sensor is required to register capture node */
+-	if (fimc->pdata) {
+-		int i;
+-		for (i = 0; i < FIMC_MAX_CAMIF_CLIENTS; ++i)
+-			if (fimc->pdata->isp_info[i])
+-				break;
+-
+-		if (i < FIMC_MAX_CAMIF_CLIENTS) {
+-			ret = fimc_register_capture_device(fimc);
+-			if (ret)
+-				goto err_m2m;
+-		}
++	if (cap_input_index >= 0) {
++		ret = fimc_register_capture_device(fimc);
++		if (ret)
++			goto err_m2m;
+ 	}
+-
+ 	/*
+ 	 * Exclude the additional output DMA address registers by masking
+ 	 * them out on HW revisions that provide extended capabilites.
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+index 6431d1a..9be5135 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.h
++++ b/drivers/media/video/s5p-fimc/fimc-core.h
+@@ -37,7 +37,7 @@
+ 
+ /* Time to wait for next frame VSYNC interrupt while stopping operation. */
+ #define FIMC_SHUTDOWN_TIMEOUT	((100*HZ)/1000)
+-#define NUM_FIMC_CLOCKS		2
++#define MAX_FIMC_CLOCKS		3
+ #define MODULE_NAME		"s5p-fimc"
+ #define FIMC_MAX_DEVS		4
+ #define FIMC_MAX_OUT_BUFS	4
+@@ -45,7 +45,13 @@
+ #define SCALER_MAX_VRATIO	64
+ #define DMA_MIN_SIZE		8
+ 
+-/* FIMC device state flags */
++/* indices to the clocks array */
++enum {
++	CLK_BUS,
++	CLK_GATE,
++	CLK_CAM,
++};
++
+ enum fimc_dev_flags {
+ 	/* for m2m node */
+ 	ST_IDLE,
+@@ -408,7 +414,8 @@ struct fimc_ctx;
+  * @lock:	the mutex protecting this data structure
+  * @pdev:	pointer to the FIMC platform device
+  * @pdata:	pointer to the device platform data
+- * @id:		FIMC device index (0..2)
++ * @id:		FIMC device index (0..FIMC_MAX_DEVS)
++ * @num_clocks: the number of clocks managed by this device instance
+  * @clock[]:	the clocks required for FIMC operation
+  * @regs:	the mapped hardware registers
+  * @regs_res:	the resource claimed for IO registers
+@@ -424,8 +431,9 @@ struct fimc_dev {
+ 	struct platform_device		*pdev;
+ 	struct s5p_platform_fimc	*pdata;
+ 	struct samsung_fimc_variant	*variant;
+-	int				id;
+-	struct clk			*clock[NUM_FIMC_CLOCKS];
++	u16				id;
++	u16				num_clocks;
++	struct clk			*clock[MAX_FIMC_CLOCKS];
+ 	void __iomem			*regs;
+ 	struct resource			*regs_res;
+ 	int				irq;
+diff --git a/include/media/s5p_fimc.h b/include/media/s5p_fimc.h
+index d30b9dee..0d457ca 100644
+--- a/include/media/s5p_fimc.h
++++ b/include/media/s5p_fimc.h
+@@ -31,6 +31,7 @@ struct i2c_board_info;
+  *			      interace configuration.
+  *
+  * @board_info: pointer to I2C subdevice's board info
++ * @clk_frequency: frequency of the clock the host interface provides to sensor
+  * @bus_type: determines bus type, MIPI, ITU-R BT.601 etc.
+  * @i2c_bus_num: i2c control bus id the sensor is attached to
+  * @mux_id: FIMC camera interface multiplexer index (separate for MIPI and ITU)
+@@ -38,6 +39,7 @@ struct i2c_board_info;
+  */
+ struct s5p_fimc_isp_info {
+ 	struct i2c_board_info *board_info;
++	unsigned long clk_frequency;
+ 	enum cam_bus_type bus_type;
+ 	u16 i2c_bus_num;
+ 	u16 mux_id;
 -- 
-1.6.2.4
+1.7.2.3
 
