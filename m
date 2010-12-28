@@ -1,58 +1,57 @@
 Return-path: <mchehab@gaivota>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:41171 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932375Ab0LSSVZ (ORCPT
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:60934 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752068Ab0L1AFM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Dec 2010 13:21:25 -0500
-Date: Sun, 19 Dec 2010 13:21:34 -0500
-Subject: Re: Power frequency detection.
-Message-ID: <73wo0g3yy30clob2isac30vm.1292782894810@email.android.com>
-From: Andy Walls <awalls@md.metrocast.net>
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	Paulo Assis <pj.assis@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+	Mon, 27 Dec 2010 19:05:12 -0500
+Date: Tue, 28 Dec 2010 03:04:58 +0300
+From: Dan Carpenter <error27@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Devin Heitmueller <dheitmueller@hauppauge.com>,
+	Sri Deevi <Srinivasa.Deevi@conexant.com>,
+	Palash Bandyopadhyay <palash.bandyopadhyay@conexant.com>,
+	Michael Krufky <mkrufky@kernellabs.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] [media] cx231xx: use bitwise negate instead of logical
+Message-ID: <20101228000458.GX1936@bicker>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-VGhlb2RvcmUsCgpBc2lkZSBmcm9tIGRldGVjdCBtZWFzdXJtZW50IG9mIHRoZSBwb3dlciBsaW5l
-LCBpc24ndCBhIGNhbWVyYSB0aGUgYmVzdCBzb3J0IG9mIHNlbnNvciBmb3IgdGhpcyBtZWFzdXJt
-ZW50IGFueXdheT8KCkp1c3QgY29tcHV0ZSB0aGUgYXZlcmFnZSBpbWFnZSBsdW1pbm9zaXR5IG92
-ZXIgc2V2ZXJhbCBmcmFtZXMgYW5kIGxvb2sgZm9yICgxMCBIeiA/KSBwZXJpb2RpYyB2YXJpYXRp
-b24gKGJlYXRzKSwgaW5kaWNhdGluZyBhIG1pc21hdGNoLgoKU3VyZSB5b3UgY291bGQganVzdCBh
-c2sgdGhlIHVzZXIsIGJ1dCB3aGVyZSdzIHRoZSBjaGFsbGVuZ2UgaW4gdGhhdC4gOykKClJlZ2Fy
-ZHMsCkFuZHkKClRoZW9kb3JlIEtpbGdvcmUgPGtpbGdvdGFAYmFuYWNoLm1hdGguYXVidXJuLmVk
-dT4gd3JvdGU6Cgo+Cj4KPk9uIFN1biwgMTkgRGVjIDIwMTAsIFBhdWxvIEFzc2lzIHdyb3RlOgo+
-Cj4+IEhpLAo+PiAKPj4gMjAxMC8xMi8xOCBUaGVvZG9yZSBLaWxnb3JlIDxraWxnb3RhQGJhbmFj
-aC5tYXRoLmF1YnVybi5lZHU+Ogo+PiA+Cj4+ID4gRG9lcyBhbnlvbmUga25vdyB3aGV0aGVyLCBz
-b21ld2hlcmUgaW4gdGhlIGtlcm5lbCwgdGhlcmUgZXhpc3RzIGEgc2NoZW1lCj4+ID4gZm9yIGRl
-dGVjdGluZyB3aGV0aGVyIHRoZSBleHRlcm5hbCBwb3dlciBzdXBwbHkgb2YgdGhlIGNvbXB1dGVy
-IGlzIHVzaW5nCj4+ID4gNTBoeiBvciA2MGh6Pwo+PiA+Cj4+ID4gVGhlIHJlYXNvbiBJIGFzazoK
-Pj4gPgo+PiA+IEEgY2VydGFpbiBjYW1lcmEgaXMgbWFya2V0ZWQgd2l0aCBXaW5kb3dzIHNvZnR3
-YXJlIHdoaWNoIHJlcXVlc3RzIHRoZSB1c2VyCj4+ID4gdG8gc2V0IHVwIHRoZSBvcHRpb24gb2Yg
-NTBoeiBvciA2MGh6IHBvd2VyIGR1cmluZyB0aGUgc2V0dXAuCj4+ID4KPj4gPiBKdWRnaW5nIGJ5
-IHdoYXQgZXhpc3RzIGluIHZpZGVvZGV2Mi5oLCBmb3IgZXhhbXBsZSwgaXQgaXMgZXZpZGVudGx5
-Cj4+ID4gcG9zc2libGUgdG8gc2V0IHVwIHRoaXMgYXMgYSBjb250cm9sIHNldHRpbmcgaW4gYSBM
-aW51eCBkcml2ZXIuIEkgYW0gbm90Cj4+ID4gYXdhcmUgb2YgYW55IHN0cmVhbWluZyBhcHAgd2hp
-Y2gga25vd3MgaG93IHRvIGFjY2VzcyBzdWNoIGFuIG9wdGlvbi4KPj4gPgo+PiAKPj4gTW9zdCB1
-dmMgY2FtZXJhcyBwcmVzZW50IHRoaXMgYXMgYSBjb250cm9sLCBzbyBhbnkgdjRsMiBjb250cm9s
-IGFwcAo+PiBzaG91bGQgbGV0IHlvdSBhY2Nlc3MgaXQuCj4+IElmIHlvdXIgY2FtZXJhIGRyaXZl
-ciBhbHNvIHN1cHBvcnRzIHRoaXMgY29udHJvbCB0aGVuIHRoaXMgc2hvdWxkbid0Cj4+IGJlIGEg
-cHJvYmxlbSBmb3IgYW55IGdlbmVyY2kgdjRsMiBhcHAuCj4+IGhlcmUgYXJlIGEgY291cGxlIG9m
-IG9uZXM6Cj4+IAo+PiB2NGwydWNwIChjb250cm9sIHBhbmVsKQo+PiBndXZjdmlldyAoImd1dmN2
-aWV3IC0tY29udHJvbF9vbmx5IiB3aWxsIHdvcmsgYWxvbmcgc2lkZSBvdGhlciBhcHBzCj4+IGp1
-c3QgbGlrZSB2NGwydWNwKQo+PiB1dmNkeW5jdHJsIGZyb20gbGlid2ViY2FtIGZvciBjb21tYW5k
-IGxpbmUgY29udHJvbCB1dGlsaXR5IC4KPj4gCj4+IFJlZ2FyZHMsCj4+IFBhdWxvCj4KPlRoYW5r
-IHlvdS4gCj4KPkkgc3RpbGwgdGhpbmsgdGhhdCBpdCB3b3VsZCBiZSBldmVuIG1vcmUgY2xldmVy
-IHRvIGRldGVjdCB0aGUgbGluZSAKPmZyZXF1ZW5jeSBhdXRvbWF0aWNhbGx5IGFuZCB0aGVuIGp1
-c3QgdG8gc2V0IHRoZSBwcm9wZXIgc2V0dGluZywgaWYgbmVlZGVkIAo+b3IgZGVzaXJhYmxlLiBU
-aGF0IHdhcyBvbmUgb2YgdGhlIHBhcnRzIG9mIG15IHF1ZXN0aW9uIGFib3V0IGl0LCBhZnRlciAK
-PmFsbC4gQnV0IGlmIG5vYm9keSBoYXMgZXZlciBoYWQgYSByZWFzb24gdG8gZG8gc3VjaCBkZXRl
-Y3Rpb24gYWxyZWFkeSBpdCAKPndvdWxkIHBlcmhhcHMgYmUgbXVjaCBtb3JlIHRyb3VibGUgdGhh
-biBpdCBpcyB3b3J0aCBqdXN0IGRvIHN1cHBvcnQgYSAKPmNoZWFwIGNhbWVyYS4KPgo+VGhlb2Rv
-cmUgS2lsZ29yZQo+LS0KPlRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBs
-aW5lICJ1bnN1YnNjcmliZSBsaW51eC1tZWRpYSIgaW4KPnRoZSBib2R5IG9mIGEgbWVzc2FnZSB0
-byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnCj5Nb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRw
-Oi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwK
+Bitwise negate was intended here.  INPUT_SEL_MASK is 0x30.
 
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+
+diff --git a/drivers/media/video/cx231xx/cx231xx-avcore.c b/drivers/media/video/cx231xx/cx231xx-avcore.c
+index d52955c..c53e972 100644
+--- a/drivers/media/video/cx231xx/cx231xx-avcore.c
++++ b/drivers/media/video/cx231xx/cx231xx-avcore.c
+@@ -274,7 +274,7 @@ int cx231xx_afe_set_input_mux(struct cx231xx *dev, u32 input_mux)
+ 
+ 	if (ch1_setting != 0) {
+ 		status = afe_read_byte(dev, ADC_INPUT_CH1, &value);
+-		value &= (!INPUT_SEL_MASK);
++		value &= ~INPUT_SEL_MASK;
+ 		value |= (ch1_setting - 1) << 4;
+ 		value &= 0xff;
+ 		status = afe_write_byte(dev, ADC_INPUT_CH1, value);
+@@ -282,7 +282,7 @@ int cx231xx_afe_set_input_mux(struct cx231xx *dev, u32 input_mux)
+ 
+ 	if (ch2_setting != 0) {
+ 		status = afe_read_byte(dev, ADC_INPUT_CH2, &value);
+-		value &= (!INPUT_SEL_MASK);
++		value &= ~INPUT_SEL_MASK;
+ 		value |= (ch2_setting - 1) << 4;
+ 		value &= 0xff;
+ 		status = afe_write_byte(dev, ADC_INPUT_CH2, value);
+@@ -292,7 +292,7 @@ int cx231xx_afe_set_input_mux(struct cx231xx *dev, u32 input_mux)
+ 	   7 less than the input number */
+ 	if (ch3_setting != 0) {
+ 		status = afe_read_byte(dev, ADC_INPUT_CH3, &value);
+-		value &= (!INPUT_SEL_MASK);
++		value &= ~INPUT_SEL_MASK;
+ 		value |= (ch3_setting - 1) << 4;
+ 		value &= 0xff;
+ 		status = afe_write_byte(dev, ADC_INPUT_CH3, value);
