@@ -1,115 +1,97 @@
 Return-path: <mchehab@gaivota>
-Received: from wolverine02.qualcomm.com ([199.106.114.251]:1067 "EHLO
-	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753891Ab0L1Sgr (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:29488 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753484Ab0L2Rc7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Dec 2010 13:36:47 -0500
-From: "Shuzhen Wang" <shuzhenw@codeaurora.org>
-To: "'Mauro Carvalho Chehab'" <mchehab@redhat.com>,
-	"'Hans Verkuil'" <hverkuil@xs4all.nl>
-Cc: <linux-media@vger.kernel.org>, <hzhong@codeaurora.org>,
-	"Yan, Yupeng" <yyan@quicinc.com>
-References: <000601cba2d8$eaedcdc0$c0c96940$@org> <201012241219.31754.hverkuil@xs4all.nl> <4D188285.8090603@redhat.com>
-In-Reply-To: <4D188285.8090603@redhat.com>
-Subject: RE: RFC: V4L2 driver for Qualcomm MSM camera.
-Date: Tue, 28 Dec 2010 10:35:05 -0800
-Message-ID: <000001cba6bd$f2c94ea0$d85bebe0$@org>
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-language: en-us
+	Wed, 29 Dec 2010 12:32:59 -0500
+Date: Wed, 29 Dec 2010 18:32:42 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 0/15] V4L2 mem-to-mem framework and s5p-fimc driver conversion
+ for videobuf2
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com
+Message-id: <1293643975-4528-1-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-> -----Original Message-----
-> From: Mauro Carvalho Chehab [mailto:mchehab@redhat.com]
-> Sent: Monday, December 27, 2010 4:12 AM
-> To: Hans Verkuil
-> Cc: Shuzhen Wang; linux-media@vger.kernel.org; hzhong@codeaurora.org
-> Subject: Re: RFC: V4L2 driver for Qualcomm MSM camera.
-> 
-> Em 24-12-2010 09:19, Hans Verkuil escreveu:
-> >> MSM_CAM_IOCTL_SENSOR_IO_CFG
-> >>         Get or set sensor configurations: fps, line_pf, pixels_pl,
-> >>         exposure and gain, etc. The setting is stored in
-> sensor_cfg_data
-> >>         structure.
-> 
-> This doesn't make much sense to me as-is. The V4L2 API can set fps,
-> exposure,
-> gain and other things. Please only use private ioctl's for those things
-> that
-> aren't provided elsewhere and can't be mapped into some CTRL.
-> 
-
-In our design, all these private ioctls are only called from the service
-daemon, so they are transparent to the application. For example, when a
-standard V4L2 API is called from the app to change fps, it gets translated
-to MSM_CAM_IOCTL_SENSOR_IO_CFG in the daemon, and sent to the sensor
-hardware.
-
-> >> MSM_CAM_IOCTL_CONFIG_VFE
-> >>         Change settings of different components of VFE hardware.
-> 
-> Hard to analyze it, as you didn't provide any details ;)
-> 
-> Maybe the media controller API will be the right place for it. As Hans
-> pointed,
-> the hardware should be able to work without private ioctl's and/or
-> media
-> controller stuff.
-> 
-
-Because all the private ioctl's are only called from daemon, they are not
-very big concern here IMHO. The fact that a lot of stuff is done in daemon
-does make it harder to decouple. 
-
-MSM_CAM_IOCTL_CONFIG_VFE ioctl calls pass in a structure like this:
-struct msm_vfe_cfg_cmd {
-        int cmd_type;
-        uint16_t length;
-        void *value;
-};
-Where cmd_type indicates what component of the VFE pipeline to configure,
-For example, enable/disable stats, VFE buffers configuration, demosaic,
-color conversion/correction, etc. The value field will contain the
-appropriate data for the said cmd_type.
-
-> >> MSM_CAM_IOCTL_CTRL_CMD_DONE
-> >>         Notify the driver that the ctrl command is finished.
-> 
-> Just looking at the ioctl name, this doesn't make much sense. If you
-> open a
-> device on normal way, the ioctl it will block until the operation is
-> completed.
-> 
-> Could you please provide more details about it?
-
-The idea is that the kernel driver delegates the control command to the
-service daemon ( by means of v4l2_event ). The V4L2 control command call
-from the app is blocked until the service daemon is done with operation.
-
-For example, for a VIDIOC_S_CTRL, the driver wraps the v4l2_ctrl structure
-in a v4l2_event, publishes it to the daemon, and blocks. The daemon then
-calls either MSM_CAM_IOCTL_CONFIG_VFE or MSM_CAM_IOCTL_SENSOR_IO_CFG or
-both to configure the hardware. Once thoese ioctls return, it then call 
-MSM_CAM_IOCTL_CTRL_CMD_DONE to notify the driver so that it can wake up
-the application.
-
-> >> MSM_CAM_IOCTL_AXI_CONFIG
-> >>         Configure AXI bus parameters (frame buffer addresses,
-> offsets) to
-> >>         the VFE hardware.
-> 
-> Hard to analyze it, as you didn't provide any details ;)
-> 
-> The same comments I did for MSM_CAM_IOCTL_CONFIG_VFE apply here.
-
-This registers buffers with VFE hardware. Like all other private ioctls, 
-It's called from the daemon. 
+Hello,
 
 
-Thanks!
--Shuzhen
+This is basically resend of my previous changeset including minor fixes
+in s5p-fimc and adresing comments on the LMML from the past.
 
+Changes since v1:
+- check if color format is set in STREAMON separately for each buffer type (05/15)
+- add releasing of buffer's from driver's queue in stop_streaming (04/15)
+- fix errors in patches 08/15, 12/15
+
+The patch series is a continuation of patch series from Marek addding 
+the videobuf2 framework. Please see this thread for reference:
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg25988.html
+
+The first and second patch converts v4l2-mem2mem framework and the mem2mem testdev
+to use videobuf2.
+
+Patch 04/15 converts s5p-fimc, both m2m and camera capture interface drivers.
+Except that it creates separate videobuf queue operation callback set for
+the m2m and capture video nodes.
+
+Patch 05/15 converts s5p-fimc driver so it supports multiplanar formats 
+and thus can be used for hardware assisted video playback together with
+S5P MFC (multi-format codec) driver.
+
+The driver implements only *_mplane ioctl handlers so in case of
+standard non-multiplane V4L2 application the buffers are converted
+in v4l2 ioctl handling code.
+
+Patch 06/15 just cleans up the driver by removing all locking from 
+ioctl and file operation handlers and using v4l core lock.
+
+Patches 07..15/15 are various s5p-fimc driver improvements and fixes.
+Patch 15/15 introduces little changes for what was introduced by
+HyounWoong Kim patches.
+
+
+The patch series contains:
+
+[PATCH 01/15] v4l: mem2mem: port to videobuf2
+[PATCH 02/15] v4l: mem2mem: port m2m_testdev to vb2
+[PATCH 03/15] v4l: Add multiplanar format fourccs for s5p-fimc driver
+[PATCH 04/15] [media] s5p-fimc: Porting to videobuf 2
+[PATCH 05/15] [media] s5p-fimc: Conversion to multiplanar formats
+[PATCH 06/15] [media] s5p-fimc: Use v4l core mutex in ioctl and file operations
+[PATCH 07/15] [media] s5p-fimc: Rename s3c_fimc* to s5p_fimc*
+[PATCH 08/15] [media] s5p-fimc: Derive camera bus width from mediabus pixelcode
+[PATCH 09/15] [media] s5p-fimc: Enable interworking without subdev s_stream
+[PATCH 10/15] [media] s5p-fimc: Use default input DMA burst count
+[PATCH 11/15] [media] s5p-fimc: Enable simultaneous rotation and flipping
+[PATCH 12/15] [media] s5p-fimc: Add control of the external sensor clock
+[PATCH 15/15] [media] s5p-fimc: Move scaler details handling to the register API file
+
+
+Patches 13/15, 14/15 from HyounWoong Kim can be found here:
+
+https://patchwork.kernel.org/patch/428901/
+https://patchwork.kernel.org/patch/428891/
+
+Full source tree containing the last Videobuf2, multiplanar extension patches
+together with vivi, v4l2-mem2mem framework, mem2mem testdev and s5p-fimc driver
+conversion to vb2 patches will be available within few hours at:
+
+The tree is based on git://linuxtv.org/media_tree.git staging/for_v2.6.38.
+
+There are still the DocBook entries missing for new non-contiguous multiplanar
+fourccs introduced in patch 03/15 and I am going to provide them in New Year. 
+
+
+Regards,
+Sylwester 
+
+
+--
+Sylwester Nawrocki
+Samsung Poland R&D Center
