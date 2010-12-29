@@ -1,122 +1,83 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:18875 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751240Ab0LOUij (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2601 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752104Ab0L2LYo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Dec 2010 15:38:39 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Wed, 15 Dec 2010 21:34:25 +0100
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Subject: [PATCHv8 05/12] mm: alloc_contig_freed_pages() added
-In-reply-to: <cover.1292443200.git.m.nazarewicz@samsung.com>
-To: Michal Nazarewicz <mina86@mina86.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mel Gorman <mel@csn.ul.ie>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org
-Message-id: <2fa6b6c1db8640cca1e8f0be7bce5d152b10c6f4.1292443200.git.m.nazarewicz@samsung.com>
-References: <cover.1292443200.git.m.nazarewicz@samsung.com>
+	Wed, 29 Dec 2010 06:24:44 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Deti Fliegl <deti@fliegl.de>
+Subject: Re: [PATCH] [media] dabusb: Move it to staging to be deprecated
+Date: Wed, 29 Dec 2010 12:24:25 +0100
+Cc: Felipe Sanches <juca@members.fsf.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <4D19037B.6060904@redhat.com> <201012291137.49153.hverkuil@xs4all.nl> <4D1B1532.60606@fliegl.de>
+In-Reply-To: <4D1B1532.60606@fliegl.de>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201012291224.25864.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+On Wednesday, December 29, 2010 12:02:10 Deti Fliegl wrote:
+> On 12/29/10 11:37 AM, Hans Verkuil wrote:
+> > On Tuesday, December 28, 2010 20:10:17 Felipe Sanches wrote:
+> >> Wait!
+> >>
+> >> It supports the DRBox1 DAB sold by Terratec:
+> >> http://www.baycom.de/wiki/index.php/Products::dabusbhw
+> >
+> > No, it doesn't. The driver in the kernel only supports the prototype board.
+> > The driver on baycom.de *does* support the Terratec product, but that's not
+> > in the kernel.
+> No, it should support the Terratec hardware as well but it's outdated 
+> and unstable. Therefor I agreed to remove the driver from the current 
+> kernel as I am not willing to continue support for the code.
 
-This commit introduces alloc_contig_freed_pages() function
-which allocates (ie. removes from buddy system) free pages
-in range.  Caller has to guarantee that all pages in range
-are in buddy system.
+I don't think it supports the Terratec hardware since the list of USB ids
+doesn't include the Terratec products:
 
-Along with this function, a free_contig_pages() function is
-provided which frees all (or a subset of) pages allocated
-with alloc_contig_free_pages().
+static struct usb_device_id dabusb_ids [] = {
+        // { USB_DEVICE(0x0547, 0x2131) },      /* An2131 chip, no boot ROM */
+        { USB_DEVICE(0x0547, 0x9999) },
+        { }                                             /* Terminating entry */
+};
 
-Michal Nazarewicz has modified the function to make it easier
-to allocate not MAX_ORDER_NR_PAGES aligned pages by making it
-return pfn of one-past-the-last allocated page.
+So this driver will never be loaded when a Terratec USB device is connected.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
----
- include/linux/page-isolation.h |    3 ++
- mm/page_alloc.c                |   44 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 47 insertions(+), 0 deletions(-)
+Correct?
 
-diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
-index 58cdbac..f1417ed 100644
---- a/include/linux/page-isolation.h
-+++ b/include/linux/page-isolation.h
-@@ -32,6 +32,9 @@ test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
-  */
- extern int set_migratetype_isolate(struct page *page);
- extern void unset_migratetype_isolate(struct page *page);
-+extern unsigned long alloc_contig_freed_pages(unsigned long start,
-+					      unsigned long end, gfp_t flag);
-+extern void free_contig_pages(struct page *page, int nr_pages);
- 
- /*
-  * For migration.
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 826ba69..be240a3 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5425,6 +5425,50 @@ out:
- 	spin_unlock_irqrestore(&zone->lock, flags);
- }
- 
-+unsigned long alloc_contig_freed_pages(unsigned long start, unsigned long end,
-+				       gfp_t flag)
-+{
-+	unsigned long pfn = start, count;
-+	struct page *page;
-+	struct zone *zone;
-+	int order;
-+
-+	VM_BUG_ON(!pfn_valid(start));
-+	zone = page_zone(pfn_to_page(start));
-+
-+	spin_lock_irq(&zone->lock);
-+
-+	page = pfn_to_page(pfn);
-+	for (;;) {
-+		VM_BUG_ON(page_count(page) || !PageBuddy(page));
-+		list_del(&page->lru);
-+		order = page_order(page);
-+		zone->free_area[order].nr_free--;
-+		rmv_page_order(page);
-+		__mod_zone_page_state(zone, NR_FREE_PAGES, -(1UL << order));
-+		pfn  += 1 << order;
-+		if (pfn >= end)
-+			break;
-+		VM_BUG_ON(!pfn_valid(pfn));
-+		page += 1 << order;
-+	}
-+
-+	spin_unlock_irq(&zone->lock);
-+
-+	/* After this, pages in the range can be freed one be one */
-+	page = pfn_to_page(start);
-+	for (count = pfn - start; count; --count, ++page)
-+		prep_new_page(page, 0, flag);
-+
-+	return pfn;
-+}
-+
-+void free_contig_pages(struct page *page, int nr_pages)
-+{
-+	for (; nr_pages; --nr_pages, ++page)
-+		__free_page(page);
-+}
-+
- #ifdef CONFIG_MEMORY_HOTREMOVE
- /*
-  * All pages in the range must be isolated before calling this.
+> >> I've been working on a free firmware for this device:
+> >> http://libreplanet.org/wiki/LinuxLibre:USB_DABUSB
+> >
+> > I don't mind having support for DAB in the kernel, but any DAB API needs to
+> > be properly discussed, designed and documented. And it should probably be a
+> > part of the V4L2 API (since that already supports analog radio and RDS).
+> >
+> > By removing this driver from the kernel we open the way for a new DAB API
+> > without breaking support for any existing end-users since the current driver
+> > doesn't support any sold products.
+> >
+> > Frankly, I'm quite interested to see support for this and I'd be happy to
+> > work with someone on designing an API for it. Sounds interesting :-)
+> Attached to this mail you will find our latest sources of the dabusb 
+> driver and the 8051 code running on the DR-Box 1 itself. Feel free to 
+> continue development or to forget about everything.
+
+Unless someone will pick up this source code and starts to work with us on
+designing an API it will probably be forgotten :-(
+
+As far as I can tell (please correct me if I am wrong) the hardware either no
+longer available or very hard to get hold off.
+
+I did see that Terratec still sells some DAB receivers, but they are all based
+on different hardware.
+
+Regards,
+
+	Hans
+
 -- 
-1.7.2.3
-
+Hans Verkuil - video4linux developer - sponsored by Cisco
