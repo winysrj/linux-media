@@ -1,118 +1,154 @@
 Return-path: <mchehab@gaivota>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:49311 "EHLO
-	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751632Ab0L1I2y (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3082 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753901Ab0L2Vn0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Dec 2010 03:28:54 -0500
-From: Hyunwoong Kim <khw0178.kim@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: s.nawrocki@samsung.com, Hyunwoong Kim <khw0178.kim@samsung.com>
-Subject: [PATCH] [media] s5p-fimc: Support stop_streaming and job_abort
-Date: Tue, 28 Dec 2010 17:06:56 +0900
-Message-Id: <1293523616-27421-1-git-send-email-khw0178.kim@samsung.com>
+	Wed, 29 Dec 2010 16:43:26 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id oBTLhOdN072150
+	for <linux-media@vger.kernel.org>; Wed, 29 Dec 2010 22:43:24 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Message-Id: <92f941c68aa1125ed58dc741e2e3aad19a77bfc9.1293657717.git.hverkuil@xs4all.nl>
+In-Reply-To: <cover.1293657717.git.hverkuil@xs4all.nl>
+References: <cover.1293657717.git.hverkuil@xs4all.nl>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Wed, 29 Dec 2010 22:43:24 +0100
+Subject: [PATCH 07/10] [RFC] ivtv: use core-assisted locking.
+To: linux-media@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-This patch adds callback functions, stop_streaming and job_abort,
-to abort or finish any DMA in progress. stop_streaming is called
-by videobuf2 framework and job_abort is called by m2m framework.
-ST_M2M_PEND state is added to discard the next job.
-
-Reviewed-by: Jonghun Han <jonghun.han@samsung.com>
-Signed-off-by: Hyunwoong Kim <khw0178.kim@samsung.com>
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
 ---
-This patch is depended on Hyunwoong Kim's last patch.
-- [PATCH v2] [media] s5p-fimc: Configure scaler registers depending on FIMC version
+ drivers/media/video/ivtv/ivtv-fileops.c |   15 +--------------
+ drivers/media/video/ivtv/ivtv-ioctl.c   |   18 +-----------------
+ drivers/media/video/ivtv/ivtv-streams.c |    1 +
+ 3 files changed, 3 insertions(+), 31 deletions(-)
 
- drivers/media/video/s5p-fimc/fimc-core.c |   41 ++++++++++++++++++++++++++++-
- drivers/media/video/s5p-fimc/fimc-core.h |    1 +
- 2 files changed, 40 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index 2b65961..0eeb6a5 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -308,6 +308,26 @@ int fimc_set_scaler_info(struct fimc_ctx *ctx)
+diff --git a/drivers/media/video/ivtv/ivtv-fileops.c b/drivers/media/video/ivtv/ivtv-fileops.c
+index 4463bf4..ae6e266 100644
+--- a/drivers/media/video/ivtv/ivtv-fileops.c
++++ b/drivers/media/video/ivtv/ivtv-fileops.c
+@@ -507,9 +507,7 @@ ssize_t ivtv_v4l2_read(struct file * filp, char __user *buf, size_t count, loff_
+ 
+ 	IVTV_DEBUG_HI_FILE("read %zd bytes from %s\n", count, s->name);
+ 
+-	mutex_lock(&itv->serialize_lock);
+ 	rc = ivtv_start_capture(id);
+-	mutex_unlock(&itv->serialize_lock);
+ 	if (rc)
+ 		return rc;
+ 	return ivtv_read_pos(s, buf, count, pos, filp->f_flags & O_NONBLOCK);
+@@ -584,9 +582,7 @@ ssize_t ivtv_v4l2_write(struct file *filp, const char __user *user_buf, size_t c
+ 	set_bit(IVTV_F_S_APPL_IO, &s->s_flags);
+ 
+ 	/* Start decoder (returns 0 if already started) */
+-	mutex_lock(&itv->serialize_lock);
+ 	rc = ivtv_start_decoding(id, itv->speed);
+-	mutex_unlock(&itv->serialize_lock);
+ 	if (rc) {
+ 		IVTV_DEBUG_WARN("Failed start decode stream %s\n", s->name);
+ 
+@@ -755,9 +751,7 @@ unsigned int ivtv_v4l2_enc_poll(struct file *filp, poll_table * wait)
+ 	if (!eof && !test_bit(IVTV_F_S_STREAMING, &s->s_flags)) {
+ 		int rc;
+ 
+-		mutex_lock(&itv->serialize_lock);
+ 		rc = ivtv_start_capture(id);
+-		mutex_unlock(&itv->serialize_lock);
+ 		if (rc) {
+ 			IVTV_DEBUG_INFO("Could not start capture for %s (%d)\n",
+ 					s->name, rc);
+@@ -868,7 +862,6 @@ int ivtv_v4l2_close(struct file *filp)
+ 	/* 'Unclaim' this stream */
+ 
+ 	/* Stop radio */
+-	mutex_lock(&itv->serialize_lock);
+ 	if (id->type == IVTV_ENC_STREAM_TYPE_RAD) {
+ 		/* Closing radio device, return to TV mode */
+ 		ivtv_mute(itv);
+@@ -906,7 +899,6 @@ int ivtv_v4l2_close(struct file *filp)
+ 		ivtv_stop_capture(id, 0);
+ 	}
+ 	kfree(id);
+-	mutex_unlock(&itv->serialize_lock);
  	return 0;
  }
  
-+static int stop_streaming(struct vb2_queue *q)
-+{
-+	struct fimc_ctx *ctx = q->drv_priv;
-+	struct fimc_dev *fimc = ctx->fimc_dev;
-+	unsigned long flags;
-+
-+	if (!fimc_m2m_pending(fimc))
-+		return 0;
-+
-+	spin_lock_irqsave(&fimc->slock, flags);
-+	set_bit(ST_M2M_SHUT, &fimc->state);
-+	spin_unlock_irqrestore(&fimc->slock, flags);
-+
-+	wait_event_timeout(fimc->irq_queue,
-+			!test_bit(ST_M2M_SHUT, &fimc->state),
-+			FIMC_SHUTDOWN_TIMEOUT);
-+
-+	return 0;
-+}
-+
- static void fimc_capture_handler(struct fimc_dev *fimc)
+@@ -1026,7 +1018,6 @@ static int ivtv_serialized_open(struct ivtv_stream *s, struct file *filp)
+ 
+ int ivtv_v4l2_open(struct file *filp)
  {
- 	struct fimc_vid_cap *cap = &fimc->vid_cap;
-@@ -359,7 +379,10 @@ static irqreturn_t fimc_isr(int irq, void *priv)
+-	int res;
+ 	struct ivtv *itv = NULL;
+ 	struct ivtv_stream *s = NULL;
+ 	struct video_device *vdev = video_devdata(filp);
+@@ -1034,16 +1025,12 @@ int ivtv_v4l2_open(struct file *filp)
+ 	s = video_get_drvdata(vdev);
+ 	itv = s->itv;
  
- 	spin_lock(&fimc->slock);
- 
--	if (test_and_clear_bit(ST_M2M_PEND, &fimc->state)) {
-+	if (test_and_clear_bit(ST_M2M_SHUT, &fimc->state)) {
-+		wake_up(&fimc->irq_queue);
-+		goto isr_unlock;
-+	} else if (test_and_clear_bit(ST_M2M_PEND, &fimc->state)) {
- 		struct vb2_buffer *src_vb, *dst_vb;
- 		struct fimc_ctx *ctx = v4l2_m2m_get_curr_priv(fimc->m2m.m2m_dev);
- 
-@@ -639,7 +662,20 @@ dma_unlock:
- 
- static void fimc_job_abort(void *priv)
- {
--	/* Nothing done in job_abort. */
-+	struct fimc_ctx *ctx = priv;
-+	struct fimc_dev *fimc = ctx->fimc_dev;
-+	unsigned long flags;
-+
-+	if (!fimc_m2m_pending(fimc))
-+		return;
-+
-+	spin_lock_irqsave(&fimc->slock, flags);
-+	set_bit(ST_M2M_SHUT, &fimc->state);
-+	spin_unlock_irqrestore(&fimc->slock, flags);
-+
-+	wait_event_timeout(fimc->irq_queue,
-+			!test_bit(ST_M2M_SHUT, &fimc->state),
-+			FIMC_SHUTDOWN_TIMEOUT);
+-	mutex_lock(&itv->serialize_lock);
+ 	if (ivtv_init_on_first_open(itv)) {
+ 		IVTV_ERR("Failed to initialize on device %s\n",
+ 			 video_device_node_name(vdev));
+-		mutex_unlock(&itv->serialize_lock);
+ 		return -ENXIO;
+ 	}
+-	res = ivtv_serialized_open(s, filp);
+-	mutex_unlock(&itv->serialize_lock);
+-	return res;
++	return ivtv_serialized_open(s, filp);
  }
  
- static int fimc_queue_setup(struct vb2_queue *vq, unsigned int *num_buffers,
-@@ -716,6 +752,7 @@ struct vb2_ops fimc_qops = {
- 	.buf_queue	 = fimc_buf_queue,
- 	.wait_prepare	 = fimc_unlock,
- 	.wait_finish	 = fimc_lock,
-+	.stop_streaming	 = stop_streaming,
- };
+ void ivtv_mute(struct ivtv *itv)
+diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c b/drivers/media/video/ivtv/ivtv-ioctl.c
+index 6fb1837..d65c4ed 100644
+--- a/drivers/media/video/ivtv/ivtv-ioctl.c
++++ b/drivers/media/video/ivtv/ivtv-ioctl.c
+@@ -1831,8 +1831,7 @@ static long ivtv_default(struct file *file, void *fh, bool valid_prio,
+ 	return 0;
+ }
  
- static int fimc_m2m_querycap(struct file *file, void *priv,
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index d690398..150792d 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -51,6 +51,7 @@ enum fimc_dev_flags {
- 	ST_IDLE,
- 	ST_OUTDMA_RUN,
- 	ST_M2M_PEND,
-+	ST_M2M_SHUT,
- 	/* for capture node */
- 	ST_CAPT_PEND,
- 	ST_CAPT_RUN,
+-static long ivtv_serialized_ioctl(struct ivtv *itv, struct file *filp,
+-		unsigned int cmd, unsigned long arg)
++long ivtv_v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ {
+ 	struct video_device *vfd = video_devdata(filp);
+ 	long ret;
+@@ -1844,21 +1843,6 @@ static long ivtv_serialized_ioctl(struct ivtv *itv, struct file *filp,
+ 	return ret;
+ }
+ 
+-long ivtv_v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+-{
+-	struct ivtv_open_id *id = fh2id(filp->private_data);
+-	struct ivtv *itv = id->itv;
+-	long res;
+-
+-	/* DQEVENT can block, so this should not run with the serialize lock */
+-	if (cmd == VIDIOC_DQEVENT)
+-		return ivtv_serialized_ioctl(itv, filp, cmd, arg);
+-	mutex_lock(&itv->serialize_lock);
+-	res = ivtv_serialized_ioctl(itv, filp, cmd, arg);
+-	mutex_unlock(&itv->serialize_lock);
+-	return res;
+-}
+-
+ static const struct v4l2_ioctl_ops ivtv_ioctl_ops = {
+ 	.vidioc_querycap    		    = ivtv_querycap,
+ 	.vidioc_s_audio     		    = ivtv_s_audio,
+diff --git a/drivers/media/video/ivtv/ivtv-streams.c b/drivers/media/video/ivtv/ivtv-streams.c
+index 512607e..b588ffc 100644
+--- a/drivers/media/video/ivtv/ivtv-streams.c
++++ b/drivers/media/video/ivtv/ivtv-streams.c
+@@ -214,6 +214,7 @@ static int ivtv_prep_dev(struct ivtv *itv, int type)
+ 	s->vdev->fops = ivtv_stream_info[type].fops;
+ 	s->vdev->release = video_device_release;
+ 	s->vdev->tvnorms = V4L2_STD_ALL;
++	s->vdev->lock = &itv->serialize_lock;
+ 	ivtv_set_funcs(s->vdev);
+ 	return 0;
+ }
 -- 
-1.6.2.5
+1.6.4.2
 
