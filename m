@@ -1,147 +1,131 @@
 Return-path: <mchehab@gaivota>
-Received: from moutng.kundenserver.de ([212.227.126.171]:53195 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752752Ab0LNOn6 (ORCPT
+Received: from ganesha.gnumonks.org ([213.95.27.120]:43249 "EHLO
+	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751993Ab0L2AyG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Dec 2010 09:43:58 -0500
-From: Martin Hostettler <martin@neutronstar.dyndns.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Cc: Martin Hostettler <martin@neutronstar.dyndns.org>
-Subject: [PATCH] v4l: OMAP3 ISP CCDC: Add support for 8bit greyscale sensors
-Date: Tue, 14 Dec 2010 15:43:43 +0100
-Message-Id: <1292337823-15994-1-git-send-email-martin@neutronstar.dyndns.org>
+	Tue, 28 Dec 2010 19:54:06 -0500
+From: Sungchun Kang <sungchun.kang@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: s.nawrocki@samsung.com, kgene.kim@samsung.com,
+	Sungchun Kang <sungchun.kang@samsung.com>
+Subject: [PATCH] [media]: s5p-fimc: fix ISR and buffer handling for fimc-capture
+Date: Wed, 29 Dec 2010 09:30:28 +0900
+Message-Id: <1293582628-15547-1-git-send-email-sungchun.kang@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Adds support for V4L2_MBUS_FMT_Y8_1X8 format and 8bit data width in
-syncronous interface.
+These patches are related and it may be summarized as follows.
 
-The data width is configured in the parallel interface part of the isp platform
-data, defaulting to 10bit as before this commit. When i 8bit mode don't apply
-DC substraction of 64 per default as this would remove 1/4 of the sensor range.
+1. Some of the case are fimc H/W did not stop although there are
+no available output DMA buffer. So, it is modified check the
+routine fimc deactivation. And, the state of ST_CAPT_RUN is cleared
+in LAST-IRQ routine.
 
-When using V4L2_MBUS_FMT_Y8_1X8 (or possibly another 8bit per pixel) mode
-set the CDCC to output 8bit per pixel instead of 16bit.
+2. When request buffer count is less than 4, CIOYSAn register did
+not set if VIDIOC_QBUF is called repeatedly. So, clear bit the
+state of ST_CAPT_STREAM in ISR.
 
-Signed-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
+3. Because fimc interrupt generated when the frame start to write,
+it is necessary to use LAST-IRQ for processing of the last frame.
+So, added the enumeration for LAST-IRQ.
+
+4. After LAST-IRQ is generated, H/W pointer will be skip 1 frame.
+(reference by user manual) So, S/W pointer should be increased too.
+
+Reviewed-by Jonghun Han <jonghun.han@samsung.com>
+Signed-off-by: Sungchun Kang <sungchun.kang@samsung.com>
 ---
- drivers/media/video/isp/isp.h      |    2 ++
- drivers/media/video/isp/ispccdc.c  |   21 ++++++++++++++++-----
- drivers/media/video/isp/ispvideo.c |    7 +++++++
- 3 files changed, 25 insertions(+), 5 deletions(-)
+This patch is depended on:
+http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/heads/vb2-mfc-fimc
 
-diff --git a/drivers/media/video/isp/isp.h b/drivers/media/video/isp/isp.h
-index edc029c..76c09ed 100644
---- a/drivers/media/video/isp/isp.h
-+++ b/drivers/media/video/isp/isp.h
-@@ -132,11 +132,13 @@ struct isp_reg {
-  *		ISPCTRL_PAR_BRIDGE_DISABLE - Disable
-  *		ISPCTRL_PAR_BRIDGE_LENDIAN - Little endian
-  *		ISPCTRL_PAR_BRIDGE_BENDIAN - Big endian
-+ * @datsz: Width of the data-bus in bits (8, 10, 11, 12, 13) or 0 for default (10bit)
-  */
- struct isp_parallel_platform_data {
- 	unsigned int data_lane_shift:2;
- 	unsigned int clk_pol:1;
- 	unsigned int bridge:4;
-+	unsigned int data_bus_width;
+ drivers/media/video/s5p-fimc/fimc-capture.c |   12 +++++++-----
+ drivers/media/video/s5p-fimc/fimc-core.c    |   20 ++++++++++++++------
+ drivers/media/video/s5p-fimc/fimc-core.h    |    1 +
+ 3 files changed, 22 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index 4e4441f..0a3b344 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -350,13 +350,15 @@ static void buffer_queue(struct vb2_buffer *vb)
+ 
+ 	dbg("active_buf_cnt: %d", fimc->vid_cap.active_buf_cnt);
+ 
+-	if (vid_cap->active_buf_cnt >= vid_cap->reqbufs_count ||
+-	   vid_cap->active_buf_cnt >= FIMC_MAX_OUT_BUFS) {
+-		if (!test_and_set_bit(ST_CAPT_STREAM, &fimc->state)) {
++	if (vid_cap->active_buf_cnt == FIMC_MAX_OUT_BUFS)
++		set_bit(ST_CAPT_STREAM, &fimc->state);
++
++	if (test_bit(ST_CAPT_LAST_IRQ, &fimc->state) ||
++		!test_bit(ST_CAPT_RUN, &fimc->state)) {
+ 			fimc_activate_capture(ctx);
+-			dbg("");
+-		}
++		clear_bit(ST_CAPT_LAST_IRQ, &fimc->state);
+ 	}
++
+ 	spin_unlock_irqrestore(&fimc->slock, flags);
+ }
+ 
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index 2374fd8..4a85966 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -334,9 +334,14 @@ static void fimc_capture_handler(struct fimc_dev *fimc)
+ 		if (++cap->buf_index >= FIMC_MAX_OUT_BUFS)
+ 			cap->buf_index = 0;
+ 
+-	} else if (test_and_clear_bit(ST_CAPT_STREAM, &fimc->state) &&
+-		   cap->active_buf_cnt <= 1) {
+-		fimc_deactivate_capture(fimc);
++	} else {
++		clear_bit(ST_CAPT_STREAM, &fimc->state);
++	}
++
++	if (cap->active_buf_cnt == 0) {
++		clear_bit(ST_CAPT_RUN, &fimc->state);
++		if (++cap->buf_index >= FIMC_MAX_OUT_BUFS)
++			cap->buf_index = 0;
+ 	}
+ 
+ 	dbg("frame: %d, active_buf_cnt= %d",
+@@ -346,6 +351,7 @@ static void fimc_capture_handler(struct fimc_dev *fimc)
+ static irqreturn_t fimc_isr(int irq, void *priv)
+ {
+ 	struct fimc_dev *fimc = priv;
++	struct fimc_vid_cap *cap = &fimc->vid_cap;
+ 
+ 	BUG_ON(!fimc);
+ 	fimc_hw_clear_irq(fimc);
+@@ -372,10 +378,12 @@ static irqreturn_t fimc_isr(int irq, void *priv)
+ 
+ 	if (test_bit(ST_CAPT_RUN, &fimc->state))
+ 		fimc_capture_handler(fimc);
+-
+-	if (test_and_clear_bit(ST_CAPT_PEND, &fimc->state)) {
++	else if (test_bit(ST_CAPT_PEND, &fimc->state))
+ 		set_bit(ST_CAPT_RUN, &fimc->state);
+-		wake_up(&fimc->irq_queue);
++
++	if (cap->active_buf_cnt == 1) {
++		fimc_deactivate_capture(fimc);
++		set_bit(ST_CAPT_LAST_IRQ, &fimc->state);
+ 	}
+ 
+ isr_unlock:
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+index 1f1beaa..58cb2e0 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.h
++++ b/drivers/media/video/s5p-fimc/fimc-core.h
+@@ -56,6 +56,7 @@ enum fimc_dev_flags {
+ 	ST_CAPT_RUN,
+ 	ST_CAPT_STREAM,
+ 	ST_CAPT_SHUT,
++	ST_CAPT_LAST_IRQ,
  };
  
- /**
-diff --git a/drivers/media/video/isp/ispccdc.c b/drivers/media/video/isp/ispccdc.c
-index be4581e..bff217a 100644
---- a/drivers/media/video/isp/ispccdc.c
-+++ b/drivers/media/video/isp/ispccdc.c
-@@ -45,6 +45,7 @@ static const unsigned int ccdc_fmts[] = {
- 	V4L2_MBUS_FMT_SRGGB10_1X10,
- 	V4L2_MBUS_FMT_SBGGR10_1X10,
- 	V4L2_MBUS_FMT_SGBRG10_1X10,
-+	V4L2_MBUS_FMT_Y8_1X8,
- };
- 
- /*
-@@ -1069,6 +1070,10 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 	isp_configure_bridge(isp, ccdc->input, pdata);
- 	ispccdc_config_sync_if(ccdc, &ccdc->syncif);
- 
-+	/* CCDC_PAD_SINK */
-+	format = &ccdc->formats[CCDC_PAD_SINK];
-+	isp_video_mbus_to_pix(&ccdc->video_out, format, &pix);
-+
- 	syn_mode = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
- 
- 	/* Use the raw, unprocessed data when writing to memory. The H3A and
-@@ -1086,10 +1091,14 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 	else
- 		syn_mode &= ~ISPCCDC_SYN_MODE_SDR2RSZ;
- 
--	isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
-+	/* Use PACK8 mode for 1byte per pixel formats */
-+	if (pix.bytesperline < format->width * 2)
-+		syn_mode |= ISPCCDC_SYN_MODE_PACK8;
-+	else
-+		syn_mode &= ~ISPCCDC_SYN_MODE_PACK8;
- 
--	/* CCDC_PAD_SINK */
--	format = &ccdc->formats[CCDC_PAD_SINK];
-+
-+	isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
- 
- 	/* Mosaic filter */
- 	switch (format->code) {
-@@ -1128,7 +1137,6 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 			<< ISPCCDC_VERT_LINES_NLV_SHIFT,
- 		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VERT_LINES);
- 
--	isp_video_mbus_to_pix(&ccdc->video_out, format, &pix);
- 	ispccdc_config_outlineoffset(ccdc, pix.bytesperline, 0, 0);
- 
- 	/* CCDC_PAD_SOURCE_VP */
-@@ -2164,6 +2172,9 @@ int isp_ccdc_init(struct isp_device *isp)
- 	ccdc->syncif.ccdc_mastermode = 0;
- 	ccdc->syncif.datapol = 0;
- 	ccdc->syncif.datsz = 10;
-+	if (isp->pdata->subdevs->interface == ISP_INTERFACE_PARALLEL
-+	    && isp->pdata->subdevs->bus.parallel.data_bus_width != 0)
-+		ccdc->syncif.datsz = isp->pdata->subdevs->bus.parallel.data_bus_width;
- 	ccdc->syncif.fldmode = 0;
- 	ccdc->syncif.fldout = 0;
- 	ccdc->syncif.fldpol = 0;
-@@ -2172,7 +2183,7 @@ int isp_ccdc_init(struct isp_device *isp)
- 	ccdc->syncif.vdpol = 0;
- 
- 	ccdc->clamp.oblen = 0;
--	ccdc->clamp.dcsubval = 64;
-+	ccdc->clamp.dcsubval = (ccdc->syncif.datsz == 8) ? 0 : 64;
- 
- 	ccdc->vpcfg.pixelclk = 0;
- 
-diff --git a/drivers/media/video/isp/ispvideo.c b/drivers/media/video/isp/ispvideo.c
-index 64068ff..35e8c72 100644
---- a/drivers/media/video/isp/ispvideo.c
-+++ b/drivers/media/video/isp/ispvideo.c
-@@ -228,6 +228,10 @@ void isp_video_mbus_to_pix(const struct isp_video *video,
- 		pix->pixelformat = V4L2_PIX_FMT_YUYV;
- 		pix->bytesperline = pix->width * 2;
- 		break;
-+	case V4L2_MBUS_FMT_Y8_1X8:
-+		pix->pixelformat = V4L2_PIX_FMT_GREY;
-+		pix->bytesperline = pix->width;
-+		break;
- 	case V4L2_MBUS_FMT_UYVY8_1X16:
- 	default:
- 		pix->pixelformat = V4L2_PIX_FMT_UYVY;
-@@ -261,6 +265,9 @@ void isp_video_pix_to_mbus(const struct v4l2_pix_format *pix,
- 	case V4L2_PIX_FMT_YUYV:
- 		mbus->code = V4L2_MBUS_FMT_YUYV8_1X16;
- 		break;
-+	case V4L2_PIX_FMT_GREY:
-+		mbus->code = V4L2_MBUS_FMT_Y8_1X8;
-+		break;
- 	case V4L2_PIX_FMT_UYVY:
- 	default:
- 		mbus->code = V4L2_MBUS_FMT_UYVY8_1X16;
+ #define fimc_m2m_active(dev) test_bit(ST_OUTDMA_RUN, &(dev)->state)
 -- 
-1.7.1
+1.6.2.5
 
