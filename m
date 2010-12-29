@@ -1,155 +1,87 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-fx0-f43.google.com ([209.85.161.43]:63643 "EHLO
-	mail-fx0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754875Ab0LNKXT (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:29488 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753552Ab0L2RdE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Dec 2010 05:23:19 -0500
-From: Michal Nazarewicz <mina86@mina86.com>
-To: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Nazarewicz <m.nazarewicz@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Ankita Garg <ankita@in.ibm.com>,
-	BooJin Kim <boojin.kim@samsung.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mel Gorman <mel@csn.ul.ie>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCHv7 08/10] mm: cma: Contiguous Memory Allocator added
-References: <cover.1292004520.git.m.nazarewicz@samsung.com>
-	<fc8aa07ac71d554ba10af4943fdb05197c681fa2.1292004520.git.m.nazarewicz@samsung.com>
-	<20101214102401.37bf812d.kamezawa.hiroyu@jp.fujitsu.com>
-Date: Tue, 14 Dec 2010 11:23:15 +0100
-In-Reply-To: <20101214102401.37bf812d.kamezawa.hiroyu@jp.fujitsu.com>
-	(KAMEZAWA Hiroyuki's message of "Tue, 14 Dec 2010 10:24:01 +0900")
-Message-ID: <87zks8fyb0.fsf@erwin.mina86.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+	Wed, 29 Dec 2010 12:33:04 -0500
+Date: Wed, 29 Dec 2010 18:32:52 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 10/15 v2] [media] s5p-fimc: Use default input DMA burst count
+In-reply-to: <1293643975-4528-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com
+Message-id: <1293643975-4528-11-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1293643975-4528-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-> On Mon, 13 Dec 2010 12:26:49 +0100
-> Michal Nazarewicz <m.nazarewicz@samsung.com> wrote:
->> +/************************* Initialise CMA *************************/
->> +
->> +static struct cma_grabbed {
->> +	unsigned long start;
->> +	unsigned long size;
->> +} cma_grabbed[8] __initdata;
->> +static unsigned cma_grabbed_count __initdata;
->> +
->> +int cma_init(unsigned long start, unsigned long size)
->> +{
->> +	pr_debug("%s(%p+%p)\n", __func__, (void *)start, (void *)size);
->> +
->> +	if (!size)
->> +		return -EINVAL;
->> +	if ((start | size) & ((MAX_ORDER_NR_PAGES << PAGE_SHIFT) - 1))
->> +		return -EINVAL;
->> +	if (start + size < start)
->> +		return -EOVERFLOW;
->> +
->> +	if (cma_grabbed_count == ARRAY_SIZE(cma_grabbed))
->> +		return -ENOSPC;
->> +
->> +	cma_grabbed[cma_grabbed_count].start = start;
->> +	cma_grabbed[cma_grabbed_count].size  = size;
->> +	++cma_grabbed_count;
->> +	return 0;
->> +}
->> +
+Increase the input DMA "successive burst count" to default
+value 4 to improve DMA performance. Minor cleanup.
 
-KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com> writes:
-> Is it guaranteed that there are no memory holes, or zone overlap
-> in the range ? I think correctness of the range must be checked.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-reg.c  |   11 +++--------
+ drivers/media/video/s5p-fimc/regs-fimc.h |    4 ++--
+ 2 files changed, 5 insertions(+), 10 deletions(-)
 
-I keep thinking about it myself.  The idea is that you get memory range
-reserved using memblock (or some such) thus it should not contain any
-memory holes.  I'm not entirely sure about spanning different zones.
-I'll add the checking code.
-
->> +#define MIGRATION_RETRY	5
->> +static int __cm_migrate(unsigned long start, unsigned long end)
->> +{
-[...]
->> +}
->> +
->> +static int __cm_alloc(unsigned long start, unsigned long size)
->> +{
->> +	unsigned long end, _start, _end;
->> +	int ret;
->> +
-[...]
->> +
->> +	start = phys_to_pfn(start);
->> +	end   = start + (size >> PAGE_SHIFT);
->> +
->> +	pr_debug("\tisolate range(%lx, %lx)\n",
->> +		 pfn_to_maxpage(start), pfn_to_maxpage_up(end));
->> +	ret = __start_isolate_page_range(pfn_to_maxpage(start),
->> +					 pfn_to_maxpage_up(end), MIGRATE_CMA);
->> +	if (ret)
->> +		goto done;
->> +
->> +	pr_debug("\tmigrate range(%lx, %lx)\n", start, end);
->> +	ret = __cm_migrate(start, end);
->> +	if (ret)
->> +		goto done;
->> +
-[...]
->> +
->> +	pr_debug("\tfinding buddy\n");
->> +	ret = 0;
->> +	while (!PageBuddy(pfn_to_page(start & (~0UL << ret))))
->> +		if (WARN_ON(++ret >= MAX_ORDER))
->> +			return -EINVAL;
->> +
->> +	_start = start & (~0UL << ret);
->> +	pr_debug("\talloc freed(%lx, %lx)\n", _start, end);
->> +	_end   = alloc_contig_freed_pages(_start, end, 0);
->> +
->> +	/* Free head and tail (if any) */
->> +	pr_debug("\tfree contig(%lx, %lx)\n", _start, start);
->> +	free_contig_pages(pfn_to_page(_start), start - _start);
->> +	pr_debug("\tfree contig(%lx, %lx)\n", end, _end);
->> +	free_contig_pages(pfn_to_page(end), _end - end);
->> +
->> +	ret = 0;
->> +
->> +done:
->> +	pr_debug("\tundo isolate range(%lx, %lx)\n",
->> +		 pfn_to_maxpage(start), pfn_to_maxpage_up(end));
->> +	__undo_isolate_page_range(pfn_to_maxpage(start),
->> +				  pfn_to_maxpage_up(end), MIGRATE_CMA);
->> +
->> +	pr_debug("ret = %d\n", ret);
->> +	return ret;
->> +}
->> +
->> +static void __cm_free(unsigned long start, unsigned long size)
->> +{
->> +	pr_debug("%s(%p+%p)\n", __func__, (void *)start, (void *)size);
->> +
->> +	free_contig_pages(pfn_to_page(phys_to_pfn(start)),
->> +			  size >> PAGE_SHIFT);
->> +}
-
-> Hmm, it seems __cm_alloc() and __cm_migrate() has no special codes for CMA.
-> I'd like reuse this for my own contig page allocator.
-> So, could you make these function be more generic (name) ?
-> as
-> 	__alloc_range(start, size, mirate_type);
->
-> Then, what I have to do is only to add "search range" functions.
-
-Sure thing.  I'll post it tomorrow or Friday. How about
-alloc_contig_range() maybe?
-
+diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
+index 6366011..c4703b5 100644
+--- a/drivers/media/video/s5p-fimc/fimc-reg.c
++++ b/drivers/media/video/s5p-fimc/fimc-reg.c
+@@ -417,12 +417,10 @@ void fimc_hw_set_in_dma(struct fimc_ctx *ctx)
+ 		| S5P_MSCTRL_C_INT_IN_MASK
+ 		| S5P_MSCTRL_2P_IN_ORDER_MASK);
+ 
+-	cfg |= (S5P_MSCTRL_FRAME_COUNT(1) | S5P_MSCTRL_INPUT_MEMORY);
++	cfg |= S5P_MSCTRL_IN_BURST_COUNT(4) | S5P_MSCTRL_INPUT_MEMORY;
+ 
+ 	switch (frame->fmt->color) {
+-	case S5P_FIMC_RGB565:
+-	case S5P_FIMC_RGB666:
+-	case S5P_FIMC_RGB888:
++	case S5P_FIMC_RGB565...S5P_FIMC_RGB888:
+ 		cfg |= S5P_MSCTRL_INFORMAT_RGB;
+ 		break;
+ 	case S5P_FIMC_YCBCR420:
+@@ -434,10 +432,7 @@ void fimc_hw_set_in_dma(struct fimc_ctx *ctx)
+ 			cfg |= S5P_MSCTRL_C_INT_IN_3PLANE;
+ 
+ 		break;
+-	case S5P_FIMC_YCBYCR422:
+-	case S5P_FIMC_YCRYCB422:
+-	case S5P_FIMC_CBYCRY422:
+-	case S5P_FIMC_CRYCBY422:
++	case S5P_FIMC_YCBYCR422...S5P_FIMC_CRYCBY422:
+ 		if (frame->fmt->colplanes == 1) {
+ 			cfg |= ctx->in_order_1p
+ 				| S5P_MSCTRL_INFORMAT_YCBCR422_1P;
+diff --git a/drivers/media/video/s5p-fimc/regs-fimc.h b/drivers/media/video/s5p-fimc/regs-fimc.h
+index 57e33f8..74ca705 100644
+--- a/drivers/media/video/s5p-fimc/regs-fimc.h
++++ b/drivers/media/video/s5p-fimc/regs-fimc.h
+@@ -210,7 +210,7 @@
+ 
+ /* Input DMA control */
+ #define S5P_MSCTRL			0xfc
+-#define S5P_MSCTRL_IN_BURST_COUNT_MASK	(3 << 24)
++#define S5P_MSCTRL_IN_BURST_COUNT_MASK	(0xF << 24)
+ #define S5P_MSCTRL_2P_IN_ORDER_MASK	(3 << 16)
+ #define S5P_MSCTRL_2P_IN_ORDER_SHIFT	16
+ #define S5P_MSCTRL_C_INT_IN_3PLANE	(0 << 15)
+@@ -237,7 +237,7 @@
+ #define S5P_MSCTRL_INFORMAT_RGB		(3 << 1)
+ #define S5P_MSCTRL_INFORMAT_MASK	(3 << 1)
+ #define S5P_MSCTRL_ENVID		(1 << 0)
+-#define S5P_MSCTRL_FRAME_COUNT(x)	((x) << 24)
++#define S5P_MSCTRL_IN_BURST_COUNT(x)	((x) << 24)
+ 
+ /* Output DMA Y/Cb/Cr offset */
+ #define S5P_CIOYOFF			0x168
 -- 
-Pozdrawiam                                            _     _
- .o. | Wasal Jasnie Oswieconej Pani Informatyki     o' \,=./ `o
- ..o | Michal "mina86" Nazarewicz  <mina86*tlen.pl>    (o o)
- ooo +---<jid:mina86-jabber.org>---<tlen:mina86>---ooO--(_)--Ooo--
+1.7.2.3
+
