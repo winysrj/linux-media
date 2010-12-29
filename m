@@ -1,158 +1,70 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout3.samsung.com ([203.254.224.33]:55990 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751416Ab0LNHO5 (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4623 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753726Ab0L2VnL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Dec 2010 02:14:57 -0500
-Received: from epmmp2 (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LDE00MUDPGERG90@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 14 Dec 2010 16:14:38 +0900 (KST)
-Received: from AMDC159 ([106.116.37.153])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LDE0066TPG91J@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 14 Dec 2010 16:14:38 +0900 (KST)
-Date: Tue, 14 Dec 2010 08:14:32 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH 1/8] v4l: add videobuf2 Video for Linux 2 driver framework
-In-reply-to: <201012111754.37066.hverkuil@xs4all.nl>
-To: 'Hans Verkuil' <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, pawel@osciak.com,
-	kyungmin.park@samsung.com,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <013201cb9b5e$91195a20$b34c0e60$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <1291632765-11207-1-git-send-email-m.szyprowski@samsung.com>
- <1291632765-11207-2-git-send-email-m.szyprowski@samsung.com>
- <201012111754.37066.hverkuil@xs4all.nl>
+	Wed, 29 Dec 2010 16:43:11 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id oBTLhApC003744
+	for <linux-media@vger.kernel.org>; Wed, 29 Dec 2010 22:43:10 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Message-Id: <090f6f177698b9ae87d15802b1493a588e6e517c.1293657717.git.hverkuil@xs4all.nl>
+In-Reply-To: <cover.1293657717.git.hverkuil@xs4all.nl>
+References: <cover.1293657717.git.hverkuil@xs4all.nl>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Wed, 29 Dec 2010 22:43:10 +0100
+Subject: [PATCH 03/10] [RFC] v4l2-fh: implement v4l2_priority support.
+To: linux-media@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hello,
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/video/v4l2-fh.c |    4 ++++
+ include/media/v4l2-fh.h       |    1 +
+ 2 files changed, 5 insertions(+), 0 deletions(-)
 
-On Saturday, December 11, 2010 5:55 PM Hans Verkuil wrote:
-
-Big thanks for the review! I will fix all these minor issues and resend
-the patches soon. I hope we will manage to get videobuf2 merged soon! :)
-
-> Hi Marek,
-> 
-> Here is my review. I wish I could ack it, but I found a few bugs that need
-> fixing first. Also a bunch of small stuff that's trivial to fix.
-> 
-> On Monday, December 06, 2010 11:52:38 Marek Szyprowski wrote:
-> > From: Pawel Osciak <p.osciak@samsung.com>
-> >
-> > Videobuf2 is a Video for Linux 2 API-compatible driver framework for
-> > multimedia devices. It acts as an intermediate layer between userspace
-> > applications and device drivers. It also provides low-level, modular
-> > memory management functions for drivers.
-> >
-> > Videobuf2 eases driver development, reduces drivers' code size and aids in
-> > proper and consistent implementation of V4L2 API in drivers.
-> >
-> > Videobuf2 memory management backend is fully modular. This allows custom
-> > memory management routines for devices and platforms with non-standard
-> > memory management requirements to be plugged in, without changing the
-> > high-level buffer management functions and API.
-> >
-> > The framework provides:
-> > - implementations of streaming I/O V4L2 ioctls and file operations
-> > - high-level video buffer, video queue and state management functions
-> > - video buffer memory allocation and management
-> >
-> > Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-> > Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> > CC: Pawel Osciak <pawel@osciak.com>
-> > ---
-
-<snip>
-
-> > +/**
-> > + * __vb2_wait_for_done_vb() - wait for a buffer to become available
-> > + * for dequeuing
-> > + *
-> > + * Will sleep if required for nonblocking == false.
-> > + */
-> > +static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
-> > +{
-> > +	/*
-> > +	 * All operation on vb_done_list is performed under vb_done_lock
-> > +	 * spinlock protection. However buffers may must be removed from
-> > +	 * it and returned to userspace only while holding both driver's
-> > +	 * lock and the vb_done_lock spinlock. Thus we can be sure that as
-> > +	 * long as we hold lock, the list will remain not empty if this
-> > +	 * check succeeds.
-> > +	 */
-> > +
-> > +	for (;;) {
-> > +		int ret;
-> > +
-> > +		if (!q->streaming) {
-> > +			dprintk(1, "Streaming off, will not wait for buffers\n");
-> > +			return -EINVAL;
-> > +		}
-> > +
-> > +		if (!list_empty(&q->done_list)) {
-> > +			/*
-> > +			 * Found a buffer that we were waiting for.
-> > +			 */
-> > +			break;
-> > +		} else if (nonblocking) {
-> 
-> The 'else' keyword can be removed since the 'if' above always breaks.
-> 
-> > +			dprintk(1, "Nonblocking and no buffers to dequeue, "
-> > +								"will not wait\n");
-> > +			return -EAGAIN;
-> > +		}
-> > +
-> > +		/*
-> > +		 * We are streaming and blocking, wait for another buffer to
-> > +		 * become ready or for streamoff. Driver's lock is released to
-> > +		 * allow streamoff or qbuf to be called while waiting.
-> > +		 */
-> > +		call_qop(q, wait_prepare, q);
-> > +
-> > +		/*
-> > +		 * All locks has been released, it is safe to sleep now.
-> > +		 */
-> > +		dprintk(3, "Will sleep waiting for buffers\n");
-> > +		ret = wait_event_interruptible(q->done_wq,
-> > +				!list_empty(&q->done_list) || !q->streaming);
-> > +
-> > +		/*
-> > +		 * We need to reevaluate both conditions again after reacquiring
-> > +		 * the locks or return an error if it occured. In case of error
-> > +		 * we return -EINTR, because -ERESTARTSYS should not be returned
-> > +		 * to userspace.
-> > +		 */
-> > +		call_qop(q, wait_finish, q);
-> > +		if (ret)
-> > +			return -EINTR;
-> 
-> No, this should be -ERESTARTSYS. This won't be returned to userspace, instead
-> the kernel will handle the signal and restart the system call automatically.
-
-I thought that -ERESTARTSYS should not be returned to userspace, that's why I
-use -EINTR here. What does the comment in linux/errno.h refer to?
-
-> > +	}
-> > +	return 0;
-> > +}
-> > +
-
-Thanks again for your comments!
-
-
-Best regards
---
-Marek Szyprowski
-Samsung Poland R&D Center
+diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
+index d78f184..78a1608 100644
+--- a/drivers/media/video/v4l2-fh.c
++++ b/drivers/media/video/v4l2-fh.c
+@@ -33,6 +33,8 @@ int v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
+ 	fh->vdev = vdev;
+ 	INIT_LIST_HEAD(&fh->list);
+ 	set_bit(V4L2_FL_USES_V4L2_FH, &fh->vdev->flags);
++	fh->prio = V4L2_PRIORITY_UNSET;
++	BUG_ON(vdev->prio == NULL);
+ 
+ 	/*
+ 	 * fh->events only needs to be initialized if the driver
+@@ -51,6 +53,7 @@ void v4l2_fh_add(struct v4l2_fh *fh)
+ {
+ 	unsigned long flags;
+ 
++	v4l2_prio_open(fh->vdev->prio, &fh->prio);
+ 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+ 	list_add(&fh->list, &fh->vdev->fh_list);
+ 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+@@ -64,6 +67,7 @@ void v4l2_fh_del(struct v4l2_fh *fh)
+ 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+ 	list_del_init(&fh->list);
+ 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
++	v4l2_prio_close(fh->vdev->prio, fh->prio);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_fh_del);
+ 
+diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
+index 1d72dde..5fc5ba9 100644
+--- a/include/media/v4l2-fh.h
++++ b/include/media/v4l2-fh.h
+@@ -35,6 +35,7 @@ struct v4l2_fh {
+ 	struct list_head	list;
+ 	struct video_device	*vdev;
+ 	struct v4l2_events      *events; /* events, pending and subscribed */
++	enum v4l2_priority	prio;
+ };
+ 
+ /*
+-- 
+1.6.4.2
 
