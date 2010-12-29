@@ -1,98 +1,157 @@
 Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33113 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751456Ab0LOJgh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Dec 2010 04:36:37 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: What if add enumerations at the V4L2_FOCUS_MODE_AUTO?
-Date: Wed, 15 Dec 2010 10:37:34 +0100
-Cc: riverful.kim@samsung.com,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org
-References: <201012150119.43918.laurent.pinchart@ideasonboard.com> <201012150857.29099.hverkuil@xs4all.nl>
-In-Reply-To: <201012150857.29099.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:45625 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751665Ab0L2LJb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Dec 2010 06:09:31 -0500
+Message-ID: <4D1B16C9.6070502@redhat.com>
+Date: Wed, 29 Dec 2010 09:08:57 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="euc-kr"
+To: Andy Walls <awalls@md.metrocast.net>
+CC: linux-media@vger.kernel.org, Jean Delvare <khali@linux-fr.org>,
+	Jarod Wilson <jarod@redhat.com>, Janne Grunau <j@jannau.net>
+Subject: Re: [PATCH 1/3] hdpvr: Add I2C and ir-kdb-i2c registration of the
+ Zilog Z8 IR chip
+References: <1293587067.3098.10.camel@localhost> <1293587173.3098.12.camel@localhost>
+In-Reply-To: <1293587173.3098.12.camel@localhost>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201012151037.35243.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Hans,
-
-On Wednesday 15 December 2010 08:57:29 Hans Verkuil wrote:
-> On Wednesday, December 15, 2010 01:19:43 Laurent Pinchart wrote:
-> > On Tuesday 14 December 2010 12:27:32 Kim, HeungJun wrote:
-> > > Hi Laurent and Hans,
-> > > 
-> > > I am working on V4L2 subdev for M5MOLS by Fujitsu.
-> > > and I wanna listen your comments about Auto Focus mode of my ideas.
-> > > the details is in the following link discussed at the past.
-> > > Although the situation(adding the more various functions at the M5MOLS
-> > > or any other MEGA camera sensor, I worked.)is changed,
-> > > so I wanna continue this threads for now.
-> > > 
-> > > http://www.mail-archive.com/linux-media@vger.kernel.org/msg03543.html
-> > > 
-> > > First of all, the at least two more mode of auto-focus exists in the
-> > > M5MOLS camera sensor. So, considering defined V4L2 controls and the
-> > > controls in the M5MOLS, I suggest like this:
-> > > 
-> > > +enum  v4l2_focus_auto_type {
-> > > +	V4L2_FOCUS_AUTO_NORMAL = 0,
-> > > +	V4L2_FOCUS_AUTO_MACRO = 1,
-> > > +	V4L2_FOCUS_AUTO_POSITION = 2,
-> > > +};
-> > > +#define V4L2_CID_FOCUS_POSITION			(V4L2_CID_CAMERA_CLASS_BASE+13)
-> > > 
-> > > -#define V4L2_CID_ZOOM_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+13)
-> > > -#define V4L2_CID_ZOOM_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+14)
-> > > +#define V4L2_CID_ZOOM_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+14)
-> > > +#define V4L2_CID_ZOOM_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+15)
-> > > 
-> > > 
-> > > The M5MOLS(or other recent camera sensor) can have at least 2 mode
-> > > although in any cases : *MACRO* and *NORMAL* mode. plus, M5MOLS
-> > > supports positioning focus mode, AKA. POSITION AF mode.
-> > > 
-> > > The MACRO mode scan short range, and this mode can be used at the
-> > > circumstance in the short distance with object and camera lens. So, It
-> > > has fast lens movement, but the command FOCUSING dosen't works well at
-> > > the long distance object.
-> > > 
-> > > On the other hand, NORMAL mode can this. As the words, It's general and
-> > > normal focus mode. The M5MOLS scan fully in the mode.
-> > > 
-> > > In the Position AF mode, the position(expressed x,y) is given at the
-> > > M5MOLS, and then the M5MOLS focus this area. But, the time given the
-> > > position, is normally touch the lcd screen at the mobile device, in my
-> > > case. If the time is given from button, it's no big problem *when*.
-> > > But, in touch-lcd screen case, the position is read at the touch
-> > > screen driver, before command FOCUS to camera sensor. It's the why I
-> > > add another CID(V4L2_CID_FOCUS_POSITION).
-> > 
-> > I'm pretty sure that some devices would require a rectangle instead of
-> > coordinates to define the focus point. Even a rectangle might not be
-> > enough. It would help if we could get feedback from camera designers
-> > here.
-> > 
-> > Hans, should we add a new control type to pass coordinates/rectangles ?
-> > :-)
+Em 28-12-2010 23:46, Andy Walls escreveu:
 > 
-> It's a bit tricky actually since QUERYCTRL can return only one set of
-> min/max values. For coordinates/rectangles we need two sets (horizontal
-> and vertical).
+> Add I2C registration of the Zilog Z8F0811 IR microcontroller for either
+> lirc_zilog or ir-kbd-i2c to use.  This is a required step in removing
+> lirc_zilog's use of the deprecated struct i2c_adapter.id field.
 > 
-> And I think it is important to know the min/max values.
+> Signed-off-by: Andy Walls <awalls@md.metrocast.net>
+> ---
+>  drivers/media/video/hdpvr/hdpvr-core.c |    5 +++
+>  drivers/media/video/hdpvr/hdpvr-i2c.c  |   53 ++++++++++++++++++++++++++++++++
+>  drivers/media/video/hdpvr/hdpvr.h      |    6 +++
+>  3 files changed, 64 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/hdpvr/hdpvr-core.c b/drivers/media/video/hdpvr/hdpvr-core.c
+> index b70d6af..f7d1ee5 100644
+> --- a/drivers/media/video/hdpvr/hdpvr-core.c
+> +++ b/drivers/media/video/hdpvr/hdpvr-core.c
+> @@ -385,6 +385,11 @@ static int hdpvr_probe(struct usb_interface *interface,
+>  		v4l2_err(&dev->v4l2_dev, "registering i2c adapter failed\n");
+>  		goto error;
+>  	}
+> +
+> +	/* until i2c is working properly */
+> +	retval = 0; /* hdpvr_register_i2c_ir(dev); */
 
-Hence my question, should we add a way to pass rectangles (basically a struct 
-v4l2_rect) through the control ioctls ? It would make sense.
+Hmm... It seems that this will just disable the IR logic... Why do you need it?
+Your comment is not clear to me.
 
--- 
-Regards,
+> +	if (retval < 0)
+> +		v4l2_err(&dev->v4l2_dev, "registering i2c IR devices failed\n");
+>  #endif /* CONFIG_I2C */
+>  
+>  	/* let the user know what node this device is now attached to */
+> diff --git a/drivers/media/video/hdpvr/hdpvr-i2c.c b/drivers/media/video/hdpvr/hdpvr-i2c.c
+> index 409de11..24966aa 100644
+> --- a/drivers/media/video/hdpvr/hdpvr-i2c.c
+> +++ b/drivers/media/video/hdpvr/hdpvr-i2c.c
+> @@ -4,6 +4,9 @@
+>   *
+>   * Copyright (C) 2008      Janne Grunau (j@jannau.net)
+>   *
+> + * IR device registration code is
+> + * Copyright (C) 2010	Andy Walls <awalls@md.metrocast.net>
+> + *
+>   *	This program is free software; you can redistribute it and/or
+>   *	modify it under the terms of the GNU General Public License as
+>   *	published by the Free Software Foundation, version 2.
+> @@ -22,6 +25,56 @@
+>  #define REQTYPE_I2C_WRITE	0xb0
+>  #define REQTYPE_I2C_WRITE_STATT	0xd0
+>  
+> +#define Z8F0811_IR_TX_I2C_ADDR	0x70
+> +#define Z8F0811_IR_RX_I2C_ADDR	0x71
+> +
+> +static const u8 ir_i2c_addrs[] = {
+> +	Z8F0811_IR_TX_I2C_ADDR,
+> +	Z8F0811_IR_RX_I2C_ADDR,
+> +};
+> +
+> +static const char * const ir_devicenames[] = {
+> +	"ir_tx_z8f0811_hdpvr",
+> +	"ir_rx_z8f0811_hdpvr",
+> +};
+> +
+> +static int hdpvr_new_i2c_ir(struct hdpvr_device *dev, struct i2c_adapter *adap,
+> +			    const char *type, u8 addr)
+> +{
+> +	struct i2c_board_info info;
+> +	struct IR_i2c_init_data *init_data = &dev->ir_i2c_init_data;
+> +	unsigned short addr_list[2] = { addr, I2C_CLIENT_END };
+> +
+> +	memset(&info, 0, sizeof(struct i2c_board_info));
+> +	strlcpy(info.type, type, I2C_NAME_SIZE);
+> +
+> +	/* Our default information for ir-kbd-i2c.c to use */
+> +	switch (addr) {
+> +	case Z8F0811_IR_RX_I2C_ADDR:
+> +		init_data->ir_codes = RC_MAP_HAUPPAUGE_NEW;
+> +		init_data->internal_get_key_func = IR_KBD_GET_KEY_HAUP_XVR;
+> +		init_data->type = RC_TYPE_RC5;
+> +		init_data->name = "HD PVR";
+> +		info.platform_data = init_data;
+> +		break;
+> +	}
+> +
+> +	return i2c_new_probed_device(adap, &info, addr_list, NULL) == NULL ?
+> +	       -1 : 0;
+> +}
+> +
+> +int hdpvr_register_i2c_ir(struct hdpvr_device *dev)
+> +{
+> +	int i;
+> +	int ret = 0;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(ir_i2c_addrs); i++)
+> +		ret += hdpvr_new_i2c_ir(dev, dev->i2c_adapter,
+> +					ir_devicenames[i], ir_i2c_addrs[i]);
+> +
+> +	return ret;
+> +}
+> +
+>  static int hdpvr_i2c_read(struct hdpvr_device *dev, unsigned char addr,
+>  			  char *data, int len)
+>  {
+> diff --git a/drivers/media/video/hdpvr/hdpvr.h b/drivers/media/video/hdpvr/hdpvr.h
+> index 5efc963..37f1e4c 100644
+> --- a/drivers/media/video/hdpvr/hdpvr.h
+> +++ b/drivers/media/video/hdpvr/hdpvr.h
+> @@ -16,6 +16,7 @@
+>  #include <linux/videodev2.h>
+>  
+>  #include <media/v4l2-device.h>
+> +#include <media/ir-kbd-i2c.h>
+>  
+>  #define HDPVR_MAJOR_VERSION 0
+>  #define HDPVR_MINOR_VERSION 2
+> @@ -109,6 +110,9 @@ struct hdpvr_device {
+>  	/* I2C lock */
+>  	struct mutex		i2c_mutex;
+>  
+> +	/* For passing data to ir-kbd-i2c */
+> +	struct IR_i2c_init_data	ir_i2c_init_data;
+> +
+>  	/* usb control transfer buffer and lock */
+>  	struct mutex		usbc_mutex;
+>  	u8			*usbc_buf;
+> @@ -306,6 +310,8 @@ int hdpvr_cancel_queue(struct hdpvr_device *dev);
+>  /* i2c adapter registration */
+>  int hdpvr_register_i2c_adapter(struct hdpvr_device *dev);
+>  
+> +int hdpvr_register_i2c_ir(struct hdpvr_device *dev);
+> +
+>  /*========================================================================*/
+>  /* buffer management */
+>  int hdpvr_free_buffers(struct hdpvr_device *dev);
 
-Laurent Pinchart
