@@ -1,124 +1,53 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout4.samsung.com ([203.254.224.34]:61048 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754314Ab0LOH6A (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:44407 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751255Ab0L2Lfu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Dec 2010 02:58:00 -0500
-MIME-version: 1.0
-Content-type: text/plain; charset=EUC-KR
-Received: from epmmp1 (mailout4.samsung.com [203.254.224.34])
- by mailout4.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LDG00A4FM46O890@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Dec 2010 16:57:42 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LDG0054TM46H9@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Dec 2010 16:57:42 +0900 (KST)
-Date: Wed, 15 Dec 2010 16:57:42 +0900
-From: "Kim, HeungJun" <riverful.kim@samsung.com>
-Subject: Re: What if add enumerations at the V4L2_FOCUS_MODE_AUTO?
-In-reply-to: <201012150119.43918.laurent.pinchart@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org
-Reply-to: riverful.kim@samsung.com
-Message-id: <4D0874F6.1080004@samsung.com>
-Content-transfer-encoding: 8BIT
-References: <201012150119.43918.laurent.pinchart@ideasonboard.com>
+	Wed, 29 Dec 2010 06:35:50 -0500
+Received: by fxm20 with SMTP id 20so10378032fxm.19
+        for <linux-media@vger.kernel.org>; Wed, 29 Dec 2010 03:35:49 -0800 (PST)
+Message-ID: <4D1B1D11.6030505@fliegl.de>
+Date: Wed, 29 Dec 2010 12:35:45 +0100
+From: Deti Fliegl <deti@fliegl.de>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Felipe Sanches <juca@members.fsf.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] [media] dabusb: Move it to staging to be deprecated
+References: <4D19037B.6060904@redhat.com> <201012291137.49153.hverkuil@xs4all.nl> <4D1B1532.60606@fliegl.de> <201012291224.25864.hverkuil@xs4all.nl>
+In-Reply-To: <201012291224.25864.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Laurent,
+On 12/29/10 12:24 PM, Hans Verkuil wrote:
+ >> No, it should support the Terratec hardware as well but it's outdated
+ >> and unstable. Therefor I agreed to remove the driver from the current
+ >> kernel as I am not willing to continue support for the code.
+ >
+ > I don't think it supports the Terratec hardware since the list of USB ids
+ > doesn't include the Terratec products:
+Yes you are right - there you see - our driver is quite different - out 
+latest changes are of october 2010 - and the kernel driver is somehow 
+stone aged.
 
-2010-12-15 오전 9:19, Laurent Pinchart 쓴 글:
-> Hi,
-> 
-> (CC'ing linux-media this time, please discard the previous mail)
-> 
-> On Tuesday 14 December 2010 12:27:32 Kim, HeungJun wrote:
->> Hi Laurent and Hans,
->>
->> I am working on V4L2 subdev for M5MOLS by Fujitsu.
->> and I wanna listen your comments about Auto Focus mode of my ideas.
->> the details is in the following link discussed at the past.
->> Although the situation(adding the more various functions at the M5MOLS
->> or any other MEGA camera sensor, I worked.)is changed,
->> so I wanna continue this threads for now.
->>
->> http://www.mail-archive.com/linux-media@vger.kernel.org/msg03543.html
->>
->> First of all, the at least two more mode of auto-focus exists in the
->> M5MOLS camera sensor. So, considering defined V4L2 controls and the
->> controls in the M5MOLS, I suggest like this:
->>
->> +enum  v4l2_focus_auto_type {
->> +	V4L2_FOCUS_AUTO_NORMAL = 0,
->> +	V4L2_FOCUS_AUTO_MACRO = 1,
->> +	V4L2_FOCUS_AUTO_POSITION = 2,
->> +};
->> +#define V4L2_CID_FOCUS_POSITION			(V4L2_CID_CAMERA_CLASS_BASE+13)
->>
->> -#define V4L2_CID_ZOOM_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+13)
->> -#define V4L2_CID_ZOOM_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+14)
->> +#define V4L2_CID_ZOOM_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+14)
->> +#define V4L2_CID_ZOOM_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+15)
->>
->>
->> The M5MOLS(or other recent camera sensor) can have at least 2 mode although
->> in any cases : *MACRO* and *NORMAL* mode. plus, M5MOLS supports
->> positioning focus mode, AKA. POSITION AF mode.
->>
->> The MACRO mode scan short range, and this mode can be used at the
->> circumstance in the short distance with object and camera lens. So, It has
->> fast lens movement, but the command FOCUSING dosen't works well at the
->> long distance object.
->>
->> On the other hand, NORMAL mode can this. As the words, It's general and
->> normal focus mode. The M5MOLS scan fully in the mode.
->>
->> In the Position AF mode, the position(expressed x,y) is given at the
->> M5MOLS, and then the M5MOLS focus this area. But, the time given the
->> position, is normally touch the lcd screen at the mobile device, in my
->> case. If the time is given from button, it's no big problem *when*. But,
->> in touch-lcd screen case, the position is read at the touch screen driver,
->> before command FOCUS to camera sensor. It's the why I add another
->> CID(V4L2_CID_FOCUS_POSITION).
-> 
-> I'm pretty sure that some devices would require a rectangle instead of 
-> coordinates to define the focus point. Even a rectangle might not be enough. 
-> It would help if we could get feedback from camera designers here.
-> 
-> Hans, should we add a new control type to pass coordinates/rectangles ? :-)
-> 
+ > Unless someone will pick up this source code and starts to work with 
+us on
+ > designing an API it will probably be forgotten :-(
+ >
+ > As far as I can tell (please correct me if I am wrong) the hardware 
+either no
+ > longer available or very hard to get hold off.
+The product has been discontinued a couple of years ago. AFAIK about 50k 
+to 100k pieces have been sold.
 
-Very glad to be sure that.
+ > I did see that Terratec still sells some DAB receivers, but they are 
+all based
+ > on different hardware.
+Yes you are right. We currently do not develop any DAB products and I 
+don't think there will be DAB Linux support from other companies. DAB 
+and even DAB+ is dead.
 
-As you know, the recent camera sensor embedded in mobile devices has evoluted 
-rapidly in a decade. It's not digital camera, but it operates like digital
-camera. Actually, the camera sensor module with ISP in the recent mobile device
-use the same one in the digital camera. And I can let you know this newer
-control types, like in a uppper FOCUS case.(e.g.,iso, exposure, wb, wdr(wide
-dynamic range), effects, the method to get jpeg bulk streams with sync, even
-face detections.)
-
-So, I'll make general patch or RFC patch about new control types which is needed at
-the the mobile device, based on M5MOLS and some sensors else, for generality.
-(considering another ISP like a NEC, Samsung sensor modules. It is available for me.)
-
-After that, I'm glad with being reviewed it to Hans and Laurent.
-(Actually, I don't know who is the maintainer of CID of camera. Let me know, plz. :-) )
-
-If Laurent and Hans agree with that, I'll prepare patch works.
-
-Thanks for reading.
-
-ps. I wanna know where the recent v4l2 control is described, as already told 
-at the previous my mail. 
-
-
-Regards,
-HeungJun Kim
-
+Deti
