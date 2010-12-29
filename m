@@ -1,96 +1,152 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout-de.gmx.net ([213.165.64.23]:47635 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1753093Ab0L1Lbv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Dec 2010 06:31:51 -0500
-Content-Type: text/plain; charset="utf-8"
-Date: Tue, 28 Dec 2010 12:31:48 +0100
-From: ConiKost@gmx.de
-Message-ID: <20101228113148.283060@gmx.net>
-MIME-Version: 1.0
-Subject: Unable to load xc3028L-v36.fw [Hauppauge WinTV 1400]
-To: linux-media@vger.kernel.org
-Content-Transfer-Encoding: 8bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:23453 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751212Ab0L2Pbz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Dec 2010 10:31:55 -0500
+Date: Wed, 29 Dec 2010 16:31:52 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH] [media]: s5p-fimc: fix ISR and buffer handling for
+ fimc-capture
+In-reply-to: <1293582628-15547-1-git-send-email-sungchun.kang@samsung.com>
+To: Sungchun Kang <sungchun.kang@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	kgene.kim@samsung.com
+Message-id: <4D1B5468.7060200@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7BIT
+References: <1293582628-15547-1-git-send-email-sungchun.kang@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi guys,
-I am trying to get working my Hauppauge WinTV 1400 expresscard. Actually, i've got using the 2.6.36-gentoo-r5 kernel (gentoo-sources).
 
-First, I've enabled all necessary module (cx23885).
-After inserting the card, i get this messages:
+On 12/29/2010 01:30 AM, Sungchun Kang wrote:
+> These patches are related and it may be summarized as follows.
+> 
+> 1. Some of the case are fimc H/W did not stop although there are
+> no available output DMA buffer. So, it is modified check the
+> routine fimc deactivation. And, the state of ST_CAPT_RUN is cleared
+> in LAST-IRQ routine.
+> 
+> 2. When request buffer count is less than 4, CIOYSAn register did
+> not set if VIDIOC_QBUF is called repeatedly. So, clear bit the
+> state of ST_CAPT_STREAM in ISR.
+> 
+> 3. Because fimc interrupt generated when the frame start to write,
+> it is necessary to use LAST-IRQ for processing of the last frame.
+> So, added the enumeration for LAST-IRQ.
+> 
+> 4. After LAST-IRQ is generated, H/W pointer will be skip 1 frame.
+> (reference by user manual) So, S/W pointer should be increased too.
+> 
+> Reviewed-by Jonghun Han <jonghun.han@samsung.com>
+> Signed-off-by: Sungchun Kang <sungchun.kang@samsung.com>
+> ---
+> This patch is depended on:
+> http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/heads/vb2-mfc-fimc
+> 
+>  drivers/media/video/s5p-fimc/fimc-capture.c |   12 +++++++-----
+>  drivers/media/video/s5p-fimc/fimc-core.c    |   20 ++++++++++++++------
+>  drivers/media/video/s5p-fimc/fimc-core.h    |    1 +
+>  3 files changed, 22 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+> index 4e4441f..0a3b344 100644
+> --- a/drivers/media/video/s5p-fimc/fimc-capture.c
+> +++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+> @@ -350,13 +350,15 @@ static void buffer_queue(struct vb2_buffer *vb)
+>  
+>  	dbg("active_buf_cnt: %d", fimc->vid_cap.active_buf_cnt);
+>  
+> -	if (vid_cap->active_buf_cnt >= vid_cap->reqbufs_count ||
+> -	   vid_cap->active_buf_cnt >= FIMC_MAX_OUT_BUFS) {
+> -		if (!test_and_set_bit(ST_CAPT_STREAM, &fimc->state)) {
+> +	if (vid_cap->active_buf_cnt == FIMC_MAX_OUT_BUFS)
+> +		set_bit(ST_CAPT_STREAM, &fimc->state);
+> +
+> +	if (test_bit(ST_CAPT_LAST_IRQ, &fimc->state) ||
+> +		!test_bit(ST_CAPT_RUN, &fimc->state)) {
+>  			fimc_activate_capture(ctx);
+> -			dbg("");
+> -		}
+> +		clear_bit(ST_CAPT_LAST_IRQ, &fimc->state);
+>  	}
+> +
+>  	spin_unlock_irqrestore(&fimc->slock, flags);
+>  }
+>  
+> diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+> index 2374fd8..4a85966 100644
+> --- a/drivers/media/video/s5p-fimc/fimc-core.c
+> +++ b/drivers/media/video/s5p-fimc/fimc-core.c
+> @@ -334,9 +334,14 @@ static void fimc_capture_handler(struct fimc_dev *fimc)
+>  		if (++cap->buf_index >= FIMC_MAX_OUT_BUFS)
+>  			cap->buf_index = 0;
+>  
+> -	} else if (test_and_clear_bit(ST_CAPT_STREAM, &fimc->state) &&
+> -		   cap->active_buf_cnt <= 1) {
+> -		fimc_deactivate_capture(fimc);
+> +	} else {
+> +		clear_bit(ST_CAPT_STREAM, &fimc->state);
+> +	}
+> +
+> +	if (cap->active_buf_cnt == 0) {
+> +		clear_bit(ST_CAPT_RUN, &fimc->state);
+> +		if (++cap->buf_index >= FIMC_MAX_OUT_BUFS)
+> +			cap->buf_index = 0;
+>  	}
+>  
+>  	dbg("frame: %d, active_buf_cnt= %d",
+> @@ -346,6 +351,7 @@ static void fimc_capture_handler(struct fimc_dev *fimc)
+>  static irqreturn_t fimc_isr(int irq, void *priv)
+>  {
+>  	struct fimc_dev *fimc = priv;
+> +	struct fimc_vid_cap *cap = &fimc->vid_cap;
+>  
+>  	BUG_ON(!fimc);
+>  	fimc_hw_clear_irq(fimc);
+> @@ -372,10 +378,12 @@ static irqreturn_t fimc_isr(int irq, void *priv)
+>  
+>  	if (test_bit(ST_CAPT_RUN, &fimc->state))
+>  		fimc_capture_handler(fimc);
+> -
+> -	if (test_and_clear_bit(ST_CAPT_PEND, &fimc->state)) {
+> +	else if (test_bit(ST_CAPT_PEND, &fimc->state))
+>  		set_bit(ST_CAPT_RUN, &fimc->state);
+> -		wake_up(&fimc->irq_queue);
+> +
+> +	if (cap->active_buf_cnt == 1) {
+> +		fimc_deactivate_capture(fimc);
+> +		set_bit(ST_CAPT_LAST_IRQ, &fimc->state);
+>  	}
+>  
+>  isr_unlock:
+> diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+> index 1f1beaa..58cb2e0 100644
+> --- a/drivers/media/video/s5p-fimc/fimc-core.h
+> +++ b/drivers/media/video/s5p-fimc/fimc-core.h
+> @@ -56,6 +56,7 @@ enum fimc_dev_flags {
+>  	ST_CAPT_RUN,
+>  	ST_CAPT_STREAM,
+>  	ST_CAPT_SHUT,
+> +	ST_CAPT_LAST_IRQ,
+>  };
+>  
+>  #define fimc_m2m_active(dev) test_bit(ST_OUTDMA_RUN, &(dev)->state)
 
-pciehp 0000:00:1c.3:pcie04: Card present on Slot(3)
-pci 0000:05:00.0: reg 10: [mem 0x00000000-0x001fffff 64bit]
-pci 0000:05:00.0: supports D1 D2
-pci 0000:05:00.0: PME# supported from D0 D1 D2 D3hot
-pci 0000:05:00.0: PME# disabled
-pci 0000:05:00.0: disabling ASPM on pre-1.1 PCIe device.  You can enable it with 'pcie_aspm=force'
-pci 0000:05:00.0: BAR 0: assigned [mem 0xf0000000-0xf01fffff 64bit]
-pci 0000:05:00.0: BAR 0: set to [mem 0xf0000000-0xf01fffff 64bit] (PCI address [0xf0000000-0xf01fffff]
-pcieport 0000:00:1c.3: PCI bridge to [bus 05-0c]
-pcieport 0000:00:1c.3:   bridge window [io  0x2000-0x2fff]
-pcieport 0000:00:1c.3:   bridge window [mem 0xf0000000-0xf1ffffff]
-pcieport 0000:00:1c.3:   bridge window [mem 0xf2900000-0xf29fffff 64bit pref]
-pcieport 0000:00:1c.3: setting latency timer to 64
-pci 0000:05:00.0: no hotplug settings from platform
-cx23885 0000:05:00.0: enabling device (0000 -> 0002)
-cx23885 0000:05:00.0: PCI INT A -> GSI 19 (level, low) -> IRQ 19
-CORE cx23885[1]: subsystem: 0070:8010, board: Hauppauge WinTV-HVR1400 [card=9,autodetected]
-tveeprom 8-0050: Hauppauge model 80019, rev B2F1, serial# 3757209
-tveeprom 8-0050: MAC address is 00:0d:fe:39:54:99
-tveeprom 8-0050: tuner model is Xceive XC3028L (idx 151, type 4)
-tveeprom 8-0050: TV standards PAL(B/G) PAL(I) SECAM(L/L') PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xf4)
-tveeprom 8-0050: audio processor is CX23885 (idx 39)
-tveeprom 8-0050: decoder processor is CX23885 (idx 33)
-tveeprom 8-0050: has radio
-cx23885[1]: hauppauge eeprom: model=80019
-cx23885_dvb_register() allocating 1 frontend(s)
-cx23885[1]: cx23885 based dvb card
-xc2028 9-0064: creating new instance
-xc2028 9-0064: type set to XCeive xc2028/xc3028 tuner
-DVB: registering new adapter (cx23885[1])
-DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
-cx23885_dev_checkrevision() Hardware revision = 0xb0
-cx23885[1]/0: found at 0000:05:00.0, rev: 2, irq: 19, latency: 0, mmio: 0xf0000000
-cx23885 0000:05:00.0: setting latency timer to 64
-cx23885 0000:05:00.0: irq 48 for MSI/MSI-X
+Many thanks for this improvement! This issue has been sitting for some time
+in my job queue. I have tested your changes on GONI (s5pv210) and s5pv310 based
+board. Unfortunately there is still some issue on s5pv210. The driver seems
+not to respect the buffer ownership, i.e. it overwrites some times the buffer
+which is passed to user space, when there are delays between DQBUF and the
+capture needs to be stopped in HW. And that leads to a tearing. There is no
+such issue on s5pv310. I'm going to investigate this further.
 
-So, as you can see, the card is found and the driver is loaded. So, when I now try to start the tuning, it will fail. For example, I try to scan for the dvb-t channels:
+I have applied your patch. Thank you!
 
-dvbscan /usr/share/dvb/dvb-t/de-Niedersachsen
 
-This command will fail, it says tuning failed.
-
-DMESG says now:
-xc2028 9-0064: Loading 81 firmware images from xc3028L-v36.fw, type: xc2028 firmware, ver 3.6
-xc2028 9-0064: Loading firmware for type=BASE F8MHZ (3), id 0000000000000000.
-xc2028 9-0064: i2c output error: rc = -6 (should be 64)
-xc2028 9-0064: -6 returned from send
-xc2028 9-0064: Error -22 while loading base firmware
-xc2028 9-0064: Loading firmware for type=BASE F8MHZ (3), id 0000000000000000.
-xc2028 9-0064: i2c output error: rc = -6 (should be 64)
-xc2028 9-0064: -6 returned from send
-xc2028 9-0064: Error -22 while loading base firmware
-xc2028 9-0064: Loading firmware for type=BASE F8MHZ (3), id 0000000000000000.
-xc2028 9-0064: i2c output error: rc = -6 (should be 64)
-xc2028 9-0064: -6 returned from send
-xc2028 9-0064: Error -22 while loading base firmware
-xc2028 9-0064: Loading firmware for type=BASE F8MHZ (3), id 0000000000000000.
-xc2028 9-0064: i2c output error: rc = -6 (should be 64)
-xc2028 9-0064: -6 returned from send
-xc2028 9-0064: Error -22 while loading base firmware
-xc2028 9-0064: Loading firmware for type=BASE F8MHZ (3), id 0000000000000000.
-xc2028 9-0064: i2c output error: rc = -6 (should be 64)
-xc2028 9-0064: -6 returned from send
-xc2028 9-0064: Error -22 while loading base firmware
-xc2028 9-0064: Loading firmware for type=BASE F8MHZ (3), id 0000000000000000.
-xc2028 9-0064: i2c output error: rc = -6 (should be 64)
-xc2028 9-0064: -6 returned from send
-xc2028 9-0064: Error -22 while loading base firmware
-
-The firmware could be loaded. Any ideas, how this could be fixed?
+Regards,
 -- 
-Gruß
-ConiKost
-
+Sylwester Nawrocki
+Samsung Poland R&D Center
