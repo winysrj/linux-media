@@ -1,78 +1,75 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp.nokia.com ([147.243.1.47]:46131 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751183Ab0LVKSJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Dec 2010 05:18:09 -0500
-Subject: Re: [git:v4l-dvb/for_v2.6.38] [media] [v18, 2/2] V4L2: WL1273 FM
- Radio: TI WL1273 FM radio driver
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Reply-To: matti.j.aaltonen@nokia.com
-To: ext Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <201012211515.50613.hverkuil@xs4all.nl>
-References: <E1PV2qd-0000hz-SU@www.linuxtv.org>
-	 <201012211515.50613.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 22 Dec 2010 12:18:01 +0200
-Message-ID: <1293013081.2353.45.camel@masi.mnp.nokia.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:40698 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751496Ab0L2PVm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Dec 2010 10:21:42 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-1
+Date: Wed, 29 Dec 2010 16:21:39 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH] [media] s5p-fimc: fix MSCTRL.FIFO_CTRL for performance
+ enhancement
+In-reply-to: <1293609059-692-1-git-send-email-khw0178.kim@samsung.com>
+To: Hyunwoong Kim <khw0178.kim@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Message-id: <4D1B5203.8040900@samsung.com>
+References: <1293609059-692-1-git-send-email-khw0178.kim@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Tue, 2010-12-21 at 15:15 +0100, ext Hans Verkuil wrote:
-> On Tuesday, December 21, 2010 15:05:08 Mauro Carvalho Chehab wrote:
-> > This is an automatic generated email to let you know that the following patch were queued at the 
-> > http://git.linuxtv.org/media_tree.git tree:
-> > 
-> > Subject: [media] [v18,2/2] V4L2: WL1273 FM Radio: TI WL1273 FM radio driver
-> > Author:  Matti Aaltonen <matti.j.aaltonen@nokia.com>
-> > Date:    Fri Dec 10 11:41:34 2010 -0300
-> > 
-> > This module implements V4L2 controls for the Texas Instruments
-> > WL1273 FM Radio and handles the communication with the chip.
-> > 
-> > Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> > 
-> >  drivers/media/radio/Kconfig        |   16 +
-> >  drivers/media/radio/Makefile       |    1 +
-> >  drivers/media/radio/radio-wl1273.c | 2331 ++++++++++++++++++++++++++++++++++++
-> >  3 files changed, 2348 insertions(+), 0 deletions(-)
-> > 
-> 
-> <snip>
-> 
-> > +
-> > +static const struct v4l2_file_operations wl1273_fops = {
-> > +	.owner		= THIS_MODULE,
-> > +	.read		= wl1273_fm_fops_read,
-> > +	.write		= wl1273_fm_fops_write,
-> > +	.poll		= wl1273_fm_fops_poll,
-> > +	.ioctl		= video_ioctl2,
-> 
-> Matti,
-> 
-> Can you make a patch that replaces .ioctl with .unlocked_ioctl?
-> This should be done for 2.6.38.
 
-Yes, no problem...
+On 12/29/2010 08:50 AM, Hyunwoong Kim wrote:
+> This patch fixes the value of FIFO_CTRL in MSCTRL.
+> Main-scaler has the value to specify a basis FIFO control of input DMA.
+> 
+> The description of FIFO_CTRL has been changed as below.
+> 0 = FIFO Empty (Next burst transaction is possible when FIFO is empty)
+> 1 = FIFO Full (Next burst transaction is possible except Full FIFO)
+> 
+> Value '1' is recommended to enhance the FIMC operation performance.
+> 
+> Reviewed-by: Jonghun Han <jonghun.han@samsung.com>
+> Signed-off-by: Hyunwoong Kim <khw0178.kim@samsung.com>
+> ---
+> This patch is depended on Hyunwoong Kim's last patch.
+> - [PATCH v2] [media] s5p-fimc: Support stop_streaming and job_abort 
+> 
+>  drivers/media/video/s5p-fimc/fimc-reg.c  |    4 +++-
+>  drivers/media/video/s5p-fimc/regs-fimc.h |    1 +
+>  2 files changed, 4 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
+> index 88951b8..0eb9319 100644
+> --- a/drivers/media/video/s5p-fimc/fimc-reg.c
+> +++ b/drivers/media/video/s5p-fimc/fimc-reg.c
+> @@ -457,7 +457,9 @@ void fimc_hw_set_in_dma(struct fimc_ctx *ctx)
+>  		| S5P_MSCTRL_C_INT_IN_MASK
+>  		| S5P_MSCTRL_2P_IN_ORDER_MASK);
+>  
+> -	cfg |= (S5P_MSCTRL_FRAME_COUNT(1) | S5P_MSCTRL_INPUT_MEMORY);
+> +	cfg |= (S5P_MSCTRL_FRAME_COUNT(1)
+> +		| S5P_MSCTRL_INPUT_MEMORY
+> +		| S5P_MSCTRL_FIFO_CTRL_FULL);
+>  
+>  	switch (frame->fmt->color) {
+>  	case S5P_FIMC_RGB565:
+> diff --git a/drivers/media/video/s5p-fimc/regs-fimc.h b/drivers/media/video/s5p-fimc/regs-fimc.h
+> index 28bd2fb..a984e81 100644
+> --- a/drivers/media/video/s5p-fimc/regs-fimc.h
+> +++ b/drivers/media/video/s5p-fimc/regs-fimc.h
+> @@ -226,6 +226,7 @@
+>  #define S5P_MSCTRL_FLIP_X_MIRROR	(1 << 13)
+>  #define S5P_MSCTRL_FLIP_Y_MIRROR	(2 << 13)
+>  #define S5P_MSCTRL_FLIP_180		(3 << 13)
+> +#define S5P_MSCTRL_FIFO_CTRL_FULL	(1 << 12)
+>  #define S5P_MSCTRL_ORDER422_SHIFT	4
+>  #define S5P_MSCTRL_ORDER422_YCBYCR	(0 << 4)
+>  #define S5P_MSCTRL_ORDER422_CBYCRY	(1 << 4)
 
-Cheers,
-Matti
+Applied. Thanks!
 
-> 
-> See this thread for more information on how to do this:
-> 
-> http://www.spinics.net/lists/linux-media/msg26604.html
-> 
-> Thanks!
-> 
-> 	Hans
-> 
-> > +	.open		= wl1273_fm_fops_open,
-> > +	.release	= wl1273_fm_fops_release,
-> > +};
-> 
-
-
+-- 
+Sylwester Nawrocki
+Samsung Poland R&D Center
