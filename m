@@ -1,72 +1,100 @@
 Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60146 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751995Ab0LWJ1P (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4115 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753156Ab0L2VnL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Dec 2010 04:27:15 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [GIT PULL FOR 2.6.37] uvcvideo: BKL removal
-Date: Thu, 23 Dec 2010 10:27:25 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-References: <201011291115.11061.laurent.pinchart@ideasonboard.com> <201012231002.34251.laurent.pinchart@ideasonboard.com> <201012231020.17558.hverkuil@xs4all.nl>
-In-Reply-To: <201012231020.17558.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201012231027.25701.laurent.pinchart@ideasonboard.com>
+	Wed, 29 Dec 2010 16:43:11 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id oBTLh9nX050937
+	for <linux-media@vger.kernel.org>; Wed, 29 Dec 2010 22:43:09 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Message-Id: <4983a967f8eed5ab262106520ffc445376b6b6b4.1293657717.git.hverkuil@xs4all.nl>
+In-Reply-To: <cover.1293657717.git.hverkuil@xs4all.nl>
+References: <cover.1293657717.git.hverkuil@xs4all.nl>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Wed, 29 Dec 2010 22:43:09 +0100
+Subject: [PATCH 02/10] [RFC] v4l2: add v4l2_prio_state to v4l2_device and video_device
+To: linux-media@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Hans,
+Integrate the v4l2_prio_state into the core, ready for use.
 
-On Thursday 23 December 2010 10:20:17 Hans Verkuil wrote:
-> On Thursday, December 23, 2010 10:02:33 Laurent Pinchart wrote:
-> > On Monday 20 December 2010 14:09:40 Hans Verkuil wrote:
-> > > On Monday, December 20, 2010 13:48:51 Laurent Pinchart wrote:
-> > > > What if the application wants to change the resolution during capture
-> > > > ? It will have to stop capture, call REQBUFS(0), change the format,
-> > > > request buffers and restart capture. If filehandle ownership is
-> > > > dropped after REQBUFS(0) that will open the door to a race
-> > > > condition.
-> > > 
-> > > That's why S_PRIORITY was invented.
-> > 
-> > Right, I should implement that. I think the documentation isn't clear
-> > though. What is the background priority for exactly ?
-> 
-> As the documentation mentions, it can be used for background processes
-> monitoring VBI (e.g. teletext) transmissions. I'm not aware of any such
-> applications, though.
-> 
-> PRIORITY_DEFAULT and PRIORITY_RECORD are the only two relevant prios in
-> practice.
-> 
-> > And the "unset" priority ?
-> 
-> Internal prio only. I think it's the value when no file handle is open.
+One struct v4l2_prio_state is added to v4l2_device and a pointer
+to a prio state is added to video_device.
 
-Aren't priorities associated with file handles ?
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/video/v4l2-dev.c    |    6 ++++++
+ drivers/media/video/v4l2-device.c |    1 +
+ include/media/v4l2-dev.h          |    3 +++
+ include/media/v4l2-device.h       |    3 +++
+ 4 files changed, 13 insertions(+), 0 deletions(-)
 
-> > Are other applications allowed to change controls when an application has
-> > the record priority ?
-> 
-> No. Only read-only ioctls can be executed.
-
-Then we got an issue here. I want an application to be able to acquire 
-exclusive streaming rights on the device (so that there won't be race 
-conditions when changing the resolution), but still allow other applications 
-to change controls.
-
-> > In general I find the priority ioctls underspecified, that's why I
-> > haven't implemented them yet.
-> 
-> Use the prio support functions in v4l2-common. They are easy to use and do
-> the job.
-
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index 8698fe4..c8f6ae1 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -543,6 +543,12 @@ static int __video_register_device(struct video_device *vdev, int type, int nr,
+ 			vdev->parent = vdev->v4l2_dev->dev;
+ 		if (vdev->ctrl_handler == NULL)
+ 			vdev->ctrl_handler = vdev->v4l2_dev->ctrl_handler;
++		/* If the prio state pointer is NULL, and if the driver doesn't
++		   handle priorities itself, then use the v4l2_device prio
++		   state. */
++		if (vdev->prio == NULL && vdev->ioctl_ops &&
++				vdev->ioctl_ops->vidioc_s_priority == NULL)
++			vdev->prio = &vdev->v4l2_dev->prio;
+ 	}
+ 
+ 	/* Part 2: find a free minor, device node number and device index. */
+diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
+index 7fe6f92..e12844c 100644
+--- a/drivers/media/video/v4l2-device.c
++++ b/drivers/media/video/v4l2-device.c
+@@ -36,6 +36,7 @@ int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
+ 	INIT_LIST_HEAD(&v4l2_dev->subdevs);
+ 	spin_lock_init(&v4l2_dev->lock);
+ 	mutex_init(&v4l2_dev->ioctl_lock);
++	v4l2_prio_init(&v4l2_dev->prio);
+ 	v4l2_dev->dev = dev;
+ 	if (dev == NULL) {
+ 		/* If dev == NULL, then name must be filled in by the caller */
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 861f323..15dd756 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -83,6 +83,9 @@ struct video_device
+ 	/* Control handler associated with this device node. May be NULL. */
+ 	struct v4l2_ctrl_handler *ctrl_handler;
+ 
++	/* Priority state. If NULL, then v4l2_dev->prio will be used. */
++	struct v4l2_prio_state *prio;
++
+ 	/* device info */
+ 	char name[32];
+ 	int vfl_type;
+diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
+index b16f307..fd5d450 100644
+--- a/include/media/v4l2-device.h
++++ b/include/media/v4l2-device.h
+@@ -22,6 +22,7 @@
+ #define _V4L2_DEVICE_H
+ 
+ #include <media/v4l2-subdev.h>
++#include <media/v4l2-dev.h>
+ 
+ /* Each instance of a V4L2 device should create the v4l2_device struct,
+    either stand-alone or embedded in a larger struct.
+@@ -51,6 +52,8 @@ struct v4l2_device {
+ 			unsigned int notification, void *arg);
+ 	/* The control handler. May be NULL. */
+ 	struct v4l2_ctrl_handler *ctrl_handler;
++	/* Device's priority state */
++	struct v4l2_prio_state prio;
+ 	/* BKL replacement mutex. Temporary solution only. */
+ 	struct mutex ioctl_lock;
+ };
 -- 
-Regards,
+1.6.4.2
 
-Laurent Pinchart
