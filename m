@@ -1,36 +1,48 @@
 Return-path: <mchehab@gaivota>
-Received: from lo.gmane.org ([80.91.229.12]:59648 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756104Ab0LPQEt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Dec 2010 11:04:49 -0500
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1PTGJz-0006S9-N6
-	for linux-media@vger.kernel.org; Thu, 16 Dec 2010 17:04:47 +0100
-Received: from host104-244-dynamic.17-79-r.retail.telecomitalia.it ([79.17.244.104])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Thu, 16 Dec 2010 17:04:47 +0100
-Received: from jjjanez by host104-244-dynamic.17-79-r.retail.telecomitalia.it with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Thu, 16 Dec 2010 17:04:47 +0100
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:41424 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751523Ab0L2Cpp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Dec 2010 21:45:45 -0500
+Subject: [PATCH 2/3] ir-kbd-i2c: Add HD PVR IR Rx support to ir-kbd-i2c
+From: Andy Walls <awalls@md.metrocast.net>
 To: linux-media@vger.kernel.org
-From: Janez <jjjanez@alice.it>
-Subject: Re: Terratec Cinergy HT MKII has a VHF problem.
-Date: Thu, 16 Dec 2010 16:04:33 +0000 (UTC)
-Message-ID: <loom.20101216T170004-738@post.gmane.org>
-References: <loom.20101214T135629-694@post.gmane.org>
+Cc: Jean Delvare <khali@linux-fr.org>, Jarod Wilson <jarod@redhat.com>,
+	Janne Grunau <j@jannau.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+In-Reply-To: <1293587067.3098.10.camel@localhost>
+References: <1293587067.3098.10.camel@localhost>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 28 Dec 2010 20:47:46 -0500
+Message-ID: <1293587266.3098.14.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Janez <jjjanez <at> alice.it> writes:
 
-> As you can see the second time the scanning of that frequency doesn't work
-> anymore. It will work again only after a reboot!
+Add HD PVR IR Rx support to ir-kbd-i2c
 
-There is no need to reboot the system.
-Remove and reload the module cx88_dvb does the trick.
+Signed-off-by: Andy Walls <awalls@md.metrocast.net>
+
+---
+ drivers/media/video/ir-kbd-i2c.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/video/ir-kbd-i2c.c b/drivers/media/video/ir-kbd-i2c.c
+index dd54c3d..c87b6bc 100644
+--- a/drivers/media/video/ir-kbd-i2c.c
++++ b/drivers/media/video/ir-kbd-i2c.c
+@@ -449,6 +449,7 @@ static const struct i2c_device_id ir_kbd_id[] = {
+ 	{ "ir_video", 0 },
+ 	/* IR device specific entries should be added here */
+ 	{ "ir_rx_z8f0811_haup", 0 },
++	{ "ir_rx_z8f0811_hdpvr", 0 },
+ 	{ }
+ };
+ 
+-- 
+1.7.2.1
+
+
 
