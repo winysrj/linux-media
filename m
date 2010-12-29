@@ -1,71 +1,172 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4544 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753630Ab0LLRcL (ORCPT
+Received: from ganesha.gnumonks.org ([213.95.27.120]:45390 "EHLO
+	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750986Ab0L2BeE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Dec 2010 12:32:11 -0500
-Received: from localhost.localdomain (159.80-203-19.nextgentel.com [80.203.19.159])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id oBCHW1MQ002236
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 12 Dec 2010 18:32:10 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [RFC/PATCH 18/19] em28xx: fix incorrect s_ctrl error code and wrong call to res_free
-Date: Sun, 12 Dec 2010 18:32:00 +0100
-Message-Id: <83cffe4772bddbe7231ebc5ffcc56132b9a44463.1292174822.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1292174822.git.hverkuil@xs4all.nl>
-References: <cover.1292174822.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1292174822.git.hverkuil@xs4all.nl>
-References: <cover.1292174822.git.hverkuil@xs4all.nl>
+	Tue, 28 Dec 2010 20:34:04 -0500
+From: Hyunwoong Kim <khw0178.kim@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: s.nawrocki@samsung.com, Hyunwoong Kim <khw0178.kim@samsung.com>
+Subject: [PATCH v2] [media] s5p-fimc: update checking scaling ratio range
+Date: Wed, 29 Dec 2010 10:12:43 +0900
+Message-Id: <1293585163-23907-1-git-send-email-khw0178.kim@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Calling subdevs to handle s_ctrl returned a non-zero return code even if
-everything went fine.
+Horizontal and vertical scaling range are according to the following equations.
+If (SRC_Width >= 64 x DST_Width) { Exit(-1);  /* Out of Horizontal scale range}
+If (SRC_Height >= 64 x DST_Height) { Exit(-1);  /* Out of Vertical scale range}
 
-Calling STREAMOFF if no STREAMON happened earlier would hit a BUG_ON
-in res_free.
+fimc_check_scaler_ratio() is used to check if horizontal and vertical
+scale range are valid or not. To use fimc_check_scaler_ratio,
+source and destination format should be set by VIDIOC_S_FMT.
+And in case of scaling up, it doesn't have to check the scale range.
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+Reviewed-by: Jonghun Han <jonghun.han@samsung.com>
+Signed-off-by: Hyunwoong Kim <khw0178.kim@samsung.com>
 ---
- drivers/media/video/em28xx/em28xx-video.c |   14 +++++++++-----
- 1 files changed, 9 insertions(+), 5 deletions(-)
+Changes since V1:
+- change the definition of fimc_check_scaler_ratio()
+- remove the code to copy arguments
 
-diff --git a/drivers/media/video/em28xx/em28xx-video.c b/drivers/media/video/em28xx/em28xx-video.c
-index 908e3bc..37d6f16 100644
---- a/drivers/media/video/em28xx/em28xx-video.c
-+++ b/drivers/media/video/em28xx/em28xx-video.c
-@@ -1434,7 +1434,7 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
+This patch is depended on Hyunwoong Kim's last patch.
+- [PATCH v2] [media] s5p-fimc: Configure scaler registers depending on FIMC version
+
+ drivers/media/video/s5p-fimc/fimc-capture.c |    4 +-
+ drivers/media/video/s5p-fimc/fimc-core.c    |   59 ++++++++++++++++++---------
+ drivers/media/video/s5p-fimc/fimc-core.h    |    2 +-
+ 3 files changed, 44 insertions(+), 21 deletions(-)
+
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index b1cb937..e22a78c 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -761,7 +761,9 @@ static int fimc_cap_s_crop(struct file *file, void *fh,
  
- 	/* It isn't an AC97 control. Sends it to the v4l2 dev interface */
- 	if (rc == 1) {
--		v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_ctrl, ctrl);
-+		rc = v4l2_device_call_until_err(&dev->v4l2_dev, 0, core, s_ctrl, ctrl);
+ 	f = &ctx->s_frame;
+ 	/* Check for the pixel scaling ratio when cropping input image. */
+-	ret = fimc_check_scaler_ratio(&cr->c, &ctx->d_frame);
++	ret = fimc_check_scaler_ratio(cr->c.width, cr->c.height,
++				      ctx->d_frame.width, ctx->d_frame.height,
++				      ctx->rotation);
+ 	if (ret) {
+ 		v4l2_err(&fimc->vid_cap.v4l2_dev, "Out of the scaler range");
+ 		return ret;
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index 2b65961..e608fb8 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -198,24 +198,21 @@ static struct v4l2_queryctrl *get_ctrl(int id)
+ 	return NULL;
+ }
  
- 		/*
- 		 * In the case of non-AC97 volume controls, we still need
-@@ -1708,11 +1708,15 @@ static int vidioc_streamoff(struct file *file, void *priv,
- 			fh, type, fh->resources, dev->resources);
+-int fimc_check_scaler_ratio(struct v4l2_rect *r, struct fimc_frame *f)
++int fimc_check_scaler_ratio(int sw, int sh, int dw, int dh, int rot)
+ {
+-	if (r->width > f->width) {
+-		if (f->width > (r->width * SCALER_MAX_HRATIO))
+-			return -EINVAL;
+-	} else {
+-		if ((f->width * SCALER_MAX_HRATIO) < r->width)
+-			return -EINVAL;
+-	}
++	int tx, ty;
  
- 	if (fh->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
--		videobuf_streamoff(&fh->vb_vidq);
--		res_free(fh, EM28XX_RESOURCE_VIDEO);
-+		if (res_check(fh, EM28XX_RESOURCE_VIDEO)) {
-+			videobuf_streamoff(&fh->vb_vidq);
-+			res_free(fh, EM28XX_RESOURCE_VIDEO);
-+		}
- 	} else if (fh->type == V4L2_BUF_TYPE_VBI_CAPTURE) {
--		videobuf_streamoff(&fh->vb_vbiq);
--		res_free(fh, EM28XX_RESOURCE_VBI);
-+		if (res_check(fh, EM28XX_RESOURCE_VBI)) {
-+			videobuf_streamoff(&fh->vb_vbiq);
-+			res_free(fh, EM28XX_RESOURCE_VBI);
-+		}
+-	if (r->height > f->height) {
+-		if (f->height > (r->height * SCALER_MAX_VRATIO))
+-			return -EINVAL;
++	if (rot == 90 || rot == 270) {
++		ty = dw;
++		tx = dh;
+ 	} else {
+-		if ((f->height * SCALER_MAX_VRATIO) < r->height)
+-			return -EINVAL;
++		tx = dw;
++		ty = dh;
  	}
  
++	if ((sw >= SCALER_MAX_HRATIO * tx) || (sh >= SCALER_MAX_VRATIO * ty))
++		return -EINVAL;
++
  	return 0;
+ }
+ 
+@@ -1063,6 +1060,7 @@ int fimc_s_ctrl(struct fimc_ctx *ctx, struct v4l2_control *ctrl)
+ 	struct samsung_fimc_variant *variant = ctx->fimc_dev->variant;
+ 	struct fimc_dev *fimc = ctx->fimc_dev;
+ 	unsigned long flags;
++	int ret = 0;
+ 
+ 	if (ctx->rotation != 0 &&
+ 	    (ctrl->id == V4L2_CID_HFLIP || ctrl->id == V4L2_CID_VFLIP)) {
+@@ -1089,6 +1087,20 @@ int fimc_s_ctrl(struct fimc_ctx *ctx, struct v4l2_control *ctrl)
+ 		break;
+ 
+ 	case V4L2_CID_ROTATE:
++		if (!(~ctx->state & (FIMC_DST_FMT | FIMC_SRC_FMT))) {
++			ret = fimc_check_scaler_ratio(ctx->s_frame.width,
++						      ctx->s_frame.height,
++						      ctx->d_frame.width,
++						      ctx->d_frame.height,
++						      ctrl->value);
++			if (ret) {
++				v4l2_err(&fimc->m2m.v4l2_dev,
++					 "Out of scaler range");
++				spin_unlock_irqrestore(&ctx->slock, flags);
++				return -EINVAL;
++			}
++		}
++
+ 		/* Check for the output rotator availability */
+ 		if ((ctrl->value == 90 || ctrl->value == 270) &&
+ 		    (ctx->in_path == FIMC_DMA && !variant->has_out_rot)) {
+@@ -1237,18 +1249,27 @@ static int fimc_m2m_s_crop(struct file *file, void *fh, struct v4l2_crop *cr)
+ 		&ctx->s_frame : &ctx->d_frame;
+ 
+ 	spin_lock_irqsave(&ctx->slock, flags);
+-	if (~ctx->state & (FIMC_SRC_FMT | FIMC_DST_FMT)) {
+-		/* Check to see if scaling ratio is within supported range */
+-		if (cr->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+-			ret = fimc_check_scaler_ratio(&cr->c, &ctx->d_frame);
+-		else
+-			ret = fimc_check_scaler_ratio(&cr->c, &ctx->s_frame);
++	/* Check to see if scaling ratio is within supported range */
++	if (!(~ctx->state & (FIMC_DST_FMT | FIMC_SRC_FMT))) {
++		if (cr->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
++			ret = fimc_check_scaler_ratio(cr->c.width, cr->c.height,
++						      ctx->d_frame.width,
++						      ctx->d_frame.height,
++						      ctx->rotation);
++		} else {
++			ret = fimc_check_scaler_ratio(ctx->s_frame.width,
++						      ctx->s_frame.height,
++						      cr->c.width, cr->c.height,
++						      ctx->rotation);
++		}
++
+ 		if (ret) {
+ 			v4l2_err(&fimc->m2m.v4l2_dev, "Out of scaler range");
+ 			spin_unlock_irqrestore(&ctx->slock, flags);
+ 			return -EINVAL;
+ 		}
+ 	}
++
+ 	ctx->state |= FIMC_PARAMS;
+ 
+ 	f->offs_h = cr->c.left;
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+index d690398..b442fed 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.h
++++ b/drivers/media/video/s5p-fimc/fimc-core.h
+@@ -605,7 +605,7 @@ struct fimc_fmt *find_format(struct v4l2_format *f, unsigned int mask);
+ struct fimc_fmt *find_mbus_format(struct v4l2_mbus_framefmt *f,
+ 				  unsigned int mask);
+ 
+-int fimc_check_scaler_ratio(struct v4l2_rect *r, struct fimc_frame *f);
++int fimc_check_scaler_ratio(int sw, int sh, int dw, int dh, int rot);
+ int fimc_set_scaler_info(struct fimc_ctx *ctx);
+ int fimc_prepare_config(struct fimc_ctx *ctx, u32 flags);
+ int fimc_prepare_addr(struct fimc_ctx *ctx, struct vb2_buffer *vb,
 -- 
-1.7.0.4
+1.6.2.5
 
