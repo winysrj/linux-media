@@ -1,48 +1,74 @@
 Return-path: <mchehab@gaivota>
-Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198]:46705 "EHLO
-	mta3.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756853Ab0LNTvE (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4847 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753465Ab0L2Rnb convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Dec 2010 14:51:04 -0500
-Received: from TheShoveller.local
- (ool-4572125f.dyn.optonline.net [69.114.18.95]) by mta3.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0LDF00847OH21590@mta3.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Tue, 14 Dec 2010 14:51:03 -0500 (EST)
-Date: Tue, 14 Dec 2010 14:51:02 -0500
-From: Steven Toth <stoth@kernellabs.com>
-Subject: Re: Hauppauge HVR-2200 analog
-In-reply-to: <4D07A829.6080406@jusst.de>
-To: Julian Scheel <julian@jusst.de>
-Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org
-Message-id: <4D07CAA6.3030300@kernellabs.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7BIT
-References: <4CFE14A1.3040801@jusst.de>
- <1291726869.2073.5.camel@morgan.silverblock.net> <4D07A829.6080406@jusst.de>
+	Wed, 29 Dec 2010 12:43:31 -0500
+Received: from durdane.localnet (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id oBTHhQ11069667
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 29 Dec 2010 18:43:30 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PATCHES FOR 2.6.38] Various fixes
+Date: Wed, 29 Dec 2010 18:43:26 +0100
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201012291843.26676.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On 12/14/10 12:23 PM, Julian Scheel wrote:
-> Is there any reason, why the additional card-information found here:
-> http://www.kernellabs.com/hg/~stoth/saa7164-dev/
-> is not yet in the kernel tree?
+A bunch of fixes that were pending in various git branches of mine.
 
-On my todo list.
+Regards,
 
-I validate each board before I add its profile to the core tree. If certain
-boards are missing then its because that board is considered experimental or is
-pending testing and merge.
+	Hans
 
-PAL encoder support is broken in the current tree and it currently getting my
-love and attention. Point me at the specific boards you think are missing and
-I'll also add these to my todo list, they'll likely get merged at the same time.
+The following changes since commit e017301e47ff356ed52a91259bfe4d200b8a628a:
+  Jean-François Moine (1):
+        [media] gspca - sonixj: Bad clock for om6802 in 640x480
 
-- Steve
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/hverkuil/media_tree.git fixes
+
+Hans Verkuil (5):
+      v4l2-ctrls: use const char * const * for the menu arrays
+      v4l2-ctrls: only check def for menu, integer and boolean controls
+      em28xx: fix incorrect s_ctrl error code and wrong call to res_free
+      v4l: fix handling of v4l2_input.capabilities
+      timblogiw: fix compile warning
+
+ drivers/media/dvb/ttpci/av7110_v4l.c               |    4 ++
+ drivers/media/dvb/ttpci/budget-av.c                |    6 ++-
+ drivers/media/video/cx18/cx18-cards.c              |    1 -
+ drivers/media/video/cx18/cx18-controls.c           |    2 +-
+ drivers/media/video/cx2341x.c                      |    8 ++--
+ drivers/media/video/cx23885/cx23885-video.c        |    1 -
+ drivers/media/video/em28xx/em28xx-video.c          |   14 +++--
+ drivers/media/video/et61x251/et61x251_core.c       |    1 +
+ drivers/media/video/hexium_gemini.c                |   18 +++---
+ drivers/media/video/hexium_orion.c                 |   18 +++---
+ drivers/media/video/ivtv/ivtv-cards.c              |    2 -
+ drivers/media/video/mxb.c                          |    8 ++--
+ drivers/media/video/pvrusb2/pvrusb2-ctrl.c         |    6 +-
+ drivers/media/video/pvrusb2/pvrusb2-hdw-internal.h |    2 +-
+ drivers/media/video/saa7134/saa7134-video.c        |    1 -
+ drivers/media/video/sn9c102/sn9c102_core.c         |    1 +
+ drivers/media/video/timblogiw.c                    |    5 +-
+ drivers/media/video/v4l2-common.c                  |    6 +-
+ drivers/media/video/v4l2-ctrls.c                   |   55 +++++++++++---------
+ drivers/media/video/vino.c                         |    3 -
+ drivers/media/video/zoran/zoran_driver.c           |    6 --
+ drivers/staging/cx25821/cx25821-video.c            |    2 -
+ include/media/cx2341x.h                            |    2 +-
+ include/media/v4l2-common.h                        |    6 +-
+ include/media/v4l2-ctrls.h                         |    4 +-
+ 25 files changed, 92 insertions(+), 90 deletions(-)
 
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
-
-
+Hans Verkuil - video4linux developer - sponsored by Cisco
