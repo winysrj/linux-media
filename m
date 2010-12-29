@@ -1,100 +1,146 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:37848 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750699Ab0L3NcV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Dec 2010 08:32:21 -0500
-Message-ID: <4D1C89DB.5080301@redhat.com>
-Date: Thu, 30 Dec 2010 11:32:11 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 3/4] [media] ivtv: Add Adaptec Remote Controller
-References: <cover.1293709356.git.mchehab@redhat.com> <201012301256.42242.hverkuil@xs4all.nl> <4D1C7690.3020907@redhat.com> <201012301334.33803.hverkuil@xs4all.nl>
-In-Reply-To: <201012301334.33803.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:55002 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751015Ab0L2Crn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Dec 2010 21:47:43 -0500
+Subject: [PATCH 3/3] lirc_zilog: Remove use of deprecated struct
+ i2c_adapter.id field
+From: Andy Walls <awalls@md.metrocast.net>
+To: linux-media@vger.kernel.org
+Cc: Jean Delvare <khali@linux-fr.org>, Jarod Wilson <jarod@redhat.com>,
+	Janne Grunau <j@jannau.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+In-Reply-To: <1293587067.3098.10.camel@localhost>
+References: <1293587067.3098.10.camel@localhost>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 28 Dec 2010 20:49:50 -0500
+Message-ID: <1293587390.3098.16.camel@localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 30-12-2010 10:34, Hans Verkuil escreveu:
-> On Thursday, December 30, 2010 13:09:52 Mauro Carvalho Chehab wrote:
->> Em 30-12-2010 09:56, Hans Verkuil escreveu:
->>> On Thursday, December 30, 2010 12:45:09 Mauro Carvalho Chehab wrote:
->>>> lirc-i2c implements a get key logic for the Adaptec Remote
->>>> Controller, at address 0x6b. The only driver that seems to have
->>>> an Adaptec device is ivtv:
->>>>
->>>> $ git grep -i adaptec drivers/media
->>>> drivers/media/video/cs53l32a.c: * cs53l32a (Adaptec AVC-2010 and AVC-2410) i2c ivtv driver.
->>>> drivers/media/video/cs53l32a.c: * Audio source switching for Adaptec AVC-2410 added by Trev Jackson
->>>> drivers/media/video/cs53l32a.c:   /* Set cs53l32a internal register for Adaptec 2010/2410 setup */
->>>> drivers/media/video/ivtv/ivtv-cards.c:/* Adaptec VideOh! AVC-2410 card */
->>>> drivers/media/video/ivtv/ivtv-cards.c:    { PCI_DEVICE_ID_IVTV16, IVTV_PCI_ID_ADAPTEC, 0x0093 },
->>>> drivers/media/video/ivtv/ivtv-cards.c:    .name = "Adaptec VideOh! AVC-2410",
->>>> drivers/media/video/ivtv/ivtv-cards.c:/* Adaptec VideOh! AVC-2010 card */
->>>> drivers/media/video/ivtv/ivtv-cards.c:    { PCI_DEVICE_ID_IVTV16, IVTV_PCI_ID_ADAPTEC, 0x0092 },
->>>> drivers/media/video/ivtv/ivtv-cards.c:    .name = "Adaptec VideOh! AVC-2010",
->>>> drivers/media/video/ivtv/ivtv-cards.h:#define IVTV_CARD_AVC2410         7 /* Adaptec AVC-2410 */
->>>> drivers/media/video/ivtv/ivtv-cards.h:#define IVTV_CARD_AVC2010         8 /* Adaptec AVD-2010 (No Tuner) */
->>>> drivers/media/video/ivtv/ivtv-cards.h:#define IVTV_PCI_ID_ADAPTEC                 0x9005
->>>> drivers/media/video/ivtv/ivtv-driver.c:            "\t\t\t 8 = Adaptec AVC-2410\n"
->>>> drivers/media/video/ivtv/ivtv-driver.c:            "\t\t\t 9 = Adaptec AVC-2010\n"
->>>> drivers/media/video/ivtv/ivtv-i2c.c:              0x6b,   /* Adaptec IR */
->>>>
->>>> There are two Adaptec cards defined there, but only one has tuner.
->>>> I never found any device without tuners, but with a remote controllers, so
->>>> the logic at lirc_i2c seems to be for Adaptec AVC-2410.
->>>
->>> That's correct. The AVC-2010 does not come with a remote.
->>
->> Thanks for double checking. I've replaced the comments to:
->>
->>     [media] ivtv: Add Adaptec Remote Controller
->>     
->>     lirc-i2c implements a get key logic for the Adaptec Remote
->>     Controller, at address 0x6b. The only driver that seems to have
->>     an Adaptec device is ivtv:
->>     
->>     $ git grep -i adaptec drivers/media
->>     drivers/media/video/cs53l32a.c: * cs53l32a (Adaptec AVC-2010 and AVC-2410) i2c ivtv driver.
->>     drivers/media/video/cs53l32a.c: * Audio source switching for Adaptec AVC-2410 added by Trev Jackson
->>     drivers/media/video/cs53l32a.c:   /* Set cs53l32a internal register for Adaptec 2010/2410 setup */
->>     drivers/media/video/ivtv/ivtv-cards.c:/* Adaptec VideOh! AVC-2410 card */
->>     drivers/media/video/ivtv/ivtv-cards.c:    { PCI_DEVICE_ID_IVTV16, IVTV_PCI_ID_ADAPTEC, 0x0093 },
->>     drivers/media/video/ivtv/ivtv-cards.c:    .name = "Adaptec VideOh! AVC-2410",
->>     drivers/media/video/ivtv/ivtv-cards.c:/* Adaptec VideOh! AVC-2010 card */
->>     drivers/media/video/ivtv/ivtv-cards.c:    { PCI_DEVICE_ID_IVTV16, IVTV_PCI_ID_ADAPTEC, 0x0092 },
->>     drivers/media/video/ivtv/ivtv-cards.c:    .name = "Adaptec VideOh! AVC-2010",
->>     drivers/media/video/ivtv/ivtv-cards.h:#define IVTV_CARD_AVC2410         7 /* Adaptec AVC-2410 */
->>     drivers/media/video/ivtv/ivtv-cards.h:#define IVTV_CARD_AVC2010         8 /* Adaptec AVD-2010 (No Tuner) */
->>     drivers/media/video/ivtv/ivtv-cards.h:#define IVTV_PCI_ID_ADAPTEC                 0x9005
->>     drivers/media/video/ivtv/ivtv-driver.c:            "\t\t\t 8 = Adaptec AVC-2410\n"
->>     drivers/media/video/ivtv/ivtv-driver.c:            "\t\t\t 9 = Adaptec AVC-2010\n"
->>     drivers/media/video/ivtv/ivtv-i2c.c:              0x6b,   /* Adaptec IR */
->>     
->>     There are two Adaptec cards defined there, but AVC-2010 doesn't have a
->>     remote controller. So, the logic at lirc_i2c seems to be for Adaptec AVC-2410.
->>     
->>     As we'll remove lirc_i2c from kernel, move the getkey code to ivtv driver, and
->>     use it for AVC-2410.
->>
->> I have no means to test the IR with AVC-2410, but I think it is safe to apply
->> this patch, if none of us have this device, as the patch is trivial, and this
->> allows us to remove i2c_adapter.id obsolete field and lirc_i2c, after applying
->> this series, and the tree patches for lirc_zilog that Andy made.
-> 
-> I think I have the AVC-2410 but I think you have the remote for it. It's one of
-> the remotes I gave you in San Franscisco.
-> 
-> So that's going to be hard to test :-)
+Remove use of deprecated struct i2c_adapter.id field.  In the process,
+perform different detection of the HD PVR's Z8 IR microcontroller versus
+the other Hauppauge cards with the Z8 IR microcontroller.
 
-I'll see if I can identify the AVC RC protocol and its keymap table in Jan.
+Also added a comment about probe() function behavior that needs to be
+fixed.
 
-> BTW, pending unforseen circumstances I'll be at the ELC in San Francisco again
-> this year.
+Signed-off-by: Andy Walls <awalls@md.metrocast.net>
+---
+ drivers/staging/lirc/lirc_zilog.c |   47 ++++++++++++++++++++++++------------
+ 1 files changed, 31 insertions(+), 16 deletions(-)
 
-It is a little early to say, but I probably won't be there in 2011.
+diff --git a/drivers/staging/lirc/lirc_zilog.c b/drivers/staging/lirc/lirc_zilog.c
+index 52be6de..ad29bb1 100644
+--- a/drivers/staging/lirc/lirc_zilog.c
++++ b/drivers/staging/lirc/lirc_zilog.c
+@@ -66,6 +66,7 @@ struct IR {
+ 	/* Device info */
+ 	struct mutex ir_lock;
+ 	int open;
++	bool is_hdpvr;
+ 
+ 	/* RX device */
+ 	struct i2c_client c_rx;
+@@ -206,16 +207,12 @@ static int add_to_buf(struct IR *ir)
+ 		}
+ 
+ 		/* key pressed ? */
+-#ifdef I2C_HW_B_HDPVR
+-		if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR) {
++		if (ir->is_hdpvr) {
+ 			if (got_data && (keybuf[0] == 0x80))
+ 				return 0;
+ 			else if (got_data && (keybuf[0] == 0x00))
+ 				return -ENODATA;
+ 		} else if ((ir->b[0] & 0x80) == 0)
+-#else
+-		if ((ir->b[0] & 0x80) == 0)
+-#endif
+ 			return got_data ? 0 : -ENODATA;
+ 
+ 		/* look what we have */
+@@ -841,15 +838,15 @@ static int send_code(struct IR *ir, unsigned int code, unsigned int key)
+ 		return ret < 0 ? ret : -EFAULT;
+ 	}
+ 
+-#ifdef I2C_HW_B_HDPVR
+ 	/*
+ 	 * The sleep bits aren't necessary on the HD PVR, and in fact, the
+ 	 * last i2c_master_recv always fails with a -5, so for now, we're
+ 	 * going to skip this whole mess and say we're done on the HD PVR
+ 	 */
+-	if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR)
+-		goto done;
+-#endif
++	if (ir->is_hdpvr) {
++		dprintk("sent code %u, key %u\n", code, key);
++		return 0;
++	}
+ 
+ 	/*
+ 	 * This bit NAKs until the device is ready, so we retry it
+@@ -1111,12 +1108,14 @@ static int ir_remove(struct i2c_client *client);
+ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id);
+ static int ir_command(struct i2c_client *client, unsigned int cmd, void *arg);
+ 
++#define ID_FLAG_TX	0x01
++#define ID_FLAG_HDPVR	0x02
++
+ static const struct i2c_device_id ir_transceiver_id[] = {
+-	/* Generic entry for any IR transceiver */
+-	{ "ir_video", 0 },
+-	/* IR device specific entries should be added here */
+-	{ "ir_tx_z8f0811_haup", 0 },
+-	{ "ir_rx_z8f0811_haup", 0 },
++	{ "ir_tx_z8f0811_haup",  ID_FLAG_TX                 },
++	{ "ir_rx_z8f0811_haup",  0                          },
++	{ "ir_tx_z8f0811_hdpvr", ID_FLAG_HDPVR | ID_FLAG_TX },
++	{ "ir_rx_z8f0811_hdpvr", ID_FLAG_HDPVR              },
+ 	{ }
+ };
+ 
+@@ -1196,10 +1195,25 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	int ret;
+ 	int have_rx = 0, have_tx = 0;
+ 
+-	dprintk("%s: adapter id=0x%x, client addr=0x%02x\n",
+-		__func__, adap->id, client->addr);
++	dprintk("%s: adapter name (%s) nr %d, i2c_device_id name (%s), "
++		"client addr=0x%02x\n",
++		__func__, adap->name, adap->nr, id->name, client->addr);
+ 
+ 	/*
++	 * FIXME - This probe function probes both the Tx and Rx
++	 * addresses of the IR microcontroller.
++	 *
++	 * However, the I2C subsystem is passing along one I2C client at a
++	 * time, based on matches to the ir_transceiver_id[] table above.
++	 * The expectation is that each i2c_client address will be probed
++	 * individually by drivers so the I2C subsystem can mark all client
++	 * addresses as claimed or not.
++	 *
++	 * This probe routine causes only one of the client addresses, TX or RX,
++	 * to be claimed.  This will cause a problem if the I2C subsystem is
++	 * subsequently triggered to probe unclaimed clients again.
++	 */
++	/*
+ 	 * The external IR receiver is at i2c address 0x71.
+ 	 * The IR transmitter is at 0x70.
+ 	 */
+@@ -1241,6 +1255,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	mutex_init(&ir->ir_lock);
+ 	mutex_init(&ir->buf_lock);
+ 	ir->need_boot = 1;
++	ir->is_hdpvr = (id->driver_data & ID_FLAG_HDPVR) ? true : false;
+ 
+ 	memcpy(&ir->l, &lirc_template, sizeof(struct lirc_driver));
+ 	ir->l.minor = -1;
+-- 
+1.7.2.1
 
-Cheers,
-Mauro
+
+
