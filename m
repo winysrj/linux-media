@@ -1,156 +1,220 @@
 Return-path: <mchehab@gaivota>
-Received: from casper.infradead.org ([85.118.1.10]:35829 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751495Ab0L0V2o (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:29488 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753562Ab0L2RdF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Dec 2010 16:28:44 -0500
-Message-ID: <4D1904EB.4020007@infradead.org>
-Date: Mon, 27 Dec 2010 19:28:11 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: David Henningsson <david.henningsson@canonical.com>
-CC: linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>
-Subject: Re: [PATCH] DVB: TechnoTrend CT-3650 IR support
-References: <4D170785.1070306@canonical.com> <4D1729DB.80406@infradead.org> <4D17999E.4000500@canonical.com> <4D18623C.8080006@infradead.org> <4D18B6AC.2040506@canonical.com> <4D18C413.3020300@infradead.org> <4D18E2D2.8020400@canonical.com>
-In-Reply-To: <4D18E2D2.8020400@canonical.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Wed, 29 Dec 2010 12:33:05 -0500
+Date: Wed, 29 Dec 2010 18:32:53 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 11/15 v2] [media] s5p-fimc: Enable simultaneous rotation and
+ flipping
+In-reply-to: <1293643975-4528-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com
+Message-id: <1293643975-4528-12-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1293643975-4528-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 27-12-2010 17:02, David Henningsson escreveu:
-> On 2010-12-27 17:51, Mauro Carvalho Chehab wrote:
->> Em 27-12-2010 13:54, David Henningsson escreveu:
->>> On 2010-12-27 10:54, Mauro Carvalho Chehab wrote:
->>>> Em 26-12-2010 17:38, David Henningsson escreveu:
->>>>> On 2010-12-26 12:41, Mauro Carvalho Chehab wrote:
->>
->>>>> +/* command to poll IR receiver (copied from pctv452e.c) */
->>>>> +#define CMD_GET_IR_CODE     0x1b
->>>>> +
->>>>> +/* IR */
->>>>> +static int tt3650_rc_query(struct dvb_usb_device *d)
->>>>> +{
->>>>> +    int ret;
->>>>> +    u8 rx[9]; /* A CMD_GET_IR_CODE reply is 9 bytes long */
->>>>> +    ret = ttusb2_msg(d, CMD_GET_IR_CODE, NULL, 0, rx, sizeof(rx));
->>>>> +    if (ret != 0)
->>>>> +        return ret;
->>>>> +
->>>>> +    if (rx[8]&   0x01) {
->>>>
->>>> Maybe (rx[8]&   0x01) == 0 indicates a keyup event. If so, if you map both keydown
->>>> and keyup events, the in-kernel repeat logic will work.
->>>
->>> Hmm. If I should fix keyup events, the most reliable version would probably be something like:
->>>
->>> if (rx[8]&  0x01) {
->>>    int currentkey = rx[2]; // or (rx[3]<<   8) | rx[2];
->>>    if (currentkey == lastkey)
->>>      rc_repeat(lastkey);
->>>    else {
->>>      if (lastkey)
->>>        rc_keyup(lastkey);
->>>      lastkey = currentkey;
->>>      rc_keydown(currentkey);
->>>    }
->>
->> rc_keydown() already handles repeat events (see ir_do_keydown and rc_keydown, at
->> rc-main.c), so, you don't need it.
->>
->>> }
->>> else if (lastkey) {
->>>    rc_keyup(lastkey);
->>>    lastkey = 0;
->>> }
->>
->> Yeah, this makes sense, if bit 1 of rx[8] indicates keyup/keydown or repeat.
->>
->> You need to double check if you are not receiving any packet with this bit unset,
->> when you press and hold a key, as some devices use a bit to just indicate that
->> the info there is valid or not (a "done" bit).
-> 
-> As far as I can understand, a value of "1" indicates that a key is currently pressed, and a value of "0" indicates that no key is pressed.
+Map all (0, 90, 180, 270) deg counterclockwise rotation and
+horizontal and vertical flip controls to (0, 90) deg rotation,
+horizontal and vertical flip transformations available
+in the device.
 
-Ok.
-> 
->>
->>>
->>> Does this sound reasonable to you?
->>>
->>>>
->>>>> +        /* got a "press" event */
->>>>> +        deb_info("%s: cmd=0x%02x sys=0x%02x\n", __func__, rx[2], rx[3]);
->>>>> +        rc_keydown(d->rc_dev, rx[2], 0);
->>>>> +    }
->>>>
->>>> As you're receiving both command+address, please use the complete code:
->>>>      rc_keydown(d->rc_dev, (rx[3]<<   8) | rx[2], 0);
->>>
->>> I've tried this, but it stops working. evtest shows only scancode events, so my guess is that this makes it incompatible with RC_MAP_TT_1500, which lists only the lower byte.
->>
->> yeah, you'll need either to create another table or to fix it. The better is to fix
->> the table and to use .scanmask = 0xff at the old drivers. This way, the same table
->> will work for both the legacy/incomplete get_scancode function and for the new one.
-> 
-> Ok. I did a grep for RC_MAP_TT_1500 and found one place only, so I'm attaching two patches that should fix this, feel free to commit them if they look good to you.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-core.c |    9 +---
+ drivers/media/video/s5p-fimc/fimc-reg.c  |   76 ++++++++++++------------------
+ 2 files changed, 32 insertions(+), 53 deletions(-)
 
-They are good. Applied, thanks!
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index 7899814..b273fe1 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -1051,13 +1051,6 @@ int fimc_s_ctrl(struct fimc_ctx *ctx, struct v4l2_control *ctrl)
+ 	struct fimc_dev *fimc = ctx->fimc_dev;
+ 	unsigned long flags;
+ 
+-	if (ctx->rotation != 0 &&
+-	    (ctrl->id == V4L2_CID_HFLIP || ctrl->id == V4L2_CID_VFLIP)) {
+-		v4l2_err(&fimc->m2m.v4l2_dev,
+-			 "Simultaneous flip and rotation is not supported\n");
+-		return -EINVAL;
+-	}
+-
+ 	spin_lock_irqsave(&ctx->slock, flags);
+ 
+ 	switch (ctrl->id) {
+@@ -1098,7 +1091,7 @@ int fimc_s_ctrl(struct fimc_ctx *ctx, struct v4l2_control *ctrl)
+ }
+ 
+ static int fimc_m2m_s_ctrl(struct file *file, void *priv,
+-			 struct v4l2_control *ctrl)
++			   struct v4l2_control *ctrl)
+ {
+ 	struct fimc_ctx *ctx = priv;
+ 	int ret = 0;
+diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
+index c4703b5..62b9248 100644
+--- a/drivers/media/video/s5p-fimc/fimc-reg.c
++++ b/drivers/media/video/s5p-fimc/fimc-reg.c
+@@ -37,11 +37,11 @@ void fimc_hw_reset(struct fimc_dev *dev)
+ 	writel(cfg, dev->regs + S5P_CIGCTRL);
+ }
+ 
+-static u32 fimc_hw_get_in_flip(u32 ctx_flip)
++static u32 fimc_hw_get_in_flip(struct fimc_ctx *ctx)
+ {
+ 	u32 flip = S5P_MSCTRL_FLIP_NORMAL;
+ 
+-	switch (ctx_flip) {
++	switch (ctx->flip) {
+ 	case FLIP_X_AXIS:
+ 		flip = S5P_MSCTRL_FLIP_X_MIRROR;
+ 		break;
+@@ -51,16 +51,20 @@ static u32 fimc_hw_get_in_flip(u32 ctx_flip)
+ 	case FLIP_XY_AXIS:
+ 		flip = S5P_MSCTRL_FLIP_180;
+ 		break;
++	default:
++		return flip;
+ 	}
++	if (ctx->rotation <= 90)
++		return flip;
+ 
+-	return flip;
++	return (flip ^ S5P_MSCTRL_FLIP_180) & S5P_MSCTRL_FLIP_180;
+ }
+ 
+-static u32 fimc_hw_get_target_flip(u32 ctx_flip)
++static u32 fimc_hw_get_target_flip(struct fimc_ctx *ctx)
+ {
+ 	u32 flip = S5P_CITRGFMT_FLIP_NORMAL;
+ 
+-	switch (ctx_flip) {
++	switch (ctx->flip) {
+ 	case FLIP_X_AXIS:
+ 		flip = S5P_CITRGFMT_FLIP_X_MIRROR;
+ 		break;
+@@ -70,11 +74,13 @@ static u32 fimc_hw_get_target_flip(u32 ctx_flip)
+ 	case FLIP_XY_AXIS:
+ 		flip = S5P_CITRGFMT_FLIP_180;
+ 		break;
+-	case FLIP_NONE:
+-		break;
+-
++	default:
++		return flip;
+ 	}
+-	return flip;
++	if (ctx->rotation <= 90)
++		return flip;
++
++	return (flip ^ S5P_CITRGFMT_FLIP_180) & S5P_CITRGFMT_FLIP_180;
+ }
+ 
+ void fimc_hw_set_rotation(struct fimc_ctx *ctx)
+@@ -84,10 +90,7 @@ void fimc_hw_set_rotation(struct fimc_ctx *ctx)
+ 
+ 	cfg = readl(dev->regs + S5P_CITRGFMT);
+ 	cfg &= ~(S5P_CITRGFMT_INROT90 | S5P_CITRGFMT_OUTROT90 |
+-		  S5P_CITRGFMT_FLIP_180);
+-
+-	flip = readl(dev->regs + S5P_MSCTRL);
+-	flip &= ~S5P_MSCTRL_FLIP_MASK;
++		 S5P_CITRGFMT_FLIP_180);
+ 
+ 	/*
+ 	 * The input and output rotator cannot work simultaneously.
+@@ -95,26 +98,22 @@ void fimc_hw_set_rotation(struct fimc_ctx *ctx)
+ 	 * in direct fifo output mode.
+ 	 */
+ 	if (ctx->rotation == 90 || ctx->rotation == 270) {
+-		if (ctx->out_path == FIMC_LCDFIFO) {
+-			cfg |= S5P_CITRGFMT_INROT90;
+-			if (ctx->rotation == 270)
+-				flip |= S5P_MSCTRL_FLIP_180;
+-		} else {
+-			cfg |= S5P_CITRGFMT_OUTROT90;
+-			if (ctx->rotation == 270)
+-				cfg |= S5P_CITRGFMT_FLIP_180;
+-		}
+-	} else if (ctx->rotation == 180) {
+ 		if (ctx->out_path == FIMC_LCDFIFO)
+-			flip |= S5P_MSCTRL_FLIP_180;
++			cfg |= S5P_CITRGFMT_INROT90;
+ 		else
+-			cfg |= S5P_CITRGFMT_FLIP_180;
++			cfg |= S5P_CITRGFMT_OUTROT90;
+ 	}
+-	if (ctx->rotation == 180 || ctx->rotation == 270)
+-		writel(flip, dev->regs + S5P_MSCTRL);
+ 
+-	cfg |= fimc_hw_get_target_flip(ctx->flip);
+-	writel(cfg, dev->regs + S5P_CITRGFMT);
++	if (ctx->out_path == FIMC_DMA) {
++		cfg |= fimc_hw_get_target_flip(ctx);
++		writel(cfg, dev->regs + S5P_CITRGFMT);
++	} else {
++		/* LCD FIFO path */
++		flip = readl(dev->regs + S5P_MSCTRL);
++		flip &= ~S5P_MSCTRL_FLIP_MASK;
++		flip |= fimc_hw_get_in_flip(ctx);
++		writel(flip, dev->regs + S5P_MSCTRL);
++	}
+ }
+ 
+ void fimc_hw_set_target_format(struct fimc_ctx *ctx)
+@@ -131,18 +130,13 @@ void fimc_hw_set_target_format(struct fimc_ctx *ctx)
+ 		  S5P_CITRGFMT_VSIZE_MASK);
+ 
+ 	switch (frame->fmt->color) {
+-	case S5P_FIMC_RGB565:
+-	case S5P_FIMC_RGB666:
+-	case S5P_FIMC_RGB888:
++	case S5P_FIMC_RGB565...S5P_FIMC_RGB888:
+ 		cfg |= S5P_CITRGFMT_RGB;
+ 		break;
+ 	case S5P_FIMC_YCBCR420:
+ 		cfg |= S5P_CITRGFMT_YCBCR420;
+ 		break;
+-	case S5P_FIMC_YCBYCR422:
+-	case S5P_FIMC_YCRYCB422:
+-	case S5P_FIMC_CBYCRY422:
+-	case S5P_FIMC_CRYCBY422:
++	case S5P_FIMC_YCBYCR422...S5P_FIMC_CRYCBY422:
+ 		if (frame->fmt->colplanes == 1)
+ 			cfg |= S5P_CITRGFMT_YCBCR422_1P;
+ 		else
+@@ -410,8 +404,7 @@ void fimc_hw_set_in_dma(struct fimc_ctx *ctx)
+ 
+ 	/* Set the input DMA to process single frame only. */
+ 	cfg = readl(dev->regs + S5P_MSCTRL);
+-	cfg &= ~(S5P_MSCTRL_FLIP_MASK
+-		| S5P_MSCTRL_INFORMAT_MASK
++	cfg &= ~(S5P_MSCTRL_INFORMAT_MASK
+ 		| S5P_MSCTRL_IN_BURST_COUNT_MASK
+ 		| S5P_MSCTRL_INPUT_MASK
+ 		| S5P_MSCTRL_C_INT_IN_MASK
+@@ -450,13 +443,6 @@ void fimc_hw_set_in_dma(struct fimc_ctx *ctx)
+ 		break;
+ 	}
+ 
+-	/*
+-	 * Input DMA flip mode (and rotation).
+-	 * Do not allow simultaneous rotation and flipping.
+-	 */
+-	if (!ctx->rotation && ctx->out_path == FIMC_LCDFIFO)
+-		cfg |= fimc_hw_get_in_flip(ctx->flip);
+-
+ 	writel(cfg, dev->regs + S5P_MSCTRL);
+ 
+ 	/* Input/output DMA linear/tiled mode. */
+-- 
+1.7.2.3
 
-> 
->>>> Also as it is receiving 8 bytes from the device, maybe the IR decoding logic is
->>>> capable of decoding more than just one protocol. Such feature is nice, as it
->>>> allows replacing the original keycode table by a more complete one.
->>>
->>> I've tried dumping all nine bytes but I can't make much out of it as I'm unfamiliar with RC protocols and decoders.
->>>
->>> Typical reply is (no key pressed):
->>>
->>> cc 35 0b 15 00 03 00 00 00
->>>
->>> Does this tell you anything?
->>
->> This means nothing to me, but the only way to double check is to test the device
->> with other remote controllers. On several hardware, it is possible to use
->> RC5 remote controllers as well. As there are some empty (zero) fields, maybe
->> this device also supports RC6 protocols (that have more than 16 bits) and
->> NEC extended (24 bits or 32 bits, on a few variants).
-> 
-> Ok.
-> 
->>>> One of the most interesting features of the new RC code is that it offers
->>>> a sysfs class and some additional logic to allow dynamically change/replace
->>>> the keymaps and keycodes via userspace. The idea is to remove all in-kernel
->>>> keymaps in the future, using, instead, the userspace way, via ir-keytable
->>>> tool, available at:
->>>>      http://git.linuxtv.org/v4l-utils.git
->>>>
->>>> The tool already supports auto-loading the keymap via udev.
->>>>
->>>> For IR's where we don't know the protocol or that we don't have the full scancode,
->>>> loading the keymap via userspace will not bring any new feature. But, for those
->>>> devices where we can be sure about the protocol and for those that also allow
->>>> using other protocols, users can just replace the device-provided IR with a more
->>>> powerful remote controller with more keys.
->>>
->>> Yeah, that sounds like a really nice feature.
->>>
->>>> So, it would be wonderful if you could identify what's the supported protocol(s)
->>>> instead of using RC_TYPE_UNKNOWN. You can double check the protocol if you have
->>>> with you another RC device that supports raw decoding. The rc-core internal decoders
->>>> will tell you what protocol was used to decode a keycode, if you enable debug.
->>>
->>> I don't have any such RC receiver device. I do have a Logitech Harmony 525, so I tried pointing that one towards the CT 3650, but CMD_GET_IR_CODE didn't change for any of the devices I've currently told my Harmony to emulate.
->>>
->>> So I don't really see how I can help further in this case?
->>
->> I don't have a Logitech Harmony, so I'm not sure about it. Maybe Jarod may have some
->> info about it.
-> 
-> Would you like me to provide a patch with RC_TYPE_UNKNOWN at this point (i e what I showed you earlier + your review comments), and when I or somebody else can provide more complete information, we make an additional patch with better protocol support? Does that make sense to you?
-> 
-
-Yeah, this should be OK for me.
-
-Thanks,
-Mauro
