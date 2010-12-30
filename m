@@ -1,38 +1,50 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:60793 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752973Ab0LWQoE (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:58873 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752319Ab0L3XIR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Dec 2010 11:44:04 -0500
-Received: by fxm20 with SMTP id 20so7262554fxm.19
-        for <linux-media@vger.kernel.org>; Thu, 23 Dec 2010 08:44:02 -0800 (PST)
-Date: Thu, 23 Dec 2010 19:43:47 +0300
-From: Dan Carpenter <error27@gmail.com>
-To: Srinivasa.Deevi@conexant.com
-Cc: linux-media@vger.kernel.org
-Subject: smatch report: cx231xx: incorrect check in cx231xx_write_i2c_data()
-Message-ID: <20101223164347.GA16612@bicker>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	Thu, 30 Dec 2010 18:08:17 -0500
+From: "Justin P. Mattock" <justinmattock@gmail.com>
+To: trivial@kernel.org
+Cc: linux-m68k@lists.linux-m68k.org, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, ivtv-devel@ivtvdriver.org,
+	linux-media@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-scsi@vger.kernel.org,
+	spi-devel-general@lists.sourceforge.net,
+	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org,
+	"Justin P. Mattock" <justinmattock@gmail.com>
+Subject: [PATCH 04/15]drivers:staging:comedi:drivers:das800.c Typo change diable to disable.
+Date: Thu, 30 Dec 2010 15:07:53 -0800
+Message-Id: <1293750484-1161-4-git-send-email-justinmattock@gmail.com>
+In-Reply-To: <1293750484-1161-3-git-send-email-justinmattock@gmail.com>
+References: <1293750484-1161-1-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-2-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-3-git-send-email-justinmattock@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi,
+The below patch fixes a typo "diable" to "disable". Please let me know if this 
+is correct or not.
 
-I was doing an audit and I came across this.
+Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
 
-drivers/media/video/cx231xx/cx231xx-core.c +1644 cx231xx_write_i2c_data(14)
-	warn: 'saddr_len' is non-zero. Did you mean 'saddr'
+---
+ drivers/staging/comedi/drivers/das800.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-  1642          if (saddr_len == 0)
-  1643                  saddr = 0;
-  1644          else if (saddr_len == 0)
-  1645                  saddr &= 0xff;
+diff --git a/drivers/staging/comedi/drivers/das800.c b/drivers/staging/comedi/drivers/das800.c
+index aecaedc..3ecae47 100644
+--- a/drivers/staging/comedi/drivers/das800.c
++++ b/drivers/staging/comedi/drivers/das800.c
+@@ -450,7 +450,7 @@ static irqreturn_t das800_interrupt(int irq, void *d)
+ 		/* otherwise, stop taking data */
+ 	} else {
+ 		spin_unlock_irqrestore(&dev->spinlock, irq_flags);
+-		disable_das800(dev);	/* diable hardware triggered conversions */
++		disable_das800(dev);	/* disable hardware triggered conversions */
+ 		async->events |= COMEDI_CB_EOA;
+ 	}
+ 	comedi_event(dev, s);
+-- 
+1.6.5.2.180.gc5b3e
 
-We check "saddr_len == 0" twice which doesn't make sense.  I'm not sure
-what the correct fix is though.  It's been this way since the driver was
-merged.
-
-regards,
-dan carpenter
