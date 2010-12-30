@@ -1,57 +1,32 @@
 Return-path: <mchehab@gaivota>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48214 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752047Ab0LQKnx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Dec 2010 05:43:53 -0500
-From: manjunatha_halli@ti.com
-To: mchehab@infradead.org, hverkuil@xs4all.nl
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Manjunatha Halli <manjunatha_halli@ti.com>
-Subject: [PATCH v7 7/7] drivers:media:radio: Update Kconfig and Makefile for supporting wl128x
-Date: Fri, 17 Dec 2010 06:06:36 -0500
-Message-Id: <1292583996-4440-8-git-send-email-manjunatha_halli@ti.com>
-In-Reply-To: <1292583996-4440-7-git-send-email-manjunatha_halli@ti.com>
-References: <1292583996-4440-1-git-send-email-manjunatha_halli@ti.com>
- <1292583996-4440-2-git-send-email-manjunatha_halli@ti.com>
- <1292583996-4440-3-git-send-email-manjunatha_halli@ti.com>
- <1292583996-4440-4-git-send-email-manjunatha_halli@ti.com>
- <1292583996-4440-5-git-send-email-manjunatha_halli@ti.com>
- <1292583996-4440-6-git-send-email-manjunatha_halli@ti.com>
- <1292583996-4440-7-git-send-email-manjunatha_halli@ti.com>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4322 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751807Ab0L3OmO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Dec 2010 09:42:14 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Andy Walls <awalls@md.metrocast.net>
+Subject: Can VIDIOC_INT_RESET be removed?
+Date: Thu, 30 Dec 2010 15:42:08 +0100
+Cc: linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201012301542.08706.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-From: Manjunatha Halli <manjunatha_halli@ti.com>
+Hi Andy,
 
-Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
----
- drivers/media/radio/Kconfig  |    3 +++
- drivers/media/radio/Makefile |    1 +
- 2 files changed, 4 insertions(+), 0 deletions(-)
+Is there still a reason to keep the VIDIOC_INT_RESET ioctl in cx18 and ivtv?
+I seem to remember that you told me that they are no longer needed.
 
-diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-index 83567b8..4529bc7 100644
---- a/drivers/media/radio/Kconfig
-+++ b/drivers/media/radio/Kconfig
-@@ -452,4 +452,7 @@ config RADIO_TIMBERDALE
- 	  found behind the Timberdale FPGA on the Russellville board.
- 	  Enabling this driver will automatically select the DSP and tuner.
- 
-+# TI's ST based wl128x FM radio
-+source "drivers/media/radio/wl128x/Kconfig"
-+
- endif # RADIO_ADAPTERS
-diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
-index f615583..b71f448 100644
---- a/drivers/media/radio/Makefile
-+++ b/drivers/media/radio/Makefile
-@@ -26,5 +26,6 @@ obj-$(CONFIG_RADIO_TEA5764) += radio-tea5764.o
- obj-$(CONFIG_RADIO_SAA7706H) += saa7706h.o
- obj-$(CONFIG_RADIO_TEF6862) += tef6862.o
- obj-$(CONFIG_RADIO_TIMBERDALE) += radio-timb.o
-+obj-$(CONFIG_RADIO_WL128X) += wl128x/
- 
- EXTRA_CFLAGS += -Isound
+If so, then I'll make a patch removing this ioctl in the drivers and in v4l-utils.
+
+Regards,
+
+	Hans
+
 -- 
-1.5.6.3
-
+Hans Verkuil - video4linux developer - sponsored by Cisco
