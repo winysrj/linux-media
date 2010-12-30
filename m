@@ -1,220 +1,100 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:29488 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753562Ab0L2RdF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Dec 2010 12:33:05 -0500
-Date: Wed, 29 Dec 2010 18:32:53 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 11/15 v2] [media] s5p-fimc: Enable simultaneous rotation and
- flipping
-In-reply-to: <1293643975-4528-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com
-Message-id: <1293643975-4528-12-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1293643975-4528-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:37848 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750699Ab0L3NcV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Dec 2010 08:32:21 -0500
+Message-ID: <4D1C89DB.5080301@redhat.com>
+Date: Thu, 30 Dec 2010 11:32:11 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 3/4] [media] ivtv: Add Adaptec Remote Controller
+References: <cover.1293709356.git.mchehab@redhat.com> <201012301256.42242.hverkuil@xs4all.nl> <4D1C7690.3020907@redhat.com> <201012301334.33803.hverkuil@xs4all.nl>
+In-Reply-To: <201012301334.33803.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Map all (0, 90, 180, 270) deg counterclockwise rotation and
-horizontal and vertical flip controls to (0, 90) deg rotation,
-horizontal and vertical flip transformations available
-in the device.
+Em 30-12-2010 10:34, Hans Verkuil escreveu:
+> On Thursday, December 30, 2010 13:09:52 Mauro Carvalho Chehab wrote:
+>> Em 30-12-2010 09:56, Hans Verkuil escreveu:
+>>> On Thursday, December 30, 2010 12:45:09 Mauro Carvalho Chehab wrote:
+>>>> lirc-i2c implements a get key logic for the Adaptec Remote
+>>>> Controller, at address 0x6b. The only driver that seems to have
+>>>> an Adaptec device is ivtv:
+>>>>
+>>>> $ git grep -i adaptec drivers/media
+>>>> drivers/media/video/cs53l32a.c: * cs53l32a (Adaptec AVC-2010 and AVC-2410) i2c ivtv driver.
+>>>> drivers/media/video/cs53l32a.c: * Audio source switching for Adaptec AVC-2410 added by Trev Jackson
+>>>> drivers/media/video/cs53l32a.c:   /* Set cs53l32a internal register for Adaptec 2010/2410 setup */
+>>>> drivers/media/video/ivtv/ivtv-cards.c:/* Adaptec VideOh! AVC-2410 card */
+>>>> drivers/media/video/ivtv/ivtv-cards.c:    { PCI_DEVICE_ID_IVTV16, IVTV_PCI_ID_ADAPTEC, 0x0093 },
+>>>> drivers/media/video/ivtv/ivtv-cards.c:    .name = "Adaptec VideOh! AVC-2410",
+>>>> drivers/media/video/ivtv/ivtv-cards.c:/* Adaptec VideOh! AVC-2010 card */
+>>>> drivers/media/video/ivtv/ivtv-cards.c:    { PCI_DEVICE_ID_IVTV16, IVTV_PCI_ID_ADAPTEC, 0x0092 },
+>>>> drivers/media/video/ivtv/ivtv-cards.c:    .name = "Adaptec VideOh! AVC-2010",
+>>>> drivers/media/video/ivtv/ivtv-cards.h:#define IVTV_CARD_AVC2410         7 /* Adaptec AVC-2410 */
+>>>> drivers/media/video/ivtv/ivtv-cards.h:#define IVTV_CARD_AVC2010         8 /* Adaptec AVD-2010 (No Tuner) */
+>>>> drivers/media/video/ivtv/ivtv-cards.h:#define IVTV_PCI_ID_ADAPTEC                 0x9005
+>>>> drivers/media/video/ivtv/ivtv-driver.c:            "\t\t\t 8 = Adaptec AVC-2410\n"
+>>>> drivers/media/video/ivtv/ivtv-driver.c:            "\t\t\t 9 = Adaptec AVC-2010\n"
+>>>> drivers/media/video/ivtv/ivtv-i2c.c:              0x6b,   /* Adaptec IR */
+>>>>
+>>>> There are two Adaptec cards defined there, but only one has tuner.
+>>>> I never found any device without tuners, but with a remote controllers, so
+>>>> the logic at lirc_i2c seems to be for Adaptec AVC-2410.
+>>>
+>>> That's correct. The AVC-2010 does not come with a remote.
+>>
+>> Thanks for double checking. I've replaced the comments to:
+>>
+>>     [media] ivtv: Add Adaptec Remote Controller
+>>     
+>>     lirc-i2c implements a get key logic for the Adaptec Remote
+>>     Controller, at address 0x6b. The only driver that seems to have
+>>     an Adaptec device is ivtv:
+>>     
+>>     $ git grep -i adaptec drivers/media
+>>     drivers/media/video/cs53l32a.c: * cs53l32a (Adaptec AVC-2010 and AVC-2410) i2c ivtv driver.
+>>     drivers/media/video/cs53l32a.c: * Audio source switching for Adaptec AVC-2410 added by Trev Jackson
+>>     drivers/media/video/cs53l32a.c:   /* Set cs53l32a internal register for Adaptec 2010/2410 setup */
+>>     drivers/media/video/ivtv/ivtv-cards.c:/* Adaptec VideOh! AVC-2410 card */
+>>     drivers/media/video/ivtv/ivtv-cards.c:    { PCI_DEVICE_ID_IVTV16, IVTV_PCI_ID_ADAPTEC, 0x0093 },
+>>     drivers/media/video/ivtv/ivtv-cards.c:    .name = "Adaptec VideOh! AVC-2410",
+>>     drivers/media/video/ivtv/ivtv-cards.c:/* Adaptec VideOh! AVC-2010 card */
+>>     drivers/media/video/ivtv/ivtv-cards.c:    { PCI_DEVICE_ID_IVTV16, IVTV_PCI_ID_ADAPTEC, 0x0092 },
+>>     drivers/media/video/ivtv/ivtv-cards.c:    .name = "Adaptec VideOh! AVC-2010",
+>>     drivers/media/video/ivtv/ivtv-cards.h:#define IVTV_CARD_AVC2410         7 /* Adaptec AVC-2410 */
+>>     drivers/media/video/ivtv/ivtv-cards.h:#define IVTV_CARD_AVC2010         8 /* Adaptec AVD-2010 (No Tuner) */
+>>     drivers/media/video/ivtv/ivtv-cards.h:#define IVTV_PCI_ID_ADAPTEC                 0x9005
+>>     drivers/media/video/ivtv/ivtv-driver.c:            "\t\t\t 8 = Adaptec AVC-2410\n"
+>>     drivers/media/video/ivtv/ivtv-driver.c:            "\t\t\t 9 = Adaptec AVC-2010\n"
+>>     drivers/media/video/ivtv/ivtv-i2c.c:              0x6b,   /* Adaptec IR */
+>>     
+>>     There are two Adaptec cards defined there, but AVC-2010 doesn't have a
+>>     remote controller. So, the logic at lirc_i2c seems to be for Adaptec AVC-2410.
+>>     
+>>     As we'll remove lirc_i2c from kernel, move the getkey code to ivtv driver, and
+>>     use it for AVC-2410.
+>>
+>> I have no means to test the IR with AVC-2410, but I think it is safe to apply
+>> this patch, if none of us have this device, as the patch is trivial, and this
+>> allows us to remove i2c_adapter.id obsolete field and lirc_i2c, after applying
+>> this series, and the tree patches for lirc_zilog that Andy made.
+> 
+> I think I have the AVC-2410 but I think you have the remote for it. It's one of
+> the remotes I gave you in San Franscisco.
+> 
+> So that's going to be hard to test :-)
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-core.c |    9 +---
- drivers/media/video/s5p-fimc/fimc-reg.c  |   76 ++++++++++++------------------
- 2 files changed, 32 insertions(+), 53 deletions(-)
+I'll see if I can identify the AVC RC protocol and its keymap table in Jan.
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index 7899814..b273fe1 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -1051,13 +1051,6 @@ int fimc_s_ctrl(struct fimc_ctx *ctx, struct v4l2_control *ctrl)
- 	struct fimc_dev *fimc = ctx->fimc_dev;
- 	unsigned long flags;
- 
--	if (ctx->rotation != 0 &&
--	    (ctrl->id == V4L2_CID_HFLIP || ctrl->id == V4L2_CID_VFLIP)) {
--		v4l2_err(&fimc->m2m.v4l2_dev,
--			 "Simultaneous flip and rotation is not supported\n");
--		return -EINVAL;
--	}
--
- 	spin_lock_irqsave(&ctx->slock, flags);
- 
- 	switch (ctrl->id) {
-@@ -1098,7 +1091,7 @@ int fimc_s_ctrl(struct fimc_ctx *ctx, struct v4l2_control *ctrl)
- }
- 
- static int fimc_m2m_s_ctrl(struct file *file, void *priv,
--			 struct v4l2_control *ctrl)
-+			   struct v4l2_control *ctrl)
- {
- 	struct fimc_ctx *ctx = priv;
- 	int ret = 0;
-diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
-index c4703b5..62b9248 100644
---- a/drivers/media/video/s5p-fimc/fimc-reg.c
-+++ b/drivers/media/video/s5p-fimc/fimc-reg.c
-@@ -37,11 +37,11 @@ void fimc_hw_reset(struct fimc_dev *dev)
- 	writel(cfg, dev->regs + S5P_CIGCTRL);
- }
- 
--static u32 fimc_hw_get_in_flip(u32 ctx_flip)
-+static u32 fimc_hw_get_in_flip(struct fimc_ctx *ctx)
- {
- 	u32 flip = S5P_MSCTRL_FLIP_NORMAL;
- 
--	switch (ctx_flip) {
-+	switch (ctx->flip) {
- 	case FLIP_X_AXIS:
- 		flip = S5P_MSCTRL_FLIP_X_MIRROR;
- 		break;
-@@ -51,16 +51,20 @@ static u32 fimc_hw_get_in_flip(u32 ctx_flip)
- 	case FLIP_XY_AXIS:
- 		flip = S5P_MSCTRL_FLIP_180;
- 		break;
-+	default:
-+		return flip;
- 	}
-+	if (ctx->rotation <= 90)
-+		return flip;
- 
--	return flip;
-+	return (flip ^ S5P_MSCTRL_FLIP_180) & S5P_MSCTRL_FLIP_180;
- }
- 
--static u32 fimc_hw_get_target_flip(u32 ctx_flip)
-+static u32 fimc_hw_get_target_flip(struct fimc_ctx *ctx)
- {
- 	u32 flip = S5P_CITRGFMT_FLIP_NORMAL;
- 
--	switch (ctx_flip) {
-+	switch (ctx->flip) {
- 	case FLIP_X_AXIS:
- 		flip = S5P_CITRGFMT_FLIP_X_MIRROR;
- 		break;
-@@ -70,11 +74,13 @@ static u32 fimc_hw_get_target_flip(u32 ctx_flip)
- 	case FLIP_XY_AXIS:
- 		flip = S5P_CITRGFMT_FLIP_180;
- 		break;
--	case FLIP_NONE:
--		break;
--
-+	default:
-+		return flip;
- 	}
--	return flip;
-+	if (ctx->rotation <= 90)
-+		return flip;
-+
-+	return (flip ^ S5P_CITRGFMT_FLIP_180) & S5P_CITRGFMT_FLIP_180;
- }
- 
- void fimc_hw_set_rotation(struct fimc_ctx *ctx)
-@@ -84,10 +90,7 @@ void fimc_hw_set_rotation(struct fimc_ctx *ctx)
- 
- 	cfg = readl(dev->regs + S5P_CITRGFMT);
- 	cfg &= ~(S5P_CITRGFMT_INROT90 | S5P_CITRGFMT_OUTROT90 |
--		  S5P_CITRGFMT_FLIP_180);
--
--	flip = readl(dev->regs + S5P_MSCTRL);
--	flip &= ~S5P_MSCTRL_FLIP_MASK;
-+		 S5P_CITRGFMT_FLIP_180);
- 
- 	/*
- 	 * The input and output rotator cannot work simultaneously.
-@@ -95,26 +98,22 @@ void fimc_hw_set_rotation(struct fimc_ctx *ctx)
- 	 * in direct fifo output mode.
- 	 */
- 	if (ctx->rotation == 90 || ctx->rotation == 270) {
--		if (ctx->out_path == FIMC_LCDFIFO) {
--			cfg |= S5P_CITRGFMT_INROT90;
--			if (ctx->rotation == 270)
--				flip |= S5P_MSCTRL_FLIP_180;
--		} else {
--			cfg |= S5P_CITRGFMT_OUTROT90;
--			if (ctx->rotation == 270)
--				cfg |= S5P_CITRGFMT_FLIP_180;
--		}
--	} else if (ctx->rotation == 180) {
- 		if (ctx->out_path == FIMC_LCDFIFO)
--			flip |= S5P_MSCTRL_FLIP_180;
-+			cfg |= S5P_CITRGFMT_INROT90;
- 		else
--			cfg |= S5P_CITRGFMT_FLIP_180;
-+			cfg |= S5P_CITRGFMT_OUTROT90;
- 	}
--	if (ctx->rotation == 180 || ctx->rotation == 270)
--		writel(flip, dev->regs + S5P_MSCTRL);
- 
--	cfg |= fimc_hw_get_target_flip(ctx->flip);
--	writel(cfg, dev->regs + S5P_CITRGFMT);
-+	if (ctx->out_path == FIMC_DMA) {
-+		cfg |= fimc_hw_get_target_flip(ctx);
-+		writel(cfg, dev->regs + S5P_CITRGFMT);
-+	} else {
-+		/* LCD FIFO path */
-+		flip = readl(dev->regs + S5P_MSCTRL);
-+		flip &= ~S5P_MSCTRL_FLIP_MASK;
-+		flip |= fimc_hw_get_in_flip(ctx);
-+		writel(flip, dev->regs + S5P_MSCTRL);
-+	}
- }
- 
- void fimc_hw_set_target_format(struct fimc_ctx *ctx)
-@@ -131,18 +130,13 @@ void fimc_hw_set_target_format(struct fimc_ctx *ctx)
- 		  S5P_CITRGFMT_VSIZE_MASK);
- 
- 	switch (frame->fmt->color) {
--	case S5P_FIMC_RGB565:
--	case S5P_FIMC_RGB666:
--	case S5P_FIMC_RGB888:
-+	case S5P_FIMC_RGB565...S5P_FIMC_RGB888:
- 		cfg |= S5P_CITRGFMT_RGB;
- 		break;
- 	case S5P_FIMC_YCBCR420:
- 		cfg |= S5P_CITRGFMT_YCBCR420;
- 		break;
--	case S5P_FIMC_YCBYCR422:
--	case S5P_FIMC_YCRYCB422:
--	case S5P_FIMC_CBYCRY422:
--	case S5P_FIMC_CRYCBY422:
-+	case S5P_FIMC_YCBYCR422...S5P_FIMC_CRYCBY422:
- 		if (frame->fmt->colplanes == 1)
- 			cfg |= S5P_CITRGFMT_YCBCR422_1P;
- 		else
-@@ -410,8 +404,7 @@ void fimc_hw_set_in_dma(struct fimc_ctx *ctx)
- 
- 	/* Set the input DMA to process single frame only. */
- 	cfg = readl(dev->regs + S5P_MSCTRL);
--	cfg &= ~(S5P_MSCTRL_FLIP_MASK
--		| S5P_MSCTRL_INFORMAT_MASK
-+	cfg &= ~(S5P_MSCTRL_INFORMAT_MASK
- 		| S5P_MSCTRL_IN_BURST_COUNT_MASK
- 		| S5P_MSCTRL_INPUT_MASK
- 		| S5P_MSCTRL_C_INT_IN_MASK
-@@ -450,13 +443,6 @@ void fimc_hw_set_in_dma(struct fimc_ctx *ctx)
- 		break;
- 	}
- 
--	/*
--	 * Input DMA flip mode (and rotation).
--	 * Do not allow simultaneous rotation and flipping.
--	 */
--	if (!ctx->rotation && ctx->out_path == FIMC_LCDFIFO)
--		cfg |= fimc_hw_get_in_flip(ctx->flip);
--
- 	writel(cfg, dev->regs + S5P_MSCTRL);
- 
- 	/* Input/output DMA linear/tiled mode. */
--- 
-1.7.2.3
+> BTW, pending unforseen circumstances I'll be at the ELC in San Francisco again
+> this year.
 
+It is a little early to say, but I probably won't be there in 2011.
+
+Cheers,
+Mauro
