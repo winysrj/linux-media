@@ -1,46 +1,44 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:64019 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750967Ab0L3XIF (ORCPT
+Received: from ganesha.gnumonks.org ([213.95.27.120]:39944 "EHLO
+	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751339Ab0L3F7T (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Dec 2010 18:08:05 -0500
-From: "Justin P. Mattock" <justinmattock@gmail.com>
-To: trivial@kernel.org
-Cc: linux-m68k@lists.linux-m68k.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, ivtv-devel@ivtvdriver.org,
-	linux-media@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-scsi@vger.kernel.org,
-	spi-devel-general@lists.sourceforge.net,
-	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org,
-	"Justin P. Mattock" <justinmattock@gmail.com>
-Subject: [PATCH 01/15]arch:m68k:ifpsp060:src:fpsp.S Typo change diable to disable.
-Date: Thu, 30 Dec 2010 15:07:50 -0800
-Message-Id: <1293750484-1161-1-git-send-email-justinmattock@gmail.com>
+	Thu, 30 Dec 2010 00:59:19 -0500
+From: Sungchun Kang <sungchun.kang@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: s.nawrocki@samsung.com, kgene.kim@samsung.com,
+	Sungchun Kang <sungchun.kang@samsung.com>
+Subject: [PATCH] [media] s5p-fimc: fimc_stop_capture bug fix
+Date: Thu, 30 Dec 2010 14:35:28 +0900
+Message-Id: <1293687328-26239-1-git-send-email-sungchun.kang@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-The below patch fixes a typo "diable" to "disable". Please let me know if this 
-is correct or not.
+When is called fimc_stop_capture, it seems that wait_event_timeout
+used improperly. It should be wake up by irq handler.
 
-Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
-
+Reviewed-by Jonghun Han <jonghun.han@samsung.com>
+Signed-off-by: Sungchun Kang <sungchun.kang@samsung.com>
 ---
- arch/m68k/ifpsp060/src/fpsp.S |    2 +-
+This patch is depended on:
+http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/heads/vb2-mfc-fimc
+
+ drivers/media/video/s5p-fimc/fimc-capture.c |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/m68k/ifpsp060/src/fpsp.S b/arch/m68k/ifpsp060/src/fpsp.S
-index 73613b5..26e85e2 100644
---- a/arch/m68k/ifpsp060/src/fpsp.S
-+++ b/arch/m68k/ifpsp060/src/fpsp.S
-@@ -3881,7 +3881,7 @@ _fpsp_fline:
- # FP Unimplemented Instruction stack frame and jump to that entry
- # point.
- #
--# but, if the FPU is disabled, then we need to jump to the FPU diabled
-+# but, if the FPU is disabled, then we need to jump to the FPU disabled
- # entry point.
- 	movc		%pcr,%d0
- 	btst		&0x1,%d0
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index 4e4441f..821f927 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -187,7 +187,7 @@ static int fimc_stop_capture(struct fimc_dev *fimc)
+ 	spin_unlock_irqrestore(&fimc->slock, flags);
+ 
+ 	wait_event_timeout(fimc->irq_queue,
+-			   test_bit(ST_CAPT_SHUT, &fimc->state),
++			   !test_bit(ST_CAPT_SHUT, &fimc->state),
+ 			   FIMC_SHUTDOWN_TIMEOUT);
+ 
+ 	ret = v4l2_subdev_call(cap->sd, video, s_stream, 0);
 -- 
-1.6.5.2.180.gc5b3e
+1.6.2.5
 
