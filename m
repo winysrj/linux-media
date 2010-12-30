@@ -1,58 +1,57 @@
 Return-path: <mchehab@gaivota>
-Received: from casper.infradead.org ([85.118.1.10]:42250 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752862Ab0LUXzv (ORCPT
+Received: from ganesha.gnumonks.org ([213.95.27.120]:39942 "EHLO
+	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751206Ab0L3F7S (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Dec 2010 18:55:51 -0500
-Message-ID: <4D113E7C.7000307@infradead.org>
-Date: Tue, 21 Dec 2010 21:55:40 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Thiago Farina <tfransosi@gmail.com>
-CC: Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] drivers/media/video/v4l2-compat-ioctl32.c: Check the
- return value of copy_to_user
-References: <d21ad74592c295d59f5806f30a053745b5765397.1292894256.git.tfransosi@gmail.com>	<201012211925.38201.arnd@arndb.de> <AANLkTikbvST_B+4x3Xt=gxFhM1TBOrXVc1HjZT3zTXrt@mail.gmail.com>
-In-Reply-To: <AANLkTikbvST_B+4x3Xt=gxFhM1TBOrXVc1HjZT3zTXrt@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	Thu, 30 Dec 2010 00:59:18 -0500
+From: Sungchun Kang <sungchun.kang@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: s.nawrocki@samsung.com, kgene.kim@samsung.com,
+	Sungchun Kang <sungchun.kang@samsung.com>
+Subject: [PATCH] [media] s5p-fimc: modify name of function for uniformity
+Date: Thu, 30 Dec 2010 14:35:43 +0900
+Message-Id: <1293687343-27424-1-git-send-email-sungchun.kang@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 21-12-2010 16:34, Thiago Farina escreveu:
-> On Tue, Dec 21, 2010 at 4:25 PM, Arnd Bergmann <arnd@arndb.de> wrote:
->> On Tuesday 21 December 2010 02:18:06 Thiago Farina wrote:
->>> diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
->>> index e30e8df..55825ec 100644
->>> --- a/drivers/media/video/v4l2-compat-ioctl32.c
->>> +++ b/drivers/media/video/v4l2-compat-ioctl32.c
->>> @@ -206,7 +206,9 @@ static struct video_code __user *get_microcode32(struct video_code32 *kp)
->>>          * user address is invalid, the native ioctl will do
->>>          * the error handling for us
->>>          */
->>> -       (void) copy_to_user(up->loadwhat, kp->loadwhat, sizeof(up->loadwhat));
->>> +       if (copy_to_user(up->loadwhat, kp->loadwhat, sizeof(up->loadwhat)))
->>> +               return NULL;
->>> +
->>>         (void) put_user(kp->datasize, &up->datasize);
->>>         (void) put_user(compat_ptr(kp->data), &up->data);
->>>         return up;
->>
->> Did you read the comment above the code you changed?
->>
-> Yes, I read, but I went ahead.
-> 
->> You can probably change this function to look at the return code of
->> copy_to_user, but then you need to treat the put_user return code
->> the same, and change the comment.
->>
-> 
-> Right, I will do the same with put_user, but I'm afraid of changing the comment.
+This patch modified function name about add or pop queue.
 
-Well, we should just remove all V4L1 stuff for .38, so I don't see much sense on keeping
-the VIDIOCGMICROCODE32 compat stuff.
+Reviewed-by Jonghun Han <jonghun.han@samsung.com>
+Signed-off-by: Sungchun Kang <sungchun.kang@samsung.com>
+---
+This patch is depended on:
+http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/heads/vb2-mfc-fimc
 
-Cheers,
-Mauro
+drivers/media/video/s5p-fimc/fimc-capture.c |    2 +-
+ drivers/media/video/s5p-fimc/fimc-core.h    |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index 4e4441f..fdef450 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -155,7 +155,7 @@ int fimc_vid_cap_buf_queue(struct fimc_dev *fimc,
+ 		return ret;
+ 
+ 	if (test_bit(ST_CAPT_STREAM, &fimc->state)) {
+-		fimc_pending_queue_add(cap, fimc_vb);
++		pending_queue_add(cap, fimc_vb);
+ 	} else {
+ 		/* Setup the buffer directly for processing. */
+ 		int buf_id = (cap->reqbufs_count == 1) ? -1 : cap->buf_index;
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+index 1f1beaa..5bd9d93 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.h
++++ b/drivers/media/video/s5p-fimc/fimc-core.h
+@@ -668,7 +668,7 @@ active_queue_pop(struct fimc_vid_cap *vid_cap)
+ }
+ 
+ /* Add video buffer to the capture pending buffers queue */
+-static inline void fimc_pending_queue_add(struct fimc_vid_cap *vid_cap,
++static inline void pending_queue_add(struct fimc_vid_cap *vid_cap,
+ 					  struct fimc_vid_buffer *buf)
+ {
+ 	list_add_tail(&buf->list, &vid_cap->pending_buf_q);
+-- 
+1.6.2.5
+
