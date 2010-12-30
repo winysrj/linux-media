@@ -1,100 +1,87 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4115 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753156Ab0L2VnL (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1482 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752049Ab0L3TJE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Dec 2010 16:43:11 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id oBTLh9nX050937
-	for <linux-media@vger.kernel.org>; Wed, 29 Dec 2010 22:43:09 +0100 (CET)
+	Thu, 30 Dec 2010 14:09:04 -0500
+Received: from durdane.localnet (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id oBUJ92tr020293
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 30 Dec 2010 20:09:03 +0100 (CET)
 	(envelope-from hverkuil@xs4all.nl)
-Message-Id: <4983a967f8eed5ab262106520ffc445376b6b6b4.1293657717.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1293657717.git.hverkuil@xs4all.nl>
-References: <cover.1293657717.git.hverkuil@xs4all.nl>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Wed, 29 Dec 2010 22:43:09 +0100
-Subject: [PATCH 02/10] [RFC] v4l2: add v4l2_prio_state to v4l2_device and video_device
 To: linux-media@vger.kernel.org
+Subject: Re: [cron job] v4l-dvb daily build: WARNINGS
+Date: Thu, 30 Dec 2010 20:09:02 +0100
+References: <201012301831.oBUIVc8P001036@smtp-vbr11.xs4all.nl>
+In-Reply-To: <201012301831.oBUIVc8P001036@smtp-vbr11.xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201012302009.02232.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Integrate the v4l2_prio_state into the core, ready for use.
+Just a quick note that I made some changes to the build script so that
+the number of warnings on the ARM platforms has decreased dramatically.
 
-One struct v4l2_prio_state is added to v4l2_device and a pointer
-to a prio state is added to video_device.
+The mips architecture doesn't compile at the moment. A fix is in the Linus
+tree, but not yet in the for_v2.6.38 branch I'm using in this daily build.
+Once the trees are updated after 2.6.37 is released this should be fixed
+automatically.
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/v4l2-dev.c    |    6 ++++++
- drivers/media/video/v4l2-device.c |    1 +
- include/media/v4l2-dev.h          |    3 +++
- include/media/v4l2-device.h       |    3 +++
- 4 files changed, 13 insertions(+), 0 deletions(-)
+The number of sparse errors has also been reduced dramatically. You can
+ignore the 'bad asm output' errors, that's due to dev_dbg and CONFIG_DYNAMIC_DEBUG.
 
-diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-index 8698fe4..c8f6ae1 100644
---- a/drivers/media/video/v4l2-dev.c
-+++ b/drivers/media/video/v4l2-dev.c
-@@ -543,6 +543,12 @@ static int __video_register_device(struct video_device *vdev, int type, int nr,
- 			vdev->parent = vdev->v4l2_dev->dev;
- 		if (vdev->ctrl_handler == NULL)
- 			vdev->ctrl_handler = vdev->v4l2_dev->ctrl_handler;
-+		/* If the prio state pointer is NULL, and if the driver doesn't
-+		   handle priorities itself, then use the v4l2_device prio
-+		   state. */
-+		if (vdev->prio == NULL && vdev->ioctl_ops &&
-+				vdev->ioctl_ops->vidioc_s_priority == NULL)
-+			vdev->prio = &vdev->v4l2_dev->prio;
- 	}
- 
- 	/* Part 2: find a free minor, device node number and device index. */
-diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
-index 7fe6f92..e12844c 100644
---- a/drivers/media/video/v4l2-device.c
-+++ b/drivers/media/video/v4l2-device.c
-@@ -36,6 +36,7 @@ int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
- 	INIT_LIST_HEAD(&v4l2_dev->subdevs);
- 	spin_lock_init(&v4l2_dev->lock);
- 	mutex_init(&v4l2_dev->ioctl_lock);
-+	v4l2_prio_init(&v4l2_dev->prio);
- 	v4l2_dev->dev = dev;
- 	if (dev == NULL) {
- 		/* If dev == NULL, then name must be filled in by the caller */
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index 861f323..15dd756 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -83,6 +83,9 @@ struct video_device
- 	/* Control handler associated with this device node. May be NULL. */
- 	struct v4l2_ctrl_handler *ctrl_handler;
- 
-+	/* Priority state. If NULL, then v4l2_dev->prio will be used. */
-+	struct v4l2_prio_state *prio;
-+
- 	/* device info */
- 	char name[32];
- 	int vfl_type;
-diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-index b16f307..fd5d450 100644
---- a/include/media/v4l2-device.h
-+++ b/include/media/v4l2-device.h
-@@ -22,6 +22,7 @@
- #define _V4L2_DEVICE_H
- 
- #include <media/v4l2-subdev.h>
-+#include <media/v4l2-dev.h>
- 
- /* Each instance of a V4L2 device should create the v4l2_device struct,
-    either stand-alone or embedded in a larger struct.
-@@ -51,6 +52,8 @@ struct v4l2_device {
- 			unsigned int notification, void *arg);
- 	/* The control handler. May be NULL. */
- 	struct v4l2_ctrl_handler *ctrl_handler;
-+	/* Device's priority state */
-+	struct v4l2_prio_state prio;
- 	/* BKL replacement mutex. Temporary solution only. */
- 	struct mutex ioctl_lock;
- };
+I fixed this, so those 'bad asm' errors shouldn't be present anymore in the next
+daily build.
+
+Regards,
+
+	Hans
+
+On Thursday, December 30, 2010 19:31:38 Hans Verkuil wrote:
+> This message is generated daily by a cron job that builds v4l-dvb for
+> the kernels and architectures in the list below.
+> 
+> Results of the daily build of v4l-dvb:
+> 
+> date:        Thu Dec 30 19:00:21 CET 2010
+> git master:       59365d136d205cc20fe666ca7f89b1c5001b0d5a
+> git media-master: gcc version:      i686-linux-gcc (GCC) 4.5.1
+> host hardware:    x86_64
+> host os:          2.6.32.5
+> 
+> linux-git-armv5: WARNINGS
+> linux-git-armv5-davinci: WARNINGS
+> linux-git-armv5-ixp: WARNINGS
+> linux-git-armv5-omap2: WARNINGS
+> linux-git-i686: WARNINGS
+> linux-git-m32r: WARNINGS
+> linux-git-mips: WARNINGS
+> linux-git-powerpc64: WARNINGS
+> linux-git-x86_64: WARNINGS
+> spec-git: OK
+> sparse: ERRORS
+> 
+> Detailed results are available here:
+> 
+> http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+> 
+> Full logs are available here:
+> 
+> http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+> 
+> The V4L-DVB specification from this daily build is here:
+> 
+> http://www.xs4all.nl/~hverkuil/spec/media.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
 -- 
-1.6.4.2
-
+Hans Verkuil - video4linux developer - sponsored by Cisco
