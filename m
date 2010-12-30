@@ -1,52 +1,48 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:34102 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757498Ab0LMNBI convert rfc822-to-8bit (ORCPT
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:59254 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750967Ab0L3XIJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Dec 2010 08:01:08 -0500
-Date: Mon, 13 Dec 2010 14:03:09 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: PATCH 2/6] gspca - sonixj: Fix a bad probe exchange
-Message-ID: <20101213140309.1c1e7a66@tele>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Thu, 30 Dec 2010 18:08:09 -0500
+From: "Justin P. Mattock" <justinmattock@gmail.com>
+To: trivial@kernel.org
+Cc: linux-m68k@lists.linux-m68k.org, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, ivtv-devel@ivtvdriver.org,
+	linux-media@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-scsi@vger.kernel.org,
+	spi-devel-general@lists.sourceforge.net,
+	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org,
+	"Justin P. Mattock" <justinmattock@gmail.com>
+Subject: [PATCH 02/15]drivers:spi:dw_spi.c Typo change diable to disable.
+Date: Thu, 30 Dec 2010 15:07:51 -0800
+Message-Id: <1293750484-1161-2-git-send-email-justinmattock@gmail.com>
+In-Reply-To: <1293750484-1161-1-git-send-email-justinmattock@gmail.com>
+References: <1293750484-1161-1-git-send-email-justinmattock@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
+The below patch fixes a typo "diable" to "disable". Please let me know if this 
+is correct or not.
 
-Signed-off-by: Jean-François Moine <moinejf@free.fr>
+Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
 
-diff --git a/drivers/media/video/gspca/sonixj.c b/drivers/media/video/gspca/sonixj.c
-index 4660cbe..5978676 100644
---- a/drivers/media/video/gspca/sonixj.c
-+++ b/drivers/media/video/gspca/sonixj.c
-@@ -1794,7 +1794,7 @@ static int sd_init(struct gspca_dev *gspca_dev)
- 	/* setup a selector by bridge */
- 	reg_w1(gspca_dev, 0xf1, 0x01);
- 	reg_r(gspca_dev, 0x00, 1);
--	reg_w1(gspca_dev, 0xf1, gspca_dev->usb_buf[0]);
-+	reg_w1(gspca_dev, 0xf1, 0x00);
- 	reg_r(gspca_dev, 0x00, 1);		/* get sonix chip id */
- 	regF1 = gspca_dev->usb_buf[0];
- 	if (gspca_dev->usb_err < 0)
-@@ -2289,10 +2289,10 @@ static int sd_start(struct gspca_dev *gspca_dev)
- 	struct sd *sd = (struct sd *) gspca_dev;
- 	int i;
- 	u8 reg0102[2];
--	const u8 *reg9a;
- 	u8 reg1, reg17;
- 	const u8 *sn9c1xx;
- 	const u8 (*init)[8];
-+	const u8 *reg9a;
- 	int mode;
- 	static const u8 reg9a_def[] =
- 		{0x00, 0x40, 0x20, 0x00, 0x00, 0x00};
+---
+ drivers/spi/dw_spi.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/spi/dw_spi.c b/drivers/spi/dw_spi.c
+index 0838c79..7c3cf21 100644
+--- a/drivers/spi/dw_spi.c
++++ b/drivers/spi/dw_spi.c
+@@ -592,7 +592,7 @@ static void pump_transfers(unsigned long data)
+ 		spi_set_clk(dws, clk_div ? clk_div : chip->clk_div);
+ 		spi_chip_sel(dws, spi->chip_select);
+ 
+-		/* Set the interrupt mask, for poll mode just diable all int */
++		/* Set the interrupt mask, for poll mode just disable all int */
+ 		spi_mask_intr(dws, 0xff);
+ 		if (imask)
+ 			spi_umask_intr(dws, imask);
 -- 
-1.7.2.3
+1.6.5.2.180.gc5b3e
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
