@@ -1,366 +1,121 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:20556 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753271Ab0LVNk4 (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2491 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752799Ab0L3LBz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Dec 2010 08:40:56 -0500
-Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LDU002LA0O2N1@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 22 Dec 2010 13:40:51 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LDU009IO0O2HI@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 22 Dec 2010 13:40:50 +0000 (GMT)
-Date: Wed, 22 Dec 2010 14:40:38 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 08/13] v4l: videobuf2: add generic memory handling routines
-In-reply-to: <1293025239-9977-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	andrzej.p@samsung.com
-Message-id: <1293025239-9977-9-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1293025239-9977-1-git-send-email-m.szyprowski@samsung.com>
+	Thu, 30 Dec 2010 06:01:55 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: manjunatha_halli@ti.com
+Subject: Re: [RFC V8 1/7] drivers:media:radio: wl128x: fmdrv common header file
+Date: Thu, 30 Dec 2010 12:01:46 +0100
+Cc: mchehab@infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+References: <1293707507-3376-1-git-send-email-manjunatha_halli@ti.com> <1293707507-3376-2-git-send-email-manjunatha_halli@ti.com>
+In-Reply-To: <1293707507-3376-2-git-send-email-manjunatha_halli@ti.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201012301201.46449.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Add generic memory handling routines for userspace pointer handling,
-contiguous memory verification and mapping.
+On Thursday, December 30, 2010 12:11:41 manjunatha_halli@ti.com wrote:
+> From: Manjunatha Halli <manjunatha_halli@ti.com>
+> 
+> These are common headers used in FM submodules (FM V4L2,
+> FM common, FM Rx,and FM TX).
+> 
+> Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
+> ---
+>  drivers/media/radio/wl128x/fmdrv.h |  248 ++++++++++++++++++++++++++++++++++++
+>  1 files changed, 248 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/radio/wl128x/fmdrv.h
+> 
+> diff --git a/drivers/media/radio/wl128x/fmdrv.h b/drivers/media/radio/wl128x/fmdrv.h
+> new file mode 100644
+> index 0000000..3d73f76
+> --- /dev/null
+> +++ b/drivers/media/radio/wl128x/fmdrv.h
+> @@ -0,0 +1,248 @@
+> +/*
+> + *  FM Driver for Connectivity chip of Texas Instruments.
+> + *
+> + *  Common header for all FM driver sub-modules.
+> + *
+> + *  Copyright (C) 2009 Texas Instruments
+> + *
+> + *  This program is free software; you can redistribute it and/or modify
+> + *  it under the terms of the GNU General Public License version 2 as
+> + *  published by the Free Software Foundation.
+> + *
+> + *  This program is distributed in the hope that it will be useful,
+> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *  GNU General Public License for more details.
+> + *
+> + *  You should have received a copy of the GNU General Public License
+> + *  along with this program; if not, write to the Free Software
+> + *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+> + *
+> + */
+> +
+> +#ifndef _FM_DRV_H
+> +#define _FM_DRV_H
+> +
+> +#include <linux/skbuff.h>
+> +#include <linux/interrupt.h>
+> +#include <sound/core.h>
+> +#include <sound/initval.h>
+> +#include <linux/timer.h>
+> +#include <linux/version.h>
+> +#include <media/v4l2-ioctl.h>
+> +#include <media/v4l2-common.h>
+> +#include <media/v4l2-ctrls.h>
+> +
+> +#define FM_DRV_VERSION            "0.01"
+> +/* Should match with FM_DRV_VERSION */
+> +#define FM_DRV_RADIO_VERSION      KERNEL_VERSION(0, 0, 1)
+> +#define FM_DRV_NAME               "ti_fmdrv"
+> +#define FM_DRV_CARD_SHORT_NAME    "TI FM Radio"
+> +#define FM_DRV_CARD_LONG_NAME     "Texas Instruments FM Radio"
+> +
+> +/* Flag info */
+> +#define FM_INTTASK_RUNNING            0
+> +#define FM_INTTASK_SCHEDULE_PENDING   1
+> +#define FM_FIRMWARE_DW_INPROGRESS     2
+> +#define FM_CORE_READY                 3
+> +#define FM_CORE_TRANSPORT_READY       4
+> +#define FM_AF_SWITCH_INPROGRESS	      5
+> +#define FM_CORE_TX_XMITING	      6
+> +
+> +#define FM_TUNE_COMPLETE	      0x1
+> +#define FM_BAND_LIMIT		      0x2
+> +
+> +#define FM_DRV_TX_TIMEOUT      (5*HZ)	/* 5 seconds */
+> +#define FM_DRV_RX_SEEK_TIMEOUT (20*HZ)	/* 20 seconds */
+> +
+> +#define NO_OF_ENTRIES_IN_ARRAY(array) (sizeof(array) / sizeof(array[0]))
+> +
+> +enum {
+> +	FM_MODE_OFF,
+> +	FM_MODE_TX,
+> +	FM_MODE_RX,
+> +	FM_MODE_ENTRY_MAX
+> +};
+> +
+> +#define FM_RX_RDS_INFO_FIELD_MAX	8	/* 4 Group * 2 Bytes */
+> +
+> +/*
+> + * define private CIDs for V4L2
+> + */
+> +#define V4L2_CID_CHANNEL_SPACING (V4L2_CID_PRIVATE_BASE + 0)
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-CC: Pawel Osciak <pawel@osciak.com>
----
- drivers/media/video/Kconfig            |    3 +
- drivers/media/video/Makefile           |    1 +
- drivers/media/video/videobuf2-memops.c |  233 ++++++++++++++++++++++++++++++++
- include/media/videobuf2-memops.h       |   45 ++++++
- 4 files changed, 282 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/videobuf2-memops.c
- create mode 100644 include/media/videobuf2-memops.h
+This define seems to be a leftover from previous versions and should be removed.
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index d4bb61f..3cc47fc 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -52,6 +52,9 @@ config V4L2_MEM2MEM_DEV
- config VIDEOBUF2_CORE
- 	tristate
- 
-+config VIDEOBUF2_MEMOPS
-+	tristate
-+
- #
- # Multimedia Video device configuration
- #
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index 67b49af..e176c7d 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -116,6 +116,7 @@ obj-$(CONFIG_VIDEOBUF_DVB) += videobuf-dvb.o
- obj-$(CONFIG_VIDEO_BTCX)  += btcx-risc.o
- 
- obj-$(CONFIG_VIDEOBUF2_CORE)		+= videobuf2-core.o
-+obj-$(CONFIG_VIDEOBUF2_MEMOPS)		+= videobuf2-memops.o
- 
- obj-$(CONFIG_V4L2_MEM2MEM_DEV) += v4l2-mem2mem.o
- 
-diff --git a/drivers/media/video/videobuf2-memops.c b/drivers/media/video/videobuf2-memops.c
-new file mode 100644
-index 0000000..7bf5aa9
---- /dev/null
-+++ b/drivers/media/video/videobuf2-memops.c
-@@ -0,0 +1,233 @@
-+/*
-+ * videobuf2-memops.c - generic memory handling routines for videobuf2
-+ *
-+ * Copyright (C) 2010 Samsung Electronics
-+ *
-+ * Author: Pawel Osciak <p.osciak@samsung.com>
-+ *	   Marek Szyprowski <m.szyprowski@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation.
-+ */
-+
-+#include <linux/slab.h>
-+#include <linux/module.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/vmalloc.h>
-+#include <linux/cma.h>
-+#include <linux/mm.h>
-+#include <linux/sched.h>
-+#include <linux/file.h>
-+#include <linux/slab.h>
-+
-+#include <media/videobuf2-core.h>
-+#include <media/videobuf2-memops.h>
-+
-+/**
-+ * vb2_get_vma() - acquire and lock the virtual memory area
-+ * @vma:	given virtual memory area
-+ *
-+ * This function attempts to acquire an area mapped in the userspace for
-+ * the duration of a hardware operation. The area is "locked" by performing
-+ * the same set of operation that are done when process calls fork() and
-+ * memory areas are duplicated.
-+ *
-+ * Returns a copy of a virtual memory region on success or NULL.
-+ */
-+struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma)
-+{
-+	struct vm_area_struct *vma_copy;
-+
-+	vma_copy = kmalloc(sizeof(*vma_copy), GFP_KERNEL);
-+	if (vma_copy == NULL)
-+		return NULL;
-+
-+	if (vma->vm_ops && vma->vm_ops->open)
-+		vma->vm_ops->open(vma);
-+
-+	if (vma->vm_file)
-+		get_file(vma->vm_file);
-+
-+	memcpy(vma_copy, vma, sizeof(*vma));
-+
-+	vma_copy->vm_mm = NULL;
-+	vma_copy->vm_next = NULL;
-+	vma_copy->vm_prev = NULL;
-+
-+	return vma_copy;
-+}
-+
-+/**
-+ * vb2_put_userptr() - release a userspace virtual memory area
-+ * @vma:	virtual memory region associated with the area to be released
-+ *
-+ * This function releases the previously acquired memory area after a hardware
-+ * operation.
-+ */
-+void vb2_put_vma(struct vm_area_struct *vma)
-+{
-+	if (!vma)
-+		return;
-+
-+	if (vma->vm_file)
-+		fput(vma->vm_file);
-+
-+	if (vma->vm_ops && vma->vm_ops->close)
-+		vma->vm_ops->close(vma);
-+
-+	kfree(vma);
-+}
-+
-+/**
-+ * vb2_get_contig_userptr() - lock physically contiguous userspace mapped memory
-+ * @vaddr:	starting virtual address of the area to be verified
-+ * @size:	size of the area
-+ * @res_paddr:	will return physical address for the given vaddr
-+ * @res_vma:	will return locked copy of struct vm_area for the given area
-+ *
-+ * This function will go through memory area of size @size mapped at @vaddr and
-+ * verify that the underlying physical pages are contiguous. If they are
-+ * contiguous the virtual memory area is locked and a @res_vma is filled with
-+ * the copy and @res_pa set to the physical address of the buffer.
-+ *
-+ * Returns 0 on success.
-+ */
-+int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
-+			   struct vm_area_struct **res_vma, dma_addr_t *res_pa)
-+{
-+	struct mm_struct *mm = current->mm;
-+	struct vm_area_struct *vma;
-+	unsigned long offset, start, end;
-+	unsigned long this_pfn, prev_pfn;
-+	dma_addr_t pa = 0;
-+	int ret = -EFAULT;
-+
-+	start = vaddr;
-+	offset = start & ~PAGE_MASK;
-+	end = start + size;
-+
-+	down_read(&mm->mmap_sem);
-+	vma = find_vma(mm, start);
-+
-+	if (vma == NULL || vma->vm_end < end)
-+		goto done;
-+
-+	for (prev_pfn = 0; start < end; start += PAGE_SIZE) {
-+		ret = follow_pfn(vma, start, &this_pfn);
-+		if (ret)
-+			goto done;
-+
-+		if (prev_pfn == 0)
-+			pa = this_pfn << PAGE_SHIFT;
-+		else if (this_pfn != prev_pfn + 1) {
-+			ret = -EFAULT;
-+			goto done;
-+		}
-+		prev_pfn = this_pfn;
-+	}
-+
-+	/*
-+	 * Memory is contigous, lock vma and return to the caller
-+	 */
-+	*res_vma = vb2_get_vma(vma);
-+	if (*res_vma == NULL) {
-+		ret = -ENOMEM;
-+		goto done;
-+	}
-+	*res_pa = pa + offset;
-+	ret = 0;
-+
-+done:
-+	up_read(&mm->mmap_sem);
-+	return ret;
-+}
-+
-+/**
-+ * vb2_mmap_pfn_range() - map physical pages to userspace
-+ * @vma:	virtual memory region for the mapping
-+ * @paddr:	starting physical address of the memory to be mapped
-+ * @size:	size of the memory to be mapped
-+ * @vm_ops:	vm operations to be assigned to the created area
-+ * @priv:	private data to be associated with the area
-+ *
-+ * Returns 0 on success.
-+ */
-+int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
-+				unsigned long size,
-+				const struct vm_operations_struct *vm_ops,
-+				void *priv)
-+{
-+	int ret;
-+
-+	size = min_t(unsigned long, vma->vm_end - vma->vm_start, size);
-+
-+	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-+	ret = remap_pfn_range(vma, vma->vm_start, paddr >> PAGE_SHIFT,
-+				size, vma->vm_page_prot);
-+	if (ret) {
-+		printk(KERN_ERR "Remapping memory failed, error: %d\n", ret);
-+		return ret;
-+	}
-+
-+	vma->vm_flags		|= VM_DONTEXPAND | VM_RESERVED;
-+	vma->vm_private_data	= priv;
-+	vma->vm_ops		= vm_ops;
-+
-+	vma->vm_ops->open(vma);
-+
-+	printk(KERN_DEBUG "%s: mapped paddr 0x%08lx at 0x%08lx, size %ld\n",
-+			__func__, paddr, vma->vm_start, size);
-+
-+	return 0;
-+}
-+
-+/**
-+ * vb2_common_vm_open() - increase refcount of the vma
-+ * @vma:	virtual memory region for the mapping
-+ *
-+ * This function adds another user to the provided vma. It expects
-+ * struct vb2_vmarea_handler pointer in vma->vm_private_data.
-+ */
-+static void vb2_common_vm_open(struct vm_area_struct *vma)
-+{
-+	struct vb2_vmarea_handler *h = vma->vm_private_data;
-+
-+	printk(KERN_DEBUG "%s: %p, refcount: %d, vma: %08lx-%08lx\n",
-+	       __func__, h, atomic_read(h->refcount), vma->vm_start,
-+	       vma->vm_end);
-+
-+	atomic_inc(h->refcount);
-+}
-+
-+/**
-+ * vb2_common_vm_close() - decrease refcount of the vma
-+ * @vma:	virtual memory region for the mapping
-+ *
-+ * This function releases the user from the provided vma. It expects
-+ * struct vb2_vmarea_handler pointer in vma->vm_private_data.
-+ */
-+static void vb2_common_vm_close(struct vm_area_struct *vma)
-+{
-+	struct vb2_vmarea_handler *h = vma->vm_private_data;
-+
-+	printk(KERN_DEBUG "%s: %p, refcount: %d, vma: %08lx-%08lx\n",
-+	       __func__, h, atomic_read(h->refcount), vma->vm_start,
-+	       vma->vm_end);
-+
-+	h->put(h->arg);
-+}
-+
-+/**
-+ * vb2_common_vm_ops - common vm_ops used for tracking refcount of mmaped
-+ * video buffers
-+ */
-+const struct vm_operations_struct vb2_common_vm_ops = {
-+	.open = vb2_common_vm_open,
-+	.close = vb2_common_vm_close,
-+};
-+EXPORT_SYMBOL_GPL(vb2_common_vm_ops);
-+
-+MODULE_DESCRIPTION("common memory handling routines for videobuf2");
-+MODULE_AUTHOR("Pawel Osciak");
-+MODULE_LICENSE("GPL");
-diff --git a/include/media/videobuf2-memops.h b/include/media/videobuf2-memops.h
-new file mode 100644
-index 0000000..fee1703
---- /dev/null
-+++ b/include/media/videobuf2-memops.h
-@@ -0,0 +1,45 @@
-+/*
-+ * videobuf2-memops.h - generic memory handling routines for videobuf2
-+ *
-+ * Copyright (C) 2010 Samsung Electronics
-+ *
-+ * Author: Pawel Osciak <p.osciak@samsung.com>
-+ *	   Marek Szyprowski <m.szyprowski@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation.
-+ */
-+
-+#ifndef _MEDIA_VIDEOBUF2_MEMOPS_H
-+#define _MEDIA_VIDEOBUF2_MEMOPS_H
-+
-+#include <media/videobuf2-core.h>
-+
-+/**
-+ * vb2_vmarea_handler - common vma refcount tracking handler
-+ * @refcount:	pointer to refcount entry in the buffer
-+ * @put:	callback to function that decreases buffer refcount
-+ * @arg:	argument for @put callback
-+ */
-+struct vb2_vmarea_handler {
-+	atomic_t		*refcount;
-+	void			(*put)(void *arg);
-+	void			*arg;
-+};
-+
-+extern const struct vm_operations_struct vb2_common_vm_ops;
-+
-+int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
-+			   struct vm_area_struct **res_vma, dma_addr_t *res_pa);
-+
-+int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
-+				unsigned long size,
-+				const struct vm_operations_struct *vm_ops,
-+				void *priv);
-+
-+struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma);
-+void vb2_put_vma(struct vm_area_struct *vma);
-+
-+
-+#endif
+Regards,
+
+	Hans
+
 -- 
-1.7.1.569.g6f426
-
+Hans Verkuil - video4linux developer - sponsored by Cisco
