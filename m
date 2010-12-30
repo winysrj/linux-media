@@ -1,76 +1,52 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:33954 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751141Ab0LOFdp convert rfc822-to-8bit (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:57500 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752498Ab0L3XIY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Dec 2010 00:33:45 -0500
-Received: by gyb11 with SMTP id 11so823685gyb.19
-        for <linux-media@vger.kernel.org>; Tue, 14 Dec 2010 21:33:44 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTik-ek+KT73+jU251h3o5HEV4WU-7g36nnys5xC3@mail.gmail.com>
-References: <AANLkTik-ek+KT73+jU251h3o5HEV4WU-7g36nnys5xC3@mail.gmail.com>
-Date: Wed, 15 Dec 2010 06:33:44 +0100
-Message-ID: <AANLkTinmeTuFC5VWgGTxTr43MO8=p8F2OF2phoOCnS_E@mail.gmail.com>
-Subject: Re: Simple request : mini-pcie analog TV capture card
-From: Markus Rechberger <mrechberger@gmail.com>
-To: Fernando Laudares Camargos <fernando.laudares.camargos@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Thu, 30 Dec 2010 18:08:24 -0500
+From: "Justin P. Mattock" <justinmattock@gmail.com>
+To: trivial@kernel.org
+Cc: linux-m68k@lists.linux-m68k.org, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, ivtv-devel@ivtvdriver.org,
+	linux-media@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-scsi@vger.kernel.org,
+	spi-devel-general@lists.sourceforge.net,
+	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org,
+	"Justin P. Mattock" <justinmattock@gmail.com>
+Subject: [PATCH 06/15]drivers:staging:xgifb:vb_setmode.c Typo change diable to disable.
+Date: Thu, 30 Dec 2010 15:07:55 -0800
+Message-Id: <1293750484-1161-6-git-send-email-justinmattock@gmail.com>
+In-Reply-To: <1293750484-1161-5-git-send-email-justinmattock@gmail.com>
+References: <1293750484-1161-1-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-2-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-3-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-4-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-5-git-send-email-justinmattock@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi,
+The below patch fixes a typo "diable" to "disable". Please let me know if this 
+is correct or not.
 
-On Wed, Dec 15, 2010 at 1:25 AM, Fernando Laudares Camargos
-<fernando.laudares.camargos@gmail.com> wrote:
->
-> Hello List,
->
-> I'm after a somehow quite simple information: I'm looking for a
-> mini-pcie TV tuner/capture card. I simply need to plug my cable TV
-> decoder to such a card to "watch" TV on Linux. I've got success with a
-> Hauppauge 950Q USB stick and TV time but this is not a one-time
-> project and we would need to replicate it in a somehow large scale, so
-> a mini-pcie card would fit the hardware best.
->
-> Does anybody know any mini-pcie model analog card that are still
-> available on the market and that is compatible with this need ?
->
-> I've looked at linuxtv.org lists but couldn't find one.
->
-> Habey has a new model, based on the ATI Theater 750 HD chip, which is
-> not supported.
->
-> AVerMedia has some models too, but none seems to have analog mode
-> working on Linux.
->
-> Any suggestions would be kindly appreciated.
->
+Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
 
-We have MiniPCIe AnalogTV devices which are very well supported.
+---
+ drivers/staging/xgifb/vb_setmode.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Basically those devices are using the USB Pins of the MiniPCIe Bus.
-All worldwide standards are supported, we have
-ATSC/clearQAM/analogTV(NTSC)/VBI/FM-Radio/composite and s-video
-are available through reserved pin routing.
-A European version is also available.
+diff --git a/drivers/staging/xgifb/vb_setmode.c b/drivers/staging/xgifb/vb_setmode.c
+index 7016fdd..fb49641 100644
+--- a/drivers/staging/xgifb/vb_setmode.c
++++ b/drivers/staging/xgifb/vb_setmode.c
+@@ -1920,7 +1920,7 @@ void XGI_SetCRT1FIFO(unsigned short ModeNo,
+ 
+ 	data = XGINew_GetReg1(pVBInfo->P3c4, 0x3D);
+ 	data &= 0xfe;
+-	XGINew_SetReg1(pVBInfo->P3c4, 0x3D, data); /* diable auto-threshold */
++	XGINew_SetReg1(pVBInfo->P3c4, 0x3D, data); /* disable auto-threshold */
+ 
+ 	if (ModeNo > 0x13) {
+ 		XGINew_SetReg1(pVBInfo->P3c4, 0x08, 0x34);
+-- 
+1.6.5.2.180.gc5b3e
 
-Tested applications
-* http://tvtime.sourceforge.net tvtime
-* http://www.videolan.org/vlc/ VLC
-* http://www.mplayerhq.hu/design7/news.html Linux mplayer
-* http://www.mythtv.org/ MythTV
-* http://linux.bytesex.org/xawtv/ XawTV
-* http://zapping.sourceforge.net/Zapping/index.html Zapping
-* http://ekiga.org/ Ekiga VOIP (Channel 0: TV Channel 1: Composite
-Channel 2: S-Video)
-* http://www.lavrsen.dk/twiki/bin/view/Motion/WebHome Motion detection Software
-
-http://support.sundtek.com/index.php/topic,4.0.html
-http://sundtek.com/images/vivi.png (some virtual driver emulation for testing)
-
-Setup shouldn't take longer than a few seconds
-
-Best Regards,
-Markus
