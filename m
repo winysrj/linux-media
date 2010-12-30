@@ -1,85 +1,78 @@
 Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49432 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754008Ab0LNXtu (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:58873 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752973Ab0L3XIf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Dec 2010 18:49:50 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Clemens Ladisch <clemens@ladisch.de>
-Subject: Re: [alsa-devel] [RFC/PATCH v6 03/12] media: Entities, pads and links
-Date: Wed, 15 Dec 2010 00:50:44 +0100
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, alsa-devel@alsa-project.org,
-	sakari.ailus@maxwell.research.nokia.com,
-	broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org,
-	lennart@poettering.net, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org
-References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com> <201012141353.15749.laurent.pinchart@ideasonboard.com> <4D0775DB.2020902@ladisch.de>
-In-Reply-To: <4D0775DB.2020902@ladisch.de>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201012150050.44885.laurent.pinchart@ideasonboard.com>
+	Thu, 30 Dec 2010 18:08:35 -0500
+From: "Justin P. Mattock" <justinmattock@gmail.com>
+To: trivial@kernel.org
+Cc: linux-m68k@lists.linux-m68k.org, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, ivtv-devel@ivtvdriver.org,
+	linux-media@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-scsi@vger.kernel.org,
+	spi-devel-general@lists.sourceforge.net,
+	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org,
+	"Justin P. Mattock" <justinmattock@gmail.com>
+Subject: [PATCH 09/15]drivers:usb:host Typo change diable to disable.
+Date: Thu, 30 Dec 2010 15:07:58 -0800
+Message-Id: <1293750484-1161-9-git-send-email-justinmattock@gmail.com>
+In-Reply-To: <1293750484-1161-8-git-send-email-justinmattock@gmail.com>
+References: <1293750484-1161-1-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-2-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-3-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-4-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-5-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-6-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-7-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-8-git-send-email-justinmattock@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Clemens,
+The below patch fixes a typo "diable" to "disable" and also fixes another typo in a comment. 
+Please let me know if this is correct or not.
 
-On Tuesday 14 December 2010 14:49:15 Clemens Ladisch wrote:
-> Laurent Pinchart wrote:
-> > On Tuesday 14 December 2010 13:40:21 Hans Verkuil wrote:
-> >> > On Monday 13 December 2010 17:10:51 Clemens Ladisch wrote:
-> >> >> * Entity types
-> >> >> 
-> >> >> TYPE_NODE was renamed to TYPE_DEVICE because "node" sounds like a
-> >> >> node in a graph, which does not distinguish it from other entity
-> >> >> types because all entities are part of the topology graph.  I chose
-> >> >> "device" as this type describes entities that are visible as some
-> >> >> device node to other software.
-> >> > 
-> >> > What this type describes is a device node. Both NODE and DEVICE can be
-> >> > confusing in my opinion, but DEVICE_NODE is a bit long.
-> >> 
-> >> What about DEVNODE? I think that would be a good alternative.
-> > 
-> > Fine with me. Clemens, any opinion on that ?
-> 
-> Fine with me too.
+Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
 
-OK I'll use that name.
+---
+ drivers/usb/host/fhci-hcd.c |    4 ++--
+ drivers/usb/host/fhci-tds.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-> > > >> TYPE_EXT describes entities that represent some interface to the
-> > > >> external world, TYPE_INT those that are internal to the entire
-> > > >> device. (I'm not sure if that distinction is very useful, but
-> > > >> TYPE_SUBDEV seems to be an even more meaningless name.)
-> > > > 
-> > > > SUBDEV comes from the V4L2 world, and I agree that it might not be a
-> > > > very good name.
-> > > 
-> > > SUBDEV refers to a specific type of driver. Within the v4l world it is
-> > > well defined. So I prefer to keep this. Perhaps some additional
-> > > comments or documentation can be added to clarify this.
-> > 
-> > Should this be clarified by using V4L2_SUBDEV instead then ?
-> 
-> If the "SUBDEV" concept doesn't exist outside V4L, that would indeed be
-> better.
-> 
-> I don't want to rename things that come out of existing frameworks; this
-> naming discussion makes sense only for those entity (sub)types that can
-> be shared between them.  Are there any, besides jacks?
-
-Some entities like TV tuners play a dual audio/video role. I'm not sure how to 
-handle them, I lack experience in that field.
-
-> > What about ALSA entities, should they use MEDIA_ENTITY_TYPE_ALSA_* ?
-> 
-> The entity types representing ALSA devices are already named "ALSA".
-
-I was talking about the INT_* types. They're ALSA-specific, but have no ALSA 
-in the type name.
-
+diff --git a/drivers/usb/host/fhci-hcd.c b/drivers/usb/host/fhci-hcd.c
+index 20092a2..12fd184 100644
+--- a/drivers/usb/host/fhci-hcd.c
++++ b/drivers/usb/host/fhci-hcd.c
+@@ -98,13 +98,13 @@ void fhci_usb_enable_interrupt(struct fhci_usb *usb)
+ 	usb->intr_nesting_cnt--;
+ }
+ 
+-/* diable the usb interrupt */
++/* disable the usb interrupt */
+ void fhci_usb_disable_interrupt(struct fhci_usb *usb)
+ {
+ 	struct fhci_hcd *fhci = usb->fhci;
+ 
+ 	if (usb->intr_nesting_cnt == 0) {
+-		/* diable the timer interrupt */
++		/* disable the timer interrupt */
+ 		disable_irq_nosync(fhci->timer->irq);
+ 
+ 		/* disable the usb interrupt */
+diff --git a/drivers/usb/host/fhci-tds.c b/drivers/usb/host/fhci-tds.c
+index 7be548c..38fe058 100644
+--- a/drivers/usb/host/fhci-tds.c
++++ b/drivers/usb/host/fhci-tds.c
+@@ -271,8 +271,8 @@ void fhci_init_ep_registers(struct fhci_usb *usb, struct endpoint *ep,
+ 
+ /*
+  * Collect the submitted frames and inform the application about them
+- * It is also prepearing the TDs for new frames. If the Tx interrupts
+- * are diabled, the application should call that routine to get
++ * It is also preparing the TDs for new frames. If the Tx interrupts
++ * are disabled, the application should call that routine to get
+  * confirmation about the submitted frames. Otherwise, the routine is
+  * called frome the interrupt service routine during the Tx interrupt.
+  * In that case the application is informed by calling the application
 -- 
-Regards,
+1.6.5.2.180.gc5b3e
 
-Laurent Pinchart
