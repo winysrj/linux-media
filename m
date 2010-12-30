@@ -1,310 +1,445 @@
 Return-path: <mchehab@gaivota>
-Received: from adelie.canonical.com ([91.189.90.139]:38163 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753614Ab0L0TCq (ORCPT
+Received: from ganesha.gnumonks.org ([213.95.27.120]:39182 "EHLO
+	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750744Ab0L3FOW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Dec 2010 14:02:46 -0500
-Message-ID: <4D18E2D2.8020400@canonical.com>
-Date: Mon, 27 Dec 2010 20:02:42 +0100
-From: David Henningsson <david.henningsson@canonical.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>
-Subject: Re: [PATCH] DVB: TechnoTrend CT-3650 IR support
-References: <4D170785.1070306@canonical.com> <4D1729DB.80406@infradead.org> <4D17999E.4000500@canonical.com> <4D18623C.8080006@infradead.org> <4D18B6AC.2040506@canonical.com> <4D18C413.3020300@infradead.org>
-In-Reply-To: <4D18C413.3020300@infradead.org>
-Content-Type: multipart/mixed;
- boundary="------------020506000308000003090203"
+	Thu, 30 Dec 2010 00:14:22 -0500
+From: Jeongtae Park <jtp.park@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, jaeryul.oh@samsung.com,
+	jonghun.han@samsung.com, m.szyprowski@samsung.com,
+	kgene.kim@samsung.com, Jeongtae Park <jtp.park@samsung.com>
+Subject: [PATCH 1/1] v4l: videobuf2: Add DMA pool allocator
+Date: Thu, 30 Dec 2010 13:55:07 +0900
+Message-Id: <1293684907-7272-2-git-send-email-jtp.park@samsung.com>
+In-Reply-To: <1293684907-7272-1-git-send-email-jtp.park@samsung.com>
+References: <1293684907-7272-1-git-send-email-jtp.park@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-This is a multi-part message in MIME format.
---------------020506000308000003090203
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Add an implementation of DMA pool memory allocator and handling
+routines for videobuf2. The DMA pool allocator allocates a memory
+using dma_alloc_coherent(), creates a pool using generic allocator
+in the initialization. For every allocation requests, the allocator
+returns a part of its memory pool using generic allocator instead
+of new memory allocation.
 
-On 2010-12-27 17:51, Mauro Carvalho Chehab wrote:
-> Em 27-12-2010 13:54, David Henningsson escreveu:
->> On 2010-12-27 10:54, Mauro Carvalho Chehab wrote:
->>> Em 26-12-2010 17:38, David Henningsson escreveu:
->>>> On 2010-12-26 12:41, Mauro Carvalho Chehab wrote:
->
->>>> +/* command to poll IR receiver (copied from pctv452e.c) */
->>>> +#define CMD_GET_IR_CODE     0x1b
->>>> +
->>>> +/* IR */
->>>> +static int tt3650_rc_query(struct dvb_usb_device *d)
->>>> +{
->>>> +    int ret;
->>>> +    u8 rx[9]; /* A CMD_GET_IR_CODE reply is 9 bytes long */
->>>> +    ret = ttusb2_msg(d, CMD_GET_IR_CODE, NULL, 0, rx, sizeof(rx));
->>>> +    if (ret != 0)
->>>> +        return ret;
->>>> +
->>>> +    if (rx[8]&   0x01) {
->>>
->>> Maybe (rx[8]&   0x01) == 0 indicates a keyup event. If so, if you map both keydown
->>> and keyup events, the in-kernel repeat logic will work.
->>
->> Hmm. If I should fix keyup events, the most reliable version would probably be something like:
->>
->> if (rx[8]&  0x01) {
->>    int currentkey = rx[2]; // or (rx[3]<<   8) | rx[2];
->>    if (currentkey == lastkey)
->>      rc_repeat(lastkey);
->>    else {
->>      if (lastkey)
->>        rc_keyup(lastkey);
->>      lastkey = currentkey;
->>      rc_keydown(currentkey);
->>    }
->
-> rc_keydown() already handles repeat events (see ir_do_keydown and rc_keydown, at
-> rc-main.c), so, you don't need it.
->
->> }
->> else if (lastkey) {
->>    rc_keyup(lastkey);
->>    lastkey = 0;
->> }
->
-> Yeah, this makes sense, if bit 1 of rx[8] indicates keyup/keydown or repeat.
->
-> You need to double check if you are not receiving any packet with this bit unset,
-> when you press and hold a key, as some devices use a bit to just indicate that
-> the info there is valid or not (a "done" bit).
+This allocator used for devices have below limitations.
+- the start address should be aligned
+- the range of memory access limited to the offset from the start
+  address (= the allocation address should be existed in a
+  constant offset from the start address)
+- the allocation address should be aligned
 
-As far as I can understand, a value of "1" indicates that a key is 
-currently pressed, and a value of "0" indicates that no key is pressed.
-
->
->>
->> Does this sound reasonable to you?
->>
->>>
->>>> +        /* got a "press" event */
->>>> +        deb_info("%s: cmd=0x%02x sys=0x%02x\n", __func__, rx[2], rx[3]);
->>>> +        rc_keydown(d->rc_dev, rx[2], 0);
->>>> +    }
->>>
->>> As you're receiving both command+address, please use the complete code:
->>>      rc_keydown(d->rc_dev, (rx[3]<<   8) | rx[2], 0);
->>
->> I've tried this, but it stops working. evtest shows only scancode events, so my guess is that this makes it incompatible with RC_MAP_TT_1500, which lists only the lower byte.
->
-> yeah, you'll need either to create another table or to fix it. The better is to fix
-> the table and to use .scanmask = 0xff at the old drivers. This way, the same table
-> will work for both the legacy/incomplete get_scancode function and for the new one.
-
-Ok. I did a grep for RC_MAP_TT_1500 and found one place only, so I'm 
-attaching two patches that should fix this, feel free to commit them if 
-they look good to you.
-
->>> Also as it is receiving 8 bytes from the device, maybe the IR decoding logic is
->>> capable of decoding more than just one protocol. Such feature is nice, as it
->>> allows replacing the original keycode table by a more complete one.
->>
->> I've tried dumping all nine bytes but I can't make much out of it as I'm unfamiliar with RC protocols and decoders.
->>
->> Typical reply is (no key pressed):
->>
->> cc 35 0b 15 00 03 00 00 00
->>
->> Does this tell you anything?
->
-> This means nothing to me, but the only way to double check is to test the device
-> with other remote controllers. On several hardware, it is possible to use
-> RC5 remote controllers as well. As there are some empty (zero) fields, maybe
-> this device also supports RC6 protocols (that have more than 16 bits) and
-> NEC extended (24 bits or 32 bits, on a few variants).
-
-Ok.
-
->>> One of the most interesting features of the new RC code is that it offers
->>> a sysfs class and some additional logic to allow dynamically change/replace
->>> the keymaps and keycodes via userspace. The idea is to remove all in-kernel
->>> keymaps in the future, using, instead, the userspace way, via ir-keytable
->>> tool, available at:
->>>      http://git.linuxtv.org/v4l-utils.git
->>>
->>> The tool already supports auto-loading the keymap via udev.
->>>
->>> For IR's where we don't know the protocol or that we don't have the full scancode,
->>> loading the keymap via userspace will not bring any new feature. But, for those
->>> devices where we can be sure about the protocol and for those that also allow
->>> using other protocols, users can just replace the device-provided IR with a more
->>> powerful remote controller with more keys.
->>
->> Yeah, that sounds like a really nice feature.
->>
->>> So, it would be wonderful if you could identify what's the supported protocol(s)
->>> instead of using RC_TYPE_UNKNOWN. You can double check the protocol if you have
->>> with you another RC device that supports raw decoding. The rc-core internal decoders
->>> will tell you what protocol was used to decode a keycode, if you enable debug.
->>
->> I don't have any such RC receiver device. I do have a Logitech Harmony 525, so I tried pointing that one towards the CT 3650, but CMD_GET_IR_CODE didn't change for any of the devices I've currently told my Harmony to emulate.
->>
->> So I don't really see how I can help further in this case?
->
-> I don't have a Logitech Harmony, so I'm not sure about it. Maybe Jarod may have some
-> info about it.
-
-Would you like me to provide a patch with RC_TYPE_UNKNOWN at this point 
-(i e what I showed you earlier + your review comments), and when I or 
-somebody else can provide more complete information, we make an 
-additional patch with better protocol support? Does that make sense to you?
-
--- 
-David Henningsson, Canonical Ltd.
-http://launchpad.net/~diwic
-
---------------020506000308000003090203
-Content-Type: text/x-patch;
- name="0001-DVB-Set-scanmask-for-Budget-SAA7146-cards.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename*0="0001-DVB-Set-scanmask-for-Budget-SAA7146-cards.patch"
-
->From 7435de9c183fa2b62c03311ae8e08ddd436cb287 Mon Sep 17 00:00:00 2001
-From: David Henningsson <david.henningsson@canonical.com>
-Date: Mon, 27 Dec 2010 19:41:58 +0100
-Subject: [PATCH 1/2] DVB: Set scanmask for Budget/SAA7146 cards
-
-These devices do not return the full command+address, so set
-scanmask accordingly.
-
-Signed-off-by: David Henningsson <david.henningsson@canonical.com>
+Reviewed-by: Jonghun Han <jonghun.han@samsung.com>
+Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Kamil Debski <k.debski@samsung.com>
 ---
- drivers/media/dvb/ttpci/budget-ci.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+This allocator used for s5p-mfc. s5p-mfc has above limitations.
+The CMA and CMA allocator for videobuf2 can be resolve all of
+described limitations, but the CMA merge schedule is not fixed yet.
+Therefore CMA allocator for videobuf2 also cannot be used in the
+driver currently. The s5p-mfc v4l2 driver can be validated with
+the DMA pool allocator without CMA dependency.
 
-diff --git a/drivers/media/dvb/ttpci/budget-ci.c b/drivers/media/dvb/ttpci/budget-ci.c
-index 8ae67c1..b82756d 100644
---- a/drivers/media/dvb/ttpci/budget-ci.c
-+++ b/drivers/media/dvb/ttpci/budget-ci.c
-@@ -184,6 +184,7 @@ static int msp430_ir_init(struct budget_ci *budget_ci)
- 	dev->input_phys = budget_ci->ir.phys;
- 	dev->input_id.bustype = BUS_PCI;
- 	dev->input_id.version = 1;
-+	dev->scanmask = 0xff;
- 	if (saa->pci->subsystem_vendor) {
- 		dev->input_id.vendor = saa->pci->subsystem_vendor;
- 		dev->input_id.product = saa->pci->subsystem_device;
--- 
-1.7.1
+ drivers/media/video/Kconfig              |    7 +
+ drivers/media/video/Makefile             |    1 +
+ drivers/media/video/videobuf2-dma-pool.c |  310 ++++++++++++++++++++++++++++++
+ include/media/videobuf2-dma-pool.h       |   37 ++++
+ 4 files changed, 355 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/videobuf2-dma-pool.c
+ create mode 100644 include/media/videobuf2-dma-pool.h
 
-
---------------020506000308000003090203
-Content-Type: text/x-patch;
- name="0002-MEDIA-RC-Provide-full-scancodes-for-TT-1500-remote-c.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename*0="0002-MEDIA-RC-Provide-full-scancodes-for-TT-1500-remote-c.pa";
- filename*1="tch"
-
->From 404319567f67d5c63001239ca4f960aaf775a075 Mon Sep 17 00:00:00 2001
-From: David Henningsson <david.henningsson@canonical.com>
-Date: Mon, 27 Dec 2010 19:45:19 +0100
-Subject: [PATCH 2/2] MEDIA: RC: Provide full scancodes for TT-1500 remote control
-
-Add 0x15 prefix to scancodes for TT-1500 remote control.
-
-Signed-off-by: David Henningsson <david.henningsson@canonical.com>
----
- drivers/media/rc/keymaps/rc-tt-1500.c |   78 ++++++++++++++++----------------
- 1 files changed, 39 insertions(+), 39 deletions(-)
-
-diff --git a/drivers/media/rc/keymaps/rc-tt-1500.c b/drivers/media/rc/keymaps/rc-tt-1500.c
-index bb19487..295f373 100644
---- a/drivers/media/rc/keymaps/rc-tt-1500.c
-+++ b/drivers/media/rc/keymaps/rc-tt-1500.c
-@@ -15,45 +15,45 @@
- /* for the Technotrend 1500 bundled remotes (grey and black): */
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index a1b2412..cee5b0a 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -71,6 +71,13 @@ config VIDEOBUF2_DMA_SG
+ 	select VIDEOBUF2_CORE
+ 	select VIDEOBUF2_MEMOPS
+ 	tristate
++
++config VIDEOBUF2_DMA_POOL
++	select VIDEOBUF2_CORE
++	select VIDEOBUF2_MEMOPS
++	select GENERIC_ALLOCATOR
++	tristate
++
+ #
+ # Multimedia Video device configuration
+ #
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index af33c30..eb53da3 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -120,6 +120,7 @@ obj-$(CONFIG_VIDEOBUF2_MEMOPS)		+= videobuf2-memops.o
+ obj-$(CONFIG_VIDEOBUF2_VMALLOC)		+= videobuf2-vmalloc.o
+ obj-$(CONFIG_VIDEOBUF2_DMA_CONTIG)	+= videobuf2-dma-contig.o
+ obj-$(CONFIG_VIDEOBUF2_DMA_SG)		+= videobuf2-dma-sg.o
++obj-$(CONFIG_VIDEOBUF2_DMA_POOL)	+= videobuf2-dma-pool.o
  
- static struct rc_map_table tt_1500[] = {
--	{ 0x01, KEY_POWER },
--	{ 0x02, KEY_SHUFFLE },		/* ? double-arrow key */
--	{ 0x03, KEY_1 },
--	{ 0x04, KEY_2 },
--	{ 0x05, KEY_3 },
--	{ 0x06, KEY_4 },
--	{ 0x07, KEY_5 },
--	{ 0x08, KEY_6 },
--	{ 0x09, KEY_7 },
--	{ 0x0a, KEY_8 },
--	{ 0x0b, KEY_9 },
--	{ 0x0c, KEY_0 },
--	{ 0x0d, KEY_UP },
--	{ 0x0e, KEY_LEFT },
--	{ 0x0f, KEY_OK },
--	{ 0x10, KEY_RIGHT },
--	{ 0x11, KEY_DOWN },
--	{ 0x12, KEY_INFO },
--	{ 0x13, KEY_EXIT },
--	{ 0x14, KEY_RED },
--	{ 0x15, KEY_GREEN },
--	{ 0x16, KEY_YELLOW },
--	{ 0x17, KEY_BLUE },
--	{ 0x18, KEY_MUTE },
--	{ 0x19, KEY_TEXT },
--	{ 0x1a, KEY_MODE },		/* ? TV/Radio */
--	{ 0x21, KEY_OPTION },
--	{ 0x22, KEY_EPG },
--	{ 0x23, KEY_CHANNELUP },
--	{ 0x24, KEY_CHANNELDOWN },
--	{ 0x25, KEY_VOLUMEUP },
--	{ 0x26, KEY_VOLUMEDOWN },
--	{ 0x27, KEY_SETUP },
--	{ 0x3a, KEY_RECORD },		/* these keys are only in the black remote */
--	{ 0x3b, KEY_PLAY },
--	{ 0x3c, KEY_STOP },
--	{ 0x3d, KEY_REWIND },
--	{ 0x3e, KEY_PAUSE },
--	{ 0x3f, KEY_FORWARD },
-+	{ 0x1501, KEY_POWER },
-+	{ 0x1502, KEY_SHUFFLE },		/* ? double-arrow key */
-+	{ 0x1503, KEY_1 },
-+	{ 0x1504, KEY_2 },
-+	{ 0x1505, KEY_3 },
-+	{ 0x1506, KEY_4 },
-+	{ 0x1507, KEY_5 },
-+	{ 0x1508, KEY_6 },
-+	{ 0x1509, KEY_7 },
-+	{ 0x150a, KEY_8 },
-+	{ 0x150b, KEY_9 },
-+	{ 0x150c, KEY_0 },
-+	{ 0x150d, KEY_UP },
-+	{ 0x150e, KEY_LEFT },
-+	{ 0x150f, KEY_OK },
-+	{ 0x1510, KEY_RIGHT },
-+	{ 0x1511, KEY_DOWN },
-+	{ 0x1512, KEY_INFO },
-+	{ 0x1513, KEY_EXIT },
-+	{ 0x1514, KEY_RED },
-+	{ 0x1515, KEY_GREEN },
-+	{ 0x1516, KEY_YELLOW },
-+	{ 0x1517, KEY_BLUE },
-+	{ 0x1518, KEY_MUTE },
-+	{ 0x1519, KEY_TEXT },
-+	{ 0x151a, KEY_MODE },		/* ? TV/Radio */
-+	{ 0x1521, KEY_OPTION },
-+	{ 0x1522, KEY_EPG },
-+	{ 0x1523, KEY_CHANNELUP },
-+	{ 0x1524, KEY_CHANNELDOWN },
-+	{ 0x1525, KEY_VOLUMEUP },
-+	{ 0x1526, KEY_VOLUMEDOWN },
-+	{ 0x1527, KEY_SETUP },
-+	{ 0x153a, KEY_RECORD },		/* these keys are only in the black remote */
-+	{ 0x153b, KEY_PLAY },
-+	{ 0x153c, KEY_STOP },
-+	{ 0x153d, KEY_REWIND },
-+	{ 0x153e, KEY_PAUSE },
-+	{ 0x153f, KEY_FORWARD },
- };
+ obj-$(CONFIG_V4L2_MEM2MEM_DEV) += v4l2-mem2mem.o
  
- static struct rc_map_list tt_1500_map = {
+diff --git a/drivers/media/video/videobuf2-dma-pool.c b/drivers/media/video/videobuf2-dma-pool.c
+new file mode 100644
+index 0000000..59f4cba
+--- /dev/null
++++ b/drivers/media/video/videobuf2-dma-pool.c
+@@ -0,0 +1,310 @@
++/*
++ * videobuf2-dma-pool.c - DMA pool memory allocator for videobuf2
++ *
++ * Copyright (c) 2010 Samsung Electronics Co., Ltd.
++ *		http://www.samsung.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/dma-mapping.h>
++#include <linux/genalloc.h>
++
++#include <media/videobuf2-core.h>
++#include <media/videobuf2-memops.h>
++
++#define DMA_POOL_MAGIC	0x706F6F6C
++#define MAGIC_CHECK(is, should)					\
++	if (unlikely((is) != (should))) {			\
++		pr_err("magic mismatch: %x (expected %x)\n",	\
++				(is), (should));		\
++		BUG();						\
++	}
++
++static int debug;
++module_param(debug, int, 0644);
++
++#define dprintk(level, fmt, arg...)					\
++	do {								\
++		if (debug >= level)					\
++			printk(KERN_DEBUG "vb2_dp: " fmt, ## arg);	\
++	} while (0)
++
++struct vb2_dma_pool_conf {
++	struct device		*dev;
++	struct gen_pool		*pool;
++	dma_addr_t		paddr;
++	void			*vaddr;
++	unsigned long		size;
++	u32			magic;
++};
++
++struct vb2_dma_pool_buf {
++	struct vb2_dma_pool_conf	*conf;
++	void				*vaddr;
++	dma_addr_t			paddr;
++	unsigned long			size;
++	struct vm_area_struct		*vma;
++	atomic_t			refcount;
++	struct vb2_vmarea_handler	handler;
++};
++
++static void vb2_dma_pool_put(void *buf_priv);
++
++static void *vb2_dma_pool_alloc(void *alloc_ctx, unsigned long size)
++{
++	struct vb2_dma_pool_conf *conf = alloc_ctx;
++	struct vb2_dma_pool_buf *buf;
++
++	BUG_ON(!conf);
++	MAGIC_CHECK(conf->magic, DMA_POOL_MAGIC);
++
++	buf = kzalloc(sizeof *buf, GFP_KERNEL);
++	if (!buf)
++		return ERR_PTR(-ENOMEM);
++
++	buf->paddr = gen_pool_alloc(conf->pool, size);
++	if (!buf->paddr) {
++		dev_err(conf->dev, "failed to get buffer from pool: %ld\n",
++			size);
++		kfree(buf);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	buf->conf = conf;
++	buf->vaddr = conf->vaddr + (buf->paddr - conf->paddr);
++	buf->size = size;
++
++	buf->handler.refcount = &buf->refcount;
++	buf->handler.put = vb2_dma_pool_put;
++	buf->handler.arg = buf;
++
++	atomic_inc(&buf->refcount);
++
++	dprintk(2, "alloc-> vaddr: %p, paddr: 0x%08x, size: %ld\n",
++		buf->vaddr, buf->paddr, size);
++
++	return buf;
++}
++
++static void vb2_dma_pool_put(void *buf_priv)
++{
++	struct vb2_dma_pool_buf *buf = buf_priv;
++
++	dprintk(3, "put-> refcount: %d\n", atomic_read(&buf->refcount));
++
++	if (atomic_dec_and_test(&buf->refcount)) {
++		dprintk(2, "put-> paddr: 0x%08x, size: %ld\n",
++			buf->paddr, buf->size);
++
++		gen_pool_free(buf->conf->pool, buf->paddr, buf->size);
++		kfree(buf);
++	}
++}
++
++static void *vb2_dma_pool_cookie(void *buf_priv)
++{
++	struct vb2_dma_pool_buf *buf = buf_priv;
++
++	if (!buf) {
++		pr_err("failed to get buffer\n");
++		return NULL;
++	}
++
++	return (void *)buf->paddr;
++}
++
++static void *vb2_dma_pool_vaddr(void *buf_priv)
++{
++	struct vb2_dma_pool_buf *buf = buf_priv;
++
++	if (!buf) {
++		pr_err("failed to get buffer\n");
++		return NULL;
++	}
++
++	return buf->vaddr;
++}
++
++static unsigned int vb2_dma_pool_num_users(void *buf_priv)
++{
++	struct vb2_dma_pool_buf *buf = buf_priv;
++
++	if (!buf) {
++		pr_err("failed to get buffer\n");
++		return 0;
++	}
++
++	return atomic_read(&buf->refcount);
++}
++
++static int vb2_dma_pool_mmap(void *buf_priv, struct vm_area_struct *vma)
++{
++	struct vb2_dma_pool_buf *buf = buf_priv;
++
++	if (!buf) {
++		pr_err("no buffer to map\n");
++		return -EINVAL;
++	}
++
++	return vb2_mmap_pfn_range(vma, buf->paddr, buf->size,
++				  &vb2_common_vm_ops, &buf->handler);
++}
++
++const struct vb2_mem_ops vb2_dma_pool_memops = {
++	.alloc		= vb2_dma_pool_alloc,
++	.put		= vb2_dma_pool_put,
++	.cookie		= vb2_dma_pool_cookie,
++	.vaddr		= vb2_dma_pool_vaddr,
++	.mmap		= vb2_dma_pool_mmap,
++	.num_users	= vb2_dma_pool_num_users,
++};
++EXPORT_SYMBOL_GPL(vb2_dma_pool_memops);
++
++void *vb2_dma_pool_init(struct device *dev, unsigned long base_order,
++			unsigned long alloc_order, unsigned long size)
++{
++	struct vb2_dma_pool_conf *conf;
++	int ret;
++	unsigned long margin, margin_order;
++
++	if (!(size >> alloc_order))
++		return ERR_PTR(-EINVAL);
++
++	conf = kzalloc(sizeof *conf, GFP_KERNEL);
++	if (!conf)
++		return ERR_PTR(-ENOMEM);
++
++	conf->magic = DMA_POOL_MAGIC;
++	conf->dev = dev;
++	conf->size = size;
++
++	conf->vaddr = dma_alloc_coherent(conf->dev, conf->size,
++					 &conf->paddr, GFP_KERNEL);
++	if (!conf->vaddr) {
++		dev_err(dev, "dma_alloc_coherent of size %ld failed\n",
++			size);
++		ret = -ENOMEM;
++		goto fail_dma_alloc;
++	}
++
++	dprintk(1, "init-> vaddr: %p, paddr: 0x%08x, size: %ld\n",
++		conf->vaddr, conf->paddr, conf->size);
++
++	margin_order = (base_order > alloc_order) ? base_order : alloc_order;
++	margin = ALIGN(conf->paddr, (1 << margin_order)) - conf->paddr;
++
++	dprintk(1, "init-> margin_order: %ld, margin: %ld\n",
++		margin_order, margin);
++
++	if (margin >= conf->size) {
++		ret = -ENOMEM;
++		goto fail_base_align;
++	}
++
++	if (!((conf->size - margin) >> alloc_order)) {
++		ret = -ENOMEM;
++		goto fail_base_align;
++	}
++
++	conf->pool = gen_pool_create(alloc_order, -1);
++	if (!conf->pool) {
++		dev_err(conf->dev, "failed to create pool\n");
++		ret = -ENOMEM;
++		goto fail_pool_create;
++	}
++
++	ret = gen_pool_add(conf->pool, (conf->paddr + margin),
++			   (conf->size - margin), -1);
++	if (ret) {
++		dev_err(conf->dev, "could not add buffer to pool");
++		goto fail_pool_add;
++	}
++
++	return conf;
++
++fail_pool_add:
++	gen_pool_destroy(conf->pool);
++fail_base_align:
++fail_pool_create:
++	dma_free_coherent(conf->dev, conf->size, conf->vaddr, conf->paddr);
++fail_dma_alloc:
++	kfree(conf);
++
++	return ERR_PTR(ret);
++}
++EXPORT_SYMBOL_GPL(vb2_dma_pool_init);
++
++void vb2_dma_pool_cleanup(void *conf)
++{
++	struct vb2_dma_pool_conf *_conf;
++
++	_conf = (struct vb2_dma_pool_conf *)conf;
++
++	BUG_ON(!_conf);
++	MAGIC_CHECK(_conf->magic, DMA_POOL_MAGIC);
++
++	gen_pool_destroy(_conf->pool);
++	dma_free_coherent(_conf->dev, _conf->size, _conf->vaddr,
++			  _conf->paddr);
++
++	kfree(conf);
++}
++EXPORT_SYMBOL_GPL(vb2_dma_pool_cleanup);
++
++void **vb2_dma_pool_init_multi(struct device *dev, unsigned int num_planes,
++			       unsigned long base_orders[],
++			       unsigned long alloc_orders[],
++			       unsigned long sizes[])
++{
++	struct vb2_dma_pool_conf *conf;
++	void **alloc_ctxes;
++	int i, j;
++
++	alloc_ctxes = kzalloc(sizeof *alloc_ctxes * num_planes, GFP_KERNEL);
++	if (!alloc_ctxes)
++		return ERR_PTR(-ENOMEM);
++
++	conf = (void *)(alloc_ctxes + num_planes);
++
++	for (i = 0; i < num_planes; ++i, ++conf) {
++		dprintk(1, "init_multi-> index: %d, orders: %ld, %ld\n",
++			i, base_orders[i], alloc_orders[i]);
++
++		conf = vb2_dma_pool_init(dev, base_orders[i],
++					 alloc_orders[i], sizes[i]);
++		if (IS_ERR(conf)) {
++			for (j = i - 1; j >= 0; j--)
++				vb2_dma_pool_cleanup(alloc_ctxes[j]);
++
++			kfree(alloc_ctxes);
++			return ERR_PTR(PTR_ERR(conf));
++		}
++
++		alloc_ctxes[i] = conf;
++	}
++
++	return alloc_ctxes;
++}
++EXPORT_SYMBOL_GPL(vb2_dma_pool_init_multi);
++
++void vb2_dma_pool_cleanup_multi(void **alloc_ctxes, unsigned int num_planes)
++{
++	int i;
++
++	for (i = 0; i < num_planes; i++)
++		vb2_dma_pool_cleanup(alloc_ctxes[i]);
++
++	kfree(alloc_ctxes);
++}
++EXPORT_SYMBOL_GPL(vb2_dma_pool_cleanup_multi);
++
++MODULE_DESCRIPTION("DMA-pool handling routines for videobuf2");
++MODULE_AUTHOR("Jeongtae Park");
++MODULE_LICENSE("GPL");
++
+diff --git a/include/media/videobuf2-dma-pool.h b/include/media/videobuf2-dma-pool.h
+new file mode 100644
+index 0000000..3cad846
+--- /dev/null
++++ b/include/media/videobuf2-dma-pool.h
+@@ -0,0 +1,37 @@
++/*
++ * videobuf2-dma-pool.h - DMA pool memory allocator for videobuf2
++ *
++ * Copyright (c) 2010 Samsung Electronics Co., Ltd.
++ *		http://www.samsung.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#ifndef _MEDIA_VIDEOBUF2_DMA_POOL_H
++#define _MEDIA_VIDEOBUF2_DMA_POOL_H
++
++#include <media/videobuf2-core.h>
++
++static inline unsigned long vb2_dma_pool_plane_paddr(struct vb2_buffer *vb,
++						     unsigned int plane_no)
++{
++	return (unsigned long)vb2_plane_cookie(vb, plane_no);
++}
++
++void *vb2_dma_pool_init(struct device *dev, unsigned long base_order,
++			unsigned long alloc_order, unsigned long size);
++void vb2_dma_pool_cleanup(struct vb2_alloc_ctx *alloc_ctx);
++
++void **vb2_dma_pool_init_multi(struct device *dev, unsigned int num_planes,
++			       unsigned long base_orders[],
++			       unsigned long alloc_orders[],
++			       unsigned long sizes[]);
++void vb2_dma_pool_cleanup_multi(void **alloc_ctxes,
++				unsigned int num_planes);
++
++extern const struct vb2_mem_ops vb2_dma_pool_memops;
++
++#endif /* _MEDIA_VIDEOBUF2_DMA_POOL_H */
 -- 
-1.7.1
+1.6.2.5
 
-
---------------020506000308000003090203--
