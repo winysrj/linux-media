@@ -1,46 +1,56 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4273 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756042Ab0LRNMG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Dec 2010 08:12:06 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 2.6.37] em28xx: radio_fops should also use unlocked_ioctl
-Date: Sat, 18 Dec 2010 14:11:52 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+Received: from xenotime.net ([72.52.115.56]:42713 "HELO xenotime.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754969Ab0L3SXl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Dec 2010 13:23:41 -0500
+Received: from chimera.site ([173.50.240.230]) by xenotime.net for <linux-media@vger.kernel.org>; Thu, 30 Dec 2010 10:23:38 -0800
+Date: Thu, 30 Dec 2010 10:23:38 -0800
+From: Randy Dunlap <rdunlap@xenotime.net>
+To: Stephen Rothwell <sfr@canb.auug.org.au>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH -next] staging: usbvideo/vicam depends on USB
+Message-Id: <20101230102338.540a42c5.rdunlap@xenotime.net>
+In-Reply-To: <20101230125819.351debfc.sfr@canb.auug.org.au>
+References: <20101230125819.351debfc.sfr@canb.auug.org.au>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201012181411.53110.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Mauro,
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-This is an urgent one-liner fix for 2.6.37: em28xx was converted to core-assisted
-locking, but the .ioctl for radio_fops wasn't replaced by .unlocked_ioctl.
+Fix build errors by adding "depends on USB":
 
-Regards,
+ERROR: "usb_register_driver" [drivers/staging/usbvideo/vicam.ko] undefined!
+ERROR: "usb_bulk_msg" [drivers/staging/usbvideo/vicam.ko] undefined!
+ERROR: "usb_control_msg" [drivers/staging/usbvideo/vicam.ko] undefined!
+ERROR: "usb_deregister" [drivers/staging/usbvideo/vicam.ko] undefined!
+ERROR: "usb_get_dev" [drivers/staging/usbvideo/usbvideo.ko] undefined!
+ERROR: "usb_put_dev" [drivers/staging/usbvideo/usbvideo.ko] undefined!
+ERROR: "usb_free_urb" [drivers/staging/usbvideo/usbvideo.ko] undefined!
+ERROR: "usb_submit_urb" [drivers/staging/usbvideo/usbvideo.ko] undefined!
+ERROR: "usb_set_interface" [drivers/staging/usbvideo/usbvideo.ko] undefined!
+ERROR: "usb_kill_urb" [drivers/staging/usbvideo/usbvideo.ko] undefined!
+ERROR: "usb_register_driver" [drivers/staging/usbvideo/usbvideo.ko] undefined!
+ERROR: "usb_deregister" [drivers/staging/usbvideo/usbvideo.ko] undefined!
+ERROR: "usb_alloc_urb" [drivers/staging/usbvideo/usbvideo.ko] undefined!
 
-	Hans
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+---
+ drivers/staging/usbvideo/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-
-The following changes since commit fcdbff339238c0e0a537f95372ef9782e0d18328:
-  Mauro Carvalho Chehab (1):
-        Merge branch 'v4l_for_linus_bkl_removal' into staging/for_v2.6.38
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/hverkuil/media_tree.git bkl-trivial
-
-Hans Verkuil (1):
-      em28xx: radio_fops should also use unlocked_ioctl
-
- drivers/media/video/em28xx/em28xx-video.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+--- linux-next-20101230.orig/drivers/staging/usbvideo/Kconfig
++++ linux-next-20101230/drivers/staging/usbvideo/Kconfig
+@@ -3,7 +3,7 @@ config VIDEO_USBVIDEO
+ 
+ config USB_VICAM
+ 	tristate "USB 3com HomeConnect (aka vicam) support (DEPRECATED)"
+-	depends on VIDEO_DEV && VIDEO_V4L2_COMMON
++	depends on VIDEO_DEV && VIDEO_V4L2_COMMON && USB
+ 	select VIDEO_USBVIDEO
+ 	---help---
+ 	  Say Y here if you have 3com homeconnect camera (vicam).
