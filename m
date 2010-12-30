@@ -1,212 +1,55 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-ew0-f45.google.com ([209.85.215.45]:35661 "EHLO
-	mail-ew0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752602Ab0LTFk7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Dec 2010 00:40:59 -0500
-Received: by ewy10 with SMTP id 10so1250805ewy.4
-        for <linux-media@vger.kernel.org>; Sun, 19 Dec 2010 21:40:58 -0800 (PST)
-Date: Mon, 20 Dec 2010 14:41:03 +0900
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Stefan Ringel <stefan.ringel@arcor.de>,
-	Felipe Sanches <juca@members.fsf.org>,
-	Bee Hock Goh <beehock@gmail.com>,
-	Luis Henrique Fagundes <lhfagundes@hacklab.com.br>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jarod Wilson <jarod@redhat.com>
-Subject: Re: tm6000 and IR
-Message-ID: <20101220144103.0bcaca1d@glory.local>
-In-Reply-To: <4D0BFF4B.3060001@redhat.com>
-References: <4CAD5A78.3070803@redhat.com>
-	<20101008150301.2e3ceaff@glory.local>
-	<4CAF0602.6050002@redhat.com>
-	<20101012142856.2b4ee637@glory.local>
-	<4CB492D4.1000609@arcor.de>
-	<20101129174412.08f2001c@glory.local>
-	<4CF51C9E.6040600@arcor.de>
-	<20101201144704.43b58f2c@glory.local>
-	<4CF67AB9.6020006@arcor.de>
-	<20101202134128.615bbfa0@glory.local>
-	<4CF71CF6.7080603@redhat.com>
-	<20101206010934.55d07569@glory.local>
-	<4CFBF62D.7010301@arcor.de>
-	<20101206190230.2259d7ab@glory.local>
-	<4CFEA3D2.4050309@arcor.de>
-	<20101208125539.739e2ed2@glory.local>
-	<4CFFAD1E.7040004@arcor.de>
-	<20101214122325.5cdea67e@glory.local>
-	<4D079ADF.2000705@arcor.de>
-	<20101215164634.44846128@glory.local>
-	<4D08E43C.8080002@arcor.de>
-	<20101216183844.6258734e@glory.local>
-	<4D0A4883.20804@arcor.de>
-	<20101217104633.7c9d10d7@glory.local>
-	<4D0AF2A7.6080100@arcor.de>
-	<20101217160854.16a1f754@glory.local>
-	<4D0BFF4B.3060001@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:32629 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750945Ab0L3Njz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Dec 2010 08:39:55 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oBUDdsUP018961
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 30 Dec 2010 08:39:54 -0500
+Received: from gaivota (vpn-8-93.rdu.redhat.com [10.11.8.93])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id oBUDcVPf021334
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 30 Dec 2010 08:39:48 -0500
+Date: Thu, 30 Dec 2010 11:38:25 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 1/2] [media] cx88: Remove the obsolete i2c_adapter.id field
+Message-ID: <20101230113825.6fdbe2bb@gaivota>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-If Apple use full 32-bit scancode we need full raw 32-bit keytable for compatibility.
+diff --git a/drivers/media/video/cx88/cx88-i2c.c b/drivers/media/video/cx88/cx88-i2c.c
+index f53836b..a1fe0ab 100644
+--- a/drivers/media/video/cx88/cx88-i2c.c
++++ b/drivers/media/video/cx88/cx88-i2c.c
+@@ -146,7 +146,6 @@ int cx88_i2c_init(struct cx88_core *core, struct pci_dev *pci)
+ 	core->i2c_adap.dev.parent = &pci->dev;
+ 	strlcpy(core->i2c_adap.name,core->name,sizeof(core->i2c_adap.name));
+ 	core->i2c_adap.owner = THIS_MODULE;
+-	core->i2c_adap.id = I2C_HW_B_CX2388x;
+ 	core->i2c_algo.udelay = i2c_udelay;
+ 	core->i2c_algo.data = core;
+ 	i2c_set_adapdata(&core->i2c_adap, &core->v4l2_dev);
+diff --git a/drivers/media/video/cx88/cx88-vp3054-i2c.c b/drivers/media/video/cx88/cx88-vp3054-i2c.c
+index ec5476d..d77f8ec 100644
+--- a/drivers/media/video/cx88/cx88-vp3054-i2c.c
++++ b/drivers/media/video/cx88/cx88-vp3054-i2c.c
+@@ -125,7 +125,6 @@ int vp3054_i2c_probe(struct cx8802_dev *dev)
+ 	strlcpy(vp3054_i2c->adap.name, core->name,
+ 		sizeof(vp3054_i2c->adap.name));
+ 	vp3054_i2c->adap.owner = THIS_MODULE;
+-	vp3054_i2c->adap.id = I2C_HW_B_CX2388x;
+ 	vp3054_i2c->algo.data = dev;
+ 	i2c_set_adapdata(&vp3054_i2c->adap, dev);
+ 	vp3054_i2c->adap.algo_data = &vp3054_i2c->algo;
+-- 
+1.7.3.4
 
-For this need rework all keytables and all keyread function for add scanmask configuration and
-rework single byte scancode code -> key << 8.
 
-Use scanmask and return IR reading bytes on real place.
-
-For tm6000 don't need restore full scancode 
-Only address filter
-
-scanmask = 0xff00ff00;
-return byte[1] << 24 | byte[0] <<8
-
-With my best regards, Dmitry.
-
-> Hi Dmitri/Stefan,
-> 
-> Em 17-12-2010 05:08, Dmitri Belimov escreveu:
-> > On Fri, 17 Dec 2010 06:18:31 +0100
-> > Stefan Ringel <stefan.ringel@arcor.de> wrote:
-> > 
-> >> Am 17.12.2010 02:46, schrieb Dmitri Belimov:
-> >>> Hi Stefan
-> >>>
-> >>>> Am 16.12.2010 10:38, schrieb Dmitri Belimov:
-> >>>>> Hi
-> >>>>>
-> >>>>>>> I think your mean is wrong. Our IR remotes send extended NEC
-> >>>>>>> it is 4 bytes. We removed inverted 4 byte and now we have 3
-> >>>>>>> bytes from remotes. I think we must have full RCMAP with this
-> >>>>>>> 3 bytes from remotes. And use this remotes with some
-> >>>>>>> different IR recievers like some TV cards and LIRC-hardware
-> >>>>>>> and other. No need different RCMAP for the same remotes to
-> >>>>>>> different IR recievers like now.
-> >>>>>> Your change doesn't work with my terratec remote control !!
-> >>>>> I found what happens. Try my new patch.
-> >>>>>
-> >>>>> What about NEC. Original NEC send
-> >>>>> address (inverted address) key (inverted key)
-> >>>>> this is realy old standart now all remotes use extended NEC
-> >>>>> (adress high) (address low) key (inverted key)
-> >>>>> The trident 5600/6000/6010 use old protocol but didn't test
-> >>>>> inverted address byte.
-> >>>>>
-> >>>>> I think much better discover really address value and write it
-> >>>>> to keytable. For your remotes I add low address byte. This
-> >>>>> value is incorrent but usefull for tm6000. When you found
-> >>>>> correct value update keytable.
-> >>>>>
-> >>>> That is not acceptable. Have you forgotten what Mauro have
-> >>>> written? The Terratec rc map are use from other devices.
-> >>> NO
-> >>> The RC_MAP_NEC_TERRATEC_CINERGY_XS used only in tm6000 module.
-> >>> My patch didn't kill support any other devices.
-> >> That is not true.
-> > 
-> > I search "RC_MAP_NEC_TERRATEC_CINERGY_XS" on FULL linux kernel
-> > sources. And found this string in:
-> > include/media/rc-map.h
-> > drivers/staging//tm6000/tm6000-cards.c
-> > drivers/media/rc/keymaps/rc-nec-terratec-cinergy-xs.c
-> > 
-> > No any other devices didn't use this keymap.
-> > 
-> >>>> The best are only the
-> >>>> received data without additional data. And I think the Trident
-> >>>> chip send only compatibly data (send all extended data like
-> >>>> standard data). The device decoded the protocols not the driver.
-> >>> You can't use this remotes with normal working IR receivers
-> >>> because this receivers returned FULL scancodes. Need add one more
-> >>> keytable.
-> >>>
-> >>> 1. With my variant we have one keytable of remote and some
-> >>> workaround in device drivers. And can switch keytable and remotes
-> >>> on the fly (of course when keytable has really value and device
-> >>> driver has workaround)
-> >>>
-> >>> 2. With your variant we have some keytables for one remote for
-> >>> different IR recevers. Can't use incompatible keytable with other
-> >>> IR recievers. It is black magic for understanding what remotes is
-> >>> working with this hardware.
-> >>>
-> >>> I think my variant much better.
-> >>>
-> >>> With my best regards, Dmitry.
-> >>>
-> >> I think your variant is bad.
-> > 
-> > Mauro we need your opinion about this question.
-> 
-> I'm c/c Jarod, as he has a similar issue with some NEC-based boards 
-> (Apple "variant").
-> 
-> I also have experienced some cases where the NEC protocol in-hardware
-> decoder can provide only part of the NEC "extended" range.
-> 
-> I don't have a clear opinion about this issue, but I think that
-> putting all our brains to think about that, we may have a solution
-> for it.
-> 
-> Let me summarize the issues. Please complete/correct me if is there
-> anything else.
-> 
-> 1) NEC original format is 16 bits. However, some variants use 24 bits
-> for it (it is called, currently, NEC extended). A few other
-> manufacturers, like Apple, defines NEC protocol with 32 bits,
-> removing both address and command checksums.
-> 
-> 2) NEC raw decoder is capable of decoding the entire NEC code, but it
-> only accepts 16 or 24 bits, returning the scan code as:
-> 
-> 	scancode = address << 8 | command;
-> 
-> for 16 bits, and:
-> 
-> 	scancode = address << 16 | not_address <<  8 | command;
-> 
-> for 24 bits. There were some proposals to extend it to something like:
-> 
-> 	scancode = address << 24 | not_address << 16 | not_command <<
-> 8 | command; (or some other bit order)
-> 
-> Or just return the complete 32 bits even for the original NEC
-> protocol. However, changing it will break the existing userspace
-> decoding tables.
-> 
-> Another way would be to store the length of the scancode, using it as
-> well during the scancode->keycode translation.
-> 
-> But no patches were merged yet.
-> 
-> 3) Some hardware decoders can't return the complete NEC address.
-> There are variants that returns 8 bits, others that returns 16 bits,
-> and others that return the complete code.
-> 
-> For hardware that returns only 8 bits, we currently address the issue
-> by using a scancode mask. When "scanmask" is set at the rc structs,
-> the scancode->keycode logic will consider only the bits that are in
-> the mask.
-> 
-> 4) Some hardware filters the NEC address, returning only the codes for
-> some specific vendors.
-> 
-> Despite all discussions, we didn't reach an agreement yet.
-> 
-> There are some points to consider whatever solution we do:
-> 
-> 1) A keycode table should be able to work with a generic raw decoder.
-> So, on all drivers, the bit order and the number of bits for a given
-> protocol should be the same;
-> 
-> 2) we should avoid to cause regressions on the existing definitions.
-> 
-> That's said, suggestions to meet the needs are welcome.
-> 
-> Thanks,
-> Mauro
