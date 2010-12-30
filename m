@@ -1,77 +1,101 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:23525 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753671Ab0L0Qbw convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4994 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751056Ab0L3Mew (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Dec 2010 11:31:52 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oBRGVqoE000532
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 27 Dec 2010 11:31:52 -0500
-Received: from gaivota (vpn-11-243.rdu.redhat.com [10.11.11.243])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id oBRGNDpK028091
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 27 Dec 2010 11:31:50 -0500
-Date: Mon, 27 Dec 2010 14:22:50 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	Thu, 30 Dec 2010 07:34:52 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 3/4] [media] ivtv: Add Adaptec Remote Controller
+Date: Thu, 30 Dec 2010 13:34:33 +0100
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 0/8] Fix V4L/DVB/RC warnings
-Message-ID: <20101227142250.48704ffe@gaivota>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+References: <cover.1293709356.git.mchehab@redhat.com> <201012301256.42242.hverkuil@xs4all.nl> <4D1C7690.3020907@redhat.com>
+In-Reply-To: <4D1C7690.3020907@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201012301334.33803.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
+On Thursday, December 30, 2010 13:09:52 Mauro Carvalho Chehab wrote:
+> Em 30-12-2010 09:56, Hans Verkuil escreveu:
+> > On Thursday, December 30, 2010 12:45:09 Mauro Carvalho Chehab wrote:
+> >> lirc-i2c implements a get key logic for the Adaptec Remote
+> >> Controller, at address 0x6b. The only driver that seems to have
+> >> an Adaptec device is ivtv:
+> >>
+> >> $ git grep -i adaptec drivers/media
+> >> drivers/media/video/cs53l32a.c: * cs53l32a (Adaptec AVC-2010 and AVC-2410) i2c ivtv driver.
+> >> drivers/media/video/cs53l32a.c: * Audio source switching for Adaptec AVC-2410 added by Trev Jackson
+> >> drivers/media/video/cs53l32a.c:   /* Set cs53l32a internal register for Adaptec 2010/2410 setup */
+> >> drivers/media/video/ivtv/ivtv-cards.c:/* Adaptec VideOh! AVC-2410 card */
+> >> drivers/media/video/ivtv/ivtv-cards.c:    { PCI_DEVICE_ID_IVTV16, IVTV_PCI_ID_ADAPTEC, 0x0093 },
+> >> drivers/media/video/ivtv/ivtv-cards.c:    .name = "Adaptec VideOh! AVC-2410",
+> >> drivers/media/video/ivtv/ivtv-cards.c:/* Adaptec VideOh! AVC-2010 card */
+> >> drivers/media/video/ivtv/ivtv-cards.c:    { PCI_DEVICE_ID_IVTV16, IVTV_PCI_ID_ADAPTEC, 0x0092 },
+> >> drivers/media/video/ivtv/ivtv-cards.c:    .name = "Adaptec VideOh! AVC-2010",
+> >> drivers/media/video/ivtv/ivtv-cards.h:#define IVTV_CARD_AVC2410         7 /* Adaptec AVC-2410 */
+> >> drivers/media/video/ivtv/ivtv-cards.h:#define IVTV_CARD_AVC2010         8 /* Adaptec AVD-2010 (No Tuner) */
+> >> drivers/media/video/ivtv/ivtv-cards.h:#define IVTV_PCI_ID_ADAPTEC                 0x9005
+> >> drivers/media/video/ivtv/ivtv-driver.c:            "\t\t\t 8 = Adaptec AVC-2410\n"
+> >> drivers/media/video/ivtv/ivtv-driver.c:            "\t\t\t 9 = Adaptec AVC-2010\n"
+> >> drivers/media/video/ivtv/ivtv-i2c.c:              0x6b,   /* Adaptec IR */
+> >>
+> >> There are two Adaptec cards defined there, but only one has tuner.
+> >> I never found any device without tuners, but with a remote controllers, so
+> >> the logic at lirc_i2c seems to be for Adaptec AVC-2410.
+> > 
+> > That's correct. The AVC-2010 does not come with a remote.
+> 
+> Thanks for double checking. I've replaced the comments to:
+> 
+>     [media] ivtv: Add Adaptec Remote Controller
+>     
+>     lirc-i2c implements a get key logic for the Adaptec Remote
+>     Controller, at address 0x6b. The only driver that seems to have
+>     an Adaptec device is ivtv:
+>     
+>     $ git grep -i adaptec drivers/media
+>     drivers/media/video/cs53l32a.c: * cs53l32a (Adaptec AVC-2010 and AVC-2410) i2c ivtv driver.
+>     drivers/media/video/cs53l32a.c: * Audio source switching for Adaptec AVC-2410 added by Trev Jackson
+>     drivers/media/video/cs53l32a.c:   /* Set cs53l32a internal register for Adaptec 2010/2410 setup */
+>     drivers/media/video/ivtv/ivtv-cards.c:/* Adaptec VideOh! AVC-2410 card */
+>     drivers/media/video/ivtv/ivtv-cards.c:    { PCI_DEVICE_ID_IVTV16, IVTV_PCI_ID_ADAPTEC, 0x0093 },
+>     drivers/media/video/ivtv/ivtv-cards.c:    .name = "Adaptec VideOh! AVC-2410",
+>     drivers/media/video/ivtv/ivtv-cards.c:/* Adaptec VideOh! AVC-2010 card */
+>     drivers/media/video/ivtv/ivtv-cards.c:    { PCI_DEVICE_ID_IVTV16, IVTV_PCI_ID_ADAPTEC, 0x0092 },
+>     drivers/media/video/ivtv/ivtv-cards.c:    .name = "Adaptec VideOh! AVC-2010",
+>     drivers/media/video/ivtv/ivtv-cards.h:#define IVTV_CARD_AVC2410         7 /* Adaptec AVC-2410 */
+>     drivers/media/video/ivtv/ivtv-cards.h:#define IVTV_CARD_AVC2010         8 /* Adaptec AVD-2010 (No Tuner) */
+>     drivers/media/video/ivtv/ivtv-cards.h:#define IVTV_PCI_ID_ADAPTEC                 0x9005
+>     drivers/media/video/ivtv/ivtv-driver.c:            "\t\t\t 8 = Adaptec AVC-2410\n"
+>     drivers/media/video/ivtv/ivtv-driver.c:            "\t\t\t 9 = Adaptec AVC-2010\n"
+>     drivers/media/video/ivtv/ivtv-i2c.c:              0x6b,   /* Adaptec IR */
+>     
+>     There are two Adaptec cards defined there, but AVC-2010 doesn't have a
+>     remote controller. So, the logic at lirc_i2c seems to be for Adaptec AVC-2410.
+>     
+>     As we'll remove lirc_i2c from kernel, move the getkey code to ivtv driver, and
+>     use it for AVC-2410.
+> 
+> I have no means to test the IR with AVC-2410, but I think it is safe to apply
+> this patch, if none of us have this device, as the patch is trivial, and this
+> allows us to remove i2c_adapter.id obsolete field and lirc_i2c, after applying
+> this series, and the tree patches for lirc_zilog that Andy made.
 
-There were several warnings at the subsystem, that were catched with
-gcc version 4.5.1. All of them are fixed on those patches by a 
-trivial patch. So, let's fix them ;)
+I think I have the AVC-2410 but I think you have the remote for it. It's one of
+the remotes I gave you in San Franscisco.
 
-Now, the only remaining patches are the ones we want to be there:
+So that's going to be hard to test :-)
 
-drivers/staging/lirc/lirc_i2c.c: In function ‘ir_probe’:
-drivers/staging/lirc/lirc_i2c.c:431:3: warning: ‘id’ is deprecated (declared at include/linux/i2c.h:356)
-drivers/staging/lirc/lirc_i2c.c:450:3: warning: ‘id’ is deprecated (declared at include/linux/i2c.h:356)
-drivers/staging/lirc/lirc_i2c.c:479:9: warning: ‘id’ is deprecated (declared at include/linux/i2c.h:356)
-drivers/staging/lirc/lirc_zilog.c: In function ‘ir_probe’:
-drivers/staging/lirc/lirc_zilog.c:1199:2: warning: ‘id’ is deprecated (declared at include/linux/i2c.h:356)
-drivers/media/video/cx88/cx88-i2c.c: In function ‘cx88_i2c_init’:
-drivers/media/video/cx88/cx88-i2c.c:149:2: warning: ‘id’ is deprecated (declared at include/linux/i2c.h:356)
-drivers/media/video/cx88/cx88-vp3054-i2c.c: In function ‘vp3054_i2c_probe’:
-drivers/media/video/cx88/cx88-vp3054-i2c.c:128:2: warning: ‘id’ is deprecated (declared at include/linux/i2c.h:356)
+BTW, pending unforseen circumstances I'll be at the ELC in San Francisco again
+this year.
 
-They are basically caused by lirc_i2c and lirc_zilog, that still needs
-to use the legacy .id field at the I2C structs. Somebody with those
-hardware, please fix it.
+Regards,
 
-Thanks,
-Mauro
-
--
-
-Mauro Carvalho Chehab (8):
-  [media] dmxdev: Fix a compilation warning due to a bad type
-  [media] radio-wl1273: Fix two warnings
-  [media] lirc_zilog: Fix a warning
-  [media] dib7000m/dib7000p: Add support for TRANSMISSION_MODE_4K
-  [media] gspca: Fix a warning for using len before filling it
-  [media] stv090x: Fix some compilation warnings
-  [media] af9013: Fix a compilation warning
-  [media] streamzap: Fix a compilation warning when compiled builtin
-
- drivers/media/dvb/dvb-core/dmxdev.c    |    4 ++--
- drivers/media/dvb/frontends/af9013.c   |    2 +-
- drivers/media/dvb/frontends/dib7000m.c |   10 +++++-----
- drivers/media/dvb/frontends/dib7000p.c |   10 +++++-----
- drivers/media/dvb/frontends/stv090x.c  |    6 +++---
- drivers/media/radio/radio-wl1273.c     |    3 +--
- drivers/media/rc/streamzap.c           |    2 +-
- drivers/media/video/gspca/gspca.c      |    2 +-
- drivers/staging/lirc/lirc_zilog.c      |    1 -
- 9 files changed, 19 insertions(+), 21 deletions(-)
+	Hans
 
 -- 
-1.7.3.4
-
+Hans Verkuil - video4linux developer - sponsored by Cisco
