@@ -1,75 +1,44 @@
 Return-path: <mchehab@gaivota>
-Received: from d1.icnet.pl ([212.160.220.21]:50666 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753043Ab0L0KdT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Dec 2010 05:33:19 -0500
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] dma_declare_coherent_memory: push ioremap() up to caller
-Date: Mon, 27 Dec 2010 11:29:36 +0100
-Cc: "Russell King - ARM Linux" <linux@arm.linux.org.uk>,
-	linux-arch@vger.kernel.org, "Greg Kroah-Hartman" <gregkh@suse.de>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Arnd Bergmann <arnd@arndb.de>,
-	Dan Williams <dan.j.williams@intel.com>,
-	linux-sh@vger.kernel.org, Paul Mundt <lethal@linux-sh.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-usb@vger.kernel.org,
-	David Brownell <dbrownell@users.sourceforge.net>,
-	linux-media@vger.kernel.org, linux-scsi@vger.kernel.org,
-	"James E.J. Bottomley" <James.Bottomley@suse.de>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-References: <201012240020.37208.jkrzyszt@tis.icnet.pl> <201012250024.38576.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1012261837450.20458@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1012261837450.20458@axis700.grange>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201012271129.44434.jkrzyszt@tis.icnet.pl>
+Received: from ganesha.gnumonks.org ([213.95.27.120]:33926 "EHLO
+	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750838Ab0L3FyV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Dec 2010 00:54:21 -0500
+From: Sungchun Kang <sungchun.kang@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: s.nawrocki@samsung.com, kgene.kim@samsung.com,
+	Sungchun Kang <sungchun.kang@samsung.com>
+Subject: [PATCH] [media] s5p-fimc: clean up duplicate INIT_LIST_HEAD
+Date: Thu, 30 Dec 2010 14:35:07 +0900
+Message-Id: <1293687307-26204-1-git-send-email-sungchun.kang@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Sunday 26 December 2010 18:45:00 Guennadi Liakhovetski wrote:
-> On Sat, 25 Dec 2010, Janusz Krzysztofik wrote:
->
-> [snip]
->
-> > > Passing the virtual address allows the API to become much more
-> > > flexible. Not only that, it allows it to be used on ARM, rather
-> > > than becoming (as it currently stands) prohibited on ARM.
-> > >
-> > > I believe that putting ioremap() inside this API was the wrong
-> > > thing to do, and moving it outside makes the API much more
-> > > flexible and usable. It's something I still fully support.
-> >
-> > Thanks, this is what I was missing, having my point of view rather
-> > my machine centric, with not much wider experience. I'll quote your
-> > argumentation in next iteration of this patch if required.
->
-> AFAIU, this patch is similar to the previous two attempts:
->
-> http://www.spinics.net/lists/linux-sh/msg05482.html
-> and
-> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructur
->e/22271
->
-> but is even more intrusive, because those two previous attempts added
-> new functions, whereas this one is modifying an existing one. Both
-> those two attempts have been NACKed by FUJITA Tomonori, btw, he is 
-> not on the otherwise extensive CC list for this patch.
+Because active_q and pending_q are initialized at start_streaming,
+it seems to unnecessary that in fimc_probe.
 
-Hi Guennadi,
-I composed that extensive CC list based on what I was able to find in 
-MAINTAINERS for any files being modified, additionally adding Catalin 
-Marinas as one of the idea promoters. FUJITA Tomonori's name was not 
-specified there, nor was he mentioned as an author of any of those 
-files. Adding him per your advice.
+Reviewed-by Jonghun Han <jonghun.han@samsung.com>
+Signed-off-by: Sungchun Kang <sungchun.kang@samsung.com>
+---
+This patch is depended on:
+http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/heads/vb2-mfc-fimc
 
-NB, the rationale quoted above is provided by courtesy of Russell King, 
-and not of my authoriship, as it may look like at a first glance from 
-your snip result.
+ drivers/media/video/s5p-fimc/fimc-capture.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-Thanks,
-Janusz
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index 4e4441f..877ebef 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -861,8 +861,6 @@ int fimc_register_capture_device(struct fimc_dev *fimc)
+ 	/* Default color format for image sensor */
+ 	vid_cap->fmt.code = V4L2_MBUS_FMT_YUYV8_2X8;
+ 
+-	INIT_LIST_HEAD(&vid_cap->pending_buf_q);
+-	INIT_LIST_HEAD(&vid_cap->active_buf_q);
+ 	spin_lock_init(&ctx->slock);
+ 	vid_cap->ctx = ctx;
+ 
+-- 
+1.6.2.5
+
