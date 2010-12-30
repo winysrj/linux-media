@@ -1,57 +1,48 @@
 Return-path: <mchehab@gaivota>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60809 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752664Ab0LWMVA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Dec 2010 07:21:00 -0500
-Date: Thu, 23 Dec 2010 12:19:18 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: 'Kyungmin Park' <kmpark@infradead.org>,
-	'Michal Nazarewicz' <m.nazarewicz@samsung.com>,
-	linux-arm-kernel@lists.infradead.org,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Johan MOSSBERG' <johan.xx.mossberg@stericsson.com>,
-	'Mel Gorman' <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
-	'Michal Nazarewicz' <mina86@mina86.com>, linux-mm@kvack.org,
-	'Ankita Garg' <ankita@in.ibm.com>,
-	'Andrew Morton' <akpm@linux-foundation.org>,
-	linux-media@vger.kernel.org,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: Re: [PATCHv8 00/12] Contiguous Memory Allocator
-Message-ID: <20101223121917.GG3636@n2100.arm.linux.org.uk>
-References: <cover.1292443200.git.m.nazarewicz@samsung.com> <AANLkTim8_=0+-zM5z4j0gBaw3PF3zgpXQNetEn-CfUGb@mail.gmail.com> <20101223100642.GD3636@n2100.arm.linux.org.uk> <00ea01cba290$4d67f500$e837df00$%szyprowski@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <00ea01cba290$4d67f500$e837df00$%szyprowski@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:17958 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751903Ab0L3Lqb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Dec 2010 06:46:31 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id oBUBkV2I018671
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 30 Dec 2010 06:46:31 -0500
+Received: from gaivota (vpn-8-93.rdu.redhat.com [10.11.8.93])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id oBUBjLCl031659
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 30 Dec 2010 06:46:30 -0500
+Date: Thu, 30 Dec 2010 09:45:12 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 0/4] Remove lirc_i2c driver
+Message-ID: <20101230094512.3c29ad71@gaivota>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Thu, Dec 23, 2010 at 11:58:08AM +0100, Marek Szyprowski wrote:
-> Actually this contiguous memory allocator is a better replacement for
-> alloc_pages() which is used by dma_alloc_coherent(). It is a generic
-> framework that is not tied only to ARM architecture.
+This series remove lirc_i2c driver. The first patch just
+adds a note to bttv-input. The next patches add two
+parsers for two devices that are supported by lirc_i2c, but
+not by ir-kbd-i2c. The last one finally drops lirc_i2c.
 
-... which is open to abuse.  What I'm trying to find out is - if it
-can't be used for DMA, what is it to be used for?
+Mauro Carvalho Chehab (4):
+  [media] bttv-input: Add a note about PV951 RC
+  [media] cx88: Add RC logic for Leadtek PVR 2000
+  [media] ivtv: Add Adaptec Remote Controller
+  [media] Remove staging/lirc/lirc_i2c driver
 
-Or are we inventing an everything-but-ARM framework?
+ drivers/media/video/bt8xx/bttv-input.c |   12 +
+ drivers/media/video/cx88/cx88-input.c  |   49 +++-
+ drivers/media/video/ivtv/ivtv-i2c.c    |   34 ++-
+ drivers/staging/lirc/Kconfig           |    7 -
+ drivers/staging/lirc/Makefile          |    1 -
+ drivers/staging/lirc/lirc_i2c.c        |  536 --------------------------------
+ 6 files changed, 93 insertions(+), 546 deletions(-)
+ delete mode 100644 drivers/staging/lirc/lirc_i2c.c
 
-> > In other words, do we _actually_ have a use for this which doesn't
-> > involve doing something like allocating 32MB of memory from it,
-> > remapping it so that it's DMA coherent, and then performing DMA
-> > on the resulting buffer?
-> 
-> This is an arm specific problem, also related to dma_alloc_coherent()
-> allocator. To be 100% conformant with ARM specification we would
-> probably need to unmap all pages used by the dma_coherent allocator
-> from the LOW MEM area. This is doable, but completely not related
-> to the CMA and this patch series.
+-- 
+1.7.3.4
 
-You've already been told why we can't unmap pages from the kernel
-direct mapping.
-
-Okay, so I'm just going to assume that CMA has _no_ _business_ being
-used on ARM, and is not something that should interest anyone in the
-ARM community.
