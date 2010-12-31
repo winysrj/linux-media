@@ -1,217 +1,52 @@
 Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51287 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755629Ab0LTLh1 (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:48660 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750811Ab0LaGer (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Dec 2010 06:37:27 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v5 01/13] v4l: Move the media/v4l2-mediabus.h header to include/linux
-Date: Mon, 20 Dec 2010 12:37:13 +0100
-Message-Id: <1292845045-7945-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1292845045-7945-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1292845045-7945-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Fri, 31 Dec 2010 01:34:47 -0500
+Date: Fri, 31 Dec 2010 09:34:33 +0300
+From: Dan Carpenter <error27@gmail.com>
+To: "Justin P. Mattock" <justinmattock@gmail.com>
+Cc: trivial@kernel.org, devel@driverdev.osuosl.org,
+	linux-scsi@vger.kernel.org, netdev@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-kernel@vger.kernel.org, ivtv-devel@ivtvdriver.org,
+	linux-m68k@lists.linux-m68k.org,
+	spi-devel-general@lists.sourceforge.net,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 15/15]drivers:spi:dw_spi.c Typo change diable to
+ disable.
+Message-ID: <20101231063433.GB1886@bicker>
+References: <1293750484-1161-6-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-7-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-8-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-9-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-10-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-11-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-12-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-13-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-14-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-15-git-send-email-justinmattock@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1293750484-1161-15-git-send-email-justinmattock@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-The header defines the v4l2_mbus_framefmt structure which will be used
-by the V4L2 subdevs userspace API.
+On Thu, Dec 30, 2010 at 03:08:04PM -0800, Justin P. Mattock wrote:
+> The below patch fixes a typo "diable" to "disable". Please let me know if this
+> is correct or not.
+> 
+> Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
+> 
+> ---
+>  drivers/spi/dw_spi.c |    6 +++---
 
-Change the type of the v4l2_mbus_framefmt::code field to __u32, as enum
-sizes can differ between different ABIs on the same architectures.
+You missed one from this file:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/linux/Kbuild          |    1 +
- include/linux/v4l2-mediabus.h |   78 +++++++++++++++++++++++++++++++++++++++++
- include/media/soc_mediabus.h  |    3 +-
- include/media/v4l2-mediabus.h |   61 +-------------------------------
- 4 files changed, 81 insertions(+), 62 deletions(-)
- create mode 100644 include/linux/v4l2-mediabus.h
-
-diff --git a/include/linux/Kbuild b/include/linux/Kbuild
-index 26e0a7f..796e1d8 100644
---- a/include/linux/Kbuild
-+++ b/include/linux/Kbuild
-@@ -366,6 +366,7 @@ header-y += unistd.h
- header-y += usbdevice_fs.h
- header-y += utime.h
- header-y += utsname.h
-+header-y += v4l2-mediabus.h
- header-y += veth.h
- header-y += vhost.h
- header-y += videodev.h
-diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-new file mode 100644
-index 0000000..a62cd64
---- /dev/null
-+++ b/include/linux/v4l2-mediabus.h
-@@ -0,0 +1,78 @@
-+/*
-+ * Media Bus API header
-+ *
-+ * Copyright (C) 2009, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef __LINUX_V4L2_MEDIABUS_H
-+#define __LINUX_V4L2_MEDIABUS_H
-+
-+#include <linux/types.h>
-+#include <linux/videodev2.h>
-+
-+/*
-+ * These pixel codes uniquely identify data formats on the media bus. Mostly
-+ * they correspond to similarly named V4L2_PIX_FMT_* formats, format 0 is
-+ * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client pairs, where the
-+ * data format is fixed. Additionally, "2X8" means that one pixel is transferred
-+ * in two 8-bit samples, "BE" or "LE" specify in which order those samples are
-+ * transferred over the bus: "LE" means that the least significant bits are
-+ * transferred first, "BE" means that the most significant bits are transferred
-+ * first, and "PADHI" and "PADLO" define which bits - low or high, in the
-+ * incomplete high byte, are filled with padding bits.
-+ */
-+enum v4l2_mbus_pixelcode {
-+	V4L2_MBUS_FMT_FIXED = 1,
-+	V4L2_MBUS_FMT_YUYV8_2X8,
-+	V4L2_MBUS_FMT_YVYU8_2X8,
-+	V4L2_MBUS_FMT_UYVY8_2X8,
-+	V4L2_MBUS_FMT_VYUY8_2X8,
-+	V4L2_MBUS_FMT_YVYU10_2X10,
-+	V4L2_MBUS_FMT_YUYV10_2X10,
-+	V4L2_MBUS_FMT_YVYU10_1X20,
-+	V4L2_MBUS_FMT_YUYV10_1X20,
-+	V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE,
-+	V4L2_MBUS_FMT_RGB444_2X8_PADHI_BE,
-+	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
-+	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
-+	V4L2_MBUS_FMT_RGB565_2X8_LE,
-+	V4L2_MBUS_FMT_RGB565_2X8_BE,
-+	V4L2_MBUS_FMT_BGR565_2X8_LE,
-+	V4L2_MBUS_FMT_BGR565_2X8_BE,
-+	V4L2_MBUS_FMT_SBGGR8_1X8,
-+	V4L2_MBUS_FMT_SBGGR10_1X10,
-+	V4L2_MBUS_FMT_GREY8_1X8,
-+	V4L2_MBUS_FMT_Y10_1X10,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
-+	V4L2_MBUS_FMT_SGRBG8_1X8,
-+	V4L2_MBUS_FMT_SBGGR12_1X12,
-+	V4L2_MBUS_FMT_YUYV8_1_5X8,
-+	V4L2_MBUS_FMT_YVYU8_1_5X8,
-+	V4L2_MBUS_FMT_UYVY8_1_5X8,
-+	V4L2_MBUS_FMT_VYUY8_1_5X8,
-+};
-+
-+/**
-+ * struct v4l2_mbus_framefmt - frame format on the media bus
-+ * @width:	frame width
-+ * @height:	frame height
-+ * @code:	data format code
-+ * @field:	used interlacing type
-+ * @colorspace:	colorspace of the data
-+ */
-+struct v4l2_mbus_framefmt {
-+	__u32				width;
-+	__u32				height;
-+	__u32				code;
-+	enum v4l2_field			field;
-+	enum v4l2_colorspace		colorspace;
-+};
-+
-+#endif
-diff --git a/include/media/soc_mediabus.h b/include/media/soc_mediabus.h
-index 037cd7b..6243147 100644
---- a/include/media/soc_mediabus.h
-+++ b/include/media/soc_mediabus.h
-@@ -12,8 +12,7 @@
- #define SOC_MEDIABUS_H
- 
- #include <linux/videodev2.h>
--
--#include <media/v4l2-mediabus.h>
-+#include <linux/v4l2-mediabus.h>
- 
- /**
-  * enum soc_mbus_packing - data packing types on the media-bus
-diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-index 8e65598..971c7fa 100644
---- a/include/media/v4l2-mediabus.h
-+++ b/include/media/v4l2-mediabus.h
-@@ -11,66 +11,7 @@
- #ifndef V4L2_MEDIABUS_H
- #define V4L2_MEDIABUS_H
- 
--/*
-- * These pixel codes uniquely identify data formats on the media bus. Mostly
-- * they correspond to similarly named V4L2_PIX_FMT_* formats, format 0 is
-- * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client pairs, where the
-- * data format is fixed. Additionally, "2X8" means that one pixel is transferred
-- * in two 8-bit samples, "BE" or "LE" specify in which order those samples are
-- * transferred over the bus: "LE" means that the least significant bits are
-- * transferred first, "BE" means that the most significant bits are transferred
-- * first, and "PADHI" and "PADLO" define which bits - low or high, in the
-- * incomplete high byte, are filled with padding bits.
-- */
--enum v4l2_mbus_pixelcode {
--	V4L2_MBUS_FMT_FIXED = 1,
--	V4L2_MBUS_FMT_YUYV8_2X8,
--	V4L2_MBUS_FMT_YVYU8_2X8,
--	V4L2_MBUS_FMT_UYVY8_2X8,
--	V4L2_MBUS_FMT_VYUY8_2X8,
--	V4L2_MBUS_FMT_YVYU10_2X10,
--	V4L2_MBUS_FMT_YUYV10_2X10,
--	V4L2_MBUS_FMT_YVYU10_1X20,
--	V4L2_MBUS_FMT_YUYV10_1X20,
--	V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE,
--	V4L2_MBUS_FMT_RGB444_2X8_PADHI_BE,
--	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
--	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
--	V4L2_MBUS_FMT_RGB565_2X8_LE,
--	V4L2_MBUS_FMT_RGB565_2X8_BE,
--	V4L2_MBUS_FMT_BGR565_2X8_LE,
--	V4L2_MBUS_FMT_BGR565_2X8_BE,
--	V4L2_MBUS_FMT_SBGGR8_1X8,
--	V4L2_MBUS_FMT_SBGGR10_1X10,
--	V4L2_MBUS_FMT_GREY8_1X8,
--	V4L2_MBUS_FMT_Y10_1X10,
--	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
--	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
--	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
--	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
--	V4L2_MBUS_FMT_SGRBG8_1X8,
--	V4L2_MBUS_FMT_SBGGR12_1X12,
--	V4L2_MBUS_FMT_YUYV8_1_5X8,
--	V4L2_MBUS_FMT_YVYU8_1_5X8,
--	V4L2_MBUS_FMT_UYVY8_1_5X8,
--	V4L2_MBUS_FMT_VYUY8_1_5X8,
--};
--
--/**
-- * struct v4l2_mbus_framefmt - frame format on the media bus
-- * @width:	frame width
-- * @height:	frame height
-- * @code:	data format code
-- * @field:	used interlacing type
-- * @colorspace:	colorspace of the data
-- */
--struct v4l2_mbus_framefmt {
--	__u32				width;
--	__u32				height;
--	enum v4l2_mbus_pixelcode	code;
--	enum v4l2_field			field;
--	enum v4l2_colorspace		colorspace;
--};
-+#include <linux/v4l2-mediabus.h>
- 
- static inline void v4l2_fill_pix_format(struct v4l2_pix_format *pix_fmt,
- 				const struct v4l2_mbus_framefmt *mbus_fmt)
--- 
-1.7.2.2
+/* Set the interrupt mask, for poll mode just diable all int */
+                                              ^^^^^^
+regards,
+dan carpenter
 
