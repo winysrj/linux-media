@@ -1,95 +1,52 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:38953 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753685Ab0L0NDI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Dec 2010 08:03:08 -0500
-Message-ID: <4D188E87.9010700@redhat.com>
-Date: Mon, 27 Dec 2010 11:03:03 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4150 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753744Ab0LaPhC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Dec 2010 10:37:02 -0500
+Received: from durdane.localnet (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id oBVFatuJ083973
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 31 Dec 2010 16:37:00 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PATCHES FOR 2.6.38] Compile warning fixes
+Date: Fri, 31 Dec 2010 16:36:55 +0100
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 3/6] Documentation/ioctl/ioctl-number.txt: Remove some
- now freed ioctl ranges
-References: <cover.1293449547.git.mchehab@redhat.com> <20101227093839.09aebd15@gaivota> <201012271301.21722.hverkuil@xs4all.nl>
-In-Reply-To: <201012271301.21722.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201012311636.56040.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 27-12-2010 10:01, Hans Verkuil escreveu:
-> On Monday, December 27, 2010 12:38:39 Mauro Carvalho Chehab wrote:
->> The V4L1 removal patches removed a few ioctls. Update it at the docspace.
->>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>
->> diff --git a/Documentation/ioctl/ioctl-number.txt b/Documentation/ioctl/ioctl-number.txt
->> index 63ffd78..49d7f00 100644
->> --- a/Documentation/ioctl/ioctl-number.txt
->> +++ b/Documentation/ioctl/ioctl-number.txt
->> @@ -260,14 +260,11 @@ Code  Seq#(hex)	Include File		Comments
->>  't'	80-8F	linux/isdn_ppp.h
->>  't'	90	linux/toshiba.h
->>  'u'	00-1F	linux/smb_fs.h		gone
->> -'v'	all	linux/videodev.h	conflict!
->>  'v'	00-1F	linux/ext2_fs.h		conflict!
->>  'v'	00-1F	linux/fs.h		conflict!
->>  'v'	00-0F	linux/sonypi.h		conflict!
->> -'v'	C0-CF	drivers/media/video/ov511.h	conflict!
->>  'v'	C0-DF	media/pwc-ioctl.h	conflict!
->>  'v'	C0-FF	linux/meye.h		conflict!
->> -'v'	C0-CF	drivers/media/video/zoran/zoran.h	conflict!
->>  'v'	D0-DF	drivers/media/video/cpia2/cpia2dev.h	conflict!
->>  'w'	all				CERN SCI driver
->>  'y'	00-1F				packet based user level communications
->>
-> 
-> There is also a line for media/ovcamchip.h in this file that can be removed.
+This should make the daily build give us some OKs.
 
-Ok, I'll do that.
+Regards,
 
-> The media/rds.h line can also be removed (this is kernel internal only).
+	Hans
 
-There are two rds.h, related to V4L:
-./include/linux/rds.h
-./include/media/rds.h
+The following changes since commit 187134a5875df20356f4dca075db29f294115a47:
+  David Henningsson (1):
+        [media] DVB: IR support for TechnoTrend CT-3650
 
-One of them is at the public api:
+are available in the git repository at:
 
-include/linux/Kbuild:header-y += rds.h
+  ssh://linuxtv.org/git/hverkuil/media_tree.git compile-fixes
 
-Btw, that's weird:
+Hans Verkuil (4):
+      ngene: fix compile warning
+      tda18218: fix compile warning
+      zoran: fix compiler warning
+      v4l2-compat-ioctl32: fix compile warning
 
-$ git grep RDS_CMD_OPEN
-drivers/media/video/saa6588.c:    case RDS_CMD_OPEN:
-include/media/rds.h:#define RDS_CMD_OPEN  _IOW('R',1,int)
+ drivers/media/common/tuners/tda18218.c    |    2 +-
+ drivers/media/dvb/ngene/ngene-core.c      |    3 ++-
+ drivers/media/video/v4l2-compat-ioctl32.c |    4 ----
+ drivers/media/video/zoran/zoran_driver.c  |    1 +
+ 4 files changed, 4 insertions(+), 6 deletions(-)
 
-as saa6588 is a subdev.
-
-IMO, we should remove or rename the internal header first.
-
-> Ditto for media/bt819.h.
-
-There are also some issues there related to videodev2 stuff.
-
-I prefer to apply the path as-is (just removing the ovcamchip.h) and,
-on some later cleanup, check and fix the remaining stuff.
-> 
-> All other patches in this series:
-> 
-> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
-
-Thanks!
-> 
-> BTW, it is probably also a good idea to move the dabusb driver to staging and
-> mark it for removal in 2.6.39.
-
-Not sure about that. I don't see any good reason to remove dabusb driver, as
-nobody reported that it is broken.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
