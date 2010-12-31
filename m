@@ -1,70 +1,157 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout4.samsung.com ([203.254.224.34]:29232 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752378Ab0LWK6T (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Dec 2010 05:58:19 -0500
-Date: Thu, 23 Dec 2010 11:58:08 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCHv8 00/12] Contiguous Memory Allocator
-In-reply-to: <20101223100642.GD3636@n2100.arm.linux.org.uk>
-To: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>,
-	'Kyungmin Park' <kmpark@infradead.org>
-Cc: 'Michal Nazarewicz' <m.nazarewicz@samsung.com>,
-	linux-arm-kernel@lists.infradead.org,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Johan MOSSBERG' <johan.xx.mossberg@stericsson.com>,
-	'Mel Gorman' <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
-	'Michal Nazarewicz' <mina86@mina86.com>, linux-mm@kvack.org,
-	'Ankita Garg' <ankita@in.ibm.com>,
-	'Andrew Morton' <akpm@linux-foundation.org>,
-	linux-media@vger.kernel.org,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <00ea01cba290$4d67f500$e837df00$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <cover.1292443200.git.m.nazarewicz@samsung.com>
- <AANLkTim8_=0+-zM5z4j0gBaw3PF3zgpXQNetEn-CfUGb@mail.gmail.com>
- <20101223100642.GD3636@n2100.arm.linux.org.uk>
+Received: from mx1.redhat.com ([209.132.183.28]:12871 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753623Ab0LaOzc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Dec 2010 09:55:32 -0500
+Message-ID: <4D1DF072.7080408@redhat.com>
+Date: Fri, 31 Dec 2010 16:02:10 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: nasty bug at qv4l2
+References: <4D11E170.6050500@redhat.com> <4D14ABEE.40206@redhat.com> <201012241520.01460.hverkuil@xs4all.nl>
+In-Reply-To: <201012241520.01460.hverkuil@xs4all.nl>
+Content-Type: multipart/mixed;
+ boundary="------------030702080403090803070503"
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hello,
+This is a multi-part message in MIME format.
+--------------030702080403090803070503
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Thursday, December 23, 2010 11:07 AM Russell King - ARM Linux wrote:
+Hi,
 
-> On Thu, Dec 23, 2010 at 06:30:57PM +0900, Kyungmin Park wrote:
-> > Hi Andrew,
-> >
-> > any comments? what's the next step to merge it for 2.6.38 kernel. we
-> > want to use this feature at mainline kernel.
-> 
-> Has anyone addressed my issue with it that this is wide-open for
-> abuse by allocating large chunks of memory, and then remapping
-> them in some way with different attributes, thereby violating the
-> ARM architecture specification?
+Hans V. I've tested your patch for avoiding the double
+conversion problem, and I can report it fixes the issue seen with
+webcameras which need 90 degrees rotation.
 
-Actually this contiguous memory allocator is a better replacement for
-alloc_pages() which is used by dma_alloc_coherent(). It is a generic
-framework that is not tied only to ARM architecture.
+While testing I found a bug in gspca, which gets triggered by
+qv4l2 which makes it impossible to switch between userptr and
+mmap mode. While fixing that I also found some locking issues in
+gspca. As these all touch the gscpa core I'll send a patch set
+to Jean Francois Moine for this.
 
-> In other words, do we _actually_ have a use for this which doesn't
-> involve doing something like allocating 32MB of memory from it,
-> remapping it so that it's DMA coherent, and then performing DMA
-> on the resulting buffer?
+With the issues in gspca fixed, I found a bug in qv4l2 when using
+read mode in raw mode (not passing the correct src_size to
+libv4lconvert_convert).
 
-This is an arm specific problem, also related to dma_alloc_coherent()
-allocator. To be 100% conformant with ARM specification we would
-probably need to unmap all pages used by the dma_coherent allocator
-from the LOW MEM area. This is doable, but completely not related
-to the CMA and this patch series.
+I've attached 2 patches to qv4l2, fixing the read issue and a similar
+issue in mmap / userptr mode. These apply on top of your patch.
 
-Best regards
---
-Marek Szyprowski
-Samsung Poland R&D Center
+Regards,
+
+Hans
+
+--------------030702080403090803070503
+Content-Type: text/plain;
+ name="0001-qv4l2-Check-and-use-result-of-read.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="0001-qv4l2-Check-and-use-result-of-read.patch"
+
+>From d3393364292441fca894186c406a7e9ee982d243 Mon Sep 17 00:00:00 2001
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Fri, 31 Dec 2010 11:50:28 +0100
+Subject: [PATCH 1/2] qv4l2: Check and use result of read()
+
+qv4l2 was calling libv4lconvert_convert with a src size of fmt.pix.sizeimage,
+rather then using the actual amount of bytes read. This causes decompressors
+which check if they have consumed the entire compressed frame (ie pjpg) to
+error out, because they were not being passed the actual frame size.
+
+This patch fixes this, and also adds reporting of libv4lconvert_convert
+errors.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ utils/qv4l2/qv4l2.cpp |   14 ++++++++++++--
+ 1 files changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/utils/qv4l2/qv4l2.cpp b/utils/qv4l2/qv4l2.cpp
+index a085f86..1876b3c 100644
+--- a/utils/qv4l2/qv4l2.cpp
++++ b/utils/qv4l2/qv4l2.cpp
+@@ -178,11 +178,18 @@ void ApplicationWindow::capFrame()
+ 	switch (m_capMethod) {
+ 	case methodRead:
+ 		s = read(m_frameData, m_capSrcFormat.fmt.pix.sizeimage);
++		if (s < 0) {
++			if (errno != EAGAIN) {
++				error("read");
++				m_capStartAct->setChecked(false);
++			}
++			return;
++		}
+ 		if (useWrapper())
+-			memcpy(m_capImage->bits(), m_frameData, m_capSrcFormat.fmt.pix.sizeimage);
++			memcpy(m_capImage->bits(), m_frameData, s);
+ 		else
+ 			err = v4lconvert_convert(m_convertData, &m_capSrcFormat, &m_capDestFormat,
+-				m_frameData, m_capSrcFormat.fmt.pix.sizeimage,
++				m_frameData, s,
+ 				m_capImage->bits(), m_capDestFormat.fmt.pix.sizeimage);
+ 		break;
+ 
+@@ -227,6 +234,9 @@ void ApplicationWindow::capFrame()
+ 		qbuf(buf);
+ 		break;
+ 	}
++	if (err == -1)
++		error(v4lconvert_get_error_message(m_convertData));
++
+ 	m_capture->setImage(*m_capImage);
+ 	if (m_capture->frame() == 1)
+ 		refresh();
+-- 
+1.7.3.2
 
 
+--------------030702080403090803070503
+Content-Type: text/plain;
+ name="0002-qv4l2-When-in-wrapped-mode-memcpy-the-actual-framesi.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="0002-qv4l2-When-in-wrapped-mode-memcpy-the-actual-framesi.pa";
+ filename*1="tch"
+
+>From 4a3587e7466274f74d89a6608999887f3c62e66a Mon Sep 17 00:00:00 2001
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Fri, 31 Dec 2010 11:55:44 +0100
+Subject: [PATCH 2/2] qv4l2: When in wrapped mode memcpy the actual framesize
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ utils/qv4l2/qv4l2.cpp |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/utils/qv4l2/qv4l2.cpp b/utils/qv4l2/qv4l2.cpp
+index 1876b3c..bd1db3e 100644
+--- a/utils/qv4l2/qv4l2.cpp
++++ b/utils/qv4l2/qv4l2.cpp
+@@ -202,7 +202,7 @@ void ApplicationWindow::capFrame()
+ 
+ 		if (useWrapper())
+ 			memcpy(m_capImage->bits(), (unsigned char *)m_buffers[buf.index].start,
+-					m_capSrcFormat.fmt.pix.sizeimage);
++					buf.bytesused);
+ 		else
+ 			err = v4lconvert_convert(m_convertData, &m_capSrcFormat, &m_capDestFormat,
+ 				(unsigned char *)m_buffers[buf.index].start, buf.bytesused,
+@@ -225,7 +225,7 @@ void ApplicationWindow::capFrame()
+ 
+ 		if (useWrapper())
+ 			memcpy(m_capImage->bits(), (unsigned char *)buf.m.userptr,
+-					m_capSrcFormat.fmt.pix.sizeimage);
++					buf.bytesused);
+ 		else
+ 			err = v4lconvert_convert(m_convertData, &m_capSrcFormat, &m_capDestFormat,
+ 				(unsigned char *)buf.m.userptr, buf.bytesused,
+-- 
+1.7.3.2
+
+
+--------------030702080403090803070503--
