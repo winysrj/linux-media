@@ -1,54 +1,50 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-ew0-f45.google.com ([209.85.215.45]:53139 "EHLO
-	mail-ew0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753998Ab0LQQap (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Dec 2010 11:30:45 -0500
-Received: by ewy10 with SMTP id 10so410166ewy.4
-        for <linux-media@vger.kernel.org>; Fri, 17 Dec 2010 08:30:44 -0800 (PST)
-Message-ID: <4D0B8FE3.3080502@mvista.com>
-Date: Fri, 17 Dec 2010 19:29:23 +0300
-From: Sergei Shtylyov <sshtylyov@mvista.com>
+Received: from mx1.redhat.com ([209.132.183.28]:49814 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752108Ab0LaK0N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Dec 2010 05:26:13 -0500
+Message-ID: <4D1DAF7B.4020504@redhat.com>
+Date: Fri, 31 Dec 2010 08:24:59 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Manjunath Hadli <manjunath.hadli@ti.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH v7 5/8] davinci vpbe: board specific additions
-References: <1292507737-32739-1-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1292507737-32739-1-git-send-email-manjunath.hadli@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: "Justin P. Mattock" <justinmattock@gmail.com>
+CC: trivial@kernel.org, linux-m68k@vger.kernel.org,
+	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
+	linux-wireless@vger.kernel.org, linux-scsi@vger.kernel.org,
+	spi-devel-general@lists.sourceforge.net,
+	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
+Subject: Re: [PATCH 12/15]drivers:media:video:tvp7002.c Typo change diable
+ to disable.
+References: <1293750484-1161-1-git-send-email-justinmattock@gmail.com> <1293750484-1161-2-git-send-email-justinmattock@gmail.com> <1293750484-1161-3-git-send-email-justinmattock@gmail.com> <1293750484-1161-4-git-send-email-justinmattock@gmail.com> <1293750484-1161-5-git-send-email-justinmattock@gmail.com> <1293750484-1161-6-git-send-email-justinmattock@gmail.com> <1293750484-1161-7-git-send-email-justinmattock@gmail.com> <1293750484-1161-8-git-send-email-justinmattock@gmail.com> <1293750484-1161-9-git-send-email-justinmattock@gmail.com> <1293750484-1161-10-git-send-email-justinmattock@gmail.com> <1293750484-1161-11-git-send-email-justinmattock@gmail.com> <1293750484-1161-12-git-send-email-justinmattock@gmail.com>
+In-Reply-To: <1293750484-1161-12-git-send-email-justinmattock@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hello.
+Em 30-12-2010 21:08, Justin P. Mattock escreveu:
+> The below patch fixes a typo "diable" to "disable". Please let me know if this 
+> is correct or not.
+> 
+> Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+> ---
+>  drivers/media/video/tvp7002.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/tvp7002.c b/drivers/media/video/tvp7002.c
+> index e63b40f..c799e4e 100644
+> --- a/drivers/media/video/tvp7002.c
+> +++ b/drivers/media/video/tvp7002.c
+> @@ -789,7 +789,7 @@ static int tvp7002_query_dv_preset(struct v4l2_subdev *sd,
+>   * Get the value of a TVP7002 decoder device register.
+>   * Returns zero when successful, -EINVAL if register read fails or
+>   * access to I2C client fails, -EPERM if the call is not allowed
+> - * by diabled CAP_SYS_ADMIN.
+> + * by disabled CAP_SYS_ADMIN.
+>   */
+>  static int tvp7002_g_register(struct v4l2_subdev *sd,
+>  						struct v4l2_dbg_register *reg)
 
-Manjunath Hadli wrote:
-
-> This patch implements tables for display timings,outputs and
-> other board related functionalities.
-
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
-[...]
-
-> diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-davinci/board-dm644x-evm.c
-> index 34c8b41..e9b1243 100644
-> --- a/arch/arm/mach-davinci/board-dm644x-evm.c
-> +++ b/arch/arm/mach-davinci/board-dm644x-evm.c
-[...]
-> @@ -620,6 +671,8 @@ davinci_evm_map_io(void)
->  {
->  	/* setup input configuration for VPFE input devices */
->  	dm644x_set_vpfe_config(&vpfe_cfg);
-> +	/* setup configuration for vpbe devices */
-> +	dm644x_set_vpbe_display_config(&vpbe_display_cfg);
->  	dm644x_init();
->  }
-
-    This patch should *follow* the platform patch (where 
-dm644x_set_vpbe_display_config() is defined), not precede it.
-
-WBR, Sergei
