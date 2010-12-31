@@ -1,48 +1,51 @@
 Return-path: <mchehab@gaivota>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:9710 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751472Ab1AAByK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Dec 2010 20:54:10 -0500
-Subject: [REGRESSION: wm8775, ivtv] Please revert commit
- fcb9757333df37cf4a7feccef7ef6f5300643864
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Lawrence Rust <lawrence@softsystem.co.uk>
-Cc: Eric Sharkey <eric@lisaneric.org>, auric <auric@aanet.com.au>,
-	David Gesswein <djg@pdp8online.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	ivtv-users@ivtvdriver.org, ivtv-devel@ivtvdriver.org
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 31 Dec 2010 19:55:43 -0500
-Message-ID: <1293843343.7510.23.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:59089 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751557Ab1AAJ3h (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Jan 2011 04:29:37 -0500
+Message-ID: <4d1ef3ff.52790e0a.0150.0713@mx.google.com>
+From: "Igor M. Liplianin" <liplianin@me.by>
+Date: Fri, 31 Dec 2010 13:37:00 +0200
+Subject: [PATCH 04/18] xc5000: add support for DVB-C tuning.
+To: <mchehab@infradead.org>, <linux-media@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Mauro,
+Signed-off-by: Igor M. Liplianin <liplianin@netup.ru>
+---
+ drivers/media/common/tuners/xc5000.c |   18 ++++++++++++++++++
+ 1 files changed, 18 insertions(+), 0 deletions(-)
 
-Please revert at least the wm8775.c portion of commit
-fcb9757333df37cf4a7feccef7ef6f5300643864:
-
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=fcb9757333df37cf4a7feccef7ef6f5300643864
-
-It completely trashes baseband line-in audio for PVR-150 cards, and
-likely does the same for any other ivtv card that has a WM8775 chip.
-
-Reported-by: Eric Sharkey <eric@lisaneric.org>
-http://ivtvdriver.org/pipermail/ivtv-users/2010-December/010104.html
-
-Reported-by: Auric <auric@aanet.com.au>
-http://ivtvdriver.org/pipermail/ivtv-users/2010-December/010102.html
-
-Reported by: David Gesswein <djg@pdp8online.com>
-http://ivtvdriver.org/pipermail/ivtv-devel/2010-December/006619.html
-
-I have also verified with my own PVR-150 that this commit is the cause.
-
-Regards,
-Andy
-
+diff --git a/drivers/media/common/tuners/xc5000.c b/drivers/media/common/tuners/xc5000.c
+index 76ac5cd..e3218c9 100644
+--- a/drivers/media/common/tuners/xc5000.c
++++ b/drivers/media/common/tuners/xc5000.c
+@@ -683,6 +683,24 @@ static int xc5000_set_params(struct dvb_frontend *fe,
+ 			return -EINVAL;
+ 		}
+ 		priv->rf_mode = XC_RF_MODE_AIR;
++	} else if (fe->ops.info.type == FE_QAM) {
++		dprintk(1, "%s() QAM\n", __func__);
++		switch (params->u.qam.modulation) {
++		case QAM_16:
++		case QAM_32:
++		case QAM_64:
++		case QAM_128:
++		case QAM_256:
++		case QAM_AUTO:
++			dprintk(1, "%s() QAM modulation\n", __func__);
++			priv->bandwidth = BANDWIDTH_8_MHZ;
++			priv->video_standard = DTV7_8;
++			priv->freq_hz = params->frequency - 2750000;
++			priv->rf_mode = XC_RF_MODE_CABLE;
++			break;
++		default:
++			return -EINVAL;
++		}
+ 	} else {
+ 		printk(KERN_ERR "xc5000 modulation type not supported!\n");
+ 		return -EINVAL;
+-- 
+1.7.1
 
