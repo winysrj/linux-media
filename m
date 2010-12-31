@@ -1,59 +1,60 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:59563 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758023Ab0LTP6I (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:43444 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752758Ab0LaMVq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Dec 2010 10:58:08 -0500
-Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LDQ002LVHOTSL@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 20 Dec 2010 15:58:05 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LDQ00AIGHOTUO@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 20 Dec 2010 15:58:05 +0000 (GMT)
-Date: Mon, 20 Dec 2010 16:58:00 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH/RFC 0/2 v3] I2C/subdev driver for NOON010PC30 camera chip
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com
-Message-id: <1292860682-12014-1-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
+	Fri, 31 Dec 2010 07:21:46 -0500
+Subject: Re: [PATVH] media, dvb, IX2505V: Remember to free allocated memory
+ in failure path (ix2505v_attach()).
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Jesper Juhl <jj@chaosbits.net>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+In-Reply-To: <4D1DB0AC.9090008@infradead.org>
+References: <alpine.LNX.2.00.1012310008070.32595@swampdragon.chaosbits.net>
+	 <4D1DB0AC.9090008@infradead.org>
+Content-Type: text/plain; charset="UTF-8"
+Date: Fri, 31 Dec 2010 12:21:42 +0000
+Message-ID: <1293798102.2986.5.camel@tvboxspy>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi all,
+On Fri, 2010-12-31 at 08:30 -0200, Mauro Carvalho Chehab wrote:
+> Em 30-12-2010 21:11, Jesper Juhl escreveu:
+> > Hi,
+> > 
+> > We may leak the storage allocated to 'state' in 
+> > drivers/media/dvb/frontends/ix2505v.c::ix2505v_attach() on error.
+> > This patch makes sure we free the allocated memory in the failure case.
+> > 
+> > 
+> > Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+> > ---
+> >  ix2505v.c |    1 +
+> >  1 file changed, 1 insertion(+)
+> > 
+> >   Compile tested only.
+> > 
+> > diff --git a/drivers/media/dvb/frontends/ix2505v.c b/drivers/media/dvb/frontends/ix2505v.c
+> > index 55f2eba..fcb173d 100644
+> > --- a/drivers/media/dvb/frontends/ix2505v.c
+> > +++ b/drivers/media/dvb/frontends/ix2505v.c
+> > @@ -293,6 +293,7 @@ struct dvb_frontend *ix2505v_attach(struct dvb_frontend *fe,
+> >  		ret = ix2505v_read_status_reg(state);
+> >  
+> >  		if (ret & 0x80) {
+> > +			kfree(state);
+> 
+> Instead of doing the free here, please move it to happen at the error: logic.
+> Currently, there's just one error condition, but having part of the release/kfree
+> logic here and there is not a good idea.
+> 
+> >  			deb_i2c("%s: No IX2505V found\n", __func__);
+> >  			goto error;
+> >  		}
 
-following is a third version of patches adding the I2C/subdev driver
-for Siliconfile NOON010PC30 camera sensor with integrated ISP.
-It includes mostly corrections after the review by Hans. Hopefully 
-it can be merged into 2.6.38 in the current form.
-
-Changes since v1:
-- reworked to new v4l2-controls framework (-8% LOC)
-
-Changes since v2:
-- removed unneeded struct v4l2_ctrl * entries, CodingStyle cleanup,
-  fixed error paths in probe, added missing v4l2_ctrl_handler_free
-  on driver unload
-- removed s_config and an empty s_stream subdev callback implementations
-
-The patch series contains:
-
-[PATCH 1/2 v3] [media] Add chip identity for NOON010PC30 camera sensor
-[PATCH 2/2 v3] [media] Add v4l2 subdev driver for NOON010PC30L image sensor
-
-It has been rebased onto linuxtv/staging/for_v2.6.38 branch
-at git://linuxtv.org/media_tree.git.
+The state is already freed in ix2505v_release on error.
 
 
-Regards,
-Sylwester
-
-
---
-Sylwester Nawrocki
-Samsung Poland R&D Center
