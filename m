@@ -1,70 +1,39 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1168 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755453Ab0LRLq2 (ORCPT
+Received: from fep20.mx.upcmail.net ([62.179.121.40]:62433 "EHLO
+	fep20.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750894Ab0LaJjW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Dec 2010 06:46:28 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: Re: Volunteers needed: BKL removal: replace .ioctl by .unlocked_ioctl
-Date: Sat, 18 Dec 2010 12:46:09 +0100
-Cc: pawel@osciak.com, Marek Szyprowski <m.szyprowski@samsung.com>,
-	Steven Toth <stoth@kernellabs.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	sakari.ailus@maxwell.research.nokia.com,
-	David Cohen <dacohen@gmail.com>, Janne Grunau <j@jannau.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Muralidharan Karicheri <m-karicheri2@ti.com>,
-	Mike Isely <isely@isely.net>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Anatolij Gustschin <agust@denx.de>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pete Eberlein <pete@sensoray.com>
-References: <201012181231.27198.hverkuil@xs4all.nl>
-In-Reply-To: <201012181231.27198.hverkuil@xs4all.nl>
+	Fri, 31 Dec 2010 04:39:22 -0500
+Received: from edge05.upcmail.net ([192.168.13.212])
+          by viefep20-int.chello.at
+          (InterMail vM.8.01.02.02 201-2260-120-106-20100312) with ESMTP
+          id <20101231093920.ZXSM1667.viefep20-int.chello.at@edge05.upcmail.net>
+          for <linux-media@vger.kernel.org>;
+          Fri, 31 Dec 2010 10:39:20 +0100
+Received: from pc13 (pc13 [10.1.1.13])
+	by minerva12.dnsalias.com (8.13.8/8.13.8) with ESMTP id oBV9dHqD021555
+	for <linux-media@vger.kernel.org>; Fri, 31 Dec 2010 10:39:18 +0100
+From: "Hans von Marwijk" <ching@hispeed.ch>
+To: <linux-media@vger.kernel.org>
+References: <AANLkTim2oKhS_GLCf8sv1=6ia2GzbYV4Yh9KHnkTY6Pk@mail.gmail.com> <033c01cb9e0f$2f0efac0$8d2cf040$@ch> <D0728591-0878-42BA-BCD1-08FBFD362F6C@dinkum.org.uk> <05c101cba13f$41861930$c4924b90$@ch>
+In-Reply-To: <05c101cba13f$41861930$c4924b90$@ch>
+Subject: Ci+ CAM support
+Date: Fri, 31 Dec 2010 10:39:27 +0100
+Message-ID: <00f301cba8ce$9ddff2a0$d99fd7e0$@ch>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain;
+	charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201012181246.09823.hverkuil@xs4all.nl>
+Content-Language: en-gb
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Saturday, December 18, 2010 12:31:26 Hans Verkuil wrote:
-> Driver list:
-> 
-> saa7146 (Hans Verkuil)
-> mem2mem_testdev (Pawel Osciak or Marek Szyprowski)
-> cx23885 (Steve Toth)
-> cx18-alsa (Andy Walls)
-> omap24xxcam (Sakari Ailus or David Cohen)
-> au0828 (Janne Grunau)
-> cpia2 (Andy Walls or Hans Verkuil)
-> cx231xx (Mauro Carvalho Chehab)
-> davinci (Muralidharan Karicheri)
-> saa6588 (Hans Verkuil)
-> pvrusb2 (Mike Isely)
-> usbvision (Hans Verkuil)
-> s5p-fimc (Sylwester Nawrocki)
-> fsl-viu (Anatolij Gustschin)
-> tlg2300 (Mauro Carvalho Chehab)
-> zr364xx (Hans de Goede)
-> soc_camera (Guennadi Liakhovetski)
-> usbvideo/vicam (Hans de Goede)
-> s2255drv (Pete Eberlein)
-> bttv (Mauro Carvalho Chehab)
-> stk-webcam (Hans de Goede)
-> se401 (Hans de Goede)
-> si4713-i2c (Hans Verkuil)
-> dsbr100 (Hans Verkuil)
+Hi
 
-Oops, si4713-i2c and saa6588 are subdevs, so those two can be removed from
-this list.
+Which hardware does have a CI+ CAM ?
+Does Linux support CI+ CAM or will it be implemented in the future ?
 
-Regards,
+Thanks
+Hans
 
-	Hans
 
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
