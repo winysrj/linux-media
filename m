@@ -1,249 +1,67 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:24302 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753565Ab0L0MMT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Dec 2010 07:12:19 -0500
-Message-ID: <4D188285.8090603@redhat.com>
-Date: Mon, 27 Dec 2010 10:11:49 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from casper.infradead.org ([85.118.1.10]:55032 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752179Ab0LaLr6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Dec 2010 06:47:58 -0500
+Message-ID: <4D1DC2DD.6050400@infradead.org>
+Date: Fri, 31 Dec 2010 09:47:41 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Shuzhen Wang <shuzhenw@codeaurora.org>,
-	linux-media@vger.kernel.org, hzhong@codeaurora.org
-Subject: Re: RFC: V4L2 driver for Qualcomm MSM camera.
-References: <000601cba2d8$eaedcdc0$c0c96940$@org> <201012241219.31754.hverkuil@xs4all.nl>
-In-Reply-To: <201012241219.31754.hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "Igor M. Liplianin" <liplianin@me.by>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, aospan@netup.ru
+Subject: Re: [PATCH 01/18] Altera FPGA firmware download module.
+References: <201012310726.31851.liplianin@netup.ru> <201012311212.19715.laurent.pinchart@ideasonboard.com> <4D1DBE2A.5080003@infradead.org> <201012311230.51903.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201012311230.51903.laurent.pinchart@ideasonboard.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 24-12-2010 09:19, Hans Verkuil escreveu:
-> Good to hear from Qualcomm!
+Em 31-12-2010 09:30, Laurent Pinchart escreveu:
+> Hi Mauro,
 > 
-> I've made some comments below:
+> On Friday 31 December 2010 12:27:38 Mauro Carvalho Chehab wrote:
+>> Em 31-12-2010 09:12, Laurent Pinchart escreveu:
+>>> Hi Igor,
+>>>
+>>> On Friday 31 December 2010 06:26:31 Igor M. Liplianin wrote:
+>>>> It uses STAPL files and programs Altera FPGA through JTAG.
+>>>> Interface to JTAG must be provided from main device module,
+>>>> for example through cx23885 GPIO.
+>>>
+>>> It might be a bit late for this comment (sorry for not having noticed the
+>>> patch set earlier), but...
+>>>
+>>> Do we really need a complete JTAG implementation in the kernel ? Wouldn't
+>>> it better to handle this in userspace with a tiny kernel driver to
+>>> access the JTAG signals ?
+>>
+>> Laurent,
+>>
+>> Igor already explained it. From what I understood, the device he is
+>> working has a firmware that needs to be loaded via JTAG/FPGA.
 > 
-> On Thursday, December 23, 2010 20:38:04 Shuzhen Wang wrote:
->> Hello, 
->>
->> This is the architecture overview we put together for Qualcomm MSM camera
->> support in linux-media tree. Your comments are very much appreciated!
->>
->>
->> Introduction
->> ============
->>
->> This is the video4linux driver for Qualcomm MSM (Mobile Station Modem)
->> camera.
->>
->> The driver supports video and camera functionality on Qualcomm MSM SoC.
->> It supports camera sensors provided by OEMs with parallel/MIPI
->> interfaces, and operates in continuous streaming, snapshot, or video
->> recording modes.
->>
->> Hardware description
->> ====================
->>
->> MSM camera hardware contains the following components:
->> 1. One or more camera sensors controlled via I2C bus, and data outputs
->> on AXI or MIPI bus.
->> 2. Video Front End (VFE) core is an image signal processing hardware
->> pipeline that takes the sensor output, does the necessary processing,
->> and outputs to a buffer for V4L2 application. VFE is clocked by PCLK
->> (pixel clock) from the sensor.
->>
->> Software description
->> ====================
->>
->> The driver encapsulates the low-level hardware management and aligns
->> the interface to V4L2 driver framework. There is also a user space
->> camera service daemon which handles events from driver and changes
->> settings accordingly.
->>
->> During boot-up, the sensor is probed for and if the probe succeeds
->> /dev/video0 and /dev/msm_camera/config0 device nodes are created. The
->> /dev/video0 node is used for video buffer allocation in the kernel and for
->> receiving V4L2 ioctls for controlling the camera hardware (VFE, sensors).
->> The /dev/msm_camera/config0 node is used for sending commands and other
->> statistics available from the hardware to the camera service daemon. Note
->> that if more than one camera sensor is detected, there will be /dev/video1
->> and /dev/msm_camera/config1 device nodes created as well.
-> 
-> Does config control the sensor or the main msm subsystem? Or both?
-> 
->>
->> Design
->> ======
->>
->> For MSM camera IC, significant portion of image processing and optimization
->> codes are proprietary, so they cannot sit in kernel space. This plays an
->> important role when making design decisions.
->>
->> Our design is to have a light-weighted kernel driver, and put the
->> proprietary code in a user space daemon. The daemon polls on events
->> from /dev/msm_camera/config0 device in the form of v4l2_event. The events
->> could either be asynchronous (generated by the hardware), or synchronous
->> (control command from the application). Based on the events it receives,
->> the daemon will send appropriate control commands to the hardware.
->>
->>    +-------------+        +----------------+
->>    | Application |        | Service Daemon |
->>    +-------------+        +----------------+     User Space
->>  ..........................................................
->>    +--------------------------------------+      Kernel Space
->>    |                V4L2                  |
->>    +--------------------------------------+
->>    +---------+     +--------+     +-------+
->>    | VFE/ISP |     | Sensor |     | Flash |
->>    +---------+     +--------+     +-------+
-> 
-> Just to repeat what I have discussed with Qualcomm before (so that everyone knows):
-> I have no problem with proprietary code as long as:
-> 
-> 1) the hardware and driver APIs are clearly documented allowing someone else to
-> make their own algorithms.
-> 
-> 2) the initial state of the hardware as set up by the driver is good enough to
-> capture video in normal lighting conditions. In other words: the daemon should not
-> be needed for testing the driver. I compare this with cheap webcams that often
-> need software white balancing to get a decent picture. They still work without
-> that, but the picture simply doesn't look very good.
-> 
-> We also discussed the daemon in the past. The idea was that it should be called
-> from libv4l2. Is this still the plan?
-> 
->> Power Management
->> ================
->>
->> None at this point.
->>
->> SMP/multi-core
->> ==============
->>
->> Mutex is used for synchronization of threads accessing the driver
->> simultaneously. Between hardware interrupt handler and threads,
->> we use spinlock to make sure locking is done properly.
-> 
-> Take a look at the new core-assisted locking scheme implemented for 2.6.37.
-> This might simplify your driver. Just FYI.
->  
->> Security
->> ========
->>
->> None.
->>
->> Interface
->> =========
->>
->> The driver uses V4L2 API for user kernel interaction. Refer to
->> http://v4l2spec.bytesex.org/spec-single/v4l2.html.
-> 
-> That's really, really old. This is much more up to date:
-> 
-> http://linuxtv.org/downloads/v4l-dvb-apis/
-> 
-> And the very latest build every day is always available here:
-> 
-> http://www.xs4all.nl/~hverkuil/spec/media.html
->>
->> Between camera service daemon and the driver, we have customized IOCTL
->> commands associated with /dev/msm_camera/config0 node, that controls MSM
->> camera hardware. The list of IOCTLs are (declarations can be found in
->> include/media/msm_camera.h):
->>
->> MSM_CAM_IOCTL_GET_SENSOR_INFO
->>         Get the basic information such as name, flash support for the
->>         detected sensor.
+> I understand this. However, a complete JTAG state machine in the kernel, plus 
+> an Altera firmware parser, seems to be a lot of code that could live in 
+> userspace.
 
-Hmm... It may be interesting to have this as a standard ioctl for webcams.
+Moving it to userspace would mean a kernel driver that would depend on an
+userspace daemon^Wfirmware loader to work. I would NAK such designs.
 
->> MSM_CAM_IOCTL_SENSOR_IO_CFG
->>         Get or set sensor configurations: fps, line_pf, pixels_pl,
->>         exposure and gain, etc. The setting is stored in sensor_cfg_data
->>         structure.
+The way it is is fine from my POV.
 
-This doesn't make much sense to me as-is. The V4L2 API can set fps, exposure, 
-gain and other things. Please only use private ioctl's for those things that
-aren't provided elsewhere and can't be mapped into some CTRL.
-
->> MSM_CAM_IOCTL_CONFIG_VFE
->>         Change settings of different components of VFE hardware.
-
-Hard to analyze it, as you didn't provide any details ;) 
-
-Maybe the media controller API will be the right place for it. As Hans pointed,
-the hardware should be able to work without private ioctl's and/or media
-controller stuff.
-
->> MSM_CAM_IOCTL_CTRL_CMD_DONE
->>         Notify the driver that the ctrl command is finished.
-
-Just looking at the ioctl name, this doesn't make much sense. If you open a 
-device on normal way, the ioctl it will block until the operation is completed.
-
-Could you please provide more details about it?
-
->> MSM_CAM_IOCTL_RELEASE_STATS_BUFFER
->>         Notify the driver that the service daemon has done processing the
->>         stats buffer, and is returning it to the driver.
-
-The media controller API is the right place for things like stats.
-
->> MSM_CAM_IOCTL_AXI_CONFIG
->>         Configure AXI bus parameters (frame buffer addresses, offsets) to
->>         the VFE hardware.
-
-Hard to analyze it, as you didn't provide any details ;) 
-
-The same comments I did for MSM_CAM_IOCTL_CONFIG_VFE apply here.
-
-> Laurent Pinchart has a patch series adding support for device nodes for
-> sub-devices. The only reason that series isn't merged yet is that there are
-> no merged drivers that need it. You should use those patches to implement
-> these ioctls in sub-devices. I guess you probably want to create a subdev
-> for the VFE hardware. The SENSOR_INFO ioctl seems like something that can
-> be implemented using the upcoming media controller framework.
+>> Actually, I liked the idea, as the FPGA programming driver could be
+>> useful if other drivers have similar usecases.
 > 
-> My guess is that these ioctls will need some work.
->  
->> Driver parameters
->> =================
->>
->> None.
->>
->> Config options
->> ==============
->>
->> MSM_CAMERA in drivers/media/video/msm/Kconfig file
->>
->> Dependencies
->> ============
->>
->> PMIC, I2C, Clock, GPIO
->>
->> User space utilities
->> ====================
->>
->> A daemon process in the user space called mm-qcamera-daemon is polling
->> on events from the driver. This daemon is required in order for the V4L2
->> client application to run, and it's started by the init script.
->>
->> Other
->> =====
->>
->> To do
->> =====
->>
->> 1. Eliminate creation of /dev/msm_camera/config0 by routing private
->> ioctls through /dev/video0.
->> 2. Create sub devices for sensor and VFE.
-> 
-> It's more likely that the private ioctls will go through subdev device nodes.
-> 
-> That's really what they were designed for.
-> 
-> Regards,
-> 
-> 	Hans
+> If I understand it correctly the driver assumes the firmware is in an Altera 
+> proprietary format. If we really want JTAG code in the kernel we should at 
+> least split the file parser and the TAP access code.
 > 
 
+Agreed, but I don't think this would be a good reason to block the code merge
+for .38.
+
+Cheers,
+Mauro
