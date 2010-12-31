@@ -1,69 +1,48 @@
 Return-path: <mchehab@gaivota>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59507 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751877Ab0LWOWJ (ORCPT
+Received: from mail-pz0-f66.google.com ([209.85.210.66]:52337 "EHLO
+	mail-pz0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750872Ab0LaGzB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Dec 2010 09:22:09 -0500
-Date: Thu, 23 Dec 2010 14:20:53 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Tomasz Fujak <t.fujak@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kmpark@infradead.org>,
-	linux-arm-kernel@lists.infradead.org,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
-	Mel Gorman <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
-	linux-mm@kvack.org, Ankita Garg <ankita@in.ibm.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-media@vger.kernel.org,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCHv8 00/12] Contiguous Memory Allocator
-Message-ID: <20101223142053.GN3636@n2100.arm.linux.org.uk>
-References: <cover.1292443200.git.m.nazarewicz@samsung.com> <AANLkTim8_=0+-zM5z4j0gBaw3PF3zgpXQNetEn-CfUGb@mail.gmail.com> <20101223100642.GD3636@n2100.arm.linux.org.uk> <87k4j0ehdl.fsf@erwin.mina86.com> <20101223135120.GL3636@n2100.arm.linux.org.uk> <4D1357D5.9000507@samsung.com>
+	Fri, 31 Dec 2010 01:55:01 -0500
+Message-ID: <4D1D7A74.3030803@gmail.com>
+Date: Thu, 30 Dec 2010 22:38:44 -0800
+From: "Justin P. Mattock" <justinmattock@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4D1357D5.9000507@samsung.com>
+To: Dan Carpenter <error27@gmail.com>, trivial@kernel.org,
+	devel@driverdev.osuosl.org, linux-scsi@vger.kernel.org,
+	netdev@vger.kernel.org, linux-usb@vger.kernel.org,
+	linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org,
+	ivtv-devel@ivtvdriver.org, linux-m68k@lists.linux-m68k.org,
+	spi-devel-general@lists.sourceforge.net,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 15/15]drivers:spi:dw_spi.c Typo change diable to disable.
+References: <1293750484-1161-6-git-send-email-justinmattock@gmail.com> <1293750484-1161-7-git-send-email-justinmattock@gmail.com> <1293750484-1161-8-git-send-email-justinmattock@gmail.com> <1293750484-1161-9-git-send-email-justinmattock@gmail.com> <1293750484-1161-10-git-send-email-justinmattock@gmail.com> <1293750484-1161-11-git-send-email-justinmattock@gmail.com> <1293750484-1161-12-git-send-email-justinmattock@gmail.com> <1293750484-1161-13-git-send-email-justinmattock@gmail.com> <1293750484-1161-14-git-send-email-justinmattock@gmail.com> <1293750484-1161-15-git-send-email-justinmattock@gmail.com> <20101231063433.GB1886@bicker>
+In-Reply-To: <20101231063433.GB1886@bicker>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Thu, Dec 23, 2010 at 03:08:21PM +0100, Tomasz Fujak wrote:
-> On 2010-12-23 14:51, Russell King - ARM Linux wrote:
-> > On Thu, Dec 23, 2010 at 02:41:26PM +0100, Michal Nazarewicz wrote:
-> >> Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
-> >>> Has anyone addressed my issue with it that this is wide-open for
-> >>> abuse by allocating large chunks of memory, and then remapping
-> >>> them in some way with different attributes, thereby violating the
-> >>> ARM architecture specification?
-> >>>
-> >>> In other words, do we _actually_ have a use for this which doesn't
-> >>> involve doing something like allocating 32MB of memory from it,
-> >>> remapping it so that it's DMA coherent, and then performing DMA
-> >>> on the resulting buffer?
-> >> Huge pages.
-> >>
-> >> Also, don't treat it as coherent memory and just flush/clear/invalidate
-> >> cache before and after each DMA transaction.  I never understood what's
-> >> wrong with that approach.
-> > If you've ever used an ARM system with a VIVT cache, you'll know what's
-> > wrong with this approach.
-> >
-> > ARM systems with VIVT caches have extremely poor task switching
-> > performance because they flush the entire data cache at every task switch
-> > - to the extent that it makes system performance drop dramatically when
-> > they become loaded.
-> >
-> > Doing that for every DMA operation will kill the advantage we've gained
-> > from having VIPT caches and ASIDs stone dead.
-> This statement effectively means: don't map dma-able memory to the CPU
-> unless it's uncached. Have I missed anything?
+On 12/30/2010 10:34 PM, Dan Carpenter wrote:
+> On Thu, Dec 30, 2010 at 03:08:04PM -0800, Justin P. Mattock wrote:
+>> The below patch fixes a typo "diable" to "disable". Please let me know if this
+>> is correct or not.
+>>
+>> Signed-off-by: Justin P. Mattock<justinmattock@gmail.com>
+>>
+>> ---
+>>   drivers/spi/dw_spi.c |    6 +++---
+>
+> You missed one from this file:
+>
+> /* Set the interrupt mask, for poll mode just diable all int */
+>                                                ^^^^^^
+> regards,
+> dan carpenter
+>
+>
 
-I'll give you another solution to the problem - lobby ARM Ltd to have
-this restriction lifted from the architecture specification, which
-will probably result in the speculative prefetching also having to be
-removed.
+oh-man... my grepping wasn't so grepping after all.. thanks for that 
+I'll resend this one
 
-That would be my preferred solution if I had the power to do so, but
-I have to live with what ARM Ltd (and their partners such as yourselves)
-decide should end up in the architecture specification.
+Justin P. Mattock
