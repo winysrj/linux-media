@@ -1,178 +1,60 @@
 Return-path: <mchehab@gaivota>
-Received: from cantor2.suse.de ([195.135.220.15]:33053 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751880Ab0LWDep (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Dec 2010 22:34:45 -0500
-Date: Wed, 22 Dec 2010 19:32:53 -0800
-From: Greg KH <gregkh@suse.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
-	clemens@ladisch.de, sakari.ailus@maxwell.research.nokia.com
-Subject: Re: [RFC/PATCH v7 01/12] media: Media device node support
-Message-ID: <20101223033253.GA14692@suse.de>
-References: <1292844995-7900-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1292844995-7900-2-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1802 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752919Ab0LaLZb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Dec 2010 06:25:31 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 00/10] [RFC] Prio handling and v4l2_device release callback
+Date: Fri, 31 Dec 2010 12:25:16 +0100
+Cc: linux-media@vger.kernel.org
+References: <cover.1293657717.git.hverkuil@xs4all.nl> <4D1DB7FD.1040601@redhat.com>
+In-Reply-To: <4D1DB7FD.1040601@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1292844995-7900-2-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201012311225.16349.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Mon, Dec 20, 2010 at 12:36:24PM +0100, Laurent Pinchart wrote:
-> The media_devnode structure provides support for registering and
-> unregistering character devices using a dynamic major number. Reference
-> counting is handled internally, making device drivers easier to write
-> without having to solve the open/disconnect race condition issue over
-> and over again.
+On Friday, December 31, 2010 12:01:17 Mauro Carvalho Chehab wrote:
+> Em 29-12-2010 19:43, Hans Verkuil escreveu:
+> > This patch series adds two new features to the V4L2 framework.
+> > 
+> > The first 5 patches add support for VIDIOC_G/S_PRIORITY. All prio handling
+> > will be done in the core for any driver that either uses struct v4l2_fh
+> > (ivtv only at the moment) or has no open and release file operations (true
+> > for many simple (radio) drivers). In all other cases the driver will have
+> > to do the work.
+> 
+> It doesn't make sense to implement this at core, and for some this will happen
+> automatically, while, for others, drivers need to do something.
 
-What race condition are you referring to?
+However, it makes it possible to gradually convert all drivers.
+ 
+> > Eventually all drivers should either use v4l2_fh or never set filp->private_data.
+> 
+> I made a series of patches, due to BKL stuff converting the core to always
+> use v4l2_fh on all drivers. This seems to be the right solution for it.
 
-> +config MEDIA_CONTROLLER
-> +	bool "Media Controller API (EXPERIMENTAL)"
-> +	depends on EXPERIMENTAL
-> +	---help---
-> +	  Enable the media controller API used to query media devices internal
-> +	  topology and configure it dynamically.
-> +
-> +	  This API is mostly used by camera interfaces in embedded platforms.
+Can you point me to those patches? I remember seeing them, but can't remember where.
 
-That's nice, but why should I enable this?  Or will drivers enable it
-automatically?
+I see two potential problems with this approach:
 
+1) A lot of drivers do not actually need to allocate a v4l2_fh struct, so it
+   wastes memory. But on the other hand, it would be nicely consistent.
 
-> +#define MEDIA_NUM_DEVICES	256
+2) I prefer for core changes to have the least possible impact to existing drivers,
+   and just convert existing drivers one by one.
 
-Why this limit?
+But I would have to see your patch series again to see the impact of such a
+change.
 
-> +#define MEDIA_NAME		"media"
+Regards,
 
-Are you sure this is a good name for a camera?
+	Hans
 
-> +static dev_t media_dev_t;
-
-Only one major number?  Is it always dynamic?
-
-> +
-> +/*
-> + *	Active devices
-> + */
-> +static DEFINE_MUTEX(media_devnode_lock);
-> +static DECLARE_BITMAP(media_devnode_nums, MEDIA_NUM_DEVICES);
-> +
-> +/* Called when the last user of the media device exits. */
-> +static void media_devnode_release(struct device *cd)
-> +{
-> +	struct media_devnode *mdev = to_media_devnode(cd);
-> +
-> +	mutex_lock(&media_devnode_lock);
-> +
-> +	/* Delete the cdev on this minor as well */
-> +	cdev_del(&mdev->cdev);
-> +
-> +	/* Mark device node number as free */
-> +	clear_bit(mdev->minor, media_devnode_nums);
-> +
-> +	mutex_unlock(&media_devnode_lock);
-> +
-> +	/* Release media_devnode and perform other cleanups as needed. */
-> +	if (mdev->release)
-> +		mdev->release(mdev);
-> +}
-
-You forgot to free the device structure here as well, right?
-
-> +static ssize_t media_read(struct file *filp, char __user *buf,
-> +		size_t sz, loff_t *off)
-> +{
-> +	struct media_devnode *mdev = media_devnode_data(filp);
-> +
-> +	if (!mdev->fops->read)
-> +		return -EINVAL;
-> +	if (!media_devnode_is_registered(mdev))
-> +		return -EIO;
-
-How could this happen?  And are you sure -EIO is correct?
-
-> +	return mdev->fops->read(filp, buf, sz, off);
-> +}
-> +
-> +static ssize_t media_write(struct file *filp, const char __user *buf,
-> +		size_t sz, loff_t *off)
-> +{
-> +	struct media_devnode *mdev = media_devnode_data(filp);
-> +
-> +	if (!mdev->fops->write)
-> +		return -EINVAL;
-> +	if (!media_devnode_is_registered(mdev))
-> +		return -EIO;
-
-Same as above, and same comment in other places (poll, ioctl.)
-
-> +/* Override for the open function */
-> +static int media_open(struct inode *inode, struct file *filp)
-> +{
-> +	struct media_devnode *mdev;
-> +	int ret;
-> +
-> +	/* Check if the media device is available. This needs to be done with
-> +	 * the media_devnode_lock held to prevent an open/unregister race:
-> +	 * without the lock, the device could be unregistered and freed between
-> +	 * the media_devnode_is_registered() and get_device() calls, leading to
-> +	 * a crash.
-> +	 */
-> +	mutex_lock(&media_devnode_lock);
-> +	mdev = container_of(inode->i_cdev, struct media_devnode, cdev);
-
-By virtue of having the reference to the module held by the vfs, this
-shouldn't ever go away, even if the lock is not held.
-
-> +	/* return ENXIO if the media device has been removed
-> +	   already or if it is not registered anymore. */
-> +	if (!media_devnode_is_registered(mdev)) {
-> +		mutex_unlock(&media_devnode_lock);
-> +		return -ENXIO;
-> +	}
-
-So you can unregister a device at any time, even if the device is open,
-or about to be opened?  Then that's fine, but you can put the lock after
-the container_of(), right?
-
-> +	/* and increase the device refcount */
-> +	get_device(&mdev->dev);
-
-How is that holding anything into memory?  Don't you want to keep the
-module that the fops pointer in the device in memory, not necessarily
-the device itself?
-
-> +	mutex_unlock(&media_devnode_lock);
-> +
-> +	filp->private_data = mdev;
-> +
-> +	if (mdev->fops->open) {
-> +		ret = mdev->fops->open(filp);
-> +		if (ret) {
-> +			put_device(&mdev->dev);
-> +			return ret;
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-
-No reference counting for the fops?  Why not?
-
-Anyway, it looks like what you really want is an "easier" way to handle
-a cdev and a struct device that will export the proper information to
-userspace, right?
-
-Why not do this generically, fixing up the cdev interface (which really
-needs it) and not tie it to media devices at all, making it possible for
-_everyone_ to use this type of infrastructure?
-
-That seems like the better thing to do here.
-
-thanks,
-
-greg k-h
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
