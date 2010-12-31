@@ -1,72 +1,103 @@
 Return-path: <mchehab@gaivota>
-Received: from mail.sfc.wide.ad.jp ([203.178.142.146]:44323 "EHLO
-	mail.sfc.wide.ad.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750804Ab0LXFqt (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2782 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753371Ab0LaMzV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Dec 2010 00:46:49 -0500
-Message-ID: <4D14325E.9000505@sfc.wide.ad.jp>
-Date: Fri, 24 Dec 2010 14:40:46 +0900
-From: Ang Way Chuang <wcang@sfc.wide.ad.jp>
+	Fri, 31 Dec 2010 07:55:21 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 00/10] [RFC] Prio handling and v4l2_device release callback
+Date: Fri, 31 Dec 2010 13:55:05 +0100
+Cc: linux-media@vger.kernel.org
+References: <cover.1293657717.git.hverkuil@xs4all.nl> <201012311225.16349.hverkuil@xs4all.nl> <4D1DC0DD.7060809@redhat.com>
+In-Reply-To: <4D1DC0DD.7060809@redhat.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Achmad Husni Thamrin <husni@ai3.net>
-Subject: [PATCH] cx88-dvb.c: DVB net latency using Hauppauge HVR4000
-Content-Type: multipart/mixed;
- boundary="------------040808050207080202040004"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201012311355.05143.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-This is a multi-part message in MIME format.
---------------040808050207080202040004
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On Friday, December 31, 2010 12:39:09 Mauro Carvalho Chehab wrote:
+> Em 31-12-2010 09:25, Hans Verkuil escreveu:
+> > On Friday, December 31, 2010 12:01:17 Mauro Carvalho Chehab wrote:
+> >> Em 29-12-2010 19:43, Hans Verkuil escreveu:
+> >>> This patch series adds two new features to the V4L2 framework.
+> >>>
+> >>> The first 5 patches add support for VIDIOC_G/S_PRIORITY. All prio handling
+> >>> will be done in the core for any driver that either uses struct v4l2_fh
+> >>> (ivtv only at the moment) or has no open and release file operations (true
+> >>> for many simple (radio) drivers). In all other cases the driver will have
+> >>> to do the work.
+> >>
+> >> It doesn't make sense to implement this at core, and for some this will happen
+> >> automatically, while, for others, drivers need to do something.
+> > 
+> > However, it makes it possible to gradually convert all drivers.
+> 
+> This will likely mean years of conversion.
+> >  
+> >>> Eventually all drivers should either use v4l2_fh or never set filp->private_data.
+> >>
+> >> I made a series of patches, due to BKL stuff converting the core to always
+> >> use v4l2_fh on all drivers. This seems to be the right solution for it.
+> > 
+> > Can you point me to those patches? I remember seeing them, but can't remember where.
+> 
+> They are at devel/bkl branch. The main one is this:
+> 
+> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=285267378581fbf852f24f3f99d2e937cd200fd5
+> 
+> I remember you had some issues on it, but it is just a matter of fixing them.
 
-Hi linux-media developers,
-     We are from School On Internet Asia (SOI Asia) project that uses satellite communication to deliver educational content.
-We used Hauppauge HVR 4000 to carry IP traffic over ULE. However, there is an issue with high latency jitter. My boss, Husni,
-identified the problem and provided a patch for this problem. We have tested this patch since kernel 2.6.30 on our partner
-sites and it hasn't cause any issue. The default buffer size of 32 TS frames on cx88 causes the high latency, so our deployment
-changes that to 6 TS frames. This patch made the buffer size tunable, while keeping the default buffer size of 32 TS frames
-unchanged. Sorry, I have to use attachment for the patch. I couldn't figure out how to copy and paste the patch without
-converting the tab to spaces in thunderbird.
+Thanks, I'll take a look.
 
-Signed-off-by: Achmad Husni Thamrin <husni@ai3.net>
+> > I see two potential problems with this approach:
+> > 
+> > 1) A lot of drivers do not actually need to allocate a v4l2_fh struct, so it
+> >    wastes memory. But on the other hand, it would be nicely consistent.
+> 
+> A typical driver allocates at least 2 buffers of 640x480x2. How much memory a
+> v4l2_fh struct would require? I didn't calculate, but probably less than 0.01%.
+> I don't think that the extra consumption of memory will have any real impact, even
+> on embedded. On the other hand, if you need to add the priority handling via code,
+> you'll probably waste more on codespace than the size of the struct.
 
+Actually, I was thinking about the radio drivers which do not use buffers.
 
---------------040808050207080202040004
-Content-Type: text/x-patch;
- name="cx88-buffer.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="cx88-buffer.patch"
+However, I realized that we also want to add an event that is sent whenever a
+control changes value. It's not yet implemented, but it's easy to do with the
+control framework. And since almost all drivers have controls, this also means
+that all drivers need to use v4l2_fh since that is a prerequisite for events.
 
-diff --git a/drivers/media/video/cx88/cx88-dvb.c b/drivers/media/video/cx88/cx88-dvb.c
-index 367a653..90717ee 100644
---- a/drivers/media/video/cx88/cx88-dvb.c
-+++ b/drivers/media/video/cx88/cx88-dvb.c
-@@ -67,6 +67,10 @@ static unsigned int debug;
- module_param(debug, int, 0644);
- MODULE_PARM_DESC(debug,"enable debug messages [dvb]");
- 
-+static unsigned int dvb_buf_tscnt = 32;
-+module_param(dvb_buf_tscnt, int, 0644);
-+MODULE_PARM_DESC(dvb_buf_tscnt, "DVB Buffer TS count [dvb]");
-+
- DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- 
- #define dprintk(level,fmt, arg...)	if (debug >= level) \
-@@ -80,10 +84,10 @@ static int dvb_buf_setup(struct videobuf_queue *q,
- 	struct cx8802_dev *dev = q->priv_data;
- 
- 	dev->ts_packet_size  = 188 * 4;
--	dev->ts_packet_count = 32;
-+	dev->ts_packet_count = dvb_buf_tscnt;
- 
- 	*size  = dev->ts_packet_size * dev->ts_packet_count;
--	*count = 32;
-+	*count = dvb_buf_tscnt;
- 	return 0;
- }
- 
+So it is indeed much better to create v4l2_fh structs in the core.
 
---------------040808050207080202040004--
+Regards,
+
+	Hans
+
+> 
+> > 2) I prefer for core changes to have the least possible impact to existing drivers,
+> >    and just convert existing drivers one by one.
+> 
+> A per-driver implementation means per-driver errors. A per-core implementation means
+> that, once it is fixed, all drivers will be OK. 
+> 
+> > But I would have to see your patch series again to see the impact of such a
+> > change.
+> > 
+> 
+> > Regards,
+> > 
+> > 	Hans
+> > 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
