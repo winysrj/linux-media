@@ -1,78 +1,90 @@
-Return-path: <mchehab@pedra>
-Received: from poutre.nerim.net ([62.4.16.124]:54127 "EHLO poutre.nerim.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753228Ab1ASRDf convert rfc822-to-8bit (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:54275 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753902Ab0LaVpM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jan 2011 12:03:35 -0500
-From: Thierry LELEGARD <tlelegard@logiways.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Andreas Oberritter <obi@linuxtv.org>
-Subject: RE: [linux-media] API V3 vs SAPI behavior difference in reading
-  tuning  parameters
-Date: Wed, 19 Jan 2011 17:03:31 +0000
-Message-ID: <BA2A2355403563449C28518F517A3C4805AAD036@titan.logiways-france.fr>
-References: <BA2A2355403563449C28518F517A3C4805AA9B9B@titan.logiways-france.fr>
- <AANLkTi=Y_ikxp2hHHh5B=rQqQLf5w5_5SivzLJ+DfVLm@mail.gmail.com>
- <4D307A80.4050807@linuxtv.org>
- <BA2A2355403563449C28518F517A3C4805AA9CE2@titan.logiways-france.fr>
-In-Reply-To: <BA2A2355403563449C28518F517A3C4805AA9CE2@titan.logiways-france.fr>
-Content-Language: fr-FR
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Fri, 31 Dec 2010 16:45:12 -0500
+Received: by vws16 with SMTP id 16so4908910vws.19
+        for <linux-media@vger.kernel.org>; Fri, 31 Dec 2010 13:45:11 -0800 (PST)
 MIME-Version: 1.0
+Date: Fri, 31 Dec 2010 22:45:09 +0100
+Message-ID: <AANLkTi=_LHucekW21KeGt3yWMNYHntQ5nVvHUO2EVHAO@mail.gmail.com>
+Subject: DVB driver for TerraTec H7 - how do I install them?
+From: Torfinn Ingolfsen <tingox@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-OK, then what? Is the S2API behavior (returning cached - but incorrect - tuning
-parameter values) satisfactory for everyone or shall we adapt S2API to mimic the
-API V3 behavior (return the actual tuning parameter values as automatically
-adjusted by the driver)?
+Ok,
+I downloaded drivers for the TerraTec H7 from here: http://linux.terratec.de/
+This file to be exact: http://linux.terratec.de/files/TERRATEC_H7_Linux.tar.gz
+Which supposedly contains drivers for the H7.
 
--Thierry
+I am running Xubuntu 10.04:
+tingo@kg-htpc:~$ lsb_release -a
+No LSB modules are available.
+Distributor ID: Ubuntu
+Description:    Ubuntu 10.04.1 LTS
+Release:        10.04
+Codename:       lucid
+tingo@kg-htpc:~$ uname -a
+Linux kg-htpc 2.6.32-27-generic #49-Ubuntu SMP Wed Dec 1 23:52:12 UTC
+2010 i686 GNU/Linux
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-owner@vger.kernel.org] On
-> Behalf Of Thierry LELEGARD
-> Sent: Friday, January 14, 2011 5:44 PM
-> To: linux-media@vger.kernel.org
-> Cc: Devin Heitmueller; Andreas Oberritter
-> Subject: RE: [linux-media] API V3 vs SAPI behavior difference in reading tuning
-> parameters
-> 
-> > -----Original Message-----
-> > From: Andreas Oberritter [mailto:obi@linuxtv.org]
-> > Sent: Friday, January 14, 2011 5:32 PM
-> 
-> 
-> > Albeit, DVB-SI data isn't perfect and misconfiguration at the
-> > transmitter happens (e.g. wrong FEC values), especially where most of
-> > the parameters are signaled in-band (e.g. TPS for DVB-T). It's a better
-> > user experience if the reception continues to work, even if the user
-> > didn't specify AUTO.
-> 
-> Exactly. In the French DVB-T network, there is no regional NIT, only one
-> common national NIT. As a consequence, all tuning parameters (frequency
-> but also FEC, guard interval, etc) are wrong in the terrestrial delivery
-> descriptors because for a given TS they are obviously not identical on all
-> transmitters. Moreover, these parameters change over time (many transmitters
-> recently moved from 2/3 - 1/32 to 3/4 - 1/8).
-> 
-> In such networks, nobody "knows" for sure the modulation parameters. This is
-> why it is a good thing that the tuners can 1) find the actual parameters and
-> 2) report them to the application whenever it requests them.
-> 
-> > I'd rather understand non-AUTO parameters that way: "Try these first,
-> > but if you want and if you can, you're free to try other parameters."
-> 
-> Exactly, for the same reasons as above.
-> 
-> This is why the new behavior of S2API (compared to API V3) is quite unfortunate.
-> On a pragmatic standpoint, this is really a major step backward.
-> 
-> -Thierry
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I followed this guide[1] to get and install a new v4l-dvb, which worked fine.
+Then I did 'make distclean' and copied the files from the
+TERRATEC_H7_Linux.tar.gz file to where I thought they should be, and
+tried recompiling the v4l-dvb tree.
+That didn't work, the compilation aborted:
+ CC [M]  /home/tingo/work/v4l-dvb/v4l/au6610.o
+ CC [M]  /home/tingo/work/v4l-dvb/v4l/az6007.o
+In file included from /home/tingo/work/v4l-dvb/v4l/az6007.c:11:
+/home/tingo/work/v4l-dvb/v4l/mt2063_cfg.h: In function 'tuner_MT2063_Open':
+/home/tingo/work/v4l-dvb/v4l/mt2063_cfg.h:62: error:
+'DVBFE_TUNER_OPEN' undeclared (first use in this function)
+/home/tingo/work/v4l-dvb/v4l/mt2063_cfg.h:62: error: (Each undeclared
+identifier is reported only once
+/home/tingo/work/v4l-dvb/v4l/mt2063_cfg.h:62: error: for each function
+it appears in.)
+/home/tingo/work/v4l-dvb/v4l/mt2063_cfg.h: In function
+'tuner_MT2063_SoftwareShutdown':
+/home/tingo/work/v4l-dvb/v4l/mt2063_cfg.h:83: error:
+'DVBFE_TUNER_SOFTWARE_SHUTDOWN' undeclared (first use in this
+function)
+/home/tingo/work/v4l-dvb/v4l/mt2063_cfg.h: In function
+'tuner_MT2063_ClearPowerMaskBits':
+/home/tingo/work/v4l-dvb/v4l/mt2063_cfg.h:104: error:
+'DVBFE_TUNER_CLEAR_POWER_MASKBITS' undeclared (first use in this
+function)
+/home/tingo/work/v4l-dvb/v4l/az6007.c: At top level:
+/home/tingo/work/v4l-dvb/v4l/az6007.c:157: warning: excess elements in
+struct initializer
+/home/tingo/work/v4l-dvb/v4l/az6007.c:157: warning: (near
+initialization for 'az6007_rc_keys[0]')
+/home/tingo/work/v4l-dvb/v4l/az6007.c:158: warning: excess elements in
+struct initializer
+/home/tingo/work/v4l-dvb/v4l/az6007.c:158: warning: (near
+initialization for 'az6007_rc_keys[1]')
+/home/tingo/work/v4l-dvb/v4l/az6007.c:535: error:
+'USB_PID_AZUREWAVE_6007' undeclared here (not in a function)
+/home/tingo/work/v4l-dvb/v4l/az6007.c:536: error:
+'USB_PID_TERRATEC_H7' undeclared here (not in a function)
+make[3]: *** [/home/tingo/work/v4l-dvb/v4l/az6007.o] Error 1
+make[2]: *** [_module_/home/tingo/work/v4l-dvb/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-headers-2.6.32-27-generic'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/home/tingo/work/v4l-dvb/v4l'
+make: *** [all] Error 2
+
+So obviously I'm doing something wrong.
+How do I install those drivers for the TerraTec H7?
+
+Oh, and best wishes for the new year to everyone!
+
+References:
+1) http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+--
+Regards,
+Torfinn Ingolfsen
+Norway
