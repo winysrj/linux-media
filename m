@@ -1,130 +1,49 @@
 Return-path: <mchehab@gaivota>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45220 "EHLO arroyo.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:40391 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757781Ab0LTNzy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Dec 2010 08:55:54 -0500
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH v8 8/8] davinci vpbe: Readme text for Dm6446 vpbe
-Date: Mon, 20 Dec 2010 19:25:27 +0530
-Message-Id: <1292853327-2928-1-git-send-email-manjunath.hadli@ti.com>
+	id S1751892Ab0LaQS4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Dec 2010 11:18:56 -0500
+Message-ID: <4D1E0263.8050206@redhat.com>
+Date: Fri, 31 Dec 2010 14:18:43 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Hans de Goede <hdegoede@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: nasty bug at qv4l2
+References: <4D11E170.6050500@redhat.com> <201012241520.01460.hverkuil@xs4all.nl> <4D1DF072.7080408@redhat.com> <201012311608.25285.hverkuil@xs4all.nl>
+In-Reply-To: <201012311608.25285.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Please refer to this file for detailed documentation of
-davinci vpbe v4l2 driver
+Em 31-12-2010 13:08, Hans Verkuil escreveu:
+> On Friday, December 31, 2010 16:02:10 Hans de Goede wrote:
+>> Hi,
+>>
+>> Hans V. I've tested your patch for avoiding the double
+>> conversion problem, and I can report it fixes the issue seen with
+>> webcameras which need 90 degrees rotation.
+>>
+>> While testing I found a bug in gspca, which gets triggered by
+>> qv4l2 which makes it impossible to switch between userptr and
+>> mmap mode. While fixing that I also found some locking issues in
+>> gspca. As these all touch the gscpa core I'll send a patch set
+>> to Jean Francois Moine for this.
+>>
+>> With the issues in gspca fixed, I found a bug in qv4l2 when using
+>> read mode in raw mode (not passing the correct src_size to
+>> libv4lconvert_convert).
+>>
+>> I've attached 2 patches to qv4l2, fixing the read issue and a similar
+>> issue in mmap / userptr mode. These apply on top of your patch.
+> 
+> Thanks for testing this! I've committed mine and your patches for qv4l2.
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- Documentation/video4linux/README.davinci-vpbe |   93 +++++++++++++++++++++++++
- 1 files changed, 93 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/video4linux/README.davinci-vpbe
+Ok, I did some tests here too. The applied patches fix the bugs I've
+reported: the pac7302 driver formats are properly reported (the emulated ones),
+and it is now possible to change resolution/format with the uvc driver.
 
-diff --git a/Documentation/video4linux/README.davinci-vpbe b/Documentation/video4linux/README.davinci-vpbe
-new file mode 100644
-index 0000000..7a460b0
---- /dev/null
-+++ b/Documentation/video4linux/README.davinci-vpbe
-@@ -0,0 +1,93 @@
-+
-+                VPBE V4L2 driver design
-+ ======================================================================
-+
-+ File partitioning
-+ -----------------
-+ V4L2 display device driver
-+         drivers/media/video/davinci/vpbe_display.c
-+         drivers/media/video/davinci/vpbe_display.h
-+
-+ VPBE display controller
-+         drivers/media/video/davinci/vpbe.c
-+         drivers/media/video/davinci/vpbe.h
-+
-+ VPBE venc sub device driver
-+         drivers/media/video/davinci/vpbe_venc.c
-+         drivers/media/video/davinci/vpbe_venc.h
-+         drivers/media/video/davinci/vpbe_venc_regs.h
-+
-+ VPBE osd driver
-+         drivers/media/video/davinci/vpbe_osd.c
-+         drivers/media/video/davinci/vpbe_osd.h
-+         drivers/media/video/davinci/vpbe_osd_regs.h
-+
-+ Functional partitioning
-+ -----------------------
-+
-+ Consists of the following (in the same order as the list under file
-+ partitioning):-
-+
-+ 1. V4L2 display driver
-+    Implements creation of video2 and video3 device nodes and
-+    provides v4l2 device interface to manage VID0 and VID1 layers.
-+
-+ 2. Display controller
-+    Loads up VENC, OSD and external encoders such as ths8200. It provides
-+    a set of API calls to V4L2 drivers to set the output/standards
-+    in the VENC or external sub devices. It also provides
-+    a device object to access the services from OSD subdevice
-+    using sub device ops. The connection of external encoders to VENC LCD
-+    controller port is done at init time based on default output and standard
-+    selection or at run time when application change the output through
-+    V4L2 IOCTLs.
-+
-+    When connected to an external encoder, vpbe controller is also responsible
-+    for setting up the interface between VENC and external encoders based on
-+    board specific settings (specified in board-xxx-evm.c). This allows
-+    interfacing external encoders such as ths8200. The setup_if_config()
-+    is implemented for this as well as configure_venc() (part of the next patch)
-+    API to set timings in VENC for a specific display resolution. As of this
-+    patch series, the interconnection and enabling and setting of the external
-+    encoders is not present, and would be a part of the next patch series.
-+
-+ 3. VENC subdevice module
-+    Responsible for setting outputs provided through internal DACs and also
-+    setting timings at LCD controller port when external encoders are connected
-+    at the port or LCD panel timings required. When external encoder/LCD panel
-+    is connected, the timings for a specific standard/preset is retrieved from
-+    the board specific table and the values are used to set the timings in
-+    venc using non-standard timing mode.
-+
-+    Support LCD Panel displays using the VENC. For example to support a Logic
-+    PD display, it requires setting up the LCD controller port with a set of
-+    timings for the resolution supported and setting the dot clock. So we could
-+    add the available outputs as a board specific entry (i.e add the "LogicPD"
-+    output name to board-xxx-evm.c). A table of timings for various LCDs
-+    supported can be maintained in the board specific setup file to support
-+    various LCD displays.As of this patch a basic driver is present, and this
-+    support for external encoders and displays forms a part of the next
-+    patch series.
-+
-+ 4. OSD module
-+    OSD module implements all OSD layer management and hardware specific
-+    features. The VPBE module interacts with the OSD for enabling and
-+    disabling appropriate features of the OSD.
-+
-+ Current status:-
-+
-+ A fully functional working version of the V4L2 driver is available. This
-+ driver has been tested with NTSC and PAL standards and buffer streaming.
-+
-+ Following are TBDs.
-+
-+ vpbe display controller
-+    - Add support for external encoders.
-+    - add support for selecting external encoder as default at probe time.
-+
-+ vpbe venc sub device
-+    - add timings for supporting ths8200
-+    - add support for LogicPD LCD.
-+
-+ FB drivers
-+    - Add support for fbdev drivers.- Ready and part of subsequent patches.
--- 
-1.6.2.4
-
+Cheers,
+Mauro
