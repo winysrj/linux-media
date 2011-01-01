@@ -1,53 +1,71 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:30787 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753469Ab1AZRqj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jan 2011 12:46:39 -0500
-Message-ID: <4D405CAD.5040107@redhat.com>
-Date: Wed, 26 Jan 2011 15:41:01 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Return-path: <mchehab@gaivota>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:34391 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752557Ab1AAUwh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Jan 2011 15:52:37 -0500
+Received: by eye27 with SMTP id 27so5556216eye.19
+        for <linux-media@vger.kernel.org>; Sat, 01 Jan 2011 12:52:35 -0800 (PST)
 MIME-Version: 1.0
-To: Mark Lord <kernel@teksavvy.com>
-CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Gerd Hoffmann <kraxel@redhat.com>
-Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
- ?
-References: <4D3E59CA.6070107@teksavvy.com> <4D3E5A91.30207@teksavvy.com> <20110125053117.GD7850@core.coreip.homeip.net> <4D3EB734.5090100@redhat.com> <20110125164803.GA19701@core.coreip.homeip.net> <AANLkTi=1Mh0JrYk5itvef7O7e7pR+YKos-w56W5q4B8B@mail.gmail.com> <20110125205453.GA19896@core.coreip.homeip.net> <4D3F4804.6070508@redhat.com> <4D3F4D11.9040302@teksavvy.com> <20110125232914.GA20130@core.coreip.homeip.net> <20110126020003.GA23085@core.coreip.homeip.net> <4D4004F9.6090200@redhat.com> <4D403693.50702@teksavvy.com>
-In-Reply-To: <4D403693.50702@teksavvy.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Date: Sat, 1 Jan 2011 15:52:35 -0500
+Message-ID: <AANLkTi=3ekVmf-gVU=bO2dHn4svMbExZ3TKGeiV1Jrrd@mail.gmail.com>
+Subject: V4L2 spec behavior for G_TUNER and T_STANDBY
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 26-01-2011 12:58, Mark Lord escreveu:
-> On 11-01-26 06:26 AM, Mauro Carvalho Chehab wrote:
-> ..
->> However, as said previously in this thread, input-kbd won't work with any
->> RC table that uses NEC extended (and there are several devices on the
->> current Kernels with those tables), since it only reads up to 16 bits.
->>
->> ir-keytable works with all RC tables, if you use a kernel equal or upper to
->> 2.6.36, due to the usage of the new ioctl's.
-> 
-> Is there a way to control the key repeat rate for a device
-> controlled by ir-kbd-i2c ?
-> 
-> It appears to be limited to a max of between 4 and 5 repeats/sec somewhere,
-> and I'd like to fix that.
+I have been doing some application conformance for VLC, and I noticed
+something interesting with regards to the G_TUNER call.
 
-It depends on what device do you have. Several I2C chips have the repeat
-logic inside the I2C microcontroller PROM firmware. or at the remote
-controller itself. So, there's nothing we can do to change it.
+If you have a tuner which supports sleeping, making a G_TUNER call
+essentially returns garbage.
+===
+root@devin-laptop2:~# v4l2-ctl -d /dev/video1 --get-tuner
+Tuner:
+    Name                 : Auvitek tuner
+    Capabilities         : 62.5 kHz stereo lang1 lang2
+    Frequency range      : 0.0 MHz - 0.0 MHz
+    Signal strength/AFC  : 0%/0
+    Current audio mode   : stereo
+    Available subchannels: mono
+===
+Note that the frequency range is zero (the capabilities and name are
+populated by the bridge or video decoder).  Some digging into the
+tuner_g_tuner() function in tuner core shows that the check_mode()
+call fails because the device's mode is T_STANDBY.  However, it does
+this despite the fact that none of values required actually interact
+with the tuner.  The capabilities and frequency ranges should be able
+to be populated regardless of whether the device is in standby.
 
-I have even one device here (I think it is a saa7134-based Kworld device) 
-that doesn't send any repeat event at all for most keys (I think it only
-sends repeat events for volume - Can't remember the specific details anymore -
-too many devices!).
+This is particularly bad because devices normally come out of standby
+when a s_freq call occurs, but some applications (such as VLC) will
+call g_tuner first to validate the target frequency is inside the
+valid frequency range.  So you have a chicken/egg problem:  The
+g_tuner won't return a valid frequency range until you do a tuning
+request to wake up the tuner, but apps like VLC won't do a tuning
+request unless it has validated the frequency range.
 
-The devices that produce repeat events can be adjusted via the normal
-input layer tools like kbdrate.
+Further, look at the following block:
 
-Thanks,
-Mauro
+        if (t->mode != V4L2_TUNER_RADIO) {
+                vt->rangelow = tv_range[0] * 16;
+                vt->rangehigh = tv_range[1] * 16;
+                return 0;
+        }
+
+This basically means that a video tuner will bail out, which sounds
+good because the rest of the function supposedly assumes a radio
+device.  However, as a result the has_signal() call (which returns
+signal strength) will never be executed for video tuners.  You
+wouldn't notice this if a video decoder subdev is responsible for
+showing signal strength, but if you're expecting the tuner to provide
+the info, the call will never happen.
+
+Are these known issues?  Am I misreading the specified behavior?  I
+don't see anything in the spec that suggests that this call should
+return invalid data if the tuner happens to be powered down.
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
