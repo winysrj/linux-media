@@ -1,84 +1,55 @@
-Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47349 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753358Ab1A0McZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jan 2011 07:32:25 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v5 4/5] omap2: Fix camera resources for multiomap
-Date: Thu, 27 Jan 2011 13:32:20 +0100
-Message-Id: <1296131541-30092-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1296131541-30092-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1296131541-30092-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Return-path: <mchehab@gaivota>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:58943 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751284Ab1AAJJq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Jan 2011 04:09:46 -0500
+Date: Sat, 1 Jan 2011 12:09:31 +0300
+From: Dan Carpenter <error27@gmail.com>
+To: "Justin P. Mattock" <justinmattock@gmail.com>
+Cc: Finn Thain <fthain@telegraphics.com.au>,
+	devel@driverdev.osuosl.org, trivial@kernel.org,
+	linux-scsi@vger.kernel.org, netdev@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-kernel@vger.kernel.org, ivtv-devel@ivtvdriver.org,
+	linux-m68k@lists.linux-m68k.org,
+	spi-devel-general@lists.sourceforge.net,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 03/15]drivers:staging:rtl8187se:r8180_hw.h Typo change
+ diable to disable.
+Message-ID: <20110101090931.GH1886@bicker>
+References: <1293750484-1161-1-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-2-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-3-git-send-email-justinmattock@gmail.com>
+ <alpine.LNX.2.00.1012311722580.24460@nippy.intranet>
+ <4D1EDB22.2020308@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4D1EDB22.2020308@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-From: Sergio Aguirre <saaguirre@ti.com>
+On Fri, Dec 31, 2010 at 11:43:30PM -0800, Justin P. Mattock wrote:
+> On 12/31/2010 10:48 PM, Finn Thain wrote:
+> >>-/*  BIT[8-9] is for SW Antenna Diversity. Only the value EEPROM_SW_AD_ENABLE means enable, other values are diable.					*/
+> >>+/*  BIT[8-9] is for SW Antenna Diversity. Only the value EEPROM_SW_AD_ENABLE means enable, other values are disabled.					*/
+> >
+> >I think, "other values disable" was what you meant?
+> >
+> >Finn
+> >
+> >>  #define EEPROM_SW_AD_MASK			0x0300
+> >>  #define EEPROM_SW_AD_ENABLE			0x0100
+> >>
+> >>
+> >
+> 
+> no! I changed it to disabled to make it proper..
 
-Make sure the kernel can be compiled with both OMAP2 and OMAP3 camera
-support linked in, and give public symbols proper omap2/omap3 prefixes.
+Finn is obviously right, but maybe a compromise would be:
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- arch/arm/mach-omap2/devices.c |   25 ++++++++++++-------------
- 1 files changed, 12 insertions(+), 13 deletions(-)
+Only the value EEPROM_SW_AD_ENABLE means "enable", other values mean
+"disable".
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index cc400c7..e799303 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -38,7 +38,7 @@
- 
- #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
- 
--static struct resource cam_resources[] = {
-+static struct resource omap2cam_resources[] = {
- 	{
- 		.start		= OMAP24XX_CAMERA_BASE,
- 		.end		= OMAP24XX_CAMERA_BASE + 0xfff,
-@@ -50,21 +50,12 @@ static struct resource cam_resources[] = {
- 	}
- };
- 
--static struct platform_device omap_cam_device = {
-+static struct platform_device omap2cam_device = {
- 	.name		= "omap24xxcam",
- 	.id		= -1,
--	.num_resources	= ARRAY_SIZE(cam_resources),
--	.resource	= cam_resources,
-+	.num_resources	= ARRAY_SIZE(omap2cam_resources),
-+	.resource	= omap2cam_resources,
- };
--
--static inline void omap_init_camera(void)
--{
--	platform_device_register(&omap_cam_device);
--}
--#else
--static inline void omap_init_camera(void)
--{
--}
- #endif
- 
- static struct resource omap3isp_resources[] = {
-@@ -158,6 +149,14 @@ int omap3_init_camera(void *pdata)
- }
- EXPORT_SYMBOL_GPL(omap3_init_camera);
- 
-+static inline void omap_init_camera(void)
-+{
-+#if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
-+	if (cpu_is_omap24xx())
-+		platform_device_register(&omap2cam_device);
-+#endif
-+}
-+
- #if defined(CONFIG_OMAP_MBOX_FWK) || defined(CONFIG_OMAP_MBOX_FWK_MODULE)
- 
- #define MBOX_REG_SIZE   0x120
--- 
-1.7.3.4
-
+regards,
+dan carpenter
