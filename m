@@ -1,64 +1,82 @@
-Return-path: <mchehab@pedra>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:38892 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754714Ab1AJWSo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jan 2011 17:18:44 -0500
-Received: by yxt3 with SMTP id 3so7707574yxt.19
-        for <linux-media@vger.kernel.org>; Mon, 10 Jan 2011 14:18:44 -0800 (PST)
-From: Roberto Rodriguez Alcala <rralcala@gmail.com>
-To: linux-media@vger.kernel.org, g.liakhovetski@gmx.de
-Cc: Roberto Rodriguez Alcala <rralcala@gmail.com>
-Subject: [PATCH 1/2] [media] v4l2-ctrls: Add V4L2_CID_NIGHT_MODE control to support night mode
-Date: Mon, 10 Jan 2011 19:18:26 -0300
-Message-Id: <1294697907-1714-2-git-send-email-rralcala@gmail.com>
-In-Reply-To: <1294697907-1714-1-git-send-email-rralcala@gmail.com>
-References: <1294697907-1714-1-git-send-email-rralcala@gmail.com>
+Return-path: <mchehab@gaivota>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:55628 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752593Ab1AANxH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Jan 2011 08:53:07 -0500
+From: Abylay Ospan <liplianin@tut.by>
+Date: Sat, 1 Jan 2011 15:51:24 +0200
+Subject: [PATCH 16/18] Fix CI code for NetUP Dual DVB-T/C CI RF card
+To: mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201101011551.24260.aospan@netup.ru>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-From: Roberto Rodriguez Alcala <rralcala@gmail.com> 
+CI reset takes several seconds on some CAM,
+so there is no need to lock mutex all that time.
+Also we need not to preserve CI's reset bits in
+CIBUSCTRL register, they are handled automatically by FPGA.
+Set it to 0 explicitly in order to not reset wrong CAM.
 
-
-Signed-off-by: Roberto Rodriguez Alcala <rralcala@gmail.com>
+Signed-off-by: Abylay Ospan <aospan@netup.ru>
 ---
- drivers/media/video/v4l2-ctrls.c |    2 ++
- include/linux/videodev2.h        |    2 ++
- 2 files changed, 4 insertions(+), 0 deletions(-)
+ drivers/media/video/cx23885/altera-ci.c |   14 ++++++++++----
+ 1 files changed, 10 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 8f81efc..7a8934e 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -365,6 +365,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_PRIVACY:			return "Privacy";
- 	case V4L2_CID_IRIS_ABSOLUTE:		return "Iris, Absolute";
- 	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
-+	case V4L2_CID_NIGHT_MODE:               return "Night mode";
+diff --git a/drivers/media/video/cx23885/altera-ci.c b/drivers/media/video/cx23885/altera-ci.c
+index 019797b..90147d6 100644
+--- a/drivers/media/video/cx23885/altera-ci.c
++++ b/drivers/media/video/cx23885/altera-ci.c
+@@ -283,7 +283,7 @@ int netup_ci_op_cam(struct dvb_ca_en50221 *en50221, int slot,
+ 	netup_fpga_op_rw(inter, NETUP_CI_ADDR1, ((addr >> 7) & 0x7f), 0);
+ 	store = netup_fpga_op_rw(inter, NETUP_CI_BUSCTRL, 0, NETUP_CI_FLG_RD);
  
- 	/* FM Radio Modulator control */
- 	/* Keep the order of the 'case's the same as in videodev2.h! */
-@@ -418,6 +419,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_EXPOSURE_AUTO_PRIORITY:
- 	case V4L2_CID_FOCUS_AUTO:
- 	case V4L2_CID_PRIVACY:
-+	case V4L2_CID_NIGHT_MODE:
- 	case V4L2_CID_AUDIO_LIMITER_ENABLED:
- 	case V4L2_CID_AUDIO_COMPRESSION_ENABLED:
- 	case V4L2_CID_PILOT_TONE_ENABLED:
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 5f6f470..0df8a9f 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1300,6 +1300,8 @@ enum  v4l2_exposure_auto_type {
- #define V4L2_CID_IRIS_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+17)
- #define V4L2_CID_IRIS_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+18)
+-	store &= 0x3f;
++	store &= 0x0f;
+ 	store |= ((state->nr << 7) | (flag << 6));
  
-+#define V4L2_CID_NIGHT_MODE                     (V4L2_CID_CAMERA_CLASS_BASE+19)
+ 	netup_fpga_op_rw(inter, NETUP_CI_BUSCTRL, store, 0);
+@@ -340,19 +340,25 @@ int netup_ci_slot_reset(struct dvb_ca_en50221 *en50221, int slot)
+ 
+ 	ret = netup_fpga_op_rw(inter, NETUP_CI_BUSCTRL, 0, NETUP_CI_FLG_RD);
+ 	netup_fpga_op_rw(inter, NETUP_CI_BUSCTRL,
+-				ret | (1 << (5 - state->nr)), 0);
++				(ret & 0xcf) | (1 << (5 - state->nr)), 0);
 +
- /* FM Modulator class control IDs */
- #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
- #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
++	mutex_unlock(&inter->fpga_mutex);
+ 
+ 	for (;;) {
+ 		mdelay(50);
++
++		mutex_lock(&inter->fpga_mutex);
++
+ 		ret = netup_fpga_op_rw(inter, NETUP_CI_BUSCTRL,
+ 						0, NETUP_CI_FLG_RD);
++		mutex_unlock(&inter->fpga_mutex);
++
+ 		if ((ret & (1 << (5 - state->nr))) == 0)
+ 			break;
+ 		if (time_after(jiffies, t_out))
+ 			break;
+ 	}
+ 
+-	mutex_unlock(&inter->fpga_mutex);
+ 
+ 	printk("%s: %d msecs\n", __func__,
+ 		jiffies_to_msecs(jiffies + msecs_to_jiffies(9999) - t_out));
+@@ -381,7 +387,7 @@ int netup_ci_slot_ts_ctl(struct dvb_ca_en50221 *en50221, int slot)
+ 
+ 	ret = netup_fpga_op_rw(inter, NETUP_CI_BUSCTRL, 0, NETUP_CI_FLG_RD);
+ 	netup_fpga_op_rw(inter, NETUP_CI_BUSCTRL,
+-				ret | (1 << (3 - state->nr)), 0);
++				(ret & 0x0f) | (1 << (3 - state->nr)), 0);
+ 
+ 	mutex_unlock(&inter->fpga_mutex);
+ 
 -- 
-1.7.3.2
+1.7.1
 
