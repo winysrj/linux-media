@@ -1,144 +1,78 @@
-Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:61236 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751521Ab1ATI2D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jan 2011 03:28:03 -0500
-Date: Thu, 20 Jan 2011 09:27:58 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Qing Xu <qingx@marvell.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] [media] v4l: soc-camera: add enum-frame-size ioctl
-In-Reply-To: <1295511580-25862-1-git-send-email-qingx@marvell.com>
-Message-ID: <Pine.LNX.4.64.1101200924280.1425@axis700.grange>
-References: <1295511580-25862-1-git-send-email-qingx@marvell.com>
+Return-path: <mchehab@gaivota>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3163 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752714Ab1AAVo4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Jan 2011 16:44:56 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: V4L2 spec behavior for G_TUNER and T_STANDBY
+Date: Sat, 1 Jan 2011 22:44:44 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <AANLkTi=3ekVmf-gVU=bO2dHn4svMbExZ3TKGeiV1Jrrd@mail.gmail.com> <201101012218.36967.hverkuil@xs4all.nl> <AANLkTimO713U7x8f5YCdxZgs0LE2cGHj6aNyy0pEj+is@mail.gmail.com>
+In-Reply-To: <AANLkTimO713U7x8f5YCdxZgs0LE2cGHj6aNyy0pEj+is@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201101012244.44231.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Thu, 20 Jan 2011, Qing Xu wrote:
-
-> add vidioc_enum_framesizes implementation, follow default_g_parm()
-> and g_mbus_fmt() method
-
-Yes, thanks, that's more like what I meant! Now, this patch also touches a 
-generic v4l2 file include/media/v4l2-subdev.h, and that in a very 
-essential way - it ads a new API. So, we either need an ack from someone, 
-maintaining the v4l2-subdev API, or we will have to split that part off 
-and apply it first. Hans?
-
-Thanks
-Guennadi
-
+On Saturday, January 01, 2011 22:25:04 Devin Heitmueller wrote:
+> Hi Hans,
 > 
-> Signed-off-by: Qing Xu <qingx@marvell.com>
-> ---
->  drivers/media/video/soc_camera.c |   37 +++++++++++++++++++++++++++++++++++++
->  include/media/soc_camera.h       |    1 +
->  include/media/v4l2-subdev.h      |    2 ++
->  3 files changed, 40 insertions(+), 0 deletions(-)
+> Thanks for the feedback.
 > 
-> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-> index 052bd6d..50034b7 100644
-> --- a/drivers/media/video/soc_camera.c
-> +++ b/drivers/media/video/soc_camera.c
-> @@ -145,6 +145,15 @@ static int soc_camera_s_std(struct file *file, void *priv, v4l2_std_id *a)
->  	return v4l2_subdev_call(sd, core, s_std, *a);
->  }
->  
-> +static int soc_camera_enum_fsizes(struct file *file, void *fh,
-> +					 struct v4l2_frmsizeenum *fsize)
-> +{
-> +	struct soc_camera_device *icd = file->private_data;
-> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-> +
-> +	return ici->ops->enum_fsizes(icd, fsize);
-> +}
-> +
->  static int soc_camera_reqbufs(struct file *file, void *priv,
->  			      struct v4l2_requestbuffers *p)
->  {
-> @@ -1160,6 +1169,31 @@ static int default_s_parm(struct soc_camera_device *icd,
->  	return v4l2_subdev_call(sd, video, s_parm, parm);
->  }
->  
-> +static int default_enum_fsizes(struct soc_camera_device *icd,
-> +			  struct v4l2_frmsizeenum *fsize)
-> +{
-> +	int ret;
-> +	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-> +	const struct soc_camera_format_xlate *xlate;
-> +	__u32 pixfmt = fsize->pixel_format;
-> +	struct v4l2_frmsizeenum fsize_mbus = *fsize;
-> +
-> +	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
-> +	if (!xlate)
-> +		return -EINVAL;
-> +	/* map xlate-code to pixel_format, sensor only handle xlate-code*/
-> +	fsize_mbus.pixel_format = xlate->code;
-> +
-> +	ret = v4l2_subdev_call(sd, video, enum_mbus_fsizes, &fsize_mbus);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	*fsize = fsize_mbus;
-> +	fsize->pixel_format = pixfmt;
-> +
-> +	return 0;
-> +}
-> +
->  static void soc_camera_device_init(struct device *dev, void *pdata)
->  {
->  	dev->platform_data	= pdata;
-> @@ -1195,6 +1229,8 @@ int soc_camera_host_register(struct soc_camera_host *ici)
->  		ici->ops->set_parm = default_s_parm;
->  	if (!ici->ops->get_parm)
->  		ici->ops->get_parm = default_g_parm;
-> +	if (!ici->ops->enum_fsizes)
-> +		ici->ops->enum_fsizes = default_enum_fsizes;
->  
->  	mutex_lock(&list_lock);
->  	list_for_each_entry(ix, &hosts, list) {
-> @@ -1302,6 +1338,7 @@ static const struct v4l2_ioctl_ops soc_camera_ioctl_ops = {
->  	.vidioc_g_input		 = soc_camera_g_input,
->  	.vidioc_s_input		 = soc_camera_s_input,
->  	.vidioc_s_std		 = soc_camera_s_std,
-> +	.vidioc_enum_framesizes  = soc_camera_enum_fsizes,
->  	.vidioc_reqbufs		 = soc_camera_reqbufs,
->  	.vidioc_try_fmt_vid_cap  = soc_camera_try_fmt_vid_cap,
->  	.vidioc_querybuf	 = soc_camera_querybuf,
-> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-> index 86e3631..6e4800c 100644
-> --- a/include/media/soc_camera.h
-> +++ b/include/media/soc_camera.h
-> @@ -85,6 +85,7 @@ struct soc_camera_host_ops {
->  	int (*set_ctrl)(struct soc_camera_device *, struct v4l2_control *);
->  	int (*get_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
->  	int (*set_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
-> +	int (*enum_fsizes)(struct soc_camera_device *, struct v4l2_frmsizeenum *);
->  	unsigned int (*poll)(struct file *, poll_table *);
->  	const struct v4l2_queryctrl *controls;
->  	int num_controls;
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index b0316a7..0d482c9 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -275,6 +275,8 @@ struct v4l2_subdev_video_ops {
->  			struct v4l2_dv_timings *timings);
->  	int (*enum_mbus_fmt)(struct v4l2_subdev *sd, unsigned int index,
->  			     enum v4l2_mbus_pixelcode *code);
-> +	int (*enum_mbus_fsizes)(struct v4l2_subdev *sd,
-> +			     struct v4l2_frmsizeenum *fsize);
->  	int (*g_mbus_fmt)(struct v4l2_subdev *sd,
->  			  struct v4l2_mbus_framefmt *fmt);
->  	int (*try_mbus_fmt)(struct v4l2_subdev *sd,
-> -- 
-> 1.6.3.3
+> On Sat, Jan 1, 2011 at 4:18 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> >> This basically means that a video tuner will bail out, which sounds
+> >> good because the rest of the function supposedly assumes a radio
+> >> device.  However, as a result the has_signal() call (which returns
+> >> signal strength) will never be executed for video tuners.  You
+> >> wouldn't notice this if a video decoder subdev is responsible for
+> >> showing signal strength, but if you're expecting the tuner to provide
+> >> the info, the call will never happen.
+> >
+> > I am not aware of any tuner that does that. I think that for video this
+> > is always done by a video decoder. That said, it isn't pretty, but a lot
+> > of this is legacy code and I wouldn't want to change it.
 > 
+> The Xceive tuners have their analog demodulator onboard, so they make
+> available a 0-100% signal strength.
+> 
+> > After digging some more I think that check_mode is a poor function. There are
+> > two things that check_mode does: checking if the tuner support radio and/or tv
+> > mode (that's fine), and if it is in standby: not so fine. That should be a
+> > separate function since filling in frequency ranges can be done regardless of
+> > the standby state.
+> 
+> Yeah, I didn't realize myself that is what check_mode was doing until
+> I had this problem.
+> 
+> I'll see if I can cook up a patch which returns the appropriate data
+> even when in standby, while trying to minimize the risk of introducing
+> a regression.
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Since you are working with tuner-core and xceive I wonder if you could also
+make a patch to remove T_DIGITAL_TV in enum tuner_mode. T_DIGITAL_TV (and it's
+public API counterpart V4L2_TUNER_DIGITAL_TV) are not used (and never were used
+since digital tuning is handled through dvb).
+
+We can't remove V4L2_TUNER_DIGITAL_TV (although we can mark it as deprecated in
+videodev2.h), but T_DIGITAL_TV should definitely be removed.
+
+The only tuner driver that uses T_DIGITAL_TV is tuner-xc2028.c, but on closer
+analysis it turns out that it uses enum tuner_mode as an internal mode. So this
+mode is never set outside the driver. Instead it should have used an internal
+xceive_mode enum.
+
+Everywhere else T_DIGITAL_TV can be removed.
+
+For some reason I'm in an early spring-cleaning mode (winter-cleaning mode?)
+these days :-) Getting rid of old obsolete stuff is always nice.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
