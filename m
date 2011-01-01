@@ -1,70 +1,55 @@
-Return-path: <mchehab@pedra>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:15833 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752994Ab1AJObq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jan 2011 09:31:46 -0500
-Date: Mon, 10 Jan 2011 15:31:38 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: "Charles D. Krebs" <ckrebs@therealtimegroup.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-i2c@vger.kernel.org
-Subject: Re: soc_camera Client Driver with Multiple I2C Addresses
-Message-ID: <20110110153138.7871b267@endymion.delvare>
-In-Reply-To: <Pine.LNX.4.64.1012280810140.21647@axis700.grange>
-References: <E58C9D0E73364C3EB14B6D0A0EBB5433@RSI50>
-	<Pine.LNX.4.64.1012280810140.21647@axis700.grange>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Return-path: <mchehab@gaivota>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:59953 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752566Ab1AANxG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Jan 2011 08:53:06 -0500
+From: "Igor M. Liplianin" <liplianin@tut.by>
+Date: Sat, 1 Jan 2011 15:51:08 +0200
+Subject: [PATCH 15/18] cx23885: disable MSI for NetUP cards, otherwise CI is not working
+To: mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201101011551.08314.liplianin@netup.ru>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Tue, 28 Dec 2010 08:55:41 +0100 (CET), Guennadi Liakhovetski wrote:
-> Hi Charles
-> 
-> (linux-i2c added to cc)
-> 
-> On Mon, 27 Dec 2010, Charles D. Krebs wrote:
-> 
-> > Guennadi,
-> > 
-> > I'm developing a driver for a video receiver chip that has register 
-> > banks on multiple I2C addresses on the same bus.  The data output is 
-> > parallel and I will be connecting it to the sh host interface.  
-> > Overall, the device appears to be suitable as a client driver to 
-> > soc_camera.
-> > 
-> > I'm following the model for the MT9T112 driver, and this works just fine 
-> > for communicating to any one of the device's I2C addresses.
-> > 
-> > How would you recommend registering more than one I2C address to an 
-> > soc_camera client driver?
-> 
-> Honestly - don't know. The soc-camera model for now is pretty simple and 
-> in some senses restrictive. But in principle, it should be possible to 
-> code your case within its scope too. One of the possibilities would be to 
-> register your platform data with one "main" i2c unit / address, and then 
-> let the sensor register the rest in its probe. Is your chip configuration 
-> fixed? Always the same number of i2c units with the same addresses? Or can 
-> it vary? Maybe something like a multi-function device (drivers/mfd) would 
-> suit your purpose well?
-> 
-> In fact, I think, it shouldn't be too complicated. As suggested above, 
-> provide (but don't register, just follow other soc-camera platforms) one 
-> main i2c device in the platform data, register the rest in your main 
-> probe(), which will call your further probe()s. The easiest would be to 
-> keep just one soc-camera instance and one v4l2-subdeice, but if you want, 
-> you can explore the possibility of creating several v4l2-subdevices.
+Signed-off-by: Igor M. Liplianin <liplianin@netup.ru>
+---
+ drivers/media/video/cx23885/cx23885-core.c |    4 ++++
+ drivers/media/video/cx23885/cx23885-reg.h  |    1 +
+ 2 files changed, 5 insertions(+), 0 deletions(-)
 
-If you simply need to handle a device which several I2C addresses, you
-can consider one the main address, and register the secondary addresses
-in your probe() function using i2c_new_dummy(). See
-drivers/misc/eeprom/at24.c for an example of how this is done.
-
-I'm not sure I understand the problem at hand exactly though, so my
-advice might be inappropriate.
-
+diff --git a/drivers/media/video/cx23885/cx23885-core.c b/drivers/media/video/cx23885/cx23885-
+core.c
+index 3a09dd2..e6d7232 100644
+--- a/drivers/media/video/cx23885/cx23885-core.c
++++ b/drivers/media/video/cx23885/cx23885-core.c
+@@ -1039,6 +1039,10 @@ static int cx23885_dev_setup(struct cx23885_dev *dev)
+ 
+ 	cx23885_dev_checkrevision(dev);
+ 
++	/* disable MSI for NetUP cards, otherwise CI is not working */
++	if (cx23885_boards[dev->board].ci_type > 0)
++		cx_clear(RDR_RDRCTL1, 1 << 8);
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/video/cx23885/cx23885-reg.h b/drivers/media/video/cx23885/cx23885-reg.h
+index a28772d..c87ac68 100644
+--- a/drivers/media/video/cx23885/cx23885-reg.h
++++ b/drivers/media/video/cx23885/cx23885-reg.h
+@@ -292,6 +292,7 @@ Channel manager Data Structure entry = 20 DWORD
+ #define RDR_CFG0	0x00050000
+ #define RDR_CFG1	0x00050004
+ #define RDR_CFG2	0x00050008
++#define RDR_RDRCTL1	0x0005030c
+ #define RDR_TLCTL0	0x00050318
+ 
+ /* APB DMAC Current Buffer Pointer */
 -- 
-Jean Delvare
+1.7.1
+
