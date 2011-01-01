@@ -1,51 +1,49 @@
-Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:55235 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753836Ab1AYUtm (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:45371 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752487Ab1AAM7C (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jan 2011 15:49:42 -0500
-Message-ID: <4d3f3764.857a0e0a.122c.478e@mx.google.com>
-From: "Igor M. Liplianin" <liplianin@me.by>
-Date: Tue, 25 Jan 2011 22:07:00 +0200
-Subject: [PATCH 8/9 v3] cx23885: disable MSI for NetUP cards, otherwise CI is not working
-To: <mchehab@infradead.org>, <linux-media@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>
+	Sat, 1 Jan 2011 07:59:02 -0500
+Date: Sat, 01 Jan 2011 07:58:30 -0500
+Subject: Re: [PATCH 14/18] cx25840: Fix subdev registration in
+ cx25840-core.c
+Message-ID: <v38khxmtvlbmmvf5dv0i04b4.1293886218059@email.android.com>
+From: Andy Walls <awalls@md.metrocast.net>
+To: "Igor M. Liplianin" <liplianin@me.by>, mchehab@infradead.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	ivtv-devel@ivtvdriver.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Signed-off-by: Igor M. Liplianin <liplianin@netup.ru>
----
- drivers/media/video/cx23885/cx23885-core.c |    4 ++++
- drivers/media/video/cx23885/cx23885-reg.h  |    1 +
- 2 files changed, 5 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/cx23885/cx23885-core.c b/drivers/media/video/cx23885/cx23885-core.c
-index d778b1a..9933810 100644
---- a/drivers/media/video/cx23885/cx23885-core.c
-+++ b/drivers/media/video/cx23885/cx23885-core.c
-@@ -1041,6 +1041,10 @@ static int cx23885_dev_setup(struct cx23885_dev *dev)
- 
- 	cx23885_dev_checkrevision(dev);
- 
-+	/* disable MSI for NetUP cards, otherwise CI is not working */
-+	if (cx23885_boards[dev->board].ci_type > 0)
-+		cx_clear(RDR_RDRCTL1, 1 << 8);
-+
- 	return 0;
- }
- 
-diff --git a/drivers/media/video/cx23885/cx23885-reg.h b/drivers/media/video/cx23885/cx23885-reg.h
-index a28772d..c87ac68 100644
---- a/drivers/media/video/cx23885/cx23885-reg.h
-+++ b/drivers/media/video/cx23885/cx23885-reg.h
-@@ -292,6 +292,7 @@ Channel manager Data Structure entry = 20 DWORD
- #define RDR_CFG0	0x00050000
- #define RDR_CFG1	0x00050004
- #define RDR_CFG2	0x00050008
-+#define RDR_RDRCTL1	0x0005030c
- #define RDR_TLCTL0	0x00050318
- 
- /* APB DMAC Current Buffer Pointer */
--- 
-1.7.1
+SWdvciwKClRoZSBwcm9wZXIgZml4IGlzIGhlcmU6CgpodHRwczovL3BhdGNod29yay5rZXJuZWwu
+b3JnL3BhdGNoLzM3NjYxMi8KClNvLCBOQUsgb24geW91ciBwYXJ0aWN1bGFyIHBhdGNoLgoKTWF1
+cm8sCgpJIGRvIG5vdCBzZWUgdGhlIGFib3ZlIHBhdGNoIGF0IGxpbnV4IG5leHQuICBBbmQgSSBj
+b3VsZG4ndCBmaW5kIGl0IGluIHlvdXIga2VybmVsLm9yZyB0cmVlLiAgV2hhdCBpcyBpdHMgc3Rh
+dHVzPwoKVGhpcyBmaXhlcyBhIHJlZ3Jlc3Npb24gdGhhdCBpcyBrbm93biB0byBicmVhayBjeDIz
+ODg1IGhhcmR3YXJlIGluaXRpYWxpemF0aW9uIGFuZCBjYW4gYnJlYWsgaXZ0diBoYXJkd2FyZSBp
+bml0aWFsaXphdGlvbi4KClJlZ2FyZHMsCkFuZHkKCiJJZ29yIE0uIExpcGxpYW5pbiIgPGxpcGxp
+YW5pbkBtZS5ieT4gd3JvdGU6Cgo+T24gbXkgc3lzdGVtLCBjeDIzODg1IGJhc2VkIGNhcmQgcmVw
+b3J0cyBkZWZhdWx0IHZvbHVtZSB2YWx1ZSBhYm92ZSA3MDAwMC4KPlNvLCByZWdpc3RlciBjeDI1
+ODQwIHN1YmRldiBmYWlscy4gQWx0aG91Z2gsIHRoZSBjYXJkIGRvbid0IGhhdmUgYS92IGlucHV0
+cwo+aXQgbmVlZHMgYS92IGZpcm13YXJlIHRvIGJlIGxvYWRlZC4KPgo+U2lnbmVkLW9mZi1ieTog
+SWdvciBNLiBMaXBsaWFuaW4gPGxpcGxpYW5pbkBuZXR1cC5ydT4KPi0tLQo+IGRyaXZlcnMvbWVk
+aWEvdmlkZW8vY3gyNTg0MC9jeDI1ODQwLWNvcmUuYyB8ICAgIDIgKysKPiAxIGZpbGVzIGNoYW5n
+ZWQsIDIgaW5zZXJ0aW9ucygrKSwgMCBkZWxldGlvbnMoLSkKPgo+ZGlmZiAtLWdpdCBhL2RyaXZl
+cnMvbWVkaWEvdmlkZW8vY3gyNTg0MC9jeDI1ODQwLWNvcmUuYyBiL2RyaXZlcnMvbWVkaWEvdmlk
+ZW8vY3gyNTg0MC9jeDI1ODQwLWNvcmUuYwo+aW5kZXggZGZiMTk4ZC4uZGMwY2VjNyAxMDA2NDQK
+Pi0tLSBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gyNTg0MC9jeDI1ODQwLWNvcmUuYwo+KysrIGIv
+ZHJpdmVycy9tZWRpYS92aWRlby9jeDI1ODQwL2N4MjU4NDAtY29yZS5jCj5AQCAtMTk5MSw2ICsx
+OTkxLDggQEAgc3RhdGljIGludCBjeDI1ODQwX3Byb2JlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGll
+bnQsCj4gCWlmICghaXNfY3gyNTgzeChzdGF0ZSkpIHsKPiAJCWRlZmF1bHRfdm9sdW1lID0gMjI4
+IC0gY3gyNTg0MF9yZWFkKGNsaWVudCwgMHg4ZDQpOwo+IAkJZGVmYXVsdF92b2x1bWUgPSAoKGRl
+ZmF1bHRfdm9sdW1lIC8gMikgKyAyMykgPDwgOTsKPisJCWlmIChkZWZhdWx0X3ZvbHVtZSA+IDY1
+NTM1KQo+KwkJCWRlZmF1bHRfdm9sdW1lID0gNjU1MzU7Cj4gCj4gCQlzdGF0ZS0+dm9sdW1lID0g
+djRsMl9jdHJsX25ld19zdGQoJnN0YXRlLT5oZGwsCj4gCQkJJmN4MjU4NDBfYXVkaW9fY3RybF9v
+cHMsIFY0TDJfQ0lEX0FVRElPX1ZPTFVNRSwKPi0tIAo+MS43LjEKPgo+LS0KPlRvIHVuc3Vic2Ny
+aWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1tZWRp
+YSIgaW4KPnRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3Jn
+Cj5Nb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9t
+by1pbmZvLmh0bWwK
 
