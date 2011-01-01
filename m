@@ -1,45 +1,58 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:30514 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751383Ab1AZIQx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jan 2011 03:16:53 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p0Q8GqUe031439
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 26 Jan 2011 03:16:53 -0500
-Received: from shalem.localdomain (vpn2-8-6.ams2.redhat.com [10.36.8.6])
-	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p0Q8Gpuk018984
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 26 Jan 2011 03:16:52 -0500
-Message-ID: <4D3FDAAC.2020303@redhat.com>
-Date: Wed, 26 Jan 2011 09:26:20 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Return-path: <mchehab@gaivota>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:46698 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752610Ab1AAOxL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Jan 2011 09:53:11 -0500
+Message-ID: <4D1F3FEE.7@gmail.com>
+Date: Sat, 01 Jan 2011 06:53:34 -0800
+From: "Justin P. Mattock" <justinmattock@gmail.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: What to do with videodev.h
+To: Dan Carpenter <error27@gmail.com>,
+	Finn Thain <fthain@telegraphics.com.au>,
+	devel@driverdev.osuosl.org, trivial@kernel.org,
+	linux-scsi@vger.kernel.org, netdev@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-kernel@vger.kernel.org, ivtv-devel@ivtvdriver.org,
+	linux-m68k@lists.linux-m68k.org,
+	spi-devel-general@lists.sourceforge.net,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 03/15]drivers:staging:rtl8187se:r8180_hw.h Typo change
+ diable to disable.
+References: <1293750484-1161-1-git-send-email-justinmattock@gmail.com> <1293750484-1161-2-git-send-email-justinmattock@gmail.com> <1293750484-1161-3-git-send-email-justinmattock@gmail.com> <alpine.LNX.2.00.1012311722580.24460@nippy.intranet> <4D1EDB22.2020308@gmail.com> <20110101090931.GH1886@bicker>
+In-Reply-To: <20110101090931.GH1886@bicker>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi All,
+On 01/01/2011 01:09 AM, Dan Carpenter wrote:
+> On Fri, Dec 31, 2010 at 11:43:30PM -0800, Justin P. Mattock wrote:
+>> On 12/31/2010 10:48 PM, Finn Thain wrote:
+>>>> -/*  BIT[8-9] is for SW Antenna Diversity. Only the value EEPROM_SW_AD_ENABLE means enable, other values are diable.					*/
+>>>> +/*  BIT[8-9] is for SW Antenna Diversity. Only the value EEPROM_SW_AD_ENABLE means enable, other values are disabled.					*/
+>>>
+>>> I think, "other values disable" was what you meant?
+>>>
+>>> Finn
+>>>
+>>>>   #define EEPROM_SW_AD_MASK			0x0300
+>>>>   #define EEPROM_SW_AD_ENABLE			0x0100
+>>>>
+>>>>
+>>>
+>>
+>> no! I changed it to disabled to make it proper..
+>
+> Finn is obviously right, but maybe a compromise would be:
+>
+> Only the value EEPROM_SW_AD_ENABLE means "enable", other values mean
+> "disable".
+>
+> regards,
+> dan carpenter
+>
 
-With v4l1 support going completely away, the question is
-raised what to do with linux/videodev.h .
+ahh.. I see what you your saying now.. alright let me send this out that 
+way..
 
-Since v4l1 apps can still use the old API through libv4l1,
-these apps will still need linux/videodev.h to compile.
-
-So I see 3 options:
-1) Keep videodev.h in the kernel tree even after we've dropped
-the API support at the kernel level (seems like a bad idea to me)
-2) Copy videodev.h over to v4l-utils as is (under a different name)
-and modify the #include in libv4l1.h to include it under the
-new name
-3) Copy the (needed) contents of videodev.h over to libv4l1.h
-
-I'm not sure where I stand wrt 2 versus 3. Comments anyone?
-
-Regards,
-
-Hans
+Justin P. Mattock
