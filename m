@@ -1,68 +1,60 @@
-Return-path: <mchehab@pedra>
-Received: from mail-yi0-f46.google.com ([209.85.218.46]:34533 "EHLO
-	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751584Ab1AGLxL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jan 2011 06:53:11 -0500
-Received: by yib18 with SMTP id 18so4535976yib.19
-        for <linux-media@vger.kernel.org>; Fri, 07 Jan 2011 03:53:10 -0800 (PST)
+Return-path: <mchehab@gaivota>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:43504 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752793Ab1AANxh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Jan 2011 08:53:37 -0500
+From: "Igor M. Liplianin" <liplianin@tut.by>
+Date: Sat, 1 Jan 2011 15:52:02 +0200
+Subject: [PATCH 18/18] cx23885, altera-ci: enable all PID's less than 0x20 in hardware PID filter.
+To: mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
 MIME-Version: 1.0
-Date: Fri, 7 Jan 2011 22:53:10 +1100
-Message-ID: <AANLkTinUVpHdJRZ_EHw8B4nv=X2yNoOwdNqtH_+wiV=r@mail.gmail.com>
-Subject: [patch] new_build.git - avoid failing on 'rm' of nonexistent file
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=00151750ed9028496d04994043e3
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201101011552.02481.liplianin@netup.ru>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
---00151750ed9028496d04994043e3
-Content-Type: text/plain; charset=ISO-8859-1
+It takes too long time to scan due to low symbol rate PID's
+like PAT, PMT, CAT, NIT.
+For that matter we enabled permanently all PID's
+less 0x20 in hardware PID filter for NetUP Dual DVB-T/C CI RF card
+to combine rates.
 
-While attempting to build recently I have found the 'make distclean'
-target fails if 'rm' tries to remove a file that is not there. The
-attached patch fixes the issue for me (by using rm -f).
-I converted all the other 'rm' calls to 'rm -f' along the way.
+Signed-off-by: Igor M. Liplianin <liplianin@netup.ru>
+---
+ drivers/media/video/cx23885/altera-ci.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
 
-Please consider applying this.
+diff --git a/drivers/media/video/cx23885/altera-ci.c b/drivers/media/video/cx23885/altera-ci.c
+index 90147d6..aa67a33 100644
+--- a/drivers/media/video/cx23885/altera-ci.c
++++ b/drivers/media/video/cx23885/altera-ci.c
+@@ -652,8 +652,9 @@ static void altera_toggle_fullts_streaming(struct netup_hw_pid_filter 
+*pid_filt,
+ 
+ 		netup_fpga_op_rw(inter, NETUP_CI_PID_ADDR1,
+ 				((i >> 8) & 0x03) | (pid_filt->nr << 2), 0);
+-
+-		netup_fpga_op_rw(inter, NETUP_CI_PID_DATA, store, 0);
++		/* pid 0-0x1f always enabled */
++		netup_fpga_op_rw(inter, NETUP_CI_PID_DATA,
++				(i > 3 ? store : 0), 0);
+ 	}
+ 
+ 	mutex_unlock(&inter->fpga_mutex);
+@@ -730,8 +731,8 @@ static void altera_pid_control(struct netup_hw_pid_filter *pid_filt,
+ {
+ 	struct fpga_internal *inter = pid_filt->internal;
+ 	u8 store = 0;
+-
+-	if (pid == 0x2000)
++	/* pid 0-0x1f always enabled, don't touch them */
++	if ((pid == 0x2000) || (pid < 0x20))
+ 		return;
+ 
+ 	mutex_lock(&inter->fpga_mutex);
+-- 
+1.7.1
 
-Cheers
-Vince
-
---00151750ed9028496d04994043e3
-Content-Type: text/x-patch; charset=US-ASCII; name="new_build.patch"
-Content-Disposition: attachment; filename="new_build.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: file0
-
-ZGlmZiAtLWdpdCBhL2xpbnV4L01ha2VmaWxlIGIvbGludXgvTWFrZWZpbGUKaW5kZXggNjk1ZGNm
-Mi4uOGJiZWVlOCAxMDA2NDQKLS0tIGEvbGludXgvTWFrZWZpbGUKKysrIGIvbGludXgvTWFrZWZp
-bGUKQEAgLTUzLDcgKzUyLDcgQEAgaGVscDoKIAogdG9kYXl0YXI6CiAJQGlmIFsgIiQoRElSKSIg
-PSAiIiBdOyB0aGVuIGVjaG8gIm1ha2UgJEAgRElSPTx2ZXJzaW9uPiI7IGV4aXQgLTE7IGZpCi0J
-LXJtICQoUFdEKS8kKFRPREFZX1RBUikuYnoyCisJLXJtIC1mICQoUFdEKS8kKFRPREFZX1RBUiku
-YnoyCiAJdGFyIGNmICQoUFdEKS8kKFRPREFZX1RBUikgLUMgJChESVIpICQoVEFSRklMRVMpCiAJ
-LWdpdCAtLWdpdC1kaXIgJChESVIpLy5naXQgbG9nIC0tcHJldHR5PW9uZWxpbmUgSEVBRF4xXjFe
-MV4xXjFeMV4xXjEuLkhFQUQgPmdpdF9sb2cKIAl0YXIgcnZmICQoUFdEKS9saW51eC1tZWRpYS50
-YXIgZ2l0X2xvZwpAQCAtNzAsNyArNjksNyBAQCB0b2RheXRhcjoKIAogdGFyOgogCUBpZiBbICIk
-KERJUikiID0gIiIgXTsgdGhlbiBlY2hvICJtYWtlICRAIERJUj08dmVyc2lvbj4iOyBleGl0IC0x
-OyBmaQotCS1ybSAkKFBXRCkvbGludXgtbWVkaWEudGFyLmJ6MgorCS1ybSAtZiAkKFBXRCkvbGlu
-dXgtbWVkaWEudGFyLmJ6MgogCXRhciBjZiAkKFBXRCkvbGludXgtbWVkaWEudGFyIC1DICQoRElS
-KSAkKFRBUkZJTEVTKQogCS1naXQgLS1naXQtZGlyICQoRElSKS8uZ2l0IGxvZyAtLXByZXR0eT1v
-bmVsaW5lIEhFQUReMV4xXjFeMV4xXjFeMV4xLi5IRUFEID5naXRfbG9nCiAJdGFyIHJ2ZiAkKFBX
-RCkvbGludXgtbWVkaWEudGFyIGdpdF9sb2cKQEAgLTk3LDcgKzk2LDcgQEAgZGlyOiBjbGVhbgog
-CS4vdXNlX2Rpci5wbCAkKERJUikKIAogZGlzdGNsZWFuOiBjbGVhbgotCS1ybSBsaW51eC1tZWRp
-YS50YXIuYnoyIGxpbnV4LW1lZGlhLnRhci5iejIubWQ1CisJLXJtIC1mIGxpbnV4LW1lZGlhLnRh
-ci5iejIgbGludXgtbWVkaWEudGFyLmJ6Mi5tZDUKIAogYXBwbHlfcGF0Y2hlcyBhcHBseS1wYXRj
-aGVzOgogCUBpZiBbIC1lIC5saW5rZWRfZGlyIF07IHRoZW4gLi91c2VfZGlyLnBsIC0tcmVjaGVj
-ayAtLXNpbGVudDsgZmkKQEAgLTEzMSw3ICsxMzAsNyBAQCBhcHBseV9wYXRjaGVzIGFwcGx5LXBh
-dGNoZXM6CiAJbXYgLnBhdGNoZXNfYXBwbGllZCAucGF0Y2hlc19hcHBsaWVkLm9sZDsgXAogCWVj
-aG8gIiMkJGRpciIgPiAucGF0Y2hlc19hcHBsaWVkOyBcCiAJY2F0IC5wYXRjaGVzX2FwcGxpZWQu
-b2xkID4+IC5wYXRjaGVzX2FwcGxpZWQ7IFwKLQlybSAucGF0Y2hlc19hcHBsaWVkLm9sZDsgXAor
-CXJtIC1mIC5wYXRjaGVzX2FwcGxpZWQub2xkOyBcCiAJaWYgWyAtZSAubGlua2VkX2RpciBdOyB0
-aGVuIC4vdXNlX2Rpci5wbCAtLWdldF9wYXRjaGVkOyBmaQogCiB1bmFwcGx5X3BhdGNoZXMgdW5h
-cHBseS1wYXRjaGVzOgpAQCAtMTQxLDcgKzE0MCw3IEBAIHVuYXBwbHlfcGF0Y2hlcyB1bmFwcGx5
-LXBhdGNoZXM6CiAJCWVjaG8gcGF0Y2ggLXMgLWYgLVIgLXAxIC1pIC4uL2JhY2twb3J0cy8kJGk7
-IFwKIAkJcGF0Y2ggLXMgLWYgLVIgLXAxIC1pIC4uL2JhY2twb3J0cy8kJGkgfHwgYnJlYWs7IFwK
-IAlkb25lOyBcCi0Jcm0gLnBhdGNoZXNfYXBwbGllZDsgZmkKKwlybSAtZiAucGF0Y2hlc19hcHBs
-aWVkOyBmaQogCiBkb3dubG9hZDoKIAl3Z2V0ICQoTEFURVNUX1RBUl9NRDUpIC1PIGxpbnV4LW1l
-ZGlhLnRhci5iejIubWQ1LnRtcAo=
---00151750ed9028496d04994043e3--
