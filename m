@@ -1,49 +1,62 @@
-Return-path: <mchehab@pedra>
-Received: from devils.ext.ti.com ([198.47.26.153]:58167 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753626Ab1AJMzd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jan 2011 07:55:33 -0500
-From: "Nori, Sekhar" <nsekhar@ti.com>
-To: "Hadli, Manjunath" <manjunath.hadli@ti.com>,
-	Sergei Shtylyov <sshtylyov@mvista.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	Kevin Hilman <khilman@deeprootsystems.com>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Date: Mon, 10 Jan 2011 18:25:08 +0530
-Subject: RE: [PATCH v13 5/8] davinci vpbe: platform specific additions
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024829B727@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB593024829B6B4@dbde02.ent.ti.com>
- <B85A65D85D7EB246BE421B3FB0FBB5930247F9A821@dbde02.ent.ti.com>
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB5930247F9A821@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Return-path: <mchehab@gaivota>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:60619 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752892Ab1AAVZG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Jan 2011 16:25:06 -0500
+Received: by eye27 with SMTP id 27so5560622eye.19
+        for <linux-media@vger.kernel.org>; Sat, 01 Jan 2011 13:25:05 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <201101012218.36967.hverkuil@xs4all.nl>
+References: <AANLkTi=3ekVmf-gVU=bO2dHn4svMbExZ3TKGeiV1Jrrd@mail.gmail.com>
+	<201101012218.36967.hverkuil@xs4all.nl>
+Date: Sat, 1 Jan 2011 16:25:04 -0500
+Message-ID: <AANLkTimO713U7x8f5YCdxZgs0LE2cGHj6aNyy0pEj+is@mail.gmail.com>
+Subject: Re: V4L2 spec behavior for G_TUNER and T_STANDBY
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Mon, Jan 10, 2011 at 18:21:34, Hadli, Manjunath wrote:
-> On Mon, Jan 10, 2011 at 17:25:33, Nori, Sekhar wrote:
-> > On Mon, Jan 10, 2011 at 16:58:41, Sergei Shtylyov wrote:
-> > 
-> > > > +
-> > > > +#define OSD_REG_SIZE			0x000001ff
-> > > > +#define VENC_REG_SIZE			0x0000017f
-> > > 
-> > >     Well, actually that's not the size but "limit" -- sizes should be 
-> > > 0x200 and 0x180 respectively...
-> > 
-> > In most resource definitions on DaVinci, these are not even #defined. Just add the limit directly to the base to derive the .end
-> > 
-> > Thanks,
-> > Sekhar
-> > 
-> Ok. I shall keep the numbers as is.
+Hi Hans,
 
-Thanks. You can look at some existing resource definitions in
-arch/arm/mach-davinci/devices.c to see the format being used.
+Thanks for the feedback.
 
-Regards,
-Sekhar
+On Sat, Jan 1, 2011 at 4:18 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> This basically means that a video tuner will bail out, which sounds
+>> good because the rest of the function supposedly assumes a radio
+>> device.  However, as a result the has_signal() call (which returns
+>> signal strength) will never be executed for video tuners.  You
+>> wouldn't notice this if a video decoder subdev is responsible for
+>> showing signal strength, but if you're expecting the tuner to provide
+>> the info, the call will never happen.
+>
+> I am not aware of any tuner that does that. I think that for video this
+> is always done by a video decoder. That said, it isn't pretty, but a lot
+> of this is legacy code and I wouldn't want to change it.
+
+The Xceive tuners have their analog demodulator onboard, so they make
+available a 0-100% signal strength.
+
+> After digging some more I think that check_mode is a poor function. There are
+> two things that check_mode does: checking if the tuner support radio and/or tv
+> mode (that's fine), and if it is in standby: not so fine. That should be a
+> separate function since filling in frequency ranges can be done regardless of
+> the standby state.
+
+Yeah, I didn't realize myself that is what check_mode was doing until
+I had this problem.
+
+I'll see if I can cook up a patch which returns the appropriate data
+even when in standby, while trying to minimize the risk of introducing
+a regression.
+
+Thanks,
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
