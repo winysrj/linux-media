@@ -1,70 +1,79 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:1217 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754293Ab1ACLt2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Jan 2011 06:49:28 -0500
-Message-ID: <4D21B7B1.6000608@redhat.com>
-Date: Mon, 03 Jan 2011 09:49:05 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:53320 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752487Ab1AANqa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Jan 2011 08:46:30 -0500
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: Andy Walls <awalls@md.metrocast.net>,
+	Andy Walls <awalls@radix.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 14/18] cx25840: Fix subdev registration in cx25840-core.c
+Date: Sat, 1 Jan 2011 15:44:40 +0200
+Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, ivtv-devel@ivtvdriver.org
+References: <v38khxmtvlbmmvf5dv0i04b4.1293886218059@email.android.com>
+In-Reply-To: <v38khxmtvlbmmvf5dv0i04b4.1293886218059@email.android.com>
 MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: LMML <linux-media@vger.kernel.org>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	Patrick Boettcher <pboettcher@kernellabs.com>,
-	Hendrik Skarpeid <skarp@online.no>, stoth@kernellabs.com,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-kernel@vger.kernel.org
-Subject: Re: Summary of REGRESSIONS which are being ignored?! (Re: Summary
- of the pending patches up to Dec, 31 (26 patches))
-References: <4D1DCF6A.2090505@redhat.com> <1293996645.2409.89.camel@localhost>
-In-Reply-To: <1293996645.2409.89.camel@localhost>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201101011544.40967.liplianin@me.by>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 02-01-2011 17:30, Andy Walls escreveu:
-> I don't see this patch on it's way upstream:
+В сообщении от 1 января 2011 14:58:30 автор Andy Walls написал:
+> Igor,
 > 
-> https://patchwork.kernel.org/patch/376612/   (Sent on 5 Dec 2010)
-> http://www.spinics.net/lists/linux-media/msg26649.html (Resent on 19 Dec 2010)
+> The proper fix is here:
 > 
-> It fixes a regression in IR and Analog video for cx23885 based cards and
-> an intermittent analog video regression in ivtv based cards in 2.6.36
-> and soon in 2.6.37.
-
-Not sure what happened here. I'm sure I've applied on my fixes tree.
-Anyway, I'm re-applying it.
-
-> I emailed the LMML, you, and the author, as soon as I verified the root
-> cause on 31 Dec, and haven't heard from from anyone:
+> https://patchwork.kernel.org/patch/376612/
 > 
-> http://www.spinics.net/lists/linux-media/msg27261.html 
+> So, NAK on your particular patch.
+So, it is safe to skip my patch.
+Mauro, please skip it.
 
-Here, Dec, 31 is a national holiday. People work only half of the day.
-Yet, I was finishing some things and preparing patches for the incoming 
-window, until afternoon.
-
-I only noticed your email today, and I'm promptly sending it upstream,
-together with a patch revert for wm8775 regression.
-
-> Please revert it before the merge window closes.
-
-I'm sending it right now.
-
-> <rant>
-> I have no time to make improvements that I want to make, much less waste
-> my *VOLUNTEER* time on *REGRESSIONS* that *I DID NOT INTRODUCE*.
 > 
-> It bothers me enough, that as a volunteer, I have to clean up other
-> people's untested cr*pware.  AND, that as the lucky individual who finds
-> the bugs, I have to do additional work to get fixes back into stable
-> kernels.
+> Mauro,
+> 
+> I do not see the above patch at linux next.  And I couldn't find it in your
+> kernel.org tree.  What is its status?
+> 
+> This fixes a regression that is known to break cx23885 hardware
+> initialization and can break ivtv hardware initialization.
+> 
+> Regards,
+> Andy
+> 
+> "Igor M. Liplianin" <liplianin@me.by> wrote:
+> >On my system, cx23885 based card reports default volume value above 70000.
+> >So, register cx25840 subdev fails. Although, the card don't have a/v
+> >inputs it needs a/v firmware to be loaded.
+> >
+> >Signed-off-by: Igor M. Liplianin <liplianin@netup.ru>
+> >---
+> >
+> > drivers/media/video/cx25840/cx25840-core.c |    2 ++
+> > 1 files changed, 2 insertions(+), 0 deletions(-)
+> >
+> >diff --git a/drivers/media/video/cx25840/cx25840-core.c
+> >b/drivers/media/video/cx25840/cx25840-core.c index dfb198d..dc0cec7
+> >100644
+> >--- a/drivers/media/video/cx25840/cx25840-core.c
+> >+++ b/drivers/media/video/cx25840/cx25840-core.c
+> >@@ -1991,6 +1991,8 @@ static int cx25840_probe(struct i2c_client *client,
+> >
+> > 	if (!is_cx2583x(state)) {
+> > 	
+> > 		default_volume = 228 - cx25840_read(client, 0x8d4);
+> > 		default_volume = ((default_volume / 2) + 23) << 9;
+> >
+> >+		if (default_volume > 65535)
+> >+			default_volume = 65535;
+> >
+> > 		state->volume = v4l2_ctrl_new_std(&state->hdl,
+> > 		
+> > 			&cx25840_audio_ctrl_ops, V4L2_CID_AUDIO_VOLUME,
 
-Shit happens. A patch adding support for one board might cause regression on
-other boards, as it is not likely that the author of the patch have all
-boards that could potentially be affected. That's why we have a long rc
-period, where people with different hardware are expected to test the -rc
-kernels and point for regressions.
-
-Mauro.
+-- 
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
