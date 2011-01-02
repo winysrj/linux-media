@@ -1,56 +1,63 @@
-Return-path: <mchehab@pedra>
-Received: from dakia2.marvell.com ([65.219.4.35]:35668 "EHLO
-	dakia2.marvell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755746Ab1AGDFT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jan 2011 22:05:19 -0500
-From: Qing Xu <qingx@marvell.com>
-To: g.liakhovetski@gmx.de
-Cc: linux-media@vger.kernel.org, Qing Xu <qingx@marvell.com>,
-	Kassey Lee <ygli@marvell.com>
-Subject: [PATCH] [media] v4l: soc-camera: add enum-frame-size ioctl
-Date: Fri,  7 Jan 2011 10:49:55 +0800
-Message-Id: <1294368595-2518-1-git-send-email-qingx@marvell.com>
+Return-path: <mchehab@gaivota>
+Received: from utm.netup.ru ([193.203.36.250]:57767 "EHLO utm.netup.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751823Ab1ABQt5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 2 Jan 2011 11:49:57 -0500
+Message-ID: <4D20AC23.1080609@netup.ru>
+Date: Sun, 02 Jan 2011 16:47:31 +0000
+From: Abylay Ospan <aospan@netup.ru>
+MIME-Version: 1.0
+To: mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 3/5 v2] stv0367: implement uncorrected blocks counter.
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-pass VIDIOC_ENUM_FRAMESIZES down to sub device drivers. So far no
-special handling in soc-camera core.
-
-Signed-off-by: Kassey Lee <ygli@marvell.com>
-Signed-off-by: Qing Xu <qingx@marvell.com>
+Signed-off-by: Abylay Ospan <aospan@netup.ru>
 ---
- drivers/media/video/soc_camera.c |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
+  drivers/media/dvb/frontends/stv0367.c |   20 +++++++++++++++++++-
+  1 files changed, 19 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index 052bd6d..11715fb 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -145,6 +145,16 @@ static int soc_camera_s_std(struct file *file, void *priv, v4l2_std_id *a)
- 	return v4l2_subdev_call(sd, core, s_std, *a);
- }
- 
-+static int soc_camera_enum_framesizes(struct file *file, void *fh,
-+					 struct v4l2_frmsizeenum *fsize)
+diff --git a/drivers/media/dvb/frontends/stv0367.c 
+b/drivers/media/dvb/frontends/stv0367.c
+index b85b9b9..67301a3 100644
+--- a/drivers/media/dvb/frontends/stv0367.c
++++ b/drivers/media/dvb/frontends/stv0367.c
+@@ -3327,6 +3327,24 @@ static int stv0367cab_read_snr(struct 
+dvb_frontend *fe, u16 *snr)
+  	return 0;
+  }
+  +static int stv0367cab_read_ucblcks(struct dvb_frontend *fe, u32 
+*ucblocks)
 +{
-+	struct soc_camera_device *icd = file->private_data;
-+	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
++	struct stv0367_state *state = fe->demodulator_priv;
++	int corrected, tscount;
 +
-+	return v4l2_subdev_call(sd, video, enum_framesizes, fsize);
-+}
++	*ucblocks = (stv0367_readreg(state, R367CAB_RS_COUNTER_5) << 8)
++			| stv0367_readreg(state, R367CAB_RS_COUNTER_4);
++	corrected = (stv0367_readreg(state, R367CAB_RS_COUNTER_3) << 8)
++			| stv0367_readreg(state, R367CAB_RS_COUNTER_2);
++	tscount = (stv0367_readreg(state, R367CAB_RS_COUNTER_2) << 8)
++			| stv0367_readreg(state, R367CAB_RS_COUNTER_1);
 +
++	dprintk("%s: uncorrected blocks=%d corrected blocks=%d tscount=%d\n",
++				__func__, *ucblocks, corrected, tscount);
 +
- static int soc_camera_reqbufs(struct file *file, void *priv,
- 			      struct v4l2_requestbuffers *p)
- {
-@@ -1302,6 +1312,7 @@ static const struct v4l2_ioctl_ops soc_camera_ioctl_ops = {
- 	.vidioc_g_input		 = soc_camera_g_input,
- 	.vidioc_s_input		 = soc_camera_s_input,
- 	.vidioc_s_std		 = soc_camera_s_std,
-+	.vidioc_enum_framesizes  = soc_camera_enum_framesizes,
- 	.vidioc_reqbufs		 = soc_camera_reqbufs,
- 	.vidioc_try_fmt_vid_cap  = soc_camera_try_fmt_vid_cap,
- 	.vidioc_querybuf	 = soc_camera_querybuf,
--- 
-1.6.3.3
++	return 0;
++};
++
+  static struct dvb_frontend_ops stv0367cab_ops = {
+  	.info = {
+  		.name = "ST STV0367 DVB-C",
+@@ -3351,7 +3369,7 @@ static struct dvb_frontend_ops stv0367cab_ops = {
+  /*	.read_ber				= stv0367cab_read_ber,*/
+  	.read_signal_strength			= stv0367cab_read_strength,
+  	.read_snr				= stv0367cab_read_snr,
+-/* 	.read_ucblocks				= stv0367cab_read_ucblcks,*/
++	.read_ucblocks				= stv0367cab_read_ucblcks,
+  	.get_tune_settings			= stv0367_get_tune_settings,
+  };
+  -- 1.7.1
 
