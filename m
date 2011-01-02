@@ -1,117 +1,69 @@
-Return-path: <mchehab@pedra>
-Received: from ironport2-out.teksavvy.com ([206.248.154.183]:41666 "EHLO
-	ironport2-out.pppoe.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753370Ab1AZPF7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jan 2011 10:05:59 -0500
-Message-ID: <4D403855.4050706@teksavvy.com>
-Date: Wed, 26 Jan 2011 10:05:57 -0500
-From: Mark Lord <kernel@teksavvy.com>
+Return-path: <mchehab@gaivota>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:65178 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751257Ab1ABUcv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Jan 2011 15:32:51 -0500
+Message-ID: <4D20E0ED.5050407@gmail.com>
+Date: Sun, 02 Jan 2011 21:32:45 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
- ?
-References: <4D3E59CA.6070107@teksavvy.com> <4D3E5A91.30207@teksavvy.com> <20110125053117.GD7850@core.coreip.homeip.net> <4D3EB734.5090100@redhat.com> <20110125164803.GA19701@core.coreip.homeip.net> <AANLkTi=1Mh0JrYk5itvef7O7e7pR+YKos-w56W5q4B8B@mail.gmail.com> <20110125205453.GA19896@core.coreip.homeip.net> <4D3F4804.6070508@redhat.com> <4D3F4D11.9040302@teksavvy.com> <20110125232914.GA20130@core.coreip.homeip.net> <20110126020003.GA23085@core.coreip.homeip.net>
-In-Reply-To: <20110126020003.GA23085@core.coreip.homeip.net>
-Content-Type: text/plain; charset=UTF-8
+To: Sungchun Kang <sungchun.kang@samsung.com>
+CC: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	s.nawrocki@samsung.com, kgene.kim@samsung.com
+Subject: Re: [PATCH] [media] s5p-fimc: modify name of function for uniformity
+References: <1293687343-27424-1-git-send-email-sungchun.kang@samsung.com>
+In-Reply-To: <1293687343-27424-1-git-send-email-sungchun.kang@samsung.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On 11-01-25 09:00 PM, Dmitry Torokhov wrote:
-> On Tue, Jan 25, 2011 at 03:29:14PM -0800, Dmitry Torokhov wrote:
->> On Tue, Jan 25, 2011 at 05:22:09PM -0500, Mark Lord wrote:
->>> On 11-01-25 05:00 PM, Mauro Carvalho Chehab wrote:
->>>> Em 25-01-2011 18:54, Dmitry Torokhov escreveu:
-..
->>>>> That has been done as well; we have 2 new ioctls and kept 2 old ioctls.
->>>
->>> That's the problem: you did NOT keep the two old ioctls().
->>> Those got changed too.. so now we have four NEW ioctls(),
->>> none of which backward compatible with userspace.
->>>
->>
->> Please calm down. This, in fact, is not new vs old ioctl problem but
->> rather particular driver (or rather set of drivers) implementation
->> issue. Even if we drop the new ioctls and convert the RC code to use the
->> old ones you'd be observing the same breakage as RC code responds with
->> -EINVAL to not-yet-established mappings.
->>
->> I'll see what can be done for these drivers; I guess we could supply a
->> fake KEY_RESERVED entry for not mapped scancodes if there are mapped
->> scancodes "above" current one. That should result in the same behavior
->> for RCs as before.
->>
+On 12/30/2010 06:35 AM, Sungchun Kang wrote:
+> This patch modified function name about add or pop queue.
 >
-> I wonder if the patch below is all that is needed...
+> Reviewed-by Jonghun Han<jonghun.han@samsung.com>
+> Signed-off-by: Sungchun Kang<sungchun.kang@samsung.com>
+> ---
+> This patch is depended on:
+> http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/heads/vb2-mfc-fimc
+>
+> drivers/media/video/s5p-fimc/fimc-capture.c |    2 +-
+>   drivers/media/video/s5p-fimc/fimc-core.h    |    2 +-
+>   2 files changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+> index 4e4441f..fdef450 100644
+> --- a/drivers/media/video/s5p-fimc/fimc-capture.c
+> +++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+> @@ -155,7 +155,7 @@ int fimc_vid_cap_buf_queue(struct fimc_dev *fimc,
+>   		return ret;
+>
+>   	if (test_bit(ST_CAPT_STREAM,&fimc->state)) {
+> -		fimc_pending_queue_add(cap, fimc_vb);
+> +		pending_queue_add(cap, fimc_vb);
+>   	} else {
+>   		/* Setup the buffer directly for processing. */
+>   		int buf_id = (cap->reqbufs_count == 1) ? -1 : cap->buf_index;
+> diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+> index 1f1beaa..5bd9d93 100644
+> --- a/drivers/media/video/s5p-fimc/fimc-core.h
+> +++ b/drivers/media/video/s5p-fimc/fimc-core.h
+> @@ -668,7 +668,7 @@ active_queue_pop(struct fimc_vid_cap *vid_cap)
+>   }
+>
+>   /* Add video buffer to the capture pending buffers queue */
+> -static inline void fimc_pending_queue_add(struct fimc_vid_cap *vid_cap,
+> +static inline void pending_queue_add(struct fimc_vid_cap *vid_cap,
+>   					  struct fimc_vid_buffer *buf)
+>   {
+>   	list_add_tail(&buf->list,&vid_cap->pending_buf_q);
+
+Nack. However these functions are static it seems more appropriate
+to do the opposite, i.e. add a fimc_ prefix to the complementary 
+functions, as well to those dealing with the active queue.
+
+--
+Regards,
+Sylwester
 
 
-Nope. Does not work here:
-
-$ lsinput
-protocol version mismatch (expected 65536, got 65537)
-
-
-
->Input: ir-keymap - return KEY_RESERVED for unknown mappings
->
->Do not respond with -EINVAL to EVIOCGKEYCODE for not-yet-mapped scancodes,
->but rather return KEY_RESERVED.
->
->This fixes breakage with Ubuntu's input-kbd utility that stopped returning
->full keymaps for remote controls.
->
->Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
->---
->
-> drivers/media/IR/ir-keytable.c |   28 +++++++++++++++++-----------
-> 1 files changed, 17 insertions(+), 11 deletions(-)
->
->
->diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
->index f60107c..c4645d7 100644
->--- a/drivers/media/IR/ir-keytable.c
->+++ b/drivers/media/IR/ir-keytable.c
->@@ -374,21 +374,27 @@ static int ir_getkeycode(struct input_dev *dev,
-> 		index = ir_lookup_by_scancode(rc_tab, scancode);
-> 	}
-> 
->-	if (index >= rc_tab->len) {
->-		if (!(ke->flags & INPUT_KEYMAP_BY_INDEX))
->-			IR_dprintk(1, "unknown key for scancode 0x%04x\n",
->-				   scancode);
->+	if (index < rc_tab->len) {
->+		entry = &rc_tab->scan[index];
->+
->+		ke->index = index;
->+		ke->keycode = entry->keycode;
->+		ke->len = sizeof(entry->scancode);
->+		memcpy(ke->scancode, &entry->scancode, sizeof(entry->scancode));
->+
->+	} else if (!(ke->flags & INPUT_KEYMAP_BY_INDEX)) {
->+		/*
->+		 * We do not really know the valid range of scancodes
->+		 * so let's respond with KEY_RESERVED to anything we
->+		 * do not have mapping for [yet].
->+		 */
->+		ke->index = index;
->+		ke->keycode = KEY_RESERVED;
->+	} else {
-> 		retval = -EINVAL;
-> 		goto out;
-> 	}
-> 
->-	entry = &rc_tab->scan[index];
->-
->-	ke->index = index;
->-	ke->keycode = entry->keycode;
->-	ke->len = sizeof(entry->scancode);
->-	memcpy(ke->scancode, &entry->scancode, sizeof(entry->scancode));
->-
-> 	retval = 0;
-> 
-> out:
