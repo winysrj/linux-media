@@ -1,49 +1,66 @@
-Return-path: <mchehab@pedra>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:37862 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751641Ab1AHVp4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Jan 2011 16:45:56 -0500
-Received: by vws16 with SMTP id 16so7617153vws.19
-        for <linux-media@vger.kernel.org>; Sat, 08 Jan 2011 13:45:55 -0800 (PST)
+Return-path: <mchehab@gaivota>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1317 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750960Ab1ABLZk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Jan 2011 06:25:40 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: RFC: Move the deprecated et61x251 and sn9c102 to staging
+Date: Sun, 2 Jan 2011 12:25:21 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	"Jean-Francois Moine" <moinejf@free.fr>
+References: <201101012053.00372.hverkuil@xs4all.nl> <4D20565B.9090307@redhat.com>
+In-Reply-To: <4D20565B.9090307@redhat.com>
 MIME-Version: 1.0
-From: Christian Gmeiner <christian.gmeiner@gmail.com>
-Date: Sat, 8 Jan 2011 22:45:35 +0100
-Message-ID: <AANLkTimpR8cyfOb90AwfNp2nmqKUoYVyAeqmLKLyShwJ@mail.gmail.com>
-Subject: [PATCH] adv7175: support s_power
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201101021225.22104.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-This patch adds s_power support to adv7175 driver. Power-down is done
-by power-down all four DACs.
+On Sunday, January 02, 2011 11:41:31 Mauro Carvalho Chehab wrote:
+> Em 01-01-2011 17:53, Hans Verkuil escreveu:
+> > The subject says it all:
+> > 
+> > If there are no objections, then I propose that the deprecated et61x251 and
+> > sn9c102 are moved to staging for 2.6.38 and marked for removal in 2.6.39.
+> 
+> Nack.
+> 
+> There are several USB ID's on sn9c102 not covered by gspca driver yet.
 
-Signed-off-by: Christian Gmeiner <christian.gmeiner@gmail.com>
----
+Why are these drivers marked deprecated then?
 
-diff --git a/drivers/media/video/adv7175.c b/drivers/media/video/adv7175.c
-index f318b51..d2327db 100644
---- a/drivers/media/video/adv7175.c
-+++ b/drivers/media/video/adv7175.c
-@@ -303,11 +303,22 @@ static int adv7175_g_chip_ident(struct
-v4l2_subdev *sd, struct v4l2_dbg_chip_ide
-        return v4l2_chip_ident_i2c_client(client, chip, V4L2_IDENT_ADV7175, 0);
- }
+> It seems to me that et61x251 will also stay there for a long time, as there are
+> just two devices supported by gspca driver, while et61x251 supports 25.
+> 
+> Btw, we currently have a conflict with this USB ID:
+> 	USB_DEVICE(0x102c, 0x6151),
+> 
+> Both etoms and et61x251 support it, and there's no #if to disable it on one
+> driver, if both drivers are compiled. We need to disable it either at gspca_etoms
+> or at et61x251, in order to avoid users of having a random experience with this
+> device.
 
-+static int adv7175_s_power(struct v4l2_subdev *sd, int on)
-+{
-+       if (on)
-+               adv7175_write(sd, 0x01, 0x00);
-+       else
-+               adv7175_write(sd, 0x01, 0x78);
-+
-+       return 0;
-+}
-+
- /* ----------------------------------------------------------------------- */
+Surely such devices should be removed from et61x251 or sn9c102 as soon as they are
+added to gspca?
 
- static const struct v4l2_subdev_core_ops adv7175_core_ops = {
-        .g_chip_ident = adv7175_g_chip_ident,
-        .init = adv7175_init,
-+       .s_power = adv7175_s_power,
- };
+Regards,
+
+	Hans
+
+> > 
+> > If there are no objections, then I'll make a patch for this.
+> > 
+> > Regards,
+> > 
+> > 	Hans
+> > 
+> Cheers,
+> Mauro
+> 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
