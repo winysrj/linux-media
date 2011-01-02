@@ -1,272 +1,86 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4079 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754653Ab1AJVBV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jan 2011 16:01:21 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: manjunatha_halli@ti.com
-Subject: Re: [RFC V9 3/7] drivers:media:radio: wl128x: FM Driver Common  sources
-Date: Mon, 10 Jan 2011 22:01:12 +0100
-Cc: mchehab@infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-References: <1294664700-26949-1-git-send-email-manjunatha_halli@ti.com> <1294664700-26949-3-git-send-email-manjunatha_halli@ti.com> <1294664700-26949-4-git-send-email-manjunatha_halli@ti.com>
-In-Reply-To: <1294664700-26949-4-git-send-email-manjunatha_halli@ti.com>
+Return-path: <mchehab@gaivota>
+Received: from swampdragon.chaosbits.net ([90.184.90.115]:10937 "EHLO
+	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751192Ab1ABU50 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Jan 2011 15:57:26 -0500
+Date: Sun, 2 Jan 2011 21:57:24 +0100 (CET)
+From: Jesper Juhl <jj@chaosbits.net>
+To: linux-media@vger.kernel.org
+cc: Huang Shijie <shijie8@gmail.com>,
+	Kang Yong <kangyong@telegent.com>,
+	Zhang Xiaobing <xbzhang@telegent.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] media, tlg2300: Fix memory leak in
+ alloc_bulk_urbs_generic()
+Message-ID: <alpine.LNX.2.00.1101022150120.11481@swampdragon.chaosbits.net>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201101102201.12318.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Manjunatha,
+Hi,
 
-Thanks for all the work, it looks much better now!
+While reading 
+drivers/media/video/tlg2300/pd-video.c::alloc_bulk_urbs_generic() I 
+noticed that
 
-I found a few little things here, but otherwise you can stick a
+ - We don't free the memory allocated to 'urb' if the call to 
+   usb_alloc_coherent() fails.
+ - If the 'num' argument to the function is ever <= 0 we'll return an 
+   uninitialized variable 'i' to the caller.
 
-Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+The following patch addresses both of the above by a) calling 
+usb_free_urb() when usb_alloc_coherent() fails and by explicitly 
+initializing 'i' to zero.
+I also moved the variables 'mem' and 'urb' inside the for loop. This does 
+not actually make any difference, it just seemed more correct to me to let 
+variables exist only in the innermost scope they are used.
 
-tag in the whole driver series.
 
-On Monday, January 10, 2011 14:04:56 manjunatha_halli@ti.com wrote:
-> From: Manjunatha Halli <manjunatha_halli@ti.com>
-> 
-> These are the sources for the common interfaces required by the
-> FM V4L2 driver for TI WL127x and WL128x chips.
-> 
-> These implement the FM channel-8 protocol communication with the
-> chip. This makes use of the Shared Transport as its transport.
-> 
-> Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
-> ---
->  drivers/media/radio/wl128x/fmdrv_common.c | 1693 +++++++++++++++++++++++++++++
->  drivers/media/radio/wl128x/fmdrv_common.h |  402 +++++++
->  2 files changed, 2095 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/radio/wl128x/fmdrv_common.c
->  create mode 100644 drivers/media/radio/wl128x/fmdrv_common.h
-> 
-> diff --git a/drivers/media/radio/wl128x/fmdrv_common.c b/drivers/media/radio/wl128x/fmdrv_common.c
-> new file mode 100644
-> index 0000000..46f5fe4
-> --- /dev/null
-> +++ b/drivers/media/radio/wl128x/fmdrv_common.c
+Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+---
+ pd-video.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-<snip>
+  compile tested only.
 
-> +u32 fmc_set_freq(struct fmdev *fmdev, u32 freq_to_set)
-> +{
-> +	switch (fmdev->curr_fmmode) {
-> +	case FM_MODE_RX:
-> +		return fm_rx_set_freq(fmdev, freq_to_set);
-> +		break;
+diff --git a/drivers/media/video/tlg2300/pd-video.c b/drivers/media/video/tlg2300/pd-video.c
+index a1ffe18..df33a1d 100644
+--- a/drivers/media/video/tlg2300/pd-video.c
++++ b/drivers/media/video/tlg2300/pd-video.c
+@@ -512,19 +512,20 @@ int alloc_bulk_urbs_generic(struct urb **urb_array, int num,
+ 			int buf_size, gfp_t gfp_flags,
+ 			usb_complete_t complete_fn, void *context)
+ {
+-	struct urb *urb;
+-	void *mem;
+-	int i;
++	int i = 0;
+ 
+-	for (i = 0; i < num; i++) {
+-		urb = usb_alloc_urb(0, gfp_flags);
++	for (; i < num; i++) {
++		void *mem;
++		struct urb *urb = usb_alloc_urb(0, gfp_flags);
+ 		if (urb == NULL)
+ 			return i;
+ 
+ 		mem = usb_alloc_coherent(udev, buf_size, gfp_flags,
+ 					 &urb->transfer_dma);
+-		if (mem == NULL)
++		if (mem == NULL) {
++			usb_free_urb(urb);
+ 			return i;
++		}
+ 
+ 		usb_fill_bulk_urb(urb, udev, usb_rcvbulkpipe(udev, ep_addr),
+ 				mem, buf_size, complete_fn, context);
 
-'break' after a 'return' can be removed. This is repeated several times.
 
-> +
-> +	case FM_MODE_TX:
-> +		return fm_tx_set_freq(fmdev, freq_to_set);
-> +		break;
-> +
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +}
-> +
-> +u32 fmc_get_freq(struct fmdev *fmdev, u32 *cur_tuned_frq)
-> +{
-> +	if (fmdev->rx.freq == FM_UNDEFINED_FREQ) {
-> +		fmerr("RX frequency is not set\n");
-> +		return -EPERM;
-> +	}
-> +	if (cur_tuned_frq == NULL) {
-> +		fmerr("Invalid memory\n");
-> +		return -ENOMEM;
-> +	}
-> +
-> +	switch (fmdev->curr_fmmode) {
-> +	case FM_MODE_RX:
-> +		*cur_tuned_frq = fmdev->rx.freq;
-> +		break;
-> +
-> +	case FM_MODE_TX:
-> +		*cur_tuned_frq = 0;	/* TODO : Change this later */
-> +		break;
-> +
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +u32 fmc_set_region(struct fmdev *fmdev, u8 region_to_set)
-> +{
-> +	switch (fmdev->curr_fmmode) {
-> +	case FM_MODE_RX:
-> +		return fm_rx_set_region(fmdev, region_to_set);
-> +		break;
-> +
-> +	case FM_MODE_TX:
-> +		return fm_tx_set_region(fmdev, region_to_set);
-> +		break;
-> +
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +}
-> +
-> +u32 fmc_set_mute_mode(struct fmdev *fmdev, u8 mute_mode_toset)
-> +{
-> +	switch (fmdev->curr_fmmode) {
-> +	case FM_MODE_RX:
-> +		return fm_rx_set_mute_mode(fmdev, mute_mode_toset);
-> +		break;
-> +
-> +	case FM_MODE_TX:
-> +		return fm_tx_set_mute_mode(fmdev, mute_mode_toset);
-> +		break;
-> +
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +}
-> +
-> +u32 fmc_set_stereo_mono(struct fmdev *fmdev, u16 mode)
-> +{
-> +	switch (fmdev->curr_fmmode) {
-> +	case FM_MODE_RX:
-> +		return fm_rx_set_stereo_mono(fmdev, mode);
-> +		break;
-> +
-> +	case FM_MODE_TX:
-> +		return fm_tx_set_stereo_mono(fmdev, mode);
-> +		break;
-> +
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +}
-> +
-> +u32 fmc_set_rds_mode(struct fmdev *fmdev, u8 rds_en_dis)
-> +{
-> +	switch (fmdev->curr_fmmode) {
-> +	case FM_MODE_RX:
-> +		return fm_rx_set_rds_mode(fmdev, rds_en_dis);
-> +		break;
-> +
-> +	case FM_MODE_TX:
-> +		return fm_tx_set_rds_mode(fmdev, rds_en_dis);
-> +		break;
-> +
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +}
-> +
-> +/* Sends power off command to the chip */
-> +static u32 fm_power_down(struct fmdev *fmdev)
-> +{
-> +	u16 payload;
-> +	u32 ret = 0;
-> +
-> +	if (!test_bit(FM_CORE_READY, &fmdev->flag)) {
-> +		fmerr("FM core is not ready\n");
-> +		return -EPERM;
-> +	}
-> +	if (fmdev->curr_fmmode == FM_MODE_OFF) {
-> +		fmdbg("FM chip is already in OFF state\n");
-> +		return ret;
-> +	}
-> +
-> +	payload = 0x0;
-> +	ret = fmc_send_cmd(fmdev, FM_POWER_MODE, REG_WR, &payload,
-> +		sizeof(payload), NULL, NULL);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	ret = fmc_release(fmdev);
-
-Just do 'return fmc_release(fmdev);' here.
-
-> +
-> +	return ret;
-> +}
-> +
-> +/* Reads init command from FM firmware file and loads to the chip */
-> +static u32 fm_download_firmware(struct fmdev *fmdev, const u8 *fw_name)
-> +{
-> +	const struct firmware *fw_entry;
-> +	struct bts_header *fw_header;
-> +	struct bts_action *action;
-> +	struct bts_action_delay *delay;
-> +	u8 *fw_data;
-> +	int ret, fw_len, cmd_cnt;
-> +
-> +	cmd_cnt = 0;
-> +	set_bit(FM_FW_DW_INPROGRESS, &fmdev->flag);
-> +
-> +	ret = request_firmware(&fw_entry, fw_name,
-> +				&fmdev->radio_dev->dev);
-> +	if (ret < 0) {
-> +		fmerr("Unable to read firmware(%s) content\n", fw_name);
-> +		return ret;
-> +	}
-> +	fmdbg("Firmware(%s) length : %d bytes\n", fw_name, fw_entry->size);
-> +
-> +	fw_data = (void *)fw_entry->data;
-> +	fw_len = fw_entry->size;
-> +
-> +	fw_header = (struct bts_header *)fw_data;
-> +	if (fw_header->magic != FM_FW_FILE_HEADER_MAGIC) {
-> +		fmerr("%s not a legal TI firmware file\n", fw_name);
-> +		ret = -EINVAL;
-> +		goto rel_fw;
-> +	}
-> +	fmdbg("FW(%s) magic number : 0x%x\n", fw_name, fw_header->magic);
-> +
-> +	/* Skip file header info , we already verified it */
-> +	fw_data += sizeof(struct bts_header);
-> +	fw_len -= sizeof(struct bts_header);
-> +
-> +	while (fw_data && fw_len > 0) {
-> +		action = (struct bts_action *)fw_data;
-> +
-> +		switch (action->type) {
-> +		case ACTION_SEND_COMMAND:	/* Send */
-> +			if (fmc_send_cmd(fmdev, 0, 0, action->data,
-> +						action->size, NULL, NULL))
-> +				goto rel_fw;
-> +
-> +			cmd_cnt++;
-> +			break;
-> +
-> +		case ACTION_DELAY:	/* Delay */
-> +			delay = (struct bts_action_delay *)action->data;
-> +			mdelay(delay->msec);
-> +			break;
-> +		}
-> +
-> +		fw_data += (sizeof(struct bts_action) + (action->size));
-> +		fw_len -= (sizeof(struct bts_action) + (action->size));
-> +	}
-> +	fmdbg("Firmare commands(%d) loaded to chip\n", cmd_cnt);
-
-Firmare -> Firmware
-
-> +rel_fw:
-> +	release_firmware(fw_entry);
-> +	clear_bit(FM_FW_DW_INPROGRESS, &fmdev->flag);
-> +
-> +	return ret;
-> +}
-
-<snip>
-
-Regards,
-
-	Hans
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Jesper Juhl <jj@chaosbits.net>            http://www.chaosbits.net/
+Don't top-post http://www.catb.org/~esr/jargon/html/T/top-post.html
+Plain text mails only, please.
+
