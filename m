@@ -1,70 +1,69 @@
-Return-path: <mchehab@pedra>
-Received: from mailout1.samsung.com ([203.254.224.24]:61839 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751202Ab1AMIjb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Jan 2011 03:39:31 -0500
-Date: Thu, 13 Jan 2011 17:39:24 +0900
-From: Jonghun Han <jonghun.han@samsung.com>
-Subject: RE: Memory sharing issue by application on V4L2 based device driver
- with system mmu.
-In-reply-to: <20110111173509.GB14017@dumpdata.com>
-To: 'Konrad Rzeszutek Wilk' <konrad.wilk@oracle.com>
-Cc: 'InKi Dae' <daeinki@gmail.com>, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	'linux-fbdev' <linux-fbdev@vger.kernel.org>,
-	kyungmin.park@samsung.com
-Message-id: <007b01cbb2fd$64a0f050$2de2d0f0$%han@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: ko
-Content-transfer-encoding: 7BIT
-References: <4D25BC22.6080803@samsung.com>
- <AANLkTi=P8qY22saY9a_-rze1wsr-DLMgc6Lfa6qnfM7u@mail.gmail.com>
- <002201cbadfd$6d59e490$480dadb0$%han@samsung.com>
- <AANLkTinsduJkynwwEeM5K9f3D7C6jtBgkAyZ0-_0z2X-@mail.gmail.com>
- <003201cbae19$bda3dfc0$38eb9f40$%han@samsung.com>
- <20110111173509.GB14017@dumpdata.com>
+Return-path: <mchehab@gaivota>
+Received: from utm.netup.ru ([193.203.36.250]:57680 "EHLO utm.netup.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753894Ab1ABQsZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 2 Jan 2011 11:48:25 -0500
+Message-ID: <4D20A4CA.4020601@netup.ru>
+Date: Sun, 02 Jan 2011 16:16:10 +0000
+From: Abylay Ospan <aospan@netup.ru>
+MIME-Version: 1.0
+To: mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 1/5 v2] cx23885: Altera FPGA CI interface reworked.
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
+It decreases I2C traffic.
 
-Sorry for late reply.
+Signed-off-by: Abylay Ospan <aospan@netup.ru>
+Signed-off-by: Igor M. Liplianin <liplianin@netup.ru>
+---
+  drivers/media/video/cx23885/cx23885-dvb.c |   18 +++++++++---------
+  1 files changed, 9 insertions(+), 9 deletions(-)
 
-Samsung SoC C210 has many multimedia IPs.
-Each IP has its own MMU named SYSTEM MMU like CPU's MMU.
-So it can handle discontiguous memory using device own virtual address.
-
-What Inki Dae wants to discuss is how to allocate the memory and how to
-share it with other multimedia IPs. 
-
-Thank you for interesting.
-
-Best regards,
-
-> -----Original Message-----
-> From: linux-fbdev-owner@vger.kernel.org [mailto:linux-fbdev-
-> owner@vger.kernel.org] On Behalf Of Konrad Rzeszutek Wilk
-> Sent: Wednesday, January 12, 2011 2:35 AM
-> To: Jonghun Han
-> Cc: 'InKi Dae'; linux-media@vger.kernel.org;
-linux-arm-kernel@lists.infradead.org;
-> 'linux-fbdev'; kyungmin.park@samsung.com
-> Subject: Re: Memory sharing issue by application on V4L2 based device
-driver
-> with system mmu.
-> 
-> 
->  .. snip..
-> > But 64KB or 1MB physically contiguous memory is better than 4KB page
-> > in the point of performance.
-> 
-> Could you explain that in more details please? I presume you are talking
-about a
-> CPU that has a MMU unit, right?
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-fbdev" in
-the body
-> of a message to majordomo@vger.kernel.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/video/cx23885/cx23885-dvb.c 
+b/drivers/media/video/cx23885/cx23885-dvb.c
+index 6c144f7..53c2b6d 100644
+--- a/drivers/media/video/cx23885/cx23885-dvb.c
++++ b/drivers/media/video/cx23885/cx23885-dvb.c
+@@ -620,29 +620,29 @@ int netup_altera_fpga_rw(void *device, int flag, 
+int data, int read)
+  {
+  	struct cx23885_dev *dev = (struct cx23885_dev *)device;
+  	unsigned long timeout = jiffies + msecs_to_jiffies(1);
+-	int mem = 0;
++	uint32_t mem = 0;
+  -	cx_set(MC417_RWD, ALT_RD | ALT_WR | ALT_CS);
++	mem = cx_read(MC417_RWD);
+  	if (read)
+  		cx_set(MC417_OEN, ALT_DATA);
+  	else {
+  		cx_clear(MC417_OEN, ALT_DATA);/* D0-D7 out */
+-		mem = cx_read(MC417_RWD);
+  		mem &= ~ALT_DATA;
+  		mem |= (data & ALT_DATA);
+-		cx_write(MC417_RWD, mem);
+  	}
+   	if (flag)
+-		cx_set(MC417_RWD, ALT_AD_RG);/* ADDR */
++		mem |= ALT_AD_RG;
+  	else
+-		cx_clear(MC417_RWD, ALT_AD_RG);/* VAL */
++		mem &= ~ALT_AD_RG;
+  -	cx_clear(MC417_RWD, ALT_CS);/* ~CS */
++	mem &= ~ALT_CS;
+  	if (read)
+-		cx_clear(MC417_RWD, ALT_RD);
++		mem = (mem & ~ALT_RD) | ALT_WR;
+  	else
+-		cx_clear(MC417_RWD, ALT_WR);
++		mem = (mem & ~ALT_WR) | ALT_RD;
++
++	cx_write(MC417_RWD, mem);  /* start RW cycle */
+   	for (;;) {
+  		mem = cx_read(MC417_RWD);
+-- 
+1.7.1
 
