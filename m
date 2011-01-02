@@ -1,195 +1,216 @@
-Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:36323 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753191Ab1ASKIe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jan 2011 05:08:34 -0500
-Message-ID: <4D36B81B.9000602@gmail.com>
-Date: Wed, 19 Jan 2011 11:08:27 +0100
-From: Patrik Jakobsson <patrik.r.jakobsson@gmail.com>
+Return-path: <mchehab@gaivota>
+Received: from mx1.redhat.com ([209.132.183.28]:41463 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754747Ab1ABS0k (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 2 Jan 2011 13:26:40 -0500
+Message-ID: <4D20C4FB.9060906@redhat.com>
+Date: Sun, 02 Jan 2011 19:33:31 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
 To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Rune Saetre <rune.saetre@aptomar.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: PROBLEM: kernel BUG at drivers/media/video/em28xx/em28xx-video.c:891
-References: <Pine.LNX.4.64.1101171420420.15860@pingle.local.rsnet> <Pine.LNX.4.64.1101180213130.15860@pingle.local.rsnet> <4D35BC4B.50108@gmail.com> <201101181730.52239.hverkuil@xs4all.nl>
-In-Reply-To: <201101181730.52239.hverkuil@xs4all.nl>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jean-Francois Moine <moinejf@free.fr>
+Subject: Re: RFC: Move the deprecated et61x251 and sn9c102 to staging
+References: <201101012053.00372.hverkuil@xs4all.nl> <4D20565B.9090307@redhat.com> <201101021225.22104.hverkuil@xs4all.nl> <4D20A908.9020705@redhat.com>
+In-Reply-To: <4D20A908.9020705@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On 01/18/2011 05:30 PM, Hans Verkuil wrote:
-> On Tuesday, January 18, 2011 17:14:03 Patrik Jakobsson wrote:
->> Hello Rune
->>
->> I'm trying to learn more about the linux kernel so I figured helping
->> with bugs is a good way to get started.
->>
->> On 01/18/2011 02:20 AM, Rune Saetre wrote:
->>> Hi
+Hi,
+
+One small correction to the sn9c102 sensor table, the
+mt9v111 sensor is handled by sonixj, so the table of
+bridge/sensor combi's supported by sn9c102, looks like this:
+
+sn9c101/102:
+hv7131d
+mi0343 *
+ov7630
+pas106b
+pas202bcb
+tas5110c1b
+tas5110d
+tas5130d1b
+
+sn9c103:
+hv7131r *
+mi0360 *
+ov7630
+pas202bcb
+
+sn9c105/120:
+hv7131r
+mi0360
+mt9v111
+ov7630
+ov7660
+
+So only 3 raw bayer + custom compression models supported by
+sn9c102 are not supported by gspca_sonixb, and all jpeg models
+are supported by gspca_sonixj. Porting the 3 remaining models
+over should be relatively easy, but I (I more or less maintain
+the sonixb driver) really need hardware access to ensure things
+stay working.
+
+Second correction, I was looking at an old tree and failed to
+notice that the zc0301 driver has already bitten the dust
+(good!).
+
+Regards,
+
+Hans
+
+On 01/02/2011 05:34 PM, Hans de Goede wrote:
+> Hi,
+>
+> On 01/02/2011 12:25 PM, Hans Verkuil wrote:
+>> On Sunday, January 02, 2011 11:41:31 Mauro Carvalho Chehab wrote:
+>>> Em 01-01-2011 17:53, Hans Verkuil escreveu:
+>>>> The subject says it all:
+>>>>
+>>>> If there are no objections, then I propose that the deprecated et61x251 and
+>>>> sn9c102 are moved to staging for 2.6.38 and marked for removal in 2.6.39.
 >>>
->>> The crash is not as consistent as I first believed. I have managed to
->>> stop and start capturing several (but not many) times without the
->>> driver crashing now.
+>>> Nack.
 >>>
->> To me it seems that the resource locking (functions res_get, res_check,
->> res_locked and res_free) is subject to race condition.
+>>> There are several USB ID's on sn9c102 not covered by gspca driver yet.
 >>
->> I looked at older versions of the code and found that there used to be
->> locks around some of these pieces. It was removed in commit:
+>> Why are these drivers marked deprecated then?
 >>
->> 0499a5aa777f8e56e46df362f0bb9d9d116186f9 - V4L/DVB: em28xx: remove BKL
+>
+> You'll have to look at me for the deprecation marking.
+>
+> I did this because they are unmaintained and buggy in some areas and thus really
+> should go away. Also note that looking at usb-id's is *not* useful with these
+> drivers as when Luca wrote them he simply included large lists of usb-id's without
+> the drivers actually being tested with cams with those id's. Usually when a bridge
+> supports a range of configurable id's, this is used to have one generic (win32)
+> driver and the usb product id indicates which sensor is used.
+>
+> I did a patch removing a whole bunch of usb-id's from the sn9c102 driver in the
+> past as we knew which sensors those id's corresponded with and Luca's driver never
+> supported these sensors, so the claiming of the usb-id's was bogus.
+>
+> However for many usb-id's claimed by the sn9c102 driver we don't know what sensor
+> they belong to (or if any devices with that id exists out there at all), so I left
+> them in to not cause regressions.
+>
+> So if we want to see where we stand wrt replacing Luca's old drivers with gspca
+> subdrivers, you should look at the list of supported sensors.
+>
+> I've made a list for all sn9c102 supported bridge + sensor combinations and
+> marked the ones which are not yet supported by gscpa:
+>
+> sn9c101/102:
+> hv7131d
+> mi0343 *
+> ov7630
+> pas106b
+> pas202bcb
+> tas5110c1b
+> tas5110d
+> tas5130d1b
+>
+> sn9c103:
+> hv7131r *
+> mi0360 *
+> ov7630
+> pas202bcb
+>
+> sn9c105/120:
+> hv7131r
+> mi0360
+> mt9v111 *
+> ov7630
+> ov7660
+>
+> So we have 3 models not yet supported in the sonixb driver (and sonixb
+> cams are quite rare now a days). And 1 model in the sonixj driver.
+>
+> Note btw that I've disabled all Luca's drivers (et61x251, sn9c102 and
+> zc0301) in Fedora kernels for several Fedora releases already and sofar
+> I've received one bug report about this, which is resolved now as I
+> recently added support for the hv7131d sensor to the sonixb driver
+> (thanks to said bug report).
+>
+> So all in all I believe that moving the sn9c102 driver to staging, or
+> at least remove all usb-id's which are a doublure with gspca's sonixb
+> and sonixj drivers is the right thing to do.
+>
+>>> It seems to me that et61x251 will also stay there for a long time, as there are
+>>> just two devices supported by gspca driver, while et61x251 supports 25.
+>>>
+>>> Btw, we currently have a conflict with this USB ID:
+>>> USB_DEVICE(0x102c, 0x6151),
+>>>
+>>> Both etoms and et61x251 support it, and there's no #if to disable it on one
+>>> driver, if both drivers are compiled. We need to disable it either at gspca_etoms
+>>> or at et61x251, in order to avoid users of having a random experience with this
+>>> device.
 >>
->> Other V4L drivers use pretty much the same code (res_get, res_free,
->> etc.) for resource locking but still have the mutex_lock/unlock around
->> it. Does anyone know why this was removed?
-> Because now the video4linux core does the locking.
+>> Surely such devices should be removed from et61x251 or sn9c102 as soon as they are
+>> added to gspca?
 >
-> Anyway, I'm pretty sure this is the bug that was fixed here:
+> The problem is that the initial gspcav2 core + subdrivers as it entered the mainline
+> is derived from / a partial rewrite of the out of tree v4l1 gspca drivers / framework
+> as such the register init sequences for bridges + sensors were not all tested when
+> gspca entered the mainline so in the case of untested bridge + sensor combo's which
+> were already supported by Luca's mainline drivers, we added #ifdef's to use Luca's
+> drivers in case both are compiled in. As more and more people tested the gspca drivers
+> most of these #ifdef's were reversed to prefer the gspca sub drivers if both
+> were compiled in, one ubs-id at a time.
 >
-> http://www.mail-archive.com/linuxtv-commits@linuxtv.org/msg09413.html
+> Looking at both drivers, the gspca one supports both the tas5130 and pas106 sensors,
+> where as the et61x251 driver only supports the tas5130 sensor. The conflicting usb id
+> 102c:6151 is for a camera with the pas106 sensor, so the solution is to remove this
+> usb id from the et61x251 driver, as it does not support this id, despite claiming it.
 >
-> This fix will be in 2.6.38.
+> Looking closer at the et61x251 driver, one finds this beauty inside
+> et61x251_tas5130d1b.c, which is the only sensor module for the et61x251 driver:
 >
-> The change in the locking mechanism had nothing to do this particular bug.
-> It was just incorrect administration of resources.
+> int et61x251_probe_tas5130d1b(struct et61x251_device* cam)
+> {
+> const struct usb_device_id tas5130d1b_id_table[] = {
+> { USB_DEVICE(0x102c, 0x6251), },
+> { }
+> };
+>
+> /* Sensor detection is based on USB pid/vid */
+> if (!et61x251_match_id(cam, tas5130d1b_id_table))
+> return -ENODEV;
+>
+> ...
+>
+> IOW the et61x251 driver, in classical Luca style if I may say so, only supports usb id
+> 102c:6251, despite claiming many many more. So moving forward we should:
+>
+> 1) Remove all bogus usb id's from the et61x251 driver, as trying to use any of these
+> devices with it will fail, as it won't be able to find a working sensor module
+> (I thought I did a patch for this once before, but either my memory is failing or
+> the patch got lost).
+>
+> 2) Since it then 100% overlaps with the etoms driver, move it to staging
+>
+> ###
+>
+> I notice that the zc0301 driver is missing from your list to move to staging, it
+> 100% overlaps with the gspca zc3xx driver. And where as the zc0301 driver
+> only claims to support 2 usb-id's (and 2 sensor types), the gspca zc3xx driver
+> supports 53 usb id's and 19 sensor types.
+>
+> Note that the zc3xx bridge is special in that the usb-id does not always uniquely
+> identify a bridge/sensor combo. One needs to do actual i2c bus probing to figure
+> out which sensor is attached (like with the ov51x / ovfx2 bridges)...
+>
+> And the zc0301 driver claims to support the 0ac8:303b, which is a generic
+> id, which may ship with many types of sensors, including many not supported by
+> the zc0301 driver, so effectively it only supports 1 usb-id properly.
+>
+> So the zc0301 driver should be moved to staging too IMHO.
 >
 > Regards,
 >
-> 	Hans
->
-Thanks for the explanation. I see now how the V4L core locks around the 
-ioctls. The member unlocked_ioctl of struct v4l2_file_operations 
-confused me a little. Maybe serialized_ioctl would be a better name? Not 
-a big issue though.
-
-Hopefully the patch fixes your problem Rune.
-
-Thanks
-Patrik Jakobsson
-
->> Thanks
->> Patrik Jakobsson
->>> The trace logs also differ slightly. Here is the last one:
->>>
->>> Jan 18 02:12:08 mate kernel: [  117.219326] ------------[ cut here
->>> ]------------
->>> Jan 18 02:12:08 mate kernel: [  117.219412] kernel BUG at
->>> drivers/media/video/em28xx/em28xx-video.c:891!
->>> Jan 18 02:12:08 mate kernel: [  117.219507] invalid opcode: 0000 [#1]
->>> PREEMPT SMP Jan 18 02:12:08 mate kernel: [  117.219597] last sysfs
->>> file: /sys/devices/virtual/block/dm-8/stat
->>> Jan 18 02:12:08 mate kernel: [  117.219681] CPU 1 Jan 18 02:12:08 mate
->>> kernel: [  117.219714] Modules linked in: acpi_cpufreq mperf
->>> cpufreq_powersave cpufreq_stats cpufreq_userspace cpufreq_conservative
->>> ppdev lp nfsd lockd nfs_acl auth_rpcgss sunrpc exportfs binfmt_misc
->>> fuse dummy bridge stp ext2 mbcache coretemp kvm_intel kvm loop
->>> firewire_sbp2 tuner snd_hda_codec_realtek arc4 snd_hda_intel
->>> snd_usb_audio snd_hda_codec ecb snd_seq_dummy snd_pcm_oss
->>> snd_mixer_oss saa7115 snd_pcm ir_lirc_codec lirc_dev ir_sony_decoder
->>> snd_hwdep snd_usbmidi_lib em28xx ir_jvc_decoder ir_rc6_decoder
->>> snd_seq_oss snd_seq_midi snd_rawmidi r8169 ir_rc5_decoder mii
->>> ir_nec_decoder snd_seq_midi_event i915 v4l2_common iwlagn iwlcore
->>> snd_seq ir_core drm_kms_helper drm videobuf_vmalloc snd_timer
->>> snd_seq_device videobuf_core pcmcia joydev mac80211 uvcvideo videodev
->>> v4l1_compat v4l2_compat_ioctl32 tveeprom cfg80211 rfkill i2c_i801
->>> i2c_algo_bit tpm_tis tpm yenta_socket snd intel_agp shpchp pci_hotplug
->>> video output pcmcia_rsrc wmi pcmcia_core soundcore snd_page_alloc
->>> parport_pc parport i2c_cor
->>> Jan 18 02:12:08 mate kernel:  irda tpm_bios intel_gtt pcspkr crc_ccitt
->>> psmouse evdev serio_raw container processor battery ac button reiserfs
->>> dm_mod raid10 raid456 async_raid6_recov async_pq raid6_pq async_xor
->>> xor async_memcpy async_tx raid1 raid0 multipath linear md_mod
->>> ide_cd_mod cdrom sd_mod ata_generic pata_acpi ata_piix crc_t10dif
->>> ide_pci_generic ahci libahci sdhci_pci firewire_ohci sdhci libata
->>> scsi_mod piix ide_core firewire_core mmc_core uhci_hcd tg3 thermal
->>> crc_itu_t thermal_sys ehci_hcd [last unloaded: scsi_wait_scan]
->>> Jan 18 02:12:08 mate kernel: [  117.220091] Jan 18 02:12:08 mate
->>> kernel: [  117.220091] Pid: 3154, comm: camera_factory_ Not tainted
->>> 2.6.37-rst #1 Victoria        /TravelMate 6292 Jan 18 02:12:08 mate
->>> kernel: [  117.220091] RIP: 0010:[<ffffffffa05a37f4>]
->>> [<ffffffffa05a37f4>] res_free+0x14/0x49 [em28xx]
->>> Jan 18 02:12:08 mate kernel: [  117.220091] RSP:
->>> 0018:ffff8800794a1c48  EFLAGS: 00010297
->>> Jan 18 02:12:08 mate kernel: [  117.220091] RAX: 0000000000000001 RBX:
->>> ffff88007b94dc00 RCX: 0000000000000000
->>> Jan 18 02:12:08 mate kernel: [  117.220091] RDX: 0000000000000000 RSI:
->>> ffff8800378e7000 RDI: ffff88007b94dc00
->>> Jan 18 02:12:09 mate kernel: [  117.220091] RBP: ffff8800378e7000 R08:
->>> 0000000000000001 R09: 0000000000000c52
->>> Jan 18 02:12:09 mate kernel: [  117.220091] R10: 0000000000000000 R11:
->>> 0000000000000246 R12: 0000000000000000
->>> Jan 18 02:12:09 mate kernel: [  117.220091] R13: ffffffffa05ab920 R14:
->>> ffff88006dd123c0 R15: ffff88007b94dc00
->>> Jan 18 02:12:09 mate kernel: [  117.220091] FS:
->>> 00007f37105bb820(0000) GS:ffff88007f500000(0000) knlGS:0000000000000000
->>> Jan 18 02:12:09 mate kernel: [  117.220091] CS:  0010 DS: 0000 ES:
->>> 0000 CR0: 0000000080050033
->>> Jan 18 02:12:09 mate kernel: [  117.220091] CR2: 000000000378b248 CR3:
->>> 000000007a079000 CR4: 00000000000006e0
->>> Jan 18 02:12:09 mate kernel: [  117.220091] DR0: 0000000000000000 DR1:
->>> 0000000000000000 DR2: 0000000000000000
->>> Jan 18 02:12:09 mate kernel: [  117.220091] DR3: 0000000000000000 DR6:
->>> 00000000ffff0ff0 DR7: 0000000000000400
->>> Jan 18 02:12:09 mate kernel: [  117.220091] Process camera_factory_
->>> (pid: 3154, threadinfo ffff8800794a0000, task ffff880071f6d820)
->>> Jan 18 02:12:09 mate kernel: [  117.220091] Stack:
->>> Jan 18 02:12:09 mate kernel: [  117.220091]  ffff8800378e7000
->>> ffffffffa05a46b9 ffff88007a2fd040 ffffffff81042cf3
->>> Jan 18 02:12:09 mate kernel: [  117.220091]  0000000000000001
->>> ffffffff00000001 ffffffff8103dadb 0000000000000001
->>> Jan 18 02:12:09 mate kernel: [  117.220091]  ffff88007ba3e400
->>> ffffffffa03302ff 00000000000135c0 00000000000135c0
->>> Jan 18 02:12:09 mate kernel: [  117.220091] Call Trace:
->>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffffa05a46b9>] ?
->>> vidioc_streamoff+0xa6/0xb6 [em28xx]
->>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81042cf3>] ?
->>> get_parent_ip+0x9/0x1b
->>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff8103dadb>] ?
->>> need_resched+0x1a/0x23
->>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffffa03302ff>] ?
->>> __video_do_ioctl+0x12e2/0x33a0 [videodev]
->>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff8103a5fe>] ?
->>> __wake_up_common+0x41/0x78
->>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff8103da1b>] ?
->>> __wake_up+0x35/0x46
->>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81042cf3>] ?
->>> get_parent_ip+0x9/0x1b
->>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81044d80>] ?
->>> add_preempt_count+0x9e/0xa0
->>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff8132935c>] ?
->>> _raw_spin_lock_irqsave+0x40/0x61
->>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffffa03326f4>] ?
->>> video_ioctl2+0x2ad/0x35d [videodev]
->>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81042cf3>] ?
->>> get_parent_ip+0x9/0x1b
->>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffffa032e342>] ?
->>> v4l2_ioctl+0x74/0x113 [videodev]
->>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81106f51>] ?
->>> do_vfs_ioctl+0x418/0x465
->>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81106fda>] ?
->>> sys_ioctl+0x3c/0x5e
->>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81009c52>] ?
->>> system_call_fastpath+0x16/0x1b
->>> Jan 18 02:12:09 mate kernel: [  117.220091] Code: 03 4c 39 e3 0f 18 08
->>> 75 d4 31 c0 eb 05 b8 ea ff ff ff 5b 5d 41 5c c3 48 83 ec 08 8b 57 0c
->>> 89 f0 89 c1 48 8b 37 21 d1 39 c1 74 04<0f>  0b eb fe 89 c8 f7 d0 21 c2
->>> 89 57 0c 21 86 d0 09 00 00 83 3d Jan 18 02:12:09 mate kernel: [
->>> 117.220091] RIP  [<ffffffffa05a37f4>] res_free+0x14/0x49 [em28xx]
->>> Jan 18 02:12:09 mate kernel: [  117.220091]  RSP<ffff8800794a1c48>
->>> Jan 18 02:12:09 mate kernel: [  117.264998] ---[ end trace
->>> 6d6576ecd99356c8 ]---
->>>
->>> I hope this helps.
->>>
->>> Regards
->>> Rune
->>>
->>>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-
+> Hans
