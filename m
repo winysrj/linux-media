@@ -1,59 +1,52 @@
-Return-path: <mchehab@pedra>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:41579 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757650Ab1ANQ0R convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Jan 2011 11:26:17 -0500
-Received: by iyj18 with SMTP id 18so2647481iyj.19
-        for <linux-media@vger.kernel.org>; Fri, 14 Jan 2011 08:26:16 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1295019772718638500@masin.eu>
-References: <1295019772718638500@masin.eu>
-From: Paulo Assis <pj.assis@gmail.com>
-Date: Fri, 14 Jan 2011 16:25:54 +0000
-Message-ID: <AANLkTimHrFHUEntJipdKs6yurMV0iWHN5VS=eiDSo5Zu@mail.gmail.com>
-Subject: Re: [Linux-uvc-devel] Logitech C910 driver problem
-To: =?ISO-8859-2?Q?Radek_Ma=B9=EDn?= <radek@masin.eu>
-Cc: Linux-uvc-devel@lists.berlios.de,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Return-path: <mchehab@gaivota>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3869 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932194Ab1ACNyu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jan 2011 08:54:50 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: David Ellingsworth <david@identd.dyndns.org>
+Subject: [RFC PATCH 2/4] v4l2-framework.txt: document new v4l2_device release() callback
+Date: Mon,  3 Jan 2011 14:54:30 +0100
+Message-Id: <4e8311a75e739d7f757985a1099eb5510c5c57ef.1294062751.git.hverkuil@xs4all.nl>
+In-Reply-To: <1294062872-8312-1-git-send-email-hverkuil@xs4all.nl>
+References: <1294062872-8312-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <adec9ffda2cd47023cde5d0beda01fc84bd867f6.1294062751.git.hverkuil@xs4all.nl>
+References: <adec9ffda2cd47023cde5d0beda01fc84bd867f6.1294062751.git.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Radek,
-Please attach the full dmesg output when starting video capture with
-the second camera.
-Also increase log verbosity first:
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ Documentation/video4linux/v4l2-framework.txt |   15 +++++++++++++++
+ 1 files changed, 15 insertions(+), 0 deletions(-)
 
-something like this:
-rmmod uvcvideo
-modprobe uvcvideo trace=65535
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index f22f35c..a6003d7 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -167,6 +167,21 @@ static int __devinit drv_probe(struct pci_dev *pdev,
+ 	state->instance = atomic_inc_return(&drv_instance) - 1;
+ }
+ 
++If you have multiple device nodes then it can be difficult to know when it is
++safe to unregister v4l2_device. For this purpose v4l2_device has refcounting
++support. The refcount is increased whenever video_register_device is called and
++it is decreased whenever that device node is released. When the refcount reaches
++zero, then the v4l2_device release() callback is called. You can do your final
++cleanup there.
++
++If other device nodes (e.g. ALSA) are created, then you can increase and
++decrease the refcount manually as well by calling:
++
++void v4l2_device_get(struct v4l2_device *v4l2_dev);
++
++or:
++
++int v4l2_device_put(struct v4l2_device *v4l2_dev);
+ 
+ struct v4l2_subdev
+ ------------------
+-- 
+1.7.0.4
 
-You should also refer your capture settings (if I remember MJPG
-640x480@24 fps) and that if you use one c910 and one c600 everything
-works fine.
-
-Note: Cc linux-media since you also posted this thread there.
-
-Regards,
-Paulo
-
-2011/1/14 Radek Mašín <radek@masin.eu>:
-> Hello,
-> I'm trying to get working two Logitech C910 cameras in one computer and I'm unable to
-> do it. I connect both cameras to one USB controller and first camera is starting capture
-> without problem, but when I try to start second camera during first camera is running,
-> I get message in log "uvcvideo: Failed to submit URB 0" and capturing fails.
-> I have discussed this problem on quickcamteam forum and it seems, that there is problem
-> with uvcvideo driver for this camera.
-> Cameras have been tested in two different systems (SuSe 11.2 and Ubuntu 10.10) and on
-> both systems I get same behavior.
->
-> Thank you
-> Radek Masin
-> _______________________________________________
-> Linux-uvc-devel mailing list
-> Linux-uvc-devel@lists.berlios.de
-> https://lists.berlios.de/mailman/listinfo/linux-uvc-devel
->
