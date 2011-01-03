@@ -1,38 +1,41 @@
-Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58526 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752683Ab1AIVO7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Jan 2011 16:14:59 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFCv2 PATCH 0/5] Use control framework in cafe_ccic and s_config removal
-Date: Sun, 9 Jan 2011 22:15:45 +0100
-Cc: linux-media@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-References: <1294484508-14820-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1294484508-14820-1-git-send-email-hverkuil@xs4all.nl>
+Return-path: <mchehab@gaivota>
+Received: from cantor.suse.de ([195.135.220.2]:49121 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755213Ab1ACPEH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Jan 2011 10:04:07 -0500
+Date: Mon, 3 Jan 2011 16:04:05 +0100 (CET)
+From: Jiri Kosina <jkosina@suse.cz>
+To: Mauro Carvalho Chehab <maurochehab@gmail.com>
+Cc: "Justin P. Mattock" <justinmattock@gmail.com>,
+	linux-m68k@vger.kernel.org, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, ivtv-devel@ivtvdriver.org,
+	linux-media@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-scsi@vger.kernel.org,
+	spi-devel-general@lists.sourceforge.net,
+	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
+Subject: Re: [PATCH 11/15]drivers:media:video:cx18:cx23418.h Typo change
+ diable to disable.
+In-Reply-To: <4D1DAF2D.5070604@gmail.com>
+Message-ID: <alpine.LNX.2.00.1101031603470.26685@pobox.suse.cz>
+References: <1293750484-1161-1-git-send-email-justinmattock@gmail.com> <1293750484-1161-2-git-send-email-justinmattock@gmail.com> <1293750484-1161-3-git-send-email-justinmattock@gmail.com> <1293750484-1161-4-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-5-git-send-email-justinmattock@gmail.com> <1293750484-1161-6-git-send-email-justinmattock@gmail.com> <1293750484-1161-7-git-send-email-justinmattock@gmail.com> <1293750484-1161-8-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-9-git-send-email-justinmattock@gmail.com> <1293750484-1161-10-git-send-email-justinmattock@gmail.com> <1293750484-1161-11-git-send-email-justinmattock@gmail.com> <4D1DAF2D.5070604@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201101092215.45816.laurent.pinchart@ideasonboard.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Hans,
+On Fri, 31 Dec 2010, Mauro Carvalho Chehab wrote:
 
-On Saturday 08 January 2011 12:01:43 Hans Verkuil wrote:
-> Second version of this patch. Changes are:
-> 
-> - Handle the return code of the internal 'registered' op and 'unregistered'
-> now returns a void.
-> - has_new has been renamed to is_new and is documented and no longer
-> internal.
+> Em 30-12-2010 21:08, Justin P. Mattock escreveu:
+> > The below patch fixes a typo "diable" to "disable". Please let me know if this 
+> > is correct or not.
+> > 
+> > Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
+> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-For patches 1/5, 2/5 and 3/5,
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Folded all three 'media' fixes into one and applied with your Ack. Thanks.
 
 -- 
-Regards,
-
-Laurent Pinchart
+Jiri Kosina
+SUSE Labs, Novell Inc.
