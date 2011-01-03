@@ -1,77 +1,51 @@
-Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.9]:57786 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754050Ab1ASQU1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jan 2011 11:20:27 -0500
-Date: Wed, 19 Jan 2011 17:20:23 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Qing Xu <qingx@marvell.com>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: How to support MIPI CSI-2 controller in soc-camera framework?
-In-Reply-To: <7BAC95F5A7E67643AAFB2C31BEE662D014040BF5AF@SC-VEXCH2.marvell.com>
-Message-ID: <Pine.LNX.4.64.1101191701430.620@axis700.grange>
-References: <1294368595-2518-1-git-send-email-qingx@marvell.com>
- <7BAC95F5A7E67643AAFB2C31BEE662D014040171EE@SC-VEXCH2.marvell.com>
- <Pine.LNX.4.64.1101100853490.24479@axis700.grange>
- <201101101133.01636.laurent.pinchart@ideasonboard.com>
- <7BAC95F5A7E67643AAFB2C31BEE662D014040BF237@SC-VEXCH2.marvell.com>
- <Pine.LNX.4.64.1101171826340.16051@axis700.grange>
- <7BAC95F5A7E67643AAFB2C31BEE662D014040BF2EF@SC-VEXCH2.marvell.com>
- <Pine.LNX.4.64.1101181811590.19950@axis700.grange>
- <7BAC95F5A7E67643AAFB2C31BEE662D014040BF54D@SC-VEXCH2.marvell.com>
- <7BAC95F5A7E67643AAFB2C31BEE662D014040BF5AF@SC-VEXCH2.marvell.com>
+Return-path: <mchehab@gaivota>
+Received: from mx1.redhat.com ([209.132.183.28]:1028 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754306Ab1ACM4h (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Jan 2011 07:56:37 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p03Cua4s006806
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 3 Jan 2011 07:56:37 -0500
+Message-ID: <4D21C928.2000306@redhat.com>
+Date: Mon, 03 Jan 2011 14:03:36 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Philips SPC315NC is vertically flipped
+References: <4D21AA15.6080703@redhat.com>
+In-Reply-To: <4D21AA15.6080703@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-(a general request: could you please configure your mailer to wrap lines 
-at somewhere around 70 characters?)
+Hi,
 
-On Tue, 18 Jan 2011, Qing Xu wrote:
+On 01/03/2011 11:51 AM, Mauro Carvalho Chehab wrote:
+> Signed-off-by: Mauro Carvalho Chehab<mchehab@redhat.com>
+>
+> diff --git a/lib/libv4lconvert/control/libv4lcontrol.c b/lib/libv4lconvert/control/libv4lcontrol.c
+> index f32ef7b..a182efe 100644
+> --- a/lib/libv4lconvert/control/libv4lcontrol.c
+> +++ b/lib/libv4lconvert/control/libv4lcontrol.c
+> @@ -46,6 +46,8 @@ static const struct v4lcontrol_flags_info v4lcontrol_flags[] = {
+>   	{ 0x0471, 0x0326, 0, NULL, NULL, V4LCONTROL_HFLIPPED | V4LCONTROL_VFLIPPED },
+>   	/* Philips SPC210NC */
+>   	{ 0x0471, 0x032d, 0, NULL, NULL, V4LCONTROL_HFLIPPED | V4LCONTROL_VFLIPPED },
+> +	/* Philips SPC315NC */
+> +	{ 0x0471, 0x032e, 0, NULL, NULL, V4LCONTROL_VFLIPPED },
+>   	/* Genius E-M 112 (also want whitebalance by default) */
+>   	{ 0x093a, 0x2476, 0, NULL, NULL,
+>   		V4LCONTROL_HFLIPPED|V4LCONTROL_VFLIPPED | V4LCONTROL_WANTS_WB, 1500 },
 
-> Hi,
-> 
-> Our chip support both MIPI and parallel interface. The HW connection logic is
-> sensor(such as ov5642) -> our MIPI controller(handle DPHY timing/ CSI-2 
-> things) -> our camera controller (handle DMA transmitting/ fmt/ size 
-> things). Now, I find the driver of sh_mobile_csi2.c, it seems like a 
-> CSI-2 driver, but I don't quite understand how it works:
-> 1) how the host controller call into this driver?
+Are you sure it is only vertically flipped ? I've have the Philips SPC 200NC (0471:0325)
+myself and it simply has the sensor upside down (so both h and v flipped).
 
-This is a normal v4l2-subdev driver. Platform data for the 
-sh_mobile_ceu_camera driver provides a link to CSI2 driver data, then the 
-host driver loads the CSI2 driver, which then links itself into the 
-subdevice list. Look at arch/arm/mach-shmobile/board-ap4evb.c how the data 
-is linked:
+Did you happen to use skype to test this? Skype is known to decide to mirror the image
+before showing it in some cases (I don't know when / why skype does this).
 
-static struct sh_mobile_ceu_info sh_mobile_ceu_info = {
-	.flags = SH_CEU_FLAG_USE_8BIT_BUS,
-	.csi2_dev = &csi2_device.dev,
-};
+Regards,
 
-and in the hosz driver drivers/media/video/sh_mobile_ceu_camera.c look in 
-the sh_mobile_ceu_probe function below the lines:
-
-	csi2 = pcdev->pdata->csi2_dev;
-	if (csi2) {
-...
-
-
-> 2) how the host controller/sensor negotiate MIPI variable with this 
-> driver, such as D-PHY timing(hs_settle/hs_termen/clk_settle/clk_termen), 
-> number of lanes...?
-
-Since I only had a limited number of MIPI setups, I haven't implemented 
-maximum flexibility. A part of the parameters is hard-coded, another part 
-is provided in the platform driver, yet another part is calculated 
-dynamically.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Hans
