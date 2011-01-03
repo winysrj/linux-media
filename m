@@ -1,63 +1,53 @@
-Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55557 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751216Ab1AXTpX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Jan 2011 14:45:23 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Michael Jones <michael.jones@matrix-vision.de>
-Subject: Re: [RFC] ISP lane shifter support
-Date: Mon, 24 Jan 2011 20:45:24 +0100
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <4D394675.90304@matrix-vision.de> <201101241457.44866.laurent.pinchart@ideasonboard.com> <4D3D89BC.8070305@matrix-vision.de>
-In-Reply-To: <4D3D89BC.8070305@matrix-vision.de>
+Return-path: <mchehab@gaivota>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3847 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755527Ab1ACTpD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jan 2011 14:45:03 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: David Ellingsworth <david@identd.dyndns.org>
+Subject: Re: [RFCv2 PATCH 07/10] radio-mr800: remove autopm support.
+Date: Mon, 3 Jan 2011 20:44:22 +0100
+Cc: linux-media@vger.kernel.org
+References: <6515cfbdde63364fd12bca1219870f38ff371145.1294078230.git.hverkuil@xs4all.nl> <910fe6472dfab87e56c5fa6245c233ff4f0d7ea9.1294078230.git.hverkuil@xs4all.nl> <AANLkTikzj92f35VmrGTyPSN4yc4v53O3yGtL4ujL-tKu@mail.gmail.com>
+In-Reply-To: <AANLkTikzj92f35VmrGTyPSN4yc4v53O3yGtL4ujL-tKu@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201101242045.24561.laurent.pinchart@ideasonboard.com>
+Message-Id: <201101032044.22187.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Michael,
+On Monday, January 03, 2011 20:09:03 David Ellingsworth wrote:
+> From my understanding, auto power management is for automatically
+> suspending and resuming a driver whenever it is idle. Obviously this
+> is a bad for this type of driver as it would turn off the radio
+> whenever it was idle. It is not necessary to remove suspend/resume
+> support in order to drop auto power management from this driver.
 
-On Monday 24 January 2011 15:16:28 Michael Jones wrote:
-> On 01/24/2011 02:57 PM, Laurent Pinchart wrote:
-> <snip>
-> 
-> >>> As the lane shifter is located at the CCDC input, it might be easier to
-> >>> implement support for this using the CCDC input format. ispvideo.c
-> >>> would need to validate the pipeline when the output of the entity
-> >>> connected to the CCDC input (parallel sensor, CCP2 or CSI2) is
-> >>> configured with a format that can be shifted to the format at the CCDC
-> >>> input.
-> >> 
-> >> This crossed my mind, but it seems illogical to have a link with a
-> >> different format at each of its ends.
-> > 
-> > I agree in theory, but it might be problematic for the CCDC. Right now
-> > the CCDC can write to memory or send the data to the preview engine, but
-> > not both at the same time. That's something that I'd like to change in
-> > the future. What happens if the user then sets different widths on the
-> > output pads ?
-> 
-> Shouldn't we prohibit the user from doing this in ccdc_[try/set]_format
-> in the first place? By "prohibit", I mean shouldn't we be sure that the
-> pixel format on pad 1 is always the same as on pad 2?
+You are completely correct. The mr800 conversion was quick and dirty and
+was meant to demonstrate how to add priority support in this driver.
 
-Yes we should (although we could have a larger width on the memory write port, 
-as the video port can further shift the data).
+The final version will only remove the autopm, not the suspend/resume.
 
-> Downside: this suggests that set_fmt on pad 2 could change the fmt on pad 1,
-> which may be unexpected. But that does at least reflect the reality of the
-> hardware, right?
-
-I don't think it would be a good idea to silently change formats on pad 1 when 
-setting the format on pad 2. Applications don't expect that. That's why I've 
-proposed changing the format on pad 0 instead. I agree that it would be better 
-to have the same format on the sensor output and on CCDC pad 0 though.
-
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
+
+> In
+> fact doing so would be a mistake in my opinion. The current
+> suspend/resume cycle ensures the radio if off during suspend, and
+> restores it's last state during resume. These changes would leave the
+> radio in it's current state, consuming power if it were on, while the
+> system is suspended. This is a drastic deviation from the current
+> behavior and would most likely not be appreciated by users that expect
+> the device to go off during suspend and back on after resume. I NACK
+> this change due to the complete removal of suspend/resume support.
+> 
+> Regards,
+> 
+> David Ellingsworth
+> 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
