@@ -1,69 +1,53 @@
-Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:64250 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752872Ab1AHQRU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Jan 2011 11:17:20 -0500
-Subject: Re: zilog and IR
-From: Andy Walls <awalls@md.metrocast.net>
-To: jgauthier@lastar.com
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <AANLkTi=yLo8A==TXLYN6g72RZVsk4ydQthf29=i=A36j@mail.gmail.com>
-References: <AANLkTi=yLo8A==TXLYN6g72RZVsk4ydQthf29=i=A36j@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 08 Jan 2011 10:19:37 -0500
-Message-ID: <1294499977.2443.106.camel@localhost>
-Mime-Version: 1.0
+Return-path: <mchehab@gaivota>
+Received: from mx1.redhat.com ([209.132.183.28]:14168 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753892Ab1ACLrl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Jan 2011 06:47:41 -0500
+Message-ID: <4D21B752.8070000@redhat.com>
+Date: Mon, 03 Jan 2011 09:47:30 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v2.6.37-rc8] V4L/DVB regression fixes
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Sat, 2011-01-08 at 10:44 -0500, Jason Gauthier wrote:
-> Andy,
-> 
->    Firstly, I apologize for reaching out to you directly.
+Hi Linus,
 
-The list could have answered this, so I adding the Cc:.
+There are two regressions affecting audio at ivtv driver. One of them is at the
+initial volume setting, and the other one at wm8775, and it is due to a new board
+addition on another driver that uses it. Both patches are trivial: one checks
+the volume range and the other just reverts the patch that broke wm8775+ivtv.
 
-BTW, I normally ignore direct emails asking for free support, as the
-N-to-1 free support problem is too costly for me personally.  The N-to-M
-free support problem on the list is a little easier to bear, and is
-consistent with Linux's community development model. 
+Could you please merge them before releasing 2.6.37?
 
+Thanks!
+Mauro
 
->  I stumbled into your git tree, which looks like it does exactly what
-> I want.
+The following changes since commit 387c31c7e5c9805b0aef8833d1731a5fe7bdea14:
 
-But it doesn't.  It's a bleeding edge tree of mine used to develop a
-changeset.  Be warned that such trees come with no guarantees that at
-any one moment in time it will compile and not damage your hardware.
+  Linux 2.6.37-rc8 (2010-12-28 17:05:48 -0800)
 
-I only subjected the changes to personal review, compilation check, and
-inspection by others on the list.  That was sufficient for me for
-software defect removal, since the change was a cut-and-paste from the
-cx18 and ivtv modules and the code is not yet called by hdpvr anyway.
+are available in the git repository at:
+  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
 
+Andy Walls (1):
+      [media] cx25840: Prevent device probe failure due to volume control ERANGE error
 
-> I grabbed the source but, unfortunately, it is not compiling for me
-> because one of the constants is not defined.
-> 
-> in hdprv_new_i2c_ir, the line:
->     init_data->type = RC_TYPE_RC5;
+Mauro Carvalho Chehab (1):
+      [media] wm8775: Revert changeset fcb9757333 to avoid a regression
 
-> I have not been able to find any traces of RC_TYPE_RC5 in my 2.6.37
-> kernel source.
-> Is this a #define that you've made specific to your git tree?
-
-No:
-
-http://git.linuxtv.org/media_tree.git?a=commit;h=e58462f45e39e01799d8b1ebab4816bd0ca68ddc
-
-That media_tree.git repository is the bleeding edge tree recommended for
-developers and advanced users wanting the latest drivers.
-
-The alternate is the media_build.git repository when has ability to
-build the modules with some not so old kernels.
-
-Regards,
-Andy
+ drivers/media/video/cx25840/cx25840-core.c |   19 +++++-
+ drivers/media/video/cx88/cx88-alsa.c       |   99 +++-----------------------
+ drivers/media/video/cx88/cx88-cards.c      |    7 ++
+ drivers/media/video/cx88/cx88-video.c      |   27 +-------
+ drivers/media/video/cx88/cx88.h            |    6 +-
+ drivers/media/video/wm8775.c               |  104 ++++++++++-----------------
+ include/media/wm8775.h                     |    3 -
+ 7 files changed, 78 insertions(+), 187 deletions(-)
 
