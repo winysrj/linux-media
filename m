@@ -1,180 +1,123 @@
-Return-path: <mchehab@pedra>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:37394 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752793Ab1A1QlJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Jan 2011 11:41:09 -0500
-Date: Fri, 28 Jan 2011 08:40:57 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mark Lord <kernel@teksavvy.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
-Message-ID: <20110128164057.GA6252@core.coreip.homeip.net>
-References: <4D40C3D7.90608@teksavvy.com>
- <4D40C551.4020907@teksavvy.com>
- <20110127021227.GA29709@core.coreip.homeip.net>
- <4D40E41D.2030003@teksavvy.com>
- <20110127063815.GA29924@core.coreip.homeip.net>
- <4D414928.80801@redhat.com>
- <20110127172128.GA19672@core.coreip.homeip.net>
- <4D41C071.2090201@redhat.com>
- <20110128093922.GA3357@core.coreip.homeip.net>
- <4D42AECE.3020402@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4D42AECE.3020402@redhat.com>
+Return-path: <mchehab@gaivota>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:47135 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750971Ab1ACWHn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jan 2011 17:07:43 -0500
+Subject: Re: [PATCH 2/3] mx3_camera: Support correctly the YUV222 and BAYER
+ configurations of CSI
+From: Alberto Panizzo <maramaopercheseimorto@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Magnus Damm <damm@opensource.se>,
+	=?ISO-8859-1?Q?M=E1rton_N=E9meth?= <nm127@freemail.hu>,
+	linux-media@vger.kernel.org,
+	linux-kernel <linux-kernel@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.64.1101031931160.23134@axis700.grange>
+References: <1290964687.3016.5.camel@realization>
+	 <1290965045.3016.11.camel@realization>
+	 <Pine.LNX.4.64.1012011832430.28110@axis700.grange>
+	 <Pine.LNX.4.64.1012181722200.18515@axis700.grange>
+	 <Pine.LNX.4.64.1012302028100.13281@axis700.grange>
+	 <1294076008.2493.85.camel@realization>
+	 <Pine.LNX.4.64.1101031931160.23134@axis700.grange>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 03 Jan 2011 23:07:29 +0100
+Message-ID: <1294092449.2493.135.camel@realization>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Fri, Jan 28, 2011 at 09:55:58AM -0200, Mauro Carvalho Chehab wrote:
-> Em 28-01-2011 07:39, Dmitry Torokhov escreveu:
-> > On Thu, Jan 27, 2011 at 04:58:57PM -0200, Mauro Carvalho Chehab wrote:
-> >> Em 27-01-2011 15:21, Dmitry Torokhov escreveu:
-> >>> On Thu, Jan 27, 2011 at 08:30:00AM -0200, Mauro Carvalho Chehab wrote:
-> >>>>
-> >>>> On my tests here, this is working fine, with Fedora and RHEL 6, on my
-> >>>> usual test devices, so I don't believe that the tool itself is broken, 
-> >>>> nor I think that the issue is due to the fix patch.
-> >>>>
-> >>>> I remember that when Kay added a persistence utility tool that opens a V4L
-> >>>> device in order to read some capabilities, this caused a race condition
-> >>>> into a number of drivers that use to register the video device too early.
-> >>>> The result is that udev were opening the device before the end of the
-> >>>> register process, causing OOPS and other problems.
-> >>>
-> >>> Well, this is quite possible. The usev ruls in the v4l-utils reads:
-> >>>
-> >>> ACTION=="add", SUBSYSTEM=="rc", RUN+="/usr/bin/ir-keytable -a /etc/rc_maps.cfg -s $name"
-> >>>
-> >>> So we act when we add RC device to the system. The corresponding input
-> >>> device has not been registered yet (and will not be for some time
-> >>> because before creating input ddevice we invoke request_module() to load
-> >>> initial rc map module) so the tool runs simultaneously with kernel
-> >>> registering input device and it could very well be it can't find
-> >>> something it really wants.
-> >>>
-> >>> This would explain why Mark sees the segfault only when invoked via
-> >>> udev but not when ran manually.
-> >>>
-> >>> However I still do not understand why Mark does not see the same issue
-> >>> without the patch. Like I said, maybe if Mark could recompile with
-> >>> debug data and us a core we'd see what is going on.
-> >>
-> >> Race conditions are hard to track... probably the new code added some delay,
-> >> and this allowed the request_module() to finish his job.
-> >>
-> >>> BTW, that means that we need to redo udev rules. 
-> >>
-> >> If there's a race condition, then the proper fix is to lock the driver
-> >> until it is ready to receive a fops. Maybe we'll need a mutex to preventing
-> >> opening the device until it is completely initialized.
+On Mon, 2011-01-03 at 20:37 +0100, Guennadi Liakhovetski wrote:
+> On Mon, 3 Jan 2011, Alberto Panizzo wrote:
+> 
+> > On Thu, 2010-12-30 at 20:38 +0100, Guennadi Liakhovetski wrote:
+> > > On Sat, 18 Dec 2010, Guennadi Liakhovetski wrote:
+> > > 
+> > > > Alberto
+> > > > 
+> > > > it would be slowly on the time to address my comments and submit updates. 
+> > > > While at it, also, please update the subject - you probably meant "YUV422" 
+> > > > or "YUV444" there, also below:
+> > > 
+> > > Ok, I'm dropping this patch
+> > > 
+> > > Alberto, I've applied and pushed your other 2 patches from this series, 
+> > > but I've dropped this one. The reason is not (only), that you didn't reply 
+> > > to my two last mails with update-requests. But because of that I took the 
+> > > time today to look deeper into detail at this patch. And as a result, I 
+> > > don't think it is correct.
+> > > 
+> > > Currently the mx3_camera driver transfers data from video clients (camera 
+> > > sensors) only in one mode - as raw data, 1-to-1. This is extablished in 
+> > > the way, how it creates format translation tables during the initial 
+> > > negotiation with client drivers in mx3_camera_get_formats().
+> > > 
+> > > Your patch is trying to add support for specific modes on CSI, but is only 
+> > > doing this in the transfer part of the driver, and not in the negotiation 
+> > > part. So, if you really need native support for various pixel formats, 
+> > > this is a wrong way to do this. If you only want to transfer data from 
+> > > your sensor into RAM and the current driver is failing for you, then this 
+> > > is a wrong way to do this, and the bug has to be found and fixed, while 
+> > > maintaining the present pass-through only model.
+> > > 
 > > 
-> > No, not at all. The devices are ready to handle everything when they are
-> > created, it's just some devices are not there yet. What you do with
-> > current udev rule is similar to trying to mount filesystem as soon as
-> > you discover a PCI SCSI card. The controller is there but disks have not
-> > been discovered, block devices have not been created, and so on.
-> 
-> The rc-core register (and the corresponding input register) is done when
-> the device detected a remote controller, so, it should be safe to register
-> on that point. If not, IMHO, there's a bug somewhere. 
-
-It is not a matter of safe or unsafe registration. Registration is fine.
-The problem is that with the current set up is that utility is fired
-when trunk of [sub]tree is created, but the utility wants to operate on
-leaves which may not be there yet.
-
-> 
-> Yet, I agree that udev tries to set devices too fast.
-
-It tries to set devices exacty when you tell it to do so. It's not like
-it goes trolling for random devices is sysfs.
-
-> It would be better if
-> it would wait for a few milisseconds, to reduce the risk of race conditions.
-
-Gah, I really prefer using properly engineered solutions instead of
-adding crutches.
-
-> 
-> >> It is hard to tell, as Mark didn't provide us yet the dmesg info (at least
-> >> on the emails I was c/c), so I don't even know what device he has, and what
-> >> drivers are used.
+> > This patch shows that IPU and CSI manage parameters in different 
+> > units. It shows that an unknown at the CSI pixel format, that require n
+> > bytes per pixel, have to be considered generic on the IPU side and the
+> > parameters of the DMA and CSI have to be set properly to support it.
+> > In this way also 10-bit wide pixels formats can be managed in pass
+> > through mode, setting properly the IPU and CSI parameters.
 > > 
-> > I belie you have been copied on the mail that had the following snippet:
+> > So, this patch shows that the CSI can manage successfully n-byte wide
+> > pixel codes (tested with n = 1,2) without breaking the old behaviour
+> > of providing 10-bit wide pixel formats with 8-bit wide ones.
 > > 
-> >> kernel: Registered IR keymap rc-rc5-tv
-> >> udevd-event[6438]: run_program: '/usr/bin/ir-keytable' abnormal exit
-> >> kernel: input: i2c IR (Hauppauge) as /devices/virtual/rc/rc0/input7
-> >> kernel: ir-keytable[6439]: segfault at 8 ip 00000000004012d2 sp 00007fff6d43ca60 error 4 in ir-keytable[400000+7000]
-> >> kernel: rc0: i2c IR (Hauppauge) as /devices/virtual/rc/rc0
-> >> kernel: ir-kbd-i2c: i2c IR (Hauppauge) detected at i2c-0/0-0018/ir0 [ivtv i2c driver #0]
-> 
-> Ok, the last line says it is a ivtv board, using IR. However, it doesn't show
-> the I2C detection of other devices that might be racing to gain access to the
-> I2C bus, nor if some OOPS were hit by kernel.
-> 
-> I don't have any ivtv boards handy, but there are some developers at
-> linux-media ML that may help with this.
-> 
-> >>> Maybe we should split
-> >>> the utility into 2 parts - one dealing with rcX device and for keymap
-> >>> setting reuse udev's existing utility that adjusts maps on ann input
-> >>> devices, not for RCs only.
-> >>
-> >> It could be done, but then we'll need to pollute the existing input tools
-> >> with RC-specific stuff. For IR, there are some additional steps, like
-> >> the need to select the IR protocol, otherwise the keytable is useless.
+> > The next step is to uniform also the pixel-code translations at this 
+> > type of management. Being able to capture real 10-bit wide samples.
 > > 
-> > That should be done by the separate utility that fires up when udev gets
-> > event for /sys/class/rc/rcX device.
+> > This patch also, make use of a native functionality of the CSI: capture 
+> > a YUV422 format. 
+> > In this case the CSI convert this pixel format to YUV444 sent to the 
+> > BUS  and the IPU re-pack the YUV444 to YUV422 into the memory.
 > > 
-> >> Also, the keytable and persistent info is provided via /sys/class/rc/rc?/uevent.
-> >> So, the tool need to first read the RC class, check what keytable should be
-> >> associated with that device (based on a custom file), and load the proper
-> >> table.
+> > This shows how CSI and IPU manage formats different than the generic 
+> > one and open the way to understand how to support the communication
+> > between agents of the IPU encoding chain.
 > > 
-> > And this could be easily added to the udev's keymap utility that is
-> > fired up when we discover evdevX devices.
+> > Maybe the last part is misleading you and can be dropped out from this 
+> > patch as an enhancement: the YUV422 interleaved format can be 
+> > successfully managed as CSI-BAYER/IPU-GENERIC one, the same as rgb565.
+> > Supporting the CSI-YUV422 is a plus only to show how the CSI works.
 > 
-> Yes, it can, if you add the IR protocol selection on that tool. A remote 
-> controller keycode table has both the protocol and the keycodes.
-> This basically means to merge 99% of the logic inside ir-keytable into the
-> evdev generic tool.
+> Let's try slowly again:
+> 
+> 1. The current mainline driver doesn't work for you, right? What exactly 
+> is failing and how? What fourcc format?
 
-Or just have an utility producing keymap name and feed it as input to
-the generic tools. The way most of utilities work...
+Yes, does not work for me for both YUV422 interleaved and rgb565.
+What is captured is an image that have in the bottom half the violet 
+color and in the upper half, half of the real image (divided 
+vertically) with even rows on the left and odd rows on the right.
+
+
+> 2. Do you think, it would be possible to fix the driver to also support 
+> your use-case with the present generic / pass-through mode? Have you tried 
+> this? Could you try? That would be a bug-fix.
+
+Yes, this is the way I told about: dividing the geometry fixes from the 
+special YUV422 support.
 
 > 
-> I'm not against it, although I prefer a specialized tool for RC.
-> 
-> >> Also, I'm currently working on a way to map media keys for remote controllers 
-> >> into X11 (basically, mapping them into the keyspace between 8-255, passing 
-> >> through Xorg evdev.c, and then mapping back into some X11 symbols). This way,
-> >> we don't need to violate the X11 protocol. (Yeah, I know this is hacky, but
-> >> while X11 cannot pass the full evdev keycode, at least the Remote Controllers
-> >> will work). This probably means that we may need to add some DBus logic
-> >> inside ir-keytable, when called via udev, to allow it to announce to X11.
-> > 
-> > The same issue is present with other types of input devices (multimedia
-> > keyboards emitting codes that X can't consume) and so it again would
-> > make sense to enhance udev's utility instead of confining it all to
-> > ir-keytable.
-> 
-> I agree with you, but I'm not sure if we can find a solution that will
-> work for both RC and media keyboards, as X11 evdev just maps keyboards
-> on the 8-255 range. I was thinking to add a detection there for RC, and
-> use a separate map for them, as RC don't need most of the normal keyboard
-> keys.
+> 3. After the first two questions are answered, then we can think about 
+> extending the driver by adding native support forvarious specific formats.
 
-Well, there will always be clashes - there is reason why evdev goes
-beyond 255 keycodes...
+Yes, sure. I'll try to explain better what the single patches are 
+fixing, improving especially for these core functionality.
 
-Thanks.
 
--- 
-Dmitry
+Best Regards,
+Alberto!
+
