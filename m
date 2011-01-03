@@ -1,51 +1,55 @@
-Return-path: <mchehab@pedra>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:43083 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753466Ab1ATCgZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jan 2011 21:36:25 -0500
-Received: by qwa26 with SMTP id 26so104806qwa.19
-        for <linux-media@vger.kernel.org>; Wed, 19 Jan 2011 18:36:25 -0800 (PST)
+Return-path: <mchehab@gaivota>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2552 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752680Ab1ACTyN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jan 2011 14:54:13 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: David Ellingsworth <david@identd.dyndns.org>
+Subject: Re: [RFCv2 PATCH 06/10] radio_ms800: use video_drvdata instead of filp->private_data
+Date: Mon, 3 Jan 2011 20:54:01 +0100
+Cc: linux-media@vger.kernel.org
+References: <6515cfbdde63364fd12bca1219870f38ff371145.1294078230.git.hverkuil@xs4all.nl> <7e1e3d8066d44fb6b9e1caba57378a2efbe891c1.1294078230.git.hverkuil@xs4all.nl> <AANLkTiki207JrsiZxboKDNPjQ69rzWS=MhjTzJj3zL2R@mail.gmail.com>
+In-Reply-To: <AANLkTiki207JrsiZxboKDNPjQ69rzWS=MhjTzJj3zL2R@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <AF4B8CC5C99B457AB0516910EAC3A807@RobertWindow7>
-References: <1295357999-17929-1-git-send-email-manjunath.hadli@ti.com>
-	<AF4B8CC5C99B457AB0516910EAC3A807@RobertWindow7>
-Date: Thu, 20 Jan 2011 10:36:25 +0800
-Message-ID: <AANLkTikE_H2H-U25Z9H7WYa=_UrSL9UP5RnOSr593Tzz@mail.gmail.com>
-Subject: Re: [PATCH v16 3/3] davinci vpbe: board specific additions
-From: Kaspter Ju <nigh0st3018@gmail.com>
-To: Robert Mellen <robert.mellen@gvimd.com>
-Cc: LMML <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201101032054.01080.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Robert,
+On Monday, January 03, 2011 20:35:41 David Ellingsworth wrote:
+> Why does this matter? From my understanding, v4l2_fh is meant to be
+> embed it in a device specific structure.
 
-On Thu, Jan 20, 2011 at 12:12 AM, Robert Mellen <robert.mellen@gvimd.com> wrote:
-> Are the "davinci vpbe" patches specific only to the DM644x platform? I am
-> developing on the DM365 and would like to use the OSD features implemented
-> in the patches. Are there plans to port these patches to the DM365? Is it
-> only a matter of changing the board-specific files, such as
-> board-dm365-evm.c?
+No, v4l2_fh is a per-filehandle structure, not a per-device node structure.
 
-[snip]
+filp->private_data is meant to store per-filehandle data (such as v4l2_fh),
+but instead it stores per-device node data (struct video_device). And that
+prevents it from being used to store struct v4l2_fh.
 
-AFAIK, these patches are DM644x platform specific, If you wanna use it
-on DM365,you have to change all of this for DM365 not only the
-board-specific files. Maybe this is on someone's queue.
+And there is a perfectly valid alternative for this in the form of
+video_drvdata which does not use filp->private_data and so makes it available
+for v4l2_fh.
 
-Best Regards,
-Kaspter.
+Regards,
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+	Hans
 
-
+> If it is the first member in
+> the device specific structure, then the pointer to v4l2_fh is the same
+> as the one to the device specific structure. Otherwise, a simple
+> container_of can be used to calculate the appropriate address of the
+> container. In either case, the pointer calculation method is always
+> going to be faster than executing a call, and de-referencing multiple
+> pointers to retrieve the same information. filp->private data is there
+> for a reason, why not use it as intended and avoid the additional
+> overhead added by this patch?
+> 
+> Regards,
+> 
+> David Ellingsworth
+> 
 
 -- 
-Kaspter Ju
+Hans Verkuil - video4linux developer - sponsored by Cisco
