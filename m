@@ -1,89 +1,70 @@
-Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59828 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753334Ab1A0Ma4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jan 2011 07:30:56 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v6 00/11] Sub-device pad-level operations
-Date: Thu, 27 Jan 2011 13:30:45 +0100
-Message-Id: <1296131456-30000-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Return-path: <mchehab@gaivota>
+Received: from mx1.redhat.com ([209.132.183.28]:1217 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754293Ab1ACLt2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Jan 2011 06:49:28 -0500
+Message-ID: <4D21B7B1.6000608@redhat.com>
+Date: Mon, 03 Jan 2011 09:49:05 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Andy Walls <awalls@md.metrocast.net>
+CC: LMML <linux-media@vger.kernel.org>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	Patrick Boettcher <pboettcher@kernellabs.com>,
+	Hendrik Skarpeid <skarp@online.no>, stoth@kernellabs.com,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-kernel@vger.kernel.org
+Subject: Re: Summary of REGRESSIONS which are being ignored?! (Re: Summary
+ of the pending patches up to Dec, 31 (26 patches))
+References: <4D1DCF6A.2090505@redhat.com> <1293996645.2409.89.camel@localhost>
+In-Reply-To: <1293996645.2409.89.camel@localhost>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi everybody,
+Em 02-01-2011 17:30, Andy Walls escreveu:
+> I don't see this patch on it's way upstream:
+> 
+> https://patchwork.kernel.org/patch/376612/   (Sent on 5 Dec 2010)
+> http://www.spinics.net/lists/linux-media/msg26649.html (Resent on 19 Dec 2010)
+> 
+> It fixes a regression in IR and Analog video for cx23885 based cards and
+> an intermittent analog video regression in ivtv based cards in 2.6.36
+> and soon in 2.6.37.
 
-Here's the sixth version of the sub-device pad-level operations patches.
-The patches are just rebased on top of 2.6.37 and some more padding has
-been added for future enhancements.
+Not sure what happened here. I'm sure I've applied on my fixes tree.
+Anyway, I'm re-applying it.
 
-Antti Koskipaa (1):
-  v4l: v4l2_subdev userspace crop API
+> I emailed the LMML, you, and the author, as soon as I verified the root
+> cause on 31 Dec, and haven't heard from from anyone:
+> 
+> http://www.spinics.net/lists/linux-media/msg27261.html 
 
-Laurent Pinchart (9):
-  v4l: Move the media/v4l2-mediabus.h header to include/linux
-  v4l: Replace enums with fixed-sized fields in public structure
-  v4l: Rename V4L2_MBUS_FMT_GREY8_1X8 to V4L2_MBUS_FMT_Y8_1X8
-  v4l: Group media bus pixel codes by types and sort them
-    alphabetically
-  v4l: subdev: Add a new file operations class
-  v4l: v4l2_subdev pad-level operations
-  v4l: v4l2_subdev userspace format API - documentation binary files
-  v4l: v4l2_subdev userspace format API
-  v4l: v4l2_subdev userspace frame interval API
+Here, Dec, 31 is a national holiday. People work only half of the day.
+Yet, I was finishing some things and preparing patches for the incoming 
+window, until afternoon.
 
-Stanimir Varbanov (1):
-  v4l: Create v4l2 subdev file handle structure
+I only noticed your email today, and I'm promptly sending it upstream,
+together with a patch revert for wm8775 regression.
 
- Documentation/DocBook/Makefile                     |    5 +-
- Documentation/DocBook/media-entities.tmpl          |   26 +
- Documentation/DocBook/v4l/bayer.pdf                |  Bin 0 -> 12116 bytes
- Documentation/DocBook/v4l/bayer.png                |  Bin 0 -> 9725 bytes
- Documentation/DocBook/v4l/dev-subdev.xml           |  307 +++
- Documentation/DocBook/v4l/pipeline.pdf             |  Bin 0 -> 20276 bytes
- Documentation/DocBook/v4l/pipeline.png             |  Bin 0 -> 12130 bytes
- Documentation/DocBook/v4l/subdev-formats.xml       | 2416 ++++++++++++++++++++
- Documentation/DocBook/v4l/v4l2.xml                 |    7 +
- Documentation/DocBook/v4l/vidioc-streamon.xml      |    9 +
- .../v4l/vidioc-subdev-enum-frame-interval.xml      |  146 ++
- .../DocBook/v4l/vidioc-subdev-enum-frame-size.xml  |  148 ++
- .../DocBook/v4l/vidioc-subdev-enum-mbus-code.xml   |  113 +
- Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml |  149 ++
- Documentation/DocBook/v4l/vidioc-subdev-g-fmt.xml  |  174 ++
- .../DocBook/v4l/vidioc-subdev-g-frame-interval.xml |  135 ++
- drivers/media/Kconfig                              |    9 +
- drivers/media/video/mt9m001.c                      |    2 +-
- drivers/media/video/mt9v022.c                      |    4 +-
- drivers/media/video/ov6650.c                       |   10 +-
- drivers/media/video/sh_mobile_csi2.c               |    6 +-
- drivers/media/video/soc_mediabus.c                 |    2 +-
- drivers/media/video/v4l2-subdev.c                  |  189 ++-
- include/linux/Kbuild                               |    2 +
- include/linux/v4l2-mediabus.h                      |   94 +
- include/linux/v4l2-subdev.h                        |  141 ++
- include/media/soc_mediabus.h                       |    3 +-
- include/media/v4l2-mediabus.h                      |   61 +-
- include/media/v4l2-subdev.h                        |   65 +
- 29 files changed, 4118 insertions(+), 105 deletions(-)
- create mode 100644 Documentation/DocBook/v4l/bayer.pdf
- create mode 100644 Documentation/DocBook/v4l/bayer.png
- create mode 100644 Documentation/DocBook/v4l/dev-subdev.xml
- create mode 100644 Documentation/DocBook/v4l/pipeline.pdf
- create mode 100644 Documentation/DocBook/v4l/pipeline.png
- create mode 100644 Documentation/DocBook/v4l/subdev-formats.xml
- create mode 100644 Documentation/DocBook/v4l/vidioc-subdev-enum-frame-interval.xml
- create mode 100644 Documentation/DocBook/v4l/vidioc-subdev-enum-frame-size.xml
- create mode 100644 Documentation/DocBook/v4l/vidioc-subdev-enum-mbus-code.xml
- create mode 100644 Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml
- create mode 100644 Documentation/DocBook/v4l/vidioc-subdev-g-fmt.xml
- create mode 100644 Documentation/DocBook/v4l/vidioc-subdev-g-frame-interval.xml
- create mode 100644 include/linux/v4l2-mediabus.h
- create mode 100644 include/linux/v4l2-subdev.h
+> Please revert it before the merge window closes.
 
--- 
-Regards,
+I'm sending it right now.
 
-Laurent Pinchart
+> <rant>
+> I have no time to make improvements that I want to make, much less waste
+> my *VOLUNTEER* time on *REGRESSIONS* that *I DID NOT INTRODUCE*.
+> 
+> It bothers me enough, that as a volunteer, I have to clean up other
+> people's untested cr*pware.  AND, that as the lucky individual who finds
+> the bugs, I have to do additional work to get fixes back into stable
+> kernels.
 
+Shit happens. A patch adding support for one board might cause regression on
+other boards, as it is not likely that the author of the patch have all
+boards that could potentially be affected. That's why we have a long rc
+period, where people with different hardware are expected to test the -rc
+kernels and point for regressions.
+
+Mauro.
