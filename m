@@ -1,40 +1,54 @@
-Return-path: <mchehab@pedra>
-Received: from bear.ext.ti.com ([192.94.94.41]:60446 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753728Ab1AJLz4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jan 2011 06:55:56 -0500
-From: "Nori, Sekhar" <nsekhar@ti.com>
-To: Sergei Shtylyov <sshtylyov@mvista.com>,
-	"Hadli, Manjunath" <manjunath.hadli@ti.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	Kevin Hilman <khilman@deeprootsystems.com>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Date: Mon, 10 Jan 2011 17:25:33 +0530
-Subject: RE: [PATCH v13 5/8] davinci vpbe: platform specific additions
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024829B6B4@dbde02.ent.ti.com>
-References: <1294654980-1936-1-git-send-email-manjunath.hadli@ti.com>
- <4D2AED69.3060602@mvista.com>
-In-Reply-To: <4D2AED69.3060602@mvista.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Return-path: <mchehab@gaivota>
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:3157 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752764Ab1ACSb3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jan 2011 13:31:29 -0500
+Received: from localhost.localdomain (43.80-203-71.nextgentel.com [80.203.71.43])
+	(authenticated bits=0)
+	by smtp-vbr18.xs4all.nl (8.13.8/8.13.8) with ESMTP id p03IVMuR006180
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 3 Jan 2011 19:31:27 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [RFCv2 PATCH 00/10] Move priority handling into the core
+Date: Mon,  3 Jan 2011 19:31:05 +0100
+Message-Id: <1294079475-13259-1-git-send-email-hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Mon, Jan 10, 2011 at 16:58:41, Sergei Shtylyov wrote:
+This is the second attempt at moving priority handling into the core.
 
-> > +
-> > +#define OSD_REG_SIZE			0x000001ff
-> > +#define VENC_REG_SIZE			0x0000017f
-> 
->     Well, actually that's not the size but "limit" -- sizes should be 0x200 
-> and 0x180 respectively...
+I have added two helper functions that allocate and free just a single
+v4l2_fh struct. This can be used by drivers that do not need to embed the
+struct v4l2_fh into a larger struct.
 
-In most resource definitions on DaVinci, these are not even #defined. Just
-add the limit directly to the base to derive the .end
+It is also called by the core for any driver that does not supply open()
+or release() callbacks in struct v4l2_file_operations. This replaces the
+awkward 'store priority in private_data' hack from the previous patch
+series.
 
-Thanks,
-Sekhar
+This means that almost all radio devices automatically support priority
+handling (since most do not supply open/release).
+
+This patch series also converts radio-mr800 (removing the bogus autopm
+support allows us to remove the open/release support) and radio-cadet
+(typical first-time open and close code, shows how easy it is to use
+the helper functions).
+
+ivtv is also converted as it is currently the only driver that embeds
+struct v4l2_fh.
+
+Core support for priority handling is necessary in order to have consistent
+handling of priorities and to handle priorities and the control framework.
+
+A lot of video drivers do something in open and/or release, so it is quite
+a bit of work to implement this. However, the changes needed to convert a
+driver are trivial and are easy to review.
+
+Comments are welcome!
+
+Regards,
+
+	Hans
+
