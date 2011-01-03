@@ -1,35 +1,42 @@
-Return-path: <mchehab@pedra>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:44766 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755056Ab1AGEnX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jan 2011 23:43:23 -0500
-Received: by wwi17 with SMTP id 17so114681wwi.1
-        for <linux-media@vger.kernel.org>; Thu, 06 Jan 2011 20:43:22 -0800 (PST)
+Return-path: <mchehab@gaivota>
+Received: from cantor2.suse.de ([195.135.220.15]:46836 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755174Ab1ACPGF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Jan 2011 10:06:05 -0500
+Date: Mon, 3 Jan 2011 16:06:03 +0100 (CET)
+From: Jiri Kosina <jkosina@suse.cz>
+To: Larry Finger <Larry.Finger@lwfinger.net>
+Cc: "Justin P. Mattock" <justinmattock@gmail.com>,
+	linux-m68k@vger.kernel.org, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, ivtv-devel@ivtvdriver.org,
+	linux-media@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-scsi@vger.kernel.org,
+	spi-devel-general@lists.sourceforge.net,
+	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
+Subject: Re: [PATCH 07/15]drivers:net:wireless:iwlwifi Typo change diable to
+ disable.
+In-Reply-To: <4D1DF7CA.8040504@lwfinger.net>
+Message-ID: <alpine.LNX.2.00.1101031605540.26685@pobox.suse.cz>
+References: <1293750484-1161-1-git-send-email-justinmattock@gmail.com> <1293750484-1161-2-git-send-email-justinmattock@gmail.com> <1293750484-1161-3-git-send-email-justinmattock@gmail.com> <1293750484-1161-4-git-send-email-justinmattock@gmail.com>
+ <1293750484-1161-5-git-send-email-justinmattock@gmail.com> <1293750484-1161-6-git-send-email-justinmattock@gmail.com> <1293750484-1161-7-git-send-email-justinmattock@gmail.com> <4D1DF7CA.8040504@lwfinger.net>
 MIME-Version: 1.0
-In-Reply-To: <1294375239-7009-1-git-send-email-pawel@osciak.com>
-References: <1294375239-7009-1-git-send-email-pawel@osciak.com>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Thu, 6 Jan 2011 20:43:02 -0800
-Message-ID: <AANLkTikz2bvOmqT4qju-xvNKKT56ySdSLCFjQ21VAmFJ@mail.gmail.com>
-Subject: Re: [PATCH 1/2] [media] Fix mmap() example in the V4L2 API DocBook
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, Pawel Osciak <pawel@osciak.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Thu, Jan 6, 2011 at 20:40, Pawel Osciak <pawel@osciak.com> wrote:
-> Correct ioctl return value handling and fix coding style issues.
->
-> Signed-off-by: Pawel Osciak <pawel@osciak.com>
-> ---
->  Documentation/DocBook/v4l/io.xml |   40 +++++++++++++++++++-------------------
->  1 files changed, 20 insertions(+), 20 deletions(-)
+On Fri, 31 Dec 2010, Larry Finger wrote:
 
-This is a standalone patch, there will be no 2/2, sorry for the confusion.
+> On 12/30/2010 05:07 PM, Justin P. Mattock wrote:
+> > The below patch fixes a typo "diable" to "disable". Please let me know if this 
+> > is correct or not.
+> > 
+> > Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
+> > 
+> 
+> ACKed-by: Larry Finger <Larry.Finger@lwfinger.net>
+
+Applied, thanks.
 
 -- 
-Best regards,
-Pawel Osciak
+Jiri Kosina
+SUSE Labs, Novell Inc.
