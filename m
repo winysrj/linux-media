@@ -1,95 +1,161 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:32281 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755761Ab1AaPBb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Jan 2011 10:01:31 -0500
-Message-ID: <4D46CEC2.8010107@redhat.com>
-Date: Mon, 31 Jan 2011 13:01:22 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Holger Nelson <hnelson@hnelson.de>
-CC: Stefan Ringel <stefan.ringel@arcor.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Add Terratec Grabster support to tm6000
-References: <alpine.DEB.2.00.1101051849460.6749@nova.crius.de>
-In-Reply-To: <alpine.DEB.2.00.1101051849460.6749@nova.crius.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@gaivota>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:58904 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932323Ab1ACQsG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jan 2011 11:48:06 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-1
+Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LEG00DLHHC2CV80@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 03 Jan 2011 16:48:02 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LEG002Y9HC292@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 03 Jan 2011 16:48:02 +0000 (GMT)
+Received: from [106.116.37.156] (unknown [106.116.37.156])
+	by linux.samsung.com (Postfix) with ESMTP id CBAFC270070	for
+ <linux-media@vger.kernel.org>; Mon, 03 Jan 2011 17:48:00 +0100 (CET)
+Date: Mon, 03 Jan 2011 17:48:01 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [GIT PATCHES FOR 2.6.38] Videbuf2 framework,
+ NOON010PC30 sensor driver and s5p-fimc updates
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Message-id: <4D21FDC1.7000803@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 05-01-2011 15:58, Holger Nelson escreveu:
-> On Tue, 4 Jan 2011, Stefan Ringel wrote:
-> 
->> Am 04.01.2011 20:12, schrieb Holger Nelson:
->>> Hi,
->>> the following patch adds support for a Terratec Grabster AV MX150 (and maybe other devices in the Grabster series). This device is an analog frame grabber device using a tm5600. This device doesn't have a tuner, so I changed the code to skip the tuner reset if neither has_tuner nor has_dvb is set.
->> it skip, if you has no tuner gpio defined. You does'nt need more. Work the driver with input select (tv (conposite0), composite, s-vhs)?
-> 
-> Yes tuner reset is skipped, but in the else-branch, the code also complains that tuner reset is not configured and returns -1, which makes tm6000_init_dev exit before v4l2_device_register is called. Switching inputs does not work, but at least I can use the composite input, if I use the tv-input.
-> 
-> Below is a new version of the patch.
-> 
-> Holger
+Hi Mauro,
 
-Please send your Signed-off-by: line. Btw, the patch doesn't apply
-as-is over the latest development tree. Could you please rebase it
-against it? you should use branch "staging/for_v2.6.39" of the git
-tree at:
-	http://git.linuxtv.org/media_tree.git
+Please pull from our tree for the following items:
 
-> 
-> diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
-> index 5a7946c..0f4154f 100644
-> --- a/drivers/staging/tm6000/tm6000-cards.c
-> +++ b/drivers/staging/tm6000/tm6000-cards.c
-> @@ -50,6 +50,7 @@
->  #define TM6010_BOARD_BEHOLD_VOYAGER        11
->  #define TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE    12
->  #define TM6010_BOARD_TWINHAN_TU501        13
-> +#define TM5600_BOARD_TERRATEC_GRABSTER        14
-> 
->  #define TM6000_MAXBOARDS        16
->  static unsigned int card[]     = {[0 ... (TM6000_MAXBOARDS - 1)] = UNSET };
-> @@ -303,6 +304,19 @@ struct tm6000_board tm6000_boards[] = {
->              .dvb_led    = TM6010_GPIO_5,
->              .ir        = TM6010_GPIO_0,
->          },
-> +    },
-> +    [TM5600_BOARD_TERRATEC_GRABSTER] = {
-> +        .name         = "Terratec Grabster AV 150/250 MX",
-> +        .type         = TM5600,
-> +        .caps = {
-> +            .has_tuner    = 0,
-> +            .has_dvb    = 0,
-> +            .has_zl10353    = 0,
-> +            .has_eeprom    = 0,
-> +            .has_remote    = 0,
-> +        },
-> +        .gpio = {
-> +        },
->      }
->  };
-> 
-> @@ -325,6 +339,7 @@ struct usb_device_id tm6000_id_table[] = {
->      { USB_DEVICE(0x13d3, 0x3241), .driver_info = TM6010_BOARD_TWINHAN_TU501 },
->      { USB_DEVICE(0x13d3, 0x3243), .driver_info = TM6010_BOARD_TWINHAN_TU501 },
->      { USB_DEVICE(0x13d3, 0x3264), .driver_info = TM6010_BOARD_TWINHAN_TU501 },
-> +    { USB_DEVICE(0x0ccd, 0x0079), .driver_info = TM5600_BOARD_TERRATEC_GRABSTER },
->      { },
->  };
-> 
-> @@ -447,6 +462,8 @@ int tm6000_cards_setup(struct tm6000_core *dev)
->       * the board-specific session.
->       */
->      switch (dev->model) {
-> +    case TM5600_BOARD_TERRATEC_GRABSTER:
-> +        return 0;
->      case TM6010_BOARD_HAUPPAUGE_900H:
->      case TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE:
->      case TM6010_BOARD_TWINHAN_TU501:
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1. V4L2 multiplane extension,
+2. The Videobuf2 framework,
+3. Mem2mem framework and vivi conversion to Videbuf2,
+4. s5p-fimc driver conversion to Videbuf2 and multiplane ext. and various
+   driver updates and bugfixes,
+5. Siliconfile NOON010PC30 sensor subdev driver,
+6. Patches for SAA7134 driver for Videbuf2 testing.
 
+The patch series has been rebased onto staging/for_v2.6.38 branch on top
+of s5p-fimc driver patches that were recently added to v2.6.37-rc8.
+The SAA7134 driver patches are meant for Vb2 testing only. The test hardware
+for those was the Avermedia  AVerTV Super 007 TV card.
+
+Thanks!
+Sylwester
+
+
+
+The following changes since commit 6d09afc3bdf7f6b52358c30490b9434ba18d6344:
+
+  [media] s5p-fimc: Fix output DMA handling in S5PV310 IP revisions (2010-12-28
+15:50:50 +0100)
+
+are available in the git repository at:
+  git://git.infradead.org/users/kmpark/linux-2.6-samsung vb2
+
+Andrzej Pietrasiewicz (3):
+      v4l: videobuf2: add DMA scatter/gather allocator
+      v4l: saa7134: remove radio, vbi, mpeg, input, alsa, tvaudio, saa6752hs
+support
+      v4l: saa7134: quick and dirty port to videobuf2
+
+Hyunwoong Kim (5):
+      [media] s5p-fimc: fix the value of YUV422 1-plane formats
+      [media] s5p-fimc: Configure scaler registers depending on FIMC version
+      [media] s5p-fimc: update checking scaling ratio range
+      [media] s5p-fimc: Support stop_streaming and job_abort
+      [media] s5p-fimc: fix MSCTRL.FIFO_CTRL for performance enhancement
+
+Marek Szyprowski (4):
+      v4l: videobuf2: add generic memory handling routines
+      v4l: videobuf2: add read() and write() emulator
+      v4l: vivi: port to videobuf2
+      v4l: mem2mem: port to videobuf2
+
+Pawel Osciak (8):
+      v4l: Add multi-planar API definitions to the V4L2 API
+      v4l: Add multi-planar ioctl handling code
+      v4l: Add compat functions for the multi-planar API
+      v4l: fix copy sizes in compat32 for ext controls
+      v4l: v4l2-ioctl: add buffer type conversion for multi-planar-aware ioctls
+      v4l: add videobuf2 Video for Linux 2 driver framework
+      v4l: videobuf2: add vmalloc allocator
+      v4l: videobuf2: add DMA coherent allocator
+
+Sungchun Kang (1):
+      [media] s5p-fimc: fimc_stop_capture bug fix
+
+Sylwester Nawrocki (15):
+      v4l: v4l2-ioctl: Fix conversion between multiplane and singleplane buffers
+      v4l: mem2mem: port m2m_testdev to vb2
+      v4l: Add multiplanar format fourccs for s5p-fimc driver
+      [media] s5p-fimc: Porting to videobuf 2
+      [media] s5p-fimc: Conversion to multiplanar formats
+      [media] s5p-fimc: Use v4l core mutex in ioctl and file operations
+      [media] s5p-fimc: Rename s3c_fimc* to s5p_fimc*
+      [media] s5p-fimc: Derive camera bus width from mediabus pixelcode
+      [media] s5p-fimc: Enable interworking without subdev s_stream
+      [media] s5p-fimc: Use default input DMA burst count
+      [media] s5p-fimc: Enable simultaneous rotation and flipping
+      [media] s5p-fimc: Add control of the external sensor clock
+      [media] s5p-fimc: Move scaler details handling to the register API file
+      [media] Add chip identity for NOON010PC30 camera sensor
+      [media] Add v4l2 subdev driver for NOON010PC30L image sensor
+
+ drivers/media/video/Kconfig                 |   36 +-
+ drivers/media/video/Makefile                |    7 +
+ drivers/media/video/mem2mem_testdev.c       |  227 ++--
+ drivers/media/video/noon010pc30.c           |  792 ++++++++++++
+ drivers/media/video/s5p-fimc/fimc-capture.c |  550 +++++----
+ drivers/media/video/s5p-fimc/fimc-core.c    |  872 +++++++------
+ drivers/media/video/s5p-fimc/fimc-core.h    |  133 +--
+ drivers/media/video/s5p-fimc/fimc-reg.c     |  201 ++--
+ drivers/media/video/s5p-fimc/regs-fimc.h    |   29 +-
+ drivers/media/video/saa7134/Kconfig         |    2 +-
+ drivers/media/video/saa7134/Makefile        |    8 +-
+ drivers/media/video/saa7134/saa7134-cards.c | 1415 ++++++++-------------
+ drivers/media/video/saa7134/saa7134-core.c  |  454 +++-----
+ drivers/media/video/saa7134/saa7134-video.c |  859 +++++--------
+ drivers/media/video/saa7134/saa7134.h       |   48 +-
+ drivers/media/video/v4l2-compat-ioctl32.c   |  229 +++-
+ drivers/media/video/v4l2-ioctl.c            |  626 +++++++++-
+ drivers/media/video/v4l2-mem2mem.c          |  232 ++--
+ drivers/media/video/videobuf2-core.c        | 1804 +++++++++++++++++++++++++++
+ drivers/media/video/videobuf2-dma-contig.c  |  185 +++
+ drivers/media/video/videobuf2-dma-sg.c      |  292 +++++
+ drivers/media/video/videobuf2-memops.c      |  232 ++++
+ drivers/media/video/videobuf2-vmalloc.c     |  132 ++
+ drivers/media/video/vivi.c                  |  357 +++---
+ include/linux/videodev2.h                   |  131 ++-
+ include/media/noon010pc30.h                 |   28 +
+ include/media/{s3c_fimc.h => s5p_fimc.h}    |   20 +-
+ include/media/v4l2-chip-ident.h             |    3 +
+ include/media/v4l2-ioctl.h                  |   16 +
+ include/media/v4l2-mem2mem.h                |   56 +-
+ include/media/videobuf2-core.h              |  380 ++++++
+ include/media/videobuf2-dma-contig.h        |   29 +
+ include/media/videobuf2-dma-sg.h            |   32 +
+ include/media/videobuf2-memops.h            |   45 +
+ include/media/videobuf2-vmalloc.h           |   20 +
+ 35 files changed, 7392 insertions(+), 3090 deletions(-)
+ create mode 100644 drivers/media/video/noon010pc30.c
+ create mode 100644 drivers/media/video/videobuf2-core.c
+ create mode 100644 drivers/media/video/videobuf2-dma-contig.c
+ create mode 100644 drivers/media/video/videobuf2-dma-sg.c
+ create mode 100644 drivers/media/video/videobuf2-memops.c
+ create mode 100644 drivers/media/video/videobuf2-vmalloc.c
+ create mode 100644 include/media/noon010pc30.h
+ rename include/media/{s3c_fimc.h => s5p_fimc.h} (75%)
+ create mode 100644 include/media/videobuf2-core.h
+ create mode 100644 include/media/videobuf2-dma-contig.h
+ create mode 100644 include/media/videobuf2-dma-sg.h
+ create mode 100644 include/media/videobuf2-memops.h
+ create mode 100644 include/media/videobuf2-vmalloc.h
+
+Regards,
+-- 
+Sylwester Nawrocki
+Samsung Poland R&D Center
