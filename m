@@ -1,220 +1,39 @@
 Return-path: <mchehab@gaivota>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:37652 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751686Ab1AFS2N (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Jan 2011 13:28:13 -0500
-Subject: Re: [RFC] Cropping and scaling with subdev pad-level operations
-From: Andy Walls <awalls@md.metrocast.net>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <201101061633.30029.laurent.pinchart@ideasonboard.com>
-References: <201101061633.30029.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 06 Jan 2011 13:28:56 -0500
-Message-ID: <1294338536.5589.77.camel@morgan.silverblock.net>
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:18589 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751026Ab1ACKvE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Jan 2011 05:51:04 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p03Ap3TW013044
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 3 Jan 2011 05:51:04 -0500
+Message-ID: <4D21AA15.6080703@redhat.com>
+Date: Mon, 03 Jan 2011 08:51:01 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] Philips SPC315NC is vertically flipped
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Thu, 2011-01-06 at 16:33 +0100, Laurent Pinchart wrote:
-> Hi everybody,
-> 
-> I ran into an issue when implementing cropping and scaling on the OMAP3 ISP 
-> resizer sub-device using the pad-level operations. As nobody seems to be happy 
-> with the V4L2 crop ioctls, I thought I would ask for comments about the subdev 
-> pad-level API to avoid repeating the same mistakes.
-> 
-> A little background information first. The OMAP3 ISP resizer has an input and 
-> an output pad. It receives images on its input pad, performs cropping to a 
-> user-configurable rectange and then scales that rectangle up or down to a 
-> user-configurable output size. The resulting image is output on the output 
-> pad.
-> 
-> The hardware sets various restrictions on the crop rectangle and on the output 
-> size, or more precisely on the relationship between them. Horizontal and 
-> vertical scaling ratios are independent (at least independent enough for the 
-> purpose of this discussion), so I'll will not comment on one of them in 
-> particular.
-> 
-> The minimum and maximum scaling ratios are roughly 1/4 and x4. A complex 
-> equation describes the relationship between the ratio, the cropped size and 
-> the output size. It involves integer arithmetics and must be fullfilled 
-> exactly, so not all combination of crop rectangle and output size can be 
-> achieved.
-> 
-> The driver expects the user to set the input size first. It propagates the 
-> input format to the output pad, resetting the crop rectangle. That behaviour 
-> is common to all the OMAP3 ISP modules, and I don't think much discussion is 
-> needed there.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-I'll note here that the driver is allowing the application to make *two*
-assumptions here:
-
-	output size == input size
-and
-	output pixel resolution == input pixel resolution
-
-If I'm taking a picture of a building, at a distance from the building
-such that the input image has a resolution of 1 pixel per 5 cm in the
-plane of the building, then the output image also has a pixel resolution
-of 1 pixel per 5 cm in the plane of the building. 
-
-
-> The user can then configure the crop rectangle and the output size 
-> independently. As not all combinations are possible, configuring one of them 
-> can modify the other one as a side effect.
-
-What enforces the modification, the hardware or the driver?
-
-IMO, a crop should be a crop with no scaling or interpolation side
-effects.  If I have 1 pixel per 5 cm on the input, I should get 1 pixel
-per 5 cm on the output.
-
-Changing the output size when setting a new crop window is IMO the
-correct thing to do since:
-
-a. it maintains the pixel resolution (e.g. 1 pixel per 5 cm).
-
-b. it is a predictable result that people and applications can rely upon
-
-c. It fail due to any implicit zoom constraint violation
-
-d. The application also knows what the new output size will be, since it
-just set the crop window to that same size
-
-
->  This is where problems come from.
-
-> Let's assume that the input size, the crop rectangle and the output size are 
-> all set to 4000x4000. The user then wants to crop a 500x500 rectangle and 
-> scale it up to 750x750.
-> 
-> If the user first sets the crop rectangle to 500x500,  the 4000x4000 output 
-> size would result in a x8 scaling factor, not supported by the resizer. The 
-> driver must then either modify the requested crop rectangle or the output size 
-> to fullfill the hardware requirements.
-
-My suggestion is to have the driver modify the output size as a side
-effect.  Changing the output size already happens as a side effect when
-the application sets the input size.
-
-
-> If the user first sets the output size to 750x750 we end up with a similar 
-> problem, and the driver needs to modify one of crop rectangle or output size 
-> as well.
-> 
-> When the stream is on, the output size can't be modified as it would change 
-> the captured frame size.
-
-Hmm.  
-
->  The crop rectangle and scaling ratios, on the other 
-> hand, can be modified to implement digital zoom. For that reason, the resizer 
-> driver doesn't modify the output size when the crop rectangle is set while a 
-> stream is running, but restricts the crop rectangle size. With the above 
-> example as a starting point, requesting a 500x500 crop rectangle, which would 
-> result in an unsupported x8 zoom, will return a 1000x1000 crop rectangle.
-
-But in this situation - fixed input size, fixed output size - you know
-exactly what scaling levels are supported, 1/4x to 4x, right?
-
-It sounds like this can be hidden from userpace with different behavior
-inside the driver for the crop and scale API calls when streaming.
-
-1.  When streaming, a single crop or scale API request from userspace
-would cause the driver to command all the required underlying crop and
-scale operations for the resizer.
-
-2. When streaming stops, either 
-a. require the applications to query the state of the crop window and
-output size, or
-b. require drivers to revert to the original crop and scale settings
-that were in place before streaming started
-
-Bad idea?
-
-
-> When the stream is off, we have two options:
-> 
-> - Handle crop rectangle modifications the same way as when the stream is on. 
-> This is cleaner, but bring one drawback. The user can't set the crop rectangle 
-> to 500x500 and output size to 750x750 directly. No matter whether the crop 
-> rectangle or output size is set first, the intermediate 500x5000/4000x4000 or 
-> 4000x4000/750x750 combination are invalid. An extra step will be needed: the 
-> crop rectangle will first be set to 1000x1000, the output size will then be 
-> set to 750x750, and the crop rectangle will finally be set to 500x500. That 
-> won't make life easy for userspace applications.
-  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-There's a reason why you shouldn't choose this option.
-
-Are the constraints between crop and output size going to be the same
-for every resizer hardware variant or every driver?
-
-
-
-> - Modify the output size when the crop rectangle is set. With this option, the 
-> output size is automatically set to the crop rectangle size when the crop 
-> rectangle is changed. With the above example, setting the crop rectangle to 
-> 500x500 will automatically set the output size to 500x500, and the user will 
-> then just have to set the output size to 750x750.
-
-I like this one.  The result of the side effect is easily understood and
-should be easy to implement for different hardware using the same API.
-
-
-> The second option has a major drawback as well, as there's no way for 
-> applications to query the minimum/maximum zoom factor. With the first option 
-> an application can set the desired output size, and then set a very small crop 
-> rectangle to retrieve the minimum allowed crop rectangle (and thus the maximum 
-> zoom factor). With the second option the output size will be changed when the 
-> crop rectangle is set, so this isn't possible anymore.
-> 
-> Retrieving the maximum zoom factor in the stream off state is an application 
-> requirement to be able to display the zoom level on a GUI (with a slider for 
-> instance).
-
-The application trying to make indirect behavior measurements to
-determine maximum/minimum zoom seems odd.  Why can't the driver just
-report those directly via some control or query?  The driver should know
-the answer.
-
-
-> The OMAP3 ISP resizer currently implements the second option, and I'll modify 
-> it to implement the first option. The drawback is that some crop/output 
-> combinations will require an extra step to be achieved. I'd like your opinion 
-> on this issue. 
-
-I'll opine for option 2.
-
-
-> Is the behaviour described in option one acceptable ?
-
-Is it possible to implement consistent behavior across all resizer
-drivers, or will applications need apriori knowledge of the constraints
-of underlying hardware device just to crop and scale an image?
-
->  Should 
-> the API be extended/modified to make it simpler for applications to configure 
-> the various sizes in the image pipeline ?
-
-
->  Are we all doomed and will we have 
-> to use a crop/scale API that nobody will ever understand ? :-)
-
-I don't know.  It would be an interesting exercise to
-
-1. collect the assumptions people and applications currently make for a
-"crop" function and a "scale" function
-
-2. look at what behavior and assumptions our current API and drivers
-make for "crop" and "scale" functions 
-
-3. determine what assumptions or behaviors can be supported across
-different hardware/software resizer units, not just the OMAP.
-
-Regards,
-Andy
+diff --git a/lib/libv4lconvert/control/libv4lcontrol.c b/lib/libv4lconvert/control/libv4lcontrol.c
+index f32ef7b..a182efe 100644
+--- a/lib/libv4lconvert/control/libv4lcontrol.c
++++ b/lib/libv4lconvert/control/libv4lcontrol.c
+@@ -46,6 +46,8 @@ static const struct v4lcontrol_flags_info v4lcontrol_flags[] = {
+ 	{ 0x0471, 0x0326, 0, NULL, NULL, V4LCONTROL_HFLIPPED | V4LCONTROL_VFLIPPED },
+ 	/* Philips SPC210NC */
+ 	{ 0x0471, 0x032d, 0, NULL, NULL, V4LCONTROL_HFLIPPED | V4LCONTROL_VFLIPPED },
++	/* Philips SPC315NC */
++	{ 0x0471, 0x032e, 0, NULL, NULL, V4LCONTROL_VFLIPPED },
+ 	/* Genius E-M 112 (also want whitebalance by default) */
+ 	{ 0x093a, 0x2476, 0, NULL, NULL,
+ 		V4LCONTROL_HFLIPPED|V4LCONTROL_VFLIPPED | V4LCONTROL_WANTS_WB, 1500 },
+-- 
+1.7.3.4
 
