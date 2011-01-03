@@ -1,135 +1,78 @@
-Return-path: <mchehab@pedra>
-Received: from mailout1.samsung.com ([203.254.224.24]:11708 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750942Ab1ALKZo (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from blu0-omc2-s16.blu0.hotmail.com ([65.55.111.91]:31115 "EHLO
+	blu0-omc2-s16.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751822Ab1ACUgT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Jan 2011 05:25:44 -0500
-Received: from epmmp2 (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LEW00GOONMUYF70@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 12 Jan 2011 19:25:42 +0900 (KST)
-Received: from AMDC159 ([106.116.37.153])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LEW001SJNMP66@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 12 Jan 2011 19:25:42 +0900 (KST)
-Date: Wed, 12 Jan 2011 11:25:36 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [GIT PATCHES FOR 2.6.38] Videbuf2 framework,
- NOON010PC30 sensor driver and s5p-fimc updates
-In-reply-to: <4D2CBB3F.5050904@redhat.com>
-To: 'Mauro Carvalho Chehab' <mchehab@redhat.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	"'Andrzej Pietrasiewicz/Poland R&D Center-Linux/./????'"
-	<andrzej.p@samsung.com>, pawel@osciak.com
-Cc: linux-media@vger.kernel.org
-Message-id: <000001cbb243$1051cb60$30f56220$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <4D21FDC1.7000803@samsung.com> <4D2CBB3F.5050904@redhat.com>
+	Mon, 3 Jan 2011 15:36:19 -0500
+Message-ID: <BLU0-SMTP1271CDC20CA3A83DD5F907DBD070@phx.gbl>
+Date: Mon, 3 Jan 2011 21:30:04 +0100
+From: javier <jyjyr@hotmail.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hello Mauro,
-
-I've rebased our fimc and saa patches onto http://linuxtv.org/git/mchehab/experimental.git
-vb2_test branch.
-
-The last 2 patches are for SAA7134 driver and are only to show that videobuf2-dma-sg works
-correctly. 
-
-The following changes since commit 15af3ad8cafe8028f09d1b6c014bb2e997937694:
-
-  [media] vb2 core: Fix a few printk warnings (2011-01-11 18:19:24 -0200)
-
-are available in the git repository at:
-  git://git.infradead.org/users/kmpark/linux-2.6-samsung vb2_test
-
-Andrzej Pietrasiewicz (2):
-      v4l: saa7134: remove radio, vbi, mpeg, input, alsa, tvaudio, saa6752hs support
-      v4l: saa7134: quick and dirty port to videobuf2
-
-Hyunwoong Kim (5):
-      [media] s5p-fimc: fix the value of YUV422 1-plane formats
-      [media] s5p-fimc: Configure scaler registers depending on FIMC version
-      [media] s5p-fimc: update checking scaling ratio range
-      [media] s5p-fimc: Support stop_streaming and job_abort
-      [media] s5p-fimc: fix MSCTRL.FIFO_CTRL for performance enhancement
-
-Marek Szyprowski (2):
-      v4l: mem2mem: port to videobuf2
-      v4l: mem2mem: port m2m_testdev to vb2
-
-Pawel Osciak (2):
-      Fix mmap() example in the V4L2 API DocBook
-      Add multi-planar API documentation
-
-Sungchun Kang (1):
-      [media] s5p-fimc: fimc_stop_capture bug fix
-
-Sylwester Nawrocki (14):
-      v4l: Add multiplanar format fourccs for s5p-fimc driver
-      v4l: Add DocBook documentation for YU12M, NV12M image formats
-      [media] s5p-fimc: Porting to videobuf 2
-      [media] s5p-fimc: Conversion to multiplanar formats
-      [media] s5p-fimc: Use v4l core mutex in ioctl and file operations
-      [media] s5p-fimc: Rename s3c_fimc* to s5p_fimc*
-      [media] s5p-fimc: Derive camera bus width from mediabus pixelcode
-      [media] s5p-fimc: Enable interworking without subdev s_stream
-      [media] s5p-fimc: Use default input DMA burst count
-      [media] s5p-fimc: Enable simultaneous rotation and flipping
-      [media] s5p-fimc: Add control of the external sensor clock
-      [media] s5p-fimc: Move scaler details handling to the register API file
-      [media] Add chip identity for NOON010PC30 camera sensor
-      [media] Add v4l2 subdev driver for NOON010PC30L image sensor
-
- Documentation/DocBook/media-entities.tmpl     |    8 +
- Documentation/DocBook/v4l/common.xml          |    2 +
- Documentation/DocBook/v4l/compat.xml          |   11 +
- Documentation/DocBook/v4l/dev-capture.xml     |   13 +-
- Documentation/DocBook/v4l/dev-output.xml      |   13 +-
- Documentation/DocBook/v4l/func-mmap.xml       |   10 +-
- Documentation/DocBook/v4l/func-munmap.xml     |    3 +-
- Documentation/DocBook/v4l/io.xml              |  287 ++++-
- Documentation/DocBook/v4l/pixfmt-nv12m.xml    |  154 +++
- Documentation/DocBook/v4l/pixfmt-yuv420m.xml  |  162 +++
- Documentation/DocBook/v4l/pixfmt.xml          |  118 ++-
- Documentation/DocBook/v4l/planar-apis.xml     |   81 ++
- Documentation/DocBook/v4l/v4l2.xml            |   21 +-
- Documentation/DocBook/v4l/vidioc-enum-fmt.xml |    2 +
- Documentation/DocBook/v4l/vidioc-g-fmt.xml    |   15 +-
- Documentation/DocBook/v4l/vidioc-qbuf.xml     |   24 +-
- Documentation/DocBook/v4l/vidioc-querybuf.xml |   14 +-
- Documentation/DocBook/v4l/vidioc-querycap.xml |   24 +-
- drivers/media/video/Kconfig                   |   12 +-
- drivers/media/video/Makefile                  |    1 +
- drivers/media/video/mem2mem_testdev.c         |  227 ++---
- drivers/media/video/noon010pc30.c             |  792 ++++++++++++++
- drivers/media/video/s5p-fimc/fimc-capture.c   |  550 ++++++----
- drivers/media/video/s5p-fimc/fimc-core.c      |  872 ++++++++-------
- drivers/media/video/s5p-fimc/fimc-core.h      |  134 ++--
- drivers/media/video/s5p-fimc/fimc-reg.c       |  199 ++--
- drivers/media/video/s5p-fimc/regs-fimc.h      |   29 +-
- drivers/media/video/saa7134/Kconfig           |    2 +-
- drivers/media/video/saa7134/Makefile          |    8 +-
- drivers/media/video/saa7134/saa7134-cards.c   | 1415 +++++++++----------------
- drivers/media/video/saa7134/saa7134-core.c    |  466 +++------
- drivers/media/video/saa7134/saa7134-video.c   |  854 ++++++----------
- drivers/media/video/saa7134/saa7134.h         |   48 +-
- drivers/media/video/v4l2-mem2mem.c            |  232 ++--
- include/linux/videodev2.h                     |    7 +
- include/media/noon010pc30.h                   |   28 +
- include/media/{s3c_fimc.h => s5p_fimc.h}      |   20 +-
- include/media/v4l2-chip-ident.h               |    3 +
- include/media/v4l2-mem2mem.h                  |   56 +-
- 39 files changed, 3961 insertions(+), 2956 deletions(-)
- create mode 100644 Documentation/DocBook/v4l/pixfmt-nv12m.xml
- create mode 100644 Documentation/DocBook/v4l/pixfmt-yuv420m.xml
- create mode 100644 Documentation/DocBook/v4l/planar-apis.xml
- create mode 100644 drivers/media/video/noon010pc30.c
- create mode 100644 include/media/noon010pc30.h
- rename include/media/{s3c_fimc.h => s5p_fimc.h} (75%)
+dmesg | grep bt
+[   13.145402] usbcore: registered new interface driver btusb
+javier@javier-desktop:~$ dmesg | grep -i9 tuner
+[ 2283.004191] em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 
+00 00 00 00 00 00
+[ 2283.004215] em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x516cc51d
+[ 2283.004219] em28xx #0: EEPROM info:
+[ 2283.004223] em28xx #0:    AC97 audio (5 sample rates)
+[ 2283.004226] em28xx #0:    500mA max power
+[ 2283.004231] em28xx #0:    Table at 0x24, strings=0x226a, 0x108c, 0x0000
+[ 2283.007555] em28xx #0: Identified as Unknown EM2750/28xx video 
+grabber (card=1)
+[ 2283.050116] em28xx #0: found i2c device @ 0xa0 [eeprom]
+[ 2283.054615] em28xx #0: found i2c device @ 0xb8 [tvp5150a]
+[ 2283.056485] em28xx #0: found i2c device @ 0xc2 [tuner (analog)]
+[ 2283.067732] em28xx #0: Your board has no unique USB ID and thus need 
+a hint to be detected.
+[ 2283.067746] em28xx #0: You may try to use card=<n> insmod option to 
+workaround that.
+[ 2283.067751] em28xx #0: Please send an email with this log to:
+[ 2283.067755] em28xx #0:     V4L Mailing List <linux-media@vger.kernel.org>
+[ 2283.067760] em28xx #0: Board eeprom hash is 0x516cc51d
+[ 2283.067764] em28xx #0: Board i2c devicelist hash is 0x27e10080
+[ 2283.067769] em28xx #0: Here is a list of valid choices for the 
+card=<n> insmod option:
+[ 2283.067775] em28xx #0:     card=0 -> Unknown EM2800 video grabber
+[ 2283.067780] em28xx #0:     card=1 -> Unknown EM2750/28xx video grabber
+--
+[ 2283.067799] em28xx #0:     card=5 -> MSI VOX USB 2.0
+[ 2283.067803] em28xx #0:     card=6 -> Terratec Cinergy 200 USB
+[ 2283.067808] em28xx #0:     card=7 -> Leadtek Winfast USB II
+[ 2283.067813] em28xx #0:     card=8 -> Kworld USB2800
+[ 2283.067818] em28xx #0:     card=9 -> Pinnacle Dazzle DVC 
+90/100/101/107 / Kaiser Baas Video to DVD maker / Kworld DVD Maker 2
+[ 2283.067825] em28xx #0:     card=10 -> Hauppauge WinTV HVR 900
+[ 2283.067829] em28xx #0:     card=11 -> Terratec Hybrid XS
+[ 2283.067834] em28xx #0:     card=12 -> Kworld PVR TV 2800 RF
+[ 2283.067838] em28xx #0:     card=13 -> Terratec Prodigy XS
+[ 2283.067843] em28xx #0:     card=14 -> SIIG AVTuner-PVR / Pixelview 
+Prolink PlayTV USB 2.0
+[ 2283.067849] em28xx #0:     card=15 -> V-Gear PocketTV
+[ 2283.067853] em28xx #0:     card=16 -> Hauppauge WinTV HVR 950
+[ 2283.067858] em28xx #0:     card=17 -> Pinnacle PCTV HD Pro Stick
+[ 2283.067862] em28xx #0:     card=18 -> Hauppauge WinTV HVR 900 (R2)
+[ 2283.067867] em28xx #0:     card=19 -> EM2860/SAA711X Reference Design
+[ 2283.067872] em28xx #0:     card=20 -> AMD ATI TV Wonder HD 600
+[ 2283.067877] em28xx #0:     card=21 -> eMPIA Technology, Inc. 
+GrabBeeX+ Video Encoder
+[ 2283.067882] em28xx #0:     card=22 -> EM2710/EM2750/EM2751 webcam grabber
+[ 2283.067887] em28xx #0:     card=23 -> Huaqi DLCW-130
+[ 2283.067891] em28xx #0:     card=24 -> D-Link DUB-T210 TV Tuner
+[ 2283.067896] em28xx #0:     card=25 -> Gadmei UTV310
+[ 2283.067900] em28xx #0:     card=26 -> Hercules Smart TV USB 2.0
+[ 2283.067905] em28xx #0:     card=27 -> Pinnacle PCTV USB 2 (Philips 
+FM1216ME)
+[ 2283.067910] em28xx #0:     card=28 -> Leadtek Winfast USB II Deluxe
+[ 2283.067915] em28xx #0:     card=29 -> <NULL>
+[ 2283.067919] em28xx #0:     card=30 -> Videology 20K14XUSB USB2.0
+[ 2283.067924] em28xx #0:     card=31 -> Usbgear VD204v9
+[ 2283.067928] em28xx #0:     card=32 -> Supercomp USB 2.0 TV
+[ 2283.067932] em28xx #0:     card=33 -> <NULL>
 
