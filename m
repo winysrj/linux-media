@@ -1,71 +1,117 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:34391 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752557Ab1AAUwh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Jan 2011 15:52:37 -0500
-Received: by eye27 with SMTP id 27so5556216eye.19
-        for <linux-media@vger.kernel.org>; Sat, 01 Jan 2011 12:52:35 -0800 (PST)
-MIME-Version: 1.0
-Date: Sat, 1 Jan 2011 15:52:35 -0500
-Message-ID: <AANLkTi=3ekVmf-gVU=bO2dHn4svMbExZ3TKGeiV1Jrrd@mail.gmail.com>
-Subject: V4L2 spec behavior for G_TUNER and T_STANDBY
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:4917 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753813Ab1ACSbb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jan 2011 13:31:31 -0500
+Received: from localhost.localdomain (43.80-203-71.nextgentel.com [80.203.71.43])
+	(authenticated bits=0)
+	by smtp-vbr18.xs4all.nl (8.13.8/8.13.8) with ESMTP id p03IVMuX006180
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 3 Jan 2011 19:31:30 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [RFCv2 PATCH 06/10] radio_ms800: use video_drvdata instead of filp->private_data
+Date: Mon,  3 Jan 2011 19:31:11 +0100
+Message-Id: <7e1e3d8066d44fb6b9e1caba57378a2efbe891c1.1294078230.git.hverkuil@xs4all.nl>
+In-Reply-To: <1294079475-13259-1-git-send-email-hverkuil@xs4all.nl>
+References: <1294079475-13259-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <6515cfbdde63364fd12bca1219870f38ff371145.1294078230.git.hverkuil@xs4all.nl>
+References: <6515cfbdde63364fd12bca1219870f38ff371145.1294078230.git.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-I have been doing some application conformance for VLC, and I noticed
-something interesting with regards to the G_TUNER call.
+filp->private_data will be used to store v4l2_fh instead.
 
-If you have a tuner which supports sleeping, making a G_TUNER call
-essentially returns garbage.
-===
-root@devin-laptop2:~# v4l2-ctl -d /dev/video1 --get-tuner
-Tuner:
-    Name                 : Auvitek tuner
-    Capabilities         : 62.5 kHz stereo lang1 lang2
-    Frequency range      : 0.0 MHz - 0.0 MHz
-    Signal strength/AFC  : 0%/0
-    Current audio mode   : stereo
-    Available subchannels: mono
-===
-Note that the frequency range is zero (the capabilities and name are
-populated by the bridge or video decoder).  Some digging into the
-tuner_g_tuner() function in tuner core shows that the check_mode()
-call fails because the device's mode is T_STANDBY.  However, it does
-this despite the fact that none of values required actually interact
-with the tuner.  The capabilities and frequency ranges should be able
-to be populated regardless of whether the device is in standby.
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/radio/radio-mr800.c |   17 ++++++++---------
+ 1 files changed, 8 insertions(+), 9 deletions(-)
 
-This is particularly bad because devices normally come out of standby
-when a s_freq call occurs, but some applications (such as VLC) will
-call g_tuner first to validate the target frequency is inside the
-valid frequency range.  So you have a chicken/egg problem:  The
-g_tuner won't return a valid frequency range until you do a tuning
-request to wake up the tuner, but apps like VLC won't do a tuning
-request unless it has validated the frequency range.
-
-Further, look at the following block:
-
-        if (t->mode != V4L2_TUNER_RADIO) {
-                vt->rangelow = tv_range[0] * 16;
-                vt->rangehigh = tv_range[1] * 16;
-                return 0;
-        }
-
-This basically means that a video tuner will bail out, which sounds
-good because the rest of the function supposedly assumes a radio
-device.  However, as a result the has_signal() call (which returns
-signal strength) will never be executed for video tuners.  You
-wouldn't notice this if a video decoder subdev is responsible for
-showing signal strength, but if you're expecting the tuner to provide
-the info, the call will never happen.
-
-Are these known issues?  Am I misreading the specified behavior?  I
-don't see anything in the spec that suggests that this call should
-return invalid data if the tuner happens to be powered down.
-
+diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
+index b540e80..492cfca 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -297,7 +297,7 @@ static void usb_amradio_disconnect(struct usb_interface *intf)
+ static int vidioc_querycap(struct file *file, void *priv,
+ 					struct v4l2_capability *v)
+ {
+-	struct amradio_device *radio = file->private_data;
++	struct amradio_device *radio = video_drvdata(file);
+ 
+ 	strlcpy(v->driver, "radio-mr800", sizeof(v->driver));
+ 	strlcpy(v->card, "AverMedia MR 800 USB FM Radio", sizeof(v->card));
+@@ -311,7 +311,7 @@ static int vidioc_querycap(struct file *file, void *priv,
+ static int vidioc_g_tuner(struct file *file, void *priv,
+ 				struct v4l2_tuner *v)
+ {
+-	struct amradio_device *radio = file->private_data;
++	struct amradio_device *radio = video_drvdata(file);
+ 	int retval;
+ 
+ 	if (v->index > 0)
+@@ -347,7 +347,7 @@ static int vidioc_g_tuner(struct file *file, void *priv,
+ static int vidioc_s_tuner(struct file *file, void *priv,
+ 				struct v4l2_tuner *v)
+ {
+-	struct amradio_device *radio = file->private_data;
++	struct amradio_device *radio = video_drvdata(file);
+ 	int retval = -EINVAL;
+ 
+ 	if (v->index > 0)
+@@ -370,7 +370,7 @@ static int vidioc_s_tuner(struct file *file, void *priv,
+ static int vidioc_s_frequency(struct file *file, void *priv,
+ 				struct v4l2_frequency *f)
+ {
+-	struct amradio_device *radio = file->private_data;
++	struct amradio_device *radio = video_drvdata(file);
+ 
+ 	if (f->tuner != 0 || f->type != V4L2_TUNER_RADIO)
+ 		return -EINVAL;
+@@ -381,7 +381,7 @@ static int vidioc_s_frequency(struct file *file, void *priv,
+ static int vidioc_g_frequency(struct file *file, void *priv,
+ 				struct v4l2_frequency *f)
+ {
+-	struct amradio_device *radio = file->private_data;
++	struct amradio_device *radio = video_drvdata(file);
+ 
+ 	if (f->tuner != 0)
+ 		return -EINVAL;
+@@ -407,7 +407,7 @@ static int vidioc_queryctrl(struct file *file, void *priv,
+ static int vidioc_g_ctrl(struct file *file, void *priv,
+ 				struct v4l2_control *ctrl)
+ {
+-	struct amradio_device *radio = file->private_data;
++	struct amradio_device *radio = video_drvdata(file);
+ 
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_AUDIO_MUTE:
+@@ -422,7 +422,7 @@ static int vidioc_g_ctrl(struct file *file, void *priv,
+ static int vidioc_s_ctrl(struct file *file, void *priv,
+ 				struct v4l2_control *ctrl)
+ {
+-	struct amradio_device *radio = file->private_data;
++	struct amradio_device *radio = video_drvdata(file);
+ 	int retval = -EINVAL;
+ 
+ 	switch (ctrl->id) {
+@@ -501,7 +501,6 @@ static int usb_amradio_open(struct file *file)
+ 	struct amradio_device *radio = video_drvdata(file);
+ 	int retval;
+ 
+-	file->private_data = radio;
+ 	retval = usb_autopm_get_interface(radio->intf);
+ 	if (retval)
+ 		return retval;
+@@ -517,7 +516,7 @@ static int usb_amradio_open(struct file *file)
+ /*close device */
+ static int usb_amradio_close(struct file *file)
+ {
+-	struct amradio_device *radio = file->private_data;
++	struct amradio_device *radio = video_drvdata(file);
+ 
+ 	if (video_is_registered(&radio->videodev))
+ 		usb_autopm_put_interface(radio->intf);
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.0.4
+
