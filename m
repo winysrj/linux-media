@@ -1,44 +1,103 @@
-Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59832 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753490Ab1A0MbY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jan 2011 07:31:24 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v1 4/8] v4l: Fix a use-before-set in the control framework
-Date: Thu, 27 Jan 2011 13:31:08 +0100
-Message-Id: <1296131472-30045-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1296131472-30045-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1296131472-30045-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Return-path: <mchehab@gaivota>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:45699 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932098Ab1ACPJC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jan 2011 10:09:02 -0500
+MIME-Version: 1.0
+In-Reply-To: <alpine.LNX.2.00.1101022150120.11481@swampdragon.chaosbits.net>
+References: <alpine.LNX.2.00.1101022150120.11481@swampdragon.chaosbits.net>
+Date: Mon, 3 Jan 2011 23:09:00 +0800
+Message-ID: <AANLkTikc8pjsWcHRsAQwx8wMy0DQk+be0WnNUirPBS1C@mail.gmail.com>
+Subject: Re: [PATCH] media, tlg2300: Fix memory leak in alloc_bulk_urbs_generic()
+From: Huang Shijie <shijie8@gmail.com>
+To: Jesper Juhl <jj@chaosbits.net>
+Cc: linux-media@vger.kernel.org, Kang Yong <kangyong@telegent.com>,
+	Zhang Xiaobing <xbzhang@telegent.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-v4l2_queryctrl sets the step value based on the control type. That would
-be fine if it used the control type stored in the V4L2 kernel control
-object, not the one stored in the userspace ioctl structure that has
-just been memset to 0. Fix this.
+Hi Jesper:
+Thanks for your patch.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/v4l2-ctrls.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 9d2502c..5f74fec0 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -1338,7 +1338,7 @@ int v4l2_queryctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_queryctrl *qc)
- 	qc->minimum = ctrl->minimum;
- 	qc->maximum = ctrl->maximum;
- 	qc->default_value = ctrl->default_value;
--	if (qc->type == V4L2_CTRL_TYPE_MENU)
-+	if (ctrl->type == V4L2_CTRL_TYPE_MENU)
- 		qc->step = 1;
- 	else
- 		qc->step = ctrl->step;
--- 
-1.7.3.4
+2011/1/3 Jesper Juhl <jj@chaosbits.net>:
+> Hi,
+>
+> While reading
+> drivers/media/video/tlg2300/pd-video.c::alloc_bulk_urbs_generic() I
+> noticed that
+>
+>  - We don't free the memory allocated to 'urb' if the call to
+>   usb_alloc_coherent() fails.
+Yes.
+thanks.
 
+>  - If the 'num' argument to the function is ever <= 0 we'll return an
+>   uninitialized variable 'i' to the caller.
+
+Do not worry about this. All the 'num' are macros which is greater
+then zero now.
+
+>
+> The following patch addresses both of the above by a) calling
+> usb_free_urb() when usb_alloc_coherent() fails and by explicitly
+> initializing 'i' to zero.
+> I also moved the variables 'mem' and 'urb' inside the for loop. This does
+> not actually make any difference, it just seemed more correct to me to let
+> variables exist only in the innermost scope they are used.
+>
+
+Acked-by: Huang Shijie <shijie8@gmail.com>
+
+>
+> Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+> ---
+>  pd-video.c |   13 +++++++------
+>  1 file changed, 7 insertions(+), 6 deletions(-)
+>
+>  compile tested only.
+>
+> diff --git a/drivers/media/video/tlg2300/pd-video.c b/drivers/media/video/tlg2300/pd-video.c
+> index a1ffe18..df33a1d 100644
+> --- a/drivers/media/video/tlg2300/pd-video.c
+> +++ b/drivers/media/video/tlg2300/pd-video.c
+> @@ -512,19 +512,20 @@ int alloc_bulk_urbs_generic(struct urb **urb_array, int num,
+>                        int buf_size, gfp_t gfp_flags,
+>                        usb_complete_t complete_fn, void *context)
+>  {
+> -       struct urb *urb;
+> -       void *mem;
+> -       int i;
+> +       int i = 0;
+>
+> -       for (i = 0; i < num; i++) {
+> -               urb = usb_alloc_urb(0, gfp_flags);
+> +       for (; i < num; i++) {
+> +               void *mem;
+> +               struct urb *urb = usb_alloc_urb(0, gfp_flags);
+>                if (urb == NULL)
+>                        return i;
+>
+>                mem = usb_alloc_coherent(udev, buf_size, gfp_flags,
+>                                         &urb->transfer_dma);
+> -               if (mem == NULL)
+> +               if (mem == NULL) {
+> +                       usb_free_urb(urb);
+>                        return i;
+> +               }
+>
+>                usb_fill_bulk_urb(urb, udev, usb_rcvbulkpipe(udev, ep_addr),
+>                                mem, buf_size, complete_fn, context);
+>
+>
+>
+> --
+> Jesper Juhl <jj@chaosbits.net>            http://www.chaosbits.net/
+> Don't top-post http://www.catb.org/~esr/jargon/html/T/top-post.html
+> Plain text mails only, please.
+>
+>
