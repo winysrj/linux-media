@@ -1,272 +1,96 @@
-Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:57793 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932614Ab1AKXsf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jan 2011 18:48:35 -0500
-Received: by bwz15 with SMTP id 15so72856bwz.19
-        for <linux-media@vger.kernel.org>; Tue, 11 Jan 2011 15:48:33 -0800 (PST)
-From: Marek Vasut <marek.vasut@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC PATCH 05/12] ov9640: convert to the control framework.
-Date: Wed, 12 Jan 2011 00:51:17 +0100
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
-	Alberto Panizzo <maramaopercheseimorto@gmail.com>,
-	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-References: <1294787172-13638-1-git-send-email-hverkuil@xs4all.nl> <fd4db2a1effa6f4e4b83f2b6d616c065f9001048.1294786597.git.hverkuil@xs4all.nl>
-In-Reply-To: <fd4db2a1effa6f4e4b83f2b6d616c065f9001048.1294786597.git.hverkuil@xs4all.nl>
+Return-path: <mchehab@gaivota>
+Received: from emh06.mail.saunalahti.fi ([62.142.5.116]:51419 "EHLO
+	emh06.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751150Ab1ADSBf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Jan 2011 13:01:35 -0500
+Message-ID: <4D235E24.3050405@kolumbus.fi>
+Date: Tue, 04 Jan 2011 19:51:32 +0200
+From: Marko Ristola <marko.ristola@kolumbus.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201101120051.17264.marek.vasut@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	Patrick Boettcher <pboettcher@kernellabs.com>,
+	Hendrik Skarpeid <skarp@online.no>, stoth@kernellabs.com,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: Summary of the pending patches up to Dec, 31 (26 patches)
+References: <4D1DCF6A.2090505@redhat.com>
+In-Reply-To: <4D1DCF6A.2090505@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Wednesday 12 January 2011 00:06:05 Hans Verkuil wrote:
-> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
 
-Hey, I can do a test-run on this one eventually ;-)
+Dear Developers,
 
-Cheers
-> ---
->  drivers/media/video/ov9640.c |  124
-> ++++++++++++++---------------------------- drivers/media/video/ov9640.h | 
->   4 +-
->  2 files changed, 43 insertions(+), 85 deletions(-)
+Happy New Year.
+
+I'll try to describe my patches so that they would be more understandable.
+First comment is for all dvb_dmx_swfilter() and dvb_dmx_swfilter_204() users: please test the performance improvement.
+The second comment is mostly to convince Manu Abraham, but the concept might be useful for others too. Please read.
+
+31.12.2010 14:41, Mauro Carvalho Chehab wrote:
+> Dear Developers,
 > 
-> diff --git a/drivers/media/video/ov9640.c b/drivers/media/video/ov9640.c
-> index 53d88a2..dbda50c 100644
-> --- a/drivers/media/video/ov9640.c
-> +++ b/drivers/media/video/ov9640.c
-> @@ -27,6 +27,7 @@
->  #include <linux/videodev2.h>
->  #include <media/v4l2-chip-ident.h>
->  #include <media/v4l2-common.h>
-> +#include <media/v4l2-ctrls.h>
->  #include <media/soc_camera.h>
+> 		== Need more tests/acks from DVB users == 
 > 
->  #include "ov9640.h"
-> @@ -162,27 +163,6 @@ static enum v4l2_mbus_pixelcode ov9640_codes[] = {
->  	V4L2_MBUS_FMT_RGB565_2X8_LE,
->  };
+> Aug, 7 2010: Avoid unnecessary data copying inside dvb_dmx_swfilter_204() function  http://patchwork.kernel.org/patch/118147  Marko Ristola <marko.ristola@kolumbus.fi>
+
+This patch affects equally for both dvb_dmx_swfilter() and dvb_dmx_swfilter_204().
+The resulting performance and functionality is similar with dvb_dmx_swfilter_packets().
+dvb_dmx_swfilter(_204)() have robustness checks. Devices without such need
+can still use dvb_dmx_swfilter_packets().
+
+My performance patch helps especially with high volume 256-QAM TS streams containing for example HDTV
+content by removing one unnecessary stream copy.
+With "perf top", dvb_dmx_swfilter_204()'s CPU consumption reduced in the following way:
+
+Without the patch dvb_dmx_swfilter_204() and dvb_dmx_swfilter_packet() took about equal amounts of CPU.
+With the patch dvb_dmx_swfilter_204()'s CPU consumption went into 1/5 or 1/10 of the original (resulting minor CPU consumption).
+dvb_dmx_swfilter_packet()'s CPU time was about as before.
+
+Test environment was Fedora with VDR streaming HDTV into network.
+I have tested the patch thoroughly (see for example https://patchwork.kernel.org/patch/108274).
+
+The patch assumes that dvb_dmx_swfilter_packet() can eat data stream fast enough so that
+the DVB card's DMA engine will not replace buffer content underneath of dvb_dmx_swfilter_204().
+
+It would be helpful if someone using dvb_dmx_swfilter() could try the patch too: maybe nobody has tried it.
+The benefit would be, that dvb_dmx_swfilter() is almost equally fast as the existing blatantly fast dvb_dmx_swfilter_packets() :)
+
 > 
-> -static const struct v4l2_queryctrl ov9640_controls[] = {
-> -	{
-> -		.id		= V4L2_CID_VFLIP,
-> -		.type		= V4L2_CTRL_TYPE_BOOLEAN,
-> -		.name		= "Flip Vertically",
-> -		.minimum	= 0,
-> -		.maximum	= 1,
-> -		.step		= 1,
-> -		.default_value	= 0,
-> -	},
-> -	{
-> -		.id		= V4L2_CID_HFLIP,
-> -		.type		= V4L2_CTRL_TYPE_BOOLEAN,
-> -		.name		= "Flip Horizontally",
-> -		.minimum	= 0,
-> -		.maximum	= 1,
-> -		.step		= 1,
-> -		.default_value	= 0,
-> -	},
-> -};
-> -
->  /* read a register */
->  static int ov9640_reg_read(struct i2c_client *client, u8 reg, u8 *val)
->  {
-> @@ -307,52 +287,25 @@ static unsigned long ov9640_query_bus_param(struct
-> soc_camera_device *icd) return soc_camera_apply_sensor_flags(icl, flags);
->  }
+> ************************************************************************
+> * I want to see people testing the above patch, as it seems to improve *
+> * DVB performance by avoiding data copy.                               *
+> ************************************************************************
 > 
-> -/* Get status of additional camera capabilities */
-> -static int ov9640_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control
-> *ctrl) -{
-> -	struct ov9640_priv *priv = to_ov9640_sensor(sd);
-> -
-> -	switch (ctrl->id) {
-> -	case V4L2_CID_VFLIP:
-> -		ctrl->value = priv->flag_vflip;
-> -		break;
-> -	case V4L2_CID_HFLIP:
-> -		ctrl->value = priv->flag_hflip;
-> -		break;
-> -	}
-> -	return 0;
-> -}
-> -
->  /* Set status of additional camera capabilities */
-> -static int ov9640_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control
-> *ctrl) +static int ov9640_s_ctrl(struct v4l2_ctrl *ctrl)
->  {
-> -	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> -	struct ov9640_priv *priv = to_ov9640_sensor(sd);
-> -
-> -	int ret = 0;
-> +	struct ov9640_priv *priv = container_of(ctrl->handler, struct
-> ov9640_priv, hdl); +	struct i2c_client *client =
-> v4l2_get_subdevdata(&priv->subdev);
+> 		== mantis patches - Waiting for Manu Abraham <abraham.manu@gmail.com> == 
 > 
->  	switch (ctrl->id) {
->  	case V4L2_CID_VFLIP:
-> -		priv->flag_vflip = ctrl->value;
-> -		if (ctrl->value)
-> -			ret = ov9640_reg_rmw(client, OV9640_MVFP,
-> +		if (ctrl->val)
-> +			return ov9640_reg_rmw(client, OV9640_MVFP,
->  							OV9640_MVFP_V, 0);
-> -		else
-> -			ret = ov9640_reg_rmw(client, OV9640_MVFP,
-> -							0, OV9640_MVFP_V);
-> -		break;
-> +		return ov9640_reg_rmw(client, OV9640_MVFP, 0, OV9640_MVFP_V);
->  	case V4L2_CID_HFLIP:
-> -		priv->flag_hflip = ctrl->value;
-> -		if (ctrl->value)
-> -			ret = ov9640_reg_rmw(client, OV9640_MVFP,
-> +		if (ctrl->val)
-> +			return ov9640_reg_rmw(client, OV9640_MVFP,
->  							OV9640_MVFP_H, 0);
-> -		else
-> -			ret = ov9640_reg_rmw(client, OV9640_MVFP,
-> -							0, OV9640_MVFP_H);
-> -		break;
-> +		return ov9640_reg_rmw(client, OV9640_MVFP, 0, OV9640_MVFP_H);
->  	}
-> -
-> -	return ret;
-> +	return -EINVAL;
->  }
-> 
->  /* Get chip identification */
-> @@ -664,8 +617,7 @@ static int ov9640_video_probe(struct soc_camera_device
-> *icd, if (!icd->dev.parent ||
->  	    to_soc_camera_host(icd->dev.parent)->nr != icd->iface) {
->  		dev_err(&client->dev, "Parent missing or invalid!\n");
-> -		ret = -ENODEV;
-> -		goto err;
-> +		return -ENODEV;
->  	}
-> 
->  	/*
-> @@ -673,20 +625,14 @@ static int ov9640_video_probe(struct
-> soc_camera_device *icd, */
-> 
->  	ret = ov9640_reg_read(client, OV9640_PID, &pid);
-> +	if (!ret)
-> +		ret = ov9640_reg_read(client, OV9640_VER, &ver);
-> +	if (!ret)
-> +		ret = ov9640_reg_read(client, OV9640_MIDH, &midh);
-> +	if (!ret)
-> +		ret = ov9640_reg_read(client, OV9640_MIDL, &midl);
->  	if (ret)
-> -		goto err;
-> -
-> -	ret = ov9640_reg_read(client, OV9640_VER, &ver);
-> -	if (ret)
-> -		goto err;
-> -
-> -	ret = ov9640_reg_read(client, OV9640_MIDH, &midh);
-> -	if (ret)
-> -		goto err;
-> -
-> -	ret = ov9640_reg_read(client, OV9640_MIDL, &midl);
-> -	if (ret)
-> -		goto err;
-> +		return ret;
-> 
->  	switch (VERSION(pid, ver)) {
->  	case OV9640_V2:
-> @@ -700,27 +646,25 @@ static int ov9640_video_probe(struct
-> soc_camera_device *icd, break;
->  	default:
->  		dev_err(&client->dev, "Product ID error %x:%x\n", pid, ver);
-> -		ret = -ENODEV;
-> -		goto err;
-> +		return -ENODEV;
->  	}
-> 
->  	dev_info(&client->dev, "%s Product ID %0x:%0x Manufacturer ID %x:%x\n",
->  		 devname, pid, ver, midh, midl);
-> 
-> -err:
-> -	return ret;
-> +	return v4l2_ctrl_handler_setup(&priv->hdl);
->  }
-> 
-> +static const struct v4l2_ctrl_ops ov9640_ctrl_ops = {
-> +	.s_ctrl = ov9640_s_ctrl,
-> +};
-> +
->  static struct soc_camera_ops ov9640_ops = {
->  	.set_bus_param		= ov9640_set_bus_param,
->  	.query_bus_param	= ov9640_query_bus_param,
-> -	.controls		= ov9640_controls,
-> -	.num_controls		= ARRAY_SIZE(ov9640_controls),
->  };
-> 
->  static struct v4l2_subdev_core_ops ov9640_core_ops = {
-> -	.g_ctrl			= ov9640_g_ctrl,
-> -	.s_ctrl			= ov9640_s_ctrl,
->  	.g_chip_ident		= ov9640_g_chip_ident,
->  #ifdef CONFIG_VIDEO_ADV_DEBUG
->  	.g_register		= ov9640_get_register,
-> @@ -775,12 +719,26 @@ static int ov9640_probe(struct i2c_client *client,
-> 
->  	v4l2_i2c_subdev_init(&priv->subdev, client, &ov9640_subdev_ops);
-> 
-> -	icd->ops	= &ov9640_ops;
-> +	v4l2_ctrl_handler_init(&priv->hdl, 2);
-> +	v4l2_ctrl_new_std(&priv->hdl, &ov9640_ctrl_ops,
-> +			V4L2_CID_VFLIP, 0, 1, 1, 0);
-> +	v4l2_ctrl_new_std(&priv->hdl, &ov9640_ctrl_ops,
-> +			V4L2_CID_HFLIP, 0, 1, 1, 0);
-> +	priv->subdev.ctrl_handler = &priv->hdl;
-> +	if (priv->hdl.error) {
-> +		int err = priv->hdl.error;
-> +
-> +		kfree(priv);
-> +		return err;
-> +	}
-> +
-> +	icd->ops = &ov9640_ops;
-> 
->  	ret = ov9640_video_probe(icd, client);
-> 
->  	if (ret) {
->  		icd->ops = NULL;
-> +		v4l2_ctrl_handler_free(&priv->hdl);
->  		kfree(priv);
->  	}
-> 
-> @@ -792,6 +750,8 @@ static int ov9640_remove(struct i2c_client *client)
->  	struct v4l2_subdev *sd = i2c_get_clientdata(client);
->  	struct ov9640_priv *priv = to_ov9640_sensor(sd);
-> 
-> +	v4l2_device_unregister_subdev(&priv->subdev);
-> +	v4l2_ctrl_handler_free(&priv->hdl);
->  	kfree(priv);
->  	return 0;
->  }
-> diff --git a/drivers/media/video/ov9640.h b/drivers/media/video/ov9640.h
-> index f8a51b7..6b33a97 100644
-> --- a/drivers/media/video/ov9640.h
-> +++ b/drivers/media/video/ov9640.h
-> @@ -198,12 +198,10 @@ struct ov9640_reg {
-> 
->  struct ov9640_priv {
->  	struct v4l2_subdev		subdev;
-> +	struct v4l2_ctrl_handler	hdl;
-> 
->  	int				model;
->  	int				revision;
-> -
-> -	bool				flag_vflip;
-> -	bool				flag_hflip;
->  };
-> 
->  #endif	/* __DRIVERS_MEDIA_VIDEO_OV9640_H__ */
+> Jun,20 2010: [2/2] DVB/V4L: mantis: remove unused files                             http://patchwork.kernel.org/patch/107062  BjÃ¸rn Mork <bjorn@mork.no>
+> Jul,19 2010: Twinhan DTV Ter-CI (3030 mantis)                                       http://patchwork.kernel.org/patch/112708  Niklas Claesson <nicke.claesson@gmail.com>
+> Aug, 7 2010: Refactor Mantis DMA transfer to deliver 16Kb TS data per interrupt     http://patchwork.kernel.org/patch/118173  Marko Ristola <marko.ristola@kolumbus.fi>
+
+16Kb TS stream improvement: What do you think about this, Manu Abraham?
+
+If high volume TS stream (256-QAM) with 50Mbits/s generates one interrupt
+once per 4096 bytes, you have a problem.
+Mantis driver copies 4096 bytes with one interrupt, into dvb_core's 128K buffer.
+VDR reads data in big pieces (as much data as you get).
+Network layer receives data in about 100K - 300K pieces from VDR.
+
+So I think that it is unnecessary to interrupt other processes once per 4096 bytes, for 56Mbit/s streams.
+With 16K / interrupt you reduce the number of interrupts into one quarter, without affecting VDR at all,
+lessening unnecessary interrupts and giving CPU time to other processes.
+
+The CPU might have some other things to do without wanting to get interrupted once per  (displaying HDTV, delivering HDTV stream to network). Mantis/Hopper kernel driver must process the whole high volume TS stream, although it might deliver only one radio channel forward.
+
+I saw glitches with HDTV (followed by stream halt) even though the Mantis DVB card only delivered the data into the local network via VDR.
+I don't have such single CPU computer anymore though.
+
+16K comes from the fact that it is not good to try to overload dvb_core's 128K buffer. 3/4 of the interrupts are gone.
+DVB driver does at least twice the number of interrupts compared to VDR reading the stream:
+dvb_core's buffer is never empty when VDR asks more data.
+
+Best regards,
+Marko Ristola
