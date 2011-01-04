@@ -1,55 +1,68 @@
 Return-path: <mchehab@gaivota>
-Received: from wolverine02.qualcomm.com ([199.106.114.251]:22021 "EHLO
-	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750757Ab1ADCiq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jan 2011 21:38:46 -0500
-From: "Shuzhen Wang" <shuzhenw@codeaurora.org>
-To: "'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>
-Cc: "'Mauro Carvalho Chehab'" <mchehab@redhat.com>,
-	"'Hans Verkuil'" <hverkuil@xs4all.nl>,
-	<linux-media@vger.kernel.org>, <hzhong@codeaurora.org>,
-	"Yan, Yupeng" <yyan@quicinc.com>
-References: <000601cba2d8$eaedcdc0$c0c96940$@org> <4D188285.8090603@redhat.com> <000001cba6bd$f2c94ea0$d85bebe0$@org> <201012282123.58775.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201012282123.58775.laurent.pinchart@ideasonboard.com>
-Subject: RE: RFC: V4L2 driver for Qualcomm MSM camera.
-Date: Mon, 3 Jan 2011 18:37:10 -0800
-Message-ID: <000001cbabb8$49892d10$dc9b8730$@org>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:35657 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751252Ab1ADN3O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Jan 2011 08:29:14 -0500
+Received: by ewy5 with SMTP id 5so6443694ewy.19
+        for <linux-media@vger.kernel.org>; Tue, 04 Jan 2011 05:29:12 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-language: en-us
+In-Reply-To: <AANLkTi=uTj5TNuMK4_V5o0PJ8hhgJ5sPJe_qZa3HYzYe@mail.gmail.com>
+References: <AANLkTi=uTj5TNuMK4_V5o0PJ8hhgJ5sPJe_qZa3HYzYe@mail.gmail.com>
+Date: Tue, 4 Jan 2011 10:29:10 -0300
+Message-ID: <AANLkTik1venaY6hUZymzrA73F=NLiG1OZhqDnuNTTHLk@mail.gmail.com>
+Subject: Fwd: Pinnacle PCTV USB2 working with PAL-Nc
+From: Adrian Pardini <pardo.bsso@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: "Gonzalo A. de la Vega" <gadelavega@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Tuesday, December 28, 2010 12:24 PM
-> To: Shuzhen Wang
-> Cc: 'Mauro Carvalho Chehab'; 'Hans Verkuil'; linux-
-> media@vger.kernel.org; hzhong@codeaurora.org; Yan, Yupeng
-> Subject: Re: RFC: V4L2 driver for Qualcomm MSM camera.
->
-> I will strongly NAK any implementation that requires a daemon.
-> 
+Hi Gonzalo the other list is deprecated, I'm forwarding your mail.
 
-We understand the motivation behind making the daemon optional.
-However there are restrictions from legal perspective, which we
-don't know how to get around.
+---------- Forwarded message ----------
+From: "Gonzalo A. de la Vega" <gadelavega@gmail.com>
+Date: Tue, 4 Jan 2011 09:40:18 -0300
+Subject: Pinnacle PCTV USB2 working with PAL-Nc
+To: video4linux-list@redhat.com
 
-A simplest video streaming data flow with MSM ISP is like this:
+Hi all,
+I live in Argentina and I have a Pinnacle PCTV USB2. We use PAL-Nc (no
+other country does AFAIK) and I couldn't get the device to show a
+colored image. Actually there was no image when PAL-Nc was selected
+and BW only with PAL. It turns that this device uses (just to remind
+you) a TDA9887 tuner (IF-PLL demodulator), an SAA7113 input processor
+and a EM2820 capture device.
 
-Sensor -> ISP Hardware pipeline -> videobuf
+The problem was that the TDA9887 is being set incorrectly. I'm not
+quiet sure what the justification is, but I started from the point
+that I should at least see the same B&W image I saw with PAL, so I
+just went with trial and error (two trials, one error).
 
-The procedure to set up ISP pipeline is proprietary and cannot
-be open sourced. Without proper pipeline configuration, streaming
-won't work. And That's why we require the daemon. 
- 
-Thank,
-Shuzhen
+The whole diff would be:
+------------cut here----------------------------------
+178c178
+< 			   cVideoIF_45_75 ),
+---
+> 			   cVideoIF_38_90 ),
+------------cut here----------------------------------
+
+I only have the Pinnalce PCTV, so probably someone else (from
+Argentina) could try with another device using the TDA9887 before
+submitting a patch.
+
+Cheers,
+
+Gonzalo
 
 --
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
---
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
 
+
+
+-- 
+Adrian.
+http://ovejafm.com
+http://elesquinazotango.com.ar
