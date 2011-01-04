@@ -1,146 +1,116 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:13009 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753735Ab1A1L4I (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Jan 2011 06:56:08 -0500
-Message-ID: <4D42AECE.3020402@redhat.com>
-Date: Fri, 28 Jan 2011 09:55:58 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Return-path: <mchehab@gaivota>
+Received: from mail2.shareable.org ([80.68.89.115]:35750 "EHLO
+	mail2.shareable.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750801Ab1ADXmi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Jan 2011 18:42:38 -0500
+Date: Tue, 4 Jan 2011 23:12:21 +0000
+From: Jamie Lokier <jamie@shareable.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tomasz Fujak <t.fujak@samsung.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Kyungmin Park <kmpark@infradead.org>,
+	Mel Gorman <mel@csn.ul.ie>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	linux-kernel@vger.kernel.org,
+	Michal Nazarewicz <mina86@mina86.com>, linux-mm@kvack.org,
+	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Ankita Garg <ankita@in.ibm.com>
+Subject: Re: [PATCHv8 00/12] Contiguous Memory Allocator
+Message-ID: <20110104231221.GA12222@shareable.org>
+References: <cover.1292443200.git.m.nazarewicz@samsung.com> <AANLkTim8_=0+-zM5z4j0gBaw3PF3zgpXQNetEn-CfUGb@mail.gmail.com> <20101223100642.GD3636@n2100.arm.linux.org.uk> <87k4j0ehdl.fsf@erwin.mina86.com> <20101223135120.GL3636@n2100.arm.linux.org.uk> <4D1357D5.9000507@samsung.com> <20101223142053.GN3636@n2100.arm.linux.org.uk>
 MIME-Version: 1.0
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-CC: Mark Lord <kernel@teksavvy.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
- ?
-References: <20110126020003.GA23085@core.coreip.homeip.net> <4D403855.4050706@teksavvy.com> <4D40C3D7.90608@teksavvy.com> <4D40C551.4020907@teksavvy.com> <20110127021227.GA29709@core.coreip.homeip.net> <4D40E41D.2030003@teksavvy.com> <20110127063815.GA29924@core.coreip.homeip.net> <4D414928.80801@redhat.com> <20110127172128.GA19672@core.coreip.homeip.net> <4D41C071.2090201@redhat.com> <20110128093922.GA3357@core.coreip.homeip.net>
-In-Reply-To: <20110128093922.GA3357@core.coreip.homeip.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20101223142053.GN3636@n2100.arm.linux.org.uk>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 28-01-2011 07:39, Dmitry Torokhov escreveu:
-> On Thu, Jan 27, 2011 at 04:58:57PM -0200, Mauro Carvalho Chehab wrote:
->> Em 27-01-2011 15:21, Dmitry Torokhov escreveu:
->>> On Thu, Jan 27, 2011 at 08:30:00AM -0200, Mauro Carvalho Chehab wrote:
->>>>
->>>> On my tests here, this is working fine, with Fedora and RHEL 6, on my
->>>> usual test devices, so I don't believe that the tool itself is broken, 
->>>> nor I think that the issue is due to the fix patch.
->>>>
->>>> I remember that when Kay added a persistence utility tool that opens a V4L
->>>> device in order to read some capabilities, this caused a race condition
->>>> into a number of drivers that use to register the video device too early.
->>>> The result is that udev were opening the device before the end of the
->>>> register process, causing OOPS and other problems.
->>>
->>> Well, this is quite possible. The usev ruls in the v4l-utils reads:
->>>
->>> ACTION=="add", SUBSYSTEM=="rc", RUN+="/usr/bin/ir-keytable -a /etc/rc_maps.cfg -s $name"
->>>
->>> So we act when we add RC device to the system. The corresponding input
->>> device has not been registered yet (and will not be for some time
->>> because before creating input ddevice we invoke request_module() to load
->>> initial rc map module) so the tool runs simultaneously with kernel
->>> registering input device and it could very well be it can't find
->>> something it really wants.
->>>
->>> This would explain why Mark sees the segfault only when invoked via
->>> udev but not when ran manually.
->>>
->>> However I still do not understand why Mark does not see the same issue
->>> without the patch. Like I said, maybe if Mark could recompile with
->>> debug data and us a core we'd see what is going on.
->>
->> Race conditions are hard to track... probably the new code added some delay,
->> and this allowed the request_module() to finish his job.
->>
->>> BTW, that means that we need to redo udev rules. 
->>
->> If there's a race condition, then the proper fix is to lock the driver
->> until it is ready to receive a fops. Maybe we'll need a mutex to preventing
->> opening the device until it is completely initialized.
-> 
-> No, not at all. The devices are ready to handle everything when they are
-> created, it's just some devices are not there yet. What you do with
-> current udev rule is similar to trying to mount filesystem as soon as
-> you discover a PCI SCSI card. The controller is there but disks have not
-> been discovered, block devices have not been created, and so on.
+Russell King - ARM Linux wrote:
+> I'll give you another solution to the problem - lobby ARM Ltd to have
+> this restriction lifted from the architecture specification, which
+> will probably result in the speculative prefetching also having to be
+> removed.
 
-The rc-core register (and the corresponding input register) is done when
-the device detected a remote controller, so, it should be safe to register
-on that point. If not, IMHO, there's a bug somewhere. 
+I don't know if there was lobbying involved, but the way some barriers
+on x86 turned out to be unnecessary, on both Intel and AMD, after
+years of specs which abstractly implied they might be necessary....  I
+guess someone realised the relaxed specs weren't providing a benefit
+at the hardware level.
 
-Yet, I agree that udev tries to set devices too fast. It would be better if
-it would wait for a few milisseconds, to reduce the risk of race conditions.
+Perhaps it is possible to draw this to ARM's attention as a rather
+serious performance-damaging thing, so they might tighten the rules in
+favour of common sense, at least for the majority of devices?
 
->> It is hard to tell, as Mark didn't provide us yet the dmesg info (at least
->> on the emails I was c/c), so I don't even know what device he has, and what
->> drivers are used.
-> 
-> I belie you have been copied on the mail that had the following snippet:
-> 
->> kernel: Registered IR keymap rc-rc5-tv
->> udevd-event[6438]: run_program: '/usr/bin/ir-keytable' abnormal exit
->> kernel: input: i2c IR (Hauppauge) as /devices/virtual/rc/rc0/input7
->> kernel: ir-keytable[6439]: segfault at 8 ip 00000000004012d2 sp 00007fff6d43ca60 error 4 in ir-keytable[400000+7000]
->> kernel: rc0: i2c IR (Hauppauge) as /devices/virtual/rc/rc0
->> kernel: ir-kbd-i2c: i2c IR (Hauppauge) detected at i2c-0/0-0018/ir0 [ivtv i2c driver #0]
+Off the top of my head (and I really don't know much about the
+internals of an ARM), hardware that avoided speculation where there
+was no entry already in the TLB for the address... that would be
+workable, as page/range TLB flushes would be enough to protect
+pages from access.
 
-Ok, the last line says it is a ivtv board, using IR. However, it doesn't show
-the I2C detection of other devices that might be racing to gain access to the
-I2C bus, nor if some OOPS were hit by kernel.
+With regard to specific chips (i.e. current ones, while lobbying to
+tighten the rules for future ones).  Is there a control register on
+the chips which are known to have this annoying issue, to turn off the
+problematic cache behaviour (permanently while Linux runs), or some
+set of memory attributes that produces that effect?  (Obviously there
+is: Turn off all caching, but is there a weaker and equally effective
+one on current hardware with the problem?)
 
-I don't have any ivtv boards handy, but there are some developers at
-linux-media ML that may help with this.
+It might be there simply _isn't_ any solution that satisfies the
+generality of ARM spec, while satisfying the engineering requirements
+of particular media player chips on which the CMA+DMA may be perfectly
+safe.  That would be unpleasant but hardly the first time some feature
+was not usable on some chips and essential on some others.
 
->>> Maybe we should split
->>> the utility into 2 parts - one dealing with rcX device and for keymap
->>> setting reuse udev's existing utility that adjusts maps on ann input
->>> devices, not for RCs only.
->>
->> It could be done, but then we'll need to pollute the existing input tools
->> with RC-specific stuff. For IR, there are some additional steps, like
->> the need to select the IR protocol, otherwise the keytable is useless.
-> 
-> That should be done by the separate utility that fires up when udev gets
-> event for /sys/class/rc/rcX device.
-> 
->> Also, the keytable and persistent info is provided via /sys/class/rc/rc?/uevent.
->> So, the tool need to first read the RC class, check what keytable should be
->> associated with that device (based on a custom file), and load the proper
->> table.
-> 
-> And this could be easily added to the udev's keymap utility that is
-> fired up when we discover evdevX devices.
+Take, for example, those (now old) ARMs that mishandle SWP so it can't
+be used.  We still use SWP in kernels, and indeed userspace, which
+will break if run on those particular chips, but that's ok - it's an
+understood limitation.
 
-Yes, it can, if you add the IR protocol selection on that tool. A remote 
-controller keycode table has both the protocol and the keycodes.
-This basically means to merge 99% of the logic inside ir-keytable into the
-evdev generic tool.
+Russell, I think the repeated attempts to propose the same thing,
+which you keep rejecting (rightly), isn't because they're not
+listening, but because you haven't got a better solution - other than
+scrap the hardware :-)  Their code might actually be 100% reliable with
+the chips they use in those products, and it might be the _only_
+solution which works on those, thus solving a real problem.
 
-I'm not against it, although I prefer a specialized tool for RC.
+What's the right thing to do in that case?  Maintain a fork out of
+tree, or some Kconfig animal that says you can't select this ARM
+subarch and that memory facility in the same kernel because they are
+technically incompatible - but at least everyone can see the code, and
+know which chip families to avoid for certain applications?
 
->> Also, I'm currently working on a way to map media keys for remote controllers 
->> into X11 (basically, mapping them into the keyspace between 8-255, passing 
->> through Xorg evdev.c, and then mapping back into some X11 symbols). This way,
->> we don't need to violate the X11 protocol. (Yeah, I know this is hacky, but
->> while X11 cannot pass the full evdev keycode, at least the Remote Controllers
->> will work). This probably means that we may need to add some DBus logic
->> inside ir-keytable, when called via udev, to allow it to announce to X11.
-> 
-> The same issue is present with other types of input devices (multimedia
-> keyboards emitting codes that X can't consume) and so it again would
-> make sense to enhance udev's utility instead of confining it all to
-> ir-keytable.
+Here is a hint of an idea for a way forward:
 
-I agree with you, but I'm not sure if we can find a solution that will
-work for both RC and media keyboards, as X11 evdev just maps keyboards
-on the 8-255 range. I was thinking to add a detection there for RC, and
-use a separate map for them, as RC don't need most of the normal keyboard
-keys.
+    - An API that everyone can use (in drivers etc.), that behaves the
+      same for everyone, except that:
 
-Cheers,
-Mauro
+    - On some chips (ARMv7...) some functions requires a large
+      up-front memory reservation at boot time, (but that's ok because
+      you probably have gobs of RAM with it anyway).
+
+    - On other chips (<= ARMv6?) it is safe to reduce the up-front
+      reservation to less, maybe zero.  (Better for smaller memories).
+
+    - Maybe it even makes sense for drivers using the API to request,
+      at boot time, "_if_ you need early reservation, then _this_ is
+      how much I will need maximum".  The values can potentially
+      dynamic anti-fragmantation allocators too.  (I've done a bit of
+      research on this - a sort of "semi-reservation" where you don't
+      keep it free up front, but you limit how its used and grouped in
+      a precise way, to make sure other uses are sufficiently
+      reclaimable to satisfy the call when it comes.)
+
+    - Didn't reserve enough in advance for the architectural
+      constraints - get NULL back.  That's what allocators always do.
+      That's what /proc/cmdline's options have a long history helping
+      with - finding the setting which works on your kit.  People are
+      already used to a bit of fiddly tuning (and random crashes ;-)
+      with these media application sorts of things.
+
+Presumably the problem will ease off with IOMMUs and/or sensible SG
+(and/or sensible architectural constraints) becoming ubiquitous eventually.
+
+-- Jamie
