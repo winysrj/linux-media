@@ -1,75 +1,88 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3738 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751532Ab1ARWp3 (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:25946 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750851Ab1ADNKA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jan 2011 17:45:29 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Luca Tettamanti <kronos.it@gmail.com>
-Subject: Re: Upstreaming syntek driver
-Date: Tue, 18 Jan 2011 23:45:17 +0100
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Nicolas VIVIEN <progweb@free.fr>
-References: <AANLkTi=bv+NkwS+ASUDeAjbpNht8+YJaPRKYF7TTZDes@mail.gmail.com>
-In-Reply-To: <AANLkTi=bv+NkwS+ASUDeAjbpNht8+YJaPRKYF7TTZDes@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+	Tue, 4 Jan 2011 08:10:00 -0500
+Subject: Re: [REGRESSION: wm8775, ivtv] Please revert commit
+ fcb9757333df37cf4a7feccef7ef6f5300643864
+From: Andy Walls <awalls@md.metrocast.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Eric Sharkey <eric@lisaneric.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Lawrence Rust <lawrence@softsystem.co.uk>,
+	auric <auric@aanet.com.au>, David Gesswein <djg@pdp8online.com>,
+	linux-media@vger.kernel.org, ivtv-users@ivtvdriver.org,
+	ivtv-devel@ivtvdriver.org
+In-Reply-To: <201101040810.39092.hverkuil@xs4all.nl>
+References: <1293843343.7510.23.camel@localhost>
+	 <AANLkTimHh4aS-6cp-CsX68WVSF6U+k6gb2mBSwkhd1Xn@mail.gmail.com>
+	 <1294094056.10094.41.camel@morgan.silverblock.net>
+	 <201101040810.39092.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 04 Jan 2011 08:09:51 -0500
+Message-ID: <1294146591.2107.2.camel@morgan.silverblock.net>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201101182345.17725.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Tuesday, January 18, 2011 23:17:11 Luca Tettamanti wrote:
-> Hello,
-> I'm a "lucky" owner of a Syntek USB webcam (embedded on my Asus
-> laptop); as you might know Nicolas (CC) wrote a driver for these
-> cams[1][2], but it's still not included in mainline kernel.
-> Since I'd rather save myself and the other users the pain of compiling
-> an out-of-tree driver I'm offering my help to make the changes
-> necessary to see this driver upstreamed; I'm already a maintainer of
-> another driver (in hwmon), so I'm familiar with the development
-> process.
-> From a quick overview of the code I've spotted a few problems:
-> - minor style issues, trivially dealt with
-> - missing cleanups in error paths, idem
-> - possible memory leak, reported on the bug tracker - requires investigation
-> - big switch statements for all the models, could be simplified with
-> function pointers
+On Tue, 2011-01-04 at 08:10 +0100, Hans Verkuil wrote:
+> On Monday, January 03, 2011 23:34:16 Andy Walls wrote:
+> > On Sun, 2011-01-02 at 23:00 -0500, Eric Sharkey wrote:
+> > > On Fri, Dec 31, 2010 at 7:55 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+> > > > Mauro,
+> > > >
+> > > > Please revert at least the wm8775.c portion of commit
+> > > > fcb9757333df37cf4a7feccef7ef6f5300643864:
+> > > >
+> > > > http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=fcb9757333df37cf4a7feccef7ef6f5300643864
+> > > >
+> > > > It completely trashes baseband line-in audio for PVR-150 cards, and
+> > > > likely does the same for any other ivtv card that has a WM8775 chip.
+> > > 
+> > > Confirmed.  I manually rolled back most of the changes in that commit
+> > > for wm8775.c, leaving all other files alone, and the audio is now
+> > > working correctly for me.  I haven't yet narrowed it down to exactly
+> > > which changes in that file cause the problem.  I'll try and do that
+> > > tomorrow if I have time.
+> > 
+> > This might help then:
+> > 
+> > 	http://dl.ivtvdriver.org/datasheets/audio/WM8775.pdf
+> > 
+> > I don't have time to look, but I'm hoping it is just the initialization
+> > in wm8775_probe().
+> > 
+> > Without both a PVR-150 card and a Nova-S-plus DVB-S with which to test
+> > you are unlikely to get an initialization that works for both the Nova-S
+> > Plus and PVR-150.  Even if you did, such a configuration would be
+> > "fragile" in that it will be hard to tweak in the future for one card
+> > without breaking the other.  (Code reuse doesn't work out too well for
+> > setting up hardware parameters.)
+> > 
+> > The fix will probably have to use some context sensitive initialization
+> > in wm8775_probe(): "Am I being called by ivtv for a PVR-150 or cx88 for
+> > a Nova-S plus?"
+> > 
+> > Which probably means:
+> > 
+> > 1. adding a ".s_config" method to the "wm8775_core_ops"
+> > See:
+> > http://git.linuxtv.org/media_tree.git?a=blob;f=Documentation/video4linux/v4l2-framework.txt;h=f22f35c271f38d34fda0c19d8942b536e2fc95d9;hb=staging/for_v2.6.38#l206
+> > http://git.linuxtv.org/media_tree.git?a=blob;f=include/media/v4l2-subdev.h;h=b0316a7cf08d21f2ac68f1dc452894441948c155;hb=staging/for_v2.6.38#l109
+> > http://git.linuxtv.org/media_tree.git?a=blob;f=include/media/v4l2-subdev.h;h=b0316a7cf08d21f2ac68f1dc452894441948c155;hb=staging/for_v2.6.38#l141
 > 
-> Another objection could be that the initialization is basically
-> writing magic numbers into magic registers... I guess that Nicolas
-> recorded the initialization sequence with a USB sniffer. No solution
-> for this one; does anybody have a contact inside Syntek?
+> Don't use .s_config! That will be removed soon.
 > 
-> Are there other issues blocking the inclusion of this driver?
+> Use platform_data and v4l2_i2c_new_subdev_board instead.
 
-After a quick scan through the sources in svn I found the following (in no
-particular order):
+Gah! Sorry.
 
-- Supports easycap model with ID 05e1:0408: a driver for this model is now
-  in driver/staging/easycap.
-
-- format conversion must be moved to libv4lconvert (if that can't already be
-  used out of the box). Ditto for software brightness correction.
-
-- kill off the sysfs bits
-
-- kill off V4L1
-
-- use the new control framework for the control handling
-
-- use video_ioctl2 instead of the current ioctl function
-
-- use unlocked_ioctl instead of ioctl
-
-But probably the first step should be to see if this can't be made part of the
-gspca driver. I can't help thinking that that would be the best approach. But
-I guess the gspca developers can give a better idea of how hard that is.
+I knew that .init had been deprecated.  The comments in v4l2_subdev.h
+indicate that .init is deprecated, but do not do the same for .s_config.
 
 Regards,
+Andy
 
-       Hans
 
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
