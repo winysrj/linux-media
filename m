@@ -1,67 +1,38 @@
-Return-path: <mchehab@pedra>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:42874 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751516Ab1ATHDf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jan 2011 02:03:35 -0500
-Received: by gwj20 with SMTP id 20so68119gwj.19
-        for <linux-media@vger.kernel.org>; Wed, 19 Jan 2011 23:03:35 -0800 (PST)
-MIME-Version: 1.0
-Date: Thu, 20 Jan 2011 18:03:34 +1100
-Message-ID: <AANLkTi=78fcRbeyx2cSyHKFuxaAqBCC6owQ70QO-G=Xx@mail.gmail.com>
-Subject: media_build: build fails against (ubuntu) 2.6.32 on pvrusb2-debugifc.c
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <mchehab@gaivota>
+Received: from smtp.nokia.com ([147.243.1.47]:22866 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750803Ab1ADLaS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Jan 2011 06:30:18 -0500
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+To: linux-media@vger.kernel.org, mchehab@redhat.com, hverkuil@xs4all.nl
+Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: [PATCH] V4L2: WL1273 FM Radio: Replace ioctl with unlocked_ioctl.
+Date: Tue,  4 Jan 2011 13:29:37 +0200
+Message-Id: <1294140577-15872-1-git-send-email-matti.j.aaltonen@nokia.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi,
+Use unlocked_ioctl in v4l2_file_operations. The locking is
+already in place.
 
-I am building against linux-2.6.32-26-generic from ubuntu, with just
-the linux-headers package.
+Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
+---
+ drivers/media/radio/radio-wl1273.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I know there is a big fat warning about doing this but I thought I
-should report the issue
-because mostly building like this does work.
+diff --git a/drivers/media/radio/radio-wl1273.c b/drivers/media/radio/radio-wl1273.c
+index 1813790..d6c2099 100644
+--- a/drivers/media/radio/radio-wl1273.c
++++ b/drivers/media/radio/radio-wl1273.c
+@@ -1408,7 +1408,7 @@ static const struct v4l2_file_operations wl1273_fops = {
+ 	.read		= wl1273_fm_fops_read,
+ 	.write		= wl1273_fm_fops_write,
+ 	.poll		= wl1273_fm_fops_poll,
+-	.ioctl		= video_ioctl2,
++	.unlocked_ioctl	= video_ioctl2,
+ 	.open		= wl1273_fm_fops_open,
+ 	.release	= wl1273_fm_fops_release,
+ };
+-- 
+1.6.1.3
 
-The build was against a clean checkout of the media_build tree, using build.sh.
-
-The build fails with:
-  CC [M]  /home/vjm/git/clones/linuxtv.org/media_build/v4l/pvrusb2-sysfs.o
-  CC [M]  /home/vjm/git/clones/linuxtv.org/media_build/v4l/pvrusb2-debugifc.o
-/home/vjm/git/clones/linuxtv.org/media_build/v4l/pvrusb2-debugifc.c:
-In function 'debugifc_parse_unsigned_number':
-/home/vjm/git/clones/linuxtv.org/media_build/v4l/pvrusb2-debugifc.c:108:
-error: implicit declaration of function 'hex_to_bin'
-make[3]: *** [/home/vjm/git/clones/linuxtv.org/media_build/v4l/pvrusb2-debugifc.o]
-Error 1
-
-I was able to get the build to complete by hand-editing v4l/config-compat.h
-@@ -11,6 +11,8 @@
-
- #include <linux/mmdebug.h>
-
-+#define NEED_HEX_TO_BIN 1
-+
- #undef CONFIG_VIDEO_SH_VOU
- #undef CONFIG_VIDEO_SH_VOU_MODULE
- #undef CONFIG_MX1_VIDEO
-
-and rerunning make.
-
-After inspecting the relevant commit[1] I'm a bit baffled as to why
-this occurred.
-It seems as though the header file is not being found correctly,
-although it does exist,
-at /usr/src/linux-headers-2.6.32-26-generic/include/linux/kernel.h.
-
- % grep -i hex_to_bin
-/usr/src/linux-headers-2.6.32-26-generic/include/linux/kernel.h
- %
-
-I'll poke a bit more into this and hopefully come up with a fix.
-Cheers
-Vince
-
-[1] http://git.linuxtv.org/media_build.git?a=commit;h=2f3b6a700ee9b687b59a1eda8f8336b9aa4c47a6
