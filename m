@@ -1,89 +1,58 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2726 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753713Ab1ASLxk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jan 2011 06:53:40 -0500
-Message-ID: <8544fb4aeb5aad63c78a4f9f9d2edcaf.squirrel@webmail.xs4all.nl>
-In-Reply-To: <4D36C40C.3080607@redhat.com>
-References: <201101190839.15175.hverkuil@xs4all.nl>
-    <4D36C40C.3080607@redhat.com>
-Date: Wed, 19 Jan 2011 12:53:27 +0100
-Subject: Re: video_device -> v4l2_devnode rename
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Mauro Carvalho Chehab" <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
+Return-path: <mchehab@gaivota>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:35287 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751216Ab1ADIgq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Jan 2011 03:36:46 -0500
+Date: Tue, 4 Jan 2011 09:36:37 +0100
+From: Tejun Heo <tj@kernel.org>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 11/32] v4l/cx18: update workqueue usage
+Message-ID: <20110104083637.GB8066@mtj.dyndns.org>
+References: <1294062595-30097-1-git-send-email-tj@kernel.org>
+ <1294062595-30097-12-git-send-email-tj@kernel.org>
+ <1294102496.10094.152.camel@morgan.silverblock.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1294102496.10094.152.camel@morgan.silverblock.net>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-> Em 19-01-2011 05:39, Hans Verkuil escreveu:
->> Hi Mauro,
->>
->> I saw that 2.6.38-rc1 was released. I also noticed that not all the
->> patches
->> that are in the for_2.6.38-rc1 branch are in 2.6.38-rc1.
->
-> Yes. Unfortunately, when I was sending the pull request yesterday, I
-> noticed
-> an issue on my linux next tree, and I had to abort its send. After that,
-> Linus
-> released -rc1, before I have time to fix it.
->
-> People should really send me patches for the next window before the start
-> of the
-> merge window, as doing it during the merge window makes my work harder and
-> may
-> cause troubles like that.
->
-> The net result is that most patches were submitted in time and were
-> applied upstream.
-> Of course, there are usual fix patches sent during the merge window, that
-> will be sent
-> upstream anyway during the rc period.
+Hello,
 
-Speaking of that, my prio patches and the dsbr100 patches (with the new
-v4l2_device release callback) can be moved to 2.6.39. If they can be
-merged fairly early on, then I can build on those.
+On Mon, Jan 03, 2011 at 07:54:56PM -0500, Andy Walls wrote:
+> 2. To prevent work items being handled by keventd/n from being delayed
+> too long, as the deferred work in question can involve a bit of sleeping
+> due to contention, the workload of the CX23418's MPEG encoding engine,
+> and the number of CX23418 devices in the system.
+> 
+> Will all the sleeping that can happen, is the move to a system wq, under
+> cmwq, going to have adverse affects on processing other work items in
+> the system?
+> 
+> I get the feeling it won't be a problem with cmwq, but I haven't paid
+> enough attention to be sure. 
 
-> There are two patch series with new stuff submitted in time and merged on
-> my
-> tree that didn't reach upstream:
-> 	- vb2/s5p-fimc - they required me more time to review - I also spent 3
-> days testing it;
-> 	- ngene - there were a pending API discussion - I waited for a while to
-> see if
-> 	  there were some solution, before deciding to merge and move the
-> problematic
-> 	  code to staging.
->
-> So, I'll need to dig into the pending patches, in order to send the ones
-> that
-> are acceptable after the end of the merge window, and letting the other
-> patches
-> for .39. I'll likely try to send the two above and the dib0700 patches on
-> a separate
-> pull request, but this pull request might be rejected.
->
->> We want to rename video_device to v4l2_devnode. So let me know when I
->> can
->> finalize my patches and, most importantly, against which branch.
->
-> It is too late for that. As I said you, the better time for doing that is
-> during
-> the merge window. Linus said me that he don't want to make life easier for
-> function
-> rename. So, he won't be accepting such patch after the merge window.
+It won't be a problem.  Now the system_wq supports parallel execution
+of multiple works and manages concurrency automatically.  Work items
+can sleep as necessary without worrying about other work items.
 
-You were going to tell me when you had finished merging so that I wouldn't
-aim at a moving target. This is very annoying.
+...
+> It is not unusual for scheduled TV recording software to start nearly
+> simultaneous DTV TS, MPEG, and VBI or MPEG Index streams on multiple
+> cards.  So 3 CX23418 cards with 3 streams each.   Let's nominally
+> estimate the timing of the CX18_CPU_DE_SET_MDL commands per stream at
+> the PAL frame rate of 25 Hz; or 1 CX18_CPU_DE_SET_MDL mailbox command
+> per stream per 40 milliseconds.
 
-Regards,
+IIUC, if they spend any significant amount of time executing, they'll
+be doing so by waiting for events (mutex, IRQ...), right?  If so,
+there's nothing to worry about.  If it's gonna burn a lot of CPU
+cycles, we'll need to use a workqueue marked CPU_INTENSIVE but I don't
+think that's the case here.
 
-        Hans
+Thank you.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
-
+tejun
