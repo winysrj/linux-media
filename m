@@ -1,98 +1,54 @@
-Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:58719 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751212Ab1AQKQI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jan 2011 05:16:08 -0500
+Return-path: <mchehab@gaivota>
+Received: from DSL01.212.114.205.243.ip-pool.NEFkom.net ([212.114.205.243]:55627
+	"EHLO enzo.pibbs.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751989Ab1ADQqM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Jan 2011 11:46:12 -0500
+Received: from trixi.localnet (trixi.pibbs.org [192.168.20.4])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by enzo.pibbs.org (Postfix) with ESMTPS id 18826DCE8C
+	for <linux-media@vger.kernel.org>; Tue,  4 Jan 2011 17:56:20 +0100 (CET)
+From: Martin Seekatz <martin@pibbs.de>
+To: linux-media@vger.kernel.org
+Subject: Re: Problem with em28xx driver in Gumstix Overo
+Date: Tue, 4 Jan 2011 17:46:08 +0100
+References: <AANLkTinPEYyLrTWqt1r0QgoYmsv2Xg16qGKo5yTqu9FO@mail.gmail.com> <AANLkTi=AVjhEbsqZOWJbwkYRo+HLoHfdWxuFO7Bs_a7H@mail.gmail.com> <AANLkTiknspxdjZNZW=h7NWTffzCZ4uEJmADU=tYPZSNe@mail.gmail.com>
+In-Reply-To: <AANLkTiknspxdjZNZW=h7NWTffzCZ4uEJmADU=tYPZSNe@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTi=TF9uYEv2Y3qwMKham=K2cCxo4UOTn8Vf+S-KC@mail.gmail.com>
-References: <1294745487-29138-1-git-send-email-manjunatha_halli@ti.com>
- <1294745487-29138-2-git-send-email-manjunatha_halli@ti.com>
- <1294745487-29138-3-git-send-email-manjunatha_halli@ti.com>
- <1294745487-29138-4-git-send-email-manjunatha_halli@ti.com>
- <20110111112434.GE2385@legolas.emea.dhcp.ti.com> <AANLkTi=TF9uYEv2Y3qwMKham=K2cCxo4UOTn8Vf+S-KC@mail.gmail.com>
-From: halli manjunatha <manjunatha_halli@ti.com>
-Date: Mon, 17 Jan 2011 15:45:46 +0530
-Message-ID: <AANLkTimRLGYugF+2=-nFvLeXdnLOy8Morx_wxzVTt9w5@mail.gmail.com>
-Subject: Re: [RFC V10 3/7] drivers:media:radio: wl128x: FM Driver Common sources
-To: Hans Verkuil <hverkuil@xs4all.nl>, mchehab@infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 8BIT
+Message-Id: <201101041746.09136.martin@pibbs.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Hans and Mauro,
+Am Montag 03 Januar 2011 schrieb Devin Heitmueller:
+> On Mon, Jan 3, 2011 at 3:13 PM, Linus Torvalds
+> 
+> <torvalds@linux-foundation.org> wrote:
+> >> // if (!dev->progressive)
+> >> // height >>= norm_maxh(dev);
+> 
+> This would suggest that the device is providing progressive video
+> and there is a mismatch between the board profile and the actual
+> hardware, which is certainly possible but I know absolutely
+> nothing about the product in question.
+> 
+> It would be helpful if we could get the output of dmesg for
+> starters, so we can see which board profile is being used.
 
-If there are no major comments for the V10 of FM V4L2 driver, is it
-possible to take this driver (V10) to mainline?
+This main problem seems to be similare to the problem I reportet on 
+2011-01-01 to the ML, subject: 
+Silver Crest VG2000  "USB 2.0 Video Grabber", USB-Id: eb1a:2863 - does 
+not work
 
-Since the files are becoming big to be posted as patches and
-maintaining it that way is a bit difficult. We can submit the patches
-to mainline to fix minor comments and also to add newer features
-(complete scan, stop seek) as patches once this driver makes its way
-in to mainline.
+In the meantime the figures of the partikular device, including dmesg 
+output,  is been included in the linuxtv wiki as
+http://www.linuxtv.org/wiki/index.php/SilverCrest_USB_2.0_Video_Grabber_VG_2000
 
-Please let me know your views on this.
-
-Thanks,
-Manju
-
-
-On Tue, Jan 11, 2011 at 6:12 PM, Raja Mani <rajambsc@gmail.com> wrote:
-> balbi,
->
->  Agree , interrupt pkts could have handled in thread context . But in
-> the current way , FM driver never create any additional task in the
-> system
->  to handle FM interrupt. In fact, there is no task being created in
-> this driver to handle FM RDS data, AF,etc.
->
->  This method is suitable for light weight system where we want to
-> reduce number of thread in the system.
->
->  On Tue, Jan 11, 2011 at 4:54 PM, Felipe Balbi <balbi@ti.com> wrote:
->> Hi,
->>
->> On Tue, Jan 11, 2011 at 06:31:23AM -0500, manjunatha_halli@ti.com wrote:
->>> From: Manjunatha Halli <manjunatha_halli@ti.com>
->>>
->>> These are the sources for the common interfaces required by the
->>> FM V4L2 driver for TI WL127x and WL128x chips.
->>>
->>> These implement the FM channel-8 protocol communication with the
->>> chip. This makes use of the Shared Transport as its transport.
->>>
->>> Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
->>> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
->>
->> looks like this is implementing a "proprietary" (by that I mean: for
->> this driver only) IRQ API. Why aren't you using GENIRQ with threaded
->> IRQs support ?
->>
->> Core IRQ Subsystem would handle a lot of stuff for you.
->>
->> --
->> balbi
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
->
->
-> --
-> Regards,
-> Raja.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
+Best regards
+Martin
 
 -- 
-Regards
-Halli
+"Was ist der Unterschied zwischen Franken und Oberbayern?" -
+"Die Franken haben weniger Berge, aber dafür mehr Horizont."
