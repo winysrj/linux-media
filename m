@@ -1,58 +1,126 @@
-Return-path: <mchehab@pedra>
-Received: from darkcity.gna.ch ([195.226.6.51]:52096 "EHLO mail.gna.ch"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753998Ab1AGJEZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jan 2011 04:04:25 -0500
-Subject: Re: Memory sharing issue by application on V4L2 based device
- driver with system mmu.
-From: Michel =?ISO-8859-1?Q?D=E4nzer?= <michel@daenzer.net>
-To: InKi Dae <daeinki@gmail.com>
-Cc: Jonghun Han <jonghun.han@samsung.com>, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-fbdev <linux-fbdev@vger.kernel.org>,
-	kyungmin.park@samsung.com
-In-Reply-To: <AANLkTinsduJkynwwEeM5K9f3D7C6jtBgkAyZ0-_0z2X-@mail.gmail.com>
-References: <4D25BC22.6080803@samsung.com>
-	 <AANLkTi=P8qY22saY9a_-rze1wsr-DLMgc6Lfa6qnfM7u@mail.gmail.com>
-	 <002201cbadfd$6d59e490$480dadb0$%han@samsung.com>
-	 <AANLkTinsduJkynwwEeM5K9f3D7C6jtBgkAyZ0-_0z2X-@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Date: Fri, 07 Jan 2011 09:54:25 +0100
-Message-ID: <1294390465.6019.212.camel@thor.local>
-Mime-Version: 1.0
+Return-path: <mchehab@gaivota>
+Received: from mail.hnelson.de ([87.230.84.188]:53466 "EHLO mail.hnelson.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751310Ab1ADTVO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Jan 2011 14:21:14 -0500
+Received: from nova.crius.de (77-23-222-80-dynip.superkabel.de [77.23.222.80])
+	by mail.hnelson.de (Postfix) with ESMTPSA id F2E263340002
+	for <linux-media@vger.kernel.org>; Tue,  4 Jan 2011 20:12:25 +0100 (CET)
+Date: Tue, 4 Jan 2011 20:12:20 +0100 (CET)
+From: Holger Nelson <hnelson@hnelson.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Add Terratec Grabster support to tm6000
+Message-ID: <alpine.DEB.2.00.1101041917040.6749@nova.crius.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Fre, 2011-01-07 at 11:17 +0900, InKi Dae wrote: 
-> thank you for your comments.
-> 
-> your second comment has no any problem as I said before, user virtual
-> addess could be translated in page unit. but the problem, as you said,
-> is that when cpu access to the memory in user mode, the memory
-> allocated by malloc, page fault occurs so we can't find pfn to user
-> virtual address. I missed that. but I think we could resolve this one.
-> 
-> as before, user application allocates memory through malloc function
-> and then send it to device driver(using userptr feature). if the pfn
-> is null when device driver translated user virtual address in page
-> unit then it allocates phsical memory in page unit using some
-> interface such as alloc_page() and then mapping them. when pfn is
-> null, to check it and allocate physical memory in page unit could be
-> processed by videobuf2.
-> 
-> of course, videobuf2 has no any duty considered for system mmu. so
-> videobuf2 just provides callback for 3rd party and any platform with
-> system mmu such as Samsung SoC C210 implements the function(allocating
-> physical memory and mapping it) and registers it to callback of
-> videobuf2. by doing so, I think your first comment could be cleared.
+Hi,
 
-FWIW, TTM (drivers/gpu/drm/ttm, include/drm/ttm) is designed and used
-for managing memory between CPU/GPU and kernel/userspace access. I
-haven't looked at your requirements in detail, but if you haven't looked
-at TTM yet, it sounds like it might be worth a look.
+the following patch adds support for a Terratec Grabster AV MX150 (and 
+maybe other devices in the Grabster series). This device is an analog 
+frame grabber device using a tm5600. This device doesn't have a tuner, so 
+I changed the code to skip the tuner reset if neither has_tuner nor 
+has_dvb is set.
 
+Holger
 
--- 
-Earthling Michel Dänzer           |                http://www.vmware.com
-Libre software enthusiast         |          Debian, X and DRI developer
+diff -urpN --exclude='*~' linux-2.6.37-rc8/drivers/staging/tm6000/tm6000-cards.c linux-lts-backport-natty-2.6.37/drivers/staging/tm6000/tm6000-cards.c
+--- linux-2.6.37-rc8/drivers/staging/tm6000/tm6000-cards.c	2010-12-29 02:05:48.000000000 +0100
++++ linux-lts-backport-natty-2.6.37/drivers/staging/tm6000/tm6000-cards.c	2011-01-04 10:46:40.582497722 +0100
+@@ -50,6 +50,7 @@
+  #define TM6010_BOARD_BEHOLD_VOYAGER		11
+  #define TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE	12
+  #define TM6010_BOARD_TWINHAN_TU501		13
++#define TM5600_BOARD_TERRATEC_GRABSTER		14
+
+  #define TM6000_MAXBOARDS        16
+  static unsigned int card[]     = {[0 ... (TM6000_MAXBOARDS - 1)] = UNSET };
+@@ -303,6 +304,19 @@ struct tm6000_board tm6000_boards[] = {
+  			.dvb_led	= TM6010_GPIO_5,
+  			.ir		= TM6010_GPIO_0,
+  		},
++	},
++	[TM5600_BOARD_TERRATEC_GRABSTER] = {
++		.name         = "Terratec Grabster Series",
++		.type         = TM5600,
++		.caps = {
++			.has_tuner	= 0,
++			.has_dvb	= 0,
++			.has_zl10353	= 0,
++			.has_eeprom	= 0,
++			.has_remote	= 0,
++		},
++		.gpio = {
++		},
+  	}
+  };
+
+@@ -325,6 +339,7 @@ struct usb_device_id tm6000_id_table[] =
+  	{ USB_DEVICE(0x13d3, 0x3241), .driver_info = TM6010_BOARD_TWINHAN_TU501 },
+  	{ USB_DEVICE(0x13d3, 0x3243), .driver_info = TM6010_BOARD_TWINHAN_TU501 },
+  	{ USB_DEVICE(0x13d3, 0x3264), .driver_info = TM6010_BOARD_TWINHAN_TU501 },
++	{ USB_DEVICE(0x0ccd, 0x0079), .driver_info = TM5600_BOARD_TERRATEC_GRABSTER },
+  	{ },
+  };
+
+@@ -505,33 +520,35 @@ int tm6000_cards_setup(struct tm6000_cor
+  	 * reset, just add the code at the board-specific part
+  	 */
+
+-	if (dev->gpio.tuner_reset) {
+-		for (i = 0; i < 2; i++) {
+-			rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+-						dev->gpio.tuner_reset, 0x00);
+-			if (rc < 0) {
+-				printk(KERN_ERR "Error %i doing tuner reset\n", rc);
+-				return rc;
+-			}
++	if (dev->caps.has_tuner||dev->caps.has_dvb) {
++		if (dev->gpio.tuner_reset) {
++			for (i = 0; i < 2; i++) {
++				rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
++							dev->gpio.tuner_reset, 0x00);
++				if (rc < 0) {
++					printk(KERN_ERR "Error %i doing tuner reset\n", rc);
++					return rc;
++				}
+
+-			msleep(10); /* Just to be conservative */
+-			rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+-						dev->gpio.tuner_reset, 0x01);
+-			if (rc < 0) {
+-				printk(KERN_ERR "Error %i doing tuner reset\n", rc);
+-				return rc;
+-			}
+-			msleep(10);
++				msleep(10); /* Just to be conservative */
++				rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
++							dev->gpio.tuner_reset, 0x01);
++				if (rc < 0) {
++					printk(KERN_ERR "Error %i doing tuner reset\n", rc);
++					return rc;
++				}
++				msleep(10);
+
+-			if (!i) {
+-				rc = tm6000_get_reg32(dev, REQ_40_GET_VERSION, 0, 0);
+-				if (rc >= 0)
+-					printk(KERN_DEBUG "board=0x%08x\n", rc);
++				if (!i) {
++					rc = tm6000_get_reg32(dev, REQ_40_GET_VERSION, 0, 0);
++					if (rc >= 0)
++						printk(KERN_DEBUG "board=0x%08x\n", rc);
++				}
+  			}
++		} else {
++			printk(KERN_ERR "Tuner reset is not configured\n");
++			return -1;
+  		}
+-	} else {
+-		printk(KERN_ERR "Tuner reset is not configured\n");
+-		return -1;
+  	}
+
+  	msleep(50);
