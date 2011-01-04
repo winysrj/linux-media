@@ -1,45 +1,68 @@
-Return-path: <mchehab@pedra>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:50059 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752706Ab1A2AWE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Jan 2011 19:22:04 -0500
-Received: by vws16 with SMTP id 16so1326483vws.19
-        for <linux-media@vger.kernel.org>; Fri, 28 Jan 2011 16:22:02 -0800 (PST)
+Return-path: <mchehab@gaivota>
+Received: from wolverine01.qualcomm.com ([199.106.114.254]:45731 "EHLO
+	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750724Ab1ADGOM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Jan 2011 01:14:12 -0500
+Message-ID: <4D22BAA8.9050607@codeaurora.org>
+Date: Mon, 03 Jan 2011 22:14:00 -0800
+From: Haibo Zhong <hzhong@codeaurora.org>
 MIME-Version: 1.0
-In-Reply-To: <87oc73muul.fsf@nemi.mork.no>
-References: <AANLkTi=_LHucekW21KeGt3yWMNYHntQ5nVvHUO2EVHAO@mail.gmail.com>
-	<AANLkTimDK7kwV3AeZm5+56W3V_yp+nghq67qYP2r4DWq@mail.gmail.com>
-	<AANLkTimDVfv-SGv8d0TVPPQD+eU8yUQ08MrCGXrXhMtz@mail.gmail.com>
-	<AANLkTi=wotgd2JQ5b65rh5ExoU=+c4cAOZNFAg-NzJwr@mail.gmail.com>
-	<AANLkTin6LyzVV=xw7mPOx3TupmX0YjQ38Q2Jzzpve+nS@mail.gmail.com>
-	<87oc73muul.fsf@nemi.mork.no>
-Date: Sat, 29 Jan 2011 01:22:00 +0100
-Message-ID: <AANLkTikgwQbrETmX7pOcBnsM2w+ipnMczCJBSa8LwEeQ@mail.gmail.com>
-Subject: Re: DVB driver for TerraTec H7 - how do I install them?
-From: Torfinn Ingolfsen <tingox@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Shuzhen Wang <shuzhenw@codeaurora.org>
+CC: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
+	'Hans Verkuil' <hverkuil@xs4all.nl>,
+	linux-media@vger.kernel.org, "Yan, Yupeng" <yyan@quicinc.com>
+Subject: Re: RFC: V4L2 driver for Qualcomm MSM camera.
+References: <000601cba2d8$eaedcdc0$c0c96940$@org> <4D188285.8090603@redhat.com> <000001cba6bd$f2c94ea0$d85bebe0$@org> <201012282123.58775.laurent.pinchart@ideasonboard.com> <000001cbabb8$49892d10$dc9b8730$@org>
+In-Reply-To: <000001cbabb8$49892d10$dc9b8730$@org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Update:
-
-On Wed, Jan 26, 2011 at 6:35 PM, Bjørn Mork <bjorn@mork.no> wrote:
+On 1/3/2011 6:37 PM, Shuzhen Wang wrote:
+>> -----Original Message-----
+>> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+>> Sent: Tuesday, December 28, 2010 12:24 PM
+>> To: Shuzhen Wang
+>> Cc: 'Mauro Carvalho Chehab'; 'Hans Verkuil'; linux-
+>> media@vger.kernel.org; hzhong@codeaurora.org; Yan, Yupeng
+>> Subject: Re: RFC: V4L2 driver for Qualcomm MSM camera.
+>>
+>> I will strongly NAK any implementation that requires a daemon.
+>>
 >
-> Sure is.  But even if you get past the build errors, you'll soon
-> discover that Terratec "forgot" to include the necessary firmware as
-> well.  You can find it and some other hints in this thread:
-> http://www.vdr-portal.de/board/thread.php?threadid=103040
+> We understand the motivation behind making the daemon optional.
+> However there are restrictions from legal perspective, which we
+> don't know how to get around.
+>
+> A simplest video streaming data flow with MSM ISP is like this:
+>
+> Sensor ->  ISP Hardware pipeline ->  videobuf
+>
+> The procedure to set up ISP pipeline is proprietary and cannot
+> be open sourced. Without proper pipeline configuration, streaming
+> won't work. And That's why we require the daemon.
 
-I just installed yaVDR 0.3.0 on a machine and connected the TerraTec
-H7 to it, in the hope that the necessary drivers was included with
-yaVDR already (I'm not very good at reading german). Yes, I did copy
-the firmware  to /lib/firmware first.
-Unfortunately, it doesn't look like the drivers for H7 are included. I
-have now posted a question on the vdr-portal.de forum, I'll post here
-if it leads to anything.
--- 
-Regards,
-Torfinn Ingolfsen
+Laurent/Hans/Mauro,
+
+We are working on and will provide more design information on Qualcomm 
+MSM ISP design and explain the legal concern of the daemon implementation.
+
+The underlined idea is to comply to V4L2 architecture with MSM solution. 
+In the meantime, Laurent, can you share with your major concern about 
+the Daemon?
+
+Thanks,
+Jeff
+
+>
+> Thank,
+> Shuzhen
+>
+> --
+> Sent by an employee of the Qualcomm Innovation Center, Inc.
+> The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+> --
+>
+
