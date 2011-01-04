@@ -1,64 +1,56 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:29537 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753792Ab1AZSLx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jan 2011 13:11:53 -0500
-Message-ID: <4D405A9D.4070607@redhat.com>
-Date: Wed, 26 Jan 2011 15:32:13 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Return-path: <mchehab@gaivota>
+Received: from eu1sys200aog117.obsmtp.com ([207.126.144.143]:49182 "EHLO
+	eu1sys200aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751388Ab1ADQ7I convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Jan 2011 11:59:08 -0500
+From: Johan MOSSBERG <johan.xx.mossberg@stericsson.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Kyungmin Park <kmpark@infradead.org>
+Cc: Michal Nazarewicz <m.nazarewicz@samsung.com>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Michal Nazarewicz <mina86@mina86.com>,
+	"linux-mm@kvack.org" <linux-mm@kvack.org>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Date: Tue, 4 Jan 2011 17:23:37 +0100
+Subject: RE: [PATCHv8 00/12] Contiguous Memory Allocator
+Message-ID: <C832F8F5D375BD43BFA11E82E0FE9FE00829C13EB2@EXDCVYMBSTM005.EQ1STM.local>
+References: <cover.1292443200.git.m.nazarewicz@samsung.com>
+ <AANLkTim8_=0+-zM5z4j0gBaw3PF3zgpXQNetEn-CfUGb@mail.gmail.com>
+ <20101223100642.GD3636@n2100.arm.linux.org.uk>
+In-Reply-To: <20101223100642.GD3636@n2100.arm.linux.org.uk>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Mark Lord <kernel@teksavvy.com>
-CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
- ?
-References: <4D3E59CA.6070107@teksavvy.com> <4D3E5A91.30207@teksavvy.com> <20110125053117.GD7850@core.coreip.homeip.net> <4D3EB734.5090100@redhat.com> <20110125164803.GA19701@core.coreip.homeip.net> <AANLkTi=1Mh0JrYk5itvef7O7e7pR+YKos-w56W5q4B8B@mail.gmail.com> <20110125205453.GA19896@core.coreip.homeip.net> <4D3F4804.6070508@redhat.com> <4D3F4D11.9040302@teksavvy.com> <20110125232914.GA20130@core.coreip.homeip.net> <20110126020003.GA23085@core.coreip.homeip.net> <4D403855.4050706@teksavvy.com>
-In-Reply-To: <4D403855.4050706@teksavvy.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 26-01-2011 13:05, Mark Lord escreveu:
-> On 11-01-25 09:00 PM, Dmitry Torokhov wrote:
->> On Tue, Jan 25, 2011 at 03:29:14PM -0800, Dmitry Torokhov wrote:
->>> On Tue, Jan 25, 2011 at 05:22:09PM -0500, Mark Lord wrote:
->>>> On 11-01-25 05:00 PM, Mauro Carvalho Chehab wrote:
->>>>> Em 25-01-2011 18:54, Dmitry Torokhov escreveu:
-> ..
->>>>>> That has been done as well; we have 2 new ioctls and kept 2 old ioctls.
->>>>
->>>> That's the problem: you did NOT keep the two old ioctls().
->>>> Those got changed too.. so now we have four NEW ioctls(),
->>>> none of which backward compatible with userspace.
->>>>
->>>
->>> Please calm down. This, in fact, is not new vs old ioctl problem but
->>> rather particular driver (or rather set of drivers) implementation
->>> issue. Even if we drop the new ioctls and convert the RC code to use the
->>> old ones you'd be observing the same breakage as RC code responds with
->>> -EINVAL to not-yet-established mappings.
->>>
->>> I'll see what can be done for these drivers; I guess we could supply a
->>> fake KEY_RESERVED entry for not mapped scancodes if there are mapped
->>> scancodes "above" current one. That should result in the same behavior
->>> for RCs as before.
->>>
->>
->> I wonder if the patch below is all that is needed...
-> 
-> 
-> Nope. Does not work here:
-> 
-> $ lsinput
-> protocol version mismatch (expected 65536, got 65537)
+Russell King wrote:
+> Has anyone addressed my issue with it that this is wide-open for
+> abuse by allocating large chunks of memory, and then remapping
+> them in some way with different attributes, thereby violating the
+> ARM architecture specification?
 
-You need to relax the version test at the tree. As I said before, this is
-a development tool from the early RC days, bound to work with one specific
-version of the API, and programmed by purpose to fail if there would by any
-updates at the Input layer.
+I seem to have missed the previous discussion about this issue.
+Where in the specification (preferably ARMv7) can I find
+information about this? Is the problem that it is simply
+forbidden to map an address multiple times with different cache
+setting and if this is done the hardware might start failing? Or
+is the problem that having an address mapped cached means that
+speculative pre-fetch can read it into the cache at any time,
+possibly causing problems if an un-cached mapping exists? In my
+opinion option number two can be handled and I've made an attempt
+at doing that in hwmem (posted on linux-mm a while ago), look in
+cache_handler.c. Hwmem currently does not use cma but the next
+version probably will.
 
-Cheers,
-Mauro.
+/Johan Mossberg
