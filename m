@@ -1,85 +1,54 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:6446 "EHLO mx1.redhat.com"
+Return-path: <mchehab@gaivota>
+Received: from bear.ext.ti.com ([192.94.94.41]:47988 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751152Ab1ANJcq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Jan 2011 04:32:46 -0500
-Message-ID: <4D301A18.1050107@redhat.com>
-Date: Fri, 14 Jan 2011 10:40:40 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1751507Ab1AEKRj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Jan 2011 05:17:39 -0500
+From: "Nori, Sekhar" <nsekhar@ti.com>
+To: "mchehab@redhat.com" <mchehab@redhat.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 5 Jan 2011 15:47:22 +0530
+Subject: [GIT PATCHES FOR 2.6.38] DaVinci VPIF: Support for DV preset and DV
+ timings
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024816E1E6@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Jesper Juhl <jj@chaosbits.net>
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Lee Jones <lee.jones@canonical.com>
-Subject: Re: [PATCH][rfc] media, video, stv06xx, pb0100: Don't potentially
- deref NULL in pb0100_start().
-References: <alpine.LNX.2.00.1101132300490.11347@swampdragon.chaosbits.net>
-In-Reply-To: <alpine.LNX.2.00.1101132300490.11347@swampdragon.chaosbits.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi,
+Hi Mauro,
 
-On 01/13/2011 11:05 PM, Jesper Juhl wrote:
-> usb_altnum_to_altsetting() may return NULL. If it does we'll dereference a
-> NULL pointer in
-> drivers/media/video/gspca/stv06xx/stv06xx_pb0100.c::pb0100_start().
-> As far as I can tell there's not really anything more sensible than
-> -ENODEV that we can return in that situation, but I'm not at all intimate
-> with this code so I'd like a bit of review/comments on this before it's
-> applied.
-> Anyway, here's a proposed patch.
->
+Can you please pull from the following tree for DV preset
+and DV timings support for DaVinci VPIF.
 
-Hi,
+Sorry for the late request, but we were waiting for an ack
+from Manju. The patches themselves have been reviewed on the
+list quite a while ago. The patches affect only DaVinci VPIF
+video and have been verified by Manju to not have broken anything.
 
-On 01/13/2011 11:05 PM, Jesper Juhl wrote:
- > usb_altnum_to_altsetting() may return NULL. If it does we'll dereference a
- > NULL pointer in
- > drivers/media/video/gspca/stv06xx/stv06xx_pb0100.c::pb0100_start().
- > As far as I can tell there's not really anything more sensible than
- > -ENODEV that we can return in that situation, but I'm not at all intimate
- > with this code so I'd like a bit of review/comments on this before it's
- > applied.
- > Anyway, here's a proposed patch.
- >
+Thanks,
+Sekhar
 
-pb0100_start gets called from stv06xx_start, which also does a
-usb_altnum_to_altsetting(intf, sd->gspca_dev.alt); and does contain the
-NULL check before calling pb0100_start. So I left out the check on purpose,
-to keep the code compact in IMHO better readable.
+The following changes since commit 187134a5875df20356f4dca075db29f294115a47:
+  David Henningsson (1):
+        [media] DVB: IR support for TechnoTrend CT-3650
 
-Still I agree this is a bit tricky. So not NACK but not ACK either. What
-do others think?
+are available in the git repository at:
 
-Regards,
+  git://arago-project.org/git/projects/linux-davinci.git for-mauro
 
-Hans
+Mats Randgaard (5):
+      vpif_cap/disp: Add debug functionality
+      vpif: Consolidate formats from capture and display
+      vpif_cap/disp: Add support for DV presets
+      vpif_cap/disp: Added support for DV timings
+      vpif_cap/disp: Cleanup, improved comments
 
-
-> Signed-off-by: Jesper Juhl<jj@chaosbits.net>
-> ---
->   stv06xx_pb0100.c |    2 ++
->   1 file changed, 2 insertions(+)
->
->    compile tested only.
->
-> diff --git a/drivers/media/video/gspca/stv06xx/stv06xx_pb0100.c b/drivers/media/video/gspca/stv06xx/stv06xx_pb0100.c
-> index ac47b4c..75a5b9c 100644
-> --- a/drivers/media/video/gspca/stv06xx/stv06xx_pb0100.c
-> +++ b/drivers/media/video/gspca/stv06xx/stv06xx_pb0100.c
-> @@ -217,6 +217,8 @@ static int pb0100_start(struct sd *sd)
->
->   	intf = usb_ifnum_to_if(sd->gspca_dev.dev, sd->gspca_dev.iface);
->   	alt = usb_altnum_to_altsetting(intf, sd->gspca_dev.alt);
-> +	if (!alt)
-> +		return -ENODEV;
->   	packet_size = le16_to_cpu(alt->endpoint[0].desc.wMaxPacketSize);
->
->   	/* If we don't have enough bandwidth use a lower framerate */
->
->
->
+ drivers/media/video/davinci/vpif.c         |  177 ++++++++++++
+ drivers/media/video/davinci/vpif.h         |   18 +-
+ drivers/media/video/davinci/vpif_capture.c |  361 +++++++++++++++++++++++--
+ drivers/media/video/davinci/vpif_capture.h |    2 +
+ drivers/media/video/davinci/vpif_display.c |  400 +++++++++++++++++++++++++---
+ drivers/media/video/davinci/vpif_display.h |    2 +
+ 6 files changed, 884 insertions(+), 76 deletions(-)
