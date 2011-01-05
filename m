@@ -1,171 +1,87 @@
-Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:50436 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751753Ab1ARRam convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jan 2011 12:30:42 -0500
-Date: Tue, 18 Jan 2011 18:30:40 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Qing Xu <qingx@marvell.com>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: RE: soc-camera jpeg support?
-In-Reply-To: <7BAC95F5A7E67643AAFB2C31BEE662D014040BF2EF@SC-VEXCH2.marvell.com>
-Message-ID: <Pine.LNX.4.64.1101181811590.19950@axis700.grange>
-References: <1294368595-2518-1-git-send-email-qingx@marvell.com>
- <7BAC95F5A7E67643AAFB2C31BEE662D014040171EE@SC-VEXCH2.marvell.com>
- <Pine.LNX.4.64.1101100853490.24479@axis700.grange>
- <201101101133.01636.laurent.pinchart@ideasonboard.com>
- <7BAC95F5A7E67643AAFB2C31BEE662D014040BF237@SC-VEXCH2.marvell.com>
- <Pine.LNX.4.64.1101171826340.16051@axis700.grange>
- <7BAC95F5A7E67643AAFB2C31BEE662D014040BF2EF@SC-VEXCH2.marvell.com>
+Return-path: <mchehab@gaivota>
+Received: from mail.hnelson.de ([87.230.84.188]:32882 "EHLO mail.hnelson.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751211Ab1AER6g (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 Jan 2011 12:58:36 -0500
+Date: Wed, 5 Jan 2011 18:58:34 +0100 (CET)
+From: Holger Nelson <hnelson@hnelson.de>
+To: Stefan Ringel <stefan.ringel@arcor.de>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Add Terratec Grabster support to tm6000
+Message-ID: <alpine.DEB.2.00.1101051849460.6749@nova.crius.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Thanks for the code! With it at hand it is going to be easier to 
-understand and evaluate changes, that you propose to the generic modules.
+On Tue, 4 Jan 2011, Stefan Ringel wrote:
 
-On Mon, 17 Jan 2011, Qing Xu wrote:
+> Am 04.01.2011 20:12, schrieb Holger Nelson:
+>> Hi,
+>> the following patch adds support for a Terratec Grabster AV MX150 (and 
+>> maybe other devices in the Grabster series). This device is an analog 
+>> frame grabber device using a tm5600. This device doesn't have a tuner, 
+>> so I changed the code to skip the tuner reset if neither has_tuner nor 
+>> has_dvb is set.
+> it skip, if you has no tuner gpio defined. You does'nt need more. Work 
+> the driver with input select (tv (conposite0), composite, s-vhs)?
 
-> Hi, Guennadi,
-> 
-> Oh, yes, I agree with you, you are right, it is really not that simple, 
-> JPEG is always a headache,:(, as it is quite different from original 
-> yuv/rgb format, it has neither fixed bits-per-sample, nor fixed 
-> packing/bytes-per-line/per-frame, so when coding, I just hack value of 
-> .bits_per_sample and .packing, in fact, you will see in our host driver, 
-> if we find it is JPEG, will ignore bytes-per-line value, for example, in 
-> pxa955_videobuf_prepare(), for jpeg, we always allocate fixed buffer 
-> size for it (or, a better method is to allocate buffer size = 
-> width*height/jpeg-compress-ratio).
-> 
-> I have 2 ideas:
-> 1) Do you think it is reasonable to add a not-fixed define into soc_mbus_packing:
-> enum soc_mbus_packing {
->         SOC_MBUS_PACKING_NOT_FIXED,
->         ...
-> };
-> And then, .bits_per_sample      = 0, /* indicate that sample bits is not-fixed*/
-> And, in function:
-> s32 soc_mbus_bytes_per_line(u32 width, const struct soc_mbus_pixelfmt *mf)
-> {
->         switch (mf->packing) {
->                 case SOC_MBUS_PACKING_NOT_FIXED:
->                         return 0;
->                 case SOC_MBUS_PACKING_NONE:
->                         return width * mf->bits_per_sample / 8;
->                 ...
->         }
->         return -EINVAL;
-> }
-> 
-> 2) Or, an workaround in sensor(ov5642.c), is to implement:
-> int (*try_fmt)(struct v4l2_subdev *sd, struct v4l2_format *fmt);
-> use the member (fmt->pix->pixelformat == V4L2_PIX_FMT_JPEG) to find out 
-> if it is jpeg. And in host driver, it calls try_fmt() into sensor. In 
-> this way, no need to change soc-camera common code, but I feel that it 
-> goes against with your xxx_mbus_xxx design purpose, right?
+Yes tuner reset is skipped, but in the else-branch, the code also 
+complains that tuner reset is not configured and returns -1, which makes 
+tm6000_init_dev exit before v4l2_device_register is called. Switching 
+inputs does not work, but at least I can use the composite input, if I 
+use the tv-input.
 
-I actually prefer this one, but with an addition of V4L2_MBUS_FMT_JPEG_1X8 
-as per your additional üatch, but, please, also add a new packing, e.g., 
-SOC_MBUS_PACKING_COMPRESSED (or SOC_MBUS_PACKING_VARIABLE?). So, that we 
-can cleanly translate between V4L2_MBUS_FMT_JPEG_1X8 and 
-V4L2_PIX_FMT_JPEG, but host drivers, that want to support this, will have 
-to know to calculate frame sizes in some special way, not just aborting, 
-if soc_mbus_bytes_per_line() returned an error. We might also consider 
-returning a different error code for this case, e.g., we could change the 
-general error case to return -ENOENT, and use -EINVAL for cases like JPEG, 
-where data is valid, but no valid calculation is possible.
+Below is a new version of the patch.
 
-Thanks
-Guennadi
+Holger
 
-> What do you think?
-> 
-> Please check the attachment, it is our host camera controller driver and sensor.
-> 
-> Thanks a lot!
-> -Qing
-> 
-> -----Original Message-----
-> From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
-> Sent: 2011Äê1ÔÂ18ÈÕ 1:39
-> To: Qing Xu
-> Cc: Laurent Pinchart; Linux Media Mailing List
-> Subject: Re: soc-camera jpeg support?
-> 
-> On Mon, 17 Jan 2011, Qing Xu wrote:
-> 
-> > Hi,
-> >
-> > Many of our sensors support directly outputting JPEG data to camera
-> > controller, do you feel it's reasonable to add jpeg support into
-> > soc-camera? As it seems that there is no define in v4l2-mediabus.h which
-> > is suitable for our case.
-> 
-> In principle I have nothing against this, but, I'm afraid, it is not quite
-> that simple. I haven't worked with such sensors myself, but, AFAIU, the
-> JPEG image format doesn't have fixed bytes-per-line and bytes-per-frame
-> values. If you add it like you propose, this would mean, that it just
-> delivers "normal" 8 bits per pixel images. OTOH, soc_mbus_bytes_per_line()
-> would just return -EINVAL for your JPEG format, so, unsupporting drivers
-> would just error out, which is not all that bad. When the first driver
-> decides to support JPEG, they will have to handle that error. But maybe
-> we'll want to return a special error code for it.
-> 
-> But, in fact, that is in a way my problem with your patches: you propose
-> extensions to generic code without showing how this is going to be used in
-> specific drivers. Could you show us your host driver, please? I don't
-> think this is still the pxa27x driver, is it?
-> 
-> Thanks
-> Guennadi
-> 
-> >
-> > Such as:
-> > --- a/drivers/media/video/soc_mediabus.c
-> > +++ b/drivers/media/video/soc_mediabus.c
-> > @@ -130,6 +130,13 @@ static const struct soc_mbus_pixelfmt mbus_fmt[] = {
-> >                 .packing                = SOC_MBUS_PACKING_2X8_PADLO,
-> >                 .order                  = SOC_MBUS_ORDER_BE,
-> >         },
-> > +       [MBUS_IDX(JPEG_1X8)] = {
-> > +               .fourcc                 = V4L2_PIX_FMT_JPEG,
-> > +               .name                   = "JPEG",
-> > +               .bits_per_sample        = 8,
-> > +               .packing                = SOC_MBUS_PACKING_NONE,
-> > +               .order                  = SOC_MBUS_ORDER_LE,
-> > +       },
-> >  };
-> >
-> > --- a/include/media/v4l2-mediabus.h
-> > +++ b/include/media/v4l2-mediabus.h
-> > @@ -41,6 +41,7 @@ enum v4l2_mbus_pixelcode {
-> >         V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
-> >         V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
-> >         V4L2_MBUS_FMT_SGRBG8_1X8,
-> > +       V4L2_MBUS_FMT_JPEG_1X8,
-> >  };
-> >
-> > Any ideas will be appreciated!
-> > Thanks!
-> > Qing Xu
-> >
-> > Email: qingx@marvell.com
-> > Application Processor Systems Engineering,
-> > Marvell Technology Group Ltd.
-> >
-> 
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> 
+diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+index 5a7946c..0f4154f 100644
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -50,6 +50,7 @@
+  #define TM6010_BOARD_BEHOLD_VOYAGER		11
+  #define TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE	12
+  #define TM6010_BOARD_TWINHAN_TU501		13
++#define TM5600_BOARD_TERRATEC_GRABSTER		14
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+  #define TM6000_MAXBOARDS        16
+  static unsigned int card[]     = {[0 ... (TM6000_MAXBOARDS - 1)] = UNSET };
+@@ -303,6 +304,19 @@ struct tm6000_board tm6000_boards[] = {
+  			.dvb_led	= TM6010_GPIO_5,
+  			.ir		= TM6010_GPIO_0,
+  		},
++	},
++	[TM5600_BOARD_TERRATEC_GRABSTER] = {
++		.name         = "Terratec Grabster AV 150/250 MX",
++		.type         = TM5600,
++		.caps = {
++			.has_tuner	= 0,
++			.has_dvb	= 0,
++			.has_zl10353	= 0,
++			.has_eeprom	= 0,
++			.has_remote	= 0,
++		},
++		.gpio = {
++		},
+  	}
+  };
+
+@@ -325,6 +339,7 @@ struct usb_device_id tm6000_id_table[] = {
+  	{ USB_DEVICE(0x13d3, 0x3241), .driver_info = TM6010_BOARD_TWINHAN_TU501 },
+  	{ USB_DEVICE(0x13d3, 0x3243), .driver_info = TM6010_BOARD_TWINHAN_TU501 },
+  	{ USB_DEVICE(0x13d3, 0x3264), .driver_info = TM6010_BOARD_TWINHAN_TU501 },
++	{ USB_DEVICE(0x0ccd, 0x0079), .driver_info = TM5600_BOARD_TERRATEC_GRABSTER },
+  	{ },
+  };
+
+@@ -447,6 +462,8 @@ int tm6000_cards_setup(struct tm6000_core *dev)
+  	 * the board-specific session.
+  	 */
+  	switch (dev->model) {
++	case TM5600_BOARD_TERRATEC_GRABSTER:
++		return 0;
+  	case TM6010_BOARD_HAUPPAUGE_900H:
+  	case TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE:
+  	case TM6010_BOARD_TWINHAN_TU501:
