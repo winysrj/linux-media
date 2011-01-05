@@ -1,94 +1,59 @@
-Return-path: <mchehab@pedra>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:58574 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750765Ab1A2Hdg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Jan 2011 02:33:36 -0500
-Date: Fri, 28 Jan 2011 23:33:29 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Mark Lord <kernel@teksavvy.com>, linux-kernel@vger.kernel.org,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH] Input: rc-keymap - return KEY_RESERVED for unknown mappings
-Message-ID: <20110129073329.GB26915@core.coreip.homeip.net>
+Return-path: <mchehab@gaivota>
+Received: from bear.ext.ti.com ([192.94.94.41]:47146 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751675Ab1AEJ7n convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Jan 2011 04:59:43 -0500
+From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+To: "'mats.randgaard@cisco.com'" <mats.randgaard@cisco.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 5 Jan 2011 15:29:37 +0530
+Subject: RE: [PATCH 0/5] DaVinci VPIF: Support for DV preset and DV timings. 
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930247F9A81C@dbde02.ent.ti.com>
+In-Reply-To: <1292512665-22538-1-git-send-email-mats.randgaard@cisco.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Do not respond with -EINVAL to EVIOCGKEYCODE for not-yet-mapped scancodes,
-but rather return KEY_RESERVED.
+Tested for SD modes on TI Dm6467 EVM. DV_PRESTES testing done for THS8200 based EVM by Hans.
 
-This fixes breakage with Ubuntu's input-kbd utility that stopped returning
-full keymaps for remote controls.
+For the whole patch series:
 
-Tested-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Tested-by: Mark Lord <kernel@teksavvy.com>
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
----
+Acked-by: Manjunath Hadli <Manjunath.hadli@ti.com>
 
-Linus,
+Regards,
+-Manju
 
-Due to the fact that contents of drivers/media in my 'for-linus' branch
-are quite different from mainline/Mauro's trees and I am not planning on
-merging this branch until closer to the next merge window I am sending
-this regression fix in patch form instead of pull request.
+-----Original Message-----
+From: linux-media-owner@vger.kernel.org [mailto:linux-media-owner@vger.kernel.org] On Behalf Of mats.randgaard@cisco.com
+Sent: Thursday, December 16, 2010 8:48 PM
+To: linux-media@vger.kernel.org
+Cc: mats.randgaard@cisco.com
+Subject: [PATCH 0/5] DaVinci VPIF: Support for DV preset and DV timings. 
 
-Please consider applying.
+From: Mats Randgaard <mats.randgaard@cisco.com>
 
-Thanks,
-Dmitry
+Support for DV preset and timings added to vpif_capture and vpif_display drivers.
+Functions for debugging are added and the code is improved as well.
 
- drivers/media/rc/rc-main.c |   28 +++++++++++++++++-----------
- 1 files changed, 17 insertions(+), 11 deletions(-)
+Mats Randgaard (5):
+  vpif_cap/disp: Add debug functionality
+  vpif: Consolidate formats from capture and display
+  vpif_cap/disp: Add support for DV presets
+  vpif_cap/disp: Added support for DV timings
+  vpif_cap/disp: Cleanup, improved comments
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 72be8a0..512a2f4 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -458,21 +458,27 @@ static int ir_getkeycode(struct input_dev *idev,
- 		index = ir_lookup_by_scancode(rc_map, scancode);
- 	}
- 
--	if (index >= rc_map->len) {
--		if (!(ke->flags & INPUT_KEYMAP_BY_INDEX))
--			IR_dprintk(1, "unknown key for scancode 0x%04x\n",
--				   scancode);
-+	if (index < rc_map->len) {
-+		entry = &rc_map->scan[index];
-+
-+		ke->index = index;
-+		ke->keycode = entry->keycode;
-+		ke->len = sizeof(entry->scancode);
-+		memcpy(ke->scancode, &entry->scancode, sizeof(entry->scancode));
-+
-+	} else if (!(ke->flags & INPUT_KEYMAP_BY_INDEX)) {
-+		/*
-+		 * We do not really know the valid range of scancodes
-+		 * so let's respond with KEY_RESERVED to anything we
-+		 * do not have mapping for [yet].
-+		 */
-+		ke->index = index;
-+		ke->keycode = KEY_RESERVED;
-+	} else {
- 		retval = -EINVAL;
- 		goto out;
- 	}
- 
--	entry = &rc_map->scan[index];
--
--	ke->index = index;
--	ke->keycode = entry->keycode;
--	ke->len = sizeof(entry->scancode);
--	memcpy(ke->scancode, &entry->scancode, sizeof(entry->scancode));
--
- 	retval = 0;
- 
- out:
--- 
-1.7.3.5
+ drivers/media/video/davinci/vpif.c         |  177 ++++++++++++
+ drivers/media/video/davinci/vpif.h         |   18 +-
+ drivers/media/video/davinci/vpif_capture.c |  361 +++++++++++++++++++++++--
+ drivers/media/video/davinci/vpif_capture.h |    2 +
+ drivers/media/video/davinci/vpif_display.c |  402 +++++++++++++++++++++++++---
+ drivers/media/video/davinci/vpif_display.h |    2 +
+ 6 files changed, 886 insertions(+), 76 deletions(-)
 
--- 
-Dmitry
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
