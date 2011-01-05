@@ -1,72 +1,87 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3930 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752466Ab1AHNDU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Jan 2011 08:03:20 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Daniel O'Connor" <darius@dons.net.au>
-Subject: Re: Unable to build media_build (mk II)
-Date: Sat, 8 Jan 2011 14:02:47 +0100
-Cc: linux-media@vger.kernel.org
-References: <155DD6D6-0766-4501-9B03-D5945460B040@dons.net.au> <201101081344.54075.hverkuil@xs4all.nl> <3D9DDC44-3862-4106-AC12-488A49CA95A8@dons.net.au>
-In-Reply-To: <3D9DDC44-3862-4106-AC12-488A49CA95A8@dons.net.au>
+Return-path: <mchehab@gaivota>
+Received: from mx1.redhat.com ([209.132.183.28]:41961 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751277Ab1AEWDe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 Jan 2011 17:03:34 -0500
+Message-ID: <4D24EA81.8080205@redhat.com>
+Date: Wed, 05 Jan 2011 20:02:41 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Jean Delvare <khali@linux-fr.org>
+CC: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org,
+	Jarod Wilson <jarod@redhat.com>, Janne Grunau <j@jannau.net>
+Subject: Re: [PATCH 3/3] lirc_zilog: Remove use of deprecated struct  i2c_adapter.id
+  field
+References: <1293587067.3098.10.camel@localhost>	<1293587390.3098.16.camel@localhost>	<20110105154553.546998bf@endymion.delvare>	<4D24ABA4.5070100@redhat.com> <20110105225149.1145420b@endymion.delvare>
+In-Reply-To: <20110105225149.1145420b@endymion.delvare>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201101081402.47226.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Saturday, January 08, 2011 13:56:27 Daniel O'Connor wrote:
+Em 05-01-2011 19:51, Jean Delvare escreveu:
+> Hi Mauro,
 > 
-> On 08/01/2011, at 23:14, Hans Verkuil wrote:
-> >> Looking at some other consumers of that function it would appear the last argument (NULL in this case) is superfluous, however the file appears to be replaced each time I run build.sh so I can't update it.
-> > 
-> > Only run build.sh once. After that you can modify files and just run 'make'.
-> > 
-> > build.sh will indeed overwrite the drivers every time you run it so you should
-> > that only if you want to get the latest source code.
+> On Wed, 05 Jan 2011 15:34:28 -0200, Mauro Carvalho Chehab wrote:
+>> Hi Jean,
+>>
+>> Thanks for your acks for patches 1 and 2. I've already applied the patches 
+>> on my tree and at linux-next. I'll try to add the acks on it before sending
+>> upstream.
 > 
-> Ahh, I see.
-> 
-> Any chance the README could be modified to say something about that?
-> 
-> Currently it doesn't mention build.sh at all - I had to google to find anything of use.
-> 
-> Perhaps also rename build.sh to setup.sh.
+> If you can't, it's fine. I merely wanted to show my support to Andy's
+> work, I don't care if I'm not counted as a reviewer for these small
+> patches.
 
-It was news to me as well :-)
-
-Can someone with access rights to that git tree update the README and rename
-the script?
-
-Regards,
-
-	Hans
+Ok. So, it is probably better to keep it as-is, to avoid rebasing and having
+to wait for a couple days at linux-next before sending the git pull request.
 
 > 
-> Thanks :)
+>> Em 05-01-2011 12:45, Jean Delvare escreveu:
+>>> From a purely technical perspective, changing client->addr in the
+>>> probe() function is totally prohibited.
+>>
+>> Agreed. Btw, there are some other hacks with client->addr abuse on some 
+>> other random places at drivers/media, mostly at the device bridge code, 
+>> used to test if certain devices are present and/or to open some I2C gates 
+>> before doing some init code. People use this approach as it provides a
+>> fast way to do some things. On several cases, the amount of code for
+>> doing such hack is very small, when compared to writing a new I2C driver
+>> just to do some static initialization code. Not sure what would be the 
+>> better approach to fix them.
 > 
-> --
-> Daniel O'Connor software and network engineer
-> for Genesis Software - http://www.gsoft.com.au
-> "The nice thing about standards is that there
-> are so many of them to choose from."
->   -- Andrew Tanenbaum
-> GPG Fingerprint - 5596 B766 97C0 0E94 4347 295E E593 DC20 7B3F CE8C
+> Hard to tell without seeing the exact code. Ideally,
+> i2c_new_dummy() would cover these cases: you don't need to write an
+> actual driver for the device, it's perfectly OK to use the freshly
+> instantiated i2c_client from the bridge driver directly. Alternatively,
+> i2c_smbus_xfer() or i2c_transfer() can be used for one-time data
+> exchange with any slave on the bus as long as you know what you're
+> doing (i.e. you know that no i2c_client will ever be instantiated for
+> this slave.)
 > 
-> 
-> 
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+> If you have specific cases you don't know how to solve, please point me
+> to them and I'll take a look.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+You can take a look at saa7134-cards.c, for example. saa7134_tuner_setup()
+has several examples. It starts with this one:
+
+	switch (dev->board) {
+	case SAA7134_BOARD_BMK_MPEX_NOTUNER:
+	case SAA7134_BOARD_BMK_MPEX_TUNER:
+		/* Checks if the device has a tuner at 0x60 addr
+		   If the device doesn't have a tuner, TUNER_ABSENT
+		   will be used at tuner_type, avoiding loading tuner
+		   without needing it
+		 */
+		dev->i2c_client.addr = 0x60;
+		board = (i2c_master_recv(&dev->i2c_client, &buf, 0) < 0)
+			? SAA7134_BOARD_BMK_MPEX_NOTUNER
+			: SAA7134_BOARD_BMK_MPEX_TUNER;
+
+In this specific case, it is simply a probe for a device at address 0x60, but
+there are more complex cases there, with eeprom reads and/or some random init
+that happens before actually attaching some driver at the i2c address.
+It is known to work, but it sounds like a hack.
+
+Cheers,
+Mauro
