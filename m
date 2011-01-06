@@ -1,248 +1,42 @@
-Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59804 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753334Ab1A0Mau (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jan 2011 07:30:50 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Cc: sakari.ailus@maxwell.research.nokia.com,
-	broonie@opensource.wolfsonmicro.com, clemens@ladisch.de
-Subject: [PATCH v8 11/12] v4l: Make video_device inherit from media_entity
-Date: Thu, 27 Jan 2011 13:30:36 +0100
-Message-Id: <1296131437-29954-12-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1296131437-29954-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1296131437-29954-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Return-path: <mchehab@gaivota>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:58543 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753788Ab1AFVzm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jan 2011 16:55:42 -0500
+Received: by qyk12 with SMTP id 12so19057776qyk.19
+        for <linux-media@vger.kernel.org>; Thu, 06 Jan 2011 13:55:41 -0800 (PST)
+References: <20101230094512.3c29ad71@gaivota>
+In-Reply-To: <20101230094512.3c29ad71@gaivota>
+Mime-Version: 1.0 (Apple Message framework v1082)
+Content-Type: text/plain; charset=us-ascii
+Message-Id: <D1E3D050-06C3-484B-A248-689E7945AD91@wilsonet.com>
+Content-Transfer-Encoding: 7bit
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Jarod Wilson <jarod@wilsonet.com>
+Subject: Re: [PATCH 0/4] Remove lirc_i2c driver
+Date: Thu, 6 Jan 2011 16:55:52 -0500
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-V4L2 devices are media entities. As such they need to inherit from
-(include) the media_entity structure.
+On Dec 30, 2010, at 6:45 AM, Mauro Carvalho Chehab wrote:
 
-When registering/unregistering the device, the media entity is
-automatically registered/unregistered. The entity is acquired on device
-open and released on device close.
+> This series remove lirc_i2c driver. The first patch just
+> adds a note to bttv-input. The next patches add two
+> parsers for two devices that are supported by lirc_i2c, but
+> not by ir-kbd-i2c. The last one finally drops lirc_i2c.
+> 
+> Mauro Carvalho Chehab (4):
+>  [media] bttv-input: Add a note about PV951 RC
+>  [media] cx88: Add RC logic for Leadtek PVR 2000
+>  [media] ivtv: Add Adaptec Remote Controller
+>  [media] Remove staging/lirc/lirc_i2c driver
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- Documentation/video4linux/v4l2-framework.txt |   38 ++++++++++++++++++--
- drivers/media/video/v4l2-dev.c               |   49 +++++++++++++++++++++++--
- include/media/v4l2-dev.h                     |    7 ++++
- 3 files changed, 87 insertions(+), 7 deletions(-)
+Ack, amen, and good riddance to bad rubbish. :)
 
-diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index aeb2a22..f231bc20 100644
---- a/Documentation/video4linux/v4l2-framework.txt
-+++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -71,6 +71,10 @@ sub-device instances, the video_device struct stores V4L2 device node data
- and in the future a v4l2_fh struct will keep track of filehandle instances
- (this is not yet implemented).
- 
-+The V4L2 framework also optionally integrates with the media framework. If a
-+driver sets the struct v4l2_device mdev field, sub-devices and video nodes
-+will automatically appear in the media framework as entities.
-+
- 
- struct v4l2_device
- ------------------
-@@ -84,11 +88,14 @@ You must register the device instance:
- 	v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev);
- 
- Registration will initialize the v4l2_device struct. If the dev->driver_data
--field is NULL, it will be linked to v4l2_dev. Drivers that use the media
--device framework in addition to the V4L2 framework need to set
-+field is NULL, it will be linked to v4l2_dev.
-+
-+Drivers that want integration with the media device framework need to set
- dev->driver_data manually to point to the driver-specific device structure
- that embed the struct v4l2_device instance. This is achieved by a
--dev_set_drvdata() call before registering the V4L2 device instance.
-+dev_set_drvdata() call before registering the V4L2 device instance. They must
-+also set the struct v4l2_device mdev field to point to a properly initialized
-+and registered media_device instance.
- 
- If v4l2_dev->name is empty then it will be set to a value derived from dev
- (driver name followed by the bus_id, to be precise). If you set it up before
-@@ -532,6 +539,21 @@ If you use v4l2_ioctl_ops, then you should set either .unlocked_ioctl or
- The v4l2_file_operations struct is a subset of file_operations. The main
- difference is that the inode argument is omitted since it is never used.
- 
-+If integration with the media framework is needed, you must initialize the
-+media_entity struct embedded in the video_device struct (entity field) by
-+calling media_entity_init():
-+
-+	struct media_pad *pad = &my_vdev->pad;
-+	int err;
-+
-+	err = media_entity_init(&vdev->entity, 1, pad, 0);
-+
-+The pads array must have been previously initialized. There is no need to
-+manually set the struct media_entity type and name fields.
-+
-+A reference to the entity will be automatically acquired/released when the
-+video device is opened/closed.
-+
- v4l2_file_operations and locking
- --------------------------------
- 
-@@ -561,6 +583,9 @@ for you.
- 		return err;
- 	}
- 
-+If the v4l2_device parent device has a non-NULL mdev field, the video device
-+entity will be automatically registered with the media device.
-+
- Which device is registered depends on the type argument. The following
- types exist:
- 
-@@ -636,6 +661,13 @@ release, of course) will return an error as well.
- When the last user of the video device node exits, then the vdev->release()
- callback is called and you can do the final cleanup there.
- 
-+Don't forget to cleanup the media entity associated with the video device if
-+it has been initialized:
-+
-+	media_entity_cleanup(&vdev->entity);
-+
-+This can be done from the release callback.
-+
- 
- video_device helper functions
- -----------------------------
-diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-index f22bd41..f91348f 100644
---- a/drivers/media/video/v4l2-dev.c
-+++ b/drivers/media/video/v4l2-dev.c
-@@ -303,6 +303,9 @@ static int v4l2_mmap(struct file *filp, struct vm_area_struct *vm)
- static int v4l2_open(struct inode *inode, struct file *filp)
- {
- 	struct video_device *vdev;
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	struct media_entity *entity = NULL;
-+#endif
- 	int ret = 0;
- 
- 	/* Check if the video device is available */
-@@ -316,6 +319,16 @@ static int v4l2_open(struct inode *inode, struct file *filp)
- 	/* and increase the device refcount */
- 	video_get(vdev);
- 	mutex_unlock(&videodev_lock);
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev) {
-+		entity = media_entity_get(&vdev->entity);
-+		if (!entity) {
-+			ret = -EBUSY;
-+			video_put(vdev);
-+			return ret;
-+		}
-+	}
-+#endif
- 	if (vdev->fops->open) {
- 		if (vdev->lock && mutex_lock_interruptible(vdev->lock)) {
- 			ret = -ERESTARTSYS;
-@@ -331,8 +344,13 @@ static int v4l2_open(struct inode *inode, struct file *filp)
- 
- err:
- 	/* decrease the refcount in case of an error */
--	if (ret)
-+	if (ret) {
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+		if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
-+			media_entity_put(entity);
-+#endif
- 		video_put(vdev);
-+	}
- 	return ret;
- }
- 
-@@ -349,7 +367,10 @@ static int v4l2_release(struct inode *inode, struct file *filp)
- 		if (vdev->lock)
- 			mutex_unlock(vdev->lock);
- 	}
--
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
-+		media_entity_put(&vdev->entity);
-+#endif
- 	/* decrease the refcount unconditionally since the release()
- 	   return value is ignored. */
- 	video_put(vdev);
-@@ -586,12 +607,27 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
- 	if (nr != -1 && nr != vdev->num && warn_if_nr_in_use)
- 		printk(KERN_WARNING "%s: requested %s%d, got %s\n", __func__,
- 			name_base, nr, video_device_node_name(vdev));
--
--	/* Part 5: Activate this minor. The char device can now be used. */
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	/* Part 5: Register the entity. */
-+	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev) {
-+		vdev->entity.type = MEDIA_ENT_T_DEVNODE_V4L;
-+		vdev->entity.name = vdev->name;
-+		vdev->entity.v4l.major = VIDEO_MAJOR;
-+		vdev->entity.v4l.minor = vdev->minor;
-+		ret = media_device_register_entity(vdev->v4l2_dev->mdev,
-+			&vdev->entity);
-+		if (ret < 0)
-+			printk(KERN_WARNING
-+			       "%s: media_device_register_entity failed\n",
-+			       __func__);
-+	}
-+#endif
-+	/* Part 6: Activate this minor. The char device can now be used. */
- 	set_bit(V4L2_FL_REGISTERED, &vdev->flags);
- 	mutex_lock(&videodev_lock);
- 	video_device[vdev->minor] = vdev;
- 	mutex_unlock(&videodev_lock);
-+
- 	return 0;
- 
- cleanup:
-@@ -619,6 +655,11 @@ void video_unregister_device(struct video_device *vdev)
- 	if (!vdev || !video_is_registered(vdev))
- 		return;
- 
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
-+		media_device_unregister_entity(&vdev->entity);
-+#endif
-+
- 	mutex_lock(&videodev_lock);
- 	/* This must be in a critical section to prevent a race with v4l2_open.
- 	 * Once this bit has been cleared video_get may never be called again.
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index 4fe6831..51b2c51 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -16,6 +16,8 @@
- #include <linux/mutex.h>
- #include <linux/videodev2.h>
- 
-+#include <media/media-entity.h>
-+
- #define VIDEO_MAJOR	81
- 
- #define VFL_TYPE_GRABBER	0
-@@ -55,6 +57,9 @@ struct v4l2_file_operations {
- 
- struct video_device
- {
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	struct media_entity entity;
-+#endif
- 	/* device ops */
- 	const struct v4l2_file_operations *fops;
- 
-@@ -100,6 +105,8 @@ struct video_device
- 	struct mutex *lock;
- };
- 
-+#define media_entity_to_video_device(entity) \
-+	container_of(entity, struct video_device, entity)
- /* dev to video-device */
- #define to_video_device(cd) container_of(cd, struct video_device, dev)
- 
 -- 
-1.7.3.4
+Jarod Wilson
+jarod@wilsonet.com
+
+
 
