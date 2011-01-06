@@ -1,67 +1,52 @@
-Return-path: <mchehab@pedra>
-Received: from ariane2.ens-cachan.fr ([138.231.176.54]:40724 "EHLO
-	ariane2.ens-cachan.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752200Ab1AQNiu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jan 2011 08:38:50 -0500
-Message-ID: <20110117140538.9fv0e0g03uo0wg0s@webmail.ens-cachan.fr>
-Date: Mon, 17 Jan 2011 14:05:38 +0100
-From: Shougang Group <info@yahoo.com>
-Reply-to: zhu-jimin22@hotmail.com
-To: undisclosed-recipients:;
-Subject: 
+Return-path: <mchehab@gaivota>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:56399 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751669Ab1AFOPp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jan 2011 09:15:45 -0500
+Received: by eye27 with SMTP id 27so7176185eye.19
+        for <linux-media@vger.kernel.org>; Thu, 06 Jan 2011 06:15:44 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
-	DelSp=Yes	format=flowed
-Content-Disposition: inline
-Content-Transfer-Encoding: 7BIT
+Date: Thu, 6 Jan 2011 09:15:44 -0500
+Message-ID: <AANLkTikxofcZihWzmcGbzOk-u68AnjuhYuy5CCDvWV6Y@mail.gmail.com>
+Subject: Best driver for saa7164 w/ analog
+From: James Crow <crow.jamesm@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+
+Hello list,
+
+  I use a HVR-2250 with MythTV. I have been using the beta drivers
+with analog support from Steven Toth for quite some time. I am now
+experiencing failed recordings from the second tuner on the card. So
+far I have not seen any failed analog recordings only failed DVB
+(ClearQAM). I am wondering if the driver with analog support has been
+merged into the main v4l-dvb tree and if I should update my driver.
+The driver I currently use is tagged "8da3bd06a289".
+
+If it matters, this is the error I see in the backend log from Myth:
+2011-01-05 21:30:30.172 TVRec(4): ASK_RECORDING 4 29 0 0
+2011-01-05 21:30:30.230 TVRec(12): ASK_RECORDING 12 29 0 0
+2011-01-05 21:30:30.789 TVRec(3): ASK_RECORDING 3 29 0 0
+2011-01-05 21:31:02.957 TVRec(3): Changing from RecordingOnly to None
+2011-01-05 21:31:03.078 Finished recording Modern Family "Slow Down
+Your Neighbors": channel 1131
+2011-01-05 21:31:03.421 TVRec(3): Changing from None to RecordingOnly
+2011-01-05 21:31:03.485 TVRec(3): HW Tuner: 3->3
+2011-01-05 21:31:03.567 DVBSM(/dev/dvb/adapter1/frontend0), Warning:
+Cannot measure Signal Strength
+			eno: Invalid argument (22)
+2011-01-05 21:31:03.609 DVBSM(/dev/dvb/adapter1/frontend0), Warning:
+Cannot measure S/N
+			eno: Invalid argument (22)
+2011-01-05 21:31:03.745 AutoExpire: CalcParams(): Max required Free
+Space: 3.0 GB w/freq: 7 min
+2011-01-05 21:31:03.815 Started recording: "Cougar Town":"No Reason to
+Cry": channel 1131 on cardid 3, sourceid 1
+2011-01-05 21:31:03.910 Updating status for "Modern Family":"Slow Down
+Your Neighbors" on cardid 3 (Tuning => Recorded)
 
 
-Shougang Group
-106, Huang, Jingmin Guangzhou,
-Guangdong 529000 China.
-Website: www.shougang.com.cn
-
-This is an official request for a payment collection agent on behalf of
-Shougang Group. We are iron and steel company with principal business in steel
-manufacturing and trading.
-
-We are looking for a funds collector in USA, Canada, Mexico, Europe and UK.
-Salary is 12% of every payment you receive from our customers. All  
-charges such
-as tax and transfer charges will be deducted from the balance 88%. Details of
-your account is not needed in this transaction.
-
-Note: If you have a present job, you can still be part of our business as your
-service to us would not disturb with your working hours at all.If you are
-interested, fill the informations below and send back to me via my email: zhu-
-jimin22@hotmail.com
-
-(1)Your Full names:
-(2)Your Complete Address:
-a. City:
-b. State:
-c. Zip code:
-d. Country:
-(3)Tele/cell numbers:
-(4)Occupation:
-(5)Gender:
-(6)Age:
-(7)Email:
-
-On behalf of Shougang Group, Please accept my sincerest appreciation  
-in advance
-for your willingness to be our funds collector agent, as we look forward to
-your prompt response to our request.
-
-
-Respectfully,
-Mr. Zhu Jimin (secretary)
-Shougang Group.
-
-
-
-
-
+Thanks,
+James
