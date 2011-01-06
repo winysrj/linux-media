@@ -1,78 +1,434 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:46010 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753766Ab1AFVyo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jan 2011 16:54:44 -0500
-Received: by qyk12 with SMTP id 12so19056991qyk.19
-        for <linux-media@vger.kernel.org>; Thu, 06 Jan 2011 13:54:44 -0800 (PST)
-References: <e95cvd7ycvmoq6jolupfigs0.1293494109547@email.android.com> <4D195584.6020409@redhat.com> <1293545649.2728.28.camel@morgan.silverblock.net> <4D19F809.3010409@redhat.com> <1293574691.7187.6.camel@localhost>
-In-Reply-To: <1293574691.7187.6.camel@localhost>
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=us-ascii
-Message-Id: <D58022DE-5943-4412-9E97-45A59316CF42@wilsonet.com>
-Content-Transfer-Encoding: 8BIT
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+Received: from mx1.redhat.com ([209.132.183.28]:7029 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753221Ab1AFLiy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jan 2011 06:38:54 -0500
+Date: Thu, 6 Jan 2011 09:38:23 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: moinejf@free.fr, stable@kernel.org,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: [PATCH 0/8] Fix V4L/DVB/RC warnings
-Date: Thu, 6 Jan 2011 16:54:53 -0500
-To: Andy Walls <awalls@md.metrocast.net>
+Subject: [PATCH 3/4] [media] gspca - sonixj: Better handling of the bridge
+ registers 0x01 and 0x17
+Message-ID: <20110106093823.6ced0ae9@gaivota>
+In-Reply-To: <cover.1294312927.git.mchehab@redhat.com>
+References: <cover.1294312927.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Dec 28, 2010, at 5:18 PM, Andy Walls wrote:
+Backport changeset 0e4d413af1a9ddd12f82617734eb535007e186a8
 
-> On Tue, 2010-12-28 at 12:45 -0200, Mauro Carvalho Chehab wrote:
->> Em 28-12-2010 12:14, Andy Walls escreveu:
->>> On Tue, 2010-12-28 at 01:12 -0200, Mauro Carvalho Chehab wrote:
->>>> Em 27-12-2010 21:55, Andy Walls escreveu:
->>>>> I have hardware for lirc_zilog.  I can look later this week.
->>>> 
->>>> That would be great!
->>> 
->>> It shouldn't be hard to fix up the lirc_zilog.c use of adap->id but it
->>> may require a change to the hdpvr driver as well.
->>> 
->>> As I was looking, I noticed this commit is incomplete:
->>> 
->>> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=07cc65d4f4a21a104269ff7e4e7be42bd26d7acb
->>> 
->>> The "goto" was missed in the conditional compilation for the HD-PVR:
->>> 
->>> http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/staging/lirc/lirc_zilog.c;h=f0076eb025f1a0e9d412080caab87f627dda4970#l844
->>> 
->>> You might want to revert the trivial commit that removed the "done:"
->>> label.  When I clean up the dependence on adap->id, I may need the
->>> "done:" label back again.
->>> 
->>> 
->> Argh! this is not a very nice code at all...
->> 
->> I think that the proper way is to apply the enclosed patch. After having it
->> fixed, the dont_wait parameter can be passed to the driver via platform_data.
->> So, we should add a field at struct IR for it.
-> 
-> Well there is one more exception in lirc_zilog for the HD-PVR that also
-> relies on adapter->id.
-> 
-> lirc_zilog only handles Hauppauge adapters with that Z8 microcontroller
-> (PVR-150's, HVR-1600's, etc.) and the HD-PVR is the only device that
-> requires these quirky exceptions AFAIK.
-> 
-> It's probably better just to let lirc_zilog cleanly know it is dealing
-> with an HD-PVR and let it handle.  I'm working on it this evening and
-> will post something soon.
+The initial values of the registers 0x01 and 0x17 are taken from the sensor
+table at capture start and updated according to the flag PDN_INV.
 
-Thanks much for working on this admittedly crappy lirc code, and apologies
-for the relative radio silence of late. The holiday break didn't afford
-nearly as much (okay, any) time for IR work like I'd hoped. :\
+Their values are updated at each step of the capture initialization and
+memorized for reuse in capture stop.
 
-Trying to catch up now though, and I do have an hdpvr to beat on with
-some of the patches I'm seeing floated on the list.
+This patch also fixed automatically some bad hardcoded values of these
+registers.
 
+Signed-off-by: Jean-François Moine <moinejf@free.fr>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/video/gspca/sonixj.c b/drivers/media/video/gspca/sonixj.c
+index f8d25570..7adadd8 100644
+--- a/drivers/media/video/gspca/sonixj.c
++++ b/drivers/media/video/gspca/sonixj.c
+@@ -55,6 +55,8 @@ struct sd {
+ #define QUALITY_DEF 80
+ 	u8 jpegqual;			/* webcam quality */
+ 
++	u8 reg01;
++	u8 reg17;
+ 	u8 reg18;
+ 	u8 flags;
+ 
+@@ -2165,9 +2167,9 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 	int i;
++	u8 reg01, reg17;
+ 	u8 reg0102[2];
+ 	const u8 *reg9a;
+-	u8 reg1, reg17;
+ 	const u8 *sn9c1xx;
+ 	const u8 (*init)[8];
+ 	int mode;
+@@ -2200,10 +2202,13 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 
+ 	/* sensor clock already enabled in sd_init */
+ 	/* reg_w1(gspca_dev, 0xf1, 0x00); */
+-	reg_w1(gspca_dev, 0x01, sn9c1xx[1]);
++	reg01 = sn9c1xx[1];
++	if (sd->flags & PDN_INV)
++		reg01 ^= S_PDN_INV;		/* power down inverted */
++	reg_w1(gspca_dev, 0x01, reg01);
+ 
+ 	/* configure gpio */
+-	reg0102[0] = sn9c1xx[1];
++	reg0102[0] = reg01;
+ 	reg0102[1] = sn9c1xx[2];
+ 	if (gspca_dev->audio)
+ 		reg0102[1] |= 0x04;	/* keep the audio connection */
+@@ -2229,95 +2234,49 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 
+ 	reg_w(gspca_dev, 0x03, &sn9c1xx[3], 0x0f);
+ 
++	reg17 = sn9c1xx[0x17];
+ 	switch (sd->sensor) {
+-	case SENSOR_ADCM1700:
+-		reg_w1(gspca_dev, 0x01, 0x43);
+-		reg_w1(gspca_dev, 0x17, 0x62);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+-		break;
+ 	case SENSOR_GC0307:
+-		msleep(50);
+-		reg_w1(gspca_dev, 0x01, 0x61);
+-		reg_w1(gspca_dev, 0x17, 0x22);
+-		reg_w1(gspca_dev, 0x01, 0x60);
+-		reg_w1(gspca_dev, 0x01, 0x40);
+-		msleep(50);
+-		break;
+-	case SENSOR_MI0360B:
+-		reg_w1(gspca_dev, 0x01, 0x61);
+-		reg_w1(gspca_dev, 0x17, 0x60);
+-		reg_w1(gspca_dev, 0x01, 0x60);
+-		reg_w1(gspca_dev, 0x01, 0x40);
+-		break;
+-	case SENSOR_MT9V111:
+-		reg_w1(gspca_dev, 0x01, 0x61);
+-		reg_w1(gspca_dev, 0x17, 0x61);
+-		reg_w1(gspca_dev, 0x01, 0x60);
+-		reg_w1(gspca_dev, 0x01, 0x40);
++		msleep(50);		/*fixme: is it useful? */
+ 		break;
+ 	case SENSOR_OM6802:
+ 		msleep(10);
+ 		reg_w1(gspca_dev, 0x02, 0x73);
+-		reg_w1(gspca_dev, 0x17, 0x60);
++		reg17 |= SEN_CLK_EN;
++		reg_w1(gspca_dev, 0x17, reg17);
+ 		reg_w1(gspca_dev, 0x01, 0x22);
+ 		msleep(100);
+-		reg_w1(gspca_dev, 0x01, 0x62);
+-		reg_w1(gspca_dev, 0x17, 0x64);
+-		reg_w1(gspca_dev, 0x17, 0x64);
+-		reg_w1(gspca_dev, 0x01, 0x42);
++		reg01 = SCL_SEL_OD | S_PDN_INV;
++		reg17 &= MCK_SIZE_MASK;
++		reg17 |= 0x04;		/* clock / 4 */
++		break;
++	}
++	reg01 |= SYS_SEL_48M;
++	reg_w1(gspca_dev, 0x01, reg01);
++	reg17 |= SEN_CLK_EN;
++	reg_w1(gspca_dev, 0x17, reg17);
++	reg01 &= ~S_PWR_DN;		/* sensor power on */
++	reg_w1(gspca_dev, 0x01, reg01);
++	reg01 &= ~SYS_SEL_48M;
++	reg_w1(gspca_dev, 0x01, reg01);
++
++	switch (sd->sensor) {
++	case SENSOR_HV7131R:
++		hv7131r_probe(gspca_dev);	/*fixme: is it useful? */
++		break;
++	case SENSOR_OM6802:
+ 		msleep(10);
+-		reg_w1(gspca_dev, 0x01, 0x42);
++		reg_w1(gspca_dev, 0x01, reg01);
+ 		i2c_w8(gspca_dev, om6802_init0[0]);
+ 		i2c_w8(gspca_dev, om6802_init0[1]);
+ 		msleep(15);
+ 		reg_w1(gspca_dev, 0x02, 0x71);
+ 		msleep(150);
+ 		break;
+-	case SENSOR_OV7630:
+-		reg_w1(gspca_dev, 0x01, 0x61);
+-		reg_w1(gspca_dev, 0x17, 0xe2);
+-		reg_w1(gspca_dev, 0x01, 0x60);
+-		reg_w1(gspca_dev, 0x01, 0x40);
+-		break;
+-	case SENSOR_OV7648:
+-		reg_w1(gspca_dev, 0x01, 0x63);
+-		reg_w1(gspca_dev, 0x17, 0x20);
+-		reg_w1(gspca_dev, 0x01, 0x62);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+-		break;
+-	case SENSOR_PO1030:
+-	case SENSOR_SOI768:
+-		reg_w1(gspca_dev, 0x01, 0x61);
+-		reg_w1(gspca_dev, 0x17, 0x20);
+-		reg_w1(gspca_dev, 0x01, 0x60);
+-		reg_w1(gspca_dev, 0x01, 0x40);
+-		break;
+-	case SENSOR_PO2030N:
+-	case SENSOR_OV7660:
+-		reg_w1(gspca_dev, 0x01, 0x63);
+-		reg_w1(gspca_dev, 0x17, 0x20);
+-		reg_w1(gspca_dev, 0x01, 0x62);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+-		break;
+ 	case SENSOR_SP80708:
+-		reg_w1(gspca_dev, 0x01, 0x63);
+-		reg_w1(gspca_dev, 0x17, 0x20);
+-		reg_w1(gspca_dev, 0x01, 0x62);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+ 		msleep(100);
+ 		reg_w1(gspca_dev, 0x02, 0x62);
+ 		break;
+-	default:
+-/*	case SENSOR_HV7131R: */
+-/*	case SENSOR_MI0360: */
+-/*	case SENSOR_MO4000: */
+-		reg_w1(gspca_dev, 0x01, 0x43);
+-		reg_w1(gspca_dev, 0x17, 0x61);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+-		if (sd->sensor == SENSOR_HV7131R)
+-			hv7131r_probe(gspca_dev);
+-		break;
+ 	}
+ 
+ 	/* initialize the sensor */
+@@ -2346,29 +2305,11 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 	}
+ 	reg_w1(gspca_dev, 0x18, sn9c1xx[0x18]);
+ 	switch (sd->sensor) {
+-	case SENSOR_GC0307:
+-		reg17 = 0xa2;
+-		break;
+-	case SENSOR_MT9V111:
+-		reg17 = 0xe0;
+-		break;
+-	case SENSOR_ADCM1700:
+-	case SENSOR_OV7630:
+-		reg17 = 0xe2;
+-		break;
+-	case SENSOR_OV7648:
+-		reg17 = 0x20;
+-		break;
+-	case SENSOR_OV7660:
+-	case SENSOR_SOI768:
+-		reg17 = 0xa0;
+-		break;
+-	case SENSOR_PO1030:
+-	case SENSOR_PO2030N:
+-		reg17 = 0xa0;
++	case SENSOR_OM6802:
++/*	case SENSOR_OV7648:		* fixme: sometimes */
+ 		break;
+ 	default:
+-		reg17 = 0x60;
++		reg17 |= DEF_EN;
+ 		break;
+ 	}
+ 	reg_w1(gspca_dev, 0x17, reg17);
+@@ -2414,90 +2355,64 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 
+ 	init = NULL;
+ 	mode = gspca_dev->cam.cam_mode[gspca_dev->curr_mode].priv;
+-	if (mode)
+-		reg1 = 0x46;	/* 320x240: clk 48Mhz, video trf enable */
+-	else
+-		reg1 = 0x06;	/* 640x480: clk 24Mhz, video trf enable */
+-	reg17 = 0x61;		/* 0x:20: enable sensor clock */
++	reg01 |= SYS_SEL_48M | V_TX_EN;
++	reg17 &= ~MCK_SIZE_MASK;
++	reg17 |= 0x02;			/* clock / 2 */
+ 	switch (sd->sensor) {
+ 	case SENSOR_ADCM1700:
+ 		init = adcm1700_sensor_param1;
+-		reg1 = 0x46;
+-		reg17 = 0xe2;
+ 		break;
+ 	case SENSOR_GC0307:
+ 		init = gc0307_sensor_param1;
+-		reg17 = 0xa2;
+-		reg1 = 0x44;
++		break;
++	case SENSOR_HV7131R:
++	case SENSOR_MI0360:
++		if (mode)
++			reg01 |= SYS_SEL_48M;	/* 320x240: clk 48Mhz */
++		else
++			reg01 &= ~SYS_SEL_48M;	/* 640x480: clk 24Mhz */
++		reg17 &= ~MCK_SIZE_MASK;
++		reg17 |= 0x01;			/* clock / 1 */
+ 		break;
+ 	case SENSOR_MO4000:
+-		if (mode) {
+-/*			reg1 = 0x46;	 * 320 clk 48Mhz 60fp/s */
+-			reg1 = 0x06;	/* clk 24Mz */
+-		} else {
+-			reg17 = 0x22;	/* 640 MCKSIZE */
+-/*			reg1 = 0x06;	 * 640 clk 24Mz (done) */
++		if (mode) {			/* if 320x240 */
++			reg01 &= ~SYS_SEL_48M;	/* clk 24Mz */
++			reg17 &= ~MCK_SIZE_MASK;
++			reg17 |= 0x01;		/* clock / 1 */
+ 		}
+ 		break;
+ 	case SENSOR_MT9V111:
+ 		init = mt9v111_sensor_param1;
+-		if (mode) {
+-			reg1 = 0x04;	/* 320 clk 48Mhz */
+-		} else {
+-/*			reg1 = 0x06;	 * 640 clk 24Mz (done) */
+-			reg17 = 0xc2;
+-		}
+ 		break;
+ 	case SENSOR_OM6802:
+ 		init = om6802_sensor_param1;
+-		reg17 = 0x64;		/* 640 MCKSIZE */
++		if (!mode) {			/* if 640x480 */
++			reg17 &= ~MCK_SIZE_MASK;
++			reg17 |= 0x01;		/* clock / 4 */
++		}
+ 		break;
+ 	case SENSOR_OV7630:
+ 		init = ov7630_sensor_param1;
+-		reg17 = 0xe2;
+-		reg1 = 0x44;
+ 		break;
+ 	case SENSOR_OV7648:
+ 		init = ov7648_sensor_param1;
+-		reg17 = 0x21;
+-/*		reg1 = 0x42;		 * 42 - 46? */
++		reg17 &= ~MCK_SIZE_MASK;
++		reg17 |= 0x01;			/* clock / 1 */
+ 		break;
+ 	case SENSOR_OV7660:
+ 		init = ov7660_sensor_param1;
+-		if (sd->bridge == BRIDGE_SN9C120) {
+-			if (mode) {		/* 320x240 - 160x120 */
+-				reg17 = 0xa2;
+-				reg1 = 0x44;	/* 48 Mhz, video trf eneble */
+-			}
+-		} else {
+-			reg17 = 0x22;
+-			reg1 = 0x06;	/* 24 Mhz, video trf eneble
+-					 * inverse power down */
+-		}
+ 		break;
+ 	case SENSOR_PO1030:
+ 		init = po1030_sensor_param1;
+-		reg17 = 0xa2;
+-		reg1 = 0x44;
+ 		break;
+ 	case SENSOR_PO2030N:
+ 		init = po2030n_sensor_param1;
+-		reg1 = 0x46;
+-		reg17 = 0xa2;
+ 		break;
+ 	case SENSOR_SOI768:
+ 		init = soi768_sensor_param1;
+-		reg1 = 0x44;
+-		reg17 = 0xa2;
+ 		break;
+ 	case SENSOR_SP80708:
+ 		init = sp80708_sensor_param1;
+-		if (mode) {
+-/*??			reg1 = 0x04;	 * 320 clk 48Mhz */
+-		} else {
+-			reg1 = 0x46;	 /* 640 clk 48Mz */
+-			reg17 = 0xa2;
+-		}
+ 		break;
+ 	}
+ 
+@@ -2547,7 +2462,9 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 	setjpegqual(gspca_dev);
+ 
+ 	reg_w1(gspca_dev, 0x17, reg17);
+-	reg_w1(gspca_dev, 0x01, reg1);
++	reg_w1(gspca_dev, 0x01, reg01);
++	sd->reg01 = reg01;
++	sd->reg17 = reg17;
+ 
+ 	setvflip(sd);
+ 	setbrightness(gspca_dev);
+@@ -2569,40 +2486,60 @@ static void sd_stopN(struct gspca_dev *gspca_dev)
+ 		{ 0xa1, 0x21, 0x76, 0x20, 0x00, 0x00, 0x00, 0x10 };
+ 	static const u8 stopsoi768[] =
+ 		{ 0xa1, 0x21, 0x12, 0x80, 0x00, 0x00, 0x00, 0x10 };
+-	u8 data;
+-	const u8 *sn9c1xx;
++	u8 reg01;
++	u8 reg17;
+ 
+-	data = 0x0b;
++	reg01 = sd->reg01;
++	reg17 = sd->reg17 & ~SEN_CLK_EN;
+ 	switch (sd->sensor) {
++	case SENSOR_ADCM1700:
+ 	case SENSOR_GC0307:
+-		data = 0x29;
++	case SENSOR_PO2030N:
++	case SENSOR_SP80708:
++		reg01 |= LED;
++		reg_w1(gspca_dev, 0x01, reg01);
++		reg01 &= ~(LED | V_TX_EN);
++		reg_w1(gspca_dev, 0x01, reg01);
++/*		reg_w1(gspca_dev, 0x02, 0x??);	 * LED off ? */
+ 		break;
+ 	case SENSOR_HV7131R:
++		reg01 &= ~V_TX_EN;
++		reg_w1(gspca_dev, 0x01, reg01);
+ 		i2c_w8(gspca_dev, stophv7131);
+-		data = 0x2b;
+ 		break;
+ 	case SENSOR_MI0360:
+ 		i2c_w8(gspca_dev, stopmi0360);
+-		data = 0x29;
+ 		break;
++	case SENSOR_MT9V111:
++	case SENSOR_OM6802:
++	case SENSOR_PO1030:
++		reg01 &= ~V_TX_EN;
++		reg_w1(gspca_dev, 0x01, reg01);
++		break;
++	case SENSOR_OV7630:
+ 	case SENSOR_OV7648:
++		reg01 &= ~V_TX_EN;
++		reg_w1(gspca_dev, 0x01, reg01);
+ 		i2c_w8(gspca_dev, stopov7648);
+-		/* fall thru */
+-	case SENSOR_MT9V111:
+-	case SENSOR_OV7630:
+-	case SENSOR_PO1030:
+-		data = 0x29;
++		break;
++	case SENSOR_OV7660:
++		reg01 &= ~V_TX_EN;
++		reg_w1(gspca_dev, 0x01, reg01);
+ 		break;
+ 	case SENSOR_SOI768:
+ 		i2c_w8(gspca_dev, stopsoi768);
+-		data = 0x29;
+ 		break;
+ 	}
+-	sn9c1xx = sn_tb[sd->sensor];
+-	reg_w1(gspca_dev, 0x01, sn9c1xx[1]);
+-	reg_w1(gspca_dev, 0x17, sn9c1xx[0x17]);
+-	reg_w1(gspca_dev, 0x01, sn9c1xx[1]);
+-	reg_w1(gspca_dev, 0x01, data);
++
++	reg01 |= SCL_SEL_OD;
++	reg_w1(gspca_dev, 0x01, reg01);
++	reg01 |= S_PWR_DN;		/* sensor power down */
++	reg_w1(gspca_dev, 0x01, reg01);
++	reg_w1(gspca_dev, 0x17, reg17);
++	reg01 &= ~SYS_SEL_48M;		/* clock 24MHz */
++	reg_w1(gspca_dev, 0x01, reg01);
++	reg01 |= LED;
++	reg_w1(gspca_dev, 0x01, reg01);
+ 	/* Don't disable sensor clock as that disables the button on the cam */
+ 	/* reg_w1(gspca_dev, 0xf1, 0x01); */
+ }
 -- 
-Jarod Wilson
-jarod@wilsonet.com
-
+1.7.3.4
 
 
