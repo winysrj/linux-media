@@ -1,37 +1,54 @@
-Return-path: <mchehab@pedra>
-Received: from lo.gmane.org ([80.91.229.12]:34024 "EHLO lo.gmane.org"
+Return-path: <mchehab@gaivota>
+Received: from mx1.redhat.com ([209.132.183.28]:2454 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932204Ab1AKOKM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jan 2011 09:10:12 -0500
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1PcevE-0007rO-R7
-	for linux-media@vger.kernel.org; Tue, 11 Jan 2011 15:10:04 +0100
-Received: from 88-149-184-250.staticnet.ngi.it ([88.149.184.250])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 11 Jan 2011 15:10:04 +0100
-Received: from michele.manzato by 88-149-184-250.staticnet.ngi.it with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 11 Jan 2011 15:10:04 +0100
-To: linux-media@vger.kernel.org
-From: mmanzato <michele.manzato@gmail.com>
-Subject: Re: Hauppauge WinTV-HVR-1120 on Unbuntu 10.04
-Date: Tue, 11 Jan 2011 13:57:43 +0000 (UTC)
-Message-ID: <loom.20110111T145340-757@post.gmane.org>
-References: <259225.84971.qm@web25402.mail.ukl.yahoo.com> <201010192032.50484.albin.kauffmann@gmail.com> <968618.5175.qm@web25407.mail.ukl.yahoo.com> <201010241627.22121.albin.kauffmann@gmail.com>
+	id S1752817Ab1AFLb0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jan 2011 06:31:26 -0500
+Date: Thu, 6 Jan 2011 09:28:31 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: moinejf@free.fr, stable@kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/4] [media] gspca - sonixj: Add the bit definitions of the
+ bridge reg 0x01 and 0x17
+Message-ID: <20110106092831.70cb08f8@gaivota>
+In-Reply-To: <cover.1294312927.git.mchehab@redhat.com>
+References: <cover.1294312927.git.mchehab@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Same behaviour here. I'm with Mythbuntu 10.10.
+backports changeset 4fd350ee2bf129acb933ad5104bc4754b2c7c9ef
 
-TDA10048 firwmare is found in the linux-firmware-nonfree Ubuntu package. From
-what I can see in dmesg it is loaded correctly.
+Signed-off-by: Jean-François Moine <moinejf@free.fr>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-1120 says that support
-for this card seems to be broken in recent Linux kernels (does that mean in
-recent V4L drivers?)
+diff --git a/drivers/media/video/gspca/sonixj.c b/drivers/media/video/gspca/sonixj.c
+index 63f789d..f8d25570 100644
+--- a/drivers/media/video/gspca/sonixj.c
++++ b/drivers/media/video/gspca/sonixj.c
+@@ -91,6 +91,19 @@ enum sensors {
+ /* device flags */
+ #define PDN_INV	1		/* inverse pin S_PWR_DN / sn_xxx tables */
+ 
++/* sn9c1xx definitions */
++/* register 0x01 */
++#define S_PWR_DN	0x01	/* sensor power down */
++#define S_PDN_INV	0x02	/* inverse pin S_PWR_DN */
++#define V_TX_EN		0x04	/* video transfer enable */
++#define LED		0x08	/* output to pin LED */
++#define SCL_SEL_OD	0x20	/* open-drain mode */
++#define SYS_SEL_48M	0x40	/* system clock 0: 24MHz, 1: 48MHz */
++/* register 0x17 */
++#define MCK_SIZE_MASK	0x1f	/* sensor master clock */
++#define SEN_CLK_EN	0x20	/* enable sensor clock */
++#define DEF_EN		0x80	/* defect pixel by 0: soft, 1: hard */
++
+ /* V4L2 controls supported by the driver */
+ static int sd_setbrightness(struct gspca_dev *gspca_dev, __s32 val);
+ static int sd_getbrightness(struct gspca_dev *gspca_dev, __s32 *val);
+-- 
+1.7.3.4
+
 
