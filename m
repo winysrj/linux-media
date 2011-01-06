@@ -1,161 +1,327 @@
 Return-path: <mchehab@gaivota>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:58904 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932323Ab1ACQsG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jan 2011 11:48:06 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=ISO-8859-1
-Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LEG00DLHHC2CV80@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 03 Jan 2011 16:48:02 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LEG002Y9HC292@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 03 Jan 2011 16:48:02 +0000 (GMT)
-Received: from [106.116.37.156] (unknown [106.116.37.156])
-	by linux.samsung.com (Postfix) with ESMTP id CBAFC270070	for
- <linux-media@vger.kernel.org>; Mon, 03 Jan 2011 17:48:00 +0100 (CET)
-Date: Mon, 03 Jan 2011 17:48:01 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [GIT PATCHES FOR 2.6.38] Videbuf2 framework,
- NOON010PC30 sensor driver and s5p-fimc updates
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Message-id: <4D21FDC1.7000803@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:10972 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752555Ab1AFL3R convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jan 2011 06:29:17 -0500
+Date: Thu, 6 Jan 2011 09:28:35 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: stable@kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	moinejf@free.fr
+Subject: [PATCH 1/4] [media] gspca - sonixj: Move bridge init to sd start
+Message-ID: <20110106092835.0d300343@gaivota>
+In-Reply-To: <cover.1294312927.git.mchehab@redhat.com>
+References: <cover.1294312927.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Mauro,
+Backports changeset 5e68f400aad4e2c29e2531cc4413c459fa88cb62
 
-Please pull from our tree for the following items:
+Signed-off-by: Jean-François Moine <moinejf@free.fr>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-1. V4L2 multiplane extension,
-2. The Videobuf2 framework,
-3. Mem2mem framework and vivi conversion to Videbuf2,
-4. s5p-fimc driver conversion to Videbuf2 and multiplane ext. and various
-   driver updates and bugfixes,
-5. Siliconfile NOON010PC30 sensor subdev driver,
-6. Patches for SAA7134 driver for Videbuf2 testing.
-
-The patch series has been rebased onto staging/for_v2.6.38 branch on top
-of s5p-fimc driver patches that were recently added to v2.6.37-rc8.
-The SAA7134 driver patches are meant for Vb2 testing only. The test hardware
-for those was the Avermedia  AVerTV Super 007 TV card.
-
-Thanks!
-Sylwester
-
-
-
-The following changes since commit 6d09afc3bdf7f6b52358c30490b9434ba18d6344:
-
-  [media] s5p-fimc: Fix output DMA handling in S5PV310 IP revisions (2010-12-28
-15:50:50 +0100)
-
-are available in the git repository at:
-  git://git.infradead.org/users/kmpark/linux-2.6-samsung vb2
-
-Andrzej Pietrasiewicz (3):
-      v4l: videobuf2: add DMA scatter/gather allocator
-      v4l: saa7134: remove radio, vbi, mpeg, input, alsa, tvaudio, saa6752hs
-support
-      v4l: saa7134: quick and dirty port to videobuf2
-
-Hyunwoong Kim (5):
-      [media] s5p-fimc: fix the value of YUV422 1-plane formats
-      [media] s5p-fimc: Configure scaler registers depending on FIMC version
-      [media] s5p-fimc: update checking scaling ratio range
-      [media] s5p-fimc: Support stop_streaming and job_abort
-      [media] s5p-fimc: fix MSCTRL.FIFO_CTRL for performance enhancement
-
-Marek Szyprowski (4):
-      v4l: videobuf2: add generic memory handling routines
-      v4l: videobuf2: add read() and write() emulator
-      v4l: vivi: port to videobuf2
-      v4l: mem2mem: port to videobuf2
-
-Pawel Osciak (8):
-      v4l: Add multi-planar API definitions to the V4L2 API
-      v4l: Add multi-planar ioctl handling code
-      v4l: Add compat functions for the multi-planar API
-      v4l: fix copy sizes in compat32 for ext controls
-      v4l: v4l2-ioctl: add buffer type conversion for multi-planar-aware ioctls
-      v4l: add videobuf2 Video for Linux 2 driver framework
-      v4l: videobuf2: add vmalloc allocator
-      v4l: videobuf2: add DMA coherent allocator
-
-Sungchun Kang (1):
-      [media] s5p-fimc: fimc_stop_capture bug fix
-
-Sylwester Nawrocki (15):
-      v4l: v4l2-ioctl: Fix conversion between multiplane and singleplane buffers
-      v4l: mem2mem: port m2m_testdev to vb2
-      v4l: Add multiplanar format fourccs for s5p-fimc driver
-      [media] s5p-fimc: Porting to videobuf 2
-      [media] s5p-fimc: Conversion to multiplanar formats
-      [media] s5p-fimc: Use v4l core mutex in ioctl and file operations
-      [media] s5p-fimc: Rename s3c_fimc* to s5p_fimc*
-      [media] s5p-fimc: Derive camera bus width from mediabus pixelcode
-      [media] s5p-fimc: Enable interworking without subdev s_stream
-      [media] s5p-fimc: Use default input DMA burst count
-      [media] s5p-fimc: Enable simultaneous rotation and flipping
-      [media] s5p-fimc: Add control of the external sensor clock
-      [media] s5p-fimc: Move scaler details handling to the register API file
-      [media] Add chip identity for NOON010PC30 camera sensor
-      [media] Add v4l2 subdev driver for NOON010PC30L image sensor
-
- drivers/media/video/Kconfig                 |   36 +-
- drivers/media/video/Makefile                |    7 +
- drivers/media/video/mem2mem_testdev.c       |  227 ++--
- drivers/media/video/noon010pc30.c           |  792 ++++++++++++
- drivers/media/video/s5p-fimc/fimc-capture.c |  550 +++++----
- drivers/media/video/s5p-fimc/fimc-core.c    |  872 +++++++------
- drivers/media/video/s5p-fimc/fimc-core.h    |  133 +--
- drivers/media/video/s5p-fimc/fimc-reg.c     |  201 ++--
- drivers/media/video/s5p-fimc/regs-fimc.h    |   29 +-
- drivers/media/video/saa7134/Kconfig         |    2 +-
- drivers/media/video/saa7134/Makefile        |    8 +-
- drivers/media/video/saa7134/saa7134-cards.c | 1415 ++++++++-------------
- drivers/media/video/saa7134/saa7134-core.c  |  454 +++-----
- drivers/media/video/saa7134/saa7134-video.c |  859 +++++--------
- drivers/media/video/saa7134/saa7134.h       |   48 +-
- drivers/media/video/v4l2-compat-ioctl32.c   |  229 +++-
- drivers/media/video/v4l2-ioctl.c            |  626 +++++++++-
- drivers/media/video/v4l2-mem2mem.c          |  232 ++--
- drivers/media/video/videobuf2-core.c        | 1804 +++++++++++++++++++++++++++
- drivers/media/video/videobuf2-dma-contig.c  |  185 +++
- drivers/media/video/videobuf2-dma-sg.c      |  292 +++++
- drivers/media/video/videobuf2-memops.c      |  232 ++++
- drivers/media/video/videobuf2-vmalloc.c     |  132 ++
- drivers/media/video/vivi.c                  |  357 +++---
- include/linux/videodev2.h                   |  131 ++-
- include/media/noon010pc30.h                 |   28 +
- include/media/{s3c_fimc.h => s5p_fimc.h}    |   20 +-
- include/media/v4l2-chip-ident.h             |    3 +
- include/media/v4l2-ioctl.h                  |   16 +
- include/media/v4l2-mem2mem.h                |   56 +-
- include/media/videobuf2-core.h              |  380 ++++++
- include/media/videobuf2-dma-contig.h        |   29 +
- include/media/videobuf2-dma-sg.h            |   32 +
- include/media/videobuf2-memops.h            |   45 +
- include/media/videobuf2-vmalloc.h           |   20 +
- 35 files changed, 7392 insertions(+), 3090 deletions(-)
- create mode 100644 drivers/media/video/noon010pc30.c
- create mode 100644 drivers/media/video/videobuf2-core.c
- create mode 100644 drivers/media/video/videobuf2-dma-contig.c
- create mode 100644 drivers/media/video/videobuf2-dma-sg.c
- create mode 100644 drivers/media/video/videobuf2-memops.c
- create mode 100644 drivers/media/video/videobuf2-vmalloc.c
- create mode 100644 include/media/noon010pc30.h
- rename include/media/{s3c_fimc.h => s5p_fimc.h} (75%)
- create mode 100644 include/media/videobuf2-core.h
- create mode 100644 include/media/videobuf2-dma-contig.h
- create mode 100644 include/media/videobuf2-dma-sg.h
- create mode 100644 include/media/videobuf2-memops.h
- create mode 100644 include/media/videobuf2-vmalloc.h
-
-Regards,
+diff --git a/drivers/media/video/gspca/sonixj.c b/drivers/media/video/gspca/sonixj.c
+index 248c2e6..63f789d 100644
+--- a/drivers/media/video/gspca/sonixj.c
++++ b/drivers/media/video/gspca/sonixj.c
+@@ -1643,136 +1643,6 @@ static void po2030n_probe(struct gspca_dev *gspca_dev)
+ 	}
+ }
+ 
+-static void bridge_init(struct gspca_dev *gspca_dev,
+-			  const u8 *sn9c1xx)
+-{
+-	struct sd *sd = (struct sd *) gspca_dev;
+-	u8 reg0102[2];
+-	const u8 *reg9a;
+-	static const u8 reg9a_def[] =
+-		{0x00, 0x40, 0x20, 0x00, 0x00, 0x00};
+-	static const u8 reg9a_spec[] =
+-		{0x00, 0x40, 0x38, 0x30, 0x00, 0x20};
+-	static const u8 regd4[] = {0x60, 0x00, 0x00};
+-
+-	/* sensor clock already enabled in sd_init */
+-	/* reg_w1(gspca_dev, 0xf1, 0x00); */
+-	reg_w1(gspca_dev, 0x01, sn9c1xx[1]);
+-
+-	/* configure gpio */
+-	reg0102[0] = sn9c1xx[1];
+-	reg0102[1] = sn9c1xx[2];
+-	if (gspca_dev->audio)
+-		reg0102[1] |= 0x04;	/* keep the audio connection */
+-	reg_w(gspca_dev, 0x01, reg0102, 2);
+-	reg_w(gspca_dev, 0x08, &sn9c1xx[8], 2);
+-	reg_w(gspca_dev, 0x17, &sn9c1xx[0x17], 5);
+-	switch (sd->sensor) {
+-	case SENSOR_GC0307:
+-	case SENSOR_OV7660:
+-	case SENSOR_PO1030:
+-	case SENSOR_PO2030N:
+-	case SENSOR_SOI768:
+-	case SENSOR_SP80708:
+-		reg9a = reg9a_spec;
+-		break;
+-	default:
+-		reg9a = reg9a_def;
+-		break;
+-	}
+-	reg_w(gspca_dev, 0x9a, reg9a, 6);
+-
+-	reg_w(gspca_dev, 0xd4, regd4, sizeof regd4);
+-
+-	reg_w(gspca_dev, 0x03, &sn9c1xx[3], 0x0f);
+-
+-	switch (sd->sensor) {
+-	case SENSOR_ADCM1700:
+-		reg_w1(gspca_dev, 0x01, 0x43);
+-		reg_w1(gspca_dev, 0x17, 0x62);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+-		break;
+-	case SENSOR_GC0307:
+-		msleep(50);
+-		reg_w1(gspca_dev, 0x01, 0x61);
+-		reg_w1(gspca_dev, 0x17, 0x22);
+-		reg_w1(gspca_dev, 0x01, 0x60);
+-		reg_w1(gspca_dev, 0x01, 0x40);
+-		msleep(50);
+-		break;
+-	case SENSOR_MT9V111:
+-		reg_w1(gspca_dev, 0x01, 0x61);
+-		reg_w1(gspca_dev, 0x17, 0x61);
+-		reg_w1(gspca_dev, 0x01, 0x60);
+-		reg_w1(gspca_dev, 0x01, 0x40);
+-		break;
+-	case SENSOR_OM6802:
+-		msleep(10);
+-		reg_w1(gspca_dev, 0x02, 0x73);
+-		reg_w1(gspca_dev, 0x17, 0x60);
+-		reg_w1(gspca_dev, 0x01, 0x22);
+-		msleep(100);
+-		reg_w1(gspca_dev, 0x01, 0x62);
+-		reg_w1(gspca_dev, 0x17, 0x64);
+-		reg_w1(gspca_dev, 0x17, 0x64);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+-		msleep(10);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+-		i2c_w8(gspca_dev, om6802_init0[0]);
+-		i2c_w8(gspca_dev, om6802_init0[1]);
+-		msleep(15);
+-		reg_w1(gspca_dev, 0x02, 0x71);
+-		msleep(150);
+-		break;
+-	case SENSOR_OV7630:
+-		reg_w1(gspca_dev, 0x01, 0x61);
+-		reg_w1(gspca_dev, 0x17, 0xe2);
+-		reg_w1(gspca_dev, 0x01, 0x60);
+-		reg_w1(gspca_dev, 0x01, 0x40);
+-		break;
+-	case SENSOR_OV7648:
+-		reg_w1(gspca_dev, 0x01, 0x63);
+-		reg_w1(gspca_dev, 0x17, 0x20);
+-		reg_w1(gspca_dev, 0x01, 0x62);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+-		break;
+-	case SENSOR_PO1030:
+-	case SENSOR_SOI768:
+-		reg_w1(gspca_dev, 0x01, 0x61);
+-		reg_w1(gspca_dev, 0x17, 0x20);
+-		reg_w1(gspca_dev, 0x01, 0x60);
+-		reg_w1(gspca_dev, 0x01, 0x40);
+-		break;
+-	case SENSOR_PO2030N:
+-	case SENSOR_OV7660:
+-		reg_w1(gspca_dev, 0x01, 0x63);
+-		reg_w1(gspca_dev, 0x17, 0x20);
+-		reg_w1(gspca_dev, 0x01, 0x62);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+-		break;
+-	case SENSOR_SP80708:
+-		reg_w1(gspca_dev, 0x01, 0x63);
+-		reg_w1(gspca_dev, 0x17, 0x20);
+-		reg_w1(gspca_dev, 0x01, 0x62);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+-		msleep(100);
+-		reg_w1(gspca_dev, 0x02, 0x62);
+-		break;
+-	default:
+-/*	case SENSOR_HV7131R: */
+-/*	case SENSOR_MI0360: */
+-/*	case SENSOR_MO4000: */
+-		reg_w1(gspca_dev, 0x01, 0x43);
+-		reg_w1(gspca_dev, 0x17, 0x61);
+-		reg_w1(gspca_dev, 0x01, 0x42);
+-		if (sd->sensor == SENSOR_HV7131R
+-		    && sd->bridge == BRIDGE_SN9C102P)
+-			hv7131r_probe(gspca_dev);
+-		break;
+-	}
+-}
+-
+ /* this function is called at probe time */
+ static int sd_config(struct gspca_dev *gspca_dev,
+ 			const struct usb_device_id *id)
+@@ -2282,10 +2152,17 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 	int i;
++	u8 reg0102[2];
++	const u8 *reg9a;
+ 	u8 reg1, reg17;
+ 	const u8 *sn9c1xx;
+ 	const u8 (*init)[8];
+ 	int mode;
++	static const u8 reg9a_def[] =
++		{0x00, 0x40, 0x20, 0x00, 0x00, 0x00};
++	static const u8 reg9a_spec[] =
++		{0x00, 0x40, 0x38, 0x30, 0x00, 0x20};
++	static const u8 regd4[] = {0x60, 0x00, 0x00};
+ 	static const u8 C0[] = { 0x2d, 0x2d, 0x3a, 0x05, 0x04, 0x3f };
+ 	static const u8 CA[] = { 0x28, 0xd8, 0x14, 0xec };
+ 	static const u8 CA_adcm1700[] =
+@@ -2307,7 +2184,128 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 
+ 	/* initialize the bridge */
+ 	sn9c1xx = sn_tb[sd->sensor];
+-	bridge_init(gspca_dev, sn9c1xx);
++
++	/* sensor clock already enabled in sd_init */
++	/* reg_w1(gspca_dev, 0xf1, 0x00); */
++	reg_w1(gspca_dev, 0x01, sn9c1xx[1]);
++
++	/* configure gpio */
++	reg0102[0] = sn9c1xx[1];
++	reg0102[1] = sn9c1xx[2];
++	if (gspca_dev->audio)
++		reg0102[1] |= 0x04;	/* keep the audio connection */
++	reg_w(gspca_dev, 0x01, reg0102, 2);
++	reg_w(gspca_dev, 0x08, &sn9c1xx[8], 2);
++	reg_w(gspca_dev, 0x17, &sn9c1xx[0x17], 5);
++	switch (sd->sensor) {
++	case SENSOR_GC0307:
++	case SENSOR_OV7660:
++	case SENSOR_PO1030:
++	case SENSOR_PO2030N:
++	case SENSOR_SOI768:
++	case SENSOR_SP80708:
++		reg9a = reg9a_spec;
++		break;
++	default:
++		reg9a = reg9a_def;
++		break;
++	}
++	reg_w(gspca_dev, 0x9a, reg9a, 6);
++
++	reg_w(gspca_dev, 0xd4, regd4, sizeof regd4);
++
++	reg_w(gspca_dev, 0x03, &sn9c1xx[3], 0x0f);
++
++	switch (sd->sensor) {
++	case SENSOR_ADCM1700:
++		reg_w1(gspca_dev, 0x01, 0x43);
++		reg_w1(gspca_dev, 0x17, 0x62);
++		reg_w1(gspca_dev, 0x01, 0x42);
++		reg_w1(gspca_dev, 0x01, 0x42);
++		break;
++	case SENSOR_GC0307:
++		msleep(50);
++		reg_w1(gspca_dev, 0x01, 0x61);
++		reg_w1(gspca_dev, 0x17, 0x22);
++		reg_w1(gspca_dev, 0x01, 0x60);
++		reg_w1(gspca_dev, 0x01, 0x40);
++		msleep(50);
++		break;
++	case SENSOR_MI0360B:
++		reg_w1(gspca_dev, 0x01, 0x61);
++		reg_w1(gspca_dev, 0x17, 0x60);
++		reg_w1(gspca_dev, 0x01, 0x60);
++		reg_w1(gspca_dev, 0x01, 0x40);
++		break;
++	case SENSOR_MT9V111:
++		reg_w1(gspca_dev, 0x01, 0x61);
++		reg_w1(gspca_dev, 0x17, 0x61);
++		reg_w1(gspca_dev, 0x01, 0x60);
++		reg_w1(gspca_dev, 0x01, 0x40);
++		break;
++	case SENSOR_OM6802:
++		msleep(10);
++		reg_w1(gspca_dev, 0x02, 0x73);
++		reg_w1(gspca_dev, 0x17, 0x60);
++		reg_w1(gspca_dev, 0x01, 0x22);
++		msleep(100);
++		reg_w1(gspca_dev, 0x01, 0x62);
++		reg_w1(gspca_dev, 0x17, 0x64);
++		reg_w1(gspca_dev, 0x17, 0x64);
++		reg_w1(gspca_dev, 0x01, 0x42);
++		msleep(10);
++		reg_w1(gspca_dev, 0x01, 0x42);
++		i2c_w8(gspca_dev, om6802_init0[0]);
++		i2c_w8(gspca_dev, om6802_init0[1]);
++		msleep(15);
++		reg_w1(gspca_dev, 0x02, 0x71);
++		msleep(150);
++		break;
++	case SENSOR_OV7630:
++		reg_w1(gspca_dev, 0x01, 0x61);
++		reg_w1(gspca_dev, 0x17, 0xe2);
++		reg_w1(gspca_dev, 0x01, 0x60);
++		reg_w1(gspca_dev, 0x01, 0x40);
++		break;
++	case SENSOR_OV7648:
++		reg_w1(gspca_dev, 0x01, 0x63);
++		reg_w1(gspca_dev, 0x17, 0x20);
++		reg_w1(gspca_dev, 0x01, 0x62);
++		reg_w1(gspca_dev, 0x01, 0x42);
++		break;
++	case SENSOR_PO1030:
++	case SENSOR_SOI768:
++		reg_w1(gspca_dev, 0x01, 0x61);
++		reg_w1(gspca_dev, 0x17, 0x20);
++		reg_w1(gspca_dev, 0x01, 0x60);
++		reg_w1(gspca_dev, 0x01, 0x40);
++		break;
++	case SENSOR_PO2030N:
++	case SENSOR_OV7660:
++		reg_w1(gspca_dev, 0x01, 0x63);
++		reg_w1(gspca_dev, 0x17, 0x20);
++		reg_w1(gspca_dev, 0x01, 0x62);
++		reg_w1(gspca_dev, 0x01, 0x42);
++		break;
++	case SENSOR_SP80708:
++		reg_w1(gspca_dev, 0x01, 0x63);
++		reg_w1(gspca_dev, 0x17, 0x20);
++		reg_w1(gspca_dev, 0x01, 0x62);
++		reg_w1(gspca_dev, 0x01, 0x42);
++		msleep(100);
++		reg_w1(gspca_dev, 0x02, 0x62);
++		break;
++	default:
++/*	case SENSOR_HV7131R: */
++/*	case SENSOR_MI0360: */
++/*	case SENSOR_MO4000: */
++		reg_w1(gspca_dev, 0x01, 0x43);
++		reg_w1(gspca_dev, 0x17, 0x61);
++		reg_w1(gspca_dev, 0x01, 0x42);
++		if (sd->sensor == SENSOR_HV7131R)
++			hv7131r_probe(gspca_dev);
++		break;
++	}
+ 
+ 	/* initialize the sensor */
+ 	i2c_w_seq(gspca_dev, sensor_init[sd->sensor]);
+@@ -2530,7 +2528,6 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 		break;
+ 	}
+ 
+-
+ 	/* here change size mode 0 -> VGA; 1 -> CIF */
+ 	sd->reg18 = sn9c1xx[0x18] | (mode << 4) | 0x40;
+ 	reg_w1(gspca_dev, 0x18, sd->reg18);
 -- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+1.7.3.4
+
+
