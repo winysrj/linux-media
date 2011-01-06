@@ -1,144 +1,100 @@
-Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.186]:60058 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752626Ab1A0UnE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jan 2011 15:43:04 -0500
-Date: Thu, 27 Jan 2011 21:42:56 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Qing Xu <qingx@marvell.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] [media] v4l: soc-camera: add enum-frame-size ioctl
-In-Reply-To: <1295511580-25862-1-git-send-email-qingx@marvell.com>
-Message-ID: <Pine.LNX.4.64.1101272141270.8916@axis700.grange>
-References: <1295511580-25862-1-git-send-email-qingx@marvell.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <mchehab@gaivota>
+Received: from mx1.redhat.com ([209.132.183.28]:52335 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753449Ab1AFUAD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 6 Jan 2011 15:00:03 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p06K03ax015169
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 6 Jan 2011 15:00:03 -0500
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>
+Subject: [PATCH 4/6] rc/imon: default to key mode instead of mouse mode
+Date: Thu,  6 Jan 2011 14:59:35 -0500
+Message-Id: <1294343977-31929-5-git-send-email-jarod@redhat.com>
+In-Reply-To: <1294343839-31784-1-git-send-email-jarod@redhat.com>
+References: <1294343839-31784-1-git-send-email-jarod@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Mauro, Hans
+My initial thinking was that we should default to mouse mode, so people
+could use the mouse function to click on something on a login screen,
+but a lot of systems where a remote is useful automatically log in a
+user and launch a media center application, some of which hide the
+mouse, which can be confusing to users if they punch buttons on the
+remote and don't see any feedback. Plus, first and foremost, its a
+remote, so lets default to being a remote, and only toggle into mouse
+mode when the user explicitly asks for it. As a nice side-effect, this
+actually simplifies some of the code a fair bit...
 
-Can I pull this patch as is via my tree, or shall we ask the author to 
-split it into two: to add the subdev operation and to implement it for 
-soc-camera?
-
-Thanks
-Guennadi
-
-On Thu, 20 Jan 2011, Qing Xu wrote:
-
-> add vidioc_enum_framesizes implementation, follow default_g_parm()
-> and g_mbus_fmt() method
-> 
-> Signed-off-by: Qing Xu <qingx@marvell.com>
-> ---
->  drivers/media/video/soc_camera.c |   37 +++++++++++++++++++++++++++++++++++++
->  include/media/soc_camera.h       |    1 +
->  include/media/v4l2-subdev.h      |    2 ++
->  3 files changed, 40 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-> index 052bd6d..50034b7 100644
-> --- a/drivers/media/video/soc_camera.c
-> +++ b/drivers/media/video/soc_camera.c
-> @@ -145,6 +145,15 @@ static int soc_camera_s_std(struct file *file, void *priv, v4l2_std_id *a)
->  	return v4l2_subdev_call(sd, core, s_std, *a);
->  }
->  
-> +static int soc_camera_enum_fsizes(struct file *file, void *fh,
-> +					 struct v4l2_frmsizeenum *fsize)
-> +{
-> +	struct soc_camera_device *icd = file->private_data;
-> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-> +
-> +	return ici->ops->enum_fsizes(icd, fsize);
-> +}
-> +
->  static int soc_camera_reqbufs(struct file *file, void *priv,
->  			      struct v4l2_requestbuffers *p)
->  {
-> @@ -1160,6 +1169,31 @@ static int default_s_parm(struct soc_camera_device *icd,
->  	return v4l2_subdev_call(sd, video, s_parm, parm);
->  }
->  
-> +static int default_enum_fsizes(struct soc_camera_device *icd,
-> +			  struct v4l2_frmsizeenum *fsize)
-> +{
-> +	int ret;
-> +	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-> +	const struct soc_camera_format_xlate *xlate;
-> +	__u32 pixfmt = fsize->pixel_format;
-> +	struct v4l2_frmsizeenum fsize_mbus = *fsize;
-> +
-> +	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
-> +	if (!xlate)
-> +		return -EINVAL;
-> +	/* map xlate-code to pixel_format, sensor only handle xlate-code*/
-> +	fsize_mbus.pixel_format = xlate->code;
-> +
-> +	ret = v4l2_subdev_call(sd, video, enum_mbus_fsizes, &fsize_mbus);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	*fsize = fsize_mbus;
-> +	fsize->pixel_format = pixfmt;
-> +
-> +	return 0;
-> +}
-> +
->  static void soc_camera_device_init(struct device *dev, void *pdata)
->  {
->  	dev->platform_data	= pdata;
-> @@ -1195,6 +1229,8 @@ int soc_camera_host_register(struct soc_camera_host *ici)
->  		ici->ops->set_parm = default_s_parm;
->  	if (!ici->ops->get_parm)
->  		ici->ops->get_parm = default_g_parm;
-> +	if (!ici->ops->enum_fsizes)
-> +		ici->ops->enum_fsizes = default_enum_fsizes;
->  
->  	mutex_lock(&list_lock);
->  	list_for_each_entry(ix, &hosts, list) {
-> @@ -1302,6 +1338,7 @@ static const struct v4l2_ioctl_ops soc_camera_ioctl_ops = {
->  	.vidioc_g_input		 = soc_camera_g_input,
->  	.vidioc_s_input		 = soc_camera_s_input,
->  	.vidioc_s_std		 = soc_camera_s_std,
-> +	.vidioc_enum_framesizes  = soc_camera_enum_fsizes,
->  	.vidioc_reqbufs		 = soc_camera_reqbufs,
->  	.vidioc_try_fmt_vid_cap  = soc_camera_try_fmt_vid_cap,
->  	.vidioc_querybuf	 = soc_camera_querybuf,
-> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-> index 86e3631..6e4800c 100644
-> --- a/include/media/soc_camera.h
-> +++ b/include/media/soc_camera.h
-> @@ -85,6 +85,7 @@ struct soc_camera_host_ops {
->  	int (*set_ctrl)(struct soc_camera_device *, struct v4l2_control *);
->  	int (*get_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
->  	int (*set_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
-> +	int (*enum_fsizes)(struct soc_camera_device *, struct v4l2_frmsizeenum *);
->  	unsigned int (*poll)(struct file *, poll_table *);
->  	const struct v4l2_queryctrl *controls;
->  	int num_controls;
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index b0316a7..0d482c9 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -275,6 +275,8 @@ struct v4l2_subdev_video_ops {
->  			struct v4l2_dv_timings *timings);
->  	int (*enum_mbus_fmt)(struct v4l2_subdev *sd, unsigned int index,
->  			     enum v4l2_mbus_pixelcode *code);
-> +	int (*enum_mbus_fsizes)(struct v4l2_subdev *sd,
-> +			     struct v4l2_frmsizeenum *fsize);
->  	int (*g_mbus_fmt)(struct v4l2_subdev *sd,
->  			  struct v4l2_mbus_framefmt *fmt);
->  	int (*try_mbus_fmt)(struct v4l2_subdev *sd,
-> -- 
-> 1.6.3.3
-> 
-
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/rc/imon.c |   18 ++++--------------
+ 1 files changed, 4 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
+index 7034207..e7dc6b4 100644
+--- a/drivers/media/rc/imon.c
++++ b/drivers/media/rc/imon.c
+@@ -988,7 +988,6 @@ static int imon_ir_change_protocol(struct rc_dev *rc, u64 rc_type)
+ 	int retval;
+ 	struct imon_context *ictx = rc->priv;
+ 	struct device *dev = ictx->dev;
+-	bool pad_mouse;
+ 	unsigned char ir_proto_packet[] = {
+ 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x86 };
+ 
+@@ -1000,29 +999,20 @@ static int imon_ir_change_protocol(struct rc_dev *rc, u64 rc_type)
+ 	case RC_TYPE_RC6:
+ 		dev_dbg(dev, "Configuring IR receiver for MCE protocol\n");
+ 		ir_proto_packet[0] = 0x01;
+-		pad_mouse = false;
+ 		break;
+ 	case RC_TYPE_UNKNOWN:
+ 	case RC_TYPE_OTHER:
+ 		dev_dbg(dev, "Configuring IR receiver for iMON protocol\n");
+-		if (pad_stabilize && !nomouse)
+-			pad_mouse = true;
+-		else {
++		if (!pad_stabilize)
+ 			dev_dbg(dev, "PAD stabilize functionality disabled\n");
+-			pad_mouse = false;
+-		}
+ 		/* ir_proto_packet[0] = 0x00; // already the default */
+ 		rc_type = RC_TYPE_OTHER;
+ 		break;
+ 	default:
+ 		dev_warn(dev, "Unsupported IR protocol specified, overriding "
+ 			 "to iMON IR protocol\n");
+-		if (pad_stabilize && !nomouse)
+-			pad_mouse = true;
+-		else {
++		if (!pad_stabilize)
+ 			dev_dbg(dev, "PAD stabilize functionality disabled\n");
+-			pad_mouse = false;
+-		}
+ 		/* ir_proto_packet[0] = 0x00; // already the default */
+ 		rc_type = RC_TYPE_OTHER;
+ 		break;
+@@ -1035,7 +1025,7 @@ static int imon_ir_change_protocol(struct rc_dev *rc, u64 rc_type)
+ 		goto out;
+ 
+ 	ictx->rc_type = rc_type;
+-	ictx->pad_mouse = pad_mouse;
++	ictx->pad_mouse = false;
+ 
+ out:
+ 	return retval;
+@@ -1517,7 +1507,7 @@ static void imon_incoming_packet(struct imon_context *ictx,
+ 			spin_unlock_irqrestore(&ictx->kc_lock, flags);
+ 			return;
+ 		} else {
+-			ictx->pad_mouse = 0;
++			ictx->pad_mouse = false;
+ 			dev_dbg(dev, "mouse mode disabled, passing key value\n");
+ 		}
+ 	}
+-- 
+1.7.3.4
+
