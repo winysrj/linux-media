@@ -1,50 +1,56 @@
-Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:54549 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1753145Ab1AJJjW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jan 2011 04:39:22 -0500
-From: Oliver Endriss <o.endriss@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com
-Subject: [PATCH 14/16] stv090x: Fix losing lock in dual DVB-S2 mode
-Date: Mon, 10 Jan 2011 10:36:22 +0100
-Message-Id: <1294652184-12843-15-git-send-email-o.endriss@gmx.de>
-In-Reply-To: <1294652184-12843-1-git-send-email-o.endriss@gmx.de>
-References: <1294652184-12843-1-git-send-email-o.endriss@gmx.de>
+Return-path: <mchehab@gaivota>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45379 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753088Ab1AFPPg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jan 2011 10:15:36 -0500
+From: "Nori, Sekhar" <nsekhar@ti.com>
+To: "mchehab@redhat.com" <mchehab@redhat.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Thu, 6 Jan 2011 20:45:16 +0530
+Subject: [GIT PATCHES FOR 2.6.38] DaVinci VPIF: Support for DV preset and DV
+ timings and core-assisted locking (v2)
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930248201AB0@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Do not clear registers ACLC/BCLC in DVB-S2 mode for Cut <= 20.
-Otherwise, the demod could lose the lock periodically.
-Verified with cineS2 and Duoflex.
+Hi Mauro,
 
-Signed-off-by: Oliver Endriss <o.endriss@gmx.de>
-Signed-off-by: Manu Abraham <manu@linuxtv.org>
----
- drivers/media/dvb/frontends/stv090x.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+Here is an updated pull request for DV preset and DV timing
+support on VPIF as well as core-assisted locking support.
 
-diff --git a/drivers/media/dvb/frontends/stv090x.c b/drivers/media/dvb/frontends/stv090x.c
-index 57e229a..1675c2a 100644
---- a/drivers/media/dvb/frontends/stv090x.c
-+++ b/drivers/media/dvb/frontends/stv090x.c
-@@ -2894,10 +2894,12 @@ static int stv090x_optimize_track(struct stv090x_state *state)
- 		STV090x_SETFIELD_Px(reg, DVBS2_ENABLE_FIELD, 1);
- 		if (STV090x_WRITE_DEMOD(state, DMDCFGMD, reg) < 0)
- 			goto err;
--		if (STV090x_WRITE_DEMOD(state, ACLC, 0) < 0)
--			goto err;
--		if (STV090x_WRITE_DEMOD(state, BCLC, 0) < 0)
--			goto err;
-+		if (state->internal->dev_ver >= 0x30) {
-+			if (STV090x_WRITE_DEMOD(state, ACLC, 0) < 0)
-+				goto err;
-+			if (STV090x_WRITE_DEMOD(state, BCLC, 0) < 0)
-+				goto err;
-+		}
- 		if (state->frame_len == STV090x_LONG_FRAME) {
- 			reg = STV090x_READ_DEMOD(state, DMDMODCOD);
- 			modcod = STV090x_GETFIELD_Px(reg, DEMOD_MODCOD_FIELD);
--- 
-1.6.5.3
+All the changes are local to DaVinci VPIF driver. The patches
+have been reviewed on linux-media and acked by TI developers.
 
+Thanks,
+Sekhar
+
+The following changes since commit aeb13b434d0953050306435cd3134d65547dbcf4:
+  Mauro Carvalho Chehab (1):
+        cx25821: Fix compilation breakage due to BKL dependency
+
+are available in the git repository at:
+
+  git://arago-project.org/git/projects/linux-davinci.git for-mauro
+
+Hans Verkuil (2):
+      davinci: convert vpif_capture to core-assisted locking
+      davinci: convert vpif_display to core-assisted locking
+
+Mats Randgaard (5):
+      vpif_cap/disp: Add debug functionality
+      vpif: Consolidate formats from capture and display
+      vpif_cap/disp: Add support for DV presets
+      vpif_cap/disp: Added support for DV timings
+      vpif_cap/disp: Cleanup, improved comments
+
+ drivers/media/video/davinci/vpif.c         |  177 +++++++++++
+ drivers/media/video/davinci/vpif.h         |   18 +-
+ drivers/media/video/davinci/vpif_capture.c |  451 ++++++++++++++++++++------
+ drivers/media/video/davinci/vpif_capture.h |    2 +
+ drivers/media/video/davinci/vpif_display.c |  474 +++++++++++++++++++++-------
+ drivers/media/video/davinci/vpif_display.h |    2 +
+ 6 files changed, 907 insertions(+), 217 deletions(-)
