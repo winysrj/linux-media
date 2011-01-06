@@ -1,43 +1,90 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50345 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750982Ab1AJLHN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jan 2011 06:07:13 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR 2.6.38] Control framework fixes
-Date: Mon, 10 Jan 2011 12:08:00 +0100
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from cantor2.suse.de ([195.135.220.15]:53738 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752060Ab1AFXuZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 6 Jan 2011 18:50:25 -0500
+Date: Thu, 6 Jan 2011 15:46:12 -0800
+From: Greg KH <gregkh@suse.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
+	clemens@ladisch.de, sakari.ailus@maxwell.research.nokia.com
+Subject: Re: [RFC/PATCH v7 01/12] media: Media device node support
+Message-ID: <20110106234612.GA2097@suse.de>
+References: <1292844995-7900-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <201012241259.39148.laurent.pinchart@ideasonboard.com>
+ <20110106221912.GA31328@suse.de>
+ <201101070027.11150.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201101101208.00917.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201101070027.11150.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+On Fri, Jan 07, 2011 at 12:27:11AM +0100, Hans Verkuil wrote:
+> On Thursday, January 06, 2011 23:19:12 Greg KH wrote:
+> 
+> <snip>
+> 
+> > > > > +static ssize_t media_read(struct file *filp, char __user *buf,
+> > > > > +		size_t sz, loff_t *off)
+> > > > > +{
+> > > > > +	struct media_devnode *mdev = media_devnode_data(filp);
+> > > > > +
+> > > > > +	if (!mdev->fops->read)
+> > > > > +		return -EINVAL;
+> > > > > +	if (!media_devnode_is_registered(mdev))
+> > > > > +		return -EIO;
+> > > > 
+> > > > How could this happen?
+> > > 
+> > > This can happen when a USB device is disconnected for instance.
+> > 
+> > But what's to keep that from happening on the next line as well?
+> 
+> Nothing.
+> 
+> > That
+> > doesn't seem like a check you can ever be sure about, so I wouldn't do
+> > it at all.
+> 
+> Actually, there is a reason why this was done for v4l (and now the media
+> API): typically, once a USB disconnect happens V4L drivers will call
+> video_unregister_device() which calls device_unregister. Afterwards the
+> device node should reject any new file operations except for release().
+> 
+> Obviously, this check can be done in the driver as well, but doing this
+> check in the V4L core has the advantage of 1) consistent return codes and
+> 2) drivers no longer have to check.
+> 
+> Of course, since the disconnect can happen at any time drivers still need
+> to be able to handle errors from the USB subsystem due to disconnects, but
+> that is something they always have to do.
+> 
+> > 
+> > > > And are you sure -EIO is correct?
+> > > 
+> > > -ENXIO is probably better (I always confuse that with -ENODEV).
+> 
+> I wondered why V4L uses -EIO and I think it is related to the V4L2 specification
+> of the read() function:
+> 
+> EIO
+> I/O error. This indicates some hardware problem or a failure to communicate with
+> a remote device (USB camera etc.).
+> 
+> Well, I guess a disconnect can be seen as a failure to communicate :-)
+> 
+> I think that ENODEV is much better. After all, there is no device
+> anymore after a disconnect.
+> 
+> Is there some standard for this?
 
-The following changes since commit 0a97a683049d83deaf636d18316358065417d87b:
+I've always thought that -ENODEV was good for when the device
+disappeared.
 
-  [media] cpia2: convert .ioctl to .unlocked_ioctl (2011-01-06 11:34:41 -0200)
+thanks,
 
-are available in the git repository at:
-  git://linuxtv.org/pinchartl/media.git ctrl-framework
-
-Could you please include them in the next pull request for 2.6.38 ? The second 
-one is a bug fix and has been reviewed by Hans.
-
-Laurent Pinchart (2):
-      v4l: Include linux/videodev2.h in media/v4l2-ctrls.h
-      v4l: Fix a use-before-set in the control framework
-
- drivers/media/video/v4l2-ctrls.c |    2 +-
- include/media/v4l2-ctrls.h       |    1 +
- 2 files changed, 2 insertions(+), 1 deletions(-)
-
--- 
-Regards,
-
-Laurent Pinchart
+greg k-h
