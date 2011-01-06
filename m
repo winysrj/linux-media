@@ -1,95 +1,116 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:61708 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753354Ab1AXP1X (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Jan 2011 10:27:23 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p0OFRMVs032422
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 24 Jan 2011 10:27:23 -0500
-Received: from pedra (vpn-236-9.phx2.redhat.com [10.3.236.9])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p0OFJARt027064
-	for <linux-media@vger.kernel.org>; Mon, 24 Jan 2011 10:27:21 -0500
-Date: Mon, 24 Jan 2011 13:18:40 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 05/13] [media] dw2102: Use multimedia keys instead of an
- app-specific mapping
-Message-ID: <20110124131840.28802d35@pedra>
-In-Reply-To: <cover.1295882104.git.mchehab@redhat.com>
-References: <cover.1295882104.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Return-path: <mchehab@gaivota>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:55603 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751522Ab1AFNZD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jan 2011 08:25:03 -0500
+Received: by wwa36 with SMTP id 36so17402208wwa.1
+        for <linux-media@vger.kernel.org>; Thu, 06 Jan 2011 05:25:01 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4D25BC22.6080803@samsung.com>
+References: <4D25BC22.6080803@samsung.com>
+Date: Thu, 6 Jan 2011 22:25:01 +0900
+Message-ID: <AANLkTi=P8qY22saY9a_-rze1wsr-DLMgc6Lfa6qnfM7u@mail.gmail.com>
+Subject: Memory sharing issue by application on V4L2 based device driver with
+ system mmu.
+From: InKi Dae <daeinki@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=EUC-KR
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-This driver uses an app-specific keymap for one of the tables. This
-is wrong. Instead, use the standard keycodes.
+Hello, all.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+I'd like to discuss memory sharing issue by application on v4l2 based
+device driver with system mmu and get some advices about that.
 
-diff --git a/drivers/media/dvb/dvb-usb/dw2102.c b/drivers/media/dvb/dvb-usb/dw2102.c
-index 2c307ba..3544dff 100644
---- a/drivers/media/dvb/dvb-usb/dw2102.c
-+++ b/drivers/media/dvb/dvb-usb/dw2102.c
-@@ -949,8 +949,8 @@ static int dw3101_tuner_attach(struct dvb_usb_adapter *adap)
- }
- 
- static struct rc_map_table rc_map_dw210x_table[] = {
--	{ 0xf80a, KEY_Q },		/*power*/
--	{ 0xf80c, KEY_M },		/*mute*/
-+	{ 0xf80a, KEY_POWER2 },		/*power*/
-+	{ 0xf80c, KEY_MUTE },		/*mute*/
- 	{ 0xf811, KEY_1 },
- 	{ 0xf812, KEY_2 },
- 	{ 0xf813, KEY_3 },
-@@ -961,25 +961,25 @@ static struct rc_map_table rc_map_dw210x_table[] = {
- 	{ 0xf818, KEY_8 },
- 	{ 0xf819, KEY_9 },
- 	{ 0xf810, KEY_0 },
--	{ 0xf81c, KEY_PAGEUP },	/*ch+*/
--	{ 0xf80f, KEY_PAGEDOWN },	/*ch-*/
--	{ 0xf81a, KEY_O },		/*vol+*/
--	{ 0xf80e, KEY_Z },		/*vol-*/
--	{ 0xf804, KEY_R },		/*rec*/
--	{ 0xf809, KEY_D },		/*fav*/
--	{ 0xf808, KEY_BACKSPACE },	/*rewind*/
--	{ 0xf807, KEY_A },		/*fast*/
--	{ 0xf80b, KEY_P },		/*pause*/
--	{ 0xf802, KEY_ESC },	/*cancel*/
--	{ 0xf803, KEY_G },		/*tab*/
-+	{ 0xf81c, KEY_CHANNELUP },	/*ch+*/
-+	{ 0xf80f, KEY_CHANNELDOWN },	/*ch-*/
-+	{ 0xf81a, KEY_VOLUMEUP },	/*vol+*/
-+	{ 0xf80e, KEY_VOLUMEDOWN },	/*vol-*/
-+	{ 0xf804, KEY_RECORD },		/*rec*/
-+	{ 0xf809, KEY_FAVORITES },	/*fav*/
-+	{ 0xf808, KEY_REWIND },		/*rewind*/
-+	{ 0xf807, KEY_FASTFORWARD },	/*fast*/
-+	{ 0xf80b, KEY_PAUSE },		/*pause*/
-+	{ 0xf802, KEY_ESC },		/*cancel*/
-+	{ 0xf803, KEY_TAB },		/*tab*/
- 	{ 0xf800, KEY_UP },		/*up*/
--	{ 0xf81f, KEY_ENTER },	/*ok*/
--	{ 0xf801, KEY_DOWN },	/*down*/
--	{ 0xf805, KEY_C },		/*cap*/
--	{ 0xf806, KEY_S },		/*stop*/
--	{ 0xf840, KEY_F },		/*full*/
--	{ 0xf81e, KEY_W },		/*tvmode*/
--	{ 0xf81b, KEY_B },		/*recall*/
-+	{ 0xf81f, KEY_OK },		/*ok*/
-+	{ 0xf801, KEY_DOWN },		/*down*/
-+	{ 0xf805, KEY_CAMERA },		/*cap*/
-+	{ 0xf806, KEY_STOP },		/*stop*/
-+	{ 0xf840, KEY_ZOOM },		/*full*/
-+	{ 0xf81e, KEY_TV },		/*tvmode*/
-+	{ 0xf81b, KEY_LAST },		/*recall*/
- };
- 
- static struct rc_map_table rc_map_tevii_table[] = {
--- 
-1.7.1
+Now I am working on Samsung SoC C210 platform and this platform has some
+multimedia devices with system mmu such as fimc, and mfc also we have
+implemented device drivers for them. those drivers are based on V4L2
+framework with videobuf2. for system mmu of each device, we used
+VCM(Virtual Contiguous Memory) framework.
+
+Simply, VCM framework provides  physical memory, device virtual memory
+allocation and memory mapping between them. when device driver is
+initialized or operated by user application, each driver allocates
+physical memory and device virtual memory and then mapping using VCM
+interface.
+
+refer to below link for more detail.
+http://www.spinics.net/lists/linux-media/msg26548.html
+
+Physical memory access process is as the following.
+           DVA                          PA
+device --------------> system mmu ------------------> physical memory
+
+DVA : device virtual address.
+PA : physical address.
+
+like this, device virtual address should be set to buffer(source or
+destination) register of multimedia device.
+
+the problem is that application want to share own memory with any device
+driver to avoid memory copy. in other words, user-allocated memory could
+be source or destination memory of multimedia device driver.
 
 
+let's see the diagram below.
+
+               user application
+
+                     |
+                     |
+                     |
+                     |
+                     |  1. UVA(allocated by malloc)
+                     |
+                     |
+                   ¡¬|/                   2. UVA(in page unit)
+
+       -----> multimedia device driver -------------------> videobuf2
+       |
+       |        |     ^                                         |
+       |        |     |                                         |
+       |        |     -------------------------------------------
+       |        |                    3. PA(in page unit)
+       |        |
+       |        | 4. PA(in page unit)
+6. DVA  |        |
+       |        |
+       |        |
+       |      ¡¬|/
+       |
+       |       Virtual Contiguous Memory ---------
+       |                                         |
+       |           |     ^                       |
+       |           |     |                       | 5. map PA to DVA
+       |           |     |                       |
+       |           |     |                       |
+       -------------     -------------------------
+
+PA : physical address.
+UVA : user virtual address.
+DVA : device virtual address.
+
+1. user application allocates user space memory through malloc function
+and sending it to multimedia device driver based on v4l2 framework
+through userptr feature.
+
+2, 3. multimedia device driver gets translated physical address from
+videobuf2 framework in page unit.
+
+4, 5. multimedia device driver gets allocated device virtual address and
+mapping it to physical address and then mapping them through VCM interface.
+
+6. multimedia device driver sets device virtual address from VCM to
+buffer register.
+
+the diagram above is fully theoretical so I wonder that this way is
+reasonable and has some problems also what should be considered.
+
+thank you for your interesting.
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
