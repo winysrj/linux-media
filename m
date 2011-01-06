@@ -1,52 +1,82 @@
-Return-path: <mchehab@pedra>
-Received: from grimli.r00tworld.net ([83.169.44.195]:44680 "EHLO
-	mail.r00tworld.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752400Ab1A3KQH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Jan 2011 05:16:07 -0500
-From: Mathias Krause <minipli@googlemail.com>
+Return-path: <mchehab@gaivota>
+Received: from mx1.redhat.com ([209.132.183.28]:60255 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753356Ab1AFT77 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 6 Jan 2011 14:59:59 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p06JxxGk017238
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 6 Jan 2011 14:59:59 -0500
+From: Jarod Wilson <jarod@redhat.com>
 To: linux-media@vger.kernel.org
-Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Mathias Krause <minipli@googlemail.com>
-Subject: [PATCH] [media] OMAP1: fix use after free
-Date: Sun, 30 Jan 2011 11:05:58 +0100
-Message-Id: <1296381958-15760-1-git-send-email-minipli@googlemail.com>
+Cc: Jarod Wilson <jarod@redhat.com>
+Subject: [PATCH 3/6] rc/imon: need to submit urb before ffdc type check
+Date: Thu,  6 Jan 2011 14:59:34 -0500
+Message-Id: <1294343977-31929-4-git-send-email-jarod@redhat.com>
+In-Reply-To: <1294343839-31784-1-git-send-email-jarod@redhat.com>
+References: <1294343839-31784-1-git-send-email-jarod@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Even though clk_put() is a no-op on most architectures it is not for
-some ARM implementations. To not fail on those, release the clock timer
-before freeing the surrounding structure.
+Otherwise, we have a null receive buffer, and the logic all falls down,
+goes boom, all ffdc devs wind up as imon IR w/VFD. Oops.
 
-This bug was spotted by the semantic patch tool coccinelle using the
-script found at scripts/coccinelle/free/kfree.cocci.
-
-More information about semantic patching is available at
-http://coccinelle.lip6.fr/
-
-Signed-off-by: Mathias Krause <minipli@googlemail.com>
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
 ---
- drivers/media/video/omap1_camera.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/rc/imon.c |   28 ++++++++++++++--------------
+ 1 files changed, 14 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/video/omap1_camera.c b/drivers/media/video/omap1_camera.c
-index 0a2fb2b..9ed1513 100644
---- a/drivers/media/video/omap1_camera.c
-+++ b/drivers/media/video/omap1_camera.c
-@@ -1664,10 +1664,10 @@ static int __exit omap1_cam_remove(struct platform_device *pdev)
- 	res = pcdev->res;
- 	release_mem_region(res->start, resource_size(res));
+diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
+index a30bd99..7034207 100644
+--- a/drivers/media/rc/imon.c
++++ b/drivers/media/rc/imon.c
+@@ -2110,18 +2110,6 @@ static struct imon_context *imon_init_intf0(struct usb_interface *intf)
+ 		goto find_endpoint_failed;
+ 	}
  
--	kfree(pcdev);
+-	ictx->idev = imon_init_idev(ictx);
+-	if (!ictx->idev) {
+-		dev_err(dev, "%s: input device setup failed\n", __func__);
+-		goto idev_setup_failed;
+-	}
 -
- 	clk_put(pcdev->clk);
+-	ictx->rdev = imon_init_rdev(ictx);
+-	if (!ictx->rdev) {
+-		dev_err(dev, "%s: rc device setup failed\n", __func__);
+-		goto rdev_setup_failed;
+-	}
+-
+ 	usb_fill_int_urb(ictx->rx_urb_intf0, ictx->usbdev_intf0,
+ 		usb_rcvintpipe(ictx->usbdev_intf0,
+ 			ictx->rx_endpoint_intf0->bEndpointAddress),
+@@ -2135,13 +2123,25 @@ static struct imon_context *imon_init_intf0(struct usb_interface *intf)
+ 		goto urb_submit_failed;
+ 	}
  
-+	kfree(pcdev);
++	ictx->idev = imon_init_idev(ictx);
++	if (!ictx->idev) {
++		dev_err(dev, "%s: input device setup failed\n", __func__);
++		goto idev_setup_failed;
++	}
 +
- 	dev_info(&pdev->dev, "OMAP1 Camera Interface driver unloaded\n");
++	ictx->rdev = imon_init_rdev(ictx);
++	if (!ictx->rdev) {
++		dev_err(dev, "%s: rc device setup failed\n", __func__);
++		goto rdev_setup_failed;
++	}
++
+ 	return ictx;
  
- 	return 0;
+-urb_submit_failed:
+-	rc_unregister_device(ictx->rdev);
+ rdev_setup_failed:
+ 	input_unregister_device(ictx->idev);
+ idev_setup_failed:
++	usb_kill_urb(ictx->rx_urb_intf0);
++urb_submit_failed:
+ find_endpoint_failed:
+ 	mutex_unlock(&ictx->lock);
+ 	usb_free_urb(tx_urb);
 -- 
-1.5.6.5
+1.7.3.4
 
