@@ -1,66 +1,65 @@
-Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:14869 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754983Ab1A1M5L (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Jan 2011 07:57:11 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from spt2.w1.samsung.com ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LFQ00JK5HB7AR80@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 28 Jan 2011 12:57:08 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LFQ00DXXHB7XJ@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 28 Jan 2011 12:57:07 +0000 (GMT)
-Date: Fri, 28 Jan 2011 13:56:40 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 2/2] v4l2: vb2-dma-sg: fix memory leak
-In-reply-to: <1296219400-2582-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	kyungmin.park@samsung.com,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Message-id: <1296219400-2582-3-git-send-email-m.szyprowski@samsung.com>
-References: <1296219400-2582-1-git-send-email-m.szyprowski@samsung.com>
+Return-path: <mchehab@gaivota>
+Received: from mx1.redhat.com ([209.132.183.28]:8475 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752817Ab1AFKpO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 6 Jan 2011 05:45:14 -0500
+Message-ID: <4D259D31.2040403@redhat.com>
+Date: Thu, 06 Jan 2011 08:45:05 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: "Nori, Sekhar" <nsekhar@ti.com>
+CC: "'Hans Verkuil'" <hverkuil@xs4all.nl>,
+	"Hadli, Manjunath" <manjunath.hadli@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [RFC PATCH 0/2] davinci: convert to core-assisted locking
+References: <1294245760-2803-1-git-send-email-hverkuil@xs4all.nl> <B85A65D85D7EB246BE421B3FB0FBB5930247F9A81E@dbde02.ent.ti.com> <B85A65D85D7EB246BE421B3FB0FBB5930248201846@dbde02.ent.ti.com>
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB5930248201846@dbde02.ent.ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Em 06-01-2011 08:17, Nori, Sekhar escreveu:
+> Hi Mauro,
+> 
+> On Thu, Jan 06, 2011 at 12:10:07, Hadli, Manjunath wrote:
+>> Tested for SD loopback and other IOCTLS. Reviewed the patches.
+>>
+>> Patch series Acked by: Manjunath Hadli <Manjunath.hadli@ti.com> 	
+> 
+> Shall I add these two patches as well to the pull request I sent
+> yesterday[1]? These changes are localized to the DaVinci VPIF driver
+> and should be safe to take in.
+> 
+> I can also send a separate pull request.
+> 
+> Let me know and I will do that way.
 
-This patch fixes two minor memory leaks in videobuf2-dma-sg module. They
-might happen only in case some other operations (like memory allocation)
-failed.
+Just add them and re-send your pull request.
 
-Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/video/videobuf2-dma-sg.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/videobuf2-dma-sg.c b/drivers/media/video/videobuf2-dma-sg.c
-index 20b5c5d..d5311ff 100644
---- a/drivers/media/video/videobuf2-dma-sg.c
-+++ b/drivers/media/video/videobuf2-dma-sg.c
-@@ -88,6 +88,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size)
- fail_pages_alloc:
- 	while (--i >= 0)
- 		__free_page(buf->pages[i]);
-+	kfree(buf->pages);
- 
- fail_pages_array_alloc:
- 	vfree(buf->sg_desc.sglist);
-@@ -176,6 +177,7 @@ userptr_fail_get_user_pages:
- 	       num_pages_from_user, buf->sg_desc.num_pages);
- 	while (--num_pages_from_user >= 0)
- 		put_page(buf->pages[num_pages_from_user]);
-+	kfree(buf->pages);
- 
- userptr_fail_pages_array_alloc:
- 	vfree(buf->sg_desc.sglist);
--- 
-1.7.1.569.g6f426
+> 
+> Thanks,
+> Sekhar
+> 
+> [1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg26594.html
+> 
+>> -Manju
+>>
+>> On Wed, Jan 05, 2011 at 22:12:38, Hans Verkuil wrote:
+>>>
+>>> These two patches convert vpif_capture and vpif_display to core-assisted locking and now use .unlocked_ioctl instead of .ioctl.
+>>>
+>>> These patches assume that the 'DaVinci VPIF: Support for DV preset and DV timings' patch series was applied first. See:
+>>>
+>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg26594.html
+>>>
+>>> These patches are targeted for 2.6.38.
+>>>
+>>> Regards,
+>>>
+>>> 	Hans
+>>>
+>>
+>>
+> 
 
