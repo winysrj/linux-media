@@ -1,199 +1,256 @@
 Return-path: <mchehab@pedra>
-Received: from quail.cita.utoronto.ca ([128.100.76.6]:59638 "EHLO
-	quail.cita.utoronto.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932413Ab1ALNaI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Jan 2011 08:30:08 -0500
-Received: from cita.utoronto.ca (grizzly.cita.utoronto.ca [128.100.76.62])
-	by quail.cita.utoronto.ca (8.13.8/8.13.8) with ESMTP id p0CDHWxH030817
-	for <linux-media@vger.kernel.org>; Wed, 12 Jan 2011 08:17:32 -0500
-Received: from grizzly.cita.utoronto.ca (localhost [127.0.0.1])
-	by cita.utoronto.ca (8.14.4/8.14.4) with ESMTP id p0CDHWGn028704
-	for <linux-media@vger.kernel.org>; Wed, 12 Jan 2011 08:17:32 -0500
-Received: (from rjh@localhost)
-	by grizzly.cita.utoronto.ca (8.14.4/8.14.4/Submit) id p0CDHWu8028702
-	for linux-media@vger.kernel.org; Wed, 12 Jan 2011 08:17:32 -0500
-Date: Wed, 12 Jan 2011 08:17:32 -0500
-From: Robin Humble <robin.humble+dvb@anu.edu.au>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] dib7000m/p: struct alignment fix
-Message-ID: <20110112131732.GA26294@grizzly.cita.utoronto.ca>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53973 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752776Ab1AGOP7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jan 2011 09:15:59 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Subject: Re: [RFC] Cropping and scaling with subdev pad-level operations
+Date: Fri, 7 Jan 2011 15:16:42 +0100
+Cc: linux-media@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+References: <201101061633.30029.laurent.pinchart@ideasonboard.com> <1294338536.5589.77.camel@morgan.silverblock.net>
+In-Reply-To: <1294338536.5589.77.camel@morgan.silverblock.net>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="opJtzjQTFsWo+cga"
-Content-Disposition: inline
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201101071516.42933.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Hi Andy,
 
---opJtzjQTFsWo+cga
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Thursday 06 January 2011 19:28:56 Andy Walls wrote:
+> On Thu, 2011-01-06 at 16:33 +0100, Laurent Pinchart wrote:
+> > Hi everybody,
+> > 
+> > I ran into an issue when implementing cropping and scaling on the OMAP3
+> > ISP resizer sub-device using the pad-level operations. As nobody seems
+> > to be happy with the V4L2 crop ioctls, I thought I would ask for
+> > comments about the subdev pad-level API to avoid repeating the same
+> > mistakes.
+> > 
+> > A little background information first. The OMAP3 ISP resizer has an input
+> > and an output pad. It receives images on its input pad, performs
+> > cropping to a user-configurable rectange and then scales that rectangle
+> > up or down to a user-configurable output size. The resulting image is
+> > output on the output pad.
+> > 
+> > The hardware sets various restrictions on the crop rectangle and on the
+> > output size, or more precisely on the relationship between them.
+> > Horizontal and vertical scaling ratios are independent (at least
+> > independent enough for the purpose of this discussion), so I'll will not
+> > comment on one of them in particular.
+> > 
+> > The minimum and maximum scaling ratios are roughly 1/4 and x4. A complex
+> > equation describes the relationship between the ratio, the cropped size
+> > and the output size. It involves integer arithmetics and must be
+> > fullfilled exactly, so not all combination of crop rectangle and output
+> > size can be achieved.
+> > 
+> > The driver expects the user to set the input size first. It propagates
+> > the input format to the output pad, resetting the crop rectangle. That
+> > behaviour is common to all the OMAP3 ISP modules, and I don't think much
+> > discussion is needed there.
+> 
+> I'll note here that the driver is allowing the application to make *two*
+> assumptions here:
+> 
+> 	output size == input size
+> and
+> 	output pixel resolution == input pixel resolution
+> 
+> If I'm taking a picture of a building, at a distance from the building
+> such that the input image has a resolution of 1 pixel per 5 cm in the
+> plane of the building, then the output image also has a pixel resolution
+> of 1 pixel per 5 cm in the plane of the building.
 
-Hi,
+I'm not sure to follow you here. If the resizer upscales the image by 2, you 
+will have 2 pixels per 5 cm at the output.
 
-this is basically a re-post of
-  http://www.linuxtv.org/pipermail/linux-dvb/2010-September/032744.html
-which fixes an Oops when tuning eg. AVerMedia DVB-T Volar, Hauppauge
-Nova-T, Winfast DTV. it seems to be quite commonly reported on this list.
+> > The user can then configure the crop rectangle and the output size
+> > independently. As not all combinations are possible, configuring one of
+> > them can modify the other one as a side effect.
+> 
+> What enforces the modification, the hardware or the driver?
 
- [  809.128579] BUG: unable to handle kernel NULL pointer dereference at 0000000000000012
- [  809.128586] IP: [<ffffffffa0013702>] i2c_transfer+0x16/0x124 [i2c_core]
- [  809.128598] PGD 669a7067 PUD 79e5f067 PMD 0
- [  809.128604] Oops: 0000 [#1] SMP
- [  809.128608] last sysfs file: /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
- [  809.128612] CPU 0
- [  809.128614] Modules linked in: tcp_lp fuse coretemp hwmon_vid cpufreq_ondemand acpi_cpufreq freq_table mperf ip6t_REJECT nf_conntrack_ipv6 ip6table_filter ip6_tables ipv6 xfs exportfs uinput mt2060 mxl5005s af9013 dvb_usb_dib0700 ir_lirc_codec lirc_dev ir_sony_decoder ir_jvc_decoder dib7000p dib0090 dib7000m dvb_usb_af9015 dib0070 dvb_usb dib8000 dvb_core dib3000mc ir_rc6_decoder dibx000_common snd_hda_codec_intelhdmi ir_rc5_decoder snd_hda_codec_realtek snd_hda_intel ir_nec_decoder snd_hda_codec ldusb i2c_i801 snd_hwdep snd_seq snd_seq_device rc_core atl1 asus_atk0110 snd_pcm snd_timer mii snd soundcore snd_page_alloc iTCO_wdt iTCO_vendor_support microcode raid456 async_raid6_recov async_pq raid6_pq async_xor xor async_memcpy async_tx raid1 ata_generic firewire_ohci pata_acpi firewire_core crc_itu_t pata_jmicron i915 drm_kms_helper drm i2c_algo_bit i2c_core video output [last unloaded: scsi_wait_scan]
- [  809.128692]
- [  809.128696] Pid: 2525, comm: tzap Not tainted 2.6.35.10-72.fc14.x86_64 #1 P5E-VM HDMI/P5E-VM HDMI
- [  809.128700] RIP: 0010:[<ffffffffa0013702>]  [<ffffffffa0013702>] i2c_transfer+0x16/0x124 [i2c_core]
- [  809.128708] RSP: 0018:ffff880064a83ae8  EFLAGS: 00010296
- [  809.128712] RAX: ffff880064a83b58 RBX: 00000000000000eb RCX: 0000000000000000
- [  809.128715] RDX: 0000000000000002 RSI: ffff880064a83b38 RDI: 0000000000000002
- [  809.128718] RBP: ffff880064a83b28 R08: ffff880079bcf7c0 R09: 0000000050000d80
- [  809.128721] R10: 0000000000000005 R11: 0000000000004a38 R12: 0000000000000001
- [  809.128725] R13: 0000000000000000 R14: ffffc900237e8000 R15: ffffc90023907000
- [  809.128729] FS:  00007f2ff2dd3720(0000) GS:ffff880002000000(0000) knlGS:0000000000000000
- [  809.128732] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
- [  809.128736] CR2: 0000000000000012 CR3: 000000007830d000 CR4: 00000000000006f0
- [  809.128739] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
- [  809.128743] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
- [  809.128746] Process tzap (pid: 2525, threadinfo ffff880064a82000, task ffff8800379745c0)
- [  809.128749] Stack:
- [  809.128751]  ffff880064a83af8 ffffffff8103c142 ffff880079c41a90 00000000000000eb
- [  809.128757] <0> 0000000000000001 0000000000000000 ffffc900237e8000 ffffc90023907000
- [  809.128762] <0> ffff880064a83b88 ffffffffa0407124 0000000200000030 ffff880064a83b68
- [  809.128768] Call Trace:
- [  809.128776]  [<ffffffff8103c142>] ? need_resched+0x23/0x2d
- [  809.128783]  [<ffffffffa0407124>] dib7000p_read_word+0x6d/0xbc [dib7000p]
- [  809.128789]  [<ffffffff813360eb>] ? usb_submit_urb+0x2f8/0x33a
- [  809.128795]  [<ffffffffa0407ae5>] dib7000p_pid_filter_ctrl+0x2d/0x90 [dib7000p]
- [  809.128802]  [<ffffffffa044f35f>] stk70x0p_pid_filter_ctrl+0x19/0x1e [dvb_usb_dib0700]
- [  809.128809]  [<ffffffffa03b4ef9>] dvb_usb_ctrl_feed+0xd7/0x123 [dvb_usb]
- [  809.128815]  [<ffffffffa03b4f6a>] dvb_usb_start_feed+0x13/0x15 [dvb_usb]
- [  809.128825]  [<ffffffffa035585c>] dmx_ts_feed_start_filtering+0x7d/0xd1 [dvb_core]
- [  809.128833]  [<ffffffffa03539fc>] dvb_dmxdev_start_feed.clone.1+0xbd/0xeb [dvb_core]
- [  809.128841]  [<ffffffffa0353cf9>] dvb_dmxdev_filter_start+0x2cf/0x31b [dvb_core]
- [  809.128847]  [<ffffffff81469b66>] ? _raw_spin_lock_irq+0x1f/0x21
- [  809.128854]  [<ffffffffa035444b>] dvb_demux_do_ioctl+0x27b/0x4c0 [dvb_core]
- [  809.128859]  [<ffffffff8103c15a>] ? should_resched+0xe/0x2e
- [  809.128867]  [<ffffffffa03528f3>] dvb_usercopy+0xe4/0x16b [dvb_core]
- [  809.128874]  [<ffffffffa03541d0>] ? dvb_demux_do_ioctl+0x0/0x4c0 [dvb_core]
- [  809.128881]  [<ffffffff811e3718>] ? inode_has_perm.clone.20+0x79/0x8f
- [  809.128886]  [<ffffffff810668ec>] ? remove_wait_queue+0x35/0x41
- [  809.128891]  [<ffffffff81469b7f>] ? _raw_spin_unlock_irqrestore+0x17/0x19
- [  809.128898]  [<ffffffffa0352fd1>] dvb_demux_ioctl+0x15/0x19 [dvb_core]
- [  809.128903]  [<ffffffff8112419b>] vfs_ioctl+0x36/0xa7
- [  809.128908]  [<ffffffff81124afc>] do_vfs_ioctl+0x468/0x49b
- [  809.128912]  [<ffffffff81124b85>] sys_ioctl+0x56/0x79
- [  809.128917]  [<ffffffff81009cf2>] system_call_fastpath+0x16/0x1b
- [  809.128920] Code: 89 55 f8 48 83 c7 58 48 c7 c2 47 32 01 a0 e8 92 09 2c e1 c9 c3 55 48 89 e5 41 57 41 56 41 55 41 54 53 48 83 ec 18 0f 1f 44 00 00 <48> 8b 47 10 48 89 fb 49 89 f6 41 89 d7 48 83 38 00 0f 84 92 00
- [  809.128965] RIP  [<ffffffffa0013702>] i2c_transfer+0x16/0x124 [i2c_core]
- [  809.128973]  RSP <ffff880064a83ae8>
- [  809.128975] CR2: 0000000000000012
- [  809.128979] ---[ end trace 6919129d55f94398 ]---
+The hardware requires several conditions to be fulfilled, and the driver 
+enforces that.
 
-this Oops occurs for me on all >2.6.32 kernels, including the current
-linux-media dvb git tree, and Fedora (13,14) kernels.
+> IMO, a crop should be a crop with no scaling or interpolation side
+> effects.  If I have 1 pixel per 5 cm on the input, I should get 1 pixel
+> per 5 cm on the output.
 
-Ubuntu has a bug open for the issue:
-  https://bugs.launchpad.net/ubuntu/+source/linux/+bug/654791
-but the disable pid filtering workaround one person uses there doesn't
-work for me.
+Correct, but I'm not talking about crop only. The OMAP3 ISP resizer first 
+crops the input image, and then scales the cropped image to output a cropped 
+and resized image.
 
-as per Vincent's original message, the problem occurs because these
-pieces of hardware are attached as dib7000m devices, but they use
-functions from the dib7000p module. the config structs are not the same
-between the 2 modules so as data is cast back and forward via
-dib7000m_state and dib7000p_state, garbage is read from *i2c_adap,
-causing the Oops.
+> Changing the output size when setting a new crop window is IMO the
+> correct thing to do since:
+> 
+> a. it maintains the pixel resolution (e.g. 1 pixel per 5 cm).
+> 
+> b. it is a predictable result that people and applications can rely upon
+> 
+> c. It fail due to any implicit zoom constraint violation
+> 
+> d. The application also knows what the new output size will be, since it
+> just set the crop window to that same size
+> 
+> >  This is where problems come from.
+> > 
+> > Let's assume that the input size, the crop rectangle and the output size
+> > are all set to 4000x4000. The user then wants to crop a 500x500
+> > rectangle and scale it up to 750x750.
+> > 
+> > If the user first sets the crop rectangle to 500x500,  the 4000x4000
+> > output size would result in a x8 scaling factor, not supported by the
+> > resizer. The driver must then either modify the requested crop rectangle
+> > or the output size to fullfill the hardware requirements.
+> 
+> My suggestion is to have the driver modify the output size as a side
+> effect.  Changing the output size already happens as a side effect when
+> the application sets the input size.
 
-the below patch against current git aligns the _config structs so that
-the common elements in the _config and _state structs can be read from
-either module. in particular, i2c_adap is at the same offset in _state
-for both.
+That's what we're currently doing, but it introduces an issue, see below.
 
-this patch has been tested on Fedora 14 kernel 2.6.35.10-72.fc14.x86_64
-with 2 AVerMedia Volar's and 2 other tuners. I expect it will fix the
-problems with the same chips in Nova-T and Winfast DTV units also.
+> > If the user first sets the output size to 750x750 we end up with a
+> > similar problem, and the driver needs to modify one of crop rectangle or
+> > output size as well.
+> > 
+> > When the stream is on, the output size can't be modified as it would
+> > change the captured frame size.
+> 
+> Hmm.
+> 
+> >  The crop rectangle and scaling ratios, on the other
+> > 
+> > hand, can be modified to implement digital zoom. For that reason, the
+> > resizer driver doesn't modify the output size when the crop rectangle is
+> > set while a stream is running, but restricts the crop rectangle size.
+> > With the above example as a starting point, requesting a 500x500 crop
+> > rectangle, which would result in an unsupported x8 zoom, will return a
+> > 1000x1000 crop rectangle.
+> 
+> But in this situation - fixed input size, fixed output size - you know
+> exactly what scaling levels are supported, 1/4x to 4x, right?
 
-please apply.
-it would be good to get this small fix into stable and into distros.
+The driver know what scaling factors are supported, but applications don't.
 
-cheers,
-robin
+> It sounds like this can be hidden from userpace with different behavior
+> inside the driver for the crop and scale API calls when streaming.
+> 
+> 1.  When streaming, a single crop or scale API request from userspace
+> would cause the driver to command all the required underlying crop and
+> scale operations for the resizer.
+> 
+> 2. When streaming stops, either
+> a. require the applications to query the state of the crop window and
+> output size, or
+> b. require drivers to revert to the original crop and scale settings
+> that were in place before streaming started
+> 
+> Bad idea?
 
---opJtzjQTFsWo+cga
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="dib7000.patch"
+I don't like 2.b., there's no real reason to revert the settings. As for 1., 
+what do you mean about a "single crop or scale API request" ? Scaling is 
+currently requested by modifying the input and/or output sizes (the input size 
+being the cropped rectangle in this case). While streaming, digital zoom is 
+thus performed by modifying the crop rectangle, without touching the output 
+size.
 
-Align and pad members in the dib7000m_config and dib7000p_config structs as
-they are shared between dib7000m and dib7000p modules when using AVerMedia
-Volar, Hauppauge Nova-T, Winfast DTV hardware.
+> > When the stream is off, we have two options:
+> > 
+> > - Handle crop rectangle modifications the same way as when the stream is
+> > on. This is cleaner, but bring one drawback. The user can't set the crop
+> > rectangle to 500x500 and output size to 750x750 directly. No matter
+> > whether the crop rectangle or output size is set first, the intermediate
+> > 500x5000/4000x4000 or 4000x4000/750x750 combination are invalid. An
+> > extra step will be needed: the crop rectangle will first be set to
+> > 1000x1000, the output size will then be set to 750x750, and the crop
+> > rectangle will finally be set to 500x500. That won't make life easy for
+> > userspace applications.
+> 
+>   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> There's a reason why you shouldn't choose this option.
+> 
+> Are the constraints between crop and output size going to be the same
+> for every resizer hardware variant or every driver?
 
-Signed-off-by: Robin Humble <robin.humble+dvb@anu.edu.au>
----
-diff --git a/drivers/media/dvb/frontends/dib7000m.h b/drivers/media/dvb/frontends/dib7000m.h
-index 113819c..de82f8b 100644
---- a/drivers/media/dvb/frontends/dib7000m.h
-+++ b/drivers/media/dvb/frontends/dib7000m.h
-@@ -4,16 +4,13 @@
- #include "dibx000_common.h"
- 
- struct dib7000m_config {
--	u8 dvbt_mode;
- 	u8 output_mpeg2_in_188_bytes;
- 	u8 hostbus_diversity;
- 	u8 tuner_is_baseband;
--	u8 mobile_mode;
- 	int (*update_lna) (struct dvb_frontend *, u16 agc_global);
- 
- 	u8 agc_config_count;
- 	struct dibx000_agc_config *agc;
--
- 	struct dibx000_bandwidth_config *bw;
- 
- #define DIB7000M_GPIO_DEFAULT_DIRECTIONS 0xffff
-@@ -31,9 +28,16 @@ struct dib7000m_config {
- 
- 	u8 quartz_direct;
- 
-+	int (*agc_control) (struct dvb_frontend *, u8 before);
-+
-+/* keep the above in sync with dib7000p_config and the below the same size */
-+
- 	u8 input_clk_is_div_2;
-+	u8 mobile_mode;
-+	u8 dvbt_mode;
- 
--	int (*agc_control) (struct dvb_frontend *, u8 before);
-+	u8 pad1;
-+	u8 pad2;
- };
- 
- #define DEFAULT_DIB7000M_I2C_ADDRESS 18
-diff --git a/drivers/media/dvb/frontends/dib7000p.h b/drivers/media/dvb/frontends/dib7000p.h
-index da17345..9c34485 100644
---- a/drivers/media/dvb/frontends/dib7000p.h
-+++ b/drivers/media/dvb/frontends/dib7000p.h
-@@ -28,16 +28,16 @@ struct dib7000p_config {
- 
- 	u8 quartz_direct;
- 
--	u8 spur_protect;
--
- 	int (*agc_control) (struct dvb_frontend *, u8 before);
- 
-+/* keep the above in sync with dib7000m_config and the below the same size */
-+
-+	u8 spur_protect;
- 	u8 output_mode;
- 	u8 disable_sample_and_hold : 1;
- 
- 	u8 enable_current_mirror : 1;
- 	u8 diversity_delay;
--
- };
- 
- #define DEFAULT_DIB7000P_I2C_ADDRESS 18
+I don't know, I don't have enough experience with similar hardware.
 
---opJtzjQTFsWo+cga--
+> > - Modify the output size when the crop rectangle is set. With this
+> > option, the output size is automatically set to the crop rectangle size
+> > when the crop rectangle is changed. With the above example, setting the
+> > crop rectangle to 500x500 will automatically set the output size to
+> > 500x500, and the user will then just have to set the output size to
+> > 750x750.
+> 
+> I like this one.  The result of the side effect is easily understood and
+> should be easy to implement for different hardware using the same API.
+
+I agree, and that's what the resizer driver currently implements. The issue 
+with this is described in my previous e-mail: applications can't query the 
+maximum zoom factor (or rather the minimum input crop rectangle size).
+
+> > The second option has a major drawback as well, as there's no way for
+> > applications to query the minimum/maximum zoom factor. With the first
+> > option an application can set the desired output size, and then set a
+> > very small crop rectangle to retrieve the minimum allowed crop rectangle
+> > (and thus the maximum zoom factor). With the second option the output
+> > size will be changed when the crop rectangle is set, so this isn't
+> > possible anymore.
+> > 
+> > Retrieving the maximum zoom factor in the stream off state is an
+> > application requirement to be able to display the zoom level on a GUI
+> > (with a slider for instance).
+> 
+> The application trying to make indirect behavior measurements to
+> determine maximum/minimum zoom seems odd.  Why can't the driver just
+> report those directly via some control or query?  The driver should know
+> the answer.
+
+Setting the crop rectangle is such a query :-) What else would you use ?
+
+> > The OMAP3 ISP resizer currently implements the second option, and I'll
+> > modify it to implement the first option. The drawback is that some
+> > crop/output combinations will require an extra step to be achieved. I'd
+> > like your opinion on this issue.
+> 
+> I'll opine for option 2.
+> 
+> > Is the behaviour described in option one acceptable ?
+> 
+> Is it possible to implement consistent behavior across all resizer
+> drivers, or will applications need apriori knowledge of the constraints
+> of underlying hardware device just to crop and scale an image?
+
+I don't know what constraints similar resizer hardware have, so I can't answer 
+this.
+
+> > Should the API be extended/modified to make it simpler for applications to
+> > configure the various sizes in the image pipeline ?
+> > 
+> >  Are we all doomed and will we have to use a crop/scale API that nobody
+> >  will ever understand ? :-)
+> 
+> I don't know.  It would be an interesting exercise to
+> 
+> 1. collect the assumptions people and applications currently make for a
+> "crop" function and a "scale" function
+
+Hence this RFC :-)
+
+> 2. look at what behavior and assumptions our current API and drivers
+> make for "crop" and "scale" functions
+> 
+> 3. determine what assumptions or behaviors can be supported across
+> different hardware/software resizer units, not just the OMAP.
+
+Thank you for your answer.
+
+-- 
+Regards,
+
+Laurent Pinchart
