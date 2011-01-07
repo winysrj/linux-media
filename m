@@ -1,120 +1,36 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:45231 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755583Ab1AKLR4 (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:4266 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754849Ab1AGBEF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jan 2011 06:17:56 -0500
-Date: Tue, 11 Jan 2011 13:17:51 +0200
-From: Felipe Balbi <balbi@ti.com>
-To: manjunatha_halli@ti.com
-Cc: mchehab@infradead.org, hverkuil@xs4all.nl,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [RFC V10 1/7] drivers:media:radio: wl128x: FM Driver common
- header file
-Message-ID: <20110111111751.GC2385@legolas.emea.dhcp.ti.com>
-Reply-To: balbi@ti.com
-References: <1294745487-29138-1-git-send-email-manjunatha_halli@ti.com>
- <1294745487-29138-2-git-send-email-manjunatha_halli@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1294745487-29138-2-git-send-email-manjunatha_halli@ti.com>
+	Thu, 6 Jan 2011 20:04:05 -0500
+Date: Thu, 06 Jan 2011 20:04:05 -0500
+Subject: Re: [RFC/PATCH v7 01/12] media: Media device node support
+Message-ID: <or1jp5vlchhba1mncy9opxxm.1294362245260@email.android.com>
+From: Andy Walls <awalls@md.metrocast.net>
+To: Greg KH <gregkh@suse.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
+	clemens@ladisch.de, sakari.ailus@maxwell.research.nokia.com
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+WWVhaCB3ZWxsLCBsYW1lLW8gZGVmYXVsdCBlbWFpbCBjbGllbnQgb24gbXkgQW5kcm9pZCBwaG9u
+ZS4KCi1BbmR5CgpHcmVnIEtIIDxncmVna2hAc3VzZS5kZT4gd3JvdGU6Cgo+Cj4KPkE6IE5vLgo+
+UTogU2hvdWxkIEkgaW5jbHVkZSBxdW90YXRpb25zIGFmdGVyIG15IHJlcGx5Pwo+Cj5odHRwOi8v
+ZGFyaW5nZmlyZWJhbGwubmV0LzIwMDcvMDcvb25fdG9wCj4KPk9uIFRodSwgSmFuIDA2LCAyMDEx
+IGF0IDA3OjI0OjI3UE0gLTA1MDAsIEFuZHkgV2FsbHMgd3JvdGU6Cj4+IFdoeSwgeWVzLCB0aGVy
+ZSBpcyBhIHN0YW5kYXJkOgo+PiAKPj4gaHR0cDovL3B1YnMub3Blbmdyb3VwLm9yZy9vbmxpbmVw
+dWJzLzAwOTY5NTM5OS9mdW5jdGlvbnMveHNoX2NoYXAwMl8wMy5odG1sCj4+IAo+PiBBIHNvbWV3
+aGF0IHZlcmJvc2UgZGVzY3JpcHRpb24gb2YgdGhlIGVycm5vcyBpcyBpbiBzZWN0aW9uIDIuMy4K
+Pgo+QWgsIHNvIHBlcmhhcHMgLUVOWElPIGlzIHRoZSBjb3JyZWN0IHRoaW5nIHRvIHJldHVybiB3
+aXRoIGhlcmUuCj4KPnRoYW5rcywKPgo+Z3JlZyBrLWgKPi0tCj5UbyB1bnN1YnNjcmliZSBmcm9t
+IHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtbWVkaWEiIGluCj50
+aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZwo+TW9yZSBt
+YWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5o
+dG1sCg==
 
-On Tue, Jan 11, 2011 at 06:31:21AM -0500, manjunatha_halli@ti.com wrote:
-> From: Manjunatha Halli <manjunatha_halli@ti.com>
-> 
-> These are common headers used in FM submodules (FM V4L2,
-> FM common, FM Rx,and FM TX).
-> 
-> Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
-> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
-
-snip
-
-> diff --git a/drivers/media/radio/wl128x/fmdrv.h b/drivers/media/radio/wl128x/fmdrv.h
-> new file mode 100644
-> index 0000000..392b62d
-> --- /dev/null
-> +++ b/drivers/media/radio/wl128x/fmdrv.h
-> @@ -0,0 +1,244 @@
-> +/*
-> + *  FM Driver for Connectivity chip of Texas Instruments.
-> + *
-> + *  Common header for all FM driver sub-modules.
-> + *
-> + *  Copyright (C) 2011 Texas Instruments
-> + *
-> + *  This program is free software; you can redistribute it and/or modify
-> + *  it under the terms of the GNU General Public License version 2 as
-> + *  published by the Free Software Foundation.
-> + *
-> + *  This program is distributed in the hope that it will be useful,
-> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + *  GNU General Public License for more details.
-> + *
-> + *  You should have received a copy of the GNU General Public License
-> + *  along with this program; if not, write to the Free Software
-> + *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-> + *
-> + */
-> +
-> +#ifndef _FM_DRV_H
-> +#define _FM_DRV_H
-> +
-> +#include <linux/skbuff.h>
-> +#include <linux/interrupt.h>
-> +#include <sound/core.h>
-> +#include <sound/initval.h>
-> +#include <linux/timer.h>
-> +#include <linux/version.h>
-> +#include <media/v4l2-ioctl.h>
-> +#include <media/v4l2-common.h>
-> +#include <media/v4l2-ctrls.h>
-> +
-> +#define FM_DRV_VERSION            "0.09"
-> +/* Should match with FM_DRV_VERSION */
-> +#define FM_DRV_RADIO_VERSION      KERNEL_VERSION(0, 0, 1)
-> +#define FM_DRV_NAME               "ti_fmdrv"
-> +#define FM_DRV_CARD_SHORT_NAME    "TI FM Radio"
-> +#define FM_DRV_CARD_LONG_NAME     "Texas Instruments FM Radio"
-> +
-> +/* Flag info */
-> +#define FM_INTTASK_RUNNING            0
-> +#define FM_INTTASK_SCHEDULE_PENDING   1
-> +#define FM_FW_DW_INPROGRESS     2
-> +#define FM_CORE_READY                 3
-> +#define FM_CORE_TRANSPORT_READY       4
-> +#define FM_AF_SWITCH_INPROGRESS	      5
-> +#define FM_CORE_TX_XMITING	      6
-> +
-> +#define FM_TUNE_COMPLETE	      0x1
-> +#define FM_BAND_LIMIT		      0x2
-> +
-> +#define FM_DRV_TX_TIMEOUT      (5*HZ)	/* 5 seconds */
-> +#define FM_DRV_RX_SEEK_TIMEOUT (20*HZ)	/* 20 seconds */
-> +
-> +#define NO_OF_ENTRIES_IN_ARRAY(array) (sizeof(array) / sizeof(array[0]))
-
-this is called ARRAY_SIZE(), just use it.
-
-> +
-> +#define fmerr(format, ...) \
-> +	printk(KERN_ERR "fmdrv: " format, ## __VA_ARGS__)
-> +#define fmwarn(format, ...) \
-> +	printk(KERN_WARNING "fmdrv: " format, ##__VA_ARGS__)
-> +#ifdef DEBUG
-> +#define fmdbg(format, ...) \
-> +	printk(KERN_DEBUG "fmdrv: " format, ## __VA_ARGS__)
-> +#else /* DEBUG */
-> +#define fmdbg(format, ...)
-> +#endif
-
-why don't you use dev_dbg(), dev_err() and dev_warn() ??
-
--- 
-balbi
