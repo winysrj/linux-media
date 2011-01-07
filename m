@@ -1,55 +1,95 @@
 Return-path: <mchehab@pedra>
-Received: from ironport2-out.teksavvy.com ([206.248.154.183]:12617 "EHLO
-	ironport2-out.pppoe.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754126Ab1A0BBO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jan 2011 20:01:14 -0500
-Message-ID: <4D40C3D7.90608@teksavvy.com>
-Date: Wed, 26 Jan 2011 20:01:11 -0500
-From: Mark Lord <kernel@teksavvy.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:39082 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752113Ab1AGOO3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jan 2011 09:14:29 -0500
+From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+To: "'Sergei Shtylyov'" <sshtylyov@mvista.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	"linux-arm-kernel@listinfradead.com"
+	<linux-arm-kernel@listinfradead.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Date: Fri, 7 Jan 2011 19:43:43 +0530
+Subject: RE: [PATCH v12 5/8] davinci vpbe: platform specific additions
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930247F9A81F@dbde02.ent.ti.com>
+In-Reply-To: <4D271BD1.30405@mvista.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
- ?
-References: <4D3E59CA.6070107@teksavvy.com> <4D3E5A91.30207@teksavvy.com> <20110125053117.GD7850@core.coreip.homeip.net> <4D3EB734.5090100@redhat.com> <20110125164803.GA19701@core.coreip.homeip.net> <AANLkTi=1Mh0JrYk5itvef7O7e7pR+YKos-w56W5q4B8B@mail.gmail.com> <20110125205453.GA19896@core.coreip.homeip.net> <4D3F4804.6070508@redhat.com> <4D3F4D11.9040302@teksavvy.com> <20110125232914.GA20130@core.coreip.homeip.net> <20110126020003.GA23085@core.coreip.homeip.net> <4D403855.4050706@teksavvy.com>
-In-Reply-To: <4D403855.4050706@teksavvy.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 11-01-26 10:05 AM, Mark Lord wrote:
-> On 11-01-25 09:00 PM, Dmitry Torokhov wrote:
-..
->> I wonder if the patch below is all that is needed...
->
-> Nope. Does not work here:
->
-> $ lsinput
-> protocol version mismatch (expected 65536, got 65537)
->
+On Fri, Jan 07, 2011 at 19:27:37, Sergei Shtylyov wrote:
+> Hello.
+> 
+> On 07-01-2011 16:40, Manjunath Hadli wrote:
+> 
+> > This patch implements the overall device creation for the Video 
+> > display driver.
+> 
+> > Signed-off-by: Manjunath Hadli<manjunath.hadli@ti.com>
+> > Acked-by: Muralidharan Karicheri<m-karicheri2@ti.com>
+> > Acked-by: Hans Verkuil<hverkuil@xs4all.nl>
+> [...]
+> 
+> > diff --git a/arch/arm/mach-davinci/include/mach/dm644x.h 
+> > b/arch/arm/mach-davinci/include/mach/dm644x.h
+> > index 5a1b26d..b59591c 100644
+> > --- a/arch/arm/mach-davinci/include/mach/dm644x.h
+> > +++ b/arch/arm/mach-davinci/include/mach/dm644x.h
+> > @@ -6,8 +6,7 @@
+> >    *
+> >    * This program is free software; you can redistribute it and/or modify
+> >    * it under the terms of the GNU General Public License as published 
+> > by
+> > - * the Free Software Foundation; either version 2 of the License, or
+> > - * (at your option) any later version.
+> > + * the Free Software Foundation; either version 2 of the License.
+> 
+>     Unfinished sentence. Did you intend to changed the license to GPL 2 only?
+> If so, it's worth mentioning in the changelog...
+This should read like this:
 
-Heh.. I just noticed something *new* in the bootlogs on my system:
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License as
+published by the Free Software Foundation version 2.
 
-kernel: Registered IR keymap rc-rc5-tv
-udevd-event[6438]: run_program: '/usr/bin/ir-keytable' abnormal exit
-kernel: input: i2c IR (Hauppauge) as /devices/virtual/rc/rc0/input7
-kernel: ir-keytable[6439]: segfault at 8 ip 00000000004012d2 sp 00007fff6d43ca60
-error 4 in ir-keytable[400000+7000]
-kernel: rc0: i2c IR (Hauppauge) as /devices/virtual/rc/rc0
-kernel: ir-kbd-i2c: i2c IR (Hauppauge) detected at i2c-0/0-0018/ir0 [ivtv i2c
-driver #0]
+I will change it appropriately.
+> 
+> [...]
+> > @@ -40,8 +43,21 @@
+> >   #define DM644X_ASYNC_EMIF_DATA_CE2_BASE 0x06000000
+> >   #define DM644X_ASYNC_EMIF_DATA_CE3_BASE 0x08000000
+> >
+> > +/* VPBE register base addresses */
+> > +#define DM644X_VENC_REG_BASE		0x01C72400
+> 
+>     You defined the macro but don't use it...
+> 
+> > +#define DM644X_VPBE_REG_BASE		0x01C72780
+> > +
+> > +#define DM644X_OSD_REG_BASE		0x01C72600
+> 
+>     Same comment...
+> 
+> > +#define DM644X_VPBE_REG_BASE		0x01C72780
+> 
+>     This is duplicate.
+> 
+> > +
+> > +#define OSD_REG_SIZE			0x00000100
+> 
+>     Your OSD platform device however has its resource of size 0x200...
+> 
+> > +/* SYS register addresses */
+> > +#define SYS_VPSS_CLKCTL			0x01C40044
+> 
+>     You've already #define'd and used VPSS_CLKCTL -- this is duplicate/unused.
+We are using the base addresses from platform resources. I will delete these.
+> 
+> WBR, Sergei
+> 
 
-That's udev invoking ir-keyboard when the ir-kbd-i2c kernel module is loaded,
-and that is also ir-keyboard (userspace) segfaulting when run.
-
-That behaviour is new, with the proposed "fix" patch from this thread.
-So the "fix" itself appears to also break userspace.
-
-The ir-keyboard program reports: IR keytable control version 0.8.2
-
-Cheers
