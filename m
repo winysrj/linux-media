@@ -1,41 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:45935 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754046Ab1ASQmn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jan 2011 11:42:43 -0500
-Received: by qyj19 with SMTP id 19so832394qyj.19
-        for <linux-media@vger.kernel.org>; Wed, 19 Jan 2011 08:42:42 -0800 (PST)
-References: <1295205650.2400.27.camel@localhost>  <1295234982.2407.38.camel@localhost>  <848D2317-613E-42B1-950D-A227CFF15C5B@wilsonet.com> <1295439718.2093.17.camel@morgan.silverblock.net> <alpine.DEB.1.10.1101190714570.5396@ivanova.isely.net>
-In-Reply-To: <alpine.DEB.1.10.1101190714570.5396@ivanova.isely.net>
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=us-ascii
-Message-Id: <399CBB46-ACEB-403F-BAD5-87FD286D057B@wilsonet.com>
-Content-Transfer-Encoding: 7bit
-Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org,
-	Jarod Wilson <jarod@redhat.com>,
-	Jean Delvare <khali@linux-fr.org>, Janne Grunau <j@jannau.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-From: Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: [GIT PATCHES for 2.6.38] Zilog Z8 IR unit fixes
-Date: Wed, 19 Jan 2011 11:42:57 -0500
-To: Mike Isely <isely@isely.net>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:56687 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754402Ab1AGQZs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jan 2011 11:25:48 -0500
+Date: Fri, 07 Jan 2011 17:25:34 +0100
+From: Kamil Debski <k.debski@samsung.com>
+Subject: [RFC/PATCH v6 4/4] s5pv210: Enable MFC on Goni
+In-reply-to: <1294417534-3856-1-git-send-email-k.debski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, k.debski@samsung.com,
+	jaeryul.oh@samsung.com, kgene.kim@samsung.com
+Message-id: <1294417534-3856-5-git-send-email-k.debski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1294417534-3856-1-git-send-email-k.debski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Jan 19, 2011, at 8:20 AM, Mike Isely wrote:
+This patch enables MFC 5.1 on Goni board. Multi Format Codec 5.1 is capable
+of handling a range of video codecs.
 
-> This probing behavior does not happen for HVR-1950 (or HVR-1900) since 
-> there's only one possible IR configuration there.
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ arch/arm/mach-s5pv210/Kconfig     |    1 +
+ arch/arm/mach-s5pv210/mach-goni.c |    3 ++-
+ 2 files changed, 3 insertions(+), 1 deletions(-)
 
-Just to be 100% clear, the device I'm poking it is definitely an
-HVR-1950, using ir_scheme PVR2_IR_SCHEME_ZILOG, so the probe bits
-shouldn't coming into play with anything I'm doing. Only just now
-started looking at the pvrusb2 code. Wow, there's a LOT of it. ;)
-
+diff --git a/arch/arm/mach-s5pv210/Kconfig b/arch/arm/mach-s5pv210/Kconfig
+index c45a1b7..43f408d 100644
+--- a/arch/arm/mach-s5pv210/Kconfig
++++ b/arch/arm/mach-s5pv210/Kconfig
+@@ -85,6 +85,7 @@ config MACH_GONI
+ 	select S3C_DEV_HSMMC2
+ 	select S3C_DEV_I2C1
+ 	select S3C_DEV_I2C2
++	select S5P_DEV_MFC
+ 	select S3C_DEV_USB_HSOTG
+ 	select S5P_DEV_ONENAND
+ 	select SAMSUNG_DEV_KEYPAD
+diff --git a/arch/arm/mach-s5pv210/mach-goni.c b/arch/arm/mach-s5pv210/mach-goni.c
+index 8d19ead..553a60e 100644
+--- a/arch/arm/mach-s5pv210/mach-goni.c
++++ b/arch/arm/mach-s5pv210/mach-goni.c
+@@ -810,6 +810,7 @@ static struct platform_device *goni_devices[] __initdata = {
+ 	&goni_i2c_gpio5,
+ 	&mmc2_fixed_voltage,
+ 	&goni_device_gpiokeys,
++	&s5p_device_mfc,
+ 	&s5p_device_fimc0,
+ 	&s5p_device_fimc1,
+ 	&s5p_device_fimc2,
+@@ -857,7 +858,7 @@ static void __init goni_reserve(void)
+ 	};
+ 
+ 	static const char map[] __initconst =
+-		"s5p-mfc5/f=fw;s5p-mfc5/a=b1;s5p-mfc5/b=b2;*=b1,b2";
++		"s5p-mfc/f=fw;s5p-mfc/a=b1;s5p-mfc/b=b2;*=b1,b2";
+ 
+ 	cma_set_defaults(regions, map);
+ 	cma_early_regions_reserve(NULL);
 -- 
-Jarod Wilson
-jarod@wilsonet.com
-
-
+1.6.3.3
 
