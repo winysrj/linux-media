@@ -1,103 +1,260 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4903 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751322Ab1AAVSj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Jan 2011 16:18:39 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: V4L2 spec behavior for G_TUNER and T_STANDBY
-Date: Sat, 1 Jan 2011 22:18:36 +0100
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <AANLkTi=3ekVmf-gVU=bO2dHn4svMbExZ3TKGeiV1Jrrd@mail.gmail.com>
-In-Reply-To: <AANLkTi=3ekVmf-gVU=bO2dHn4svMbExZ3TKGeiV1Jrrd@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201101012218.36967.hverkuil@xs4all.nl>
+Return-path: <mchehab@pedra>
+Received: from mailout2.samsung.com ([203.254.224.25]:34992 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752957Ab1AGET6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jan 2011 23:19:58 -0500
+MIME-version: 1.0
+Content-type: text/plain; charset=EUC-KR
+Date: Fri, 07 Jan 2011 13:19:54 +0900
+From: daeinki <inki.dae@samsung.com>
+Subject: Re: Memory sharing issue by application on V4L2 based device driver
+ with system mmu.
+In-reply-to: <003201cbae19$bda3dfc0$38eb9f40$%han@samsung.com>
+To: Jonghun Han <jonghun.han@samsung.com>
+Cc: 'InKi Dae' <daeinki@gmail.com>, linux-media@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	'linux-fbdev' <linux-fbdev@vger.kernel.org>,
+	kyungmin.park@samsung.com
+Message-id: <4D26946A.60704@samsung.com>
+Content-transfer-encoding: 8BIT
+References: <4D25BC22.6080803@samsung.com>
+ <AANLkTi=P8qY22saY9a_-rze1wsr-DLMgc6Lfa6qnfM7u@mail.gmail.com>
+ <002201cbadfd$6d59e490$480dadb0$%han@samsung.com>
+ <AANLkTinsduJkynwwEeM5K9f3D7C6jtBgkAyZ0-_0z2X-@mail.gmail.com>
+ <003201cbae19$bda3dfc0$38eb9f40$%han@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Saturday, January 01, 2011 21:52:35 Devin Heitmueller wrote:
-> I have been doing some application conformance for VLC, and I noticed
-> something interesting with regards to the G_TUNER call.
+Hello, Mr. Jonghun.
+
+please, note that user process's pgd and device's pgd with system mmu
+are differnent. first, the memory allocated by user malloc should be
+mapped to physical memory in page unit because user app also should be
+accessed to own memory region. and when mapping the physical memory to
+device virtual address, it creates page table entry for 64k or 1M and
+then could map physical address to those entries. therefore what you
+mention has no problem.
+
+actual issue is not to need demend paging, some issues we don't
+understand may exist as side effects.
+
+thank you.
+
+Jonghun Han 쓴 글:
+> Hello,
 > 
-> If you have a tuner which supports sleeping, making a G_TUNER call
-> essentially returns garbage.
-> ===
-> root@devin-laptop2:~# v4l2-ctl -d /dev/video1 --get-tuner
-> Tuner:
->     Name                 : Auvitek tuner
->     Capabilities         : 62.5 kHz stereo lang1 lang2
->     Frequency range      : 0.0 MHz - 0.0 MHz
->     Signal strength/AFC  : 0%/0
->     Current audio mode   : stereo
->     Available subchannels: mono
-> ===
-> Note that the frequency range is zero (the capabilities and name are
-> populated by the bridge or video decoder).  Some digging into the
-> tuner_g_tuner() function in tuner core shows that the check_mode()
-> call fails because the device's mode is T_STANDBY.  However, it does
-> this despite the fact that none of values required actually interact
-> with the tuner.  The capabilities and frequency ranges should be able
-> to be populated regardless of whether the device is in standby.
-
-Agreed.
-
-> This is particularly bad because devices normally come out of standby
-> when a s_freq call occurs, but some applications (such as VLC) will
-> call g_tuner first to validate the target frequency is inside the
-> valid frequency range.  So you have a chicken/egg problem:  The
-> g_tuner won't return a valid frequency range until you do a tuning
-> request to wake up the tuner, but apps like VLC won't do a tuning
-> request unless it has validated the frequency range.
+> That's not a translation issue. What I mention is the size of allocation.
+> The malloc uses 4KB page allocation and SYS.MMU can handle it.
+> But 64KB or 1MB physically contiguous memory is better than 4KB page in the
+> point of performance.
 > 
-> Further, look at the following block:
+> Best regards,
 > 
->         if (t->mode != V4L2_TUNER_RADIO) {
->                 vt->rangelow = tv_range[0] * 16;
->                 vt->rangehigh = tv_range[1] * 16;
->                 return 0;
->         }
+>> -----Original Message-----
+>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>> owner@vger.kernel.org] On Behalf Of InKi Dae
+>> Sent: Friday, January 07, 2011 11:17 AM
+>> To: Jonghun Han
+>> Cc: linux-media@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
+> linux-fbdev;
+>> kyungmin.park@samsung.com
+>> Subject: Re: Memory sharing issue by application on V4L2 based device
+> driver
+>> with system mmu.
+>>
+>> thank you for your comments.
+>>
+>> your second comment has no any problem as I said before, user virtual
+> addess
+>> could be translated in page unit. but the problem, as you said, is that
+> when cpu
+>> access to the memory in user mode, the memory allocated by malloc, page
+> fault
+>> occurs so we can't find pfn to user virtual address. I missed that. but I
+> think we
+>> could resolve this one.
+>>
+>> as before, user application allocates memory through malloc function and
+> then
+>> send it to device driver(using userptr feature). if the pfn is null when
+> device driver
+>> translated user virtual address in page unit then it allocates phsical
+> memory in
+>> page unit using some interface such as alloc_page() and then mapping
+> them. when
+>> pfn is null, to check it and allocate physical memory in page unit could
+> be
+>> processed by videobuf2.
+>>
+>> of course, videobuf2 has no any duty considered for system mmu. so
+>> videobuf2 just provides callback for 3rd party and any platform with
+> system mmu
+>> such as Samsung SoC C210 implements the function(allocating physical
+> memory
+>> and mapping it) and registers it to callback of videobuf2. by doing so, I
+> think your
+>> first comment could be cleared.
+>>
+>> please, feel free to give me your opinion and pointing out.
+>>
+>> thank you.
+>>
+>> 2011년 1월 7일 오전 8:57, Jonghun Han <jonghun.han@samsung.com>님의 말:
+>>> Hello,
+>>>
+>>> There are two reasons why malloc isn't suitable for it.
+>>>
+>>> The first is that malloc doesn't allocate memory when malloc is called.
+>>> So driver or vb2 cannot find PFN for it in the VIDIOC_QBUF.
+>>>
+>>> The second is that malloc uses 4KB page allocation.
+>>> SYS.MMU(IO-MMU) can handle scattered memory. But it has a penalty when
+>>> TLB miss is occurred.
+>>> So as possible as physically contiguous pages are needed for
+>>> performance enhancement.
+>>>
+>>> So new allocator which can clear two main issues is needed.
+>>>
+>>> Best regards,
+>>>
+>>>> -----Original Message-----
+>>>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>>>> owner@vger.kernel.org] On Behalf Of InKi Dae
+>>>> Sent: Thursday, January 06, 2011 10:25 PM
+>>>> To: linux-media@vger.kernel.org
+>>>> Subject: Memory sharing issue by application on V4L2 based device
+>>>> driver
+>>> with
+>>>> system mmu.
+>>>>
+>>>> Hello, all.
+>>>>
+>>>> I'd like to discuss memory sharing issue by application on v4l2 based
+>>> device driver
+>>>> with system mmu and get some advices about that.
+>>>>
+>>>> Now I am working on Samsung SoC C210 platform and this platform has
+>>>> some multimedia devices with system mmu such as fimc, and mfc also we
+>>>> have implemented device drivers for them. those drivers are based on
+>>>> V4L2
+>>> framework
+>>>> with videobuf2. for system mmu of each device, we used VCM(Virtual
+>>> Contiguous
+>>>> Memory) framework.
+>>>>
+>>>> Simply, VCM framework provides  physical memory, device virtual
+>>>> memory allocation and memory mapping between them. when device driver
+>>>> is
+>>> initialized or
+>>>> operated by user application, each driver allocates physical memory
+>>>> and
+>>> device
+>>>> virtual memory and then mapping using VCM interface.
+>>>>
+>>>> refer to below link for more detail.
+>>>> http://www.spinics.net/lists/linux-media/msg26548.html
+>>>>
+>>>> Physical memory access process is as the following.
+>>>>            DVA                          PA
+>>>> device --------------> system mmu ------------------> physical memory
+>>>>
+>>>> DVA : device virtual address.
+>>>> PA : physical address.
+>>>>
+>>>> like this, device virtual address should be set to buffer(source or
+>>>> destination) register of multimedia device.
+>>>>
+>>>> the problem is that application want to share own memory with any
+>>>> device
+>>> driver to
+>>>> avoid memory copy. in other words, user-allocated memory could be
+>>>> source
+>>> or
+>>>> destination memory of multimedia device driver.
+>>>>
+>>>>
+>>>> let's see the diagram below.
+>>>>
+>>>>                user application
+>>>>
+>>>>                      |
+>>>>                      |
+>>>>                      |
+>>>>                      |
+>>>>                      |  1. UVA(allocated by malloc)
+>>>>                      |
+>>>>                      |
+>>>>                    ＼|/                   2. UVA(in page unit)
+>>>>
+>>>>        -----> multimedia device driver -------------------> videobuf2
+>>>>        |
+>>>>        |        |     ^                                         |
+>>>>        |        |     |                                         |
+>>>>        |        |     -------------------------------------------
+>>>>        |        |                    3. PA(in page unit)
+>>>>        |        |
+>>>>        |        | 4. PA(in page unit)
+>>>> 6. DVA  |        |
+>>>>        |        |
+>>>>        |        |
+>>>>        |      ＼|/
+>>>>        |
+>>>>        |       Virtual Contiguous Memory ---------
+>>>>        |                                         |
+>>>>        |           |     ^                       |
+>>>>        |           |     |                       | 5. map PA to DVA
+>>>>        |           |     |                       |
+>>>>        |           |     |                       |
+>>>>        -------------     -------------------------
+>>>>
+>>>> PA : physical address.
+>>>> UVA : user virtual address.
+>>>> DVA : device virtual address.
+>>>>
+>>>> 1. user application allocates user space memory through malloc
+>>>> function
+>>> and
+>>>> sending it to multimedia device driver based on v4l2 framework
+>>>> through
+>>> userptr
+>>>> feature.
+>>>>
+>>>> 2, 3. multimedia device driver gets translated physical address from
+>>>> videobuf2 framework in page unit.
+>>>>
+>>>> 4, 5. multimedia device driver gets allocated device virtual address
+>>>> and
+>>> mapping it
+>>>> to physical address and then mapping them through VCM interface.
+>>>>
+>>>> 6. multimedia device driver sets device virtual address from VCM to
+>>> buffer register.
+>>>> the diagram above is fully theoretical so I wonder that this way is
+>>> reasonable and
+>>>> has some problems also what should be considered.
+>>>>
+>>>> thank you for your interesting.
+>>>>
+>>>> _______________________________________________
+>>>> linux-arm-kernel mailing list
+>>>> linux-arm-kernel@lists.infradead.org
+>>>> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe
+>>>> linux-media" in
+>>> the body
+>>>> of a message to majordomo@vger.kernel.org More majordomo info at
+>>>> http://vger.kernel.org/majordomo-info.html
+>>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body
+>> of a message to majordomo@vger.kernel.org More majordomo info at
+>> http://vger.kernel.org/majordomo-info.html
 > 
-> This basically means that a video tuner will bail out, which sounds
-> good because the rest of the function supposedly assumes a radio
-> device.  However, as a result the has_signal() call (which returns
-> signal strength) will never be executed for video tuners.  You
-> wouldn't notice this if a video decoder subdev is responsible for
-> showing signal strength, but if you're expecting the tuner to provide
-> the info, the call will never happen.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-fbdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-I am not aware of any tuner that does that. I think that for video this
-is always done by a video decoder. That said, it isn't pretty, but a lot
-of this is legacy code and I wouldn't want to change it.
- 
-> Are these known issues?
-
-No.
-
-> Am I misreading the specified behavior?  I
-> don't see anything in the spec that suggests that this call should
-> return invalid data if the tuner happens to be powered down.
-
-You are correct, G_TUNER should return valid data, even when powered down.
-I suspect that G_FREQUENCY has the same problem.
-
-This should be fixed so that both work when the tuner is powered down.
-
-And if this is fixed, then the switch_v4l2, using_v4l2 and check_v4l2 symbols
-can also be removed since they are no longer in use.
-
-
-After digging some more I think that check_mode is a poor function. There are
-two things that check_mode does: checking if the tuner support radio and/or tv
-mode (that's fine), and if it is in standby: not so fine. That should be a
-separate function since filling in frequency ranges can be done regardless of
-the standby state.
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
