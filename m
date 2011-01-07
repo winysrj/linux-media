@@ -1,43 +1,32 @@
-Return-path: <mchehab@gaivota>
-Received: from squid1.rio.rj.gov.br ([200.157.228.131]:57092 "EHLO
-	squid1.rio.rj.gov.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750895Ab1ACRTQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jan 2011 12:19:16 -0500
-Message-ID: <20110103151911.13146g49kl6eybk0@webriomail.rio.rj.gov.br>
-Date: Mon, 03 Jan 2011 15:19:11 -0200
-From: Email Administrator <empmedici@rio.rj.gov.br>
-Reply-to: warningupgradalert@ymail.com
-To: undisclosed-recipients:;
-Subject: Email Upgrading Alert !!!
+Return-path: <mchehab@pedra>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:62639 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751757Ab1AGOCk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jan 2011 09:02:40 -0500
+Date: Fri, 7 Jan 2011 17:02:34 +0300
+From: Vasiliy Kulikov <segooon@gmail.com>
+To: Dan Carpenter <error27@gmail.com>
+Cc: Andreas Oberritter <obi@linuxtv.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch] [media] av7110: make array offset unsigned
+Message-ID: <20110107140234.GA8107@albatros>
+References: <20110106194059.GC1717@bicker>
+ <4D270A9F.7080104@linuxtv.org>
+ <20110107135122.GI1717@bicker>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=ISO-8859-1;
- DelSp="Yes";
- format="flowed"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20110107135122.GI1717@bicker>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
+On Fri, Jan 07, 2011 at 16:51 +0300, Dan Carpenter wrote:
+> But just for my own understanding, why is it wrong to change an int to
+> an unsigned int in the userspace API?  Who would notice?
 
-Dear subscribers.
+E.g. the same check in userspace (var < 0).  If var has changed the sign
+then the result would differ.
 
-This message is from the Email Administrator  IT Service to all our  
-email account subscribers.You are to provide to us the below  
-information to revalidate your account due to spam and to upgrade the  
-new 2011 spam version.
-
-Notice: Your  Email account will be expired after a week, if you do  
-not revalidate or update your account. Please do co-operate with us so  
-we can serve you better, contact the adminstrator!!****
-
-User Name:
-Password:
-Confirm Your Password:
-Alternative Email :
-
-Thank You.
-Email Administrator
-
-
-
+-- 
+Vasiliy
