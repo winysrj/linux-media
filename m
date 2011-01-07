@@ -1,48 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from mail-out.m-online.net ([212.18.0.10]:49614 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753736Ab1AaM5L (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Jan 2011 07:57:11 -0500
-From: Anatolij Gustschin <agust@denx.de>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Markus Niebel <Markus.Niebel@tqs.de>
-Subject: [PATCH] v4l: mx3_camera.c: correct 'sizeimage' value reporting
-Date: Mon, 31 Jan 2011 13:58:01 +0100
-Message-Id: <1296478681-11119-1-git-send-email-agust@denx.de>
+Received: from comal.ext.ti.com ([198.47.26.152]:37400 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753032Ab1AGObB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jan 2011 09:31:01 -0500
+From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+To: "'Sergei Shtylyov'" <sshtylyov@mvista.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	"linux-arm-kernel@listinfradead.com"
+	<linux-arm-kernel@listinfradead.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Date: Fri, 7 Jan 2011 20:00:42 +0530
+Subject: RE: [PATCH v12 5/8] davinci vpbe: platform specific additions
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930247F9A820@dbde02.ent.ti.com>
+In-Reply-To: <4D2720E7.3000209@mvista.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The 'pix->width' field may be updated in mx3_camera_set_fmt() to
-fulfill the IPU stride line alignment requirements. If this update
-takes place, the 'fmt.pix.sizeimage' field in the struct v4l2_format
-stucture returned by VIDIOC_S_FMT is wrong. We need to update the
-'pix->sizeimage' field in the mx3_camera_set_fmt() function to fix
-this issue.
-
-Signed-off-by: Anatolij Gustschin <agust@denx.de>
----
- drivers/media/video/mx3_camera.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
-index 7bcaaf7..6b0b25d 100644
---- a/drivers/media/video/mx3_camera.c
-+++ b/drivers/media/video/mx3_camera.c
-@@ -918,6 +918,12 @@ static int mx3_camera_set_fmt(struct soc_camera_device *icd,
- 	pix->colorspace		= mf.colorspace;
- 	icd->current_fmt	= xlate;
- 
-+	pix->bytesperline = soc_mbus_bytes_per_line(pix->width,
-+						    xlate->host_fmt);
-+	if (pix->bytesperline < 0)
-+		return pix->bytesperline;
-+	pix->sizeimage = pix->height * pix->bytesperline;
-+
- 	dev_dbg(icd->dev.parent, "Sensor set %dx%d\n", pix->width, pix->height);
- 
- 	return ret;
--- 
-1.7.1
+On Fri, Jan 07, 2011 at 19:49:19, Sergei Shtylyov wrote:
+> On 07-01-2011 17:13, Hadli, Manjunath wrote:
+> 
+> >>> This patch implements the overall device creation for the Video 
+> >>> display driver.
+> 
+> >>> Signed-off-by: Manjunath Hadli<manjunath.hadli@ti.com>
+> >>> Acked-by: Muralidharan Karicheri<m-karicheri2@ti.com>
+> >>> Acked-by: Hans Verkuil<hverkuil@xs4all.nl>
+> >> [...]
+> 
+> >>> diff --git a/arch/arm/mach-davinci/include/mach/dm644x.h
+> >>> b/arch/arm/mach-davinci/include/mach/dm644x.h
+> >>> index 5a1b26d..b59591c 100644
+> >>> --- a/arch/arm/mach-davinci/include/mach/dm644x.h
+> >>> +++ b/arch/arm/mach-davinci/include/mach/dm644x.h
+> [...]
+> >>> @@ -40,8 +43,21 @@
+> >>>    #define DM644X_ASYNC_EMIF_DATA_CE2_BASE 0x06000000
+> >>>    #define DM644X_ASYNC_EMIF_DATA_CE3_BASE 0x08000000
+> 
+> >>> +/* VPBE register base addresses */
+> >>> +#define DM644X_VENC_REG_BASE		0x01C72400
+> 
+> >>      You defined the macro but don't use it...
+> 
+> >>> +#define DM644X_VPBE_REG_BASE		0x01C72780
+> >>> +
+> >>> +#define DM644X_OSD_REG_BASE		0x01C72600
+> 
+> >>      Same comment...
+> 
+> >>> +#define DM644X_VPBE_REG_BASE		0x01C72780
+> 
+> >>      This is duplicate.
+> 
+> >>> +
+> >>> +#define OSD_REG_SIZE			0x00000100
+> 
+> >>      Your OSD platform device however has its resource of size 0x200...
+> 
+> >>> +/* SYS register addresses */
+> >>> +#define SYS_VPSS_CLKCTL			0x01C40044
+> 
+> >>      You've already #define'd and used VPSS_CLKCTL -- this is duplicate/unused.
+> 
+> > We are using the base addresses from platform resources. I will delete these.
+> 
+>     You could use these macros to #define the platfrom resources, if you #define'd them already.
+That is a good idea as well. Will take it.
+> 
+> WBR, Sergei
+> 
 
