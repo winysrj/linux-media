@@ -1,52 +1,46 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3869 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932194Ab1ACNyu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jan 2011 08:54:50 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Return-path: <mchehab@pedra>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:33852 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752862Ab1AGTmg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jan 2011 14:42:36 -0500
+Date: Fri, 7 Jan 2011 22:41:54 +0300
+From: Dan Carpenter <error27@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: David Ellingsworth <david@identd.dyndns.org>
-Subject: [RFC PATCH 2/4] v4l2-framework.txt: document new v4l2_device release() callback
-Date: Mon,  3 Jan 2011 14:54:30 +0100
-Message-Id: <4e8311a75e739d7f757985a1099eb5510c5c57ef.1294062751.git.hverkuil@xs4all.nl>
-In-Reply-To: <1294062872-8312-1-git-send-email-hverkuil@xs4all.nl>
-References: <1294062872-8312-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <adec9ffda2cd47023cde5d0beda01fc84bd867f6.1294062751.git.hverkuil@xs4all.nl>
-References: <adec9ffda2cd47023cde5d0beda01fc84bd867f6.1294062751.git.hverkuil@xs4all.nl>
+Cc: Andreas Oberritter <obi@linuxtv.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	kernel-janitors@vger.kernel.org
+Subject: [patch v3] [media] av7110: check for negative array offset
+Message-ID: <20110107194153.GA1959@bicker>
+References: <20110106194059.GC1717@bicker>
+ <4D270A9F.7080104@linuxtv.org>
+ <20110107134651.GH1717@bicker>
+ <201101072001.20850@orion.escape-edv.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201101072001.20850@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+info->num comes from the user.  It's type int.  If the user passes
+in a negative value that would cause memory corruption.
+
+Signed-off-by: Dan Carpenter <error27@gmail.com>
 ---
- Documentation/video4linux/v4l2-framework.txt |   15 +++++++++++++++
- 1 files changed, 15 insertions(+), 0 deletions(-)
+V2: change the check instead of making num and unsigned int
+V3: white space changes
 
-diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index f22f35c..a6003d7 100644
---- a/Documentation/video4linux/v4l2-framework.txt
-+++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -167,6 +167,21 @@ static int __devinit drv_probe(struct pci_dev *pdev,
- 	state->instance = atomic_inc_return(&drv_instance) - 1;
- }
+diff --git a/drivers/media/dvb/ttpci/av7110_ca.c b/drivers/media/dvb/ttpci/av7110_ca.c
+index 122c728..923a8e2 100644
+--- a/drivers/media/dvb/ttpci/av7110_ca.c
++++ b/drivers/media/dvb/ttpci/av7110_ca.c
+@@ -277,7 +277,7 @@ static int dvb_ca_ioctl(struct file *file, unsigned int cmd, void *parg)
+ 	{
+ 		ca_slot_info_t *info=(ca_slot_info_t *)parg;
  
-+If you have multiple device nodes then it can be difficult to know when it is
-+safe to unregister v4l2_device. For this purpose v4l2_device has refcounting
-+support. The refcount is increased whenever video_register_device is called and
-+it is decreased whenever that device node is released. When the refcount reaches
-+zero, then the v4l2_device release() callback is called. You can do your final
-+cleanup there.
-+
-+If other device nodes (e.g. ALSA) are created, then you can increase and
-+decrease the refcount manually as well by calling:
-+
-+void v4l2_device_get(struct v4l2_device *v4l2_dev);
-+
-+or:
-+
-+int v4l2_device_put(struct v4l2_device *v4l2_dev);
- 
- struct v4l2_subdev
- ------------------
--- 
-1.7.0.4
+-		if (info->num > 1)
++		if (info->num < 0 || info->num > 1)
+ 			return -EINVAL;
+ 		av7110->ci_slot[info->num].num = info->num;
+ 		av7110->ci_slot[info->num].type = FW_CI_LL_SUPPORT(av7110->arm_app) ?
 
