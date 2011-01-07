@@ -1,133 +1,98 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:60593 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755061Ab1ACNu1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jan 2011 08:50:27 -0500
-From: Tejun Heo <tj@kernel.org>
-To: linux-kernel@vger.kernel.org
-Cc: Tejun Heo <tj@kernel.org>, Andy Walls <awalls@md.metrocast.net>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 11/32] v4l/cx18: update workqueue usage
-Date: Mon,  3 Jan 2011 14:49:34 +0100
-Message-Id: <1294062595-30097-12-git-send-email-tj@kernel.org>
-In-Reply-To: <1294062595-30097-1-git-send-email-tj@kernel.org>
-References: <1294062595-30097-1-git-send-email-tj@kernel.org>
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1882 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752630Ab1AGMrv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jan 2011 07:47:51 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Jonathan Corbet <corbet@lwn.net>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC PATCH 2/5] v4l2-subdev: add (un)register internal ops
+Date: Fri,  7 Jan 2011 13:47:32 +0100
+Message-Id: <2bce44c24896652e068d2c2a679e13c6bd820b65.1294402580.git.hverkuil@xs4all.nl>
+In-Reply-To: <1294404455-22050-1-git-send-email-hverkuil@xs4all.nl>
+References: <1294404455-22050-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <cc5591b13e048b8fbc1482db6dffeb7d48f9134b.1294402580.git.hverkuil@xs4all.nl>
+References: <cc5591b13e048b8fbc1482db6dffeb7d48f9134b.1294402580.git.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-With cmwq, there's no reason to use separate out_work_queue.  Drop it
-and use system_wq instead.  The in_work_queue needs to be ordered so
-can't use one of the system wqs; however, as it isn't used to reclaim
-memory, allocate the workqueue with alloc_ordered_workqueue() without
-WQ_MEM_RECLAIM.
+Some subdevs need to call into the board code after they are registered
+and have a valid struct v4l2_device pointer. The s_config op was abused
+for this, but now that it is removed we need a cleaner way of solving this.
 
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Andy Walls <awalls@md.metrocast.net>
-Cc: linux-media@vger.kernel.org
+So this patch adds a struct with internal ops that the v4l2 core can call.
+
+Currently only two ops exist: register and unregister. Subdevs can implement
+these to call the board code and pass it the v4l2_device pointer, which the
+board code can then use to get access to the struct that embeds the
+v4l2_device.
+
+It is expected that in the future open and close ops will also be added.
+
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
 ---
-Only compile tested.  Please feel free to take it into the subsystem
-tree or simply ack - I'll route it through the wq tree.
+ drivers/media/video/v4l2-device.c |    4 ++++
+ include/media/v4l2-subdev.h       |   17 +++++++++++++++++
+ 2 files changed, 21 insertions(+), 0 deletions(-)
 
-Thanks.
-
- drivers/media/video/cx18/cx18-driver.c  |   24 ++----------------------
- drivers/media/video/cx18/cx18-driver.h  |    3 ---
- drivers/media/video/cx18/cx18-streams.h |    3 +--
- 3 files changed, 3 insertions(+), 27 deletions(-)
-
-diff --git a/drivers/media/video/cx18/cx18-driver.c b/drivers/media/video/cx18/cx18-driver.c
-index df60f27..41c0822 100644
---- a/drivers/media/video/cx18/cx18-driver.c
-+++ b/drivers/media/video/cx18/cx18-driver.c
-@@ -656,7 +656,7 @@ static int __devinit cx18_create_in_workq(struct cx18 *cx)
- {
- 	snprintf(cx->in_workq_name, sizeof(cx->in_workq_name), "%s-in",
- 		 cx->v4l2_dev.name);
--	cx->in_work_queue = create_singlethread_workqueue(cx->in_workq_name);
-+	cx->in_work_queue = alloc_ordered_workqueue(cx->in_workq_name, 0);
- 	if (cx->in_work_queue == NULL) {
- 		CX18_ERR("Unable to create incoming mailbox handler thread\n");
- 		return -ENOMEM;
-@@ -664,18 +664,6 @@ static int __devinit cx18_create_in_workq(struct cx18 *cx)
- 	return 0;
+diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
+index 7fe6f92..0780c32 100644
+--- a/drivers/media/video/v4l2-device.c
++++ b/drivers/media/video/v4l2-device.c
+@@ -131,6 +131,8 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ 	if (err)
+ 		return err;
+ 	sd->v4l2_dev = v4l2_dev;
++	if (sd->internal_ops && sd->internal_ops->registered)
++		sd->internal_ops->registered(sd);
+ 	spin_lock(&v4l2_dev->lock);
+ 	list_add_tail(&sd->list, &v4l2_dev->subdevs);
+ 	spin_unlock(&v4l2_dev->lock);
+@@ -146,6 +148,8 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
+ 	spin_lock(&sd->v4l2_dev->lock);
+ 	list_del(&sd->list);
+ 	spin_unlock(&sd->v4l2_dev->lock);
++	if (sd->internal_ops && sd->internal_ops->unregistered)
++		sd->internal_ops->unregistered(sd);
+ 	sd->v4l2_dev = NULL;
+ 	module_put(sd->owner);
  }
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 42fbe46..f559562 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -411,6 +411,21 @@ struct v4l2_subdev_ops {
+ 	const struct v4l2_subdev_sensor_ops	*sensor;
+ };
  
--static int __devinit cx18_create_out_workq(struct cx18 *cx)
--{
--	snprintf(cx->out_workq_name, sizeof(cx->out_workq_name), "%s-out",
--		 cx->v4l2_dev.name);
--	cx->out_work_queue = create_workqueue(cx->out_workq_name);
--	if (cx->out_work_queue == NULL) {
--		CX18_ERR("Unable to create outgoing mailbox handler threads\n");
--		return -ENOMEM;
--	}
--	return 0;
--}
--
- static void __devinit cx18_init_in_work_orders(struct cx18 *cx)
- {
- 	int i;
-@@ -702,15 +690,9 @@ static int __devinit cx18_init_struct1(struct cx18 *cx)
- 	mutex_init(&cx->epu2apu_mb_lock);
- 	mutex_init(&cx->epu2cpu_mb_lock);
++/*
++ * Internal ops. Never call this from drivers, only the v4l2 framework can call
++ * these ops.
++ *
++ * registered: called when this subdev is registered. When called the v4l2_dev
++ *	field is set to the correct v4l2_device.
++ *
++ * unregistered: called when this subdev is unregistered. When called the
++ *	v4l2_dev field is still set to the correct v4l2_device.
++ */
++struct v4l2_subdev_internal_ops {
++	int (*registered)(struct v4l2_subdev *sd);
++	int (*unregistered)(struct v4l2_subdev *sd);
++};
++
+ #define V4L2_SUBDEV_NAME_SIZE 32
  
--	ret = cx18_create_out_workq(cx);
--	if (ret)
--		return ret;
--
- 	ret = cx18_create_in_workq(cx);
--	if (ret) {
--		destroy_workqueue(cx->out_work_queue);
-+	if (ret)
- 		return ret;
--	}
- 
- 	cx18_init_in_work_orders(cx);
- 
-@@ -1094,7 +1076,6 @@ free_mem:
- 	release_mem_region(cx->base_addr, CX18_MEM_SIZE);
- free_workqueues:
- 	destroy_workqueue(cx->in_work_queue);
--	destroy_workqueue(cx->out_work_queue);
- err:
- 	if (retval == 0)
- 		retval = -ENODEV;
-@@ -1244,7 +1225,6 @@ static void cx18_remove(struct pci_dev *pci_dev)
- 	cx18_halt_firmware(cx);
- 
- 	destroy_workqueue(cx->in_work_queue);
--	destroy_workqueue(cx->out_work_queue);
- 
- 	cx18_streams_cleanup(cx, 1);
- 
-diff --git a/drivers/media/video/cx18/cx18-driver.h b/drivers/media/video/cx18/cx18-driver.h
-index 77be58c..f7f71d1 100644
---- a/drivers/media/video/cx18/cx18-driver.h
-+++ b/drivers/media/video/cx18/cx18-driver.h
-@@ -614,9 +614,6 @@ struct cx18 {
- 	struct cx18_in_work_order in_work_order[CX18_MAX_IN_WORK_ORDERS];
- 	char epu_debug_str[256]; /* CX18_EPU_DEBUG is rare: use shared space */
- 
--	struct workqueue_struct *out_work_queue;
--	char out_workq_name[12]; /* "cx18-NN-out" */
--
- 	/* i2c */
- 	struct i2c_adapter i2c_adap[2];
- 	struct i2c_algo_bit_data i2c_algo[2];
-diff --git a/drivers/media/video/cx18/cx18-streams.h b/drivers/media/video/cx18/cx18-streams.h
-index 77412be..5837ffb 100644
---- a/drivers/media/video/cx18/cx18-streams.h
-+++ b/drivers/media/video/cx18/cx18-streams.h
-@@ -41,8 +41,7 @@ static inline bool cx18_stream_enabled(struct cx18_stream *s)
- /* Related to submission of mdls to firmware */
- static inline void cx18_stream_load_fw_queue(struct cx18_stream *s)
- {
--	struct cx18 *cx = s->cx;
--	queue_work(cx->out_work_queue, &s->out_work_order);
-+	schedule_work(&s->out_work_order);
- }
- 
- static inline void cx18_stream_put_mdl_fw(struct cx18_stream *s,
+ /* Set this flag if this subdev is a i2c device. */
+@@ -427,6 +442,8 @@ struct v4l2_subdev {
+ 	u32 flags;
+ 	struct v4l2_device *v4l2_dev;
+ 	const struct v4l2_subdev_ops *ops;
++	/* Never call these internal ops from within a driver! */
++	const struct v4l2_subdev_internal_ops *internal_ops;
+ 	/* The control handler of this subdev. May be NULL. */
+ 	struct v4l2_ctrl_handler *ctrl_handler;
+ 	/* name must be unique */
 -- 
-1.7.1
+1.7.0.4
 
