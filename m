@@ -1,90 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from cantor2.suse.de ([195.135.220.15]:53738 "EHLO mx2.suse.de"
+Received: from ns.mm-sol.com ([213.240.235.226]:35351 "EHLO extserv.mm-sol.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752060Ab1AFXuZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Jan 2011 18:50:25 -0500
-Date: Thu, 6 Jan 2011 15:46:12 -0800
-From: Greg KH <gregkh@suse.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
-	clemens@ladisch.de, sakari.ailus@maxwell.research.nokia.com
-Subject: Re: [RFC/PATCH v7 01/12] media: Media device node support
-Message-ID: <20110106234612.GA2097@suse.de>
-References: <1292844995-7900-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <201012241259.39148.laurent.pinchart@ideasonboard.com>
- <20110106221912.GA31328@suse.de>
- <201101070027.11150.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201101070027.11150.hverkuil@xs4all.nl>
+	id S1754563Ab1AGRBh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 Jan 2011 12:01:37 -0500
+From: Yordan Kamenov <ykamenov@mm-sol.com>
+To: hdegoede@redhat.com
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com,
+	Yordan Kamenov <ykamenov@mm-sol.com>
+Subject: [PATCH 0/1] libv4l: Add plugin support
+Date: Fri,  7 Jan 2011 18:59:34 +0200
+Message-Id: <cover.1294418213.git.ykamenov@mm-sol.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, Jan 07, 2011 at 12:27:11AM +0100, Hans Verkuil wrote:
-> On Thursday, January 06, 2011 23:19:12 Greg KH wrote:
-> 
-> <snip>
-> 
-> > > > > +static ssize_t media_read(struct file *filp, char __user *buf,
-> > > > > +		size_t sz, loff_t *off)
-> > > > > +{
-> > > > > +	struct media_devnode *mdev = media_devnode_data(filp);
-> > > > > +
-> > > > > +	if (!mdev->fops->read)
-> > > > > +		return -EINVAL;
-> > > > > +	if (!media_devnode_is_registered(mdev))
-> > > > > +		return -EIO;
-> > > > 
-> > > > How could this happen?
-> > > 
-> > > This can happen when a USB device is disconnected for instance.
-> > 
-> > But what's to keep that from happening on the next line as well?
-> 
-> Nothing.
-> 
-> > That
-> > doesn't seem like a check you can ever be sure about, so I wouldn't do
-> > it at all.
-> 
-> Actually, there is a reason why this was done for v4l (and now the media
-> API): typically, once a USB disconnect happens V4L drivers will call
-> video_unregister_device() which calls device_unregister. Afterwards the
-> device node should reject any new file operations except for release().
-> 
-> Obviously, this check can be done in the driver as well, but doing this
-> check in the V4L core has the advantage of 1) consistent return codes and
-> 2) drivers no longer have to check.
-> 
-> Of course, since the disconnect can happen at any time drivers still need
-> to be able to handle errors from the USB subsystem due to disconnects, but
-> that is something they always have to do.
-> 
-> > 
-> > > > And are you sure -EIO is correct?
-> > > 
-> > > -ENXIO is probably better (I always confuse that with -ENODEV).
-> 
-> I wondered why V4L uses -EIO and I think it is related to the V4L2 specification
-> of the read() function:
-> 
-> EIO
-> I/O error. This indicates some hardware problem or a failure to communicate with
-> a remote device (USB camera etc.).
-> 
-> Well, I guess a disconnect can be seen as a failure to communicate :-)
-> 
-> I think that ENODEV is much better. After all, there is no device
-> anymore after a disconnect.
-> 
-> Is there some standard for this?
+Hi Hans,
 
-I've always thought that -ENODEV was good for when the device
-disappeared.
+Here is initial version of plugin support for libv4l, based on your RFC.
 
-thanks,
+It is provided by functions v4l2_plugin_[open,close,etc]. When open() is
+called libv4l dlopens files in /usr/lib/libv4l/plugins 1 at a time and call
+open() callback passing through the applications parameters unmodified.
+If a plugin is relevant for the specified device node, it can indicate so by
+returning a value other then -1 (the actual file descriptor).
 
-greg k-h
+As soon as a plugin returns another value then -1 plugin loading stops and
+information about it (fd and corresponding library handle) is stored.
+For each function v4l2_[ioctl,read,close,etc] is called corresponding 
+v4l2_plugin_* function which looks if there is loaded plugin for that file
+and call it's callbacks. v4l2_plugin_* functions indicate by their first 
+argument if plugin was used, and if it was not then v4l2_* functions proceed 
+with their usual behavior.
+
+Yordan Kamenov (1):
+  Add plugin support to libv4l
+
+ lib/include/libv4l2-plugin.h |   74 ++++++++
+ lib/include/libv4l2.h        |   15 ++
+ lib/libv4l2/Makefile         |    4 +-
+ lib/libv4l2/libv4l2-priv.h   |    9 +
+ lib/libv4l2/libv4l2.c        |   56 ++++++-
+ lib/libv4l2/v4l2-plugin.c    |  399 ++++++++++++++++++++++++++++++++++++++++++
+ lib/libv4l2/v4l2convert.c    |   20 ++-
+ 7 files changed, 568 insertions(+), 9 deletions(-)
+ create mode 100644 lib/include/libv4l2-plugin.h
+ create mode 100644 lib/libv4l2/v4l2-plugin.c
+
+-- 
+1.7.3.1
+
