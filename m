@@ -1,62 +1,93 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:56182 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751256Ab1AEA7W (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Jan 2011 19:59:22 -0500
-Received: by iwn9 with SMTP id 9so14802419iwn.19
-        for <linux-media@vger.kernel.org>; Tue, 04 Jan 2011 16:59:21 -0800 (PST)
+Return-path: <mchehab@pedra>
+Received: from wolverine01.qualcomm.com ([199.106.114.254]:29026 "EHLO
+	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751257Ab1AGAD7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jan 2011 19:03:59 -0500
+Message-ID: <4D26586E.3080500@codeaurora.org>
+Date: Thu, 06 Jan 2011 16:03:58 -0800
+From: Yupeng Yan <yyan@codeaurora.org>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTimucMmO8Vb_y4xnhehQt+mamNMmXyY_qfrVOSo7@mail.gmail.com>
-References: <AANLkTimucMmO8Vb_y4xnhehQt+mamNMmXyY_qfrVOSo7@mail.gmail.com>
-Date: Wed, 5 Jan 2011 01:59:21 +0100
-Message-ID: <AANLkTinv64SL4HavFRK-s2Tr4CTGPH4iQ9bz7=40v1Hc@mail.gmail.com>
-Subject: Streaming on low resource
-From: ayman bs <ammoun2005@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Markus Rechberger <mrechberger@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Haibo Zhong <hzhong@codeaurora.org>,
+	Shuzhen Wang <shuzhenw@codeaurora.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: RFC: V4L2 driver for Qualcomm MSM camera.
+References: <000601cba2d8$eaedcdc0$c0c96940$@org> <AANLkTinxG7_3cwwHBfjfsC9pQXn1fN6kXd0sAAxMD4GQ@mail.gmail.com> <1EEF208DFEB6C846A382BB12BB9CD5EC723263EFBB@NASANEXMB14.na.qualcomm.com> <201101050115.57699.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201101050115.57699.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hello,
+Thanks for the comments - certainly good arguments to our lawyers :-)... 
+actually the information of how to config the ISP HW is requested to be 
+protected for now, we are working on certain degree of openness.
 
-I have an http stream in MPEG1/2 Video (mpgv)
-Frame rate: 50 4000kb/s
-
-It's basically the output of a satellite receiver with various resolutions.
-
-480/576
-544/576
-720/576
-704/576
-
-Anyway, I have a P4 1.6GHZ with 512M RAM and 1024kb UL speed... I have
-been trying to transcode and stream the signal to LAN, but my
-principal intention is to stream to Internet. I'm using these options
-in VLC which I found giving the best results.
-
-Code:
-:sout=#transcode{vcodec=mp4v,vb=650,fps=24,scale=0.5,acodec=mp3,ab=90,channels=1,samplerate=22050}:duplicate{dst=http{mux=ts,dst=:6666/},dst=display}
-:no-sout-rtp-sap :no-sout-standard-sap :ttl=1 :sout-keep
+The HW config code is just a small part of the user space (daemon) 
+tasks, the user space code also processes ISP states, carries out 3A 
+algorithm and perform post processing features, etc. which will have to 
+be protected, this is the reason why the daemon is used in QC solution.
 
 
+On 1/4/2011 4:15 PM, Laurent Pinchart wrote:
+> Hi,
+>
+> On Tuesday 04 January 2011 20:37:31 Yan, Yupeng wrote:
+>> We will exploring the usage of libv4l2...however we still have the
+>> difficulties to open-source hardware: our ISP and sensors, will need help
+>> on how to address such issues.
+> I suppose you mean open-sourcing hardware driver. There's no requirement to
+> open-source the hardware at this point, although I would love to see that
+> happening :-)
+>
+> Let's start with sensors, it's the easiest. Sensor drivers must not depend on
+> the ISP driver, and the ISP driver must not depend on sensor drivers. They
+> communicate together through the media controller and the V4L2 subdev APIs.
+>
+> You will obviously need to test your ISP driver with at least one sensor, but
+> you're not required to submit the sensor driver along with the ISP driver
+> (although it would be nice if you did so).
+>
+> Correct me if I'm wrong, but I don't think Qualcomm produces video sensors, so
+> no Qualcomm confidential information would be disclosed in a sensor driver. If
+> the sensor manufacturer hasn't released a sensor driver, or sensor
+> specifications covered by a license that allows a GPL driver to be written,
+> you will need to sort it out with the manufacturer. Note that public
+> documentation is not strictly required to release an open-source driver (see
+> the SMIA++ driver written by Nokia for instance), but that would be
+> appreciated.
+>
+> For the ISP the problem is not that complex either. From what I understand
+> Qualcomm is scared that publishing an open-source driver will backfire. I can
+> see several reasons (I should probably say myths instead of reasons) for that
+> fear:
+>
+> - "Competitors will steal my code". They can't. The code is highly hardware
+> specific and doesn't contain much added value. It can't be reused as such.
+> Even if code could be reused, it couldn't be "stolen" as it will be covered by
+> the GPLv2.
+>
+> - "Competitors will get key information about my hardware". You need to ask
+> yourself what you consider as key information. The fact that the output width
+> is stored in register 0x12345678 is hardly key information (if it is, there's
+> a more basic issue). The way statistics are computed might be. Based on my
+> experience with ISPs key information isn't disclosed by the driver. The
+> hardware algorithms (such as color conversion, faulty pixels correction,
+> statistics gathering, ...) implementation are usually not disclosed by the
+> code.
+>
+> - "Competitors will sue me for patent infringement". This goes along with the
+> previous point. Patented ISP features are usually the ones you consider as key
+> information, and details are thus not disclosed by the driver. Note that I
+> don't care here about trivial patents with broad claims such as "a system to
+> capture an image to memory". Even without any open-source driver infringement
+> can still easily be proven (and the patent can easily be invalidated, although
+> that costs money - Qualcomm should join the Open Invention Network :-)).
+>
+> None of those reasons are valid compared to the benefits you get from an open-
+> source Linux driver.
+>
 
-I would like to ask you for any suggestion about any improvements...
-I'm using Http because that's the only protocol I got running on
-Internet... I got RTSP on LAN running but with no luck on Internet...
-I'm doing NAT, so do you have any good experience with a particular
-protocol.
-
-I didn't see any difference with encapsulation methods, but I would be
-pleased to hear your word.
-
-Codecs: as you can see I'm using mp4 + mp3, the scale 0.5 is
-sufficient but could you propose other parameters?
-
-If I ever wanted to update the hardware what would be the priority,
-CPU or RAM... I know both are needed...
-
-Finally, I'm streaming from ubuntu 10.10 and any specific lightweight
-distribution is welcome... as well as any other program similar to
-VLC.
-
-Thank you!
