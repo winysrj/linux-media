@@ -1,74 +1,70 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:54955 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752341Ab1ASQFm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jan 2011 11:05:42 -0500
-Received: by iyj18 with SMTP id 18so971464iyj.19
-        for <linux-media@vger.kernel.org>; Wed, 19 Jan 2011 08:05:41 -0800 (PST)
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:44141 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752866Ab1AGUNd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jan 2011 15:13:33 -0500
+Received: by ewy5 with SMTP id 5so7998079ewy.19
+        for <linux-media@vger.kernel.org>; Fri, 07 Jan 2011 12:13:32 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20110110021439.GA70495@io.frii.com>
-References: <20101207190753.GA21666@io.frii.com>
-	<20110110021439.GA70495@io.frii.com>
-Date: Wed, 19 Jan 2011 07:59:13 -0800
-Message-ID: <AANLkTingFP9ajGckXXy2wScHHGxhz+KTyOBa-mE7SUs5@mail.gmail.com>
-Subject: Re: DViCO FusionHDTV7 Dual Express I2C write failed
-From: VDR User <user.vdr@gmail.com>
-To: Mark Zimmerman <markzimm@frii.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <201101072053.37211@orion.escape-edv.de>
+References: <201101072053.37211@orion.escape-edv.de>
+Date: Fri, 7 Jan 2011 15:13:31 -0500
+Message-ID: <AANLkTinj2NcOcVUPifsNcvbs=Mivwe89+hg8XLsCJnQ7@mail.gmail.com>
+Subject: Re: Debug code in HG repositories
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, Jan 9, 2011 at 6:14 PM, Mark Zimmerman <markzimm@frii.com> wrote:
->> I have a DViCO FusionHDTV7 Dual Express card that works with 2.6.35 but
->> which fails to initialize with the latest 2.6.36 kernel. The firmware
->> fails to load due to an i2c failure. A search of the archives indicates
->> that this is not the first time this issue has occurred.
->>
->> What can I do to help get this problem fixed?
->>
->> Here is the dmesg from 2.6.35, for the two tuners:
->>
->> xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)...
->> xc5000: firmware read 12401 bytes.
->> xc5000: firmware uploading...
->> xc5000: firmware upload complete...
->> xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)...
->> xc5000: firmware read 12401 bytes.
->> xc5000: firmware uploading...
->> xc5000: firmware upload complete..
->>
->> and here is what happens with 2.6.36:
->>
->> xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)...
->> xc5000: firmware read 12401 bytes.
->> xc5000: firmware uploading...
->> xc5000: I2C write failed (len=3)
->> xc5000: firmware upload complete...
->> xc5000: Unable to initialise tuner
->> xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)...
->> xc5000: firmware read 12401 bytes.
->> xc5000: firmware uploading...
->> xc5000: I2C write failed (len=3)
->> xc5000: firmware upload complete...
->>
+On Fri, Jan 7, 2011 at 2:53 PM, Oliver Endriss <o.endriss@gmx.de> wrote:
+> Hi guys,
 >
-> More information about this: I tried 2.6.37 (vanilla source from
-> kernel.org) and the problem persisted. So, I enabled these options:
-> CONFIG_I2C_DEBUG_CORE=y
-> CONFIG_I2C_DEBUG_ALGO=y
-> CONFIG_I2C_DEBUG_BUS=y
-> hoping to get more information but this time the firmware loaded
-> successfully and the tuner works properly.
+> are you aware that there is a lot of '#if 0' code in the HG repositories
+> which is not in GIT?
 >
-> This leads me to suspect a race condition somewhere, or maybe a
-> tunable parameter that can be adjusted. The fact that the 'write
-> failed' message occurs before the 'upload complete' message would tend
-> to support this. Can anyone suggest something I might try?
+> When drivers were submitted to the kernel from HG, the '#if 0' stuff was
+> stripped, unless it was marked as 'keep'...
+>
+> This was fine, when development was done with HG.
+>
+> As GIT is being used now, that code will be lost, as soon as the HG
+> repositories have been removed...
+>
+> Any opinions how this should be handled?
+>
+> CU
+> Oliver
 
-Can someone please look into this and possibly provide a fix for the
-bug?  I'm surprised it hasn't happened yet after all this time but
-maybe it's been forgotten the bug existed.
+I complained about this months ago.  The problem is that when we were
+using HG, the HG repo was a complete superset of what went into Git
+(including development/debug code).  But now that we use Git, neither
+is a superset of the other.
 
-Thanks.
+If you base your changes on Git, you have to add back in all the
+portability code (and any "#if 0" you added as the maintainer for
+development/debugging).  Oh, and regular users cannot test any of your
+changes because they aren't willing to upgrade their entire kernel.
+
+If you base your changes on Hg, nothing merges cleanly when submitted
+upstream so your patches get rejected.
+
+Want to know why we are seeing regressions all over the place?
+Because *NOBODY* is testing the code until after the kernel goes
+stable (since while many are willing to install a v4l-dvb tree, very
+few will are willing to upgrade their entire kernel just to test one
+driver).  We've probably lost about 98% of our user base of testers.
+
+Oh, and users have to git clone 500M+ of data, and not everybody in
+the world has bandwidth fast enough to make that worth their time (it
+took me several hours last time I did it).
+
+Anyway, I've beaten this horse to death and it's fallen on deaf ears.
+Merge overhead has reached the point where it's just not worth my
+time/effort to submit anything upstream anymore.
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
