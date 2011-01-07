@@ -1,60 +1,114 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:30280 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750771Ab1AMFYD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Jan 2011 00:24:03 -0500
-Subject: RE: Enable IR on hdpvr
-From: Andy Walls <awalls@md.metrocast.net>
-To: Jason Gauthier <jgauthier@lastar.com>
-Cc: Jarod Wilson <jarod@wilsonet.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Janne Grunau <j@jannau.net>
-In-Reply-To: <1294875902.2485.19.camel@morgan.silverblock.net>
-References: <65DE7931C559BF4DBEE42C3F8246249A0B686EB0@V-EXMAILBOX.ctg.com>
-	 <8AFBEFD7-69E3-4E71-B155-EA773C2FED43@wilsonet.com>
-	 <65DE7931C559BF4DBEE42C3F8246249A0B69B014@V-ALBEXCHANGE.ctg.com>
-	 <EC37FC85-82B2-48AE-BB94-64ED00E7647D@wilsonet.com>
-	 <93CE8497-D6AB-43BA-A239-EE32D51582FC@wilsonet.com>
-	 <65DE7931C559BF4DBEE42C3F8246249A0B6A54C7@V-ALBEXCHANGE.ctg.com>
-	 <1294875902.2485.19.camel@morgan.silverblock.net>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 13 Jan 2011 00:23:55 -0500
-Message-ID: <1294896235.7921.14.camel@localhost>
-Mime-Version: 1.0
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4088 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751559Ab1AGKpO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jan 2011 05:45:14 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: Re: [GIT PATCHES FOR 2.6.38] Use the control framework in various subdevs
+Date: Fri, 7 Jan 2011 11:44:55 +0100
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <201012311437.00074.hverkuil@xs4all.nl> <201101071049.30943.hverkuil@xs4all.nl>
+In-Reply-To: <201101071049.30943.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201101071144.55426.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 2011-01-12 at 18:45 -0500, Andy Walls wrote:
-
-
-> If all goes well, with Jarrod's change, you should be able to test the
-> hdpvr module with the ir-kbd-i2c module and test IR Rx.
-
-FYI, I have (re)confirmed that ir-kbd-i2c and cx18, in a bleeding-edge
-development kernel, still work with the Zilog Z8 IR Rx on the
-HVR-1600.  
-
-It's nice to have a known working baseline.
-
-
-> Strictly speaking, lirc_zilog needs some rework to use the kernel
-> internal interfaces properly.  It might still work, but don't be
-> surprised if it doesn't.
+On Friday, January 07, 2011 10:49:30 Hans Verkuil wrote:
+> Hi Mauro,
 > 
-> I might get to working on lirc_zilog tonight, but otherwise not until
-> this weekend.
+> On Friday, December 31, 2010 14:36:59 Hans Verkuil wrote:
+> > This is a pull request for a subset of the RFC patch series I posted almost
+> > three weeks ago.
+> 
+> Please don't merge this yet. While testing the ov7670 driver I came across
+> some issues that may affect some drivers in this patch series as well. I need
+> to do some more debugging and testing to verify whether this patch series can
+> go ahead or not. I'll get back to you on this once I know more.
 
-lirc_zilog got a little work tonight:
+OK, this patch series is fine. The specific issues I had with ov7670 do not
+apply here.
 
-http://git.linuxtv.org/awalls/media_tree.git?a=shortlog;h=refs/heads/z8
-
-My changes make it slightly *more* broken in some respects. :D
-
-At least what needs to be reworked is now becoming easier to see and
-address.
+So this patch series is OK to merge.
 
 Regards,
-Andy
 
+	Hans
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > The only change is cx18 where Andy Walls pointed out some bugs. The same bugs
+> > were introduced in cx25840 and Andy's fixes for those had to be applied as well
+> > in cx18 for the AV core.
+> > 
+> > I dropped tvaudio, tda7432, tda9875 and ov7670 for now since these need more
+> > testing.
+> > 
+> > This has been tested with the vivi, cx18, em28xx and vpif_capture/vpif_display
+> > drivers.
+> > 
+> > Regards,
+> > 
+> > 	Hans
+> > 
+> > The following changes since commit 187134a5875df20356f4dca075db29f294115a47:
+> >   David Henningsson (1):
+> >         [media] DVB: IR support for TechnoTrend CT-3650
+> > 
+> > are available in the git repository at:
+> > 
+> >   ssh://linuxtv.org/git/hverkuil/media_tree.git subdev-ctrl1
+> > 
+> > Hans Verkuil (11):
+> >       cs5345: use the control framework
+> >       cx18: Use the control framework.
+> >       adv7343: use control framework
+> >       bt819: use control framework
+> >       saa7110: use control framework
+> >       tlv320aic23b: use control framework
+> >       tvp514x: use the control framework
+> >       tvp5150: use the control framework
+> >       vpx3220: use control framework
+> >       tvp7002: use control framework
+> >       vivi: convert to the control framework and add test controls.
+> > 
+> >  drivers/media/video/adv7343.c            |  167 +++++++-----------
+> >  drivers/media/video/adv7343_regs.h       |    8 +-
+> >  drivers/media/video/bt819.c              |  129 +++++---------
+> >  drivers/media/video/cs5345.c             |   87 ++++++---
+> >  drivers/media/video/cx18/cx18-av-audio.c |   92 ++---------
+> >  drivers/media/video/cx18/cx18-av-core.c  |  175 ++++++++-----------
+> >  drivers/media/video/cx18/cx18-av-core.h  |   12 +-
+> >  drivers/media/video/cx18/cx18-controls.c |  285 ++++--------------------------
+> >  drivers/media/video/cx18/cx18-controls.h |    7 +-
+> >  drivers/media/video/cx18/cx18-driver.c   |   30 ++--
+> >  drivers/media/video/cx18/cx18-driver.h   |    2 +-
+> >  drivers/media/video/cx18/cx18-fileops.c  |   32 +---
+> >  drivers/media/video/cx18/cx18-ioctl.c    |   24 +--
+> >  drivers/media/video/cx18/cx18-mailbox.c  |    5 +-
+> >  drivers/media/video/cx18/cx18-mailbox.h  |    5 -
+> >  drivers/media/video/cx18/cx18-streams.c  |   16 +-
+> >  drivers/media/video/saa7110.c            |  115 +++++-------
+> >  drivers/media/video/tlv320aic23b.c       |   74 +++++---
+> >  drivers/media/video/tvp514x.c            |  236 ++++++-------------------
+> >  drivers/media/video/tvp5150.c            |  157 +++++------------
+> >  drivers/media/video/tvp7002.c            |  117 +++++--------
+> >  drivers/media/video/vivi.c               |  228 +++++++++++++++---------
+> >  drivers/media/video/vpx3220.c            |  137 ++++++---------
+> >  23 files changed, 773 insertions(+), 1367 deletions(-)
+> > 
+> > 
+> > 
+> 
+> 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
