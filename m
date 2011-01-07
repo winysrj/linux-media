@@ -1,62 +1,39 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:59175 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754698Ab1ALXoZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Jan 2011 18:44:25 -0500
-Subject: RE: Enable IR on hdpvr
-From: Andy Walls <awalls@md.metrocast.net>
-To: Jason Gauthier <jgauthier@lastar.com>
-Cc: Jarod Wilson <jarod@wilsonet.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Janne Grunau <j@jannau.net>
-In-Reply-To: <65DE7931C559BF4DBEE42C3F8246249A0B6A54C7@V-ALBEXCHANGE.ctg.com>
-References: <65DE7931C559BF4DBEE42C3F8246249A0B686EB0@V-EXMAILBOX.ctg.com>
-	 <8AFBEFD7-69E3-4E71-B155-EA773C2FED43@wilsonet.com>
-	 <65DE7931C559BF4DBEE42C3F8246249A0B69B014@V-ALBEXCHANGE.ctg.com>
-	 <EC37FC85-82B2-48AE-BB94-64ED00E7647D@wilsonet.com>
-	 <93CE8497-D6AB-43BA-A239-EE32D51582FC@wilsonet.com>
-	 <65DE7931C559BF4DBEE42C3F8246249A0B6A54C7@V-ALBEXCHANGE.ctg.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 12 Jan 2011 18:45:02 -0500
-Message-ID: <1294875902.2485.19.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49390 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754212Ab1AGQAC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jan 2011 11:00:02 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 4/5] uvcvideo: Include linux/types.h in uvcvideo.h
+Date: Fri,  7 Jan 2011 17:00:39 +0100
+Message-Id: <1294416040-28371-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1294416040-28371-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1294416040-28371-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 2011-01-12 at 13:49 +0000, Jason Gauthier wrote:
-> >> 
-> >> Bah. Yeah, sorry, that wasn't the current patch in Fedora 14. This is:
-> >> 
-> >> http://wilsonet.com/jarod/lirc_misc/hdpvr-ir/hdpvr-ir-enable-2.patch
-> >> 
-> >> Its atop the F14 2.6.35.10 kernel, which has a fairly recent v4l/dvb 
-> >> backport on top of it, so it should be pretty close to matching the 
-> >> current v4l/dvb code...
-> 
-> >With the help of Andy Walls and Jean Delvare, I think we've hashed
-> out an updated patch that will work sitting atop the current v4l/dvb
-> hdpvr code, but I'm only just now getting around to compile->testing
-> it, and its past my bedtime, so it'll be tomorrow before I can do any
-> sort of functional testing (but hey, due to the snow, I'll be working
-> from home tomorrow, where my hdpvr happens to be...).
-> 
-> I've got two hdpvrs.  Whenever you're ready to extend your testing,
-> I'm happy to extend that functional testing.  I didn't get a chance to
-> look at the FC14 patch yet (busy couple of days), but I will hold off
-> now, anyway!
+The header file uses __u* types, linux/types.h must be included in
+preparation for its move to include/linux.
 
-If all goes well, with Jarrod's change, you should be able to test the
-hdpvr module with the ir-kbd-i2c module and test IR Rx.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/uvc/uvcvideo.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Strictly speaking, lirc_zilog needs some rework to use the kernel
-internal interfaces properly.  It might still work, but don't be
-surprised if it doesn't.
-
-I might get to working on lirc_zilog tonight, but otherwise not until
-this weekend.
-
-Regards,
-Andy
+diff --git a/drivers/media/video/uvc/uvcvideo.h b/drivers/media/video/uvc/uvcvideo.h
+index b98bbd3..e6684c2 100644
+--- a/drivers/media/video/uvc/uvcvideo.h
++++ b/drivers/media/video/uvc/uvcvideo.h
+@@ -1,7 +1,7 @@
+ #ifndef _USB_VIDEO_H_
+ #define _USB_VIDEO_H_
+ 
+-#include <linux/kernel.h>
++#include <linux/types.h>
+ #include <linux/videodev2.h>
+ 
+ /*
+-- 
+1.7.2.2
 
