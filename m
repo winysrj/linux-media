@@ -1,62 +1,68 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-pz0-f66.google.com ([209.85.210.66]:37904 "EHLO
-	mail-pz0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750887Ab1AAHnJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Jan 2011 02:43:09 -0500
-Message-ID: <4D1EDB22.2020308@gmail.com>
-Date: Fri, 31 Dec 2010 23:43:30 -0800
-From: "Justin P. Mattock" <justinmattock@gmail.com>
+Return-path: <mchehab@pedra>
+Received: from mail-yi0-f46.google.com ([209.85.218.46]:34533 "EHLO
+	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751584Ab1AGLxL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jan 2011 06:53:11 -0500
+Received: by yib18 with SMTP id 18so4535976yib.19
+        for <linux-media@vger.kernel.org>; Fri, 07 Jan 2011 03:53:10 -0800 (PST)
 MIME-Version: 1.0
-To: Finn Thain <fthain@telegraphics.com.au>
-CC: trivial@kernel.org, linux-m68k@lists.linux-m68k.org,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
-	linux-wireless@vger.kernel.org, linux-scsi@vger.kernel.org,
-	spi-devel-general@lists.sourceforge.net,
-	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
-Subject: Re: [PATCH 03/15]drivers:staging:rtl8187se:r8180_hw.h Typo change
- diable to disable.
-References: <1293750484-1161-1-git-send-email-justinmattock@gmail.com> <1293750484-1161-2-git-send-email-justinmattock@gmail.com> <1293750484-1161-3-git-send-email-justinmattock@gmail.com> <alpine.LNX.2.00.1012311722580.24460@nippy.intranet>
-In-Reply-To: <alpine.LNX.2.00.1012311722580.24460@nippy.intranet>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Date: Fri, 7 Jan 2011 22:53:10 +1100
+Message-ID: <AANLkTinUVpHdJRZ_EHw8B4nv=X2yNoOwdNqtH_+wiV=r@mail.gmail.com>
+Subject: [patch] new_build.git - avoid failing on 'rm' of nonexistent file
+From: Vincent McIntyre <vincent.mcintyre@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=00151750ed9028496d04994043e3
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On 12/31/2010 10:48 PM, Finn Thain wrote:
->
-> On Thu, 30 Dec 2010, Justin P. Mattock wrote:
->
->> The below patch fixes a typo "diable" to "disable". Please let me know if this
->> is correct or not.
->>
->> Signed-off-by: Justin P. Mattock<justinmattock@gmail.com>
->>
->> ---
->>   drivers/staging/rtl8187se/r8180_hw.h |    2 +-
->>   1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/staging/rtl8187se/r8180_hw.h b/drivers/staging/rtl8187se/r8180_hw.h
->> index 3fca144..2911d40 100644
->> --- a/drivers/staging/rtl8187se/r8180_hw.h
->> +++ b/drivers/staging/rtl8187se/r8180_hw.h
->> @@ -554,7 +554,7 @@
->>   /* by amy for power save		*/
->>   /* by amy for antenna			*/
->>   #define EEPROM_SW_REVD_OFFSET 0x3f
->> -/*  BIT[8-9] is for SW Antenna Diversity. Only the value EEPROM_SW_AD_ENABLE means enable, other values are diable.					*/
->> +/*  BIT[8-9] is for SW Antenna Diversity. Only the value EEPROM_SW_AD_ENABLE means enable, other values are disabled.					*/
->
-> I think, "other values disable" was what you meant?
->
-> Finn
->
->>   #define EEPROM_SW_AD_MASK			0x0300
->>   #define EEPROM_SW_AD_ENABLE			0x0100
->>
->>
->
+--00151750ed9028496d04994043e3
+Content-Type: text/plain; charset=ISO-8859-1
 
-no! I changed it to disabled to make it proper..
+While attempting to build recently I have found the 'make distclean'
+target fails if 'rm' tries to remove a file that is not there. The
+attached patch fixes the issue for me (by using rm -f).
+I converted all the other 'rm' calls to 'rm -f' along the way.
 
-Justin P. Mattock
+Please consider applying this.
+
+Cheers
+Vince
+
+--00151750ed9028496d04994043e3
+Content-Type: text/x-patch; charset=US-ASCII; name="new_build.patch"
+Content-Disposition: attachment; filename="new_build.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: file0
+
+ZGlmZiAtLWdpdCBhL2xpbnV4L01ha2VmaWxlIGIvbGludXgvTWFrZWZpbGUKaW5kZXggNjk1ZGNm
+Mi4uOGJiZWVlOCAxMDA2NDQKLS0tIGEvbGludXgvTWFrZWZpbGUKKysrIGIvbGludXgvTWFrZWZp
+bGUKQEAgLTUzLDcgKzUyLDcgQEAgaGVscDoKIAogdG9kYXl0YXI6CiAJQGlmIFsgIiQoRElSKSIg
+PSAiIiBdOyB0aGVuIGVjaG8gIm1ha2UgJEAgRElSPTx2ZXJzaW9uPiI7IGV4aXQgLTE7IGZpCi0J
+LXJtICQoUFdEKS8kKFRPREFZX1RBUikuYnoyCisJLXJtIC1mICQoUFdEKS8kKFRPREFZX1RBUiku
+YnoyCiAJdGFyIGNmICQoUFdEKS8kKFRPREFZX1RBUikgLUMgJChESVIpICQoVEFSRklMRVMpCiAJ
+LWdpdCAtLWdpdC1kaXIgJChESVIpLy5naXQgbG9nIC0tcHJldHR5PW9uZWxpbmUgSEVBRF4xXjFe
+MV4xXjFeMV4xXjEuLkhFQUQgPmdpdF9sb2cKIAl0YXIgcnZmICQoUFdEKS9saW51eC1tZWRpYS50
+YXIgZ2l0X2xvZwpAQCAtNzAsNyArNjksNyBAQCB0b2RheXRhcjoKIAogdGFyOgogCUBpZiBbICIk
+KERJUikiID0gIiIgXTsgdGhlbiBlY2hvICJtYWtlICRAIERJUj08dmVyc2lvbj4iOyBleGl0IC0x
+OyBmaQotCS1ybSAkKFBXRCkvbGludXgtbWVkaWEudGFyLmJ6MgorCS1ybSAtZiAkKFBXRCkvbGlu
+dXgtbWVkaWEudGFyLmJ6MgogCXRhciBjZiAkKFBXRCkvbGludXgtbWVkaWEudGFyIC1DICQoRElS
+KSAkKFRBUkZJTEVTKQogCS1naXQgLS1naXQtZGlyICQoRElSKS8uZ2l0IGxvZyAtLXByZXR0eT1v
+bmVsaW5lIEhFQUReMV4xXjFeMV4xXjFeMV4xLi5IRUFEID5naXRfbG9nCiAJdGFyIHJ2ZiAkKFBX
+RCkvbGludXgtbWVkaWEudGFyIGdpdF9sb2cKQEAgLTk3LDcgKzk2LDcgQEAgZGlyOiBjbGVhbgog
+CS4vdXNlX2Rpci5wbCAkKERJUikKIAogZGlzdGNsZWFuOiBjbGVhbgotCS1ybSBsaW51eC1tZWRp
+YS50YXIuYnoyIGxpbnV4LW1lZGlhLnRhci5iejIubWQ1CisJLXJtIC1mIGxpbnV4LW1lZGlhLnRh
+ci5iejIgbGludXgtbWVkaWEudGFyLmJ6Mi5tZDUKIAogYXBwbHlfcGF0Y2hlcyBhcHBseS1wYXRj
+aGVzOgogCUBpZiBbIC1lIC5saW5rZWRfZGlyIF07IHRoZW4gLi91c2VfZGlyLnBsIC0tcmVjaGVj
+ayAtLXNpbGVudDsgZmkKQEAgLTEzMSw3ICsxMzAsNyBAQCBhcHBseV9wYXRjaGVzIGFwcGx5LXBh
+dGNoZXM6CiAJbXYgLnBhdGNoZXNfYXBwbGllZCAucGF0Y2hlc19hcHBsaWVkLm9sZDsgXAogCWVj
+aG8gIiMkJGRpciIgPiAucGF0Y2hlc19hcHBsaWVkOyBcCiAJY2F0IC5wYXRjaGVzX2FwcGxpZWQu
+b2xkID4+IC5wYXRjaGVzX2FwcGxpZWQ7IFwKLQlybSAucGF0Y2hlc19hcHBsaWVkLm9sZDsgXAor
+CXJtIC1mIC5wYXRjaGVzX2FwcGxpZWQub2xkOyBcCiAJaWYgWyAtZSAubGlua2VkX2RpciBdOyB0
+aGVuIC4vdXNlX2Rpci5wbCAtLWdldF9wYXRjaGVkOyBmaQogCiB1bmFwcGx5X3BhdGNoZXMgdW5h
+cHBseS1wYXRjaGVzOgpAQCAtMTQxLDcgKzE0MCw3IEBAIHVuYXBwbHlfcGF0Y2hlcyB1bmFwcGx5
+LXBhdGNoZXM6CiAJCWVjaG8gcGF0Y2ggLXMgLWYgLVIgLXAxIC1pIC4uL2JhY2twb3J0cy8kJGk7
+IFwKIAkJcGF0Y2ggLXMgLWYgLVIgLXAxIC1pIC4uL2JhY2twb3J0cy8kJGkgfHwgYnJlYWs7IFwK
+IAlkb25lOyBcCi0Jcm0gLnBhdGNoZXNfYXBwbGllZDsgZmkKKwlybSAtZiAucGF0Y2hlc19hcHBs
+aWVkOyBmaQogCiBkb3dubG9hZDoKIAl3Z2V0ICQoTEFURVNUX1RBUl9NRDUpIC1PIGxpbnV4LW1l
+ZGlhLnRhci5iejIubWQ1LnRtcAo=
+--00151750ed9028496d04994043e3--
