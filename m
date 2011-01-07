@@ -1,61 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:63691 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751565Ab1AJTt5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jan 2011 14:49:57 -0500
-Received: by vws16 with SMTP id 16so8256721vws.19
-        for <linux-media@vger.kernel.org>; Mon, 10 Jan 2011 11:49:56 -0800 (PST)
-References: <65DE7931C559BF4DBEE42C3F8246249A0B686EB0@V-EXMAILBOX.ctg.com> <8AFBEFD7-69E3-4E71-B155-EA773C2FED43@wilsonet.com> <65DE7931C559BF4DBEE42C3F8246249A0B69B014@V-ALBEXCHANGE.ctg.com>
-In-Reply-To: <65DE7931C559BF4DBEE42C3F8246249A0B69B014@V-ALBEXCHANGE.ctg.com>
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=us-ascii
-Message-Id: <EC37FC85-82B2-48AE-BB94-64ED00E7647D@wilsonet.com>
-Content-Transfer-Encoding: 8BIT
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Janne Grunau <j@jannau.net>
-From: Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: Enable IR on hdpvr
-Date: Mon, 10 Jan 2011 14:50:06 -0500
-To: Jason Gauthier <jgauthier@lastar.com>
+Received: from mailout-de.gmx.net ([213.165.64.22]:35196 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1754054Ab1AGTBv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 Jan 2011 14:01:51 -0500
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: linux-media@vger.kernel.org
+To: Dan Carpenter <error27@gmail.com>
+Subject: Re: [patch v2] [media] av7110: check for negative array offset
+Date: Fri, 7 Jan 2011 20:01:19 +0100
+Cc: Andreas Oberritter <obi@linuxtv.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+References: <20110106194059.GC1717@bicker> <4D270A9F.7080104@linuxtv.org> <20110107134651.GH1717@bicker>
+In-Reply-To: <20110107134651.GH1717@bicker>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201101072001.20850@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Jan 10, 2011, at 9:25 AM, Jason Gauthier wrote:
+Hi,
 
->>> 
->>> I did simply try changing:
->>> 
->>>      /* until i2c is working properly */
->>>      retval = 0; /* hdpvr_register_i2c_ir(dev); */
->>>      if (retval < 0)
->>> 
->>> so that it would register with i2c.
->>> Doing so returns a positive registration with I2C, but the lirc_zilog 
->>> driver doesn't see the chip when it loads. (The lirc_zilog is now in 
->>> the kernel, yay)
+On Friday 07 January 2011 14:46:51 Dan Carpenter wrote:
+> info->num comes from the user.  It's type int.  If the user passes
+> in a negative value that would cause memory corruption.
 > 
->> There's a bit more to it than just the one line change. Here's the patch we're carrying in the Fedora kernels to enable it:
+> Signed-off-by: Dan Carpenter <error27@gmail.com>
+> ---
+> V2: change the check instead of making num and unsigned int
 > 
->> http://wilsonet.com/jarod/lirc_misc/hdpvr-ir/hdpvr-ir-enable.patch
-> 
->> Janne, I've heard many success stories w/the hdpvr IR lately, and almost no reports of lockups, so I'm thinking a firmware update may have helped out >here, and thus, maybe its time we just go ahead and push this patch along upstream? We still require someone to load lirc_zilog manually, so it seems like a >fairly low-risk thing to do.
-> 
-> Thanks.  What source tree is this against?  I see the patch is dated 09/2009.  Manually comparing to my .37 source tree it does not appear to match up.
-> I don't mind bringing in a third source tree to compare against to see if I can make this work on .37, I just don't know which one!
+> diff --git a/drivers/media/dvb/ttpci/av7110_ca.c b/drivers/media/dvb/ttpci/av7110_ca.c
+> index 122c728..923a8e2 100644
+> --- a/drivers/media/dvb/ttpci/av7110_ca.c
+> +++ b/drivers/media/dvb/ttpci/av7110_ca.c
+> @@ -277,7 +277,7 @@ static int dvb_ca_ioctl(struct file *file, unsigned int cmd, void *parg)
+>  	{
+>  		ca_slot_info_t *info=(ca_slot_info_t *)parg;
+>  
+> -		if (info->num > 1)
+> +		if ((unsigned)info->num > 1)
+>  			return -EINVAL;
+>  		av7110->ci_slot[info->num].num = info->num;
+>  		av7110->ci_slot[info->num].type = FW_CI_LL_SUPPORT(av7110->arm_app) ?
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Bah. Yeah, sorry, that wasn't the current patch in Fedora 14. This is:
+Imho casts are a last resort and should be avoided, if there is a better
+way to do it. The obvious fix is
 
-http://wilsonet.com/jarod/lirc_misc/hdpvr-ir/hdpvr-ir-enable-2.patch
-
-Its atop the F14 2.6.35.10 kernel, which has a fairly recent v4l/dvb
-backport on top of it, so it should be pretty close to matching the
-current v4l/dvb code...
-
+  if (info->num < 0 || info->num > 1)
+        return -EINVAL;
+   
+CU
+Oliver
 
 -- 
-Jarod Wilson
-jarod@wilsonet.com
-
-
-
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
