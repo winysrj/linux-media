@@ -1,53 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from cain.gsoft.com.au ([203.31.81.10]:65144 "EHLO cain.gsoft.com.au"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751697Ab1AHMiq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Jan 2011 07:38:46 -0500
-From: "Daniel O'Connor" <darius@dons.net.au>
-Content-Type: text/plain; charset=us-ascii
+Received: from darkcity.gna.ch ([195.226.6.51]:52096 "EHLO mail.gna.ch"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753998Ab1AGJEZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jan 2011 04:04:25 -0500
+Subject: Re: Memory sharing issue by application on V4L2 based device
+ driver with system mmu.
+From: Michel =?ISO-8859-1?Q?D=E4nzer?= <michel@daenzer.net>
+To: InKi Dae <daeinki@gmail.com>
+Cc: Jonghun Han <jonghun.han@samsung.com>, linux-media@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-fbdev <linux-fbdev@vger.kernel.org>,
+	kyungmin.park@samsung.com
+In-Reply-To: <AANLkTinsduJkynwwEeM5K9f3D7C6jtBgkAyZ0-_0z2X-@mail.gmail.com>
+References: <4D25BC22.6080803@samsung.com>
+	 <AANLkTi=P8qY22saY9a_-rze1wsr-DLMgc6Lfa6qnfM7u@mail.gmail.com>
+	 <002201cbadfd$6d59e490$480dadb0$%han@samsung.com>
+	 <AANLkTinsduJkynwwEeM5K9f3D7C6jtBgkAyZ0-_0z2X-@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
-Date: Sat, 8 Jan 2011 23:08:25 +1030
-Subject: Unable to build media_build (mk II)
-To: linux-media@vger.kernel.org
-Message-Id: <155DD6D6-0766-4501-9B03-D5945460B040@dons.net.au>
-Mime-Version: 1.0 (Apple Message framework v1082)
+Date: Fri, 07 Jan 2011 09:54:25 +0100
+Message-ID: <1294390465.6019.212.camel@thor.local>
+Mime-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi again :)
-I am still having trouble building unfortunately, I get the following:
-  CC [M]  /home/myth/media_build/v4l/hdpvr-video.o
-  CC [M]  /home/myth/media_build/v4l/hdpvr-i2c.o
-/home/myth/media_build/v4l/hdpvr-i2c.c: In function 'hdpvr_new_i2c_ir':
-/home/myth/media_build/v4l/hdpvr-i2c.c:62: error: too many arguments to function 'i2c_new_probed_device'
-make[3]: *** [/home/myth/media_build/v4l/hdpvr-i2c.o] Error 1
-make[2]: *** [_module_/home/myth/media_build/v4l] Error 2
-make[2]: Leaving directory `/usr/src/linux-headers-2.6.32-26-generic'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/home/myth/media_build/v4l'
-make: *** [all] Error 2
-*** ERROR. Aborting ***
+On Fre, 2011-01-07 at 11:17 +0900, InKi Dae wrote: 
+> thank you for your comments.
+> 
+> your second comment has no any problem as I said before, user virtual
+> addess could be translated in page unit. but the problem, as you said,
+> is that when cpu access to the memory in user mode, the memory
+> allocated by malloc, page fault occurs so we can't find pfn to user
+> virtual address. I missed that. but I think we could resolve this one.
+> 
+> as before, user application allocates memory through malloc function
+> and then send it to device driver(using userptr feature). if the pfn
+> is null when device driver translated user virtual address in page
+> unit then it allocates phsical memory in page unit using some
+> interface such as alloc_page() and then mapping them. when pfn is
+> null, to check it and allocate physical memory in page unit could be
+> processed by videobuf2.
+> 
+> of course, videobuf2 has no any duty considered for system mmu. so
+> videobuf2 just provides callback for 3rd party and any platform with
+> system mmu such as Samsung SoC C210 implements the function(allocating
+> physical memory and mapping it) and registers it to callback of
+> videobuf2. by doing so, I think your first comment could be cleared.
 
-Looking at some other consumers of that function it would appear the last argument (NULL in this case) is superfluous, however the file appears to be replaced each time I run build.sh so I can't update it.
-
-[mythtv 23:00] ~/media_build >uname -a
-Linux mythtv 2.6.32-26-generic #48-Ubuntu SMP Wed Nov 24 10:14:11 UTC 2010 x86_64 GNU/Linux
-[mythtv 23:00] ~/media_build >cat /etc/lsb-release 
-DISTRIB_ID=Ubuntu
-DISTRIB_RELEASE=10.04
-DISTRIB_CODENAME=lucid
-DISTRIB_DESCRIPTION="Ubuntu 10.04.1 LTS"
-
---
-Daniel O'Connor software and network engineer
-for Genesis Software - http://www.gsoft.com.au
-"The nice thing about standards is that there
-are so many of them to choose from."
-  -- Andrew Tanenbaum
-GPG Fingerprint - 5596 B766 97C0 0E94 4347 295E E593 DC20 7B3F CE8C
+FWIW, TTM (drivers/gpu/drm/ttm, include/drm/ttm) is designed and used
+for managing memory between CPU/GPU and kernel/userspace access. I
+haven't looked at your requirements in detail, but if you haven't looked
+at TTM yet, it sounds like it might be worth a look.
 
 
-
-
-
-
+-- 
+Earthling Michel Dänzer           |                http://www.vmware.com
+Libre software enthusiast         |          Debian, X and DRI developer
