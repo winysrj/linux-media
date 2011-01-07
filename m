@@ -1,71 +1,42 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3996 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932434Ab1AKRtn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jan 2011 12:49:43 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 2.6.38] Remove core.s_config and document is_new
-Date: Tue, 11 Jan 2011 18:49:36 +0100
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Jonathan Corbet <corbet@lwn.net>
+Received: from ffm.saftware.de ([83.141.3.46]:33037 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751371Ab1AGOEz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 Jan 2011 09:04:55 -0500
+Message-ID: <4D271D8C.2060201@linuxtv.org>
+Date: Fri, 07 Jan 2011 15:05:00 +0100
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+To: Dan Carpenter <error27@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
+	Oliver Endriss <o.endriss@gmx.de>
+Subject: Re: [patch] [media] av7110: make array offset unsigned
+References: <20110106194059.GC1717@bicker> <4D270A9F.7080104@linuxtv.org> <20110107135122.GI1717@bicker>
+In-Reply-To: <20110107135122.GI1717@bicker>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201101111849.36086.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+On 01/07/2011 02:51 PM, Dan Carpenter wrote:
+> On Fri, Jan 07, 2011 at 01:44:15PM +0100, Andreas Oberritter wrote:
+>> Nack. You're changing an interface to userspace. Please add a check to
+>> av7110_ca.c instead.
+>>
+> 
+> Ok.  I've done that and resent the patch.
 
-(Second attempt, fixing a bug introduced in the third patch)
+Thanks. I'm OK with the patch, but I'll leave it to the maintainer of
+av7110 to decide whether he likes the cast or prefers an additional
+signed compare. I added him to CC.
 
-These patches remove s_config legacy support, replace it with new internal
-operations (also needed for the upcoming subdev device nodes) and finally
-rename has_new to is_new and document that control framework flag.
+> But just for my own understanding, why is it wrong to change an int to
+> an unsigned int in the userspace API?  Who would notice?  (I'm still
+> quite a newbie at system programming).
 
-My original RFC also converted OLPC drivers, but those are scheduled for
-2.6.39. They need a bit more testing and I intend to improve the handling
-of autofoo/foo type of controls in the control framework.
+It would generate compiler warnings in userspace for programs checking
+for values < 0 or assigning negative values (for whatever reason).
 
 Regards,
-
-        Hans
-
-The following changes since commit 04c3fafd933379fbc8b1fa55ea9b65281af416f7:
-  Hans Verkuil (1):
-        [media] vivi: convert to the control framework and add test controls
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/hverkuil/media_tree.git s_config3
-
-Hans Verkuil (3):
-      v4l2-subdev: remove core.s_config and v4l2_i2c_new_subdev_cfg()
-      v4l2-subdev: add (un)register internal ops
-      v4l2-ctrls: v4l2_ctrl_handler_setup must set is_new to 1
-
- Documentation/video4linux/v4l2-controls.txt |   12 ++++
- drivers/media/video/cafe_ccic.c             |   11 +++-
- drivers/media/video/cx25840/cx25840-core.c  |   22 ++------
- drivers/media/video/em28xx/em28xx-cards.c   |   18 ++++---
- drivers/media/video/ivtv/ivtv-i2c.c         |    9 +++-
- drivers/media/video/mt9v011.c               |   54 ++++++++++++-------
- drivers/media/video/mt9v011.h               |   36 -------------
- drivers/media/video/ov7670.c                |   74 ++++++++++++---------------
- drivers/media/video/sr030pc30.c             |   10 ----
- drivers/media/video/v4l2-common.c           |   19 +------
- drivers/media/video/v4l2-ctrls.c            |   24 +++++----
- drivers/media/video/v4l2-device.c           |   14 ++++-
- include/media/mt9v011.h                     |   17 ++++++
- include/media/v4l2-common.h                 |   13 +----
- include/media/v4l2-ctrls.h                  |    6 ++-
- include/media/v4l2-subdev.h                 |   23 +++++++--
- 16 files changed, 177 insertions(+), 185 deletions(-)
- delete mode 100644 drivers/media/video/mt9v011.h
- create mode 100644 include/media/mt9v011.h
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Andreas
