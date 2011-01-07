@@ -1,50 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.8]:57192 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752495Ab1A2Ayi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Jan 2011 19:54:38 -0500
-Date: Sat, 29 Jan 2011 01:53:50 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Baruch Siach <baruch@tkos.co.il>,
-	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
-Subject: [PATCH/RFC 0/3] soc-camera: convert to videobuf2
-Message-ID: <Pine.LNX.4.64.1101290113500.19247@axis700.grange>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50356 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751899Ab1AGNZA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jan 2011 08:25:00 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC PATCH 3/5] v4l2-ctrls: v4l2_ctrl_handler_setup must set has_new to 1
+Date: Fri, 7 Jan 2011 14:25:41 +0100
+Cc: linux-media@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+References: <1294404455-22050-1-git-send-email-hverkuil@xs4all.nl> <98ff8980e72e4493d7b7e26c4054d818916a9720.1294402580.git.hverkuil@xs4all.nl>
+In-Reply-To: <98ff8980e72e4493d7b7e26c4054d818916a9720.1294402580.git.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201101071425.41690.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi all
+Hi Hans,
 
-This is the first early draft of the soc-camera conversion to the 
-videobuf2 API. For this RFC I've trivially split the conversion into core 
-and driver, which, actually, we shouldn't do, because after the core is 
-converted all the soc-camera host drivers are broken. Ideally, we should 
-be adding videobuf2 support in parallel to the existing videobuf1 support, 
-then converting each driver individually, and then removing videobuf1, but 
-I'm not sure, how easy this is going to be... Although, I think, some 
-drivers will be more difficult, than sh-ceu, e.g., pxa270 and omap1 with 
-their support for dma-sg. Also, at least sh.ceu and pxa270 support planar 
-formats, so far I've just put all three buffers in one vb2 plane on 
-sh-ceu, not sure, which disadvantages this has. So far 
-sh_mobile_camera_ceu.c is the only driver I've converted and tested, but 
-it too might need more care, e.g., to properly support the multi-planar 
-configurations.
+On Friday 07 January 2011 13:47:33 Hans Verkuil wrote:
+> Drivers can use the has_new field to determine if a new value was specified
+> for a control. The v4l2_ctrl_handler_setup() must always set this to 1
+> since the setup has to force a full update of all controls.
 
-I'mm CC-ing individual driver maintainers / authors with a request to try 
-to comvert their respective drivers to vb2 too. I will be attempting that 
-myself too, as the time permits, but at least someone will have to test 
-that - I don't have all the hardware.
+According to include/media/v4l2-ctrls.h, has_new is a "Internal flag: set when 
+there is a valid new value". Drivers should then not use it.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+If you want to use the flag in a driver, the comment should be changed and its 
+usage should be documented in Documentation/video4linux/v4l2-controls.txt.
+
+> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+> ---
+>  drivers/media/video/v4l2-ctrls.c |    4 +++-
+>  1 files changed, 3 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/v4l2-ctrls.c
+> b/drivers/media/video/v4l2-ctrls.c index 8f81efc..64f56bb 100644
+> --- a/drivers/media/video/v4l2-ctrls.c
+> +++ b/drivers/media/video/v4l2-ctrls.c
+> @@ -1280,8 +1280,10 @@ int v4l2_ctrl_handler_setup(struct v4l2_ctrl_handler
+> *hdl) if (ctrl->done)
+>  			continue;
+> 
+> -		for (i = 0; i < master->ncontrols; i++)
+> +		for (i = 0; i < master->ncontrols; i++) {
+>  			cur_to_new(master->cluster[i]);
+> +			master->cluster[i]->has_new = 1;
+> +		}
+> 
+>  		/* Skip button controls and read-only controls. */
+>  		if (ctrl->type == V4L2_CTRL_TYPE_BUTTON ||
+
+-- 
+Regards,
+
+Laurent Pinchart
