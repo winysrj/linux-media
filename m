@@ -1,78 +1,94 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:58343 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752903Ab1APNLr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Jan 2011 08:11:47 -0500
-Message-ID: <4D330AA4.5000006@redhat.com>
-Date: Sun, 16 Jan 2011 13:11:32 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-CC: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>, pawel@osciak.com,
-	linux-media@vger.kernel.org
-Subject: Re: [GIT PATCHES FOR 2.6.38] Videbuf2 framework, NOON010PC30 sensor
- driver and s5p-fimc updates
-References: <4D21FDC1.7000803@samsung.com> <4D2CBB3F.5050904@redhat.com> <000001cbb243$1051cb60$30f56220$%szyprowski@samsung.com> <4D2E0DD8.4010305@redhat.com> <000001cbb2fe$5d8f2290$18ad67b0$%p@samsung.com> <4D2EF6ED.1020405@redhat.com>
-In-Reply-To: <4D2EF6ED.1020405@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49390 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752065Ab1AGQAB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jan 2011 11:00:01 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 2/5] uvcvideo: Deprecate UVCIOC_CTRL_{ADD,MAP_OLD,GET,SET}
+Date: Fri,  7 Jan 2011 17:00:37 +0100
+Message-Id: <1294416040-28371-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1294416040-28371-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1294416040-28371-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 13-01-2011 10:58, Mauro Carvalho Chehab escreveu:
-> Em 13-01-2011 06:46, Andrzej Pietrasiewicz escreveu:
->> Hello Mauro,
->>
->> On Wednesday, January 12, 2011 9:24 PM Mauro Carvalho Chehab wrote:
->>>
->>> Em 12-01-2011 08:25, Marek Szyprowski escreveu:
->>>> Hello Mauro,
->>>>
->>>> I've rebased our fimc and saa patches onto
->>> http://linuxtv.org/git/mchehab/experimental.git
->>>> vb2_test branch.
->>>>
->>>> The last 2 patches are for SAA7134 driver and are only to show that
->>> videobuf2-dma-sg works
->>>> correctly.
->>>
->>> On my first test with saa7134, it hanged. It seems that the code
->>> reached a dead lock.
->>>
->>> On my test environment, I'm using a remote machine, without monitor. My
->>> test is using
->>> qv4l2 via a remote X server. Using a remote X server is an interesting
->>> test, as it will
->>> likely loose some frames, increasing the probability of races and dead
->>> locks.
->>>
->>
->> We did a similar test using a remote machine and qv4l2 with X forwarding.
->> Both userptr and mmap worked. Read does not work because it is not
->> implemented, but there was no freeze anyway, just green screen in qv4l2.
->> However, we set "Capture Image Formats" to "YUV - 4:2:2 packed, YUV", "TV
->> Standard" to "PAL". I enclose a (lengthy) log for reference - it is a log of
->> a short session when modules where loaded, qv4l2 started, userptr mode run
->> for a while and then mmap mode run for a while.
->>
->> We did it on a 32-bit system. We are going to repeat the test on a 64-bit
->> system, it just takes some time to set it up. Perhaps this is the
->> difference.
-> 
-> Yeah, I tested where with PAL/M and 64-bits, but I don't think that the hangs
-> have something due to 64 bits. It is probably because of the high delay introduced
-> by using the 100 Mbps Ethernet connection to display the stream. This introduces
-> a high delay (the max frame rate drops from 30 fps to about 6 fps on my setup).
-> So, qv4l2 will loose frames. This increases the possibility of a race between
-> qbuf/dqbuf.
+Those ioctls are deprecated, list them in the features removal schedule
+for 2.6.39.
 
-There are still some issued with saa7134, but I don't want to delay the
-upstream submission for vb2 due to those issues, as they may be caused by
-the saa7134 port to vb2. So, I'll be adding on my tree, and I'll be sending
-it upstream. Yet, I suggest that you finish the saa7134 backport, to allow
-more people to test it, as we have tons of users with saa7134 and they can
-help to double check if is there any bad locking inside vb2.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/feature-removal-schedule.txt |   23 +++++++++++++++++++++++
+ drivers/media/video/uvc/uvc_v4l2.c         |   14 ++++++++++++++
+ 2 files changed, 37 insertions(+), 0 deletions(-)
 
-Cheers,
-Mauro
+diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
+index f2742e1..0251dff 100644
+--- a/Documentation/feature-removal-schedule.txt
++++ b/Documentation/feature-removal-schedule.txt
+@@ -566,3 +566,26 @@ Why:	This field is deprecated. I2C device drivers shouldn't change their
+ Who:	Jean Delvare <khali@linux-fr.org>
+ 
+ ----------------------------
++
++What:	Support for UVCIOC_CTRL_ADD in the uvcvideo driver
++When:	2.6.39
++Why:	The information passed to the driver by this ioctl is now queried
++	dynamically from the device.
++Who:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
++
++----------------------------
++
++What:	Support for UVCIOC_CTRL_MAP_OLD in the uvcvideo driver
++When:	2.6.39
++Why:	Used only by applications compiled against older driver versions.
++	Superseded by UVCIOC_CTRL_MAP which supports V4L2 menu controls.
++Who:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
++
++----------------------------
++
++What:	Support for UVCIOC_CTRL_GET and UVCIOC_CTRL_SET in the uvcvideo driver
++When:	2.6.39
++Why:	Superseded by the UVCIOC_CTRL_QUERY ioctl.
++Who:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
++
++----------------------------
+diff --git a/drivers/media/video/uvc/uvc_v4l2.c b/drivers/media/video/uvc/uvc_v4l2.c
+index 7432336..c03046a 100644
+--- a/drivers/media/video/uvc/uvc_v4l2.c
++++ b/drivers/media/video/uvc/uvc_v4l2.c
+@@ -1020,10 +1020,20 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 
+ 	/* Dynamic controls. */
+ 	case UVCIOC_CTRL_ADD:
++		uvc_printk(KERN_INFO, "Deprecated UVCIOC_CTRL_ADD ioctl "
++			   "will be removed in 2.6.39.\n");
++		uvc_printk(KERN_INFO, "See http://www.ideasonboard.org/uvc/ "
++			   "for upgrade instructions.\n");
++
+ 		/* Legacy ioctl, kept for API compatibility reasons */
+ 		return -EEXIST;
+ 
+ 	case UVCIOC_CTRL_MAP_OLD:
++		uvc_printk(KERN_INFO, "Deprecated UVCIOC_CTRL_MAP_OLD ioctl "
++			   "will be removed in 2.6.39.\n");
++		uvc_printk(KERN_INFO, "See http://www.ideasonboard.org/uvc/"
++			   "for upgrade instructions.\n");
++
+ 	case UVCIOC_CTRL_MAP:
+ 		return uvc_ioctl_ctrl_map(chain, arg,
+ 					  cmd == UVCIOC_CTRL_MAP_OLD);
+@@ -1041,6 +1051,10 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 			.data		= xctrl->data,
+ 		};
+ 
++		uvc_printk(KERN_INFO, "Deprecated UVCIOC_CTRL_[GS]ET ioctls "
++			   "will be removed in 2.6.39.\n");
++		uvc_printk(KERN_INFO, "See http://www.ideasonboard.org/uvc/ "
++			   "for upgrade instructions.\n");
+ 		return uvc_xu_ctrl_query(chain, &xqry);
+ 	}
+ 
+-- 
+1.7.2.2
+
