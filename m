@@ -1,124 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59831 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753420Ab1A0Ma7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jan 2011 07:30:59 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v6 04/11] v4l: Group media bus pixel codes by types and sort them alphabetically
-Date: Thu, 27 Jan 2011 13:30:49 +0100
-Message-Id: <1296131456-30000-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1296131456-30000-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1296131456-30000-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:60289 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753304Ab1AGNiw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 Jan 2011 08:38:52 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-arm-kernel@listinfradead.com,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v12 0/8] davinci vpbe: dm6446 v4l2 driver
+Date: Fri,  7 Jan 2011 19:08:29 +0530
+Message-Id: <1294407509-23180-1-git-send-email-manjunath.hadli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Adding new pixel codes at the end of the enumeration will soon create a
-mess, so group the pixel codes by type and sort them by bus_width, bits
-per component, samples per pixel and order of subsamples.
+version12 : addressed Kaspter Ju's, Sylwester Nawrocki's,Sergei's,Shekhar's comments
+on:
+1. Removal of code duplication
+2. Replacing _raw_readl() with readl()
+3. Removal of blank lines
+4. Removal of extra comments
+5. Removal of platform resource overlap
+6. Changing the Field inversion #ifdef to platform 
+   based implementation
 
-As the codes are part of the kernel ABI their value can't change when a
-new code is inserted in the enumeration, so they are given an explicit
-numerical value. When inserting a new pixel code developers must use and
-update the next free value.
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/linux/v4l2-mediabus.h |   77 ++++++++++++++++++++++++----------------
- 1 files changed, 46 insertions(+), 31 deletions(-)
+Manjunath Hadli (8):
+  davinci vpbe: V4L2 display driver for DM644X SoC
+  davinci vpbe: VPBE display driver
+  davinci vpbe: OSD(On Screen Display) block
+  davinci vpbe: VENC( Video Encoder) implementation
+  davinci vpbe: platform specific additions
+  davinci vpbe: board specific additions
+  davinci vpbe: Build infrastructure for VPBE driver
+  davinci vpbe: Readme text for Dm6446 vpbe
 
-diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-index dc1d5c0..cccfa34 100644
---- a/include/linux/v4l2-mediabus.h
-+++ b/include/linux/v4l2-mediabus.h
-@@ -24,39 +24,54 @@
-  * transferred first, "BE" means that the most significant bits are transferred
-  * first, and "PADHI" and "PADLO" define which bits - low or high, in the
-  * incomplete high byte, are filled with padding bits.
-+ *
-+ * The pixel codes are grouped by type, bus_width, bits per component, samples
-+ * per pixel and order of subsamples. Numerical values are sorted using generic
-+ * numerical sort order (8 thus comes before 10).
-+ *
-+ * As their value can't change when a new pixel code is inserted in the
-+ * enumeration, the pixel codes are explicitly given a numerical value. The next
-+ * free values for each category are listed below, update them when inserting
-+ * new pixel codes.
-  */
- enum v4l2_mbus_pixelcode {
--	V4L2_MBUS_FMT_FIXED = 1,
--	V4L2_MBUS_FMT_YUYV8_2X8,
--	V4L2_MBUS_FMT_YVYU8_2X8,
--	V4L2_MBUS_FMT_UYVY8_2X8,
--	V4L2_MBUS_FMT_VYUY8_2X8,
--	V4L2_MBUS_FMT_YVYU10_2X10,
--	V4L2_MBUS_FMT_YUYV10_2X10,
--	V4L2_MBUS_FMT_YVYU10_1X20,
--	V4L2_MBUS_FMT_YUYV10_1X20,
--	V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE,
--	V4L2_MBUS_FMT_RGB444_2X8_PADHI_BE,
--	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
--	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
--	V4L2_MBUS_FMT_RGB565_2X8_LE,
--	V4L2_MBUS_FMT_RGB565_2X8_BE,
--	V4L2_MBUS_FMT_BGR565_2X8_LE,
--	V4L2_MBUS_FMT_BGR565_2X8_BE,
--	V4L2_MBUS_FMT_SBGGR8_1X8,
--	V4L2_MBUS_FMT_SBGGR10_1X10,
--	V4L2_MBUS_FMT_Y8_1X8,
--	V4L2_MBUS_FMT_Y10_1X10,
--	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
--	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
--	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
--	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
--	V4L2_MBUS_FMT_SGRBG8_1X8,
--	V4L2_MBUS_FMT_SBGGR12_1X12,
--	V4L2_MBUS_FMT_YUYV8_1_5X8,
--	V4L2_MBUS_FMT_YVYU8_1_5X8,
--	V4L2_MBUS_FMT_UYVY8_1_5X8,
--	V4L2_MBUS_FMT_VYUY8_1_5X8,
-+	V4L2_MBUS_FMT_FIXED = 0x0001,
-+
-+	/* RGB - next is 0x1009 */
-+	V4L2_MBUS_FMT_RGB444_2X8_PADHI_BE = 0x1001,
-+	V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE = 0x1002,
-+	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE = 0x1003,
-+	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE = 0x1004,
-+	V4L2_MBUS_FMT_BGR565_2X8_BE = 0x1005,
-+	V4L2_MBUS_FMT_BGR565_2X8_LE = 0x1006,
-+	V4L2_MBUS_FMT_RGB565_2X8_BE = 0x1007,
-+	V4L2_MBUS_FMT_RGB565_2X8_LE = 0x1008,
-+
-+	/* YUV (including grey) - next is 0x200f */
-+	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
-+	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
-+	V4L2_MBUS_FMT_VYUY8_1_5X8 = 0x2003,
-+	V4L2_MBUS_FMT_YUYV8_1_5X8 = 0x2004,
-+	V4L2_MBUS_FMT_YVYU8_1_5X8 = 0x2005,
-+	V4L2_MBUS_FMT_UYVY8_2X8 = 0x2006,
-+	V4L2_MBUS_FMT_VYUY8_2X8 = 0x2007,
-+	V4L2_MBUS_FMT_YUYV8_2X8 = 0x2008,
-+	V4L2_MBUS_FMT_YVYU8_2X8 = 0x2009,
-+	V4L2_MBUS_FMT_Y10_1X10 = 0x200a,
-+	V4L2_MBUS_FMT_YUYV10_2X10 = 0x200b,
-+	V4L2_MBUS_FMT_YVYU10_2X10 = 0x200c,
-+	V4L2_MBUS_FMT_YUYV10_1X20 = 0x200d,
-+	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
-+
-+	/* Bayer - next is 0x3009 */
-+	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
-+	V4L2_MBUS_FMT_SGRBG8_1X8 = 0x3002,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE = 0x3003,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE = 0x3004,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE = 0x3005,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE = 0x3006,
-+	V4L2_MBUS_FMT_SBGGR10_1X10 = 0x3007,
-+	V4L2_MBUS_FMT_SBGGR12_1X12 = 0x3008,
- };
- 
- /**
--- 
-1.7.3.4
+ Documentation/video4linux/README.davinci-vpbe |   93 ++
+ arch/arm/mach-davinci/board-dm644x-evm.c      |   86 +-
+ arch/arm/mach-davinci/dm644x.c                |  168 ++-
+ arch/arm/mach-davinci/include/mach/dm644x.h   |   20 +-
+ drivers/media/video/davinci/Kconfig           |   22 +
+ drivers/media/video/davinci/Makefile          |    2 +
+ drivers/media/video/davinci/vpbe.c            |  826 ++++++++++
+ drivers/media/video/davinci/vpbe_display.c    | 2084 +++++++++++++++++++++++++
+ drivers/media/video/davinci/vpbe_osd.c        | 1216 ++++++++++++++
+ drivers/media/video/davinci/vpbe_osd_regs.h   |  364 +++++
+ drivers/media/video/davinci/vpbe_venc.c       |  556 +++++++
+ drivers/media/video/davinci/vpbe_venc_regs.h  |  177 +++
+ include/media/davinci/vpbe.h                  |  185 +++
+ include/media/davinci/vpbe_display.h          |  146 ++
+ include/media/davinci/vpbe_osd.h              |  397 +++++
+ include/media/davinci/vpbe_types.h            |   91 ++
+ include/media/davinci/vpbe_venc.h             |   41 +
+ 17 files changed, 6447 insertions(+), 27 deletions(-)
+ create mode 100644 Documentation/video4linux/README.davinci-vpbe
+ create mode 100644 drivers/media/video/davinci/vpbe.c
+ create mode 100644 drivers/media/video/davinci/vpbe_display.c
+ create mode 100644 drivers/media/video/davinci/vpbe_osd.c
+ create mode 100644 drivers/media/video/davinci/vpbe_osd_regs.h
+ create mode 100644 drivers/media/video/davinci/vpbe_venc.c
+ create mode 100644 drivers/media/video/davinci/vpbe_venc_regs.h
+ create mode 100644 include/media/davinci/vpbe.h
+ create mode 100644 include/media/davinci/vpbe_display.h
+ create mode 100644 include/media/davinci/vpbe_osd.h
+ create mode 100644 include/media/davinci/vpbe_types.h
+ create mode 100644 include/media/davinci/vpbe_venc.h
 
