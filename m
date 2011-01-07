@@ -1,176 +1,117 @@
-Return-path: <mchehab@gaivota>
-Received: from swampdragon.chaosbits.net ([90.184.90.115]:29342 "EHLO
-	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755228Ab1ABStk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Jan 2011 13:49:40 -0500
-Date: Sun, 2 Jan 2011 19:49:38 +0100 (CET)
-From: Jesper Juhl <jj@chaosbits.net>
-To: Malcolm Priestley <tvboxspy@gmail.com>
-cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATVH] media, dvb, IX2505V: Remember to free allocated memory
- in failure path (ix2505v_attach()).
-In-Reply-To: <1293820435.29966.59.camel@tvboxspy>
-Message-ID: <alpine.LNX.2.00.1101021948100.11481@swampdragon.chaosbits.net>
-References: <alpine.LNX.2.00.1012310008070.32595@swampdragon.chaosbits.net>  <1293758374.10326.7.camel@tvboxspy>  <alpine.LNX.2.00.1012311541430.16655@swampdragon.chaosbits.net> <1293820435.29966.59.camel@tvboxspy>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <mchehab@pedra>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:42915 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754374Ab1AGQZq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jan 2011 11:25:46 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Fri, 07 Jan 2011 17:25:31 +0100
+From: Kamil Debski <k.debski@samsung.com>
+Subject: [RFC/PATCH v6 1/4] Changes in include/linux/videodev2.h for MFC 5.1
+In-reply-to: <1294417534-3856-1-git-send-email-k.debski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, k.debski@samsung.com,
+	jaeryul.oh@samsung.com, kgene.kim@samsung.com
+Message-id: <1294417534-3856-2-git-send-email-k.debski@samsung.com>
+References: <1294417534-3856-1-git-send-email-k.debski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Fri, 31 Dec 2010, Malcolm Priestley wrote:
+This patch adds fourcc values for compressed video stream formats and
+V4L2_CTRL_CLASS_CODEC. Also adds controls used by MFC 5.1 driver.
 
-> On Fri, 2010-12-31 at 15:51 +0100, Jesper Juhl wrote:
-> > On Fri, 31 Dec 2010, Malcolm Priestley wrote:
-> > 
-> > > On Fri, 2010-12-31 at 00:11 +0100, Jesper Juhl wrote:
-> > > > Hi,
-> > > > 
-> > > > We may leak the storage allocated to 'state' in 
-> > > > drivers/media/dvb/frontends/ix2505v.c::ix2505v_attach() on error.
-> > > > This patch makes sure we free the allocated memory in the failure case.
-> > > > 
-> > > > 
-> > > > Signed-off-by: Jesper Juhl <jj@chaosbits.net>
-> > > > ---
-> > > >  ix2505v.c |    1 +
-> > > >  1 file changed, 1 insertion(+)
-> > > > 
-> > > >   Compile tested only.
-> > > > 
-> > > > diff --git a/drivers/media/dvb/frontends/ix2505v.c b/drivers/media/dvb/frontends/ix2505v.c
-> > > > index 55f2eba..fcb173d 100644
-> > > > --- a/drivers/media/dvb/frontends/ix2505v.c
-> > > > +++ b/drivers/media/dvb/frontends/ix2505v.c
-> > > > @@ -293,6 +293,7 @@ struct dvb_frontend *ix2505v_attach(struct dvb_frontend *fe,
-> > > >  		ret = ix2505v_read_status_reg(state);
-> > > >  
-> > > >  		if (ret & 0x80) {
-> > > > +			kfree(state);
-> > > >  			deb_i2c("%s: No IX2505V found\n", __func__);
-> > > >  			goto error;
-> > > >  		}
-> > > > 
-> > > Memory is freed in... 
-> > > 
-> > > error:
-> > > 	ix2505v_release(fe);
-> > > 	return NULL;
-> > > 
-> > > via...
-> > > 
-> > > static int ix2505v_release(struct dvb_frontend *fe)
-> > > {
-> > > 	struct ix2505v_state *state = fe->tuner_priv;
-> > > 
-> > > 	fe->tuner_priv = NULL;
-> > > 	kfree(state);
-> > > 
-> > > 	return 0;
-> > > }
-> > > 
-> > 
-> > Except that 'state' has not been assigned to fe->tuner_priv at this 
-> > point, so ix2505v_release() cannot free the memory that was just 
-> > allocated with kzalloc().
-> > 
-> > 
-> >   state is a local variable:
-> >   		struct ix2505v_state *state = NULL;
-> > 		...
-> > 
-> >   we allocate memory and assign it to 'state' here:
-> >   		state = kzalloc(sizeof(struct ix2505v_state), GFP_KERNEL);
-> >   		if (NULL == state)
-> >   			return NULL;
-> >   	
-> >   		state->config = config;
-> >   		state->i2c = i2c;
-> >   	
-> >   here 'state' is used, but not in a way that saves it anywhere:
-> >   		if (state->config->tuner_write_only) {
-> >   			if (fe->ops.i2c_gate_ctrl)
-> >   				fe->ops.i2c_gate_ctrl(fe, 1);
-> >   	
-> >   this function call involves 'state' but it does not save it anywhere
-> >   either:
-> >   			ret = ix2505v_read_status_reg(state);
-> >   	
-> >   			if (ret & 0x80) {
-> >   				deb_i2c("%s: No IX2505V found\n", __func__);
-> >   so when we jump to error here 'state' still exists only as the local
-> >   variable, it has not been assigned to anything else.
-> >   				goto error;
-> >   			}
-> >   		...
-> >   	error:
-> >   there is no way this function call can free 'state' on this path since
-> >   it has not been assigned to fe->tuner_priv. 
-> >   		ix2505v_release(fe);
-> >   The local variable state goes out of scope here and leaks the memory it
-> >   points to:
-> >   		return NULL;
-> >   	}
-> > 
-> > Am I missing something?
-> 
-> Oh, Sorry, I see it now.
-> 
-> Now there is two options.
-> 
-> Either;
-> 
-> 1) Move fe->tuner_priv = state to below line 287, so it can be released
-> by ix2505v_release and fe->tuner_priv returned to NULL;
-> 
-> 2) or not calling ix2505v_release changing line 314 to kfree(state).
-> fe->tuner_priv will remain NULL through out.
-> 
-[...]
-
-How about this?
-
-
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- ix2505v.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ include/linux/videodev2.h |   45 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 45 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/dvb/frontends/ix2505v.c b/drivers/media/dvb/frontends/ix2505v.c
-index 55f2eba..15806e5 100644
---- a/drivers/media/dvb/frontends/ix2505v.c
-+++ b/drivers/media/dvb/frontends/ix2505v.c
-@@ -271,7 +271,7 @@ struct dvb_frontend *ix2505v_attach(struct dvb_frontend *fe,
- 				    const struct ix2505v_config *config,
- 				    struct i2c_adapter *i2c)
- {
--	struct ix2505v_state *state = NULL;
-+	struct ix2505v_state *state;
- 	int ret;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index d30c98d..b8952fc 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -339,6 +339,14 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_NV16    v4l2_fourcc('N', 'V', '1', '6') /* 16  Y/CbCr 4:2:2  */
+ #define V4L2_PIX_FMT_NV61    v4l2_fourcc('N', 'V', '6', '1') /* 16  Y/CrCb 4:2:2  */
  
- 	if (NULL == config) {
-@@ -285,6 +285,7 @@ struct dvb_frontend *ix2505v_attach(struct dvb_frontend *fe,
++/* two non contiguous planes -- one Y, one Cr + Cb interleaved  */
++#define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
++/* 12  Y/CbCr 4:2:0 64x32 macroblocks */
++#define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2')
++
++/* three non contiguous planes -- Y, Cb, Cr */
++#define V4L2_PIX_FMT_YUV420M v4l2_fourcc('Y', 'M', '1', '2') /* 12  YUV420 planar */
++
+ /* Bayer formats - see http://www.siliconimaging.com/RGB%20Bayer.htm */
+ #define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B', 'A', '8', '1') /*  8  BGBG.. GRGR.. */
+ #define V4L2_PIX_FMT_SGBRG8  v4l2_fourcc('G', 'B', 'R', 'G') /*  8  GBGB.. RGRG.. */
+@@ -362,6 +370,18 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /* 1394          */
+ #define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-1/2/4    */
  
- 	state->config = config;
- 	state->i2c = i2c;
-+	fe->tuner_priv = state;
++#define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H264    */
++#define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /* H263    */
++#define V4L2_PIX_FMT_MPEG12   v4l2_fourcc('M', 'P', '1', '2') /* MPEG-1/2  */
++#define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /* MPEG-4  */
++#define V4L2_PIX_FMT_DIVX     v4l2_fourcc('D', 'I', 'V', 'X') /* DivX  */
++#define V4L2_PIX_FMT_DIVX3    v4l2_fourcc('D', 'I', 'V', '3') /* DivX 3.11  */
++#define V4L2_PIX_FMT_DIVX4    v4l2_fourcc('D', 'I', 'V', '4') /* DivX 4.12  */
++#define V4L2_PIX_FMT_DIVX5    v4l2_fourcc('D', 'X', '5', '0') /* DivX 5  */
++#define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /* Xvid */
++#define V4L2_PIX_FMT_VC1      v4l2_fourcc('V', 'C', '1', 'A') /* VC-1 */
++#define V4L2_PIX_FMT_VC1_RCV      v4l2_fourcc('V', 'C', '1', 'R') /* VC-1 RCV */
++
+ /*  Vendor-specific formats   */
+ #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
+ #define V4L2_PIX_FMT_WNVA     v4l2_fourcc('W', 'N', 'V', 'A') /* Winnov hw compress */
+@@ -972,6 +992,7 @@ struct v4l2_output {
+ #define V4L2_OUTPUT_TYPE_ANALOG			2
+ #define V4L2_OUTPUT_TYPE_ANALOGVGAOVERLAY	3
  
- 	if (state->config->tuner_write_only) {
- 		if (fe->ops.i2c_gate_ctrl)
-@@ -301,8 +302,6 @@ struct dvb_frontend *ix2505v_attach(struct dvb_frontend *fe,
- 			fe->ops.i2c_gate_ctrl(fe, 0);
- 	}
++
+ /* capabilities flags */
+ #define V4L2_OUT_CAP_PRESETS		0x00000001 /* Supports S_DV_PRESET */
+ #define V4L2_OUT_CAP_CUSTOM_TIMINGS	0x00000002 /* Supports S_DV_TIMINGS */
+@@ -1009,6 +1030,7 @@ struct v4l2_ext_controls {
+ #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
+ #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
+ #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
++#define V4L2_CTRL_CLASS_CODEC 0x009c0000	/* Codec control class */
  
--	fe->tuner_priv = state;
--
- 	memcpy(&fe->ops.tuner_ops, &ix2505v_tuner_ops,
- 		sizeof(struct dvb_tuner_ops));
- 	deb_i2c("%s: initialization (%s addr=0x%02x) ok\n",
-
-
-
+ #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+ #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+@@ -1342,6 +1364,29 @@ enum v4l2_mpeg_cx2341x_video_median_filter_type {
+ #define V4L2_CID_MPEG_CX2341X_VIDEO_CHROMA_MEDIAN_FILTER_TOP 	(V4L2_CID_MPEG_CX2341X_BASE+10)
+ #define V4L2_CID_MPEG_CX2341X_STREAM_INSERT_NAV_PACKETS 	(V4L2_CID_MPEG_CX2341X_BASE+11)
+ 
++/* For codecs */
++
++#define V4L2_CID_CODEC_BASE 			(V4L2_CTRL_CLASS_CODEC | 0x900)
++#define V4L2_CID_CODEC_CLASS 			(V4L2_CTRL_CLASS_CODEC | 1)
++
++/* For both decoding and encoding */
++
++/* For encoding */
++#define V4L2_CID_CODEC_LOOP_FILTER_H264		(V4L2_CID_CODEC_BASE + 0)
++enum v4l2_cid_codec_loop_filter_h264 {
++	V4L2_CID_CODEC_LOOP_FILTER_H264_ENABLE = 0,
++	V4L2_CID_CODEC_LOOP_FILTER_H264_DISABLE = 1,
++	V4L2_CID_CODEC_LOOP_FILTER_H264_DISABLE_AT_BOUNDARY = 2,
++};
++
++/* For decoding */
++
++#define V4L2_CID_CODEC_LOOP_FILTER_MPEG4_ENABLE	(V4L2_CID_CODEC_BASE + 1)
++#define V4L2_CID_CODEC_DISPLAY_DELAY		(V4L2_CID_CODEC_BASE + 2)
++#define V4L2_CID_CODEC_REQ_NUM_BUFS		(V4L2_CID_CODEC_BASE + 3)
++#define V4L2_CID_CODEC_SLICE_INTERFACE		(V4L2_CID_CODEC_BASE + 4)
++#define V4L2_CID_CODEC_PACKED_PB		(V4L2_CID_CODEC_BASE + 5)
++
+ /*  Camera class control IDs */
+ #define V4L2_CID_CAMERA_CLASS_BASE 	(V4L2_CTRL_CLASS_CAMERA | 0x900)
+ #define V4L2_CID_CAMERA_CLASS 		(V4L2_CTRL_CLASS_CAMERA | 1)
 -- 
-Jesper Juhl <jj@chaosbits.net>            http://www.chaosbits.net/
-Don't top-post http://www.catb.org/~esr/jargon/html/T/top-post.html
-Plain text mails only, please.
+1.6.3.3
 
