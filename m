@@ -1,159 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from mail-in-18.arcor-online.net ([151.189.21.58]:59206 "EHLO
-	mail-in-18.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751301Ab1AYQl1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jan 2011 11:41:27 -0500
-From: stefan.ringel@arcor.de
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2762 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752561Ab1AGMrv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jan 2011 07:47:51 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, d.belimov@gmail.com,
-	Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH] tm6000: relabeling any registers
-Date: Tue, 25 Jan 2011 17:40:55 +0100
-Message-Id: <1295973655-19072-1-git-send-email-stefan.ringel@arcor.de>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC PATCH 0/5] Use control framework in cafe_ccic and s_config removal
+Date: Fri,  7 Jan 2011 13:47:30 +0100
+Message-Id: <1294404455-22050-1-git-send-email-hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Stefan Ringel <stefan.ringel@arcor.de>
+Hi Jon, Laurent,
 
-relabeling any registers
+This patch series converts the OLPC cafe_ccic driver to the new control
+framework. It turned out that this depended on the removal of the legacy
+s_config subdev operation. I originally created the ov7670 controls in
+s_config, but it turned out that s_config is called after v4l2_device_register_subdev,
+so v4l2_device_register_subdev is unable to 'inherit' the ov7670 controls
+in cafe_ccic since there aren't any yet.
 
+Another reason why s_config is a bad idea.
 
-Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
----
- drivers/staging/tm6000/tm6000-core.c |   64 ++++++++++++++++++++-------------
- 1 files changed, 39 insertions(+), 25 deletions(-)
+So the first patch removes s_config and v4l2_i2c_new_subdev_cfg and converts
+any users (cafe_ccic/ov7670 among them) to v4l2_i2c_new_subdev_board, which is
+what God (i.e. Jean Delvare) intended. :-)
 
-diff --git a/drivers/staging/tm6000/tm6000-core.c b/drivers/staging/tm6000/tm6000-core.c
-index 96aed4a..5162cd4 100644
---- a/drivers/staging/tm6000/tm6000-core.c
-+++ b/drivers/staging/tm6000/tm6000-core.c
-@@ -268,11 +268,11 @@ int tm6000_init_analog_mode(struct tm6000_core *dev)
- 			tm6000_set_reg(dev, TM6010_REQ07_RC0_ACTIVE_VIDEO_SOURCE, 0x80);
- 
- 		tm6000_set_reg(dev, TM6010_REQ07_RC3_HSTART1, 0x88);
--		tm6000_set_reg(dev, TM6010_REQ07_RD8_IR_WAKEUP_SEL, 0x23);
-+		tm6000_set_reg(dev, TM6000_REQ07_RDA_CLK_SEL, 0x23);
- 		tm6000_set_reg(dev, TM6010_REQ07_RD1_ADDR_FOR_REQ1, 0xc0);
- 		tm6000_set_reg(dev, TM6010_REQ07_RD2_ADDR_FOR_REQ2, 0xd8);
- 		tm6000_set_reg(dev, TM6010_REQ07_RD6_ENDP_REQ1_REQ2, 0x06);
--		tm6000_set_reg(dev, TM6010_REQ07_RD8_IR_PULSE_CNT0, 0x1f);
-+		tm6000_set_reg(dev, TM6000_REQ07_RDF_PWDOWN_ACLK, 0x1f);
- 
- 		/* AP Software reset */
- 		tm6000_set_reg(dev, TM6010_REQ07_RFF_SOFT_RESET, 0x08);
-@@ -284,8 +284,8 @@ int tm6000_init_analog_mode(struct tm6000_core *dev)
- 		tm6000_set_reg(dev, TM6010_REQ07_R3F_RESET, 0x00);
- 
- 		/* E3: Select input 0 - TV tuner */
--		tm6000_set_reg(dev, TM6010_REQ07_RE3_OUT_SEL1, 0x00);
--		tm6000_set_reg(dev, REQ_07_SET_GET_AVREG, 0xeb, 0x60);
-+		tm6000_set_reg(dev, TM6000_REQ07_RE3_VADC_INP_LPF_SEL1, 0x00);
-+		tm6000_set_reg(dev, TM6000_REQ07_REB_VADC_AADC_MODE, 0x60);
- 
- 		/* This controls input */
- 		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, TM6000_GPIO_2, 0x0);
-@@ -344,21 +344,21 @@ int tm6000_init_digital_mode(struct tm6000_core *dev)
- 		tm6000_set_reg(dev, TM6010_REQ07_RFF_SOFT_RESET, 0x08);
- 		tm6000_set_reg(dev, TM6010_REQ07_RFF_SOFT_RESET, 0x00);
- 		tm6000_set_reg(dev, TM6010_REQ07_R3F_RESET, 0x01);
--		tm6000_set_reg(dev, TM6010_REQ07_RD8_IR_PULSE_CNT0, 0x08);
--		tm6000_set_reg(dev, TM6010_REQ07_RE2_OUT_SEL2, 0x0c);
--		tm6000_set_reg(dev, TM6010_REQ07_RE8_TYPESEL_MOS_I2S, 0xff);
--		tm6000_set_reg(dev, REQ_07_SET_GET_AVREG, 0x00eb, 0xd8);
-+		tm6000_set_reg(dev, TM6000_REQ07_RDF_PWDOWN_ACLK, 0x08);
-+		tm6000_set_reg(dev, TM6000_REQ07_RE2_VADC_STATUS_CTL, 0x0c);
-+		tm6000_set_reg(dev, TM6000_REQ07_RE8_VADC_PWDOWN_CTL, 0xff);
-+		tm6000_set_reg(dev, TM6000_REQ07_REB_VADC_AADC_MODE, 0xd8);
- 		tm6000_set_reg(dev, TM6010_REQ07_RC0_ACTIVE_VIDEO_SOURCE, 0x40);
- 		tm6000_set_reg(dev, TM6010_REQ07_RC1_TRESHOLD, 0xd0);
- 		tm6000_set_reg(dev, TM6010_REQ07_RC3_HSTART1, 0x09);
--		tm6000_set_reg(dev, TM6010_REQ07_RD8_IR_WAKEUP_SEL, 0x37);
-+		tm6000_set_reg(dev, TM6000_REQ07_RDA_CLK_SEL, 0x37);
- 		tm6000_set_reg(dev, TM6010_REQ07_RD1_ADDR_FOR_REQ1, 0xd8);
- 		tm6000_set_reg(dev, TM6010_REQ07_RD2_ADDR_FOR_REQ2, 0xc0);
- 		tm6000_set_reg(dev, TM6010_REQ07_RD6_ENDP_REQ1_REQ2, 0x60);
- 
--		tm6000_set_reg(dev, TM6010_REQ07_RE2_OUT_SEL2, 0x0c);
--		tm6000_set_reg(dev, TM6010_REQ07_RE8_TYPESEL_MOS_I2S, 0xff);
--		tm6000_set_reg(dev, REQ_07_SET_GET_AVREG, 0x00eb, 0x08);
-+		tm6000_set_reg(dev, TM6000_REQ07_RE2_VADC_STATUS_CTL, 0x0c);
-+		tm6000_set_reg(dev, TM6000_REQ07_RE8_VADC_PWDOWN_CTL, 0xff);
-+		tm6000_set_reg(dev, TM6000_REQ07_REB_VADC_AADC_MODE, 0x08);
- 		msleep(50);
- 
- 		tm6000_set_reg(dev, REQ_04_EN_DISABLE_MCU_INT, 0x0020, 0x00);
-@@ -388,18 +388,19 @@ struct reg_init {
- /* The meaning of those initializations are unknown */
- struct reg_init tm6000_init_tab[] = {
- 	/* REG  VALUE */
--	{ TM6010_REQ07_RD8_IR_PULSE_CNT0, 0x1f },
-+	{ TM6000_REQ07_RDF_PWDOWN_ACLK, 0x1f },
- 	{ TM6010_REQ07_RFF_SOFT_RESET, 0x08 },
- 	{ TM6010_REQ07_RFF_SOFT_RESET, 0x00 },
- 	{ TM6010_REQ07_RD5_POWERSAVE, 0x4f },
--	{ TM6010_REQ07_RD8_IR_WAKEUP_SEL, 0x23 },
--	{ TM6010_REQ07_RD8_IR_WAKEUP_ADD, 0x08 },
--	{ TM6010_REQ07_RE2_OUT_SEL2, 0x00 },
--	{ TM6010_REQ07_RE3_OUT_SEL1, 0x10 },
--	{ TM6010_REQ07_RE5_REMOTE_WAKEUP, 0x00 },
--	{ TM6010_REQ07_RE8_TYPESEL_MOS_I2S, 0x00 },
--	{ REQ_07_SET_GET_AVREG,  0xeb, 0x64 },		/* 48000 bits/sample, external input */
--	{ REQ_07_SET_GET_AVREG,  0xee, 0xc2 },
-+	{ TM6000_REQ07_RDA_CLK_SEL, 0x23 },
-+	{ TM6000_REQ07_RDB_OUT_SEL, 0x08 },
-+	{ TM6000_REQ07_RE2_VADC_STATUS_CTL, 0x00 },
-+	{ TM6000_REQ07_RE3_VADC_INP_LPF_SEL1, 0x10 },
-+	{ TM6000_REQ07_RE5_VADC_INP_LPF_SEL2, 0x00 },
-+	{ TM6000_REQ07_RE8_VADC_PWDOWN_CTL, 0x00 },
-+	{ TM6000_REQ07_REB_VADC_AADC_MODE, 0x64 },	/* 48000 bits/sample, external input */
-+	{ TM6000_REQ07_REE_VADC_CTRL_SEL_CONTROL, 0xc2 },
-+
- 	{ TM6010_REQ07_R3F_RESET, 0x01 },		/* Start of soft reset */
- 	{ TM6010_REQ07_R00_VIDEO_CONTROL0, 0x00 },
- 	{ TM6010_REQ07_R01_VIDEO_CONTROL1, 0x07 },
-@@ -592,6 +593,7 @@ int tm6000_set_audio_bitrate(struct tm6000_core *dev, int bitrate)
- {
- 	int val;
- 
-+	/* enable I2S, if we use sif or external I2S device */
- 	if (dev->dev_type == TM6010) {
- 		val = tm6000_get_reg(dev, TM6010_REQ08_R0A_A_I2S_MOD, 0);
- 		if (val < 0)
-@@ -602,9 +604,17 @@ int tm6000_set_audio_bitrate(struct tm6000_core *dev, int bitrate)
- 			return val;
- 	}
- 
--	val = tm6000_get_reg(dev, REQ_07_SET_GET_AVREG, 0xeb, 0x0);
--	if (val < 0)
--		return val;
-+	/* different reg's to set audio bitrate */
-+	if (dev->dev_type == TM6010) {
-+		val = tm6000_get_reg(dev, TM6010_REQ08_RF0_DAUDIO_INPUT_CONFIG,
-+			0x0);
-+		if (val < 0)
-+			return val;
-+	} else {
-+		val = tm6000_get_reg(dev, TM6000_REQ07_REB_VADC_AADC_MODE, 0x0);
-+		if (val < 0)
-+			return val;
-+	}
- 
- 	val &= 0x0f;		/* Preserve the audio input control bits */
- 	switch (bitrate) {
-@@ -617,7 +627,11 @@ int tm6000_set_audio_bitrate(struct tm6000_core *dev, int bitrate)
- 		dev->audio_bitrate = bitrate;
- 		break;
- 	}
--	val = tm6000_set_reg(dev, REQ_07_SET_GET_AVREG, 0xeb, val);
-+	if (dev->dev_type == TM6010)
-+		val = tm6000_set_reg(dev, TM6010_REQ08_RF0_DAUDIO_INPUT_CONFIG,
-+			val);
-+	else
-+		val = tm6000_set_reg(dev, TM6000_REQ07_REB_VADC_AADC_MODE, val);
- 
- 	return val;
- }
--- 
-1.7.3.4
+The second patch adds the (un)register internal ops allowing subdev drivers to
+do some work after the subdevice is registered with a v4l2_device. So here the
+sd->v4l2_dev pointer is set. Laurent, is this sufficient for the upcoming omap3
+sub-devices?
+
+The third patch fixes a small bug in v4l2_ctrl_handler_setup() that is required
+for the ov7670 conversion. This bug does not affect any existing drivers.
+
+The last two patches convert ov7670 and cafe_ccic to the V4L2 control framework.
+
+This saves over a 100 lines of code and adds full support of the control API
+(including extended controls) to the drivers.
+
+This has been extensively tested on my humble OLPC laptop (and it took me 4-5
+hours just to get the damn thing up and running with these drivers).
+
+Special attention was given to the handling of gain/autogain and
+exposure/autoexposure.
+
+The way this works is that setting the gain on its own will turn off autogain
+(this conforms to the current behavior of ov7670), setting autogain and gain
+atomically will only set the gain if autogain is set to manual.
+
+Ditto for exposure/autoexposure.
+
+The only question is: is the current behavior of implicitly turning off autogain
+when setting a new gain value correct? I think setting the gain in that case
+should do nothing.
+
+On the other hand, I don't know if there is any code that depends on this
+behavior, so perhaps we should just leave it as is.
+
+Jon, can you take a look and let me know if it is OK with you?
+
+Regards,
+
+	Hans
+
+ ov7670.c |  296 ++++++++++++++++++++++++---------------------------------------
+ 1 file changed, 116 insertions(+), 180 deletions(-)
+ cafe_ccic.c |   59 +++++++++++------------------------------------------------
+ 1 file changed, 11 insertions(+), 48 deletions(-)
 
