@@ -1,149 +1,183 @@
 Return-path: <mchehab@pedra>
-Received: from skyboo.net ([82.160.187.4]:35242 "EHLO skyboo.net"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753666Ab1APUpI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Jan 2011 15:45:08 -0500
-Message-ID: <4D3358C5.5080706@skyboo.net>
-Date: Sun, 16 Jan 2011 21:44:53 +0100
-From: Mariusz Bialonczyk <manio@skyboo.net>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Subject: [PATCH] Prof 7301: switching frontend to stv090x, fixing "LOCK FAILED"
- issue
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:42915 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754373Ab1AGQZr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jan 2011 11:25:47 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Fri, 07 Jan 2011 17:25:32 +0100
+From: Kamil Debski <k.debski@samsung.com>
+Subject: [RFC/PATCH v6 2/4] MFC: Add MFC 5.1 driver to plat-s5p
+In-reply-to: <1294417534-3856-1-git-send-email-k.debski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, k.debski@samsung.com,
+	jaeryul.oh@samsung.com, kgene.kim@samsung.com
+Message-id: <1294417534-3856-3-git-send-email-k.debski@samsung.com>
+References: <1294417534-3856-1-git-send-email-k.debski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Fixing the very annoying tunning issue. When switching from DVB-S2 to DVB-S,
-it often took minutes to have a lock.
-This issue is known to Igor M. Liplianin and was also reported ie. in the
-following posts:
-http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/24573
-http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/25275
+This patch adds platform support for Multi Format Codec 5.1.
+MFC 5.1 is capable of handling a range of video codecs and this driver
+provides V4L2 interface for video decoding.
 
-The patch is changing the frontend from stv0900 to stv090x.
-The card now works much more reliable. There is no problem with switching
-from DVB-S2 to DVB-S, tunning works flawless.
-
-Signed-off-by: Mariusz Bialonczyk <manio@skyboo.net>
-Tested-by: Warpme <warpme@o2.pl>
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/video/cx88/Kconfig           |    2 +-
- drivers/media/video/cx88/cx88-dvb.c        |   56 ++++++++++++----------------
- 2 files changed, 25 insertions(+), 33 deletions(-)
+ arch/arm/mach-s5pv210/clock.c                   |    6 +++
+ arch/arm/mach-s5pv210/include/mach/map.h        |    4 ++
+ arch/arm/plat-s5p/Kconfig                       |    5 ++
+ arch/arm/plat-s5p/Makefile                      |    2 +-
+ arch/arm/plat-s5p/dev-mfc.c                     |   49 +++++++++++++++++++++++
+ arch/arm/plat-samsung/include/plat/devs.h       |    2 +
+ 9 files changed, 116 insertions(+), 2 deletions(-)
+ create mode 100644 arch/arm/plat-s5p/dev-mfc.c
 
-diff --git a/drivers/media/video/cx88/Kconfig b/drivers/media/video/cx88/Kconfig
-index 5c42abd..57316bb 100644
---- a/drivers/media/video/cx88/Kconfig
-+++ b/drivers/media/video/cx88/Kconfig
-@@ -60,7 +60,7 @@ config VIDEO_CX88_DVB
- 	select DVB_STV0299 if !DVB_FE_CUSTOMISE
- 	select DVB_STV0288 if !DVB_FE_CUSTOMISE
- 	select DVB_STB6000 if !DVB_FE_CUSTOMISE
--	select DVB_STV0900 if !DVB_FE_CUSTOMISE
-+	select DVB_STV090x if !DVB_FE_CUSTOMISE
- 	select DVB_STB6100 if !DVB_FE_CUSTOMISE
- 	select MEDIA_TUNER_SIMPLE if !MEDIA_TUNER_CUSTOMISE
- 	---help---
-diff --git a/drivers/media/video/cx88/cx88-dvb.c b/drivers/media/video/cx88/cx88-dvb.c
-index 90717ee..3f25872 100644
---- a/drivers/media/video/cx88/cx88-dvb.c
-+++ b/drivers/media/video/cx88/cx88-dvb.c
-@@ -53,9 +53,9 @@
- #include "stv0288.h"
- #include "stb6000.h"
- #include "cx24116.h"
--#include "stv0900.h"
-+#include "stv090x.h"
- #include "stb6100.h"
--#include "stb6100_proc.h"
-+#include "stb6100_cfg.h"
- #include "mb86a16.h"
+diff --git a/arch/arm/mach-s5pv210/clock.c b/arch/arm/mach-s5pv210/clock.c
+index 5014b62..f7d742d 100644
+--- a/arch/arm/mach-s5pv210/clock.c
++++ b/arch/arm/mach-s5pv210/clock.c
+@@ -364,6 +364,12 @@ static struct clk init_clocks_disable[] = {
+ 		.enable		= s5pv210_clk_ip0_ctrl,
+ 		.ctrlbit	= (1 << 26),
+ 	}, {
++		.name		= "mfc",
++		.id		= -1,
++		.parent		= &clk_pclk_psys.clk,
++		.enable		= s5pv210_clk_ip0_ctrl,
++		.ctrlbit	= (1 << 16),
++	}, {
+ 		.name		= "nfcon",
+ 		.id		= -1,
+ 		.parent		= &clk_hclk_psys.clk,
+diff --git a/arch/arm/mach-s5pv210/include/mach/map.h b/arch/arm/mach-s5pv210/include/mach/map.h
+index 0982443..d56db00 100644
+--- a/arch/arm/mach-s5pv210/include/mach/map.h
++++ b/arch/arm/mach-s5pv210/include/mach/map.h
+@@ -73,6 +73,8 @@
+ #define S5PV210_PA_FIMC1	(0xFB300000)
+ #define S5PV210_PA_FIMC2	(0xFB400000)
  
- MODULE_DESCRIPTION("driver for cx2388x based DVB cards");
-@@ -611,15 +611,6 @@ static int cx24116_set_ts_param(struct dvb_frontend *fe,
- 	return 0;
- }
- 
--static int stv0900_set_ts_param(struct dvb_frontend *fe,
--	int is_punctured)
--{
--	struct cx8802_dev *dev = fe->dvb->priv;
--	dev->ts_gen_cntrl = 0;
--
--	return 0;
--}
--
- static int cx24116_reset_device(struct dvb_frontend *fe)
- {
- 	struct cx8802_dev *dev = fe->dvb->priv;
-@@ -648,16 +639,21 @@ static const struct cx24116_config tevii_s460_config = {
- 	.reset_device  = cx24116_reset_device,
- };
- 
--static const struct stv0900_config prof_7301_stv0900_config = {
--	.demod_address = 0x6a,
--/*	demod_mode = 0,*/
--	.xtal = 27000000,
--	.clkmode = 3,/* 0-CLKI, 2-XTALI, else AUTO */
--	.diseqc_mode = 2,/* 2/3 PWM */
--	.tun1_maddress = 0,/* 0x60 */
--	.tun1_adc = 0,/* 2 Vpp */
--	.path1_mode = 3,
--	.set_ts_params = stv0900_set_ts_param,
-+static struct stv090x_config prof_7301_stv090x_config = {
-+        .device                 = STV0903,
-+        .demod_mode             = STV090x_SINGLE,
-+        .clk_mode               = STV090x_CLK_EXT,
-+        .xtal                   = 27000000,
-+        .address                = 0x6A,
-+        .ts1_mode               = STV090x_TSMODE_PARALLEL_PUNCTURED,
-+        .repeater_level         = STV090x_RPTLEVEL_64,
-+        .adc1_range             = STV090x_ADC_2Vpp,
-+        .diseqc_envelope_mode   = false,
++#define S5PV210_PA_MFC		(0xF1700000)
 +
-+        .tuner_get_frequency    = stb6100_get_frequency,
-+        .tuner_set_frequency    = stb6100_set_frequency,
-+        .tuner_set_bandwidth    = stb6100_set_bandwidth,
-+        .tuner_get_bandwidth    = stb6100_get_bandwidth,
- };
+ #define S5PV210_PA_HSMMC(x)	(0xEB000000 + ((x) * 0x100000))
  
- static const struct stb6100_config prof_7301_stb6100_config = {
-@@ -1402,23 +1398,19 @@ static int dvb_register(struct cx8802_dev *dev)
- 		}
- 		break;
- 	case CX88_BOARD_PROF_7301:{
--		struct dvb_tuner_ops *tuner_ops = NULL;
-+		dev->ts_gen_cntrl = 0x00;
+ #define S5PV210_PA_HSOTG	(0xEC000000)
+@@ -107,6 +109,7 @@
+ #define S5PV210_PA_DMC0		(0xF0000000)
+ #define S5PV210_PA_DMC1		(0xF1400000)
  
--		fe0->dvb.frontend = dvb_attach(stv0900_attach,
--						&prof_7301_stv0900_config,
--						&core->i2c_adap, 0);
-+		fe0->dvb.frontend = dvb_attach(stv090x_attach,
-+						&prof_7301_stv090x_config,
-+						&core->i2c_adap,
-+						STV090x_DEMODULATOR_0);
- 		if (fe0->dvb.frontend != NULL) {
--			if (!dvb_attach(stb6100_attach, fe0->dvb.frontend,
-+			if (!dvb_attach(stb6100_attach,
-+					fe0->dvb.frontend,
- 					&prof_7301_stb6100_config,
- 					&core->i2c_adap))
- 				goto frontend_detach;
++
+ /* compatibiltiy defines. */
+ #define S3C_PA_UART		S5PV210_PA_UART
+ #define S3C_PA_HSMMC0		S5PV210_PA_HSMMC(0)
+@@ -123,6 +126,7 @@
+ #define S5P_PA_FIMC0		S5PV210_PA_FIMC0
+ #define S5P_PA_FIMC1		S5PV210_PA_FIMC1
+ #define S5P_PA_FIMC2		S5PV210_PA_FIMC2
++#define S5P_PA_MFC		S5PV210_PA_MFC
  
--			tuner_ops = &fe0->dvb.frontend->ops.tuner_ops;
--			tuner_ops->set_frequency = stb6100_set_freq;
--			tuner_ops->get_frequency = stb6100_get_freq;
--			tuner_ops->set_bandwidth = stb6100_set_bandw;
--			tuner_ops->get_bandwidth = stb6100_get_bandw;
+ #define SAMSUNG_PA_ADC		S5PV210_PA_ADC
+ #define SAMSUNG_PA_CFCON	S5PV210_PA_CFCON
+diff --git a/arch/arm/plat-s5p/Kconfig b/arch/arm/plat-s5p/Kconfig
+index 9755df9..c7a048e 100644
+--- a/arch/arm/plat-s5p/Kconfig
++++ b/arch/arm/plat-s5p/Kconfig
+@@ -5,6 +5,11 @@
+ #
+ # Licensed under GPLv2
+ 
++config S5P_DEV_MFC
++	bool
++	help
++	  Compile in platform device definitions for MFC 
++	  
+ config PLAT_S5P
+ 	bool
+ 	depends on (ARCH_S5P64X0 || ARCH_S5P6442 || ARCH_S5PC100 || ARCH_S5PV210 || ARCH_S5PV310)
+diff --git a/arch/arm/plat-s5p/Makefile b/arch/arm/plat-s5p/Makefile
+index df65cb7..8c1c97c 100644
+--- a/arch/arm/plat-s5p/Makefile
++++ b/arch/arm/plat-s5p/Makefile
+@@ -23,7 +23,7 @@ obj-$(CONFIG_PM)		+= pm.o
+ obj-$(CONFIG_PM)		+= irq-pm.o
+ 
+ # devices
 -
- 			core->prev_set_voltage =
- 					fe0->dvb.frontend->ops.set_voltage;
- 			fe0->dvb.frontend->ops.set_voltage =
-
++obj-$(CONFIG_S5P_DEV_MFC)	+= dev-mfc.o
+ obj-$(CONFIG_S5P_DEV_FIMC0)	+= dev-fimc0.o
+ obj-$(CONFIG_S5P_DEV_FIMC1)	+= dev-fimc1.o
+ obj-$(CONFIG_S5P_DEV_FIMC2)	+= dev-fimc2.o
+diff --git a/arch/arm/plat-s5p/dev-mfc.c b/arch/arm/plat-s5p/dev-mfc.c
+new file mode 100644
+index 0000000..0dfcb1a
+--- /dev/null
++++ b/arch/arm/plat-s5p/dev-mfc.c
+@@ -0,0 +1,49 @@
++/* linux/arch/arm/plat-s5p/dev-mfc.c
++ *
++ * Copyright (c) 2010 Samsung Electronics
++ *
++ * Base S5P MFC 5.1 resource and device definitions
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++
++#include <linux/kernel.h>
++#include <linux/interrupt.h>
++#include <linux/platform_device.h>
++#include <linux/dma-mapping.h>
++#include <linux/ioport.h>
++
++#include <mach/map.h>
++#include <plat/devs.h>
++#include <plat/irqs.h>
++
++static struct resource s5p_mfc_resource[] = {
++	[0] = {
++		.start  = S5P_PA_MFC,
++		.end    = S5P_PA_MFC + SZ_64K - 1,
++		.flags  = IORESOURCE_MEM,
++	},
++	[1] = {
++		.start  = IRQ_MFC,
++		.end    = IRQ_MFC,
++		.flags  = IORESOURCE_IRQ,
++	}
++};
++
++static u64 s5p_mfc_dma_mask = DMA_BIT_MASK(32);
++
++struct platform_device s5p_device_mfc = {
++	.name          = "s5p-mfc",
++	.id            = -1,
++	.num_resources = ARRAY_SIZE(s5p_mfc_resource),
++	.resource      = s5p_mfc_resource,
++	.dev		= {
++		.dma_mask		= &s5p_mfc_dma_mask,
++		.coherent_dma_mask	= DMA_BIT_MASK(32),
++	},
++};
++
++EXPORT_SYMBOL(s5p_device_mfc);
+diff --git a/arch/arm/plat-samsung/include/plat/devs.h b/arch/arm/plat-samsung/include/plat/devs.h
+index 628b331..67594e2 100644
+--- a/arch/arm/plat-samsung/include/plat/devs.h
++++ b/arch/arm/plat-samsung/include/plat/devs.h
+@@ -124,6 +124,8 @@ extern struct platform_device s5p_device_fimc2;
+ extern struct platform_device s5p_device_fimc3;
+ extern struct platform_device s5pv310_device_fb0;
+ 
++extern struct platform_device s5p_device_mfc;
++
+ /* s3c2440 specific devices */
+ 
+ #ifdef CONFIG_CPU_S3C2440
 -- 
-Mariusz Bialonczyk
-jabber/e-mail: manio@skyboo.net
-http://manio.skyboo.net
+1.6.3.3
+
