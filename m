@@ -1,57 +1,160 @@
 Return-path: <mchehab@pedra>
-Received: from ironport2-out.teksavvy.com ([206.248.154.181]:27904 "EHLO
-	ironport2-out.pppoe.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752059Ab1A0PAJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jan 2011 10:00:09 -0500
-Message-ID: <4D418877.6030503@teksavvy.com>
-Date: Thu, 27 Jan 2011 10:00:07 -0500
-From: Mark Lord <kernel@teksavvy.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
- ?
-References: <20110125205453.GA19896@core.coreip.homeip.net> <4D3F4804.6070508@redhat.com> <4D3F4D11.9040302@teksavvy.com> <20110125232914.GA20130@core.coreip.homeip.net> <20110126020003.GA23085@core.coreip.homeip.net> <4D403855.4050706@teksavvy.com> <4D40C3D7.90608@teksavvy.com> <4D40C551.4020907@teksavvy.com> <20110127021227.GA29709@core.coreip.homeip.net> <4D40E41D.2030003@teksavvy.com> <20110127063815.GA29924@core.coreip.homeip.net> <4D414928.80801@redhat.com>
-In-Reply-To: <4D414928.80801@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:2350 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751869Ab1AHLCD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Jan 2011 06:02:03 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Jonathan Corbet <corbet@lwn.net>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFCv2 PATCH 3/5] v4l2-ctrls: v4l2_ctrl_handler_setup must set is_new to 1
+Date: Sat,  8 Jan 2011 12:01:46 +0100
+Message-Id: <5d7ced8dcd4844d0af67d0e60f14828817294f64.1294484338.git.hverkuil@xs4all.nl>
+In-Reply-To: <1294484508-14820-1-git-send-email-hverkuil@xs4all.nl>
+References: <1294484508-14820-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <c17e89942fa7c2a1928f0dadc676f39a7e34e54c.1294484338.git.hverkuil@xs4all.nl>
+References: <c17e89942fa7c2a1928f0dadc676f39a7e34e54c.1294484338.git.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 11-01-27 05:30 AM, Mauro Carvalho Chehab wrote:
-..
-> 0.8.2 is the new version that was released in Jan, 25. One of the major
-> differences is that it now installs the udev rules, with make install.
+Renamed has_new to is_new.
 
-Oh, and there's no "make uninstall" option in the Makefile, either.
-Where does it put those tentacles, so that I can delete them again ?
+Drivers can use the is_new field to determine if a new value was specified
+for a control. The v4l2_ctrl_handler_setup() must always set this to 1 since
+the setup has to force a full update of all controls.
 
-> On my tests here, this is working fine, with Fedora and RHEL 6, on my
-> usual test devices, so I don't believe that the tool itself is broken, 
-> nor I think that the issue is due to the fix patch.
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ Documentation/video4linux/v4l2-controls.txt |   12 ++++++++++++
+ drivers/media/video/v4l2-ctrls.c            |   20 +++++++++++---------
+ include/media/v4l2-ctrls.h                  |    6 ++++--
+ 3 files changed, 27 insertions(+), 11 deletions(-)
 
-Well, all I know is that it does NOT segfault without the patch,
-and now it does.  At this point I should refer you back to Linus's
-posts earlier in this thread for the definition of "breaks userspace".
+diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
+index 8773778..881e7f4 100644
+--- a/Documentation/video4linux/v4l2-controls.txt
++++ b/Documentation/video4linux/v4l2-controls.txt
+@@ -285,6 +285,9 @@ implement g_volatile_ctrl like this:
+ The 'new value' union is not used in g_volatile_ctrl. In general controls
+ that need to implement g_volatile_ctrl are read-only controls.
+ 
++Note that if one or more controls in a control cluster are marked as volatile,
++then all the controls in the cluster are seen as volatile.
++
+ To mark a control as volatile you have to set the is_volatile flag:
+ 
+ 	ctrl = v4l2_ctrl_new_std(&sd->ctrl_handler, ...);
+@@ -462,6 +465,15 @@ pointer to the v4l2_ctrl_ops struct that is used for that cluster.
+ Obviously, all controls in the cluster array must be initialized to either
+ a valid control or to NULL.
+ 
++In rare cases you might want to know which controls of a cluster actually
++were set explicitly by the user. For this you can check the 'is_new' flag of
++each control. For example, in the case of a volume/mute cluster the 'is_new'
++flag of the mute control would be set if the user called VIDIOC_S_CTRL for
++mute only. If the user would call VIDIOC_S_EXT_CTRLS for both mute and volume
++controls, then the 'is_new' flag would be 1 for both controls.
++
++The 'is_new' flag is always 1 when called from v4l2_ctrl_handler_setup().
++
+ 
+ VIDIOC_LOG_STATUS Support
+ =========================
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 8f81efc..15c6d04 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -569,7 +569,7 @@ static int user_to_new(struct v4l2_ext_control *c,
+ 	int ret;
+ 	u32 size;
+ 
+-	ctrl->has_new = 1;
++	ctrl->is_new = 1;
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+ 		ctrl->val64 = c->value64;
+@@ -1280,8 +1280,10 @@ int v4l2_ctrl_handler_setup(struct v4l2_ctrl_handler *hdl)
+ 		if (ctrl->done)
+ 			continue;
+ 
+-		for (i = 0; i < master->ncontrols; i++)
++		for (i = 0; i < master->ncontrols; i++) {
+ 			cur_to_new(master->cluster[i]);
++			master->cluster[i]->is_new = 1;
++		}
+ 
+ 		/* Skip button controls and read-only controls. */
+ 		if (ctrl->type == V4L2_CTRL_TYPE_BUTTON ||
+@@ -1645,7 +1647,7 @@ static int try_or_set_control_cluster(struct v4l2_ctrl *master, bool set)
+ 		if (ctrl == NULL)
+ 			continue;
+ 
+-		if (ctrl->has_new) {
++		if (ctrl->is_new) {
+ 			/* Double check this: it may have changed since the
+ 			   last check in try_or_set_ext_ctrls(). */
+ 			if (set && (ctrl->flags & V4L2_CTRL_FLAG_GRABBED))
+@@ -1719,13 +1721,13 @@ static int try_or_set_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+ 
+ 		v4l2_ctrl_lock(ctrl);
+ 
+-		/* Reset the 'has_new' flags of the cluster */
++		/* Reset the 'is_new' flags of the cluster */
+ 		for (j = 0; j < master->ncontrols; j++)
+ 			if (master->cluster[j])
+-				master->cluster[j]->has_new = 0;
++				master->cluster[j]->is_new = 0;
+ 
+ 		/* Copy the new caller-supplied control values.
+-		   user_to_new() sets 'has_new' to 1. */
++		   user_to_new() sets 'is_new' to 1. */
+ 		ret = cluster_walk(i, cs, helpers, user_to_new);
+ 
+ 		if (!ret)
+@@ -1822,13 +1824,13 @@ static int set_ctrl(struct v4l2_ctrl *ctrl, s32 *val)
+ 
+ 	v4l2_ctrl_lock(ctrl);
+ 
+-	/* Reset the 'has_new' flags of the cluster */
++	/* Reset the 'is_new' flags of the cluster */
+ 	for (i = 0; i < master->ncontrols; i++)
+ 		if (master->cluster[i])
+-			master->cluster[i]->has_new = 0;
++			master->cluster[i]->is_new = 0;
+ 
+ 	ctrl->val = *val;
+-	ctrl->has_new = 1;
++	ctrl->is_new = 1;
+ 	ret = try_or_set_control_cluster(master, false);
+ 	if (!ret)
+ 		ret = try_or_set_control_cluster(master, true);
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index d69ab4a..fcc9a0c 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -53,8 +53,10 @@ struct v4l2_ctrl_ops {
+   * @handler:	The handler that owns the control.
+   * @cluster:	Point to start of cluster array.
+   * @ncontrols:	Number of controls in cluster array.
+-  * @has_new:	Internal flag: set when there is a valid new value.
+   * @done:	Internal flag: set for each processed control.
++  * @is_new:	Set when the user specified a new value for this control. It
++  *		is also set when called from v4l2_ctrl_handler_setup. Drivers
++  *		should never set this flag.
+   * @is_private: If set, then this control is private to its handler and it
+   *		will not be added to any other handlers. Drivers can set
+   *		this flag.
+@@ -97,9 +99,9 @@ struct v4l2_ctrl {
+ 	struct v4l2_ctrl_handler *handler;
+ 	struct v4l2_ctrl **cluster;
+ 	unsigned ncontrols;
+-	unsigned int has_new:1;
+ 	unsigned int done:1;
+ 
++	unsigned int is_new:1;
+ 	unsigned int is_private:1;
+ 	unsigned int is_volatile:1;
+ 
+-- 
+1.7.0.4
 
-> I remember that when Kay added a persistence utility tool that opens a V4L
-> device in order to read some capabilities, this caused a race condition
-> into a number of drivers that use to register the video device too early.
-> The result is that udev were opening the device before the end of the
-> register process, causing OOPS and other problems.
-> 
-> I suspect that Mark may be experiencing a similar issue.
-
-Could be.  I really don't know.
-Again, I could not care less about ir-keyboard,
-as I don't use it here at all.
-
-But also again, this thread isn't about what I need fixed,
-but rather about broken userspace from 2.6.36 onward.
-And the patch to "fix" it seems to possibly cause more breakage.
-
-Cheers
