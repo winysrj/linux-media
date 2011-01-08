@@ -1,68 +1,237 @@
-Return-path: <mchehab@gaivota>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:25484 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750701Ab1ACXBN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Jan 2011 18:01:13 -0500
-Subject: Re: Summary of REGRESSIONS which are being ignored?! (Re: Summary
- of the pending patches up to Dec, 31 (26 patches))
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	Patrick Boettcher <pboettcher@kernellabs.com>,
-	Hendrik Skarpeid <skarp@online.no>, stoth@kernellabs.com,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-kernel@vger.kernel.org
-In-Reply-To: <4D21B7B1.6000608@redhat.com>
-References: <4D1DCF6A.2090505@redhat.com>
-	 <1293996645.2409.89.camel@localhost>  <4D21B7B1.6000608@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 03 Jan 2011 18:01:39 -0500
-Message-ID: <1294095699.10094.68.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3668 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752351Ab1AHNhB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Jan 2011 08:37:01 -0500
+Received: from localhost.localdomain (43.80-203-71.nextgentel.com [80.203.71.43])
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id p08Daljw015112
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 8 Jan 2011 14:37:00 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [RFCv3 PATCH 01/16] v4l2_prio: move from v4l2-common to v4l2-dev.
+Date: Sat,  8 Jan 2011 14:36:26 +0100
+Message-Id: <1d57787db3bd1a76d292bd80d91ba9e10c07af68.1294493427.git.hverkuil@xs4all.nl>
+In-Reply-To: <1294493801-17406-1-git-send-email-hverkuil@xs4all.nl>
+References: <1294493801-17406-1-git-send-email-hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Mon, 2011-01-03 at 09:49 -0200, Mauro Carvalho Chehab wrote:
-> Em 02-01-2011 17:30, Andy Walls escreveu:
-> > I don't see this patch on it's way upstream:
-> > 
-> > https://patchwork.kernel.org/patch/376612/   (Sent on 5 Dec 2010)
-> > http://www.spinics.net/lists/linux-media/msg26649.html (Resent on 19 Dec 2010)
-> > 
-> > It fixes a regression in IR and Analog video for cx23885 based cards and
-> > an intermittent analog video regression in ivtv based cards in 2.6.36
-> > and soon in 2.6.37.
-> 
-> Not sure what happened here. I'm sure I've applied on my fixes tree.
-> Anyway, I'm re-applying it.
+We are going to move priority handling into the v4l2 core. As a consequence
+the v4l2_prio helper functions need to be moved into the core videodev
+module as well to prevent circular dependencies.
 
-Thank you.
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/video/v4l2-common.c |   63 ------------------------------------
+ drivers/media/video/v4l2-dev.c    |   64 +++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-common.h       |   15 ---------
+ include/media/v4l2-dev.h          |   15 +++++++++
+ 4 files changed, 79 insertions(+), 78 deletions(-)
 
-> > I emailed the LMML, you, and the author, as soon as I verified the root
-> > cause on 31 Dec, and haven't heard from from anyone:
-> > 
-> > http://www.spinics.net/lists/linux-media/msg27261.html 
-> 
-> Here, Dec, 31 is a national holiday. People work only half of the day.
-> Yet, I was finishing some things and preparing patches for the incoming 
-> window, until afternoon.
-
-I understand.  But AFAIK the 2.6.37 final is supposed to happen very
-soon and the end user effects of the problem are very bad.
-
-
-> I only noticed your email today, and I'm promptly sending it upstream,
-> together with a patch revert for wm8775 regression.
-> 
-> > Please revert it before the merge window closes.
-> 
-> I'm sending it right now.
-
-Thank you.
-
-
--Andy
+diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
+index 3f0871b..b25d3e9 100644
+--- a/drivers/media/video/v4l2-common.c
++++ b/drivers/media/video/v4l2-common.c
+@@ -81,69 +81,6 @@ MODULE_LICENSE("GPL");
+  *  Video Standard Operations (contributed by Michael Schimek)
+  */
+ 
+-
+-/* ----------------------------------------------------------------- */
+-/* priority handling                                                 */
+-
+-#define V4L2_PRIO_VALID(val) (val == V4L2_PRIORITY_BACKGROUND   || \
+-			      val == V4L2_PRIORITY_INTERACTIVE  || \
+-			      val == V4L2_PRIORITY_RECORD)
+-
+-void v4l2_prio_init(struct v4l2_prio_state *global)
+-{
+-	memset(global, 0, sizeof(*global));
+-}
+-EXPORT_SYMBOL(v4l2_prio_init);
+-
+-int v4l2_prio_change(struct v4l2_prio_state *global, enum v4l2_priority *local,
+-		     enum v4l2_priority new)
+-{
+-	if (!V4L2_PRIO_VALID(new))
+-		return -EINVAL;
+-	if (*local == new)
+-		return 0;
+-
+-	atomic_inc(&global->prios[new]);
+-	if (V4L2_PRIO_VALID(*local))
+-		atomic_dec(&global->prios[*local]);
+-	*local = new;
+-	return 0;
+-}
+-EXPORT_SYMBOL(v4l2_prio_change);
+-
+-void v4l2_prio_open(struct v4l2_prio_state *global, enum v4l2_priority *local)
+-{
+-	v4l2_prio_change(global, local, V4L2_PRIORITY_DEFAULT);
+-}
+-EXPORT_SYMBOL(v4l2_prio_open);
+-
+-void v4l2_prio_close(struct v4l2_prio_state *global, enum v4l2_priority local)
+-{
+-	if (V4L2_PRIO_VALID(local))
+-		atomic_dec(&global->prios[local]);
+-}
+-EXPORT_SYMBOL(v4l2_prio_close);
+-
+-enum v4l2_priority v4l2_prio_max(struct v4l2_prio_state *global)
+-{
+-	if (atomic_read(&global->prios[V4L2_PRIORITY_RECORD]) > 0)
+-		return V4L2_PRIORITY_RECORD;
+-	if (atomic_read(&global->prios[V4L2_PRIORITY_INTERACTIVE]) > 0)
+-		return V4L2_PRIORITY_INTERACTIVE;
+-	if (atomic_read(&global->prios[V4L2_PRIORITY_BACKGROUND]) > 0)
+-		return V4L2_PRIORITY_BACKGROUND;
+-	return V4L2_PRIORITY_UNSET;
+-}
+-EXPORT_SYMBOL(v4l2_prio_max);
+-
+-int v4l2_prio_check(struct v4l2_prio_state *global, enum v4l2_priority local)
+-{
+-	return (local < v4l2_prio_max(global)) ? -EBUSY : 0;
+-}
+-EXPORT_SYMBOL(v4l2_prio_check);
+-
+-/* ----------------------------------------------------------------- */
+-
+ /* Helper functions for control handling			     */
+ 
+ /* Check for correctness of the ctrl's value based on the data from
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index 359e232..8698fe4 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -182,6 +182,70 @@ struct video_device *video_devdata(struct file *file)
+ }
+ EXPORT_SYMBOL(video_devdata);
+ 
++
++/* Priority handling */
++
++static inline bool prio_is_valid(enum v4l2_priority prio)
++{
++	return prio == V4L2_PRIORITY_BACKGROUND ||
++	       prio == V4L2_PRIORITY_INTERACTIVE ||
++	       prio == V4L2_PRIORITY_RECORD;
++}
++
++void v4l2_prio_init(struct v4l2_prio_state *global)
++{
++	memset(global, 0, sizeof(*global));
++}
++EXPORT_SYMBOL(v4l2_prio_init);
++
++int v4l2_prio_change(struct v4l2_prio_state *global, enum v4l2_priority *local,
++		     enum v4l2_priority new)
++{
++	if (!prio_is_valid(new))
++		return -EINVAL;
++	if (*local == new)
++		return 0;
++
++	atomic_inc(&global->prios[new]);
++	if (prio_is_valid(*local))
++		atomic_dec(&global->prios[*local]);
++	*local = new;
++	return 0;
++}
++EXPORT_SYMBOL(v4l2_prio_change);
++
++void v4l2_prio_open(struct v4l2_prio_state *global, enum v4l2_priority *local)
++{
++	v4l2_prio_change(global, local, V4L2_PRIORITY_DEFAULT);
++}
++EXPORT_SYMBOL(v4l2_prio_open);
++
++void v4l2_prio_close(struct v4l2_prio_state *global, enum v4l2_priority local)
++{
++	if (prio_is_valid(local))
++		atomic_dec(&global->prios[local]);
++}
++EXPORT_SYMBOL(v4l2_prio_close);
++
++enum v4l2_priority v4l2_prio_max(struct v4l2_prio_state *global)
++{
++	if (atomic_read(&global->prios[V4L2_PRIORITY_RECORD]) > 0)
++		return V4L2_PRIORITY_RECORD;
++	if (atomic_read(&global->prios[V4L2_PRIORITY_INTERACTIVE]) > 0)
++		return V4L2_PRIORITY_INTERACTIVE;
++	if (atomic_read(&global->prios[V4L2_PRIORITY_BACKGROUND]) > 0)
++		return V4L2_PRIORITY_BACKGROUND;
++	return V4L2_PRIORITY_UNSET;
++}
++EXPORT_SYMBOL(v4l2_prio_max);
++
++int v4l2_prio_check(struct v4l2_prio_state *global, enum v4l2_priority local)
++{
++	return (local < v4l2_prio_max(global)) ? -EBUSY : 0;
++}
++EXPORT_SYMBOL(v4l2_prio_check);
++
++
+ static ssize_t v4l2_read(struct file *filp, char __user *buf,
+ 		size_t sz, loff_t *off)
+ {
+diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+index 2d65b35..e34993e 100644
+--- a/include/media/v4l2-common.h
++++ b/include/media/v4l2-common.h
+@@ -80,21 +80,6 @@
+ 
+ /* ------------------------------------------------------------------------- */
+ 
+-/* Priority helper functions */
+-
+-struct v4l2_prio_state {
+-	atomic_t prios[4];
+-};
+-void v4l2_prio_init(struct v4l2_prio_state *global);
+-int v4l2_prio_change(struct v4l2_prio_state *global, enum v4l2_priority *local,
+-		     enum v4l2_priority new);
+-void v4l2_prio_open(struct v4l2_prio_state *global, enum v4l2_priority *local);
+-void v4l2_prio_close(struct v4l2_prio_state *global, enum v4l2_priority local);
+-enum v4l2_priority v4l2_prio_max(struct v4l2_prio_state *global);
+-int v4l2_prio_check(struct v4l2_prio_state *global, enum v4l2_priority local);
+-
+-/* ------------------------------------------------------------------------- */
+-
+ /* Control helper functions */
+ 
+ int v4l2_ctrl_check(struct v4l2_ext_control *ctrl, struct v4l2_queryctrl *qctrl,
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 15802a0..861f323 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -34,6 +34,21 @@ struct v4l2_ctrl_handler;
+ #define V4L2_FL_REGISTERED	(0)
+ #define V4L2_FL_USES_V4L2_FH	(1)
+ 
++/* Priority helper functions */
++
++struct v4l2_prio_state {
++	atomic_t prios[4];
++};
++
++void v4l2_prio_init(struct v4l2_prio_state *global);
++int v4l2_prio_change(struct v4l2_prio_state *global, enum v4l2_priority *local,
++		     enum v4l2_priority new);
++void v4l2_prio_open(struct v4l2_prio_state *global, enum v4l2_priority *local);
++void v4l2_prio_close(struct v4l2_prio_state *global, enum v4l2_priority local);
++enum v4l2_priority v4l2_prio_max(struct v4l2_prio_state *global);
++int v4l2_prio_check(struct v4l2_prio_state *global, enum v4l2_priority local);
++
++
+ struct v4l2_file_operations {
+ 	struct module *owner;
+ 	ssize_t (*read) (struct file *, char __user *, size_t, loff_t *);
+-- 
+1.7.0.4
 
