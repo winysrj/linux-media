@@ -1,77 +1,110 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35223 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750832Ab1ALJAS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Jan 2011 04:00:18 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Eino-Ville Talvala" <talvala@stanford.edu>
-Subject: Re: [RFC] Cropping and scaling with subdev pad-level operations
-Date: Wed, 12 Jan 2011 10:01:06 +0100
-Cc: linux-media@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-References: <201101061633.30029.laurent.pinchart@ideasonboard.com> <4D2CAA4C.7060803@stanford.edu>
-In-Reply-To: <4D2CAA4C.7060803@stanford.edu>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:42357 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752060Ab1AHBCz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jan 2011 20:02:55 -0500
+Received: by gyb11 with SMTP id 11so6772151gyb.19
+        for <linux-media@vger.kernel.org>; Fri, 07 Jan 2011 17:02:54 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201101121001.06657.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201101072206.30323.hverkuil@xs4all.nl>
+References: <201101072053.37211@orion.escape-edv.de>
+	<AANLkTinj2NcOcVUPifsNcvbs=Mivwe89+hg8XLsCJnQ7@mail.gmail.com>
+	<201101072206.30323.hverkuil@xs4all.nl>
+Date: Sat, 8 Jan 2011 12:02:54 +1100
+Message-ID: <AANLkTik0-n-KBrTQa4kjahLXyqLagMp+A77zcV3hVAx5@mail.gmail.com>
+Subject: Re: Debug code in HG repositories
+From: Vincent McIntyre <vincent.mcintyre@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=0015174c3bc277657c04994b4b20
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+--0015174c3bc277657c04994b4b20
+Content-Type: text/plain; charset=ISO-8859-1
 
-On Tuesday 11 January 2011 20:06:52 Eino-Ville Talvala wrote:
-> On 1/6/2011 7:33 AM, Laurent Pinchart wrote:
-> > Hi everybody,
-> 
-> ...
-> 
-> > The OMAP3 ISP resizer currently implements the second option, and I'll
-> > modify it to implement the first option. The drawback is that some
-> > crop/output combinations will require an extra step to be achieved. I'd
-> > like your opinion on this issue. Is the behaviour described in option
-> > one acceptable ? Should the API be extended/modified to make it simpler
-> > for applications to configure the various sizes in the image pipeline ?
-> > Are we all doomed and will we have to use a crop/scale API that nobody
-> > will ever understand ? :-)
-> 
-> I'm personally a big fan of having some way to atomically set multiple
-> settings at once, exactly to avoid these sorts of problems. The
-> fundamental problem here is that the interface implicitly assumes that
-> every intermediate state has to be a valid one, when during device
-> configuration most states are transitory because the application hasn't
-> finished configuring the pipeline/sensor/etc, and the state shouldn't
-> get vetted and adjusted until the configuration is complete.
+On 1/8/11, Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-Agreed, that's the exact cause of the problem.
+> Have you tried Mauro's media_build tree? I had to use it today to test a
+> driver from git on a 2.6.35 kernel. Works quite nicely. Perhaps we should
+> promote this more. I could add backwards compatibility builds to my daily
+> build script that uses this in order to check for which kernel versions
+> this compiles if there is sufficient interest.
+>
 
-> The VIDOC_S_EXT_CTRLS seems like a reasonable solution - can't something
-> like that apply to the subdev interfaces? (Or am I missing something
-> beyond that?)
+As an end-user I would be interested in seeing this added, since it
+will allow faster detection of breakage in the older versions. For
+instance building against 2.6.32 fails like this:
 
-I haven't thought about setting multiple formats in one go, but the idea is 
-definitely worth a thought. It shouldn't be too difficult to implement, but we 
-need to define proper semantics. I'd like to hear about other's opinions.
+  CC [M]  /home/vjm/git/clones/linuxtv.org/new_build/v4l/hdpvr-i2c.o
+/home/vjm/git/clones/linuxtv.org/new_build/v4l/hdpvr-i2c.c: In
+function 'hdpvr_new_i2c_ir':
+/home/vjm/git/clones/linuxtv.org/new_build/v4l/hdpvr-i2c.c:62: error:
+too many arguments to function 'i2c_new_probed_device'
+make[4]: *** [/home/vjm/git/clones/linuxtv.org/new_build/v4l/hdpvr-i2c.o]
+Error 1
+make[3]: *** [_module_/home/vjm/git/clones/linuxtv.org/new_build/v4l] Error 2
+make[3]: Leaving directory `/usr/src/linux-headers-2.6.32-26-ec297b-generic'
+make[2]: *** [default] Error 2
+make[2]: Leaving directory `/home/vjm/git/clones/linuxtv.org/new_build/v4l'
+make[1]: *** [all] Error 2
+make[1]: Leaving directory `/home/vjm/git/clones/linuxtv.org/new_build'
+make: *** [default] Error 2
 
-> Similar issues have cropped up for us with other interdependent settings
-> like exposure time/frame duration, or the cropping/scaling options found
-> directly on the mt9p031 sensor, which are quite analogous to your issue
-> - there's 1-4x scaling and a selectable ROI, which interact, especially
-> during streaming when a constant output size has to be maintained.  What
-> I ended up doing was effectively hacking in an atomic control update
-> procedure for the old v4l2_int_device stuff (very hacky), but then I
-> didn't have to worry about it any more.
-> 
-> In general, I'd be worried if executing the same stream of control
-> updates in a different order gave a different final result.  With atomic
-> updates, you'd still have to decide how to round to the closest valid
-> state, but at least it'd be consistent.
+It's unclear that adding this would cause a lot of extra work; the
+patches that need to be applied are quite few - a tribute to the
+design work!
 
-Thanks a lot for sharing your thoughts.
+For what it's worth, I've attached the shell script I use to pull
+updates and do a new build.
+Doing the initial setup is well explained by the
+linuxtv.org/media_tree.git page,
+but this script may be of use to end users wanting to track development.
 
--- 
-Regards,
+Cheers
+Vince
 
-Laurent Pinchart
+--0015174c3bc277657c04994b4b20
+Content-Type: application/x-sh; name="update-and-build.sh"
+Content-Disposition: attachment; filename="update-and-build.sh"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: file0
+
+IyEvYmluL3NoCiMKIyBidWlsZCBsYXRlc3QgdjRsIG1vZHVsZXMuCiMgQXV0aG9yOiB2aW5jZW50
+Lm1jaW50eXJlQGdtYWlsLmNvbQojIExpY2Vuc2U6IEdQTDIrCiMKIyBDb25maWcgLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLQojTG9jYXRpb24gb2YgbGludXgtbWVkaWEgYW5kIG5ld19idWlsZCBjbG9uZXMKVE9QPS9o
+b21lL21lL2dpdC9jbG9uZXMvbGludXh0di5vcmcKVkVSQk9TRT0xCgojIEludGVybmFsIGNvbmZp
+ZyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tCkRFQlVHPTAKSU5TVEFMTD0wCgojIE1haW4gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCkxPR0ZJTEU9
+YnVpbGQuYGRhdGUgKyVZJW0lZFQlSCVNJVNgLmxvZwplY2hvICJMb2dnaW5nIHRvICckTE9HRklM
+RSciCmVjaG8gIlRoZSBidWlsZCBjb3VsZCB0YWtlIHNvbWUgdGltZS4uLiIKZWNobyAiVXNlICd0
+YWlsIC1mICRMT0dGSUxFJyB0byBmb2xsb3cgcHJvZ3Jlc3MiCmV4ZWMgMT4gJExPR0ZJTEUgMj4m
+MQplY2hvICIKVGhpcyBpcyAnJDAnCmNhbGxlZCBvbiBgZGF0ZWAKZnJvbSBgcHdkYAp3aXRoIGFy
+Z3VtZW50cyAnJEAnCiIKCndoaWxlIHRlc3QgJCMgLWd0ICAwCmRvCiAgICBjYXNlICQxIGluCiAg
+ICAgIC1baUldKikgSU5TVEFMTD0xOyBlY2hvICJNb2R1bGVzIHdpbGwgYmUgSU5TVEFMTGVkIgog
+ICAgICA7OwogICAgICAtW2REXSopIERFQlVHPTE7IGVjaG8gIkRFQlVHIG9uIgogICAgICA7Owog
+ICAgICAtW3ZWXSopIFZFUkJPU0U9MTsgZWNobyAiVkVSQk9TRSBvbiIKICAgICAgOzsKICAgIGVz
+YWMKZG9uZQoKdGVzdCAiMSIgPSAiJERFQlVHIiAmJiBzZXQgLXgKY2QgIiRUT1AiIHx8IGV4aXQg
+MQoKZWNobyB1cGRhdGUgdGhlIHY0bCB0cmVlIGZpcnN0CmNkIHY0bC1kdmIKaWYgdGVzdCAiMSIg
+PSAiJFZFUkJPU0UiIDsgdGhlbgogICAgZWNobyAiTm93IGluIGBwd2RgIgogICAgIyBsaXN0IGFs
+bCBicmFuY2hlcwogICAgZ2l0IGJyYW5jaCAtYQogICAgIyBsaXN0IHJlbW90ZXMKICAgIGdpdCBy
+ZW1vdGUgLXYgc2hvdwpmaQpnaXQgY2hlY2tvdXQgbWVkaWEtbWFzdGVyCmdpdCByZXNldCAtLWhh
+cmQKZ2l0IGNsZWFuIC1mIC1kCmdpdCBwdWxsIC4gcmVtb3Rlcy9saW51eHR2L3N0YWdpbmcvZm9y
+X3YyLjYuMzgKIyBzaG93IGxhc3QgbG9nIGVudHJ5CnRlc3QgIjEiID0gIiRWRVJCT1NFIiAmJiBn
+aXQgbG9nIC0xCgplY2hvICIiCmVjaG8gIk5vdyB1cGRhdGUgdGhlIG5ld19idWlsZCIKY2QgLi4v
+bmV3X2J1aWxkCmlmIHRlc3QgIjEiID0gIiRWRVJCT1NFIiA7IHRoZW4KICAgIGVjaG8gIk5vdyBp
+biBgcHdkYCIKICAgIGdpdCBicmFuY2ggLWEKICAgIGdpdCByZW1vdGUgLXYgc2hvdwpmaQpnaXQg
+Y2hlY2tvdXQgbWFzdGVyCmdpdCByZXNldCAtLWhhcmQKZ2l0IGNsZWFuIC1mIC1kCmdpdCBwdWxs
+IC11CiMgc2hvdyBsYXN0IGxvZyBlbnRyeQp0ZXN0ICIxIiA9ICIkVkVSQk9TRSIgJiYgZ2l0IGxv
+ZyAtMQpjZCBsaW51eAoKZWNobyAiIgplY2hvICJDbGVhbiB1cCIKbWFrZSBjbGVhbjsgbWFrZSBk
+aXN0Y2xlYW4KCmVjaG8gIiIKZWNobyAiU3RhcnQgYnVpbGQiCm1ha2UgdGFyIERJUj0vaG9tZS92
+am0vZ2l0L2Nsb25lcy9saW51eHR2Lm9yZy92NGwtZHZiCm1ha2UgdW50YXIKCiMgY2FsbCBtYWtl
+IHRvIGNyZWF0ZSB2NGwvLmNvbmZpZ3VyZQptYWtlCiN2aSAuLi92NGwvLmNvbmZpZyAjdHVybiBv
+ZmYgRklSRURUVgpzZWQgLWkgLWUgJ3MvQ09ORklHX0RWQl9GSVJFRFRWPW0vQ09ORklHX0RWQl9G
+SVJFRFRWPW4vJyAuLi92NGwvLmNvbmZpZwoKbWFrZQoKaWYgdGVzdCAiMSIgPSAiJElOU1RBTEwi
+IDsgdGhlbgogICAgbWFrZSBpbnN0YWxsCmVsc2UKICAgIGVjaG8gIiBTSU1VTEFUSU5HIG1vZHVs
+ZSBpbnN0YWxsIgogICAgbWFrZSAtbiBpbnN0YWxsCmZpCgpleGl0Cg==
+--0015174c3bc277657c04994b4b20--
