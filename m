@@ -1,65 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:50038 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751827Ab1AUE1h (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jan 2011 23:27:37 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p0L4RbHH021482
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 20 Jan 2011 23:27:37 -0500
-From: Jarod Wilson <jarod@redhat.com>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1556 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752071Ab1AHNhB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Jan 2011 08:37:01 -0500
+Received: from localhost.localdomain (43.80-203-71.nextgentel.com [80.203.71.43])
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id p08Daljv015112
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 8 Jan 2011 14:37:00 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH] rc/ir-lirc-codec: add back debug spew
-Date: Thu, 20 Jan 2011 23:27:33 -0500
-Message-Id: <1295584053-20978-1-git-send-email-jarod@redhat.com>
+Subject: [RFCv3 PATCH 0/16] Move priority handling into the core
+Date: Sat,  8 Jan 2011 14:36:25 +0100
+Message-Id: <1294493801-17406-1-git-send-email-hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Some occasionally useful debug spew disappeared as part of a feature
-update a while back, and I'm finding myself in need of it again to help
-diagnose some issues.
+This is the third attempt at moving priority handling into the core.
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/rc/ir-lirc-codec.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
+I have added two helper functions that allocate and free just a single
+v4l2_fh struct. This can be used by drivers that do not need to embed the
+struct v4l2_fh into a larger struct.
 
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index f011c5d..1c5cc65 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -1,4 +1,4 @@
--/* ir-lirc-codec.c - ir-core to classic lirc interface bridge
-+/* ir-lirc-codec.c - rc-core to classic lirc interface bridge
-  *
-  * Copyright (C) 2010 by Jarod Wilson <jarod@redhat.com>
-  *
-@@ -47,6 +47,7 @@ static int ir_lirc_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 	/* Carrier reports */
- 	if (ev.carrier_report) {
- 		sample = LIRC_FREQUENCY(ev.carrier);
-+		IR_dprintk(2, "carrier report (freq: %d)\n", sample);
- 
- 	/* Packet end */
- 	} else if (ev.timeout) {
-@@ -62,6 +63,7 @@ static int ir_lirc_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 			return 0;
- 
- 		sample = LIRC_TIMEOUT(ev.duration / 1000);
-+		IR_dprintk(2, "timeout report (duration: %d)\n", sample);
- 
- 	/* Normal sample */
- 	} else {
-@@ -85,6 +87,8 @@ static int ir_lirc_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 
- 		sample = ev.pulse ? LIRC_PULSE(ev.duration / 1000) :
- 					LIRC_SPACE(ev.duration / 1000);
-+		IR_dprintk(2, "delivering %uus %s to lirc_dev\n",
-+			   TO_US(ev.duration), TO_STR(ev.pulse));
- 	}
- 
- 	lirc_buffer_write(dev->raw->lirc.drv->rbuf,
--- 
-1.7.3.4
+This is not longer called implicitly by the core. Drivers much explicitly
+use struct v4l2_fh in order to support priority handling.
+
+Also added a new helper function to detect whether a file handle is the
+only open file handle for the associated device node. Many drivers need
+to do something on the first open or last close and they all do some use
+counting to keep track of that. With v4l2_fh we already have that information,
+so a simple function will make that available to the driver.
+
+Finally some documentation was also added.
+
+This patch series converts radio-mr800 (removing the bogus autopm
+support allows us to remove the open/release support), radio-cadet
+(typical first-time open and close code, shows how easy it is to use
+the helper functions) and radio-maxiradio.
+
+ivtv is also converted as it is currently the only driver that embeds
+struct v4l2_fh.
+
+Tested for all converted drivers except for radio-cadet due to lack of
+hardware.
+
+Core support for priority handling is necessary in order to have consistent
+handling of priorities and to handle priorities and the control framework.
+
+Comments are welcome!
+
+Regards,
+
+        Hans
 
