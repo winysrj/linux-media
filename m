@@ -1,67 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:35196 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1754054Ab1AGTBv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Jan 2011 14:01:51 -0500
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: linux-media@vger.kernel.org
-To: Dan Carpenter <error27@gmail.com>
-Subject: Re: [patch v2] [media] av7110: check for negative array offset
-Date: Fri, 7 Jan 2011 20:01:19 +0100
-Cc: Andreas Oberritter <obi@linuxtv.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-References: <20110106194059.GC1717@bicker> <4D270A9F.7080104@linuxtv.org> <20110107134651.GH1717@bicker>
-In-Reply-To: <20110107134651.GH1717@bicker>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201101072001.20850@orion.escape-edv.de>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2067 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752561Ab1AHNhH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Jan 2011 08:37:07 -0500
+Received: from localhost.localdomain (43.80-203-71.nextgentel.com [80.203.71.43])
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id p08DalkC015112
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 8 Jan 2011 14:37:06 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [RFCv3 PATCH 15/16] radio-maxiradio: implement priority handling
+Date: Sat,  8 Jan 2011 14:36:40 +0100
+Message-Id: <c900f9a2c5052411200fdb9b31f262d54ceed5cc.1294493428.git.hverkuil@xs4all.nl>
+In-Reply-To: <1294493801-17406-1-git-send-email-hverkuil@xs4all.nl>
+References: <1294493801-17406-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1d57787db3bd1a76d292bd80d91ba9e10c07af68.1294493427.git.hverkuil@xs4all.nl>
+References: <1d57787db3bd1a76d292bd80d91ba9e10c07af68.1294493427.git.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/radio/radio-maxiradio.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-On Friday 07 January 2011 14:46:51 Dan Carpenter wrote:
-> info->num comes from the user.  It's type int.  If the user passes
-> in a negative value that would cause memory corruption.
-> 
-> Signed-off-by: Dan Carpenter <error27@gmail.com>
-> ---
-> V2: change the check instead of making num and unsigned int
-> 
-> diff --git a/drivers/media/dvb/ttpci/av7110_ca.c b/drivers/media/dvb/ttpci/av7110_ca.c
-> index 122c728..923a8e2 100644
-> --- a/drivers/media/dvb/ttpci/av7110_ca.c
-> +++ b/drivers/media/dvb/ttpci/av7110_ca.c
-> @@ -277,7 +277,7 @@ static int dvb_ca_ioctl(struct file *file, unsigned int cmd, void *parg)
->  	{
->  		ca_slot_info_t *info=(ca_slot_info_t *)parg;
->  
-> -		if (info->num > 1)
-> +		if ((unsigned)info->num > 1)
->  			return -EINVAL;
->  		av7110->ci_slot[info->num].num = info->num;
->  		av7110->ci_slot[info->num].type = FW_CI_LL_SUPPORT(av7110->arm_app) ?
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-Imho casts are a last resort and should be avoided, if there is a better
-way to do it. The obvious fix is
-
-  if (info->num < 0 || info->num > 1)
-        return -EINVAL;
-   
-CU
-Oliver
-
+diff --git a/drivers/media/radio/radio-maxiradio.c b/drivers/media/radio/radio-maxiradio.c
+index 1323a56..d38c60f 100644
+--- a/drivers/media/radio/radio-maxiradio.c
++++ b/drivers/media/radio/radio-maxiradio.c
+@@ -45,6 +45,7 @@
+ #include <linux/slab.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-fh.h>
+ 
+ MODULE_AUTHOR("Dimitromanolakis Apostolos, apdim@grecian.net");
+ MODULE_DESCRIPTION("Radio driver for the Guillemot Maxi Radio FM2000 radio.");
+@@ -337,6 +338,8 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
+ static const struct v4l2_file_operations maxiradio_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.unlocked_ioctl = video_ioctl2,
++	.open		= v4l2_fh_open,
++	.release	= v4l2_fh_release,
+ };
+ 
+ static const struct v4l2_ioctl_ops maxiradio_ioctl_ops = {
 -- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
+1.7.0.4
+
