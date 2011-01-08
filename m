@@ -1,69 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from ffm.saftware.de ([83.141.3.46]:39005 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757944Ab1ANQcD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Jan 2011 11:32:03 -0500
-Message-ID: <4D307A80.4050807@linuxtv.org>
-Date: Fri, 14 Jan 2011 17:32:00 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Thierry LELEGARD <tlelegard@logiways.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [linux-media] API V3 vs SAPI behavior difference in reading tuning
- parameters
-References: <BA2A2355403563449C28518F517A3C4805AA9B9B@titan.logiways-france.fr> <AANLkTi=Y_ikxp2hHHh5B=rQqQLf5w5_5SivzLJ+DfVLm@mail.gmail.com>
-In-Reply-To: <AANLkTi=Y_ikxp2hHHh5B=rQqQLf5w5_5SivzLJ+DfVLm@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3710 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752381Ab1AHNhC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Jan 2011 08:37:02 -0500
+Received: from localhost.localdomain (43.80-203-71.nextgentel.com [80.203.71.43])
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id p08Dalk0015112
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 8 Jan 2011 14:37:01 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [RFCv3 PATCH 03/16] v4l2-fh: implement v4l2_priority support.
+Date: Sat,  8 Jan 2011 14:36:28 +0100
+Message-Id: <be212d62126afefaf0aaf3702507f239f5fda93e.1294493428.git.hverkuil@xs4all.nl>
+In-Reply-To: <1294493801-17406-1-git-send-email-hverkuil@xs4all.nl>
+References: <1294493801-17406-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1d57787db3bd1a76d292bd80d91ba9e10c07af68.1294493427.git.hverkuil@xs4all.nl>
+References: <1d57787db3bd1a76d292bd80d91ba9e10c07af68.1294493427.git.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 01/14/2011 04:12 PM, Devin Heitmueller wrote:
-> On Fri, Jan 14, 2011 at 8:35 AM, Thierry LELEGARD
-> <tlelegard@logiways.com> wrote:
->> But there is worse. If I set a wrong parameter in the tuning operation,
->> for instance guard interval 1/32, the API V3 returns the correct value
->> which is actually used by the tuner (GUARD_INTERVAL_1_8), while S2API
->> returns the "cached" value which was set while tuning (GUARD_INTERVAL_1_32).
-> 
-> This is actually a bad thing.  If you specify the wrong parameter and
-> it still works, then that can lead to all sort of misleading behavior.
->  For example, imagine the next person who submits scan results based
-> on using such a driver.  It works for him because his driver lied, but
-> the resulting file works for nobody else.
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/video/v4l2-fh.c |    4 ++++
+ include/media/v4l2-fh.h       |    1 +
+ 2 files changed, 5 insertions(+), 0 deletions(-)
 
-Scan results should contain the input parameters, because the
-transmission parameters can change any time (not included in any
-official frequency sheet of the provider) and because some parameters
-vary slightly with environmental influences (e.g. DVB-S frequency - i've
-heard of that a lot and there's code to handle it in dvb_frontend.c, but
-is it actually true?) and some might be read back too imprecisely to be
-usable with a different chipset (e.g. symbol rate).
+diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
+index d78f184..78a1608 100644
+--- a/drivers/media/video/v4l2-fh.c
++++ b/drivers/media/video/v4l2-fh.c
+@@ -33,6 +33,8 @@ int v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
+ 	fh->vdev = vdev;
+ 	INIT_LIST_HEAD(&fh->list);
+ 	set_bit(V4L2_FL_USES_V4L2_FH, &fh->vdev->flags);
++	fh->prio = V4L2_PRIORITY_UNSET;
++	BUG_ON(vdev->prio == NULL);
+ 
+ 	/*
+ 	 * fh->events only needs to be initialized if the driver
+@@ -51,6 +53,7 @@ void v4l2_fh_add(struct v4l2_fh *fh)
+ {
+ 	unsigned long flags;
+ 
++	v4l2_prio_open(fh->vdev->prio, &fh->prio);
+ 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+ 	list_add(&fh->list, &fh->vdev->fh_list);
+ 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+@@ -64,6 +67,7 @@ void v4l2_fh_del(struct v4l2_fh *fh)
+ 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+ 	list_del_init(&fh->list);
+ 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
++	v4l2_prio_close(fh->vdev->prio, fh->prio);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_fh_del);
+ 
+diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
+index 1d72dde..5fc5ba9 100644
+--- a/include/media/v4l2-fh.h
++++ b/include/media/v4l2-fh.h
+@@ -35,6 +35,7 @@ struct v4l2_fh {
+ 	struct list_head	list;
+ 	struct video_device	*vdev;
+ 	struct v4l2_events      *events; /* events, pending and subscribed */
++	enum v4l2_priority	prio;
+ };
+ 
+ /*
+-- 
+1.7.0.4
 
-> If you specify an explicit value incorrectly (not auto) and it still
-> works, that is a driver bug which should be fixed.
-
-It's not possible to manually specify every single parameter or every
-combination of parameters (i.e. some AUTO, some not) with all devices.
-
-If you want to catch this, you'd have to compare the data read back to
-the data from userspace to clear the lock status on mismatch, even if a
-valid TS is being received. This would be worse, in my opinion. How much
-tolerance would you allow for parameters that aren't enums, e.g.
-frequency and symbol rate?
-
-Albeit, DVB-SI data isn't perfect and misconfiguration at the
-transmitter happens (e.g. wrong FEC values), especially where most of
-the parameters are signaled in-band (e.g. TPS for DVB-T). It's a better
-user experience if the reception continues to work, even if the user
-didn't specify AUTO.
-
-I'd rather understand non-AUTO parameters that way: "Try these first,
-but if you want and if you can, you're free to try other parameters."
-
-After all, most of the users tune to a mux in order to acquire a lock
-and not to prove that there's no signal.
-
-Regards,
-Andreas
