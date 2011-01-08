@@ -1,174 +1,240 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:62927 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753192Ab1AJL2E (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jan 2011 06:28:04 -0500
-Message-ID: <4D2AED3F.3010109@redhat.com>
-Date: Mon, 10 Jan 2011 09:27:59 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Debug code in HG repositories
-References: <201101072053.37211@orion.escape-edv.de> <AANLkTinj2NcOcVUPifsNcvbs=Mivwe89+hg8XLsCJnQ7@mail.gmail.com> <201101072206.30323.hverkuil@xs4all.nl>
-In-Reply-To: <201101072206.30323.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2965 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752579Ab1AHNhG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Jan 2011 08:37:06 -0500
+Received: from localhost.localdomain (43.80-203-71.nextgentel.com [80.203.71.43])
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id p08Dalk9015112
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 8 Jan 2011 14:37:05 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [RFCv3 PATCH 12/16] radio-cadet: convert to core-assisted locking
+Date: Sat,  8 Jan 2011 14:36:37 +0100
+Message-Id: <313b22dac11eaa0b6c3c6c81c755d65b2259dd1d.1294493428.git.hverkuil@xs4all.nl>
+In-Reply-To: <1294493801-17406-1-git-send-email-hverkuil@xs4all.nl>
+References: <1294493801-17406-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1d57787db3bd1a76d292bd80d91ba9e10c07af68.1294493427.git.hverkuil@xs4all.nl>
+References: <1d57787db3bd1a76d292bd80d91ba9e10c07af68.1294493427.git.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 07-01-2011 19:06, Hans Verkuil escreveu:
-> On Friday, January 07, 2011 21:13:31 Devin Heitmueller wrote:
->> On Fri, Jan 7, 2011 at 2:53 PM, Oliver Endriss <o.endriss@gmx.de> wrote:
->>> Hi guys,
->>>
->>> are you aware that there is a lot of '#if 0' code in the HG repositories
->>> which is not in GIT?
->>>
->>> When drivers were submitted to the kernel from HG, the '#if 0' stuff was
->>> stripped, unless it was marked as 'keep'...
->>>
->>> This was fine, when development was done with HG.
->>>
->>> As GIT is being used now, that code will be lost, as soon as the HG
->>> repositories have been removed...
->>>
->>> Any opinions how this should be handled?
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/radio/radio-cadet.c |   51 ++++++++-----------------------------
+ 1 files changed, 11 insertions(+), 40 deletions(-)
 
-Oliver,
-
-There are some code there that it may make sense to bring back to -git and to
-upstream, or to convert into some of the new kernel tracing facilities, but we
-need to review them, as there are some codes inside the #if 0 that are simply 
-dead code, where people were intending to use some alternative way to implement 
-the driver, but gave up and just forgot to clean up the mess. Several of those
-code don't even compile today, due to the kABI changes.
-
-With respect to debug printk messages, I dunno if you've already used, but
-dev_dbg() functions (and other similar ones) are very interesting: depending
-on the way you compile your kernel, they're converted into dynamic_printk's, 
-and they can be enabled/disabled via /sys/kernel/debug/. It is a way better than
-just adding normal printk's, as you can tell the kernel to enable just the debug
-message at some line.
-
-For example:
-
-$ cat /sys/kernel/debug/dynamic_debug/control |grep cx231xx
-/home/v4l/new_build/v4l/cx231xx-input.c:93 [cx231xx]cx231xx_ir_init - "Trying to bind ir at bus %d, addr 0x%02x\012"
-/home/v4l/new_build/v4l/cx231xx-input.c:57 [cx231xx]cx231xx_ir_init - "%s\012"
-/home/v4l/new_build/v4l/cx231xx-input.c:45 [cx231xx]get_key_isdbt - "scancode = %02x\012"
-/home/v4l/new_build/v4l/cx231xx-input.c:32 [cx231xx]get_key_isdbt - "%s\012"
-
-by using:
-
-# echo "file cx231xx-input.c +p" > /sys/kernel/debug/dynamic_debug/control
-
-All the above debug lines will be enabled. You can do, instead:
-
-# echo "file cx231xx-input.c line 45 +p" > /sys/kernel/debug/dynamic_debug/control
-
-If you're interested just at the scancode printk line.
-
-At least on the distros I use (RHEL6 and Fedora 14), dynamic printk support is enabled
-by default on kernel, so, this is very useful to me, as I don't need to recompile
-the entire kernel to test.
-
->>>
->>> CU
->>> Oliver
->>
->> I complained about this months ago.  The problem is that when we were
->> using HG, the HG repo was a complete superset of what went into Git
->> (including development/debug code).  But now that we use Git, neither
->> is a superset of the other.
->>
->> If you base your changes on Git, you have to add back in all the
->> portability code (and any "#if 0" you added as the maintainer for
->> development/debugging).  Oh, and regular users cannot test any of your
->> changes because they aren't willing to upgrade their entire kernel.
->>
->> If you base your changes on Hg, nothing merges cleanly when submitted
->> upstream so your patches get rejected.
->>
->> Want to know why we are seeing regressions all over the place?
->> Because *NOBODY* is testing the code until after the kernel goes
->> stable (since while many are willing to install a v4l-dvb tree, very
->> few will are willing to upgrade their entire kernel just to test one
->> driver).  We've probably lost about 98% of our user base of testers.
-> 
-> Have you tried Mauro's media_build tree? I had to use it today to test a
-> driver from git on a 2.6.35 kernel. Works quite nicely. Perhaps we should
-> promote this more. I could add backwards compatibility builds to my daily
-> build script that uses this in order to check for which kernel versions
-> this compiles if there is sufficient interest.
-
-I'm using it currently on most of my tests. I know that there are several
-users using it.
-
->> Oh, and users have to git clone 500M+ of data, and not everybody in
->> the world has bandwidth fast enough to make that worth their time (it
->> took me several hours last time I did it).
-> 
-> Currently the media_build tree copies the drivers from a git tree. Which, as
-> you say, can be a big problem for non-developers. But all it really needs are
-> the media drivers. So perhaps it might be a good idea to make a daily snapshot
-> of the drivers and make it available for download on linuxtv.org. That archive
-> is only 3.5 MB, so much easier to download.
-
-No, you don't need to have it. Have you looked at the build.sh script?
-It downloads and compiles everything using the latest tarball from:
-	http://linuxtv.org/downloads/drivers/
-Currently, the archive has 3.3Mb. The tarball is updated when a change is
-done on the latest development branch (It is still pointing to staging/for_v2.6.38,
-as I didn't finish to add the backport to linux-next changes).
-
->> Anyway, I've beaten this horse to death and it's fallen on deaf ears.
->> Merge overhead has reached the point where it's just not worth my
->> time/effort to submit anything upstream anymore.
-> 
-> The hg tree is dead. Douglas Landgraf tried to maintain it, but it's just too
-> much work. Any attempt to work from the hg tree is doomed. The media_build
-> seems to be a viable alternative. As a developer you still have to go through
-> the painful process of cloning the git repo, but it is a one time thing. Once
-> it's cloned then you only have to follow the new commits, which is much, much
-> faster.
-> 
-> And regarding regressions: I'm amazed how few regressions we have considering
-> the furious rate of development. The media subsystem is still one of the most
-> active subsystems in the kernel and probably will remain so for the forseeable
-> future as well.
-> 
-> It would be a shame not to submit patches upstream, that never ends well in
-> the long run.
-> 
-> With respect to '#if 0': for the most part I'd say: good riddance. In my
-> many years of experience as a SW engineer I have never seen anyone actually
-> turn on '#if 0' code once it's been in the code for more than, say, a year.
-> Usually people just leave it there because they are too lazy to remove it,
-> or they don't understand what it is for and are too scared to remove it.
-> 
-> If it is code partially implementing a feature that needs more work, then
-> it may sound like a good idea to keep it. However, after it's in the code for
-> more than a year, then nobody remembers what the code was about and what still
-> had to be done to make it work. And it's hell to figure that out after such a
-> long time. Never put such code in the mainline. Keep it in a branch if you
-> have to.
-
-This is the case of most #if 0 code. On a few drivers, it were used to turn on some
-special debug messages. Btw, using #if 0 for debug is a bad practice, as some
-upstream change may break it - Instead, it should do something like #if CONFIG_DEBUG_foo,
-and having some Kconfig to allow enabling/disabling it.
-> 
-> Anyway, if there is some '#if 0' code that you want to preserve in git, then
-> you have to make a patch to add it. But you probably will have to have very
-> good reasons for adding '#if 0' code to the mainline.
-> 
-> Regards,
-> 
-> 	Hans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/radio/radio-cadet.c b/drivers/media/radio/radio-cadet.c
+index bc9ad08..4a37b69 100644
+--- a/drivers/media/radio/radio-cadet.c
++++ b/drivers/media/radio/radio-cadet.c
+@@ -72,7 +72,7 @@ struct cadet {
+ 	struct timer_list readtimer;
+ 	__u8 rdsin, rdsout, rdsstat;
+ 	unsigned char rdsbuf[RDS_BUFFER];
+-	struct mutex lock;
++	struct mutex v4l2_lock;
+ 	int reading;
+ };
+ 
+@@ -91,17 +91,13 @@ static __u16 sigtable[2][4] = {
+ 
+ static int cadet_getstereo(struct cadet *dev)
+ {
+-	int ret = V4L2_TUNER_SUB_MONO;
+-
+ 	if (dev->curtuner != 0)	/* Only FM has stereo capability! */
+ 		return V4L2_TUNER_SUB_MONO;
+ 
+-	mutex_lock(&dev->lock);
+ 	outb(7, dev->io);          /* Select tuner control */
+ 	if ((inb(dev->io + 1) & 0x40) == 0)
+-		ret = V4L2_TUNER_SUB_STEREO;
+-	mutex_unlock(&dev->lock);
+-	return ret;
++		return V4L2_TUNER_SUB_STEREO;
++	return V4L2_TUNER_SUB_MONO;
+ }
+ 
+ static unsigned cadet_gettune(struct cadet *dev)
+@@ -112,9 +108,6 @@ static unsigned cadet_gettune(struct cadet *dev)
+ 	/*
+ 	 * Prepare for read
+ 	 */
+-
+-	mutex_lock(&dev->lock);
+-
+ 	outb(7, dev->io);       /* Select tuner control */
+ 	curvol = inb(dev->io + 1); /* Save current volume/mute setting */
+ 	outb(0x00, dev->io + 1);  /* Ensure WRITE-ENABLE is LOW */
+@@ -136,8 +129,6 @@ static unsigned cadet_gettune(struct cadet *dev)
+ 	 * Restore volume/mute setting
+ 	 */
+ 	outb(curvol, dev->io + 1);
+-	mutex_unlock(&dev->lock);
+-
+ 	return fifo;
+ }
+ 
+@@ -176,8 +167,6 @@ static void cadet_settune(struct cadet *dev, unsigned fifo)
+ 	int i;
+ 	unsigned test;
+ 
+-	mutex_lock(&dev->lock);
+-
+ 	outb(7, dev->io);                /* Select tuner control */
+ 	/*
+ 	 * Write the shift register
+@@ -196,7 +185,6 @@ static void cadet_settune(struct cadet *dev, unsigned fifo)
+ 		test = 0x1c | ((fifo >> 23) & 0x02);
+ 		outb(test, dev->io + 1);
+ 	}
+-	mutex_unlock(&dev->lock);
+ }
+ 
+ static void cadet_setfreq(struct cadet *dev, unsigned freq)
+@@ -231,10 +219,8 @@ static void cadet_setfreq(struct cadet *dev, unsigned freq)
+ 	 * Save current volume/mute setting
+ 	 */
+ 
+-	mutex_lock(&dev->lock);
+ 	outb(7, dev->io);                /* Select tuner control */
+ 	curvol = inb(dev->io + 1);
+-	mutex_unlock(&dev->lock);
+ 
+ 	/*
+ 	 * Tune the card
+@@ -242,10 +228,8 @@ static void cadet_setfreq(struct cadet *dev, unsigned freq)
+ 	for (j = 3; j > -1; j--) {
+ 		cadet_settune(dev, fifo | (j << 16));
+ 
+-		mutex_lock(&dev->lock);
+ 		outb(7, dev->io);         /* Select tuner control */
+ 		outb(curvol, dev->io + 1);
+-		mutex_unlock(&dev->lock);
+ 
+ 		msleep(100);
+ 
+@@ -261,28 +245,20 @@ static void cadet_setfreq(struct cadet *dev, unsigned freq)
+ 
+ static int cadet_getvol(struct cadet *dev)
+ {
+-	int ret = 0;
+-
+-	mutex_lock(&dev->lock);
+-
+ 	outb(7, dev->io);                /* Select tuner control */
+ 	if ((inb(dev->io + 1) & 0x20) != 0)
+-		ret = 0xffff;
+-
+-	mutex_unlock(&dev->lock);
+-	return ret;
++		return 0xffff;
++	return 0;
+ }
+ 
+ 
+ static void cadet_setvol(struct cadet *dev, int vol)
+ {
+-	mutex_lock(&dev->lock);
+ 	outb(7, dev->io);                /* Select tuner control */
+ 	if (vol > 0)
+ 		outb(0x20, dev->io + 1);
+ 	else
+ 		outb(0x00, dev->io + 1);
+-	mutex_unlock(&dev->lock);
+ }
+ 
+ static void cadet_handler(unsigned long data)
+@@ -290,7 +266,7 @@ static void cadet_handler(unsigned long data)
+ 	struct cadet *dev = (void *)data;
+ 
+ 	/* Service the RDS fifo */
+-	if (mutex_trylock(&dev->lock)) {
++	if (mutex_trylock(&dev->v4l2_lock)) {
+ 		outb(0x3, dev->io);       /* Select RDS Decoder Control */
+ 		if ((inb(dev->io + 1) & 0x20) != 0)
+ 			printk(KERN_CRIT "cadet: RDS fifo overflow\n");
+@@ -302,7 +278,7 @@ static void cadet_handler(unsigned long data)
+ 			else
+ 				dev->rdsin++;
+ 		}
+-		mutex_unlock(&dev->lock);
++		mutex_unlock(&dev->v4l2_lock);
+ 	}
+ 
+ 	/*
+@@ -328,7 +304,6 @@ static ssize_t cadet_read(struct file *file, char __user *data, size_t count, lo
+ 	unsigned char readbuf[RDS_BUFFER];
+ 	int i = 0;
+ 
+-	mutex_lock(&dev->lock);
+ 	if (dev->rdsstat == 0) {
+ 		dev->rdsstat = 1;
+ 		outb(0x80, dev->io);        /* Select RDS fifo */
+@@ -339,15 +314,14 @@ static ssize_t cadet_read(struct file *file, char __user *data, size_t count, lo
+ 		add_timer(&dev->readtimer);
+ 	}
+ 	if (dev->rdsin == dev->rdsout) {
+-		mutex_unlock(&dev->lock);
+ 		if (file->f_flags & O_NONBLOCK)
+ 			return -EWOULDBLOCK;
++		mutex_unlock(&dev->v4l2_lock);
+ 		interruptible_sleep_on(&dev->read_queue);
+-		mutex_lock(&dev->lock);
++		mutex_lock(&dev->v4l2_lock);
+ 	}
+ 	while (i < count && dev->rdsin != dev->rdsout)
+ 		readbuf[i++] = dev->rdsbuf[dev->rdsout++];
+-	mutex_unlock(&dev->lock);
+ 
+ 	if (copy_to_user(data, readbuf, i))
+ 		return -EFAULT;
+@@ -527,11 +501,9 @@ static int cadet_open(struct file *file)
+ {
+ 	struct cadet *dev = video_drvdata(file);
+ 
+-	mutex_lock(&dev->lock);
+ 	dev->users++;
+ 	if (1 == dev->users)
+ 		init_waitqueue_head(&dev->read_queue);
+-	mutex_unlock(&dev->lock);
+ 	return 0;
+ }
+ 
+@@ -539,13 +511,11 @@ static int cadet_release(struct file *file)
+ {
+ 	struct cadet *dev = video_drvdata(file);
+ 
+-	mutex_lock(&dev->lock);
+ 	dev->users--;
+ 	if (0 == dev->users) {
+ 		del_timer_sync(&dev->readtimer);
+ 		dev->rdsstat = 0;
+ 	}
+-	mutex_unlock(&dev->lock);
+ 	return 0;
+ }
+ 
+@@ -654,7 +624,7 @@ static int __init cadet_init(void)
+ 	int res;
+ 
+ 	strlcpy(v4l2_dev->name, "cadet", sizeof(v4l2_dev->name));
+-	mutex_init(&dev->lock);
++	mutex_init(&dev->v4l2_lock);
+ 
+ 	/* If a probe was requested then probe ISAPnP first (safest) */
+ 	if (io < 0)
+@@ -688,6 +658,7 @@ static int __init cadet_init(void)
+ 	dev->vdev.fops = &cadet_fops;
+ 	dev->vdev.ioctl_ops = &cadet_ioctl_ops;
+ 	dev->vdev.release = video_device_release_empty;
++	dev->vdev.lock = &dev->v4l2_lock;
+ 	video_set_drvdata(&dev->vdev, dev);
+ 
+ 	if (video_register_device(&dev->vdev, VFL_TYPE_RADIO, radio_nr) < 0) {
+-- 
+1.7.0.4
 
