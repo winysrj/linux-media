@@ -1,55 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:60142 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751827Ab1AUE0v (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jan 2011 23:26:51 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p0L4QoXG019934
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 20 Jan 2011 23:26:50 -0500
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH] rc/mce: add mappings for missing keys
-Date: Thu, 20 Jan 2011 23:26:45 -0500
-Message-Id: <1295584005-20905-1-git-send-email-jarod@redhat.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:55040 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751691Ab1AHMYD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Jan 2011 07:24:03 -0500
+Received: by wwa36 with SMTP id 36so19335690wwa.1
+        for <linux-media@vger.kernel.org>; Sat, 08 Jan 2011 04:24:01 -0800 (PST)
+Subject: Re: Failure to build media_build
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Daniel O'Connor <darius@dons.net.au>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <771EA60D-3B3B-4C28-AD20-2CADDF57E26E@dons.net.au>
+References: <771EA60D-3B3B-4C28-AD20-2CADDF57E26E@dons.net.au>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 08 Jan 2011 12:23:56 +0000
+Message-ID: <1294489436.2467.2.camel@tvboxspy>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Per http://mediacenterguides.com/book/export/html/31 and investigation
-by Erin, we were missing these last three mappings to complete the mce
-key table. Lets remedy that.
+On Sat, 2011-01-08 at 21:26 +1030, Daniel O'Connor wrote:
+> Hi,
+> I am trying to build using media_build to see if head has resolved an issue with my dual tuner card (ie only one works) however I get the following..
+> [mythtv 20:48] ~/media_build >./build.sh
+> ***********************************************************
+> * This script will download the latest tarball and build it
+> * Assuming that your kernel is compatible with the latest  
+> [snip]
+>   CC [M]  /home/myth/media_build/v4l/firedtv-dvb.o
+>   CC [M]  /home/myth/media_build/v4l/firedtv-fe.o
+>   CC [M]  /home/myth/media_build/v4l/firedtv-1394.o
+> /home/myth/media_build/v4l/firedtv-1394.c:22:17: error: dma.h: No such file or directory
+> /home/myth/media_build/v4l/firedtv-1394.c:23:21: error: csr1212.h: No such file or directory
+> /home/myth/media_build/v4l/firedtv-1394.c:24:23: error: highlevel.h: No such file or directory
+> /home/myth/media_build/v4l/firedtv-1394.c:25:19: error: hosts.h: No such file or directory
+> 
+> etc...
+> 
+> I don't need/want 1394 (I am testing a cx23885 FusionHDTV) but I don't know how to disable them :(
+> 
+> I tried make config but I have no idea what the "usual" answers would be.. Is there a way to generate a file of the default options which I can review and edit?
+> 
+> Thanks
+> 
 
-Reported-by: Erin Simonds <fisslefink@gmail.com>
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/rc/keymaps/rc-rc6-mce.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+edit v4l/.config and change firedtv to n.
 
-diff --git a/drivers/media/rc/keymaps/rc-rc6-mce.c b/drivers/media/rc/keymaps/rc-rc6-mce.c
-index 3bf3337..2f5dc06 100644
---- a/drivers/media/rc/keymaps/rc-rc6-mce.c
-+++ b/drivers/media/rc/keymaps/rc-rc6-mce.c
-@@ -3,6 +3,9 @@
-  *
-  * Copyright (c) 2010 by Jarod Wilson <jarod@redhat.com>
-  *
-+ * See http://mediacenterguides.com/book/export/html/31 for details on
-+ * key mappings.
-+ *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation; either version 2 of the License, or
-@@ -60,6 +63,9 @@ static struct rc_map_table rc6_mce[] = {
- 	{ 0x800f0426, KEY_EPG },		/* Guide */
- 	{ 0x800f0427, KEY_ZOOM },		/* Aspect */
- 
-+	{ 0x800f0432, KEY_MODE },		/* Visualization */
-+	{ 0x800f0433, KEY_PRESENTATION },	/* Slide Show */
-+	{ 0x800f0434, KEY_EJECTCD },
- 	{ 0x800f043a, KEY_BRIGHTNESSUP },
- 
- 	{ 0x800f0446, KEY_TV },
--- 
-1.7.3.4
+
 
