@@ -1,33 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from mout.perfora.net ([74.208.4.195]:51228 "EHLO mout.perfora.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751202Ab1APW0h (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Jan 2011 17:26:37 -0500
-Message-ID: <4D337098.50009@vorgon.com>
-Date: Sun, 16 Jan 2011 15:26:32 -0700
-From: "Timothy D. Lenz" <tlenz@vorgon.com>
-MIME-Version: 1.0
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3050 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752588Ab1AHNhG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Jan 2011 08:37:06 -0500
+Received: from localhost.localdomain (43.80-203-71.nextgentel.com [80.203.71.43])
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id p08DalkA015112
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 8 Jan 2011 14:37:05 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: too few arguments   to function 'i2c_new_probed_device'
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [RFCv3 PATCH 13/16] radio-cadet: use v4l2_fh helper functions
+Date: Sat,  8 Jan 2011 14:36:38 +0100
+Message-Id: <08691f479316008d298aa0628ecef8958abf734a.1294493428.git.hverkuil@xs4all.nl>
+In-Reply-To: <1294493801-17406-1-git-send-email-hverkuil@xs4all.nl>
+References: <1294493801-17406-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1d57787db3bd1a76d292bd80d91ba9e10c07af68.1294493427.git.hverkuil@xs4all.nl>
+References: <1d57787db3bd1a76d292bd80d91ba9e10c07af68.1294493427.git.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-http://linux.derkeiler.com/Mailing-Lists/Kernel/2010-09/msg12477.html
+This will introduce priority handling.
 
-hg v4l today (01/16/2011). Doesn't do it when using linux-2.6.34 x64, 
-but when trying to compile under linux-2.6.37 on a 32bit:
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/radio/radio-cadet.c |   13 ++++++-------
+ 1 files changed, 6 insertions(+), 7 deletions(-)
 
-/usr/local/dvb/drivers/v4l-20110116/v4l-dvb/v4l/bttv-i2c.c: In function 
-'init_bttv_i2c_ir':
-/usr/local/dvb/drivers/v4l-20110116/v4l-dvb/v4l/bttv-i2c.c:437: error: 
-too few arguments to function 'i2c_new_probed_device'
-make[3]: *** 
-[/usr/local/dvb/drivers/v4l-20110116/v4l-dvb/v4l/bttv-i2c.o] Error 1
-make[2]: *** [_module_/usr/local/dvb/drivers/v4l-20110116/v4l-dvb/v4l] 
-Error 2
-make[2]: Leaving directory `/usr/src/linux-2.6.37'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/usr/local/dvb/drivers/v4l-20110116/v4l-dvb/v4l'
-make: *** [all] Error 2
+diff --git a/drivers/media/radio/radio-cadet.c b/drivers/media/radio/radio-cadet.c
+index 4a37b69..b511854 100644
+--- a/drivers/media/radio/radio-cadet.c
++++ b/drivers/media/radio/radio-cadet.c
+@@ -42,6 +42,7 @@
+ #include <linux/io.h>		/* outb, outb_p			*/
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-fh.h>
+ 
+ MODULE_AUTHOR("Fred Gleason, Russell Kroll, Quay Lu, Donald Song, Jason Lewis, Scott McGrath, William McGrath");
+ MODULE_DESCRIPTION("A driver for the ADS Cadet AM/FM/RDS radio card.");
+@@ -64,7 +65,6 @@ struct cadet {
+ 	struct v4l2_device v4l2_dev;
+ 	struct video_device vdev;
+ 	int io;
+-	int users;
+ 	int curtuner;
+ 	int tunestat;
+ 	int sigstrength;
+@@ -500,23 +500,22 @@ static int vidioc_s_audio(struct file *file, void *priv,
+ static int cadet_open(struct file *file)
+ {
+ 	struct cadet *dev = video_drvdata(file);
++	int ret = v4l2_fh_open(file);
+ 
+-	dev->users++;
+-	if (1 == dev->users)
++	if (v4l2_fh_is_singular_file(file))
+ 		init_waitqueue_head(&dev->read_queue);
+-	return 0;
++	return ret;
+ }
+ 
+ static int cadet_release(struct file *file)
+ {
+ 	struct cadet *dev = video_drvdata(file);
+ 
+-	dev->users--;
+-	if (0 == dev->users) {
++	if (v4l2_fh_is_singular_file(file)) {
+ 		del_timer_sync(&dev->readtimer);
+ 		dev->rdsstat = 0;
+ 	}
+-	return 0;
++	return v4l2_fh_release(file);
+ }
+ 
+ static unsigned int cadet_poll(struct file *file, struct poll_table_struct *wait)
+-- 
+1.7.0.4
+
