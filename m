@@ -1,81 +1,169 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2608 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750957Ab1AWQNs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Jan 2011 11:13:48 -0500
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1346 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752557Ab1AHNhG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Jan 2011 08:37:06 -0500
+Received: from localhost.localdomain (43.80-203-71.nextgentel.com [80.203.71.43])
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id p08Dalk7015112
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 8 Jan 2011 14:37:04 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [RFC PATCH 2/3] v4l2-ctrls: add v4l2_ctrl_auto_cluster to simplify autogain/gain scenarios
-Date: Sun, 23 Jan 2011 17:13:33 +0100
-Cc: linux-media@vger.kernel.org
-References: <1295694361-23237-1-git-send-email-hverkuil@xs4all.nl> <ad0ec022eea20f19d3936a10268d429b1be57980.1295693790.git.hverkuil@xs4all.nl> <4D3C45F7.4040103@redhat.com>
-In-Reply-To: <4D3C45F7.4040103@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201101231713.33776.hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [RFCv3 PATCH 10/16] radio-mr800: remove autopm support.
+Date: Sat,  8 Jan 2011 14:36:35 +0100
+Message-Id: <10726fc7153b52f7eb2e4c15dbc1ab9c18eaf15f.1294493428.git.hverkuil@xs4all.nl>
+In-Reply-To: <1294493801-17406-1-git-send-email-hverkuil@xs4all.nl>
+References: <1294493801-17406-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1d57787db3bd1a76d292bd80d91ba9e10c07af68.1294493427.git.hverkuil@xs4all.nl>
+References: <1d57787db3bd1a76d292bd80d91ba9e10c07af68.1294493427.git.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sunday, January 23, 2011 16:15:03 Hans de Goede wrote:
-> Hi,
-> 
-> On 01/22/2011 12:06 PM, Hans Verkuil wrote:
-> > It is a bit tricky to handle autogain/gain type scenerios correctly. Such
-> > controls need to be clustered and the V4L2_CTRL_FLAG_UPDATE should be set on
-> > the non-auto controls. If you set a non-auto control without setting the
-> > auto control at the same time, then the auto control should switch to manual
-> > mode. And usually the non-auto controls must be marked volatile, but this should
-> > only be in effect if the auto control is set to auto.
-> >
-> > The chances of drivers doing all these things correctly are pretty remote.
-> > So a new v4l2_ctrl_auto_cluster function was added that takes care of these
-> > issues.
-> 
-> I like the concept of this, but I'm not so happy with the automatically put
-> the auto control in manual mode. We've discussed this before and iirc we
-> came to the conclusion then that the proper thing to do is to mark the
-> controls as read only, when the related auto control is in auto mode.
-> 
-> This is what the UVC spec for example mandates and what the current UVC driver
-> does. Combining this with an app which honors the update and the read only
-> flag (try gtk-v4l), results in a nice experience. User enables auto exposure
-> -> exposure control gets grayed out, put exposure back manual -> control
-> is ungrayed.
-> 
-> So this new auto_cluster behavior would be a behavioral change (for both the
-> uvc driver and several gspca drivers), and more over an unwanted one IMHO
-> setting one control should not change another as a side effect.
+autopm is a bad idea for radio usb sticks: it means that when the last user
+closes the file handle the radio stops working which is not what you want.
 
-Actually, I've been converting a whole list of subdev drivers recently (soc_camera,
-ov7670) and they all behaved like this. So I didn't change anything.
+Removing this simplifies the code as well.
 
-There is nothing preventing other drivers from doing something different.
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/radio/radio-mr800.c |   67 ++++--------------------------------
+ 1 files changed, 8 insertions(+), 59 deletions(-)
 
-That said, changing the behavior to your proposal may not be such a bad idea.
-But then I need the OK from all driver authors involved, since this would
-mean a change of behavior for them.
-
-The good news is that once they use the new framework function I only need
-to change what that function does and I don't need to change any of those
-drivers.
-
-So I will proceed for now by converting those drivers to use this new function,
-and at the same time I can contact the authors and ask what their opinion is
-of this change. I'm hoping for more feedback as well from what others think.
-
-BTW, if I understand the gspca code correctly then it seems that if an e.g.
-autogain control is set to 1, then the gain control effectively disappears.
-I think queryctrl will just never return it. That can't be right.
-
-I tried to test it but while my zc3xx-based webcam has autogain there is
-interestingly enough no corresponding manual gain control.
-
-Regards,
-
-	Hans
-
+diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
+index 492cfca..3e2b3ae 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -122,8 +122,6 @@ MODULE_PARM_DESC(radio_nr, "Radio Nr");
+ static int usb_amradio_probe(struct usb_interface *intf,
+ 			     const struct usb_device_id *id);
+ static void usb_amradio_disconnect(struct usb_interface *intf);
+-static int usb_amradio_open(struct file *file);
+-static int usb_amradio_close(struct file *file);
+ static int usb_amradio_suspend(struct usb_interface *intf,
+ 				pm_message_t message);
+ static int usb_amradio_resume(struct usb_interface *intf);
+@@ -141,7 +139,6 @@ struct amradio_device {
+ 	int curfreq;
+ 	int stereo;
+ 	int muted;
+-	int initialized;
+ };
+ 
+ static inline struct amradio_device *to_amradio_dev(struct v4l2_device *v4l2_dev)
+@@ -167,7 +164,6 @@ static struct usb_driver usb_amradio_driver = {
+ 	.resume			= usb_amradio_resume,
+ 	.reset_resume		= usb_amradio_resume,
+ 	.id_table		= usb_amradio_device_table,
+-	.supports_autosuspend	= 1,
+ };
+ 
+ /* switch on/off the radio. Send 8 bytes to device */
+@@ -474,62 +470,13 @@ static int vidioc_s_input(struct file *filp, void *priv, unsigned int i)
+ 	return 0;
+ }
+ 
+-static int usb_amradio_init(struct amradio_device *radio)
+-{
+-	int retval;
+-
+-	retval = amradio_set_mute(radio, AMRADIO_STOP);
+-	if (retval)
+-		goto out_err;
+-
+-	retval = amradio_set_stereo(radio, WANT_STEREO);
+-	if (retval)
+-		goto out_err;
+-
+-	radio->initialized = 1;
+-	goto out;
+-
+-out_err:
+-	amradio_dev_err(&radio->videodev.dev, "initialization failed\n");
+-out:
+-	return retval;
+-}
+-
+-/* open device - amradio_start() and amradio_setfreq() */
+-static int usb_amradio_open(struct file *file)
+-{
+-	struct amradio_device *radio = video_drvdata(file);
+-	int retval;
+-
+-	retval = usb_autopm_get_interface(radio->intf);
+-	if (retval)
+-		return retval;
+-
+-	if (unlikely(!radio->initialized)) {
+-		retval = usb_amradio_init(radio);
+-		if (retval)
+-			usb_autopm_put_interface(radio->intf);
+-	}
+-	return retval;
+-}
+-
+-/*close device */
+-static int usb_amradio_close(struct file *file)
+-{
+-	struct amradio_device *radio = video_drvdata(file);
+-
+-	if (video_is_registered(&radio->videodev))
+-		usb_autopm_put_interface(radio->intf);
+-	return 0;
+-}
+-
+ /* Suspend device - stop device. Need to be checked and fixed */
+ static int usb_amradio_suspend(struct usb_interface *intf, pm_message_t message)
+ {
+ 	struct amradio_device *radio = to_amradio_dev(usb_get_intfdata(intf));
+ 
+ 	mutex_lock(&radio->lock);
+-	if (!radio->muted && radio->initialized) {
++	if (!radio->muted) {
+ 		amradio_set_mute(radio, AMRADIO_STOP);
+ 		radio->muted = 0;
+ 	}
+@@ -545,8 +492,6 @@ static int usb_amradio_resume(struct usb_interface *intf)
+ 	struct amradio_device *radio = to_amradio_dev(usb_get_intfdata(intf));
+ 
+ 	mutex_lock(&radio->lock);
+-	if (unlikely(!radio->initialized))
+-		goto unlock;
+ 
+ 	if (radio->stereo)
+ 		amradio_set_stereo(radio, WANT_STEREO);
+@@ -558,7 +503,6 @@ static int usb_amradio_resume(struct usb_interface *intf)
+ 	if (!radio->muted)
+ 		amradio_set_mute(radio, AMRADIO_START);
+ 
+-unlock:
+ 	mutex_unlock(&radio->lock);
+ 
+ 	dev_info(&intf->dev, "coming out of suspend..\n");
+@@ -568,8 +512,6 @@ unlock:
+ /* File system interface */
+ static const struct v4l2_file_operations usb_amradio_fops = {
+ 	.owner		= THIS_MODULE,
+-	.open		= usb_amradio_open,
+-	.release	= usb_amradio_close,
+ 	.unlocked_ioctl	= video_ioctl2,
+ };
+ 
+@@ -641,6 +583,13 @@ static int usb_amradio_probe(struct usb_interface *intf,
+ 	radio->curfreq = 95.16 * FREQ_MUL;
+ 
+ 	video_set_drvdata(&radio->videodev, radio);
++	retval = amradio_set_mute(radio, AMRADIO_STOP);
++	if (!retval)
++		retval = amradio_set_stereo(radio, WANT_STEREO);
++	if (retval) {
++		dev_err(&intf->dev, "initialization failed\n");
++		goto err_vdev;
++	}
+ 
+ 	retval = video_register_device(&radio->videodev, VFL_TYPE_RADIO,
+ 					radio_nr);
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+1.7.0.4
+
