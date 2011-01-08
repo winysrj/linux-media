@@ -1,82 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:58359 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750950Ab1AYFbZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jan 2011 00:31:25 -0500
-Date: Mon, 24 Jan 2011 21:31:17 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Mark Lord <kernel@teksavvy.com>
-Cc: Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
-Message-ID: <20110125053117.GD7850@core.coreip.homeip.net>
-References: <4D3C5F73.2050408@teksavvy.com>
- <20110124175456.GA17855@core.coreip.homeip.net>
- <4D3E1A08.5060303@teksavvy.com>
- <20110125005555.GA18338@core.coreip.homeip.net>
- <4D3E4DD1.60705@teksavvy.com>
- <20110125042016.GA7850@core.coreip.homeip.net>
- <4D3E5372.9010305@teksavvy.com>
- <20110125045559.GB7850@core.coreip.homeip.net>
- <4D3E59CA.6070107@teksavvy.com>
- <4D3E5A91.30207@teksavvy.com>
-MIME-Version: 1.0
+Received: from cain.gsoft.com.au ([203.31.81.10]:65144 "EHLO cain.gsoft.com.au"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751697Ab1AHMiq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Jan 2011 07:38:46 -0500
+From: "Daniel O'Connor" <darius@dons.net.au>
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4D3E5A91.30207@teksavvy.com>
+Content-Transfer-Encoding: 8BIT
+Date: Sat, 8 Jan 2011 23:08:25 +1030
+Subject: Unable to build media_build (mk II)
+To: linux-media@vger.kernel.org
+Message-Id: <155DD6D6-0766-4501-9B03-D5945460B040@dons.net.au>
+Mime-Version: 1.0 (Apple Message framework v1082)
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Jan 25, 2011 at 12:07:29AM -0500, Mark Lord wrote:
-> On 11-01-25 12:04 AM, Mark Lord wrote:
-> > On 11-01-24 11:55 PM, Dmitry Torokhov wrote:
-> >> On Mon, Jan 24, 2011 at 11:37:06PM -0500, Mark Lord wrote:
-> > ..
-> >>> This results in (map->size==10) for 2.6.36+ (wrong),
-> >>> and a much larger map->size for 2.6.35 and earlier.
-> >>>
-> >>> So perhaps EVIOCGKEYCODE has changed?
-> >>>
-> >>
-> >> So the utility expects that all devices have flat scancode space and
-> >> driver might have changed so it does not recognize scancode 10 as valid
-> >> scancode anymore.
-> >>
-> >> The options are:
-> >>
-> >> 1. Convert to EVIOCGKEYCODE2
-> >> 2. Ignore errors from EVIOCGKEYCODE and go through all 65536 iterations.
-> > 
-> > or 3. Revert/fix the in-kernel regression.
-> > 
-> > The EVIOCGKEYCODE ioctl is supposed to return KEY_RESERVED for unmapped
-> > (but value) keycodes, and only return -EINVAL when the keycode itself
-> > is out of range.
-> > 
-> > That's how it worked in all kernels prior to 2.6.36,
-> > and now it is broken.  It now returns -EINVAL for any unmapped keycode,
-> > even though keycodes higher than that still have mappings.
-> > 
-> > This is a bug, a regression, and breaks userspace.
-> > I haven't identified *where* in the kernel the breakage happened,
-> > though.. that code confuses me.  :)
-> 
-> Note that this device DOES have "flat scancode space",
-> and the kernel is now incorrectly signalling an error (-EINVAL)
-> in response to a perfectly valid query of a VALID (and mappable)
-> keycode on the remote control
-> 
-> The code really is a valid button, it just doesn't have a default mapping
-> set by the kernel (I can set a mapping for that code from userspace and it works).
-> 
+Hi again :)
+I am still having trouble building unfortunately, I get the following:
+  CC [M]  /home/myth/media_build/v4l/hdpvr-video.o
+  CC [M]  /home/myth/media_build/v4l/hdpvr-i2c.o
+/home/myth/media_build/v4l/hdpvr-i2c.c: In function 'hdpvr_new_i2c_ir':
+/home/myth/media_build/v4l/hdpvr-i2c.c:62: error: too many arguments to function 'i2c_new_probed_device'
+make[3]: *** [/home/myth/media_build/v4l/hdpvr-i2c.o] Error 1
+make[2]: *** [_module_/home/myth/media_build/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-headers-2.6.32-26-generic'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/home/myth/media_build/v4l'
+make: *** [all] Error 2
+*** ERROR. Aborting ***
 
-OK, in this case let's ping Mauro - I think he done the adjustments to
-IR keymap hanlding.
+Looking at some other consumers of that function it would appear the last argument (NULL in this case) is superfluous, however the file appears to be replaced each time I run build.sh so I can't update it.
 
-Thanks.
+[mythtv 23:00] ~/media_build >uname -a
+Linux mythtv 2.6.32-26-generic #48-Ubuntu SMP Wed Nov 24 10:14:11 UTC 2010 x86_64 GNU/Linux
+[mythtv 23:00] ~/media_build >cat /etc/lsb-release 
+DISTRIB_ID=Ubuntu
+DISTRIB_RELEASE=10.04
+DISTRIB_CODENAME=lucid
+DISTRIB_DESCRIPTION="Ubuntu 10.04.1 LTS"
 
--- 
-Dmitry
+--
+Daniel O'Connor software and network engineer
+for Genesis Software - http://www.gsoft.com.au
+"The nice thing about standards is that there
+are so many of them to choose from."
+  -- Andrew Tanenbaum
+GPG Fingerprint - 5596 B766 97C0 0E94 4347 295E E593 DC20 7B3F CE8C
+
+
+
+
+
+
