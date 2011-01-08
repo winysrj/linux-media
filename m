@@ -1,414 +1,146 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:5092 "EHLO
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:31120 "EHLO
 	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754353Ab1APDuV (ORCPT
+	by vger.kernel.org with ESMTP id S1751045Ab1AHSBE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Jan 2011 22:50:21 -0500
-Subject: [RFC PATCH] ir-kbd-i2c, lirc_zilog: Allow bridge drivers to pass
- an IR trasnceiver mutex to I2C IR modules
+	Sat, 8 Jan 2011 13:01:04 -0500
+Subject: Re: [PATCH 11/32] v4l/cx18: update workqueue usage
 From: Andy Walls <awalls@md.metrocast.net>
-To: Jarod Wilson <jarod@wilsonet.com>,
-	Jean Delvare <khali@linux-fr.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Janne Grunau <j@jannau.net>, Jarod Wilson <jarod@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Tejun Heo <tj@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+In-Reply-To: <1294062595-30097-12-git-send-email-tj@kernel.org>
+References: <1294062595-30097-1-git-send-email-tj@kernel.org>
+	 <1294062595-30097-12-git-send-email-tj@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 15 Jan 2011 22:49:48 -0500
-Message-ID: <1295149788.7147.34.camel@localhost>
+Date: Sat, 08 Jan 2011 12:03:32 -0500
+Message-ID: <1294506212.2443.110.camel@localhost>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The following patch allows bridge drivers, with an I2C IR Tx/Rx
-transceiver, to pass a mutex for serializing access to a single I2C IR
-chip between separate IR Tx and Rx modules.
+On Mon, 2011-01-03 at 14:49 +0100, Tejun Heo wrote:
+> With cmwq, there's no reason to use separate out_work_queue.  Drop it
+> and use system_wq instead.  The in_work_queue needs to be ordered so
+> can't use one of the system wqs; however, as it isn't used to reclaim
+> memory, allocate the workqueue with alloc_ordered_workqueue() without
+> WQ_MEM_RECLAIM.
+> 
+> Signed-off-by: Tejun Heo <tj@kernel.org>
+> Cc: Andy Walls <awalls@md.metrocast.net>
+> Cc: linux-media@vger.kernel.org
+> ---
+> Only compile tested.  Please feel free to take it into the subsystem
+> tree or simply ack - I'll route it through the wq tree.
 
-The change modifies struct IR_i2c_init_data and struct IR_i2c to add
+Reviewed-by: Andy Walls <awalls@md.metrocast.net>
+Acked-by: Andy Walls <awalls@md.metrocast.net>
 
-	struct mutex *transceiver_lock
+Sorry it took so long for me to review.
+Please route via your wq tree for the cx18 driver.
 
-that ir-kbd-i2c and lirc_zilog will use, if provided by the bridge
-driver.  The changes to ir-kbd-i2c.[ch] and lirc_zilog.c provide the
-functional change in the patch.
+Thanks,
+Andy
 
-This patch also modifies cx18, ivtv, and hdpvr (sans Jarrod's recent
-patches) to provide a transceiver_lock mutex to ir-kbd-i2c and
-lirc_zilog.
-
-I skimmed all the other modules that use IR_i2c_init_data. They all
-appear to zero-fill the init_data properly before handing the data over
-to ir-kbd-i2c.c.  
-
-I did find that pvrusb2 IR Rx for address 0x71 was broken, due to my
-recommendation to remove automatic config for address 0x71 from
-ir-kbd-i2c.c.  I'll fix that in another patch, if someone with a pvrusb2
-device doesn't beat me to it.
-
-So without further ado...
-
-
-diff --git a/drivers/media/video/cx18/cx18-driver.c b/drivers/media/video/cx18/cx18-driver.c
-index 676e5be..da1ef93 100644
---- a/drivers/media/video/cx18/cx18-driver.c
-+++ b/drivers/media/video/cx18/cx18-driver.c
-@@ -701,6 +701,7 @@ static int __devinit cx18_init_struct1(struct cx18 *cx)
- 
- 	mutex_init(&cx->serialize_lock);
- 	mutex_init(&cx->gpio_lock);
-+	mutex_init(&cx->ir_transceiver_lock);
- 	mutex_init(&cx->epu2apu_mb_lock);
- 	mutex_init(&cx->epu2cpu_mb_lock);
- 
-diff --git a/drivers/media/video/cx18/cx18-driver.h b/drivers/media/video/cx18/cx18-driver.h
-index f6f3e50..82dc747 100644
---- a/drivers/media/video/cx18/cx18-driver.h
-+++ b/drivers/media/video/cx18/cx18-driver.h
-@@ -626,6 +626,7 @@ struct cx18 {
- 	struct cx18_i2c_algo_callback_data i2c_algo_cb_data[2];
- 
- 	struct IR_i2c_init_data ir_i2c_init_data;
-+	struct mutex ir_transceiver_lock;
- 
- 	/* gpio */
- 	u32 gpio_dir;
-diff --git a/drivers/media/video/cx18/cx18-i2c.c b/drivers/media/video/cx18/cx18-i2c.c
-index c330fb9..7782de1 100644
---- a/drivers/media/video/cx18/cx18-i2c.c
-+++ b/drivers/media/video/cx18/cx18-i2c.c
-@@ -96,10 +96,12 @@ static int cx18_i2c_new_ir(struct cx18 *cx, struct i2c_adapter *adap, u32 hw,
- 	/* Our default information for ir-kbd-i2c.c to use */
- 	switch (hw) {
- 	case CX18_HW_Z8F0811_IR_RX_HAUP:
-+	case CX18_HW_Z8F0811_IR_TX_HAUP:
- 		init_data->ir_codes = RC_MAP_HAUPPAUGE_NEW;
- 		init_data->internal_get_key_func = IR_KBD_GET_KEY_HAUP_XVR;
- 		init_data->type = RC_TYPE_RC5;
- 		init_data->name = cx->card_name;
-+		init_data->transceiver_lock = &cx->ir_transceiver_lock;
- 		info.platform_data = init_data;
- 		break;
- 	}
-diff --git a/drivers/media/video/hdpvr/hdpvr-core.c b/drivers/media/video/hdpvr/hdpvr-core.c
-index f7d1ee5..df4a02a 100644
---- a/drivers/media/video/hdpvr/hdpvr-core.c
-+++ b/drivers/media/video/hdpvr/hdpvr-core.c
-@@ -304,6 +304,7 @@ static int hdpvr_probe(struct usb_interface *interface,
- 
- 	mutex_init(&dev->io_mutex);
- 	mutex_init(&dev->i2c_mutex);
-+	mutex_init(&dev->ir_transceiver_mutex);
- 	mutex_init(&dev->usbc_mutex);
- 	dev->usbc_buf = kmalloc(64, GFP_KERNEL);
- 	if (!dev->usbc_buf) {
-diff --git a/drivers/media/video/hdpvr/hdpvr-i2c.c b/drivers/media/video/hdpvr/hdpvr-i2c.c
-index 24966aa..b1e68b8 100644
---- a/drivers/media/video/hdpvr/hdpvr-i2c.c
-+++ b/drivers/media/video/hdpvr/hdpvr-i2c.c
-@@ -48,13 +48,15 @@ static int hdpvr_new_i2c_ir(struct hdpvr_device *dev, struct i2c_adapter *adap,
- 	memset(&info, 0, sizeof(struct i2c_board_info));
- 	strlcpy(info.type, type, I2C_NAME_SIZE);
- 
--	/* Our default information for ir-kbd-i2c.c to use */
-+	/* Our default information for ir-kbd-i2c.c and lirc_zilog.c to use */
- 	switch (addr) {
- 	case Z8F0811_IR_RX_I2C_ADDR:
-+	case Z8F0811_IR_TX_I2C_ADDR:
- 		init_data->ir_codes = RC_MAP_HAUPPAUGE_NEW;
- 		init_data->internal_get_key_func = IR_KBD_GET_KEY_HAUP_XVR;
- 		init_data->type = RC_TYPE_RC5;
- 		init_data->name = "HD PVR";
-+		init_data->transceiver_lock = &dev->ir_transceiver_mutex;
- 		info.platform_data = init_data;
- 		break;
- 	}
-diff --git a/drivers/media/video/hdpvr/hdpvr.h b/drivers/media/video/hdpvr/hdpvr.h
-index 37f1e4c..00c8563 100644
---- a/drivers/media/video/hdpvr/hdpvr.h
-+++ b/drivers/media/video/hdpvr/hdpvr.h
-@@ -112,6 +112,7 @@ struct hdpvr_device {
- 
- 	/* For passing data to ir-kbd-i2c */
- 	struct IR_i2c_init_data	ir_i2c_init_data;
-+	struct mutex ir_transceiver_mutex;
- 
- 	/* usb control transfer buffer and lock */
- 	struct mutex		usbc_mutex;
-diff --git a/drivers/media/video/ir-kbd-i2c.c b/drivers/media/video/ir-kbd-i2c.c
-index c87b6bc..6714e1e 100644
---- a/drivers/media/video/ir-kbd-i2c.c
-+++ b/drivers/media/video/ir-kbd-i2c.c
-@@ -245,7 +245,15 @@ static void ir_key_poll(struct IR_i2c *ir)
- 	int rc;
- 
- 	dprintk(2,"ir_poll_key\n");
-+
-+	if (ir->transceiver_lock)
-+		mutex_lock(ir->transceiver_lock);
-+
- 	rc = ir->get_key(ir, &ir_key, &ir_raw);
-+
-+	if (ir->transceiver_lock)
-+		mutex_unlock(ir->transceiver_lock);
-+
- 	if (rc < 0) {
- 		dprintk(2,"error\n");
- 		return;
-@@ -362,6 +370,8 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 			ir->get_key = get_key_avermedia_cardbus;
- 			break;
- 		}
-+
-+		ir->transceiver_lock = init_data->transceiver_lock;
- 	}
- 
- 	if (!rc) {
-diff --git a/drivers/media/video/ivtv/ivtv-driver.c b/drivers/media/video/ivtv/ivtv-driver.c
-index 3994642..ea2afeb 100644
---- a/drivers/media/video/ivtv/ivtv-driver.c
-+++ b/drivers/media/video/ivtv/ivtv-driver.c
-@@ -713,6 +713,7 @@ static int __devinit ivtv_init_struct1(struct ivtv *itv)
- 	itv->dec_mbox.max_mbox = 1; /* the decoder has 2 mailboxes (0-1) */
- 
- 	mutex_init(&itv->serialize_lock);
-+	mutex_init(&itv->ir_transceiver_lock);
- 	mutex_init(&itv->i2c_bus_lock);
- 	mutex_init(&itv->udma.lock);
- 
-diff --git a/drivers/media/video/ivtv/ivtv-driver.h b/drivers/media/video/ivtv/ivtv-driver.h
-index 04bacdb..2c8d7c1 100644
---- a/drivers/media/video/ivtv/ivtv-driver.h
-+++ b/drivers/media/video/ivtv/ivtv-driver.h
-@@ -699,6 +699,7 @@ struct ivtv {
- 	struct mutex i2c_bus_lock;      /* lock i2c bus */
- 
- 	struct IR_i2c_init_data ir_i2c_init_data;
-+	struct mutex ir_transceiver_lock;
- 
- 	/* Program Index information */
- 	u32 pgm_info_offset;            /* start of pgm info in encoder memory */
-diff --git a/drivers/media/video/ivtv/ivtv-i2c.c b/drivers/media/video/ivtv/ivtv-i2c.c
-index e103b8f..4233b48 100644
---- a/drivers/media/video/ivtv/ivtv-i2c.c
-+++ b/drivers/media/video/ivtv/ivtv-i2c.c
-@@ -184,7 +184,21 @@ static int ivtv_i2c_new_ir(struct ivtv *itv, u32 hw, const char *type, u8 addr)
- 	if (hw & IVTV_HW_IR_TX_ANY) {
- 		if (itv->hw_flags & IVTV_HW_IR_TX_ANY)
- 			return -1;
-+
-+		/* Our default information for lirc_zilog.c to use */
-+		switch (hw) {
-+		case IVTV_HW_Z8F0811_IR_TX_HAUP:
-+			/* Default to grey remote */
-+			init_data->ir_codes = RC_MAP_HAUPPAUGE_NEW;
-+			init_data->internal_get_key_func =
-+							IR_KBD_GET_KEY_HAUP_XVR;
-+			init_data->type = RC_TYPE_RC5;
-+			init_data->name = itv->card_name;
-+			init_data->transceiver_lock = &itv->ir_transceiver_lock;
-+			break;
-+		}
- 		memset(&info, 0, sizeof(struct i2c_board_info));
-+		info.platform_data = init_data;
- 		strlcpy(info.type, type, I2C_NAME_SIZE);
- 		return i2c_new_probed_device(adap, &info, addr_list, NULL)
- 							   == NULL ? -1 : 0;
-@@ -217,6 +231,7 @@ static int ivtv_i2c_new_ir(struct ivtv *itv, u32 hw, const char *type, u8 addr)
- 		init_data->internal_get_key_func = IR_KBD_GET_KEY_HAUP_XVR;
- 		init_data->type = RC_TYPE_RC5;
- 		init_data->name = itv->card_name;
-+		init_data->transceiver_lock = &itv->ir_transceiver_lock;
- 		break;
- 	case IVTV_HW_I2C_IR_RX_ADAPTEC:
- 		init_data->get_key = get_key_adaptec;
-diff --git a/drivers/staging/lirc/lirc_zilog.c b/drivers/staging/lirc/lirc_zilog.c
-index 18fae54..8185581 100644
---- a/drivers/staging/lirc/lirc_zilog.c
-+++ b/drivers/staging/lirc/lirc_zilog.c
-@@ -59,6 +59,7 @@
- 
- #include <media/lirc_dev.h>
- #include <media/lirc.h>
-+#include <media/ir-kbd-i2c.h>
- 
- struct IR_rx {
- 	/* RX device */
-@@ -89,6 +90,7 @@ struct IR {
- 	struct lirc_driver l;
- 
- 	struct mutex ir_lock;
-+	struct mutex *xcvr_lock;
- 	int open;
- 
- 	struct i2c_adapter *adapter;
-@@ -175,10 +177,10 @@ static int add_to_buf(struct IR *ir)
- 		 * Lock i2c bus for the duration.  RX/TX chips interfere so
- 		 * this is worth it
- 		 */
--		mutex_lock(&ir->ir_lock);
-+		mutex_lock(ir->xcvr_lock);
- 
- 		if (kthread_should_stop()) {
--			mutex_unlock(&ir->ir_lock);
-+			mutex_unlock(ir->xcvr_lock);
- 			return -ENODATA;
- 		}
- 
-@@ -190,7 +192,7 @@ static int add_to_buf(struct IR *ir)
- 		if (ret != 1) {
- 			zilog_error("i2c_master_send failed with %d\n",	ret);
- 			if (failures >= 3) {
--				mutex_unlock(&ir->ir_lock);
-+				mutex_unlock(ir->xcvr_lock);
- 				zilog_error("unable to read from the IR chip "
- 					    "after 3 resets, giving up\n");
- 				return ret;
-@@ -202,23 +204,23 @@ static int add_to_buf(struct IR *ir)
- 
- 			set_current_state(TASK_UNINTERRUPTIBLE);
- 			if (kthread_should_stop()) {
--				mutex_unlock(&ir->ir_lock);
-+				mutex_unlock(ir->xcvr_lock);
- 				return -ENODATA;
- 			}
- 			schedule_timeout((100 * HZ + 999) / 1000);
- 			ir->tx->need_boot = 1;
- 
- 			++failures;
--			mutex_unlock(&ir->ir_lock);
-+			mutex_unlock(ir->xcvr_lock);
- 			continue;
- 		}
- 
- 		if (kthread_should_stop()) {
--			mutex_unlock(&ir->ir_lock);
-+			mutex_unlock(ir->xcvr_lock);
- 			return -ENODATA;
- 		}
- 		ret = i2c_master_recv(rx->c, keybuf, sizeof(keybuf));
--		mutex_unlock(&ir->ir_lock);
-+		mutex_unlock(ir->xcvr_lock);
- 		if (ret != sizeof(keybuf)) {
- 			zilog_error("i2c_master_recv failed with %d -- "
- 				    "keeping last read buffer\n", ret);
-@@ -920,7 +922,7 @@ static ssize_t write(struct file *filep, const char *buf, size_t n,
- 		return -EINVAL;
- 
- 	/* Lock i2c bus for the duration */
--	mutex_lock(&ir->ir_lock);
-+	mutex_lock(ir->xcvr_lock);
- 
- 	/* Send each keypress */
- 	for (i = 0; i < n;) {
-@@ -928,7 +930,7 @@ static ssize_t write(struct file *filep, const char *buf, size_t n,
- 		int command;
- 
- 		if (copy_from_user(&command, buf + i, sizeof(command))) {
--			mutex_unlock(&ir->ir_lock);
-+			mutex_unlock(ir->xcvr_lock);
- 			return -EFAULT;
- 		}
- 
-@@ -944,7 +946,7 @@ static ssize_t write(struct file *filep, const char *buf, size_t n,
- 			ret = send_code(tx, (unsigned)command >> 16,
- 					    (unsigned)command & 0xFFFF);
- 			if (ret == -EPROTO) {
--				mutex_unlock(&ir->ir_lock);
-+				mutex_unlock(ir->xcvr_lock);
- 				return ret;
- 			}
- 		}
-@@ -961,7 +963,7 @@ static ssize_t write(struct file *filep, const char *buf, size_t n,
- 			if (failures >= 3) {
- 				zilog_error("unable to send to the IR chip "
- 					    "after 3 resets, giving up\n");
--				mutex_unlock(&ir->ir_lock);
-+				mutex_unlock(ir->xcvr_lock);
- 				return ret;
- 			}
- 			set_current_state(TASK_UNINTERRUPTIBLE);
-@@ -973,7 +975,7 @@ static ssize_t write(struct file *filep, const char *buf, size_t n,
- 	}
- 
- 	/* Release i2c bus */
--	mutex_unlock(&ir->ir_lock);
-+	mutex_unlock(ir->xcvr_lock);
- 
- 	/* All looks good */
- 	return n;
-@@ -1079,15 +1081,15 @@ static int open(struct inode *node, struct file *filep)
- 		return -ENODEV;
- 
- 	/* increment in use count */
--	mutex_lock(&ir->ir_lock);
-+	mutex_lock(ir->xcvr_lock);
- 	++ir->open;
- 	ret = set_use_inc(ir);
- 	if (ret != 0) {
- 		--ir->open;
--		mutex_unlock(&ir->ir_lock);
-+		mutex_unlock(ir->xcvr_lock);
- 		return ret;
- 	}
--	mutex_unlock(&ir->ir_lock);
-+	mutex_unlock(ir->xcvr_lock);
- 
- 	/* stash our IR struct */
- 	filep->private_data = ir;
-@@ -1106,10 +1108,10 @@ static int close(struct inode *node, struct file *filep)
- 	}
- 
- 	/* decrement in use count */
--	mutex_lock(&ir->ir_lock);
-+	mutex_lock(ir->xcvr_lock);
- 	--ir->open;
- 	set_use_dec(ir);
--	mutex_unlock(&ir->ir_lock);
-+	mutex_unlock(ir->xcvr_lock);
- 
- 	return 0;
- }
-@@ -1251,6 +1253,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- {
- 	struct IR *ir;
- 	struct i2c_adapter *adap = client->adapter;
-+	const struct IR_i2c_init_data *init_data = client->dev.platform_data;
- 	int ret;
- 	bool tx_probe = false;
- 
-@@ -1288,6 +1291,12 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		ir->adapter = adap;
- 		mutex_init(&ir->ir_lock);
- 
-+		/* Use bridge driver's transceiver lock, if provided */
-+		if (init_data != NULL)
-+			ir->xcvr_lock = init_data->transceiver_lock;
-+		if (ir->xcvr_lock == NULL)
-+			ir->xcvr_lock = &ir->ir_lock;
-+
- 		/* set lirc_dev stuff */
- 		memcpy(&ir->l, &lirc_template, sizeof(struct lirc_driver));
- 		ir->l.minor       = minor; /* module option */
-diff --git a/include/media/ir-kbd-i2c.h b/include/media/ir-kbd-i2c.h
-index 768aa77..5893fd8 100644
---- a/include/media/ir-kbd-i2c.h
-+++ b/include/media/ir-kbd-i2c.h
-@@ -21,6 +21,7 @@ struct IR_i2c {
- 	char                   name[32];
- 	char                   phys[32];
- 	int                    (*get_key)(struct IR_i2c*, u32*, u32*);
-+	struct mutex	       *transceiver_lock;
- };
- 
- enum ir_kbd_get_key_fn {
-@@ -48,5 +49,7 @@ struct IR_i2c_init_data {
- 	enum ir_kbd_get_key_fn internal_get_key_func;
- 
- 	struct rc_dev		*rc_dev;
-+
-+	struct mutex		*transceiver_lock;
- };
- #endif
-
+> Thanks.
+> 
+>  drivers/media/video/cx18/cx18-driver.c  |   24 ++----------------------
+>  drivers/media/video/cx18/cx18-driver.h  |    3 ---
+>  drivers/media/video/cx18/cx18-streams.h |    3 +--
+>  3 files changed, 3 insertions(+), 27 deletions(-)
+> 
+> diff --git a/drivers/media/video/cx18/cx18-driver.c b/drivers/media/video/cx18/cx18-driver.c
+> index df60f27..41c0822 100644
+> --- a/drivers/media/video/cx18/cx18-driver.c
+> +++ b/drivers/media/video/cx18/cx18-driver.c
+> @@ -656,7 +656,7 @@ static int __devinit cx18_create_in_workq(struct cx18 *cx)
+>  {
+>  	snprintf(cx->in_workq_name, sizeof(cx->in_workq_name), "%s-in",
+>  		 cx->v4l2_dev.name);
+> -	cx->in_work_queue = create_singlethread_workqueue(cx->in_workq_name);
+> +	cx->in_work_queue = alloc_ordered_workqueue(cx->in_workq_name, 0);
+>  	if (cx->in_work_queue == NULL) {
+>  		CX18_ERR("Unable to create incoming mailbox handler thread\n");
+>  		return -ENOMEM;
+> @@ -664,18 +664,6 @@ static int __devinit cx18_create_in_workq(struct cx18 *cx)
+>  	return 0;
+>  }
+>  
+> -static int __devinit cx18_create_out_workq(struct cx18 *cx)
+> -{
+> -	snprintf(cx->out_workq_name, sizeof(cx->out_workq_name), "%s-out",
+> -		 cx->v4l2_dev.name);
+> -	cx->out_work_queue = create_workqueue(cx->out_workq_name);
+> -	if (cx->out_work_queue == NULL) {
+> -		CX18_ERR("Unable to create outgoing mailbox handler threads\n");
+> -		return -ENOMEM;
+> -	}
+> -	return 0;
+> -}
+> -
+>  static void __devinit cx18_init_in_work_orders(struct cx18 *cx)
+>  {
+>  	int i;
+> @@ -702,15 +690,9 @@ static int __devinit cx18_init_struct1(struct cx18 *cx)
+>  	mutex_init(&cx->epu2apu_mb_lock);
+>  	mutex_init(&cx->epu2cpu_mb_lock);
+>  
+> -	ret = cx18_create_out_workq(cx);
+> -	if (ret)
+> -		return ret;
+> -
+>  	ret = cx18_create_in_workq(cx);
+> -	if (ret) {
+> -		destroy_workqueue(cx->out_work_queue);
+> +	if (ret)
+>  		return ret;
+> -	}
+>  
+>  	cx18_init_in_work_orders(cx);
+>  
+> @@ -1094,7 +1076,6 @@ free_mem:
+>  	release_mem_region(cx->base_addr, CX18_MEM_SIZE);
+>  free_workqueues:
+>  	destroy_workqueue(cx->in_work_queue);
+> -	destroy_workqueue(cx->out_work_queue);
+>  err:
+>  	if (retval == 0)
+>  		retval = -ENODEV;
+> @@ -1244,7 +1225,6 @@ static void cx18_remove(struct pci_dev *pci_dev)
+>  	cx18_halt_firmware(cx);
+>  
+>  	destroy_workqueue(cx->in_work_queue);
+> -	destroy_workqueue(cx->out_work_queue);
+>  
+>  	cx18_streams_cleanup(cx, 1);
+>  
+> diff --git a/drivers/media/video/cx18/cx18-driver.h b/drivers/media/video/cx18/cx18-driver.h
+> index 77be58c..f7f71d1 100644
+> --- a/drivers/media/video/cx18/cx18-driver.h
+> +++ b/drivers/media/video/cx18/cx18-driver.h
+> @@ -614,9 +614,6 @@ struct cx18 {
+>  	struct cx18_in_work_order in_work_order[CX18_MAX_IN_WORK_ORDERS];
+>  	char epu_debug_str[256]; /* CX18_EPU_DEBUG is rare: use shared space */
+>  
+> -	struct workqueue_struct *out_work_queue;
+> -	char out_workq_name[12]; /* "cx18-NN-out" */
+> -
+>  	/* i2c */
+>  	struct i2c_adapter i2c_adap[2];
+>  	struct i2c_algo_bit_data i2c_algo[2];
+> diff --git a/drivers/media/video/cx18/cx18-streams.h b/drivers/media/video/cx18/cx18-streams.h
+> index 77412be..5837ffb 100644
+> --- a/drivers/media/video/cx18/cx18-streams.h
+> +++ b/drivers/media/video/cx18/cx18-streams.h
+> @@ -41,8 +41,7 @@ static inline bool cx18_stream_enabled(struct cx18_stream *s)
+>  /* Related to submission of mdls to firmware */
+>  static inline void cx18_stream_load_fw_queue(struct cx18_stream *s)
+>  {
+> -	struct cx18 *cx = s->cx;
+> -	queue_work(cx->out_work_queue, &s->out_work_order);
+> +	schedule_work(&s->out_work_order);
+>  }
+>  
+>  static inline void cx18_stream_put_mdl_fw(struct cx18_stream *s,
 
 
