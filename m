@@ -1,142 +1,125 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:48133 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:52537 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751680Ab1AYWBp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jan 2011 17:01:45 -0500
-Message-ID: <4D3F4804.6070508@redhat.com>
-Date: Tue, 25 Jan 2011 20:00:36 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1750925Ab1AHTFH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 8 Jan 2011 14:05:07 -0500
+Message-ID: <4D28B720.7050202@redhat.com>
+Date: Sat, 08 Jan 2011 20:12:32 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-CC: Linus Torvalds <torvalds@linux-foundation.org>,
-	Mark Lord <kernel@teksavvy.com>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
- ?
-References: <4D3E4DD1.60705@teksavvy.com> <20110125042016.GA7850@core.coreip.homeip.net> <4D3E5372.9010305@teksavvy.com> <20110125045559.GB7850@core.coreip.homeip.net> <4D3E59CA.6070107@teksavvy.com> <4D3E5A91.30207@teksavvy.com> <20110125053117.GD7850@core.coreip.homeip.net> <4D3EB734.5090100@redhat.com> <20110125164803.GA19701@core.coreip.homeip.net> <AANLkTi=1Mh0JrYk5itvef7O7e7pR+YKos-w56W5q4B8B@mail.gmail.com> <20110125205453.GA19896@core.coreip.homeip.net>
-In-Reply-To: <20110125205453.GA19896@core.coreip.homeip.net>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Yordan Kamenov <ykamenov@mm-sol.com>
+CC: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+Subject: Re: [PATCH 1/1] Add plugin support to libv4l
+References: <cover.1294418213.git.ykamenov@mm-sol.com> <4aa83c66a0b9030d422123f49d75e6eb5e2d58bd.1294418213.git.ykamenov@mm-sol.com>
+In-Reply-To: <4aa83c66a0b9030d422123f49d75e6eb5e2d58bd.1294418213.git.ykamenov@mm-sol.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 25-01-2011 18:54, Dmitry Torokhov escreveu:
-> On Wed, Jan 26, 2011 at 06:09:45AM +1000, Linus Torvalds wrote:
->> On Wed, Jan 26, 2011 at 2:48 AM, Dmitry Torokhov
->> <dmitry.torokhov@gmail.com> wrote:
->>>
->>> We should be able to handle the case where scancode is valid even though
->>> it might be unmapped yet. This is regardless of what version of
->>> EVIOCGKEYCODE we use, 1 or 2, and whether it is sparse keymap or not.
->>>
->>> Is it possible to validate the scancode by driver?
->>
->> More appropriately, why not just revert the thing? The version change
+Hi,
 
-Reverting the version increment is a bad thing. I agree with Dmitry that
-an application that fails just because the API version were incremented
-is buggy.
+First of all many thanks for working on this! I've several remarks
+which I would like to see addressed before merging this.
 
-> Well, then we'll break Ubuntu again as they recompiled their input-utils
-> package (without fixing the check). And the rest of distros do not seem
-> to be using that package...
+Since most remarks are rather high level remarks I've opted to
+just make a bulleted list of them rather then inserting them inline.
 
-Reverting it will also break the ir-keytable userspace program that it is
-meant to be used by the Remote Controller devices, and uses it to adjust
-its behaviour to support RC's with more than 16 bits of scancodes.
+* The biggest problem with your current implementation is that for
+each existing libv4l2_foo function you check if there is a plugin attached
+to the fd passed in and if that plugin wants to handle the call. Now lets
+assume that there is a plugin and that it wants to handle all calls. That
+means that you've now effectively replaced all libv4l2_foo calls
+with calling the corresponding foo function from the plugin and returning
+its result. This means that for this fd / device you've achieved the
+same result as completely replacing libv4l2.so.0 with a new library
+containing the plugin code.
 
-I agree that it is bad that the ABI broke, but reverting it will cause even
-more damage.
+IOW you've not placed then plugin between libv4l2 and the device (as
+intended) but completely short-circuited / replaced libv4l2. This means
+for example for a device which only supports yuv output, that libv4l2 will
+no longer do format emulation and conversion and an app which only supports
+devices which deliver rgb data will no longer work.
 
->> and the buggy EINVAL return both.
-> 
-> I believe that -EINVAL thing only affects RC devices that Mauro switched
-> to the new rc-core; input core in itself should be ABI compatible. Thus
-> I'll leave the decision to him whether he wants to revert or fix
-> compatibility issue.
+To actually place the plugin between libv4l2 (and libv4lconvert) and the
+device, you should replace all the SYS_FOO calls in libv4l2. The SYS_FOO
+calls are the calls to the actual device, so be replacing those with calls
+to the plugin you actual place the plugin between libv4l and the device as
+intended.
 
-The Remote Controller keycode tables are very sparse. In general,
-they contain up to 100 entries, and the scan codes typically have 16
-bits. Some newer devices have 24 or 32 bits. With version 1, as the table
-index is the scancode, in order to read all keytables with EVIOCGKEYCODE,
-the userspace needs to do 2^16 reads (or 2^32 for RC-6 remotes).
-I don't need to say that this is highly ineffective. So, using V1
-doesn't work fine anyway for Remote Controllers.
+* Currently you add a loop much like the one in the v4l2_get_index
+function to each libv4l2_plugin function. Basically you add an array of
+v4l2_plugin_info structs in libv4l2-plugin. Which gets searched by fd,
+much like the v4l2_dev_info struct array. Including needing similar
+locking. I would like you to instead just store the plugin info for
+a certain fd directly into the v4l2_dev_info struct. This way the
+separate array, looping and locking can go away.
 
-Btw, ir-keycodestool don't work with V1 and more than 16 bits, because it
-doesn't scale. I didn't actually checked, but based on Dmitry's patch
-for input-kbd, it is clear to me that the old version only supports 16
-bits scancodes:
+* Next I would also like to see all the libv4l2_plugin_foo functions
+except for libv4l2_plugin_open go away. Instead libv4l2.c can call
+the plugin functions directly. Let me try to explain what I have in
+mind. Lets say we store the struct libv4l2_plugin_data pointer to the
+active plugin in the v4l2_dev_info struct and name it dev_ops
+(short for device operations).
 
-Em 25-01-2011 04:52, Dmitry Torokhov escreveu:
-> From c22c85c0b675422a23e3d853ed06fedc36805774 Mon Sep 17 00:00:00 2001
-> From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> Date: Mon, 24 Jan 2011 22:49:59 -0800
-> Subject: [PATCH] input-kbd - switch to using EVIOCGKEYCODE2 when available
-> 
-> Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> ---
->  input-kbd.c |  118 ++++++++++++++++++++++++++++++++++++++++-------------------
->  1 files changed, 80 insertions(+), 38 deletions(-)
-> 
-> diff --git a/input-kbd.c b/input-kbd.c
-> index e94529d..5d93d54 100644
-> --- a/input-kbd.c
-> +++ b/input-kbd.c
-<snip>
-> @@ -23,7 +41,7 @@ struct kbd_map {
->  
->  /* ------------------------------------------------------------------ */
->  
-> -static struct kbd_map* kbd_map_read(int fd)
-> +static struct kbd_map* kbd_map_read(int fd, unsigned int version)
->  {
->  	struct kbd_entry entry;
->  	struct kbd_map *map;
-> @@ -32,16 +50,37 @@ static struct kbd_map* kbd_map_read(int fd)
->  	map = malloc(sizeof(*map));
->  	memset(map,0,sizeof(*map));
->  	for (map->size = 0; map->size < 65536; map->size++) {
+Then we can replace all SYS_FOO calls inside libv4l2 (except the ones
+were v4l2_get_index returns -1), with a call to the relevant devop
+functions, for example:
+                 result = SYS_IOCTL(devices[index].fd, VIDIOC_REQBUFS, req);
+Would become:
+                 result = devices[index].dev_ops->v4l2_plugin_ioctl(
+                                     devices[index].fd, VIDIOC_REQBUFS, req);
 
-See, it will only look into the 16-bits scancode space. There are several remote
-controllers with 24 bits and 32 bits, so the tool is already broken anyway.
+Note that the plugin_used parameter of the v4l2_plugin_ioctl is gone,
+it should simply do a normal SYS_IOCTL and return the return value
+of that if it is not interested in intercepting the ioctl (you could move
+the definition of the SYS_FOO macros to libv4l2-plugin.h to make them
+availables to plugins).
 
-On the tests I did here with an ir-keytable version made before such change,
-with a Fedora rawhide kernel (2.6.37), I didn't notice any breakage at
-EVIOCGKEYCODE. I'll do more tests tomorrow with a vanilla Kernel. I'll
-compile a vanilla 2.6.37 kernel tomorrow and, if needed, write a patch.
+Also I think it would be better to rename the function pointers inside
+the libv4l2_plugin_data struct from v4l2_plugin_foo to just foo, so
+that the above code would become:
+                 result = devices[index].dev_ops->v4l2_plugin_ioctl(
+                                     devices[index].fd, VIDIOC_REQBUFS, req);
 
-> 
->>
->> As Mark said, breaking user space simply isn't acceptable. And since
->> breaking user space isn't acceptable, then incrementing the version is
->> stupid too.
-> 
-> It might not have been the best idea to increment, however I maintain
-> that if there exists version is can be changed. Otherwise there is no
-> point in having version at all.
+* The above means that need to always have a dev_ops pointer, so we
+need to have a default_dev_ops struct to use when no plugin wants to
+talk to the device.
 
-Not arguing in favor of the version numbering, but it is easy to read
-the version increment at the beginning of the application, and adjust
-if the code will use EVIOCGKEYCODE or EVIOCGKEYCODE_V2 of the ioctl's,
-depending on what kernel provides.
+* You've put the v4l2_plugin_foo functions (of which only
+v4l2_plugin_foo will remain in my vision) in lib/include/libv4l2.h
+I don't think these functions should be public, their prototypes should
+be moved to lib/libv4l2/libv4l2-priv.h, and they should not be declared
+LIBV4L_PUBLIC.
 
-Ok, we might be just calling the new ioctl and check for -ENOSYS at
-the beginning, using some fake arguments.
+* There is one special case in all this, files under libv4lconvert also
+use SYS_IOCTL in various places. Since this now need to go through the
+plugin we need to take some special measures here. There are 2 options:
+1) Break the libv4lconvert ABI (very few programs use it) and pass a
+    struct libv4l2_plugin_data pointer to the v4lconvert_create function.
+    *And* export the default_dev_ops struct from libv4l2.
+2) Add a libv4l2_raw_ioctl method, which just gets the index and then
+    does devices[index].dev_ops->v4l2_plugin_ioctl
+    Except that this is not really an option as libv4lconvert should not
+    depend on libv4l2
+My vote personally goes to 1.
 
-> As I said, reverting the version bump will cause yet another wave of
-> breakages so I propose leaving version as is.
-> 
->>
->> The way we add new ioctl's is not by incrementing some "ABI version"
->> crap. It's by adding new ioctl's or system calls or whatever that
->> simply used to return -ENOSYS or other error before, while preserving
->> the old ABI. That way old binaries don't break (for _ANY_ reason), and
->> new binaries can see "oh, this doesn't support the new thing".
-> 
-> That has been done as well; we have 2 new ioctls and kept 2 old ioctls.
-> 
+* I think that once we do 1) from above it would be good to rename
+libv4l2_plugin_data to libv4l2_dev_ops, as that makes the public API
+more clear and dev_ops is in essence what a plugin provides.
 
-Regards,
-Mauro.
+* Note that were I wrote: "like to see all the libv4l2_plugin_foo
+functions except for libv4l2_plugin_open go away" I did so for
+simplicity, in reality the wrappers around mmap and munmap need to
+stay too, but they should use data directly stored inside the
+v4l2_dev_info struct. This means that we need to either:
+mv the mmap and munmap code to libv4l2.c; or export the v4l2_dev_info
+struct array. I vote for exporting the v4l2_dev_info struct array
+(through libv4l2-priv.h, so it won't be visible to the outside
+world, but it will be usable outside libv4l2.c).
+
+Thanks & Regards,
+
+Hans
+
