@@ -1,124 +1,207 @@
-Return-path: <mchehab@gaivota>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:51430 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752266Ab1ADRbx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Jan 2011 12:31:53 -0500
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-References: <cover.1292443200.git.m.nazarewicz@samsung.com><AANLkTim8_=0+-zM5z4j0gBaw3PF3zgpXQNetEn-CfUGb@mail.gmail.com><20101223100642.GD3636@n2100.arm.linux.org.uk><C832F8F5D375BD43BFA11E82E0FE9FE00829C13EB2@EXDCVYMBSTM005.EQ1STM.local>
- <20110104171928.GB24935@n2100.arm.linux.org.uk>
-MIME-Version: 1.0
-In-Reply-To: <20110104171928.GB24935@n2100.arm.linux.org.uk>
-Date: Tue, 4 Jan 2011 23:01:39 +0530
-Message-ID: <02a71d80302932190e8edfddf82b7895@mail.gmail.com>
-Subject: RE: [PATCHv8 00/12] Contiguous Memory Allocator
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>
-Cc: Daniel Walker <dwalker@codeaurora.org>,
-	Kyungmin Park <kmpark@infradead.org>,
-	Mel Gorman <mel@csn.ul.ie>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Michal Nazarewicz <m.nazarewicz@samsung.com>,
-	linux-kernel@vger.kernel.org,
-	Michal Nazarewicz <mina86@mina86.com>, linux-mm@kvack.org,
-	Ankita Garg <ankita@in.ibm.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2771 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752592Ab1AHNhI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Jan 2011 08:37:08 -0500
+Received: from localhost.localdomain (43.80-203-71.nextgentel.com [80.203.71.43])
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id p08DalkD015112
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 8 Jan 2011 14:37:06 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [RFCv3 PATCH 16/16] v4l2-framework.txt: improve v4l2_fh/priority documentation
+Date: Sat,  8 Jan 2011 14:36:41 +0100
+Message-Id: <c644550d1d65a6ea7174c74afae8c11d24268026.1294493428.git.hverkuil@xs4all.nl>
+In-Reply-To: <1294493801-17406-1-git-send-email-hverkuil@xs4all.nl>
+References: <1294493801-17406-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1d57787db3bd1a76d292bd80d91ba9e10c07af68.1294493427.git.hverkuil@xs4all.nl>
+References: <1d57787db3bd1a76d292bd80d91ba9e10c07af68.1294493427.git.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-> -----Original Message-----
-> From: linux-arm-kernel-bounces@lists.infradead.org [mailto:linux-
-> arm-kernel-bounces@lists.infradead.org] On Behalf Of Russell King -
-> ARM Linux
-> Sent: Tuesday, January 04, 2011 10:49 PM
-> To: Johan MOSSBERG
-> Cc: Daniel Walker; Kyungmin Park; Mel Gorman; KAMEZAWA Hiroyuki;
-> Michal Nazarewicz; linux-kernel@vger.kernel.org; Michal Nazarewicz;
-> linux-mm@kvack.org; Ankita Garg; Andrew Morton; Marek Szyprowski;
-> linux-arm-kernel@lists.infradead.org; linux-media@vger.kernel.org
-> Subject: Re: [PATCHv8 00/12] Contiguous Memory Allocator
->
-> On Tue, Jan 04, 2011 at 05:23:37PM +0100, Johan MOSSBERG wrote:
-> > Russell King wrote:
-> > > Has anyone addressed my issue with it that this is wide-open for
-> > > abuse by allocating large chunks of memory, and then remapping
-> > > them in some way with different attributes, thereby violating
-> the
-> > > ARM architecture specification?
-> >
-> > I seem to have missed the previous discussion about this issue.
-> > Where in the specification (preferably ARMv7) can I find
-> > information about this?
->
-> Here's the extracts from the architecture reference manual:
->
-> * If the same memory locations are marked as having different
->   cacheability attributes, for example by the use of aliases in a
->   virtual to physical address mapping, behavior is UNPREDICTABLE.
->
-> A3.5.7 Memory access restrictions
->
-> Behavior is UNPREDICTABLE if the same memory location:
-> * is marked as Shareable Normal and Non-shareable Normal
-> * is marked as having different memory types (Normal, Device, or
->   Strongly-ordered)
-> * is marked as having different cacheability attributes
-> * is marked as being Shareable Device and Non-shareable Device
-> memory.
->
-> Such memory marking contradictions can occur, for example, by the
-> use of
-> aliases in a virtual to physical address mapping.
->
-> Glossary:
-> UNPREDICTABLE
-> Means the behavior cannot be relied upon. UNPREDICTABLE behavior
-> must not
-> represent security holes.  UNPREDICTABLE behavior must not halt or
-> hang
-> the processor, or any parts of the system. UNPREDICTABLE behavior
-> must not
-> be documented or promoted as having a defined effect.
->
-> > Is the problem that it is simply
-> > forbidden to map an address multiple times with different cache
-> > setting and if this is done the hardware might start failing? Or
-> > is the problem that having an address mapped cached means that
-> > speculative pre-fetch can read it into the cache at any time,
-> > possibly causing problems if an un-cached mapping exists? In my
-> > opinion option number two can be handled and I've made an attempt
-> > at doing that in hwmem (posted on linux-mm a while ago), look in
-> > cache_handler.c. Hwmem currently does not use cma but the next
-> > version probably will.
->
-> Given the extract from the architecture reference manual, do you
-> want
-> to run a system where you can't predict what the behaviour will be
-> if
-> you have two mappings present, one which is cacheable and one which
-> is
-> non-cacheable, and you're relying on the non-cacheable mapping to
-> never
-> return data from the cache?
->
-> What if during your testing, it appears to work correctly, but out
-> in
-> the field, someone's loaded a different application to your setup
-> resulting in different memory access patterns, causing cache lines
-> to
-> appear in the non-cacheable mapping, and then the CPU hits them on
-> subsequent accesses corrupting data...
->
-> You can't say that will never happen if you're relying on this
-> unpredictable behaviour.
->
-Just to add to Russell's point, we did land up in un-traceable
-CPU deadlocks while running the kernel which was violating some of
-the rules set by ARM ARM.
-The usecase use to work ~98% of the time.
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ Documentation/video4linux/v4l2-framework.txt |  120 +++++++++++++++++++-------
+ 1 files changed, 87 insertions(+), 33 deletions(-)
 
-Regards,
-Santosh
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index f22f35c..39b7be4 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -457,6 +457,10 @@ You should also set these fields:
+   Otherwise you give it a pointer to a struct mutex_lock and before any
+   of the v4l2_file_operations is called this lock will be taken by the
+   core and released afterwards.
++- prio: keeps track of the priorities. Used to implement VIDIOC_G/S_PRIORITY.
++  If left to NULL, then it will use the struct v4l2_prio_state in v4l2_device.
++  If you want to have a separate priority state per (group of) device node(s),
++  then you can point it to your own struct v4l2_prio_state.
+ - parent: you only set this if v4l2_device was registered with NULL as
+   the parent device struct. This only happens in cases where one hardware
+   device has multiple PCI devices that all share the same v4l2_device core.
+@@ -467,12 +471,14 @@ You should also set these fields:
+   PCI device it is setup without a parent device. But when the struct
+   video_device is setup you do know which parent PCI device to use.
+ 
+-If you use v4l2_ioctl_ops, then you should set either .unlocked_ioctl or
+-.ioctl to video_ioctl2 in your v4l2_file_operations struct.
++If you use v4l2_ioctl_ops, then you should set .unlocked_ioctl to video_ioctl2
++in your v4l2_file_operations struct.
+ 
+ The v4l2_file_operations struct is a subset of file_operations. The main
+ difference is that the inode argument is omitted since it is never used.
+ 
++Do not use .ioctl! This is deprecated and will go away in the future.
++
+ v4l2_file_operations and locking
+ --------------------------------
+ 
+@@ -636,39 +642,24 @@ struct v4l2_fh
+ --------------
+ 
+ struct v4l2_fh provides a way to easily keep file handle specific data
+-that is used by the V4L2 framework. Using v4l2_fh is optional for
+-drivers.
++that is used by the V4L2 framework. New drivers must use struct v4l2_fh
++since it is also used to implement priority handling (VIDIOC_G/S_PRIORITY).
+ 
+ The users of v4l2_fh (in the V4L2 framework, not the driver) know
+ whether a driver uses v4l2_fh as its file->private_data pointer by
+-testing the V4L2_FL_USES_V4L2_FH bit in video_device->flags.
+-
+-Useful functions:
+-
+-- v4l2_fh_init()
+-
+-  Initialise the file handle. This *MUST* be performed in the driver's
+-  v4l2_file_operations->open() handler.
+-
+-- v4l2_fh_add()
++testing the V4L2_FL_USES_V4L2_FH bit in video_device->flags. This bit is
++set whenever v4l2_fh_init() is called.
+ 
+-  Add a v4l2_fh to video_device file handle list. May be called after
+-  initialising the file handle.
+-
+-- v4l2_fh_del()
+-
+-  Unassociate the file handle from video_device(). The file handle
+-  exit function may now be called.
++struct v4l2_fh is allocated as a part of the driver's own file handle
++structure and file->private_data is set to it in the driver's open
++function by the driver.
+ 
+-- v4l2_fh_exit()
++In many cases the struct v4l2_fh will be embedded in a larger structure.
++In that case you should call v4l2_fh_init+v4l2_fh_add in open() and
++v4l2_fh_del+v4l2_fh_exit in release().
+ 
+-  Uninitialise the file handle. After uninitialisation the v4l2_fh
+-  memory can be freed.
+-
+-struct v4l2_fh is allocated as a part of the driver's own file handle
+-structure and is set to file->private_data in the driver's open
+-function by the driver. Drivers can extract their own file handle
+-structure by using the container_of macro. Example:
++Drivers can extract their own file handle structure by using the container_of
++macro. Example:
+ 
+ struct my_fh {
+ 	int blah;
+@@ -685,15 +676,21 @@ int my_open(struct file *file)
+ 
+ 	...
+ 
++	my_fh = kzalloc(sizeof(*my_fh), GFP_KERNEL);
++
++	...
++
+ 	ret = v4l2_fh_init(&my_fh->fh, vfd);
+-	if (ret)
++	if (ret) {
++		kfree(my_fh);
+ 		return ret;
++	}
+ 
+-	v4l2_fh_add(&my_fh->fh);
++	...
+ 
+ 	file->private_data = &my_fh->fh;
+-
+-	...
++	v4l2_fh_add(&my_fh->fh);
++	return 0;
+ }
+ 
+ int my_release(struct file *file)
+@@ -702,8 +699,65 @@ int my_release(struct file *file)
+ 	struct my_fh *my_fh = container_of(fh, struct my_fh, fh);
+ 
+ 	...
++	v4l2_fh_del(&my_fh->fh);
++	v4l2_fh_exit(&my_fh->fh);
++	kfree(my_fh);
++	return 0;
+ }
+ 
++Below is a short description of the v4l2_fh functions used:
++
++int v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
++
++  Initialise the file handle. This *MUST* be performed in the driver's
++  v4l2_file_operations->open() handler.
++
++void v4l2_fh_add(struct v4l2_fh *fh)
++
++  Add a v4l2_fh to video_device file handle list. Must be called once the
++  file handle is completely initialized.
++
++void v4l2_fh_del(struct v4l2_fh *fh)
++
++  Unassociate the file handle from video_device(). The file handle
++  exit function may now be called.
++
++void v4l2_fh_exit(struct v4l2_fh *fh)
++
++  Uninitialise the file handle. After uninitialisation the v4l2_fh
++  memory can be freed.
++
++
++If struct v4l2_fh is not embedded, then you can use these helper functions:
++
++int v4l2_fh_open(struct file *filp)
++
++  This allocates a struct v4l2_fh, initializes it and adds it to the struct
++  video_device associated with the file struct.
++
++int v4l2_fh_release(struct file *filp)
++
++  This deletes it from the struct video_device associated with the file
++  struct, uninitialised the v4l2_fh and frees it.
++
++These two functions can be plugged into the v4l2_file_operation's open() and
++release() ops.
++
++
++Several drivers need to do something when the first file handle is opened and
++when the last file handle closes. Two helper functions were added to check
++whether the v4l2_fh struct is the only open filehandle of the associated
++device node:
++
++int v4l2_fh_is_singular(struct v4l2_fh *fh)
++
++  Returns 1 if the file handle is the only open file handle, else 0.
++
++int v4l2_fh_is_singular_file(struct file *filp)
++
++  Same, but it calls v4l2_fh_is_singular with filp->private_data.
++
++
+ V4L2 events
+ -----------
+ 
+-- 
+1.7.0.4
+
