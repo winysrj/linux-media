@@ -1,44 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from mail.projectit.net ([64.129.117.10]:48737 "EHLO mail.lastar.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752350Ab1AJOZU convert rfc822-to-8bit (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:64250 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752872Ab1AHQRU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jan 2011 09:25:20 -0500
-From: Jason Gauthier <jgauthier@lastar.com>
-To: Jarod Wilson <jarod@wilsonet.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Janne Grunau <j@jannau.net>
-Subject: RE: Enable IR on hdpvr
-Date: Mon, 10 Jan 2011 14:25:17 +0000
-Message-ID: <65DE7931C559BF4DBEE42C3F8246249A0B69B014@V-ALBEXCHANGE.ctg.com>
-References: <65DE7931C559BF4DBEE42C3F8246249A0B686EB0@V-EXMAILBOX.ctg.com>
- <8AFBEFD7-69E3-4E71-B155-EA773C2FED43@wilsonet.com>
-In-Reply-To: <8AFBEFD7-69E3-4E71-B155-EA773C2FED43@wilsonet.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Sat, 8 Jan 2011 11:17:20 -0500
+Subject: Re: zilog and IR
+From: Andy Walls <awalls@md.metrocast.net>
+To: jgauthier@lastar.com
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <AANLkTi=yLo8A==TXLYN6g72RZVsk4ydQthf29=i=A36j@mail.gmail.com>
+References: <AANLkTi=yLo8A==TXLYN6g72RZVsk4ydQthf29=i=A36j@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 08 Jan 2011 10:19:37 -0500
+Message-ID: <1294499977.2443.106.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
->> 
->> I did simply try changing:
->> 
->>       /* until i2c is working properly */
->>       retval = 0; /* hdpvr_register_i2c_ir(dev); */
->>       if (retval < 0)
->> 
->> so that it would register with i2c.
->> Doing so returns a positive registration with I2C, but the lirc_zilog 
->> driver doesn't see the chip when it loads. (The lirc_zilog is now in 
->> the kernel, yay)
+On Sat, 2011-01-08 at 10:44 -0500, Jason Gauthier wrote:
+> Andy,
+> 
+>    Firstly, I apologize for reaching out to you directly.
 
->There's a bit more to it than just the one line change. Here's the patch we're carrying in the Fedora kernels to enable it:
+The list could have answered this, so I adding the Cc:.
 
->http://wilsonet.com/jarod/lirc_misc/hdpvr-ir/hdpvr-ir-enable.patch
+BTW, I normally ignore direct emails asking for free support, as the
+N-to-1 free support problem is too costly for me personally.  The N-to-M
+free support problem on the list is a little easier to bear, and is
+consistent with Linux's community development model. 
 
->Janne, I've heard many success stories w/the hdpvr IR lately, and almost no reports of lockups, so I'm thinking a firmware update may have helped out >here, and thus, maybe its time we just go ahead and push this patch along upstream? We still require someone to load lirc_zilog manually, so it seems like a >fairly low-risk thing to do.
 
-Thanks.  What source tree is this against?  I see the patch is dated 09/2009.  Manually comparing to my .37 source tree it does not appear to match up.
-I don't mind bringing in a third source tree to compare against to see if I can make this work on .37, I just don't know which one!
+>  I stumbled into your git tree, which looks like it does exactly what
+> I want.
+
+But it doesn't.  It's a bleeding edge tree of mine used to develop a
+changeset.  Be warned that such trees come with no guarantees that at
+any one moment in time it will compile and not damage your hardware.
+
+I only subjected the changes to personal review, compilation check, and
+inspection by others on the list.  That was sufficient for me for
+software defect removal, since the change was a cut-and-paste from the
+cx18 and ivtv modules and the code is not yet called by hdpvr anyway.
+
+
+> I grabbed the source but, unfortunately, it is not compiling for me
+> because one of the constants is not defined.
+> 
+> in hdprv_new_i2c_ir, the line:
+>     init_data->type = RC_TYPE_RC5;
+
+> I have not been able to find any traces of RC_TYPE_RC5 in my 2.6.37
+> kernel source.
+> Is this a #define that you've made specific to your git tree?
+
+No:
+
+http://git.linuxtv.org/media_tree.git?a=commit;h=e58462f45e39e01799d8b1ebab4816bd0ca68ddc
+
+That media_tree.git repository is the bleeding edge tree recommended for
+developers and advanced users wanting the latest drivers.
+
+The alternate is the media_build.git repository when has ability to
+build the modules with some not so old kernels.
+
+Regards,
+Andy
 
