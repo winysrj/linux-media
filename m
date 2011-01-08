@@ -1,165 +1,288 @@
-Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:64199 "EHLO mx1.redhat.com"
+Return-path: <mchehab@pedra>
+Received: from smtp.work.de ([212.12.45.188]:54228 "EHLO smtp2.work.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753548Ab1AFUAN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Jan 2011 15:00:13 -0500
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: [PATCH 5/6] rc: fix up and genericize some time unit conversions
-Date: Thu,  6 Jan 2011 14:59:36 -0500
-Message-Id: <1294343977-31929-6-git-send-email-jarod@redhat.com>
-In-Reply-To: <1294343839-31784-1-git-send-email-jarod@redhat.com>
-References: <1294343839-31784-1-git-send-email-jarod@redhat.com>
+	id S1752905Ab1AHPkZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 8 Jan 2011 10:40:25 -0500
+Message-ID: <4D288565.6040503@jusst.de>
+Date: Sat, 08 Jan 2011 16:40:21 +0100
+From: Julian Scheel <julian@jusst.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Steven Toth <stoth@kernellabs.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	linux-media@vger.kernel.org
+Subject: Re: Hauppauge HVR-2200 analog
+References: <4CFE14A1.3040801@jusst.de> <1291726869.2073.5.camel@morgan.silverblock.net> <4D07A829.6080406@jusst.de> <4D07CAA6.3030300@kernellabs.com> <67DB049D-B91E-4457-93CE-2CE0164C5B54@jusst.de> <4D2283AD.3000006@jusst.de> <4D2642CA.4080309@jusst.de>
+In-Reply-To: <4D2642CA.4080309@jusst.de>
+Content-Type: multipart/mixed;
+ boundary="------------070202020705030308000305"
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-The ene_ir driver was using a private define of MS_TO_NS, which is meant
-to be microseconds to nanoseconds. The mceusb driver copied it,
-intending to use is a milliseconds to microseconds. Lets move the
-defines to a common location, expand and standardize them a touch, so
-that we now have:
+This is a multi-part message in MIME format.
+--------------070202020705030308000305
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-  MS_TO_NS - milliseconds to nanoseconds
-  MS_TO_US - milliseconds to microseconds
-  US_TO_NS - microseconds to nanoseconds
+Am 06.01.2011 23:31, schrieb Julian Scheel:
+>
+>> Attached is the diff I currently use.
+>>
+> Some more process. Attached is a new patch, which allows me to capture 
+> video and audio from a PAL tuner. Imho the video has wrong colours 
+> though (using PAL-B). Maybe someone would want to test that patch and 
+> give some feedback?
+Ok some hours of debugging later, I figured out that only encoder 1 was 
+not working properly. This was due to a wrong addressing when sending 
+the dif setup commands. The attached new patch fixes this.
 
-Reported-by: David Härdeman <david@hardeman.nu>
-CC: Maxim Levitsky <maximlevitsky@gmail.com>
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/rc/ene_ir.c |   16 ++++++++--------
- drivers/media/rc/ene_ir.h |    2 --
- drivers/media/rc/mceusb.c |    7 +++----
- include/media/rc-core.h   |    3 +++
- 4 files changed, 14 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/rc/ene_ir.c b/drivers/media/rc/ene_ir.c
-index 885abdd..1ac4913 100644
---- a/drivers/media/rc/ene_ir.c
-+++ b/drivers/media/rc/ene_ir.c
-@@ -446,27 +446,27 @@ static void ene_rx_setup(struct ene_device *dev)
- 
- select_timeout:
- 	if (dev->rx_fan_input_inuse) {
--		dev->rdev->rx_resolution = MS_TO_NS(ENE_FW_SAMPLE_PERIOD_FAN);
-+		dev->rdev->rx_resolution = US_TO_NS(ENE_FW_SAMPLE_PERIOD_FAN);
- 
- 		/* Fan input doesn't support timeouts, it just ends the
- 			input with a maximum sample */
- 		dev->rdev->min_timeout = dev->rdev->max_timeout =
--			MS_TO_NS(ENE_FW_SMPL_BUF_FAN_MSK *
-+			US_TO_NS(ENE_FW_SMPL_BUF_FAN_MSK *
- 				ENE_FW_SAMPLE_PERIOD_FAN);
+--------------070202020705030308000305
+Content-Type: text/x-patch;
+ name="saa7164-card-pal.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="saa7164-card-pal.diff"
+
+Nur in linux-2.6.37/drivers/media/video/saa7164/: modules.order.
+diff -x '*.o' -x '*.ko' -x '*.cmd' -x '*.mod.*' -ru linux-2.6.37.a/drivers/media/video/saa7164//saa7164-api.c linux-2.6.37/drivers/media/video/saa7164//saa7164-api.c
+--- linux-2.6.37.a/drivers/media/video/saa7164//saa7164-api.c	2011-01-05 01:50:19.000000000 +0100
++++ linux-2.6.37/drivers/media/video/saa7164//saa7164-api.c	2011-01-08 16:10:32.000000000 +0100
+@@ -548,7 +548,7 @@
+ 		tvaudio.std = TU_STANDARD_NTSC_M;
+ 		tvaudio.country = 1;
  	} else {
--		dev->rdev->rx_resolution = MS_TO_NS(sample_period);
-+		dev->rdev->rx_resolution = US_TO_NS(sample_period);
- 
- 		/* Theoreticly timeout is unlimited, but we cap it
- 		 * because it was seen that on one device, it
- 		 * would stop sending spaces after around 250 msec.
- 		 * Besides, this is close to 2^32 anyway and timeout is u32.
- 		 */
--		dev->rdev->min_timeout = MS_TO_NS(127 * sample_period);
--		dev->rdev->max_timeout = MS_TO_NS(200000);
-+		dev->rdev->min_timeout = US_TO_NS(127 * sample_period);
-+		dev->rdev->max_timeout = US_TO_NS(200000);
+-		tvaudio.std = TU_STANDARD_PAL_I;
++		tvaudio.std = 0x04; //TU_STANDARD_PAL_I;
+ 		tvaudio.country = 44;
  	}
  
- 	if (dev->hw_learning_and_tx_capable)
--		dev->rdev->tx_resolution = MS_TO_NS(sample_period);
-+		dev->rdev->tx_resolution = US_TO_NS(sample_period);
+@@ -608,7 +608,7 @@
+ 	dprintk(DBGLVL_API, "%s(nr=%d type=%d val=%x)\n", __func__,
+ 		port->nr, port->type, val);
  
- 	if (dev->rdev->timeout > dev->rdev->max_timeout)
- 		dev->rdev->timeout = dev->rdev->max_timeout;
-@@ -801,7 +801,7 @@ static irqreturn_t ene_isr(int irq, void *data)
+-	if (port->nr == 0)
++	if (port->nr < 3) //== 0)
+ 		mas = 0xd0;
+ 	else
+ 		mas = 0xe0;
+diff -x '*.o' -x '*.ko' -x '*.cmd' -x '*.mod.*' -ru linux-2.6.37.a/drivers/media/video/saa7164//saa7164-cards.c linux-2.6.37/drivers/media/video/saa7164//saa7164-cards.c
+--- linux-2.6.37.a/drivers/media/video/saa7164//saa7164-cards.c	2011-01-05 01:50:19.000000000 +0100
++++ linux-2.6.37/drivers/media/video/saa7164//saa7164-cards.c	2011-01-06 16:16:56.000000000 +0100
+@@ -203,6 +203,66 @@
+ 			.i2c_reg_len	= REGLEN_8bit,
+ 		} },
+ 	},
++	[SAA7164_BOARD_HAUPPAUGE_HVR2200_4] = {
++		.name		= "Hauppauge WinTV-HVR2200",
++		.porta		= SAA7164_MPEG_DVB,
++		.portb		= SAA7164_MPEG_DVB,
++                .portc          = SAA7164_MPEG_ENCODER,
++                .portd          = SAA7164_MPEG_ENCODER,
++                .porte          = SAA7164_MPEG_VBI,
++                .portf          = SAA7164_MPEG_VBI,
++		.chiprev	= SAA7164_CHIP_REV3,
++		.unit		= {{
++			.id		= 0x1d,
++			.type		= SAA7164_UNIT_EEPROM,
++			.name		= "4K EEPROM",
++			.i2c_bus_nr	= SAA7164_I2C_BUS_0,
++			.i2c_bus_addr	= 0xa0 >> 1,
++			.i2c_reg_len	= REGLEN_8bit,
++		}, {
++			.id		= 0x04,
++			.type		= SAA7164_UNIT_TUNER,
++			.name		= "TDA18271-1",
++			.i2c_bus_nr	= SAA7164_I2C_BUS_1,
++			.i2c_bus_addr	= 0xc0 >> 1,
++			.i2c_reg_len	= REGLEN_8bit,
++		}, {
++			.id		= 0x05,
++			.type		= SAA7164_UNIT_ANALOG_DEMODULATOR,
++			.name		= "TDA8290-1",
++			.i2c_bus_nr	= SAA7164_I2C_BUS_1,
++			.i2c_bus_addr	= 0x84 >> 1,
++			.i2c_reg_len	= REGLEN_8bit,
++		}, {
++			.id		= 0x1b,
++			.type		= SAA7164_UNIT_TUNER,
++			.name		= "TDA18271-2",
++			.i2c_bus_nr	= SAA7164_I2C_BUS_2,
++			.i2c_bus_addr	= 0xc0 >> 1,
++			.i2c_reg_len	= REGLEN_8bit,
++		}, {
++			.id		= 0x1c,
++			.type		= SAA7164_UNIT_ANALOG_DEMODULATOR,
++			.name		= "TDA8290-2",
++			.i2c_bus_nr	= SAA7164_I2C_BUS_2,
++			.i2c_bus_addr	= 0x84 >> 1,
++			.i2c_reg_len	= REGLEN_8bit,
++		}, {
++			.id		= 0x1e,
++			.type		= SAA7164_UNIT_DIGITAL_DEMODULATOR,
++			.name		= "TDA10048-1",
++			.i2c_bus_nr	= SAA7164_I2C_BUS_1,
++			.i2c_bus_addr	= 0x10 >> 1,
++			.i2c_reg_len	= REGLEN_8bit,
++		}, {
++			.id		= 0x1f,
++			.type		= SAA7164_UNIT_DIGITAL_DEMODULATOR,
++			.name		= "TDA10048-2",
++			.i2c_bus_nr	= SAA7164_I2C_BUS_2,
++			.i2c_bus_addr	= 0x12 >> 1,
++			.i2c_reg_len	= REGLEN_8bit,
++		} },
++	},
+ 	[SAA7164_BOARD_HAUPPAUGE_HVR2250] = {
+ 		.name		= "Hauppauge WinTV-HVR2250",
+ 		.porta		= SAA7164_MPEG_DVB,
+@@ -426,6 +486,10 @@
+ 		.subvendor = 0x0070,
+ 		.subdevice = 0x8851,
+ 		.card      = SAA7164_BOARD_HAUPPAUGE_HVR2250_2,
++	}, {
++		.subvendor = 0x0070,
++		.subdevice = 0x8940,
++		.card      = SAA7164_BOARD_HAUPPAUGE_HVR2200_4,
+ 	},
+ };
+ const unsigned int saa7164_idcount = ARRAY_SIZE(saa7164_subids);
+@@ -469,6 +533,7 @@
+ 	case SAA7164_BOARD_HAUPPAUGE_HVR2200:
+ 	case SAA7164_BOARD_HAUPPAUGE_HVR2200_2:
+ 	case SAA7164_BOARD_HAUPPAUGE_HVR2200_3:
++	case SAA7164_BOARD_HAUPPAUGE_HVR2200_4:
+ 	case SAA7164_BOARD_HAUPPAUGE_HVR2250:
+ 	case SAA7164_BOARD_HAUPPAUGE_HVR2250_2:
+ 	case SAA7164_BOARD_HAUPPAUGE_HVR2250_3:
+@@ -549,6 +614,7 @@
+ 	case SAA7164_BOARD_HAUPPAUGE_HVR2200:
+ 	case SAA7164_BOARD_HAUPPAUGE_HVR2200_2:
+ 	case SAA7164_BOARD_HAUPPAUGE_HVR2200_3:
++	case SAA7164_BOARD_HAUPPAUGE_HVR2200_4:
+ 	case SAA7164_BOARD_HAUPPAUGE_HVR2250:
+ 	case SAA7164_BOARD_HAUPPAUGE_HVR2250_2:
+ 	case SAA7164_BOARD_HAUPPAUGE_HVR2250_3:
+diff -x '*.o' -x '*.ko' -x '*.cmd' -x '*.mod.*' -ru linux-2.6.37.a/drivers/media/video/saa7164//saa7164-dvb.c linux-2.6.37/drivers/media/video/saa7164//saa7164-dvb.c
+--- linux-2.6.37.a/drivers/media/video/saa7164//saa7164-dvb.c	2011-01-05 01:50:19.000000000 +0100
++++ linux-2.6.37/drivers/media/video/saa7164//saa7164-dvb.c	2011-01-06 16:16:56.000000000 +0100
+@@ -475,6 +475,7 @@
+ 	case SAA7164_BOARD_HAUPPAUGE_HVR2200:
+ 	case SAA7164_BOARD_HAUPPAUGE_HVR2200_2:
+ 	case SAA7164_BOARD_HAUPPAUGE_HVR2200_3:
++	case SAA7164_BOARD_HAUPPAUGE_HVR2200_4:
+ 		i2c_bus = &dev->i2c_bus[port->nr + 1];
+ 		switch (port->nr) {
+ 		case 0:
+diff -x '*.o' -x '*.ko' -x '*.cmd' -x '*.mod.*' -ru linux-2.6.37.a/drivers/media/video/saa7164//saa7164-encoder.c linux-2.6.37/drivers/media/video/saa7164//saa7164-encoder.c
+--- linux-2.6.37.a/drivers/media/video/saa7164//saa7164-encoder.c	2011-01-05 01:50:19.000000000 +0100
++++ linux-2.6.37/drivers/media/video/saa7164//saa7164-encoder.c	2011-01-08 16:11:04.000000000 +0100
+@@ -32,7 +32,25 @@
+ 	}, {
+ 		.name      = "NTSC-JP",
+ 		.id        = V4L2_STD_NTSC_M_JP,
+-	}
++	}, {
++                .name      = "PAL-I",
++                .id        = V4L2_STD_PAL_I,
++	}, {
++                .name      = "PAL-M",
++                .id        = V4L2_STD_PAL_M,
++	}, {
++                .name      = "PAL-N",
++                .id        = V4L2_STD_PAL_N,
++	}, {
++                .name      = "PAL-Nc",
++                .id        = V4L2_STD_PAL_Nc,
++	}, {
++                .name      = "PAL-B",
++                .id        = V4L2_STD_PAL_B,
++	}, {
++                .name      = "PAL-DK",
++                .id        = V4L2_STD_PAL_DK,
++        }
+ };
  
- 		dbg("RX: %d (%s)", hw_sample, pulse ? "pulse" : "space");
+ static const u32 saa7164_v4l2_ctrls[] = {
+@@ -1359,7 +1377,7 @@
+ 	.ioctl_ops     = &mpeg_ioctl_ops,
+ 	.minor         = -1,
+ 	.tvnorms       = SAA7164_NORMS,
+-	.current_norm  = V4L2_STD_NTSC_M,
++	.current_norm  = V4L2_STD_PAL_B,
+ };
  
--		ev.duration = MS_TO_NS(hw_sample);
-+		ev.duration = US_TO_NS(hw_sample);
- 		ev.pulse = pulse;
- 		ir_raw_event_store_with_filter(dev->rdev, &ev);
- 	}
-@@ -821,7 +821,7 @@ static void ene_setup_default_settings(struct ene_device *dev)
- 	dev->learning_mode_enabled = learning_mode_force;
+ static struct video_device *saa7164_encoder_alloc(
+@@ -1407,7 +1425,7 @@
  
- 	/* Set reasonable default timeout */
--	dev->rdev->timeout = MS_TO_NS(150000);
-+	dev->rdev->timeout = US_TO_NS(150000);
- }
+ 	/* Establish encoder defaults here */
+ 	/* Set default TV standard */
+-	port->encodernorm = saa7164_tvnorms[0];
++	port->encodernorm = saa7164_tvnorms[6];
+ 	port->width = 720;
+ 	port->mux_input = 1; /* Composite */
+ 	port->video_format = EU_VIDEO_FORMAT_MPEG_2;
+diff -x '*.o' -x '*.ko' -x '*.cmd' -x '*.mod.*' -ru linux-2.6.37.a/drivers/media/video/saa7164//saa7164-fw.c linux-2.6.37/drivers/media/video/saa7164//saa7164-fw.c
+--- linux-2.6.37.a/drivers/media/video/saa7164//saa7164-fw.c	2011-01-05 01:50:19.000000000 +0100
++++ linux-2.6.37/drivers/media/video/saa7164//saa7164-fw.c	2011-01-08 16:13:11.000000000 +0100
+@@ -29,6 +29,9 @@
  
- /* Upload all hardware settings at once. Used at load and resume time */
-diff --git a/drivers/media/rc/ene_ir.h b/drivers/media/rc/ene_ir.h
-index c179baf..337a41d 100644
---- a/drivers/media/rc/ene_ir.h
-+++ b/drivers/media/rc/ene_ir.h
-@@ -201,8 +201,6 @@
- #define dbg_verbose(format, ...)	__dbg(2, format, ## __VA_ARGS__)
- #define dbg_regs(format, ...)		__dbg(3, format, ## __VA_ARGS__)
+ #define SAA7164_REV3_FIRMWARE		"NXP7164-2010-03-10.1.fw"
+ #define SAA7164_REV3_FIRMWARE_SIZE	4019072
++//#define SAA7164_REV3_FIRMWARE		"v4l-saa7164-1.0.3-3.fw"
++//#define SAA7164_REV3_FIRMWARE_SIZE	4038864
++
  
--#define MS_TO_NS(msec) ((msec) * 1000)
--
- struct ene_device {
- 	struct pnp_dev *pnp_dev;
- 	struct rc_dev *rdev;
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index 0fef6ef..2d91134 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -48,7 +48,6 @@
- #define USB_BUFLEN		32 /* USB reception buffer length */
- #define USB_CTRL_MSG_SZ		2  /* Size of usb ctrl msg on gen1 hw */
- #define MCE_G1_INIT_MSGS	40 /* Init messages on gen1 hw to throw out */
--#define MS_TO_NS(msec)		((msec) * 1000)
+ struct fw_header {
+ 	u32	firmwaresize;
+diff -x '*.o' -x '*.ko' -x '*.cmd' -x '*.mod.*' -ru linux-2.6.37.a/drivers/media/video/saa7164//saa7164.h linux-2.6.37/drivers/media/video/saa7164//saa7164.h
+--- linux-2.6.37.a/drivers/media/video/saa7164//saa7164.h	2011-01-05 01:50:19.000000000 +0100
++++ linux-2.6.37/drivers/media/video/saa7164//saa7164.h	2011-01-06 23:13:06.000000000 +0100
+@@ -83,6 +83,7 @@
+ #define SAA7164_BOARD_HAUPPAUGE_HVR2200_3	6
+ #define SAA7164_BOARD_HAUPPAUGE_HVR2250_2	7
+ #define SAA7164_BOARD_HAUPPAUGE_HVR2250_3	8
++#define SAA7164_BOARD_HAUPPAUGE_HVR2200_4	9
  
- /* MCE constants */
- #define MCE_CMDBUF_SIZE		384  /* MCE Command buffer length */
-@@ -817,7 +816,7 @@ static void mceusb_handle_command(struct mceusb_dev *ir, int index)
- 	switch (ir->buf_in[index]) {
- 	/* 2-byte return value commands */
- 	case MCE_CMD_S_TIMEOUT:
--		ir->rc->timeout = MS_TO_NS((hi << 8 | lo) / 2);
-+		ir->rc->timeout = MS_TO_US((hi << 8 | lo) / 2);
- 		break;
+ #define SAA7164_MAX_UNITS		8
+ #define SAA7164_TS_NUMBER_OF_LINES	312
+@@ -113,7 +114,7 @@
+ #define DBGLVL_THR 4096
+ #define DBGLVL_CPU 8192
  
- 	/* 1-byte return value commands */
-@@ -858,7 +857,7 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
- 			ir->rem--;
- 			rawir.pulse = ((ir->buf_in[i] & MCE_PULSE_BIT) != 0);
- 			rawir.duration = (ir->buf_in[i] & MCE_PULSE_MASK)
--					 * MS_TO_NS(MCE_TIME_UNIT);
-+					 * MS_TO_US(MCE_TIME_UNIT);
+-#define SAA7164_NORMS (V4L2_STD_NTSC_M |  V4L2_STD_NTSC_M_JP |  V4L2_STD_NTSC_443)
++#define SAA7164_NORMS (V4L2_STD_NTSC_M |  V4L2_STD_NTSC_M_JP |  V4L2_STD_NTSC_443 | V4L2_STD_PAL_I | V4L2_STD_PAL_M | V4L2_STD_PAL_N | V4L2_STD_PAL_Nc | V4L2_STD_PAL_B | V4L2_STD_PAL_DK)
  
- 			dev_dbg(ir->dev, "Storing %s with duration %d\n",
- 				rawir.pulse ? "pulse" : "space",
-@@ -1061,7 +1060,7 @@ static struct rc_dev *mceusb_init_rc_dev(struct mceusb_dev *ir)
- 	rc->priv = ir;
- 	rc->driver_type = RC_DRIVER_IR_RAW;
- 	rc->allowed_protos = RC_TYPE_ALL;
--	rc->timeout = MS_TO_NS(1000);
-+	rc->timeout = MS_TO_US(1000);
- 	if (!ir->flags.no_tx) {
- 		rc->s_tx_mask = mceusb_set_tx_mask;
- 		rc->s_tx_carrier = mceusb_set_tx_carrier;
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index a23c1fc..2963263 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -183,6 +183,9 @@ static inline void init_ir_raw_event(struct ir_raw_event *ev)
- }
+ enum port_t {
+ 	SAA7164_MPEG_UNDEFINED = 0,
+diff -x '*.o' -x '*.ko' -x '*.cmd' -x '*.mod.*' -ru linux-2.6.37.a/drivers/media/video/saa7164//saa7164-vbi.c linux-2.6.37/drivers/media/video/saa7164//saa7164-vbi.c
+--- linux-2.6.37.a/drivers/media/video/saa7164//saa7164-vbi.c	2011-01-05 01:50:19.000000000 +0100
++++ linux-2.6.37/drivers/media/video/saa7164//saa7164-vbi.c	2011-01-08 15:30:50.000000000 +0100
+@@ -28,7 +28,25 @@
+ 	}, {
+ 		.name      = "NTSC-JP",
+ 		.id        = V4L2_STD_NTSC_M_JP,
+-	}
++	}, {
++                .name      = "PAL-I",
++                .id        = V4L2_STD_PAL_I,
++        }, {
++                .name      = "PAL-M",
++                .id        = V4L2_STD_PAL_M,
++        }, {
++                .name      = "PAL-N",
++                .id        = V4L2_STD_PAL_N,
++        }, {
++                .name      = "PAL-Nc",
++                .id        = V4L2_STD_PAL_Nc,
++        }, {
++                .name      = "PAL-B",
++                .id        = V4L2_STD_PAL_B,
++        }, {
++                .name      = "PAL-DK",
++                .id        = V4L2_STD_PAL_DK,
++        }
+ };
  
- #define IR_MAX_DURATION         0xFFFFFFFF      /* a bit more than 4 seconds */
-+#define US_TO_NS(usec)		((usec) * 1000)
-+#define MS_TO_US(msec)		((msec) * 1000)
-+#define MS_TO_NS(msec)		((msec) * 1000 * 1000)
- 
- void ir_raw_event_handle(struct rc_dev *dev);
- int ir_raw_event_store(struct rc_dev *dev, struct ir_raw_event *ev);
--- 
-1.7.3.4
+ static const u32 saa7164_v4l2_ctrls[] = {
 
+--------------070202020705030308000305--
