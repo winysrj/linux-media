@@ -1,75 +1,77 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33790 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752155Ab1AXLUj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Jan 2011 06:20:39 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] v4l: Add driver for Micron MT9M032 camera sensor
-Date: Mon, 24 Jan 2011 12:20:41 +0100
-Cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
-	linux-media@vger.kernel.org
-References: <1295389122-30325-1-git-send-email-martin@neutronstar.dyndns.org> <201101190050.35863.laurent.pinchart@ideasonboard.com> <201101190823.18900.hverkuil@xs4all.nl>
-In-Reply-To: <201101190823.18900.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Received: from smtp23.services.sfr.fr ([93.17.128.21]:35204 "EHLO
+	smtp23.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750934Ab1AHMMX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Jan 2011 07:12:23 -0500
+Received: from smtp23.services.sfr.fr (msfrf2306 [10.18.27.20])
+	by msfrf2310.sfr.fr (SMTP Server) with ESMTP id 7E29170002AE
+	for <linux-media@vger.kernel.org>; Sat,  8 Jan 2011 13:12:22 +0100 (CET)
+Received: from filter.sfr.fr (localhost [127.0.0.1])
+	by msfrf2306.sfr.fr (SMTP Server) with ESMTP id 4CC197000091
+	for <linux-media@vger.kernel.org>; Sat,  8 Jan 2011 13:09:21 +0100 (CET)
+Received: from smtp-in.softsystem.co.uk (163.247.194-77.rev.gaoland.net [77.194.247.163])
+	by msfrf2306.sfr.fr (SMTP Server) with SMTP id 01AE1700008C
+	for <linux-media@vger.kernel.org>; Sat,  8 Jan 2011 13:09:20 +0100 (CET)
+Received: FROM [192.168.1.62] (gagarin [192.168.1.62])
+	BY smtp-in.softsystem.co.uk [77.194.247.163] (SoftMail 1.0.5, www.softsystem.co.uk) WITH ESMTP
+	FOR <linux-media@vger.kernel.org>; Sat, 08 Jan 2011 13:09:10 +0100
+Subject: Re: [REGRESSION: wm8775, ivtv] Please revert commit
+ fcb9757333df37cf4a7feccef7ef6f5300643864
+From: Lawrence Rust <lawrence@softsystem.co.uk>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Eric Sharkey <eric@lisaneric.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	auric <auric@aanet.com.au>, David Gesswein <djg@pdp8online.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	ivtv-users@ivtvdriver.org, ivtv-devel@ivtvdriver.org
+In-Reply-To: <1294094056.10094.41.camel@morgan.silverblock.net>
+References: <1293843343.7510.23.camel@localhost>
+	 <AANLkTimHh4aS-6cp-CsX68WVSF6U+k6gb2mBSwkhd1Xn@mail.gmail.com>
+	 <1294094056.10094.41.camel@morgan.silverblock.net>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 08 Jan 2011 13:09:10 +0100
+Message-ID: <1294488550.9475.20.camel@gagarin>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201101241220.41598.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
-
-On Wednesday 19 January 2011 08:23:18 Hans Verkuil wrote:
-> On Wednesday, January 19, 2011 00:50:35 Laurent Pinchart wrote:
-> > On Wednesday 19 January 2011 00:05:10 Hans Verkuil wrote:
-> > > On Tuesday, January 18, 2011 23:18:42 Martin Hostettler wrote:
-
-[snip]
-
-> > > > +#ifdef CONFIG_VIDEO_ADV_DEBUG
-> > > > +static long mt9m032_ioctl(struct v4l2_subdev *sd, unsigned int cmd,
-> > > > void *arg) +{
-> > > > +	if (cmd == VIDIOC_DBG_G_REGISTER || cmd == VIDIOC_DBG_S_REGISTER) {
-> > > > +		struct v4l2_dbg_register *p = arg;
-> > > > +
-> > > > +		if (!capable(CAP_SYS_ADMIN))
-> > > > +			return -EPERM;
-> > > > +
-> > > > +		if (cmd == VIDIOC_DBG_G_REGISTER)
-> > > > +			return v4l2_subdev_call(sd, core, g_register, p);
-> > > > +		else
-> > > > +			return v4l2_subdev_call(sd, core, s_register, p);
-> > > > +	} else {
-> > > > +		return -ENOIOCTLCMD;
-> > > > +	}
-> > > > +}
-> > > 
-> > > Huh? Ah, I get it. This is for when the user uses the subdev's device
-> > > node directly. This is not good, the v4l2 framework should do
-> > > translate this to g/s_register.
+On Mon, 2011-01-03 at 17:34 -0500, Andy Walls wrote:
+> On Sun, 2011-01-02 at 23:00 -0500, Eric Sharkey wrote:
+> > On Fri, Dec 31, 2010 at 7:55 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+> > > Mauro,
+> > >
+> > > Please revert at least the wm8775.c portion of commit
+> > > fcb9757333df37cf4a7feccef7ef6f5300643864:
+> > >
+> > > http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=fcb9757333df37cf4a7feccef7ef6f5300643864
+> > >
+> > > It completely trashes baseband line-in audio for PVR-150 cards, and
+> > > likely does the same for any other ivtv card that has a WM8775 chip.
 > > 
-> > Agreed.
-> > 
-> > > The same should be done for g_chip_ident, I guess.
-> > 
-> > I don't think we need g_chip_ident for subdev nodes, do we ?
-> 
-> Why not? It makes the use of v4l2-dbg a bit easier if it is there. If you
-> provide g/s_register, then you should provide this one as well.
+> > Confirmed.  I manually rolled back most of the changes in that commit
+> > for wm8775.c, leaving all other files alone, and the audio is now
+> > working correctly for me.  I haven't yet narrowed it down to exactly
+> > which changes in that file cause the problem.  I'll try and do that
+> > tomorrow if I have time.
 
-Because v4l2_dbg_register::match is used to address a specific subdevice. When 
-issuing the VIDIOC_DBG_[GS]_REGISTER ioctls on a subdev device node, the field 
-isn't needed anymore.
+Oh dear, you leave the ranch for 5 minutes to a place without email and
+all hell breaks loose.  Didn't anyone think that New Year is a time for
+holidays?
 
-> I though of another one that should be handled in the framework:
-> VIDIOC_LOG_STATUS.
-> 
-> That definitely should be handled as well.
+So, for a minor niggle, which is trivially sorted, you pull almost the
+whole patch leaving the only bit that causes problems for the Nova-S
+(for which the patch was intended).  The remnant,
+drivers/media/video/cx88/cx88-cards.c line 970, adds wm8775 baseband
+audio-in which is horribly distorted without the patch.  So I suggest it
+too is removed.
 
--- 
-Regards,
+Now, if someone can direct me to a full hardware description for the
+PVR-150 and datasheets for the components connected to the wm8775 then
+I'll endeavour to provide a solution compatible with both.  If anyone
+can loan me a PVR-150 then so much the better, but it's not essential if
+the full docs are available.
 
-Laurent Pinchart
+-- Lawrence
+
+
