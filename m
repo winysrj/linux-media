@@ -1,73 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55860 "EHLO arroyo.ext.ti.com"
+Received: from mx.treblig.org ([80.68.94.177]:42373 "EHLO mx.treblig.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752706Ab1AJKV5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jan 2011 05:21:57 -0500
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Kevin Hilman <khilman@deeprootsystems.com>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH v13 0/8] davinci vpbe: dm6446 v4l2 driver
-Date: Mon, 10 Jan 2011 15:51:30 +0530
-Message-Id: <1294654890-1151-1-git-send-email-manjunath.hadli@ti.com>
+	id S1751358Ab1AIAeL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 8 Jan 2011 19:34:11 -0500
+Date: Sun, 9 Jan 2011 00:34:04 +0000
+From: "Dr. David Alan Gilbert" <linux@treblig.org>
+To: Andy Walls <awalls@md.metrocast.net>, hverkuil@xs4all.nl
+Cc: ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
+Subject: Re: user accesses in ivtv-fileops.c:ivtv_v4l2_write ?
+Message-ID: <20110109003404.GB21550@gallifrey>
+References: <20101128174022.GA4401@gallifrey> <1292118578.21588.13.camel@localhost> <20101212175737.GA30695@gallifrey>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20101212175737.GA30695@gallifrey>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-version13 : addressed Sergei's and Bjarn Forsman's comments
-on:
-1. Fixing the module patams typo.
-2. Removal of unused macros
-3. Minor changes in the GPL licensing header.
-The GPL now reads:
-  This program is free software; you can redistribute it and/or
-  modify it under the terms of the GNU General Public License as
-  published by the Free Software Foundation version 2.
+Hi Andy,
+  It looks like we missed something in that copy from user
+patch from the end of last year:
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
++void ivtv_write_vbi_from_user(struct ivtv *itv,
++                             const struct v4l2_sliced_vbi_data __user *sliced,
++                             size_t cnt)
++{
++       struct vbi_cc cc = { .odd = { 0x80, 0x80 }, .even = { 0x80, 0x80 } };
++       int found_cc = 0;
++       size_t i;
++       struct v4l2_sliced_vbi_data d;
++
++       for (i = 0; i < cnt; i++) {
++               if (copy_from_user(&d, sliced + i,
++                                  sizeof(struct v4l2_sliced_vbi_data)))
++                       break;
++               ivtv_write_vbi_line(itv, sliced + i, &cc, &found_cc);
 
-Manjunath Hadli (8):
-  davinci vpbe: V4L2 display driver for DM644X SoC
-  davinci vpbe: VPBE display driver
-  davinci vpbe: OSD(On Screen Display) block
-  davinci vpbe: VENC( Video Encoder) implementation
-  davinci vpbe: platform specific additions
-  davinci vpbe: board specific additions
-  davinci vpbe: Build infrastructure for VPBE driver
-  davinci vpbe: Readme text for Dm6446 vpbe
 
- Documentation/video4linux/README.davinci-vpbe |   93 ++
- arch/arm/mach-davinci/board-dm644x-evm.c      |   86 +-
- arch/arm/mach-davinci/dm644x.c                |  168 ++-
- arch/arm/mach-davinci/include/mach/dm644x.h   |   18 +-
- drivers/media/video/davinci/Kconfig           |   22 +
- drivers/media/video/davinci/Makefile          |    2 +
- drivers/media/video/davinci/vpbe.c            |  826 ++++++++++
- drivers/media/video/davinci/vpbe_display.c    | 2084 +++++++++++++++++++++++++
- drivers/media/video/davinci/vpbe_osd.c        | 1216 ++++++++++++++
- drivers/media/video/davinci/vpbe_osd_regs.h   |  364 +++++
- drivers/media/video/davinci/vpbe_venc.c       |  556 +++++++
- drivers/media/video/davinci/vpbe_venc_regs.h  |  177 +++
- include/media/davinci/vpbe.h                  |  185 +++
- include/media/davinci/vpbe_display.h          |  146 ++
- include/media/davinci/vpbe_osd.h              |  397 +++++
- include/media/davinci/vpbe_types.h            |   91 ++
- include/media/davinci/vpbe_venc.h             |   41 +
- 17 files changed, 6445 insertions(+), 27 deletions(-)
- create mode 100644 Documentation/video4linux/README.davinci-vpbe
- create mode 100644 drivers/media/video/davinci/vpbe.c
- create mode 100644 drivers/media/video/davinci/vpbe_display.c
- create mode 100644 drivers/media/video/davinci/vpbe_osd.c
- create mode 100644 drivers/media/video/davinci/vpbe_osd_regs.h
- create mode 100644 drivers/media/video/davinci/vpbe_venc.c
- create mode 100644 drivers/media/video/davinci/vpbe_venc_regs.h
- create mode 100644 include/media/davinci/vpbe.h
- create mode 100644 include/media/davinci/vpbe_display.h
- create mode 100644 include/media/davinci/vpbe_osd.h
- create mode 100644 include/media/davinci/vpbe_types.h
- create mode 100644 include/media/davinci/vpbe_venc.h
+sparse is giving me:
+drivers/media/video/ivtv/ivtv-vbi.c:177:49: warning: incorrect type in argument 2 (different address spaces)
+drivers/media/video/ivtv/ivtv-vbi.c:177:49:    expected struct v4l2_sliced_vbi_data const *d
+drivers/media/video/ivtv/ivtv-vbi.c:177:49:    got struct v4l2_sliced_vbi_data const [noderef] <asn:1>*
 
+and I think the point is that while you've copied the data I think
+you're still passing the user pointer to ivtv_write_vbi_line and it 
+should be:
+
+               ivtv_write_vbi_line(itv, &d, &cc, &found_cc);
+
+
+What do you think?
+
+Dave
+
+
+-- 
+ -----Open up your eyes, open up your mind, open up your code -------   
+/ Dr. David Alan Gilbert    |       Running GNU/Linux       | Happy  \ 
+\ gro.gilbert @ treblig.org |                               | In Hex /
+ \ _________________________|_____ http://www.treblig.org   |_______/
