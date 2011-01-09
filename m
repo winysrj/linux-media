@@ -1,61 +1,40 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59832 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753254Ab1A0MbA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jan 2011 07:31:00 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from rcsinet10.oracle.com ([148.87.113.121]:55187 "EHLO
+	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750911Ab1AIEBT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Jan 2011 23:01:19 -0500
+Date: Sat, 8 Jan 2011 19:53:53 -0800
+From: Randy Dunlap <randy.dunlap@oracle.com>
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v6 07/11] v4l: v4l2_subdev pad-level operations
-Date: Thu, 27 Jan 2011 13:30:52 +0100
-Message-Id: <1296131456-30000-8-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1296131456-30000-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1296131456-30000-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] ir-raw: fix sparse non-ANSI function warning
+Message-Id: <20110108195353.3925990e.randy.dunlap@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add a v4l2_subdev_pad_ops structure for the operations that need to be
-performed at the pad level such as format-related operations.
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Pad format-related operations use v4l2_mbus_framefmt instead of
-v4l2_format.
+Fix sparse warning for non-ANSI function declaration:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+drivers/media/rc/ir-raw.c:247:30: warning: non-ANSI function declaration of function 'ir_raw_get_allowed_protocols'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc:	Mauro Carvalho Chehab <mchehab@infradead.org>
 ---
- include/media/v4l2-subdev.h |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+ drivers/media/rc/ir-raw.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index af704df..4f6ddba 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -42,6 +42,7 @@ struct v4l2_ctrl_handler;
- struct v4l2_event_subscription;
- struct v4l2_fh;
- struct v4l2_subdev;
-+struct v4l2_subdev_fh;
- struct tuner_setup;
+--- lnx0107.orig/drivers/media/rc/ir-raw.c
++++ lnx0107/drivers/media/rc/ir-raw.c
+@@ -233,7 +233,7 @@ EXPORT_SYMBOL_GPL(ir_raw_event_handle);
  
- /* decode_vbi_line */
-@@ -423,6 +424,9 @@ struct v4l2_subdev_ir_ops {
- 				struct v4l2_subdev_ir_parameters *params);
- };
- 
-+struct v4l2_subdev_pad_ops {
-+};
-+
- struct v4l2_subdev_ops {
- 	const struct v4l2_subdev_core_ops	*core;
- 	const struct v4l2_subdev_file_ops	*file;
-@@ -432,6 +436,7 @@ struct v4l2_subdev_ops {
- 	const struct v4l2_subdev_vbi_ops	*vbi;
- 	const struct v4l2_subdev_ir_ops		*ir;
- 	const struct v4l2_subdev_sensor_ops	*sensor;
-+	const struct v4l2_subdev_pad_ops	*pad;
- };
- 
- #define V4L2_SUBDEV_NAME_SIZE 32
--- 
-1.7.3.4
-
+ /* used internally by the sysfs interface */
+ u64
+-ir_raw_get_allowed_protocols()
++ir_raw_get_allowed_protocols(void)
+ {
+ 	u64 protocols;
+ 	mutex_lock(&ir_raw_handler_lock);
