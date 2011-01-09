@@ -1,190 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:42480 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757430Ab1AGCRQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jan 2011 21:17:16 -0500
-MIME-Version: 1.0
-In-Reply-To: <002201cbadfd$6d59e490$480dadb0$%han@samsung.com>
-References: <4D25BC22.6080803@samsung.com>
-	<AANLkTi=P8qY22saY9a_-rze1wsr-DLMgc6Lfa6qnfM7u@mail.gmail.com>
-	<002201cbadfd$6d59e490$480dadb0$%han@samsung.com>
-Date: Fri, 7 Jan 2011 11:17:12 +0900
-Message-ID: <AANLkTinsduJkynwwEeM5K9f3D7C6jtBgkAyZ0-_0z2X-@mail.gmail.com>
-Subject: Re: Memory sharing issue by application on V4L2 based device driver
- with system mmu.
-From: InKi Dae <daeinki@gmail.com>
-To: Jonghun Han <jonghun.han@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-fbdev <linux-fbdev@vger.kernel.org>,
-	kyungmin.park@samsung.com
-Content-Type: text/plain; charset=EUC-KR
+Received: from cain.gsoft.com.au ([203.31.81.10]:54531 "EHLO cain.gsoft.com.au"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750869Ab1AIJZb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Jan 2011 04:25:31 -0500
+From: "Daniel O'Connor" <darius@dons.net.au>
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 8BIT
+Date: Sun, 9 Jan 2011 19:55:08 +1030
+Subject: Trouble with mythtv and media_build
+To: linux-media@vger.kernel.org
+Message-Id: <6662707F-771E-41A0-99A1-4C247A7E231B@dons.net.au>
+Mime-Version: 1.0 (Apple Message framework v1082)
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-thank you for your comments.
+I installed media_build on a ubuntu 10.04 (kernel 2.6.32-26-generic) to see if I can get both channels working again, however now I find that mythtv drops out fairly regularly with "Video frame buffering failed too many times".
 
-your second comment has no any problem as I said before, user virtual
-addess could be translated in page unit. but the problem, as you said,
-is that when cpu access to the memory in user mode, the memory
-allocated by malloc, page fault occurs so we can't find pfn to user
-virtual address. I missed that. but I think we could resolve this one.
+Also, the IR no longer works, the following is in dmesg:
+[   20.032080] IR RC5(x) protocol handler initialized
+[   20.034348] IR RC6 protocol handler initialized
+[   20.036681] IR JVC protocol handler initialized
+[   20.038843] IR Sony protocol handler initialized
+[   20.041000] ir_lirc_codec: Unknown symbol lirc_dev_fop_poll
+[   20.041110] ir_lirc_codec: Unknown symbol lirc_dev_fop_open
+[   20.041195] ir_lirc_codec: disagrees about version of symbol lirc_get_pdata
+[   20.041198] ir_lirc_codec: Unknown symbol lirc_get_pdata
+[   20.041279] ir_lirc_codec: Unknown symbol lirc_dev_fop_close
+[   20.041399] ir_lirc_codec: Unknown symbol lirc_dev_fop_read
+[   20.041472] ir_lirc_codec: disagrees about version of symbol lirc_register_driver
+[   20.041474] ir_lirc_codec: Unknown symbol lirc_register_driver
+[   20.041650] ir_lirc_codec: Unknown symbol lirc_dev_fop_ioctl
 
-as before, user application allocates memory through malloc function
-and then send it to device driver(using userptr feature). if the pfn
-is null when device driver translated user virtual address in page
-unit then it allocates phsical memory in page unit using some
-interface such as alloc_page() and then mapping them. when pfn is
-null, to check it and allocate physical memory in page unit could be
-processed by videobuf2.
+And there is no /dev/input node.
 
-of course, videobuf2 has no any duty considered for system mmu. so
-videobuf2 just provides callback for 3rd party and any platform with
-system mmu such as Samsung SoC C210 implements the function(allocating
-physical memory and mapping it) and registers it to callback of
-videobuf2. by doing so, I think your first comment could be cleared.
+I did some testing with mplayer and tzap and it seems to work OK though.
 
-please, feel free to give me your opinion and pointing out.
+The hardware in question is: 
+[   19.717981] cx23885 driver version 0.0.2 loaded
+[   19.718025] cx23885 0000:02:00.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
+[   19.718068] CORE cx23885[0]: subsystem: 18ac:db78, board: DViCO FusionHDTV DVB-T Dual Express [card=11,autodetected]
+[   19.724751] IR NEC protocol handler initialized
+[   19.785216]   alloc irq_desc for 22 on node -1
+[   19.785219]   alloc kstat_irqs on node -1
+[   19.785226] HDA Intel 0000:00:1b.0: PCI INT A -> GSI 22 (level, low) -> IRQ 22
+[   19.785257] HDA Intel 0000:00:1b.0: setting latency timer to 64
+[   19.869906] usbcore: registered new interface driver imon
+[   19.888867] cx23885_dvb_register() allocating 1 frontend(s)
+[   19.888872] cx23885[0]: cx23885 based dvb card
+[   19.908805] input: HDA Digital PCBeep as /devices/pci0000:00/0000:00:1b.0/input/input5
+[   19.923266] xc2028 0-0061: creating new instance
+[   19.923272] xc2028 0-0061: type set to XCeive xc2028/xc3028 tuner
+[   19.923280] DVB: registering new adapter (cx23885[0])
+[   19.923285] DVB: registering adapter 0 frontend 0 (Zarlink ZL10353 DVB-T)...
+[   19.923910] cx23885_dvb_register() allocating 1 frontend(s)
+[   19.923915] cx23885[0]: cx23885 based dvb card
+[   19.924610] xc2028 1-0061: creating new instance
+[   19.924613] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
+[   19.924617] DVB: registering new adapter (cx23885[0])
+[   19.924622] DVB: registering adapter 1 frontend 0 (Zarlink ZL10353 DVB-T)...
+[   19.925007] cx23885_dev_checkrevision() Hardware revision = 0xb0
+[   19.925019] cx23885[0]/0: found at 0000:02:00.0, rev: 2, irq: 16, latency: 0, mmio: 0xf5000000
+[   19.925026] cx23885 0000:02:00.0: setting latency timer to 64
+[   19.925100]   alloc irq_desc for 30 on node -1
+[   19.925103]   alloc kstat_irqs on node -1
+[   19.925121] cx23885 0000:02:00.0: irq 30 for MSI/MSI-X
 
-thank you.
+Any suggestions? I am going back to the vanilla kernel for now but I'm happy to test things :)
 
-2011년 1월 7일 오전 8:57, Jonghun Han <jonghun.han@samsung.com>님의 말:
->
-> Hello,
->
-> There are two reasons why malloc isn't suitable for it.
->
-> The first is that malloc doesn't allocate memory when malloc is called.
-> So driver or vb2 cannot find PFN for it in the VIDIOC_QBUF.
->
-> The second is that malloc uses 4KB page allocation.
-> SYS.MMU(IO-MMU) can handle scattered memory. But it has a penalty when TLB
-> miss is occurred.
-> So as possible as physically contiguous pages are needed for performance
-> enhancement.
->
-> So new allocator which can clear two main issues is needed.
->
-> Best regards,
->
->> -----Original Message-----
->> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->> owner@vger.kernel.org] On Behalf Of InKi Dae
->> Sent: Thursday, January 06, 2011 10:25 PM
->> To: linux-media@vger.kernel.org
->> Subject: Memory sharing issue by application on V4L2 based device driver
-> with
->> system mmu.
->>
->> Hello, all.
->>
->> I'd like to discuss memory sharing issue by application on v4l2 based
-> device driver
->> with system mmu and get some advices about that.
->>
->> Now I am working on Samsung SoC C210 platform and this platform has some
->> multimedia devices with system mmu such as fimc, and mfc also we have
->> implemented device drivers for them. those drivers are based on V4L2
-> framework
->> with videobuf2. for system mmu of each device, we used VCM(Virtual
-> Contiguous
->> Memory) framework.
->>
->> Simply, VCM framework provides  physical memory, device virtual memory
->> allocation and memory mapping between them. when device driver is
-> initialized or
->> operated by user application, each driver allocates physical memory and
-> device
->> virtual memory and then mapping using VCM interface.
->>
->> refer to below link for more detail.
->> http://www.spinics.net/lists/linux-media/msg26548.html
->>
->> Physical memory access process is as the following.
->>            DVA                          PA
->> device --------------> system mmu ------------------> physical memory
->>
->> DVA : device virtual address.
->> PA : physical address.
->>
->> like this, device virtual address should be set to buffer(source or
->> destination) register of multimedia device.
->>
->> the problem is that application want to share own memory with any device
-> driver to
->> avoid memory copy. in other words, user-allocated memory could be source
-> or
->> destination memory of multimedia device driver.
->>
->>
->> let's see the diagram below.
->>
->>                user application
->>
->>                      |
->>                      |
->>                      |
->>                      |
->>                      |  1. UVA(allocated by malloc)
->>                      |
->>                      |
->>                    ＼|/                   2. UVA(in page unit)
->>
->>        -----> multimedia device driver -------------------> videobuf2
->>        |
->>        |        |     ^                                         |
->>        |        |     |                                         |
->>        |        |     -------------------------------------------
->>        |        |                    3. PA(in page unit)
->>        |        |
->>        |        | 4. PA(in page unit)
->> 6. DVA  |        |
->>        |        |
->>        |        |
->>        |      ＼|/
->>        |
->>        |       Virtual Contiguous Memory ---------
->>        |                                         |
->>        |           |     ^                       |
->>        |           |     |                       | 5. map PA to DVA
->>        |           |     |                       |
->>        |           |     |                       |
->>        -------------     -------------------------
->>
->> PA : physical address.
->> UVA : user virtual address.
->> DVA : device virtual address.
->>
->> 1. user application allocates user space memory through malloc function
-> and
->> sending it to multimedia device driver based on v4l2 framework through
-> userptr
->> feature.
->>
->> 2, 3. multimedia device driver gets translated physical address from
->> videobuf2 framework in page unit.
->>
->> 4, 5. multimedia device driver gets allocated device virtual address and
-> mapping it
->> to physical address and then mapping them through VCM interface.
->>
->> 6. multimedia device driver sets device virtual address from VCM to
-> buffer register.
->>
->> the diagram above is fully theoretical so I wonder that this way is
-> reasonable and
->> has some problems also what should be considered.
->>
->> thank you for your interesting.
->>
->> _______________________________________________
->> linux-arm-kernel mailing list
->> linux-arm-kernel@lists.infradead.org
->> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body
->> of a message to majordomo@vger.kernel.org More majordomo info at
->> http://vger.kernel.org/majordomo-info.html
->
->
+Thanks.
+
+--
+Daniel O'Connor software and network engineer
+for Genesis Software - http://www.gsoft.com.au
+"The nice thing about standards is that there
+are so many of them to choose from."
+  -- Andrew Tanenbaum
+GPG Fingerprint - 5596 B766 97C0 0E94 4347 295E E593 DC20 7B3F CE8C
+
+
+
+
+
+
