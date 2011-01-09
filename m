@@ -1,273 +1,115 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59804 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753267Ab1A0Map (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jan 2011 07:30:45 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Cc: sakari.ailus@maxwell.research.nokia.com,
-	broonie@opensource.wolfsonmicro.com, clemens@ladisch.de
-Subject: [PATCH v8 09/12] media: Pipelines and media streams
-Date: Thu, 27 Jan 2011 13:30:34 +0100
-Message-Id: <1296131437-29954-10-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1296131437-29954-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1296131437-29954-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from moutng.kundenserver.de ([212.227.126.187]:55321 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751045Ab1AITYW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Jan 2011 14:24:22 -0500
+Date: Sun, 9 Jan 2011 20:24:18 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Qing Xu <qingx@marvell.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Kassey Lee <ygli@marvell.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] [media] v4l: soc-camera: add enum-frame-size ioctl
+In-Reply-To: <Pine.LNX.4.64.1101071515410.32550@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1101092023510.833@axis700.grange>
+References: <1294368595-2518-1-git-send-email-qingx@marvell.com>
+ <Pine.LNX.4.64.1101071515410.32550@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Drivers often need to associate pipeline objects to entities, and to
-take stream state into account when configuring entities and links. The
-pipeline API helps drivers manage that information.
+On Fri, 7 Jan 2011, Guennadi Liakhovetski wrote:
 
-When starting streaming, drivers call media_entity_pipeline_start(). The
-function marks all entities connected to the given entity through
-enabled links, either directly or indirectly, as streaming. Similarly,
-when stopping the stream, drivers call media_entity_pipeline_stop().
+> On Fri, 7 Jan 2011, Qing Xu wrote:
+> 
+> > pass VIDIOC_ENUM_FRAMESIZES down to sub device drivers. So far no
+> > special handling in soc-camera core.
+> 
+> Hm, no, guess what? I don't think this can work. The parameter, that this 
+> routine gets from the user struct v4l2_frmsizeenum contains a member 
+> pixel_format, which is a fourcc code. Whereas subdevices don't deal with 
+> them, they deal with mediabus codes. It is the same problem as with old 
+> s/g/try/enum_fmt, which we replaced with respective mbus variants. So, we 
+> either have to add our own .enum_mbus_framesizes video subdevice 
+> operation, or we abuse this one, but interpret the pixel_format field as a 
+> media-bus code.
+> 
+> Currently I only see one subdev driver, that implements this API: 
+> ov7670.c, and it just happily ignores the pixel_format altogether...
+> 
+> Hans, Laurent, what do you think?
+> 
+> In the soc-camera case you will have to use soc_camera_xlate_by_fourcc() 
+> to convert to media-bus code from fourcc. A nit-pick: please, follow the 
+> style of the file, that you patch and don't add double empty lines between 
+> functions.
+> 
+> A side question: why do you need this format at all? Is it for some custom 
 
-The media_entity_pipeline_start() function takes a pointer to a media
-pipeline and stores it in every entity in the graph. Drivers should
-embed the media_pipeline structure in higher-level pipeline structures
-and can then access the pipeline through the media_entity structure.
+Sorry, I meant to ask - what do you need this operation / ioctl() for?
 
-Link configuration will fail with -EBUSY by default if either end of the
-link is a streaming entity, unless the link is marked with the
-MEDIA_LNK_FL_DYNAMIC flag.
+Thanks
+Guennadi
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> application? What is your use-case, that makes try_fmt / s_fmt 
+> insufficient for you and how does enum_framesizes help you?
+> 
+> Thanks
+> Guennadi
+> 
+> > 
+> > Signed-off-by: Kassey Lee <ygli@marvell.com>
+> > Signed-off-by: Qing Xu <qingx@marvell.com>
+> > ---
+> >  drivers/media/video/soc_camera.c |   11 +++++++++++
+> >  1 files changed, 11 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+> > index 052bd6d..11715fb 100644
+> > --- a/drivers/media/video/soc_camera.c
+> > +++ b/drivers/media/video/soc_camera.c
+> > @@ -145,6 +145,16 @@ static int soc_camera_s_std(struct file *file, void *priv, v4l2_std_id *a)
+> >  	return v4l2_subdev_call(sd, core, s_std, *a);
+> >  }
+> >  
+> > +static int soc_camera_enum_framesizes(struct file *file, void *fh,
+> > +					 struct v4l2_frmsizeenum *fsize)
+> > +{
+> > +	struct soc_camera_device *icd = file->private_data;
+> > +	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+> > +
+> > +	return v4l2_subdev_call(sd, video, enum_framesizes, fsize);
+> > +}
+> > +
+> > +
+> >  static int soc_camera_reqbufs(struct file *file, void *priv,
+> >  			      struct v4l2_requestbuffers *p)
+> >  {
+> > @@ -1302,6 +1312,7 @@ static const struct v4l2_ioctl_ops soc_camera_ioctl_ops = {
+> >  	.vidioc_g_input		 = soc_camera_g_input,
+> >  	.vidioc_s_input		 = soc_camera_s_input,
+> >  	.vidioc_s_std		 = soc_camera_s_std,
+> > +	.vidioc_enum_framesizes  = soc_camera_enum_framesizes,
+> >  	.vidioc_reqbufs		 = soc_camera_reqbufs,
+> >  	.vidioc_try_fmt_vid_cap  = soc_camera_try_fmt_vid_cap,
+> >  	.vidioc_querybuf	 = soc_camera_querybuf,
+> > -- 
+> > 1.6.3.3
+> > 
+> 
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
 ---
- Documentation/DocBook/v4l/media-ioc-enum-links.xml |    5 ++
- Documentation/DocBook/v4l/media-ioc-setup-link.xml |    3 +
- Documentation/media-framework.txt                  |   38 ++++++++++
- drivers/media/media-entity.c                       |   73 ++++++++++++++++++++
- include/linux/media.h                              |    1 +
- include/media/media-entity.h                       |   10 +++
- 6 files changed, 130 insertions(+), 0 deletions(-)
-
-diff --git a/Documentation/DocBook/v4l/media-ioc-enum-links.xml b/Documentation/DocBook/v4l/media-ioc-enum-links.xml
-index daf0360..b204bfb 100644
---- a/Documentation/DocBook/v4l/media-ioc-enum-links.xml
-+++ b/Documentation/DocBook/v4l/media-ioc-enum-links.xml
-@@ -179,6 +179,11 @@
- 	    <entry>The link enabled state can't be modified at runtime. An
- 	    immutable link is always enabled.</entry>
- 	  </row>
-+	  <row>
-+	    <entry><constant>MEDIA_LNK_FL_DYNAMIC</constant></entry>
-+	    <entry>The link enabled state can be modified during streaming. This
-+	    flag is set by drivers and is read-only for applications.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/Documentation/DocBook/v4l/media-ioc-setup-link.xml b/Documentation/DocBook/v4l/media-ioc-setup-link.xml
-index 09ab3d2..2331e76 100644
---- a/Documentation/DocBook/v4l/media-ioc-setup-link.xml
-+++ b/Documentation/DocBook/v4l/media-ioc-setup-link.xml
-@@ -60,6 +60,9 @@
-     <para>Link configuration has no side effect on other links. If an enabled
-     link at the sink pad prevents the link from being enabled, the driver
-     returns with an &EBUSY;.</para>
-+    <para>Only links marked with the <constant>DYNAMIC</constant> link flag can
-+    be enabled/disabled while streaming media data. Attempting to enable or
-+    disable a streaming non-dynamic link will return an &EBUSY;.</para>
-     <para>If the specified link can't be found the driver returns with an
-     &EINVAL;.</para>
-   </refsect1>
-diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
-index 634845e..435d0c4 100644
---- a/Documentation/media-framework.txt
-+++ b/Documentation/media-framework.txt
-@@ -313,3 +313,41 @@ Link configuration must not have any side effect on other links. If an enabled
- link at a sink pad prevents another link at the same pad from being disabled,
- the link_setup operation must return -EBUSY and can't implicitly disable the
- first enabled link.
-+
-+
-+Pipelines and media streams
-+---------------------------
-+
-+When starting streaming, drivers must notify all entities in the pipeline to
-+prevent link states from being modified during streaming by calling
-+
-+	media_entity_pipeline_start(struct media_entity *entity,
-+				    struct media_pipeline *pipe);
-+
-+The function will mark all entities connected to the given entity through
-+enabled links, either directly or indirectly, as streaming.
-+
-+The media_pipeline instance pointed to by the pipe argument will be stored in
-+every entity in the pipeline. Drivers should embed the media_pipeline structure
-+in higher-level pipeline structures and can then access the pipeline through
-+the media_entity pipe field.
-+
-+Calls to media_entity_pipeline_start() can be nested. The pipeline pointer must
-+be identical for all nested calls to the function.
-+
-+When stopping the stream, drivers must notify the entities with
-+
-+	media_entity_pipeline_stop(struct media_entity *entity);
-+
-+If multiple calls to media_entity_pipeline_start() have been made the same
-+number of media_entity_pipeline_stop() calls are required to stop streaming. The
-+media_entity pipe field is reset to NULL on the last nested stop call.
-+
-+Link configuration will fail with -EBUSY by default if either end of the link is
-+a streaming entity. Links that can be modified while streaming must be marked
-+with the MEDIA_LNK_FL_DYNAMIC flag.
-+
-+If other operations need to be disallowed on streaming entities (such as
-+changing entities configuration parameters) drivers can explictly check the
-+media_entity stream_count field to find out if an entity is streaming. This
-+operation must be done with the media_device graph_mutex held.
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index d703ce8..e63e089 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -197,6 +197,75 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
- EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
- 
- /* -----------------------------------------------------------------------------
-+ * Pipeline management
-+ */
-+
-+/**
-+ * media_entity_pipeline_start - Mark a pipeline as streaming
-+ * @entity: Starting entity
-+ * @pipe: Media pipeline to be assigned to all entities in the pipeline.
-+ *
-+ * Mark all entities connected to a given entity through enabled links, either
-+ * directly or indirectly, as streaming. The given pipeline object is assigned to
-+ * every entity in the pipeline and stored in the media_entity pipe field.
-+ *
-+ * Calls to this function can be nested, in which case the same number of
-+ * media_entity_pipeline_stop() calls will be required to stop streaming. The
-+ * pipeline pointer must be identical for all nested calls to
-+ * media_entity_pipeline_start().
-+ */
-+void media_entity_pipeline_start(struct media_entity *entity,
-+				 struct media_pipeline *pipe)
-+{
-+	struct media_device *mdev = entity->parent;
-+	struct media_entity_graph graph;
-+
-+	mutex_lock(&mdev->graph_mutex);
-+
-+	media_entity_graph_walk_start(&graph, entity);
-+
-+	while ((entity = media_entity_graph_walk_next(&graph))) {
-+		entity->stream_count++;
-+		WARN_ON(entity->pipe && entity->pipe != pipe);
-+		entity->pipe = pipe;
-+	}
-+
-+	mutex_unlock(&mdev->graph_mutex);
-+}
-+EXPORT_SYMBOL_GPL(media_entity_pipeline_start);
-+
-+/**
-+ * media_entity_pipeline_stop - Mark a pipeline as not streaming
-+ * @entity: Starting entity
-+ *
-+ * Mark all entities connected to a given entity through enabled links, either
-+ * directly or indirectly, as not streaming. The media_entity pipe field is
-+ * reset to NULL.
-+ *
-+ * If multiple calls to media_entity_pipeline_start() have been made, the same
-+ * number of calls to this function are required to mark the pipeline as not
-+ * streaming.
-+ */
-+void media_entity_pipeline_stop(struct media_entity *entity)
-+{
-+	struct media_device *mdev = entity->parent;
-+	struct media_entity_graph graph;
-+
-+	mutex_lock(&mdev->graph_mutex);
-+
-+	media_entity_graph_walk_start(&graph, entity);
-+
-+	while ((entity = media_entity_graph_walk_next(&graph))) {
-+		entity->stream_count--;
-+		if (entity->stream_count == 0)
-+			entity->pipe = NULL;
-+	}
-+
-+	mutex_unlock(&mdev->graph_mutex);
-+}
-+EXPORT_SYMBOL_GPL(media_entity_pipeline_stop);
-+
-+/* -----------------------------------------------------------------------------
-  * Module use count
-  */
- 
-@@ -364,6 +433,10 @@ int __media_entity_setup_link(struct media_link *link, u32 flags)
- 	source = link->source->entity;
- 	sink = link->sink->entity;
- 
-+	if (!(link->flags & MEDIA_LNK_FL_DYNAMIC) &&
-+	    (source->stream_count || sink->stream_count))
-+		return -EBUSY;
-+
- 	mdev = source->parent;
- 
- 	if ((flags & MEDIA_LNK_FL_ENABLED) && mdev->link_notify) {
-diff --git a/include/linux/media.h b/include/linux/media.h
-index 2f67ed2..29039e8 100644
---- a/include/linux/media.h
-+++ b/include/linux/media.h
-@@ -106,6 +106,7 @@ struct media_pad_desc {
- 
- #define MEDIA_LNK_FL_ENABLED		(1 << 0)
- #define MEDIA_LNK_FL_IMMUTABLE		(1 << 1)
-+#define MEDIA_LNK_FL_DYNAMIC		(1 << 2)
- 
- struct media_link_desc {
- 	struct media_pad_desc source;
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 60fc7bd..450ba12 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -26,6 +26,9 @@
- #include <linux/list.h>
- #include <linux/media.h>
- 
-+struct media_pipeline {
-+};
-+
- struct media_link {
- 	struct media_pad *source;	/* Source pad */
- 	struct media_pad *sink;		/* Sink pad  */
-@@ -67,8 +70,11 @@ struct media_entity {
- 
- 	const struct media_entity_operations *ops;	/* Entity operations */
- 
-+	int stream_count;		/* Stream count for the entity. */
- 	int use_count;			/* Use count for the entity. */
- 
-+	struct media_pipeline *pipe;	/* Pipeline this entity belongs to. */
-+
- 	union {
- 		/* Node specifications */
- 		struct {
-@@ -114,6 +120,7 @@ struct media_entity_graph {
- int media_entity_init(struct media_entity *entity, u16 num_pads,
- 		struct media_pad *pads, u16 extra_links);
- void media_entity_cleanup(struct media_entity *entity);
-+
- int media_entity_create_link(struct media_entity *source, u16 source_pad,
- 		struct media_entity *sink, u16 sink_pad, u32 flags);
- int __media_entity_setup_link(struct media_link *link, u32 flags);
-@@ -129,6 +136,9 @@ void media_entity_graph_walk_start(struct media_entity_graph *graph,
- 		struct media_entity *entity);
- struct media_entity *
- media_entity_graph_walk_next(struct media_entity_graph *graph);
-+void media_entity_pipeline_start(struct media_entity *entity,
-+		struct media_pipeline *pipe);
-+void media_entity_pipeline_stop(struct media_entity *entity);
- 
- #define media_entity_call(entity, operation, args...)			\
- 	(((entity)->ops && (entity)->ops->operation) ?			\
--- 
-1.7.3.4
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
