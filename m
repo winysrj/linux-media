@@ -1,74 +1,39 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:60260 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755405Ab1AKMQc convert rfc822-to-8bit (ORCPT
+Received: from chybek.jannau.net ([83.169.20.219]:39920 "EHLO
+	chybek.jannau.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753715Ab1AJMfC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jan 2011 07:16:32 -0500
+	Mon, 10 Jan 2011 07:35:02 -0500
+Date: Mon, 10 Jan 2011 13:24:31 +0100
+From: Janne Grunau <j@jannau.net>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Jason Gauthier <jgauthier@lastar.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Janne Grunau <j@jannau.net>
+Subject: Re: Enable IR on hdpvr
+Message-ID: <20110110122431.GD11621@jannau.net>
+References: <65DE7931C559BF4DBEE42C3F8246249A0B686EB0@V-EXMAILBOX.ctg.com>
+ <8AFBEFD7-69E3-4E71-B155-EA773C2FED43@wilsonet.com>
 MIME-Version: 1.0
-In-Reply-To: <20110111112434.GE2385@legolas.emea.dhcp.ti.com>
-References: <1294745487-29138-1-git-send-email-manjunatha_halli@ti.com>
- <1294745487-29138-2-git-send-email-manjunatha_halli@ti.com>
- <1294745487-29138-3-git-send-email-manjunatha_halli@ti.com>
- <1294745487-29138-4-git-send-email-manjunatha_halli@ti.com> <20110111112434.GE2385@legolas.emea.dhcp.ti.com>
-From: halli manjunatha <manjunatha_halli@ti.com>
-Date: Tue, 11 Jan 2011 17:46:10 +0530
-Message-ID: <AANLkTimbqsDJ1KNSwzJ_RTQ3ON=-XUj0CZpZHAkeH9dP@mail.gmail.com>
-Subject: Re: [RFC V10 3/7] drivers:media:radio: wl128x: FM Driver Common sources
-To: balbi@ti.com
-Cc: mchehab@infradead.org, hverkuil@xs4all.nl,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <8AFBEFD7-69E3-4E71-B155-EA773C2FED43@wilsonet.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-an 11, 2011 at 4:54 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
->
-> On Tue, Jan 11, 2011 at 06:31:23AM -0500, manjunatha_halli@ti.com wrote:
->> From: Manjunatha Halli <manjunatha_halli@ti.com>
->>
->> These are the sources for the common interfaces required by the
->> FM V4L2 driver for TI WL127x and WL128x chips.
->>
->> These implement the FM channel-8 protocol communication with the
->> chip. This makes use of the Shared Transport as its transport.
->>
->> Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
->> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
->
-> looks like this is implementing a "proprietary" (by that I mean: for
-> this driver only) IRQ API. Why aren't you using GENIRQ with threaded
-> IRQs support ?
->
-> Core IRQ Subsystem would handle a lot of stuff for you.
+On Mon, Jan 10, 2011 at 01:05:10AM -0500, Jarod Wilson wrote:
+> 
+> There's a bit more to it than just the one line change. Here's the patch we're
+> carrying in the Fedora kernels to enable it:
+> 
+> http://wilsonet.com/jarod/lirc_misc/hdpvr-ir/hdpvr-ir-enable.patch
+> 
+> Janne, I've heard many success stories w/the hdpvr IR lately, and almost no reports
+> of lockups, so I'm thinking a firmware update may have helped out here, and thus,
+> maybe its time we just go ahead and push this patch along upstream? We still
+> require someone to load lirc_zilog manually, so it seems like a fairly low-risk
+> thing to do.
 
-There is no concept of Interrupts/IRQ as such here, Hence no question of using
-GENIRQ.
+Ack, go ahead. I haven't checked IR for a long time.
 
-The FM device WL128x is interfaced via the UART,
-(Internally inside the WL128x chip the BT-core on the chip
-communicates with FM chip via i2C, and would have dedicated interrupt
-lines may be...)
-
-So, Whenever we refer to interrupt or IRQ or handlers in the driver,
-It pretty much means a receive callback for the UART frame which
-constitutes the FM interrupt event.
-i.e FM interrupt would have occurred, If I receive a frame over UART
-which starts with 0x08 as 1st byte and has 0xFF as its 3rd byte.
-
-I hope this clarifies the non-usage of GENIRQ with threaded support.
-
-> --
-> balbi
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
-
--- 
-Regards
-Halli
+Janne
