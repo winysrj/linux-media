@@ -1,82 +1,95 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.samsung.com ([203.254.224.25]:20043 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753914Ab1AGAvY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jan 2011 19:51:24 -0500
-Date: Fri, 07 Jan 2011 09:51:13 +0900
-From: Jonghun Han <jonghun.han@samsung.com>
-Subject: RE: [PATCH 7/9] media: MFC: Add MFC v5.1 V4L2 driver
-In-reply-to: <000c01cbacef$97e5c490$c7b14db0$%debski@samsung.com>
-To: 'Kamil Debski' <k.debski@samsung.com>,
-	'Jeongtae Park' <jtp.park@samsung.com>,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: jaeryul.oh@samsung.com
-Message-id: <002601cbae05$010deb30$0329c190$%han@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: ko
-Content-transfer-encoding: 7BIT
-References: <1293018885-15239-1-git-send-email-jtp.park@samsung.com>
- <1293018885-15239-2-git-send-email-jtp.park@samsung.com>
- <1293018885-15239-3-git-send-email-jtp.park@samsung.com>
- <1293018885-15239-4-git-send-email-jtp.park@samsung.com>
- <1293018885-15239-5-git-send-email-jtp.park@samsung.com>
- <1293018885-15239-6-git-send-email-jtp.park@samsung.com>
- <1293018885-15239-7-git-send-email-jtp.park@samsung.com>
- <1293018885-15239-8-git-send-email-jtp.park@samsung.com>
- <002601cba59d$e4852290$ad8f67b0$%han@samsung.com>
- <000c01cbacef$97e5c490$c7b14db0$%debski@samsung.com>
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:4301 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754292Ab1AJSD1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Jan 2011 13:03:27 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Daniel Drake" <dsd@laptop.org>
+Subject: Re: [RFCv2 PATCH 0/5] Use control framework in cafe_ccic and s_config removal
+Date: Mon, 10 Jan 2011 19:03:08 +0100
+Cc: "Jonathan Corbet" <corbet@lwn.net>, linux-media@vger.kernel.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
+References: <1294484508-14820-1-git-send-email-hverkuil@xs4all.nl> <AANLkTi=9jZPTin=0TCrfPeiO9koE69pQLkqFjHOhLMZA@mail.gmail.com> <7be530a8d14997437511b57e7504785a.squirrel@webmail.xs4all.nl>
+In-Reply-To: <7be530a8d14997437511b57e7504785a.squirrel@webmail.xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201101101903.08675.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-
-Hi Kamil,
-
-Kamil Debski wrote:
-
-> Hi,
-> 
-> Thanks for the comment. Some of them include my code, which will I comment
-> below.
-> 
-> > My review also imply Kamil's original patch.
-> 
-
-<snip>
-
+On Monday, January 10, 2011 12:08:42 Hans Verkuil wrote:
+> > Hi,
 > >
-> > > +#define MFC_NUM_CONTEXTS	4
+> >>> Another reason why s_config is a bad idea.
 > >
-> > How about use MFC_NUM_INSTANT instead MFC_NUM_CONTEXTS ?
-> > Because too many terms can make confusion.
-> 
-> An instance means an MFC HW instance. Context is used for each open file
-handle.
-
-I know that. But as I know each handle can have only single MFC H/W
-instance.
-So I wish to reduce the terms. Is there anything I missed ?
-
-<snip>
-
+> > Thanks a lot for working on this. I had a quick look and don't have
+> > any objections.
 > >
-> > What's the difference btw num and inst_no ?
-> > It looks very similar.
+> >>> This has been extensively tested on my humble OLPC laptop (and it took
+> >>> me 4-5
+> >>> hours just to get the damn thing up and running with these drivers).
+> >
+> > In future, come into irc.oftc.net #olpc-devel and talk to me (dsd) or
+> > cjb (Chris Ball), we'll get you up and running in less time!
 > 
-> The inst_no is the number of hardware instance in MFC. Num on the other
-hand is
-> the number of context used by an open file handle.
-
-The inst_no made by MFC H/W has the same rule with num made by your code.
-So in my opinion it is always the same. How do you think about that ?
-
-<snip>
-
+> If you have a link to some instructions on how to get the latest kernel up
+> and running for olpc, then that would be handy :-)
 > 
-> Best wishes,
-> --
-> Kamil Debski
-> Linux Platform Group
-> Samsung Poland R&D Center
+> > I'll test the via-camera patch unless Jon beats me too it, but won't
+> > be immediately. If you are ever interested in doing more in-depth work
+> > on that driver, please drop me a mail and we will send you a XO-1.5.
+> 
+> It's just for ongoing V4L2 maintenance (such as this sort of work).
+> 
+> >
+> > Also, perhaps you are interested in working on this bug, which is
+> > probably reproducible with cafe_ccic too:
+> > http://www.mail-archive.com/linux-media@vger.kernel.org/msg23841.html
+> 
+> I'll see if I can reproduce this with cafe_ccic. Weird that I haven't seen
+> this before. The code looks fishy: my first guess is that sd->flags should
+> be put in a local variable before it is being tested.
+> 
+> I must have missed that bug report the first time around.
+
+I'm pretty sure that this simple patch will fix it:
+
+diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
+index 7fe6f92..83a2e69 100644
+--- a/drivers/media/video/v4l2-device.c
++++ b/drivers/media/video/v4l2-device.c
+@@ -100,6 +100,7 @@ void v4l2_device_unregister(struct v4l2_device *v4l2_dev)
+ 			   is a platform bus, then it is never deleted. */
+ 			if (client)
+ 				i2c_unregister_device(client);
++			continue;
+ 		}
+ #endif
+ #if defined(CONFIG_SPI)
+@@ -108,6 +109,7 @@ void v4l2_device_unregister(struct v4l2_device *v4l2_dev)
+ 
+ 			if (spi)
+ 				spi_unregister_device(spi);
++			continue;
+ 		}
+ #endif
+ 	}
 
 
+If you have time, then I'd appreciate it if you could check that this fixes it
+for via_camera. I'll try to test with on cafe_ccic as well some time this week.
+
+This bug is only triggered when a i2c module is unloaded on a platform i2c bus.
+
+This doesn't happen on PCI/USB i2c busses, which is the reason why I never saw
+it.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
