@@ -1,66 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:51198 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754090Ab1AGTbw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jan 2011 14:31:52 -0500
-From: Ben Gamari <bgamari.foss@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "Igor M. Liplianin" <liplianin@me.by>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, aospan@netup.ru
-Subject: Re: [PATCH 01/18] Altera FPGA firmware download module.
-In-Reply-To: <4D1DC2DD.6050400@infradead.org>
-References: <201012310726.31851.liplianin@netup.ru> <201012311212.19715.laurent.pinchart@ideasonboard.com> <4D1DBE2A.5080003@infradead.org> <201012311230.51903.laurent.pinchart@ideasonboard.com> <4D1DC2DD.6050400@infradead.org>
-Date: Fri, 07 Jan 2011 14:31:48 -0500
-Message-ID: <8739p45x3v.fsf@gmail.com>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3677 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750982Ab1AJLKU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Jan 2011 06:10:20 -0500
+Message-ID: <170992c8af3a0dc3eefac487554e7ca6.squirrel@webmail.xs4all.nl>
+In-Reply-To: <201101101208.00917.laurent.pinchart@ideasonboard.com>
+References: <201101101208.00917.laurent.pinchart@ideasonboard.com>
+Date: Mon, 10 Jan 2011 12:10:18 +0100
+Subject: Re: [GIT PULL FOR 2.6.38] Control framework fixes
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
+Cc: "Linux Media Mailing List" <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+> Hi Mauro,
+>
+> The following changes since commit
+> 0a97a683049d83deaf636d18316358065417d87b:
+>
+>   [media] cpia2: convert .ioctl to .unlocked_ioctl (2011-01-06 11:34:41
+> -0200)
+>
+> are available in the git repository at:
+>   git://linuxtv.org/pinchartl/media.git ctrl-framework
+>
+> Could you please include them in the next pull request for 2.6.38 ? The
+> second
+> one is a bug fix and has been reviewed by Hans.
 
-On Fri, 31 Dec 2010 09:47:41 -0200, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
-> Em 31-12-2010 09:30, Laurent Pinchart escreveu:
-> > Hi Mauro,
-> > 
-> > [snip]
-> > 
-> > I understand this. However, a complete JTAG state machine in the kernel, plus 
-> > an Altera firmware parser, seems to be a lot of code that could live in 
-> > userspace.
-> 
-> Moving it to userspace would mean a kernel driver that would depend on an
-> userspace daemon^Wfirmware loader to work. I would NAK such designs.
-> 
-> The way it is is fine from my POV.
+For both patches:
 
-Any furthur comment on this? As I noted, I strongly disagree and would
-point out that there is no shortage of precedent for the use of
-userspace callbacks for loading of firmware, especially when the process
-is as tricky as this.
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
 
-I also work with Altera FPGAs and have a strong interest in making this
-work yet from my perspective it seems pretty clear that the best way
-forward both for both maintainability and useability is to keep
-this code in user-space. There is absolutely no reason why this code
-_must_ be in the kernel and punting it out to userspace only requires
-a udev rule.
+>
+> Laurent Pinchart (2):
+>       v4l: Include linux/videodev2.h in media/v4l2-ctrls.h
+>       v4l: Fix a use-before-set in the control framework
+>
+>  drivers/media/video/v4l2-ctrls.c |    2 +-
+>  include/media/v4l2-ctrls.h       |    1 +
+>  2 files changed, 2 insertions(+), 1 deletions(-)
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-Placing this functionality in userspace results in a massive duplication
-of code, as there are already a number of functional user-space JTAG
-implementations.
 
-> > If I understand it correctly the driver assumes the firmware is in an Altera 
-> > proprietary format. If we really want JTAG code in the kernel we should at 
-> > least split the file parser and the TAP access code.
-> > 
-> 
-> Agreed, but I don't think this would be a good reason to block the code merge
-> for .38.
-> 
-Sure, but there should be agreement that a kernel-mode JTAG state
-machine really is the best way forward (i.e. necessary for effective
-firmware upload) before we commit to carry this code around forever.
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
 
-- Ben
