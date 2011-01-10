@@ -1,62 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59831 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753419Ab1A0Ma6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jan 2011 07:30:58 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v6 02/11] v4l: Replace enums with fixed-sized fields in public structure
-Date: Thu, 27 Jan 2011 13:30:47 +0100
-Message-Id: <1296131456-30000-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1296131456-30000-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1296131456-30000-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55860 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752706Ab1AJKV5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Jan 2011 05:21:57 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v13 0/8] davinci vpbe: dm6446 v4l2 driver
+Date: Mon, 10 Jan 2011 15:51:30 +0530
+Message-Id: <1294654890-1151-1-git-send-email-manjunath.hadli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The v4l2_mbus_framefmt structure will be part of the public userspace
-API and used (albeit indirectly) as an ioctl argument. As such, its size
-must be fixed across userspace ABIs.
+version13 : addressed Sergei's and Bjarn Forsman's comments
+on:
+1. Fixing the module patams typo.
+2. Removal of unused macros
+3. Minor changes in the GPL licensing header.
+The GPL now reads:
+  This program is free software; you can redistribute it and/or
+  modify it under the terms of the GNU General Public License as
+  published by the Free Software Foundation version 2.
 
-Replace the v4l2_field and v4l2_colorspace enums by __u32 fields and add
-padding for future enhancements.
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/linux/v4l2-mediabus.h |   17 +++++++++--------
- 1 files changed, 9 insertions(+), 8 deletions(-)
+Manjunath Hadli (8):
+  davinci vpbe: V4L2 display driver for DM644X SoC
+  davinci vpbe: VPBE display driver
+  davinci vpbe: OSD(On Screen Display) block
+  davinci vpbe: VENC( Video Encoder) implementation
+  davinci vpbe: platform specific additions
+  davinci vpbe: board specific additions
+  davinci vpbe: Build infrastructure for VPBE driver
+  davinci vpbe: Readme text for Dm6446 vpbe
 
-diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-index a62cd64..feeb88c 100644
---- a/include/linux/v4l2-mediabus.h
-+++ b/include/linux/v4l2-mediabus.h
-@@ -63,16 +63,17 @@ enum v4l2_mbus_pixelcode {
-  * struct v4l2_mbus_framefmt - frame format on the media bus
-  * @width:	frame width
-  * @height:	frame height
-- * @code:	data format code
-- * @field:	used interlacing type
-- * @colorspace:	colorspace of the data
-+ * @code:	data format code (from enum v4l2_mbus_pixelcode)
-+ * @field:	used interlacing type (from enum v4l2_field)
-+ * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
-  */
- struct v4l2_mbus_framefmt {
--	__u32				width;
--	__u32				height;
--	__u32				code;
--	enum v4l2_field			field;
--	enum v4l2_colorspace		colorspace;
-+	__u32			width;
-+	__u32			height;
-+	__u32			code;
-+	__u32			field;
-+	__u32			colorspace;
-+	__u32			reserved[7];
- };
- 
- #endif
--- 
-1.7.3.4
+ Documentation/video4linux/README.davinci-vpbe |   93 ++
+ arch/arm/mach-davinci/board-dm644x-evm.c      |   86 +-
+ arch/arm/mach-davinci/dm644x.c                |  168 ++-
+ arch/arm/mach-davinci/include/mach/dm644x.h   |   18 +-
+ drivers/media/video/davinci/Kconfig           |   22 +
+ drivers/media/video/davinci/Makefile          |    2 +
+ drivers/media/video/davinci/vpbe.c            |  826 ++++++++++
+ drivers/media/video/davinci/vpbe_display.c    | 2084 +++++++++++++++++++++++++
+ drivers/media/video/davinci/vpbe_osd.c        | 1216 ++++++++++++++
+ drivers/media/video/davinci/vpbe_osd_regs.h   |  364 +++++
+ drivers/media/video/davinci/vpbe_venc.c       |  556 +++++++
+ drivers/media/video/davinci/vpbe_venc_regs.h  |  177 +++
+ include/media/davinci/vpbe.h                  |  185 +++
+ include/media/davinci/vpbe_display.h          |  146 ++
+ include/media/davinci/vpbe_osd.h              |  397 +++++
+ include/media/davinci/vpbe_types.h            |   91 ++
+ include/media/davinci/vpbe_venc.h             |   41 +
+ 17 files changed, 6445 insertions(+), 27 deletions(-)
+ create mode 100644 Documentation/video4linux/README.davinci-vpbe
+ create mode 100644 drivers/media/video/davinci/vpbe.c
+ create mode 100644 drivers/media/video/davinci/vpbe_display.c
+ create mode 100644 drivers/media/video/davinci/vpbe_osd.c
+ create mode 100644 drivers/media/video/davinci/vpbe_osd_regs.h
+ create mode 100644 drivers/media/video/davinci/vpbe_venc.c
+ create mode 100644 drivers/media/video/davinci/vpbe_venc_regs.h
+ create mode 100644 include/media/davinci/vpbe.h
+ create mode 100644 include/media/davinci/vpbe_display.h
+ create mode 100644 include/media/davinci/vpbe_osd.h
+ create mode 100644 include/media/davinci/vpbe_types.h
+ create mode 100644 include/media/davinci/vpbe_venc.h
 
