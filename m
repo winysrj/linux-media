@@ -1,44 +1,41 @@
 Return-path: <mchehab@pedra>
-Received: from comal.ext.ti.com ([198.47.26.152]:55619 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753711Ab1AJMv6 convert rfc822-to-8bit (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:41242 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752349Ab1AJML2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jan 2011 07:51:58 -0500
-From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-To: "Nori, Sekhar" <nsekhar@ti.com>,
-	Sergei Shtylyov <sshtylyov@mvista.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	Kevin Hilman <khilman@deeprootsystems.com>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Date: Mon, 10 Jan 2011 18:21:34 +0530
-Subject: RE: [PATCH v13 5/8] davinci vpbe: platform specific additions
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930247F9A821@dbde02.ent.ti.com>
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024829B6B4@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Mon, 10 Jan 2011 07:11:28 -0500
+Subject: Maybe I'll hack on lirc_zilog.c this coming weekend (Re: Enable IR
+ on hdpvr)
+From: Andy Walls <awalls@md.metrocast.net>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Jason Gauthier <jgauthier@lastar.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Janne Grunau <j@jannau.net>
+In-Reply-To: <8AFBEFD7-69E3-4E71-B155-EA773C2FED43@wilsonet.com>
+References: <65DE7931C559BF4DBEE42C3F8246249A0B686EB0@V-EXMAILBOX.ctg.com>
+	 <8AFBEFD7-69E3-4E71-B155-EA773C2FED43@wilsonet.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 10 Jan 2011 07:12:13 -0500
+Message-ID: <1294661533.2084.14.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Jan 10, 2011 at 17:25:33, Nori, Sekhar wrote:
-> On Mon, Jan 10, 2011 at 16:58:41, Sergei Shtylyov wrote:
-> 
-> > > +
-> > > +#define OSD_REG_SIZE			0x000001ff
-> > > +#define VENC_REG_SIZE			0x0000017f
-> > 
-> >     Well, actually that's not the size but "limit" -- sizes should be 
-> > 0x200 and 0x180 respectively...
-> 
-> In most resource definitions on DaVinci, these are not even #defined. Just add the limit directly to the base to derive the .end
-> 
-> Thanks,
-> Sekhar
-> 
-Ok. I shall keep the numbers as is.
+On Mon, 2011-01-10 at 01:05 -0500, Jarod Wilson wrote:
+> On Jan 9, 2011, at 7:36 PM, Jason Gauthier wrote:
 
-Thanks,
--Manju
+> There's a bit more to it than just the one line change. Here's the patch we're
+> carrying in the Fedora kernels to enable it:
+> 
+> http://wilsonet.com/jarod/lirc_misc/hdpvr-ir/hdpvr-ir-enable.patch
+> 
+
+BTW, I plan to work on lirc_zilog.c this coming weekend, with my PVR-150
+and HVR-1600 as test units.  If there are any lirc_zilog.c patches you
+have developed that are not in the media_tree.git repo, could you point
+me to them before then?
+
+Regards,
+Andy
 
