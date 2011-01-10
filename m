@@ -1,86 +1,33 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1706 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753348Ab1ASHXa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jan 2011 02:23:30 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] v4l: Add driver for Micron MT9M032 camera sensor
-Date: Wed, 19 Jan 2011 08:23:18 +0100
-Cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
-	linux-media@vger.kernel.org
-References: <1295389122-30325-1-git-send-email-martin@neutronstar.dyndns.org> <201101190005.10652.hverkuil@xs4all.nl> <201101190050.35863.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201101190050.35863.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201101190823.18900.hverkuil@xs4all.nl>
+Received: from mail-in-08.arcor-online.net ([151.189.21.48]:53350 "EHLO
+	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751619Ab1AJSK0 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Jan 2011 13:10:26 -0500
+Subject: Re: [InfraSchlot SPAM Check] Re: [PATCH] DVB Satellite Channel Routing support for DVB-S
+Mime-Version: 1.0 (Apple Message framework v1082)
+Content-Type: text/plain; charset=us-ascii
+From: =?iso-8859-1?Q?Thomas_Schl=F6ter?= <thomas.schloeter@gmx.net>
+In-Reply-To: <201101101828.40752@orion.escape-edv.de>
+Date: Mon, 10 Jan 2011 19:10:19 +0100
+Cc: linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Message-Id: <C20366D6-935B-43DE-8A73-9C4B6B5A3051@gmx.net>
+References: <BDD0B014-3AD5-4693-82D9-026F47A7F8A4@gmx.net> <C8296DFF-0E53-4AA2-A6ED-CA8B83D424F2@gmx.net> <4D2B2BA6.7030009@linuxtv.org> <201101101828.40752@orion.escape-edv.de>
+To: linux-media@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wednesday, January 19, 2011 00:50:35 Laurent Pinchart wrote:
-> Hi Hans and Martin,
-> 
-> On Wednesday 19 January 2011 00:05:10 Hans Verkuil wrote:
-> > On Tuesday, January 18, 2011 23:18:42 Martin Hostettler wrote:
-> 
-> [snip]
-> 
-> > > +	return mt9m032_write_reg(client, MT9M032_VBLANK,
-> > > additional_blanking_rows);
-> > 
-> > I've found it easier to do the v4l2_subdev to i2c_client conversion at the
-> > lowest level: the read/write register functions. That way the conversion is
-> > done at only a few places, rather than at every place these read/write reg
-> > functions are called. Just my opinion, though.
-> 
-> I agree with this.
-> 
-> > > +#ifdef CONFIG_VIDEO_ADV_DEBUG
-> > > +static long mt9m032_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void
-> > > *arg) +{
-> > > +	if (cmd == VIDIOC_DBG_G_REGISTER || cmd == VIDIOC_DBG_S_REGISTER) {
-> > > +		struct v4l2_dbg_register *p = arg;
-> > > +
-> > > +		if (!capable(CAP_SYS_ADMIN))
-> > > +			return -EPERM;
-> > > +
-> > > +		if (cmd == VIDIOC_DBG_G_REGISTER)
-> > > +			return v4l2_subdev_call(sd, core, g_register, p);
-> > > +		else
-> > > +			return v4l2_subdev_call(sd, core, s_register, p);
-> > > +	} else {
-> > > +		return -ENOIOCTLCMD;
-> > > +	}
-> > > +}
-> > 
-> > Huh? Ah, I get it. This is for when the user uses the subdev's device node
-> > directly. This is not good, the v4l2 framework should do translate this to
-> > g/s_register.
-> 
-> Agreed.
-> 
-> > The same should be done for g_chip_ident, I guess.
-> 
-> I don't think we need g_chip_ident for subdev nodes, do we ?
+Hello Oliver,
 
-Why not? It makes the use of v4l2-dbg a bit easier if it is there. If you
-provide g/s_register, then you should provide this one as well.
+Am 10.01.2011 um 18:28 schrieb Oliver Endriss:
 
-I though of another one that should be handled in the framework: VIDIOC_LOG_STATUS.
+> Ack, this stuff should be implemented as a userspace library.
+> (Btw, there is an experimental unicable patch for VDR.)
 
-That definitely should be handled as well.
+Yes, there is. I have not testet it as I am going to use MythTV, but for what I have read in some forums, many people have problems using that patch. This is why I decided to make a kernel implementation for my system. But I agree it could also be implemented as a wrapper application between frontend device and viewer application (the quick and dirty way) or native support in a userspace library (which will take some time until it is used in all DVB applications).
+
+What I thought makes my solution attractive is, that you can even use dvbscan, szap etc. without modification, which works perfectly in my setup. But anyway the purpose might be too special to have it inside the kernel.
 
 Regards,
-
-	Hans
-
-> 
-> > > +#endif
-> 
-> 
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Thomas
