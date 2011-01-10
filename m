@@ -1,55 +1,57 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4928 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750917Ab1ACKnA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jan 2011 05:43:00 -0500
-Received: from tschai.localnet (43.80-203-71.nextgentel.com [80.203.71.43])
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id p03Agvdp023333
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 3 Jan 2011 11:42:58 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 2.6.38] Remove duplicate tda9875 subdev driver
-Date: Mon, 3 Jan 2011 11:42:53 +0100
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201101031142.53082.hverkuil@xs4all.nl>
+Return-path: <mchehab@pedra>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35083 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753626Ab1AJMlK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Jan 2011 07:41:10 -0500
+From: manjunatha_halli@ti.com
+To: mchehab@infradead.org, hverkuil@xs4all.nl
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Manjunatha Halli <manjunatha_halli@ti.com>
+Subject: [RFC V9 7/7] drivers:media:radio: Update Kconfig and Makefile for wl128x FM driver.
+Date: Mon, 10 Jan 2011 08:05:00 -0500
+Message-Id: <1294664700-26949-8-git-send-email-manjunatha_halli@ti.com>
+In-Reply-To: <1294664700-26949-7-git-send-email-manjunatha_halli@ti.com>
+References: <1294664700-26949-1-git-send-email-manjunatha_halli@ti.com>
+ <1294664700-26949-2-git-send-email-manjunatha_halli@ti.com>
+ <1294664700-26949-3-git-send-email-manjunatha_halli@ti.com>
+ <1294664700-26949-4-git-send-email-manjunatha_halli@ti.com>
+ <1294664700-26949-5-git-send-email-manjunatha_halli@ti.com>
+ <1294664700-26949-6-git-send-email-manjunatha_halli@ti.com>
+ <1294664700-26949-7-git-send-email-manjunatha_halli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Mauro,
+From: Manjunatha Halli <manjunatha_halli@ti.com>
 
-Since the tda9875 subdev driver was folded into tvaudio in 2009 and hasn't
-been used since that time I think we should remove it. It serves no purpose
-anymore.
+Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
+---
+ drivers/media/radio/Kconfig  |    3 +++
+ drivers/media/radio/Makefile |    1 +
+ 2 files changed, 4 insertions(+), 0 deletions(-)
 
-Regards,
-
-	Hans
-
-The following changes since commit 187134a5875df20356f4dca075db29f294115a47:
-  David Henningsson (1):
-        [media] DVB: IR support for TechnoTrend CT-3650
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/hverkuil/media_tree.git tda9875
-
-Hans Verkuil (2):
-      tda9875: remove duplicate driver
-      bttv: remove obsolete 'no_tda9875' field
-
- drivers/media/video/Kconfig            |    9 -
- drivers/media/video/Makefile           |    1 -
- drivers/media/video/bt8xx/bttv-cards.c |   39 ---
- drivers/media/video/bt8xx/bttv.h       |    1 -
- drivers/media/video/tda9875.c          |  411 --------------------------------
- 5 files changed, 0 insertions(+), 461 deletions(-)
- delete mode 100644 drivers/media/video/tda9875.c
-
+diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+index 83567b8..4529bc7 100644
+--- a/drivers/media/radio/Kconfig
++++ b/drivers/media/radio/Kconfig
+@@ -452,4 +452,7 @@ config RADIO_TIMBERDALE
+ 	  found behind the Timberdale FPGA on the Russellville board.
+ 	  Enabling this driver will automatically select the DSP and tuner.
+ 
++# TI's ST based wl128x FM radio
++source "drivers/media/radio/wl128x/Kconfig"
++
+ endif # RADIO_ADAPTERS
+diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
+index f615583..b71f448 100644
+--- a/drivers/media/radio/Makefile
++++ b/drivers/media/radio/Makefile
+@@ -26,5 +26,6 @@ obj-$(CONFIG_RADIO_TEA5764) += radio-tea5764.o
+ obj-$(CONFIG_RADIO_SAA7706H) += saa7706h.o
+ obj-$(CONFIG_RADIO_TEF6862) += tef6862.o
+ obj-$(CONFIG_RADIO_TIMBERDALE) += radio-timb.o
++obj-$(CONFIG_RADIO_WL128X) += wl128x/
+ 
+ EXTRA_CFLAGS += -Isound
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+1.5.6.3
+
