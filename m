@@ -1,164 +1,101 @@
-Return-path: <mchehab@gaivota>
-Received: from swampdragon.chaosbits.net ([90.184.90.115]:29620 "EHLO
-	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751192Ab1ABTOE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Jan 2011 14:14:04 -0500
-Date: Sun, 2 Jan 2011 20:14:03 +0100 (CET)
-From: Jesper Juhl <jj@chaosbits.net>
-To: Malcolm Priestley <tvboxspy@gmail.com>
-cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATVH] media, dvb, IX2505V: Remember to free allocated memory
- in failure path (ix2505v_attach()).
-In-Reply-To: <alpine.LNX.2.00.1101021948100.11481@swampdragon.chaosbits.net>
-Message-ID: <alpine.LNX.2.00.1101022012520.11481@swampdragon.chaosbits.net>
-References: <alpine.LNX.2.00.1012310008070.32595@swampdragon.chaosbits.net>  <1293758374.10326.7.camel@tvboxspy>  <alpine.LNX.2.00.1012311541430.16655@swampdragon.chaosbits.net> <1293820435.29966.59.camel@tvboxspy>
- <alpine.LNX.2.00.1101021948100.11481@swampdragon.chaosbits.net>
+Return-path: <mchehab@pedra>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47814 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753135Ab1AJKcP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Jan 2011 05:32:15 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] [media] v4l: soc-camera: add enum-frame-size ioctl
+Date: Mon, 10 Jan 2011 11:33:00 +0100
+Cc: Qing Xu <qingx@marvell.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Kassey Li <ygli@marvell.com>, Hans Verkuil <hverkuil@xs4all.nl>
+References: <1294368595-2518-1-git-send-email-qingx@marvell.com> <7BAC95F5A7E67643AAFB2C31BEE662D014040171EE@SC-VEXCH2.marvell.com> <Pine.LNX.4.64.1101100853490.24479@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1101100853490.24479@axis700.grange>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201101101133.01636.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Sun, 2 Jan 2011, Jesper Juhl wrote:
+Hi Guennadi,
 
-> On Fri, 31 Dec 2010, Malcolm Priestley wrote:
+On Monday 10 January 2011 09:20:05 Guennadi Liakhovetski wrote:
+> On Sun, 9 Jan 2011, Qing Xu wrote:
+> > On Fri, 7 Jan 2011, Guennadi Liakhovetski wrote:
+> > > On Fri, 7 Jan 2011, Qing Xu wrote:
+> > > > pass VIDIOC_ENUM_FRAMESIZES down to sub device drivers. So far no
+> > > > special handling in soc-camera core.
+> > > 
+> > > Hm, no, guess what? I don't think this can work. The parameter, that
+> > > this routine gets from the user struct v4l2_frmsizeenum contains a
+> > > member pixel_format, which is a fourcc code. Whereas subdevices don't
+> > > deal with them, they deal with mediabus codes. It is the same problem
+> > > as with old s/g/try/enum_fmt, which we replaced with respective mbus
+> > > variants. So, we either have to add our own .enum_mbus_framesizes
+> > > video subdevice operation, or we abuse this one, but interpret the
+> > > pixel_format field as a media-bus code.
+> > > 
+> > > Currently I only see one subdev driver, that implements this API:
+> > > ov7670.c, and it just happily ignores the pixel_format altogether...
+> > > 
+> > > Hans, Laurent, what do you think?
+> > > 
+> > > In the soc-camera case you will have to use
+> > > soc_camera_xlate_by_fourcc() to convert to media-bus code from fourcc.
+> > > A nit-pick: please, follow the style of the file, that you patch and
+> > > don't add double empty lines between functions.
+> > > 
+> > > A side question: why do you need this format at all? Is it for some
+> > > custom
+> > > 
+> > > Sorry, I meant to ask - what do you need this operation / ioctl() for?
+> > 
+> > Before we launch camera application, we will use enum-frame-size ioctl
+> > to get all frame size that the sensor supports, and show all options in
+> > UI menu, then the customers could choose a size, and tell camera driver.
 > 
-> > On Fri, 2010-12-31 at 15:51 +0100, Jesper Juhl wrote:
-> > > On Fri, 31 Dec 2010, Malcolm Priestley wrote:
-> > > 
-> > > > On Fri, 2010-12-31 at 00:11 +0100, Jesper Juhl wrote:
-> > > > > Hi,
-> > > > > 
-> > > > > We may leak the storage allocated to 'state' in 
-> > > > > drivers/media/dvb/frontends/ix2505v.c::ix2505v_attach() on error.
-> > > > > This patch makes sure we free the allocated memory in the failure case.
-> > > > > 
-> > > > > 
-> > > > > Signed-off-by: Jesper Juhl <jj@chaosbits.net>
-> > > > > ---
-> > > > >  ix2505v.c |    1 +
-> > > > >  1 file changed, 1 insertion(+)
-> > > > > 
-> > > > >   Compile tested only.
-> > > > > 
-> > > > > diff --git a/drivers/media/dvb/frontends/ix2505v.c b/drivers/media/dvb/frontends/ix2505v.c
-> > > > > index 55f2eba..fcb173d 100644
-> > > > > --- a/drivers/media/dvb/frontends/ix2505v.c
-> > > > > +++ b/drivers/media/dvb/frontends/ix2505v.c
-> > > > > @@ -293,6 +293,7 @@ struct dvb_frontend *ix2505v_attach(struct dvb_frontend *fe,
-> > > > >  		ret = ix2505v_read_status_reg(state);
-> > > > >  
-> > > > >  		if (ret & 0x80) {
-> > > > > +			kfree(state);
-> > > > >  			deb_i2c("%s: No IX2505V found\n", __func__);
-> > > > >  			goto error;
-> > > > >  		}
-> > > > > 
-> > > > Memory is freed in... 
-> > > > 
-> > > > error:
-> > > > 	ix2505v_release(fe);
-> > > > 	return NULL;
-> > > > 
-> > > > via...
-> > > > 
-> > > > static int ix2505v_release(struct dvb_frontend *fe)
-> > > > {
-> > > > 	struct ix2505v_state *state = fe->tuner_priv;
-> > > > 
-> > > > 	fe->tuner_priv = NULL;
-> > > > 	kfree(state);
-> > > > 
-> > > > 	return 0;
-> > > > }
-> > > > 
-> > > 
-> > > Except that 'state' has not been assigned to fe->tuner_priv at this 
-> > > point, so ix2505v_release() cannot free the memory that was just 
-> > > allocated with kzalloc().
-> > > 
-> > > 
-> > >   state is a local variable:
-> > >   		struct ix2505v_state *state = NULL;
-> > > 		...
-> > > 
-> > >   we allocate memory and assign it to 'state' here:
-> > >   		state = kzalloc(sizeof(struct ix2505v_state), GFP_KERNEL);
-> > >   		if (NULL == state)
-> > >   			return NULL;
-> > >   	
-> > >   		state->config = config;
-> > >   		state->i2c = i2c;
-> > >   	
-> > >   here 'state' is used, but not in a way that saves it anywhere:
-> > >   		if (state->config->tuner_write_only) {
-> > >   			if (fe->ops.i2c_gate_ctrl)
-> > >   				fe->ops.i2c_gate_ctrl(fe, 1);
-> > >   	
-> > >   this function call involves 'state' but it does not save it anywhere
-> > >   either:
-> > >   			ret = ix2505v_read_status_reg(state);
-> > >   	
-> > >   			if (ret & 0x80) {
-> > >   				deb_i2c("%s: No IX2505V found\n", __func__);
-> > >   so when we jump to error here 'state' still exists only as the local
-> > >   variable, it has not been assigned to anything else.
-> > >   				goto error;
-> > >   			}
-> > >   		...
-> > >   	error:
-> > >   there is no way this function call can free 'state' on this path since
-> > >   it has not been assigned to fe->tuner_priv. 
-> > >   		ix2505v_release(fe);
-> > >   The local variable state goes out of scope here and leaks the memory it
-> > >   points to:
-> > >   		return NULL;
-> > >   	}
-> > > 
-> > > Am I missing something?
-> > 
-> > Oh, Sorry, I see it now.
-> > 
-> > Now there is two options.
-> > 
-> > Either;
-> > 
-> > 1) Move fe->tuner_priv = state to below line 287, so it can be released
-> > by ix2505v_release and fe->tuner_priv returned to NULL;
-> > 
-> > 2) or not calling ix2505v_release changing line 314 to kfree(state).
-> > fe->tuner_priv will remain NULL through out.
-> > 
-> [...]
+> And if the camera supports ranges of sizes? Or doesn't implement this
+> ioctl() at all? Remember, that this is an optional ioctl(). Would your
+> application just fail? Or you could provide a slider to let the user
+> select a size from a range, then just issue an s_fmt and use whatever it
+> returns... This is something you'd do for a generic application
 > 
-> How about this?
+> > If use mbus structure pass to sensor, we need to modify the second
+> > parameter definition, it will contain both mbus code information and
+> > width/height ingotmation:
+> > int (*enum_framesizes)(struct v4l2_subdev *sd, struct v4l2_frmsizeenum
+> > *fsize);
+> > 
+> > or use g_mbus_fmt instead:
+> > int (*g_mbus_fmt)(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt
+> > *fmt); soc_camera_enum_framesizes()
+> > {
+> > 
+> >         ...
+> >         return v4l2_subdev_call(sd, video, g_mbus_fmt, fsize);//typo, I
+> >         mean "g_mbus_fmt"
+> > 
+> > }
+> > 
+> > What do you think?
 > 
-Or actually, I think this is better:
+> In any case therer needs to be a possibility for host drivers to override
+> this routine, so, please, do something similar, to what default_g_crop() /
+> default_s_crop() / default_cropcap() / default_g_parm() / default_s_parm()
+> do: add a host operation and provide a default implementation for it. And
+> since noone seems to care enough, I think, we can just abuse struct
+> v4l2_frmsizeenum for now, just make sure to rewrite pixel_format to a
+> media-bus code, and restore it before returning to the caller.
 
-
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
----
- ix2505v.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/dvb/frontends/ix2505v.c b/drivers/media/dvb/frontends/ix2505v.c
-index 55f2eba..846ffd3 100644
---- a/drivers/media/dvb/frontends/ix2505v.c
-+++ b/drivers/media/dvb/frontends/ix2505v.c
-@@ -311,7 +311,7 @@ struct dvb_frontend *ix2505v_attach(struct dvb_frontend *fe,
- 	return fe;
- 
- error:
--	ix2505v_release(fe);
-+	kfree(state);
- 	return NULL;
- }
- EXPORT_SYMBOL(ix2505v_attach);
-
-
+I like the .enum_mbus_framesizes better, but I could live with a hack until if 
+you convert soc_camera to use subdev pad-level operations when the MC will be 
+available.
 
 -- 
-Jesper Juhl <jj@chaosbits.net>            http://www.chaosbits.net/
-Don't top-post http://www.catb.org/~esr/jargon/html/T/top-post.html
-Plain text mails only, please.
+Regards,
 
+Laurent Pinchart
