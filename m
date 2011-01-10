@@ -1,82 +1,72 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:21498 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753599Ab1APTVy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Jan 2011 14:21:54 -0500
-Subject: [GIT PATCHES for 2.6.38] Zilog Z8 IR unit fixes
-From: Andy Walls <awalls@md.metrocast.net>
-To: linux-media@vger.kernel.org
-Cc: Mike Isely <isely@isely.net>, Jarod Wilson <jarod@redhat.com>,
-	Jean Delvare <khali@linux-fr.org>, Janne Grunau <j@jannau.net>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 16 Jan 2011 14:20:49 -0500
-Message-ID: <1295205650.2400.27.camel@localhost>
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:16497 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753456Ab1AJKqX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Jan 2011 05:46:23 -0500
+Message-ID: <4D2AE37B.2020105@redhat.com>
+Date: Mon, 10 Jan 2011 08:46:19 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jean-Francois Moine <moinejf@free.fr>
+Subject: Re: RFC: Move the deprecated et61x251 and sn9c102 to staging
+References: <201101012053.00372.hverkuil@xs4all.nl> <4D20A908.9020705@redhat.com> <4D20C4FB.9060906@redhat.com> <201101022113.01133.hverkuil@xs4all.nl> <4D29A3D6.6060307@redhat.com> <4D2A61D9.1090807@redhat.com> <4D2ADF4C.4020709@redhat.com>
+In-Reply-To: <4D2ADF4C.4020709@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Mauro,
+Em 10-01-2011 08:28, Hans de Goede escreveu:
+> Hi,
+> 
+> On 01/10/2011 02:33 AM, Mauro Carvalho Chehab wrote:
+>> Em 09-01-2011 10:02, Hans de Goede escreveu:
+> 
+> <snip>
+> 
+>>> I've managed to make some time to also sort out the sn9c1xx usb ids
+>>> situation.  I've just send a pull request which includes patches cleaning
+>>> things up. After this there are only 5 usb-ids left which will default to
+>>> sn9c102 when both are compiled in, and only 3 of those are not supported
+>>> by gspca.
+>>
+>> Good!
+>>>
+>>> So if we move the sn9c102 driver to staging we will loose support for
+>>> only 3 usb-ids. IOW I think it is time to move it to staging :)
+>>
+>> This would be a regression.
+>>
+> 
+> Yes, although I wonder if anyone will notice. Fedora has had the sn9c102
+> driver disabled for 3 releases now and I've received (and fixed) a single
+> bug in all that time about a cam not supported by gspca_sonixb which
+> was supported by sn9c102
+> 
+>>> Note I can write a patch to add untested support for these 3 to the
+>>> sonixb driver, given my experience with adding support for the hv7131d
+>>> based on the sn9c102 code, that should be doable. But it will be
+>>> completely untested :(
+>>
+>> I think that the better would be to add support for it at gspca, but wait for
+>> some feedback before considering it working.
+> 
+> Well I've never seen these cams in the wild. sonixb cams with vga sensors
+> are quite rare because they cannot do more then 7.5-10 fps. So most cam
+> makers did the smart thing and went with a sonixj bridge for vga sensors.
+> 
+> Anyways I'll do a gspca patch for adding support for the missing 3 models
+> (as time permits). And then we can ship that (and make it the default
+> if both are compiled in) for 1 or 2 cycles before moving the sn9c102 driver
+> to staging. Assuming we don't receive any negative feedback in those
+> 2 cycles (or manage to fix found bugs).
 
-Please pull the one ir-kbd-i2c change and multiple lirc_zilog changes
-for 2.6.38.
-
-The one ir-kbd-i2c change is to put back a case to have ir-kbd-i2c set
-defaults for I2C client address 0x71.  I know I was the one who
-recommend that ir-kbd-i2c not do this, but I discovered pvrusb2 and bttv
-rely on it for the moment - Mea culpa.
-
-The lirc_zilog changes are tested to work with both Tx and Rx with an
-HVR-1600.  I don't want to continue much further on lirc_zilog changes,
-unitl a few things happen:
-
-1. I have developed, and have had tested, a patch for the pvrusb2 driver
-to allow the in kernel lirc_zilog to bind to a Z8 on a pvrusb2 supported
-device.
-
-2. Jarrod finishes his changes related to the Z8 chip for hdpvr and they
-are pulled into media_tree.git branch.
-
-3. I hear from Jean, or whomever really cares about ir-kbd-i2c, if
-adding some new fields for struct IR_i2c_init_data is acceptable.
-Specifically, I'd like to add a transceiver_lock mutex, a transceiver
-reset callback, and a data pointer for that reset callback.
-(Only lirc_zilog would use the reset callback and data pointer.)
-
-4. I find spare time ever again.
-
-Anyway, here's the patchset reference...
-
-
-The following changes since commit 0a97a683049d83deaf636d18316358065417d87b:
-
-  [media] cpia2: convert .ioctl to .unlocked_ioctl (2011-01-06 11:34:41 -0200)
-
-are available in the git repository at:
-  ssh://linuxtv.org/git/awalls/media_tree.git z8
-
-Andy Walls (11):
-      lirc_zilog: Reword debug message in ir_probe()
-      lirc_zilog: Remove disable_tx module parameter
-      lirc_zilog: Split struct IR into structs IR, IR_tx, and IR_rx
-      lirc_zilog: Don't make private copies of i2c clients
-      lirc_zilog: Extensive rework of ir_probe()/ir_remove()
-      lirc_zilog: Update IR Rx polling kthread start/stop and some printks
-      lirc_zilog: Remove unneeded tests for existence of the IR Tx function
-      lirc_zilog: Remove useless struct i2c_driver.command function
-      lirc_zilog: Add Andy Walls to copyright notice and authors list
-      lirc_zilog: Update TODO.lirc_zilog
-      ir-kbd-i2c: Add back defaults setting for Zilog Z8's at addr 0x71
-
- drivers/media/video/ir-kbd-i2c.c     |    6 +
- drivers/staging/lirc/TODO.lirc_zilog |   36 ++-
- drivers/staging/lirc/lirc_zilog.c    |  650 ++++++++++++++++++----------------
- 3 files changed, 389 insertions(+), 303 deletions(-)
-
-
-Regards,
-Andy
+It seems perfect to me.
+> 
+> Regards,
+> 
+> Hans
 
