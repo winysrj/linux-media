@@ -1,93 +1,68 @@
-Return-path: <mchehab@gaivota>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60940 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752656Ab1ADRVf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Jan 2011 12:21:35 -0500
-Date: Tue, 4 Jan 2011 17:19:28 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Johan MOSSBERG <johan.xx.mossberg@stericsson.com>
-Cc: Kyungmin Park <kmpark@infradead.org>,
-	Michal Nazarewicz <m.nazarewicz@samsung.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Michal Nazarewicz <mina86@mina86.com>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCHv8 00/12] Contiguous Memory Allocator
-Message-ID: <20110104171928.GB24935@n2100.arm.linux.org.uk>
-References: <cover.1292443200.git.m.nazarewicz@samsung.com> <AANLkTim8_=0+-zM5z4j0gBaw3PF3zgpXQNetEn-CfUGb@mail.gmail.com> <20101223100642.GD3636@n2100.arm.linux.org.uk> <C832F8F5D375BD43BFA11E82E0FE9FE00829C13EB2@EXDCVYMBSTM005.EQ1STM.local>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <C832F8F5D375BD43BFA11E82E0FE9FE00829C13EB2@EXDCVYMBSTM005.EQ1STM.local>
+Return-path: <mchehab@pedra>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:11922 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753708Ab1AJNYL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Jan 2011 08:24:11 -0500
+Subject: Re: [REGRESSION: wm8775, ivtv] Please revert commit
+ fcb9757333df37cf4a7feccef7ef6f5300643864
+From: Andy Walls <awalls@md.metrocast.net>
+To: Lawrence Rust <lawrence@softsystem.co.uk>
+Cc: Eric Sharkey <eric@lisaneric.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	auric <auric@aanet.com.au>, David Gesswein <djg@pdp8online.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	ivtv-users@ivtvdriver.org, ivtv-devel@ivtvdriver.org
+In-Reply-To: <1294664187.3340.9.camel@gagarin>
+References: <1293843343.7510.23.camel@localhost>
+	 <AANLkTimHh4aS-6cp-CsX68WVSF6U+k6gb2mBSwkhd1Xn@mail.gmail.com>
+	 <1294094056.10094.41.camel@morgan.silverblock.net>
+	 <1294488550.9475.20.camel@gagarin>  <1294496528.2443.85.camel@localhost>
+	 <1294512347.16924.28.camel@gagarin>
+	 <1294663149.2084.41.camel@morgan.silverblock.net>
+	 <1294664187.3340.9.camel@gagarin>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 10 Jan 2011 08:24:05 -0500
+Message-ID: <1294665845.4456.15.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Tue, Jan 04, 2011 at 05:23:37PM +0100, Johan MOSSBERG wrote:
-> Russell King wrote:
-> > Has anyone addressed my issue with it that this is wide-open for
-> > abuse by allocating large chunks of memory, and then remapping
-> > them in some way with different attributes, thereby violating the
-> > ARM architecture specification?
-> 
-> I seem to have missed the previous discussion about this issue.
-> Where in the specification (preferably ARMv7) can I find
-> information about this?
+On Mon, 2011-01-10 at 13:56 +0100, Lawrence Rust wrote:
+> On Mon, 2011-01-10 at 07:39 -0500, Andy Walls wrote:
 
-Here's the extracts from the architecture reference manual:
+> You know what, life's too short.  I've spent far too long on this at the
+> expense of far more interesting projects.  Every time I put some effort
+> in someone says just one more thing...  I get the message.
 
-* If the same memory locations are marked as having different
-  cacheability attributes, for example by the use of aliases in a
-  virtual to physical address mapping, behavior is UNPREDICTABLE.
+With all due respect, I don't think that you do.
 
-A3.5.7 Memory access restrictions
+The message is *not*
 
-Behavior is UNPREDICTABLE if the same memory location:
-* is marked as Shareable Normal and Non-shareable Normal
-* is marked as having different memory types (Normal, Device, or
-  Strongly-ordered)
-* is marked as having different cacheability attributes
-* is marked as being Shareable Device and Non-shareable Device memory.
+"Lawrence we don't won't your patches here , because we're an exclusive
+club"
 
-Such memory marking contradictions can occur, for example, by the use of
-aliases in a virtual to physical address mapping.
+nor
 
-Glossary:
-UNPREDICTABLE
-Means the behavior cannot be relied upon. UNPREDICTABLE behavior must not
-represent security holes.  UNPREDICTABLE behavior must not halt or hang
-the processor, or any parts of the system. UNPREDICTABLE behavior must not
-be documented or promoted as having a defined effect.
+"Lawrence, we don't find your time and talent valuable"
 
-> Is the problem that it is simply
-> forbidden to map an address multiple times with different cache
-> setting and if this is done the hardware might start failing? Or
-> is the problem that having an address mapped cached means that
-> speculative pre-fetch can read it into the cache at any time,
-> possibly causing problems if an un-cached mapping exists? In my
-> opinion option number two can be handled and I've made an attempt
-> at doing that in hwmem (posted on linux-mm a while ago), look in
-> cache_handler.c. Hwmem currently does not use cma but the next
-> version probably will.
 
-Given the extract from the architecture reference manual, do you want
-to run a system where you can't predict what the behaviour will be if
-you have two mappings present, one which is cacheable and one which is
-non-cacheable, and you're relying on the non-cacheable mapping to never
-return data from the cache?
+All of my comments stem from *one* high level requirement:
 
-What if during your testing, it appears to work correctly, but out in
-the field, someone's loaded a different application to your setup
-resulting in different memory access patterns, causing cache lines to
-appear in the non-cacheable mapping, and then the CPU hits them on
-subsequent accesses corrupting data...
+Don't break the code for existing boards - especially popular ones for
+which I have some level of maintenance responsibility.
 
-You can't say that will never happen if you're relying on this
-unpredictable behaviour.
+How you satisfy that requirement is up to you.
+
+Just as you don't have a lot of time to do all the analysis and testing
+to ensure that requirement is met; I don't have time to clean up every
+patch that doesn't meet that requirement.  The time and effort you don't
+expend gets pushed off to me or someone else.
+
+I have tried to provide you with constructive criticism and guidance.  I
+will not do your work for you.
+
+Regards,
+Andy
+
