@@ -1,102 +1,133 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:34710 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753368Ab1ARKIl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jan 2011 05:08:41 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Date: Tue, 18 Jan 2011 19:08:31 +0900
-From: Kamil Debski <k.debski@samsung.com>
-Subject: RE: [RFC/PATCH v6 3/4] MFC: Add MFC 5.1 V4L2 driver
-In-reply-to: <006a01cbb640$9f4b1050$dde130f0$%oh@samsung.com>
-To: jaeryul.oh@samsung.com, linux-media@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	kyungmin.park@samsung.com, kgene.kim@samsung.com
-Message-id: <000c01cbb6f7$ac7139f0$0553add0$%debski@samsung.com>
-Content-language: en-gb
-References: <1294417534-3856-1-git-send-email-k.debski@samsung.com>
- <1294417534-3856-4-git-send-email-k.debski@samsung.com>
- <006a01cbb640$9f4b1050$dde130f0$%oh@samsung.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:43028 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751945Ab1AJABW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Jan 2011 19:01:22 -0500
+Received: by iyj18 with SMTP id 18so423418iyj.19
+        for <linux-media@vger.kernel.org>; Sun, 09 Jan 2011 16:01:22 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <AANLkTi=sCnVyXp090hKVWP+yprCn9da0sfQMAZxq9-Uc@mail.gmail.com>
+References: <AANLkTi=sCnVyXp090hKVWP+yprCn9da0sfQMAZxq9-Uc@mail.gmail.com>
+Date: Mon, 10 Jan 2011 01:01:21 +0100
+Message-ID: <AANLkTimb6ozDq3HS9dO2LiWt9mPU36YQc2sjT_jBhAjm@mail.gmail.com>
+Subject: cx23885 errors on Tevii S470
+From: Josu Lazkano <josu.lazkano@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+Hello list, I have a Tevii S470 PCIe DVB-S2 card, I use it with MythTV
+on a Debian
+Squeeze (2.6.32-5) machine. I am getting some freeze on channel jump
+and sometimes I must restart MythTV frontend to get it working.
 
-> From: Jaeryul Oh [mailto:jaeryul.oh@samsung.com]
-> 
-> Hi, Kamil
-> I have a comment about s5p_mfc_stop_streaming()function.
-> 
-> > -----Original Message-----
-> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> > owner@vger.kernel.org] On Behalf Of Kamil Debski
-> > Sent: Saturday, January 08, 2011 1:26 AM
-> > To: linux-media@vger.kernel.org; linux-samsung-soc@vger.kernel.org
-> > Cc: m.szyprowski@samsung.com; pawel@osciak.com;
-> kyungmin.park@samsung.com;
-> > k.debski@samsung.com; jaeryul.oh@samsung.com; kgene.kim@samsung.com
-> > Subject: [RFC/PATCH v6 3/4] MFC: Add MFC 5.1 V4L2 driver
-> >
-> > Multi Format Codec 5.1 is capable of handling a range of video codecs
-> > and this driver provides V4L2 interface for video decoding.
-> >
-> > Signed-off-by: Kamil Debski <k.debski@samsung.com>
-> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+I am using Tevii beta drivers:
+http://tevii.com/100315_Beta_linux_tevii_ds3000.rar
 
-<snip>
+This the dmesg output:
 
-> > +
-> > +/* Thou shalt stream no more. */
-> > +static int s5p_mfc_stop_streaming(struct vb2_queue *q)
-> > +{
-> > +	unsigned long flags;
-> > +	struct s5p_mfc_ctx *ctx = q->drv_priv;
-> > +	struct s5p_mfc_dev *dev = ctx->dev;
-> > +
-> > +	if ((ctx->state == MFCINST_DEC_FINISHING ||
-> > +		ctx->state ==  MFCINST_DEC_RUNNING) &&
-> > +		dev->curr_ctx == ctx->num && dev->hw_lock) {
-> > +		ctx->state = MFCINST_DEC_ABORT;
-> > +		s5p_mfc_wait_for_done_ctx(ctx,
-> > S5P_FIMV_R2H_CMD_FRAME_DONE_RET,
-> > +									0);
-> > +	}
-> > +	ctx->state = MFCINST_DEC_FINISHED;
-> > +	spin_lock_irqsave(&dev->irqlock, flags);
-> > +	s5p_mfc_error_cleanup_queue(&ctx->dst_queue,
-> > +	        &ctx->vq_dst);
-> > +	s5p_mfc_error_cleanup_queue(&ctx->src_queue,
-> > +	        &ctx->vq_src);
-> > +	if (q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-> > +		INIT_LIST_HEAD(&ctx->dst_queue);
-> > +	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-> > +		INIT_LIST_HEAD(&ctx->src_queue);
-> > +	spin_unlock_irqrestore(&dev->irqlock, flags);
-> > +	return 0;
-> > +}
-> This function is called by __vb2_queue_cancel().and
-> __vb2_queue_cancel()
-> can be
-> called by vb2_queue_release() or vb2_streamoff().
-> But, in this s5p_mfc_stop_streaming(),s5p_mfc_error_cleanup_queue() for
-> src/dst
-> is runned regardless of q->type. Is that right ?
-> and in case of streamoff, queued bufs should be removed, then qbuf is
-> needed
-> before streamon  again, so ctx->dst_queue_cnt = 0; ctx->src_queue_cnt =
-> 0;
-> is required
-> what do you think about this ?
-> 
+[ 4328.642850] cx23885[0]: mpeg risc op code error
+[ 4328.642873] cx23885[0]: TS1 B - dma channel status dump
+[ 4328.642883] cx23885[0]:   cmds: init risc lo   : 0x321af000
+[ 4328.642891] cx23885[0]:   cmds: init risc hi   : 0x00000000
+[ 4328.642899] cx23885[0]:   cmds: cdt base       : 0x00010580
+[ 4328.642907] cx23885[0]:   cmds: cdt size       : 0x0000000a
+[ 4328.642916] cx23885[0]:   cmds: iq base        : 0x00010400
+[ 4328.642924] cx23885[0]:   cmds: iq size        : 0x00000010
+[ 4328.642932] cx23885[0]:   cmds: risc pc lo     : 0x316c90f0
+[ 4328.642939] cx23885[0]:   cmds: risc pc hi     : 0x00000000
+[ 4328.642947] cx23885[0]:   cmds: iq wr ptr      : 0x0000410c
+[ 4328.642956] cx23885[0]:   cmds: iq rd ptr      : 0x00004103
+[ 4328.642963] cx23885[0]:   cmds: cdt current    : 0x000105a8
+[ 4328.642972] cx23885[0]:   cmds: pci target lo  : 0x316cd920
+[ 4328.642982] cx23885[0]:   cmds: pci target hi  : 0x00000000
+[ 4328.642989] cx23885[0]:   cmds: line / byte    : 0x030e0000
+[ 4328.642996] cx23885[0]:   risc0: 0x1c0002f0 [ write sol eol count=752 ]
+[ 4328.643012] cx23885[0]:   risc1: 0x316cd920 [ INVALID irq1 22 21 19
+18 resync 14 12 count=2336 ]
+[ 4328.643033] cx23885[0]:   risc2: 0x00000000 [ INVALID count=0 ]
+[ 4328.643043] cx23885[0]:   risc3: 0x1c0002f0 [ write sol eol count=752 ]
+[ 4328.643057] cx23885[0]:   (0x00010400) iq 0: 0x1c0002f0 [ write sol
+eol count=752 ]
+[ 4328.643072] cx23885[0]:   iq 1: 0x316cd920 [ arg #1 ]
+[ 4328.643080] cx23885[0]:   iq 2: 0x00000000 [ arg #2 ]
+[ 4328.643087] cx23885[0]:   (0x0001040c) iq 3: 0x1c0002f0 [ write sol
+eol count=752 ]
+[ 4328.643101] cx23885[0]:   iq 4: 0x316cdc10 [ arg #1 ]
+[ 4328.643109] cx23885[0]:   iq 5: 0x00000000 [ arg #2 ]
+[ 4328.643117] cx23885[0]:   (0x00010418) iq 6: 0x18000100 [ write sol
+count=256 ]
+[ 4328.643130] cx23885[0]:   iq 7: 0x316cdf00 [ arg #1 ]
+[ 4328.643138] cx23885[0]:   iq 8: 0x00000000 [ arg #2 ]
+[ 4328.643145] cx23885[0]:   (0x00010424) iq 9: 0x140001f0 [ write eol
+count=496 ]
+[ 4328.643158] cx23885[0]:   iq a: 0x316cc000 [ arg #1 ]
+[ 4328.643166] cx23885[0]:   iq b: 0x00000000 [ arg #2 ]
+[ 4328.643173] cx23885[0]:   (0x00010430) iq c: 0x00000000 [ INVALID count=0 ]
+[ 4328.643185] cx23885[0]:   (0x00010434) iq d: 0x1c0002f0 [ write sol
+eol count=752 ]
+[ 4328.643199] cx23885[0]:   iq e: 0x316cd630 [ arg #1 ]
+[ 4328.643207] cx23885[0]:   iq f: 0x00000000 [ arg #2 ]
+[ 4328.643213] cx23885[0]: fifo: 0x00005000 -> 0x6000
+[ 4328.643219] cx23885[0]: ctrl: 0x00010400 -> 0x10460
+[ 4328.643226] cx23885[0]:   ptr1_reg: 0x000058f0
+[ 4328.643233] cx23885[0]:   ptr2_reg: 0x000105b8
+[ 4328.643240] cx23885[0]:   cnt1_reg: 0x00000002
+[ 4328.643247] cx23885[0]:   cnt2_reg: 0x00000003
+[ 4328.643279] cx23885[0]: mpeg risc op code error
+[ 4328.643287] cx23885[0]: TS1 B - dma channel status dump
+[ 4328.643295] cx23885[0]:   cmds: init risc lo   : 0x321af000
+[ 4328.643303] cx23885[0]:   cmds: init risc hi   : 0x00000000
+[ 4328.643312] cx23885[0]:   cmds: cdt base       : 0x00010580
+[ 4328.643319] cx23885[0]:   cmds: cdt size       : 0x0000000a
+[ 4328.643328] cx23885[0]:   cmds: iq base        : 0x00010400
+[ 4328.643335] cx23885[0]:   cmds: iq size        : 0x00000010
+[ 4328.643343] cx23885[0]:   cmds: risc pc lo     : 0x316c90f0
+[ 4328.643352] cx23885[0]:   cmds: risc pc hi     : 0x00000000
+[ 4328.643361] cx23885[0]:   cmds: iq wr ptr      : 0x0000410c
+[ 4328.643369] cx23885[0]:   cmds: iq rd ptr      : 0x00004103
+[ 4328.643377] cx23885[0]:   cmds: cdt current    : 0x000105a8
+[ 4328.643386] cx23885[0]:   cmds: pci target lo  : 0x316cd920
+[ 4328.643395] cx23885[0]:   cmds: pci target hi  : 0x00000000
+[ 4328.643403] cx23885[0]:   cmds: line / byte    : 0x030e0000
+[ 4328.643411] cx23885[0]:   risc0: 0x1c0002f0 [ write sol eol count=752 ]
+[ 4328.643425] cx23885[0]:   risc1: 0x316cd920 [ INVALID irq1 22 21 19
+18 resync 14 12 count=2336 ]
+[ 4328.643446] cx23885[0]:   risc2: 0x00000000 [ INVALID count=0 ]
+[ 4328.643457] cx23885[0]:   risc3: 0x1c0002f0 [ write sol eol count=752 ]
+[ 4328.643470] cx23885[0]:   (0x00010400) iq 0: 0x1c0002f0 [ write sol
+eol count=752 ]
+[ 4328.643485] cx23885[0]:   iq 1: 0x316cd920 [ arg #1 ]
+[ 4328.643493] cx23885[0]:   iq 2: 0x00000000 [ arg #2 ]
+[ 4328.643500] cx23885[0]:   (0x0001040c) iq 3: 0x1c0002f0 [ write sol
+eol count=752 ]
+[ 4328.643516] cx23885[0]:   iq 4: 0x316cdc10 [ arg #1 ]
+[ 4328.643524] cx23885[0]:   iq 5: 0x00000000 [ arg #2 ]
+[ 4328.643531] cx23885[0]:   (0x00010418) iq 6: 0x18000100 [ write sol
+count=256 ]
+[ 4328.643545] cx23885[0]:   iq 7: 0x316cdf00 [ arg #1 ]
+[ 4328.643553] cx23885[0]:   iq 8: 0x00000000 [ arg #2 ]
+[ 4328.643561] cx23885[0]:   (0x00010424) iq 9: 0x140001f0 [ write eol
+count=496 ]
+[ 4328.643574] cx23885[0]:   iq a: 0x316cc000 [ arg #1 ]
+[ 4328.643581] cx23885[0]:   iq b: 0x00000000 [ arg #2 ]
+[ 4328.643589] cx23885[0]:   (0x00010430) iq c: 0x00000000 [ INVALID count=0 ]
+[ 4328.643600] cx23885[0]:   (0x00010434) iq d: 0x1c0002f0 [ write sol
+eol count=752 ]
+[ 4328.643615] cx23885[0]:   iq e: 0x316cd630 [ arg #1 ]
+[ 4328.643623] cx23885[0]:   iq f: 0x00000000 [ arg #2 ]
+[ 4328.643630] cx23885[0]: fifo: 0x00005000 -> 0x6000
+[ 4328.643636] cx23885[0]: ctrl: 0x00010400 -> 0x10460
+[ 4328.643643] cx23885[0]:   ptr1_reg: 0x000058f0
+[ 4328.643650] cx23885[0]:   ptr2_reg: 0x000105b8
+[ 4328.643657] cx23885[0]:   cnt1_reg: 0x00000002
+[ 4328.643663] cx23885[0]:   cnt2_reg: 0x00000003
 
-It has to be changed to support pause and dynamic resolution change.
+Has someone any idea what happens? I am new on this, I will appreciate any help.
 
-Best wishes,
---
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
+Thanks for all your work and best regards.
 
+-- 
+Josu Lazkano
