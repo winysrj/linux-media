@@ -1,121 +1,519 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:61379 "EHLO mx1.redhat.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35091 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755462Ab1ALUsP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Jan 2011 15:48:15 -0500
-Message-ID: <4D2E1386.6050801@redhat.com>
-Date: Wed, 12 Jan 2011 18:48:06 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Robin Humble <robin.humble+dvb@anu.edu.au>
-CC: linux-media@vger.kernel.org,
-	Patrick Boettcher <pboettcher@kernellabs.com>
-Subject: Re: [PATCH] dib7000m/p: struct alignment fix
-References: <20110112131732.GA26294@grizzly.cita.utoronto.ca>
-In-Reply-To: <20110112131732.GA26294@grizzly.cita.utoronto.ca>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1753821Ab1AJMlM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Jan 2011 07:41:12 -0500
+From: manjunatha_halli@ti.com
+To: mchehab@infradead.org, hverkuil@xs4all.nl
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Manjunatha Halli <manjunatha_halli@ti.com>
+Subject: [RFC V9 5/7] drivers:media:radio: wl128x: FM driver TX sources
+Date: Mon, 10 Jan 2011 08:04:58 -0500
+Message-Id: <1294664700-26949-6-git-send-email-manjunatha_halli@ti.com>
+In-Reply-To: <1294664700-26949-5-git-send-email-manjunatha_halli@ti.com>
+References: <1294664700-26949-1-git-send-email-manjunatha_halli@ti.com>
+ <1294664700-26949-2-git-send-email-manjunatha_halli@ti.com>
+ <1294664700-26949-3-git-send-email-manjunatha_halli@ti.com>
+ <1294664700-26949-4-git-send-email-manjunatha_halli@ti.com>
+ <1294664700-26949-5-git-send-email-manjunatha_halli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 12-01-2011 11:17, Robin Humble escreveu:
-> Hi,
-> 
-> this is basically a re-post of
->   http://www.linuxtv.org/pipermail/linux-dvb/2010-September/032744.html
-> which fixes an Oops when tuning eg. AVerMedia DVB-T Volar, Hauppauge
-> Nova-T, Winfast DTV. it seems to be quite commonly reported on this list.
-> 
->  [  809.128579] BUG: unable to handle kernel NULL pointer dereference at 0000000000000012
->  [  809.128586] IP: [<ffffffffa0013702>] i2c_transfer+0x16/0x124 [i2c_core]
->  [  809.128598] PGD 669a7067 PUD 79e5f067 PMD 0
->  [  809.128604] Oops: 0000 [#1] SMP
->  [  809.128608] last sysfs file: /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
->  [  809.128612] CPU 0
->  [  809.128614] Modules linked in: tcp_lp fuse coretemp hwmon_vid cpufreq_ondemand acpi_cpufreq freq_table mperf ip6t_REJECT nf_conntrack_ipv6 ip6table_filter ip6_tables ipv6 xfs exportfs uinput mt2060 mxl5005s af9013 dvb_usb_dib0700 ir_lirc_codec lirc_dev ir_sony_decoder ir_jvc_decoder dib7000p dib0090 dib7000m dvb_usb_af9015 dib0070 dvb_usb dib8000 dvb_core dib3000mc ir_rc6_decoder dibx000_common snd_hda_codec_intelhdmi ir_rc5_decoder snd_hda_codec_realtek snd_hda_intel ir_nec_decoder snd_hda_codec ldusb i2c_i801 snd_hwdep snd_seq snd_seq_device rc_core atl1 asus_atk0110 snd_pcm snd_timer mii snd soundcore snd_page_alloc iTCO_wdt iTCO_vendor_support microcode raid456 async_raid6_recov async_pq raid6_pq async_xor xor async_memcpy async_tx raid1 ata_generic firewire_ohci pata_acpi firewire_core crc_itu_t pata_jmicron i915 drm_kms_helper drm i2c_algo_bit i2c_core video output [last unloaded: scsi_wait_scan]
->  [  809.128692]
->  [  809.128696] Pid: 2525, comm: tzap Not tainted 2.6.35.10-72.fc14.x86_64 #1 P5E-VM HDMI/P5E-VM HDMI
->  [  809.128700] RIP: 0010:[<ffffffffa0013702>]  [<ffffffffa0013702>] i2c_transfer+0x16/0x124 [i2c_core]
->  [  809.128708] RSP: 0018:ffff880064a83ae8  EFLAGS: 00010296
->  [  809.128712] RAX: ffff880064a83b58 RBX: 00000000000000eb RCX: 0000000000000000
->  [  809.128715] RDX: 0000000000000002 RSI: ffff880064a83b38 RDI: 0000000000000002
->  [  809.128718] RBP: ffff880064a83b28 R08: ffff880079bcf7c0 R09: 0000000050000d80
->  [  809.128721] R10: 0000000000000005 R11: 0000000000004a38 R12: 0000000000000001
->  [  809.128725] R13: 0000000000000000 R14: ffffc900237e8000 R15: ffffc90023907000
->  [  809.128729] FS:  00007f2ff2dd3720(0000) GS:ffff880002000000(0000) knlGS:0000000000000000
->  [  809.128732] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
->  [  809.128736] CR2: 0000000000000012 CR3: 000000007830d000 CR4: 00000000000006f0
->  [  809.128739] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
->  [  809.128743] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
->  [  809.128746] Process tzap (pid: 2525, threadinfo ffff880064a82000, task ffff8800379745c0)
->  [  809.128749] Stack:
->  [  809.128751]  ffff880064a83af8 ffffffff8103c142 ffff880079c41a90 00000000000000eb
->  [  809.128757] <0> 0000000000000001 0000000000000000 ffffc900237e8000 ffffc90023907000
->  [  809.128762] <0> ffff880064a83b88 ffffffffa0407124 0000000200000030 ffff880064a83b68
->  [  809.128768] Call Trace:
->  [  809.128776]  [<ffffffff8103c142>] ? need_resched+0x23/0x2d
->  [  809.128783]  [<ffffffffa0407124>] dib7000p_read_word+0x6d/0xbc [dib7000p]
->  [  809.128789]  [<ffffffff813360eb>] ? usb_submit_urb+0x2f8/0x33a
->  [  809.128795]  [<ffffffffa0407ae5>] dib7000p_pid_filter_ctrl+0x2d/0x90 [dib7000p]
->  [  809.128802]  [<ffffffffa044f35f>] stk70x0p_pid_filter_ctrl+0x19/0x1e [dvb_usb_dib0700]
->  [  809.128809]  [<ffffffffa03b4ef9>] dvb_usb_ctrl_feed+0xd7/0x123 [dvb_usb]
->  [  809.128815]  [<ffffffffa03b4f6a>] dvb_usb_start_feed+0x13/0x15 [dvb_usb]
->  [  809.128825]  [<ffffffffa035585c>] dmx_ts_feed_start_filtering+0x7d/0xd1 [dvb_core]
->  [  809.128833]  [<ffffffffa03539fc>] dvb_dmxdev_start_feed.clone.1+0xbd/0xeb [dvb_core]
->  [  809.128841]  [<ffffffffa0353cf9>] dvb_dmxdev_filter_start+0x2cf/0x31b [dvb_core]
->  [  809.128847]  [<ffffffff81469b66>] ? _raw_spin_lock_irq+0x1f/0x21
->  [  809.128854]  [<ffffffffa035444b>] dvb_demux_do_ioctl+0x27b/0x4c0 [dvb_core]
->  [  809.128859]  [<ffffffff8103c15a>] ? should_resched+0xe/0x2e
->  [  809.128867]  [<ffffffffa03528f3>] dvb_usercopy+0xe4/0x16b [dvb_core]
->  [  809.128874]  [<ffffffffa03541d0>] ? dvb_demux_do_ioctl+0x0/0x4c0 [dvb_core]
->  [  809.128881]  [<ffffffff811e3718>] ? inode_has_perm.clone.20+0x79/0x8f
->  [  809.128886]  [<ffffffff810668ec>] ? remove_wait_queue+0x35/0x41
->  [  809.128891]  [<ffffffff81469b7f>] ? _raw_spin_unlock_irqrestore+0x17/0x19
->  [  809.128898]  [<ffffffffa0352fd1>] dvb_demux_ioctl+0x15/0x19 [dvb_core]
->  [  809.128903]  [<ffffffff8112419b>] vfs_ioctl+0x36/0xa7
->  [  809.128908]  [<ffffffff81124afc>] do_vfs_ioctl+0x468/0x49b
->  [  809.128912]  [<ffffffff81124b85>] sys_ioctl+0x56/0x79
->  [  809.128917]  [<ffffffff81009cf2>] system_call_fastpath+0x16/0x1b
->  [  809.128920] Code: 89 55 f8 48 83 c7 58 48 c7 c2 47 32 01 a0 e8 92 09 2c e1 c9 c3 55 48 89 e5 41 57 41 56 41 55 41 54 53 48 83 ec 18 0f 1f 44 00 00 <48> 8b 47 10 48 89 fb 49 89 f6 41 89 d7 48 83 38 00 0f 84 92 00
->  [  809.128965] RIP  [<ffffffffa0013702>] i2c_transfer+0x16/0x124 [i2c_core]
->  [  809.128973]  RSP <ffff880064a83ae8>
->  [  809.128975] CR2: 0000000000000012
->  [  809.128979] ---[ end trace 6919129d55f94398 ]---
-> 
-> this Oops occurs for me on all >2.6.32 kernels, including the current
-> linux-media dvb git tree, and Fedora (13,14) kernels.
-> 
-> Ubuntu has a bug open for the issue:
->   https://bugs.launchpad.net/ubuntu/+source/linux/+bug/654791
-> but the disable pid filtering workaround one person uses there doesn't
-> work for me.
-> 
-> as per Vincent's original message, the problem occurs because these
-> pieces of hardware are attached as dib7000m devices, but they use
-> functions from the dib7000p module. the config structs are not the same
-> between the 2 modules so as data is cast back and forward via
-> dib7000m_state and dib7000p_state, garbage is read from *i2c_adap,
-> causing the Oops.
-> 
-> the below patch against current git aligns the _config structs so that
-> the common elements in the _config and _state structs can be read from
-> either module. in particular, i2c_adap is at the same offset in _state
-> for both.
-> 
-> this patch has been tested on Fedora 14 kernel 2.6.35.10-72.fc14.x86_64
-> with 2 AVerMedia Volar's and 2 other tuners. I expect it will fix the
-> problems with the same chips in Nova-T and Winfast DTV units also.
-> 
-> please apply.
-> it would be good to get this small fix into stable and into distros.
+From: Manjunatha Halli <manjunatha_halli@ti.com>
 
-I didn't actually looked inside the code, but, if some routines can take 
-either argument, then we have a bad design here. Your proposal is a 
-workaround, but it is too dangerous, as those struct can be changed anytime.
+This has implementation for FM TX functionality.
+It communicates with FM V4l2 module and FM common module.
 
-Instead of syncing the data field on those structs, the better would be to
-use the dib7000p_state structure for dib7000m_state, or to create a common
-struct that could be used by the functions that are common.
+Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
+---
+ drivers/media/radio/wl128x/fmdrv_tx.c |  433 +++++++++++++++++++++++++++++++++
+ drivers/media/radio/wl128x/fmdrv_tx.h |   37 +++
+ 2 files changed, 470 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/radio/wl128x/fmdrv_tx.c
+ create mode 100644 drivers/media/radio/wl128x/fmdrv_tx.h
 
-Cheers,
-Mauro
+diff --git a/drivers/media/radio/wl128x/fmdrv_tx.c b/drivers/media/radio/wl128x/fmdrv_tx.c
+new file mode 100644
+index 0000000..b66f535
+--- /dev/null
++++ b/drivers/media/radio/wl128x/fmdrv_tx.c
+@@ -0,0 +1,433 @@
++/*
++ *  FM Driver for Connectivity chip of Texas Instruments.
++ *  This sub-module of FM driver implements FM TX functionality.
++ *
++ *  Copyright (C) 2011 Texas Instruments
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License version 2 as
++ *  published by the Free Software Foundation.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ */
++
++#include <linux/delay.h>
++#include "fmdrv.h"
++#include "fmdrv_common.h"
++#include "fmdrv_tx.h"
++
++u32 fm_tx_set_stereo_mono(struct fmdev *fmdev, u16 mode)
++{
++	u16 payload;
++	u32 ret = 0;
++
++	if (fmdev->curr_fmmode != FM_MODE_TX)
++		return -EPERM;
++
++	if (fmdev->tx_data.aud_mode == mode)
++		return ret;
++
++	fmdbg("stereo mode: %d\n", mode);
++
++	/* Set Stereo/Mono mode */
++	payload = (1 - mode);
++	ret = fmc_send_cmd(fmdev, MONO_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	fmdev->tx_data.aud_mode = mode;
++
++	return ret;
++}
++
++static u32 set_rds_text(struct fmdev *fmdev, u8 *rds_text)
++{
++	u16 payload;
++	u32 ret;
++
++	ret = fmc_send_cmd(fmdev, RDS_DATA_SET, REG_WR, rds_text,
++			strlen(rds_text), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	/* Scroll mode */
++	payload = (u16)0x1;
++	ret = fmc_send_cmd(fmdev, DISPLAY_MODE, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	return 0;
++}
++
++static u32 set_rds_data_mode(struct fmdev *fmdev, u8 mode)
++{
++	u16 payload;
++	u32 ret;
++
++	/* Setting unique PI TODO: how unique? */
++	payload = (u16)0xcafe;
++	ret = fmc_send_cmd(fmdev, PI_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	/* Set decoder id */
++	payload = (u16)0xa;
++	ret = fmc_send_cmd(fmdev, DI_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	/* TODO: RDS_MODE_GET? */
++	return 0;
++}
++
++static u32 set_rds_len(struct fmdev *fmdev, u8 type, u16 len)
++{
++	u16 payload;
++	u32 ret;
++
++	len |= type << 8;
++	payload = len;
++	ret = fmc_send_cmd(fmdev, RDS_CONFIG_DATA_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	/* TODO: LENGTH_GET? */
++	return 0;
++}
++
++u32 fm_tx_set_rds_mode(struct fmdev *fmdev, u8 rds_en_dis)
++{
++	u16 payload;
++	u32 ret;
++	u8 rds_text[] = "Zoom2\n";
++
++	if (fmdev->curr_fmmode != FM_MODE_TX)
++		return -EPERM;
++
++	fmdbg("rds_en_dis:%d(E:%d, D:%d)\n", rds_en_dis,
++		   FM_RDS_ENABLE, FM_RDS_DISABLE);
++
++	if (rds_en_dis == FM_RDS_ENABLE) {
++		/* Set RDS length */
++		set_rds_len(fmdev, 0, strlen(rds_text));
++
++		/* Set RDS text */
++		set_rds_text(fmdev, rds_text);
++
++		/* Set RDS mode */
++		set_rds_data_mode(fmdev, 0x0);
++	}
++
++	/* Send command to enable RDS */
++	if (rds_en_dis == FM_RDS_ENABLE)
++		payload = 0x01;
++	else
++		payload = 0x00;
++
++	ret = fmc_send_cmd(fmdev, RDS_DATA_ENB, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	if (rds_en_dis == FM_RDS_ENABLE) {
++		/* Set RDS length */
++		set_rds_len(fmdev, 0, strlen(rds_text));
++
++		/* Set RDS text */
++		set_rds_text(fmdev, rds_text);
++	}
++	fmdev->tx_data.rds.flag = rds_en_dis;
++
++	return 0;
++}
++
++u32 fm_tx_set_radio_text(struct fmdev *fmdev, u8 *rds_text, u8 rds_type)
++{
++	u16 payload;
++	u32 ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_TX)
++		return -EPERM;
++
++	fm_tx_set_rds_mode(fmdev, 0);
++
++	/* Set RDS length */
++	set_rds_len(fmdev, rds_type, strlen(rds_text));
++
++	/* Set RDS text */
++	set_rds_text(fmdev, rds_text);
++
++	/* Set RDS mode */
++	set_rds_data_mode(fmdev, 0x0);
++
++	payload = 1;
++	ret = fmc_send_cmd(fmdev, RDS_DATA_ENB, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	return 0;
++}
++
++u32 fm_tx_set_af(struct fmdev *fmdev, u32 af)
++{
++	u16 payload;
++	u32 ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_TX)
++		return -EPERM;
++
++	fmdbg("AF: %d\n", af);
++
++	af = (af - 87500) / 100;
++	payload = (u16)af;
++	ret = fmc_send_cmd(fmdev, TA_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	return 0;
++}
++
++u32 fm_tx_set_region(struct fmdev *fmdev, u8 region)
++{
++	u16 payload;
++	u32 ret;
++
++	if (region != FM_BAND_EUROPE_US && region != FM_BAND_JAPAN) {
++		fmerr("Invalid band\n");
++		return -EINVAL;
++	}
++
++	/* Send command to set the band */
++	payload = (u16)region;
++	ret = fmc_send_cmd(fmdev, TX_BAND_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	return 0;
++}
++
++u32 fm_tx_set_mute_mode(struct fmdev *fmdev, u8 mute_mode_toset)
++{
++	u16 payload;
++	u32 ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_TX)
++		return -EPERM;
++	fmdbg("tx: mute mode %d\n", mute_mode_toset);
++
++	payload = mute_mode_toset;
++	ret = fmc_send_cmd(fmdev, MUTE, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	return 0;
++}
++
++/* Set TX Audio I/O */
++static u32 set_audio_io(struct fmdev *fmdev)
++{
++	struct fmtx_data *tx = &fmdev->tx_data;
++	u16 payload;
++	u32 ret;
++
++	/* Set Audio I/O Enable */
++	payload = tx->audio_io;
++	ret = fmc_send_cmd(fmdev, AUDIO_IO_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	/* TODO: is audio set? */
++	return 0;
++}
++
++/* Start TX Transmission */
++static u32 enable_xmit(struct fmdev *fmdev, u8 new_xmit_state)
++{
++	struct fmtx_data *tx = &fmdev->tx_data;
++	unsigned long timeleft;
++	u16 payload;
++	u32 ret;
++
++	/* Enable POWER_ENB interrupts */
++	payload = FM_POW_ENB_EVENT;
++	ret = fmc_send_cmd(fmdev, INT_MASK_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	/* Set Power Enable */
++	payload = new_xmit_state;
++	ret = fmc_send_cmd(fmdev, POWER_ENB_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	/* Wait for Power Enabled */
++	init_completion(&fmdev->maintask_comp);
++	timeleft = wait_for_completion_timeout(&fmdev->maintask_comp,
++			FM_DRV_TX_TIMEOUT);
++	if (!timeleft) {
++		fmerr("Timeout(%d sec),didn't get tune ended interrupt\n",
++			   jiffies_to_msecs(FM_DRV_TX_TIMEOUT) / 1000);
++		return -ETIMEDOUT;
++	}
++
++	set_bit(FM_CORE_TX_XMITING, &fmdev->flag);
++	tx->xmit_state = new_xmit_state;
++
++	return 0;
++}
++
++/* Set TX power level */
++u32 fm_tx_set_pwr_lvl(struct fmdev *fmdev, u8 new_pwr_lvl)
++{
++	u16 payload;
++	struct fmtx_data *tx = &fmdev->tx_data;
++	u32 ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_TX)
++		return -EPERM;
++	fmdbg("tx: pwr_level_to_set %ld\n", (long int)new_pwr_lvl);
++
++	/* If the core isn't ready update global variable */
++	if (!test_bit(FM_CORE_READY, &fmdev->flag)) {
++		tx->pwr_lvl = new_pwr_lvl;
++		return 0;
++	}
++
++	/* Set power level: Application will specify power level value in
++	 * units of dB/uV, whereas range and step are specific to FM chip.
++	 * For TI's WL chips, convert application specified power level value
++	 * to chip specific value by subtracting 122 from it. Refer to TI FM
++	 * data sheet for details.
++	 * */
++
++	payload = (FM_PWR_LVL_HIGH - new_pwr_lvl);
++	ret = fmc_send_cmd(fmdev, POWER_LEV_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	/* TODO: is the power level set? */
++	tx->pwr_lvl = new_pwr_lvl;
++
++	return 0;
++}
++
++/*
++ * Sets FM TX pre-emphasis filter value (OFF, 50us, or 75us)
++ * Convert V4L2 specified filter values to chip specific filter values.
++ */
++u32 fm_tx_set_preemph_filter(struct fmdev *fmdev, u32 preemphasis)
++{
++	struct fmtx_data *tx = &fmdev->tx_data;
++	u16 payload;
++	u32 ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_TX)
++		return -EPERM;
++
++	switch (preemphasis) {
++	case V4L2_PREEMPHASIS_DISABLED:
++		payload = FM_TX_PREEMPH_OFF;
++		break;
++	case V4L2_PREEMPHASIS_50_uS:
++		payload = FM_TX_PREEMPH_50US;
++		break;
++	case V4L2_PREEMPHASIS_75_uS:
++		payload = FM_TX_PREEMPH_75US;
++		break;
++	}
++
++	ret = fmc_send_cmd(fmdev, PREMPH_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	tx->preemph = payload;
++
++	return ret;
++}
++
++/* Get the TX tuning capacitor value.*/
++u32 fm_tx_get_tune_cap_val(struct fmdev *fmdev)
++{
++	u16 curr_val;
++	u32 ret, resp_len;
++
++	if (fmdev->curr_fmmode != FM_MODE_TX)
++		return -EPERM;
++
++	ret = fmc_send_cmd(fmdev, READ_FMANT_TUNE_VALUE, REG_RD,
++			NULL, sizeof(curr_val), &curr_val, &resp_len);
++	if (ret < 0)
++		return ret;
++
++	curr_val = be16_to_cpu(curr_val);
++
++	return curr_val;
++}
++
++/* Set TX Frequency */
++u32 fm_tx_set_freq(struct fmdev *fmdev, u32 freq_to_set)
++{
++	struct fmtx_data *tx = &fmdev->tx_data;
++	u16 payload, chanl_index;
++	u32 ret;
++
++	if (test_bit(FM_CORE_TX_XMITING, &fmdev->flag)) {
++		enable_xmit(fmdev, 0);
++		clear_bit(FM_CORE_TX_XMITING, &fmdev->flag);
++	}
++
++	/* Enable FR, BL interrupts */
++	payload = (FM_FR_EVENT | FM_BL_EVENT);
++	ret = fmc_send_cmd(fmdev, INT_MASK_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	tx->tx_frq = (unsigned long)freq_to_set;
++	fmdbg("tx: freq_to_set %ld\n", (long int)tx->tx_frq);
++
++	chanl_index = freq_to_set / 10;
++
++	/* Set current tuner channel */
++	payload = chanl_index;
++	ret = fmc_send_cmd(fmdev, CHANL_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	fm_tx_set_pwr_lvl(fmdev, tx->pwr_lvl);
++	fm_tx_set_preemph_filter(fmdev, tx->preemph);
++
++	tx->audio_io = 0x01;	/* I2S */
++	set_audio_io(fmdev);
++
++	enable_xmit(fmdev, 0x01);	/* Enable transmission */
++
++	tx->aud_mode = FM_STEREO_MODE;
++	tx->rds.flag = FM_RDS_DISABLE;
++
++	return 0;
++}
++
+diff --git a/drivers/media/radio/wl128x/fmdrv_tx.h b/drivers/media/radio/wl128x/fmdrv_tx.h
+new file mode 100644
+index 0000000..e393a2b
+--- /dev/null
++++ b/drivers/media/radio/wl128x/fmdrv_tx.h
+@@ -0,0 +1,37 @@
++/*
++ *  FM Driver for Connectivity chip of Texas Instruments.
++ *  FM TX module header.
++ *
++ *  Copyright (C) 2011 Texas Instruments
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License version 2 as
++ *  published by the Free Software Foundation.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ */
++
++#ifndef _FMDRV_TX_H
++#define _FMDRV_TX_H
++
++u32 fm_tx_set_freq(struct fmdev *, u32);
++u32 fm_tx_set_pwr_lvl(struct fmdev *, u8);
++u32 fm_tx_set_region(struct fmdev *, u8);
++u32 fm_tx_set_mute_mode(struct fmdev *, u8);
++u32 fm_tx_set_stereo_mono(struct fmdev *, u16);
++u32 fm_tx_set_rds_mode(struct fmdev *, u8);
++u32 fm_tx_set_radio_text(struct fmdev *, u8 *, u8);
++u32 fm_tx_set_af(struct fmdev *, u32);
++u32 fm_tx_set_preemph_filter(struct fmdev *, u32);
++u32 fm_tx_get_tune_cap_val(struct fmdev *);
++
++#endif
++
+-- 
+1.5.6.3
+
