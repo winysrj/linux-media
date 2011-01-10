@@ -1,51 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2638 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753170Ab1APPgh (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.22]:54412 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1754520Ab1AJR3o convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Jan 2011 10:36:37 -0500
-Received: from tschai.localnet (43.80-203-71.nextgentel.com [80.203.71.43])
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id p0GFaYaG096319
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 16 Jan 2011 16:36:35 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 2.6.38] v4l2-ctrls: fix missing read-only check causing kernel oops
-Date: Sun, 16 Jan 2011 16:36:34 +0100
+	Mon, 10 Jan 2011 12:29:44 -0500
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: linux-media@vger.kernel.org
+To: =?utf-8?q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+Subject: Re: [PATCH 03/16] ngene: Firmware 18 support
+Date: Mon, 10 Jan 2011 18:12:04 +0100
+Cc: linux-media@vger.kernel.org
+References: <1294652184-12843-1-git-send-email-o.endriss@gmx.de> <1294652184-12843-4-git-send-email-o.endriss@gmx.de> <8762twyi31.fsf@nemi.mork.no>
+In-Reply-To: <8762twyi31.fsf@nemi.mork.no>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201101161636.34558.hverkuil@xs4all.nl>
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <201101101812.05395@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+On Monday 10 January 2011 15:00:18 Bjørn Mork wrote:
+> Oliver Endriss <o.endriss@gmx.de> writes:
+> 
+> > +	case 18:
+> > +		size = 0;
+> > +		fw_name = "ngene_18.fw";
+> > +		break;
+> >  	}
+> >  
+> >  	if (request_firmware(&fw, fw_name, &dev->pci_dev->dev) < 0) {
+> > @@ -1266,6 +1270,8 @@ static int ngene_load_firm(struct ngene *dev)
+> >  			": Copy %s to your hotplug directory!\n", fw_name);
+> >  		return -1;
+> >  	}
+> > +	if (size == 0)
+> > +		size = fw->size;
+> >  	if (size != fw->size) {
+> >  		printk(KERN_ERR DEVICE_NAME
+> >  			": Firmware %s has invalid size!", fw_name);
+> 
+> 
+> Just a stupid question:  Why remove the size verification for version 18
+> while keeping it for the other firmware revisions?
 
-This fixes a nasty little bug that I just found with v4l2-compliance.
+Good point. This was handy when the firmware was developed.
+I will submit an additional patch which adds a size check for Fw18.
 
-I'm writing lots of compliance tests for control handling at the moment and
-the results are rather, erm, disheartening to use a polite word :-(
-
-Regards,
-
-	Hans
-
-The following changes since commit a9ac9ac36d6b199074f9545b25154fa4771ed3f4:
-  Hans Verkuil (1):
-        [media] v4l2-ctrls: v4l2_ctrl_handler_setup must set is_new to 1
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/hverkuil/media_tree.git ctrl-fix
-
-Hans Verkuil (1):
-      v4l2-ctrls: fix missing 'read-only' check
-
- drivers/media/video/v4l2-ctrls.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+CU
+Oliver
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
