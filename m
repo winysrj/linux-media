@@ -1,28 +1,41 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:45555 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750758Ab1AAJ7Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Jan 2011 04:59:24 -0500
-From: "Igor M. Liplianin" <liplianin@tut.by>
-To: Benny Amorsen <benny+usenet@amorsen.dk>
-Subject: Re: [PATCH 04/18] xc5000: add support for DVB-C tuning.
-Date: Sat, 1 Jan 2011 11:57:37 +0200
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-References: <4d1ef3ff.52790e0a.0150.0713@mx.google.com> <m3bp41gdrz.fsf@ursa.amorsen.dk>
-In-Reply-To: <m3bp41gdrz.fsf@ursa.amorsen.dk>
+Return-path: <mchehab@pedra>
+Received: from ffm.saftware.de ([83.141.3.46]:55126 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751457Ab1AJOFh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Jan 2011 09:05:37 -0500
+Message-ID: <4D2B122E.3050803@linuxtv.org>
+Date: Mon, 10 Jan 2011 15:05:34 +0100
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: base64
-Message-Id: <201101011157.37267.liplianin@me.by>
+To: Oliver Endriss <o.endriss@gmx.de>
+CC: linux-media@vger.kernel.org, mchehab@redhat.com
+Subject: Re: [PATCH 07/16] ngene: CXD2099AR Common Interface driver
+References: <1294652184-12843-1-git-send-email-o.endriss@gmx.de> <1294652184-12843-8-git-send-email-o.endriss@gmx.de>
+In-Reply-To: <1294652184-12843-8-git-send-email-o.endriss@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-0JIg0YHQvtC+0LHRidC10L3QuNC4INC+0YIgMSDRj9C90LLQsNGA0Y8gMjAxMSAxMTo0MzoyOCDQ
-sNCy0YLQvtGAIEJlbm55IEFtb3JzZW4g0L3QsNC/0LjRgdCw0Ls6Cj4gSXQgaXMgYWx3YXlzIGdv
-b2QgdG8gc2VlIG1vcmUgRFZCLUMgZGV2aWNlcyBzdXBwb3J0ZWQuLi4gRG8geW91IGhhcHBlbgo+
-IHRvIGtub3cgc29tZSBkZXZpY2VzIHdoaWNoIGhhdmUgRFZCLUMgc3VwcG9ydCBhbmQgdXNlIHRo
-aXMgY2hpcD8KPiAKPiAKPiAvQmVubnkKU2VlIG5leHQgcGF0Y2ggLi4uCgotLSAKSWdvciBNLiBM
-aXBsaWFuaW4KTWljcm9zb2Z0IFdpbmRvd3MgRnJlZSBab25lIC0gTGludXggdXNlZCBmb3IgYWxs
-IENvbXB1dGluZyBUYXNrcwo=
+On 01/10/2011 10:36 AM, Oliver Endriss wrote:
+> From: Ralph Metzler <rjkm@metzlerbros.de>
+> 
+> Driver for the Common Interface Controller CXD2099AR.
+> Supports the CI of the cineS2 DVB-S2.
+> 
+> For now, data is passed through '/dev/dvb/adapterX/sec0':
+> - Encrypted data must be written to 'sec0'.
+> - Decrypted data can be read from 'sec0'.
+> - Setup the CAM using device 'ca0'.
+
+Nack. In DVB API terms, "sec" stands for satellite equipment control,
+and if I remember correctly, sec0 already existed in the first versions
+of the API and that's why its leftovers can be abused by this driver.
+
+The interfaces for writing data are dvr0 and demux0. If they don't fit
+for decryption of recorded data, then they should be extended.
+
+For decryption of live data, no new user interface needs to be created.
+
+Regards,
+Andreas
