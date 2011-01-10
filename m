@@ -1,87 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:49502 "HELO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752799Ab1ARCNe (ORCPT
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:41707 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753197Ab1AJMwr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jan 2011 21:13:34 -0500
-From: Qing Xu <qingx@marvell.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Mon, 17 Jan 2011 18:13:25 -0800
-Subject: RE: soc-camera s_fmt question?
-Message-ID: <7BAC95F5A7E67643AAFB2C31BEE662D014040BF29F@SC-VEXCH2.marvell.com>
-References: <AANLkTimucMmO8Vb_y4xnhehQt+mamNMmXyY_qfrVOSo7@mail.gmail.com>
- <AANLkTinv64SL4HavFRK-s2Tr4CTGPH4iQ9bz7=40v1Hc@mail.gmail.com>
-  <7BAC95F5A7E67643AAFB2C31BEE662D014040BF23F@SC-VEXCH2.marvell.com>
- <Pine.LNX.4.64.1101171840360.16051@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1101171840360.16051@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
+	Mon, 10 Jan 2011 07:52:47 -0500
+Received: by iwn9 with SMTP id 9so19128167iwn.19
+        for <linux-media@vger.kernel.org>; Mon, 10 Jan 2011 04:52:46 -0800 (PST)
+Message-ID: <4D2B0119.4030007@gmail.com>
+Date: Mon, 10 Jan 2011 10:52:41 -0200
+From: Mauro Carvalho Chehab <maurochehab@gmail.com>
 MIME-Version: 1.0
+To: CityK <cityk@rogers.com>
+CC: Linux-media <linux-media@vger.kernel.org>,
+	vincent.mcintyre@gmail.com
+Subject: Re: difference mchehab/new_build.git to media_build.git ?
+References: <4D29FD05.2090501@rogers.com>
+In-Reply-To: <4D29FD05.2090501@rogers.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-SGkgR3Vlbm5hZGksDQoNCkluIGNsb3NlKCksIHRoZSBzZW5zb3IvY2FtZXJhIGNvbnRyb2xsZXIg
-d2lsbCBiZSB0b3RhbGx5IHBvd2VyZWQtb2ZmL2Nsb2NrLW9mZiwgdGhlbiBpbiBvcGVuKCksIHdl
-IHdpbGwgc2V0IGh1bmRyZWRzIG9mIGRlZmF1bHQgdmFsdWVzIGludG8gc2Vuc29yJ3MgcmVnaXN0
-ZXJzIGJ5IEkyQywgdG8gZW5hYmxlL2NvbmZpZ3VyZSBzZW5zb3IgdG8gYSBkZWZhdWx0IHN0YXR1
-cywgaXQgdGFrZXMgdG9vIG11Y2ggdGltZShzZXZlcmFsIHNlY29uZHMpIHRvIHN3aXRjaCBmcm9t
-IHByZXZpZXcgdG8gc3RpbGwgY2FwdHVyZSB0aGF0IG91ciBjdXN0b21lcnMgY2FuIG5vdCBiZWFy
-Lg0KU28sIGluc3RlYWQsIHdoZW4gc3dpdGNoIGZvcm1hdCwgb3VyIGFwcGxpY2F0aW9uIGp1c3Qg
-Y2FsbHMgc3RyZWFtLW9mZi9zdHJlYW0tb24sIGFzIGluIHN0cmVhbS1vZmYoKSwgd2UgcHV0IHRo
-ZSBzZW5zb3IvY2FtZXJhIGNvbnRyb2xsZXIgdG8gYSBwYXVzZSBzdGF0ZSwgb25jZSBzd2l0Y2gg
-Zm9ybWF0LCB3ZSBvbmx5IG5lZWQgdG8gc2V0IHNldmVyYWwgc2Vuc29yIHJlZ2lzdGVycywgaXQg
-dGFrZXMgYSBsaXR0bGUgdGltZSB0byBzd2l0Y2ggZnJvbSBwcmV2aWV3IHRvIHN0aWxsIGNhcHR1
-cmUuDQoNCkFuZCwgZnVydGhlciBtb3JlLCBkdXJpbmcgcHJldmlldywgY3VzdG9tZXJzIHdvdWxk
-IGxpa2UgdG8gc2V0IHNvbWUgc3BlY2lhbCBlZmZlY3QgdG8gaW1hZ2UsIHN1Y2ggYXMgdHVybmlu
-ZyBjb2xvciB0byBibHVlLCBjaGFuZ2luZyB0aGUgYnJpZ2h0bmVzcywgZXRjLCB3aGVuIHRoZXkg
-Y2FwdHVyZSB0aGUgcGljdHVyZSwgdGhleSB3b3VsZCBob3BlIHRoZSBwaWN0dXJlIGxvb2tzIHRo
-ZSBzYW1lIGFzIHRoZSB3aGF0IHRoZXkgY2hhbmdlIGR1cmluZyBwcmV2aWV3LCBzbywgb3VyIGFw
-cGxpY2F0aW9uIGRvZXMgbm90IHRvdGFsbHkgY2xvc2UoKSBjYW1lcmEsIGp1c3Qgc3RyZWFtLW9m
-ZigpLCBpbiB0aGlzIHdheSwgdGhlIHJlZ2lzdGVycyB2YWx1ZXMgYXJlIGtlcHQgaW4gc2Vuc29y
-LCB0aG9zZSBzcGVjaWFsIGVmZmVjdCBzdGF0dXMgaXMgYWxzbyBrZXB0Lg0KDQpUaGUgMiByZWFz
-b25zIGFib3ZlIG1ha2Ugb3VyIGFwcGxpY2F0aW9uIHdpbGwgbm90IGNsb3NlL29wZW4sIGJ1dCBq
-dXN0IHN0cmVhbS1vZmYvc3RyZWFtLW9uIGR1cmluZyBzd2l0Y2hpbmcgZm9ybWF0IGZyb20gcHJl
-dmlldyB0byBzdGlsbCBjYXB0dXJlLg0KDQpUaGFua3MhDQotUWluZw0KDQotLS0tLU9yaWdpbmFs
-IE1lc3NhZ2UtLS0tLQ0KRnJvbTogR3Vlbm5hZGkgTGlha2hvdmV0c2tpIFttYWlsdG86Zy5saWFr
-aG92ZXRza2lAZ214LmRlXQ0KU2VudDogMjAxMcTqMdTCMTjI1SAxOjQzDQpUbzogUWluZyBYdQ0K
-Q2M6IExhdXJlbnQgUGluY2hhcnQ7IGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZw0KU3ViamVj
-dDogUmU6IHNvYy1jYW1lcmEgc19mbXQgcXVlc3Rpb24/DQoNCk9uIE1vbiwgMTcgSmFuIDIwMTEs
-IFFpbmcgWHUgd3JvdGU6DQoNCj4gSGksDQo+DQo+IFdlIGFyZSBub3cgbmVhcmx5IGNvbXBsZXRl
-IHBvcnRpbmcgb3VyIGNhbWVyYSBkcml2ZXIgdG8gYWxpZ24gd2l0aA0KPiBzb2MtY2FtZXJhIGZy
-YW1ld29yaywgaG93ZXZlciwgd2UgZW5jb3VudGVyIGEgcHJvYmxlbSB3aGVuIGl0IHdvcmtzIHdp
-dGgNCj4gb3VyIGFwcGxpY2F0aW9uIGR1cmluZyBzd2l0Y2ggZm9ybWF0IGZyb20gcHJldmlldyB0
-byBzdGlsbCBjYXB0dXJlLA0KPiBhcHBsaWNhdGlvbidzIG1haW4gY2FsbGluZyBzZXF1ZW5jZSBp
-cyBhcyBmb2xsb3c6DQo+IDEpIHNfZm10IC8qIHByZXZpZXcgQCBZVVYsIFZHQSAqLw0KPiAyKSBy
-ZXF1ZXN0IGJ1ZmZlciAoYnVmZmVyIGNvdW50ID0gNikNCj4gMikgcXVldWUgYnVmZmVyDQo+IDMp
-IHN0cmVhbSBvbg0KPiA0KSBxLWJ1ZiwgZHEtYnVmLi4uDQo+IDUpIHN0cmVhbSBvZmYNCj4NCj4g
-Nikgc19mbXQgLyogc3RpbGwgY2FwdHVyZSBAIGpwZWcsIDI1OTJ4MTk0NCovDQo+IDcpIHJlcXVl
-c3QgYnVmZmVyIChidWZmZXIgY291bnQgPSAzKQ0KPiA4KSBzYW1lIGFzIDMpLT41KS4uLg0KPg0K
-PiBUaGUgcG9pbnQgaXMgaW4gc29jX2NhbWVyYV9zX2ZtdF92aWRfY2FwKCkgew0KPiAgICAgICAg
-IGlmIChpY2QtPnZiX3ZpZHEuYnVmc1swXSkgew0KPiAgICAgICAgICAgICAgICAgZGV2X2Vycigm
-aWNkLT5kZXYsICJTX0ZNVCBkZW5pZWQ6IHF1ZXVlIGluaXRpYWxpc2VkXG4iKTsNCj4gICAgICAg
-ICAgICAgICAgIHJldCA9IC1FQlVTWTsNCj4gICAgICAgICAgICAgICAgIGdvdG8gdW5sb2NrOw0K
-PiAgICAgICAgIH0NCj4gfQ0KPiBXZSBkaWRuJ3QgZmluZCB2Yl92aWRxLmJ1ZnNbMF0gYmUgZnJl
-ZSwgKGl0IGlzIGZyZWVkIGluDQo+IHZpZGVvYnVmX21tYXBfZnJlZSgpLCBhbmQgaW4gX192aWRl
-b2J1Zl9tbWFwX3NldHVwLCBidXQgbm8gb25lIGNhbGxzDQo+IHZpZGVvYnVmX21tYXBfZnJlZSgp
-LCBhbmQgaW4gX192aWRlb2J1Zl9tbWFwX3NldHVwIGl0IGlzIGZyZWVkIGF0IGZpcnN0DQo+IGFu
-ZCB0aGVuIGFsbG9jYXRlZCBzZXF1ZW50aWFsbHkpLCBzbyB3ZSBhbHdheXMgZmFpbCBhdCBjYWxs
-aW5nIHNfZm10Lg0KPiBNeSBpZGVhIGlzIHRvIGltcGxlbWVudCBzb2NfY2FtZXJhX3JlcWJ1ZnMo
-YnVmZmVyIGNvdW50ID0gMCksIHRvIHByb3ZpZGUNCj4gYXBwbGljYXRpb24gb3Bwb3J0dW5pdHkg
-dG8gZnJlZSB0aGlzIGJ1ZmZlciBub2RlLCByZWZlciB0byB2NGwyIHNwZWMsDQo+IGh0dHA6Ly9s
-aW51eHR2Lm9yZy9kb3dubG9hZHMvdjRsLWR2Yi1hcGlzL3ZpZGlvYy1yZXFidWZzLmh0bWwNCj4g
-IkEgY291bnQgdmFsdWUgb2YgemVybyBmcmVlcyBhbGwgYnVmZmVycywgYWZ0ZXIgYWJvcnRpbmcg
-b3IgZmluaXNoaW5nDQo+IGFueSBETUEgaW4gcHJvZ3Jlc3MsIGFuIGltcGxpY2l0IFZJRElPQ19T
-VFJFQU1PRkYuIg0KDQpDdXJyZW50bHkgYnVmZmVycyBhcmUgZnJlZWQgaW4gc29jLWNhbWVyYSB1
-cG9uIGNsb3NlKCkuIFllcywgSSBrbm93IGFib3V0DQp0aGF0IGNsYXVzZSBpbiB0aGUgQVBJIHNw
-ZWMsIGFuZCBJIGtub3csIHRoYXQgaXQgaXMgdW5pbXBsZW1lbnRlZCBpbg0Kc29jLWNhbWVyYS4g
-RG8geW91IGhhdmUgYSByZWFzb24gdG8gcHJlZmVyIHRoYXQgb3ZlciBjbG9zZSgpaW5nIGFuZA0K
-cmUtb3BlbigpaW5nIHRoZSBkZXZpY2U/DQoNClRoYW5rcw0KR3Vlbm5hZGkNCg0KPg0KPiBXaGF0
-IGRvIHlvdSB0aGluaz8NCj4NCj4gQW55IGlkZWFzIHdpbGwgYmUgYXBwcmVjaWF0ZWQhDQo+IFRo
-YW5rcyENCj4gUWluZyBYdQ0KPg0KPiBFbWFpbDogcWluZ3hAbWFydmVsbC5jb20NCj4gQXBwbGlj
-YXRpb24gUHJvY2Vzc29yIFN5c3RlbXMgRW5naW5lZXJpbmcsDQo+IE1hcnZlbGwgVGVjaG5vbG9n
-eSBHcm91cCBMdGQuDQo+DQoNCi0tLQ0KR3Vlbm5hZGkgTGlha2hvdmV0c2tpLCBQaC5ELg0KRnJl
-ZWxhbmNlIE9wZW4tU291cmNlIFNvZnR3YXJlIERldmVsb3Blcg0KaHR0cDovL3d3dy5vcGVuLXRl
-Y2hub2xvZ3kuZGUvDQo=
+Em 09-01-2011 16:23, CityK escreveu:
+> vincent.mcintyre wrote:
+>> Thanks for clarifying this. Doesn't this justify a one-line NEWS item?
+>> I can understand not wanting to mention it while still experimental, but now...
+> 
+> Last night (well, actually the wee wee hours of this morning), I took the time to:
+> - add a news announcement regarding media_build on the front page of the wiki
+> - update the  http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers article accordingly
+
+Thanks for the changes!
+
+You can add a "more advanced" approach. That's what I currently do here:
+
+$ git clone git://linuxtv.org/media_build.git
+$ git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git media_tree
+$ cd media_tree
+$ git remote add linuxtv git://linuxtv.org/media_tree.git
+$ git remote update
+$ git checkout -b media-master remotes/linuxtv/staging/for_v2.6.38-rc1
+$ cd ../media_build/linux
+$ make dir DIR=../media_tree
+$ cd ..
+
+The "make dir" target will associate the development git tree with the media_tree,
+in a way that, if you change a file or update the media_tree, the new_build scripts
+will sync its copy with the media_tree ones, re-applying the patches if needed,
+before building the targets.
+
+You should try it. It helps a lot if you need to keep your drivers in track with the
+upstream ones.
+
+> I suspect that what has precluded any earlier case of a widely visible announcement being made, beyond those tidbits that have appeared on the mailing list, is a combination of:
+> - the necessity for having someone actually find and take time to perform such an administrative task
+> - and, amongst most, a case of general unfamiliarity  with the new system
+> - and, a question of maintainership of the new system and whether or not its status is still classified as experimental or has reached maturity
+> - and, access rights required to modify the Linuxtv proper website in regards to these developments
+
+True. Btw, as we don't have anyone dedicated to maintain the media_build, 
+I gave write rights to other people for the media_build tree. As I found
+it useful to myself, I'm also keeping it on a reasonable stable (although
+I only use the "make dir" way, so I probably won't notice a bug with make
+untar and related targets). If someone has time and interests on helping
+to maintaining it, please ping me. 
+
+> Speaking of time, I've now expended all of mine, and then some (as per usual), which I can devote to this matter.  
+> Hopefully someone can take a look and correct any mistakes I've made or add any points I've overlooked on the wiki.
+> As well, hopefully someone else can take care of the other parts of the website that need to be updated.
+
+Thanks!
+
+Mauro.
