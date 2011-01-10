@@ -1,49 +1,44 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2156 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932378Ab1AKXG2 (ORCPT
+Received: from comal.ext.ti.com ([198.47.26.152]:55619 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753711Ab1AJMv6 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jan 2011 18:06:28 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
-	Alberto Panizzo <maramaopercheseimorto@gmail.com>,
-	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
-	Marek Vasut <marek.vasut@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [RFC PATCH 00/12] Converting soc_camera to the control framework
-Date: Wed, 12 Jan 2011 00:06:00 +0100
-Message-Id: <1294787172-13638-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 10 Jan 2011 07:51:58 -0500
+From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+To: "Nori, Sekhar" <nsekhar@ti.com>,
+	Sergei Shtylyov <sshtylyov@mvista.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Date: Mon, 10 Jan 2011 18:21:34 +0530
+Subject: RE: [PATCH v13 5/8] davinci vpbe: platform specific additions
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930247F9A821@dbde02.ent.ti.com>
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024829B6B4@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The control framework was created to make it easier to implement the full
-control API in drivers. Documentation can be found in:
+On Mon, Jan 10, 2011 at 17:25:33, Nori, Sekhar wrote:
+> On Mon, Jan 10, 2011 at 16:58:41, Sergei Shtylyov wrote:
+> 
+> > > +
+> > > +#define OSD_REG_SIZE			0x000001ff
+> > > +#define VENC_REG_SIZE			0x0000017f
+> > 
+> >     Well, actually that's not the size but "limit" -- sizes should be 
+> > 0x200 and 0x180 respectively...
+> 
+> In most resource definitions on DaVinci, these are not even #defined. Just add the limit directly to the base to derive the .end
+> 
+> Thanks,
+> Sekhar
+> 
+Ok. I shall keep the numbers as is.
 
-Documentation/video4linux/v4l2-controls.txt
-
-Traditionally soc-camera used its own control implementation to allow the
-inheritance of controls from subdevices. The control handler does this as
-well but in a generic, non-soc_camera specific, manner.
-
-This patch series converts all soc_camera drivers that have controls to
-the control framework. This brings us one more step closer to being able
-to reuse soc_camera subdevs in other environments.
-
-This has been tested on a Renesas sh-mobile board (thanks Magnus!).
-
-These patches are also available in my git tree:
-
-http://git.linuxtv.org/hverkuil/media_tree.git?a=shortlog;h=refs/heads/soc_camera
-
-The goal is to get this patch series merged for 2.6.39.
-
-It would be great if people who have boards with sensors affected by this
-patch series can test this.
-
-Regards,
-
-	Hans
+Thanks,
+-Manju
 
