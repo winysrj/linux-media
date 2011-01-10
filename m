@@ -1,101 +1,294 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44018 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752586Ab1AYJUS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jan 2011 04:20:18 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Michael Jones <michael.jones@matrix-vision.de>
-Subject: Re: [RFC] ISP lane shifter support
-Date: Tue, 25 Jan 2011 10:20:18 +0100
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37859 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752203Ab1AJN2A (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Jan 2011 08:28:00 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Hans Verkuil <hverkuil@xs4all.nl>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <4D394675.90304@matrix-vision.de> <201101242045.24561.laurent.pinchart@ideasonboard.com> <4D3E939A.5020100@matrix-vision.de>
-In-Reply-To: <4D3E939A.5020100@matrix-vision.de>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201101251020.22804.laurent.pinchart@ideasonboard.com>
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH 5/8] davinci vpbe: platform specific additions
+Date: Mon, 10 Jan 2011 18:57:37 +0530
+Message-Id: <1294666057-17491-1-git-send-email-manjunath.hadli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Michael,
+This patch implements the overall device creation for the Video
+display driver.
 
-On Tuesday 25 January 2011 10:10:50 Michael Jones wrote:
-> On 01/24/2011 08:45 PM, Laurent Pinchart wrote:
-> > On Monday 24 January 2011 15:16:28 Michael Jones wrote:
-> >> On 01/24/2011 02:57 PM, Laurent Pinchart wrote:
-> >> <snip>
-> >> 
-> >>>>> As the lane shifter is located at the CCDC input, it might be easier
-> >>>>> to implement support for this using the CCDC input format.
-> >>>>> ispvideo.c would need to validate the pipeline when the output of
-> >>>>> the entity connected to the CCDC input (parallel sensor, CCP2 or
-> >>>>> CSI2) is configured with a format that can be shifted to the format
-> >>>>> at the CCDC input.
-> >>>> 
-> >>>> This crossed my mind, but it seems illogical to have a link with a
-> >>>> different format at each of its ends.
-> >>> 
-> >>> I agree in theory, but it might be problematic for the CCDC. Right now
-> >>> the CCDC can write to memory or send the data to the preview engine,
-> >>> but not both at the same time. That's something that I'd like to
-> >>> change in the future. What happens if the user then sets different
-> >>> widths on the output pads ?
-> >> 
-> >> Shouldn't we prohibit the user from doing this in ccdc_[try/set]_format
-> >> in the first place? By "prohibit", I mean shouldn't we be sure that the
-> >> pixel format on pad 1 is always the same as on pad 2?
-> > 
-> > Yes we should (although we could have a larger width on the memory write
-> > port, as the video port can further shift the data).
-> 
-> Doesn't this conflict with your comment below that we shouldn't silently
-> change pad 1 when setting pad 2?  How can we ensure that they're always
-> the same if a change in one doesn't result in a change in the other?
-> See my example below.
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ arch/arm/mach-davinci/dm644x.c              |  172 +++++++++++++++++++++++++--
+ arch/arm/mach-davinci/include/mach/dm644x.h |   13 ++-
+ 2 files changed, 172 insertions(+), 13 deletions(-)
 
-Yes it does, and that's why I'm not too sure yet how this should be 
-implemented.
-
-> I didn't realize the video port can further shift the data.  Where can I
-> find this in the TRM?
-
-VPIN field of the CCDC_FMTCFG register.
-
-> >> Downside: this suggests that set_fmt on pad 2 could change the fmt on
-> >> pad 1, which may be unexpected. But that does at least reflect the
-> >> reality of the hardware, right?
-> > 
-> > I don't think it would be a good idea to silently change formats on pad 1
-> > when setting the format on pad 2. Applications don't expect that. That's
-> > why I've proposed changing the format on pad 0 instead. I agree that it
-> > would be better to have the same format on the sensor output and on CCDC
-> > pad 0 though.
-> 
-> I don't understand how we can change the pixel format on pad 1 without
-> also changing it on pad 2.  Let me take a simple example:
-> 0. Default state: all 3 CCDC pads have SGRBG10.
-> 1. Sensor delivers Y10, so I set CCDC pad 0 to Y10. CCDC then changes
-> format of pad 1&2 to Y10 also.
-> 2. I want 8-bit data written to memory, so I set Y8 on pad 1 to use the
-> shifter. Pad 0 stays Y10, but pad 2 can no longer get Y10, so (?) it
-> must be changed to Y8.  And I have to allow the change on pad 1 to be
-> able to use the shifter at all.
-> 
-> I agree applications may not expect this behavior.  They may _expect_
-> that they can get Y10 to the video port and Y8 to memory, but they
-> can't.  Isn't this just what we pay for the simplicity of building the
-> lane shifter into the CCDC subdev rather than creating its own subdev?
-
-It could be, yes. The other option is to modify the format at the CCDC input. 
-I agree that both options have drawbacks.
-
-Hans, Guennadi, any opinion on this ?
-
+diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+index 9a2376b..f2d24fb 100644
+--- a/arch/arm/mach-davinci/dm644x.c
++++ b/arch/arm/mach-davinci/dm644x.c
+@@ -5,7 +5,7 @@
+  *
+  * 2007 (c) Deep Root Systems, LLC. This file is licensed under
+  * the terms of the GNU General Public License version 2. This program
+- * is licensed "as is" without any warranty of any kind, whether express
++ * is licensed without any warranty of any kind, whether express
+  * or implied.
+  */
+ #include <linux/init.h>
+@@ -590,8 +590,8 @@ static struct resource dm644x_vpss_resources[] = {
+ 	{
+ 		/* VPSS Base address */
+ 		.name		= "vpss",
+-		.start          = 0x01c73400,
+-		.end            = 0x01c73400 + 0xff,
++		.start          = DM644X_VPSS_REG_BASE,
++		.end            = DM644X_VPSS_REG_BASE + 0xff,
+ 		.flags          = IORESOURCE_MEM,
+ 	},
+ };
+@@ -618,6 +618,7 @@ static struct resource vpfe_resources[] = {
+ };
+ 
+ static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
++
+ static struct resource dm644x_ccdc_resource[] = {
+ 	/* CCDC Base address */
+ 	{
+@@ -654,6 +655,138 @@ void dm644x_set_vpfe_config(struct vpfe_config *cfg)
+ 	vpfe_capture_dev.dev.platform_data = cfg;
+ }
+ 
++static struct resource dm644x_osd_resources[] = {
++	{
++		.start  = DM644X_OSD_REG_BASE,
++		.end    = DM644X_OSD_REG_BASE + 0x1ff,
++		.flags  = IORESOURCE_MEM,
++	},
++};
++
++static u64 dm644x_osd_dma_mask = DMA_BIT_MASK(32);
++
++static struct osd_platform_data osd_data = {
++	.vpbe_type     = DM644X_VPBE,
++	.field_inv_wa_enable = 0,
++};
++
++static struct platform_device dm644x_osd_dev = {
++	.name           = VPBE_OSD_SUBDEV_NAME,
++	.id             = -1,
++	.num_resources  = ARRAY_SIZE(dm644x_osd_resources),
++	.resource       = dm644x_osd_resources,
++	.dev = {
++		.dma_mask               = &dm644x_osd_dma_mask,
++		.coherent_dma_mask      = DMA_BIT_MASK(32),
++		.platform_data          = &osd_data,
++	},
++};
++
++static struct resource dm644x_venc_resources[] = {
++	/* venc registers io space */
++	{
++		.start  = DM644X_VENC_REG_BASE,
++		.end    = DM644X_VENC_REG_BASE + 0x17f,
++		.flags  = IORESOURCE_MEM,
++	},
++};
++
++static u64 dm644x_venc_dma_mask = DMA_BIT_MASK(32);
++
++#define VPSS_CLKCTL	0x01C40044
++
++static void __iomem *vpss_clkctl_reg;
++
++static int dm644x_venc_setup_clock(enum vpbe_enc_timings_type type, __u64 mode)
++{
++	int ret = 0;
++
++	if (NULL == vpss_clkctl_reg)
++		return -EINVAL;
++	switch (type) {
++	case VPBE_ENC_STD:
++		writel(0x18, vpss_clkctl_reg);
++		break;
++	case VPBE_ENC_DV_PRESET:
++		switch ((unsigned int)mode) {
++		case V4L2_DV_480P59_94:
++		case V4L2_DV_576P50:
++			 writel(0x19, vpss_clkctl_reg);
++			break;
++		case V4L2_DV_720P60:
++		case V4L2_DV_1080I60:
++		case V4L2_DV_1080P30:
++			/*
++			 * For HD, use external clock source since
++			 * HD requires higher clock rate
++			 */
++			writel(0xa, vpss_clkctl_reg);
++			break;
++		default:
++			ret  = -EINVAL;
++			break;
++		}
++		break;
++	default:
++		ret  = -EINVAL;
++	}
++	return ret;
++}
++
++static u64 vpbe_display_dma_mask = DMA_BIT_MASK(32);
++
++static struct resource dm644x_v4l2_disp_resources[] = {
++	{
++		.start  = IRQ_VENCINT,
++		.end    = IRQ_VENCINT,
++		.flags  = IORESOURCE_IRQ,
++	},
++};
++
++static struct platform_device vpbe_v4l2_display = {
++	.name           = "vpbe-v4l2",
++	.id             = -1,
++	.num_resources  = ARRAY_SIZE(dm644x_v4l2_disp_resources),
++	.resource       = dm644x_v4l2_disp_resources,
++	.dev = {
++		.dma_mask               = &vpbe_display_dma_mask,
++		.coherent_dma_mask      = DMA_BIT_MASK(32),
++	},
++};
++
++struct venc_platform_data dm644x_venc_pdata = {
++	.venc_type	= DM644X_VPBE,
++	.setup_clock	= dm644x_venc_setup_clock,
++};
++
++static struct platform_device dm644x_venc_dev = {
++	.name           = VPBE_VENC_SUBDEV_NAME,
++	.id             = -1,
++	.num_resources  = ARRAY_SIZE(dm644x_venc_resources),
++	.resource       = dm644x_venc_resources,
++	.dev = {
++		.dma_mask               = &dm644x_venc_dma_mask,
++		.coherent_dma_mask      = DMA_BIT_MASK(32),
++		.platform_data          = &dm644x_venc_pdata,
++	},
++};
++
++static u64 dm644x_vpbe_dma_mask = DMA_BIT_MASK(32);
++
++static struct platform_device dm644x_vpbe_dev = {
++	.name           = "vpbe_controller",
++	.id             = -1,
++	.dev = {
++		.dma_mask               = &dm644x_vpbe_dma_mask,
++		.coherent_dma_mask      = DMA_BIT_MASK(32),
++	},
++};
++
++void dm644x_set_vpbe_display_config(struct vpbe_display_config *cfg)
++{
++	dm644x_vpbe_dev.dev.platform_data = cfg;
++}
++
+ /*----------------------------------------------------------------------*/
+ 
+ static struct map_desc dm644x_io_desc[] = {
+@@ -781,25 +914,42 @@ void __init dm644x_init(void)
+ 	davinci_common_init(&davinci_soc_info_dm644x);
+ }
+ 
++static struct platform_device *dm644x_video_devices[] __initdata = {
++	&dm644x_vpss_device,
++	&dm644x_ccdc_dev,
++	&vpfe_capture_dev,
++	&dm644x_osd_dev,
++	&dm644x_venc_dev,
++	&dm644x_vpbe_dev,
++	&vpbe_v4l2_display,
++};
++
++static int __init dm644x_init_video(void)
++{
++	/* Add ccdc clock aliases */
++	clk_add_alias("master", dm644x_ccdc_dev.name, "vpss_master", NULL);
++	clk_add_alias("slave", dm644x_ccdc_dev.name, "vpss_slave", NULL);
++	vpss_clkctl_reg = ioremap_nocache(VPSS_CLKCTL, 4);
++	if (!vpss_clkctl_reg)
++		return -ENODEV;
++	platform_add_devices(dm644x_video_devices,
++				ARRAY_SIZE(dm644x_video_devices));
++	return 0;
++}
++
+ static int __init dm644x_init_devices(void)
+ {
+ 	if (!cpu_is_davinci_dm644x())
+ 		return 0;
+ 
+-	/* Add ccdc clock aliases */
+-	clk_add_alias("master", dm644x_ccdc_dev.name, "vpss_master", NULL);
+-	clk_add_alias("slave", dm644x_ccdc_dev.name, "vpss_slave", NULL);
+ 	platform_device_register(&dm644x_edma_device);
+-
+ 	platform_device_register(&dm644x_mdio_device);
+ 	platform_device_register(&dm644x_emac_device);
++
+ 	clk_add_alias(NULL, dev_name(&dm644x_mdio_device.dev),
+ 		      NULL, &dm644x_emac_device.dev);
+ 
+-	platform_device_register(&dm644x_vpss_device);
+-	platform_device_register(&dm644x_ccdc_dev);
+-	platform_device_register(&vpfe_capture_dev);
+-
++	dm644x_init_video();
+ 	return 0;
+ }
+ postcore_initcall(dm644x_init_devices);
+diff --git a/arch/arm/mach-davinci/include/mach/dm644x.h b/arch/arm/mach-davinci/include/mach/dm644x.h
+index 5a1b26d..a63fd67 100644
+--- a/arch/arm/mach-davinci/include/mach/dm644x.h
++++ b/arch/arm/mach-davinci/include/mach/dm644x.h
+@@ -6,8 +6,7 @@
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
++ * the Free Software Foundation version 2.
+  *
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+@@ -26,6 +25,10 @@
+ #include <mach/hardware.h>
+ #include <mach/asp.h>
+ #include <media/davinci/vpfe_capture.h>
++#include <media/davinci/vpbe_types.h>
++#include <media/davinci/vpbe.h>
++#include <media/davinci/vpss.h>
++#include <media/davinci/vpbe_osd.h>
+ 
+ #define DM644X_EMAC_BASE		(0x01C80000)
+ #define DM644X_EMAC_MDIO_BASE		(DM644X_EMAC_BASE + 0x4000)
+@@ -40,8 +43,14 @@
+ #define DM644X_ASYNC_EMIF_DATA_CE2_BASE 0x06000000
+ #define DM644X_ASYNC_EMIF_DATA_CE3_BASE 0x08000000
+ 
++/* VPBE register base addresses */
++#define DM644X_VPSS_REG_BASE		0x01c73400
++#define DM644X_VENC_REG_BASE		0x01C72400
++#define DM644X_OSD_REG_BASE		0x01C72600
++
+ void __init dm644x_init(void);
+ void __init dm644x_init_asp(struct snd_platform_data *pdata);
+ void dm644x_set_vpfe_config(struct vpfe_config *cfg);
++void dm644x_set_vpbe_display_config(struct vpbe_display_config *cfg);
+ 
+ #endif /* __ASM_ARCH_DM644X_H */
 -- 
-Regards,
+1.6.2.4
 
-Laurent Pinchart
