@@ -1,58 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:33429 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753926Ab1ASK7l (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jan 2011 05:59:41 -0500
-Message-ID: <4D36C40C.3080607@redhat.com>
-Date: Wed, 19 Jan 2011 08:59:24 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: video_device -> v4l2_devnode rename
-References: <201101190839.15175.hverkuil@xs4all.nl>
-In-Reply-To: <201101190839.15175.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:59240 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752349Ab1AJMHK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Jan 2011 07:07:10 -0500
+Subject: Re: Enable IR on hdpvr
+From: Andy Walls <awalls@md.metrocast.net>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Jason Gauthier <jgauthier@lastar.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Janne Grunau <j@jannau.net>
+In-Reply-To: <8AFBEFD7-69E3-4E71-B155-EA773C2FED43@wilsonet.com>
+References: <65DE7931C559BF4DBEE42C3F8246249A0B686EB0@V-EXMAILBOX.ctg.com>
+	 <8AFBEFD7-69E3-4E71-B155-EA773C2FED43@wilsonet.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 10 Jan 2011 07:07:52 -0500
+Message-ID: <1294661272.2084.10.camel@morgan.silverblock.net>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 19-01-2011 05:39, Hans Verkuil escreveu:
-> Hi Mauro,
-> 
-> I saw that 2.6.38-rc1 was released. I also noticed that not all the patches
-> that are in the for_2.6.38-rc1 branch are in 2.6.38-rc1.
+On Mon, 2011-01-10 at 01:05 -0500, Jarod Wilson wrote:
+> On Jan 9, 2011, at 7:36 PM, Jason Gauthier wrote:
 
-Yes. Unfortunately, when I was sending the pull request yesterday, I noticed
-an issue on my linux next tree, and I had to abort its send. After that, Linus
-released -rc1, before I have time to fix it.
+> Janne, I've heard many success stories w/the hdpvr IR lately, and almost no reports
+> of lockups, so I'm thinking a firmware update may have helped out here, and thus,
+> maybe its time we just go ahead and push this patch along upstream? We still
+> require someone to load lirc_zilog manually, so it seems like a fairly low-risk
+> thing to do.
 
-People should really send me patches for the next window before the start of the
-merge window, as doing it during the merge window makes my work harder and may
-cause troubles like that. 
+FYI, the code I added to hdpvr-i2c.c will perform 2 accesses to the chip
+to check for existence, by virtue of a call to i2c_new_probed_device()
+(or whatever it is called).  The I2C subsystem tries to talk the chip to
+see if it exists.
 
-The net result is that most patches were submitted in time and were applied upstream.
-Of course, there are usual fix patches sent during the merge window, that will be sent
-upstream anyway during the rc period.
+If you are really concerned about corner cases that may hang, add a
+module option to hdpvr to disable I2C and/or IR in the hdpvr driver.
+With that users in the field can work-around the problem without
+rebuilding modules.
 
-There are two patch series with new stuff submitted in time and merged on my 
-tree that didn't reach upstream:
-	- vb2/s5p-fimc - they required me more time to review - I also spent 3 days testing it;
-	- ngene - there were a pending API discussion - I waited for a while to see if
-	  there were some solution, before deciding to merge and move the problematic
-	  code to staging.
+Regards,
+Andy
 
-So, I'll need to dig into the pending patches, in order to send the ones that
-are acceptable after the end of the merge window, and letting the other patches
-for .39. I'll likely try to send the two above and the dib0700 patches on a separate
-pull request, but this pull request might be rejected.
-
-> We want to rename video_device to v4l2_devnode. So let me know when I can
-> finalize my patches and, most importantly, against which branch.
-
-It is too late for that. As I said you, the better time for doing that is during
-the merge window. Linus said me that he don't want to make life easier for function
-rename. So, he won't be accepting such patch after the merge window.
-
-Cheers,
-Mauro
