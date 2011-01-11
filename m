@@ -1,58 +1,37 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:46228 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755254Ab1ATLfY convert rfc822-to-8bit (ORCPT
+Received: from bordeaux.papayaltd.net ([82.129.38.124]:52807 "EHLO
+	bordeaux.papayaltd.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756163Ab1AKPZH convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jan 2011 06:35:24 -0500
-Received: by qyj19 with SMTP id 19so1799596qyj.19
-        for <linux-media@vger.kernel.org>; Thu, 20 Jan 2011 03:35:23 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <201101182345.17725.hverkuil@xs4all.nl>
-References: <AANLkTi=bv+NkwS+ASUDeAjbpNht8+YJaPRKYF7TTZDes@mail.gmail.com>
-	<201101182345.17725.hverkuil@xs4all.nl>
-Date: Thu, 20 Jan 2011 12:35:23 +0100
-Message-ID: <AANLkTikrXyqr8ZS7bbeJe5yPxdyxE-X-pwk=5MaLOy4N@mail.gmail.com>
-Subject: Re: Upstreaming syntek driver
-From: Luca Tettamanti <kronos.it@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Nicolas VIVIEN <progweb@free.fr>
-Content-Type: text/plain; charset=UTF-8
+	Tue, 11 Jan 2011 10:25:07 -0500
+Subject: Re: ngene & Satix-S2 dual problems
+Mime-Version: 1.0 (Apple Message framework v1082)
+Content-Type: text/plain; charset=us-ascii
+From: Andre <linux-media@dinkum.org.uk>
+In-Reply-To: <9F1CEDCB-8BB0-4C54-8410-FC554E9E4F6D@dinkum.org.uk>
+Date: Tue, 11 Jan 2011 15:25:04 +0000
+Cc: linux-media@vger.kernel.org
 Content-Transfer-Encoding: 8BIT
+Message-Id: <49026C6B-F9F3-4976-96A8-762F9140BA32@dinkum.org.uk>
+References: <4D1753CF.9010205@gmail.com> <55B5612B-5E2B-4C2E-AD5E-B0D5A7AC865B@dinkum.org.uk> <4D19D8A0.6010606@gmail.com> <9F1CEDCB-8BB0-4C54-8410-FC554E9E4F6D@dinkum.org.uk>
+To: Andre <linux-media@dinkum.org.uk>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Jan 18, 2011 at 11:45 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-[...]
-> After a quick scan through the sources in svn I found the following (in no
-> particular order):
->
-> - Supports easycap model with ID 05e1:0408: a driver for this model is now
->  in driver/staging/easycap.
 
-Can you elaborate? Is this the same hardware?
+On 28 Dec 2010, at 17:25, Andre wrote:
+>> 
+>> I seems to work with the last patch commited by Oliver Endriss. Did you
+>> try with a CI ?
+> 
+> No I didn't, I don't have a CI.
+> 
+> I'll try Olivers latest commit in a few days, I'm a long way from my Myth system right now :-)
 
-> - format conversion must be moved to libv4lconvert (if that can't already be
->  used out of the box). Ditto for software brightness correction.
->
-> - kill off the sysfs bits
->
-> - kill off V4L1
->
-> - use the new control framework for the control handling
->
-> - use video_ioctl2 instead of the current ioctl function
->
-> - use unlocked_ioctl instead of ioctl
+Finally got chance to try the latest commits, no extra nodes now and drivers work fine with several simultaneous HD recordings across both tuners.
 
-Ok, major surgery then :)
+Satix S2 dual v2 on Ubuntu 10.0.4.1 kernel 2.6.32-25-generic
 
-> But probably the first step should be to see if this can't be made part of the
-> gspca driver. I can't help thinking that that would be the best approach. But
-> I guess the gspca developers can give a better idea of how hard that is.
+Thanks
 
-I've looked at the framework provided by gspca, it would probably
-allow to drop most of the USB support code from the driver. I'm
-looking into frame handling.
-
-Luca
+Andre
