@@ -1,58 +1,55 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:35287 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751216Ab1ADIgq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Jan 2011 03:36:46 -0500
-Date: Tue, 4 Jan 2011 09:36:37 +0100
-From: Tejun Heo <tj@kernel.org>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 11/32] v4l/cx18: update workqueue usage
-Message-ID: <20110104083637.GB8066@mtj.dyndns.org>
-References: <1294062595-30097-1-git-send-email-tj@kernel.org>
- <1294062595-30097-12-git-send-email-tj@kernel.org>
- <1294102496.10094.152.camel@morgan.silverblock.net>
+Return-path: <mchehab@pedra>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:52284 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751519Ab1AKLaN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Jan 2011 06:30:13 -0500
+Date: Tue, 11 Jan 2011 13:30:08 +0200
+From: Felipe Balbi <balbi@ti.com>
+To: manjunatha_halli@ti.com
+Cc: mchehab@infradead.org, hverkuil@xs4all.nl,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [RFC V10 6/7] drivers:media:radio: wl128x: Kconfig & Makefile
+ for wl128x driver
+Message-ID: <20110111113008.GF2385@legolas.emea.dhcp.ti.com>
+Reply-To: balbi@ti.com
+References: <1294745487-29138-1-git-send-email-manjunatha_halli@ti.com>
+ <1294745487-29138-2-git-send-email-manjunatha_halli@ti.com>
+ <1294745487-29138-3-git-send-email-manjunatha_halli@ti.com>
+ <1294745487-29138-4-git-send-email-manjunatha_halli@ti.com>
+ <1294745487-29138-5-git-send-email-manjunatha_halli@ti.com>
+ <1294745487-29138-6-git-send-email-manjunatha_halli@ti.com>
+ <1294745487-29138-7-git-send-email-manjunatha_halli@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1294102496.10094.152.camel@morgan.silverblock.net>
+In-Reply-To: <1294745487-29138-7-git-send-email-manjunatha_halli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hello,
+Hi,
 
-On Mon, Jan 03, 2011 at 07:54:56PM -0500, Andy Walls wrote:
-> 2. To prevent work items being handled by keventd/n from being delayed
-> too long, as the deferred work in question can involve a bit of sleeping
-> due to contention, the workload of the CX23418's MPEG encoding engine,
-> and the number of CX23418 devices in the system.
-> 
-> Will all the sleeping that can happen, is the move to a system wq, under
-> cmwq, going to have adverse affects on processing other work items in
-> the system?
-> 
-> I get the feeling it won't be a problem with cmwq, but I haven't paid
-> enough attention to be sure. 
+On Tue, Jan 11, 2011 at 06:31:26AM -0500, manjunatha_halli@ti.com wrote:
+> diff --git a/drivers/media/radio/wl128x/Makefile b/drivers/media/radio/wl128x/Makefile
+> new file mode 100644
+> index 0000000..32a0ead
+> --- /dev/null
+> +++ b/drivers/media/radio/wl128x/Makefile
+> @@ -0,0 +1,6 @@
+> +#
+> +# Makefile for TI's shared transport driver based wl128x
+> +# FM radio.
+> +#
+> +obj-$(CONFIG_RADIO_WL128X)	+= fm_drv.o
+> +fm_drv-objs		:= fmdrv_common.o fmdrv_rx.o fmdrv_tx.o fmdrv_v4l2.o
 
-It won't be a problem.  Now the system_wq supports parallel execution
-of multiple works and manages concurrency automatically.  Work items
-can sleep as necessary without worrying about other work items.
+there was recently a patch fixing up this kind of thing. Look at commit
+0a2b8a0d1101179fdebc974a7c72b514aede9d9d.
 
-...
-> It is not unusual for scheduled TV recording software to start nearly
-> simultaneous DTV TS, MPEG, and VBI or MPEG Index streams on multiple
-> cards.  So 3 CX23418 cards with 3 streams each.   Let's nominally
-> estimate the timing of the CX18_CPU_DE_SET_MDL commands per stream at
-> the PAL frame rate of 25 Hz; or 1 CX18_CPU_DE_SET_MDL mailbox command
-> per stream per 40 milliseconds.
+This should be written as:
 
-IIUC, if they spend any significant amount of time executing, they'll
-be doing so by waiting for events (mutex, IRQ...), right?  If so,
-there's nothing to worry about.  If it's gonna burn a lot of CPU
-cycles, we'll need to use a workqueue marked CPU_INTENSIVE but I don't
-think that's the case here.
-
-Thank you.
+obj-$(CONFIG_RADIO_WL128X) += fm_drv.o
+fm_drv-y	:= fmdrv_common.o fmdrv_rx.o fmdrv_tx.o fmdrv_v4l2.o
 
 -- 
-tejun
+balbi
