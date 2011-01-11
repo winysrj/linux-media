@@ -1,1623 +1,512 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.samsung.com ([203.254.224.34]:9958 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751355Ab1AYGf3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jan 2011 01:35:29 -0500
-Received: from epmmp2 (mailout4.samsung.com [203.254.224.34])
- by mailout4.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LFK00GOXFLWW940@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Tue, 25 Jan 2011 15:34:44 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LFK00EDZFLX87@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 25 Jan 2011 15:34:45 +0900 (KST)
-Date: Tue, 25 Jan 2011 15:33:58 +0900
-From: Heungjun Kim <riverful.kim@samsung.com>
-Subject: [PATCH v3] Add support for M5MO-LS 8 Mega Pixel camera
-To: hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
-	kyungmin.park@samsung.com, Heungjun Kim <riverful.kim@samsung.com>
-Message-id: <1295937238-20930-1-git-send-email-riverful.kim@samsung.com>
-Content-transfer-encoding: 7BIT
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48400 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755821Ab1AKLHf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Jan 2011 06:07:35 -0500
+From: manjunatha_halli@ti.com
+To: mchehab@infradead.org, hverkuil@xs4all.nl
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Manjunatha Halli <manjunatha_halli@ti.com>
+Subject: [RFC V10 5/7] drivers:media:radio: wl128x: FM driver TX sources
+Date: Tue, 11 Jan 2011 06:31:25 -0500
+Message-Id: <1294745487-29138-6-git-send-email-manjunatha_halli@ti.com>
+In-Reply-To: <1294745487-29138-5-git-send-email-manjunatha_halli@ti.com>
+References: <1294745487-29138-1-git-send-email-manjunatha_halli@ti.com>
+ <1294745487-29138-2-git-send-email-manjunatha_halli@ti.com>
+ <1294745487-29138-3-git-send-email-manjunatha_halli@ti.com>
+ <1294745487-29138-4-git-send-email-manjunatha_halli@ti.com>
+ <1294745487-29138-5-git-send-email-manjunatha_halli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add I2C/V4L2 subdev driver for M5MO-LS camera sensor with integrated
-image processor.
+From: Manjunatha Halli <manjunatha_halli@ti.com>
 
-Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+This has implementation for FM TX functionality.
+It communicates with FM V4l2 module and FM common module.
 
+Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
 ---
+ drivers/media/radio/wl128x/fmdrv_tx.c |  425 +++++++++++++++++++++++++++++++++
+ drivers/media/radio/wl128x/fmdrv_tx.h |   37 +++
+ 2 files changed, 462 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/radio/wl128x/fmdrv_tx.c
+ create mode 100644 drivers/media/radio/wl128x/fmdrv_tx.h
 
-Hello,
-
-This is third version of M5MOLS 8 Mega Pixel camera sensor.
-
-The first version patch is here:
-http://www.spinics.net/lists/linux-media/msg26246.html
-
-The second versions changes are below:
-1. remove I2C function macro, and use static inline for type-safe.
-2. use the v4l2 control framework documented at v4l2-control.txt.
-3. Add regulator enable/disable functions
-4. fix any coding problems
-
-The third version changes are below:
-1. the method to writing register accordint to state value
-2. changing mdelay to usleep_range because of not hogging
-
-This driver is tested on s5pc210 board using s5p-fimc driver.
-
-Thanks for any ideas.
-
-Regards,
-	Heungjun Kim
-	Samsung Electronics DMC R&D Center
----
- drivers/media/video/Kconfig                  |    2 +
- drivers/media/video/Makefile                 |    1 +
- drivers/media/video/m5mols/Kconfig           |    6 +
- drivers/media/video/m5mols/Makefile          |    3 +
- drivers/media/video/m5mols/m5mols.h          |  261 ++++++++
- drivers/media/video/m5mols/m5mols_controls.c |  173 +++++
- drivers/media/video/m5mols/m5mols_core.c     |  898 ++++++++++++++++++++++++++
- drivers/media/video/m5mols/m5mols_reg.h      |  103 +++
- include/media/m5mols.h                       |   31 +
- 9 files changed, 1478 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/m5mols/Kconfig
- create mode 100644 drivers/media/video/m5mols/Makefile
- create mode 100644 drivers/media/video/m5mols/m5mols.h
- create mode 100644 drivers/media/video/m5mols/m5mols_controls.c
- create mode 100644 drivers/media/video/m5mols/m5mols_core.c
- create mode 100644 drivers/media/video/m5mols/m5mols_reg.h
- create mode 100644 include/media/m5mols.h
-
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index d40a8fc..6a03aad 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -746,6 +746,8 @@ config VIDEO_NOON010PC30
- 	---help---
- 	  This driver supports NOON010PC30 CIF camera from Siliconfile
- 
-+source "drivers/media/video/m5mols/Kconfig"
-+
- config SOC_CAMERA
- 	tristate "SoC camera support"
- 	depends on VIDEO_V4L2 && HAS_DMA && I2C
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index 251b7ca..adb9361 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -68,6 +68,7 @@ obj-$(CONFIG_VIDEO_TVEEPROM) += tveeprom.o
- obj-$(CONFIG_VIDEO_MT9V011) += mt9v011.o
- obj-$(CONFIG_VIDEO_SR030PC30)	+= sr030pc30.o
- obj-$(CONFIG_VIDEO_NOON010PC30)	+= noon010pc30.o
-+obj-$(CONFIG_VIDEO_M5MOLS)	+= m5mols/
- 
- obj-$(CONFIG_SOC_CAMERA_IMX074)		+= imx074.o
- obj-$(CONFIG_SOC_CAMERA_MT9M001)	+= mt9m001.o
-diff --git a/drivers/media/video/m5mols/Kconfig b/drivers/media/video/m5mols/Kconfig
+diff --git a/drivers/media/radio/wl128x/fmdrv_tx.c b/drivers/media/radio/wl128x/fmdrv_tx.c
 new file mode 100644
-index 0000000..387425b
+index 0000000..be54068
 --- /dev/null
-+++ b/drivers/media/video/m5mols/Kconfig
-@@ -0,0 +1,6 @@
-+config VIDEO_M5MOLS
-+	tristate "Fujitsu M5MO-LS 8MP sensor support"
-+	depends on I2C && VIDEO_V4L2
-+	---help---
-+	  This driver supports Fujitsu M5MO-LS camera sensor with ISP
-+
-diff --git a/drivers/media/video/m5mols/Makefile b/drivers/media/video/m5mols/Makefile
-new file mode 100644
-index 0000000..b5d19bf
---- /dev/null
-+++ b/drivers/media/video/m5mols/Makefile
-@@ -0,0 +1,3 @@
-+m5mols-objs	:= m5mols_core.o m5mols_controls.o
-+
-+obj-$(CONFIG_VIDEO_M5MOLS)		+= m5mols.o
-diff --git a/drivers/media/video/m5mols/m5mols.h b/drivers/media/video/m5mols/m5mols.h
-new file mode 100644
-index 0000000..320c976
---- /dev/null
-+++ b/drivers/media/video/m5mols/m5mols.h
-@@ -0,0 +1,261 @@
++++ b/drivers/media/radio/wl128x/fmdrv_tx.c
+@@ -0,0 +1,425 @@
 +/*
-+ * Header for M5MOLS 8M Pixel camera sensor with ISP
++ *  FM Driver for Connectivity chip of Texas Instruments.
++ *  This sub-module of FM driver implements FM TX functionality.
 + *
-+ * Copyright (C) 2011 Samsung Electronics Co., Ltd
-+ * Author: HeungJun Kim, riverful.kim@samsung.com
++ *  Copyright (C) 2011 Texas Instruments
 + *
-+ * Copyright (C) 2009 Samsung Electronics Co., Ltd
-+ * Author: Dongsoo Nathaniel Kim, dongsoo45.kim@samsung.com
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License version 2 as
++ *  published by the Free Software Foundation.
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
 + */
 +
-+#ifndef M5MOLS_H
-+#define M5MOLS_H
-+
-+#include <media/v4l2-subdev.h>
-+#include "m5mols_reg.h"
-+
-+#define v4l2msg(fmt, arg...)	do {				\
-+	v4l2_dbg(1, m5mols_debug, &info->sd, fmt, ## arg);	\
-+} while (0)
-+
-+extern int m5mols_debug;
-+
-+enum m5mols_mode {
-+	MODE_SYSINIT,
-+	MODE_PARMSET,
-+	MODE_MONITOR,
-+	MODE_UNKNOWN,
-+};
-+
-+enum m5mols_i2c_size {
-+	I2C_8BIT	= 1,
-+	I2C_16BIT	= 2,
-+	I2C_32BIT	= 4,
-+	I2C_MAX		= 4,
-+};
-+
-+enum m5mols_fps {
-+	M5MOLS_FPS_AUTO	= 0,
-+	M5MOLS_FPS_10	= 10,
-+	M5MOLS_FPS_12	= 12,
-+	M5MOLS_FPS_15	= 15,
-+	M5MOLS_FPS_20	= 20,
-+	M5MOLS_FPS_21	= 21,
-+	M5MOLS_FPS_22	= 22,
-+	M5MOLS_FPS_23	= 23,
-+	M5MOLS_FPS_24	= 24,
-+	M5MOLS_FPS_30	= 30,
-+	M5MOLS_FPS_MAX	= M5MOLS_FPS_30,
-+};
-+
-+enum m5mols_res_type {
-+	M5MOLS_RES_MON,
-+	/* It's not supported below yet. */
-+	M5MOLS_RES_PREVIEW,
-+	M5MOLS_RES_THUMB,
-+	M5MOLS_RES_CAPTURE,
-+	M5MOLS_RES_UNKNOWN,
-+};
-+
-+struct m5mols_resolution {
-+	u8			value;
-+	enum m5mols_res_type	type;
-+	u16			width;
-+	u16			height;
-+};
-+
-+struct m5mols_format {
-+	enum v4l2_mbus_pixelcode code;
-+	enum v4l2_colorspace colorspace;
-+};
-+
-+struct m5mols_control {
-+	u32	id;
-+	s32	min;
-+	s32	max;
-+	u32	step;
-+	s32	def;
-+};
-+
-+struct m5mols_version {
-+	u8	ctm_code;	/* customer code */
-+	u8	pj_code;	/* project code */
-+	u16	fw;		/* firmware version */
-+	u16	hw;		/* hardware version */
-+	u16	parm;		/* parameter version */
-+	u16	awb;		/* AWB version */
-+};
-+
-+struct m5mols_info {
-+	struct v4l2_subdev		sd;
-+	struct v4l2_mbus_framefmt	fmt;
-+	struct v4l2_fract		tpf;
-+
-+	struct v4l2_ctrl_handler	handle;
-+	struct {
-+		/* support only AE of the Monitor Mode in this version */
-+		struct v4l2_ctrl	*autoexposure;
-+		struct v4l2_ctrl	*exposure;
-+	};
-+	struct v4l2_ctrl		*autowb;
-+	struct v4l2_ctrl		*colorfx;
-+	struct v4l2_ctrl		*saturation;
-+
-+	enum m5mols_mode		mode;
-+	enum m5mols_mode		mode_backup;
-+
-+	struct m5mols_version		ver;
-+	int				gpio_nrst;
-+	int				supply_size;
-+	struct regulator_bulk_data	*supply;
-+	bool				power;
-+	int (*set_power)(struct device *dev, int on);
-+};
-+
-+/* control functions */
-+int m5mols_set_ctrl(struct v4l2_ctrl *ctrl);
-+
-+/* I2C functions - referenced by below I2C helper functions */
-+int m5mols_read_reg(struct v4l2_subdev *sd, enum m5mols_i2c_size size,
-+		u8 category, u8 cmd, u32 *val);
-+int m5mols_write_reg(struct v4l2_subdev *sd, enum m5mols_i2c_size size,
-+		u8 category, u8 cmd, u32 val);
-+int m5mols_check_busy(struct v4l2_subdev *sd,
-+		u8 category, u8 cmd, u32 value);
-+int m5mols_set_mode(struct v4l2_subdev *sd, enum m5mols_mode mode);
-+
-+/*
-+ * helper functions
-+ */
-+static inline struct m5mols_info *to_m5mols(struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct m5mols_info, sd);
-+}
-+
-+static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
-+{
-+	return &container_of(ctrl->handler, struct m5mols_info, handle)->sd;
-+}
-+
-+static inline bool is_streaming(struct v4l2_subdev *sd)
-+{
-+	struct m5mols_info *info = to_m5mols(sd);
-+	return info->mode == MODE_MONITOR;
-+}
-+
-+static inline bool is_stoped(struct v4l2_subdev *sd)
-+{
-+	struct m5mols_info *info = to_m5mols(sd);
-+	return info->mode != MODE_MONITOR;
-+}
-+
-+static inline bool is_powerup(struct v4l2_subdev *sd)
-+{
-+	struct m5mols_info *info = to_m5mols(sd);
-+	return info->power;
-+}
-+
-+static inline bool is_powerdown(struct v4l2_subdev *sd)
-+{
-+	struct m5mols_info *info = to_m5mols(sd);
-+	return !info->power;
-+}
-+
-+static inline int m5mols_set_mode_backup(struct v4l2_subdev *sd,
-+		enum m5mols_mode mode)
-+{
-+	struct m5mols_info *info = to_m5mols(sd);
-+
-+	info->mode_backup = info->mode;
-+	return m5mols_set_mode(sd, mode);
-+}
-+
-+static inline int m5mols_set_mode_restore(struct v4l2_subdev *sd)
-+{
-+	struct m5mols_info *info = to_m5mols(sd);
-+	int ret;
-+
-+	ret = m5mols_set_mode(sd, info->mode_backup);
-+	if (!ret)
-+		info->mode = info->mode_backup;
-+	return ret;
-+}
-+
-+static inline int __must_check i2c_w8_system(struct v4l2_subdev *sd,
-+		u8 cmd, u32 val)
-+{
-+	return m5mols_write_reg(sd, I2C_8BIT, CAT_SYSTEM, cmd, val);
-+}
-+
-+static inline int __must_check i2c_w8_param(struct v4l2_subdev *sd,
-+		u8 cmd, u32 val)
-+{
-+	return m5mols_write_reg(sd, I2C_8BIT, CAT_PARAM, cmd, val);
-+}
-+
-+static inline int __must_check i2c_w8_mon(struct v4l2_subdev *sd,
-+		u8 cmd, u32 val)
-+{
-+	return m5mols_write_reg(sd, I2C_8BIT, CAT_MON, cmd, val);
-+}
-+
-+static inline int __must_check i2c_w8_ae(struct v4l2_subdev *sd,
-+		u8 cmd, u32 val)
-+{
-+	return m5mols_write_reg(sd, I2C_8BIT, CAT_AE, cmd, val);
-+}
-+
-+static inline int __must_check i2c_w16_ae(struct v4l2_subdev *sd,
-+		u8 cmd, u32 val)
-+{
-+	return m5mols_write_reg(sd, I2C_16BIT, CAT_AE, cmd, val);
-+}
-+
-+static inline int __must_check i2c_w8_wb(struct v4l2_subdev *sd,
-+		u8 cmd, u32 val)
-+{
-+	return m5mols_write_reg(sd, I2C_8BIT, CAT_WB, cmd, val);
-+}
-+
-+static inline int __must_check i2c_w8_flash(struct v4l2_subdev *sd,
-+		u8 cmd, u32 val)
-+{
-+	return m5mols_write_reg(sd, I2C_8BIT, CAT_FLASH, cmd, val);
-+}
-+
-+static inline int __must_check i2c_r8_system(struct v4l2_subdev *sd,
-+		u8 cmd, u32 *val)
-+{
-+	return m5mols_read_reg(sd, I2C_8BIT, CAT_SYSTEM, cmd, val);
-+}
-+
-+static inline int __must_check i2c_r8_param(struct v4l2_subdev *sd,
-+		u8 cmd, u32 *val)
-+{
-+	return m5mols_read_reg(sd, I2C_8BIT, CAT_PARAM, cmd, val);
-+}
-+
-+static inline int __must_check i2c_r8_mon(struct v4l2_subdev *sd,
-+		u8 cmd, u32 *val)
-+{
-+	return m5mols_read_reg(sd, I2C_8BIT, CAT_MON, cmd, val);
-+}
-+
-+static inline int __must_check i2c_r8_ae(struct v4l2_subdev *sd,
-+		u8 cmd, u32 *val)
-+{
-+	return m5mols_read_reg(sd, I2C_8BIT, CAT_AE, cmd, val);
-+}
-+
-+static inline int __must_check i2c_r16_ae(struct v4l2_subdev *sd,
-+		u8 cmd, u32 *val)
-+{
-+	return m5mols_read_reg(sd, I2C_16BIT, CAT_AE, cmd, val);
-+}
-+
-+#endif	/* M5MOLS_H */
-diff --git a/drivers/media/video/m5mols/m5mols_controls.c b/drivers/media/video/m5mols/m5mols_controls.c
-new file mode 100644
-index 0000000..d4d08df
---- /dev/null
-+++ b/drivers/media/video/m5mols/m5mols_controls.c
-@@ -0,0 +1,173 @@
-+/*
-+ * Controls for M5MOLS 8M Pixel camera sensor with ISP
-+ *
-+ * Copyright (C) 2011 Samsung Electronics Co., Ltd
-+ * Author: HeungJun Kim, riverful.kim@samsung.com
-+ *
-+ * Copyright (C) 2009 Samsung Electronics Co., Ltd
-+ * Author: Dongsoo Nathaniel Kim, dongsoo45.kim@samsung.com
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <linux/i2c.h>
-+#include <linux/videodev2.h>
-+#include <media/v4l2-ctrls.h>
-+
-+#include "m5mols.h"
-+#include "m5mols_reg.h"
-+
-+static int m5mols_set_ae_lock(struct m5mols_info *info, bool lock)
-+{
-+	struct v4l2_subdev *sd = &info->sd;
-+
-+	return i2c_w8_ae(sd, CAT3_AE_LOCK, lock);
-+}
-+
-+static int m5mols_set_awb_lock(struct m5mols_info *info, bool lock)
-+{
-+	struct v4l2_subdev *sd = &info->sd;
-+
-+	return i2c_w8_wb(sd, CAT6_AWB_LOCK, lock);
-+}
-+
-+static int m5mols_wb_mode(struct m5mols_info *info, struct v4l2_ctrl *ctrl)
-+{
-+	struct v4l2_subdev *sd = &info->sd;
-+	static u8 m5mols_wb_auto[] = { 0x1, 0x2, };	/* 0:Auto , 1:Manual */
-+	int ret;
-+
-+	if (ctrl->val < 0 || ctrl->val > 1)
-+		return -EINVAL;
-+
-+	ret = m5mols_set_awb_lock(info, false);
-+	if (!ret)
-+		ret = i2c_w8_wb(sd, CAT6_AWB_MODE, m5mols_wb_auto[ctrl->val]);
-+
-+	return ret;
-+}
-+
-+static int m5mols_exposure_mode(struct m5mols_info *info,
-+		struct v4l2_ctrl *ctrl)
-+{
-+	struct v4l2_subdev *sd = &info->sd;
-+	int ret;
-+	u8 val;
-+
-+	if (ctrl->val == V4L2_EXPOSURE_MANUAL)
-+		val = 0;
-+	else if (ctrl->val == V4L2_EXPOSURE_AUTO)
-+		val = 1;
-+	else
-+		return -EINVAL;
-+
-+	ret = m5mols_set_ae_lock(info, false);
-+	if (ret)
-+		return ret;
-+
-+	return i2c_w8_ae(sd, CAT3_AE_MODE, val);
-+}
-+
-+static int m5mols_exposure(struct m5mols_info *info)
-+{
-+	struct v4l2_subdev *sd = &info->sd;
-+
-+	return i2c_w16_ae(sd, CAT3_MANUAL_GAIN_MON_1, info->exposure->val);
-+}
-+
-+static int m5mols_set_saturation(struct m5mols_info *info,
-+		struct v4l2_ctrl *ctrl)
-+{
-+	struct v4l2_subdev *sd = &info->sd;
-+	static u8 m5mols_chroma_lvl[] = {
-+		0x1c, 0x3e, 0x5f, 0x80, 0xa1, 0xc2, 0xe4,
-+	};
-+	int ret;
-+
-+	if (ctrl->val < 0 || ctrl->val >= ARRAY_SIZE(m5mols_chroma_lvl))
-+		return -EINVAL;
-+
-+	ret = i2c_w8_mon(sd, CAT2_CHROMA_LVL, m5mols_chroma_lvl[ctrl->val]);
-+	if (!ret)
-+		ret = i2c_w8_mon(sd, CAT2_CHROMA_EN, true);
-+
-+	return ret;
-+}
-+
-+static int m5mols_set_colorfx(struct m5mols_info *info, struct v4l2_ctrl *ctrl)
-+{
-+	struct v4l2_subdev *sd = &info->sd;
-+	static u8 m5mols_effects_gamma[] = {	/* cat 1: Effects */
-+		[V4L2_COLORFX_NEGATIVE]		= 0x01,
-+		[V4L2_COLORFX_EMBOSS]		= 0x06,
-+		[V4L2_COLORFX_SKETCH]		= 0x07,
-+	};
-+	static u8 m5mols_cfixb_chroma[] = {	/* cat 2: Cr for effect */
-+		[V4L2_COLORFX_BW]		= 0x0,
-+		[V4L2_COLORFX_SEPIA]		= 0xd8,
-+		[V4L2_COLORFX_SKY_BLUE]		= 0x40,
-+		[V4L2_COLORFX_GRASS_GREEN]	= 0xe0,
-+	};
-+	static u8 m5mols_cfixr_chroma[] = {	/* cat 2: Cb for effect */
-+		[V4L2_COLORFX_BW]		= 0x0,
-+		[V4L2_COLORFX_SEPIA]		= 0x18,
-+		[V4L2_COLORFX_SKY_BLUE]		= 0x00,
-+		[V4L2_COLORFX_GRASS_GREEN]	= 0xe0,
-+	};
-+	int ret = -EINVAL;
-+
-+	switch (ctrl->val) {
-+	case V4L2_COLORFX_NONE:
-+		return i2c_w8_mon(sd, CAT2_COLOR_EFFECT, false);
-+	case V4L2_COLORFX_BW:		/* chroma: Gray */
-+	case V4L2_COLORFX_SEPIA:	/* chroma: Sepia */
-+	case V4L2_COLORFX_SKY_BLUE:	/* chroma: Blue */
-+	case V4L2_COLORFX_GRASS_GREEN:	/* chroma: Green */
-+		ret = i2c_w8_mon(sd, CAT2_CFIXB,
-+				m5mols_cfixb_chroma[ctrl->val]);
-+		if (!ret)
-+			ret = i2c_w8_mon(sd, CAT2_CFIXR,
-+					m5mols_cfixr_chroma[ctrl->val]);
-+		if (!ret)
-+			ret = i2c_w8_mon(sd, CAT2_COLOR_EFFECT, true);
-+		return ret;
-+	case V4L2_COLORFX_NEGATIVE:	/* gamma: Negative */
-+	case V4L2_COLORFX_EMBOSS:	/* gamma: Emboss */
-+	case V4L2_COLORFX_SKETCH:	/* gamma: Outline */
-+		ret = i2c_w8_param(sd, CAT1_EFFECT,
-+				m5mols_effects_gamma[ctrl->val]);
-+		if (!ret)
-+			ret = i2c_w8_mon(sd, CAT2_COLOR_EFFECT, true);
-+		return ret;
-+	}
-+
-+	return ret;
-+}
-+
-+int m5mols_set_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct v4l2_subdev *sd = to_sd(ctrl);
-+	struct m5mols_info *info = to_m5mols(sd);
-+	int ret;
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_EXPOSURE_AUTO:
-+		if (!ctrl->is_new)
-+			ctrl->val = V4L2_EXPOSURE_MANUAL;
-+		ret = m5mols_exposure_mode(info, ctrl);
-+		if (!ret && ctrl->val == V4L2_EXPOSURE_MANUAL)
-+			ret = m5mols_exposure(info);
-+		return ret;
-+	case V4L2_CID_AUTO_WHITE_BALANCE:
-+		return m5mols_wb_mode(info, ctrl);
-+	case V4L2_CID_SATURATION:
-+		return m5mols_set_saturation(info, ctrl);
-+	case V4L2_CID_COLORFX:
-+		return m5mols_set_colorfx(info, ctrl);
-+	}
-+
-+	return -EINVAL;
-+}
-diff --git a/drivers/media/video/m5mols/m5mols_core.c b/drivers/media/video/m5mols/m5mols_core.c
-new file mode 100644
-index 0000000..d0cacbd
---- /dev/null
-+++ b/drivers/media/video/m5mols/m5mols_core.c
-@@ -0,0 +1,898 @@
-+/*
-+ * Driver for M5MOLS 8M Pixel camera sensor with ISP
-+ *
-+ * Copyright (C) 2011 Samsung Electronics Co., Ltd
-+ * Author: HeungJun Kim, riverful.kim@samsung.com
-+ *
-+ * Copyright (C) 2009 Samsung Electronics Co., Ltd
-+ * Author: Dongsoo Nathaniel Kim, dongsoo45.kim@samsung.com
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <linux/i2c.h>
-+#include <linux/irq.h>
-+#include <linux/interrupt.h>
 +#include <linux/delay.h>
-+#include <linux/version.h>
-+#include <linux/gpio.h>
-+#include <linux/regulator/consumer.h>
++#include "fmdrv.h"
++#include "fmdrv_common.h"
++#include "fmdrv_tx.h"
 +
-+#include <linux/videodev2.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-subdev.h>
-+#include <media/m5mols.h>
-+
-+#include "m5mols.h"
-+#include "m5mols_reg.h"
-+
-+int m5mols_debug;
-+
-+module_param(m5mols_debug, int, 0644);
-+
-+#define MOD_NAME		"M5MOLS"
-+#define M5MOLS_I2C_CHECK_RETRY	50
-+
-+/* M5MOLS mode */
-+static u8 m5mols_reg_mode[] = {
-+	[MODE_SYSINIT]		= 0x00,
-+	[MODE_PARMSET]		= 0x01,
-+	[MODE_MONITOR]		= 0x02,
-+	[MODE_UNKNOWN]		= 0xff,
-+};
-+
-+/* M5MOLS regulator consumer names */
-+static const char *supply_names[] = {
-+	/* The DEFAULT names of power are referenced with M5MO datasheet. */
-+	"core",		/* core power - 1.2v, generally at the M5MOLS */
-+	"d_sensor",	/* sensor power 1 - 1.8v */
-+	"dig_18",	/* digital power 1 - 1.8v */
-+	"dig_28",	/* digital power 2 - 2.8v */
-+	"a_sensor",	/* analog power */
-+	"dig_12",	/* digital power 3 - 1.2v */
-+};
-+
-+/* M5MOLS default format (codes, sizes, preset values) */
-+static const struct v4l2_mbus_framefmt default_fmt = {
-+	.width		= 1920,
-+	.height		= 1080,
-+	.code		= V4L2_MBUS_FMT_VYUY8_2X8,
-+	.field		= V4L2_FIELD_NONE,
-+	.colorspace	= V4L2_COLORSPACE_JPEG,
-+};
-+static const struct m5mols_format m5mols_formats[] = {
-+	{
-+		.code		= V4L2_MBUS_FMT_VYUY8_2X8,
-+		.colorspace	= V4L2_COLORSPACE_JPEG,
-+	},
-+};
-+static const struct m5mols_resolution m5mols_resolutions[] = {
-+	/* monitor size */
-+	{ 0x01, M5MOLS_RES_MON, 128, 96 },	/* SUB-QCIF */
-+	{ 0x03, M5MOLS_RES_MON, 160, 120 },	/* QQVGA */
-+	{ 0x05, M5MOLS_RES_MON, 176, 144 },	/* QCIF */
-+	{ 0x06, M5MOLS_RES_MON, 176, 176 },	/* 176*176 */
-+	{ 0x08, M5MOLS_RES_MON, 240, 320 },	/* 1 QVGA */
-+	{ 0x09, M5MOLS_RES_MON, 320, 240 },	/* QVGA */
-+	{ 0x0c, M5MOLS_RES_MON, 240, 400 },	/* l WQVGA */
-+	{ 0x0d, M5MOLS_RES_MON, 400, 240 },	/* WQVGA */
-+	{ 0x0e, M5MOLS_RES_MON, 352, 288 },	/* CIF */
-+	{ 0x13, M5MOLS_RES_MON, 480, 360 },	/* 480*360 */
-+	{ 0x15, M5MOLS_RES_MON, 640, 360 },	/* qHD */
-+	{ 0x17, M5MOLS_RES_MON, 640, 480 },	/* VGA */
-+	{ 0x18, M5MOLS_RES_MON, 720, 480 },	/* 720x480 */
-+	{ 0x1a, M5MOLS_RES_MON, 800, 480 },	/* WVGA */
-+	{ 0x1f, M5MOLS_RES_MON, 800, 600 },	/* SVGA */
-+	{ 0x21, M5MOLS_RES_MON, 1280, 720 },	/* HD */
-+	{ 0x25, M5MOLS_RES_MON, 1920, 1080 },	/* 1080p */
-+	{ 0x29, M5MOLS_RES_MON, 3264, 2448 },	/* 8M (2.63fps@3264*2448) */
-+	{ 0x30, M5MOLS_RES_MON, 320, 240 },	/* 60fps for slow motion */
-+	{ 0x31, M5MOLS_RES_MON, 320, 240 },	/* 120fps for slow motion */
-+	{ 0x39, M5MOLS_RES_MON, 800, 602 },	/* AHS_MON debug */
-+};
-+
-+/* M5MOLS default FPS */
-+static const struct v4l2_fract default_fps = {
-+	.numerator		= 1,
-+	.denominator		= M5MOLS_FPS_AUTO,
-+};
-+
-+static u8 m5mols_reg_fps[] = {
-+	[M5MOLS_FPS_AUTO]	= 0x01,
-+	[M5MOLS_FPS_10]		= 0x05,
-+	[M5MOLS_FPS_12]		= 0x04,
-+	[M5MOLS_FPS_15]		= 0x03,
-+	[M5MOLS_FPS_20]		= 0x08,
-+	[M5MOLS_FPS_21]		= 0x09,
-+	[M5MOLS_FPS_22]		= 0x0a,
-+	[M5MOLS_FPS_23]		= 0x0b,
-+	[M5MOLS_FPS_24]		= 0x07,
-+	[M5MOLS_FPS_30]		= 0x02,
-+};
-+
-+static u32 m5mols_swap_byte(u8 *data, enum m5mols_i2c_size size)
++u32 fm_tx_set_stereo_mono(struct fmdev *fmdev, u16 mode)
 +{
-+	if (size == I2C_8BIT)
-+		return *data;
-+	else if (size == I2C_16BIT)
-+		return be16_to_cpu(*((u16 *)data));
-+	else
-+		return be32_to_cpu(*((u32 *)data));
-+}
++	u16 payload;
++	u32 ret;
 +
-+/*
-+ * m5mols_read_reg/m5mols_write_reg - handle sensor's I2C communications.
-+ *
-+ * The I2C command packet of M5MOLS is made up 3 kinds of I2C bytes(category,
-+ * command, bytes). Reference m5mols.h.
-+ *
-+ * The packet is needed 2, when M5MOLS is read through I2C.
-+ * The packet is needed 1, when M5MOLS is written through I2C.
-+ *
-+ * I2C packet common order(including both reading/writing)
-+ *   1st : size (data size + 4)
-+ *   2nd : READ/WRITE (R - 0x01, W - 0x02)
-+ *   3rd : Category
-+ *   4th : Command
-+ *
-+ * I2C packet order for READING operation
-+ *   5th : data real size for reading
-+ *   And, read another I2C packet again, until data size.
-+ *
-+ * I2C packet order for WRITING operation
-+ *   5th to 8th: an actual data to write
-+ */
++	if (fmdev->tx_data.aud_mode == mode)
++		return 0;
 +
-+#define M5MOLS_BYTE_READ	0x01
-+#define M5MOLS_BYTE_WRITE	0x02
++	fmdbg("stereo mode: %d\n", mode);
 +
-+int m5mols_read_reg(struct v4l2_subdev *sd,
-+		enum m5mols_i2c_size size,
-+		u8 category, u8 cmd, u32 *val)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct i2c_msg msg[1];
-+	u8 wbuf[5], rbuf[I2C_MAX + 1];
-+	int ret;
-+
-+	if (!client->adapter)
-+		return -ENODEV;
-+
-+	if (size != I2C_8BIT && size != I2C_16BIT && size != I2C_32BIT)
-+		return -EINVAL;
-+
-+	/* 1st I2C operation, for writing info to read. */
-+	msg->addr = client->addr;
-+	msg->flags = 0;
-+	msg->len = 5;		/* 1(cmd size per bytes) + 4 */
-+	msg->buf = wbuf;
-+	wbuf[0] = 5;		/* 1(cmd size per bytes) + 4 */
-+	wbuf[1] = M5MOLS_BYTE_READ;
-+	wbuf[2] = category;
-+	wbuf[3] = cmd;
-+	wbuf[4] = size;
-+
-+	ret = i2c_transfer(client->adapter, msg, 1);
-+	if (ret < 0) {
-+		dev_err(&client->dev, "failed READ-1[%d] at "
-+				"cat[%02x] cmd[%02x]\n",
-+				size, category, cmd);
-+		return ret;
-+	}
-+
-+	/* 2nd I2C operation, for reading data. */
-+	msg->addr = client->addr;
-+	msg->flags = I2C_M_RD;
-+	msg->len = size + 1;
-+	msg->buf = rbuf;
-+
-+	ret = i2c_transfer(client->adapter, msg, 1);
-+	if (ret < 0) {
-+		dev_err(&client->dev, "failed READ-2[%d] at "
-+				"cat[%02x] cmd[%02x]\n",
-+				size, category, cmd);
-+		return ret;
-+	}
-+
-+	*val = m5mols_swap_byte(&rbuf[1], size);
-+
-+	usleep_range(15000, 20000);	/* must be for stabilization */
-+
-+	return 0;
-+}
-+
-+int m5mols_write_reg(struct v4l2_subdev *sd,
-+		enum m5mols_i2c_size size,
-+		u8 category, u8 cmd, u32 val)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct device *cdev = &client->dev;
-+	struct i2c_msg msg[1];
-+	u8 wbuf[I2C_MAX + 4];
-+	u32 *buf = (u32 *)&wbuf[4];
-+	int ret;
-+
-+	if (!client->adapter)
-+		return -ENODEV;
-+
-+	if (size != I2C_8BIT && size != I2C_16BIT && size != I2C_32BIT) {
-+		dev_err(cdev, "Wrong data size\n");
-+		return -EINVAL;
-+	}
-+
-+	msg->addr = client->addr;
-+	msg->flags = 0;
-+	msg->len = size + 4;
-+	msg->buf = wbuf;
-+	wbuf[0] = size + 4;
-+	wbuf[1] = M5MOLS_BYTE_WRITE;
-+	wbuf[2] = category;
-+	wbuf[3] = cmd;
-+
-+	*buf = m5mols_swap_byte((u8 *)&val, size);
-+
-+	ret = i2c_transfer(client->adapter, msg, 1);
-+	if (ret < 0) {
-+		dev_err(&client->dev, "failed WRITE[%d] at "
-+				"cat[%02x] cmd[%02x], ret %d\n",
-+				size, msg->buf[2], msg->buf[3], ret);
-+		return ret;
-+	}
-+
-+	usleep_range(15000, 20000);	/* must be for stabilization */
-+
-+	return 0;
-+}
-+
-+int m5mols_check_busy(struct v4l2_subdev *sd,
-+		u8 category, u8 cmd, u32 value)
-+{
-+	u32 busy, i;
-+	int ret;
-+
-+	for (i = 0; i < M5MOLS_I2C_CHECK_RETRY; i++) {
-+		ret = m5mols_read_reg(sd, I2C_8BIT, category, cmd, &busy);
-+		if (ret < 0)
-+			return ret;
-+
-+		if (busy == value)	/* bingo */
-+			return 0;
-+
-+		mdelay(1);
-+	}
-+
-+	return -EBUSY;
-+}
-+
-+/*
-+ * m5mols_set_mode - change and set mode of M5MOLS.
-+ *
-+ * This driver supports now only 3 modes(System, Monitor, Parameter).
-+ */
-+int m5mols_set_mode(struct v4l2_subdev *sd, enum m5mols_mode mode)
-+{
-+	struct m5mols_info *info = to_m5mols(sd);
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct device *cdev = &client->dev;
-+	const char *m5mols_str_mode[] = {
-+		"System initialization",
-+		"Parameter setting",
-+		"Monitor setting",
-+		"Unknown",
-+	};
-+	int ret = 0;
-+
-+	if (mode < MODE_SYSINIT || mode > MODE_UNKNOWN)
-+		return -EINVAL;
-+
-+	ret = i2c_w8_system(sd, CAT0_SYSMODE, m5mols_reg_mode[mode]);
-+	if (!ret)
-+		ret = m5mols_check_busy(sd, CAT_SYSTEM, CAT0_SYSMODE,
-+				m5mols_reg_mode[mode]);
++	/* Set Stereo/Mono mode */
++	payload = (1 - mode);
++	ret = fmc_send_cmd(fmdev, MONO_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
 +	if (ret < 0)
 +		return ret;
 +
-+	info->mode = m5mols_reg_mode[mode];
-+	dev_dbg(cdev, " mode: %s\n", m5mols_str_mode[mode]);
++	fmdev->tx_data.aud_mode = mode;
 +
 +	return ret;
 +}
 +
-+/*
-+ * get_version - get M5MOLS sensor versions.
-+ */
-+static int get_version(struct v4l2_subdev *sd)
++static u32 set_rds_text(struct fmdev *fmdev, u8 *rds_text)
 +{
-+	struct m5mols_info *info = to_m5mols(sd);
-+	union {
-+		struct m5mols_version	ver;
-+		u8			bytes[10];
-+	} value;
-+	int ret, i;
++	u16 payload;
++	u32 ret;
 +
-+	for (i = CAT0_CUSTOMER_CODE; i <= CAT0_VERSION_AWB_L; i++) {
-+		ret = i2c_r8_system(sd, i, (u32 *)&value.bytes[i]);
-+		if (ret)
-+			return ret;
-+	}
++	ret = fmc_send_cmd(fmdev, RDS_DATA_SET, REG_WR, rds_text,
++			strlen(rds_text), NULL, NULL);
++	if (ret < 0)
++		return ret;
 +
-+	info->ver = value.ver;
++	/* Scroll mode */
++	payload = (u16)0x1;
++	ret = fmc_send_cmd(fmdev, DISPLAY_MODE, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
 +
-+	info->ver.fw = be16_to_cpu(info->ver.fw);
-+	info->ver.hw = be16_to_cpu(info->ver.hw);
-+	info->ver.parm = be16_to_cpu(info->ver.parm);
-+	info->ver.awb = be16_to_cpu(info->ver.awb);
-+
-+	return ret;
++	return 0;
 +}
 +
-+static void m5mols_show_version(struct v4l2_subdev *sd)
++static u32 set_rds_data_mode(struct fmdev *fmdev, u8 mode)
 +{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct device *dev = &client->dev;
-+	struct m5mols_info *info = to_m5mols(sd);
++	u16 payload;
++	u32 ret;
 +
-+	dev_info(dev, "customer code\t0x%02x\n", info->ver.ctm_code);
-+	dev_info(dev, "project code\t0x%02x\n", info->ver.pj_code);
-+	dev_info(dev, "firmware version\t0x%04x\n", info->ver.fw);
-+	dev_info(dev, "hardware version\t0x%04x\n", info->ver.hw);
-+	dev_info(dev, "parameter version\t0x%04x\n", info->ver.parm);
-+	dev_info(dev, "AWB version\t0x%04x\n", info->ver.awb);
++	/* Setting unique PI TODO: how unique? */
++	payload = (u16)0xcafe;
++	ret = fmc_send_cmd(fmdev, PI_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	/* Set decoder id */
++	payload = (u16)0xa;
++	ret = fmc_send_cmd(fmdev, DI_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	/* TODO: RDS_MODE_GET? */
++	return 0;
 +}
 +
-+/*
-+ * get_res_preset - find out M5MOLS register value from requested resolution.
-+ *
-+ * @width: requested width
-+ * @height: requested height
-+ * @type: requested type of each modes. It supports only monitor mode now.
-+ */
-+static int get_res_preset(struct v4l2_subdev *sd, u16 width, u16 height,
-+		enum m5mols_res_type type)
++static u32 set_rds_len(struct fmdev *fmdev, u8 type, u16 len)
 +{
-+	struct m5mols_info *info = to_m5mols(sd);
-+	int i;
++	u16 payload;
++	u32 ret;
 +
-+	for (i = 0; i < ARRAY_SIZE(m5mols_resolutions); i++) {
-+		if ((m5mols_resolutions[i].type == type) &&
-+			(m5mols_resolutions[i].width == width) &&
-+			(m5mols_resolutions[i].height == height))
-+			break;
++	len |= type << 8;
++	payload = len;
++	ret = fmc_send_cmd(fmdev, RDS_CONFIG_DATA_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	/* TODO: LENGTH_GET? */
++	return 0;
++}
++
++u32 fm_tx_set_rds_mode(struct fmdev *fmdev, u8 rds_en_dis)
++{
++	u16 payload;
++	u32 ret;
++	u8 rds_text[] = "Zoom2\n";
++
++	fmdbg("rds_en_dis:%d(E:%d, D:%d)\n", rds_en_dis,
++		   FM_RDS_ENABLE, FM_RDS_DISABLE);
++
++	if (rds_en_dis == FM_RDS_ENABLE) {
++		/* Set RDS length */
++		set_rds_len(fmdev, 0, strlen(rds_text));
++
++		/* Set RDS text */
++		set_rds_text(fmdev, rds_text);
++
++		/* Set RDS mode */
++		set_rds_data_mode(fmdev, 0x0);
 +	}
 +
-+	if (i >= ARRAY_SIZE(m5mols_resolutions)) {
-+		v4l2msg("no matching resolution\n");
++	/* Send command to enable RDS */
++	if (rds_en_dis == FM_RDS_ENABLE)
++		payload = 0x01;
++	else
++		payload = 0x00;
++
++	ret = fmc_send_cmd(fmdev, RDS_DATA_ENB, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	if (rds_en_dis == FM_RDS_ENABLE) {
++		/* Set RDS length */
++		set_rds_len(fmdev, 0, strlen(rds_text));
++
++		/* Set RDS text */
++		set_rds_text(fmdev, rds_text);
++	}
++	fmdev->tx_data.rds.flag = rds_en_dis;
++
++	return 0;
++}
++
++u32 fm_tx_set_radio_text(struct fmdev *fmdev, u8 *rds_text, u8 rds_type)
++{
++	u16 payload;
++	u32 ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_TX)
++		return -EPERM;
++
++	fm_tx_set_rds_mode(fmdev, 0);
++
++	/* Set RDS length */
++	set_rds_len(fmdev, rds_type, strlen(rds_text));
++
++	/* Set RDS text */
++	set_rds_text(fmdev, rds_text);
++
++	/* Set RDS mode */
++	set_rds_data_mode(fmdev, 0x0);
++
++	payload = 1;
++	ret = fmc_send_cmd(fmdev, RDS_DATA_ENB, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	return 0;
++}
++
++u32 fm_tx_set_af(struct fmdev *fmdev, u32 af)
++{
++	u16 payload;
++	u32 ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_TX)
++		return -EPERM;
++
++	fmdbg("AF: %d\n", af);
++
++	af = (af - 87500) / 100;
++	payload = (u16)af;
++	ret = fmc_send_cmd(fmdev, TA_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	return 0;
++}
++
++u32 fm_tx_set_region(struct fmdev *fmdev, u8 region)
++{
++	u16 payload;
++	u32 ret;
++
++	if (region != FM_BAND_EUROPE_US && region != FM_BAND_JAPAN) {
++		fmerr("Invalid band\n");
 +		return -EINVAL;
 +	}
 +
-+	return m5mols_resolutions[i].value;
++	/* Send command to set the band */
++	payload = (u16)region;
++	ret = fmc_send_cmd(fmdev, TX_BAND_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	return 0;
 +}
 +
-+/*
-+ * get_fps - calc & check FPS from v4l2_captureparm, if FPS is adequate, set.
-+ *
-+ * In M5MOLS case, the denominator means FPS. The each value of numerator and
-+ * denominator should not be minus. If numerator is 0, it sets AUTO FPS. If
-+ * numerator is not 1, it recalculates denominator. After it checks, the
-+ * denominator is set to timeperframe.denominator, and used by FPS.
-+ */
-+static int get_fps(struct v4l2_subdev *sd,
-+		struct v4l2_captureparm *parm)
++u32 fm_tx_set_mute_mode(struct fmdev *fmdev, u8 mute_mode_toset)
 +{
-+	int numerator = parm->timeperframe.numerator;
-+	int denominator = parm->timeperframe.denominator;
++	u16 payload;
++	u32 ret;
 +
-+	/* The denominator should be +, except 0. The numerator shoud be +. */
-+	if (numerator < 0 || denominator <= 0)
-+		return -EINVAL;
++	fmdbg("tx: mute mode %d\n", mute_mode_toset);
 +
-+	/* The numerator is 0, return auto fps. */
-+	if (numerator == 0) {
-+		parm->timeperframe.denominator = M5MOLS_FPS_AUTO;
++	payload = mute_mode_toset;
++	ret = fmc_send_cmd(fmdev, MUTE, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	return 0;
++}
++
++/* Set TX Audio I/O */
++static u32 set_audio_io(struct fmdev *fmdev)
++{
++	struct fmtx_data *tx = &fmdev->tx_data;
++	u16 payload;
++	u32 ret;
++
++	/* Set Audio I/O Enable */
++	payload = tx->audio_io;
++	ret = fmc_send_cmd(fmdev, AUDIO_IO_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	/* TODO: is audio set? */
++	return 0;
++}
++
++/* Start TX Transmission */
++static u32 enable_xmit(struct fmdev *fmdev, u8 new_xmit_state)
++{
++	struct fmtx_data *tx = &fmdev->tx_data;
++	unsigned long timeleft;
++	u16 payload;
++	u32 ret;
++
++	/* Enable POWER_ENB interrupts */
++	payload = FM_POW_ENB_EVENT;
++	ret = fmc_send_cmd(fmdev, INT_MASK_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	/* Set Power Enable */
++	payload = new_xmit_state;
++	ret = fmc_send_cmd(fmdev, POWER_ENB_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	/* Wait for Power Enabled */
++	init_completion(&fmdev->maintask_comp);
++	timeleft = wait_for_completion_timeout(&fmdev->maintask_comp,
++			FM_DRV_TX_TIMEOUT);
++	if (!timeleft) {
++		fmerr("Timeout(%d sec),didn't get tune ended interrupt\n",
++			   jiffies_to_msecs(FM_DRV_TX_TIMEOUT) / 1000);
++		return -ETIMEDOUT;
++	}
++
++	set_bit(FM_CORE_TX_XMITING, &fmdev->flag);
++	tx->xmit_state = new_xmit_state;
++
++	return 0;
++}
++
++/* Set TX power level */
++u32 fm_tx_set_pwr_lvl(struct fmdev *fmdev, u8 new_pwr_lvl)
++{
++	u16 payload;
++	struct fmtx_data *tx = &fmdev->tx_data;
++	u32 ret;
++
++	if (fmdev->curr_fmmode != FM_MODE_TX)
++		return -EPERM;
++	fmdbg("tx: pwr_level_to_set %ld\n", (long int)new_pwr_lvl);
++
++	/* If the core isn't ready update global variable */
++	if (!test_bit(FM_CORE_READY, &fmdev->flag)) {
++		tx->pwr_lvl = new_pwr_lvl;
 +		return 0;
 +	}
 +
-+	/* calc FPS(not time per frame) per 1 numerator */
-+	denominator = denominator / numerator;
++	/* Set power level: Application will specify power level value in
++	 * units of dB/uV, whereas range and step are specific to FM chip.
++	 * For TI's WL chips, convert application specified power level value
++	 * to chip specific value by subtracting 122 from it. Refer to TI FM
++	 * data sheet for details.
++	 * */
 +
-+	if (denominator < M5MOLS_FPS_AUTO || denominator > M5MOLS_FPS_MAX)
-+		return -EINVAL;
-+
-+	if (!m5mols_reg_fps[denominator])
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+static int m5mols_g_mbus_fmt(struct v4l2_subdev *sd,
-+		struct v4l2_mbus_framefmt *ffmt)
-+{
-+	struct m5mols_info *info = to_m5mols(sd);
-+
-+	*ffmt = info->fmt;
-+
-+	return 0;
-+}
-+
-+static int m5mols_s_mbus_fmt(struct v4l2_subdev *sd,
-+		struct v4l2_mbus_framefmt *ffmt)
-+{
-+	struct m5mols_info *info = to_m5mols(sd);
-+	int size;
-+	int ret = -EINVAL;
-+
-+	size = get_res_preset(sd, ffmt->width, ffmt->height,
-+			M5MOLS_RES_MON);
-+	if (size < 0)
-+		return -EINVAL;
-+
-+	ret = m5mols_set_mode(sd, MODE_PARMSET);
-+	if (!ret)
-+		ret = i2c_w8_param(sd, CAT1_MONITOR_SIZE, (u8)size);
-+	if (!ret) {
-+		info->fmt = default_fmt;
-+		info->fmt.width = ffmt->width;
-+		info->fmt.height = ffmt->height;
-+
-+		*ffmt = info->fmt;
-+	}
-+
-+	return ret;
-+}
-+
-+static int m5mols_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned int index,
-+			      enum v4l2_mbus_pixelcode *code)
-+{
-+	if (!code || index >= ARRAY_SIZE(m5mols_formats))
-+		return -EINVAL;
-+
-+	*code = m5mols_formats[index].code;
-+
-+	return 0;
-+}
-+
-+static int m5mols_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
-+{
-+	struct m5mols_info *info = to_m5mols(sd);
-+	struct v4l2_captureparm *cp = &parms->parm.capture;
-+
-+	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
-+			parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-+		return -EINVAL;
-+
-+	cp->capability = V4L2_CAP_TIMEPERFRAME;
-+	cp->timeperframe = info->tpf;
-+
-+	return 0;
-+}
-+
-+static int m5mols_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
-+{
-+	struct m5mols_info *info = to_m5mols(sd);
-+	struct v4l2_captureparm *cp = &parms->parm.capture;
-+	int ret = -EINVAL;
-+
-+	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
-+			parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-+		return -EINVAL;
-+
-+	ret = m5mols_set_mode_backup(sd, MODE_PARMSET);
-+	if (!ret)
-+		ret = get_fps(sd, cp);	/* set right FPS to denominator. */
-+	if (!ret)
-+		ret = i2c_w8_param(sd, CAT1_MONITOR_FPS,
-+				m5mols_reg_fps[cp->timeperframe.denominator]);
-+	if (!ret)
-+		ret = m5mols_set_mode_restore(sd);
-+	if (!ret) {
-+		cp->capability = V4L2_CAP_TIMEPERFRAME;
-+		info->tpf = cp->timeperframe;
-+	}
-+
-+	v4l2msg("denominator: %d / numerator: %d.\n",
-+		cp->timeperframe.denominator, cp->timeperframe.numerator);
-+
-+	return ret;
-+}
-+
-+static int m5mols_s_stream(struct v4l2_subdev *sd, int enable)
-+{
-+	if (enable) {
-+		if (is_stoped(sd))
-+			return m5mols_set_mode(sd, MODE_MONITOR);
-+		else
-+			return -EINVAL;
-+	} else {
-+		if (is_streaming(sd))
-+			return m5mols_set_mode(sd, MODE_PARMSET);
-+		else
-+			return -EINVAL;
-+	}
-+}
-+
-+static const struct v4l2_subdev_video_ops m5mols_video_ops = {
-+	.g_mbus_fmt		= m5mols_g_mbus_fmt,
-+	.s_mbus_fmt		= m5mols_s_mbus_fmt,
-+	.enum_mbus_fmt		= m5mols_enum_mbus_fmt,
-+	.g_parm			= m5mols_g_parm,
-+	.s_parm			= m5mols_s_parm,
-+	.s_stream		= m5mols_s_stream,
-+};
-+
-+static int m5mols_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct v4l2_subdev *sd = to_sd(ctrl);
-+	int ret;
-+
-+	ret = m5mols_set_mode_backup(sd, MODE_PARMSET);
-+	if (!ret)
-+		ret = m5mols_set_ctrl(ctrl);
-+	if (!ret)
-+		ret = m5mols_set_mode_restore(sd);
-+
-+	return ret;
-+}
-+
-+static const struct v4l2_ctrl_ops m5mols_ctrl_ops = {
-+	.s_ctrl = m5mols_s_ctrl,
-+};
-+
-+/*
-+ * m5mols_sensor_power - handle sensor power up/down.
-+ *
-+ * @enable: If it is true, power up. If is not, power down.
-+ */
-+static int m5mols_sensor_power(struct m5mols_info *info, bool enable)
-+{
-+	struct v4l2_subdev *sd = &info->sd;
-+	struct i2c_client *c = v4l2_get_subdevdata(sd);
-+	int ret;
-+
-+	if (enable) {
-+		if (!is_powerdown(sd))
-+			return 0;
-+
-+		if (gpio_is_valid(info->gpio_nrst))
-+			gpio_set_value(info->gpio_nrst, 0);
-+
-+		if (info->set_power) {
-+			ret = info->set_power(&c->dev, 1);
-+			if (ret)
-+				return ret;
-+		}
-+
-+		ret = regulator_bulk_enable(info->supply_size,
-+				info->supply);
-+		if (ret)
-+			return ret;
-+
-+		if (gpio_is_valid(info->gpio_nrst)) {
-+			gpio_set_value(info->gpio_nrst, 0);
-+			msleep(100);
-+			gpio_set_value(info->gpio_nrst, 1);
-+			msleep(100);
-+		}
-+
-+		info->power = true;
-+	} else {
-+		if (!is_powerup(sd))
-+			return 0;
-+
-+		if (gpio_is_valid(info->gpio_nrst)) {
-+			gpio_set_value(info->gpio_nrst, 0);
-+			msleep(100);
-+		}
-+
-+		ret = regulator_bulk_disable(info->supply_size,
-+				info->supply);
-+		if (ret)
-+			return ret;
-+
-+		if (info->set_power) {
-+			ret = info->set_power(&c->dev, 0);
-+			if (ret)
-+				return ret;
-+		}
-+
-+		if (gpio_is_valid(info->gpio_nrst))
-+			gpio_set_value(info->gpio_nrst, 0);
-+
-+		info->power = false;
-+	}
-+
-+	return ret;
-+}
-+
-+/*
-+ * m5mols_sensor_armboot - booting M5MOLS internal ARM core-controller.
-+ *
-+ * It makes to ready M5MOLS for I2C & MIPI interface. After it's powered up,
-+ * it activates if it gets armboot command for I2C interface. After getting
-+ * cmd, it must wait about least 500ms referenced by M5MOLS datasheet.
-+ */
-+static int m5mols_sensor_armboot(struct v4l2_subdev *sd)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	static u8 m5mols_mipi_value = 0x02;
-+	int ret;
-+
-+	/* 1. ARM booting */
-+	ret = i2c_w8_flash(sd, CAT0_INT_ROOTEN, true);
++	payload = (FM_PWR_LVL_HIGH - new_pwr_lvl);
++	ret = fmc_send_cmd(fmdev, POWER_LEV_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
 +	if (ret < 0)
 +		return ret;
 +
-+	msleep(500);
-+	dev_dbg(&client->dev, "Success ARM Booting\n");
++	/* TODO: is the power level set? */
++	tx->pwr_lvl = new_pwr_lvl;
 +
-+	ret = m5mols_set_mode(sd, MODE_PARMSET);
-+	if (!ret)
-+		ret = get_version(sd);
-+	if (!ret)
-+		ret = i2c_w8_param(sd, CAT1_DATA_INTERFACE, m5mols_mipi_value);
-+
-+	m5mols_show_version(sd);
-+
-+	return ret;
++	return 0;
 +}
 +
 +/*
-+ * m5mols_init_controls - initialization using v4l2_ctrl.
++ * Sets FM TX pre-emphasis filter value (OFF, 50us, or 75us)
++ * Convert V4L2 specified filter values to chip specific filter values.
 + */
-+static int m5mols_init_controls(struct m5mols_info *info)
++u32 fm_tx_set_preemph_filter(struct fmdev *fmdev, u32 preemphasis)
 +{
-+	struct v4l2_subdev *sd = &info->sd;
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	u16 max_ex_mon;
-+	int ret;
++	struct fmtx_data *tx = &fmdev->tx_data;
++	u16 payload;
++	u32 ret;
 +
-+	/* check minimum & maximum of M5MOLS controls */
-+	ret = i2c_r16_ae(sd, CAT3_MAX_GAIN_MON_1, (u32 *)&max_ex_mon);
-+	if (!ret)
++	if (fmdev->curr_fmmode != FM_MODE_TX)
++		return -EPERM;
++
++	switch (preemphasis) {
++	case V4L2_PREEMPHASIS_DISABLED:
++		payload = FM_TX_PREEMPH_OFF;
++		break;
++	case V4L2_PREEMPHASIS_50_uS:
++		payload = FM_TX_PREEMPH_50US;
++		break;
++	case V4L2_PREEMPHASIS_75_uS:
++		payload = FM_TX_PREEMPH_75US;
++		break;
++	}
++
++	ret = fmc_send_cmd(fmdev, PREMPH_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
 +		return ret;
 +
-+	/* set the controls using v4l2 control frameworks */
-+	v4l2_ctrl_handler_init(&info->handle, 5);
-+
-+	info->colorfx = v4l2_ctrl_new_std_menu(&info->handle,
-+			&m5mols_ctrl_ops, V4L2_CID_COLORFX,
-+			9, 1, V4L2_COLORFX_NONE);
-+	info->autoexposure = v4l2_ctrl_new_std_menu(&info->handle,
-+			&m5mols_ctrl_ops, V4L2_CID_EXPOSURE_AUTO,
-+			1, 0, V4L2_EXPOSURE_AUTO);
-+	info->exposure = v4l2_ctrl_new_std(&info->handle,
-+			&m5mols_ctrl_ops, V4L2_CID_EXPOSURE,
-+			0, max_ex_mon, 1, (int)max_ex_mon/2);
-+	info->autowb = v4l2_ctrl_new_std(&info->handle,
-+			&m5mols_ctrl_ops, V4L2_CID_AUTO_WHITE_BALANCE,
-+			0, 1, 1, 1);
-+	info->saturation = v4l2_ctrl_new_std(&info->handle,
-+			&m5mols_ctrl_ops, V4L2_CID_SATURATION,
-+			0, 6, 1, 3);
-+
-+	sd->ctrl_handler = &info->handle;
-+	if (info->handle.error) {
-+		dev_err(&client->dev, "Failed to init controls, %d\n", ret);
-+		v4l2_ctrl_handler_free(&info->handle);
-+		return info->handle.error;
-+	}
-+
-+	v4l2_ctrl_cluster(2, &info->autoexposure);
-+	v4l2_ctrl_handler_setup(&info->handle);
-+
-+	return 0;
-+}
-+
-+/*
-+ * m5mols_setup_default - set default size & fps in the monitor mode.
-+ */
-+static int m5mols_setup_default(struct v4l2_subdev *sd)
-+{
-+	struct m5mols_info *info = to_m5mols(sd);
-+	int value;
-+	int ret = -EINVAL;
-+
-+	value = get_res_preset(sd, default_fmt.width, default_fmt.height,
-+			M5MOLS_RES_MON);
-+	if (value >= 0)
-+		ret = i2c_w8_param(sd, CAT1_MONITOR_SIZE, (u8)value);
-+	if (!ret)
-+		ret = i2c_w8_param(sd, CAT1_MONITOR_FPS,
-+			m5mols_reg_fps[default_fps.denominator]);
-+	if (!ret)
-+		ret = m5mols_init_controls(info);
-+	if (!ret) {
-+		info->fmt = default_fmt;
-+		info->tpf = default_fps;
-+
-+		ret = 0;
-+	}
++	tx->preemph = payload;
 +
 +	return ret;
 +}
 +
-+static int m5mols_s_power(struct v4l2_subdev *sd, int on)
++/* Get the TX tuning capacitor value.*/
++u32 fm_tx_get_tune_cap_val(struct fmdev *fmdev)
 +{
-+	struct m5mols_info *info = to_m5mols(sd);
-+	int ret;
++	u16 curr_val;
++	u32 ret, resp_len;
 +
-+	if (on) {
-+		ret = m5mols_sensor_power(info, true);
-+		if (!ret)
-+			ret = m5mols_sensor_armboot(sd);
-+		if (!ret)
-+			ret = m5mols_setup_default(sd);
-+	} else {
-+		ret = m5mols_sensor_power(info, false);
-+	}
++	if (fmdev->curr_fmmode != FM_MODE_TX)
++		return -EPERM;
 +
-+	return ret;
++	ret = fmc_send_cmd(fmdev, READ_FMANT_TUNE_VALUE, REG_RD,
++			NULL, sizeof(curr_val), &curr_val, &resp_len);
++	if (ret < 0)
++		return ret;
++
++	curr_val = be16_to_cpu(curr_val);
++
++	return curr_val;
 +}
 +
-+static int m5mols_log_status(struct v4l2_subdev *sd)
++/* Set TX Frequency */
++u32 fm_tx_set_freq(struct fmdev *fmdev, u32 freq_to_set)
 +{
-+	struct m5mols_info *info = to_m5mols(sd);
++	struct fmtx_data *tx = &fmdev->tx_data;
++	u16 payload, chanl_index;
++	u32 ret;
 +
-+	v4l2_ctrl_handler_log_status(&info->handle, sd->name);
++	if (test_bit(FM_CORE_TX_XMITING, &fmdev->flag)) {
++		enable_xmit(fmdev, 0);
++		clear_bit(FM_CORE_TX_XMITING, &fmdev->flag);
++	}
++
++	/* Enable FR, BL interrupts */
++	payload = (FM_FR_EVENT | FM_BL_EVENT);
++	ret = fmc_send_cmd(fmdev, INT_MASK_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	tx->tx_frq = (unsigned long)freq_to_set;
++	fmdbg("tx: freq_to_set %ld\n", (long int)tx->tx_frq);
++
++	chanl_index = freq_to_set / 10;
++
++	/* Set current tuner channel */
++	payload = chanl_index;
++	ret = fmc_send_cmd(fmdev, CHANL_SET, REG_WR, &payload,
++			sizeof(payload), NULL, NULL);
++	if (ret < 0)
++		return ret;
++
++	fm_tx_set_pwr_lvl(fmdev, tx->pwr_lvl);
++	fm_tx_set_preemph_filter(fmdev, tx->preemph);
++
++	tx->audio_io = 0x01;	/* I2S */
++	set_audio_io(fmdev);
++
++	enable_xmit(fmdev, 0x01);	/* Enable transmission */
++
++	tx->aud_mode = FM_STEREO_MODE;
++	tx->rds.flag = FM_RDS_DISABLE;
 +
 +	return 0;
 +}
 +
-+static const struct v4l2_subdev_core_ops m5mols_core_ops = {
-+	.s_power		= m5mols_s_power,
-+	.g_ctrl			= v4l2_subdev_g_ctrl,
-+	.s_ctrl			= v4l2_subdev_s_ctrl,
-+	.queryctrl		= v4l2_subdev_queryctrl,
-+	.querymenu		= v4l2_subdev_querymenu,
-+	.g_ext_ctrls		= v4l2_subdev_g_ext_ctrls,
-+	.try_ext_ctrls		= v4l2_subdev_try_ext_ctrls,
-+	.s_ext_ctrls		= v4l2_subdev_s_ext_ctrls,
-+	.log_status		= m5mols_log_status,
-+};
-+
-+static const struct v4l2_subdev_ops m5mols_ops = {
-+	.core	= &m5mols_core_ops,
-+	.video	= &m5mols_video_ops,
-+};
-+
-+static int m5mols_get_gpio(struct m5mols_info *info,
-+	const struct m5mols_platform_data *pdata)
-+{
-+
-+	if (!gpio_is_valid(pdata->gpio_nrst))
-+		return -EINVAL;
-+
-+	if (gpio_request(pdata->gpio_nrst, "M5MOLS-NRST"))
-+		return -EINVAL;
-+
-+	info->gpio_nrst = pdata->gpio_nrst;
-+	gpio_direction_output(info->gpio_nrst, 0);
-+	gpio_export(info->gpio_nrst, 0);
-+
-+	return 0;
-+}
-+
-+static int m5mols_get_regulators(struct m5mols_info *info,
-+		const struct m5mols_platform_data *pdata,
-+		struct i2c_client *c)
-+{
-+	int i = 0;
-+
-+	info->supply = kzalloc(sizeof(struct regulator_bulk_data) *
-+			ARRAY_SIZE(supply_names), GFP_KERNEL);
-+	if (!info->supply)
-+		return -ENOMEM;
-+
-+	info->supply_size = ARRAY_SIZE(supply_names);
-+	for (i = 0; i < info->supply_size; i++)
-+		info->supply[i].supply = supply_names[i];
-+
-+	return regulator_bulk_get(&c->dev, info->supply_size, info->supply);
-+}
-+
-+static int m5mols_probe(struct i2c_client *client,
-+			 const struct i2c_device_id *id)
-+{
-+	const struct m5mols_platform_data *pdata =
-+		client->dev.platform_data;
-+	struct m5mols_info *info;
-+	struct v4l2_subdev *sd;
-+	int ret = 0;
-+
-+	if (pdata == NULL) {
-+		dev_err(&client->dev, "No platform data\n");
-+		return -EIO;
-+	}
-+
-+	info = kzalloc(sizeof(struct m5mols_info), GFP_KERNEL);
-+	if (info == NULL) {
-+		dev_err(&client->dev, "Failed to allocate info\n");
-+		return -ENOMEM;
-+	}
-+
-+	info->set_power = pdata->set_power;
-+
-+	ret = m5mols_get_gpio(info, pdata);
-+	if (ret) {
-+		dev_err(&client->dev, "Failed to set gpio, %d\n", ret);
-+		goto out_gpio;
-+	}
-+
-+	ret = m5mols_get_regulators(info, pdata, client);
-+	if (ret) {
-+		dev_err(&client->dev, "Failed to get regulators, %d\n", ret);
-+		goto out_reg;
-+	}
-+
-+	sd = &info->sd;
-+	strlcpy(sd->name, MOD_NAME, sizeof(sd->name));
-+	v4l2_i2c_subdev_init(sd, client, &m5mols_ops);
-+
-+	v4l2msg("probed m5mols driver.\n");
-+
-+	return 0;
-+
-+out_reg:
-+	regulator_bulk_free(info->supply_size, info->supply);
-+	kfree(info->supply);
-+out_gpio:
-+	if (gpio_is_valid(info->gpio_nrst))
-+		gpio_free(info->gpio_nrst);
-+	kfree(info);
-+
-+	return ret;
-+}
-+
-+static int m5mols_remove(struct i2c_client *client)
-+{
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct m5mols_info *info = to_m5mols(sd);
-+
-+	v4l2_device_unregister_subdev(sd);
-+	v4l2_ctrl_handler_free(&info->handle);
-+
-+	regulator_bulk_free(info->supply_size, info->supply);
-+	if (gpio_is_valid(info->gpio_nrst))
-+		gpio_free(info->gpio_nrst);
-+
-+	kfree(info->supply);
-+	kfree(info);
-+
-+	return 0;
-+}
-+
-+static const struct i2c_device_id m5mols_id[] = {
-+	{ MOD_NAME, 0 },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(i2c, m5mols_id);
-+
-+static struct i2c_driver m5mols_i2c_driver = {
-+	.driver = {
-+		.name	= MOD_NAME,
-+	},
-+	.probe		= m5mols_probe,
-+	.remove		= m5mols_remove,
-+	.id_table	= m5mols_id,
-+};
-+
-+static int __init m5mols_mod_init(void)
-+{
-+	return i2c_add_driver(&m5mols_i2c_driver);
-+}
-+
-+static void __exit m5mols_mod_exit(void)
-+{
-+	i2c_del_driver(&m5mols_i2c_driver);
-+}
-+
-+module_init(m5mols_mod_init);
-+module_exit(m5mols_mod_exit);
-+
-+MODULE_AUTHOR("HeungJun Kim <riverful.kim@samsung.com>");
-+MODULE_AUTHOR("Dongsoo Kim <dongsoo45.kim@samsung.com>");
-+MODULE_DESCRIPTION("Fujitsu M5MOLS 8M Pixel camera sensor with ISP driver");
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/media/video/m5mols/m5mols_reg.h b/drivers/media/video/m5mols/m5mols_reg.h
+diff --git a/drivers/media/radio/wl128x/fmdrv_tx.h b/drivers/media/radio/wl128x/fmdrv_tx.h
 new file mode 100644
-index 0000000..036069e
+index 0000000..e393a2b
 --- /dev/null
-+++ b/drivers/media/video/m5mols/m5mols_reg.h
-@@ -0,0 +1,103 @@
++++ b/drivers/media/radio/wl128x/fmdrv_tx.h
+@@ -0,0 +1,37 @@
 +/*
-+ * Register map for M5MOLS 8M Pixel camera sensor with ISP
++ *  FM Driver for Connectivity chip of Texas Instruments.
++ *  FM TX module header.
 + *
-+ * Copyright (C) 2011 Samsung Electronics Co., Ltd
-+ * Author: HeungJun Kim, riverful.kim@samsung.com
++ *  Copyright (C) 2011 Texas Instruments
 + *
-+ * Copyright (C) 2009 Samsung Electronics Co., Ltd
-+ * Author: Dongsoo Nathaniel Kim, dongsoo45.kim@samsung.com
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License version 2 as
++ *  published by the Free Software Foundation.
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
 + */
 +
-+#ifndef M5MOLS_REG_H
-+#define M5MOLS_REG_H
++#ifndef _FMDRV_TX_H
++#define _FMDRV_TX_H
 +
-+/*
-+ * Category section register
-+ *
-+ * The category means a kind of command set. Including category section,
-+ * all defined categories in this version supports only, as you see below:
-+ */
-+#define CAT_SYSTEM		0x00
-+#define CAT_PARAM		0x01
-+#define CAT_MON			0x02
-+#define CAT_AE			0x03
-+#define CAT_WB			0x06
-+#define CAT_FLASH		0x0f	/* related with FW, Verions, booting */
++u32 fm_tx_set_freq(struct fmdev *, u32);
++u32 fm_tx_set_pwr_lvl(struct fmdev *, u8);
++u32 fm_tx_set_region(struct fmdev *, u8);
++u32 fm_tx_set_mute_mode(struct fmdev *, u8);
++u32 fm_tx_set_stereo_mono(struct fmdev *, u16);
++u32 fm_tx_set_rds_mode(struct fmdev *, u8);
++u32 fm_tx_set_radio_text(struct fmdev *, u8 *, u8);
++u32 fm_tx_set_af(struct fmdev *, u32);
++u32 fm_tx_set_preemph_filter(struct fmdev *, u32);
++u32 fm_tx_get_tune_cap_val(struct fmdev *);
 +
-+/*
-+ * Category 0 - System
-+ *
-+ * This category supports FW version, managing mode, even interrupt.
-+ */
-+#define CAT0_CUSTOMER_CODE	0x00
-+#define CAT0_PJ_CODE		0x01
-+#define CAT0_VERSION_FW_H	0x02
-+#define CAT0_VERSION_FW_L	0x03
-+#define CAT0_VERSION_HW_H	0x04
-+#define CAT0_VERSION_HW_L	0x05
-+#define CAT0_VERSION_PARM_H	0x06
-+#define CAT0_VERSION_PARM_L	0x07
-+#define CAT0_VERSION_AWB_H	0x08
-+#define CAT0_VERSION_AWB_L	0x09
-+#define CAT0_SYSMODE		0x0b
-+#define CAT0_INT_ROOTEN		0x12
++#endif
 +
-+/*
-+ * category 1 - Parameter mode
-+ *
-+ * This category is dealing with almost camera vendor. In spite of that,
-+ * It's a register to be able to detailed value for whole camera syste.
-+ * The key parameter like a resolution, FPS, data interface connecting
-+ * with Mobile AP, even effects.
-+ */
-+#define CAT1_DATA_INTERFACE	0x00
-+#define CAT1_MONITOR_SIZE	0x01
-+#define CAT1_MONITOR_FPS	0x02
-+#define CAT1_EFFECT		0x0b
-+
-+/*
-+ * Category 2 - Monitor mode
-+ *
-+ * This category supports only monitoring mode. The monitoring mode means,
-+ * similar to preview. It supports like a YUYV format. At the capture mode,
-+ * it is handled like a JPEG & RAW formats.
-+ */
-+#define CAT2_CFIXB		0x09
-+#define CAT2_CFIXR		0x0a
-+#define CAT2_COLOR_EFFECT	0x0b
-+#define CAT2_CHROMA_LVL		0x0f
-+#define CAT2_CHROMA_EN		0x10
-+
-+/*
-+ * Category 3 - Auto Exposure
-+ *
-+ * Currently, it supports only gain value with monitor mode. This device
-+ * is able to support Shutter, Gain(similar with Aperture), Flicker, at
-+ * monitor mode & capture mode both.
-+ */
-+#define CAT3_AE_LOCK		0x00
-+#define CAT3_AE_MODE		0x01
-+#define CAT3_MANUAL_GAIN_MON_1	0x12	/* upper byte */
-+#define CAT3_MANUAL_GAIN_MON_2	0x13	/* lower byte */
-+#define CAT3_MANUAL_SHUT_MON_1	0x14
-+#define CAT3_MANUAL_SHUT_MON_2	0x15
-+#define CAT3_MAX_SHUT_MON_1	0x16
-+#define CAT3_MAX_SHUT_MON_2	0x17
-+#define CAT3_MAX_GAIN_MON_1	0x1a
-+#define CAT3_MAX_GAIN_MON_2	0x1b
-+
-+/*
-+ * Category 6 - White Balance
-+ *
-+ * Currently, it supports only auto white balance.
-+ */
-+#define CAT6_AWB_LOCK		0x00
-+#define CAT6_AWB_MODE		0x02
-+#define CAT6_AWB_MANUAL		0x03
-+
-+#endif	/* M5MOLS_REG_H */
-diff --git a/include/media/m5mols.h b/include/media/m5mols.h
-new file mode 100644
-index 0000000..55b0f0f
---- /dev/null
-+++ b/include/media/m5mols.h
-@@ -0,0 +1,31 @@
-+/*
-+ * Driver for M5MOLS 8M Pixel camera sensor with ISP
-+ *
-+ * Copyright (C) 2011 Samsung Electronics Co., Ltd
-+ * Author: HeungJun Kim, riverful.kim@samsung.com
-+ *
-+ * Copyright (C) 2009 Samsung Electronics Co., Ltd
-+ * Author: Dongsoo Nathaniel Kim, dongsoo45.kim@samsung.com
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#ifndef MEDIA_M5MOLS_H
-+#define MEDIA_M5MOLS_H
-+
-+/**
-+* struct m5mols_platform_data - platform data for M5MOLS driver
-+* @gpio_nrst:  GPIO driving the reset pin of M5MOLS
-+* @set_power:  an additional callback to a board setup code
-+* 		to be called after enabling and before disabling
-+*		the sensor device supply regulators		
-+*/
-+struct m5mols_platform_data {
-+	int (*set_power)(struct device *dev, int on);
-+	int gpio_nrst;
-+};
-+
-+#endif	/* MEDIA_M5MOLS_H */
 -- 
-1.7.0.4
+1.5.6.3
 
