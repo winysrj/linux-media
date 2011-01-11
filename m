@@ -1,54 +1,68 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:3157 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752764Ab1ACSb3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jan 2011 13:31:29 -0500
-Received: from localhost.localdomain (43.80-203-71.nextgentel.com [80.203.71.43])
-	(authenticated bits=0)
-	by smtp-vbr18.xs4all.nl (8.13.8/8.13.8) with ESMTP id p03IVMuR006180
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 3 Jan 2011 19:31:27 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [RFCv2 PATCH 00/10] Move priority handling into the core
-Date: Mon,  3 Jan 2011 19:31:05 +0100
-Message-Id: <1294079475-13259-1-git-send-email-hverkuil@xs4all.nl>
+Return-path: <mchehab@pedra>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:53959 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932209Ab1AKQnS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Jan 2011 11:43:18 -0500
+Received: by wwa36 with SMTP id 36so1968124wwa.1
+        for <linux-media@vger.kernel.org>; Tue, 11 Jan 2011 08:43:17 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4D2CA021.5080001@redhat.com>
+References: <4D21FDC1.7000803@samsung.com> <4D2CA021.5080001@redhat.com>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Tue, 11 Jan 2011 08:42:55 -0800
+Message-ID: <AANLkTimovx-bhpV-1bRn=KvvH4ZtvAsSmnJB5_bjn6xX@mail.gmail.com>
+Subject: Re: [GIT PATCHES FOR 2.6.38] Videbuf2 framework, NOON010PC30 sensor
+ driver and s5p-fimc updates
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-This is the second attempt at moving priority handling into the core.
+Hi Mauro,
 
-I have added two helper functions that allocate and free just a single
-v4l2_fh struct. This can be used by drivers that do not need to embed the
-struct v4l2_fh into a larger struct.
+On Tue, Jan 11, 2011 at 10:23, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+>> Pawel Osciak (8):
+>>       v4l: Add multi-planar API definitions to the V4L2 API
+>>       v4l: Add multi-planar ioctl handling code
+>
+>>       v4l: Add compat functions for the multi-planar API
+>>       v4l: fix copy sizes in compat32 for ext controls
+>
+> Are you sure that we need to add compat32 stuff for the multi-planar definitions?
+> Had you test if the compat32 code is actually working? Except if you use things
+> that have different sizes on 32 and 64 bit architectures, there's no need to add
+> anything for compat.
+>
 
-It is also called by the core for any driver that does not supply open()
-or release() callbacks in struct v4l2_file_operations. This replaces the
-awkward 'store priority in private_data' hack from the previous patch
-series.
+v4l2_buffer and v4l2_plane contain pointers to buffers and/or arrays
+of planes. In fact buffer conversion was already there, I only added
+the new planes field. I believe those additions to the compat code are
+needed...
 
-This means that almost all radio devices automatically support priority
-handling (since most do not supply open/release).
+> Anyway, I'll be merging the two compat functions into just one patch, as it will
+> help to track any regressions there, if ever needed. They are at my temporary
+> branch, but, if they are not needed, I'll drop when merging upstream.
+>
+>>       v4l: v4l2-ioctl: add buffer type conversion for multi-planar-aware ioctls
+>
+> NACK.
+>
+> We shouldn't be doing those videobuf memcpy operations inside the kernel.
+> If you want such feature, please implement it on libv4l.
+>
 
-This patch series also converts radio-mr800 (removing the bogus autopm
-support allows us to remove the open/release support) and radio-cadet
-(typical first-time open and close code, shows how easy it is to use
-the helper functions).
+I can see your point. We don't really use it. It was to prevent
+applications from using two versions of API and thus being
+overcomplicated. It allowed using old drivers with the new API. If you
+think it is a bad idea, the patch can just be dropped without
+affecting anything else. I will fix the documentation if you decide to
+do so.
 
-ivtv is also converted as it is currently the only driver that embeds
-struct v4l2_fh.
-
-Core support for priority handling is necessary in order to have consistent
-handling of priorities and to handle priorities and the control framework.
-
-A lot of video drivers do something in open and/or release, so it is quite
-a bit of work to implement this. However, the changes needed to convert a
-driver are trivial and are easy to review.
-
-Comments are welcome!
-
-Regards,
-
-	Hans
-
+-- 
+Best regards,
+Pawel Osciak
