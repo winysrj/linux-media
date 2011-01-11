@@ -1,64 +1,72 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:34933 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751922Ab1APNGy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Jan 2011 08:06:54 -0500
-Message-ID: <4D330984.2010307@infradead.org>
-Date: Sun, 16 Jan 2011 13:06:44 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from mx1.redhat.com ([209.132.183.28]:1377 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753020Ab1AKRGf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Jan 2011 12:06:35 -0500
+Message-ID: <4D2CAA33.9020508@redhat.com>
+Date: Tue, 11 Jan 2011 17:06:27 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PULL] request for 2.6.38-rc1
-References: <alpine.LRH.2.00.1101141542460.6649@pub3.ifh.de>
-In-Reply-To: <alpine.LRH.2.00.1101141542460.6649@pub3.ifh.de>
+To: Pawel Osciak <pawel@osciak.com>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [GIT PATCHES FOR 2.6.38] Videbuf2 framework, NOON010PC30 sensor
+ driver and s5p-fimc updates
+References: <4D21FDC1.7000803@samsung.com> <4D2CA021.5080001@redhat.com> <AANLkTimovx-bhpV-1bRn=KvvH4ZtvAsSmnJB5_bjn6xX@mail.gmail.com>
+In-Reply-To: <AANLkTimovx-bhpV-1bRn=KvvH4ZtvAsSmnJB5_bjn6xX@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 14-01-2011 12:51, Patrick Boettcher escreveu:
+Em 11-01-2011 14:42, Pawel Osciak escreveu:
 > Hi Mauro,
 > 
-> if it is not too late, here is a pull request for some new devices from DiBcom. It would be nice to have it in 2.6.38-rc1.
+> On Tue, Jan 11, 2011 at 10:23, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+>>> Pawel Osciak (8):
+>>>       v4l: Add multi-planar API definitions to the V4L2 API
+>>>       v4l: Add multi-planar ioctl handling code
+>>
+>>>       v4l: Add compat functions for the multi-planar API
+>>>       v4l: fix copy sizes in compat32 for ext controls
+>>
+>> Are you sure that we need to add compat32 stuff for the multi-planar definitions?
+>> Had you test if the compat32 code is actually working? Except if you use things
+>> that have different sizes on 32 and 64 bit architectures, there's no need to add
+>> anything for compat.
+>>
 > 
-> Pull from
+> v4l2_buffer and v4l2_plane contain pointers to buffers and/or arrays
+> of planes. In fact buffer conversion was already there, I only added
+> the new planes field. I believe those additions to the compat code are
+> needed...
+
+Ok.
 > 
-> git://linuxtv.org/pb/media_tree.git staging/for_2.6.38-rc1.dibcom
+>> Anyway, I'll be merging the two compat functions into just one patch, as it will
+>> help to track any regressions there, if ever needed. They are at my temporary
+>> branch, but, if they are not needed, I'll drop when merging upstream.
+>>
+>>>       v4l: v4l2-ioctl: add buffer type conversion for multi-planar-aware ioctls
+>>
+>> NACK.
+>>
+>> We shouldn't be doing those videobuf memcpy operations inside the kernel.
+>> If you want such feature, please implement it on libv4l.
+>>
 > 
-> for
-> 
-> DiBxxxx: Codingstype updates
+> I can see your point. We don't really use it. It was to prevent
+> applications from using two versions of API and thus being
+> overcomplicated. It allowed using old drivers with the new API. If you
+> think it is a bad idea, the patch can just be dropped without
+> affecting anything else. I will fix the documentation if you decide to
+> do so.
 
+Yeah, I prefer to not have such conversions in Kernel. We've made already a lot of 
+efforts to remove V4L1 compat conversion from kernel. It is interesting to add
+it to libv4l, together with other conversions that are already done there.
 
-Not sure if this is by purpose, but you're changing all
-msleep(10) into msleep(20). This sounds very weird for a
-CodingStyle fix:
-
--	msleep(10);
-+	msleep(20);
-
-> DiB0700: add support for several board-layouts
-
-Hmm...
-
-+	if (request_firmware(&state->frontend_firmware, "dib9090.fw", &adap->dev->udev->dev)) {
-
-Where's dib9090.fw firmware is available? The better is to submit a patch to linux-firmware
-with the firmware binary, with some license that allows end-users to use it with your device
-and distros/distro partners to re-distribute it. While here, please add also the other
-dibcom firmwares.
-
-Vendors are free to use their own legal text for it. There are several examples for it
-at:
-
-http://git.kernel.org/?p=linux/kernel/git/dwmw2/linux-firmware.git;a=blob_plain;f=WHENCE;hb=HEAD
-
-
-Btw, there are two alignment errors (one at dib7000p, for some cases, aligned with 4 chars),
-and another at dib8000, where all statements after an if are aligned with 3 tabs plus one space.
-I'm fixing those issues, c/c you at the fix patches.
 
 Cheers,
 Mauro
