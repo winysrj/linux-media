@@ -1,53 +1,103 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3847 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755527Ab1ACTpD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jan 2011 14:45:03 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: David Ellingsworth <david@identd.dyndns.org>
-Subject: Re: [RFCv2 PATCH 07/10] radio-mr800: remove autopm support.
-Date: Mon, 3 Jan 2011 20:44:22 +0100
-Cc: linux-media@vger.kernel.org
-References: <6515cfbdde63364fd12bca1219870f38ff371145.1294078230.git.hverkuil@xs4all.nl> <910fe6472dfab87e56c5fa6245c233ff4f0d7ea9.1294078230.git.hverkuil@xs4all.nl> <AANLkTikzj92f35VmrGTyPSN4yc4v53O3yGtL4ujL-tKu@mail.gmail.com>
-In-Reply-To: <AANLkTikzj92f35VmrGTyPSN4yc4v53O3yGtL4ujL-tKu@mail.gmail.com>
+Return-path: <mchehab@pedra>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:44816 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932378Ab1AKTro convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Jan 2011 14:47:44 -0500
+Received: by qwa26 with SMTP id 26so21352200qwa.19
+        for <linux-media@vger.kernel.org>; Tue, 11 Jan 2011 11:47:44 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201101032044.22187.hverkuil@xs4all.nl>
+In-Reply-To: <AANLkTi=_LHucekW21KeGt3yWMNYHntQ5nVvHUO2EVHAO@mail.gmail.com>
+References: <AANLkTi=_LHucekW21KeGt3yWMNYHntQ5nVvHUO2EVHAO@mail.gmail.com>
+Date: Tue, 11 Jan 2011 20:47:44 +0100
+Message-ID: <AANLkTimDK7kwV3AeZm5+56W3V_yp+nghq67qYP2r4DWq@mail.gmail.com>
+Subject: Re: DVB driver for TerraTec H7 - how do I install them?
+From: Torfinn Ingolfsen <tingox@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Monday, January 03, 2011 20:09:03 David Ellingsworth wrote:
-> From my understanding, auto power management is for automatically
-> suspending and resuming a driver whenever it is idle. Obviously this
-> is a bad for this type of driver as it would turn off the radio
-> whenever it was idle. It is not necessary to remove suspend/resume
-> support in order to drop auto power management from this driver.
+Hi,
 
-You are completely correct. The mr800 conversion was quick and dirty and
-was meant to demonstrate how to add priority support in this driver.
-
-The final version will only remove the autopm, not the suspend/resume.
-
-Regards,
-
-	Hans
-
-> In
-> fact doing so would be a mistake in my opinion. The current
-> suspend/resume cycle ensures the radio if off during suspend, and
-> restores it's last state during resume. These changes would leave the
-> radio in it's current state, consuming power if it were on, while the
-> system is suspended. This is a drastic deviation from the current
-> behavior and would most likely not be appreciated by users that expect
-> the device to go off during suspend and back on after resume. I NACK
-> this change due to the complete removal of suspend/resume support.
-> 
+On Fri, Dec 31, 2010 at 10:45 PM, Torfinn Ingolfsen <tingox@gmail.com> wrote:
+> Ok,
+> I downloaded drivers for the TerraTec H7 from here: http://linux.terratec.de/
+> This file to be exact: http://linux.terratec.de/files/TERRATEC_H7_Linux.tar.gz
+> Which supposedly contains drivers for the H7.
+>
+> I am running Xubuntu 10.04:
+> tingo@kg-htpc:~$ lsb_release -a
+> No LSB modules are available.
+> Distributor ID: Ubuntu
+> Description:    Ubuntu 10.04.1 LTS
+> Release:        10.04
+> Codename:       lucid
+> tingo@kg-htpc:~$ uname -a
+> Linux kg-htpc 2.6.32-27-generic #49-Ubuntu SMP Wed Dec 1 23:52:12 UTC
+> 2010 i686 GNU/Linux
+>
+> I followed this guide[1] to get and install a new v4l-dvb, which worked fine.
+> Then I did 'make distclean' and copied the files from the
+> TERRATEC_H7_Linux.tar.gz file to where I thought they should be, and
+> tried recompiling the v4l-dvb tree.
+> That didn't work, the compilation aborted:
+>  CC [M]  /home/tingo/work/v4l-dvb/v4l/au6610.o
+>  CC [M]  /home/tingo/work/v4l-dvb/v4l/az6007.o
+> In file included from /home/tingo/work/v4l-dvb/v4l/az6007.c:11:
+> /home/tingo/work/v4l-dvb/v4l/mt2063_cfg.h: In function 'tuner_MT2063_Open':
+> /home/tingo/work/v4l-dvb/v4l/mt2063_cfg.h:62: error:
+> 'DVBFE_TUNER_OPEN' undeclared (first use in this function)
+> /home/tingo/work/v4l-dvb/v4l/mt2063_cfg.h:62: error: (Each undeclared
+> identifier is reported only once
+> /home/tingo/work/v4l-dvb/v4l/mt2063_cfg.h:62: error: for each function
+> it appears in.)
+> /home/tingo/work/v4l-dvb/v4l/mt2063_cfg.h: In function
+> 'tuner_MT2063_SoftwareShutdown':
+> /home/tingo/work/v4l-dvb/v4l/mt2063_cfg.h:83: error:
+> 'DVBFE_TUNER_SOFTWARE_SHUTDOWN' undeclared (first use in this
+> function)
+> /home/tingo/work/v4l-dvb/v4l/mt2063_cfg.h: In function
+> 'tuner_MT2063_ClearPowerMaskBits':
+> /home/tingo/work/v4l-dvb/v4l/mt2063_cfg.h:104: error:
+> 'DVBFE_TUNER_CLEAR_POWER_MASKBITS' undeclared (first use in this
+> function)
+> /home/tingo/work/v4l-dvb/v4l/az6007.c: At top level:
+> /home/tingo/work/v4l-dvb/v4l/az6007.c:157: warning: excess elements in
+> struct initializer
+> /home/tingo/work/v4l-dvb/v4l/az6007.c:157: warning: (near
+> initialization for 'az6007_rc_keys[0]')
+> /home/tingo/work/v4l-dvb/v4l/az6007.c:158: warning: excess elements in
+> struct initializer
+> /home/tingo/work/v4l-dvb/v4l/az6007.c:158: warning: (near
+> initialization for 'az6007_rc_keys[1]')
+> /home/tingo/work/v4l-dvb/v4l/az6007.c:535: error:
+> 'USB_PID_AZUREWAVE_6007' undeclared here (not in a function)
+> /home/tingo/work/v4l-dvb/v4l/az6007.c:536: error:
+> 'USB_PID_TERRATEC_H7' undeclared here (not in a function)
+> make[3]: *** [/home/tingo/work/v4l-dvb/v4l/az6007.o] Error 1
+> make[2]: *** [_module_/home/tingo/work/v4l-dvb/v4l] Error 2
+> make[2]: Leaving directory `/usr/src/linux-headers-2.6.32-27-generic'
+> make[1]: *** [default] Error 2
+> make[1]: Leaving directory `/home/tingo/work/v4l-dvb/v4l'
+> make: *** [all] Error 2
+>
+> So obviously I'm doing something wrong.
+> How do I install those drivers for the TerraTec H7?
+>
+> Oh, and best wishes for the new year to everyone!
+>
+> References:
+> 1) http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+> --
 > Regards,
-> 
-> David Ellingsworth
-> 
+> Torfinn Ingolfsen
+> Norway
+>
+
+Nobody has any idea?
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Regards,
+Torfinn Ingolfsen
