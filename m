@@ -1,57 +1,66 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3850 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754468Ab1ACLtr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jan 2011 06:49:47 -0500
-Received: from tschai.localnet (43.80-203-71.nextgentel.com [80.203.71.43])
-	(authenticated bits=0)
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id p03BniMs039448
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 3 Jan 2011 12:49:45 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 2.6.38] BKL: .ioctl to .unlocked_ioctl conversions
-Date: Mon, 3 Jan 2011 12:49:40 +0100
+Return-path: <mchehab@pedra>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35406 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753755Ab1AKMka (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Jan 2011 07:40:30 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 1/2] [media] v4l2-ctrls: Add V4L2_CID_NIGHT_MODE control to support night mode
+Date: Tue, 11 Jan 2011 13:41:19 +0100
+Cc: Roberto Rodriguez Alcala <rralcala@gmail.com>,
+	linux-media@vger.kernel.org, g.liakhovetski@gmx.de
+References: <1294697907-1714-1-git-send-email-rralcala@gmail.com> <1294697907-1714-2-git-send-email-rralcala@gmail.com> <201101102334.36968.hverkuil@xs4all.nl>
+In-Reply-To: <201101102334.36968.hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="us-ascii"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201101031249.40215.hverkuil@xs4all.nl>
+Message-Id: <201101111341.19880.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Tested with the mxb (saa7146-based) driver.
+Hi,
 
-Since nobody has cpia2 hardware I was unable to test that driver.
+On Monday 10 January 2011 23:34:36 Hans Verkuil wrote:
+> On Monday, January 10, 2011 23:18:26 Roberto Rodriguez Alcala wrote:
 
-Both drivers are converted using core-assisted locking.
+[snip]
 
-Regards,
+> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > index 5f6f470..0df8a9f 100644
+> > --- a/include/linux/videodev2.h
+> > +++ b/include/linux/videodev2.h
+> > @@ -1300,6 +1300,8 @@ enum  v4l2_exposure_auto_type {
+> > 
+> >  #define V4L2_CID_IRIS_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+17)
+> >  #define V4L2_CID_IRIS_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+18)
+> > 
+> > +#define V4L2_CID_NIGHT_MODE                    
+> > (V4L2_CID_CAMERA_CLASS_BASE+19) +
+> > 
+> >  /* FM Modulator class control IDs */
+> >  #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
+> >  #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
+> 
+> This control also needs to be documented in
+> Documentation/DocBook/v4l/controls.xml.
+> 
+> However, reading up a bit on this I wonder whether this shouldn't be a
+> 'Camera Mode' menu control since there can be a lot of different modes:
+> 
+> http://www.digital-photography-school.com/digital-camera-modes
+> 
+> Also, how does this relate to controls like EXPOSURE_AUTO? Will selecting
+> manual exposure automatically turn off Night Mode? Or the inverse, will
+> selecting Night Mode automatically turn on autoexposure?
 
-	Hans
-
-The following changes since commit 187134a5875df20356f4dca075db29f294115a47:
-  David Henningsson (1):
-        [media] DVB: IR support for TechnoTrend CT-3650
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/hverkuil/media_tree.git bkl
-
-Hans Verkuil (2):
-      saa7146: Convert from .ioctl to .unlocked_ioctl
-      cpia2: convert .ioctl to .unlocked_ioctl
-
- drivers/media/common/saa7146_core.c    |    2 +-
- drivers/media/common/saa7146_fops.c    |    8 +--
- drivers/media/common/saa7146_vbi.c     |    2 +-
- drivers/media/common/saa7146_video.c   |   20 +------
- drivers/media/video/cpia2/cpia2.h      |    2 +-
- drivers/media/video/cpia2/cpia2_core.c |   65 +++++---------------
- drivers/media/video/cpia2/cpia2_v4l.c  |  108 ++++++++++---------------------
- include/media/saa7146.h                |    2 +-
- 8 files changed, 57 insertions(+), 152 deletions(-)
+I'm in favor of a Camera Mode menu control, but we need to define the 
+semantics of modes properly, and especially how they relate to other controls. 
+Modes tend to be high-level controls that are usually implemented in software, 
+so they will definitely have an influence on many low-level controls.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Regards,
+
+Laurent Pinchart
