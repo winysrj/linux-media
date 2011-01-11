@@ -1,96 +1,53 @@
-Return-path: <mchehab@gaivota>
-Received: from moutng.kundenserver.de ([212.227.17.10]:56915 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751192Ab1ABULV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Jan 2011 15:11:21 -0500
-Date: Sun, 2 Jan 2011 21:11:18 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Figo.zhang" <figo1802@gmail.com>
-cc: linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>, AChew@nvidia.com
-Subject: Re: [PATCH]v4l: list entries no need to check
-In-Reply-To: <1289996048.2730.2.camel@localhost.localdomain>
-Message-ID: <Pine.LNX.4.64.1101022109500.858@axis700.grange>
-References: <1289996048.2730.2.camel@localhost.localdomain>
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:32203 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752441Ab1AKT56 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Jan 2011 14:57:58 -0500
+Message-ID: <4D2CD262.2070601@redhat.com>
+Date: Tue, 11 Jan 2011 19:57:54 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [GIT PATCHES FOR 2.6.38] Videbuf2 framework, NOON010PC30 sensor
+ driver and s5p-fimc updates
+References: <4D21FDC1.7000803@samsung.com>
+In-Reply-To: <4D21FDC1.7000803@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Wed, 17 Nov 2010, Figo.zhang wrote:
+Em 03-01-2011 14:48, Sylwester Nawrocki escreveu:
+> Hi Mauro,
+> 
+> Please pull from our tree for the following items:
+> 
+> 4. s5p-fimc driver conversion to Videbuf2 and multiplane ext. and various
+>    driver updates and bugfixes,
+> 5. Siliconfile NOON010PC30 sensor subdev driver,
 
-> 
-> list entries are not need to be inited, so it no need
-> for checking. 
-> 
-> Reported-by: Andrew Chew <AChew@nvidia.com>
-> Signed-off-by: Figo.zhang <figo1802@gmail.com>
-> ---
->  drivers/media/video/mx1_camera.c           |    3 ---
->  drivers/media/video/pxa_camera.c           |    3 ---
->  drivers/media/video/sh_mobile_ceu_camera.c |    3 ---
->  3 files changed, 0 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/media/video/mx1_camera.c b/drivers/media/video/mx1_camera.c
-> index 5c17f9e..cb2dd24 100644
-> --- a/drivers/media/video/mx1_camera.c
-> +++ b/drivers/media/video/mx1_camera.c
-> @@ -182,9 +182,6 @@ static int mx1_videobuf_prepare(struct videobuf_queue *vq,
->  	dev_dbg(icd->dev.parent, "%s (vb=0x%p) 0x%08lx %d\n", __func__,
->  		vb, vb->baddr, vb->bsize);
->  
-> -	/* Added list head initialization on alloc */
-> -	WARN_ON(!list_empty(&vb->queue));
-> -
->  	BUG_ON(NULL == icd->current_fmt);
->  
->  	/*
+Those patches seem ok. I have just a couple comments about them. See bellow.
 
-NAK. See comment in mx1_camera_reqbufs() above the call to 
-INIT_LIST_HEAD(). If we decide to remove that debugging, we'd have to 
-remove list initialisations there and in all list_del_init() calls.
+After having them solved, please send the patches against my vb2 test tree:
 
-Thanks
-Guennadi
+	git://linuxtv.org/mchehab/experimental.git vb2_test
 
-> diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
-> index 9de7d59..421de10 100644
-> --- a/drivers/media/video/pxa_camera.c
-> +++ b/drivers/media/video/pxa_camera.c
-> @@ -444,9 +444,6 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
->  	dev_dbg(dev, "%s (vb=0x%p) 0x%08lx %d\n", __func__,
->  		vb, vb->baddr, vb->bsize);
->  
-> -	/* Added list head initialization on alloc */
-> -	WARN_ON(!list_empty(&vb->queue));
-> -
->  #ifdef DEBUG
->  	/*
->  	 * This can be useful if you want to see if we actually fill
-> diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-> index 2b24bd0..b2bef3f 100644
-> --- a/drivers/media/video/sh_mobile_ceu_camera.c
-> +++ b/drivers/media/video/sh_mobile_ceu_camera.c
-> @@ -354,9 +354,6 @@ static int sh_mobile_ceu_videobuf_prepare(struct videobuf_queue *vq,
->  	dev_dbg(icd->dev.parent, "%s (vb=0x%p) 0x%08lx %zd\n", __func__,
->  		vb, vb->baddr, vb->bsize);
->  
-> -	/* Added list head initialization on alloc */
-> -	WARN_ON(!list_empty(&vb->queue));
-> -
->  #ifdef DEBUG
->  	/*
->  	 * This can be useful if you want to see if we actually fill
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+I've tested already vb2 with vivi. I'll be testing them now with saa7134.
+After testing it, I'll give you a feedback about vb2 and, if ok, I'll merge
+both multiplane and vb2 on my main tree.
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+> Hyunwoong Kim (5):
+>       [media] s5p-fimc: fix the value of YUV422 1-plane formats
+
+I don't have an arm cross-compilation handy, but... that means that, before this 
+patch, compilation were broken? If so, please, don't do that, as it breaks bisect. 
+Instead, merge the patch withthe one that broke compilation.
+
+> Pawel Osciak (8):
+>       v4l: Add multi-planar API definitions to the V4L2 API
+
+Where are the corresponding DocBook changes?
+
+Thanks,
+Mauro
