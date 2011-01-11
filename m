@@ -1,83 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:48156 "HELO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753309Ab1ARCaV (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:60260 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755405Ab1AKMQc convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jan 2011 21:30:21 -0500
-From: Qing Xu <qingx@marvell.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Mon, 17 Jan 2011 18:30:09 -0800
-Subject: RE: soc-camera s_fmt question?
-Message-ID: <7BAC95F5A7E67643AAFB2C31BEE662D014040BF2AA@SC-VEXCH2.marvell.com>
-References: <AANLkTimucMmO8Vb_y4xnhehQt+mamNMmXyY_qfrVOSo7@mail.gmail.com>
- <7BAC95F5A7E67643AAFB2C31BEE662D014040BF23F@SC-VEXCH2.marvell.com>
- <Pine.LNX.4.64.1101171840360.16051@axis700.grange>
- <201101171854.27768.hverkuil@xs4all.nl>
-In-Reply-To: <201101171854.27768.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
+	Tue, 11 Jan 2011 07:16:32 -0500
 MIME-Version: 1.0
+In-Reply-To: <20110111112434.GE2385@legolas.emea.dhcp.ti.com>
+References: <1294745487-29138-1-git-send-email-manjunatha_halli@ti.com>
+ <1294745487-29138-2-git-send-email-manjunatha_halli@ti.com>
+ <1294745487-29138-3-git-send-email-manjunatha_halli@ti.com>
+ <1294745487-29138-4-git-send-email-manjunatha_halli@ti.com> <20110111112434.GE2385@legolas.emea.dhcp.ti.com>
+From: halli manjunatha <manjunatha_halli@ti.com>
+Date: Tue, 11 Jan 2011 17:46:10 +0530
+Message-ID: <AANLkTimbqsDJ1KNSwzJ_RTQ3ON=-XUj0CZpZHAkeH9dP@mail.gmail.com>
+Subject: Re: [RFC V10 3/7] drivers:media:radio: wl128x: FM Driver Common sources
+To: balbi@ti.com
+Cc: mchehab@infradead.org, hverkuil@xs4all.nl,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-SGksDQoNClRoYW5rcyBmb3IgeW91ciBhbnN3ZXIhIFNvLCB3ZSB3aWxsIGJlIHdhaXRpbmcgYW5k
-IGtlZXBpbmcgc3luYyB3aXRoIGxhdGVzdCBzb2MtY2FtZXJhICsgdmlkZW9idWYyIGZyYW1ld29y
-ay4NCg0KLVFpbmcNCg0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZyb206IEhhbnMgVmVy
-a3VpbCBbbWFpbHRvOmh2ZXJrdWlsQHhzNGFsbC5ubF0NClNlbnQ6IDIwMTHE6jHUwjE4yNUgMTo1
-NA0KVG86IEd1ZW5uYWRpIExpYWtob3ZldHNraQ0KQ2M6IFFpbmcgWHU7IExhdXJlbnQgUGluY2hh
-cnQ7IGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZw0KU3ViamVjdDogUmU6IHNvYy1jYW1lcmEg
-c19mbXQgcXVlc3Rpb24/DQoNCk9uIE1vbmRheSwgSmFudWFyeSAxNywgMjAxMSAxODo0MzowNiBH
-dWVubmFkaSBMaWFraG92ZXRza2kgd3JvdGU6DQo+IE9uIE1vbiwgMTcgSmFuIDIwMTEsIFFpbmcg
-WHUgd3JvdGU6DQo+DQo+ID4gSGksDQo+ID4NCj4gPiBXZSBhcmUgbm93IG5lYXJseSBjb21wbGV0
-ZSBwb3J0aW5nIG91ciBjYW1lcmEgZHJpdmVyIHRvIGFsaWduIHdpdGgNCj4gPiBzb2MtY2FtZXJh
-IGZyYW1ld29yaywgaG93ZXZlciwgd2UgZW5jb3VudGVyIGEgcHJvYmxlbSB3aGVuIGl0IHdvcmtz
-IHdpdGgNCj4gPiBvdXIgYXBwbGljYXRpb24gZHVyaW5nIHN3aXRjaCBmb3JtYXQgZnJvbSBwcmV2
-aWV3IHRvIHN0aWxsIGNhcHR1cmUsDQo+ID4gYXBwbGljYXRpb24ncyBtYWluIGNhbGxpbmcgc2Vx
-dWVuY2UgaXMgYXMgZm9sbG93Og0KPiA+IDEpIHNfZm10IC8qIHByZXZpZXcgQCBZVVYsIFZHQSAq
-Lw0KPiA+IDIpIHJlcXVlc3QgYnVmZmVyIChidWZmZXIgY291bnQgPSA2KQ0KPiA+IDIpIHF1ZXVl
-IGJ1ZmZlcg0KPiA+IDMpIHN0cmVhbSBvbg0KPiA+IDQpIHEtYnVmLCBkcS1idWYuLi4NCj4gPiA1
-KSBzdHJlYW0gb2ZmDQo+ID4NCj4gPiA2KSBzX2ZtdCAvKiBzdGlsbCBjYXB0dXJlIEAganBlZywg
-MjU5MngxOTQ0Ki8NCj4gPiA3KSByZXF1ZXN0IGJ1ZmZlciAoYnVmZmVyIGNvdW50ID0gMykNCj4g
-PiA4KSBzYW1lIGFzIDMpLT41KS4uLg0KPiA+DQo+ID4gVGhlIHBvaW50IGlzIGluIHNvY19jYW1l
-cmFfc19mbXRfdmlkX2NhcCgpIHsNCj4gPiAgICAgICAgIGlmIChpY2QtPnZiX3ZpZHEuYnVmc1sw
-XSkgew0KPiA+ICAgICAgICAgICAgICAgICBkZXZfZXJyKCZpY2QtPmRldiwgIlNfRk1UIGRlbmll
-ZDogcXVldWUgaW5pdGlhbGlzZWRcbiIpOw0KPiA+ICAgICAgICAgICAgICAgICByZXQgPSAtRUJV
-U1k7DQo+ID4gICAgICAgICAgICAgICAgIGdvdG8gdW5sb2NrOw0KPiA+ICAgICAgICAgfQ0KPiA+
-IH0NCj4gPiBXZSBkaWRuJ3QgZmluZCB2Yl92aWRxLmJ1ZnNbMF0gYmUgZnJlZSwgKGl0IGlzIGZy
-ZWVkIGluDQo+ID4gdmlkZW9idWZfbW1hcF9mcmVlKCksIGFuZCBpbiBfX3ZpZGVvYnVmX21tYXBf
-c2V0dXAsIGJ1dCBubyBvbmUgY2FsbHMNCj4gPiB2aWRlb2J1Zl9tbWFwX2ZyZWUoKSwgYW5kIGlu
-IF9fdmlkZW9idWZfbW1hcF9zZXR1cCBpdCBpcyBmcmVlZCBhdCBmaXJzdA0KPiA+IGFuZCB0aGVu
-IGFsbG9jYXRlZCBzZXF1ZW50aWFsbHkpLCBzbyB3ZSBhbHdheXMgZmFpbCBhdCBjYWxsaW5nIHNf
-Zm10Lg0KPiA+IE15IGlkZWEgaXMgdG8gaW1wbGVtZW50IHNvY19jYW1lcmFfcmVxYnVmcyhidWZm
-ZXIgY291bnQgPSAwKSwgdG8gcHJvdmlkZQ0KPiA+IGFwcGxpY2F0aW9uIG9wcG9ydHVuaXR5IHRv
-IGZyZWUgdGhpcyBidWZmZXIgbm9kZSwgcmVmZXIgdG8gdjRsMiBzcGVjLA0KPiA+IGh0dHA6Ly9s
-aW51eHR2Lm9yZy9kb3dubG9hZHMvdjRsLWR2Yi1hcGlzL3ZpZGlvYy1yZXFidWZzLmh0bWwNCj4g
-PiAiQSBjb3VudCB2YWx1ZSBvZiB6ZXJvIGZyZWVzIGFsbCBidWZmZXJzLCBhZnRlciBhYm9ydGlu
-ZyBvciBmaW5pc2hpbmcNCj4gPiBhbnkgRE1BIGluIHByb2dyZXNzLCBhbiBpbXBsaWNpdCBWSURJ
-T0NfU1RSRUFNT0ZGLiINCj4NCj4gQ3VycmVudGx5IGJ1ZmZlcnMgYXJlIGZyZWVkIGluIHNvYy1j
-YW1lcmEgdXBvbiBjbG9zZSgpLiBZZXMsIEkga25vdyBhYm91dA0KPiB0aGF0IGNsYXVzZSBpbiB0
-aGUgQVBJIHNwZWMsIGFuZCBJIGtub3csIHRoYXQgaXQgaXMgdW5pbXBsZW1lbnRlZCBpbg0KPiBz
-b2MtY2FtZXJhLiBEbyB5b3UgaGF2ZSBhIHJlYXNvbiB0byBwcmVmZXIgdGhhdCBvdmVyIGNsb3Nl
-KClpbmcgYW5kDQo+IHJlLW9wZW4oKWluZyB0aGUgZGV2aWNlPw0KDQpJIHRoaW5rIGl0IHdvdWxk
-IGJlIGEgZ29vZCBpZGVhIHRvIGxvb2sgaW50byBjb252ZXJ0aW5nIHNvY19jYW1lcmEgdG8gdGhl
-DQpuZXcgdmlkZW9idWYyIGZyYW1ld29yayB0aGF0IHdhcyBqdXN0IG1lcmdlZC4gSXQgaGFzIG11
-Y2ggYmV0dGVyIHNlbWFudGljcw0Kd2hlbiBpdCBjb21lcyB0byBhbGxvY2F0aW5nIGFuZCBmcmVl
-aW5nIHF1ZXVlcy4gWW91IGNhbiBhY3R1YWxseSB1bmRlcnN0YW5kDQppdCwgc29tZXRoaW5nIHRo
-YXQgeW91IGNhbid0IHNheSBmb3IgdGhlIG9sZCB2aWRlb2J1Zi4gQW5kIHZpZGVvYnVmMiBkb2Vz
-DQp0aGUgcmlnaHQgdGhpbmcgd2l0aCBSRVFCVUZTKDApIGFzIHdlbGwuDQoNClJlZ2FyZHMsDQoN
-CiAgICAgICAgSGFucw0KDQo+DQo+IFRoYW5rcw0KPiBHdWVubmFkaQ0KPg0KPiA+DQo+ID4gV2hh
-dCBkbyB5b3UgdGhpbms/DQo+ID4NCj4gPiBBbnkgaWRlYXMgd2lsbCBiZSBhcHByZWNpYXRlZCEN
-Cj4gPiBUaGFua3MhDQo+ID4gUWluZyBYdQ0KPiA+DQo+ID4gRW1haWw6IHFpbmd4QG1hcnZlbGwu
-Y29tDQo+ID4gQXBwbGljYXRpb24gUHJvY2Vzc29yIFN5c3RlbXMgRW5naW5lZXJpbmcsDQo+ID4g
-TWFydmVsbCBUZWNobm9sb2d5IEdyb3VwIEx0ZC4NCj4gPg0KPg0KPiAtLS0NCj4gR3Vlbm5hZGkg
-TGlha2hvdmV0c2tpLCBQaC5ELg0KPiBGcmVlbGFuY2UgT3Blbi1Tb3VyY2UgU29mdHdhcmUgRGV2
-ZWxvcGVyDQo+IGh0dHA6Ly93d3cub3Blbi10ZWNobm9sb2d5LmRlLw0KPiAtLQ0KPiBUbyB1bnN1
-YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgt
-bWVkaWEiIGluDQo+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJu
-ZWwub3JnDQo+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcv
-bWFqb3Jkb21vLWluZm8uaHRtbA0KPg0KDQotLQ0KSGFucyBWZXJrdWlsIC0gdmlkZW80bGludXgg
-ZGV2ZWxvcGVyIC0gc3BvbnNvcmVkIGJ5IENpc2NvDQo=
+an 11, 2011 at 4:54 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
+>
+> On Tue, Jan 11, 2011 at 06:31:23AM -0500, manjunatha_halli@ti.com wrote:
+>> From: Manjunatha Halli <manjunatha_halli@ti.com>
+>>
+>> These are the sources for the common interfaces required by the
+>> FM V4L2 driver for TI WL127x and WL128x chips.
+>>
+>> These implement the FM channel-8 protocol communication with the
+>> chip. This makes use of the Shared Transport as its transport.
+>>
+>> Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
+>> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+>
+> looks like this is implementing a "proprietary" (by that I mean: for
+> this driver only) IRQ API. Why aren't you using GENIRQ with threaded
+> IRQs support ?
+>
+> Core IRQ Subsystem would handle a lot of stuff for you.
+
+There is no concept of Interrupts/IRQ as such here, Hence no question of using
+GENIRQ.
+
+The FM device WL128x is interfaced via the UART,
+(Internally inside the WL128x chip the BT-core on the chip
+communicates with FM chip via i2C, and would have dedicated interrupt
+lines may be...)
+
+So, Whenever we refer to interrupt or IRQ or handlers in the driver,
+It pretty much means a receive callback for the UART frame which
+constitutes the FM interrupt event.
+i.e FM interrupt would have occurred, If I receive a frame over UART
+which starts with 0x08 as 1st byte and has 0xFF as its 3rd byte.
+
+I hope this clarifies the non-usage of GENIRQ with threaded support.
+
+> --
+> balbi
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
+
+-- 
+Regards
+Halli
