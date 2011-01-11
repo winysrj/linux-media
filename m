@@ -1,271 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from comal.ext.ti.com ([198.47.26.152]:51512 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753074Ab1AQOOI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jan 2011 09:14:08 -0500
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>,
-	LAK <linux-arm-kernel@lists.arm.linux.org.uk>,
-	Kevin Hilman <khilman@deeprootsystems.com>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH v15 1/3] davinci vpbe: platform specific additions
-Date: Mon, 17 Jan 2011 19:43:47 +0530
-Message-Id: <1295273627-14630-1-git-send-email-manjunath.hadli@ti.com>
+Received: from casper.infradead.org ([85.118.1.10]:44760 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753837Ab1AKOq0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Jan 2011 09:46:26 -0500
+Message-ID: <4D2C895B.5090606@infradead.org>
+Date: Tue, 11 Jan 2011 14:46:19 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Tobias Lorenz <tobias.lorenz@gmx.net>
+CC: linux-media@vger.kernel.org,
+	Joonyoung Shim <jy0922.shim@samsung.com>
+Subject: Re: [PULL] radio-si470x
+References: <201101091544.06031.tobias.lorenz@gmx.net>
+In-Reply-To: <201101091544.06031.tobias.lorenz@gmx.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch implements the overall device creation for the Video
-display driver, initializes the platform variables and implements
-platform functions including setting video clocks.
+Hi Tobias,
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- arch/arm/mach-davinci/dm644x.c              |  169 +++++++++++++++++++++++++--
- arch/arm/mach-davinci/include/mach/dm644x.h |    5 +
- 2 files changed, 163 insertions(+), 11 deletions(-)
+Em 09-01-2011 12:44, Tobias Lorenz escreveu:
+> Hi Mauro,
+> 
+> Please pull from http://linuxtv.org/hg/~tlorenz/v4l-dvb
+> 
+> for the following 5 changesets:
+> 
+> 01/05: The de-emphasis should be setted if requested by module parameter
+> http://linuxtv.org/hg/~tlorenz/v4l-dvb/rev/b29f01f1b11d
+> 
+> 02/05: The si470x i2c and usb driver support the RDS, so this ifdef statement
+> http://linuxtv.org/hg/~tlorenz/v4l-dvb/rev/74bf5826ae4e
+> 
+> 03/05: We should go to err_video instead of err_all if this error is occured
+> http://linuxtv.org/hg/~tlorenz/v4l-dvb/rev/7ea10526e134
+> 
+> 04/05: V4L/DVB: radio-si470x: remove the BKL lock used internally at the driver
+> http://linuxtv.org/hg/~tlorenz/v4l-dvb/rev/9ddfe7347b9a
+> 
+> 05/05: V4L/DVB: radio-si470x: use unlocked ioctl
+> http://linuxtv.org/hg/~tlorenz/v4l-dvb/rev/87712135ac8d
 
-diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
-index 9a2376b..45a89a8 100644
---- a/arch/arm/mach-davinci/dm644x.c
-+++ b/arch/arm/mach-davinci/dm644x.c
-@@ -586,12 +586,14 @@ static struct platform_device dm644x_asp_device = {
- 	.resource	= dm644x_asp_resources,
- };
- 
-+#define DM644X_VPSS_REG_BASE		0x01c73400
-+
- static struct resource dm644x_vpss_resources[] = {
- 	{
- 		/* VPSS Base address */
- 		.name		= "vpss",
--		.start          = 0x01c73400,
--		.end            = 0x01c73400 + 0xff,
-+		.start          = DM644X_VPSS_REG_BASE,
-+		.end            = DM644X_VPSS_REG_BASE + 0xff,
- 		.flags          = IORESOURCE_MEM,
- 	},
- };
-@@ -618,6 +620,7 @@ static struct resource vpfe_resources[] = {
- };
- 
- static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
-+
- static struct resource dm644x_ccdc_resource[] = {
- 	/* CCDC Base address */
- 	{
-@@ -654,6 +657,137 @@ void dm644x_set_vpfe_config(struct vpfe_config *cfg)
- 	vpfe_capture_dev.dev.platform_data = cfg;
- }
- 
-+#define DM644X_OSD_REG_BASE		0x01C72600
-+
-+static struct resource dm644x_osd_resources[] = {
-+	{
-+		.start  = DM644X_OSD_REG_BASE,
-+		.end    = DM644X_OSD_REG_BASE + 0x1ff,
-+		.flags  = IORESOURCE_MEM,
-+	},
-+};
-+
-+static u64 dm644x_osd_dma_mask = DMA_BIT_MASK(32);
-+
-+static struct osd_platform_data osd_data = {
-+	.vpbe_type     = DM644X_VPBE,
-+};
-+
-+static struct platform_device dm644x_osd_dev = {
-+	.name           = VPBE_OSD_SUBDEV_NAME,
-+	.id             = -1,
-+	.num_resources  = ARRAY_SIZE(dm644x_osd_resources),
-+	.resource       = dm644x_osd_resources,
-+	.dev = {
-+		.dma_mask               = &dm644x_osd_dma_mask,
-+		.coherent_dma_mask      = DMA_BIT_MASK(32),
-+		.platform_data          = &osd_data,
-+	},
-+};
-+
-+#define DM644X_VENC_REG_BASE		0x01C72400
-+
-+static struct resource dm644x_venc_resources[] = {
-+	/* venc registers io space */
-+	{
-+		.start  = DM644X_VENC_REG_BASE,
-+		.end    = DM644X_VENC_REG_BASE + 0x17f,
-+		.flags  = IORESOURCE_MEM,
-+	},
-+};
-+
-+static u64 dm644x_venc_dma_mask = DMA_BIT_MASK(32);
-+
-+static void __iomem *vpss_clkctl_reg;
-+
-+static int dm644x_venc_setup_clock(enum vpbe_enc_timings_type type, __u64 mode)
-+{
-+	int ret = 0;
-+
-+	switch (type) {
-+	case VPBE_ENC_STD:
-+		writel(0x18, vpss_clkctl_reg);
-+		break;
-+	case VPBE_ENC_DV_PRESET:
-+		switch ((unsigned int)mode) {
-+		case V4L2_DV_480P59_94:
-+		case V4L2_DV_576P50:
-+			writel(0x19, vpss_clkctl_reg);
-+			break;
-+		case V4L2_DV_720P60:
-+		case V4L2_DV_1080I60:
-+		case V4L2_DV_1080P30:
-+			/*
-+			 * For HD, use external clock source since
-+			 * HD requires higher clock rate
-+			 */
-+			writel(0xa, vpss_clkctl_reg);
-+			break;
-+		default:
-+			ret  = -EINVAL;
-+			break;
-+		}
-+		break;
-+	default:
-+		ret  = -EINVAL;
-+	}
-+	return ret;
-+}
-+
-+static u64 vpbe_display_dma_mask = DMA_BIT_MASK(32);
-+
-+static struct resource dm644x_v4l2_disp_resources[] = {
-+	{
-+		.start  = IRQ_VENCINT,
-+		.end    = IRQ_VENCINT,
-+		.flags  = IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct platform_device vpbe_v4l2_display = {
-+	.name           = "vpbe-v4l2",
-+	.id             = -1,
-+	.num_resources  = ARRAY_SIZE(dm644x_v4l2_disp_resources),
-+	.resource       = dm644x_v4l2_disp_resources,
-+	.dev = {
-+		.dma_mask               = &vpbe_display_dma_mask,
-+		.coherent_dma_mask      = DMA_BIT_MASK(32),
-+	},
-+};
-+
-+struct venc_platform_data dm644x_venc_pdata = {
-+	.venc_type	= DM644X_VPBE,
-+	.setup_clock	= dm644x_venc_setup_clock,
-+};
-+
-+static struct platform_device dm644x_venc_dev = {
-+	.name           = VPBE_VENC_SUBDEV_NAME,
-+	.id             = -1,
-+	.num_resources  = ARRAY_SIZE(dm644x_venc_resources),
-+	.resource       = dm644x_venc_resources,
-+	.dev = {
-+		.dma_mask               = &dm644x_venc_dma_mask,
-+		.coherent_dma_mask      = DMA_BIT_MASK(32),
-+		.platform_data          = &dm644x_venc_pdata,
-+	},
-+};
-+
-+static u64 dm644x_vpbe_dma_mask = DMA_BIT_MASK(32);
-+
-+static struct platform_device dm644x_vpbe_dev = {
-+	.name           = "vpbe_controller",
-+	.id             = -1,
-+	.dev = {
-+		.dma_mask               = &dm644x_vpbe_dma_mask,
-+		.coherent_dma_mask      = DMA_BIT_MASK(32),
-+	},
-+};
-+
-+void dm644x_set_vpbe_display_config(struct vpbe_display_config *cfg)
-+{
-+	dm644x_vpbe_dev.dev.platform_data = cfg;
-+}
-+
- /*----------------------------------------------------------------------*/
- 
- static struct map_desc dm644x_io_desc[] = {
-@@ -781,25 +915,38 @@ void __init dm644x_init(void)
- 	davinci_common_init(&davinci_soc_info_dm644x);
- }
- 
-+static struct platform_device *dm644x_video_devices[] __initdata = {
-+	&dm644x_vpss_device,
-+	&dm644x_ccdc_dev,
-+	&vpfe_capture_dev,
-+	&dm644x_osd_dev,
-+	&dm644x_venc_dev,
-+	&dm644x_vpbe_dev,
-+	&vpbe_v4l2_display,
-+};
-+
-+static int __init dm644x_init_video(void)
-+{
-+	/* Add ccdc clock aliases */
-+	clk_add_alias("master", dm644x_ccdc_dev.name, "vpss_master", NULL);
-+	clk_add_alias("slave", dm644x_ccdc_dev.name, "vpss_slave", NULL);
-+	vpss_clkctl_reg = DAVINCI_SYSMODULE_VIRT(0x44);
-+	platform_add_devices(dm644x_video_devices,
-+				ARRAY_SIZE(dm644x_video_devices));
-+	return 0;
-+}
-+
- static int __init dm644x_init_devices(void)
- {
- 	if (!cpu_is_davinci_dm644x())
- 		return 0;
- 
--	/* Add ccdc clock aliases */
--	clk_add_alias("master", dm644x_ccdc_dev.name, "vpss_master", NULL);
--	clk_add_alias("slave", dm644x_ccdc_dev.name, "vpss_slave", NULL);
- 	platform_device_register(&dm644x_edma_device);
--
- 	platform_device_register(&dm644x_mdio_device);
- 	platform_device_register(&dm644x_emac_device);
- 	clk_add_alias(NULL, dev_name(&dm644x_mdio_device.dev),
- 		      NULL, &dm644x_emac_device.dev);
--
--	platform_device_register(&dm644x_vpss_device);
--	platform_device_register(&dm644x_ccdc_dev);
--	platform_device_register(&vpfe_capture_dev);
--
-+	dm644x_init_video();
- 	return 0;
- }
- postcore_initcall(dm644x_init_devices);
-diff --git a/arch/arm/mach-davinci/include/mach/dm644x.h b/arch/arm/mach-davinci/include/mach/dm644x.h
-index 5a1b26d..5134da0 100644
---- a/arch/arm/mach-davinci/include/mach/dm644x.h
-+++ b/arch/arm/mach-davinci/include/mach/dm644x.h
-@@ -26,6 +26,10 @@
- #include <mach/hardware.h>
- #include <mach/asp.h>
- #include <media/davinci/vpfe_capture.h>
-+#include <media/davinci/vpbe_types.h>
-+#include <media/davinci/vpbe.h>
-+#include <media/davinci/vpss.h>
-+#include <media/davinci/vpbe_osd.h>
- 
- #define DM644X_EMAC_BASE		(0x01C80000)
- #define DM644X_EMAC_MDIO_BASE		(DM644X_EMAC_BASE + 0x4000)
-@@ -43,5 +47,6 @@
- void __init dm644x_init(void);
- void __init dm644x_init_asp(struct snd_platform_data *pdata);
- void dm644x_set_vpfe_config(struct vpfe_config *cfg);
-+void dm644x_set_vpbe_display_config(struct vpbe_display_config *cfg);
- 
- #endif /* __ASM_ARCH_DM644X_H */
--- 
-1.6.2.4
+Most of the above patches are already on my tree. The only two that applied were
+patches 01 and 02 (and the second with a conflict, and an error on it, that I fixed).
+The other patches seemed to be already applied.
 
+The mercurial tree is outdated and nobody is maintaining it anymore.
+I don't care if you still want to use it to send me patches via mercurial, as I
+have a script to handle things for it, but, in this case, you will need to manually
+backport the upstream changes before sending me a pull request.
+
+The better would be if you could migrate your development tree to git.
+
+Thanks!
+Mauro
