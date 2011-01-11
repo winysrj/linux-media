@@ -1,49 +1,66 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:45285 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751388Ab1ADQ7D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Jan 2011 11:59:03 -0500
+Return-path: <mchehab@pedra>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44771 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932075Ab1AKOaO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Jan 2011 09:30:14 -0500
+Received: from lancelot.localnet (unknown [91.178.71.55])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 98F2735B4B
+	for <linux-media@vger.kernel.org>; Tue, 11 Jan 2011 14:30:13 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PATCHES FOR 2.6.38] Make the UVC API public
+Date: Tue, 11 Jan 2011 15:31:04 +0100
 MIME-Version: 1.0
-In-Reply-To: <C832F8F5D375BD43BFA11E82E0FE9FE00829C13EB2@EXDCVYMBSTM005.EQ1STM.local>
-References: <cover.1292443200.git.m.nazarewicz@samsung.com>
-	<AANLkTim8_=0+-zM5z4j0gBaw3PF3zgpXQNetEn-CfUGb@mail.gmail.com>
-	<20101223100642.GD3636@n2100.arm.linux.org.uk>
-	<C832F8F5D375BD43BFA11E82E0FE9FE00829C13EB2@EXDCVYMBSTM005.EQ1STM.local>
-Date: Tue, 4 Jan 2011 17:59:01 +0100
-Message-ID: <AANLkTim38-vyKzKg8UDzffX2jWAJrgQNJZd=rd7gbpCc@mail.gmail.com>
-Subject: Re: [PATCHv8 00/12] Contiguous Memory Allocator
-From: =?UTF-8?Q?Micha=C5=82_Nazarewicz?= <mina86@mina86.com>
-To: Johan MOSSBERG <johan.xx.mossberg@stericsson.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Kyungmin Park <kmpark@infradead.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201101111531.05674.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-> Russell King wrote:
->> Has anyone addressed my issue with it that this is wide-open for
->> abuse by allocating large chunks of memory, and then remapping
->> them in some way with different attributes, thereby violating the
->> ARM architecture specification?
+Hi Mauro,
 
-2011/1/4 Johan MOSSBERG <johan.xx.mossberg@stericsson.com>:
-> Where in the specification (preferably ARMv7) can I find
-> information about this? Is the problem that it is simply
-> forbidden to map an address multiple times with different cache
-> setting and if this is done the hardware might start failing? Or
-> is the problem that having an address mapped cached means that
-> speculative pre-fetch can read it into the cache at any time,
-> possibly causing problems if an un-cached mapping exists?
+These patches move the uvcvideo.h header file from drivers/media/video/uvc
+to include/linux, making the UVC API public.
 
-IIRC both apply.
+Martin Rubli has committed support for the public API to libwebcam, so
+userspace support is up to date.
+
+The following changes since commit 0a97a683049d83deaf636d18316358065417d87b:
+
+  [media] cpia2: convert .ioctl to .unlocked_ioctl (2011-01-06 11:34:41 -0200)
+
+are available in the git repository at:
+  git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-next
+
+Laurent Pinchart (4):
+      uvcvideo: Deprecate UVCIOC_CTRL_{ADD,MAP_OLD,GET,SET}
+      uvcvideo: Rename UVC_CONTROL_* flags to UVC_CTRL_FLAG_*
+      uvcvideo: Include linux/types.h in uvcvideo.h
+      uvcvideo: Move uvcvideo.h to include/linux
+
+Martin Rubli (2):
+      uvcvideo: Add UVCIOC_CTRL_QUERY ioctl
+      uvcvideo: Add driver documentation
+
+ Documentation/feature-removal-schedule.txt         |   23 ++
+ Documentation/ioctl/ioctl-number.txt               |    2 +-
+ Documentation/video4linux/uvcvideo.txt             |  239 ++++++++++++++
+ drivers/media/video/uvc/uvc_ctrl.c                 |  334 ++++++++++++--------
+ drivers/media/video/uvc/uvc_driver.c               |    3 +-
+ drivers/media/video/uvc/uvc_isight.c               |    3 +-
+ drivers/media/video/uvc/uvc_queue.c                |    3 +-
+ drivers/media/video/uvc/uvc_status.c               |    3 +-
+ drivers/media/video/uvc/uvc_v4l2.c                 |   45 +++-
+ drivers/media/video/uvc/uvc_video.c                |    3 +-
+ include/linux/Kbuild                               |    1 +
+ .../media/video/uvc => include/linux}/uvcvideo.h   |   39 ++-
+ 12 files changed, 530 insertions(+), 168 deletions(-)
+ create mode 100644 Documentation/video4linux/uvcvideo.txt
+ rename {drivers/media/video/uvc => include/linux}/uvcvideo.h (95%)
+
+-- 
+Regards,
+
+Laurent Pinchart
