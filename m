@@ -1,68 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:53959 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932209Ab1AKQnS convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3996 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932434Ab1AKRtn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jan 2011 11:43:18 -0500
-Received: by wwa36 with SMTP id 36so1968124wwa.1
-        for <linux-media@vger.kernel.org>; Tue, 11 Jan 2011 08:43:17 -0800 (PST)
+	Tue, 11 Jan 2011 12:49:43 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [GIT PATCHES FOR 2.6.38] Remove core.s_config and document is_new
+Date: Tue, 11 Jan 2011 18:49:36 +0100
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Jonathan Corbet <corbet@lwn.net>
 MIME-Version: 1.0
-In-Reply-To: <4D2CA021.5080001@redhat.com>
-References: <4D21FDC1.7000803@samsung.com> <4D2CA021.5080001@redhat.com>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Tue, 11 Jan 2011 08:42:55 -0800
-Message-ID: <AANLkTimovx-bhpV-1bRn=KvvH4ZtvAsSmnJB5_bjn6xX@mail.gmail.com>
-Subject: Re: [GIT PATCHES FOR 2.6.38] Videbuf2 framework, NOON010PC30 sensor
- driver and s5p-fimc updates
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201101111849.36086.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
 Hi Mauro,
 
-On Tue, Jan 11, 2011 at 10:23, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
->> Pawel Osciak (8):
->>       v4l: Add multi-planar API definitions to the V4L2 API
->>       v4l: Add multi-planar ioctl handling code
->
->>       v4l: Add compat functions for the multi-planar API
->>       v4l: fix copy sizes in compat32 for ext controls
->
-> Are you sure that we need to add compat32 stuff for the multi-planar definitions?
-> Had you test if the compat32 code is actually working? Except if you use things
-> that have different sizes on 32 and 64 bit architectures, there's no need to add
-> anything for compat.
->
+(Second attempt, fixing a bug introduced in the third patch)
 
-v4l2_buffer and v4l2_plane contain pointers to buffers and/or arrays
-of planes. In fact buffer conversion was already there, I only added
-the new planes field. I believe those additions to the compat code are
-needed...
+These patches remove s_config legacy support, replace it with new internal
+operations (also needed for the upcoming subdev device nodes) and finally
+rename has_new to is_new and document that control framework flag.
 
-> Anyway, I'll be merging the two compat functions into just one patch, as it will
-> help to track any regressions there, if ever needed. They are at my temporary
-> branch, but, if they are not needed, I'll drop when merging upstream.
->
->>       v4l: v4l2-ioctl: add buffer type conversion for multi-planar-aware ioctls
->
-> NACK.
->
-> We shouldn't be doing those videobuf memcpy operations inside the kernel.
-> If you want such feature, please implement it on libv4l.
->
+My original RFC also converted OLPC drivers, but those are scheduled for
+2.6.39. They need a bit more testing and I intend to improve the handling
+of autofoo/foo type of controls in the control framework.
 
-I can see your point. We don't really use it. It was to prevent
-applications from using two versions of API and thus being
-overcomplicated. It allowed using old drivers with the new API. If you
-think it is a bad idea, the patch can just be dropped without
-affecting anything else. I will fix the documentation if you decide to
-do so.
+Regards,
+
+        Hans
+
+The following changes since commit 04c3fafd933379fbc8b1fa55ea9b65281af416f7:
+  Hans Verkuil (1):
+        [media] vivi: convert to the control framework and add test controls
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/hverkuil/media_tree.git s_config3
+
+Hans Verkuil (3):
+      v4l2-subdev: remove core.s_config and v4l2_i2c_new_subdev_cfg()
+      v4l2-subdev: add (un)register internal ops
+      v4l2-ctrls: v4l2_ctrl_handler_setup must set is_new to 1
+
+ Documentation/video4linux/v4l2-controls.txt |   12 ++++
+ drivers/media/video/cafe_ccic.c             |   11 +++-
+ drivers/media/video/cx25840/cx25840-core.c  |   22 ++------
+ drivers/media/video/em28xx/em28xx-cards.c   |   18 ++++---
+ drivers/media/video/ivtv/ivtv-i2c.c         |    9 +++-
+ drivers/media/video/mt9v011.c               |   54 ++++++++++++-------
+ drivers/media/video/mt9v011.h               |   36 -------------
+ drivers/media/video/ov7670.c                |   74 ++++++++++++---------------
+ drivers/media/video/sr030pc30.c             |   10 ----
+ drivers/media/video/v4l2-common.c           |   19 +------
+ drivers/media/video/v4l2-ctrls.c            |   24 +++++----
+ drivers/media/video/v4l2-device.c           |   14 ++++-
+ include/media/mt9v011.h                     |   17 ++++++
+ include/media/v4l2-common.h                 |   13 +----
+ include/media/v4l2-ctrls.h                  |    6 ++-
+ include/media/v4l2-subdev.h                 |   23 +++++++--
+ 16 files changed, 177 insertions(+), 185 deletions(-)
+ delete mode 100644 drivers/media/video/mt9v011.h
+ create mode 100644 include/media/mt9v011.h
 
 -- 
-Best regards,
-Pawel Osciak
+Hans Verkuil - video4linux developer - sponsored by Cisco
