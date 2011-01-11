@@ -1,46 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from cantor2.suse.de ([195.135.220.15]:59415 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752968Ab1AaMco (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Jan 2011 07:32:44 -0500
-Date: Mon, 31 Jan 2011 13:32:43 +0100 (CET)
-From: Jiri Kosina <jkosina@suse.cz>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Linux Input <linux-input@vger.kernel.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] Input: switch completely over to the new versions of
- get/setkeycode
-In-Reply-To: <4D46AB6C.4050108@redhat.com>
-Message-ID: <alpine.LNX.2.00.1101311332270.5725@pobox.suse.cz>
-References: <20110131085640.GB30343@core.coreip.homeip.net> <4D46AB6C.4050108@redhat.com>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3876 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751176Ab1AKHfH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Jan 2011 02:35:07 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [GIT PATCHES FOR 2.6.38]
+Date: Tue, 11 Jan 2011 08:34:48 +0100
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Jonathan Corbet <corbet@lwn.net>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201101110834.51032.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 31 Jan 2011, Mauro Carvalho Chehab wrote:
+Hi Mauro,
 
-> > Input: switch completely over to the new versions of get/setkeycode
-> > 
-> > All users of old style get/setkeycode methids have been converted so
-> > it is time to retire them.
-> > 
-> > Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-> > ---
-> > 
-> > Jiri, Mauro,
-> > 
-> > There is not a good way to avoid crossing multiple subsystems but the
-> > changes are minimal, so if you are OK with the patch I'd like to move it
-> > through my tree for .39.
-> 
-> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+These patches remove s_config legacy support, replace it with new internal
+operations (also needed for the upcoming subdev device nodes) and finally
+rename has_new to is_new and document that control framework flag.
 
-Acked-by: Jiri Kosina <jkosina@suse.cz>
+My original RFC also converted OLPC drivers, but those are scheduled for
+2.6.39. It needs a bit more testing and I intend to improve the handling
+of autofoo/foo type of controls in the control framework.
 
-Thanks Dmitry.
+Regards,
 
+	Hans
+
+The following changes since commit 04c3fafd933379fbc8b1fa55ea9b65281af416f7:
+  Hans Verkuil (1):
+        [media] vivi: convert to the control framework and add test controls
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/hverkuil/media_tree.git s_config2
+
+Hans Verkuil (3):
+      v4l2-subdev: remove core.s_config and v4l2_i2c_new_subdev_cfg()
+      v4l2-subdev: add (un)register internal ops
+      v4l2-ctrls: v4l2_ctrl_handler_setup must set is_new to 1
+
+ Documentation/video4linux/v4l2-controls.txt |   12 ++++
+ drivers/media/video/cafe_ccic.c             |   11 +++-
+ drivers/media/video/cx25840/cx25840-core.c  |   22 ++------
+ drivers/media/video/em28xx/em28xx-cards.c   |   18 ++++---
+ drivers/media/video/ivtv/ivtv-i2c.c         |    9 +++-
+ drivers/media/video/mt9v011.c               |   54 ++++++++++++-------
+ drivers/media/video/mt9v011.h               |   36 -------------
+ drivers/media/video/ov7670.c                |   74 ++++++++++++---------------
+ drivers/media/video/sr030pc30.c             |   10 ----
+ drivers/media/video/v4l2-common.c           |   19 +------
+ drivers/media/video/v4l2-ctrls.c            |   20 ++++---
+ drivers/media/video/v4l2-device.c           |   14 ++++-
+ include/media/mt9v011.h                     |   17 ++++++
+ include/media/v4l2-common.h                 |   13 +----
+ include/media/v4l2-ctrls.h                  |    6 ++-
+ include/media/v4l2-subdev.h                 |   23 +++++++--
+ 16 files changed, 174 insertions(+), 184 deletions(-)
+ delete mode 100644 drivers/media/video/mt9v011.h
+ create mode 100644 include/media/mt9v011.h
 -- 
-Jiri Kosina
-SUSE Labs, Novell Inc.
+Hans Verkuil - video4linux developer - sponsored by Cisco
