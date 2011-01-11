@@ -1,157 +1,272 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:39680 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752082Ab1AUEax (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jan 2011 23:30:53 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p0L4UrrQ011979
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 20 Jan 2011 23:30:53 -0500
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH 1/3] hdpvr: fix up i2c device registration
-Date: Thu, 20 Jan 2011 23:30:23 -0500
-Message-Id: <1295584225-21210-2-git-send-email-jarod@redhat.com>
-In-Reply-To: <1295584225-21210-1-git-send-email-jarod@redhat.com>
-References: <1295584225-21210-1-git-send-email-jarod@redhat.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:57793 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932614Ab1AKXsf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Jan 2011 18:48:35 -0500
+Received: by bwz15 with SMTP id 15so72856bwz.19
+        for <linux-media@vger.kernel.org>; Tue, 11 Jan 2011 15:48:33 -0800 (PST)
+From: Marek Vasut <marek.vasut@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC PATCH 05/12] ov9640: convert to the control framework.
+Date: Wed, 12 Jan 2011 00:51:17 +0100
+Cc: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
+	Alberto Panizzo <maramaopercheseimorto@gmail.com>,
+	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+References: <1294787172-13638-1-git-send-email-hverkuil@xs4all.nl> <fd4db2a1effa6f4e4b83f2b6d616c065f9001048.1294786597.git.hverkuil@xs4all.nl>
+In-Reply-To: <fd4db2a1effa6f4e4b83f2b6d616c065f9001048.1294786597.git.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201101120051.17264.marek.vasut@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-We have to actually call i2c_new_device() once for each of the rx and tx
-addresses. Also improve error-handling and device remove i2c cleanup.
+On Wednesday 12 January 2011 00:06:05 Hans Verkuil wrote:
+> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/video/hdpvr/hdpvr-core.c |   21 +++++++++++++++++----
- drivers/media/video/hdpvr/hdpvr-i2c.c  |   28 ++++++++++++++++++++--------
- drivers/media/video/hdpvr/hdpvr.h      |    6 +++++-
- 3 files changed, 42 insertions(+), 13 deletions(-)
+Hey, I can do a test-run on this one eventually ;-)
 
-diff --git a/drivers/media/video/hdpvr/hdpvr-core.c b/drivers/media/video/hdpvr/hdpvr-core.c
-index a6572e5..f617a23 100644
---- a/drivers/media/video/hdpvr/hdpvr-core.c
-+++ b/drivers/media/video/hdpvr/hdpvr-core.c
-@@ -381,13 +381,21 @@ static int hdpvr_probe(struct usb_interface *interface,
- #if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
- 	retval = hdpvr_register_i2c_adapter(dev);
- 	if (retval < 0) {
--		v4l2_err(&dev->v4l2_dev, "registering i2c adapter failed\n");
-+		v4l2_err(&dev->v4l2_dev, "i2c adapter register failed\n");
- 		goto error;
- 	}
- 
--	retval = hdpvr_register_i2c_ir(dev);
--	if (retval < 0)
--		v4l2_err(&dev->v4l2_dev, "registering i2c IR devices failed\n");
-+	hdpvr_register_ir_rx_i2c(dev);
-+	if (!dev->i2c_rx) {
-+		v4l2_err(&dev->v4l2_dev, "i2c IR RX device register failed\n");
-+		goto reg_fail;
-+	}
-+
-+	hdpvr_register_ir_tx_i2c(dev);
-+	if (!dev->i2c_tx) {
-+		v4l2_err(&dev->v4l2_dev, "i2c IR TX device register failed\n");
-+		goto reg_fail;
-+	}
- #endif
- 
- 	/* let the user know what node this device is now attached to */
-@@ -395,6 +403,8 @@ static int hdpvr_probe(struct usb_interface *interface,
- 		  video_device_node_name(dev->video_dev));
- 	return 0;
- 
-+reg_fail:
-+	i2c_del_adapter(&dev->i2c_adapter);
- error:
- 	if (dev) {
- 		/* Destroy single thread */
-@@ -424,6 +434,9 @@ static void hdpvr_disconnect(struct usb_interface *interface)
- 	mutex_lock(&dev->io_mutex);
- 	hdpvr_cancel_queue(dev);
- 	mutex_unlock(&dev->io_mutex);
-+#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
-+	i2c_del_adapter(&dev->i2c_adapter);
-+#endif
- 	video_unregister_device(dev->video_dev);
- 	atomic_dec(&dev_nr);
- }
-diff --git a/drivers/media/video/hdpvr/hdpvr-i2c.c b/drivers/media/video/hdpvr/hdpvr-i2c.c
-index 89b71fa..e891bb0 100644
---- a/drivers/media/video/hdpvr/hdpvr-i2c.c
-+++ b/drivers/media/video/hdpvr/hdpvr-i2c.c
-@@ -31,26 +31,38 @@
- #define Z8F0811_IR_RX_I2C_ADDR	0x71
- 
- 
--static struct i2c_board_info hdpvr_i2c_board_info = {
-+static struct i2c_board_info hdpvr_ir_tx_i2c_board_info = {
- 	I2C_BOARD_INFO("ir_tx_z8f0811_hdpvr", Z8F0811_IR_TX_I2C_ADDR),
-+};
-+
-+void hdpvr_register_ir_tx_i2c(struct hdpvr_device *dev)
-+{
-+	struct IR_i2c_init_data *init_data = &dev->ir_i2c_init_data;
-+
-+	init_data->name = "HD-PVR";
-+	hdpvr_ir_tx_i2c_board_info.platform_data = init_data;
-+
-+	dev->i2c_tx = i2c_new_device(&dev->i2c_adapter,
-+				     &hdpvr_ir_tx_i2c_board_info);
-+}
-+
-+static struct i2c_board_info hdpvr_ir_rx_i2c_board_info = {
- 	I2C_BOARD_INFO("ir_rx_z8f0811_hdpvr", Z8F0811_IR_RX_I2C_ADDR),
- };
- 
--int hdpvr_register_i2c_ir(struct hdpvr_device *dev)
-+void hdpvr_register_ir_rx_i2c(struct hdpvr_device *dev)
- {
--	struct i2c_client *c;
- 	struct IR_i2c_init_data *init_data = &dev->ir_i2c_init_data;
- 
- 	/* Our default information for ir-kbd-i2c.c to use */
- 	init_data->ir_codes = RC_MAP_HAUPPAUGE_NEW;
- 	init_data->internal_get_key_func = IR_KBD_GET_KEY_HAUP_XVR;
- 	init_data->type = RC_TYPE_RC5;
--	init_data->name = "HD PVR";
--	hdpvr_i2c_board_info.platform_data = init_data;
--
--	c = i2c_new_device(&dev->i2c_adapter, &hdpvr_i2c_board_info);
-+	init_data->name = "HD-PVR";
-+	hdpvr_ir_rx_i2c_board_info.platform_data = init_data;
- 
--	return (c == NULL) ? -ENODEV : 0;
-+	dev->i2c_rx = i2c_new_device(&dev->i2c_adapter,
-+				     &hdpvr_ir_rx_i2c_board_info);
- }
- 
- static int hdpvr_i2c_read(struct hdpvr_device *dev, int bus,
-diff --git a/drivers/media/video/hdpvr/hdpvr.h b/drivers/media/video/hdpvr/hdpvr.h
-index ee74e3b..41a579e 100644
---- a/drivers/media/video/hdpvr/hdpvr.h
-+++ b/drivers/media/video/hdpvr/hdpvr.h
-@@ -108,6 +108,9 @@ struct hdpvr_device {
- 
- 	/* I2C adapter */
- 	struct i2c_adapter	i2c_adapter;
-+	/* I2C clients */
-+	struct i2c_client	*i2c_rx;
-+	struct i2c_client	*i2c_tx;
- 	/* I2C lock */
- 	struct mutex		i2c_mutex;
- 	/* I2C message buffer space */
-@@ -313,7 +316,8 @@ int hdpvr_cancel_queue(struct hdpvr_device *dev);
- /* i2c adapter registration */
- int hdpvr_register_i2c_adapter(struct hdpvr_device *dev);
- 
--int hdpvr_register_i2c_ir(struct hdpvr_device *dev);
-+void hdpvr_register_ir_rx_i2c(struct hdpvr_device *dev);
-+void hdpvr_register_ir_tx_i2c(struct hdpvr_device *dev);
- 
- /*========================================================================*/
- /* buffer management */
--- 
-1.7.3.4
-
+Cheers
+> ---
+>  drivers/media/video/ov9640.c |  124
+> ++++++++++++++---------------------------- drivers/media/video/ov9640.h | 
+>   4 +-
+>  2 files changed, 43 insertions(+), 85 deletions(-)
+> 
+> diff --git a/drivers/media/video/ov9640.c b/drivers/media/video/ov9640.c
+> index 53d88a2..dbda50c 100644
+> --- a/drivers/media/video/ov9640.c
+> +++ b/drivers/media/video/ov9640.c
+> @@ -27,6 +27,7 @@
+>  #include <linux/videodev2.h>
+>  #include <media/v4l2-chip-ident.h>
+>  #include <media/v4l2-common.h>
+> +#include <media/v4l2-ctrls.h>
+>  #include <media/soc_camera.h>
+> 
+>  #include "ov9640.h"
+> @@ -162,27 +163,6 @@ static enum v4l2_mbus_pixelcode ov9640_codes[] = {
+>  	V4L2_MBUS_FMT_RGB565_2X8_LE,
+>  };
+> 
+> -static const struct v4l2_queryctrl ov9640_controls[] = {
+> -	{
+> -		.id		= V4L2_CID_VFLIP,
+> -		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+> -		.name		= "Flip Vertically",
+> -		.minimum	= 0,
+> -		.maximum	= 1,
+> -		.step		= 1,
+> -		.default_value	= 0,
+> -	},
+> -	{
+> -		.id		= V4L2_CID_HFLIP,
+> -		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+> -		.name		= "Flip Horizontally",
+> -		.minimum	= 0,
+> -		.maximum	= 1,
+> -		.step		= 1,
+> -		.default_value	= 0,
+> -	},
+> -};
+> -
+>  /* read a register */
+>  static int ov9640_reg_read(struct i2c_client *client, u8 reg, u8 *val)
+>  {
+> @@ -307,52 +287,25 @@ static unsigned long ov9640_query_bus_param(struct
+> soc_camera_device *icd) return soc_camera_apply_sensor_flags(icl, flags);
+>  }
+> 
+> -/* Get status of additional camera capabilities */
+> -static int ov9640_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control
+> *ctrl) -{
+> -	struct ov9640_priv *priv = to_ov9640_sensor(sd);
+> -
+> -	switch (ctrl->id) {
+> -	case V4L2_CID_VFLIP:
+> -		ctrl->value = priv->flag_vflip;
+> -		break;
+> -	case V4L2_CID_HFLIP:
+> -		ctrl->value = priv->flag_hflip;
+> -		break;
+> -	}
+> -	return 0;
+> -}
+> -
+>  /* Set status of additional camera capabilities */
+> -static int ov9640_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control
+> *ctrl) +static int ov9640_s_ctrl(struct v4l2_ctrl *ctrl)
+>  {
+> -	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> -	struct ov9640_priv *priv = to_ov9640_sensor(sd);
+> -
+> -	int ret = 0;
+> +	struct ov9640_priv *priv = container_of(ctrl->handler, struct
+> ov9640_priv, hdl); +	struct i2c_client *client =
+> v4l2_get_subdevdata(&priv->subdev);
+> 
+>  	switch (ctrl->id) {
+>  	case V4L2_CID_VFLIP:
+> -		priv->flag_vflip = ctrl->value;
+> -		if (ctrl->value)
+> -			ret = ov9640_reg_rmw(client, OV9640_MVFP,
+> +		if (ctrl->val)
+> +			return ov9640_reg_rmw(client, OV9640_MVFP,
+>  							OV9640_MVFP_V, 0);
+> -		else
+> -			ret = ov9640_reg_rmw(client, OV9640_MVFP,
+> -							0, OV9640_MVFP_V);
+> -		break;
+> +		return ov9640_reg_rmw(client, OV9640_MVFP, 0, OV9640_MVFP_V);
+>  	case V4L2_CID_HFLIP:
+> -		priv->flag_hflip = ctrl->value;
+> -		if (ctrl->value)
+> -			ret = ov9640_reg_rmw(client, OV9640_MVFP,
+> +		if (ctrl->val)
+> +			return ov9640_reg_rmw(client, OV9640_MVFP,
+>  							OV9640_MVFP_H, 0);
+> -		else
+> -			ret = ov9640_reg_rmw(client, OV9640_MVFP,
+> -							0, OV9640_MVFP_H);
+> -		break;
+> +		return ov9640_reg_rmw(client, OV9640_MVFP, 0, OV9640_MVFP_H);
+>  	}
+> -
+> -	return ret;
+> +	return -EINVAL;
+>  }
+> 
+>  /* Get chip identification */
+> @@ -664,8 +617,7 @@ static int ov9640_video_probe(struct soc_camera_device
+> *icd, if (!icd->dev.parent ||
+>  	    to_soc_camera_host(icd->dev.parent)->nr != icd->iface) {
+>  		dev_err(&client->dev, "Parent missing or invalid!\n");
+> -		ret = -ENODEV;
+> -		goto err;
+> +		return -ENODEV;
+>  	}
+> 
+>  	/*
+> @@ -673,20 +625,14 @@ static int ov9640_video_probe(struct
+> soc_camera_device *icd, */
+> 
+>  	ret = ov9640_reg_read(client, OV9640_PID, &pid);
+> +	if (!ret)
+> +		ret = ov9640_reg_read(client, OV9640_VER, &ver);
+> +	if (!ret)
+> +		ret = ov9640_reg_read(client, OV9640_MIDH, &midh);
+> +	if (!ret)
+> +		ret = ov9640_reg_read(client, OV9640_MIDL, &midl);
+>  	if (ret)
+> -		goto err;
+> -
+> -	ret = ov9640_reg_read(client, OV9640_VER, &ver);
+> -	if (ret)
+> -		goto err;
+> -
+> -	ret = ov9640_reg_read(client, OV9640_MIDH, &midh);
+> -	if (ret)
+> -		goto err;
+> -
+> -	ret = ov9640_reg_read(client, OV9640_MIDL, &midl);
+> -	if (ret)
+> -		goto err;
+> +		return ret;
+> 
+>  	switch (VERSION(pid, ver)) {
+>  	case OV9640_V2:
+> @@ -700,27 +646,25 @@ static int ov9640_video_probe(struct
+> soc_camera_device *icd, break;
+>  	default:
+>  		dev_err(&client->dev, "Product ID error %x:%x\n", pid, ver);
+> -		ret = -ENODEV;
+> -		goto err;
+> +		return -ENODEV;
+>  	}
+> 
+>  	dev_info(&client->dev, "%s Product ID %0x:%0x Manufacturer ID %x:%x\n",
+>  		 devname, pid, ver, midh, midl);
+> 
+> -err:
+> -	return ret;
+> +	return v4l2_ctrl_handler_setup(&priv->hdl);
+>  }
+> 
+> +static const struct v4l2_ctrl_ops ov9640_ctrl_ops = {
+> +	.s_ctrl = ov9640_s_ctrl,
+> +};
+> +
+>  static struct soc_camera_ops ov9640_ops = {
+>  	.set_bus_param		= ov9640_set_bus_param,
+>  	.query_bus_param	= ov9640_query_bus_param,
+> -	.controls		= ov9640_controls,
+> -	.num_controls		= ARRAY_SIZE(ov9640_controls),
+>  };
+> 
+>  static struct v4l2_subdev_core_ops ov9640_core_ops = {
+> -	.g_ctrl			= ov9640_g_ctrl,
+> -	.s_ctrl			= ov9640_s_ctrl,
+>  	.g_chip_ident		= ov9640_g_chip_ident,
+>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+>  	.g_register		= ov9640_get_register,
+> @@ -775,12 +719,26 @@ static int ov9640_probe(struct i2c_client *client,
+> 
+>  	v4l2_i2c_subdev_init(&priv->subdev, client, &ov9640_subdev_ops);
+> 
+> -	icd->ops	= &ov9640_ops;
+> +	v4l2_ctrl_handler_init(&priv->hdl, 2);
+> +	v4l2_ctrl_new_std(&priv->hdl, &ov9640_ctrl_ops,
+> +			V4L2_CID_VFLIP, 0, 1, 1, 0);
+> +	v4l2_ctrl_new_std(&priv->hdl, &ov9640_ctrl_ops,
+> +			V4L2_CID_HFLIP, 0, 1, 1, 0);
+> +	priv->subdev.ctrl_handler = &priv->hdl;
+> +	if (priv->hdl.error) {
+> +		int err = priv->hdl.error;
+> +
+> +		kfree(priv);
+> +		return err;
+> +	}
+> +
+> +	icd->ops = &ov9640_ops;
+> 
+>  	ret = ov9640_video_probe(icd, client);
+> 
+>  	if (ret) {
+>  		icd->ops = NULL;
+> +		v4l2_ctrl_handler_free(&priv->hdl);
+>  		kfree(priv);
+>  	}
+> 
+> @@ -792,6 +750,8 @@ static int ov9640_remove(struct i2c_client *client)
+>  	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+>  	struct ov9640_priv *priv = to_ov9640_sensor(sd);
+> 
+> +	v4l2_device_unregister_subdev(&priv->subdev);
+> +	v4l2_ctrl_handler_free(&priv->hdl);
+>  	kfree(priv);
+>  	return 0;
+>  }
+> diff --git a/drivers/media/video/ov9640.h b/drivers/media/video/ov9640.h
+> index f8a51b7..6b33a97 100644
+> --- a/drivers/media/video/ov9640.h
+> +++ b/drivers/media/video/ov9640.h
+> @@ -198,12 +198,10 @@ struct ov9640_reg {
+> 
+>  struct ov9640_priv {
+>  	struct v4l2_subdev		subdev;
+> +	struct v4l2_ctrl_handler	hdl;
+> 
+>  	int				model;
+>  	int				revision;
+> -
+> -	bool				flag_vflip;
+> -	bool				flag_hflip;
+>  };
+> 
+>  #endif	/* __DRIVERS_MEDIA_VIDEO_OV9640_H__ */
