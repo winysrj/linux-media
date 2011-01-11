@@ -1,43 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:52468 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753988Ab1ASQOx convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1935 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754410Ab1AKRo3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jan 2011 11:14:53 -0500
-Received: by ewy5 with SMTP id 5so509648ewy.19
-        for <linux-media@vger.kernel.org>; Wed, 19 Jan 2011 08:14:52 -0800 (PST)
+	Tue, 11 Jan 2011 12:44:29 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: Re: [GIT PATCHES FOR 2.6.38]
+Date: Tue, 11 Jan 2011 18:44:19 +0100
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Jonathan Corbet <corbet@lwn.net>
+References: <201101110834.51032.hverkuil@xs4all.nl>
+In-Reply-To: <201101110834.51032.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTingFP9ajGckXXy2wScHHGxhz+KTyOBa-mE7SUs5@mail.gmail.com>
-References: <20101207190753.GA21666@io.frii.com>
-	<20110110021439.GA70495@io.frii.com>
-	<AANLkTingFP9ajGckXXy2wScHHGxhz+KTyOBa-mE7SUs5@mail.gmail.com>
-Date: Wed, 19 Jan 2011 11:13:24 -0500
-Message-ID: <AANLkTi=59dytuN25H3DVRrPAB8GAcn6N88Ji_dkorsGB@mail.gmail.com>
-Subject: Re: DViCO FusionHDTV7 Dual Express I2C write failed
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: VDR User <user.vdr@gmail.com>
-Cc: Mark Zimmerman <markzimm@frii.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201101111844.19866.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Jan 19, 2011 at 10:59 AM, VDR User <user.vdr@gmail.com> wrote:
-> Can someone please look into this and possibly provide a fix for the
-> bug?  I'm surprised it hasn't happened yet after all this time but
-> maybe it's been forgotten the bug existed.
+On Tuesday, January 11, 2011 08:34:48 Hans Verkuil wrote:
+> Hi Mauro,
+> 
+> These patches remove s_config legacy support, replace it with new internal
+> operations (also needed for the upcoming subdev device nodes) and finally
+> rename has_new to is_new and document that control framework flag.
+> 
+> My original RFC also converted OLPC drivers, but those are scheduled for
+> 2.6.39. It needs a bit more testing and I intend to improve the handling
+> of autofoo/foo type of controls in the control framework.
 
-You shouldn't be too surprised.  In many cases device support for more
-obscure products comes not from the maintainer of the actual driver
-but rather from some random user who hacked in an additional board
-profile (in many cases, not doing it correctly but good enough so it
-"works for them").  In cases like that, the changes get committed, the
-original submitter disappears, and then when things break there is
-nobody with the appropriate knowledge and the hardware to debug the
-problem.
+Please forget this patch series: the last patch contained a bug. I knew I
+was a bit too hasty when I posted this this morning.
 
-Devin
+I'll make a new pull request shortly.
+
+Regards,
+
+	Hans
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> The following changes since commit 04c3fafd933379fbc8b1fa55ea9b65281af416f7:
+>   Hans Verkuil (1):
+>         [media] vivi: convert to the control framework and add test controls
+> 
+> are available in the git repository at:
+> 
+>   ssh://linuxtv.org/git/hverkuil/media_tree.git s_config2
+> 
+> Hans Verkuil (3):
+>       v4l2-subdev: remove core.s_config and v4l2_i2c_new_subdev_cfg()
+>       v4l2-subdev: add (un)register internal ops
+>       v4l2-ctrls: v4l2_ctrl_handler_setup must set is_new to 1
+> 
+>  Documentation/video4linux/v4l2-controls.txt |   12 ++++
+>  drivers/media/video/cafe_ccic.c             |   11 +++-
+>  drivers/media/video/cx25840/cx25840-core.c  |   22 ++------
+>  drivers/media/video/em28xx/em28xx-cards.c   |   18 ++++---
+>  drivers/media/video/ivtv/ivtv-i2c.c         |    9 +++-
+>  drivers/media/video/mt9v011.c               |   54 ++++++++++++-------
+>  drivers/media/video/mt9v011.h               |   36 -------------
+>  drivers/media/video/ov7670.c                |   74 ++++++++++++---------------
+>  drivers/media/video/sr030pc30.c             |   10 ----
+>  drivers/media/video/v4l2-common.c           |   19 +------
+>  drivers/media/video/v4l2-ctrls.c            |   20 ++++---
+>  drivers/media/video/v4l2-device.c           |   14 ++++-
+>  include/media/mt9v011.h                     |   17 ++++++
+>  include/media/v4l2-common.h                 |   13 +----
+>  include/media/v4l2-ctrls.h                  |    6 ++-
+>  include/media/v4l2-subdev.h                 |   23 +++++++--
+>  16 files changed, 174 insertions(+), 184 deletions(-)
+>  delete mode 100644 drivers/media/video/mt9v011.h
+>  create mode 100644 include/media/mt9v011.h
+> 
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Hans Verkuil - video4linux developer - sponsored by Cisco
