@@ -1,108 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:60468 "HELO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751597Ab1ASChv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jan 2011 21:37:51 -0500
-From: Qing Xu <qingx@marvell.com>
-To: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 18 Jan 2011 18:37:43 -0800
-Subject: RE: [PATCH] [media] v4l: soc-camera: add enum-frame-size ioctl
-Message-ID: <7BAC95F5A7E67643AAFB2C31BEE662D014040BF547@SC-VEXCH2.marvell.com>
-References: <1295404602-9730-1-git-send-email-qingx@marvell.com>
-In-Reply-To: <1295404602-9730-1-git-send-email-qingx@marvell.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
+Received: from ffm.saftware.de ([83.141.3.46]:36029 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754288Ab1AKBcR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Jan 2011 20:32:17 -0500
+Message-ID: <4D2BB31E.4090308@linuxtv.org>
+Date: Tue, 11 Jan 2011 02:32:14 +0100
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+CC: Oliver Endriss <o.endriss@gmx.de>, mchehab@redhat.com,
+	Ralph Metzler <rjkm@metzlerbros.de>
+Subject: Interconnection of different DVB adapters (was: Re: [PATCH 07/16]
+ ngene: CXD2099AR Common Interface driver)
+References: <1294652184-12843-1-git-send-email-o.endriss@gmx.de> <1294652184-12843-8-git-send-email-o.endriss@gmx.de> <4D2B122E.3050803@linuxtv.org> <201101101820.07907@orion.escape-edv.de>
+In-Reply-To: <201101101820.07907@orion.escape-edv.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-SGkgR3Vlbm5hZGksDQoNClRoYW5rcyBmb3IgcmV2aWV3aW5nIG15IHBhdGNoISBJIHVwZGF0ZSBp
-dCBhZ2FpbiBmb2xsb3dpbmcgeW91ciBzdWdnZXN0aW9uLCBwbGVhc2UgdGFrZSB5b3VyIHRpbWUg
-dG8gcmV2aWV3IGl0IGFnYWluLCBUaGFua3MgYSBsb3QhDQoNCi1RaW5nDQoNCkVtYWlsOiBxaW5n
-eEBtYXJ2ZWxsLmNvbQ0KQXBwbGljYXRpb24gUHJvY2Vzc29yIFN5c3RlbXMgRW5naW5lZXJpbmcs
-DQpNYXJ2ZWxsIFRlY2hub2xvZ3kgR3JvdXAgTHRkLg0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2Ut
-LS0tLQ0KRnJvbTogUWluZyBYdSBbbWFpbHRvOnFpbmd4QG1hcnZlbGwuY29tXQ0KU2VudDogMjAx
-McTqMdTCMTnI1SAxMDozNw0KVG86IGcubGlha2hvdmV0c2tpQGdteC5kZQ0KQ2M6IGxpbnV4LW1l
-ZGlhQHZnZXIua2VybmVsLm9yZzsgUWluZyBYdQ0KU3ViamVjdDogW1BBVENIXSBbbWVkaWFdIHY0
-bDogc29jLWNhbWVyYTogYWRkIGVudW0tZnJhbWUtc2l6ZSBpb2N0bA0KDQphZGQgdmlkaW9jX2Vu
-dW1fZnJhbWVzaXplcyBpbXBsZW1lbnRhdGlvbg0KDQpTaWduZWQtb2ZmLWJ5OiBRaW5nIFh1IDxx
-aW5neEBtYXJ2ZWxsLmNvbT4NCi0tLQ0KIGRyaXZlcnMvbWVkaWEvdmlkZW8vc29jX2NhbWVyYS5j
-IHwgICAzNCArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrDQogaW5jbHVkZS9tZWRp
-YS9zb2NfY2FtZXJhLmggICAgICAgfCAgICAxICsNCiBpbmNsdWRlL21lZGlhL3Y0bDItc3ViZGV2
-LmggICAgICB8ICAgIDIgKysNCiAzIGZpbGVzIGNoYW5nZWQsIDM3IGluc2VydGlvbnMoKyksIDAg
-ZGVsZXRpb25zKC0pDQoNCmRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL3ZpZGVvL3NvY19jYW1l
-cmEuYyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vc29jX2NhbWVyYS5jDQppbmRleCAwNTJiZDZkLi41
-ZTBhYTllIDEwMDY0NA0KLS0tIGEvZHJpdmVycy9tZWRpYS92aWRlby9zb2NfY2FtZXJhLmMNCisr
-KyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vc29jX2NhbWVyYS5jDQpAQCAtMTQ1LDYgKzE0NSwxNSBA
-QCBzdGF0aWMgaW50IHNvY19jYW1lcmFfc19zdGQoc3RydWN0IGZpbGUgKmZpbGUsIHZvaWQgKnBy
-aXYsIHY0bDJfc3RkX2lkICphKQ0KICAgICAgICByZXR1cm4gdjRsMl9zdWJkZXZfY2FsbChzZCwg
-Y29yZSwgc19zdGQsICphKTsNCiB9DQoNCitzdGF0aWMgaW50IHNvY19jYW1lcmFfZW51bV9mc2l6
-ZXMoc3RydWN0IGZpbGUgKmZpbGUsIHZvaWQgKmZoLA0KKyAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICBzdHJ1Y3QgdjRsMl9mcm1zaXplZW51bSAqZnNpemUpDQorew0KKyAg
-ICAgICBzdHJ1Y3Qgc29jX2NhbWVyYV9kZXZpY2UgKmljZCA9IGZpbGUtPnByaXZhdGVfZGF0YTsN
-CisgICAgICAgc3RydWN0IHNvY19jYW1lcmFfaG9zdCAqaWNpID0gdG9fc29jX2NhbWVyYV9ob3N0
-KGljZC0+ZGV2LnBhcmVudCk7DQorDQorICAgICAgIHJldHVybiBpY2ktPm9wcy0+ZW51bV9mc2l6
-ZXMoaWNkLCBmc2l6ZSk7DQorfQ0KKw0KIHN0YXRpYyBpbnQgc29jX2NhbWVyYV9yZXFidWZzKHN0
-cnVjdCBmaWxlICpmaWxlLCB2b2lkICpwcml2LA0KICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgc3RydWN0IHY0bDJfcmVxdWVzdGJ1ZmZlcnMgKnApDQogew0KQEAgLTExNjAsNiArMTE2OSwy
-OCBAQCBzdGF0aWMgaW50IGRlZmF1bHRfc19wYXJtKHN0cnVjdCBzb2NfY2FtZXJhX2RldmljZSAq
-aWNkLA0KICAgICAgICByZXR1cm4gdjRsMl9zdWJkZXZfY2FsbChzZCwgdmlkZW8sIHNfcGFybSwg
-cGFybSk7DQogfQ0KDQorc3RhdGljIGludCBkZWZhdWx0X2VudW1fZnNpemVzKHN0cnVjdCBzb2Nf
-Y2FtZXJhX2RldmljZSAqaWNkLA0KKyAgICAgICAgICAgICAgICAgICAgICAgICBzdHJ1Y3QgdjRs
-Ml9mcm1zaXplZW51bSAqZnNpemUpDQorew0KKyAgICAgICBpbnQgcmV0Ow0KKyAgICAgICBzdHJ1
-Y3QgdjRsMl9zdWJkZXYgKnNkID0gc29jX2NhbWVyYV90b19zdWJkZXYoaWNkKTsNCisgICAgICAg
-Y29uc3Qgc3RydWN0IHNvY19jYW1lcmFfZm9ybWF0X3hsYXRlICp4bGF0ZTsNCisgICAgICAgX191
-MzIgcGl4Zm10ID0gZnNpemUtPnBpeGVsX2Zvcm1hdDsNCisgICAgICAgc3RydWN0IHY0bDJfZnJt
-c2l6ZWVudW0gKmZzaXplX21idXMgPSBmc2l6ZTsNCisNCisgICAgICAgeGxhdGUgPSBzb2NfY2Ft
-ZXJhX3hsYXRlX2J5X2ZvdXJjYyhpY2QsIHBpeGZtdCk7DQorICAgICAgIGlmICgheGxhdGUpDQor
-ICAgICAgICAgICAgICAgcmV0dXJuIC1FSU5WQUw7DQorICAgICAgIC8qIG1hcCB4bGF0ZS1jb2Rl
-IHRvIHBpeGVsX2Zvcm1hdCwgc2Vuc29yIG9ubHkgaGFuZGxlIHhsYXRlLWNvZGUqLw0KKyAgICAg
-ICBmc2l6ZV9tYnVzLT5waXhlbF9mb3JtYXQgPSB4bGF0ZS0+Y29kZTsNCisNCisgICAgICAgcmV0
-ID0gdjRsMl9zdWJkZXZfY2FsbChzZCwgdmlkZW8sIGVudW1fbWJ1c19mc2l6ZXMsIGZzaXplX21i
-dXMpOw0KKyAgICAgICBpZiAocmV0IDwgMCkNCisgICAgICAgICAgICAgICByZXR1cm4gcmV0Ow0K
-Kw0KKyAgICAgICByZXR1cm4gMDsNCit9DQorDQogc3RhdGljIHZvaWQgc29jX2NhbWVyYV9kZXZp
-Y2VfaW5pdChzdHJ1Y3QgZGV2aWNlICpkZXYsIHZvaWQgKnBkYXRhKQ0KIHsNCiAgICAgICAgZGV2
-LT5wbGF0Zm9ybV9kYXRhICAgICAgPSBwZGF0YTsNCkBAIC0xMTk1LDYgKzEyMjYsOCBAQCBpbnQg
-c29jX2NhbWVyYV9ob3N0X3JlZ2lzdGVyKHN0cnVjdCBzb2NfY2FtZXJhX2hvc3QgKmljaSkNCiAg
-ICAgICAgICAgICAgICBpY2ktPm9wcy0+c2V0X3Bhcm0gPSBkZWZhdWx0X3NfcGFybTsNCiAgICAg
-ICAgaWYgKCFpY2ktPm9wcy0+Z2V0X3Bhcm0pDQogICAgICAgICAgICAgICAgaWNpLT5vcHMtPmdl
-dF9wYXJtID0gZGVmYXVsdF9nX3Bhcm07DQorICAgICAgIGlmICghaWNpLT5vcHMtPmVudW1fZnNp
-emVzKQ0KKyAgICAgICAgICAgICAgIGljaS0+b3BzLT5lbnVtX2ZzaXplcyA9IGRlZmF1bHRfZW51
-bV9mc2l6ZXM7DQoNCiAgICAgICAgbXV0ZXhfbG9jaygmbGlzdF9sb2NrKTsNCiAgICAgICAgbGlz
-dF9mb3JfZWFjaF9lbnRyeShpeCwgJmhvc3RzLCBsaXN0KSB7DQpAQCAtMTMwMiw2ICsxMzM1LDcg
-QEAgc3RhdGljIGNvbnN0IHN0cnVjdCB2NGwyX2lvY3RsX29wcyBzb2NfY2FtZXJhX2lvY3RsX29w
-cyA9IHsNCiAgICAgICAgLnZpZGlvY19nX2lucHV0ICAgICAgICAgID0gc29jX2NhbWVyYV9nX2lu
-cHV0LA0KICAgICAgICAudmlkaW9jX3NfaW5wdXQgICAgICAgICAgPSBzb2NfY2FtZXJhX3NfaW5w
-dXQsDQogICAgICAgIC52aWRpb2Nfc19zdGQgICAgICAgICAgICA9IHNvY19jYW1lcmFfc19zdGQs
-DQorICAgICAgIC52aWRpb2NfZW51bV9mcmFtZXNpemVzICA9IHNvY19jYW1lcmFfZW51bV9mc2l6
-ZXMsDQogICAgICAgIC52aWRpb2NfcmVxYnVmcyAgICAgICAgICA9IHNvY19jYW1lcmFfcmVxYnVm
-cywNCiAgICAgICAgLnZpZGlvY190cnlfZm10X3ZpZF9jYXAgID0gc29jX2NhbWVyYV90cnlfZm10
-X3ZpZF9jYXAsDQogICAgICAgIC52aWRpb2NfcXVlcnlidWYgICAgICAgICA9IHNvY19jYW1lcmFf
-cXVlcnlidWYsDQpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9tZWRpYS9zb2NfY2FtZXJhLmggYi9pbmNs
-dWRlL21lZGlhL3NvY19jYW1lcmEuaA0KaW5kZXggODZlMzYzMS4uNmU0ODAwYyAxMDA2NDQNCi0t
-LSBhL2luY2x1ZGUvbWVkaWEvc29jX2NhbWVyYS5oDQorKysgYi9pbmNsdWRlL21lZGlhL3NvY19j
-YW1lcmEuaA0KQEAgLTg1LDYgKzg1LDcgQEAgc3RydWN0IHNvY19jYW1lcmFfaG9zdF9vcHMgew0K
-ICAgICAgICBpbnQgKCpzZXRfY3RybCkoc3RydWN0IHNvY19jYW1lcmFfZGV2aWNlICosIHN0cnVj
-dCB2NGwyX2NvbnRyb2wgKik7DQogICAgICAgIGludCAoKmdldF9wYXJtKShzdHJ1Y3Qgc29jX2Nh
-bWVyYV9kZXZpY2UgKiwgc3RydWN0IHY0bDJfc3RyZWFtcGFybSAqKTsNCiAgICAgICAgaW50ICgq
-c2V0X3Bhcm0pKHN0cnVjdCBzb2NfY2FtZXJhX2RldmljZSAqLCBzdHJ1Y3QgdjRsMl9zdHJlYW1w
-YXJtICopOw0KKyAgICAgICBpbnQgKCplbnVtX2ZzaXplcykoc3RydWN0IHNvY19jYW1lcmFfZGV2
-aWNlICosIHN0cnVjdCB2NGwyX2ZybXNpemVlbnVtICopOw0KICAgICAgICB1bnNpZ25lZCBpbnQg
-KCpwb2xsKShzdHJ1Y3QgZmlsZSAqLCBwb2xsX3RhYmxlICopOw0KICAgICAgICBjb25zdCBzdHJ1
-Y3QgdjRsMl9xdWVyeWN0cmwgKmNvbnRyb2xzOw0KICAgICAgICBpbnQgbnVtX2NvbnRyb2xzOw0K
-ZGlmZiAtLWdpdCBhL2luY2x1ZGUvbWVkaWEvdjRsMi1zdWJkZXYuaCBiL2luY2x1ZGUvbWVkaWEv
-djRsMi1zdWJkZXYuaA0KaW5kZXggYjAzMTZhNy4uMGQ0ODJjOSAxMDA2NDQNCi0tLSBhL2luY2x1
-ZGUvbWVkaWEvdjRsMi1zdWJkZXYuaA0KKysrIGIvaW5jbHVkZS9tZWRpYS92NGwyLXN1YmRldi5o
-DQpAQCAtMjc1LDYgKzI3NSw4IEBAIHN0cnVjdCB2NGwyX3N1YmRldl92aWRlb19vcHMgew0KICAg
-ICAgICAgICAgICAgICAgICAgICAgc3RydWN0IHY0bDJfZHZfdGltaW5ncyAqdGltaW5ncyk7DQog
-ICAgICAgIGludCAoKmVudW1fbWJ1c19mbXQpKHN0cnVjdCB2NGwyX3N1YmRldiAqc2QsIHVuc2ln
-bmVkIGludCBpbmRleCwNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgZW51bSB2NGwyX21i
-dXNfcGl4ZWxjb2RlICpjb2RlKTsNCisgICAgICAgaW50ICgqZW51bV9tYnVzX2ZzaXplcykoc3Ry
-dWN0IHY0bDJfc3ViZGV2ICpzZCwNCisgICAgICAgICAgICAgICAgICAgICAgICAgICAgc3RydWN0
-IHY0bDJfZnJtc2l6ZWVudW0gKmZzaXplKTsNCiAgICAgICAgaW50ICgqZ19tYnVzX2ZtdCkoc3Ry
-dWN0IHY0bDJfc3ViZGV2ICpzZCwNCiAgICAgICAgICAgICAgICAgICAgICAgICAgc3RydWN0IHY0
-bDJfbWJ1c19mcmFtZWZtdCAqZm10KTsNCiAgICAgICAgaW50ICgqdHJ5X21idXNfZm10KShzdHJ1
-Y3QgdjRsMl9zdWJkZXYgKnNkLA0KLS0NCjEuNi4zLjMNCg0K
+On 01/10/2011 06:20 PM, Oliver Endriss wrote:
+> On Monday 10 January 2011 15:05:34 Andreas Oberritter wrote:
+>> On 01/10/2011 10:36 AM, Oliver Endriss wrote:
+>>> From: Ralph Metzler <rjkm@metzlerbros.de>
+>>>
+>>> Driver for the Common Interface Controller CXD2099AR.
+>>> Supports the CI of the cineS2 DVB-S2.
+>>>
+>>> For now, data is passed through '/dev/dvb/adapterX/sec0':
+>>> - Encrypted data must be written to 'sec0'.
+>>> - Decrypted data can be read from 'sec0'.
+>>> - Setup the CAM using device 'ca0'.
+>>
+>> Nack. In DVB API terms, "sec" stands for satellite equipment control,
+>> and if I remember correctly, sec0 already existed in the first versions
+>> of the API and that's why its leftovers can be abused by this driver.
+>>
+>> The interfaces for writing data are dvr0 and demux0. If they don't fit
+>> for decryption of recorded data, then they should be extended.
+>>
+>> For decryption of live data, no new user interface needs to be created.
+> 
+> There was an attempt to find a solution for the problem in thread
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg22196.html
+> 
+> As that discussion did not come to a final solution, and the driver is
+> still experimental, I left the original patch 'as is'.
+
+Thanks for the pointer. My impression from the quoted thread is that the
+most desired and viable solution was to create a ca device node which
+can be virtually connected on demand to a demux or dvr device of another
+adapter, but there was no intent to put the required amount of work into
+it. That's fair, but IMHO not suitable for submission to the mainline
+kernel.
+
+This definitely needs more thought.
+
+Maybe the adapter-based scheme currently in use needs to be revised
+thoroughly. The "budget" type of adapters are basically just frontends
+and we should be able to interconnect those (and also other) frontends
+with CIs, demuxes and decoders of different adapters, if the underlying
+buses allow it. Is this something the media controller and mem2mem APIs
+are trying to solve for V4L? If yes, this could become interesting for
+DVB, too.
+
+Regards,
+Andreas
