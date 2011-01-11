@@ -1,237 +1,103 @@
 Return-path: <mchehab@pedra>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:32966 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754190Ab1AaI4r (ORCPT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:56296 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755606Ab1AKKr0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Jan 2011 03:56:47 -0500
-Date: Mon, 31 Jan 2011 00:56:40 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Linux Input <linux-input@vger.kernel.org>
-Cc: Jiri Kosina <jkosina@suse.cz>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH] Input: switch completely over to the new versions of
- get/setkeycode
-Message-ID: <20110131085640.GB30343@core.coreip.homeip.net>
+	Tue, 11 Jan 2011 05:47:26 -0500
+Received: by gyb11 with SMTP id 11so7683423gyb.19
+        for <linux-media@vger.kernel.org>; Tue, 11 Jan 2011 02:47:25 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <4D2AFC85.40709@redhat.com>
+References: <201101072053.37211@orion.escape-edv.de>
+	<AANLkTinj2NcOcVUPifsNcvbs=Mivwe89+hg8XLsCJnQ7@mail.gmail.com>
+	<201101072206.30323.hverkuil@xs4all.nl>
+	<AANLkTik0-n-KBrTQa4kjahLXyqLagMp+A77zcV3hVAx5@mail.gmail.com>
+	<4D2AFC85.40709@redhat.com>
+Date: Tue, 11 Jan 2011 21:47:25 +1100
+Message-ID: <AANLkTi=f-KBMROg1zWzUXyXoBUY3b=ksh8r=uSbbzoue@mail.gmail.com>
+Subject: Re: Debug code in HG repositories
+From: Vincent McIntyre <vincent.mcintyre@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Input: switch completely over to the new versions of get/setkeycode
+On 1/10/11, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+> Em 07-01-2011 23:02, Vincent McIntyre escreveu:
+>> On 1/8/11, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>
+>>> Have you tried Mauro's media_build tree? I had to use it today to test a
+>>> driver from git on a 2.6.35 kernel. Works quite nicely. Perhaps we should
+>>> promote this more. I could add backwards compatibility builds to my daily
+>>> build script that uses this in order to check for which kernel versions
+>>> this compiles if there is sufficient interest.
+>>>
+>>
+>> As an end-user I would be interested in seeing this added, since it
+>> will allow faster detection of breakage in the older versions. For
+>> instance building against 2.6.32 fails like this:
+>>
+>>   CC [M]  /home/vjm/git/clones/linuxtv.org/new_build/v4l/hdpvr-i2c.o
+>> /home/vjm/git/clones/linuxtv.org/new_build/v4l/hdpvr-i2c.c: In
+>> function 'hdpvr_new_i2c_ir':
+>> /home/vjm/git/clones/linuxtv.org/new_build/v4l/hdpvr-i2c.c:62: error:
+>> too many arguments to function 'i2c_new_probed_device'
+>> make[4]: *** [/home/vjm/git/clones/linuxtv.org/new_build/v4l/hdpvr-i2c.o]
+>> Error 1
+>> make[3]: *** [_module_/home/vjm/git/clones/linuxtv.org/new_build/v4l]
+>> Error 2
+>> make[3]: Leaving directory
+>> `/usr/src/linux-headers-2.6.32-26-ec297b-generic'
+>> make[2]: *** [default] Error 2
+>> make[2]: Leaving directory
+>> `/home/vjm/git/clones/linuxtv.org/new_build/v4l'
+>> make[1]: *** [all] Error 2
+>> make[1]: Leaving directory `/home/vjm/git/clones/linuxtv.org/new_build'
+>> make: *** [default] Error 2
+>>
+>> It's unclear that adding this would cause a lot of extra work; the
+>> patches that need to be applied are quite few - a tribute to the
+>> design work!
+>
+> That's weird. Here, it compiles fine against my 2.6.32 kernel, as there's a
+> patch that removes the extra parameter. I'll double check and add a fix
+> if I found something wrong.
 
-All users of old style get/setkeycode methids have been converted so
-it is time to retire them.
+I think a couple of modules may have been missed;
+$ cd media_build
+$ grep -rl i2c_new_probed_device v4l | grep -v .o
+v4l/cx23885-i2c.c
+v4l/bttv-input.c
+v4l/cx88-input.c
+v4l/ivtv-i2c.c
+v4l/hdpvr-i2c.c
+v4l/v4l2-common.c
+v4l/cx18-i2c.c
+v4l/em28xx-cards.c
 
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
----
+$ grep +++ backports/v2.6.35_i2c_new_probed_device.patch
++++ b/drivers/media/video/bt8xx/bttv-input.c    Tue Oct 26 14:17:09 2010 -0200
++++ b/drivers/media/video/cx18/cx18-i2c.c       Tue Oct 26 14:17:09 2010 -0200
++++ b/drivers/media/video/cx23885/cx23885-i2c.c Tue Oct 26 14:17:09 2010 -0200
++++ b/drivers/media/video/em28xx/em28xx-cards.c Tue Oct 26 14:17:09 2010 -0200
++++ b/drivers/media/video/ivtv/ivtv-i2c.c       Tue Oct 26 14:17:09 2010 -0200
++++ b/drivers/media/video/v4l2-common.c Tue Oct 26 14:17:09 2010 -0200
++++ b/drivers/media/video/ivtv/ivtv-i2c.c       Tue Oct 26 23:18:52 2010 -0200
 
-Jiri, Mauro,
+which on the face of it suggests
+  btty-input.c
+  cx88-input.c
+  hdpvr-i2c.c
+need looking at.
 
-There is not a good way to avoid crossing multiple subsystems but the
-changes are minimal, so if you are OK with the patch I'd like to move it
-through my tree for .39.
+I get the same result whether building from a git clone of media-tree
+or via media_build/build.sh.
 
-Thanks!
+I am building against ubuntu 2.6.32-26-generic aka 2.6.32.24+drm33.11, on i386.
+I am using just their kernel-headers package for the build. Usually it works ok.
 
- drivers/hid/hid-input.c                    |    4 +-
- drivers/input/input.c                      |   55 ++++------------------------
- drivers/input/misc/ati_remote2.c           |    4 +-
- drivers/input/sparse-keymap.c              |    4 +-
- drivers/media/dvb/dvb-usb/dvb-usb-remote.c |    4 +-
- drivers/media/rc/rc-main.c                 |    4 +-
- include/linux/input.h                      |   12 ++----
- 7 files changed, 20 insertions(+), 67 deletions(-)
-
-
-diff --git a/drivers/hid/hid-input.c b/drivers/hid/hid-input.c
-index 7f552bf..ba2aeea 100644
---- a/drivers/hid/hid-input.c
-+++ b/drivers/hid/hid-input.c
-@@ -888,8 +888,8 @@ int hidinput_connect(struct hid_device *hid, unsigned int force)
- 					hid->ll_driver->hidinput_input_event;
- 				input_dev->open = hidinput_open;
- 				input_dev->close = hidinput_close;
--				input_dev->setkeycode_new = hidinput_setkeycode;
--				input_dev->getkeycode_new = hidinput_getkeycode;
-+				input_dev->setkeycode = hidinput_setkeycode;
-+				input_dev->getkeycode = hidinput_getkeycode;
- 
- 				input_dev->name = hid->name;
- 				input_dev->phys = hid->phys;
-diff --git a/drivers/input/input.c b/drivers/input/input.c
-index 11905b6..d6e8bd8 100644
---- a/drivers/input/input.c
-+++ b/drivers/input/input.c
-@@ -791,22 +791,9 @@ int input_get_keycode(struct input_dev *dev, struct input_keymap_entry *ke)
- 	int retval;
- 
- 	spin_lock_irqsave(&dev->event_lock, flags);
--
--	if (dev->getkeycode) {
--		/*
--		 * Support for legacy drivers, that don't implement the new
--		 * ioctls
--		 */
--		u32 scancode = ke->index;
--
--		memcpy(ke->scancode, &scancode, sizeof(scancode));
--		ke->len = sizeof(scancode);
--		retval = dev->getkeycode(dev, scancode, &ke->keycode);
--	} else {
--		retval = dev->getkeycode_new(dev, ke);
--	}
--
-+	retval = dev->getkeycode(dev, ke);
- 	spin_unlock_irqrestore(&dev->event_lock, flags);
-+
- 	return retval;
- }
- EXPORT_SYMBOL(input_get_keycode);
-@@ -831,35 +818,7 @@ int input_set_keycode(struct input_dev *dev,
- 
- 	spin_lock_irqsave(&dev->event_lock, flags);
- 
--	if (dev->setkeycode) {
--		/*
--		 * Support for legacy drivers, that don't implement the new
--		 * ioctls
--		 */
--		unsigned int scancode;
--
--		retval = input_scancode_to_scalar(ke, &scancode);
--		if (retval)
--			goto out;
--
--		/*
--		 * We need to know the old scancode, in order to generate a
--		 * keyup effect, if the set operation happens successfully
--		 */
--		if (!dev->getkeycode) {
--			retval = -EINVAL;
--			goto out;
--		}
--
--		retval = dev->getkeycode(dev, scancode, &old_keycode);
--		if (retval)
--			goto out;
--
--		retval = dev->setkeycode(dev, scancode, ke->keycode);
--	} else {
--		retval = dev->setkeycode_new(dev, ke, &old_keycode);
--	}
--
-+	retval = dev->setkeycode(dev, ke, &old_keycode);
- 	if (retval)
- 		goto out;
- 
-@@ -1846,11 +1805,11 @@ int input_register_device(struct input_dev *dev)
- 		dev->rep[REP_PERIOD] = 33;
- 	}
- 
--	if (!dev->getkeycode && !dev->getkeycode_new)
--		dev->getkeycode_new = input_default_getkeycode;
-+	if (!dev->getkeycode)
-+		dev->getkeycode = input_default_getkeycode;
- 
--	if (!dev->setkeycode && !dev->setkeycode_new)
--		dev->setkeycode_new = input_default_setkeycode;
-+	if (!dev->setkeycode)
-+		dev->setkeycode = input_default_setkeycode;
- 
- 	dev_set_name(&dev->dev, "input%ld",
- 		     (unsigned long) atomic_inc_return(&input_no) - 1);
-diff --git a/drivers/input/misc/ati_remote2.c b/drivers/input/misc/ati_remote2.c
-index 0b0e9be..9ccdb82 100644
---- a/drivers/input/misc/ati_remote2.c
-+++ b/drivers/input/misc/ati_remote2.c
-@@ -612,8 +612,8 @@ static int ati_remote2_input_init(struct ati_remote2 *ar2)
- 	idev->open = ati_remote2_open;
- 	idev->close = ati_remote2_close;
- 
--	idev->getkeycode_new = ati_remote2_getkeycode;
--	idev->setkeycode_new = ati_remote2_setkeycode;
-+	idev->getkeycode = ati_remote2_getkeycode;
-+	idev->setkeycode = ati_remote2_setkeycode;
- 
- 	idev->name = ar2->name;
- 	idev->phys = ar2->phys;
-diff --git a/drivers/input/sparse-keymap.c b/drivers/input/sparse-keymap.c
-index 7729e54..337bf51 100644
---- a/drivers/input/sparse-keymap.c
-+++ b/drivers/input/sparse-keymap.c
-@@ -210,8 +210,8 @@ int sparse_keymap_setup(struct input_dev *dev,
- 
- 	dev->keycode = map;
- 	dev->keycodemax = map_size;
--	dev->getkeycode_new = sparse_keymap_getkeycode;
--	dev->setkeycode_new = sparse_keymap_setkeycode;
-+	dev->getkeycode = sparse_keymap_getkeycode;
-+	dev->setkeycode = sparse_keymap_setkeycode;
- 
- 	return 0;
- 
-diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-remote.c b/drivers/media/dvb/dvb-usb/dvb-usb-remote.c
-index 347fbd4..b2b9415 100644
---- a/drivers/media/dvb/dvb-usb/dvb-usb-remote.c
-+++ b/drivers/media/dvb/dvb-usb/dvb-usb-remote.c
-@@ -198,8 +198,8 @@ static int legacy_dvb_usb_remote_init(struct dvb_usb_device *d)
- 	d->input_dev = input_dev;
- 	d->rc_dev = NULL;
- 
--	input_dev->getkeycode_new = legacy_dvb_usb_getkeycode;
--	input_dev->setkeycode_new = legacy_dvb_usb_setkeycode;
-+	input_dev->getkeycode = legacy_dvb_usb_getkeycode;
-+	input_dev->setkeycode = legacy_dvb_usb_setkeycode;
- 
- 	/* set the bits for the keys */
- 	deb_rc("key map size: %d\n", d->props.rc.legacy.rc_map_size);
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 512a2f4..c376928 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -966,8 +966,8 @@ struct rc_dev *rc_allocate_device(void)
- 		return NULL;
- 	}
- 
--	dev->input_dev->getkeycode_new = ir_getkeycode;
--	dev->input_dev->setkeycode_new = ir_setkeycode;
-+	dev->input_dev->getkeycode = ir_getkeycode;
-+	dev->input_dev->setkeycode = ir_setkeycode;
- 	input_set_drvdata(dev->input_dev, dev);
- 
- 	spin_lock_init(&dev->rc_map.lock);
-diff --git a/include/linux/input.h b/include/linux/input.h
-index e428382..056ae8a 100644
---- a/include/linux/input.h
-+++ b/include/linux/input.h
-@@ -1154,8 +1154,6 @@ struct ff_effect {
-  *	sparse keymaps. If not supplied default mechanism will be used.
-  *	The method is being called while holding event_lock and thus must
-  *	not sleep
-- * @getkeycode_new: transition method
-- * @setkeycode_new: transition method
-  * @ff: force feedback structure associated with the device if device
-  *	supports force feedback effects
-  * @repeat_key: stores key code of the last key pressed; used to implement
-@@ -1234,14 +1232,10 @@ struct input_dev {
- 	void *keycode;
- 
- 	int (*setkeycode)(struct input_dev *dev,
--			  unsigned int scancode, unsigned int keycode);
-+			  const struct input_keymap_entry *ke,
-+			  unsigned int *old_keycode);
- 	int (*getkeycode)(struct input_dev *dev,
--			  unsigned int scancode, unsigned int *keycode);
--	int (*setkeycode_new)(struct input_dev *dev,
--			      const struct input_keymap_entry *ke,
--			      unsigned int *old_keycode);
--	int (*getkeycode_new)(struct input_dev *dev,
--			      struct input_keymap_entry *ke);
-+			  struct input_keymap_entry *ke);
- 
- 	struct ff_device *ff;
- 
--- 
-Dmitry
+Cheers
+Vince
