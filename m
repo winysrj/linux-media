@@ -1,46 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35491 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751899Ab1AGNgd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jan 2011 08:36:33 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC PATCH 2/5] v4l2-subdev: add (un)register internal ops
-Date: Fri, 7 Jan 2011 14:37:16 +0100
-Cc: linux-media@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-References: <1294404455-22050-1-git-send-email-hverkuil@xs4all.nl> <2bce44c24896652e068d2c2a679e13c6bd820b65.1294402580.git.hverkuil@xs4all.nl>
-In-Reply-To: <2bce44c24896652e068d2c2a679e13c6bd820b65.1294402580.git.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Received: from mx1.redhat.com ([209.132.183.28]:63259 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752988Ab1ALSEx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Jan 2011 13:04:53 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p0CI4rNt018186
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 12 Jan 2011 13:04:53 -0500
+Received: from pedra (vpn-234-205.phx2.redhat.com [10.3.234.205])
+	by int-mx12.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p0CI3oVQ005945
+	for <linux-media@vger.kernel.org>; Wed, 12 Jan 2011 13:04:52 -0500
+Date: Wed, 12 Jan 2011 18:03:45 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 1/2] [media] ir-kbd-i2c: Make IR debug messages more useful
+Message-ID: <20110112180345.04204ee3@pedra>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201101071437.16632.laurent.pinchart@ideasonboard.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Thanks for the patch.
-
-On Friday 07 January 2011 13:47:32 Hans Verkuil wrote:
-> Some subdevs need to call into the board code after they are registered
-> and have a valid struct v4l2_device pointer. The s_config op was abused
-> for this, but now that it is removed we need a cleaner way of solving this.
-> 
-> So this patch adds a struct with internal ops that the v4l2 core can call.
-> 
-> Currently only two ops exist: register and unregister. Subdevs can
-> implement these to call the board code and pass it the v4l2_device
-> pointer, which the board code can then use to get access to the struct
-> that embeds the v4l2_device.
-> 
-> It is expected that in the future open and close ops will also be added.
-> 
-> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
+diff --git a/drivers/media/video/ir-kbd-i2c.c b/drivers/media/video/ir-kbd-i2c.c
+index c87b6bc..b173e40 100644
+--- a/drivers/media/video/ir-kbd-i2c.c
++++ b/drivers/media/video/ir-kbd-i2c.c
+@@ -244,15 +244,17 @@ static void ir_key_poll(struct IR_i2c *ir)
+ 	static u32 ir_key, ir_raw;
+ 	int rc;
+ 
+-	dprintk(2,"ir_poll_key\n");
++	dprintk(3, "%s\n", __func__);
+ 	rc = ir->get_key(ir, &ir_key, &ir_raw);
+ 	if (rc < 0) {
+ 		dprintk(2,"error\n");
+ 		return;
+ 	}
+ 
+-	if (rc)
++	if (rc) {
++		dprintk(1, "%s: keycode = 0x%04x\n", __func__, ir_key);
+ 		rc_keydown(ir->rc, ir_key, 0);
++	}
+ }
+ 
+ static void ir_work(struct work_struct *work)
 -- 
-Regards,
+1.7.1
 
-Laurent Pinchart
+
