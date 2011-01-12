@@ -1,86 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:33945 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754728Ab1AMNEw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Jan 2011 08:04:52 -0500
-Message-ID: <4D2EF86B.80508@redhat.com>
-Date: Thu, 13 Jan 2011 11:04:43 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-CC: "'Marek Szyprowski'" <m.szyprowski@samsung.com>,
-	"'Sylwester Nawrocki'" <s.nawrocki@samsung.com>, pawel@osciak.com,
-	linux-media@vger.kernel.org
-Subject: Re: [GIT PATCHES FOR 2.6.38] Videbuf2 framework, NOON010PC30 sensor
- driver and s5p-fimc updates
-References: <4D21FDC1.7000803@samsung.com> <4D2CBB3F.5050904@redhat.com> <000001cbb243$1051cb60$30f56220$%szyprowski@samsung.com> <4D2E0DD8.4010305@redhat.com> <000001cbb2fe$5d8f2290$18ad67b0$%p@samsung.com> <000701cbb31b$3e692c40$bb3b84c0$%p@samsung.com>
-In-Reply-To: <000701cbb31b$3e692c40$bb3b84c0$%p@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:36622 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932791Ab1ALEk0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Jan 2011 23:40:26 -0500
+Received: by qyj19 with SMTP id 19so3733780qyj.19
+        for <linux-media@vger.kernel.org>; Tue, 11 Jan 2011 20:40:25 -0800 (PST)
+Subject: Re: Enable IR on hdpvr
+Mime-Version: 1.0 (Apple Message framework v1082)
+Content-Type: text/plain; charset=us-ascii
+From: Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <EC37FC85-82B2-48AE-BB94-64ED00E7647D@wilsonet.com>
+Date: Tue, 11 Jan 2011 23:40:28 -0500
+Cc: Jason Gauthier <jgauthier@lastar.com>, Janne Grunau <j@jannau.net>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <93CE8497-D6AB-43BA-A239-EE32D51582FC@wilsonet.com>
+References: <65DE7931C559BF4DBEE42C3F8246249A0B686EB0@V-EXMAILBOX.ctg.com> <8AFBEFD7-69E3-4E71-B155-EA773C2FED43@wilsonet.com> <65DE7931C559BF4DBEE42C3F8246249A0B69B014@V-ALBEXCHANGE.ctg.com> <EC37FC85-82B2-48AE-BB94-64ED00E7647D@wilsonet.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 13-01-2011 10:13, Andrzej Pietrasiewicz escreveu:
-> Hello again, Mauro,
+On Jan 10, 2011, at 2:50 PM, Jarod Wilson wrote:
+
+> On Jan 10, 2011, at 9:25 AM, Jason Gauthier wrote:
 > 
-> On Thursday, January 13, 2011 9:46 AM Andrzej Pietrasiewicz  wrote:
+>>>> 
+>>>> I did simply try changing:
+>>>> 
+>>>>     /* until i2c is working properly */
+>>>>     retval = 0; /* hdpvr_register_i2c_ir(dev); */
+>>>>     if (retval < 0)
+>>>> 
+>>>> so that it would register with i2c.
+>>>> Doing so returns a positive registration with I2C, but the lirc_zilog 
+>>>> driver doesn't see the chip when it loads. (The lirc_zilog is now in 
+>>>> the kernel, yay)
+>> 
+>>> There's a bit more to it than just the one line change. Here's the patch we're carrying in the Fedora kernels to enable it:
+>> 
+>>> http://wilsonet.com/jarod/lirc_misc/hdpvr-ir/hdpvr-ir-enable.patch
+>> 
+>>> Janne, I've heard many success stories w/the hdpvr IR lately, and almost no reports of lockups, so I'm thinking a firmware update may have helped out >here, and thus, maybe its time we just go ahead and push this patch along upstream? We still require someone to load lirc_zilog manually, so it seems like a >fairly low-risk thing to do.
+>> 
+>> Thanks.  What source tree is this against?  I see the patch is dated 09/2009.  Manually comparing to my .37 source tree it does not appear to match up.
+>> I don't mind bringing in a third source tree to compare against to see if I can make this work on .37, I just don't know which one!
 > 
->>
->> Hello Mauro,
->>
->> On Wednesday, January 12, 2011 9:24 PM Mauro Carvalho Chehab wrote:
->>>
->>> Em 12-01-2011 08:25, Marek Szyprowski escreveu:
->>>> Hello Mauro,
->>>>
->>>> I've rebased our fimc and saa patches onto
->>> http://linuxtv.org/git/mchehab/experimental.git
->>>> vb2_test branch.
->>>>
->>>> The last 2 patches are for SAA7134 driver and are only to show that
->>> videobuf2-dma-sg works
->>>> correctly.
->>>
->>> On my first test with saa7134, it hanged. It seems that the code
->>> reached a dead lock.
->>>
->>> On my test environment, I'm using a remote machine, without monitor.
->>> My test is using
->>> qv4l2 via a remote X server. Using a remote X server is an
->> interesting
->>> test, as it will likely loose some frames, increasing the probability
->>> of races and dead locks.
->>>
->>
->> We did a similar test using a remote machine and qv4l2 with X
->> forwarding.
->> Both userptr and mmap worked. Read does not work because it is not
->> implemented, but there was no freeze anyway, just green screen in
->> qv4l2.
->> However, we set "Capture Image Formats" to "YUV - 4:2:2 packed, YUV",
->> "TV Standard" to "PAL". I enclose a (lengthy) log for reference - it is
->> a log of a short session when modules where loaded, qv4l2 started,
->> userptr mode run for a while and then mmap mode run for a while.
->>
->> We did it on a 32-bit system. We are going to repeat the test on a 64-
->> bit system, it just takes some time to set it up. Perhaps this is the
->> difference.
+> Bah. Yeah, sorry, that wasn't the current patch in Fedora 14. This is:
 > 
-> We did the test on a 64-bit system, both locally and with X forwarding to a
-> remote machine. It works in both cases.
-> Our TV card is "Avermedia AverTV Super 007" pure analog. Yours is a hybrid
-> analog/ISDB card. Does your card work with videobuf 1? 
+> http://wilsonet.com/jarod/lirc_misc/hdpvr-ir/hdpvr-ir-enable-2.patch
+> 
+> Its atop the F14 2.6.35.10 kernel, which has a fairly recent v4l/dvb
+> backport on top of it, so it should be pretty close to matching the
+> current v4l/dvb code...
 
-Yes, it works (well, sort of - there's a problem a the tuner driver that I didn't
-fix yet, so, I'm receiving just static on it, but yet, it is a stream, and this
-works fine with videobuf1).
+With the help of Andy Walls and Jean Delvare, I think we've hashed out
+an updated patch that will work sitting atop the current v4l/dvb hdpvr
+code, but I'm only just now getting around to compile-testing it, and
+its past my bedtime, so it'll be tomorrow before I can do any sort of
+functional testing (but hey, due to the snow, I'll be working from
+home tomorrow, where my hdpvr happens to be...).
 
-> Perhaps you could do
-> such a test: please use code from the commit f73e66a8e91e4ebb "v4l: saa7134:
-> remove radio, vbi, mpeg, input, alsa, tvaudio, saa6752hs support" and see if
-> you TV card works with videobuf (not videobuf2)?
+-- 
+Jarod Wilson
+jarod@wilsonet.com
 
-Ok, I'll do that, or maybe I'll just replace by an analog-only board.
 
-Cheers,
-Mauro
+
