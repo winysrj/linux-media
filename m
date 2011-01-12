@@ -1,135 +1,132 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1300 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751509Ab1ARHWL convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42022 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751947Ab1ALJFv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jan 2011 02:22:11 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Qing Xu <qingx@marvell.com>
-Subject: Re: soc-camera s_fmt question?
-Date: Tue, 18 Jan 2011 08:21:57 +0100
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <AANLkTimucMmO8Vb_y4xnhehQt+mamNMmXyY_qfrVOSo7@mail.gmail.com> <201101171854.27768.hverkuil@xs4all.nl> <7BAC95F5A7E67643AAFB2C31BEE662D014040BF2AA@SC-VEXCH2.marvell.com>
-In-Reply-To: <7BAC95F5A7E67643AAFB2C31BEE662D014040BF2AA@SC-VEXCH2.marvell.com>
+	Wed, 12 Jan 2011 04:05:51 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Subject: Re: [RFC] Cropping and scaling with subdev pad-level operations
+Date: Wed, 12 Jan 2011 10:06:44 +0100
+Cc: linux-media@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+References: <201101061633.30029.laurent.pinchart@ideasonboard.com> <4D2CE84E.8020700@gmail.com>
+In-Reply-To: <4D2CE84E.8020700@gmail.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201101180821.57714.hverkuil@xs4all.nl>
+Content-Transfer-Encoding: 7bit
+Message-Id: <201101121006.45099.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday, January 18, 2011 03:30:09 Qing Xu wrote:
-> Hi,
-> 
-> Thanks for your answer! So, we will be waiting and keeping sync with latest soc-camera + videobuf2 framework.
+Hi Sylwester,
 
-Erm, just to avoid any confusion: I am *not* going to convert soc-camera
-to videobuf2. I just mentioned it because if someone does, then that should
-fix your problems with REQBUFS(0) (and probably STREAMON/OFF problems as well).
+On Wednesday 12 January 2011 00:31:26 Sylwester Nawrocki wrote:
+> On 01/06/2011 04:33 PM, Laurent Pinchart wrote:
 
-I think soc-camera will benefit a lot from such a move so I hope someone
-(Guennadi? You?) will take on this job.
+[snip]
 
-Regards,
+> > When the stream is off, we have two options:
+> > 
+> > - Handle crop rectangle modifications the same way as when the stream is
+> > on. This is cleaner, but bring one drawback. The user can't set the crop
+> > rectangle to 500x500 and output size to 750x750 directly. No matter
+> > whether the crop rectangle or output size is set first, the intermediate
+> > 500x5000/4000x4000 or 4000x4000/750x750 combination are invalid. An
+> > extra step will be needed: the crop rectangle will first be set to
+> > 1000x1000, the output size will then be set to 750x750, and the crop
+> > rectangle will finally be set to 500x500. That won't make life easy for
+> > userspace applications.
+> > 
+> > - Modify the output size when the crop rectangle is set. With this
+> > option, the output size is automatically set to the crop rectangle size
+> > when the crop rectangle is changed. With the above example, setting the
+> > crop rectangle to 500x500 will automatically set the output size to
+> > 500x500, and the user will then just have to set the output size to
+> > 750x750.
+> 
+> IMO, with the second option at some point it might get difficult to
+> determine in the application which parameters in the driver may change
+> when the application tries to change some parameter. I would expect the
+> side effects to be as local as possible so the application could possibly
+> get notified about them without additional steps.
 
-	Hans
+I quite agree with that. Otherwise applications will need to guess what the 
+side effects are, and they will end up hardcoding behaviours depending on the 
+device model. That's bad.
 
+> > The second option has a major drawback as well, as there's no way for
+> > applications to query the minimum/maximum zoom factor. With the first
+> > option an application can set the desired output size, and then set a
+> > very small crop rectangle to retrieve the minimum allowed crop rectangle
+> > (and thus the maximum zoom factor). With the second option the output
+> > size will be changed when the crop rectangle is set, so this isn't
+> > possible anymore.
+> > 
+> > Retrieving the maximum zoom factor in the stream off state is an
+> > application requirement to be able to display the zoom level on a GUI
+> > (with a slider for instance).
 > 
-> -Qing
+> In the Samsung S5P FIMC driver minimum and maximum scaling ratios are 1/64
+> and 64. So the scaling limits bite a bit less than in your case in typical
+> applications, the problem remains still same though.
+> The driver uses the v4l2 mem-to-mem framework so it may be considered much
+> as your resizer example with an input and output pad. The FIMC H/W supports
+> cropping at the scaler input and also an effective output rectangle can be
+> positioned within the output buffer. The latter allows e.g. placing the
+> video window at the arbitrary position on a framebuffer.
 > 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: 2011年1月18日 1:54
-> To: Guennadi Liakhovetski
-> Cc: Qing Xu; Laurent Pinchart; linux-media@vger.kernel.org
-> Subject: Re: soc-camera s_fmt question?
+> Currently, with the mem-to-mem driver the application is required to set
+> the format at the device input and output first (V4L2_BUF_TYPE_OUTPUT and
+> *_CAPTURE stream respectively). The relation between both image formats,
+> i.e. scaling ratio was not being checked in s_fmt because it also depended
+> on whether the rotator was enabled or not. So the check was postponed to
+> actual transaction setup/start. This seems wrong to me and I want to change
+> it so the scaler limits are checked in try/set_fmt, try/set_crop
+> and s_control(ROTATION).
 > 
-> On Monday, January 17, 2011 18:43:06 Guennadi Liakhovetski wrote:
-> > On Mon, 17 Jan 2011, Qing Xu wrote:
-> >
-> > > Hi,
-> > >
-> > > We are now nearly complete porting our camera driver to align with
-> > > soc-camera framework, however, we encounter a problem when it works with
-> > > our application during switch format from preview to still capture,
-> > > application's main calling sequence is as follow:
-> > > 1) s_fmt /* preview @ YUV, VGA */
-> > > 2) request buffer (buffer count = 6)
-> > > 2) queue buffer
-> > > 3) stream on
-> > > 4) q-buf, dq-buf...
-> > > 5) stream off
-> > >
-> > > 6) s_fmt /* still capture @ jpeg, 2592x1944*/
-> > > 7) request buffer (buffer count = 3)
-> > > 8) same as 3)->5)...
-> > >
-> > > The point is in soc_camera_s_fmt_vid_cap() {
-> > >         if (icd->vb_vidq.bufs[0]) {
-> > >                 dev_err(&icd->dev, "S_FMT denied: queue initialised\n");
-> > >                 ret = -EBUSY;
-> > >                 goto unlock;
-> > >         }
-> > > }
-> > > We didn't find vb_vidq.bufs[0] be free, (it is freed in
-> > > videobuf_mmap_free(), and in __videobuf_mmap_setup, but no one calls
-> > > videobuf_mmap_free(), and in __videobuf_mmap_setup it is freed at first
-> > > and then allocated sequentially), so we always fail at calling s_fmt.
-> > > My idea is to implement soc_camera_reqbufs(buffer count = 0), to provide
-> > > application opportunity to free this buffer node, refer to v4l2 spec,
-> > > http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-reqbufs.html
-> > > "A count value of zero frees all buffers, after aborting or finishing
-> > > any DMA in progress, an implicit VIDIOC_STREAMOFF."
-> >
-> > Currently buffers are freed in soc-camera upon close(). Yes, I know about
-> > that clause in the API spec, and I know, that it is unimplemented in
-> > soc-camera. Do you have a reason to prefer that over close()ing and
-> > re-open()ing the device?
+> Then when the crop rectangle is set it is being checked for the scaling
+> ratio limit against current crop/full window size at the opposite side
+> of the scaler.  When a scaling ratio is not within the supported range an
+> error is returned. The crop  window is adjusted in s_crop only when the
+> device's alignment requirements would not have been fulfilled. But I am
+> going to change that so the crop rectangle is adjusted according to the
+> resizer limits as well, without changing the effective image size at the
+> opposite side of the scaler.
+
+So that's option number 1. I think it's the best one (unless we can find a 
+better option 3, such as setting formats and crop rectangles on multiple pads 
+atomically).
+
+> > The OMAP3 ISP resizer currently implements the second option, and I'll
+> > modify it to implement the first option. The drawback is that some
+> > crop/output combinations will require an extra step to be achieved. I'd
+> > like your opinion on this issue. Is the behaviour described in option
+> > one acceptable ? Should the API be extended/modified to make it simpler
+> > for applications to configure the various sizes in the image pipeline ?
+> > Are we all doomed and will we have
 > 
-> I think it would be a good idea to look into converting soc_camera to the
-> new videobuf2 framework that was just merged. It has much better semantics
-> when it comes to allocating and freeing queues. You can actually understand
-> it, something that you can't say for the old videobuf. And videobuf2 does
-> the right thing with REQBUFS(0) as well.
-> 
-> Regards,
-> 
->         Hans
-> 
-> >
-> > Thanks
-> > Guennadi
-> >
-> > >
-> > > What do you think?
-> > >
-> > > Any ideas will be appreciated!
-> > > Thanks!
-> > > Qing Xu
-> > >
-> > > Email: qingx@marvell.com
-> > > Application Processor Systems Engineering,
-> > > Marvell Technology Group Ltd.
-> > >
-> >
-> > ---
-> > Guennadi Liakhovetski, Ph.D.
-> > Freelance Open-Source Software Developer
-> > http://www.open-technology.de/
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> 
-> --
-> Hans Verkuil - video4linux developer - sponsored by Cisco
-> �翳�.n�����+%��遍荻�w��.n��伐�{炳g����n�r■�����ㄨ&｛�夸z罐����zf＂������������赙z_璁�:+v�)撸�
-> 
-> 
+> Not sure if it is a good idea, but with the introduction of the pad
+> operations maybe it is worth to introduce some flags to vidioc_try/s_crop
+> selecting the exact behavior? However current struct v4l2_crop is rather
+> resistant to any backward compatible extensions.
+
+I'm using
+
+struct v4l2_subdev_crop {
+        __u32 which;
+        __u32 pad;
+        struct v4l2_rect rect;
+        __u32 reserved[10];
+};
+
+to set crop rectangles on subdevs, so it shouldn't be an issue. I'm not sure 
+if it's a good idea though, as it would make both drivers and applications 
+more complex. I think I like the idea of setting multiple formats and crop 
+rectangles atomically, but I have to think more about it.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Regards,
+
+Laurent Pinchart
