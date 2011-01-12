@@ -1,47 +1,102 @@
 Return-path: <mchehab@pedra>
-Received: from cain.gsoft.com.au ([203.31.81.10]:56926 "EHLO cain.gsoft.com.au"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751800Ab1AHM1f convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Jan 2011 07:27:35 -0500
-Subject: Re: Failure to build media_build
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=us-ascii
-From: "Daniel O'Connor" <darius@dons.net.au>
-In-Reply-To: <1294489436.2467.2.camel@tvboxspy>
-Date: Sat, 8 Jan 2011 22:57:08 +1030
-Cc: linux-media@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <4B54A1C9-7971-4A12-B8A5-113D71333F8A@dons.net.au>
-References: <771EA60D-3B3B-4C28-AD20-2CADDF57E26E@dons.net.au> <1294489436.2467.2.camel@tvboxspy>
-To: Malcolm Priestley <tvboxspy@gmail.com>
+Received: from mgw-da01.ext.nokia.com ([147.243.128.24]:39905 "EHLO
+	mgw-da01.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750915Ab1ALOpX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Jan 2011 09:45:23 -0500
+Received: from [172.21.25.171] (esdhcp-heru025171.research.nokia.com [172.21.25.171])
+	by mgw-da01.nokia.com (Switch-3.4.3/Switch-3.4.3) with ESMTP id p0CEjLPo032201
+	for <linux-media@vger.kernel.org>; Wed, 12 Jan 2011 16:45:21 +0200
+Message-ID: <4D2DBE81.3060906@nokia.com>
+Date: Wed, 12 Jan 2011 16:45:21 +0200
+From: =?ISO-8859-1?Q?Antti_Koskip=E4=E4?= <antti.koskipaa@nokia.com>
+MIME-Version: 1.0
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RFC: Extending the format setting ioctls for raw image sensors
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Introduction
+============
 
-On 08/01/2011, at 22:53, Malcolm Priestley wrote:
->> I don't need/want 1394 (I am testing a cx23885 FusionHDTV) but I don't know how to disable them :(
->> 
->> I tried make config but I have no idea what the "usual" answers would be.. Is there a way to generate a file of the default options which I can review and edit?
->> 
->> Thanks
->> 
-> 
-> edit v4l/.config and change firedtv to n.
+The image sensors used in camera phones are quite smart these days and thanks
+to the new Media Controller API they are now controlled as subdevs from
+userspace. SMIA++ compatible sensors support things like:
 
-Ahh, great!
+- Cropping (both analog and digital)
+- Binning (analog summing of adjacent pixels = downscaling)
+- Subsampling or skipping (= moire-prone downscaling)
+- Another type of downscaling which is more flexible.
 
-Thanks :)
+There are a lot of other controls as well but handling these three are
+complicated enough for one discussion thread. It would be nice to just set some
+size via S_FMT and let the sensor driver figure it all out, but it is not that
+simple.
 
---
-Daniel O'Connor software and network engineer
-for Genesis Software - http://www.gsoft.com.au
-"The nice thing about standards is that there
-are so many of them to choose from."
-  -- Andrew Tanenbaum
-GPG Fingerprint - 5596 B766 97C0 0E94 4347 295E E593 DC20 7B3F CE8C
+Let's take a hypothetical 3 MP sensor as an example. The sensor area is
+2048x1536. To produce different kinds of output sizes, the above parameters
+have to be set.
 
+For instance 2-by-2 binning would produce 1024x768 and 4-by-4
+binning would produce 512x384.
 
+You could also use 4-by-2 binning and 1-by-2 subsampling to produce 512x384.
 
+Or you could use the more flexible scaler.
 
+Depending on what you choose, the image quality may be different, image timings
+will change and possibly even power consumption will change. Because of this,
+we want to give userspace full freedom to control every parameter of the sensor
+and keep the driver as simple and as generic as possible. I heard the FCam guys
+were doing something like this already but I don't know how much of a hack
+their system is.
 
+Problem with current API
+========================
 
+There are only two subdev pad ioctls to set these things: S_FMT for size and
+S_CROP for one type of crop only. More is needed or this interface has to
+be extended somehow to allow these controls to be set. The additions could be
+either new ioctls or new V4L2 controls.
+
+Constraints for new controls
+============================
+
+- Not all binning types are supported by all SMIA++ sensors. For instance only
+  1-by-1, 2-by-1 and 4-by-2 may be supported instead of continuously variable
+  X-by-Y binning.
+
+- Subsampling takes 4 parameters: x,y even increment and x,y odd increment.
+  This allows more flexibility in picking the bayer elements (the components of
+  your output GRBG quad don't need to be next to each other on the sensor chip)
+
+- The downscaler in SMIA++ is weird. It only allows N/M downscaling where M
+  is fixed at 16 and N >= 16. Example: setting N=17 on the abobe 3MP sensor
+  would produce 1927x1445 (rounded) and N=32 would produce 1024x768 at the
+  output. Perhaps using 16:16 or 8:24 fixed point for this control would be
+  flexible enough?
+
+- The downscaler also has two modes: horizontal only and horizontal+vertical.
+  There is no vertical only mode in SMIA++.
+  In the H+V case the scale factor for both directions is the same. They cannot
+  be set separately for SMIA++ sensors.
+
+Conclusion
+==========
+
+So, how should the ioctls/controls for these parameters be created? Do we
+extend S_FMT with flag to set different "kinds" of formats or create new V4L2
+controls? If new controls, how should they be arranged/named?
+
+We don't want to create yet another set of incompatible private ioctls. This
+stuff should be standardised and be as generic as possible so that other
+sensor types/drivers can use it as well.
+
+Comments?
+
+Regards,
+
+Antti Koskip‰‰
+Nokia Corporation, MeeGo R&D
