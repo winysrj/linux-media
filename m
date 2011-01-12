@@ -1,43 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59767 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751140Ab1A0M3A (ORCPT
+Received: from relais.videotron.ca ([24.201.245.36]:23678 "EHLO
+	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753654Ab1ALTEQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jan 2011 07:29:00 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v6 2/7] v4l: subdev: Don't require core operations
-Date: Thu, 27 Jan 2011 13:28:53 +0100
-Message-Id: <1296131338-29892-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1296131338-29892-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1296131338-29892-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Wed, 12 Jan 2011 14:04:16 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN; charset=US-ASCII
+Date: Wed, 12 Jan 2011 14:04:12 -0500 (EST)
+From: Nicolas Pitre <nico@fluxnic.net>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>,
+	'Kyungmin Park' <kmpark@infradead.org>,
+	'Michal Nazarewicz' <m.nazarewicz@samsung.com>,
+	linux-arm-kernel@lists.infradead.org,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Johan MOSSBERG' <johan.xx.mossberg@stericsson.com>,
+	'Mel Gorman' <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
+	'Michal Nazarewicz' <mina86@mina86.com>, linux-mm@kvack.org,
+	'Ankita Garg' <ankita@in.ibm.com>,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	linux-media@vger.kernel.org,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: RE: [PATCHv8 00/12] Contiguous Memory Allocator
+In-reply-to: <001c01cbb289$864391f0$92cab5d0$%szyprowski@samsung.com>
+Message-id: <alpine.LFD.2.00.1101121357580.25498@xanadu.home>
+References: <cover.1292443200.git.m.nazarewicz@samsung.com>
+ <AANLkTim8_=0+-zM5z4j0gBaw3PF3zgpXQNetEn-CfUGb@mail.gmail.com>
+ <20101223100642.GD3636@n2100.arm.linux.org.uk>
+ <00ea01cba290$4d67f500$e837df00$%szyprowski@samsung.com>
+ <20101223121917.GG3636@n2100.arm.linux.org.uk>
+ <00ec01cba2a2$af20b8b0$0d622a10$%szyprowski@samsung.com>
+ <20101223134432.GJ3636@n2100.arm.linux.org.uk>
+ <001c01cbb289$864391f0$92cab5d0$%szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-There's no reason to require subdevices to implement the core
-operations. Remove the check for non-NULL core operations when
-initializing the subdev.
+On Wed, 12 Jan 2011, Marek Szyprowski wrote:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/media/v4l2-subdev.h |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+> I understand that modifying L1 page tables is definitely not a proper way of
+> handling this. It simply costs too much. But what if we consider that the DMA
+> memory can be only allocated from a specific range of the system memory?
+> Assuming that this range of memory is known during the boot time, it CAN be
+> mapped with two-level of tables in MMU. First level mapping will stay the
+> same all the time for all processes, but it would be possible to unmap the
+> pages required for DMA from the second level mapping what will be visible
+> from all the processes at once.
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index b0316a7..b636444 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -466,8 +466,7 @@ static inline void v4l2_subdev_init(struct v4l2_subdev *sd,
- 					const struct v4l2_subdev_ops *ops)
- {
- 	INIT_LIST_HEAD(&sd->list);
--	/* ops->core MUST be set */
--	BUG_ON(!ops || !ops->core);
-+	BUG_ON(!ops);
- 	sd->ops = ops;
- 	sd->v4l2_dev = NULL;
- 	sd->flags = 0;
--- 
-1.7.3.4
+How much memory are we talking about?  What is the typical figure?
 
+> Is there any reason why such solution won't work?
+
+It could work indeed.
+
+One similar solution that is already in place is to use highmem for that 
+reclaimable DMA memory.  It is easy to ensure affected highmem pages are 
+not mapped in kernel space.  And you can decide at boot time how many 
+highmem pages you want even if the system has less that 1GB of RAM.
+
+
+Nicolas
