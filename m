@@ -1,174 +1,199 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-in-07.arcor-online.net ([151.189.21.47]:50225 "EHLO
-	mail-in-07.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750991Ab1ADUJN (ORCPT
+Return-path: <mchehab@pedra>
+Received: from quail.cita.utoronto.ca ([128.100.76.6]:59638 "EHLO
+	quail.cita.utoronto.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932413Ab1ALNaI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Jan 2011 15:09:13 -0500
-Message-ID: <4D237E10.2010806@arcor.de>
-Date: Tue, 04 Jan 2011 21:07:44 +0100
-From: Stefan Ringel <stefan.ringel@arcor.de>
+	Wed, 12 Jan 2011 08:30:08 -0500
+Received: from cita.utoronto.ca (grizzly.cita.utoronto.ca [128.100.76.62])
+	by quail.cita.utoronto.ca (8.13.8/8.13.8) with ESMTP id p0CDHWxH030817
+	for <linux-media@vger.kernel.org>; Wed, 12 Jan 2011 08:17:32 -0500
+Received: from grizzly.cita.utoronto.ca (localhost [127.0.0.1])
+	by cita.utoronto.ca (8.14.4/8.14.4) with ESMTP id p0CDHWGn028704
+	for <linux-media@vger.kernel.org>; Wed, 12 Jan 2011 08:17:32 -0500
+Received: (from rjh@localhost)
+	by grizzly.cita.utoronto.ca (8.14.4/8.14.4/Submit) id p0CDHWu8028702
+	for linux-media@vger.kernel.org; Wed, 12 Jan 2011 08:17:32 -0500
+Date: Wed, 12 Jan 2011 08:17:32 -0500
+From: Robin Humble <robin.humble+dvb@anu.edu.au>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] dib7000m/p: struct alignment fix
+Message-ID: <20110112131732.GA26294@grizzly.cita.utoronto.ca>
 MIME-Version: 1.0
-To: Holger Nelson <hnelson@hnelson.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Add Terratec Grabster support to tm6000
-References: <alpine.DEB.2.00.1101041917040.6749@nova.crius.de>
-In-Reply-To: <alpine.DEB.2.00.1101041917040.6749@nova.crius.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="opJtzjQTFsWo+cga"
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+--opJtzjQTFsWo+cga
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi,
+
+this is basically a re-post of
+  http://www.linuxtv.org/pipermail/linux-dvb/2010-September/032744.html
+which fixes an Oops when tuning eg. AVerMedia DVB-T Volar, Hauppauge
+Nova-T, Winfast DTV. it seems to be quite commonly reported on this list.
+
+ [  809.128579] BUG: unable to handle kernel NULL pointer dereference at 0000000000000012
+ [  809.128586] IP: [<ffffffffa0013702>] i2c_transfer+0x16/0x124 [i2c_core]
+ [  809.128598] PGD 669a7067 PUD 79e5f067 PMD 0
+ [  809.128604] Oops: 0000 [#1] SMP
+ [  809.128608] last sysfs file: /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
+ [  809.128612] CPU 0
+ [  809.128614] Modules linked in: tcp_lp fuse coretemp hwmon_vid cpufreq_ondemand acpi_cpufreq freq_table mperf ip6t_REJECT nf_conntrack_ipv6 ip6table_filter ip6_tables ipv6 xfs exportfs uinput mt2060 mxl5005s af9013 dvb_usb_dib0700 ir_lirc_codec lirc_dev ir_sony_decoder ir_jvc_decoder dib7000p dib0090 dib7000m dvb_usb_af9015 dib0070 dvb_usb dib8000 dvb_core dib3000mc ir_rc6_decoder dibx000_common snd_hda_codec_intelhdmi ir_rc5_decoder snd_hda_codec_realtek snd_hda_intel ir_nec_decoder snd_hda_codec ldusb i2c_i801 snd_hwdep snd_seq snd_seq_device rc_core atl1 asus_atk0110 snd_pcm snd_timer mii snd soundcore snd_page_alloc iTCO_wdt iTCO_vendor_support microcode raid456 async_raid6_recov async_pq raid6_pq async_xor xor async_memcpy async_tx raid1 ata_generic firewire_ohci pata_acpi firewire_core crc_itu_t pata_jmicron i915 drm_kms_helper drm i2c_algo_bit i2c_core video output [last unloaded: scsi_wait_scan]
+ [  809.128692]
+ [  809.128696] Pid: 2525, comm: tzap Not tainted 2.6.35.10-72.fc14.x86_64 #1 P5E-VM HDMI/P5E-VM HDMI
+ [  809.128700] RIP: 0010:[<ffffffffa0013702>]  [<ffffffffa0013702>] i2c_transfer+0x16/0x124 [i2c_core]
+ [  809.128708] RSP: 0018:ffff880064a83ae8  EFLAGS: 00010296
+ [  809.128712] RAX: ffff880064a83b58 RBX: 00000000000000eb RCX: 0000000000000000
+ [  809.128715] RDX: 0000000000000002 RSI: ffff880064a83b38 RDI: 0000000000000002
+ [  809.128718] RBP: ffff880064a83b28 R08: ffff880079bcf7c0 R09: 0000000050000d80
+ [  809.128721] R10: 0000000000000005 R11: 0000000000004a38 R12: 0000000000000001
+ [  809.128725] R13: 0000000000000000 R14: ffffc900237e8000 R15: ffffc90023907000
+ [  809.128729] FS:  00007f2ff2dd3720(0000) GS:ffff880002000000(0000) knlGS:0000000000000000
+ [  809.128732] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+ [  809.128736] CR2: 0000000000000012 CR3: 000000007830d000 CR4: 00000000000006f0
+ [  809.128739] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+ [  809.128743] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+ [  809.128746] Process tzap (pid: 2525, threadinfo ffff880064a82000, task ffff8800379745c0)
+ [  809.128749] Stack:
+ [  809.128751]  ffff880064a83af8 ffffffff8103c142 ffff880079c41a90 00000000000000eb
+ [  809.128757] <0> 0000000000000001 0000000000000000 ffffc900237e8000 ffffc90023907000
+ [  809.128762] <0> ffff880064a83b88 ffffffffa0407124 0000000200000030 ffff880064a83b68
+ [  809.128768] Call Trace:
+ [  809.128776]  [<ffffffff8103c142>] ? need_resched+0x23/0x2d
+ [  809.128783]  [<ffffffffa0407124>] dib7000p_read_word+0x6d/0xbc [dib7000p]
+ [  809.128789]  [<ffffffff813360eb>] ? usb_submit_urb+0x2f8/0x33a
+ [  809.128795]  [<ffffffffa0407ae5>] dib7000p_pid_filter_ctrl+0x2d/0x90 [dib7000p]
+ [  809.128802]  [<ffffffffa044f35f>] stk70x0p_pid_filter_ctrl+0x19/0x1e [dvb_usb_dib0700]
+ [  809.128809]  [<ffffffffa03b4ef9>] dvb_usb_ctrl_feed+0xd7/0x123 [dvb_usb]
+ [  809.128815]  [<ffffffffa03b4f6a>] dvb_usb_start_feed+0x13/0x15 [dvb_usb]
+ [  809.128825]  [<ffffffffa035585c>] dmx_ts_feed_start_filtering+0x7d/0xd1 [dvb_core]
+ [  809.128833]  [<ffffffffa03539fc>] dvb_dmxdev_start_feed.clone.1+0xbd/0xeb [dvb_core]
+ [  809.128841]  [<ffffffffa0353cf9>] dvb_dmxdev_filter_start+0x2cf/0x31b [dvb_core]
+ [  809.128847]  [<ffffffff81469b66>] ? _raw_spin_lock_irq+0x1f/0x21
+ [  809.128854]  [<ffffffffa035444b>] dvb_demux_do_ioctl+0x27b/0x4c0 [dvb_core]
+ [  809.128859]  [<ffffffff8103c15a>] ? should_resched+0xe/0x2e
+ [  809.128867]  [<ffffffffa03528f3>] dvb_usercopy+0xe4/0x16b [dvb_core]
+ [  809.128874]  [<ffffffffa03541d0>] ? dvb_demux_do_ioctl+0x0/0x4c0 [dvb_core]
+ [  809.128881]  [<ffffffff811e3718>] ? inode_has_perm.clone.20+0x79/0x8f
+ [  809.128886]  [<ffffffff810668ec>] ? remove_wait_queue+0x35/0x41
+ [  809.128891]  [<ffffffff81469b7f>] ? _raw_spin_unlock_irqrestore+0x17/0x19
+ [  809.128898]  [<ffffffffa0352fd1>] dvb_demux_ioctl+0x15/0x19 [dvb_core]
+ [  809.128903]  [<ffffffff8112419b>] vfs_ioctl+0x36/0xa7
+ [  809.128908]  [<ffffffff81124afc>] do_vfs_ioctl+0x468/0x49b
+ [  809.128912]  [<ffffffff81124b85>] sys_ioctl+0x56/0x79
+ [  809.128917]  [<ffffffff81009cf2>] system_call_fastpath+0x16/0x1b
+ [  809.128920] Code: 89 55 f8 48 83 c7 58 48 c7 c2 47 32 01 a0 e8 92 09 2c e1 c9 c3 55 48 89 e5 41 57 41 56 41 55 41 54 53 48 83 ec 18 0f 1f 44 00 00 <48> 8b 47 10 48 89 fb 49 89 f6 41 89 d7 48 83 38 00 0f 84 92 00
+ [  809.128965] RIP  [<ffffffffa0013702>] i2c_transfer+0x16/0x124 [i2c_core]
+ [  809.128973]  RSP <ffff880064a83ae8>
+ [  809.128975] CR2: 0000000000000012
+ [  809.128979] ---[ end trace 6919129d55f94398 ]---
+
+this Oops occurs for me on all >2.6.32 kernels, including the current
+linux-media dvb git tree, and Fedora (13,14) kernels.
+
+Ubuntu has a bug open for the issue:
+  https://bugs.launchpad.net/ubuntu/+source/linux/+bug/654791
+but the disable pid filtering workaround one person uses there doesn't
+work for me.
+
+as per Vincent's original message, the problem occurs because these
+pieces of hardware are attached as dib7000m devices, but they use
+functions from the dib7000p module. the config structs are not the same
+between the 2 modules so as data is cast back and forward via
+dib7000m_state and dib7000p_state, garbage is read from *i2c_adap,
+causing the Oops.
+
+the below patch against current git aligns the _config structs so that
+the common elements in the _config and _state structs can be read from
+either module. in particular, i2c_adap is at the same offset in _state
+for both.
+
+this patch has been tested on Fedora 14 kernel 2.6.35.10-72.fc14.x86_64
+with 2 AVerMedia Volar's and 2 other tuners. I expect it will fix the
+problems with the same chips in Nova-T and Winfast DTV units also.
+
+please apply.
+it would be good to get this small fix into stable and into distros.
+
+cheers,
+robin
+
+--opJtzjQTFsWo+cga
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="dib7000.patch"
+
+Align and pad members in the dib7000m_config and dib7000p_config structs as
+they are shared between dib7000m and dib7000p modules when using AVerMedia
+Volar, Hauppauge Nova-T, Winfast DTV hardware.
+
+Signed-off-by: Robin Humble <robin.humble+dvb@anu.edu.au>
+---
+diff --git a/drivers/media/dvb/frontends/dib7000m.h b/drivers/media/dvb/frontends/dib7000m.h
+index 113819c..de82f8b 100644
+--- a/drivers/media/dvb/frontends/dib7000m.h
++++ b/drivers/media/dvb/frontends/dib7000m.h
+@@ -4,16 +4,13 @@
+ #include "dibx000_common.h"
  
-Am 04.01.2011 20:12, schrieb Holger Nelson:
-> Hi,
->
-> the following patch adds support for a Terratec Grabster AV MX150
-> (and maybe other devices in the Grabster series). This device is an
-> analog frame grabber device using a tm5600. This device doesn't have
-> a tuner, so I changed the code to skip the tuner reset if neither
-> has_tuner nor has_dvb is set.
-it skip, if you has no tuner gpio defined. You does'nt need more. Work
-the driver with input select (tv (conposite0), composite, s-vhs)?
->
-> Holger
->
-> diff -urpN --exclude='*~'
-> linux-2.6.37-rc8/drivers/staging/tm6000/tm6000-cards.c
-> linux-lts-backport-natty-2.6.37/drivers/staging/tm6000/tm6000-cards.c
-> --- linux-2.6.37-rc8/drivers/staging/tm6000/tm6000-cards.c
-> 2010-12-29 02:05:48.000000000 +0100
-> +++
-> linux-lts-backport-natty-2.6.37/drivers/staging/tm6000/tm6000-cards.c
-> 2011-01-04 10:46:40.582497722 +0100
-please use the lastest development kernel from
-git://linuxtv.org/media_tree.git (http://linuxtv.org/git/media_tree.git).
-> @@ -50,6 +50,7 @@
-> #define TM6010_BOARD_BEHOLD_VOYAGER 11
-> #define TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE 12
-> #define TM6010_BOARD_TWINHAN_TU501 13
-> +#define TM5600_BOARD_TERRATEC_GRABSTER 14
->
-> #define TM6000_MAXBOARDS 16
-> static unsigned int card[] = {[0 ... (TM6000_MAXBOARDS - 1)] =
-> UNSET };
-> @@ -303,6 +304,19 @@ struct tm6000_board tm6000_boards[] = {
-> .dvb_led = TM6010_GPIO_5,
-> .ir = TM6010_GPIO_0,
-> },
-> + },
-> + [TM5600_BOARD_TERRATEC_GRABSTER] = {
-> + .name = "Terratec Grabster Series",
-> + .type = TM5600,
-> + .caps = {
-> + .has_tuner = 0,
-> + .has_dvb = 0,
-> + .has_zl10353 = 0,
-> + .has_eeprom = 0,
-> + .has_remote = 0,
-> + },
-> + .gpio = {
-> + },
-> }
-> };
->
-> @@ -325,6 +339,7 @@ struct usb_device_id tm6000_id_table[] =
-> { USB_DEVICE(0x13d3, 0x3241), .driver_info =
-> TM6010_BOARD_TWINHAN_TU501 },
-> { USB_DEVICE(0x13d3, 0x3243), .driver_info =
-> TM6010_BOARD_TWINHAN_TU501 },
-> { USB_DEVICE(0x13d3, 0x3264), .driver_info =
-> TM6010_BOARD_TWINHAN_TU501 },
-> + { USB_DEVICE(0x0ccd, 0x0079), .driver_info =
-> TM5600_BOARD_TERRATEC_GRABSTER },
-> { },
-> };
->
-> @@ -505,33 +520,35 @@ int tm6000_cards_setup(struct tm6000_cor
-> * reset, just add the code at the board-specific part
-> */
->
-> - if (dev->gpio.tuner_reset) {
-> - for (i = 0; i < 2; i++) {
-> - rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-> - dev->gpio.tuner_reset, 0x00);
-> - if (rc < 0) {
-> - printk(KERN_ERR "Error %i doing tuner reset\n", rc);
-> - return rc;
-> - }
-> + if (dev->caps.has_tuner||dev->caps.has_dvb) {
-this is bad, if you mean skip tuner reset. We use the line "if
-(dev->gpio.tuner_reset)" to check the true tuner reset gpio - if no
-gpio set, it skip reset - , and you has no defined a tuner gpio, so it
-skip alone.
-Why you added then this line?
-> + if (dev->gpio.tuner_reset) {
-> + for (i = 0; i < 2; i++) {
-> + rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-> + dev->gpio.tuner_reset, 0x00);
-> + if (rc < 0) {
-> + printk(KERN_ERR "Error %i doing tuner reset\n",
-> rc);
-> + return rc;
-> + }
->
-> - msleep(10); /* Just to be conservative */
-> - rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-> - dev->gpio.tuner_reset, 0x01);
-> - if (rc < 0) {
-> - printk(KERN_ERR "Error %i doing tuner reset\n", rc);
-> - return rc;
-> - }
-> - msleep(10);
-> + msleep(10); /* Just to be conservative */
-> + rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-> + dev->gpio.tuner_reset, 0x01);
-> + if (rc < 0) {
-> + printk(KERN_ERR "Error %i doing tuner reset\n",
-> rc);
-> + return rc;
-> + }
-> + msleep(10);
->
-> - if (!i) {
-> - rc = tm6000_get_reg32(dev, REQ_40_GET_VERSION, 0, 0);
-> - if (rc >= 0)
-> - printk(KERN_DEBUG "board=0x%08x\n", rc);
-> + if (!i) {
-> + rc = tm6000_get_reg32(dev, REQ_40_GET_VERSION,
-> 0, 0);
-> + if (rc >= 0)
-> + printk(KERN_DEBUG "board=0x%08x\n", rc);
-> + }
-> }
-> + } else {
-> + printk(KERN_ERR "Tuner reset is not configured\n");
-> + return -1;
-> }
-> - } else {
-> - printk(KERN_ERR "Tuner reset is not configured\n");
-> - return -1;
-> }
->
-> msleep(50);
-> --
-> To unsubscribe from this list: send the line "unsubscribe
-> linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at http://vger.kernel.org/majordomo-info.html
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.12 (MingW32)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+ struct dib7000m_config {
+-	u8 dvbt_mode;
+ 	u8 output_mpeg2_in_188_bytes;
+ 	u8 hostbus_diversity;
+ 	u8 tuner_is_baseband;
+-	u8 mobile_mode;
+ 	int (*update_lna) (struct dvb_frontend *, u16 agc_global);
  
-iQEcBAEBAgAGBQJNI34QAAoJEAWtPFjxMvFGZwEH/R51EPEp2a/+DC34YkW+ywk6
-aF6dJQLSq97hcvm2l6u7P7ku6XNAHqK/uqxXmM7trlyoK9RA1v4GWJV/aod+WmHo
-jDocoiYG3ZWANco9aqdcutMCiVFlSKZRk2PsiJQwS+LAOabQGGe3pe6EIPQDmO5h
-6TaVVLpzOyvGOHxYAy6PMI4ahJzkeJi1YORFN1a43UzV2GrViroT+BDWDKJk9QPk
-Mg2diBj29gR0dwPTusqU0I6mwCqwV13incRlROMiKV1WIkaX1XW64qD0FKfMkSZA
-edAljweR/S8ktqYGVrBFPvLUmFaX5zTruSgbRvskAKNO5CZO8isihSEJk9zEEbw=
-=Z6bs
------END PGP SIGNATURE-----
+ 	u8 agc_config_count;
+ 	struct dibx000_agc_config *agc;
+-
+ 	struct dibx000_bandwidth_config *bw;
+ 
+ #define DIB7000M_GPIO_DEFAULT_DIRECTIONS 0xffff
+@@ -31,9 +28,16 @@ struct dib7000m_config {
+ 
+ 	u8 quartz_direct;
+ 
++	int (*agc_control) (struct dvb_frontend *, u8 before);
++
++/* keep the above in sync with dib7000p_config and the below the same size */
++
+ 	u8 input_clk_is_div_2;
++	u8 mobile_mode;
++	u8 dvbt_mode;
+ 
+-	int (*agc_control) (struct dvb_frontend *, u8 before);
++	u8 pad1;
++	u8 pad2;
+ };
+ 
+ #define DEFAULT_DIB7000M_I2C_ADDRESS 18
+diff --git a/drivers/media/dvb/frontends/dib7000p.h b/drivers/media/dvb/frontends/dib7000p.h
+index da17345..9c34485 100644
+--- a/drivers/media/dvb/frontends/dib7000p.h
++++ b/drivers/media/dvb/frontends/dib7000p.h
+@@ -28,16 +28,16 @@ struct dib7000p_config {
+ 
+ 	u8 quartz_direct;
+ 
+-	u8 spur_protect;
+-
+ 	int (*agc_control) (struct dvb_frontend *, u8 before);
+ 
++/* keep the above in sync with dib7000m_config and the below the same size */
++
++	u8 spur_protect;
+ 	u8 output_mode;
+ 	u8 disable_sample_and_hold : 1;
+ 
+ 	u8 enable_current_mirror : 1;
+ 	u8 diversity_delay;
+-
+ };
+ 
+ #define DEFAULT_DIB7000P_I2C_ADDRESS 18
 
+--opJtzjQTFsWo+cga--
