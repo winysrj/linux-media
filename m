@@ -1,68 +1,121 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:36622 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932791Ab1ALEk0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jan 2011 23:40:26 -0500
-Received: by qyj19 with SMTP id 19so3733780qyj.19
-        for <linux-media@vger.kernel.org>; Tue, 11 Jan 2011 20:40:25 -0800 (PST)
-Subject: Re: Enable IR on hdpvr
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=us-ascii
-From: Jarod Wilson <jarod@wilsonet.com>
-In-Reply-To: <EC37FC85-82B2-48AE-BB94-64ED00E7647D@wilsonet.com>
-Date: Tue, 11 Jan 2011 23:40:28 -0500
-Cc: Jason Gauthier <jgauthier@lastar.com>, Janne Grunau <j@jannau.net>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <93CE8497-D6AB-43BA-A239-EE32D51582FC@wilsonet.com>
-References: <65DE7931C559BF4DBEE42C3F8246249A0B686EB0@V-EXMAILBOX.ctg.com> <8AFBEFD7-69E3-4E71-B155-EA773C2FED43@wilsonet.com> <65DE7931C559BF4DBEE42C3F8246249A0B69B014@V-ALBEXCHANGE.ctg.com> <EC37FC85-82B2-48AE-BB94-64ED00E7647D@wilsonet.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:61379 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755462Ab1ALUsP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Jan 2011 15:48:15 -0500
+Message-ID: <4D2E1386.6050801@redhat.com>
+Date: Wed, 12 Jan 2011 18:48:06 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Robin Humble <robin.humble+dvb@anu.edu.au>
+CC: linux-media@vger.kernel.org,
+	Patrick Boettcher <pboettcher@kernellabs.com>
+Subject: Re: [PATCH] dib7000m/p: struct alignment fix
+References: <20110112131732.GA26294@grizzly.cita.utoronto.ca>
+In-Reply-To: <20110112131732.GA26294@grizzly.cita.utoronto.ca>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Jan 10, 2011, at 2:50 PM, Jarod Wilson wrote:
-
-> On Jan 10, 2011, at 9:25 AM, Jason Gauthier wrote:
+Em 12-01-2011 11:17, Robin Humble escreveu:
+> Hi,
 > 
->>>> 
->>>> I did simply try changing:
->>>> 
->>>>     /* until i2c is working properly */
->>>>     retval = 0; /* hdpvr_register_i2c_ir(dev); */
->>>>     if (retval < 0)
->>>> 
->>>> so that it would register with i2c.
->>>> Doing so returns a positive registration with I2C, but the lirc_zilog 
->>>> driver doesn't see the chip when it loads. (The lirc_zilog is now in 
->>>> the kernel, yay)
->> 
->>> There's a bit more to it than just the one line change. Here's the patch we're carrying in the Fedora kernels to enable it:
->> 
->>> http://wilsonet.com/jarod/lirc_misc/hdpvr-ir/hdpvr-ir-enable.patch
->> 
->>> Janne, I've heard many success stories w/the hdpvr IR lately, and almost no reports of lockups, so I'm thinking a firmware update may have helped out >here, and thus, maybe its time we just go ahead and push this patch along upstream? We still require someone to load lirc_zilog manually, so it seems like a >fairly low-risk thing to do.
->> 
->> Thanks.  What source tree is this against?  I see the patch is dated 09/2009.  Manually comparing to my .37 source tree it does not appear to match up.
->> I don't mind bringing in a third source tree to compare against to see if I can make this work on .37, I just don't know which one!
+> this is basically a re-post of
+>   http://www.linuxtv.org/pipermail/linux-dvb/2010-September/032744.html
+> which fixes an Oops when tuning eg. AVerMedia DVB-T Volar, Hauppauge
+> Nova-T, Winfast DTV. it seems to be quite commonly reported on this list.
 > 
-> Bah. Yeah, sorry, that wasn't the current patch in Fedora 14. This is:
+>  [  809.128579] BUG: unable to handle kernel NULL pointer dereference at 0000000000000012
+>  [  809.128586] IP: [<ffffffffa0013702>] i2c_transfer+0x16/0x124 [i2c_core]
+>  [  809.128598] PGD 669a7067 PUD 79e5f067 PMD 0
+>  [  809.128604] Oops: 0000 [#1] SMP
+>  [  809.128608] last sysfs file: /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
+>  [  809.128612] CPU 0
+>  [  809.128614] Modules linked in: tcp_lp fuse coretemp hwmon_vid cpufreq_ondemand acpi_cpufreq freq_table mperf ip6t_REJECT nf_conntrack_ipv6 ip6table_filter ip6_tables ipv6 xfs exportfs uinput mt2060 mxl5005s af9013 dvb_usb_dib0700 ir_lirc_codec lirc_dev ir_sony_decoder ir_jvc_decoder dib7000p dib0090 dib7000m dvb_usb_af9015 dib0070 dvb_usb dib8000 dvb_core dib3000mc ir_rc6_decoder dibx000_common snd_hda_codec_intelhdmi ir_rc5_decoder snd_hda_codec_realtek snd_hda_intel ir_nec_decoder snd_hda_codec ldusb i2c_i801 snd_hwdep snd_seq snd_seq_device rc_core atl1 asus_atk0110 snd_pcm snd_timer mii snd soundcore snd_page_alloc iTCO_wdt iTCO_vendor_support microcode raid456 async_raid6_recov async_pq raid6_pq async_xor xor async_memcpy async_tx raid1 ata_generic firewire_ohci pata_acpi firewire_core crc_itu_t pata_jmicron i915 drm_kms_helper drm i2c_algo_bit i2c_core video output [last unloaded: scsi_wait_scan]
+>  [  809.128692]
+>  [  809.128696] Pid: 2525, comm: tzap Not tainted 2.6.35.10-72.fc14.x86_64 #1 P5E-VM HDMI/P5E-VM HDMI
+>  [  809.128700] RIP: 0010:[<ffffffffa0013702>]  [<ffffffffa0013702>] i2c_transfer+0x16/0x124 [i2c_core]
+>  [  809.128708] RSP: 0018:ffff880064a83ae8  EFLAGS: 00010296
+>  [  809.128712] RAX: ffff880064a83b58 RBX: 00000000000000eb RCX: 0000000000000000
+>  [  809.128715] RDX: 0000000000000002 RSI: ffff880064a83b38 RDI: 0000000000000002
+>  [  809.128718] RBP: ffff880064a83b28 R08: ffff880079bcf7c0 R09: 0000000050000d80
+>  [  809.128721] R10: 0000000000000005 R11: 0000000000004a38 R12: 0000000000000001
+>  [  809.128725] R13: 0000000000000000 R14: ffffc900237e8000 R15: ffffc90023907000
+>  [  809.128729] FS:  00007f2ff2dd3720(0000) GS:ffff880002000000(0000) knlGS:0000000000000000
+>  [  809.128732] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+>  [  809.128736] CR2: 0000000000000012 CR3: 000000007830d000 CR4: 00000000000006f0
+>  [  809.128739] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+>  [  809.128743] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+>  [  809.128746] Process tzap (pid: 2525, threadinfo ffff880064a82000, task ffff8800379745c0)
+>  [  809.128749] Stack:
+>  [  809.128751]  ffff880064a83af8 ffffffff8103c142 ffff880079c41a90 00000000000000eb
+>  [  809.128757] <0> 0000000000000001 0000000000000000 ffffc900237e8000 ffffc90023907000
+>  [  809.128762] <0> ffff880064a83b88 ffffffffa0407124 0000000200000030 ffff880064a83b68
+>  [  809.128768] Call Trace:
+>  [  809.128776]  [<ffffffff8103c142>] ? need_resched+0x23/0x2d
+>  [  809.128783]  [<ffffffffa0407124>] dib7000p_read_word+0x6d/0xbc [dib7000p]
+>  [  809.128789]  [<ffffffff813360eb>] ? usb_submit_urb+0x2f8/0x33a
+>  [  809.128795]  [<ffffffffa0407ae5>] dib7000p_pid_filter_ctrl+0x2d/0x90 [dib7000p]
+>  [  809.128802]  [<ffffffffa044f35f>] stk70x0p_pid_filter_ctrl+0x19/0x1e [dvb_usb_dib0700]
+>  [  809.128809]  [<ffffffffa03b4ef9>] dvb_usb_ctrl_feed+0xd7/0x123 [dvb_usb]
+>  [  809.128815]  [<ffffffffa03b4f6a>] dvb_usb_start_feed+0x13/0x15 [dvb_usb]
+>  [  809.128825]  [<ffffffffa035585c>] dmx_ts_feed_start_filtering+0x7d/0xd1 [dvb_core]
+>  [  809.128833]  [<ffffffffa03539fc>] dvb_dmxdev_start_feed.clone.1+0xbd/0xeb [dvb_core]
+>  [  809.128841]  [<ffffffffa0353cf9>] dvb_dmxdev_filter_start+0x2cf/0x31b [dvb_core]
+>  [  809.128847]  [<ffffffff81469b66>] ? _raw_spin_lock_irq+0x1f/0x21
+>  [  809.128854]  [<ffffffffa035444b>] dvb_demux_do_ioctl+0x27b/0x4c0 [dvb_core]
+>  [  809.128859]  [<ffffffff8103c15a>] ? should_resched+0xe/0x2e
+>  [  809.128867]  [<ffffffffa03528f3>] dvb_usercopy+0xe4/0x16b [dvb_core]
+>  [  809.128874]  [<ffffffffa03541d0>] ? dvb_demux_do_ioctl+0x0/0x4c0 [dvb_core]
+>  [  809.128881]  [<ffffffff811e3718>] ? inode_has_perm.clone.20+0x79/0x8f
+>  [  809.128886]  [<ffffffff810668ec>] ? remove_wait_queue+0x35/0x41
+>  [  809.128891]  [<ffffffff81469b7f>] ? _raw_spin_unlock_irqrestore+0x17/0x19
+>  [  809.128898]  [<ffffffffa0352fd1>] dvb_demux_ioctl+0x15/0x19 [dvb_core]
+>  [  809.128903]  [<ffffffff8112419b>] vfs_ioctl+0x36/0xa7
+>  [  809.128908]  [<ffffffff81124afc>] do_vfs_ioctl+0x468/0x49b
+>  [  809.128912]  [<ffffffff81124b85>] sys_ioctl+0x56/0x79
+>  [  809.128917]  [<ffffffff81009cf2>] system_call_fastpath+0x16/0x1b
+>  [  809.128920] Code: 89 55 f8 48 83 c7 58 48 c7 c2 47 32 01 a0 e8 92 09 2c e1 c9 c3 55 48 89 e5 41 57 41 56 41 55 41 54 53 48 83 ec 18 0f 1f 44 00 00 <48> 8b 47 10 48 89 fb 49 89 f6 41 89 d7 48 83 38 00 0f 84 92 00
+>  [  809.128965] RIP  [<ffffffffa0013702>] i2c_transfer+0x16/0x124 [i2c_core]
+>  [  809.128973]  RSP <ffff880064a83ae8>
+>  [  809.128975] CR2: 0000000000000012
+>  [  809.128979] ---[ end trace 6919129d55f94398 ]---
 > 
-> http://wilsonet.com/jarod/lirc_misc/hdpvr-ir/hdpvr-ir-enable-2.patch
+> this Oops occurs for me on all >2.6.32 kernels, including the current
+> linux-media dvb git tree, and Fedora (13,14) kernels.
 > 
-> Its atop the F14 2.6.35.10 kernel, which has a fairly recent v4l/dvb
-> backport on top of it, so it should be pretty close to matching the
-> current v4l/dvb code...
+> Ubuntu has a bug open for the issue:
+>   https://bugs.launchpad.net/ubuntu/+source/linux/+bug/654791
+> but the disable pid filtering workaround one person uses there doesn't
+> work for me.
+> 
+> as per Vincent's original message, the problem occurs because these
+> pieces of hardware are attached as dib7000m devices, but they use
+> functions from the dib7000p module. the config structs are not the same
+> between the 2 modules so as data is cast back and forward via
+> dib7000m_state and dib7000p_state, garbage is read from *i2c_adap,
+> causing the Oops.
+> 
+> the below patch against current git aligns the _config structs so that
+> the common elements in the _config and _state structs can be read from
+> either module. in particular, i2c_adap is at the same offset in _state
+> for both.
+> 
+> this patch has been tested on Fedora 14 kernel 2.6.35.10-72.fc14.x86_64
+> with 2 AVerMedia Volar's and 2 other tuners. I expect it will fix the
+> problems with the same chips in Nova-T and Winfast DTV units also.
+> 
+> please apply.
+> it would be good to get this small fix into stable and into distros.
 
-With the help of Andy Walls and Jean Delvare, I think we've hashed out
-an updated patch that will work sitting atop the current v4l/dvb hdpvr
-code, but I'm only just now getting around to compile-testing it, and
-its past my bedtime, so it'll be tomorrow before I can do any sort of
-functional testing (but hey, due to the snow, I'll be working from
-home tomorrow, where my hdpvr happens to be...).
+I didn't actually looked inside the code, but, if some routines can take 
+either argument, then we have a bad design here. Your proposal is a 
+workaround, but it is too dangerous, as those struct can be changed anytime.
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
+Instead of syncing the data field on those structs, the better would be to
+use the dib7000p_state structure for dib7000m_state, or to create a common
+struct that could be used by the functions that are common.
 
-
-
+Cheers,
+Mauro
