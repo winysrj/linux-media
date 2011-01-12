@@ -1,41 +1,30 @@
-Return-path: <mchehab@gaivota>
-Received: from cantor.suse.de ([195.135.220.2]:49214 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932190Ab1ACPHN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Jan 2011 10:07:13 -0500
-Date: Mon, 3 Jan 2011 16:07:11 +0100 (CET)
-From: Jiri Kosina <jkosina@suse.cz>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: "Justin P. Mattock" <justinmattock@gmail.com>,
-	linux-m68k@vger.kernel.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, ivtv-devel@ivtvdriver.org,
-	linux-media@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-scsi@vger.kernel.org,
-	spi-devel-general@lists.sourceforge.net,
-	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
-Subject: Re: [PATCH 01/15]arch:m68k:ifpsp060:src:fpsp.S Typo change diable
- to disable.
-In-Reply-To: <AANLkTins7rj1o4rEcEFmVSA2=1yXZSfLdO000gqQP7cg@mail.gmail.com>
-Message-ID: <alpine.LNX.2.00.1101031607040.26685@pobox.suse.cz>
-References: <1293750484-1161-1-git-send-email-justinmattock@gmail.com> <AANLkTins7rj1o4rEcEFmVSA2=1yXZSfLdO000gqQP7cg@mail.gmail.com>
+Return-path: <mchehab@pedra>
+Received: from nm3.bullet.mail.ukl.yahoo.com ([217.146.182.224]:27818 "HELO
+	nm3.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751286Ab1ALOK0 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Jan 2011 09:10:26 -0500
+Message-ID: <715546.56491.qm@web26701.mail.ukl.yahoo.com>
+References: <4AB4E526.2080109@yahoo.it> <829197380909191208n42ff4ee1l450b0cae015e7e21@mail.gmail.com>
+Date: Wed, 12 Jan 2011 14:10:23 +0000 (GMT)
+From: Adriano <adrigiga@yahoo.it>
+Subject: driver for Cinergy Hybrid T USB XS FM
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <829197380909191208n42ff4ee1l450b0cae015e7e21@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Fri, 31 Dec 2010, Geert Uytterhoeven wrote:
+Devin,
 
-> On Fri, Dec 31, 2010 at 00:07, Justin P. Mattock
-> <justinmattock@gmail.com> wrote:
-> > The below patch fixes a typo "diable" to "disable". Please let me know if this
-> > is correct or not.
-> >
-> > Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
-> 
-> Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+driver for  Cinergy Hybrid T USB XS FMis still planned to be developed, or you 
+think it will notbe developedanymore?
 
-Applied, thanks.
+Thanks
+Adriano
 
--- 
-Jiri Kosina
-SUSE Labs, Novell Inc.
+
+      
