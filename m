@@ -1,61 +1,105 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp.nokia.com ([147.243.1.47]:23483 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750825Ab1ADLax (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Jan 2011 06:30:53 -0500
-Message-ID: <4D2304D4.6070806@maxwell.research.nokia.com>
-Date: Tue, 04 Jan 2011 13:30:28 +0200
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Return-path: <mchehab@pedra>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:43886 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753960Ab1ALL6F convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Jan 2011 06:58:05 -0500
+Received: by pzk35 with SMTP id 35so78817pzk.19
+        for <linux-media@vger.kernel.org>; Wed, 12 Jan 2011 03:58:05 -0800 (PST)
 MIME-Version: 1.0
-To: Shuzhen Wang <shuzhenw@codeaurora.org>
-CC: "'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>,
-	"'Mauro Carvalho Chehab'" <mchehab@redhat.com>,
-	"'Hans Verkuil'" <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	hzhong@codeaurora.org, "Yan, Yupeng" <yyan@quicinc.com>
-Subject: Re: RFC: V4L2 driver for Qualcomm MSM camera.
-References: <000601cba2d8$eaedcdc0$c0c96940$@org> <4D188285.8090603@redhat.com> <000001cba6bd$f2c94ea0$d85bebe0$@org> <201012282123.58775.laurent.pinchart@ideasonboard.com> <000001cbabb8$49892d10$dc9b8730$@org>
-In-Reply-To: <000001cbabb8$49892d10$dc9b8730$@org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <201012282146.49327.laurent.pinchart@ideasonboard.com>
+References: <AANLkTimec2+VyO+iRSx1PYy3btOb6RbHt0j3ytmnykVo@mail.gmail.com>
+	<201012282146.49327.laurent.pinchart@ideasonboard.com>
+Date: Wed, 12 Jan 2011 12:58:04 +0100
+Message-ID: <AANLkTi=VgexL9bm8dxo1dEgGG2Eap7t+6naiG3E7_ihc@mail.gmail.com>
+Subject: Re: OMAP3 ISP and tvp5151 driver.
+From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hello,
+Hi all,
 
-Shuzhen Wang wrote:
->> -----Original Message-----
->> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
->> Sent: Tuesday, December 28, 2010 12:24 PM
->> To: Shuzhen Wang
->> Cc: 'Mauro Carvalho Chehab'; 'Hans Verkuil'; linux-
->> media@vger.kernel.org; hzhong@codeaurora.org; Yan, Yupeng
->> Subject: Re: RFC: V4L2 driver for Qualcomm MSM camera.
+As explained in my first mail I would like port the tvp515x driver to
+new media framework, I'm a newbie with the v4l2 API and of course with
+the new media framework API, so sorry if next questions are stupid or
+trivial (please, patience with me).
+
+My idea is follow this link schem:
+
+
+---------------------------------------
+--------------------------------------------
+ ---------------------         |    |                              | 1
+| ----------> | OMAP3 ISP CCDC OUTPUT |
+| TVP515x  | 0 | -----> | 0 | OMAP3 ISP CCDC  --- |
+--------------------------------------------
+ --------------------          |    |                              | 2 |
+                                ---------------------------------------
+
+Where:
+ * TVP515x is /dev/v4l-subdev8 c 81 15
+ * OMAP3 ISP CCDC is /dev/v4l-subdev2 c 81 4
+ * OMAP3 ISP CCDC OUTPUT is /dev/video2 c 81 5
+
+Then activate these links with
+
+ ./media-ctl -r -l '"tvp5150 2-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3
+ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+ Resetting all links to disabled
+ Setting up link 16:0 -> 5:0 [1]
+ Setting up link 5:1 -> 6:0 [1]
+
+I'm on the right way or I'm completely lost ?
+
+I think the next step is adapt the tvp515x driver to new media
+framework, I'm not sure how to do this, someone can give some points ?
+
+Once this is done, I suppose I can test using gstreamer, for example
+using something like this.
+
+   gst-launch v4l2src device=/dev/video2 ! ffmpegcolorspace ! xvimagesink
+
+I'm right in this point ?
+
+Any help will be apreciated.
+
+Thanks in advance,
+   Enric
+
+2010/12/28 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> Hi Enric,
+>
+> On Monday 27 December 2010 17:24:13 Enric Balletbò i Serra wrote:
+>> Hello all,
 >>
->> I will strongly NAK any implementation that requires a daemon.
+>> I'm new on media and camera, I try to use the OMAP3 ISP driver on
+>> OMAP3530 with media framework. I've a TVP5151 connected on ISP port
+>> though the parallel interface on own custom board
 >>
-> 
-> We understand the motivation behind making the daemon optional.
-> However there are restrictions from legal perspective, which we
-> don't know how to get around.
-> 
-> A simplest video streaming data flow with MSM ISP is like this:
-> 
-> Sensor -> ISP Hardware pipeline -> videobuf
-> 
-> The procedure to set up ISP pipeline is proprietary and cannot
-> be open sourced. Without proper pipeline configuration, streaming
-> won't work. And That's why we require the daemon. 
-
-Why not? In my opinion the pipeline configuration is quite basic
-functionality present also in the OMAP3 ISP, for example. This should be
-available through the Media controller interface.
-
-In general, the driver should expose APIs best suited for configuring
-the ISP hardware. Existing APIs should be used as much as possible.
-There should be no untyped blob passing in its API.
-
-Regards,
-
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+>> Against which repository/branch should I start the development ?
+>
+> The most up-to-date code is located in the media-0004-omap3isp branch of the
+> http://git.linuxtv.org/pinchartl/media.git repository.
+>
+>> Should I port tvp5150 driver to new tvp5151 device and new media
+>> framework ?
+>
+> That would be great :-)
+>
+>> Any driver as reference ?
+>
+> The MT9T001 and MT9V032 drivers in the media-0005-sensors branch. I haven't
+> tested the MT9T001 driver recently, so my advice would be to use the MT9V032
+> driver.
+>
+>> Hopefully, somebody can give me some tips. Thanks
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
