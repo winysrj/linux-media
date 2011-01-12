@@ -1,36 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:36412 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754943Ab1AaSlW (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:59175 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754698Ab1ALXoZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Jan 2011 13:41:22 -0500
-Received: by eye27 with SMTP id 27so2711443eye.19
-        for <linux-media@vger.kernel.org>; Mon, 31 Jan 2011 10:41:21 -0800 (PST)
-Message-ID: <4D47024D.40102@gmail.com>
-Date: Mon, 31 Jan 2011 19:41:17 +0100
-From: Marc Coevoet <sintsixtus@gmail.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Cheap sat dvbs USB boxes
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	Wed, 12 Jan 2011 18:44:25 -0500
+Subject: RE: Enable IR on hdpvr
+From: Andy Walls <awalls@md.metrocast.net>
+To: Jason Gauthier <jgauthier@lastar.com>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Janne Grunau <j@jannau.net>
+In-Reply-To: <65DE7931C559BF4DBEE42C3F8246249A0B6A54C7@V-ALBEXCHANGE.ctg.com>
+References: <65DE7931C559BF4DBEE42C3F8246249A0B686EB0@V-EXMAILBOX.ctg.com>
+	 <8AFBEFD7-69E3-4E71-B155-EA773C2FED43@wilsonet.com>
+	 <65DE7931C559BF4DBEE42C3F8246249A0B69B014@V-ALBEXCHANGE.ctg.com>
+	 <EC37FC85-82B2-48AE-BB94-64ED00E7647D@wilsonet.com>
+	 <93CE8497-D6AB-43BA-A239-EE32D51582FC@wilsonet.com>
+	 <65DE7931C559BF4DBEE42C3F8246249A0B6A54C7@V-ALBEXCHANGE.ctg.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 12 Jan 2011 18:45:02 -0500
+Message-ID: <1294875902.2485.19.camel@morgan.silverblock.net>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+On Wed, 2011-01-12 at 13:49 +0000, Jason Gauthier wrote:
+> >> 
+> >> Bah. Yeah, sorry, that wasn't the current patch in Fedora 14. This is:
+> >> 
+> >> http://wilsonet.com/jarod/lirc_misc/hdpvr-ir/hdpvr-ir-enable-2.patch
+> >> 
+> >> Its atop the F14 2.6.35.10 kernel, which has a fairly recent v4l/dvb 
+> >> backport on top of it, so it should be pretty close to matching the 
+> >> current v4l/dvb code...
+> 
+> >With the help of Andy Walls and Jean Delvare, I think we've hashed
+> out an updated patch that will work sitting atop the current v4l/dvb
+> hdpvr code, but I'm only just now getting around to compile->testing
+> it, and its past my bedtime, so it'll be tomorrow before I can do any
+> sort of functional testing (but hey, due to the snow, I'll be working
+> from home tomorrow, where my hdpvr happens to be...).
+> 
+> I've got two hdpvrs.  Whenever you're ready to extend your testing,
+> I'm happy to extend that functional testing.  I didn't get a chance to
+> look at the FC14 patch yet (busy couple of days), but I will hold off
+> now, anyway!
 
-I see here a list of cheap (15$-30$ + shipping, starts at 35$ somewhere) 
-dvbs usb boxes.
+If all goes well, with Jarrod's change, you should be able to test the
+hdpvr module with the ir-kbd-i2c module and test IR Rx.
 
-I would like to know if soembody knows if these might work, I have an 
-older (usb1.1 I guess) Technistar that works.
+Strictly speaking, lirc_zilog needs some rework to use the kernel
+internal interfaces properly.  It might still work, but don't be
+surprised if it doesn't.
 
-http://shop.benl.ebay.be/i.html?rt=nc&LH_PrefLoc=2&_nkw=USB%20Satellite%20TV%20Tuner&_fln=1&_trksid=p3286.c0.m283
+I might get to working on lirc_zilog tonight, but otherwise not until
+this weekend.
 
+Regards,
+Andy
 
-Marc
--- 
-What's on Shortwave guide: choose an hour, go!
-http://shortwave.tk
-700+ Radio Stations on SW http://swstations.tk
-300+ languages on SW http://radiolanguages.tk
