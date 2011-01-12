@@ -1,53 +1,38 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:57343 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932081Ab1ACPKq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jan 2011 10:10:46 -0500
-Message-ID: <4D21E70B.6000703@gmail.com>
-Date: Mon, 03 Jan 2011 07:11:07 -0800
-From: "Justin P. Mattock" <justinmattock@gmail.com>
+Return-path: <mchehab@pedra>
+Received: from mail3.lastar.com ([74.84.105.102]:22394 "EHLO mail.lastar.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932356Ab1ALNt4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Jan 2011 08:49:56 -0500
+From: Jason Gauthier <jgauthier@lastar.com>
+To: Jarod Wilson <jarod@wilsonet.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Janne Grunau <j@jannau.net>
+Subject: RE: Enable IR on hdpvr
+Date: Wed, 12 Jan 2011 13:49:52 +0000
+Message-ID: <65DE7931C559BF4DBEE42C3F8246249A0B6A54C7@V-ALBEXCHANGE.ctg.com>
+References: <65DE7931C559BF4DBEE42C3F8246249A0B686EB0@V-EXMAILBOX.ctg.com>
+ <8AFBEFD7-69E3-4E71-B155-EA773C2FED43@wilsonet.com>
+ <65DE7931C559BF4DBEE42C3F8246249A0B69B014@V-ALBEXCHANGE.ctg.com>
+ <EC37FC85-82B2-48AE-BB94-64ED00E7647D@wilsonet.com>
+ <93CE8497-D6AB-43BA-A239-EE32D51582FC@wilsonet.com>
+In-Reply-To: <93CE8497-D6AB-43BA-A239-EE32D51582FC@wilsonet.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Jiri Kosina <jkosina@suse.cz>
-CC: Mauro Carvalho Chehab <maurochehab@gmail.com>,
-	linux-m68k@vger.kernel.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, ivtv-devel@ivtvdriver.org,
-	linux-media@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-scsi@vger.kernel.org,
-	spi-devel-general@lists.sourceforge.net,
-	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
-Subject: Re: [PATCH 14/15]include:media:davinci:vpss.h Typo change diable
- to disable.
-References: <1293750484-1161-1-git-send-email-justinmattock@gmail.com> <1293750484-1161-2-git-send-email-justinmattock@gmail.com> <1293750484-1161-3-git-send-email-justinmattock@gmail.com> <1293750484-1161-4-git-send-email-justinmattock@gmail.com> <1293750484-1161-5-git-send-email-justinmattock@gmail.com> <1293750484-1161-6-git-send-email-justinmattock@gmail.com> <1293750484-1161-7-git-send-email-justinmattock@gmail.com> <1293750484-1161-8-git-send-email-justinmattock@gmail.com> <1293750484-1161-9-git-send-email-justinmattock@gmail.com> <1293750484-1161-10-git-send-email-justinmattock@gmail.com> <1293750484-1161-11-git-send-email-justinmattock@gmail.com> <1293750484-1161-12-git-send-email-justinmattock@gmail.com> <1293750484-1161-13-git-send-email-justinmattock@gmail.com> <1293750484-1161-14-git-send-email-justinmattock@gmail.com> <4D1DAFF5.3090108@gmail.com> <alpine.LNX.2.00.1101031600510.26685@pobox.suse.cz>
-In-Reply-To: <alpine.LNX.2.00.1101031600510.26685@pobox.suse.cz>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On 01/03/2011 07:01 AM, Jiri Kosina wrote:
-> On Fri, 31 Dec 2010, Mauro Carvalho Chehab wrote:
->
->> Em 30-12-2010 21:08, Justin P. Mattock escreveu:
->>> The below patch fixes a typo "diable" to "disable". Please let me know if this
->>> is correct or not.
->>>
->>> Signed-off-by: Justin P. Mattock<justinmattock@gmail.com>
->> Acked-by: Mauro Carvalho Chehab<mchehab@redhat.com>
->
-> Applied.
->
->>
->> PS.: Next time, please c/c linux-media ONLY on patches related to media
->> drivers (/drivers/video and the corresponding include files). Having to
->> dig into a series of 15 patches to just actually look on 3 patches
->> is not nice.
->
-> Absolutely.
->
-> Justin, no kernel developer should be afraid of being CCed. But try to
-> avoid really unnecessary spamming (which this was).
->
+>> 
+>> Bah. Yeah, sorry, that wasn't the current patch in Fedora 14. This is:
+>> 
+>> http://wilsonet.com/jarod/lirc_misc/hdpvr-ir/hdpvr-ir-enable-2.patch
+>> 
+>> Its atop the F14 2.6.35.10 kernel, which has a fairly recent v4l/dvb 
+>> backport on top of it, so it should be pretty close to matching the 
+>> current v4l/dvb code...
 
-alright..
+>With the help of Andy Walls and Jean Delvare, I think we've hashed out an updated patch that will work sitting atop the current v4l/dvb hdpvr code, but I'm only just now getting around to compile->testing it, and its past my bedtime, so it'll be tomorrow before I can do any sort of functional testing (but hey, due to the snow, I'll be working from home tomorrow, where my hdpvr happens to be...).
 
-Justin P. Mattock
+I've got two hdpvrs.  Whenever you're ready to extend your testing, I'm happy to extend that functional testing.  I didn't get a chance to look at the FC14 patch yet (busy couple of days), but I will hold off now, anyway!
