@@ -1,85 +1,113 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:17176 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751386Ab1AILvU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Jan 2011 06:51:20 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p09BpK7V018284
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 9 Jan 2011 06:51:20 -0500
-Received: from shalem.localdomain (vpn2-8-32.ams2.redhat.com [10.36.8.32])
-	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p09BpImw025388
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 9 Jan 2011 06:51:19 -0500
-Message-ID: <4D29A300.5070404@redhat.com>
-Date: Sun, 09 Jan 2011 12:58:56 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PATCHES FOR 2.6.38-rc1] gspca locking fixes and moving over
- usb-ids to sonix? drivers
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.samsung.com ([203.254.224.33]:62128 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750970Ab1ALSuH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Jan 2011 13:50:07 -0500
+Date: Wed, 12 Jan 2011 19:49:56 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCHv8 00/12] Contiguous Memory Allocator
+In-reply-to: <20101223134432.GJ3636@n2100.arm.linux.org.uk>
+To: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>
+Cc: 'Kyungmin Park' <kmpark@infradead.org>,
+	'Michal Nazarewicz' <m.nazarewicz@samsung.com>,
+	linux-arm-kernel@lists.infradead.org,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Johan MOSSBERG' <johan.xx.mossberg@stericsson.com>,
+	'Mel Gorman' <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
+	'Michal Nazarewicz' <mina86@mina86.com>, linux-mm@kvack.org,
+	'Ankita Garg' <ankita@in.ibm.com>,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	linux-media@vger.kernel.org,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <001c01cbb289$864391f0$92cab5d0$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <cover.1292443200.git.m.nazarewicz@samsung.com>
+ <AANLkTim8_=0+-zM5z4j0gBaw3PF3zgpXQNetEn-CfUGb@mail.gmail.com>
+ <20101223100642.GD3636@n2100.arm.linux.org.uk>
+ <00ea01cba290$4d67f500$e837df00$%szyprowski@samsung.com>
+ <20101223121917.GG3636@n2100.arm.linux.org.uk>
+ <00ec01cba2a2$af20b8b0$0d622a10$%szyprowski@samsung.com>
+ <20101223134432.GJ3636@n2100.arm.linux.org.uk>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+Hello,
 
-Here is a new pull request including all the patches from my previous request:
+I'm sorry for the delay. Just got back from my holidays and getting thought
+the mails.
 
-"Please pull from my tree for a number of gspca core fixes. While looking
-into the issue you were seeing with qv4l2 I also found a bug in the
-gspca core which made it impossible to switch from userptr to mmap
-mode with qv4l2 and gspca. While fixing that I also ended up fixing
-some locking issues."
+On Thursday, December 23, 2010 2:45 PM Russell King - ARM Linux wrote:
 
-On top of that there are patches removing non supported bogus /
-non supported usb-ids from Luca's et61x251 and sn9xc102 drivers.
-Combined with some fixes / bridge variant unification patches
-to the gspca sonixb and sonixj drivers allowing moving most
-usb-ids to use gspca sonix? by default.
+> On Thu, Dec 23, 2010 at 02:09:44PM +0100, Marek Szyprowski wrote:
+> > Hello,
+> >
+> > On Thursday, December 23, 2010 1:19 PM Russell King - ARM Linux wrote:
+> >
+> > > On Thu, Dec 23, 2010 at 11:58:08AM +0100, Marek Szyprowski wrote:
+> > > > Actually this contiguous memory allocator is a better replacement for
+> > > > alloc_pages() which is used by dma_alloc_coherent(). It is a generic
+> > > > framework that is not tied only to ARM architecture.
+> > >
+> > > ... which is open to abuse.  What I'm trying to find out is - if it
+> > > can't be used for DMA, what is it to be used for?
+> > >
+> > > Or are we inventing an everything-but-ARM framework?
+> >
+> > We are trying to get something that really works and SOLVES some of the
+> > problems with real devices that require contiguous memory for DMA.
+> 
+> So, here you've confirmed that it's for DMA.
 
-I've asked J.F. Moine to review all these patches and he has
-and responded to me with an Acked-By email hence the Acked-By
-tag on all of them. Except for the last one which I did after
-he reviewed the 2 patch sets.
+Right, otherwise it wouldn't really make much sense. Note that our proposal
+already works for non-arm platforms. 
 
-The following changes since commit 0a97a683049d83deaf636d18316358065417d87b:
+> > > > > In other words, do we _actually_ have a use for this which doesn't
+> > > > > involve doing something like allocating 32MB of memory from it,
+> > > > > remapping it so that it's DMA coherent, and then performing DMA
+> > > > > on the resulting buffer?
+> > > >
+> > > > This is an arm specific problem, also related to dma_alloc_coherent()
+> > > > allocator. To be 100% conformant with ARM specification we would
+> > > > probably need to unmap all pages used by the dma_coherent allocator
+> > > > from the LOW MEM area. This is doable, but completely not related
+> > > > to the CMA and this patch series.
+> > >
+> > > You've already been told why we can't unmap pages from the kernel
+> > > direct mapping.
+> >
+> > It requires some amount of work but I see no reason why we shouldn't be
+> > able to unmap that pages to stay 100% conformant with ARM spec.
+> 
+> I have considered - and tried - to do that with the dma_alloc_coherent()
+> spec, but it is NOT POSSIBLE to do so - too many factors stand in the
+> way of making it work, such as the need bring the system to a complete
+> halt to modify all the L1 page tables and broadcast the TLB operations
+> to invalidate the old mappings.  None of that can be done from all the
+> contexts under which dma_alloc_coherent() is called from.
 
-   [media] cpia2: convert .ioctl to .unlocked_ioctl (2011-01-06 11:34:41 -0200)
+I understand that this requires a lot of work, but I still think this might
+be possible to get it working with some additional constraints.
 
-are available in the git repository at:
-   git://linuxtv.org/hgoede/gspca.git for_2.6.38-rc1
+I understand that modifying L1 page tables is definitely not a proper way of
+handling this. It simply costs too much. But what if we consider that the DMA
+memory can be only allocated from a specific range of the system memory?
+Assuming that this range of memory is known during the boot time, it CAN be
+mapped with two-level of tables in MMU. First level mapping will stay the
+same all the time for all processes, but it would be possible to unmap the
+pages required for DMA from the second level mapping what will be visible
+from all the processes at once.
 
-Hans de Goede (19):
-       gspca_main: Locking fixes 1
-       gspca_main: Locking fixes 2
-       gspca_main: Update buffer flags even when user_copy fails
-       gspca_main: Remove no longer used users variable
-       gspca_main: Set memory type to GSPCA_MEMORY_NO on buffer release
-       gspca_main: Simplify read mode memory type checks
-       gspca_main: Allow switching from read to mmap / userptr mode
-       gspca_main: wake wq on streamoff
-       et61x251: remove wrongly claimed usb ids
-       sn9c102: Remove not supported and non existing usb ids
-       gspca_sonixb: Refactor to unify bridge handling
-       gspca_sonixb: Adjust autoexposure window for vga cams so that it is centered
-       gspca_sonixb: Fix TAS5110D sensor gain control
-       gspca_sonixb: TAS5130C brightness control really is a gain control
-       gspca_sonixb: Add usb ids for known sn9c103 cameras
-       gspca_sonixj: Enable more usb ids when sn9c102 gets compiled too
-       gspca_sonixj: Probe sensor type independent of bridge type
-       gspca_sonixj: Add one more commented out usb-id
-       gspca_sonixb: Fix mirrored image with ov7630
+Is there any reason why such solution won't work?
 
-  drivers/media/video/et61x251/et61x251.h        |   24 --
-  drivers/media/video/gspca/gspca.c              |  208 +++++++++----------
-  drivers/media/video/gspca/gspca.h              |    2 -
-  drivers/media/video/gspca/sonixb.c             |  266 ++++++++++++++----------
-  drivers/media/video/gspca/sonixj.c             |   63 +++---
-  drivers/media/video/sn9c102/sn9c102_devtable.h |   74 +++----
-  6 files changed, 311 insertions(+), 326 deletions(-)
+Best regards
+--
+Marek Szyprowski
+Samsung Poland R&D Center
 
-Thanks & Regards,
 
-Hans
+
