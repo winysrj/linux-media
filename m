@@ -1,67 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:33383 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751263Ab1AQTls (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:41951 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932524Ab1AMDFX convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jan 2011 14:41:48 -0500
-Received: by eye27 with SMTP id 27so2852815eye.19
-        for <linux-media@vger.kernel.org>; Mon, 17 Jan 2011 11:41:47 -0800 (PST)
-Message-ID: <4D349B25.8070606@mvista.com>
-Date: Mon, 17 Jan 2011 22:40:21 +0300
-From: Sergei Shtylyov <sshtylyov@mvista.com>
+	Wed, 12 Jan 2011 22:05:23 -0500
+Received: by wyb28 with SMTP id 28so1282323wyb.19
+        for <linux-media@vger.kernel.org>; Wed, 12 Jan 2011 19:05:22 -0800 (PST)
 MIME-Version: 1.0
-To: Manjunath Hadli <manjunath.hadli@ti.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	LAK <linux-arm-kernel@lists.arm.linux.org.uk>,
-	Kevin Hilman <khilman@deeprootsystems.com>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH v15 1/3] davinci vpbe: platform specific additions
-References: <1295273627-14630-1-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1295273627-14630-1-git-send-email-manjunath.hadli@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4D2DF7A9.2070103@redhat.com>
+References: <4D21FDC1.7000803@samsung.com> <4D2CBB3F.5050904@redhat.com>
+ <000001cbb243$1051cb60$30f56220$%szyprowski@samsung.com> <4D2DF7A9.2070103@redhat.com>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Wed, 12 Jan 2011 19:05:01 -0800
+Message-ID: <AANLkTikt69vKoiMkVjxi877GTLjwmbw=i07Abts6G+-9@mail.gmail.com>
+Subject: Re: [GIT PATCHES FOR 2.6.38] Videbuf2 framework, NOON010PC30 sensor
+ driver and s5p-fimc updates
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"Andrzej Pietrasiewicz/Poland R&D Center-Linux/./????"
+	<andrzej.p@samsung.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Manjunath Hadli wrote:
+Hi Mauro,
 
-> This patch implements the overall device creation for the Video
-> display driver, initializes the platform variables and implements
-> platform functions including setting video clocks.
+On Wed, Jan 12, 2011 at 10:49, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+> Em 12-01-2011 08:25, Marek Szyprowski escreveu:
+>> Hello Mauro,
+>>
+>> I've rebased our fimc and saa patches onto http://linuxtv.org/git/mchehab/experimental.git
+>> vb2_test branch.
+>
+> Thanks!
+>
+> As before, I'll be commenting the patches as I'll be seeing any issues.
+>
+>> Pawel Osciak (2):
+>>       Fix mmap() example in the V4L2 API DocBook
+>
+> In fact, the check for retval < 0 instead of retval == -1 is not a fix. According with
+> mmap man pages:
+>        RETURN VALUE
+>               On  success,  mmap() returns a pointer to the mapped area.  On error, the value MAP_FAILED (that is, (void *) -1) is returned, and errno
+>               is set appropriately.  On success, munmap() returns 0, on failure -1, and errno is set (probably to EINVAL).
+>
+> The change is not wrong, as -1 is lower than 0, but using -1 is more compliant with
+> libc. So, I'll be applying just the CodingStyle fixes on it.
 
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
-[...]
+Sorry, but I think you got it wrong. The example is called "mmap()
+example". But I did not change return value checking of mmap() calls.
+I changed return value checking of ioctl() calls. So I believe the
+patch is correct.
 
-> diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
-> index 9a2376b..45a89a8 100644
-> --- a/arch/arm/mach-davinci/dm644x.c
-> +++ b/arch/arm/mach-davinci/dm644x.c
-[...]
-> @@ -781,25 +915,38 @@ void __init dm644x_init(void)
->  	davinci_common_init(&davinci_soc_info_dm644x);
->  }
->  
-> +static struct platform_device *dm644x_video_devices[] __initdata = {
-> +	&dm644x_vpss_device,
-> +	&dm644x_ccdc_dev,
-> +	&vpfe_capture_dev,
-> +	&dm644x_osd_dev,
-> +	&dm644x_venc_dev,
-> +	&dm644x_vpbe_dev,
-> +	&vpbe_v4l2_display,
-> +};
-> +
-> +static int __init dm644x_init_video(void)
-> +{
-> +	/* Add ccdc clock aliases */
-> +	clk_add_alias("master", dm644x_ccdc_dev.name, "vpss_master", NULL);
-> +	clk_add_alias("slave", dm644x_ccdc_dev.name, "vpss_slave", NULL);
-> +	vpss_clkctl_reg = DAVINCI_SYSMODULE_VIRT(0x44);
 
-    Patch 3 should clearly precede this one, as it defines 
-DAVINCI_SYSMODULE_VIRT()...
-
-WBR, Sergei
+-- 
+Best regards,
+Pawel Osciak
