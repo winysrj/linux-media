@@ -1,38 +1,42 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:38207 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751827Ab1AUKWF (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:49656 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757028Ab1AMREf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Jan 2011 05:22:05 -0500
-Received: by qwa26 with SMTP id 26so1623737qwa.19
-        for <linux-media@vger.kernel.org>; Fri, 21 Jan 2011 02:22:03 -0800 (PST)
+	Thu, 13 Jan 2011 12:04:35 -0500
+Received: by eye27 with SMTP id 27so950599eye.19
+        for <linux-media@vger.kernel.org>; Thu, 13 Jan 2011 09:04:34 -0800 (PST)
 MIME-Version: 1.0
-Date: Fri, 21 Jan 2011 11:22:03 +0100
-Message-ID: <AANLkTinT9k0XNEekzDmkqrpbAoz-YVwH=nhFzoccwOcB@mail.gmail.com>
-Subject: [PATCH] Fix dependencies for Technisat USB2.0 DVB-S/S2
-From: Oleg Roitburd <oroitburd@gmail.com>
-To: linux-media@vger.kernel.org
+In-Reply-To: <euouknkdsi5amcy6dha8ycx7.1294936482595@email.android.com>
+References: <euouknkdsi5amcy6dha8ycx7.1294936482595@email.android.com>
+Date: Thu, 13 Jan 2011 12:04:33 -0500
+Message-ID: <AANLkTi=_Wd-2Y86CGdabMeDGBTBmBFf1MToYbiYGyMUf@mail.gmail.com>
+Subject: Re: [PATCH 3/3] lirc_zilog: Remove use of deprecated struct
+ i2c_adapter.id field
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Jean Delvare <khali@linux-fr.org>, linux-media@vger.kernel.org,
+	Jarod Wilson <jarod@redhat.com>, Janne Grunau <j@jannau.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Device is based on STV0903 demod and STV6110x tuner
+On Thu, Jan 13, 2011 at 11:34 AM, Andy Walls <awalls@md.metrocast.net> wrote:
+> Devin,
+>
+> You've seen the clock stretch with your I2C analyzer?
 
-Signed-off-by: Oleg Roitburd <oroitburd@gmail.com>
+The Beagle I was using when I did the captures doesn't show clock
+stretch.  My "Logic" logic analyzer does, but I wasn't using that at
+the time.
 
-diff -Nur linux-media-LATEST-orig/drivers/media/dvb/dvb-usb/Kconfig
-linux-media-LATEST-patched/drivers/media/dvb/dvb-usb/Kconfig
---- linux-media-LATEST-orig/drivers/media/dvb/dvb-usb/Kconfig
-2011-01-11 05:45:22.000000000 +0100
-+++ linux-media-LATEST-patched/drivers/media/dvb/dvb-usb/Kconfig
- 2011-01-21 11:05:46.000000000 +0100
-@@ -362,7 +362,7 @@
- config DVB_USB_TECHNISAT_USB2
-        tristate "Technisat DVB-S/S2 USB2.0 support"
-        depends on DVB_USB
--       select DVB_STB0899 if !DVB_FE_CUSTOMISE
--       select DVB_STB6100 if !DVB_FE_CUSTOMISE
-+       select DVB_STV090x if !DVB_FE_CUSTOMISE
-+       select DVB_STV6110x if !DVB_FE_CUSTOMISE
-        help
-          Say Y here to support the Technisat USB2 DVB-S/S2 device
+That said, I can say with some authority that the Zilog does put the
+bus into a busy state after certain operations (such as setting the
+send bit).
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
