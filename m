@@ -1,121 +1,107 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36701 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751701Ab1ARX1X (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:55779 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752027Ab1AMEnZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jan 2011 18:27:23 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Martin Hostettler <martin@neutronstar.dyndns.org>
-Subject: Re: [PATCH V2] v4l: OMAP3 ISP CCDC: Add support for 8bit greyscale sensors
-Date: Wed, 19 Jan 2011 00:27:19 +0100
-Cc: linux-media@vger.kernel.org
-References: <1295386062-10618-1-git-send-email-martin@neutronstar.dyndns.org>
-In-Reply-To: <1295386062-10618-1-git-send-email-martin@neutronstar.dyndns.org>
+	Wed, 12 Jan 2011 23:43:25 -0500
+Received: by yxt3 with SMTP id 3so524464yxt.19
+        for <linux-media@vger.kernel.org>; Wed, 12 Jan 2011 20:43:24 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201101190027.19904.laurent.pinchart@ideasonboard.com>
+Date: Thu, 13 Jan 2011 15:43:24 +1100
+Message-ID: <AANLkTin6g15UzWuN8XHRUwwGUPWpSnWwVAU1GxvXCcNz@mail.gmail.com>
+Subject: [patch] addition to v2.6.35_i2c_new_probed_device.patch (was: Re:
+ Debug code in HG repositories)
+From: Vincent McIntyre <vincent.mcintyre@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=000e0cd639903a64d10499b2f55c
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Martin,
+--000e0cd639903a64d10499b2f55c
+Content-Type: text/plain; charset=ISO-8859-1
 
-Thanks for the patch. One comment below.
+On 1/12/11, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
 
-On Tuesday 18 January 2011 22:27:42 Martin Hostettler wrote:
-> Adds support for V4L2_MBUS_FMT_Y8_1X8 format and 8bit data width in
-> synchronous interface.
-> 
-> When in 8bit mode don't apply DC substraction of 64 per default as this
-> would remove 1/4 of the sensor range.
-> 
-> When using V4L2_MBUS_FMT_Y8_1X8 (or possibly another 8bit per pixel) mode
-> set the CDCC to output 8bit per pixel instead of 16bit.
-> 
-> Signed-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
-> ---
->  drivers/media/video/isp/ispccdc.c  |   22 ++++++++++++++++++----
->  drivers/media/video/isp/ispvideo.c |    2 ++
->  2 files changed, 20 insertions(+), 4 deletions(-)
-> 
-> Changes since first version:
-> 	- forward ported to current media.git
-> 
-> diff --git a/drivers/media/video/isp/ispccdc.c
-> b/drivers/media/video/isp/ispccdc.c index 578c8bf..c7397c9 100644
-> --- a/drivers/media/video/isp/ispccdc.c
-> +++ b/drivers/media/video/isp/ispccdc.c
-> @@ -43,6 +43,7 @@ __ccdc_get_format(struct isp_ccdc_device *ccdc, struct
-> v4l2_subdev_fh *fh, unsigned int pad, enum v4l2_subdev_format_whence
-> which);
-> 
->  static const unsigned int ccdc_fmts[] = {
-> +	V4L2_MBUS_FMT_Y8_1X8,
->  	V4L2_MBUS_FMT_SGRBG10_1X10,
->  	V4L2_MBUS_FMT_SRGGB10_1X10,
->  	V4L2_MBUS_FMT_SBGGR10_1X10,
-> @@ -1127,6 +1128,9 @@ static void ccdc_configure(struct isp_ccdc_device
-> *ccdc) ccdc->syncif.datsz = pdata ? pdata->width : 10;
->  	ispccdc_config_sync_if(ccdc, &ccdc->syncif);
-> 
-> +	/* CCDC_PAD_SINK */
-> +	format = &ccdc->formats[CCDC_PAD_SINK];
-> +
->  	syn_mode = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
-> 
->  	/* Use the raw, unprocessed data when writing to memory. The H3A and
-> @@ -1144,10 +1148,15 @@ static void ccdc_configure(struct isp_ccdc_device
-> *ccdc) else
->  		syn_mode &= ~ISPCCDC_SYN_MODE_SDR2RSZ;
-> 
-> -	isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
-> +	/* Use PACK8 mode for 1byte per pixel formats */
-> 
-> -	/* CCDC_PAD_SINK */
-> -	format = &ccdc->formats[CCDC_PAD_SINK];
-> +	if (isp_video_format_info(format->code)->bpp <= 8)
-> +		syn_mode |= ISPCCDC_SYN_MODE_PACK8;
-> +	else
-> +		syn_mode &= ~ISPCCDC_SYN_MODE_PACK8;
-> +
-> +
-> +	isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
-> 
->  	/* Mosaic filter */
->  	switch (format->code) {
-> @@ -2244,7 +2253,12 @@ int isp_ccdc_init(struct isp_device *isp)
->  	ccdc->syncif.vdpol = 0;
-> 
->  	ccdc->clamp.oblen = 0;
-> -	ccdc->clamp.dcsubval = 64;
-> +
-> +	if (isp->pdata->subdevs->interface == ISP_INTERFACE_PARALLEL
-> +	    && isp->pdata->subdevs->bus.parallel.width <= 8)
-> +		ccdc->clamp.dcsubval = 0;
-> +	else
-> +		ccdc->clamp.dcsubval = 64;
+>> which on the face of it suggests
+>>   btty-input.c
 
-I don't like this too much. What happens if you have several sensors connected 
-to the system with different bus width ?
+already handled, my mistake.
 
->  	ccdc->vpcfg.pixelclk = 0;
-> 
-> diff --git a/drivers/media/video/isp/ispvideo.c
-> b/drivers/media/video/isp/ispvideo.c index 5f984e4..cd3d331 100644
-> --- a/drivers/media/video/isp/ispvideo.c
-> +++ b/drivers/media/video/isp/ispvideo.c
-> @@ -221,6 +221,8 @@ isp_video_check_format(struct isp_video *video, struct
-> isp_video_fh *vfh) }
-> 
->  static struct isp_format_info formats[] = {
-> +	{ V4L2_MBUS_FMT_Y8_1X8, V4L2_MBUS_FMT_Y8_1X8,
-> +	  V4L2_MBUS_FMT_Y8_1X8, V4L2_PIX_FMT_GREY, 8, },
->  	{ V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8, V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8,
->  	  V4L2_MBUS_FMT_SGRBG10_1X10, V4L2_PIX_FMT_SGRBG10DPCM8, 8, },
->  	{ V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_MBUS_FMT_SBGGR10_1X10,
+>>   cx88-input.c
+the search string was in a comment
+
+>>   hdpvr-i2c.c
+see below
+
+
+> I have no time currently to touch on it, since I still have lots of patches
+> to
+> take a look and submit for the merge window. So, if you have some time,
+> could you please prepare and submit a patch fixing it?
+
+This seems to be a relatively simple patch, inline below.
+This is against the linux-media tree,  I could not figure out how
+to turn it into a clean patch of
+media_build/backports/v2.6.35_i2c_new_probed_device.patch
+I did look for guidance on how to do this in
+media_build/README.patches  but could not find anything that looked
+relevant.
+
+The code now compiles for me but I don't know if it will actually
+work, I don't have the hardware.
+
+Cheers
+Vince
+
+Signed-off-by: Vince McIntyre <vincent.mcintyre@gmail.com>
+---
+ drivers/media/video/hdpvr/hdpvr-i2c.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/hdpvr/hdpvr-i2c.c
+b/drivers/media/video/hdpvr/hdpvr-i2c.c
+index 24966aa..129639a 100644
+--- a/drivers/media/video/hdpvr/hdpvr-i2c.c
++++ b/drivers/media/video/hdpvr/hdpvr-i2c.c
+@@ -59,7 +59,7 @@ static int hdpvr_new_i2c_ir(struct hdpvr_device
+*dev, struct i2c_adapter *adap,
+                break;
+        }
+
+-       return i2c_new_probed_device(adap, &info, addr_list, NULL) == NULL ?
++       return i2c_new_probed_device(adap, &info, addr_list) == NULL ?
+               -1 : 0;
+ }
 
 -- 
-Regards,
+1.7.0.4
 
-Laurent Pinchart
+--000e0cd639903a64d10499b2f55c
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0001-i2_new_probed_device.patch_extras.patch"
+Content-Disposition: attachment;
+	filename="0001-i2_new_probed_device.patch_extras.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: file0
+
+RnJvbSAxYjQ0ZTVjM2IyODg2MjI0MDQyZDljMjA2NDkzMTFjMjMxZGIzY2NkIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBWaW5jZSBNY0ludHlyZSA8dmluY2VudC5tY2ludHlyZUBnbWFp
+bC5jb20+CkRhdGU6IFRodSwgMTMgSmFuIDIwMTEgMTU6MzA6MTMgKzExMDAKU3ViamVjdDogW1BB
+VENIXSBUbyBjb21waWxlIGFnYWluc3QgMi42LjMyLCBkcm9wIGV4dHJhIGFyZyB3aGVuIGNhbGxp
+bmcgaTJjX25ld19wcm9iZWRfZGV2aWNlKCkKClNpZ25lZC1vZmYtYnk6IFZpbmNlIE1jSW50eXJl
+IDx2aW5jZW50Lm1jaW50eXJlQGdtYWlsLmNvbT4KLS0tCiBkcml2ZXJzL21lZGlhL3ZpZGVvL2hk
+cHZyL2hkcHZyLWkyYy5jIHwgICAgMiArLQogMSBmaWxlcyBjaGFuZ2VkLCAxIGluc2VydGlvbnMo
+KyksIDEgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS92aWRlby9oZHB2
+ci9oZHB2ci1pMmMuYyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vaGRwdnIvaGRwdnItaTJjLmMKaW5k
+ZXggMjQ5NjZhYS4uMTI5NjM5YSAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS92aWRlby9oZHB2
+ci9oZHB2ci1pMmMuYworKysgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL2hkcHZyL2hkcHZyLWkyYy5j
+CkBAIC01OSw3ICs1OSw3IEBAIHN0YXRpYyBpbnQgaGRwdnJfbmV3X2kyY19pcihzdHJ1Y3QgaGRw
+dnJfZGV2aWNlICpkZXYsIHN0cnVjdCBpMmNfYWRhcHRlciAqYWRhcCwKIAkJYnJlYWs7CiAJfQog
+Ci0JcmV0dXJuIGkyY19uZXdfcHJvYmVkX2RldmljZShhZGFwLCAmaW5mbywgYWRkcl9saXN0LCBO
+VUxMKSA9PSBOVUxMID8KKwlyZXR1cm4gaTJjX25ld19wcm9iZWRfZGV2aWNlKGFkYXAsICZpbmZv
+LCBhZGRyX2xpc3QpID09IE5VTEwgPwogCSAgICAgICAtMSA6IDA7CiB9CiAKLS0gCjEuNy4wLjQK
+Cg==
+--000e0cd639903a64d10499b2f55c--
