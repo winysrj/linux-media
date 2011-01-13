@@ -1,63 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:24238 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752026Ab1AQMVy (ORCPT
+Received: from smtp5-g21.free.fr ([212.27.42.5]:58420 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752866Ab1AMQ1e convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jan 2011 07:21:54 -0500
-From: Hans Verkuil <hansverk@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] Fix media_build file matching
-Date: Mon, 17 Jan 2011 13:21:15 +0100
-Cc: "Mauro Carvalho Chehab" <mchehab@infradead.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201101171321.15893.hansverk@cisco.com>
+	Thu, 13 Jan 2011 11:27:34 -0500
+Date: Thu, 13 Jan 2011 17:30:21 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Antonio Ospite <ospite@studenti.unina.it>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [GIT PATCHES FOR 2.6.38] gspca for_2.6.38
+Message-ID: <20110113173021.1f8a7b8b@tele>
+In-Reply-To: <20110113123804.d391b10e.ospite@studenti.unina.it>
+References: <20110113115953.4636c392@tele>
+	<20110113123804.d391b10e.ospite@studenti.unina.it>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+On Thu, 13 Jan 2011 12:38:04 +0100
+Antonio Ospite <ospite@studenti.unina.it> wrote:
 
-Can you apply this patch to the media_build tree? It quotes the *.[ch] file
-pattern used by find.
+> > Jean-François Moine (9):  
+> [...]
+> >       gspca - ov534: Use the new video control mechanism  
+> 
+> In this commit, is there a reason why you didn't rename also
+> sd_setagc() into setagc() like for the other functions?
+> 
+> I am going to test the changes and report back if there's anything
+> more, I like the cleanup tho.
 
-When I was experimenting with the media_build tree and trying
-'make tar DIR=<git repo>' I kept ending up with just one source in my tar
-archive. I couldn't for the life of me understand what was going on until
-I realized that I had a copy of a media driver source in the top dir of my
-git repository. Because the file pattern was not quoted it would expand to
-that particular source and match only that one.
+Hi Antonio,
 
-It took me a surprisingly long time before I figured this out :-(
+With the new video control mechanism, the '.set_control' function is
+called only when capture is active. Otherwise, the '.set' function is
+called in any case, and here, it activates/inactivates the auto white
+balance control... Oh, I forgot to disable the awb when the agc is
+disabled!
 
-Quoting the pattern fixes this.
+Thank you for reporting any problem. BTW, the webcam 06f8:3002 which
+had been removed some time ago is being tested. I will add it to this
+subdriver as soon as it works correctly.
 
-Regards,
+Cheers.
 
-	Hans
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-diff --git a/linux/Makefile b/linux/Makefile
-index 8bbeee8..d731f61 100644
---- a/linux/Makefile
-+++ b/linux/Makefile
-@@ -58,7 +58,7 @@ todaytar:
- 	tar rvf $(PWD)/linux-media.tar git_log
- 	for i in $(TARDIR); do \
- 		if [ "`echo $$i|grep Documentation`" = "" ]; then \
--			dir="`(cd $(DIR); find $$i -type f -name *.[ch])`"; \
-+			dir="`(cd $(DIR); find $$i -type f -name '*.[ch]')`"; \
- 			dir="$$dir `(cd $(DIR); find $$i -type f -name Makefile)`"; \
- 			dir="$$dir `(cd $(DIR); find $$i -type f -name Kconfig)`"; \
- 			tar rvf $(PWD)/$(TODAY_TAR) -C $(DIR) $$dir; \
-@@ -75,7 +75,7 @@ tar:
- 	tar rvf $(PWD)/linux-media.tar git_log
- 	for i in $(TARDIR); do \
- 		if [ "`echo $$i|grep Documentation`" = "" ]; then \
--			dir="`(cd $(DIR); find $$i -type f -name *.[ch])`"; \
-+			dir="`(cd $(DIR); find $$i -type f -name '*.[ch]')`"; \
- 			dir="$$dir `(cd $(DIR); find $$i -type f -name Makefile)`"; \
- 			dir="$$dir `(cd $(DIR); find $$i -type f -name Kconfig)`"; \
- 			tar rvf $(PWD)/linux-media.tar -C $(DIR) $$dir; \
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
