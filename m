@@ -1,56 +1,44 @@
 Return-path: <mchehab@pedra>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:38716 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751910Ab1AIBO1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Jan 2011 20:14:27 -0500
-Received: by vws16 with SMTP id 16so7673677vws.19
-        for <linux-media@vger.kernel.org>; Sat, 08 Jan 2011 17:14:27 -0800 (PST)
+Received: from DSL01.212.114.205.243.ip-pool.NEFkom.net ([212.114.205.243]:52338
+	"EHLO enzo.pibbs.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S933054Ab1AMQMS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Jan 2011 11:12:18 -0500
+Received: from trixi.localnet (trixi.pibbs.org [192.168.20.4])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by enzo.pibbs.org (Postfix) with ESMTPS id B3F6ADCEEF
+	for <linux-media@vger.kernel.org>; Thu, 13 Jan 2011 17:12:29 +0100 (CET)
+From: Martin Seekatz <martin@pibbs.de>
+To: linux-media@vger.kernel.org
+Subject: SilverCrest USB 2.0 Video Grabber VG 2000 USB-Id. eb1a:2863, em28xx module - information update
+Date: Thu, 13 Jan 2011 17:12:14 +0100
 MIME-Version: 1.0
-In-Reply-To: <1294407540-23477-1-git-send-email-manjunath.hadli@ti.com>
-References: <1294407540-23477-1-git-send-email-manjunath.hadli@ti.com>
-Date: Sun, 9 Jan 2011 02:14:26 +0100
-Message-ID: <AANLkTikopOfTeVvAHWvMu8Mv16YgrwQnP_9zx1+gzS=N@mail.gmail.com>
-Subject: Re: [PATCH v12 2/8] davinci vpbe: VPBE display driver
-From: =?UTF-8?Q?Bj=C3=B8rn_Forsman?= <bjorn.forsman@gmail.com>
-To: Manjunath Hadli <manjunath.hadli@ti.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Kevin Hilman <khilman@deeprootsystems.com>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-arm-kernel@listinfradead.com,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201101131712.14781.martin@pibbs.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 7 January 2011 14:39, Manjunath Hadli <manjunath.hadli@ti.com> wrote:
-> This patch implements the core functionality of the dislay driver,
-> mainly controlling the VENC and other encoders, and acting as
-> the one point interface for the main V4L2 driver. This implements
-> the core of each of the V4L2 IOCTLs.
->
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
-> ---
->  drivers/media/video/davinci/vpbe.c |  826 ++++++++++++++++++++++++++++++++++++
->  include/media/davinci/vpbe.h       |  185 ++++++++
->  2 files changed, 1011 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/davinci/vpbe.c
->  create mode 100644 include/media/davinci/vpbe.h
->
-> diff --git a/drivers/media/video/davinci/vpbe.c b/drivers/media/video/davinci/vpbe.c
+Hello,
 
-[snip]
+the device still does not work with my linux boxes.
 
-> +module_param(def_output, charp, S_IRUGO);
-> +module_param(def_mode, charp, S_IRUGO);
-> +module_param(debug, int, 0644);
-> +
-> +MODULE_PARM_DESC(def_output, "vpbe output name (default:Composite)");
-> +MODULE_PARM_DESC(ef_mode, "vpbe output mode name (default:ntsc");
+With new installed openSuSE 11.3 System Linux trixi 2.6.34.7-0.7-
+desktop #1 SMP PREEMPT 2010-12-13 11:13:53 +0100 x86_64 x86_64 x86_64 
+GNU/Linux.
 
-Typo: "ef_mode" should be "def_mode". Right?
+The informations about the Video Grabber VG 2000 changed. Therefore I 
+have updatet and extended  the description on 
+http://www.linuxtv.org/wiki/index.php/SilverCrest_USB_2.0_Video_Grabber_VG_2000.
 
-Best regards,
-Bjørn Forsman
+I do not know, if there is anything missing or what else can I do in 
+order to assist the developers.
+
+Best regards
+Martin
+
+-- 
+"A PC without Windows is like a chocolate cake without mustard."
+Johannes Bauer
