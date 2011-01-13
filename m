@@ -1,327 +1,61 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1172 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751508Ab1AEQm7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Jan 2011 11:42:59 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: nsekhar@ti.com, manjunath.hadli@ti.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 1/2] davinci: convert vpif_capture to core-assisted locking
-Date: Wed,  5 Jan 2011 17:42:39 +0100
-Message-Id: <322ed2dee70fc3e42f144410eb822d2e4d84c1d8.1294245475.git.hverkuil@xs4all.nl>
-In-Reply-To: <1294245760-2803-1-git-send-email-hverkuil@xs4all.nl>
-References: <1294245760-2803-1-git-send-email-hverkuil@xs4all.nl>
+Return-path: <mchehab@pedra>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:17887 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757028Ab1AMRUN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Jan 2011 12:20:13 -0500
+Date: Thu, 13 Jan 2011 18:19:22 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org,
+	Jarod Wilson <jarod@redhat.com>, Janne Grunau <j@jannau.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 3/3] lirc_zilog: Remove use of deprecated struct
+ i2c_adapter.id field
+Message-ID: <20110113181922.792e44a1@endymion.delvare>
+In-Reply-To: <AANLkTim0Q8AxYZDCPZeV0+je6Us==yPFce3-zQ0ELh6e@mail.gmail.com>
+References: <euouknkdsi5amcy6dha8ycx7.1294936482595@email.android.com>
+	<20110113174814.12c2ea5d@endymion.delvare>
+	<AANLkTim0Q8AxYZDCPZeV0+je6Us==yPFce3-zQ0ELh6e@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Thu, 13 Jan 2011 12:07:34 -0500, Devin Heitmueller wrote:
+> On Thu, Jan 13, 2011 at 11:48 AM, Jean Delvare <khali@linux-fr.org> wrote:
+> > On Thu, 13 Jan 2011 11:34:42 -0500, Andy Walls wrote:
+> >> How should clock stretches by slaves be handled using i2c-algo-bit?
+> >
+> > It is already handled. But hdpvr-i2c doesn't use i2c-algo-bit. I2C
+> > support is done with USB commands instead. Maybe the hardware
+> > implementation doesn't support clock stretching by slaves. Apparently
+> > it doesn't support repeated start conditions either, so it wouldn't
+> > surprise me.
+> 
+> The hardware implementation does support clock stretching, or else it
+> wouldn't be working under Windows.
 
-Now uses .unlocked_ioctl instead of .ioctl.
+I think your conclusion is too fast and possibly incorrect. The traces
+Andy pointed us too earlier suggest that the windows driver is also
+"polling" the Zilog after the send operation to figure out when it is
+available again. If the Zilog was stretching the clock and the master
+was seeing that, it wouldn't return until the clock is released, so no
+polling would be necessary.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/davinci/vpif_capture.c |   90 ++++-----------------------
- 1 files changed, 14 insertions(+), 76 deletions(-)
+So, either the Zilog isn't stretching the clock in the standard way, or
+the master doesn't notice.
 
-diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
-index f8e6590..d93ad74 100644
---- a/drivers/media/video/davinci/vpif_capture.c
-+++ b/drivers/media/video/davinci/vpif_capture.c
-@@ -752,7 +752,7 @@ static int vpif_open(struct file *filep)
- 	struct video_obj *vid_ch;
- 	struct channel_obj *ch;
- 	struct vpif_fh *fh;
--	int i, ret = 0;
-+	int i;
- 
- 	vpif_dbg(2, debug, "vpif_open\n");
- 
-@@ -761,9 +761,6 @@ static int vpif_open(struct file *filep)
- 	vid_ch = &ch->video;
- 	common = &ch->common[VPIF_VIDEO_INDEX];
- 
--	if (mutex_lock_interruptible(&common->lock))
--		return -ERESTARTSYS;
--
- 	if (NULL == ch->curr_subdev_info) {
- 		/**
- 		 * search through the sub device to see a registered
-@@ -780,8 +777,7 @@ static int vpif_open(struct file *filep)
- 		}
- 		if (i == config->subdev_count) {
- 			vpif_err("No sub device registered\n");
--			ret = -ENOENT;
--			goto exit;
-+			return -ENOENT;
- 		}
- 	}
- 
-@@ -789,8 +785,7 @@ static int vpif_open(struct file *filep)
- 	fh = kzalloc(sizeof(struct vpif_fh), GFP_KERNEL);
- 	if (NULL == fh) {
- 		vpif_err("unable to allocate memory for file handle object\n");
--		ret = -ENOMEM;
--		goto exit;
-+		return -ENOMEM;
- 	}
- 
- 	/* store pointer to fh in private_data member of filep */
-@@ -810,9 +805,7 @@ static int vpif_open(struct file *filep)
- 	/* Initialize priority of this instance to default priority */
- 	fh->prio = V4L2_PRIORITY_UNSET;
- 	v4l2_prio_open(&ch->prio, &fh->prio);
--exit:
--	mutex_unlock(&common->lock);
--	return ret;
-+	return 0;
- }
- 
- /**
-@@ -832,9 +825,6 @@ static int vpif_release(struct file *filep)
- 
- 	common = &ch->common[VPIF_VIDEO_INDEX];
- 
--	if (mutex_lock_interruptible(&common->lock))
--		return -ERESTARTSYS;
--
- 	/* if this instance is doing IO */
- 	if (fh->io_allowed[VPIF_VIDEO_INDEX]) {
- 		/* Reset io_usrs member of channel object */
-@@ -858,9 +848,6 @@ static int vpif_release(struct file *filep)
- 	/* Decrement channel usrs counter */
- 	ch->usrs--;
- 
--	/* unlock mutex on channel object */
--	mutex_unlock(&common->lock);
--
- 	/* Close the priority */
- 	v4l2_prio_close(&ch->prio, fh->prio);
- 
-@@ -885,7 +872,6 @@ static int vpif_reqbufs(struct file *file, void *priv,
- 	struct channel_obj *ch = fh->channel;
- 	struct common_obj *common;
- 	u8 index = 0;
--	int ret = 0;
- 
- 	vpif_dbg(2, debug, "vpif_reqbufs\n");
- 
-@@ -908,13 +894,8 @@ static int vpif_reqbufs(struct file *file, void *priv,
- 
- 	common = &ch->common[index];
- 
--	if (mutex_lock_interruptible(&common->lock))
--		return -ERESTARTSYS;
--
--	if (0 != common->io_usrs) {
--		ret = -EBUSY;
--		goto reqbuf_exit;
--	}
-+	if (0 != common->io_usrs)
-+		return -EBUSY;
- 
- 	/* Initialize videobuf queue as per the buffer type */
- 	videobuf_queue_dma_contig_init(&common->buffer_queue,
-@@ -923,7 +904,7 @@ static int vpif_reqbufs(struct file *file, void *priv,
- 					    reqbuf->type,
- 					    common->fmt.fmt.pix.field,
- 					    sizeof(struct videobuf_buffer), fh,
--					    NULL);
-+					    &common->lock);
- 
- 	/* Set io allowed member of file handle to TRUE */
- 	fh->io_allowed[index] = 1;
-@@ -934,11 +915,7 @@ static int vpif_reqbufs(struct file *file, void *priv,
- 	INIT_LIST_HEAD(&common->dma_queue);
- 
- 	/* Allocate buffers */
--	ret = videobuf_reqbufs(&common->buffer_queue, reqbuf);
--
--reqbuf_exit:
--	mutex_unlock(&common->lock);
--	return ret;
-+	return videobuf_reqbufs(&common->buffer_queue, reqbuf);
- }
- 
- /**
-@@ -1152,11 +1129,6 @@ static int vpif_streamon(struct file *file, void *priv,
- 		return ret;
- 	}
- 
--	if (mutex_lock_interruptible(&common->lock)) {
--		ret = -ERESTARTSYS;
--		goto streamoff_exit;
--	}
--
- 	/* If buffer queue is empty, return error */
- 	if (list_empty(&common->dma_queue)) {
- 		vpif_dbg(1, debug, "buffer queue is empty\n");
-@@ -1235,13 +1207,10 @@ static int vpif_streamon(struct file *file, void *priv,
- 		enable_channel1(1);
- 	}
- 	channel_first_int[VPIF_VIDEO_INDEX][ch->channel_id] = 1;
--	mutex_unlock(&common->lock);
- 	return ret;
- 
- exit:
--	mutex_unlock(&common->lock);
--streamoff_exit:
--	ret = videobuf_streamoff(&common->buffer_queue);
-+	videobuf_streamoff(&common->buffer_queue);
- 	return ret;
- }
- 
-@@ -1279,9 +1248,6 @@ static int vpif_streamoff(struct file *file, void *priv,
- 		return -EINVAL;
- 	}
- 
--	if (mutex_lock_interruptible(&common->lock))
--		return -ERESTARTSYS;
--
- 	/* disable channel */
- 	if (VPIF_CHANNEL0_VIDEO == ch->channel_id) {
- 		enable_channel0(0);
-@@ -1299,8 +1265,6 @@ static int vpif_streamoff(struct file *file, void *priv,
- 	if (ret && (ret != -ENOIOCTLCMD))
- 		vpif_dbg(1, debug, "stream off failed in subdev\n");
- 
--	mutex_unlock(&common->lock);
--
- 	return videobuf_streamoff(&common->buffer_queue);
- }
- 
-@@ -1376,21 +1340,16 @@ static int vpif_querystd(struct file *file, void *priv, v4l2_std_id *std_id)
- {
- 	struct vpif_fh *fh = priv;
- 	struct channel_obj *ch = fh->channel;
--	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
- 	int ret = 0;
- 
- 	vpif_dbg(2, debug, "vpif_querystd\n");
- 
--	if (mutex_lock_interruptible(&common->lock))
--		return -ERESTARTSYS;
--
- 	/* Call querystd function of decoder device */
- 	ret = v4l2_subdev_call(vpif_obj.sd[ch->curr_sd_index], video,
- 				querystd, std_id);
- 	if (ret < 0)
- 		vpif_dbg(1, debug, "Failed to set standard for sub devices\n");
- 
--	mutex_unlock(&common->lock);
- 	return ret;
- }
- 
-@@ -1446,18 +1405,14 @@ static int vpif_s_std(struct file *file, void *priv, v4l2_std_id *std_id)
- 	fh->initialized = 1;
- 
- 	/* Call encoder subdevice function to set the standard */
--	if (mutex_lock_interruptible(&common->lock))
--		return -ERESTARTSYS;
--
- 	ch->video.stdid = *std_id;
- 	ch->video.dv_preset = V4L2_DV_INVALID;
- 	memset(&ch->video.bt_timings, 0, sizeof(ch->video.bt_timings));
- 
- 	/* Get the information about the standard */
- 	if (vpif_update_std_info(ch)) {
--		ret = -EINVAL;
- 		vpif_err("Error getting the standard info\n");
--		goto s_std_exit;
-+		return -EINVAL;
- 	}
- 
- 	/* Configure the default format information */
-@@ -1468,9 +1423,6 @@ static int vpif_s_std(struct file *file, void *priv, v4l2_std_id *std_id)
- 				s_std, *std_id);
- 	if (ret < 0)
- 		vpif_dbg(1, debug, "Failed to set standard for sub devices\n");
--
--s_std_exit:
--	mutex_unlock(&common->lock);
- 	return ret;
- }
- 
-@@ -1564,9 +1516,6 @@ static int vpif_s_input(struct file *file, void *priv, unsigned int index)
- 		return -EINVAL;
- 	}
- 
--	if (mutex_lock_interruptible(&common->lock))
--		return -ERESTARTSYS;
--
- 	/* first setup input path from sub device to vpif */
- 	if (config->setup_input_path) {
- 		ret = config->setup_input_path(ch->channel_id,
-@@ -1575,7 +1524,7 @@ static int vpif_s_input(struct file *file, void *priv, unsigned int index)
- 			vpif_dbg(1, debug, "couldn't setup input path for the"
- 				" sub device %s, for input index %d\n",
- 				subdev_info->name, index);
--			goto exit;
-+			return ret;
- 		}
- 	}
- 
-@@ -1586,7 +1535,7 @@ static int vpif_s_input(struct file *file, void *priv, unsigned int index)
- 					input, output, 0);
- 		if (ret < 0) {
- 			vpif_dbg(1, debug, "Failed to set input\n");
--			goto exit;
-+			return ret;
- 		}
- 	}
- 	vid_ch->input_idx = index;
-@@ -1597,9 +1546,6 @@ static int vpif_s_input(struct file *file, void *priv, unsigned int index)
- 
- 	/* update tvnorms from the sub device input info */
- 	ch->video_dev->tvnorms = chan_cfg->inputs[index].input.std;
--
--exit:
--	mutex_unlock(&common->lock);
- 	return ret;
- }
- 
-@@ -1668,11 +1614,7 @@ static int vpif_g_fmt_vid_cap(struct file *file, void *priv,
- 		return -EINVAL;
- 
- 	/* Fill in the information about format */
--	if (mutex_lock_interruptible(&common->lock))
--		return -ERESTARTSYS;
--
- 	*fmt = common->fmt;
--	mutex_unlock(&common->lock);
- 	return 0;
- }
- 
-@@ -1720,12 +1662,7 @@ static int vpif_s_fmt_vid_cap(struct file *file, void *priv,
- 	if (ret)
- 		return ret;
- 	/* store the format in the channel object */
--	if (mutex_lock_interruptible(&common->lock))
--		return -ERESTARTSYS;
--
- 	common->fmt = *fmt;
--	mutex_unlock(&common->lock);
--
- 	return 0;
- }
- 
-@@ -2145,7 +2082,7 @@ static struct v4l2_file_operations vpif_fops = {
- 	.owner = THIS_MODULE,
- 	.open = vpif_open,
- 	.release = vpif_release,
--	.ioctl = video_ioctl2,
-+	.unlocked_ioctl = video_ioctl2,
- 	.mmap = vpif_mmap,
- 	.poll = vpif_poll
- };
-@@ -2288,6 +2225,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 		common = &(ch->common[VPIF_VIDEO_INDEX]);
- 		spin_lock_init(&common->irqlock);
- 		mutex_init(&common->lock);
-+		ch->video_dev->lock = &common->lock;
- 		/* Initialize prio member of channel object */
- 		v4l2_prio_init(&ch->prio);
- 		err = video_register_device(ch->video_dev,
+> That said, it's possible that the
+> driver for the i2c master isn't checking the proper bits to detect the
+> clock stretch.  I haven't personally looked at the code for the i2c
+> master, so I cannot say one way or the other.
+
+If you're talking about hdpvr-i2c, it's sending USB commands, so it
+doesn't seem like we have much control over what happens behind the
+scene. If there is any way to improve its reliability, that will
+require external knowledge.
+
 -- 
-1.7.0.4
-
+Jean Delvare
