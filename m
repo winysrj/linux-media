@@ -1,107 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from mail2.matrix-vision.com ([85.214.244.251]:50986 "EHLO
-	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755171Ab1ATJjM (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:30280 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750771Ab1AMFYD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jan 2011 04:39:12 -0500
-Message-ID: <4D3802BD.4090106@matrix-vision.de>
-Date: Thu, 20 Jan 2011 10:39:09 +0100
-From: Michael Jones <michael.jones@matrix-vision.de>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Martin Hostettler <martin@neutronstar.dyndns.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH V2] v4l: OMAP3 ISP CCDC: Add support for 8bit greyscale
- sensors
-References: <1295386062-10618-1-git-send-email-martin@neutronstar.dyndns.org> <201101190027.19904.laurent.pinchart@ideasonboard.com> <4D36EB0A.9050002@matrix-vision.de> <201101191738.52668.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201101191738.52668.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-15
+	Thu, 13 Jan 2011 00:24:03 -0500
+Subject: RE: Enable IR on hdpvr
+From: Andy Walls <awalls@md.metrocast.net>
+To: Jason Gauthier <jgauthier@lastar.com>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Janne Grunau <j@jannau.net>
+In-Reply-To: <1294875902.2485.19.camel@morgan.silverblock.net>
+References: <65DE7931C559BF4DBEE42C3F8246249A0B686EB0@V-EXMAILBOX.ctg.com>
+	 <8AFBEFD7-69E3-4E71-B155-EA773C2FED43@wilsonet.com>
+	 <65DE7931C559BF4DBEE42C3F8246249A0B69B014@V-ALBEXCHANGE.ctg.com>
+	 <EC37FC85-82B2-48AE-BB94-64ED00E7647D@wilsonet.com>
+	 <93CE8497-D6AB-43BA-A239-EE32D51582FC@wilsonet.com>
+	 <65DE7931C559BF4DBEE42C3F8246249A0B6A54C7@V-ALBEXCHANGE.ctg.com>
+	 <1294875902.2485.19.camel@morgan.silverblock.net>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 13 Jan 2011 00:23:55 -0500
+Message-ID: <1294896235.7921.14.camel@localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Laurent,
+On Wed, 2011-01-12 at 18:45 -0500, Andy Walls wrote:
 
-On 01/19/2011 05:38 PM, Laurent Pinchart wrote:
-> Hi Michael,
+
+> If all goes well, with Jarrod's change, you should be able to test the
+> hdpvr module with the ir-kbd-i2c module and test IR Rx.
+
+FYI, I have (re)confirmed that ir-kbd-i2c and cx18, in a bleeding-edge
+development kernel, still work with the Zilog Z8 IR Rx on the
+HVR-1600.  
+
+It's nice to have a known working baseline.
+
+
+> Strictly speaking, lirc_zilog needs some rework to use the kernel
+> internal interfaces properly.  It might still work, but don't be
+> surprised if it doesn't.
 > 
-<snip>
->>>> @@ -1144,10 +1148,15 @@ static void ccdc_configure(struct
->>>> isp_ccdc_device *ccdc) else
->>>>
->>>>  		syn_mode &= ~ISPCCDC_SYN_MODE_SDR2RSZ;
->>>>
->>>> -	isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
->>>> +	/* Use PACK8 mode for 1byte per pixel formats */
->>>>
->>>> -	/* CCDC_PAD_SINK */
->>>> -	format = &ccdc->formats[CCDC_PAD_SINK];
->>>> +	if (isp_video_format_info(format->code)->bpp <= 8)
->>>> +		syn_mode |= ISPCCDC_SYN_MODE_PACK8;
->>>> +	else
->>>> +		syn_mode &= ~ISPCCDC_SYN_MODE_PACK8;
->>>> +
->>
->> It would make sense to me to move this bit into ispccdc_config_sync_if().
-> 
-> Why do you think so ? This configures how the data is written to memory, while 
-> ispccdc_config_sync_if() configures the CCDC input interface.
+> I might get to working on lirc_zilog tonight, but otherwise not until
+> this weekend.
 
-I see. I was only thinking of ispccdc_config_sync_if() as configuring
-the CCDC_SYN_MODE register.  I was in fact wondering why the other
-syn_mode assignments weren't made in there.  Now that I understand the
-division, I agree that setting PACK8 makes sense wherever the other
-memory-writing settings are.
+lirc_zilog got a little work tonight:
 
-> 
->>>> +
->>>> +	isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
->>>>
->>>>  	/* Mosaic filter */
->>>>  	switch (format->code) {
->>>>
->>>> @@ -2244,7 +2253,12 @@ int isp_ccdc_init(struct isp_device *isp)
->>>>
->>>>  	ccdc->syncif.vdpol = 0;
->>>>  	
->>>>  	ccdc->clamp.oblen = 0;
->>>>
->>>> -	ccdc->clamp.dcsubval = 64;
->>>> +
->>>> +	if (isp->pdata->subdevs->interface == ISP_INTERFACE_PARALLEL
->>>> +	    && isp->pdata->subdevs->bus.parallel.width <= 8)
->>>> +		ccdc->clamp.dcsubval = 0;
->>>> +	else
->>>> +		ccdc->clamp.dcsubval = 64;
->>>
->>> I don't like this too much. What happens if you have several sensors
->>> connected to the system with different bus width ?
->>
->> I see Laurent's point here.  Maybe move the dcsubval assignment into
->> ccdc_configure().  Also, don't we also want to remove dcsubval for an
->> 8-bit serially-attached sensor?  In ccdc_configure() you could make it
->> conditional on the mbus format's width on the CCDC sink pad.
-> 
-> This piece of code only sets the default value. If the user sets another 
-> value, the driver must not override it silently when the video stream is 
-> started. I'm not really sure how to properly fix this. The best solution is of 
-> course to set the value from userspace.
+http://git.linuxtv.org/awalls/media_tree.git?a=shortlog;h=refs/heads/z8
 
-I see the predicament. 64 is a bad default value for 8-bit data, but we
-can't at init time know whether we're going to have 8-bit data or
-10(+)-bit data to set a different default.  And you can't make a 64-or-0
-decision at runtime because the user may have set a custom value after
-init (although this isn't currently possible).  But I don't think a user
-should have to adjust dcsubval just because he changed to an 8-bit image
-and wants a decent image.  Especially since at the moment the user can't
-do that anyway.  What I keep coming back to, though it sounds ugly, is 2
-different default values for dcsubval.
+My changes make it slightly *more* broken in some respects. :D
 
-> 
->>>>  	ccdc->vpcfg.pixelclk = 0;
-> 
+At least what needs to be reworked is now becoming easier to see and
+address.
 
+Regards,
+Andy
 
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
