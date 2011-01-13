@@ -1,52 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:11345 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750755Ab1AWOMl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Jan 2011 09:12:41 -0500
-Message-ID: <4D3C3750.8060301@redhat.com>
-Date: Sun, 23 Jan 2011 12:12:32 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Alina Friedrichsen <x-alina@gmx.net>
-CC: linux-media@vger.kernel.org, rglowery@exemail.com.au
-Subject: Re: [RFC PATCH] Getting Hauppauge WinTV HVR-1400 (XC3028L) to work
-References: <20110123001615.86290@gmx.net>
-In-Reply-To: <20110123001615.86290@gmx.net>
-Content-Type: text/plain; charset=UTF-8
+Received: from zone0.gcu-squad.org ([212.85.147.21]:3177 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932878Ab1AMJrU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Jan 2011 04:47:20 -0500
+Date: Thu, 13 Jan 2011 10:46:27 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
+	Janne Grunau <j@jannau.net>
+Subject: Re: [PATCH 3/3] lirc_zilog: Remove use of deprecated struct  
+ i2c_adapter.id field
+Message-ID: <20110113104627.4d1607e9@endymion.delvare>
+In-Reply-To: <1294276835.9672.99.camel@morgan.silverblock.net>
+References: <1293587067.3098.10.camel@localhost>
+	<1293587390.3098.16.camel@localhost>
+	<20110105154553.546998bf@endymion.delvare>
+	<4D24ABA4.5070100@redhat.com>
+	<20110105225149.1145420b@endymion.delvare>
+	<4D24EA81.8080205@redhat.com>
+	<1294276835.9672.99.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Alina,
+Hi Andy,
 
-Em 22-01-2011 22:16, Alina Friedrichsen escreveu:
-> With this patch my DVB-T receiver works now like before 2.6.34, only the
-> first four tunings fails, after that all works fine.
-> The code was still in there, only commented out. As the original author
-> says, please test it with different XC3028 hardware. If no one has problems
-> with it, please commit it.
-> 
-> Signed-off-by: Alina Friedrichsen <x-alina@gmx.net>
-> ---
-> diff -urNp linux-2.6.37.orig/drivers/media/common/tuners/tuner-xc2028.c linux-2.6.37/drivers/media/common/tuners/tuner-xc2028.c
-> --- linux-2.6.37.orig/drivers/media/common/tuners/tuner-xc2028.c	2011-01-22 23:46:57.000000000 +0100
-> +++ linux-2.6.37/drivers/media/common/tuners/tuner-xc2028.c	2011-01-22 23:51:33.000000000 +0100
-> @@ -967,7 +967,7 @@ static int generic_set_freq(struct dvb_f
->  		 * newer firmwares
->  		 */
->  
-> -#if 1
-> +#if 0
->  		/*
->  		 * The proper adjustment would be to do it at s-code table.
->  		 * However, this didn't work, as reported by
+On Wed, 05 Jan 2011 20:20:35 -0500, Andy Walls wrote:
+> The cx18 driver has a function scope i2c_client for reading the EEPROM,
+> and there's a good reason for it.  We don't want to register the EEPROM
+> with the I2C system and make it visible to the rest of the system,
+> including i2c-dev and user-space tools.  To avoid EEPROM corruption,
+> it's better keep communication with EEPROMs to a very limited scope.
 
-This is problematic, as it seems to be country-specific and/or demod-specific. 
-We'll need to work on a different solution for it. On what Country do you live?
-By looking at HVR1400 entry, it uses a dibcom 7000p demod.
-We need to know what are country/demod for the users for whose the old code
-were broken.
+Note that it is possible to declare a read-only EEPROM, so that
+user-space has no chance to write to it. If you really don't want
+user-space to touch it, the best approach is i2c_new_dummy(), because
+it will mark the slave address as busy, preventing i2c-dev from
+accessing it (unless the user forces access - but then he/she is
+obviously on his/her own...)
 
-Cheers,
-Mauro
+The i2c_client provided by i2c_new_dummy() can be unregistered at the
+end of the function which needs it, or kept for the lifetime of the
+driver, as you prefer.
 
+-- 
+Jean Delvare
