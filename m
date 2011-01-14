@@ -1,163 +1,56 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:2961 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752764Ab1ACSbd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jan 2011 13:31:33 -0500
-Received: from localhost.localdomain (43.80-203-71.nextgentel.com [80.203.71.43])
-	(authenticated bits=0)
-	by smtp-vbr18.xs4all.nl (8.13.8/8.13.8) with ESMTP id p03IVMua006180
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 3 Jan 2011 19:31:31 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [RFCv2 PATCH 09/10] ivtv: convert to core priority handling.
-Date: Mon,  3 Jan 2011 19:31:14 +0100
-Message-Id: <c85976468296cac1312177131a12975fcd5f4913.1294078230.git.hverkuil@xs4all.nl>
-In-Reply-To: <1294079475-13259-1-git-send-email-hverkuil@xs4all.nl>
-References: <1294079475-13259-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <6515cfbdde63364fd12bca1219870f38ff371145.1294078230.git.hverkuil@xs4all.nl>
-References: <6515cfbdde63364fd12bca1219870f38ff371145.1294078230.git.hverkuil@xs4all.nl>
+Return-path: <mchehab@pedra>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:54386 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752865Ab1ANMJG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Jan 2011 07:09:06 -0500
+Received: by ywl5 with SMTP id 5so835032ywl.19
+        for <linux-media@vger.kernel.org>; Fri, 14 Jan 2011 04:09:06 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4D2EF36B.8050007@redhat.com>
+References: <AANLkTin6g15UzWuN8XHRUwwGUPWpSnWwVAU1GxvXCcNz@mail.gmail.com>
+	<4D2EF36B.8050007@redhat.com>
+Date: Fri, 14 Jan 2011 23:09:04 +1100
+Message-ID: <AANLkTikz=zss1KKBRmM=8mjg6va1NEwD-nD-01PBXzQG@mail.gmail.com>
+Subject: Re: [patch] addition to v2.6.35_i2c_new_probed_device.patch (was: Re:
+ Debug code in HG repositories)
+From: Vincent McIntyre <vincent.mcintyre@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/ivtv/ivtv-driver.h  |    2 -
- drivers/media/video/ivtv/ivtv-fileops.c |    2 -
- drivers/media/video/ivtv/ivtv-ioctl.c   |   56 ++++++++----------------------
- 3 files changed, 15 insertions(+), 45 deletions(-)
+On 1/13/11, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
 
-diff --git a/drivers/media/video/ivtv/ivtv-driver.h b/drivers/media/video/ivtv/ivtv-driver.h
-index 04bacdb..84bdf0f 100644
---- a/drivers/media/video/ivtv/ivtv-driver.h
-+++ b/drivers/media/video/ivtv/ivtv-driver.h
-@@ -383,7 +383,6 @@ struct ivtv_open_id {
- 	u32 open_id;                    /* unique ID for this file descriptor */
- 	int type;                       /* stream type */
- 	int yuv_frames;                 /* 1: started OUT_UDMA_YUV output mode */
--	enum v4l2_priority prio;        /* priority */
- 	struct ivtv *itv;
- };
- 
-@@ -710,7 +709,6 @@ struct ivtv {
- 
- 	/* Miscellaneous */
- 	u32 open_id;			/* incremented each time an open occurs, is >= 1 */
--	struct v4l2_prio_state prio;    /* priority state */
- 	int search_pack_header;         /* 1 if ivtv_copy_buf_to_user() is scanning for a pack header (0xba) */
- 	int speed;                      /* current playback speed setting */
- 	u8 speed_mute_audio;            /* 1 if audio should be muted when fast forward */
-diff --git a/drivers/media/video/ivtv/ivtv-fileops.c b/drivers/media/video/ivtv/ivtv-fileops.c
-index c57a585..4463bf4 100644
---- a/drivers/media/video/ivtv/ivtv-fileops.c
-+++ b/drivers/media/video/ivtv/ivtv-fileops.c
-@@ -856,7 +856,6 @@ int ivtv_v4l2_close(struct file *filp)
- 
- 	IVTV_DEBUG_FILE("close %s\n", s->name);
- 
--	v4l2_prio_close(&itv->prio, id->prio);
- 	v4l2_fh_del(fh);
- 	v4l2_fh_exit(fh);
- 
-@@ -973,7 +972,6 @@ static int ivtv_serialized_open(struct ivtv_stream *s, struct file *filp)
- 	}
- 	item->itv = itv;
- 	item->type = s->type;
--	v4l2_prio_open(&itv->prio, &item->prio);
- 
- 	item->open_id = itv->open_id++;
- 	filp->private_data = &item->fh;
-diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c b/drivers/media/video/ivtv/ivtv-ioctl.c
-index d9386a7..6fb1837 100644
---- a/drivers/media/video/ivtv/ivtv-ioctl.c
-+++ b/drivers/media/video/ivtv/ivtv-ioctl.c
-@@ -750,23 +750,6 @@ static int ivtv_s_register(struct file *file, void *fh, struct v4l2_dbg_register
- }
- #endif
- 
--static int ivtv_g_priority(struct file *file, void *fh, enum v4l2_priority *p)
--{
--	struct ivtv *itv = ((struct ivtv_open_id *)fh)->itv;
--
--	*p = v4l2_prio_max(&itv->prio);
--
--	return 0;
--}
--
--static int ivtv_s_priority(struct file *file, void *fh, enum v4l2_priority prio)
--{
--	struct ivtv_open_id *id = fh;
--	struct ivtv *itv = id->itv;
--
--	return v4l2_prio_change(&itv->prio, &id->prio, prio);
--}
--
- static int ivtv_querycap(struct file *file, void *fh, struct v4l2_capability *vcap)
- {
- 	struct ivtv *itv = ((struct ivtv_open_id *)fh)->itv;
-@@ -1800,6 +1783,21 @@ static long ivtv_default(struct file *file, void *fh, bool valid_prio,
- {
- 	struct ivtv *itv = ((struct ivtv_open_id *)fh)->itv;
- 
-+	if (!valid_prio) {
-+		switch (cmd) {
-+		case VIDEO_PLAY:
-+		case VIDEO_STOP:
-+		case VIDEO_FREEZE:
-+		case VIDEO_CONTINUE:
-+		case VIDEO_COMMAND:
-+		case VIDEO_SELECT_SOURCE:
-+		case AUDIO_SET_MUTE:
-+		case AUDIO_CHANNEL_SELECT:
-+		case AUDIO_BILINGUAL_CHANNEL_SELECT:
-+			return -EBUSY;
-+		}
-+	}
-+
- 	switch (cmd) {
- 	case VIDIOC_INT_RESET: {
- 		u32 val = *(u32 *)arg;
-@@ -1837,30 +1835,8 @@ static long ivtv_serialized_ioctl(struct ivtv *itv, struct file *filp,
- 		unsigned int cmd, unsigned long arg)
- {
- 	struct video_device *vfd = video_devdata(filp);
--	struct ivtv_open_id *id = fh2id(filp->private_data);
- 	long ret;
- 
--	/* check priority */
--	switch (cmd) {
--	case VIDIOC_S_CTRL:
--	case VIDIOC_S_STD:
--	case VIDIOC_S_INPUT:
--	case VIDIOC_S_OUTPUT:
--	case VIDIOC_S_TUNER:
--	case VIDIOC_S_FREQUENCY:
--	case VIDIOC_S_FMT:
--	case VIDIOC_S_CROP:
--	case VIDIOC_S_AUDIO:
--	case VIDIOC_S_AUDOUT:
--	case VIDIOC_S_EXT_CTRLS:
--	case VIDIOC_S_FBUF:
--	case VIDIOC_S_PRIORITY:
--	case VIDIOC_OVERLAY:
--		ret = v4l2_prio_check(&itv->prio, id->prio);
--		if (ret)
--			return ret;
--	}
--
- 	if (ivtv_debug & IVTV_DBGFLG_IOCTL)
- 		vfd->debug = V4L2_DEBUG_IOCTL | V4L2_DEBUG_IOCTL_ARG;
- 	ret = video_ioctl2(filp, cmd, arg);
-@@ -1885,8 +1861,6 @@ long ivtv_v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
- 
- static const struct v4l2_ioctl_ops ivtv_ioctl_ops = {
- 	.vidioc_querycap    		    = ivtv_querycap,
--	.vidioc_g_priority  		    = ivtv_g_priority,
--	.vidioc_s_priority  		    = ivtv_s_priority,
- 	.vidioc_s_audio     		    = ivtv_s_audio,
- 	.vidioc_g_audio     		    = ivtv_g_audio,
- 	.vidioc_enumaudio   		    = ivtv_enumaudio,
--- 
-1.7.0.4
+>> This seems to be a relatively simple patch, inline below.
+>> This is against the linux-media tree,  I could not figure out how
+>> to turn it into a clean patch of
+>> media_build/backports/v2.6.35_i2c_new_probed_device.patch
+>> I did look for guidance on how to do this in
+>> media_build/README.patches  but could not find anything that looked
+>> relevant.
+>
+> Well, there are two ways for doing it:
+>
 
+Thanks for your explanation. I was quite puzzled for some time why I
+could not find the commit id in the git log, now I understand why.
+
+
+>> The code now compiles for me but I don't know if it will actually
+>> work, I don't have the hardware.
+>
+> Ok, I did the above procedure, adding your patch to the diff. Please test.
+>
+
+That bit works now (from git, the tarball downloaded by build.sh
+hasn't caught up).
+Thanks for applying.
+
+However the build now fails on a separate issue, which I'll put in a new thread.
+
+Cheers
+Vince
