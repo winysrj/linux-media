@@ -1,179 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1630 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751954Ab1AYH7Q (ORCPT
+Received: from poutre.nerim.net ([62.4.16.124]:57984 "EHLO poutre.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757261Ab1ANNfK convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jan 2011 02:59:16 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [RFC PATCH 04/12] mt9m111.c: convert to the control framework.
-Date: Tue, 25 Jan 2011 08:59:07 +0100
-Cc: linux-media@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
-	Alberto Panizzo <maramaopercheseimorto@gmail.com>,
-	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
-	Marek Vasut <marek.vasut@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-References: <1294787172-13638-1-git-send-email-hverkuil@xs4all.nl> <56c1a8ef6e1a5405881611a18579db98e271fb86.1294786597.git.hverkuil@xs4all.nl> <Pine.LNX.4.64.1101230032110.1872@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1101230032110.1872@axis700.grange>
+	Fri, 14 Jan 2011 08:35:10 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by poutre.nerim.net (Postfix) with ESMTP id B5D6C39DE43
+	for <linux-media@vger.kernel.org>; Fri, 14 Jan 2011 14:35:09 +0100 (CET)
+Received: from poutre.nerim.net ([127.0.0.1])
+	by localhost (poutre.nerim.net [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id snAy+UpExKHs for <linux-media@vger.kernel.org>;
+	Fri, 14 Jan 2011 14:35:08 +0100 (CET)
+Received: from mail.logiways-france.fr (mail.logiways.com [194.79.150.130])
+	by poutre.nerim.net (Postfix) with ESMTPS id 654B939DE60
+	for <linux-media@vger.kernel.org>; Fri, 14 Jan 2011 14:35:08 +0100 (CET)
+From: Thierry LELEGARD <tlelegard@logiways.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [linux-media] API V3 vs SAPI behavior difference in reading tuning
+ parameters
+Date: Fri, 14 Jan 2011 13:35:07 +0000
+Message-ID: <BA2A2355403563449C28518F517A3C4805AA9B9B@titan.logiways-france.fr>
+Content-Language: fr-FR
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201101250859.07104.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sunday, January 23, 2011 00:45:15 Guennadi Liakhovetski wrote:
-> On Wed, 12 Jan 2011, Hans Verkuil wrote:
-> 
-> > Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
-> > ---
-> >  drivers/media/video/mt9m111.c |  184 ++++++++++++-----------------------------
-> >  1 files changed, 54 insertions(+), 130 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-> > index 53fa2a7..2328579 100644
-> > --- a/drivers/media/video/mt9m111.c
-> > +++ b/drivers/media/video/mt9m111.c
-> 
-> [snip]
-> 
-> > -static int mt9m111_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-> > +static int mt9m111_s_ctrl(struct v4l2_ctrl *ctrl)
-> >  {
-> > +	struct v4l2_subdev *sd =
-> > +		&container_of(ctrl->handler, struct mt9m111, hdl)->subdev;
-> >  	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> > -	struct mt9m111 *mt9m111 = to_mt9m111(client);
-> > -	const struct v4l2_queryctrl *qctrl;
-> > -	int ret;
-> > -
-> > -	qctrl = soc_camera_find_qctrl(&mt9m111_ops, ctrl->id);
-> > -	if (!qctrl)
-> > -		return -EINVAL;
-> >  
-> >  	switch (ctrl->id) {
-> >  	case V4L2_CID_VFLIP:
-> > -		mt9m111->vflip = ctrl->value;
-> > -		ret = mt9m111_set_flip(client, ctrl->value,
-> > +		return mt9m111_set_flip(client, ctrl->val,
-> >  					MT9M111_RMB_MIRROR_ROWS);
-> > -		break;
-> >  	case V4L2_CID_HFLIP:
-> > -		mt9m111->hflip = ctrl->value;
-> > -		ret = mt9m111_set_flip(client, ctrl->value,
-> > +		return mt9m111_set_flip(client, ctrl->val,
-> >  					MT9M111_RMB_MIRROR_COLS);
-> > -		break;
-> >  	case V4L2_CID_GAIN:
-> > -		ret = mt9m111_set_global_gain(client, ctrl->value);
-> > -		break;
-> > +		return mt9m111_set_global_gain(client, ctrl->val);
-> > +
-> >  	case V4L2_CID_EXPOSURE_AUTO:
-> > -		ret =  mt9m111_set_autoexposure(client, ctrl->value);
-> > -		break;
-> > +		return mt9m111_set_autoexposure(client, ctrl->val);
-> > +
-> >  	case V4L2_CID_AUTO_WHITE_BALANCE:
-> > -		ret =  mt9m111_set_autowhitebalance(client, ctrl->value);
-> > -		break;
-> > -	default:
-> > -		ret = -EINVAL;
-> > +		return mt9m111_set_autowhitebalance(client, ctrl->val);
-> >  	}
-> > -
-> > -	return ret;
-> > +	return -EINVAL;
-> >  }
-> >  
-> >  static int mt9m111_suspend(struct soc_camera_device *icd, pm_message_t state)
-> 
-> [snip]
-> 
-> > @@ -1067,6 +968,26 @@ static int mt9m111_probe(struct i2c_client *client,
-> >  		return -ENOMEM;
-> >  
-> >  	v4l2_i2c_subdev_init(&mt9m111->subdev, client, &mt9m111_subdev_ops);
-> > +	v4l2_ctrl_handler_init(&mt9m111->hdl, 5);
-> > +	v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
-> > +			V4L2_CID_VFLIP, 0, 1, 1, 0);
-> > +	v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
-> > +			V4L2_CID_HFLIP, 0, 1, 1, 0);
-> > +	v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
-> > +			V4L2_CID_AUTO_WHITE_BALANCE, 0, 1, 1, 1);
-> > +	mt9m111->gain = v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
-> > +			V4L2_CID_GAIN, 0, 63 * 2 * 2, 1, 32);
-> > +	v4l2_ctrl_new_std_menu(&mt9m111->hdl,
-> > +			&mt9m111_ctrl_ops, V4L2_CID_EXPOSURE_AUTO, 1, 0,
-> > +			V4L2_EXPOSURE_AUTO);
-> > +	mt9m111->subdev.ctrl_handler = &mt9m111->hdl;
-> > +	if (mt9m111->hdl.error) {
-> > +		int err = mt9m111->hdl.error;
-> > +
-> > +		kfree(mt9m111);
-> > +		return err;
-> > +	}
-> > +	mt9m111->gain->is_volatile = 1;
-> 
-> I'm not sure I like this approach: you register each control separately, 
-> but with the same handler, and then in that handler you switch-case again 
-> to find out which control has to be processed... If we already register 
-> them separately, and they share no code, apart from context extraction 
-> from parameters - why not make separate handlers, waste some memory on a 
-> couple more structs, but avoid run-time switching (I know it is not 
-> critical, although, with still photo-shooting you might want to care about 
-> the time between your controls and the actual shot), and win clarity?
+Dear all,
 
-I find that as long as the handler for each control is short (one-liners
-in this case), then there is no benefit to split it up. It just adds a
-fair amount of code to the source which in my opinion does not make it
-easier to read.
+I would like to report an annoying behavior difference between S2API and the
+legacy DVB API (V3) when _reading_ the current tuning configuration.
 
-Regards,
+In short, API V3 is able to report the _actual_ tuning parameters as used by
+the driver and corresponding to the actual broadcast steam. On the other hand,
+S2API reports cached values which were specified in the tuning operation and
+these values may be generic (*_AUTO symbols) or even wrong.
 
-	Hans
+Logically, it seems that the difference is located in the API and not in the driver.
 
-> 
-> >  
-> >  	/* Second stage probe - when a capture adapter is there */
-> >  	icd->ops		= &mt9m111_ops;
-> > @@ -1080,6 +1001,7 @@ static int mt9m111_probe(struct i2c_client *client,
-> >  	ret = mt9m111_video_probe(icd, client);
-> >  	if (ret) {
-> >  		icd->ops = NULL;
-> > +		v4l2_ctrl_handler_free(&mt9m111->hdl);
-> >  		kfree(mt9m111);
-> >  	}
-> >  
-> > @@ -1091,7 +1013,9 @@ static int mt9m111_remove(struct i2c_client *client)
-> >  	struct mt9m111 *mt9m111 = to_mt9m111(client);
-> >  	struct soc_camera_device *icd = client->dev.platform_data;
-> >  
-> > +	v4l2_device_unregister_subdev(&mt9m111->subdev);
-> 
-> Same here - don't like redundancy with soc_camera.c
-> 
-> Thanks
-> Guennadi
-> 
-> >  	icd->ops = NULL;
-> > +	v4l2_ctrl_handler_free(&mt9m111->hdl);
-> >  	kfree(mt9m111);
-> >  
-> >  	return 0;
-> 
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+Here is the configuration I test:
 
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Kernel 2.6.35.10-74.fc14.i686 (Fedora 14)
+Hauppauge WinTV-Nova-T-500 (dual DVB-T, DiBcom 3000MC/P)
+
+I tune to a frequency and let many parameters to their *_AUTO value:
+  DTV_TRANSMISSION_MODE
+  DTV_GUARD_INTERVAL
+  DTV_CODE_RATE_HP
+  DTV_CODE_RATE_LP
+
+The tuning is performed correctly and reception is effective. The tuner finds
+the right parameters.
+
+With API V3, after reading the frontend state (FE_GET_FRONTEND), the returned
+values are correct. I can see that actual code rate HP is 3/4, LP 1/2,
+transmission mode 8K and guard interval 1/8.
+
+However, on the same machine, after reading the frontend state using S2API
+(FE_GET_PROPERTY), all returned values are the *_AUTO values I specified
+while tuning.
+
+But there is worse. If I set a wrong parameter in the tuning operation,
+for instance guard interval 1/32, the API V3 returns the correct value
+which is actually used by the tuner (GUARD_INTERVAL_1_8), while S2API
+returns the "cached" value which was set while tuning (GUARD_INTERVAL_1_32).
+
+So, the driver is able 1) to find the correct actual parameter and 2) to
+report this actual value since API V3 returns it.
+
+But it seems that API V3 returns the actual tuning parameter as used by the
+driver while S2API returns a cached value which was used while tuning.
+
+This seems an annoying regression. An application is no longer able to
+determine the modulation parameter of an actual stream.
+
+As a final note, there is no difference if the tuning operation is performed
+using API V3 or S2API, the difference is only in the reading operation
+(FE_GET_FRONTEND vs. FE_GET_PROPERTY).
+
+Best regards,
+-Thierry
+
