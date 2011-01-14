@@ -1,78 +1,146 @@
 Return-path: <mchehab@pedra>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48416 "EHLO arroyo.ext.ti.com"
+Received: from smtp208.alice.it ([82.57.200.104]:42083 "EHLO smtp208.alice.it"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755745Ab1AKLHv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jan 2011 06:07:51 -0500
-From: manjunatha_halli@ti.com
-To: mchehab@infradead.org, hverkuil@xs4all.nl
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Manjunatha Halli <manjunatha_halli@ti.com>
-Subject: [RFC V10 0/7] FM V4L2 drivers for WL128x
-Date: Tue, 11 Jan 2011 06:31:20 -0500
-Message-Id: <1294745487-29138-1-git-send-email-manjunatha_halli@ti.com>
+	id S1751467Ab1ANU4u (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Jan 2011 15:56:50 -0500
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Cc: Antonio Ospite <ospite@studenti.unina.it>,
+	openkinect@googlegroups.com, Steven Toth <stoth@kernellabs.com>
+Subject: [PATCH] Add a 10 bpp packed greyscale format.
+Date: Fri, 14 Jan 2011 21:56:38 +0100
+Message-Id: <1295038598-8548-1-git-send-email-ospite@studenti.unina.it>
+In-Reply-To: <20101228123756.e95dc546.ospite@studenti.unina.it>
+References: <20101228123756.e95dc546.ospite@studenti.unina.it>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Manjunatha Halli <manjunatha_halli@ti.com>
+Add a 10 bits per pixel greyscale format in a packed array representation,
+naming it Y10P. Such pixel format is supplied for instance by the Kinect
+sensor device.
 
-Mauro and the list,
+Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+---
 
-This is the v10 version of the TI WL128x FM V4L2 drivers patchset.
-This introduces wl128x folder under the drivers/media/radio which cater
-to FM core on Texas Instrument's WL128x (also compatible with WL127x)
-WiLink chipsets.
-WL128x's FM can work in either Rx or Tx mode, and V4L2 interfaces are
-provided for both.
+Hi, this version should look better than the previous one.
+It's not marked as RFC anymore, is it in a submittable state?
+Comments from native English speakers always appreciated.
 
-** patch description **
+A rendered version of the documentation is _temporarily_ here:
+http://shell.studenti.unina.it/~ospite/tmp/V4L2-PIX-FMT-Y10P.html
 
-Texas Instrument's WL128x chipset packs BT, FM, GPS and WLAN in a single
-die with BT, FM and GPS being interfaced over a single UART.
-This driver works on top of the shared transport line discipline driver.
-This driver can also be made use for the WL127x version of the chip which
-packs BT, FM and WLAN only.
+The main recipient is linux-media, but OpenKinect is on Cc so someone there
+could double check the information is actually true.
 
-Comments on the last version of the patches have been taken care,
-such as,
-- Remove use of 'break' after 'return' statment in few switch case statments.
-- Remove some unneccessory checks in fmdrv_common and fmdrv_rx
+Regards,
+   Antonio Ospite
+   http://ao2.it
 
-Thanks & Regards,
-Manjunatha Halli
+ Documentation/DocBook/media-entities.tmpl |    1 +
+ Documentation/DocBook/v4l/pixfmt-y10p.xml |   43 +++++++++++++++++++++++++++++
+ Documentation/DocBook/v4l/pixfmt.xml      |    1 +
+ Documentation/DocBook/v4l/videodev2.h.xml |    1 +
+ include/linux/videodev2.h                 |    1 +
+ 5 files changed, 47 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/DocBook/v4l/pixfmt-y10p.xml
 
-Manjunatha Halli (7):
-  drivers:media:radio: wl128x: FM Driver common header file
-  drivers:media:radio: wl128x: FM Driver V4L2 sources
-  drivers:media:radio: wl128x: FM Driver Common  sources
-  drivers:media:radio: wl128x: FM driver RX sources
-  drivers:media:radio: wl128x: FM driver TX sources
-  drivers:media:radio: wl128x: Kconfig & Makefile for wl128x driver
-  drivers:media:radio: Update Kconfig and Makefile for wl128x FM
-    driver.
-
- drivers/media/radio/Kconfig               |    3 +
- drivers/media/radio/Makefile              |    1 +
- drivers/media/radio/wl128x/Kconfig        |   17 +
- drivers/media/radio/wl128x/Makefile       |    6 +
- drivers/media/radio/wl128x/fmdrv.h        |  244 +++++
- drivers/media/radio/wl128x/fmdrv_common.c | 1677 +++++++++++++++++++++++++++++
- drivers/media/radio/wl128x/fmdrv_common.h |  402 +++++++
- drivers/media/radio/wl128x/fmdrv_rx.c     |  847 +++++++++++++++
- drivers/media/radio/wl128x/fmdrv_rx.h     |   59 +
- drivers/media/radio/wl128x/fmdrv_tx.c     |  425 ++++++++
- drivers/media/radio/wl128x/fmdrv_tx.h     |   37 +
- drivers/media/radio/wl128x/fmdrv_v4l2.c   |  580 ++++++++++
- drivers/media/radio/wl128x/fmdrv_v4l2.h   |   33 +
- 13 files changed, 4331 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/radio/wl128x/Kconfig
- create mode 100644 drivers/media/radio/wl128x/Makefile
- create mode 100644 drivers/media/radio/wl128x/fmdrv.h
- create mode 100644 drivers/media/radio/wl128x/fmdrv_common.c
- create mode 100644 drivers/media/radio/wl128x/fmdrv_common.h
- create mode 100644 drivers/media/radio/wl128x/fmdrv_rx.c
- create mode 100644 drivers/media/radio/wl128x/fmdrv_rx.h
- create mode 100644 drivers/media/radio/wl128x/fmdrv_tx.c
- create mode 100644 drivers/media/radio/wl128x/fmdrv_tx.h
- create mode 100644 drivers/media/radio/wl128x/fmdrv_v4l2.c
- create mode 100644 drivers/media/radio/wl128x/fmdrv_v4l2.h
+diff --git a/Documentation/DocBook/media-entities.tmpl b/Documentation/DocBook/media-entities.tmpl
+index be34dcb..2b18de5 100644
+--- a/Documentation/DocBook/media-entities.tmpl
++++ b/Documentation/DocBook/media-entities.tmpl
+@@ -253,6 +253,7 @@
+ <!ENTITY sub-srggb10 SYSTEM "v4l/pixfmt-srggb10.xml">
+ <!ENTITY sub-srggb8 SYSTEM "v4l/pixfmt-srggb8.xml">
+ <!ENTITY sub-y10 SYSTEM "v4l/pixfmt-y10.xml">
++<!ENTITY sub-y10p SYSTEM "v4l/pixfmt-y10p.xml">
+ <!ENTITY sub-pixfmt SYSTEM "v4l/pixfmt.xml">
+ <!ENTITY sub-cropcap SYSTEM "v4l/vidioc-cropcap.xml">
+ <!ENTITY sub-dbg-g-register SYSTEM "v4l/vidioc-dbg-g-register.xml">
+diff --git a/Documentation/DocBook/v4l/pixfmt-y10p.xml b/Documentation/DocBook/v4l/pixfmt-y10p.xml
+new file mode 100644
+index 0000000..5323ffe
+--- /dev/null
++++ b/Documentation/DocBook/v4l/pixfmt-y10p.xml
+@@ -0,0 +1,43 @@
++<refentry id="V4L2-PIX-FMT-Y10P">
++  <refmeta>
++    <refentrytitle>V4L2_PIX_FMT_Y10P ('Y10P')</refentrytitle>
++    &manvol;
++  </refmeta>
++  <refnamediv>
++    <refname><constant>V4L2_PIX_FMT_Y10P</constant></refname>
++    <refpurpose>Grey-scale image as a packed array</refpurpose>
++  </refnamediv>
++  <refsect1>
++    <title>Description</title>
++
++    <para>This is a packed grey-scale image format with a depth of 10 bits per
++      pixel. Pixels are stored in a packed array of 10bit bits per pixel, with
++      no padding between them and with the most significant bits coming first
++      from the left.</para>
++
++    <example>
++      <title><constant>V4L2_PIX_FMT_Y10P</constant> 4 pixel data stream taking 5 bytes</title>
++
++      <formalpara>
++	<title>Packed representation</title>
++	<para>pixels cross the byte boundary and have a ratio of 5 bytes for each 4
++          pixels.
++	  <informaltable frame="all">
++	    <tgroup cols="5" align="center">
++	      <colspec align="left" colwidth="2*" />
++	      <tbody valign="top">
++		<row>
++		  <entry>Y'<subscript>00[9:2]</subscript></entry>
++		  <entry>Y'<subscript>00[1:0]</subscript>Y'<subscript>01[9:4]</subscript></entry>
++		  <entry>Y'<subscript>01[3:0]</subscript>Y'<subscript>02[9:6]</subscript></entry>
++		  <entry>Y'<subscript>02[5:0]</subscript>Y'<subscript>03[9:8]</subscript></entry>
++		  <entry>Y'<subscript>03[7:0]</subscript></entry>
++		</row>
++	      </tbody>
++	    </tgroup>
++	  </informaltable>
++	</para>
++      </formalpara>
++    </example>
++  </refsect1>
++</refentry>
+diff --git a/Documentation/DocBook/v4l/pixfmt.xml b/Documentation/DocBook/v4l/pixfmt.xml
+index d7c4671..3682701 100644
+--- a/Documentation/DocBook/v4l/pixfmt.xml
++++ b/Documentation/DocBook/v4l/pixfmt.xml
+@@ -592,6 +592,7 @@ information.</para>
+     &sub-packed-yuv;
+     &sub-grey;
+     &sub-y10;
++    &sub-y10p;
+     &sub-y16;
+     &sub-yuyv;
+     &sub-uyvy;
+diff --git a/Documentation/DocBook/v4l/videodev2.h.xml b/Documentation/DocBook/v4l/videodev2.h.xml
+index 325b23b..773496c 100644
+--- a/Documentation/DocBook/v4l/videodev2.h.xml
++++ b/Documentation/DocBook/v4l/videodev2.h.xml
+@@ -289,6 +289,7 @@ struct <link linkend="v4l2-pix-format">v4l2_pix_format</link> {
+ #define <link linkend="V4L2-PIX-FMT-Y4">V4L2_PIX_FMT_Y4</link>      v4l2_fourcc('Y', '0', '4', ' ') /*  4  Greyscale     */
+ #define <link linkend="V4L2-PIX-FMT-Y6">V4L2_PIX_FMT_Y6</link>      v4l2_fourcc('Y', '0', '6', ' ') /*  6  Greyscale     */
+ #define <link linkend="V4L2-PIX-FMT-Y10">V4L2_PIX_FMT_Y10</link>     v4l2_fourcc('Y', '1', '0', ' ') /* 10  Greyscale     */
++#define <link linkend="V4L2-PIX-FMT-Y10P">V4L2_PIX_FMT_Y10P</link>    v4l2_fourcc('Y', '1', '0', 'P') /* 10  Greyscale as a packed array */ 
+ #define <link linkend="V4L2-PIX-FMT-Y16">V4L2_PIX_FMT_Y16</link>     v4l2_fourcc('Y', '1', '6', ' ') /* 16  Greyscale     */
+ 
+ /* Palette formats */
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 5f6f470..7682581 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -288,6 +288,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_Y4      v4l2_fourcc('Y', '0', '4', ' ') /*  4  Greyscale     */
+ #define V4L2_PIX_FMT_Y6      v4l2_fourcc('Y', '0', '6', ' ') /*  6  Greyscale     */
+ #define V4L2_PIX_FMT_Y10     v4l2_fourcc('Y', '1', '0', ' ') /* 10  Greyscale     */
++#define V4L2_PIX_FMT_Y10P    v4l2_fourcc('Y', '1', '0', 'P') /* 10  Greyscale as a packed array */
+ #define V4L2_PIX_FMT_Y16     v4l2_fourcc('Y', '1', '6', ' ') /* 16  Greyscale     */
+ 
+ /* Palette formats */
+-- 
+1.7.2.3
 
