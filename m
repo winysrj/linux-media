@@ -1,70 +1,124 @@
 Return-path: <mchehab@pedra>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:46922 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752165Ab1ASRMg (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38503 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757177Ab1ANRBY convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jan 2011 12:12:36 -0500
-Received: by vws16 with SMTP id 16so451585vws.19
-        for <linux-media@vger.kernel.org>; Wed, 19 Jan 2011 09:12:35 -0800 (PST)
-References: <1295205650.2400.27.camel@localhost> <1295234982.2407.38.camel@localhost> <848D2317-613E-42B1-950D-A227CFF15C5B@wilsonet.com> <1295439718.2093.17.camel@morgan.silverblock.net> <alpine.DEB.1.10.1101190714570.5396@ivanova.isely.net> <1295444282.4317.20.camel@morgan.silverblock.net> <20110119145002.6f94f800@endymion.delvare>
-In-Reply-To: <20110119145002.6f94f800@endymion.delvare>
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=us-ascii
-Message-Id: <D7F0E4A6-5A23-4A28-95F8-0A088F1D6114@wilsonet.com>
-Content-Transfer-Encoding: 7bit
-Cc: Andy Walls <awalls@md.metrocast.net>, Mike Isely <isely@isely.net>,
-	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
-	Janne Grunau <j@jannau.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-From: Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: [GIT PATCHES for 2.6.38] Zilog Z8 IR unit fixes
-Date: Wed, 19 Jan 2011 12:12:49 -0500
-To: Jean Delvare <khali@linux-fr.org>
+	Fri, 14 Jan 2011 12:01:24 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Enric =?utf-8?q?Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
+Subject: Re: OMAP3 ISP and tvp5151 driver.
+Date: Fri, 14 Jan 2011 18:00:54 +0100
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com
+References: <AANLkTimec2+VyO+iRSx1PYy3btOb6RbHt0j3ytmnykVo@mail.gmail.com> <201101121339.10758.laurent.pinchart@ideasonboard.com> <AANLkTikOC_zYiyK+8r44Rdp=wigHXZwSmvPgEmBAEqDs@mail.gmail.com>
+In-Reply-To: <AANLkTikOC_zYiyK+8r44Rdp=wigHXZwSmvPgEmBAEqDs@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201101141801.01125.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Jan 19, 2011, at 8:50 AM, Jean Delvare wrote:
+Hi Enric,
 
-> Hi Andy,
+On Thursday 13 January 2011 13:27:43 Enric Balletbò i Serra wrote:
+> 2011/1/12 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> > On Wednesday 12 January 2011 12:58:04 Enric Balletbò i Serra wrote:
+> >> Hi all,
+> >> 
+> >> As explained in my first mail I would like port the tvp515x driver to
+> >> new media framework, I'm a newbie with the v4l2 API and of course with
+> >> the new media framework API, so sorry if next questions are stupid or
+> >> trivial (please, patience with me).
+> >> 
+> >> My idea is follow this link schem:
+> >> 
+> >> ---------------------------------------
+> >> --------------------------------------------
+> >>  ---------------------         |    |                              | 1
+> >> 
+> >> | ----------> | OMAP3 ISP CCDC OUTPUT |
+> >> | TVP515x  | 0 | -----> | 0 | OMAP3 ISP CCDC  --- |
+> >> 
+> >> --------------------------------------------
+> >>  --------------------          |    |                              | 2 |
+> >>                                 ---------------------------------------
+> > 
+> > ASCII art would look much better if you drew it in a non-proportional
+> > font, with 80 character per line at most.
+> > 
+> >> Where:
+> >>  * TVP515x is /dev/v4l-subdev8 c 81 15
+> >>  * OMAP3 ISP CCDC is /dev/v4l-subdev2 c 81 4
+> >>  * OMAP3 ISP CCDC OUTPUT is /dev/video2 c 81 5
+> >> 
+> >> Then activate these links with
+> >> 
+> >>  ./media-ctl -r -l '"tvp5150 2-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3
+> >> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+> >>  Resetting all links to disabled
+> >>  Setting up link 16:0 -> 5:0 [1]
+> >>  Setting up link 5:1 -> 6:0 [1]
+> >> 
+> >> I'm on the right way or I'm completely lost ?
+> > 
+> > That's correct.
+> > 
+> >> I think the next step is adapt the tvp515x driver to new media
+> >> framework, I'm not sure how to do this, someone can give some points ?
+> > 
+> > You need to implement subdev pad operations. get_fmt and set_fmt are
+> > required.
 > 
-> On Wed, 19 Jan 2011 08:38:02 -0500, Andy Walls wrote:
->> As I understand it, the rules/guidelines for I2C probing are now
->> something like this:
->> 
->> 1. I2C device driver modules (ir-kbd-i2c, lirc_zilog, etc.) should not
->> do hardware probes at all.  They are to assume the bridge or platform
->> drivers verified the I2C slave hardware's existence somehow.
->> 
->> 2. Bridge drivers (pvrusb, hdpvr, cx18, ivtv, etc.) should not ask the
->> I2C subsystem to probe hardware that it knows for sure exists, or knows
->> for sure does not exist.  Just add the I2C device or not.
->> 
->> 3. Bridge drivers should generally ask the I2C subsystem to probe for
->> hardware that _may_ exist.
->> 
->> 4. If the default I2C subsystem hardware probe method doesn't work on a
->> particular hardware unit, the bridge driver may perform its own hardware
->> probe or provide a custom hardware probe method to the I2C subsystem.
->> hdpvr and pvrusb2 currently do the former.
+> I configured the TVP5151 to  8-bit 4:2:3 YCbCr output format. Is 8-bit
+> 4:2:3 YCbCr output format implemented in OMAP3 ISP CCDC  ?
+
+I suppose you mean 4:2:2. The CCDC doesn't support that yet.
+
+> >> Once this is done, I suppose I can test using gstreamer, for example
+> >> using something like this.
+> >> 
+> >>    gst-launch v4l2src device=/dev/video2 ! ffmpegcolorspace !
+> >> xvimagesink
+> >> 
+> >> I'm right in this point ?
+> > 
+> > You need to specify the format explicitly. It must be identical to the
+> > format configured on pad CCDC:1.
 > 
-> Yes, that's exactly how things are supposed to work now. And hopefully
-> it makes sense and helps you all write cleaner code (that was the
-> intent at least.)
+> Can you give me an example using gstreamer ?
 
-One more i2c question...
+I'm not a gstreamer expert, sorry.
 
-Am I correct in assuming that since the zilog is a single device, which
-can be accessed via two different addresses (0x70 for tx, 0x71 for rx),
-that i2c_new_device() just once with both addresses in i2c_board_info
-is correct, vs. calling i2c_new_device() once for each address?
+> Running yavta I get
+> 
+> # ./yavta -f SGRBG10 -s 720x525 -n 4 --capture=4 --skip 3 -F /dev/video2
+> Device /dev/video2 opened: OMAP3 ISP CCDC output (media).
+> Video format set: width: 720 height: 525 buffer size: 756000
+> Video format: BA10 (30314142) 720x525
+> 4 buffers requested.
+> length: 756000 offset: 0
+> Buffer 0 mapped at address 0x400f2000.
+> length: 756000 offset: 757760
+> Buffer 1 mapped at address 0x40385000.
+> length: 756000 offset: 1515520
+> Buffer 2 mapped at address 0x40466000.
+> length: 756000 offset: 2273280
+> Buffer 3 mapped at address 0x405ed000.
+> Unable to start streaming: 22.
+> Unable to dequeue buffer (22).
+> 4 buffers released.
+> 
+> I know the format is not correct, but, is the "Unable to start
+> streaming: 22" error related to the format or is related to another
+> problem ?
 
-At least, I'm reasonably sure that was the key to making the hdpvr IR
-behave with lirc_zilog, and after lunch, I should know if that's also
-the case for pvrusb2 devices w/a zilog IR chip.
+That usually means that the format configured on the video device node 
+(SGRBG10 720x525 in this case) is different than the format setup on the 
+connected subdev output (CCDC pad 1 in this case). My guess is that you 
+probably forgot to setup formats on the subdev pads (using media-ctl -f).
 
 -- 
-Jarod Wilson
-jarod@wilsonet.com
+Regards,
 
-
-
+Laurent Pinchart
