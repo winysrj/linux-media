@@ -1,47 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:12375 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752057Ab1AOMvA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Jan 2011 07:51:00 -0500
-Date: Sat, 15 Jan 2011 07:50:44 -0500
-Subject: Re: [PATCH] hdpvr: enable IR part
-Message-ID: <cwd2gkgtgyb91bkc0m1dtmnx.1295095844198@email.android.com>
-From: Andy Walls <awalls@md.metrocast.net>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Jean Delvare <khali@linux-fr.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Janne Grunau <j@jannau.net>, Jarod Wilson <jarod@redhat.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+Received: from bonnie-vm4.ifh.de ([141.34.50.21]:35424 "EHLO smtp.ifh.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1757490Ab1ANPPJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Jan 2011 10:15:09 -0500
+Date: Fri, 14 Jan 2011 15:51:32 +0100 (CET)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PULL] request for 2.6.38-rc1
+Message-ID: <alpine.LRH.2.00.1101141542460.6649@pub3.ifh.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-V2l0aCBteSBuZXdseSBoYWNrZWQgbGlyY196aWxvZywgdHJ5IHVzaW5nIHRoZSAndHhfb25seScg
-cGFyYW1ldGVyIHBsZWFzZS4gIEl0J3Mgbm90IHF1aXRlIHJlYWR5IHlldCwgYnV0IEknZCBsaWtl
-IHRvIGtub3cgaWYgaXQgY2FuIGJpbmQuCgpJZiB5b3UgYWxyZWFkeSBsb2FkZWQgYSBsaXJjX3pp
-bG9nIHdpdGhvdXQgbXkgbGF0ZXN0IHBhdGNoZXMsIHRoZSBpMmMgc3Vic3lzdGVtIG1pZ2h0IGhh
-dmUgYm9ndXMgY3J1ZCBzdGlsbCByZWdpc3RlcmVkLiAgQSByZWJvb3QgbWlnaHQgYmUgbmVlZGVk
-IGZvciBhIHZhbGlkIHRlc3QuCgpSLApBbmR5IAoKSmFyb2QgV2lsc29uIDxqYXJvZEB3aWxzb25l
-dC5jb20+IHdyb3RlOgoKPk9uIEphbiAxNSwgMjAxMSwgYXQgMTI6MzcgQU0sIEphcm9kIFdpbHNv
-biB3cm90ZToKPi4uLgo+Pj4gQlRXLCBhIGNoZWNrcGF0Y2ggYW5kIGNvbXBpbGVyIHRlc3RlZCBs
-aXJjX3ppbG9nLmMgaXMgaGVyZToKPj4+IAo+Pj4gaHR0cDovL2dpdC5saW51eHR2Lm9yZy9hd2Fs
-bHMvbWVkaWFfdHJlZS5naXQ/YT1zaG9ydGxvZztoPXJlZnMvaGVhZHMvejgKPj4+IAo+Pj4gSXQg
-c2hvdWxkIGZpeCBhbGwgdGhlIGJpbmRpbmcgYW5kIGFsbG9jYXRpb24gcHJvYmxlbXMgcmVsYXRl
-ZCB0bwo+Pj4gaXJfcHJvYmUoKS9pcl9yZW1vdmUoKS4gIEV4Y2VwdCBJIHN1c3BlY3QgaXQgbWF5
-IGxlYWsgdGhlIFJ4IHBvbGwKPj4+IGt0aHJlYWQuICBUaGF0J3MgcG9zc2libHkgYW5vdGhlciBi
-dWcgdG8gYWRkIHRvIHRoZSBsaXN0Lgo+Pj4gCj4+PiBBbnl3YXksICRESUVUWSBrbm93cyBpZiB0
-aGUgbGlyY196aWxvZyBtb2R1bGUgYWN0dWFsbHkgc3RpbGwgd29ya3MgYWZ0ZXIKPj4+IGFsbCBt
-eSBoYWNrcy4gIEdpdmUgaXQgYSB0ZXN0IGlmIHlvdSBhcmUgYWR2ZW50dXJvdXMuICBJIHdvbid0
-IGJlIGFibGUKPj4+IHRvIHRlc3QgdW50aWwgdG9tb3Jyb3cgZXZlbmluZy4KPj4gCj4+IEknbGwg
-dHJ5IHRvIGdyYWIgdGhvc2UgYW5kIGdpdmUgdGhlbSBhIHRlc3QgdG9tb3Jyb3csIGFuZCBoZXks
-IEkndmUgZXZlbiBnb3QKPj4gYSBiYXNlbGluZSB0byB0ZXN0IGFnYWluc3Qgbm93Lgo+Cj5Gb3Jn
-b3QgdG8gbWVudGlvbjogSSB0aGluayBpdCB3YXMgc3VnZ2VzdGVkIHRoYXQgb25lIGNvdWxkIHVz
-ZSBpci1rYmQtaTJjCj5mb3IgcmVjZWl2ZSBhbmQgbGlyY196aWxvZyBmb3IgdHJhbnNtaXQsIGF0
-IHRoZSBzYW1lIHRpbWUuIFdpdGggaXIta2JkLWkyYwo+YWxyZWFkeSBsb2FkZWQsIGxpcmNfemls
-b2cgY3VycmVudGx5IHdvbid0IGJpbmQgdG8gYW55dGhpbmcuCj4KPi0tIAo+SmFyb2QgV2lsc29u
-Cj5qYXJvZEB3aWxzb25ldC5jb20KPgo+Cj4KPi0tCj5UbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMg
-bGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtbWVkaWEiIGluCj50aGUgYm9k
-eSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZwo+TW9yZSBtYWpvcmRv
-bW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sCg==
+Hi Mauro,
 
+if it is not too late, here is a pull request for some new devices from 
+DiBcom. It would be nice to have it in 2.6.38-rc1.
+
+Pull from
+
+git://linuxtv.org/pb/media_tree.git staging/for_2.6.38-rc1.dibcom
+
+for
+
+DiBxxxx: Codingstype updates
+DiB0700: add support for several board-layouts
+DiB7090: add support for the dib7090 based
+DIB9000: initial support added
+DiB0090: misc improvements
+DiBx000: add addition i2c-interface names
+DiB8000: add diversity support
+DiB0700: add function to change I2C-speed
+
+  drivers/media/dvb/dvb-usb/dib0700.h          |    2 +
+  drivers/media/dvb/dvb-usb/dib0700_core.c     |   47 +-
+  drivers/media/dvb/dvb-usb/dib0700_devices.c  | 1374 ++++++++++++++--
+  drivers/media/dvb/dvb-usb/dvb-usb-ids.h      |    5 +
+  drivers/media/dvb/frontends/Kconfig          |    8 +
+  drivers/media/dvb/frontends/Makefile         |    1 +
+  drivers/media/dvb/frontends/dib0090.c        | 1583 ++++++++++++++----
+  drivers/media/dvb/frontends/dib0090.h        |   31 +
+  drivers/media/dvb/frontends/dib7000p.c       | 1943 ++++++++++++++++------
+  drivers/media/dvb/frontends/dib7000p.h       |   96 +-
+  drivers/media/dvb/frontends/dib8000.c        |  833 ++++++----
+  drivers/media/dvb/frontends/dib8000.h        |   20 +
+  drivers/media/dvb/frontends/dib9000.c        | 2350 ++++++++++++++++++++++++++
+  drivers/media/dvb/frontends/dib9000.h        |  131 ++
+  drivers/media/dvb/frontends/dibx000_common.c |  279 +++-
+  drivers/media/dvb/frontends/dibx000_common.h |  152 ++-
+  16 files changed, 7487 insertions(+), 1368 deletions(-)
+
+
+best regards,
+--
+
+Patrick Boettcher - Kernel Labs
+http://www.kernellabs.com/
