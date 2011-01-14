@@ -1,60 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59832 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753510Ab1A0MbY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jan 2011 07:31:24 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v1 6/8] v4l: Add remaining RAW10 patterns w DPCM pixel code variants
-Date: Thu, 27 Jan 2011 13:31:10 +0100
-Message-Id: <1296131472-30045-7-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1296131472-30045-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1296131472-30045-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from ffm.saftware.de ([83.141.3.46]:32873 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751611Ab1ANPGS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Jan 2011 10:06:18 -0500
+Message-ID: <4D306667.2070300@linuxtv.org>
+Date: Fri, 14 Jan 2011 16:06:15 +0100
+From: Andreas Oberritter <obi@linuxtv.org>
+MIME-Version: 1.0
+To: Thierry LELEGARD <tlelegard@logiways.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [linux-media] API V3 vs SAPI behavior difference in reading tuning
+ parameters
+References: <BA2A2355403563449C28518F517A3C4805AA9B9B@titan.logiways-france.fr>
+In-Reply-To: <BA2A2355403563449C28518F517A3C4805AA9B9B@titan.logiways-france.fr>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This adds following formats:
-- V4L2_MBUS_FMT_SRGGB10_1X10
-- V4L2_MBUS_FMT_SGBRG10_1X10
-- V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8
-- V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8
-- V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8
+Hello Thierry,
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/linux/v4l2-mediabus.h |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletions(-)
+On 01/14/2011 02:35 PM, Thierry LELEGARD wrote:
+> Dear all,
+> 
+> I would like to report an annoying behavior difference between S2API and the
+> legacy DVB API (V3) when _reading_ the current tuning configuration.
+> 
+> In short, API V3 is able to report the _actual_ tuning parameters as used by
+> the driver and corresponding to the actual broadcast steam. On the other hand,
+> S2API reports cached values which were specified in the tuning operation and
+> these values may be generic (*_AUTO symbols) or even wrong.
 
-diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-index c4caca3..5c64924 100644
---- a/include/linux/v4l2-mediabus.h
-+++ b/include/linux/v4l2-mediabus.h
-@@ -67,16 +67,21 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_YUYV10_1X20 = 0x200d,
- 	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
- 
--	/* Bayer - next is 0x300b */
-+	/* Bayer - next is 0x3010 */
- 	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
- 	V4L2_MBUS_FMT_SGRBG8_1X8 = 0x3002,
-+	V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8 = 0x300b,
-+	V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8 = 0x300c,
- 	V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 = 0x3009,
-+	V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8 = 0x300d,
- 	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE = 0x3003,
- 	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE = 0x3004,
- 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE = 0x3005,
- 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE = 0x3006,
- 	V4L2_MBUS_FMT_SBGGR10_1X10 = 0x3007,
-+	V4L2_MBUS_FMT_SGBRG10_1X10 = 0x300e,
- 	V4L2_MBUS_FMT_SGRBG10_1X10 = 0x300a,
-+	V4L2_MBUS_FMT_SRGGB10_1X10 = 0x300f,
- 	V4L2_MBUS_FMT_SBGGR12_1X12 = 0x3008,
- };
- 
--- 
-1.7.3.4
+if that's still the case in Git (I didn't verify), then it should indeed
+be changed to behave like v3 does. Would you mind to submit a patch, please?
 
+> But there is worse. If I set a wrong parameter in the tuning operation,
+> for instance guard interval 1/32, the API V3 returns the correct value
+> which is actually used by the tuner (GUARD_INTERVAL_1_8), while S2API
+> returns the "cached" value which was set while tuning (GUARD_INTERVAL_1_32).
+
+That behaviour, however, is implementation specific and can't be relied
+upon. In theory, the driver should always use the specified parameters,
+unless set to *_AUTO. But there are cases like yours, where the driver
+forces automatic detection of some parameters. This may or may not be
+required by the underlying device.
+
+Regards,
+Andreas
