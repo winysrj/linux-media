@@ -1,260 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.samsung.com ([203.254.224.25]:34992 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752957Ab1AGET6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jan 2011 23:19:58 -0500
-MIME-version: 1.0
-Content-type: text/plain; charset=EUC-KR
-Date: Fri, 07 Jan 2011 13:19:54 +0900
-From: daeinki <inki.dae@samsung.com>
-Subject: Re: Memory sharing issue by application on V4L2 based device driver
- with system mmu.
-In-reply-to: <003201cbae19$bda3dfc0$38eb9f40$%han@samsung.com>
-To: Jonghun Han <jonghun.han@samsung.com>
-Cc: 'InKi Dae' <daeinki@gmail.com>, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	'linux-fbdev' <linux-fbdev@vger.kernel.org>,
-	kyungmin.park@samsung.com
-Message-id: <4D26946A.60704@samsung.com>
-Content-transfer-encoding: 8BIT
-References: <4D25BC22.6080803@samsung.com>
- <AANLkTi=P8qY22saY9a_-rze1wsr-DLMgc6Lfa6qnfM7u@mail.gmail.com>
- <002201cbadfd$6d59e490$480dadb0$%han@samsung.com>
- <AANLkTinsduJkynwwEeM5K9f3D7C6jtBgkAyZ0-_0z2X-@mail.gmail.com>
- <003201cbae19$bda3dfc0$38eb9f40$%han@samsung.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:54911 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751244Ab1ANT7i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Jan 2011 14:59:38 -0500
+Received: by iyj18 with SMTP id 18so2828161iyj.19
+        for <linux-media@vger.kernel.org>; Fri, 14 Jan 2011 11:59:38 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <AANLkTi=ocOpZ+3hi+PTuR_cHVe7ixQdTGEHVeS84ZYry@mail.gmail.com>
+References: <AANLkTi=ocOpZ+3hi+PTuR_cHVe7ixQdTGEHVeS84ZYry@mail.gmail.com>
+Date: Fri, 14 Jan 2011 20:59:38 +0100
+Message-ID: <AANLkTinVr8mRCROx9QKRZ2ua4q0SGECPj8RMr9vkzphi@mail.gmail.com>
+Subject: Re: dvb_usb_dib0700 driver woes with Pinnacle 72e stick
+From: Alfredo Braunstein <abraunst@lyx.org>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello, Mr. Jonghun.
+Alfredo Braunstein wrote:
 
-please, note that user process's pgd and device's pgd with system mmu
-are differnent. first, the memory allocated by user malloc should be
-mapped to physical memory in page unit because user app also should be
-accessed to own memory region. and when mapping the physical memory to
-device virtual address, it creates page table entry for 64k or 1M and
-then could map physical address to those entries. therefore what you
-mention has no problem.
+> Hi & happy new year,
+>
+> I recently bought a Pinnacle 72e USB stick, (lsusb says: Bus 002
+> Device 011: ID 2304:0236 Pinnacle Systems, Inc. [hex]. The stick says
+> "pinnacle" on front
+> and "72e" and  "1100" on the back) which seemed to be supported by the
+> dvb_usb_dib0700 driver.
 
-actual issue is not to need demend paging, some issues we don't
-understand may exist as side effects.
+Some update.
 
-thank you.
+Strangely enough, the problem seems to be related to a too *strong*
+terrestrial signal. If I plug a small antenna instead of the one on the
+rooftop, things get much better. Likewise, reception improves vastly
+if I use the roof antenna with a longer coaxial cable.
 
-Jonghun Han 쓴 글:
-> Hello,
-> 
-> That's not a translation issue. What I mention is the size of allocation.
-> The malloc uses 4KB page allocation and SYS.MMU can handle it.
-> But 64KB or 1MB physically contiguous memory is better than 4KB page in the
-> point of performance.
-> 
-> Best regards,
-> 
->> -----Original Message-----
->> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->> owner@vger.kernel.org] On Behalf Of InKi Dae
->> Sent: Friday, January 07, 2011 11:17 AM
->> To: Jonghun Han
->> Cc: linux-media@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
-> linux-fbdev;
->> kyungmin.park@samsung.com
->> Subject: Re: Memory sharing issue by application on V4L2 based device
-> driver
->> with system mmu.
->>
->> thank you for your comments.
->>
->> your second comment has no any problem as I said before, user virtual
-> addess
->> could be translated in page unit. but the problem, as you said, is that
-> when cpu
->> access to the memory in user mode, the memory allocated by malloc, page
-> fault
->> occurs so we can't find pfn to user virtual address. I missed that. but I
-> think we
->> could resolve this one.
->>
->> as before, user application allocates memory through malloc function and
-> then
->> send it to device driver(using userptr feature). if the pfn is null when
-> device driver
->> translated user virtual address in page unit then it allocates phsical
-> memory in
->> page unit using some interface such as alloc_page() and then mapping
-> them. when
->> pfn is null, to check it and allocate physical memory in page unit could
-> be
->> processed by videobuf2.
->>
->> of course, videobuf2 has no any duty considered for system mmu. so
->> videobuf2 just provides callback for 3rd party and any platform with
-> system mmu
->> such as Samsung SoC C210 implements the function(allocating physical
-> memory
->> and mapping it) and registers it to callback of videobuf2. by doing so, I
-> think your
->> first comment could be cleared.
->>
->> please, feel free to give me your opinion and pointing out.
->>
->> thank you.
->>
->> 2011년 1월 7일 오전 8:57, Jonghun Han <jonghun.han@samsung.com>님의 말:
->>> Hello,
->>>
->>> There are two reasons why malloc isn't suitable for it.
->>>
->>> The first is that malloc doesn't allocate memory when malloc is called.
->>> So driver or vb2 cannot find PFN for it in the VIDIOC_QBUF.
->>>
->>> The second is that malloc uses 4KB page allocation.
->>> SYS.MMU(IO-MMU) can handle scattered memory. But it has a penalty when
->>> TLB miss is occurred.
->>> So as possible as physically contiguous pages are needed for
->>> performance enhancement.
->>>
->>> So new allocator which can clear two main issues is needed.
->>>
->>> Best regards,
->>>
->>>> -----Original Message-----
->>>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->>>> owner@vger.kernel.org] On Behalf Of InKi Dae
->>>> Sent: Thursday, January 06, 2011 10:25 PM
->>>> To: linux-media@vger.kernel.org
->>>> Subject: Memory sharing issue by application on V4L2 based device
->>>> driver
->>> with
->>>> system mmu.
->>>>
->>>> Hello, all.
->>>>
->>>> I'd like to discuss memory sharing issue by application on v4l2 based
->>> device driver
->>>> with system mmu and get some advices about that.
->>>>
->>>> Now I am working on Samsung SoC C210 platform and this platform has
->>>> some multimedia devices with system mmu such as fimc, and mfc also we
->>>> have implemented device drivers for them. those drivers are based on
->>>> V4L2
->>> framework
->>>> with videobuf2. for system mmu of each device, we used VCM(Virtual
->>> Contiguous
->>>> Memory) framework.
->>>>
->>>> Simply, VCM framework provides  physical memory, device virtual
->>>> memory allocation and memory mapping between them. when device driver
->>>> is
->>> initialized or
->>>> operated by user application, each driver allocates physical memory
->>>> and
->>> device
->>>> virtual memory and then mapping using VCM interface.
->>>>
->>>> refer to below link for more detail.
->>>> http://www.spinics.net/lists/linux-media/msg26548.html
->>>>
->>>> Physical memory access process is as the following.
->>>>            DVA                          PA
->>>> device --------------> system mmu ------------------> physical memory
->>>>
->>>> DVA : device virtual address.
->>>> PA : physical address.
->>>>
->>>> like this, device virtual address should be set to buffer(source or
->>>> destination) register of multimedia device.
->>>>
->>>> the problem is that application want to share own memory with any
->>>> device
->>> driver to
->>>> avoid memory copy. in other words, user-allocated memory could be
->>>> source
->>> or
->>>> destination memory of multimedia device driver.
->>>>
->>>>
->>>> let's see the diagram below.
->>>>
->>>>                user application
->>>>
->>>>                      |
->>>>                      |
->>>>                      |
->>>>                      |
->>>>                      |  1. UVA(allocated by malloc)
->>>>                      |
->>>>                      |
->>>>                    ＼|/                   2. UVA(in page unit)
->>>>
->>>>        -----> multimedia device driver -------------------> videobuf2
->>>>        |
->>>>        |        |     ^                                         |
->>>>        |        |     |                                         |
->>>>        |        |     -------------------------------------------
->>>>        |        |                    3. PA(in page unit)
->>>>        |        |
->>>>        |        | 4. PA(in page unit)
->>>> 6. DVA  |        |
->>>>        |        |
->>>>        |        |
->>>>        |      ＼|/
->>>>        |
->>>>        |       Virtual Contiguous Memory ---------
->>>>        |                                         |
->>>>        |           |     ^                       |
->>>>        |           |     |                       | 5. map PA to DVA
->>>>        |           |     |                       |
->>>>        |           |     |                       |
->>>>        -------------     -------------------------
->>>>
->>>> PA : physical address.
->>>> UVA : user virtual address.
->>>> DVA : device virtual address.
->>>>
->>>> 1. user application allocates user space memory through malloc
->>>> function
->>> and
->>>> sending it to multimedia device driver based on v4l2 framework
->>>> through
->>> userptr
->>>> feature.
->>>>
->>>> 2, 3. multimedia device driver gets translated physical address from
->>>> videobuf2 framework in page unit.
->>>>
->>>> 4, 5. multimedia device driver gets allocated device virtual address
->>>> and
->>> mapping it
->>>> to physical address and then mapping them through VCM interface.
->>>>
->>>> 6. multimedia device driver sets device virtual address from VCM to
->>> buffer register.
->>>> the diagram above is fully theoretical so I wonder that this way is
->>> reasonable and
->>>> has some problems also what should be considered.
->>>>
->>>> thank you for your interesting.
->>>>
->>>> _______________________________________________
->>>> linux-arm-kernel mailing list
->>>> linux-arm-kernel@lists.infradead.org
->>>> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe
->>>> linux-media" in
->>> the body
->>>> of a message to majordomo@vger.kernel.org More majordomo info at
->>>> http://vger.kernel.org/majordomo-info.html
->>>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body
->> of a message to majordomo@vger.kernel.org More majordomo info at
->> http://vger.kernel.org/majordomo-info.html
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-fbdev" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Now, the Windows driver seems to be able to attenuate the signal
+somehow, as after initializing under windows and before cold booting
+the roof top antenna works like a charm (as stated on previous mail).
+The small antenna stops working (signal probably too weak?).
 
+Does this ring any bell? Is it possible to make the driver to attenuate the
+signal (possibly via an option)? Some pointers on where to look?
+
+Thanks again,
+
+A/
