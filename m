@@ -1,49 +1,72 @@
 Return-path: <mchehab@pedra>
-Received: from smtp01.frii.com ([216.17.135.167]:54776 "EHLO smtp01.frii.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:60641 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752332Ab1ASRjr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jan 2011 12:39:47 -0500
-Received: from io.frii.com (io.frii.com [216.17.222.1])
-	by smtp01.frii.com (FRII) with ESMTP id D73ACD914E
-	for <linux-media@vger.kernel.org>; Wed, 19 Jan 2011 10:39:46 -0700 (MST)
-Date: Wed, 19 Jan 2011 10:39:46 -0700
-From: Mark Zimmerman <markzimm@frii.com>
-To: linux-media@vger.kernel.org
-Subject: Re: DViCO FusionHDTV7 Dual Express I2C write failed
-Message-ID: <20110119173946.GA64847@io.frii.com>
-References: <20101207190753.GA21666@io.frii.com> <20110110021439.GA70495@io.frii.com> <AANLkTingFP9ajGckXXy2wScHHGxhz+KTyOBa-mE7SUs5@mail.gmail.com> <AANLkTi=59dytuN25H3DVRrPAB8GAcn6N88Ji_dkorsGB@mail.gmail.com> <AANLkTi=FFV8CWrBU-20huQRDysTPWGaen2mtP2sBQJef@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <AANLkTi=FFV8CWrBU-20huQRDysTPWGaen2mtP2sBQJef@mail.gmail.com>
+	id S1754606Ab1ANNaV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Jan 2011 08:30:21 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v14 5/6] davinci vpbe: Build infrastructure for VPBE driver
+Date: Fri, 14 Jan 2011 19:00:04 +0530
+Message-Id: <1295011804-548-1-git-send-email-manjunath.hadli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Jan 19, 2011 at 09:22:28AM -0800, VDR User wrote:
-> On Wed, Jan 19, 2011 at 8:13 AM, Devin Heitmueller
-> <dheitmueller@kernellabs.com> wrote:
-> >> Can someone please look into this and possibly provide a fix for the
-> >> bug? ??I'm surprised it hasn't happened yet after all this time but
-> >> maybe it's been forgotten the bug existed.
-> >
-> > You shouldn't be too surprised. ??In many cases device support for more
-> > obscure products comes not from the maintainer of the actual driver
-> > but rather from some random user who hacked in an additional board
-> > profile (in many cases, not doing it correctly but good enough so it
-> > "works for them"). ??In cases like that, the changes get committed, the
-> > original submitter disappears, and then when things break there is
-> > nobody with the appropriate knowledge and the hardware to debug the
-> > problem.
-> 
-> Good point.  My understanding is that this is a fairly common card so
-> I wouldn't think that would be the case.  At any rate, hopefully we'll
-> be able to narrow down the cause of the problem and get it fixed.
-> 
+This patch adds the build infra-structure for Davinci
+VPBE dislay driver.
 
-Were there changes to i2c between 2.6.35 and 2.6.36 that are missing
-from the xc5000 driver?  If so, is there another driver that has the
-required updates so I can look at what changed?  I would like to get
-some traction on this but I really don't know where to start.
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/video/davinci/Kconfig  |   22 ++++++++++++++++++++++
+ drivers/media/video/davinci/Makefile |    2 ++
+ 2 files changed, 24 insertions(+), 0 deletions(-)
 
-Thanks,
--- Mark
+diff --git a/drivers/media/video/davinci/Kconfig b/drivers/media/video/davinci/Kconfig
+index 6b19540..a7f11e7 100644
+--- a/drivers/media/video/davinci/Kconfig
++++ b/drivers/media/video/davinci/Kconfig
+@@ -91,3 +91,25 @@ config VIDEO_ISIF
+ 
+ 	   To compile this driver as a module, choose M here: the
+ 	   module will be called vpfe.
++
++config VIDEO_DM644X_VPBE
++	tristate "DM644X VPBE HW module"
++	select VIDEO_VPSS_SYSTEM
++	select VIDEOBUF_DMA_CONTIG
++	help
++	    Enables VPBE modules used for display on a DM644x
++	    SoC.
++
++	    To compile this driver as a module, choose M here: the
++	    module will be called vpbe.
++
++
++config VIDEO_VPBE_DISPLAY
++	tristate "VPBE V4L2 Display driver"
++	select VIDEO_DM644X_VPBE
++	default y
++	help
++	    Enables VPBE V4L2 Display driver on a DMXXX device
++
++	    To compile this driver as a module, choose M here: the
++	    module will be called vpbe_display.
+diff --git a/drivers/media/video/davinci/Makefile b/drivers/media/video/davinci/Makefile
+index a379557..ae7dafb 100644
+--- a/drivers/media/video/davinci/Makefile
++++ b/drivers/media/video/davinci/Makefile
+@@ -16,3 +16,5 @@ obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
+ obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
+ obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
+ obj-$(CONFIG_VIDEO_ISIF) += isif.o
++obj-$(CONFIG_VIDEO_DM644X_VPBE) += vpbe.o vpbe_osd.o vpbe_venc.o
++obj-$(CONFIG_VIDEO_VPBE_DISPLAY) += vpbe_display.o
+-- 
+1.6.2.4
+
