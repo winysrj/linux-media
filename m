@@ -1,38 +1,155 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:18687 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756717Ab1AMRAD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Jan 2011 12:00:03 -0500
-Date: Thu, 13 Jan 2011 11:59:58 -0500
-Subject: Re: [PATCH 3/3] lirc_zilog: Remove use of deprecated struct
- i2c_adapter.id field
-Message-ID: <tyb9w18nir5yuifslpebhy5r.1294937998189@email.android.com>
-From: Andy Walls <awalls@md.metrocast.net>
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
-	Janne Grunau <j@jannau.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+Received: from comal.ext.ti.com ([198.47.26.152]:55501 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751703Ab1ANNcD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Jan 2011 08:32:03 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v14 2/2] davinci vpbe: board specific additions
+Date: Fri, 14 Jan 2011 19:01:40 +0530
+Message-Id: <1295011900-1318-1-git-send-email-manjunath.hadli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-SmVhbiwKClllcywgaG93ZXZlciwgSSBhc2tlZCBiZWNhdXNlIGl2dHYgYW5kIGN4MTggdXNlIGky
-Yy1hbGdvLWJpdCBhbmQgYWxzbyBwcm92aWRlIFppbG9nIHo4IElSIEkyQyBjbGllbnRzIGZvciBs
-aXJjX3ppbG9nIHRvIHVzZS4gIFNvIGlmIHRob3NlIGdldCBjbG9jayBzdHJldGNoIGhhbmRsaW5n
-ICJmb3IgZnJlZSIsIHRoYXQncyBncmVhdC4gCgpSZWdhcmRzLApBbmR5CiAKCkplYW4gRGVsdmFy
-ZSA8a2hhbGlAbGludXgtZnIub3JnPiB3cm90ZToKCj5PbiBUaHUsIDEzIEphbiAyMDExIDExOjM0
-OjQyIC0wNTAwLCBBbmR5IFdhbGxzIHdyb3RlOgo+PiBIb3cgc2hvdWxkIGNsb2NrIHN0cmV0Y2hl
-cyBieSBzbGF2ZXMgYmUgaGFuZGxlZCB1c2luZyBpMmMtYWxnby1iaXQ/Cj4KPkl0IGlzIGFscmVh
-ZHkgaGFuZGxlZC4gQnV0IGhkcHZyLWkyYyBkb2Vzbid0IHVzZSBpMmMtYWxnby1iaXQuIEkyQwo+
-c3VwcG9ydCBpcyBkb25lIHdpdGggVVNCIGNvbW1hbmRzIGluc3RlYWQuIE1heWJlIHRoZSBoYXJk
-d2FyZQo+aW1wbGVtZW50YXRpb24gZG9lc24ndCBzdXBwb3J0IGNsb2NrIHN0cmV0Y2hpbmcgYnkg
-c2xhdmVzLiBBcHBhcmVudGx5Cj5pdCBkb2Vzbid0IHN1cHBvcnQgcmVwZWF0ZWQgc3RhcnQgY29u
-ZGl0aW9ucyBlaXRoZXIsIHNvIGl0IHdvdWxkbid0Cj5zdXJwcmlzZSBtZS4KPgo+LS0gCj5KZWFu
-IERlbHZhcmUKPi0tCj5UbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGlu
-ZSAidW5zdWJzY3JpYmUgbGludXgtbWVkaWEiIGluCj50aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8g
-bWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZwo+TW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDov
-L3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sCg==
+This patch implements tables for display timings,outputs and
+other board related functionalities.
+
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ arch/arm/mach-davinci/board-dm644x-evm.c |   84 ++++++++++++++++++++++++-----
+ 1 files changed, 69 insertions(+), 15 deletions(-)
+
+diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-davinci/board-dm644x-evm.c
+index 0ca90b8..95ea13d 100644
+--- a/arch/arm/mach-davinci/board-dm644x-evm.c
++++ b/arch/arm/mach-davinci/board-dm644x-evm.c
+@@ -176,18 +176,6 @@ static struct platform_device davinci_evm_nandflash_device = {
+ 	.resource	= davinci_evm_nandflash_resource,
+ };
+ 
+-static u64 davinci_fb_dma_mask = DMA_BIT_MASK(32);
+-
+-static struct platform_device davinci_fb_device = {
+-	.name		= "davincifb",
+-	.id		= -1,
+-	.dev = {
+-		.dma_mask		= &davinci_fb_dma_mask,
+-		.coherent_dma_mask      = DMA_BIT_MASK(32),
+-	},
+-	.num_resources = 0,
+-};
+-
+ static struct tvp514x_platform_data tvp5146_pdata = {
+ 	.clk_polarity = 0,
+ 	.hs_polarity = 1,
+@@ -337,7 +325,6 @@ static struct pcf857x_platform_data pcf_data_u2 = {
+ 	.teardown	= evm_led_teardown,
+ };
+ 
+-
+ /* U18 - A/V clock generator and user switch */
+ 
+ static int sw_gpio;
+@@ -404,7 +391,6 @@ static struct pcf857x_platform_data pcf_data_u18 = {
+ 	.teardown	= evm_u18_teardown,
+ };
+ 
+-
+ /* U35 - various I/O signals used to manage USB, CF, ATA, etc */
+ 
+ static int
+@@ -616,8 +602,73 @@ static void __init evm_init_i2c(void)
+ 	i2c_register_board_info(1, i2c_info, ARRAY_SIZE(i2c_info));
+ }
+ 
++#define VENC_STD_ALL    (V4L2_STD_NTSC | V4L2_STD_PAL)
++
++/* venc standards timings */
++static struct vpbe_enc_mode_info vbpe_enc_std_timings[] = {
++	{"ntsc", VPBE_ENC_STD, {V4L2_STD_525_60}, 1, 720, 480,
++	{11, 10}, {30000, 1001}, 0x79, 0, 0x10, 0, 0, 0, 0},
++	{"pal", VPBE_ENC_STD, {V4L2_STD_625_50}, 1, 720, 576,
++	{54, 59}, {25, 1}, 0x7E, 0, 0x16, 0, 0, 0, 0},
++};
++
++/* venc dv preset timings */
++static struct vpbe_enc_mode_info vbpe_enc_preset_timings[] = {
++	{"480p59_94", VPBE_ENC_DV_PRESET, {V4L2_DV_480P59_94}, 0, 720, 480,
++	{1, 1}, {5994, 100}, 0x80, 0, 0x20, 0, 0, 0, 0},
++	{"576p50", VPBE_ENC_DV_PRESET, {V4L2_DV_576P50}, 0, 720, 576,
++	{1, 1}, {50, 1}, 0x7E, 0, 0x30, 0, 0, 0, 0},
++};
++
++/*
++ * The outputs available from VPBE + encoders. Keep the order same
++ * as that of encoders. First that from venc followed by that from
++ * encoders. Index in the output refers to index on a particular encoder.
++ * Driver uses this index to pass it to encoder when it supports more than
++ * one output. Application uses index of the array to set an output.
++ */
++static struct vpbe_output dm644x_vpbe_outputs[] = {
++	{
++		.output = {
++			.index = 0,
++			.name = "Composite",
++			.type = V4L2_OUTPUT_TYPE_ANALOG,
++			.std = VENC_STD_ALL,
++			.capabilities = V4L2_OUT_CAP_STD,
++		},
++		.subdev_name = VPBE_VENC_SUBDEV_NAME,
++		.default_mode = "ntsc",
++		.num_modes = ARRAY_SIZE(vbpe_enc_std_timings),
++		.modes = vbpe_enc_std_timings,
++	},
++	{
++		.output = {
++			.index = 1,
++			.name = "Component",
++			.type = V4L2_OUTPUT_TYPE_ANALOG,
++			.capabilities = V4L2_OUT_CAP_PRESETS,
++		},
++		.subdev_name = VPBE_VENC_SUBDEV_NAME,
++		.default_mode = "480p59_94",
++		.num_modes = ARRAY_SIZE(vbpe_enc_preset_timings),
++		.modes = vbpe_enc_preset_timings,
++	},
++};
++
++static struct vpbe_display_config vpbe_display_cfg = {
++	.module_name = "dm644x-vpbe-display",
++	.i2c_adapter_id = 1,
++	.osd = {
++		.module_name = VPBE_OSD_SUBDEV_NAME,
++	},
++	.venc = {
++		.module_name = VPBE_VENC_SUBDEV_NAME,
++	},
++	.num_outputs = ARRAY_SIZE(dm644x_vpbe_outputs),
++	.outputs = dm644x_vpbe_outputs,
++};
++
+ static struct platform_device *davinci_evm_devices[] __initdata = {
+-	&davinci_fb_device,
+ 	&rtc_dev,
+ };
+ 
+@@ -630,6 +681,9 @@ davinci_evm_map_io(void)
+ {
+ 	/* setup input configuration for VPFE input devices */
+ 	dm644x_set_vpfe_config(&vpfe_cfg);
++
++	/* setup configuration for vpbe devices */
++	dm644x_set_vpbe_display_config(&vpbe_display_cfg);
+ 	dm644x_init();
+ }
+ 
+-- 
+1.6.2.4
 
