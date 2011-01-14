@@ -1,28 +1,35 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1487 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751241Ab1AEQm4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Jan 2011 11:42:56 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: nsekhar@ti.com, manjunath.hadli@ti.com
-Subject: [RFC PATCH 0/2] davinci: convert to core-assisted locking
-Date: Wed,  5 Jan 2011 17:42:38 +0100
-Message-Id: <1294245760-2803-1-git-send-email-hverkuil@xs4all.nl>
+Return-path: <mchehab@pedra>
+Received: from bonnie-vm4.ifh.de ([141.34.50.21]:35425 "EHLO smtp.ifh.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1757471Ab1ANPPJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Jan 2011 10:15:09 -0500
+Date: Fri, 14 Jan 2011 15:52:29 +0100 (CET)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: Robin Humble <robin.humble+dvb@anu.edu.au>
+cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] dib7000m/p: struct alignment fix
+In-Reply-To: <20110112131732.GA26294@grizzly.cita.utoronto.ca>
+Message-ID: <alpine.LRH.2.00.1101141551390.6649@pub3.ifh.de>
+References: <20110112131732.GA26294@grizzly.cita.utoronto.ca>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
+Hi,
 
-These two patches convert vpif_capture and vpif_display to core-assisted
-locking and now use .unlocked_ioctl instead of .ioctl.
+On Wed, 12 Jan 2011, Robin Humble wrote:
+> Ubuntu has a bug open for the issue:
+>  https://bugs.launchpad.net/ubuntu/+source/linux/+bug/654791
+> but the disable pid filtering workaround one person uses there doesn't
+> work for me.
 
-These patches assume that the 'DaVinci VPIF: Support for DV preset and DV
-timings' patch series was applied first. See:
+Sorry for the delay, but I only realized today that this bug exists.
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg26594.html
+We are currently creating a proper fix for it.
 
-These patches are targeted for 2.6.38.
+best regards,
+--
 
-Regards,
-
-	Hans
+Patrick Boettcher - Kernel Labs
+http://www.kernellabs.com/
