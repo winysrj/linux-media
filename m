@@ -1,78 +1,107 @@
-Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:52697 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751952Ab1AFT5r (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Jan 2011 14:57:47 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p06Jvl6g023684
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 6 Jan 2011 14:57:47 -0500
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH 1/6] rc/imon: fix ffdc device detection oops
-Date: Thu,  6 Jan 2011 14:57:14 -0500
-Message-Id: <1294343839-31784-2-git-send-email-jarod@redhat.com>
-In-Reply-To: <1294343839-31784-1-git-send-email-jarod@redhat.com>
-References: <1294343839-31784-1-git-send-email-jarod@redhat.com>
+Return-path: <mchehab@pedra>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:15235 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751090Ab1AOOlh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Jan 2011 09:41:37 -0500
+Subject: Re: [PATCH] hdpvr: enable IR part
+From: Andy Walls <awalls@md.metrocast.net>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Jean Delvare <khali@linux-fr.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Janne Grunau <j@jannau.net>, Jarod Wilson <jarod@redhat.com>
+In-Reply-To: <0EADA025-77B0-4E8B-A649-F3BE6F2E437B@wilsonet.com>
+References: <20110114195448.GA9849@redhat.com>
+	 <1295041480.2459.9.camel@localhost> <20110114220759.GG9849@redhat.com>
+	 <661A728F-3CF1-47F3-A650-D17429AF7DF1@wilsonet.com>
+	 <1295066141.2459.34.camel@localhost>
+	 <0EADA025-77B0-4E8B-A649-F3BE6F2E437B@wilsonet.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 15 Jan 2011 09:41:21 -0500
+Message-ID: <1295102481.3258.11.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-There's a nasty bug that slipped in when the rc device interface was
-altered, only affecting the older 0xffdc imon devices. We were trying
-to access ictx->rdev->allowed_protos before ictx->rdev had been set.
+On Sat, 2011-01-15 at 00:37 -0500, Jarod Wilson wrote:
+> On Jan 14, 2011, at 11:35 PM, Andy Walls wrote:
+> 
 
-There's also an issue with call ordering that meant the correct
-keymap wasn't getting loaded for MCE IR type 0xffdc devices.
+> 
+> A single button press w/ir-kbd-i2c debugging and your patch:
+> 
+> ir-kbd-i2c: ir_poll_key
+> ir-kbd-i2c: get_key_haup_common: received bytes: 80 00 00 fe 54 00        ....T.
+> ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t1 dev=30 code=21
+> ir-kbd-i2c: ir_poll_key
+> ir-kbd-i2c: get_key_haup_common: received bytes: 80 00 00 fe 54 00        ....T.
+> ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t1 dev=30 code=21
+> ir-kbd-i2c: ir_poll_key
+> ir-kbd-i2c: get_key_haup_common: received bytes: 80 00 00 fe 54 00        ....T.
+> ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t1 dev=30 code=21
+> ir-kbd-i2c: ir_poll_key
+> ir-kbd-i2c: get_key_haup_common: received bytes: 80 00 00 fe 54 00        ....T.
+> ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t1 dev=30 code=21
+> ir-kbd-i2c: ir_poll_key
+> ir-kbd-i2c: get_key_haup_common: received bytes: 80 00 00 fe 54 00        ....T.
+> ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t1 dev=30 code=21
+> ir-kbd-i2c: ir_poll_key
+> ir-kbd-i2c: get_key_haup_common: received bytes: 80 00 00 fe 54 00        ....T.
+> ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t1 dev=30 code=21
+> 
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/rc/imon.c |   14 ++++++++------
- 1 files changed, 8 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
-index 6811512..a30bd99 100644
---- a/drivers/media/rc/imon.c
-+++ b/drivers/media/rc/imon.c
-@@ -1756,7 +1756,6 @@ static void imon_get_ffdc_type(struct imon_context *ictx)
- 	printk(KERN_CONT " (id 0x%02x)\n", ffdc_cfg_byte);
- 
- 	ictx->display_type = detected_display_type;
--	ictx->rdev->allowed_protos = allowed_protos;
- 	ictx->rc_type = allowed_protos;
- }
- 
-@@ -1839,10 +1838,6 @@ static struct rc_dev *imon_init_rdev(struct imon_context *ictx)
- 	rdev->allowed_protos = RC_TYPE_OTHER | RC_TYPE_RC6; /* iMON PAD or MCE */
- 	rdev->change_protocol = imon_ir_change_protocol;
- 	rdev->driver_name = MOD_NAME;
--	if (ictx->rc_type == RC_TYPE_RC6)
--		rdev->map_name = RC_MAP_IMON_MCE;
--	else
--		rdev->map_name = RC_MAP_IMON_PAD;
- 
- 	/* Enable front-panel buttons and/or knobs */
- 	memcpy(ictx->usb_tx_buf, &fp_packet, sizeof(fp_packet));
-@@ -1851,11 +1846,18 @@ static struct rc_dev *imon_init_rdev(struct imon_context *ictx)
- 	if (ret)
- 		dev_info(ictx->dev, "panel buttons/knobs setup failed\n");
- 
--	if (ictx->product == 0xffdc)
-+	if (ictx->product == 0xffdc) {
- 		imon_get_ffdc_type(ictx);
-+		rdev->allowed_protos = ictx->rc_type;
-+	}
- 
- 	imon_set_display_type(ictx);
- 
-+	if (ictx->rc_type == RC_TYPE_RC6)
-+		rdev->map_name = RC_MAP_IMON_MCE;
-+	else
-+		rdev->map_name = RC_MAP_IMON_PAD;
-+
- 	ret = rc_register_device(rdev);
- 	if (ret < 0) {
- 		dev_err(ictx->dev, "remote input dev register failed\n");
--- 
-1.7.3.4
+FWIW, here's what an HVR-1600 and ir-kbd-i2c dumped out for me:
+
+ir-kbd-i2c: get_key_haup_common: received bytes: 00 00 00 00 00 00   ......
+ir-kbd-i2c: get_key_haup_common: received bytes: 00 00 00 00 00 00   ......
+ir-kbd-i2c: get_key_haup_common: received bytes: 80 00 00 fe 24 00   ....$.
+ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t1 dev=30 code=9
+ir-kbd-i2c: get_key_haup_common: received bytes: 80 00 00 fe 24 00   ....$.
+ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t1 dev=30 code=9
+ir-kbd-i2c: get_key_haup_common: received bytes: 00 00 00 00 00 00   ......
+ir-kbd-i2c: get_key_haup_common: received bytes: 00 00 00 00 00 00   ......
+[...]
+ir-kbd-i2c: get_key_haup_common: received bytes: 00 00 00 00 00 00   ......
+ir-kbd-i2c: get_key_haup_common: received bytes: 00 00 00 00 00 00   ......
+ir-kbd-i2c: get_key_haup_common: received bytes: 80 00 00 de 08 00   ......
+ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t0 dev=30 code=2
+ir-kbd-i2c: get_key_haup_common: received bytes: 80 00 00 de 08 00   ......
+ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t0 dev=30 code=2
+ir-kbd-i2c: get_key_haup_common: received bytes: 00 00 00 00 00 00   ......
+ir-kbd-i2c: get_key_haup_common: received bytes: 00 00 00 00 00 00   ......
+ir-kbd-i2c: get_key_haup_common: received bytes: 00 00 00 00 00 00   ......
+ir-kbd-i2c: get_key_haup_common: received bytes: 80 00 00 de 08 00   ......
+ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t0 dev=30 code=2
+ir-kbd-i2c: get_key_haup_common: received bytes: 80 00 00 de 08 00   ......
+ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t0 dev=30 code=2
+ir-kbd-i2c: get_key_haup_common: received bytes: 80 00 00 de 08 00   ......
+ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t0 dev=30 code=2
+ir-kbd-i2c: get_key_haup_common: received bytes: 80 00 00 de 08 00   ......
+ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t0 dev=30 code=2
+ir-kbd-i2c: get_key_haup_common: received bytes: 80 00 00 de 08 00   ......
+ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t0 dev=30 code=2
+ir-kbd-i2c: get_key_haup_common: received bytes: 00 00 00 00 00 00   ......
+ir-kbd-i2c: get_key_haup_common: received bytes: 00 00 00 00 00 00   ......
+ir-kbd-i2c: get_key_haup_common: received bytes: 00 00 00 00 00 00   ......
+ir-kbd-i2c: get_key_haup_common: received bytes: 80 00 00 fe 08 00   ......
+ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t1 dev=30 code=2
+ir-kbd-i2c: get_key_haup_common: received bytes: 80 00 00 fe 08 00   ......
+ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t1 dev=30 code=2
+ir-kbd-i2c: get_key_haup_common: received bytes: 00 00 00 00 00 00   ......
+ir-kbd-i2c: get_key_haup_common: received bytes: 00 00 00 00 00 00   ......
+
+I did a momentary press of button '9' and got a single '9'.
+
+I did a press and hold of button '2' during which I accidentally pointed
+the remote away from the sensor and then back.  IIRC I got one '2' and
+then many '2''s after an initial lag.  (What I might expect from holding
+down a keybard key.)
+
+I did a following momentary press of button '2'. I can't recall if I got
+one or many '2''s for that.
+
+Regards,
+Andy
 
