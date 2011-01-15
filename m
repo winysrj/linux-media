@@ -1,226 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.8]:56367 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751027Ab1AVUcn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Jan 2011 15:32:43 -0500
-Date: Sat, 22 Jan 2011 21:31:52 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: linux-media@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
-	Alberto Panizzo <maramaopercheseimorto@gmail.com>,
-	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
-	Marek Vasut <marek.vasut@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: Re: [RFC PATCH 02/12] sh_mobile_ceu_camera: implement the control
- handler.
-In-Reply-To: <4ef0bba6ffe2a932c43cdc99d22fe0da0e6bfcd5.1294786597.git.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1101222120110.31015@axis700.grange>
-References: <1294787172-13638-1-git-send-email-hverkuil@xs4all.nl>
- <4ef0bba6ffe2a932c43cdc99d22fe0da0e6bfcd5.1294786597.git.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mx1.redhat.com ([209.132.183.28]:29751 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752145Ab1AOQNk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Jan 2011 11:13:40 -0500
+Date: Sat, 15 Jan 2011 16:04:25 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@kernellabs.com>
+Subject: [PATCH 0/8] Make both analog and digital modes work with Kworld
+ SBTVD
+Message-ID: <20110115160425.3b82e897@pedra>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 12 Jan 2011, Hans Verkuil wrote:
+This patch fixes saa7134 driver to allow both analog and digital modes
+to work. While here, I fixed some issues I saw at tda8290 driver and
+on mb82a20s.
 
-> And since this is the last and only host driver that uses controls, also
-> remove the now obsolete control fields from soc_camera.h.
-> 
-> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
-> ---
->  drivers/media/video/sh_mobile_ceu_camera.c |   95 ++++++++++++---------------
->  include/media/soc_camera.h                 |    4 -
->  2 files changed, 42 insertions(+), 57 deletions(-)
-> 
-> diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-> index 954222b..f007f57 100644
-> --- a/drivers/media/video/sh_mobile_ceu_camera.c
-> +++ b/drivers/media/video/sh_mobile_ceu_camera.c
-> @@ -112,6 +112,7 @@ struct sh_mobile_ceu_dev {
->  
->  	unsigned int image_mode:1;
->  	unsigned int is_16bit:1;
-> +	unsigned int added_controls:1;
->  };
->  
->  struct sh_mobile_ceu_cam {
-> @@ -133,6 +134,12 @@ struct sh_mobile_ceu_cam {
->  	enum v4l2_mbus_pixelcode code;
->  };
->  
-> +static inline struct soc_camera_device *to_icd(struct v4l2_ctrl *ctrl)
+The biggest issue I found is a a hard to track bug between 
+tda829x/tda18271/saa7134. This series adds a workaround for it, but
+we'll need to do some fix at the code, for it to work better.
 
-I've been told a while ago not to use "inline" in .c files, and to let the 
-compiler decide instead. Also this file has no inline directives in it 
-until now, please, keep it that way.
+The issue is that tda829x wants to go to analog mode during DVB 
+initialization, causing some I2C errors.
+    
+The analog failure doesn't cause any harm, as the device were already
+properly initialized in analog mode. However, the failure at the digital
+mode causes the frontend mb86a20s to not initialize. Fortunately, at
+least on my tests, it was possible to detect that the device is a
+mb86a20s before the failure.
+    
+What happens is that tda8290 is a very bad boy: during DVB setup, it
+keeps insisting to call tda18271 analog_set_params, that calls
+tune_agc code. The tune_agc code calls saa7134 driver, changing the
+value of GPIO 27, switching from digital to analog mode and disabling
+the access to mb86a20s, as, on Kworld SBTVD, the same GPIO used
+to switch the hardware AGC mode seems to be used to enable the I2C
+switch that allows access to the frontend (mb86a20s).
 
-> +{
-> +	return container_of(ctrl->handler, struct soc_camera_device,
-> +							ctrl_handler);
-> +}
-> +
->  static unsigned long make_bus_param(struct sh_mobile_ceu_dev *pcdev)
->  {
->  	unsigned long flags;
-> @@ -490,6 +497,33 @@ out:
->  	return IRQ_HANDLED;
->  }
->  
-> +static int sh_mobile_ceu_s_ctrl(struct v4l2_ctrl *ctrl)
-> +{
-> +	struct soc_camera_device *icd = to_icd(ctrl);
-> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-> +	struct sh_mobile_ceu_dev *pcdev = ici->priv;
-> +
-> +	ici = to_soc_camera_host(icd->dev.parent);
-> +	pcdev = ici->priv;
+So, a call to analog_set_params ultimately disables the access to
+the frontend, and causes a failure at the init frontend logic.
 
-These two are redundant.
+This patch is a workaround for this issue: it simply checks if the
+frontend init had any failure. If so, it will init the frontend when
+some DTV application will try to set DVB mode.
 
-> +	switch (ctrl->id) {
-> +	case V4L2_CID_SHARPNESS:
-> +		switch (icd->current_fmt->host_fmt->fourcc) {
-> +		case V4L2_PIX_FMT_NV12:
-> +		case V4L2_PIX_FMT_NV21:
-> +		case V4L2_PIX_FMT_NV16:
-> +		case V4L2_PIX_FMT_NV61:
-> +			ceu_write(pcdev, CLFCR, !ctrl->val);
-> +			return 0;
-> +		}
-> +		break;
-> +	}
-> +	return -EINVAL;
-> +}
-> +
-> +static const struct v4l2_ctrl_ops sh_mobile_ceu_ctrl_ops = {
-> +	.s_ctrl = sh_mobile_ceu_s_ctrl,
-> +};
-> +
->  /* Called with .video_lock held */
->  static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
->  {
-> @@ -500,6 +534,14 @@ static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
->  	if (pcdev->icd)
->  		return -EBUSY;
->  
-> +	if (!pcdev->added_controls) {
-> +		v4l2_ctrl_new_std(&icd->ctrl_handler, &sh_mobile_ceu_ctrl_ops,
-> +				V4L2_CID_SHARPNESS, 0, 1, 1, 0);
+Patches that teach good behaviors to tda8290 are welcome, as this guy
+should not interrrupt somebody's else talk.
 
-Hm, am I missing something with this new API? You register a handler for 
-only one control ID, and in the handler itself you check once more, which 
-ID it is?...
+Mauro Carvalho Chehab (8):
+  [media] tda8290: Make all read operations atomic
+  [media] tda8290: Fix a bug if no tuner is detected
+  [media] tda8290: Turn tda829x on before touching at the I2C gate
+  [media] mb86a20s: Fix i2c read/write error messages
+  [media] mb86a20s: Be sure that device is initialized before starting
+    DVB
+  [media] saa7134: Fix analog mode for Kworld SBTVD
+  [media] saa7134: Fix digital mode on Kworld SBTVD
+  [media] saa7134: Kworld SBTVD: make both analog and digital to work
 
-> +		if (icd->ctrl_handler.error)
-> +			return icd->ctrl_handler.error;
-> +		pcdev->added_controls = 1;
-> +	}
-> +
->  	dev_info(icd->dev.parent,
->  		 "SuperH Mobile CEU driver attached to camera %d\n",
->  		 icd->devnum);
+ drivers/media/common/tuners/tda8290.c       |  130 +++++++++++++++------------
+ drivers/media/dvb/frontends/mb86a20s.c      |   36 ++++++--
+ drivers/media/video/saa7134/saa7134-cards.c |   51 +++--------
+ drivers/media/video/saa7134/saa7134-dvb.c   |   80 ++++++++---------
+ 4 files changed, 152 insertions(+), 145 deletions(-)
 
-Thanks
-Guennadi
-
-> @@ -1789,55 +1831,6 @@ static void sh_mobile_ceu_init_videobuf(struct videobuf_queue *q,
->  				       icd, &icd->video_lock);
->  }
->  
-> -static int sh_mobile_ceu_get_ctrl(struct soc_camera_device *icd,
-> -				  struct v4l2_control *ctrl)
-> -{
-> -	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-> -	struct sh_mobile_ceu_dev *pcdev = ici->priv;
-> -	u32 val;
-> -
-> -	switch (ctrl->id) {
-> -	case V4L2_CID_SHARPNESS:
-> -		val = ceu_read(pcdev, CLFCR);
-> -		ctrl->value = val ^ 1;
-> -		return 0;
-> -	}
-> -	return -ENOIOCTLCMD;
-> -}
-> -
-> -static int sh_mobile_ceu_set_ctrl(struct soc_camera_device *icd,
-> -				  struct v4l2_control *ctrl)
-> -{
-> -	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-> -	struct sh_mobile_ceu_dev *pcdev = ici->priv;
-> -
-> -	switch (ctrl->id) {
-> -	case V4L2_CID_SHARPNESS:
-> -		switch (icd->current_fmt->host_fmt->fourcc) {
-> -		case V4L2_PIX_FMT_NV12:
-> -		case V4L2_PIX_FMT_NV21:
-> -		case V4L2_PIX_FMT_NV16:
-> -		case V4L2_PIX_FMT_NV61:
-> -			ceu_write(pcdev, CLFCR, !ctrl->value);
-> -			return 0;
-> -		}
-> -		return -EINVAL;
-> -	}
-> -	return -ENOIOCTLCMD;
-> -}
-> -
-> -static const struct v4l2_queryctrl sh_mobile_ceu_controls[] = {
-> -	{
-> -		.id		= V4L2_CID_SHARPNESS,
-> -		.type		= V4L2_CTRL_TYPE_BOOLEAN,
-> -		.name		= "Low-pass filter",
-> -		.minimum	= 0,
-> -		.maximum	= 1,
-> -		.step		= 1,
-> -		.default_value	= 0,
-> -	},
-> -};
-> -
->  static struct soc_camera_host_ops sh_mobile_ceu_host_ops = {
->  	.owner		= THIS_MODULE,
->  	.add		= sh_mobile_ceu_add_device,
-> @@ -1848,15 +1841,11 @@ static struct soc_camera_host_ops sh_mobile_ceu_host_ops = {
->  	.set_crop	= sh_mobile_ceu_set_crop,
->  	.set_fmt	= sh_mobile_ceu_set_fmt,
->  	.try_fmt	= sh_mobile_ceu_try_fmt,
-> -	.set_ctrl	= sh_mobile_ceu_set_ctrl,
-> -	.get_ctrl	= sh_mobile_ceu_get_ctrl,
->  	.reqbufs	= sh_mobile_ceu_reqbufs,
->  	.poll		= sh_mobile_ceu_poll,
->  	.querycap	= sh_mobile_ceu_querycap,
->  	.set_bus_param	= sh_mobile_ceu_set_bus_param,
->  	.init_videobuf	= sh_mobile_ceu_init_videobuf,
-> -	.controls	= sh_mobile_ceu_controls,
-> -	.num_controls	= ARRAY_SIZE(sh_mobile_ceu_controls),
->  };
->  
->  struct bus_wait {
-> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-> index ee61ffb..b71b26e 100644
-> --- a/include/media/soc_camera.h
-> +++ b/include/media/soc_camera.h
-> @@ -83,13 +83,9 @@ struct soc_camera_host_ops {
->  	int (*reqbufs)(struct soc_camera_device *, struct v4l2_requestbuffers *);
->  	int (*querycap)(struct soc_camera_host *, struct v4l2_capability *);
->  	int (*set_bus_param)(struct soc_camera_device *, __u32);
-> -	int (*get_ctrl)(struct soc_camera_device *, struct v4l2_control *);
-> -	int (*set_ctrl)(struct soc_camera_device *, struct v4l2_control *);
->  	int (*get_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
->  	int (*set_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
->  	unsigned int (*poll)(struct file *, poll_table *);
-> -	const struct v4l2_queryctrl *controls;
-> -	int num_controls;
->  };
->  
->  #define SOCAM_SENSOR_INVERT_PCLK	(1 << 0)
-> -- 
-> 1.7.0.4
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
