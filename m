@@ -1,46 +1,66 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:48044 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750983Ab1AWQQM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Jan 2011 11:16:12 -0500
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
-Date: Sun, 23 Jan 2011 17:16:07 +0100
-From: "Alina Friedrichsen" <x-alina@gmx.net>
-Message-ID: <20110123161607.25900@gmx.net>
+Received: from mx1.redhat.com ([209.132.183.28]:19335 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750795Ab1AOO6l (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Jan 2011 09:58:41 -0500
+Message-ID: <4D31B615.1070407@redhat.com>
+Date: Sat, 15 Jan 2011 12:58:29 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Subject: [PATCH] tuner-xc2028: More firmware loading retries
-To: linux-media@vger.kernel.org
+To: Pasquale <puskyer@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: no sound with WinTV HVR-980 - Help
+References: <loom.20110115T060015-825@post.gmane.org>
+In-Reply-To: <loom.20110115T060015-825@post.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-My Hauppauge WinTV HVR-1400 needs sometimes more then only one retry to load the firmware successfully.
+Em 15-01-2011 03:03, Pasquale escreveu:
+> Hello I am running the following OS "Ubuntu 10.04.1 LTS" 
+> with Mythtv I have a WinTv HVR-980 and hvae no sound with 
+> video see errors below any assistance would be appreciated.
+> 
+> I should have a /dev/dsp1 but I can not find it?
+> 
+> 
+> [   28.349674] em28xx #0: Config register raw data: 0xd0
+> [   28.350444] em28xx #0: AC97 vendor ID = 0xffffffff
+> [   28.350819] em28xx #0: AC97 features = 0x6a90
+> [   28.350822] em28xx #0: Empia 202 AC97 audio processor detected
+> [   28.588908] em28xx #0: v4l2 driver version 0.1.2
+> [   28.676311] em28xx #0: V4L2 video device registered as /dev/video0
+> [   28.676315] em28xx #0: V4L2 VBI device registered as /dev/vbi0
+> [   28.692112] usbcore: registered new interface driver em28xx
+> [   28.692117] em28xx driver loaded
+> [   28.706196] em28xx_alsa: disagrees about version of symbol snd_pcm_new
+> [   28.706201] em28xx_alsa: Unknown symbol snd_pcm_new
+> [   28.706319] em28xx_alsa: disagrees about version of symbol snd_card_register
+> [   28.706322] em28xx_alsa: Unknown symbol snd_card_register
+> [   28.706438] em28xx_alsa: disagrees about version of symbol snd_card_free
+> [   28.706440] em28xx_alsa: Unknown symbol snd_card_free
+> [   28.706673] em28xx_alsa: disagrees about version of symbol snd_pcm_lib_ioctl
+> [   28.706675] em28xx_alsa: Unknown symbol snd_pcm_lib_ioctl
+> [   28.706988] em28xx_alsa: disagrees about version of symbol snd_pcm_set_ops
+> [   28.706990] em28xx_alsa: Unknown symbol snd_pcm_set_ops
+> [   28.707209] em28xx_alsa: disagrees about version of symbol
+> snd_pcm_hw_constraint_integer
+> [   28.707212] em28xx_alsa: Unknown symbol snd_pcm_hw_constraint_integer
+> [   28.707657] em28xx_alsa: disagrees about version of symbol snd_card_create
+> [   28.707660] em28xx_alsa: Unknown symbol snd_card_create
+> [   28.707766] em28xx_alsa: disagrees about version of symbol
+> snd_pcm_period_elapsed
+> [   28.707768] em28xx_alsa: Unknown symbol snd_pcm_period_elapsed
+> [   28.910841] em28xx #0/2: xc3028 attached
+> [   28.910844] DVB: registering new adapter (em28xx #0)
+> [   28.911226] Successfully loaded em28xx-dvb
 
-Signed-off-by: Alina Friedrichsen <x-alina@gmx.net>
----
-diff -urNp linux-2.6.37.orig/drivers/media/common/tuners/tuner-xc2028.c linux-2.6.37/drivers/media/common/tuners/tuner-xc2028.c
---- linux-2.6.37.orig/drivers/media/common/tuners/tuner-xc2028.c	2011-01-22 23:46:57.936386804 +0100
-+++ linux-2.6.37/drivers/media/common/tuners/tuner-xc2028.c	2011-01-23 13:59:05.402759222 +0100
-@@ -685,7 +685,7 @@ static int check_firmware(struct dvb_fro
- {
- 	struct xc2028_data         *priv = fe->tuner_priv;
- 	struct firmware_properties new_fw;
--	int			   rc = 0, is_retry = 0;
-+	int			   rc = 0, retry_count = 0;
- 	u16			   version, hwmodel;
- 	v4l2_std_id		   std0;
- 
-@@ -855,9 +855,9 @@ read_not_reliable:
- 
- fail:
- 	memset(&priv->cur_fw, 0, sizeof(priv->cur_fw));
--	if (!is_retry) {
-+	if (retry_count < 8) {
- 		msleep(50);
--		is_retry = 1;
-+		retry_count++;
- 		tuner_dbg("Retrying firmware load\n");
- 		goto retry;
- 	}
+Or you have two em28xx drivers or you compiled em28xx_alsa against a different
+header than the ones used to compile the alsa modules on your distro.
 
+It is reported that (some versions) Ubuntu ships the wrong alsa headers
+with their kernel header package.
+
+Cheers,
+Mauro
