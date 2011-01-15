@@ -1,135 +1,165 @@
 Return-path: <mchehab@pedra>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:34392 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754006Ab1APWWP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Jan 2011 17:22:15 -0500
-Received: by pxi15 with SMTP id 15so739671pxi.19
-        for <linux-media@vger.kernel.org>; Sun, 16 Jan 2011 14:22:14 -0800 (PST)
-From: Pawel Osciak <pawel@osciak.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, Pawel Osciak <pawel@osciak.com>
-Subject: [PATCH] [media] Remove compatibility layer from multi-planar API documentation
-Date: Sun, 16 Jan 2011 14:21:43 -0800
-Message-Id: <1295216503-15535-1-git-send-email-pawel@osciak.com>
+Received: from mx1.redhat.com ([209.132.183.28]:40928 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752633Ab1AOQMh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Jan 2011 11:12:37 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p0FGCaWO022114
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 15 Jan 2011 11:12:37 -0500
+Received: from pedra (vpn-234-251.phx2.redhat.com [10.3.234.251])
+	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p0FG5PY1001803
+	for <linux-media@vger.kernel.org>; Sat, 15 Jan 2011 11:12:36 -0500
+Date: Sat, 15 Jan 2011 16:04:24 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 8/8] [media] saa7134: Kworld SBTVD: make both analog and
+ digital to work
+Message-ID: <20110115160424.4b474921@pedra>
+In-Reply-To: <cover.1295114145.git.mchehab@redhat.com>
+References: <cover.1295114145.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This feature will probably be moved to libv4l2.
+There are some weird bugs at tda8290/tda18271 initialization, as it
+insits do do analog initialization during DVB frontend attach:
 
-Signed-off-by: Pawel Osciak <pawel@osciak.com>
----
- Documentation/DocBook/v4l/planar-apis.xml     |   35 +++++-------------------
- Documentation/DocBook/v4l/vidioc-querycap.xml |   22 +++++++--------
- 2 files changed, 18 insertions(+), 39 deletions(-)
+DVB: registering new adapter (saa7133[0])
+DVB: registering adapter 0 frontend 0 (Fujitsu mb86A20s)...
+mb86a20s: mb86a20s_initfe
+tda18271_write_regs: [2-0060|M] ERROR: idx = 0x5, len = 1, i2c_transfer returned: -5
+tda18271_init: [2-0060|M] error -5 on line 830
+tda18271_tune: [2-0060|M] error -5 on line 908
+tda18271_write_regs
+tda18271_write_regs: [2-0060|M] ERROR: idx = 0x5, len = 1, i2c_transfer returned: -5
+tda18271c2_rf_tracking_filters_correction: [2-0060|M] error -5 on line 265
+tda18271_write_regs
+tda18271_write_regs: [2-0060|M] ERROR: idx = 0x25, len = 1, i2c_transfer returned: -5
+tda18271_channel_configuration: [2-0060|M] error -5 on line 119
+tda18271_set_analog_params: [2-0060|M] error -5 on line 1045
+tda18271_set_analog_params: [2-0060|M] error -5 on line 1045
+tda829x 2-004b: tda8295 not locked, no signal?
+tda829x 2-004b: tda8295_i2c_bridge: disable i2c gate
+tda829x 2-004b: tda8295 not locked, no signal?
+tda829x 2-004b: tda8295_i2c_bridge: disable i2c gate
+mb86a20s_i2c_writereg: writereg error (rc == -5, reg == 0x29, data == 0x33)
+mb86a20s: Init failed. Will try again later
 
-diff --git a/Documentation/DocBook/v4l/planar-apis.xml b/Documentation/DocBook/v4l/planar-apis.xml
-index 8be7552..e6b5c18 100644
---- a/Documentation/DocBook/v4l/planar-apis.xml
-+++ b/Documentation/DocBook/v4l/planar-apis.xml
-@@ -2,10 +2,10 @@
-   <title>Single- and multi-planar APIs</title>
+The problem is that mb86a20s is only visible if the analog part is disabled.
+
+However, due to a trick at mb86a20s, it will later initialize properly:
+
+mb86a20s: mb86a20s_initfe: Initialization succeded.
+
+This is hacky and ugly. However, I coldn't find any easy way to fix it.
+A proper fix would be to have a resource locking schema, used by both
+V4L and DVB parts that would block access to analog registers while
+digital registers are in use, but this will probably put tda829x into
+a dead lock.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/common/tuners/tda8290.c b/drivers/media/common/tuners/tda8290.c
+index 419d064..bc6a677 100644
+--- a/drivers/media/common/tuners/tda8290.c
++++ b/drivers/media/common/tuners/tda8290.c
+@@ -232,6 +232,7 @@ static void tda8290_set_params(struct dvb_frontend *fe,
+ 		tuner_i2c_xfer_send(&priv->i2c_props, pll_bw_nom, 2);
+ 	}
  
-   <para>Some devices require data for each input or output video frame
--  to be placed in discontiguous memory buffers. In such cases one
-+  to be placed in discontiguous memory buffers. In such cases, one
-   video frame has to be addressed using more than one memory address, i.e. one
--  pointer per "plane". A plane is a sub-buffer of current frame. For examples
--  of such formats see <xref linkend="pixfmt" />.</para>
-+  pointer per "plane". A plane is a sub-buffer of the current frame. For
-+  examples of such formats see <xref linkend="pixfmt" />.</para>
++
+ 	tda8290_i2c_bridge(fe, 1);
  
-   <para>Initially, V4L2 API did not support multi-planar buffers and a set of
-   extensions has been introduced to handle them. Those extensions constitute
-@@ -14,8 +14,8 @@
-   <para>Some of the V4L2 API calls and structures are interpreted differently,
-   depending on whether single- or multi-planar API is being used. An application
-   can choose whether to use one or the other by passing a corresponding buffer
--  type to its ioctl calls. Multi-planar versions of buffer types are suffixed with
--  an `_MPLANE' string. For a list of available multi-planar buffer types
-+  type to its ioctl calls. Multi-planar versions of buffer types are suffixed
-+  with an `_MPLANE' string. For a list of available multi-planar buffer types
-   see &v4l2-buf-type;.
-   </para>
+ 	if (fe->ops.tuner_ops.set_analog_params)
+diff --git a/drivers/media/video/saa7134/saa7134-cards.c b/drivers/media/video/saa7134/saa7134-cards.c
+index dea90a1..deb8fcf 100644
+--- a/drivers/media/video/saa7134/saa7134-cards.c
++++ b/drivers/media/video/saa7134/saa7134-cards.c
+@@ -5179,11 +5179,7 @@ struct saa7134_board saa7134_boards[] = {
+ 	[SAA7134_BOARD_KWORLD_PCI_SBTVD_FULLSEG] = {
+ 		.name           = "Kworld PCI SBTVD/ISDB-T Full-Seg Hybrid",
+ 		.audio_clock    = 0x00187de7,
+-#if 0
+ 		.tuner_type     = TUNER_PHILIPS_TDA8290,
+-#else
+-		.tuner_type	= UNSET,
+-#endif
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_type     = UNSET,
+ 		.radio_addr	= ADDR_UNSET,
+@@ -6926,10 +6922,17 @@ static inline int saa7134_kworld_sbtvd_toggle_agc(struct saa7134_dev *dev,
+ 	/* toggle AGC switch through GPIO 27 */
+ 	switch (mode) {
+ 	case TDA18271_ANALOG:
+-		saa7134_set_gpio(dev, 27, 0);
++		saa_writel(SAA7134_GPIO_GPMODE0 >> 2, 0x4000);
++		saa_writel(SAA7134_GPIO_GPSTATUS0 >> 2, 0x4000);
++		msleep(20);
+ 		break;
+ 	case TDA18271_DIGITAL:
+-		saa7134_set_gpio(dev, 27, 1);
++		saa_writel(SAA7134_GPIO_GPMODE0 >> 2, 0x14000);
++		saa_writel(SAA7134_GPIO_GPSTATUS0 >> 2, 0x14000);
++		msleep(20);
++		saa_writel(SAA7134_GPIO_GPMODE0 >> 2, 0x54000);
++		saa_writel(SAA7134_GPIO_GPSTATUS0 >> 2, 0x54000);
++		msleep(30);
+ 		break;
+ 	default:
+ 		return -EINVAL;
+@@ -6987,6 +6990,7 @@ static int saa7134_tda8290_callback(struct saa7134_dev *dev,
+ int saa7134_tuner_callback(void *priv, int component, int command, int arg)
+ {
+ 	struct saa7134_dev *dev = priv;
++
+ 	if (dev != NULL) {
+ 		switch (dev->tuner_type) {
+ 		case TUNER_PHILIPS_TDA8290:
+diff --git a/drivers/media/video/saa7134/saa7134-dvb.c b/drivers/media/video/saa7134/saa7134-dvb.c
+index d2a12df..f65cad2 100644
+--- a/drivers/media/video/saa7134/saa7134-dvb.c
++++ b/drivers/media/video/saa7134/saa7134-dvb.c
+@@ -237,6 +237,8 @@ static struct tda18271_std_map mb86a20s_tda18271_std_map = {
+ static struct tda18271_config kworld_tda18271_config = {
+ 	.std_map = &mb86a20s_tda18271_std_map,
+ 	.gate    = TDA18271_GATE_DIGITAL,
++	.config  = 3,	/* Use tuner callback for AGC */
++
+ };
  
-@@ -24,28 +24,9 @@
-     <para>Multi-planar API introduces new multi-planar formats. Those formats
-     use a separate set of FourCC codes. It is important to distinguish between
-     the multi-planar API and a multi-planar format. Multi-planar API calls can
--    handle all single-planar formats as well, while the single-planar API cannot
--    handle multi-planar formats. Applications do not have to switch between APIs
--    when handling both single- and multi-planar devices and should use the
--    multi-planar API version for both single- and multi-planar formats.
--    Drivers that do not support multi-planar API can still be handled with it,
--    utilizing a compatibility layer built into standard V4L2 ioctl handling.
--    </para>
--  </section>
--
--  <section>
--    <title>Single and multi-planar API compatibility layer</title>
--    <para>In most cases<footnote><para>The compatibility layer does not cover
--    drivers that do not use video_ioctl2() call.</para></footnote>, applications
--    can use the multi-planar API with older drivers that support
--    only its single-planar version and vice versa. Appropriate conversion is
--    done seamlessly for both applications and drivers in the V4L2 core. The
--    general rule of thumb is: as long as an application uses formats that
--    a driver supports, it can use either API (although use of multi-planar
--    formats is only possible with the multi-planar API). The list of formats
--    supported by a driver can be obtained using the &VIDIOC-ENUM-FMT; call.
--    It is possible, but discouraged, for a driver or an application to support
--    and use both versions of the API.</para>
-+    handle all single-planar formats as well (as long as they are passed in
-+    multi-planar API structures), while the single-planar API cannot
-+    handle multi-planar formats.</para>
-   </section>
- 
-   <section>
-diff --git a/Documentation/DocBook/v4l/vidioc-querycap.xml b/Documentation/DocBook/v4l/vidioc-querycap.xml
-index 9369976..f29f1b8 100644
---- a/Documentation/DocBook/v4l/vidioc-querycap.xml
-+++ b/Documentation/DocBook/v4l/vidioc-querycap.xml
-@@ -142,30 +142,28 @@ this array to zero.</entry>
- 	  <row>
- 	    <entry><constant>V4L2_CAP_VIDEO_CAPTURE</constant></entry>
- 	    <entry>0x00000001</entry>
--	    <entry>The device supports single-planar formats through the <link
--linkend="capture">Video Capture</link> interface. An application can use either
--<link linkend="planar-apis">the single or the multi-planar API</link>.</entry>
-+	    <entry>The device supports the single-planar API through the <link
-+linkend="capture">Video Capture</link> interface.</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_CAP_VIDEO_CAPTURE_MPLANE</constant></entry>
- 	    <entry>0x00001000</entry>
--	    <entry>The device supports multi-planar formats through the <link
--linkend="capture">Video Capture</link> interface. An application has to use the
--<link linkend="planar-apis">multi-planar API</link>.</entry>
-+	    <entry>The device supports the
-+	    <link linkend="planar-apis">multi-planar API</link> through the
-+	    <link linkend="capture">Video Capture</link> interface.</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_CAP_VIDEO_OUTPUT</constant></entry>
- 	    <entry>0x00000002</entry>
--	    <entry>The device supports single-planar formats through the <link
--linkend="output">Video Output</link> interface. An application can use either
--<link linkend="planar-apis">the single or the multi-planar API</link>.</entry>
-+	    <entry>The device supports the single-planar API through the <link
-+linkend="output">Video Output</link> interface.</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_CAP_VIDEO_OUTPUT_MPLANE</constant></entry>
- 	    <entry>0x00002000</entry>
--	    <entry>The device supports multi-planar formats through the <link
--linkend="output">Video Output</link> interface. An application has to use the
--<link linkend="planar-apis">multi-planar API</link>.</entry>
-+	    <entry>The device supports the
-+	    <link linkend="planar-apis">multi-planar API</link> through the
-+	    <link linkend="output">Video Output</link> interface.</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_CAP_VIDEO_OVERLAY</constant></entry>
+ static const struct mb86a20s_config kworld_mb86a20s_config = {
+@@ -1654,24 +1656,16 @@ static int dvb_init(struct saa7134_dev *dev)
+ 		}
+ 		break;
+ 	case SAA7134_BOARD_KWORLD_PCI_SBTVD_FULLSEG:
+-		saa_writel(SAA7134_GPIO_GPMODE0 >> 2, 0x14000);
+-		saa_writel(SAA7134_GPIO_GPSTATUS0 >> 2, 0x14000);
+-		msleep(20);
+-		saa_writel(SAA7134_GPIO_GPMODE0 >> 2, 0x54000);
+-		saa_writel(SAA7134_GPIO_GPSTATUS0 >> 2, 0x54000);
+-		msleep(20);
++		/* Switch to digital mode */
++		saa7134_tuner_callback(dev, 0,
++				       TDA18271_CALLBACK_CMD_AGC_ENABLE, 1);
+ 		fe0->dvb.frontend = dvb_attach(mb86a20s_attach,
+ 					       &kworld_mb86a20s_config,
+ 					       &dev->i2c_adap);
+ 		if (fe0->dvb.frontend != NULL) {
+-#if 0
+ 			dvb_attach(tda829x_attach, fe0->dvb.frontend,
+ 				   &dev->i2c_adap, 0x4b,
+ 				   &tda829x_no_probe);
+-#else
+-			dvb_attach(tda829x_attach, fe0->dvb.frontend,
+-				   &dev->i2c_adap, 0x4b, NULL);
+-#endif
+ 			dvb_attach(tda18271_attach, fe0->dvb.frontend,
+ 				   0x60, &dev->i2c_adap,
+ 				   &kworld_tda18271_config);
 -- 
-1.7.3.5
+1.7.1
 
