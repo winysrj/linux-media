@@ -1,57 +1,291 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1169 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752139Ab1AQXay (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jan 2011 18:30:54 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 2.6.38] Implement kref counting for video nodes and use in dsbr100
-Date: Tue, 18 Jan 2011 00:30:41 +0100
-Cc: David Ellingsworth <david@identd.dyndns.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+Received: from mx1.redhat.com ([209.132.183.28]:33795 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751173Ab1AOQF1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Jan 2011 11:05:27 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p0FG5RkJ018600
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 15 Jan 2011 11:05:27 -0500
+Received: from pedra (vpn-234-251.phx2.redhat.com [10.3.234.251])
+	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p0FG5PXs001803
+	for <linux-media@vger.kernel.org>; Sat, 15 Jan 2011 11:05:26 -0500
+Date: Sat, 15 Jan 2011 16:04:15 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 1/8] [media] tda8290: Make all read operations atomic
+Message-ID: <20110115160415.3e1159ab@pedra>
+In-Reply-To: <cover.1295114145.git.mchehab@redhat.com>
+References: <cover.1295114145.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201101180030.41625.hverkuil@xs4all.nl>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+Read operations should be preceeded by a write operation. However,
+nothing prevents that an I2C operation could happen between the two
+transactions.
 
-These patches where posted as RFC on January 3rd. I thought I made a pull 
-request for them since that time since there were no comments. It turned
-out I didn't, so here it is.
+To avoid that problem, use an unique I2C transfer for both parts of
+the I2C transaction.
 
-The new v4l2_device release function is needed for any hotpluggable device
-that has more than one device node. It makes it easy to write just one
-single cleanup function. It is also needed to do safe device node
-unregistration in disconnect functions.
+Cc: Michael Krufky <mkrufky@kernellabs.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Regards,
-
-	Hans
-
-The following changes since commit 5e3e7cceb14392123c7bb9638038d4a0574bb295:
-  Hans Verkuil (1):
-        [media] v4l2-device: fix 'use-after-freed' oops
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/hverkuil/media_tree.git dsbr100
-
-Hans Verkuil (4):
-      v4l2-device: add kref and a release function
-      v4l2-framework.txt: document new v4l2_device release() callback
-      dsbr100: convert to unlocked_ioctl
-      dsbr100: ensure correct disconnect sequence.
-
- Documentation/video4linux/v4l2-framework.txt |   15 +++
- drivers/media/radio/dsbr100.c                |  128 ++++++++------------------
- drivers/media/video/v4l2-dev.c               |    8 ++
- drivers/media/video/v4l2-device.c            |   15 +++
- include/media/v4l2-device.h                  |   11 ++
- 5 files changed, 87 insertions(+), 90 deletions(-)
-
+diff --git a/drivers/media/common/tuners/tda8290.c b/drivers/media/common/tuners/tda8290.c
+index c9062ce..5f889c1 100644
+--- a/drivers/media/common/tuners/tda8290.c
++++ b/drivers/media/common/tuners/tda8290.c
+@@ -95,8 +95,7 @@ static int tda8295_i2c_bridge(struct dvb_frontend *fe, int close)
+ 		msleep(20);
+ 	} else {
+ 		msg = disable;
+-		tuner_i2c_xfer_send(&priv->i2c_props, msg, 1);
+-		tuner_i2c_xfer_recv(&priv->i2c_props, &msg[1], 1);
++		tuner_i2c_xfer_send_recv(&priv->i2c_props, msg, 1, &msg[1], 1);
+ 
+ 		buf[2] = msg[1];
+ 		buf[2] &= ~0x04;
+@@ -239,13 +238,15 @@ static void tda8290_set_params(struct dvb_frontend *fe,
+ 		fe->ops.tuner_ops.set_analog_params(fe, params);
+ 
+ 	for (i = 0; i < 3; i++) {
+-		tuner_i2c_xfer_send(&priv->i2c_props, &addr_pll_stat, 1);
+-		tuner_i2c_xfer_recv(&priv->i2c_props, &pll_stat, 1);
++		tuner_i2c_xfer_send_recv(&priv->i2c_props,
++					 &addr_pll_stat, 1, &pll_stat, 1);
+ 		if (pll_stat & 0x80) {
+-			tuner_i2c_xfer_send(&priv->i2c_props, &addr_adc_sat, 1);
+-			tuner_i2c_xfer_recv(&priv->i2c_props, &adc_sat, 1);
+-			tuner_i2c_xfer_send(&priv->i2c_props, &addr_agc_stat, 1);
+-			tuner_i2c_xfer_recv(&priv->i2c_props, &agc_stat, 1);
++			tuner_i2c_xfer_send_recv(&priv->i2c_props,
++						 &addr_adc_sat, 1,
++						 &adc_sat, 1);
++			tuner_i2c_xfer_send_recv(&priv->i2c_props,
++						 &addr_agc_stat, 1,
++						 &agc_stat, 1);
+ 			tuner_dbg("tda8290 is locked, AGC: %d\n", agc_stat);
+ 			break;
+ 		} else {
+@@ -259,20 +260,22 @@ static void tda8290_set_params(struct dvb_frontend *fe,
+ 			   agc_stat, adc_sat, pll_stat & 0x80);
+ 		tuner_i2c_xfer_send(&priv->i2c_props, gainset_2, 2);
+ 		msleep(100);
+-		tuner_i2c_xfer_send(&priv->i2c_props, &addr_agc_stat, 1);
+-		tuner_i2c_xfer_recv(&priv->i2c_props, &agc_stat, 1);
+-		tuner_i2c_xfer_send(&priv->i2c_props, &addr_pll_stat, 1);
+-		tuner_i2c_xfer_recv(&priv->i2c_props, &pll_stat, 1);
++		tuner_i2c_xfer_send_recv(&priv->i2c_props,
++					 &addr_agc_stat, 1, &agc_stat, 1);
++		tuner_i2c_xfer_send_recv(&priv->i2c_props,
++					 &addr_pll_stat, 1, &pll_stat, 1);
+ 		if ((agc_stat > 115) || !(pll_stat & 0x80)) {
+ 			tuner_dbg("adjust gain, step 2. Agc: %d, lock: %d\n",
+ 				   agc_stat, pll_stat & 0x80);
+ 			if (priv->cfg.agcf)
+ 				priv->cfg.agcf(fe);
+ 			msleep(100);
+-			tuner_i2c_xfer_send(&priv->i2c_props, &addr_agc_stat, 1);
+-			tuner_i2c_xfer_recv(&priv->i2c_props, &agc_stat, 1);
+-			tuner_i2c_xfer_send(&priv->i2c_props, &addr_pll_stat, 1);
+-			tuner_i2c_xfer_recv(&priv->i2c_props, &pll_stat, 1);
++			tuner_i2c_xfer_send_recv(&priv->i2c_props,
++						 &addr_agc_stat, 1,
++						 &agc_stat, 1);
++			tuner_i2c_xfer_send_recv(&priv->i2c_props,
++						 &addr_pll_stat, 1,
++						 &pll_stat, 1);
+ 			if((agc_stat > 115) || !(pll_stat & 0x80)) {
+ 				tuner_dbg("adjust gain, step 3. Agc: %d\n", agc_stat);
+ 				tuner_i2c_xfer_send(&priv->i2c_props, adc_head_12, 2);
+@@ -284,10 +287,12 @@ static void tda8290_set_params(struct dvb_frontend *fe,
+ 
+ 	/* l/ l' deadlock? */
+ 	if(priv->tda8290_easy_mode & 0x60) {
+-		tuner_i2c_xfer_send(&priv->i2c_props, &addr_adc_sat, 1);
+-		tuner_i2c_xfer_recv(&priv->i2c_props, &adc_sat, 1);
+-		tuner_i2c_xfer_send(&priv->i2c_props, &addr_pll_stat, 1);
+-		tuner_i2c_xfer_recv(&priv->i2c_props, &pll_stat, 1);
++		tuner_i2c_xfer_send_recv(&priv->i2c_props,
++					 &addr_adc_sat, 1,
++					 &adc_sat, 1);
++		tuner_i2c_xfer_send_recv(&priv->i2c_props,
++					 &addr_pll_stat, 1,
++					 &pll_stat, 1);
+ 		if ((adc_sat > 20) || !(pll_stat & 0x80)) {
+ 			tuner_dbg("trying to resolve SECAM L deadlock\n");
+ 			tuner_i2c_xfer_send(&priv->i2c_props, agc_rst_on, 2);
+@@ -307,8 +312,7 @@ static void tda8295_power(struct dvb_frontend *fe, int enable)
+ 	struct tda8290_priv *priv = fe->analog_demod_priv;
+ 	unsigned char buf[] = { 0x30, 0x00 }; /* clb_stdbt */
+ 
+-	tuner_i2c_xfer_send(&priv->i2c_props, &buf[0], 1);
+-	tuner_i2c_xfer_recv(&priv->i2c_props, &buf[1], 1);
++	tuner_i2c_xfer_send_recv(&priv->i2c_props, &buf[0], 1, &buf[1], 1);
+ 
+ 	if (enable)
+ 		buf[1] = 0x01;
+@@ -323,8 +327,7 @@ static void tda8295_set_easy_mode(struct dvb_frontend *fe, int enable)
+ 	struct tda8290_priv *priv = fe->analog_demod_priv;
+ 	unsigned char buf[] = { 0x01, 0x00 };
+ 
+-	tuner_i2c_xfer_send(&priv->i2c_props, &buf[0], 1);
+-	tuner_i2c_xfer_recv(&priv->i2c_props, &buf[1], 1);
++	tuner_i2c_xfer_send_recv(&priv->i2c_props, &buf[0], 1, &buf[1], 1);
+ 
+ 	if (enable)
+ 		buf[1] = 0x01; /* rising edge sets regs 0x02 - 0x23 */
+@@ -353,8 +356,7 @@ static void tda8295_agc1_out(struct dvb_frontend *fe, int enable)
+ 	struct tda8290_priv *priv = fe->analog_demod_priv;
+ 	unsigned char buf[] = { 0x02, 0x00 }; /* DIV_FUNC */
+ 
+-	tuner_i2c_xfer_send(&priv->i2c_props, &buf[0], 1);
+-	tuner_i2c_xfer_recv(&priv->i2c_props, &buf[1], 1);
++	tuner_i2c_xfer_send_recv(&priv->i2c_props, &buf[0], 1, &buf[1], 1);
+ 
+ 	if (enable)
+ 		buf[1] &= ~0x40;
+@@ -370,10 +372,10 @@ static void tda8295_agc2_out(struct dvb_frontend *fe, int enable)
+ 	unsigned char set_gpio_cf[]    = { 0x44, 0x00 };
+ 	unsigned char set_gpio_val[]   = { 0x46, 0x00 };
+ 
+-	tuner_i2c_xfer_send(&priv->i2c_props, &set_gpio_cf[0], 1);
+-	tuner_i2c_xfer_recv(&priv->i2c_props, &set_gpio_cf[1], 1);
+-	tuner_i2c_xfer_send(&priv->i2c_props, &set_gpio_val[0], 1);
+-	tuner_i2c_xfer_recv(&priv->i2c_props, &set_gpio_val[1], 1);
++	tuner_i2c_xfer_send_recv(&priv->i2c_props,
++				 &set_gpio_cf[0], 1, &set_gpio_cf[1], 1);
++	tuner_i2c_xfer_send_recv(&priv->i2c_props,
++				 &set_gpio_val[0], 1, &set_gpio_val[1], 1);
+ 
+ 	set_gpio_cf[1] &= 0xf0; /* clear GPIO_0 bits 3-0 */
+ 
+@@ -392,8 +394,7 @@ static int tda8295_has_signal(struct dvb_frontend *fe)
+ 	unsigned char hvpll_stat = 0x26;
+ 	unsigned char ret;
+ 
+-	tuner_i2c_xfer_send(&priv->i2c_props, &hvpll_stat, 1);
+-	tuner_i2c_xfer_recv(&priv->i2c_props, &ret, 1);
++	tuner_i2c_xfer_send_recv(&priv->i2c_props, &hvpll_stat, 1, &ret, 1);
+ 	return (ret & 0x01) ? 65535 : 0;
+ }
+ 
+@@ -413,8 +414,8 @@ static void tda8295_set_params(struct dvb_frontend *fe,
+ 	tda8295_power(fe, 1);
+ 	tda8295_agc1_out(fe, 1);
+ 
+-	tuner_i2c_xfer_send(&priv->i2c_props, &blanking_mode[0], 1);
+-	tuner_i2c_xfer_recv(&priv->i2c_props, &blanking_mode[1], 1);
++	tuner_i2c_xfer_send_recv(&priv->i2c_props,
++				 &blanking_mode[0], 1, &blanking_mode[1], 1);
+ 
+ 	tda8295_set_video_std(fe);
+ 
+@@ -447,8 +448,8 @@ static int tda8290_has_signal(struct dvb_frontend *fe)
+ 	unsigned char i2c_get_afc[1] = { 0x1B };
+ 	unsigned char afc = 0;
+ 
+-	tuner_i2c_xfer_send(&priv->i2c_props, i2c_get_afc, ARRAY_SIZE(i2c_get_afc));
+-	tuner_i2c_xfer_recv(&priv->i2c_props, &afc, 1);
++	tuner_i2c_xfer_send_recv(&priv->i2c_props,
++				 i2c_get_afc, ARRAY_SIZE(i2c_get_afc), &afc, 1);
+ 	return (afc & 0x80)? 65535:0;
+ }
+ 
+@@ -654,20 +655,26 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
+ static int tda8290_probe(struct tuner_i2c_props *i2c_props)
+ {
+ #define TDA8290_ID 0x89
+-	unsigned char tda8290_id[] = { 0x1f, 0x00 };
++	u8 reg = 0x1f, id;
++	struct i2c_msg msg_read[] = {
++		{ .addr = 0x4b, .flags = 0, .len = 1, .buf = &reg },
++		{ .addr = 0x4b, .flags = I2C_M_RD, .len = 1, .buf = &id },
++	};
+ 
+ 	/* detect tda8290 */
+-	tuner_i2c_xfer_send(i2c_props, &tda8290_id[0], 1);
+-	tuner_i2c_xfer_recv(i2c_props, &tda8290_id[1], 1);
++	if (i2c_transfer(i2c_props->adap, msg_read, 2) != 2) {
++		printk(KERN_WARNING "%s: tda8290 couldn't read register 0x%02x\n",
++			       __func__, reg);
++		return -ENODEV;
++	}
+ 
+-	if (tda8290_id[1] == TDA8290_ID) {
++	if (id == TDA8290_ID) {
+ 		if (debug)
+ 			printk(KERN_DEBUG "%s: tda8290 detected @ %d-%04x\n",
+ 			       __func__, i2c_adapter_id(i2c_props->adap),
+ 			       i2c_props->addr);
+ 		return 0;
+ 	}
+-
+ 	return -ENODEV;
+ }
+ 
+@@ -675,16 +682,23 @@ static int tda8295_probe(struct tuner_i2c_props *i2c_props)
+ {
+ #define TDA8295_ID 0x8a
+ #define TDA8295C2_ID 0x8b
+-	unsigned char tda8295_id[] = { 0x2f, 0x00 };
++	u8 reg = 0x2f, id;
++	struct i2c_msg msg_read[] = {
++		{ .addr = 0x4b, .flags = 0, .len = 1, .buf = &reg },
++		{ .addr = 0x4b, .flags = I2C_M_RD, .len = 1, .buf = &id },
++	};
+ 
+-	/* detect tda8295 */
+-	tuner_i2c_xfer_send(i2c_props, &tda8295_id[0], 1);
+-	tuner_i2c_xfer_recv(i2c_props, &tda8295_id[1], 1);
++	/* detect tda8290 */
++	if (i2c_transfer(i2c_props->adap, msg_read, 2) != 2) {
++		printk(KERN_WARNING "%s: tda8290 couldn't read register 0x%02x\n",
++			       __func__, reg);
++		return -ENODEV;
++	}
+ 
+-	if ((tda8295_id[1] & 0xfe) == TDA8295_ID) {
++	if ((id & 0xfe) == TDA8295_ID) {
+ 		if (debug)
+ 			printk(KERN_DEBUG "%s: %s detected @ %d-%04x\n",
+-			       __func__, (tda8295_id[1] == TDA8295_ID) ?
++			       __func__, (id == TDA8295_ID) ?
+ 			       "tda8295c1" : "tda8295c2",
+ 			       i2c_adapter_id(i2c_props->adap),
+ 			       i2c_props->addr);
+@@ -809,8 +823,8 @@ int tda829x_probe(struct i2c_adapter *i2c_adap, u8 i2c_addr)
+ 	int i;
+ 
+ 	/* rule out tda9887, which would return the same byte repeatedly */
+-	tuner_i2c_xfer_send(&i2c_props, soft_reset, 1);
+-	tuner_i2c_xfer_recv(&i2c_props, buf, PROBE_BUFFER_SIZE);
++	tuner_i2c_xfer_send_recv(&i2c_props,
++				 soft_reset, 1, buf, PROBE_BUFFER_SIZE);
+ 	for (i = 1; i < PROBE_BUFFER_SIZE; i++) {
+ 		if (buf[i] != buf[0])
+ 			break;
+@@ -827,13 +841,12 @@ int tda829x_probe(struct i2c_adapter *i2c_adap, u8 i2c_addr)
+ 	/* fall back to old probing method */
+ 	tuner_i2c_xfer_send(&i2c_props, easy_mode_b, 2);
+ 	tuner_i2c_xfer_send(&i2c_props, soft_reset, 2);
+-	tuner_i2c_xfer_send(&i2c_props, &addr_dto_lsb, 1);
+-	tuner_i2c_xfer_recv(&i2c_props, &data, 1);
++	tuner_i2c_xfer_send_recv(&i2c_props, &addr_dto_lsb, 1, &data, 1);
+ 	if (data == 0) {
+ 		tuner_i2c_xfer_send(&i2c_props, easy_mode_g, 2);
+ 		tuner_i2c_xfer_send(&i2c_props, soft_reset, 2);
+-		tuner_i2c_xfer_send(&i2c_props, &addr_dto_lsb, 1);
+-		tuner_i2c_xfer_recv(&i2c_props, &data, 1);
++		tuner_i2c_xfer_send_recv(&i2c_props,
++					 &addr_dto_lsb, 1, &data, 1);
+ 		if (data == 0x7b) {
+ 			return 0;
+ 		}
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+1.7.1
+
+
