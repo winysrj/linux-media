@@ -1,190 +1,105 @@
 Return-path: <mchehab@pedra>
-Received: from devils.ext.ti.com ([198.47.26.153]:38886 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755255Ab1ATLw5 convert rfc822-to-8bit (ORCPT
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:55106 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751987Ab1AOCa3 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jan 2011 06:52:57 -0500
-From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-To: "'Robert Mellen'" <robert.mellen@gvimd.com>,
-	"'LMML'" <linux-media@vger.kernel.org>,
-	"'LAK'" <linux-arm-kernel@lists.arm.linux.org.uk>,
-	"'Kevin Hilman'" <khilman@deeprootsystems.com>
-CC: "'dlos'" <davinci-linux-open-source@linux.davincidsp.com>,
-	"'Mauro Carvalho Chehab'" <mchehab@redhat.com>
-Date: Thu, 20 Jan 2011 17:22:25 +0530
-Subject: RE: [PATCH v16 3/3] davinci vpbe: board specific additions
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930247F9A824@dbde02.ent.ti.com>
-In-Reply-To: <AF4B8CC5C99B457AB0516910EAC3A807@RobertWindow7>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 14 Jan 2011 21:30:29 -0500
+Received: by vws16 with SMTP id 16so1294522vws.19
+        for <linux-media@vger.kernel.org>; Fri, 14 Jan 2011 18:30:28 -0800 (PST)
+Subject: Re: [PATCH] hdpvr: enable IR part
+Mime-Version: 1.0 (Apple Message framework v1082)
+Content-Type: text/plain; charset=us-ascii
+From: Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <20110114220759.GG9849@redhat.com>
+Date: Fri, 14 Jan 2011 21:30:25 -0500
+Cc: Jean Delvare <khali@linux-fr.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Janne Grunau <j@jannau.net>, Jarod Wilson <jarod@redhat.com>
 Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Message-Id: <661A728F-3CF1-47F3-A650-D17429AF7DF1@wilsonet.com>
+References: <20110114195448.GA9849@redhat.com> <1295041480.2459.9.camel@localhost> <20110114220759.GG9849@redhat.com>
+To: Andy Walls <awalls@md.metrocast.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
-On Wed, Jan 19, 2011 at 21:42:00, Robert Mellen wrote:
-> Are the "davinci vpbe" patches specific only to the DM644x platform? I am developing on the DM365 and would like to use the OSD features implemented in the patches. Are there plans to port these patches to the DM365? Is it only a matter of changing the board-specific files, such as board-dm365-evm.c?
-These patches are only for DM6446. The DM365 enabled patches will follow in a few days. Those will include the overall DM365 features and appropriate platform additions.
-> 
-> Sincerely,
-> Robert Mellen
-> 
+On Jan 14, 2011, at 5:08 PM, Jarod Wilson wrote:
 
--Manjunath Hadli
+> On Fri, Jan 14, 2011 at 04:44:40PM -0500, Andy Walls wrote:
+>> On Fri, 2011-01-14 at 14:54 -0500, Jarod Wilson wrote:
+>>> A number of things going on here, but the end result is that the IR part
+>>> on the hdpvr gets enabled, and can be used with ir-kbd-i2c and/or
+>>> lirc_zilog.
+>>> 
+>>> First up, there are some conditional build fixes that come into play
+>>> whether i2c is built-in or modular. Second, we're swapping out
+>>> i2c_new_probed_device() for i2c_new_device(), as in my testing, probing
+>>> always fails, but we *know* that all hdpvr devices have a z8 chip at
+>>> 0x70 and 0x71. Third, we're poking at an i2c address directly without a
+>>> client, and writing some magic bits to actually turn on this IR part
+>>> (this could use some improvement in the future). Fourth, some of the
+>>> i2c_adapter storage has been reworked, as the existing implementation
+>>> used to lead to an oops following i2c changes c. 2.6.31.
+>>> 
+>>> Earlier editions of this patch have been floating around the 'net for a
+>>> while, including being patched into Fedora kernels, and they *do* work.
+>>> This specific version isn't yet tested, beyond loading ir-kbd-i2c and
+>>> confirming that it does bind to the RX address of the hdpvr:
+>>> 
+>>> Registered IR keymap rc-hauppauge-new
+>>> input: i2c IR (HD PVR) as /devices/virtual/rc/rc1/input6
+>>> rc1: i2c IR (HD PVR) as /devices/virtual/rc/rc1
+>>> ir-kbd-i2c: i2c IR (HD PVR) detected at i2c-1/1-0071/ir0 [Hauppage HD PVR I2C]
 
+And it *almost* works. Every key on the bundled remote is recognized, but
+every press gets feedback about like this w/evtest:
+
+Event: time 1295058330.966180, type 4 (Misc), code 4 (ScanCode), value 29
+Event: time 1295058330.966212, type 1 (Key), code 401 (Blue), value 1
+Event: time 1295058330.966220, -------------- Report Sync ------------
+Event: time 1295058331.066175, type 4 (Misc), code 4 (ScanCode), value 29
+Event: time 1295058331.166290, type 4 (Misc), code 4 (ScanCode), value 29
+Event: time 1295058331.275664, type 4 (Misc), code 4 (ScanCode), value 29
+Event: time 1295058331.376160, type 4 (Misc), code 4 (ScanCode), value 29
+Event: time 1295058331.465505, type 1 (Key), code 401 (Blue), value 2
+Event: time 1295058331.476161, type 4 (Misc), code 4 (ScanCode), value 29
+Event: time 1295058331.498502, type 1 (Key), code 401 (Blue), value 2
+Event: time 1295058331.531504, type 1 (Key), code 401 (Blue), value 2
+Event: time 1295058331.564503, type 1 (Key), code 401 (Blue), value 2
+Event: time 1295058331.576153, type 4 (Misc), code 4 (ScanCode), value 29
+Event: time 1295058331.597502, type 1 (Key), code 401 (Blue), value 2
+Event: time 1295058331.630501, type 1 (Key), code 401 (Blue), value 2
+Event: time 1295058331.663502, type 1 (Key), code 401 (Blue), value 2
+Event: time 1295058331.696500, type 1 (Key), code 401 (Blue), value 2
+Event: time 1295058331.729503, type 1 (Key), code 401 (Blue), value 2
+Event: time 1295058331.762502, type 1 (Key), code 401 (Blue), value 2
+Event: time 1295058331.795500, type 1 (Key), code 401 (Blue), value 2
+Event: time 1295058331.825507, type 1 (Key), code 401 (Blue), value 0
+Event: time 1295058331.825526, -------------- Report Sync ------------
+
+That's just a single short press. With arrow keys, its quite funky to
+watch in, say, mythtv UI menus. Hit up, and it moves up one, stalls for a
+second, then moves up several more.
+
+...
+>> Note, that code in lirc_zilog.c indicates that ir-kbd-i2c.c's function
+>> get_key_haup_xvr() *may* need some additions to account for the Rx data
+>> format.  I'm not sure of this though.  (Or a custom get_key() in the
+>> hdpvr module could be provided as a function pointer to ir-kbd-i2c.c via
+>> platform_data.)
+>> 
+>> I will provide a debug patch in another email so that it's easier to see
+>> the data ir-kbd-i2c.c sees coming from the Z8.
 > 
-> -----Original Message-----
-> From:
-> davinci-linux-open-source-bounces+robert.mellen=gvimd.com@linux.davincid
-> davinci-linux-open-source-bounces+sp.c
-> om
-> [mailto:davinci-linux-open-source-bounces+robert.mellen=gvimd.com@linux.davi
-> ncidsp.com] On Behalf Of Manjunath Hadli
-> Sent: Tuesday, January 18, 2011 8:40 AM
-> To: LMML; LAK; Kevin Hilman
-> Cc: dlos; Mauro Carvalho Chehab
-> Subject: [PATCH v16 3/3] davinci vpbe: board specific additions
-> 
-> This patch implements tables for display timings,outputs and other board related functionalities.
-> 
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
-> ---
->  arch/arm/mach-davinci/board-dm644x-evm.c |   84
-> ++++++++++++++++++++++++-----
->  1 files changed, 69 insertions(+), 15 deletions(-)
-> 
-> diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c
-> b/arch/arm/mach-davinci/board-dm644x-evm.c
-> index 0ca90b8..95ea13d 100644
-> --- a/arch/arm/mach-davinci/board-dm644x-evm.c
-> +++ b/arch/arm/mach-davinci/board-dm644x-evm.c
-> @@ -176,18 +176,6 @@ static struct platform_device davinci_evm_nandflash_device = {
->  	.resource	= davinci_evm_nandflash_resource,
->  };
->  
-> -static u64 davinci_fb_dma_mask = DMA_BIT_MASK(32);
-> -
-> -static struct platform_device davinci_fb_device = {
-> -	.name		= "davincifb",
-> -	.id		= -1,
-> -	.dev = {
-> -		.dma_mask		= &davinci_fb_dma_mask,
-> -		.coherent_dma_mask      = DMA_BIT_MASK(32),
-> -	},
-> -	.num_resources = 0,
-> -};
-> -
->  static struct tvp514x_platform_data tvp5146_pdata = {
->  	.clk_polarity = 0,
->  	.hs_polarity = 1,
-> @@ -337,7 +325,6 @@ static struct pcf857x_platform_data pcf_data_u2 = {
->  	.teardown	= evm_led_teardown,
->  };
->  
-> -
->  /* U18 - A/V clock generator and user switch */
->  
->  static int sw_gpio;
-> @@ -404,7 +391,6 @@ static struct pcf857x_platform_data pcf_data_u18 = {
->  	.teardown	= evm_u18_teardown,
->  };
->  
-> -
->  /* U35 - various I/O signals used to manage USB, CF, ATA, etc */
->  
->  static int
-> @@ -616,8 +602,73 @@ static void __init evm_init_i2c(void)
->  	i2c_register_board_info(1, i2c_info, ARRAY_SIZE(i2c_info));  }
->  
-> +#define VENC_STD_ALL    (V4L2_STD_NTSC | V4L2_STD_PAL)
-> +
-> +/* venc standards timings */
-> +static struct vpbe_enc_mode_info vbpe_enc_std_timings[] = {
-> +	{"ntsc", VPBE_ENC_STD, {V4L2_STD_525_60}, 1, 720, 480,
-> +	{11, 10}, {30000, 1001}, 0x79, 0, 0x10, 0, 0, 0, 0},
-> +	{"pal", VPBE_ENC_STD, {V4L2_STD_625_50}, 1, 720, 576,
-> +	{54, 59}, {25, 1}, 0x7E, 0, 0x16, 0, 0, 0, 0}, };
-> +
-> +/* venc dv preset timings */
-> +static struct vpbe_enc_mode_info vbpe_enc_preset_timings[] = {
-> +	{"480p59_94", VPBE_ENC_DV_PRESET, {V4L2_DV_480P59_94}, 0, 720, 480,
-> +	{1, 1}, {5994, 100}, 0x80, 0, 0x20, 0, 0, 0, 0},
-> +	{"576p50", VPBE_ENC_DV_PRESET, {V4L2_DV_576P50}, 0, 720, 576,
-> +	{1, 1}, {50, 1}, 0x7E, 0, 0x30, 0, 0, 0, 0}, };
-> +
-> +/*
-> + * The outputs available from VPBE + encoders. Keep the order same
-> + * as that of encoders. First that from venc followed by that from
-> + * encoders. Index in the output refers to index on a particular encoder.
-> + * Driver uses this index to pass it to encoder when it supports more 
-> +than
-> + * one output. Application uses index of the array to set an output.
-> + */
-> +static struct vpbe_output dm644x_vpbe_outputs[] = {
-> +	{
-> +		.output = {
-> +			.index = 0,
-> +			.name = "Composite",
-> +			.type = V4L2_OUTPUT_TYPE_ANALOG,
-> +			.std = VENC_STD_ALL,
-> +			.capabilities = V4L2_OUT_CAP_STD,
-> +		},
-> +		.subdev_name = VPBE_VENC_SUBDEV_NAME,
-> +		.default_mode = "ntsc",
-> +		.num_modes = ARRAY_SIZE(vbpe_enc_std_timings),
-> +		.modes = vbpe_enc_std_timings,
-> +	},
-> +	{
-> +		.output = {
-> +			.index = 1,
-> +			.name = "Component",
-> +			.type = V4L2_OUTPUT_TYPE_ANALOG,
-> +			.capabilities = V4L2_OUT_CAP_PRESETS,
-> +		},
-> +		.subdev_name = VPBE_VENC_SUBDEV_NAME,
-> +		.default_mode = "480p59_94",
-> +		.num_modes = ARRAY_SIZE(vbpe_enc_preset_timings),
-> +		.modes = vbpe_enc_preset_timings,
-> +	},
-> +};
-> +
-> +static struct vpbe_display_config vpbe_display_cfg = {
-> +	.module_name = "dm644x-vpbe-display",
-> +	.i2c_adapter_id = 1,
-> +	.osd = {
-> +		.module_name = VPBE_OSD_SUBDEV_NAME,
-> +	},
-> +	.venc = {
-> +		.module_name = VPBE_VENC_SUBDEV_NAME,
-> +	},
-> +	.num_outputs = ARRAY_SIZE(dm644x_vpbe_outputs),
-> +	.outputs = dm644x_vpbe_outputs,
-> +};
-> +
->  static struct platform_device *davinci_evm_devices[] __initdata = {
-> -	&davinci_fb_device,
->  	&rtc_dev,
->  };
->  
-> @@ -630,6 +681,9 @@ davinci_evm_map_io(void)  {
->  	/* setup input configuration for VPFE input devices */
->  	dm644x_set_vpfe_config(&vpfe_cfg);
-> +
-> +	/* setup configuration for vpbe devices */
-> +	dm644x_set_vpbe_display_config(&vpbe_display_cfg);
->  	dm644x_init();
->  }
->  
-> --
-> 1.6.2.4
-> 
-> _______________________________________________
-> Davinci-linux-open-source mailing list
-> Davinci-linux-open-source@linux.davincidsp.com
-> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
-> 
-> 
+> I'll tack that onto the machine I've got hooked to the hdpvr and see what
+> I can see this weekend, thanks much for the pointers.
+
+I'm inclined to think that it does indeed need some of the changes from
+lirc_zilog brought over (or the custom get_key()). Now on to adding that
+patch and some testing with lirc_zilog...
+
+-- 
+Jarod Wilson
+jarod@wilsonet.com
+
+
 
