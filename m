@@ -1,85 +1,201 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:33752 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755600Ab1ATNXG (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:63453 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752362Ab1AOVfh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jan 2011 08:23:06 -0500
-Subject: Re: [GIT PATCHES for 2.6.38] Zilog Z8 IR unit fixes
-From: Andy Walls <awalls@md.metrocast.net>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Jean Delvare <khali@linux-fr.org>, Mike Isely <isely@isely.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jarod Wilson <jarod@redhat.com>, Janne Grunau <j@jannau.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-In-Reply-To: <DF6BA086-43FF-4FD9-A30E-EB8AAF451A94@wilsonet.com>
-References: <1295205650.2400.27.camel@localhost>
-	 <1295234982.2407.38.camel@localhost>
-	 <848D2317-613E-42B1-950D-A227CFF15C5B@wilsonet.com>
-	 <1295439718.2093.17.camel@morgan.silverblock.net>
-	 <alpine.DEB.1.10.1101190714570.5396@ivanova.isely.net>
-	 <1295444282.4317.20.camel@morgan.silverblock.net>
-	 <20110119145002.6f94f800@endymion.delvare>
-	 <D7F0E4A6-5A23-4A28-95F8-0A088F1D6114@wilsonet.com>
-	 <20110119184322.0e5d12cd@endymion.delvare>
-	 <0281052D-AFBF-4764-ADFF-64EF0A0CC2CB@wilsonet.com>
-	 <DF6BA086-43FF-4FD9-A30E-EB8AAF451A94@wilsonet.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 20 Jan 2011 08:22:52 -0500
-Message-ID: <1295529772.2056.24.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Sat, 15 Jan 2011 16:35:37 -0500
+Date: Sat, 15 Jan 2011 22:35:33 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Alberto Panizzo <maramaopercheseimorto@gmail.com>
+cc: HansVerkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	linux-kernel <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 2/2] Fix capture issues for non 8-bit per pixel formats
+In-Reply-To: <1294831223.2576.52.camel@realization>
+Message-ID: <Pine.LNX.4.64.1101152228470.14685@axis700.grange>
+References: <1290964687.3016.5.camel@realization>  <1290965045.3016.11.camel@realization>
+  <Pine.LNX.4.64.1012011832430.28110@axis700.grange>
+ <Pine.LNX.4.64.1012181722200.18515@axis700.grange>
+ <Pine.LNX.4.64.1012302028100.13281@axis700.grange>  <1294076008.2493.85.camel@realization>
+  <Pine.LNX.4.64.1101031931160.23134@axis700.grange>  <1294092449.2493.135.camel@realization>
+  <1294830836.2576.46.camel@realization> <1294831223.2576.52.camel@realization>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 2011-01-19 at 23:45 -0500, Jarod Wilson wrote:
-> On Jan 19, 2011, at 3:08 PM, Jarod Wilson wrote:
+On Wed, 12 Jan 2011, Alberto Panizzo wrote:
 
-> > I'm working on
-> > fixing up hdpvr-i2c further right now, and will do some more prodding
-> > with pvrusb2, the code for which looks correct with two i2c_new_device()
-> > calls in it, one for each address, so I just need to figure out why
-> > lirc_zilog is getting an -EIO trying to get tx brought up.
+> If the camera was set to output formats like RGB565 YUYV or SBGGR10,
+> the resulting image was scrambled due to erroneous interpretations of
+> horizontal parameter's units.
 > 
-> So as we were discussing on irc today, the -EIO is within lirc_zilog's
-> send_boot_data() function. The firmware is loaded, and then we send the
-> z8 a command to activate the firmware, immediately follow by an attempt
-> to read the firmware version. The z8 is still busy when we do that, and
-> throwing in a simple mdelay() remedies the problem for both the hvr-1950
-> and the hdpvr -- tried 100 initially, and all the way down to 20 still
-> worked, didn't try any lower.
+> This patch in fourcc_to_ipu_pix, eliminate also the pixel formats mappings
+> that, first are not used within mainline code and second, standing at
+> the datasheets, they will not work properly:
+> 
+>  The IPU internal bus support only the following data formatting
+>  (44.1.1.3 Data Flows and Formats):
+>   1 YUV 4:4:4 or RGB-8 bits per color component
+>   2 YUV 4:4:4 or RGB-10 bits per color component
+>   3 Generic data (from sensor to the system memory only)
+> 
+>  And format conversions are done:
+>   - from memory: de-packing from other formats to IPU supported ones
 
-The Z8 on my HVR-1600 is using a 18.432 MHz crystal for its clock.
+did you mean "unpacking" (also below)?
 
-The Z8 CPU Fetch and Execution units are running with a pipeline depth
-of 1: 1 insn being executed while another 1 insn is being fetched.  Most
-Z8 fetch or execution cycle counts are in the range of 2-4 cycles.  So
-let's just assume an insn takes 4 cycles to execute.
+>   - to memory: packing in the inverse order.
+> 
+>  So, assigning a packing/depacking strategy to the IPU for that formats
+>  will produce a packing to memory and not the inverse.
+> 
+> In the end in mx3_camera_get_formats, is fixed an erroneous debug message
+> that try to shows info from an invalid xlate pointer.
+> 
+> Signed-off-by: Alberto Panizzo <maramaopercheseimorto@gmail.com>
+> ---
+>  drivers/media/video/mx3_camera.c |   66 +++++++++++++++++++++++++++++--------
+>  1 files changed, 51 insertions(+), 15 deletions(-)
+> 
+> diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
+> index b9cb4a4..6b9d019 100644
+> --- a/drivers/media/video/mx3_camera.c
+> +++ b/drivers/media/video/mx3_camera.c
+> @@ -324,14 +324,10 @@ static enum pixel_fmt fourcc_to_ipu_pix(__u32 fourcc)
+>  {
+>  	/* Add more formats as need arises and test possibilities appear... */
+>  	switch (fourcc) {
+> -	case V4L2_PIX_FMT_RGB565:
+> -		return IPU_PIX_FMT_RGB565;
+>  	case V4L2_PIX_FMT_RGB24:
+>  		return IPU_PIX_FMT_RGB24;
+> -	case V4L2_PIX_FMT_RGB332:
+> -		return IPU_PIX_FMT_RGB332;
+> -	case V4L2_PIX_FMT_YUV422P:
+> -		return IPU_PIX_FMT_YVU422P;
+> +	case V4L2_PIX_FMT_UYVY:
+> +	case V4L2_PIX_FMT_RGB565:
+>  	default:
+>  		return IPU_PIX_FMT_GENERIC;
+>  	}
+> @@ -359,9 +355,31 @@ static void mx3_videobuf_queue(struct videobuf_queue *vq,
+>  
+>  	/* This is the configuration of one sg-element */
+>  	video->out_pixel_fmt	= fourcc_to_ipu_pix(fourcc);
+> -	video->out_width	= icd->user_width;
+> -	video->out_height	= icd->user_height;
+> -	video->out_stride	= icd->user_width;
+> +
+> +	if (video->out_pixel_fmt == IPU_PIX_FMT_GENERIC) {
+> +		/*
+> +		 * If the IPU DMA channel is configured to transport
+> +		 * generic 8-bit data, we have to set up correctly the
+> +		 * geometry parameters upon the current pixel format.
+> +		 * So, since the DMA horizontal parameters are expressed
+> +		 * in bytes not pixels, convert these in the right unit.
+> +		 */
+> +		int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
+> +						icd->current_fmt->host_fmt);
+> +		BUG_ON(bytes_per_line <= 0);
+> +
+> +		video->out_width	= bytes_per_line;
+> +		video->out_height	= icd->user_height;
+> +		video->out_stride	= bytes_per_line;
+> +	} else {
+> +		/*
+> +		 * For IPU known formats the pixel unit will be managed
+> +		 * successfully by the IPU code
+> +		 */
+> +		video->out_width	= icd->user_width;
+> +		video->out_height	= icd->user_height;
+> +		video->out_stride	= icd->user_width;
+> +	}
+>  
+>  #ifdef DEBUG
+>  	/* helps to see what DMA actually has written */
+> @@ -734,18 +752,36 @@ static int mx3_camera_get_formats(struct soc_camera_device *icd, unsigned int id
+>  	if (xlate) {
+>  		xlate->host_fmt	= fmt;
+>  		xlate->code	= code;
+> +		dev_dbg(dev, "Providing format %c%c%c%c in pass-through mode\n",
+> +			(fmt->fourcc >> (0*8)) & 0xFF,
+> +			(fmt->fourcc >> (1*8)) & 0xFF,
+> +			(fmt->fourcc >> (2*8)) & 0xFF,
+> +			(fmt->fourcc >> (3*8)) & 0xFF);
+>  		xlate++;
+> -		dev_dbg(dev, "Providing format %x in pass-through mode\n",
+> -			xlate->host_fmt->fourcc);
+>  	}
+>  
+>  	return formats;
+>  }
+>  
+>  static void configure_geometry(struct mx3_camera_dev *mx3_cam,
+> -			       unsigned int width, unsigned int height)
+> +			       unsigned int width, unsigned int height,
+> +			       enum v4l2_mbus_pixelcode code)
+>  {
+>  	u32 ctrl, width_field, height_field;
+> +	const struct soc_mbus_pixelfmt *fmt;
+> +
+> +	fmt = soc_mbus_get_fmtdesc(code);
+> +	BUG_ON(!fmt);
+> +
+> +	if (fourcc_to_ipu_pix(fmt->fourcc) == IPU_PIX_FMT_GENERIC) {
+> +		/*
+> +		 * As the CSI will be configured to output BAYER, here
+> +		 * the width parameter count the number of samples to
+> +		 * capture to complete the whole image width.
+> +		 */
+> +		width *= soc_mbus_samples_per_pixel(fmt);
 
-	18.432 MHz * 20 ms = 368,640 cycles 
-	368,640 cycles / 4 cycles/insn = 92,160 insns
+Wouldn't
 
-20 ms is ~90k instructions, and seems like too long a delay to be just
-for Z8 latency. 
++		width = soc_mbus_bytes_per_line(width, fmt);
 
-I find it interesting that for the HVR-1600 the delay isn't needed at
-all.
+produce the same result here? Then we wouldn't need your patch 1/2 at all.
 
-I'm wondering if there might also be some Linux/USB latency in getting
-commands shoved over to the HVR-1950's controller (or maybe latency in
-the HVR-1950's controller too), for which this delay is really
-accounting.  I suppose in kernel tracing can be used to find the latency
-on shoving things across the USB and watching for any Ack from the
-HVR-1950 controller.  An experiment for some other day, I guess.
+> +		BUG_ON(!width);
+> +	}
+>  
+>  	/* Setup frame size - this cannot be changed on-the-fly... */
+>  	width_field = width - 1;
+> @@ -854,7 +890,7 @@ static int mx3_camera_set_crop(struct soc_camera_device *icd,
+>  				return ret;
+>  		}
+>  
+> -		configure_geometry(mx3_cam, mf.width, mf.height);
+> +		configure_geometry(mx3_cam, mf.width, mf.height, mf.code);
+>  	}
+>  
+>  	dev_dbg(icd->dev.parent, "Sensor cropped %dx%d\n",
+> @@ -897,7 +933,7 @@ static int mx3_camera_set_fmt(struct soc_camera_device *icd,
+>  	 * mxc_v4l2_s_fmt()
+>  	 */
+>  
+> -	configure_geometry(mx3_cam, pix->width, pix->height);
+> +	configure_geometry(mx3_cam, pix->width, pix->height, xlate->code);
+>  
+>  	mf.width	= pix->width;
+>  	mf.height	= pix->height;
+> @@ -1152,7 +1188,7 @@ static int mx3_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
+>  
+>  	csi_reg_write(mx3_cam, sens_conf | dw, CSI_SENS_CONF);
+>  
+> -	dev_dbg(dev, "Set SENS_CONF to %x\n", sens_conf | dw);
+> +	dev_info(dev, "Set SENS_CONF to %x\n", sens_conf | dw);
 
+This was unintentional, right?
 
+>  
+>  	return 0;
+>  }
+> -- 
+> 1.7.1
 
-> And I definitely horked up the hdpvr i2c a bit, but have a follow-up
-> patch that goes back to doing the right thing with two i2c_new_device()
-> calls, which I've successfully tested with the latest lirc_zilog plus
-> mdelay patch.
-
-Yay!
-
-Regards,
-Andy
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
