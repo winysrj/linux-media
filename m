@@ -1,50 +1,32 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-ew0-f66.google.com ([209.85.215.66]:36443 "EHLO
-	mail-ew0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753863Ab1ABMkf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Jan 2011 07:40:35 -0500
-Message-ID: <4d207240.cc7e0e0a.6f59.3765@mx.google.com>
-From: "Igor M. Liplianin" <liplianin@me.by>
-Date: Sun, 2 Jan 2011 14:07:00 +0200
-Subject: [PATCH 8/9 v2] cx23885: disable MSI for NetUP cards, otherwise CI is not working
-To: <mchehab@infradead.org>, <linux-media@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>
+Return-path: <mchehab@pedra>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:58244 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750770Ab1AOHPD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Jan 2011 02:15:03 -0500
+Received: by vws16 with SMTP id 16so1361997vws.19
+        for <linux-media@vger.kernel.org>; Fri, 14 Jan 2011 23:15:02 -0800 (PST)
+MIME-Version: 1.0
+Date: Sat, 15 Jan 2011 02:15:01 -0500
+Message-ID: <AANLkTikNMxrEgfv-tcZ_gTWQzn1PPvFseXCCr2mbzYVh@mail.gmail.com>
+Subject: WinTV-HVR-1250 Linux (analog)
+From: solarflow99 <solarflow99@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Signed-off-by: Igor M. Liplianin <liplianin@netup.ru>
----
- drivers/media/video/cx23885/cx23885-core.c |    4 ++++
- drivers/media/video/cx23885/cx23885-reg.h  |    1 +
- 2 files changed, 5 insertions(+), 0 deletions(-)
+Hi, I was just wondering if anyone could tell me is this card works
+for analog TV (NTSC, PAL).  I see from this page it says something
+about analog not supported which doesn't seem right.  What does this
+really mean?
 
-diff --git a/drivers/media/video/cx23885/cx23885-core.c b/drivers/media/video/cx23885/cx23885-core.c
-index 3a09dd2..e6d7232 100644
---- a/drivers/media/video/cx23885/cx23885-core.c
-+++ b/drivers/media/video/cx23885/cx23885-core.c
-@@ -1039,6 +1039,10 @@ static int cx23885_dev_setup(struct cx23885_dev *dev)
- 
- 	cx23885_dev_checkrevision(dev);
- 
-+	/* disable MSI for NetUP cards, otherwise CI is not working */
-+	if (cx23885_boards[dev->board].ci_type > 0)
-+		cx_clear(RDR_RDRCTL1, 1 << 8);
-+
- 	return 0;
- }
- 
-diff --git a/drivers/media/video/cx23885/cx23885-reg.h b/drivers/media/video/cx23885/cx23885-reg.h
-index a28772d..c87ac68 100644
---- a/drivers/media/video/cx23885/cx23885-reg.h
-+++ b/drivers/media/video/cx23885/cx23885-reg.h
-@@ -292,6 +292,7 @@ Channel manager Data Structure entry = 20 DWORD
- #define RDR_CFG0	0x00050000
- #define RDR_CFG1	0x00050004
- #define RDR_CFG2	0x00050008
-+#define RDR_RDRCTL1	0x0005030c
- #define RDR_TLCTL0	0x00050318
- 
- /* APB DMAC Current Buffer Pointer */
--- 
-1.7.1
 
+
+It is supported under Linux since kernel 2.6.27. (Note: Analog support
+is not implemented yet).
+
+http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-1250
+
+
+Thanks, hope someone can help..
