@@ -1,37 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:63969 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752136Ab1ALLOC (ORCPT
+Received: from quail.cita.utoronto.ca ([128.100.76.6]:39509 "EHLO
+	quail.cita.utoronto.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751210Ab1AON7U (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Jan 2011 06:14:02 -0500
-Subject: [PATCH 0/2] Fix the way mx3_camera manage non 8-bpp pixel formats
-From: Alberto Panizzo <maramaopercheseimorto@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: HansVerkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	linux-kernel <linux-kernel@vger.kernel.org>
-In-Reply-To: <1294092449.2493.135.camel@realization>
-References: <1290964687.3016.5.camel@realization>
-	 <1290965045.3016.11.camel@realization>
-	 <Pine.LNX.4.64.1012011832430.28110@axis700.grange>
-	 <Pine.LNX.4.64.1012181722200.18515@axis700.grange>
-	 <Pine.LNX.4.64.1012302028100.13281@axis700.grange>
-	 <1294076008.2493.85.camel@realization>
-	 <Pine.LNX.4.64.1101031931160.23134@axis700.grange>
-	 <1294092449.2493.135.camel@realization>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 12 Jan 2011 12:13:56 +0100
-Message-ID: <1294830836.2576.46.camel@realization>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Sat, 15 Jan 2011 08:59:20 -0500
+Received: from cita.utoronto.ca (grizzly.cita.utoronto.ca [128.100.76.62])
+	by quail.cita.utoronto.ca (8.13.8/8.13.8) with ESMTP id p0FDxJ5r000737
+	for <linux-media@vger.kernel.org>; Sat, 15 Jan 2011 08:59:19 -0500
+Received: from grizzly.cita.utoronto.ca (localhost [127.0.0.1])
+	by cita.utoronto.ca (8.14.4/8.14.4) with ESMTP id p0FDxIfs029949
+	for <linux-media@vger.kernel.org>; Sat, 15 Jan 2011 08:59:18 -0500
+Received: (from rjh@localhost)
+	by grizzly.cita.utoronto.ca (8.14.4/8.14.4/Submit) id p0FDxIPm029947
+	for linux-media@vger.kernel.org; Sat, 15 Jan 2011 08:59:18 -0500
+Date: Sat, 15 Jan 2011 08:59:18 -0500
+From: Robin Humble <robin.humble+dvb@anu.edu.au>
+To: linux-media@vger.kernel.org
+Subject: Re: [PATCH] dib7000m/p: struct alignment fix
+Message-ID: <20110115135918.GA27329@grizzly.cita.utoronto.ca>
+References: <20110112131732.GA26294@grizzly.cita.utoronto.ca>
+ <4D2E1386.6050801@redhat.com>
+ <alpine.LRH.2.00.1101141808260.6649@pub3.ifh.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <alpine.LRH.2.00.1101141808260.6649@pub3.ifh.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch series enable the mx3_camera driver to manage correctly
-pixel formats like RGB565 UYVY and SBGGR10
+Hi Patrick,
 
-This patch series applies to the staging/for_2.6.38-rc1
-and I hope it will reach the mainline in one of the .38-rcN
+On Fri, Jan 14, 2011 at 06:11:24PM +0100, Patrick Boettcher wrote:
+>On Wed, 12 Jan 2011, Mauro Carvalho Chehab wrote:
+>>Em 12-01-2011 11:17, Robin Humble escreveu:
+>>>this is basically a re-post of
+>>>  http://www.linuxtv.org/pipermail/linux-dvb/2010-September/032744.html
+>>>which fixes an Oops when tuning eg. AVerMedia DVB-T Volar, Hauppauge
+>>>Nova-T, Winfast DTV. it seems to be quite commonly reported on this list.
+>>>
+>>> [  809.128579] BUG: unable to handle kernel NULL pointer dereference at 0000000000000012
+>>> [  809.128586] IP: [<ffffffffa0013702>] i2c_transfer+0x16/0x124 [i2c_core]
+>>> [  809.128598] PGD 669a7067 PUD 79e5f067 PMD 0
+>>> [  809.128604] Oops: 0000 [#1] SMP
+...
+>Could you try this patch:
+>http://git.linuxtv.org/pb/media_tree.git?a=commit;h=80a5f1fdc6beb496347cbb297f9c1458c8cb9f50
+>and report whether it solves the problem or not?
 
-Best regards,
-Alberto!
+yes, that patch works for me on linux-media's media-master branch, and
+also on fedora 2.6.35.10-72.fc14.x86_64.
+thanks for workng on this!
+it makes a lot of sense that the pid filtering fns are the root cause.
 
+please feel free to add this to your patch:
+  Tested-by: Robin Humble <robin.humble+dvb@anu.edu.au>
+and to scrap my patch.
+
+cheers,
+robin
