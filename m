@@ -1,47 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:44913 "EHLO
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:12375 "EHLO
 	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753471Ab1AZXdr (ORCPT
+	by vger.kernel.org with ESMTP id S1752057Ab1AOMvA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jan 2011 18:33:47 -0500
-Subject: Re: [GIT PULL] More IR fixes for 2.6.38
+	Sat, 15 Jan 2011 07:51:00 -0500
+Date: Sat, 15 Jan 2011 07:50:44 -0500
+Subject: Re: [PATCH] hdpvr: enable IR part
+Message-ID: <cwd2gkgtgyb91bkc0m1dtmnx.1295095844198@email.android.com>
 From: Andy Walls <awalls@md.metrocast.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org
-In-Reply-To: <4D405D8E.6020900@redhat.com>
-References: <yc7vxnkntxcbxdk5pe3jpndi.1296062052946@email.android.com>
-	 <4D405D8E.6020900@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 26 Jan 2011 18:33:23 -0500
-Message-ID: <1296084803.2444.2.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Jean Delvare <khali@linux-fr.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Janne Grunau <j@jannau.net>, Jarod Wilson <jarod@redhat.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 2011-01-26 at 15:44 -0200, Mauro Carvalho Chehab wrote:
-
-> Andy,
-> 
-> Then, it is better to use Jarod's tree for it. His patches are against
-> upstream, and are meant to be applied to .38. So, I need first to send
-> them to linux-next, then to upstream and then merge from upstream,
-> otherwise, I'll have to manually fix the conflicts on the next merge window.
-> Due to LCA, I'm not sure if Linus will apply much patches during this
-> week. So, I'll probably wait until next week to send Jarod's patches
-> upstream.
-
-> Jarod Wilson <jarod@redhat.com> wrote:
-
-> >>  git://linuxtv.org/jarod/linux-2.6-ir.git for-2.6.38
-
-
-OK.  I'll work off of Jarod's branch then.
-
-Thanks.
-
-Regards,
-Andy
-
-
+V2l0aCBteSBuZXdseSBoYWNrZWQgbGlyY196aWxvZywgdHJ5IHVzaW5nIHRoZSAndHhfb25seScg
+cGFyYW1ldGVyIHBsZWFzZS4gIEl0J3Mgbm90IHF1aXRlIHJlYWR5IHlldCwgYnV0IEknZCBsaWtl
+IHRvIGtub3cgaWYgaXQgY2FuIGJpbmQuCgpJZiB5b3UgYWxyZWFkeSBsb2FkZWQgYSBsaXJjX3pp
+bG9nIHdpdGhvdXQgbXkgbGF0ZXN0IHBhdGNoZXMsIHRoZSBpMmMgc3Vic3lzdGVtIG1pZ2h0IGhh
+dmUgYm9ndXMgY3J1ZCBzdGlsbCByZWdpc3RlcmVkLiAgQSByZWJvb3QgbWlnaHQgYmUgbmVlZGVk
+IGZvciBhIHZhbGlkIHRlc3QuCgpSLApBbmR5IAoKSmFyb2QgV2lsc29uIDxqYXJvZEB3aWxzb25l
+dC5jb20+IHdyb3RlOgoKPk9uIEphbiAxNSwgMjAxMSwgYXQgMTI6MzcgQU0sIEphcm9kIFdpbHNv
+biB3cm90ZToKPi4uLgo+Pj4gQlRXLCBhIGNoZWNrcGF0Y2ggYW5kIGNvbXBpbGVyIHRlc3RlZCBs
+aXJjX3ppbG9nLmMgaXMgaGVyZToKPj4+IAo+Pj4gaHR0cDovL2dpdC5saW51eHR2Lm9yZy9hd2Fs
+bHMvbWVkaWFfdHJlZS5naXQ/YT1zaG9ydGxvZztoPXJlZnMvaGVhZHMvejgKPj4+IAo+Pj4gSXQg
+c2hvdWxkIGZpeCBhbGwgdGhlIGJpbmRpbmcgYW5kIGFsbG9jYXRpb24gcHJvYmxlbXMgcmVsYXRl
+ZCB0bwo+Pj4gaXJfcHJvYmUoKS9pcl9yZW1vdmUoKS4gIEV4Y2VwdCBJIHN1c3BlY3QgaXQgbWF5
+IGxlYWsgdGhlIFJ4IHBvbGwKPj4+IGt0aHJlYWQuICBUaGF0J3MgcG9zc2libHkgYW5vdGhlciBi
+dWcgdG8gYWRkIHRvIHRoZSBsaXN0Lgo+Pj4gCj4+PiBBbnl3YXksICRESUVUWSBrbm93cyBpZiB0
+aGUgbGlyY196aWxvZyBtb2R1bGUgYWN0dWFsbHkgc3RpbGwgd29ya3MgYWZ0ZXIKPj4+IGFsbCBt
+eSBoYWNrcy4gIEdpdmUgaXQgYSB0ZXN0IGlmIHlvdSBhcmUgYWR2ZW50dXJvdXMuICBJIHdvbid0
+IGJlIGFibGUKPj4+IHRvIHRlc3QgdW50aWwgdG9tb3Jyb3cgZXZlbmluZy4KPj4gCj4+IEknbGwg
+dHJ5IHRvIGdyYWIgdGhvc2UgYW5kIGdpdmUgdGhlbSBhIHRlc3QgdG9tb3Jyb3csIGFuZCBoZXks
+IEkndmUgZXZlbiBnb3QKPj4gYSBiYXNlbGluZSB0byB0ZXN0IGFnYWluc3Qgbm93Lgo+Cj5Gb3Jn
+b3QgdG8gbWVudGlvbjogSSB0aGluayBpdCB3YXMgc3VnZ2VzdGVkIHRoYXQgb25lIGNvdWxkIHVz
+ZSBpci1rYmQtaTJjCj5mb3IgcmVjZWl2ZSBhbmQgbGlyY196aWxvZyBmb3IgdHJhbnNtaXQsIGF0
+IHRoZSBzYW1lIHRpbWUuIFdpdGggaXIta2JkLWkyYwo+YWxyZWFkeSBsb2FkZWQsIGxpcmNfemls
+b2cgY3VycmVudGx5IHdvbid0IGJpbmQgdG8gYW55dGhpbmcuCj4KPi0tIAo+SmFyb2QgV2lsc29u
+Cj5qYXJvZEB3aWxzb25ldC5jb20KPgo+Cj4KPi0tCj5UbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMg
+bGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtbWVkaWEiIGluCj50aGUgYm9k
+eSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZwo+TW9yZSBtYWpvcmRv
+bW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sCg==
 
