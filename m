@@ -1,88 +1,43 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3852 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752390Ab1AYUyO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jan 2011 15:54:14 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [RFC PATCH 2/3] v4l2-ctrls: add v4l2_ctrl_auto_cluster to simplify autogain/gain scenarios
-Date: Tue, 25 Jan 2011 21:53:52 +0100
-Cc: linux-media@vger.kernel.org
-References: <1295694361-23237-1-git-send-email-hverkuil@xs4all.nl> <201101231713.33776.hverkuil@xs4all.nl> <4D3F346B.9000102@redhat.com>
-In-Reply-To: <4D3F346B.9000102@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:57306 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752369Ab1APSho (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Jan 2011 13:37:44 -0500
+Message-ID: <4D333AF2.8070806@redhat.com>
+Date: Sun, 16 Jan 2011 16:37:38 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Helmut Auer <vdr@helmutauer.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: Patches an media build tree
+References: <4D31A520.2050703@helmutauer.de>
+In-Reply-To: <4D31A520.2050703@helmutauer.de>
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Message-Id: <201101252153.52847.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday, January 25, 2011 21:36:59 Hans de Goede wrote:
-> Hi,
+Em 15-01-2011 11:46, Helmut Auer escreveu:
+> Hello List
 > 
-> On 01/23/2011 05:13 PM, Hans Verkuil wrote:
-> > On Sunday, January 23, 2011 16:15:03 Hans de Goede wrote:
-> 
-> <snip>
-> 
-> >> This is what the UVC spec for example mandates and what the current UVC driver
-> >> does. Combining this with an app which honors the update and the read only
-> >> flag (try gtk-v4l), results in a nice experience. User enables auto exposure
-> >> ->  exposure control gets grayed out, put exposure back manual ->  control
-> >> is ungrayed.
-> >>
-> >> So this new auto_cluster behavior would be a behavioral change (for both the
-> >> uvc driver and several gspca drivers), and more over an unwanted one IMHO
-> >> setting one control should not change another as a side effect.
-> >
-> > Actually, I've been converting a whole list of subdev drivers recently (soc_camera,
-> > ov7670) and they all behaved like this. So I didn't change anything.
-> 
-> Hmm, interesting.
-> 
-> > There is nothing preventing other drivers from doing something different.
-> >
-> > That said, changing the behavior to your proposal may not be such a bad idea.
-> 
-> Yes and AFAIK this is what we agreed on when we discussed auto control a
-> couple of months ago.
-> 
-> > But then I need the OK from all driver authors involved, since this would
-> > mean a change of behavior for them.
-> >
-> > The good news is that once they use the new framework function I only need
-> > to change what that function does and I don't need to change any of those
-> > drivers.
-> >
-> > So I will proceed for now by converting those drivers to use this new function,
-> > and at the same time I can contact the authors and ask what their opinion is
-> > of this change. I'm hoping for more feedback as well from what others think.
-> >
-> 
-> Yes, contacting the authors to discuss this further sounds like a good idea.
-> 
-> > BTW, if I understand the gspca code correctly then it seems that if an e.g.
-> > autogain control is set to 1, then the gain control effectively disappears.
-> > I think queryctrl will just never return it. That can't be right.
-> 
-> Erm, it should not disappear, but just get disabled. But this may have
-> (accidentally) changed with the drivers which were converted to the new
-> control framework.
+> How long does it usually take til patches are integrated into the media build tree ( after posting these here ) ?
+> I'm just wondering because I miss some patches posted here.
 
-gspca doesn't use the control framework at all. Or are you talking about a
-gspca-internal change in control handling?
+It takes as much it needs for the driver maintainer to look into it, and for
+me to have time to handle them.
 
-> Anyways, we should discuss this with involved driver
-> authors and agree on a standard way to handle this. Once we have agreement
-> on how to handle this converting the drivers should be relatively easy.
+The pending patches are always at:
 
-Yes, I'll continue working on this.
+	https://patchwork.kernel.org/project/linux-media/list/
 
-Regards,
+Please note that, by default, Patchwork filters the patches to display only
+the ones marked as New or Under Review. If you want to see all patches, you
+need to change the state filter to show all patches:
+	https://patchwork.kernel.org/project/linux-media/list/?state=*
 
-	Hans
+If the patch you're waiting are marked as Under Review, you should ping the
+driver maintainer, as I'm waiting for his review. If it is new, that means
+that I didn't have time yet to dig into it.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Cheers,
+Mauro
