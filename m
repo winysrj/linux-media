@@ -1,139 +1,87 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-ey0-f194.google.com ([209.85.215.194]:44106 "EHLO
-	mail-ey0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753818Ab1ABMkd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Jan 2011 07:40:33 -0500
-Message-ID: <4d20723f.cc7e0e0a.6f59.3764@mx.google.com>
-From: "Igor M. Liplianin" <liplianin@me.by>
-Date: Sun, 2 Jan 2011 14:05:00 +0200
-Subject: [PATCH 6/9 v2] cx23885: implement tuner_bus parameter for cx23885_board structure.
-To: <mchehab@infradead.org>, <linux-media@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>
+Return-path: <mchehab@pedra>
+Received: from casper.infradead.org ([85.118.1.10]:46120 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753012Ab1APPEj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Jan 2011 10:04:39 -0500
+Message-ID: <4D332507.4090204@infradead.org>
+Date: Sun, 16 Jan 2011 15:04:07 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Ben Gamari <bgamari.foss@gmail.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Igor M. Liplianin" <liplianin@me.by>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, aospan@netup.ru
+Subject: Re: [PATCH 01/18] Altera FPGA firmware download module.
+References: <201012310726.31851.liplianin@netup.ru> <201012311212.19715.laurent.pinchart@ideasonboard.com> <4D1DBE2A.5080003@infradead.org> <201012311230.51903.laurent.pinchart@ideasonboard.com> <4D1DC2DD.6050400@infradead.org> <8739p45x3v.fsf@gmail.com>
+In-Reply-To: <8739p45x3v.fsf@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-There is two external I2C buses in cx23885 chip.
-Currently, analog tuners supported for second I2C bus only
-In NetUP Dual DVB-T/C CI RF card tuners connected to first bus
-So, in order to support analog tuners sitting on first bus
-we need modifications.
+Em 07-01-2011 17:31, Ben Gamari escreveu:
+> Hi Mauro,
+> 
+> On Fri, 31 Dec 2010 09:47:41 -0200, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+>> Em 31-12-2010 09:30, Laurent Pinchart escreveu:
+>>> Hi Mauro,
+>>>
+>>> [snip]
+>>>
+>>> I understand this. However, a complete JTAG state machine in the kernel, plus 
+>>> an Altera firmware parser, seems to be a lot of code that could live in 
+>>> userspace.
+>>
+>> Moving it to userspace would mean a kernel driver that would depend on an
+>> userspace daemon^Wfirmware loader to work. I would NAK such designs.
+>>
+>> The way it is is fine from my POV.
+> 
+> Any furthur comment on this? As I noted, I strongly disagree and would
+> point out that there is no shortage of precedent for the use of
+> userspace callbacks for loading of firmware, especially when the process
+> is as tricky as this.
+> 
+> I also work with Altera FPGAs and have a strong interest in making this
+> work yet from my perspective it seems pretty clear that the best way
+> forward both for both maintainability and useability is to keep
+> this code in user-space. There is absolutely no reason why this code
+> _must_ be in the kernel and punting it out to userspace only requires
+> a udev rule.
+> 
+> Placing this functionality in userspace results in a massive duplication
+> of code, as there are already a number of functional user-space JTAG
+> implementations.
 
-Signed-off-by: Igor M. Liplianin <liplianin@netup.ru>
----
- drivers/media/video/cx23885/cx23885-cards.c |    5 +++++
- drivers/media/video/cx23885/cx23885-core.c  |    5 +++--
- drivers/media/video/cx23885/cx23885-video.c |    7 ++++---
- drivers/media/video/cx23885/cx23885.h       |    2 ++
- 4 files changed, 14 insertions(+), 5 deletions(-)
+On all V4L/DVB drivers I'm ware of, firmwares are loaded via request_firmware, when
+userspace tries to use the device, or when the driver is loaded (eventually, it might
+have some v4l/dvb legacy drivers with some weird implementation, but this is a bad
+practice).
 
-diff --git a/drivers/media/video/cx23885/cx23885-cards.c b/drivers/media/video/cx23885/cx23885-cards.c
-index 1ef4f7b..7de6379 100644
---- a/drivers/media/video/cx23885/cx23885-cards.c
-+++ b/drivers/media/video/cx23885/cx23885-cards.c
-@@ -94,6 +94,7 @@ struct cx23885_board cx23885_boards[] = {
- 		.portc		= CX23885_MPEG_DVB,
- 		.tuner_type	= TUNER_PHILIPS_TDA8290,
- 		.tuner_addr	= 0x42, /* 0x84 >> 1 */
-+		.tuner_bus	= 1,
- 		.input          = {{
- 			.type   = CX23885_VMUX_TELEVISION,
- 			.vmux   =	CX25840_VIN7_CH3 |
-@@ -216,6 +217,7 @@ struct cx23885_board cx23885_boards[] = {
- 		.name		= "Mygica X8506 DMB-TH",
- 		.tuner_type = TUNER_XC5000,
- 		.tuner_addr = 0x61,
-+		.tuner_bus	= 1,
- 		.porta		= CX23885_ANALOG_VIDEO,
- 		.portb		= CX23885_MPEG_DVB,
- 		.input		= {
-@@ -245,6 +247,7 @@ struct cx23885_board cx23885_boards[] = {
- 		.name		= "Magic-Pro ProHDTV Extreme 2",
- 		.tuner_type = TUNER_XC5000,
- 		.tuner_addr = 0x61,
-+		.tuner_bus	= 1,
- 		.porta		= CX23885_ANALOG_VIDEO,
- 		.portb		= CX23885_MPEG_DVB,
- 		.input		= {
-@@ -293,6 +296,7 @@ struct cx23885_board cx23885_boards[] = {
- 		.porta          = CX23885_ANALOG_VIDEO,
- 		.tuner_type     = TUNER_XC2028,
- 		.tuner_addr     = 0x61,
-+		.tuner_bus	= 1,
- 		.input          = {{
- 			.type   = CX23885_VMUX_TELEVISION,
- 			.vmux   = CX25840_VIN2_CH1 |
-@@ -317,6 +321,7 @@ struct cx23885_board cx23885_boards[] = {
- 		.name		= "GoTView X5 3D Hybrid",
- 		.tuner_type	= TUNER_XC5000,
- 		.tuner_addr	= 0x64,
-+		.tuner_bus	= 1,
- 		.porta		= CX23885_ANALOG_VIDEO,
- 		.portb		= CX23885_MPEG_DVB,
- 		.input          = {{
-diff --git a/drivers/media/video/cx23885/cx23885-core.c b/drivers/media/video/cx23885/cx23885-core.c
-index 9ad4c9c..4fa2984 100644
---- a/drivers/media/video/cx23885/cx23885-core.c
-+++ b/drivers/media/video/cx23885/cx23885-core.c
-@@ -970,11 +970,12 @@ static int cx23885_dev_setup(struct cx23885_dev *dev)
- 	/* Assume some sensible defaults */
- 	dev->tuner_type = cx23885_boards[dev->board].tuner_type;
- 	dev->tuner_addr = cx23885_boards[dev->board].tuner_addr;
-+	dev->tuner_bus = cx23885_boards[dev->board].tuner_bus;
- 	dev->radio_type = cx23885_boards[dev->board].radio_type;
- 	dev->radio_addr = cx23885_boards[dev->board].radio_addr;
- 
--	dprintk(1, "%s() tuner_type = 0x%x tuner_addr = 0x%x\n",
--		__func__, dev->tuner_type, dev->tuner_addr);
-+	dprintk(1, "%s() tuner_type = 0x%x tuner_addr = 0x%x tuner_bus = 0x%x\n",
-+		__func__, dev->tuner_type, dev->tuner_addr, dev->tuner_bus);
- 	dprintk(1, "%s() radio_type = 0x%x radio_addr = 0x%x\n",
- 		__func__, dev->radio_type, dev->radio_addr);
- 
-diff --git a/drivers/media/video/cx23885/cx23885-video.c b/drivers/media/video/cx23885/cx23885-video.c
-index 644fcb8..ee57f6b 100644
---- a/drivers/media/video/cx23885/cx23885-video.c
-+++ b/drivers/media/video/cx23885/cx23885-video.c
-@@ -1468,16 +1468,17 @@ int cx23885_video_register(struct cx23885_dev *dev)
- 
- 	cx23885_irq_add_enable(dev, 0x01);
- 
--	if (TUNER_ABSENT != dev->tuner_type) {
-+	if ((TUNER_ABSENT != dev->tuner_type) &&
-+			((dev->tuner_bus == 0) || (dev->tuner_bus == 1))) {
- 		struct v4l2_subdev *sd = NULL;
- 
- 		if (dev->tuner_addr)
- 			sd = v4l2_i2c_new_subdev(&dev->v4l2_dev,
--				&dev->i2c_bus[1].i2c_adap,
-+				&dev->i2c_bus[dev->tuner_bus].i2c_adap,
- 				"tuner", dev->tuner_addr, NULL);
- 		else
- 			sd = v4l2_i2c_new_subdev(&dev->v4l2_dev,
--				&dev->i2c_bus[1].i2c_adap,
-+				&dev->i2c_bus[dev->tuner_bus].i2c_adap,
- 				"tuner", 0, v4l2_i2c_tuner_addrs(ADDRS_TV));
- 		if (sd) {
- 			struct tuner_setup tun_setup;
-diff --git a/drivers/media/video/cx23885/cx23885.h b/drivers/media/video/cx23885/cx23885.h
-index a427f7c..d43f80b 100644
---- a/drivers/media/video/cx23885/cx23885.h
-+++ b/drivers/media/video/cx23885/cx23885.h
-@@ -209,6 +209,7 @@ struct cx23885_board {
- 	unsigned int		radio_type;
- 	unsigned char		tuner_addr;
- 	unsigned char		radio_addr;
-+	unsigned int		tuner_bus;
- 
- 	/* Vendors can and do run the PCIe bridge at different
- 	 * clock rates, driven physically by crystals on the PCBs.
-@@ -364,6 +365,7 @@ struct cx23885_dev {
- 	v4l2_std_id                tvnorm;
- 	unsigned int               tuner_type;
- 	unsigned char              tuner_addr;
-+	unsigned int               tuner_bus;
- 	unsigned int               radio_type;
- 	unsigned char              radio_addr;
- 	unsigned int               has_radio;
--- 
-1.7.1
+There's currently no V4L/DVB load firmware daemon or V4L/DVB udev rules for loading
+firmware that I'm ware of, and I don't like the idea of adding an extra complexity
+for userspace to use this device.
+
+So, I'll be adding this driver as proposed. Yet, as some points are risen, I'll
+be moving those drivers to staging for 2.6.38. This will give you some time for
+propose patches and to better discuss this question.
+> 
+>>> If I understand it correctly the driver assumes the firmware is in an Altera 
+>>> proprietary format. If we really want JTAG code in the kernel we should at 
+>>> least split the file parser and the TAP access code.
+>>>
+>>
+>> Agreed, but I don't think this would be a good reason to block the code merge
+>> for .38.
+>>
+> Sure, but there should be agreement that a kernel-mode JTAG state
+> machine really is the best way forward (i.e. necessary for effective
+> firmware upload) before we commit to carry this code around forever.
+> 
+> - Ben
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
