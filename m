@@ -1,81 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from bonnie-vm4.ifh.de ([141.34.50.21]:53913 "EHLO smtp.ifh.de"
+Received: from www.open-std.org ([83.133.64.141]:53278 "EHLO www2.open-std.org"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753636Ab1ASLeN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jan 2011 06:34:13 -0500
-Date: Wed, 19 Jan 2011 12:34:04 +0100 (CET)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PULL] request for 2.6.38-rc1
-In-Reply-To: <4D330984.2010307@infradead.org>
-Message-ID: <alpine.LRH.2.00.1101191230510.351@pub4.ifh.de>
-References: <alpine.LRH.2.00.1101141542460.6649@pub3.ifh.de> <4D330984.2010307@infradead.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+	id S1751839Ab1APLTS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Jan 2011 06:19:18 -0500
+Date: Sun, 16 Jan 2011 11:55:35 +0100
+From: Keld =?iso-8859-1?Q?J=F8rn?= Simonsen <keld@keldix.com>
+To: linux-media@vger.kernel.org
+Subject: Re: How to help with RTL2832U based TV?
+Message-ID: <20110116105535.GA17461@www2.open-std.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+Antti Palosaari wrote Thu, 03 Dec 2009 13:48:01 -0800
 
-On Sun, 16 Jan 2011, Mauro Carvalho Chehab wrote:
+> On 12/03/2009 10:09 PM, Peter Rasmussen wrote:
+> 
+>     as mentioned in the welcome email of this list, but it isn't
+> apparent to
+>     me what the status in Linux of using a device based on this chip is?
+> 
+> I have got today device having this chip (thanks to verkkokauppa.com for
+> sponsoring) and I am going to implement the driver. I am in hope I can
+> share some code from the old RTL2831U chip driver. I haven't looked
+> driver code yet nor taken any sniffs. I will do that during next week.
 
-> Em 14-01-2011 12:51, Patrick Boettcher escreveu:
->> Hi Mauro,
->>
->> if it is not too late, here is a pull request for some new devices from DiBcom. It would be nice to have it in 2.6.38-rc1.
->>
->> Pull from
->>
->> git://linuxtv.org/pb/media_tree.git staging/for_2.6.38-rc1.dibcom
->>
->> for
->>
->> DiBxxxx: Codingstype updates
->
->
-> Not sure if this is by purpose, but you're changing all
-> msleep(10) into msleep(20). This sounds very weird for a
-> CodingStyle fix:
->
-> -	msleep(10);
-> +	msleep(20);
+OK, what is the status of this now?
+It seems from the status page that it is not finished.
 
-I was as surprised as you when I saw that changed, but in fact it is a 
-checkpatch-fix: it seems that checkpatch is warning about msleep or less 
-than 20ms.
+> Anyhow, there is Realtek released driver spreading over the net for that
+> chip, you can use it.
 
-Maybe it is not the right fix to put them to msleep(20), but I think this 
-is better than to do udelay(10000).
+I tried to find this but without luck.
+Do you know where it can be found?
 
-What do you think?
+Anyway, I got the dongle to work via the following receipt:
+http://www.linuxin.dk/node/15583 (in Danish, but I think Google can
+translate it).
 
+I would appreciate that this be in the kernel tree proper.
 
-> +	if (request_firmware(&state->frontend_firmware, "dib9090.fw", &adap->dev->udev->dev)) {
->
-> Where's dib9090.fw firmware is available? The better is to submit a patch to linux-firmware
-> with the firmware binary, with some license that allows end-users to use it with your device
-> and distros/distro partners to re-distribute it. While here, please add also the other
-> dibcom firmwares.
-
-The dib0700-firmware is already available through a license. The 
-dib9090-firmware will come later. It'll take a moment before everything is 
-ready.
-
-
-> Vendors are free to use their own legal text for it. There are several examples for it
-> at:
->
-> http://git.kernel.org/?p=linux/kernel/git/dwmw2/linux-firmware.git;a=blob_plain;f=WHENCE;hb=HEAD
->
->
-> Btw, there are two alignment errors (one at dib7000p, for some cases, aligned with 4 chars),
-> and another at dib8000, where all statements after an if are aligned with 3 tabs plus one space.
-> I'm fixing those issues, c/c you at the fix patches.
-
-Nice, thank you.
-
-best regards,
---
-
-Patrick
+Best regards
+Keld
