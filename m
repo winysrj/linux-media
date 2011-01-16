@@ -1,47 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:37816 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751404Ab1ALStX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Jan 2011 13:49:23 -0500
-Message-ID: <4D2DF7A9.2070103@redhat.com>
-Date: Wed, 12 Jan 2011 16:49:13 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"'Andrzej Pietrasiewicz/Poland R&D Center-Linux/./????'"
-	<andrzej.p@samsung.com>, pawel@osciak.com,
-	linux-media@vger.kernel.org
-Subject: Re: [GIT PATCHES FOR 2.6.38] Videbuf2 framework, NOON010PC30 sensor
- driver and s5p-fimc updates
-References: <4D21FDC1.7000803@samsung.com> <4D2CBB3F.5050904@redhat.com> <000001cbb243$1051cb60$30f56220$%szyprowski@samsung.com>
-In-Reply-To: <000001cbb243$1051cb60$30f56220$%szyprowski@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:36224 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754220Ab1APA7F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Jan 2011 19:59:05 -0500
+Received: by wwi17 with SMTP id 17so959984wwi.1
+        for <linux-media@vger.kernel.org>; Sat, 15 Jan 2011 16:59:03 -0800 (PST)
+Subject: [PATCH][BUG FIX for 2.6.38] DM04/QQBOX memcpy to const char fix.
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 16 Jan 2011 00:58:57 +0000
+Message-ID: <1295139537.28044.20.camel@tvboxspy>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 12-01-2011 08:25, Marek Szyprowski escreveu:
-> Hello Mauro,
-> 
-> I've rebased our fimc and saa patches onto http://linuxtv.org/git/mchehab/experimental.git
-> vb2_test branch.
+Driver Version v1.75
+Kernel oops appears in 2.6.37-rc8 in lme_firmware_switch because of a memcpy to a const char.
 
-Thanks!
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
 
-As before, I'll be commenting the patches as I'll be seeing any issues.
 
-> Pawel Osciak (2):
->       Fix mmap() example in the V4L2 API DocBook
 
-In fact, the check for retval < 0 instead of retval == -1 is not a fix. According with
-mmap man pages:
-	RETURN VALUE
-	       On  success,  mmap() returns a pointer to the mapped area.  On error, the value MAP_FAILED (that is, (void *) -1) is returned, and errno
-	       is set appropriately.  On success, munmap() returns 0, on failure -1, and errno is set (probably to EINVAL).
 
-The change is not wrong, as -1 is lower than 0, but using -1 is more compliant with
-libc. So, I'll be applying just the CodingStyle fixes on it.
 
-Cheers,
-mauro
+diff --git a/drivers/media/dvb/dvb-usb/lmedm04.c b/drivers/media/dvb/dvb-usb/lmedm04.c
+index 9eea418..46ccd01 100644
+--- a/drivers/media/dvb/dvb-usb/lmedm04.c
++++ b/drivers/media/dvb/dvb-usb/lmedm04.c
+@@ -659,7 +659,7 @@ static int lme2510_download_firmware(struct usb_device *dev,
+ }
+ 
+ /* Default firmware for LME2510C */
+-const char lme_firmware[50] = "dvb-usb-lme2510c-s7395.fw";
++char lme_firmware[50] = "dvb-usb-lme2510c-s7395.fw";
+ 
+ static void lme_coldreset(struct usb_device *dev)
+ {
+@@ -1006,7 +1006,7 @@ static struct dvb_usb_device_properties lme2510c_properties = {
+ 	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
+ 	.usb_ctrl = DEVICE_SPECIFIC,
+ 	.download_firmware = lme2510_download_firmware,
+-	.firmware = lme_firmware,
++	.firmware = (const char *)&lme_firmware,
+ 	.size_of_priv = sizeof(struct lme2510_state),
+ 	.num_adapters = 1,
+ 	.adapter = {
+@@ -1109,5 +1109,5 @@ module_exit(lme2510_module_exit);
+ 
+ MODULE_AUTHOR("Malcolm Priestley <tvboxspy@gmail.com>");
+ MODULE_DESCRIPTION("LME2510(C) DVB-S USB2.0");
+-MODULE_VERSION("1.74");
++MODULE_VERSION("1.75");
+ MODULE_LICENSE("GPL");
+
