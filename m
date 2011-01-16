@@ -1,190 +1,149 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1131 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751210Ab1ARQa4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jan 2011 11:30:56 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Patrik Jakobsson <patrik.r.jakobsson@gmail.com>
-Subject: Re: PROBLEM: kernel BUG at drivers/media/video/em28xx/em28xx-video.c:891
-Date: Tue, 18 Jan 2011 17:30:52 +0100
-Cc: Rune Saetre <rune.saetre@aptomar.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-References: <Pine.LNX.4.64.1101171420420.15860@pingle.local.rsnet> <Pine.LNX.4.64.1101180213130.15860@pingle.local.rsnet> <4D35BC4B.50108@gmail.com>
-In-Reply-To: <4D35BC4B.50108@gmail.com>
+Received: from skyboo.net ([82.160.187.4]:35242 "EHLO skyboo.net"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753666Ab1APUpI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Jan 2011 15:45:08 -0500
+Message-ID: <4D3358C5.5080706@skyboo.net>
+Date: Sun, 16 Jan 2011 21:44:53 +0100
+From: Mariusz Bialonczyk <manio@skyboo.net>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201101181730.52239.hverkuil@xs4all.nl>
+Subject: [PATCH] Prof 7301: switching frontend to stv090x, fixing "LOCK FAILED"
+ issue
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday, January 18, 2011 17:14:03 Patrik Jakobsson wrote:
-> Hello Rune
-> 
-> I'm trying to learn more about the linux kernel so I figured helping 
-> with bugs is a good way to get started.
-> 
-> On 01/18/2011 02:20 AM, Rune Saetre wrote:
-> > Hi
-> >
-> > The crash is not as consistent as I first believed. I have managed to 
-> > stop and start capturing several (but not many) times without the 
-> > driver crashing now.
-> >
-> To me it seems that the resource locking (functions res_get, res_check, 
-> res_locked and res_free) is subject to race condition.
-> 
-> I looked at older versions of the code and found that there used to be 
-> locks around some of these pieces. It was removed in commit:
-> 
-> 0499a5aa777f8e56e46df362f0bb9d9d116186f9 - V4L/DVB: em28xx: remove BKL
-> 
-> Other V4L drivers use pretty much the same code (res_get, res_free, 
-> etc.) for resource locking but still have the mutex_lock/unlock around 
-> it. Does anyone know why this was removed?
+Fixing the very annoying tunning issue. When switching from DVB-S2 to DVB-S,
+it often took minutes to have a lock.
+This issue is known to Igor M. Liplianin and was also reported ie. in the
+following posts:
+http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/24573
+http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/25275
 
-Because now the video4linux core does the locking.
+The patch is changing the frontend from stv0900 to stv090x.
+The card now works much more reliable. There is no problem with switching
+from DVB-S2 to DVB-S, tunning works flawless.
 
-Anyway, I'm pretty sure this is the bug that was fixed here:
+Signed-off-by: Mariusz Bialonczyk <manio@skyboo.net>
+Tested-by: Warpme <warpme@o2.pl>
+---
+ drivers/media/video/cx88/Kconfig           |    2 +-
+ drivers/media/video/cx88/cx88-dvb.c        |   56 ++++++++++++----------------
+ 2 files changed, 25 insertions(+), 33 deletions(-)
 
-http://www.mail-archive.com/linuxtv-commits@linuxtv.org/msg09413.html
-
-This fix will be in 2.6.38.
-
-The change in the locking mechanism had nothing to do this particular bug.
-It was just incorrect administration of resources.
-
-Regards,
-
-	Hans
-
-> 
-> Thanks
-> Patrik Jakobsson
-> > The trace logs also differ slightly. Here is the last one:
-> >
-> > Jan 18 02:12:08 mate kernel: [  117.219326] ------------[ cut here 
-> > ]------------
-> > Jan 18 02:12:08 mate kernel: [  117.219412] kernel BUG at 
-> > drivers/media/video/em28xx/em28xx-video.c:891!
-> > Jan 18 02:12:08 mate kernel: [  117.219507] invalid opcode: 0000 [#1] 
-> > PREEMPT SMP Jan 18 02:12:08 mate kernel: [  117.219597] last sysfs 
-> > file: /sys/devices/virtual/block/dm-8/stat
-> > Jan 18 02:12:08 mate kernel: [  117.219681] CPU 1 Jan 18 02:12:08 mate 
-> > kernel: [  117.219714] Modules linked in: acpi_cpufreq mperf 
-> > cpufreq_powersave cpufreq_stats cpufreq_userspace cpufreq_conservative 
-> > ppdev lp nfsd lockd nfs_acl auth_rpcgss sunrpc exportfs binfmt_misc 
-> > fuse dummy bridge stp ext2 mbcache coretemp kvm_intel kvm loop 
-> > firewire_sbp2 tuner snd_hda_codec_realtek arc4 snd_hda_intel 
-> > snd_usb_audio snd_hda_codec ecb snd_seq_dummy snd_pcm_oss 
-> > snd_mixer_oss saa7115 snd_pcm ir_lirc_codec lirc_dev ir_sony_decoder 
-> > snd_hwdep snd_usbmidi_lib em28xx ir_jvc_decoder ir_rc6_decoder 
-> > snd_seq_oss snd_seq_midi snd_rawmidi r8169 ir_rc5_decoder mii 
-> > ir_nec_decoder snd_seq_midi_event i915 v4l2_common iwlagn iwlcore 
-> > snd_seq ir_core drm_kms_helper drm videobuf_vmalloc snd_timer 
-> > snd_seq_device videobuf_core pcmcia joydev mac80211 uvcvideo videodev 
-> > v4l1_compat v4l2_compat_ioctl32 tveeprom cfg80211 rfkill i2c_i801 
-> > i2c_algo_bit tpm_tis tpm yenta_socket snd intel_agp shpchp pci_hotplug 
-> > video output pcmcia_rsrc wmi pcmcia_core soundcore snd_page_alloc 
-> > parport_pc parport i2c_cor
-> > Jan 18 02:12:08 mate kernel:  irda tpm_bios intel_gtt pcspkr crc_ccitt 
-> > psmouse evdev serio_raw container processor battery ac button reiserfs 
-> > dm_mod raid10 raid456 async_raid6_recov async_pq raid6_pq async_xor 
-> > xor async_memcpy async_tx raid1 raid0 multipath linear md_mod 
-> > ide_cd_mod cdrom sd_mod ata_generic pata_acpi ata_piix crc_t10dif 
-> > ide_pci_generic ahci libahci sdhci_pci firewire_ohci sdhci libata 
-> > scsi_mod piix ide_core firewire_core mmc_core uhci_hcd tg3 thermal 
-> > crc_itu_t thermal_sys ehci_hcd [last unloaded: scsi_wait_scan]
-> > Jan 18 02:12:08 mate kernel: [  117.220091] Jan 18 02:12:08 mate 
-> > kernel: [  117.220091] Pid: 3154, comm: camera_factory_ Not tainted 
-> > 2.6.37-rst #1 Victoria        /TravelMate 6292 Jan 18 02:12:08 mate 
-> > kernel: [  117.220091] RIP: 0010:[<ffffffffa05a37f4>]  
-> > [<ffffffffa05a37f4>] res_free+0x14/0x49 [em28xx]
-> > Jan 18 02:12:08 mate kernel: [  117.220091] RSP: 
-> > 0018:ffff8800794a1c48  EFLAGS: 00010297
-> > Jan 18 02:12:08 mate kernel: [  117.220091] RAX: 0000000000000001 RBX: 
-> > ffff88007b94dc00 RCX: 0000000000000000
-> > Jan 18 02:12:08 mate kernel: [  117.220091] RDX: 0000000000000000 RSI: 
-> > ffff8800378e7000 RDI: ffff88007b94dc00
-> > Jan 18 02:12:09 mate kernel: [  117.220091] RBP: ffff8800378e7000 R08: 
-> > 0000000000000001 R09: 0000000000000c52
-> > Jan 18 02:12:09 mate kernel: [  117.220091] R10: 0000000000000000 R11: 
-> > 0000000000000246 R12: 0000000000000000
-> > Jan 18 02:12:09 mate kernel: [  117.220091] R13: ffffffffa05ab920 R14: 
-> > ffff88006dd123c0 R15: ffff88007b94dc00
-> > Jan 18 02:12:09 mate kernel: [  117.220091] FS:  
-> > 00007f37105bb820(0000) GS:ffff88007f500000(0000) knlGS:0000000000000000
-> > Jan 18 02:12:09 mate kernel: [  117.220091] CS:  0010 DS: 0000 ES: 
-> > 0000 CR0: 0000000080050033
-> > Jan 18 02:12:09 mate kernel: [  117.220091] CR2: 000000000378b248 CR3: 
-> > 000000007a079000 CR4: 00000000000006e0
-> > Jan 18 02:12:09 mate kernel: [  117.220091] DR0: 0000000000000000 DR1: 
-> > 0000000000000000 DR2: 0000000000000000
-> > Jan 18 02:12:09 mate kernel: [  117.220091] DR3: 0000000000000000 DR6: 
-> > 00000000ffff0ff0 DR7: 0000000000000400
-> > Jan 18 02:12:09 mate kernel: [  117.220091] Process camera_factory_ 
-> > (pid: 3154, threadinfo ffff8800794a0000, task ffff880071f6d820)
-> > Jan 18 02:12:09 mate kernel: [  117.220091] Stack:
-> > Jan 18 02:12:09 mate kernel: [  117.220091]  ffff8800378e7000 
-> > ffffffffa05a46b9 ffff88007a2fd040 ffffffff81042cf3
-> > Jan 18 02:12:09 mate kernel: [  117.220091]  0000000000000001 
-> > ffffffff00000001 ffffffff8103dadb 0000000000000001
-> > Jan 18 02:12:09 mate kernel: [  117.220091]  ffff88007ba3e400 
-> > ffffffffa03302ff 00000000000135c0 00000000000135c0
-> > Jan 18 02:12:09 mate kernel: [  117.220091] Call Trace:
-> > Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffffa05a46b9>] ? 
-> > vidioc_streamoff+0xa6/0xb6 [em28xx]
-> > Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81042cf3>] ? 
-> > get_parent_ip+0x9/0x1b
-> > Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff8103dadb>] ? 
-> > need_resched+0x1a/0x23
-> > Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffffa03302ff>] ? 
-> > __video_do_ioctl+0x12e2/0x33a0 [videodev]
-> > Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff8103a5fe>] ? 
-> > __wake_up_common+0x41/0x78
-> > Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff8103da1b>] ? 
-> > __wake_up+0x35/0x46
-> > Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81042cf3>] ? 
-> > get_parent_ip+0x9/0x1b
-> > Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81044d80>] ? 
-> > add_preempt_count+0x9e/0xa0
-> > Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff8132935c>] ? 
-> > _raw_spin_lock_irqsave+0x40/0x61
-> > Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffffa03326f4>] ? 
-> > video_ioctl2+0x2ad/0x35d [videodev]
-> > Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81042cf3>] ? 
-> > get_parent_ip+0x9/0x1b
-> > Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffffa032e342>] ? 
-> > v4l2_ioctl+0x74/0x113 [videodev]
-> > Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81106f51>] ? 
-> > do_vfs_ioctl+0x418/0x465
-> > Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81106fda>] ? 
-> > sys_ioctl+0x3c/0x5e
-> > Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81009c52>] ? 
-> > system_call_fastpath+0x16/0x1b
-> > Jan 18 02:12:09 mate kernel: [  117.220091] Code: 03 4c 39 e3 0f 18 08 
-> > 75 d4 31 c0 eb 05 b8 ea ff ff ff 5b 5d 41 5c c3 48 83 ec 08 8b 57 0c 
-> > 89 f0 89 c1 48 8b 37 21 d1 39 c1 74 04 <0f> 0b eb fe 89 c8 f7 d0 21 c2 
-> > 89 57 0c 21 86 d0 09 00 00 83 3d Jan 18 02:12:09 mate kernel: [  
-> > 117.220091] RIP  [<ffffffffa05a37f4>] res_free+0x14/0x49 [em28xx]
-> > Jan 18 02:12:09 mate kernel: [  117.220091]  RSP <ffff8800794a1c48>
-> > Jan 18 02:12:09 mate kernel: [  117.264998] ---[ end trace 
-> > 6d6576ecd99356c8 ]---
-> >
-> > I hope this helps.
-> >
-> > Regards
-> > Rune
-> >
-> >
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/media/video/cx88/Kconfig b/drivers/media/video/cx88/Kconfig
+index 5c42abd..57316bb 100644
+--- a/drivers/media/video/cx88/Kconfig
++++ b/drivers/media/video/cx88/Kconfig
+@@ -60,7 +60,7 @@ config VIDEO_CX88_DVB
+ 	select DVB_STV0299 if !DVB_FE_CUSTOMISE
+ 	select DVB_STV0288 if !DVB_FE_CUSTOMISE
+ 	select DVB_STB6000 if !DVB_FE_CUSTOMISE
+-	select DVB_STV0900 if !DVB_FE_CUSTOMISE
++	select DVB_STV090x if !DVB_FE_CUSTOMISE
+ 	select DVB_STB6100 if !DVB_FE_CUSTOMISE
+ 	select MEDIA_TUNER_SIMPLE if !MEDIA_TUNER_CUSTOMISE
+ 	---help---
+diff --git a/drivers/media/video/cx88/cx88-dvb.c b/drivers/media/video/cx88/cx88-dvb.c
+index 90717ee..3f25872 100644
+--- a/drivers/media/video/cx88/cx88-dvb.c
++++ b/drivers/media/video/cx88/cx88-dvb.c
+@@ -53,9 +53,9 @@
+ #include "stv0288.h"
+ #include "stb6000.h"
+ #include "cx24116.h"
+-#include "stv0900.h"
++#include "stv090x.h"
+ #include "stb6100.h"
+-#include "stb6100_proc.h"
++#include "stb6100_cfg.h"
+ #include "mb86a16.h"
+ 
+ MODULE_DESCRIPTION("driver for cx2388x based DVB cards");
+@@ -611,15 +611,6 @@ static int cx24116_set_ts_param(struct dvb_frontend *fe,
+ 	return 0;
+ }
+ 
+-static int stv0900_set_ts_param(struct dvb_frontend *fe,
+-	int is_punctured)
+-{
+-	struct cx8802_dev *dev = fe->dvb->priv;
+-	dev->ts_gen_cntrl = 0;
+-
+-	return 0;
+-}
+-
+ static int cx24116_reset_device(struct dvb_frontend *fe)
+ {
+ 	struct cx8802_dev *dev = fe->dvb->priv;
+@@ -648,16 +639,21 @@ static const struct cx24116_config tevii_s460_config = {
+ 	.reset_device  = cx24116_reset_device,
+ };
+ 
+-static const struct stv0900_config prof_7301_stv0900_config = {
+-	.demod_address = 0x6a,
+-/*	demod_mode = 0,*/
+-	.xtal = 27000000,
+-	.clkmode = 3,/* 0-CLKI, 2-XTALI, else AUTO */
+-	.diseqc_mode = 2,/* 2/3 PWM */
+-	.tun1_maddress = 0,/* 0x60 */
+-	.tun1_adc = 0,/* 2 Vpp */
+-	.path1_mode = 3,
+-	.set_ts_params = stv0900_set_ts_param,
++static struct stv090x_config prof_7301_stv090x_config = {
++        .device                 = STV0903,
++        .demod_mode             = STV090x_SINGLE,
++        .clk_mode               = STV090x_CLK_EXT,
++        .xtal                   = 27000000,
++        .address                = 0x6A,
++        .ts1_mode               = STV090x_TSMODE_PARALLEL_PUNCTURED,
++        .repeater_level         = STV090x_RPTLEVEL_64,
++        .adc1_range             = STV090x_ADC_2Vpp,
++        .diseqc_envelope_mode   = false,
++
++        .tuner_get_frequency    = stb6100_get_frequency,
++        .tuner_set_frequency    = stb6100_set_frequency,
++        .tuner_set_bandwidth    = stb6100_set_bandwidth,
++        .tuner_get_bandwidth    = stb6100_get_bandwidth,
+ };
+ 
+ static const struct stb6100_config prof_7301_stb6100_config = {
+@@ -1402,23 +1398,19 @@ static int dvb_register(struct cx8802_dev *dev)
+ 		}
+ 		break;
+ 	case CX88_BOARD_PROF_7301:{
+-		struct dvb_tuner_ops *tuner_ops = NULL;
++		dev->ts_gen_cntrl = 0x00;
+ 
+-		fe0->dvb.frontend = dvb_attach(stv0900_attach,
+-						&prof_7301_stv0900_config,
+-						&core->i2c_adap, 0);
++		fe0->dvb.frontend = dvb_attach(stv090x_attach,
++						&prof_7301_stv090x_config,
++						&core->i2c_adap,
++						STV090x_DEMODULATOR_0);
+ 		if (fe0->dvb.frontend != NULL) {
+-			if (!dvb_attach(stb6100_attach, fe0->dvb.frontend,
++			if (!dvb_attach(stb6100_attach,
++					fe0->dvb.frontend,
+ 					&prof_7301_stb6100_config,
+ 					&core->i2c_adap))
+ 				goto frontend_detach;
+ 
+-			tuner_ops = &fe0->dvb.frontend->ops.tuner_ops;
+-			tuner_ops->set_frequency = stb6100_set_freq;
+-			tuner_ops->get_frequency = stb6100_get_freq;
+-			tuner_ops->set_bandwidth = stb6100_set_bandw;
+-			tuner_ops->get_bandwidth = stb6100_get_bandw;
+-
+ 			core->prev_set_voltage =
+ 					fe0->dvb.frontend->ops.set_voltage;
+ 			fe0->dvb.frontend->ops.set_voltage =
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Mariusz Bialonczyk
+jabber/e-mail: manio@skyboo.net
+http://manio.skyboo.net
