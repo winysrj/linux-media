@@ -1,118 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from antispam01.maxim-ic.com ([205.153.101.182]:37041 "EHLO
-	antispam01.dummydomain.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753721Ab1A1TfI (ORCPT
+Received: from einhorn.in-berlin.de ([192.109.42.8]:33778 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750990Ab1APIjd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Jan 2011 14:35:08 -0500
-Subject: [PATCH RFC] uvcvideo: Add support for MPEG-2 TS payload
-From: Stephan Lachowsky <stephan.lachowsky@maxim-ic.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-uvc-devel@lists.berlios.de" <linux-uvc-devel@lists.berlios.de>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 28 Jan 2011 11:35:05 -0800
-Message-ID: <1296243305.17673.20.camel@svmlwks101>
-MIME-Version: 1.0
+	Sun, 16 Jan 2011 03:39:33 -0500
+Date: Sun, 16 Jan 2011 09:39:21 +0100
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+To: linux-media@vger.kernel.org
+Cc: linux-input@vger.kernel.org, linux1394-devel@lists.sourceforge.net
+Subject: [PATCH] firedtv: fix remote control with newer Xorg evdev
+Message-ID: <20110116093921.6275ac89@stein>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Parse the UVC 1.0 and UVC 1.1 VS_FORMAT_MPEG2TS descriptors.
-This a stream based format, so we generate a dummy frame descriptor
-with a dummy frame interval range.
+After a recent update of xf86-input-evdev and xorg-server, I noticed
+that X11 applications did not receive keypresses from the FireDTV
+infrared remote control anymore.  Instead, the Xorg log featured lots of
+
+    "FireDTV remote control: dropping event due to full queue!"
+
+exclamations.  The Linux console did not have an issue with the
+FireDTV's RC though.
+
+The fix is to insert EV_SYN events after the key-down/-up events.
+
+Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
 ---
- drivers/media/video/uvc/uvc_driver.c |   41 ++++++++++++++++++++++++++++++++++
- drivers/media/video/uvc/uvcvideo.h   |    3 ++
- 2 files changed, 44 insertions(+), 0 deletions(-)
+ drivers/media/dvb/firewire/firedtv-rc.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/video/uvc/uvc_driver.c b/drivers/media/video/uvc/uvc_driver.c
-index a1e9dfb..6bcb9e1 100644
---- a/drivers/media/video/uvc/uvc_driver.c
-+++ b/drivers/media/video/uvc/uvc_driver.c
-@@ -103,6 +103,11 @@ static struct uvc_format_desc uvc_fmts[] = {
- 		.guid		= UVC_GUID_FORMAT_BY8,
- 		.fcc		= V4L2_PIX_FMT_SBGGR8,
- 	},
-+	{
-+		.name		= "MPEG2 TS",
-+		.guid		= UVC_GUID_FORMAT_MPEG,
-+		.fcc		= V4L2_PIX_FMT_MPEG,
-+	},
- };
+Index: b/drivers/media/dvb/firewire/firedtv-rc.c
+===================================================================
+--- a/drivers/media/dvb/firewire/firedtv-rc.c
++++ b/drivers/media/dvb/firewire/firedtv-rc.c
+@@ -172,7 +172,8 @@ void fdtv_unregister_rc(struct firedtv *
  
- /* ------------------------------------------------------------------------
-@@ -398,6 +403,33 @@ static int uvc_parse_format(struct uvc_device *dev,
- 		break;
+ void fdtv_handle_rc(struct firedtv *fdtv, unsigned int code)
+ {
+-	u16 *keycode = fdtv->remote_ctrl_dev->keycode;
++	struct input_dev *idev = fdtv->remote_ctrl_dev;
++	u16 *keycode = idev->keycode;
  
- 	case UVC_VS_FORMAT_MPEG2TS:
-+		n = dev->uvc_version >= 0x0110 ? 23 : 7;
-+		if (buflen < n) {
-+			uvc_trace(UVC_TRACE_DESCR, "device %d videostreaming "
-+			       "interface %d FORMAT error\n",
-+			       dev->udev->devnum,
-+			       alts->desc.bInterfaceNumber);
-+			return -EINVAL;
-+		}
-+
-+		strlcpy(format->name, "MPEG2 TS", sizeof format->name);
-+		format->fcc = V4L2_PIX_FMT_MPEG;
-+		format->flags = UVC_FMT_FLAG_COMPRESSED | UVC_FMT_FLAG_STREAM;
-+		format->bpp = 0;
-+		ftype = 0;
-+
-+		/* Create a dummy frame descriptor. */
-+		frame = &format->frame[0];
-+		memset(&format->frame[0], 0, sizeof format->frame[0]);
-+		frame->bFrameIntervalType = 0;
-+		frame->dwDefaultFrameInterval = 1;
-+		frame->dwFrameInterval = *intervals;
-+		*(*intervals)++ = 1;
-+		*(*intervals)++ = 10000000;
-+		*(*intervals)++ = 1;
-+		format->nframes = 1;
-+		break;
-+
- 	case UVC_VS_FORMAT_STREAM_BASED:
- 		/* Not supported yet. */
- 	default:
-@@ -673,6 +705,14 @@ static int uvc_parse_streaming(struct uvc_device *dev,
- 			break;
+ 	if (code >= 0x0300 && code <= 0x031f)
+ 		code = keycode[code - 0x0300];
+@@ -188,6 +189,7 @@ void fdtv_handle_rc(struct firedtv *fdtv
+ 		return;
+ 	}
  
- 		case UVC_VS_FORMAT_MPEG2TS:
-+			/* MPEG2TS format has no frame descriptor. We will create a
-+			 * dummy frame descriptor with a dummy frame interval range.
-+			 */
-+			nformats++;
-+			nframes++;
-+			nintervals += 3;
-+			break;
-+
- 		case UVC_VS_FORMAT_STREAM_BASED:
- 			uvc_trace(UVC_TRACE_DESCR, "device %d videostreaming "
- 				"interface %d FORMAT %u is not supported.\n",
-@@ -724,6 +764,7 @@ static int uvc_parse_streaming(struct uvc_device *dev,
- 		switch (buffer[2]) {
- 		case UVC_VS_FORMAT_UNCOMPRESSED:
- 		case UVC_VS_FORMAT_MJPEG:
-+		case UVC_VS_FORMAT_MPEG2TS:
- 		case UVC_VS_FORMAT_DV:
- 		case UVC_VS_FORMAT_FRAME_BASED:
- 			format->frame = frame;
-diff --git a/drivers/media/video/uvc/uvcvideo.h b/drivers/media/video/uvc/uvcvideo.h
-index 45f01e7..e522f99 100644
---- a/drivers/media/video/uvc/uvcvideo.h
-+++ b/drivers/media/video/uvc/uvcvideo.h
-@@ -152,6 +152,9 @@ struct uvc_xu_control {
- #define UVC_GUID_FORMAT_BY8 \
- 	{ 'B',  'Y',  '8',  ' ', 0x00, 0x00, 0x10, 0x00, \
- 	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-+#define UVC_GUID_FORMAT_MPEG \
-+	{ 'M',  'P',  'E',  'G', 0x00, 0x00, 0x10, 0x00, \
-+	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
- 
- /* ------------------------------------------------------------------------
-  * Driver specific constants.
+-	input_report_key(fdtv->remote_ctrl_dev, code, 1);
+-	input_report_key(fdtv->remote_ctrl_dev, code, 0);
++	input_report_key(idev, code, 1);
++	input_report_key(idev, code, 0);
++	input_sync(idev);
+ }
+
+
 -- 
-1.7.3.5
-
-
+Stefan Richter
+-=====-==-== ---= =----
+http://arcgraph.de/sr/
