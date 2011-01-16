@@ -1,80 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:60180 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752248Ab1AWWM3 (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:34881 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753774Ab1APT3x (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Jan 2011 17:12:29 -0500
-Received: by ewy5 with SMTP id 5so1627374ewy.19
-        for <linux-media@vger.kernel.org>; Sun, 23 Jan 2011 14:12:28 -0800 (PST)
-MIME-Version: 1.0
-Date: Sun, 23 Jan 2011 17:12:27 -0500
-Message-ID: <AANLkTimmvf++nF=mzHHQJ0-aMc2=aYJnwo-hYto75Mpc@mail.gmail.com>
-Subject: [PATCH] Fix bug in au0828 VBI streaming
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: multipart/mixed; boundary=000e0cd1d2d85bd37c049a8ac76a
+	Sun, 16 Jan 2011 14:29:53 -0500
+Subject: Re: [RFC PATCH] ir-kbd-i2c, lirc_zilog: Allow bridge drivers to
+ pass an IR trasnceiver mutex to I2C IR modules
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	Jean Delvare <khali@linux-fr.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Janne Grunau <j@jannau.net>, Jarod Wilson <jarod@redhat.com>
+In-Reply-To: <4D333877.6040900@redhat.com>
+References: <1295149788.7147.34.camel@localhost>
+	 <4D333877.6040900@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 16 Jan 2011 14:29:27 -0500
+Message-ID: <1295206167.2400.36.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---000e0cd1d2d85bd37c049a8ac76a
-Content-Type: text/plain; charset=ISO-8859-1
+On Sun, 2011-01-16 at 16:27 -0200, Mauro Carvalho Chehab wrote:
+> Jarod/Andy,
+> 
+> For now, I'm marking all those ir-kbd-i2c/lirc_zilog patches as "RFC" at patchwork,
+> as I'm not sure if they're ok, and because there are a few revisions of them and
+> I'm afraid to apply some wrong version.
 
-Attached is a patch for a V4L2 spec violation with regards to the
-au0828 not working in streaming mode.
+And that's just fine. :)
 
-This was just an oversight on my part when I did the original VBI
-support for this bridge, as libzvbi was silently falling back to using
-the read() interface.
+That particular RFC was to get mostly Jean's opinion on adding fields to
+struct IR_i2c_init_data and struct IR_i2c and code to ir-kbd-i2c.
 
-Devin
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
 
---000e0cd1d2d85bd37c049a8ac76a
-Content-Type: text/x-patch; charset=US-ASCII; name="au0828_vbi_streaming.patch"
-Content-Disposition: attachment; filename="au0828_vbi_streaming.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gjai6mpw0
+> Please, after finishing and testing, send me a patch series or, preferably, a
+> git pull with those stuff.
 
-YXUwODI4OiBmaXggVkJJIGhhbmRsaW5nIHdoZW4gaW4gVjRMMiBzdHJlYW1pbmcgbW9kZQoKRnJv
-bTogRGV2aW4gSGVpdG11ZWxsZXIgPGRoZWl0bXVlbGxlckBrZXJuZWxsYWJzLmNvbT4KCkl0IHR1
-cm5zIHVwIFY0TDIgc3RyZWFtaW5nIG1vZGUgKGEuay5hIG1tYXApIHdhcyBicm9rZW4gZm9yIFZC
-SSBzdHJlYW1pbmcuClRoaXMgd2FzIGNhdXNpbmcgbGlienZiaSB0byBmYWxsIGJhY2sgdG8gVjRM
-MSBjYXB0dXJlIG1vZGUsIGFuZCBpcyBhIGJsYXRlbnQKdmlvbGF0aW9uIG9mIHRoZSBWNEwyIHNw
-ZWNpZmljYXRpb24uCgpNYWtlIHRoZSBpbXBsZW1lbnRhdGlvbiB3b3JrIHByb3Blcmx5IGluIHRo
-aXMgbW9kZS4KClByaW9yaXR5OiBoaWdoCgpTaWduZWQtb2ZmLWJ5OiBEZXZpbiBIZWl0bXVlbGxl
-ciA8ZGhlaXRtdWVsbGVyQGtlcm5lbGxhYnMuY29tPiAKCi0tLSBtZWRpYV9idWlsZC9saW51eC9k
-cml2ZXJzL21lZGlhL3ZpZGVvL2F1MDgyOC9hdTA4MjgtdmlkZW8uYwkyMDExLTAxLTEwIDEwOjI0
-OjQ1LjAwMDAwMDAwMCAtMDUwMAorKysgbWVkaWFfYnVpbGRfOTUwcWZpeGVzLy9saW51eC9kcml2
-ZXJzL21lZGlhL3ZpZGVvL2F1MDgyOC9hdTA4MjgtdmlkZW8uYwkyMDExLTAxLTIzIDE3OjA1OjA4
-LjQ2MTEwNzU2OSAtMDUwMApAQCAtMTc1OCw3ICsxNzU4LDEyIEBACiAJaWYgKHJjIDwgMCkKIAkJ
-cmV0dXJuIHJjOwogCi0JcmV0dXJuIHZpZGVvYnVmX3JlcWJ1ZnMoJmZoLT52Yl92aWRxLCByYik7
-CisJaWYgKGZoLT50eXBlID09IFY0TDJfQlVGX1RZUEVfVklERU9fQ0FQVFVSRSkKKwkJcmMgPSB2
-aWRlb2J1Zl9yZXFidWZzKCZmaC0+dmJfdmlkcSwgcmIpOworCWVsc2UgaWYgKGZoLT50eXBlID09
-IFY0TDJfQlVGX1RZUEVfVkJJX0NBUFRVUkUpCisJCXJjID0gdmlkZW9idWZfcmVxYnVmcygmZmgt
-PnZiX3ZiaXEsIHJiKTsKKworCXJldHVybiByYzsKIH0KIAogc3RhdGljIGludCB2aWRpb2NfcXVl
-cnlidWYoc3RydWN0IGZpbGUgKmZpbGUsIHZvaWQgKnByaXYsCkBAIC0xNzcyLDcgKzE3NzcsMTIg
-QEAKIAlpZiAocmMgPCAwKQogCQlyZXR1cm4gcmM7CiAKLQlyZXR1cm4gdmlkZW9idWZfcXVlcnli
-dWYoJmZoLT52Yl92aWRxLCBiKTsKKwlpZiAoZmgtPnR5cGUgPT0gVjRMMl9CVUZfVFlQRV9WSURF
-T19DQVBUVVJFKQorCQlyYyA9IHZpZGVvYnVmX3F1ZXJ5YnVmKCZmaC0+dmJfdmlkcSwgYik7CisJ
-ZWxzZSBpZiAoZmgtPnR5cGUgPT0gVjRMMl9CVUZfVFlQRV9WQklfQ0FQVFVSRSkKKwkJcmMgPSB2
-aWRlb2J1Zl9xdWVyeWJ1ZigmZmgtPnZiX3ZiaXEsIGIpOworCisJcmV0dXJuIHJjOwogfQogCiBz
-dGF0aWMgaW50IHZpZGlvY19xYnVmKHN0cnVjdCBmaWxlICpmaWxlLCB2b2lkICpwcml2LCBzdHJ1
-Y3QgdjRsMl9idWZmZXIgKmIpCkBAIC0xNzg1LDcgKzE3OTUsMTIgQEAKIAlpZiAocmMgPCAwKQog
-CQlyZXR1cm4gcmM7CiAKLQlyZXR1cm4gdmlkZW9idWZfcWJ1ZigmZmgtPnZiX3ZpZHEsIGIpOwor
-CWlmIChmaC0+dHlwZSA9PSBWNEwyX0JVRl9UWVBFX1ZJREVPX0NBUFRVUkUpCisJCXJjID0gdmlk
-ZW9idWZfcWJ1ZigmZmgtPnZiX3ZpZHEsIGIpOworCWVsc2UgaWYgKGZoLT50eXBlID09IFY0TDJf
-QlVGX1RZUEVfVkJJX0NBUFRVUkUpCisJCXJjID0gdmlkZW9idWZfcWJ1ZigmZmgtPnZiX3ZiaXEs
-IGIpOworCisJcmV0dXJuIHJjOwogfQogCiBzdGF0aWMgaW50IHZpZGlvY19kcWJ1ZihzdHJ1Y3Qg
-ZmlsZSAqZmlsZSwgdm9pZCAqcHJpdiwgc3RydWN0IHY0bDJfYnVmZmVyICpiKQpAQCAtMTgwNiw3
-ICsxODIxLDEyIEBACiAJCWRldi0+Z3JlZW5zY3JlZW5fZGV0ZWN0ZWQgPSAwOwogCX0KIAotCXJl
-dHVybiB2aWRlb2J1Zl9kcWJ1ZigmZmgtPnZiX3ZpZHEsIGIsIGZpbGUtPmZfZmxhZ3MgJiBPX05P
-TkJMT0NLKTsKKwlpZiAoZmgtPnR5cGUgPT0gVjRMMl9CVUZfVFlQRV9WSURFT19DQVBUVVJFKQor
-CQlyYyA9IHZpZGVvYnVmX2RxYnVmKCZmaC0+dmJfdmlkcSwgYiwgZmlsZS0+Zl9mbGFncyAmIE9f
-Tk9OQkxPQ0spOworCWVsc2UgaWYgKGZoLT50eXBlID09IFY0TDJfQlVGX1RZUEVfVkJJX0NBUFRV
-UkUpCisJCXJjID0gdmlkZW9idWZfZHFidWYoJmZoLT52Yl92YmlxLCBiLCBmaWxlLT5mX2ZsYWdz
-ICYgT19OT05CTE9DSyk7CisKKwlyZXR1cm4gcmM7CiB9CiAKIHN0YXRpYyBzdHJ1Y3QgdjRsMl9m
-aWxlX29wZXJhdGlvbnMgYXUwODI4X3Y0bF9mb3BzID0gewo=
---000e0cd1d2d85bd37c049a8ac76a--
+I just sent a [GIT PATCHES for 2.6.38], which is my pull request.  It
+fixes one minor regression in ir-kbd-i2c.c.  The rest of the patches are
+limited to lirc_zilog and do not modify any bridge drivers.  The
+lirc_zilog changes were tested by me using my HVR-1600.
+
+Jarrod will have to ask you to pull any hdpvr fixes, when he feels they
+are ready.
+
+
+Note my pull request does *not* include the patches in the subject [RFC
+PATCH], so no worries about pulling those in. :)  I'll submit a pull for
+those when they are correct and ready.
+
+
+Regards,
+Andy
+
+
