@@ -1,190 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59804 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753213Ab1A0Mal (ORCPT
+Received: from einhorn.in-berlin.de ([192.109.42.8]:42987 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751210Ab1AQNTt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jan 2011 07:30:41 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Cc: sakari.ailus@maxwell.research.nokia.com,
-	broonie@opensource.wolfsonmicro.com, clemens@ladisch.de
-Subject: [PATCH v8 05/12] media: Entity use count
-Date: Thu, 27 Jan 2011 13:30:30 +0100
-Message-Id: <1296131437-29954-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1296131437-29954-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1296131437-29954-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Mon, 17 Jan 2011 08:19:49 -0500
+Date: Mon, 17 Jan 2011 14:17:58 +0100
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+To: linux-media@vger.kernel.org
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	linux-input@vger.kernel.org, linux1394-devel@lists.sourceforge.net
+Subject: [PATCH update] firedtv: fix remote control with newer Xorg evdev
+Message-ID: <20110117141758.56af41f5@stein>
+In-Reply-To: <20110117081703.GA22802@core.coreip.homeip.net>
+References: <20110116093921.6275ac89@stein>
+	<20110117081703.GA22802@core.coreip.homeip.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Due to the wide differences between drivers regarding power management
-needs, the media controller does not implement power management.
-However, the media_entity structure includes a use_count field that
-media drivers can use to track the number of users of every entity for
-power management needs.
+After a recent update of xf86-input-evdev and xorg-server, I noticed
+that X11 applications did not receive keypresses from the FireDTV
+infrared remote control anymore.  Instead, the Xorg log featured lots of
 
-The use_count field is owned by media drivers and must not be touched by
-entity drivers. Access to the field must be protected by the media
-device graph_mutex lock.
+    "FireDTV remote control: dropping event due to full queue!"
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+exclamations.  The Linux console did not have an issue with the
+FireDTV's RC though.
+
+The fix is to insert EV_SYN events after the key-down/-up events.
+Dimitry notes that EV_SYN is also necessary between down and up,
+otherwise userspace could combine their state.
+
+Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
 ---
- Documentation/media-framework.txt |   13 ++++++++++
- drivers/media/media-device.c      |    1 +
- drivers/media/media-entity.c      |   46 +++++++++++++++++++++++++++++++++++++
- include/media/media-device.h      |    4 +++
- include/media/media-entity.h      |    5 ++++
- 5 files changed, 69 insertions(+), 0 deletions(-)
+ drivers/media/dvb/firewire/firedtv-rc.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
-index 88fe379..9017a41 100644
---- a/Documentation/media-framework.txt
-+++ b/Documentation/media-framework.txt
-@@ -258,3 +258,16 @@ When the graph traversal is complete the function will return NULL.
+Index: b/drivers/media/dvb/firewire/firedtv-rc.c
+===================================================================
+--- a/drivers/media/dvb/firewire/firedtv-rc.c
++++ b/drivers/media/dvb/firewire/firedtv-rc.c
+@@ -172,7 +172,8 @@ void fdtv_unregister_rc(struct firedtv *
  
- Graph traversal can be interrupted at any moment. No cleanup function call is
- required and the graph structure can be freed normally.
-+
-+
-+Use count and power handling
-+----------------------------
-+
-+Due to the wide differences between drivers regarding power management needs,
-+the media controller does not implement power management. However, the
-+media_entity structure includes a use_count field that media drivers can use to
-+track the number of users of every entity for power management needs.
-+
-+The use_count field is owned by media drivers and must not be touched by entity
-+drivers. Access to the field must be protected by the media device graph_mutex
-+lock.
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index b8a3ace..e4c2157 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -73,6 +73,7 @@ int __must_check media_device_register(struct media_device *mdev)
- 	mdev->entity_id = 1;
- 	INIT_LIST_HEAD(&mdev->entities);
- 	spin_lock_init(&mdev->lock);
-+	mutex_init(&mdev->graph_mutex);
+ void fdtv_handle_rc(struct firedtv *fdtv, unsigned int code)
+ {
+-	u16 *keycode = fdtv->remote_ctrl_dev->keycode;
++	struct input_dev *idev = fdtv->remote_ctrl_dev;
++	u16 *keycode = idev->keycode;
  
- 	/* Register the device node. */
- 	mdev->devnode.fops = &media_device_fops;
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index a805f20..fe6bfd2 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -23,6 +23,7 @@
- #include <linux/module.h>
- #include <linux/slab.h>
- #include <media/media-entity.h>
-+#include <media/media-device.h>
+ 	if (code >= 0x0300 && code <= 0x031f)
+ 		code = keycode[code - 0x0300];
+@@ -188,6 +189,8 @@ void fdtv_handle_rc(struct firedtv *fdtv
+ 		return;
+ 	}
  
- /**
-  * media_entity_init - Initialize a media entity
-@@ -196,6 +197,51 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
- EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
- 
- /* -----------------------------------------------------------------------------
-+ * Module use count
-+ */
-+
-+/*
-+ * media_entity_get - Get a reference to the parent module
-+ * @entity: The entity
-+ *
-+ * Get a reference to the parent media device module.
-+ *
-+ * The function will return immediately if @entity is NULL.
-+ *
-+ * Return a pointer to the entity on success or NULL on failure.
-+ */
-+struct media_entity *media_entity_get(struct media_entity *entity)
-+{
-+	if (entity == NULL)
-+		return NULL;
-+
-+	if (entity->parent->dev &&
-+	    !try_module_get(entity->parent->dev->driver->owner))
-+		return NULL;
-+
-+	return entity;
-+}
-+EXPORT_SYMBOL_GPL(media_entity_get);
-+
-+/*
-+ * media_entity_put - Release the reference to the parent module
-+ * @entity: The entity
-+ *
-+ * Release the reference count acquired by media_entity_get().
-+ *
-+ * The function will return immediately if @entity is NULL.
-+ */
-+void media_entity_put(struct media_entity *entity)
-+{
-+	if (entity == NULL)
-+		return;
-+
-+	if (entity->parent->dev)
-+		module_put(entity->parent->dev->driver->owner);
-+}
-+EXPORT_SYMBOL_GPL(media_entity_put);
-+
-+/* -----------------------------------------------------------------------------
-  * Links management
-  */
- 
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index 0b1ecf5..260d59c 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -25,6 +25,7 @@
- 
- #include <linux/device.h>
- #include <linux/list.h>
-+#include <linux/mutex.h>
- #include <linux/spinlock.h>
- 
- #include <media/media-devnode.h>
-@@ -42,6 +43,7 @@
-  * @entity_id:	ID of the next entity to be registered
-  * @entities:	List of registered entities
-  * @lock:	Entities list lock
-+ * @graph_mutex: Entities graph operation lock
-  *
-  * This structure represents an abstract high-level media device. It allows easy
-  * access to entities and provides basic media device-level support. The
-@@ -69,6 +71,8 @@ struct media_device {
- 
- 	/* Protects the entities list */
- 	spinlock_t lock;
-+	/* Serializes graph operations. */
-+	struct mutex graph_mutex;
- };
- 
- /* media_devnode to media_device */
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index b82f824..114541a 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -81,6 +81,8 @@ struct media_entity {
- 	struct media_pad *pads;		/* Pads array (num_pads elements) */
- 	struct media_link *links;	/* Links array (max_links elements)*/
- 
-+	int use_count;			/* Use count for the entity. */
-+
- 	union {
- 		/* Node specifications */
- 		struct {
-@@ -129,6 +131,9 @@ void media_entity_cleanup(struct media_entity *entity);
- int media_entity_create_link(struct media_entity *source, u16 source_pad,
- 		struct media_entity *sink, u16 sink_pad, u32 flags);
- 
-+struct media_entity *media_entity_get(struct media_entity *entity);
-+void media_entity_put(struct media_entity *entity);
-+
- void media_entity_graph_walk_start(struct media_entity_graph *graph,
- 		struct media_entity *entity);
- struct media_entity *
+-	input_report_key(fdtv->remote_ctrl_dev, code, 1);
+-	input_report_key(fdtv->remote_ctrl_dev, code, 0);
++	input_report_key(idev, code, 1);
++	input_sync(idev);
++	input_report_key(idev, code, 0);
++	input_sync(idev);
+ }
+
+
 -- 
-1.7.3.4
-
+Stefan Richter
+-=====-==-== ---= =---=
+http://arcgraph.de/sr/
