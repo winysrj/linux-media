@@ -1,113 +1,98 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.samsung.com ([203.254.224.33]:62128 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750970Ab1ALSuH (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:58719 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751212Ab1AQKQI convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Jan 2011 13:50:07 -0500
-Date: Wed, 12 Jan 2011 19:49:56 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCHv8 00/12] Contiguous Memory Allocator
-In-reply-to: <20101223134432.GJ3636@n2100.arm.linux.org.uk>
-To: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>
-Cc: 'Kyungmin Park' <kmpark@infradead.org>,
-	'Michal Nazarewicz' <m.nazarewicz@samsung.com>,
-	linux-arm-kernel@lists.infradead.org,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Johan MOSSBERG' <johan.xx.mossberg@stericsson.com>,
-	'Mel Gorman' <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
-	'Michal Nazarewicz' <mina86@mina86.com>, linux-mm@kvack.org,
-	'Ankita Garg' <ankita@in.ibm.com>,
-	'Andrew Morton' <akpm@linux-foundation.org>,
-	linux-media@vger.kernel.org,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <001c01cbb289$864391f0$92cab5d0$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <cover.1292443200.git.m.nazarewicz@samsung.com>
- <AANLkTim8_=0+-zM5z4j0gBaw3PF3zgpXQNetEn-CfUGb@mail.gmail.com>
- <20101223100642.GD3636@n2100.arm.linux.org.uk>
- <00ea01cba290$4d67f500$e837df00$%szyprowski@samsung.com>
- <20101223121917.GG3636@n2100.arm.linux.org.uk>
- <00ec01cba2a2$af20b8b0$0d622a10$%szyprowski@samsung.com>
- <20101223134432.GJ3636@n2100.arm.linux.org.uk>
+	Mon, 17 Jan 2011 05:16:08 -0500
+MIME-Version: 1.0
+In-Reply-To: <AANLkTi=TF9uYEv2Y3qwMKham=K2cCxo4UOTn8Vf+S-KC@mail.gmail.com>
+References: <1294745487-29138-1-git-send-email-manjunatha_halli@ti.com>
+ <1294745487-29138-2-git-send-email-manjunatha_halli@ti.com>
+ <1294745487-29138-3-git-send-email-manjunatha_halli@ti.com>
+ <1294745487-29138-4-git-send-email-manjunatha_halli@ti.com>
+ <20110111112434.GE2385@legolas.emea.dhcp.ti.com> <AANLkTi=TF9uYEv2Y3qwMKham=K2cCxo4UOTn8Vf+S-KC@mail.gmail.com>
+From: halli manjunatha <manjunatha_halli@ti.com>
+Date: Mon, 17 Jan 2011 15:45:46 +0530
+Message-ID: <AANLkTimRLGYugF+2=-nFvLeXdnLOy8Morx_wxzVTt9w5@mail.gmail.com>
+Subject: Re: [RFC V10 3/7] drivers:media:radio: wl128x: FM Driver Common sources
+To: Hans Verkuil <hverkuil@xs4all.nl>, mchehab@infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+Hi Hans and Mauro,
 
-I'm sorry for the delay. Just got back from my holidays and getting thought
-the mails.
+If there are no major comments for the V10 of FM V4L2 driver, is it
+possible to take this driver (V10) to mainline?
 
-On Thursday, December 23, 2010 2:45 PM Russell King - ARM Linux wrote:
+Since the files are becoming big to be posted as patches and
+maintaining it that way is a bit difficult. We can submit the patches
+to mainline to fix minor comments and also to add newer features
+(complete scan, stop seek) as patches once this driver makes its way
+in to mainline.
 
-> On Thu, Dec 23, 2010 at 02:09:44PM +0100, Marek Szyprowski wrote:
-> > Hello,
-> >
-> > On Thursday, December 23, 2010 1:19 PM Russell King - ARM Linux wrote:
-> >
-> > > On Thu, Dec 23, 2010 at 11:58:08AM +0100, Marek Szyprowski wrote:
-> > > > Actually this contiguous memory allocator is a better replacement for
-> > > > alloc_pages() which is used by dma_alloc_coherent(). It is a generic
-> > > > framework that is not tied only to ARM architecture.
-> > >
-> > > ... which is open to abuse.  What I'm trying to find out is - if it
-> > > can't be used for DMA, what is it to be used for?
-> > >
-> > > Or are we inventing an everything-but-ARM framework?
-> >
-> > We are trying to get something that really works and SOLVES some of the
-> > problems with real devices that require contiguous memory for DMA.
-> 
-> So, here you've confirmed that it's for DMA.
+Please let me know your views on this.
 
-Right, otherwise it wouldn't really make much sense. Note that our proposal
-already works for non-arm platforms. 
+Thanks,
+Manju
 
-> > > > > In other words, do we _actually_ have a use for this which doesn't
-> > > > > involve doing something like allocating 32MB of memory from it,
-> > > > > remapping it so that it's DMA coherent, and then performing DMA
-> > > > > on the resulting buffer?
-> > > >
-> > > > This is an arm specific problem, also related to dma_alloc_coherent()
-> > > > allocator. To be 100% conformant with ARM specification we would
-> > > > probably need to unmap all pages used by the dma_coherent allocator
-> > > > from the LOW MEM area. This is doable, but completely not related
-> > > > to the CMA and this patch series.
-> > >
-> > > You've already been told why we can't unmap pages from the kernel
-> > > direct mapping.
-> >
-> > It requires some amount of work but I see no reason why we shouldn't be
-> > able to unmap that pages to stay 100% conformant with ARM spec.
-> 
-> I have considered - and tried - to do that with the dma_alloc_coherent()
-> spec, but it is NOT POSSIBLE to do so - too many factors stand in the
-> way of making it work, such as the need bring the system to a complete
-> halt to modify all the L1 page tables and broadcast the TLB operations
-> to invalidate the old mappings.  None of that can be done from all the
-> contexts under which dma_alloc_coherent() is called from.
 
-I understand that this requires a lot of work, but I still think this might
-be possible to get it working with some additional constraints.
-
-I understand that modifying L1 page tables is definitely not a proper way of
-handling this. It simply costs too much. But what if we consider that the DMA
-memory can be only allocated from a specific range of the system memory?
-Assuming that this range of memory is known during the boot time, it CAN be
-mapped with two-level of tables in MMU. First level mapping will stay the
-same all the time for all processes, but it would be possible to unmap the
-pages required for DMA from the second level mapping what will be visible
-from all the processes at once.
-
-Is there any reason why such solution won't work?
-
-Best regards
---
-Marek Szyprowski
-Samsung Poland R&D Center
+On Tue, Jan 11, 2011 at 6:12 PM, Raja Mani <rajambsc@gmail.com> wrote:
+> balbi,
+>
+>  Agree , interrupt pkts could have handled in thread context . But in
+> the current way , FM driver never create any additional task in the
+> system
+>  to handle FM interrupt. In fact, there is no task being created in
+> this driver to handle FM RDS data, AF,etc.
+>
+>  This method is suitable for light weight system where we want to
+> reduce number of thread in the system.
+>
+>  On Tue, Jan 11, 2011 at 4:54 PM, Felipe Balbi <balbi@ti.com> wrote:
+>> Hi,
+>>
+>> On Tue, Jan 11, 2011 at 06:31:23AM -0500, manjunatha_halli@ti.com wrote:
+>>> From: Manjunatha Halli <manjunatha_halli@ti.com>
+>>>
+>>> These are the sources for the common interfaces required by the
+>>> FM V4L2 driver for TI WL127x and WL128x chips.
+>>>
+>>> These implement the FM channel-8 protocol communication with the
+>>> chip. This makes use of the Shared Transport as its transport.
+>>>
+>>> Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
+>>> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+>>
+>> looks like this is implementing a "proprietary" (by that I mean: for
+>> this driver only) IRQ API. Why aren't you using GENIRQ with threaded
+>> IRQs support ?
+>>
+>> Core IRQ Subsystem would handle a lot of stuff for you.
+>>
+>> --
+>> balbi
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+>
+>
+> --
+> Regards,
+> Raja.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
 
 
+-- 
+Regards
+Halli
