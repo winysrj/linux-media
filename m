@@ -1,37 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:18517 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753689Ab1AZUJl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jan 2011 15:09:41 -0500
-Message-ID: <4D407F69.1070409@redhat.com>
-Date: Wed, 26 Jan 2011 21:09:13 +0100
-From: Gerd Hoffmann <kraxel@redhat.com>
-MIME-Version: 1.0
-To: Mark Lord <kernel@teksavvy.com>
-CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
- ?
-References: <20110125205453.GA19896@core.coreip.homeip.net> <4D3F4804.6070508@redhat.com> <4D3F4D11.9040302@teksavvy.com> <20110125232914.GA20130@core.coreip.homeip.net> <20110126020003.GA23085@core.coreip.homeip.net> <4D4004F9.6090200@redhat.com> <4D401CC5.4020000@redhat.com> <4D402D35.4090206@redhat.com> <20110126165132.GC29163@core.coreip.homeip.net> <4D4059E5.7050300@redhat.com> <20110126182415.GB29268@core.coreip.homeip.net> <4D4072F9.5060206@redhat.com> <4D4075CD.8060402@teksavvy.com>
-In-Reply-To: <4D4075CD.8060402@teksavvy.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Received: from einhorn.in-berlin.de ([192.109.42.8]:47523 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752285Ab1AQUKq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Jan 2011 15:10:46 -0500
+Date: Mon, 17 Jan 2011 21:07:56 +0100
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH incremental update] firedtv: fix remote control - addendum
+Message-ID: <20110117210756.510d4135@stein>
+In-Reply-To: <20110117170015.GA15404@core.coreip.homeip.net>
+References: <20110116093921.6275ac89@stein>
+	<20110117081703.GA22802@core.coreip.homeip.net>
+	<20110117141758.56af41f5@stein>
+	<20110117170015.GA15404@core.coreip.homeip.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-   Hi,
+Dimitry notes that EV_SYN is also necessary between down and up,
+otherwise userspace could combine their state.
 
->> Will the major revision ever change?  Does it make sense to check the version at
->> all?
->
-> As already established earlier in this thread,
-> by Linus Torvalds as well as by myself,
-> NO!
+Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+---
+Hi Mauro,
+since you already pushed out the first version of "firedtv: fix remote
+control with newer Xorg evdev", here is the differential patch to the
+updated version.  It's surely not super urgent though.
 
-Check removed.
+ drivers/media/dvb/firewire/firedtv-rc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-thanks,
-   Gerd
+Index: b/drivers/media/dvb/firewire/firedtv-rc.c
+===================================================================
+--- a/drivers/media/dvb/firewire/firedtv-rc.c
++++ b/drivers/media/dvb/firewire/firedtv-rc.c
+@@ -190,6 +190,7 @@ void fdtv_handle_rc(struct firedtv *fdtv
+ 	}
+ 
+ 	input_report_key(idev, code, 1);
++	input_sync(idev);
+ 	input_report_key(idev, code, 0);
+ 	input_sync(idev);
+ }
+
+
+-- 
+Stefan Richter
+-=====-==-== ---= =---=
+http://arcgraph.de/sr/
