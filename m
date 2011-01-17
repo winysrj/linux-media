@@ -1,45 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:59240 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752349Ab1AJMHK (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:11085 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752040Ab1AQPsS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jan 2011 07:07:10 -0500
-Subject: Re: Enable IR on hdpvr
-From: Andy Walls <awalls@md.metrocast.net>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Jason Gauthier <jgauthier@lastar.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Janne Grunau <j@jannau.net>
-In-Reply-To: <8AFBEFD7-69E3-4E71-B155-EA773C2FED43@wilsonet.com>
-References: <65DE7931C559BF4DBEE42C3F8246249A0B686EB0@V-EXMAILBOX.ctg.com>
-	 <8AFBEFD7-69E3-4E71-B155-EA773C2FED43@wilsonet.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 10 Jan 2011 07:07:52 -0500
-Message-ID: <1294661272.2084.10.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Mon, 17 Jan 2011 10:48:18 -0500
+Date: Mon, 17 Jan 2011 16:48:11 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH 0/1] v4l: videobuf2: Add DMA pool allocator
+In-reply-to: <1293684907-7272-1-git-send-email-jtp.park@samsung.com>
+To: 'Jeongtae Park' <jtp.park@samsung.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, jaeryul.oh@samsung.com,
+	jonghun.han@samsung.com, kgene.kim@samsung.com
+Message-id: <008f01cbb65d$f4c33a40$de49aec0$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1293684907-7272-1-git-send-email-jtp.park@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 2011-01-10 at 01:05 -0500, Jarod Wilson wrote:
-> On Jan 9, 2011, at 7:36 PM, Jason Gauthier wrote:
+Hello,
 
-> Janne, I've heard many success stories w/the hdpvr IR lately, and almost no reports
-> of lockups, so I'm thinking a firmware update may have helped out here, and thus,
-> maybe its time we just go ahead and push this patch along upstream? We still
-> require someone to load lirc_zilog manually, so it seems like a fairly low-risk
-> thing to do.
+On Thursday, December 30, 2010 5:55 AM Jeongtae Park wrote:
 
-FYI, the code I added to hdpvr-i2c.c will perform 2 accesses to the chip
-to check for existence, by virtue of a call to i2c_new_probed_device()
-(or whatever it is called).  The I2C subsystem tries to talk the chip to
-see if it exists.
+> The DMA pool allocator allocates a memory using dma_alloc_coherent(),
+> creates a pool using generic allocator in the initialization.
+> For every allocation requests, the allocator returns a part of its
+> memory pool using generic allocator instead of new memory allocation.
+> 
+> This allocator used for devices have below limitations.
+> - the start address should be aligned
+> - the range of memory access limited to the offset from the start
+>   address (= the allocation address should be existed in a
+>   constant offset from the start address)
+> - the allocation address should be aligned
+> 
+> I would be grateful for your comments.
+> 
+> This patch series contains:
+> 
+> [PATCH 1/1] v4l: videobuf2: Add DMA pool allocator
+> 
+> Best regards,
+> Jeongtae Park
+> 
+> Patch summary:
+> 
+> Jeongtae Park (1):
+>       v4l: videobuf2: Add DMA pool allocator
+> 
+>  drivers/media/video/Kconfig              |    7 +
+>  drivers/media/video/Makefile             |    1 +
+>  drivers/media/video/videobuf2-dma-pool.c |  310 ++++++++++++++++++++++++++++++
+>  include/media/videobuf2-dma-pool.h       |   37 ++++
+>  4 files changed, 355 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/video/videobuf2-dma-pool.c
+>  create mode 100644 include/media/videobuf2-dma-pool.h
 
-If you are really concerned about corner cases that may hang, add a
-module option to hdpvr to disable I2C and/or IR in the hdpvr driver.
-With that users in the field can work-around the problem without
-rebuilding modules.
+The code looks nice but I have one suggestion. This dma-pool memory allocator
+make sense only for a s5p-mfc driver. All other drivers can use dma-contig vb2
+allocator directly. For this reason I suggest to move this allocator directly
+to drivers/media/video/s5p-mfc/ directory.
 
-Regards,
-Andy
+Best regards
+--
+Marek Szyprowski
+Samsung Poland R&D Center
 
