@@ -1,74 +1,419 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:39199 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755087Ab1AaShm (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:17289 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752085Ab1AQE7h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Jan 2011 13:37:42 -0500
-Received: by bwz15 with SMTP id 15so5529506bwz.19
-        for <linux-media@vger.kernel.org>; Mon, 31 Jan 2011 10:37:40 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTikaHBXmf_EE7UwJNDwESYcdM8x=6eRukuNEPZ2c@mail.gmail.com>
-References: <AANLkTikaHBXmf_EE7UwJNDwESYcdM8x=6eRukuNEPZ2c@mail.gmail.com>
-Date: Mon, 31 Jan 2011 19:37:40 +0100
-Message-ID: <AANLkTikaNR28srMnQ0Ga1v6XzUai-Qz3Q1+fRdBi=nw-@mail.gmail.com>
-Subject: Re: Asus U3100 Mini Plus
-From: Michal Bojda <rexearth.mbojda@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Sun, 16 Jan 2011 23:59:37 -0500
+Date: Mon, 17 Jan 2011 13:59:28 +0900
+From: Kamil Debski <k.debski@samsung.com>
+Subject: RE: [RFC/PATCH v6 3/4] MFC: Add MFC 5.1 V4L2 driver
+In-reply-to: <001601cbb3d4$af238390$0d6a8ab0$%oh@samsung.com>
+To: jaeryul.oh@samsung.com, 'Jonghun Han' <jonghun.han@samsung.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: 'Marek Szyprowski' <m.szyprowski@samsung.com>, pawel@osciak.com,
+	kyungmin.park@samsung.com, kgene.kim@samsung.com
+Message-id: <000301cbb603$54acd0c0$fe067240$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: en-gb
+Content-transfer-encoding: 7BIT
+References: <1294417534-3856-1-git-send-email-k.debski@samsung.com>
+ <1294417534-3856-4-git-send-email-k.debski@samsung.com>
+ <008001cbb307$6f8cea00$4ea6be00$%han@samsung.com>
+ <001d01cbb3bc$0be39980$23aacc80$%debski@samsung.com>
+ <000b01cbb3cf$bbaed330$330c7990$%han@samsung.com>
+ <001601cbb3d4$af238390$0d6a8ab0$%oh@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Here are some specifications.
+Hi,
 
-Chip : AF9035A
-Demodulator : AF9035B
-Tuner : FCI2580
+I don't see the need to do DQBUF on the source buffer that has the
+I-frame with changed resolution. I think that one could notify the 
+application by setting size=0 on the CAPTURE buffer. So the OUTPUT
+buffer would not be dequeued. It would be dequeued after it has
+been decoded. Do you think anything is wrong with this approach?
 
-lsusb :
+I really think that copying the source buffer contents is unnecessary.
 
-Bus 002 Device 005: ID 045e:074f Microsoft Corp.
-Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 001 Device 016: ID 0b05:1779 ASUSTek Computer, Inc.
-Bus 001 Device 004: ID 04f2:b033 Chicony Electronics Co., Ltd
-Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Best wishes,
+--
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
 
-dmesg :
+> -----Original Message-----
+> From: Jaeryul Oh [mailto:jaeryul.oh@samsung.com]
+> Sent: 14 January 2011 19:21
+> To: 'Jonghun Han'; 'Kamil Debski'; linux-media@vger.kernel.org; linux-
+> samsung-soc@vger.kernel.org
+> Cc: 'Marek Szyprowski'; pawel@osciak.com; kyungmin.park@samsung.com;
+> kgene.kim@samsung.com
+> Subject: RE: [RFC/PATCH v6 3/4] MFC: Add MFC 5.1 V4L2 driver
+> 
+> I added my comments.
+> I guess that Kamil's way could be possible to run seq. of dynamic
+> resolution
+> change.
+> 
+> > -----Original Message-----
+> > From: Jonghun Han [mailto:jonghun.han@samsung.com]
+> > Sent: Friday, January 14, 2011 6:45 PM
+> > To: 'Kamil Debski'; linux-media@vger.kernel.org; linux-samsung-
+> > soc@vger.kernel.org
+> > Cc: 'Marek Szyprowski'; pawel@osciak.com; kyungmin.park@samsung.com;
+> > jaeryul.oh@samsung.com; kgene.kim@samsung.com
+> > Subject: RE: [RFC/PATCH v6 3/4] MFC: Add MFC 5.1 V4L2 driver
+> >
+> >
+> > Hi,
+> >
+> > I was confused the source and destination.
+> > I agree with you mostly.
+> >
+> > In my opinion, the way how to notify the resolution change is return
+> value
+> > of the DQBUF.
+> > But if we use DQBUF, there are some problem as below.
+> >
+> > DQBUF means that the buffer has been operated already and application
+> will
+> > have the buffer's right.
+> >
+> > Although application new QBUF destination buffers after changing
+> > destination(CAPTURE),
+> > driver cannot re-decode the I-frame which has the resolution change
+> > information
+> > because the I-frame has been dequeued already.
+> > If application re-QBUF the buffer, the buffer sequence will be out of
+> > order
+> > as below.
+> > Original: I -> B -> B .....
+> > Out of order: missed -> B -> B -> I .....
+> >
+> > How do you think about the following sequence.
+> >
+> > 1. getting the resolution change from the MFC H/W
+> >
+> > 2. copy the buffer to driver's internal memory.
+> >
+> > 3. send the result with DQBUF
+> >
+> > 4. changing destination buffers by application
+> >
+> > 5. QBUF for new destination buffers
+> >
+> > 6. in the first vb2_try_schedule
+> >   re-decode the driver's internal buffer instead of the B frame.
+> >
+> > 7. in the next vb2_try_schedule
+> >   decode the B frame in order.
+> >
+> > I also welcome your comments.
+> 
+> In the blocking sequence, blocking will be done in DQBUF.
+>   1. QBUF done for I1 frame with hdr(first buf, res. chd)
+>    : Copy I1 frame in the driver
+>   2. DQBUF done for I1 frame
+>   3. QBUF P2,P3,P4 frame, but it should NOT be DEQUED which means
+>       Qbufed p2,p3,p4 is not executed
+>    :  P4(third buf) -> P3(second buf) -> P2 frame(first buf)
+>   4. While waiting for DEQUE about P2, copied I1 frame is executed for
+> INIT_CODEC
+>   5. Copied I1 frame is runned FRAME_START after dst buffer is
+> reallocated
+>       (5~9 in your seq.)
+>   6. Queued P2 frame is executed, then DQBUF will be OK
+> 
+> >
+> > Best regards,
+> >
+> > > -----Original Message-----
+> > > From: Kamil Debski [mailto:k.debski@samsung.com]
+> > > Sent: Friday, January 14, 2011 4:24 PM
+> > > To: 'Jonghun Han'; linux-media@vger.kernel.org; linux-samsung-
+> > > soc@vger.kernel.org
+> > > Cc: Marek Szyprowski; pawel@osciak.com; kyungmin.park@samsung.com;
+> > > jaeryul.oh@samsung.com; kgene.kim@samsung.com
+> > > Subject: RE: [RFC/PATCH v6 3/4] MFC: Add MFC 5.1 V4L2 driver
+> > >
+> > > Hi,
+> > >
+> > > > -----Original Message-----
+> > > > From: Jonghun Han [mailto:jonghun.han@samsung.com]
+> > > >
+> > > > Hi,
+> > > >
+> > > > Kamil Debski wrote:
+> > > >
+> > > > <snip>
+> > > >
+> > > > > +/* Reqeust buffers */
+> > > > > +static int vidioc_reqbufs(struct file *file, void *priv,
+> > > > > +					  struct v4l2_requestbuffers
+> > > > *reqbufs)
+> > > > > +{
+> > > > > +	struct s5p_mfc_dev *dev = video_drvdata(file);
+> > > > > +	struct s5p_mfc_ctx *ctx = priv;
+> > > > > +	int ret = 0;
+> > > > > +	unsigned long flags;
+> > > > > +
+> > > > > +	mfc_debug_enter();
+> > > > > +	mfc_debug("Memory type: %d\n", reqbufs->memory);
+> > > > > +	if (reqbufs->memory != V4L2_MEMORY_MMAP) {
+> > > > > +		mfc_err("Only V4L2_MEMORY_MAP is supported.\n");
+> > > > > +		return -EINVAL;
+> > > > > +	}
+> > > > > +	if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+> > > > > +		/* Can only request buffers after an instance has
+> been
+> > > > opened.*/
+> > > > > +		if (ctx->state == MFCINST_DEC_GOT_INST) {
+> > > > > +			/* Decoding */
+> > > > > +			if (ctx->output_state != QUEUE_FREE) {
+> > > > > +				mfc_err("Bufs have already been
+> > > > requested.\n");
+> > > > > +				return -EINVAL;
+> > > > > +			}
+> > > > > +			ret = vb2_reqbufs(&ctx->vq_src, reqbufs);
+> > > > > +			if (ret) {
+> > > > > +				mfc_err("vb2_reqbufs on output
+> > failed.\n");
+> > > > > +				return ret;
+> > > > > +			}
+> > > > > +			mfc_debug("vb2_reqbufs: %d\n", ret);
+> > > > > +			ctx->output_state = QUEUE_BUFS_REQUESTED;
+> > > > > +		}
+> > > > > +	} else if (reqbufs->type ==
+> > > > > V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+> > > > > +		if (ctx->capture_state != QUEUE_FREE) {
+> > > > > +			mfc_err("Bufs have already been
+> requested.\n");
+> > > > > +			return -EINVAL;
+> > > > > +		}
+> > > > > +		ctx->capture_state = QUEUE_BUFS_REQUESTED;
+> > > > > +		ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
+> > > > > +		if (ret) {
+> > > > > +			mfc_err("vb2_reqbufs on capture failed.\n");
+> > > > > +			return ret;
+> > > > > +		}
+> > > > > +		if (reqbufs->count < ctx->dpb_count) {
+> > > > > +			mfc_err("Not enough buffers allocated.\n");
+> > > > > +			reqbufs->count = 0;
+> > > > > +			ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
+> > > > > +			return -ENOMEM;
+> > > > > +		}
+> > > > > +		ctx->total_dpb_count = reqbufs->count;
+> > > > > +		ret = s5p_mfc_alloc_dec_buffers(ctx);
+> > > > > +		if (ret) {
+> > > > > +			mfc_err("Failed to allocate decoding
+> > buffers.\n");
+> > > > > +			reqbufs->count = 0;
+> > > > > +			ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
+> > > > > +			return -ENOMEM;
+> > > > > +		}
+> > > > > +		if (ctx->dst_bufs_cnt == ctx->total_dpb_count) {
+> > > > > +			ctx->capture_state = QUEUE_BUFS_MMAPED;
+> > > > > +		} else {
+> > > > > +			mfc_err("Not all buffers passed to
+> > buf_init.\n");
+> > > > > +			reqbufs->count = 0;
+> > > > > +			ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
+> > > > > +			s5p_mfc_release_dec_buffers(ctx);
+> > > > > +			return -ENOMEM;
+> > > > > +		}
+> > > > > +		if (s5p_mfc_ctx_ready(ctx)) {
+> > > > > +			spin_lock_irqsave(&dev->condlock, flags);
+> > > > > +			set_bit(ctx->num, &dev->ctx_work_bits);
+> > > > > +			spin_unlock_irqrestore(&dev->condlock,
+> flags);
+> > > > > +		}
+> > > > > +		s5p_mfc_try_run(dev);
+> > > > > +		s5p_mfc_wait_for_done_ctx(ctx,
+> > > > > +
+> > > > > S5P_FIMV_R2H_CMD_INIT_BUFFERS_RET, 1);
+> > > > > +	}
+> > > > > +	mfc_debug_leave();
+> > > > > +	return ret;
+> > > > > +}
+> > > >
+> > > > I don't know how to handle the followings.
+> > > >
+> > > > So I suggest that in reqbufs->type == V4L2_BUF_TYPE_VIDEO_OUTPUT
+> case,
+> > > > how about return -EINVAL if reqbufs->count is bigger than 1.
+> > > >
+> > > > Because if reqbufs->count is bigger than 1, it is hard to handle
+> the
+> > > > encoded
+> > > > input stream.
+> > > >
+> > > > For example: Dynamic resolution change
+> > > > Dynamic resolution change means that resolution can be changed at
+> any
+> > > > I-frame with header on the fly during streaming.
+> > > >
+> > > > MFC H/W can detect it after getting decoding command from the
+> driver.
+> > > > If the dynamic resolution change is detected by MFC H/W,
+> > > > driver should let application know the fact to do the following
+> > > > Sequence 1
+> > > > by application.
+> > > >
+> > > > Sequence 1:
+> > > > streamoff -> munmap -> reqbufs(0) -> S_FMT(changed resolution) ->
+> > > > querybuf
+> > > > -> mmap -> re-QBUF with the I-frame -> STREAMON -> ...
+> > > >
+> > > > Why it is hard to handle the encoded input stream in multiple
+> input
+> > > > stream
+> > > > case is the following Sequence 2.
+> > > >
+> > > > Sequence 2:
+> > > > QBUF(0) -> QBUF(1: resolution changed I-frame) -> QBUF(2: already
+> > > > changed)
+> > > > -> QBUF(3: already changed) -> DQBUF(0) -> DQBUF(1): return fail
+> ->
+> ...
+> > > >
+> > > > Application cannot know the resolution change in the QBUF ioctl.
+> > > > Driver will return 0 at the QBUF because all parameters are fine.
+> > > > But after sending the decode command to MFC H/W, driver can know
+> that
+> > > > the
+> > > > I-frame needs to change resolution.
+> > > > In that case driver can return error at the DQBUF of the buffer.
+> > > >
+> > > > In the sequence 2, application can know the resolution change in
+> the
+> > > > DQBUF(1).
+> > > > So the application should re-QBUF the buffer 2, 3 after Sequence
+> 1.
+> > > > It is hard to re-control the buffers which are already queued in
+> the
+> > > > point
+> > > > of application.
+> > > > Because in the reqbufs(0) buffers will be freed.
+> > > > So application has to copy them to the temporary buffer to re-
+> QBUF
+> > > > after
+> > > > Sequence 1.
+> > > >
+> > > > How can we solve this case ?
+> > >
+> > > There are two buffer queues - the OUTPUT is the queue for the
+> compressed
+> > > source. I don't see the need to do anything with this queue when
+> > resolution
+> > > is changed.
+> > >
+> > > There could be 3 src buffers queued for example. Let's say the
+> first is
+> > an
+> > > I-frame
+> > > with changed resolution. This does not affect the following source
+> > buffers.
+> > > I
+> > > agree with you that it will have impact on the destination
+> (CAPTURE)
+> > > buffers.
+> > > The problem is how to notify the application that the resolution
+> has
+> > been
+> > > changed.
+> > >
+> > > After the application is notified by the driver that resolution has
+> been
+> > > changed it has to do the following:
+> > > 1. DQBUF all the remaining destination CAPTURE buffers (with old
+> > resolution)
+> > > 2. Do stream off on CAPUTRE
+> > > 3. unmap all the CAPTURE buffers
+> > > 4. REQBUFS(0) on CAPTURE
+> > > 5. G_FMT on CAPTURE to get the new resolution
+> > > 6. REQBUFS(n) on CAPTURE
+> > > 7. mmap the CAPTURE buffers
+> > > 8. QBUF all the new CAPTURE buffers
+> > > 9. Do stream on on CAPTURE
+> > >
+> > > As you can see, the OUTPUT queue has not been modified. All the 3
+> source
+> > > buffers
+> > > are still queued until after step 9 when the processing restarts.
+> > >
+> > > From the driver perspective it looks like this:
+> > > a) After it has received DISP_STATUS [5:4] != 0 it sends the
+> > > FRAME_START_REALLOC
+> > > command. Then it behave the same as if the stream was finished -
+> running
+> > > FRAME_START
+> > > and returning the remaining buffers. This is the step 1 for
+> application
+> > > described above.
+> > > b) When no more buffers are left (DISP_STATUS[2:0]= 3) it has to
+> notify
+> > the
+> > > application
+> > > that the resolution have changed. I will discuss how to do it
+> below.
+> > > c) The application was notified and completed steps 2-4, at this
+> time
+> > the
+> > > driver has to
+> > > reinitialize the stream. Here it will use the source buffer that
+> had
+> > > resolution change
+> > > again with command INIT_CODEC.
+> > > d) The instance is reinitialized, and new resolution is read from
+> MFC.
+> > The
+> > > application now
+> > > completes steps 5-9.
+> > > e) As destination (CAPTURE) buffers are now queued the driver
+> continues
+> > > decoding.
+> > > FRAME_START command is issued for the source buffer that had
+> resolution
+> > > change and it is
+> > > decoded. This is the place when this source buffer is marked as
+> done and
+> > it
+> > > can be dequeued
+> > > by the application.
+> > >
+> > > As you can see - there was no need to reinitialize the OUTPUT
+> queue.
+> > Only
+> > > CAPTURE, so there
+> > > is no need to restrict number of source (OUTPUT) buffers to 1.
+> > >
+> > > The question is how to notify the application. I think I could be
+> done
+> > same
+> > > as end of stream
+> > > notification - by returning a buffer with size equal to 0.
+> > > If the application knows that source stream has ended, and queued a
+> > source
+> > > buffer of size 0
+> > > to notify the driver - then a destination buffer of size 0 means
+> that
+> > > decoding is finished.
+> > > In case of resolution change the application still has source
+> buffers
+> > queued
+> > > and it receives
+> > > a destination buffer with size=0. Knowing this the application can
+> do
+> > the
+> > > resolution change
+> > > procedure.
+> > >
+> > > I welcome your comments.
+> > >
+> > > Best regards,
+> > > --
+> > > Kamil Debski
+> > > Linux Platform Group
+> > > Samsung Poland R&D Center
 
-[141187.393085] usb 1-1: new high speed USB device using ehci_hcd and address 16
-[141187.531276] usb 1-1: configuration #1 chosen from 1 choice
-[141187.538888] af9035: tuner ID:50 not supported, please report!
-[141187.543044] input: Afa Technologies Inc. AF9035A USB Device as
-/devices/pci0000:00/0000:00:04.1/usb1/1-1/1-1:1.1/input/input25
-[141187.543160] generic-usb 0003:0B05:1779.000F: input,hidraw1: USB
-HID v1.01 Keyboard [Afa Technologies Inc. AF9035A USB Device] on
-usb-0000:00:04.1-1/input1
-
-
-It looks that it is something with USBHID, but i didnt found any
-/etc/modprobe.d/usbhid.conf to change. Kernel version I got is
-2.6.32-28-generic-pae, Ubuntu 10.4.
-
-[141187.538888] af9035: tuner ID:50 not supported, please report!
------   I tried to make some changes, so this line is maybe my work.
-
-I will be glad for any help. Thanks.
-
-M. Bojda
-
-2011/1/30 Michal Bojda <rexearth.mbojda@gmail.com>:
-> Hello there,
->
-> DVB-T card passed trough my hands. Asus U3100 Mini Plus. I was looking
-> trough the internet, to make it working, but still dont have succes.
-> Any1 met with this card and make it works ?
->
-> Thanks, best regards M. Bojda
->
-> --
-> Those who watches their backs, meet death from the front.
->
-
-
-
--- 
-Those who watches their backs, meet death from the front.
