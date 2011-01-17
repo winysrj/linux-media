@@ -1,87 +1,89 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57614 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750764Ab1A0MZk (ORCPT
+Received: from smtprelay01.ispgateway.de ([80.67.18.43]:42368 "EHLO
+	smtprelay01.ispgateway.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753480Ab1AQR2P (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jan 2011 07:25:40 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Neil MacMunn <neil@gumstix.com>
-Subject: Re: omap3-isp segfault
-Date: Thu, 27 Jan 2011 13:25:38 +0100
-Cc: linux-media@vger.kernel.org
-References: <4D4076C3.4080201@gumstix.com> <4D40CDB3.7090106@gumstix.com>
-In-Reply-To: <4D40CDB3.7090106@gumstix.com>
+	Mon, 17 Jan 2011 12:28:15 -0500
+Message-ID: <4D347C2B.5070200@tqsc.de>
+Date: Mon, 17 Jan 2011 18:28:11 +0100
+From: Markus Niebel <list-09_linux_media@tqsc.de>
+Reply-To: list-09_linux_media@tqsc.de
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: mx3_camera and DMA / double buffering
+References: <4CF7AE4A.7070107@tqsc.de> <Pine.LNX.4.64.1012022103270.26762@axis700.grange> <4CF91228.3030709@tqsc.de> <Pine.LNX.4.64.1012032105200.5693@axis700.grange> <4D34617D.9090301@tqsc.de> <Pine.LNX.4.64.1101171724360.16051@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1101171724360.16051@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201101271325.39630.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Neil,
+Am 17.01.2011 17:27, schrieb Guennadi Liakhovetski:
+> On Mon, 17 Jan 2011, Markus Niebel wrote:
+>
+>> Hello,
+>>
+>> sorry for the __very__ long timeout. The doublebuffering is indeed enabled
+>> when the second buffer is queued - my fault, should have read the code more
+>> carfully.
+>
+> Good.
+>
+>> But in this way a new question arises:
+>>
+>> in soc_camera.c, function soc_camera_streamon the subdev's s_stream handler is
+>> called first before videobuf_streamon gets called. This way the videosource is
+>> producing data which could produce a race condition with the idmac.
+>
+> Starting the sensor before the host shouldn't cause any problems, because
+> hosts should be capable of handling sensors, continuously streaming data.
+> So, the order should be ok, if the mx3-camera driver gets problems with
+> it, it has a bug and it should be fixed.
+>
+>> Maybe I'm
+>> wrong but in some cases (especially whith enabled dev_dbg in ipu_idmac.c) we
+>> fail to get frames from the driver.
+>
+> Sorry, what exactly do you mean? Capture doesn't start at all? Or it
+> begins and then hangs? Or some fraims get dropped? Please, explain in more
+> detail.
+>
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-On Thursday 27 January 2011 02:43:15 Neil MacMunn wrote:
-> Ok I solved the segfault problem by updating some of my v4l2 files
-> (specifically v4l2-common.c). Now I only get nice sounding console
-> messages.
-> 
->      Linux media interface: v0.10
->      Linux video capture interface: v2.00
->      omap3isp omap3isp: Revision 2.0 found
->      omap-iommu omap-iommu.0: isp: version 1.1
->      omap3isp omap3isp: hist: DMA channel = 4
->      mt9v032 3-005c: Probing MT9V032 at address 0x5c
->      omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 28800000 Hz
->      omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 0 Hz
->      mt9v032 3-005c: MT9V032 detected at address 0x5c
-> 
-> And a bunch of devices.
-> 
->      # ls /dev
->      ...
->      v4l-subdev0
->      v4l-subdev1
->      v4l-subdev2
->      v4l-subdev3
->      v4l-subdev4
->      v4l-subdev5
->      v4l-subdev6
->      v4l-subdev7
->      v4l-subdev8
->      ...
->      video0
->      video1
->      video2
->      video3
->      video4
->      video5
->      video6
->      ...
-> 
-> But don't know how to start the camera. How can I test the module?
+Hello,
 
-You can get the media-ctl and yavta test applications from 
-http://git.ideasonboard.org/
+we see messages like this (with more logging output at higher possibility):
 
-media-ctl is used to configure the OMAP3 ISP pipeline, and yavta to test video 
-capture.
+[   24.260000] dma dma0chan7: IDMAC irq 177, buf 1
+[   24.260000] dma dma0chan7: IRQ on active buffer on channel 7, active 
+1, ready 0, 0, current 80!
 
-You can run
+and calls from an application to select times out
 
-media-ctl --print-dot > omap3-isp.dot
+when changing the order of calls in soc_camera_streamon 
+(videobuf_streamon before v4l2_subdev_call(sd, video, s_stream, 1)
+images always can be captured.
 
-to create a .dot description of the OMAP3 ISP topology. Process the file with
+My assumption for the reason is based on the following:
 
-dot -Tps omap3-isp.dot > omap3-isp.ps
+1) Since CSI is enabled by idmac in ipu_init_channel, mx3_camera has no 
+control over the data flow. As soon as the first buffer is queued with 
+idmac it will filled - my thoughts are that this can interfere with the 
+initial setup during submission of the first two buffers.
 
-to generate a graph.
+2) The freescale sample code (mxc_camera.c, not in mainline) enables the 
+CSI after channel and buffers are configured.
 
-I'll unfortunately be offline from tomorrow evening until Monday the 7th of 
-February, but I think other users of the OMAP3 ISP driver will be able to help 
-you.
+Thanks
+Markus
 
--- 
-Regards,
-
-Laurent Pinchart
