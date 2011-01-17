@@ -1,66 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:52459 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751020Ab1ALQTQ (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:25035 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751993Ab1AQL43 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Jan 2011 11:19:16 -0500
-Received: by pwj3 with SMTP id 3so112506pwj.19
-        for <linux-media@vger.kernel.org>; Wed, 12 Jan 2011 08:19:16 -0800 (PST)
-Message-ID: <4D2DD47E.8030307@gmail.com>
-Date: Wed, 12 Jan 2011 17:19:10 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [GIT PATCHES FOR 2.6.38] Videbuf2 framework, NOON010PC30 sensor
- driver and s5p-fimc updates
-References: <4D21FDC1.7000803@samsung.com> <4D2CD262.2070601@redhat.com>
-In-Reply-To: <4D2CD262.2070601@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	Mon, 17 Jan 2011 06:56:29 -0500
+Received: from epmmp1 (mailout2.samsung.com [203.254.224.25])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LF6003PP163IP10@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 17 Jan 2011 20:56:27 +0900 (KST)
+Received: from JONGHUNHA11 ([12.23.103.140])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LF6009TW1637F@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 17 Jan 2011 20:56:27 +0900 (KST)
+Date: Mon, 17 Jan 2011 20:56:22 +0900
+From: Jonghun Han <jonghun.han@samsung.com>
+Subject: RE: How to set global alpha to V4L2_BUF_TYPE_CAPTURE ?
+In-reply-to: <201101170752.03018.hverkuil@xs4all.nl>
+To: 'Hans Verkuil' <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+	'Marek Szyprowski' <m.szyprowski@samsung.com>
+Message-id: <005b01cbb63d$9298aa50$b7c9fef0$%han@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: ko
+Content-transfer-encoding: 7BIT
+References: <003801cbb5f8$ec278180$c4768480$%han@samsung.com>
+ <201101170752.03018.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 01/11/2011 10:57 PM, Mauro Carvalho Chehab wrote:
-> Em 03-01-2011 14:48, Sylwester Nawrocki escreveu:
->> Hi Mauro,
->>
->> Please pull from our tree for the following items:
->>
->> 4. s5p-fimc driver conversion to Videbuf2 and multiplane ext. and various
->>     driver updates and bugfixes,
->> 5. Siliconfile NOON010PC30 sensor subdev driver,
-> 
-> Those patches seem ok. I have just a couple comments about them. See bellow.
-> 
-> After having them solved, please send the patches against my vb2 test tree:
-> 
-> 	git://linuxtv.org/mchehab/experimental.git vb2_test
-> 
-> I've tested already vb2 with vivi. I'll be testing them now with saa7134.
-> After testing it, I'll give you a feedback about vb2 and, if ok, I'll merge
-> both multiplane and vb2 on my main tree.
-> 
->> Hyunwoong Kim (5):
->>        [media] s5p-fimc: fix the value of YUV422 1-plane formats
-> 
-> I don't have an arm cross-compilation handy, but... that means that, before this
-> patch, compilation were broken? If so, please, don't do that, as it breaks bisect.
-> Instead, merge the patch withthe one that broke compilation.
+Thanks for interesting.
 
-No, the purpose of this patch is to only change the values programmed
-into the H/W registers. The patch summary line seem not to be 
-too accurate. This patch doesn't fix any compilation problems. 
+Ok, I will submit it using VIDIOC_S_CTRL.
 
-I always try to test the patches against compilation breakage one by one.
-But this time unfortunately I didn't do enough tests of the mem2mem
-conversion changes when sending the pull request.
+Best regards,
 
-
-Regards,
-Sylwester
-
-
+> -----Original Message-----
+> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> Sent: Monday, January 17, 2011 3:52 PM
+> To: Jonghun Han
+> Cc: linux-media@vger.kernel.org; pawel@osciak.com; 'Marek Szyprowski'
+> Subject: Re: How to set global alpha to V4L2_BUF_TYPE_CAPTURE ?
+> 
+> On Monday, January 17, 2011 04:44:54 Jonghun Han wrote:
+> >
+> > Hello,
+> >
+> > How to set global alpha to V4L2_BUF_TYPE_CAPTURE ?
+> >
+> > Samsung SoC S5PC210 has Camera interface and Video post processor
+> > named FIMC which can set the alpha value to V4L2_BUF_TYPE_CAPTURE.
+> > For example during color space conversion from YUV422 to ARGB8888,
+> > FIMC can set the alpha value to V4L2_BUF_TYPE_CAPTURE.
+> >
+> > I tried to find an available command to set it but I couldn't found it.
+> 
+> That's right, there isn't.
+> 
+> > But there is fmt.win.global_alpha for Video Overlay Interface.
+> > So in my opinion VIDIOC_S_FMT is also suitable for
+> V4L2_BUF_TYPE_CAPTURE*.
+> > How about using fmt.pix.priv in struct v4l2_format and
+> > fmt.pix_mp.reserved[0] in struct v4l2_format ?
+> 
+> Not a good idea. This is really ideal for a control. We already have a
+somewhat
+> similar control in the form of V4L2_CID_BG_COLOR. It's perfectly
+reasonable to
+> add a V4L2_CID_ALPHA_COLOR (or something similar) where you set this up.
+> 
+> The little available space in the format structs is too precious to use
+for something
+> trivial like this :-)
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> --
+> Hans Verkuil - video4linux developer - sponsored by Cisco
 
