@@ -1,46 +1,40 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:64142 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753023Ab1AYPwa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jan 2011 10:52:30 -0500
-Message-ID: <4D3EF3EF.6000100@redhat.com>
-Date: Tue, 25 Jan 2011 17:01:51 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Announcing v4l-utils-0.8.2
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:48419 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752131Ab1AQRrw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Jan 2011 12:47:52 -0500
+Received: by qwa26 with SMTP id 26so4996882qwa.19
+        for <linux-media@vger.kernel.org>; Mon, 17 Jan 2011 09:47:51 -0800 (PST)
+References: <20110117124537.202100@gmx.net>
+In-Reply-To: <20110117124537.202100@gmx.net>
+Mime-Version: 1.0 (Apple Message framework v1082)
+Content-Type: text/plain; charset=us-ascii
+Message-Id: <FDABB74D-7D9C-4C40-B99F-8CAF33EBE3EA@wilsonet.com>
+Content-Transfer-Encoding: 8BIT
+Cc: linux-media@vger.kernel.org
+From: Jarod Wilson <jarod@wilsonet.com>
+Subject: Re: Apple remote support
+Date: Mon, 17 Jan 2011 12:48:05 -0500
+To: a.bahr@mailueberfall.de
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+On Jan 17, 2011, at 7:45 AM, a.bahr@mailueberfall.de wrote:
 
-I'm happy to announce the release of v4l-utils-0.8.2
-This release features many small fixes, esp. to the ir-keytable
-util (which now comes with udev rules and a manpage), qv4l2,
-v4l2-ctl and v4l2-compliance.
+> I am using the current git version of Linux 2.6 and I was wondering if somebody is still working on Apple remote support?
+> 
+> I've found this patch[1] which seems to add support for the Apple remote, but it does not compile any more with the current git tree.
+> 
+> The Apple remote is a very popular device and it would be nice if the mainline kernel would support it.
 
-v4l-utils-0.8.2
----------------
-* Utils changes:
-   * Various ir-keytable improvements (mchehab)
-   * Various qv4l2 fixes (hverkuil, hdegoede)
-   * Various v4l2-ctl fixes (hverkuil)
-   * Add parsers for cx231xx i2c, saa7134 pci, sn9c201 usb and generic usb
-     logs (mchehab)
-   * v4l2-compliance: lots of new tests (hverkuil)
-* libv4l changes
-   * Add many more laptop models to the upside down devices table (hdegoede)
-   * Add support for 8-bits grey format (V4L2_PIX_FMT_GREY) (mchehab)
+Its still on my TODO list. There are a few implementation details that
+need to be ironed out still, but other IR work has taken priority over
+this, for the moment...
+
+-- 
+Jarod Wilson
+jarod@wilsonet.com
 
 
-Go get it here:
-http://linuxtv.org/downloads/v4l-utils/v4l-utils-0.8.2.tar.bz2
 
-You can always find the latest developments here:
-http://git.linuxtv.org/v4l-utils.git
-
-Regards,
-
-Hans
