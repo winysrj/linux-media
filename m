@@ -1,43 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from ironport2-out.teksavvy.com ([206.248.154.181]:59510 "EHLO
-	ironport2-out.pppoe.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753661Ab1AZTbp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jan 2011 14:31:45 -0500
-Message-ID: <4D4076A0.9090805@teksavvy.com>
-Date: Wed, 26 Jan 2011 14:31:44 -0500
-From: Mark Lord <kernel@teksavvy.com>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:52629 "HELO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752583Ab1AQJ4m convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Jan 2011 04:56:42 -0500
+From: Qing Xu <qingx@marvell.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Date: Mon, 17 Jan 2011 01:53:00 -0800
+Subject: soc-camera jpeg support?
+Message-ID: <7BAC95F5A7E67643AAFB2C31BEE662D014040BF237@SC-VEXCH2.marvell.com>
+References: <1294368595-2518-1-git-send-email-qingx@marvell.com>
+ <7BAC95F5A7E67643AAFB2C31BEE662D014040171EE@SC-VEXCH2.marvell.com>
+ <Pine.LNX.4.64.1101100853490.24479@axis700.grange>
+ <201101101133.01636.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201101101133.01636.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
- ?
-References: <20110125053117.GD7850@core.coreip.homeip.net> <4D3EB734.5090100@redhat.com> <20110125164803.GA19701@core.coreip.homeip.net> <AANLkTi=1Mh0JrYk5itvef7O7e7pR+YKos-w56W5q4B8B@mail.gmail.com> <20110125205453.GA19896@core.coreip.homeip.net> <4D3F4804.6070508@redhat.com> <4D3F4D11.9040302@teksavvy.com> <20110125232914.GA20130@core.coreip.homeip.net> <20110126020003.GA23085@core.coreip.homeip.net> <4D403855.4050706@teksavvy.com> <20110126164359.GA29163@core.coreip.homeip.net>
-In-Reply-To: <20110126164359.GA29163@core.coreip.homeip.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 11-01-26 11:44 AM, Dmitry Torokhov wrote:
-> On Wed, Jan 26, 2011 at 10:05:57AM -0500, Mark Lord wrote:
-..
->> Nope. Does not work here:
->>
->> $ lsinput
->> protocol version mismatch (expected 65536, got 65537)
->>
-> 
-> It would be much more helpful if you tried to test what has been fixed
-> (hint: version change wasn't it).
+Hi,
 
-It would be much more helpful if you would revert that which was broken
-in 2.6.36.  (hint: version was part of it).
+Many of our sensors support directly outputting JPEG data to camera controller, do you feel it's reasonable to add jpeg support into soc-camera? As it seems that there is no define in v4l2-mediabus.h which is suitable for our case.
 
-The other part does indeed appear to work with the old binary for input-kbd,
-but the binary for lsinput still fails as above.
+Such as:
+--- a/drivers/media/video/soc_mediabus.c
++++ b/drivers/media/video/soc_mediabus.c
+@@ -130,6 +130,13 @@ static const struct soc_mbus_pixelfmt mbus_fmt[] = {
+                .packing                = SOC_MBUS_PACKING_2X8_PADLO,
+                .order                  = SOC_MBUS_ORDER_BE,
+        },
++       [MBUS_IDX(JPEG_1X8)] = {
++               .fourcc                 = V4L2_PIX_FMT_JPEG,
++               .name                   = "JPEG",
++               .bits_per_sample        = 8,
++               .packing                = SOC_MBUS_PACKING_NONE,
++               .order                  = SOC_MBUS_ORDER_LE,
++       },
+ };
 
-Cheers
+--- a/include/media/v4l2-mediabus.h
++++ b/include/media/v4l2-mediabus.h
+@@ -41,6 +41,7 @@ enum v4l2_mbus_pixelcode {
+        V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
+        V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
+        V4L2_MBUS_FMT_SGRBG8_1X8,
++       V4L2_MBUS_FMT_JPEG_1X8,
+ };
+
+Any ideas will be appreciated!
+Thanks!
+Qing Xu
+
+Email: qingx@marvell.com
+Application Processor Systems Engineering,
+Marvell Technology Group Ltd.
