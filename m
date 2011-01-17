@@ -1,133 +1,105 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:43028 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751945Ab1AJABW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Jan 2011 19:01:22 -0500
-Received: by iyj18 with SMTP id 18so423418iyj.19
-        for <linux-media@vger.kernel.org>; Sun, 09 Jan 2011 16:01:22 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTi=sCnVyXp090hKVWP+yprCn9da0sfQMAZxq9-Uc@mail.gmail.com>
-References: <AANLkTi=sCnVyXp090hKVWP+yprCn9da0sfQMAZxq9-Uc@mail.gmail.com>
-Date: Mon, 10 Jan 2011 01:01:21 +0100
-Message-ID: <AANLkTimb6ozDq3HS9dO2LiWt9mPU36YQc2sjT_jBhAjm@mail.gmail.com>
-Subject: cx23885 errors on Tevii S470
-From: Josu Lazkano <josu.lazkano@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from devils.ext.ti.com ([198.47.26.153]:50964 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753052Ab1AQOE0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Jan 2011 09:04:26 -0500
+From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+To: "'Sergei Shtylyov'" <sshtylyov@mvista.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Date: Mon, 17 Jan 2011 19:34:07 +0530
+Subject: RE: [PATCH v14 1/2] davinci vpbe: platform specific additions
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930247F9A823@dbde02.ent.ti.com>
+In-Reply-To: <4D31C0A5.40906@mvista.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello list, I have a Tevii S470 PCIe DVB-S2 card, I use it with MythTV
-on a Debian
-Squeeze (2.6.32-5) machine. I am getting some freeze on channel jump
-and sometimes I must restart MythTV frontend to get it working.
+On Sat, Jan 15, 2011 at 21:13:33, Sergei Shtylyov wrote:
+> Hello.
+> 
+> On 14-01-2011 16:31, Manjunath Hadli wrote:
+> 
+> > This patch implements the overall device creation for the Video 
+> > display driver.
+> 
+>     It does not only that...
+> 
+> > Signed-off-by: Manjunath Hadli<manjunath.hadli@ti.com>
+> > Acked-by: Muralidharan Karicheri<m-karicheri2@ti.com>
+> > Acked-by: Hans Verkuil<hverkuil@xs4all.nl>
+> [...]
+> 
+> > diff --git a/arch/arm/mach-davinci/devices.c 
+> > b/arch/arm/mach-davinci/devices.c index 22ebc64..f435c7d 100644
+> > --- a/arch/arm/mach-davinci/devices.c
+> > +++ b/arch/arm/mach-davinci/devices.c
+> > @@ -33,6 +33,8 @@
+> >   #define DM365_MMCSD0_BASE	     0x01D11000
+> >   #define DM365_MMCSD1_BASE	     0x01D00000
+> >
+> > +void __iomem  *davinci_sysmodbase;
+> > +
+> 
+>     I think this should be added in a sperate patch.
+> 
+> > @@ -242,10 +242,7 @@ void __init davinci_setup_mmc(int module, struct davinci_mmc_config *config)
+> >   							SZ_4K - 1;
+> >   			mmcsd0_resources[2].start = IRQ_DM365_SDIOINT0;
+> >   		} else if (cpu_is_davinci_dm644x()) {
+> > -			/* REVISIT: should this be in board-init code? */
+> 
+>     Why you removed that line?
+> 
+> > -			void __iomem *base =
+> > -				IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
+> > -
+> > +			void __iomem *base = DAVINCI_SYSMODULE_VIRT(0);
+> >   			/* Power-on 3.3V IO cells */
+> >   			__raw_writel(0, base + DM64XX_VDD3P3V_PWDN);
+> >   			/*Set up the pull regiter for MMC */ diff --git 
+> > a/arch/arm/mach-davinci/dm355.c b/arch/arm/mach-davinci/dm355.c index 
+> > 2652af1..106bc1b 100644
+> > --- a/arch/arm/mach-davinci/dm355.c
+> > +++ b/arch/arm/mach-davinci/dm355.c
+> > @@ -878,6 +878,9 @@ void __init dm355_init_asp1(u32 evt_enable, struct 
+> > snd_platform_data *pdata)
+> >
+> >   void __init dm355_init(void)
+> >   {
+> > +	davinci_sysmodbase = ioremap_nocache(DAVINCI_SYSTEM_MODULE_BASE, 0x800);
+> > +	if (!davinci_sysmodbase)
+> > +		return;
+> 
+>     Why not do it in davinci_common_init() instead of repeating for every SoC?
+> 
+> >   	davinci_common_init(&davinci_soc_info_dm355);
+> >   }
+> [...]
+> > diff --git a/arch/arm/mach-davinci/include/mach/dm644x.h 
+> > b/arch/arm/mach-davinci/include/mach/dm644x.h
+> > index 5a1b26d..790925f 100644
+> > --- a/arch/arm/mach-davinci/include/mach/dm644x.h
+> > +++ b/arch/arm/mach-davinci/include/mach/dm644x.h
+> > @@ -40,8 +44,14 @@
+> >   #define DM644X_ASYNC_EMIF_DATA_CE2_BASE 0x06000000
+> >   #define DM644X_ASYNC_EMIF_DATA_CE3_BASE 0x08000000
+> >
+> > +/* VPBE register base addresses */
+> > +#define DM644X_VPSS_REG_BASE		0x01c73400
+> > +#define DM644X_VENC_REG_BASE		0x01C72400
+> > +#define DM644X_OSD_REG_BASE		0x01C72600
+> 
+>     Note that for other devices we don't have '_REG' in such macros. Would make sense to delete it here for consistency.
 
-I am using Tevii beta drivers:
-http://tevii.com/100315_Beta_linux_tevii_ds3000.rar
+You mean other devices like Dm355/Dm365? They will get added as part of a later patch. Anyway since Sekhar also feels these could be a part of the .c file, I will move these there.
+> 
+> WBR, Sergei
+> 
 
-This the dmesg output:
-
-[ 4328.642850] cx23885[0]: mpeg risc op code error
-[ 4328.642873] cx23885[0]: TS1 B - dma channel status dump
-[ 4328.642883] cx23885[0]:   cmds: init risc lo   : 0x321af000
-[ 4328.642891] cx23885[0]:   cmds: init risc hi   : 0x00000000
-[ 4328.642899] cx23885[0]:   cmds: cdt base       : 0x00010580
-[ 4328.642907] cx23885[0]:   cmds: cdt size       : 0x0000000a
-[ 4328.642916] cx23885[0]:   cmds: iq base        : 0x00010400
-[ 4328.642924] cx23885[0]:   cmds: iq size        : 0x00000010
-[ 4328.642932] cx23885[0]:   cmds: risc pc lo     : 0x316c90f0
-[ 4328.642939] cx23885[0]:   cmds: risc pc hi     : 0x00000000
-[ 4328.642947] cx23885[0]:   cmds: iq wr ptr      : 0x0000410c
-[ 4328.642956] cx23885[0]:   cmds: iq rd ptr      : 0x00004103
-[ 4328.642963] cx23885[0]:   cmds: cdt current    : 0x000105a8
-[ 4328.642972] cx23885[0]:   cmds: pci target lo  : 0x316cd920
-[ 4328.642982] cx23885[0]:   cmds: pci target hi  : 0x00000000
-[ 4328.642989] cx23885[0]:   cmds: line / byte    : 0x030e0000
-[ 4328.642996] cx23885[0]:   risc0: 0x1c0002f0 [ write sol eol count=752 ]
-[ 4328.643012] cx23885[0]:   risc1: 0x316cd920 [ INVALID irq1 22 21 19
-18 resync 14 12 count=2336 ]
-[ 4328.643033] cx23885[0]:   risc2: 0x00000000 [ INVALID count=0 ]
-[ 4328.643043] cx23885[0]:   risc3: 0x1c0002f0 [ write sol eol count=752 ]
-[ 4328.643057] cx23885[0]:   (0x00010400) iq 0: 0x1c0002f0 [ write sol
-eol count=752 ]
-[ 4328.643072] cx23885[0]:   iq 1: 0x316cd920 [ arg #1 ]
-[ 4328.643080] cx23885[0]:   iq 2: 0x00000000 [ arg #2 ]
-[ 4328.643087] cx23885[0]:   (0x0001040c) iq 3: 0x1c0002f0 [ write sol
-eol count=752 ]
-[ 4328.643101] cx23885[0]:   iq 4: 0x316cdc10 [ arg #1 ]
-[ 4328.643109] cx23885[0]:   iq 5: 0x00000000 [ arg #2 ]
-[ 4328.643117] cx23885[0]:   (0x00010418) iq 6: 0x18000100 [ write sol
-count=256 ]
-[ 4328.643130] cx23885[0]:   iq 7: 0x316cdf00 [ arg #1 ]
-[ 4328.643138] cx23885[0]:   iq 8: 0x00000000 [ arg #2 ]
-[ 4328.643145] cx23885[0]:   (0x00010424) iq 9: 0x140001f0 [ write eol
-count=496 ]
-[ 4328.643158] cx23885[0]:   iq a: 0x316cc000 [ arg #1 ]
-[ 4328.643166] cx23885[0]:   iq b: 0x00000000 [ arg #2 ]
-[ 4328.643173] cx23885[0]:   (0x00010430) iq c: 0x00000000 [ INVALID count=0 ]
-[ 4328.643185] cx23885[0]:   (0x00010434) iq d: 0x1c0002f0 [ write sol
-eol count=752 ]
-[ 4328.643199] cx23885[0]:   iq e: 0x316cd630 [ arg #1 ]
-[ 4328.643207] cx23885[0]:   iq f: 0x00000000 [ arg #2 ]
-[ 4328.643213] cx23885[0]: fifo: 0x00005000 -> 0x6000
-[ 4328.643219] cx23885[0]: ctrl: 0x00010400 -> 0x10460
-[ 4328.643226] cx23885[0]:   ptr1_reg: 0x000058f0
-[ 4328.643233] cx23885[0]:   ptr2_reg: 0x000105b8
-[ 4328.643240] cx23885[0]:   cnt1_reg: 0x00000002
-[ 4328.643247] cx23885[0]:   cnt2_reg: 0x00000003
-[ 4328.643279] cx23885[0]: mpeg risc op code error
-[ 4328.643287] cx23885[0]: TS1 B - dma channel status dump
-[ 4328.643295] cx23885[0]:   cmds: init risc lo   : 0x321af000
-[ 4328.643303] cx23885[0]:   cmds: init risc hi   : 0x00000000
-[ 4328.643312] cx23885[0]:   cmds: cdt base       : 0x00010580
-[ 4328.643319] cx23885[0]:   cmds: cdt size       : 0x0000000a
-[ 4328.643328] cx23885[0]:   cmds: iq base        : 0x00010400
-[ 4328.643335] cx23885[0]:   cmds: iq size        : 0x00000010
-[ 4328.643343] cx23885[0]:   cmds: risc pc lo     : 0x316c90f0
-[ 4328.643352] cx23885[0]:   cmds: risc pc hi     : 0x00000000
-[ 4328.643361] cx23885[0]:   cmds: iq wr ptr      : 0x0000410c
-[ 4328.643369] cx23885[0]:   cmds: iq rd ptr      : 0x00004103
-[ 4328.643377] cx23885[0]:   cmds: cdt current    : 0x000105a8
-[ 4328.643386] cx23885[0]:   cmds: pci target lo  : 0x316cd920
-[ 4328.643395] cx23885[0]:   cmds: pci target hi  : 0x00000000
-[ 4328.643403] cx23885[0]:   cmds: line / byte    : 0x030e0000
-[ 4328.643411] cx23885[0]:   risc0: 0x1c0002f0 [ write sol eol count=752 ]
-[ 4328.643425] cx23885[0]:   risc1: 0x316cd920 [ INVALID irq1 22 21 19
-18 resync 14 12 count=2336 ]
-[ 4328.643446] cx23885[0]:   risc2: 0x00000000 [ INVALID count=0 ]
-[ 4328.643457] cx23885[0]:   risc3: 0x1c0002f0 [ write sol eol count=752 ]
-[ 4328.643470] cx23885[0]:   (0x00010400) iq 0: 0x1c0002f0 [ write sol
-eol count=752 ]
-[ 4328.643485] cx23885[0]:   iq 1: 0x316cd920 [ arg #1 ]
-[ 4328.643493] cx23885[0]:   iq 2: 0x00000000 [ arg #2 ]
-[ 4328.643500] cx23885[0]:   (0x0001040c) iq 3: 0x1c0002f0 [ write sol
-eol count=752 ]
-[ 4328.643516] cx23885[0]:   iq 4: 0x316cdc10 [ arg #1 ]
-[ 4328.643524] cx23885[0]:   iq 5: 0x00000000 [ arg #2 ]
-[ 4328.643531] cx23885[0]:   (0x00010418) iq 6: 0x18000100 [ write sol
-count=256 ]
-[ 4328.643545] cx23885[0]:   iq 7: 0x316cdf00 [ arg #1 ]
-[ 4328.643553] cx23885[0]:   iq 8: 0x00000000 [ arg #2 ]
-[ 4328.643561] cx23885[0]:   (0x00010424) iq 9: 0x140001f0 [ write eol
-count=496 ]
-[ 4328.643574] cx23885[0]:   iq a: 0x316cc000 [ arg #1 ]
-[ 4328.643581] cx23885[0]:   iq b: 0x00000000 [ arg #2 ]
-[ 4328.643589] cx23885[0]:   (0x00010430) iq c: 0x00000000 [ INVALID count=0 ]
-[ 4328.643600] cx23885[0]:   (0x00010434) iq d: 0x1c0002f0 [ write sol
-eol count=752 ]
-[ 4328.643615] cx23885[0]:   iq e: 0x316cd630 [ arg #1 ]
-[ 4328.643623] cx23885[0]:   iq f: 0x00000000 [ arg #2 ]
-[ 4328.643630] cx23885[0]: fifo: 0x00005000 -> 0x6000
-[ 4328.643636] cx23885[0]: ctrl: 0x00010400 -> 0x10460
-[ 4328.643643] cx23885[0]:   ptr1_reg: 0x000058f0
-[ 4328.643650] cx23885[0]:   ptr2_reg: 0x000105b8
-[ 4328.643657] cx23885[0]:   cnt1_reg: 0x00000002
-[ 4328.643663] cx23885[0]:   cnt2_reg: 0x00000003
-
-Has someone any idea what happens? I am new on this, I will appreciate any help.
-
-Thanks for all your work and best regards.
-
--- 
-Josu Lazkano
