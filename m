@@ -1,146 +1,85 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:31120 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751045Ab1AHSBE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Jan 2011 13:01:04 -0500
-Subject: Re: [PATCH 11/32] v4l/cx18: update workqueue usage
-From: Andy Walls <awalls@md.metrocast.net>
-To: Tejun Heo <tj@kernel.org>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-In-Reply-To: <1294062595-30097-12-git-send-email-tj@kernel.org>
-References: <1294062595-30097-1-git-send-email-tj@kernel.org>
-	 <1294062595-30097-12-git-send-email-tj@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 08 Jan 2011 12:03:32 -0500
-Message-ID: <1294506212.2443.110.camel@localhost>
-Mime-Version: 1.0
+Received: from mout.perfora.net ([74.208.4.195]:53744 "EHLO mout.perfora.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753100Ab1AQXNQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Jan 2011 18:13:16 -0500
+Message-ID: <4D34CCF6.5040603@vorgon.com>
+Date: Mon, 17 Jan 2011 16:12:54 -0700
+From: "Timothy D. Lenz" <tlenz@vorgon.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: DViCO FusionHDTV7 Dual Express I2C write failed
+References: <20101207190753.GA21666@io.frii.com>
+In-Reply-To: <20101207190753.GA21666@io.frii.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 2011-01-03 at 14:49 +0100, Tejun Heo wrote:
-> With cmwq, there's no reason to use separate out_work_queue.  Drop it
-> and use system_wq instead.  The in_work_queue needs to be ordered so
-> can't use one of the system wqs; however, as it isn't used to reclaim
-> memory, allocate the workqueue with alloc_ordered_workqueue() without
-> WQ_MEM_RECLAIM.
-> 
-> Signed-off-by: Tejun Heo <tj@kernel.org>
-> Cc: Andy Walls <awalls@md.metrocast.net>
-> Cc: linux-media@vger.kernel.org
-> ---
-> Only compile tested.  Please feel free to take it into the subsystem
-> tree or simply ack - I'll route it through the wq tree.
+I just tried to update from kernel 2.6.34 and in doing so had to switch 
+to git for v4l. I noticed the chip in this this post and saved it to 
+look at latter. now I'm glad I did. I ran into the same problem. Driver 
+seems to load ok, but when I try to start vdr I get thet same messages 
+in syslog.
 
-Reviewed-by: Andy Walls <awalls@md.metrocast.net>
-Acked-by: Andy Walls <awalls@md.metrocast.net>
+Jan 16 21:50:48 LLLx64-32 vdr: [6170] saved setup to 
+/usr/local/dvb/VDR/config/setup.conf
+Jan 16 21:50:49 LLLx64-32 kernel: xc5000: waiting for firmware upload 
+(dvb-fe-xc5000-1.6.114.fw)...
+Jan 16 21:50:49 LLLx64-32 kernel: xc5000: firmware read 12401 bytes.
+Jan 16 21:50:49 LLLx64-32 kernel: xc5000: firmware uploading...
+Jan 16 21:50:49 LLLx64-32 vdr: [6176] section handler thread ended 
+(pid=6170, tid=6176)
+Jan 16 21:50:49 LLLx64-32 kernel: xc5000: I2C write failed (len=3)
+Jan 16 21:50:49 LLLx64-32 kernel: xc5000: firmware upload complete...
+Jan 16 21:50:50 LLLx64-32 vdr: [6175] tuner on frontend 0/0 thread ended 
+(pid=6170, tid=6175)
+Jan 16 21:50:50 LLLx64-32 kernel: xc5000: waiting for firmware upload 
+(dvb-fe-xc5000-1.6.114.fw)...
+Jan 16 21:50:50 LLLx64-32 kernel: xc5000: firmware read 12401 bytes.
+Jan 16 21:50:50 LLLx64-32 kernel: xc5000: firmware uploading...
+Jan 16 21:50:50 LLLx64-32 vdr: [6174] CI adapter on device 0 thread 
+ended (pid=6170, tid=6174)
+.......
 
-Sorry it took so long for me to review.
-Please route via your wq tree for the cx18 driver.
-
-Thanks,
-Andy
-
-> Thanks.
-> 
->  drivers/media/video/cx18/cx18-driver.c  |   24 ++----------------------
->  drivers/media/video/cx18/cx18-driver.h  |    3 ---
->  drivers/media/video/cx18/cx18-streams.h |    3 +--
->  3 files changed, 3 insertions(+), 27 deletions(-)
-> 
-> diff --git a/drivers/media/video/cx18/cx18-driver.c b/drivers/media/video/cx18/cx18-driver.c
-> index df60f27..41c0822 100644
-> --- a/drivers/media/video/cx18/cx18-driver.c
-> +++ b/drivers/media/video/cx18/cx18-driver.c
-> @@ -656,7 +656,7 @@ static int __devinit cx18_create_in_workq(struct cx18 *cx)
->  {
->  	snprintf(cx->in_workq_name, sizeof(cx->in_workq_name), "%s-in",
->  		 cx->v4l2_dev.name);
-> -	cx->in_work_queue = create_singlethread_workqueue(cx->in_workq_name);
-> +	cx->in_work_queue = alloc_ordered_workqueue(cx->in_workq_name, 0);
->  	if (cx->in_work_queue == NULL) {
->  		CX18_ERR("Unable to create incoming mailbox handler thread\n");
->  		return -ENOMEM;
-> @@ -664,18 +664,6 @@ static int __devinit cx18_create_in_workq(struct cx18 *cx)
->  	return 0;
->  }
->  
-> -static int __devinit cx18_create_out_workq(struct cx18 *cx)
-> -{
-> -	snprintf(cx->out_workq_name, sizeof(cx->out_workq_name), "%s-out",
-> -		 cx->v4l2_dev.name);
-> -	cx->out_work_queue = create_workqueue(cx->out_workq_name);
-> -	if (cx->out_work_queue == NULL) {
-> -		CX18_ERR("Unable to create outgoing mailbox handler threads\n");
-> -		return -ENOMEM;
-> -	}
-> -	return 0;
-> -}
-> -
->  static void __devinit cx18_init_in_work_orders(struct cx18 *cx)
->  {
->  	int i;
-> @@ -702,15 +690,9 @@ static int __devinit cx18_init_struct1(struct cx18 *cx)
->  	mutex_init(&cx->epu2apu_mb_lock);
->  	mutex_init(&cx->epu2cpu_mb_lock);
->  
-> -	ret = cx18_create_out_workq(cx);
-> -	if (ret)
-> -		return ret;
-> -
->  	ret = cx18_create_in_workq(cx);
-> -	if (ret) {
-> -		destroy_workqueue(cx->out_work_queue);
-> +	if (ret)
->  		return ret;
-> -	}
->  
->  	cx18_init_in_work_orders(cx);
->  
-> @@ -1094,7 +1076,6 @@ free_mem:
->  	release_mem_region(cx->base_addr, CX18_MEM_SIZE);
->  free_workqueues:
->  	destroy_workqueue(cx->in_work_queue);
-> -	destroy_workqueue(cx->out_work_queue);
->  err:
->  	if (retval == 0)
->  		retval = -ENODEV;
-> @@ -1244,7 +1225,6 @@ static void cx18_remove(struct pci_dev *pci_dev)
->  	cx18_halt_firmware(cx);
->  
->  	destroy_workqueue(cx->in_work_queue);
-> -	destroy_workqueue(cx->out_work_queue);
->  
->  	cx18_streams_cleanup(cx, 1);
->  
-> diff --git a/drivers/media/video/cx18/cx18-driver.h b/drivers/media/video/cx18/cx18-driver.h
-> index 77be58c..f7f71d1 100644
-> --- a/drivers/media/video/cx18/cx18-driver.h
-> +++ b/drivers/media/video/cx18/cx18-driver.h
-> @@ -614,9 +614,6 @@ struct cx18 {
->  	struct cx18_in_work_order in_work_order[CX18_MAX_IN_WORK_ORDERS];
->  	char epu_debug_str[256]; /* CX18_EPU_DEBUG is rare: use shared space */
->  
-> -	struct workqueue_struct *out_work_queue;
-> -	char out_workq_name[12]; /* "cx18-NN-out" */
-> -
->  	/* i2c */
->  	struct i2c_adapter i2c_adap[2];
->  	struct i2c_algo_bit_data i2c_algo[2];
-> diff --git a/drivers/media/video/cx18/cx18-streams.h b/drivers/media/video/cx18/cx18-streams.h
-> index 77412be..5837ffb 100644
-> --- a/drivers/media/video/cx18/cx18-streams.h
-> +++ b/drivers/media/video/cx18/cx18-streams.h
-> @@ -41,8 +41,7 @@ static inline bool cx18_stream_enabled(struct cx18_stream *s)
->  /* Related to submission of mdls to firmware */
->  static inline void cx18_stream_load_fw_queue(struct cx18_stream *s)
->  {
-> -	struct cx18 *cx = s->cx;
-> -	queue_work(cx->out_work_queue, &s->out_work_order);
-> +	schedule_work(&s->out_work_order);
->  }
->  
->  static inline void cx18_stream_put_mdl_fw(struct cx18_stream *s,
-
-
+On 12/7/2010 12:07 PM, Mark Zimmerman wrote:
+> Greetings:
+>
+> I have a DViCO FusionHDTV7 Dual Express card that works with 2.6.35 but
+> which fails to initialize with the latest 2.6.36 kernel. The firmware
+> fails to load due to an i2c failure. A search of the archives indicates
+> that this is not the first time this issue has occurred.
+>
+> What can I do to help get this problem fixed?
+>
+> Here is the dmesg from 2.6.35, for the two tuners:
+>
+> xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)...
+> xc5000: firmware read 12401 bytes.
+> xc5000: firmware uploading...
+> xc5000: firmware upload complete...
+> xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)...
+> xc5000: firmware read 12401 bytes.
+> xc5000: firmware uploading...
+> xc5000: firmware upload complete..
+>
+> and here is what happens with 2.6.36:
+>
+> xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)...
+> xc5000: firmware read 12401 bytes.
+> xc5000: firmware uploading...
+> xc5000: I2C write failed (len=3)
+> xc5000: firmware upload complete...
+> xc5000: Unable to initialise tuner
+> xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)...
+> xc5000: firmware read 12401 bytes.
+> xc5000: firmware uploading...
+> xc5000: I2C write failed (len=3)
+> xc5000: firmware upload complete...
+>
+> -- Mark
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
