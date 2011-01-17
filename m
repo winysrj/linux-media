@@ -1,68 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from ffm.saftware.de ([83.141.3.46]:36029 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754288Ab1AKBcR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jan 2011 20:32:17 -0500
-Message-ID: <4D2BB31E.4090308@linuxtv.org>
-Date: Tue, 11 Jan 2011 02:32:14 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
-MIME-Version: 1.0
+Received: from mailout4.samsung.com ([203.254.224.34]:27575 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752229Ab1AQDpv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Jan 2011 22:45:51 -0500
+Received: from epmmp2 (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LF500E39EF26UA0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 17 Jan 2011 12:45:02 +0900 (KST)
+Received: from JONGHUNHA11 ([12.23.103.140])
+ by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LF500FTSEF3DB@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 17 Jan 2011 12:45:03 +0900 (KST)
+Date: Mon, 17 Jan 2011 12:44:54 +0900
+From: Jonghun Han <jonghun.han@samsung.com>
+Subject: How to set global alpha to V4L2_BUF_TYPE_CAPTURE ?
 To: linux-media@vger.kernel.org
-CC: Oliver Endriss <o.endriss@gmx.de>, mchehab@redhat.com,
-	Ralph Metzler <rjkm@metzlerbros.de>
-Subject: Interconnection of different DVB adapters (was: Re: [PATCH 07/16]
- ngene: CXD2099AR Common Interface driver)
-References: <1294652184-12843-1-git-send-email-o.endriss@gmx.de> <1294652184-12843-8-git-send-email-o.endriss@gmx.de> <4D2B122E.3050803@linuxtv.org> <201101101820.07907@orion.escape-edv.de>
-In-Reply-To: <201101101820.07907@orion.escape-edv.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Cc: pawel@osciak.com, 'Marek Szyprowski' <m.szyprowski@samsung.com>
+Message-id: <003801cbb5f8$ec278180$c4768480$%han@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: ko
+Content-transfer-encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 01/10/2011 06:20 PM, Oliver Endriss wrote:
-> On Monday 10 January 2011 15:05:34 Andreas Oberritter wrote:
->> On 01/10/2011 10:36 AM, Oliver Endriss wrote:
->>> From: Ralph Metzler <rjkm@metzlerbros.de>
->>>
->>> Driver for the Common Interface Controller CXD2099AR.
->>> Supports the CI of the cineS2 DVB-S2.
->>>
->>> For now, data is passed through '/dev/dvb/adapterX/sec0':
->>> - Encrypted data must be written to 'sec0'.
->>> - Decrypted data can be read from 'sec0'.
->>> - Setup the CAM using device 'ca0'.
->>
->> Nack. In DVB API terms, "sec" stands for satellite equipment control,
->> and if I remember correctly, sec0 already existed in the first versions
->> of the API and that's why its leftovers can be abused by this driver.
->>
->> The interfaces for writing data are dvr0 and demux0. If they don't fit
->> for decryption of recorded data, then they should be extended.
->>
->> For decryption of live data, no new user interface needs to be created.
-> 
-> There was an attempt to find a solution for the problem in thread
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg22196.html
-> 
-> As that discussion did not come to a final solution, and the driver is
-> still experimental, I left the original patch 'as is'.
 
-Thanks for the pointer. My impression from the quoted thread is that the
-most desired and viable solution was to create a ca device node which
-can be virtually connected on demand to a demux or dvr device of another
-adapter, but there was no intent to put the required amount of work into
-it. That's fair, but IMHO not suitable for submission to the mainline
-kernel.
+Hello,
 
-This definitely needs more thought.
+How to set global alpha to V4L2_BUF_TYPE_CAPTURE ?
 
-Maybe the adapter-based scheme currently in use needs to be revised
-thoroughly. The "budget" type of adapters are basically just frontends
-and we should be able to interconnect those (and also other) frontends
-with CIs, demuxes and decoders of different adapters, if the underlying
-buses allow it. Is this something the media controller and mem2mem APIs
-are trying to solve for V4L? If yes, this could become interesting for
-DVB, too.
+Samsung SoC S5PC210 has Camera interface and Video post processor named FIMC
+which can set the alpha value to V4L2_BUF_TYPE_CAPTURE. 
+For example during color space conversion from YUV422 to ARGB8888, 
+FIMC can set the alpha value to V4L2_BUF_TYPE_CAPTURE.
 
-Regards,
-Andreas
+I tried to find an available command to set it but I couldn't found it.
+But there is fmt.win.global_alpha for Video Overlay Interface.
+So in my opinion VIDIOC_S_FMT is also suitable for V4L2_BUF_TYPE_CAPTURE*.
+How about using fmt.pix.priv in struct v4l2_format 
+and fmt.pix_mp.reserved[0] in struct v4l2_format ?
+
+I welcome your opinion.
+
+Best regards,
+
+
