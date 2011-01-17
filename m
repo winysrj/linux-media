@@ -1,56 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.8]:62945 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751438Ab1AQQ17 (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:33383 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751263Ab1AQTls (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jan 2011 11:27:59 -0500
-Date: Mon, 17 Jan 2011 17:27:56 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Markus Niebel <list-09_linux_media@tqsc.de>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: mx3_camera and DMA / double buffering
-In-Reply-To: <4D34617D.9090301@tqsc.de>
-Message-ID: <Pine.LNX.4.64.1101171724360.16051@axis700.grange>
-References: <4CF7AE4A.7070107@tqsc.de> <Pine.LNX.4.64.1012022103270.26762@axis700.grange>
- <4CF91228.3030709@tqsc.de> <Pine.LNX.4.64.1012032105200.5693@axis700.grange>
- <4D34617D.9090301@tqsc.de>
+	Mon, 17 Jan 2011 14:41:48 -0500
+Received: by eye27 with SMTP id 27so2852815eye.19
+        for <linux-media@vger.kernel.org>; Mon, 17 Jan 2011 11:41:47 -0800 (PST)
+Message-ID: <4D349B25.8070606@mvista.com>
+Date: Mon, 17 Jan 2011 22:40:21 +0300
+From: Sergei Shtylyov <sshtylyov@mvista.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Manjunath Hadli <manjunath.hadli@ti.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	LAK <linux-arm-kernel@lists.arm.linux.org.uk>,
+	Kevin Hilman <khilman@deeprootsystems.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH v15 1/3] davinci vpbe: platform specific additions
+References: <1295273627-14630-1-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1295273627-14630-1-git-send-email-manjunath.hadli@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 17 Jan 2011, Markus Niebel wrote:
+Manjunath Hadli wrote:
 
-> Hello,
-> 
-> sorry for the __very__ long timeout. The doublebuffering is indeed enabled
-> when the second buffer is queued - my fault, should have read the code more
-> carfully.
+> This patch implements the overall device creation for the Video
+> display driver, initializes the platform variables and implements
+> platform functions including setting video clocks.
 
-Good.
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+[...]
 
-> But in this way a new question arises:
-> 
-> in soc_camera.c, function soc_camera_streamon the subdev's s_stream handler is
-> called first before videobuf_streamon gets called. This way the videosource is
-> producing data which could produce a race condition with the idmac.
+> diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+> index 9a2376b..45a89a8 100644
+> --- a/arch/arm/mach-davinci/dm644x.c
+> +++ b/arch/arm/mach-davinci/dm644x.c
+[...]
+> @@ -781,25 +915,38 @@ void __init dm644x_init(void)
+>  	davinci_common_init(&davinci_soc_info_dm644x);
+>  }
+>  
+> +static struct platform_device *dm644x_video_devices[] __initdata = {
+> +	&dm644x_vpss_device,
+> +	&dm644x_ccdc_dev,
+> +	&vpfe_capture_dev,
+> +	&dm644x_osd_dev,
+> +	&dm644x_venc_dev,
+> +	&dm644x_vpbe_dev,
+> +	&vpbe_v4l2_display,
+> +};
+> +
+> +static int __init dm644x_init_video(void)
+> +{
+> +	/* Add ccdc clock aliases */
+> +	clk_add_alias("master", dm644x_ccdc_dev.name, "vpss_master", NULL);
+> +	clk_add_alias("slave", dm644x_ccdc_dev.name, "vpss_slave", NULL);
+> +	vpss_clkctl_reg = DAVINCI_SYSMODULE_VIRT(0x44);
 
-Starting the sensor before the host shouldn't cause any problems, because 
-hosts should be capable of handling sensors, continuously streaming data. 
-So, the order should be ok, if the mx3-camera driver gets problems with 
-it, it has a bug and it should be fixed.
+    Patch 3 should clearly precede this one, as it defines 
+DAVINCI_SYSMODULE_VIRT()...
 
-> Maybe I'm
-> wrong but in some cases (especially whith enabled dev_dbg in ipu_idmac.c) we
-> fail to get frames from the driver.
-
-Sorry, what exactly do you mean? Capture doesn't start at all? Or it 
-begins and then hangs? Or some fraims get dropped? Please, explain in more 
-detail.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+WBR, Sergei
