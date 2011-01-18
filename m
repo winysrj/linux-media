@@ -1,42 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from mail-out.m-online.net ([212.18.0.10]:44243 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751916Ab1A0IWj (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:7141 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753309Ab1ARCXY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jan 2011 03:22:39 -0500
-Date: Thu, 27 Jan 2011 09:22:55 +0100
-From: Anatolij Gustschin <agust@denx.de>
-To: Anatolij Gustschin <agust@denx.de>
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Dan Williams <dan.j.williams@intel.com>,
-	linux-arm-kernel@lists.infradead.org, Detlev Zundel <dzu@denx.de>,
-	Markus Niebel <Markus.Niebel@tqs.de>
-Subject: Re: [PATCH 2/2] dma: ipu_idmac: do not lose valid received data in
- the irq handler
-Message-ID: <20110127092255.2cb6f0a3@wker>
-In-Reply-To: <1296031789-1721-3-git-send-email-agust@denx.de>
-References: <1296031789-1721-1-git-send-email-agust@denx.de>
-	<1296031789-1721-3-git-send-email-agust@denx.de>
+	Mon, 17 Jan 2011 21:23:24 -0500
+Subject: Re: [PATCH][_COMPAT_H] git://linuxtv.org/media_build.git Legacy
+ issues
+From: Andy Walls <awalls@md.metrocast.net>
+To: Malcolm Priestley <tvboxspy@gmail.com>
+Cc: linux-media@vger.kernel.org, ivtv-devel@ivtvdriver.org
+In-Reply-To: <1295305161.2162.21.camel@tvboxspy>
+References: <1295305161.2162.21.camel@tvboxspy>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 17 Jan 2011 21:22:41 -0500
+Message-ID: <1295317361.12544.22.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Reading the commit message again I now realize that there is
-a mistake. 
+On Mon, 2011-01-17 at 22:59 +0000, Malcolm Priestley wrote:
+> Clean up legacy issues for error free build on Kernel 2.6.37.
+> 
+> Today while testing on Kernel 2.6.35 latest tarball throws error with 
+> alloc_ordered_workqueue undefined on Kernels less than 2.6.37. defined back to 
+> create_singlethread_workqueue.
+> 
+> Please test on other kernel versions.
+>
+> Tested-on 2.6.35/37 by: Malcolm Priestley <tvboxspy@gmail.com>
+> 
+> 
+> diff --git a/v4l/compat.h b/v4l/compat.h
+> index 9e622ce..df98698 100644
+> --- a/v4l/compat.h
+> +++ b/v4l/compat.h
+> @@ -749,6 +749,8 @@ static inline void *vzalloc(unsigned long size)
+>  
+>  #endif
+>  
+> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 37)
+> +
+>  #if NEED_FLUSH_WORK_SYNC
+>  #define flush_work_sync(dev)
+>  #endif
+> @@ -760,6 +762,14 @@ static inline void *vzalloc(unsigned long size)
+>  }
+>  #endif
+>  
+> +#define alloc_ordered_workqueue(a,b) create_singlethread_workqueue(a)
 
-On Wed, 26 Jan 2011 09:49:49 +0100
-Anatolij Gustschin <agust@denx.de> wrote:
-...
-> received data. DMA_BUFx_RDY won't be set by the IPU, so waiting
-> for this event in the interrupt handler is wrong.
+That will get cx18 to compile.  However, I can tell you without testing,
+the latest cx18 driver could badly affect system event processing
+performance on older kernels.
 
-This should read 'DMAIC_x_CUR_BUF flag won't be flipped here by
-the IPU, so waiting for this event in the EOF interrupt handler
-is wrong.'
+This is because another change happened at the same time as the change
+to call alloc_ordered_workqueue().  A kernel version before that, CMWQ
+was added to the kernel, so there was no longer a need for the
+cx18_out_work workqueue.  So now the cx18_out_work workqueue has been
+removed from the cx18 driver.
 
-I'll submit another patch fixing the commit message.
+In the older kernels without CMWQ and without the cx18_out_work
+workqueue, outgoing cx18 buffer work will get queued to the [keventd/M]
+kernel threads.  Unrelated system work being processed by [keventd/M]
+threads will regularly find itself *waiting for the CX23418 hardware* to
+respond to firmware commands.
 
-Anatolij
+It would be better to not allow the newest cx18 driver version to
+compile on older kernels.
+
+Regards,
+Andy
+
