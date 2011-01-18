@@ -1,52 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from smtp02.frii.com ([216.17.135.168]:56034 "EHLO smtp02.frii.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753489Ab1AYO1N (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jan 2011 09:27:13 -0500
-Date: Tue, 25 Jan 2011 07:27:12 -0700
-From: Mark Zimmerman <markzimm@frii.com>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: DViCO FusionHDTV7 Dual Express I2C write failed
-Message-ID: <20110125142712.GA20868@io.frii.com>
-References: <20101207190753.GA21666@io.frii.com> <20110110021439.GA70495@io.frii.com> <AANLkTingFP9ajGckXXy2wScHHGxhz+KTyOBa-mE7SUs5@mail.gmail.com> <AANLkTi=59dytuN25H3DVRrPAB8GAcn6N88Ji_dkorsGB@mail.gmail.com> <AANLkTi=FFV8CWrBU-20huQRDysTPWGaen2mtP2sBQJef@mail.gmail.com> <20110119173946.GA64847@io.frii.com> <20110124154935.GA51009@io.frii.com> <AANLkTi=UecZQ1pzz+DGbcNKdY6qM3TZJ0+7xKSeXebsL@mail.gmail.com>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:53937 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750709Ab1ARWRN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Jan 2011 17:17:13 -0500
+Received: by qyj19 with SMTP id 19so3730336qyj.19
+        for <linux-media@vger.kernel.org>; Tue, 18 Jan 2011 14:17:12 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <AANLkTi=UecZQ1pzz+DGbcNKdY6qM3TZJ0+7xKSeXebsL@mail.gmail.com>
+Date: Tue, 18 Jan 2011 23:17:11 +0100
+Message-ID: <AANLkTi=bv+NkwS+ASUDeAjbpNht8+YJaPRKYF7TTZDes@mail.gmail.com>
+Subject: Upstreaming syntek driver
+From: Luca Tettamanti <kronos.it@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Nicolas VIVIEN <progweb@free.fr>
+Content-Type: text/plain; charset=UTF-8
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Jan 24, 2011 at 10:57:02AM -0500, Devin Heitmueller wrote:
-> On Mon, Jan 24, 2011 at 10:49 AM, Mark Zimmerman <markzimm@frii.com> wrote:
-> > From looking at the code and a dump of the firmware file, the first
-> > i2c write would have a length of 3; so this error:
-> >
-> > xc5000: I2C write failed (len=3)
-> >
-> > tells me that there were probably no successful i2c transactions on
-> > this device. The i2c write call looks the same as that in other
-> > drivers, so I wonder if there is an initialization step that is now
-> > necessary but which is missing.
-> >
-> > Still hoping for suggestions...
-> 
-> My guess would be that somebody screwed up either the GPIO config int
-> the cx88 board profile, or the i2c gate, which is resulting in not
-> being able to reach the tuner at all.
-> 
-> Do you have an oscilloscope?  If so, I bet you will find that the
-> xc5000 pin is being held in reset.
+Hello,
+I'm a "lucky" owner of a Syntek USB webcam (embedded on my Asus
+laptop); as you might know Nicolas (CC) wrote a driver for these
+cams[1][2], but it's still not included in mainline kernel.
+Since I'd rather save myself and the other users the pain of compiling
+an out-of-tree driver I'm offering my help to make the changes
+necessary to see this driver upstreamed; I'm already a maintainer of
+another driver (in hwmon), so I'm familiar with the development
+process.
+>From a quick overview of the code I've spotted a few problems:
+- minor style issues, trivially dealt with
+- missing cleanups in error paths, idem
+- possible memory leak, reported on the bug tracker - requires investigation
+- big switch statements for all the models, could be simplified with
+function pointers
 
-If I had an oscilloscope I probably wouldn't know where to stick the
-probe.
+Another objection could be that the initialization is basically
+writing magic numbers into magic registers... I guess that Nicolas
+recorded the initialization sequence with a USB sniffer. No solution
+for this one; does anybody have a contact inside Syntek?
 
-> 
-> I would probably take a hard look at the board profile in cx88-cards.c
-> as well as whether there have been any changes to the GPIO setup and
-> power management code.
+Are there other issues blocking the inclusion of this driver?
 
-cx23885-cards.c, actually. I'll see what I can find in there.
-
-Thanks,
--- Mark
+Luca
+[1] http://syntekdriver.sourceforge.net/
+[2] http://syntekdriver.svn.sourceforge.net/viewvc/syntekdriver/trunk/
