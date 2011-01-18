@@ -1,36 +1,44 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:56430 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753002Ab1AZOwY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jan 2011 09:52:24 -0500
-Message-ID: <4D403520.1030504@redhat.com>
-Date: Wed, 26 Jan 2011 15:52:16 +0100
-From: Gerd Hoffmann <kraxel@redhat.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:65378 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751032Ab1AROmv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Jan 2011 09:42:51 -0500
+Received: by wyb28 with SMTP id 28so6190981wyb.19
+        for <linux-media@vger.kernel.org>; Tue, 18 Jan 2011 06:42:50 -0800 (PST)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Mark Lord <kernel@teksavvy.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
- ?
-References: <4D3E59CA.6070107@teksavvy.com> <4D3E5A91.30207@teksavvy.com> <20110125053117.GD7850@core.coreip.homeip.net> <4D3EB734.5090100@redhat.com> <20110125164803.GA19701@core.coreip.homeip.net> <AANLkTi=1Mh0JrYk5itvef7O7e7pR+YKos-w56W5q4B8B@mail.gmail.com> <20110125205453.GA19896@core.coreip.homeip.net> <4D3F4804.6070508@redhat.com> <4D3F4D11.9040302@teksavvy.com> <20110125232914.GA20130@core.coreip.homeip.net> <20110126020003.GA23085@core.coreip.homeip.net> <4D4004F9.6090200@redhat.com> <4D401CC5.4020000@redhat.com> <4D402D35.4090206@redhat.com>
-In-Reply-To: <4D402D35.4090206@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Date: Tue, 18 Jan 2011 16:42:49 +0200
+Message-ID: <AANLkTinT9oPT9ob3W6pzuvbxr502gAC5N02TOLGr_pLC@mail.gmail.com>
+Subject: [libdvben50221] [PATCH] Assign same resource_id in
+ open_session_response when "resource non-existent"
+From: Tomer Barletz <barletz@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=00163649a31924a4f5049a1fea3c
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-   Hi,
+--00163649a31924a4f5049a1fea3c
+Content-Type: text/plain; charset=ISO-8859-1
 
->> Hmm, doesn't apply cleanly ...
->
-> I suspect that Dmitry did the patch against the Debian package, based on a 2007
-> version of it, as it seems that Debian is using an older version of the package.
+Attached a patch for a bug in the lookup_callback function, were in
+case of a non-existent resource, the connected_resource_id is not
+initialized and then used in the open_session_response call of the
+session layer.
 
-Applied, thanks.
+Tomer
 
-cheers,
-   Gerd
+--00163649a31924a4f5049a1fea3c
+Content-Type: text/x-patch; charset=US-ASCII; name="en50221_stdcam_llci.diff"
+Content-Disposition: attachment; filename="en50221_stdcam_llci.diff"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gj2wya6n0
 
+ZGlmZiAtciBkMzUwOWQ2ZTk0OTkgbGliL2xpYmR2YmVuNTAyMjEvZW41MDIyMV9zdGRjYW1fbGxj
+aS5jCi0tLSBhL2xpYi9saWJkdmJlbjUwMjIxL2VuNTAyMjFfc3RkY2FtX2xsY2kuYwlTYXQgQXVn
+IDA4IDE5OjE3OjIxIDIwMDkgKzAyMDAKKysrIGIvbGliL2xpYmR2YmVuNTAyMjEvZW41MDIyMV9z
+dGRjYW1fbGxjaS5jCVR1ZSBKYW4gMTggMTQ6NTE6MzQgMjAxMSArMDIwMApAQCAtMzUxLDYgKzM1
+MSwxMCBAQAogCQl9CiAJfQogCisJLyogSW4gY2FzZSB0aGUgcmVvdXNyY2UgZG9lcyBub3QgZXhp
+c3QsIHJldHVybiB0aGUgc2FtZSBpZCBpbiB0aGUgcmVzcG9uc2UuCisJICAgU2VlIDcuMi42LjIg
+Ki8KKwkqY29ubmVjdGVkX3Jlc291cmNlX2lkID0gcmVxdWVzdGVkX3Jlc291cmNlX2lkOworCiAJ
+cmV0dXJuIC0xOwogfQogCg==
+--00163649a31924a4f5049a1fea3c--
